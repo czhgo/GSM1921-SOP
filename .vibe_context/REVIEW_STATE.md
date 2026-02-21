@@ -99,9 +99,10 @@
 | 0 | 2026-02-21 | — | Initialized `.vibe_context/` architecture | ✅ Done |
 | 1 | 2026-02-21 | yaml_metadata_fix | Injected YAML frontmatter into 5 root node files | ✅ Done |
 | 2 | 2026-02-21 | — | Migrated `_review/书记审阅记录.md` → REVIEW_STATE; upgraded WORKFLOW_MASTER to v1.1; replaced generic scenarios with domain-specific scenarios; deleted `_review/` | ✅ Done |
+| 3 | 2026-02-21 | sop_restructuring | Added `## 🤖 AI 协同工作流` section to `START_HERE.md`; includes Standard Invocation Prompt and Review Inbox workflow in Chinese | ✅ Done |
 
 ---
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Owner:** 储子禾  
 **Last updated:** 2026-02-21
