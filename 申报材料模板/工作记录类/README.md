@@ -1,3 +1,20 @@
+---
+title: "工作记录类模板"
+type: index
+audience:
+  - 宣传委员
+  - 记录人
+  - 支委会成员
+owner: "储子禾"
+last_updated: "2026-02-21"
+version: "1.0"
+status: active
+related_files:
+  - "申报材料模板/工作记录类/党支部工作记录.docx"
+  - "申报材料模板/README.md"
+  - "流程指南/宣传委员工作流程指南.md"
+---
+
 # 工作记录类模板
 
 ## 概述

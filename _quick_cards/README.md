@@ -1,3 +1,24 @@
+---
+title: "快速操作卡片"
+type: index
+audience:
+  - 支委成员
+  - 党小组组长
+  - 所有支部成员
+owner: "储子禾"
+last_updated: "2026-02-21"
+version: "1.0"
+status: active
+related_files:
+  - "_quick_cards/card-01-组织活动.md"
+  - "_quick_cards/card-02-会议记录.md"
+  - "_quick_cards/card-03-活动复盘.md"
+  - "_quick_cards/card-04-考勤记录.md"
+  - "_quick_cards/card-05-宣传检查.md"
+  - "流程指南/常见工作场景快速指南.md"
+  - "START_HERE.md"
+---
+
 # 📇 快速操作卡片
 
 > **给谁用的？** 支委成员。不想看长文档时，看卡片就够了。

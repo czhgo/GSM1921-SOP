@@ -1,3 +1,21 @@
+---
+title: "其他模板"
+type: index
+audience:
+  - 宣传委员
+  - 活动组织者
+  - 所有支委
+owner: "储子禾"
+last_updated: "2026-02-21"
+version: "1.0"
+status: active
+related_files:
+  - "申报材料模板/其他模板/活动总结模板.md"
+  - "申报材料模板/其他模板/支部基本信息模板.md"
+  - "申报材料模板/README.md"
+  - "活动复盘/活动复盘模板.md"
+---
+
 # 其他模板
 
 ## 概述
