@@ -72,6 +72,11 @@ SOP:
   5. Update REVIEW_STATE      → After every meaningful unit of work, update
                                   .vibe_context/REVIEW_STATE.md (task checkboxes, tables,
                                   AI-identified issues). Commit alongside code changes.
+  6. Generate Execution Summary & Log → After updating REVIEW_STATE.md, you MUST append
+                                  a structured execution report to
+                                  .vibe_context/EXECUTION_LOG.md using the template in
+                                  ## 📋 Standard Output Templates below. Also print the
+                                  report in the chat interface for the human manager.
 ```
 
 ---
@@ -128,6 +133,34 @@ SOP:
 
 ---
 
-**Version:** 1.1  
+## 📋 Standard Output Templates
+
+Use this exact template for the Step 6 execution report. Fill in the bracketed fields. Append to `EXECUTION_LOG.md` and print in chat.
+
+````markdown
+## [YYYY-MM-DD] — Session N (scenario_name)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 1. 🧹 技术债清理（YAML 元数据）
+- **扫描结果：** 共发现 [X] 个文件缺失 YAML。
+- **修复清单：**
+  - `[文件路径]`：补充了 `[type]` 属性，关联了 [X] 个 related_files。
+  - _(如本次无 YAML 修复，写"本次扫描无新增缺失文件。")_
+
+### 2. 🚀 状态机任务推进
+- **本次执行任务：** [填写 REVIEW_STATE 中挑出来的任务内容，含优先级标记]
+- **修改的文件：** `[修改的业务文件路径]`
+- **核心逻辑/约束应用：** [简述修改了什么，例如：删除了多余的条条分工表格，重构了流程文本。]
+- **⚠️ 冲突拦截（Agent Watchlist）：** [如触发了 W1–W4 中的监查问题，说明如何处理；如未触发，写"未触发架构冲突"。]
+
+### 3. ⏳ 队列状态更新
+- `REVIEW_STATE.md` 已同步更新。当前剩余待办任务数：[X] 个。
+- **下一顺位建议任务：** [列出状态机里的下一个任务，供书记参考]
+````
+
+---
+
+**Version:** 1.2  
 **Owner:** 储子禾  
 **Last updated:** 2026-02-21

@@ -11,8 +11,8 @@
 
 | Category | Total | ✅ Done | 🔄 In Progress | ⏳ Pending |
 |----------|-------|---------|---------------|-----------|
-| Pending Modification Tasks | 14 | 10 | 0 | 4 |
-| Agent Watchlist Issues | 4 | 0 | 0 | 4 |
+| Pending Modification Tasks | 14 | 11 | 0 | 3 |
+| Agent Watchlist Issues | 4 | 1 | 0 | 3 |
 | Suspended Issues (DO NOT TOUCH) | 3 | — | — | 3 |
 
 ---
@@ -40,7 +40,7 @@
 
 ### 🟡 中优先级
 
-- [ ] **修改4**｜宣传规范统一说明 — 在`流程指南/宣传委员工作流程指南.md`中增加「按活动类型的宣传规范」章节，明确A类（摘要+配图）与B类（活动摘要+配图）差异；两者均不需要宣传预热
+- [x] **修改4**｜宣传规范统一说明 — 在`流程指南/宣传委员工作流程指南.md`中增加「按活动类型的宣传规范」章节，明确A类（摘要+配图）与B类（活动摘要+配图）差异；两者均不需要宣传预热
 - [x] **修改6**｜活动方案报备须过组长 — B类流程增加「组长审批」节点（Step 2）；A类由组长/书记发起天然包含审批
 - [x] **修改7**｜时间线补充 — B类流程表格增加「时间节点」列；外出活动标注「2天前建群+人员到位」硬性要求；复盘1周内
 - [x] **修改8**｜补充模板链接 — 场景1A链接`申报材料模板/工作记录类/党支部工作记录.docx`；场景1B链接`活动复盘/活动复盘模板.md`和`申报材料模板/其他模板/活动总结模板.md`
@@ -66,7 +66,7 @@
 |---|---------|---------|------|
 | W1 | **考察档案归属**：2026年2月已将考察档案从纪检委员转给组织委员，需确保所有文件一致（不得出现纪检负责考察档案的表述） | `组织委员工作流程指南.md` / `纪检委员工作流程指南.md` | ⏳ 未核查 |
 | W2 | **意见反馈平台负责人**：当前文档中部分写纪检委员、部分写组织委员，需统一为同一负责人 | `常见工作场景快速指南.md` / `组织委员工作流程指南.md` / `纪检委员工作流程指南.md` | ⏳ 未核查 |
-| W3 | **宣传委员角色差异**：A类活动宣传委员以「档案归档」为主；B类活动宣传委员以「指导宣传负责人」为主；两种角色不应混用 | `宣传委员工作流程指南.md` | ⏳ 未核查 |
+| W3 | **宣传委员角色差异**：A类活动宣传委员以「档案归档」为主；B类活动宣传委员以「指导宣传负责人」为主；两种角色不应混用 | `宣传委员工作流程指南.md` | ✅ 已解决（Session 5，新增 §3.0） |
 | W4 | **块块委员触发时机差异**：A类活动纪检委员考勤为刚性全程参与；B类为弹性。此差异须体现在各委员工作手册中 | `纪检委员工作流程指南.md` | ⏳ 未核查 |
 
 ---
@@ -101,9 +101,10 @@
 | 2 | 2026-02-21 | — | Migrated `_review/书记审阅记录.md` → REVIEW_STATE; upgraded WORKFLOW_MASTER to v1.1; replaced generic scenarios with domain-specific scenarios; deleted `_review/` | ✅ Done |
 | 3 | 2026-02-21 | sop_restructuring | Added `## 🤖 AI 协同工作流` section to `START_HERE.md`; includes Standard Invocation Prompt and Review Inbox workflow in Chinese | ✅ Done |
 | 4 | 2026-02-21 | yaml_metadata_fix + activity_rules_enforcement | Phase1: injected YAML frontmatter into 5 more files (_quick_cards/README.md + 申报材料模板/4×README); Phase2: restructured 场景1 into 总入口+1A+1B in 常见工作场景快速指南.md; completed 修改1-3,5-12 | ✅ Done |
+| 5 | 2026-02-21 | sop_restructuring | Created EXECUTION_LOG.md; updated WORKFLOW_MASTER SOP Step 6 + Standard Output Templates; added §3.0 按活动类型的宣传规范 to 宣传委员工作流程指南.md; resolved W3 | ✅ Done |
 
 ---
 
-**Version:** 1.3  
+**Version:** 1.4  
 **Owner:** 储子禾  
 **Last updated:** 2026-02-21
