@@ -1,3 +1,26 @@
+---
+title: "光华管理学院本科生党支部 SOP"
+type: index
+audience:
+  - 所有支部成员
+  - 新任支委
+  - 党小组组长
+owner: "储子禾"
+last_updated: "2026-02-17"
+version: "1.0"
+status: active
+related_files:
+  - "START_HERE.md"
+  - "CHEATSHEET.md"
+  - "流程指南/README.md"
+  - "_quick_cards/README.md"
+  - "申报材料模板/README.md"
+  - "活动复盘/README.md"
+  - "流程指南/常见工作场景快速指南.md"
+  - "流程指南/工作流程图-定人定责定岗.md"
+  - "流程指南/支委与党小组定人定责定岗说明.md"
+---
+
 # 光华管理学院本科生党支部 SOP
 
 > **🚨 新人必看：直接打开 [START_HERE.md](./START_HERE.md) 或 [一页速查表](./CHEATSHEET.md)**

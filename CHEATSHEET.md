@@ -1,3 +1,25 @@
+---
+title: "支部工作一页速查表"
+type: reference
+audience:
+  - 所有支部成员
+  - 条条委员
+  - 块块委员
+owner: "储子禾"
+last_updated: "2026-02-17"
+version: "1.0"
+status: active
+related_files:
+  - "START_HERE.md"
+  - "_quick_cards/README.md"
+  - "流程指南/常见工作场景快速指南.md"
+  - "流程指南/工作流程图-定人定责定岗.md"
+  - "流程指南/纪检委员工作流程指南.md"
+  - "申报材料模板/工作记录类/党支部工作记录.docx"
+  - "申报材料模板/其他模板/活动总结模板.md"
+  - "活动复盘/活动复盘模板.md"
+---
+
 # 📋 支部工作一页速查表
 
 ## 遇到这些情况，看这些文件

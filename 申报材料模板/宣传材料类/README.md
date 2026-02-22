@@ -1,3 +1,18 @@
+---
+title: "宣传材料类模板"
+type: index
+audience:
+  - 宣传委员
+  - 宣传骨干
+owner: "储子禾"
+last_updated: "2026-02-21"
+version: "1.0"
+status: active
+related_files:
+  - "申报材料模板/README.md"
+  - "流程指南/宣传委员工作流程指南.md"
+---
+
 # 宣传材料类模板
 
 ## 概述
