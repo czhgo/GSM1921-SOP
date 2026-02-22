@@ -17,7 +17,7 @@ Apply the 书记-approved A-class / B-class party activity classification when m
 - [ ] Re-read `REVIEW_STATE.md` — confirm no conflicting in-progress task
 - [ ] Load the current text of `流程指南/常见工作场景快速指南.md` 场景1
 - [ ] Load the current text of `流程指南/工作流程图-定人定责定岗.md` 第3节
-- [ ] Note the Agent Watchlist items (W1–W4) in REVIEW_STATE and flag any conflicts found
+- [ ] Note the applicable Watchlist items from REVIEW_STATE (`[Global]` items always; `[Scenario-1 Only]` items for this file's scope) and flag any conflicts found
 
 ---
 
@@ -41,7 +41,7 @@ Apply the 书记-approved A-class / B-class party activity classification when m
 | C4 | The principle "除了发展党员、转正、换届等需要严肃投票的事项，其他都可以往党小组压" must be preserved |
 | C5 | Do NOT define "深度参与者" or "组织者" inline — reference `流程指南/纪检委员工作流程指南.md` on first mention |
 | C6 | Do NOT resolve suspended issue H1 (跨组参与考察协同) — mark as ⚠️ 悬置 in the text |
-| C7 | Check Agent Watchlist W1–W4 while editing; log any conflicts found in REVIEW_STATE before proceeding |
+| C7 | **动态 Watchlist 检查（取代硬编码 W1–W4）：** 必须动态检查 `REVIEW_STATE.md` 中标记为 `[Global]` 的全部 Watchlist 项，以及 `[Scenario-1 Only]` 项（本场景文件适用范围为场景1）。发现冲突时先记录至 REVIEW_STATE 再继续。 |
 | C8 | Refer to `官方文件/` for A-class official procedure if more detailed steps are found there |
 | C9 | Mermaid flow diagrams must use existing color scheme: 蓝色=条条, 红色=块块, 绿色=起止节点 |
 
@@ -78,11 +78,11 @@ Apply the 书记-approved A-class / B-class party activity classification when m
 - [ ] **Step 13** — Implement 修改4: add 宣传规范 chapter in `宣传委员工作流程指南.md`
 - [ ] **Step 14** — Implement 修改5: add concept reference links (no re-definition)
 - [ ] **Step 15** — Update Mermaid diagrams in `工作流程图-定人定责定岗.md`
-- [ ] **Step 16** — Check W1–W4 watchlist items; flag conflicts in REVIEW_STATE
+- [ ] **Step 16** — Check applicable Watchlist items (Global + Scenario-1 specific); flag conflicts in REVIEW_STATE
 - [ ] **Step 17** — Update REVIEW_STATE: check off completed tasks, update session log
 
 ---
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Owner:** 储子禾  
-**Last updated:** 2026-02-21
+**Last updated:** 2026-02-22

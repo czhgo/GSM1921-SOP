@@ -19,7 +19,7 @@
 | Category | Total | ✅ Done | 🔄 In Progress | ⏳ Pending |
 |----------|-------|---------|---------------|-----------|
 | Pending Modification Tasks | 14 | 11 | 0 | 3 |
-| Agent Watchlist Issues | 5 | 1 | 0 | 4 |
+| Agent Watchlist Issues | 5 | 4 | 0 | 1 |
 | Suspended Issues (DO NOT TOUCH) | 3 | — | — | 3 |
 
 ---
@@ -72,11 +72,11 @@
 
 | # | Scope (作用域) | 监查问题 | 涉及文件 | 状态 |
 |---|---------------|---------|---------|------|
-| W1 | `[Global]` | **考察档案归属**：2026年2月已将考察档案从纪检委员转给组织委员，需确保所有文件一致（不得出现纪检负责考察档案的表述） | `组织委员工作流程指南.md` / `纪检委员工作流程指南.md` | ⏳ 未核查 |
-| W2 | `[Global]` | **意见反馈平台负责人**：当前文档中部分写纪检委员、部分写组织委员，需统一为同一负责人 | `常见工作场景快速指南.md` / `组织委员工作流程指南.md` / `纪检委员工作流程指南.md` | ⏳ 未核查 |
+| W1 | `[Global]` | **考察档案归属**：2026年2月已将考察档案从纪检委员转给组织委员，需确保所有文件一致（不得出现纪检负责考察档案的表述） | `组织委员工作流程指南.md` / `纪检委员工作流程指南.md` | ✅ 已解决（Session 9：常见工作场景快速指南场景3+6、纪检委员指南TOC修正） |
+| W2 | `[Global]` | **意见反馈平台负责人**：当前文档中部分写纪检委员、部分写组织委员，需统一为同一负责人 | `常见工作场景快速指南.md` / `组织委员工作流程指南.md` / `纪检委员工作流程指南.md` | ✅ 已解决（Session 9：统一为纪检委员，纪检指南恢复§4.2，支委说明/README同步更新） |
 | W3 | `[Scenario-1 Only]` | **宣传委员角色差异**：A类活动宣传委员以「档案归档」为主；B类活动宣传委员以「指导宣传负责人」为主；两种角色不应混用 | `宣传委员工作流程指南.md` | ✅ 已解决（Session 5，新增 §3.0） |
 | W4 | `[Scenario-1 Only]` | **块块委员触发时机差异**：A类活动纪检委员考勤为刚性全程参与；B类为弹性。此差异须体现在各委员工作手册中 | `纪检委员工作流程指南.md` | ⏳ 未核查 |
-| W5 | `[Scenario-1 Only]` | **快速卡片未更新**：`_quick_cards/card-01-组织活动.md` (last_updated 2026-02-17) 使用简化5步流程，未反映Session 4引入的A类/B类（1A/1B）拆分。其他卡片亦需核查 | `_quick_cards/card-01-组织活动.md`（其他卡片待查） | ⏳ 未处理 |
+| W5 | `[Scenario-1 Only]` | **快速卡片未更新**：`_quick_cards/card-01-组织活动.md` (last_updated 2026-02-17) 使用简化5步流程，未反映Session 4引入的A类/B类（1A/1B）拆分。其他卡片亦需核查 | `_quick_cards/card-01-组织活动.md`（其他卡片待查） | ✅ 已解决（Session 9：彻底重写为A/B双路径卡片） |
 
 ---
 
@@ -115,9 +115,10 @@
 | 6 | 2026-02-22 | — | Added `## 🗺️ Dual-Panel Reference Map` section to WORKFLOW_MASTER v1.3: explicit storage paths, invocation methods, trigger conditions for both panels; 一改俱改 coupling mechanism table + validation gate | ✅ Done |
 | 7 | 2026-02-22 | — | Created CONTENT_MAP.md: dual-purpose architecture declaration, annotated Markdown index (25 files), binary file registry (11 files), coverage gap table (G1-G4); added W5 to REVIEW_STATE Watchlist; updated WORKFLOW_MASTER v1.4 (SOP Step 2b + AI Panel storage paths) | ✅ Done |
 | 8 | 2026-02-22 | Control Plane Refactoring | Added Operation Mode status bit (Sandbox/Strict) to REVIEW_STATE header; added Scope column to Watchlist (W1-W2→Global, W3-W5→Scenario-1 Only) and Suspended Issues (H1→Scenario-1 Only, H2-H3→Global) | ✅ Done |
+| 9 | 2026-02-22 | Global Audit + Debt Resolution + Vision Declaration | Step1: C5/C6 in sop_restructuring+activity_rules_enforcement → dynamic scope-aware; Step2: W1+W2 resolved (6 files updated); Step3: W5 resolved (card-01 rewritten A/B); Step4: Vision declaration added to README.md | ✅ Done |
 
 ---
 
-**Version:** 1.7  
+**Version:** 1.8  
 **Owner:** 储子禾  
 **Last updated:** 2026-02-22
