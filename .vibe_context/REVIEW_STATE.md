@@ -7,6 +7,13 @@
 
 ---
 
+## ⚙️ Current Operation Mode: **[Sandbox]**
+
+> 当处于 **Sandbox** 模式处理新场景（如场景2–9）时，仅继承 `[Global]` 级的 W/H 约束，暂不合并 `[Scenario-1 Only]` 的约束，避免特殊性与普遍性混淆。  
+> 切换至 **Strict** 模式时，所有 W/H 约束（包括 Scenario-Specific 项）均对当前任务生效。
+
+---
+
 ## 📊 Overall Progress
 
 | Category | Total | ✅ Done | 🔄 In Progress | ⏳ Pending |
@@ -60,28 +67,30 @@
 ## 🔍 Agent Watchlist（块块委员分工优化 — 修改时必须核查并反馈）
 
 > Extracted from `_review/书记审阅记录.md` §「块块委员分工优化反馈」.  
-> When any of these conflicts is encountered during execution, **flag it explicitly** in this table before proceeding.
+> When any of these conflicts is encountered during execution, **flag it explicitly** in this table before proceeding.  
+> **Sandbox mode:** Only `[Global]` items are inherited when working on scenarios 2–9.
 
-| # | 监查问题 | 涉及文件 | 状态 |
-|---|---------|---------|------|
-| W1 | **考察档案归属**：2026年2月已将考察档案从纪检委员转给组织委员，需确保所有文件一致（不得出现纪检负责考察档案的表述） | `组织委员工作流程指南.md` / `纪检委员工作流程指南.md` | ⏳ 未核查 |
-| W2 | **意见反馈平台负责人**：当前文档中部分写纪检委员、部分写组织委员，需统一为同一负责人 | `常见工作场景快速指南.md` / `组织委员工作流程指南.md` / `纪检委员工作流程指南.md` | ⏳ 未核查 |
-| W3 | **宣传委员角色差异**：A类活动宣传委员以「档案归档」为主；B类活动宣传委员以「指导宣传负责人」为主；两种角色不应混用 | `宣传委员工作流程指南.md` | ✅ 已解决（Session 5，新增 §3.0） |
-| W4 | **块块委员触发时机差异**：A类活动纪检委员考勤为刚性全程参与；B类为弹性。此差异须体现在各委员工作手册中 | `纪检委员工作流程指南.md` | ⏳ 未核查 |
-| W5 | **快速卡片未更新**：`_quick_cards/card-01-组织活动.md` (last_updated 2026-02-17) 使用简化5步流程，未反映Session 4引入的A类/B类（1A/1B）拆分。其他卡片亦需核查 | `_quick_cards/card-01-组织活动.md`（其他卡片待查） | ⏳ 未处理 |
+| # | Scope (作用域) | 监查问题 | 涉及文件 | 状态 |
+|---|---------------|---------|---------|------|
+| W1 | `[Global]` | **考察档案归属**：2026年2月已将考察档案从纪检委员转给组织委员，需确保所有文件一致（不得出现纪检负责考察档案的表述） | `组织委员工作流程指南.md` / `纪检委员工作流程指南.md` | ⏳ 未核查 |
+| W2 | `[Global]` | **意见反馈平台负责人**：当前文档中部分写纪检委员、部分写组织委员，需统一为同一负责人 | `常见工作场景快速指南.md` / `组织委员工作流程指南.md` / `纪检委员工作流程指南.md` | ⏳ 未核查 |
+| W3 | `[Scenario-1 Only]` | **宣传委员角色差异**：A类活动宣传委员以「档案归档」为主；B类活动宣传委员以「指导宣传负责人」为主；两种角色不应混用 | `宣传委员工作流程指南.md` | ✅ 已解决（Session 5，新增 §3.0） |
+| W4 | `[Scenario-1 Only]` | **块块委员触发时机差异**：A类活动纪检委员考勤为刚性全程参与；B类为弹性。此差异须体现在各委员工作手册中 | `纪检委员工作流程指南.md` | ⏳ 未核查 |
+| W5 | `[Scenario-1 Only]` | **快速卡片未更新**：`_quick_cards/card-01-组织活动.md` (last_updated 2026-02-17) 使用简化5步流程，未反映Session 4引入的A类/B类（1A/1B）拆分。其他卡片亦需核查 | `_quick_cards/card-01-组织活动.md`（其他卡片待查） | ⏳ 未处理 |
 
 ---
 
 ## ⏸️ Suspended Issues — DO NOT TOUCH
 
 > Extracted from `_review/书记审阅记录.md` §「悬置问题清单」.  
-> **STRICT CONSTRAINT: The Agent MUST NOT modify or attempt to resolve these issues in any session until explicitly unlocked by the 书记.**
+> **STRICT CONSTRAINT: The Agent MUST NOT modify or attempt to resolve these issues in any session until explicitly unlocked by the 书记.**  
+> **Sandbox mode:** Only `[Global]` items are inherited when working on scenarios 2–9.
 
-| # | 问题 | 涉及文件 | 悬置原因 |
-|---|------|---------|---------|
-| H1 | 跨组参与时，组织者的考察如何协同？ | `纪检委员工作流程指南.md` | 书记指示先悬置，后续另行讨论 |
-| H2 | 现有模板需要精简，降低参与边际成本 | `申报材料模板/` | 需要单独一轮修改，本轮不涉及 |
-| H3 | 党小组工作手册（条条委员专用）尚未建设 | 待新建文件 | 本轮先通过SOP规定条条职责 |
+| # | Scope (作用域) | 问题 | 涉及文件 | 悬置原因 |
+|---|---------------|------|---------|---------|
+| H1 | `[Scenario-1 Only]` | 跨组参与时，组织者的考察如何协同？ | `纪检委员工作流程指南.md` | 书记指示先悬置，后续另行讨论 |
+| H2 | `[Global]` | 现有模板需要精简，降低参与边际成本 | `申报材料模板/` | 需要单独一轮修改，本轮不涉及 |
+| H3 | `[Global]` | 党小组工作手册（条条委员专用）尚未建设 | 待新建文件 | 本轮先通过SOP规定条条职责 |
 
 ---
 
@@ -105,9 +114,10 @@
 | 5 | 2026-02-21 | sop_restructuring | Created EXECUTION_LOG.md; updated WORKFLOW_MASTER SOP Step 6 + Standard Output Templates; added §3.0 按活动类型的宣传规范 to 宣传委员工作流程指南.md; resolved W3 | ✅ Done |
 | 6 | 2026-02-22 | — | Added `## 🗺️ Dual-Panel Reference Map` section to WORKFLOW_MASTER v1.3: explicit storage paths, invocation methods, trigger conditions for both panels; 一改俱改 coupling mechanism table + validation gate | ✅ Done |
 | 7 | 2026-02-22 | — | Created CONTENT_MAP.md: dual-purpose architecture declaration, annotated Markdown index (25 files), binary file registry (11 files), coverage gap table (G1-G4); added W5 to REVIEW_STATE Watchlist; updated WORKFLOW_MASTER v1.4 (SOP Step 2b + AI Panel storage paths) | ✅ Done |
+| 8 | 2026-02-22 | Control Plane Refactoring | Added Operation Mode status bit (Sandbox/Strict) to REVIEW_STATE header; added Scope column to Watchlist (W1-W2→Global, W3-W5→Scenario-1 Only) and Suspended Issues (H1→Scenario-1 Only, H2-H3→Global) | ✅ Done |
 
 ---
 
-**Version:** 1.6  
+**Version:** 1.7  
 **Owner:** 储子禾  
 **Last updated:** 2026-02-22

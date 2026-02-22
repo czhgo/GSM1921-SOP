@@ -133,3 +133,33 @@ Each entry is appended after Step 6 of the SOP. Do not edit past entries.
 
 - `REVIEW_STATE.md` 已同步更新至 v1.6。**当前剩余业务改造任务数：3 个**（修改13、修改14，以及流程图第3节拆分）。**新增Watchlist问题1个**（W5: 快速卡片未更新）。
 - **下一顺位建议任务：** 🟡 **W5**——更新 `_quick_cards/card-01-组织活动.md` 以区分A类/B类（1A/1B）活动流程；同步核查其余4张卡片是否亦受A/B重构影响。
+
+---
+
+## [2026-02-22] — Session 8 (Control Plane Refactoring)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 1. 🧹 技术债清理（YAML 元数据）
+
+- **扫描结果：** 本次扫描无新增缺失文件。本次任务为纯控制面重构，不涉及业务文件。
+
+### 2. 🚀 状态机任务推进
+
+- **本次执行任务：** 书记直接指令——引入作用域（Scope）机制，防止场景1局部约束被错误全局化；增加敏捷沙盒操作模式声明
+- **修改文件：** `.vibe_context/REVIEW_STATE.md`（v1.6 → v1.7）
+- **核心逻辑/约束应用：**
+  - **新增 `⚙️ Current Operation Mode: [Sandbox]` 状态位**（位于文件顶部 `---` 之后、`📊 Overall Progress` 之前）：声明当前模式为 Sandbox；附一句说明——Sandbox 模式下仅继承 `[Global]` 级约束，`[Scenario-1 Only]` 约束暂不合并到新场景中。
+  - **Agent Watchlist 新增 `Scope (作用域)` 列**，分类如下：
+    - `[Global]`：W1（考察档案归属），W2（意见反馈平台负责人）——属于底层组织分工逻辑，横跨所有场景
+    - `[Scenario-1 Only]`：W3（宣传委员A/B角色差异），W4（纪检委员考勤触发时机差异），W5（快速卡片未更新）——均为场景1 A/B类活动拆分的历史遗留，不适用于场景2–9
+  - **Suspended Issues 新增 `Scope (作用域)` 列**，分类如下：
+    - `[Scenario-1 Only]`：H1（跨组参与考察协同）——场景1 B类活动专属问题
+    - `[Global]`：H2（模板精简），H3（党小组工作手册建设）——适用于全仓库
+  - **Watchlist 和 Suspended Issues 的 preamble** 各增加了 Sandbox 模式的作用域说明。
+- **⚠️ 冲突拦截（Agent Watchlist）：** 未触发架构冲突。本次为纯控制面操作，零业务SOP修改。
+
+### 3. ⏳ 队列状态更新
+
+- `REVIEW_STATE.md` 已同步更新至 v1.7（Session Log 新增第8行）。**业务改造剩余待办：3 个**（修改13、修改14，以及流程图第3节拆分）。**Watchlist Open：4 个（其中 Global: 2 个，Scenario-1 Only: 2 个）**。
+- **下一顺位建议任务（Sandbox模式下优先选全局任务）：** 🟡 **W1+W2**——核查考察档案归属及意见反馈平台负责人在所有SOP文件中的一致性（两个 `[Global]` 级 Watchlist 问题，影响面最广，新场景开展前应先完成）。
