@@ -49,7 +49,7 @@ Never embed scenario logic inside human documents.
 
 | Attribute | Specification |
 |-----------|---------------|
-| **Storage Paths** | `.vibe_context/WORKFLOW_MASTER.md` — master rules & meta-prompt (this file) <br>`.vibe_context/REVIEW_STATE.md` — live task state, single source of truth <br>`.vibe_context/EXECUTION_LOG.md` — append-only audit trail <br>`.vibe_context/scenarios/activity_rules_enforcement.md` — A/B activity constraints <br>`.vibe_context/scenarios/sop_restructuring.md` — SOP restructuring constraints <br>`.vibe_context/scenarios/yaml_metadata_fix.md` — YAML frontmatter constraints |
+| **Storage Paths** | `.vibe_context/WORKFLOW_MASTER.md` — master rules & meta-prompt (this file) <br>`.vibe_context/REVIEW_STATE.md` — live task state, single source of truth <br>`.vibe_context/EXECUTION_LOG.md` — append-only audit trail <br>`.vibe_context/CONTENT_MAP.md` — annotated index of all Human Panel files + binary file registry (read at session start for full context) <br>`.vibe_context/scenarios/activity_rules_enforcement.md` — A/B activity constraints <br>`.vibe_context/scenarios/sop_restructuring.md` — SOP restructuring constraints <br>`.vibe_context/scenarios/yaml_metadata_fix.md` — YAML frontmatter constraints |
 | **Invocation** | **GitHub Copilot:** paste the Standard Invocation Prompt (see §📣 below) into the chat, using `@workspace` and `@.vibe_context/WORKFLOW_MASTER.md` symbols. <br>**Other AI systems (e.g., Claude, Gemini):** attach `.vibe_context/WORKFLOW_MASTER.md` and `.vibe_context/REVIEW_STATE.md` directly, or reference their repo-root-relative paths in the prompt. |
 | **Trigger Conditions** | • Start of **any** session that will read or modify repository files. <br>• When the Agent needs to determine what tasks are pending or in-progress. <br>• When a human manager asks the Agent to resume, continue, or audit prior work. <br>• When the Agent detects a potential conflict between documents (trigger Watchlist check). |
 
@@ -106,6 +106,9 @@ SOP:
   1. Read WORKFLOW_MASTER     → Load this file first. Internalize all rules below.
   2. Read REVIEW_STATE        → Load .vibe_context/REVIEW_STATE.md. Identify current
                                  task status, pending issues, and completed work.
+  2b. Read CONTENT_MAP        → (Recommended) Load .vibe_context/CONTENT_MAP.md to get
+                                  an annotated overview of all Human Panel files and the
+                                  binary-file registry before navigating the repo.
   3. Load specific Scenario   → Read the matching file from .vibe_context/scenarios/
                                  (e.g., scenarios/bug_fix.md). Follow its constraints exactly.
   4. Execute Code Modification → Make the smallest possible, surgical changes. Do not
@@ -202,6 +205,6 @@ Use this exact template for the Step 6 execution report. Fill in the bracketed f
 
 ---
 
-**Version:** 1.3  
+**Version:** 1.4  
 **Owner:** 储子禾  
 **Last updated:** 2026-02-22

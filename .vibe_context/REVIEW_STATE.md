@@ -12,7 +12,7 @@
 | Category | Total | ✅ Done | 🔄 In Progress | ⏳ Pending |
 |----------|-------|---------|---------------|-----------|
 | Pending Modification Tasks | 14 | 11 | 0 | 3 |
-| Agent Watchlist Issues | 4 | 1 | 0 | 3 |
+| Agent Watchlist Issues | 5 | 1 | 0 | 4 |
 | Suspended Issues (DO NOT TOUCH) | 3 | — | — | 3 |
 
 ---
@@ -68,6 +68,7 @@
 | W2 | **意见反馈平台负责人**：当前文档中部分写纪检委员、部分写组织委员，需统一为同一负责人 | `常见工作场景快速指南.md` / `组织委员工作流程指南.md` / `纪检委员工作流程指南.md` | ⏳ 未核查 |
 | W3 | **宣传委员角色差异**：A类活动宣传委员以「档案归档」为主；B类活动宣传委员以「指导宣传负责人」为主；两种角色不应混用 | `宣传委员工作流程指南.md` | ✅ 已解决（Session 5，新增 §3.0） |
 | W4 | **块块委员触发时机差异**：A类活动纪检委员考勤为刚性全程参与；B类为弹性。此差异须体现在各委员工作手册中 | `纪检委员工作流程指南.md` | ⏳ 未核查 |
+| W5 | **快速卡片未更新**：`_quick_cards/card-01-组织活动.md` (last_updated 2026-02-17) 使用简化5步流程，未反映Session 4引入的A类/B类（1A/1B）拆分。其他卡片亦需核查 | `_quick_cards/card-01-组织活动.md`（其他卡片待查） | ⏳ 未处理 |
 
 ---
 
@@ -103,9 +104,10 @@
 | 4 | 2026-02-21 | yaml_metadata_fix + activity_rules_enforcement | Phase1: injected YAML frontmatter into 5 more files (_quick_cards/README.md + 申报材料模板/4×README); Phase2: restructured 场景1 into 总入口+1A+1B in 常见工作场景快速指南.md; completed 修改1-3,5-12 | ✅ Done |
 | 5 | 2026-02-21 | sop_restructuring | Created EXECUTION_LOG.md; updated WORKFLOW_MASTER SOP Step 6 + Standard Output Templates; added §3.0 按活动类型的宣传规范 to 宣传委员工作流程指南.md; resolved W3 | ✅ Done |
 | 6 | 2026-02-22 | — | Added `## 🗺️ Dual-Panel Reference Map` section to WORKFLOW_MASTER v1.3: explicit storage paths, invocation methods, trigger conditions for both panels; 一改俱改 coupling mechanism table + validation gate | ✅ Done |
+| 7 | 2026-02-22 | — | Created CONTENT_MAP.md: dual-purpose architecture declaration, annotated Markdown index (25 files), binary file registry (11 files), coverage gap table (G1-G4); added W5 to REVIEW_STATE Watchlist; updated WORKFLOW_MASTER v1.4 (SOP Step 2b + AI Panel storage paths) | ✅ Done |
 
 ---
 
-**Version:** 1.5  
+**Version:** 1.6  
 **Owner:** 储子禾  
 **Last updated:** 2026-02-22
