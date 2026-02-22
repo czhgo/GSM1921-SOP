@@ -20,7 +20,7 @@
 |----------|-------|---------|---------------|-----------|
 | Pending Modification Tasks | 14 | 11 | 0 | 3 |
 | Agent Watchlist Issues | 5 | 4 | 0 | 1 |
-| Suspended Issues (DO NOT TOUCH) | 3 | — | — | 3 |
+| Suspended Issues (DO NOT TOUCH) | 2 | — | — | 2 |
 
 ---
 
@@ -89,7 +89,6 @@
 | # | Scope (作用域) | 问题 | 涉及文件 | 悬置原因 |
 |---|---------------|------|---------|---------|
 | H1 | `[Scenario-1 Only]` | 跨组参与时，组织者的考察如何协同？ | `纪检委员工作流程指南.md` | 书记指示先悬置，后续另行讨论 |
-| H2 | `[Global]` | 现有模板需要精简，降低参与边际成本 | `申报材料模板/` | 需要单独一轮修改，本轮不涉及 |
 | H3 | `[Global]` | 党小组工作手册（条条委员专用）尚未建设 | 待新建文件 | 本轮先通过SOP规定条条职责 |
 
 ---
@@ -116,9 +115,10 @@
 | 7 | 2026-02-22 | — | Created CONTENT_MAP.md: dual-purpose architecture declaration, annotated Markdown index (25 files), binary file registry (11 files), coverage gap table (G1-G4); added W5 to REVIEW_STATE Watchlist; updated WORKFLOW_MASTER v1.4 (SOP Step 2b + AI Panel storage paths) | ✅ Done |
 | 8 | 2026-02-22 | Control Plane Refactoring | Added Operation Mode status bit (Sandbox/Strict) to REVIEW_STATE header; added Scope column to Watchlist (W1-W2→Global, W3-W5→Scenario-1 Only) and Suspended Issues (H1→Scenario-1 Only, H2-H3→Global) | ✅ Done |
 | 9 | 2026-02-22 | Global Audit + Debt Resolution + Vision Declaration | Step1: C5/C6 in sop_restructuring+activity_rules_enforcement → dynamic scope-aware; Step2: W1+W2 resolved (6 files updated); Step3: W5 resolved (card-01 rewritten A/B); Step4: Vision declaration added to README.md | ✅ Done |
+| 10 | 2026-02-22 | Template Razor & Feedback Channel (H2 Unlocked) | Razor-cut 3 MD templates (活动复盘/活动总结/支部基本信息 v1→v2, -75% lines); created _quick_cards/SOP优化提案反馈卡.md; added feedback card notice to START_HERE.md; H2 removed from Suspended Issues | ✅ Done |
 
 ---
 
-**Version:** 1.8  
+**Version:** 1.9  
 **Owner:** 储子禾  
 **Last updated:** 2026-02-22
