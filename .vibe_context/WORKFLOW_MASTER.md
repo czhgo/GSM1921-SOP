@@ -33,6 +33,47 @@ Never embed scenario logic inside human documents.
 
 ---
 
+## 🗺️ Dual-Panel Reference Map (Storage · Invocation · Triggers)
+
+> This section is the authoritative specification for the dual-panel architecture. Read it together with §🏛️ Supreme Architecture Rule above. It tells every Agent exactly **where** each panel lives, **how** to access it, and **when** to access it.
+
+### Human Panel (人工面板)
+
+| Attribute | Specification |
+|-----------|---------------|
+| **Storage Paths** | Root entry points: `README.md`, `START_HERE.md`, `CHEATSHEET.md` <br>Sub-directories: `流程指南/`, `_quick_cards/`, `申报材料模板/`, `活动复盘/`, `官方文件/`, `党小组会/`, `支部委员会/` |
+| **Invocation** | Open any file directly in GitHub web UI, a local Markdown viewer, or WPS (for `.docx` / `.pdf`). Navigate via `README.md` (full index) or `START_HERE.md` (onboarding guide). No command is required. |
+| **Trigger Conditions** | • A 支部成员 needs to look up a procedure, template, or policy. <br>• A 支委 needs to execute a task. <br>• Content is being written or reviewed for a human reader. |
+
+### AI Data Panel (AI数据面板)
+
+| Attribute | Specification |
+|-----------|---------------|
+| **Storage Paths** | `.vibe_context/WORKFLOW_MASTER.md` — master rules & meta-prompt (this file) <br>`.vibe_context/REVIEW_STATE.md` — live task state, single source of truth <br>`.vibe_context/EXECUTION_LOG.md` — append-only audit trail <br>`.vibe_context/CONTENT_MAP.md` — annotated index of all Human Panel files + binary file registry (read at session start for full context) <br>`.vibe_context/scenarios/activity_rules_enforcement.md` — A/B activity constraints <br>`.vibe_context/scenarios/sop_restructuring.md` — SOP restructuring constraints <br>`.vibe_context/scenarios/yaml_metadata_fix.md` — YAML frontmatter constraints |
+| **Invocation** | **GitHub Copilot:** paste the Standard Invocation Prompt (see §📣 below) into the chat, using `@workspace` and `@.vibe_context/WORKFLOW_MASTER.md` symbols. <br>**Other AI systems (e.g., Claude, Gemini):** attach `.vibe_context/WORKFLOW_MASTER.md` and `.vibe_context/REVIEW_STATE.md` directly, or reference their repo-root-relative paths in the prompt. |
+| **Trigger Conditions** | • Start of **any** session that will read or modify repository files. <br>• When the Agent needs to determine what tasks are pending or in-progress. <br>• When a human manager asks the Agent to resume, continue, or audit prior work. <br>• When the Agent detects a potential conflict between documents (trigger Watchlist check). |
+
+### 一改俱改 Coupling Mechanism
+
+The **YAML frontmatter block** at the top of each Markdown file is the sole coupling anchor between the Human Panel and the AI Data Panel (see Constraint 3 above).
+
+**Mandatory sync rules — every Human Panel change MUST trigger a corresponding AI Data Panel update:**
+
+| Human Panel Event | Required AI Data Panel Update |
+|-------------------|-------------------------------|
+| New Markdown file created | Run `yaml_metadata_fix` scenario to inject YAML frontmatter; register the new file in the nearest parent's `related_files`. |
+| SOP text modified in `流程指南/` | Update `last_updated` in that file's YAML; check off the matching task in `REVIEW_STATE.md`; append a new entry to `EXECUTION_LOG.md`. |
+| New issue or inconsistency found in human content | Log immediately in `REVIEW_STATE.md` → `## 🐛 AI-Identified Issues` (code bugs) or `## 🔍 Agent Watchlist` (structural conflicts). |
+| Pending task completed | Mark `[x]` in `REVIEW_STATE.md`; update `## 📊 Overall Progress` counters; append a row to the Session Log table. |
+| Suspended issue (`H1`–`H3`) encountered | **BLOCKED** — do not modify; leave a `⚠️ 悬置` marker in the text and move on. The issue may only be unlocked by an explicit instruction from 书记 in `REVIEW_STATE.md`. |
+
+**Validation gate (run before every `report_progress` call):**
+1. All task checkboxes in `REVIEW_STATE.md` accurately reflect the current state of Human Panel files.
+2. `EXECUTION_LOG.md` has a new entry for the current session.
+3. Every modified Markdown file has an updated `last_updated` field in its YAML frontmatter.
+
+---
+
 ## 📣 Standard Invocation Prompt
 
 Copy-paste this template to start any Agent session:
@@ -65,6 +106,9 @@ SOP:
   1. Read WORKFLOW_MASTER     → Load this file first. Internalize all rules below.
   2. Read REVIEW_STATE        → Load .vibe_context/REVIEW_STATE.md. Identify current
                                  task status, pending issues, and completed work.
+  2b. Read CONTENT_MAP        → (Recommended) Load .vibe_context/CONTENT_MAP.md to get
+                                  an annotated overview of all Human Panel files and the
+                                  binary-file registry before navigating the repo.
   3. Load specific Scenario   → Read the matching file from .vibe_context/scenarios/
                                  (e.g., scenarios/bug_fix.md). Follow its constraints exactly.
   4. Execute Code Modification → Make the smallest possible, surgical changes. Do not
@@ -92,6 +136,20 @@ SOP:
 | R5 | **Security first.** Run `codeql_checker` and advisory checks before finalizing any session with code changes. |
 | R6 | **No orphaned tasks.** Every task opened in REVIEW_STATE must be closed or explicitly deferred with a reason. |
 | R7 | **Commit after each verified step.** Use `report_progress` to commit incremental, verified changes. |
+
+### Permanent Design Principles (永久性设计原则)
+
+> These principles are **Global Constants** — they apply to every scenario execution and cannot be overridden by individual scenario files.
+
+#### Principle 5 — Occam's Razor & Anti-Formalism (奥卡姆剃刀与去形式化)
+
+**Permanent Constraint:** Before finalising any output in any scenario (restructuring, editing, template creation, etc.), the execution engine **MUST** self-audit against the following three questions:
+
+1. **填写/阅读负担检查** — "是否增加了人类不必要的阅读或填写负担？"
+2. **结构扁平化检查** — "文档结构是否可以更扁平？"
+3. **信噪比检查** — "是否已清除长篇大论的空泛表述（如无意义的体会占位符），仅保留高信噪比业务信息？"
+
+**Action:** The Agent has both the **right** and the **obligation** to proactively trim redundant content. If a draft output fails any of the three checks above, revise before committing. This principle cannot be suspended.
 
 ---
 
@@ -161,6 +219,6 @@ Use this exact template for the Step 6 execution report. Fill in the bracketed f
 
 ---
 
-**Version:** 1.2  
+**Version:** 1.5  
 **Owner:** 储子禾  
-**Last updated:** 2026-02-21
+**Last updated:** 2026-02-23
