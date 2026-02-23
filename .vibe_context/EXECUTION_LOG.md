@@ -278,3 +278,38 @@ Each entry is appended after Step 6 of the SOP. Do not edit past entries.
 - `REVIEW_STATE.md` 已同步更新至 v1.9（H2 移除，Session 10 新增）。
 - **Suspended Issues 剩余：2 个**（H1 [Scenario-1 Only], H3 [Global]）。**Watchlist 剩余 Open：1 个**（W4）。**业务改造任务剩余：3 个**（修改13、14 + 流程图§3 A/B拆分）。
 - **下一顺位建议任务：** 🟡 **修改13**——B类外出活动增加安全/交通/经费专项注意事项（`常见工作场景快速指南.md` B类流程）；或 **W4**——核查纪检委员指南 A/B 考勤触发时机表述一致性。
+
+---
+
+## [2026-02-23] — Session 11 (Constitution Upgrade & Taxonomy Synchronization)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 1. 🧹 技术债清理（YAML 元数据）
+
+- **扫描结果：** 本次扫描无新增缺失文件。所有修改文件已更新 `last_updated` 和 `version` 字段。
+
+### 2. 🚀 状态机任务推进
+
+**第一步 — WORKFLOW_MASTER.md 宪法升级（v1.4 → v1.5）：**
+- 在 `## Global Rules` 末尾新增 `### Permanent Design Principles (永久性设计原则)` 子节。
+- **Principle 5 — Occam's Razor & Anti-Formalism（奥卡姆剃刀与去形式化）**：三项强制自审问题（填写负担/结构扁平/信噪比）；Agent 有权且必须主动裁剪冗余；永久生效，不可被 scenario 文件覆盖。
+
+**第二步 — REVIEW_STATE.md 状态机字典校准（v1.9 → v2.0）：**
+- 在文件头部（既有 Role/Update/Reading/Source 说明块之后，`⚙️ Current Operation Mode` 之前）插入 `## 📐 指令维度说明 (Directive Dimensions)` 章节。
+- 四维度表格：Permanent Principles（`WORKFLOW_MASTER.md`）/ Global Constraints / Role-Delegation Constraints / Scenario-Specific Constraints，各附存储位置指针。
+
+**第三步 — SOP优化提案反馈卡.md 前端对齐（v1.0 → v1.1）：**
+- `## 1. 影响范围 (Scope)` 从3选项 → 4选项，与第二步四维度完全同构：
+  - 🌌 Permanent（底层架构与原则建议）
+  - 🌍 Global（全局通用业务规则）
+  - 👥 Role（支委分工与权责调整）
+  - 🎯 Scenario-Specific（特定业务场景专用）
+
+**⚠️ 冲突拦截（Agent Watchlist）：** 未触发架构冲突。本次为纯控制面/反馈卡操作，零业务 SOP 修改。
+
+### 3. ⏳ 队列状态更新
+
+- `REVIEW_STATE.md` 已同步更新至 v2.0（Session 11 新增至 Session Log）。
+- **Suspended Issues 剩余：2 个**（H1 [Scenario-1 Only], H3 [Global]）。**Watchlist Open：1 个**（W4）。**业务改造任务剩余：3 个**（修改13、14 + 流程图§3 A/B拆分）。
+- **下一顺位建议任务：** 🟡 **修改13**——B类外出活动增加安全/交通/经费专项注意事项（`常见工作场景快速指南.md`）。

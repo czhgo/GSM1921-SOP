@@ -137,6 +137,20 @@ SOP:
 | R6 | **No orphaned tasks.** Every task opened in REVIEW_STATE must be closed or explicitly deferred with a reason. |
 | R7 | **Commit after each verified step.** Use `report_progress` to commit incremental, verified changes. |
 
+### Permanent Design Principles (永久性设计原则)
+
+> These principles are **Global Constants** — they apply to every scenario execution and cannot be overridden by individual scenario files.
+
+#### Principle 5 — Occam's Razor & Anti-Formalism (奥卡姆剃刀与去形式化)
+
+**Permanent Constraint:** Before finalising any output in any scenario (restructuring, editing, template creation, etc.), the execution engine **MUST** self-audit against the following three questions:
+
+1. **填写/阅读负担检查** — "是否增加了人类不必要的阅读或填写负担？"
+2. **结构扁平化检查** — "文档结构是否可以更扁平？"
+3. **信噪比检查** — "是否已清除长篇大论的空泛表述（如无意义的体会占位符），仅保留高信噪比业务信息？"
+
+**Action:** The Agent has both the **right** and the **obligation** to proactively trim redundant content. If a draft output fails any of the three checks above, revise before committing. This principle cannot be suspended.
+
 ---
 
 ## Session Lifecycle
@@ -205,6 +219,6 @@ Use this exact template for the Step 6 execution report. Fill in the bracketed f
 
 ---
 
-**Version:** 1.4  
+**Version:** 1.5  
 **Owner:** 储子禾  
-**Last updated:** 2026-02-22
+**Last updated:** 2026-02-23

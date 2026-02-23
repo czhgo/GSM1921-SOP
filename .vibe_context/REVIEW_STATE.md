@@ -7,6 +7,19 @@
 
 ---
 
+## 📐 指令维度说明 (Directive Dimensions)
+
+> This taxonomy governs how every constraint, rule, and issue is classified and inherited across sessions and scenarios.
+
+| Dimension | Definition | Storage |
+|-----------|-----------|---------|
+| **Permanent Principles (永久原则)** | Bottom-layer constitutional rules written into `WORKFLOW_MASTER.md` (e.g., Occam's Razor anti-formalism). These **always** apply regardless of scenario, operation mode, or scope. They cannot be suspended by scenario files. | `WORKFLOW_MASTER.md` → `### Permanent Design Principles` |
+| **Global Constraints (全局通用约束)** | Business rules that affect **all** activities and all scenarios (e.g., 考察档案 归组织委员, 意见反馈平台 归纪检委员). Active in both Strict and Sandbox modes. | `REVIEW_STATE.md` → Watchlist / Suspended Issues with `[Global]` tag |
+| **Role/Delegation Constraints (职务分工约束)** | Adjustments to specific committee member responsibility boundaries. A sub-class of Global Constraints that specifically governs **who** does **what**. | `REVIEW_STATE.md` → Watchlist with `[Global]` tag + role annotation |
+| **Scenario-Specific Constraints (特定场景约束)** | Rules that only apply within a specific activity type or scenario (e.g., 场景1 A/B classification rules). Suppressed in Sandbox mode when working on unrelated scenarios. | `REVIEW_STATE.md` → Watchlist / Suspended Issues with `[Scenario-X Only]` tag |
+
+---
+
 ## ⚙️ Current Operation Mode: **[Sandbox]**
 
 > 当处于 **Sandbox** 模式处理新场景（如场景2–9）时，仅继承 `[Global]` 级的 W/H 约束，暂不合并 `[Scenario-1 Only]` 的约束，避免特殊性与普遍性混淆。  
@@ -116,9 +129,10 @@
 | 8 | 2026-02-22 | Control Plane Refactoring | Added Operation Mode status bit (Sandbox/Strict) to REVIEW_STATE header; added Scope column to Watchlist (W1-W2→Global, W3-W5→Scenario-1 Only) and Suspended Issues (H1→Scenario-1 Only, H2-H3→Global) | ✅ Done |
 | 9 | 2026-02-22 | Global Audit + Debt Resolution + Vision Declaration | Step1: C5/C6 in sop_restructuring+activity_rules_enforcement → dynamic scope-aware; Step2: W1+W2 resolved (6 files updated); Step3: W5 resolved (card-01 rewritten A/B); Step4: Vision declaration added to README.md | ✅ Done |
 | 10 | 2026-02-22 | Template Razor & Feedback Channel (H2 Unlocked) | Razor-cut 3 MD templates (活动复盘/活动总结/支部基本信息 v1→v2, -75% lines); created _quick_cards/SOP优化提案反馈卡.md; added feedback card notice to START_HERE.md; H2 removed from Suspended Issues | ✅ Done |
+| 11 | 2026-02-23 | Constitution Upgrade & Taxonomy Sync | WORKFLOW_MASTER v1.5: Permanent Principle 5 (Occam's Razor) added; REVIEW_STATE v2.0: Directive Dimensions table added; SOP优化提案反馈卡 v1.1: §1 Scope rewritten to 4-dimension taxonomy | ✅ Done |
 
 ---
 
-**Version:** 1.9  
+**Version:** 2.0  
 **Owner:** 储子禾  
-**Last updated:** 2026-02-22
+**Last updated:** 2026-02-23
