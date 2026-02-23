@@ -16,7 +16,7 @@ Modify SOP text and workflow diagrams in `流程指南/` to correct 条条/块�
 
 - [ ] Re-read `REVIEW_STATE.md` — confirm no conflicting in-progress task
 - [ ] Identify the specific scenario(s) in `流程指南/常见工作场景快速指南.md` to be modified
-- [ ] Note the Agent Watchlist items (W1–W4) and check if the target scenario touches them
+- [ ] Note the applicable Watchlist items from REVIEW_STATE (`[Global]` items always; `[Scenario-X Only]` items for the target scenario) and check if they touch the target file
 - [ ] Confirm which 块块委员 (组织/宣传/纪检) are involved and whether their work manuals need updating
 
 ---
@@ -29,8 +29,8 @@ Modify SOP text and workflow diagrams in `流程指南/` to correct 条条/块�
 | C2 | **块块 owners must be named explicitly** in every SOP step that requires 块块 support. Ambiguous ownership ("相关委员") is not acceptable. |
 | C3 | **No redundancy.** If a procedure is already defined in a 块块 specialist guide (e.g., `纪检委员工作流程指南.md`), reference it — do not repeat it inline. |
 | C4 | **Chinese only in human files.** All SOP text in `流程指南/` must be in Simplified Chinese. No English directives, no YAML logic blocks, no meta-comments. |
-| C5 | **Watchlist W1–W4 must be checked** during every SOP restructuring session. If a conflict is found, log it in REVIEW_STATE before editing. |
-| C6 | **Do not resolve suspended issues H1–H3.** If a suspended issue is encountered in the text, leave a ⚠️ marker and move on. |
+| C5 | **动态 Watchlist 检查（取代硬编码 W1–W4）：** 必须动态检查 `REVIEW_STATE.md` 中标记为 `[Global]` 的全部 Watchlist 项，以及与**当前所在场景**匹配的 `[Scenario-X Only]` 项。如发现冲突，在编辑前先记录至 REVIEW_STATE。 |
+| C6 | **动态 Suspended Issues 保护（取代硬编码 H1–H3）：** 绝对禁止修改 `REVIEW_STATE.md` 中标记为 `[Global]` 的 Suspended Issues（H 项），以及**与当前场景匹配**的 `[Scenario-X Only]` H 项。遇到悬置内容时，留 ⚠️ 悬置标记并跳过，等待书记明确解锁指令。 |
 | C7 | **Mermaid diagrams** must follow the existing color scheme: 蓝色=条条, 红色=块块, 绿色=起止. |
 | C8 | **YAML frontmatter** in modified files: update `last_updated` field only. Do not change other YAML fields unless the scenario explicitly requires it. |
 
@@ -52,7 +52,7 @@ Modify SOP text and workflow diagrams in `流程指南/` to correct 条条/块�
 ## 🔄 Execution Steps
 
 - [ ] **Step 1** — Load the target SOP scenario(s) from `常见工作场景快速指南.md`
-- [ ] **Step 2** — Check W1–W4 watchlist items against the target scenario
+- [ ] **Step 2** — Check applicable Watchlist items (Global + Scenario-matching) against the target scenario
 - [ ] **Step 3** — Apply modifications with named 条条/块块 owners at every step
 - [ ] **Step 4** — Update linked specialist guides (组织/宣传/纪检) if the scenario touches their responsibilities
 - [ ] **Step 5** — Update Mermaid flow diagrams in `工作流程图-定人定责定岗.md`
@@ -61,6 +61,6 @@ Modify SOP text and workflow diagrams in `流程指南/` to correct 条条/块�
 
 ---
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Owner:** 储子禾  
-**Last updated:** 2026-02-21
+**Last updated:** 2026-02-22

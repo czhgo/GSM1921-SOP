@@ -7,13 +7,33 @@
 
 ---
 
+## 📐 指令维度说明 (Directive Dimensions)
+
+> This taxonomy governs how every constraint, rule, and issue is classified and inherited across sessions and scenarios.
+
+| Dimension | Definition | Storage |
+|-----------|-----------|---------|
+| **Permanent Principles (永久原则)** | Bottom-layer constitutional rules written into `WORKFLOW_MASTER.md` (e.g., Occam's Razor anti-formalism). These **always** apply regardless of scenario, operation mode, or scope. They cannot be suspended by scenario files. | `WORKFLOW_MASTER.md` → `### Permanent Design Principles` |
+| **Global Constraints (全局通用约束)** | Business rules that affect **all** activities and all scenarios (e.g., 考察档案 归组织委员, 意见反馈平台 归纪检委员). Active in both Strict and Sandbox modes. | `REVIEW_STATE.md` → Watchlist / Suspended Issues with `[Global]` tag |
+| **Role/Delegation Constraints (职务分工约束)** | Adjustments to specific committee member responsibility boundaries. A sub-class of Global Constraints that specifically governs **who** does **what**. | `REVIEW_STATE.md` → Watchlist with `[Global]` tag + role annotation |
+| **Scenario-Specific Constraints (特定场景约束)** | Rules that only apply within a specific activity type or scenario (e.g., 场景1 A/B classification rules). Suppressed in Sandbox mode when working on unrelated scenarios. | `REVIEW_STATE.md` → Watchlist / Suspended Issues with `[Scenario-X Only]` tag |
+
+---
+
+## ⚙️ Current Operation Mode: **[Sandbox]**
+
+> 当处于 **Sandbox** 模式处理新场景（如场景2–9）时，仅继承 `[Global]` 级的 W/H 约束，暂不合并 `[Scenario-1 Only]` 的约束，避免特殊性与普遍性混淆。  
+> 切换至 **Strict** 模式时，所有 W/H 约束（包括 Scenario-Specific 项）均对当前任务生效。
+
+---
+
 ## 📊 Overall Progress
 
 | Category | Total | ✅ Done | 🔄 In Progress | ⏳ Pending |
 |----------|-------|---------|---------------|-----------|
 | Pending Modification Tasks | 14 | 11 | 0 | 3 |
-| Agent Watchlist Issues | 4 | 1 | 0 | 3 |
-| Suspended Issues (DO NOT TOUCH) | 3 | — | — | 3 |
+| Agent Watchlist Issues | 5 | 4 | 0 | 1 |
+| Suspended Issues (DO NOT TOUCH) | 2 | — | — | 2 |
 
 ---
 
@@ -60,27 +80,29 @@
 ## 🔍 Agent Watchlist（块块委员分工优化 — 修改时必须核查并反馈）
 
 > Extracted from `_review/书记审阅记录.md` §「块块委员分工优化反馈」.  
-> When any of these conflicts is encountered during execution, **flag it explicitly** in this table before proceeding.
+> When any of these conflicts is encountered during execution, **flag it explicitly** in this table before proceeding.  
+> **Sandbox mode:** Only `[Global]` items are inherited when working on scenarios 2–9.
 
-| # | 监查问题 | 涉及文件 | 状态 |
-|---|---------|---------|------|
-| W1 | **考察档案归属**：2026年2月已将考察档案从纪检委员转给组织委员，需确保所有文件一致（不得出现纪检负责考察档案的表述） | `组织委员工作流程指南.md` / `纪检委员工作流程指南.md` | ⏳ 未核查 |
-| W2 | **意见反馈平台负责人**：当前文档中部分写纪检委员、部分写组织委员，需统一为同一负责人 | `常见工作场景快速指南.md` / `组织委员工作流程指南.md` / `纪检委员工作流程指南.md` | ⏳ 未核查 |
-| W3 | **宣传委员角色差异**：A类活动宣传委员以「档案归档」为主；B类活动宣传委员以「指导宣传负责人」为主；两种角色不应混用 | `宣传委员工作流程指南.md` | ✅ 已解决（Session 5，新增 §3.0） |
-| W4 | **块块委员触发时机差异**：A类活动纪检委员考勤为刚性全程参与；B类为弹性。此差异须体现在各委员工作手册中 | `纪检委员工作流程指南.md` | ⏳ 未核查 |
+| # | Scope (作用域) | 监查问题 | 涉及文件 | 状态 |
+|---|---------------|---------|---------|------|
+| W1 | `[Global]` | **考察档案归属**：2026年2月已将考察档案从纪检委员转给组织委员，需确保所有文件一致（不得出现纪检负责考察档案的表述） | `组织委员工作流程指南.md` / `纪检委员工作流程指南.md` | ✅ 已解决（Session 9：常见工作场景快速指南场景3+6、纪检委员指南TOC修正） |
+| W2 | `[Global]` | **意见反馈平台负责人**：当前文档中部分写纪检委员、部分写组织委员，需统一为同一负责人 | `常见工作场景快速指南.md` / `组织委员工作流程指南.md` / `纪检委员工作流程指南.md` | ✅ 已解决（Session 9：统一为纪检委员，纪检指南恢复§4.2，支委说明/README同步更新） |
+| W3 | `[Scenario-1 Only]` | **宣传委员角色差异**：A类活动宣传委员以「档案归档」为主；B类活动宣传委员以「指导宣传负责人」为主；两种角色不应混用 | `宣传委员工作流程指南.md` | ✅ 已解决（Session 5，新增 §3.0） |
+| W4 | `[Scenario-1 Only]` | **块块委员触发时机差异**：A类活动纪检委员考勤为刚性全程参与；B类为弹性。此差异须体现在各委员工作手册中 | `纪检委员工作流程指南.md` | ⏳ 未核查 |
+| W5 | `[Scenario-1 Only]` | **快速卡片未更新**：`_quick_cards/card-01-组织活动.md` (last_updated 2026-02-17) 使用简化5步流程，未反映Session 4引入的A类/B类（1A/1B）拆分。其他卡片亦需核查 | `_quick_cards/card-01-组织活动.md`（其他卡片待查） | ✅ 已解决（Session 9：彻底重写为A/B双路径卡片） |
 
 ---
 
 ## ⏸️ Suspended Issues — DO NOT TOUCH
 
 > Extracted from `_review/书记审阅记录.md` §「悬置问题清单」.  
-> **STRICT CONSTRAINT: The Agent MUST NOT modify or attempt to resolve these issues in any session until explicitly unlocked by the 书记.**
+> **STRICT CONSTRAINT: The Agent MUST NOT modify or attempt to resolve these issues in any session until explicitly unlocked by the 书记.**  
+> **Sandbox mode:** Only `[Global]` items are inherited when working on scenarios 2–9.
 
-| # | 问题 | 涉及文件 | 悬置原因 |
-|---|------|---------|---------|
-| H1 | 跨组参与时，组织者的考察如何协同？ | `纪检委员工作流程指南.md` | 书记指示先悬置，后续另行讨论 |
-| H2 | 现有模板需要精简，降低参与边际成本 | `申报材料模板/` | 需要单独一轮修改，本轮不涉及 |
-| H3 | 党小组工作手册（条条委员专用）尚未建设 | 待新建文件 | 本轮先通过SOP规定条条职责 |
+| # | Scope (作用域) | 问题 | 涉及文件 | 悬置原因 |
+|---|---------------|------|---------|---------|
+| H1 | `[Scenario-1 Only]` | 跨组参与时，组织者的考察如何协同？ | `纪检委员工作流程指南.md` | 书记指示先悬置，后续另行讨论 |
+| H3 | `[Global]` | 党小组工作手册（条条委员专用）尚未建设 | 待新建文件 | 本轮先通过SOP规定条条职责 |
 
 ---
 
@@ -102,9 +124,15 @@
 | 3 | 2026-02-21 | sop_restructuring | Added `## 🤖 AI 协同工作流` section to `START_HERE.md`; includes Standard Invocation Prompt and Review Inbox workflow in Chinese | ✅ Done |
 | 4 | 2026-02-21 | yaml_metadata_fix + activity_rules_enforcement | Phase1: injected YAML frontmatter into 5 more files (_quick_cards/README.md + 申报材料模板/4×README); Phase2: restructured 场景1 into 总入口+1A+1B in 常见工作场景快速指南.md; completed 修改1-3,5-12 | ✅ Done |
 | 5 | 2026-02-21 | sop_restructuring | Created EXECUTION_LOG.md; updated WORKFLOW_MASTER SOP Step 6 + Standard Output Templates; added §3.0 按活动类型的宣传规范 to 宣传委员工作流程指南.md; resolved W3 | ✅ Done |
+| 6 | 2026-02-22 | — | Added `## 🗺️ Dual-Panel Reference Map` section to WORKFLOW_MASTER v1.3: explicit storage paths, invocation methods, trigger conditions for both panels; 一改俱改 coupling mechanism table + validation gate | ✅ Done |
+| 7 | 2026-02-22 | — | Created CONTENT_MAP.md: dual-purpose architecture declaration, annotated Markdown index (25 files), binary file registry (11 files), coverage gap table (G1-G4); added W5 to REVIEW_STATE Watchlist; updated WORKFLOW_MASTER v1.4 (SOP Step 2b + AI Panel storage paths) | ✅ Done |
+| 8 | 2026-02-22 | Control Plane Refactoring | Added Operation Mode status bit (Sandbox/Strict) to REVIEW_STATE header; added Scope column to Watchlist (W1-W2→Global, W3-W5→Scenario-1 Only) and Suspended Issues (H1→Scenario-1 Only, H2-H3→Global) | ✅ Done |
+| 9 | 2026-02-22 | Global Audit + Debt Resolution + Vision Declaration | Step1: C5/C6 in sop_restructuring+activity_rules_enforcement → dynamic scope-aware; Step2: W1+W2 resolved (6 files updated); Step3: W5 resolved (card-01 rewritten A/B); Step4: Vision declaration added to README.md | ✅ Done |
+| 10 | 2026-02-22 | Template Razor & Feedback Channel (H2 Unlocked) | Razor-cut 3 MD templates (活动复盘/活动总结/支部基本信息 v1→v2, -75% lines); created _quick_cards/SOP优化提案反馈卡.md; added feedback card notice to START_HERE.md; H2 removed from Suspended Issues | ✅ Done |
+| 11 | 2026-02-23 | Constitution Upgrade & Taxonomy Sync | WORKFLOW_MASTER v1.5: Permanent Principle 5 (Occam's Razor) added; REVIEW_STATE v2.0: Directive Dimensions table added; SOP优化提案反馈卡 v1.1: §1 Scope rewritten to 4-dimension taxonomy | ✅ Done |
 
 ---
 
-**Version:** 1.4  
+**Version:** 2.0  
 **Owner:** 储子禾  
-**Last updated:** 2026-02-21
+**Last updated:** 2026-02-23
