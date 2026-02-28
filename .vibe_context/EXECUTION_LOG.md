@@ -474,3 +474,31 @@ Each entry is appended after Step 6 of the SOP. Do not edit past entries.
 - `REVIEW_STATE.md` 已同步更新至 v2.3（Session 14 新增；Suspended Issues 2→3 个；Overall Progress Suspended 2→3）。
 - **替换文件清单：** 工作流程图-定人定责定岗 v1.2 / REVIEW_STATE v2.3 / EXECUTION_LOG（共3个文件）
 - **下一顺位建议任务：** 🟢 **修改13**——场景1B外出活动专项注意事项完善，或 **H4**——书记裁定后补充支部经费管理规定
+
+---
+
+## 2026-02-28 — Session 15 (Read & Triage — Priority Decision Inbox)
+
+**任务性质：** 只读扫描，严禁修改业务规则代码  
+**扫描范围：** REVIEW_STATE v2.3 / 全部 `.vibe_context/scenarios/` / 全部 `流程指南/` / `_quick_cards/` / `CONTENT_MAP.md`
+
+### Priority Decision Inbox 摘要
+
+**🔴 P0 (3 Blockers):**
+- H4: 外出经费审批链路 — 提供 Option A（500元线）/ B（二级分权制度）/ C（临时口头规则）
+- H1: 跨组考察协同 — 提供 Option A（活动归属原则）/ B（双轨记录）/ C（继续悬置+触发条件）
+- H3: 条条工作手册 — 提供 Option A（独立新建）/ B（嵌入现有文件§八）/ C（继续悬置）
+
+**🟡 P1 (2 Core Pending):**
+- 修改13: 外出活动特殊注意事项 — 缺失变量：经费路径（H4）、交通审批节点、安全预案起草人、人员确认时限
+- 修改14: 品牌/非品牌双轨发起路径 — 缺失变量：品牌认定标准、跨届传承机制、试点→品牌化路径
+
+**🟢 P2 (6 Edge Scenarios — 全部未被状态机覆盖):**
+- P2-A: 党员发展异常（思想汇报超期/积极分子退出/培养期延长）
+- P2-B: 预备党员转正异常（预备期行为不合格/材料不齐全）
+- P2-C: 组织生活会流程中断（出席率不足/对照材料不合格）
+- P2-D: 场景4党团班一体化缺拒绝/申诉机制
+- P2-E: 场景文件状态错位（activity_rules_enforcement仍显示Pending但修改1-12已完成）
+- P2-F: CONTENT_MAP G1-G2缺口未处理
+
+**文件变更清单：** REVIEW_STATE.md（仅追加Session 15日志行）/ EXECUTION_LOG.md（仅追加本条目）
