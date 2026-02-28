@@ -42,7 +42,7 @@ Apply the 书记-approved A-class / B-class party activity classification when m
 | C5 | Do NOT define "深度参与者" or "组织者" inline — reference `流程指南/纪检委员工作流程指南.md` on first mention |
 | C6 | Do NOT resolve suspended issue H1 (跨组参与考察协同) — mark as ⚠️ 悬置 in the text |
 | C7 | **动态 Watchlist 检查（取代硬编码 W1–W4）：** 必须动态检查 `REVIEW_STATE.md` 中标记为 `[Global]` 的全部 Watchlist 项，以及 `[Scenario-1 Only]` 项（本场景文件适用范围为场景1）。发现冲突时先记录至 REVIEW_STATE 再继续。 |
-| C8 | Refer to `官方文件/` for A-class official procedure if more detailed steps are found there |
+| C8 | Refer to `参考资料/官方文件/` for A-class official procedure if more detailed steps are found there |
 | C9 | Mermaid flow diagrams must use existing color scheme: 蓝色=条条, 红色=块块, 绿色=起止节点 |
 
 ---
@@ -56,8 +56,8 @@ Apply the 书记-approved A-class / B-class party activity classification when m
 - `流程指南/宣传委员工作流程指南.md` — add 宣传规范 chapter (修改4)
 - `流程指南/纪检委员工作流程指南.md` — reflect A/B attendance difference (W4)
 - `_quick_cards/card-01-组织活动.md` — update to A/B classification (修改5 联动)
-- `官方文件/【附件17】中国共产党支部工作条例（试行）（2018年10月28日）.docx` — verify A-class steps
-- `官方文件/【附件12】党支部工作规范（学生）.pdf` — verify A-class steps
+- `参考资料/官方文件/【附件17】中国共产党支部工作条例（试行）（2018年10月28日）.docx` — verify A-class steps
+- `参考资料/官方文件/【附件12】党支部工作规范（学生）.pdf` — verify A-class steps
 
 ---
 

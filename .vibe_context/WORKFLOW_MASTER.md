@@ -41,7 +41,7 @@ Never embed scenario logic inside human documents.
 
 | Attribute | Specification |
 |-----------|---------------|
-| **Storage Paths** | Root entry points: `README.md`, `START_HERE.md`, `CHEATSHEET.md` <br>Sub-directories: `流程指南/`, `_quick_cards/`, `申报材料模板/`, `活动复盘/`, `官方文件/`, `党小组会/`, `支部委员会/` <br>Knowledge base: `docs/党支部管理与实务经验沉淀.md` — management experience & cross-term handover reference |
+| **Storage Paths** | Root entry points: `README.md`, `START_HERE.md`, `CHEATSHEET.md` <br>Sub-directories: `流程指南/`, `_quick_cards/`, `申报材料模板/`, `活动复盘/`, `参考资料/` (官方文件, 党小组会, 支部委员会) <br>Knowledge base: `docs/党支部管理与实务经验沉淀.md` — management experience & cross-term handover reference |
 | **Invocation** | Open any file directly in GitHub web UI, a local Markdown viewer, or WPS (for `.docx` / `.pdf`). Navigate via `README.md` (full index) or `START_HERE.md` (onboarding guide). No command is required. |
 | **Trigger Conditions** | • A 支部成员 needs to look up a procedure, template, or policy. <br>• A 支委 needs to execute a task. <br>• Content is being written or reviewed for a human reader. |
 

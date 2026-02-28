@@ -88,16 +88,26 @@ These files **cannot be read directly by AI agents**. The table records their co
 
 | File | Format | Content Summary | Transcribed Into | AI Access |
 |------|--------|----------------|-----------------|-----------|
-| `党小组会/20251130党支部月度会议-发布版.pdf` | PDF | November 2025 monthly branch meeting report. **Primary source document** for A/B activity classification, 条条/块块 dual-management principles, and the 11-point SOP reform decisions (including the 2026-02 responsibility transfers). | `流程指南/常见工作场景快速指南.md` (场景1A/1B), `流程指南/支委与党小组定人定责定岗说明.md`, all three 块块委员 work guides | ⚠️ Not directly readable. Core decisions fully transcribed. |
-| `党小组会/光华管理学院本科生党支部关于成立党小组的说明-2505.docx` | DOCX | Founding document for the 3-group party small-group structure (2025 edition). Defines the rationale, group definitions, and leadership structure. | `流程指南/支委与党小组定人定责定岗说明.md` §1 (人员结构与双重身份体系) | ⚠️ Not directly readable. Core content transcribed. |
-| `党小组会/党建活动SOP流程图-初版-白文琦&孙睿.pdf` | PDF | Initial draft SOP flowcharts by 白文琦 & 孙睿. **Superseded** by the current Mermaid diagrams. | **Superseded** by `流程指南/工作流程图-定人定责定岗.md` — no extraction needed | ⚠️ Not directly readable. **Archived, not operationally relevant.** |
-| `官方文件/【附件11】中国共产党章程.pdf` | PDF | 中国共产党章程（党章）。规定党的性质、宗旨、纲领、组织原则（民主集中制）及党员权利义务；是一切党规党纪的母法，具有最高权威性。本支部所有制度建设均须符合党章精神。 | 见摘要列 | ✅ 摘要已补录（G1缺口修复） |
-| `官方文件/【附件12】党支部工作规范（学生）.pdf` | PDF | 学生党支部工作规范。细化三会一课（支部党员大会、支部委员会、党小组会、党课）的召开频率与基本程序；规定会议记录、考勤归档的标准格式。是验证场景1A（组织生活会）12步流程是否符合规范的直接参照。 | 见摘要列 | ✅ 摘要已补录（G1缺口修复） |
-| `官方文件/【附件14】中国共产党党员教育管理工作条例（2019年5月21日）.docx` | DOCX | 党员教育管理工作条例（2019年）。规定党员教育的内容与形式（含思想汇报制度）、党员年度考核办法、不合格党员认定与处置程序。是支部开展思想汇报统计（场景3）的法规依据。 | 见摘要列 | ✅ 摘要已补录（G1缺口修复） |
-| `官方文件/【附件15】中国共产党发展党员工作细则（2014年）.docx` | DOCX | 发展党员工作细则（2014年）。详述从入党积极分子培养→发展对象确定→预备党员接收→预备党员转正的完整流程，含各阶段所需材料清单、审批层级和时限要求。是场景3（考察积极分子）和场景2（制度建设）的核心合规依据。 | 见摘要列 | ✅ 摘要已补录（G1缺口修复） |
-| `官方文件/【附件16】中国共产党普通高等学校基层组织工作条例（2010年8月13日）.docx` | DOCX | 高校基层组织工作条例（2010年）。规定高校党委、党总支、党支部的职责分工与组织架构；明确支部委员会的设置方式、选举程序及任期制度；适用于换届选举（场景7决策层级）的合规依据。 | 见摘要列 | ✅ 摘要已补录（G1缺口修复） |
-| `官方文件/【附件17】中国共产党支部工作条例（试行）（2018年10月28日）.docx` | DOCX | **支部工作条例（试行，2018年）**。最直接适用的官方文件：明确党支部工作职责（宣传教育、组织管理、监督执纪等七项职责）；规定支部委员会设置；详细说明组织生活会（"三会一课"）的召开要求与会议程序。是验证场景1A（组织生活会12步流程）合规性的**第一权威来源**。 | 见摘要列 | ✅ 摘要已补录（G1缺口修复） |
-| `支部委员会/支委工作手册26春.docx` | DOCX | Spring 2026 branch committee work manual. Comprehensive job descriptions and working procedures for all committee members. **Source document** whose directives were implemented in the `流程指南/` SOP files. | Operational core transcribed into `流程指南/` docs. | ⚠️ Not directly readable. Original manual may contain administrative detail beyond current SOP Markdown files. |
+| `参考资料/党小组会/20251130党支部月度会议-发布版.pdf` | PDF | November 2025 monthly branch meeting report. **Primary source document** for A/B activity classification, 条条/块块 dual-management principles, and the 11-point SOP reform decisions (including the 2026-02 responsibility transfers). | `流程指南/常见工作场景快速指南.md` (场景1A/1B), `流程指南/支委与党小组定人定责定岗说明.md`, all three 块块委员 work guides | ⚠️ Not directly readable. Core decisions fully transcribed. |
+| `参考资料/党小组会/光华管理学院本科生党支部关于成立党小组的说明-2505.docx` | DOCX | Founding document for the 3-group party small-group structure (2025 edition). Defines the rationale, group definitions, and leadership structure. | `流程指南/支委与党小组定人定责定岗说明.md` §1 (人员结构与双重身份体系) | ⚠️ Not directly readable. Core content transcribed. |
+| `参考资料/党小组会/党建活动SOP流程图-初版-白文琦&孙睿.pdf` | PDF | Initial draft SOP flowcharts by 白文琦 & 孙睿. **Superseded** by the current Mermaid diagrams. | **Superseded** by `流程指南/工作流程图-定人定责定岗.md` — no extraction needed | ⚠️ Not directly readable. **Archived, not operationally relevant.** |
+
+### 参考资料/官方文件/
+
+| File | Type | Abstract | Downstream Markdown | Readability |
+|------|------|---------|---------------------|-------------|
+| `参考资料/官方文件/【附件11】中国共产党章程.pdf` | PDF | 中国共产党章程（党章）。规定党的性质、宗旨、纲领、组织原则（民主集中制）及党员权利义务；是一切党规党纪的母法，具有最高权威性。本支部所有制度建设均须符合党章精神。 | 见摘要列 | ✅ 摘要已补录（G1缺口修复） |
+| `参考资料/官方文件/【附件12】党支部工作规范（学生）.pdf` | PDF | 学生党支部工作规范。细化三会一课（支部党员大会、支部委员会、党小组会、党课）的召开频率与基本程序；规定会议记录、考勤归档的标准格式。是验证场景1A（组织生活会）12步流程是否符合规范的直接参照。 | 见摘要列 | ✅ 摘要已补录（G1缺口修复） |
+| `参考资料/官方文件/【附件14】中国共产党党员教育管理工作条例（2019年5月21日）.docx` | DOCX | 党员教育管理工作条例（2019年）。规定党员教育的内容与形式（含思想汇报制度）、党员年度考核办法、不合格党员认定与处置程序。是支部开展思想汇报统计（场景3）的法规依据。 | 见摘要列 | ✅ 摘要已补录（G1缺口修复） |
+| `参考资料/官方文件/【附件15】中国共产党发展党员工作细则（2014年）.docx` | DOCX | 发展党员工作细则（2014年）。详述从入党积极分子培养→发展对象确定→预备党员接收→预备党员转正的完整流程，含各阶段所需材料清单、审批层级和时限要求。是场景3（考察积极分子）和场景2（制度建设）的核心合规依据。 | 见摘要列 | ✅ 摘要已补录（G1缺口修复） |
+| `参考资料/官方文件/【附件16】中国共产党普通高等学校基层组织工作条例（2010年8月13日）.docx` | DOCX | 高校基层组织工作条例（2010年）。规定高校党委、党总支、党支部的职责分工与组织架构；明确支部委员会的设置方式、选举程序及任期制度；适用于换届选举（场景7决策层级）的合规依据。 | 见摘要列 | ✅ 摘要已补录（G1缺口修复） |
+| `参考资料/官方文件/【附件17】中国共产党支部工作条例（试行）（2018年10月28日）.docx` | DOCX | **支部工作条例（试行，2018年）**。最直接适用的官方文件：明确党支部工作职责（宣传教育、组织管理、监督执纪等七项职责）；规定支部委员会设置；详细说明组织生活会（"三会一课"）的召开要求与会议程序。是验证场景1A（组织生活会12步流程）合规性的**第一权威来源**。 | 见摘要列 | ✅ 摘要已补录（G1缺口修复） |
+
+### 参考资料/支部委员会/
+
+| File | Type | Abstract | Downstream Markdown | Readability |
+|------|------|---------|---------------------|-------------|
+| `参考资料/支部委员会/支委工作手册26春.docx` | DOCX | Spring 2026 branch committee work manual. Comprehensive job descriptions and working procedures for all committee members. **Source document** whose directives were implemented in the `流程指南/` SOP files. | Operational core transcribed into `流程指南/` docs. | ⚠️ Not directly readable. Original manual may contain administrative detail beyond current SOP Markdown files. |
 | `申报材料模板/工作记录类/党支部工作记录.docx` | DOCX | Standard **三会一课 work record form** (.docx). The mandatory template for all 三会一课 archiving. Cannot be AI-read but its existence and usage instructions are documented throughout the SOP. | Usage documented in: `流程指南/宣传委员工作流程指南.md` §2, `流程指南/常见工作场景快速指南.md` 场景1A, `_quick_cards/card-01-组织活动.md`, `_quick_cards/card-02-会议记录.md` | ⚠️ Not directly readable. **Operational reference only — AI cannot validate form content.** |
 
 ---
@@ -106,7 +116,7 @@ These files **cannot be read directly by AI agents**. The table records their co
 
 | # | Gap | Impact | Recommended Action |
 |---|-----|--------|-------------------|
-| G1 | ~~官方文件/ PDFs and DOCXs have no Markdown abstracts~~ | ~~Medium~~: **✅ 已修复（Session 19）** — 所有6份官方文件（附件11/12/14/15/16/17）已在本表补录中文摘要 | — |
+| G1 | ~~参考资料/官方文件/ PDFs and DOCXs have no Markdown abstracts~~ | ~~Medium~~: **✅ 已修复（Session 19）** — 所有6份官方文件（附件11/12/14/15/16/17）已在本表补录中文摘要 | — |
 | G2 | `支委工作手册26春.docx` may contain administrative details not yet transcribed | Low: current SOP Markdown files are operationally complete | Track: when the manual is updated, transcribe any new operational changes into the relevant `流程指南/` files and update REVIEW_STATE. |
 | G3 | `_quick_cards/card-01-组织活动.md` predates the A/B activity restructuring (last_updated 2026-02-17, Session 4 was 2026-02-21) | **Medium: card shows a simplified 5-step flow without 1A/1B distinction, potentially misleading users** | **Logged as W5 in REVIEW_STATE.** Update the card to reflect A-class vs B-class distinction in a future session. |
 | G4 | `流程指南/工作流程图-定人定责定岗.md` §3 (党小组活动流程) predates A/B restructuring | Medium: generic flowchart does not show 1A/1B split | Already tracked in REVIEW_STATE as pending task (修改1 note: "流程图待下一轮更新"). |

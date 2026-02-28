@@ -55,7 +55,7 @@
 ### 🔴 高优先级
 
 - [x] **修改1**｜场景1 拆分为 1A 和 1B 两个子流程 — 在`流程指南/常见工作场景快速指南.md`中将场景1保留为总入口并新增1A（组织生活会）、1B（灵活学习活动）子流程；`工作流程图-定人定责定岗.md`第3节同步拆分（流程图待下一轮更新）
-- [x] **修改2**｜补充 A 类活动（组织生活会）的12步标准程序 — 含会前谈心、对照检查、签到、自评互评、会议记录归档、宣传产出；需核查`官方文件/`中条例原文
+- [x] **修改2**｜补充 A 类活动（组织生活会）的12步标准程序 — 含会前谈心、对照检查、签到、自评互评、会议记录归档、宣传产出；需核查`参考资料/官方文件/`中条例原文
 - [x] **修改3**｜补充 B 类活动（灵活学习活动）的11步完整流程 — 含活动发起两种路径、组长审批、联系块块、实施、复盘、归档
 
 ### 🟡 中优先级
@@ -139,9 +139,10 @@
 | 17 | 2026-02-28 | Global Sync Audit & Remediation | 断点1：宣传委员工作流程指南.md §3.0 TOC条目+标题（Session 13术语替换遗漏，两处仍为"A类/B类"）→已修正；footer版本号v1.1/2026-02-05与YAML v1.3/2026-02-28不符→已同步为v1.4/2026-02-28；文档更新记录补录v1.3条目。断点2：card-01-组织活动.md "A类别忘了"/"B类别忘了"标签→已改为"组织生活会别忘了"/"党小组主题党日活动别忘了"。流程图已核查：无A/B，侯/韩分工正确。card-02至card-05已核查：无旧版分工遗留。 | ✅ Done |
 | 18 | 2026-02-28 | Log Rotation & Knowledge Distillation | Step1: 新建 `.vibe_context/logs/` 子目录；原 `EXECUTION_LOG.md` 全量内容归档至 `logs/2026-02-EXECUTION_LOG.md`（status: archived）；原文件改为导航索引；新建 `logs/2026-03-EXECUTION_LOG.md`（活动）。Step2: 新建 `docs/党支部管理与实务经验沉淀.md` v1.0（type: experience_doc）—— 三模块（组织架构权责重构/流程优化/数字化人机协同）+ 决策误区附录，覆盖Sessions 1–18核心管理哲学。Step3: WORKFLOW_MASTER v1.7→v1.8 —— SOP Step 6升级为双子步骤（a日志追加+b经验蒸馏）；AI Data Panel Storage Paths更新月度日志路径；Human Panel Storage Paths新增docs/目录；Validation Gate第2条/Principle 7/一改俱改Coupling表同步更新。 | ✅ Done |
 | 19 | 2026-02-28 | Global Resolution & Coverage Completion | Step1(H4解锁): 场景1B注意事项+Check清单新增"经费全部书记审批"规则（无免批额度）；工作流程图H4标注改为✅已解决。Step1(H1解锁): 场景1B注意事项将"悬置问题"替换为明确规则（全支部纪检委员仅一人，跨组按统一机制处理）；纪检委员指南v3.2→v3.3新增§3.1跨组协同机制说明；工作流程图H1标注改为✅已解决。Step2(修改13): 场景1B Check清单用车双轨制细化；注意事项增加用车双轨制与经费审批规则；修改13标记为[x]。Step3a: 组织委员指南v1.1→v1.2新增§5.2材料全案复核权。Step3b: 场景1A注意事项新增"会议时间民主统筹"。Step4a: activity_rules_enforcement.md 16/17个执行步骤标记为[x]（仅修改14 Step12 pending）。Step4b: CONTENT_MAP v1.1→v1.2，6份官方文件（附件11/12/14/15/16/17）补录中文摘要，G1缺口修复。Step5: docs/党支部管理与实务经验沉淀.md v1.0→v1.1，全局匿名化（侯嘉嵘→组织委员/储子禾→书记）。 | ✅ Done |
+| 20 | 2026-02-28 | Directory Folding & Global View Synchronization | Step1: 新建 `参考资料/` 目录；`git mv` 将 `官方文件/`、`党小组会/`、`支部委员会/` 三个文件夹整体迁移至 `参考资料/` 内部，文件内容零删减。Step2: 控制面路径重写——WORKFLOW_MASTER.md / CONTENT_MAP.md / REVIEW_STATE.md / activity_rules_enforcement.md 中所有旧路径更新为 `参考资料/官方文件/` 等新路径；CONTENT_MAP §3 新增 `参考资料/` 分区子标题。Step3: 衍生视图刷新——README.md v1.1→v1.2（文件夹表3行合并为1行 `参考资料/`）；START_HERE.md v1.0→v1.1（§5 参考资料路径修正 + A类/B类→正式术语）；CHEATSHEET.md v1.0→v1.1（ASCII路径框 + 文件夹表修正）；流程指南/常见工作场景快速指南.md + 纪检委员指南 + 宣传委员指南 相对路径修复。死链修复清单：`./支部委员会/`→`./参考资料/支部委员会/`（快速指南/纪检/宣传3处）；`./党小组会/`→`./参考资料/党小组会/`（快速指南2处）；`./官方文件/`→`./参考资料/官方文件/`（START_HERE/CHEATSHEET各1处）；控制面共12处路径重写。 | ✅ Done |
 
 ---
 
-**Version:** 2.7  
+**Version:** 2.8  
 **Owner:** 储子禾  
 **Last updated:** 2026-02-28
