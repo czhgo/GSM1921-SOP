@@ -135,9 +135,10 @@
 | 13 | 2026-02-28 | SemVer Enforcement & Terminology Refactoring | Step1: WORKFLOW_MASTER v1.6 — Principle 6 (SemVer严格递增规范) 新增; Step2: 全局命名空间重构 — A类→组织生活会 / B类+灵活学习活动→党小组主题党日活动，涉及8个文件（常见工作场景快速指南v1.5/宣传委员指南v1.3/纪检委员指南v3.2/card-01/反馈卡v1.2/活动复盘模板v2.1/CONTENT_MAP v1.1/scenarios/activity_rules_enforcement）; Step3: REVIEW_STATE v2.2+EXECUTION_LOG 同步 | ✅ Done |
 | 14 | 2026-02-28 | Topology Refactoring & Logic Gap Detection | Step1: 工作流程图v1.1→v1.2 — 三大核心骨架重构（骨架I组织生活会/骨架II党日活动含条件分支/骨架III党员发展）；旧§3通用图→骨架I；新增骨架II；旧§5→骨架III（纪检只记录移交）；旧§6党团班一体化→整合入骨架II分支2；旧§4制度建设→重编§6；§1/§2/§7/§8/§10保留并附说明；矩阵§9更新考察档案归属行; Step2: REVIEW_STATE v2.3 — 新增悬置H4（外出经费审批规则）；Suspended Issues 2→3 | ✅ Done |
 | 15 | 2026-02-28 | Read & Triage — Priority Decision Inbox | 零业务规则修改。全库深度扫描：提取P0（H1/H3/H4三项悬置，各提供2-3个业务选项）、P1（修改13外出注意事项缺失变量清单、修改14品牌路径缺失变量清单）、P2（六项未触达边缘场景：党员发展异常/预备党员转正异常/组织生活会流程中断/场景4无申诉机制/场景文件状态错位/CONTENT_MAP G1-G2缺口）。Priority Decision Inbox 已在聊天窗口输出供书记决断。 | ✅ Done |
+| 16 | 2026-02-28 | Constitution Upgrade: Ripple Sync Protocol | WORKFLOW_MASTER v1.6→v1.7：Step1 新增Principle 7（单一事实来源与衍生品同步，母本/下游衍生品层级+Ripple Sync四步Action）；Step2 一改俱改Coupling表格`SOP text modified in 流程指南/`行升级为含Mandatory Ripple Check的三步规则；Step3 R2新增UNLESS豁免条款（Ripple Sync触发时必须同步所有下游衍生品）；补全Principle 5标题。 | ✅ Done |
 
 ---
 
-**Version:** 2.3  
+**Version:** 2.4  
 **Owner:** 储子禾  
 **Last updated:** 2026-02-28

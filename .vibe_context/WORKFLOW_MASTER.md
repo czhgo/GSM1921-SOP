@@ -62,7 +62,7 @@ The **YAML frontmatter block** at the top of each Markdown file is the sole coup
 | Human Panel Event | Required AI Data Panel Update |
 |-------------------|-------------------------------|
 | New Markdown file created | Run `yaml_metadata_fix` scenario to inject YAML frontmatter; register the new file in the nearest parent's `related_files`. |
-| SOP text modified in `流程指南/` | Update `last_updated` in that file's YAML; check off the matching task in `REVIEW_STATE.md`; append a new entry to `EXECUTION_LOG.md`. |
+| SOP text modified in `流程指南/` | 1. Update `last_updated` in that file's YAML. 2. **Mandatory Ripple Check**: The Agent MUST identify all downstream derivatives (flowcharts, quick cards) listed in `related_files` and update their content to strictly match the new SOP logic. 3. Check off task in `REVIEW_STATE.md` and append to `EXECUTION_LOG.md`. |
 | New issue or inconsistency found in human content | Log immediately in `REVIEW_STATE.md` → `## 🐛 AI-Identified Issues` (code bugs) or `## 🔍 Agent Watchlist` (structural conflicts). |
 | Pending task completed | Mark `[x]` in `REVIEW_STATE.md`; update `## 📊 Overall Progress` counters; append a row to the Session Log table. |
 | Suspended issue (`H1`–`H3`) encountered | **BLOCKED** — do not modify; leave a `⚠️ 悬置` marker in the text and move on. The issue may only be unlocked by an explicit instruction from 书记 in `REVIEW_STATE.md`. |
@@ -130,7 +130,7 @@ SOP:
 | # | Rule |
 |---|------|
 | R1 | **Always read before writing.** Complete steps 1–3 before any code change. |
-| R2 | **Minimal diff principle.** Change only what is required by the scenario. |
+| R2 | **Minimal diff principle.** Change only what is required by the scenario, **UNLESS** a Ripple Sync is triggered, in which case all related downstream derivatives MUST be updated simultaneously to prevent content desynchronization. |
 | R3 | **REVIEW_STATE is the single source of truth.** Never rely on memory across sessions; always re-read. |
 | R4 | **Scenario constraints are binding.** If a constraint in a scenario file conflicts with a general suggestion, the scenario file wins. |
 | R5 | **Security first.** Run `codeql_checker` and advisory checks before finalizing any session with code changes. |
@@ -151,6 +151,25 @@ SOP:
 | **Major** — breaking structural overhaul | The Agent **MUST NOT** self-authorize a major bump. `v(n+1).0` requires either (a) an explicit "突破性更改" instruction from the human decision-maker, or (b) a recorded justification approved in `REVIEW_STATE.md`. | `v1.x` → `v2.0` only by human order |
 
 **Enforcement:** Before every `report_progress` call, verify that no file's `version` has jumped a major number without a recorded human authorization in `REVIEW_STATE.md`.
+
+---
+
+#### Principle 7 — Single Source of Truth & Derivative Sync (单一事实来源与衍生品同步)
+
+**Permanent Constraint:** The repository has a strict master-derivative hierarchy for business content:
+
+| Layer | Files | Role |
+|-------|-------|------|
+| **Master Source (母本)** | All files under `流程指南/` | Authoritative SOP text. All business logic changes MUST originate here first. |
+| **Downstream Derivatives (下游衍生品)** | `工作流程图-定人定责定岗.md` and all files under `_quick_cards/` | Must faithfully reflect the current state of the Master Source. They are **never** independently authoritative. |
+
+**Action:** Any modification to business logic in the Master Source **automatically triggers a Ripple Sync**:
+1. Apply the change in the relevant `流程指南/` file first.
+2. Identify every downstream derivative listed in the modified file's `related_files` YAML field.
+3. Update each derivative's content to strictly match the new SOP logic.
+4. Record the full list of updated derivatives in the session's `EXECUTION_LOG.md` entry.
+
+This principle cannot be suspended and overrides the default minimal-diff scope of R2 (see R2 UNLESS clause above).
 
 ---
 
@@ -232,6 +251,6 @@ Use this exact template for the Step 6 execution report. Fill in the bracketed f
 
 ---
 
-**Version:** 1.6  
+**Version:** 1.7  
 **Owner:** 储子禾  
 **Last updated:** 2026-02-28
