@@ -137,9 +137,10 @@
 | 15 | 2026-02-28 | Read & Triage — Priority Decision Inbox | 零业务规则修改。全库深度扫描：提取P0（H1/H3/H4三项悬置，各提供2-3个业务选项）、P1（修改13外出注意事项缺失变量清单、修改14品牌路径缺失变量清单）、P2（六项未触达边缘场景：党员发展异常/预备党员转正异常/组织生活会流程中断/场景4无申诉机制/场景文件状态错位/CONTENT_MAP G1-G2缺口）。Priority Decision Inbox 已在聊天窗口输出供书记决断。 | ✅ Done |
 | 16 | 2026-02-28 | Constitution Upgrade: Ripple Sync Protocol | WORKFLOW_MASTER v1.6→v1.7：Step1 新增Principle 7（单一事实来源与衍生品同步，母本/下游衍生品层级+Ripple Sync四步Action）；Step2 一改俱改Coupling表格`SOP text modified in 流程指南/`行升级为含Mandatory Ripple Check的三步规则；Step3 R2新增UNLESS豁免条款（Ripple Sync触发时必须同步所有下游衍生品）；补全Principle 5标题。 | ✅ Done |
 | 17 | 2026-02-28 | Global Sync Audit & Remediation | 断点1：宣传委员工作流程指南.md §3.0 TOC条目+标题（Session 13术语替换遗漏，两处仍为"A类/B类"）→已修正；footer版本号v1.1/2026-02-05与YAML v1.3/2026-02-28不符→已同步为v1.4/2026-02-28；文档更新记录补录v1.3条目。断点2：card-01-组织活动.md "A类别忘了"/"B类别忘了"标签→已改为"组织生活会别忘了"/"党小组主题党日活动别忘了"。流程图已核查：无A/B，侯/韩分工正确。card-02至card-05已核查：无旧版分工遗留。 | ✅ Done |
+| 18 | 2026-02-28 | Log Rotation & Knowledge Distillation | Step1: 新建 `.vibe_context/logs/` 子目录；原 `EXECUTION_LOG.md` 全量内容归档至 `logs/2026-02-EXECUTION_LOG.md`（status: archived）；原文件改为导航索引；新建 `logs/2026-03-EXECUTION_LOG.md`（活动）。Step2: 新建 `docs/党支部管理与实务经验沉淀.md` v1.0（type: experience_doc）—— 三模块（组织架构权责重构/流程优化/数字化人机协同）+ 决策误区附录，覆盖Sessions 1–18核心管理哲学。Step3: WORKFLOW_MASTER v1.7→v1.8 —— SOP Step 6升级为双子步骤（a日志追加+b经验蒸馏）；AI Data Panel Storage Paths更新月度日志路径；Human Panel Storage Paths新增docs/目录；Validation Gate第2条/Principle 7/一改俱改Coupling表同步更新。 | ✅ Done |
 
 ---
 
-**Version:** 2.5  
+**Version:** 2.6  
 **Owner:** 储子禾  
 **Last updated:** 2026-02-28
