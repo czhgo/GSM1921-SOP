@@ -6,8 +6,8 @@ audience:
   - 所有支委
   - 党小组组长
 owner: "储子禾"
-last_updated: "2026-02-23"
-version: "1.1"
+last_updated: "2026-02-28"
+version: "1.2"
 status: active
 related_files:
   - "START_HERE.md"
@@ -33,7 +33,7 @@ related_files:
 
 ## 2. 现场痛点与卡壳环节 (Pain Point)
 
-- **卡壳的 SOP 文件与步骤**：（如：常见场景指南，B类活动第3步）
+- **卡壳的 SOP 文件与步骤**：（如：常见场景指南，党小组主题党日活动第3步）
 - **实际执行困难**：（一句话说明原流程为何反直觉或不可行）
 
 ---

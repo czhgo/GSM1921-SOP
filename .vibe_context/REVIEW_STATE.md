@@ -31,9 +31,9 @@
 
 | Category | Total | ✅ Done | 🔄 In Progress | ⏳ Pending |
 |----------|-------|---------|---------------|-----------|
-| Pending Modification Tasks | 14 | 11 | 0 | 3 |
-| Agent Watchlist Issues | 5 | 4 | 0 | 1 |
-| Suspended Issues (DO NOT TOUCH) | 2 | — | — | 2 |
+| Pending Modification Tasks | 14 | 12 | 0 | 2 |
+| Agent Watchlist Issues | 5 | 5 | 0 | 0 |
+| Suspended Issues (DO NOT TOUCH) | 3 | 2 | — | 1 |
 
 ---
 
@@ -55,7 +55,7 @@
 ### 🔴 高优先级
 
 - [x] **修改1**｜场景1 拆分为 1A 和 1B 两个子流程 — 在`流程指南/常见工作场景快速指南.md`中将场景1保留为总入口并新增1A（组织生活会）、1B（灵活学习活动）子流程；`工作流程图-定人定责定岗.md`第3节同步拆分（流程图待下一轮更新）
-- [x] **修改2**｜补充 A 类活动（组织生活会）的12步标准程序 — 含会前谈心、对照检查、签到、自评互评、会议记录归档、宣传产出；需核查`官方文件/`中条例原文
+- [x] **修改2**｜补充 A 类活动（组织生活会）的12步标准程序 — 含会前谈心、对照检查、签到、自评互评、会议记录归档、宣传产出；需核查`参考资料/官方文件/`中条例原文
 - [x] **修改3**｜补充 B 类活动（灵活学习活动）的11步完整流程 — 含活动发起两种路径、组长审批、联系块块、实施、复盘、归档
 
 ### 🟡 中优先级
@@ -72,7 +72,7 @@
 
 - [x] **修改5**｜"深度参与者"/"组织者"概念不需要重新定义 — 首次出现时标注「详见[纪检委员工作流程指南]」；概念仅针对党员（中共党员和预备党员）
 - [x] **修改12**｜跨组参与规则 — B类注意事项中增加：优先本组→限额未满可邀他组→普通参与者一并考勤；⚠️ 标记悬置问题H1
-- [ ] **修改13**｜外出活动特殊注意事项 — B类流程增加：安全保障、交通方式（用车审批）、经费管理，链接已有流程图
+- [x] **修改13**｜外出活动特殊注意事项 — 场景1B注意事项新增：用车双轨制（京内大巴→学生党建中心；出京→特事特办）；经费全部书记审批（无免批额度）；解锁H4
 - [ ] **修改14**｜品牌活动与非品牌活动发起方式 — 场景8增加两种路径（有品牌→组长招募；无品牌→支书及组长沟通低成本活动）；场景1B「活动发起」步骤简要提及
 
 ---
@@ -88,7 +88,7 @@
 | W1 | `[Global]` | **考察档案归属**：2026年2月已将考察档案从纪检委员转给组织委员，需确保所有文件一致（不得出现纪检负责考察档案的表述） | `组织委员工作流程指南.md` / `纪检委员工作流程指南.md` | ✅ 已解决（Session 9：常见工作场景快速指南场景3+6、纪检委员指南TOC修正） |
 | W2 | `[Global]` | **意见反馈平台负责人**：当前文档中部分写纪检委员、部分写组织委员，需统一为同一负责人 | `常见工作场景快速指南.md` / `组织委员工作流程指南.md` / `纪检委员工作流程指南.md` | ✅ 已解决（Session 9：统一为纪检委员，纪检指南恢复§4.2，支委说明/README同步更新） |
 | W3 | `[Scenario-1 Only]` | **宣传委员角色差异**：A类活动宣传委员以「档案归档」为主；B类活动宣传委员以「指导宣传负责人」为主；两种角色不应混用 | `宣传委员工作流程指南.md` | ✅ 已解决（Session 5，新增 §3.0） |
-| W4 | `[Scenario-1 Only]` | **块块委员触发时机差异**：A类活动纪检委员考勤为刚性全程参与；B类为弹性。此差异须体现在各委员工作手册中 | `纪检委员工作流程指南.md` | ⏳ 未核查 |
+| W4 | `[Scenario-1 Only]` | **块块委员触发时机差异**：A类活动纪检委员考勤为刚性全程参与；B类为弹性。此差异须体现在各委员工作手册中 | `纪检委员工作流程指南.md` | ✅ 已解决（Session 12：纪检指南明确A类三会一课刚性/B类极简备忘录机制，§2.4新增，§1.1表格更新）|
 | W5 | `[Scenario-1 Only]` | **快速卡片未更新**：`_quick_cards/card-01-组织活动.md` (last_updated 2026-02-17) 使用简化5步流程，未反映Session 4引入的A类/B类（1A/1B）拆分。其他卡片亦需核查 | `_quick_cards/card-01-组织活动.md`（其他卡片待查） | ✅ 已解决（Session 9：彻底重写为A/B双路径卡片） |
 
 ---
@@ -101,8 +101,9 @@
 
 | # | Scope (作用域) | 问题 | 涉及文件 | 悬置原因 |
 |---|---------------|------|---------|---------|
-| H1 | `[Scenario-1 Only]` | 跨组参与时，组织者的考察如何协同？ | `纪检委员工作流程指南.md` | 书记指示先悬置，后续另行讨论 |
+| H1 | `[Scenario-1 Only]` | ~~跨组参与时，组织者的考察如何协同？~~ | `纪检委员工作流程指南.md` / `常见工作场景快速指南.md` | **✅ Session 19 已解决**：全支部纪检委员仅一人；跨组活动按统一记录机制处理，移交组织委员归档。 |
 | H3 | `[Global]` | 党小组工作手册（条条委员专用）尚未建设 | 待新建文件 | 本轮先通过SOP规定条条职责 |
+| H4 | `[Scenario-1B Only]` | ~~**外出活动经费审批链路不明**~~ | `流程指南/常见工作场景快速指南.md` / `流程指南/工作流程图-定人定责定岗.md` | **✅ Session 19 已解决**：书记裁定——所有外出或活动经费，不设免批额度，全部须由书记本人经手审批、支付及报销。规则已写入场景1B注意事项及流程图。 |
 
 ---
 
@@ -130,9 +131,19 @@
 | 9 | 2026-02-22 | Global Audit + Debt Resolution + Vision Declaration | Step1: C5/C6 in sop_restructuring+activity_rules_enforcement → dynamic scope-aware; Step2: W1+W2 resolved (6 files updated); Step3: W5 resolved (card-01 rewritten A/B); Step4: Vision declaration added to README.md | ✅ Done |
 | 10 | 2026-02-22 | Template Razor & Feedback Channel (H2 Unlocked) | Razor-cut 3 MD templates (活动复盘/活动总结/支部基本信息 v1→v2, -75% lines); created _quick_cards/SOP优化提案反馈卡.md; added feedback card notice to START_HERE.md; H2 removed from Suspended Issues | ✅ Done |
 | 11 | 2026-02-23 | Constitution Upgrade & Taxonomy Sync | WORKFLOW_MASTER v1.5: Permanent Principle 5 (Occam's Razor) added; REVIEW_STATE v2.0: Directive Dimensions table added; SOP优化提案反馈卡 v1.1: §1 Scope rewritten to 4-dimension taxonomy | ✅ Done |
+| 12 | 2026-02-28 | Role Refactoring & Blind Spot Eradication | Step1: 工作流程图§5+定人定责说明§六场景3 盲区修复（纪检→记录并移交；组织委员→建立档案；倒查法归属更正）; Step2: 组织委员指南v1.1（培训班领队/党委办公室助理/终极归档中心/公域发令边界）; 纪检委员指南v3.1（党日活动指导者/§2.4极简备忘录机制/§1.1表格更新）; Step3: 常见工作场景快速指南v1.4（场景1B Step4公域发令+Step6私域督办+注意事项两条新规则）; W4 ✅ 出清 | ✅ Done |
+| 13 | 2026-02-28 | SemVer Enforcement & Terminology Refactoring | Step1: WORKFLOW_MASTER v1.6 — Principle 6 (SemVer严格递增规范) 新增; Step2: 全局命名空间重构 — A类→组织生活会 / B类+灵活学习活动→党小组主题党日活动，涉及8个文件（常见工作场景快速指南v1.5/宣传委员指南v1.3/纪检委员指南v3.2/card-01/反馈卡v1.2/活动复盘模板v2.1/CONTENT_MAP v1.1/scenarios/activity_rules_enforcement）; Step3: REVIEW_STATE v2.2+EXECUTION_LOG 同步 | ✅ Done |
+| 14 | 2026-02-28 | Topology Refactoring & Logic Gap Detection | Step1: 工作流程图v1.1→v1.2 — 三大核心骨架重构（骨架I组织生活会/骨架II党日活动含条件分支/骨架III党员发展）；旧§3通用图→骨架I；新增骨架II；旧§5→骨架III（纪检只记录移交）；旧§6党团班一体化→整合入骨架II分支2；旧§4制度建设→重编§6；§1/§2/§7/§8/§10保留并附说明；矩阵§9更新考察档案归属行; Step2: REVIEW_STATE v2.3 — 新增悬置H4（外出经费审批规则）；Suspended Issues 2→3 | ✅ Done |
+| 15 | 2026-02-28 | Read & Triage — Priority Decision Inbox | 零业务规则修改。全库深度扫描：提取P0（H1/H3/H4三项悬置，各提供2-3个业务选项）、P1（修改13外出注意事项缺失变量清单、修改14品牌路径缺失变量清单）、P2（六项未触达边缘场景：党员发展异常/预备党员转正异常/组织生活会流程中断/场景4无申诉机制/场景文件状态错位/CONTENT_MAP G1-G2缺口）。Priority Decision Inbox 已在聊天窗口输出供书记决断。 | ✅ Done |
+| 16 | 2026-02-28 | Constitution Upgrade: Ripple Sync Protocol | WORKFLOW_MASTER v1.6→v1.7：Step1 新增Principle 7（单一事实来源与衍生品同步，母本/下游衍生品层级+Ripple Sync四步Action）；Step2 一改俱改Coupling表格`SOP text modified in 流程指南/`行升级为含Mandatory Ripple Check的三步规则；Step3 R2新增UNLESS豁免条款（Ripple Sync触发时必须同步所有下游衍生品）；补全Principle 5标题。 | ✅ Done |
+| 17 | 2026-02-28 | Global Sync Audit & Remediation | 断点1：宣传委员工作流程指南.md §3.0 TOC条目+标题（Session 13术语替换遗漏，两处仍为"A类/B类"）→已修正；footer版本号v1.1/2026-02-05与YAML v1.3/2026-02-28不符→已同步为v1.4/2026-02-28；文档更新记录补录v1.3条目。断点2：card-01-组织活动.md "A类别忘了"/"B类别忘了"标签→已改为"组织生活会别忘了"/"党小组主题党日活动别忘了"。流程图已核查：无A/B，侯/韩分工正确。card-02至card-05已核查：无旧版分工遗留。 | ✅ Done |
+| 18 | 2026-02-28 | Log Rotation & Knowledge Distillation | Step1: 新建 `.vibe_context/logs/` 子目录；原 `EXECUTION_LOG.md` 全量内容归档至 `logs/2026-02-EXECUTION_LOG.md`（status: archived）；原文件改为导航索引；新建 `logs/2026-03-EXECUTION_LOG.md`（活动）。Step2: 新建 `docs/党支部管理与实务经验沉淀.md` v1.0（type: experience_doc）—— 三模块（组织架构权责重构/流程优化/数字化人机协同）+ 决策误区附录，覆盖Sessions 1–18核心管理哲学。Step3: WORKFLOW_MASTER v1.7→v1.8 —— SOP Step 6升级为双子步骤（a日志追加+b经验蒸馏）；AI Data Panel Storage Paths更新月度日志路径；Human Panel Storage Paths新增docs/目录；Validation Gate第2条/Principle 7/一改俱改Coupling表同步更新。 | ✅ Done |
+| 19 | 2026-02-28 | Global Resolution & Coverage Completion | Step1(H4解锁): 场景1B注意事项+Check清单新增"经费全部书记审批"规则（无免批额度）；工作流程图H4标注改为✅已解决。Step1(H1解锁): 场景1B注意事项将"悬置问题"替换为明确规则（全支部纪检委员仅一人，跨组按统一机制处理）；纪检委员指南v3.2→v3.3新增§3.1跨组协同机制说明；工作流程图H1标注改为✅已解决。Step2(修改13): 场景1B Check清单用车双轨制细化；注意事项增加用车双轨制与经费审批规则；修改13标记为[x]。Step3a: 组织委员指南v1.1→v1.2新增§5.2材料全案复核权。Step3b: 场景1A注意事项新增"会议时间民主统筹"。Step4a: activity_rules_enforcement.md 16/17个执行步骤标记为[x]（仅修改14 Step12 pending）。Step4b: CONTENT_MAP v1.1→v1.2，6份官方文件（附件11/12/14/15/16/17）补录中文摘要，G1缺口修复。Step5: docs/党支部管理与实务经验沉淀.md v1.0→v1.1，全局匿名化（侯嘉嵘→组织委员/储子禾→书记）。 | ✅ Done |
+| 20 | 2026-02-28 | Directory Folding & Global View Synchronization | Step1: 新建 `参考资料/` 目录；`git mv` 将 `官方文件/`、`党小组会/`、`支部委员会/` 三个文件夹整体迁移至 `参考资料/` 内部，文件内容零删减。Step2: 控制面路径重写——WORKFLOW_MASTER.md / CONTENT_MAP.md / REVIEW_STATE.md / activity_rules_enforcement.md 中所有旧路径更新为 `参考资料/官方文件/` 等新路径；CONTENT_MAP §3 新增 `参考资料/` 分区子标题。Step3: 衍生视图刷新——README.md v1.1→v1.2（文件夹表3行合并为1行 `参考资料/`）；START_HERE.md v1.0→v1.1（§5 参考资料路径修正 + A类/B类→正式术语）；CHEATSHEET.md v1.0→v1.1（ASCII路径框 + 文件夹表修正）；流程指南/常见工作场景快速指南.md + 纪检委员指南 + 宣传委员指南 相对路径修复。死链修复清单：`./支部委员会/`→`./参考资料/支部委员会/`（快速指南/纪检/宣传3处）；`./党小组会/`→`./参考资料/党小组会/`（快速指南2处）；`./官方文件/`→`./参考资料/官方文件/`（START_HERE/CHEATSHEET各1处）；控制面共12处路径重写。 | ✅ Done |
+| 21 | 2026-02-28 | UX Overhaul & Log Pipeline Recovery | Step1: README.md v1.2→v1.3 全面重构——Persona=新手视角；SOP优化提案反馈卡升至视觉C位（标题正下方Banner）；角色导航精简为表格（块块三委员直接链接）；删除硬编码更新日期；YAML related_files 新增反馈卡路径。Step2: 日志链路强修复——补录 Session 20 完整执行日志（14文件清单）至 .vibe_context/logs/2026-03-EXECUTION_LOG.md；追加本次 Session 21 日志；日志物理路径确认：`.vibe_context/logs/2026-03-EXECUTION_LOG.md`。 | ✅ Done |
 
 ---
 
-**Version:** 2.0  
+**Version:** 2.9  
 **Owner:** 储子禾  
-**Last updated:** 2026-02-23
+**Last updated:** 2026-02-28

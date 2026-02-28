@@ -41,7 +41,7 @@ Never embed scenario logic inside human documents.
 
 | Attribute | Specification |
 |-----------|---------------|
-| **Storage Paths** | Root entry points: `README.md`, `START_HERE.md`, `CHEATSHEET.md` <br>Sub-directories: `流程指南/`, `_quick_cards/`, `申报材料模板/`, `活动复盘/`, `官方文件/`, `党小组会/`, `支部委员会/` |
+| **Storage Paths** | Root entry points: `README.md`, `START_HERE.md`, `CHEATSHEET.md` <br>Sub-directories: `流程指南/`, `_quick_cards/`, `申报材料模板/`, `活动复盘/`, `参考资料/` (官方文件, 党小组会, 支部委员会) <br>Knowledge base: `docs/党支部管理与实务经验沉淀.md` — management experience & cross-term handover reference |
 | **Invocation** | Open any file directly in GitHub web UI, a local Markdown viewer, or WPS (for `.docx` / `.pdf`). Navigate via `README.md` (full index) or `START_HERE.md` (onboarding guide). No command is required. |
 | **Trigger Conditions** | • A 支部成员 needs to look up a procedure, template, or policy. <br>• A 支委 needs to execute a task. <br>• Content is being written or reviewed for a human reader. |
 
@@ -49,7 +49,7 @@ Never embed scenario logic inside human documents.
 
 | Attribute | Specification |
 |-----------|---------------|
-| **Storage Paths** | `.vibe_context/WORKFLOW_MASTER.md` — master rules & meta-prompt (this file) <br>`.vibe_context/REVIEW_STATE.md` — live task state, single source of truth <br>`.vibe_context/EXECUTION_LOG.md` — append-only audit trail <br>`.vibe_context/CONTENT_MAP.md` — annotated index of all Human Panel files + binary file registry (read at session start for full context) <br>`.vibe_context/scenarios/activity_rules_enforcement.md` — A/B activity constraints <br>`.vibe_context/scenarios/sop_restructuring.md` — SOP restructuring constraints <br>`.vibe_context/scenarios/yaml_metadata_fix.md` — YAML frontmatter constraints |
+| **Storage Paths** | `.vibe_context/WORKFLOW_MASTER.md` — master rules & meta-prompt (this file) <br>`.vibe_context/REVIEW_STATE.md` — live task state, single source of truth <br>`.vibe_context/EXECUTION_LOG.md` — **log index & redirect** (read for navigation; do NOT append sessions here) <br>`.vibe_context/logs/YYYY-MM-EXECUTION_LOG.md` — **monthly log files** (append session reports to the current month's file) <br>`.vibe_context/CONTENT_MAP.md` — annotated index of all Human Panel files + binary file registry (read at session start for full context) <br>`.vibe_context/scenarios/activity_rules_enforcement.md` — A/B activity constraints <br>`.vibe_context/scenarios/sop_restructuring.md` — SOP restructuring constraints <br>`.vibe_context/scenarios/yaml_metadata_fix.md` — YAML frontmatter constraints |
 | **Invocation** | **GitHub Copilot:** paste the Standard Invocation Prompt (see §📣 below) into the chat, using `@workspace` and `@.vibe_context/WORKFLOW_MASTER.md` symbols. <br>**Other AI systems (e.g., Claude, Gemini):** attach `.vibe_context/WORKFLOW_MASTER.md` and `.vibe_context/REVIEW_STATE.md` directly, or reference their repo-root-relative paths in the prompt. |
 | **Trigger Conditions** | • Start of **any** session that will read or modify repository files. <br>• When the Agent needs to determine what tasks are pending or in-progress. <br>• When a human manager asks the Agent to resume, continue, or audit prior work. <br>• When the Agent detects a potential conflict between documents (trigger Watchlist check). |
 
@@ -62,14 +62,14 @@ The **YAML frontmatter block** at the top of each Markdown file is the sole coup
 | Human Panel Event | Required AI Data Panel Update |
 |-------------------|-------------------------------|
 | New Markdown file created | Run `yaml_metadata_fix` scenario to inject YAML frontmatter; register the new file in the nearest parent's `related_files`. |
-| SOP text modified in `流程指南/` | Update `last_updated` in that file's YAML; check off the matching task in `REVIEW_STATE.md`; append a new entry to `EXECUTION_LOG.md`. |
+| SOP text modified in `流程指南/` | 1. Update `last_updated` in that file's YAML. 2. **Mandatory Ripple Check**: The Agent MUST identify all downstream derivatives (flowcharts, quick cards) listed in `related_files` and update their content to strictly match the new SOP logic. 3. Check off task in `REVIEW_STATE.md` and append to the current month's log file. |
 | New issue or inconsistency found in human content | Log immediately in `REVIEW_STATE.md` → `## 🐛 AI-Identified Issues` (code bugs) or `## 🔍 Agent Watchlist` (structural conflicts). |
 | Pending task completed | Mark `[x]` in `REVIEW_STATE.md`; update `## 📊 Overall Progress` counters; append a row to the Session Log table. |
 | Suspended issue (`H1`–`H3`) encountered | **BLOCKED** — do not modify; leave a `⚠️ 悬置` marker in the text and move on. The issue may only be unlocked by an explicit instruction from 书记 in `REVIEW_STATE.md`. |
 
 **Validation gate (run before every `report_progress` call):**
 1. All task checkboxes in `REVIEW_STATE.md` accurately reflect the current state of Human Panel files.
-2. `EXECUTION_LOG.md` has a new entry for the current session.
+2. The current month's log file (`.vibe_context/logs/YYYY-MM-EXECUTION_LOG.md`) has a new entry for the current session.
 3. Every modified Markdown file has an updated `last_updated` field in its YAML frontmatter.
 
 ---
@@ -116,11 +116,16 @@ SOP:
   5. Update REVIEW_STATE      → After every meaningful unit of work, update
                                   .vibe_context/REVIEW_STATE.md (task checkboxes, tables,
                                   AI-identified issues). Commit alongside code changes.
-  6. Generate Execution Summary & Log → After updating REVIEW_STATE.md, you MUST append
-                                  a structured execution report to
-                                  .vibe_context/EXECUTION_LOG.md using the template in
-                                  ## 📋 Standard Output Templates below. Also print the
-                                  report in the chat interface for the human manager.
+  6. Generate Execution Summary & Distill Experience →
+       a) **Log Append**: Append structured execution report to the CURRENT month's log in
+          `.vibe_context/logs/YYYY-MM-EXECUTION_LOG.md` using the template in
+          ## 📋 Standard Output Templates below. If the current month's file does not yet
+          exist, create it from the standard template first, then append. Also print the
+          report in the chat interface for the human manager.
+       b) **Experience Distillation**: IF the session involved structural or workflow
+          optimizations (e.g., reducing marginal costs, clarifying roles, adding new
+          governance mechanisms), you MUST extract the underlying management rationale and
+          update `docs/党支部管理与实务经验沉淀.md` in pure Simplified Chinese.
 ```
 
 ---
@@ -130,7 +135,7 @@ SOP:
 | # | Rule |
 |---|------|
 | R1 | **Always read before writing.** Complete steps 1–3 before any code change. |
-| R2 | **Minimal diff principle.** Change only what is required by the scenario. |
+| R2 | **Minimal diff principle.** Change only what is required by the scenario, **UNLESS** a Ripple Sync is triggered, in which case all related downstream derivatives MUST be updated simultaneously to prevent content desynchronization. |
 | R3 | **REVIEW_STATE is the single source of truth.** Never rely on memory across sessions; always re-read. |
 | R4 | **Scenario constraints are binding.** If a constraint in a scenario file conflicts with a general suggestion, the scenario file wins. |
 | R5 | **Security first.** Run `codeql_checker` and advisory checks before finalizing any session with code changes. |
@@ -140,6 +145,38 @@ SOP:
 ### Permanent Design Principles (永久性设计原则)
 
 > These principles are **Global Constants** — they apply to every scenario execution and cannot be overridden by individual scenario files.
+
+#### Principle 6 — Strict SemVer for YAML `version` Fields (版本号严格递增规范)
+
+**Permanent Constraint:** All Markdown files carry a `version` field in their YAML frontmatter. The Agent **MUST** follow these rules when incrementing version numbers:
+
+| Change Type | Rule | Example |
+|-------------|------|---------|
+| **Minor / Patch** — routine SOP edits, typo fixes, partial restructuring | Increment only the digit after the decimal point. Never reset to `.0`. | `v1.9` → `v1.10` → `v1.11` |
+| **Major** — breaking structural overhaul | The Agent **MUST NOT** self-authorize a major bump. `v(n+1).0` requires either (a) an explicit "突破性更改" instruction from the human decision-maker, or (b) a recorded justification approved in `REVIEW_STATE.md`. | `v1.x` → `v2.0` only by human order |
+
+**Enforcement:** Before every `report_progress` call, verify that no file's `version` has jumped a major number without a recorded human authorization in `REVIEW_STATE.md`.
+
+---
+
+#### Principle 7 — Single Source of Truth & Derivative Sync (单一事实来源与衍生品同步)
+
+**Permanent Constraint:** The repository has a strict master-derivative hierarchy for business content:
+
+| Layer | Files | Role |
+|-------|-------|------|
+| **Master Source (母本)** | All files under `流程指南/` | Authoritative SOP text. All business logic changes MUST originate here first. |
+| **Downstream Derivatives (下游衍生品)** | `工作流程图-定人定责定岗.md` and all files under `_quick_cards/` | Must faithfully reflect the current state of the Master Source. They are **never** independently authoritative. |
+
+**Action:** Any modification to business logic in the Master Source **automatically triggers a Ripple Sync**:
+1. Apply the change in the relevant `流程指南/` file first.
+2. Identify every downstream derivative listed in the modified file's `related_files` YAML field.
+3. Update each derivative's content to strictly match the new SOP logic.
+4. Record the full list of updated derivatives in the current month's log file entry (`.vibe_context/logs/YYYY-MM-EXECUTION_LOG.md`).
+
+This principle cannot be suspended and overrides the default minimal-diff scope of R2 (see R2 UNLESS clause above).
+
+---
 
 #### Principle 5 — Occam's Razor & Anti-Formalism (奥卡姆剃刀与去形式化)
 
@@ -193,7 +230,7 @@ SOP:
 
 ## 📋 Standard Output Templates
 
-Use this exact template for the Step 6 execution report. Fill in the bracketed fields. Append to `EXECUTION_LOG.md` and print in chat.
+Use this exact template for the Step 6 execution report. Fill in the bracketed fields. Append to the current month's `.vibe_context/logs/YYYY-MM-EXECUTION_LOG.md` and print in chat.
 
 ````markdown
 ## [YYYY-MM-DD] — Session N (scenario_name)
@@ -219,6 +256,6 @@ Use this exact template for the Step 6 execution report. Fill in the bracketed f
 
 ---
 
-**Version:** 1.5  
+**Version:** 1.8  
 **Owner:** 储子禾  
-**Last updated:** 2026-02-23
+**Last updated:** 2026-02-28
