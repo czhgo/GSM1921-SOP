@@ -33,7 +33,7 @@
 |----------|-------|---------|---------------|-----------|
 | Pending Modification Tasks | 14 | 11 | 0 | 3 |
 | Agent Watchlist Issues | 5 | 5 | 0 | 0 |
-| Suspended Issues (DO NOT TOUCH) | 2 | — | — | 2 |
+| Suspended Issues (DO NOT TOUCH) | 3 | — | — | 3 |
 
 ---
 
@@ -103,6 +103,7 @@
 |---|---------------|------|---------|---------|
 | H1 | `[Scenario-1 Only]` | 跨组参与时，组织者的考察如何协同？ | `纪检委员工作流程指南.md` | 书记指示先悬置，后续另行讨论 |
 | H3 | `[Global]` | 党小组工作手册（条条委员专用）尚未建设 | 待新建文件 | 本轮先通过SOP规定条条职责 |
+| H4 | `[Scenario-1B Only]` | **外出活动经费审批链路不明**：场景1B及骨架II外出子流程均提及"经费按支部经费管理规定执行"，但(a)支部经费管理规定尚未建立；(b)条条组长可自主审批的经费上限不明；(c)何时须报支委会审批未规定。属[Role/Delegation Constraints]维度。 | `流程指南/常见工作场景快速指南.md` / `流程指南/工作流程图-定人定责定岗.md` | Session 14 条条断点侦测发现，待书记裁定审批规则后解锁 |
 
 ---
 
@@ -132,9 +133,10 @@
 | 11 | 2026-02-23 | Constitution Upgrade & Taxonomy Sync | WORKFLOW_MASTER v1.5: Permanent Principle 5 (Occam's Razor) added; REVIEW_STATE v2.0: Directive Dimensions table added; SOP优化提案反馈卡 v1.1: §1 Scope rewritten to 4-dimension taxonomy | ✅ Done |
 | 12 | 2026-02-28 | Role Refactoring & Blind Spot Eradication | Step1: 工作流程图§5+定人定责说明§六场景3 盲区修复（纪检→记录并移交；组织委员→建立档案；倒查法归属更正）; Step2: 组织委员指南v1.1（培训班领队/党委办公室助理/终极归档中心/公域发令边界）; 纪检委员指南v3.1（党日活动指导者/§2.4极简备忘录机制/§1.1表格更新）; Step3: 常见工作场景快速指南v1.4（场景1B Step4公域发令+Step6私域督办+注意事项两条新规则）; W4 ✅ 出清 | ✅ Done |
 | 13 | 2026-02-28 | SemVer Enforcement & Terminology Refactoring | Step1: WORKFLOW_MASTER v1.6 — Principle 6 (SemVer严格递增规范) 新增; Step2: 全局命名空间重构 — A类→组织生活会 / B类+灵活学习活动→党小组主题党日活动，涉及8个文件（常见工作场景快速指南v1.5/宣传委员指南v1.3/纪检委员指南v3.2/card-01/反馈卡v1.2/活动复盘模板v2.1/CONTENT_MAP v1.1/scenarios/activity_rules_enforcement）; Step3: REVIEW_STATE v2.2+EXECUTION_LOG 同步 | ✅ Done |
+| 14 | 2026-02-28 | Topology Refactoring & Logic Gap Detection | Step1: 工作流程图v1.1→v1.2 — 三大核心骨架重构（骨架I组织生活会/骨架II党日活动含条件分支/骨架III党员发展）；旧§3通用图→骨架I；新增骨架II；旧§5→骨架III（纪检只记录移交）；旧§6党团班一体化→整合入骨架II分支2；旧§4制度建设→重编§6；§1/§2/§7/§8/§10保留并附说明；矩阵§9更新考察档案归属行; Step2: REVIEW_STATE v2.3 — 新增悬置H4（外出经费审批规则）；Suspended Issues 2→3 | ✅ Done |
 
 ---
 
-**Version:** 2.2  
+**Version:** 2.3  
 **Owner:** 储子禾  
 **Last updated:** 2026-02-28
