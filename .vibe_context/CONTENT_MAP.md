@@ -2,8 +2,8 @@
 title: "Human Panel Content Map"
 type: index
 owner: "储子禾"
-last_updated: "2026-02-22"
-version: "1.0"
+last_updated: "2026-02-28"
+version: "1.1"
 status: active
 ---
 
@@ -44,7 +44,7 @@ status: active
 | File | YAML type | Abstract | Key Content Tags |
 |------|-----------|----------|-----------------|
 | `流程指南/README.md` | `index` | Directory of all `流程指南/` files. Recommended reading order (6 files), role-based navigation paths (新任支委 / 党小组组长 / 块块委员 / 积极分子 / 团班), file summary table with line-counts. | 阅读顺序, 角色导航, 文档概览 |
-| `流程指南/常见工作场景快速指南.md` | `SOP` | **PRIMARY SOP — read first for any content task.** 9 common work scenarios. **Scenario 1** = activity-type router → **1A** (组织生活会, A-class): 12-step table with named owners (会前准备/会中实施/会后归档) + deliverables checklist. **1B** (灵活学习活动, B-class): 11-step table with time-node column, two launch paths (a=brand / b=ad-hoc), indoor/outdoor checklists,弹性考勤, cross-group rules, ⚠️ H1 suspended issue. **Scenarios 2–9:** new institution building, activist assessment, 党团班 joint activities, information-platform support, attendance queries, branch decision-making, brand-activity building, feedback handling. Appendix: role-to-scenario and task-to-scenario lookup tables, contact table. | 场景1A, 场景1B, A类, B类, 9个场景, 责任人, 联系人, 弹性考勤, 品牌活动 |
+| `流程指南/常见工作场景快速指南.md` | `SOP` | **PRIMARY SOP — read first for any content task.** 9 common work scenarios. **Scenario 1** = activity-type router → **1A** (组织生活会): 12-step table with named owners (会前准备/会中实施/会后归档) + deliverables checklist. **1B** (党小组主题党日活动): 11-step table with time-node column, two launch paths (a=brand / b=ad-hoc), indoor/outdoor checklists,弹性考勤, cross-group rules, ⚠️ H1 suspended issue. **Scenarios 2–9:** new institution building, activist assessment, 党团班 joint activities, information-platform support, attendance queries, branch decision-making, brand-activity building, feedback handling. Appendix: role-to-scenario and task-to-scenario lookup tables, contact table. | 场景1A, 场景1B, 组织生活会, 党小组主题党日活动, 9个场景, 责任人, 联系人, 弹性考勤, 品牌活动 |
 | `流程指南/支委与党小组定人定责定岗说明.md` | `SOP` | **DUTY FRAMEWORK.** Defines the 6-person branch committee (including 辛长乐 as deputy group leader), 条条/块块 dual management system, each person's dual-identity responsibilities (储子禾, 王峥旭, 侯嘉嵘, 闫鑫岳, 韩思宁), inter-group coordination mechanisms, accountability matrix (§5 定人/定责/定岗), and 4 optimization recommendations. | 条条, 块块, 双线管理, 定人定责定岗, 双重身份, 职责边界 |
 | `流程指南/工作流程图-定人定责定岗.md` | `flowchart` | **10 Mermaid flowcharts.** (1) org chart with dual identity, (2) 条条-块块 collaboration map, (3) party activity flow (generic, pre-A/B split — ⚠️ needs update per REVIEW_STATE 修改1), (4) institution-building flow, (5) activist development → party member path, (6) 党团班 joint activity, (7) branch committee decision, (8) dual-identity switching state diagram, (9) responsibility matrix table, (10) decision-authority map. Color scheme: 蓝=条条, 红=块块, 绿=起止, 黄=职能. | Mermaid, 流程图, 10张图, 蓝红绿配色 |
 | `流程指南/组织委员工作流程指南.md` | `SOP` | **组织委员（侯嘉嵘）complete manual.** 4 work scenarios: (1) info platform — notification workflow, 9-step table, notification text template; (2) ideological report archiving — collection/statistics/quality, quarterly stats template; (3) activity workflow building — co-built with 纪检委员; (4) member development support — materials per development stage. Includes FAQ (6 Q&A) + daily/semester checklists. | 信息平台, 思想汇报, 工作流建设, 党员发展协助, 组织委员 |

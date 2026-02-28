@@ -141,6 +141,19 @@ SOP:
 
 > These principles are **Global Constants** — they apply to every scenario execution and cannot be overridden by individual scenario files.
 
+#### Principle 6 — Strict SemVer for YAML `version` Fields (版本号严格递增规范)
+
+**Permanent Constraint:** All Markdown files carry a `version` field in their YAML frontmatter. The Agent **MUST** follow these rules when incrementing version numbers:
+
+| Change Type | Rule | Example |
+|-------------|------|---------|
+| **Minor / Patch** — routine SOP edits, typo fixes, partial restructuring | Increment only the digit after the decimal point. Never reset to `.0`. | `v1.9` → `v1.10` → `v1.11` |
+| **Major** — breaking structural overhaul | The Agent **MUST NOT** self-authorize a major bump. `v(n+1).0` requires either (a) an explicit "突破性更改" instruction from the human decision-maker, or (b) a recorded justification approved in `REVIEW_STATE.md`. | `v1.x` → `v2.0` only by human order |
+
+**Enforcement:** Before every `report_progress` call, verify that no file's `version` has jumped a major number without a recorded human authorization in `REVIEW_STATE.md`.
+
+---
+
 #### Principle 5 — Occam's Razor & Anti-Formalism (奥卡姆剃刀与去形式化)
 
 **Permanent Constraint:** Before finalising any output in any scenario (restructuring, editing, template creation, etc.), the execution engine **MUST** self-audit against the following three questions:
@@ -219,6 +232,6 @@ Use this exact template for the Step 6 execution report. Fill in the bracketed f
 
 ---
 
-**Version:** 1.5  
+**Version:** 1.6  
 **Owner:** 储子禾  
-**Last updated:** 2026-02-23
+**Last updated:** 2026-02-28

@@ -31,7 +31,7 @@ Apply the 书记-approved A-class / B-class party activity classification when m
 |    | • 复盘: NOT required |
 |    | • 宣传: required (摘要+配图，纳入月推送) |
 |    | • 档案归档: required |
-| C2 | **B-class activities** (灵活学习活动) rules: |
+| C2 | **B-class activities** (党小组主题党日活动) rules: |
 |    | • Participants: all 支部成员 (党员+预备党员+发展对象+积极分子) |
 |    | • Attendance: flexible (弹性考勤) |
 |    | • 复盘: required within 1 week; may be completed by 积极分子 with 条条组长 guidance |
@@ -71,7 +71,7 @@ Apply the 书记-approved A-class / B-class party activity classification when m
 - [ ] **Step 6** — Implement 修改8: embed template links in 1A and 1B
 - [ ] **Step 7** — Implement 修改9: append check-list (室内/外出) after B-class Step 7
 - [ ] **Step 8** — Implement 修改10: append A-class deliverables checklist
-- [ ] **Step 9** — Implement 修改11: explicitly state "B类活动弹性考勤" rule
+- [ ] **Step 9** — Implement 修改11: explicitly state "党小组主题党日活动弹性考勤" rule
 - [ ] **Step 10** — Implement 修改12: add cross-group participation rules; mark H1 as ⚠️ 悬置
 - [ ] **Step 11** — Implement 修改13: add 外出活动 safety/transport/finance notes
 - [ ] **Step 12** — Implement 修改14: add brand/non-brand launch paths in 场景8 and 场景1B

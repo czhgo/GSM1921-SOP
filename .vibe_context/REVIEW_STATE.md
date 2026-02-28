@@ -130,10 +130,11 @@
 | 9 | 2026-02-22 | Global Audit + Debt Resolution + Vision Declaration | Step1: C5/C6 in sop_restructuring+activity_rules_enforcement → dynamic scope-aware; Step2: W1+W2 resolved (6 files updated); Step3: W5 resolved (card-01 rewritten A/B); Step4: Vision declaration added to README.md | ✅ Done |
 | 10 | 2026-02-22 | Template Razor & Feedback Channel (H2 Unlocked) | Razor-cut 3 MD templates (活动复盘/活动总结/支部基本信息 v1→v2, -75% lines); created _quick_cards/SOP优化提案反馈卡.md; added feedback card notice to START_HERE.md; H2 removed from Suspended Issues | ✅ Done |
 | 11 | 2026-02-23 | Constitution Upgrade & Taxonomy Sync | WORKFLOW_MASTER v1.5: Permanent Principle 5 (Occam's Razor) added; REVIEW_STATE v2.0: Directive Dimensions table added; SOP优化提案反馈卡 v1.1: §1 Scope rewritten to 4-dimension taxonomy | ✅ Done |
-| 12 | 2026-02-28 | Role Refactoring & Blind Spot Eradication | Step1: 工作流程图§5+定人定责说明§六场景3 盲区修复（纪检→记录并移交；组织委员→建立档案；倒查法归属更正）; Step2: 组织委员指南v1.1（培训班领队/党委办公室助理/终极归档中心/公域发令边界）; 纪检委员指南v3.1（B类活动指导者/§2.4极简备忘录机制/§1.1表格更新）; Step3: 常见工作场景快速指南v1.4（场景1B Step4公域发令+Step6私域督办+注意事项两条新规则）; W4 ✅ 出清 | ✅ Done |
+| 12 | 2026-02-28 | Role Refactoring & Blind Spot Eradication | Step1: 工作流程图§5+定人定责说明§六场景3 盲区修复（纪检→记录并移交；组织委员→建立档案；倒查法归属更正）; Step2: 组织委员指南v1.1（培训班领队/党委办公室助理/终极归档中心/公域发令边界）; 纪检委员指南v3.1（党日活动指导者/§2.4极简备忘录机制/§1.1表格更新）; Step3: 常见工作场景快速指南v1.4（场景1B Step4公域发令+Step6私域督办+注意事项两条新规则）; W4 ✅ 出清 | ✅ Done |
+| 13 | 2026-02-28 | SemVer Enforcement & Terminology Refactoring | Step1: WORKFLOW_MASTER v1.6 — Principle 6 (SemVer严格递增规范) 新增; Step2: 全局命名空间重构 — A类→组织生活会 / B类+灵活学习活动→党小组主题党日活动，涉及8个文件（常见工作场景快速指南v1.5/宣传委员指南v1.3/纪检委员指南v3.2/card-01/反馈卡v1.2/活动复盘模板v2.1/CONTENT_MAP v1.1/scenarios/activity_rules_enforcement）; Step3: REVIEW_STATE v2.2+EXECUTION_LOG 同步 | ✅ Done |
 
 ---
 
-**Version:** 2.1  
+**Version:** 2.2  
 **Owner:** 储子禾  
 **Last updated:** 2026-02-28
