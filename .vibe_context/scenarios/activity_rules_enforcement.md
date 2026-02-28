@@ -63,26 +63,26 @@ Apply the 书记-approved A-class / B-class party activity classification when m
 
 ## 🔄 Execution Steps
 
-- [ ] **Step 1** — Implement 修改1: restructure 场景1 into 总入口 + 1A + 1B in `常见工作场景快速指南.md`
-- [ ] **Step 2** — Implement 修改2: add A-class 12-step procedure table with named owners
-- [ ] **Step 3** — Implement 修改3: add B-class 11-step flow with time-node column and two launch paths
-- [ ] **Step 4** — Implement 修改6: add 组长审批 node to B-class Step 2
-- [ ] **Step 5** — Implement 修改7: add time-node column; hard-code 外出活动 2-day build-group rule
-- [ ] **Step 6** — Implement 修改8: embed template links in 1A and 1B
-- [ ] **Step 7** — Implement 修改9: append check-list (室内/外出) after B-class Step 7
-- [ ] **Step 8** — Implement 修改10: append A-class deliverables checklist
-- [ ] **Step 9** — Implement 修改11: explicitly state "党小组主题党日活动弹性考勤" rule
-- [ ] **Step 10** — Implement 修改12: add cross-group participation rules; mark H1 as ⚠️ 悬置
-- [ ] **Step 11** — Implement 修改13: add 外出活动 safety/transport/finance notes
+- [x] **Step 1** — Implement 修改1: restructure 场景1 into 总入口 + 1A + 1B in `常见工作场景快速指南.md`
+- [x] **Step 2** — Implement 修改2: add A-class 12-step procedure table with named owners
+- [x] **Step 3** — Implement 修改3: add B-class 11-step flow with time-node column and two launch paths
+- [x] **Step 4** — Implement 修改6: add 组长审批 node to B-class Step 2
+- [x] **Step 5** — Implement 修改7: add time-node column; hard-code 外出活动 2-day build-group rule
+- [x] **Step 6** — Implement 修改8: embed template links in 1A and 1B
+- [x] **Step 7** — Implement 修改9: append check-list (室内/外出) after B-class Step 7
+- [x] **Step 8** — Implement 修改10: append A-class deliverables checklist
+- [x] **Step 9** — Implement 修改11: explicitly state "党小组主题党日活动弹性考勤" rule
+- [x] **Step 10** — Implement 修改12: add cross-group participation rules; mark H1 as ⚠️ 悬置
+- [x] **Step 11** — Implement 修改13: add 外出活动 safety/transport/finance notes
 - [ ] **Step 12** — Implement 修改14: add brand/non-brand launch paths in 场景8 and 场景1B
-- [ ] **Step 13** — Implement 修改4: add 宣传规范 chapter in `宣传委员工作流程指南.md`
-- [ ] **Step 14** — Implement 修改5: add concept reference links (no re-definition)
-- [ ] **Step 15** — Update Mermaid diagrams in `工作流程图-定人定责定岗.md`
-- [ ] **Step 16** — Check applicable Watchlist items (Global + Scenario-1 specific); flag conflicts in REVIEW_STATE
-- [ ] **Step 17** — Update REVIEW_STATE: check off completed tasks, update session log
+- [x] **Step 13** — Implement 修改4: add 宣传规范 chapter in `宣传委员工作流程指南.md`
+- [x] **Step 14** — Implement 修改5: add concept reference links (no re-definition)
+- [x] **Step 15** — Update Mermaid diagrams in `工作流程图-定人定责定岗.md`
+- [x] **Step 16** — Check applicable Watchlist items (Global + Scenario-1 specific); flag conflicts in REVIEW_STATE
+- [x] **Step 17** — Update REVIEW_STATE: check off completed tasks, update session log
 
 ---
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Owner:** 储子禾  
-**Last updated:** 2026-02-22
+**Last updated:** 2026-02-28
