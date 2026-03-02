@@ -2029,6 +2029,140 @@ body {
 //  Constraint: 严禁在事件回调中直接操作 element.style.*
 // ════════════════════════════════════════════════════════════════
 
+// ── SOP 数据库（源：流程指南/常见工作场景快速指南.md v1.7）──────
+const sopDatabase = {
+  version: '1.7',
+  source: '流程指南/常见工作场景快速指南.md',
+  lastUpdated: '2026-03-02',
+  scenarios: [
+    {
+      id: '1A', title: '组织一次组织生活会（严肃政治会议）',
+      domain: 'activity', participants: '仅限中共党员和预备党员', attendance: '刚性（三会一课）',
+      steps: [
+        { phase: '会前准备', action: '确定主题', role: '党小组组长', contact: '储子禾/王峥旭/辛长乐', timing: 'T-7天' },
+        { phase: '会前准备', action: '谈心谈话', role: '党小组组长', contact: '本组成员', timing: 'T-7天' },
+        { phase: '会前准备', action: '对照检查', role: '党小组组长', contact: '本组成员', timing: 'T-7天' },
+        { phase: '会前准备', action: '通知到人（提前至少3天）', role: '组织委员', contact: '侯嘉嵘', timing: 'T-3天' },
+        { phase: '会中实施', action: '签到考勤（刚性）', role: '纪检委员', contact: '韩思宁', timing: '活动中' },
+        { phase: '会中实施', action: '个人自评', role: '全体与会党员', contact: '—', timing: '活动中' },
+        { phase: '会中实施', action: '互相批评', role: '全体与会党员', contact: '—', timing: '活动中' },
+        { phase: '会中实施', action: '组长总结', role: '党小组组长', contact: '—', timing: '活动中' },
+        { phase: '会后归档', action: '会议记录归档', role: '记录人', contact: '闫鑫岳（审核）', timing: 'T+3天' },
+        { phase: '会后归档', action: '宣传产出（摘要+配图，纳入月度推送）', role: '宣传委员', contact: '闫鑫岳', timing: 'T+3天' },
+        { phase: '会后归档', action: '考勤记录归档', role: '纪检委员', contact: '韩思宁', timing: 'T+3天' },
+        { phase: '会后归档', action: '档案归档', role: '宣传委员', contact: '闫鑫岳', timing: 'T+5天' }
+      ]
+    },
+    {
+      id: '1B', title: '组织一次党小组主题党日活动',
+      domain: 'activity', participants: '全体支部成员（可跨组）', attendance: '弹性',
+      steps: [
+        { phase: '策划报备', action: '活动发起（策划方案，确定路径a或b）', role: '活动组织者', contact: '—', timing: 'T-7天' },
+        { phase: '策划报备', action: '组长审批（必须报条条组长同意）', role: '党小组组长', contact: '储子禾/王峥旭/辛长乐', timing: 'T-7天' },
+        { phase: '策划报备', action: '联系块块委员', role: '活动组织者', contact: '侯嘉嵘/闫鑫岳/韩思宁', timing: 'T-7天' },
+        { phase: '准备阶段', action: '信息通知（室内提前2天；外出提前2天建群）', role: '组织委员', contact: '侯嘉嵘', timing: 'T-2天' },
+        { phase: '准备阶段', action: '宣传准备（无需宣传预热）', role: '宣传委员（指导）', contact: '闫鑫岳', timing: 'T-2天' },
+        { phase: '准备阶段', action: '考勤督办（纪检委员入群发备忘录）', role: '纪检委员', contact: '韩思宁', timing: 'T-2天' },
+        { phase: '实施阶段', action: '活动实施', role: '活动组织者', contact: '—', timing: '活动中' },
+        { phase: '收尾阶段', action: '活动复盘（组织者完成，条条组长指导）', role: '活动组织者', contact: '条条组长（指导）', timing: 'T+7天' },
+        { phase: '收尾阶段', action: '宣传产出（摘要+配图，纳入月度推送）', role: '深度参与者（宣传负责人）', contact: '闫鑫岳（指导）', timing: 'T+3天' },
+        { phase: '收尾阶段', action: '材料归档', role: '活动组织者', contact: '闫鑫岳', timing: 'T+7天' },
+        { phase: '收尾阶段', action: '考勤记录（弹性考勤）', role: '纪检委员', contact: '韩思宁', timing: 'T+3天' }
+      ]
+    },
+    {
+      id: '2', title: '制定一个新制度',
+      domain: 'organization', participants: '块块委员（侯嘉嵘、闫鑫岳、韩思宁）',
+      steps: [
+        { action: '起草初稿', role: '块块委员' },
+        { action: '本组试点', role: '块块委员' },
+        { action: '征求意见（其他条条组长在各自党小组）', role: '党小组组长' },
+        { action: '修改完善', role: '块块委员' },
+        { action: '支委会审议', role: '支委会全体' },
+        { action: '修改或通过', role: '支委会全体' },
+        { action: '党员大会表决', role: '全体党员' },
+        { action: '监督落实', role: '块块委员' }
+      ]
+    },
+    {
+      id: '3', title: '考察一位积极分子',
+      domain: 'organization', participants: '条条组长 + 块块委员 + 支部书记',
+      steps: [
+        { action: '日常观察', role: '党小组组长' },
+        { action: '建立考察档案', role: '组织委员', contact: '侯嘉嵘' },
+        { action: '归档思想汇报', role: '组织委员', contact: '侯嘉嵘' },
+        { action: '反馈考察意见（态度+能力）', role: '党小组组长' },
+        { action: '牵头发展工作', role: '支部书记', contact: '储子禾' },
+        { action: '支委会讨论', role: '支委会' },
+        { action: '党员大会表决', role: '全体党员' }
+      ]
+    },
+    {
+      id: '4', title: '团支部和党支部合办活动',
+      domain: 'activity', participants: '团支部/班委会 + 条条组长 + 块块委员',
+      steps: [
+        { action: '提出意向', role: '团支部/班委会' },
+        { action: '评估契合度', role: '党小组组长' },
+        { action: '共同策划', role: '党小组组长 + 团班负责人' },
+        { action: '组织支持', role: '组织委员', contact: '侯嘉嵘' },
+        { action: '宣传工作', role: '宣传委员', contact: '闫鑫岳' },
+        { action: '考核标准确认', role: '纪检委员', contact: '韩思宁' },
+        { action: '活动实施（党小组主导党建内容）', role: '党小组 + 团班' },
+        { action: '分层归档', role: '宣传委员', contact: '闫鑫岳' }
+      ]
+    },
+    {
+      id: '5', title: '信息平台支持',
+      domain: 'organization', contact: '侯嘉嵘（组织委员）',
+      services: ['信息通知（公邮/群聊）', '信息平台管理', '公邮管理（思想汇报统计）', '工作流建设']
+    },
+    {
+      id: '6', title: '查考勤记录',
+      domain: 'organization',
+      records: [
+        { type: '三会一课考勤', contact: '韩思宁（纪检委员）', usage: '考勤管理、补课安排' },
+        { type: '考察档案', contact: '侯嘉嵘（组织委员）', usage: '党员发展、评优评先' },
+        { type: '活动参与统计', contact: '侯嘉嵘（组织委员）', usage: '工作总结' }
+      ]
+    },
+    {
+      id: '7', title: '支部讨论重要事项',
+      domain: 'organization',
+      levels: [
+        { type: '党小组日常活动', mechanism: '组长负责制', owner: '条条组长' },
+        { type: '制度建设', mechanism: '支委会审议 + 党员大会表决', owner: '块块委员起草' },
+        { type: '党员发展', mechanism: '支委会讨论 + 党员大会表决', owner: '支部书记牵头' },
+        { type: '重大事项', mechanism: '支委会讨论 + 党员大会表决', owner: '支部书记牵头' }
+      ]
+    },
+    {
+      id: '8', title: '党小组品牌活动建设',
+      domain: 'activity', participants: '支部党员（也可由发展对象、积极分子组织）',
+      resources: ['硕博支部（跨学段交流）', '教师支部（师生联学共建）', '学生党建中心（场地/资源）', '联学共建单位（跨单位合作）'],
+      steps: [
+        { action: '明确定位（根据本组成员特点确定品牌方向）' },
+        { action: '设计方案（构想活动形式和内容）' },
+        { action: '试点实施（小范围试点，收集反馈）' },
+        { action: '迭代优化（根据反馈优化活动）' },
+        { action: '持续跟进（定期开展，形成品牌）' },
+        { action: '总结推广（总结经验，在支部推广）' }
+      ]
+    },
+    {
+      id: '9', title: '处理意见建议反馈',
+      domain: 'organization', contact: '韩思宁（纪检委员）',
+      channels: ['意见建议反馈平台（纪检委员建设维护）', '直接向纪检委员反馈', '在支部大会上提出'],
+      steps: [
+        { action: '提出意见', role: '支部成员' },
+        { action: '纪检委员收集', role: '纪检委员', contact: '韩思宁' },
+        { action: '提交支委会', role: '纪检委员' },
+        { action: '讨论处理', role: '支委会' },
+        { action: '反馈结果', role: '纪检委员' }
+      ]
+    }
+  ]
+};
+
 (function () {
   'use strict';
 
