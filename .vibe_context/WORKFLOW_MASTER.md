@@ -58,12 +58,12 @@ Never embed scenario logic inside human documents.
 The **YAML frontmatter block** at the top of each Markdown file is the sole coupling anchor between the Human Panel and the AI Data Panel (see Constraint 3 above).
 
 **⚡ Frontend Architecture Declaration — AI-Driven Static Generation:**
-`index.html` is an **AI-compiled static artifact**. Any time business content in `流程指南/` is modified, Copilot **must** act as a compiler and forcibly regenerate and hardcode-update the business data in `index.html`. **Dynamic `fetch()` logic and any external Markdown-parsing libraries (e.g., marked.js) are permanently prohibited in `index.html` and `app.js`.** The only permitted JavaScript in `app.js` is minimal DOM manipulation (≤30 lines) for tab/role switching.
+`index.html` is an **AI-compiled static artifact** (v6.0 Single-File Architecture — `app.js` and `style.css` are permanently inlined; they no longer exist as separate files). Any time business content in `流程指南/` is modified, Copilot **must** act as a compiler and forcibly regenerate and hardcode-update the business data in `index.html`. **Dynamic `fetch()` logic and any external Markdown-parsing libraries (e.g., marked.js) are permanently prohibited inside `index.html`.**
 
-**Enforcement verification (run before every `report_progress` call that touches `index.html` or `app.js`):**
-- `grep -n "fetch(" app.js` must return no results.
+**Enforcement verification (run before every `report_progress` call that touches `index.html`):**
+- `grep -n "fetch(" index.html` must return no results.
 - `grep -n "marked" index.html` must return only comments (no script src tags).
-- `app.js` must not exceed 50 lines total (comments inclusive).
+- The inline `<script>` block must not exceed 300 lines (comments inclusive).
 
 **Mandatory sync rules — every Human Panel change MUST trigger a corresponding AI Data Panel update:**
 
