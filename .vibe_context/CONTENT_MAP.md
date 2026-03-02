@@ -2,8 +2,8 @@
 title: "Human Panel Content Map"
 type: index
 owner: "储子禾"
-last_updated: "2026-02-28"
-version: "1.2"
+last_updated: "2026-03-02"
+version: "1.4"
 status: active
 ---
 
@@ -38,6 +38,9 @@ status: active
 | `README.md` | `index` | Top-level repo overview and navigation table. Links to every major directory with one-line descriptions. Includes 按任务找文件 and 按角色找文件 tables, and a summary of the 条条/块块 dual-management structure. | 支部SOP, 导航, 文件夹说明, 角色导航, 条条, 块块 |
 | `START_HERE.md` | `guide` | Onboarding guide for new members and AI sessions alike. Contains: 5-second quick-finder table (6 rows), role-based navigation (新任支委 / 块块委员 / 条条委员), template index table, and full **AI collaboration workflow** (standard invocation prompt + Review Inbox procedure). | 新手引导, AI协同, 标准调用指令, 模板位置, Review Inbox |
 | `CHEATSHEET.md` | `reference` | One-page quick reference (WPS-friendly, no dependencies). ASCII-art scenario box, role-based file tree (条条 / 块块), 3-category template finder, 3-step onboarding path. | 速查, WPS友好, 无依赖, 极简导航 |
+| `index.html` | `web` | **Interactive SOP Web View entry point.** Pure static SPA. CDN: Tailwind CSS v3 (JIT) + marked.js v9. Fixed red-gradient header (party emblem placeholder + system name). Left sidebar with 5 glassmorphism role-filter buttons. Main content area with staggered card entrance animation. Loading skeleton + error state with Live Server setup instructions. Fetches 流程指南/常见工作场景快速指南.md via `fetch()` and delegates all logic to `app.js`. | SPA, 无构建, 党建红, 毛玻璃, 角色切换 |
+| `app.js` | `web` | **SOP parsing & rendering engine.** Fetches and parses the SOP markdown: splits by `## N.` scene headings (filter: numbered only), walks lines to extract table groups with `### / ####` sub-heading context. Each table row carries `roles[]` and `times[]` extracted from `[角色: …]` / `[时间: …]` tags (backtick-wrapped or bare). Role filter: 5 keys (all / leader / commissioner / organizer / deep) with pattern arrays. Render: full marked.js pass for 'all' mode with `<code>[角色:]</code>` post-processing; per-role mode builds minimal highlighted tables with badge cells. Smooth 180ms fade+slide transition on role switch; staggered 60ms/card entrance animation. | fetch, 解析器, 角色过滤, marked.js, 角色标签, 时间锚点 |
+| `style.css` | `web` | **Custom styles for the SOP Web View.** Glassmorphism utilities (`.glass`), red-gradient header (`#app-header`), role button states (`.role-btn` / `.active`), SOP table layout (`.sop-table`, `.highlighted`, `.faded`), role/time badge styles (`.badge-role` / `.badge-time`), prose overrides for full-markdown mode (`.prose-sop`), loading shimmer animation, mobile horizontal sidebar layout, custom scrollbar. | 毛玻璃, 党建红, 角色徽章, 时间徽章, 响应式 |
 
 ### 流程指南/
 

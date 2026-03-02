@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>党支部 SOP 引擎 · 光华管理学院本科生</title>
+  <meta name="description" content="光华管理学院本科生党支部 SOP 引擎 — 交互式工作流视图">
+
+  <!-- Tailwind CSS Play CDN (v3, supports JIT + arbitrary values) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            party: { DEFAULT: '#CE1126', dark: '#9B0000', light: '#e8193a' }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- marked.js v9 — Markdown renderer -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     FIXED HEADER
+     ══════════════════════════════════════════════════════════════ -->
+<header id="app-header" class="fixed top-0 inset-x-0 z-50 h-14">
+  <div class="max-w-7xl mx-auto h-full px-4 flex items-center gap-3">
+
+    <!-- Party Emblem placeholder -->
+    <div class="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center
+                text-white text-xl select-none"
+         style="background:rgba(255,255,255,0.18);border:1.5px solid rgba(255,255,255,0.42);"
+         title="党徽 Logo 占位">
+      ☆
+    </div>
+
+    <!-- System title -->
+    <div class="min-w-0 leading-tight">
+      <div class="text-white font-bold text-sm sm:text-[15px] tracking-wide truncate">
+        光华管理学院本科生党支部
+      </div>
+      <div class="text-red-200 text-[11px] tracking-widest">
+        SOP 引擎 &nbsp;·&nbsp; Interactive Web View
+      </div>
+    </div>
+
+    <div class="flex-1"></div>
+
+    <!-- Status pill -->
+    <div id="status-pill"
+         class="hidden sm:flex items-center gap-1.5 text-[11px] text-red-200 px-3 py-1 rounded-full"
+         style="background:rgba(0,0,0,0.22);">
+      <span id="status-dot" class="w-1.5 h-1.5 rounded-full bg-red-300 pulse-dot"></span>
+      <span id="status-text">加载中…</span>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MOBILE ROLE SIDEBAR  (sticky bar below header)
+     ══════════════════════════════════════════════════════════════ -->
+<div class="md:hidden sticky top-14 z-40 bg-white/85 backdrop-blur border-b border-gray-100/70"
+     style="backdrop-filter:blur(16px);">
+  <div id="mobile-sidebar">
+    <!-- Buttons injected by app.js -->
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MAIN LAYOUT
+     ══════════════════════════════════════════════════════════════ -->
+<div class="pt-14 flex max-w-7xl mx-auto min-h-screen">
+
+  <!-- ── Desktop Sidebar ──────────────────────────────────────── -->
+  <aside id="sidebar-desktop"
+         class="hidden md:flex flex-col w-52 flex-shrink-0 sticky top-14 self-start overflow-y-auto
+                border-r border-white/60"
+         style="height:calc(100vh - 56px); padding:16px 12px; gap:10px;">
+
+    <div class="px-1 mb-1">
+      <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">按角色查看</p>
+      <p class="text-[11px] text-gray-400 mt-0.5 leading-snug">点击角色筛选相关工作节点</p>
+    </div>
+
+    <!-- Role buttons injected by app.js -->
+  </aside>
+
+  <!-- ── Main Content ──────────────────────────────────────────── -->
+  <main class="flex-1 px-4 py-5 md:px-6 overflow-y-auto min-w-0">
+
+    <!-- Role header row -->
+    <div class="mb-5 flex items-start justify-between gap-4 flex-wrap">
+      <div class="min-w-0">
+        <h1 id="role-headline" class="text-lg font-bold text-gray-800 leading-snug">
+          全部工作场景
+        </h1>
+        <p id="role-subline" class="text-sm text-gray-500 mt-0.5 leading-snug">
+          共 9 个工作场景 · 点击左侧角色精准定位你的工作节点
+        </p>
+      </div>
+
+      <!-- Node counter badge -->
+      <div id="node-counter"
+           class="glass rounded-xl px-4 py-2.5 border border-white/60 shadow text-center
+                  flex-shrink-0 hidden">
+        <div id="node-count" class="text-2xl font-extrabold" style="color:#CE1126;">—</div>
+        <div class="text-[11px] text-gray-400">个工作节点</div>
+      </div>
+    </div>
+
+    <!-- ── Loading skeleton ───────────────────────────────────── -->
+    <div id="loading-state" class="space-y-4">
+      <div class="glass rounded-2xl p-6 border border-white/60 shadow-lg">
+        <div class="shimmer h-5 w-44 mb-4"></div>
+        <div class="shimmer h-3 w-full mb-2.5"></div>
+        <div class="shimmer h-3 w-4/5 mb-2.5"></div>
+        <div class="shimmer h-3 w-3/5"></div>
+      </div>
+      <div class="glass rounded-2xl p-6 border border-white/60 shadow-lg">
+        <div class="shimmer h-5 w-36 mb-4"></div>
+        <div class="shimmer h-3 w-full mb-2.5"></div>
+        <div class="shimmer h-3 w-2/3"></div>
+      </div>
+      <div class="glass rounded-2xl p-6 border border-white/60 shadow-lg">
+        <div class="shimmer h-5 w-40 mb-4"></div>
+        <div class="shimmer h-3 w-full mb-2.5"></div>
+        <div class="shimmer h-3 w-3/4"></div>
+      </div>
+    </div>
+
+    <!-- ── Error state ────────────────────────────────────────── -->
+    <div id="error-state" class="hidden glass rounded-2xl p-10 border border-red-200/50 shadow-lg text-center">
+      <div class="text-5xl mb-4">⚠️</div>
+      <h3 class="text-base font-semibold text-gray-700 mb-2">数据加载失败</h3>
+      <p id="error-msg" class="text-sm text-gray-500 mb-6 max-w-sm mx-auto"></p>
+
+      <div class="inline-block text-left rounded-xl px-5 py-4 space-y-1.5 mx-auto"
+           style="background:rgba(0,0,0,0.04);">
+        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
+          解决方法
+        </p>
+        <p class="text-sm text-gray-600">
+          ① 在 VS Code 中安装 <strong>Live Server</strong> 插件
+        </p>
+        <p class="text-sm text-gray-600">
+          ② 在资源管理器右键
+          <code class="text-xs bg-gray-200 rounded px-1.5 py-0.5">index.html</code>
+        </p>
+        <p class="text-sm text-gray-600">
+          ③ 点击 <em>Open with Live Server</em>
+        </p>
+        <p class="text-sm text-gray-500 pt-1">
+          或在终端执行：
+          <code class="text-xs bg-gray-200 rounded px-1.5 py-0.5">python3 -m http.server 8080</code>
+        </p>
+      </div>
+    </div>
+
+    <!-- ── Scenes Container ───────────────────────────────────── -->
+    <div id="scenes-container" class="hidden space-y-4">
+      <!-- Dynamically rendered by app.js -->
+    </div>
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     FOOTER
+     ══════════════════════════════════════════════════════════════ -->
+<footer class="border-t border-white/40 mt-8 py-5 text-center text-xs text-gray-400">
+  光华管理学院本科生党支部 SOP 引擎
+  &nbsp;·&nbsp; Session 24 &nbsp;·&nbsp; 2026-03-02
+  &nbsp;·&nbsp; 数据源：
+  <code class="bg-gray-100 rounded px-1.5 py-0.5 text-gray-500">
+    流程指南/常见工作场景快速指南.md
+  </code>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
