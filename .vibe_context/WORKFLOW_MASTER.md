@@ -57,6 +57,14 @@ Never embed scenario logic inside human documents.
 
 The **YAML frontmatter block** at the top of each Markdown file is the sole coupling anchor between the Human Panel and the AI Data Panel (see Constraint 3 above).
 
+**⚡ Frontend Architecture Declaration — AI-Driven Static Generation:**
+`index.html` is an **AI-compiled static artifact**. Any time business content in `流程指南/` is modified, Copilot **must** act as a compiler and forcibly regenerate and hardcode-update the business data in `index.html`. **Dynamic `fetch()` logic and any external Markdown-parsing libraries (e.g., marked.js) are permanently prohibited in `index.html` and `app.js`.** The only permitted JavaScript in `app.js` is minimal DOM manipulation (≤30 lines) for tab/role switching.
+
+**Enforcement verification (run before every `report_progress` call that touches `index.html` or `app.js`):**
+- `grep -n "fetch(" app.js` must return no results.
+- `grep -n "marked" index.html` must return only comments (no script src tags).
+- `app.js` must not exceed 50 lines total (comments inclusive).
+
 **Mandatory sync rules — every Human Panel change MUST trigger a corresponding AI Data Panel update:**
 
 | Human Panel Event | Required AI Data Panel Update |
@@ -256,6 +264,6 @@ Use this exact template for the Step 6 execution report. Fill in the bracketed f
 
 ---
 
-**Version:** 1.8  
+**Version:** 1.9  
 **Owner:** 储子禾  
-**Last updated:** 2026-02-28
+**Last updated:** 2026-03-02

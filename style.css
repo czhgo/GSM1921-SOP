@@ -7,6 +7,9 @@
 /* ── Reset & Base ────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
+/* Ensure Tailwind's hidden class works even without CDN (offline support) */
+.hidden { display: none !important; }
+
 body {
   font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei UI', 'Helvetica Neue', sans-serif;
   background: linear-gradient(150deg, #fdf4f5 0%, #f8f9fb 55%, #f0f4fa 100%);
