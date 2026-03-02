@@ -359,3 +359,85 @@ status: active
 | `.vibe_context/CONTENT_MAP.md` | 注册 3 个 Web 文件 | v1.3→v1.4 |
 | `.vibe_context/REVIEW_STATE.md` | Session 24 日志追加 | v3.1→v3.2 |
 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 24 追加 | v1.3→v1.4 |
+
+---
+
+## 2026-03-02 — Session 26 (Gov-Grade Typography & State Machine Architecture)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 第一步：注入政务级字体栈与视觉宪法
+
+**`style.css` v4.0 全面升级（完整重写）：**
+- 引入 `.font-stheiti` / `.font-stkaiti` / `.font-stfangsong` 三个 CSS utility 类，精确映射中文字体族（含思源黑体/宋体网络兜底）。
+- `body` 字体栈升级至 `Noto Sans SC` 优先。
+- `.glass` 升级为 `bg-white/85 backdrop-blur-xl border border-white/60`（`rgba(255,255,255,0.85)` + `blur(24px) saturate(200%)`）。
+- `.role-btn` 过渡函数升级为 `cubic-bezier(0.25, 0.1, 0.25, 1.0) 300ms`（全系动画统一规格）。
+- 新增 `.scene-card` 状态机过渡类（`opacity-0/100`、`translate-y-0/4` CSS fallback，确保离线也能运行）。
+- 新增 `.badge-time`（边框灰色，`.font-stheiti`，无图元）、`.badge-role`（`gray-100` 胶囊，无图元）。
+- 新增 `.file-ref`（`bg-[#CE1126]/5`，`.font-stkaiti`，下划线）。
+- 新增 `.role-abbr`（红色圆形缩写徽章，替代 Emoji 图标）。
+
+**`index.html` 头部补充：**
+- 新增 Google Fonts 预连接 + `Noto+Sans+SC`、`Noto+Serif+SC` 字体链接（网络兜底）。
+- Tailwind `fontFamily` 扩展：`stheiti` / `stkaiti` / `stfangsong` 三个 key 注册。
+
+### 第二步：AI 深度提取与静态硬编码挂载（data 属性注入）
+
+**`index.html` 主内容区全面重构：**
+- 废弃 5 个 `section-*` wrapper div（section-all / section-leader / section-commissioner / section-organizer / section-deep）。
+- 迁移至**扁平化单一容器** `<div id="scenes-container">`。
+- 24 张 `.scene-card` 卡片全部注入 `data-role="all|leader|commissioner|organizer|deep"` 状态机锚点。
+- 全部 24 张卡片注入 `data-domain="activity"` 领域锚点（为未来多领域扩展预留）。
+- 全部 24 张卡片注入 `data-scenario="1|1a|1b|2|3|..."` 场景锚点。
+
+**绝对零图元（全站 Emoji 消零）：**
+- 侧边栏按钮：`🌐🏛️📋🎯💼` → `.role-abbr` 圆形缩写（全/长/委/组/深）。
+- 步骤编号：`1️⃣ 确定主题` → `1. 确定主题`。
+- 表格单元格前缀：`💬 信息通知` / `📊 三会一课考勤` / `🎯 政治能力` → 纯文字。
+- 提示文本：`👆 点击...` → `点击...`；`🕐 提前...` → `请提前...`。
+- **唯一保留**：顶部 Header 党徽占位符 `☆`。
+
+**Gov-Grade 排版模式（Typography as Interface）全面应用：**
+- 【时间锚点】：`<span class="badge-time">T-7 天</span>`（边框灰色，无 `⏱` 前缀）。
+- 【角色指代】：`<span class="badge-role">组织委员</span>`（`gray-100` 胶囊，无 `👤` 前缀）。
+- 【文件/模板】：`<span class="file-ref">《活动复盘模板》</span>`（红色，`font-stkaiti`，下划线）。
+- 全局标题/标签采用 `class="font-stheiti"` 注记。
+- 流程梗概段落采用 `class="font-stfangsong"` 注记（仿宋视觉层次）。
+
+### 第三步：Vanilla JS SSOT 状态机实现
+
+**`app.js` v4.0 完整重写（96行）：**
+1. **全局唯一真相源**：`var store = { state: { role: 'all', domain: 'activity' }, setState, subscribe }`。
+2. **交互劫持**：所有 Tab 点击事件转化为 `store.setState({ role: ... })`，严禁在事件回调中直接写 `element.style.*`。
+3. **响应式渲染流 `renderViews()`**：
+   - 遍历所有 `.scene-card[data-role]` 卡片。
+   - 匹配卡片：`enterCard()` — 移除 `hidden`，双帧 `requestAnimationFrame`，添加 `opacity-100 translate-y-0`。
+   - 不匹配卡片：`leaveCard()` — 添加 `opacity-0 translate-y-4`，310ms 后添加 `hidden`（保证动画完成后脱离布局流）。
+4. **初始化序列**：所有卡片先设为 `hidden opacity-0 translate-y-4` → `store.setState({ role: 'all' })` 触发首次渲染。
+
+**浏览器验证（Playwright）：**
+| 验证项 | 结果 |
+|--------|------|
+| 全部场景 Tab (role=all) 正确显示 9 张概览卡 | ✅ |
+| 党小组组长 Tab (role=leader) 正确显示 5 张详细卡 | ✅ |
+| 状态 Pill 更新为"状态机 v4.0" | ✅ |
+| 无任何 Emoji（仅保留 Header ☆） | ✅ |
+| 时间徽章无 ⏱ 前缀（T-7 天 / T+7 天 / 活动中） | ✅ |
+| 角色徽章无 👤 前缀（纯文字胶囊） | ✅ |
+| 直接双击 index.html 可离线预览 | ✅ |
+
+### 第四步：版本与日志对齐
+
+- 本条目追加至 `2026-03-EXECUTION_LOG.md`。
+- `REVIEW_STATE.md` Session 26 行追加。
+
+### 受影响文件清单
+
+| 文件 | 变更类型 | 版本变化 |
+|------|---------|---------|
+| `index.html` | 完整重写 — 零图元/data属性注入/政务排版 | v4.0 |
+| `app.js` | 完整重写 — SSOT 状态机 | v3.0→v4.0 |
+| `style.css` | 完整重写 — 政务字体栈/状态机过渡类 | v3.0→v4.0 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 26 追加 | v1.4→v1.5 |
+| `.vibe_context/REVIEW_STATE.md` | Session 26 日志 | v3.2→v3.3 |

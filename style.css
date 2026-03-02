@@ -1,8 +1,8 @@
-/* ══════════════════════════════════════════════════════════════
+/* ════════════════════════════════════════════════════════════════
    光华管理学院本科生党支部 SOP 引擎 — style.css
-   Session 24 · High-Fidelity UI Scaffolding
+   v4.0 · Gov-Grade Typography & State Machine Transitions
    Party Red: #CE1126  |  Dark Red: #9B0000
-   ══════════════════════════════════════════════════════════════ */
+   ════════════════════════════════════════════════════════════════ */
 
 /* ── Reset & Base ────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
@@ -10,18 +10,24 @@
 /* Ensure Tailwind's hidden class works even without CDN (offline support) */
 .hidden { display: none !important; }
 
+/* ── Gov-Grade Font Utilities ────────────────────────────────── */
+.font-stheiti    { font-family: 'STHeiti', '华文黑体', 'Microsoft YaHei', 'Noto Sans SC', sans-serif; }
+.font-stkaiti    { font-family: 'STKaiti', '华文楷体', 'KaiTi', 'Noto Serif SC', serif; }
+.font-stfangsong { font-family: 'STFangsong', '华文仿宋', 'FangSong', 'Noto Serif SC', serif; }
+
 body {
-  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei UI', 'Helvetica Neue', sans-serif;
+  font-family: 'Noto Sans SC', -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
   background: linear-gradient(150deg, #fdf4f5 0%, #f8f9fb 55%, #f0f4fa 100%);
   min-height: 100vh;
   color: #1f2937;
 }
 
-/* ── Glassmorphism Utility ───────────────────────────────────── */
+/* ── Glassmorphism (v4.0: bg-white/85 backdrop-blur-xl) ─────── */
 .glass {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(14px) saturate(180%);
-  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.60);
 }
 
 /* ── Fixed Header ────────────────────────────────────────────── */
@@ -30,9 +36,31 @@ body {
   box-shadow: 0 4px 28px rgba(206, 17, 38, 0.38);
 }
 
+/* ── Role Abbreviation (replaces emoji icons) ───────────────── */
+.role-abbr {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(206, 17, 38, 0.10);
+  color: #CE1126;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+  font-family: 'STHeiti', '华文黑体', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  transition: all 300ms cubic-bezier(0.25, 0.1, 0.25, 1.0);
+}
+.role-btn.active .role-abbr {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
 /* ── Role Buttons ────────────────────────────────────────────── */
 .role-btn {
-  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 300ms cubic-bezier(0.25, 0.1, 0.25, 1.0);
   border: 1.5px solid rgba(255, 255, 255, 0.65);
   cursor: pointer;
   text-align: left;
@@ -53,16 +81,19 @@ body {
 
 .role-btn.active .role-name { color: #ffffff; }
 .role-btn.active .role-desc { color: rgba(255, 255, 255, 0.82); }
-.role-btn.active .role-icon { color: #ffffff; }
 
-/* ── Scene Cards ─────────────────────────────────────────────── */
+/* ── Scene Cards — State Machine Transitions ─────────────────── */
 .scene-card {
+  transition: all 300ms cubic-bezier(0.25, 0.1, 0.25, 1.0);
   will-change: transform, opacity;
-  transition: box-shadow 0.2s ease;
 }
-.scene-card:hover {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
-}
+.scene-card:hover { box-shadow: 0 12px 40px rgba(0, 0, 0, 0.10); }
+
+/* Tailwind override: opacity + translateY helpers for offline fallback */
+.scene-card.opacity-0   { opacity: 0;   pointer-events: none; }
+.scene-card.opacity-100 { opacity: 1;   pointer-events: auto; }
+.scene-card.translate-y-0 { transform: translateY(0); }
+.scene-card.translate-y-4 { transform: translateY(1rem); }
 
 /* ── SOP Tables ──────────────────────────────────────────────── */
 .sop-table {
@@ -84,6 +115,7 @@ body {
   font-size: 0.75rem;
   letter-spacing: 0.025em;
   white-space: nowrap;
+  font-family: 'STHeiti', '华文黑体', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
 }
 
 .sop-table td {
@@ -102,47 +134,52 @@ body {
   border-left: 3px solid #CE1126;
   padding-left: 9px;
 }
-
-.sop-table tbody tr.faded {
-  opacity: 0.2;
-  pointer-events: none;
-}
-
 .sop-table tbody tr:hover:not(.faded) {
   background: rgba(206, 17, 38, 0.03);
 }
 
-/* ── Role / Time Badges ──────────────────────────────────────── */
-.badge-role {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(206, 17, 38, 0.11);
-  color: #9B0000;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  vertical-align: middle;
-}
-
+/* ── Time Anchor Badge (gov-grade: border + muted text) ──────── */
 .badge-time {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background: rgba(37, 99, 235, 0.1);
-  color: #1d4ed8;
+  display: inline-block;
+  padding: 1px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  color: #6b7280;
   font-size: 0.7rem;
-  font-weight: 600;
+  letter-spacing: 0.04em;
   white-space: nowrap;
   vertical-align: middle;
+  font-family: 'STHeiti', '华文黑体', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
 }
 
-/* ── Prose overrides (all-mode full markdown) ────────────────── */
+/* ── Role Pill Badge (gov-grade: gray-100 pill, font-stheiti) ── */
+.badge-role {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #111827;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  vertical-align: middle;
+  font-family: 'STHeiti', '华文黑体', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+}
+
+/* ── File / Template Reference ───────────────────────────────── */
+.file-ref {
+  display: inline;
+  padding: 0 2px;
+  background: rgba(206, 17, 38, 0.05);
+  color: #CE1126;
+  font-size: 0.875rem;
+  text-decoration: underline;
+  text-decoration-color: rgba(206, 17, 38, 0.30);
+  text-underline-offset: 4px;
+  cursor: pointer;
+  font-family: 'STKaiti', '华文楷体', 'KaiTi', 'Noto Serif SC', serif;
+}
+
+/* ── Prose overrides ─────────────────────────────────────────── */
 .prose-sop { line-height: 1.65; }
 .prose-sop h3 {
   color: #374151;
@@ -179,28 +216,16 @@ body {
   padding: 1px 5px;
   border-radius: 4px;
   font-size: 0.79rem;
-  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
 }
-.prose-sop pre {
-  background: rgba(0, 0, 0, 0.04);
-  border-radius: 10px;
-  padding: 12px 14px;
-  overflow-x: auto;
+.prose-sop blockquote {
+  border-left: 3px solid rgba(206, 17, 38, 0.35);
+  padding-left: 12px;
   margin: 0.6rem 0;
+  color: #6b7280;
+  font-style: italic;
+  font-size: 0.83rem;
 }
-.prose-sop pre code {
-  background: transparent;
-  color: #374151;
-  font-size: 0.8rem;
-  padding: 0;
-}
-/* Tables inside prose */
-.prose-sop table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.81rem;
-  margin: 0.6rem 0;
-}
+.prose-sop table { width: 100%; border-collapse: collapse; font-size: 0.81rem; margin: 0.6rem 0; }
 .prose-sop thead th {
   background: rgba(206, 17, 38, 0.07);
   color: #9B0000;
@@ -214,26 +239,6 @@ body {
   padding: 8px 10px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.055);
   vertical-align: top;
-}
-.prose-sop blockquote {
-  border-left: 3px solid rgba(206, 17, 38, 0.35);
-  padding-left: 12px;
-  margin: 0.6rem 0;
-  color: #6b7280;
-  font-style: italic;
-  font-size: 0.83rem;
-}
-
-/* ── Loading Shimmer ─────────────────────────────────────────── */
-@keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-.shimmer {
-  background: linear-gradient(90deg, #efefef 25%, #e5e5e5 50%, #efefef 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-  border-radius: 6px;
 }
 
 /* ── Status Pill ─────────────────────────────────────────────── */
@@ -262,12 +267,12 @@ body {
     flex-direction: column;
     align-items: center;
     padding: 8px 14px;
-    min-width: 80px;
+    min-width: 72px;
     border-radius: 14px;
     gap: 2px;
   }
-  .role-btn-mobile .role-icon { font-size: 1.2rem; }
-  .role-btn-mobile .role-name { font-size: 0.7rem; font-weight: 600; text-align: center; }
+  .role-btn-mobile .role-abbr { margin-bottom: 2px; width: 24px; height: 24px; font-size: 0.68rem; }
+  .role-btn-mobile .role-name { font-size: 0.68rem; font-weight: 600; text-align: center; }
 }
 
 /* ── Scrollbar ───────────────────────────────────────────────── */
@@ -275,3 +280,18 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.13); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(206, 17, 38, 0.28); }
+
+/* ── Prose pre/code blocks (retained for future markdown content) ─ */
+.prose-sop pre {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 10px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  margin: 0.6rem 0;
+}
+.prose-sop pre code {
+  background: transparent;
+  color: #374151;
+  font-size: 0.8rem;
+  padding: 0;
+}
