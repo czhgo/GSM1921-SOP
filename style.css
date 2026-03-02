@@ -1,13 +1,11 @@
 /* ════════════════════════════════════════════════════════════════
    光华管理学院本科生党支部 SOP 引擎 — style.css
-   v4.0 · Gov-Grade Typography & State Machine Transitions
+   v5.0 · Timeline WWH Architecture · 2026-03-02
    Party Red: #CE1126  |  Dark Red: #9B0000
    ════════════════════════════════════════════════════════════════ */
 
 /* ── Reset & Base ────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
-
-/* Ensure Tailwind's hidden class works even without CDN (offline support) */
 .hidden { display: none !important; }
 
 /* ── Gov-Grade Font Utilities ────────────────────────────────── */
@@ -22,7 +20,7 @@ body {
   color: #1f2937;
 }
 
-/* ── Glassmorphism (v4.0: bg-white/85 backdrop-blur-xl) ─────── */
+/* ── Glassmorphism (bg-white/85 backdrop-blur-xl) ───────────── */
 .glass {
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(24px) saturate(200%);
@@ -65,101 +63,182 @@ body {
   cursor: pointer;
   text-align: left;
 }
-
 .role-btn:hover:not(.active) {
   background: rgba(255, 255, 255, 0.95) !important;
   border-color: rgba(206, 17, 38, 0.25);
   transform: translateY(-1px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.09);
 }
-
 .role-btn.active {
   background: #CE1126 !important;
   border-color: rgba(255, 255, 255, 0.35) !important;
   box-shadow: 0 8px 28px rgba(206, 17, 38, 0.42);
 }
-
 .role-btn.active .role-name { color: #ffffff; }
 .role-btn.active .role-desc { color: rgba(255, 255, 255, 0.82); }
 
-/* ── Scene Cards — State Machine Transitions ─────────────────── */
-.scene-card {
-  transition: all 300ms cubic-bezier(0.25, 0.1, 0.25, 1.0);
-  will-change: transform, opacity;
-}
-.scene-card:hover { box-shadow: 0 12px 40px rgba(0, 0, 0, 0.10); }
-
-/* Tailwind override: opacity + translateY helpers for offline fallback */
-.scene-card.opacity-0   { opacity: 0;   pointer-events: none; }
-.scene-card.opacity-100 { opacity: 1;   pointer-events: auto; }
-.scene-card.translate-y-0 { transform: translateY(0); }
-.scene-card.translate-y-4 { transform: translateY(1rem); }
-
-/* ── SOP Tables ──────────────────────────────────────────────── */
-.sop-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.82rem;
-}
-
-.sop-table thead tr {
-  border-bottom: 2px solid rgba(206, 17, 38, 0.18);
-}
-
-.sop-table th {
-  background: rgba(206, 17, 38, 0.07);
-  color: #9B0000;
-  font-weight: 600;
-  padding: 9px 12px;
-  text-align: left;
-  font-size: 0.75rem;
-  letter-spacing: 0.025em;
-  white-space: nowrap;
+/* ── Domain Router Buttons ───────────────────────────────────── */
+.domain-btn {
   font-family: 'STHeiti', '华文黑体', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 6px 20px;
+  border-radius: 999px;
+  border: 2px solid #e5e7eb;
+  color: #6b7280;
+  background: rgba(255, 255, 255, 0.70);
+  cursor: pointer;
+  transition: all 300ms cubic-bezier(0.25, 0.1, 0.25, 1.0);
+}
+.domain-btn:hover:not(.active) {
+  border-color: rgba(206, 17, 38, 0.35);
+  color: #CE1126;
+  background: rgba(255, 255, 255, 0.95);
+}
+.domain-btn.active {
+  border-color: #CE1126;
+  background: #CE1126;
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(206, 17, 38, 0.32);
 }
 
-.sop-table td {
-  padding: 9px 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.055);
-  vertical-align: top;
-  line-height: 1.55;
+/* ── Scenario Header Dividers ────────────────────────────────── */
+.scenario-header {
+  transition: all 300ms cubic-bezier(0.25, 0.1, 0.25, 1.0);
+}
+.scenario-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(206, 17, 38, 0.12);
+  margin-bottom: 4px;
 }
 
-.sop-table tbody tr:last-child td { border-bottom: none; }
+/* ── Timeline Node (WWH Card) ────────────────────────────────── */
+.timeline-node {
+  display: flex;
+  gap: 12px;
+  padding-bottom: 4px;
+  transition: all 300ms cubic-bezier(0.25, 0.1, 0.25, 1.0);
+  will-change: opacity, transform;
+}
+/* opacity + translate fallbacks for offline Tailwind */
+.timeline-node.opacity-0   { opacity: 0;   pointer-events: none; }
+.timeline-node.opacity-100 { opacity: 1;   pointer-events: auto; }
+.timeline-node.translate-y-0 { transform: translateY(0); }
+.timeline-node.translate-y-4 { transform: translateY(1rem); }
 
-.sop-table tbody tr.highlighted {
-  background: rgba(206, 17, 38, 0.055);
+/* Spine column */
+.tl-spine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  padding-top: 4px;
+  width: 28px;
 }
-.sop-table tbody tr.highlighted td:first-child {
-  border-left: 3px solid #CE1126;
-  padding-left: 9px;
+.tl-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #CE1126;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  z-index: 1;
+  font-family: 'STHeiti', '华文黑体', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  box-shadow: 0 2px 8px rgba(206, 17, 38, 0.30);
 }
-.sop-table tbody tr:hover:not(.faded) {
-  background: rgba(206, 17, 38, 0.03);
+.tl-line {
+  width: 1px;
+  flex: 1;
+  min-height: 16px;
+  margin-top: 3px;
+  background: linear-gradient(to bottom, rgba(206, 17, 38, 0.25), transparent);
 }
 
-/* ── Time Anchor Badge (gov-grade: border + muted text) ──────── */
+/* WWH Card shell */
+.tl-card {
+  flex: 1;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.60);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 300ms cubic-bezier(0.25, 0.1, 0.25, 1.0);
+}
+.tl-card:hover { box-shadow: 0 6px 24px rgba(0, 0, 0, 0.10); }
+
+/* Expand trigger (always visible) */
+.js-expand-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  user-select: none;
+}
+.js-expand-trigger:hover { background: rgba(206, 17, 38, 0.025); }
+
+/* Expandable target (WWH detail) */
+.js-expand-target {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 320ms cubic-bezier(0.25, 0.1, 0.25, 1.0),
+              opacity 320ms cubic-bezier(0.25, 0.1, 0.25, 1.0);
+}
+.js-expand-target.expanded {
+  max-height: 500px;
+  opacity: 1;
+}
+
+/* Chevron indicator */
+.wwh-chevron {
+  color: #9ca3af;
+  font-size: 0.6rem;
+  flex-shrink: 0;
+  transition: transform 300ms cubic-bezier(0.25, 0.1, 0.25, 1.0);
+  line-height: 1;
+}
+.wwh-chevron.rotated { transform: rotate(90deg); color: #CE1126; }
+
+/* Shared badge size token */
+:root { --badge-font-size: 0.68rem; }
+
+/* ── Time Anchor Badge ───────────────────────────────────────── */
 .badge-time {
   display: inline-block;
   padding: 1px 8px;
   border: 1px solid #d1d5db;
   border-radius: 4px;
   color: #6b7280;
-  font-size: 0.7rem;
+  font-size: var(--badge-font-size);
   letter-spacing: 0.04em;
   white-space: nowrap;
   vertical-align: middle;
   font-family: 'STHeiti', '华文黑体', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
 }
 
-/* ── Role Pill Badge (gov-grade: gray-100 pill, font-stheiti) ── */
+/* ── Role Pill Badge ─────────────────────────────────────────── */
 .badge-role {
   display: inline-block;
-  padding: 2px 10px;
+  padding: 1px 10px;
   border-radius: 999px;
   background: #f3f4f6;
   color: #111827;
-  font-size: 0.72rem;
+  font-size: var(--badge-font-size);
   white-space: nowrap;
   vertical-align: middle;
   font-family: 'STHeiti', '华文黑体', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
@@ -177,68 +256,6 @@ body {
   text-underline-offset: 4px;
   cursor: pointer;
   font-family: 'STKaiti', '华文楷体', 'KaiTi', 'Noto Serif SC', serif;
-}
-
-/* ── Prose overrides ─────────────────────────────────────────── */
-.prose-sop { line-height: 1.65; }
-.prose-sop h3 {
-  color: #374151;
-  font-size: 0.9rem;
-  font-weight: 700;
-  margin: 1.1rem 0 0.45rem;
-}
-.prose-sop h4 {
-  color: #4b5563;
-  font-size: 0.83rem;
-  font-weight: 600;
-  margin: 0.85rem 0 0.4rem;
-}
-.prose-sop p {
-  font-size: 0.85rem;
-  margin: 0.45rem 0;
-  color: #4b5563;
-}
-.prose-sop ul, .prose-sop ol {
-  padding-left: 1.2rem;
-  margin: 0.4rem 0;
-}
-.prose-sop li {
-  font-size: 0.84rem;
-  color: #4b5563;
-  margin: 0.2rem 0;
-}
-.prose-sop strong { color: #1f2937; }
-.prose-sop a { color: #CE1126; text-decoration: none; }
-.prose-sop a:hover { text-decoration: underline; }
-.prose-sop code {
-  background: rgba(206, 17, 38, 0.09);
-  color: #9B0000;
-  padding: 1px 5px;
-  border-radius: 4px;
-  font-size: 0.79rem;
-}
-.prose-sop blockquote {
-  border-left: 3px solid rgba(206, 17, 38, 0.35);
-  padding-left: 12px;
-  margin: 0.6rem 0;
-  color: #6b7280;
-  font-style: italic;
-  font-size: 0.83rem;
-}
-.prose-sop table { width: 100%; border-collapse: collapse; font-size: 0.81rem; margin: 0.6rem 0; }
-.prose-sop thead th {
-  background: rgba(206, 17, 38, 0.07);
-  color: #9B0000;
-  font-weight: 600;
-  padding: 8px 10px;
-  font-size: 0.74rem;
-  text-align: left;
-  border-bottom: 2px solid rgba(206, 17, 38, 0.18);
-}
-.prose-sop tbody td {
-  padding: 8px 10px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.055);
-  vertical-align: top;
 }
 
 /* ── Status Pill ─────────────────────────────────────────────── */
@@ -260,7 +277,6 @@ body {
     -webkit-overflow-scrolling: touch;
   }
   #mobile-sidebar::-webkit-scrollbar { display: none; }
-
   .role-btn-mobile {
     flex-shrink: 0;
     display: flex;
@@ -280,18 +296,3 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.13); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(206, 17, 38, 0.28); }
-
-/* ── Prose pre/code blocks (retained for future markdown content) ─ */
-.prose-sop pre {
-  background: rgba(0, 0, 0, 0.04);
-  border-radius: 10px;
-  padding: 12px 14px;
-  overflow-x: auto;
-  margin: 0.6rem 0;
-}
-.prose-sop pre code {
-  background: transparent;
-  color: #374151;
-  font-size: 0.8rem;
-  padding: 0;
-}

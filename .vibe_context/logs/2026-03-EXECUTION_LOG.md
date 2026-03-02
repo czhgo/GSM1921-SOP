@@ -441,3 +441,100 @@ status: active
 | `style.css` | 完整重写 — 政务字体栈/状态机过渡类 | v3.0→v4.0 |
 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 26 追加 | v1.4→v1.5 |
 | `.vibe_context/REVIEW_STATE.md` | Session 26 日志 | v3.2→v3.3 |
+
+---
+
+## 2026-03-02 — Session 27 (v5.0 · Domain Router + Vertical Timeline WWH Architecture)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 第一步：彻底销毁旧表格与注入顶层领域分流器
+
+**彻底抹杀指令执行：**
+- 删除 `index.html` 主内容区全部 `<table class="sop-table">` 及其包裹层（共 7 处表格）
+- 删除全部 `scene-card` div 容器（共 24 张旧式卡片）
+- **全站 HTML 中零 `<table>` DOM 元素**（注释文本中一处说明性引用不计）
+
+**注入顶层领域分流器（Domain Router）：**
+```html
+<div id="domain-router" class="flex gap-3 mb-6">
+  <button class="domain-btn active" data-domain="activity">活动建设</button>
+  <button class="domain-btn" data-domain="organization">组织建设</button>
+</div>
+```
+
+**领域分配：**
+| 领域 | 场景编号 |
+|------|---------|
+| `data-domain="activity"` | 场景 1A、1B、4、8 |
+| `data-domain="organization"` | 场景 2、3、5、6、7、9 |
+
+### 第二步：垂直地铁图与 WWH 卡片微架构
+
+**DOM 骨架（强制标准）：**
+```html
+<div class="timeline-node" data-domain="..." data-role="..." data-scenario="...">
+  <div class="tl-spine">
+    <div class="tl-dot">N</div>
+    <div class="tl-line"></div>
+  </div>
+  <div class="tl-card">
+    <div class="js-expand-trigger">
+      <!-- 步骤名 + badge-role + badge-time + ▶ chevron -->
+    </div>
+    <div class="js-expand-target">
+      <!-- 做什么 · What + 谁来做 · Who -->
+    </div>
+  </div>
+</div>
+```
+
+**统计：**
+| 类型 | 数量 |
+|------|------|
+| `.scenario-header` 场景标题行 | 10 个 |
+| `.timeline-node` 时间轴节点 | 47 个 |
+| 活动建设节点（1A/1B/4/8） | 25 个 |
+| 组织建设节点（2/3/5/6/7/9） | 22 个 |
+
+### 第三步：全局对象 Vanilla JS 状态机挂载
+
+**`app.js` v5.0 完整重写（144行）：**
+1. **SSOT**：`store = { state: { domain: 'activity', role: 'all' }, ... }`
+2. **领域按钮劫持**：`.domain-btn[data-domain]` 点击 → `store.setState({ domain })`
+3. **角色按钮劫持**：`.role-btn[data-role]` 点击 → `store.setState({ role })`
+4. **renderViews() 双重过滤**：
+   - `.scenario-header[data-domain]`：仅按 domain 过滤（展示当前领域的场景标题）
+   - `.timeline-node[data-domain]`：domain AND role 双重过滤（`state.role === 'all'` 或 `node.data-role === state.role` 或 `node.data-role === 'all'`）
+5. **展开/折叠**：`.js-expand-trigger` 点击 → `.js-expand-target.expanded` CSS 类切换 + `.wwh-chevron.rotated` 视觉指示
+6. **严禁 `element.style.*`**：所有样式变更均通过 CSS 类切换实现
+
+**浏览器验证（Playwright）：**
+| 验证项 | 结果 |
+|--------|------|
+| 活动建设 Tab：显示场景 1A、1B、4、8 的所有节点 | ✅ |
+| 组织建设 Tab：显示场景 2、3、5、6、7、9 的所有节点 | ✅ |
+| 点击单个节点展开 WWH 详情（What/Who 可见） | ✅ |
+| 第 2 个节点保持折叠（▶ 箭头未旋转） | ✅ |
+| 状态 Pill 更新为"状态机 v5.0" | ✅ |
+| 全站零 Emoji（仅保留 Header ☆） | ✅ |
+| 全站零 `<table>` 元素 | ✅ |
+
+### 第四步：视觉宪法捍卫
+
+**`style.css` v5.0 完整重写（295行）：**
+- 保留 Noto Sans/Serif SC 字体栈（在 Tailwind config 中的 `fontFamily.stheiti/stkaiti/stfangsong`）
+- 删除 `.sop-table` / `.scene-card` 全部规则
+- 新增 `.domain-btn`、`.domain-btn.active`、`.tl-spine`、`.tl-dot`、`.tl-line`、`.tl-card`、`.js-expand-trigger`、`.js-expand-target`、`.js-expand-target.expanded`、`.wwh-chevron`、`.wwh-chevron.rotated` 等时间轴专用规则
+- **绝对零 Emoji**：全站确认无 Emoji 使用
+- 党建红 `#CE1126` 严格锁定
+
+### 受影响文件清单
+
+| 文件 | 变更类型 | 版本变化 |
+|------|---------|---------|
+| `index.html` | 完整重写 — 零表格/时间轴/WWH骨架 | v4.0 → v5.0 |
+| `app.js` | 完整重写 — 双轨状态机 + 展开折叠 | v4.0 → v5.0 |
+| `style.css` | 完整重写 — 时间轴样式/去表格 | v4.0 → v5.0 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 27 追加 | v1.5 → v1.6 |
+| `.vibe_context/REVIEW_STATE.md` | Session 27 行追加 | v3.3 → v3.4 |
