@@ -30,8 +30,308 @@
     };
   </script>
 
-  <!-- Custom styles (v5.0) — zero tables, timeline architecture -->
-  <link rel="stylesheet" href="style.css">
+  <!-- Custom styles (v6.0) — inlined, single-file architecture -->
+  <style>
+/* ════════════════════════════════════════════════════════════════
+   光华管理学院本科生党支部 SOP 引擎 — style.css
+   v5.0 · Timeline WWH Architecture · 2026-03-02
+   Party Red: #CE1126  |  Dark Red: #9B0000
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Reset & Base ────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+.hidden { display: none !important; }
+
+/* ── Gov-Grade Font Utilities ────────────────────────────────── */
+.font-stheiti    { font-family: 'STHeiti', '华文黑体', 'Microsoft YaHei', 'Noto Sans SC', sans-serif; }
+.font-stkaiti    { font-family: 'STKaiti', '华文楷体', 'KaiTi', 'Noto Serif SC', serif; }
+.font-stfangsong { font-family: 'STFangsong', '华文仿宋', 'FangSong', 'Noto Serif SC', serif; }
+
+body {
+  font-family: 'Noto Sans SC', -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+  background: linear-gradient(150deg, #fdf4f5 0%, #f8f9fb 55%, #f0f4fa 100%);
+  min-height: 100vh;
+  color: #1f2937;
+}
+
+/* ── Glassmorphism (bg-white/85 backdrop-blur-xl) ───────────── */
+.glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.60);
+}
+
+/* ── Fixed Header ────────────────────────────────────────────── */
+#app-header {
+  background: linear-gradient(95deg, #7a0010 0%, #CE1126 55%, #e8193a 100%);
+  box-shadow: 0 4px 28px rgba(206, 17, 38, 0.38);
+}
+
+/* ── Role Abbreviation (replaces emoji icons) ───────────────── */
+.role-abbr {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(206, 17, 38, 0.10);
+  color: #CE1126;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+  font-family: 'STHeiti', '华文黑体', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  transition: all 300ms cubic-bezier(0.25, 0.1, 0.25, 1.0);
+}
+.role-btn.active .role-abbr {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+/* ── Role Buttons ────────────────────────────────────────────── */
+.role-btn {
+  transition: all 300ms cubic-bezier(0.25, 0.1, 0.25, 1.0);
+  border: 1.5px solid rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  text-align: left;
+}
+.role-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(206, 17, 38, 0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.09);
+}
+.role-btn.active {
+  background: #CE1126 !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 8px 28px rgba(206, 17, 38, 0.42);
+}
+.role-btn.active .role-name { color: #ffffff; }
+.role-btn.active .role-desc { color: rgba(255, 255, 255, 0.82); }
+
+/* ── Domain Router Buttons ───────────────────────────────────── */
+.domain-btn {
+  font-family: 'STHeiti', '华文黑体', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 6px 20px;
+  border-radius: 999px;
+  border: 2px solid #e5e7eb;
+  color: #6b7280;
+  background: rgba(255, 255, 255, 0.70);
+  cursor: pointer;
+  transition: all 300ms cubic-bezier(0.25, 0.1, 0.25, 1.0);
+}
+.domain-btn:hover:not(.active) {
+  border-color: rgba(206, 17, 38, 0.35);
+  color: #CE1126;
+  background: rgba(255, 255, 255, 0.95);
+}
+.domain-btn.active {
+  border-color: #CE1126;
+  background: #CE1126;
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(206, 17, 38, 0.32);
+}
+
+/* ── Scenario Header Dividers ────────────────────────────────── */
+.scenario-header {
+  transition: all 300ms cubic-bezier(0.25, 0.1, 0.25, 1.0);
+}
+.scenario-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(206, 17, 38, 0.12);
+  margin-bottom: 4px;
+}
+
+/* ── Timeline Node (WWH Card) ────────────────────────────────── */
+.timeline-node {
+  display: flex;
+  gap: 12px;
+  padding-bottom: 4px;
+  transition: all 300ms cubic-bezier(0.25, 0.1, 0.25, 1.0);
+  will-change: opacity, transform;
+}
+/* opacity + translate fallbacks for offline Tailwind */
+.timeline-node.opacity-0   { opacity: 0;   pointer-events: none; }
+.timeline-node.opacity-100 { opacity: 1;   pointer-events: auto; }
+.timeline-node.translate-y-0 { transform: translateY(0); }
+.timeline-node.translate-y-4 { transform: translateY(1rem); }
+
+/* Spine column */
+.tl-spine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  padding-top: 4px;
+  width: 28px;
+}
+.tl-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #CE1126;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  z-index: 1;
+  font-family: 'STHeiti', '华文黑体', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  box-shadow: 0 2px 8px rgba(206, 17, 38, 0.30);
+}
+.tl-line {
+  width: 1px;
+  flex: 1;
+  min-height: 16px;
+  margin-top: 3px;
+  background: linear-gradient(to bottom, rgba(206, 17, 38, 0.25), transparent);
+}
+
+/* WWH Card shell */
+.tl-card {
+  flex: 1;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.60);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 300ms cubic-bezier(0.25, 0.1, 0.25, 1.0);
+}
+.tl-card:hover { box-shadow: 0 6px 24px rgba(0, 0, 0, 0.10); }
+
+/* Expand trigger (always visible) */
+.js-expand-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  user-select: none;
+}
+.js-expand-trigger:hover { background: rgba(206, 17, 38, 0.025); }
+
+/* Expandable target (WWH detail) */
+.js-expand-target {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 320ms cubic-bezier(0.25, 0.1, 0.25, 1.0),
+              opacity 320ms cubic-bezier(0.25, 0.1, 0.25, 1.0);
+}
+.js-expand-target.expanded {
+  max-height: 500px;
+  opacity: 1;
+}
+
+/* Chevron indicator */
+.wwh-chevron {
+  color: #9ca3af;
+  font-size: 0.6rem;
+  flex-shrink: 0;
+  transition: transform 300ms cubic-bezier(0.25, 0.1, 0.25, 1.0);
+  line-height: 1;
+}
+.wwh-chevron.rotated { transform: rotate(90deg); color: #CE1126; }
+
+/* Shared badge size token */
+:root { --badge-font-size: 0.68rem; }
+
+/* ── Time Anchor Badge ───────────────────────────────────────── */
+.badge-time {
+  display: inline-block;
+  padding: 1px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  color: #6b7280;
+  font-size: var(--badge-font-size);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  vertical-align: middle;
+  font-family: 'STHeiti', '华文黑体', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+}
+
+/* ── Role Pill Badge ─────────────────────────────────────────── */
+.badge-role {
+  display: inline-block;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #111827;
+  font-size: var(--badge-font-size);
+  white-space: nowrap;
+  vertical-align: middle;
+  font-family: 'STHeiti', '华文黑体', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+}
+
+/* ── File / Template Reference ───────────────────────────────── */
+.file-ref {
+  display: inline;
+  padding: 0 2px;
+  background: rgba(206, 17, 38, 0.05);
+  color: #CE1126;
+  font-size: 0.875rem;
+  text-decoration: underline;
+  text-decoration-color: rgba(206, 17, 38, 0.30);
+  text-underline-offset: 4px;
+  cursor: pointer;
+  font-family: 'STKaiti', '华文楷体', 'KaiTi', 'Noto Serif SC', serif;
+}
+
+/* ── Status Pill ─────────────────────────────────────────────── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+.pulse-dot { animation: pulse-dot 1.5s infinite; }
+
+/* ── Mobile sidebar (horizontal scroll) ─────────────────────── */
+@media (max-width: 767px) {
+  #mobile-sidebar {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 8px 14px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  #mobile-sidebar::-webkit-scrollbar { display: none; }
+  .role-btn-mobile {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 14px;
+    min-width: 72px;
+    border-radius: 14px;
+    gap: 2px;
+  }
+  .role-btn-mobile .role-abbr { margin-bottom: 2px; width: 24px; height: 24px; font-size: 0.68rem; }
+  .role-btn-mobile .role-name { font-size: 0.68rem; font-weight: 600; text-align: center; }
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.13); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(206, 17, 38, 0.28); }
+
+  </style>
 </head>
 
 <body>
@@ -224,7 +524,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -253,7 +553,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -282,7 +582,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -311,7 +611,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -340,7 +640,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -369,7 +669,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -400,7 +700,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -430,7 +730,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -474,7 +774,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -503,7 +803,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -532,7 +832,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -561,7 +861,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -590,7 +890,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -619,7 +919,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -648,7 +948,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -679,7 +979,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -710,7 +1010,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -752,7 +1052,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -780,7 +1080,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -810,7 +1110,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -846,7 +1146,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -887,7 +1187,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -915,7 +1215,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -947,7 +1247,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -977,7 +1277,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1022,7 +1322,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1050,7 +1350,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1078,7 +1378,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1106,7 +1406,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1136,7 +1436,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1164,7 +1464,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1205,7 +1505,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1233,7 +1533,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1261,7 +1561,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1289,7 +1589,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1317,7 +1617,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1361,7 +1661,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1389,7 +1689,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1429,7 +1729,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1457,7 +1757,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1498,7 +1798,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1526,7 +1826,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1558,7 +1858,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1600,7 +1900,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1628,7 +1928,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1656,7 +1956,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1684,7 +1984,7 @@
             </div>
             <span class="wwh-chevron">▶</span>
           </div>
-          <div class="js-expand-target">
+          <div class="js-expand-target max-h-0 opacity-0">
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
@@ -1721,6 +2021,152 @@
   </p>
 </footer>
 
-<script src="app.js"></script>
+<script>
+// ════════════════════════════════════════════════════════════════
+//  光华管理学院本科生党支部 SOP 引擎 — app.js
+//  v5.0 · Domain Router + Timeline WWH State Machine · 2026-03-02
+//  Architecture: SSOT {domain,role} + renderViews + expand/collapse
+//  Constraint: 严禁在事件回调中直接操作 element.style.*
+// ════════════════════════════════════════════════════════════════
+
+(function () {
+  'use strict';
+
+  var TRANSITION_DURATION = 320;
+
+  // ── 全局唯一真相源 (SSOT) ──────────────────────────────────────
+  var store = {
+    state: { domain: 'activity', role: 'all' },
+    _listeners: [],
+    setState: function (newState) {
+      Object.assign(this.state, newState);
+      this._listeners.forEach(function (fn) { fn(); });
+    },
+    subscribe: function (fn) { this._listeners.push(fn); }
+  };
+
+  // ── 动画工具：进入 / 离开 ─────────────────────────────────────
+  function enterEl(el) {
+    clearTimeout(el._leaveTimer);
+    el.classList.remove('hidden');
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        el.classList.remove('opacity-0', 'translate-y-4');
+        el.classList.add('opacity-100', 'translate-y-0');
+      });
+    });
+  }
+
+  function leaveEl(el) {
+    el.classList.remove('opacity-100', 'translate-y-0');
+    el.classList.add('opacity-0', 'translate-y-4');
+    clearTimeout(el._leaveTimer);
+    el._leaveTimer = setTimeout(function () {
+      el.classList.add('hidden');
+    }, TRANSITION_DURATION);
+  }
+
+  // ── 响应式渲染流 ──────────────────────────────────────────────
+  function renderViews() {
+    var domain = store.state.domain;
+    var role   = store.state.role;
+
+    // 1. 顶层领域按钮激活态
+    document.querySelectorAll('.domain-btn[data-domain]').forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.domain === domain);
+    });
+
+    // 2. 角色按钮激活态
+    document.querySelectorAll('.role-btn[data-role]').forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.role === role);
+    });
+
+    // 3. 标题区更新
+    var activeRoleBtn = document.querySelector('.role-btn[data-role="' + role + '"]');
+    if (activeRoleBtn) {
+      var hl = document.getElementById('role-headline');
+      var sl = document.getElementById('role-subline');
+      if (hl) hl.textContent = activeRoleBtn.dataset.headline || '';
+      if (sl) sl.textContent = activeRoleBtn.dataset.subline || '';
+    }
+
+    // 4. 场景标题行 — 仅按 domain 过滤
+    document.querySelectorAll('.scenario-header[data-domain]').forEach(function (hdr) {
+      if (hdr.dataset.domain === domain) {
+        enterEl(hdr);
+      } else {
+        leaveEl(hdr);
+      }
+    });
+
+    // 5. 时间轴节点 — 按 domain + role 过滤
+    document.querySelectorAll('.timeline-node[data-domain]').forEach(function (node) {
+      var domainMatch = node.dataset.domain === domain;
+      var nodeRole    = node.dataset.role || 'all';
+      var roleMatch   = role === 'all' || nodeRole === role || nodeRole === 'all';
+
+      if (domainMatch && roleMatch) {
+        enterEl(node);
+      } else {
+        leaveEl(node);
+      }
+    });
+  }
+
+  // ── 交互劫持：领域按钮 → store.setState() ────────────────────
+  document.querySelectorAll('.domain-btn[data-domain]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      store.setState({ domain: btn.dataset.domain });
+    });
+  });
+
+  // ── 交互劫持：角色按钮 → store.setState() ────────────────────
+  document.querySelectorAll('.role-btn[data-role]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      store.setState({ role: btn.dataset.role });
+    });
+  });
+
+  // ── 展开/折叠 (expand/collapse) ──────────────────────────────
+  document.querySelectorAll('.js-expand-trigger').forEach(function (trigger) {
+    trigger.addEventListener('click', function () {
+      var card    = trigger.closest('.tl-card');
+      if (!card) return;
+      var target  = card.querySelector('.js-expand-target');
+      var chevron = trigger.querySelector('.wwh-chevron');
+      if (!target) return;
+
+      var isExpanded = target.classList.contains('expanded');
+      if (isExpanded) {
+        target.classList.remove('expanded');
+        if (chevron) chevron.classList.remove('rotated');
+      } else {
+        target.classList.add('expanded');
+        if (chevron) chevron.classList.add('rotated');
+      }
+    });
+  });
+
+  // ── 状态机初始化 ──────────────────────────────────────────────
+  store.subscribe(renderViews);
+
+  // 所有节点和场景头初始隐藏
+  document.querySelectorAll('.timeline-node[data-domain], .scenario-header[data-domain]').forEach(function (el) {
+    el.classList.add('hidden', 'opacity-0', 'translate-y-4');
+  });
+
+  // 触发首次渲染 — domain=activity, role=all
+  store.setState({ domain: 'activity', role: 'all' });
+
+  // 状态 Pill 更新
+  var pill = document.getElementById('status-pill');
+  if (pill) pill.classList.remove('hidden');
+  var dot  = document.getElementById('status-dot');
+  if (dot)  dot.className = 'w-1.5 h-1.5 rounded-full bg-green-300';
+  var txt  = document.getElementById('status-text');
+  if (txt)  txt.textContent = '状态机 v5.0';
+}());
+
+</script>
 </body>
 </html>
