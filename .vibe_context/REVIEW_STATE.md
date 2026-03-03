@@ -153,6 +153,7 @@
 | 31 | 2026-03-02 | v6.x 全局深度审查与逻辑除垢 | Step1: index.html header 添加"意见反馈"锚点→docs/SOP优化提案反馈卡.md。Step2: WORKFLOW_MASTER Enforcement Verification 去除app.js引用，改为引用index.html。Step3: 补录Session 25/29执行日志条目。Step4: 修复REVIEW_STATE Session 24/26行截断，补全Changes Made+Outcome列。 | ✅ Done |
 | 32 | 2026-03-03 | Navigation Refactoring & Dead-Link Elimination | START_HERE.md v1.1→v1.2: YAML删除_quick_cards死链，5秒导航删除_quick_cards/工作流程图死链，FAQ Q3更新，未来补充列表更新，_review/工作流改写，C位增加index.html+反馈卡入口，last_updated更新。README.md v1.5→v1.6: 5秒导航C位增加index.html+反馈卡链接。index.html母本一致性质检结果（P0/P1/P2）已输出至执行日志。 | ✅ Done |
 | 33 | 2026-03-03 | Visual Asset Binding + Data Mapping Guide | index.html header: 替换☆占位符为`<img src="./党徽.png">`，保留白色半透明圆形容器，注释更新。新建docs/SOP数据映射与同步指南.md v1.0（5板块：核心钩稽逻辑、字段映射、同步安全区、架构雷区、版本钩稽关系表）。执行日志v1.7→v1.8。 | ✅ Done |
+| 34 | 2026-03-03 | Business Rule Cleanup + v7.0 Engine Upgrade | 阶段一：组织委员公域发令权剥离（场景1A/1B/5，HTML Node 1A-4/1B-4/5-2更新）；两份MD母本更新（常见工作场景v1.8，组织委员指南v1.4）。阶段二：index.html v7.0—新增sopDatabase（9场景40节点，timeOffset纯数字），instantiateSOP引擎，SOP实例化推演控制台（日历看板+甘特图+场景选择器）。 | ✅ Done |
 
 ---
 

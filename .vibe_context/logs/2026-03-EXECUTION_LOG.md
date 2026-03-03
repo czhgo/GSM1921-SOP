@@ -838,3 +838,70 @@ status: active
 | `START_HERE.md` | v1.2 |
 | `.vibe_context/REVIEW_STATE.md` | v3.9 |
 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | **v1.8** |
+
+---
+
+## 2026-03-03 — Session 34 (Business Rule Cleanup + v7.0 Engine Upgrade)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 【输出要求 1】组织委员发令权剥离 — 场景清单
+
+| 场景 | 原负责人 | 新负责人 | 变更内容 |
+|------|---------|---------|---------|
+| 场景1A 步骤4（通知到人） | 组织委员 侯嘉嵘 | 党小组组长（本组）/ 支书储子禾（全支部） | 条条组长通过党小组群发送会议通知；跨组/全支部由支书发布 |
+| 场景1B 步骤4（信息通知） | 组织委员 侯嘉嵘 | 条条组长（本组）/ 支书储子禾（跨组公域） | 条条组长通过党小组群发布活动通知；跨组由条条+块块组长共同决策后支书统一发出 |
+| 场景5（信息平台支持）通知功能 | 组织委员 侯嘉嵘 | 支书+条条组长 | 场景5联系人表更新，组织委员仅保留档案/公邮/材料复核职责 |
+| HTML index.html Node 1A-4 | `组织委员` badge | `党小组组长` badge | data-role 从 commissioner 改为 leader |
+| HTML index.html Node 1B-4 | `组织委员` badge | `条条组长`/`支书·储子禾` badge | data-role 从 commissioner 改为 leader |
+| HTML index.html Node 5-2 | 通知发送与公邮管理 | 公邮管理、档案维护与材料复核 | 标题和内容更新，移除通知发布功能描述 |
+
+**组织委员新定位：** 考察档案总控 · 思想汇报归档 · 材料催缴全案复核 · 预备党员转正 · 发展对象培训班领队。
+
+### 【输出要求 2】v7.0 推演引擎核心代码（已注入 index.html）
+
+**`instantiateSOP` 核心逻辑：**
+```js
+function instantiateSOP(scenarioIdArray, targetDateStr) {
+  var baseDate = new Date(targetDateStr + 'T00:00:00');
+  var results  = [];
+  sopDatabase.scenarios.forEach(function(sc) {
+    if (scenarioIdArray.indexOf(sc.scenarioId) === -1) return;
+    sc.tasks.forEach(function(task) {
+      if (task.timeOffset === null) return;  // 跳过无时间锚点的节点
+      var d = new Date(baseDate);
+      d.setDate(d.getDate() + task.timeOffset);  // 计算绝对日期
+      results.push({ ...task, date: d, scenarioTitle: sc.title });
+    });
+  });
+  results.sort(function(a, b) { return a.date - b.date; });  // 按日期排序
+  return results;
+}
+```
+
+**场景1B JSON 结构示例：**
+```json
+{
+  "scenarioId": "1b",
+  "title": "场景1B：党小组主题党日活动",
+  "domain": "activity",
+  "description": "弹性考勤 · 全体支部成员可参与",
+  "tasks": [
+    { "taskId": "1b-1", "title": "活动发起",   "role": "organizer", "timeOffset": -7 },
+    { "taskId": "1b-2", "title": "组长审批",   "role": "leader",    "timeOffset": -7 },
+    { "taskId": "1b-4", "title": "发布活动通知","role": "leader",    "timeOffset": -2 },
+    { "taskId": "1b-6", "title": "活动实施",   "role": "organizer", "timeOffset": 0  },
+    { "taskId": "1b-7", "title": "活动复盘",   "role": "organizer", "timeOffset": 7  }
+  ]
+}
+```
+
+### 3. 变更文件清单
+
+| 文件路径 | 版本变更 | 变更说明 |
+|---------|---------|---------|
+| `流程指南/常见工作场景快速指南.md` | v1.7 → v1.8 | 场景1A/1B步骤4负责人更新，场景5联系人表重构，注意事项更新 |
+| `流程指南/组织委员工作流程指南.md` | v1.3 → v1.4 | 核心定位重写，职责表更新，§2 信息平台重构，§4.2-4.3 协作流程更新 |
+| `index.html` | v6.1 → v7.0 | Node 1A-4/1B-4/5-2 更新，新增sopDatabase v7.0（全9场景40节点），新增instantiateSOP引擎，新增SOP实例化推演控制台（日历看板+甘特图） |
+| `docs/SOP数据映射与同步指南.md` | v1.0 → v1.1 | 版本更新 |
+| `.vibe_context/REVIEW_STATE.md` | v3.9 → v4.0 | Session 34 行追加 |

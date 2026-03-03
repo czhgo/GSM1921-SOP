@@ -6,7 +6,7 @@ audience:
   - AI 编译代理
 owner: "储子禾"
 last_updated: "2026-03-03"
-version: "1.0"
+version: "1.1"
 status: active
 related_files:
   - "流程指南/常见工作场景快速指南.md"
