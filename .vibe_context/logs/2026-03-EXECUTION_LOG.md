@@ -3,7 +3,7 @@ title: "Agent Execution Ledger — 2026年03月"
 type: log
 owner: "储子禾"
 last_updated: "2026-03-02"
-version: "1.6"
+version: "1.7"
 status: active
 ---
 
@@ -740,3 +740,61 @@ status: active
 | `.vibe_context/REVIEW_STATE.md` | v3.7 | |
 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | v1.6 | |
 | `docs/SOP优化提案反馈卡.md` | v1.3 | |
+
+---
+
+## 2026-03-03 — Session 32 (Navigation Refactoring & Dead-Link Elimination)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 1. 🔗 导航文档修改摘要 (Navigation Update Summary)
+
+**版块一：导航文档修改（直接执行）**
+
+**START_HERE.md** (v1.1 → v1.2)：
+- **死链 × 6 全部清除**：
+  1. `_quick_cards/README.md` — YAML related_files 中删除（目录已于 Session 23 删除）
+  2. `./_quick_cards/` — 5秒导航表格中删除"快速查卡片"行
+  3. `./流程指南/工作流程图-定人定责定岗.md` — 5秒导航表格中删除"流程图"行（文件已于 Session 23 删除）
+  4. `./流程指南/工作流程图-定人定责定岗.md` — FAQ Q3 中替换为 index.html + 快速指南链接
+  5. `_quick_cards/` — 未来补充清单中替换为 index.html 已完成条目
+  6. `_review/` 目录 — AI协同工作流中的 Review Inbox 步骤 1（创建 `_review/` 文件）改写为直接在 Copilot 对话中说明意图（目录已删除）
+- **C 位确立**：5秒导航表格顶部新增「🌐 SOP 引擎 Web 视图」（index.html）和「💌 SOP优化提案反馈卡」两行，置于最高优先级
+
+**README.md** (v1.5 → v1.6)：
+- **C 位确立**：5秒导航表格中新增「🌐 SOP 引擎（index.html）」和「💌 SOP优化提案反馈卡」两行，加粗占视觉 C 位
+
+### 2. 🌐 HTML 视图优化自查报告 (index.html Improvement Proposals)
+
+**版块二：index.html 质检结果（严禁修改，仅报告）**
+
+**🔴 P0 (Fatal/Missing)**
+- **1A 节点数量缩减**：母本场景 1A 共 12 步，index.html 仅有 8 个 timeline-node（步骤6/7 个人自评+互相批评、步骤9 会议记录、步骤11 考勤记录未单独展示）。当前实现方式是将多个"全体与会"角色步骤合并。如需100%覆盖，需补充「会中全体」节点。
+- **1B 节点数量缩减**：母本场景 1B 共 11 步，index.html 有 9 个 timeline-node（差距合理：步骤10 材料归档可能合并入步骤8或步骤9）。
+
+**🟠 P1 (Logic/UX)**
+- **无"全部场景预览"快速入口**：当前 domain-btn 仅「活动建设 / 组织建设」两个切换，没有"Show All"总览模式。初次进入时用户需选择领域才能看到场景，认知负担偏高。建议增加「全部领域」按钮。
+- **1A 第 5 步「签到考勤」展开后 Who 指向纪检委员但场景节点 data-role="commissioner"**，而纪检委员在 role-btn 中被归类为「块块委员」，不是专属入口，建议在 role-btn tooltip 明确"纪检委员→块块委员"的映射关系。
+- **移动端 role-btn 仅横向滚动，无视觉溢出提示**（无渐变 fade）：用户可能不知道右侧还有更多按钮。
+
+**🟡 P2 (Visual/UI)**
+- **时间徽章（badge-time）视觉权重偏低**：T-7天/T+3天等 DDL 信息是执行者的核心关切，当前灰色边框样式与角色徽章接近，建议将 T-7天 等 DDL 改为橙色或红色警示色，提升 DDL 信息的可读性。
+- **展开态的 js-expand-target 内容无分区分隔线**：What / Who / 注意事项三个区块在展开后仅靠间距区隔，信息密度高时难以快速扫描，建议增加轻量分隔线或背景色块区分。
+- **「全部场景」Tab 下默认展示所有节点**，对于 role=all + domain=activity 的情况节点数为 25+，列表较长，建议为每个场景增加折叠/展开的 scenario-level 折叠控制器。
+
+### 3. 🛡️ 冲突拦截与监查清单 (Conflict Interception / Agent Watchlist)
+- **异常捕获**：无高危冲突。所有修改为导航文档死链修复，未触动业务逻辑。
+- **低危提示**：WORKFLOW_MASTER.md Principle 7 仍列出已删除的 `_quick_cards/` 路径，建议书记在下次会话中显式指令更新（与 Session 31 同一低危项，持续存在）。
+
+### 4. 📊 队列状态与版本收口 (Queue Status Updates & Version Control)
+- `REVIEW_STATE.md` 已同步更新（Session 32 行追加）。剩余待办：1 个（修改14 悬置）。
+
+| 文件路径 | 当前版本 |
+|----------|----------|
+| `README.md` | **v1.6** |
+| `START_HERE.md` | **v1.2** |
+| `index.html` | v6.0 |
+| `流程指南/常见工作场景快速指南.md` | v1.7 |
+| `.vibe_context/WORKFLOW_MASTER.md` | v1.10 |
+| `.vibe_context/REVIEW_STATE.md` | v3.8 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | v1.7 |

@@ -151,9 +151,10 @@
 | 29 | 2026-03-02 | Feedback Loop Recovery & sopDatabase Injection | Step1: 重建 `docs/SOP优化提案反馈卡.md` v1.3（原 `_quick_cards/SOP优化提案反馈卡.md` 在Session 23被删除）；含YAML frontmatter + §1四维分类 + §2痛点描述 + §3修改建议 + §4 AI处理区。Step2: 注入 `const sopDatabase` 至 `index.html` script块顶部，提取10个场景（1A/1B/2-9）含steps/role/contact/timing结构。Step3: START_HERE.md 反馈卡链接从 `_quick_cards/` 更新至 `docs/`；CONTENT_MAP.md 新增 docs/ 章节（反馈卡+经验沉淀），index.html条目更新为v6.0描述；app.js/style.css条目移除（已合并入单文件）。 | ✅ Done |
 | 30 | 2026-03-02 | Execution Template Upgrade & Feedback Card Simplification | WORKFLOW_MASTER v1.9→v1.10：执行日志模板从3段升为4段（§1扫描范围扩至死链、§2新增自检表格要求、§3冲突拦截独立成节、§4合并版本收口+SemVer表格）；版本号遵循主版本号规则（1.9→1.10非2.0）。docs/SOP优化提案反馈卡.md：内容回归精简1-2-3格式（保留card_id/type:reference YAML字段；移除§4 AI处理区详细结构、§3.3场景复选框、支部党员audience）。 | ✅ Done |
 | 31 | 2026-03-02 | v6.x 全局深度审查与逻辑除垢 | Step1: index.html header 添加"意见反馈"锚点→docs/SOP优化提案反馈卡.md。Step2: WORKFLOW_MASTER Enforcement Verification 去除app.js引用，改为引用index.html。Step3: 补录Session 25/29执行日志条目。Step4: 修复REVIEW_STATE Session 24/26行截断，补全Changes Made+Outcome列。 | ✅ Done |
+| 32 | 2026-03-03 | Navigation Refactoring & Dead-Link Elimination | START_HERE.md v1.1→v1.2: YAML删除_quick_cards死链，5秒导航删除_quick_cards/工作流程图死链，FAQ Q3更新，未来补充列表更新，_review/工作流改写，C位增加index.html+反馈卡入口，last_updated更新。README.md v1.5→v1.6: 5秒导航C位增加index.html+反馈卡链接。index.html母本一致性质检结果（P0/P1/P2）已输出至执行日志。 | ✅ Done |
 
 ---
 
-**Version:** 3.7  
+**Version:** 3.8  
 **Owner:** 储子禾  
-**Last updated:** 2026-03-02
+**Last updated:** 2026-03-03
