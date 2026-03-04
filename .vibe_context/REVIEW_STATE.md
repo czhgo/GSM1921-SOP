@@ -171,8 +171,10 @@
 
 | 43 | 2026-03-04 | v7.7→v7.9 侧边栏永驻+角色粒度+人名剥离+数据规约 | Step1：删除renderViews中sidebar-reference-menu隐藏逻辑，role-btn点击追加activeModule:'reference'。Step2：cloudState扩展为syncSchedule/deleteActivity/toggleTaskStatus三接口。Step3：全局剥离具体人名→标准角色称谓；sopDatabase commissioner细化为org/prop/disc-commissioner；ROLE_COLORS+ROLE_LABELS新增三键。Step4：新建docs/支部建设经验与数据权限规约.md（双轨域划分、权责矩阵、数据可视权边界）。版本v7.7→v7.9。 | ✅ Done |
 
+| 44 | 2026-03-04 | v7.9→v7.9.1 知识库降维合并+ACL注入+侧边栏大一统 | Step1：合并docs/支部建设经验与数据权限规约.md→docs/党支部管理与实务经验沉淀.md模块四，原文件删除。Step2：WORKFLOW_MASTER.md注入[数据安全与ACL协议]（考勤只读全员/考察仅支委），版本v1.10→v1.11。Step3：废除mobile-drawer+sidebar-desktop双DOM，建单一#sidebar-main+CSS transform引擎，hamburger全屏可见，openSidebar/closeSidebar/toggleSidebar统一JS引擎。版本v7.9→v7.9.1。 | ✅ Done |
+
 ---
 
-**Version:** 4.7  
+**Version:** 4.8  
 **Owner:** 支委会  
 **Last updated:** 2026-03-04

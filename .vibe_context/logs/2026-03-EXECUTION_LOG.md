@@ -1221,3 +1221,43 @@ v7.9 修复侧边栏 JS 遮蔽，剥离硬编码人名，细化块块委员数�
 | `docs/支部建设经验与数据权限规约.md` | 新建文档 |
 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 43 日志追加 |
 | `.vibe_context/REVIEW_STATE.md` | Session 43 总账行追加 |
+
+---
+
+## 2026-03-04 — Session 44 (v7.9→v7.9.1 知识库降维合并+ACL注入+侧边栏大一统)
+
+**版本升迁：** v7.9 → v7.9.1
+
+### 变更摘要
+
+v7.9.1 知识库降维合并，WORKFLOW_MASTER 注入 ACL 数据隔离协议，实施侧边栏 CSS Transform 大一统重构
+
+**Step 1：知识库收敛**
+- 合并 `docs/支部建设经验与数据权限规约.md` → `docs/党支部管理与实务经验沉淀.md` 新增模块四
+- 原文件已删除，保持知识库 Single Source of Truth
+
+**Step 2：ACL 协议注入**
+- `.vibe_context/WORKFLOW_MASTER.md` 新增 `[数据安全与 ACL 协议]` 模块（v1.10→v1.11）
+- 考勤信息：全员公开可见/只读；考察信息：仅支委读写/普通成员查本人
+
+**Step 3：侧边栏 CSS Transform 大一统**
+- 废除 `#mobile-drawer` + `#drawer-overlay` + `#sidebar-desktop`（三个独立 DOM）
+- 新建单一 `<aside id="sidebar-main">` + `<div id="sidebar-overlay">`
+- CSS：`#sidebar-main.sidebar-collapsed { transform: translateX(-100%) }`
+- JS：`toggleSidebar()` 统一引擎，初始化：桌面展开/移动收起
+- 汉堡按钮：移除 `md:hidden`，全屏尺寸可见
+
+**Step 4：有益沉淀保留确认**
+- ✅ SVG 线性图标保留
+- ✅ cloudState CRUD 存根保留（syncSchedule/deleteActivity/toggleTaskStatus）
+- ✅ 去名化 JSON 角色（org/prop/disc-commissioner）保留
+- ✅ WWH 执行 vs 督办拆分展示保留
+
+| 文件 | 变更类型 |
+|------|---------|
+| `index.html` | 侧边栏 DOM/CSS/JS 大一统重构 v7.9→v7.9.1 |
+| `docs/党支部管理与实务经验沉淀.md` | 追加模块四，版本 v1.1→v1.2 |
+| `docs/支部建设经验与数据权限规约.md` | **已删除**（内容已合并） |
+| `.vibe_context/WORKFLOW_MASTER.md` | 注入 ACL 协议，版本 v1.10→v1.11 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 44 日志追加 |
+| `.vibe_context/REVIEW_STATE.md` | Session 44 总账行追加 |
