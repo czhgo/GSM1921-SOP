@@ -167,8 +167,10 @@
 
 | 41 | 2026-03-04 | v7.5→v7.6 响应式布局抢修：桌面侧边栏恢复+日历检查器折行 | Step1：#sidebar-desktop `flex-col`→`md:flex-col`，桌面端纵向显示恢复正常。Step2：日历父容器`flex gap-4`→`flex flex-col lg:flex-row gap-6`；左侧日历内联flex→`w-full lg:w-[60%]`；右侧检查器内联flex→`w-full lg:w-[40%]`。手机端纵向折行，大屏横向并排。版本v7.5→v7.6。 | ✅ Done |
 
+| 42 | 2026-03-04 | v7.6→v7.7 废除数字编号+SVG图标+执行督办权责拆分 | Step1：scenarioId语义化（1a→org-life, 1b→theme-party等），场景标题加【活动建设】/【组织建设】前缀，data-scenario/select options/instantiateSOP调用同步。Step2：侧边栏role-abbr文字(全/长/委/组/深)→inline SVG图标（grid/flag/shield/clipboard/pen），桌面+移动抽屉两处同步。Step3：sopDatabase role字段拆为executor+supervisor，inspector卡片双胶囊（🏃执行+👁督办），日历颜色用executor，快速指南md负责人列更新为[执行:X][督办:Y]格式。版本v7.6→v7.7。 | ✅ Done |
+
 ---
 
-**Version:** 4.5  
+**Version:** 4.6  
 **Owner:** 储子禾  
 **Last updated:** 2026-03-04

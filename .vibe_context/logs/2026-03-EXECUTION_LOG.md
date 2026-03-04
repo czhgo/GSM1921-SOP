@@ -1149,3 +1149,43 @@ v7.6 修复桌面侧边栏坍塌问题，重构日历与检查器的移动端纵
 | `index.html` | 响应式断点修复 v7.5→v7.6 |
 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 41 日志追加 |
 | `.vibe_context/REVIEW_STATE.md` | Session 41 总账行追加 |
+
+---
+
+## 2026-03-04 — Session 42 (v7.6→v7.7 语义化重构+SVG图标+权责分离)
+
+**版本升迁：** v7.6 → v7.7
+
+### 变更摘要
+
+v7.7 修复桌面侧边栏布局，废除数字编号实现语义化，引入 SVG 图标，拆分执行与督办权责
+
+**Step 0：桌面侧边栏确认**
+- `#sidebar-desktop` class `hidden md:flex md:flex-col` — v7.6已修复，确认正常。
+
+**Step 1：废除数字编号，语义化改造**
+- `scenarioId` 重命名：1a→org-life, 1b→theme-party, 4→joint-event, 8→brand-activity, 2→new-system, 3→develop-activist, 5→info-platform, 6→attendance-check, 7→branch-discussion, 9→feedback-handling
+- 场景标题前缀：`【活动建设】` 和 `【组织建设】` 替代"场景X："
+- `data-scenario` 属性、select options、`instantiateSOP` 调用点同步更新
+
+**Step 2：引入 SVG 图标**
+- 侧边栏（桌面 + 移动端抽屉）`role-abbr` 文字替换为 Heroicons 风格 inline SVG（stroke-width=2）：
+  - 全 → 四格网格
+  - 长 → 旗帜 (flag)
+  - 委 → 盾牌 (shield)
+  - 组 → 剪贴板 (clipboard)
+  - 深 → 画笔 (pen/edit)
+
+**Step 3：权责拆分 executor/supervisor**
+- sopDatabase 所有任务 `role` → `executor` + `supervisor`
+- `instantiateSOP` 推送 executor + supervisor
+- 日历格标签颜色 → `ROLE_COLORS[t.executor]`
+- 检查器卡片 → 双胶囊标签：🏃 执行：XX + 👁 督办：YY（supervisor为null时不显示督办）
+- `流程指南/常见工作场景快速指南.md` 负责人列更新为 `[执行: X] [督办: Y]`
+
+| 文件 | 变更类型 |
+|------|---------|
+| `index.html` | 语义化/SVG/权责重构 v7.6→v7.7 |
+| `流程指南/常见工作场景快速指南.md` | 负责人格式更新为执行/督办双列 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 42 日志追加 |
+| `.vibe_context/REVIEW_STATE.md` | Session 42 总账行追加 |
