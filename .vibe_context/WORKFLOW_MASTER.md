@@ -58,12 +58,12 @@ Never embed scenario logic inside human documents.
 The **YAML frontmatter block** at the top of each Markdown file is the sole coupling anchor between the Human Panel and the AI Data Panel (see Constraint 3 above).
 
 **⚡ Frontend Architecture Declaration — AI-Driven Static Generation:**
-`index.html` is an **AI-compiled static artifact**. Any time business content in `流程指南/` is modified, Copilot **must** act as a compiler and forcibly regenerate and hardcode-update the business data in `index.html`. **Dynamic `fetch()` logic and any external Markdown-parsing libraries (e.g., marked.js) are permanently prohibited in `index.html` and `app.js`.** The only permitted JavaScript in `app.js` is minimal DOM manipulation (≤30 lines) for tab/role switching.
+`index.html` is an **AI-compiled static artifact** (v6.0 Single-File Architecture — `app.js` and `style.css` are permanently inlined; they no longer exist as separate files). Any time business content in `流程指南/` is modified, Copilot **must** act as a compiler and forcibly regenerate and hardcode-update the business data in `index.html`. **Dynamic `fetch()` logic and any external Markdown-parsing libraries (e.g., marked.js) are permanently prohibited inside `index.html`.**
 
-**Enforcement verification (run before every `report_progress` call that touches `index.html` or `app.js`):**
-- `grep -n "fetch(" app.js` must return no results.
+**Enforcement verification (run before every `report_progress` call that touches `index.html`):**
+- `grep -n "fetch(" index.html` must return no results.
 - `grep -n "marked" index.html` must return only comments (no script src tags).
-- `app.js` must not exceed 50 lines total (comments inclusive).
+- The inline `<script>` block must not exceed 300 lines (comments inclusive).
 
 **Mandatory sync rules — every Human Panel change MUST trigger a corresponding AI Data Panel update:**
 
@@ -241,29 +241,37 @@ This principle cannot be suspended and overrides the default minimal-diff scope 
 Use this exact template for the Step 6 execution report. Fill in the bracketed fields. Append to the current month's `.vibe_context/logs/YYYY-MM-EXECUTION_LOG.md` and print in chat.
 
 ````markdown
-## [YYYY-MM-DD] — Session N (scenario_name)
+## YYYY-MM-DD — Session N (核心动作英文或中文短摘要)
 
 ## 🛠️ Copilot 自动执行报告 (Execution Summary)
 
-### 1. 🧹 技术债清理（YAML 元数据）
-- **扫描结果：** 共发现 [X] 个文件缺失 YAML。
-- **修复清单：**
-  - `[文件路径]`：补充了 `[type]` 属性，关联了 [X] 个 related_files。
-  - _(如本次无 YAML 修复，写"本次扫描无新增缺失文件。")_
+### 1. 🧹 技术债清理 (Technical Debt Clearance)
+- **扫描结果**：记录本次执行前/后，是否发现并修复了缺失的 YAML 元数据（如 `last_updated`, `version`）、死链或格式冗余。（若无，需明确回答"无新增技术债"）。
+- **修复清单**（仅有修复时填写）：
+  - `[文件路径]`：补充了 `[具体字段]`，修复了 [X] 处死链 / 格式问题。
 
-### 2. 🚀 状态机任务推进
-- **本次执行任务：** [填写 REVIEW_STATE 中挑出来的任务内容，含优先级标记]
-- **修改的文件：** `[修改的业务文件路径]`
-- **核心逻辑/约束应用：** [简述修改了什么，例如：删除了多余的条条分工表格，重构了流程文本。]
-- **⚠️ 冲突拦截（Agent Watchlist）：** [如触发了 W1–W4 中的监查问题，说明如何处理；如未触发，写"未触发架构冲突"。]
+### 2. 🚀 状态机任务推进 (State Machine Task Progression)
+- **本次执行任务**：明确记录本次歼灭的是哪个具体的 Pending 待办项（如"修改14"）或架构跃迁任务（如"v7.0 单文件架构落地"）。
+- **涉及/修改的文件**：枚举本次操作触碰的所有物理文件路径。
+- **执行细节与验证**：简要说明核心代码的变动逻辑。在重大重构时，此项必须包含一张**自检复选框表格**（例如验证单文件是否纯净、Emoji 是否清零）。
 
-### 3. ⏳ 队列状态更新
+### 3. 🛡️ 冲突拦截与监查清单 (Conflict Interception / Agent Watchlist)
+- **异常捕获**：记录在改写代码时是否遇到了与其他业务逻辑的冲突（例如修改了 A 类活动，是否意外影响了 B 类）。
+- **预警动作**：如果发现新的系统断点，需在此处生成一条新的 Watchlist 记录并同步至 `REVIEW_STATE.md`。（若无异常，需明确回答"无冲突项"）。
+
+### 4. 📊 队列状态与版本收口 (Queue Status Updates & Version Control)
 - `REVIEW_STATE.md` 已同步更新。当前剩余待办任务数：[X] 个。
-- **下一顺位建议任务：** [列出状态机里的下一个任务，供书记参考]
+- **下一顺位建议任务**：[列出状态机里的下一个任务，供书记参考]
+- **版本迭代轨迹**：
+
+| 文件路径 | 变更类型 | 版本变化 (SemVer) |
+|----------|----------|-------------------|
+| `[文件路径]` | [架构重构/参数修改/新增资产] | vX.Y → vX.Z |
+| `REVIEW_STATE.md` | Session N 行追加 | vA.B → vA.C |
 ````
 
 ---
 
-**Version:** 1.9  
+**Version:** 1.10  
 **Owner:** 储子禾  
 **Last updated:** 2026-03-02

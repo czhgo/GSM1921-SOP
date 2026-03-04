@@ -3,7 +3,7 @@ title: "Agent Execution Ledger — 2026年03月"
 type: log
 owner: "储子禾"
 last_updated: "2026-03-02"
-version: "1.4"
+version: "1.8"
 status: active
 ---
 
@@ -362,6 +362,35 @@ status: active
 
 ---
 
+## 2026-03-02 — Session 25 (AI-Driven Static Compilation)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 1. 🧹 技术债清理 (Technical Debt Clearance)
+- **扫描结果**：无新增技术债。本次为架构迁移，无 YAML 元数据修复。
+
+### 2. 🚀 状态机任务推进 (State Machine Task Progression)
+- **本次执行任务**：将 `fetch()` + marked.js 动态解析架构彻底废弃，切换至 AI 静态编译模式。
+- **涉及/修改的文件**：`index.html`、`app.js`、`style.css`、`.vibe_context/WORKFLOW_MASTER.md`
+- **执行细节与验证**：废弃 marked.js + fetch()；app.js 压缩至 38 行纯 DOM 切换器；index.html 硬编码全部业务数据；style.css 新增 `.hidden` fallback；WORKFLOW_MASTER v1.8→v1.9 新增 AI-Driven Static Generation 宣言，永久禁止 fetch() 和 marked.js。
+
+### 3. 🛡️ 冲突拦截与监查清单 (Conflict Interception / Agent Watchlist)
+- **异常捕获**：无冲突项。
+
+### 4. 📊 队列状态与版本收口 (Queue Status Updates & Version Control)
+- `REVIEW_STATE.md` 已同步更新（Session 25 行追加，版本 v3.2 → v3.3）。
+- **版本迭代轨迹**：
+
+| 文件路径 | 变更类型 | 版本变化 (SemVer) |
+|----------|----------|-------------------|
+| `index.html` | fetch→hardcode 静态编译 | — |
+| `app.js` | 压缩至 38 行 DOM 切换器 | — |
+| `style.css` | 新增 .hidden fallback | — |
+| `.vibe_context/WORKFLOW_MASTER.md` | AI-Driven Static Generation 宣言 | v1.8 → v1.9 |
+| `.vibe_context/REVIEW_STATE.md` | Session 25 行追加 | v3.2 → v3.3 |
+
+---
+
 ## 2026-03-02 — Session 26 (Gov-Grade Typography & State Machine Architecture)
 
 ## 🛠️ Copilot 自动执行报告 (Execution Summary)
@@ -590,3 +619,289 @@ status: active
 | `index.html` | 版本号更新 v5.0→v6.0（5处），last_updated 确认 2026-03-02 | v5.0 → v6.0 |
 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 28 追加 | v1.6 → v1.7 |
 | `.vibe_context/REVIEW_STATE.md` | Session 28 行追加 | v3.4 → v3.5 |
+
+---
+
+## 2026-03-02 — Session 29 (Feedback Loop Recovery & sopDatabase Injection)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 1. 🧹 技术债清理 (Technical Debt Clearance)
+- **扫描结果**：发现 `docs/SOP优化提案反馈卡.md` 在 Session 23 删除 `_quick_cards/` 时被意外移除（死链），导致 START_HERE.md 和 README.md 存在反馈卡死链。本次修复。
+
+### 2. 🚀 状态机任务推进 (State Machine Task Progression)
+- **本次执行任务**：重建反馈卡并向 index.html 注入 sopDatabase 常量。
+- **涉及/修改的文件**：`docs/SOP优化提案反馈卡.md`（新建）、`index.html`、`START_HERE.md`、`.vibe_context/CONTENT_MAP.md`
+- **执行细节与验证**：Step1 重建 `docs/SOP优化提案反馈卡.md` v1.3（含YAML frontmatter + §1四维分类 + §2痛点描述 + §3修改建议 + §4 AI处理区）。Step2 注入 `const sopDatabase` 至 `index.html` script块顶部，提取10个场景（1A/1B/2-9）含steps/role/contact/timing结构。Step3 START_HERE.md 反馈卡链接从 `_quick_cards/` 更新至 `docs/`；CONTENT_MAP.md 新增 docs/ 章节（反馈卡+经验沉淀），index.html条目更新为v6.0描述；app.js/style.css条目移除（已合并入单文件）。
+
+### 3. 🛡️ 冲突拦截与监查清单 (Conflict Interception / Agent Watchlist)
+- **异常捕获**：无冲突项。
+
+### 4. 📊 队列状态与版本收口 (Queue Status Updates & Version Control)
+- `REVIEW_STATE.md` 已同步更新（Session 29 行追加，版本 v3.5 → v3.6）。
+- **版本迭代轨迹**：
+
+| 文件路径 | 变更类型 | 版本变化 (SemVer) |
+|----------|----------|-------------------|
+| `docs/SOP优化提案反馈卡.md` | 从 `_quick_cards/` 重建至 `docs/` | v1.2 → v1.3 |
+| `index.html` | 注入 sopDatabase 常量 | v6.0 (内容修改) |
+| `START_HERE.md` | 反馈卡死链修复 | — |
+| `.vibe_context/CONTENT_MAP.md` | 新增 docs/ 章节，更新 index.html 条目 | v1.3 → v1.4 |
+| `.vibe_context/REVIEW_STATE.md` | Session 29 行追加 | v3.5 → v3.6 |
+
+## 2026-03-02 — Session 30 (Execution Template Upgrade & Feedback Card Simplification)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 1. 🧹 技术债清理 (Technical Debt Clearance)
+- **扫描结果**：发现 `WORKFLOW_MASTER.md` 模板与书记期望的四段式规范不一致（技术规范漂移），以及 `docs/SOP优化提案反馈卡.md` 被过度工程化（从精简模板膨胀为§1-§4复杂结构）。本次一并修复。无死链或格式冗余新增。
+
+### 2. 🚀 状态机任务推进 (State Machine Task Progression)
+- **本次执行任务**：WORKFLOW_MASTER 执行日志模板升级（v1.9 → v1.10）；反馈卡内容回归精简（v1.3 维持，内容简化）。
+- **涉及/修改的文件**：
+  - `.vibe_context/WORKFLOW_MASTER.md`
+  - `docs/SOP优化提案反馈卡.md`
+  - `.vibe_context/logs/2026-03-EXECUTION_LOG.md`
+  - `.vibe_context/REVIEW_STATE.md`
+- **执行细节与验证**：
+  - **WORKFLOW_MASTER 模板**：旧模板为 3 段式（技术债 / 状态机推进含冲突子弹 / 队列状态）。新模板取旧版与书记指定格式的"并集"，升级为 4 段式：
+    - §1（技术债清理）：扩展扫描范围至死链与格式冗余，保留旧版"修复清单"子弹作为可选项——**理由**：旧版仅扫描 YAML，实际执行中死链同样高频出现（见 Session 20 路径修复），覆盖范围扩大降低漏报率，减少 AI 幻觉。
+    - §2（状态机推进）：新增"执行细节与验证"子弹（可含自检表格）——**理由**：重大重构时（如 Session 27 v5.0）AI 需提供可验证证据，防止虚报完成状态，核心防幻觉机制。
+    - §3（冲突拦截）：从旧 §2 的一颗子弹升格为独立章节——**理由**：冲突检测在旧版中被淹没，导致跨文件副作用未被记录（见 Session 17 Global Sync 补救）。独立章节强制 AI 必须显式回答，不得省略。
+    - §4（版本收口）：合并旧版"队列状态更新"与历史日志中非模板化的"受影响文件清单"，统一为含 SemVer 表格的标准格式——**理由**：旧版"受影响文件清单"是非强制节，实际执行中时有时无（Sessions 25-26 缺失），版本历史断点影响信息流追溯。标准化表格使版本迭代轨迹可机器解析。
+  - **版本号**：1.9 → 1.10（非 2.0）。遵循主版本号仅在重大架构级更新时递增的规定，本次为功能扩展非破坏性变更。
+  - **反馈卡**：将 Session 29 引入的 §1-§4 复杂结构回归为书记首选的 1-2-3 精简格式。YAML 保留 `card_id: feedback` 和 `type: reference`（Session 29 新增字段，有助于自动检索，无副作用，保留）；`支部党员` 从 audience 移除（反馈卡填写主体为支委，普通党员不适宜直接提交架构修改请求）；场景细分复选框（旧 §3.3）删除——**理由**：影响范围的四维选择（§1）已足够分类，场景列表属于过度规格化，增加填表负担且与 AI 处理区字段重复。
+
+### 3. 🛡️ 冲突拦截与监查清单 (Conflict Interception / Agent Watchlist)
+- **异常捕获**：无冲突项。WORKFLOW_MASTER 为纯规范文件，反馈卡为纯表单，均无业务逻辑耦合。
+- **预警动作**：无新增 Watchlist 条目。
+
+### 4. 📊 队列状态与版本收口 (Queue Status Updates & Version Control)
+- `REVIEW_STATE.md` 已同步更新（Session 30 行追加，版本 v3.5 → v3.6）。当前剩余待办任务数：1 个（修改14 悬置）。
+- **下一顺位建议任务**：修改14（品牌活动与非品牌活动发起方式）解除悬置时，触发场景8相关流程更新。
+- **版本迭代轨迹**：
+
+| 文件路径 | 变更类型 | 版本变化 (SemVer) |
+|----------|----------|-------------------|
+| `.vibe_context/WORKFLOW_MASTER.md` | 执行日志模板 3段→4段升级 | v1.9 → v1.10 |
+| `docs/SOP优化提案反馈卡.md` | 内容回归精简格式 | v1.3 (content reset) |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 30 追加 | v1.4 → v1.5 |
+| `.vibe_context/REVIEW_STATE.md` | Session 30 行追加 | v3.5 → v3.6 |
+
+---
+
+## 2026-03-02 — Session 31 (v6.x 全局深度审查与逻辑除垢)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 1. 🧹 技术债清理 (Technical Debt Clearance)
+- **扫描结果**：本次深度审查发现并修复以下4项架构/元数据问题：
+  - **[已修复] 死链·反馈卡入口缺失**：`index.html` 头部缺少指向 `docs/SOP优化提案反馈卡.md` 的锚点链接。已在 header 中添加"意见反馈"链接。
+  - **[已修复] 宪法自相矛盾**：`WORKFLOW_MASTER.md` 的 Enforcement Verification 规则仍引用已不存在的 `app.js`（v6.0 Single-File Architecture 已将其内联进 `index.html`），导致执行命令 `grep -n "fetch(" app.js` 永远报错。已将规则全部更新为引用 `index.html`。
+  - **[已修复] 执行日志漏记 Session 25**：`2026-03-EXECUTION_LOG.md` 缺少 Session 25（AI-Driven Static Compilation）条目，仅在 REVIEW_STATE 有记录。已补录。
+  - **[已修复] 执行日志漏记 Session 29**：`2026-03-EXECUTION_LOG.md` 缺少 Session 29（Feedback Loop Recovery & sopDatabase Injection）条目，仅在 REVIEW_STATE 有记录。已补录。
+  - **[已修复] REVIEW_STATE Session 24/26 行截断**：两行均缺少"Changes Made"和"Outcome"列，为格式不完整。已补全摘要和 ✅ Done 状态。
+
+### 2. 🚀 状态机任务推进 (State Machine Task Progression)
+- **本次执行任务**：v6.x 全局深度审查与逻辑除垢（大版本跃迁前置审计）。
+- **涉及/修改的文件**：
+  - `index.html`（添加反馈卡锚点链接）
+  - `.vibe_context/WORKFLOW_MASTER.md`（修复 Enforcement Verification 规则）
+  - `.vibe_context/logs/2026-03-EXECUTION_LOG.md`（补录 Session 25/29，追加 Session 31）
+  - `.vibe_context/REVIEW_STATE.md`（修复 Session 24/26 行，追加 Session 31）
+- **执行细节与验证**：
+
+| 验证项 | 结果 |
+|--------|------|
+| `grep -c "fetch(" index.html` = 0 | ✅ |
+| `grep -c "marked" index.html` = 0 | ✅ |
+| `docs/SOP优化提案反馈卡.md` 物理文件存在 | ✅ |
+| `index.html` header 含 "意见反馈" 锚点链接 | ✅ |
+| WORKFLOW_MASTER 无 `app.js` 引用 | ✅ |
+| 执行日志含 Session 25 条目 | ✅ |
+| 执行日志含 Session 29 条目 | ✅ |
+| REVIEW_STATE 所有 Session 行含 Outcome 列 | ✅ |
+
+### 3. 🛡️ 冲突拦截与监查清单 (Conflict Interception / Agent Watchlist)
+- **异常捕获**：无冲突项。本次仅修复元数据与架构规范，未触动任何业务逻辑。
+- **预警动作**：⚠️ 高优先级提示：`WORKFLOW_MASTER.md` Principle 7 的"下游衍生品"定义仍列出 `工作流程图-定人定责定岗.md` 和 `_quick_cards/`，但这两个路径在 Session 23 已被删除。这是一个低危但存在的信息断层（宪法引用了不存在的路径），**不在本次极简纠偏范围内**，建议书记在下次会话中显式指令更新该原则。
+
+### 4. 📊 队列状态与版本收口 (Queue Status Updates & Version Control)
+- `REVIEW_STATE.md` 已同步更新（Session 31 行追加，版本 v3.6 → v3.7）。当前剩余待办任务数：1 个（修改14 悬置）。
+- **下一顺位建议任务**：大版本跃迁（v7.0）可执行，架构前置审计已通过。
+- **系统核心文件版本现状**：
+
+| 文件路径 | 当前版本 | 备注 |
+|----------|----------|------|
+| `index.html` | v6.0 | 单文件架构，已添加反馈卡入口 |
+| `流程指南/常见工作场景快速指南.md` | v1.7 | sopDatabase 母本 |
+| `.vibe_context/WORKFLOW_MASTER.md` | v1.10 | 已修复 app.js 引用 |
+| `.vibe_context/CONTENT_MAP.md` | v1.4 | |
+| `.vibe_context/REVIEW_STATE.md` | v3.7 | |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | v1.6 | |
+| `docs/SOP优化提案反馈卡.md` | v1.3 | |
+
+---
+
+## 2026-03-03 — Session 32 (Navigation Refactoring & Dead-Link Elimination)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 1. 🔗 导航文档修改摘要 (Navigation Update Summary)
+
+**版块一：导航文档修改（直接执行）**
+
+**START_HERE.md** (v1.1 → v1.2)：
+- **死链 × 6 全部清除**：
+  1. `_quick_cards/README.md` — YAML related_files 中删除（目录已于 Session 23 删除）
+  2. `./_quick_cards/` — 5秒导航表格中删除"快速查卡片"行
+  3. `./流程指南/工作流程图-定人定责定岗.md` — 5秒导航表格中删除"流程图"行（文件已于 Session 23 删除）
+  4. `./流程指南/工作流程图-定人定责定岗.md` — FAQ Q3 中替换为 index.html + 快速指南链接
+  5. `_quick_cards/` — 未来补充清单中替换为 index.html 已完成条目
+  6. `_review/` 目录 — AI协同工作流中的 Review Inbox 步骤 1（创建 `_review/` 文件）改写为直接在 Copilot 对话中说明意图（目录已删除）
+- **C 位确立**：5秒导航表格顶部新增「🌐 SOP 引擎 Web 视图」（index.html）和「💌 SOP优化提案反馈卡」两行，置于最高优先级
+
+**README.md** (v1.5 → v1.6)：
+- **C 位确立**：5秒导航表格中新增「🌐 SOP 引擎（index.html）」和「💌 SOP优化提案反馈卡」两行，加粗占视觉 C 位
+
+### 2. 🌐 HTML 视图优化自查报告 (index.html Improvement Proposals)
+
+**版块二：index.html 质检结果（严禁修改，仅报告）**
+
+**🔴 P0 (Fatal/Missing)**
+- **1A 节点数量缩减**：母本场景 1A 共 12 步，index.html 仅有 8 个 timeline-node（步骤6/7 个人自评+互相批评、步骤9 会议记录、步骤11 考勤记录未单独展示）。当前实现方式是将多个"全体与会"角色步骤合并。如需100%覆盖，需补充「会中全体」节点。
+- **1B 节点数量缩减**：母本场景 1B 共 11 步，index.html 有 9 个 timeline-node（差距合理：步骤10 材料归档可能合并入步骤8或步骤9）。
+
+**🟠 P1 (Logic/UX)**
+- **无"全部场景预览"快速入口**：当前 domain-btn 仅「活动建设 / 组织建设」两个切换，没有"Show All"总览模式。初次进入时用户需选择领域才能看到场景，认知负担偏高。建议增加「全部领域」按钮。
+- **1A 第 5 步「签到考勤」展开后 Who 指向纪检委员但场景节点 data-role="commissioner"**，而纪检委员在 role-btn 中被归类为「块块委员」，不是专属入口，建议在 role-btn tooltip 明确"纪检委员→块块委员"的映射关系。
+- **移动端 role-btn 仅横向滚动，无视觉溢出提示**（无渐变 fade）：用户可能不知道右侧还有更多按钮。
+
+**🟡 P2 (Visual/UI)**
+- **时间徽章（badge-time）视觉权重偏低**：T-7天/T+3天等 DDL 信息是执行者的核心关切，当前灰色边框样式与角色徽章接近，建议将 T-7天 等 DDL 改为橙色或红色警示色，提升 DDL 信息的可读性。
+- **展开态的 js-expand-target 内容无分区分隔线**：What / Who / 注意事项三个区块在展开后仅靠间距区隔，信息密度高时难以快速扫描，建议增加轻量分隔线或背景色块区分。
+- **「全部场景」Tab 下默认展示所有节点**，对于 role=all + domain=activity 的情况节点数为 25+，列表较长，建议为每个场景增加折叠/展开的 scenario-level 折叠控制器。
+
+### 3. 🛡️ 冲突拦截与监查清单 (Conflict Interception / Agent Watchlist)
+- **异常捕获**：无高危冲突。所有修改为导航文档死链修复，未触动业务逻辑。
+- **低危提示**：WORKFLOW_MASTER.md Principle 7 仍列出已删除的 `_quick_cards/` 路径，建议书记在下次会话中显式指令更新（与 Session 31 同一低危项，持续存在）。
+
+### 4. 📊 队列状态与版本收口 (Queue Status Updates & Version Control)
+- `REVIEW_STATE.md` 已同步更新（Session 32 行追加）。剩余待办：1 个（修改14 悬置）。
+
+| 文件路径 | 当前版本 |
+|----------|----------|
+| `README.md` | **v1.6** |
+| `START_HERE.md` | **v1.2** |
+| `index.html` | v6.0 |
+| `流程指南/常见工作场景快速指南.md` | v1.7 |
+| `.vibe_context/WORKFLOW_MASTER.md` | v1.10 |
+| `.vibe_context/REVIEW_STATE.md` | v3.8 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | v1.7 |
+
+---
+
+## 2026-03-03 — Session 33 (Visual Asset Binding + Data Mapping Guide)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 1. 🎨 视觉闭环完成 (Visual Asset Binding — 已完成)
+
+**修改文件：** `index.html`
+
+- **已替换**：Header 区域的 `☆`（☆ glyph）占位符，改为真实物理图片 `<img src="./党徽.png" alt="党徽" class="w-7 h-7 object-contain select-none" draggable="false">`
+- **容器保留**：原有白色半透明圆形背景（`background:rgba(255,255,255,0.18)`）和边框样式完整保留，政务级排版无破坏
+- **HTML 注释更新**：固定 Header 的注释行从 `☆ party emblem — sole retained glyph` 更新为 `党徽.png — physical asset bound 2026-03-03`
+
+### 2. 📄 《SOP 数据映射与同步指南》已创建 (Data Mapping Guide — 已完成)
+
+**新建文件：** `docs/SOP数据映射与同步指南.md` (v1.0)
+
+文档包含五个板块：
+1. **核心钩稽逻辑**：说明 AI 静态编译架构的单向数据流，列出 Markdown 结构特征（表格列、标题层级、`[角色:]`/`[时间:]` 标签）→ HTML 字段的完整映射表
+2. **同步安全区**：8 类可安全修改的操作（文字改写、联系人更新、步骤追加等），标注编译成本
+3. **架构雷区**：7 类高危操作（时间格式变化、新角色类别、场景编号改变、domain 分类变更等），说明崩溃原因和正确做法
+4. **快速决策树**：书记改 Markdown 前的 6 步分支判断
+5. **版本钩稽关系表**：当前 HTML v6.0 与各 Markdown 母本的版本对应关系
+
+### 3. 🛡️ 冲突拦截与监查清单 (Conflict Interception)
+- **异常捕获**：无高危冲突。
+- **低危持续项**：WORKFLOW_MASTER.md Principle 7 仍引用已删除的 `_quick_cards/` 路径（Session 31 遗留），建议书记下次会话显式指令修复。
+
+### 4. 📊 队列状态与版本收口
+
+| 文件路径 | 当前版本 |
+|----------|----------|
+| `index.html` | **v6.1** (Party emblem physically bound) |
+| `docs/SOP数据映射与同步指南.md` | **v1.0** (新建) |
+| `README.md` | v1.6 |
+| `START_HERE.md` | v1.2 |
+| `.vibe_context/REVIEW_STATE.md` | v3.9 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | **v1.8** |
+
+---
+
+## 2026-03-03 — Session 34 (Business Rule Cleanup + v7.0 Engine Upgrade)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 【输出要求 1】组织委员发令权剥离 — 场景清单
+
+| 场景 | 原负责人 | 新负责人 | 变更内容 |
+|------|---------|---------|---------|
+| 场景1A 步骤4（通知到人） | 组织委员 侯嘉嵘 | 党小组组长（本组）/ 支书储子禾（全支部） | 条条组长通过党小组群发送会议通知；跨组/全支部由支书发布 |
+| 场景1B 步骤4（信息通知） | 组织委员 侯嘉嵘 | 条条组长（本组）/ 支书储子禾（跨组公域） | 条条组长通过党小组群发布活动通知；跨组由条条+块块组长共同决策后支书统一发出 |
+| 场景5（信息平台支持）通知功能 | 组织委员 侯嘉嵘 | 支书+条条组长 | 场景5联系人表更新，组织委员仅保留档案/公邮/材料复核职责 |
+| HTML index.html Node 1A-4 | `组织委员` badge | `党小组组长` badge | data-role 从 commissioner 改为 leader |
+| HTML index.html Node 1B-4 | `组织委员` badge | `条条组长`/`支书·储子禾` badge | data-role 从 commissioner 改为 leader |
+| HTML index.html Node 5-2 | 通知发送与公邮管理 | 公邮管理、档案维护与材料复核 | 标题和内容更新，移除通知发布功能描述 |
+
+**组织委员新定位：** 考察档案总控 · 思想汇报归档 · 材料催缴全案复核 · 预备党员转正 · 发展对象培训班领队。
+
+### 【输出要求 2】v7.0 推演引擎核心代码（已注入 index.html）
+
+**`instantiateSOP` 核心逻辑：**
+```js
+function instantiateSOP(scenarioIdArray, targetDateStr) {
+  var baseDate = new Date(targetDateStr + 'T00:00:00');
+  var results  = [];
+  sopDatabase.scenarios.forEach(function(sc) {
+    if (scenarioIdArray.indexOf(sc.scenarioId) === -1) return;
+    sc.tasks.forEach(function(task) {
+      if (task.timeOffset === null) return;  // 跳过无时间锚点的节点
+      var d = new Date(baseDate);
+      d.setDate(d.getDate() + task.timeOffset);  // 计算绝对日期
+      results.push({ ...task, date: d, scenarioTitle: sc.title });
+    });
+  });
+  results.sort(function(a, b) { return a.date - b.date; });  // 按日期排序
+  return results;
+}
+```
+
+**场景1B JSON 结构示例：**
+```json
+{
+  "scenarioId": "1b",
+  "title": "场景1B：党小组主题党日活动",
+  "domain": "activity",
+  "description": "弹性考勤 · 全体支部成员可参与",
+  "tasks": [
+    { "taskId": "1b-1", "title": "活动发起",   "role": "organizer", "timeOffset": -7 },
+    { "taskId": "1b-2", "title": "组长审批",   "role": "leader",    "timeOffset": -7 },
+    { "taskId": "1b-4", "title": "发布活动通知","role": "leader",    "timeOffset": -2 },
+    { "taskId": "1b-6", "title": "活动实施",   "role": "organizer", "timeOffset": 0  },
+    { "taskId": "1b-7", "title": "活动复盘",   "role": "organizer", "timeOffset": 7  }
+  ]
+}
+```
+
+### 3. 变更文件清单
+
+| 文件路径 | 版本变更 | 变更说明 |
+|---------|---------|---------|
+| `流程指南/常见工作场景快速指南.md` | v1.7 → v1.8 | 场景1A/1B步骤4负责人更新，场景5联系人表重构，注意事项更新 |
+| `流程指南/组织委员工作流程指南.md` | v1.3 → v1.4 | 核心定位重写，职责表更新，§2 信息平台重构，§4.2-4.3 协作流程更新 |
+| `index.html` | v6.1 → v7.0 | Node 1A-4/1B-4/5-2 更新，新增sopDatabase v7.0（全9场景40节点），新增instantiateSOP引擎，新增SOP实例化推演控制台（日历看板+甘特图） |
+| `docs/SOP数据映射与同步指南.md` | v1.0 → v1.1 | 版本更新 |
+| `.vibe_context/REVIEW_STATE.md` | v3.9 → v4.0 | Session 34 行追加 |

@@ -337,15 +337,15 @@ body {
 <body>
 
 <!-- ══════════════════════════════════════════════════════════════
-     FIXED HEADER  (☆ party emblem — sole retained glyph)
+     FIXED HEADER  (党徽.png — physical asset bound 2026-03-03)
      ══════════════════════════════════════════════════════════════ -->
 <header id="app-header" class="fixed top-0 inset-x-0 z-50 h-14">
   <div class="max-w-7xl mx-auto h-full px-4 flex items-center gap-3">
 
-    <div class="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center
-                text-white text-xl select-none"
-         style="background:rgba(255,255,255,0.18);border:1.5px solid rgba(255,255,255,0.42);"
-         title="党徽 Logo 占位">☆</div>
+    <div class="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center"
+         style="background:rgba(255,255,255,0.18);border:1.5px solid rgba(255,255,255,0.42);">
+      <img src="./党徽.png" alt="党徽" class="w-7 h-7 object-contain select-none" draggable="false">
+    </div>
 
     <div class="min-w-0 leading-tight">
       <div class="font-stheiti text-white font-bold text-sm sm:text-[15px] tracking-wide truncate">光华管理学院本科生党支部</div>
@@ -353,6 +353,10 @@ body {
     </div>
 
     <div class="flex-1"></div>
+
+    <a href="docs/SOP优化提案反馈卡.md"
+       class="hidden sm:flex items-center text-[11px] text-red-200 hover:text-white transition-colors mr-3"
+       title="提交 SOP 优化建议">意见反馈</a>
 
     <div id="status-pill"
          class="hidden sm:flex items-center gap-1.5 text-[11px] text-red-200 px-3 py-1 rounded-full"
@@ -495,6 +499,64 @@ body {
          .timeline-node:   domain + role 双重过滤
          每个节点点击展开 WWH (What / Who / How) 详情
          ══════════════════════════════════════════════════════════ -->
+
+    <!-- ══════════════════════════════════════════════════════════
+         SOP 实例化推演控制台 v7.0
+         选择 T-0 日期 → 生成日历排期 / 甘特图
+         ══════════════════════════════════════════════════════════ -->
+    <section id="sop-console" class="mb-6">
+      <div class="glass rounded-2xl border border-white/60 overflow-hidden shadow-sm">
+        <div id="console-toggle" class="flex items-center gap-3 px-4 py-3 cursor-pointer select-none"
+             style="background:rgba(206,17,38,0.05);">
+          <div class="w-2 h-2 rounded-full flex-shrink-0" style="background:#CE1126;"></div>
+          <span class="font-stheiti font-bold text-sm text-gray-800 flex-1">SOP 实例化推演控制台</span>
+          <span class="font-stheiti text-[10px] text-gray-400 hidden sm:block">v7.0 · 选择 T-0 生成排期</span>
+          <span id="console-chevron" class="text-gray-400 text-xs">▶</span>
+        </div>
+        <div id="console-body" class="hidden border-t border-gray-100/60">
+          <div class="px-4 py-3">
+            <div class="flex flex-wrap items-end gap-3 mb-4">
+              <div>
+                <label class="block font-stheiti text-[11px] text-gray-500 mb-1">目标活动日期（T-0）</label>
+                <input type="date" id="t0-input"
+                       class="font-stheiti text-sm px-3 py-1.5 rounded-lg bg-white"
+                       style="border:1.5px solid #CE1126;color:#1f2937;outline:none;">
+              </div>
+              <div>
+                <label class="block font-stheiti text-[11px] text-gray-500 mb-1">场景</label>
+                <select id="scenario-select"
+                        class="font-stheiti text-sm px-3 py-1.5 rounded-lg bg-white"
+                        style="border:1.5px solid #e5e7eb;color:#1f2937;outline:none;">
+                  <option value="1a">场景1A：组织生活会</option>
+                  <option value="1b">场景1B：党小组主题党日活动</option>
+                  <option value="all-timed">1A + 1B（全部含时间锚点）</option>
+                </select>
+              </div>
+              <button id="gen-schedule-btn"
+                      class="font-stheiti text-sm text-white px-4 py-1.5 rounded-lg"
+                      style="background:#CE1126;">生成排期</button>
+              <div class="flex gap-1.5 ml-auto">
+                <button id="view-cal-btn"
+                        class="font-stheiti text-[11px] px-2.5 py-1.5 rounded-lg text-white"
+                        style="background:#CE1126;border:1.5px solid #CE1126;">日历看板</button>
+                <button id="view-gantt-btn"
+                        class="font-stheiti text-[11px] px-2.5 py-1.5 rounded-lg text-gray-600"
+                        style="background:white;border:1.5px solid #e5e7eb;">甘特图</button>
+              </div>
+            </div>
+            <div id="calendar-view">
+              <p id="cal-empty-msg" class="font-stheiti text-sm text-gray-400 text-center py-6">请选择日期并点击【生成排期】</p>
+              <div id="cal-grid" class="hidden"></div>
+            </div>
+            <div id="gantt-view" class="hidden">
+              <p id="gantt-empty-msg" class="font-stheiti text-sm text-gray-400 text-center py-6">请选择日期并点击【生成排期】</p>
+              <div id="gantt-grid" class="hidden overflow-x-auto pb-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <div id="timeline-container">
 
 
@@ -597,15 +659,15 @@ body {
         </div>
       </div>
 
-      <!-- 1A-4 发送正式通知 -->
-      <div class="timeline-node" data-domain="activity" data-role="commissioner" data-scenario="1a">
+      <!-- 1A-4 发布会议通知 -->
+      <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="1a">
         <div class="tl-spine"><div class="tl-dot">4</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
-              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">发送正式通知</p>
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">发布会议通知</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
-                <span class="badge-role">组织委员</span>
+                <span class="badge-role">党小组组长</span>
                 <span class="badge-time">T-3 天</span>
               </div>
             </div>
@@ -615,11 +677,11 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">通过公邮和党支部大群发送正式会议通知，注明时间、地点、参会要求；必须提前至少3天。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">条条组长通过党小组群发送正式会议通知，注明时间、地点、参会要求，必须提前至少3天；如需覆盖全支部，由支书（储子禾）通过党支部大群统一发布。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">组织委员</span>
+                <span class="badge-role">党小组组长（储子禾 / 王峥旭 / 辛长乐）</span>
               </div>
             </div>
           </div>
@@ -848,14 +910,14 @@ body {
       </div>
 
       <!-- 1B-4 信息通知 -->
-      <div class="timeline-node" data-domain="activity" data-role="commissioner" data-scenario="1b">
+      <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="1b">
         <div class="tl-spine"><div class="tl-dot">4</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
-              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">信息通知（公邮+大群）</p>
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">发布活动通知</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
-                <span class="badge-role">组织委员</span>
+                <span class="badge-role">条条组长</span>
                 <span class="badge-time">T-2 天</span>
               </div>
             </div>
@@ -865,11 +927,13 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">通过公邮和党支部大群发布正式通知（组织委员不加入具体活动小群）。外出活动提前2天完成建群并确保所有人员到位。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">条条组长通过党小组群发布本组活动通知；如需跨组或全支部范围，由条条+块块组长共同决策后，支书（储子禾）通过党支部大群统一发布。外出活动提前2天完成建群并确保所有人员到位。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">组织委员</span>
+                <span class="badge-role">条条组长（本组通知）</span>
+                <span class="mx-1 text-gray-300">/</span>
+                <span class="badge-role">支书·储子禾（跨组公域）</span>
               </div>
             </div>
           </div>
@@ -1676,13 +1740,13 @@ body {
         </div>
       </div>
 
-      <!-- 5-2 通知发送 -->
+      <!-- 5-2 公邮管理与档案维护 -->
       <div class="timeline-node" data-domain="organization" data-role="commissioner" data-scenario="5">
         <div class="tl-spine"><div class="tl-dot">2</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
-              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">通知发送与公邮管理</p>
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">公邮管理、档案维护与材料复核</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
                 <span class="badge-role">组织委员</span>
               </div>
@@ -1693,11 +1757,15 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">通过公邮和党支部群聊发送通知；定期检查公邮，统计思想汇报；负责党小组活动工作流程优化建设。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">
+                  管理支部公邮（接收并归档思想汇报、材料来件）；维护积极分子考察档案与活动参与统计；
+                  负责党员发展/预备转正流程的材料催缴、收集及规范性检查（全案复核权）；
+                  担任发展对象培训班领队，负责前置组织协调。
+                </p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">组织委员</span>
+                <span class="badge-role">组织委员（侯嘉嵘）</span>
               </div>
             </div>
           </div>
@@ -2029,6 +2097,7 @@ body {
 //  Constraint: 严禁在事件回调中直接操作 element.style.*
 // ════════════════════════════════════════════════════════════════
 
+
 (function () {
   'use strict';
 
@@ -2164,7 +2233,320 @@ body {
   var dot  = document.getElementById('status-dot');
   if (dot)  dot.className = 'w-1.5 h-1.5 rounded-full bg-green-300';
   var txt  = document.getElementById('status-text');
-  if (txt)  txt.textContent = '状态机 v6.0';
+  if (txt)  txt.textContent = '状态机 v7.0';
+}());
+
+// ════════════════════════════════════════════════════════════════
+//  SOP 数据库 v7.0 — JSON Schema-Driven Architecture
+//  字段说明：timeOffset 单位为天，null = 无时间锚点
+// ════════════════════════════════════════════════════════════════
+var sopDatabase = {
+  scenarios: [
+    {
+      scenarioId: '1a', title: '场景1A：组织生活会',
+      domain: 'activity', description: '刚性考勤 · 仅限党员和预备党员',
+      tasks: [
+        { taskId: '1a-1', title: '确定会议主题',        role: 'leader',      timeOffset: -7 },
+        { taskId: '1a-2', title: '会前谈心谈话',        role: 'leader',      timeOffset: -7 },
+        { taskId: '1a-3', title: '布置对照检查材料',    role: 'leader',      timeOffset: -7 },
+        { taskId: '1a-4', title: '发布会议通知',        role: 'leader',      timeOffset: -3 },
+        { taskId: '1a-5', title: '签到与刚性考勤',      role: 'commissioner',timeOffset:  0 },
+        { taskId: '1a-6', title: '自评互评与组长总结',  role: 'all',         timeOffset:  0 },
+        { taskId: '1a-7', title: '宣传产出（摘要+配图）',role: 'commissioner',timeOffset:  3 },
+        { taskId: '1a-8', title: '考勤记录与档案归档',  role: 'commissioner',timeOffset:  3 }
+      ]
+    },
+    {
+      scenarioId: '1b', title: '场景1B：党小组主题党日活动',
+      domain: 'activity', description: '弹性考勤 · 全体支部成员可参与',
+      tasks: [
+        { taskId: '1b-1', title: '活动发起',            role: 'organizer',   timeOffset: -7 },
+        { taskId: '1b-2', title: '组长审批',            role: 'leader',      timeOffset: -7 },
+        { taskId: '1b-3', title: '联系块块委员',        role: 'organizer',   timeOffset: -7 },
+        { taskId: '1b-4', title: '发布活动通知',        role: 'leader',      timeOffset: -2 },
+        { taskId: '1b-5', title: '考勤督办（微信备忘录）',role:'commissioner',timeOffset: -2 },
+        { taskId: '1b-6', title: '活动实施',            role: 'organizer',   timeOffset:  0 },
+        { taskId: '1b-7', title: '活动复盘',            role: 'organizer',   timeOffset:  7 },
+        { taskId: '1b-8', title: '宣传产出（摘要+配图）',role: 'deep',       timeOffset:  3 },
+        { taskId: '1b-9', title: '材料归档',            role: 'organizer',   timeOffset:  7 }
+      ]
+    },
+    {
+      scenarioId: '4', title: '场景4：团支部合办活动',
+      domain: 'activity', description: '党小组主导 · 团班配合执行',
+      tasks: [
+        { taskId: '4-1', title: '评估契合度',           role: 'leader',      timeOffset: null },
+        { taskId: '4-2', title: '共同策划活动方案',     role: 'leader',      timeOffset: null },
+        { taskId: '4-3', title: '块块职能支持',         role: 'commissioner',timeOffset: null },
+        { taskId: '4-4', title: '活动实施',             role: 'organizer',   timeOffset: null }
+      ]
+    },
+    {
+      scenarioId: '8', title: '场景8：党小组品牌活动建设',
+      domain: 'activity', description: '考察积极分子的重点场域',
+      tasks: [
+        { taskId: '8-1', title: '明确定位与设计方案',   role: 'organizer',   timeOffset: null },
+        { taskId: '8-2', title: '锁定 Who/What/How',   role: 'organizer',   timeOffset: null },
+        { taskId: '8-3', title: '试点实施与迭代优化',   role: 'organizer',   timeOffset: null },
+        { taskId: '8-4', title: '总结与持续跟进',       role: 'organizer',   timeOffset: null }
+      ]
+    },
+    {
+      scenarioId: '2', title: '场景2：制定新制度',
+      domain: 'organization', description: '主导角色：块块委员',
+      tasks: [
+        { taskId: '2-1', title: '起草制度初稿',                 role: 'commissioner', timeOffset: null },
+        { taskId: '2-2', title: '本组试点征求初步意见',         role: 'commissioner', timeOffset: null },
+        { taskId: '2-3', title: '条条组长征求各组意见',         role: 'leader',       timeOffset: null },
+        { taskId: '2-4', title: '修改完善并提交支委会审议',     role: 'commissioner', timeOffset: null },
+        { taskId: '2-5', title: '支部党员大会表决',             role: 'all',          timeOffset: null },
+        { taskId: '2-6', title: '监督落实与适时修订',           role: 'commissioner', timeOffset: null }
+      ]
+    },
+    {
+      scenarioId: '3', title: '场景3：考察积极分子',
+      domain: 'organization', description: '培养考察期至少1年',
+      tasks: [
+        { taskId: '3-1', title: '日常观察（态度+能力）',        role: 'leader',       timeOffset: null },
+        { taskId: '3-2', title: '建立与维护考察档案',           role: 'commissioner', timeOffset: null },
+        { taskId: '3-3', title: '归档思想汇报',                 role: 'commissioner', timeOffset: null },
+        { taskId: '3-4', title: '向书记反馈考察意见',           role: 'leader',       timeOffset: null },
+        { taskId: '3-5', title: '支委会讨论与党员大会表决',     role: 'all',          timeOffset: null }
+      ]
+    },
+    {
+      scenarioId: '5', title: '场景5：信息平台支持',
+      domain: 'organization', description: '提前至少2天联系',
+      tasks: [
+        { taskId: '5-1', title: '提出信息平台支持需求',         role: 'all',          timeOffset: -2 },
+        { taskId: '5-2', title: '公邮管理、档案维护与材料复核', role: 'commissioner', timeOffset: null }
+      ]
+    },
+    {
+      scenarioId: '6', title: '场景6：查考勤记录',
+      domain: 'organization', description: '考勤与考察分离体系',
+      tasks: [
+        { taskId: '6-1', title: '查三会一课考勤',               role: 'commissioner', timeOffset: null },
+        { taskId: '6-2', title: '查考察档案与活动参与统计',     role: 'commissioner', timeOffset: null }
+      ]
+    },
+    {
+      scenarioId: '7', title: '场景7：支部讨论重要事项',
+      domain: 'organization', description: '支委会每月1次 · 党员大会每季度1次',
+      tasks: [
+        { taskId: '7-1', title: '党小组日常事务（组长负责制）', role: 'leader',       timeOffset: null },
+        { taskId: '7-2', title: '制度建设事项',                 role: 'commissioner', timeOffset: null },
+        { taskId: '7-3', title: '党员发展与重大事项',           role: 'all',          timeOffset: null }
+      ]
+    },
+    {
+      scenarioId: '9', title: '场景9：处理意见建议反馈',
+      domain: 'organization', description: '支部全体成员可提出',
+      tasks: [
+        { taskId: '9-1', title: '提出意见或建议',               role: 'all',          timeOffset: null },
+        { taskId: '9-2', title: '纪检委员统一收集意见',         role: 'commissioner', timeOffset: null },
+        { taskId: '9-3', title: '支委会讨论处理',               role: 'all',          timeOffset: null },
+        { taskId: '9-4', title: '反馈处理结果',                 role: 'commissioner', timeOffset: null }
+      ]
+    }
+  ]
+};
+
+// ════════════════════════════════════════════════════════════════
+//  SOP 实例化推演引擎 v7.0
+// ════════════════════════════════════════════════════════════════
+
+function instantiateSOP(scenarioIdArray, targetDateStr) {
+  var baseDate = new Date(targetDateStr + 'T00:00:00');
+  var results  = [];
+  sopDatabase.scenarios.forEach(function (sc) {
+    if (scenarioIdArray.indexOf(sc.scenarioId) === -1) return;
+    sc.tasks.forEach(function (task) {
+      if (task.timeOffset === null) return;
+      var d = new Date(baseDate);
+      d.setDate(d.getDate() + task.timeOffset);
+      results.push({
+        scenarioId:    sc.scenarioId,
+        scenarioTitle: sc.title,
+        taskId:        task.taskId,
+        title:         task.title,
+        role:          task.role,
+        timeOffset:    task.timeOffset,
+        date:          d
+      });
+    });
+  });
+  results.sort(function (a, b) { return a.date - b.date; });
+  return results;
+}
+
+var ROLE_COLORS = {
+  leader:      { bg: '#fff1f2', text: '#9b0000', border: '#fecaca' },
+  commissioner:{ bg: '#fef9c3', text: '#713f12', border: '#fde68a' },
+  organizer:   { bg: '#eff6ff', text: '#1e40af', border: '#bfdbfe' },
+  deep:        { bg: '#f0fdf4', text: '#166534', border: '#bbf7d0' },
+  all:         { bg: '#f5f3ff', text: '#5b21b6', border: '#ddd6fe' }
+};
+
+function _pad(n) { return n < 10 ? '0' + n : '' + n; }
+function _fmtDate(d) {
+  return d.getFullYear() + '-' + _pad(d.getMonth() + 1) + '-' + _pad(d.getDate());
+}
+function _fmtShort(d) { return (d.getMonth() + 1) + '/' + d.getDate(); }
+
+function renderCalendar(tasks, baseDate) {
+  var grid = document.getElementById('cal-grid');
+  var msg  = document.getElementById('cal-empty-msg');
+  if (!grid) return;
+  if (tasks.length === 0) { msg.classList.remove('hidden'); grid.classList.add('hidden'); return; }
+  msg.classList.add('hidden'); grid.classList.remove('hidden');
+
+  var taskMap = {};
+  tasks.forEach(function (t) {
+    var k = _fmtDate(t.date);
+    if (!taskMap[k]) taskMap[k] = [];
+    taskMap[k].push(t);
+  });
+
+  var sy = tasks[0].date.getFullYear(),  sm = tasks[0].date.getMonth();
+  var ey = tasks[tasks.length-1].date.getFullYear(), em = tasks[tasks.length-1].date.getMonth();
+  var html = '', y = sy, m = sm;
+  while (y < ey || (y === ey && m <= em)) {
+    html += _renderMonth(y, m, taskMap, baseDate);
+    m++; if (m > 11) { m = 0; y++; }
+  }
+  grid.innerHTML = html;
+}
+
+function _renderMonth(year, month, taskMap, baseDate) {
+  var MN = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+  var DN = ['日','一','二','三','四','五','六'];
+  var firstDow = new Date(year, month, 1).getDay();
+  var days     = new Date(year, month + 1, 0).getDate();
+  var todayKey = _fmtDate(new Date());
+  var baseKey  = _fmtDate(baseDate);
+  var h = '<div class="mb-5"><div class="font-stheiti text-xs font-semibold text-gray-600 mb-2 pb-1 border-b border-gray-100">'
+        + year + '年 ' + MN[month] + '</div>'
+        + '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">';
+  DN.forEach(function(d){ h += '<div class="font-stheiti text-[9px] text-gray-400 text-center py-0.5">' + d + '</div>'; });
+  for (var i = 0; i < firstDow; i++) h += '<div class="rounded" style="min-height:3.5rem;"></div>';
+  for (var d = 1; d <= days; d++) {
+    var cellDate = new Date(year, month, d);
+    var k  = _fmtDate(cellDate);
+    var iT = (k === todayKey), iB = (k === baseKey);
+    var ct = taskMap[k] || [];
+    var brd = iB ? 'border:2px solid #CE1126;' : 'border:1px solid #f3f4f6;';
+    var bg  = iT ? 'background:#fff7ed;' : 'background:#fafafa;';
+    h += '<div class="rounded p-1" style="min-height:3.5rem;' + bg + brd + '">';
+    h += '<div class="font-stheiti text-[10px] ' + (iT ? 'text-red-600 font-bold' : 'text-gray-500') + '">' + d + '</div>';
+    if (iB) h += '<div class="font-stheiti text-[8px] text-red-600 font-bold leading-none mb-0.5">T-0</div>';
+    ct.forEach(function(t) {
+      var c = ROLE_COLORS[t.role] || ROLE_COLORS.all;
+      h += '<div class="text-[7px] leading-tight rounded px-0.5 mb-0.5 truncate font-stheiti cursor-default"'
+         + ' title="' + t.scenarioTitle + '：' + t.title + '"'
+         + ' style="background:' + c.bg + ';color:' + c.text + ';border:1px solid ' + c.border + ';">'
+         + t.title + '</div>';
+    });
+    h += '</div>';
+  }
+  h += '</div></div>';
+  return h;
+}
+
+function renderGantt(tasks, baseDate) {
+  var grid = document.getElementById('gantt-grid');
+  var msg  = document.getElementById('gantt-empty-msg');
+  if (!grid) return;
+  if (tasks.length === 0) { msg.classList.remove('hidden'); grid.classList.add('hidden'); return; }
+  msg.classList.add('hidden'); grid.classList.remove('hidden');
+
+  var minOff = tasks[0].timeOffset, maxOff = tasks[tasks.length-1].timeOffset;
+  var range  = Math.max(maxOff - minOff, 1);
+  var ticks  = [-7,-3,-2,0,3,7];
+
+  var h = '<div class="min-w-max" style="min-width:500px;">';
+  // header axis
+  h += '<div class="flex items-center gap-2 mb-2">';
+  h += '<div class="w-40 flex-shrink-0 font-stheiti text-[10px] text-gray-400">任务</div>';
+  h += '<div class="flex-1 relative h-5">';
+  ticks.forEach(function(off) {
+    if (off < minOff || off > maxOff) return;
+    var pct = (off - minOff) / range * 100;
+    var lbl = off === 0 ? 'T' : (off > 0 ? 'T+' + off : 'T' + off);
+    h += '<span class="absolute font-stheiti text-[8px] text-gray-400" style="left:' + pct + '%;transform:translateX(-50%);">' + lbl + '</span>';
+  });
+  h += '</div></div>';
+  // rows
+  tasks.forEach(function(t) {
+    var pct = (t.timeOffset - minOff) / range * 100;
+    var c   = ROLE_COLORS[t.role] || ROLE_COLORS.all;
+    h += '<div class="flex items-center gap-2 mb-1">';
+    h += '<div class="w-40 flex-shrink-0 font-stheiti text-[10px] text-gray-700 truncate" title="' + t.scenarioTitle + ' · ' + t.title + '">' + t.title + '</div>';
+    h += '<div class="flex-1 relative h-6 rounded" style="background:#f9fafb;">';
+    h += '<div class="absolute top-1 w-3 h-4 rounded-sm cursor-default"'
+       + ' title="' + _fmtDate(t.date) + '"'
+       + ' style="left:calc(' + pct + '% - 6px);background:' + c.bg + ';border:1.5px solid ' + c.text + ';"></div>';
+    h += '<span class="absolute top-1 font-stheiti text-[8px] text-gray-400" style="left:calc(' + pct + '% + 10px);">' + _fmtShort(t.date) + '</span>';
+    h += '</div></div>';
+  });
+  h += '</div>';
+  grid.innerHTML = h;
+}
+
+(function initConsole() {
+  var toggle   = document.getElementById('console-toggle');
+  var body     = document.getElementById('console-body');
+  var chevron  = document.getElementById('console-chevron');
+  var genBtn   = document.getElementById('gen-schedule-btn');
+  var calBtn   = document.getElementById('view-cal-btn');
+  var ganttBtn = document.getElementById('view-gantt-btn');
+  var calView  = document.getElementById('calendar-view');
+  var ganttView= document.getElementById('gantt-view');
+  var t0Input  = document.getElementById('t0-input');
+  var scSelect = document.getElementById('scenario-select');
+  if (!toggle) return;
+
+  toggle.addEventListener('click', function() {
+    var open = !body.classList.contains('hidden');
+    body.classList.toggle('hidden', open);
+    chevron.textContent = open ? '▶' : '▼';
+  });
+
+  // Default date = today
+  t0Input.value = _fmtDate(new Date());
+
+  function setView(v) {
+    var isCal = (v === 'cal');
+    calView.classList.toggle('hidden', !isCal);
+    ganttView.classList.toggle('hidden', isCal);
+    calBtn.style.background   = isCal ? '#CE1126' : 'white';
+    calBtn.style.color        = isCal ? 'white' : '#4b5563';
+    calBtn.style.borderColor  = isCal ? '#CE1126' : '#e5e7eb';
+    ganttBtn.style.background = isCal ? 'white' : '#CE1126';
+    ganttBtn.style.color      = isCal ? '#4b5563' : 'white';
+    ganttBtn.style.borderColor= isCal ? '#e5e7eb' : '#CE1126';
+  }
+  calBtn.addEventListener('click', function() { setView('cal'); });
+  ganttBtn.addEventListener('click', function() { setView('gantt'); });
+
+  genBtn.addEventListener('click', function() {
+    var dateStr = t0Input.value;
+    if (!dateStr) {
+      t0Input.style.borderColor = '#CE1126';
+      t0Input.style.boxShadow = '0 0 0 2px rgba(206,17,38,0.2)';
+      setTimeout(function() {
+        t0Input.style.borderColor = '#CE1126';
+        t0Input.style.boxShadow = '';
+      }, 1500);
+      return;
+    }
+    var scVal = scSelect.value;
+    var scIds = scVal === 'all-timed' ? ['1a','1b'] : [scVal];
+    var tasks    = instantiateSOP(scIds, dateStr);
+    var baseDate = new Date(dateStr + 'T00:00:00');
+    renderCalendar(tasks, baseDate);
+    renderGantt(tasks, baseDate);
+  });
 }());
 
 </script>
