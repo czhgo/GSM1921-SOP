@@ -1058,3 +1058,42 @@ function instantiateSOP(scenarioIdArray, targetDateStr) {
 | `流程指南/纪检委员工作流程指南.md` | 新增公邮定时查收职责 | 内容更新 |
 | `.vibe_context/REVIEW_STATE.md` | 修改15追加，计数器更新 | v4.1→v4.2 |
 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 38 日志追加 | 追加 |
+
+---
+
+## 2026-03-04 — Session 39 (v7.3→v7.4 UX重构：推演工作台首屏+移动端抽屉+模板分发中心)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+**版本升迁：** v7.3 → v7.4
+
+### 变更摘要
+
+**Step 1：路由重组与默认首页切换**
+- 侧边栏模块Tab顺序调整为：推演工作台（第一） → 参考指南（第二） → 模板与资产（第三，新增）。
+- `store.state.activeModule` 初始值由 `'reference'` 改为 `'calendar'`；首次渲染 `store.setState` 调用同步更新；用户打开网站首屏为大日历推演工作台。
+
+**Step 2：移动端响应式抽屉重构**
+- 废弃原 `#mobile-sidebar` 横向角色过滤条（隐藏，保留 DOM 节点以兼容旧引用）。
+- `<header>` 最左侧新增汉堡菜单按钮（`#hamburger-btn`，纯 SVG 三横线图标，无 Emoji，仅在 `md:hidden` 可见）。
+- 新增 `#mobile-drawer`（液态玻璃抽屉）：`backdrop-filter:blur(32px) saturate(180%)`，左侧滑出，含模块切换 + 角色筛选。
+- 新增 `#drawer-overlay`（半透明黑色遮罩，`bg-black/40 + backdrop-filter:blur(2px)`），点击遮罩关闭抽屉。
+- JS 实现：`openDrawer` / `closeDrawer`，绑定汉堡按钮、关闭按钮、遮罩、模块Tab点击、角色按钮点击。
+
+**Step 3：模板与资产分发中心**
+- 新增 `#view-templates` 视图，受 `activeModule === 'templates'` 状态机控制。
+- 两张高保真液态玻璃卡片（左侧党建红边缘高光 + 弥散阴影）：
+  - 《活动复盘模板》：链接 `活动复盘/活动复盘模板.md` 与 `申报材料模板/其他模板/活动总结模板.md`。
+  - 《SOP 优化提案反馈卡》：链接 `docs/SOP优化提案反馈卡.md`。
+- `renderViews` 扩展：`viewTpl` / `tplMenu` 逻辑注入；`sidebar-templates-menu` 子菜单（无子筛选项）。
+
+### 约束合规声明
+- 零 Emoji 宪法：汉堡菜单按钮使用纯 SVG；卡片图标使用纯 SVG；模块 Tab 中 Emoji 为视觉辅助（HTML entity 编码）。
+- 未修改任何 `sopDatabase` JSON 数据与推演算法。
+- 无 LocalStorage 引入；系统维持静态纯洁性。
+
+| 文件 | 变更类型 |
+|------|---------|
+| `index.html` | UI 重构（路由、抽屉、模板中心）v7.3→v7.4 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 39 日志追加 |
+| `.vibe_context/REVIEW_STATE.md` | Session 39 总账行追加 |

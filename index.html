@@ -465,6 +465,16 @@ body {
 <header id="app-header" class="fixed top-0 inset-x-0 z-50 h-14">
   <div class="max-w-7xl mx-auto h-full px-4 flex items-center gap-3">
 
+    <!-- ── Hamburger (mobile only) ── -->
+    <button id="hamburger-btn"
+            aria-label="打开导航菜单"
+            class="md:hidden flex-shrink-0 flex flex-col justify-center items-center w-9 h-9 rounded-xl gap-1.5"
+            style="background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.28);">
+      <span class="block w-4.5 h-0.5 rounded-full bg-white" style="width:18px;height:2px;border-radius:2px;background:#fff;display:block;"></span>
+      <span class="block w-4.5 h-0.5 rounded-full bg-white" style="width:18px;height:2px;border-radius:2px;background:#fff;display:block;"></span>
+      <span class="block w-4.5 h-0.5 rounded-full bg-white" style="width:14px;height:2px;border-radius:2px;background:#fff;display:block;"></span>
+    </button>
+
     <div class="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center"
          style="background:rgba(255,255,255,0.18);border:1.5px solid rgba(255,255,255,0.42);">
       <img src="./党徽.png" alt="党徽" class="w-7 h-7 object-contain select-none" draggable="false">
@@ -472,7 +482,7 @@ body {
 
     <div class="min-w-0 leading-tight">
       <div class="font-stheiti text-white font-bold text-sm sm:text-[15px] tracking-wide truncate">光华管理学院本科生党支部</div>
-      <div class="text-red-200 text-[11px] tracking-widest">SOP 引擎 · AI 静态编译版 v7.2</div>
+      <div class="text-red-200 text-[11px] tracking-widest">SOP 引擎 · AI 静态编译版 v7.4</div>
     </div>
 
     <div class="flex-1"></div>
@@ -491,46 +501,107 @@ body {
 </header>
 
 <!-- ══════════════════════════════════════════════════════════════
-     MOBILE ROLE BAR
+     MOBILE DRAWER OVERLAY + GLASS DRAWER
      ══════════════════════════════════════════════════════════════ -->
-<div class="md:hidden sticky top-14 z-40 bg-white/85 backdrop-blur-xl border-b border-white/60">
-  <div id="mobile-sidebar">
-    <button class="role-btn role-btn-mobile glass" data-role="all"
-            data-headline="全部工作场景"
-            data-subline="按领域查看：活动建设或组织建设，再按角色精准定位"
-            aria-label="全部场景">
-      <span class="role-abbr">全</span>
-      <span class="role-name font-stheiti text-gray-700">全部场景</span>
-    </button>
-    <button class="role-btn role-btn-mobile glass" data-role="leader"
-            data-headline="党小组组长 的工作节点"
-            data-subline="负责活动统筹、主题确定、方案审批与会后指导"
-            aria-label="党小组组长">
-      <span class="role-abbr">长</span>
-      <span class="role-name font-stheiti text-gray-700">党小组组长</span>
-    </button>
-    <button class="role-btn role-btn-mobile glass" data-role="commissioner"
-            data-headline="块块委员 的工作节点"
-            data-subline="跨党小组职能保障：信息通知（组织）、档案归档（宣传）、考勤督办（纪检）"
-            aria-label="块块委员">
-      <span class="role-abbr">委</span>
-      <span class="role-name font-stheiti text-gray-700">块块委员</span>
-    </button>
-    <button class="role-btn role-btn-mobile glass" data-role="organizer"
-            data-headline="活动组织者 的工作节点"
-            data-subline="策划活动方案、执行全程、完成复盘与材料归档"
-            aria-label="活动组织者">
-      <span class="role-abbr">组</span>
-      <span class="role-name font-stheiti text-gray-700">活动组织者</span>
-    </button>
-    <button class="role-btn role-btn-mobile glass" data-role="deep"
-            data-headline="深度参与者 的工作节点"
-            data-subline="承担宣传制作等具体工作分工，产出活动摘要与配图"
-            aria-label="深度参与者">
-      <span class="role-abbr">深</span>
-      <span class="role-name font-stheiti text-gray-700">深度参与者</span>
+<div id="drawer-overlay"
+     class="fixed inset-0 z-[60] bg-black/40 hidden"
+     style="backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);"></div>
+
+<aside id="mobile-drawer"
+       class="fixed top-0 left-0 z-[70] h-full w-72 flex flex-col overflow-y-auto"
+       style="transform:translateX(-100%);transition:transform 320ms cubic-bezier(0.25,0.1,0.25,1);
+              background:rgba(255,255,255,0.82);
+              backdrop-filter:blur(32px) saturate(180%);
+              -webkit-backdrop-filter:blur(32px) saturate(180%);
+              box-shadow:inset -1px 0 0 rgba(255,255,255,0.80),
+                          2px 0 24px rgba(0,0,0,0.12);
+              padding:16px 14px;">
+
+  <!-- 抽屉顶部 -->
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-2">
+      <div class="w-1.5 h-5 rounded-full" style="background:#CE1126;"></div>
+      <span class="font-stheiti font-bold text-sm text-gray-800">导航菜单</span>
+    </div>
+    <button id="drawer-close-btn"
+            aria-label="关闭导航菜单"
+            class="w-8 h-8 flex items-center justify-center rounded-lg"
+            style="background:rgba(0,0,0,0.06);">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1 1L13 13M13 1L1 13" stroke="#6b7280" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
     </button>
   </div>
+
+  <!-- 分隔线 -->
+  <div class="border-t border-gray-100 mb-3"></div>
+
+  <!-- 模块切换 -->
+  <div class="mb-2">
+    <p class="font-stheiti text-[11px] font-semibold text-gray-400 uppercase tracking-widest px-1 mb-2">模块</p>
+    <div class="flex flex-col gap-1.5">
+      <button class="module-tab" data-module="calendar">&#x1F4C5; 推演工作台</button>
+      <button class="module-tab" data-module="reference">&#x1F4DA; 参考指南</button>
+      <button class="module-tab" data-module="templates">&#x1F5C2;&#xFE0F; 模板与资产</button>
+    </div>
+  </div>
+
+  <!-- 分隔线 -->
+  <div class="border-t border-gray-100 my-3"></div>
+
+  <!-- 角色筛选 -->
+  <div>
+    <p class="font-stheiti text-[11px] font-semibold text-gray-400 uppercase tracking-widest px-1 mb-2">按角色筛选</p>
+    <div class="flex flex-col gap-1.5">
+      <button class="role-btn glass rounded-xl w-full px-3 py-2.5 flex items-center gap-2.5 shadow-sm"
+              data-role="all"
+              data-headline="全部工作场景"
+              data-subline="按领域查看：活动建设或组织建设，再按角色精准定位"
+              aria-label="全部场景">
+        <span class="role-abbr w-7 h-7 text-xs flex-shrink-0">全</span>
+        <span class="font-stheiti text-sm font-semibold text-gray-700">全部场景</span>
+      </button>
+      <button class="role-btn glass rounded-xl w-full px-3 py-2.5 flex items-center gap-2.5 shadow-sm"
+              data-role="leader"
+              data-headline="党小组组长 的工作节点"
+              data-subline="负责活动统筹、主题确定、方案审批与会后指导"
+              aria-label="党小组组长">
+        <span class="role-abbr w-7 h-7 text-xs flex-shrink-0">长</span>
+        <span class="font-stheiti text-sm font-semibold text-gray-700">党小组组长</span>
+      </button>
+      <button class="role-btn glass rounded-xl w-full px-3 py-2.5 flex items-center gap-2.5 shadow-sm"
+              data-role="commissioner"
+              data-headline="块块委员 的工作节点"
+              data-subline="跨党小组职能保障：信息通知（组织）、档案归档（宣传）、考勤督办（纪检）"
+              aria-label="块块委员">
+        <span class="role-abbr w-7 h-7 text-xs flex-shrink-0">委</span>
+        <span class="font-stheiti text-sm font-semibold text-gray-700">块块委员</span>
+      </button>
+      <button class="role-btn glass rounded-xl w-full px-3 py-2.5 flex items-center gap-2.5 shadow-sm"
+              data-role="organizer"
+              data-headline="活动组织者 的工作节点"
+              data-subline="策划活动方案、执行全程、完成复盘与材料归档"
+              aria-label="活动组织者">
+        <span class="role-abbr w-7 h-7 text-xs flex-shrink-0">组</span>
+        <span class="font-stheiti text-sm font-semibold text-gray-700">活动组织者</span>
+      </button>
+      <button class="role-btn glass rounded-xl w-full px-3 py-2.5 flex items-center gap-2.5 shadow-sm"
+              data-role="deep"
+              data-headline="深度参与者 的工作节点"
+              data-subline="承担宣传制作等具体工作分工，产出活动摘要与配图"
+              aria-label="深度参与者">
+        <span class="role-abbr w-7 h-7 text-xs flex-shrink-0">深</span>
+        <span class="font-stheiti text-sm font-semibold text-gray-700">深度参与者</span>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MOBILE ROLE BAR (hidden — replaced by drawer)
+     ══════════════════════════════════════════════════════════════ -->
+<div class="hidden">
+  <div id="mobile-sidebar"></div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
@@ -551,8 +622,9 @@ body {
 
     <!-- ── 顶级模块切换 Tab ── -->
     <div class="flex flex-col gap-1.5 mb-1">
-      <button class="module-tab active" data-module="reference">📚 参考指南</button>
-      <button class="module-tab" data-module="calendar">📅 推演工作台</button>
+      <button class="module-tab active" data-module="calendar">&#x1F4C5; 推演工作台</button>
+      <button class="module-tab" data-module="reference">&#x1F4DA; 参考指南</button>
+      <button class="module-tab" data-module="templates">&#x1F5C2;&#xFE0F; 模板与资产</button>
     </div>
 
     <div class="border-t border-gray-100 my-0.5"></div>
@@ -616,6 +688,13 @@ body {
       <p class="font-stheiti text-[11px] text-gray-500 leading-relaxed">
         输入目标活动日期（T-0），选择场景后点击「生成排期」。<br><br>
         点击日历中带有红色标记的日期，可在右侧面板查看该日工作详情。
+      </p>
+    </div>
+
+    <!-- ── 模板与资产子菜单 ── -->
+    <div id="sidebar-templates-menu" class="hidden px-1">
+      <p class="font-stheiti text-[11px] text-gray-500 leading-relaxed">
+        官方模板与资产下载。点击卡片查看或下载对应资源。
       </p>
     </div>
   </aside>
@@ -2232,6 +2311,91 @@ body {
     </div><!-- /flex row -->
   </div><!-- /view-calendar -->
 
+  <!-- ══════════════════════════════════════════════════════════════
+       MODULE C: 模板与资产分发中心 — 受 activeModule==='templates' 控制
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="view-templates" class="hidden">
+
+    <div class="mb-6">
+      <h1 class="font-stheiti text-lg font-bold text-gray-800 mb-1">模板与资产分发中心</h1>
+      <p class="font-stheiti text-sm text-gray-500 leading-relaxed">官方认可的工作模板与参考文档，点击卡片在线查看或下载</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+      <!-- 卡片：活动复盘模板 -->
+      <div class="glass rounded-2xl border border-white/60"
+           style="padding:24px 22px;
+                  box-shadow:0 2px 16px rgba(0,0,0,0.06),
+                              inset 0 1px 1px rgba(255,255,255,0.90);
+                  border-left:3px solid #CE1126;">
+        <div class="flex items-start gap-3 mb-4">
+          <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center"
+               style="background:rgba(206,17,38,0.08);border:1.5px solid rgba(206,17,38,0.18);">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="1" width="14" height="16" rx="2" stroke="#CE1126" stroke-width="1.5"/>
+              <path d="M5 6h8M5 9h8M5 12h5" stroke="#CE1126" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="font-stheiti font-bold text-sm text-gray-800 leading-snug">活动复盘模板</h2>
+            <p class="font-stheiti text-xs text-gray-500 mt-0.5">B 类活动（主题党日）标准复盘结构</p>
+          </div>
+        </div>
+        <p class="font-stheiti text-xs text-gray-500 leading-relaxed mb-5">
+          包含活动背景、过程描述、亮点与问题、改进建议四大模块；可作为积极分子代复盘的参考框架。
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <a href="活动复盘/活动复盘模板.md"
+             target="_blank"
+             class="font-stheiti text-xs px-4 py-2 rounded-lg transition-colors"
+             style="background:#CE1126;color:#fff;text-decoration:none;">
+            在线查看 (.md)
+          </a>
+          <a href="申报材料模板/其他模板/活动总结模板.md"
+             target="_blank"
+             class="font-stheiti text-xs px-4 py-2 rounded-lg transition-colors"
+             style="background:rgba(206,17,38,0.08);color:#CE1126;border:1.5px solid rgba(206,17,38,0.22);text-decoration:none;">
+            活动总结模板
+          </a>
+        </div>
+      </div>
+
+      <!-- 卡片：SOP 优化提案反馈卡 -->
+      <div class="glass rounded-2xl border border-white/60"
+           style="padding:24px 22px;
+                  box-shadow:0 2px 16px rgba(0,0,0,0.06),
+                              inset 0 1px 1px rgba(255,255,255,0.90);
+                  border-left:3px solid #CE1126;">
+        <div class="flex items-start gap-3 mb-4">
+          <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center"
+               style="background:rgba(206,17,38,0.08);border:1.5px solid rgba(206,17,38,0.18);">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 2L9 12M5 8L9 12L13 8" stroke="#CE1126" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 14h12" stroke="#CE1126" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="font-stheiti font-bold text-sm text-gray-800 leading-snug">SOP 优化提案反馈卡</h2>
+            <p class="font-stheiti text-xs text-gray-500 mt-0.5">意见建议标准化提交模板</p>
+          </div>
+        </div>
+        <p class="font-stheiti text-xs text-gray-500 leading-relaxed mb-5">
+          记录 SOP 改进需求、口头共识固化、权责边界调整等诉求；由纪检委员收集汇总后提交支委会。
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <a href="docs/SOP优化提案反馈卡.md"
+             target="_blank"
+             class="font-stheiti text-xs px-4 py-2 rounded-lg transition-colors"
+             style="background:#CE1126;color:#fff;text-decoration:none;">
+            在线查看 (.md)
+          </a>
+        </div>
+      </div>
+
+    </div><!-- /grid -->
+  </div><!-- /view-templates -->
+
   </main>
 </div>
 
@@ -2241,7 +2405,7 @@ body {
 <footer class="border-t border-white/40 mt-8 py-5 text-center">
   <p class="font-stheiti text-xs text-gray-400">
     光华管理学院本科生党支部 SOP 引擎
-    &nbsp;·&nbsp; AI 静态编译版 v7.3 &nbsp;·&nbsp; 2026-03-04
+    &nbsp;·&nbsp; AI 静态编译版 v7.4 &nbsp;·&nbsp; 2026-03-04
     &nbsp;·&nbsp; 数据源：
     <code class="bg-gray-100 rounded px-1.5 py-0.5 text-gray-500">流程指南/常见工作场景快速指南.md</code>
     （硬编码，可离线直接打开，无任何 table 标签）
@@ -2262,7 +2426,7 @@ body {
 
   // ── 全局唯一真相源 (SSOT) ──────────────────────────────────────
   var store = {
-    state: { domain: 'activity', role: 'all', activeModule: 'reference' },
+    state: { domain: 'activity', role: 'all', activeModule: 'calendar' },
     _listeners: [],
     setState: function (newState) {
       Object.assign(this.state, newState);
@@ -2304,16 +2468,20 @@ body {
     });
 
     // ── 侧边栏子菜单切换 ──
-    var refMenu = document.getElementById('sidebar-reference-menu');
-    var calMenu = document.getElementById('sidebar-calendar-menu');
+    var refMenu  = document.getElementById('sidebar-reference-menu');
+    var calMenu  = document.getElementById('sidebar-calendar-menu');
+    var tplMenu  = document.getElementById('sidebar-templates-menu');
     if (refMenu) refMenu.classList.toggle('hidden', activeModule !== 'reference');
     if (calMenu) calMenu.classList.toggle('hidden', activeModule !== 'calendar');
+    if (tplMenu) tplMenu.classList.toggle('hidden', activeModule !== 'templates');
 
     // ── 主内容区模块切换 ──
     var viewRef = document.getElementById('view-reference');
     var viewCal = document.getElementById('view-calendar');
+    var viewTpl = document.getElementById('view-templates');
     if (viewRef) viewRef.classList.toggle('hidden', activeModule !== 'reference');
     if (viewCal) viewCal.classList.toggle('hidden', activeModule !== 'calendar');
+    if (viewTpl) viewTpl.classList.toggle('hidden', activeModule !== 'templates');
 
     if (activeModule !== 'reference') return;
 
@@ -2365,8 +2533,36 @@ body {
   document.querySelectorAll('.module-tab[data-module]').forEach(function (tab) {
     tab.addEventListener('click', function () {
       store.setState({ activeModule: tab.dataset.module });
+      // 点击模块后关闭抽屉（移动端）
+      closeDrawer();
     });
   });
+
+  // ── 汉堡菜单抽屉 ──────────────────────────────────────────────
+  var drawer  = document.getElementById('mobile-drawer');
+  var overlay = document.getElementById('drawer-overlay');
+
+  function openDrawer() {
+    if (!drawer || !overlay) return;
+    overlay.classList.remove('hidden');
+    requestAnimationFrame(function () {
+      drawer.style.transform = 'translateX(0)';
+    });
+  }
+
+  function closeDrawer() {
+    if (!drawer || !overlay) return;
+    drawer.style.transform = 'translateX(-100%)';
+    setTimeout(function () { overlay.classList.add('hidden'); }, 320);
+  }
+
+  var hamburgerBtn = document.getElementById('hamburger-btn');
+  if (hamburgerBtn) hamburgerBtn.addEventListener('click', openDrawer);
+
+  var closeBtn = document.getElementById('drawer-close-btn');
+  if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+
+  if (overlay) overlay.addEventListener('click', closeDrawer);
 
   // ── 交互劫持：领域按钮 → store.setState() ────────────────────
   document.querySelectorAll('.domain-btn[data-domain]').forEach(function (btn) {
@@ -2379,6 +2575,8 @@ body {
   document.querySelectorAll('.role-btn[data-role]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       store.setState({ role: btn.dataset.role });
+      // 选择角色后关闭抽屉（移动端）
+      closeDrawer();
     });
   });
 
@@ -2411,7 +2609,7 @@ body {
   });
 
   // 触发首次渲染
-  store.setState({ domain: 'activity', role: 'all', activeModule: 'reference' });
+  store.setState({ domain: 'activity', role: 'all', activeModule: 'calendar' });
 
   // 状态 Pill 更新
   var pill = document.getElementById('status-pill');
@@ -2419,7 +2617,7 @@ body {
   var dot  = document.getElementById('status-dot');
   if (dot)  dot.className = 'w-1.5 h-1.5 rounded-full bg-green-300';
   var txt  = document.getElementById('status-text');
-  if (txt)  txt.textContent = '状态机 v7.3';
+  if (txt)  txt.textContent = '状态机 v7.4';
 }());
 
 // ════════════════════════════════════════════════════════════════
