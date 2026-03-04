@@ -1261,3 +1261,42 @@ v7.9.1 知识库降维合并，WORKFLOW_MASTER 注入 ACL 数据隔离协议，�
 | `.vibe_context/WORKFLOW_MASTER.md` | 注入 ACL 协议，版本 v1.10→v1.11 |
 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 44 日志追加 |
 | `.vibe_context/REVIEW_STATE.md` | Session 44 总账行追加 |
+
+---
+
+## 2026-03-04 — Session 45 (v8.3 轻量级 SaaS 架构重构)
+
+**版本升迁：** v7.9.1 → v8.3
+
+### 变更摘要
+
+v8.3 采用轻量级 SaaS 架构：原生 ESM 分层、Immutable 数据流、状态驱动 UI、防竞态控制，兼容 GitHub Pages 并预留 Supabase 插槽，完整继承原有 UI 资产。
+
+**架构四层：**
+- `src/domain.js` — Activity typedef, `can()` ACL 函数, `mockDB`（Domain 层）
+- `src/service.mock.js` — `createActivity()` 600ms延迟+10%错误率+console.warn+Immutable写入（Service Mock 层）
+- `src/service.runtime.js` — `BranchService` export, `USE_MOCK=true`, 未来 Supabase 替换点（Runtime 插槽）
+- `src/main.js` — STATE 枚举, appState, `setState()` 展开符更新, `renderUI()`, `currentRequestId` 防竞态; 完整移植原有 UI 逻辑（Main/UI 层）
+
+**架构铁律执行确认：**
+- ✅ 单向依赖：Domain → Service → Runtime → Main(UI)，UI 不直接访问 mockDB
+- ✅ Immutable：mockDB.activities = [...mockDB.activities, newItem]，禁止 push
+- ✅ 状态驱动：setState(patch) → renderUI(appState)，UI 唯一由 renderUI 控制
+- ✅ GitHub Pages 兼容：`<script type="module">`，无 require/fs/Node API
+
+**UI 无损继承确认：**
+- ✅ Apple Liquid Glass 样式（index.html 全保留）
+- ✅ SVG 线性图标（全保留）
+- ✅ 左右分栏布局（全保留）
+- ✅ 侧边栏 CSS Transform 统一逻辑（已迁移至 main.js）
+- ✅ WWH 执行 vs 督办拆分展示（renderInspector 完整保留）
+- ✅ CRUD 存根→BranchService（createActivity 完整保留并升级）
+- ✅ 去名化 JSON 角色（sopDatabase 完整保留于 main.js）
+
+| 文件 | 变更类型 |
+|------|---------|
+| `src/domain.js` | 新增（Domain 层） |
+| `src/service.mock.js` | 新增（Service Mock 层） |
+| `src/service.runtime.js` | 新增（Runtime 插槽） |
+| `src/main.js` | 新增（Main/UI 层，完整移植原有 app 逻辑） |
+| `index.html` | 清洗：删除 inline `<script>` → 替换为 `<script type="module" src="./src/main.js">` |
