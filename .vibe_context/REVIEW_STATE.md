@@ -169,8 +169,10 @@
 
 | 42 | 2026-03-04 | v7.6→v7.7 废除数字编号+SVG图标+执行督办权责拆分 | Step1：scenarioId语义化（1a→org-life, 1b→theme-party等），场景标题加【活动建设】/【组织建设】前缀，data-scenario/select options/instantiateSOP调用同步。Step2：侧边栏role-abbr文字(全/长/委/组/深)→inline SVG图标（grid/flag/shield/clipboard/pen），桌面+移动抽屉两处同步。Step3：sopDatabase role字段拆为executor+supervisor，inspector卡片双胶囊（🏃执行+👁督办），日历颜色用executor，快速指南md负责人列更新为[执行:X][督办:Y]格式。版本v7.6→v7.7。 | ✅ Done |
 
+| 43 | 2026-03-04 | v7.7→v7.9 侧边栏永驻+角色粒度+人名剥离+数据规约 | Step1：删除renderViews中sidebar-reference-menu隐藏逻辑，role-btn点击追加activeModule:'reference'。Step2：cloudState扩展为syncSchedule/deleteActivity/toggleTaskStatus三接口。Step3：全局剥离具体人名→标准角色称谓；sopDatabase commissioner细化为org/prop/disc-commissioner；ROLE_COLORS+ROLE_LABELS新增三键。Step4：新建docs/支部建设经验与数据权限规约.md（双轨域划分、权责矩阵、数据可视权边界）。版本v7.7→v7.9。 | ✅ Done |
+
 ---
 
-**Version:** 4.6  
-**Owner:** 储子禾  
+**Version:** 4.7  
+**Owner:** 支委会  
 **Last updated:** 2026-03-04

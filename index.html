@@ -482,7 +482,7 @@ body {
 
     <div class="min-w-0 leading-tight">
       <div class="font-stheiti text-white font-bold text-sm sm:text-[15px] tracking-wide truncate">光华管理学院本科生党支部</div>
-      <div class="text-red-200 text-[11px] tracking-widest">SOP 引擎 · AI 静态编译版 v7.7</div>
+      <div class="text-red-200 text-[11px] tracking-widest">SOP 引擎 · AI 静态编译版 v7.9</div>
     </div>
 
     <div class="flex-1"></div>
@@ -761,7 +761,7 @@ body {
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">党小组组长（储子禾 / 王峥旭 / 辛长乐）</span>
+                <span class="badge-role">党小组组长（条条组长）</span>
               </div>
             </div>
           </div>
@@ -844,11 +844,11 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">条条组长通过党小组群发送正式会议通知，注明时间、地点、参会要求，必须提前至少3天；如需覆盖全支部，由支书（储子禾）通过党支部大群统一发布。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">条条组长通过党小组群发送正式会议通知，注明时间、地点、参会要求，必须提前至少3天；如需覆盖全支部，由支部书记通过党支部大群统一发布。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">党小组组长（储子禾 / 王峥旭 / 辛长乐）</span>
+                <span class="badge-role">党小组组长（条条组长）</span>
               </div>
             </div>
           </div>
@@ -1094,13 +1094,13 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">条条组长通过党小组群发布本组活动通知；如需跨组或全支部范围，由条条+块块组长共同决策后，支书（储子禾）通过党支部大群统一发布。外出活动提前2天完成建群并确保所有人员到位。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">条条组长通过党小组群发布本组活动通知；如需跨组或全支部范围，由条条+块块组长共同决策后，支部书记通过党支部大群统一发布。外出活动提前2天完成建群并确保所有人员到位。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
                 <span class="badge-role">条条组长（本组通知）</span>
                 <span class="mx-1 text-gray-300">/</span>
-                <span class="badge-role">支书·储子禾（跨组公域）</span>
+                <span class="badge-role">支部书记（跨组公域）</span>
               </div>
             </div>
           </div>
@@ -1932,7 +1932,7 @@ body {
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">组织委员（侯嘉嵘）</span>
+                <span class="badge-role">组织委员</span>
               </div>
             </div>
           </div>
@@ -2405,7 +2405,7 @@ body {
 <footer class="border-t border-white/40 mt-8 py-5 text-center">
   <p class="font-stheiti text-xs text-gray-400">
     光华管理学院本科生党支部 SOP 引擎
-    &nbsp;·&nbsp; AI 静态编译版 v7.7 &nbsp;·&nbsp; 2026-03-04
+    &nbsp;·&nbsp; AI 静态编译版 v7.9 &nbsp;·&nbsp; 2026-03-04
     &nbsp;·&nbsp; 数据源：
     <code class="bg-gray-100 rounded px-1.5 py-0.5 text-gray-500">流程指南/常见工作场景快速指南.md</code>
     （硬编码，可离线直接打开，无任何 table 标签）
@@ -2471,7 +2471,6 @@ body {
     var refMenu  = document.getElementById('sidebar-reference-menu');
     var calMenu  = document.getElementById('sidebar-calendar-menu');
     var tplMenu  = document.getElementById('sidebar-templates-menu');
-    if (refMenu) refMenu.classList.toggle('hidden', activeModule !== 'reference');
     if (calMenu) calMenu.classList.toggle('hidden', activeModule !== 'calendar');
     if (tplMenu) tplMenu.classList.toggle('hidden', activeModule !== 'templates');
 
@@ -2574,7 +2573,7 @@ body {
   // ── 交互劫持：角色按钮 → store.setState() ────────────────────
   document.querySelectorAll('.role-btn[data-role]').forEach(function (btn) {
     btn.addEventListener('click', function () {
-      store.setState({ role: btn.dataset.role });
+      store.setState({ role: btn.dataset.role, activeModule: 'reference' });
       // 选择角色后关闭抽屉（移动端）
       closeDrawer();
     });
@@ -2617,7 +2616,7 @@ body {
   var dot  = document.getElementById('status-dot');
   if (dot)  dot.className = 'w-1.5 h-1.5 rounded-full bg-green-300';
   var txt  = document.getElementById('status-text');
-  if (txt)  txt.textContent = '状态机 v7.7';
+  if (txt)  txt.textContent = '状态机 v7.9';
 }());
 
 // ════════════════════════════════════════════════════════════════
@@ -2635,10 +2634,10 @@ var sopDatabase = {
         { taskId: '1a-2', title: '会前谈心谈话',        executor: 'leader',      supervisor: null,      timeOffset: -7, desc: '组长与本组党员逐一谈心，了解思想状况，为会议提供信息基础。' },
         { taskId: '1a-3', title: '布置对照检查材料',    executor: 'leader',      supervisor: null,      timeOffset: -7, desc: '通知本组党员提前撰写个人对照检查材料，明确检查角度与格式要求。' },
         { taskId: '1a-4', title: '发布会议通知',        executor: 'leader',      supervisor: null,      timeOffset: -3, desc: '条条组长通过党小组群发送正式会议通知，注明时间、地点、参会要求，必须提前至少3天。' },
-        { taskId: '1a-5', title: '签到与刚性考勤',      executor: 'commissioner',      supervisor: 'leader',timeOffset:  0, desc: '执行刚性考勤（三会一课范畴）。事假须提前1天申请；病假可事后补假。缺勤须记录留档。' },
+        { taskId: '1a-5', title: '签到与刚性考勤',      executor: 'disc-commissioner',      supervisor: 'leader',timeOffset:  0, desc: '执行刚性考勤（三会一课范畴）。事假须提前1天申请；病假可事后补假。缺勤须记录留档。' },
         { taskId: '1a-6', title: '自评互评与组长总结',  executor: 'all',      supervisor: null,         timeOffset:  0, desc: '个人自我批评 → 相互批评（要有辣味，直指问题）→ 条条组长做总结发言。' },
-        { taskId: '1a-7', title: '宣传产出（摘要+配图）',executor: 'commissioner',      supervisor: 'leader',timeOffset:  3, desc: '摘要性文字+配图，纳入月度推送。无需逐字记录发言；无需宣传预热。' },
-        { taskId: '1a-8', title: '考勤记录与档案归档',  executor: 'commissioner',      supervisor: 'leader',timeOffset:  3, desc: '纪检委员记录考勤并归档（T+3天）；宣传委员归档全部会议材料，含签到表、对照检查材料、会议记录。' }
+        { taskId: '1a-7', title: '宣传产出（摘要+配图）',executor: 'prop-commissioner',      supervisor: 'leader',timeOffset:  3, desc: '摘要性文字+配图，纳入月度推送。无需逐字记录发言；无需宣传预热。' },
+        { taskId: '1a-8', title: '考勤记录与档案归档',  executor: 'disc-commissioner',      supervisor: 'leader',timeOffset:  3, desc: '纪检委员记录考勤并归档（T+3天）；宣传委员归档全部会议材料，含签到表、对照检查材料、会议记录。' }
       ]
     },
     {
@@ -2649,7 +2648,7 @@ var sopDatabase = {
         { taskId: '1b-2', title: '组长审批',            executor: 'leader',      supervisor: null,      timeOffset: -7, desc: '必须报条条组长审批同意后方可推进。组长评估活动是否符合党支部组织意图，以及资源与时间是否可行。' },
         { taskId: '1b-3', title: '联系块块委员',        executor: 'organizer',      supervisor: 'leader',   timeOffset: -7, desc: '按需联系组织委员（通知）、宣传委员（宣传指导）、纪检委员（考勤督办），说明活动计划与需求。' },
         { taskId: '1b-4', title: '发布活动通知',        executor: 'leader',      supervisor: null,      timeOffset: -2, desc: '条条组长通过党小组群发布本组活动通知；外出活动提前2天完成建群并确保所有人员到位。' },
-        { taskId: '1b-5', title: '考勤督办（微信备忘录）',executor: 'commissioner',      supervisor: 'leader',timeOffset: -2, desc: '邀请纪检委员加入活动小群，在群内发送标准化微信备忘录，说明考勤要求与复盘底线。' },
+        { taskId: '1b-5', title: '考勤督办（微信备忘录）',executor: 'disc-commissioner',      supervisor: 'leader',timeOffset: -2, desc: '邀请纪检委员加入活动小群，在群内发送标准化微信备忘录，说明考勤要求与复盘底线。' },
         { taskId: '1b-6', title: '活动实施',            executor: 'organizer',      supervisor: 'leader',   timeOffset:  0, desc: '组织者全程负责。核查清单：签到 · 现场拍照（全景/互动/细节各至少1张）· 关键发言记录 · 活动结束前确认材料收齐。' },
         { taskId: '1b-7', title: '活动复盘',            executor: 'organizer',      supervisor: 'leader',   timeOffset:  7, desc: '完成活动复盘（积极分子可代完成，但条条组长须起指导作用）。参考：《活动复盘模板》。' },
         { taskId: '1b-8', title: '宣传产出（摘要+配图）',executor: 'deep',      supervisor: 'commissioner',       timeOffset:  3, desc: '活动摘要+配图，纳入月度推送；无需宣传预热。宣传委员角色是指导，深度参与者负责执行。' },
@@ -2662,7 +2661,7 @@ var sopDatabase = {
       tasks: [
         { taskId: '4-1', title: '评估契合度',           executor: 'leader',      supervisor: null,      timeOffset: null },
         { taskId: '4-2', title: '共同策划活动方案',     executor: 'leader',      supervisor: null,      timeOffset: null },
-        { taskId: '4-3', title: '块块职能支持',         executor: 'commissioner',      supervisor: 'leader',timeOffset: null },
+        { taskId: '4-3', title: '块块职能支持',         executor: 'org-commissioner',      supervisor: 'leader',timeOffset: null },
         { taskId: '4-4', title: '活动实施',             executor: 'organizer',      supervisor: 'leader',   timeOffset: null }
       ]
     },
@@ -2680,12 +2679,12 @@ var sopDatabase = {
       scenarioId: 'new-system', title: '【组织建设】制度制定与迭代',
       domain: 'organization', description: '主导角色：块块委员',
       tasks: [
-        { taskId: '2-1', title: '起草制度初稿',                 executor: 'commissioner',      supervisor: 'leader', timeOffset: null },
-        { taskId: '2-2', title: '本组试点征求初步意见',         executor: 'commissioner',      supervisor: 'leader', timeOffset: null },
+        { taskId: '2-1', title: '起草制度初稿',                 executor: 'org-commissioner',      supervisor: 'leader', timeOffset: null },
+        { taskId: '2-2', title: '本组试点征求初步意见',         executor: 'org-commissioner',      supervisor: 'leader', timeOffset: null },
         { taskId: '2-3', title: '条条组长征求各组意见',         executor: 'leader',      supervisor: null,       timeOffset: null },
-        { taskId: '2-4', title: '修改完善并提交支委会审议',     executor: 'commissioner',      supervisor: 'leader', timeOffset: null },
+        { taskId: '2-4', title: '修改完善并提交支委会审议',     executor: 'org-commissioner',      supervisor: 'leader', timeOffset: null },
         { taskId: '2-5', title: '支部党员大会表决',             executor: 'all',      supervisor: null,          timeOffset: null },
-        { taskId: '2-6', title: '监督落实与适时修订',           executor: 'commissioner',      supervisor: 'leader', timeOffset: null }
+        { taskId: '2-6', title: '监督落实与适时修订',           executor: 'org-commissioner',      supervisor: 'leader', timeOffset: null }
       ]
     },
     {
@@ -2693,8 +2692,8 @@ var sopDatabase = {
       domain: 'organization', description: '培养考察期至少1年',
       tasks: [
         { taskId: '3-1', title: '日常观察（态度+能力）',        executor: 'leader',      supervisor: null,       timeOffset: null },
-        { taskId: '3-2', title: '建立与维护考察档案',           executor: 'commissioner',      supervisor: 'leader', timeOffset: null },
-        { taskId: '3-3', title: '归档思想汇报',                 executor: 'commissioner',      supervisor: 'leader', timeOffset: null, desc: '接收纪检委员转交的思想汇报并归档；字数标准统一为1500字以上；对积极分子不作硬性要求（按实际培养与需要安排）。' },
+        { taskId: '3-2', title: '建立与维护考察档案',           executor: 'org-commissioner',      supervisor: 'leader', timeOffset: null },
+        { taskId: '3-3', title: '归档思想汇报',                 executor: 'org-commissioner',      supervisor: 'leader', timeOffset: null, desc: '接收纪检委员转交的思想汇报并归档；字数标准统一为1500字以上；对积极分子不作硬性要求（按实际培养与需要安排）。' },
         { taskId: '3-4', title: '向书记反馈考察意见',           executor: 'leader',      supervisor: null,       timeOffset: null },
         { taskId: '3-5', title: '支委会讨论与党员大会表决',     executor: 'all',      supervisor: null,          timeOffset: null }
       ]
@@ -2704,16 +2703,16 @@ var sopDatabase = {
       domain: 'organization', description: '提前至少2天联系',
       tasks: [
         { taskId: '5-1', title: '提出信息平台支持需求',         executor: 'all',      supervisor: null,          timeOffset: -2 },
-        { taskId: '5-2', title: '公邮定时查收与分发',           executor: 'commissioner',      supervisor: 'leader', timeOffset: null, desc: '纪检委员每周查看支部公邮1次；查收、汇总与必要转发/提醒，转交组织委员归档。' },
-        { taskId: '5-3', title: '材料复核督办与档案维护',       executor: 'commissioner',      supervisor: 'leader', timeOffset: null, desc: '实际材料审核工作由党办进行；组织委员负责提醒与协调进度，确保本科生党支部材料审核工作顺利完成（党办审核，组织委员督办）。' }
+        { taskId: '5-2', title: '公邮定时查收与分发',           executor: 'disc-commissioner',      supervisor: 'leader', timeOffset: null, desc: '纪检委员每周查看支部公邮1次；查收、汇总与必要转发/提醒，转交组织委员归档。' },
+        { taskId: '5-3', title: '材料复核督办与档案维护',       executor: 'org-commissioner',      supervisor: 'leader', timeOffset: null, desc: '实际材料审核工作由党办进行；组织委员负责提醒与协调进度，确保本科生党支部材料审核工作顺利完成（党办审核，组织委员督办）。' }
       ]
     },
     {
       scenarioId: 'attendance-check', title: '【组织建设】查考勤记录',
       domain: 'organization', description: '考勤与考察分离体系',
       tasks: [
-        { taskId: '6-1', title: '查三会一课考勤',               executor: 'commissioner',      supervisor: 'leader', timeOffset: null },
-        { taskId: '6-2', title: '查考察档案与活动参与统计',     executor: 'commissioner',      supervisor: 'leader', timeOffset: null }
+        { taskId: '6-1', title: '查三会一课考勤',               executor: 'disc-commissioner',      supervisor: 'leader', timeOffset: null },
+        { taskId: '6-2', title: '查考察档案与活动参与统计',     executor: 'org-commissioner',      supervisor: 'leader', timeOffset: null }
       ]
     },
     {
@@ -2721,7 +2720,7 @@ var sopDatabase = {
       domain: 'organization', description: '支委会每月1次 · 党员大会每季度1次',
       tasks: [
         { taskId: '7-1', title: '党小组日常事务（组长负责制）', executor: 'leader',      supervisor: null,       timeOffset: null },
-        { taskId: '7-2', title: '制度建设事项',                 executor: 'commissioner',      supervisor: 'leader', timeOffset: null },
+        { taskId: '7-2', title: '制度建设事项',                 executor: 'org-commissioner',      supervisor: 'leader', timeOffset: null },
         { taskId: '7-3', title: '党员发展与重大事项',           executor: 'all',      supervisor: null,          timeOffset: null }
       ]
     },
@@ -2730,9 +2729,9 @@ var sopDatabase = {
       domain: 'organization', description: '支部全体成员可提出',
       tasks: [
         { taskId: '9-1', title: '提出意见或建议',               executor: 'all',      supervisor: null,          timeOffset: null },
-        { taskId: '9-2', title: '纪检委员统一收集意见',         executor: 'commissioner',      supervisor: 'leader', timeOffset: null },
+        { taskId: '9-2', title: '纪检委员统一收集意见',         executor: 'disc-commissioner',      supervisor: 'leader', timeOffset: null },
         { taskId: '9-3', title: '支委会讨论处理',               executor: 'all',      supervisor: null,          timeOffset: null },
-        { taskId: '9-4', title: '反馈处理结果',                 executor: 'commissioner',      supervisor: 'leader', timeOffset: null }
+        { taskId: '9-4', title: '反馈处理结果',                 executor: 'org-commissioner',      supervisor: 'leader', timeOffset: null }
       ]
     }
   ]
@@ -2740,9 +2739,13 @@ var sopDatabase = {
 
 // ── BaaS Backend Stub (For Future Integration) ──
 var cloudState = {
-  savedSchedules: [], // 存放已生成的排期对象
-  syncToCloud: function(scheduleData) { console.log('Mock: Syncing to cloud...', scheduleData); },
-  fetchFromCloud: function() { console.log('Mock: Fetching from cloud...'); return []; }
+  savedSchedules: [],
+  // 预留接口：同步/创建排期
+  syncSchedule: function(scheduleData) { console.log('Mock: Syncing...', scheduleData); },
+  // 预留接口：删除整场活动排期
+  deleteActivity: function(activityId) { console.log('Mock: Deleting...', activityId); },
+  // 预留接口：单节点任务打卡/状态切换
+  toggleTaskStatus: function(taskId, isComplete) { console.log('Mock: Toggle Task...', taskId, isComplete); }
 };
 
 // ════════════════════════════════════════════════════════════════
@@ -2776,19 +2779,25 @@ function instantiateSOP(scenarioIdArray, targetDateStr) {
 }
 
 var ROLE_COLORS = {
-  leader:      { bg: 'rgba(255, 241, 242, 0.40)', text: '#9b0000', border: 'rgba(254, 202, 202, 0.70)' },
-  commissioner:{ bg: 'rgba(254, 249, 195, 0.40)', text: '#713f12', border: 'rgba(253, 230, 138, 0.70)' },
-  organizer:   { bg: 'rgba(239, 246, 255, 0.40)', text: '#1e40af', border: 'rgba(191, 219, 254, 0.70)' },
-  deep:        { bg: 'rgba(240, 253, 244, 0.40)', text: '#166534', border: 'rgba(187, 247, 208, 0.70)' },
-  all:         { bg: 'rgba(245, 243, 255, 0.40)', text: '#5b21b6', border: 'rgba(221, 214, 254, 0.70)' }
+  leader:           { bg: 'rgba(255, 241, 242, 0.40)', text: '#9b0000', border: 'rgba(254, 202, 202, 0.70)' },
+  commissioner:     { bg: 'rgba(254, 249, 195, 0.40)', text: '#713f12', border: 'rgba(253, 230, 138, 0.70)' },
+  'org-commissioner':  { bg: 'rgba(254, 249, 195, 0.40)', text: '#713f12', border: 'rgba(253, 230, 138, 0.70)' },
+  'prop-commissioner': { bg: 'rgba(254, 249, 195, 0.40)', text: '#713f12', border: 'rgba(253, 230, 138, 0.70)' },
+  'disc-commissioner': { bg: 'rgba(254, 249, 195, 0.40)', text: '#713f12', border: 'rgba(253, 230, 138, 0.70)' },
+  organizer:        { bg: 'rgba(239, 246, 255, 0.40)', text: '#1e40af', border: 'rgba(191, 219, 254, 0.70)' },
+  deep:             { bg: 'rgba(240, 253, 244, 0.40)', text: '#166534', border: 'rgba(187, 247, 208, 0.70)' },
+  all:              { bg: 'rgba(245, 243, 255, 0.40)', text: '#5b21b6', border: 'rgba(221, 214, 254, 0.70)' }
 };
 
 var ROLE_LABELS = {
-  leader:      '党小组组长',
-  commissioner:'块块委员',
-  organizer:   '活动组织者',
-  deep:        '深度参与者',
-  all:         '全体相关'
+  leader:              '党小组组长',
+  commissioner:        '块块委员',
+  'org-commissioner':  '组织委员',
+  'prop-commissioner': '宣传委员',
+  'disc-commissioner': '纪检委员',
+  organizer:           '活动组织者',
+  deep:                '深度参与者',
+  all:                 '全体相关'
 };
 
 function _pad(n) { return n < 10 ? '0' + n : '' + n; }

@@ -1189,3 +1189,35 @@ v7.7 修复桌面侧边栏布局，废除数字编号实现语义化，引入 SV
 | `流程指南/常见工作场景快速指南.md` | 负责人格式更新为执行/督办双列 |
 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 42 日志追加 |
 | `.vibe_context/REVIEW_STATE.md` | Session 42 总账行追加 |
+
+---
+
+## 2026-03-04 — Session 43 (v7.7→v7.9 侧边栏永驻+角色粒度+数据规约)
+
+**版本升迁：** v7.7 → v7.9
+
+### 变更摘要
+
+v7.9 修复侧边栏 JS 遮蔽，剥离硬编码人名，细化块块委员数据键值，注入 CRUD 后端存根，并产出《支部建设经验与数据权限规约》
+
+**Step 1：根除侧边栏视觉真空**
+- 删除 `renderViews()` 中 `refMenu.classList.toggle('hidden', activeModule !== 'reference')` 一行，角色筛选按钮永久可见
+- role-btn 点击事件增加 `activeModule: 'reference'`，点击角色自动切回参考视图
+
+**Step 2：CRUD 存根注入**
+- `cloudState` 扩展为 `syncSchedule` / `deleteActivity` / `toggleTaskStatus` 三个预留接口
+
+**Step 3：块块委员粒度化与人名剥离**
+- 全局删除具体人名：储子禾→支部书记/条条组长，侯嘉嵘→组织委员
+- sopDatabase executor 细化：`commissioner` → `disc-commissioner`(纪检) / `prop-commissioner`(宣传) / `org-commissioner`(组织)
+- `ROLE_COLORS` 三个新 key 配相同黄色系；`ROLE_LABELS` 对应中文
+
+**Step 4：新建数据权限规约文档**
+- `docs/支部建设经验与数据权限规约.md` — 双轨领域划分、权责矩阵、数据可视权边界
+
+| 文件 | 变更类型 |
+|------|---------|
+| `index.html` | JS逻辑+cloudState+人名+角色粒化 v7.7→v7.9 |
+| `docs/支部建设经验与数据权限规约.md` | 新建文档 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 43 日志追加 |
+| `.vibe_context/REVIEW_STATE.md` | Session 43 总账行追加 |
