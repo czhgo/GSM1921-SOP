@@ -289,6 +289,81 @@ Use this exact template for the Step 6 execution report. Fill in the bracketed f
 
 ---
 
-**Version:** 1.11  
-**Owner:** 支委会  
+
+---
+
+## ⚙️ v8.3+ 原生 ESM 架构宪法（Architecture Constitution）
+
+> 以下三条铁律是 v8.3 架构跃迁后的绝对约束。违反任意一条均视为架构失败，AI 代理必须在继续任何工作前恢复到合规状态。
+
+### 铁律 A — 单向分层依赖（必须坚守）
+
+```
+Domain → Service → Runtime → Main(UI)
+```
+
+- **`/src/domain.js`** 是最底层，不依赖任何其他模块。
+- **`/src/service.mock.js`** 只依赖 domain 层。
+- **`/src/service.runtime.js`** 只依赖 service 层，是未来后端的唯一替换点。
+- **`/src/main.js`** 是顶层 UI 驱动，通过 `BranchService` 调用服务，绝不直接访问 `mockDB`。
+- **严禁在 `index.html` 中堆砌任何业务逻辑**。`index.html` 是纯前端壳体，只保留 `<script type="module" src="./src/main.js"></script>` 一行入口。
+
+### 铁律 B — 状态驱动 UI（State-Driven UI）
+
+- 所有 UI 变化必须经由 `setState(patch)` → `renderUI(appState)` 链路完成。
+- 严禁在事件处理函数或异步回调中直接操作 DOM（`innerHTML`、`classList` 等）——所有此类操作必须在 `renderUI(state)` 函数内统一完成。
+- `appState` 的更新必须使用展开符（`{ ...appState, ...patch }`），严禁直接赋值/mutate。
+
+### 铁律 C — 100% Immutable 数据原则
+
+- **所有数组更新必须使用展开符**：`mockDB.activities = [...mockDB.activities, newItem]`
+- **严禁使用 `push()`、`splice()`、直接改对象属性** 等 mutating 操作。
+- `appState` 中的数组字段（如 `activities`）更新时同样使用展开符：`activities: [...appState.activities, item]`。
+
+---
+
+## 🔐 数据安全与 ACL 宪法（Data Security & ACL Constitution）
+
+> 以下权限规则是业务数据访问控制的绝对约束，未来接入 Supabase 时将直接映射为 Row-Level Security (RLS) 策略。
+
+### 考勤信息（Attendance Data）— 公开可读，不可改
+
+| 操作 | 权限 |
+|------|------|
+| 读取考勤记录 | **全员公开**（所有支部成员均可查看） |
+| 修改 / 写入考勤记录 | **严格限制**：仅纪检委员（`disc-commissioner`）可写入；支委（`secretary` / `commissioner`）可修改 |
+| 删除考勤记录 | **禁止**（软删除标记，不物理删除） |
+
+> ⚠️ AI 代理在任何生成业务代码时，不得将考勤写入权限下放给 `member` 角色。
+
+### 考察信息（Evaluation Data）— 严格隔离
+
+| 操作 | 权限 |
+|------|------|
+| 读取考察档案 | **仅支委**（`secretary`、`org-commissioner`、`disc-commissioner`）可读 |
+| 修改 / 写入考察档案 | **仅支委** |
+| 普通成员（`member`）| **绝对隔离**，不得接触任何考察信息 |
+| 积极分子本人 | 可查看自身考察结论，不可查看他人 |
+
+> ⚠️ 这是数据安全的红线。违反此规则等同于重大安全漏洞，AI 代理必须立即回滚相关变更。
+
+### `can()` 函数的标准实现
+
+```javascript
+// src/domain.js
+export function can(userRole, action) {
+  const rules = {
+    secretary:    ['read', 'write', 'delete', 'admin'],
+    commissioner: ['read', 'write'],
+    leader:       ['read', 'write'],
+    member:       ['read'],
+  };
+  return (rules[userRole] || ['read']).includes(action);
+}
+```
+
+---
+
+**Version:** 1.12
+**Owner:** 支委会
 **Last updated:** 2026-03-04

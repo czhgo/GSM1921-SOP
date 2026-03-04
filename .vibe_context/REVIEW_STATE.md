@@ -175,8 +175,10 @@
 
 | 45 | 2026-03-04 | v7.9.1→v8.3 轻量级 SaaS 架构：原生 ESM 分层+Immutable+状态驱动+防竞态 | 新增 src/domain.js(Activity typedef+can()+mockDB)、src/service.mock.js(createActivity+600ms+10%错误率+Immutable)、src/service.runtime.js(BranchService+USE_MOCK=true)、src/main.js(STATE枚举+appState+setState展开符+renderUI+currentRequestId防竞态+完整UI逻辑迁移)；清洗index.html：删inline script → `<script type="module">`。版本v7.9.1→v8.3。 | ✅ Done |
 
+| 46 | 2026-03-04 | v8.3→v8.4 全局双面板文档对齐：README仓库版图+废弃数字编号+架构宪法+系统快照 | 重写README.md(v1.6→v2.0)附公网链接与仓库版图；清洗4个MD文件中的场景数字编号→语义化名称；WORKFLOW_MASTER追加ESM架构铁律ABC+ACL宪法(v1.11→v1.12)；新建.vibe_context/SNAPSHOT_v8.4.md。版本v8.3→v8.4。 | ✅ Done |
+
 ---
 
-**Version:** 4.9  
+**Version:** 5.0  
 **Owner:** 支委会  
 **Last updated:** 2026-03-04
