@@ -973,3 +973,46 @@ function instantiateSOP(scenarioIdArray, targetDateStr) {
 |------|---------|---------|
 | `index.html` | 侧边栏 always-visible 修复 + 日历格高度提升 | v7.1 → v7.2 |
 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 35/36 日志追加 | 追加 |
+
+---
+
+## 2026-03-04 — Session 37 (v7.3 Apple Liquid Glass UI 跃迁)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 第一步：液态玻璃核心基类重构
+
+- `.glass`：`backdrop-filter` 升级为 `blur(32px) saturate(180%)`，背景透明度降至 `0.72`，新增内阴影 `inset 0 1px 1px rgba(255,255,255,0.9), inset 0 0 4px rgba(255,255,255,0.4)` 模拟 3D 玻璃体积边缘光。
+- `.tl-card`：同样升级 `backdrop-filter`，将 `box-shadow` 改为三层叠加（内光 + 灰色浮影 + 红色弥散光晕），悬停时激活 `0 12px 32px rgba(206,17,38,0.12)` 党建红扩散效果。
+- `.inspector-card`：应用液态玻璃背景 + `blur(24px) saturate(170%)`，改为内光+红色微光叠加阴影，废弃纯白实色背景。
+
+### 第二步：角色底色液态化重置
+
+将 `ROLE_COLORS` 字典中的所有 `bg` 字段从纯色 hex 全部改写为 `rgba(…, 0.40)` 半透明值，保留原有色相区分：
+- `leader`: `rgba(255, 241, 242, 0.40)` — 微红清透
+- `commissioner`: `rgba(254, 249, 195, 0.40)` — 微黄清透
+- `organizer`: `rgba(239, 246, 255, 0.40)` — 微蓝清透
+- `deep`: `rgba(240, 253, 244, 0.40)` — 微绿清透
+- `all`: `rgba(245, 243, 255, 0.40)` — 微紫清透
+
+`border` 字段同步改为 `rgba(…, 0.70)` 半透明，确保玻璃质感通透，文本色不变保证政务可读性。
+
+### 第三步：关键组件质感升级
+
+1. **侧边栏 (`#sidebar-desktop`)**：移除 Tailwind `bg-white/85 backdrop-blur-xl border-r border-white/60`，改为 inline style 注入：`backdrop-filter: blur(32px) saturate(180%)`，右侧边缘改为 `inset -1px 0 0 rgba(255,255,255,0.80)` 高光内阴影（模拟玻璃侧边体积光），废弃实线 border-r。
+2. **日历格 (`.cal-cell-large`)**：默认底色改为 `rgba(255,255,255,0.55)` 半透明，同样添加 `backdrop-filter: blur(16px)` 与顶部内高光；`.selected` 状态底色改为 `rgba(255,228,230,0.55)` 透亮淡红液态玻璃，并叠加 `0 4px 16px rgba(206,17,38,0.18)` 红色弥散阴影。
+3. **按钮水晶高光**：`.module-tab.active`、`.domain-btn.active` 均追加 `inset 0 1px 0 rgba(255,255,255,0.30)` 顶部白光；新增 `#gen-schedule-cal-btn` CSS 规则，添加红色弥散阴影与顶部白光，使按钮呈水晶状。
+
+### 冲突检测 / 无副作用说明
+
+- 未修改任何 HTML DOM 层级结构，未修改任何 JS 推演算法或 JSON 数据。
+- `ROLE_COLORS.text` 文本颜色保持原值不变，确保政务级易读性。
+- `border-left: 3px solid #CE1126` 在 `.inspector-card` 中保留，确保视觉锚点不变。
+
+### 变更文件清单
+
+| 文件 | 变更类型 | 版本变化 |
+|------|---------|---------|
+| `index.html` | CSS 美学重构（液态玻璃核心类 + 角色色 + 组件质感） | v7.2 → v7.3 |
+| `.vibe_context/REVIEW_STATE.md` | Session 35/36/37 行追加，版本号更新 | v3.9 → v4.1 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 37 日志追加 | 追加 |

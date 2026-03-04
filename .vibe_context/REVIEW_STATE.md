@@ -154,9 +154,12 @@
 | 32 | 2026-03-03 | Navigation Refactoring & Dead-Link Elimination | START_HERE.md v1.1→v1.2: YAML删除_quick_cards死链，5秒导航删除_quick_cards/工作流程图死链，FAQ Q3更新，未来补充列表更新，_review/工作流改写，C位增加index.html+反馈卡入口，last_updated更新。README.md v1.5→v1.6: 5秒导航C位增加index.html+反馈卡链接。index.html母本一致性质检结果（P0/P1/P2）已输出至执行日志。 | ✅ Done |
 | 33 | 2026-03-03 | Visual Asset Binding + Data Mapping Guide | index.html header: 替换☆占位符为`<img src="./党徽.png">`，保留白色半透明圆形容器，注释更新。新建docs/SOP数据映射与同步指南.md v1.0（5板块：核心钩稽逻辑、字段映射、同步安全区、架构雷区、版本钩稽关系表）。执行日志v1.7→v1.8。 | ✅ Done |
 | 34 | 2026-03-03 | Business Rule Cleanup + v7.0 Engine Upgrade | 阶段一：组织委员公域发令权剥离（场景1A/1B/5，HTML Node 1A-4/1B-4/5-2更新）；两份MD母本更新（常见工作场景v1.8，组织委员指南v1.4）。阶段二：index.html v7.0—新增sopDatabase（9场景40节点，timeOffset纯数字），instantiateSOP引擎，SOP实例化推演控制台（日历看板+甘特图+场景选择器）。 | ✅ Done |
+| 35 | 2026-03-04 | v7.1 双视图引擎上线与日历重构 | 侧边栏全局路由（参考指南/推演工作台双Tab）；甘特图彻底移除；大型月历网格（_renderLargeMonth）；详情检查器面板（Inspector Panel）；sopDatabase所有timed任务补录desc字段。index.html v7.0→v7.1。 | ✅ Done |
+| 36 | 2026-03-04 | Sidebar Visibility Fix + Calendar Cell Height Fix | hidden md:flex→flex，侧边栏全分辨率可见；.cal-cell-large min-height 5.5rem→8rem；补录Session 35/36执行日志；版本v7.1→v7.2。 | ✅ Done |
+| 37 | 2026-03-04 | v7.3 Apple Liquid Glass UI 跃迁 | CSS重构：.glass/.tl-card/.inspector-card升级为blur(32px) saturate(180%)+内阴影rim light+红色弥散阴影。ROLE_COLORS全部从纯色hex改为rgba(…, 0.4)透明着色。侧边栏改用右侧内阴影高光替代实线border。.cal-cell-large改用半透明液态玻璃底色，.selected状态增红色弥散阴影。按钮(module-tab.active/domain-btn.active/#gen-schedule-cal-btn)增加inset顶部白光。版本v7.2→v7.3。 | ✅ Done |
 
 ---
 
-**Version:** 3.9  
+**Version:** 4.1  
 **Owner:** 储子禾  
-**Last updated:** 2026-03-03
+**Last updated:** 2026-03-04
