@@ -165,8 +165,10 @@
 
 | 40 | 2026-03-04 | v7.4→v7.5 移动端修复+死链清洗+BaaS后端存根 | Step1：#sidebar-desktop class加`hidden md:flex`，移动端桌面侧边栏彻底隐藏。Step2：模板中心三处死链替换为GitHub绝对路径（blob在线查看+raw.githubusercontent.com docx下载）。Step3：sopDatabase后注入`var cloudState`存根（savedSchedules/syncToCloud/fetchFromCloud），纯Mock不影响静态逻辑。版本v7.4→v7.5。 | ✅ Done |
 
+| 41 | 2026-03-04 | v7.5→v7.6 响应式布局抢修：桌面侧边栏恢复+日历检查器折行 | Step1：#sidebar-desktop `flex-col`→`md:flex-col`，桌面端纵向显示恢复正常。Step2：日历父容器`flex gap-4`→`flex flex-col lg:flex-row gap-6`；左侧日历内联flex→`w-full lg:w-[60%]`；右侧检查器内联flex→`w-full lg:w-[40%]`。手机端纵向折行，大屏横向并排。版本v7.5→v7.6。 | ✅ Done |
+
 ---
 
-**Version:** 4.4  
+**Version:** 4.5  
 **Owner:** 储子禾  
 **Last updated:** 2026-03-04

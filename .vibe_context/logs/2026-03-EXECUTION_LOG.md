@@ -1124,3 +1124,28 @@ function instantiateSOP(scenarioIdArray, targetDateStr) {
 | `index.html` | 移动端sidebar修复 + 死链清洗 + BaaS存根 v7.4→v7.5 |
 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 40 日志追加 |
 | `.vibe_context/REVIEW_STATE.md` | Session 40 总账行追加 |
+
+---
+
+## 2026-03-04 — Session 41 (v7.5→v7.6 响应式布局抢修)
+
+**版本升迁：** v7.5 → v7.6
+
+### 变更摘要
+
+v7.6 修复桌面侧边栏坍塌问题，重构日历与检查器的移动端纵向折行布局
+
+**Step 1：恢复桌面端侧边栏**
+- `#sidebar-desktop` class: `hidden md:flex flex-col` → `hidden md:flex md:flex-col`（`flex-col` 补加 `md:` 前缀，与 `md:flex` 对齐）
+- 汉堡按钮保持 `md:hidden`，无需修改
+
+**Step 2：日历与检查器响应式折行**
+- 父容器：`flex gap-4 items-start` → `flex flex-col lg:flex-row gap-6 items-start`
+- 左侧日历：内联 `style="flex: 1 1 58%..."` → class `w-full lg:w-[60%]`（保留 `min-width:0`）
+- 右侧检查器：内联 `style="flex: 0 0 38%; min-width: 260px; ..."` 移除 flex 部分 → class `w-full lg:w-[40%]`（保留 top/max-height 等定位样式）
+
+| 文件 | 变更类型 |
+|------|---------|
+| `index.html` | 响应式断点修复 v7.5→v7.6 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 41 日志追加 |
+| `.vibe_context/REVIEW_STATE.md` | Session 41 总账行追加 |

@@ -482,7 +482,7 @@ body {
 
     <div class="min-w-0 leading-tight">
       <div class="font-stheiti text-white font-bold text-sm sm:text-[15px] tracking-wide truncate">光华管理学院本科生党支部</div>
-      <div class="text-red-200 text-[11px] tracking-widest">SOP 引擎 · AI 静态编译版 v7.5</div>
+      <div class="text-red-200 text-[11px] tracking-widest">SOP 引擎 · AI 静态编译版 v7.6</div>
     </div>
 
     <div class="flex-1"></div>
@@ -611,7 +611,7 @@ body {
 
   <!-- ── Desktop Sidebar ──────────────────────────────────────── -->
   <aside id="sidebar-desktop"
-         class="hidden md:flex flex-col w-52 flex-shrink-0 sticky top-14 self-start overflow-y-auto"
+         class="hidden md:flex md:flex-col w-52 flex-shrink-0 sticky top-14 self-start overflow-y-auto"
          style="height:calc(100vh - 56px); padding:16px 12px; gap:8px;
                 background: rgba(255,255,255,0.72);
                 backdrop-filter: blur(32px) saturate(180%);
@@ -2276,10 +2276,10 @@ body {
     </div>
 
     <!-- 日历 + 检查器 左右分栏 -->
-    <div class="flex gap-4 items-start">
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
 
       <!-- 左侧大日历 (约 60%) -->
-      <div style="flex: 1 1 58%; min-width: 0;">
+      <div class="w-full lg:w-[60%]" style="min-width: 0;">
         <p id="cal-main-empty" class="font-stheiti text-sm text-gray-400 text-center py-10">
           请选择日期并点击「生成排期」
         </p>
@@ -2288,8 +2288,8 @@ body {
 
       <!-- 右侧详情检查器 (约 40%) -->
       <div id="inspector-panel"
-           class="glass rounded-2xl border border-white/60 sticky"
-           style="flex: 0 0 38%; min-width: 260px; top: 80px; max-height: calc(100vh - 120px); overflow-y: auto; padding: 16px 18px;">
+           class="w-full lg:w-[40%] glass rounded-2xl border border-white/60 sticky"
+           style="top: 80px; max-height: calc(100vh - 120px); overflow-y: auto; padding: 16px 18px;">
         <div id="inspector-default">
           <div class="flex items-center gap-2 mb-3">
             <div class="w-1.5 h-5 rounded-full flex-shrink-0" style="background:#CE1126;"></div>
@@ -2405,7 +2405,7 @@ body {
 <footer class="border-t border-white/40 mt-8 py-5 text-center">
   <p class="font-stheiti text-xs text-gray-400">
     光华管理学院本科生党支部 SOP 引擎
-    &nbsp;·&nbsp; AI 静态编译版 v7.5 &nbsp;·&nbsp; 2026-03-04
+    &nbsp;·&nbsp; AI 静态编译版 v7.6 &nbsp;·&nbsp; 2026-03-04
     &nbsp;·&nbsp; 数据源：
     <code class="bg-gray-100 rounded px-1.5 py-0.5 text-gray-500">流程指南/常见工作场景快速指南.md</code>
     （硬编码，可离线直接打开，无任何 table 标签）
@@ -2617,7 +2617,7 @@ body {
   var dot  = document.getElementById('status-dot');
   if (dot)  dot.className = 'w-1.5 h-1.5 rounded-full bg-green-300';
   var txt  = document.getElementById('status-text');
-  if (txt)  txt.textContent = '状态机 v7.5';
+  if (txt)  txt.textContent = '状态机 v7.6';
 }());
 
 // ════════════════════════════════════════════════════════════════
