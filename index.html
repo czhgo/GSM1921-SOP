@@ -2598,9 +2598,9 @@ function renderLargeCalendar(tasks, baseDate) {
 function _renderLargeMonth(year, month, taskMap, baseDate) {
   var MN = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
   var DN = ['一','二','三','四','五','六','日'];
-  // firstDow: 0=Sun, 1=Mon … 调整为 Mon=0
-  var rawFirst = new Date(year, month, 1).getDay(); // 0=Sun
-  var firstDow = (rawFirst + 6) % 7; // Mon-based
+  // JS getDay() returns 0=Sun…6=Sat; convert to Monday-first grid: Mon=0, …, Sun=6
+  var rawFirst = new Date(year, month, 1).getDay(); // 0=Sun, 1=Mon…6=Sat
+  var firstDow = (rawFirst + 6) % 7; // 0=Mon, 1=Tue … 6=Sun
   var days     = new Date(year, month + 1, 0).getDate();
   var todayKey = _fmtDate(new Date());
   var baseKey  = _fmtDate(baseDate);
