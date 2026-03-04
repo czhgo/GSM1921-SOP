@@ -482,7 +482,7 @@ body {
 
     <div class="min-w-0 leading-tight">
       <div class="font-stheiti text-white font-bold text-sm sm:text-[15px] tracking-wide truncate">光华管理学院本科生党支部</div>
-      <div class="text-red-200 text-[11px] tracking-widest">SOP 引擎 · AI 静态编译版 v7.4</div>
+      <div class="text-red-200 text-[11px] tracking-widest">SOP 引擎 · AI 静态编译版 v7.5</div>
     </div>
 
     <div class="flex-1"></div>
@@ -611,7 +611,7 @@ body {
 
   <!-- ── Desktop Sidebar ──────────────────────────────────────── -->
   <aside id="sidebar-desktop"
-         class="flex flex-col w-52 flex-shrink-0 sticky top-14 self-start overflow-y-auto"
+         class="hidden md:flex flex-col w-52 flex-shrink-0 sticky top-14 self-start overflow-y-auto"
          style="height:calc(100vh - 56px); padding:16px 12px; gap:8px;
                 background: rgba(255,255,255,0.72);
                 backdrop-filter: blur(32px) saturate(180%);
@@ -2346,17 +2346,17 @@ body {
           包含活动背景、过程描述、亮点与问题、改进建议四大模块；可作为积极分子代复盘的参考框架。
         </p>
         <div class="flex flex-wrap gap-2">
-          <a href="活动复盘/活动复盘模板.md"
+          <a href="https://github.com/czhgo/GSM1921-SOP/blob/main/活动复盘/活动复盘模板.md"
              target="_blank"
              class="font-stheiti text-xs px-4 py-2 rounded-lg transition-colors"
              style="background:#CE1126;color:#fff;text-decoration:none;">
             在线查看 (.md)
           </a>
-          <a href="申报材料模板/其他模板/活动总结模板.md"
+          <a href="https://raw.githubusercontent.com/czhgo/GSM1921-SOP/main/申报材料模板/其他模板/活动总结模板.docx"
              target="_blank"
              class="font-stheiti text-xs px-4 py-2 rounded-lg transition-colors"
              style="background:rgba(206,17,38,0.08);color:#CE1126;border:1.5px solid rgba(206,17,38,0.22);text-decoration:none;">
-            活动总结模板
+            下载 Word 版 (.docx)
           </a>
         </div>
       </div>
@@ -2384,7 +2384,7 @@ body {
           记录 SOP 改进需求、口头共识固化、权责边界调整等诉求；由纪检委员收集汇总后提交支委会。
         </p>
         <div class="flex flex-wrap gap-2">
-          <a href="docs/SOP优化提案反馈卡.md"
+          <a href="https://github.com/czhgo/GSM1921-SOP/blob/main/docs/SOP优化提案反馈卡.md"
              target="_blank"
              class="font-stheiti text-xs px-4 py-2 rounded-lg transition-colors"
              style="background:#CE1126;color:#fff;text-decoration:none;">
@@ -2405,7 +2405,7 @@ body {
 <footer class="border-t border-white/40 mt-8 py-5 text-center">
   <p class="font-stheiti text-xs text-gray-400">
     光华管理学院本科生党支部 SOP 引擎
-    &nbsp;·&nbsp; AI 静态编译版 v7.4 &nbsp;·&nbsp; 2026-03-04
+    &nbsp;·&nbsp; AI 静态编译版 v7.5 &nbsp;·&nbsp; 2026-03-04
     &nbsp;·&nbsp; 数据源：
     <code class="bg-gray-100 rounded px-1.5 py-0.5 text-gray-500">流程指南/常见工作场景快速指南.md</code>
     （硬编码，可离线直接打开，无任何 table 标签）
@@ -2617,7 +2617,7 @@ body {
   var dot  = document.getElementById('status-dot');
   if (dot)  dot.className = 'w-1.5 h-1.5 rounded-full bg-green-300';
   var txt  = document.getElementById('status-text');
-  if (txt)  txt.textContent = '状态机 v7.4';
+  if (txt)  txt.textContent = '状态机 v7.5';
 }());
 
 // ════════════════════════════════════════════════════════════════
@@ -2736,6 +2736,13 @@ var sopDatabase = {
       ]
     }
   ]
+};
+
+// ── BaaS Backend Stub (For Future Integration) ──
+var cloudState = {
+  savedSchedules: [], // 存放已生成的排期对象
+  syncToCloud: function(scheduleData) { console.log('Mock: Syncing to cloud...', scheduleData); },
+  fetchFromCloud: function() { console.log('Mock: Fetching from cloud...'); return []; }
 };
 
 // ════════════════════════════════════════════════════════════════

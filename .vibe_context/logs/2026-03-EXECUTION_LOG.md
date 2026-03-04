@@ -1097,3 +1097,30 @@ function instantiateSOP(scenarioIdArray, targetDateStr) {
 | `index.html` | UI 重构（路由、抽屉、模板中心）v7.3→v7.4 |
 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 39 日志追加 |
 | `.vibe_context/REVIEW_STATE.md` | Session 39 总账行追加 |
+
+---
+
+## 2026-03-04 — Session 40 (v7.4→v7.5 移动端修复+死链清洗+BaaS存根)
+
+**版本升迁：** v7.4 → v7.5
+
+### 变更摘要
+
+**Step 1：修复移动端双重侧边栏冗余**
+- `#sidebar-desktop` `<aside>` 的 class 从 `flex flex-col w-52...` 改为 `hidden md:flex flex-col w-52...`。
+- 移动端视图下桌面侧边栏彻底消失，仅通过汉堡菜单抽屉导航。
+
+**Step 2：修复资产中心 404 死链**
+- 《活动复盘模板》在线查看：`活动复盘/活动复盘模板.md` → `https://github.com/czhgo/GSM1921-SOP/blob/main/活动复盘/活动复盘模板.md`
+- 《活动复盘模板》下载按钮：改为 `https://raw.githubusercontent.com/czhgo/GSM1921-SOP/main/申报材料模板/其他模板/活动总结模板.docx`（raw download，.docx）
+- 《SOP 优化提案反馈卡》在线查看：`docs/SOP优化提案反馈卡.md` → `https://github.com/czhgo/GSM1921-SOP/blob/main/docs/SOP优化提案反馈卡.md`
+
+**Step 3：BaaS 后端存根注入**
+- 在 `sopDatabase` 声明结束后注入 `var cloudState = { savedSchedules, syncToCloud(), fetchFromCloud() }`。
+- 纯 Mock/console.log 实现，不影响现有静态推演逻辑。
+
+| 文件 | 变更类型 |
+|------|---------|
+| `index.html` | 移动端sidebar修复 + 死链清洗 + BaaS存根 v7.4→v7.5 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 40 日志追加 |
+| `.vibe_context/REVIEW_STATE.md` | Session 40 总账行追加 |

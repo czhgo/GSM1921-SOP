@@ -163,8 +163,10 @@
 
 | 39 | 2026-03-04 | v7.3→v7.4 UX重构：推演工作台首屏+移动端液态玻璃抽屉+模板分发中心 | Step1：侧边栏Tab重排（推演工作台→参考指南→模板与资产）；activeModule默认值改为calendar；首屏即推演工作台。Step2：废弃mobile-sidebar横条；header新增汉堡SVG按钮；新增#mobile-drawer液态玻璃抽屉（blur32px+遮罩overlay，含模块切换+角色筛选）；JS openDrawer/closeDrawer绑定。Step3：新增#view-templates视图；两张液态玻璃卡片（活动复盘模板、SOP优化提案反馈卡）；renderViews扩展支持templates模块。版本v7.3→v7.4。 | ✅ Done |
 
+| 40 | 2026-03-04 | v7.4→v7.5 移动端修复+死链清洗+BaaS后端存根 | Step1：#sidebar-desktop class加`hidden md:flex`，移动端桌面侧边栏彻底隐藏。Step2：模板中心三处死链替换为GitHub绝对路径（blob在线查看+raw.githubusercontent.com docx下载）。Step3：sopDatabase后注入`var cloudState`存根（savedSchedules/syncToCloud/fetchFromCloud），纯Mock不影响静态逻辑。版本v7.4→v7.5。 | ✅ Done |
+
 ---
 
-**Version:** 4.3  
+**Version:** 4.4  
 **Owner:** 储子禾  
 **Last updated:** 2026-03-04
