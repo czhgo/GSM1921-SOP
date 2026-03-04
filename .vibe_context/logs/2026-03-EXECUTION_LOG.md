@@ -905,3 +905,71 @@ function instantiateSOP(scenarioIdArray, targetDateStr) {
 | `index.html` | v6.1 → v7.0 | Node 1A-4/1B-4/5-2 更新，新增sopDatabase v7.0（全9场景40节点），新增instantiateSOP引擎，新增SOP实例化推演控制台（日历看板+甘特图） |
 | `docs/SOP数据映射与同步指南.md` | v1.0 → v1.1 | 版本更新 |
 | `.vibe_context/REVIEW_STATE.md` | v3.9 → v4.0 | Session 34 行追加 |
+
+---
+
+## 2026-03-04 — Session 35 (v7.1 双视图引擎上线与日历重构)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 第一步：全局侧边栏路由架构 (Global Sidebar Routing)
+
+- `<aside id="sidebar-desktop">` 新增两大顶级模块切换 Tab：`[📚 参考指南]` 与 `[📅 推演工作台]`。
+- 原有"按角色查看"角色按钮组包裹在 `#sidebar-reference-menu`，切换至参考指南模块时显示；切换至日历模块时隐藏，取而代之显示 `#sidebar-calendar-menu` 提示文字。
+- 状态机新增字段：`activeModule: 'reference' | 'calendar'`；`renderViews()` 扩展为处理模块级视图切换逻辑。
+
+### 第二步：废弃甘特图 / 构建大型日历网格
+
+- **甘特图彻底删除**：HTML 中的 `#gantt-view`、`#gantt-grid`、`#view-gantt-btn` 容器，以及 JS 中的 `renderGantt()`、`initConsole()` 函数、视图切换逻辑全部移除。
+- **旧 SOP 推演控制台移除**：`#sop-console` 折叠面板从参考指南视图中删除，迁移为推演工作台独立模块的顶部控制条。
+- **大型月历网格**：新增 `_renderLargeMonth()` + `renderLargeCalendar()`，表头为「一至日」（周一起始），单元格高度 `min-height: 8rem`，任务以「党建红」圆点 + 微型标签形式渲染，T-0 日期高亮红色边框。
+
+### 第三步：详情检查器面板 (Inspector Panel)
+
+- 新增 `#inspector-panel`（40% 宽度，sticky 定位），默认显示提示文字。
+- 日历格子点击事件：选中日期高亮，触发 `renderInspector()`，在右侧面板渲染任务卡片。
+- 卡片内容：任务名称（What）、时间偏移标签、角色徽章（Who）、场景来源、`desc` 详情文字。
+- `sopDatabase` 所有含时间锚点的 task 新增 `desc` 字段（仅增，不改原有数据）。
+
+### 冲突检测 / 无副作用说明
+
+- `sopDatabase` 全部 10 个场景、47 个节点 100% 保留，未删减任何数据。
+- 参考指南时间轴视图、角色筛选逻辑、展开/折叠交互完全不受影响。
+
+### 变更文件清单
+
+| 文件 | 变更类型 | 版本变化 |
+|------|---------|---------|
+| `index.html` | 重构：侧边栏路由 + 日历模块 + 检查器面板 + 移除甘特图 | v7.0 → v7.1 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 35 日志追加 | 追加 |
+
+---
+
+## 2026-03-04 — Session 36 (Sidebar Visibility Fix + Calendar Cell Height Fix)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 第一步：修复侧边栏视觉坍塌
+
+- 定位 `<aside id="sidebar-desktop">` 的 class 属性。
+- 将 `hidden md:flex` 修改为 `flex`，使侧边栏在所有屏幕分辨率下始终可见，消除小屏幕下「推演工作台」Tab 隐形的问题。
+
+### 第二步：日历单元格高度修复
+
+- 将 `.cal-cell-large` 的 `min-height` 从 `5.5rem` 提升至 `8rem`，确保大日历网格格子足够高，任务标签展示清晰，不被压缩。
+
+### 第三步：补交执行日志
+
+- 补录 Session 35（v7.1 双视图引擎）执行报告于本文件。
+- 追加本次 Session 36 修复记录。
+
+### 冲突检测 / 无副作用说明
+
+- 仅修改 `class` 属性与 CSS `min-height`，不涉及任何 JS 逻辑或数据层变更。
+
+### 变更文件清单
+
+| 文件 | 变更类型 | 版本变化 |
+|------|---------|---------|
+| `index.html` | 侧边栏 always-visible 修复 + 日历格高度提升 | v7.1 → v7.2 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 35/36 日志追加 | 追加 |
