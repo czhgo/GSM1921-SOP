@@ -31,7 +31,7 @@
 
 | Category | Total | ✅ Done | 🔄 In Progress | ⏳ Pending |
 |----------|-------|---------|---------------|-----------|
-| Pending Modification Tasks | 14 | 13 | 0 | 1 |
+| Pending Modification Tasks | 15 | 14 | 0 | 1 |
 | Agent Watchlist Issues | 5 | 5 | 0 | 0 |
 | Suspended Issues (DO NOT TOUCH) | 3 | 2 | — | 1 |
 | Vibe Coding Milestones | 1 | 1 | 0 | 0 |
@@ -75,6 +75,7 @@
 - [x] **修改12**｜跨组参与规则 — B类注意事项中增加：优先本组→限额未满可邀他组→普通参与者一并考勤；⚠️ 标记悬置问题H1
 - [x] **修改13**｜外出活动特殊注意事项 — 场景1B注意事项新增：用车双轨制（京内大巴→学生党建中心；出京→特事特办）；经费全部书记审批（无免批额度）；解锁H4
 - ⏸️ **修改14**｜品牌活动与非品牌活动发起方式 — 场景8增加两种路径（有品牌→组长招募；无品牌→支书及组长沟通低成本活动）；场景1B「活动发起」步骤简要提及 ⚠️ **[悬置]** 新年工作起步阶段，依据实际运行情况再行调整
+- [x] **修改15**｜公邮查收、思想汇报与材料审核权责重划 `[Role]` — ①思想汇报字数标准统一1500字以上（积极分子不作硬性要求）；②公邮定时查收与分发职能由组织委员移交纪检委员（每周查看1次）；③材料实际审核由党办进行，组织委员负责提醒与协调进度。涉及文件：常见工作场景快速指南.md（场景3/5）、组织委员工作流程指南.md、纪检委员工作流程指南.md、index.html（场景3/5 JSON）。
 
 ---
 
@@ -158,8 +159,10 @@
 | 36 | 2026-03-04 | Sidebar Visibility Fix + Calendar Cell Height Fix | hidden md:flex→flex，侧边栏全分辨率可见；.cal-cell-large min-height 5.5rem→8rem；补录Session 35/36执行日志；版本v7.1→v7.2。 | ✅ Done |
 | 37 | 2026-03-04 | v7.3 Apple Liquid Glass UI 跃迁 | CSS重构：.glass/.tl-card/.inspector-card升级为blur(32px) saturate(180%)+内阴影rim light+红色弥散阴影。ROLE_COLORS全部从纯色hex改为rgba(…, 0.4)透明着色。侧边栏改用右侧内阴影高光替代实线border。.cal-cell-large改用半透明液态玻璃底色，.selected状态增红色弥散阴影。按钮(module-tab.active/domain-btn.active/#gen-schedule-cal-btn)增加inset顶部白光。版本v7.2→v7.3。 | ✅ Done |
 
+| 38 | 2026-03-04 | 修改15：公邮查收、思想汇报与材料审核权责重划 | 规则1：思想汇报字数标准统一为1500字以上（积极分子不作硬性要求）；场景3步骤3-3更新，组织委员指南格式要求更新，JSON task 3-3新增desc。规则2：公邮定时查收与分发（每周1次）移交纪检委员；纪检委员指南新增职责；组织委员指南公邮章节全面更新；场景5 task 5-2更新为公邮查收（纪检委员）。规则3：材料实际审核由党办，组织委员督办；场景5 task 5-3新增（材料复核督办）；各母本同步更新。 | ✅ Done |
+
 ---
 
-**Version:** 4.1  
+**Version:** 4.2  
 **Owner:** 储子禾  
 **Last updated:** 2026-03-04
