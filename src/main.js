@@ -1,6 +1,6 @@
 // ════════════════════════════════════════════════════════════════
 //  main.js — 状态驱动 UI 入口 (State-Driven UI Entry)
-//  光华管理学院本科生党支部 SOP 引擎 v8.3
+//  光华管理学院本科生党支部 SOP 引擎 v8.5
 //  架构：Domain → Service → Runtime → Main(UI)
 //  兼容：GitHub Pages (原生 ESM，无构建工具)
 // ════════════════════════════════════════════════════════════════
@@ -9,10 +9,11 @@ import { BranchService } from './service.runtime.js';
 
 // ── STATE 枚举 ──────────────────────────────────────────────────
 const STATE = {
-  IDLE: 0,
-  SUBMITTING: 1,
-  SUCCESS: 2,
-  ERROR: 3,
+  IDLE:       0,
+  LOADING:    1,  // 页面加载活动列表（占位中）
+  SUBMITTING: 2,  // 表单提交中（按钮 disabled）
+  SUCCESS:    3,  // 操作成功，更新列表 + Toast
+  ERROR:      4,  // 操作失败，恢复按钮 + Toast
 };
 
 // ── 应用全局状态 ────────────────────────────────────────────────
@@ -202,6 +203,68 @@ function leaveEl(el) {
 }
 
 // ════════════════════════════════════════════════════════════════
+//  Toast 组件 — 浮层通知（绝对不改变页面流布局）
+//  2.5 秒后自动销毁。支持 success / error / info 三种类型。
+// ════════════════════════════════════════════════════════════════
+
+/** @type {HTMLElement|null} 当前 Toast 容器（单例）*/
+let _toastContainer = null;
+
+/**
+ * 显示一条浮层 Toast 通知
+ * @param {'success'|'error'|'info'} type
+ * @param {string} message
+ */
+function showToast(type, message) {
+  // 确保容器存在（fixed 定位，不影响文档流）
+  if (!_toastContainer) {
+    _toastContainer = document.createElement('div');
+    _toastContainer.id = 'toast-container';
+    // position:fixed 确保绝对不影响页面布局
+    _toastContainer.style.cssText = [
+      'position:fixed', 'bottom:1.5rem', 'right:1.5rem',
+      'z-index:9999', 'display:flex', 'flex-direction:column',
+      'gap:0.5rem', 'pointer-events:none',
+    ].join(';');
+    document.body.appendChild(_toastContainer);
+  }
+
+  const COLORS = {
+    success: { bg: 'rgba(34,197,94,0.15)',  border: '#22c55e', icon: '✅' },
+    error:   { bg: 'rgba(239,68,68,0.15)',  border: '#ef4444', icon: '❌' },
+    info:    { bg: 'rgba(99,102,241,0.15)', border: '#6366f1', icon: 'ℹ️' },
+  };
+  const { bg, border, icon } = COLORS[type] || COLORS.info;
+
+  const toast = document.createElement('div');
+  toast.style.cssText = [
+    `background:${bg}`, 'backdrop-filter:blur(8px)',
+    `border:1px solid ${border}`, 'border-radius:0.75rem',
+    'padding:0.625rem 1rem', 'display:flex', 'align-items:center',
+    'gap:0.5rem', 'font-size:0.875rem', 'color:#f1f5f9',
+    'box-shadow:0 4px 24px rgba(0,0,0,0.3)',
+    'opacity:0', 'transform:translateY(0.5rem)',
+    'transition:opacity 0.25s ease,transform 0.25s ease',
+    'pointer-events:none', 'max-width:22rem', 'word-break:break-word',
+  ].join(';');
+  toast.textContent = icon + '  ' + message;
+  _toastContainer.appendChild(toast);
+
+  // 入场动画（双 rAF 确保 transition 生效）
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0)';
+  }));
+
+  // 2.5 秒后自动销毁
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(0.5rem)';
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+
+// ════════════════════════════════════════════════════════════════
 //  renderUI — 主渲染函数，由 setState 唯一触发
 // ════════════════════════════════════════════════════════════════
 function renderUI(state) {
@@ -230,9 +293,12 @@ function renderUI(state) {
   const dot = document.getElementById('status-dot');
   const txt = document.getElementById('status-text');
   if (dot && txt) {
-    if (status === STATE.SUBMITTING) {
+    if (status === STATE.LOADING) {
+      dot.className = 'w-1.5 h-1.5 rounded-full bg-blue-300';
+      txt.textContent = '加载中…';
+    } else if (status === STATE.SUBMITTING) {
       dot.className = 'w-1.5 h-1.5 rounded-full bg-yellow-300';
-      txt.textContent = '提交中…';
+      txt.textContent = '云端推演中…';
     } else if (status === STATE.ERROR) {
       dot.className = 'w-1.5 h-1.5 rounded-full bg-red-400';
       txt.textContent = error ? error.type || '错误' : '错误';
@@ -241,7 +307,7 @@ function renderUI(state) {
       txt.textContent = '已同步';
     } else {
       dot.className = 'w-1.5 h-1.5 rounded-full bg-green-300';
-      txt.textContent = '状态机 v8.3';
+      txt.textContent = '状态机 v8.5';
     }
   }
 
@@ -551,6 +617,9 @@ document.querySelectorAll('.js-expand-trigger').forEach(trigger => {
   t0Input.value = _fmtDate(new Date());
 
   genBtn.addEventListener('click', async () => {
+    // 防止连点：SUBMITTING 期间禁止再次触发
+    if (appState.status === STATE.SUBMITTING || appState.status === STATE.LOADING) return;
+
     const dateStr = t0Input.value;
     if (!dateStr) {
       t0Input.style.borderColor = '#CE1126';
@@ -564,9 +633,12 @@ document.querySelectorAll('.js-expand-trigger').forEach(trigger => {
     const tasks    = instantiateSOP(scIds, dateStr);
     const baseDate = new Date(dateStr + 'T00:00:00');
 
-    // ── 防竞态 createActivity（演示用）────────────────────────
+    // ── 防竞态 createActivity ─────────────────────────────────
     const reqId = ++currentRequestId;
 
+    // 按钮 disabled + 文案变更
+    genBtn.disabled = true;
+    genBtn.textContent = '云端推演中…';
     setState({ status: STATE.SUBMITTING, error: null });
 
     try {
@@ -574,15 +646,22 @@ document.querySelectorAll('.js-expand-trigger').forEach(trigger => {
         title:      `${scIds.join('+')} 排期`,
         domain:     'activity',
         scenarioId: scIds[0],
-        targetDate: dateStr,
+        date:       dateStr,
         executor:   'organizer',
+        createdBy:  'u_exec',
       });
 
       if (reqId !== currentRequestId) return; // 过期请求，丢弃
       setState({ status: STATE.SUCCESS, activities: [...appState.activities] });
+      showToast('success', '推演排期已生成，活动已记录。');
     } catch (err) {
       if (reqId !== currentRequestId) return;
       setState({ status: STATE.ERROR, error: err });
+      showToast('error', (err && err.message) ? err.message : '操作失败，请稍后重试。');
+    } finally {
+      // 无论成功或失败，恢复按钮
+      genBtn.disabled = false;
+      genBtn.textContent = '生成排期';
     }
 
     // 清空检查器，渲染日历

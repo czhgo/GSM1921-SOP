@@ -1341,3 +1341,28 @@ v8.3 采用轻量级 SaaS 架构：原生 ESM 分层、Immutable 数据流、状
 | `docs/SOP数据映射与同步指南.md` | 场景编号描述 → 语义化替换 |
 | `.vibe_context/WORKFLOW_MASTER.md` | 追加架构宪法 + ACL 宪法（v1.11 → v1.12） |
 | `.vibe_context/SNAPSHOT_v8.4.md` | 新建（系统快照） |
+
+---
+
+## 2026-03-05 — Session 47 (v8.5 Static-First Architecture Upgrade)
+
+**版本升迁：** v8.4 → v8.5
+
+### 0. 路由判决
+
+- 操作路由：`core_logic_arch`（允许 `/src/*`）
+- 附带路由：`meta_audit_log`（允许 `.vibe_context/*`）
+
+### 变更摘要
+
+系统架构降维与高可用重构（静态基座 Static-First）：创建 `src/id.js` UUID 发生器，扩展 Domain 层（Activity 类型增加 date/status/visibility/createdBy/createdAt 字段，mockDB 增加 users/attendances，can() 增加 resource 参数），补全 Service Mock 层全 CRUD API（listActivities/updateActivity/deleteActivity，切换为 generateId），升级 main.js 状态机（新增 LOADING:1 状态，showToast 浮层组件，genBtn 防连点锁，finally 恢复按钮），新建 .vibe_context/FILE_ACCESS.md 文件访问守卫。
+
+| 文件 | 变更类型 |
+|------|---------|
+| `src/id.js` | 新建（UUID 发生器） |
+| `src/domain.js` | 升级 v8.3→v8.5：扩展 Activity typedef、users/attendances、can(role,action,resource) |
+| `src/service.mock.js` | 升级 v8.3→v8.5：添加 listActivities/updateActivity/deleteActivity，使用 generateId |
+| `src/main.js` | 升级 v8.3→v8.5：LOADING 状态、showToast 组件、genBtn 防连点、finally 恢复按钮 |
+| `.vibe_context/FILE_ACCESS.md` | 新建（文件访问守卫） |
+
+**[Architecture Strategy: Workflow OS Static-First] 静态基座重构完毕，API 契约已锚定，相对路径已修正，DOM 动态更新边界已严格锁死。**
