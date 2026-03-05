@@ -21,6 +21,7 @@ let appState = {
   // 服务层状态
   status:      STATE.IDLE,
   activities:  [],
+  tasks:       [],
   error:       null,
   // UI 视图状态
   domain:      'activity',
@@ -679,9 +680,31 @@ document.querySelectorAll('.timeline-node[data-domain], .scenario-header[data-do
   el.classList.add('hidden', 'opacity-0', 'translate-y-4');
 });
 
-// 触发首次渲染
-setState({ domain: 'activity', role: 'all', activeModule: 'calendar' });
-
 // 显示状态 Pill
 const pill = document.getElementById('status-pill');
 if (pill) pill.classList.remove('hidden');
+
+// 启动生命周期：加载持久化数据 → 并发拉取 Activities + Tasks → 注入 appState → renderUI
+(async function initApp() {
+  // 恢复 localStorage 持久化数据（独立 try-catch，失败不阻塞后续初始化）
+  try {
+    if (typeof BranchService.loadDB === 'function') BranchService.loadDB();
+  } catch (e) {
+    console.warn('[initApp] loadDB 异常（已忽略，继续初始化）。如果问题持续，请尝试清除本站点的浏览器存储。', e);
+  }
+
+  // 初始渲染（LOADING 状态）
+  setState({ domain: 'activity', role: 'all', activeModule: 'calendar', status: STATE.LOADING });
+
+  try {
+    const [activities, tasks] = await Promise.all([
+      BranchService.listActivities(),
+      // listTasks 为 v10.0 新增 API；在 USE_MOCK=true 时始终可用
+      typeof BranchService.listTasks === 'function' ? BranchService.listTasks() : Promise.resolve([]),
+    ]);
+    setState({ status: STATE.IDLE, activities, tasks });
+  } catch (err) {
+    console.warn('[initApp] 初始化加载失败：', err);
+    setState({ status: STATE.ERROR, error: err });
+  }
+}());
