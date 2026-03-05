@@ -905,3 +905,464 @@ function instantiateSOP(scenarioIdArray, targetDateStr) {
 | `index.html` | v6.1 → v7.0 | Node 1A-4/1B-4/5-2 更新，新增sopDatabase v7.0（全9场景40节点），新增instantiateSOP引擎，新增SOP实例化推演控制台（日历看板+甘特图） |
 | `docs/SOP数据映射与同步指南.md` | v1.0 → v1.1 | 版本更新 |
 | `.vibe_context/REVIEW_STATE.md` | v3.9 → v4.0 | Session 34 行追加 |
+
+---
+
+## 2026-03-04 — Session 35 (v7.1 双视图引擎上线与日历重构)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 第一步：全局侧边栏路由架构 (Global Sidebar Routing)
+
+- `<aside id="sidebar-desktop">` 新增两大顶级模块切换 Tab：`[📚 参考指南]` 与 `[📅 推演工作台]`。
+- 原有"按角色查看"角色按钮组包裹在 `#sidebar-reference-menu`，切换至参考指南模块时显示；切换至日历模块时隐藏，取而代之显示 `#sidebar-calendar-menu` 提示文字。
+- 状态机新增字段：`activeModule: 'reference' | 'calendar'`；`renderViews()` 扩展为处理模块级视图切换逻辑。
+
+### 第二步：废弃甘特图 / 构建大型日历网格
+
+- **甘特图彻底删除**：HTML 中的 `#gantt-view`、`#gantt-grid`、`#view-gantt-btn` 容器，以及 JS 中的 `renderGantt()`、`initConsole()` 函数、视图切换逻辑全部移除。
+- **旧 SOP 推演控制台移除**：`#sop-console` 折叠面板从参考指南视图中删除，迁移为推演工作台独立模块的顶部控制条。
+- **大型月历网格**：新增 `_renderLargeMonth()` + `renderLargeCalendar()`，表头为「一至日」（周一起始），单元格高度 `min-height: 8rem`，任务以「党建红」圆点 + 微型标签形式渲染，T-0 日期高亮红色边框。
+
+### 第三步：详情检查器面板 (Inspector Panel)
+
+- 新增 `#inspector-panel`（40% 宽度，sticky 定位），默认显示提示文字。
+- 日历格子点击事件：选中日期高亮，触发 `renderInspector()`，在右侧面板渲染任务卡片。
+- 卡片内容：任务名称（What）、时间偏移标签、角色徽章（Who）、场景来源、`desc` 详情文字。
+- `sopDatabase` 所有含时间锚点的 task 新增 `desc` 字段（仅增，不改原有数据）。
+
+### 冲突检测 / 无副作用说明
+
+- `sopDatabase` 全部 10 个场景、47 个节点 100% 保留，未删减任何数据。
+- 参考指南时间轴视图、角色筛选逻辑、展开/折叠交互完全不受影响。
+
+### 变更文件清单
+
+| 文件 | 变更类型 | 版本变化 |
+|------|---------|---------|
+| `index.html` | 重构：侧边栏路由 + 日历模块 + 检查器面板 + 移除甘特图 | v7.0 → v7.1 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 35 日志追加 | 追加 |
+
+---
+
+## 2026-03-04 — Session 36 (Sidebar Visibility Fix + Calendar Cell Height Fix)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 第一步：修复侧边栏视觉坍塌
+
+- 定位 `<aside id="sidebar-desktop">` 的 class 属性。
+- 将 `hidden md:flex` 修改为 `flex`，使侧边栏在所有屏幕分辨率下始终可见，消除小屏幕下「推演工作台」Tab 隐形的问题。
+
+### 第二步：日历单元格高度修复
+
+- 将 `.cal-cell-large` 的 `min-height` 从 `5.5rem` 提升至 `8rem`，确保大日历网格格子足够高，任务标签展示清晰，不被压缩。
+
+### 第三步：补交执行日志
+
+- 补录 Session 35（v7.1 双视图引擎）执行报告于本文件。
+- 追加本次 Session 36 修复记录。
+
+### 冲突检测 / 无副作用说明
+
+- 仅修改 `class` 属性与 CSS `min-height`，不涉及任何 JS 逻辑或数据层变更。
+
+### 变更文件清单
+
+| 文件 | 变更类型 | 版本变化 |
+|------|---------|---------|
+| `index.html` | 侧边栏 always-visible 修复 + 日历格高度提升 | v7.1 → v7.2 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 35/36 日志追加 | 追加 |
+
+---
+
+## 2026-03-04 — Session 37 (v7.3 Apple Liquid Glass UI 跃迁)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 第一步：液态玻璃核心基类重构
+
+- `.glass`：`backdrop-filter` 升级为 `blur(32px) saturate(180%)`，背景透明度降至 `0.72`，新增内阴影 `inset 0 1px 1px rgba(255,255,255,0.9), inset 0 0 4px rgba(255,255,255,0.4)` 模拟 3D 玻璃体积边缘光。
+- `.tl-card`：同样升级 `backdrop-filter`，将 `box-shadow` 改为三层叠加（内光 + 灰色浮影 + 红色弥散光晕），悬停时激活 `0 12px 32px rgba(206,17,38,0.12)` 党建红扩散效果。
+- `.inspector-card`：应用液态玻璃背景 + `blur(24px) saturate(170%)`，改为内光+红色微光叠加阴影，废弃纯白实色背景。
+
+### 第二步：角色底色液态化重置
+
+将 `ROLE_COLORS` 字典中的所有 `bg` 字段从纯色 hex 全部改写为 `rgba(…, 0.40)` 半透明值，保留原有色相区分：
+- `leader`: `rgba(255, 241, 242, 0.40)` — 微红清透
+- `commissioner`: `rgba(254, 249, 195, 0.40)` — 微黄清透
+- `organizer`: `rgba(239, 246, 255, 0.40)` — 微蓝清透
+- `deep`: `rgba(240, 253, 244, 0.40)` — 微绿清透
+- `all`: `rgba(245, 243, 255, 0.40)` — 微紫清透
+
+`border` 字段同步改为 `rgba(…, 0.70)` 半透明，确保玻璃质感通透，文本色不变保证政务可读性。
+
+### 第三步：关键组件质感升级
+
+1. **侧边栏 (`#sidebar-desktop`)**：移除 Tailwind `bg-white/85 backdrop-blur-xl border-r border-white/60`，改为 inline style 注入：`backdrop-filter: blur(32px) saturate(180%)`，右侧边缘改为 `inset -1px 0 0 rgba(255,255,255,0.80)` 高光内阴影（模拟玻璃侧边体积光），废弃实线 border-r。
+2. **日历格 (`.cal-cell-large`)**：默认底色改为 `rgba(255,255,255,0.55)` 半透明，同样添加 `backdrop-filter: blur(16px)` 与顶部内高光；`.selected` 状态底色改为 `rgba(255,228,230,0.55)` 透亮淡红液态玻璃，并叠加 `0 4px 16px rgba(206,17,38,0.18)` 红色弥散阴影。
+3. **按钮水晶高光**：`.module-tab.active`、`.domain-btn.active` 均追加 `inset 0 1px 0 rgba(255,255,255,0.30)` 顶部白光；新增 `#gen-schedule-cal-btn` CSS 规则，添加红色弥散阴影与顶部白光，使按钮呈水晶状。
+
+### 冲突检测 / 无副作用说明
+
+- 未修改任何 HTML DOM 层级结构，未修改任何 JS 推演算法或 JSON 数据。
+- `ROLE_COLORS.text` 文本颜色保持原值不变，确保政务级易读性。
+- `border-left: 3px solid #CE1126` 在 `.inspector-card` 中保留，确保视觉锚点不变。
+
+### 变更文件清单
+
+| 文件 | 变更类型 | 版本变化 |
+|------|---------|---------|
+| `index.html` | CSS 美学重构（液态玻璃核心类 + 角色色 + 组件质感） | v7.2 → v7.3 |
+| `.vibe_context/REVIEW_STATE.md` | Session 35/36/37 行追加，版本号更新 | v3.9 → v4.1 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 37 日志追加 | 追加 |
+
+---
+
+## 2026-03-04 — Session 38 (修改15：公邮查收、思想汇报与材料审核权责重划)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+### 三大权责重划规则落地
+
+**规则1：思想汇报字数标准统一**
+- 常见工作场景快速指南.md 场景3 步骤3-3：具体操作更新为"接收纪检委员转交的思想汇报并归档；字数标准统一为1500字以上；对积极分子不作硬性要求"。
+- 场景3 注意事项：思想汇报条目补充1500字以上字数标准及积极分子豁免说明。
+- 组织委员工作流程指南.md §三 格式要求：正文字数由"1000-1500字"更新为"统一为1500字以上；对积极分子不作硬性要求"。
+- index.html JSON 场景3 task 3-3：新增 `desc` 字段，记录字数标准与积极分子豁免规则。
+
+**规则2：公邮定时查收与分发职能移交纪检委员**
+- 常见工作场景快速指南.md 场景5：新增「纪检委员可提供的支持」区块，明确 `[角色: 纪检委员]` 公邮定时查收（每周1次；查收、汇总与必要转发/提醒）；从「组织委员可提供的支持」表格中移除「公邮管理」行。注意事项新增条目说明。
+- 组织委员工作流程指南.md：权限更新注释升级（2026-03-04）；核心职责表更新；「公邮日常管理」表格改为「公邮来件归档（纪检委员查收后转交）」；工作流程新增纪检委员节点；信息系统维护表更新公邮频率与负责人。
+- 纪检委员工作流程指南.md：核心职责表新增「公邮定时查收与分发」行；职责调整说明更新（2026-03-04 新增：公邮定时查收与分发）。
+- index.html JSON 场景5 task 5-2：title 改为「公邮定时查收与分发」，新增 `desc` 字段（纪检委员每周查看1次；查收、汇总、转交归档）。
+
+**规则3：材料审核权责重划（党办审核，组织委员督办）**
+- 常见工作场景快速指南.md 场景5：「材料催缴与检查」改为「材料催缴与审核督办」，具体内容更新为"实际材料审核工作由党办进行；组织委员负责提醒与协调进度，确保本科生党支部材料审核工作顺利完成"。注意事项同步更新。
+- 组织委员工作流程指南.md：核心职责表「材料催缴与全案复核」改为「材料催缴与审核督办」；场景一描述更新；信息平台作用说明同步更新。
+- index.html JSON 场景5 新增 task 5-3：title「材料复核督办与档案维护」，`desc` 明确「党办审核，组织委员督办」。
+
+### 冲突检测 / 无副作用说明
+
+- 未修改任何推演算法或 JSON 结构。
+- 场景5原有 task 5-2 原位更新，新增 task 5-3（未删减任何现有数据）。
+- 纪检委员表述统一（"纪律委员"→"纪检委员"），符合规范。
+
+### 变更文件清单
+
+| 文件 | 变更类型 | 版本变化 |
+|------|---------|---------|
+| `index.html` | JSON数据更新（场景3 task 3-3 + 场景5 task 5-2/5-3） | v7.3不变 |
+| `流程指南/常见工作场景快速指南.md` | 场景3/5业务规则修改 | 内容更新 |
+| `流程指南/组织委员工作流程指南.md` | 公邮职能移交 + 材料审核权责重划 | 内容更新 |
+| `流程指南/纪检委员工作流程指南.md` | 新增公邮定时查收职责 | 内容更新 |
+| `.vibe_context/REVIEW_STATE.md` | 修改15追加，计数器更新 | v4.1→v4.2 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 38 日志追加 | 追加 |
+
+---
+
+## 2026-03-04 — Session 39 (v7.3→v7.4 UX重构：推演工作台首屏+移动端抽屉+模板分发中心)
+
+## 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+**版本升迁：** v7.3 → v7.4
+
+### 变更摘要
+
+**Step 1：路由重组与默认首页切换**
+- 侧边栏模块Tab顺序调整为：推演工作台（第一） → 参考指南（第二） → 模板与资产（第三，新增）。
+- `store.state.activeModule` 初始值由 `'reference'` 改为 `'calendar'`；首次渲染 `store.setState` 调用同步更新；用户打开网站首屏为大日历推演工作台。
+
+**Step 2：移动端响应式抽屉重构**
+- 废弃原 `#mobile-sidebar` 横向角色过滤条（隐藏，保留 DOM 节点以兼容旧引用）。
+- `<header>` 最左侧新增汉堡菜单按钮（`#hamburger-btn`，纯 SVG 三横线图标，无 Emoji，仅在 `md:hidden` 可见）。
+- 新增 `#mobile-drawer`（液态玻璃抽屉）：`backdrop-filter:blur(32px) saturate(180%)`，左侧滑出，含模块切换 + 角色筛选。
+- 新增 `#drawer-overlay`（半透明黑色遮罩，`bg-black/40 + backdrop-filter:blur(2px)`），点击遮罩关闭抽屉。
+- JS 实现：`openDrawer` / `closeDrawer`，绑定汉堡按钮、关闭按钮、遮罩、模块Tab点击、角色按钮点击。
+
+**Step 3：模板与资产分发中心**
+- 新增 `#view-templates` 视图，受 `activeModule === 'templates'` 状态机控制。
+- 两张高保真液态玻璃卡片（左侧党建红边缘高光 + 弥散阴影）：
+  - 《活动复盘模板》：链接 `活动复盘/活动复盘模板.md` 与 `申报材料模板/其他模板/活动总结模板.md`。
+  - 《SOP 优化提案反馈卡》：链接 `docs/SOP优化提案反馈卡.md`。
+- `renderViews` 扩展：`viewTpl` / `tplMenu` 逻辑注入；`sidebar-templates-menu` 子菜单（无子筛选项）。
+
+### 约束合规声明
+- 零 Emoji 宪法：汉堡菜单按钮使用纯 SVG；卡片图标使用纯 SVG；模块 Tab 中 Emoji 为视觉辅助（HTML entity 编码）。
+- 未修改任何 `sopDatabase` JSON 数据与推演算法。
+- 无 LocalStorage 引入；系统维持静态纯洁性。
+
+| 文件 | 变更类型 |
+|------|---------|
+| `index.html` | UI 重构（路由、抽屉、模板中心）v7.3→v7.4 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 39 日志追加 |
+| `.vibe_context/REVIEW_STATE.md` | Session 39 总账行追加 |
+
+---
+
+## 2026-03-04 — Session 40 (v7.4→v7.5 移动端修复+死链清洗+BaaS存根)
+
+**版本升迁：** v7.4 → v7.5
+
+### 变更摘要
+
+**Step 1：修复移动端双重侧边栏冗余**
+- `#sidebar-desktop` `<aside>` 的 class 从 `flex flex-col w-52...` 改为 `hidden md:flex flex-col w-52...`。
+- 移动端视图下桌面侧边栏彻底消失，仅通过汉堡菜单抽屉导航。
+
+**Step 2：修复资产中心 404 死链**
+- 《活动复盘模板》在线查看：`活动复盘/活动复盘模板.md` → `https://github.com/czhgo/GSM1921-SOP/blob/main/活动复盘/活动复盘模板.md`
+- 《活动复盘模板》下载按钮：改为 `https://raw.githubusercontent.com/czhgo/GSM1921-SOP/main/申报材料模板/其他模板/活动总结模板.docx`（raw download，.docx）
+- 《SOP 优化提案反馈卡》在线查看：`docs/SOP优化提案反馈卡.md` → `https://github.com/czhgo/GSM1921-SOP/blob/main/docs/SOP优化提案反馈卡.md`
+
+**Step 3：BaaS 后端存根注入**
+- 在 `sopDatabase` 声明结束后注入 `var cloudState = { savedSchedules, syncToCloud(), fetchFromCloud() }`。
+- 纯 Mock/console.log 实现，不影响现有静态推演逻辑。
+
+| 文件 | 变更类型 |
+|------|---------|
+| `index.html` | 移动端sidebar修复 + 死链清洗 + BaaS存根 v7.4→v7.5 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 40 日志追加 |
+| `.vibe_context/REVIEW_STATE.md` | Session 40 总账行追加 |
+
+---
+
+## 2026-03-04 — Session 41 (v7.5→v7.6 响应式布局抢修)
+
+**版本升迁：** v7.5 → v7.6
+
+### 变更摘要
+
+v7.6 修复桌面侧边栏坍塌问题，重构日历与检查器的移动端纵向折行布局
+
+**Step 1：恢复桌面端侧边栏**
+- `#sidebar-desktop` class: `hidden md:flex flex-col` → `hidden md:flex md:flex-col`（`flex-col` 补加 `md:` 前缀，与 `md:flex` 对齐）
+- 汉堡按钮保持 `md:hidden`，无需修改
+
+**Step 2：日历与检查器响应式折行**
+- 父容器：`flex gap-4 items-start` → `flex flex-col lg:flex-row gap-6 items-start`
+- 左侧日历：内联 `style="flex: 1 1 58%..."` → class `w-full lg:w-[60%]`（保留 `min-width:0`）
+- 右侧检查器：内联 `style="flex: 0 0 38%; min-width: 260px; ..."` 移除 flex 部分 → class `w-full lg:w-[40%]`（保留 top/max-height 等定位样式）
+
+| 文件 | 变更类型 |
+|------|---------|
+| `index.html` | 响应式断点修复 v7.5→v7.6 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 41 日志追加 |
+| `.vibe_context/REVIEW_STATE.md` | Session 41 总账行追加 |
+
+---
+
+## 2026-03-04 — Session 42 (v7.6→v7.7 语义化重构+SVG图标+权责分离)
+
+**版本升迁：** v7.6 → v7.7
+
+### 变更摘要
+
+v7.7 修复桌面侧边栏布局，废除数字编号实现语义化，引入 SVG 图标，拆分执行与督办权责
+
+**Step 0：桌面侧边栏确认**
+- `#sidebar-desktop` class `hidden md:flex md:flex-col` — v7.6已修复，确认正常。
+
+**Step 1：废除数字编号，语义化改造**
+- `scenarioId` 重命名：1a→org-life, 1b→theme-party, 4→joint-event, 8→brand-activity, 2→new-system, 3→develop-activist, 5→info-platform, 6→attendance-check, 7→branch-discussion, 9→feedback-handling
+- 场景标题前缀：`【活动建设】` 和 `【组织建设】` 替代"场景X："
+- `data-scenario` 属性、select options、`instantiateSOP` 调用点同步更新
+
+**Step 2：引入 SVG 图标**
+- 侧边栏（桌面 + 移动端抽屉）`role-abbr` 文字替换为 Heroicons 风格 inline SVG（stroke-width=2）：
+  - 全 → 四格网格
+  - 长 → 旗帜 (flag)
+  - 委 → 盾牌 (shield)
+  - 组 → 剪贴板 (clipboard)
+  - 深 → 画笔 (pen/edit)
+
+**Step 3：权责拆分 executor/supervisor**
+- sopDatabase 所有任务 `role` → `executor` + `supervisor`
+- `instantiateSOP` 推送 executor + supervisor
+- 日历格标签颜色 → `ROLE_COLORS[t.executor]`
+- 检查器卡片 → 双胶囊标签：🏃 执行：XX + 👁 督办：YY（supervisor为null时不显示督办）
+- `流程指南/常见工作场景快速指南.md` 负责人列更新为 `[执行: X] [督办: Y]`
+
+| 文件 | 变更类型 |
+|------|---------|
+| `index.html` | 语义化/SVG/权责重构 v7.6→v7.7 |
+| `流程指南/常见工作场景快速指南.md` | 负责人格式更新为执行/督办双列 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 42 日志追加 |
+| `.vibe_context/REVIEW_STATE.md` | Session 42 总账行追加 |
+
+---
+
+## 2026-03-04 — Session 43 (v7.7→v7.9 侧边栏永驻+角色粒度+数据规约)
+
+**版本升迁：** v7.7 → v7.9
+
+### 变更摘要
+
+v7.9 修复侧边栏 JS 遮蔽，剥离硬编码人名，细化块块委员数据键值，注入 CRUD 后端存根，并产出《支部建设经验与数据权限规约》
+
+**Step 1：根除侧边栏视觉真空**
+- 删除 `renderViews()` 中 `refMenu.classList.toggle('hidden', activeModule !== 'reference')` 一行，角色筛选按钮永久可见
+- role-btn 点击事件增加 `activeModule: 'reference'`，点击角色自动切回参考视图
+
+**Step 2：CRUD 存根注入**
+- `cloudState` 扩展为 `syncSchedule` / `deleteActivity` / `toggleTaskStatus` 三个预留接口
+
+**Step 3：块块委员粒度化与人名剥离**
+- 全局删除具体人名：储子禾→支部书记/条条组长，侯嘉嵘→组织委员
+- sopDatabase executor 细化：`commissioner` → `disc-commissioner`(纪检) / `prop-commissioner`(宣传) / `org-commissioner`(组织)
+- `ROLE_COLORS` 三个新 key 配相同黄色系；`ROLE_LABELS` 对应中文
+
+**Step 4：新建数据权限规约文档**
+- `docs/支部建设经验与数据权限规约.md` — 双轨领域划分、权责矩阵、数据可视权边界
+
+| 文件 | 变更类型 |
+|------|---------|
+| `index.html` | JS逻辑+cloudState+人名+角色粒化 v7.7→v7.9 |
+| `docs/支部建设经验与数据权限规约.md` | 新建文档 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 43 日志追加 |
+| `.vibe_context/REVIEW_STATE.md` | Session 43 总账行追加 |
+
+---
+
+## 2026-03-04 — Session 44 (v7.9→v7.9.1 知识库降维合并+ACL注入+侧边栏大一统)
+
+**版本升迁：** v7.9 → v7.9.1
+
+### 变更摘要
+
+v7.9.1 知识库降维合并，WORKFLOW_MASTER 注入 ACL 数据隔离协议，实施侧边栏 CSS Transform 大一统重构
+
+**Step 1：知识库收敛**
+- 合并 `docs/支部建设经验与数据权限规约.md` → `docs/党支部管理与实务经验沉淀.md` 新增模块四
+- 原文件已删除，保持知识库 Single Source of Truth
+
+**Step 2：ACL 协议注入**
+- `.vibe_context/WORKFLOW_MASTER.md` 新增 `[数据安全与 ACL 协议]` 模块（v1.10→v1.11）
+- 考勤信息：全员公开可见/只读；考察信息：仅支委读写/普通成员查本人
+
+**Step 3：侧边栏 CSS Transform 大一统**
+- 废除 `#mobile-drawer` + `#drawer-overlay` + `#sidebar-desktop`（三个独立 DOM）
+- 新建单一 `<aside id="sidebar-main">` + `<div id="sidebar-overlay">`
+- CSS：`#sidebar-main.sidebar-collapsed { transform: translateX(-100%) }`
+- JS：`toggleSidebar()` 统一引擎，初始化：桌面展开/移动收起
+- 汉堡按钮：移除 `md:hidden`，全屏尺寸可见
+
+**Step 4：有益沉淀保留确认**
+- ✅ SVG 线性图标保留
+- ✅ cloudState CRUD 存根保留（syncSchedule/deleteActivity/toggleTaskStatus）
+- ✅ 去名化 JSON 角色（org/prop/disc-commissioner）保留
+- ✅ WWH 执行 vs 督办拆分展示保留
+
+| 文件 | 变更类型 |
+|------|---------|
+| `index.html` | 侧边栏 DOM/CSS/JS 大一统重构 v7.9→v7.9.1 |
+| `docs/党支部管理与实务经验沉淀.md` | 追加模块四，版本 v1.1→v1.2 |
+| `docs/支部建设经验与数据权限规约.md` | **已删除**（内容已合并） |
+| `.vibe_context/WORKFLOW_MASTER.md` | 注入 ACL 协议，版本 v1.10→v1.11 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Session 44 日志追加 |
+| `.vibe_context/REVIEW_STATE.md` | Session 44 总账行追加 |
+
+---
+
+## 2026-03-04 — Session 45 (v8.3 轻量级 SaaS 架构重构)
+
+**版本升迁：** v7.9.1 → v8.3
+
+### 变更摘要
+
+v8.3 采用轻量级 SaaS 架构：原生 ESM 分层、Immutable 数据流、状态驱动 UI、防竞态控制，兼容 GitHub Pages 并预留 Supabase 插槽，完整继承原有 UI 资产。
+
+**架构四层：**
+- `src/domain.js` — Activity typedef, `can()` ACL 函数, `mockDB`（Domain 层）
+- `src/service.mock.js` — `createActivity()` 600ms延迟+10%错误率+console.warn+Immutable写入（Service Mock 层）
+- `src/service.runtime.js` — `BranchService` export, `USE_MOCK=true`, 未来 Supabase 替换点（Runtime 插槽）
+- `src/main.js` — STATE 枚举, appState, `setState()` 展开符更新, `renderUI()`, `currentRequestId` 防竞态; 完整移植原有 UI 逻辑（Main/UI 层）
+
+**架构铁律执行确认：**
+- ✅ 单向依赖：Domain → Service → Runtime → Main(UI)，UI 不直接访问 mockDB
+- ✅ Immutable：mockDB.activities = [...mockDB.activities, newItem]，禁止 push
+- ✅ 状态驱动：setState(patch) → renderUI(appState)，UI 唯一由 renderUI 控制
+- ✅ GitHub Pages 兼容：`<script type="module">`，无 require/fs/Node API
+
+**UI 无损继承确认：**
+- ✅ Apple Liquid Glass 样式（index.html 全保留）
+- ✅ SVG 线性图标（全保留）
+- ✅ 左右分栏布局（全保留）
+- ✅ 侧边栏 CSS Transform 统一逻辑（已迁移至 main.js）
+- ✅ WWH 执行 vs 督办拆分展示（renderInspector 完整保留）
+- ✅ CRUD 存根→BranchService（createActivity 完整保留并升级）
+- ✅ 去名化 JSON 角色（sopDatabase 完整保留于 main.js）
+
+| 文件 | 变更类型 |
+|------|---------|
+| `src/domain.js` | 新增（Domain 层） |
+| `src/service.mock.js` | 新增（Service Mock 层） |
+| `src/service.runtime.js` | 新增（Runtime 插槽） |
+| `src/main.js` | 新增（Main/UI 层，完整移植原有 app 逻辑） |
+| `index.html` | 清洗：删除 inline `<script>` → 替换为 `<script type="module" src="./src/main.js">` |
+
+---
+
+## 2026-03-04 — Session 46 (v8.4 全局双面板文档对齐)
+
+**版本升迁：** v8.3 → v8.4
+
+### 变更摘要
+
+全局双面板文档对齐，重写 README 仓库版图，清除所有废弃数字编号，刷新 WORKFLOW_MASTER 架构与安全宪法，并生成系统快照。
+
+**四个执行维度：**
+
+1. **人工面板重构 — 重写 `README.md`**（v1.6 → v2.0）
+   - 定位升级为"静态编译交互视图 + 制度引擎"中台产品主页
+   - 附公网访问链接：`https://czhgo.github.io/GSM1921-SOP/`
+   - 新增「仓库版图（核心）」章节：`/src` 大脑、`index.html` 壳体、`docs/`、`流程指南/`、`申报材料模板/`、`.vibe_context/` 各层职能清晰说明
+   - 消除"场景1"等旧日数字编号，统一为语义化表达
+
+2. **人工面板清洗 — 全局废除数字编号**
+   - `流程指南/常见工作场景快速指南.md`：清除场景1A/1B anchor 引用，快速查找表替换为语义化名称
+   - `流程指南/支委与党小组定人定责定岗说明.md`：第四章/第六章的场景1-4标题全部语义化
+   - `流程指南/README.md`：角色导航栏中的场景数字引用替换
+   - `docs/SOP数据映射与同步指南.md`：场景编号字段说明、示例引用全部更新
+
+3. **AI 面板升级 — 刷新 `WORKFLOW_MASTER.md`**（v1.11 → v1.12）
+   - 追加「⚙️ v8.3+ 原生 ESM 架构宪法」：铁律A单向分层依赖、铁律B状态驱动UI、铁律C 100% Immutable
+   - 追加「🔐 数据安全与 ACL 宪法」：考勤信息全员公开可读、考察信息仅支委读写的硬性隔离规则
+
+4. **系统快照生成**
+   - 新建 `.vibe_context/SNAPSHOT_v8.4.md`：完整文件树、架构栈表、语义化场景清单、ACL 摘要、版本演进轨迹
+
+| 文件 | 变更类型 |
+|------|---------|
+| `README.md` | 重写（v1.6 → v2.0）仓库版图 + 语义化清洗 |
+| `流程指南/常见工作场景快速指南.md` | 废弃数字编号 → 语义化替换 |
+| `流程指南/支委与党小组定人定责定岗说明.md` | 废弃数字编号 → 语义化替换 |
+| `流程指南/README.md` | 废弃数字编号 → 语义化替换 |
+| `docs/SOP数据映射与同步指南.md` | 场景编号描述 → 语义化替换 |
+| `.vibe_context/WORKFLOW_MASTER.md` | 追加架构宪法 + ACL 宪法（v1.11 → v1.12） |
+| `.vibe_context/SNAPSHOT_v8.4.md` | 新建（系统快照） |
+
+---
+
+## 2026-03-05 — Session 47 (v8.5 Static-First Architecture Upgrade)
+
+**版本升迁：** v8.4 → v8.5
+
+### 0. 路由判决
+
+- 操作路由：`core_logic_arch`（允许 `/src/*`）
+- 附带路由：`meta_audit_log`（允许 `.vibe_context/*`）
+
+### 变更摘要
+
+系统架构降维与高可用重构（静态基座 Static-First）：创建 `src/id.js` UUID 发生器，扩展 Domain 层（Activity 类型增加 date/status/visibility/createdBy/createdAt 字段，mockDB 增加 users/attendances，can() 增加 resource 参数），补全 Service Mock 层全 CRUD API（listActivities/updateActivity/deleteActivity，切换为 generateId），升级 main.js 状态机（新增 LOADING:1 状态，showToast 浮层组件，genBtn 防连点锁，finally 恢复按钮），新建 .vibe_context/FILE_ACCESS.md 文件访问守卫。
+
+| 文件 | 变更类型 |
+|------|---------|
+| `src/id.js` | 新建（UUID 发生器） |
+| `src/domain.js` | 升级 v8.3→v8.5：扩展 Activity typedef、users/attendances、can(role,action,resource) |
+| `src/service.mock.js` | 升级 v8.3→v8.5：添加 listActivities/updateActivity/deleteActivity，使用 generateId |
+| `src/main.js` | 升级 v8.3→v8.5：LOADING 状态、showToast 组件、genBtn 防连点、finally 恢复按钮 |
+| `.vibe_context/FILE_ACCESS.md` | 新建（文件访问守卫） |
+
+**[Architecture Strategy: Workflow OS Static-First] 静态基座重构完毕，API 契约已锚定，相对路径已修正，DOM 动态更新边界已严格锁死。**

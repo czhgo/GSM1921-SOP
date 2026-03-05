@@ -31,7 +31,7 @@
 
 | Category | Total | ✅ Done | 🔄 In Progress | ⏳ Pending |
 |----------|-------|---------|---------------|-----------|
-| Pending Modification Tasks | 14 | 13 | 0 | 1 |
+| Pending Modification Tasks | 15 | 14 | 0 | 1 |
 | Agent Watchlist Issues | 5 | 5 | 0 | 0 |
 | Suspended Issues (DO NOT TOUCH) | 3 | 2 | — | 1 |
 | Vibe Coding Milestones | 1 | 1 | 0 | 0 |
@@ -75,6 +75,7 @@
 - [x] **修改12**｜跨组参与规则 — B类注意事项中增加：优先本组→限额未满可邀他组→普通参与者一并考勤；⚠️ 标记悬置问题H1
 - [x] **修改13**｜外出活动特殊注意事项 — 场景1B注意事项新增：用车双轨制（京内大巴→学生党建中心；出京→特事特办）；经费全部书记审批（无免批额度）；解锁H4
 - ⏸️ **修改14**｜品牌活动与非品牌活动发起方式 — 场景8增加两种路径（有品牌→组长招募；无品牌→支书及组长沟通低成本活动）；场景1B「活动发起」步骤简要提及 ⚠️ **[悬置]** 新年工作起步阶段，依据实际运行情况再行调整
+- [x] **修改15**｜公邮查收、思想汇报与材料审核权责重划 `[Role]` — ①思想汇报字数标准统一1500字以上（积极分子不作硬性要求）；②公邮定时查收与分发职能由组织委员移交纪检委员（每周查看1次）；③材料实际审核由党办进行，组织委员负责提醒与协调进度。涉及文件：常见工作场景快速指南.md（场景3/5）、组织委员工作流程指南.md、纪检委员工作流程指南.md、index.html（场景3/5 JSON）。
 
 ---
 
@@ -154,9 +155,30 @@
 | 32 | 2026-03-03 | Navigation Refactoring & Dead-Link Elimination | START_HERE.md v1.1→v1.2: YAML删除_quick_cards死链，5秒导航删除_quick_cards/工作流程图死链，FAQ Q3更新，未来补充列表更新，_review/工作流改写，C位增加index.html+反馈卡入口，last_updated更新。README.md v1.5→v1.6: 5秒导航C位增加index.html+反馈卡链接。index.html母本一致性质检结果（P0/P1/P2）已输出至执行日志。 | ✅ Done |
 | 33 | 2026-03-03 | Visual Asset Binding + Data Mapping Guide | index.html header: 替换☆占位符为`<img src="./党徽.png">`，保留白色半透明圆形容器，注释更新。新建docs/SOP数据映射与同步指南.md v1.0（5板块：核心钩稽逻辑、字段映射、同步安全区、架构雷区、版本钩稽关系表）。执行日志v1.7→v1.8。 | ✅ Done |
 | 34 | 2026-03-03 | Business Rule Cleanup + v7.0 Engine Upgrade | 阶段一：组织委员公域发令权剥离（场景1A/1B/5，HTML Node 1A-4/1B-4/5-2更新）；两份MD母本更新（常见工作场景v1.8，组织委员指南v1.4）。阶段二：index.html v7.0—新增sopDatabase（9场景40节点，timeOffset纯数字），instantiateSOP引擎，SOP实例化推演控制台（日历看板+甘特图+场景选择器）。 | ✅ Done |
+| 35 | 2026-03-04 | v7.1 双视图引擎上线与日历重构 | 侧边栏全局路由（参考指南/推演工作台双Tab）；甘特图彻底移除；大型月历网格（_renderLargeMonth）；详情检查器面板（Inspector Panel）；sopDatabase所有timed任务补录desc字段。index.html v7.0→v7.1。 | ✅ Done |
+| 36 | 2026-03-04 | Sidebar Visibility Fix + Calendar Cell Height Fix | hidden md:flex→flex，侧边栏全分辨率可见；.cal-cell-large min-height 5.5rem→8rem；补录Session 35/36执行日志；版本v7.1→v7.2。 | ✅ Done |
+| 37 | 2026-03-04 | v7.3 Apple Liquid Glass UI 跃迁 | CSS重构：.glass/.tl-card/.inspector-card升级为blur(32px) saturate(180%)+内阴影rim light+红色弥散阴影。ROLE_COLORS全部从纯色hex改为rgba(…, 0.4)透明着色。侧边栏改用右侧内阴影高光替代实线border。.cal-cell-large改用半透明液态玻璃底色，.selected状态增红色弥散阴影。按钮(module-tab.active/domain-btn.active/#gen-schedule-cal-btn)增加inset顶部白光。版本v7.2→v7.3。 | ✅ Done |
+
+| 38 | 2026-03-04 | 修改15：公邮查收、思想汇报与材料审核权责重划 | 规则1：思想汇报字数标准统一为1500字以上（积极分子不作硬性要求）；场景3步骤3-3更新，组织委员指南格式要求更新，JSON task 3-3新增desc。规则2：公邮定时查收与分发（每周1次）移交纪检委员；纪检委员指南新增职责；组织委员指南公邮章节全面更新；场景5 task 5-2更新为公邮查收（纪检委员）。规则3：材料实际审核由党办，组织委员督办；场景5 task 5-3新增（材料复核督办）；各母本同步更新。 | ✅ Done |
+
+| 39 | 2026-03-04 | v7.3→v7.4 UX重构：推演工作台首屏+移动端液态玻璃抽屉+模板分发中心 | Step1：侧边栏Tab重排（推演工作台→参考指南→模板与资产）；activeModule默认值改为calendar；首屏即推演工作台。Step2：废弃mobile-sidebar横条；header新增汉堡SVG按钮；新增#mobile-drawer液态玻璃抽屉（blur32px+遮罩overlay，含模块切换+角色筛选）；JS openDrawer/closeDrawer绑定。Step3：新增#view-templates视图；两张液态玻璃卡片（活动复盘模板、SOP优化提案反馈卡）；renderViews扩展支持templates模块。版本v7.3→v7.4。 | ✅ Done |
+
+| 40 | 2026-03-04 | v7.4→v7.5 移动端修复+死链清洗+BaaS后端存根 | Step1：#sidebar-desktop class加`hidden md:flex`，移动端桌面侧边栏彻底隐藏。Step2：模板中心三处死链替换为GitHub绝对路径（blob在线查看+raw.githubusercontent.com docx下载）。Step3：sopDatabase后注入`var cloudState`存根（savedSchedules/syncToCloud/fetchFromCloud），纯Mock不影响静态逻辑。版本v7.4→v7.5。 | ✅ Done |
+
+| 41 | 2026-03-04 | v7.5→v7.6 响应式布局抢修：桌面侧边栏恢复+日历检查器折行 | Step1：#sidebar-desktop `flex-col`→`md:flex-col`，桌面端纵向显示恢复正常。Step2：日历父容器`flex gap-4`→`flex flex-col lg:flex-row gap-6`；左侧日历内联flex→`w-full lg:w-[60%]`；右侧检查器内联flex→`w-full lg:w-[40%]`。手机端纵向折行，大屏横向并排。版本v7.5→v7.6。 | ✅ Done |
+
+| 42 | 2026-03-04 | v7.6→v7.7 废除数字编号+SVG图标+执行督办权责拆分 | Step1：scenarioId语义化（1a→org-life, 1b→theme-party等），场景标题加【活动建设】/【组织建设】前缀，data-scenario/select options/instantiateSOP调用同步。Step2：侧边栏role-abbr文字(全/长/委/组/深)→inline SVG图标（grid/flag/shield/clipboard/pen），桌面+移动抽屉两处同步。Step3：sopDatabase role字段拆为executor+supervisor，inspector卡片双胶囊（🏃执行+👁督办），日历颜色用executor，快速指南md负责人列更新为[执行:X][督办:Y]格式。版本v7.6→v7.7。 | ✅ Done |
+
+| 43 | 2026-03-04 | v7.7→v7.9 侧边栏永驻+角色粒度+人名剥离+数据规约 | Step1：删除renderViews中sidebar-reference-menu隐藏逻辑，role-btn点击追加activeModule:'reference'。Step2：cloudState扩展为syncSchedule/deleteActivity/toggleTaskStatus三接口。Step3：全局剥离具体人名→标准角色称谓；sopDatabase commissioner细化为org/prop/disc-commissioner；ROLE_COLORS+ROLE_LABELS新增三键。Step4：新建docs/支部建设经验与数据权限规约.md（双轨域划分、权责矩阵、数据可视权边界）。版本v7.7→v7.9。 | ✅ Done |
+
+| 44 | 2026-03-04 | v7.9→v7.9.1 知识库降维合并+ACL注入+侧边栏大一统 | Step1：合并docs/支部建设经验与数据权限规约.md→docs/党支部管理与实务经验沉淀.md模块四，原文件删除。Step2：WORKFLOW_MASTER.md注入[数据安全与ACL协议]，版本v1.10→v1.11。Step3：废除mobile-drawer+sidebar-desktop双DOM，建单一#sidebar-main+CSS transform引擎，hamburger全屏可见。版本v7.9→v7.9.1。 | ✅ Done |
+
+| 45 | 2026-03-04 | v7.9.1→v8.3 轻量级 SaaS 架构：原生 ESM 分层+Immutable+状态驱动+防竞态 | 新增 src/domain.js(Activity typedef+can()+mockDB)、src/service.mock.js(createActivity+600ms+10%错误率+Immutable)、src/service.runtime.js(BranchService+USE_MOCK=true)、src/main.js(STATE枚举+appState+setState展开符+renderUI+currentRequestId防竞态+完整UI逻辑迁移)；清洗index.html：删inline script → `<script type="module">`。版本v7.9.1→v8.3。 | ✅ Done |
+
+| 46 | 2026-03-04 | v8.3→v8.4 全局双面板文档对齐：README仓库版图+废弃数字编号+架构宪法+系统快照 | 重写README.md(v1.6→v2.0)附公网链接与仓库版图；清洗4个MD文件中的场景数字编号→语义化名称；WORKFLOW_MASTER追加ESM架构铁律ABC+ACL宪法(v1.11→v1.12)；新建.vibe_context/SNAPSHOT_v8.4.md。版本v8.3→v8.4。 | ✅ Done |
 
 ---
 
-**Version:** 3.9  
-**Owner:** 储子禾  
-**Last updated:** 2026-03-03
+**Version:** 5.0  
+**Owner:** 支委会  
+**Last updated:** 2026-03-04
