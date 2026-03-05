@@ -21,6 +21,7 @@ let appState = {
   // 服务层状态
   status:      STATE.IDLE,
   activities:  [],
+  tasks:       [],
   error:       null,
   // UI 视图状态
   domain:      'activity',
@@ -681,6 +682,21 @@ document.querySelectorAll('.timeline-node[data-domain], .scenario-header[data-do
 
 // 触发首次渲染
 setState({ domain: 'activity', role: 'all', activeModule: 'calendar' });
+
+// 启动生命周期：加载持久化数据后同步注入 appState 并渲染
+(async function initAppData() {
+  BranchService.loadDB();
+  setState({ status: STATE.LOADING });
+  try {
+    const [activities, tasks] = await Promise.all([
+      BranchService.listActivities(),
+      BranchService.listTasks(),
+    ]);
+    setState({ status: STATE.IDLE, activities, tasks });
+  } catch (err) {
+    setState({ status: STATE.ERROR, error: err });
+  }
+}());
 
 // 显示状态 Pill
 const pill = document.getElementById('status-pill');
