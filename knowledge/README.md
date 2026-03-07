@@ -1,3 +1,5 @@
+> 🗺️ **全局文档路由**: 了解本目录在全站的定位，请参阅 [DOCUMENTATION_MAP.md](../docs/DOCUMENTATION_MAP.md)
+
 # Knowledge Layer
 
 This directory contains the institutional knowledge of the system.
