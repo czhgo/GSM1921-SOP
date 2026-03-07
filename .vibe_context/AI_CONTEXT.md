@@ -1,35 +1,44 @@
-# AI Context Registry — Scenario System
+# AI Context — GSM1921-SOP
 
-## Core Scenario Registry（核心场景注册表）
+## 1. System Architecture（五层模型）
 
-核心场景数量固定为 **4 个**。未来如需新增扩展场景（如 `data_migration`、`security_patch`），必须在本文件登记，并严格遵循 Purpose/Trigger/Allowed Files 的描述规范。
+```
+SOP Layer       knowledge/SOP/          制度母本，最高权威，所有变更起点
+Domain Layer    src/domain.js           Schema / typedef / mockDB / can()
+Service Layer   src/service.mock.js     CRUD + LocalStorage（唯一数据写入点）
+                src/service.runtime.js  BranchService 出口，USE_MOCK 开关
+State Layer     src/main.js             STATE 枚举，appState（immutable spread），setState()
+UI Layer        index.html              renderUI(state) 唯一 DOM 驱动，禁止直接写 DOM
+```
 
-| 场景文件 | Purpose | Trigger（关键词摘要） | Allowed Files |
-|---------|---------|---------------------|--------------|
-| `scenarios/ui_scenario.md` | 界面呈现变更（UI 层终点） | UI、页面、按钮、布局、样式 | `index.html`, `assets/*` |
-| `scenarios/core_logic.md` | 领域模型/Schema/Service/状态机变更 | 字段、schema、activity、task、数据结构、API | `src/*` |
-| `scenarios/sop_sync.md` | SOP 制度文本新增/修改/重构/YAML 修复/domain 同步 | 流程、制度、职责、SOP、YAML、frontmatter | `knowledge/SOP/*`, `流程指南/*`, `src/domain.js` |
-| `scenarios/meta_audit.md` | AI 治理元数据：日志、快照、审计、场景注册 | AI规则、审计、日志、EXECUTION_LOG | `.vibe_context/*` |
+依赖方向（单向）：`SOP → Domain → Service → State → UI`
 
-## 优先级（冲突时从左执行）
+## 2. Scenario Routing（场景路由）
+
+核心场景固定 4 个，优先级从左到右：
 
 ```
 META_AUDIT → SOP_SYNC → CORE_LOGIC → UI_SCENARIO
 ```
 
-## 扩展场景注册区（Extension Scenarios）
+| 场景 | Trigger 关键词 | Allowed Files |
+|------|--------------|--------------|
+| `scenarios/meta_audit.md` | AI规则、审计、日志、快照、场景注册 | `.vibe_context/*` |
+| `scenarios/sop_sync.md` | 流程、制度、职责、SOP、YAML、frontmatter | `knowledge/SOP/*`, `src/domain.js` |
+| `scenarios/core_logic.md` | 字段、schema、activity、task、数据结构、API | `src/*` |
+| `scenarios/ui_scenario.md` | UI、页面、按钮、布局、样式 | `index.html`, `assets/*` |
 
-> 尚未注册任何扩展场景。如需新增，在此处追加行，并在 `scenarios/` 目录下创建对应文件。
+**扩展场景注册规则**：新增场景须在本文件追加一行，在 `scenarios/` 下创建同名 `.md`，在当月执行日志中记录操作。
 
-| 场景文件 | Purpose | Trigger | Allowed Files | 登记日期 |
-|---------|---------|---------|--------------|---------|
+| 扩展场景文件 | Purpose | Trigger | Allowed Files | 登记日期 |
+|------------|---------|---------|--------------|---------|
 | （暂无） | | | | |
 
-## 注册规范（Registration Protocol）
+## 3. Core Rules（铁律）
 
-新增扩展场景必须满足：
-1. **Purpose**：清晰描述本场景的唯一职责，不与现有 4 个核心场景重叠
-2. **Trigger**：列出激活本场景的用户意图关键词（中英文均可）
-3. **Allowed Files**：精确的文件白名单路径（通配符须说明范围）
-4. 在本文件追加登记行后，在 `.vibe_context/scenarios/` 下创建同名 `.md` 文件
-5. 在 `.vibe_context/logs/YYYY-MM-EXECUTION_LOG.md` 中记录注册操作审计日志
+- **Structure Immutable**：禁止新增顶层目录或重命名现有核心目录（`src/`, `knowledge/`, `.vibe_context/`）。
+- **Service Layer Mutation**：所有运行时数据写操作必须经过 `src/service.*.js`，严禁 UI 层直接操作存储。
+- **SOP Sovereignty**：`knowledge/SOP/` 制度文本优先于一切技术实现；domain.js Schema 必须与 SOP 保持同步。
+- **Change Pipeline**：变更路径唯一 → SOP 修改 → domain.js 同步 → service 适配 → state 更新 → UI 渲染。
+- **Binary Preservation**：`.pdf`, `.docx`, `.pptx`, `.xlsx` 为只读资产，禁止修改或转换，仅允许元数据读取与目录移动。
+- **Single DOM Updater**：`renderUI(state)` 是唯一合法 DOM 更新入口，所有 UI 变更必须经此路径。
