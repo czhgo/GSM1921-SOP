@@ -83,6 +83,26 @@ domain.js → service.mock.js → service.runtime.js → main.js (UI)
 **Read Operations Exception:**
 To avoid over-restriction and ensure rendering performance, read operations (list, get) may read from `mockDB` directly (e.g., via exported `mockDB` object), but service-layer access (`BranchService.listActivities()`) is preferred for strict consistency.
 
+## System Change Pipeline (Strict Order)
+
+All system modifications MUST follow this one-way waterfall execution flow:
+1. Update SOP (Modify the canonical Markdown documents first)
+2. Update Domain Schema (Sync fields and `Source` annotations in `domain.js`)
+3. Update Service Logic (Modify API and persistence validation)
+4. Update UI (Render the final changes)
+
+**Change Trace Protocol:**
+Before modifying Service or UI layers, AI MUST output a `Change Trace` in the chat:
+- SOP change: `knowledge/SOP/[file_name].md#[section]`
+- Schema impact: `[e.g., Activity.supervisor]`
+- Service impact: `[e.g., updateActivity validation]`
+
+**[Checkpoint 6]** AI MUST verify and explicitly confirm:
+1. SOP has been updated.
+2. Domain Schema is synchronized.
+
+*Failure to confirm halts the pipeline. UI/Service modifications are FORBIDDEN until SOP/Schema are aligned.*
+
 ## Hosting
 
 GitHub Pages 纯静态托管，原生 ESM，无构建工具，无 Node.js API。
