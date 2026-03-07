@@ -1493,3 +1493,86 @@ N/A（本 Session 为纯文档治理操作）
 
 ### Schema Impact
 none
+
+---
+
+## Session — 2026-03-07T08:39Z (Governance Audit Protocol v6 — Step 2: Scenario System Simplification)
+
+### 检查点声明
+
+**[Checkpoint 6]** 本 Session 为纯文档治理操作（场景文件重组+注册表创建），无 Service/UI 层代码修改，无需 SOP/Schema 同步检查。
+
+### 变更摘要
+
+按 Repository Clarity & Governance Audit Protocol v6 Step 2 执行场景坍缩与重构：
+
+**Step 2.1 — 创建 4 个核心场景文件**
+
+| 新建文件 | 说明 |
+|---------|------|
+| `.vibe_context/scenarios/ui_scenario.md` | UI 场景：Purpose/Trigger/Allowed Files + 约束 |
+| `.vibe_context/scenarios/core_logic.md` | 核心逻辑场景：Purpose/Trigger/Allowed Files + Schema 追溯约束 |
+| `.vibe_context/scenarios/sop_sync.md` | SOP 同步场景：4 源文件逻辑无损合并（§1 A/B 活动规则 + §2 结构约束 + §3 双向追溯 + §4 YAML 修复） |
+| `.vibe_context/scenarios/meta_audit.md` | 元审计场景：执行日志规则 + Delete+Log Rule + 场景数量守护 |
+
+**Step 2.2 — SOP_SYNC 逻辑无损合并**
+
+| 源文件 | 核心信息摘要 | 信息去向 |
+|--------|------------|---------|
+| `activity_rules_enforcement.md` | A/B 类活动分类规则（参与者/考勤/复盘/宣传）、条条审批门控、C-A1–C-A6 约束 | → `sop_sync.md` §1 |
+| `sop_restructuring.md` | 禁止独立条条分工表、块块具名、禁止冗余、Mermaid 颜色方案、动态 Watchlist、悬置保护 | → `sop_sync.md` §2 |
+| `sop_data_sync.md` | domain.js Source 注释规范、SOP↔Code 双向追溯、断链即 FAILED | → `sop_sync.md` §3 |
+| `yaml_metadata_fix.md` | YAML frontmatter 必须字段、type 词汇表、路径验证、唯一耦合锚点规则 | → `sop_sync.md` §4 |
+
+**Step 2.3 — META_AUDIT 合并**
+
+| 源文件 | 核心信息摘要 | 信息去向 |
+|--------|------------|---------|
+| `meta_audit_log.md` | Execution Logging Rule（强制字段、月度轮转、TASK FAILURE 违规）、日志路径指向 `logs/` | → `meta_audit.md` §1 |
+
+**Step 2.4 — 创建 `.vibe_context/AI_CONTEXT.md`（场景扩展注册表）**
+登记 4 个核心场景；追加扩展注册区与注册规范；固化"核心场景数量 = 4"约束。
+
+**Step 2.5 — 物理删除旧文件**
+
+| 操作 | 路径 | 信息去向 |
+|------|------|---------|
+| DELETE | `.vibe_context/scenarios/activity_rules_enforcement.md` | merged into `sop_sync.md` §1 |
+| DELETE | `.vibe_context/scenarios/meta_audit_log.md` | merged into `meta_audit.md` §1 |
+| DELETE | `.vibe_context/scenarios/sop_data_sync.md` | merged into `sop_sync.md` §3 |
+| DELETE | `.vibe_context/scenarios/sop_restructuring.md` | merged into `sop_sync.md` §2 |
+| DELETE | `.vibe_context/scenarios/yaml_metadata_fix.md` | merged into `sop_sync.md` §4 |
+
+### Checkpoint 2 验证
+
+**Scenario File List（`.vibe_context/scenarios/` 当前文件）：**
+
+1. `core_logic.md`
+2. `meta_audit.md`
+3. `sop_sync.md`
+4. `ui_scenario.md`
+
+- 总数：**4 个** ✅（无越界文件）
+- 非核心 `.md` 文件：**无** ✅
+
+### 受影响文件清单
+
+| 文件 | 变更类型 | 说明 |
+|------|---------|------|
+| `.vibe_context/scenarios/ui_scenario.md` | 新建 | UI 场景定义 |
+| `.vibe_context/scenarios/core_logic.md` | 新建 | 核心逻辑场景定义 |
+| `.vibe_context/scenarios/sop_sync.md` | 新建 | SOP 同步场景（4 源文件合并） |
+| `.vibe_context/scenarios/meta_audit.md` | 新建 | 元审计场景（meta_audit_log 合并） |
+| `.vibe_context/AI_CONTEXT.md` | 新建 | 场景扩展注册表 |
+| `.vibe_context/scenarios/activity_rules_enforcement.md` | DELETE | merged into sop_sync.md §1 |
+| `.vibe_context/scenarios/meta_audit_log.md` | DELETE | merged into meta_audit.md §1 |
+| `.vibe_context/scenarios/sop_data_sync.md` | DELETE | merged into sop_sync.md §3 |
+| `.vibe_context/scenarios/sop_restructuring.md` | DELETE | merged into sop_sync.md §2 |
+| `.vibe_context/scenarios/yaml_metadata_fix.md` | DELETE | merged into sop_sync.md §4 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 追加本条目 | 审计记录 |
+
+### SOP Reference
+N/A（本 Session 为纯文档治理操作）
+
+### Schema Impact
+none
