@@ -65,6 +65,24 @@ domain.js → service.mock.js → service.runtime.js → main.js (UI)
 
 所有 mutation 必须经过 Service 层；UI 层禁止直接操作 `mockDB`。
 
+## Data Mutation Rule
+
+**All data mutations must pass through the service layer.**
+
+**Forbidden operations (outside Service Layer):**
+- `mockDB` direct mutation (e.g., `.push()`, direct assignment)
+- `localStorage` direct write (`localStorage.setItem`)
+
+**Allowed write operations (via API):**
+- `BranchService.createActivity()`
+- `BranchService.updateActivity()`
+- `BranchService.archiveActivity()`
+- `BranchService.createTask()`
+- `BranchService.toggleTaskStatus()`
+
+**Read Operations Exception:**
+To avoid over-restriction and ensure rendering performance, read operations (list, get) may read from `mockDB` directly (e.g., via exported `mockDB` object), but service-layer access (`BranchService.listActivities()`) is preferred for strict consistency.
+
 ## Hosting
 
 GitHub Pages 纯静态托管，原生 ESM，无构建工具，无 Node.js API。
