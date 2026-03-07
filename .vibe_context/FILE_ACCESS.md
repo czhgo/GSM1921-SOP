@@ -56,3 +56,21 @@ AI must:
 3. Obtain explicit user confirmation
 
 *Only after human approval may the structure change proceed.*
+
+## Binary Preservation Rule
+Files with the following extensions are **immutable**:
+- .pdf
+- .docx
+- .pptx
+- .xlsx
+
+AI agents are strictly forbidden to:
+- modify
+- rewrite
+- summarize
+- convert
+
+Allowed actions:
+- read metadata
+- move files to correct directory
+- reference them in documentation
