@@ -1440,3 +1440,56 @@ N/A（本 Session 为纯文档/架构治理操作，不涉及业务 SOP 修改�
 
 ### Schema Impact
 N/A
+
+---
+
+## Session — 2026-03-07T08:10Z (Governance Audit Protocol v6 — Step 1: Single Entrypoint Consolidation)
+
+### 检查点声明
+
+**[Checkpoint 6]** 本 Session 为纯文档治理操作（删除+聚合入口文件），无 Service/UI 层代码修改，无需 SOP/Schema 同步检查。
+
+### 变更摘要
+
+按 Repository Clarity & Governance Audit Protocol v6 Step 1 执行单入口聚合：
+
+**Step 1.1 — 创建 `AI_ENTRYPOINT.md`（83行，< 120行上限）**  
+信息来源与去向：
+
+| 源文件 | 核心信息摘要 | 信息去向 |
+|--------|------------|---------|
+| `REPO_ENTRYPOINT.md` | AI 必读顺序（ARCHITECTURE/ROADMAP/FILE_ACCESS）、场景路由引擎（4个场景 + 优先级）、执行前声明协议 | → `AI_ENTRYPOINT.md` §Repository Map + §AI Rules Summary |
+| `START_HERE.md` | 仓库用途说明、按角色快速导航（新任支委/块块委员/条条委员）、模板位置表、AI 协同标准调用指令 | → `AI_ENTRYPOINT.md` §AI Rules Summary（人工快速导航 + 标准调用指令） |
+| `CHEATSHEET.md` | 日常工作场景速查、按角色文件速查、三类模板说明、文件夹速查 | → `AI_ENTRYPOINT.md` §AI Rules Summary（人工快速导航表，精简合并） |
+
+**Step 1.2 — 物理删除旧文件**
+
+| 操作 | 路径 | 信息去向 |
+|------|------|---------|
+| DELETE | `REPO_ENTRYPOINT.md` | merged into `AI_ENTRYPOINT.md` |
+| DELETE | `START_HERE.md` | merged into `AI_ENTRYPOINT.md` |
+| DELETE | `CHEATSHEET.md` | merged into `AI_ENTRYPOINT.md` |
+
+### Checkpoint 1 验证
+
+- `REPO_ENTRYPOINT.md` 存在？**否** ✅
+- `START_HERE.md` 存在？**否** ✅
+- `CHEATSHEET.md` 存在？**否** ✅
+- `AI_ENTRYPOINT.md` 已创建？**是** ✅
+- `AI_ENTRYPOINT.md` 行数 ≤ 120？**83行** ✅
+
+### 受影响文件清单
+
+| 文件 | 变更类型 | 说明 |
+|------|---------|------|
+| `AI_ENTRYPOINT.md` | 新建 | 全局唯一 AI 入口，聚合三源文件核心信息 |
+| `REPO_ENTRYPOINT.md` | DELETE | 信息已 merged into AI_ENTRYPOINT.md |
+| `START_HERE.md` | DELETE | 信息已 merged into AI_ENTRYPOINT.md |
+| `CHEATSHEET.md` | DELETE | 信息已 merged into AI_ENTRYPOINT.md |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 追加本条目 | 审计记录 |
+
+### SOP Reference
+N/A（本 Session 为纯文档治理操作）
+
+### Schema Impact
+none
