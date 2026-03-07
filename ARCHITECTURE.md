@@ -2,6 +2,18 @@
 
 > 光华管理学院本科生党支部 SOP 引擎 — 核心架构说明 v10.0
 
+## Canonical Authority Rule
+
+The institutional source of truth of this system is:
+`knowledge/SOP/*`
+
+All application logic, schema definitions, and UI behavior must derive from the SOP documents.
+
+**Modification order:**
+SOP → Domain Schema → Service Logic → UI Layer
+
+*AI Agent Directive: Do not bypass the institutional layer. Any feature request or UI modification must be backed by a corresponding SOP rule change first.*
+
 ## Repository Structure
 
 ```
