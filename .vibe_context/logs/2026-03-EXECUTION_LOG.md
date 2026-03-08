@@ -1872,3 +1872,73 @@ N/A（本 Session 为纯文档治理重构操作）
 
 ### Schema Impact
 none
+
+---
+
+## Session 47 — 2026-03-08
+
+### 修改16：党小组组织生活会全链路业务规则重构
+
+**触发来源：** 书记《SOP 优化与规则补丁提案》（党小组组织生活会场景）  
+**执行模式：** SOP → Domain Schema → UI 全链路同步
+
+#### Change Trace
+
+**SOP 变更：**
+- `knowledge/SOP/常见工作场景快速指南.md` v1.9→v2.0：
+  - 快速流程文字全面更新
+  - 组织生活会步骤从8步扩展至16步
+  - 新增「时间统筹」（T-7，三组长GCD→支委群→书记大群发布，全员至少参与一场）
+  - 新增「全员述职回顾」（T-5）
+  - 新增「发布考勤二维码」（活动中，现场组织的党小组长）
+  - 更新「签到与刚性考勤」（纪检委员配合组长二维码）
+  - 新增「摄影留存宣传底稿」（T+3，现场主持的党小组长）
+  - 更新「后台考勤汇总」（T+3，纪检委员在小程序汇总：姓名/学号/发展阶段/所属党小组）
+  - 新增「汇总组织生活会记录」（T+5，组长收集骨干检查材料）
+  - 新增「档案归档」（T+5，宣传委员归档全部材料）
+  - 更新⚠️注意事项：时间统筹三步走、会前述职回顾、考勤归口双轨制、会后双交付物
+  - 更新📋产出物清单：考勤汇总表/宣传底稿/组织生活会记录
+- `knowledge/SOP/纪检委员工作流程指南.md` v3.4→v3.5：
+  - §2.3 考勤工作流程表：新增活动中步骤（配合党小组长完成签到/组织生活会由党小组长发布二维码）
+  - 活动后步骤：新增「组织生活会专项：在后台考勤小程序汇总出勤数据」
+  - 新增「组织生活会考勤归口说明（2026-03-08 更新）」：二维码归口/后台汇总字段/导出归档
+
+**Schema 字段变更（`src/domain.js`）：**
+- `Activity` typedef 新增：
+  - `attendanceQROwner: 'leader'|'disc-commissioner'` — 考勤二维码发布方（组织生活会专用）
+  - `deliverableIds: string[]` — 关联的交付物 ID 列表
+- 新增 `Deliverable` typedef：type（photography_draft|attendance_summary|meeting_record|propaganda|check_material）/owner/status/submittedAt/note
+- `mockDB.attendances` 扩展字段：`studentId`（学号）、`developStage`（发展阶段）、`partyGroup`（所属党小组）
+- `mockDB` 新增 `deliverables: []` 数组
+
+**sopDatabase 变更（`src/main.js`）：**
+- `org-life` 场景从 8 个 task 扩展为 14 个 task（1a-0 至 1a-9）：
+  - 新增 1a-0（时间统筹）、1a-2b（全员述职回顾）、1a-4b（发布考勤二维码）、1a-6b（摄影留存宣传底稿）、1a-7b（后台考勤汇总）
+  - 原 1a-8（考勤记录与档案归档）拆分为新 1a-7b（后台考勤汇总 T+3）、1a-8（汇总组织生活会记录 T+5）、1a-9（档案归档 T+5）
+  - 所有新 task 含 Source 溯源注释
+
+**UI 变更（`index.html`）：**
+- 组织生活会时间轴从 8 节点扩展为 14 节点（编号1-14）
+- 新增节点7（发布考勤二维码，leader）、节点10（摄影留存宣传底稿，leader+交付物标注）、节点12（后台考勤汇总，commissioner+字段说明+交付物标注）、节点13（汇总组织生活会记录，leader+交付物标注）、节点14（档案归档，commissioner）
+- 节点1（时间统筹）：新增，含支委群同步→书记大群发布流程
+- 节点4（全员述职回顾）：新增，T-5天，data-role="all"
+- 节点8（签到与刚性考勤）：更新描述（组长发码后纪检委员记录）
+
+#### Backlog 核销
+
+- `backlog/PENDING_MODIFICATIONS.md`：修改16 移除（已完成）
+- `backlog/COMPLETED_TASKS.md`：修改16 追加完成记录
+
+#### 受影响文件清单
+
+| 文件 | 变更类型 | 说明 |
+|------|---------|------|
+| `knowledge/SOP/常见工作场景快速指南.md` | UPDATE v1.9→v2.0 | 组织生活会16步流程+产出物清单+注意事项 |
+| `knowledge/SOP/纪检委员工作流程指南.md` | UPDATE v3.4→v3.5 | §2.3 考勤归口说明+组织生活会专项 |
+| `src/domain.js` | UPDATE | Deliverable typedef+Activity扩展字段+mockDB.deliverables+attendances扩展字段 |
+| `src/main.js` | UPDATE | sopDatabase org-life 14个task |
+| `index.html` | UPDATE | org-life 14节点时间轴 |
+| `backlog/PENDING_MODIFICATIONS.md` | UPDATE | 修改16 移除 |
+| `backlog/COMPLETED_TASKS.md` | APPEND | 修改16 完成记录 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | APPEND | Session 47 日志 |
+

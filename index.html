@@ -645,9 +645,40 @@ body {
         </div>
       </div>
 
-      <!-- 1A-1 确定会议主题 -->
+      <!-- 1A-0 时间统筹（三组长协调） -->
       <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="org-life">
         <div class="tl-spine"><div class="tl-dot">1</div><div class="tl-line"></div></div>
+        <div class="tl-card">
+          <div class="js-expand-trigger">
+            <div class="flex-1 min-w-0">
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">时间统筹（三组长协调）</p>
+              <div class="flex flex-wrap gap-1.5 mt-1.5">
+                <span class="badge-role">党小组组长</span>
+                <span class="badge-time">T-7 天</span>
+              </div>
+            </div>
+            <span class="wwh-chevron">▶</span>
+          </div>
+          <div class="js-expand-target max-h-0 opacity-0">
+            <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">三位党小组长各自统计本组党员可用时间，取最大公因数（重叠时间段）；在<strong>支委群</strong>中同步各组可用时段；由<strong>支部书记</strong>在党支部大群统一发布，要求<strong>全员至少参与一场</strong>。</p>
+              </div>
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
+                <span class="badge-role">三位党小组组长（统计+同步）</span>
+                <span class="mx-1 text-gray-300">→</span>
+                <span class="badge-role">支部书记（大群发布）</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1A-1 确定会议主题 -->
+      <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="org-life">
+        <div class="tl-spine"><div class="tl-dot">2</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
@@ -676,7 +707,7 @@ body {
 
       <!-- 1A-2 会前谈心谈话 -->
       <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="org-life">
-        <div class="tl-spine"><div class="tl-dot">2</div><div class="tl-line"></div></div>
+        <div class="tl-spine"><div class="tl-dot">3</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
@@ -703,16 +734,16 @@ body {
         </div>
       </div>
 
-      <!-- 1A-3 布置对照检查材料 -->
-      <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="org-life">
-        <div class="tl-spine"><div class="tl-dot">3</div><div class="tl-line"></div></div>
+      <!-- 1A-2b 全员述职回顾 -->
+      <div class="timeline-node" data-domain="activity" data-role="all" data-scenario="org-life">
+        <div class="tl-spine"><div class="tl-dot">4</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
-              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">布置对照检查材料</p>
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">全员述职回顾</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
-                <span class="badge-role">党小组组长</span>
-                <span class="badge-time">T-7 天</span>
+                <span class="badge-role">全体参会党员</span>
+                <span class="badge-time">T-5 天</span>
               </div>
             </div>
             <span class="wwh-chevron">▶</span>
@@ -721,7 +752,38 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">通知本组党员提前撰写个人对照检查材料，明确检查角度与格式要求。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">全体参会党员回顾总结过去一年在党支部中承担了什么工作（<strong>述职</strong>），作为个人对照检查材料的基础素材。</p>
+              </div>
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
+                <span class="badge-role">全体参会党员</span>
+                <span class="mx-1 text-gray-300">督办：</span>
+                <span class="badge-role">党小组组长</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1A-3 布置对照检查材料 -->
+      <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="org-life">
+        <div class="tl-spine"><div class="tl-dot">5</div><div class="tl-line"></div></div>
+        <div class="tl-card">
+          <div class="js-expand-trigger">
+            <div class="flex-1 min-w-0">
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">布置对照检查材料</p>
+              <div class="flex flex-wrap gap-1.5 mt-1.5">
+                <span class="badge-role">党小组组长</span>
+                <span class="badge-time">T-5 天</span>
+              </div>
+            </div>
+            <span class="wwh-chevron">▶</span>
+          </div>
+          <div class="js-expand-target max-h-0 opacity-0">
+            <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">通知本组党员在述职回顾基础上撰写个人对照检查材料，明确检查角度与格式要求。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
@@ -734,7 +796,7 @@ body {
 
       <!-- 1A-4 发布会议通知 -->
       <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="org-life">
-        <div class="tl-spine"><div class="tl-dot">4</div><div class="tl-line"></div></div>
+        <div class="tl-spine"><div class="tl-dot">6</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
@@ -761,9 +823,38 @@ body {
         </div>
       </div>
 
+      <!-- 1A-4b 发布考勤二维码 -->
+      <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="org-life">
+        <div class="tl-spine"><div class="tl-dot">7</div><div class="tl-line"></div></div>
+        <div class="tl-card">
+          <div class="js-expand-trigger">
+            <div class="flex-1 min-w-0">
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">发布考勤二维码</p>
+              <div class="flex flex-wrap gap-1.5 mt-1.5">
+                <span class="badge-role">党小组组长（现场主持）</span>
+                <span class="badge-time">活动中</span>
+              </div>
+            </div>
+            <span class="wwh-chevron">▶</span>
+          </div>
+          <div class="js-expand-target max-h-0 opacity-0">
+            <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed"><strong>现场组织的党小组长</strong>负责在会议现场发布考勤二维码，供与会党员扫码签到。</p>
+              </div>
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
+                <span class="badge-role">党小组组长（现场主持）</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 1A-5 签到与刚性考勤 -->
       <div class="timeline-node" data-domain="activity" data-role="commissioner" data-scenario="org-life">
-        <div class="tl-spine"><div class="tl-dot">5</div><div class="tl-line"></div></div>
+        <div class="tl-spine"><div class="tl-dot">8</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
@@ -779,11 +870,13 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">执行刚性考勤（三会一课范畴）。事假须提前1天申请；病假可事后补假。缺勤须记录留档。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">执行刚性考勤（三会一课范畴）。组长发布二维码后，纪检委员同步记录到场情况。事假须提前1天申请；病假可事后补假。缺勤须记录留档。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
                 <span class="badge-role">纪检委员</span>
+                <span class="mx-1 text-gray-300">督办：</span>
+                <span class="badge-role">党小组组长</span>
               </div>
             </div>
           </div>
@@ -792,7 +885,7 @@ body {
 
       <!-- 1A-6 自评、互评与总结 -->
       <div class="timeline-node" data-domain="activity" data-role="all" data-scenario="org-life">
-        <div class="tl-spine"><div class="tl-dot">6</div><div class="tl-line"></div></div>
+        <div class="tl-spine"><div class="tl-dot">9</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
@@ -808,7 +901,7 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">个人自我批评 → 相互批评（要有辣味，直指问题）→ 条条组长做总结发言。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">个人自我批评（结合述职回顾展开）→ 相互批评（要有辣味，直指问题）→ 条条组长做总结发言。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
@@ -821,9 +914,38 @@ body {
         </div>
       </div>
 
+      <!-- 1A-6b 摄影留存宣传底稿 -->
+      <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="org-life">
+        <div class="tl-spine"><div class="tl-dot">10</div><div class="tl-line"></div></div>
+        <div class="tl-card">
+          <div class="js-expand-trigger">
+            <div class="flex-1 min-w-0">
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">摄影留存宣传底稿</p>
+              <div class="flex flex-wrap gap-1.5 mt-1.5">
+                <span class="badge-role">党小组组长（现场主持）</span>
+                <span class="badge-time">T+3 天</span>
+              </div>
+            </div>
+            <span class="wwh-chevron">▶</span>
+          </div>
+          <div class="js-expand-target max-h-0 opacity-0">
+            <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed"><strong>现场主持的党小组长</strong>负责摄影留存，形成宣传底稿（照片+简要文字记录），提交宣传委员备用。<br><span class="text-[10px] text-gray-400">交付物：宣传底稿（照片+简要文字）</span></p>
+              </div>
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
+                <span class="badge-role">党小组组长（现场主持）</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 1A-7 宣传产出 -->
       <div class="timeline-node" data-domain="activity" data-role="commissioner" data-scenario="org-life">
-        <div class="tl-spine"><div class="tl-dot">7</div><div class="tl-line"></div></div>
+        <div class="tl-spine"><div class="tl-dot">11</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
@@ -839,7 +961,7 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">摘要性文字+配图，纳入月度推送。无需逐字记录发言；无需宣传预热。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">摘要性文字+配图（基于组长提供的宣传底稿），纳入月度推送。无需逐字记录发言；无需宣传预热。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
@@ -850,17 +972,16 @@ body {
         </div>
       </div>
 
-      <!-- 1A-8 考勤与档案归档 -->
+      <!-- 1A-7b 后台考勤汇总 -->
       <div class="timeline-node" data-domain="activity" data-role="commissioner" data-scenario="org-life">
-        <div class="tl-spine"><div class="tl-dot">8</div><div class="tl-line"></div></div>
+        <div class="tl-spine"><div class="tl-dot">12</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
-              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">考勤记录与档案归档</p>
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">后台考勤汇总</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
                 <span class="badge-role">纪检委员</span>
-                <span class="badge-role">宣传委员</span>
-                <span class="badge-time">T+3 至 T+5 天</span>
+                <span class="badge-time">T+3 天</span>
               </div>
             </div>
             <span class="wwh-chevron">▶</span>
@@ -869,13 +990,73 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">纪检委员记录考勤并归档（T+3天）；宣传委员归档全部会议材料（T+5天），含签到表、对照检查材料、会议记录。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed"><strong>纪检委员</strong>在后台考勤小程序中统一汇总出勤数据，字段含：<strong>姓名、学号、发展阶段、所属党小组</strong>；导出后提交宣传委员归档。<br><span class="text-[10px] text-gray-400">交付物：考勤汇总表（含姓名/学号/发展阶段/所属党小组）</span></p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">纪检委员（考勤）</span>
-                <span class="mx-1 text-gray-300">+</span>
-                <span class="badge-role">宣传委员（归档）</span>
+                <span class="badge-role">纪检委员</span>
+                <span class="mx-1 text-gray-300">督办：</span>
+                <span class="badge-role">党小组组长</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1A-8 汇总组织生活会记录 -->
+      <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="org-life">
+        <div class="tl-spine"><div class="tl-dot">13</div><div class="tl-line"></div></div>
+        <div class="tl-card">
+          <div class="js-expand-trigger">
+            <div class="flex-1 min-w-0">
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">汇总组织生活会记录</p>
+              <div class="flex flex-wrap gap-1.5 mt-1.5">
+                <span class="badge-role">党小组组长</span>
+                <span class="badge-time">T+5 天</span>
+              </div>
+            </div>
+            <span class="wwh-chevron">▶</span>
+          </div>
+          <div class="js-expand-target max-h-0 opacity-0">
+            <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed"><strong>党小组组长</strong>会后收集过去一年承担较多工作的骨干同志的检查材料，汇总整理形成完整的<strong>组织生活会记录</strong>（含述职摘要+对照检查精选）。<br><span class="text-[10px] text-gray-400">交付物：组织生活会记录（骨干检查材料汇总）</span></p>
+              </div>
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
+                <span class="badge-role">党小组组长</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1A-9 档案归档 -->
+      <div class="timeline-node" data-domain="activity" data-role="commissioner" data-scenario="org-life">
+        <div class="tl-spine"><div class="tl-dot">14</div><div class="tl-line"></div></div>
+        <div class="tl-card">
+          <div class="js-expand-trigger">
+            <div class="flex-1 min-w-0">
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">档案归档</p>
+              <div class="flex flex-wrap gap-1.5 mt-1.5">
+                <span class="badge-role">宣传委员</span>
+                <span class="badge-time">T+5 天</span>
+              </div>
+            </div>
+            <span class="wwh-chevron">▶</span>
+          </div>
+          <div class="js-expand-target max-h-0 opacity-0">
+            <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">宣传委员归档全部会议材料：签到表、考勤汇总表（纪检委员提供）、对照检查材料、宣传底稿（组长提供）、组织生活会记录（组长提供）。</p>
+              </div>
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
+                <span class="badge-role">宣传委员</span>
+                <span class="mx-1 text-gray-300">督办：</span>
+                <span class="badge-role">党小组组长</span>
               </div>
             </div>
           </div>
