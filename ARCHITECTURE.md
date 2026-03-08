@@ -2,6 +2,18 @@
 
 > 光华管理学院本科生党支部 SOP 引擎 — 核心架构说明 v10.0
 
+## Canonical Authority Rule
+
+The institutional source of truth of this system is:
+`knowledge/SOP/*`
+
+All application logic, schema definitions, and UI behavior must derive from the SOP documents.
+
+**Modification order:**
+SOP → Domain Schema → Service Logic → UI Layer
+
+*AI Agent Directive: Do not bypass the institutional layer. Any feature request or UI modification must be backed by a corresponding SOP rule change first.*
+
 ## Repository Structure
 
 ```
@@ -52,6 +64,44 @@ domain.js → service.mock.js → service.runtime.js → main.js (UI)
 ```
 
 所有 mutation 必须经过 Service 层；UI 层禁止直接操作 `mockDB`。
+
+## Data Mutation Rule
+
+**All data mutations must pass through the service layer.**
+
+**Forbidden operations (outside Service Layer):**
+- `mockDB` direct mutation (e.g., `.push()`, direct assignment)
+- `localStorage` direct write (`localStorage.setItem`)
+
+**Allowed write operations (via API):**
+- `BranchService.createActivity()`
+- `BranchService.updateActivity()`
+- `BranchService.archiveActivity()`
+- `BranchService.createTask()`
+- `BranchService.toggleTaskStatus()`
+
+**Read Operations Exception:**
+To avoid over-restriction and ensure rendering performance, read operations (list, get) may read from `mockDB` directly (e.g., via exported `mockDB` object), but service-layer access (`BranchService.listActivities()`) is preferred for strict consistency.
+
+## System Change Pipeline (Strict Order)
+
+All system modifications MUST follow this one-way waterfall execution flow:
+1. Update SOP (Modify the canonical Markdown documents first)
+2. Update Domain Schema (Sync fields and `Source` annotations in `domain.js`)
+3. Update Service Logic (Modify API and persistence validation)
+4. Update UI (Render the final changes)
+
+**Change Trace Protocol:**
+Before modifying Service or UI layers, AI MUST output a `Change Trace` in the chat:
+- SOP change: `knowledge/SOP/[file_name].md#[section]`
+- Schema impact: `[e.g., Activity.supervisor]`
+- Service impact: `[e.g., updateActivity validation]`
+
+**[Checkpoint 6]** AI MUST verify and explicitly confirm:
+1. SOP has been updated.
+2. Domain Schema is synchronized.
+
+*Failure to confirm halts the pipeline. UI/Service modifications are FORBIDDEN until SOP/Schema are aligned.*
 
 ## Hosting
 

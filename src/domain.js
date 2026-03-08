@@ -12,18 +12,18 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  id          - 唯一标识符（由 id.js 生成）
  * @property {string}  title       - 活动标题
  * @property {string}  type        - 活动类型（如 '组织生活会'、'主题党日'）
- * @property {'draft'|'published'|'ongoing'|'completed'} status - 活动状态
- * @property {'branch'|'group'} visibility - 可见范围：全支部 or 党小组
+ * @property {'draft'|'published'|'ongoing'|'completed'} status - 活动状态 - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
+ * @property {'branch'|'group'} visibility - 可见范围：全支部 or 党小组 - Source: knowledge/SOP/支委与党小组定人定责定岗说明.md#一、人员结构与双重身份体系
  * @property {string}  date        - 活动日期 ISO 字符串（YYYY-MM-DD）
- * @property {string}  executor    - 执行角色
- * @property {string|null} supervisor - 督办角色（可为 null）
+ * @property {string}  executor    - 执行角色 - Source: knowledge/SOP/组织委员工作流程指南.md#一、工作职责总览
+ * @property {string|null} supervisor - 督办角色（可为 null） - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
  * @property {string}  createdBy   - 创建者用户 ID
  * @property {string}  createdAt   - 创建时间 ISO 字符串
- * @property {'low'|'normal'|'urgent'} [priority] - 优先级（工作流引擎用）
+ * @property {'low'|'normal'|'urgent'} [priority] - 优先级（工作流引擎用） - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
  * @property {string}  [dueDate]   - 截止日期 ISO 字符串（自动化提醒锚点）
  * @property {boolean} [archived]  - 软删除标记（true 表示已归档）
- * @property {string}  [domain]    - 领域：'activity' | 'organization'
- * @property {string}  [scenarioId] - 关联的场景 ID（对应 sopDatabase）
+ * @property {string}  [domain]    - 领域：'activity' | 'organization' - Source: knowledge/SOP/支委与党小组定人定责定岗说明.md#二、"条条"与"块块"双线管理体系
+ * @property {string}  [scenarioId] - 关联的场景 ID（对应 sopDatabase） - Source: knowledge/SOP/常见工作场景快速指南.md#📋 目录
  * @property {string}  [description] - 活动描述
  * @property {string}  [targetDate]  - 目标日期 ISO 字符串（T-0，兼容旧字段）
  */
@@ -33,7 +33,7 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  id          - 唯一标识符（由 id.js 生成）
  * @property {string}  activityId  - 所属活动 ID
  * @property {string}  title       - 任务标题
- * @property {'pending'|'in_progress'|'completed'} status - 任务状态
+ * @property {'pending'|'in_progress'|'completed'} status - 任务状态 - Source: knowledge/SOP/组织委员工作流程指南.md#四大工作场景
  * @property {string}  createdAt   - 创建时间 ISO 字符串（审计字段）
  */
 

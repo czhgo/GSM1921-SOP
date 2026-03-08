@@ -6,6 +6,11 @@
 
 ## 路由白名单规则
 
+**Decoupled Governance Directories (AI Read/Write, Human Read/Write):**
+- `governance/`: AI (Read/Write), Human (Read/Write)
+- `backlog/`: AI (Read/Write), Human (Read/Write)
+- `logs/`: AI (Read/Write), Human (Read/Write)
+
 | 路由标识 | 路由说明 | ✅ 允许修改 | ❌ 严禁修改 |
 |---------|---------|------------|-----------|
 | `ui_ux_dev` | UI 视觉开发 | `index.html`, `assets/*` | `/src/*`, `流程指南/*`, `.vibe_context/*` |
@@ -34,3 +39,43 @@
 | `.vibe_context/FILE_ACCESS.md` | `meta_audit_log` | 本文件（已创建，v8.5） |
 | `.vibe_context/SNAPSHOT_vX.Y.md` | `meta_audit_log` | 系统快照（按版本命名） |
 | `.vibe_context/logs/YYYY-MM-EXECUTION_LOG.md` | `meta_audit_log` | 月度执行日志（按月创建） |
+
+## Repository Structure Rule
+
+Repository structure is immutable.
+
+AI agents are forbidden to:
+- create new root directories
+- rename directories
+- move files between layers
+
+Allowed modification scope is limited to file contents only.
+
+## Exception Rule
+
+If a structural change is required for Phase 2/3 roadmap implementation (e.g., adding `backend/` for Supabase integration),
+
+AI must:
+1. Present a migration plan
+2. Explain impact on architecture
+3. Obtain explicit user confirmation
+
+*Only after human approval may the structure change proceed.*
+
+## Binary Preservation Rule
+Files with the following extensions are **immutable**:
+- .pdf
+- .docx
+- .pptx
+- .xlsx
+
+AI agents are strictly forbidden to:
+- modify
+- rewrite
+- summarize
+- convert
+
+Allowed actions:
+- read metadata
+- move files to correct directory
+- reference them in documentation
