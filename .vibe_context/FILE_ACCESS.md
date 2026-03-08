@@ -6,6 +6,11 @@
 
 ## 路由白名单规则
 
+**Decoupled Governance Directories (AI Read/Write, Human Read/Write):**
+- `governance/`: AI (Read/Write), Human (Read/Write)
+- `backlog/`: AI (Read/Write), Human (Read/Write)
+- `logs/`: AI (Read/Write), Human (Read/Write)
+
 | 路由标识 | 路由说明 | ✅ 允许修改 | ❌ 严禁修改 |
 |---------|---------|------------|-----------|
 | `ui_ux_dev` | UI 视觉开发 | `index.html`, `assets/*` | `/src/*`, `流程指南/*`, `.vibe_context/*` |
