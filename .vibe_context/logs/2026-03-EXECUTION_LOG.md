@@ -1764,3 +1764,111 @@ N/A（本 Session 为纯资产迁移操作）
 
 ### Schema Impact
 none
+
+---
+
+## Session — 2026-03-08T10:54Z (Review State Decoupling & Governance Standardization)
+
+### 检查点声明
+
+**[Phase 1]** `REVIEW_STATE.md` 四大版块（Pending Tasks、Session Log、Watchlist、Suspended Issues）已无损剥离至独立文件。  
+**[Phase 2]** `governance/README.md` 已建立为治理导航全局入口。  
+**[Phase 3]** `backlog/PENDING_MODIFICATIONS.md` 已强制重构为标准 Markdown 表格。
+
+### REVIEW_STATE Session Log — Full History (Sessions 0–46)
+
+> 完整剥离自 `.vibe_context/REVIEW_STATE.md` § `📋 Session Log`。信息去向：物理迁移至月度审计账本，无信息丢失。
+
+| Session # | Date | Scenario | Changes Made | Outcome |
+|-----------|------|----------|-------------|---------|
+| 0 | 2026-02-21 | — | Initialized `.vibe_context/` architecture | ✅ Done |
+| 1 | 2026-02-21 | yaml_metadata_fix | Injected YAML frontmatter into 5 root node files | ✅ Done |
+| 2 | 2026-02-21 | — | Migrated `_review/书记审阅记录.md` → REVIEW_STATE; upgraded WORKFLOW_MASTER to v1.1; replaced generic scenarios with domain-specific scenarios; deleted `_review/` | ✅ Done |
+| 3 | 2026-02-21 | sop_restructuring | Added `## 🤖 AI 协同工作流` section to `START_HERE.md`; includes Standard Invocation Prompt and Review Inbox workflow in Chinese | ✅ Done |
+| 4 | 2026-02-21 | yaml_metadata_fix + activity_rules_enforcement | Phase1: injected YAML frontmatter into 5 more files (_quick_cards/README.md + 申报材料模板/4×README); Phase2: restructured 场景1 into 总入口+1A+1B in 常见工作场景快速指南.md; completed 修改1-3,5-12 | ✅ Done |
+| 5 | 2026-02-21 | sop_restructuring | Created EXECUTION_LOG.md; updated WORKFLOW_MASTER SOP Step 6 + Standard Output Templates; added §3.0 按活动类型的宣传规范 to 宣传委员工作流程指南.md; resolved W3 | ✅ Done |
+| 6 | 2026-02-22 | — | Added `## 🗺️ Dual-Panel Reference Map` section to WORKFLOW_MASTER v1.3: explicit storage paths, invocation methods, trigger conditions for both panels; 一改俱改 coupling mechanism table + validation gate | ✅ Done |
+| 7 | 2026-02-22 | — | Created CONTENT_MAP.md: dual-purpose architecture declaration, annotated Markdown index (25 files), binary file registry (11 files), coverage gap table (G1-G4); added W5 to REVIEW_STATE Watchlist; updated WORKFLOW_MASTER v1.4 (SOP Step 2b + AI Panel storage paths) | ✅ Done |
+| 8 | 2026-02-22 | Control Plane Refactoring | Added Operation Mode status bit (Sandbox/Strict) to REVIEW_STATE header; added Scope column to Watchlist (W1-W2→Global, W3-W5→Scenario-1 Only) and Suspended Issues (H1→Scenario-1 Only, H2-H3→Global) | ✅ Done |
+| 9 | 2026-02-22 | Global Audit + Debt Resolution + Vision Declaration | Step1: C5/C6 in sop_restructuring+activity_rules_enforcement → dynamic scope-aware; Step2: W1+W2 resolved (6 files updated); Step3: W5 resolved (card-01 rewritten A/B); Step4: Vision declaration added to README.md | ✅ Done |
+| 10 | 2026-02-22 | Template Razor & Feedback Channel (H2 Unlocked) | Razor-cut 3 MD templates (活动复盘/活动总结/支部基本信息 v1→v2, -75% lines); created _quick_cards/SOP优化提案反馈卡.md; added feedback card notice to START_HERE.md; H2 removed from Suspended Issues | ✅ Done |
+| 11 | 2026-02-23 | Constitution Upgrade & Taxonomy Sync | WORKFLOW_MASTER v1.5: Permanent Principle 5 (Occam's Razor) added; REVIEW_STATE v2.0: Directive Dimensions table added; SOP优化提案反馈卡 v1.1: §1 Scope rewritten to 4-dimension taxonomy | ✅ Done |
+| 12 | 2026-02-28 | Role Refactoring & Blind Spot Eradication | Step1: 工作流程图§5+定人定责说明§六场景3 盲区修复; Step2: 组织委员指南v1.1; 纪检委员指南v3.1; Step3: 常见工作场景快速指南v1.4; W4 ✅ 出清 | ✅ Done |
+| 13 | 2026-02-28 | SemVer Enforcement & Terminology Refactoring | WORKFLOW_MASTER v1.6 — Principle 6 (SemVer严格递增规范); 全局命名空间重构 — A类→组织生活会 / B类+灵活学习活动→党小组主题党日活动，涉及8个文件 | ✅ Done |
+| 14 | 2026-02-28 | Topology Refactoring & Logic Gap Detection | 工作流程图v1.1→v1.2 — 三大核心骨架重构; REVIEW_STATE v2.3 — 新增悬置H4 | ✅ Done |
+| 15 | 2026-02-28 | Read & Triage — Priority Decision Inbox | 零业务规则修改。全库深度扫描：提取P0/P1/P2。Priority Decision Inbox 已在聊天窗口输出供书记决断。 | ✅ Done |
+| 16 | 2026-02-28 | Constitution Upgrade: Ripple Sync Protocol | WORKFLOW_MASTER v1.6→v1.7：Principle 7（单一事实来源与衍生品同步）新增；一改俱改Coupling表格升级；R2新增UNLESS豁免条款 | ✅ Done |
+| 17 | 2026-02-28 | Global Sync Audit & Remediation | 宣传委员工作流程指南.md §3.0 TOC条目+标题修正（Session 13术语替换遗漏）；footer版本号同步；card-01 "A/B类别忘了"→正式术语 | ✅ Done |
+| 18 | 2026-02-28 | Log Rotation & Knowledge Distillation | Step1: 新建 `.vibe_context/logs/`; 原EXECUTION_LOG.md归档至logs/2026-02-EXECUTION_LOG.md; 新建logs/2026-03-EXECUTION_LOG.md。Step2: 新建docs/党支部管理与实务经验沉淀.md v1.0。Step3: WORKFLOW_MASTER v1.7→v1.8 | ✅ Done |
+| 19 | 2026-02-28 | Global Resolution & Coverage Completion | H4+H1解锁并解决；修改13完成；组织委员指南v1.2；场景1A注意事项补充；activity_rules_enforcement 16/17步骤标记[x]；CONTENT_MAP v1.2 G1缺口修复；经验沉淀v1.1匿名化 | ✅ Done |
+| 20 | 2026-02-28 | Directory Folding & Global View Synchronization | 新建`参考资料/`; git mv 官方文件/党小组会/支部委员会至参考资料/内部; 控制面路径重写（WORKFLOW_MASTER/CONTENT_MAP/REVIEW_STATE/activity_rules_enforcement）; 衍生视图刷新（README/START_HERE/CHEATSHEET/流程指南）; 死链修复12处 | ✅ Done |
+| 21 | 2026-02-28 | UX Overhaul & Log Pipeline Recovery | README.md v1.2→v1.3 全面重构; 补录Session 20完整执行日志; 追加Session 21日志 | ✅ Done |
+| 22 | 2026-03-02 | Agent-on-Agent Audit & Marginal Polish | README.md Step2降级特征识别→升维修正，v1.3→v1.4; 确认Session 20/21日志已正确写入; Session 22追加 | ✅ Done |
+| 23 | 2026-03-02 | Data Tagging & Legacy Asset Deprecation | 修改14悬置; 冗余资产出清（流程图+_quick_cards/整目录8文件）; 结构化打标（时间锚点列/角色标签注入场景1A/1B/2/3/4及三位块块委员指南） | ✅ Done |
+| 24 | 2026-03-02 | High-Fidelity UI Scaffolding & Data Binding | 新建三文件SPA架构（index.html+app.js+style.css）; Tailwind CDN + marked.js CDN; 党建红渐变Header; 毛玻璃角色切换面板; parseSOP()/extractTableGroups(); CONTENT_MAP v1.3→v1.4 | ✅ Done |
+| 25 | 2026-03-02 | AI-Driven Static Compilation (fetch→hardcode) | 废弃 marked.js + fetch(); app.js 压缩至 38 行纯 DOM 切换器; index.html 硬编码全部业务数据; style.css 新增 .hidden fallback; WORKFLOW_MASTER v1.8→v1.9 | ✅ Done |
+| 26 | 2026-03-02 | Gov-Grade Typography & State Machine Architecture | style.css v4.0完整重写; index.html全面重构（24张卡片注入data-role/domain/scenario/全站Emoji清零/badge-time/badge-role/file-ref）; app.js v4.0重写（SSOT store/enterCard/leaveCard动画） | ✅ Done |
+| 27 | 2026-03-02 | Domain Router + Vertical Timeline WWH Architecture (v5.0) | 彻底销毁全部<table> DOM; 注入顶层领域分流器; 47个.timeline-node WWH骨架; app.js v5.0双轨过滤; style.css v5.0 | ✅ Done |
+| 29 | 2026-03-02 | Feedback Loop Recovery & sopDatabase Injection | 重建docs/SOP优化提案反馈卡.md v1.3; 注入const sopDatabase（10个场景）; START_HERE.md反馈卡链接更新; CONTENT_MAP.md新增docs/章节 | ✅ Done |
+| 30 | 2026-03-02 | Execution Template Upgrade & Feedback Card Simplification | WORKFLOW_MASTER v1.9→v1.10: 执行日志模板升为4段; docs/SOP优化提案反馈卡.md回归精简1-2-3格式 | ✅ Done |
+| 31 | 2026-03-02 | v6.x 全局深度审查与逻辑除垢 | index.html header添加"意见反馈"锚点; WORKFLOW_MASTER Enforcement Verification去除app.js引用; 补录Session 25/29执行日志; 修复REVIEW_STATE Session 24/26行截断 | ✅ Done |
+| 32 | 2026-03-03 | Navigation Refactoring & Dead-Link Elimination | START_HERE.md v1.1→v1.2: YAML删除死链，5秒导航更新; README.md v1.5→v1.6: C位增加index.html+反馈卡链接 | ✅ Done |
+| 33 | 2026-03-03 | Visual Asset Binding + Data Mapping Guide | index.html header替换☆占位符为党徽.png; 新建docs/SOP数据映射与同步指南.md v1.0; 执行日志v1.7→v1.8 | ✅ Done |
+| 34 | 2026-03-03 | Business Rule Cleanup + v7.0 Engine Upgrade | 阶段一：组织委员公域发令权剥离（场景1A/1B/5）; 阶段二：index.html v7.0—新增sopDatabase（9场景40节点），instantiateSOP引擎，SOP实例化推演控制台 | ✅ Done |
+| 35 | 2026-03-04 | v7.1 双视图引擎上线与日历重构 | 侧边栏全局路由（参考指南/推演工作台双Tab）; 甘特图移除; 大型月历网格; 详情检查器面板; sopDatabase补录desc字段; index.html v7.0→v7.1 | ✅ Done |
+| 36 | 2026-03-04 | Sidebar Visibility Fix + Calendar Cell Height Fix | hidden md:flex→flex; .cal-cell-large min-height 5.5rem→8rem; 补录Session 35/36执行日志; v7.1→v7.2 | ✅ Done |
+| 37 | 2026-03-04 | v7.3 Apple Liquid Glass UI 跃迁 | CSS重构：.glass/.tl-card/.inspector-card升级; ROLE_COLORS改为rgba透明着色; 液态玻璃底色; 按钮inset顶部白光; v7.2→v7.3 | ✅ Done |
+| 38 | 2026-03-04 | 修改15：公邮查收、思想汇报与材料审核权责重划 | 规则1：思想汇报1500字; 规则2：公邮移交纪检委员; 规则3：材料审核由党办+组织委员督办; 涉及5个文件 | ✅ Done |
+| 39 | 2026-03-04 | v7.3→v7.4 UX重构：推演工作台首屏+移动端液态玻璃抽屉+模板分发中心 | 侧边栏Tab重排; 废弃mobile-sidebar; 新增#mobile-drawer液态玻璃抽屉; 新增#view-templates视图; v7.3→v7.4 | ✅ Done |
+| 40 | 2026-03-04 | v7.4→v7.5 移动端修复+死链清洗+BaaS后端存根 | #sidebar-desktop `hidden md:flex`; 模板中心死链替换GitHub绝对路径; sopDatabase后注入cloudState存根; v7.4→v7.5 | ✅ Done |
+| 41 | 2026-03-04 | v7.5→v7.6 响应式布局抢修 | #sidebar-desktop `flex-col`→`md:flex-col`; 日历父容器flex→flex-col lg:flex-row; 手机端纵向折行; v7.5→v7.6 | ✅ Done |
+| 42 | 2026-03-04 | v7.6→v7.7 废除数字编号+SVG图标+执行督办权责拆分 | scenarioId语义化; 侧边栏role-abbr文字→inline SVG图标; sopDatabase role字段拆为executor+supervisor; v7.6→v7.7 | ✅ Done |
+| 43 | 2026-03-04 | v7.7→v7.9 侧边栏永驻+角色粒度+人名剥离+数据规约 | 删除sidebar隐藏逻辑; cloudState三接口扩展; 全局剥离具体人名→标准角色称谓; 新建docs/支部建设经验与数据权限规约.md; v7.7→v7.9 | ✅ Done |
+| 44 | 2026-03-04 | v7.9→v7.9.1 知识库降维合并+ACL注入+侧边栏大一统 | 合并docs/支部建设经验→docs/党支部管理与实务经验沉淀.md模块四; WORKFLOW_MASTER注入[数据安全与ACL协议]; 废除mobile-drawer+sidebar-desktop双DOM; v7.9→v7.9.1 | ✅ Done |
+| 45 | 2026-03-04 | v7.9.1→v8.3 轻量级 SaaS 架构：原生 ESM 分层+Immutable+状态驱动+防竞态 | 新增src/domain.js/service.mock.js/service.runtime.js/main.js; 清洗index.html; v7.9.1→v8.3 | ✅ Done |
+| 46 | 2026-03-04 | v8.3→v8.4 全局双面板文档对齐 | 重写README.md(v2.0); 清洗4个MD文件数字编号→语义化名称; WORKFLOW_MASTER v1.12; 新建SNAPSHOT_v8.4.md; v8.3→v8.4 | ✅ Done |
+
+### Phase 1 — REVIEW_STATE.md Decoupling
+
+- **2026-03-08 10:54** `[MOVE]` `REVIEW_STATE.md § ✅ Pending Modification Tasks` → `backlog/COMPLETED_TASKS.md` + `backlog/PENDING_MODIFICATIONS.md`
+  - **信息去向**：`[x]` 已完成任务（修改1-13, 15）→ `COMPLETED_TASKS.md`；`⏸️` 悬置任务（修改14）→ `PENDING_MODIFICATIONS.md`（标准表格格式）。
+
+- **2026-03-08 10:54** `[MOVE]` `REVIEW_STATE.md § 📋 Session Log` → `.vibe_context/logs/2026-03-EXECUTION_LOG.md`
+  - **信息去向**：Sessions 0–46 完整剥离，追加至月度审计账本，无信息丢失。
+
+- **2026-03-08 10:54** `[MOVE]` `REVIEW_STATE.md § 🔍 Agent Watchlist` → `governance/WATCHLIST.md`
+  - **信息去向**：W1–W5 完整迁移，无信息丢失。
+
+- **2026-03-08 10:54** `[MOVE]` `REVIEW_STATE.md § ⏸️ Suspended Issues` → `governance/SUSPENDED_ISSUES.md`
+  - **信息去向**：H1/H3/H4 完整迁移，无信息丢失。
+
+- **2026-03-08 10:54** `[OVERWRITE]` `.vibe_context/REVIEW_STATE.md`
+  - **信息去向**：精简为 Overall Progress + Recent Changes（Scenario Execution Status）两节；四大版块已分别物理落位于 backlog/ 与 governance/ 目录下，无信息永久性删除。
+
+### Phase 2 — Governance Index
+
+- **2026-03-08 10:54** `[CREATE]` `governance/README.md`
+  - **信息去向**：治理维度全局入口，4个导航链接（Monitoring 2项 + Change Management 2项）。
+
+### Phase 3 — Backlog Standardisation
+
+- **2026-03-08 10:54** `[CREATE]` `backlog/PENDING_MODIFICATIONS.md`
+  - **信息去向**：修改14 重构为标准 Markdown 表格（ID/Title/Type/Priority/Status/Owner/Notes 七列）。
+
+### 受影响文件清单
+
+| 文件 | 变更类型 | 说明 |
+|------|---------|------|
+| `.vibe_context/REVIEW_STATE.md` | OVERWRITE | 精简为 Overall Progress + Scenario Execution Status |
+| `governance/README.md` | CREATE | 治理导航全局入口 |
+| `governance/WATCHLIST.md` | CREATE | W1–W5 监查问题 |
+| `governance/SUSPENDED_ISSUES.md` | CREATE | H1/H3/H4 悬置问题 |
+| `backlog/COMPLETED_TASKS.md` | CREATE | 修改1-13,15 已完成任务 |
+| `backlog/PENDING_MODIFICATIONS.md` | CREATE | 修改14 待处理（标准表格） |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | APPEND | 追加本条目 + Sessions 0–46 完整历史 |
+
+### SOP Reference
+N/A（本 Session 为纯文档治理重构操作）
+
+### Schema Impact
+none
