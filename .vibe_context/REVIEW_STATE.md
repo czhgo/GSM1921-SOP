@@ -6,6 +6,22 @@ last_updated: "2026-03-08"
 version: "6.0"
 ---
 
+# AI CONTROL PLANE STATUS
+
+**System Mode:** Governance Enabled
+
+**Control Plane:** `REVIEW_STATE.md`  
+**Data Planes:** `governance/`, `backlog/`, `logs/`
+
+**Summary:**
+- Open Backlog Items: 1
+- Watchlist Items: 5
+- Suspended Issues: 3
+
+> **NOTE:** All statistics are derived summary values. Authoritative data resides in data-plane files.
+
+---
+
 # REVIEW STATE — Single Source of Truth
 
 > **Role:** Tracks overall code-modification progress. Detailed task tracking has been decoupled into `governance/` and `backlog/` directories.  
