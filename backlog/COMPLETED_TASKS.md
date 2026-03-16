@@ -27,3 +27,4 @@ last_updated: "2026-03-08"
 | 修改13 | 外出活动特殊注意事项 | 2026-02-28 | Session 19 | 场景1B注意事项：用车双轨制（京内大巴/出京特事特办）；经费全部书记审批（无免批额度）；H4 已解锁 |
 | 修改15 | 公邮查收、思想汇报与材料审核权责重划 `[Role]` | 2026-03-04 | Session 38 | 思想汇报统一1500字；公邮查收移交纪检委员（每周1次）；材料审核由党办进行，组织委员督办 |
 | 修改16 | 党小组组织生活会全链路业务规则重构 | 2026-03-08 | Session 47 | 新增时间统筹机制（三组长GCD→支委群→书记大群发布，全员至少参与一场）；新增会前5天全员述职回顾；考勤归口双轨制（现场组长发二维码+纪检委员后台小程序汇总含姓名/学号/发展阶段/所属党小组）；会后双交付物（主持组长摄影底稿+骨干检查材料汇总组织生活会记录）；穿透至 domain.js 新增 Deliverable 类型+attendanceQROwner 字段+AttendanceRecord 扩展字段；UI 新增14步时间轴节点 |
+| 修改17 | 组织生活会数据层级联更新（service.mock.js + domain.js） | 2026-03-16 | Session 48 | service.mock.js 新增 Deliverable CRUD（createDeliverable/listDeliverables/updateDeliverable）、seedOrgLifeDeliverables 初始化函数（预挂考勤汇总表-韩思宁/组织生活会记录-党小组组长）、getScenarioMilestones 里程碑分组查询；saveDB/loadDB 新增 deliverables 持久化；domain.js Deliverable typedef 新增 ownerName 字段；UI 后台考勤汇总节点标注具体负责人韩思宁 |

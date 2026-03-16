@@ -48,7 +48,8 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  id          - 唯一标识符（由 id.js 生成）
  * @property {string}  activityId  - 所属活动 ID
  * @property {'photography_draft'|'attendance_summary'|'meeting_record'|'propaganda'|'check_material'} type - 交付物类型 - Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
- * @property {string}  owner       - 责任角色（执行方） - Source: knowledge/SOP/支委与党小组定人定责定岗说明.md
+ * @property {string}  owner       - 责任角色标识符（执行方角色）- Source: knowledge/SOP/支委与党小组定人定责定岗说明.md
+ * @property {string}  [ownerName] - 责任人姓名（具体负责人，如"韩思宁"、"党小组组长"）- Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
  * @property {'pending'|'submitted'|'archived'} status - 交付物状态
  * @property {string}  [submittedAt] - 提交时间 ISO 字符串
  * @property {string}  [note]      - 备注说明

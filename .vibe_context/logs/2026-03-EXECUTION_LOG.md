@@ -1942,3 +1942,50 @@ none
 | `backlog/COMPLETED_TASKS.md` | APPEND | 修改16 完成记录 |
 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | APPEND | Session 47 日志 |
 
+
+---
+
+## Session 48 — 2026-03-16
+
+### 修改17：组织生活会数据层级联更新（service.mock.js + domain.js）
+
+**触发来源：** 书记《SOP 优化与规则补丁提案》（Route 2+3+4 级联更新）  
+**备注：** Route 1（RAW_SOP_INPUT 绝对替换）跳过 — 问题描述中 `<RAW_SOP_INPUT>` 标签内容为空，无新文本可注入；现有 16 步 SOP 内容已完整，予以保留。
+
+#### Change Trace
+
+**边界侦测（Route 1 侦测结果）：**
+- 定位 `knowledge/SOP/常见工作场景快速指南.md` 第 59 行：`### 【活动建设】组织生活会（严肃政治会议）`
+- 结束边界：第 112 行 `---` 分隔线（下一场景开始前）
+- 旧文行数范围：L59–L112（54 行，含 16 步详细表格、⚠️注意事项、📋产出物清单）
+- **操作：保留** — RAW_SOP_INPUT 内容缺失，无替换内容可注入，现有文本已正确反映书记业务规则
+
+**数据层变更（Route 2）：**
+- `src/domain.js`：Deliverable typedef 新增可选字段 `ownerName: string` — 记录具体责任人姓名（如"韩思宁"）；带 Source 注释
+- `src/service.mock.js`：
+  - `saveDB()`：新增 `deliverables: mockDB.deliverables` 持久化（旧版缺失此行已擦除并补入）
+  - `loadDB()`：新增 `if (Array.isArray(parsed.deliverables)) mockDB.deliverables = parsed.deliverables;`（旧版缺失此行已擦除并补入）
+  - 新增 `createDeliverable(data)` — 带 generateId + _maybeError + saveDB
+  - 新增 `listDeliverables(activityId?)` — 支持按 activityId 过滤
+  - 新增 `updateDeliverable(id, patch)` — Immutable patch + saveDB
+  - 新增 `seedOrgLifeDeliverables(activityId)` — 为组织生活会活动预挂两类产出物：
+    - 考勤汇总表（Owner: 纪检委员韩思宁，T+3天）
+    - 组织生活会记录（Owner: 党小组组长，T+5天）
+  - 新增 `getScenarioMilestones(scenarioId, sopDB)` — 将 sopDatabase tasks 按时间偏移分组为 会前准备/会中实施/会后归档 三个里程碑阶段
+
+**表现层变更（Route 3）：**
+- `index.html`：后台考勤汇总节点（步骤12）Who 字段更新：`纪检委员` → `纪检委员 韩思宁`，明确具体负责人
+
+**Backlog 核销（Route 4）：**
+- `backlog/COMPLETED_TASKS.md`：修改17 追加完成记录
+
+#### 受影响文件清单
+
+| 文件 | 变更类型 | 说明 |
+|------|---------|------|
+| `src/domain.js` | UPDATE | Deliverable typedef 新增 ownerName 字段 |
+| `src/service.mock.js` | UPDATE | saveDB/loadDB 补入 deliverables 持久化；新增5个导出函数 |
+| `index.html` | UPDATE | 步骤12 Who 标注具体负责人韩思宁 |
+| `backlog/COMPLETED_TASKS.md` | APPEND | 修改17 完成记录 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | APPEND | Session 48 日志 |
+

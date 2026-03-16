@@ -25,6 +25,7 @@ function saveDB() {
       activities:  mockDB.activities,
       tasks:       mockDB.tasks,
       attendances: mockDB.attendances,
+      deliverables: mockDB.deliverables,
     }));
   } catch (e) {
     console.warn('[MockAdapter] saveDB 失败：', e);
@@ -46,9 +47,10 @@ export function loadDB() {
       );
       return;
     }
-    if (Array.isArray(parsed.activities))  mockDB.activities  = parsed.activities;
-    if (Array.isArray(parsed.tasks))       mockDB.tasks       = parsed.tasks;
-    if (Array.isArray(parsed.attendances)) mockDB.attendances = parsed.attendances;
+    if (Array.isArray(parsed.activities))   mockDB.activities   = parsed.activities;
+    if (Array.isArray(parsed.tasks))        mockDB.tasks        = parsed.tasks;
+    if (Array.isArray(parsed.attendances))  mockDB.attendances  = parsed.attendances;
+    if (Array.isArray(parsed.deliverables)) mockDB.deliverables = parsed.deliverables;
     // 注：users 为静态预设数据，不从持久化存储恢复，以避免运行时数据污染
     console.info('[MockAdapter] loadDB 成功，已恢复持久化数据。');
   } catch (e) {
@@ -227,4 +229,144 @@ export function listTasks() {
     _maybeError('listTasks');
     return [...mockDB.tasks];
   });
+}
+
+// ── Deliverable CRUD ─────────────────────────────────────────────
+// Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
+// 产出物清单：考勤汇总表（纪检委员韩思宁）+ 组织生活会记录（党小组组长）
+
+/**
+ * 创建交付物（Immutable 写入 mockDB）
+ * @param {Omit<import('./domain.js').Deliverable,'id'>} data
+ * @returns {Promise<import('./domain.js').Deliverable>}
+ */
+export function createDeliverable(data) {
+  return _withDelay(() => {
+    _maybeError('createDeliverable');
+    const newItem = {
+      ...data,
+      id:     generateId('dlv'),
+      status: data.status || 'pending',
+    };
+    mockDB.deliverables = [...mockDB.deliverables, newItem];
+    saveDB();
+    console.info('[MockAdapter] createDeliverable 成功，id=' + newItem.id
+      + '，type=' + newItem.type + '，owner=' + (newItem.ownerName || newItem.owner));
+    return newItem;
+  });
+}
+
+/**
+ * 列出交付物（只读）
+ * @param {string} [activityId] - 按活动 ID 过滤；省略则返回全部
+ * @returns {Promise<import('./domain.js').Deliverable[]>}
+ */
+export function listDeliverables(activityId) {
+  return _withDelay(() => {
+    _maybeError('listDeliverables');
+    const result = activityId
+      ? mockDB.deliverables.filter(d => d.activityId === activityId)
+      : [...mockDB.deliverables];
+    return result;
+  });
+}
+
+/**
+ * 更新交付物（Immutable patch）
+ * @param {string} id - 交付物 ID
+ * @param {Partial<import('./domain.js').Deliverable>} patch - 更新字段
+ * @returns {Promise<import('./domain.js').Deliverable>}
+ */
+export function updateDeliverable(id, patch) {
+  return _withDelay(() => {
+    _maybeError('updateDeliverable');
+    const idx = mockDB.deliverables.findIndex(d => d.id === id);
+    if (idx === -1) {
+      throw Object.assign(new Error(`交付物 ${id} 不存在`), { type: 'NotFoundError' });
+    }
+    const updated = { ...mockDB.deliverables[idx], ...patch };
+    mockDB.deliverables = [
+      ...mockDB.deliverables.slice(0, idx),
+      updated,
+      ...mockDB.deliverables.slice(idx + 1),
+    ];
+    saveDB();
+    console.info('[MockAdapter] updateDeliverable 成功，id=' + id + '，status=' + updated.status);
+    return updated;
+  });
+}
+
+/**
+ * 初始化组织生活会产出物模板（为指定活动挂载两类必交产出物）
+ * - 考勤汇总表：执行人 纪检委员韩思宁
+ * - 组织生活会记录：执行人 党小组组长
+ * Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
+ * @param {string} activityId - 所属活动 ID
+ * @returns {Promise<import('./domain.js').Deliverable[]>}
+ */
+export function seedOrgLifeDeliverables(activityId) {
+  return _withDelay(() => {
+    _maybeError('seedOrgLifeDeliverables');
+    const created = [
+      {
+        activityId,
+        id:        generateId('dlv'),
+        type:      'attendance_summary',
+        owner:     'disc-commissioner',
+        ownerName: '韩思宁',
+        status:    'pending',
+        note:      '纪检委员在后台考勤小程序汇总，字段：姓名/学号/发展阶段/所属党小组 [T+3天]',
+      },
+      {
+        activityId,
+        id:        generateId('dlv'),
+        type:      'meeting_record',
+        owner:     'leader',
+        ownerName: '党小组组长',
+        status:    'pending',
+        note:      '组长收集骨干同志检查材料，汇总述职摘要+对照检查精选 [T+5天]',
+      },
+    ];
+    mockDB.deliverables = [...mockDB.deliverables, ...created];
+    saveDB();
+    console.info('[MockAdapter] seedOrgLifeDeliverables 成功，activityId=' + activityId
+      + '，挂载产出物：' + created.map(d => d.type).join('、'));
+    return created;
+  });
+}
+
+// ── Milestone Query ──────────────────────────────────────────────
+
+/**
+ * 获取指定场景（scenarioId）的里程碑分组
+ * 将 sopDatabase 中的 tasks 按 timeOffset 分组并标注阶段名称。
+ * 组织生活会阶段划分：
+ *   会前准备 (T-7 至 T-3) → 会中实施 (T=0) → 会后归档 (T+3 至 T+5)
+ * Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
+ * @param {string} scenarioId - 场景 ID（如 'org-life'）
+ * @param {Array<{scenarioId:string,tasks:Array<{taskId:string,title:string,executor:string,timeOffset:number|null,desc:string}>}>} sopDB - sopDatabase.scenarios 数组
+ * @returns {{ phase: string, timeLabel: string, tasks: object[] }[]}
+ */
+export function getScenarioMilestones(scenarioId, sopDB) {
+  const scenario = (sopDB || []).find(s => s.scenarioId === scenarioId);
+  if (!scenario) return [];
+
+  // Phase boundary constants (timeOffset in days, T=0 is event day)
+  const PRE_MEETING_MAX_OFFSET  = -1;  // timeOffset < 0  → 会前准备
+  const POST_MEETING_MIN_OFFSET =  1;  // timeOffset > 0  → 会后归档
+
+  const phaseMap = [
+    { phase: '会前准备',  label: 'T-7 ~ T-3 天', test: t => t.timeOffset !== null && t.timeOffset <= PRE_MEETING_MAX_OFFSET },
+    { phase: '会中实施',  label: '活动中',         test: t => t.timeOffset === 0 },
+    { phase: '会后归档',  label: 'T+3 ~ T+5 天',  test: t => t.timeOffset !== null && t.timeOffset >= POST_MEETING_MIN_OFFSET },
+    { phase: '无时间锚点', label: '—',             test: t => t.timeOffset === null },
+  ];
+
+  return phaseMap
+    .map(({ phase, label, test }) => ({
+      phase,
+      timeLabel: label,
+      tasks: scenario.tasks.filter(test),
+    }))
+    .filter(group => group.tasks.length > 0);
 }
