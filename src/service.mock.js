@@ -105,6 +105,7 @@ export function createActivity(data) {
     };
     // Immutable 写入：展开符替换整个数组，禁止 push/splice
     mockDB.activities = [...mockDB.activities, newItem];
+    saveDB();
     console.info('[MockAdapter] createActivity 成功，id=' + newItem.id
       + '，当前 activities 总数：' + mockDB.activities.length);
     return newItem;
@@ -160,6 +161,7 @@ export function deleteActivity(id) {
     if (mockDB.activities.length === prev) {
       throw Object.assign(new Error(`活动 ${id} 不存在`), { type: 'NotFoundError' });
     }
+    saveDB();
     console.info('[MockAdapter] deleteActivity 成功，id=' + id);
     return { id };
   });

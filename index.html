@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>党支部 SOP 引擎 · 光华管理学院本科生</title>
+  <title>光华管理学院本科生党支部 SOP 引擎</title>
   <meta name="description" content="光华管理学院本科生党支部 SOP 引擎 — AI 静态编译交互视图 v7.3">
 
   <!-- Gov-Grade Web Fonts: Noto Sans SC + Noto Serif SC -->
@@ -492,8 +492,7 @@ body {
     </div>
 
     <div class="min-w-0 leading-tight">
-      <div class="font-stheiti text-white font-bold text-sm sm:text-[15px] tracking-wide truncate">光华管理学院本科生党支部</div>
-      <div class="text-red-200 text-[11px] tracking-widest">SOP 引擎 · AI 静态编译版 v8.3</div>
+      <div class="font-stheiti text-white font-bold text-2xl sm:text-3xl tracking-wide truncate">光华管理学院本科生党支部 SOP 引擎</div>
     </div>
 
     <div class="flex-1"></div>
@@ -537,15 +536,7 @@ body {
         <p class="font-stheiti text-[11px] text-gray-400 mt-0.5 leading-snug">点击角色筛选相关工作节点</p>
       </div>
 
-      <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
-              data-role="all"
-              data-headline="全部工作场景"
-              data-subline="按领域查看：活动建设或组织建设，再按角色精准定位"
-              aria-label="全部场景">
-        <span class="role-abbr mb-1 flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
-        <span class="role-name font-stheiti font-semibold text-sm text-gray-700">全部场景</span>
-        <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">完整工作地图</span>
-      </button>
+
       <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
               data-role="leader"
               data-headline="党小组组长 的工作节点"
@@ -557,11 +548,11 @@ body {
       </button>
       <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
               data-role="commissioner"
-              data-headline="条条委员 的工作节点"
+              data-headline="条条支委 的工作节点"
               data-subline="跨党小组职能保障：信息通知（组织）、档案归档（宣传）、考勤督办（纪检）"
-              aria-label="条条委员">
+              aria-label="条条支委">
         <span class="role-abbr mb-1 flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
-        <span class="role-name font-stheiti font-semibold text-sm text-gray-700">条条委员</span>
+        <span class="role-name font-stheiti font-semibold text-sm text-gray-700">条条支委</span>
         <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">组织 / 宣传 / 纪检</span>
       </button>
       <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
@@ -2344,19 +2335,10 @@ body {
                  class="font-stheiti text-sm px-3 py-1.5 rounded-lg bg-white"
                  style="border:1.5px solid #CE1126;color:#1f2937;outline:none;">
         </div>
-        <div>
-          <label class="block font-stheiti text-[11px] text-gray-500 mb-1">场景</label>
-          <select id="scenario-select-cal"
-                  class="font-stheiti text-sm px-3 py-1.5 rounded-lg bg-white"
-                  style="border:1.5px solid #e5e7eb;color:#1f2937;outline:none;">
-            <option value="org-life">【活动建设】组织生活会</option>
-            <option value="theme-party">【活动建设】党小组主题党日活动</option>
-            <option value="all-timed">活动建设全场景（含时间锚点）</option>
-          </select>
-        </div>
+
         <button id="gen-schedule-cal-btn"
                 class="font-stheiti text-sm text-white px-5 py-1.5 rounded-lg"
-                style="background:#CE1126;">生成排期</button>
+                style="background:#CE1126;">写入活动</button>
       </div>
     </div>
 
@@ -2375,6 +2357,15 @@ body {
       <div id="inspector-panel"
            class="w-full lg:w-[40%] glass rounded-2xl border border-white/60 sticky"
            style="top: 80px; max-height: calc(100vh - 120px); overflow-y: auto; padding: 16px 18px;">
+        <!-- 月份筛选器 -->
+        <div class="mb-3">
+          <label class="block font-stheiti text-[11px] text-gray-500 mb-1">筛选月份</label>
+          <select id="month-selector"
+                  class="font-stheiti text-sm px-3 py-1.5 rounded-lg bg-white w-full"
+                  style="border:1.5px solid #CE1126;color:#1f2937;outline:none;">
+            <option value="">全部月份</option>
+          </select>
+        </div>
         <div id="inspector-default">
           <div class="flex items-center gap-2 mb-3">
             <div class="w-1.5 h-5 rounded-full flex-shrink-0" style="background:#CE1126;"></div>
