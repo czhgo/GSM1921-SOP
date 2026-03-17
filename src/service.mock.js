@@ -12,6 +12,12 @@ const MOCK_DELAY_MS = 600;
 /** LocalStorage 命名空间键名（含版本隔离） */
 const STORAGE_KEY = 'workflowos_branch_db_v1';
 
+/**
+ * 内存沙盒模式开关：设为 true 时，每次刷新自动清空持久化存储，始终使用初始 mock 数据。
+ * 设为 false 可恢复跨刷新持久化能力。
+ */
+const SANDBOX_MODE = true;
+
 // ── 持久化引擎 ──────────────────────────────────────────────────
 
 /**
@@ -37,6 +43,12 @@ function saveDB() {
  * 若数据不存在、解析失败或 _schema 版本不匹配，则拒绝加载脏数据
  */
 export function loadDB() {
+  // ── 内存沙盒模式：SANDBOX_MODE=true 时每次刷新清空存储，使用初始 mock 数据 ──
+  if (SANDBOX_MODE) {
+    localStorage.removeItem(STORAGE_KEY);
+    return;
+  }
+  /* --- 以下为持久化恢复逻辑（SANDBOX_MODE=false 时生效） ---
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return;
@@ -56,6 +68,7 @@ export function loadDB() {
   } catch (e) {
     console.warn('[MockAdapter] loadDB 失败（JSON 解析错误）：', e);
   }
+  --- */
 }
 
 /** 模拟随机错误（5% NetworkError + 5% PermissionError = 10% 总错误率） */

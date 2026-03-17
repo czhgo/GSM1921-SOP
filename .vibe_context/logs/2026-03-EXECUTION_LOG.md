@@ -2142,3 +2142,19 @@ none
 | Route 4 | `src/main.js` | "删除活动"：`window.confirm` → `BranchService.deleteActivity` → 切回 list 视图 |
 | Route 4 | `src/main.js` | `initCalendarModule` 修复：移除已删除的 `scSelect` 引用，`finally` 恢复 "写入活动" 文案 |
 | Route 5 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |
+
+---
+
+### Hotfix — 状态机断链修复与只读沙盒模式
+
+**执行范围**：`index.html` + `src/main.js` + `src/service.mock.js` + 本日志
+
+| 路由 | 文件 | 变更内容 |
+|------|------|--------|
+| Route 1a | `index.html` | 恢复 `#scenario-select-cal` 场景选择下拉框（含 org-life / theme-party / all-timed 选项） |
+| Route 1b | `index.html` | 修正开机闪烁：`#view-calendar` 移除 `hidden`，`#view-reference` 加上 `hidden`，确保工作台为默认首屏 |
+| Route 2  | `src/main.js` | 修复角色按钮 Bug：删除 `activeModule: 'reference'` 强制跳转，点击角色仅更新 `appState.role` |
+| Route 3  | `src/main.js` | 重写 `initCalendarModule`：读取 scSelect → createActivity → instantiateSOP → createTask(逐条绑定 activityId) → setState 跳转 detail 视图，完整展示 SOP 任务节点 |
+| Route 4  | `src/main.js` | `renderLargeCalendar` + `_renderLargeMonth` 重构：接受 activities 参数，日历红点由 `appState.activities`（未归档）动态生成，不再依赖 SOP 虚假数据 |
+| Route 5  | `src/service.mock.js` | `loadDB()` 顶部插入 `localStorage.removeItem(STORAGE_KEY); return;`，启用刷新即清除的内存沙盒模式 |
+| Route 6  | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条 Hotfix 执行记录 |

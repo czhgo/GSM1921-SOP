@@ -417,7 +417,7 @@ function _fmtChinese(d) {
   return d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日（周' + DN[d.getDay()] + '）';
 }
 
-function renderLargeCalendar(tasks, baseDate) {
+function renderLargeCalendar(tasks, baseDate, activities) {
   const grid  = document.getElementById('cal-main-grid');
   const empty = document.getElementById('cal-main-empty');
   if (!grid) return;
@@ -429,6 +429,7 @@ function renderLargeCalendar(tasks, baseDate) {
   if (empty) empty.classList.add('hidden');
   grid.classList.remove('hidden');
 
+  // SOP 任务日期映射（日历标签用）
   const taskMap = {};
   tasks.forEach(t => {
     const k = _fmtDate(t.date);
@@ -436,11 +437,18 @@ function renderLargeCalendar(tasks, baseDate) {
     taskMap[k].push(t);
   });
 
+  // 活动日期集合（未归档，用于红点标记）
+  const activityDates = new Set(
+    (activities || appState.activities)
+      .filter(a => !a.archived && typeof a.date === 'string' && a.date.length >= 7)
+      .map(a => a.date)
+  );
+
   const sy = tasks[0].date.getFullYear(), sm = tasks[0].date.getMonth();
   const ey = tasks[tasks.length - 1].date.getFullYear(), em = tasks[tasks.length - 1].date.getMonth();
   let html = '', y = sy, m = sm;
   while (y < ey || (y === ey && m <= em)) {
-    html += _renderLargeMonth(y, m, taskMap, baseDate);
+    html += _renderLargeMonth(y, m, taskMap, baseDate, activityDates);
     m++;
     if (m > 11) { m = 0; y++; }
   }
@@ -456,7 +464,7 @@ function renderLargeCalendar(tasks, baseDate) {
   });
 }
 
-function _renderLargeMonth(year, month, taskMap, baseDate) {
+function _renderLargeMonth(year, month, taskMap, baseDate, activityDates) {
   const MN = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
   const DN = ['一','二','三','四','五','六','日'];
   const rawFirst = new Date(year, month, 1).getDay();
@@ -464,6 +472,7 @@ function _renderLargeMonth(year, month, taskMap, baseDate) {
   const days     = new Date(year, month + 1, 0).getDate();
   const todayKey = _fmtDate(new Date());
   const baseKey  = _fmtDate(baseDate);
+  const actDates = activityDates || new Set();
 
   let h = `<div class="mb-6"><div class="font-stheiti text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${year}年 ${MN[month]}</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">`;
   DN.forEach(d => { h += `<div class="font-stheiti text-[11px] text-gray-400 text-center pb-1.5 font-semibold">${d}</div>`; });
@@ -475,13 +484,17 @@ function _renderLargeMonth(year, month, taskMap, baseDate) {
     const isT = k === todayKey;
     const isB = k === baseKey;
     const ct  = taskMap[k] || [];
+    const hasActivity = actDates.has(k);
     let cls   = 'cal-cell-large';
-    if (ct.length > 0) cls += ' has-tasks';
-    if (isT)           cls += ' is-today';
-    if (isB)           cls += ' is-base';
+    if (ct.length > 0 || hasActivity) cls += ' has-tasks';
+    if (isT)                           cls += ' is-today';
+    if (isB)                           cls += ' is-base';
     h += `<div class="${cls}" data-date="${k}">`;
     h += `<div class="font-stheiti text-[11px] font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${day}</div>`;
     if (isB) h += '<div class="font-stheiti text-[9px] font-bold leading-none mb-1" style="color:#CE1126;">T-0</div>';
+    if (hasActivity && ct.length === 0) {
+      h += '<div class="font-stheiti text-[9px] font-bold leading-none mb-1" style="color:#CE1126;">● 活动</div>';
+    }
     ct.slice(0, 3).forEach(t => {
       const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
       h += `<div class="cal-task-tag" style="background:${c.bg};color:${c.text};border:1px solid ${c.border};"><span class="task-dot" style="background:${c.text};"></span><span class="truncate">${t.title}</span></div>`;
@@ -826,7 +839,7 @@ document.querySelectorAll('.domain-btn[data-domain]').forEach(btn => {
 // 角色按钮
 document.querySelectorAll('.role-btn[data-role]').forEach(btn => {
   btn.addEventListener('click', () => {
-    setState({ role: btn.dataset.role, activeModule: 'reference' });
+    setState({ role: btn.dataset.role });
     closeSidebar(); // 移动端选角色后收起侧边栏
   });
 });
@@ -851,7 +864,7 @@ document.querySelectorAll('.js-expand-trigger').forEach(trigger => {
 });
 
 // ════════════════════════════════════════════════════════════════
-//  推演工作台控制台初始化（写入活动 + SOP 时间轴渲染）
+//  推演工作台控制台初始化（写入活动 + SOP 任务挂载 + 跳转详情）
 // ════════════════════════════════════════════════════════════════
 (function initCalendarModule() {
   const genBtn  = document.getElementById('gen-schedule-cal-btn');
@@ -865,13 +878,18 @@ document.querySelectorAll('.js-expand-trigger').forEach(trigger => {
     // 防止连点：SUBMITTING 期间禁止再次触发
     if (appState.status === STATE.SUBMITTING || appState.status === STATE.LOADING) return;
 
-    const dateStr = t0Input.value;
+    const dateStr  = t0Input.value;
     if (!dateStr) {
       t0Input.style.borderColor = '#CE1126';
       t0Input.style.boxShadow   = '0 0 0 2px rgba(206,17,38,0.2)';
       setTimeout(() => { t0Input.style.boxShadow = ''; }, 1500);
       return;
     }
+
+    // 读取场景选择器（可选：未找到则默认 org-life）
+    const scSelect  = document.getElementById('scenario-select-cal');
+    const scVal     = scSelect ? scSelect.value : 'org-life';
+    const scIds     = scVal === 'all-timed' ? ['org-life', 'theme-party'] : [scVal];
 
     // 通过原生弹窗获取活动名称
     const actName = window.prompt('请输入活动名称（无需输入日期，将默认使用当前选中日期）：');
@@ -885,23 +903,57 @@ document.querySelectorAll('.js-expand-trigger').forEach(trigger => {
     setState({ status: STATE.SUBMITTING, error: null });
 
     try {
-      await BranchService.createActivity({
-        title:     actName.trim(),
-        domain:    'activity',
-        date:      dateStr,
-        executor:  'organizer',
-        createdBy: 'u_exec',
+      // Step 1: 创建活动主体，获取 activityId
+      const newAct = await BranchService.createActivity({
+        title:      actName.trim(),
+        domain:     'activity',
+        scenarioId: scIds[0],
+        date:       dateStr,
+        executor:   'organizer',
+        createdBy:  'u_exec',
       });
 
       if (reqId !== currentRequestId) return;
 
-      // 刷新全局状态（活动列表 + 任务列表）
+      // Step 2: 实例化 SOP 任务节点，绑定 activityId（并发创建，单任务失败不中断）
+      const sopTasks = instantiateSOP(scIds, dateStr);
+      const taskResults = await Promise.allSettled(
+        sopTasks.map(t => BranchService.createTask({
+          activityId: newAct.id,
+          title:      t.title,
+          status:     'pending',
+          executor:   t.executor,
+          supervisor: t.supervisor || null,
+          timeOffset: t.timeOffset,
+          date:       _fmtDate(t.date),
+          scenarioId: t.scenarioId,
+        }))
+      );
+      const failedCount = taskResults.filter(r => r.status === 'rejected').length;
+      if (failedCount > 0) {
+        console.warn(`[initCalendarModule] ${failedCount} 个任务节点创建失败（随机 Mock 错误）`);
+      }
+
+      if (reqId !== currentRequestId) return;
+
+      // Step 3: 刷新全局状态，跳转到新建活动的详情视图
       const [activities, tasks] = await Promise.all([
         BranchService.listActivities(),
         typeof BranchService.listTasks === 'function' ? BranchService.listTasks() : Promise.resolve([]),
       ]);
-      setState({ status: STATE.SUCCESS, activities, tasks, selectedDate: dateStr, viewMode: 'list' });
-      showToast('success', `活动「${actName.trim()}」已写入。`);
+      setState({
+        status:             STATE.SUCCESS,
+        activities,
+        tasks,
+        selectedDate:       dateStr,
+        viewMode:           'detail',
+        selectedActivityId: newAct.id,
+      });
+      showToast('success', `活动「${actName.trim()}」已写入，${sopTasks.length} 个任务节点已挂载。`);
+
+      // Step 4: 日历视图同步渲染（SOP 时间轴 + 活动点）
+      const baseDate = new Date(dateStr + 'T00:00:00');
+      renderLargeCalendar(sopTasks, baseDate, activities);
     } catch (err) {
       if (reqId !== currentRequestId) return;
       setState({ status: STATE.ERROR, error: err });
@@ -911,12 +963,6 @@ document.querySelectorAll('.js-expand-trigger').forEach(trigger => {
       genBtn.disabled = false;
       genBtn.textContent = '写入活动';
     }
-
-    // SOP 时间轴日历渲染（使用全场景含时间锚点）
-    const scIds    = ['org-life', 'theme-party'];
-    const sopTasks = instantiateSOP(scIds, dateStr);
-    const baseDate = new Date(dateStr + 'T00:00:00');
-    renderLargeCalendar(sopTasks, baseDate);
   });
 }());
 

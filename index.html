@@ -602,7 +602,7 @@ body {
   <!-- ══════════════════════════════════════════════════════════════
        MODULE A: 参考指南 (Reference Guide) — 时间轴主视图
        ══════════════════════════════════════════════════════════════ -->
-  <div id="view-reference">
+  <div id="view-reference" class="hidden">
 
     <!-- 标题区 -->
     <div class="mb-4">
@@ -2321,7 +2321,7 @@ body {
   <!-- ══════════════════════════════════════════════════════════════
        MODULE B: 推演工作台 (Calendar / Inspector) — 仅此模块显示
        ══════════════════════════════════════════════════════════════ -->
-  <div id="view-calendar" class="hidden">
+  <div id="view-calendar">
 
     <div class="mb-5">
       <h1 class="font-stheiti text-lg font-bold text-gray-800 mb-1">推演工作台</h1>
@@ -2334,6 +2334,17 @@ body {
           <input type="date" id="t0-input-cal"
                  class="font-stheiti text-sm px-3 py-1.5 rounded-lg bg-white"
                  style="border:1.5px solid #CE1126;color:#1f2937;outline:none;">
+        </div>
+
+        <div>
+          <label class="block font-stheiti text-[11px] text-gray-500 mb-1">选择场景</label>
+          <select id="scenario-select-cal"
+                  class="font-stheiti text-sm px-3 py-1.5 rounded-lg bg-white"
+                  style="border:1.5px solid #CE1126;color:#1f2937;outline:none;">
+            <option value="org-life">【活动建设】组织生活会</option>
+            <option value="theme-party">【活动建设】主题党日</option>
+            <option value="all-timed">全部含时间节点场景</option>
+          </select>
         </div>
 
         <button id="gen-schedule-cal-btn"
