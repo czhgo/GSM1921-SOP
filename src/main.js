@@ -27,6 +27,10 @@ let appState = {
   domain:      'activity',
   role:        'all',
   activeModule: 'calendar',
+  // 列表/详情双视图状态
+  viewMode:            'list',   // 'list' | 'detail'
+  selectedActivityId:  null,     // 当前详情视图对应的活动 ID
+  selectedDate:        null,     // 当前选中日期 (YYYY-MM-DD)
 };
 
 // ── 防竞态：当前请求 ID ────────────────────────────────────────
@@ -318,6 +322,14 @@ function renderUI(state) {
     }
   }
 
+  // ── 推演工作台：月份选择器 & 检查器状态路由 ───────────────
+  if (activeModule === 'calendar') {
+    populateMonthSelector(state.activities);
+    if (state.selectedDate) {
+      renderInspectorFromState(state);
+    }
+  }
+
   if (activeModule !== 'reference') return;
 
   // ── 以下仅参考指南模块需要 ─────────────────────────────────
@@ -438,7 +450,8 @@ function renderLargeCalendar(tasks, baseDate) {
     cell.addEventListener('click', () => {
       grid.querySelectorAll('.cal-cell-large.selected').forEach(c => c.classList.remove('selected'));
       cell.classList.add('selected');
-      renderInspector(taskMap[cell.dataset.date] || [], cell.dataset.date);
+      // 更新状态 → 触发 renderUI → renderInspectorFromState
+      setState({ selectedDate: cell.dataset.date, viewMode: 'list', selectedActivityId: null });
     });
   });
 }
@@ -528,6 +541,232 @@ function renderInspector(tasks, dateKey) {
   if (cardsEl) cardsEl.innerHTML = html;
 }
 
+
+// ════════════════════════════════════════════════════════════════
+//  月份选择器：提取活动月份并填充 #month-selector
+// ════════════════════════════════════════════════════════════════
+let _monthSelectorBound = false;
+
+function populateMonthSelector(activities) {
+  const sel = document.getElementById('month-selector');
+  if (!sel) return;
+
+  // 提取未归档活动的 YYYY-MM，去重倒序
+  const months = [...new Set(
+    activities
+      .filter(a => !a.archived && typeof a.date === 'string' && a.date.length >= 7)
+      .map(a => a.date.slice(0, 7))
+  )].sort().reverse();
+
+  // 仅在数据变化时重建选项
+  const existing = [...sel.options].slice(1).map(o => o.value);
+  const changed = months.length !== existing.length || months.some((m, i) => m !== existing[i]);
+  if (changed) {
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">全部月份</option>';
+    months.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = m;
+      sel.appendChild(opt);
+    });
+    if (months.includes(prev)) sel.value = prev;
+  }
+
+  // 绑定 change 事件（只绑一次）
+  if (!_monthSelectorBound) {
+    _monthSelectorBound = true;
+    sel.addEventListener('change', () => {
+      if (!sel.value) return;
+      const t0 = document.getElementById('t0-input-cal');
+      if (t0) t0.value = sel.value + '-01';
+      // 切换月份后清空选中日期，等待用户点击
+      setState({ selectedDate: null, viewMode: 'list', selectedActivityId: null });
+    });
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  检查器状态路由分发（根据 viewMode 切换 List / Detail）
+// ════════════════════════════════════════════════════════════════
+function renderInspectorFromState(state) {
+  if (state.viewMode === 'detail' && state.selectedActivityId) {
+    const act = state.activities.find(a => a.id === state.selectedActivityId);
+    if (act) {
+      const actTasks = state.tasks.filter(t => t.activityId === act.id);
+      renderInspectorDetail(act, actTasks);
+    } else {
+      renderInspectorList(state.activities, state.selectedDate);
+    }
+  } else {
+    renderInspectorList(state.activities, state.selectedDate);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  列表视图：渲染指定日期的未归档活动列表
+// ════════════════════════════════════════════════════════════════
+function renderInspectorList(activities, dateKey) {
+  const defEl     = document.getElementById('inspector-default');
+  const contentEl = document.getElementById('inspector-content');
+  const titleEl   = document.getElementById('inspector-date-title');
+  const cardsEl   = document.getElementById('inspector-cards');
+  if (!defEl || !contentEl) return;
+
+  const dateActivities = dateKey
+    ? activities.filter(a => !a.archived && a.date === dateKey)
+    : [];
+
+  if (dateActivities.length === 0) {
+    defEl.classList.remove('hidden');
+    contentEl.classList.add('hidden');
+    return;
+  }
+
+  defEl.classList.add('hidden');
+  contentEl.classList.remove('hidden');
+
+  if (titleEl) {
+    titleEl.textContent = _fmtChinese(new Date(dateKey + 'T00:00:00')) + ' · 活动列表';
+  }
+
+  const statusMap = { draft: '草稿', published: '已发布', ongoing: '进行中', completed: '已完成' };
+  let html = '';
+  dateActivities.forEach(act => {
+    const label = statusMap[act.status] || act.status;
+    html += `<div class="inspector-card" style="cursor:pointer;" data-act-id="${act.id}">`;
+    html += `<div class="flex items-start justify-between gap-2 mb-1">`;
+    html += `<p class="font-stheiti font-bold text-sm text-gray-800 leading-snug flex-1">${act.title}</p>`;
+    html += `<span class="badge-time flex-shrink-0">${label}</span>`;
+    html += '</div>';
+    html += '<p class="font-stheiti text-[10px] text-gray-400">点击查看任务详情 →</p>';
+    html += '</div>';
+  });
+
+  if (cardsEl) {
+    cardsEl.innerHTML = html;
+    cardsEl.querySelectorAll('[data-act-id]').forEach(card => {
+      card.addEventListener('click', () => {
+        setState({ viewMode: 'detail', selectedActivityId: card.dataset.actId });
+      });
+    });
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  详情视图：渲染单个活动的任务列表与危险操作按钮
+// ════════════════════════════════════════════════════════════════
+function renderInspectorDetail(activity, tasks) {
+  const defEl     = document.getElementById('inspector-default');
+  const contentEl = document.getElementById('inspector-content');
+  const titleEl   = document.getElementById('inspector-date-title');
+  const cardsEl   = document.getElementById('inspector-cards');
+  if (!defEl || !contentEl) return;
+
+  defEl.classList.add('hidden');
+  contentEl.classList.remove('hidden');
+
+  if (titleEl) titleEl.textContent = activity.title;
+
+  const statusMap = { draft: '草稿', published: '已发布', ongoing: '进行中', completed: '已完成' };
+  const taskStatusMap = { pending: '待处理', in_progress: '进行中', completed: '已完成' };
+
+  let html = '';
+
+  // 返回列表按钮
+  html += '<button id="inspector-back-btn"'
+    + ' class="font-stheiti text-xs text-red-700 hover:text-red-900 mb-3'
+    + ' flex items-center gap-1 transition-colors"'
+    + ' style="background:none;border:none;cursor:pointer;padding:0;">'
+    + '← 返回列表</button>';
+
+  // 活动元信息
+  html += '<div class="flex items-center gap-1.5 flex-wrap mb-3">';
+  html += `<span class="badge-time">${statusMap[activity.status] || activity.status}</span>`;
+  if (activity.date) {
+    html += `<span class="font-stheiti text-[10px] text-gray-400">${activity.date}</span>`;
+  }
+  html += '</div>';
+
+  // 任务列表
+  if (tasks.length > 0) {
+    tasks.forEach(t => {
+      const tlabel = taskStatusMap[t.status] || t.status;
+      html += '<div class="inspector-card">';
+      html += `<div class="flex items-start justify-between gap-2 mb-1">`;
+      html += `<p class="font-stheiti font-bold text-sm text-gray-800 leading-snug flex-1">${t.title}</p>`;
+      html += `<span class="badge-time flex-shrink-0">${tlabel}</span>`;
+      html += '</div>';
+      html += '</div>';
+    });
+  } else {
+    html += '<p class="font-stheiti text-xs text-gray-400 py-2">暂无关联任务</p>';
+  }
+
+  // 危险操作区
+  html += '<div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">';
+  html += '<button id="inspector-archive-btn"'
+    + ' class="font-stheiti text-xs text-amber-700 hover:text-amber-900 px-3 py-1.5 rounded-lg transition-colors"'
+    + ' style="background:rgba(251,191,36,0.10);border:1px solid rgba(251,191,36,0.40);">归档活动</button>';
+  html += '<button id="inspector-delete-btn"'
+    + ' class="font-stheiti text-xs text-red-700 hover:text-red-900 px-3 py-1.5 rounded-lg transition-colors"'
+    + ' style="background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.40);">删除活动</button>';
+  html += '</div>';
+
+  if (!cardsEl) return;
+  cardsEl.innerHTML = html;
+
+  // 返回按钮
+  const backBtn = document.getElementById('inspector-back-btn');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      setState({ viewMode: 'list', selectedActivityId: null });
+    });
+  }
+
+  // 归档活动
+  const archiveBtn = document.getElementById('inspector-archive-btn');
+  if (archiveBtn) {
+    archiveBtn.addEventListener('click', async () => {
+      if (!window.confirm('确认归档该活动？它将从主视图消失。')) return;
+      try {
+        setState({ status: STATE.SUBMITTING });
+        await BranchService.archiveActivity(activity.id);
+        const [activities, tasks2] = await Promise.all([
+          BranchService.listActivities(),
+          typeof BranchService.listTasks === 'function' ? BranchService.listTasks() : Promise.resolve([]),
+        ]);
+        setState({ status: STATE.IDLE, activities, tasks: tasks2, viewMode: 'list', selectedActivityId: null });
+        showToast('success', '活动已归档。');
+      } catch (err) {
+        setState({ status: STATE.ERROR, error: err });
+        showToast('error', (err && err.message) ? err.message : '归档失败，请稍后重试。');
+      }
+    });
+  }
+
+  // 删除活动
+  const deleteBtn = document.getElementById('inspector-delete-btn');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', async () => {
+      if (!window.confirm('警告：彻底删除该活动及关联数据？')) return;
+      try {
+        setState({ status: STATE.SUBMITTING });
+        await BranchService.deleteActivity(activity.id);
+        const [activities, tasks2] = await Promise.all([
+          BranchService.listActivities(),
+          typeof BranchService.listTasks === 'function' ? BranchService.listTasks() : Promise.resolve([]),
+        ]);
+        setState({ status: STATE.IDLE, activities, tasks: tasks2, viewMode: 'list', selectedActivityId: null });
+        showToast('success', '活动已删除。');
+      } catch (err) {
+        setState({ status: STATE.ERROR, error: err });
+        showToast('error', (err && err.message) ? err.message : '删除失败，请稍后重试。');
+      }
+    });
+  }
+}
+
 // ════════════════════════════════════════════════════════════════
 //  侧边栏统一状态机（CSS Transform 驱动）
 // ════════════════════════════════════════════════════════════════
@@ -612,13 +851,12 @@ document.querySelectorAll('.js-expand-trigger').forEach(trigger => {
 });
 
 // ════════════════════════════════════════════════════════════════
-//  推演工作台控制台初始化（含防竞态 createActivity 示例）
+//  推演工作台控制台初始化（写入活动 + SOP 时间轴渲染）
 // ════════════════════════════════════════════════════════════════
 (function initCalendarModule() {
-  const genBtn   = document.getElementById('gen-schedule-cal-btn');
-  const t0Input  = document.getElementById('t0-input-cal');
-  const scSelect = document.getElementById('scenario-select-cal');
-  if (!genBtn) return;
+  const genBtn  = document.getElementById('gen-schedule-cal-btn');
+  const t0Input = document.getElementById('t0-input-cal');
+  if (!genBtn || !t0Input) return;
 
   // 默认日期为今天
   t0Input.value = _fmtDate(new Date());
@@ -635,45 +873,50 @@ document.querySelectorAll('.js-expand-trigger').forEach(trigger => {
       return;
     }
 
-    const scVal    = scSelect.value;
-    const scIds    = scVal === 'all-timed' ? ['org-life', 'theme-party'] : [scVal];
-    const tasks    = instantiateSOP(scIds, dateStr);
-    const baseDate = new Date(dateStr + 'T00:00:00');
+    // 通过原生弹窗获取活动名称
+    const actName = window.prompt('请输入活动名称（无需输入日期，将默认使用当前选中日期）：');
+    if (!actName || !actName.trim()) return;
 
-    // ── 防竞态 createActivity ─────────────────────────────────
+    // ── 防竞态 ─────────────────────────────────────────────
     const reqId = ++currentRequestId;
 
-    // 按钮 disabled + 文案变更
     genBtn.disabled = true;
-    genBtn.textContent = '云端推演中…';
+    genBtn.textContent = '写入中…';
     setState({ status: STATE.SUBMITTING, error: null });
 
     try {
       await BranchService.createActivity({
-        title:      `${scIds.join('+')} 排期`,
-        domain:     'activity',
-        scenarioId: scIds[0],
-        date:       dateStr,
-        executor:   'organizer',
-        createdBy:  'u_exec',
+        title:     actName.trim(),
+        domain:    'activity',
+        date:      dateStr,
+        executor:  'organizer',
+        createdBy: 'u_exec',
       });
 
-      if (reqId !== currentRequestId) return; // 过期请求，丢弃
-      setState({ status: STATE.SUCCESS, activities: [...appState.activities] });
-      showToast('success', '推演排期已生成，活动已记录。');
+      if (reqId !== currentRequestId) return;
+
+      // 刷新全局状态（活动列表 + 任务列表）
+      const [activities, tasks] = await Promise.all([
+        BranchService.listActivities(),
+        typeof BranchService.listTasks === 'function' ? BranchService.listTasks() : Promise.resolve([]),
+      ]);
+      setState({ status: STATE.SUCCESS, activities, tasks, selectedDate: dateStr, viewMode: 'list' });
+      showToast('success', `活动「${actName.trim()}」已写入。`);
     } catch (err) {
       if (reqId !== currentRequestId) return;
       setState({ status: STATE.ERROR, error: err });
       showToast('error', (err && err.message) ? err.message : '操作失败，请稍后重试。');
     } finally {
-      // 无论成功或失败，恢复按钮
+      // 无论成功或失败，恢复按钮文案
       genBtn.disabled = false;
-      genBtn.textContent = '生成排期';
+      genBtn.textContent = '写入活动';
     }
 
-    // 清空检查器，渲染日历
-    renderInspector([], null);
-    renderLargeCalendar(tasks, baseDate);
+    // SOP 时间轴日历渲染（使用全场景含时间锚点）
+    const scIds    = ['org-life', 'theme-party'];
+    const sopTasks = instantiateSOP(scIds, dateStr);
+    const baseDate = new Date(dateStr + 'T00:00:00');
+    renderLargeCalendar(sopTasks, baseDate);
   });
 }());
 

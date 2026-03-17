@@ -2103,3 +2103,42 @@ none
 | 职责标签互换 | `第二章（块块职责）` | `第二章（条条职责）` |
 
 **无误伤验证**：扫描全库，无"一条条"、"一块块"等日常词汇被误替换。
+
+---
+
+## 2026-03-17 — ORG OS Operation Phase 1 & Phase 2 执行记录
+
+### Phase 1 — UI 壳层重塑 + 持久化底座修复
+
+**执行范围**：`index.html` + `src/service.mock.js`
+
+| 路由 | 文件 | 变更内容 |
+|------|------|--------|
+| Route 1a | `index.html` | `<title>` → "光华管理学院本科生党支部 SOP 引擎" |
+| Route 1b | `index.html` | Header 重塑：`text-2xl sm:text-3xl font-bold tracking-wide` 单行标题，删除版本号副行 |
+| Route 1c | `index.html` | 物理删除 `<button data-role="all">` 全部场景侧边栏按钮 |
+| Route 1d | `index.html` | "条条委员" → "条条支委"（data-headline/aria-label/role-name） |
+| Route 1e | `index.html` | `#inspector-panel` 顶部注入 `<select id="month-selector">` 月份筛选器容器 |
+| Route 1f | `index.html` | 物理删除 `<select id="scenario-select-cal">` 场景选择下拉框 |
+| Route 1g | `index.html` | "生成排期" → "写入活动"（`id="gen-schedule-cal-btn"` 保留） |
+| Route 2a | `src/service.mock.js` | `createActivity`：数据写入后补 `saveDB()` 调用 |
+| Route 2b | `src/service.mock.js` | `deleteActivity`：filter+检查后补 `saveDB()` 调用 |
+
+### Phase 2 — 核心状态机重写与视图双向路由
+
+**执行范围**：`src/main.js` + `.vibe_context/AI_CONTEXT.md` + 本日志
+
+**Global Rule: Plan-Before-Execution 已正式生效**（注入 `AI_CONTEXT.md` Core Rules 顶部）
+
+| 路由 | 文件 | 变更内容 |
+|------|------|--------|
+| Route 0 | `.vibe_context/AI_CONTEXT.md` | Core Rules 顶部追加 Plan-Before-Execution 最高优先级铁律 |
+| Route 1 | `src/main.js` | `appState` 新增 `viewMode:'list'`、`selectedActivityId:null`、`selectedDate:null` |
+| Route 2 | `src/main.js` | 新增 `populateMonthSelector(activities)`：提取未归档活动 YYYY-MM，去重倒序填充 `#month-selector`，绑定 `change` 事件跳转日期 |
+| Route 3 | `src/main.js` | 新增 `renderInspectorFromState(state)`、`renderInspectorList(activities, dateKey)`、`renderInspectorDetail(activity, tasks)` — List/Detail 双视图状态路由 |
+| Route 3 | `src/main.js` | `renderLargeCalendar` 点击事件：`setState({ selectedDate, viewMode:'list' })` 替代直接调用 `renderInspector` |
+| Route 4 | `src/main.js` | "写入活动"：`window.prompt` 获取活动名 → `BranchService.createActivity` → 刷新全局视图 |
+| Route 4 | `src/main.js` | "归档活动"：`window.confirm` → `BranchService.archiveActivity` → 切回 list 视图 |
+| Route 4 | `src/main.js` | "删除活动"：`window.confirm` → `BranchService.deleteActivity` → 切回 list 视图 |
+| Route 4 | `src/main.js` | `initCalendarModule` 修复：移除已删除的 `scSelect` 引用，`finally` 恢复 "写入活动" 文案 |
+| Route 5 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |
