@@ -1989,3 +1989,58 @@ none
 | `backlog/COMPLETED_TASKS.md` | APPEND | 修改17 完成记录 |
 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | APPEND | Session 48 日志 |
 
+
+---
+
+### Session 49 — 2026-03-17T07:32:13Z (修改18)
+
+**触发事件：** 书记手动更新 `knowledge/SOP/常见工作场景快速指南.md`（组织生活会板块，14步骤版本正式确认），并启动全域一致性审查与数据隐私铁律注入。
+
+**Route 0：全局隐私铁律注入 + 旧债清洗**
+- `.vibe_context/AI_CONTEXT.md`：在 Core Rules 末尾追加 **Data Privacy (数据隐私隔离)** 铁律
+  > "绝对禁止在 `src/*`（代码层）与 `index.html`（UI 渲染层）中硬编码真实的'人类姓名'。代码流转必须且只能使用角色标识符（Role ID / Role Name）。真人姓名仅允许存在于 `knowledge/SOP/` 之中。"
+- 旧债清洗（修改17 写入的违规姓名，全部抹除）：
+  - `src/domain.js` 第52行 JSDoc 示例中 "韩思宁" → 删除，改为角色描述示例
+  - `src/service.mock.js` 注释行（3处）中 "韩思宁" → 全部删除
+  - `src/service.mock.js` `ownerName: '韩思宁'` 字段 → 整行删除
+  - `index.html` 节点12 Who 标签 `纪检委员 韩思宁` → `纪检委员`
+
+**Route 1：SOP 自主阅读 + 一致性校验**
+- 阅读书记手动更新后的 14 步骤 SOP（组织生活会），提炼关键步骤与角色，过滤所有真人姓名
+- 对照 `knowledge/SOP/纪检委员工作流程指南.md` §2.3，确认"后台统管全支部考勤"职责已完整记录（行127-132），权责一致，无冲突，无遗漏
+
+**Route 2：数据层级联演进**
+- `src/main.js` sopDatabase（org-life 场景，共 14 tasks）：
+  - 删除 `1a-3`（布置对照检查材料，T-5），与新 SOP 对齐
+  - 删除 `1a-7`（宣传产出，T+3），与新 SOP 对齐
+  - 拆分 `1a-6`（自评互评与组长总结）→ `1a-6a`（个人自评）/ `1a-6c`（互相批评）/ `1a-6d`（组长总结）
+  - 更新 `1a-4` title: "发布会议通知" → "通知到人"
+  - 更新 `1a-5` title: "签到与刚性考勤" → "签到考勤"
+  - 更新 `1a-8` desc：补入"与图片"，与新 SOP 步骤13原文对齐
+  - 更新 `1a-9` desc：改为"归档组织生活会记录，上传智慧党建平台"，与新 SOP 步骤14对齐
+
+**Route 3：表现层对齐（14 节点，无真名污染）**
+- `index.html`：重写节点 5-11（共7个），节点 12-14 精准更新，最终共 14 个 org-life 节点：
+  - 节点5：布置对照检查材料 → 通知到人 (T-3, leader)
+  - 节点6：发布会议通知 → 发布考勤二维码 (活动中, leader)
+  - 节点7：发布考勤二维码 → 签到考勤 (活动中, commissioner)
+  - 节点8：签到考勤 → 个人自评 (活动中, all)
+  - 节点9：自评互评与组长总结 → 互相批评 (活动中, all)
+  - 节点10：摄影留存宣传底稿 → 组长总结 (活动中, leader)
+  - 节点11：宣传产出 → 摄影留存宣传底稿 (T+3, leader)
+  - 节点12：纪检委员 韩思宁 → 纪检委员（真名清除）
+  - 节点13 desc：补入"与图片"，与新 SOP 对齐
+  - 节点14 desc：改为"归档组织生活会记录，上传智慧党建平台"
+
+**Route 4（本条目）**
+
+#### 受影响文件清单
+
+| 文件 | 变更类型 | 说明 |
+|------|---------|------|
+| `.vibe_context/AI_CONTEXT.md` | UPDATE | 追加 Data Privacy 铁律 |
+| `src/domain.js` | UPDATE | ownerName JSDoc 示例去真名 |
+| `src/service.mock.js` | UPDATE | 3处注释 + 1处 ownerName 字段去真名 |
+| `src/main.js` | UPDATE | sopDatabase 同步至新 14 步骤 SOP |
+| `index.html` | UPDATE | 14 节点全面对齐新 SOP，无真名 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | APPEND | Session 49 日志 |

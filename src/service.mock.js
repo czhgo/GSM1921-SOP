@@ -233,7 +233,7 @@ export function listTasks() {
 
 // ── Deliverable CRUD ─────────────────────────────────────────────
 // Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
-// 产出物清单：考勤汇总表（纪检委员韩思宁）+ 组织生活会记录（党小组组长）
+// 产出物清单：考勤汇总表（纪检委员）+ 组织生活会记录（党小组组长）
 
 /**
  * 创建交付物（Immutable 写入 mockDB）
@@ -298,7 +298,7 @@ export function updateDeliverable(id, patch) {
 
 /**
  * 初始化组织生活会产出物模板（为指定活动挂载两类必交产出物）
- * - 考勤汇总表：执行人 纪检委员韩思宁
+ * - 考勤汇总表：执行人 纪检委员
  * - 组织生活会记录：执行人 党小组组长
  * Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
  * @param {string} activityId - 所属活动 ID
@@ -313,7 +313,6 @@ export function seedOrgLifeDeliverables(activityId) {
         id:        generateId('dlv'),
         type:      'attendance_summary',
         owner:     'disc-commissioner',
-        ownerName: '韩思宁',
         status:    'pending',
         note:      '纪检委员在后台考勤小程序汇总，字段：姓名/学号/发展阶段/所属党小组 [T+3天]',
       },
