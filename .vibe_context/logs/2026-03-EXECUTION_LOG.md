@@ -2172,3 +2172,19 @@ none
 | Route 2 | `src/main.js` | 写入活动逻辑：优先读取 `#activity-name-input.value`，为空时回退 `window.prompt`；成功写入后自动清空输入框 |
 | Route 3 | `index.html` | `<style>` 预埋四色角色主题类：`.role-theme-leader`（红）、`.role-theme-commissioner`（黄）、`.role-theme-organizer`（蓝）、`.role-theme-deep`（绿）；新增 `.glass-input` 液态玻璃表单控件基础样式 |
 | Route 4 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |
+
+---
+
+### Phase 2/3 — 基础事件流与日历月份联动过滤
+
+**执行时间**：2026-03-18  
+**执行范围**：`src/main.js` 事件流重构（禁止触碰 HTML/CSS 主体）
+
+| 路由 | 文件 | 变更内容 |
+|------|------|--------|
+| Route 1 | `src/main.js` | `populateMonthSelector` 升级：重建选项后自动选中最新有活动的月份（降序 months[0]），fallback 到当前月；`change` 事件补充 `displayMonth` 至 setState（含 selectedDate/viewMode 重置）；函数改为返回当前有效月份 (YYYY-MM) |
+| Route 2 | `src/main.js` | 新增 `renderCalendarByActivities(activities, targetMonth)` 引擎：按 targetMonth 生成动态月份网格，遍历 appState.tasks（字符串日期）构建 tasksByDate，对活动日期注入红点 `<div class="w-1.5 h-1.5 bg-red-500 rounded-full">` 标记，始终显示日历（无数据亦渲染空格子）；格子点击 → `setState({ selectedDate, viewMode:'list' })` |
+| Route 3a | `src/main.js` | `appState` 新增 `displayMonth` 字段（初始化为当前 YYYY-MM） |
+| Route 3b | `src/main.js` | `renderUI` 日历分支：改为 `const targetMonth = populateMonthSelector(...); renderCalendarByActivities(activities, targetMonth); renderInspectorFromState(state);`（inspector 无论是否有 selectedDate 均刷新） |
+| Route 3c | `src/main.js` | `initCalendarModule` 成功路径：`setState` 补充 `displayMonth: dateStr.slice(0, 7)` 字段，删除冗余的 `renderLargeCalendar(sopTasks, baseDate, activities)` 直接调用（由 renderUI 接管） |
+| Route 4 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |

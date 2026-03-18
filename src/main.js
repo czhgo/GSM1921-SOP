@@ -16,6 +16,12 @@ const STATE = {
   ERROR:      4,  // 操作失败，恢复按钮 + Toast
 };
 
+// ── 当前月份辅助（YYYY-MM），在 _fmtDate 定义前即可用 ──────────
+function _currentYearMonth() {
+  const n = new Date();
+  return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0');
+}
+
 // ── 应用全局状态 ────────────────────────────────────────────────
 let appState = {
   // 服务层状态
@@ -31,6 +37,7 @@ let appState = {
   viewMode:            'list',   // 'list' | 'detail'
   selectedActivityId:  null,     // 当前详情视图对应的活动 ID
   selectedDate:        null,     // 当前选中日期 (YYYY-MM-DD)
+  displayMonth:        _currentYearMonth(), // 当前显示月份 YYYY-MM
 };
 
 // ── 防竞态：当前请求 ID ────────────────────────────────────────
@@ -322,12 +329,11 @@ function renderUI(state) {
     }
   }
 
-  // ── 推演工作台：月份选择器 & 检查器状态路由 ───────────────
+  // ── 推演工作台：月份选择器 & 日历 & 检查器状态路由 ───────────
   if (activeModule === 'calendar') {
-    populateMonthSelector(state.activities);
-    if (state.selectedDate) {
-      renderInspectorFromState(state);
-    }
+    const targetMonth = populateMonthSelector(state.activities);
+    renderCalendarByActivities(state.activities, targetMonth);
+    renderInspectorFromState(state);
   }
 
   if (activeModule !== 'reference') return;
@@ -507,8 +513,96 @@ function _renderLargeMonth(year, month, taskMap, baseDate, activityDates) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  检查器面板渲染（执行 vs 督办 拆分展示，WWH 保留）
+//  动态日历渲染引擎 — 按月份 + 活动红点映射
+//  取代静态 renderLargeCalendar，由 renderUI 驱动
 // ════════════════════════════════════════════════════════════════
+function renderCalendarByActivities(activities, targetMonth) {
+  const grid  = document.getElementById('cal-main-grid');
+  const empty = document.getElementById('cal-main-empty');
+  if (!grid) return;
+
+  // 有效月份
+  const now = new Date();
+  const month = targetMonth || _currentYearMonth();
+  const [y, m] = month.split('-').map(Number);
+
+  // 未归档活动 → 活动日期集合（当月）
+  const actDates = new Set(
+    (activities || [])
+      .filter(a => !a.archived && typeof a.date === 'string' && a.date.startsWith(month))
+      .map(a => a.date)
+  );
+
+  // appState.tasks（字符串日期）→ 按日期分组（当月）
+  const tasksByDate = {};
+  (appState.tasks || []).forEach(t => {
+    if (t.date && typeof t.date === 'string' && t.date.startsWith(month)) {
+      if (!tasksByDate[t.date]) tasksByDate[t.date] = [];
+      tasksByDate[t.date].push(t);
+    }
+  });
+
+  // 始终显示日历网格（即使当月无数据）
+  if (empty) empty.classList.add('hidden');
+  grid.classList.remove('hidden');
+
+  const todayKey = _fmtDate(now);
+  const MN = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+  const DN = ['一','二','三','四','五','六','日'];
+  const rawFirst = new Date(y, m - 1, 1).getDay();
+  const firstDow = (rawFirst + 6) % 7;
+  const daysInMonth = new Date(y, m, 0).getDate();
+
+  let html = `<div class="mb-6">`;
+  html += `<div class="font-stheiti text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${y}年 ${MN[m - 1]}</div>`;
+  html += `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">`;
+  DN.forEach(d => {
+    html += `<div class="font-stheiti text-[11px] text-gray-400 text-center pb-1.5 font-semibold">${d}</div>`;
+  });
+  // 前置空格
+  for (let i = 0; i < firstDow; i++) {
+    html += '<div class="cal-cell-large" style="background:transparent;border-color:transparent;"></div>';
+  }
+  // 日期格子
+  for (let day = 1; day <= daysInMonth; day++) {
+    const k = `${month}-${String(day).padStart(2, '0')}`;
+    const isT = k === todayKey;
+    const ct = tasksByDate[k] || [];
+    const hasActivity = actDates.has(k);
+    let cls = 'cal-cell-large';
+    if (ct.length > 0 || hasActivity) cls += ' has-tasks';
+    if (isT) cls += ' is-today';
+
+    html += `<div class="${cls}" data-date="${k}">`;
+    html += `<div class="font-stheiti text-[11px] font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${day}</div>`;
+    // 活动红点
+    if (hasActivity) {
+      html += '<div class="w-1.5 h-1.5 bg-red-500 rounded-full mx-auto mt-0.5 mb-0.5"></div>';
+    }
+    // 任务标签
+    ct.slice(0, 3).forEach(t => {
+      const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
+      html += `<div class="cal-task-tag" style="background:${c.bg};color:${c.text};border:1px solid ${c.border};">` +
+              `<span class="task-dot" style="background:${c.text};"></span>` +
+              `<span class="truncate">${t.title}</span></div>`;
+    });
+    if (ct.length > 3) html += `<div class="font-stheiti text-[9px] text-gray-400 mt-0.5">+${ct.length - 3} 项</div>`;
+    html += '</div>';
+  }
+  html += '</div></div>';
+  grid.innerHTML = html;
+
+  // 绑定有任务/活动格子的点击
+  grid.querySelectorAll('.cal-cell-large.has-tasks').forEach(cell => {
+    cell.addEventListener('click', () => {
+      grid.querySelectorAll('.cal-cell-large.selected').forEach(c => c.classList.remove('selected'));
+      cell.classList.add('selected');
+      setState({ selectedDate: cell.dataset.date, viewMode: 'list', selectedActivityId: null });
+    });
+  });
+}
+
+
 function renderInspector(tasks, dateKey) {
   const defEl     = document.getElementById('inspector-default');
   const contentEl = document.getElementById('inspector-content');
@@ -557,12 +651,14 @@ function renderInspector(tasks, dateKey) {
 
 // ════════════════════════════════════════════════════════════════
 //  月份选择器：提取活动月份并填充 #month-selector
+//  返回当前有效的显示月份 (YYYY-MM)
 // ════════════════════════════════════════════════════════════════
 let _monthSelectorBound = false;
 
 function populateMonthSelector(activities) {
   const sel = document.getElementById('month-selector');
-  if (!sel) return;
+  const currentMonth = _currentYearMonth();
+  if (!sel) return appState.displayMonth || currentMonth;
 
   // 提取未归档活动的 YYYY-MM，去重倒序
   const months = [...new Set(
@@ -583,20 +679,31 @@ function populateMonthSelector(activities) {
       opt.textContent = m;
       sel.appendChild(opt);
     });
-    if (months.includes(prev)) sel.value = prev;
+    // 自动选中：恢复之前的选择 > 最新有活动的月份 > 留空（当前月）
+    if (months.includes(prev)) {
+      sel.value = prev;
+    } else if (months.includes(appState.displayMonth)) {
+      sel.value = appState.displayMonth;
+    } else if (months.length > 0) {
+      sel.value = months[0]; // 最新的有活动的月份
+    }
   }
 
   // 绑定 change 事件（只绑一次）
   if (!_monthSelectorBound) {
     _monthSelectorBound = true;
     sel.addEventListener('change', () => {
-      if (!sel.value) return;
-      const t0 = document.getElementById('t0-input-cal');
-      if (t0) t0.value = sel.value + '-01';
-      // 切换月份后清空选中日期，等待用户点击
-      setState({ selectedDate: null, viewMode: 'list', selectedActivityId: null });
+      const selectedMonth = sel.value || currentMonth;
+      if (sel.value) {
+        const t0 = document.getElementById('t0-input-cal');
+        if (t0) t0.value = sel.value + '-01';
+      }
+      // 切换月份 → 更新显示月份，重置日期选择与视图模式
+      setState({ displayMonth: selectedMonth, selectedDate: null, viewMode: 'list', selectedActivityId: null });
     });
   }
+
+  return sel.value || appState.displayMonth || currentMonth;
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -955,6 +1062,7 @@ document.querySelectorAll('.js-expand-trigger').forEach(trigger => {
         status:             STATE.SUCCESS,
         activities,
         tasks,
+        displayMonth:       dateStr.slice(0, 7),  // 跳至活动所在月份
         selectedDate:       dateStr,
         viewMode:           'detail',
         selectedActivityId: newAct.id,
@@ -962,10 +1070,6 @@ document.querySelectorAll('.js-expand-trigger').forEach(trigger => {
       showToast('success', `活动「${actName.trim()}」已写入，${sopTasks.length} 个任务节点已挂载。`);
       // 清空活动名称输入框，为下次输入做准备
       if (nameInput) nameInput.value = '';
-
-      // Step 4: 日历视图同步渲染（SOP 时间轴 + 活动点）
-      const baseDate = new Date(dateStr + 'T00:00:00');
-      renderLargeCalendar(sopTasks, baseDate, activities);
     } catch (err) {
       if (reqId !== currentRequestId) return;
       setState({ status: STATE.ERROR, error: err });
