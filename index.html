@@ -465,6 +465,31 @@ body {
 ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.13); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(206, 17, 38, 0.28); }
 
+/* ── Role Theme Color Classes (预埋 Phase 3 任务过滤用) ──────── */
+.role-theme-leader      { border-color: #EF4444; background-color: #FEF2F2; color: #B91C1C; } /* 红 */
+.role-theme-commissioner{ border-color: #F59E0B; background-color: #FFFBEB; color: #B45309; } /* 黄 */
+.role-theme-organizer   { border-color: #3B82F6; background-color: #EFF6FF; color: #1D4ED8; } /* 蓝 */
+.role-theme-deep        { border-color: #10B981; background-color: #ECFDF5; color: #047857; } /* 绿 */
+
+/* ── Glassmorphism Form Inputs ───────────────────────────────── */
+.glass-input {
+  background: rgba(255, 255, 255, 0.60);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.40);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  padding: 6px 12px;
+  outline: none;
+  transition: all 200ms ease;
+  color: #1f2937;
+}
+.glass-input:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.40), 0 1px 3px rgba(0,0,0,0.06);
+  border-color: rgba(59, 130, 246, 0.50);
+}
+
   </style>
 </head>
 
@@ -577,10 +602,53 @@ body {
 
     <!-- ── 推演工作台子菜单 ── -->
     <div id="sidebar-calendar-menu" class="hidden px-1">
-      <p class="font-stheiti text-[11px] text-gray-500 leading-relaxed">
-        输入目标活动日期（T-0），选择场景后点击「生成排期」。<br><br>
-        点击日历中带有红色标记的日期，可在右侧面板查看该日工作详情。
-      </p>
+
+      <!-- 参与视图 -->
+      <div class="font-stheiti text-xs text-gray-400 font-bold mb-2 tracking-wider">👀 参与视图</div>
+      <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
+              data-role="participant"
+              aria-label="默认参与者">
+        <span class="role-abbr mb-1 flex items-center justify-center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+        <span class="role-name font-stheiti font-semibold text-sm text-gray-700">默认参与者</span>
+        <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">全程参与</span>
+      </button>
+
+      <!-- 管理视图 -->
+      <div class="font-stheiti text-xs text-gray-400 font-bold mt-6 mb-2 tracking-wider">⚙️ 管理视图</div>
+      <div class="flex flex-col gap-2">
+        <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
+                style="border-left: 3px solid #EF4444;"
+                data-role="leader"
+                aria-label="党小组组长">
+          <span class="role-abbr mb-1 flex items-center justify-center" style="background:rgba(239,68,68,0.10);color:#B91C1C;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></span>
+          <span class="role-name font-stheiti font-semibold text-sm text-gray-700">党小组组长</span>
+          <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">组织统筹决策</span>
+        </button>
+        <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
+                style="border-left: 3px solid #F59E0B;"
+                data-role="commissioner"
+                aria-label="条条支委">
+          <span class="role-abbr mb-1 flex items-center justify-center" style="background:rgba(245,158,11,0.10);color:#B45309;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+          <span class="role-name font-stheiti font-semibold text-sm text-gray-700">条条支委</span>
+          <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">组织 / 宣传 / 纪检</span>
+        </button>
+        <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
+                style="border-left: 3px solid #3B82F6;"
+                data-role="organizer"
+                aria-label="活动组织者">
+          <span class="role-abbr mb-1 flex items-center justify-center" style="background:rgba(59,130,246,0.10);color:#1D4ED8;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></span>
+          <span class="role-name font-stheiti font-semibold text-sm text-gray-700">活动组织者</span>
+          <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">策划执行督办</span>
+        </button>
+        <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
+                style="border-left: 3px solid #10B981;"
+                data-role="deep"
+                aria-label="深度参与者">
+          <span class="role-abbr mb-1 flex items-center justify-center" style="background:rgba(16,185,129,0.10);color:#047857;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg></span>
+          <span class="role-name font-stheiti font-semibold text-sm text-gray-700">深度参与者</span>
+          <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">承担具体分工</span>
+        </button>
+      </div>
     </div>
 
     <!-- ── 模板与资产子菜单 ── -->
@@ -2331,20 +2399,23 @@ body {
       <div class="glass rounded-xl border border-white/60 px-4 py-3 flex flex-wrap items-end gap-3">
         <div>
           <label class="block font-stheiti text-[11px] text-gray-500 mb-1">目标活动日期（T-0）</label>
-          <input type="date" id="t0-input-cal"
-                 class="font-stheiti text-sm px-3 py-1.5 rounded-lg bg-white"
-                 style="border:1.5px solid #CE1126;color:#1f2937;outline:none;">
+          <input type="date" id="t0-input-cal" class="glass-input font-stheiti">
         </div>
 
         <div>
           <label class="block font-stheiti text-[11px] text-gray-500 mb-1">选择场景</label>
-          <select id="scenario-select-cal"
-                  class="font-stheiti text-sm px-3 py-1.5 rounded-lg bg-white"
-                  style="border:1.5px solid #CE1126;color:#1f2937;outline:none;">
+          <select id="scenario-select-cal" class="glass-input font-stheiti">
             <option value="org-life">【活动建设】组织生活会</option>
             <option value="theme-party">【活动建设】主题党日</option>
             <option value="all-timed">全部含时间节点场景</option>
           </select>
+        </div>
+
+        <div class="flex-1 min-w-[120px]">
+          <label class="block font-stheiti text-[11px] text-gray-500 mb-1">活动名称</label>
+          <input type="text" id="activity-name-input"
+                 placeholder="输入活动名称..."
+                 class="glass-input font-stheiti w-full">
         </div>
 
         <button id="gen-schedule-cal-btn"
@@ -2372,8 +2443,8 @@ body {
         <div class="mb-3">
           <label class="block font-stheiti text-[11px] text-gray-500 mb-1">筛选月份</label>
           <select id="month-selector"
-                  class="font-stheiti text-sm px-3 py-1.5 rounded-lg bg-white w-full"
-                  style="border:1.5px solid #CE1126;color:#1f2937;outline:none;">
+                  class="glass-input font-stheiti w-full"
+                  style="">
             <option value="">全部月份</option>
           </select>
         </div>

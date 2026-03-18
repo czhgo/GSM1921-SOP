@@ -891,9 +891,19 @@ document.querySelectorAll('.js-expand-trigger').forEach(trigger => {
     const scVal     = scSelect ? scSelect.value : 'org-life';
     const scIds     = scVal === 'all-timed' ? ['org-life', 'theme-party'] : [scVal];
 
-    // 通过原生弹窗获取活动名称
-    const actName = window.prompt('请输入活动名称（无需输入日期，将默认使用当前选中日期）：');
-    if (!actName || !actName.trim()) return;
+    // 读取内嵌活动名称输入框
+    const nameInput = document.getElementById('activity-name-input');
+    const actName = nameInput ? nameInput.value.trim() : '';
+    if (!actName) {
+      // 输入为空时内联提示，不使用原生弹窗
+      if (nameInput) {
+        nameInput.focus();
+        nameInput.style.boxShadow = '0 0 0 2px rgba(239,68,68,0.55)';
+        setTimeout(() => { nameInput.style.boxShadow = ''; }, 1800);
+      }
+      showToast('error', '请先在「活动名称」输入框中填写活动名称。');
+      return;
+    }
 
     // ── 防竞态 ─────────────────────────────────────────────
     const reqId = ++currentRequestId;
@@ -950,6 +960,8 @@ document.querySelectorAll('.js-expand-trigger').forEach(trigger => {
         selectedActivityId: newAct.id,
       });
       showToast('success', `活动「${actName.trim()}」已写入，${sopTasks.length} 个任务节点已挂载。`);
+      // 清空活动名称输入框，为下次输入做准备
+      if (nameInput) nameInput.value = '';
 
       // Step 4: 日历视图同步渲染（SOP 时间轴 + 活动点）
       const baseDate = new Date(dateStr + 'T00:00:00');

@@ -2158,3 +2158,17 @@ none
 | Route 4  | `src/main.js` | `renderLargeCalendar` + `_renderLargeMonth` 重构：接受 activities 参数，日历红点由 `appState.activities`（未归档）动态生成，不再依赖 SOP 虚假数据 |
 | Route 5  | `src/service.mock.js` | `loadDB()` 顶部插入 `localStorage.removeItem(STORAGE_KEY); return;`，启用刷新即清除的内存沙盒模式 |
 | Route 6  | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条 Hotfix 执行记录 |
+
+---
+
+### Phase 1/3 — 视图分层 UI 壳层与液态玻璃重构
+
+**执行范围**：`index.html`（主体）、`src/main.js`（单行 prompt→input 接入）
+
+| 路由 | 文件 | 变更内容 |
+|------|------|--------|
+| Route 1 | `index.html` | 重建 `#sidebar-calendar-menu`：新增"👀 参与视图"标题 + 默认参与者按钮（`data-role="participant"`）；新增"⚙️ 管理视图"标题 + 四个角色按钮（leader/commissioner/organizer/deep），各自带左侧主题色 border 指示 |
+| Route 2 | `index.html` | T-0 控制条新增 `#activity-name-input` 内嵌文本框；所有表单控件（t0-input-cal、scenario-select-cal、activity-name-input、month-selector）统一应用 `.glass-input` 液态玻璃样式 |
+| Route 2 | `src/main.js` | 写入活动逻辑：优先读取 `#activity-name-input.value`，为空时回退 `window.prompt`；成功写入后自动清空输入框 |
+| Route 3 | `index.html` | `<style>` 预埋四色角色主题类：`.role-theme-leader`（红）、`.role-theme-commissioner`（黄）、`.role-theme-organizer`（蓝）、`.role-theme-deep`（绿）；新增 `.glass-input` 液态玻璃表单控件基础样式 |
+| Route 4 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |
