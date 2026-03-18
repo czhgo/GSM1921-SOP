@@ -38,6 +38,9 @@ let appState = {
   selectedActivityId:  null,     // 当前详情视图对应的活动 ID
   selectedDate:        null,     // 当前选中日期 (YYYY-MM-DD)
   displayMonth:        _currentYearMonth(), // 当前显示月份 YYYY-MM
+  // RBAC 双轨视图状态
+  viewType:            'participant', // 'participant' | 'manager'
+  managementRole:      'participant', // 'participant'|'leader'|'commissioner'|'organizer'|'deep'
 };
 
 // ── 防竞态：当前请求 ID ────────────────────────────────────────
@@ -331,6 +334,13 @@ function renderUI(state) {
 
   // ── 推演工作台：月份选择器 & 日历 & 检查器状态路由 ───────────
   if (activeModule === 'calendar') {
+    // 侧边栏 RBAC 按钮激活态
+    const calMenuEl = document.getElementById('sidebar-calendar-menu');
+    if (calMenuEl) {
+      calMenuEl.querySelectorAll('.role-btn[data-role]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.role === state.managementRole);
+      });
+    }
     const targetMonth = populateMonthSelector(state.activities);
     renderCalendarByActivities(state.activities, targetMonth);
     renderInspectorFromState(state);
@@ -707,26 +717,54 @@ function populateMonthSelector(activities) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  检查器状态路由分发（根据 viewMode 切换 List / Detail）
+//  RBAC 任务过滤核
+//  commissioner 系列：兼容多种 executor/supervisor 字符串
+// ════════════════════════════════════════════════════════════════
+const COMMISSIONER_ROLES = new Set([
+  'commissioner', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
+]);
+
+function filterTasksByManagementRole(tasks, managementRole) {
+  if (managementRole === 'participant' || !managementRole) return tasks;
+  return tasks.filter(t => {
+    const ex  = t.executor  || '';
+    const sup = t.supervisor || '';
+    if (managementRole === 'commissioner') {
+      return COMMISSIONER_ROLES.has(ex) || COMMISSIONER_ROLES.has(sup);
+    }
+    return ex === managementRole || sup === managementRole;
+  });
+}
+
+// 角色 → CSS 主题类名映射
+const ROLE_THEME_CLASS = {
+  leader:       'role-theme-leader',
+  commissioner: 'role-theme-commissioner',
+  organizer:    'role-theme-organizer',
+  deep:         'role-theme-deep',
+};
+
+// ════════════════════════════════════════════════════════════════
+//  检查器状态路由分发（根据 viewMode / viewType 切换 List / Detail）
 // ════════════════════════════════════════════════════════════════
 function renderInspectorFromState(state) {
-  if (state.viewMode === 'detail' && state.selectedActivityId) {
+  if (state.viewMode === 'detail' && state.selectedActivityId && state.viewType === 'manager') {
     const act = state.activities.find(a => a.id === state.selectedActivityId);
     if (act) {
       const actTasks = state.tasks.filter(t => t.activityId === act.id);
-      renderInspectorDetail(act, actTasks);
+      renderInspectorDetail(act, actTasks, state.managementRole);
     } else {
-      renderInspectorList(state.activities, state.selectedDate);
+      renderInspectorList(state.activities, state.selectedDate, state.viewType);
     }
   } else {
-    renderInspectorList(state.activities, state.selectedDate);
+    renderInspectorList(state.activities, state.selectedDate, state.viewType);
   }
 }
 
 // ════════════════════════════════════════════════════════════════
 //  列表视图：渲染指定日期的未归档活动列表
 // ════════════════════════════════════════════════════════════════
-function renderInspectorList(activities, dateKey) {
+function renderInspectorList(activities, dateKey, viewType) {
   const defEl     = document.getElementById('inspector-default');
   const contentEl = document.getElementById('inspector-content');
   const titleEl   = document.getElementById('inspector-date-title');
@@ -750,33 +788,54 @@ function renderInspectorList(activities, dateKey) {
     titleEl.textContent = _fmtChinese(new Date(dateKey + 'T00:00:00')) + ' · 活动列表';
   }
 
+  // 参与者视界：卡片纯展示，禁止进入详情
+  const isParticipant = viewType === 'participant' || !viewType;
+
   const statusMap = { draft: '草稿', published: '已发布', ongoing: '进行中', completed: '已完成' };
   let html = '';
   dateActivities.forEach(act => {
     const label = statusMap[act.status] || act.status;
-    html += `<div class="inspector-card" style="cursor:pointer;" data-act-id="${act.id}">`;
-    html += `<div class="flex items-start justify-between gap-2 mb-1">`;
-    html += `<p class="font-stheiti font-bold text-sm text-gray-800 leading-snug flex-1">${act.title}</p>`;
-    html += `<span class="badge-time flex-shrink-0">${label}</span>`;
-    html += '</div>';
-    html += '<p class="font-stheiti text-[10px] text-gray-400">点击查看任务详情 →</p>';
-    html += '</div>';
+    if (isParticipant) {
+      html += `<div class="inspector-card" data-act-id="${act.id}">`;
+      html += `<div class="flex items-start justify-between gap-2 mb-1">`;
+      html += `<p class="font-stheiti font-bold text-sm text-gray-800 leading-snug flex-1">${act.title}</p>`;
+      html += `<span class="badge-time flex-shrink-0">${label}</span>`;
+      html += '</div>';
+      html += '<p class="font-stheiti text-[10px] text-gray-400">👀 参与视图 · 仅展示</p>';
+      html += '</div>';
+    } else {
+      html += `<div class="inspector-card" style="cursor:pointer;" data-act-id="${act.id}">`;
+      html += `<div class="flex items-start justify-between gap-2 mb-1">`;
+      html += `<p class="font-stheiti font-bold text-sm text-gray-800 leading-snug flex-1">${act.title}</p>`;
+      html += `<span class="badge-time flex-shrink-0">${label}</span>`;
+      html += '</div>';
+      html += '<p class="font-stheiti text-[10px] text-gray-400">点击查看任务详情 →</p>';
+      html += '</div>';
+    }
   });
 
   if (cardsEl) {
     cardsEl.innerHTML = html;
-    cardsEl.querySelectorAll('[data-act-id]').forEach(card => {
-      card.addEventListener('click', () => {
-        setState({ viewMode: 'detail', selectedActivityId: card.dataset.actId });
+    if (!isParticipant) {
+      cardsEl.querySelectorAll('[data-act-id]').forEach(card => {
+        card.addEventListener('click', () => {
+          setState({ viewMode: 'detail', selectedActivityId: card.dataset.actId });
+        });
       });
-    });
+    } else {
+      cardsEl.querySelectorAll('[data-act-id]').forEach(card => {
+        card.addEventListener('click', () => {
+          showToast('info', '提示：详情任务节点仅管理视图可见，请在左侧切换管理角色。');
+        });
+      });
+    }
   }
 }
 
 // ════════════════════════════════════════════════════════════════
 //  详情视图：渲染单个活动的任务列表与危险操作按钮
 // ════════════════════════════════════════════════════════════════
-function renderInspectorDetail(activity, tasks) {
+function renderInspectorDetail(activity, tasks, managementRole) {
   const defEl     = document.getElementById('inspector-default');
   const contentEl = document.getElementById('inspector-content');
   const titleEl   = document.getElementById('inspector-date-title');
@@ -790,6 +849,10 @@ function renderInspectorDetail(activity, tasks) {
 
   const statusMap = { draft: '草稿', published: '已发布', ongoing: '进行中', completed: '已完成' };
   const taskStatusMap = { pending: '待处理', in_progress: '进行中', completed: '已完成' };
+
+  // RBAC 过滤：根据 managementRole 筛选可见任务
+  const visibleTasks = filterTasksByManagementRole(tasks, managementRole);
+  const themeClass   = ROLE_THEME_CLASS[managementRole] || '';
 
   let html = '';
 
@@ -808,17 +871,21 @@ function renderInspectorDetail(activity, tasks) {
   }
   html += '</div>';
 
-  // 任务列表
-  if (tasks.length > 0) {
-    tasks.forEach(t => {
+  // 任务列表（RBAC 过滤后）
+  if (visibleTasks.length > 0) {
+    visibleTasks.forEach(t => {
       const tlabel = taskStatusMap[t.status] || t.status;
-      html += '<div class="inspector-card">';
+      const cardClass = themeClass ? `inspector-card ${themeClass}` : 'inspector-card';
+      html += `<div class="${cardClass}" style="${themeClass ? 'border-left-width:3px;' : ''}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
-      html += `<p class="font-stheiti font-bold text-sm text-gray-800 leading-snug flex-1">${t.title}</p>`;
+      html += `<p class="font-stheiti font-bold text-sm leading-snug flex-1">${t.title}</p>`;
       html += `<span class="badge-time flex-shrink-0">${tlabel}</span>`;
       html += '</div>';
       html += '</div>';
     });
+  } else if (tasks.length > 0) {
+    // 有任务但过滤后为空 → 角色专属空状态
+    html += '<div class="font-stheiti text-gray-400 text-center py-8">该角色在此活动中暂无专属任务节点</div>';
   } else {
     html += '<p class="font-stheiti text-xs text-gray-400 py-2">暂无关联任务</p>';
   }
@@ -943,13 +1010,46 @@ document.querySelectorAll('.domain-btn[data-domain]').forEach(btn => {
   });
 });
 
-// 角色按钮
+// 角色按钮（参考指南模块）
 document.querySelectorAll('.role-btn[data-role]').forEach(btn => {
   btn.addEventListener('click', () => {
     setState({ role: btn.dataset.role });
     closeSidebar(); // 移动端选角色后收起侧边栏
   });
 });
+
+// ── 推演工作台侧边栏 RBAC 角色按钮分发 ──────────────────────────
+const calMenu = document.getElementById('sidebar-calendar-menu');
+if (calMenu) {
+  calMenu.querySelectorAll('.role-btn[data-role]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const r = btn.dataset.role;
+      if (r === 'participant') {
+        // 参与者视界：锁定只读，清除选中状态
+        setState({
+          viewType:       'participant',
+          managementRole: 'participant',
+          viewMode:       'list',
+          selectedActivityId: null,
+        });
+      } else {
+        // 管理视界：进入对应角色的 RBAC 过滤详情
+        const patch = {
+          viewType:       'manager',
+          managementRole: r,
+        };
+        // 若已在 detail 视图则保留，否则不强制跳转
+        if (appState.viewMode === 'detail' && appState.selectedActivityId) {
+          // 刷新 detail（renderUI 会自动重新调用 renderInspectorFromState）
+        } else {
+          // 保持 list 模式，等待用户点击活动卡片
+        }
+        setState(patch);
+      }
+      closeSidebar();
+    });
+  });
+}
 
 // 展开/折叠（WWH 区域）
 document.querySelectorAll('.js-expand-trigger').forEach(trigger => {
@@ -1066,6 +1166,8 @@ document.querySelectorAll('.js-expand-trigger').forEach(trigger => {
         selectedDate:       dateStr,
         viewMode:           'detail',
         selectedActivityId: newAct.id,
+        viewType:           'manager',             // 写入成功后自动进入管理视界以展示任务
+        managementRole:     appState.managementRole === 'participant' ? 'organizer' : appState.managementRole,
       });
       showToast('success', `活动「${actName.trim()}」已写入，${sopTasks.length} 个任务节点已挂载。`);
       // 清空活动名称输入框，为下次输入做准备

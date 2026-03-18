@@ -2188,3 +2188,22 @@ none
 | Route 3b | `src/main.js` | `renderUI` 日历分支：改为 `const targetMonth = populateMonthSelector(...); renderCalendarByActivities(activities, targetMonth); renderInspectorFromState(state);`（inspector 无论是否有 selectedDate 均刷新） |
 | Route 3c | `src/main.js` | `initCalendarModule` 成功路径：`setState` 补充 `displayMonth: dateStr.slice(0, 7)` 字段，删除冗余的 `renderLargeCalendar(sopTasks, baseDate, activities)` 直接调用（由 renderUI 接管） |
 | Route 4 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |
+
+---
+
+### Phase 3/3 — RBAC 终极视界与权限过滤状态机
+
+**执行时间**：2026-03-18  
+**执行范围**：`src/main.js` RBAC 状态机（禁止触碰 HTML/CSS 主体）
+
+| 路由 | 文件 | 变更内容 |
+|------|------|--------|
+| Route 1 | `src/main.js` | `appState` 新增 `viewType: 'participant'`（默认）与 `managementRole: 'participant'`（默认）；新增侧边栏 `#sidebar-calendar-menu` 专属 RBAC click handler：participant → `viewType='participant'` + 清空选中/重置list；四个管理角色 → `viewType='manager'` + `managementRole=role`，保留 detail 视图时自动刷新 |
+| Route 1b | `src/main.js` | `renderUI` calendar 分支新增：遍历 calMenu `.role-btn` 同步 `active` CSS 激活态 |
+| Route 2 | `src/main.js` | `renderInspectorList` 新增 `viewType` 参数；`isParticipant` 时卡片纯展示（去掉 cursor:pointer），点击弹出 Toast："提示：详情任务节点仅管理视图可见，请在左侧切换管理角色。"；管理视界保持原有 detail 跳转逻辑 |
+| Route 3a | `src/main.js` | 新增 `filterTasksByManagementRole(tasks, managementRole)`：`COMMISSIONER_ROLES` Set 兼容多种委员字符串；各角色按 executor/supervisor 过滤 |
+| Route 3b | `src/main.js` | 新增 `ROLE_THEME_CLASS` 映射（leader→role-theme-leader，etc.）|
+| Route 3c | `src/main.js` | `renderInspectorDetail(activity, tasks, managementRole)` 新增第三参数；执行 `filterTasksByManagementRole` 获得 `visibleTasks`；task 节点容器注入 `themeClass`（role-theme-*）实现专属染色；`visibleTasks.length === 0 && tasks.length > 0` 时渲染"该角色在此活动中暂无专属任务节点" |
+| Route 3d | `src/main.js` | `renderInspectorFromState` 新增 viewType guard：`viewType !== 'manager'` 时强制走 `renderInspectorList`；传递 `managementRole` 至 `renderInspectorDetail` |
+| Route 3e | `src/main.js` | `initCalendarModule` 写入成功路径：setState 补充 `viewType:'manager'`，`managementRole: appState.managementRole === 'participant' ? 'organizer' : appState.managementRole`，确保写入活动后立即可见任务详情 |
+| Route 4 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |
