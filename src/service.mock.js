@@ -246,6 +246,30 @@ export function listTasks() {
   });
 }
 
+/**
+ * 更新任务状态（Immutable patch，内存沙盒模式，不调用 saveDB）
+ * 同步函数：直接修改 mockDB.tasks，返回更新后的新数组快照。
+ * 适用于 UI 层任务状态切换（无需异步等待，保证即时响应）。
+ * @param {string} taskId - 任务 ID（匹配 mockDB.tasks 中的 id 字段）
+ * @param {Partial<import('./domain.js').Task>} patch - 更新字段
+ * @returns {import('./domain.js').Task[]} 更新后的 tasks 数组快照
+ */
+export function updateTask(taskId, patch) {
+  const idx = mockDB.tasks.findIndex(t => t.id === taskId);
+  if (idx === -1) {
+    console.warn('[MockAdapter] updateTask：未找到任务 id=' + taskId);
+    return [...mockDB.tasks];
+  }
+  const updated = { ...mockDB.tasks[idx], ...patch };
+  mockDB.tasks = [
+    ...mockDB.tasks.slice(0, idx),
+    updated,
+    ...mockDB.tasks.slice(idx + 1),
+  ];
+  console.info('[MockAdapter] updateTask 成功，id=' + taskId + '，status=' + updated.status);
+  return [...mockDB.tasks];
+}
+
 // ── Deliverable CRUD ─────────────────────────────────────────────
 // Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
 // 产出物清单：考勤汇总表（纪检委员）+ 组织生活会记录（党小组组长）

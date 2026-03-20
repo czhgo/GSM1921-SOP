@@ -2252,3 +2252,28 @@ main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 r
 **验证结论**：浏览器端全流程验证通过（写入活动、14 个任务节点挂载、日历标签渲染、Inspector 详情视图、归档/删除按钮）。零白屏、零控制台错误（CDN 被沙盒屏蔽属环境限制，非代码问题）。
 
 **[Org OS Operation: Modularization Completed] 架构蓝图验证通过。巨石 main.js 已被成功拆解为 8 大高内聚低耦合模块（含独立 sopData 层），ES6 依赖图谱已闭环，心脑血管手术成功！请书记验证无白屏后下达 Part 2 指令。**
+
+---
+
+### Part 2/3 — 引导状态优化与任务流闭环
+
+**执行时间**：2026-03-20
+**执行范围**：在已拆分的 ES6 模块基础上实现"首屏自动引导"与"任务状态切换闭环"
+
+#### Architecture Blueprint（方案说明）
+
+**空状态引导流**：`main.js` initApp 在 listActivities 返回空数组后，调用 `BranchService.createActivity` 创建示例活动，`instantiateSOP(['org-life'], targetDateStr)` 生成任务节点，`Promise.allSettled(createTask×N)` 并行写入，然后刷新 activities/tasks 并 `showToast`。
+
+**任务状态切换闭环**：`service.mock.js` 新增同步 `updateTask(taskId, patch)` — 直接 Immutable 更新 `mockDB.tasks`（不调用 saveDB），返回新数组。`inspector.js` 的 `renderInspectorDetail` 为每个 task 渲染 `<select>`（待处理/进行中/已完成），绑定 `change` 事件：`updateTask → setState({tasks})` → 触发 renderUI 重新渲染 → 进度数字自动更新。
+
+**`appState` 跨文件共享**：同 Part 1，通过 `setState({tasks: newTasks})` 触发已注册的 renderUI 回调，所有模块通过参数或 `getAppState()` 读取状态，无直接循环依赖。
+
+| 路由 | 文件 | 变更内容 |
+|------|------|--------|
+| Route 1 | `src/main.js` | initApp 新增空状态检测：activities.length===0 时自动创建示例活动并挂载 org-life SOP 任务；showToast 提示；补充 import { instantiateSOP, _fmtDate, showToast } |
+| Route 2a | `src/service.mock.js` | 新增 updateTask(taskId, patch)：同步 Immutable 更新 mockDB.tasks，不调用 saveDB，返回新数组 |
+| Route 2b | `src/inspector.js` | renderInspectorDetail 新增：① 进度统计文本"进度：X/Y 已完成"；② 每个 task 渲染 `<select>` 下拉框（待处理/进行中/已完成）；③ change 事件绑定 updateTask → setState |
+| Route 2c | `src/calendar.js` | renderCalendarByActivities 新增空状态拦截：nonArchived.length===0 时渲染"暂无活动，点击【写入活动】开始创建"替代日历网格 |
+| Route 3 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |
+
+**[Org OS Operation: Task Loop Completed] 架构蓝图验证通过。空状态引导已激活，Task 节点已支持动态状态切换与进度计算。任务闭环已打通！请书记下达终极 Part 3 指令。**

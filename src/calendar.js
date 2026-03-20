@@ -21,6 +21,17 @@ export function renderCalendarByActivities(activities, targetMonth) {
   const month = targetMonth || _currentYearMonth();
   const [y, m] = month.split('-').map(Number);
 
+  // ── 空状态拦截：若没有任何未归档活动，渲染引导提示 ──────────────
+  const nonArchived = (activities || []).filter(a => !a.archived);
+  if (nonArchived.length === 0) {
+    grid.classList.add('hidden');
+    if (empty) {
+      empty.innerHTML = '<p class="font-stheiti text-sm text-gray-400 text-center py-12">暂无活动，点击【写入活动】开始创建</p>';
+      empty.classList.remove('hidden');
+    }
+    return;
+  }
+
   // 未归档活动 → 活动日期集合（当月）
   const actDates = new Set(
     (activities || [])
