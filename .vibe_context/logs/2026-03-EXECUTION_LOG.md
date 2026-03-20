@@ -2277,3 +2277,29 @@ main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 r
 | Route 3 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |
 
 **[Org OS Operation: Task Loop Completed] 架构蓝图验证通过。空状态引导已激活，Task 节点已支持动态状态切换与进度计算。任务闭环已打通！请书记下达终极 Part 3 指令。**
+
+---
+
+### Part 3/3 — 角色日历联动与归档库空间
+
+**执行时间**：2026-03-20
+**执行范围**：归档库独立视图、日历四色角色联动、参与者结构化浮层
+
+#### Architecture Blueprint（方案说明）
+
+**日历色块算法**：`calendar.js` 在 `renderCalendarByActivities` 中，对每个有活动的日期单元格，从 `activities` 数组中过滤 `!a.archived && a.date === k` 的活动，提取 `a.executor` 字段，去重后按 `ROLE_ORDER` 排序，使用 `ROLE_COLORS[r].text` 生成对应颜色的 6×6px 圆点（flex 并排），取代原来单一红点。
+
+**归档状态路由判断**：`state.js` 新增 `viewArchived: false`。点击"归档库"按钮时，`events.js` 调用 `setState({ viewArchived: true, viewType: 'manager', viewMode: 'list' })`。`inspector.js` 的 `renderInspectorFromState` 将 `state.viewArchived` 透传给 `renderInspectorList`，该函数在 `viewArchived === true` 时过滤 `a.archived === true` 的全量活动（忽略日期过滤）；在 `false` 时维持原有 `!a.archived` + `dateKey` 双重过滤。`renderInspectorDetail` 检测 `activity.archived === true` 时：禁用所有 `<select>`（`disabled` + 低透明度）、将"归档活动"替换为绿色"恢复活动"按钮（调用 `updateActivity(id, {archived:false})` → 退出归档视图）。
+
+| 路由 | 文件 | 变更内容 |
+|------|------|--------|
+| Route 1a | `src/state.js` | 新增 `viewArchived: false` 初始状态 |
+| Route 1b | `index.html` | 侧边栏管理视图底部新增"归档库"灰色按钮（`data-role="archived"`，与主角色按钮用分隔线区分） |
+| Route 1c | `src/events.js` | calMenu 角色按钮分发：新增 `r === 'archived'` 分支；其他角色分支补充 `viewArchived: false` 重置 |
+| Route 1d | `src/main.js` | renderUI 中 RBAC 按钮激活态：`data-role="archived"` 根据 `state.viewArchived` 切换，其他角色在 `viewArchived` 时取消激活 |
+| Route 1e | `src/inspector.js` | ① `renderInspectorFromState` 透传 `viewArchived`；② `renderInspectorList` 新增归档模式过滤 + 归档库标题 + 空状态提示；③ `renderInspectorDetail` 新增 `isArchived` 判断：归档徽标、select disabled、恢复活动按钮及其事件处理 |
+| Route 2a | `src/calendar.js` | `renderCalendarByActivities` 日期单元格：单红点 → 多色角色圆点（flex 并排，颜色来自 `ROLE_COLORS[executor].text`，按 leader/commissioner/organizer/deep/all 排序） |
+| Route 2b | `src/inspector.js` | `renderInspectorList` 参与者卡片点击：`showToast` → `_showParticipantModal(act)`（极简居中 DOM Modal，展示标题/日期/切换提示，点击遮罩关闭） |
+| Route 3 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |
+
+**[Org OS Operation: Ultimate UX Completed] 架构蓝图验证通过。日历四色映射已点亮，归档独立空间已隔离，参与者浮层挂载完毕。产品经理全量 PRD 需求均已在模块化架构上稳定落地！**

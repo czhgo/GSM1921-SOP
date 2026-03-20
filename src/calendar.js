@@ -79,7 +79,19 @@ export function renderCalendarByActivities(activities, targetMonth) {
     html += `<div class="${cls}" data-date="${k}">`;
     html += `<div class="font-stheiti text-[11px] font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${day}</div>`;
     if (hasActivity) {
-      html += '<div class="w-1.5 h-1.5 bg-red-500 rounded-full mx-auto mt-0.5 mb-0.5"></div>';
+      const dateActRoles = (activities || [])
+        .filter(a => !a.archived && a.date === k)
+        .map(a => a.executor || 'all');
+      const uniqueRoles = [...new Set(dateActRoles)];
+      const ROLE_ORDER = ['leader', 'commissioner', 'organizer', 'deep', 'all'];
+      const sortedRoles = ROLE_ORDER.filter(r => uniqueRoles.includes(r));
+      if (sortedRoles.length === 0) sortedRoles.push('all');
+      html += '<div style="display:flex;gap:2px;justify-content:center;margin:2px 0;">';
+      sortedRoles.forEach(r => {
+        const c = ROLE_COLORS[r] || ROLE_COLORS.all;
+        html += `<div style="width:6px;height:6px;border-radius:50%;background:${c.text};flex-shrink:0;"></div>`;
+      });
+      html += '</div>';
     }
     ct.slice(0, 3).forEach(t => {
       const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;

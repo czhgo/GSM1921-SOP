@@ -66,7 +66,12 @@ function renderUI(state) {
     // 侧边栏 RBAC 按钮激活态
     if (calMenu) {
       calMenu.querySelectorAll('.role-btn[data-role]').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.role === state.managementRole);
+        const r = btn.dataset.role;
+        if (r === 'archived') {
+          btn.classList.toggle('active', state.viewArchived === true);
+        } else {
+          btn.classList.toggle('active', !state.viewArchived && r === state.managementRole);
+        }
       });
     }
     const targetMonth = populateMonthSelector(state.activities);

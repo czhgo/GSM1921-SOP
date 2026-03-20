@@ -193,15 +193,23 @@ export function setupEventListeners() {
     calMenu.querySelectorAll('.role-btn[data-role]').forEach(btn => {
       btn.addEventListener('click', () => {
         const r = btn.dataset.role;
-        if (r === 'participant') {
+        if (r === 'archived') {
           setState({
+            viewArchived:      true,
+            viewType:          'manager',
+            viewMode:          'list',
+            selectedActivityId: null,
+          });
+        } else if (r === 'participant') {
+          setState({
+            viewArchived:      false,
             viewType:          'participant',
             managementRole:    'participant',
             viewMode:          'list',
             selectedActivityId: null,
           });
         } else {
-          setState({ viewType: 'manager', managementRole: r });
+          setState({ viewArchived: false, viewType: 'manager', managementRole: r });
         }
         closeSidebar();
       });

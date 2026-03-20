@@ -35,41 +35,77 @@ export function renderInspectorFromState(state) {
       const actTasks = state.tasks.filter(t => t.activityId === act.id);
       renderInspectorDetail(act, actTasks, state.managementRole);
     } else {
-      renderInspectorList(state.activities, state.selectedDate, state.viewType);
+      renderInspectorList(state.activities, state.selectedDate, state.viewType, state.viewArchived);
     }
   } else {
-    renderInspectorList(state.activities, state.selectedDate, state.viewType);
+    renderInspectorList(state.activities, state.selectedDate, state.viewType, state.viewArchived);
   }
 }
 
 // ════════════════════════════════════════════════════════════════
-//  列表视图：渲染指定日期的未归档活动列表
+//  轻量参与者浮层（DOM Modal）
 // ════════════════════════════════════════════════════════════════
-export function renderInspectorList(activities, dateKey, viewType) {
+function _showParticipantModal(act) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+  const card = document.createElement('div');
+  card.style.cssText = 'background:#fff;border-radius:14px;padding:20px 22px;max-width:300px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);';
+  card.innerHTML =
+    '<p class="font-stheiti font-bold text-sm text-gray-800 mb-3">【活动摘要】</p>'
+    + `<p class="font-stheiti text-sm text-gray-700 mb-1">标题：${act.title}</p>`
+    + `<p class="font-stheiti text-sm text-gray-700 mb-4">日期：${act.date || '未设定'}</p>`
+    + '<p class="font-stheiti text-xs text-gray-500 border-t border-gray-100 pt-3 leading-relaxed">'
+    + '提示：需查看任务详情，请在左侧切换管理角色。</p>'
+    + '<button class="font-stheiti text-xs text-white px-4 py-1.5 rounded-lg mt-4 w-full transition-colors" '
+    + 'style="background:#CE1126;">关闭</button>';
+  card.querySelector('button').addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  列表视图：渲染指定日期的活动列表（普通或归档模式）
+// ════════════════════════════════════════════════════════════════
+export function renderInspectorList(activities, dateKey, viewType, viewArchived = false) {
   const defEl     = document.getElementById('inspector-default');
   const contentEl = document.getElementById('inspector-content');
   const titleEl   = document.getElementById('inspector-date-title');
   const cardsEl   = document.getElementById('inspector-cards');
   if (!defEl || !contentEl) return;
 
-  const dateActivities = dateKey
-    ? activities.filter(a => !a.archived && a.date === dateKey)
-    : [];
+  let dateActivities;
+  if (viewArchived) {
+    // 归档库模式：展示所有已归档活动，不按日期过滤
+    dateActivities = activities.filter(a => a.archived === true);
+  } else {
+    dateActivities = dateKey
+      ? activities.filter(a => !a.archived && a.date === dateKey)
+      : [];
+  }
 
   if (dateActivities.length === 0) {
     defEl.classList.remove('hidden');
+    if (viewArchived) {
+      defEl.innerHTML = '<p class="font-stheiti text-sm text-gray-400 text-center py-8">归档库暂无内容</p>';
+    } else {
+      defEl.innerHTML = '';
+    }
     contentEl.classList.add('hidden');
     return;
   }
+  defEl.innerHTML = '';
 
   defEl.classList.add('hidden');
   contentEl.classList.remove('hidden');
 
   if (titleEl) {
-    titleEl.textContent = _fmtChinese(new Date(dateKey + 'T00:00:00')) + ' · 活动列表';
+    titleEl.textContent = viewArchived
+      ? '归档库 · 已归档活动'
+      : _fmtChinese(new Date(dateKey + 'T00:00:00')) + ' · 活动列表';
   }
 
-  const isParticipant = viewType === 'participant' || !viewType;
+  const isParticipant = !viewArchived && (viewType === 'participant' || !viewType);
 
   const statusMap = { draft: '草稿', published: '已发布', ongoing: '进行中', completed: '已完成' };
   let html = '';
@@ -105,7 +141,8 @@ export function renderInspectorList(activities, dateKey, viewType) {
     } else {
       cardsEl.querySelectorAll('[data-act-id]').forEach(card => {
         card.addEventListener('click', () => {
-          showToast('info', '提示：详情任务节点仅管理视图可见，请在左侧切换管理角色。');
+          const act = dateActivities.find(a => a.id === card.dataset.actId);
+          if (act) _showParticipantModal(act);
         });
       });
     }
@@ -131,6 +168,7 @@ export function renderInspectorDetail(activity, tasks, managementRole) {
 
   const visibleTasks = filterTasksByManagementRole(tasks, managementRole);
   const themeClass   = ROLE_THEME_CLASS[managementRole] || '';
+  const isArchived   = activity.archived === true;
 
   let html = '';
 
@@ -142,6 +180,9 @@ export function renderInspectorDetail(activity, tasks, managementRole) {
 
   html += '<div class="flex items-center gap-1.5 flex-wrap mb-3">';
   html += `<span class="badge-time">${statusMap[activity.status] || activity.status}</span>`;
+  if (isArchived) {
+    html += '<span class="font-stheiti text-[10px] px-1.5 py-0.5 rounded" style="background:rgba(156,163,175,0.2);color:#6B7280;">已归档</span>';
+  }
   if (activity.date) {
     html += `<span class="font-stheiti text-[10px] text-gray-400">${activity.date}</span>`;
   }
@@ -159,7 +200,7 @@ export function renderInspectorDetail(activity, tasks, managementRole) {
       html += `<div class="${cardClass}" style="${themeClass ? 'border-left-width:3px;' : ''}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
       html += `<p class="font-stheiti font-bold text-sm leading-snug flex-1">${t.title}</p>`;
-      html += `<select class="task-status-select font-stheiti text-[10px] rounded px-1 py-0.5 border border-gray-200 bg-white flex-shrink-0" data-task-id="${t.id}" aria-label="任务状态">`;
+      html += `<select class="task-status-select font-stheiti text-[10px] rounded px-1 py-0.5 border border-gray-200 bg-white flex-shrink-0"${isArchived ? ' disabled style="opacity:0.5;cursor:not-allowed;"' : ''} data-task-id="${t.id}" aria-label="任务状态">`;
       html += `<option value="pending"${t.status === 'pending' ? ' selected' : ''}>待处理</option>`;
       html += `<option value="in_progress"${t.status === 'in_progress' ? ' selected' : ''}>进行中</option>`;
       html += `<option value="completed"${t.status === 'completed' ? ' selected' : ''}>已完成</option>`;
@@ -174,9 +215,15 @@ export function renderInspectorDetail(activity, tasks, managementRole) {
   }
 
   html += '<div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">';
-  html += '<button id="inspector-archive-btn"'
-    + ' class="font-stheiti text-xs text-amber-700 hover:text-amber-900 px-3 py-1.5 rounded-lg transition-colors"'
-    + ' style="background:rgba(251,191,36,0.10);border:1px solid rgba(251,191,36,0.40);">归档活动</button>';
+  if (isArchived) {
+    html += '<button id="inspector-restore-btn"'
+      + ' class="font-stheiti text-xs text-green-700 hover:text-green-900 px-3 py-1.5 rounded-lg transition-colors"'
+      + ' style="background:rgba(16,185,129,0.10);border:1px solid rgba(16,185,129,0.40);">恢复活动</button>';
+  } else {
+    html += '<button id="inspector-archive-btn"'
+      + ' class="font-stheiti text-xs text-amber-700 hover:text-amber-900 px-3 py-1.5 rounded-lg transition-colors"'
+      + ' style="background:rgba(251,191,36,0.10);border:1px solid rgba(251,191,36,0.40);">归档活动</button>';
+  }
   html += '<button id="inspector-delete-btn"'
     + ' class="font-stheiti text-xs text-red-700 hover:text-red-900 px-3 py-1.5 rounded-lg transition-colors"'
     + ' style="background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.40);">删除活动</button>';
@@ -185,18 +232,41 @@ export function renderInspectorDetail(activity, tasks, managementRole) {
   if (!cardsEl) return;
   cardsEl.innerHTML = html;
 
-  // ── 任务状态切换：select change → updateTask → setState ────────
-  cardsEl.querySelectorAll('.task-status-select').forEach(sel => {
-    sel.addEventListener('change', () => {
-      const newTasks = BranchService.updateTask(sel.dataset.taskId, { status: sel.value });
-      setState({ tasks: newTasks });
+  // ── 任务状态切换（归档状态下禁用）────────────────────────────
+  if (!isArchived) {
+    cardsEl.querySelectorAll('.task-status-select').forEach(sel => {
+      sel.addEventListener('change', () => {
+        const newTasks = BranchService.updateTask(sel.dataset.taskId, { status: sel.value });
+        setState({ tasks: newTasks });
+      });
     });
-  });
+  }
 
   const backBtn = document.getElementById('inspector-back-btn');
   if (backBtn) {
     backBtn.addEventListener('click', () => {
       setState({ viewMode: 'list', selectedActivityId: null });
+    });
+  }
+
+  // ── 恢复活动（仅已归档状态）─────────────────────────────────
+  const restoreBtn = document.getElementById('inspector-restore-btn');
+  if (restoreBtn) {
+    restoreBtn.addEventListener('click', async () => {
+      if (!window.confirm('确认将该活动恢复至主视图？')) return;
+      try {
+        setState({ status: STATE.SUBMITTING });
+        await BranchService.updateActivity(activity.id, { archived: false });
+        const [activities, tasks2] = await Promise.all([
+          BranchService.listActivities(),
+          typeof BranchService.listTasks === 'function' ? BranchService.listTasks() : Promise.resolve([]),
+        ]);
+        setState({ status: STATE.IDLE, activities, tasks: tasks2, viewMode: 'list', selectedActivityId: null, viewArchived: false });
+        showToast('success', '活动已恢复，可在主视图中查看。');
+      } catch (err) {
+        setState({ status: STATE.ERROR, error: err });
+        showToast('error', (err && err.message) ? err.message : '恢复失败，请稍后重试。');
+      }
     });
   }
 

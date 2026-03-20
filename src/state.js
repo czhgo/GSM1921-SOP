@@ -31,6 +31,8 @@ let appState = {
   // RBAC 双轨视图状态
   viewType:            'participant',
   managementRole:      'participant',
+  // 归档库独立视图标志
+  viewArchived:        false,
 };
 
 /** 返回当前全局状态快照 */
