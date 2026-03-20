@@ -2207,3 +2207,48 @@ none
 | Route 3d | `src/main.js` | `renderInspectorFromState` 新增 viewType guard：`viewType !== 'manager'` 时强制走 `renderInspectorList`；传递 `managementRole` 至 `renderInspectorDetail` |
 | Route 3e | `src/main.js` | `initCalendarModule` 写入成功路径：setState 补充 `viewType:'manager'`，`managementRole: appState.managementRole === 'participant' ? 'organizer' : appState.managementRole`，确保写入活动后立即可见任务详情 |
 | Route 4 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |
+
+---
+
+### Part 1/3 — ES6 模块化大重构 (Vanilla JS → ES6 Modules)
+
+**执行时间**：2026-03-20
+**执行范围**：`src/main.js` 拆分为 8 个高内聚低耦合 ES6 模块（禁止增加任何新业务功能）
+
+#### Architecture Blueprint（依赖拓扑图）
+
+```
+service.runtime.js (未变动)
+        ↑
+sopData.js (无导入)          → export: sopDatabase
+constants.js (无导入)        → export: ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, TRANSITION_DURATION
+utils.js (← constants.js)  → export: _pad, _fmtDate, _fmtChinese, _currentYearMonth, enterEl, leaveEl, showToast
+state.js (← utils.js)      → export: STATE, getAppState, setState, registerRenderCallback
+        ↑
+sop.js (← sopData.js)       → export: instantiateSOP
+calendar.js (← state, constants, utils)    → export: renderCalendarByActivities, populateMonthSelector
+inspector.js (← state, constants, utils, service.runtime) → export: renderInspectorFromState, renderInspectorList, renderInspectorDetail, filterTasksByManagementRole
+events.js (← state, utils, sop, service.runtime)           → export: setupEventListeners()
+        ↑
+main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 registerRenderCallback，调用 initApp() + setupEventListeners()
+```
+
+**全局 appState 跨文件共享方案**：`state.js` 采用 `registerRenderCallback` 模式，`setState` 触发已注册的回调（main.js 的 renderUI），避免循环依赖。其他模块通过 `getAppState()` 读取当前状态。
+
+| 路由 | 文件 | 变更内容 |
+|------|------|--------|
+| Route 1 | `index.html` | 确认 `<script type="module" src="./src/main.js">` 已就绪（无需变更） |
+| Route 2a | `src/state.js` (新建) | 导出 STATE 枚举、getAppState()、setState()、registerRenderCallback()；_currentYearMonth 来自 utils.js |
+| Route 2b | `src/sopData.js` (新建) | 抽离 sopDatabase 完整数组（124行），消除主文件最大体积依赖 |
+| Route 2c | `src/constants.js` (新建) | 抽离 ROLE_COLORS、ROLE_LABELS、ROLE_THEME_CLASS、COMMISSIONER_ROLES、TRANSITION_DURATION |
+| Route 2d | `src/utils.js` (新建) | 抽离 _pad、_fmtDate、_fmtChinese、_currentYearMonth、enterEl、leaveEl、showToast |
+| Route 2e | `src/sop.js` (新建) | 抽离 instantiateSOP 推演引擎，依赖 sopData.js |
+| Route 2f | `src/calendar.js` (新建) | 抽离 renderCalendarByActivities、populateMonthSelector；改用 getAppState() 读取状态 |
+| Route 2g | `src/inspector.js` (新建) | 抽离 filterTasksByManagementRole、renderInspectorFromState、renderInspectorList、renderInspectorDetail |
+| Route 2h | `src/events.js` (新建) | 抽离全部 DOM 事件绑定，封装为 setupEventListeners()；侧边栏状态机 + initCalendarModule 一并移入 |
+| Route 3 | `src/main.js` (重写) | 从 1223 行瘦身至 154 行；仅保留 import、renderUI 函数、registerRenderCallback 注册、DOM 初始化、initApp() |
+| Route 4 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |
+
+**验证结论**：浏览器端全流程验证通过（写入活动、14 个任务节点挂载、日历标签渲染、Inspector 详情视图、归档/删除按钮）。零白屏、零控制台错误（CDN 被沙盒屏蔽属环境限制，非代码问题）。
+
+**[Org OS Operation: Modularization Completed] 架构蓝图验证通过。巨石 main.js 已被成功拆解为 8 大高内聚低耦合模块（含独立 sopData 层），ES6 依赖图谱已闭环，心脑血管手术成功！请书记验证无白屏后下达 Part 2 指令。**
