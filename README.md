@@ -6,8 +6,8 @@ audience:
   - 新任支委
   - 党小组组长
 owner: "储子禾"
-last_updated: "2026-03-08"
-version: "4.0"
+last_updated: "2026-03-21"
+version: "5.0"
 status: active
 ---
 
@@ -65,6 +65,74 @@ status: active
 | **`src/`** | 前端交互逻辑 | Web 视图的状态机、服务层与领域模型（AI 代理维护） |
 | **`index.html`** | 前端入口 | 按角色/领域筛选的交互式 Web 视图（浏览器打开即用） |
 | **`.vibe_context/`** | AI 控制平面 | AI 代理的场景路由、执行铁律、审计日志 |
+
+---
+
+## ⚙️ 前端架构解析 (Frontend Architecture)
+
+> 本节面向后继维护者与 AI 代理，解释 `src/` 目录的模块拓扑与 RBAC 视图逻辑。普通成员无需阅读此节。
+
+### ES6 模块化结构（9 + 2 文件）
+
+`index.html` 通过 `<script type="module" src="./src/main.js">` 加载前端，全部依赖均为**原生 ES6 相对路径 import**，无需构建工具，GitHub Pages 直接静态托管。
+
+```
+src/
+├── state.js       全局状态中心：appState 不可变对象 + setState(patch) + registerRenderCallback
+├── constants.js   静态常量：ROLE_COLORS / ROLE_LABELS / ROLE_THEME_CLASS / COMMISSIONER_ROLES
+├── utils.js       通用工具：_fmtDate / _fmtChinese / showToast / _currentYearMonth
+├── sopData.js     SOP 模板数据：各场景任务节点的原始数据定义
+├── sop.js         SOP 实例化：instantiateSOP(scenarioIds, t0DateStr) → 计算绝对日期的任务数组
+├── calendar.js    日历渲染引擎：renderCalendarByActivities / populateMonthSelector
+├── inspector.js   检查器面板：renderInspectorFromState / renderInspectorList / renderInspectorDetail / filterTasksByManagementRole
+├── events.js      全量 DOM 事件绑定：setupEventListeners()，侧边栏 / 模块 Tab / RBAC 角色按钮 / 推演工作台
+├── main.js        启动入口 + 渲染协调：initApp / renderUI（唯一 DOM 更新入口）
+│
+├── service.mock.js    Mock 服务层：localStorage 持久化 + SANDBOX_MODE 开关（true=每次重载恢复初始数据）
+└── service.runtime.js 运行时服务路由：BranchService 代理，统一暴露 createActivity/listActivities/createTask/updateTask/archiveActivity/deleteActivity 等方法
+```
+
+**循环依赖破解机制**：`state.js` 需要调用 `renderUI`，`main.js` 需要 `import setState`——若互相 import 则形成循环。解法是 `state.js` 暴露 `registerRenderCallback(fn)`，由 `main.js` 在定义 `renderUI` 后主动注册，依赖图保持 DAG（有向无环图）。
+
+**单向数据流**：所有用户操作 → `setState(patch)` → `renderUI(appState)` → 全量 DOM 重绘。无任何直接 DOM 操作分散在业务逻辑中，状态与视图严格同步。
+
+### RBAC 双轨视图模型
+
+系统支持两套并行视图，通过侧边栏角色按钮切换，核心字段为 `appState.viewType` + `appState.managementRole`。
+
+#### 👀 参与视图（`viewType: 'participant'`）
+
+- 日历点击后，右侧检查器展示当日活动列表，每张卡片**仅显示标题与状态**，不暴露执行者/督办者信息。
+- 点击卡片弹出**原生 DOM Modal**（`_showParticipantModal`），展示活动摘要与切换提示，点击遮罩自动关闭。
+- 防偷窥设计：普通成员无法从参与视图看到任务分工细节。
+
+#### ⚙️ 管理视图（`viewType: 'manager'`）
+
+根据 `managementRole` 的不同，左边框颜色与任务过滤范围均自动调整：
+
+| 管理角色 | 左边框颜色 | 任务过滤范围 |
+|---------|-----------|------------|
+| `leader`（党小组组长） | 🔵 蓝色 | 含 executor/supervisor = leader 的任务 |
+| `commissioner`（委员） | 🟡 黄色 | 含 executor/supervisor 属于委员系列的任务 |
+| `organizer`（活动组织者） | 🔴 红色 | 含 executor/supervisor = organizer 的任务 |
+| `deep`（深度参与者） | 🟢 绿色 | 含 executor/supervisor = deep 的任务 |
+
+详情页支持任务状态切换（`<select>` 下拉框）和归档/删除危险操作。
+
+#### 🗄️ 归档库模式（`viewArchived: true`）
+
+- 点击侧边栏「归档库」按钮，`setState({ viewArchived: true, viewType: 'manager' })`。
+- 检查器忽略日期过滤，展示所有 `a.archived === true` 的活动（历史数据隔离空间）。
+- 归档活动详情页中，所有 `<select>` 被 `disabled`（防误改），"归档活动"按钮替换为"恢复活动"。
+- 恢复操作调用 `updateActivity(id, { archived: false })` 并自动退回主视图。
+
+### 日历四色角色圆点
+
+日历网格中每个有活动的日期格，渲染按角色排序的多色 6×6px 圆点（`display:flex` 横排）：
+
+- 颜色来源：`ROLE_COLORS[executor].text`（统一维护于 `src/constants.js`）
+- 排序规则：`leader → commissioner → organizer → deep → all`
+- 扩展方式：只需在 `ROLE_COLORS` 中添加新角色记录，全部渲染自动联动
 
 ---
 
