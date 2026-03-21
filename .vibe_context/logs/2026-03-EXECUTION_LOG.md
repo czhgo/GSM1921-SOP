@@ -2321,3 +2321,19 @@ main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 r
 | Timestamp | 2026-03-21T16:30:00+08:00 |
 
 > **2026-03-21：系统完成 4 大场景路由同步与全量模块化大重构，执行全局快照封版，正式迈入 v1.0 稳定期。**
+
+---
+
+### Snapshot Hotfix — 拓扑树注入与 LLM 上下文对齐
+
+**执行时间**：2026-03-21（热修复）
+**执行范围**：仅修改 `.vibe_context/SNAPSHOT_v1.0_20260321.md`，严禁触碰 `src/` 与 `knowledge/`
+
+| 字段 | 值 |
+|------|---|
+| Scenario | `META_AUDIT` |
+| Files Modified | `.vibe_context/SNAPSHOT_v1.0_20260321.md`（注入Section 0 + 0-B）、`.vibe_context/logs/2026-03-EXECUTION_LOG.md`（本条记录） |
+| SOP Reference | N/A |
+| Schema Impact | N/A |
+| Summary | 追加了深度为 4 的全局拓扑树与 LLM 同步协议至最新快照，彻底固化系统的物理坐标系。 |
+| Timestamp | 2026-03-21T16:42:00+08:00 |
