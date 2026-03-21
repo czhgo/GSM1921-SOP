@@ -3,7 +3,7 @@ title: "Review State"
 type: control_plane
 owner: "支委会"
 last_updated: "2026-03-08"
-version: "6.0"
+version: "7.0"
 ---
 
 **Review State Version: v2**  
@@ -43,10 +43,11 @@ version: "6.0"
 
 ---
 
-## ⚙️ Current Operation Mode: **[Sandbox]**
+## ⚙️ Current Operation Mode: **[Stable/Release — v1.0]**
 
-> 当处于 **Sandbox** 模式处理新场景（如场景2–9）时，仅继承 `[Global]` 级的 W/H 约束，暂不合并 `[Scenario-1 Only]` 的约束，避免特殊性与普遍性混淆。  
-> 切换至 **Strict** 模式时，所有 W/H 约束（包括 Scenario-Specific 项）均对当前任务生效。
+> 系统已于 2026-03-21 完成全量 ES6 模块化重构（Part 1–3）与文档层封版（Phase 1/2–2/2），正式进入 **v1.0 稳定期**。
+> - **Stable/Release** 模式：所有 W/H 约束全量生效，严格遵循 Change Pipeline，禁止未经书记授权的架构级改动。
+> - 如需在稳定期内新增功能，书记通过 `AI_ENTRYPOINT.md` 下达指令，AI 代理按场景路由执行，全程留档。
 
 ---
 

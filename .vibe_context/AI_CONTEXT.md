@@ -1,17 +1,30 @@
 # AI Context — GSM1921-SOP
 
-## 1. System Architecture（五层模型）
+## 1. System Architecture（九模块 ESM 分层架构）
+
+> **[2026-03 架构升级]**：原单体 `src/main.js`（800+行）已全面拆分为 9 个 ES6 模块 + 2 个服务层文件，实现单一职责与 AI 代理精准上下文加载。
 
 ```
-SOP Layer       knowledge/SOP/          制度母本，最高权威，所有变更起点
-Domain Layer    src/domain.js           Schema / typedef / mockDB / can()
-Service Layer   src/service.mock.js     CRUD + LocalStorage（唯一数据写入点）
-                src/service.runtime.js  BranchService 出口，USE_MOCK 开关
-State Layer     src/main.js             STATE 枚举，appState（immutable spread），setState()
-UI Layer        index.html              renderUI(state) 唯一 DOM 驱动，禁止直接写 DOM
+SOP Layer       knowledge/SOP/             制度母本，最高权威，所有变更起点
+Data Layer      src/sopData.js             SOP 场景任务节点模板原始数据（物理隔离）
+                src/sop.js                 instantiateSOP() 将模板+t0展开为绝对日期任务数组
+Domain Layer    src/constants.js           静态常量：ROLE_COLORS/ROLE_LABELS/ROLE_THEME_CLASS/ROLE_ORDER
+                src/utils.js               通用工具：_fmtDate/_fmtChinese/showToast/_currentYearMonth
+Service Layer   src/service.mock.js        CRUD + LocalStorage（唯一数据写入点）；SANDBOX_MODE 开关
+                src/service.runtime.js     BranchService 出口，USE_MOCK 开关
+State Layer     src/state.js               appState（immutable spread）+ setState(patch) + registerRenderCallback
+Render Layer    src/calendar.js            renderCalendarByActivities / populateMonthSelector
+                src/inspector.js           renderInspectorFromState / filterTasksByManagementRole
+                src/events.js              setupEventListeners()——全量 DOM 事件绑定
+Entry           src/main.js                initApp + renderUI（唯一 DOM 更新入口，约154行）
+UI              index.html                 静态入口，<script type="module" src="./src/main.js">
 ```
 
-依赖方向（单向）：`SOP → Domain → Service → State → UI`
+**依赖方向（DAG，无环）**：`SOP → Data → Domain/Utils → Service → State → Render → Entry → UI`
+
+**循环依赖破解**：`state.js` 暴露 `registerRenderCallback(fn)`，`main.js` 定义 `renderUI` 后主动注册，避免 `state.js` import `main.js` 产生循环。
+
+**SANDBOX_MODE**：`service.mock.js` 顶部 `SANDBOX_MODE = true` 时，`loadDB()` 每次重载均返回初始 mock 数据（开发调试用）；设为 `false` 恢复 localStorage 持久化。
 
 ## 2. Scenario Routing（场景路由）
 

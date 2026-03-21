@@ -1,9 +1,10 @@
 # Snapshot History
 
-v13.0 — 2026-03-08    Control Plane Segregation & Governance Refactoring Completed
-v12.0 — 2026-03-07    System Health Audit & v6 Protocol Finalization [DEPRECATED & DELETED]
-v11.0 — 2026-03-07    SOP integration + System Change Pipeline + scenarios/meta_audit_log added [DEPRECATED & DELETED]
-v10.0 — 2026-03-05    Pre-SOP architecture baseline (Apple Liquid Glass UI, ESM layered arch) [DEPRECATED & DELETED]
+v1.0 — 2026-03-21    **[ACTIVE - CURRENT]** ES6 全量模块化重构封版 + RBAC 双轨 + 文档层同步完毕
+v13.0 — 2026-03-08   **[DEPRECATED]** Control Plane Segregation & Governance Refactoring Completed
+v12.0 — 2026-03-07    Control Plane v2 已启用；README/AI_CONTEXT 重构 [DEPRECATED & DELETED]
+v11.0 — 2026-03-07    SOP integration + System Change Pipeline [DEPRECATED & DELETED]
+v10.0 — 2026-03-05    Pre-SOP architecture baseline [DEPRECATED & DELETED]
 
 ---
 
@@ -11,21 +12,23 @@ v10.0 — 2026-03-05    Pre-SOP architecture baseline (Apple Liquid Glass UI, ES
 
 | 版本 | 日期 | 物理文件 | 核心变更摘要 |
 |------|------|---------|------------|
-| v13.0 | 2026-03-08 | `SNAPSHOT_v13.0.md` | Control Plane v2 已启用；governance/backlog/logs 读写权限白名单已刷新；遗留路径已硬扫荡；死链已修复；旧快照已销毁 |
-| v12.0 | 2026-03-07 | ~~`SNAPSHOT_v12.0.md`~~ **[DEPRECATED & DELETED]** | AI_CONTEXT.md 压缩为44行三模块；README.md 重构为121行 Org OS 驾驶舱；SOP Index 与 DOCUMENTATION_MAP 创建；Governance Audit v6 全链路执行完毕 |
-| v11.0 | 2026-03-07 | ~~`SNAPSHOT_v11.0.md`~~ **[DEPRECATED & DELETED]** | 新增 `assets/`、`knowledge/`、`.vibe_context/scenarios/sop_data_sync.md`、`meta_audit_log.md`；`ARCHITECTURE.md` 追加 System Change Pipeline 节 |
-| v10.0 | 2026-03-05 | ~~`SNAPSHOT_v10.0.md`~~ **[DEPRECATED & DELETED]** | 基线快照：`src/` ESM 分层架构（domain → service.mock → service.runtime → main）、`index.html` 静态入口、Apple Liquid Glass UI 骨架 |
+| **v1.0** | **2026-03-21** | **`SNAPSHOT_v1.0_20260321.md`** | **[ACTIVE - CURRENT]** 全量 ES6 9模块化重构完成；RBAC 双轨状态机（参与/管理四色）已落地；归档库隔离；日历四色联动；文档层 README/经验库全量重写 |
+| v13.0 | 2026-03-08 | `SNAPSHOT_v13.0.md` **[DEPRECATED]** | Control Plane v2 已启用；governance/backlog/logs 读写权限白名单已刷新；遗留路径已硬扫荡；死链已修复 |
+| v12.0 | 2026-03-07 | ~~`SNAPSHOT_v12.0.md`~~ **[DEPRECATED & DELETED]** | AI_CONTEXT.md 压缩为44行三模块；README.md 重构为121行 Org OS 驾驶舱；SOP Index 与 DOCUMENTATION_MAP 创建 |
+| v11.0 | 2026-03-07 | ~~`SNAPSHOT_v11.0.md`~~ **[DEPRECATED & DELETED]** | 新增 `assets/`、`knowledge/`、`.vibe_context/scenarios/`；`ARCHITECTURE.md` 追加 System Change Pipeline 节 |
+| v10.0 | 2026-03-05 | ~~`SNAPSHOT_v10.0.md`~~ **[DEPRECATED & DELETED]** | 基线快照：`src/` ESM 分层架构（domain → service.mock → service.runtime → main）、`index.html` 静态入口 |
 
-## Reconciliation — Checkpoint 4
+## Reconciliation — Checkpoint 5（v1.0 封版）
 
 | 物理文件 | 是否已登记 |
 |---------|----------|
-| `SNAPSHOT_v13.0.md` | ✅ 已登记（当前活动快照） |
+| `SNAPSHOT_v1.0_20260321.md` | ✅ 已登记（当前活动快照） |
+| `SNAPSHOT_v13.0.md` | ✅ 已登记（已弃用，保留物理文件） |
 | `SNAPSHOT_v12.0.md` | ✅ 已登记（已销毁） |
 | `SNAPSHOT_v11.0.md` | ✅ 已登记（已销毁） |
 | `SNAPSHOT_v10.0.md` | ✅ 已登记（已销毁） |
 
-**结论：** 物理账本与索引账本 100% 对齐，旧快照已物理删除，v13.0 为唯一活动快照。✅
+**结论：** 物理账本与索引账本 100% 对齐，v1.0 为当前唯一活动快照。✅
 
 ## Index Governance Rules
 

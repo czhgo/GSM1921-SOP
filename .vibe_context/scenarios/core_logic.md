@@ -1,8 +1,16 @@
 **Purpose**: 管理领域模型、Schema 字段、Service 方法、状态机等核心业务逻辑变更。所有代码层改动必须追溯到 `knowledge/SOP/` 中的制度依据，Schema 字段必须有 `Source:` 注释锚点。
 
-**Trigger**: 字段、schema、activity、task、数据结构、API、domain、service、状态机、STATE、renderUI、src/
+> **[2026-03 架构升级注记]**：状态机已全面模块化，不再是单体 `main.js`。核心业务逻辑分布如下：
+> - **全局状态**：`src/state.js`（`appState` 不可变对象、`setState(patch)`、`registerRenderCallback` 循环依赖破解）
+> - **检查器与任务过滤**：`src/inspector.js`（`renderInspectorFromState`、`renderInspectorList`、`renderInspectorDetail`、`filterTasksByManagementRole`）
+> - **SOP 实例化引擎**：`src/sop.js`（`instantiateSOP(scenarioIds, t0DateStr)` 将模板展开为带绝对日期的任务数组）
+> - **常量注册表**：`src/constants.js`（`ROLE_COLORS`、`ROLE_LABELS`、`ROLE_THEME_CLASS`、`ROLE_ORDER`、`COMMISSIONER_ROLES`）
+> - **工具函数**：`src/utils.js`（`showToast`、`_fmtDate`、`_fmtChinese`、`_currentYearMonth`）
+> - **启动与渲染协调**：`src/main.js`（`initApp`、`renderUI`——唯一 DOM 更新入口，约 154 行）
 
-**Allowed Files**: `src/*`（`src/domain.js`, `src/service.mock.js`, `src/service.runtime.js`, `src/main.js`, `src/id.js`）
+**Trigger**: 字段、schema、activity、task、数据结构、API、domain、service、状态机、STATE、renderUI、src/、state.js、inspector.js、sop.js、constants.js、utils.js
+
+**Allowed Files**: `src/*`（`src/state.js`, `src/constants.js`, `src/utils.js`, `src/sopData.js`, `src/sop.js`, `src/calendar.js`, `src/inspector.js`, `src/events.js`, `src/main.js`, `src/service.mock.js`, `src/service.runtime.js`）
 
 ---
 
