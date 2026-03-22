@@ -1,10 +1,10 @@
 **Purpose**: 管理所有 AI 治理元数据操作，包括执行日志写入、场景注册表维护、快照生成、审计合规核查。所有其他场景执行完毕后都必须回调本场景完成日志核销。
 
-> **[2026-03 快照封版注记]**：系统已于 2026-03-21 完成全量 ES6 模块化重构（Part 1–3）及文档层同步（Phase 1/2–2/2），进入 v1.0 稳定期。凡涉及快照封版操作，必须遵循以下规则：
-> 1. **旧快照弃用**：在 `SNAPSHOT_INDEX.md` 中将前序快照标记为 `[DEPRECATED]`，不得物理删除（除非经书记明确授权）。
-> 2. **新快照命名**：格式为 `SNAPSHOT_v<major>.<minor>_<YYYYMMDD>.md`（里程碑节点）或 `SNAPSHOT_v<N>.md`（常规版本迭代）。
-> 3. **快照必含字段**：模块化结构清单、数据流规则、权限与视图边界、全局术语锁定声明。
-> 4. **注册同步**：生成快照文件后，必须在 `SNAPSHOT_INDEX.md` 中追加一行记录，状态标注为 `[ACTIVE - CURRENT]`；同时将前一活动快照改为 `[DEPRECATED]`。
+> **[2026-03 快照封版注记 + 2026-03-22 治理减负更新]**：系统已于 2026-03-21 完成全量 ES6 模块化重构（Part 1–3）及文档层同步（Phase 1/2–2/2），进入 v1.0 稳定期。快照索引文件 `SNAPSHOT_INDEX.md` 已于 2026-03-22 物理删除（治理减负），改由**文件名自解释**机制管理。凡涉及快照封版操作，必须遵循以下规则：
+> 1. **单活跃快照原则（Single Active Snapshot）**：`.vibe_context/` 下任何时刻只保留一个活跃快照文件（格式 `SNAPSHOT_v<major>.<minor>_<YYYYMMDD>.md`）。
+> 2. **旧快照清除授权**：旧快照在经书记明确授权后可物理删除；未授权时仅在文件 frontmatter 中标注 `status: deprecated`。
+> 3. **新快照命名**：格式为 `SNAPSHOT_v<major>.<minor>_<YYYYMMDD>.md`（里程碑节点）。无需再维护 `SNAPSHOT_INDEX.md`，索引由文件名与当月执行日志共同承担。
+> 4. **快照必含字段**：模块化结构清单、数据流规则、权限与视图边界、全局术语锁定声明、全局物理拓扑树（Depth 4）、LLM Context Alignment 协议。
 > 5. **日志审计**：快照封版操作必须在 `.vibe_context/logs/YYYY-MM-EXECUTION_LOG.md` 末尾追加一条审计记录。
 
 **Trigger**: AI规则、审计、协议、日志、EXECUTION_LOG、快照、场景注册、治理、governance、meta、vibe_context

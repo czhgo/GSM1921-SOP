@@ -2337,3 +2337,27 @@ main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 r
 | Schema Impact | N/A |
 | Summary | 追加了深度为 4 的全局拓扑树与 LLM 同步协议至最新快照，彻底固化系统的物理坐标系。 |
 | Timestamp | 2026-03-21T16:42:00+08:00 |
+
+---
+
+### Release Phase 1/2 — 治理层减负与场景路由对齐
+
+**执行时间**：2026-03-22（治理大清洗）
+**Scenario**：`META_AUDIT`
+
+| 字段 | 值 |
+|------|---|
+| Files Modified | `.vibe_context/AI_CONTEXT.md`（新增 §4 File Access Permissions）、`.vibe_context/scenarios/meta_audit.md`（快照索引废除+单活跃快照原则）、`backlog/COMPLETED_TASKS.md`（追加修改18–23）、`.vibe_context/logs/2026-03-EXECUTION_LOG.md`（本条记录） |
+| Files Deleted (DELETE) | `.vibe_context/SNAPSHOT_v13.0.md`（已弃用历史快照）、`.vibe_context/SNAPSHOT_INDEX.md`（索引废弃，由文件名自解释）、`.vibe_context/FILE_ACCESS.md`（内容已合并至 AI_CONTEXT.md §4） |
+| SOP Reference | N/A |
+| Schema Impact | N/A |
+| Summary | 治理层减负完成：删除3个废弃文件，FILE_ACCESS.md 权限规则零损耗合并至 AI_CONTEXT.md，meta_audit 写入单活跃快照+索引废除规范，COMPLETED_TASKS 补录修改18–23（ESM模块化+RBAC+快照+治理清洗）。 |
+| Timestamp | 2026-03-22T09:00:00+08:00 |
+
+**DELETE 审计条目（§2 Delete + Log Rule）：**
+
+| 时间 | 类型 | 被删路径 | 信息去向 |
+|------|------|---------|---------|
+| 2026-03-22 | DELETE | `.vibe_context/SNAPSHOT_v13.0.md` | 历史归档信息已由 COMPLETED_TASKS.md §修改17 记录；物理快照内容已由 v1.0 快照取代 |
+| 2026-03-22 | DELETE | `.vibe_context/SNAPSHOT_INDEX.md` | 快照版本历史已由 COMPLETED_TASKS.md §修改22 概括；索引功能改由文件名+执行日志承担 |
+| 2026-03-22 | DELETE | `.vibe_context/FILE_ACCESS.md` | 全量权限规则已无损合并至 `.vibe_context/AI_CONTEXT.md §4 File Access Permissions` |
