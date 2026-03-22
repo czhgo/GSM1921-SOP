@@ -6,8 +6,8 @@ audience:
   - 新任支委
   - 党小组组长
 owner: "储子禾"
-last_updated: "2026-03-21"
-version: "5.0"
+last_updated: "2026-03-22"
+version: "6.0"
 status: active
 ---
 
@@ -95,6 +95,22 @@ src/
 **循环依赖破解机制**：`state.js` 需要调用 `renderUI`，`main.js` 需要 `import setState`——若互相 import 则形成循环。解法是 `state.js` 暴露 `registerRenderCallback(fn)`，由 `main.js` 在定义 `renderUI` 后主动注册，依赖图保持 DAG（有向无环图）。
 
 **单向数据流**：所有用户操作 → `setState(patch)` → `renderUI(appState)` → 全量 DOM 重绘。无任何直接 DOM 操作分散在业务逻辑中，状态与视图严格同步。
+
+### 变更黄金铁律 (Change Pipeline)
+
+> 这是后继维护者与 AI 代理的**最高行为约束**，所有变更必须且只能沿此管道流动，严禁跳步或逆向操作。
+
+```
+SOP 更新 (knowledge/SOP/)
+    ↓
+sopData 注入 (src/sopData.js — 同步任务节点模板数据)
+    ↓
+state 状态机更新 (src/state.js + setState patch)
+    ↓
+renderUI 单向渲染 (src/main.js — 唯一 DOM 更新出口)
+```
+
+**归档库数据隔离**：活动执行完成后通过 `archiveActivity(id)` 写入 `archived: true`。归档数据与活跃数据物理共存于同一 localStorage 空间，但通过 `viewArchived` 状态标志在 UI 层实现完全隔离——归档视图中所有 `<select>` 为 `disabled`，防止对历史数据的意外改写，恢复通道唯一入口为"恢复活动"按钮。
 
 ### RBAC 双轨视图模型
 
