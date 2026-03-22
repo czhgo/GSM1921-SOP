@@ -147,43 +147,10 @@ setupEventListeners();
   setState({ domain: 'activity', role: 'all', activeModule: 'calendar', status: STATE.LOADING });
 
   try {
-    let [activities, tasks] = await Promise.all([
+    const [activities, tasks] = await Promise.all([
       BranchService.listActivities(),
       typeof BranchService.listTasks === 'function' ? BranchService.listTasks() : Promise.resolve([]),
     ]);
-
-    // ── 空状态引导：自动创建示例活动 ──────────────────────────────
-    if (activities.length === 0) {
-      const today = new Date();
-      const targetDate = new Date(today);
-      targetDate.setDate(targetDate.getDate() + 7);
-      const targetDateStr = targetDate.toISOString().slice(0, 10);
-      const newAct = await BranchService.createActivity({
-        title:      '示例：组织生活会演练',
-        domain:     'activity',
-        scenarioId: 'org-life',
-        date:       targetDateStr,
-        executor:   'organizer',
-      });
-      const sopTasks = instantiateSOP(['org-life'], targetDateStr);
-      await Promise.allSettled(
-        sopTasks.map(t => BranchService.createTask({
-          activityId: newAct.id,
-          title:      t.title,
-          status:     'pending',
-          executor:   t.executor,
-          supervisor: t.supervisor || null,
-          timeOffset: t.timeOffset,
-          date:       _fmtDate(t.date),
-          scenarioId: t.scenarioId,
-        }))
-      );
-      [activities, tasks] = await Promise.all([
-        BranchService.listActivities(),
-        BranchService.listTasks(),
-      ]);
-      showToast('info', '已为您创建示例活动，可体验任务管理功能');
-    }
 
     setState({ status: STATE.IDLE, activities, tasks });
   } catch (err) {

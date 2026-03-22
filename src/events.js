@@ -52,6 +52,21 @@ function _initCalendarModule() {
 
   t0Input.value = _fmtDate(new Date());
 
+  // 场景切换：主题党日时显示党员姓名输入框，其他场景隐藏并清空
+  const scSelect = document.getElementById('scenario-select-cal');
+  const participantWrap = document.getElementById('participant-name-wrap');
+  const participantInput = document.getElementById('participant-name-input');
+  if (scSelect && participantWrap && participantInput) {
+    scSelect.addEventListener('change', () => {
+      if (scSelect.value === 'theme-party') {
+        participantWrap.classList.remove('hidden');
+      } else {
+        participantWrap.classList.add('hidden');
+        participantInput.value = '';
+      }
+    });
+  }
+
   genBtn.addEventListener('click', async () => {
     const appState = getAppState();
     if (appState.status === STATE.SUBMITTING || appState.status === STATE.LOADING) return;
@@ -64,7 +79,6 @@ function _initCalendarModule() {
       return;
     }
 
-    const scSelect = document.getElementById('scenario-select-cal');
     const scVal    = scSelect ? scSelect.value : 'org-life';
     const scIds    = scVal === 'all-timed' ? ['org-life', 'theme-party'] : [scVal];
 
@@ -80,6 +94,11 @@ function _initCalendarModule() {
       return;
     }
 
+    // 读取党员姓名（独立字段，不拼入标题）
+    const participantName = (participantInput && !participantWrap.classList.contains('hidden'))
+      ? participantInput.value.trim()
+      : '';
+
     const reqId = ++_currentRequestId;
 
     genBtn.disabled = true;
@@ -87,14 +106,17 @@ function _initCalendarModule() {
     setState({ status: STATE.SUBMITTING, error: null });
 
     try {
-      const newAct = await BranchService.createActivity({
-        title:      actName.trim(),
+      const actPayload = {
+        title:      actName,
         domain:     'activity',
         scenarioId: scIds[0],
         date:       dateStr,
         executor:   'organizer',
         createdBy:  'u_exec',
-      });
+      };
+      if (participantName) actPayload.participantName = participantName;
+
+      const newAct = await BranchService.createActivity(actPayload);
 
       if (reqId !== _currentRequestId) return;
 
