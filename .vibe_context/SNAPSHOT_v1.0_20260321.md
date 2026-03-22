@@ -147,7 +147,7 @@ GSM1921-SOP/                               ← 项目根目录（GitHub Pages �
 > `state.js` never imports `main.js`. Instead, `main.js` calls `registerRenderCallback(renderUI)` post-definition. All render modules receive `appState` via function parameters only.
 >
 > **5. Key Identifiers** (role name lock — code layer only, NO real names):
-> `leader` (条条支委/党小组组长) | `commissioner` (块块委员) | `organizer` (活动组织者) | `deep` (深度参与者) | `participant` (普通成员)
+> `leader` (块块组长/党小组组长) | `commissioner` (条条委员/职能委员) | `organizer` (活动组织者) | `deep` (深度参与者) | `participant` (普通成员)
 >
 > **6. File Boundaries** (scope guard):
 > - Governance metadata: `.vibe_context/*` only
@@ -268,8 +268,8 @@ GSM1921-SOP/                               ← 项目根目录（GitHub Pages �
 
 | 术语 | 含义 | 对应 managementRole |
 |------|------|-------------------|
-| **条条支委**（纵向组织） | 党小组组长，负责本组活动策划与执行监督 | `leader` |
-| **块块委员**（横向职能） | 组织委员/宣传委员/纪检委员，负责职能保障与督办 | `commissioner` |
+| **块块组长**（横向人群） | 党小组组长，负责本组活动策划与执行监督 | `leader` |
+| **条条委员**（纵向职能） | 组织委员/宣传委员/纪检委员，负责职能保障与督办 | `commissioner` |
 | **活动组织者** | 具体活动的策划执行方 | `organizer` |
 | **深度参与者** | 承接具体内容产出（如宣传材料）的骨干成员 | `deep` |
 | **普通参与者** | 一般成员，使用参与视图 | `participant` |
