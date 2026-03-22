@@ -88,8 +88,8 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
     defEl.classList.remove('hidden');
     if (viewArchived) {
       defEl.innerHTML = '<p class="font-stheiti text-sm text-gray-400 text-center py-8">归档库暂无内容</p>';
-    } else {
-      defEl.innerHTML = '';
+    } else if (dateKey) {
+      defEl.innerHTML = '<div class="text-center text-gray-400 py-8 font-stheiti text-sm">当日暂无活动</div>';
     }
     contentEl.classList.add('hidden');
     return;
@@ -197,7 +197,7 @@ export function renderInspectorDetail(activity, tasks, managementRole) {
   if (visibleTasks.length > 0) {
     visibleTasks.forEach(t => {
       const cardClass = themeClass ? `inspector-card ${themeClass}` : 'inspector-card';
-      html += `<div class="${cardClass}" style="${themeClass ? 'border-left-width:3px;' : ''}">`;
+      html += `<div class="${cardClass}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
       html += `<p class="font-stheiti font-bold text-sm leading-snug flex-1">${t.title}</p>`;
       html += `<select class="task-status-select font-stheiti text-[10px] rounded px-1 py-0.5 border border-gray-200 bg-white flex-shrink-0"${isArchived ? ' disabled style="opacity:0.5;cursor:not-allowed;"' : ''} data-task-id="${t.id}" aria-label="任务状态">`;
