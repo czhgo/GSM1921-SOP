@@ -87,11 +87,11 @@ function renderUI(state) {
     btn.classList.toggle('active', btn.dataset.domain === domain);
   });
 
-  document.querySelectorAll('.role-btn[data-role]').forEach(btn => {
+  document.querySelectorAll('#sidebar-reference-menu .role-btn[data-role]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.role === role);
   });
 
-  const activeRoleBtn = document.querySelector(`.role-btn[data-role="${role}"]`);
+  const activeRoleBtn = document.querySelector(`#sidebar-reference-menu .role-btn[data-role="${role}"]`);
   if (activeRoleBtn) {
     const hl = document.getElementById('role-headline');
     const sl = document.getElementById('role-subline');

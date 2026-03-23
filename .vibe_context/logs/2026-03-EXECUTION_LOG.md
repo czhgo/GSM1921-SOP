@@ -2383,3 +2383,5 @@ main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 r
 - **2026-03-22 [UX Phase 2/2]** 修复参与视图日期过滤穿透 Bug（增加当日暂无活动提示），修复管理视图四色渲染失效 Bug（移除 .inspector-card 硬编码红色 border-left 与红色调 box-shadow，将 ROLE_THEME_CLASS 四色主题完整挂载至任务卡片，完成 UX 体验闭环）。
 
 - **2026-03-23 [UX Final Phase 2/3]** 完成扩展活动创建字段（events.js 读取 #organizer-name-input / #deep-name-input 并注入 actPayload），闭环月份检索事件（#month-search-btn → setState displayMonth），彻底锁死参与者防偷窥路由（renderInspectorFromState 顶部绝对守卫 participant short-circuit）并注入摘要模态框（organizerName / deepParticipantName 字段映射展示）。
+
+- **2026-03-23 [UX Final Phase 3/3]** 重建参考指南角色筛选区（#sidebar-reference-menu），复用四色液态玻璃 UI，确立 `role` 与 `managementRole` 状态隔离双轨制；events.js 与 main.js 均收窄为 #sidebar-reference-menu 容器选择器，彻底防止两套菜单事件绑定与激活态串台。

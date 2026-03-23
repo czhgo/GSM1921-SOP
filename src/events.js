@@ -209,8 +209,8 @@ export function setupEventListeners() {
     });
   });
 
-  // ── 角色按钮（参考指南模块）──────────────────────────────────
-  document.querySelectorAll('.role-btn[data-role]').forEach(btn => {
+  // ── 角色按钮（参考指南模块，严格圈定容器防串台）────────────
+  document.querySelectorAll('#sidebar-reference-menu .role-btn[data-role]').forEach(btn => {
     btn.addEventListener('click', () => {
       setState({ role: btn.dataset.role });
       closeSidebar();
