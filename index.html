@@ -113,6 +113,32 @@ body {
 .role-btn.active .role-name { color: #ffffff; }
 .role-btn.active .role-desc { color: rgba(255, 255, 255, 0.82); }
 
+/* ── Role-specific four-color active states ──────────────────── */
+.role-btn[data-role="leader"].active {
+  background: rgba(239, 68, 68, 0.15) !important;
+  box-shadow: 0 8px 28px rgba(239, 68, 68, 0.22);
+}
+.role-btn[data-role="leader"].active .role-name { color: #B91C1C; }
+.role-btn[data-role="leader"].active .role-desc { color: rgba(185, 28, 28, 0.80); }
+.role-btn[data-role="commissioner"].active {
+  background: rgba(245, 158, 11, 0.15) !important;
+  box-shadow: 0 8px 28px rgba(245, 158, 11, 0.22);
+}
+.role-btn[data-role="commissioner"].active .role-name { color: #B45309; }
+.role-btn[data-role="commissioner"].active .role-desc { color: rgba(180, 83, 9, 0.80); }
+.role-btn[data-role="organizer"].active {
+  background: rgba(59, 130, 246, 0.15) !important;
+  box-shadow: 0 8px 28px rgba(59, 130, 246, 0.22);
+}
+.role-btn[data-role="organizer"].active .role-name { color: #1D4ED8; }
+.role-btn[data-role="organizer"].active .role-desc { color: rgba(29, 78, 216, 0.80); }
+.role-btn[data-role="deep"].active {
+  background: rgba(16, 185, 129, 0.15) !important;
+  box-shadow: 0 8px 28px rgba(16, 185, 129, 0.22);
+}
+.role-btn[data-role="deep"].active .role-name { color: #047857; }
+.role-btn[data-role="deep"].active .role-desc { color: rgba(4, 120, 87, 0.80); }
+
 /* ── Domain Router Buttons ───────────────────────────────────── */
 .domain-btn {
   font-family: 'STHeiti', '华文黑体', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
@@ -2394,6 +2420,20 @@ body {
                  class="glass-input font-stheiti w-full">
         </div>
 
+        <div class="min-w-[140px]">
+          <label class="block font-stheiti text-[11px] text-gray-500 mb-1">活动组织者</label>
+          <input type="text" id="organizer-name-input"
+                 placeholder="活动组织者姓名(选填)"
+                 class="glass-input font-stheiti w-full">
+        </div>
+
+        <div class="min-w-[140px]">
+          <label class="block font-stheiti text-[11px] text-gray-500 mb-1">深度参与者</label>
+          <input type="text" id="deep-name-input"
+                 placeholder="深度参与者姓名(选填)"
+                 class="glass-input font-stheiti w-full">
+        </div>
+
         <button id="gen-schedule-cal-btn"
                 class="font-stheiti text-sm text-white px-5 py-1.5 rounded-lg"
                 style="background:#CE1126;">写入活动</button>
@@ -2418,11 +2458,16 @@ body {
         <!-- 月份筛选器 -->
         <div class="mb-3">
           <label class="block font-stheiti text-[11px] text-gray-500 mb-1">筛选月份</label>
-          <select id="month-selector"
-                  class="glass-input font-stheiti w-full"
-                  style="">
-            <option value="">全部月份</option>
-          </select>
+          <div class="flex gap-2">
+            <select id="month-selector"
+                    class="glass-input font-stheiti flex-1"
+                    style="">
+              <option value="">全部月份</option>
+            </select>
+            <button id="month-search-btn"
+                    class="font-stheiti text-sm text-white px-3 py-1.5 rounded-lg flex-shrink-0"
+                    style="background:#CE1126;">检索</button>
+          </div>
         </div>
         <div id="inspector-default">
           <div class="flex items-center gap-2 mb-3">
