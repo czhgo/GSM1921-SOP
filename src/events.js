@@ -5,7 +5,7 @@
 
 import { getAppState, setState, STATE } from './state.js';
 import { _fmtDate, showToast } from './utils.js';
-import { instantiateSOP } from './sop.js';
+import { instantiateSOP } from './workflow/index.js';
 import { BranchService } from './service.runtime.js';
 
 // ── 防竞态：当前请求 ID（模块私有）────────────────────────────

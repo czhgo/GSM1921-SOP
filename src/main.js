@@ -11,7 +11,7 @@ import { enterEl, leaveEl, _fmtDate, showToast, _currentYearMonth } from './util
 import { populateMonthSelector, renderCalendarByActivities } from './calendar.js';
 import { renderInspectorFromState } from './inspector.js';
 import { setupEventListeners, populateActivitySelector } from './events.js';
-import { instantiateSOP } from './sop.js';
+import { instantiateSOP } from './workflow/index.js';
 
 // ════════════════════════════════════════════════════════════════
 //  renderUI — 主渲染函数，由 setState 唯一触发
