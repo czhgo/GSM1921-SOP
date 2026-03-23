@@ -10,7 +10,7 @@ import { STATE, setState, registerRenderCallback } from './state.js';
 import { enterEl, leaveEl, _fmtDate, showToast, _currentYearMonth } from './utils.js';
 import { populateMonthSelector, renderCalendarByActivities } from './calendar.js';
 import { renderInspectorFromState } from './inspector.js';
-import { setupEventListeners } from './events.js';
+import { setupEventListeners, populateActivitySelector } from './events.js';
 import { instantiateSOP } from './sop.js';
 
 // ════════════════════════════════════════════════════════════════
@@ -77,6 +77,7 @@ function renderUI(state) {
       });
     }
     populateMonthSelector(state.activities);
+    populateActivitySelector(state.activities);
     const targetMonth = state.displayMonth || _currentYearMonth();
     renderCalendarByActivities(state.activities, targetMonth);
     renderInspectorFromState(state);

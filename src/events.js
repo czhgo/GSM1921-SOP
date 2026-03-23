@@ -178,6 +178,23 @@ function _initCalendarModule() {
 }
 
 // ════════════════════════════════════════════════════════════════
+//  活动快速寻址器数据填充（保鲜：由 renderUI 在每次 setState 后调用）
+// ════════════════════════════════════════════════════════════════
+export function populateActivitySelector(activities) {
+  const sel = document.getElementById('activity-selector');
+  if (!sel) return;
+  const current = sel.value;
+  const unarchived = (activities || [])
+    .filter(a => !a.archived)
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  sel.innerHTML = '<option value="">快速聚焦活动...</option>'
+    + unarchived.map(a =>
+        `<option value="${a.id}">${a.title}${a.date ? ' — ' + a.date : ''}</option>`
+      ).join('');
+  if (current && unarchived.some(a => a.id === current)) sel.value = current;
+}
+
+// ════════════════════════════════════════════════════════════════
 //  全量 DOM 事件绑定入口
 // ════════════════════════════════════════════════════════════════
 export function setupEventListeners() {
@@ -273,6 +290,17 @@ export function setupEventListeners() {
       const val = monthSelector.value;
       if (!val) return;
       setState({ displayMonth: val, selectedDate: null, viewMode: 'list' });
+    });
+  }
+
+  // ── 活动快速寻址器（一键穿透至管理详情）─────────────────────
+  const activitySelector = document.getElementById('activity-selector');
+  if (activitySelector) {
+    activitySelector.addEventListener('change', () => {
+      const id = activitySelector.value;
+      if (!id) return;
+      setState({ viewMode: 'detail', selectedActivityId: id, viewType: 'manager' });
+      activitySelector.value = '';
     });
   }
 
