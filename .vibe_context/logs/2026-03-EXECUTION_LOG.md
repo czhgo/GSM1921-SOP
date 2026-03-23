@@ -2385,3 +2385,5 @@ main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 r
 - **2026-03-23 [UX Final Phase 2/3]** 完成扩展活动创建字段（events.js 读取 #organizer-name-input / #deep-name-input 并注入 actPayload），闭环月份检索事件（#month-search-btn → setState displayMonth），彻底锁死参与者防偷窥路由（renderInspectorFromState 顶部绝对守卫 participant short-circuit）并注入摘要模态框（organizerName / deepParticipantName 字段映射展示）。
 
 - **2026-03-23 [UX Final Phase 3/3]** 重建参考指南角色筛选区（#sidebar-reference-menu），复用四色液态玻璃 UI，确立 `role` 与 `managementRole` 状态隔离双轨制；events.js 与 main.js 均收窄为 #sidebar-reference-menu 容器选择器，彻底防止两套菜单事件绑定与激活态串台。
+
+- **2026-03-23 [Bugfix Phase 1/2]** 修复侧边栏模块物理隔离 Bug：在 `renderUI` 侧边栏子菜单切换区增加 `#sidebar-reference-menu` 的 `classList.toggle('hidden', activeModule !== 'reference')` 控制；同步在 `index.html` 的 `#sidebar-reference-menu` 容器初始 class 中添加 `hidden`，彻底消灭推演工作台与参考指南菜单重叠泄漏问题，实现两套侧边栏 UI 排他性物理隔离。

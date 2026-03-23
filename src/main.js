@@ -28,8 +28,10 @@ function renderUI(state) {
   // ── 侧边栏子菜单切换 ─────────────────────────────────────────
   const calMenu = document.getElementById('sidebar-calendar-menu');
   const tplMenu = document.getElementById('sidebar-templates-menu');
+  const refMenu = document.getElementById('sidebar-reference-menu');
   if (calMenu) calMenu.classList.toggle('hidden', activeModule !== 'calendar');
   if (tplMenu) tplMenu.classList.toggle('hidden', activeModule !== 'templates');
+  if (refMenu) refMenu.classList.toggle('hidden', activeModule !== 'reference');
 
   // ── 主内容区模块切换 ─────────────────────────────────────────
   const viewRef = document.getElementById('view-reference');
