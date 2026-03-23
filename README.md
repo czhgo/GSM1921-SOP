@@ -72,7 +72,7 @@ status: active
 
 > 本节面向后继维护者与 AI 代理，解释 `src/` 目录的模块拓扑与 RBAC 视图逻辑。普通成员无需阅读此节。
 
-### ES6 模块化结构（9 + 2 文件）
+### ES6 模块化结构（9 + 2 文件 + 1 子目录）
 
 `index.html` 通过 `<script type="module" src="./src/main.js">` 加载前端，全部依赖均为**原生 ES6 相对路径 import**，无需构建工具，GitHub Pages 直接静态托管。
 
@@ -81,12 +81,15 @@ src/
 ├── state.js       全局状态中心：appState 不可变对象 + setState(patch) + registerRenderCallback
 ├── constants.js   静态常量：ROLE_COLORS / ROLE_LABELS / ROLE_THEME_CLASS / COMMISSIONER_ROLES
 ├── utils.js       通用工具：_fmtDate / _fmtChinese / showToast / _currentYearMonth
-├── sopData.js     SOP 模板数据：各场景任务节点的原始数据定义
-├── sop.js         SOP 实例化：instantiateSOP(scenarioIds, t0DateStr) → 计算绝对日期的任务数组
 ├── calendar.js    日历渲染引擎：renderCalendarByActivities / populateMonthSelector
 ├── inspector.js   检查器面板：renderInspectorFromState / renderInspectorList / renderInspectorDetail / filterTasksByManagementRole
 ├── events.js      全量 DOM 事件绑定：setupEventListeners()，侧边栏 / 模块 Tab / RBAC 角色按钮 / 推演工作台
 ├── main.js        启动入口 + 渲染协调：initApp / renderUI（唯一 DOM 更新入口）
+│
+├── workflow/      ★ SOP 核心规则引擎（物理封装子目录）
+│   ├── index.js   桶文件（Barrel）：统一对外导出 instantiateSOP / sopDatabase
+│   ├── sopData.js SOP 模板数据：各场景任务节点的原始数据定义（SOP_SCENARIOS）
+│   └── sop.js     SOP 实例化：instantiateSOP(scenarioIds, t0DateStr) → 计算绝对日期的任务数组
 │
 ├── service.mock.js    Mock 服务层：localStorage 持久化 + SANDBOX_MODE 开关（true=每次重载恢复初始数据）
 └── service.runtime.js 运行时服务路由：BranchService 代理，统一暴露 createActivity/listActivities/createTask/updateTask/archiveActivity/deleteActivity 等方法
@@ -103,7 +106,7 @@ src/
 ```
 SOP 更新 (knowledge/SOP/)
     ↓
-sopData 注入 (src/sopData.js — 同步任务节点模板数据)
+sopData 注入 (src/workflow/sopData.js — 同步任务节点模板数据)
     ↓
 state 状态机更新 (src/state.js + setState patch)
     ↓

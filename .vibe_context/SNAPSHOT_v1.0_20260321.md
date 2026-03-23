@@ -29,8 +29,10 @@ GSM1921-SOP/                               ← 项目根目录（GitHub Pages �
 │   ├── state.js                           ← appState + setState(patch) + registerRenderCallback
 │   ├── constants.js                       ← ROLE_COLORS / ROLE_LABELS / ROLE_THEME_CLASS / ROLE_ORDER
 │   ├── utils.js                           ← showToast / _fmtDate / _fmtChinese / _currentYearMonth
-│   ├── sopData.js                         ← SOP场景任务节点模板数据（物理隔离自main.js）
-│   ├── sop.js                             ← instantiateSOP(scenarioIds, t0DateStr) → 绝对日期任务数组
+│   ├── workflow/                          ← ★ SOP核心规则引擎（物理封装子目录）
+│   │   ├── index.js                       ← 桶文件：统一对外导出 instantiateSOP / sopDatabase
+│   │   ├── sopData.js                     ← SOP场景任务节点模板数据（SOP_SCENARIOS按scenarioId索引）
+│   │   └── sop.js                         ← instantiateSOP(scenarioIds, t0DateStr) → 绝对日期任务数组
 │   ├── calendar.js                        ← renderCalendarByActivities / populateMonthSelector
 │   ├── inspector.js                       ← renderInspectorFromState / filterTasksByManagementRole
 │   ├── events.js                          ← setupEventListeners()（全量DOM事件绑定）
@@ -129,8 +131,8 @@ GSM1921-SOP/                               ← 项目根目录（GitHub Pages �
 >
 > **1. Data Pipeline**:
 > `knowledge/SOP/*.md` (authoritative institution rules)
-> → manually distilled into `src/sopData.js` (task template registry, keyed by scenarioId)
-> → instantiated via `src/sop.js::instantiateSOP(scenarioIds, t0DateStr)` (offsets → absolute dates)
+> → manually distilled into `src/workflow/sopData.js` (task template registry, keyed by scenarioId)
+> → instantiated via `src/workflow/sop.js::instantiateSOP(scenarioIds, t0DateStr)` (offsets → absolute dates)
 > → state managed by `src/state.js` (immutable appState + setState + registerRenderCallback DAG pattern)
 > → rendered by `src/main.js::renderUI(state)` (sole DOM update gate)
 >
@@ -141,7 +143,7 @@ GSM1921-SOP/                               ← 项目根目录（GitHub Pages �
 > - `viewArchived:true` → isolated archive vault, all `<select>` disabled, restore-only mode
 >
 > **3. Mandatory Change Pipeline** (iron law, never bypass):
-> `SOP Document Update (knowledge/SOP/)` → `Data Template Update (src/sopData.js)` → `Service Layer (service.mock.js)` → `State Update (state.js)` → `UI Render (main.js renderUI)`. **NO direct code hacking without SOP basis.**
+> `SOP Document Update (knowledge/SOP/)` → `Data Template Update (src/workflow/sopData.js)` → `Service Layer (service.mock.js)` → `State Update (state.js)` → `UI Render (main.js renderUI)`. **NO direct code hacking without SOP basis.**
 >
 > **4. Circular Dependency Breaker**:
 > `state.js` never imports `main.js`. Instead, `main.js` calls `registerRenderCallback(renderUI)` post-definition. All render modules receive `appState` via function parameters only.
@@ -152,7 +154,7 @@ GSM1921-SOP/                               ← 项目根目录（GitHub Pages �
 > **6. File Boundaries** (scope guard):
 > - Governance metadata: `.vibe_context/*` only
 > - SOP rules: `knowledge/SOP/*` only
-> - Data templates: `src/sopData.js` only
+> - Data templates: `src/workflow/sopData.js` only
 > - UI structure: `index.html` + `assets/*` only
 > - Binary assets: `参考资料/` — READ ONLY, no modification ever
 
@@ -173,8 +175,8 @@ GSM1921-SOP/                               ← 项目根目录（GitHub Pages �
 | `src/state.js` | 全局状态中心 | `appState`（不可变）、`setState(patch)`、`registerRenderCallback(fn)`、`getAppState()` |
 | `src/constants.js` | 静态常量注册表 | `ROLE_COLORS`、`ROLE_LABELS`、`ROLE_THEME_CLASS`、`ROLE_ORDER`、`COMMISSIONER_ROLES` |
 | `src/utils.js` | 通用工具函数 | `showToast(type, msg)`、`_fmtDate(d)`、`_fmtChinese(d)`、`_currentYearMonth()` |
-| `src/sopData.js` | SOP 场景任务节点模板数据 | `SOP_SCENARIOS`（按 scenarioId 索引的任务数组，含 title/offset/executor/supervisor） |
-| `src/sop.js` | SOP 实例化引擎 | `instantiateSOP(scenarioIds, t0DateStr)` → 绝对日期任务实例数组 |
+| `src/workflow/sopData.js` | SOP 场景任务节点模板数据 | `SOP_SCENARIOS`（按 scenarioId 索引的任务数组，含 title/offset/executor/supervisor） |
+| `src/workflow/sop.js` | SOP 实例化引擎 | `instantiateSOP(scenarioIds, t0DateStr)` → 绝对日期任务实例数组 |
 | `src/calendar.js` | 日历渲染引擎 | `renderCalendarByActivities(activities, targetMonth)`、`populateMonthSelector(activities)` |
 | `src/inspector.js` | 检查器面板 + 任务过滤 | `renderInspectorFromState(state)`、`renderInspectorList(acts, state)`、`renderInspectorDetail(act, tasks, state)`、`filterTasksByManagementRole(tasks, role)` |
 | `src/events.js` | 全量 DOM 事件绑定 | `setupEventListeners()`（侧边栏角色按钮、日历月份选择、推演工作台、归档库按钮） |
@@ -192,7 +194,7 @@ GSM1921-SOP/                               ← 项目根目录（GitHub Pages �
 活动创建
   └─▶ BranchService.createActivity(name, date, executor)
         └─▶ service.mock.createActivity → mockDB.activities.push(act)
-              └─▶ instantiateSOP(scenarioIds, t0DateStr) [src/sop.js]
+              └─▶ instantiateSOP(scenarioIds, t0DateStr) [src/workflow/sop.js]
                     └─▶ BranchService.createTask(taskData) × N  ← Promise.allSettled 并行
                           └─▶ setState({ activities, tasks }) → renderUI(appState)
 

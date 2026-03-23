@@ -2413,3 +2413,30 @@ main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 r
 - 结论：11 个节点 **Pass**，1 个节点 **⚠️ 部分**（`viewType='participant'` + `viewArchived=true` 逻辑耦合，当前无实际安全影响，建议未来加固）
 
 完整审计矩阵已写入：`.vibe_context/logs/2026-03-AUDIT_REPORT.md`
+
+---
+
+## 2026-03-23 — Session: Enhancement Phase 2A/2B (Workflow Engine Extraction)
+
+### 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+**Scenario**: `core_logic.md` (Phase 2A) + `meta_audit.md` (Phase 2B)
+**Files Modified**: `src/main.js`, `src/events.js`, `README.md`, `.vibe_context/SNAPSHOT_v1.0_20260321.md`
+**Files Deleted**: `src/sopData.js`, `src/sop.js`
+**Files Created**: `src/workflow/index.js`, `src/workflow/sop.js`, `src/workflow/sopData.js`
+**SOP Reference**: `N/A`（纯架构重构，无业务逻辑变更）
+**Schema Impact**: `N/A`
+**Timestamp**: `2026-03-23T11:30:00Z`
+
+**Summary**: 完成活动筛选寻址器挂载；完成 Workflow 引擎目录级物理剥离 (`src/workflow/`)，同步更新 README 与 v1.0 创世快照拓扑树。
+
+**Phase 2A 代码变更**：
+- 新建 `src/workflow/` 目录，内含 `index.js`（桶文件）、`sop.js`（实例化引擎）、`sopData.js`（模板数据）
+- `src/main.js` import 已更新至 `./workflow/index.js`
+- `src/events.js` import 已更新至 `./workflow/index.js`
+- 物理删除 `src/sop.js` 与 `src/sopData.js`，消灭双重状态机幽灵依赖风险
+
+**Phase 2B 文档同步**：
+- `README.md` 架构解析章节：`ES6 模块化结构` 中将 `sopData.js` / `sop.js` 替换为 `workflow/` 子目录树节点
+- `.vibe_context/SNAPSHOT_v1.0_20260321.md` 全局物理拓扑树：删除旧文件节点，新增 `workflow/` 目录三级子树
+- 快照内所有文件路径引用（模块表、数据流图、铁律管道）已全部更新为 `src/workflow/` 路径
