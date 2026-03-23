@@ -2387,3 +2387,5 @@ main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 r
 - **2026-03-23 [UX Final Phase 3/3]** 重建参考指南角色筛选区（#sidebar-reference-menu），复用四色液态玻璃 UI，确立 `role` 与 `managementRole` 状态隔离双轨制；events.js 与 main.js 均收窄为 #sidebar-reference-menu 容器选择器，彻底防止两套菜单事件绑定与激活态串台。
 
 - **2026-03-23 [Bugfix Phase 1/2]** 修复侧边栏模块物理隔离 Bug：在 `renderUI` 侧边栏子菜单切换区增加 `#sidebar-reference-menu` 的 `classList.toggle('hidden', activeModule !== 'reference')` 控制；同步在 `index.html` 的 `#sidebar-reference-menu` 容器初始 class 中添加 `hidden`，彻底消灭推演工作台与参考指南菜单重叠泄漏问题，实现两套侧边栏 UI 排他性物理隔离。
+
+- **2026-03-23 [Bugfix Phase 2/2]** 修复侧边栏 UI 堆叠泄露 Bug；打通月份检索数据流，使 state.displayMonth 全面接管日历渲染引擎。

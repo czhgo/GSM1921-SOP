@@ -7,7 +7,7 @@
 
 import { BranchService } from './service.runtime.js';
 import { STATE, setState, registerRenderCallback } from './state.js';
-import { enterEl, leaveEl, _fmtDate, showToast } from './utils.js';
+import { enterEl, leaveEl, _fmtDate, showToast, _currentYearMonth } from './utils.js';
 import { populateMonthSelector, renderCalendarByActivities } from './calendar.js';
 import { renderInspectorFromState } from './inspector.js';
 import { setupEventListeners } from './events.js';
@@ -76,7 +76,8 @@ function renderUI(state) {
         }
       });
     }
-    const targetMonth = populateMonthSelector(state.activities);
+    populateMonthSelector(state.activities);
+    const targetMonth = state.displayMonth || _currentYearMonth();
     renderCalendarByActivities(state.activities, targetMonth);
     renderInspectorFromState(state);
   }
