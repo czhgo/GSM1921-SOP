@@ -99,6 +99,12 @@ function _initCalendarModule() {
       ? participantInput.value.trim()
       : '';
 
+    // 读取活动组织者姓名与深度参与者姓名（Phase 1 新增字段）
+    const organizerNameInput     = document.getElementById('organizer-name-input');
+    const deepParticipantInput   = document.getElementById('deep-name-input');
+    const organizerName          = organizerNameInput    ? organizerNameInput.value.trim()   : '';
+    const deepParticipantName    = deepParticipantInput  ? deepParticipantInput.value.trim() : '';
+
     const reqId = ++_currentRequestId;
 
     genBtn.disabled = true;
@@ -114,7 +120,9 @@ function _initCalendarModule() {
         executor:   'organizer',
         createdBy:  'u_exec',
       };
-      if (participantName) actPayload.participantName = participantName;
+      if (participantName)     actPayload.participantName     = participantName;
+      if (organizerName)       actPayload.organizerName       = organizerName;
+      if (deepParticipantName) actPayload.deepParticipantName = deepParticipantName;
 
       const newAct = await BranchService.createActivity(actPayload);
 
@@ -256,6 +264,17 @@ export function setupEventListeners() {
       }
     });
   });
+
+  // ── 月份检索按钮 ─────────────────────────────────────────────
+  const monthSearchBtn = document.getElementById('month-search-btn');
+  const monthSelector  = document.getElementById('month-selector');
+  if (monthSearchBtn && monthSelector) {
+    monthSearchBtn.addEventListener('click', () => {
+      const val = monthSelector.value;
+      if (!val) return;
+      setState({ displayMonth: val, selectedDate: null, viewMode: 'list' });
+    });
+  }
 
   // ── 推演工作台控制台 ─────────────────────────────────────────
   _initCalendarModule();

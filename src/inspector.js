@@ -29,6 +29,12 @@ export function filterTasksByManagementRole(tasks, managementRole) {
 //  检查器状态路由分发（根据 viewMode / viewType 切换 List / Detail）
 // ════════════════════════════════════════════════════════════════
 export function renderInspectorFromState(state) {
+  // ── 绝对守卫：参与者视图永远只渲染 List，物理切断 Detail 通路 ──
+  if (state.viewType === 'participant') {
+    renderInspectorList(state.activities, state.selectedDate, state.viewType, state.viewArchived);
+    return;
+  }
+
   if (state.viewMode === 'detail' && state.selectedActivityId && state.viewType === 'manager') {
     const act = state.activities.find(a => a.id === state.selectedActivityId);
     if (act) {
@@ -49,17 +55,28 @@ function _showParticipantModal(act) {
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
   const card = document.createElement('div');
-  card.style.cssText = 'background:#fff;border-radius:14px;padding:20px 22px;max-width:300px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);';
+  card.style.cssText = 'background:#fff;border-radius:14px;padding:20px 22px;max-width:320px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);';
+
+  let extraHtml = '';
+  if (act.organizerName) {
+    extraHtml += `<p class="font-stheiti text-sm text-gray-700 mb-1">组织者：${act.organizerName}</p>`;
+  }
+  if (act.deepParticipantName) {
+    extraHtml += `<p class="font-stheiti text-sm text-gray-700 mb-1">深度参与者：${act.deepParticipantName}</p>`;
+  }
+
   card.innerHTML =
     '<p class="font-stheiti font-bold text-sm text-gray-800 mb-3">【活动摘要】</p>'
     + `<p class="font-stheiti text-sm text-gray-700 mb-1">标题：${act.title}</p>`
-    + `<p class="font-stheiti text-sm text-gray-700 mb-4">日期：${act.date || '未设定'}</p>`
-    + '<p class="font-stheiti text-xs text-gray-500 border-t border-gray-100 pt-3 leading-relaxed">'
-    + '提示：需查看任务详情，请在左侧切换管理角色。</p>'
+    + `<p class="font-stheiti text-sm text-gray-700 mb-2">日期：${act.date || '未设定'}</p>`
+    + extraHtml
+    + '<p class="font-stheiti text-xs text-gray-500 border-t border-gray-100 pt-3 mt-2 leading-relaxed">'
+    + '如需查看任务详情，请在左侧切换管理视图。</p>'
     + '<button class="font-stheiti text-xs text-white px-4 py-1.5 rounded-lg mt-4 w-full transition-colors" '
     + 'style="background:#CE1126;">关闭</button>';
   card.querySelector('button').addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  card.addEventListener('click', e => e.stopPropagation());
   overlay.appendChild(card);
   document.body.appendChild(overlay);
 }

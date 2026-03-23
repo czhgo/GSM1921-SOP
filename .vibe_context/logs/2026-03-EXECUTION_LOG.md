@@ -2381,3 +2381,5 @@ main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 r
 - **2026-03-22 [全局术语统一]** 全库扫描，将"条条组长/块块支委"互换，统一术语体系，确保与前端逻辑一致；删除 `nohup.out`。
 
 - **2026-03-22 [UX Phase 2/2]** 修复参与视图日期过滤穿透 Bug（增加当日暂无活动提示），修复管理视图四色渲染失效 Bug（移除 .inspector-card 硬编码红色 border-left 与红色调 box-shadow，将 ROLE_THEME_CLASS 四色主题完整挂载至任务卡片，完成 UX 体验闭环）。
+
+- **2026-03-23 [UX Final Phase 2/3]** 完成扩展活动创建字段（events.js 读取 #organizer-name-input / #deep-name-input 并注入 actPayload），闭环月份检索事件（#month-search-btn → setState displayMonth），彻底锁死参与者防偷窥路由（renderInspectorFromState 顶部绝对守卫 participant short-circuit）并注入摘要模态框（organizerName / deepParticipantName 字段映射展示）。
