@@ -2389,3 +2389,27 @@ main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 r
 - **2026-03-23 [Bugfix Phase 1/2]** 修复侧边栏模块物理隔离 Bug：在 `renderUI` 侧边栏子菜单切换区增加 `#sidebar-reference-menu` 的 `classList.toggle('hidden', activeModule !== 'reference')` 控制；同步在 `index.html` 的 `#sidebar-reference-menu` 容器初始 class 中添加 `hidden`，彻底消灭推演工作台与参考指南菜单重叠泄漏问题，实现两套侧边栏 UI 排他性物理隔离。
 
 - **2026-03-23 [Bugfix Phase 2/2]** 修复侧边栏 UI 堆叠泄露 Bug；打通月份检索数据流，使 state.displayMonth 全面接管日历渲染引擎。
+
+---
+
+## 2026-03-23 — Session: Static Code Audit (Read-Only Matrix)
+
+### 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+**Scenario**: `meta_audit.md` — 系统审计与治理
+**Files Modified**: `.vibe_context/logs/2026-03-AUDIT_REPORT.md`（新建）
+**SOP Reference**: `N/A`（纯审计操作，无业务逻辑变更）
+**Schema Impact**: `N/A`
+**Timestamp**: `2026-03-23T07:10:00Z`
+
+**Summary**: 对系统执行了两次绝对只读静态代码审计：
+
+**审计一：活动全生命周期逻辑审查（5 条扫描链路，17 个节点）**
+- 扫描文件：`src/events.js`, `src/service.mock.js`, `src/inspector.js`, `src/main.js`, `src/calendar.js`
+- 结论：全部 17 个节点 **全部 Pass**，无 Fail 项
+
+**审计二：参与视图与管理视图语义验证（3 条扫描链路，12 个节点）**
+- 扫描文件：`src/inspector.js`, `src/constants.js`, `src/events.js`, `src/state.js`
+- 结论：11 个节点 **Pass**，1 个节点 **⚠️ 部分**（`viewType='participant'` + `viewArchived=true` 逻辑耦合，当前无实际安全影响，建议未来加固）
+
+完整审计矩阵已写入：`.vibe_context/logs/2026-03-AUDIT_REPORT.md`
