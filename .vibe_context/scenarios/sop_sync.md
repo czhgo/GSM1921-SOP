@@ -1,13 +1,14 @@
 **Purpose**: 管理所有 SOP 制度文本的新增、修改、重构与元数据修复操作。包含活动规则强制执行（A/B 类活动）、SOP 结构重组、域代码与 SOP 的双向追溯同步、以及 YAML frontmatter 注入与修复等全部子场景。
 
-> **[2026-03 架构升级注记]**：SOP 模板数据已从 `src/main.js` 中物理分离至专用模块 `src/sopData.js`。
-> - **`src/sopData.js`**：存放所有场景的 SOP 任务节点原始模板数据（`scenarioId → tasks[]`，每条任务含 `title`/`offset`/`executor`/`supervisor` 等字段）。
-> - **`src/sop.js`**：`instantiateSOP(scenarioIds, t0DateStr)` 函数，读取 `sopData.js` 的模板，将 `offset` 天数加上 `t0`（活动日）后，输出含绝对日期字符串的任务实例数组。
-> - **双向追溯规则**：修改 SOP 制度文本时，若涉及任务节点定义，必须同步检查并更新 `src/sopData.js` 对应场景的任务数组，保持"制度文本 ↔ 数据模板"的双向一致。
+> **[2026-03 架构升级注记]**：SOP 模板数据已从 `src/main.js` 中物理分离，并进一步封装至专用子目录 `src/workflow/`，通过 `src/workflow/index.js` 桶文件统一对外导出。
+> - **`src/workflow/sopData.js`**：存放所有场景的 SOP 任务节点原始模板数据（`scenarioId → tasks[]`，每条任务含 `title`/`offset`/`executor`/`supervisor` 等字段）。
+> - **`src/workflow/sop.js`**：`instantiateSOP(scenarioIds, t0DateStr)` 函数，读取 `sopData.js` 的模板，将 `offset` 天数加上 `t0`（活动日）后，输出含绝对日期字符串的任务实例数组。
+> - **`src/workflow/index.js`**：桶导出文件（Barrel Export），统一暴露 `instantiateSOP` 与 `sopDatabase`；`src/main.js` 与 `src/events.js` 均通过 `import { ... } from './workflow/index.js'` 引用。
+> - **双向追溯规则**：修改 SOP 制度文本时，若涉及任务节点定义，必须同步检查并更新 `src/workflow/sopData.js` 对应场景的任务数组，保持"制度文本 ↔ 数据模板"的双向一致。
 
 **Trigger**: 流程、制度、职责、负责人、时间节点、规则、SOP、活动、组织生活会、党小组、A/B 类、场景重构、YAML、frontmatter、元数据、schema、domain、制度同步、sopData、sop.js、instantiateSOP
 
-**Allowed Files**: `knowledge/SOP/*`, `流程指南/*`, `src/sopData.js`, `src/sop.js`
+**Allowed Files**: `knowledge/SOP/*`, `流程指南/*`, `src/workflow/sopData.js`, `src/workflow/sop.js`, `src/workflow/index.js`
 
 ---
 

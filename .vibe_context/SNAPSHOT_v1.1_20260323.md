@@ -1,14 +1,14 @@
 ---
-title: "System Snapshot v1.0"
+title: "System Snapshot v1.1"
 type: snapshot
 status: "ACTIVE - CURRENT"
-date: "2026-03-21"
-milestone: "ES6全量模块化重构封版 + RBAC双轨状态机 + 文档层同步完毕"
-supersedes: "SNAPSHOT_v13.0.md"
-topology_injected: "2026-03-21 (Hotfix: depth-4 tree + LLM alignment protocol)"
+date: "2026-03-23"
+milestone: "ES6全量模块化重构封版 + RBAC双轨状态机 + 全局活动寻址器 + SOP工作流引擎物理剥离至 src/workflow/"
+supersedes: "SNAPSHOT_v1.0_20260321.md"
+topology_injected: "2026-03-23 (Audit Phase 2/2: governance cleanup + v1.1 upgrade)"
 ---
 
-# 🏛️ System Snapshot v1.0 — 2026-03-21
+# 🏛️ System Snapshot v1.1 — 2026-03-23
 
 ---
 
@@ -24,7 +24,7 @@ GSM1921-SOP/                               ← 项目根目录（GitHub Pages �
 ├── AI_ENTRYPOINT.md                       ← 书记指令入口（AI 操作 SOP 首读）
 ├── SYSTEM_ROADMAP.md                      ← 系统路线图
 │
-├── src/                                   ← ★ 前端源码（9个ESM模块 + 2个服务层）
+├── src/                                   ← ★ 前端源码（ESM模块 + 服务层）
 │   ├── main.js                            ← 启动入口 + renderUI()（唯一DOM更新出口，~154行）
 │   ├── state.js                           ← appState + setState(patch) + registerRenderCallback
 │   ├── constants.js                       ← ROLE_COLORS / ROLE_LABELS / ROLE_THEME_CLASS / ROLE_ORDER
@@ -55,19 +55,17 @@ GSM1921-SOP/                               ← 项目根目录（GitHub Pages �
 ├── .vibe_context/                         ← ★ AI治理元数据层（Control Plane）
 │   ├── AI_CONTEXT.md                      ← 系统架构速览 + 场景路由表 + 铁律（AI首读）
 │   ├── REVIEW_STATE.md                    ← v7.0，Stable/Release模式，控制平面总开关
-│   ├── SNAPSHOT_INDEX.md                  ← 快照版本注册表（v1.0为ACTIVE）
-│   ├── SNAPSHOT_v1.0_20260321.md          ← ★ 本文件（当前活动快照）
-│   ├── SNAPSHOT_v13.0.md                  ← [DEPRECATED] 前序快照，保留物理文件
 │   ├── EXECUTION_LOG.md                   ← 日志索引
-│   ├── FILE_ACCESS.md                     ← 文件读写权限白名单
+│   ├── SNAPSHOT_v1.1_20260323.md          ← ★ 本文件（当前活动快照）
 │   ├── scenarios/                         ← 4大核心场景路由文件
-│   │   ├── core_logic.md                  ← 触发：字段/schema/state.js/inspector.js
-│   │   ├── sop_sync.md                    ← 触发：SOP/流程/sopData.js
+│   │   ├── core_logic.md                  ← 触发：字段/schema/state.js/inspector.js/workflow
+│   │   ├── sop_sync.md                    ← 触发：SOP/流程/workflow/sopData.js
 │   │   ├── ui_scenario.md                 ← 触发：UI/视图/RBAC/归档库
 │   │   └── meta_audit.md                  ← 触发：日志/快照/审计/治理
 │   └── logs/
 │       ├── 2026-02-EXECUTION_LOG.md
-│       └── 2026-03-EXECUTION_LOG.md       ← 当月执行日志（本次封版已追加）
+│       ├── 2026-03-AUDIT_REPORT.md        ← 活动生命周期 + 视图语义审计报告
+│       └── 2026-03-EXECUTION_LOG.md       ← 当月执行日志（v1.1封版已追加）
 │
 ├── docs/                                  ← 人类可读扩展文档
 │   ├── DOCUMENTATION_MAP.md
@@ -127,12 +125,13 @@ GSM1921-SOP/                               ← 项目根目录（GitHub Pages �
 
 > **[System Directive for Future LLMs]**
 >
-> **Context**: This is **"Org OS v1.0"** — a Vanilla JS, Doc-Driven SOP Engine for a CPC branch. No build tools. GitHub Pages static hosting. Native ES6 modules only.
+> **Context**: This is **"Org OS v1.1"** — a Vanilla JS, Doc-Driven SOP Engine for a CPC branch. No build tools. GitHub Pages static hosting. Native ES6 modules only.
 >
 > **1. Data Pipeline**:
 > `knowledge/SOP/*.md` (authoritative institution rules)
 > → manually distilled into `src/workflow/sopData.js` (task template registry, keyed by scenarioId)
 > → instantiated via `src/workflow/sop.js::instantiateSOP(scenarioIds, t0DateStr)` (offsets → absolute dates)
+> → both exported via `src/workflow/index.js` (barrel export — all consumers use `import { ... } from './workflow/index.js'`)
 > → state managed by `src/state.js` (immutable appState + setState + registerRenderCallback DAG pattern)
 > → rendered by `src/main.js::renderUI(state)` (sole DOM update gate)
 >
@@ -154,15 +153,16 @@ GSM1921-SOP/                               ← 项目根目录（GitHub Pages �
 > **6. File Boundaries** (scope guard):
 > - Governance metadata: `.vibe_context/*` only
 > - SOP rules: `knowledge/SOP/*` only
-> - Data templates: `src/workflow/sopData.js` only
+> - Data templates + engine: `src/workflow/sopData.js`, `src/workflow/sop.js`, `src/workflow/index.js`
 > - UI structure: `index.html` + `assets/*` only
 > - Binary assets: `参考资料/` — READ ONLY, no modification ever
 
 ---
 
-> **封版声明**：本快照标记 GSM1921-SOP Org OS 进入 **v1.0 稳定期**。  
-> 2026年3月完成了全量 ES6 模块化重构（Part 1–3）与文档层封版（Phase 1/2–2/2），  
-> 系统从"单体 main.js"演进至"9模块 ESM 分层架构 + RBAC 双轨状态机"里程碑节点。
+> **封版声明**：本快照标记 GSM1921-SOP Org OS 进入 **v1.1 稳定期**。  
+> 2026年3月完成了全量 ES6 模块化重构（Part 1–3）、文档层封版（Phase 1/2–2/2）、  
+> 全局活动寻址器挂载（#activity-selector），以及 SOP 工作流引擎物理剥离至 `src/workflow/` 子目录里程碑节点。  
+> 治理层同步完成：4大场景路由与 AI_CONTEXT 全面对齐 workflow 认知，历史日志污染数据收纳归档。
 
 ---
 
@@ -177,6 +177,7 @@ GSM1921-SOP/                               ← 项目根目录（GitHub Pages �
 | `src/utils.js` | 通用工具函数 | `showToast(type, msg)`、`_fmtDate(d)`、`_fmtChinese(d)`、`_currentYearMonth()` |
 | `src/workflow/sopData.js` | SOP 场景任务节点模板数据 | `SOP_SCENARIOS`（按 scenarioId 索引的任务数组，含 title/offset/executor/supervisor） |
 | `src/workflow/sop.js` | SOP 实例化引擎 | `instantiateSOP(scenarioIds, t0DateStr)` → 绝对日期任务实例数组 |
+| `src/workflow/index.js` | 工作流桶导出 | 统一对外暴露 `instantiateSOP`、`sopDatabase`（Barrel Export） |
 | `src/calendar.js` | 日历渲染引擎 | `renderCalendarByActivities(activities, targetMonth)`、`populateMonthSelector(activities)` |
 | `src/inspector.js` | 检查器面板 + 任务过滤 | `renderInspectorFromState(state)`、`renderInspectorList(acts, state)`、`renderInspectorDetail(act, tasks, state)`、`filterTasksByManagementRole(tasks, role)` |
 | `src/events.js` | 全量 DOM 事件绑定 | `setupEventListeners()`（侧边栏角色按钮、日历月份选择、推演工作台、归档库按钮） |
@@ -194,7 +195,7 @@ GSM1921-SOP/                               ← 项目根目录（GitHub Pages �
 活动创建
   └─▶ BranchService.createActivity(name, date, executor)
         └─▶ service.mock.createActivity → mockDB.activities.push(act)
-              └─▶ instantiateSOP(scenarioIds, t0DateStr) [src/workflow/sop.js]
+              └─▶ instantiateSOP(scenarioIds, t0DateStr) [src/workflow/sop.js via ./workflow/index.js]
                     └─▶ BranchService.createTask(taskData) × N  ← Promise.allSettled 并行
                           └─▶ setState({ activities, tasks }) → renderUI(appState)
 
@@ -284,10 +285,12 @@ GSM1921-SOP/                               ← 项目根目录（GitHub Pages �
 
 | 字段 | 值 |
 |------|---|
-| 封版日期 | 2026-03-21 |
-| 执行会话 | Org OS Release Phase 2/2 |
-| 前序快照 | `SNAPSHOT_v13.0.md` → 标记为 `[DEPRECATED]` |
+| 封版日期 | 2026-03-23 |
+| 执行会话 | Org OS Phase 2/2（治理层肃清与 v1.1 升维封版） |
+| 前序快照 | `SNAPSHOT_v1.0_20260321.md` → 已删除，由本文件取代 |
 | 本快照状态 | `[ACTIVE - CURRENT]` |
-| 文档变更 | `README.md` (v5.0)、`docs/党支部管理与实务经验沉淀.md` (v1.3)、`.vibe_context/AI_CONTEXT.md`、`.vibe_context/scenarios/*.md`、`.vibe_context/REVIEW_STATE.md` (v7.0) |
-| 代码变更 | 无（Phase 2/2 为纯文档封版操作，严禁碰触 `src/`） |
+| 文档变更 | `.vibe_context/AI_CONTEXT.md`（workflow路径同步）、`.vibe_context/scenarios/core_logic.md`（Allowed Files更新）、`.vibe_context/scenarios/sop_sync.md`（barrel export描述更新）、`.vibe_context/logs/2026-03-EXECUTION_LOG.md`（历史代码块折叠+审计记录追加） |
+| 代码变更 | 无（Phase 2/2 为纯治理操作，严禁碰触 `src/`） |
 | 执行日志 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md`（末尾已追加封版记录） |
+| v1.0 里程碑 | ES6全量模块化重构封版 + RBAC双轨状态机 + 文档层同步完毕 |
+| v1.1 新增里程碑 | 引入全局活动寻址器（#activity-selector）；SOP工作流引擎物理剥离至 `src/workflow/`（含桶导出 `index.js`）；治理层全面对齐 workflow 认知 |

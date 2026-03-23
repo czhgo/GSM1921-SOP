@@ -860,7 +860,12 @@ status: active
 
 ### 【输出要求 2】v7.0 推演引擎核心代码（已注入 index.html）
 
-**`instantiateSOP` 核心逻辑：**
+> ⚠️ **历史归档注记（v7.0 架构期）**：以下代码片段为 Session 34 封版时的单体 index.html 内嵌实现，记录了 `instantiateSOP` 与 SOP JSON 数据结构的初始形态。该逻辑已于 2026-03-23 通过 Enhancement Phase 2A/2B 物理剥离至 `src/workflow/` 目录，以下内容仅作历史参考，**不代表当前架构**。
+
+<details>
+<summary>📜 v7.0 instantiateSOP 原始实现（单体 index.html 版，已废弃为参考存档）</summary>
+
+**`instantiateSOP` 核心逻辑（原 index.html 内联版）：**
 ```js
 function instantiateSOP(scenarioIdArray, targetDateStr) {
   var baseDate = new Date(targetDateStr + 'T00:00:00');
@@ -879,7 +884,7 @@ function instantiateSOP(scenarioIdArray, targetDateStr) {
 }
 ```
 
-**场景1B JSON 结构示例：**
+**场景1B JSON 结构示例（sopDatabase v7.0 格式）：**
 ```json
 {
   "scenarioId": "1b",
@@ -895,6 +900,10 @@ function instantiateSOP(scenarioIdArray, targetDateStr) {
   ]
 }
 ```
+
+**当前架构对应路径**：`src/workflow/sop.js`（引擎）、`src/workflow/sopData.js`（模板数据）、`src/workflow/index.js`（桶导出）
+
+</details>
 
 ### 3. 变更文件清单
 
@@ -2440,3 +2449,26 @@ main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 r
 - `README.md` 架构解析章节：`ES6 模块化结构` 中将 `sopData.js` / `sop.js` 替换为 `workflow/` 子目录树节点
 - `.vibe_context/SNAPSHOT_v1.0_20260321.md` 全局物理拓扑树：删除旧文件节点，新增 `workflow/` 目录三级子树
 - 快照内所有文件路径引用（模块表、数据流图、铁律管道）已全部更新为 `src/workflow/` 路径
+
+
+---
+
+## 2026-03-23 — Session: Org OS Phase 2/2 治理层肃清与 v1.1 封版
+
+### 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+**Scenario**: `meta_audit.md` — 治理更新与快照封版
+**Files Modified**: `.vibe_context/logs/2026-03-EXECUTION_LOG.md`、`.vibe_context/AI_CONTEXT.md`、`.vibe_context/scenarios/core_logic.md`、`.vibe_context/scenarios/sop_sync.md`
+**Files Created**: `.vibe_context/SNAPSHOT_v1.1_20260323.md`
+**Files Deleted**: `.vibe_context/SNAPSHOT_v1.0_20260321.md`
+**SOP Reference**: `N/A`（纯治理操作，无业务逻辑变更）
+**Schema Impact**: `N/A`
+**Timestamp**: `2026-03-23T15:30:00Z`
+
+**Summary**：执行全域静态透视与治理层清理，修复路由协议，系统升维并封版 v1.1 快照。具体操作包括：
+- 将执行日志中 Session 34 历史 JS/JSON 代码块收纳为 `<details>` 折叠存档，消除视觉污染；
+- `AI_CONTEXT.md` 架构描述更新：`src/sopData.js` / `src/sop.js` 平铺引用升级为 `src/workflow/`（含 `index.js` 桶导出）条目；
+- `scenarios/core_logic.md` 与 `scenarios/sop_sync.md` 路由文件同步更新 workflow 认知，Allowed Files 精确指向 `src/workflow/*`；
+- 活动快照从 `v1.0_20260321` 升维封版为 `v1.1_20260323`，物理拓扑树删除已抹除的 `SNAPSHOT_INDEX.md`、`SNAPSHOT_v13.0.md`、`FILE_ACCESS.md` 冗余节点，并新增 `2026-03-AUDIT_REPORT.md` 日志节点，Milestone 追加 workflow 引擎剥离里程碑记录。
+
+- **2026-03-23 [Org OS Phase 2/2]** 执行全域静态透视与治理层清理，修复路由协议，系统升维并封版 v1.1 快照。

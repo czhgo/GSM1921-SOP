@@ -6,8 +6,10 @@
 
 ```
 SOP Layer       knowledge/SOP/             制度母本，最高权威，所有变更起点
-Data Layer      src/sopData.js             SOP 场景任务节点模板原始数据（物理隔离）
-                src/sop.js                 instantiateSOP() 将模板+t0展开为绝对日期任务数组
+Workflow Layer  src/workflow/              ★ SOP 核心规则引擎（物理封装子目录）
+                  index.js                桶文件：统一对外导出 instantiateSOP / sopDatabase
+                  sopData.js              SOP 场景任务节点模板原始数据（物理隔离）
+                  sop.js                  instantiateSOP() 将模板+t0展开为绝对日期任务数组
 Domain Layer    src/constants.js           静态常量：ROLE_COLORS/ROLE_LABELS/ROLE_THEME_CLASS/ROLE_ORDER
                 src/utils.js               通用工具：_fmtDate/_fmtChinese/showToast/_currentYearMonth
 Service Layer   src/service.mock.js        CRUD + LocalStorage（唯一数据写入点）；SANDBOX_MODE 开关
@@ -73,7 +75,7 @@ META_AUDIT → SOP_SYNC → CORE_LOGIC → UI_SCENARIO
 |---------|---------|------------|-----------|
 | `ui_ux_dev` | UI 视觉开发 | `index.html`, `assets/*` | `src/*`, `knowledge/SOP/*`, `.vibe_context/*` |
 | `core_logic_arch` | 核心逻辑与架构 | `src/*`（11 个 ESM 文件） | `index.html`, `knowledge/SOP/*`, `.vibe_context/*`（除 meta_audit 外） |
-| `sop_data_sync` | SOP 数据同步 | `knowledge/SOP/*`, `src/sopData.js`, `src/sop.js` | `index.html`, `src/main.js`, `.vibe_context/*`（除 meta_audit 外） |
+| `sop_data_sync` | SOP 数据同步 | `knowledge/SOP/*`, `src/workflow/sopData.js`, `src/workflow/sop.js` | `index.html`, `src/main.js`, `.vibe_context/*`（除 meta_audit 外） |
 | `meta_audit_log` | 元审计与日志 | `.vibe_context/*` | 所有业务代码文件 |
 
 ### 通用铁律（所有路由均适用）
