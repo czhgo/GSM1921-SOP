@@ -2480,3 +2480,21 @@ main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 r
 - **2026-03-24 [Calendar Enhancement Phase 1/2]** 重构日历双轨渲染引擎：参与者视图引入具象文本标签（bg-gray-100，max 3+N 项活动），彻底告别抽象圆点；全域归档清洗层已建立（activeActivities 过滤）。
 
 - **2026-03-24 [Calendar Enhancement Phase 2/2]** 重构日历双轨渲染引擎：参与者视图引入具象文本标签；管理者视图引入选中活动聚焦模式 (Focus Mode)；修复写入事件后的状态机失步。
+
+---
+
+## 2026-03-24 — Session: Org OS Audit + SOP Sync Phase 1/5
+
+### 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+**Scenario**: `meta_audit.md` + `sop_sync.md` — 全域逻辑审查 & 宣传委员 SOP 专项更新
+**Files Modified**: `knowledge/SOP/宣传委员工作流程指南.md`、`.vibe_context/logs/2026-03-AUDIT_REPORT.md`、`.vibe_context/logs/2026-03-EXECUTION_LOG.md`
+**SOP Reference**: `knowledge/SOP/宣传委员工作流程指南.md#一工作职责总览`
+**Schema Impact**: `N/A`（无 src/ 变更）
+**Timestamp**: `2026-03-24T08:16:00Z`
+
+**Summary**：
+1. **全域审计**：完成状态机逻辑闭环、SOP 软硬一致性、治理路由效能三维体检；发现主题党日场景 sopData.js 缺少 2 个任务节点（宣传准备/考勤记录），列为 Medium 优先级修复项。审计矩阵已追加至 `2026-03-AUDIT_REPORT.md`。
+2. **SOP Sync Phase 1/5**：`宣传委员工作流程指南.md` §1.1 核心职责表新增「每周一报送机制」Global 例行职责条目，版本升至 v1.6，`last_updated` 更新为 2026-03-24。
+
+- **2026-03-24 [SOP Sync Phase 1/5]** 宣传委员 SOP v1.6：§1.1 新增每周一学工周报报送机制 Global 例行职责。
