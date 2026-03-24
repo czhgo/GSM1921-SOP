@@ -117,14 +117,18 @@ export function renderCalendarByActivities(state, targetMonth) {
       const allDayTasks = [...dayTasksDirect, ...dayTasksViaAct];
       // Step 3: 按 managementRole 过滤，实现角色任务透视
       const filteredTasks = filterTasksByManagementRole(allDayTasks, managementRole);
-      // Step 4: 四色渲染，每天最多 3 个，超出显示 +N 项任务
-      filteredTasks.slice(0, 3).forEach(t => {
+      // Step 4 (Focus Mode): 若存在选中活动，二次过滤至该活动的任务
+      const focusedTasks = state.selectedActivityId
+        ? filteredTasks.filter(t => t.activityId === state.selectedActivityId)
+        : filteredTasks;
+      // Step 5: 四色渲染，每天最多 3 个，超出显示 +N 项任务
+      focusedTasks.slice(0, 3).forEach(t => {
         const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
         html += `<div class="cal-task-tag" style="background:${c.bg};color:${c.text};border:1px solid ${c.border};">` +
                 `<span class="task-dot" style="background:${c.text};"></span>` +
                 `<span class="truncate">${t.title}</span></div>`;
       });
-      if (filteredTasks.length > 3) html += `<div class="font-stheiti text-[9px] text-gray-400 mt-0.5">+${filteredTasks.length - 3} 项任务</div>`;
+      if (focusedTasks.length > 3) html += `<div class="font-stheiti text-[9px] text-gray-400 mt-0.5">+${focusedTasks.length - 3} 项任务</div>`;
     }
     html += '</div>';
   }
