@@ -7,6 +7,7 @@
 import { getAppState, setState } from './state.js';
 import { ROLE_COLORS } from './constants.js';
 import { _fmtDate, _currentYearMonth } from './utils.js';
+import { filterTasksByManagementRole } from './inspector.js';
 
 // ════════════════════════════════════════════════════════════════
 //  动态日历渲染引擎 — 按月份 + 活动红点映射
@@ -16,7 +17,7 @@ export function renderCalendarByActivities(state, targetMonth) {
   const empty = document.getElementById('cal-main-empty');
   if (!grid) return;
 
-  const { activities: rawActivities, tasks: rawTasks, viewType } = state || {};
+  const { activities: rawActivities, tasks: rawTasks, viewType, managementRole, viewArchived } = state || {};
   const activities = rawActivities || [];
   const tasks = rawTasks || [];
 
@@ -107,14 +108,24 @@ export function renderCalendarByActivities(state, targetMonth) {
       });
       if (dayActs.length > 3) html += `<div class="font-stheiti text-[9px] text-gray-400 mt-0.5">+${dayActs.length - 3} 项</div>`;
     } else {
-      // 管理视图：展示任务节点（Phase 2 将进一步完善四色渲染）
-      ct.slice(0, 3).forEach(t => {
+      // 管理视图：任务透视 + 四色视觉联动
+      // Step 1: 找出当天所有未归档活动的 ID 集合（用于关联无直接日期字段的任务）
+      const dayActIds = new Set(activities.filter(a => !a.archived && a.date === k).map(a => a.id));
+      // Step 2: 合并直接带日期的任务 + 通过 activityId 挂载的任务
+      // 两者互斥（前者有 date，后者无 date），无需额外去重
+      const dayTasksDirect = ct;
+      const dayTasksViaAct = tasks.filter(t => !t.date && t.activityId && dayActIds.has(t.activityId));
+      const allDayTasks = [...dayTasksDirect, ...dayTasksViaAct];
+      // Step 3: 按 managementRole 过滤，实现角色任务透视
+      const filteredTasks = filterTasksByManagementRole(allDayTasks, managementRole);
+      // Step 4: 四色渲染，每天最多 3 个，超出显示 +N 项任务
+      filteredTasks.slice(0, 3).forEach(t => {
         const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
         html += `<div class="cal-task-tag" style="background:${c.bg};color:${c.text};border:1px solid ${c.border};">` +
                 `<span class="task-dot" style="background:${c.text};"></span>` +
                 `<span class="truncate">${t.title}</span></div>`;
       });
-      if (ct.length > 3) html += `<div class="font-stheiti text-[9px] text-gray-400 mt-0.5">+${ct.length - 3} 项</div>`;
+      if (filteredTasks.length > 3) html += `<div class="font-stheiti text-[9px] text-gray-400 mt-0.5">+${filteredTasks.length - 3} 项任务</div>`;
     }
     html += '</div>';
   }
