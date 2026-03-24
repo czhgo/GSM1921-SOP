@@ -11,18 +11,21 @@ import { _fmtDate, _currentYearMonth } from './utils.js';
 // ════════════════════════════════════════════════════════════════
 //  动态日历渲染引擎 — 按月份 + 活动红点映射
 // ════════════════════════════════════════════════════════════════
-export function renderCalendarByActivities(activities, targetMonth) {
+export function renderCalendarByActivities(state, targetMonth) {
   const grid  = document.getElementById('cal-main-grid');
   const empty = document.getElementById('cal-main-empty');
   if (!grid) return;
 
-  const appState = getAppState();
+  const { activities: rawActivities, tasks: rawTasks, viewType } = state || {};
+  const activities = rawActivities || [];
+  const tasks = rawTasks || [];
+
   const now = new Date();
   const month = targetMonth || _currentYearMonth();
   const [y, m] = month.split('-').map(Number);
 
   // ── 空状态拦截：若没有任何未归档活动，渲染引导提示 ──────────────
-  const nonArchived = (activities || []).filter(a => !a.archived);
+  const nonArchived = activities.filter(a => !a.archived);
   if (nonArchived.length === 0) {
     grid.classList.add('hidden');
     if (empty) {
@@ -34,14 +37,14 @@ export function renderCalendarByActivities(activities, targetMonth) {
 
   // 未归档活动 → 活动日期集合（当月）
   const actDates = new Set(
-    (activities || [])
+    activities
       .filter(a => !a.archived && typeof a.date === 'string' && a.date.startsWith(month))
       .map(a => a.date)
   );
 
-  // appState.tasks（字符串日期）→ 按日期分组（当月）
+  // tasks（字符串日期）→ 按日期分组（当月）
   const tasksByDate = {};
-  (appState.tasks || []).forEach(t => {
+  tasks.forEach(t => {
     if (t.date && typeof t.date === 'string' && t.date.startsWith(month)) {
       if (!tasksByDate[t.date]) tasksByDate[t.date] = [];
       tasksByDate[t.date].push(t);
@@ -79,7 +82,7 @@ export function renderCalendarByActivities(activities, targetMonth) {
     html += `<div class="${cls}" data-date="${k}">`;
     html += `<div class="font-stheiti text-[11px] font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${day}</div>`;
     if (hasActivity) {
-      const dateActRoles = (activities || [])
+      const dateActRoles = activities
         .filter(a => !a.archived && a.date === k)
         .map(a => a.executor || 'all');
       const uniqueRoles = [...new Set(dateActRoles)];
@@ -93,13 +96,26 @@ export function renderCalendarByActivities(activities, targetMonth) {
       });
       html += '</div>';
     }
-    ct.slice(0, 3).forEach(t => {
-      const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
-      html += `<div class="cal-task-tag" style="background:${c.bg};color:${c.text};border:1px solid ${c.border};">` +
-              `<span class="task-dot" style="background:${c.text};"></span>` +
-              `<span class="truncate">${t.title}</span></div>`;
-    });
-    if (ct.length > 3) html += `<div class="font-stheiti text-[9px] text-gray-400 mt-0.5">+${ct.length - 3} 项</div>`;
+    if (viewType === 'participant') {
+      // 参与者视图：仅展示活动元信息（标题），绝对不渲染任务节点
+      const dayActs = activities.filter(a => !a.archived && a.date === k);
+      dayActs.slice(0, 3).forEach(a => {
+        const c = ROLE_COLORS[a.executor] || ROLE_COLORS.all;
+        html += `<div class="cal-task-tag" style="background:${c.bg};color:${c.text};border:1px solid ${c.border};">` +
+                `<span class="task-dot" style="background:${c.text};"></span>` +
+                `<span class="truncate">${a.title}</span></div>`;
+      });
+      if (dayActs.length > 3) html += `<div class="font-stheiti text-[9px] text-gray-400 mt-0.5">+${dayActs.length - 3} 项</div>`;
+    } else {
+      // 管理视图：展示任务节点（Phase 2 将进一步完善四色渲染）
+      ct.slice(0, 3).forEach(t => {
+        const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
+        html += `<div class="cal-task-tag" style="background:${c.bg};color:${c.text};border:1px solid ${c.border};">` +
+                `<span class="task-dot" style="background:${c.text};"></span>` +
+                `<span class="truncate">${t.title}</span></div>`;
+      });
+      if (ct.length > 3) html += `<div class="font-stheiti text-[9px] text-gray-400 mt-0.5">+${ct.length - 3} 项</div>`;
+    }
     html += '</div>';
   }
   html += '</div></div>';

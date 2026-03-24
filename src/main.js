@@ -79,7 +79,7 @@ function renderUI(state) {
     populateMonthSelector(state.activities);
     populateActivitySelector(state.activities);
     const targetMonth = state.displayMonth || _currentYearMonth();
-    renderCalendarByActivities(state.activities, targetMonth);
+    renderCalendarByActivities(state, targetMonth);
     renderInspectorFromState(state);
   }
 
