@@ -21,13 +21,15 @@ export function renderCalendarByActivities(state, targetMonth) {
   const activities = rawActivities || [];
   const tasks = rawTasks || [];
 
+  // ── 全域归档清洗：所有后续逻辑统一基于 activeActivities ──────────
+  const activeActivities = activities.filter(a => !a.archived);
+
   const now = new Date();
   const month = targetMonth || _currentYearMonth();
   const [y, m] = month.split('-').map(Number);
 
   // ── 空状态拦截：若没有任何未归档活动，渲染引导提示 ──────────────
-  const nonArchived = activities.filter(a => !a.archived);
-  if (nonArchived.length === 0) {
+  if (activeActivities.length === 0) {
     grid.classList.add('hidden');
     if (empty) {
       empty.innerHTML = '<p class="font-stheiti text-sm text-gray-400 text-center py-12">暂无活动，点击【写入活动】开始创建</p>';
@@ -38,8 +40,8 @@ export function renderCalendarByActivities(state, targetMonth) {
 
   // 未归档活动 → 活动日期集合（当月）
   const actDates = new Set(
-    activities
-      .filter(a => !a.archived && typeof a.date === 'string' && a.date.startsWith(month))
+    activeActivities
+      .filter(a => typeof a.date === 'string' && a.date.startsWith(month))
       .map(a => a.date)
   );
 
@@ -82,35 +84,32 @@ export function renderCalendarByActivities(state, targetMonth) {
 
     html += `<div class="${cls}" data-date="${k}">`;
     html += `<div class="font-stheiti text-[11px] font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${day}</div>`;
-    if (hasActivity) {
-      const dateActRoles = activities
-        .filter(a => !a.archived && a.date === k)
-        .map(a => a.executor || 'all');
-      const uniqueRoles = [...new Set(dateActRoles)];
-      const ROLE_ORDER = ['leader', 'commissioner', 'organizer', 'deep', 'all'];
-      const sortedRoles = ROLE_ORDER.filter(r => uniqueRoles.includes(r));
-      if (sortedRoles.length === 0) sortedRoles.push('all');
-      html += '<div style="display:flex;gap:2px;justify-content:center;margin:2px 0;">';
-      sortedRoles.forEach(r => {
-        const c = ROLE_COLORS[r] || ROLE_COLORS.all;
-        html += `<div style="width:6px;height:6px;border-radius:50%;background:${c.text};flex-shrink:0;"></div>`;
-      });
-      html += '</div>';
-    }
     if (viewType === 'participant') {
-      // 参与者视图：仅展示活动元信息（标题），绝对不渲染任务节点
-      const dayActs = activities.filter(a => !a.archived && a.date === k);
-      dayActs.slice(0, 3).forEach(a => {
-        const c = ROLE_COLORS[a.executor] || ROLE_COLORS.all;
-        html += `<div class="cal-task-tag" style="background:${c.bg};color:${c.text};border:1px solid ${c.border};">` +
-                `<span class="task-dot" style="background:${c.text};"></span>` +
-                `<span class="truncate">${a.title}</span></div>`;
+      // 参与者视图：具象文本标签，彻底告别抽象圆点
+      const dayActs = activeActivities.filter(a => a.date === k);
+      dayActs.slice(0, 3).forEach(act => {
+        html += `<div class="text-[10px] truncate px-1 py-0.5 rounded mb-1 bg-gray-100 text-gray-700 border border-gray-200" title="${act.title}">${act.title}</div>`;
       });
-      if (dayActs.length > 3) html += `<div class="font-stheiti text-[9px] text-gray-400 mt-0.5">+${dayActs.length - 3} 项</div>`;
+      if (dayActs.length > 3) html += `<div class="font-stheiti text-[10px] text-gray-400 text-center">+${dayActs.length - 3} 项活动</div>`;
     } else {
-      // 管理视图：任务透视 + 四色视觉联动
+      // 管理视图：角色点阵 + 任务透视 + 四色视觉联动
+      if (hasActivity) {
+        const dateActRoles = activeActivities
+          .filter(a => a.date === k)
+          .map(a => a.executor || 'all');
+        const uniqueRoles = [...new Set(dateActRoles)];
+        const ROLE_ORDER = ['leader', 'commissioner', 'organizer', 'deep', 'all'];
+        const sortedRoles = ROLE_ORDER.filter(r => uniqueRoles.includes(r));
+        if (sortedRoles.length === 0) sortedRoles.push('all');
+        html += '<div style="display:flex;gap:2px;justify-content:center;margin:2px 0;">';
+        sortedRoles.forEach(r => {
+          const c = ROLE_COLORS[r] || ROLE_COLORS.all;
+          html += `<div style="width:6px;height:6px;border-radius:50%;background:${c.text};flex-shrink:0;"></div>`;
+        });
+        html += '</div>';
+      }
       // Step 1: 找出当天所有未归档活动的 ID 集合（用于关联无直接日期字段的任务）
-      const dayActIds = new Set(activities.filter(a => !a.archived && a.date === k).map(a => a.id));
+      const dayActIds = new Set(activeActivities.filter(a => a.date === k).map(a => a.id));
       // Step 2: 合并直接带日期的任务 + 通过 activityId 挂载的任务
       // 两者互斥（前者有 date，后者无 date），无需额外去重
       const dayTasksDirect = ct;
