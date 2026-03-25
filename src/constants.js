@@ -13,6 +13,7 @@ export const ROLE_COLORS = {
   organizer:           { bg: 'rgba(239, 246, 255, 0.40)', text: '#1e40af',  border: 'rgba(191, 219, 254, 0.70)' },
   deep:                { bg: 'rgba(240, 253, 244, 0.40)', text: '#166534',  border: 'rgba(187, 247, 208, 0.70)' },
   all:                 { bg: 'rgba(245, 243, 255, 0.40)', text: '#5b21b6',  border: 'rgba(221, 214, 254, 0.70)' },
+  secretary:           { bg: 'rgba(139, 92, 246, 0.15)',  text: '#7C3AED',  border: 'rgba(139, 92, 246, 0.50)' },
 };
 
 export const ROLE_LABELS = {
@@ -24,6 +25,7 @@ export const ROLE_LABELS = {
   organizer:           '活动组织者',
   deep:                '深度参与者',
   all:                 '全体相关',
+  secretary:           '党支书',
 };
 
 export const COMMISSIONER_ROLES = new Set([
@@ -35,4 +37,5 @@ export const ROLE_THEME_CLASS = {
   commissioner: 'role-theme-commissioner',
   organizer:    'role-theme-organizer',
   deep:         'role-theme-deep',
+  secretary:    'role-theme-secretary',
 };
