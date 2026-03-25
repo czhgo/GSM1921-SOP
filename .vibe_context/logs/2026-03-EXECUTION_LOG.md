@@ -2500,3 +2500,5 @@ main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 r
 - **2026-03-24 [SOP Sync Phase 1/5]** 宣传委员 SOP v1.6：§1.1 新增每周一学工周报报送机制 Global 例行职责。
 
 - **2026-03-25 [SOP Sync Phase 5B]** 依据人工确权的全景审计矩阵，完成条条支委 Global 规则（含确权后的 timeOffset）向制度文档的反向同步与 `sopData.js` 的正向全量注入。新增任务节点：`1a-7c`（org-life T+3 活动参与三层记录）、`1a-10`（org-life T+7 补课安排跟进）、`1b-6b`（theme-party T+1 复盘提醒）、`1b-7c`（theme-party T+3 活动参与三层记录）、`1b-7b`（theme-party T+7 复盘完成检查）、`5-2b`（info-platform null 每周一报送学工周报）；修补 `1a-5` desc（增补 §1.3 补课跟进指针）。临时沙盒 `.vibe_context/temp/SOP_AUDIT_MATRIX.md` 已销毁。
+
+- **2026-03-25 [Role Expansion Phase 3/3]** 引入第五大核心角色【党支书 (secretary)】：硬编码重写党课与意见反馈场景底层任务流（剥离了模糊时间偏移），完成底层数据字典的决定性移交。
