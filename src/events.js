@@ -105,6 +105,10 @@ function _initCalendarModule() {
     const organizerName          = organizerNameInput    ? organizerNameInput.value.trim()   : '';
     const deepParticipantName    = deepParticipantInput  ? deepParticipantInput.value.trim() : '';
 
+    // 读取承办党小组（Phase 3 新增字段）
+    const hostGroupSelect = document.getElementById('host-group-select');
+    const hostGroup       = hostGroupSelect ? hostGroupSelect.value : '';
+
     const reqId = ++_currentRequestId;
 
     genBtn.disabled = true;
@@ -123,6 +127,7 @@ function _initCalendarModule() {
       if (participantName)     actPayload.participantName     = participantName;
       if (organizerName)       actPayload.organizerName       = organizerName;
       if (deepParticipantName) actPayload.deepParticipantName = deepParticipantName;
+      if (hostGroup)           actPayload.hostGroup           = hostGroup;
 
       const newAct = await BranchService.createActivity(actPayload);
 
