@@ -2433,8 +2433,15 @@ body {
         <div>
           <label class="block font-stheiti text-[11px] text-gray-500 mb-1">选择场景</label>
           <select id="scenario-select-cal" class="glass-input font-stheiti">
-            <option value="org-life">【活动建设】组织生活会</option>
-            <option value="theme-party">【活动建设】主题党日</option>
+            <option value="theme-party" selected>【活动建设】主题党日</option>
+            <optgroup label="三会一课">
+              <option value="branch-party-meeting">支部党员大会</option>
+              <option value="party-group-meeting">党小组会</option>
+              <option value="party-lecture">党课</option>
+            </optgroup>
+            <optgroup label="基础模板">
+              <option value="org-life">组织生活会</option>
+            </optgroup>
             <option value="all-timed">全部含时间节点场景</option>
           </select>
         </div>

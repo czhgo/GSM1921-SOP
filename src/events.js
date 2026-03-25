@@ -80,7 +80,7 @@ function _initCalendarModule() {
     }
 
     const scVal    = scSelect ? scSelect.value : 'org-life';
-    const scIds    = scVal === 'all-timed' ? ['org-life', 'theme-party'] : [scVal];
+    const scIds    = scVal === 'all-timed' ? ['org-life', 'theme-party', 'branch-party-meeting', 'party-group-meeting', 'party-lecture'] : [scVal];
 
     const nameInput = document.getElementById('activity-name-input');
     const actName   = nameInput ? nameInput.value.trim() : '';
