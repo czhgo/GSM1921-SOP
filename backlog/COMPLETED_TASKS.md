@@ -2,7 +2,7 @@
 title: "Completed Tasks"
 type: backlog
 owner: "支委会"
-last_updated: "2026-03-08"
+last_updated: "2026-03-22"
 ---
 
 # Completed Tasks
@@ -26,3 +26,11 @@ last_updated: "2026-03-08"
 | 修改12 | 跨组参与规则 | 2026-02-21 / 2026-02-28 | Session 4 + Session 19 | B类注意事项：优先本组→限额未满可邀他组→普通参与者一并考勤；H1 已解锁并完整解决 |
 | 修改13 | 外出活动特殊注意事项 | 2026-02-28 | Session 19 | 场景1B注意事项：用车双轨制（京内大巴/出京特事特办）；经费全部书记审批（无免批额度）；H4 已解锁 |
 | 修改15 | 公邮查收、思想汇报与材料审核权责重划 `[Role]` | 2026-03-04 | Session 38 | 思想汇报统一1500字；公邮查收移交纪检委员（每周1次）；材料审核由党办进行，组织委员督办 |
+| 修改16 | 党小组组织生活会全链路业务规则重构 | 2026-03-08 | Session 47 | 新增时间统筹机制（三组长GCD→支委群→书记大群发布，全员至少参与一场）；新增会前5天全员述职回顾；考勤归口双轨制（现场组长发二维码+纪检委员后台小程序汇总含姓名/学号/发展阶段/所属党小组）；会后双交付物（主持组长摄影底稿+骨干检查材料汇总组织生活会记录）；穿透至 domain.js 新增 Deliverable 类型+attendanceQROwner 字段+AttendanceRecord 扩展字段；UI 新增14步时间轴节点 |
+| 修改17 | 组织生活会数据层级联更新（service.mock.js + domain.js） | 2026-03-16 | Session 48 | service.mock.js 新增 Deliverable CRUD、seedOrgLifeDeliverables 初始化函数、getScenarioMilestones 里程碑分组查询；saveDB/loadDB 新增 deliverables 持久化；domain.js Deliverable typedef 新增 ownerName 字段 |
+| 修改18 | ES6 全量模块化重构（9 ESM 模块 + 2 服务层） | 2026-03-21 | ESM Refactor | 原单体 `src/main.js`（800+行）拆分为：`state.js`/`constants.js`/`utils.js`/`sopData.js`/`sop.js`/`calendar.js`/`inspector.js`/`events.js`/`main.js`（~154行）+ `service.mock.js`/`service.runtime.js`；`registerRenderCallback` 破解循环依赖 |
+| 修改19 | RBAC 双轨状态机（Phase 1/3）侧边栏重构 | 2026-03-21 | RBAC Phase 1 | `appState` 新增 `viewType:'participant'|'manager'`/`managementRole`；侧边栏重建"👀 参与视图"+"⚙️ 管理视图"四角色按钮（角色色左边框） |
+| 修改20 | RBAC 双轨状态机（Phase 2/3）日历重构 | 2026-03-21 | RBAC Phase 2 | `renderCalendarByActivities(activities, targetMonth)` 替换 `renderLargeCalendar`；`appState.displayMonth (YYYY-MM)` 新增；`populateMonthSelector` 月份选择器联动 |
+| 修改21 | RBAC 双轨状态机（Phase 3/3）任务过滤与归档库 | 2026-03-21 | RBAC Phase 3 | `filterTasksByManagementRole` + `ROLE_THEME_CLASS` 四色任务卡片；`renderInspectorFromState` 参与视图防窥 DOM Modal；`viewArchived` 归档库隔离模式（所有 `<select>` disabled，恢复-only） |
+| 修改22 | Snapshot v1.0 封版 + 文档层同步（Phase 1/2–2/2） | 2026-03-21 | Governance Seal | `README.md` v5.0（⚙️ 前端架构解析 + DAG 图 + RBAC 表）；`docs/党支部管理与实务经验沉淀.md` v1.3（模块五 5.1–5.4）；`SNAPSHOT_v1.0_20260321.md` 生成含深度4拓扑树+LLM协议；`REVIEW_STATE.md` v7.0 Stable/Release 模式 |
+| 修改23 | 治理层减负（Release Phase 1/2） | 2026-03-22 | Governance Cleanup | `SNAPSHOT_v13.0.md`+`SNAPSHOT_INDEX.md`+`FILE_ACCESS.md` 物理删除；`FILE_ACCESS.md` 权限规则合并至 `AI_CONTEXT.md §4`；`meta_audit.md` 快照索引废除+单活跃快照原则写入 |

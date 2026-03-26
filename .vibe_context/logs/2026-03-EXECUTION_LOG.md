@@ -860,7 +860,12 @@ status: active
 
 ### 【输出要求 2】v7.0 推演引擎核心代码（已注入 index.html）
 
-**`instantiateSOP` 核心逻辑：**
+> ⚠️ **历史归档注记（v7.0 架构期）**：以下代码片段为 Session 34 封版时的单体 index.html 内嵌实现，记录了 `instantiateSOP` 与 SOP JSON 数据结构的初始形态。该逻辑已于 2026-03-23 通过 Enhancement Phase 2A/2B 物理剥离至 `src/workflow/` 目录，以下内容仅作历史参考，**不代表当前架构**。
+
+<details>
+<summary>📜 v7.0 instantiateSOP 原始实现（单体 index.html 版，已废弃为参考存档）</summary>
+
+**`instantiateSOP` 核心逻辑（原 index.html 内联版）：**
 ```js
 function instantiateSOP(scenarioIdArray, targetDateStr) {
   var baseDate = new Date(targetDateStr + 'T00:00:00');
@@ -879,7 +884,7 @@ function instantiateSOP(scenarioIdArray, targetDateStr) {
 }
 ```
 
-**场景1B JSON 结构示例：**
+**场景1B JSON 结构示例（sopDatabase v7.0 格式）：**
 ```json
 {
   "scenarioId": "1b",
@@ -895,6 +900,10 @@ function instantiateSOP(scenarioIdArray, targetDateStr) {
   ]
 }
 ```
+
+**当前架构对应路径**：`src/workflow/sop.js`（引擎）、`src/workflow/sopData.js`（模板数据）、`src/workflow/index.js`（桶导出）
+
+</details>
 
 ### 3. 变更文件清单
 
@@ -1872,3 +1881,628 @@ N/A（本 Session 为纯文档治理重构操作）
 
 ### Schema Impact
 none
+
+---
+
+## Session 47 — 2026-03-08
+
+### 修改16：党小组组织生活会全链路业务规则重构
+
+**触发来源：** 书记《SOP 优化与规则补丁提案》（党小组组织生活会场景）  
+**执行模式：** SOP → Domain Schema → UI 全链路同步
+
+#### Change Trace
+
+**SOP 变更：**
+- `knowledge/SOP/常见工作场景快速指南.md` v1.9→v2.0：
+  - 快速流程文字全面更新
+  - 组织生活会步骤从8步扩展至16步
+  - 新增「时间统筹」（T-7，三组长GCD→支委群→书记大群发布，全员至少参与一场）
+  - 新增「全员述职回顾」（T-5）
+  - 新增「发布考勤二维码」（活动中，现场组织的党小组长）
+  - 更新「签到与刚性考勤」（纪检委员配合组长二维码）
+  - 新增「摄影留存宣传底稿」（T+3，现场主持的党小组长）
+  - 更新「后台考勤汇总」（T+3，纪检委员在小程序汇总：姓名/学号/发展阶段/所属党小组）
+  - 新增「汇总组织生活会记录」（T+5，组长收集骨干检查材料）
+  - 新增「档案归档」（T+5，宣传委员归档全部材料）
+  - 更新⚠️注意事项：时间统筹三步走、会前述职回顾、考勤归口双轨制、会后双交付物
+  - 更新📋产出物清单：考勤汇总表/宣传底稿/组织生活会记录
+- `knowledge/SOP/纪检委员工作流程指南.md` v3.4→v3.5：
+  - §2.3 考勤工作流程表：新增活动中步骤（配合党小组长完成签到/组织生活会由党小组长发布二维码）
+  - 活动后步骤：新增「组织生活会专项：在后台考勤小程序汇总出勤数据」
+  - 新增「组织生活会考勤归口说明（2026-03-08 更新）」：二维码归口/后台汇总字段/导出归档
+
+**Schema 字段变更（`src/domain.js`）：**
+- `Activity` typedef 新增：
+  - `attendanceQROwner: 'leader'|'disc-commissioner'` — 考勤二维码发布方（组织生活会专用）
+  - `deliverableIds: string[]` — 关联的交付物 ID 列表
+- 新增 `Deliverable` typedef：type（photography_draft|attendance_summary|meeting_record|propaganda|check_material）/owner/status/submittedAt/note
+- `mockDB.attendances` 扩展字段：`studentId`（学号）、`developStage`（发展阶段）、`partyGroup`（所属党小组）
+- `mockDB` 新增 `deliverables: []` 数组
+
+**sopDatabase 变更（`src/main.js`）：**
+- `org-life` 场景从 8 个 task 扩展为 14 个 task（1a-0 至 1a-9）：
+  - 新增 1a-0（时间统筹）、1a-2b（全员述职回顾）、1a-4b（发布考勤二维码）、1a-6b（摄影留存宣传底稿）、1a-7b（后台考勤汇总）
+  - 原 1a-8（考勤记录与档案归档）拆分为新 1a-7b（后台考勤汇总 T+3）、1a-8（汇总组织生活会记录 T+5）、1a-9（档案归档 T+5）
+  - 所有新 task 含 Source 溯源注释
+
+**UI 变更（`index.html`）：**
+- 组织生活会时间轴从 8 节点扩展为 14 节点（编号1-14）
+- 新增节点7（发布考勤二维码，leader）、节点10（摄影留存宣传底稿，leader+交付物标注）、节点12（后台考勤汇总，commissioner+字段说明+交付物标注）、节点13（汇总组织生活会记录，leader+交付物标注）、节点14（档案归档，commissioner）
+- 节点1（时间统筹）：新增，含支委群同步→书记大群发布流程
+- 节点4（全员述职回顾）：新增，T-5天，data-role="all"
+- 节点8（签到与刚性考勤）：更新描述（组长发码后纪检委员记录）
+
+#### Backlog 核销
+
+- `backlog/PENDING_MODIFICATIONS.md`：修改16 移除（已完成）
+- `backlog/COMPLETED_TASKS.md`：修改16 追加完成记录
+
+#### 受影响文件清单
+
+| 文件 | 变更类型 | 说明 |
+|------|---------|------|
+| `knowledge/SOP/常见工作场景快速指南.md` | UPDATE v1.9→v2.0 | 组织生活会16步流程+产出物清单+注意事项 |
+| `knowledge/SOP/纪检委员工作流程指南.md` | UPDATE v3.4→v3.5 | §2.3 考勤归口说明+组织生活会专项 |
+| `src/domain.js` | UPDATE | Deliverable typedef+Activity扩展字段+mockDB.deliverables+attendances扩展字段 |
+| `src/main.js` | UPDATE | sopDatabase org-life 14个task |
+| `index.html` | UPDATE | org-life 14节点时间轴 |
+| `backlog/PENDING_MODIFICATIONS.md` | UPDATE | 修改16 移除 |
+| `backlog/COMPLETED_TASKS.md` | APPEND | 修改16 完成记录 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | APPEND | Session 47 日志 |
+
+
+---
+
+## Session 48 — 2026-03-16
+
+### 修改17：组织生活会数据层级联更新（service.mock.js + domain.js）
+
+**触发来源：** 书记《SOP 优化与规则补丁提案》（Route 2+3+4 级联更新）  
+**备注：** Route 1（RAW_SOP_INPUT 绝对替换）跳过 — 问题描述中 `<RAW_SOP_INPUT>` 标签内容为空，无新文本可注入；现有 16 步 SOP 内容已完整，予以保留。
+
+#### Change Trace
+
+**边界侦测（Route 1 侦测结果）：**
+- 定位 `knowledge/SOP/常见工作场景快速指南.md` 第 59 行：`### 【活动建设】组织生活会（严肃政治会议）`
+- 结束边界：第 112 行 `---` 分隔线（下一场景开始前）
+- 旧文行数范围：L59–L112（54 行，含 16 步详细表格、⚠️注意事项、📋产出物清单）
+- **操作：保留** — RAW_SOP_INPUT 内容缺失，无替换内容可注入，现有文本已正确反映书记业务规则
+
+**数据层变更（Route 2）：**
+- `src/domain.js`：Deliverable typedef 新增可选字段 `ownerName: string` — 记录具体责任人姓名（如"韩思宁"）；带 Source 注释
+- `src/service.mock.js`：
+  - `saveDB()`：新增 `deliverables: mockDB.deliverables` 持久化（旧版缺失此行已擦除并补入）
+  - `loadDB()`：新增 `if (Array.isArray(parsed.deliverables)) mockDB.deliverables = parsed.deliverables;`（旧版缺失此行已擦除并补入）
+  - 新增 `createDeliverable(data)` — 带 generateId + _maybeError + saveDB
+  - 新增 `listDeliverables(activityId?)` — 支持按 activityId 过滤
+  - 新增 `updateDeliverable(id, patch)` — Immutable patch + saveDB
+  - 新增 `seedOrgLifeDeliverables(activityId)` — 为组织生活会活动预挂两类产出物：
+    - 考勤汇总表（Owner: 纪检委员韩思宁，T+3天）
+    - 组织生活会记录（Owner: 党小组组长，T+5天）
+  - 新增 `getScenarioMilestones(scenarioId, sopDB)` — 将 sopDatabase tasks 按时间偏移分组为 会前准备/会中实施/会后归档 三个里程碑阶段
+
+**表现层变更（Route 3）：**
+- `index.html`：后台考勤汇总节点（步骤12）Who 字段更新：`纪检委员` → `纪检委员 韩思宁`，明确具体负责人
+
+**Backlog 核销（Route 4）：**
+- `backlog/COMPLETED_TASKS.md`：修改17 追加完成记录
+
+#### 受影响文件清单
+
+| 文件 | 变更类型 | 说明 |
+|------|---------|------|
+| `src/domain.js` | UPDATE | Deliverable typedef 新增 ownerName 字段 |
+| `src/service.mock.js` | UPDATE | saveDB/loadDB 补入 deliverables 持久化；新增5个导出函数 |
+| `index.html` | UPDATE | 步骤12 Who 标注具体负责人韩思宁 |
+| `backlog/COMPLETED_TASKS.md` | APPEND | 修改17 完成记录 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | APPEND | Session 48 日志 |
+
+
+---
+
+### Session 49 — 2026-03-17T07:32:13Z (修改18)
+
+**触发事件：** 书记手动更新 `knowledge/SOP/常见工作场景快速指南.md`（组织生活会板块，14步骤版本正式确认），并启动全域一致性审查与数据隐私铁律注入。
+
+**Route 0：全局隐私铁律注入 + 旧债清洗**
+- `.vibe_context/AI_CONTEXT.md`：在 Core Rules 末尾追加 **Data Privacy (数据隐私隔离)** 铁律
+  > "绝对禁止在 `src/*`（代码层）与 `index.html`（UI 渲染层）中硬编码真实的'人类姓名'。代码流转必须且只能使用角色标识符（Role ID / Role Name）。真人姓名仅允许存在于 `knowledge/SOP/` 之中。"
+- 旧债清洗（修改17 写入的违规姓名，全部抹除）：
+  - `src/domain.js` 第52行 JSDoc 示例中 "韩思宁" → 删除，改为角色描述示例
+  - `src/service.mock.js` 注释行（3处）中 "韩思宁" → 全部删除
+  - `src/service.mock.js` `ownerName: '韩思宁'` 字段 → 整行删除
+  - `index.html` 节点12 Who 标签 `纪检委员 韩思宁` → `纪检委员`
+
+**Route 1：SOP 自主阅读 + 一致性校验**
+- 阅读书记手动更新后的 14 步骤 SOP（组织生活会），提炼关键步骤与角色，过滤所有真人姓名
+- 对照 `knowledge/SOP/纪检委员工作流程指南.md` §2.3，确认"后台统管全支部考勤"职责已完整记录（行127-132），权责一致，无冲突，无遗漏
+
+**Route 2：数据层级联演进**
+- `src/main.js` sopDatabase（org-life 场景，共 14 tasks）：
+  - 删除 `1a-3`（布置对照检查材料，T-5），与新 SOP 对齐
+  - 删除 `1a-7`（宣传产出，T+3），与新 SOP 对齐
+  - 拆分 `1a-6`（自评互评与组长总结）→ `1a-6a`（个人自评）/ `1a-6c`（互相批评）/ `1a-6d`（组长总结）
+  - 更新 `1a-4` title: "发布会议通知" → "通知到人"
+  - 更新 `1a-5` title: "签到与刚性考勤" → "签到考勤"
+  - 更新 `1a-8` desc：补入"与图片"，与新 SOP 步骤13原文对齐
+  - 更新 `1a-9` desc：改为"归档组织生活会记录，上传智慧党建平台"，与新 SOP 步骤14对齐
+
+**Route 3：表现层对齐（14 节点，无真名污染）**
+- `index.html`：重写节点 5-11（共7个），节点 12-14 精准更新，最终共 14 个 org-life 节点：
+  - 节点5：布置对照检查材料 → 通知到人 (T-3, leader)
+  - 节点6：发布会议通知 → 发布考勤二维码 (活动中, leader)
+  - 节点7：发布考勤二维码 → 签到考勤 (活动中, commissioner)
+  - 节点8：签到考勤 → 个人自评 (活动中, all)
+  - 节点9：自评互评与组长总结 → 互相批评 (活动中, all)
+  - 节点10：摄影留存宣传底稿 → 组长总结 (活动中, leader)
+  - 节点11：宣传产出 → 摄影留存宣传底稿 (T+3, leader)
+  - 节点12：纪检委员 韩思宁 → 纪检委员（真名清除）
+  - 节点13 desc：补入"与图片"，与新 SOP 对齐
+  - 节点14 desc：改为"归档组织生活会记录，上传智慧党建平台"
+
+**Route 4（本条目）**
+
+#### 受影响文件清单
+
+| 文件 | 变更类型 | 说明 |
+|------|---------|------|
+| `.vibe_context/AI_CONTEXT.md` | UPDATE | 追加 Data Privacy 铁律 |
+| `src/domain.js` | UPDATE | ownerName JSDoc 示例去真名 |
+| `src/service.mock.js` | UPDATE | 3处注释 + 1处 ownerName 字段去真名 |
+| `src/main.js` | UPDATE | sopDatabase 同步至新 14 步骤 SOP |
+| `index.html` | UPDATE | 14 节点全面对齐新 SOP，无真名 |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | APPEND | Session 49 日志 |
+
+---
+
+## Session 50 — 2026-03-17 (修改19)
+
+**Operation**: 全局"条块关系"术语重构与一致性审计  
+**Trigger**: 发现系统在前期建设中存在组织学概念"条块倒置"问题  
+**Agent**: AI-Native 架构师（Cascade Refactoring Mode）
+
+### Phase 1 — 计划期：词法映射策略
+
+| 优先级 | 原词 | 替换为 | 原因 |
+|--------|------|--------|------|
+| P1-复合词 | `条条组长` | `块块组长` | 党小组组长属块块（横向党小组管理），非条条 |
+| P1-复合词 | `块块委员` | `条条委员` | 功能性支委属条条（纵向职能线），非块块 |
+| P1-复合词 | `条条+块块组长` | `全体块块组长` | 校正后全体党小组组长统一称块块组长 |
+| P2-结构词 | `条条（纵向-业务线）管理` | `块块（横向-党小组）管理` | 2.1节正名 |
+| P2-结构词 | `块块（横向-职能线）管理` | `条条（纵向-职能线）管理` | 2.2节正名 |
+| P2-循环置换 | `条条职责` ↔ `块块职责` | (互换，用占位符防双替) | 随2.1/2.2章节翻转 |
+| P3-角色标签 | `党小组组长（条条）` | `党小组组长（块块）` | 党小组组长 = 块块 |
+| P3-角色标签 | `组织/宣传/纪检委员（块块）` | `（条条）` | 功能委员 = 条条 |
+| P3-孤立词 | `以块块职能为主` | `以条条职能为主` | 功能委员职能 = 条条 |
+
+**保护法则**：`条条块块体系` / `条条块块双线` 等整体系统名词SET PHRASE未做修改，维持原样。
+
+### Phase 2 — 执行期：级联替换范围
+
+| 路由 | 文件 | 变更行数 | 备注 |
+|------|------|----------|------|
+| Route 1 知识层 | `知识/SOP/支委与党小组定人定责定岗说明.md` | 60行 | 核心结构文件全面重构 |
+| Route 1 知识层 | `知识/SOP/常见工作场景快速指南.md` | 38行 | 9场景内全面替换 |
+| Route 1 知识层 | `知识/SOP/README.md` | 10行 | 索引页角色区块正名 |
+| Route 1 知识层 | `知识/SOP/纪检委员工作流程指南.md` | 4行 | 委员定位描述修正 |
+| Route 1 知识层 | `知识/SOP/宣传委员工作流程指南.md` | 12行 | 委员定位与协调描述修正 |
+| Route 1 知识层 | `知识/SOP/组织委员工作流程指南.md` | 15行 | 委员定位与协调描述修正 |
+| Route 2 数据层 | `src/main.js` | 11行 | sopDatabase任务描述 + roleNames |
+| Route 2 UI层 | `index.html` | 59行 | 前端展示面板全面正名 |
+| Route 3 治理层 | `governance/WATCHLIST.md` | 2行 | 监控项名称修正 |
+| Route 3 治理层 | `governance/SUSPENDED_ISSUES.md` | 1行 | 悬挂议题修正 |
+| Route 3 治理层 | `governance/README.md` | 1行 | 治理索引修正 |
+
+### Phase 3 — 隔离区核查
+
+✅ `.vibe_context/logs/` — 零变更（保护）  
+✅ `backlog/COMPLETED_TASKS.md` — 零变更（保护）  
+✅ `.vibe_context/SNAPSHOT_*` — 零变更（保护）  
+
+### Phase 4 — 高危复核项（人工审核建议）
+
+| 类型 | 原句 | 修改后 |
+|------|------|--------|
+| 孤立词置换 | `条条主导活动组织，块块提供职能支撑` | `块块主导活动组织，条条提供职能支撑` |
+| 句式微调 | `条条+块块组长共同决策` | `全体块块组长共同决策` |
+| 节标题重构 | `### 2.1 条条（纵向-业务线）管理` | `### 2.1 块块（横向-党小组）管理` |
+| 节标题重构 | `### 2.2 块块（横向-职能线）管理` | `### 2.2 条条（纵向-职能线）管理` |
+| 角色标签翻转 | `党小组组长（条条委员）` | `党小组组长（块块组长）` |
+| 职责标签互换 | `第二章（块块职责）` | `第二章（条条职责）` |
+
+**无误伤验证**：扫描全库，无"一条条"、"一块块"等日常词汇被误替换。
+
+---
+
+## 2026-03-17 — ORG OS Operation Phase 1 & Phase 2 执行记录
+
+### Phase 1 — UI 壳层重塑 + 持久化底座修复
+
+**执行范围**：`index.html` + `src/service.mock.js`
+
+| 路由 | 文件 | 变更内容 |
+|------|------|--------|
+| Route 1a | `index.html` | `<title>` → "光华管理学院本科生党支部 SOP 引擎" |
+| Route 1b | `index.html` | Header 重塑：`text-2xl sm:text-3xl font-bold tracking-wide` 单行标题，删除版本号副行 |
+| Route 1c | `index.html` | 物理删除 `<button data-role="all">` 全部场景侧边栏按钮 |
+| Route 1d | `index.html` | "条条委员" → "条条支委"（data-headline/aria-label/role-name） |
+| Route 1e | `index.html` | `#inspector-panel` 顶部注入 `<select id="month-selector">` 月份筛选器容器 |
+| Route 1f | `index.html` | 物理删除 `<select id="scenario-select-cal">` 场景选择下拉框 |
+| Route 1g | `index.html` | "生成排期" → "写入活动"（`id="gen-schedule-cal-btn"` 保留） |
+| Route 2a | `src/service.mock.js` | `createActivity`：数据写入后补 `saveDB()` 调用 |
+| Route 2b | `src/service.mock.js` | `deleteActivity`：filter+检查后补 `saveDB()` 调用 |
+
+### Phase 2 — 核心状态机重写与视图双向路由
+
+**执行范围**：`src/main.js` + `.vibe_context/AI_CONTEXT.md` + 本日志
+
+**Global Rule: Plan-Before-Execution 已正式生效**（注入 `AI_CONTEXT.md` Core Rules 顶部）
+
+| 路由 | 文件 | 变更内容 |
+|------|------|--------|
+| Route 0 | `.vibe_context/AI_CONTEXT.md` | Core Rules 顶部追加 Plan-Before-Execution 最高优先级铁律 |
+| Route 1 | `src/main.js` | `appState` 新增 `viewMode:'list'`、`selectedActivityId:null`、`selectedDate:null` |
+| Route 2 | `src/main.js` | 新增 `populateMonthSelector(activities)`：提取未归档活动 YYYY-MM，去重倒序填充 `#month-selector`，绑定 `change` 事件跳转日期 |
+| Route 3 | `src/main.js` | 新增 `renderInspectorFromState(state)`、`renderInspectorList(activities, dateKey)`、`renderInspectorDetail(activity, tasks)` — List/Detail 双视图状态路由 |
+| Route 3 | `src/main.js` | `renderLargeCalendar` 点击事件：`setState({ selectedDate, viewMode:'list' })` 替代直接调用 `renderInspector` |
+| Route 4 | `src/main.js` | "写入活动"：`window.prompt` 获取活动名 → `BranchService.createActivity` → 刷新全局视图 |
+| Route 4 | `src/main.js` | "归档活动"：`window.confirm` → `BranchService.archiveActivity` → 切回 list 视图 |
+| Route 4 | `src/main.js` | "删除活动"：`window.confirm` → `BranchService.deleteActivity` → 切回 list 视图 |
+| Route 4 | `src/main.js` | `initCalendarModule` 修复：移除已删除的 `scSelect` 引用，`finally` 恢复 "写入活动" 文案 |
+| Route 5 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |
+
+---
+
+### Hotfix — 状态机断链修复与只读沙盒模式
+
+**执行范围**：`index.html` + `src/main.js` + `src/service.mock.js` + 本日志
+
+| 路由 | 文件 | 变更内容 |
+|------|------|--------|
+| Route 1a | `index.html` | 恢复 `#scenario-select-cal` 场景选择下拉框（含 org-life / theme-party / all-timed 选项） |
+| Route 1b | `index.html` | 修正开机闪烁：`#view-calendar` 移除 `hidden`，`#view-reference` 加上 `hidden`，确保工作台为默认首屏 |
+| Route 2  | `src/main.js` | 修复角色按钮 Bug：删除 `activeModule: 'reference'` 强制跳转，点击角色仅更新 `appState.role` |
+| Route 3  | `src/main.js` | 重写 `initCalendarModule`：读取 scSelect → createActivity → instantiateSOP → createTask(逐条绑定 activityId) → setState 跳转 detail 视图，完整展示 SOP 任务节点 |
+| Route 4  | `src/main.js` | `renderLargeCalendar` + `_renderLargeMonth` 重构：接受 activities 参数，日历红点由 `appState.activities`（未归档）动态生成，不再依赖 SOP 虚假数据 |
+| Route 5  | `src/service.mock.js` | `loadDB()` 顶部插入 `localStorage.removeItem(STORAGE_KEY); return;`，启用刷新即清除的内存沙盒模式 |
+| Route 6  | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条 Hotfix 执行记录 |
+
+---
+
+### Phase 1/3 — 视图分层 UI 壳层与液态玻璃重构
+
+**执行范围**：`index.html`（主体）、`src/main.js`（单行 prompt→input 接入）
+
+| 路由 | 文件 | 变更内容 |
+|------|------|--------|
+| Route 1 | `index.html` | 重建 `#sidebar-calendar-menu`：新增"👀 参与视图"标题 + 默认参与者按钮（`data-role="participant"`）；新增"⚙️ 管理视图"标题 + 四个角色按钮（leader/commissioner/organizer/deep），各自带左侧主题色 border 指示 |
+| Route 2 | `index.html` | T-0 控制条新增 `#activity-name-input` 内嵌文本框；所有表单控件（t0-input-cal、scenario-select-cal、activity-name-input、month-selector）统一应用 `.glass-input` 液态玻璃样式 |
+| Route 2 | `src/main.js` | 写入活动逻辑：优先读取 `#activity-name-input.value`，为空时回退 `window.prompt`；成功写入后自动清空输入框 |
+| Route 3 | `index.html` | `<style>` 预埋四色角色主题类：`.role-theme-leader`（红）、`.role-theme-commissioner`（黄）、`.role-theme-organizer`（蓝）、`.role-theme-deep`（绿）；新增 `.glass-input` 液态玻璃表单控件基础样式 |
+| Route 4 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |
+
+---
+
+### Phase 2/3 — 基础事件流与日历月份联动过滤
+
+**执行时间**：2026-03-18  
+**执行范围**：`src/main.js` 事件流重构（禁止触碰 HTML/CSS 主体）
+
+| 路由 | 文件 | 变更内容 |
+|------|------|--------|
+| Route 1 | `src/main.js` | `populateMonthSelector` 升级：重建选项后自动选中最新有活动的月份（降序 months[0]），fallback 到当前月；`change` 事件补充 `displayMonth` 至 setState（含 selectedDate/viewMode 重置）；函数改为返回当前有效月份 (YYYY-MM) |
+| Route 2 | `src/main.js` | 新增 `renderCalendarByActivities(activities, targetMonth)` 引擎：按 targetMonth 生成动态月份网格，遍历 appState.tasks（字符串日期）构建 tasksByDate，对活动日期注入红点 `<div class="w-1.5 h-1.5 bg-red-500 rounded-full">` 标记，始终显示日历（无数据亦渲染空格子）；格子点击 → `setState({ selectedDate, viewMode:'list' })` |
+| Route 3a | `src/main.js` | `appState` 新增 `displayMonth` 字段（初始化为当前 YYYY-MM） |
+| Route 3b | `src/main.js` | `renderUI` 日历分支：改为 `const targetMonth = populateMonthSelector(...); renderCalendarByActivities(activities, targetMonth); renderInspectorFromState(state);`（inspector 无论是否有 selectedDate 均刷新） |
+| Route 3c | `src/main.js` | `initCalendarModule` 成功路径：`setState` 补充 `displayMonth: dateStr.slice(0, 7)` 字段，删除冗余的 `renderLargeCalendar(sopTasks, baseDate, activities)` 直接调用（由 renderUI 接管） |
+| Route 4 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |
+
+---
+
+### Phase 3/3 — RBAC 终极视界与权限过滤状态机
+
+**执行时间**：2026-03-18  
+**执行范围**：`src/main.js` RBAC 状态机（禁止触碰 HTML/CSS 主体）
+
+| 路由 | 文件 | 变更内容 |
+|------|------|--------|
+| Route 1 | `src/main.js` | `appState` 新增 `viewType: 'participant'`（默认）与 `managementRole: 'participant'`（默认）；新增侧边栏 `#sidebar-calendar-menu` 专属 RBAC click handler：participant → `viewType='participant'` + 清空选中/重置list；四个管理角色 → `viewType='manager'` + `managementRole=role`，保留 detail 视图时自动刷新 |
+| Route 1b | `src/main.js` | `renderUI` calendar 分支新增：遍历 calMenu `.role-btn` 同步 `active` CSS 激活态 |
+| Route 2 | `src/main.js` | `renderInspectorList` 新增 `viewType` 参数；`isParticipant` 时卡片纯展示（去掉 cursor:pointer），点击弹出 Toast："提示：详情任务节点仅管理视图可见，请在左侧切换管理角色。"；管理视界保持原有 detail 跳转逻辑 |
+| Route 3a | `src/main.js` | 新增 `filterTasksByManagementRole(tasks, managementRole)`：`COMMISSIONER_ROLES` Set 兼容多种委员字符串；各角色按 executor/supervisor 过滤 |
+| Route 3b | `src/main.js` | 新增 `ROLE_THEME_CLASS` 映射（leader→role-theme-leader，etc.）|
+| Route 3c | `src/main.js` | `renderInspectorDetail(activity, tasks, managementRole)` 新增第三参数；执行 `filterTasksByManagementRole` 获得 `visibleTasks`；task 节点容器注入 `themeClass`（role-theme-*）实现专属染色；`visibleTasks.length === 0 && tasks.length > 0` 时渲染"该角色在此活动中暂无专属任务节点" |
+| Route 3d | `src/main.js` | `renderInspectorFromState` 新增 viewType guard：`viewType !== 'manager'` 时强制走 `renderInspectorList`；传递 `managementRole` 至 `renderInspectorDetail` |
+| Route 3e | `src/main.js` | `initCalendarModule` 写入成功路径：setState 补充 `viewType:'manager'`，`managementRole: appState.managementRole === 'participant' ? 'organizer' : appState.managementRole`，确保写入活动后立即可见任务详情 |
+| Route 4 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |
+
+---
+
+### Part 1/3 — ES6 模块化大重构 (Vanilla JS → ES6 Modules)
+
+**执行时间**：2026-03-20
+**执行范围**：`src/main.js` 拆分为 8 个高内聚低耦合 ES6 模块（禁止增加任何新业务功能）
+
+#### Architecture Blueprint（依赖拓扑图）
+
+```
+service.runtime.js (未变动)
+        ↑
+sopData.js (无导入)          → export: sopDatabase
+constants.js (无导入)        → export: ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, TRANSITION_DURATION
+utils.js (← constants.js)  → export: _pad, _fmtDate, _fmtChinese, _currentYearMonth, enterEl, leaveEl, showToast
+state.js (← utils.js)      → export: STATE, getAppState, setState, registerRenderCallback
+        ↑
+sop.js (← sopData.js)       → export: instantiateSOP
+calendar.js (← state, constants, utils)    → export: renderCalendarByActivities, populateMonthSelector
+inspector.js (← state, constants, utils, service.runtime) → export: renderInspectorFromState, renderInspectorList, renderInspectorDetail, filterTasksByManagementRole
+events.js (← state, utils, sop, service.runtime)           → export: setupEventListeners()
+        ↑
+main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 registerRenderCallback，调用 initApp() + setupEventListeners()
+```
+
+**全局 appState 跨文件共享方案**：`state.js` 采用 `registerRenderCallback` 模式，`setState` 触发已注册的回调（main.js 的 renderUI），避免循环依赖。其他模块通过 `getAppState()` 读取当前状态。
+
+| 路由 | 文件 | 变更内容 |
+|------|------|--------|
+| Route 1 | `index.html` | 确认 `<script type="module" src="./src/main.js">` 已就绪（无需变更） |
+| Route 2a | `src/state.js` (新建) | 导出 STATE 枚举、getAppState()、setState()、registerRenderCallback()；_currentYearMonth 来自 utils.js |
+| Route 2b | `src/sopData.js` (新建) | 抽离 sopDatabase 完整数组（124行），消除主文件最大体积依赖 |
+| Route 2c | `src/constants.js` (新建) | 抽离 ROLE_COLORS、ROLE_LABELS、ROLE_THEME_CLASS、COMMISSIONER_ROLES、TRANSITION_DURATION |
+| Route 2d | `src/utils.js` (新建) | 抽离 _pad、_fmtDate、_fmtChinese、_currentYearMonth、enterEl、leaveEl、showToast |
+| Route 2e | `src/sop.js` (新建) | 抽离 instantiateSOP 推演引擎，依赖 sopData.js |
+| Route 2f | `src/calendar.js` (新建) | 抽离 renderCalendarByActivities、populateMonthSelector；改用 getAppState() 读取状态 |
+| Route 2g | `src/inspector.js` (新建) | 抽离 filterTasksByManagementRole、renderInspectorFromState、renderInspectorList、renderInspectorDetail |
+| Route 2h | `src/events.js` (新建) | 抽离全部 DOM 事件绑定，封装为 setupEventListeners()；侧边栏状态机 + initCalendarModule 一并移入 |
+| Route 3 | `src/main.js` (重写) | 从 1223 行瘦身至 154 行；仅保留 import、renderUI 函数、registerRenderCallback 注册、DOM 初始化、initApp() |
+| Route 4 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |
+
+**验证结论**：浏览器端全流程验证通过（写入活动、14 个任务节点挂载、日历标签渲染、Inspector 详情视图、归档/删除按钮）。零白屏、零控制台错误（CDN 被沙盒屏蔽属环境限制，非代码问题）。
+
+**[Org OS Operation: Modularization Completed] 架构蓝图验证通过。巨石 main.js 已被成功拆解为 8 大高内聚低耦合模块（含独立 sopData 层），ES6 依赖图谱已闭环，心脑血管手术成功！请书记验证无白屏后下达 Part 2 指令。**
+
+---
+
+### Part 2/3 — 引导状态优化与任务流闭环
+
+**执行时间**：2026-03-20
+**执行范围**：在已拆分的 ES6 模块基础上实现"首屏自动引导"与"任务状态切换闭环"
+
+#### Architecture Blueprint（方案说明）
+
+**空状态引导流**：`main.js` initApp 在 listActivities 返回空数组后，调用 `BranchService.createActivity` 创建示例活动，`instantiateSOP(['org-life'], targetDateStr)` 生成任务节点，`Promise.allSettled(createTask×N)` 并行写入，然后刷新 activities/tasks 并 `showToast`。
+
+**任务状态切换闭环**：`service.mock.js` 新增同步 `updateTask(taskId, patch)` — 直接 Immutable 更新 `mockDB.tasks`（不调用 saveDB），返回新数组。`inspector.js` 的 `renderInspectorDetail` 为每个 task 渲染 `<select>`（待处理/进行中/已完成），绑定 `change` 事件：`updateTask → setState({tasks})` → 触发 renderUI 重新渲染 → 进度数字自动更新。
+
+**`appState` 跨文件共享**：同 Part 1，通过 `setState({tasks: newTasks})` 触发已注册的 renderUI 回调，所有模块通过参数或 `getAppState()` 读取状态，无直接循环依赖。
+
+| 路由 | 文件 | 变更内容 |
+|------|------|--------|
+| Route 1 | `src/main.js` | initApp 新增空状态检测：activities.length===0 时自动创建示例活动并挂载 org-life SOP 任务；showToast 提示；补充 import { instantiateSOP, _fmtDate, showToast } |
+| Route 2a | `src/service.mock.js` | 新增 updateTask(taskId, patch)：同步 Immutable 更新 mockDB.tasks，不调用 saveDB，返回新数组 |
+| Route 2b | `src/inspector.js` | renderInspectorDetail 新增：① 进度统计文本"进度：X/Y 已完成"；② 每个 task 渲染 `<select>` 下拉框（待处理/进行中/已完成）；③ change 事件绑定 updateTask → setState |
+| Route 2c | `src/calendar.js` | renderCalendarByActivities 新增空状态拦截：nonArchived.length===0 时渲染"暂无活动，点击【写入活动】开始创建"替代日历网格 |
+| Route 3 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |
+
+**[Org OS Operation: Task Loop Completed] 架构蓝图验证通过。空状态引导已激活，Task 节点已支持动态状态切换与进度计算。任务闭环已打通！请书记下达终极 Part 3 指令。**
+
+---
+
+### Part 3/3 — 角色日历联动与归档库空间
+
+**执行时间**：2026-03-20
+**执行范围**：归档库独立视图、日历四色角色联动、参与者结构化浮层
+
+#### Architecture Blueprint（方案说明）
+
+**日历色块算法**：`calendar.js` 在 `renderCalendarByActivities` 中，对每个有活动的日期单元格，从 `activities` 数组中过滤 `!a.archived && a.date === k` 的活动，提取 `a.executor` 字段，去重后按 `ROLE_ORDER` 排序，使用 `ROLE_COLORS[r].text` 生成对应颜色的 6×6px 圆点（flex 并排），取代原来单一红点。
+
+**归档状态路由判断**：`state.js` 新增 `viewArchived: false`。点击"归档库"按钮时，`events.js` 调用 `setState({ viewArchived: true, viewType: 'manager', viewMode: 'list' })`。`inspector.js` 的 `renderInspectorFromState` 将 `state.viewArchived` 透传给 `renderInspectorList`，该函数在 `viewArchived === true` 时过滤 `a.archived === true` 的全量活动（忽略日期过滤）；在 `false` 时维持原有 `!a.archived` + `dateKey` 双重过滤。`renderInspectorDetail` 检测 `activity.archived === true` 时：禁用所有 `<select>`（`disabled` + 低透明度）、将"归档活动"替换为绿色"恢复活动"按钮（调用 `updateActivity(id, {archived:false})` → 退出归档视图）。
+
+| 路由 | 文件 | 变更内容 |
+|------|------|--------|
+| Route 1a | `src/state.js` | 新增 `viewArchived: false` 初始状态 |
+| Route 1b | `index.html` | 侧边栏管理视图底部新增"归档库"灰色按钮（`data-role="archived"`，与主角色按钮用分隔线区分） |
+| Route 1c | `src/events.js` | calMenu 角色按钮分发：新增 `r === 'archived'` 分支；其他角色分支补充 `viewArchived: false` 重置 |
+| Route 1d | `src/main.js` | renderUI 中 RBAC 按钮激活态：`data-role="archived"` 根据 `state.viewArchived` 切换，其他角色在 `viewArchived` 时取消激活 |
+| Route 1e | `src/inspector.js` | ① `renderInspectorFromState` 透传 `viewArchived`；② `renderInspectorList` 新增归档模式过滤 + 归档库标题 + 空状态提示；③ `renderInspectorDetail` 新增 `isArchived` 判断：归档徽标、select disabled、恢复活动按钮及其事件处理 |
+| Route 2a | `src/calendar.js` | `renderCalendarByActivities` 日期单元格：单红点 → 多色角色圆点（flex 并排，颜色来自 `ROLE_COLORS[executor].text`，按 leader/commissioner/organizer/deep/all 排序） |
+| Route 2b | `src/inspector.js` | `renderInspectorList` 参与者卡片点击：`showToast` → `_showParticipantModal(act)`（极简居中 DOM Modal，展示标题/日期/切换提示，点击遮罩关闭） |
+| Route 3 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | 本条执行记录 |
+
+**[Org OS Operation: Ultimate UX Completed] 架构蓝图验证通过。日历四色映射已点亮，归档独立空间已隔离，参与者浮层挂载完毕。产品经理全量 PRD 需求均已在模块化架构上稳定落地！**
+
+---
+
+### Release Phase 2/2 — 治理层对齐与系统快照封版
+
+**执行时间**：2026-03-21
+**执行范围**：元数据封版操作，严禁触碰 `src/` 源码与 `knowledge/SOP/` 业务逻辑
+
+| 字段 | 值 |
+|------|---|
+| Scenario | `META_AUDIT` |
+| Files Modified | `.vibe_context/scenarios/core_logic.md`、`.vibe_context/scenarios/sop_sync.md`、`.vibe_context/scenarios/ui_scenario.md`、`.vibe_context/scenarios/meta_audit.md`、`.vibe_context/AI_CONTEXT.md`、`.vibe_context/REVIEW_STATE.md`、`.vibe_context/SNAPSHOT_INDEX.md`、`.vibe_context/SNAPSHOT_v1.0_20260321.md`（新建） |
+| SOP Reference | N/A（纯治理元数据操作） |
+| Schema Impact | N/A |
+| Summary | 4大场景路由文件同步更新（注记ES6模块化架构）；AI_CONTEXT.md System Architecture重写为9模块ESM分层；REVIEW_STATE.md升至v7.0并切换为Stable/Release模式；SNAPSHOT_INDEX.md将v13.0标记为DEPRECATED并注册v1.0为ACTIVE；新建SNAPSHOT_v1.0_20260321.md全量系统快照（模块清单/数据流/RBAC双轨/术语锁定） |
+| Timestamp | 2026-03-21T16:30:00+08:00 |
+
+> **2026-03-21：系统完成 4 大场景路由同步与全量模块化大重构，执行全局快照封版，正式迈入 v1.0 稳定期。**
+
+---
+
+### Snapshot Hotfix — 拓扑树注入与 LLM 上下文对齐
+
+**执行时间**：2026-03-21（热修复）
+**执行范围**：仅修改 `.vibe_context/SNAPSHOT_v1.0_20260321.md`，严禁触碰 `src/` 与 `knowledge/`
+
+| 字段 | 值 |
+|------|---|
+| Scenario | `META_AUDIT` |
+| Files Modified | `.vibe_context/SNAPSHOT_v1.0_20260321.md`（注入Section 0 + 0-B）、`.vibe_context/logs/2026-03-EXECUTION_LOG.md`（本条记录） |
+| SOP Reference | N/A |
+| Schema Impact | N/A |
+| Summary | 追加了深度为 4 的全局拓扑树与 LLM 同步协议至最新快照，彻底固化系统的物理坐标系。 |
+| Timestamp | 2026-03-21T16:42:00+08:00 |
+
+---
+
+### Release Phase 1/2 — 治理层减负与场景路由对齐
+
+**执行时间**：2026-03-22（治理大清洗）
+**Scenario**：`META_AUDIT`
+
+| 字段 | 值 |
+|------|---|
+| Files Modified | `.vibe_context/AI_CONTEXT.md`（新增 §4 File Access Permissions）、`.vibe_context/scenarios/meta_audit.md`（快照索引废除+单活跃快照原则）、`backlog/COMPLETED_TASKS.md`（追加修改18–23）、`.vibe_context/logs/2026-03-EXECUTION_LOG.md`（本条记录） |
+| Files Deleted (DELETE) | `.vibe_context/SNAPSHOT_v13.0.md`（已弃用历史快照）、`.vibe_context/SNAPSHOT_INDEX.md`（索引废弃，由文件名自解释）、`.vibe_context/FILE_ACCESS.md`（内容已合并至 AI_CONTEXT.md §4） |
+| SOP Reference | N/A |
+| Schema Impact | N/A |
+| Summary | 治理层减负完成：删除3个废弃文件，FILE_ACCESS.md 权限规则零损耗合并至 AI_CONTEXT.md，meta_audit 写入单活跃快照+索引废除规范，COMPLETED_TASKS 补录修改18–23（ESM模块化+RBAC+快照+治理清洗）。 |
+| Timestamp | 2026-03-22T09:00:00+08:00 |
+
+**DELETE 审计条目（§2 Delete + Log Rule）：**
+
+| 时间 | 类型 | 被删路径 | 信息去向 |
+|------|------|---------|---------|
+| 2026-03-22 | DELETE | `.vibe_context/SNAPSHOT_v13.0.md` | 历史归档信息已由 COMPLETED_TASKS.md §修改17 记录；物理快照内容已由 v1.0 快照取代 |
+| 2026-03-22 | DELETE | `.vibe_context/SNAPSHOT_INDEX.md` | 快照版本历史已由 COMPLETED_TASKS.md §修改22 概括；索引功能改由文件名+执行日志承担 |
+| 2026-03-22 | DELETE | `.vibe_context/FILE_ACCESS.md` | 全量权限规则已无损合并至 `.vibe_context/AI_CONTEXT.md §4 File Access Permissions` |
+
+---
+
+### Release Phase 2/2 — 经验蒸馏与 README 架构白皮书重写
+
+**执行时间**：2026-03-22（结案陈词）
+**Scenario**：`META_AUDIT`
+
+| 字段 | 值 |
+|------|---|
+| Files Modified | `README.md`（v6.0：新增"变更黄金铁律 Change Pipeline"章节，补全 SOP→sopData→state→renderUI 单向数据流与归档库数据隔离机制），`.vibe_context/logs/2026-03-EXECUTION_LOG.md`（本条记录） |
+| Files Verified (无需改动) | `docs/党支部管理与实务经验沉淀.md`（v1.3 §5.1–5.4 已完整提炼 3 大重构经验：ESM DAG 模块化/RBAC 双轨防偷窥/原生 Modal UX 升级） |
+| SOP Reference | N/A |
+| Schema Impact | N/A |
+| Summary | 2026-03-22：完成治理层极简清洗（合并 AI_CONTEXT）、重写 README 架构白皮书（v6.0 新增黄金铁律 Change Pipeline）、提炼 3 大重构经验。Org OS v1.0 架构升级战役正式完美收官。 |
+| Timestamp | 2026-03-22T09:03:00+08:00 |
+
+- **2026-03-22 [全局术语统一]** 全库扫描，将"条条组长/块块支委"互换，统一术语体系，确保与前端逻辑一致；删除 `nohup.out`。
+
+- **2026-03-22 [UX Phase 2/2]** 修复参与视图日期过滤穿透 Bug（增加当日暂无活动提示），修复管理视图四色渲染失效 Bug（移除 .inspector-card 硬编码红色 border-left 与红色调 box-shadow，将 ROLE_THEME_CLASS 四色主题完整挂载至任务卡片，完成 UX 体验闭环）。
+
+- **2026-03-23 [UX Final Phase 2/3]** 完成扩展活动创建字段（events.js 读取 #organizer-name-input / #deep-name-input 并注入 actPayload），闭环月份检索事件（#month-search-btn → setState displayMonth），彻底锁死参与者防偷窥路由（renderInspectorFromState 顶部绝对守卫 participant short-circuit）并注入摘要模态框（organizerName / deepParticipantName 字段映射展示）。
+
+- **2026-03-23 [UX Final Phase 3/3]** 重建参考指南角色筛选区（#sidebar-reference-menu），复用四色液态玻璃 UI，确立 `role` 与 `managementRole` 状态隔离双轨制；events.js 与 main.js 均收窄为 #sidebar-reference-menu 容器选择器，彻底防止两套菜单事件绑定与激活态串台。
+
+- **2026-03-23 [Bugfix Phase 1/2]** 修复侧边栏模块物理隔离 Bug：在 `renderUI` 侧边栏子菜单切换区增加 `#sidebar-reference-menu` 的 `classList.toggle('hidden', activeModule !== 'reference')` 控制；同步在 `index.html` 的 `#sidebar-reference-menu` 容器初始 class 中添加 `hidden`，彻底消灭推演工作台与参考指南菜单重叠泄漏问题，实现两套侧边栏 UI 排他性物理隔离。
+
+- **2026-03-23 [Bugfix Phase 2/2]** 修复侧边栏 UI 堆叠泄露 Bug；打通月份检索数据流，使 state.displayMonth 全面接管日历渲染引擎。
+
+---
+
+## 2026-03-23 — Session: Static Code Audit (Read-Only Matrix)
+
+### 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+**Scenario**: `meta_audit.md` — 系统审计与治理
+**Files Modified**: `.vibe_context/logs/2026-03-AUDIT_REPORT.md`（新建）
+**SOP Reference**: `N/A`（纯审计操作，无业务逻辑变更）
+**Schema Impact**: `N/A`
+**Timestamp**: `2026-03-23T07:10:00Z`
+
+**Summary**: 对系统执行了两次绝对只读静态代码审计：
+
+**审计一：活动全生命周期逻辑审查（5 条扫描链路，17 个节点）**
+- 扫描文件：`src/events.js`, `src/service.mock.js`, `src/inspector.js`, `src/main.js`, `src/calendar.js`
+- 结论：全部 17 个节点 **全部 Pass**，无 Fail 项
+
+**审计二：参与视图与管理视图语义验证（3 条扫描链路，12 个节点）**
+- 扫描文件：`src/inspector.js`, `src/constants.js`, `src/events.js`, `src/state.js`
+- 结论：11 个节点 **Pass**，1 个节点 **⚠️ 部分**（`viewType='participant'` + `viewArchived=true` 逻辑耦合，当前无实际安全影响，建议未来加固）
+
+完整审计矩阵已写入：`.vibe_context/logs/2026-03-AUDIT_REPORT.md`
+
+---
+
+## 2026-03-23 — Session: Enhancement Phase 2A/2B (Workflow Engine Extraction)
+
+### 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+**Scenario**: `core_logic.md` (Phase 2A) + `meta_audit.md` (Phase 2B)
+**Files Modified**: `src/main.js`, `src/events.js`, `README.md`, `.vibe_context/SNAPSHOT_v1.0_20260321.md`
+**Files Deleted**: `src/sopData.js`, `src/sop.js`
+**Files Created**: `src/workflow/index.js`, `src/workflow/sop.js`, `src/workflow/sopData.js`
+**SOP Reference**: `N/A`（纯架构重构，无业务逻辑变更）
+**Schema Impact**: `N/A`
+**Timestamp**: `2026-03-23T11:30:00Z`
+
+**Summary**: 完成活动筛选寻址器挂载；完成 Workflow 引擎目录级物理剥离 (`src/workflow/`)，同步更新 README 与 v1.0 创世快照拓扑树。
+
+**Phase 2A 代码变更**：
+- 新建 `src/workflow/` 目录，内含 `index.js`（桶文件）、`sop.js`（实例化引擎）、`sopData.js`（模板数据）
+- `src/main.js` import 已更新至 `./workflow/index.js`
+- `src/events.js` import 已更新至 `./workflow/index.js`
+- 物理删除 `src/sop.js` 与 `src/sopData.js`，消灭双重状态机幽灵依赖风险
+
+**Phase 2B 文档同步**：
+- `README.md` 架构解析章节：`ES6 模块化结构` 中将 `sopData.js` / `sop.js` 替换为 `workflow/` 子目录树节点
+- `.vibe_context/SNAPSHOT_v1.0_20260321.md` 全局物理拓扑树：删除旧文件节点，新增 `workflow/` 目录三级子树
+- 快照内所有文件路径引用（模块表、数据流图、铁律管道）已全部更新为 `src/workflow/` 路径
+
+
+---
+
+## 2026-03-23 — Session: Org OS Phase 2/2 治理层肃清与 v1.1 封版
+
+### 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+**Scenario**: `meta_audit.md` — 治理更新与快照封版
+**Files Modified**: `.vibe_context/logs/2026-03-EXECUTION_LOG.md`、`.vibe_context/AI_CONTEXT.md`、`.vibe_context/scenarios/core_logic.md`、`.vibe_context/scenarios/sop_sync.md`
+**Files Created**: `.vibe_context/SNAPSHOT_v1.1_20260323.md`
+**Files Deleted**: `.vibe_context/SNAPSHOT_v1.0_20260321.md`
+**SOP Reference**: `N/A`（纯治理操作，无业务逻辑变更）
+**Schema Impact**: `N/A`
+**Timestamp**: `2026-03-23T15:30:00Z`
+
+**Summary**：执行全域静态透视与治理层清理，修复路由协议，系统升维并封版 v1.1 快照。具体操作包括：
+- 将执行日志中 Session 34 历史 JS/JSON 代码块收纳为 `<details>` 折叠存档，消除视觉污染；
+- `AI_CONTEXT.md` 架构描述更新：`src/sopData.js` / `src/sop.js` 平铺引用升级为 `src/workflow/`（含 `index.js` 桶导出）条目；
+- `scenarios/core_logic.md` 与 `scenarios/sop_sync.md` 路由文件同步更新 workflow 认知，Allowed Files 精确指向 `src/workflow/*`；
+- 活动快照从 `v1.0_20260321` 升维封版为 `v1.1_20260323`，物理拓扑树删除已抹除的 `SNAPSHOT_INDEX.md`、`SNAPSHOT_v13.0.md`、`FILE_ACCESS.md` 冗余节点，并新增 `2026-03-AUDIT_REPORT.md` 日志节点，Milestone 追加 workflow 引擎剥离里程碑记录。
+
+- **2026-03-23 [Org OS Phase 2/2]** 执行全域静态透视与治理层清理，修复路由协议，系统升维并封版 v1.1 快照。
+
+- **2026-03-24 [Calendar Phase 1/2]** 重构日历渲染引擎入参，打通全局状态感知；实现参与者视图的绝对降噪（仅显示活动元信息）。
+
+- **2026-03-24 [Calendar Phase 2/2]** 引入任务过滤器至日历引擎，实现管理视图的动态角色任务透视，完成四色视觉体系的日历层闭环。
+
+- **2026-03-24 [Calendar Enhancement Phase 1/2]** 重构日历双轨渲染引擎：参与者视图引入具象文本标签（bg-gray-100，max 3+N 项活动），彻底告别抽象圆点；全域归档清洗层已建立（activeActivities 过滤）。
+
+- **2026-03-24 [Calendar Enhancement Phase 2/2]** 重构日历双轨渲染引擎：参与者视图引入具象文本标签；管理者视图引入选中活动聚焦模式 (Focus Mode)；修复写入事件后的状态机失步。
+
+---
+
+## 2026-03-24 — Session: Org OS Audit + SOP Sync Phase 1/5
+
+### 🛠️ Copilot 自动执行报告 (Execution Summary)
+
+**Scenario**: `meta_audit.md` + `sop_sync.md` — 全域逻辑审查 & 宣传委员 SOP 专项更新
+**Files Modified**: `knowledge/SOP/宣传委员工作流程指南.md`、`.vibe_context/logs/2026-03-AUDIT_REPORT.md`、`.vibe_context/logs/2026-03-EXECUTION_LOG.md`
+**SOP Reference**: `knowledge/SOP/宣传委员工作流程指南.md#一工作职责总览`
+**Schema Impact**: `N/A`（无 src/ 变更）
+**Timestamp**: `2026-03-24T08:16:00Z`
+
+**Summary**：
+1. **全域审计**：完成状态机逻辑闭环、SOP 软硬一致性、治理路由效能三维体检；发现主题党日场景 sopData.js 缺少 2 个任务节点（宣传准备/考勤记录），列为 Medium 优先级修复项。审计矩阵已追加至 `2026-03-AUDIT_REPORT.md`。
+2. **SOP Sync Phase 1/5**：`宣传委员工作流程指南.md` §1.1 核心职责表新增「每周一报送机制」Global 例行职责条目，版本升至 v1.6，`last_updated` 更新为 2026-03-24。
+
+- **2026-03-24 [SOP Sync Phase 1/5]** 宣传委员 SOP v1.6：§1.1 新增每周一学工周报报送机制 Global 例行职责。
+
+- **2026-03-25 [SOP Sync Phase 5B]** 依据人工确权的全景审计矩阵，完成条条支委 Global 规则（含确权后的 timeOffset）向制度文档的反向同步与 `sopData.js` 的正向全量注入。新增任务节点：`1a-7c`（org-life T+3 活动参与三层记录）、`1a-10`（org-life T+7 补课安排跟进）、`1b-6b`（theme-party T+1 复盘提醒）、`1b-7c`（theme-party T+3 活动参与三层记录）、`1b-7b`（theme-party T+7 复盘完成检查）、`5-2b`（info-platform null 每周一报送学工周报）；修补 `1a-5` desc（增补 §1.3 补课跟进指针）。临时沙盒 `.vibe_context/temp/SOP_AUDIT_MATRIX.md` 已销毁。
+
+- **2026-03-25 [Role Expansion Phase 3/3]** 引入第五大核心角色【党支书 (secretary)】：硬编码重写党课与意见反馈场景底层任务流（剥离了模糊时间偏移），完成底层数据字典的决定性移交。
+
+- **2026-03-25 [Architecture Phase 1/4]** 制度总纲层级重构：`常见工作场景快速指南.md` 升至 v3.0，确立「活动建设」与「组织建设」两大域顶层架构（# 一级标题），三会一课下设四个三级子场景（支部委员会·占位、支部党员大会、党课、党小组会），组织生活会平移至党小组会下作为特殊形式四级标题；`支委与党小组定人定责定岗说明.md` 升至 v1.3，引言增加两大域声明，三位条条委员各增「职责聚焦」标准化句式。
+
+- **2026-03-25 [Architecture Phase 4/4]** 执行全域制度架构标准化重构（双域化）；打通承办党小组 UI 与数据持久化链路；系统原子升维并封版 v1.2 唯一活跃快照。

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>党支部 SOP 引擎 · 光华管理学院本科生</title>
+  <title>光华管理学院本科生党支部 SOP 引擎</title>
   <meta name="description" content="光华管理学院本科生党支部 SOP 引擎 — AI 静态编译交互视图 v7.3">
 
   <!-- Gov-Grade Web Fonts: Noto Sans SC + Noto Serif SC -->
@@ -112,6 +112,38 @@ body {
 }
 .role-btn.active .role-name { color: #ffffff; }
 .role-btn.active .role-desc { color: rgba(255, 255, 255, 0.82); }
+
+/* ── Role-specific four-color active states ──────────────────── */
+.role-btn[data-role="leader"].active {
+  background: rgba(239, 68, 68, 0.15) !important;
+  box-shadow: 0 8px 28px rgba(239, 68, 68, 0.22);
+}
+.role-btn[data-role="leader"].active .role-name { color: #B91C1C; }
+.role-btn[data-role="leader"].active .role-desc { color: rgba(185, 28, 28, 0.80); }
+.role-btn[data-role="commissioner"].active {
+  background: rgba(245, 158, 11, 0.15) !important;
+  box-shadow: 0 8px 28px rgba(245, 158, 11, 0.22);
+}
+.role-btn[data-role="commissioner"].active .role-name { color: #B45309; }
+.role-btn[data-role="commissioner"].active .role-desc { color: rgba(180, 83, 9, 0.80); }
+.role-btn[data-role="organizer"].active {
+  background: rgba(59, 130, 246, 0.15) !important;
+  box-shadow: 0 8px 28px rgba(59, 130, 246, 0.22);
+}
+.role-btn[data-role="organizer"].active .role-name { color: #1D4ED8; }
+.role-btn[data-role="organizer"].active .role-desc { color: rgba(29, 78, 216, 0.80); }
+.role-btn[data-role="deep"].active {
+  background: rgba(16, 185, 129, 0.15) !important;
+  box-shadow: 0 8px 28px rgba(16, 185, 129, 0.22);
+}
+.role-btn[data-role="deep"].active .role-name { color: #047857; }
+.role-btn[data-role="deep"].active .role-desc { color: rgba(4, 120, 87, 0.80); }
+.role-btn[data-role="secretary"].active {
+  background: rgba(139, 92, 246, 0.15) !important;
+  box-shadow: 0 8px 28px rgba(139, 92, 246, 0.22);
+}
+.role-btn[data-role="secretary"].active .role-name { color: #7C3AED; }
+.role-btn[data-role="secretary"].active .role-desc { color: rgba(124, 58, 237, 0.80); }
 
 /* ── Domain Router Buttons ───────────────────────────────────── */
 .domain-btn {
@@ -438,13 +470,13 @@ body {
   backdrop-filter: blur(24px) saturate(170%);
   -webkit-backdrop-filter: blur(24px) saturate(170%);
   border: 1px solid rgba(255, 255, 255, 0.55);
-  border-left: 3px solid #CE1126;
+  border-left: 3px solid transparent;
   border-radius: 10px;
   padding: 12px 14px;
   margin-bottom: 10px;
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.85),
               0 1px 6px rgba(0, 0, 0, 0.05),
-              0 4px 14px rgba(206, 17, 38, 0.07);
+              0 4px 14px rgba(0, 0, 0, 0.05);
 }
 .inspector-card:last-child { margin-bottom: 0; }
 
@@ -464,6 +496,32 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.13); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(206, 17, 38, 0.28); }
+
+/* ── Role Theme Color Classes (预埋 Phase 3 任务过滤用) ──────── */
+.role-theme-leader      { border-color: #EF4444; background-color: #FEF2F2; color: #B91C1C; box-shadow: inset 0 1px 1px rgba(255,255,255,0.85), 0 1px 6px rgba(0,0,0,0.05), 0 4px 14px rgba(239,68,68,0.07); } /* 红 */
+.role-theme-commissioner{ border-color: #F59E0B; background-color: #FFFBEB; color: #B45309; box-shadow: inset 0 1px 1px rgba(255,255,255,0.85), 0 1px 6px rgba(0,0,0,0.05), 0 4px 14px rgba(245,158,11,0.07); } /* 黄 */
+.role-theme-organizer   { border-color: #3B82F6; background-color: #EFF6FF; color: #1D4ED8; box-shadow: inset 0 1px 1px rgba(255,255,255,0.85), 0 1px 6px rgba(0,0,0,0.05), 0 4px 14px rgba(59,130,246,0.07); } /* 蓝 */
+.role-theme-deep        { border-color: #10B981; background-color: #ECFDF5; color: #047857; box-shadow: inset 0 1px 1px rgba(255,255,255,0.85), 0 1px 6px rgba(0,0,0,0.05), 0 4px 14px rgba(16,185,129,0.07); } /* 绿 */
+.role-theme-secretary   { border-color: #8B5CF6; background-color: #F5F3FF; color: #7C3AED; box-shadow: inset 0 1px 1px rgba(255,255,255,0.85), 0 1px 6px rgba(0,0,0,0.05), 0 4px 14px rgba(139,92,246,0.07); } /* 紫 */
+
+/* ── Glassmorphism Form Inputs ───────────────────────────────── */
+.glass-input {
+  background: rgba(255, 255, 255, 0.60);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.40);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  padding: 6px 12px;
+  outline: none;
+  transition: all 200ms ease;
+  color: #1f2937;
+}
+.glass-input:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.40), 0 1px 3px rgba(0,0,0,0.06);
+  border-color: rgba(59, 130, 246, 0.50);
+}
 
   </style>
 </head>
@@ -492,8 +550,7 @@ body {
     </div>
 
     <div class="min-w-0 leading-tight">
-      <div class="font-stheiti text-white font-bold text-sm sm:text-[15px] tracking-wide truncate">光华管理学院本科生党支部</div>
-      <div class="text-red-200 text-[11px] tracking-widest">SOP 引擎 · AI 静态编译版 v8.3</div>
+      <div class="font-stheiti text-white font-bold text-2xl sm:text-3xl tracking-wide truncate">光华管理学院本科生党支部 SOP 引擎</div>
     </div>
 
     <div class="flex-1"></div>
@@ -530,66 +587,119 @@ body {
 
     <div class="border-t border-gray-100 my-0.5"></div>
 
-    <!-- ── 参考指南子菜单：按角色查看 ── -->
-    <div id="sidebar-reference-menu" class="flex flex-col gap-2">
-      <div class="px-1 mb-0.5">
-        <p class="font-stheiti text-[11px] font-semibold text-gray-400 uppercase tracking-widest">按角色查看</p>
-        <p class="font-stheiti text-[11px] text-gray-400 mt-0.5 leading-snug">点击角色筛选相关工作节点</p>
-      </div>
-
+    <!-- ── 参考指南子菜单 ── -->
+    <div id="sidebar-reference-menu" class="hidden flex flex-col gap-2 px-1">
+      <div class="font-stheiti text-xs text-gray-400 font-bold mb-2 tracking-wider">👤 按角色查看</div>
       <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
-              data-role="all"
-              data-headline="全部工作场景"
-              data-subline="按领域查看：活动建设或组织建设，再按角色精准定位"
-              aria-label="全部场景">
-        <span class="role-abbr mb-1 flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
-        <span class="role-name font-stheiti font-semibold text-sm text-gray-700">全部场景</span>
-        <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">完整工作地图</span>
-      </button>
-      <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
+              style="border-left: 3px solid #EF4444;"
               data-role="leader"
-              data-headline="党小组组长 的工作节点"
-              data-subline="负责活动统筹、主题确定、方案审批与会后指导"
               aria-label="党小组组长">
-        <span class="role-abbr mb-1 flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></span>
+        <span class="role-abbr mb-1 flex items-center justify-center" style="background:rgba(239,68,68,0.10);color:#B91C1C;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></span>
         <span class="role-name font-stheiti font-semibold text-sm text-gray-700">党小组组长</span>
         <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">组织统筹决策</span>
       </button>
       <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
+              style="border-left: 3px solid #F59E0B;"
               data-role="commissioner"
-              data-headline="块块委员 的工作节点"
-              data-subline="跨党小组职能保障：信息通知（组织）、档案归档（宣传）、考勤督办（纪检）"
-              aria-label="块块委员">
-        <span class="role-abbr mb-1 flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
-        <span class="role-name font-stheiti font-semibold text-sm text-gray-700">块块委员</span>
+              aria-label="条条支委">
+        <span class="role-abbr mb-1 flex items-center justify-center" style="background:rgba(245,158,11,0.10);color:#B45309;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+        <span class="role-name font-stheiti font-semibold text-sm text-gray-700">条条支委</span>
         <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">组织 / 宣传 / 纪检</span>
       </button>
       <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
+              style="border-left: 3px solid #3B82F6;"
               data-role="organizer"
-              data-headline="活动组织者 的工作节点"
-              data-subline="策划活动方案、执行全程、完成复盘与材料归档"
               aria-label="活动组织者">
-        <span class="role-abbr mb-1 flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></span>
+        <span class="role-abbr mb-1 flex items-center justify-center" style="background:rgba(59,130,246,0.10);color:#1D4ED8;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></span>
         <span class="role-name font-stheiti font-semibold text-sm text-gray-700">活动组织者</span>
         <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">策划执行督办</span>
       </button>
       <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
+              style="border-left: 3px solid #10B981;"
               data-role="deep"
-              data-headline="深度参与者 的工作节点"
-              data-subline="承担宣传制作等具体工作分工，产出活动摘要与配图"
               aria-label="深度参与者">
-        <span class="role-abbr mb-1 flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg></span>
+        <span class="role-abbr mb-1 flex items-center justify-center" style="background:rgba(16,185,129,0.10);color:#047857;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg></span>
         <span class="role-name font-stheiti font-semibold text-sm text-gray-700">深度参与者</span>
         <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">承担具体分工</span>
+      </button>
+      <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
+              style="border-left: 3px solid #8B5CF6;"
+              data-role="secretary"
+              aria-label="党支书">
+        <span class="role-abbr mb-1 flex items-center justify-center" style="background:rgba(139,92,246,0.10);color:#7C3AED;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></span>
+        <span class="role-name font-stheiti font-semibold text-sm text-gray-700">党支书</span>
+        <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">活动组织与督办</span>
       </button>
     </div>
 
     <!-- ── 推演工作台子菜单 ── -->
     <div id="sidebar-calendar-menu" class="hidden px-1">
-      <p class="font-stheiti text-[11px] text-gray-500 leading-relaxed">
-        输入目标活动日期（T-0），选择场景后点击「生成排期」。<br><br>
-        点击日历中带有红色标记的日期，可在右侧面板查看该日工作详情。
-      </p>
+
+      <!-- 参与视图 -->
+      <div class="font-stheiti text-xs text-gray-400 font-bold mb-2 tracking-wider">👀 参与视图</div>
+      <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
+              data-role="participant"
+              aria-label="默认参与者">
+        <span class="role-abbr mb-1 flex items-center justify-center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+        <span class="role-name font-stheiti font-semibold text-sm text-gray-700">默认参与者</span>
+        <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">全程参与</span>
+      </button>
+
+      <!-- 管理视图 -->
+      <div class="font-stheiti text-xs text-gray-400 font-bold mt-6 mb-2 tracking-wider">⚙️ 管理视图</div>
+      <div class="flex flex-col gap-2">
+        <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
+                style="border-left: 3px solid #EF4444;"
+                data-role="leader"
+                aria-label="党小组组长">
+          <span class="role-abbr mb-1 flex items-center justify-center" style="background:rgba(239,68,68,0.10);color:#B91C1C;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></span>
+          <span class="role-name font-stheiti font-semibold text-sm text-gray-700">党小组组长</span>
+          <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">组织统筹决策</span>
+        </button>
+        <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
+                style="border-left: 3px solid #F59E0B;"
+                data-role="commissioner"
+                aria-label="条条支委">
+          <span class="role-abbr mb-1 flex items-center justify-center" style="background:rgba(245,158,11,0.10);color:#B45309;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+          <span class="role-name font-stheiti font-semibold text-sm text-gray-700">条条支委</span>
+          <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">组织 / 宣传 / 纪检</span>
+        </button>
+        <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
+                style="border-left: 3px solid #3B82F6;"
+                data-role="organizer"
+                aria-label="活动组织者">
+          <span class="role-abbr mb-1 flex items-center justify-center" style="background:rgba(59,130,246,0.10);color:#1D4ED8;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></span>
+          <span class="role-name font-stheiti font-semibold text-sm text-gray-700">活动组织者</span>
+          <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">策划执行督办</span>
+        </button>
+        <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
+                style="border-left: 3px solid #10B981;"
+                data-role="deep"
+                aria-label="深度参与者">
+          <span class="role-abbr mb-1 flex items-center justify-center" style="background:rgba(16,185,129,0.10);color:#047857;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg></span>
+          <span class="role-name font-stheiti font-semibold text-sm text-gray-700">深度参与者</span>
+          <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">承担具体分工</span>
+        </button>
+        <button class="role-btn glass rounded-xl w-full px-4 py-3 flex flex-col shadow-md"
+                style="border-left: 3px solid #8B5CF6;"
+                data-role="secretary"
+                aria-label="党支书">
+          <span class="role-abbr mb-1 flex items-center justify-center" style="background:rgba(139,92,246,0.10);color:#7C3AED;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></span>
+          <span class="role-name font-stheiti font-semibold text-sm text-gray-700">党支书</span>
+          <span class="role-desc font-stheiti text-xs text-gray-400 mt-0.5 leading-snug">活动组织与督办</span>
+        </button>
+      </div>
+
+      <!-- 归档库入口 -->
+      <div class="mt-4 pt-3 border-t border-gray-100">
+        <button class="role-btn rounded-xl w-full px-4 py-2.5 flex items-center gap-2 shadow-sm"
+                style="background:rgba(156,163,175,0.12);border:1px solid rgba(156,163,175,0.35);"
+                data-role="archived"
+                aria-label="归档库">
+          <span class="flex items-center justify-center" style="color:#6B7280;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg></span>
+          <span class="font-stheiti text-sm text-gray-500">归档库</span>
+        </button>
+      </div>
     </div>
 
     <!-- ── 模板与资产子菜单 ── -->
@@ -611,7 +721,7 @@ body {
   <!-- ══════════════════════════════════════════════════════════════
        MODULE A: 参考指南 (Reference Guide) — 时间轴主视图
        ══════════════════════════════════════════════════════════════ -->
-  <div id="view-reference">
+  <div id="view-reference" class="hidden">
 
     <!-- 标题区 -->
     <div class="mb-4">
@@ -645,9 +755,40 @@ body {
         </div>
       </div>
 
-      <!-- 1A-1 确定会议主题 -->
+      <!-- 1A-0 时间统筹（三组长协调） -->
       <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="org-life">
         <div class="tl-spine"><div class="tl-dot">1</div><div class="tl-line"></div></div>
+        <div class="tl-card">
+          <div class="js-expand-trigger">
+            <div class="flex-1 min-w-0">
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">时间统筹（三组长协调）</p>
+              <div class="flex flex-wrap gap-1.5 mt-1.5">
+                <span class="badge-role">党小组组长</span>
+                <span class="badge-time">T-7 天</span>
+              </div>
+            </div>
+            <span class="wwh-chevron">▶</span>
+          </div>
+          <div class="js-expand-target max-h-0 opacity-0">
+            <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">三位党小组长各自统计本组党员可用时间，取最大公因数（重叠时间段）；在<strong>支委群</strong>中同步各组可用时段；由<strong>支部书记</strong>在党支部大群统一发布，要求<strong>全员至少参与一场</strong>。</p>
+              </div>
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
+                <span class="badge-role">三位党小组组长（统计+同步）</span>
+                <span class="mx-1 text-gray-300">→</span>
+                <span class="badge-role">支部书记（大群发布）</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1A-1 确定会议主题 -->
+      <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="org-life">
+        <div class="tl-spine"><div class="tl-dot">2</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
@@ -663,11 +804,11 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">条条组长根据支委会部署确定会议主题，确保与年度工作重点一致。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">块块组长根据支委会部署确定会议主题，确保与年度工作重点一致。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">党小组组长（条条组长）</span>
+                <span class="badge-role">党小组组长（块块组长）</span>
               </div>
             </div>
           </div>
@@ -676,7 +817,7 @@ body {
 
       <!-- 1A-2 会前谈心谈话 -->
       <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="org-life">
-        <div class="tl-spine"><div class="tl-dot">2</div><div class="tl-line"></div></div>
+        <div class="tl-spine"><div class="tl-dot">3</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
@@ -703,16 +844,16 @@ body {
         </div>
       </div>
 
-      <!-- 1A-3 布置对照检查材料 -->
-      <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="org-life">
-        <div class="tl-spine"><div class="tl-dot">3</div><div class="tl-line"></div></div>
+      <!-- 1A-2b 全员述职回顾 -->
+      <div class="timeline-node" data-domain="activity" data-role="all" data-scenario="org-life">
+        <div class="tl-spine"><div class="tl-dot">4</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
-              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">布置对照检查材料</p>
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">全员述职回顾</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
-                <span class="badge-role">党小组组长</span>
-                <span class="badge-time">T-7 天</span>
+                <span class="badge-role">全体参会党员</span>
+                <span class="badge-time">T-5 天</span>
               </div>
             </div>
             <span class="wwh-chevron">▶</span>
@@ -721,10 +862,12 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">通知本组党员提前撰写个人对照检查材料，明确检查角度与格式要求。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">全体参会党员回顾总结过去一年在党支部中承担了什么工作（<strong>述职</strong>），作为个人对照检查材料的基础素材。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
+                <span class="badge-role">全体参会党员</span>
+                <span class="mx-1 text-gray-300">督办：</span>
                 <span class="badge-role">党小组组长</span>
               </div>
             </div>
@@ -732,13 +875,13 @@ body {
         </div>
       </div>
 
-      <!-- 1A-4 发布会议通知 -->
+      <!-- 1A-4 通知到人 -->
       <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="org-life">
-        <div class="tl-spine"><div class="tl-dot">4</div><div class="tl-line"></div></div>
+        <div class="tl-spine"><div class="tl-dot">5</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
-              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">发布会议通知</p>
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">通知到人</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
                 <span class="badge-role">党小组组长</span>
                 <span class="badge-time">T-3 天</span>
@@ -750,55 +893,26 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">条条组长通过党小组群发送正式会议通知，注明时间、地点、参会要求，必须提前至少3天；如需覆盖全支部，由支部书记通过党支部大群统一发布。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">块块组长通过党小组群发送正式会议通知，注明时间、地点、参会要求，必须提前至少3天；如需覆盖全支部，由支部书记通过党支部大群统一发布。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">党小组组长（条条组长）</span>
+                <span class="badge-role">党小组组长（块块组长）</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 1A-5 签到与刚性考勤 -->
-      <div class="timeline-node" data-domain="activity" data-role="commissioner" data-scenario="org-life">
-        <div class="tl-spine"><div class="tl-dot">5</div><div class="tl-line"></div></div>
-        <div class="tl-card">
-          <div class="js-expand-trigger">
-            <div class="flex-1 min-w-0">
-              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">签到与刚性考勤</p>
-              <div class="flex flex-wrap gap-1.5 mt-1.5">
-                <span class="badge-role">纪检委员</span>
-                <span class="badge-time">活动中</span>
-              </div>
-            </div>
-            <span class="wwh-chevron">▶</span>
-          </div>
-          <div class="js-expand-target max-h-0 opacity-0">
-            <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
-              <div>
-                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">执行刚性考勤（三会一课范畴）。事假须提前1天申请；病假可事后补假。缺勤须记录留档。</p>
-              </div>
-              <div>
-                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">纪检委员</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 1A-6 自评、互评与总结 -->
-      <div class="timeline-node" data-domain="activity" data-role="all" data-scenario="org-life">
+      <!-- 1A-4b 发布考勤二维码 -->
+      <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="org-life">
         <div class="tl-spine"><div class="tl-dot">6</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
-              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">自评、互评与组长总结</p>
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">发布考勤二维码</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
-                <span class="badge-role">全体与会党员</span>
+                <span class="badge-role">党小组组长（现场主持）</span>
                 <span class="badge-time">活动中</span>
               </div>
             </div>
@@ -808,28 +922,144 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">个人自我批评 → 相互批评（要有辣味，直指问题）→ 条条组长做总结发言。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed"><strong>现场组织的党小组长</strong>负责在会议现场发布考勤二维码，供与会党员扫码签到。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">全体与会党员</span>
-                <span class="mx-1 text-gray-300">+</span>
-                <span class="badge-role">党小组组长（总结）</span>
+                <span class="badge-role">党小组组长（现场主持）</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 1A-7 宣传产出 -->
+      <!-- 1A-5 签到考勤 -->
       <div class="timeline-node" data-domain="activity" data-role="commissioner" data-scenario="org-life">
         <div class="tl-spine"><div class="tl-dot">7</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
-              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">宣传产出（摘要+配图）</p>
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">签到考勤</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
-                <span class="badge-role">宣传委员</span>
+                <span class="badge-role">纪检委员</span>
+                <span class="badge-time">活动中</span>
+              </div>
+            </div>
+            <span class="wwh-chevron">▶</span>
+          </div>
+          <div class="js-expand-target max-h-0 opacity-0">
+            <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">执行刚性考勤（三会一课范畴）。组长发布二维码后，纪检委员同步记录到场情况。事假须提前1天申请；病假可事后补假。缺勤须记录留档。</p>
+              </div>
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
+                <span class="badge-role">纪检委员</span>
+                <span class="mx-1 text-gray-300">督办：</span>
+                <span class="badge-role">党小组组长</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1A-6a 个人自评 -->
+      <div class="timeline-node" data-domain="activity" data-role="all" data-scenario="org-life">
+        <div class="tl-spine"><div class="tl-dot">8</div><div class="tl-line"></div></div>
+        <div class="tl-card">
+          <div class="js-expand-trigger">
+            <div class="flex-1 min-w-0">
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">个人自评</p>
+              <div class="flex flex-wrap gap-1.5 mt-1.5">
+                <span class="badge-role">全体与会党员</span>
+                <span class="badge-time">活动中</span>
+              </div>
+            </div>
+            <span class="wwh-chevron">▶</span>
+          </div>
+          <div class="js-expand-target max-h-0 opacity-0">
+            <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">每位党员做个人自我批评（结合述职回顾内容展开）。</p>
+              </div>
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
+                <span class="badge-role">全体与会党员</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1A-6c 互相批评 -->
+      <div class="timeline-node" data-domain="activity" data-role="all" data-scenario="org-life">
+        <div class="tl-spine"><div class="tl-dot">9</div><div class="tl-line"></div></div>
+        <div class="tl-card">
+          <div class="js-expand-trigger">
+            <div class="flex-1 min-w-0">
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">互相批评</p>
+              <div class="flex flex-wrap gap-1.5 mt-1.5">
+                <span class="badge-role">全体与会党员</span>
+                <span class="badge-time">活动中</span>
+              </div>
+            </div>
+            <span class="wwh-chevron">▶</span>
+          </div>
+          <div class="js-expand-target max-h-0 opacity-0">
+            <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">开展批评与自我批评，要有辣味，直指问题。</p>
+              </div>
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
+                <span class="badge-role">全体与会党员</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1A-6d 组长总结 -->
+      <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="org-life">
+        <div class="tl-spine"><div class="tl-dot">10</div><div class="tl-line"></div></div>
+        <div class="tl-card">
+          <div class="js-expand-trigger">
+            <div class="flex-1 min-w-0">
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">组长总结</p>
+              <div class="flex flex-wrap gap-1.5 mt-1.5">
+                <span class="badge-role">党小组组长</span>
+                <span class="badge-time">活动中</span>
+              </div>
+            </div>
+            <span class="wwh-chevron">▶</span>
+          </div>
+          <div class="js-expand-target max-h-0 opacity-0">
+            <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">块块组长做总结发言，对本次组织生活会进行回顾与总结。</p>
+              </div>
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
+                <span class="badge-role">党小组组长（块块组长）</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1A-6b 摄影留存宣传底稿 -->
+      <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="org-life">
+        <div class="tl-spine"><div class="tl-dot">11</div><div class="tl-line"></div></div>
+        <div class="tl-card">
+          <div class="js-expand-trigger">
+            <div class="flex-1 min-w-0">
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">摄影留存宣传底稿</p>
+              <div class="flex flex-wrap gap-1.5 mt-1.5">
+                <span class="badge-role">党小组组长（现场主持）</span>
                 <span class="badge-time">T+3 天</span>
               </div>
             </div>
@@ -839,28 +1069,27 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">摘要性文字+配图，纳入月度推送。无需逐字记录发言；无需宣传预热。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed"><strong>现场主持的党小组长</strong>负责摄影留存，提交宣传委员备用。<br><span class="text-[10px] text-gray-400">交付物：宣传底稿（照片）</span></p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">宣传委员</span>
+                <span class="badge-role">党小组组长（现场主持）</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 1A-8 考勤与档案归档 -->
+      <!-- 1A-7b 后台考勤汇总 -->
       <div class="timeline-node" data-domain="activity" data-role="commissioner" data-scenario="org-life">
-        <div class="tl-spine"><div class="tl-dot">8</div><div class="tl-line"></div></div>
+        <div class="tl-spine"><div class="tl-dot">12</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
-              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">考勤记录与档案归档</p>
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">后台考勤汇总</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
                 <span class="badge-role">纪检委员</span>
-                <span class="badge-role">宣传委员</span>
-                <span class="badge-time">T+3 至 T+5 天</span>
+                <span class="badge-time">T+3 天</span>
               </div>
             </div>
             <span class="wwh-chevron">▶</span>
@@ -869,13 +1098,73 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">纪检委员记录考勤并归档（T+3天）；宣传委员归档全部会议材料（T+5天），含签到表、对照检查材料、会议记录。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed"><strong>纪检委员</strong>在后台考勤小程序中统一汇总出勤数据，字段含：<strong>姓名、学号、发展阶段、所属党小组</strong>；导出后提交宣传委员归档。<br><span class="text-[10px] text-gray-400">交付物：考勤汇总表（含姓名/学号/发展阶段/所属党小组）</span></p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">纪检委员（考勤）</span>
-                <span class="mx-1 text-gray-300">+</span>
-                <span class="badge-role">宣传委员（归档）</span>
+                <span class="badge-role">纪检委员</span>
+                <span class="mx-1 text-gray-300">督办：</span>
+                <span class="badge-role">党小组组长</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1A-8 汇总组织生活会记录 -->
+      <div class="timeline-node" data-domain="activity" data-role="leader" data-scenario="org-life">
+        <div class="tl-spine"><div class="tl-dot">13</div><div class="tl-line"></div></div>
+        <div class="tl-card">
+          <div class="js-expand-trigger">
+            <div class="flex-1 min-w-0">
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">汇总组织生活会记录</p>
+              <div class="flex flex-wrap gap-1.5 mt-1.5">
+                <span class="badge-role">党小组组长</span>
+                <span class="badge-time">T+5 天</span>
+              </div>
+            </div>
+            <span class="wwh-chevron">▶</span>
+          </div>
+          <div class="js-expand-target max-h-0 opacity-0">
+            <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed"><strong>党小组组长</strong>会后收集过去一年承担较多工作的骨干同志的检查材料，与图片汇总整理形成完整的<strong>组织生活会记录</strong>（含述职摘要+对照检查材料精选）。<br><span class="text-[10px] text-gray-400">交付物：组织生活会记录（骨干检查材料汇总）</span></p>
+              </div>
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
+                <span class="badge-role">党小组组长</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1A-9 档案归档 -->
+      <div class="timeline-node" data-domain="activity" data-role="commissioner" data-scenario="org-life">
+        <div class="tl-spine"><div class="tl-dot">14</div><div class="tl-line"></div></div>
+        <div class="tl-card">
+          <div class="js-expand-trigger">
+            <div class="flex-1 min-w-0">
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">档案归档</p>
+              <div class="flex flex-wrap gap-1.5 mt-1.5">
+                <span class="badge-role">宣传委员</span>
+                <span class="badge-time">T+5 天</span>
+              </div>
+            </div>
+            <span class="wwh-chevron">▶</span>
+          </div>
+          <div class="js-expand-target max-h-0 opacity-0">
+            <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">宣传委员归档会议材料（组织生活会记录），上传智慧党建平台，T+5天完成。</p>
+              </div>
+              <div>
+                <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
+                <span class="badge-role">宣传委员</span>
+                <span class="mx-1 text-gray-300">督办：</span>
+                <span class="badge-role">党小组组长</span>
               </div>
             </div>
           </div>
@@ -913,7 +1202,7 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">策划活动方案，确定路径 a（有品牌活动，条条组长主导招募）或路径 b（无现成活动，策划参与成本低且有组织效应的活动）。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">策划活动方案，确定路径 a（有品牌活动，块块组长主导招募）或路径 b（无现成活动，策划参与成本低且有组织效应的活动）。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
@@ -930,7 +1219,7 @@ body {
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
-              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">条条组长审批</p>
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">块块组长审批</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
                 <span class="badge-role">党小组组长</span>
                 <span class="badge-time">T-7 天</span>
@@ -942,7 +1231,7 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed"><strong>必须报条条组长审批同意后方可推进。</strong>组长评估活动是否符合党支部组织意图，以及资源与时间是否可行。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed"><strong>必须报块块组长审批同意后方可推进。</strong>组长评估活动是否符合党支部组织意图，以及资源与时间是否可行。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
@@ -953,13 +1242,13 @@ body {
         </div>
       </div>
 
-      <!-- 1B-3 联系块块委员 -->
+      <!-- 1B-3 联系条条委员 -->
       <div class="timeline-node" data-domain="activity" data-role="organizer" data-scenario="theme-party">
         <div class="tl-spine"><div class="tl-dot">3</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
-              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">联系块块委员说明计划</p>
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">联系条条委员说明计划</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
                 <span class="badge-role">活动组织者</span>
                 <span class="badge-time">T-7 天</span>
@@ -990,7 +1279,7 @@ body {
             <div class="flex-1 min-w-0">
               <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">发布活动通知</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
-                <span class="badge-role">条条组长</span>
+                <span class="badge-role">块块组长</span>
                 <span class="badge-time">T-2 天</span>
               </div>
             </div>
@@ -1000,11 +1289,11 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">条条组长通过党小组群发布本组活动通知；如需跨组或全支部范围，由条条+块块组长共同决策后，支部书记通过党支部大群统一发布。外出活动提前2天完成建群并确保所有人员到位。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">块块组长通过党小组群发布本组活动通知；如需跨组或全支部范围，由全体块块组长共同决策后，支部书记通过党支部大群统一发布。外出活动提前2天完成建群并确保所有人员到位。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">条条组长（本组通知）</span>
+                <span class="badge-role">块块组长（本组通知）</span>
                 <span class="mx-1 text-gray-300">/</span>
                 <span class="badge-role">支部书记（跨组公域）</span>
               </div>
@@ -1089,7 +1378,7 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">完成活动复盘（积极分子可代完成，但条条组长须起指导作用）。参考：<span class="file-ref" title="路径：参考资料/模板库/活动复盘/活动复盘模板.md">《活动复盘模板》</span>。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">完成活动复盘（积极分子可代完成，但块块组长须起指导作用）。参考：<span class="file-ref" title="路径：参考资料/模板库/活动复盘/活动复盘模板.md">《活动复盘模板》</span>。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
@@ -1193,7 +1482,7 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">条条组长评估活动是否符合党小组定位和组织意图。不契合则不予批准。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">块块组长评估活动是否符合党小组定位和组织意图。不契合则不予批准。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
@@ -1359,7 +1648,7 @@ body {
                 <p class="font-stheiti text-sm text-gray-700 leading-relaxed">
                   Who：组织者（政治面貌）+ 深度参与者具体分工 + 预期参与人员。<br>
                   What：活动主题 / 形式；宣传负责人；考勤方式；其他任务分工。<br>
-                  How/When：验收标准 + 验收人（条条组长或支委）+ DDL + 阶段性反馈机制。
+                  How/When：验收标准 + 验收人（块块组长或支委）+ DDL + 阶段性反馈机制。
                 </p>
               </div>
               <div>
@@ -1442,7 +1731,7 @@ body {
         <div class="scenario-header-inner">
           <span class="inline-flex items-center justify-center min-w-[28px] h-6 rounded px-1.5 text-white text-[10px] font-bold font-stheiti flex-shrink-0" style="background:#CE1126;">2</span>
           <h3 class="font-stheiti font-bold text-gray-800 text-sm">场景 2：制定新制度</h3>
-          <span class="font-stheiti text-[10px] text-gray-400">主导角色：块块委员</span>
+          <span class="font-stheiti text-[10px] text-gray-400">主导角色：条条委员</span>
         </div>
       </div>
 
@@ -1454,7 +1743,7 @@ body {
             <div class="flex-1 min-w-0">
               <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">起草制度初稿</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
-                <span class="badge-role">块块委员</span>
+                <span class="badge-role">条条委员</span>
               </div>
             </div>
             <span class="wwh-chevron">▶</span>
@@ -1467,7 +1756,7 @@ body {
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">块块委员（牵头起草）</span>
+                <span class="badge-role">条条委员（牵头起草）</span>
               </div>
             </div>
           </div>
@@ -1482,7 +1771,7 @@ body {
             <div class="flex-1 min-w-0">
               <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">本组试点征求初步意见</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
-                <span class="badge-role">块块委员</span>
+                <span class="badge-role">条条委员</span>
               </div>
             </div>
             <span class="wwh-chevron">▶</span>
@@ -1495,7 +1784,7 @@ body {
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">块块委员</span>
+                <span class="badge-role">条条委员</span>
               </div>
             </div>
           </div>
@@ -1508,7 +1797,7 @@ body {
         <div class="tl-card">
           <div class="js-expand-trigger">
             <div class="flex-1 min-w-0">
-              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">条条组长征求各组意见</p>
+              <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">块块组长征求各组意见</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
                 <span class="badge-role">党小组组长</span>
               </div>
@@ -1519,7 +1808,7 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">各条条组长在自己的党小组内征求意见，体现民主集中制，确保制度得到充分讨论。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">各块块组长在自己的党小组内征求意见，体现民主集中制，确保制度得到充分讨论。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
@@ -1538,7 +1827,7 @@ body {
             <div class="flex-1 min-w-0">
               <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">修改完善并提交支委会审议</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
-                <span class="badge-role">块块委员</span>
+                <span class="badge-role">条条委员</span>
               </div>
             </div>
             <span class="wwh-chevron">▶</span>
@@ -1551,7 +1840,7 @@ body {
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">块块委员（修改）</span>
+                <span class="badge-role">条条委员（修改）</span>
                 <span class="mx-1 text-gray-300">→</span>
                 <span class="badge-role">支委会全体（审议）</span>
               </div>
@@ -1596,7 +1885,7 @@ body {
             <div class="flex-1 min-w-0">
               <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">监督落实与适时修订</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
-                <span class="badge-role">块块委员</span>
+                <span class="badge-role">条条委员</span>
               </div>
             </div>
             <span class="wwh-chevron">▶</span>
@@ -1609,7 +1898,7 @@ body {
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">块块委员</span>
+                <span class="badge-role">条条委员</span>
               </div>
             </div>
           </div>
@@ -1742,7 +2031,7 @@ body {
       </div>
 
       <!-- 3-5 支委会与党员大会审议 -->
-      <div class="timeline-node" data-domain="organization" data-role="all" data-scenario="develop-activist">
+      <div class="timeline-node" data-domain="organization" data-role="secretary" data-scenario="develop-activist">
         <div class="tl-spine"><div class="tl-dot">5</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
@@ -1943,7 +2232,7 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">党小组日常活动事项由条条组长直接决策（组长负责制），无需上报支委会，但须符合党支部组织意图。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">党小组日常活动事项由块块组长直接决策（组长负责制），无需上报支委会，但须符合党支部组织意图。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
@@ -1962,7 +2251,7 @@ body {
             <div class="flex-1 min-w-0">
               <p class="font-stheiti font-semibold text-gray-800 text-sm leading-snug">制度建设事项</p>
               <div class="flex flex-wrap gap-1.5 mt-1.5">
-                <span class="badge-role">块块委员起草</span>
+                <span class="badge-role">条条委员起草</span>
               </div>
             </div>
             <span class="wwh-chevron">▶</span>
@@ -1971,11 +2260,11 @@ body {
             <div class="px-4 pb-4 border-t border-gray-100/60 pt-3 space-y-2.5">
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">做什么 · What</p>
-                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">制度建设须经支委会审议后提交党员大会表决，块块委员负责起草。见场景 2 详细流程。</p>
+                <p class="font-stheiti text-sm text-gray-700 leading-relaxed">制度建设须经支委会审议后提交党员大会表决，条条委员负责起草。见场景 2 详细流程。</p>
               </div>
               <div>
                 <p class="font-stheiti text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">谁来做 · Who</p>
-                <span class="badge-role">块块委员（起草）</span>
+                <span class="badge-role">条条委员（起草）</span>
                 <span class="mx-1 text-gray-300">→</span>
                 <span class="badge-role">支委会（审议）</span>
                 <span class="mx-1 text-gray-300">→</span>
@@ -1987,7 +2276,7 @@ body {
       </div>
 
       <!-- 7-3 重大事项 -->
-      <div class="timeline-node" data-domain="organization" data-role="all" data-scenario="branch-discussion">
+      <div class="timeline-node" data-domain="organization" data-role="secretary" data-scenario="branch-discussion">
         <div class="tl-spine"><div class="tl-dot">3</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
@@ -2085,7 +2374,7 @@ body {
       </div>
 
       <!-- 9-3 支委会讨论处理 -->
-      <div class="timeline-node" data-domain="organization" data-role="all" data-scenario="feedback-handling">
+      <div class="timeline-node" data-domain="organization" data-role="secretary" data-scenario="feedback-handling">
         <div class="tl-spine"><div class="tl-dot">3</div><div class="tl-line"></div></div>
         <div class="tl-card">
           <div class="js-expand-trigger">
@@ -2151,7 +2440,7 @@ body {
   <!-- ══════════════════════════════════════════════════════════════
        MODULE B: 推演工作台 (Calendar / Inspector) — 仅此模块显示
        ══════════════════════════════════════════════════════════════ -->
-  <div id="view-calendar" class="hidden">
+  <div id="view-calendar">
 
     <div class="mb-5">
       <h1 class="font-stheiti text-lg font-bold text-gray-800 mb-1">推演工作台</h1>
@@ -2161,23 +2450,72 @@ body {
       <div class="glass rounded-xl border border-white/60 px-4 py-3 flex flex-wrap items-end gap-3">
         <div>
           <label class="block font-stheiti text-[11px] text-gray-500 mb-1">目标活动日期（T-0）</label>
-          <input type="date" id="t0-input-cal"
-                 class="font-stheiti text-sm px-3 py-1.5 rounded-lg bg-white"
-                 style="border:1.5px solid #CE1126;color:#1f2937;outline:none;">
+          <input type="date" id="t0-input-cal" class="glass-input font-stheiti">
         </div>
+
         <div>
-          <label class="block font-stheiti text-[11px] text-gray-500 mb-1">场景</label>
-          <select id="scenario-select-cal"
-                  class="font-stheiti text-sm px-3 py-1.5 rounded-lg bg-white"
-                  style="border:1.5px solid #e5e7eb;color:#1f2937;outline:none;">
-            <option value="org-life">【活动建设】组织生活会</option>
-            <option value="theme-party">【活动建设】党小组主题党日活动</option>
-            <option value="all-timed">活动建设全场景（含时间锚点）</option>
+          <label class="block font-stheiti text-[11px] text-gray-500 mb-1">选择场景</label>
+          <select id="scenario-select-cal" class="glass-input font-stheiti">
+            <option value="theme-party" selected>主题党日</option>
+            <optgroup label="三会一课">
+              <option value="branch-party-meeting">支部党员大会</option>
+              <option value="party-group-meeting">党小组会</option>
+              <option value="party-lecture">党课</option>
+              <option value="org-life">组织生活会</option>
+            </optgroup>
+            <optgroup label="组织建设">
+              <option value="new-system">制定新制度</option>
+              <option value="develop-activist">考察积极分子</option>
+              <option value="info-platform">信息平台支持</option>
+              <option value="attendance-check">查考勤记录</option>
+              <option value="branch-discussion">支部讨论重要事项</option>
+              <option value="feedback-handling">处理意见建议反馈</option>
+            </optgroup>
+            <option value="all-timed">全部含时间节点场景</option>
           </select>
         </div>
+
+        <div>
+          <label class="block font-stheiti text-[11px] text-gray-500 mb-1">承办党小组</label>
+          <select id="host-group-select" class="glass-input font-stheiti">
+            <option value="">不指定</option>
+            <option value="group1">第一党小组</option>
+            <option value="group2">第二党小组</option>
+            <option value="group3">第三党小组</option>
+          </select>
+        </div>
+
+        <div class="flex-1 min-w-[120px]">
+          <label class="block font-stheiti text-[11px] text-gray-500 mb-1">活动名称</label>
+          <input type="text" id="activity-name-input"
+                 placeholder="输入活动名称..."
+                 class="glass-input font-stheiti w-full">
+        </div>
+
+        <div id="participant-name-wrap" class="min-w-[140px] hidden">
+          <label class="block font-stheiti text-[11px] text-gray-500 mb-1">党员姓名</label>
+          <input type="text" id="participant-name-input"
+                 placeholder="输入党员姓名(选填)..."
+                 class="glass-input font-stheiti w-full">
+        </div>
+
+        <div class="min-w-[140px]">
+          <label class="block font-stheiti text-[11px] text-gray-500 mb-1">活动组织者</label>
+          <input type="text" id="organizer-name-input"
+                 placeholder="活动组织者姓名(选填)"
+                 class="glass-input font-stheiti w-full">
+        </div>
+
+        <div class="min-w-[140px]">
+          <label class="block font-stheiti text-[11px] text-gray-500 mb-1">深度参与者</label>
+          <input type="text" id="deep-name-input"
+                 placeholder="深度参与者姓名(选填)"
+                 class="glass-input font-stheiti w-full">
+        </div>
+
         <button id="gen-schedule-cal-btn"
                 class="font-stheiti text-sm text-white px-5 py-1.5 rounded-lg"
-                style="background:#CE1126;">生成排期</button>
+                style="background:#CE1126;">写入活动</button>
       </div>
     </div>
 
@@ -2196,6 +2534,27 @@ body {
       <div id="inspector-panel"
            class="w-full lg:w-[40%] glass rounded-2xl border border-white/60 sticky"
            style="top: 80px; max-height: calc(100vh - 120px); overflow-y: auto; padding: 16px 18px;">
+        <!-- 月份筛选器 -->
+        <div class="mb-3">
+          <label class="block font-stheiti text-[11px] text-gray-500 mb-1">筛选月份</label>
+          <div class="flex gap-2">
+            <select id="month-selector"
+                    class="glass-input font-stheiti flex-1"
+                    style="">
+              <option value="">全部月份</option>
+            </select>
+            <button id="month-search-btn"
+                    class="font-stheiti text-sm text-white px-3 py-1.5 rounded-lg flex-shrink-0"
+                    style="background:#CE1126;">检索</button>
+          </div>
+        </div>
+        <!-- 活动快速寻址器 -->
+        <div class="mb-3">
+          <label class="block font-stheiti text-[11px] text-gray-500 mb-1">快速寻址活动</label>
+          <select id="activity-selector" class="glass-input font-stheiti w-full">
+            <option value="">快速聚焦活动...</option>
+          </select>
+        </div>
         <div id="inspector-default">
           <div class="flex items-center gap-2 mb-3">
             <div class="w-1.5 h-5 rounded-full flex-shrink-0" style="background:#CE1126;"></div>

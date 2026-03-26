@@ -11,7 +11,7 @@ last_updated: "2026-03-08"
 
 ## Monitoring
 
-- [WATCHLIST.md](./WATCHLIST.md)：系统需持续关注的问题（块块委员分工优化、修改时必须核查并反馈）
+- [WATCHLIST.md](./WATCHLIST.md)：系统需持续关注的问题（条条委员分工优化、修改时必须核查并反馈）
 - [SUSPENDED_ISSUES.md](./SUSPENDED_ISSUES.md)：暂缓处理问题（书记明确解锁前 Agent 不得修改）
 
 ## Change Management

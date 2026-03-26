@@ -1,8 +1,14 @@
 **Purpose**: 管理所有 SOP 制度文本的新增、修改、重构与元数据修复操作。包含活动规则强制执行（A/B 类活动）、SOP 结构重组、域代码与 SOP 的双向追溯同步、以及 YAML frontmatter 注入与修复等全部子场景。
 
-**Trigger**: 流程、制度、职责、负责人、时间节点、规则、SOP、活动、组织生活会、党小组、A/B 类、场景重构、YAML、frontmatter、元数据、schema、domain、制度同步
+> **[2026-03 架构升级注记]**：SOP 模板数据已从 `src/main.js` 中物理分离，并进一步封装至专用子目录 `src/workflow/`，通过 `src/workflow/index.js` 桶文件统一对外导出。
+> - **`src/workflow/sopData.js`**：存放所有场景的 SOP 任务节点原始模板数据（`scenarioId → tasks[]`，每条任务含 `title`/`offset`/`executor`/`supervisor` 等字段）。
+> - **`src/workflow/sop.js`**：`instantiateSOP(scenarioIds, t0DateStr)` 函数，读取 `sopData.js` 的模板，将 `offset` 天数加上 `t0`（活动日）后，输出含绝对日期字符串的任务实例数组。
+> - **`src/workflow/index.js`**：桶导出文件（Barrel Export），统一暴露 `instantiateSOP` 与 `sopDatabase`；`src/main.js` 与 `src/events.js` 均通过 `import { ... } from './workflow/index.js'` 引用。
+> - **双向追溯规则**：修改 SOP 制度文本时，若涉及任务节点定义，必须同步检查并更新 `src/workflow/sopData.js` 对应场景的任务数组，保持"制度文本 ↔ 数据模板"的双向一致。
 
-**Allowed Files**: `knowledge/SOP/*`, `流程指南/*`, `src/domain.js`
+**Trigger**: 流程、制度、职责、负责人、时间节点、规则、SOP、活动、组织生活会、党小组、A/B 类、场景重构、YAML、frontmatter、元数据、schema、domain、制度同步、sopData、sop.js、instantiateSOP
+
+**Allowed Files**: `knowledge/SOP/*`, `流程指南/*`, `src/workflow/sopData.js`, `src/workflow/sop.js`, `src/workflow/index.js`
 
 ---
 
@@ -26,7 +32,7 @@
 |------|------|
 | 参与者 | 全体支部成员（党员+预备党员+发展对象+积极分子） |
 | 考勤 | 弹性考勤 |
-| 复盘 | 必须，1 周内完成；可由积极分子在条条组长指导下完成 |
+| 复盘 | 必须，1 周内完成；可由积极分子在党小组组长指导下完成 |
 | 宣传 | 必须（活动摘要+配图，纳入月推送） |
 | 宣传预热 | 两类均不要求 |
 
@@ -34,11 +40,11 @@
 
 | # | Constraint |
 |---|-----------|
-| C-A1 | 每项活动必须通过条条组长审批后方可开始准备（A 类：支委会部署隐含审批；B 类：Step 2 显式节点） |
+| C-A1 | 每项活动必须通过党小组组长审批后方可开始准备（A 类：支委会部署隐含审批；B 类：Step 2 显式节点） |
 | C-A2 | 原则"除了发展党员、转正、换届等需要严肃投票的事项，其他都可以往党小组压"必须保留 |
 | C-A3 | 不得在行文中定义"深度参与者"/"组织者"——首次提及时引用 `流程指南/纪检委员工作流程指南.md` |
 | C-A4 | 悬置问题 H1（跨组参与考察协同）禁止解决——在文本中标记 ⚠️ 悬置 |
-| C-A5 | Mermaid 图表颜色：蓝色=条条, 红色=块块, 绿色=起止节点 |
+| C-A5 | Mermaid 图表颜色：蓝色=块块, 红色=条条, 绿色=起止节点 |
 | C-A6 | 必须动态检查 `REVIEW_STATE.md` 中 `[Global]` 及 `[Scenario-1 Only]` Watchlist 项，发现冲突先记录至 REVIEW_STATE |
 
 ---
@@ -49,9 +55,9 @@
 
 | # | Constraint |
 |---|-----------|
-| C-S1 | **禁止为条条单独建立分工表**；条条职责必须从 SOP 流程步骤中自然呈现 |
-| C-S2 | **块块委员须具名**：每个需要块块支持的 SOP 步骤必须明确写出负责委员姓名，"相关委员"不可接受 |
-| C-S3 | **禁止冗余**：块块专属工作手册中已定义的流程，引用即可，不得行内重复 |
+| C-S1 | **禁止为块块单独建立分工表**；块块职责必须从 SOP 流程步骤中自然呈现 |
+| C-S2 | **条条委员须具名**：每个需要条条支持的 SOP 步骤必须明确写出负责委员姓名，"相关委员"不可接受 |
+| C-S3 | **禁止冗余**：条条专属工作手册中已定义的流程，引用即可，不得行内重复 |
 | C-S4 | **`流程指南/` 文件全部使用简体中文**；禁止写入英文指令、YAML 逻辑块、元注释 |
 | C-S5 | 动态检查 `REVIEW_STATE.md` 中 `[Global]` 及当前场景匹配 `[Scenario-X Only]` 项；冲突先记录再编辑 |
 | C-S6 | **禁止修改** `REVIEW_STATE.md` 中标记 `[Global]` 的 Suspended Issues H 项；遇悬置内容留 ⚠️ 标记并跳过 |

@@ -26,6 +26,33 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  [scenarioId] - 关联的场景 ID（对应 sopDatabase） - Source: knowledge/SOP/常见工作场景快速指南.md#📋 目录
  * @property {string}  [description] - 活动描述
  * @property {string}  [targetDate]  - 目标日期 ISO 字符串（T-0，兼容旧字段）
+ * @property {'leader'|'disc-commissioner'} [attendanceQROwner] - 考勤二维码发布方（组织生活会专用：现场组织的党小组长） - Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
+ * @property {string[]} [deliverableIds] - 关联的交付物 ID 列表 - Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
+ */
+
+/**
+ * @typedef {Object} AttendanceRecord
+ * @property {string}  id          - 唯一标识符（由 id.js 生成）
+ * @property {string}  activityId  - 所属活动 ID
+ * @property {string}  userId      - 参会成员用户 ID
+ * @property {'present'|'absent'|'leave'} status - 出勤状态
+ * @property {string}  recordedBy  - 记录人用户 ID（纪检委员）
+ * @property {string}  recordedAt  - 记录时间 ISO 字符串
+ * @property {string}  [studentId] - 学号 - Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
+ * @property {'party_member'|'probationary'|'activist'|'candidate'} [developStage] - 发展阶段 - Source: knowledge/SOP/纪检委员工作流程指南.md#二考勤管理三会一课
+ * @property {string}  [partyGroup] - 所属党小组 - Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
+ */
+
+/**
+ * @typedef {Object} Deliverable
+ * @property {string}  id          - 唯一标识符（由 id.js 生成）
+ * @property {string}  activityId  - 所属活动 ID
+ * @property {'photography_draft'|'attendance_summary'|'meeting_record'|'propaganda'|'check_material'} type - 交付物类型 - Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
+ * @property {string}  owner       - 责任角色标识符（执行方角色）- Source: knowledge/SOP/支委与党小组定人定责定岗说明.md
+ * @property {string}  [ownerName] - 责任角色描述（具体角色说明，如"党小组组长"、"纪检委员"）- Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
+ * @property {'pending'|'submitted'|'archived'} status - 交付物状态
+ * @property {string}  [submittedAt] - 提交时间 ISO 字符串
+ * @property {string}  [note]      - 备注说明
  */
 
 /**
@@ -77,6 +104,12 @@ export const mockDB = {
   activities: [],
   /** @type {Task[]} */
   tasks: [],
-  /** @type {Array<{id:string, activityId:string, userId:string, status:'present'|'absent'|'leave', recordedBy:string, recordedAt:string}>} */
+  /** @type {AttendanceRecord[]} */
+  // Fields: studentId（学号）, developStage（发展阶段）, partyGroup（所属党小组）are required for 组织生活会 attendance summary
+  // Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
   attendances: [],
+  /** @type {Deliverable[]} */
+  // 交付物清单（组织生活会专用：宣传底稿、考勤汇总表、组织生活会记录等）
+  // Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
+  deliverables: [],
 };
