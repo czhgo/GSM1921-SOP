@@ -17,12 +17,41 @@ Service Layer   src/service.mock.js        CRUD + LocalStorage（唯一数据写
 State Layer     src/state.js               appState（immutable spread）+ setState(patch) + registerRenderCallback
 Render Layer    src/calendar.js            renderCalendarByActivities / populateMonthSelector
                 src/inspector.js           renderInspectorFromState / filterTasksByManagementRole
-                src/events.js              setupEventListeners()——全量 DOM 事件绑定
+                src/events.js              setupEventListeners()——全量 DOM 事件绑定；含 hostGroup 字段提取
 Entry           src/main.js                initApp + renderUI（唯一 DOM 更新入口，约154行）
 UI              index.html                 静态入口，<script type="module" src="./src/main.js">
+                                           ★ #scenario-select-cal 已按双域重构为 optgroup 层级结构
+                                           ★ #host-group-select 承办党小组下拉控件已绑定
 ```
 
 **依赖方向（DAG，无环）**：`SOP → Data → Domain/Utils → Service → State → Render → Entry → UI`
+
+### 1.1 两大核心域业务认知（v1.2 新增）
+
+系统业务层自 v1.2 起确立**活动建设**与**组织建设**两大核心域划分：
+
+| 域 | 定义 | 典型场景 |
+|----|------|---------|
+| **活动建设域** | 发起、策划、执行党支部活动的全流程管理 | 组织生活会、主题党日、支部党员大会、党小组会、党课 |
+| **组织建设域** | 党员发展、纪律监督、信息报送、反馈处理等长周期制度运营 | 发展积极分子、党支部讨论、信息平台报送、意见反馈处理 |
+
+- 制度层：`knowledge/SOP/常见工作场景快速指南.md` 以 `# 一、活动建设` / `# 二、组织建设` 作为一级目录锚点。
+- UI 层：`#scenario-select-cal` 按域分组为两个 `<optgroup>`，实现层级化降噪。
+- SOP 层：三位条条委员工作指南均已在 §1（工作职责总览）中插入 `### (一) 活动建设域职责` 与 `### (二) 组织建设域职责` 两节。
+
+### 1.2 承办党小组（hostGroup）字段业务规范（v1.2 新增）
+
+```yaml
+hostGroup:
+  type: string | null
+  values: ["group1", "group2", "group3", null]
+  default: null
+  scope: 仅用于"主题党日"等需特定党小组承办的场景，实现责任精准下放
+  rule: |
+    - 主题党日等责任下放场景：填入对应党小组标识符
+    - 组织生活会、党课等全支部活动：保持 null（UI 渲染为"全支部"或隐藏）
+    - hostGroup 为元数据标识，不影响 sopData.js 任务节点路由逻辑
+```
 
 **循环依赖破解**：`state.js` 暴露 `registerRenderCallback(fn)`，`main.js` 定义 `renderUI` 后主动注册，避免 `state.js` import `main.js` 产生循环。
 
