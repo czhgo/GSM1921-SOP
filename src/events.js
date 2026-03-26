@@ -52,20 +52,27 @@ function _initCalendarModule() {
 
   t0Input.value = _fmtDate(new Date());
 
-  // 场景切换：主题党日时显示党员姓名输入框，其他场景隐藏并清空
-  const scSelect = document.getElementById('scenario-select-cal');
-  const participantWrap = document.getElementById('participant-name-wrap');
-  const participantInput = document.getElementById('participant-name-input');
-  if (scSelect && participantWrap && participantInput) {
-    scSelect.addEventListener('change', () => {
-      if (scSelect.value === 'theme-party') {
-        participantWrap.classList.remove('hidden');
-      } else {
-        participantWrap.classList.add('hidden');
-        participantInput.value = '';
-      }
-    });
+  // 场景切换：承办党小组仅在"主题党日/党小组会/组织生活会"时显示，切换至其他场景时隐藏并清空
+  const scSelect    = document.getElementById('scenario-select-cal');
+  const hostGroupWrap   = document.getElementById('host-group-wrap');
+  const hostGroupSelect = document.getElementById('host-group-select');
+  const HOST_GROUP_SCENES = new Set(['theme-party', 'party-group-meeting', 'org-life']);
+
+  function _syncHostGroupVisibility() {
+    if (!hostGroupWrap || !hostGroupSelect) return;
+    if (HOST_GROUP_SCENES.has(scSelect ? scSelect.value : '')) {
+      hostGroupWrap.classList.remove('hidden');
+    } else {
+      hostGroupWrap.classList.add('hidden');
+      hostGroupSelect.value = '';
+    }
   }
+
+  if (scSelect) {
+    scSelect.addEventListener('change', _syncHostGroupVisibility);
+  }
+  // 初始化：与默认选中场景对齐
+  _syncHostGroupVisibility();
 
   genBtn.addEventListener('click', async () => {
     const appState = getAppState();
@@ -80,7 +87,7 @@ function _initCalendarModule() {
     }
 
     const scVal    = scSelect ? scSelect.value : 'org-life';
-    const scIds    = scVal === 'all-timed' ? ['org-life', 'theme-party', 'branch-party-meeting', 'party-group-meeting', 'party-lecture'] : [scVal];
+    const scIds    = [scVal];
 
     const nameInput = document.getElementById('activity-name-input');
     const actName   = nameInput ? nameInput.value.trim() : '';
@@ -94,20 +101,14 @@ function _initCalendarModule() {
       return;
     }
 
-    // 读取党员姓名（独立字段，不拼入标题）
-    const participantName = (participantInput && !participantWrap.classList.contains('hidden'))
-      ? participantInput.value.trim()
-      : '';
-
     // 读取活动组织者姓名与深度参与者姓名（Phase 1 新增字段）
     const organizerNameInput     = document.getElementById('organizer-name-input');
     const deepParticipantInput   = document.getElementById('deep-name-input');
     const organizerName          = organizerNameInput    ? organizerNameInput.value.trim()   : '';
     const deepParticipantName    = deepParticipantInput  ? deepParticipantInput.value.trim() : '';
 
-    // 读取承办党小组（Phase 3 新增字段）
-    const hostGroupSelect = document.getElementById('host-group-select');
-    const hostGroup       = hostGroupSelect ? hostGroupSelect.value : '';
+    // 读取承办党小组（承办党小组已在外层作用域声明 hostGroupSelect）
+    const hostGroup = hostGroupSelect ? hostGroupSelect.value : '';
 
     const reqId = ++_currentRequestId;
 
@@ -124,7 +125,6 @@ function _initCalendarModule() {
         executor:   'organizer',
         createdBy:  'u_exec',
       };
-      if (participantName)     actPayload.participantName     = participantName;
       if (organizerName)       actPayload.organizerName       = organizerName;
       if (deepParticipantName) actPayload.deepParticipantName = deepParticipantName;
       if (hostGroup)           actPayload.hostGroup           = hostGroup;
