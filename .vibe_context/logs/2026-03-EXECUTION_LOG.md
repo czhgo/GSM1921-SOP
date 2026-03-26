@@ -2510,3 +2510,5 @@ main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 r
 - **2026-03-26 [Cleanup Phase 2/2]** 执行推演工作台终极降噪：端到端歼灭"党员姓名"全链路（DOM `#participant-name-wrap` 物理删除，`events.js` 全局 Null Pointer 隐患彻底消灭，`actPayload.participantName` 已从写入链路切除）；剥离"全部含时间节点场景"选项及"组织建设"optgroup；为"承办党小组"增加场景感知包裹容器 `#host-group-wrap` 与脏数据熔断机制（仅主题党日/党小组会/组织生活会显示，切换其他场景时强制清空值）；核心字段活动组织者与深度参与者无损伤。
 
 - **2026-03-26 [Reference Refactor Phase 2/2]** 重构参考指南（Reference Guide）体系：文档层与 UI 层彻底根除数字硬编码，确立【活动建设/组织建设】双域分类，使用官方合规表述明确【组织生活会】与【党小组会】的业务继承关系。
+
+- **2026-03-26 [Burden Reduction Phase 5/5]** 执行全系统产出减负与身份职责优化战役：重构 SOP 制度层；同步底层 `sopData.js` 降噪并剔除 branch-discussion 场景；基于最新 SOP 文档完成 `index.html` 参考指南 DOM 的精准原地降噪变异。系统负担大幅降低。
