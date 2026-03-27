@@ -157,17 +157,13 @@ function _initCalendarModule() {
         BranchService.listActivities(),
         typeof BranchService.listTasks === 'function' ? BranchService.listTasks() : Promise.resolve([]),
       ]);
-      const currentRole = getAppState().managementRole;
       setState({
         status:             STATE.SUCCESS,
         activities,
         tasks,
         displayMonth:       dateStr.slice(0, 7),
         selectedDate:       dateStr,
-        viewMode:           'detail',
         selectedActivityId: newAct.id,
-        viewType:           'manager',
-        managementRole:     currentRole === 'participant' ? 'organizer' : currentRole,
       });
       showToast('success', `活动「${actName.trim()}」已写入，${sopTasks.length} 个任务节点已挂载。`);
       if (nameInput) nameInput.value = '';
