@@ -2499,21 +2499,21 @@ main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 r
 
 - **2026-03-24 [SOP Sync Phase 1/5]** 宣传委员 SOP v1.6：§1.1 新增每周一学工周报报送机制 Global 例行职责。
 
-- **2026-03-25 [SOP Sync Phase 5B]** 依据人工确权的全景审计矩阵，完成条条支委 Global 规则（含确权后的 timeOffset）向制度文档的反向同步与 `sopData.js` 的正向全量注入。新增任务节点：`1a-7c`（org-life T+3 活动参与三层记录）、`1a-10`（org-life T+7 补课安排跟进）、`1b-6b`（theme-party T+1 复盘提醒）、`1b-7c`（theme-party T+3 活动参与三层记录）、`1b-7b`（theme-party T+7 复盘完成检查）、`5-2b`（info-platform null 每周一报送学工周报）；修补 `1a-5` desc（增补 §1.3 补课跟进指针）。临时沙盒 `.vibe_context/temp/SOP_AUDIT_MATRIX.md` 已销毁。
+- **2026-03-25 [SOP Sync Phase 5B]** 依据人工确权的全景审计矩阵，完成条条支委 Global 规则（含确权后的 timeOffset）向制度文档的反向同步与 `sopData.js` 的正向全量注入。新增任务节点：`1a-7c`（org-life T+3 活动参与三层记录）、`1a-10`（org-life T+7 补课安排跟进）、`1b-6b`（theme-party T+1 复盘提醒）、`1b-7c`（theme-party T+3 活动参与三层记录）、`1b-7b`（theme-party T+7 复盘完成检查）、`5-2b`（info-platform null 每周一报送学工周报）；修补 `1a-5` desc（增补 §1.3 补课跟进指针）。临时沙盒 `.vibe_context/temp/SOP_AUDIT_MATRIX.md` 已销毁。 [经验蒸馏: 是]
 
-- **2026-03-25 [Role Expansion Phase 3/3]** 引入第五大核心角色【党支书 (secretary)】：硬编码重写党课与意见反馈场景底层任务流（剥离了模糊时间偏移），完成底层数据字典的决定性移交。
+- **2026-03-25 [Role Expansion Phase 3/3]** 引入第五大核心角色【党支书 (secretary)】：硬编码重写党课与意见反馈场景底层任务流（剥离了模糊时间偏移），完成底层数据字典的决定性移交。 [经验蒸馏: 是]
 
-- **2026-03-25 [Architecture Phase 1/4]** 制度总纲层级重构：`常见工作场景快速指南.md` 升至 v3.0，确立「活动建设」与「组织建设」两大域顶层架构（# 一级标题），三会一课下设四个三级子场景（支部委员会·占位、支部党员大会、党课、党小组会），组织生活会平移至党小组会下作为特殊形式四级标题；`支委与党小组定人定责定岗说明.md` 升至 v1.3，引言增加两大域声明，三位条条委员各增「职责聚焦」标准化句式。
+- **2026-03-25 [Architecture Phase 1/4]** 制度总纲层级重构：`常见工作场景快速指南.md` 升至 v3.0，确立「活动建设」与「组织建设」两大域顶层架构（# 一级标题），三会一课下设四个三级子场景（支部委员会·占位、支部党员大会、党课、党小组会），组织生活会平移至党小组会下作为特殊形式四级标题；`支委与党小组定人定责定岗说明.md` 升至 v1.3，引言增加两大域声明，三位条条委员各增「职责聚焦」标准化句式。 [经验蒸馏: 是]
 
 - **2026-03-25 [Architecture Phase 4/4]** 执行全域制度架构标准化重构（双域化）；打通承办党小组 UI 与数据持久化链路；系统原子升维并封版 v1.2 唯一活跃快照。
 
-- **2026-03-26 [Cleanup Phase 2/2]** 执行推演工作台终极降噪：端到端歼灭"党员姓名"全链路（DOM `#participant-name-wrap` 物理删除，`events.js` 全局 Null Pointer 隐患彻底消灭，`actPayload.participantName` 已从写入链路切除）；剥离"全部含时间节点场景"选项及"组织建设"optgroup；为"承办党小组"增加场景感知包裹容器 `#host-group-wrap` 与脏数据熔断机制（仅主题党日/党小组会/组织生活会显示，切换其他场景时强制清空值）；核心字段活动组织者与深度参与者无损伤。
+- **2026-03-26 [Cleanup Phase 2/2]** 执行推演工作台终极降噪：端到端歼灭"党员姓名"全链路（DOM `#participant-name-wrap` 物理删除，`events.js` 全局 Null Pointer 隐患彻底消灭，`actPayload.participantName` 已从写入链路切除）；剥离"全部含时间节点场景"选项及"组织建设"optgroup；为"承办党小组"增加场景感知包裹容器 `#host-group-wrap` 与脏数据熔断机制（仅主题党日/党小组会/组织生活会显示，切换其他场景时强制清空值）；核心字段活动组织者与深度参与者无损伤。 [经验蒸馏: 是]
 
-- **2026-03-26 [Reference Refactor Phase 2/2]** 重构参考指南（Reference Guide）体系：文档层与 UI 层彻底根除数字硬编码，确立【活动建设/组织建设】双域分类，使用官方合规表述明确【组织生活会】与【党小组会】的业务继承关系。
+- **2026-03-26 [Reference Refactor Phase 2/2]** 重构参考指南（Reference Guide）体系：文档层与 UI 层彻底根除数字硬编码，确立【活动建设/组织建设】双域分类，使用官方合规表述明确【组织生活会】与【党小组会】的业务继承关系。 [经验蒸馏: 是]
 
-- **2026-03-26 [Burden Reduction Phase 5/5]** 执行全系统产出减负与身份职责优化战役：重构 SOP 制度层；同步底层 `sopData.js` 降噪并剔除 branch-discussion 场景；基于最新 SOP 文档完成 `index.html` 参考指南 DOM 的精准原地降噪变异。系统负担大幅降低。
+- **2026-03-26 [Burden Reduction Phase 5/5]** 执行全系统产出减负与身份职责优化战役：重构 SOP 制度层；同步底层 `sopData.js` 降噪并剔除 branch-discussion 场景；基于最新 SOP 文档完成 `index.html` 参考指南 DOM 的精准原地降噪变异。系统负担大幅降低。 [经验蒸馏: 是]
 
-- **2026-03-27 [Polish Phase 3/3]** 执行全域大满贯收尾：状态机解耦（活动创建不再强制跳转视图）；月份检索按钮物理切除，升级为 `#month-selector` 实时 change 响应；物理超度旧快照 `SNAPSHOT_v1.2_20260325.md`；减负原则写入 `README.md` 与 `AI_CONTEXT.md` Core Rules；v1.3 终局快照通过原子化操作永久封版。
+- **2026-03-27 [Polish Phase 3/3]** 执行全域大满贯收尾：状态机解耦（活动创建不再强制跳转视图）；月份检索按钮物理切除，升级为 `#month-selector` 实时 change 响应；物理超度旧快照 `SNAPSHOT_v1.2_20260325.md`；减负原则写入 `README.md` 与 `AI_CONTEXT.md` Core Rules；v1.3 终局快照通过原子化操作永久封版。 [经验蒸馏: 是]
 
 ---
 
