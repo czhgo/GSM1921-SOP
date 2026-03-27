@@ -89,6 +89,7 @@ META_AUDIT → SOP_SYNC → CORE_LOGIC → UI_SCENARIO
 - **Binary Preservation**：`.pdf`, `.docx`, `.pptx`, `.xlsx` 为只读资产，禁止修改或转换，仅允许元数据读取与目录移动。
 - **Single DOM Updater**：`renderUI(state)` 是唯一合法 DOM 更新入口，所有 UI 变更必须经此路径。
 - **Data Privacy (数据隐私隔离)**：绝对禁止在 `src/*`（代码层）与 `index.html`（UI 渲染层）中硬编码真实的"人类姓名"。代码流转必须且只能使用角色标识符（Role ID / Role Name）。真人姓名仅允许存在于 `knowledge/SOP/` 之中。
+- **经验蒸馏标记**：所有写入 `.vibe_context/logs/` 的执行日志条目，必须包含 `[经验蒸馏: 是/否]` 标记。若为"是"，代表该操作的核心经验已沉淀至 `docs/党支部管理与实务经验沉淀.md`；若为"否"，则留待后续集中蒸馏。
 
 ## 4. File Access Permissions（文件访问白名单）
 

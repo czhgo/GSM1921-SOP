@@ -69,6 +69,7 @@ version: "7.0"
 | Activity Rules Enforcement | `scenarios/activity_rules_enforcement.md` | ⏳ Pending | — | 主场景：场景1 A/B类拆分 |
 | SOP Restructuring | `scenarios/sop_restructuring.md` | ⏳ Pending | — | 依赖 Activity Rules 完成后执行 |
 | YAML Metadata Fix | `scenarios/yaml_metadata_fix.md` | ✅ Done | 2026-02-21 | 5个根节点文件已注入frontmatter |
+| Governance Phase 2/3 | `.vibe_context/AI_CONTEXT.md`, `scenarios/meta_audit.md` | ✅ Done | 2026-03-27 | 引入经验蒸馏闭环规则与日志标记规范 |
 
 ---
 
