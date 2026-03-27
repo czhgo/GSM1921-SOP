@@ -283,14 +283,12 @@ export function setupEventListeners() {
     });
   });
 
-  // ── 月份检索按钮 ─────────────────────────────────────────────
-  const monthSearchBtn = document.getElementById('month-search-btn');
-  const monthSelector  = document.getElementById('month-selector');
-  if (monthSearchBtn && monthSelector) {
-    monthSearchBtn.addEventListener('click', () => {
+  // ── 月份筛选（实时响应）──────────────────────────────────────
+  const monthSelector = document.getElementById('month-selector');
+  if (monthSelector) {
+    monthSelector.addEventListener('change', () => {
       const val = monthSelector.value;
-      if (!val) return;
-      setState({ displayMonth: val, selectedDate: null, viewMode: 'list' });
+      setState({ displayMonth: val || null, selectedDate: null, viewMode: 'list' });
     });
   }
 
