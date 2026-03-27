@@ -81,6 +81,7 @@ META_AUDIT → SOP_SYNC → CORE_LOGIC → UI_SCENARIO
 ## 3. Core Rules（铁律）
 
 - **Plan-Before-Execution（先规划，再行动）【最高优先级】**：对于所有涉及 `src/main.js`、`src/domain.js` 或状态机逻辑的复杂修改，AI 必须在执行任何文件编辑前，先在对话框中输出完整的 `### Architecture Blueprint（架构蓝图）`，详述函数拆分方案与状态流转路径。严禁未经拆解直接暴力修改复杂函数。
+- **减负原则**：各角色产出物仅保留核心交付，杜绝冗余。secretary（党支书）角色全权负责 party-lecture 与 feedback-handling 场景；hostGroup 字段（group1/group2/group3/null）标识承办党小组，仅主题党日/党小组会/组织生活会场景可见。
 - **Structure Immutable**：禁止新增顶层目录或重命名现有核心目录（`src/`, `knowledge/`, `.vibe_context/`）。
 - **Service Layer Mutation**：所有运行时数据写操作必须经过 `src/service.*.js`，严禁 UI 层直接操作存储。
 - **SOP Sovereignty**：`knowledge/SOP/` 制度文本优先于一切技术实现；domain.js Schema 必须与 SOP 保持同步。

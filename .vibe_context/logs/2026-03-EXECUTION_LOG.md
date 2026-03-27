@@ -2512,3 +2512,5 @@ main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 r
 - **2026-03-26 [Reference Refactor Phase 2/2]** 重构参考指南（Reference Guide）体系：文档层与 UI 层彻底根除数字硬编码，确立【活动建设/组织建设】双域分类，使用官方合规表述明确【组织生活会】与【党小组会】的业务继承关系。
 
 - **2026-03-26 [Burden Reduction Phase 5/5]** 执行全系统产出减负与身份职责优化战役：重构 SOP 制度层；同步底层 `sopData.js` 降噪并剔除 branch-discussion 场景；基于最新 SOP 文档完成 `index.html` 参考指南 DOM 的精准原地降噪变异。系统负担大幅降低。
+
+- **2026-03-27 [Polish Phase 3/3]** 执行全域大满贯收尾：状态机解耦（活动创建不再强制跳转视图）；月份检索按钮物理切除，升级为 `#month-selector` 实时 change 响应；物理超度旧快照 `SNAPSHOT_v1.2_20260325.md`；减负原则写入 `README.md` 与 `AI_CONTEXT.md` Core Rules；v1.3 终局快照通过原子化操作永久封版。
