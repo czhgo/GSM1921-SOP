@@ -38,7 +38,7 @@
 
 - 日志文件路径：`.vibe_context/logs/YYYY-MM-EXECUTION_LOG.md`（每自然月一个文件）
 - 新月份开始时，AI 必须检查当月日志文件是否存在；若不存在，须从标准模板创建后再追加
-- 索引文件 `.vibe_context/EXECUTION_LOG.md` 须同步更新，引用新月度文件
+- 索引文件 `.vibe_context/logs/EXECUTION_LOG_INDEX.md` 须同步更新，引用新月度文件
 
 ---
 

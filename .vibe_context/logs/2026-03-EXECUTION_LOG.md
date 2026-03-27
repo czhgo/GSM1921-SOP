@@ -2514,3 +2514,36 @@ main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 r
 - **2026-03-26 [Burden Reduction Phase 5/5]** 执行全系统产出减负与身份职责优化战役：重构 SOP 制度层；同步底层 `sopData.js` 降噪并剔除 branch-discussion 场景；基于最新 SOP 文档完成 `index.html` 参考指南 DOM 的精准原地降噪变异。系统负担大幅降低。
 
 - **2026-03-27 [Polish Phase 3/3]** 执行全域大满贯收尾：状态机解耦（活动创建不再强制跳转视图）；月份检索按钮物理切除，升级为 `#month-selector` 实时 change 响应；物理超度旧快照 `SNAPSHOT_v1.2_20260325.md`；减负原则写入 `README.md` 与 `AI_CONTEXT.md` Core Rules；v1.3 终局快照通过原子化操作永久封版。
+
+---
+
+## Session 51 | 2026-03-27 | meta_audit → Directory Cleanup Phase 1/3
+
+**操作类型**: `MOVE` + `CREATE` + `LINK_REDIRECT`
+**执行者**: AI Agent (Copilot)
+
+### Step 1 — 物理文件迁移
+- `[MOVE]` `.vibe_context/EXECUTION_LOG.md` → `.vibe_context/logs/EXECUTION_LOG_INDEX.md`
+  - 原文件为日志月度索引，迁入 `logs/` 目录归一化管理，命名区分月度日志
+- `[CREATE]` `guides/` 目录（含 `.gitkeep`）
+  - 为未来 `START_HERE.md` / `CHEATSHEET.md` 预留目录（当前根目录无此两文件，待后续生成后迁入）
+
+### Step 2 — 全局超链接重定向（无 404 死链）
+- `[UPDATE]` `ARCHITECTURE.md` §Repository Structure 目录树：移除 `FILE_ACCESS.md`（不存在），修正 `EXECUTION_LOG.md → logs/EXECUTION_LOG_INDEX.md`
+- `[UPDATE]` `.vibe_context/SNAPSHOT_v1.3_20260327.md`：目录树中 `EXECUTION_LOG.md ← 日志索引` 标注迁移路径
+- `[UPDATE]` `.vibe_context/scenarios/meta_audit.md` §日志轮转规则：索引文件路径改为 `.vibe_context/logs/EXECUTION_LOG_INDEX.md`
+
+### 自检结果
+- ✅ 根目录无遗留旧文件（`EXECUTION_LOG.md` 已从 `.vibe_context/` 根移除）
+- ✅ `guides/` 目录已创建
+- ✅ 全域 grep 确认零残留死链
+
+| 文件 | 操作 | 状态 |
+|---|---|---|
+| `.vibe_context/EXECUTION_LOG.md` | DELETE (迁入) | ✅ |
+| `.vibe_context/logs/EXECUTION_LOG_INDEX.md` | CREATE (迁入目标) | ✅ |
+| `guides/.gitkeep` | CREATE | ✅ |
+| `ARCHITECTURE.md` | UPDATE | ✅ |
+| `.vibe_context/SNAPSHOT_v1.3_20260327.md` | UPDATE | ✅ |
+| `.vibe_context/scenarios/meta_audit.md` | UPDATE | ✅ |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | APPEND (本条目) | ✅ |

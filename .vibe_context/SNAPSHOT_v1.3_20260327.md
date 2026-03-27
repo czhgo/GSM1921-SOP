@@ -59,7 +59,7 @@ GSM1921-SOP/                               ← 项目根目录（GitHub Pages �
 ├── .vibe_context/                         ← ★ AI治理元数据层（Control Plane）
 │   ├── AI_CONTEXT.md                      ← ★ 已更新：两大核心域认知 + hostGroup + secretary + 减负原则
 │   ├── REVIEW_STATE.md                    ← v7.0，Stable/Release模式，控制平面总开关
-│   ├── EXECUTION_LOG.md                   ← 日志索引
+│   ├── EXECUTION_LOG.md → logs/EXECUTION_LOG_INDEX.md  ← 日志索引（已迁移）
 │   ├── SNAPSHOT_v1.3_20260327.md          ← ★ 本文件（当前唯一活动快照）
 │   ├── scenarios/                         ← 4大核心场景路由文件
 │   │   ├── core_logic.md
