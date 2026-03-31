@@ -1,4 +1,4 @@
----
+﻿---
 name: term-cleaner
 description: "Use when cleaning headings and titles by removing numeric prefixes and fixing reversed appellations under dual-domain and sectional principles."
 ---
@@ -12,9 +12,9 @@ description: "Use when cleaning headings and titles by removing numeric prefixes
 - 扫描目标文本中的标题与称谓。
 - 删除标题数字前缀（如 `1.`、`01-`、`（一）` 等保留语义不变）。
 - 修正称谓顺序，确保表达符合组织语义。
-- 执行任何操作前，先输出蓝图，等待用户回复【确认】后方可修改。
+- 执行任何操作前，必须先输出 `### Blueprint` 执行计划，等待用户回复【确认】后方可继续。
 
 # 红线
 - 不改写事实含义，不引入新结论。
 - 未获确认不得执行任何实际修改。
-- 任务完成后，必须自动输出一行变更日志草稿，并向用户询问【请回复确认以写入日志】。
+- 任务完成后，必须自动输出日志摘要（变更文件、关键动作、执行结果、风险与回滚点），并直接调用起居院：`@起居院 请基于以下摘要按当月模板写入执行日志：...`。

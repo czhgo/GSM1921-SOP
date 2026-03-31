@@ -1,7 +1,7 @@
 ---
 title: "System Snapshot v1.3"
 type: snapshot
-status: "ACTIVE - CURRENT"
+status: "[DEPRECATED] - superseded by SNAPSHOT_v2.0_20260401.md"
 date: "2026-03-27"
 milestone: "全域减负与 UI 极简降噪竣工；双域（活动建设/组织建设）架构彻底固化；日历检索实时响应；状态机完美解耦。"
 supersedes: "SNAPSHOT_v1.2_20260325.md"
@@ -16,7 +16,7 @@ topology_injected: "2026-03-27 (Polish Phase 3/3: 系统原子清理与大满贯
 
 > 本节为 LLM 跨 Session 记忆同步的核心物理坐标系。任何接手本系统的大模型，应以此拓扑树作为第一优先级定位资产。
 
-```
+```text
 GSM1921-SOP/                               ← 项目根目录（GitHub Pages 静态站）
 ├── index.html                             ← 唯一 HTML 入口，<script type="module"> 加载 src/main.js
 ├── README.md                              ← 项目驾驶舱（v6.1），含双域架构/9+2模块树/RBAC表/DAG说明

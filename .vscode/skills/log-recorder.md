@@ -1,4 +1,4 @@
----
+﻿---
 name: log-recorder
 description: "Use when recording execution logs with monthly auto-file creation and enforced distillation tag."
 ---
