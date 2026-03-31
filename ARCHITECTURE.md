@@ -26,10 +26,11 @@ SOP → Domain Schema → Service Logic → UI Layer
 │   ├── service.runtime.js      # 运行时插槽（USE_MOCK 开关，未来接 Supabase）
 │   └── main.js                 # 状态机 + UI 驱动入口（State machine）
 ├── .vibe_context/
-│   ├── FILE_ACCESS.md          # AI 路由白名单（所有 AI 必读）
-│   ├── EXECUTION_LOG.md        # 执行日志摘要
+│   ├── AI_CONTEXT.md           # AI 行为规则（所有 AI 必读）
 │   ├── REVIEW_STATE.md         # 评审状态
+│   ├── SNAPSHOT_v1.3_20260327.md  # 当前系统快照
 │   ├── logs/                   # 月度执行日志
+│   │   └── EXECUTION_LOG_INDEX.md  # 日志索引（月度文件导航表）
 │   └── scenarios/              # 场景路由定义
 ├── REPO_ENTRYPOINT.md          # AI 代理唯一入口
 ├── ARCHITECTURE.md             # 本文件

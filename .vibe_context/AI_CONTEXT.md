@@ -1,8 +1,8 @@
 # AI Context — GSM1921-SOP
 
-## 1. System Architecture（九模块 ESM 分层架构）
+## 1. System Architecture (9-Module ESM Layered Architecture)
 
-> **[2026-03 架构升级]**：原单体 `src/main.js`（800+行）已全面拆分为 9 个 ES6 模块 + 2 个服务层文件，实现单一职责与 AI 代理精准上下文加载。
+> **[2026-03 Architecture Upgrade]**: The original monolithic `src/main.js` (800+ lines) has been fully refactored into 9 ES6 modules + 2 service-layer files, achieving single-responsibility separation and precise AI-agent context loading.
 
 ```
 SOP Layer       knowledge/SOP/             制度母本，最高权威，所有变更起点
@@ -24,22 +24,22 @@ UI              index.html                 静态入口，<script type="module" 
                                            ★ #host-group-select 承办党小组下拉控件已绑定
 ```
 
-**依赖方向（DAG，无环）**：`SOP → Data → Domain/Utils → Service → State → Render → Entry → UI`
+**Dependency Direction (DAG, acyclic)**: `SOP → Data → Domain/Utils → Service → State → Render → Entry → UI`
 
-### 1.1 两大核心域业务认知（v1.2 新增）
+### 1.1 Two Core Domain Business Model (Added in v1.2)
 
-系统业务层自 v1.2 起确立**活动建设**与**组织建设**两大核心域划分：
+Since v1.2, the business layer has established two core domain divisions: **Activity Building** (活动建设) and **Organization Building** (组织建设):
 
-| 域 | 定义 | 典型场景 |
+| Domain | Definition | Typical Scenarios |
 |----|------|---------|
-| **活动建设域** | 发起、策划、执行党支部活动的全流程管理 | 组织生活会、主题党日、支部党员大会、党小组会、党课 |
-| **组织建设域** | 党员发展、纪律监督、信息报送、反馈处理等长周期制度运营 | 发展积极分子、党支部讨论、信息平台报送、意见反馈处理 |
+| **Activity Building Domain** | End-to-end management of initiating, planning, and executing branch activities | Organizational life meetings, themed party days, branch member assemblies, group meetings, party lectures |
+| **Organization Building Domain** | Long-cycle institutional operations including member development, discipline supervision, information reporting, and feedback handling | Developing activists, branch discussions, platform reporting, feedback processing |
 
-- 制度层：`knowledge/SOP/常见工作场景快速指南.md` 以 `# 一、活动建设` / `# 二、组织建设` 作为一级目录锚点。
-- UI 层：`#scenario-select-cal` 按域分组为两个 `<optgroup>`，实现层级化降噪。
-- SOP 层：三位条条委员工作指南均已在 §1（工作职责总览）中插入 `### (一) 活动建设域职责` 与 `### (二) 组织建设域职责` 两节。
+- Institution Layer: `knowledge/SOP/常见工作场景快速指南.md` uses `# 一、活动建设` / `# 二、组织建设` as top-level directory anchors.
+- UI Layer: `#scenario-select-cal` groups domains into two `<optgroup>` elements, achieving hierarchical noise reduction.
+- SOP Layer: All three commissioner guides have `### (一) 活动建设域职责` and `### (二) 组织建设域职责` sections inserted in §1 (Responsibilities Overview).
 
-### 1.2 承办党小组（hostGroup）字段业务规范（v1.2 新增）
+### 1.2 Hosting Party Group (hostGroup) Field Business Specification (Added in v1.2)
 
 ```yaml
 hostGroup:
@@ -53,84 +53,86 @@ hostGroup:
     - hostGroup 为元数据标识，不影响 sopData.js 任务节点路由逻辑
 ```
 
-**循环依赖破解**：`state.js` 暴露 `registerRenderCallback(fn)`，`main.js` 定义 `renderUI` 后主动注册，避免 `state.js` import `main.js` 产生循环。
+**Circular Dependency Resolution**: `state.js` exposes `registerRenderCallback(fn)`; `main.js` defines `renderUI` and then registers it proactively, preventing circular imports between `state.js` and `main.js`.
 
-**SANDBOX_MODE**：`service.mock.js` 顶部 `SANDBOX_MODE = true` 时，`loadDB()` 每次重载均返回初始 mock 数据（开发调试用）；设为 `false` 恢复 localStorage 持久化。
+**SANDBOX_MODE**: When `SANDBOX_MODE = true` at the top of `service.mock.js`, `loadDB()` returns initial mock data on every reload (for development/debugging); set to `false` to restore `localStorage` persistence.
 
-## 2. Scenario Routing（场景路由）
+## 2. Scenario Routing
 
-核心场景固定 4 个，优先级从左到右：
+4 fixed core scenarios, priority from left to right:
 
 ```
 META_AUDIT → SOP_SYNC → CORE_LOGIC → UI_SCENARIO
 ```
 
-| 场景 | Trigger 关键词 | Allowed Files |
+| Scenario | Trigger Keywords | Allowed Files |
 |------|--------------|--------------|
-| `scenarios/meta_audit.md` | AI规则、审计、日志、快照、场景注册 | `.vibe_context/*` |
-| `scenarios/sop_sync.md` | 流程、制度、职责、SOP、YAML、frontmatter | `knowledge/SOP/*`, `src/domain.js` |
-| `scenarios/core_logic.md` | 字段、schema、activity、task、数据结构、API | `src/*` |
-| `scenarios/ui_scenario.md` | UI、页面、按钮、布局、样式 | `index.html`, `assets/*` |
+| `scenarios/meta_audit.md` | AI rules, audit, log, snapshot, scenario registry | `.vibe_context/*` |
+| `scenarios/sop_sync.md` | workflow, institution, responsibility, SOP, YAML, frontmatter | `knowledge/SOP/*`, `src/domain.js` |
+| `scenarios/core_logic.md` | field, schema, activity, task, data structure, API | `src/*` |
+| `scenarios/ui_scenario.md` | UI, page, button, layout, style | `index.html`, `assets/*` |
 
-**扩展场景注册规则**：新增场景须在本文件追加一行，在 `scenarios/` 下创建同名 `.md`，在当月执行日志中记录操作。
+**Extension Scenario Registration Rule**: New scenarios MUST append a row to this file, create a same-named `.md` under `scenarios/`, and record the operation in the current month's execution log.
 
-| 扩展场景文件 | Purpose | Trigger | Allowed Files | 登记日期 |
+| Extension Scenario File | Purpose | Trigger | Allowed Files | Registration Date |
 |------------|---------|---------|--------------|---------|
-| （暂无） | | | | |
+| (none) | | | | |
 
-## 3. Core Rules（铁律）
+## 3. Core Rules
 
-- **Plan-Before-Execution（先规划，再行动）【最高优先级】**：对于所有涉及 `src/main.js`、`src/domain.js` 或状态机逻辑的复杂修改，AI 必须在执行任何文件编辑前，先在对话框中输出完整的 `### Architecture Blueprint（架构蓝图）`，详述函数拆分方案与状态流转路径。严禁未经拆解直接暴力修改复杂函数。
-- **Structure Immutable**：禁止新增顶层目录或重命名现有核心目录（`src/`, `knowledge/`, `.vibe_context/`）。
-- **Service Layer Mutation**：所有运行时数据写操作必须经过 `src/service.*.js`，严禁 UI 层直接操作存储。
-- **SOP Sovereignty**：`knowledge/SOP/` 制度文本优先于一切技术实现；domain.js Schema 必须与 SOP 保持同步。
-- **Change Pipeline**：变更路径唯一 → SOP 修改 → domain.js 同步 → service 适配 → state 更新 → UI 渲染。
-- **Binary Preservation**：`.pdf`, `.docx`, `.pptx`, `.xlsx` 为只读资产，禁止修改或转换，仅允许元数据读取与目录移动。
-- **Single DOM Updater**：`renderUI(state)` 是唯一合法 DOM 更新入口，所有 UI 变更必须经此路径。
-- **Data Privacy (数据隐私隔离)**：绝对禁止在 `src/*`（代码层）与 `index.html`（UI 渲染层）中硬编码真实的"人类姓名"。代码流转必须且只能使用角色标识符（Role ID / Role Name）。真人姓名仅允许存在于 `knowledge/SOP/` 之中。
+- **Plan-Before-Execution [HIGHEST PRIORITY]**: For all complex modifications involving `src/main.js`, `src/domain.js`, or state machine logic, the AI MUST output a complete `### Architecture Blueprint` in the chat — detailing function decomposition plans and state-flow paths — BEFORE executing any file edits. Directly force-modifying complex functions without decomposition is STRICTLY PROHIBITED.
+- **Burden-Reduction Principle**: Each role's deliverables SHALL retain only core outputs; redundancy is strictly prohibited. The `secretary` role is solely responsible for the `party-lecture` and `feedback-handling` scenarios; the `hostGroup` field (`group1`/`group2`/`group3`/`null`) identifies the hosting party group and is visible only for the 主题党日/党小组会/组织生活会 scenarios.
+- **Structure Immutable**: Adding new top-level directories or renaming existing core directories (`src/`, `knowledge/`, `.vibe_context/`) is PROHIBITED.
+- **Service Layer Mutation**: All runtime data write operations MUST go through `src/service.*.js`; the UI layer is STRICTLY PROHIBITED from directly manipulating storage.
+- **SOP Sovereignty**: `knowledge/SOP/` institutional texts take precedence over all technical implementations; the `domain.js` Schema MUST remain in sync with the SOP.
+- **Change Pipeline**: Unique change path → SOP edit → `domain.js` sync → service adaptation → state update → UI render.
+- **Binary Preservation**: `.pdf`, `.docx`, `.pptx`, `.xlsx` are read-only assets; modification or conversion is PROHIBITED; only metadata reading and directory relocation are permitted.
+- **Single DOM Updater**: `renderUI(state)` is the sole legitimate DOM update entry point; all UI changes MUST go through this path.
+- **Data Privacy**: Hardcoding real human names in `src/*` (code layer) or `index.html` (UI render layer) is ABSOLUTELY PROHIBITED. Code flow MUST use role identifiers (Role ID / Role Name) exclusively. Real person names are permitted only within `knowledge/SOP/`.
+- **Experience Distillation Marker**: All execution log entries written to `.vibe_context/logs/` MUST include a `[经验蒸馏: 是/否]` marker. When marked "是" (Yes), the operation's core insights have been distilled into `docs/党支部管理与实务经验沉淀.md`; when "否" (No), distillation is deferred for future batch processing.
 
-## 4. File Access Permissions（文件访问白名单）
+## 4. File Access Permissions
 
-> ⚠️ 原 `FILE_ACCESS.md` 已于 2026-03-22 合并至本文件，原文件已物理删除。违反白名单的修改视为任务失败（TASK FAILURE）。
+> ⚠️ The original `FILE_ACCESS.md` was merged into this file on 2026-03-22 and physically deleted. Any modification that violates the allowlist is considered a TASK FAILURE.
 
-### 路由白名单
+### Route Allowlist
 
-**Decoupled Governance Directories（AI 与人类均可读写）：**
-- `governance/`：AI (Read/Write), Human (Read/Write)
-- `backlog/`：AI (Read/Write), Human (Read/Write)
-- `.vibe_context/logs/`：AI (Read/Write), Human (Read/Write)
+**Decoupled Governance Directories (readable/writable by both AI and humans):**
+- `governance/`: AI (Read/Write), Human (Read/Write)
+- `backlog/`: AI (Read/Write), Human (Read/Write)
+- `.vibe_context/logs/`: AI (Read/Write), Human (Read/Write)
 
-| 路由标识 | 路由说明 | ✅ 允许修改 | ❌ 严禁修改 |
+| Route ID | Route Description | ✅ Allowed to Modify | ❌ Strictly Prohibited |
 |---------|---------|------------|-----------|
-| `ui_ux_dev` | UI 视觉开发 | `index.html`, `assets/*` | `src/*`, `knowledge/SOP/*`, `.vibe_context/*` |
-| `core_logic_arch` | 核心逻辑与架构 | `src/*`（11 个 ESM 文件） | `index.html`, `knowledge/SOP/*`, `.vibe_context/*`（除 meta_audit 外） |
-| `sop_data_sync` | SOP 数据同步 | `knowledge/SOP/*`, `src/workflow/sopData.js`, `src/workflow/sop.js` | `index.html`, `src/main.js`, `.vibe_context/*`（除 meta_audit 外） |
-| `meta_audit_log` | 元审计与日志 | `.vibe_context/*` | 所有业务代码文件 |
+| `ui_ux_dev` | UI Visual Development | `index.html`, `assets/*` | `src/*`, `knowledge/SOP/*`, `.vibe_context/*` |
+| `core_logic_arch` | Core Logic & Architecture | `src/*` (11 ESM files) | `index.html`, `knowledge/SOP/*`, `.vibe_context/*` (except `meta_audit`) |
+| `sop_data_sync` | SOP Data Sync | `knowledge/SOP/*`, `src/workflow/sopData.js`, `src/workflow/sop.js` | `index.html`, `src/main.js`, `.vibe_context/*` (except `meta_audit`) |
+| `meta_audit_log` | Meta Audit & Logging | `.vibe_context/*` | All business code files |
 
-### 通用铁律（所有路由均适用）
+### Universal Rules (applicable to all routes)
 
-1. **纯静态环境**：100% 浏览器端运行。严禁引入 Node.js API（无 `fs`、无 `require`、无 `process`）。
-2. **ESM 相对路径**：所有模块引用必须使用相对路径（如 `./src/main.js`），禁止根路径（`/src/...`）。
-3. **禁止文件增殖**：不得在白名单之外创建任何新文件。
-4. **禁止修改控制平面**：除 `meta_audit_log` 路由外，严禁修改 `.vibe_context/` 内的任何文件。
-5. **DOM 保全红线**：`renderUI()` 只更新动态区域，严禁重写整个 DOM。`index.html` 的静态骨架与样式必须 100% 保持原样。
+1. **Pure Static Environment**: 100% browser-side execution. Introducing Node.js APIs (`fs`, `require`, `process`) is STRICTLY PROHIBITED.
+2. **ESM Relative Paths**: All module references MUST use relative paths (e.g., `./src/main.js`); root-relative paths (`/src/...`) are PROHIBITED.
+3. **No File Proliferation**: Creating any new files outside the allowlist is PROHIBITED.
+4. **Control Plane Immutability**: Modifying any file within `.vibe_context/` is STRICTLY PROHIBITED except under the `meta_audit_log` route.
+5. **DOM Integrity Redline**: `renderUI()` SHALL only update dynamic regions; rewriting the entire DOM is STRICTLY PROHIBITED. The static skeleton and styles of `index.html` MUST be preserved 100%.
 
-### 仓库结构不变性
+### Repository Structure Immutability
 
-- AI Agent 禁止创建新的根目录、重命名目录、跨层移动文件。
-- 允许的修改范围仅限于**文件内容**。
-- 若结构变更不可避免，必须：①提出迁移方案 ②说明架构影响 ③获得书记明确确认后方可执行。
+- AI Agent is PROHIBITED from creating new root directories, renaming directories, or moving files across layers.
+- Permitted modification scope is limited to **file contents** only.
+- If structural changes are unavoidable, the AI MUST: ① propose a migration plan, ② explain the architectural impact, and ③ obtain explicit confirmation from the secretary before proceeding.
 
-### 白名单新文件清单（可合法创建）
+### New File Allowlist (Legally Creatable)
 
-| 文件路径 | 适用路由 | 说明 |
+| File Path | Applicable Route | Description |
 |---------|---------|------|
-| `src/id.js` | `core_logic_arch` | UUID 发生器（已创建，v8.5） |
-| `src/service.supabase.js` | `core_logic_arch` | 未来 Supabase 后端实现（预留） |
-| `.vibe_context/SNAPSHOT_v<X>.<Y>_<YYYYMMDD>.md` | `meta_audit_log` | 系统快照（里程碑节点命名） |
-| `.vibe_context/logs/YYYY-MM-EXECUTION_LOG.md` | `meta_audit_log` | 月度执行日志（按月创建） |
+| `src/id.js` | `core_logic_arch` | UUID generator (created, v8.5) |
+| `src/service.supabase.js` | `core_logic_arch` | Future Supabase backend implementation (reserved) |
+| `.vibe_context/SNAPSHOT_v<X>.<Y>_<YYYYMMDD>.md` | `meta_audit_log` | System snapshot (milestone-named) |
+| `.vibe_context/logs/YYYY-MM-EXECUTION_LOG.md` | `meta_audit_log` | Monthly execution log (created per month) |
 
-### 二进制资产不变性（Binary Preservation）
+### Binary Asset Immutability
 
-扩展名为 `.pdf`、`.docx`、`.pptx`、`.xlsx` 的文件为**只读资产**，AI Agent 严禁修改、重写、摘要转换。
-仅允许：读取元数据、移动至正确目录、在文档中引用。
+Files with extensions `.pdf`, `.docx`, `.pptx`, `.xlsx` are **read-only assets**; AI Agent is STRICTLY PROHIBITED from modifying, rewriting, or converting them.
+Permitted operations only: reading metadata, moving to the correct directory, referencing in documents.

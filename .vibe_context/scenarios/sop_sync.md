@@ -1,123 +1,123 @@
-**Purpose**: 管理所有 SOP 制度文本的新增、修改、重构与元数据修复操作。包含活动规则强制执行（A/B 类活动）、SOP 结构重组、域代码与 SOP 的双向追溯同步、以及 YAML frontmatter 注入与修复等全部子场景。
+**Purpose**: Manages all SOP institutional text operations — including creation, modification, restructuring, and metadata repair. Covers sub-scenarios: Activity Rules Enforcement (Class A/B activities), SOP structural reorganization, bidirectional traceability sync between domain code and SOP, and YAML frontmatter injection/repair.
 
-> **[2026-03 架构升级注记]**：SOP 模板数据已从 `src/main.js` 中物理分离，并进一步封装至专用子目录 `src/workflow/`，通过 `src/workflow/index.js` 桶文件统一对外导出。
-> - **`src/workflow/sopData.js`**：存放所有场景的 SOP 任务节点原始模板数据（`scenarioId → tasks[]`，每条任务含 `title`/`offset`/`executor`/`supervisor` 等字段）。
-> - **`src/workflow/sop.js`**：`instantiateSOP(scenarioIds, t0DateStr)` 函数，读取 `sopData.js` 的模板，将 `offset` 天数加上 `t0`（活动日）后，输出含绝对日期字符串的任务实例数组。
-> - **`src/workflow/index.js`**：桶导出文件（Barrel Export），统一暴露 `instantiateSOP` 与 `sopDatabase`；`src/main.js` 与 `src/events.js` 均通过 `import { ... } from './workflow/index.js'` 引用。
-> - **双向追溯规则**：修改 SOP 制度文本时，若涉及任务节点定义，必须同步检查并更新 `src/workflow/sopData.js` 对应场景的任务数组，保持"制度文本 ↔ 数据模板"的双向一致。
+> **[2026-03 Architecture Upgrade Note]**: SOP template data has been physically separated from `src/main.js` and further encapsulated into the dedicated subdirectory `src/workflow/`, exported uniformly via the `src/workflow/index.js` barrel file.
+> - **`src/workflow/sopData.js`**: Stores raw SOP task node template data for all scenarios (`scenarioId → tasks[]`; each task contains `title`/`offset`/`executor`/`supervisor` fields).
+> - **`src/workflow/sop.js`**: The `instantiateSOP(scenarioIds, t0DateStr)` function reads templates from `sopData.js`, adds `offset` days to `t0` (activity date), and outputs a task instance array with absolute date strings.
+> - **`src/workflow/index.js`**: Barrel export file — exposes `instantiateSOP` and `sopDatabase`; both `src/main.js` and `src/events.js` import via `import { ... } from './workflow/index.js'`.
+> - **Bidirectional Traceability Rule**: When modifying SOP institutional text, if task node definitions are involved, the corresponding scenario's task array in `src/workflow/sopData.js` MUST be checked and updated synchronously to maintain bidirectional consistency between "institutional text ↔ data template".
 
-**Trigger**: 流程、制度、职责、负责人、时间节点、规则、SOP、活动、组织生活会、党小组、A/B 类、场景重构、YAML、frontmatter、元数据、schema、domain、制度同步、sopData、sop.js、instantiateSOP
+**Trigger**: workflow, institution, responsibility, owner, time node, rule, SOP, activity, organizational life meeting, party group, Class A/B, scenario refactor, YAML, frontmatter, metadata, schema, domain, institutional sync, sopData, sop.js, instantiateSOP
 
 **Allowed Files**: `knowledge/SOP/*`, `流程指南/*`, `src/workflow/sopData.js`, `src/workflow/sop.js`, `src/workflow/index.js`
 
 ---
 
-## §1 Activity Rules Enforcement（A/B 类活动规则）
+## §1 Activity Rules Enforcement (Class A/B Activities)
 
-> 来源：`activity_rules_enforcement.md` v1.2 — merged into sop_sync.md
+> Source: `activity_rules_enforcement.md` v1.2 — merged into sop_sync.md
 
-### A-class 活动（组织生活会）约束
+### A-class Activity (Organizational Life Meeting) Constraints
 
-| 规则 | 内容 |
+| Rule | Content |
 |------|------|
-| 参与者 | 党员 + 预备党员 ONLY |
-| 考勤 | 刚性（三会一课） |
-| 复盘 | 不要求 |
-| 宣传 | 必须（摘要+配图，纳入月推送） |
-| 档案归档 | 必须 |
+| Participants | Full party members + Probationary members ONLY |
+| Attendance | Rigid (三会一课) |
+| Debrief | Not required |
+| Publicity | REQUIRED (summary + photo, included in monthly release) |
+| Archive | REQUIRED |
 
-### B-class 活动（党小组主题党日活动）约束
+### B-class Activity (Party Group Themed Party Day) Constraints
 
-| 规则 | 内容 |
+| Rule | Content |
 |------|------|
-| 参与者 | 全体支部成员（党员+预备党员+发展对象+积极分子） |
-| 考勤 | 弹性考勤 |
-| 复盘 | 必须，1 周内完成；可由积极分子在党小组组长指导下完成 |
-| 宣传 | 必须（活动摘要+配图，纳入月推送） |
-| 宣传预热 | 两类均不要求 |
+| Participants | All branch members (members + probationary + development targets + activists) |
+| Attendance | Flexible |
+| Debrief | REQUIRED, within 1 week; may be completed by activists under guidance of the group leader |
+| Publicity | REQUIRED (activity summary + photo, included in monthly release) |
+| Pre-publicity | Not required for either class |
 
-### Binding Constraints（活动规则）
-
-| # | Constraint |
-|---|-----------|
-| C-A1 | 每项活动必须通过党小组组长审批后方可开始准备（A 类：支委会部署隐含审批；B 类：Step 2 显式节点） |
-| C-A2 | 原则"除了发展党员、转正、换届等需要严肃投票的事项，其他都可以往党小组压"必须保留 |
-| C-A3 | 不得在行文中定义"深度参与者"/"组织者"——首次提及时引用 `流程指南/纪检委员工作流程指南.md` |
-| C-A4 | 悬置问题 H1（跨组参与考察协同）禁止解决——在文本中标记 ⚠️ 悬置 |
-| C-A5 | Mermaid 图表颜色：蓝色=块块, 红色=条条, 绿色=起止节点 |
-| C-A6 | 必须动态检查 `REVIEW_STATE.md` 中 `[Global]` 及 `[Scenario-1 Only]` Watchlist 项，发现冲突先记录至 REVIEW_STATE |
-
----
-
-## §2 SOP Structure Constraints（结构重组约束）
-
-> 来源：`sop_restructuring.md` v1.1 — merged into sop_sync.md
+### Binding Constraints (Activity Rules)
 
 | # | Constraint |
 |---|-----------|
-| C-S1 | **禁止为块块单独建立分工表**；块块职责必须从 SOP 流程步骤中自然呈现 |
-| C-S2 | **条条委员须具名**：每个需要条条支持的 SOP 步骤必须明确写出负责委员姓名，"相关委员"不可接受 |
-| C-S3 | **禁止冗余**：条条专属工作手册中已定义的流程，引用即可，不得行内重复 |
-| C-S4 | **`流程指南/` 文件全部使用简体中文**；禁止写入英文指令、YAML 逻辑块、元注释 |
-| C-S5 | 动态检查 `REVIEW_STATE.md` 中 `[Global]` 及当前场景匹配 `[Scenario-X Only]` 项；冲突先记录再编辑 |
-| C-S6 | **禁止修改** `REVIEW_STATE.md` 中标记 `[Global]` 的 Suspended Issues H 项；遇悬置内容留 ⚠️ 标记并跳过 |
-| C-S7 | YAML frontmatter 中仅更新 `last_updated` 字段，除非场景明确要求 |
+| C-A1 | Every activity MUST be approved by the party group leader before preparation begins (Class A: committee deployment implies approval; Class B: explicit Step 2 node) |
+| C-A2 | The principle "except for matters requiring a formal vote such as member development, probationary conversion, and leadership re-election, everything else can be delegated to the party group" MUST be retained |
+| C-A3 | Defining "deep participants" / "organizers" inline is PROHIBITED — on first mention, reference `流程指南/纪检委员工作流程指南.md` |
+| C-A4 | Suspended issue H1 (cross-group participation coordination) SHALL NOT be resolved — mark ⚠️ suspended in the text |
+| C-A5 | Mermaid diagram colors: blue = 块块, red = 条条, green = start/end nodes |
+| C-A6 | Dynamically check `REVIEW_STATE.md` for `[Global]` and `[Scenario-1 Only]` Watchlist items; record conflicts in REVIEW_STATE before editing |
 
 ---
 
-## §3 SOP ↔ Code 双向追溯（domain.js 同步）
+## §2 SOP Structure Constraints
 
-> 来源：`sop_data_sync.md` v1.0 — merged into sop_sync.md
+> Source: `sop_restructuring.md` v1.1 — merged into sop_sync.md
 
 | # | Constraint |
 |---|-----------|
-| C-D1 | `Activity` / `Task` typedef 中每个具有业务语义的字段 MUST 有 `Source: knowledge/SOP/[file].md#[section]` 注释 |
-| C-D2 | 注释格式：`Source: knowledge/SOP/[filename].md#[section name]`——不含版本号或行号 |
-| C-D3 | SOP 章节重命名时，`domain.js` 的 `Source:` 指针必须同步更新（同一 commit） |
-| C-D4 | SOP 章节删除时，对应字段的 `Source:` 必须移除或重定向——孤悬指针视为 [FAILED] |
-| C-D5 | 新 Schema 字段不得无 SOP 锚点添加；若 SOP 章节不存在，必须先提出 SOP 新增方案 |
-
-### 级联验证步骤（SOP_SYNC 激活时必须执行）
-
-1. **Update SOP**：更新 `knowledge/SOP/` Markdown 制度文本
-2. **Update `domain.js` annotation**：检查并同步 `Source:` 追溯指针
-3. 出现断链 Dead Link → 任务标记 [FAILED]，停止并报告
+| C-S1 | **Strictly PROHIBITED: creating a separate responsibility matrix for 块块**; 块块 responsibilities MUST emerge naturally from the SOP workflow steps |
+| C-S2 | **Commissioner names SHALL be explicit**: every SOP step requiring 条条 support MUST name the responsible commissioner; "relevant commissioner" is NOT acceptable |
+| C-S3 | **No Redundancy**: workflows already defined in a commissioner's dedicated workbook SHALL be referenced only, not duplicated inline |
+| C-S4 | **`流程指南/` files SHALL use Simplified Chinese exclusively**; injecting English directives, YAML logic blocks, or meta-comments is PROHIBITED |
+| C-S5 | Dynamically check `REVIEW_STATE.md` for `[Global]` and currently matched `[Scenario-X Only]` items; record conflicts before editing |
+| C-S6 | **PROHIBITED: modifying** Suspended Issues H items marked `[Global]` in `REVIEW_STATE.md`; leave ⚠️ markers and skip |
+| C-S7 | In YAML frontmatter, update only the `last_updated` field unless the scenario explicitly requires otherwise |
 
 ---
 
-## §4 YAML Frontmatter 修复规范
+## §3 SOP ↔ Code Bidirectional Traceability (domain.js Sync)
 
-> 来源：`yaml_metadata_fix.md` v1.0 — merged into sop_sync.md
+> Source: `sop_data_sync.md` v1.0 — merged into sop_sync.md
 
-### 必须字段（全部必须存在）
+| # | Constraint |
+|---|-----------|
+| C-D1 | Every field with business semantics in the `Activity` / `Task` typedef MUST have a `Source: knowledge/SOP/[file].md#[section]` annotation |
+| C-D2 | Annotation format: `Source: knowledge/SOP/[filename].md#[section name]` — no version numbers or line numbers |
+| C-D3 | When an SOP section is renamed, the `Source:` pointer in `domain.js` MUST be updated in the same commit |
+| C-D4 | When an SOP section is deleted, the corresponding field's `Source:` MUST be removed or redirected; orphaned pointers are treated as [FAILED] |
+| C-D5 | New Schema fields SHALL NOT be added without an SOP anchor; if the SOP section does not exist, a proposal to add it MUST be submitted first |
+
+### Cascade Verification Steps (MUST execute when SOP_SYNC is active)
+
+1. **Update SOP**: Update `knowledge/SOP/` Markdown institutional text
+2. **Update `domain.js` annotation**: Check and sync `Source:` traceability pointers
+3. Dead Link detected → mark task as [FAILED], stop and report
+
+---
+
+## §4 YAML Frontmatter Repair Specification
+
+> Source: `yaml_metadata_fix.md` v1.0 — merged into sop_sync.md
+
+### Required Fields (all must be present)
 
 `title` · `type` · `audience` · `owner` · `last_updated` · `version` · `status` · `related_files`
 
-### 字段规范
+### Field Specification
 
-| 字段 | 规范 |
+| Field | Specification |
 |------|------|
-| `owner` | 始终为 `"储子禾"` |
-| `version` | 新文件 `"1.0"`；更新时递增次版本号 |
-| `status` | `active`（废弃文件用 `deprecated`） |
-| `type` 词汇表 | `index` / `guide` / `reference` / `review` / `SOP` / `template` / `flowchart` |
-| `related_files` | 仓库根相对路径（如 `"流程指南/常见工作场景快速指南.md"`）；须建立从上到下的依赖图 |
+| `owner` | Always `"储子禾"` |
+| `version` | New file: `"1.0"`; increment minor version on update |
+| `status` | `active` (use `deprecated` for obsolete files) |
+| `type` vocabulary | `index` / `guide` / `reference` / `review` / `SOP` / `template` / `flowchart` |
+| `related_files` | Repository root-relative path (e.g., `"流程指南/常见工作场景快速指南.md"`); SHALL establish a top-down dependency graph |
 
 ### YAML Binding Constraints
 
 | # | Constraint |
 |---|-----------|
-| C-Y1 | frontmatter 块是控制平面与数据平面之间**唯一**的耦合锚点，不得在人类文件中注入其他元内容 |
-| C-Y2 | YAML-only 修复会话期间不修改文件正文，除非发现明显错误且已在 REVIEW_STATE 中记录 |
-| C-Y3 | 所有 `related_files` 路径须验证文件存在 |
-| C-Y4 | 黄金标准 Schema 示例见 `流程指南/常见工作场景快速指南.md` 头部，不在此处复制 |
+| C-Y1 | The frontmatter block is the **sole** coupling anchor between the control plane and data plane; injecting other meta-content into human files is PROHIBITED |
+| C-Y2 | During YAML-only repair sessions, file body SHALL NOT be modified unless an obvious error is found and recorded in `REVIEW_STATE` |
+| C-Y3 | All `related_files` paths MUST be verified to exist |
+| C-Y4 | The gold-standard Schema example is in the header of `流程指南/常见工作场景快速指南.md`; do not duplicate it here |
 
 ---
 
-## Pre-Execution Checklist（通用）
+## Pre-Execution Checklist
 
-- [ ] 重读 `REVIEW_STATE.md`——确认无冲突进行中任务
-- [ ] 确认目标场景所属子类（活动规则/结构重组/Schema 同步/YAML 修复）
-- [ ] 检查适用 Watchlist 项（Global + 场景匹配）
-- [ ] 输出三要素声明：Detected Scenario / Allowed Scope / Modification Plan
-- [ ] 执行变更后更新执行日志 `.vibe_context/logs/YYYY-MM-EXECUTION_LOG.md`
+- [ ] Re-read `REVIEW_STATE.md` — confirm no conflicting tasks are in progress
+- [ ] Confirm the target scenario's sub-category (Activity Rules / Structural Reorganization / Schema Sync / YAML Repair)
+- [ ] Check applicable Watchlist items (Global + scenario-matched)
+- [ ] Output the three-element declaration: Detected Scenario / Allowed Scope / Modification Plan
+- [ ] After executing changes, update the execution log `.vibe_context/logs/YYYY-MM-EXECUTION_LOG.md`

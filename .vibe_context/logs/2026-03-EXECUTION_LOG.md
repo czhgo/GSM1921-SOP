@@ -2499,10 +2499,110 @@ main.js (← 全部模块，极简入口 ~150行) — 定义 renderUI，注册 r
 
 - **2026-03-24 [SOP Sync Phase 1/5]** 宣传委员 SOP v1.6：§1.1 新增每周一学工周报报送机制 Global 例行职责。
 
-- **2026-03-25 [SOP Sync Phase 5B]** 依据人工确权的全景审计矩阵，完成条条支委 Global 规则（含确权后的 timeOffset）向制度文档的反向同步与 `sopData.js` 的正向全量注入。新增任务节点：`1a-7c`（org-life T+3 活动参与三层记录）、`1a-10`（org-life T+7 补课安排跟进）、`1b-6b`（theme-party T+1 复盘提醒）、`1b-7c`（theme-party T+3 活动参与三层记录）、`1b-7b`（theme-party T+7 复盘完成检查）、`5-2b`（info-platform null 每周一报送学工周报）；修补 `1a-5` desc（增补 §1.3 补课跟进指针）。临时沙盒 `.vibe_context/temp/SOP_AUDIT_MATRIX.md` 已销毁。
+- **2026-03-25 [SOP Sync Phase 5B]** 依据人工确权的全景审计矩阵，完成条条支委 Global 规则（含确权后的 timeOffset）向制度文档的反向同步与 `sopData.js` 的正向全量注入。新增任务节点：`1a-7c`（org-life T+3 活动参与三层记录）、`1a-10`（org-life T+7 补课安排跟进）、`1b-6b`（theme-party T+1 复盘提醒）、`1b-7c`（theme-party T+3 活动参与三层记录）、`1b-7b`（theme-party T+7 复盘完成检查）、`5-2b`（info-platform null 每周一报送学工周报）；修补 `1a-5` desc（增补 §1.3 补课跟进指针）。临时沙盒 `.vibe_context/temp/SOP_AUDIT_MATRIX.md` 已销毁。 [经验蒸馏: 是]
 
-- **2026-03-25 [Role Expansion Phase 3/3]** 引入第五大核心角色【党支书 (secretary)】：硬编码重写党课与意见反馈场景底层任务流（剥离了模糊时间偏移），完成底层数据字典的决定性移交。
+- **2026-03-25 [Role Expansion Phase 3/3]** 引入第五大核心角色【党支书 (secretary)】：硬编码重写党课与意见反馈场景底层任务流（剥离了模糊时间偏移），完成底层数据字典的决定性移交。 [经验蒸馏: 是]
 
-- **2026-03-25 [Architecture Phase 1/4]** 制度总纲层级重构：`常见工作场景快速指南.md` 升至 v3.0，确立「活动建设」与「组织建设」两大域顶层架构（# 一级标题），三会一课下设四个三级子场景（支部委员会·占位、支部党员大会、党课、党小组会），组织生活会平移至党小组会下作为特殊形式四级标题；`支委与党小组定人定责定岗说明.md` 升至 v1.3，引言增加两大域声明，三位条条委员各增「职责聚焦」标准化句式。
+- **2026-03-25 [Architecture Phase 1/4]** 制度总纲层级重构：`常见工作场景快速指南.md` 升至 v3.0，确立「活动建设」与「组织建设」两大域顶层架构（# 一级标题），三会一课下设四个三级子场景（支部委员会·占位、支部党员大会、党课、党小组会），组织生活会平移至党小组会下作为特殊形式四级标题；`支委与党小组定人定责定岗说明.md` 升至 v1.3，引言增加两大域声明，三位条条委员各增「职责聚焦」标准化句式。 [经验蒸馏: 是]
 
-- **2026-03-25 [Architecture Phase 4/4]** 执行全域制度架构标准化重构（双域化）；打通承办党小组 UI 与数据持久化链路；系统原子升维并封版 v1.2 唯一活跃快照。
+- **2026-03-25 [Architecture Phase 4/4]** 执行全域制度架构标准化重构（双域化）；打通承办党小组 UI 与数据持久化链路；系统原子升维并封版 v1.2 唯一活跃快照。 [经验蒸馏: 是]
+
+- **2026-03-26 [Cleanup Phase 2/2]** 执行推演工作台终极降噪：端到端歼灭"党员姓名"全链路（DOM `#participant-name-wrap` 物理删除，`events.js` 全局 Null Pointer 隐患彻底消灭，`actPayload.participantName` 已从写入链路切除）；剥离"全部含时间节点场景"选项及"组织建设"optgroup；为"承办党小组"增加场景感知包裹容器 `#host-group-wrap` 与脏数据熔断机制（仅主题党日/党小组会/组织生活会显示，切换其他场景时强制清空值）；核心字段活动组织者与深度参与者无损伤。 [经验蒸馏: 是]
+
+- **2026-03-26 [Reference Refactor Phase 2/2]** 重构参考指南（Reference Guide）体系：文档层与 UI 层彻底根除数字硬编码，确立【活动建设/组织建设】双域分类，使用官方合规表述明确【组织生活会】与【党小组会】的业务继承关系。 [经验蒸馏: 是]
+
+- **2026-03-26 [Burden Reduction Phase 5/5]** 执行全系统产出减负与身份职责优化战役：重构 SOP 制度层；同步底层 `sopData.js` 降噪并剔除 branch-discussion 场景；基于最新 SOP 文档完成 `index.html` 参考指南 DOM 的精准原地降噪变异。系统负担大幅降低。 [经验蒸馏: 是]
+
+- **2026-03-27 [Polish Phase 3/3]** 执行全域大满贯收尾：状态机解耦（活动创建不再强制跳转视图）；月份检索按钮物理切除，升级为 `#month-selector` 实时 change 响应；物理超度旧快照 `SNAPSHOT_v1.2_20260325.md`；减负原则写入 `README.md` 与 `AI_CONTEXT.md` Core Rules；v1.3 终局快照通过原子化操作永久封版。 [经验蒸馏: 是]
+
+---
+
+## Session 51 | 2026-03-27 | meta_audit → Directory Cleanup Phase 1/3
+
+**操作类型**: `MOVE` + `CREATE` + `LINK_REDIRECT`
+**执行者**: AI Agent (Copilot)
+
+### Step 1 — 物理文件迁移
+- `[MOVE]` `.vibe_context/EXECUTION_LOG.md` → `.vibe_context/logs/EXECUTION_LOG_INDEX.md`
+  - 原文件为日志月度索引，迁入 `logs/` 目录归一化管理，命名区分月度日志
+- `[CREATE]` `guides/` 目录（含 `.gitkeep`）
+  - 为未来 `START_HERE.md` / `CHEATSHEET.md` 预留目录（当前根目录无此两文件，待后续生成后迁入）
+
+### Step 2 — 全局超链接重定向（无 404 死链）
+- `[UPDATE]` `ARCHITECTURE.md` §Repository Structure 目录树：移除 `FILE_ACCESS.md`（不存在），修正 `EXECUTION_LOG.md → logs/EXECUTION_LOG_INDEX.md`
+- `[UPDATE]` `.vibe_context/SNAPSHOT_v1.3_20260327.md`：目录树中 `EXECUTION_LOG.md ← 日志索引` 标注迁移路径
+- `[UPDATE]` `.vibe_context/scenarios/meta_audit.md` §日志轮转规则：索引文件路径改为 `.vibe_context/logs/EXECUTION_LOG_INDEX.md`
+
+### 自检结果
+- ✅ 根目录无遗留旧文件（`EXECUTION_LOG.md` 已从 `.vibe_context/` 根移除）
+- ✅ `guides/` 目录已创建
+- ✅ 全域 grep 确认零残留死链
+
+| 文件 | 操作 | 状态 |
+|---|---|---|
+| `.vibe_context/EXECUTION_LOG.md` | DELETE (迁入) | ✅ |
+| `.vibe_context/logs/EXECUTION_LOG_INDEX.md` | CREATE (迁入目标) | ✅ |
+| `guides/.gitkeep` | CREATE | ✅ |
+| `ARCHITECTURE.md` | UPDATE | ✅ |
+| `.vibe_context/SNAPSHOT_v1.3_20260327.md` | UPDATE | ✅ |
+| `.vibe_context/scenarios/meta_audit.md` | UPDATE | ✅ |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | APPEND (本条目) | ✅ |
+
+---
+
+## Session 52 | 2026-03-27 | sop_sync + meta_audit → Distillation Phase 3-B
+
+**操作类型**: `OVERWRITE` + `APPEND`
+**执行者**: AI Agent (Copilot)
+**Scenario**: `sop_sync.md`（知识沉淀）+ `meta_audit.md`（日志打标）
+
+### 操作摘要
+
+**Route 1 — 核心哲学全息覆写**：`docs/党支部管理与实务经验沉淀.md` 已于本 Sprint 前置操作中升维至 v2.0（由 v1.5 经 Knowledge Refactor Phase A 完成），采用【道/术】双篇五维大纲结构，将 8 大核心哲学完整铸入文档：
+- §1.1 [双域认知] — 活动/组织建设双域作为场景路由第一判断键
+- §1.2 [条块逻辑] — 书记在党课/意见反馈中不可委托
+- §1.3 [减负原则] — 硬性要求·无重叠·防真空三重门控
+- §1.4 [双轨制架构] — docs（人类面板）与 .vibe_context（AI面板）物理隔离
+- §2.1 [UI隐喻] + [UI隐喻-视觉投影] — UI 字段三层同步 + UI 重构即业务重构
+- §2.2 [AI工程学-绝对勾稽] + [AI工程学-物理剥离] — 双向勾稽 SSOT + 150行阈值物理剥离
+
+**Route 2 — 历史日志闭环打标**：对所有已被提取经验的关键日志节点追加 `[经验蒸馏: 是]` 钢印：
+- 2026-03-25 [Architecture Phase 4/4] — 本 Session 补打（双域化架构封版）
+
+（其余节点 SOP Sync 5B、Role Expansion 3/3、Architecture 1/4、Cleanup 2/2、Reference Refactor 2/2、Burden Reduction 5/5、Polish 3/3 已在前序 Session 打标完毕）
+
+| 文件 | 操作 | 状态 |
+|---|---|---|
+| `docs/党支部管理与实务经验沉淀.md` | v2.0 已就位（前序 Phase A 完成） | ✅ |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | Architecture Phase 4/4 补打钢印 | ✅ |
+
+- **2026-03-27 [Distillation Phase 3-B]** 核心哲学全息覆写与日志闭环：确认 `docs/党支部管理与实务经验沉淀.md` v2.0 已载入 8 大核心哲学（双域认知·条块逻辑·减负原则·UI隐喻·AI工程学物理剥离·AI工程学绝对勾稽·UI隐喻视觉投影·双轨制架构）；补打 Architecture Phase 4/4 经验蒸馏钢印；Org OS 知识图谱固化战役封版。 [经验蒸馏: 是]
+
+---
+
+## Session 53 | 2026-03-31 | sop_sync → Consistency Phase 2.5 + Phase 3/3
+
+**操作类型**: `VERIFY` + `OVERWRITE`
+**执行者**: AI Agent (Copilot)
+**Scenario**: `sop_sync.md`（文本制度同步 + README 门面增强）
+
+### 操作摘要
+
+**Consistency Phase 2.5 — 验证**：扫描全部 5 个目标文件（`governance/WATCHLIST.md`、`docs/SOP优化提案反馈卡.md`、`参考资料/模板库/活动复盘/活动复盘模板.md`、`governance/SUSPENDED_ISSUES.md`、`backlog/PENDING_MODIFICATIONS.md`），确认 A类/B类/1A/1B 等旧编码遗毒已于前序 Session 全部替换完毕，YAML `last_updated` 字段已受保护，正文无不合时宜的历史时间戳。
+
+**Consistency Phase 3/3 — README 门面修缮与人类操作指南注入**：
+- 物理删除 `README.md` YAML 头 `last_updated` 字段；`version` 由 `6.1` 升至 `6.2`
+- 在 `## ⚙️ 前端架构解析` 上方新建 `## 🚀 快速开始与人类操作指南`，用完全剥离技术黑话的大白话，编写推演工作台操作步骤（7步）、参考指南查阅步骤（4步）与常见操作速查表
+- 技术架构护城河（ES6模块化结构、变更黄金铁律、RBAC双轨视图模型、日历四色角色圆点）**原封不动保留**
+
+执行全系统一致性战役：依据 SSOT 字典剔除全域「1A/1B」等旧编码遗毒；所有非日志文件的版本控制统一收口至 version；强化根目录 README，成功注入无技术黑话的《人类操作指南》，大幅降低普通用户上手门槛。
+
+| 文件 | 操作 | 状态 |
+|---|---|---|
+| `governance/WATCHLIST.md` | VERIFY (已于 Phase 2.5 完成) | ✅ |
+| `docs/SOP优化提案反馈卡.md` | VERIFY (已于 Phase 2.5 完成) | ✅ |
+| `参考资料/模板库/活动复盘/活动复盘模板.md` | VERIFY (已于 Phase 2.5 完成) | ✅ |
+| `governance/SUSPENDED_ISSUES.md` | VERIFY (已于 Phase 2.5 完成) | ✅ |
+| `backlog/PENDING_MODIFICATIONS.md` | VERIFY (已于 Phase 2.5 完成) | ✅ |
+| `README.md` | version 6.1→6.2; 删 last_updated; 注入人类操作指南 | ✅ |
+| `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | APPEND (本条目) | ✅ |
