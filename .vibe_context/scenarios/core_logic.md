@@ -1,16 +1,16 @@
-**Purpose**: 管理领域模型、Schema 字段、Service 方法、状态机等核心业务逻辑变更。所有代码层改动必须追溯到 `knowledge/SOP/` 中的制度依据，Schema 字段必须有 `Source:` 注释锚点。
+**Purpose**: Manages changes to domain models, Schema fields, Service methods, state machines, and other core business logic. All code-layer modifications MUST be traceable to institutional references in `knowledge/SOP/`; Schema fields MUST carry `Source:` comment anchors.
 
-> **[2026-03 架构升级注记]**：状态机已全面模块化，不再是单体 `main.js`。核心业务逻辑分布如下：
-> - **全局状态**：`src/state.js`（`appState` 不可变对象、`setState(patch)`、`registerRenderCallback` 循环依赖破解）
-> - **检查器与任务过滤**：`src/inspector.js`（`renderInspectorFromState`、`renderInspectorList`、`renderInspectorDetail`、`filterTasksByManagementRole`）
-> - **SOP 实例化引擎**：`src/workflow/sop.js`（`instantiateSOP(scenarioIds, t0DateStr)` 将模板展开为带绝对日期的任务数组）；由 `src/workflow/index.js` 桶文件统一对外导出
-> - **常量注册表**：`src/constants.js`（`ROLE_COLORS`、`ROLE_LABELS`、`ROLE_THEME_CLASS`、`ROLE_ORDER`、`COMMISSIONER_ROLES`）
-> - **工具函数**：`src/utils.js`（`showToast`、`_fmtDate`、`_fmtChinese`、`_currentYearMonth`）
-> - **启动与渲染协调**：`src/main.js`（`initApp`、`renderUI`——唯一 DOM 更新入口，约 154 行）
+> **[2026-03 Architecture Upgrade Notes]**: The state machine has been fully modularized and is no longer a monolithic `main.js`. Core business logic is distributed as follows:
+> - **Global State**: `src/state.js` (`appState` immutable object, `setState(patch)`, `registerRenderCallback` circular dependency resolution)
+> - **Inspector & Task Filtering**: `src/inspector.js` (`renderInspectorFromState`, `renderInspectorList`, `renderInspectorDetail`, `filterTasksByManagementRole`)
+> - **SOP Instantiation Engine**: `src/workflow/sop.js` (`instantiateSOP(scenarioIds, t0DateStr)` expands templates into task arrays with absolute dates); exported uniformly via the `src/workflow/index.js` barrel file
+> - **Constants Registry**: `src/constants.js` (`ROLE_COLORS`, `ROLE_LABELS`, `ROLE_THEME_CLASS`, `ROLE_ORDER`, `COMMISSIONER_ROLES`)
+> - **Utility Functions**: `src/utils.js` (`showToast`, `_fmtDate`, `_fmtChinese`, `_currentYearMonth`)
+> - **App Initialization & Render Coordination**: `src/main.js` (`initApp`, `renderUI` — sole DOM update entry point, approx. 154 lines)
 
-**Trigger**: 字段、schema、activity、task、数据结构、API、domain、service、状态机、STATE、renderUI、src/、state.js、inspector.js、sop.js、workflow、constants.js、utils.js
+**Trigger**: field, schema, activity, task, data structure, API, domain, service, state machine, STATE, renderUI, src/, state.js, inspector.js, sop.js, workflow, constants.js, utils.js
 
-**Allowed Files**: `src/*`（`src/state.js`, `src/constants.js`, `src/utils.js`, `src/workflow/sopData.js`, `src/workflow/sop.js`, `src/workflow/index.js`, `src/calendar.js`, `src/inspector.js`, `src/events.js`, `src/main.js`, `src/service.mock.js`, `src/service.runtime.js`）
+**Allowed Files**: `src/*` (`src/state.js`, `src/constants.js`, `src/utils.js`, `src/workflow/sopData.js`, `src/workflow/sop.js`, `src/workflow/index.js`, `src/calendar.js`, `src/inspector.js`, `src/events.js`, `src/main.js`, `src/service.mock.js`, `src/service.runtime.js`)
 
 ---
 
@@ -18,23 +18,23 @@
 
 | # | Constraint |
 |---|-----------|
-| C1 | 新增 Schema 字段前必须先在 `knowledge/SOP/` 中建立对应 SOP 锚点；无 SOP 锚点的字段变更为 [FAILED] |
-| C2 | `domain.js` 中每个具有业务语义的字段 MUST 有 `Source: knowledge/SOP/[file].md#[section]` 注释 |
-| C3 | SOP 章节被删除/重命名时，`domain.js` 中的 `Source:` 指针必须同步更新，不得产生"断链 Dead Link" |
-| C4 | `main.js` 只通过 `BranchService`（`service.runtime.js`）调用服务，禁止直接操作 `mockDB` |
-| C5 | `appState` 不可变（须 spread 展开赋值）；`renderUI()` 是唯一 DOM 更新出口 |
-| C6 | 修改前输出三要素声明：Detected Scenario / Allowed Scope / Modification Plan |
+| C1 | Before adding any new Schema field, a corresponding SOP anchor MUST first be established in `knowledge/SOP/`; any field change lacking an SOP anchor SHALL be classified as [FAILED]. |
+| C2 | Every field with business semantics in `domain.js` MUST carry a `Source: knowledge/SOP/[file].md#[section]` annotation. |
+| C3 | When an SOP section is deleted or renamed, all `Source:` pointers in `domain.js` MUST be updated synchronously; stale "Dead Link" references are Strictly prohibited. |
+| C4 | `main.js` SHALL only invoke services through `BranchService` (`service.runtime.js`); direct manipulation of `mockDB` is Strictly prohibited. |
+| C5 | `appState` is immutable (MUST be updated via spread assignment); `renderUI()` is the sole DOM update exit point. |
+| C6 | Before any modification, output the Three-Element Declaration: Detected Scenario / Allowed Scope / Modification Plan. |
 
-## SOP → Code 追溯验证（每次激活必须执行）
+## SOP → Code Traceability Verification (MUST be executed on every activation)
 
-1. **更新 SOP**：确认 `knowledge/SOP/` 中制度文本已包含本次变更依据
-2. **更新 `domain.js` 注释**：检查所有 `Source:` 指针仍指向有效 SOP 章节标题
-3. **更新 Service**：`service.mock.js` 方法与 Schema 保持一致
-4. **更新 `main.js`**：状态机与 Service 接口匹配
+1. **Update SOP**: Confirm that the institutional text in `knowledge/SOP/` covers the rationale for this change.
+2. **Update `domain.js` annotations**: Verify that all `Source:` pointers still reference valid SOP section titles.
+3. **Update Service**: Ensure `service.mock.js` methods remain consistent with the Schema.
+4. **Update `main.js`**: Verify that the state machine aligns with the Service interface.
 
 ## Execution Steps
 
-- [ ] 确认 SOP 已更新（`knowledge/SOP/` 相关文件 + `domain.js` Source 指针）
-- [ ] 输出三要素声明（SOP change / Schema impact / Service impact）
-- [ ] 修改 `src/` 目标文件
-- [ ] 更新执行日志 `.vibe_context/logs/YYYY-MM-EXECUTION_LOG.md`
+- [ ] Confirm SOP is updated (`knowledge/SOP/` relevant files + `domain.js` `Source:` pointers)
+- [ ] Output the Three-Element Declaration (SOP change / Schema impact / Service impact)
+- [ ] Modify target files in `src/`
+- [ ] Update execution log `.vibe_context/logs/YYYY-MM-EXECUTION_LOG.md`

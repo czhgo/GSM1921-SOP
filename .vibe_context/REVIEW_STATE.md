@@ -2,7 +2,7 @@
 title: "Review State"
 type: control_plane
 owner: "支委会"
-last_updated: "2026-03-08"
+last_updated: "2026-03-31"
 version: "7.0"
 ---
 
@@ -30,7 +30,7 @@ version: "7.0"
 > **Role:** Tracks overall code-modification progress. Detailed task tracking has been decoupled into `governance/` and `backlog/` directories.  
 > **Update policy:** Updated at step 5 of the SOP after every atomic change.  
 > **Reading policy:** Always re-read this file at the start of every session (SOP step 2).  
-> **Source:** Logic migrated from `_review/书记审阅记录.md` (审阅日期 2026-02-17, 书记储子禾).
+> **Source:** Logic migrated from `_review/书记审阅记录.md` (review date 2026-02-17, Secretary 储子禾).
 
 ---
 
@@ -45,9 +45,9 @@ version: "7.0"
 
 ## ⚙️ Current Operation Mode: **[Stable/Release — v1.0]**
 
-> 系统已于 2026-03-21 完成全量 ES6 模块化重构（Part 1–3）与文档层封版（Phase 1/2–2/2），正式进入 **v1.0 稳定期**。
-> - **Stable/Release** 模式：所有 W/H 约束全量生效，严格遵循 Change Pipeline，禁止未经书记授权的架构级改动。
-> - 如需在稳定期内新增功能，书记通过 `AI_ENTRYPOINT.md` 下达指令，AI 代理按场景路由执行，全程留档。
+> The system completed full ES6 modularization refactoring (Part 1–3) and documentation freeze (Phase 1/2–2/2) on 2026-03-21, formally entering the **v1.0 Stable Period**.
+> - **Stable/Release** mode: All W/H constraints are fully enforced. The Change Pipeline MUST be strictly followed. Architecture-level changes without Secretary authorization are Strictly prohibited.
+> - To add new features during the stable period, the Secretary issues instructions via `AI_ENTRYPOINT.md`; the AI agent executes following scenario routing with a full audit trail.
 
 ---
 
@@ -66,13 +66,13 @@ version: "7.0"
 
 | Scenario | File | Status | Last Updated | Notes |
 |----------|------|--------|-------------|-------|
-| Activity Rules Enforcement | `scenarios/activity_rules_enforcement.md` | ⏳ Pending | — | 主场景：场景1 A/B类拆分 |
-| SOP Restructuring | `scenarios/sop_restructuring.md` | ⏳ Pending | — | 依赖 Activity Rules 完成后执行 |
-| YAML Metadata Fix | `scenarios/yaml_metadata_fix.md` | ✅ Done | 2026-02-21 | 5个根节点文件已注入frontmatter |
-| Governance Phase 2/3 | `.vibe_context/AI_CONTEXT.md`, `scenarios/meta_audit.md` | ✅ Done | 2026-03-27 | 引入经验蒸馏闭环规则与日志标记规范 |
+| Activity Rules Enforcement | `scenarios/activity_rules_enforcement.md` | ⏳ Pending | — | Primary scenario: Scenario 1 Class-A/B split |
+| SOP Restructuring | `scenarios/sop_restructuring.md` | ⏳ Pending | — | Depends on Activity Rules completion |
+| YAML Metadata Fix | `scenarios/yaml_metadata_fix.md` | ✅ Done | 2026-02-21 | frontmatter injected into 5 root-node files |
+| Governance Phase 2/3 | `.vibe_context/AI_CONTEXT.md`, `scenarios/meta_audit.md` | ✅ Done | 2026-03-27 | Introduced experience-distillation closed-loop rules and log-tagging conventions |
 
 ---
 
 **Version:** 6.0  
 **Owner:** 支委会  
-**Last updated:** 2026-03-08
+**Last updated:** 2026-03-31
