@@ -1,6 +1,6 @@
 ﻿---
 name: term-cleaner
-description: "Use when cleaning headings and titles by removing numeric prefixes and fixing reversed appellations under dual-domain and sectional principles."
+description: "Use when: 术语统一、称谓修正、标题规范化、制度文档清洗（吏部/刑部）"
 ---
 
 # 触发条件
@@ -12,9 +12,11 @@ description: "Use when cleaning headings and titles by removing numeric prefixes
 - 扫描目标文本中的标题与称谓。
 - 删除标题数字前缀（如 `1.`、`01-`、`（一）` 等保留语义不变）。
 - 修正称谓顺序，确保表达符合组织语义。
-- 执行任何操作前，必须先输出 `### Blueprint` 执行计划，等待用户回复【确认】后方可继续。
+- 执行任何操作前，必须先输出 `### Blueprint`，并用 `/ask` 请求授权。
+- 若用户提供术语总表，必须优先遵循总表；未提供时先询问再改动。
 
 # 红线
 - 不改写事实含义，不引入新结论。
 - 未获确认不得执行任何实际修改。
-- 任务完成后，必须自动输出日志摘要（变更文件、关键动作、执行结果、风险与回滚点），并直接调用起居院：`@起居院 请基于以下摘要按当月模板写入执行日志：...`。
+- 任务完成后，若存在语义/结构实质改动，执行部门（吏部/户部/礼部/刑部）必须直接调用：`@起居院`，由起居院通过 `/ask` 确认后写入。
+- 单次会话最多允许 3 个 Agent 获得 Allow；涉及第 4 个 Agent 必须先请求用户发送“确认”。
