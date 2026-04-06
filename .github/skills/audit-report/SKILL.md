@@ -37,7 +37,7 @@ Produce a read-only, evidence-backed audit report that classifies risks and outp
    - Detailed report with full evidence chain.
    - Compact report when user requests concise output.
 3. Handoff branch:
-   - Manual dispatch only (default) to `@刑部`.
+   - Manual dispatch only (default) to `@司法部`.
    - No cross-agent direct invocation.
 4. Agent chain fuse:
    - If this operation would involve a 4th allowed agent in one session, stop and require user text "确认".
@@ -85,7 +85,7 @@ Produce a read-only, evidence-backed audit report that classifies risks and outp
 - Priority / 优先级: P0/P1/P2
 
 ### Manual Dispatch / 手动派工
-- Suggested Department / 建议部门: @刑部
+- Suggested Department / 建议部门: @司法部
 - Suggested Order / 建议顺序: P0/P1/P2
 - Notes / 说明
 

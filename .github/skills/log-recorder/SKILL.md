@@ -86,7 +86,7 @@ Record execution summaries into monthly log files with append-only safety, sourc
 ### Reject Response / 拒绝响应
 - Status / 状态: Rejected
 - Reason / 原因
-- Allowed Sources / 可用来源: 吏部/户部/礼部/刑部
+- Allowed Sources / 可用来源: 组织部/发改委/外交部/司法部
 
 ## Guardrails / 护栏
 - Default mode must remain append-only.
@@ -98,4 +98,4 @@ Record execution summaries into monthly log files with append-only safety, sourc
 
 ## Reference
 - [System Constitution](../../copilot-instructions.md)
-- [Qijuyuan Agent](../../agents/qijuyuan.agent.md)
+- [Related Agent: 档案馆](../../agents/danganguan.agent.md) (负责系统变更日志记录)

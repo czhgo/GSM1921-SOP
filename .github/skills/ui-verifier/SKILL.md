@@ -38,7 +38,7 @@ Audit frontend interaction quality in read-only mode and produce an evidence-bac
    - Detailed report for execution handoff.
 3. Dispatch branch:
    - Manual dispatch recommendations only.
-   - Default target is @礼部; in independent audit context, allow @刑部.
+   - Default target is @外交部; in independent audit context, allow @司法部.
    - No direct cross-agent invocation.
 4. Agent chain fuse:
    - If this operation would involve a 4th allowed agent in one session, stop and require user text 确认.
@@ -89,7 +89,7 @@ Audit frontend interaction quality in read-only mode and produce an evidence-bac
 - Accessibility / 可访问性: High/Medium/Low
 
 ### Manual Dispatch / 手动派工
-- Suggested Department / 建议部门: 默认 @礼部；独立审计场景可 @刑部
+- Suggested Department / 建议部门: 默认 @外交部；独立审计场景可 @司法部
 - Suggested Order / 建议顺序
 - Notes / 说明
 
@@ -101,5 +101,4 @@ Audit frontend interaction quality in read-only mode and produce an evidence-bac
 
 ## Reference
 - System Constitution: ../../copilot-instructions.md
-- Libu UI Agent: ../../agents/libu-ui.agent.md
-- Duchayuan Agent: ../../agents/duchayuan.agent.md
+- Related Agents: @外交部 (UI 修复派工), @检察院 (独立审查派工)

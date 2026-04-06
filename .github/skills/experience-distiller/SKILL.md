@@ -85,8 +85,8 @@ Extract high-value reusable practices from unresolved execution logs and close t
 - Never write before /ask approval.
 - Never update an item tag before that item write succeeds.
 - Never modify log entries outside approved scope.
-- Never directly invoke Qijuyuan from this workflow.
+- Never cross-invoke other agents from this workflow (except 档案馆 for log routing when required by the constitutional chain).
 
 ## Reference
 - System Constitution: ../../copilot-instructions.md
-- Xiushiyuan Agent: ../../agents/xiushiyuan.agent.md
+- Related Agent: @社科院 (负责经验蒸馏与实务沉淀)

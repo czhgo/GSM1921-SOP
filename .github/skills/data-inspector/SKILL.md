@@ -38,7 +38,7 @@ Run read-only structural and semantic checks on `src/workflow/sopData.js` and pr
    - Detailed report for execution handoff.
 3. Dispatch branch:
    - Manual dispatch recommendation based on context.
-   - Typical routing: data model/dictionary issues -> @户部; cross-domain compliance repair -> @刑部.
+   - Typical routing: data model/dictionary issues -> @工信部; cross-domain compliance repair -> @司法部.
    - No cross-agent direct invocation.
 4. Agent chain fuse:
    - If this operation would involve a 4th allowed agent in one session, stop and require user text "确认".
@@ -94,4 +94,4 @@ Run read-only structural and semantic checks on `src/workflow/sopData.js` and pr
 
 ## Reference
 - [System Constitution](../../copilot-instructions.md)
-- [Hubu Agent](../../agents/hubu.agent.md)
+- Related Agent: @工信部 (负责代码内容层修复)

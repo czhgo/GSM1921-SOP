@@ -62,8 +62,8 @@ This skill standardizes document headings and organizational appellations while 
    - Anchor links remain valid in the same file.
    - Changes satisfy hard requirement, no overlap, no vacuum.
 6. Post-change logging branch.
-   - If substantive semantic/structural change is made by execution departments (吏部/户部/礼部/刑部), output log summary and directly call @起居院.
-   - 起居院 must present draft through /ask and write only after Allow.
+   - If substantive semantic/structural change is made by execution departments (组织部/发改委/外交部/司法部), output log summary and directly call @档案馆.
+   - 档案馆 must present draft through /ask and write only after Allow.
 
 ## Output Contract
 ## Output Contract / 输出契约
@@ -100,8 +100,8 @@ This skill standardizes document headings and organizational appellations while 
 - Risks
 - Rollback points
 
-### Auto Handoff to 起居院 (execution departments only)
-@起居院 请基于以上日志摘要生成当月日志草稿，并使用 /ask 请求写入授权。
+### Auto Handoff to 档案馆 (execution departments only)
+@档案馆 请基于以上日志摘要生成当月日志草稿，并使用 /ask 请求写入授权。
 
 ## Guardrails
 - Never fabricate findings.

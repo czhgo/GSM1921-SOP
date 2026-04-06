@@ -59,8 +59,8 @@ Repair broken markdown anchor navigation while preserving document meaning, stru
    - Markdown structure remains intact.
    - No unrelated text changed.
 6. Post-change branch.
-   - For substantive semantic or structural changes in execution departments, output log summary and directly call @起居院.
-   - 起居院 must show draft via /ask and append after Allow.
+   - For substantive semantic or structural changes in execution departments, output log summary and directly call @档案馆.
+   - 档案馆 must show draft via /ask and append after Allow.
 
 ## Output Contract / 输出契约
 ### Read-Only Audit Report / 只读核查报告
@@ -98,8 +98,8 @@ Repair broken markdown anchor navigation while preserving document meaning, stru
 - Risks
 - Rollback points
 
-### Auto Handoff to 起居院 (execution departments only)
-@起居院 请基于以上日志摘要生成当月日志草稿，并使用 /ask 请求写入授权。
+### Auto Handoff to 档案馆 (execution departments only)
+@档案馆 请基于以上日志摘要生成当月日志草稿，并使用 /ask 请求写入授权。
 
 ## Guardrails / 护栏
 - Never modify unrelated content.

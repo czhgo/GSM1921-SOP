@@ -62,8 +62,8 @@ Synchronize SOP content from source to target documents while preserving markdow
    - Source-target alignment passes declared checks.
    - Hard requirement, no overlap, and no vacuum checks are satisfied.
 6. Post-change logging branch.
-   - For substantive semantic or structural changes in execution departments, output log summary and directly call @起居院.
-   - 起居院 must present draft via /ask and append only after Allow.
+   - For substantive semantic or structural changes in execution departments, output log summary and directly call @档案馆.
+   - 档案馆 must present draft via /ask and append only after Allow.
 
 ## Output Contract / 输出契约
 ### Read-Only Sync Audit / 只读同步核查
@@ -98,11 +98,9 @@ Synchronize SOP content from source to target documents while preserving markdow
 - Changed files
 - Key actions
 - Result
-- Risks
-- Rollback points
 
-### Auto Handoff to 起居院 (execution departments only)
-@起居院 请基于以上日志摘要生成当月日志草稿，并使用 /ask 请求写入授权。
+### Auto Handoff to 档案馆 (execution departments only)
+@档案馆 请基于以上日志摘要生成当月日志草稿，并使用 /ask 请求写入授权。
 
 ## Guardrails / 护栏
 - Never bypass `/ask` or `/confirm` before write actions.

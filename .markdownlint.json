@@ -6,7 +6,11 @@
   "MD024": false,
   "MD022": false,
   "MD025": false,
+  "MD031": true,
   "MD032": false,
+  "MD035": {
+    "style": "---"
+  },
   "MD036": false,
   "MD041": false,
   "MD060": false
