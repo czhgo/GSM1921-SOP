@@ -215,7 +215,14 @@ export function setupEventListeners() {
   // ── 模块 Tab 点击 ───────────────────────────────────────────
   document.querySelectorAll('.module-tab[data-module]').forEach(tab => {
     tab.addEventListener('click', () => {
-      setState({ activeModule: tab.dataset.module });
+      const targetModule = tab.dataset.module;
+      if (targetModule === 'reference') {
+        setState({ activeModule: targetModule, selectedRole: 'global', viewArchived: false });
+      } else if (targetModule === 'calendar') {
+        setState({ activeModule: targetModule, selectedRole: 'participant', viewArchived: false });
+      } else {
+        setState({ activeModule: targetModule });
+      }
       closeSidebar();
     });
   });
@@ -227,37 +234,35 @@ export function setupEventListeners() {
     });
   });
 
-  // ── 角色按钮（参考指南模块，严格圈定容器防串台）────────────
-  document.querySelectorAll('#sidebar-reference-menu .role-btn[data-role]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      setState({ role: btn.dataset.role });
-      closeSidebar();
-    });
-  });
-
-  // ── 推演工作台侧边栏 RBAC 角色按钮分发 ──────────────────────
-  const calMenu = document.getElementById('sidebar-calendar-menu');
-  if (calMenu) {
-    calMenu.querySelectorAll('.role-btn[data-role]').forEach(btn => {
+  // ── 统一角色菜单按钮分发（推演工作台和参考指南共用）───────────
+  const roleMenu = document.getElementById('sidebar-role-menu');
+  if (roleMenu) {
+    roleMenu.querySelectorAll('[data-role]').forEach(btn => {
       btn.addEventListener('click', () => {
         const r = btn.dataset.role;
         if (r === 'archived') {
+          // 归档库：特殊处理
           setState({
             viewArchived:      true,
-            viewType:          'manager',
             viewMode:          'list',
             selectedActivityId: null,
           });
         } else if (r === 'participant') {
+          // 参与视图：设置selectedRole为participant，自动推导viewType为participant，role为all
           setState({
+            selectedRole:      'participant',
             viewArchived:      false,
-            viewType:          'participant',
-            managementRole:    'participant',
             viewMode:          'list',
             selectedActivityId: null,
           });
         } else {
-          setState({ viewArchived: false, viewType: 'manager', managementRole: r });
+          // 管理视图角色：设置selectedRole为对应角色，自动推导viewType为manager，role为对应角色
+          setState({
+            selectedRole:      r,
+            viewArchived:      false,
+            viewMode:          'list',
+            selectedActivityId: null,
+          });
         }
         closeSidebar();
       });

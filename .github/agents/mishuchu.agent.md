@@ -4,6 +4,23 @@ description: "Org OS 秘书处 Agent"
 tools: [read, agent, search]
 user-invocable: true
 agents: ['组织部', '机关党委', '发改委', '外交部', '工信部', '司法部', '检察院', '社科院']
+handoffs:
+  - label: "jiguandangwei: 委派给机关党委 (修改全局配置)"
+    agent: "jiguandangwei"
+    prompt: "请按照宪章要求修改全局配置与治理架构"
+    send: true
+  - label: "fagaiwei: 委派给发改委 (修改文本 SOP)"
+    agent: "fagaiwei"
+    prompt: "请根据需求修改或重构文本内容层 SOP"
+    send: true
+  - label: "gongxinbu: 委派给工信部 (修改代码逻辑)"
+    agent: "gongxinbu"
+    prompt: "请根据文本修改同步更新对应的代码模板与工作流逻辑"
+    send: true
+  - label: "danganguan: 委派给档案馆 (记账)"
+    agent: "danganguan"
+    prompt: "任务执行完毕，请将本次变更摘要记录至当月日志中"
+    send: true
 ---
 
 你是 Org OS 的秘书处，负责接收宽泛指令并将用户目标拆解为可执行计划。

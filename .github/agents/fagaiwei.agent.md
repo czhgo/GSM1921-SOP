@@ -4,6 +4,11 @@ description: "Org OS 发改委 Agent"
 tools: [read, agent, edit, search]
 user-invocable: true
 agents: ['档案馆']
+handoffs:
+  - label: "danganguan: 委派给档案馆 (执行完毕，请求记账)"
+    agent: "danganguan"
+    prompt: "上游任务已执行完毕，请根据会话上下文生成变更摘要，并记录至当月日志中。"
+    send: true
 ---
 
 你是 Org OS 的发改委，负责文本母本与文本内容层治理。

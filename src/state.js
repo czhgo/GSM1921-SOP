@@ -13,6 +13,56 @@ export const STATE = {
   ERROR:      4,
 };
 
+// ── 角色类型定义 ─────────────────────────────────────────────────
+export const ROLE_TYPES = {
+  PARTICIPANT:   'participant',   // 参与视图 - 默认参与者
+  LEADER:        'leader',        // 管理视图 - 党小组组长
+  COMMISSIONER:  'commissioner',  // 管理视图 - 条条支委
+  ORGANIZER:     'organizer',     // 管理视图 - 活动组织者
+  DEEP:          'deep',          // 管理视图 - 深度参与者
+  SECRETARY:     'secretary',     // 管理视图 - 党支书
+  GLOBAL:        'global',        // 全局视图 - 参考指南专用
+};
+
+// ── 管理角色列表（用于判断是否为管理视图）───────────────────────
+export const MANAGEMENT_ROLES = [
+  ROLE_TYPES.LEADER,
+  ROLE_TYPES.COMMISSIONER,
+  ROLE_TYPES.ORGANIZER,
+  ROLE_TYPES.DEEP,
+  ROLE_TYPES.SECRETARY,
+];
+
+// ── 判断是否为管理角色 ───────────────────────────────────────────
+export function isManagementRole(role) {
+  return MANAGEMENT_ROLES.includes(role);
+}
+
+// ── 判断是否为参与角色 ───────────────────────────────────────────
+export function isParticipantRole(role) {
+  return role === ROLE_TYPES.PARTICIPANT;
+}
+
+// ── 根据角色获取视图类型 ─────────────────────────────────────────
+export function getViewTypeByRole(role) {
+  if (!role) return 'participant';
+  if (isParticipantRole(role)) return 'participant';
+  if (role === ROLE_TYPES.GLOBAL) return 'global';
+  if (isManagementRole(role)) return 'manager';
+  return 'participant';
+}
+
+// ── 根据角色获取参考指南显示角色 ─────────────────────────────────
+export function getReferenceRoleBySelectedRole(selectedRole) {
+  if (!selectedRole || isParticipantRole(selectedRole)) {
+    return 'all';
+  }
+  if (selectedRole === ROLE_TYPES.GLOBAL) {
+    return 'all';
+  }
+  return selectedRole;
+}
+
 let appState = {
   // 服务层状态
   status:      STATE.IDLE,
@@ -21,16 +71,16 @@ let appState = {
   error:       null,
   // UI 视图状态
   domain:      'activity',
-  role:        'all',
+  role:        'all',                    // 参考指南当前角色（由selectedRole推导）
   activeModule: 'calendar',
   // 列表/详情双视图状态
   viewMode:            'list',
   selectedActivityId:  null,
   selectedDate:        null,
   displayMonth:        _currentYearMonth(),
-  // RBAC 双轨视图状态
-  viewType:            'participant',
-  managementRole:      'participant',
+  // ── 统一角色状态（核心）────────────────────────────────────────
+  selectedRole:        null,             // 当前选择的角色（null表示未选择，默认参与者视图）
+  viewType:            'participant',    // 'participant' | 'manager'（由selectedRole推导）
   // 归档库独立视图标志
   viewArchived:        false,
 };
@@ -49,6 +99,14 @@ export function registerRenderCallback(fn) { _onStateChange = fn; }
 
 /** Immutable 状态更新，触发渲染 */
 export function setState(patch) {
+  // ── 状态推导逻辑 ───────────────────────────────────────────────
+  // 当 selectedRole 变化时，自动推导 viewType 和 role
+  if ('selectedRole' in patch) {
+    const newRole = patch.selectedRole;
+    patch.viewType = getViewTypeByRole(newRole);
+    patch.role = getReferenceRoleBySelectedRole(newRole);
+  }
+  
   appState = { ...appState, ...patch };
   _onStateChange(appState);
 }

@@ -32,7 +32,6 @@ export function renderCalendarByActivities(state, targetMonth) {
   if (activeActivities.length === 0) {
     grid.classList.add('hidden');
     if (empty) {
-      empty.innerHTML = '<p class="font-stheiti text-sm text-gray-400 text-center py-12">暂无活动，点击【写入活动】开始创建</p>';
       empty.classList.remove('hidden');
     }
     return;
