@@ -11,7 +11,7 @@ version: "1.3"
 status: active
 related_files:
   - "START_HERE.md"
-  - ".vibe_context/REVIEW_STATE.md"
+  - ".ctx/REVIEW_STATE.md"
   - "流程指南/常见工作场景快速指南.md"
 ---
 

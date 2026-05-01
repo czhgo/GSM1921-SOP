@@ -1,117 +1,57 @@
 ---
 name: sop2code
-description: "Use when: convert textual SOP design maps into code logic scripts under src/workflow/, with SSOT-first tracing and scenario-driven constraints."
-argument-hint: "文本SOP设计图、目标代码层、是否允许跨文件、是否需要同步domain.js"
-user-invocable: true
+description: 将文本 SOP 设计图转化为 src/workflow/ 下的代码逻辑，保持 SSOT 溯源与双向一致性。适用场景：SOP 制度文本→流程代码转化、content/SOP/ 变更→代码同步。
 ---
 
-# SOP to Code Workflow
+# SOP → 代码转化工作流
 
-## Purpose
-Convert textual SOP design diagrams into code-layer logic under `src/workflow/` while preserving SSOT traceability, scenario constraints, and bidirectional consistency.
-将文本SOP设计图转化为 `src/workflow/` 下的代码逻辑，同时保持 SSOT 溯源、场景约束与双向一致性。
+## 目标
 
-## When To Use
-- Need to translate SOP institutional text into workflow logic or task templates.
-- Need to align `knowledge/SOP/` changes with `src/workflow/` implementation.
-- Need to derive code behavior from scenarios in `.vibe_context/scenarios/`.
-- Need to keep `domain.js` source annotations and workflow code in sync.
-- 需要把SOP制度文本转化为流程逻辑或任务模板。
-- 需要让 `knowledge/SOP/` 与 `src/workflow/` 实现保持一致。
-- 需要从 `.vibe_context/scenarios/` 提取约束并落到代码层。
-- 需要同步 `domain.js` 的 Source 注解与 workflow 代码。
+将文本 SOP 变更精确映射到 `src/workflow/` 及相关 service/state 代码，保持 SSOT 可追溯。
 
-## Required Inputs
-- Text SOP design or change request.
-- Target code scope, usually `src/workflow/` and related service/state files.
-- Whether cross-file edits are allowed.
-- Whether `domain.js` / service / state updates are in scope.
-- 文本SOP设计图或变更请求。
-- 目标代码范围，通常为 `src/workflow/` 及相关 service/state 文件。
-- 是否允许跨文件修改。
-- 是否包含 `domain.js` / service / state 更新。
+## 输入项
 
-## Decision Points
-1. SSOT branch:
-   - Before any planning, read [SSOT_INDEX.md](../../SSOT_INDEX.md) to confirm the text SOP is the mother source.
-   - If a child-file change is requested, first plan the mother-file update.
-2. Scenario branch:
-   - Read `.vibe_context/scenarios/core_logic.md` for code-layer architecture rules.
-   - Read `.vibe_context/scenarios/sop_sync.md` for SOP-to-code traceability rules.
-   - Read `.vibe_context/scenarios/meta_audit.md` when log or governance constraints are relevant.
-3. Scope branch:
-   - Prefer minimal code-layer change.
-   - Expand only when the scenario or SSOT chain requires coordinated updates.
-4. Authorization branch:
-   - Output `### Blueprint` before any write action.
-   - Use `/ask` before editing files.
-5. Verification branch:
-   - Confirm syntax, traceability, and scenario compliance after edits.
-   - Append or update the execution log only when the surrounding workflow requires it.
+- **文本 SOP 设计图或变更请求**
+- **目标代码范围**：通常 `src/workflow/` + service/state
+- **是否允许跨文件修改**
+- **是否包含 `domain.js` / service / state 更新**
 
-## Procedure
-1. Read SSOT first.
-   - Start with [SSOT_INDEX.md](../../SSOT_INDEX.md) and identify the mother/child chain.
-2. Read scenario constraints.
-   - Review `.vibe_context/scenarios/core_logic.md` and the matching scenario files for the target change.
-3. Map text SOP to code scope.
-   - Convert institutional rules into concrete `src/workflow/` responsibilities, schema fields, or service behavior.
-4. Build the blueprint.
-   - Include goal, mother source, target files, schema/service impact, risks, and rollback points.
-5. Request approval.
-   - Use `/ask` before any write action.
-6. Implement minimal changes.
-   - Update only files required by the SSOT chain.
-   - Keep traceability pointers consistent.
-7. Validate.
-   - Check code logic, traceability comments, and scenario constraints.
-   - Ensure child changes can be traced back to the mother source.
+## Gotchas
 
-## Output Contract
-### Read-Only Assessment
-- Scope
-- Mother source
-- Child targets
-- Constraint gaps
-- Risk level
-- Suggested implementation path
+- **SSOT 铁律**：规划任何代码改动前，必须先阅读 [SSOT_INDEX.md](../../SSOT_INDEX.md) 确认文本 SOP 是母源。若请求直接改子本（代码），必须先规划母本（文本 SOP）的更新。
+- **场景约束必读**：`.ctx/CONTEXT.md`（代码层架构规则）。跳过上下文文件的后果是代码与架构规则脱节。
+- `domain.js` 中的 Source 注解字段必须与 SOP 母本保持一致——这是 SSOT 可追溯性的骨架。
+
+## 执行流程
+
+1. **读 SSOT 第一**（SSOT_INDEX.md → 确定母/子链）
+2. **读场景约束**（CONTEXT.md 代码架构段 + 按需 meta_audit）
+3. **映射文本 SOP → 代码范围**：制度规则 → workflow 职责 / schema 字段 / service 行为
+4. **构建 Blueprint**（目标、母源、目标文件、schema/service 影响、风险、回滚点）
+5. **工具调用获取授权**
+6. **最小代码变更**——SSOT 链内文件、可追溯性指针一致
+7. **校验**：代码逻辑 + 追溯注释 + 场景约束 → 子本变更可回溯到母源
+
+## 输出模板
+
+```markdown
+### 只读评估
+- 母源: ...
+- 子本目标: ...
+- 约束差距: ...
+- 风险: ...
+- 建议实现路径: ...
 
 ### Blueprint
-- Goal
-- Mother source
-- Child targets
-- Planned files
-- Schema/service impact
-- Risks
-- Rollback points
+- 目标: ...
+- 母源: ...
+- 子本目标: ...
+- 计划文件: ...
+- schema/service 影响: ...
+- 风险 + 回滚点: ...
 
-### Authorization Request
-/ask 是否批准按上述 Blueprint 执行修改？
-
-### Execution Result
-- Changed files
-- Key actions
-- Result
-- Risks
-- Rollback points
-- Validation notes
-
-### Log Summary
-- Changed files
-- Key actions
-- Result
-- Risks
-- Rollback points
-
-## Guardrails
-- Never skip SSOT first.
-- Never edit child code before identifying the mother source.
-- Never ignore `.vibe_context/scenarios/` constraints.
-- Never silently write changes.
-- Never break source traceability between SOP and code.
-
-## References
-- [SSOT Index](../../SSOT_INDEX.md)
-- [Core Logic Scenario](../../../.vibe_context/scenarios/core_logic.md)
-- [SOP Sync Scenario](../../../.vibe_context/scenarios/sop_sync.md)
-- [Meta Audit Scenario](../../../.vibe_context/scenarios/meta_audit.md)
+### 执行结果
+- 变更文件: ...
+- 关键动作: ...
+- 校验: 代码逻辑 ✓ | 追溯注释 ✓ | 场景约束 ✓
+```

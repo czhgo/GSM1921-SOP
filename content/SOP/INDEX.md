@@ -12,7 +12,7 @@
 
 ## Reconciliation — Checkpoint 5
 
-Physical `.md` files in `knowledge/SOP/` (excluding `INDEX.md` itself):
+Physical `.md` files in `content/SOP/` (excluding `INDEX.md` itself):
 
 | 物理文件 | 是否已登记 |
 |---------|----------|

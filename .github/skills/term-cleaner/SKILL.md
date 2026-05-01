@@ -1,113 +1,47 @@
 ---
 name: term-cleaner
-description: 'Standardize headings and appellations in SOP markdown. Use when cleaning numeric title prefixes, fixing reversed role names, and preserving governance constraints (Blueprint, /ask, code exemption, anchor sync).'
-argument-hint: '目标文件、是否跨文件、术语总表路径、是否只读核查'
-user-invocable: true
+description: 标准化文档标题与组织称谓——去除数字前缀（1./01-/（一））、修正称谓倒置、统一术语。适用场景：发布前的 SOP 风格统一、术语一致性治理。
 ---
 
-# Term Cleaner Workflow
-# Term Cleaner Workflow / 术语清洗工作流
+# 术语清洗工作流
 
-## Purpose / 目标
-This skill standardizes document headings and organizational appellations while preserving original meaning and constitutional constraints.
-本技能用于标准化文档标题与组织称谓，并在不改变原意的前提下满足系统宪章约束。
+## 目标
 
-## When To Use / 适用场景
-- Need to remove numeric heading prefixes such as 1., 01-, and （一）.
-- Need to fix reversed or inconsistent role/appellation wording.
-- Need to normalize SOP style before publishing or cross-doc synchronization.
-- 需要去除标题数字前缀，如 1.、01-、（一）。
-- 需要修正称谓倒置或术语不一致问题。
-- 需要在发布前或跨文档同步前统一 SOP 风格。
+标准化 Markdown 文档的标题格式和组织称谓，去除数字前缀，修正术语不一致。
 
-## Required Inputs / 输入项
-- Target file or folder scope.
-- Read-only audit or write mode.
-- Optional glossary source path.
-- Whether cross-file changes are allowed.
-- 目标文件或目录范围。
-- 只读核查或写盘模式。
-- 可选术语总表路径。
-- 是否允许跨文件修改。
+## 输入项
 
-## Decision Points / 决策分支
-1. Mode selection:
-   - Read-only audit: produce findings report only.
-   - Write mode: continue with Blueprint and authorization.
-2. Scope selection:
-   - Current file only by default.
-   - Cross-file changes only when explicitly requested.
-3. Glossary availability:
-   - If provided, glossary terms take priority.
-   - If missing and terminology is ambiguous, request clarification.
-4. Agent chain fuse:
-   - If this action would involve a 4th agent in one session, stop and require the user to send "确认" first.
+- **目标文件/目录**
+- **模式**：只读核查（仅出报告）或写盘执行
+- **术语总表路径**（可选，若有则优先使用）
 
-## Procedure / 执行流程
-1. Pre-check constitutional boundaries.
-   - Respect dual-domain and role semantics.
-   - Apply code exemption: do not edit fenced code blocks, HTML attribute names, or CSS class names.
-   - If a markdown heading changes, update same-file anchors pointing to that heading.
-2. Output `### Blueprint` before any write action.
-   - Include scope, edit strategy, risk, rollback points, and completion checks.
-3. Trigger interactive authorization via `/ask` (or `/confirm`).
-   - Do not perform write actions before Allow.
-4. Execute minimal edits.
-   - Remove numeric heading prefixes without changing meaning.
-   - Correct appellation order and terminology consistency.
-   - Keep markdown structure valid.
-5. Run completion checks.
-   - No semantic drift.
-   - No code-exemption violations.
-   - Anchor links remain valid in the same file.
-   - Changes satisfy hard requirement, no overlap, no vacuum.
-6. Post-change logging branch.
-   - If substantive semantic/structural change is made by execution departments (组织部/发改委/外交部/司法部), output log summary and directly call @档案馆.
-   - 档案馆 must present draft through /ask and write only after Allow.
+## Gotchas
 
-## Output Contract
-## Output Contract / 输出契约
-### Read-Only Audit Report / 只读核查报告
-- Scope / 核查范围
-- Findings / 发现问题
-- Risk Level / 风险等级: High/Medium/Low
-- Evidence / 证据
-- Suggested Direction / 修复方向建议
+- **代码豁免**：围栏代码块（fenced code blocks）、HTML 属性名、CSS class 名中的"术语"不能修改。
+- 修改标题文字后，**同一文件内指向该标题的锚点链接必须同步更新**——否则会产生新的锚点失效。
+- 工具栏文本（如 `data-label` 属性值）可能包含术语——修改前确认这些值是否被 JS 逻辑引用。
 
+## 执行流程
+
+1. 预检——确认代码豁免边界，锚点映射
+2. 若只读模式 → 产出核查报告即可
+3. 若写盘模式 → 输出 `### Blueprint` → 工具调用获取授权
+4. 执行最小编辑——去数字前缀、修称谓、保结构
+5. 完成校验：无语义漂移、无代码豁免违规、锚点有效、改动精准
+
+## 输出模板
+
+```markdown
 ### Blueprint
-- Goal
-- Scope
-- Planned files
-- Edit strategy
-- Risks
-- Rollback points
+- 目标: ...
+- 编辑策略: ...
+- 风险: ...
+- 回滚点: ...
+- 完成校验: ...
 
-### Authorization Request
-/ask 是否批准按上述 Blueprint 执行修改？
-
-### Execution Result
-- Changed files
-- Key actions
-- Result
-- Risks
-- Rollback points
-- Validation checks
-
-### Log Summary (only when substantive changes exist)
-- Changed files
-- Key actions
-- Result
-- Risks
-- Rollback points
-
-### Auto Handoff to 档案馆 (execution departments only)
-@档案馆 请基于以上日志摘要生成当月日志草稿，并使用 /ask 请求写入授权。
-
-## Guardrails
-- Never fabricate findings.
-- Never bypass interactive authorization.
-- Never perform silent writes.
-- Never trigger cross-department calls except the constitutional exception to 起居院 after substantive execution changes.
-
-## References
-- [System Constitution](../../copilot-instructions.md)
+### 执行结果
+- 变更文件: ...
+- 关键动作: ...
+- 结果: ...
+- 校验通过项: ...
+```

@@ -1,92 +1,48 @@
 ---
 name: experience-distiller
-description: 'Distill reusable lessons from unresolved execution logs. Use when scanning entries tagged [经验蒸馏: 否], generating a distillation blueprint, and updating both experience notes and log tags after /ask approval.'
-argument-hint: '扫描范围、提炼主题、候选条目策略、输出粒度'
-user-invocable: true
+description: 从标记 [经验蒸馏: 否] 的执行日志中提炼高价值可复用经验，更新经验沉淀文档并回写日志标记完成闭环。适用场景：月底批量蒸馏、跨月积压清理。
+context: fork
 ---
 
-# Experience Distiller Workflow / 经验蒸馏工作流
+# 经验蒸馏工作流
 
-## Purpose / 目标
-Extract high-value reusable practices from unresolved execution logs and close the loop by updating both experience notes and log tags.
-从未蒸馏执行日志中提炼高价值可复用经验，并通过更新经验沉淀与日志标记完成闭环。
+## 目标
 
-## When To Use / 适用场景
-- Need to process logs tagged [经验蒸馏: 否].
-- Need reusable rules from repeated issues and decisions.
-- Need cross-month backlog cleanup for distillation tags.
-- 需要处理带有 [经验蒸馏: 否] 标记的日志条目。
-- 需要从重复问题和决策中沉淀可复用规则。
-- 需要跨月清理未蒸馏积压条目。
+从执行日志中提取可复用的实践经验，沉淀到 `content/insights/党支部管理与实务经验沉淀.md`，并回写日志标记 `[经验蒸馏: 否]` → `[经验蒸馏: 是]`。
 
-## Required Inputs / 输入项
-- Log scan scope (month range or all pending).
-- Distillation focus (topic or workflow).
-- Preferred report depth.
-- Optional cap for candidates per run.
-- 日志扫描范围（按月份或全部待处理）。
-- 提炼主题（专题或流程）。
-- 报告粒度（摘要或详细）。
-- 单次候选上限（可选）。
+## 输入项
 
-## Decision Points / 决策分支
-1. Candidate branch:
-   - Scan only entries tagged [经验蒸馏: 否].
-   - Prioritize by high impact plus high reusability.
-2. Scope branch:
-   - Single-month distillation when explicitly scoped.
-   - Cross-month batch distillation when backlog cleanup is requested.
-3. Write branch:
-   - Phase 1: blueprint only, no write.
-   - Phase 2: write only after /ask approval.
-   - Writing may reorganize historical sections by theme when needed.
-4. Tag update branch:
-   - Update log tags per processed item immediately after that item is written successfully.
-5. Agent chain fuse:
-   - If this operation would involve a 4th allowed agent in one session, stop and require user text 确认.
+- **扫描范围**：月范围或"全部待处理"
+- **提炼主题**：可选专题聚焦
+- **单次候选上限**（可选）
 
-## Procedure / 执行流程
-1. Scan pending logs.
-   - Parse .vibe_context/logs/ for entries tagged [经验蒸馏: 否].
-2. Build candidate matrix.
-   - Score each candidate by impact, reusability, and clarity of evidence.
-3. Output Phase 1 blueprint.
-   - Provide candidate list, distilled themes, target output sections, risk notes, and rollback plan.
-4. Request authorization.
-   - Trigger /ask before any write action.
-5. Execute Phase 2 on approval.
-   - Write distilled content to docs/党支部管理与实务经验沉淀.md, allowing thematic restructuring of historical sections.
-   - For each successfully written item, immediately update its log tag to [经验蒸馏: 是], including cross-month files if approved scope includes them.
-6. Validate closure.
-   - Ensure every updated tag has matching distilled output.
-   - Keep unprocessed candidates unchanged.
-   - Return processed and pending lists.
+## Gotchas
 
-## Output Contract / 输出契约
-### Distillation Blueprint / 提炼蓝图
-- Scan Scope / 扫描范围
-- Candidate Entries / 候选条目
-- Distillation Themes / 提炼主题
-- Common Patterns / 共性模式
-- Target File / 目标文件
-- Risks and Rollback / 风险与回滚
+- **"两阶段"熔断不可跳跃**：Phase 1 只能输出蓝图（只读，无写盘），Phase 2 必须**独立获取授权后才执行**。严禁将两条 `/ask` 合并为一条。
+- **先写沉淀后改标签**：必须先成功写入经验沉淀，再回写日志标记。若沉淀写入失败，日志标记必须保持 `[经验蒸馏: 否]`。
+- 跨月回写时，必须确认目标月份日志文件存在且可写入。
 
-### Authorization Request / 授权请求
-/ask 是否批准按上述提炼蓝图执行更新？
+## 执行流程
 
-### Execution Result / 执行结果
-- Updated Files / 更新文件
-- New Distilled Items / 新增经验条目
-- Updated Log Tags / 已回写日志标记
-- Pending Items / 未处理项
-- Risks and Notes / 风险与说明
+1. **Phase 1（只读）**：扫描待蒸馏日志 → 构建候选矩阵（按影响×可复用性评分） → 输出提炼蓝图（候选列表 + 主题 + 目标章节 + 风险/回滚）
+2. 工具调用获取 Phase 1 授权
+3. **Phase 2（写盘）**：写入经验沉淀文档（允许按主题重组历史章节） → 逐条回写日志标记 → 输出已处理/未处理清单
+4. 闭环校验：每条已写沉淀均有对应标记回写，未处理条目保持原状
 
-## Guardrails / 护栏
-- Never write before /ask approval.
-- Never update an item tag before that item write succeeds.
-- Never modify log entries outside approved scope.
-- Never cross-invoke other agents from this workflow (except 档案馆 for log routing when required by the constitutional chain).
+## 输出模板
 
-## Reference
-- System Constitution: ../../copilot-instructions.md
-- Related Agent: @社科院 (负责经验蒸馏与实务沉淀)
+```markdown
+### 提炼蓝图（Phase 1）
+- 扫描范围: ...
+- 候选条目: N 条
+- 提炼主题: ...
+- 共性模式: ...
+- 目标文件: content/insights/党支部管理与实务经验沉淀.md
+- 风险/回滚: ...
+
+### 执行结果（Phase 2）
+- 更新文件: content/insights/党支部管理与实务经验沉淀.md
+- 新增经验条目: ...（逐条列出）
+- 已回写标签: N→N（逐月列出）
+- 未处理项: ...（原因说明）
+```

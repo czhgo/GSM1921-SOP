@@ -1,6 +1,6 @@
-> 🗺️ **全局文档路由**: 了解本目录在全站的定位，请参阅 [DOCUMENTATION_MAP.md](../docs/DOCUMENTATION_MAP.md)
+> 🗺️ **全局文档路由**: 了解本目录在全站的定位，请参阅 [DOCUMENTATION_MAP.md](../content/guides/DOCUMENTATION_MAP.md)
 
-# 参考资料/
+# content/references/
 
 本目录存放原始官方文件与会议记录（Read-only official external references and meeting minutes）。
 

@@ -11,7 +11,7 @@ status: active
 related_files:
   - "流程指南/常见工作场景快速指南.md"
   - "index.html"
-  - ".vibe_context/WORKFLOW_MASTER.md"
+  - ".ctx/WORKFLOW_MASTER.md"
 ---
 
 # SOP 数据映射与同步指南
