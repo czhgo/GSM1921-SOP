@@ -6,6 +6,7 @@ audience:
   - 所有支委
   - 活动组织者
 owner: "储子禾"
+role: "[人]"
 last_updated: "2026-02-21"
 version: "1.0"
 status: active

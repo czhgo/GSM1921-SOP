@@ -1,4 +1,5 @@
 ---
+role: "[AI]"
 name: experience-distiller
 description: 从标记 [经验蒸馏: 否] 的执行日志中提炼高价值可复用经验，更新经验沉淀文档并回写日志标记完成闭环。适用场景：月底批量蒸馏、跨月积压清理。
 context: fork

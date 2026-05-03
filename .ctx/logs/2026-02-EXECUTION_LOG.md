@@ -2,6 +2,7 @@
 title: "Agent Execution Ledger — 2026年02月（已归档）"
 type: log
 owner: "储子禾"
+role: "[人机]"
 last_updated: "2026-02-28"
 version: "1.0"
 status: archived

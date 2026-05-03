@@ -1,4 +1,5 @@
 ---
+role: "[AI]"
 name: ui-verifier
 description: 对 index.html 及关联脚本执行只读交互质量审计，产出含评分卡和修复优先级的问题清单。适用场景：UI 改动前的交互闭环验证、可访问性诊断。
 context: fork

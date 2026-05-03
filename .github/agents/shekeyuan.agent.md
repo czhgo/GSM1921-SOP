@@ -1,4 +1,5 @@
 ---
+role: "[AI]"
 name: "社科院"
 description: "Org OS 社科院 Agent"
 tools: ['read', 'edit', 'search']

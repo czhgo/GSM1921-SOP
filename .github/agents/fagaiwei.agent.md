@@ -1,4 +1,5 @@
 ---
+role: "[AI]"
 name: "发改委"
 description: "Org OS 发改委 Agent"
 tools: ['read', 'agent', 'edit', 'search']

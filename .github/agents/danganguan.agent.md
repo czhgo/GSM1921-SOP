@@ -1,4 +1,5 @@
 ---
+role: "[AI]"
 name: "档案馆"
 description: "Org OS 档案馆 Agent"
 tools: ['read', 'edit', 'search']

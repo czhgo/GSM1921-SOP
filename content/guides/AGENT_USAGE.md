@@ -1,3 +1,7 @@
+---
+role: "[人机]"
+---
+
 # Org OS Agent 操作指南
 
 > 10 Agent 治理集群使用手册 | last_updated: 2026-05-01 | 类型: [人机]

@@ -1,4 +1,5 @@
 ---
+role: "[AI]"
 name: data-inspector
 description: 对 sopData.js 执行只读结构与语义核查，产出闭合性/字典一致性诊断报告。适用场景：代码改动前的数据健康检查、字典漂移检测。
 context: fork

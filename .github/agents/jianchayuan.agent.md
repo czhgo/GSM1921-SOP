@@ -1,4 +1,5 @@
 ---
+role: "[AI]"
 name: "检察院"
 description: "Org OS 检察院 Agent"
 tools: ['read', 'search']

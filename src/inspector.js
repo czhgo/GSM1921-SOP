@@ -1,3 +1,4 @@
+// role: [人机]
 // ════════════════════════════════════════════════════════════════
 //  inspector.js — 右侧检查器面板渲染逻辑
 //  包含：filterTasksByManagementRole, renderInspectorFromState,
@@ -18,8 +19,8 @@ export function filterTasksByManagementRole(tasks, managementRole) {
   return tasks.filter(t => {
     const ex  = t.executor  || '';
     const sup = t.supervisor || '';
-    if (managementRole === 'commissioner') {
-      return COMMISSIONER_ROLES.has(ex) || COMMISSIONER_ROLES.has(sup);
+    if (managementRole === 'org-commissioner' || managementRole === 'prop-commissioner' || managementRole === 'disc-commissioner') {
+      return COMMISSIONER_ROLES.has(ex) || COMMISSIONER_ROLES.has(sup) || ex === managementRole || sup === managementRole;
     }
     return ex === managementRole || sup === managementRole;
   });
@@ -201,6 +202,21 @@ export function renderInspectorDetail(activity, tasks, managementRole) {
     + ' flex items-center gap-1 transition-colors"'
     + ' style="background:none;border:none;cursor:pointer;padding:0;">'
     + '← 返回列表</button>';
+
+  const mgrLabels = {
+    'org-commissioner': '组织委员',
+    'prop-commissioner': '宣传委员',
+    'disc-commissioner': '纪检委员',
+    secretary: '党支书',
+    organizer: '组织者',
+    deep: '深度参与者',
+    leader: '党小组组长',
+  };
+  const mgrLabel = mgrLabels[managementRole] || managementRole;
+  const mgrTheme = ROLE_THEME_CLASS[managementRole] || '';
+  if (managementRole && managementRole !== 'participant') {
+    html += `<div class="inspector-role-banner ${mgrTheme}"><span class="font-title-cn">${mgrLabel}</span> 管理视图</div>`;
+  }
 
   html += '<div class="flex items-center gap-1.5 flex-wrap mb-3">';
   html += `<span class="badge-time">${statusMap[activity.status] || activity.status}</span>`;

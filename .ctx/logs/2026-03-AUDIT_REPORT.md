@@ -2,6 +2,7 @@
 title: "静态代码审计报告 — 活动全生命周期逻辑 & 视图语义验证"
 type: audit_report
 owner: "Copilot QA Agent"
+role: "[人机]"
 date: "2026-03-23"
 status: final
 scenarios: ["meta_audit.md"]

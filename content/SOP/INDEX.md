@@ -1,3 +1,7 @@
+---
+role: "[人机]"
+---
+
 ## SOP Navigation
 
 | SOP 文档 | 用途 | 责任人 | 关联 Schema 字段 |

@@ -1,3 +1,4 @@
+// role: [人机]
 // ════════════════════════════════════════════════════════════════
 //  calendar.js — 日历渲染引擎
 //  包含：renderCalendarByActivities, populateMonthSelector
@@ -5,7 +6,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { getAppState, setState } from './state.js';
-import { ROLE_COLORS } from './constants.js';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS } from './constants.js';
 import { _fmtDate, _currentYearMonth } from './utils.js';
 import { filterTasksByManagementRole } from './inspector.js';
 
@@ -31,11 +32,14 @@ export function renderCalendarByActivities(state, targetMonth) {
   // ── 空状态拦截：若没有任何未归档活动，渲染引导提示 ──────────────
   if (activeActivities.length === 0) {
     grid.classList.add('hidden');
-    if (empty) {
-      empty.classList.remove('hidden');
-    }
+    if (empty) empty.classList.remove('hidden');
+    const legend = document.getElementById('calendar-legend');
+    if (legend) legend.classList.add('hidden');
     return;
   }
+
+  // ── 图例渲染 ──────────────────────────────────────────────────
+  _renderLegend(activeActivities);
 
   // 未归档活动 → 活动日期集合（当月）
   const actDates = new Set(
@@ -84,12 +88,15 @@ export function renderCalendarByActivities(state, targetMonth) {
     html += `<div class="${cls}" data-date="${k}">`;
     html += `<div class="font-stheiti text-[11px] font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${day}</div>`;
     if (viewType === 'participant') {
-      // 参与者视图：具象文本标签，彻底告别抽象圆点
+      // 参与者视图：按活动类型着色，彻底告别灰色
       const dayActs = activeActivities.filter(a => a.date === k);
-      dayActs.slice(0, 3).forEach(act => {
-        html += `<div class="text-[10px] truncate px-1 py-0.5 rounded mb-1 bg-gray-100 text-gray-700 border border-gray-200" title="${act.title}">${act.title}</div>`;
+      dayActs.slice(0, 4).forEach(act => {
+        const color = getActivityColor(act);
+        html += `<div class="cal-activity-tag" style="background:${color.bg};color:${color.text};border:1px solid ${color.border};" title="${act.title || ''}">` +
+                `<span class="cal-activity-dot" style="background:${color.text};"></span>` +
+                `<span class="truncate">${act.title || ''}</span></div>`;
       });
-      if (dayActs.length > 3) html += `<div class="font-stheiti text-[10px] text-gray-400 text-center">+${dayActs.length - 3} 项活动</div>`;
+      if (dayActs.length > 4) html += `<div class="font-stheiti text-[9px] text-gray-400 text-center mt-0.5">+${dayActs.length - 4} 项活动</div>`;
     } else {
       // 管理视图：角色点阵 + 任务透视 + 四色视觉联动
       if (hasActivity) {
@@ -194,4 +201,49 @@ export function populateMonthSelector(activities) {
   }
 
   return sel.value || appState.displayMonth || currentMonth;
+}
+
+function _renderLegend(activeActivities) {
+  const legend = document.getElementById('calendar-legend');
+  const items  = document.getElementById('legend-items');
+  if (!legend || !items) return;
+
+  const usedCategories = new Set();
+  activeActivities.forEach(a => {
+    const color = getActivityColor(a);
+    if (color && color !== ACTIVITY_CATEGORY_COLORS.default) {
+      usedCategories.add(color.text);
+    }
+  });
+
+  const seen = new Set();
+  const entries = [];
+  for (const [key, color] of Object.entries(ACTIVITY_CATEGORY_COLORS)) {
+    if (key === 'default') continue;
+    if (usedCategories.size > 0 && !usedCategories.has(color.text)) continue;
+    if (seen.has(color.text)) continue;
+    seen.add(color.text);
+    entries.push({ key, label: ACTIVITY_TYPE_LABELS[key] || key, color });
+  }
+
+  if (entries.length === 0) {
+    legend.classList.add('hidden');
+    return;
+  }
+
+  legend.classList.remove('hidden');
+  items.innerHTML = entries.map(e =>
+    `<div class="legend-item">
+      <span class="legend-swatch" style="background-color:${e.color.text};opacity:0.85;"></span>
+      <span class="legend-label">${e.label}</span>
+    </div>`
+  ).join('');
+
+  const toggleBtn = document.getElementById('toggle-legend-btn');
+  if (toggleBtn) {
+    toggleBtn.onclick = () => {
+      items.classList.toggle('hidden');
+      toggleBtn.textContent = items.classList.contains('hidden') ? '展开' : '收起';
+    };
+  }
 }

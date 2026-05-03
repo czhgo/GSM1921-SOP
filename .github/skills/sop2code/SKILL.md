@@ -1,4 +1,5 @@
 ---
+role: "[AI]"
 name: sop2code
 description: 将文本 SOP 设计图转化为 src/workflow/ 下的代码逻辑，保持 SSOT 溯源与双向一致性。适用场景：SOP 制度文本→流程代码转化、content/SOP/ 变更→代码同步。
 ---

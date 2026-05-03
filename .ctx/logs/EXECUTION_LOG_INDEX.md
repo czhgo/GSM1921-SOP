@@ -2,7 +2,8 @@
 title: "Agent Execution Ledger — Index & Redirect"
 type: log_index
 owner: "Org OS Agent 集群"
-last_updated: "2026-05-01"
+role: "[人机]"
+last_updated: "2026-05-02"
 status: active
 ---
 
@@ -14,10 +15,10 @@ status: active
 
 | 月份 | 文件路径 | 状态 |
 |------|---------|------|
-| 2026年02月 | `.vibe_context/logs/2026-02-EXECUTION_LOG.md` | ✅ 已归档 |
-| 2026年03月 | `.vibe_context/logs/2026-03-EXECUTION_LOG.md` | ✅ 已归档 |
-| 2026年04月 | `.vibe_context/logs/2026-04-EXECUTION_LOG.md` | ✅ 已归档 |
-| 2026年05月 | `.vibe_context/logs/2026-05-EXECUTION_LOG.md` | 📝 活跃（当前月份） |
+| 2026年02月 | `.ctx/logs/2026-02-EXECUTION_LOG.md` | ✅ 已归档 |
+| 2026年03月 | `.ctx/logs/2026-03-EXECUTION_LOG.md` | ✅ 已归档 |
+| 2026年04月 | `.ctx/logs/2026-04-EXECUTION_LOG.md` | ✅ 已归档 |
+| 2026年05月 | `.ctx/logs/2026-05-EXECUTION_LOG.md` | 📝 活跃（当前月份） |
 
 ## 轮转规则
 

@@ -1,4 +1,5 @@
 ---
+role: "[AI]"
 name: log-recorder
 description: 将执行部门的变更摘要以 append-only 方式写入当月执行日志，自动路由到 .ctx/logs/YYYY-MM-EXECUTION_LOG.md。适用场景：实质性改动后的日志记录、月度归档。
 ---

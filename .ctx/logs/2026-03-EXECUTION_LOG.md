@@ -2,6 +2,7 @@
 title: "Agent Execution Ledger — 2026年03月"
 type: log
 owner: "储子禾"
+role: "[人机]"
 last_updated: "2026-03-02"
 version: "1.8"
 status: active

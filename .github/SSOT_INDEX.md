@@ -1,3 +1,7 @@
+---
+role: "[AI]"
+---
+
 # .github/SSOT_INDEX.md
 
 ## 绝对母本参考图

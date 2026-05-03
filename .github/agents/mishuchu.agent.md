@@ -1,4 +1,5 @@
 ---
+role: "[AI]"
 name: "秘书处"
 description: "Org OS 秘书处 Agent"
 tools: ['read', 'search']

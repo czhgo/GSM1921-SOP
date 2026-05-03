@@ -5,6 +5,7 @@ audience:
   - 宣传委员
   - 宣传骨干
 owner: "储子禾"
+role: "[人]"
 last_updated: "2026-02-21"
 version: "1.0"
 status: active

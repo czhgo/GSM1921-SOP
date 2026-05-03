@@ -1,4 +1,5 @@
 ---
+role: "[AI]"
 name: audit-report
 description: 对指定范围执行只读治理/安全审计，产出含风险分级和证据链的问题清单。适用场景：改动前的合规审查、结构化问题输出、风险优先级排序。
 context: fork

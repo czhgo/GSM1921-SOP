@@ -1,3 +1,4 @@
+// role: [人机]
 // ════════════════════════════════════════════════════════════════
 //  main.js — 极简入口 (Slim Entry Point)
 //  光华管理学院本科生党支部 SOP 引擎 v10.0
@@ -12,6 +13,8 @@ import { populateMonthSelector, renderCalendarByActivities } from './calendar.js
 import { renderInspectorFromState } from './inspector.js';
 import { setupEventListeners, populateActivitySelector } from './events.js';
 import { instantiateSOP } from './workflow/index.js';
+import { PartyModule } from './party.js';
+import { ReferencesModule } from './references.js';
 
 // ════════════════════════════════════════════════════════════════
 //  renderUI — 主渲染函数，由 setState 唯一触发
@@ -27,14 +30,10 @@ function renderUI(state) {
 
   // ── 统一角色菜单显示/隐藏逻辑 ────────────────────────────────
   const roleMenu = document.getElementById('sidebar-role-menu');
-  const tplMenu = document.getElementById('sidebar-templates-menu');
   
-  // 角色菜单在推演工作台和参考指南中显示，模板与资产中隐藏
+  // 角色菜单在推演工作台和参考指南中显示，模板与资产和党务管理中隐藏
   if (roleMenu) {
     roleMenu.classList.toggle('hidden', activeModule !== 'calendar' && activeModule !== 'reference');
-  }
-  if (tplMenu) {
-    tplMenu.classList.toggle('hidden', activeModule !== 'templates');
   }
 
   // ── 参与视图、全局视图和归档库显示逻辑 ──────────────────────
@@ -55,8 +54,9 @@ function renderUI(state) {
   // ── 主内容区模块切换（带过渡动画）───────────────────────────────
   const viewRef = document.getElementById('view-reference');
   const viewCal = document.getElementById('view-calendar');
-  const viewTpl = document.getElementById('view-templates');
-  const views = [viewRef, viewCal, viewTpl];
+  const viewParty = document.getElementById('view-party');
+  const viewSearch = document.getElementById('view-search');
+  const views = [viewRef, viewCal, viewParty, viewSearch];
   
   views.forEach(view => {
     if (!view) return;
@@ -117,6 +117,18 @@ function renderUI(state) {
     return;
   }
 
+  // ── 党务管理模块：角色判定 + 面板切换 ──────────────────────
+  if (activeModule === 'party') {
+    PartyModule.renderCommissionerPanel();
+    return;
+  }
+
+  // ── 资料查询模块：网站群 + 资料列表 ────────────────────────
+  if (activeModule === 'search') {
+    ReferencesModule.render();
+    return;
+  }
+
   // ── 以下仅参考指南模块需要 ─────────────────────────────────
   if (activeModule !== 'reference') return;
 
@@ -166,6 +178,7 @@ const pill = document.getElementById('status-pill');
 if (pill) pill.classList.remove('hidden');
 
 setupEventListeners();
+ReferencesModule.init();
 
 // ════════════════════════════════════════════════════════════════
 //  initApp — 加载持久化数据 → 并发拉取 Activities + Tasks → renderUI

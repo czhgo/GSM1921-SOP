@@ -1,6 +1,10 @@
+---
+role: "[AI]"
+---
+
 # AI Context — 快速同步入口
 
-> last_updated: 2026-05-02 | 类型: [AI] | 由 copilot-instructions.md 自动指针引导读取
+> last_updated: 2026-05-03 | 类型: [AI] | 由 copilot-instructions.md 自动指针引导读取
 > 详细架构见 [ARCHITECTURE.md](../ARCHITECTURE.md) | 待办见 [ROADMAP.md](../ROADMAP.md)
 
 ---
@@ -47,14 +51,68 @@ UI              index.html                 静态入口
 
 ## 4. 当前状态
 
-**系统模式**: Stable/Release v3.0
-**活跃快照**: .ctx/SNAPSHOT.md
+**活跃快照**: .ctx/SNAPSHOT.md (v3)
+**Snapshot 归档**: .ctx/snapshots/ (历史版本，见 INDEX.md)
+**详细待办**: 见 [ROADMAP.md](../ROADMAP.md) §C
 
-| 类别 | 数量 |
-|------|------|
-| 待办修改项 | 1（见 ROADMAP.md §五） |
-| 暂缓议题 | 1（H3，见 ROADMAP.md §六） |
-| 监控项 | 0（全部已解决） |
+> ⚠️ 快照按需生成（里程碑/用户触发/阶段收官），非每次执行更新。日常变更记录于 DECISION_LOG + EXECUTION_LOG。
+
+---
+
+## 8. 会话交接协议（Context Continuity）
+
+> **问题**：AI 会话上下文窗口有限，会话重启后全部任务进度和设计决策丢失。
+> **目标**：确保任何新会话能在 30 秒内恢复到上一会话的精确断点。
+
+### 8.1 上下文丢失场景分析
+
+| 场景 | 触发条件 | 影响范围 | 严重度 |
+|------|---------|---------|--------|
+| 会话重启 | 上下文窗口满/IDE重启/新会话启动 | 全部任务进度、设计决策、代码修改上下文 | 🔴 严重 |
+| 长任务中断 | 对话超出上下文窗口容量 | 当前任务前半段上下文丢失 | 🟡 中等 |
+| 跨日继续 | 用户隔天继续工作 | 无法知道上次断点 | 🟡 中等 |
+| 方向变更 | 用户在会话中改变需求方向 | 旧方向的设计决策与新方向混淆 | 🟠 较低 |
+
+### 8.2 会话状态捕获规则
+
+**每次会话结束前（或长任务中途），AI 必须更新本节 §8.3**：
+
+1. 记录当前任务清单及完成状态
+2. 记录本会话修改的文件列表
+3. 记录关键设计决策（一句话摘要）
+4. 记录下一步待办（精确到文件+行号）
+5. 标记未解决的阻塞项
+
+### 8.3 最近会话状态
+
+**会话日期**: 2026-05-03（第4轮+修正）
+**会话目标**: 
+1. 用户3项任务（系统性经验沉淀 + 文档精简约简 + 侧边栏bug修复）
+2. **紧急修正**: 经验沉淀逻辑错配，从 `.github/copilot-instructions.md` 迁移到 `content/insights/党支部管理与实务经验沉淀.md`
+
+| 任务 | 状态 | 关键产出 |
+|------|------|---------|
+| T1: 系统性经验蒸馏 | ✅ 完成 | insights §1.5-§1.6-§2.3-§3.6 (~90行)：三大理论创新(四维度框架/写入机制/多维表格) + 6项设计模式 + 上下文连续性方案 + 4条经验教训 |
+| T1修正: 经验沉淀迁移 | ✅ 完成 | 从 copilot-instructions.md 完整移除错误添加的经验沉淀章节，经验内容正确归入 content/insights/ 人类文档 |
+| T2: 文档精简约简 | ✅ 完成 | ROADMAP §C1.1.7/§C1.1.9/§C1.2/§C1.7/§C2/常为新原则 6处精简(~40行净减)；DESIGN_SYSTEM.md 模板→资料查询；ORGANIZATION_BUILDING_MODULE/COMMISSIONER_ORGANIZATION_ROLE last_updated更新 |
+| T3: 侧边栏bug修复 | ✅ 完成 | events.js: commissioner-group分支开头添加 closeSidebar() 调用，修复点击条条支委后侧边栏不收回的bug |
+
+**本会话修改文件**:
+- `content/insights/党支部管理与实务经验沉淀.md`: 新增§1.5/§1.6/§2.3/§3.6，版本 v3.0→v3.1，last_updated: 2026-05-03
+- `.github/copilot-instructions.md`: 删除错误添加的经验沉淀章节 (~70行)
+- `ROADMAP.md`: 6处精简约简（~40行净减）
+- `src/events.js`: 侧边栏bug修复（+1行 closeSidebar()）
+- `content/guides/DESIGN_SYSTEM.md`: 模板与资产→资料查询
+- `content/guides/ORGANIZATION_BUILDING_MODULE.md`: last_updated更新
+- `content/guides/COMMISSIONER_ORGANIZATION_ROLE.md`: last_updated更新
+- `.ctx/CONTEXT.md`: §8.3本条目
+
+**下一步待办** (三步走):
+1. 第一步: C1.1.7 补全 (activity-type-input读取写入 + duration/direction维度 + 赋权持久化 + 先赋权再写入校验)
+2. 第二步: C1.1.8 党支书全视图 (书记面板 + 独占操作 + 全局切换 + 赋权增强)
+3. 第三步: C1.5 DESIGN-OPT Phase D1 (:root四层色盘 + Tailwind对齐 + body重写 + 排版工具类)
+
+**未解决阻塞项**: 无
 
 ---
 

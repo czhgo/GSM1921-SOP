@@ -1,4 +1,5 @@
 ---
+role: "[AI]"
 name: anchor-fixer
 description: 安全修复 Markdown 锚点跳转失效——标题锚点与链接片段不一致、标题规范化后的锚点漂移。适用场景：文档内跳转链接失效修复、标题变更后的锚点同步。
 ---

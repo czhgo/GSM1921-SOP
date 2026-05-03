@@ -1,4 +1,5 @@
 ---
+role: "[AI]"
 name: sop-sync
 description: 在保持 Markdown 结构完整的前提下，将 SOP 内容从源文档同步到目标文档。适用场景：多个 SOP 文档章节对齐、制度文本批量更新。
 ---

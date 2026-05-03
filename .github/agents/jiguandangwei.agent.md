@@ -1,4 +1,5 @@
 ---
+role: "[AI]"
 name: "机关党委"
 description: "Org OS 机关党委 Agent"
 tools: ['read', 'agent', 'edit', 'search']

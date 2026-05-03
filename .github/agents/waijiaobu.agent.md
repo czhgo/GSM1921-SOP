@@ -1,4 +1,5 @@
 ---
+role: "[AI]"
 name: "外交部"
 description: "Org OS 外交部 Agent"
 tools: ['read', 'agent', 'edit', 'search']

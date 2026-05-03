@@ -1,3 +1,4 @@
+// role: [人机]
 // ════════════════════════════════════════════════════════════════
 //  events.js — DOM 事件绑定与推演工作台控制台初始化
 //  对外暴露 setupEventListeners()，由 main.js 在启动时调用
@@ -7,6 +8,7 @@ import { getAppState, setState, STATE } from './state.js';
 import { _fmtDate, showToast } from './utils.js';
 import { instantiateSOP } from './workflow/index.js';
 import { BranchService } from './service.runtime.js';
+import { PartyModule } from './party.js';
 
 // ── 防竞态：当前请求 ID（模块私有）────────────────────────────
 let _currentRequestId = 0;
@@ -220,6 +222,10 @@ export function setupEventListeners() {
         setState({ activeModule: targetModule, selectedRole: 'global', viewArchived: false });
       } else if (targetModule === 'calendar') {
         setState({ activeModule: targetModule, selectedRole: 'participant', viewArchived: false });
+      } else if (targetModule === 'party') {
+        setState({ activeModule: targetModule, selectedRole: getAppState().selectedRole || 'participant' });
+      } else if (targetModule === 'search') {
+        setState({ activeModule: 'search' });
       } else {
         setState({ activeModule: targetModule });
       }
@@ -240,15 +246,28 @@ export function setupEventListeners() {
     roleMenu.querySelectorAll('[data-role]').forEach(btn => {
       btn.addEventListener('click', () => {
         const r = btn.dataset.role;
+
+        if (r === 'commissioner-group') {
+          const modal = document.getElementById('commissioner-modal');
+          closeSidebar();
+          if (modal) {
+            const isHidden = modal.classList.contains('hidden');
+            if (!isHidden) {
+              modal.classList.add('hidden');
+              return;
+            }
+            modal.classList.remove('hidden');
+          }
+          return;
+        }
+
         if (r === 'archived') {
-          // 归档库：特殊处理
           setState({
             viewArchived:      true,
             viewMode:          'list',
             selectedActivityId: null,
           });
         } else if (r === 'participant') {
-          // 参与视图：设置selectedRole为participant，自动推导viewType为participant，role为all
           setState({
             selectedRole:      'participant',
             viewArchived:      false,
@@ -256,7 +275,6 @@ export function setupEventListeners() {
             selectedActivityId: null,
           });
         } else {
-          // 管理视图角色：设置selectedRole为对应角色，自动推导viewType为manager，role为对应角色
           setState({
             selectedRole:      r,
             viewArchived:      false,
@@ -264,6 +282,8 @@ export function setupEventListeners() {
             selectedActivityId: null,
           });
         }
+
+        _updateManagerVisibility();
         closeSidebar();
       });
     });
@@ -310,4 +330,127 @@ export function setupEventListeners() {
 
   // ── 推演工作台控制台 ─────────────────────────────────────────
   _initCalendarModule();
+
+  // ── 党务管理：支委面板子 tab 切换 ─────────────────────────────
+  document.querySelectorAll('.commissioner-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const panel = tab.closest('.commissioner-panel');
+      if (!panel) return;
+      const commissioner = panel.dataset.commissioner;
+      const subtab = tab.dataset.subtab;
+      if (commissioner && subtab) {
+        PartyModule.switchSubTab(commissioner, subtab);
+      }
+    });
+  });
+
+  // ── 党务管理：刷新按钮 ───────────────────────────────────────
+  const refreshBtn = document.getElementById('btn-party-refresh');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      PartyModule.refreshAll();
+    });
+  }
+
+  // ── 党务管理：初始化 Mock 数据 ───────────────────────────────
+  PartyModule.loadAll();
+
+  // ── 管理视图控制 + 赋权面板 ─────────────────────────────────
+  _initManagerControls();
+}
+
+// ════════════════════════════════════════════════════════════════
+//  管理视图控制 + 赋权面板
+// ════════════════════════════════════════════════════════════════
+
+const assignedRoles = [];
+
+function _initManagerControls() {
+  // 管理视图显示控制
+  _updateManagerVisibility();
+
+  // 赋权面板开关
+  const openBtn = document.getElementById('open-assign-panel-btn');
+  const modal = document.getElementById('assign-modal');
+  const closeBtn = document.getElementById('close-assign-modal-btn');
+  const cancelBtn = document.getElementById('cancel-assign-btn');
+  const confirmBtn = document.getElementById('confirm-assign-btn');
+
+  if (openBtn) openBtn.addEventListener('click', () => { modal.classList.remove('hidden'); _renderAssignedList(); });
+  if (closeBtn) closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+  if (cancelBtn) cancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
+
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', () => {
+      const name = document.getElementById('assign-name-input').value.trim();
+      const role = document.getElementById('assign-role-input').value;
+      const activity = document.getElementById('assign-activity-input').value.trim();
+      if (!name) return;
+
+      assignedRoles.push({ name, role, activity, assignedAt: new Date().toISOString() });
+
+      const msg = document.getElementById('assign-success-msg');
+      msg.classList.remove('hidden');
+      setTimeout(() => msg.classList.add('hidden'), 2000);
+
+      document.getElementById('assign-name-input').value = '';
+      document.getElementById('assign-activity-input').value = '';
+      _renderAssignedList();
+    });
+  }
+
+  const commModal = document.getElementById('commissioner-modal');
+  const commCloseBtn = document.getElementById('close-commissioner-modal-btn');
+  if (commCloseBtn) commCloseBtn.addEventListener('click', () => commModal.classList.add('hidden'));
+  if (commModal) {
+    commModal.addEventListener('click', (e) => {
+      if (e.target === commModal) commModal.classList.add('hidden');
+    });
+    commModal.querySelectorAll('.comm-modal-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const role = opt.dataset.role;
+        setState({
+          selectedRole: role,
+          viewArchived: false,
+          viewMode: 'list',
+          selectedActivityId: null,
+        });
+        commModal.classList.add('hidden');
+        _updateManagerVisibility();
+        closeSidebar();
+      });
+    });
+  }
+}
+
+function _updateManagerVisibility() {
+  const state = getAppState();
+  const isManager = state.viewType === 'manager';
+  const controls = document.getElementById('manager-only-controls');
+  if (controls) {
+    controls.classList.toggle('hidden', !isManager);
+  }
+}
+
+function _renderAssignedList() {
+  const list = document.getElementById('assigned-list');
+  if (!list) return;
+  if (assignedRoles.length === 0) {
+    list.innerHTML = '<div class="text-xs text-gray-400 text-center py-2">暂无赋权记录</div>';
+    return;
+  }
+  list.innerHTML = assignedRoles.map((a, i) => {
+    const roleLabel = a.role === 'organizer' ? '组织者' : '深度参与者';
+    return `<div class="flex items-center justify-between p-2 rounded-lg" style="background:var(--neutral-50);border:1px solid var(--neutral-200);">
+      <div><span class="text-sm font-medium text-gray-700">${a.name}</span> <span class="text-xs text-gray-400">${roleLabel}</span></div>
+      <button class="text-xs text-red-400 hover:text-red-600" data-revoke="${i}" style="background:none;border:none;cursor:pointer;">撤销</button>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('[data-revoke]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      assignedRoles.splice(parseInt(btn.dataset.revoke), 1);
+      _renderAssignedList();
+    });
+  });
 }

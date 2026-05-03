@@ -1,4 +1,5 @@
 ---
+role: "[AI]"
 name: "司法部"
 description: "Org OS 司法部 Agent"
 tools: ['read', 'agent', 'edit', 'search']

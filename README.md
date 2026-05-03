@@ -7,6 +7,7 @@ audience:
   - 党小组组长
   - 开源贡献者
 owner: "储子禾"
+role: "[人]"
 last_updated: "2026-05-02"
 status: active
 ---

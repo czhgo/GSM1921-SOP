@@ -1,4 +1,5 @@
 ---
+role: "[AI]"
 name: yaml-slim
 description: 安全精简 Markdown 前言区（frontmatter）——移除 last_updated 等冗余元数据字段，保留 version。适用场景：发布前的元数据规范化、批量清理。
 ---

@@ -1,4 +1,5 @@
 ---
+role: "[AI]"
 name: "工信部"
 description: "Org OS 工信部 Agent"
 tools: ['read', 'agent', 'edit', 'search']
