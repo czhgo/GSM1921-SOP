@@ -1,0 +1,89 @@
+﻿﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>光华管理学院本科生党支部管理引擎</title>
+  <meta name="description" content="归档库 — 已完成工作归档">
+  <link rel="preload" href="https://fonts.gstatic.com/s/notosanssc/v36/k3kCo84MPvpLmixcA63oeAL7Iqp5IZJF9bmaG9_FnYxNbPzS5HE.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            party: { DEFAULT:'#CE1126', red:'#CE1126', gold:'#D4AF37', 'gold-light':'#F5DEB3', 50:'#FEF2F2', 100:'#FEE2E2', 200:'#FECACA', 300:'#FCA5A5', 400:'#F87171', 500:'#EF4444', 600:'#DC2626', 700:'#CE1126', 800:'#9B0000', 900:'#7A0010', 950:'#4A000A' },
+            primary: { 50:'#FEF2F2', 100:'#FEE2E2', 200:'#FECACA', 300:'#FCA5A5', 400:'#F87171', 500:'#EF4444', 600:'#DC2626', 700:'#CE1126', 800:'#9B0000', 900:'#7A0010', 950:'#4A000A' },
+            accent: { gold:'#D4AF37', 'gold-light':'#F5DEB3', amber:'#D97706', blue:'#3B82F6', emerald:'#10B981', violet:'#8B5CF6' },
+            neutral: { 0:'#FFFFFF', 50:'#F8F9FA', 100:'#F3F4F6', 200:'#E5E7EB', 300:'#D1D5DB', 400:'#9CA3AF', 500:'#6B7280', 600:'#4B5563', 700:'#374151', 800:'#1F2937', 900:'#111827' },
+            surface: { page:'#F8F9FA', card:'#FFFFFF', elevated:'#FFFFFF', header:'#7A0010', sidebar:'#FFFFFF', hover:'#F3F4F6', active:'#FEE2E2' },
+          },
+          fontFamily: { sans:['Noto Sans SC','-apple-system','PingFang SC','Microsoft YaHei','sans-serif'], serif:['Noto Serif SC','STKaiti','KaiTi','serif'], title:['STZhongsong','华文中宋','Noto Serif SC','STSong','SimSun','serif'], 'title-en':['Times New Roman','Georgia','serif'] },
+        },
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="./src/styles.css">
+</head>
+<body>
+
+<header id="app-header"></header>
+<div id="sidebar-overlay"></div>
+<aside id="app-sidebar" class="sidebar-collapsed"></aside>
+
+<div class="sidebar-main-content pt-16 min-h-screen">
+  <div class="max-w-4xl mx-auto px-4 py-6">
+    <h2 class="font-title-cn text-xl font-bold text-gray-800 mb-4">归档库</h2>
+    <p class="text-sm text-gray-500 mb-6">已完成的工作将归档于此，便于回溯与总结。</p>
+
+    <div class="card rounded-2xl p-6 mb-6">
+      <div class="flex items-center gap-3 mb-6">
+        <input type="text" id="archive-search" placeholder="搜索归档内容..." class="input-flat flex-1">
+        <select id="archive-filter" class="input-flat" style="width:140px;">
+          <option value="all">全部类型</option>
+          <option value="activity">党建活动</option>
+          <option value="taskforce">专班</option>
+          <option value="notice">通知</option>
+        </select>
+      </div>
+
+      <div id="archive-list" class="space-y-3">
+        <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-800">2026年4月组织生活会</span>
+            <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-green-100 text-green-700">已归档</span>
+          </div>
+          <p class="text-xs text-gray-500">2026-04-15 · 党建活动 · 第一党小组</p>
+        </div>
+        <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-800">宣传专班（第一期）</span>
+            <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-green-100 text-green-700">已归档</span>
+          </div>
+          <p class="text-xs text-gray-500">2026-04-01 ~ 2026-04-30 · 专班 · 宣传委员发起</p>
+        </div>
+        <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-800">2026年3月支部大会</span>
+            <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-green-100 text-green-700">已归档</span>
+          </div>
+          <p class="text-xs text-gray-500">2026-03-20 · 党建活动 · 支部大会</p>
+        </div>
+        <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-800">关于补课制度的通知</span>
+            <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-green-100 text-green-700">已归档</span>
+          </div>
+          <p class="text-xs text-gray-500">2026-03-10 · 通知 · 纪检委员</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="./src/archive-entry.js"></script>
+</body>
+</html>

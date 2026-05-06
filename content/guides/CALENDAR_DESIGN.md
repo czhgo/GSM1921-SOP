@@ -4,8 +4,8 @@ role: "[人机]"
 
 # 日历功能规划设计文档
 
-> **文档类型**：技术规划 | **最后更新**：2026-05-02 | **关联文件**：`src/calendar.js`、`src/inspector.js`、`src/state.js`
-> 本文件为推演工作台日历模块的未来迭代提供完整的技术规划蓝图。所有方案均基于对当前代码现状的深入分析。
+> **文档类型**：技术规划 | **最后更新**：2026-05-06 | **关联文件**：`docs/src/calendar.js`、`docs/src/inspector.js`、`docs/src/state.js`
+> **⚠️ 架构状态说明**：本文档记录日历功能的前瞻性规划蓝图。关于日历视图范围限定（仅对参与者/组织者/书记/组长展示，条条支委不展示日历）的已落地规则，请参阅 [SOP_WEB_GUIDE.md §B.4](./SOP_WEB_GUIDE.md#b4-日历视图范围限定)。
 
 ---
 
@@ -572,5 +572,5 @@ Phase 4（远期）：键盘导航 + 虚拟滚动 + iCalendar
 | [src/service.runtime.js](file:///d:/GitHub/GSM1921-SOP/src/service.runtime.js#L14) | `USE_MOCK` 开关 | 后端切换点 |
 | [src/styles.css](file:///d:/GitHub/GSM1921-SOP/src/styles.css#L696-L757) | `.cal-cell-*` 类 | 日历单元格样式 |
 | [src/main.js](file:///d:/GitHub/GSM1921-SOP/src/main.js#L20-L153) | `renderUI()` | 统一渲染入口 |
-| [src/events.js](file:///d:/GitHub/GSM1921-SOP/src/events.js#L48-L179) | `_initCalendarModule()` | 推演工作台控制台 |
+| [src/events.js](file:///d:/GitHub/GSM1921-SOP/src/events.js#L48-L179) | `_initCalendarModule()` | 党建工作台控制台 |
 | [ROADMAP.md](file:///d:/GitHub/GSM1921-SOP/ROADMAP.md#L66-L86) | Phase 2/3 | Supabase + Workflow Engine 规划 |

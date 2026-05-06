@@ -8,16 +8,19 @@ audience:
   - 项目维护者
 owner: "支委会"
 role: "[人机]"
-last_updated: "2026-05-02"
+last_updated: "2026-05-06"
 status: active
 related_files:
   - ARCHITECTURE.md
   - content/SOP/纪检委员工作流程指南.md
   - content/guides/ROLE_CLASSIFICATION.md
-  - content/guides/ROLE_SCALABILITY_ASSESSMENT.md
-  - index.html
-  - src/styles.css
+  - content/guides/SOP_WEB_GUIDE.md
 ---
+
+> **⚠️ 架构状态说明（2026-05-06）**：本文档记录管理模式的基础架构设计，但关于 Sidebar-Header Mode 统一、三委员看板视图、日历范围限定等最新架构决策，请参阅 [SOP_WEB_GUIDE.md §B](./SOP_WEB_GUIDE.md#b-网页架构设计最先进设计思路)。本文档的 §六~§七 实现路径已部分被 T26-T29 轮的实际落地代码替代。
+
+> **📋 分工声明**：本文档侧重**角色权限与逻辑层面**——三级参与者权限矩阵、数据流、界面实现路径。
+> UI 与模块层面请参阅 [COMMISSIONER_SYSTEM_DESIGN.md](./COMMISSIONER_SYSTEM_DESIGN.md)（条条支委系统设计）。
 
 # 管理模式架构设计
 

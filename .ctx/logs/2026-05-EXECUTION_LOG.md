@@ -1050,3 +1050,27 @@ status: active
 - **结果**: E1/E2 架构完整可进入编码；T1-T3 机制具备可操作性；ROADMAP 反映最新进度
 - **风险/回滚**: 纯文档变更，零破坏性
 - **蒸馏标签**: [经验蒸馏: 否]
+
+---
+
+### Session T24-3 | 侧边栏/字体/布局综合修复 | 2026-05-05
+
+**执行内容**：
+1. 字体闪烁修复：`.font-title-cn` 移除 Noto Serif SC，仅依赖本地字体；移除 `fonts-not-loaded` 类切换机制（6 个 HTML 文件）
+2. 侧边栏统一 overlay 模式：移除 `margin-left: 260px` 挤压逻辑；header.js 移除 `sidebar-shifted` 操作；sidebar.js 角色卡片点击后统一关闭侧边栏
+3. 活动分类多选：workspace.html `<select>` → checkbox 多选（学习/会议/参访/座谈/共建）
+4. 主页布局 2+1：`grid-cols-3` → `grid-cols-2` + 独立日历卡片；删除副标题 p；h2 text-xl → text-2xl
+5. 侧边栏品牌区移除：sidebar.js 移除 sidebar-header/sidebar-brand 区块
+6. 主页侧边栏重构：移除旧的内联角色卡片和归档区，改为与子页面一致的 sidebar-nav + sidebar-footer 结构
+7. "关于"入口统一：所有页面侧边栏底部放置"关于"链接
+
+**修改文件**：
+- docs/src/styles.css（字体、overlay、hover 过渡）
+- docs/src/components/sidebar.js（品牌区移除、overlay 关闭）
+- docs/src/components/header.js（overlay 模式）
+- docs/index.html（布局 2+1、侧边栏重构、字体机制移除）
+- docs/workspace.html（活动分类多选、字体机制移除）
+- docs/party.html / search.html / archive.html / about.html（字体机制移除）
+- docs/src/workspace-entry.js（多选逻辑）
+
+**验证**：localhost:8084 六页面零功能性错误

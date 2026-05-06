@@ -1,11 +1,11 @@
----
+﻿---
 role: "[人机]"
 ---
 
 # Architecture
 
 > 光华管理学院本科生党支部组织操作系统 — 核心架构说明
-> last_updated: 2026-05-02 | 目标读者: [人机]
+> last_updated: 2026-05-03 | 目标读者: [人机]
 
 ---
 
@@ -25,8 +25,8 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 
 | 域 | 涵盖内容 |
 |----|---------|
-| **活动建设** | 主题党日、三会一课、民主评议、换届选举、发展党员、组织生活会 |
-| **组织建设** | 制度修订、职责分工、意见反馈、合规审查、文档规范、定岗定责 |
+| **党建工作** | 主题党日、三会一课、民主评议、换届选举、发展党员、组织生活会 |
+| **党务管理** | 制度修订、职责分工、意见反馈、合规审查、文档规范、定岗定责 |
 
 ### 条块概念
 
@@ -58,12 +58,12 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 
 | 任务域 | 触发关键词 | Agent 委派链路 |
 |--------|-----------|---------------|
-| 活动建设 | 主题党日、三会一课、民主评议、换届、发展党员 | 秘书处 → 发改委 → 工信部 → 外交部 → 档案馆 |
-| 组织建设 | 制度修订、职责分工、意见反馈、合规审查、文档规范 | 秘书处 → 组织部 → 司法部 → 检察院 → 档案馆 |
+| 党建工作 | 主题党日、三会一课、民主评议、换届、发展党员 | 秘书处 → 发改委 → 工信部 → 外交部 → 档案馆 |
+| 党务管理 | 制度修订、职责分工、意见反馈、合规审查、文档规范 | 秘书处 → 组织部 → 司法部 → 检察院 → 档案馆 |
 | 架构治理 | 宪章修改、Agent配置、Skill注册、权限变更、架构重构 | 机关党委 → 秘书处 → 档案馆 |
 | 经验提炼 | 经验沉淀、日志分析、复盘总结、最佳实践 | 社科院 → 档案馆 |
 
-**优先级**: 架构治理 > 组织建设 > 活动建设 > 经验提炼
+**优先级**: 架构治理 > 党务管理 > 党建工作 > 经验提炼
 
 ---
 
@@ -89,7 +89,7 @@ Layer 4: 代码实现层
   └─ src/service.mock.js, service.runtime.js, main.js
 
 Layer 5: 运行时层
-  └─ index.html                             [人机] Apple Liquid Glass UI 骨架
+  └─ index.html                             [人机] Flat Matte UI 骨架
 
 Layer 6: 审计追溯层
   └─ .ctx/CONTEXT.md                        [AI] AI 快速同步入口
@@ -112,7 +112,7 @@ Layer 7: 官方底线层（只读引用）
 ├── README.md                          [人] 对外门面，最后编辑环节
 ├── ARCHITECTURE.md                    [人机] 本文件，核心架构说明
 ├── ROADMAP.md                         [人机] 未来执行路线图
-├── index.html                         [人机] UI 入口（Liquid Glass 骨架）
+├── index.html                         [人机] UI 入口（Flat Matte 骨架）
 ├── .markdownlint.json                 [工具] 代码风格规范
 ├── .markdownlintignore                [工具] 代码风格忽略列表
 │
@@ -137,10 +137,20 @@ Layer 7: 官方底线层（只读引用）
 │   │   ├── Org_OS_极客操作手册.md       [人机] 技术操作手册
 │   │   ├── 宣传/纪检/组织委员工作流程指南.md [人机] 功能委员 SOP
 │   │   └── README.md                  [人机]
-│   ├── guides/                        [人机] 操作指南
-│   │   ├── AGENT_USAGE.md             [人机] Agent 使用指南
+│   ├── guides/                        [人机] 操作指南与设计文档
 │   │   ├── DOCUMENTATION_MAP.md       [人机] 文档导航中心
-│   │   ├── SOP数据映射与同步指南.md     [人机] SOP 到代码映射指南
+│   │   ├── AGENT_USAGE.md             [人机] Agent 使用指南
+│   │   ├── ROLE_CLASSIFICATION.md     [人机] 角色三分类体系
+│   │   ├── DESIGN_SYSTEM.md           [人机] 设计系统规范
+│   │   ├── CALENDAR_DESIGN.md         [人机] 日历功能规划
+│   │   ├── MANAGEMENT_MODE_ARCHITECTURE.md [人机] 管理模式架构
+│   │   ├── ORGANIZATION_BUILDING_MODULE.md [人机] 党务管理模块
+│   │   ├── COMMISSIONER_SYSTEM_DESIGN.md [人机] 支委系统设计（合并）
+│   │   ├── BRAND_ACTIVITY.md           [人机] 品牌活动方案 ⏸️
+│   │   ├── RECURRING_TASKS_MECHANISM.md [人机] 周期性任务机制
+│   │   ├── TERMINOLOGY_STANDARDS.md   [人机] 术语规范
+│   │   ├── EMOJI_POLICY.md            [人机] Emoji 使用规范
+│   │   ├── SOP_WEB_GUIDE.md           [人机] SOP 网页指南
 │   │   ├── SOP优化提案反馈卡.md        [人机] 反馈模板
 │   │   └── README.md                  [人机]
 │   ├── insights/                      [人机] 经验沉淀
@@ -174,26 +184,26 @@ Layer 7: 官方底线层（只读引用）
 
 ## 六、数据模型
 
-### Activity（活动）
+### ActivityRecord（活动记录）
 
-数据结构定义于 `src/service.mock.js`。核心字段：
+数据结构定义于 `src/workflow/activityRecord.js`。核心12字段模型：
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | id | string | 唯一标识符（id.js 生成） |
-| title | string | 活动标题 |
-| type | string | 活动类型 |
-| status | string | 活动状态 |
-| visibility | string | 活动可见性 |
+| name | string | 活动名称 |
+| theme | string | 活动主题 |
+| desc | string | 活动描述 |
+| link | string | 活动链接 |
 | date | string | ISO 格式日期 |
-| executor | string | 执行者 |
-| supervisor | string | 监督者 |
-| createdBy | string | 创建者 |
-| createdAt | string | ISO 格式创建时间（审计字段） |
-| priority | string | 'low' | 'normal' | 'urgent'（工作流优先级） |
-| dueDate | string | ISO 格式截止日期（自动化提醒锚点） |
-| archived | boolean | 软删除标记（true 表示已归档） |
-| hostGroup | string | 承办党小组（'group1' | 'group2' | 'group3' | null） |
+| type | string | 活动类型（ACTIVITY_TYPES 枚举） |
+| leaders | string[] | 活动负责人列表 |
+| leaderPhotos | string[] | 负责人照片列表 |
+| filledBy | string | 填写人 |
+| createdAt | string | ISO 格式创建时间 |
+| subRecords | object[] | 子记录关联（考勤/材料/宣传） |
+
+ActivityRecordStore 为唯一数据源，所有视图从 Store 读取。`filterRecordsByRole(role)` 按角色权限矩阵过滤。
 
 ### Task（任务）
 

@@ -1,11 +1,11 @@
----
+﻿---
 role: "[人机]"
 ---
 
 # 文档导航映射
 
 > 全局文档导航中心 — 按角色分层、权威性排序、引用关系清晰
-> last_updated: 2026-05-02 | 类型: [人机]
+> last_updated: 2026-05-03 | 类型: [人机]
 
 ---
 
@@ -43,8 +43,9 @@ role: "[人机]"
 | `content/SOP/常见工作场景快速指南.md` | [人机] | 🟡 制度权威 | 快速使用指南 | INDEX |
 | `content/SOP/支委与党小组定人定责定岗说明.md` | [人机] | 🟡 制度权威 | 职责分工文档 | INDEX |
 | `content/SOP/Org_OS_极客操作手册.md` | [人机] | 🟡 制度权威 | 技术操作手册 | INDEX |
-| `content/SOP/功能委员SOP/*.md` | [人机] | 🟡 制度权威 | 功能委员 SOP 集合 | INDEX |
-| `content/SOP/党小组长SOP/*.md` | [人机] | 🟡 制度权威 | 党小组长 SOP 集合 | INDEX |
+| `content/SOP/宣传委员工作流程指南.md` | [人机] | 🟡 制度权威 | 宣传委员 SOP | INDEX |
+| `content/SOP/组织委员工作流程指南.md` | [人机] | 🟡 制度权威 | 组织委员 SOP | INDEX |
+| `content/SOP/纪检委员工作流程指南.md` | [人机] | 🟡 制度权威 | 纪检委员 SOP | INDEX |
 
 ### Layer 3: Agent 治理层
 
@@ -77,13 +78,12 @@ role: "[人机]"
 
 | 文件 | 角色 | 权威性 | 内容 | 被引用方 |
 |------|------|--------|------|---------|
-| `content/guides/ORGANIZATION_BUILDING_MODULE.md` | [人机] | 🟡 技术 | 组织建设独立模块架构 | E1 |
+| `content/guides/ORGANIZATION_BUILDING_MODULE.md` | [人机] | 🟡 技术 | 党务管理独立模块架构 | E1 |
 | `content/guides/MANAGEMENT_MODE_ARCHITECTURE.md` | [人机] | 🟡 技术 | 管理模式架构设计 | E2 |
 | `content/guides/RECURRING_TASKS_MECHANISM.md` | [人机] | 🟡 技术 | 经常性工作管理机制 | T1 |
 | `content/guides/TERMINOLOGY_STANDARDS.md` | [人机] | 🟡 技术 | 术语规范使用说明 | T2 |
 | `content/guides/SOP_WEB_GUIDE.md` | [人机] | 🟡 技术 | SOP 网页优化与同步指南（合并自4文件） | T3+T3a |
-| `content/guides/COMMISSIONER_ORGANIZATION_ROLE.md` | [人机] | 🟡 技术 | 条条支委组织建设职能强化设计 | E3 |
-| `content/guides/COMMISSIONER_GROUP_INTERACTION.md` | [人机] | 🟡 技术 | 条条支委与党小组交互机制 | E3+ |
+| `content/guides/COMMISSIONER_SYSTEM_DESIGN.md` | [人机] | 🟡 技术 | 条条支委系统设计（党务管理+条块交互合并） | E3 |
 | `content/guides/ROLE_CLASSIFICATION.md` | [人机] | 🟡 技术 | 角色三分类体系设计（含可扩展性评估 v3.0） | 社科院 |
 | `content/guides/DESIGN_SYSTEM.md` | [人机] | 🟡 技术 | 设计系统规范 | src/styles.css |
 | `content/guides/EMOJI_POLICY.md` | [人机] | 🟡 技术 | Emoji 使用规范 | ROADMAP.md 钩稽 |
@@ -109,8 +109,8 @@ role: "[人机]"
 |------|------|--------|------|---------|
 | `content/references/官方文件/*.pdf` | [人] | 🔵 官方 | 党章、条例、规范 | content/SOP（母本溯源） |
 | `content/references/模板库/*.md` | [人] | 🔵 官方 | 工作模板、活动复盘模板 | content/guides/SOP_WEB_GUIDE.md |
-| `content/references/党小组会/*.md` | [人] | 🔵 官方 | 历史党小组会记录 | 无（历史档案） |
-| `content/references/支部委员会/*.md` | [人] | 🔵 官方 | 历史支委会记录 | 无（历史档案） |
+| `content/references/党小组会/*.pdf` `*.docx` | [人] | 🔵 官方 | 历史党小组会记录 | 无（历史档案） |
+| `content/references/支部委员会/*.docx` | [人] | 🔵 官方 | 历史支委会记录 | 无（历史档案） |
 
 ---
 
@@ -150,13 +150,12 @@ Agent层
   ├─ RECURRING_TASKS_MECHANISM.md → TIMESTAMPS.md → copilot-instructions.md
   ├─ TERMINOLOGY_STANDARDS.md → 所有正式文档
   ├─ SOP_WEB_GUIDE.md → content/SOP/*
-  ├─ COMMISSIONER_ORGANIZATION_ROLE.md → ORGANIZATION_BUILDING_MODULE.md + MANAGEMENT_MODE_ARCHITECTURE.md
-  └─ COMMISSIONER_GROUP_INTERACTION.md → COMMISSIONER_ORGANIZATION_ROLE.md + 支委与党小组定人定责定岗说明.md
+  ├─ COMMISSIONER_SYSTEM_DESIGN.md → ORGANIZATION_BUILDING_MODULE.md + MANAGEMENT_MODE_ARCHITECTURE.md
 
 审计层
   ├─ CONTEXT.md → ARCHITECTURE.md, copilot-instructions.md
-  ├─ FILE_TIMESTAMPS.md → ROADMAP.md
-  ├─ SNAPSHOT_v3.0_20260502.md → ROADMAP.md
+  ├─ .ctx/TIMESTAMPS.md → ROADMAP.md
+  ├─ .ctx/SNAPSHOT.md → ROADMAP.md
   ├─ logs/*.md → ROADMAP.md
 ```
 
@@ -179,8 +178,7 @@ Agent层
 | 查官方合规 | content/references/官方文件/ | content/SOP/溯源 |
 | 查看执行日志 | .ctx/logs/EXECUTION_LOG_INDEX.md | 对应月份日志 |
 | 查看 SOP 网页优化 | content/guides/SOP_WEB_GUIDE.md | content/SOP/对应 SOP |
-| 了解支委组织建设权限 | content/guides/COMMISSIONER_ORGANIZATION_ROLE.md | ORGANIZATION_BUILDING_MODULE.md |
-| 了解条块交互机制 | content/guides/COMMISSIONER_GROUP_INTERACTION.md | 支委与党小组定人定责定岗说明.md |
+| 了解支委系统设计 | content/guides/COMMISSIONER_SYSTEM_DESIGN.md | ORGANIZATION_BUILDING_MODULE.md |
 | 理解架构变更 | ARCHITECTURE.md §八 | .github/SSOT_INDEX.md |
 
 ---
@@ -198,7 +196,7 @@ Agent层
 
 | 文件 | 状态 | 备注 |
 |------|------|------|
-| `ARCHITECTURE.md` | ✅ 已删除 | 内容已合并至 ARCHITECTURE.md |
+| `ARCHITECTURE.md` | ✅ 活跃 | 核心架构说明，根目录 |
 | `governance/` | ✅ 已迁移 | 先迁移至 .ctx/，后整合至 ROADMAP.md |
 | `backlog/` | ✅ 已迁移 | 先迁移至 .ctx/，后整合至 ROADMAP.md 或删除 |
 | `.ctx/scenarios/` | ✅ 已删除 | 全部场景文件已评估删除，目录已清空 |

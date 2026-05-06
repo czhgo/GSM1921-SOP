@@ -29,8 +29,13 @@ const ACTIVITY_CAT_COLOR = {
   'party-day-talk':   { bg: 'rgba(245, 158, 11, 0.10)',  text: '#B45309', border: 'rgba(245, 158, 11, 0.30)' },
   'party-day-meeting':{ bg: 'rgba(139, 92, 246, 0.10)',  text: '#6D28D9', border: 'rgba(139, 92, 246, 0.30)' },
   'theme-general':    { bg: 'rgba(206, 17, 38, 0.10)',   text: '#991B1B', border: 'rgba(206, 17, 38, 0.30)' },
-  'learning':         { bg: 'rgba(37, 99, 235, 0.10)',   text: '#1E40AF', border: 'rgba(37, 99, 235, 0.30)' },
-  'meeting':          { bg: 'rgba(124, 58, 237, 0.10)',  text: '#5B21B6', border: 'rgba(124, 58, 237, 0.30)' },
+  // ─ 新活动形式（决策树 Q2 直映射） ─
+  'learning':         { bg: 'rgba(59, 130, 246, 0.10)',  text: '#1D4ED8', border: 'rgba(59, 130, 246, 0.30)' },
+  'visit':            { bg: 'rgba(16, 185, 129, 0.10)',  text: '#047857', border: 'rgba(16, 185, 129, 0.30)' },
+  'discussion':       { bg: 'rgba(245, 158, 11, 0.10)',  text: '#B45309', border: 'rgba(245, 158, 11, 0.30)' },
+  'joint':            { bg: 'rgba(219, 39, 119, 0.10)',  text: '#BE185D', border: 'rgba(219, 39, 119, 0.30)' },
+  'meeting':          { bg: 'rgba(139, 92, 246, 0.10)',  text: '#6D28D9', border: 'rgba(139, 92, 246, 0.30)' },
+  // ─ 旧值保持向后兼容 ─
   'development':      { bg: 'rgba(2, 132, 199, 0.10)',   text: '#0C4A6E', border: 'rgba(2, 132, 199, 0.30)' },
   'training':         { bg: 'rgba(250, 204, 21, 0.10)',  text: '#854D0E', border: 'rgba(250, 204, 21, 0.30)' },
   'org-life':         { bg: 'rgba(239, 68, 68, 0.10)',   text: '#991B1B', border: 'rgba(239, 68, 68, 0.30)' },
@@ -68,13 +73,21 @@ export function getActivityColor(activity) {
     return ACTIVITY_CAT_COLOR[SCENARIO_TO_CATEGORY[activity.scenarioId]];
   }
 
-  // 2) activityType 字段（activityRecord.js 中定义的类型）
+  // 2) activityType 字段（决策树 Q2 直映射 + 旧值向后兼容）
   if (activity.activityType) {
-    if (activity.activityType.startsWith('党日日-共建')) return ACTIVITY_CAT_COLOR['party-day-joint'];
-    if (activity.activityType.startsWith('党日日-学习')) return ACTIVITY_CAT_COLOR['party-day-study'];
-    if (activity.activityType.startsWith('党日日-参访')) return ACTIVITY_CAT_COLOR['party-day-visit'];
-    if (activity.activityType.startsWith('党日日-座谈')) return ACTIVITY_CAT_COLOR['party-day-talk'];
-    if (activity.activityType.startsWith('党日日-会议')) return ACTIVITY_CAT_COLOR['party-day-meeting'];
+    const at = activity.activityType;
+    if (at === 'party-day-joint'   || at.startsWith('党日日-共建')) return ACTIVITY_CAT_COLOR['party-day-joint'];
+    if (at === 'party-day-study'   || at.startsWith('党日日-学习')) return ACTIVITY_CAT_COLOR['party-day-study'];
+    if (at === 'party-day-visit'   || at.startsWith('党日日-参访')) return ACTIVITY_CAT_COLOR['party-day-visit'];
+    if (at === 'party-day-talk'    || at.startsWith('党日日-座谈')) return ACTIVITY_CAT_COLOR['party-day-talk'];
+    if (at === 'party-day-meeting' || at.startsWith('党日日-会议')) return ACTIVITY_CAT_COLOR['party-day-meeting'];
+    if (at === 'theme-party' || at === 'theme-general')  return ACTIVITY_CAT_COLOR['theme-general'];
+    if (at === 'learning')                              return ACTIVITY_CAT_COLOR.learning;
+    if (at === 'visit')                                 return ACTIVITY_CAT_COLOR.visit;
+    if (at === 'discussion')                            return ACTIVITY_CAT_COLOR.discussion;
+    if (at === 'joint')                                 return ACTIVITY_CAT_COLOR.joint;
+    if (at === 'meeting')                               return ACTIVITY_CAT_COLOR.meeting;
+    if (at === 'long-term')                             return ACTIVITY_CAT_COLOR['long-term'];
   }
 
   // 3) duration/domain 兜底
@@ -93,8 +106,11 @@ export const ACTIVITY_TYPE_LABELS = {
   'party-day-talk':    '座谈交流',
   'party-day-meeting': '党日会议',
   'theme-general':     '主题党日',
-  'learning':          '党课学习',
-  'meeting':           '党内会议',
+  'learning':          '学习活动',
+  'visit':             '参访活动',
+  'discussion':        '座谈交流',
+  'joint':             '共建活动',
+  'meeting':           '会议活动',
   'development':       '发展党员',
   'training':          '党员培训',
   'org-life':          '组织生活',

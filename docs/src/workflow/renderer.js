@@ -145,7 +145,7 @@ export class WorkflowRenderer {
       text.textContent = state.label;
 
       if (i === currentIdx && isBlocked) {
-        text.textContent = state.label + ' ⚠';
+        text.textContent = state.label + ' (!)';
       }
 
       svg.appendChild(text);
@@ -251,7 +251,7 @@ export class WorkflowRenderer {
     const metaItems = [
       { label: '模板', value: this.definition.title },
       { label: '时长', value: this.definition.duration === 'long-term' ? '长期活动' : '短期活动' },
-      { label: '品牌', value: this.definition.brand ? '是 ⏸️' : '否' },
+      { label: '品牌', value: this.definition.brand ? '是' : '否' },
       { label: '发起', value: this.definition.direction === 'bottom-up' ? '自下而上' : this.definition.direction === 'top-down' ? '自上而下' : '未限定' },
       { label: '状态数', value: `${this.definition.states.length}` },
       { label: '流转次数', value: `${status.transitionCount}` },
@@ -308,7 +308,7 @@ export class WorkflowRenderer {
       if (sub.completed) {
         const doneTag = document.createElement('span');
         doneTag.className = 'workflow-substate-done';
-        doneTag.textContent = '✓ 已完成';
+        doneTag.textContent = '已完成';
         header.appendChild(doneTag);
       } else {
         const pctTag = document.createElement('span');
@@ -371,7 +371,7 @@ export class WorkflowRenderer {
     if (!status.subStatesComplete) {
       const hint = document.createElement('div');
       hint.className = 'workflow-substates-hint';
-      hint.textContent = '⚠ 所有子状态完成后才能进入下一阶段';
+      hint.textContent = '所有子状态完成后才能进入下一阶段';
       wrapper.appendChild(hint);
     }
 

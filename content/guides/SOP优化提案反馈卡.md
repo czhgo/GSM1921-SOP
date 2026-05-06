@@ -7,13 +7,13 @@ audience:
   - 党小组组长
 owner: "储子禾"
 role: "[人机]"
-last_updated: "2026-03-02"
-version: "1.3"
+last_updated: "2026-05-03"
+version: "1.4"
 status: active
 related_files:
-  - "START_HERE.md"
-  - ".ctx/REVIEW_STATE.md"
-  - "流程指南/常见工作场景快速指南.md"
+  - "ROADMAP.md"
+  - ".ctx/CONTEXT.md"
+  - "content/SOP/常见工作场景快速指南.md"
 ---
 
 # SOP 优化与规则补丁提案

@@ -1,13 +1,16 @@
 // role: [人机]
 // ════════════════════════════════════════════════════════════════
-//  party.js — 组织建设模块状态管理器
+// party.js — 党务管理模块状态管理器
 //  职责：管理四大子功能的数据加载、状态流转、DOM 渲染
 //  依赖：state.js（读取 selectedRole）
 // ════════════════════════════════════════════════════════════════
 
 import { getAppState } from './state.js';
 import { showToast } from './utils.js';
+import { filterForViewProxy, assignedRoles, computeSecretaryStats } from './service.roles.js';
 import { createStoreWithMockData } from './workflow/activityRecord.js';
+import { NoticeStore, NoticePermission } from './service.notice.js';
+import { FeedbackStore } from './service.feedback.js';
 
 // ════════════════════════════════════════════════════════════════
 //  Mock 数据定义
@@ -18,7 +21,7 @@ const CANDIDATE_STAGES = ['入党申请人', '积极分子', '发展对象', '�
 
 /** 合规文件列表 — 引用资料查询模块中的真实文件 */
 const COMPLIANCE_FILES = [
-  { name: '中国共产党章程', path: './content/references/官方文件/【附件11】中国共产党章程.pdf', note: '请通过「资料查询」模块获取' },
+  { name: '中国共产党章程', path: '#search', note: '请通过「资料查询」模块获取' },
   { name: '党支部工作规范（学生）', path: '#search', note: '请通过「资料查询」模块获取' },
   { name: '党员教育管理工作条例', path: '#search', note: '请通过「资料查询」模块获取' },
   { name: '发展党员工作细则', path: '#search', note: '请通过「资料查询」模块获取' },
@@ -88,13 +91,15 @@ export const PartyModule = {
   //  角色判定 + 面板切换
   // ══════════════════════════════════════════════════════════════
 
-  /** 根据当前 selectedRole 判定应显示哪个支委面板 */
+  /** 根据当前激活的 tab 判定应显示哪个支委面板（DOM 优先，state 兜底） */
   getActiveCommissioner() {
+    const activeTab = document.querySelector('.commissioner-tab[data-commissioner].active');
+    if (activeTab) return activeTab.dataset.commissioner;
     const { selectedRole } = getAppState();
-    // 书记拥有全部权限，默认进入纪检面板
-    if (selectedRole === 'secretary') return 'inspector';
-    if (selectedRole === 'commissioner') return 'inspector';
-    // 其他角色显示默认概览面板
+    if (selectedRole === 'secretary')           return 'secretary';
+    if (selectedRole === 'disc-commissioner')   return 'inspector';
+    if (selectedRole === 'org-commissioner')    return 'organizer';
+    if (selectedRole === 'prop-commissioner')   return 'publicity';
     return 'default';
   },
 
@@ -114,7 +119,9 @@ export const PartyModule = {
     }
 
     // 根据面板类型渲染内容
-    if (commissioner === 'inspector') {
+    if (commissioner === 'secretary') {
+      this.refreshSecretaryAggregateView();
+    } else if (commissioner === 'inspector') {
       this.refreshMakeupStatus();
       this.refreshMailboxReminder();
       this.refreshParticipationSummary();
@@ -134,6 +141,8 @@ export const PartyModule = {
       this.refreshDefaultOverview();
       this.renderComplianceRefs('compliance-file-list', 'compliance-reader');
     }
+
+    this.refreshNoticeSection();
   },
 
   // ══════════════════════════════════════════════════════════════
@@ -357,7 +366,7 @@ export const PartyModule = {
     const incompleteRecords = records.filter(r => !r.desc || r.link === '' || !r.type);
 
     if (incompleteRecords.length === 0) {
-      container.innerHTML = '<p class="text-sm text-green-600 py-4">✅ 所有活动记录已完整填写</p>';
+      container.innerHTML = '<p class="text-sm text-green-600 py-4">所有活动记录已完整填写</p>';
       return;
     }
 
@@ -423,11 +432,11 @@ export const PartyModule = {
               <th class="pub-th">活动名称</th>
               <th class="pub-th">主主题</th>
               <th class="pub-th">活动描述</th>
-              <th class="pub-th">🔗 推送链接</th>
-              <th class="pub-th">📅 时间</th>
-              <th class="pub-th">✨ 类型</th>
+              <th class="pub-th">推送链接</th>
+              <th class="pub-th">时间</th>
+              <th class="pub-th">类型</th>
               <th class="pub-th">出席领导</th>
-              <th class="pub-th">📷 照片</th>
+              <th class="pub-th">照片</th>
               <th class="pub-th">填写人</th>
               <th class="pub-th pub-th-action"><button id="pub-add-row-btn" class="text-xs" style="background:none;border:none;cursor:pointer;color:var(--primary-700);font-weight:600;">+ 新增</button></th>
             </tr>
@@ -451,8 +460,8 @@ export const PartyModule = {
                   <td>${r.filledBy || ''}</td>
                   <td>
                     <div class="pub-row-actions">
-                      <button class="pub-action-edit" data-id="${r.id}" title="编辑">✏️</button>
-                      <button class="pub-action-del" data-id="${r.id}" title="删除">🗑</button>
+                      <button class="pub-action-edit" data-id="${r.id}" title="编辑">编辑</button>
+                      <button class="pub-action-del" data-id="${r.id}" title="删除">删除</button>
                     </div>
                   </td>
                 </tr>`;
@@ -501,7 +510,7 @@ export const PartyModule = {
       filledBy: '当前用户',
     });
     this.refreshArchives();
-    showToast('success', `已新增空行，请点击 ✏️ 编辑`);
+    showToast('success', '已新增空行，请点击编辑按钮编辑');
   },
 
   _editRecord(id) {
@@ -627,26 +636,30 @@ export const PartyModule = {
     const feedbackItems = this.state.feedbackItems;
     const mailboxLastCheck = this.state.mailboxLastCheck;
 
-    // 发展党员在途人数
     const inTransit = candidates.filter(c => c.stage !== '正式党员').length;
     const statCandidates = document.getElementById('default-stat-candidates');
     if (statCandidates) statCandidates.textContent = inTransit;
 
-    // 补课完成率
     const totalMakeup = makeupTasks.length;
     const completedMakeup = makeupTasks.filter(t => t.completed).length;
     const makeupRate = totalMakeup > 0 ? Math.round(completedMakeup / totalMakeup * 100) + '%' : '—';
     const statMakeup = document.getElementById('default-stat-makeup');
     if (statMakeup) statMakeup.textContent = makeupRate;
 
-    // 意见建议待处理
     const pendingFeedback = feedbackItems.filter(f => f.status === 'pending').length;
     const statFeedback = document.getElementById('default-stat-feedback');
     if (statFeedback) statFeedback.textContent = pendingFeedback;
 
-    // 公邮上次查收
     const statMailbox = document.getElementById('default-stat-mailbox');
     if (statMailbox) statMailbox.textContent = mailboxLastCheck || '—';
+
+    const st = getAppState();
+    const as = computeSecretaryStats(st.activities || []);
+    const s = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    s('default-stat-active',  as.activeEvents);
+    s('default-stat-month',   as.monthEvents);
+    s('default-stat-pending', as.pendingAuth);
+    s('default-stat-archive', as.archivedEvents);
   },
 
   // ══════════════════════════════════════════════════════════════
@@ -660,34 +673,234 @@ export const PartyModule = {
     if (!listContainer) return;
 
     listContainer.innerHTML = COMPLIANCE_FILES.map(file => `
-      <span class="compliance-ref-item readonly" data-file-path="${file.path}" data-file-note="${file.note || ''}">${file.name}</span>
+      <div class="compliance-ref-card" data-file-path="${file.path}" data-file-note="${file.note || ''}">
+        <div class="flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span class="text-sm text-gray-700">${file.name}</span>
+        </div>
+        <span class="text-xs text-blue-600 hover:text-blue-800 cursor-pointer">资料查询 →</span>
+      </div>
     `).join('');
 
-    listContainer.querySelectorAll('.compliance-ref-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const filePath = item.dataset.filePath;
-        const fileNote = item.dataset.fileNote;
-        if (readerContainer) {
-          const isVisible = !readerContainer.classList.contains('hidden');
-          if (isVisible && readerContainer.dataset.currentFile === filePath) {
-            readerContainer.classList.add('hidden');
-            readerContainer.dataset.currentFile = '';
-          } else {
-            readerContainer.classList.remove('hidden');
-            readerContainer.dataset.currentFile = filePath;
-            const isSearchLink = filePath === '#search';
-            readerContainer.innerHTML = `
-              <div class="flex items-center justify-between mb-2">
-                <span class="font-medium text-gray-700">${item.textContent}</span>
-                <span class="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">${isSearchLink ? '资料查询' : '官方文件'}</span>
-              </div>
-              ${isSearchLink
-                ? `<div class="text-gray-500 text-sm">此文件可通过侧边栏「资料查询」模块获取。点击下方按钮跳转。</div><a href="#search" onclick="document.querySelector('[data-module=\\'search\\']')?.click();" class="inline-block mt-2 text-xs text-blue-600 underline">前往资料查询 →</a>`
-                : `<div class="text-gray-500">文件路径：${filePath}</div><div class="text-gray-400 mt-1 text-xs">${fileNote}</div><a href="${filePath}" target="_blank" class="inline-block mt-2 text-xs text-blue-600 underline">打开原始文件</a>`}
-            `;
-          }
-        }
+    listContainer.querySelectorAll('.compliance-ref-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelector('[data-module="search"]')?.click();
       });
+    });
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  //  D4.2 通知发布界面
+  // ══════════════════════════════════════════════════════════════
+
+  _noticeFormBound: false,
+
+  refreshNoticeSection() {
+    const panel = document.getElementById('notice-publish-panel');
+    const denyMsg = document.getElementById('notice-permission-deny');
+    if (!panel) return;
+
+    const { selectedRole } = getAppState();
+    const canPublish = NoticePermission.canPublish(selectedRole);
+
+    if (!canPublish) {
+      panel.classList.add('hidden');
+      return;
+    }
+
+    panel.classList.remove('hidden');
+    if (denyMsg) denyMsg.classList.add('hidden');
+
+    if (!this._noticeFormBound) {
+      this._initNoticeForm();
+      this._noticeFormBound = true;
+    }
+  },
+
+  _initNoticeForm() {
+    const btn = document.getElementById('btn-publish-notice');
+    if (!btn) return;
+
+    btn.addEventListener('click', () => this._publishNotice());
+  },
+
+  _publishNotice() {
+    const title = document.getElementById('notice-title-input')?.value.trim();
+    const content = document.getElementById('notice-content-input')?.value.trim();
+    const priority = document.getElementById('notice-priority-input')?.value || 'normal';
+    const expireDate = document.getElementById('notice-expire-input')?.value || '';
+    const targetModule = document.getElementById('notice-target-input')?.value || 'calendar';
+    const msgEl = document.getElementById('notice-publish-msg');
+
+    if (!title || !content) {
+      const titleInput = document.getElementById('notice-title-input');
+      if (!title && titleInput) {
+        titleInput.focus();
+        titleInput.style.boxShadow = '0 0 0 2px rgba(239,68,68,0.55)';
+        setTimeout(() => { titleInput.style.boxShadow = ''; }, 1800);
+      }
+      showToast('error', '标题和内容为必填项');
+      return;
+    }
+
+    const { selectedRole } = getAppState();
+    const result = NoticeStore.add({
+      title,
+      content,
+      priority,
+      publishDate: new Date().toISOString().slice(0, 10),
+      expireDate: expireDate || undefined,
+      targetModule,
+      publisher: selectedRole,
+    }, selectedRole);
+
+    if (!result) {
+      showToast('error', '发布失败：权限不足');
+      return;
+    }
+
+    // 清空表单
+    document.getElementById('notice-title-input').value = '';
+    document.getElementById('notice-content-input').value = '';
+    document.getElementById('notice-priority-input').value = 'normal';
+    document.getElementById('notice-expire-input').value = '';
+
+    if (msgEl) {
+      msgEl.classList.remove('hidden');
+      setTimeout(() => msgEl.classList.add('hidden'), 2500);
+    }
+    showToast('success', `通知「${title}」已发布`);
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  //  C5 党支书全局聚合视图
+  // ══════════════════════════════════════════════════════════════
+
+  _secBatchOpsBound: false,
+  _secShortcutsBound: false,
+
+  refreshSecretaryAggregateView() {
+    const st = getAppState();
+    const acts = st.activities || [];
+    const stats = computeSecretaryStats(acts);
+
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('sec-stat-active',   stats.activeEvents);
+    set('sec-stat-month',    stats.monthEvents);
+    set('sec-stat-pending',  stats.pendingAuth);
+    set('sec-stat-auth',     stats.authGranted);
+    set('sec-stat-archived', stats.archivedEvents);
+
+    this._refreshFeedbackData();
+
+    if (!this._secBatchOpsBound) {
+      this._initSecretaryBatchOps();
+      this._secBatchOpsBound = true;
+    }
+
+    if (!this._secShortcutsBound) {
+      this._initSecretaryShortcuts();
+      this._secShortcutsBound = true;
+    }
+  },
+
+  _refreshFeedbackData() {
+    const counts = FeedbackStore.countByStatus();
+    const s = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    s('sec-fb-pending',    counts.pending);
+    s('sec-fb-processing', counts.processing);
+    s('sec-fb-done',       counts.done);
+
+    const listContainer = document.getElementById('sec-feedback-list');
+    if (!listContainer) return;
+
+    const pending = FeedbackStore.getPending();
+    if (pending.length === 0) {
+      listContainer.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">暂无待处理的意见反馈</p>';
+      return;
+    }
+
+    const scopeLabels = { permanent: '底层架构', global: '全局通用', role: '权责调整', scenario: '特定场景' };
+    listContainer.innerHTML = pending.slice(0, 5).map(f => `
+      <div class="p-2 bg-gray-50 rounded-lg">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-medium text-gray-700 truncate max-w-[200px]">${f.painPoint || f.proposedFix}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">${scopeLabels[f.scope] || f.scope}</span>
+        </div>
+        <div class="flex items-center justify-between text-xs text-gray-400">
+          <span>${f.submittedBy}</span>
+          <span>${f.submittedAt}</span>
+        </div>
+      </div>
+    `).join('');
+  },
+
+  _initSecretaryShortcuts() {
+    document.querySelector('.sec-btn-lecture')?.addEventListener('click', () => {
+      document.getElementById('btn-party-lecture')?.click();
+    });
+    document.querySelector('.sec-btn-congress')?.addEventListener('click', () => {
+      document.getElementById('btn-host-congress')?.click();
+    });
+  },
+
+  _initSecretaryBatchOps() {
+    const msgEl = document.getElementById('batch-op-msg');
+
+    document.getElementById('btn-batch-remind')?.addEventListener('click', () => {
+      const st = getAppState();
+      const pending = (st.activities || []).filter(a =>
+        !a.archived && a.direction === 'bottom-up' && !(a.authorizedBy || a.authorized)
+      );
+      const count = pending.length;
+      if (msgEl) {
+        msgEl.classList.remove('hidden');
+        msgEl.textContent = count > 0
+          ? `已向 ${count} 个待赋权活动的组织者发送催缴提醒`
+          : '暂无待赋权活动';
+        setTimeout(() => msgEl.classList.add('hidden'), 3000);
+      }
+      showToast('info', count > 0 ? `批量催缴：${count} 个活动` : '无待催缴项');
+    });
+
+    document.getElementById('btn-batch-archive')?.addEventListener('click', () => {
+      const st = getAppState();
+      const now = new Date();
+      const toArchive = (st.activities || []).filter(a => {
+        if (a.archived) return false;
+        const d = new Date(a.date);
+        return d < new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      });
+      const count = toArchive.length;
+      if (msgEl) {
+        msgEl.classList.remove('hidden');
+        msgEl.textContent = count > 0
+          ? `已标记 ${count} 个历史活动为「待归档」状态`
+          : '暂无符合归档条件的活动（上月以前）';
+        setTimeout(() => msgEl.classList.add('hidden'), 3000);
+      }
+      showToast('info', count > 0 ? `批量归档：${count} 个活动` : '无待归档项');
+    });
+
+    document.getElementById('btn-batch-export')?.addEventListener('click', () => {
+      const st = getAppState();
+      const acts = st.activities || [];
+      if (acts.length === 0) {
+        showToast('error', '无活动数据可导出');
+        return;
+      }
+      const csvHeader = 'title,date,category,status,assignedTo,authorizedBy\n';
+      const csvRows = acts.map(a =>
+        [a.title || '', a.date || '', a.category || '', a.archived ? 'archived' : 'active', a.assignedTo || '', a.authorizedBy || ''].join(',')
+      ).join('\n');
+      const blob = new Blob([csvHeader + csvRows], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `activities-export-${new Date().toISOString().slice(0,10)}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+      showToast('success', `已导出 ${acts.length} 条活动记录`);
     });
   },
 

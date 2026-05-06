@@ -105,7 +105,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
   if (dateActivities.length === 0) {
     defEl.classList.remove('hidden');
     const _mgr = !viewArchived && viewType === 'manager';
-    const _guide = '<div class="font-stheiti text-gray-400 text-sm text-center py-4 border-b border-gray-100 mb-4">💡 提示：请从下方列表或顶部下拉框选择活动，以查看您的专属任务流。</div>';
+    const _guide = '<div class="font-stheiti text-gray-400 text-sm text-center py-4 border-b border-gray-100 mb-4">提示：请从下方列表或顶部下拉框选择活动，以查看您的专属任务流。</div>';
     if (viewArchived) {
       defEl.innerHTML = '<p class="font-stheiti text-sm text-gray-400 text-center py-8">归档库暂无内容</p>';
     } else if (dateKey) {
@@ -139,7 +139,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
       html += `<p class="font-stheiti font-bold text-sm text-gray-800 leading-snug flex-1">${act.title}</p>`;
       html += `<span class="badge-time flex-shrink-0">${label}</span>`;
       html += '</div>';
-      html += '<p class="font-stheiti text-[10px] text-gray-400">👀 参与视图 · 仅展示</p>';
+      html += '<p class="font-stheiti text-[10px] text-gray-400">参与视图 · 仅展示</p>';
       html += '</div>';
     } else {
       html += `<div class="inspector-card" style="cursor:pointer;" data-act-id="${act.id}">`;
@@ -154,7 +154,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
 
   if (cardsEl) {
     const _guide = (!isParticipant && !viewArchived)
-      ? '<div class="font-stheiti text-gray-400 text-sm text-center py-4 border-b border-gray-100 mb-4">💡 提示：请从下方列表或顶部下拉框选择活动，以查看您的专属任务流。</div>'
+      ? '<div class="font-stheiti text-gray-400 text-sm text-center py-4 border-b border-gray-100 mb-4">提示：请从下方列表或顶部下拉框选择活动，以查看您的专属任务流。</div>'
       : '';
     cardsEl.innerHTML = _guide + html;
     if (!isParticipant) {

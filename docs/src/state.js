@@ -132,7 +132,7 @@ let appState = {
   // UI 视图状态
   domain:      'activity',
   role:        'all',                    // 参考指南当前角色（由selectedRole推导）
-  activeModule: 'calendar',
+  activeModule: 'dashboard',
   // 列表/详情双视图状态
   viewMode:            'list',
   selectedActivityId:  null,

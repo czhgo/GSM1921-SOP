@@ -1,0 +1,160 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>光华管理学院本科生党支部管理引擎</title>
+  <meta name="description" content="关于 — 系统说明书">
+  <link rel="preload" href="https://fonts.gstatic.com/s/notosanssc/v36/k3kCo84MPvpLmixcA63oeAL7Iqp5IZJF9bmaG9_FnYxNbPzS5HE.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            party: { DEFAULT:'#CE1126', red:'#CE1126', gold:'#D4AF37', 'gold-light':'#F5DEB3', 50:'#FEF2F2', 100:'#FEE2E2', 200:'#FECACA', 300:'#FCA5A5', 400:'#F87171', 500:'#EF4444', 600:'#DC2626', 700:'#CE1126', 800:'#9B0000', 900:'#7A0010', 950:'#4A000A' },
+            primary: { 50:'#FEF2F2', 100:'#FEE2E2', 200:'#FECACA', 300:'#FCA5A5', 400:'#F87171', 500:'#EF4444', 600:'#DC2626', 700:'#CE1126', 800:'#9B0000', 900:'#7A0010', 950:'#4A000A' },
+            accent: { gold:'#D4AF37', 'gold-light':'#F5DEB3', amber:'#D97706', blue:'#3B82F6', emerald:'#10B981', violet:'#8B5CF6' },
+            neutral: { 0:'#FFFFFF', 50:'#F8F9FA', 100:'#F3F4F6', 200:'#E5E7EB', 300:'#D1D5DB', 400:'#9CA3AF', 500:'#6B7280', 600:'#4B5563', 700:'#374151', 800:'#1F2937', 900:'#111827' },
+            surface: { page:'#F8F9FA', card:'#FFFFFF', elevated:'#FFFFFF', header:'#7A0010', sidebar:'#FFFFFF', hover:'#F3F4F6', active:'#FEE2E2' },
+          },
+          fontFamily: { sans:['Noto Sans SC','-apple-system','PingFang SC','Microsoft YaHei','sans-serif'], serif:['Noto Serif SC','STKaiti','KaiTi','serif'], title:['STZhongsong','华文中宋','Noto Serif SC','STSong','SimSun','serif'], 'title-en':['Times New Roman','Georgia','serif'] },
+        },
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="./src/styles.css">
+</head>
+<body>
+
+<header id="app-header"></header>
+<div id="sidebar-overlay"></div>
+<aside id="app-sidebar" class="sidebar-collapsed"></aside>
+
+<div class="sidebar-main-content pt-16 min-h-screen">
+  <div class="max-w-4xl mx-auto px-4 py-8">
+
+    <div class="text-center mb-10">
+      <img src="./assets/images/party_emblem.png" alt="党徽" class="mx-auto mb-3" style="width:48px;height:48px;" draggable="false">
+      <h2 class="font-title-cn text-2xl font-bold text-gray-800 mb-1">光华管理学院本科生党支部管理引擎</h2>
+      <p class="text-sm text-gray-400">GSM1921-SOP · 系统说明书</p>
+    </div>
+
+    <div class="card rounded-2xl p-8 mb-6">
+      <h3 class="font-title-cn text-lg font-bold text-gray-800 mb-5">一、系统概述</h3>
+      <p class="font-title text-base text-gray-700 leading-loose">
+        本系统是北京大学光华管理学院本科生党支部的数字化管理工具，基于<strong>双域管理理论</strong>构建——将党支部工作划分为<strong>党建工作</strong>（创新探索·面向未来）与<strong>党务工作</strong>（合规运行·面向存量）两大域。系统提供活动日历、专班管理、三委员职能面板、归档回溯与 SOP 资料查询等核心能力，通过<strong>多页面架构（MPA）</strong>为不同角色提供差异化的工作视图。
+      </p>
+    </div>
+
+    <div class="card rounded-2xl p-8 mb-6">
+      <h3 class="font-title-cn text-lg font-bold text-gray-800 mb-5">二、核心理论</h3>
+
+      <div class="mb-6">
+        <h4 class="font-title-cn text-base font-semibold text-gray-700 mb-3">2.1 双域分化</h4>
+        <p class="font-title text-base text-gray-700 leading-loose">
+          党建与党务不是同一回事。党建工作面向<strong>"尚不存在的未来"</strong>（策划品牌活动、设计工作方法），强调创新与探索；党务工作面向<strong>"已存在的存量"</strong>（党员发展流程、补课制度、档案归档），强调合规与运行。两者是产品关系——党建工作产出"怎么做"的方法论，党务工作将其固化为"这样查"的标准规程。
+        </p>
+      </div>
+
+      <div class="mb-6">
+        <h4 class="font-title-cn text-base font-semibold text-gray-700 mb-3">2.2 条块二元结构</h4>
+        <p class="font-title text-base text-gray-700 leading-loose">
+          <strong>条条</strong>（职能域）：组织/宣传/纪检三大支委，纵向贯穿所有活动。在党建维度中，宣传委员与纪检委员服务于活动和专班，通过看板视图管理所辖领域的任务，而不直接写入活动。<br>
+          <strong>块块</strong>（活动域）：党小组组长按行政/学术方向划分，横向统筹党小组活动。
+        </p>
+      </div>
+
+      <div class="mb-6">
+        <h4 class="font-title-cn text-base font-semibold text-gray-700 mb-3">2.3 决策树四层模型</h4>
+        <p class="font-title text-base text-gray-700 leading-loose">
+          快速定位能力由浅入深分为四层：默认信息面板（零操作 → 全局概览）→ 角色-规则基线（选角色 → 按规则呈现）→ 决策树向导（按流程 → 交互决策）→ 自由组合面板（深度定制）。
+        </p>
+      </div>
+
+      <div>
+        <h4 class="font-title-cn text-base font-semibold text-gray-700 mb-3">2.4 视图模式（管理模式 / 只读模式）</h4>
+        <p class="font-title text-base text-gray-700 leading-loose">
+          <strong>只读模式</strong>：浏览查阅，任何人均可查看全量日历视图。日历视图的核心作用是提醒参与者何时何地参会。<br>
+          <strong>管理模式</strong>：编辑写入。条条支委（组织/宣传/纪检委员）天然拥有各自板块的管理权限，其视图为<strong>任务看板</strong>而非日历——因为他们的工作服务于活动和专班，而不是作为参与者被提醒参会。党支部书记和党小组组长拥有活动写入和专班发起的全面管理权限；党小组组长、条条支委、书记均可发起专班，由组织委员负责招募统筹。<br>
+          赋权逻辑以 localStorage 模拟（对接用户数据库后台后替换），当前所有需赋权角色均已 Mock 赋权。
+        </p>
+      </div>
+    </div>
+
+    <div class="card rounded-2xl p-8 mb-6">
+      <h3 class="font-title-cn text-lg font-bold text-gray-800 mb-5">三、页面索引</h3>
+      <div class="space-y-3 font-title text-base text-gray-700 leading-loose">
+        <div class="p-4 bg-gray-50 rounded-lg"><strong>主页</strong>（index.html）— 通知公告 + 招募信息 + 活动日历摘要；双卡片 + 单栏布局</div>
+        <div class="p-4 bg-gray-50 rounded-lg"><strong>党建工作台</strong>（workspace.html）— 活动日历创建与编辑、专班发起与管理、角色过滤；条条支委使用任务看板视图，日历视图服务于参与者</div>
+        <div class="p-4 bg-gray-50 rounded-lg"><strong>党务管理</strong>（party.html）— 党员发展全流程（组织委员）+ 宣传委员档案与周报 + 纪检委员考勤补课 + 党支部书记全局聚合；tab 切换 + 子 tab</div>
+        <div class="p-4 bg-gray-50 rounded-lg"><strong>归档库</strong>（archive.html）— 已完成工作归档与回溯；搜索 + 类别过滤</div>
+        <div class="p-4 bg-gray-50 rounded-lg"><strong>资料查询</strong>（search.html）— 合规文件 · 操作指南 · SOP 文档 · 外部链接；分类筛选</div>
+        <div class="p-4 bg-gray-50 rounded-lg"><strong>意见反馈</strong>（feedback.html）— SOP 优化提案反馈表单；Scope/PainPoint/ProposedFix 三要素</div>
+      </div>
+    </div>
+
+    <div class="card rounded-2xl p-8 mb-6">
+      <h3 class="font-title-cn text-lg font-bold text-gray-800 mb-5">四、权限体系</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full font-title text-sm text-gray-700 leading-loose border-collapse">
+          <thead><tr class="bg-gray-50"><th class="p-3 text-left border-b">写入权限域</th><th class="p-3 text-left border-b">授权人</th><th class="p-3 text-left border-b">享有角色</th></tr></thead>
+          <tbody>
+            <tr><td class="p-3 border-b">职能域写入</td><td class="p-3 border-b">天然权限</td><td class="p-3 border-b">组织委员 / 宣传委员 / 纪检委员（各自板块）</td></tr>
+            <tr><td class="p-3 border-b">活动域写入</td><td class="p-3 border-b">党支部书记 / 党小组组长</td><td class="p-3 border-b">党支部书记、党小组组长（全域）</td></tr>
+            <tr><td class="p-3 border-b">活动域写入（需赋权）</td><td class="p-3 border-b">党小组组长</td><td class="p-3 border-b">活动组织者 / 深度参与者（经赋权后）</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="font-title text-sm text-gray-400 mt-4">注：只读模式对所有角色开放日历视图浏览。管理模式仅对已赋权角色开放写入。条条支委在管理模式的视图为任务看板而非日历。</p>
+    </div>
+
+    <div class="card rounded-2xl p-8 mb-6">
+      <h3 class="font-title-cn text-lg font-bold text-gray-800 mb-5">五、技术栈</h3>
+      <ul class="list-disc list-inside space-y-2 font-title text-base text-gray-700 leading-loose">
+        <li>纯前端静态架构 — 无需后端部署</li>
+        <li>ES Modules — 无构建工具、零打包依赖</li>
+        <li>Tailwind CSS CDN — 原子化样式引擎</li>
+        <li>sessionStorage / localStorage — 跨页面状态持久化</li>
+        <li>Custom Events — 组件间解耦通信</li>
+        <li>多页面应用（MPA）— 7 个独立 HTML 页面</li>
+      </ul>
+    </div>
+
+    <div class="card rounded-2xl p-8 mb-6">
+      <h3 class="font-title-cn text-lg font-bold text-gray-800 mb-5">致谢</h3>
+      <p class="font-title text-base text-gray-700 leading-loose" style="text-indent:2em;">
+        感谢<strong>党委领导马化祥书记、鞠晓书记</strong>对本支部数字化管理探索的大力支持。
+        感谢支部委员：赵雅萱、代艺、徐瑗依、秦若琳、韩思宁、辛长乐、侯嘉嵘、王峥旭、王溪斌、悦佳荷——正是各位委员在各自岗位上精益求精的实务耕耘，才为本系统的设计提供了丰富的场景素材与实践检验。
+        特别感谢<strong>赵雅萱、闫鑫岳</strong>同志对于宣传档案工作的鼎力指导，为宣传委员工作流的设计确立了高标准。
+        特别感谢<strong>韩思宁、辛长乐</strong>同志对于党小组工作组织和考勤考察划分的工作方法创新，为纪检委员看板视图提供了制度基础。
+        特别感谢<strong>白文琦、孙睿</strong>同志对于支部扁平化工作方法 SOP 工作流的理论贡献，为系统决策树模型建构了方法论支撑。
+        特别感谢<strong>朱阳俊峰、杜新宇</strong>同志对于品牌活动打磨和党小组工作范式的创造性贡献，为党建工作台的创新探索注入了实践灵魂。
+        感谢<strong>党建中心</strong>提供的资源平台支持。
+      </p>
+    </div>
+
+    <div class="card rounded-2xl p-8 mb-6 border-amber-200 bg-amber-50/30">
+      <h3 class="font-title-cn text-lg font-bold text-amber-800 mb-5">责任自负声明</h3>
+      <p class="font-title text-base text-amber-700 leading-loose">
+        本系统为北京大学光华管理学院本科生党支部内部管理工具。<strong>所有功能仅供支部内部使用</strong>，不对任何外部组织或个人承担技术可用性或数据准确性保证。系统中展示的活动日历、人员信息、SOP 文献与合规文件均为内部参考资料，不构成对上级党委或外部机构的正式上报材料。<strong>使用本系统的任何决策后果由使用者自行承担</strong>。系统开发者及维护者不承担因系统功能变更、数据展示不完整或误解系统输出而产生的任何责任。
+      </p>
+    </div>
+
+    <div class="text-center pb-8">
+      <p class="text-xs text-gray-400">光华管理学院本科生党支部 · GSM1921-SOP</p>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { renderSidebar } from './src/components/sidebar.js';
+  import { renderHeader } from './src/components/header.js';
+  renderSidebar('about');
+  renderHeader('about');
+</script>
+</body>
+</html>

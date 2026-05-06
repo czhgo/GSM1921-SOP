@@ -64,9 +64,9 @@ export function showToast(type, message) {
   }
 
   const COLORS = {
-    success: { bg: 'rgba(34,197,94,0.15)',  border: '#22c55e', icon: '✅' },
-    error:   { bg: 'rgba(239,68,68,0.15)',  border: '#ef4444', icon: '❌' },
-    info:    { bg: 'rgba(99,102,241,0.15)', border: '#6366f1', icon: 'ℹ️' },
+    success: { bg: 'rgba(34,197,94,0.15)',  border: '#22c55e', icon: 'OK' },
+    error:   { bg: 'rgba(239,68,68,0.15)',  border: '#ef4444', icon: '!!' },
+    info:    { bg: 'rgba(99,102,241,0.15)', border: '#6366f1', icon: 'i' },
   };
   const { bg, border, icon } = COLORS[type] || COLORS.info;
 
