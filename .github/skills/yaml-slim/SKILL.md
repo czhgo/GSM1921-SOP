@@ -1,113 +1,48 @@
 ---
+role: "[AI]"
 name: yaml-slim
-description: 'Slim markdown YAML frontmatter safely. Use when removing last_updated while preserving version and enforcing Blueprint, /ask authorization, and post-change logging handoff rules.'
-argument-hint: '目标文件范围、只读或写盘、是否批量处理、是否保留额外字段'
-user-invocable: true
+description: 安全精简 Markdown 前言区（frontmatter）——移除 last_updated 等冗余元数据字段，保留 version。适用场景：发布前的元数据规范化、批量清理。
 ---
 
-# YAML Slim Workflow / YAML 精简工作流
+# YAML 精简工作流
 
-## Purpose / 目标
-Standardize frontmatter by removing noisy metadata while keeping version traceability and governance safety rails.
-通过移除冗余元数据并保留版本可追溯性，实现前言区规范化，同时满足治理熔断要求。
+## 目标
 
-## When To Use / 适用场景
-- Need to remove last_updated from markdown frontmatter.
-- Need to normalize metadata style before release or SOP sync.
-- Need a safe, approval-gated workflow for metadata cleanup.
-- 需要移除 frontmatter 中的 last_updated。
-- 需要在发布前或 SOP 同步前统一元数据风格。
-- 需要带授权熔断链路的安全清理流程。
+标准化 Markdown 文件的前言区（YAML frontmatter），移除冗余元数据，保留版本可追溯性。
 
-## Required Inputs / 输入项
-- Target file or folder scope.
-- Mode: read-only audit or write mode.
-- Batch or single-file execution.
-- Optional keep-list for additional metadata keys.
-- 目标文件或目录范围。
-- 模式：只读核查或写盘执行。
-- 单文件或批量执行。
-- 可选保留字段白名单。
+## 输入项
 
-## Decision Points / 决策分支
-1. Mode branch:
-   - Read-only audit: report only, no write.
-   - Write mode: Blueprint plus /ask confirmation required.
-2. Scope branch:
-   - Single file by default (current file only).
-   - Batch mode only when explicitly requested.
-3. Key policy branch:
-   - Always remove last_updated when present.
-   - Always preserve version key and value (only mandatory keep key).
-4. Agent chain fuse:
-   - If this step would involve a 4th allowed agent in one session, stop and require the user to send "确认".
+- **目标文件/目录**
+- **模式**：只读核查或写盘
+- **单文件或批量**
+- **保留字段白名单**（可选，默认仅保留 `version`）
 
-## Procedure / 执行流程
-1. Pre-check.
-   - Locate frontmatter blocks in target markdown files.
-   - Verify the task does not request edits outside frontmatter.
-2. Output `### Blueprint`.
-   - Include scope, mode, risk, rollback points, and validation checks.
-3. Request interactive approval.
-   - Trigger `/ask` (or `/confirm`) before any write action.
-4. Execute minimal edit.
-   - Delete last_updated key-value pair when present.
-   - Preserve version key and original value.
-   - Keep frontmatter syntax valid.
-5. Validate completion.
-   - Frontmatter remains parseable.
-   - version is unchanged.
-   - No body content changed.
-   - No silent write behavior occurred.
-6. Post-change branch.
-   - For substantive semantic or structural impact in execution departments, output log summary and directly call @档案馆.
-   - 起居院 must present draft by /ask and append only after Allow.
+## Gotchas
 
-## Output Contract / 输出契约
-### Read-Only Audit Report / 只读核查报告
-- Scope / 核查范围
-- Total files scanned / 扫描文件总数
-- Files with frontmatter / 含 frontmatter 文件
-- Files containing last_updated / 含 last_updated 文件
-- Risk notes / 风险提示
-- Suggested actions / 建议动作
+- **`version` 字段是唯一强制保留的字段**——即使白名单为空也不能删除。
+- Frontmatter 结束标记 `---` 前后不能有空格或多余字符——否则 YAML 解析器会将其视为正文的一部分。
+- 如果 frontmatter 中不存在任何待删除字段，不要输出"已清理"，应输出"无需清理"并列出当前字段清单。
 
-### Blueprint
-- Goal
-- Scope
-- Planned files
-- Edit strategy
-- Risks
-- Rollback points
-- Validation checks
+## 执行流程
 
-### Authorization Request
-/ask 是否批准按上述 Blueprint 执行修改？
+1. 预检——定位目标文件的前言区
+2. 若只读模式 → 产出核查报告
+3. 若写盘模式 → 输出 `### Blueprint` → 工具调用获取授权
+4. 执行——删除 last_updated（若存在），保留 version，保持 YAML 语法有效
+5. 完成校验——前言区可解析、version 未变、正文未动
 
-### Execution Result
-- Changed files
-- Key actions
-- Result
-- Risks
-- Rollback points
-- Validation checks
+## 输出模板
 
-### Log Summary (when substantive change exists)
-- Changed files
-- Key actions
-- Result
-- Risks
-- Rollback points
+```markdown
+### 核查报告（只读）
+- 扫描文件总数: ...
+- 含 frontmatter 文件: ...
+- 含 last_updated 文件: ...
+- 当前字段清单: ...
 
-### Auto Handoff to 档案馆 (execution departments only)
-@档案馆 请基于以上日志摘要生成当月日志草稿，并使用 /ask 请求写入授权。
-
-## Guardrails / 护栏
-- Never delete version.
-- Never modify markdown body during this workflow.
-- Never write before /ask or /confirm approval.
-- Never perform silent logging writes.
-- Never do cross-department calls except the constitutional exception to 起居院 after substantive execution changes.
-
-## Reference
-- [System Constitution](../../copilot-instructions.md)
+### Blueprint（写盘）
+- 目标: ...
+- 编辑策略: 删除 last_updated，保留 version
+- 风险: ...
+- 回滚点: ...
+```

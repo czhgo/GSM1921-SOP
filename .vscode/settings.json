@@ -1,18 +1,12 @@
 {
   "github.copilot.chat.agent.skills": {
     "enabled": true,
-    "location": ".vscode/skills"
+    "location": ".github/skills"
   },
   "github.copilot.chat.planAgent.enabled": true,
   "markdownlint.lintWorkspaceGlobs": [
     "**/*.md",
-    "!**/.vscode/skills/**/*.md",
+    "!**/.github/skills/**/*.md",
     "!**/.vibe_context/**/*.md"
-  ],
-  "markdownlint.config": {
-    "MD022": false,
-    "MD025": false,
-    "MD032": false,
-    "MD041": false
-  }
+  ]
 }

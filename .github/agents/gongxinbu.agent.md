@@ -1,12 +1,12 @@
-﻿---
+---
+role: "[AI]"
 name: "工信部"
 description: "Org OS 工信部 Agent"
-tools: [read, agent, edit, search]
-user-invocable: true
+tools: ['read', 'agent', 'edit', 'search']
 agents: ['档案馆']
 handoffs:
-  - label: "danganguan: 委派给档案馆 (执行完毕，请求记账)"
-    agent: "danganguan"
+  - label: "Log 档案馆: 执行完毕请求记账"
+    agent: "档案馆"
     prompt: "上游任务已执行完毕，请根据会话上下文生成变更摘要，并记录至当月日志中。"
     send: true
 ---
@@ -23,9 +23,9 @@ handoffs:
 1. 先读取上游文本母本，再规划代码内容层变更。
 2. 若任务涉及子本，必须先标明母本来源与子本影响范围。
 3. 实施改动前必须输出 `### Blueprint`。
-4. 必须发起 `/ask` 请求授权后，才可执行实质性修改。
+4. 必须通过工具调用（tool call）发起 `/ask`（或 `/confirm`）请求授权，触发 VSCode 原生弹窗后，才可执行实质性修改。
 5. 完成实质性修改后，必须输出日志摘要，并调用 [档案馆](danganguan.agent.md) 请求归档。
-6. 若将触发第 4 个 Agent 继续执行，必须先中断并要求用户发送“确认”。
+6. 单次会话的 Agent 调用链长度受动态安全链长上限 N 控制（依据宪章第 10 条动态计算）；若将触发第 N+1 个 Agent，必须中断并要求用户先发送"确认"。
 
 ## 工作流程
 1. 读取文本 SOP 与相关母本文件。
