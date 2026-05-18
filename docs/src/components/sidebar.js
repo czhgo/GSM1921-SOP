@@ -1,8 +1,8 @@
 // role: [人机]
 // components/sidebar.js — 共享侧边栏（角色卡片 + 模式由 header 统一控制）
 
-import { AuthStore, ViewModeStore } from '../service.auth.js';
-
+import { AuthStore, ViewModeStore } from '../services/auth.js';
+import { interceptSidebarNavigation } from './role-selector.js';
 const NAV_ITEMS = [
   { module: 'dashboard', label: '主页', href: './index.html', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' },
   { module: 'workspace', label: '党建工作台', href: './workspace.html', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' },
@@ -16,7 +16,7 @@ const ROLE_CARDS = {
   workspace: [
     { role: 'leader', label: '党小组组长', desc: '党小组活动统筹', cls: 'leader-card', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>' },
     { role: 'commissioner-group', label: '条条支委', desc: '组织/宣传/纪检', cls: 'commissioner-card', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
-    { role: 'organizer', label: '活动组织者', desc: '策划执行督办', cls: 'organizer-card', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>' },
+    { role: 'organizer', label: '组织者', desc: '分工记录·桥梁作用', cls: 'organizer-card', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>' },
     { role: 'deep', label: '深度参与者', desc: '承担具体分工', cls: 'deep-card', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/></svg>' },
     { role: 'secretary', label: '党支部书记', desc: '组织统筹决策', cls: 'secretary-card', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>' },
   ],
@@ -84,6 +84,8 @@ export function renderSidebar(activeModule) {
       bubbles: true,
     }));
   }
+
+  interceptSidebarNavigation();
 }
 
 function _selectRole(sidebar, activeModule, role, cardEl) {
@@ -91,12 +93,18 @@ function _selectRole(sidebar, activeModule, role, cardEl) {
   cardEl.classList.add('active');
   _saveRole(activeModule, role);
 
-  const currentMode = ViewModeStore.getMode(activeModule);
+  const primary = AuthStore.getPrimaryRole();
+  if (!primary) {
+    AuthStore.setPrimaryRole(role);
+  }
+  AuthStore.setActiveRole(activeModule, role);
+
   const canManage = ViewModeStore.canManage(activeModule, role);
-  const mode = canManage ? currentMode : 'observe';
+  const mode = canManage ? 'manage' : 'observe';
+  ViewModeStore.setMode(activeModule, mode);
 
   document.dispatchEvent(new CustomEvent('sidebar:role-select', {
-    detail: { role, module: activeModule, mode },
+    detail: { role, module: activeModule, mode, primaryRole: AuthStore.getPrimaryRole() },
     bubbles: true,
   }));
 
@@ -111,5 +119,16 @@ function _bindRoleCardClicks(sidebar, activeModule) {
       const role = card.dataset.role;
       _selectRole(sidebar, activeModule, role, card);
     });
+  });
+
+  document.addEventListener('header:role-switch', (e) => {
+    if (e.detail.module !== activeModule) return;
+    const role = e.detail.role;
+    sidebar.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
+    if (role) {
+      const card = sidebar.querySelector(`.role-card[data-role="${role}"]`);
+      if (card) card.classList.add('active');
+    }
+    _saveRole(activeModule, role);
   });
 }

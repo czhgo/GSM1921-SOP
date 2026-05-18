@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!-- role: [人机] -->
 <html lang="zh-CN">
 <head>
@@ -53,27 +53,36 @@
           <img src="./assets/images/party_emblem.png" alt="党徽" class="mx-auto mb-3" style="width:48px;height:48px;" draggable="false">
           <h2 class="font-title-cn text-2xl font-bold text-gray-800 mb-1">光华管理学院本科生党支部管理引擎</h2>
         </div>
+        <div id="dashboard-stats" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
+        <div class="card rounded-2xl p-6 mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-title-cn text-base font-semibold text-gray-800">重要通知</h3>
+            <span id="dashboard-notice-count" class="text-xs text-gray-400"></span>
+          </div>
+          <div id="dashboard-notice-list" class="text-sm text-gray-500"><p>暂无通知</p></div>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div class="card rounded-2xl p-6">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="font-title-cn text-base font-semibold text-gray-800">重要通知</h3>
+              <h3 class="font-title-cn text-base font-semibold text-gray-800">近期活动</h3>
+              <a href="./ws-visitor.html" class="text-xs text-blue-600 hover:text-blue-800">查看全部 →</a>
             </div>
-            <div id="dashboard-notice-list" class="text-sm text-gray-500"><p>暂无通知</p></div>
+            <div id="dashboard-activity-list" class="text-sm text-gray-500"><p>暂无活动</p></div>
           </div>
           <div class="card rounded-2xl p-6">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="font-title-cn text-base font-semibold text-gray-800">人员招募</h3>
-              <a href="./party.html" class="text-xs text-blue-600 hover:text-blue-800">查看全部 →</a>
+              <h3 class="font-title-cn text-base font-semibold text-gray-800">专班进展</h3>
+              <a href="./ws-org-commissioner.html" class="text-xs text-blue-600 hover:text-blue-800">查看全部 →</a>
             </div>
-            <div id="dashboard-recruitment-list" class="text-sm text-gray-500"><p>暂无待招募信息</p></div>
+            <div id="dashboard-taskforce-list" class="text-sm text-gray-500"><p>暂无专班信息</p></div>
           </div>
         </div>
         <div class="card rounded-2xl p-6">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="font-title-cn text-base font-semibold text-gray-800">活动日历</h3>
-            <a href="./workspace.html" class="text-xs text-blue-600 hover:text-blue-800">查看全部 →</a>
+            <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤概况</h3>
+            <a href="./ws-disc-commissioner.html?mode=readonly" class="text-xs text-blue-600 hover:text-blue-800">查看详情 →</a>
           </div>
-          <div id="dashboard-calendar-summary" class="text-sm text-gray-500"><p>暂无已写入活动</p></div>
+          <div id="dashboard-attendance-summary" class="text-sm text-gray-500"><p>暂无考勤数据</p></div>
         </div>
       </div>
     </section>
@@ -82,7 +91,7 @@
 
 
 
-<script type="module" src="./src/main.js"></script>
+<script type="module" src="./src/entries/main-entry.js"></script>
 
 </body>
 </html>

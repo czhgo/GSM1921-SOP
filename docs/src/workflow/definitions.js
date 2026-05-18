@@ -399,12 +399,12 @@ export const LONG_TERM_DEFINITION = {
 };
 
 // ════════════════════════════════════════════════════════════════
-//  E. 品牌活动模板（本轮搁置 ⏸️，保留作为知识沉淀）
+//  E. 品牌活动模板（本轮搁置，保留作为知识沉淀）
 // ════════════════════════════════════════════════════════════════
 
 export const SHORT_TERM_BRAND_DEFINITION = {
   id: 'short-term-brand',
-  title: '短期品牌活动 ⏸️',
+  title: '短期品牌活动（搁置）',
   duration: 'short-term',
   brand: true,
   direction: 'either',
@@ -424,7 +424,7 @@ export const SHORT_TERM_BRAND_DEFINITION = {
 
 export const LONG_TERM_BRAND_DEFINITION = {
   id: 'long-term-brand',
-  title: '长期品牌活动 ⏸️',
+  title: '长期品牌活动（搁置）',
   duration: 'long-term',
   brand: true,
   direction: 'either',
@@ -458,7 +458,7 @@ export const LONG_TERM_BRAND_DEFINITION = {
  *    - long-term （长期）：长期打磨/接续工作/多活动小组同步推进，如宣讲团、人生回望录
  *
  * 2. 品牌维度 (brand)
- *    - true  ：持续迭代打造品牌的项目（本轮搁置 ⏸️）
+ *    - true  ：持续迭代打造品牌的项目（本轮搁置）
  *    - false ：普通日常活动
  *
  * 3. 发起维度 (direction)
@@ -473,7 +473,7 @@ export const DIMENSION_DEFINITIONS = {
     'long-term': { label: '长期活动', rule: '长期打磨/接续工作/多活动小组同步推进', timeoutMultiplier: 2.0 },
   },
   brand: {
-    true: { label: '品牌活动 ⏸️', rule: '持续迭代打造品牌（本轮搁置）' },
+    true: { label: '品牌活动（搁置）', rule: '持续迭代打造品牌（本轮搁置）' },
     false: { label: '非品牌活动', rule: '普通日常活动' },
   },
   direction: {

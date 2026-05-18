@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>光华管理学院本科生党支部管理引擎</title>
-  <meta name="description" content="党务管理 — 党员发展 · 补课制度 · 意见反馈 · 公邮提醒">
+  <meta name="description" content="党务管理 — 党员发展 · 补课制度 · 公邮管理">
   <link rel="preload" href="https://fonts.gstatic.com/s/notosanssc/v36/k3kCo84MPvpLmixcA63oeAL7Iqp5IZJF9bmaG9_FnYxNbPzS5HE.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,13 +35,13 @@
 <aside id="app-sidebar" class="sidebar-collapsed"></aside>
 
 <div class="sidebar-main-content pt-16 min-h-screen">
-  <main class="flex-1 px-4 py-6 md:px-8 overflow-y-auto min-w-0">
+  <main id="party-main" class="flex-1 px-4 py-6 md:px-8 overflow-y-auto min-w-0">
     <div class="max-w-6xl mx-auto">
 
       <div class="flex items-center justify-between mb-4">
         <div>
           <h2 class="font-title-cn text-xl font-bold text-gray-800">党务管理</h2>
-          <p class="text-xs text-gray-500 mt-1">党员发展全流程 / 补课制度 / 意见反馈 / 公邮提醒</p>
+          <p class="text-xs text-gray-500 mt-1">党员发展全流程 / 补课制度 / 公邮管理</p>
         </div>
         <div class="flex items-center gap-3">
           <a href="./index.html" class="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">← 返回主页</a>
@@ -78,7 +78,7 @@
         <div class="card rounded-2xl p-5">
           <h3 class="font-title-cn text-sm font-bold text-gray-700 mb-3">支委联系方式</h3>
           <div class="space-y-2 text-sm text-gray-600">
-            <div class="flex items-center gap-2"><span class="inline-block w-2 h-2 rounded-full" style="background:#D97706;"></span><span>补课制度 / 公邮提醒 → 纪检委员</span></div>
+            <div class="flex items-center gap-2"><span class="inline-block w-2 h-2 rounded-full" style="background:#D97706;"></span><span>补课制度 / 公邮管理 → 纪检委员</span></div>
             <div class="flex items-center gap-2"><span class="inline-block w-2 h-2 rounded-full" style="background:#3B82F6;"></span><span>发展党员 / 材料催缴 → 组织委员</span></div>
             <div class="flex items-center gap-2"><span class="inline-block w-2 h-2 rounded-full" style="background:#10B981;"></span><span>宣传档案 / 周报报送 → 宣传委员</span></div>
           </div>
@@ -99,19 +99,14 @@
             <div class="text-center"><div class="text-lg font-bold" style="color:#D97706;" id="insp-stat-makeup">—</div><div class="text-xs text-gray-400">待补课(人)</div></div>
             <div class="text-center"><div class="text-lg font-bold" style="color:#EF4444;" id="insp-stat-mailbox">—</div><div class="text-xs text-gray-400">未读邮件(事)</div></div>
             <div class="text-center"><div class="text-lg font-bold" style="color:#6B7280;" id="insp-stat-attendance">—%</div><div class="text-xs text-gray-400">出勤率(人)</div></div>
-            <div class="text-center"><div class="text-lg font-bold" style="color:#8B5CF6;" id="insp-stat-reviews">—</div><div class="text-xs text-gray-400">待复盘(事)</div></div>
           </div>
         </div>
         <div class="commissioner-tab-bar">
-          <button class="commissioner-tab active" data-subtab="makeup">补课跟踪<span class="dim-tag dim-people">人</span></button>
-          <button class="commissioner-tab" data-subtab="mailbox">公邮提醒<span class="dim-tag dim-event">事</span></button>
-          <button class="commissioner-tab" data-subtab="participation">出勤汇总<span class="dim-tag dim-people">人</span></button>
-          <button class="commissioner-tab" data-subtab="review-supervision">复盘督办<span class="dim-tag dim-event">事</span></button>
+          <button class="commissioner-tab active" data-subtab="makeup">补课制度<span class="dim-tag dim-people">人</span></button>
+          <button class="commissioner-tab" data-subtab="mailbox">公邮管理<span class="dim-tag dim-event">事</span></button>
         </div>
-        <div class="commissioner-subtab-content active" data-subtab-content="makeup"><div class="card rounded-2xl p-5"><h3 class="font-title-cn text-sm font-bold text-gray-700 mb-3">补课跟踪</h3><div id="inspector-makeup-list" class="space-y-3"><div class="text-xs text-gray-400 text-center py-8">暂无待补课记录。</div></div></div></div>
-        <div class="commissioner-subtab-content" data-subtab-content="mailbox"><div class="card rounded-2xl p-5"><h3 class="font-title-cn text-sm font-bold text-gray-700 mb-3">公邮待办提醒</h3><div id="inspector-mailbox-info" class="space-y-3"><div class="text-xs text-gray-400 text-center py-8">公邮状态由 JS 动态拉取。</div></div></div></div>
-        <div class="commissioner-subtab-content" data-subtab-content="participation"><div class="card rounded-2xl p-5"><h3 class="font-title-cn text-sm font-bold text-gray-700 mb-3">出勤汇总</h3><div id="inspector-participation-list" class="space-y-3"><div class="text-xs text-gray-400 text-center py-8">出勤数据由活动考勤子记录汇总生成。</div></div></div></div>
-        <div class="commissioner-subtab-content" data-subtab-content="review-supervision"><div class="card rounded-2xl p-5"><h3 class="font-title-cn text-sm font-bold text-gray-700 mb-3">复盘督办</h3><div id="inspector-review-list" class="space-y-3"><div class="text-xs text-gray-400 text-center py-8">无待复盘活动。</div></div></div></div>
+        <div class="commissioner-subtab-content active" data-subtab-content="makeup"><div class="card rounded-2xl p-5"><h3 class="font-title-cn text-sm font-bold text-gray-700 mb-3">补课制度</h3><div id="inspector-makeup-list" class="space-y-3"><div class="text-xs text-gray-400 text-center py-8">暂无待补课记录。</div></div></div></div>
+        <div class="commissioner-subtab-content" data-subtab-content="mailbox"><div class="card rounded-2xl p-5"><h3 class="font-title-cn text-sm font-bold text-gray-700 mb-3">公邮管理</h3><div id="inspector-mailbox-info" class="space-y-3"><div class="text-xs text-gray-400 text-center py-8">公邮状态由 JS 动态拉取。</div></div></div></div>
       </div>
 
       <div id="panel-organizer" class="commissioner-panel hidden" data-commissioner="organizer">
@@ -183,6 +178,6 @@
 </div>
 
 
-<script type="module" src="./src/party-entry.js"></script>
+<script type="module" src="./src/entries/party-entry.js"></script>
 </body>
 </html>
