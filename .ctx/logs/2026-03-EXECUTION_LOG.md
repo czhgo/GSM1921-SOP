@@ -1399,7 +1399,7 @@ v8.3 采用轻量级 SaaS 架构：原生 ESM 分层、Immutable 数据流、状
 1. 完整仓库文件树（精确到 `/src` 和 `.vibe_context` 内部结构）
 2. `REPO_ENTRYPOINT.md` 完整内容
 3. `ARCHITECTURE.md` 核心内容（Core Runtime Flow、Data Model、Storage Model）
-4. `SYSTEM_ROADMAP.md` 完整内容
+4. `SYSTEM_CLAUDE.md` 完整内容
 5. `src/domain.js` 核心骨架（SCHEMA_VERSION、Activity/Task JSDoc、mockDB 初始树）
 6. `src/service.mock.js` 骨架（loadDB schema 拦截、saveDB、archiveActivity 级联、其他 CRUD 签名）
 7. `src/main.js` 核心骨架（STATE 枚举、appState、currentRequestId、初始化/渲染入口签名）
@@ -1468,7 +1468,7 @@ N/A
 
 | 源文件 | 核心信息摘要 | 信息去向 |
 |--------|------------|---------|
-| `REPO_ENTRYPOINT.md` | AI 必读顺序（ARCHITECTURE/ROADMAP/FILE_ACCESS）、场景路由引擎（4个场景 + 优先级）、执行前声明协议 | → `AI_ENTRYPOINT.md` §Repository Map + §AI Rules Summary |
+| `REPO_ENTRYPOINT.md` | AI 必读顺序（ARCHITECTURE/CLAUDE.md/FILE_ACCESS）、场景路由引擎（4个场景 + 优先级）、执行前声明协议 | → `AI_ENTRYPOINT.md` §Repository Map + §AI Rules Summary |
 | `START_HERE.md` | 仓库用途说明、按角色快速导航（新任支委/块块委员/条条委员）、模板位置表、AI 协同标准调用指令 | → `AI_ENTRYPOINT.md` §AI Rules Summary（人工快速导航 + 标准调用指令） |
 | `CHEATSHEET.md` | 日常工作场景速查、按角色文件速查、三类模板说明、文件夹速查 | → `AI_ENTRYPOINT.md` §AI Rules Summary（人工快速导航表，精简合并） |
 

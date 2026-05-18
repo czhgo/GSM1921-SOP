@@ -1,5 +1,10 @@
-﻿---
+---
+title: "双域五层架构说明"
+type: architecture
 role: "[人机]"
+owner: "Org OS Agent 集群"
+last_updated: "2026-05-15"
+status: active
 ---
 
 # Architecture
@@ -74,7 +79,7 @@ Layer 0: 宪章层（最高权威）
   └─ .github/copilot-instructions.md       [AI] 全局系统指令（宪章）
 
 Layer 1: 注册表层（SSOT 溯源中枢）
-  └─ .github/SSOT_INDEX.md                  [AI] 母本注册表与溯源参考
+  └─ SSOT_INDEX.md                           [AI] 母本注册表与溯源参考
 
 Layer 2: 制度母本层（文本权威）
   └─ content/SOP/*.md                       [人机] 制度原文，所有代码逻辑的来源
@@ -111,7 +116,8 @@ Layer 7: 官方底线层（只读引用）
 /
 ├── README.md                          [人] 对外门面，最后编辑环节
 ├── ARCHITECTURE.md                    [人机] 本文件，核心架构说明
-├── ROADMAP.md                         [人机] 未来执行路线图
+├── CLAUDE.md                         [人机] 未来执行路线图
+├── SSOT_INDEX.md                     [AI] 母本注册表与溯源参考
 ├── index.html                         [人机] UI 入口（Flat Matte 骨架）
 ├── .markdownlint.json                 [工具] 代码风格规范
 ├── .markdownlintignore                [工具] 代码风格忽略列表
@@ -134,37 +140,35 @@ Layer 7: 官方底线层（只读引用）
 │   │   ├── INDEX.md                   [人机] SOP 导航目录
 │   │   ├── 常见工作场景快速指南.md       [人机] 快速使用指南
 │   │   ├── 支委与党小组定人定责定岗说明.md [人机] 职责分工文档
-│   │   ├── Org_OS_极客操作手册.md       [人机] 技术操作手册
 │   │   ├── 宣传/纪检/组织委员工作流程指南.md [人机] 功能委员 SOP
-│   │   └── README.md                  [人机]
 │   ├── guides/                        [人机] 操作指南与设计文档
-│   │   ├── DOCUMENTATION_MAP.md       [人机] 文档导航中心
+│   │   ├── DOC_MAP.md       [人机] 文档导航中心
 │   │   ├── AGENT_USAGE.md             [人机] Agent 使用指南
 │   │   ├── ROLE_CLASSIFICATION.md     [人机] 角色三分类体系
 │   │   ├── DESIGN_SYSTEM.md           [人机] 设计系统规范
-│   │   ├── CALENDAR_DESIGN.md         [人机] 日历功能规划
-│   │   ├── MANAGEMENT_MODE_ARCHITECTURE.md [人机] 管理模式架构
-│   │   ├── ORGANIZATION_BUILDING_MODULE.md [人机] 党务管理模块
-│   │   ├── COMMISSIONER_SYSTEM_DESIGN.md [人机] 支委系统设计（合并）
+│   │   ├── CALENDAR.md         [人机] 日历功能规划
+│   │   ├── MANAGEMENT_MODE.md [人机] 管理模式架构
+│   │   ├── ORG_BUILDING.md [人机] 党务管理模块
+│   │   ├── COMMISSIONER_SYSTEM.md [人机] 支委系统设计（合并）
 │   │   ├── BRAND_ACTIVITY.md           [人机] 品牌活动方案 ⏸️
-│   │   ├── RECURRING_TASKS_MECHANISM.md [人机] 周期性任务机制
-│   │   ├── TERMINOLOGY_STANDARDS.md   [人机] 术语规范
+│   │   ├── RECURRING_TASKS.md [人机] 周期性任务机制
+│   │   ├── TERMINOLOGY.md   [人机] 术语规范
 │   │   ├── EMOJI_POLICY.md            [人机] Emoji 使用规范
-│   │   ├── SOP_WEB_GUIDE.md           [人机] SOP 网页指南
-│   │   ├── SOP优化提案反馈卡.md        [人机] 反馈模板
+│   │   ├── SOP_WEB.md           [人机] SOP 网页指南
+│   │   ├── AGENT_HANDBOOK.md    [人机] 技术操作手册
 │   │   └── README.md                  [人机]
 │   ├── insights/                      [人机] 经验沉淀
 │   │   └── 党支部管理与实务经验沉淀.md   [人机] 经验沉淀文档
 │   └── references/                    [人]  官方底线与模板
 │       ├── 官方文件/                   [人] 党章、条例、规范（只读）
 │       ├── 模板库/                     [人] 申报材料模板、活动复盘模板
+│       │   └── FEEDBACK_FORM.md        [人机] 反馈模板
 │       ├── 党小组会/                   [人] 历史党小组会记录
 │       ├── 支部委员会/                 [人] 历史支委会记录
 │       └── README.md                  [人]
 │
 ├── .github/                           [AI] Agent 治理层
 │   ├── copilot-instructions.md        [AI] 全局系统指令（宪章）
-│   ├── SSOT_INDEX.md                  [AI] 母本注册表与溯源参考
 │   ├── agents/ (10)                   [AI] 自定义 Agent 配置
 │   └── skills/ (10)                   [AI] 可装配 Skill 定义
 │
@@ -259,7 +263,7 @@ content/SOP/ → src/workflow/ → constants/utils → service layer → state �
 ```
                     ┌─────────────────────────────────┐
                     │  .github/copilot-instructions.md │ ← 宪章层（治理起点）
-                    │  .github/SSOT_INDEX.md           │ ← 母本注册表
+                    │  SSOT_INDEX.md                   │ ← 母本注册表
                     └──────────────┬──────────────────┘
                                    │ 溯源校验
          ┌─────────────────────────┼─────────────────────────┐
@@ -287,12 +291,12 @@ content/SOP/*.md             .github/skills/            .github/agents/
 ### 门控规则（Gate Check）
 
 - 修改 `src/workflow/` 或更下层前，必须确认母本 `content/SOP/` 已更新
-- 修改 Agent 配置或 Skill 定义前，必须确认 `.github/SSOT_INDEX.md` 注册表已同步
+- 修改 Agent 配置或 Skill 定义前，必须确认 `SSOT_INDEX.md` 注册表已同步
 - 跨层修改须先完成上层确认方可推进下层
 
 ### Change Trace 四要素（修改 src/ 或 index.html 前必须输出）
 
-1. `SSOT source`: 母本变更依据（引用 `.github/SSOT_INDEX.md` 注册表链路）
+1. `SSOT source`: 母本变更依据（引用 `SSOT_INDEX.md` 注册表链路）
 2. `SOP impact`: 本次 SOP 变更情况（引用 `content/SOP/` 具体文件与条款，无变化写 `none`）
 3. `Schema impact`: 数据结构变更情况（无变化写 `none`）
 4. `Service impact`: 服务层方法变更情况（无变化写 `none`）
@@ -304,12 +308,12 @@ content/SOP/*.md             .github/skills/            .github/agents/
 | 我需要... | 去哪里 |
 |----------|--------|
 | 快速了解项目 | README.md |
-| 看待办任务 | ROADMAP.md §五 |
+| 看待办任务 | CLAUDE.md §五 |
 | 查全局系统指令 | .github/copilot-instructions.md |
-| 查母本链路 | .github/SSOT_INDEX.md |
+| 查母本链路 | SSOT_INDEX.md |
 | 查审查状态 | .ctx/CONTEXT.md §4 |
 | 查 SOP 流程 | content/SOP/INDEX.md |
 | 查执行日志 | .ctx/logs/YYYY-MM-EXECUTION_LOG.md |
 | 取用工作模板 | content/references/模板库/ |
-| 提交改进反馈 | content/guides/SOP优化提案反馈卡.md |
+| 提交改进反馈 | content/references/模板库/FEEDBACK_FORM.md |
 | 查官方合规文件 | content/references/官方文件/ |

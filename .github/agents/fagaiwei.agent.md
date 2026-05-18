@@ -76,5 +76,6 @@ handoffs:
 ### 【专属能力挂载】
 在执行任务时，你可以主动调用以下技能（通过读取并遵循对应的文件指令）：
 - # .github/skills/sop-sync/SKILL.md（用于母本/子本内容同步）
+- # .github/skills/sop-web-sync/SKILL.md（用于 SOP↔网页代码双向同步校验）
 - # .github/skills/yaml-slim/SKILL.md（用于 YAML frontmatter 精简治理）
 

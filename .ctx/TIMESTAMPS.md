@@ -28,7 +28,7 @@ dynamic_role:
 |---------|-------------|------|------|
 | README.md | 2026-05-01 00:00:00 | [人] | 对外门面 |
 | ARCHITECTURE.md | 2026-05-03 00:00:00 | [人机] | 核心架构说明 |
-| ROADMAP.md | 2026-05-04 00:00:00 | [人机] | 待实施路线图 |
+| CLAUDE.md | 2026-05-04 00:00:00 | [人机] | 待实施路线图 |
 | index.html | 2026-05-04 00:00:00 | [人机] | UI 入口 |
 | .markdownlint.json | 2026-04-06 17:12:44 | [工具] | Markdown 规范 |
 | .markdownlintignore | 2026-04-01 02:28:01 | [工具] | Markdown 忽略 |
@@ -173,7 +173,7 @@ dynamic_role:
 |------|------|---------|---------|------|
 | W1 | 执行日志扫描 | 2026-05-04 | 2026-05-11 | OK |
 | W2 | Emoji 合规扫描 | 2026-05-04 | 2026-05-11 | OK |
-| M1 | ROADMAP 清理 | 2026-05-04 | 2026-06-04 | OK |
+| M1 | CLAUDE.md 清理 | 2026-05-04 | 2026-06-04 | OK |
 | M2 | SNAPSHOT 更新 | 2026-05-04 | 2026-06-04 | OK |
 | M3 | 全仓断链扫描 | 2026-05-04 | 2026-06-04 | OK |
 | M4 | Insights 经验蒸馏 | 2026-05-04 | 2026-06-04 | OK |
@@ -192,8 +192,8 @@ dynamic_role:
 |--------|---------|------|
 | AI_ENTRYPOINT.md | 2026-05-01 | 内容已合并至 ARCHITECTURE.md |
 | .ctx/COMPLETED_TASKS.md | 2026-05-02 | 日志已覆盖，汇总表删除 |
-| .ctx/PENDING_MODIFICATIONS.md | 2026-05-02 | 内容整合至 ROADMAP.md |
-| .ctx/SUSPENDED_ISSUES.md | 2026-05-02 | 内容整合至 ROADMAP.md |
+| .ctx/PENDING_MODIFICATIONS.md | 2026-05-02 | 内容整合至 CLAUDE.md |
+| .ctx/SUSPENDED_ISSUES.md | 2026-05-02 | 内容整合至 CLAUDE.md |
 | .ctx/WATCH_LOG.md | 2026-05-02 | 全部已解决，验证后删除 |
 | .ctx/AI_CONTEXT.md | 2026-05-02 | 内容融合至 CONTEXT.md |
 | .ctx/REVIEW_STATE.md | 2026-05-02 | 内容融合至 CONTEXT.md |

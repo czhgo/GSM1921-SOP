@@ -1,277 +1,921 @@
-﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>光华管理学院本科生党支部管理引擎</title>
-  <meta name="description" content="党建工作台 — 活动日历 · 专班管理 · 任务分配">
-  <link rel="preload" href="https://fonts.gstatic.com/s/notosanssc/v36/k3kCo84MPvpLmixcA63oeAL7Iqp5IZJF9bmaG9_FnYxNbPzS5HE.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            party: { DEFAULT:'#CE1126', red:'#CE1126', gold:'#D4AF37', 'gold-light':'#F5DEB3', 50:'#FEF2F2', 100:'#FEE2E2', 200:'#FECACA', 300:'#FCA5A5', 400:'#F87171', 500:'#EF4444', 600:'#DC2626', 700:'#CE1126', 800:'#9B0000', 900:'#7A0010', 950:'#4A000A' },
-            primary: { 50:'#FEF2F2', 100:'#FEE2E2', 200:'#FECACA', 300:'#FCA5A5', 400:'#F87171', 500:'#EF4444', 600:'#DC2626', 700:'#CE1126', 800:'#9B0000', 900:'#7A0010', 950:'#4A000A' },
-            accent: { gold:'#D4AF37', 'gold-light':'#F5DEB3', amber:'#D97706', blue:'#3B82F6', emerald:'#10B981', violet:'#8B5CF6' },
-            neutral: { 0:'#FFFFFF', 50:'#F8F9FA', 100:'#F3F4F6', 200:'#E5E7EB', 300:'#D1D5DB', 400:'#9CA3AF', 500:'#6B7280', 600:'#4B5563', 700:'#374151', 800:'#1F2937', 900:'#111827' },
-            surface: { page:'#F8F9FA', card:'#FFFFFF', elevated:'#FFFFFF', header:'#7A0010', sidebar:'#FFFFFF', hover:'#F3F4F6', active:'#FEE2E2' },
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>光华管理学院本科生党支部管理引擎</title>
+    <meta
+      name="description"
+      content="党建工作台 — 活动日历 · 专班管理 · 任务分配"
+    />
+    <link
+      rel="preload"
+      href="https://fonts.gstatic.com/s/notosanssc/v36/k3kCo84MPvpLmixcA63oeAL7Iqp5IZJF9bmaG9_FnYxNbPzS5HE.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              party: {
+                DEFAULT: "#CE1126",
+                red: "#CE1126",
+                gold: "#D4AF37",
+                "gold-light": "#F5DEB3",
+                50: "#FEF2F2",
+                100: "#FEE2E2",
+                200: "#FECACA",
+                300: "#FCA5A5",
+                400: "#F87171",
+                500: "#EF4444",
+                600: "#DC2626",
+                700: "#CE1126",
+                800: "#9B0000",
+                900: "#7A0010",
+                950: "#4A000A",
+              },
+              primary: {
+                50: "#FEF2F2",
+                100: "#FEE2E2",
+                200: "#FECACA",
+                300: "#FCA5A5",
+                400: "#F87171",
+                500: "#EF4444",
+                600: "#DC2626",
+                700: "#CE1126",
+                800: "#9B0000",
+                900: "#7A0010",
+                950: "#4A000A",
+              },
+              accent: {
+                gold: "#D4AF37",
+                "gold-light": "#F5DEB3",
+                amber: "#D97706",
+                blue: "#3B82F6",
+                emerald: "#10B981",
+                violet: "#8B5CF6",
+              },
+              neutral: {
+                0: "#FFFFFF",
+                50: "#F8F9FA",
+                100: "#F3F4F6",
+                200: "#E5E7EB",
+                300: "#D1D5DB",
+                400: "#9CA3AF",
+                500: "#6B7280",
+                600: "#4B5563",
+                700: "#374151",
+                800: "#1F2937",
+                900: "#111827",
+              },
+              surface: {
+                page: "#F8F9FA",
+                card: "#FFFFFF",
+                elevated: "#FFFFFF",
+                header: "#7A0010",
+                sidebar: "#FFFFFF",
+                hover: "#F3F4F6",
+                active: "#FEE2E2",
+              },
+            },
+            fontFamily: {
+              sans: [
+                "Noto Sans SC",
+                "-apple-system",
+                "PingFang SC",
+                "Microsoft YaHei",
+                "sans-serif",
+              ],
+              serif: ["Noto Serif SC", "STKaiti", "KaiTi", "serif"],
+              title: [
+                "STZhongsong",
+                "华文中宋",
+                "Noto Serif SC",
+                "STSong",
+                "SimSun",
+                "serif",
+              ],
+              "title-en": ["Times New Roman", "Georgia", "serif"],
+            },
           },
-          fontFamily: { sans:['Noto Sans SC','-apple-system','PingFang SC','Microsoft YaHei','sans-serif'], serif:['Noto Serif SC','STKaiti','KaiTi','serif'], title:['STZhongsong','华文中宋','Noto Serif SC','STSong','SimSun','serif'], 'title-en':['Times New Roman','Georgia','serif'] },
         },
-      }
-    };
-  </script>
-  <link rel="stylesheet" href="./src/styles.css">
-</head>
-<body>
+      };
+    </script>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <header id="app-header"></header>
+    <div id="sidebar-overlay"></div>
+    <aside id="app-sidebar" class="sidebar-collapsed"></aside>
 
-<header id="app-header"></header>
-<div id="sidebar-overlay"></div>
-<aside id="app-sidebar" class="sidebar-collapsed"></aside>
-
-<div class="sidebar-main-content pt-16 min-h-screen">
-  <main class="flex-1 px-4 py-6 md:px-8 overflow-y-auto min-w-0">
-    <div class="max-w-6xl mx-auto">
-
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h2 class="font-title-cn text-xl font-bold text-gray-800">党建工作台</h2>
-        <div class="flex items-center gap-2">
-          <div id="manager-only-controls" class="hidden flex-wrap items-center gap-2">
-            <button id="open-assign-panel-btn" class="btn-secondary" style="padding:6px 14px;font-size:0.75rem;">招募宣传专班</button>
-          </div>
-          <a href="./index.html" class="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">← 返回主页</a>
-        </div>
-      </div>
-
-      <div id="calendar-create-panel" class="card rounded-2xl p-6 mb-6">
-        <div class="readonly-banner hidden mb-4 p-4 rounded-lg bg-gray-50 border border-gray-200 text-center">
-          <p class="text-sm text-gray-500">当前为只读模式 · 切换至写入角色（党小组组长 / 活动组织者 / 党支书）可编辑活动</p>
-        </div>
-
-        <div class="write-only flex flex-wrap items-end gap-3 mb-4">
-          <div class="flex-1 min-w-[140px]">
-            <label class="block text-xs text-gray-500 mb-1">目标活动日期 (T-0) <span class="required-mark">★</span></label>
-            <input type="date" id="t0-input-cal" class="input-flat w-full">
-          </div>
-          <div class="flex-1 min-w-[160px]">
-            <label class="block text-xs text-gray-500 mb-1">活动地点 <span class="required-mark">★</span></label>
-            <input type="text" id="location-input-cal" class="input-flat w-full" placeholder="如：光华1号楼203会议室">
-          </div>
-          <div class="flex-1 min-w-[170px]">
-            <label class="block text-xs text-gray-500 mb-1">组织场景 <span class="required-mark">★</span></label>
-            <select id="scenario-select-cal" class="input-flat w-full">
-              <option value="theme-party">主题党日</option>
-              <optgroup label="三会一课">
-                <option value="party-group-meeting">党小组会</option>
-                <option value="branch-meeting">支部党员大会</option>
-                <option value="committee-meeting">支委会</option>
-                <option value="party-lecture">党课</option>
-              </optgroup>
-            </select>
-          </div>
-          <div id="host-group-wrap" class="flex-1 min-w-[130px] hidden">
-            <label class="block text-xs text-gray-500 mb-1">承办党小组</label>
-            <select id="host-group-select" class="input-flat w-full">
-              <option value="">不指定</option>
-              <option value="first">第一党小组</option>
-              <option value="second">第二党小组</option>
-              <option value="third">第三党小组</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="write-only flex flex-wrap items-end gap-3 mb-4">
-          <div class="flex-1 min-w-[180px]">
-            <label class="block text-xs text-gray-500 mb-1">活动名称 <span class="required-mark">★</span></label>
-            <input type="text" id="activity-name-input" class="input-flat w-full" placeholder="例：学习二十大精神主题参访">
-          </div>
-          <div class="flex-1 min-w-[130px]">
-            <label class="block text-xs text-gray-500 mb-1">活动形式 <span class="required-mark">★</span></label>
-            <div id="activity-type-input" class="flex flex-wrap gap-2 mt-1">
-              <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs transition-colors has-[:checked]:bg-red-50 has-[:checked]:border-red-300 has-[:checked]:text-red-700">
-                <input type="checkbox" name="act-type" value="learning" class="sr-only"> 学习
-              </label>
-              <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs transition-colors has-[:checked]:bg-red-50 has-[:checked]:border-red-300 has-[:checked]:text-red-700">
-                <input type="checkbox" name="act-type" value="meeting" class="sr-only"> 会议
-              </label>
-              <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs transition-colors has-[:checked]:bg-red-50 has-[:checked]:border-red-300 has-[:checked]:text-red-700">
-                <input type="checkbox" name="act-type" value="visit" class="sr-only"> 参访
-              </label>
-              <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs transition-colors has-[:checked]:bg-red-50 has-[:checked]:border-red-300 has-[:checked]:text-red-700">
-                <input type="checkbox" name="act-type" value="discussion" class="sr-only"> 座谈
-              </label>
-              <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs transition-colors has-[:checked]:bg-red-50 has-[:checked]:border-red-300 has-[:checked]:text-red-700">
-                <input type="checkbox" name="act-type" value="joint" class="sr-only"> 共建
-              </label>
+    <div class="sidebar-main-content pt-16 min-h-screen">
+      <main id="workspace-main" class="flex-1 px-4 py-6 md:px-8 overflow-y-auto min-w-0">
+        <div class="max-w-6xl mx-auto">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 class="font-title-cn text-xl font-bold text-gray-800">
+              党建工作台
+            </h2>
+            <div class="flex items-center gap-2">
+              <div
+                id="manager-only-controls"
+                class="hidden flex-wrap items-center gap-2"
+              >
+                <button
+                  id="open-assign-panel-btn"
+                  class="btn-secondary"
+                  style="padding: 6px 14px; font-size: 0.75rem"
+                >
+                  招募宣传专班
+                </button>
+              </div>
+              <a
+                href="./index.html"
+                class="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                >← 返回主页</a
+              >
             </div>
           </div>
-          <div class="w-24">
-            <label class="block text-xs text-gray-500 mb-1">时长 <span class="required-mark">★</span></label>
-            <select id="duration-input" class="input-flat w-full"><option value="short">短期</option><option value="long">长期</option></select>
-          </div>
-          <div class="w-32">
-            <label class="block text-xs text-gray-500 mb-1">发起方向 <span class="required-mark">★</span></label>
-            <select id="direction-input" class="input-flat w-full"><option value="top-down">自上而下</option><option value="bottom-up">自下而上</option></select>
-          </div>
-        </div>
 
-        <div class="write-only flex flex-wrap items-end gap-3 pt-3 border-t border-neutral-100">
-          <div class="flex-1 min-w-[140px]">
-            <label class="block text-xs text-gray-400 mb-1">活动组织者</label>
-            <input type="text" id="organizer-name-input" class="input-flat w-full" placeholder="姓名(选填)">
-          </div>
-          <div class="flex-1 min-w-[140px]">
-            <label class="block text-xs text-gray-400 mb-1">深度参与者</label>
-            <input type="text" id="deep-name-input" class="input-flat w-full" placeholder="姓名(选填)">
-          </div>
-          <button id="gen-schedule-cal-btn" class="btn-primary px-10 font-title-cn self-end">写入活动</button>
-        </div>
-      </div>
-
-      <div id="secretary-dashboard" class="card rounded-2xl p-5 mb-6 border-l-4" style="border-left-color:#CE1126;">
-        <h2 class="font-title-cn text-lg font-bold mb-3" style="color:#7A0010;">书记工作台</h2>
-        <p class="text-xs text-gray-500 mb-4">党支部第一责任人 · 全域管理权限 · 可切换任意支委视角</p>
-        <div class="flex flex-wrap gap-3 mb-4">
-          <button id="btn-party-lecture" class="btn-primary px-5 py-2 text-sm font-title-cn" style="background:#CE1126;">布置党课</button>
-          <button id="btn-host-congress" class="btn-primary px-5 py-2 text-sm font-title-cn" style="background:#CE1126;">主持大会</button>
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div class="p-3 text-center bg-red-50/50 rounded-lg"><div class="text-2xl font-bold" style="color:#CE1126;" id="stat-pending-auth">0</div><div class="text-xs text-gray-500 mt-1">待赋权活动</div></div>
-          <div class="p-3 text-center bg-blue-50/50 rounded-lg"><div class="text-2xl font-bold" style="color:#2563EB;" id="stat-active-events">0</div><div class="text-xs text-gray-500 mt-1">活跃活动</div></div>
-          <div class="p-3 text-center bg-green-50/50 rounded-lg"><div class="text-2xl font-bold" style="color:#059669;" id="stat-month-events">0</div><div class="text-xs text-gray-500 mt-1">本月活动</div></div>
-          <div class="p-3 text-center bg-amber-50/50 rounded-lg"><div class="text-2xl font-bold" style="color:#D97706;" id="stat-auth-granted">0</div><div class="text-xs text-gray-500 mt-1">已赋权记录</div></div>
-        </div>
-      </div>
-
-      <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div class="lg:col-span-2 space-y-6">
-          <div class="card rounded-2xl p-4">
-            <div class="flex flex-wrap items-center gap-3">
-              <div class="flex-1 min-w-[160px]"><label class="block text-xs text-gray-500 mb-1">筛选月份</label><select id="month-selector" class="input-flat w-full"><option value="">全部月份</option></select></div>
-              <div class="flex-1 min-w-[200px]"><label class="block text-xs text-gray-500 mb-1">快速寻找活动</label><select id="activity-selector" class="input-flat w-full"><option value="">快速聚焦活动...</option></select></div>
+          <div id="calendar-create-panel" class="card rounded-2xl p-6 mb-6">
+            <div
+              class="readonly-banner hidden mb-4 p-4 rounded-lg bg-gray-50 border border-gray-200 text-center"
+            >
+              <p class="text-sm text-gray-500">
+                当前为只读模式 · 切换至写入角色（党小组组长 / 组织者 /
+                党支书）可编辑活动
+              </p>
             </div>
-          </div>
-          <div id="cal-main-empty" class="card rounded-2xl p-12">
-            <div class="text-center">
-              <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              <p class="text-gray-500 font-medium mb-2">暂无活动</p>
-              <p class="text-sm text-gray-400">点击上方【写入活动】开始创建</p>
-            </div>
-          </div>
-          <div id="cal-main-grid" class="card rounded-2xl p-6"></div>
-          <div id="calendar-legend" class="card rounded-2xl p-5 hidden">
-            <div class="flex items-center justify-between mb-3"><h3 class="font-title-cn text-sm font-bold text-gray-700">活动类型图例</h3><button id="toggle-legend-btn" class="text-xs" style="color:var(--neutral-400);background:none;border:none;cursor:pointer;">收起</button></div>
-            <div id="legend-items" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2"></div>
-          </div>
-        </div>
-        <div class="lg:col-span-1">
-          <div id="inspector-container" class="card rounded-2xl p-6 sticky top-6">
-            <div id="inspector-default">
-              <div class="text-center py-12">
-                <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
-                  <svg class="w-6 h-6 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                </div>
-                <p class="text-xs text-gray-500 leading-relaxed">提示：请从下方列表或顶部下拉框选择活动，以查看您的专属任务流。</p>
+
+            <div class="write-only flex flex-wrap items-end gap-3 mb-4">
+              <div class="flex-1 min-w-[140px]">
+                <label class="block text-xs text-gray-500 mb-1"
+                  >目标活动日期 (T-0)
+                  <span class="required-mark"><svg class="inline w-2 h-2 align-super ml-0.5" viewBox="0 0 24 24" fill="#EF4444"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span></label
+                >
+                <input
+                  type="date"
+                  id="t0-input-cal"
+                  class="input-flat w-full"
+                />
+              </div>
+              <div class="flex-1 min-w-[160px]">
+                <label class="block text-xs text-gray-500 mb-1"
+                  >活动地点 <span class="required-mark"><svg class="inline w-2 h-2 align-super ml-0.5" viewBox="0 0 24 24" fill="#EF4444"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span></label
+                >
+                <input
+                  type="text"
+                  id="location-input-cal"
+                  class="input-flat w-full"
+                  placeholder="如：光华1号楼203会议室"
+                />
+              </div>
+              <div class="flex-1 min-w-[170px]">
+                <label class="block text-xs text-gray-500 mb-1"
+                  >组织场景 <span class="required-mark"><svg class="inline w-2 h-2 align-super ml-0.5" viewBox="0 0 24 24" fill="#EF4444"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span></label
+                >
+                <select id="scenario-select-cal" class="input-flat w-full">
+                  <option value="theme-party">主题党日</option>
+                  <optgroup label="三会一课">
+                    <option value="party-group-meeting">党小组会</option>
+                    <option value="branch-meeting">支部党员大会</option>
+                    <option value="committee-meeting">支委会</option>
+                    <option value="party-lecture">党课</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div id="host-group-wrap" class="flex-1 min-w-[130px] hidden">
+                <label class="block text-xs text-gray-500 mb-1"
+                  >承办党小组</label
+                >
+                <select id="host-group-select" class="input-flat w-full">
+                  <option value="">不指定</option>
+                  <option value="first">第一党小组</option>
+                  <option value="second">第二党小组</option>
+                  <option value="third">第三党小组</option>
+                </select>
               </div>
             </div>
-            <div id="inspector-content" class="hidden">
-              <h3 id="inspector-date-title" class="font-title-cn text-sm font-bold text-gray-800 mb-4"></h3>
-              <div id="inspector-cards" class="space-y-3"></div>
+
+            <div class="write-only flex flex-wrap items-end gap-3 mb-4">
+              <div class="flex-1 min-w-[180px]">
+                <label class="block text-xs text-gray-500 mb-1"
+                  >活动名称 <span class="required-mark"><svg class="inline w-2 h-2 align-super ml-0.5" viewBox="0 0 24 24" fill="#EF4444"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span></label
+                >
+                <input
+                  type="text"
+                  id="activity-name-input"
+                  class="input-flat w-full"
+                  placeholder="例：学习二十大精神主题参访"
+                />
+              </div>
+              <div class="flex-1 min-w-[130px]">
+                <label class="block text-xs text-gray-500 mb-1"
+                  >活动形式 <span class="required-mark"><svg class="inline w-2 h-2 align-super ml-0.5" viewBox="0 0 24 24" fill="#EF4444"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span></label
+                >
+                <div id="activity-type-input" class="flex flex-wrap gap-2 mt-1">
+                  <label
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs transition-colors has-[:checked]:bg-red-50 has-[:checked]:border-red-300 has-[:checked]:text-red-700"
+                  >
+                    <input
+                      type="checkbox"
+                      name="act-type"
+                      value="learning"
+                      class="sr-only"
+                    />
+                    学习
+                  </label>
+                  <label
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs transition-colors has-[:checked]:bg-red-50 has-[:checked]:border-red-300 has-[:checked]:text-red-700"
+                  >
+                    <input
+                      type="checkbox"
+                      name="act-type"
+                      value="meeting"
+                      class="sr-only"
+                    />
+                    会议
+                  </label>
+                  <label
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs transition-colors has-[:checked]:bg-red-50 has-[:checked]:border-red-300 has-[:checked]:text-red-700"
+                  >
+                    <input
+                      type="checkbox"
+                      name="act-type"
+                      value="visit"
+                      class="sr-only"
+                    />
+                    参访
+                  </label>
+                  <label
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs transition-colors has-[:checked]:bg-red-50 has-[:checked]:border-red-300 has-[:checked]:text-red-700"
+                  >
+                    <input
+                      type="checkbox"
+                      name="act-type"
+                      value="discussion"
+                      class="sr-only"
+                    />
+                    座谈
+                  </label>
+                  <label
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs transition-colors has-[:checked]:bg-red-50 has-[:checked]:border-red-300 has-[:checked]:text-red-700"
+                  >
+                    <input
+                      type="checkbox"
+                      name="act-type"
+                      value="joint"
+                      class="sr-only"
+                    />
+                    共建
+                  </label>
+                </div>
+              </div>
+              <div class="w-24">
+                <label class="block text-xs text-gray-500 mb-1"
+                  >时长 <span class="required-mark"><svg class="inline w-2 h-2 align-super ml-0.5" viewBox="0 0 24 24" fill="#EF4444"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span></label
+                >
+                <select id="duration-input" class="input-flat w-full">
+                  <option value="short">短期</option>
+                  <option value="long">长期</option>
+                </select>
+              </div>
+              <div class="w-32">
+                <label class="block text-xs text-gray-500 mb-1"
+                  >发起方向 <span class="required-mark"><svg class="inline w-2 h-2 align-super ml-0.5" viewBox="0 0 24 24" fill="#EF4444"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span></label
+                >
+                <select id="direction-input" class="input-flat w-full">
+                  <option value="top-down">自上而下</option>
+                  <option value="bottom-up">自下而上</option>
+                </select>
+              </div>
+            </div>
+
+            <div
+              class="write-only flex flex-wrap items-end gap-3 pt-3 border-t border-neutral-100"
+            >
+              <div class="flex-1 min-w-[140px]">
+                <label class="block text-xs text-gray-400 mb-1"
+                  >组织者</label
+                >
+                <input
+                  type="text"
+                  id="organizer-name-input"
+                  class="input-flat w-full"
+                  placeholder="姓名(选填)"
+                />
+              </div>
+              <div class="flex-1 min-w-[140px]">
+                <label class="block text-xs text-gray-400 mb-1"
+                  >深度参与者</label
+                >
+                <input
+                  type="text"
+                  id="deep-name-input"
+                  class="input-flat w-full"
+                  placeholder="姓名(选填)"
+                />
+              </div>
+              <button
+                id="gen-schedule-cal-btn"
+                class="btn-primary px-10 font-title-cn self-end"
+              >
+                写入活动
+              </button>
+            </div>
+          </div>
+
+          <div
+            id="secretary-dashboard"
+            class="card rounded-2xl p-5 mb-6 border-l-4"
+            style="border-left-color: #ce1126"
+          >
+            <h2
+              class="font-title-cn text-lg font-bold mb-3"
+              style="color: #7a0010"
+            >
+              书记工作台
+            </h2>
+            <p class="text-xs text-gray-500 mb-4">
+              党支部第一责任人 · 全域管理权限 · 可切换任意支委视角
+            </p>
+            <div class="flex flex-wrap gap-3 mb-4">
+              <button
+                id="btn-party-lecture"
+                class="btn-primary px-5 py-2 text-sm font-title-cn"
+                style="background: #ce1126"
+              >
+                布置党课
+              </button>
+              <button
+                id="btn-host-congress"
+                class="btn-primary px-5 py-2 text-sm font-title-cn"
+                style="background: #ce1126"
+              >
+                主持大会
+              </button>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div class="p-3 text-center bg-red-50/50 rounded-lg">
+                <div
+                  class="text-2xl font-bold"
+                  style="color: #ce1126"
+                  id="stat-pending-auth"
+                >
+                  0
+                </div>
+                <div class="text-xs text-gray-500 mt-1">待赋权活动</div>
+              </div>
+              <div class="p-3 text-center bg-blue-50/50 rounded-lg">
+                <div
+                  class="text-2xl font-bold"
+                  style="color: #2563eb"
+                  id="stat-active-events"
+                >
+                  0
+                </div>
+                <div class="text-xs text-gray-500 mt-1">活跃活动</div>
+              </div>
+              <div class="p-3 text-center bg-green-50/50 rounded-lg">
+                <div
+                  class="text-2xl font-bold"
+                  style="color: #059669"
+                  id="stat-month-events"
+                >
+                  0
+                </div>
+                <div class="text-xs text-gray-500 mt-1">本月活动</div>
+              </div>
+              <div class="p-3 text-center bg-amber-50/50 rounded-lg">
+                <div
+                  class="text-2xl font-bold"
+                  style="color: #d97706"
+                  id="stat-auth-granted"
+                >
+                  0
+                </div>
+                <div class="text-xs text-gray-500 mt-1">已赋权记录</div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            id="calendar-view-section"
+            class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6"
+          >
+            <div class="lg:col-span-2 space-y-6">
+              <div class="card rounded-2xl p-4">
+                <div class="flex flex-wrap items-center gap-3">
+                  <div class="flex-1 min-w-[160px]">
+                    <label class="block text-xs text-gray-500 mb-1"
+                      >筛选月份</label
+                    ><select id="month-selector" class="input-flat w-full">
+                      <option value="">全部月份</option>
+                    </select>
+                  </div>
+                  <div class="flex-1 min-w-[200px]">
+                    <label class="block text-xs text-gray-500 mb-1"
+                      >快速寻找活动</label
+                    ><select id="activity-selector" class="input-flat w-full">
+                      <option value="">快速聚焦活动...</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div id="cal-main-empty" class="card rounded-2xl p-12">
+                <div class="text-center">
+                  <svg
+                    class="w-16 h-16 mx-auto text-gray-300 mb-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                  <p class="text-gray-500 font-medium mb-2">暂无活动</p>
+                  <p class="text-sm text-gray-400">
+                    点击上方【写入活动】开始创建
+                  </p>
+                </div>
+              </div>
+              <div id="cal-main-grid" class="card rounded-2xl p-6"></div>
+              <div id="calendar-legend" class="card rounded-2xl p-5 hidden">
+                <div class="flex items-center justify-between mb-3">
+                  <h3 class="font-title-cn text-sm font-bold text-gray-700">
+                    活动类型图例
+                  </h3>
+                  <button
+                    id="toggle-legend-btn"
+                    class="text-xs"
+                    style="
+                      color: var(--neutral-400);
+                      background: none;
+                      border: none;
+                      cursor: pointer;
+                    "
+                  >
+                    收起
+                  </button>
+                </div>
+                <div
+                  id="legend-items"
+                  class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2"
+                ></div>
+              </div>
+            </div>
+            <div class="lg:col-span-1">
+              <div
+                id="inspector-container"
+                class="card rounded-2xl p-6 sticky top-6"
+              >
+                <div id="inspector-default">
+                  <div class="text-center py-12">
+                    <div
+                      class="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center"
+                    >
+                      <svg
+                        class="w-6 h-6 text-gray-400"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                      </svg>
+                    </div>
+                    <p class="text-xs text-gray-500 leading-relaxed">
+                      提示：请从下方列表或顶部下拉框选择活动，以查看您的专属任务流。
+                    </p>
+                  </div>
+                </div>
+                <div id="inspector-content" class="hidden">
+                  <h3
+                    id="inspector-date-title"
+                    class="font-title-cn text-sm font-bold text-gray-800 mb-4"
+                  ></h3>
+                  <div id="inspector-cards" class="space-y-3"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="commissioner-kanban-panel" class="hidden mb-6">
+            <div id="org-taskforce-view" class="hidden">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-title-cn text-base font-bold text-gray-800">
+                  专班协调视图
+                </h3>
+                <button
+                  id="btn-publish-tf"
+                  class="btn-primary"
+                  style="padding: 6px 14px; font-size: 0.75rem"
+                >
+                  发布招募
+                </button>
+              </div>
+              <div
+                id="tf-publish-form"
+                class="hidden card rounded-2xl p-5 mb-4 border-l-4"
+                style="border-left-color: #3b82f6"
+              >
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="font-title-cn text-sm font-bold text-gray-700">
+                    发布专班招募
+                  </h4>
+                  <button
+                    id="close-tf-publish-btn"
+                    class="text-xs text-gray-400"
+                    style="background: none; border: none; cursor: pointer"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+                  </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1"
+                      >专班名称 <span class="text-red-400">*</span></label
+                    ><input
+                      id="tf-name-input"
+                      class="input-flat w-full"
+                      placeholder="如：宣传联络专班"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1"
+                      >容纳人数</label
+                    ><input
+                      id="tf-capacity-input"
+                      class="input-flat w-full"
+                      type="number"
+                      min="1"
+                      value="3"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1"
+                      >发起人</label
+                    ><input
+                      id="tf-initiator-input"
+                      class="input-flat w-full"
+                      placeholder="如：组织委员"
+                      value="组织委员"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1"
+                      >截止日期</label
+                    ><input
+                      id="tf-deadline-input"
+                      class="input-flat w-full"
+                      type="date"
+                    />
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="block text-xs text-gray-500 mb-1"
+                    >专班任务</label
+                  ><textarea
+                    id="tf-task-input"
+                    class="input-flat w-full"
+                    rows="2"
+                    placeholder="说明专班的工作目标与产出"
+                  ></textarea>
+                </div>
+                <button id="confirm-tf-publish-btn" class="btn-primary px-6">
+                  确认发布
+                </button>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="card rounded-2xl p-0 overflow-hidden">
+                  <div
+                    class="kanban-col-hdr px-4 py-3 font-title-cn text-sm font-bold"
+                    style="background:rgba(99,102,241,0.06);color:#6366F1;border-bottom:2px solid rgba(99,102,241,0.15);"
+                  >
+                    待审核
+                  </div>
+                  <div
+                    id="kanban-tf-pending-review"
+                    class="kanban-col-body p-3 space-y-3 min-h-[120px]"
+                  >
+                    <p class="text-xs text-gray-400 text-center py-6">暂无待审核需求</p>
+                  </div>
+                </div>
+                <div class="card rounded-2xl p-0 overflow-hidden">
+                  <div
+                    class="kanban-col-hdr px-4 py-3 font-title-cn text-sm font-bold"
+                    style="
+                      background: rgba(206, 17, 38, 0.06);
+                      color: #ce1126;
+                      border-bottom: 2px solid rgba(206, 17, 38, 0.15);
+                    "
+                  >
+                    招募中专班
+                  </div>
+                  <div
+                    id="kanban-tf-pending"
+                    class="kanban-col-body p-3 space-y-3 min-h-[120px]"
+                  >
+                    <p class="text-xs text-gray-400 text-center py-6">
+                      暂无招募中专班
+                    </p>
+                  </div>
+                </div>
+                <div class="card rounded-2xl p-0 overflow-hidden">
+                  <div
+                    class="kanban-col-hdr px-4 py-3 font-title-cn text-sm font-bold"
+                    style="
+                      background: rgba(59, 130, 246, 0.06);
+                      color: #3b82f6;
+                      border-bottom: 2px solid rgba(59, 130, 246, 0.15);
+                    "
+                  >
+                    运行中专班
+                  </div>
+                  <div
+                    id="kanban-tf-active"
+                    class="kanban-col-body p-3 space-y-3 min-h-[120px]"
+                  >
+                    <p class="text-xs text-gray-400 text-center py-6">
+                      暂无运行中专班
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div
+                id="tf-detail-panel"
+                class="hidden card rounded-2xl p-5 mt-4 border-l-4"
+              ></div>
+            </div>
+
+            <div id="comm-activity-view" class="hidden">
+              <div class="flex items-center justify-between mb-4">
+                <h3
+                  class="font-title-cn text-base font-bold text-gray-800"
+                  id="comm-activity-title"
+                >
+                  活动与专班视图
+                </h3>
+                <button
+                  id="btn-tf-request"
+                  class="hidden btn-primary"
+                  style="padding:6px 14px;font-size:0.75rem;background:#D97706;"
+                >
+                  发起专班需求
+                </button>
+              </div>
+              <div id="tf-request-form" class="hidden mb-4"></div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="card rounded-2xl p-0 overflow-hidden">
+                  <div
+                    class="kanban-col-hdr px-4 py-3 font-title-cn text-sm font-bold"
+                    style="
+                      background: rgba(206, 17, 38, 0.06);
+                      color: #ce1126;
+                      border-bottom: 2px solid rgba(206, 17, 38, 0.15);
+                    "
+                  >
+                    待启动
+                  </div>
+                  <div
+                    id="kanban-ca-pending"
+                    class="kanban-col-body p-3 space-y-3 min-h-[120px]"
+                  >
+                    <p class="text-xs text-gray-400 text-center py-6">
+                      暂无待启动项目
+                    </p>
+                  </div>
+                </div>
+                <div class="card rounded-2xl p-0 overflow-hidden">
+                  <div
+                    class="kanban-col-hdr px-4 py-3 font-title-cn text-sm font-bold"
+                    style="
+                      background: rgba(59, 130, 246, 0.06);
+                      color: #3b82f6;
+                      border-bottom: 2px solid rgba(59, 130, 246, 0.15);
+                    "
+                  >
+                    进行中
+                  </div>
+                  <div
+                    id="kanban-ca-active"
+                    class="kanban-col-body p-3 space-y-3 min-h-[120px]"
+                  >
+                    <p class="text-xs text-gray-400 text-center py-6">
+                      暂无进行中项目
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div
+                id="ca-detail-panel"
+                class="hidden card rounded-2xl p-5 mt-4 border-l-4"
+              ></div>
+              <div
+                id="prop-workload-panel"
+                class="hidden card rounded-2xl p-5 mt-4 border-l-4"
+                style="border-left-color:#D97706;"
+              ></div>
+            </div>
+
+            <div id="disc-workspace-view" class="hidden"></div>
+          </div>
+        </div>
+
+        <div
+          id="assign-modal"
+          class="hidden"
+          style="
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.4);
+          "
+        >
+          <div
+            class="card-flat rounded-2xl p-6"
+            style="width: 420px; max-width: 90vw"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-title-cn text-base font-bold text-gray-800">
+                赋权管理
+              </h3>
+              <button
+                id="close-assign-modal-btn"
+                style="
+                  font-size: 1.2rem;
+                  color: var(--neutral-400);
+                  cursor: pointer;
+                  background: none;
+                  border: none;
+                "
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+              </button>
+            </div>
+            <p class="text-xs text-gray-500 mb-4">为同志赋予活动管理权限。</p>
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs text-gray-500 mb-1">同志姓名</label
+                ><input
+                  type="text"
+                  id="assign-name-input"
+                  class="input-flat w-full"
+                  placeholder="输入姓名"
+                />
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1">赋予角色</label
+                ><select id="assign-role-input" class="input-flat w-full">
+                  <option value="organizer">组织者</option>
+                  <option value="deep">深度参与者</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1">关联活动</label
+                ><input
+                  type="text"
+                  id="assign-activity-input"
+                  class="input-flat w-full"
+                  placeholder="活动名称（选填）"
+                />
+              </div>
+            </div>
+            <div class="flex gap-3 mt-5">
+              <button id="confirm-assign-btn" class="btn-primary flex-1">
+                确认赋权</button
+              ><button id="cancel-assign-btn" class="btn-secondary flex-1">
+                取消
+              </button>
+            </div>
+            <div
+              id="assign-success-msg"
+              class="hidden mt-3 text-center text-sm font-medium"
+              style="color: var(--functional-success)"
+            >
+              赋权成功
+            </div>
+            <div id="assigned-list" class="mt-4 space-y-2"></div>
+          </div>
+        </div>
+
+        <div
+          id="commissioner-modal"
+          class="hidden"
+          style="
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.4);
+          "
+        >
+          <div
+            class="card-flat rounded-2xl p-6"
+            style="width: 380px; max-width: 90vw"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-title-cn text-base font-bold text-gray-800">
+                选择支委身份
+              </h3>
+              <button
+                id="close-commissioner-modal-btn"
+                style="
+                  font-size: 1.2rem;
+                  color: var(--neutral-400);
+                  cursor: pointer;
+                  background: none;
+                  border: none;
+                "
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+              </button>
+            </div>
+            <p class="text-xs text-gray-500 mb-5">
+              请选择你要切换到的支委角色。
+            </p>
+            <div class="space-y-3">
+              <button class="comm-modal-option" data-role="org-commissioner">
+                <div class="comm-modal-icon org">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                  </svg>
+                </div>
+                <div class="comm-modal-text">
+                  <span class="comm-modal-name">组织委员</span
+                  ><span class="comm-modal-desc">人的管理 · 发展党员追踪</span>
+                </div>
+              </button>
+              <button class="comm-modal-option" data-role="prop-commissioner">
+                <div class="comm-modal-icon prop">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
+                    />
+                  </svg>
+                </div>
+                <div class="comm-modal-text">
+                  <span class="comm-modal-name">宣传委员</span
+                  ><span class="comm-modal-desc">事件管理 · 活动档案统筹</span>
+                </div>
+              </button>
+              <button class="comm-modal-option" data-role="disc-commissioner">
+                <div class="comm-modal-icon disc">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                </div>
+                <div class="comm-modal-text">
+                  <span class="comm-modal-name">纪检委员</span
+                  ><span class="comm-modal-desc">事人双重 · 考勤考察监督复盘</span>
+                </div>
+              </button>
             </div>
           </div>
         </div>
-      </div>
-
-      <div id="commissioner-kanban-panel" class="hidden mb-6">
-
-        <div id="org-taskforce-view" class="hidden">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-title-cn text-base font-bold text-gray-800">专班协调视图</h3>
-            <button id="btn-publish-tf" class="btn-primary" style="padding:6px 14px;font-size:0.75rem;">发布招募</button>
-          </div>
-          <div id="tf-publish-form" class="hidden card rounded-2xl p-5 mb-4 border-l-4" style="border-left-color:#3B82F6;">
-            <div class="flex items-center justify-between mb-3">
-              <h4 class="font-title-cn text-sm font-bold text-gray-700">发布专班招募</h4>
-              <button id="close-tf-publish-btn" class="text-xs text-gray-400" style="background:none;border:none;cursor:pointer;">✕</button>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-              <div><label class="block text-xs text-gray-500 mb-1">专班名称</label><input id="tf-name-input" class="input-flat w-full" placeholder="如：宣传联络专班"></div>
-              <div><label class="block text-xs text-gray-500 mb-1">所需人数</label><input id="tf-count-input" class="input-flat w-full" type="number" min="1" value="3"></div>
-              <div><label class="block text-xs text-gray-500 mb-1">所需技能</label><input id="tf-skill-input" class="input-flat w-full" placeholder="如：文案写作、摄影"></div>
-              <div><label class="block text-xs text-gray-500 mb-1">存续周期</label><input id="tf-duration-input" class="input-flat w-full" placeholder="如：2026年春季学期"></div>
-            </div>
-            <div class="mb-3"><label class="block text-xs text-gray-500 mb-1">专班说明</label><textarea id="tf-desc-input" class="input-flat w-full" rows="2" placeholder="说明专班的工作目标与产出"></textarea></div>
-            <button id="confirm-tf-publish-btn" class="btn-primary px-6">确认发布</button>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="card rounded-2xl p-0 overflow-hidden">
-              <div class="kanban-col-hdr px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(206,17,38,0.06);color:#CE1126;border-bottom:2px solid rgba(206,17,38,0.15);">待启动专班</div>
-              <div id="kanban-tf-pending" class="kanban-col-body p-3 space-y-3 min-h-[120px]"><p class="text-xs text-gray-400 text-center py-6">暂无待启动专班</p></div>
-            </div>
-            <div class="card rounded-2xl p-0 overflow-hidden">
-              <div class="kanban-col-hdr px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(59,130,246,0.06);color:#3B82F6;border-bottom:2px solid rgba(59,130,246,0.15);">进行中专班</div>
-              <div id="kanban-tf-active" class="kanban-col-body p-3 space-y-3 min-h-[120px]"><p class="text-xs text-gray-400 text-center py-6">暂无进行中专班</p></div>
-            </div>
-          </div>
-          <div id="tf-detail-panel" class="hidden card rounded-2xl p-5 mt-4 border-l-4"></div>
-        </div>
-
-        <div id="comm-activity-view" class="hidden">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-title-cn text-base font-bold text-gray-800" id="comm-activity-title">活动与专班视图</h3>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="card rounded-2xl p-0 overflow-hidden">
-              <div class="kanban-col-hdr px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(206,17,38,0.06);color:#CE1126;border-bottom:2px solid rgba(206,17,38,0.15);">待启动</div>
-              <div id="kanban-ca-pending" class="kanban-col-body p-3 space-y-3 min-h-[120px]"><p class="text-xs text-gray-400 text-center py-6">暂无待启动项目</p></div>
-            </div>
-            <div class="card rounded-2xl p-0 overflow-hidden">
-              <div class="kanban-col-hdr px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(59,130,246,0.06);color:#3B82F6;border-bottom:2px solid rgba(59,130,246,0.15);">进行中</div>
-              <div id="kanban-ca-active" class="kanban-col-body p-3 space-y-3 min-h-[120px]"><p class="text-xs text-gray-400 text-center py-6">暂无进行中项目</p></div>
-            </div>
-          </div>
-          <div id="ca-detail-panel" class="hidden card rounded-2xl p-5 mt-4 border-l-4"></div>
-        </div>
-
-      </div>
+      </main>
     </div>
 
-    <div id="assign-modal" class="hidden" style="position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);">
-      <div class="card-flat rounded-2xl p-6" style="width:420px;max-width:90vw;">
-        <div class="flex items-center justify-between mb-4"><h3 class="font-title-cn text-base font-bold text-gray-800">赋权管理</h3><button id="close-assign-modal-btn" style="font-size:1.2rem;color:var(--neutral-400);cursor:pointer;background:none;border:none;">✕</button></div>
-        <p class="text-xs text-gray-500 mb-4">为同志赋予活动管理权限。</p>
-        <div class="space-y-3">
-          <div><label class="block text-xs text-gray-500 mb-1">同志姓名</label><input type="text" id="assign-name-input" class="input-flat w-full" placeholder="输入姓名"></div>
-          <div><label class="block text-xs text-gray-500 mb-1">赋予角色</label><select id="assign-role-input" class="input-flat w-full"><option value="organizer">组织者</option><option value="deep">深度参与者</option></select></div>
-          <div><label class="block text-xs text-gray-500 mb-1">关联活动</label><input type="text" id="assign-activity-input" class="input-flat w-full" placeholder="活动名称（选填）"></div>
-        </div>
-        <div class="flex gap-3 mt-5"><button id="confirm-assign-btn" class="btn-primary flex-1">确认赋权</button><button id="cancel-assign-btn" class="btn-secondary flex-1">取消</button></div>
-        <div id="assign-success-msg" class="hidden mt-3 text-center text-sm font-medium" style="color:var(--functional-success);">赋权成功</div>
-        <div id="assigned-list" class="mt-4 space-y-2"></div>
-      </div>
-    </div>
-
-    <div id="commissioner-modal" class="hidden" style="position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);">
-      <div class="card-flat rounded-2xl p-6" style="width:380px;max-width:90vw;">
-        <div class="flex items-center justify-between mb-4"><h3 class="font-title-cn text-base font-bold text-gray-800">选择支委身份</h3><button id="close-commissioner-modal-btn" style="font-size:1.2rem;color:var(--neutral-400);cursor:pointer;background:none;border:none;">✕</button></div>
-        <p class="text-xs text-gray-500 mb-5">请选择你要切换到的支委角色。</p>
-        <div class="space-y-3">
-          <button class="comm-modal-option" data-role="org-commissioner"><div class="comm-modal-icon org"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="comm-modal-text"><span class="comm-modal-name">组织委员</span><span class="comm-modal-desc">人的管理 · 发展党员追踪</span></div></button>
-          <button class="comm-modal-option" data-role="prop-commissioner"><div class="comm-modal-icon prop"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></div><div class="comm-modal-text"><span class="comm-modal-name">宣传委员</span><span class="comm-modal-desc">事件管理 · 活动档案统筹</span></div></button>
-          <button class="comm-modal-option" data-role="disc-commissioner"><div class="comm-modal-icon disc"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="comm-modal-text"><span class="comm-modal-name">纪检委员</span><span class="comm-modal-desc">事人双重 · 考勤复盘督办</span></div></button>
-        </div>
-      </div>
-    </div>
-
-  </main>
-</div>
-
-
-<script type="module" src="./src/workspace-entry.js"></script>
-</body>
+    <script type="module" src="./src/entries/workspace-entry.js"></script>
+  </body>
 </html>
