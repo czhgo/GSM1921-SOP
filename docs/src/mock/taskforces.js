@@ -7,8 +7,8 @@ export const MOCK_TASKFORCES = [
     manager: '组织委员',
     initiator: '宣传委员',
     members: [
-      { name: '安佳晨', role: '深度参与者', contributions: [] },
-      { name: '梁宸菲', role: '深度参与者', contributions: [] },
+      { name: '郑十一', role: '深度参与者', contributions: [] },
+      { name: '冯十二', role: '深度参与者', contributions: [] },
     ],
     capacity: 5,
     deadline: '2026-05-20',
@@ -40,8 +40,8 @@ export const MOCK_TASKFORCES = [
     initiator: '党小组组长',
     members: [
       { name: '王五', role: '组织者', contributions: ['策划方案', '场地预约'] },
-      { name: '安佳晨', role: '深度参与者', contributions: ['视频制作'] },
-      { name: '梁宸菲', role: '深度参与者', contributions: ['新闻稿撰写'] },
+      { name: '郑十一', role: '深度参与者', contributions: ['视频制作'] },
+      { name: '冯十二', role: '深度参与者', contributions: ['新闻稿撰写'] },
       { name: '钱七', role: '参与者', contributions: ['物资准备'] },
     ],
     capacity: 6,
@@ -57,8 +57,8 @@ export const MOCK_TASKFORCES = [
     manager: '组织委员',
     initiator: '书记',
     members: [
-      { name: '侯嘉嵘', role: '组织者', contributions: ['嘉宾邀请', '议程设计'] },
-      { name: '韩思宁', role: '深度参与者', contributions: ['现场记录', '考勤统计'] },
+      { name: '杨十四', role: '组织者', contributions: ['嘉宾邀请', '议程设计'] },
+      { name: '陈十三', role: '深度参与者', contributions: ['现场记录', '考勤统计'] },
     ],
     capacity: 4,
     deadline: '2026-05-22',
@@ -101,7 +101,7 @@ export const MOCK_TASKFORCES = [
     manager: '组织委员',
     initiator: '宣传委员',
     members: [
-      { name: '闫鑫岳', role: '组织者', contributions: ['材料整理', '分享会主持'] },
+      { name: '林十五', role: '组织者', contributions: ['材料整理', '分享会主持'] },
       { name: '孙八', role: '深度参与者', contributions: ['PPT制作'] },
     ],
     capacity: 3,
