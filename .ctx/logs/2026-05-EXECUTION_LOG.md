@@ -1,6 +1,87 @@
 ---
 title: "Agent Execution Ledger — 2026年05月"
 type: log
+
+## 2026-05-19 | T59 — 路径修复+getBasePath机制+文件名精简
+
+- **来源**: 用户指示（网页跳转混乱+党徽不显示+文件名精简）
+- **时间**: 2026-05-19
+- **变更文件**: utils.js, sidebar.js, header.js, role-selector.js, commissioner-matrix.js, workspace-entry.js, party-entry.js, main-entry.js, SOP_WEB.md, SNAPSHOT.md, README.md, ARCHITECTURE.md + 14 个 HTML 文件重命名
+- **关键动作**: getBasePath() ✅ 党徽修复 ✅ 文件名精简 ✅ 一改具改 ✅
+- **变更详情**:
+  - **getBasePath() 机制**：在 utils.js 新增 `getBasePath()` 函数，检测当前页面是否在子目录中，返回 `'../'` 或 `'./'`。sidebar.js/header.js/role-selector.js/commissioner-matrix.js/workspace-entry.js/party-entry.js/main-entry.js 共 8 个文件使用此函数动态拼接路径
+  - **党徽图片修复**：header.js 中 `./assets/images/party_emblem.png` → `${getBasePath()}assets/images/party_emblem.png`
+  - **文件名精简**：
+    - workspace/: workspace.html→index.html, ws-secretary→secretary, ws-leader→leader, ws-organizer→organizer, ws-deep→deep, ws-org-commissioner→org, ws-prop-commissioner→prop, ws-disc-commissioner→disc, ws-visitor→visitor
+    - party/: party.html→index.html, party-secretary→secretary, party-org→org, party-prop→prop, party-disc→disc
+  - **一改具改**：SOP_WEB.md 4 处旧路径更新，SNAPSHOT.md 14 处文件名更新
+- **设计决策**:
+  - 使用 `getBasePath()` 动态路径而非硬编码——子目录页面和根目录页面共享同一套 JS 组件
+  - sidebar.js 的 NAV_ITEMS 改为 `getNavItems()` 函数——每次调用时动态生成路径
+  - entry JS 文件名保持不变（ws-secretary-entry.js 等）——避免修改 HTML 中的 script src
+- **结果**: 全部完成，localhost 验证通过
+- **蒸馏标签**: [经验蒸馏: 是 — HTML 分目录后 JS 组件中的相对路径必须使用动态 basePath 机制]
+
+## 2026-05-18 | T58-1~T58-3 — HTML 文件分文件夹重组
+
+- **来源**: 用户指示（仓库整洁度）
+- **时间**: 2026-05-18
+- **变更文件**: 14 个 HTML 文件移动 + 6 个 JS 文件路径更新 + 3 个拓扑文档更新 + CLAUDE.md
+- **关键动作**: T58-1 ✅ T58-2 ✅ T58-3 ✅
+- **变更详情**:
+  - **T58-1: ws-*.html → docs/workspace/**：
+    - 移动 9 个 HTML（workspace.html + 8 个 ws-*.html）到 docs/workspace/
+    - 9 个 HTML 内路径 `./src/` → `../src/`、`./index.html` → `../index.html`
+    - workspace-entry.js: 8 处 `./ws-*.html` → `./workspace/ws-*.html`
+    - main-entry.js: 3 处 `./ws-*.html` → `./workspace/ws-*.html`
+    - role-selector.js: 7 处 `./ws-*.html` → `./workspace/ws-*.html`
+    - commissioner-matrix.js: 3 处 `./ws-*.html` → `./workspace/ws-*.html`
+    - sidebar.js: `./workspace.html` → `./workspace/workspace.html`
+    - index.html: 3 处 `./ws-*.html` → `./workspace/ws-*.html`
+  - **T58-2: party-*.html → docs/party/**：
+    - 移动 5 个 HTML（party.html + 4 个 party-*.html）到 docs/party/
+    - 5 个 HTML 内路径 `./src/` → `../src/`、`./index.html` → `../index.html`、`./feedback.html` → `../feedback.html`
+    - party-entry.js: 8 处 `./party-*.html` → `./party/party-*.html`
+    - role-selector.js: 4 处 `./party-*.html` → `./party/party-*.html`
+    - commissioner-matrix.js: 3 处 `./party-*.html` → `./party/party-*.html`
+    - sidebar.js: `./party.html` → `./party/party.html`
+  - **T58-3: 仓库拓扑更新**：
+    - ARCHITECTURE.md: 目录树增加 workspace/ 和 party/ 子目录
+    - SNAPSHOT.md: 拓扑树+分层架构+文件清单全面更新
+    - README.md: 导航结构树+分层表格+数据变更铁律更新
+- **设计决策**:
+  - docs/ 根目录保留 5 个全局页面（index/about/archive/search/feedback）
+  - workspace/ 和 party/ 子目录分别存放对应域的页面
+  - HTML 中的相对路径统一加一层 `../`（因为多了一层目录）
+- **结果**: 全部完成，localhost 验证通过
+- **蒸馏标签**: [经验蒸馏: 是 — HTML 分目录后相对路径需统一加一层，JS 引用路径需加子目录前缀]
+
+## 2026-05-18 | T58 — YAML/关联文献全域修复+README重写+SNAPSHOT v9
+
+- **来源**: 用户指示（合并后检查+开源准备）
+- **时间**: 2026-05-18
+- **变更文件**: 组织委员工作流程指南.md, 宣传委员工作流程指南.md, ORG_BUILDING.md, MANAGEMENT_MODE.md, RECURRING_TASKS.md, 3个agent文件, 3个模板库文件, README.md, SNAPSHOT.md, CLAUDE.md
+- **关键动作**: YAML修复 ✅ README重写 ✅ SNAPSHOT v9 ✅ 乙部更新 ✅
+- **变更详情**:
+  - **YAML/关联文献修复（34处）**：
+    - 组织委员/宣传委员 SOP：删除 related_files 中不存在的模板引用，正文改为"（模板待创建）"
+    - ORG_BUILDING.md：related_files 中 `index.html` → `docs/index.html`
+    - MANAGEMENT_MODE.md：已归档文件链接改为纯文本"（已归档）"
+    - RECURRING_TASKS.md：已归档文件引用改为纯文本
+    - 3个 agent 文件：SSOT_INDEX.md 显示文本和路径修正
+    - 3个模板库文件：related_files 非标准路径修正 + last_updated 更新
+  - **README.md 重写**：
+    - "新人5分钟上手" → "快速上手"，分"支部成员能做什么"和"支委和组长能做什么"两表
+    - "仓库结构：人读索引" → "仓库导航"
+    - 面向全体支部成员（不仅支委）
+    - 新增组织者/深度参与者/党支书角色导航
+  - **SNAPSHOT.md v9**：全面更新（拓扑树+术语+权限矩阵+版本里程碑）
+  - **乙部新增**：T58-1~T58-3（HTML 文件分文件夹重组）
+- **设计决策**:
+  - 不存在的模板文件引用改为"（模板待创建）"而非直接删除——保留未来创建的提示
+  - HTML 重组拆分为3个子任务写入乙部——涉及19个HTML+55处JS引用，需分步执行
+- **结果**: 全部完成
+- **蒸馏标签**: [经验蒸馏: 否]
 owner: "Org OS Agent 集群"
 role: "[人机]"
 last_updated: "2026-05-18"
@@ -11,6 +92,36 @@ status: active
 ---
 
 # Agent Execution Ledger — 2026年05月
+
+## 2026-05-18 | T57 — 合并后全仓库断链修复+术语一改具改
+
+- **来源**: 用户指示（合并后检查）
+- **时间**: 2026-05-18
+- **变更文件**: ARCHITECTURE.md, DOC_MAP.md, ROLE_CLASSIFICATION.md, EMOJI_POLICY.md, AGENT_USAGE.md, DESIGN_SYSTEM.md, ORG_BUILDING.md, SOP_WEB.md, COMMISSIONER_SYSTEM.md, SSOT_INDEX.md, copilot-instructions.md, sopData.js, domain.js, mock.js, auth.js, ws-visitor-entry.js, ws-disc-commissioner-entry.js, header.js, workspace-entry.js, ws-visitor.html, about.html, 申报材料模板/README.md, 活动复盘/README.md, 活动复盘模板.md, CLAUDE.md
+- **关键动作**: T55-7 ✅ 断链修复 ✅ 术语一改具改 ✅
+- **变更详情**:
+  - **断链修复（38→0）**：
+    - guides 中 `src/` → `docs/src/` 路径修复（DATA.md/CALENDAR.md/MANAGEMENT_MODE.md/DOC_MAP.md/ROLE_CLASSIFICATION.md/EMOJI_POLICY.md/AGENT_USAGE.md/DESIGN_SYSTEM.md/ORG_BUILDING.md，共 15+ 处）
+    - ARCHITECTURE.md 整体仓库结构图更新（`src/` → `docs/src/` + guides 扁平→子目录，共 31 处）
+    - `content/references/模板库/` 下 `../../../content/SOP/` → `../../../SOP/`（7 处）
+    - SSOT_INDEX.md `src/workflow/` → `docs/src/workflow/`（2 处）
+    - copilot-instructions.md 过时引用修复（3 处）
+    - MANAGEMENT_MODE.md 相对路径修复（`./SOP_WEB.md` → `../design/SOP_WEB.md` 等）
+    - 删除对不存在文件 `src/events.js` 的引用
+  - **术语一改具改**：
+    - `visitor-observe` → `participant-observe`（5 JS + 3 MD = 8 处）
+    - `访客只读` → `参与者只读`（2 JS + 3 MD + 2 HTML = 7 处）
+    - `【活动建设】` → `【党建工作】`（sopData.js 7 处 + domain.js/mock.js Source 注释）
+    - `【组织建设】` → `【党务工作】`（sopData.js 5 处）
+    - `活动建设` → `活动组织实施`（COMMISSIONER_SYSTEM.md 1 处）
+    - `活动组织者` → `组织者`（COMMISSIONER_SYSTEM.md + insights，约 10 处）
+  - **T55-7 完成**：从乙部删除
+- **设计决策**:
+  - TERMINOLOGY.md 和 CLAUDE.md 废弃术语对照表中的旧术语保留不改（属于历史记录）
+  - insights 中"推动组织建设更加扁平化"的"组织建设"为通用语，非双域术语，保留不改
+  - `src/events.js` 引用直接删除（事件绑定已整合到各 entry 文件）
+- **结果**: 全部完成，38 个断链已修复，废弃术语活跃引用已清零
+- **蒸馏标签**: [经验蒸馏: 是 — 合并后必须做全仓库断链扫描+术语一改具改验证]
 
 ## 2026-05-18 | T56 — README开源重写+LICENSE创建+经验沉淀补充Harness/Context工程
 

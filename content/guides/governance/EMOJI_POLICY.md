@@ -30,8 +30,8 @@ status: active
 | 位置 | 原因 |
 |------|------|
 | `index.html` 中的所有可见文本内容 | 网页界面必须纯净，无特殊符号 |
-| `src/styles.css` 中的 `content` 属性值 | CSS 生成的可见装饰 |
-| `src/*.js` 中的用户可见字符串和 console 输出 | 运行时界面 |
+| `docs/src/styles.css` 中的 `content` 属性值 | CSS 生成的可见装饰 |
+| `docs/src/*.js` 中的用户可见字符串和 console 输出 | 运行时界面 |
 
 ### 2.2 HTML 结构注释例外
 

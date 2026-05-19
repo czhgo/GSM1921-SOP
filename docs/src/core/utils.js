@@ -95,3 +95,11 @@ export function showToast(type, message) {
     setTimeout(() => toast.remove(), 300);
   }, 2500);
 }
+
+export function getBasePath() {
+  const path = window.location.pathname;
+  if (path.includes('/workspace/') || path.includes('/party/')) {
+    return '../';
+  }
+  return './';
+}

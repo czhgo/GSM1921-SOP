@@ -14,8 +14,8 @@ related_files:
   - ARCHITECTURE.md
   - content/guides/governance/ROLE_CLASSIFICATION.md
   - content/SOP/纪检委员工作流程指南.md
-  - index.html
-  - src/styles.css
+  - docs/index.html
+  - docs/src/styles.css
 ---
 
 > **分工声明**：本文档侧重**UI 与模块层面**——功能边界、界面布局、HTML 结构。
@@ -391,10 +391,10 @@ case 'party':
   break;
 ```
 
-#### 5.2.2 党务任务状态机（新建 `src/modules/party.js`）
+#### 5.2.2 党务任务状态机（新建 `docs/src/modules/party.js`）
 
 ```javascript
-// src/modules/party.js — 党务管理模块状态管理器
+// docs/src/modules/party.js — 党务管理模块状态管理器
 // 职责：管理四大子功能的数据加载、状态流转、DOM 渲染
 
 const PartyModule = {
@@ -443,10 +443,10 @@ confirmMailboxCheck()      // 确认查收
 
 | 样式类 | 来源 | 用途 |
 |--------|------|------|
-| `.card` | `src/styles.css`（D2.4 重构后） | 所有功能面板容器 |
-| `.btn`, `.btn-sm`, `.btn-outline` | `src/styles.css`（D2.3 重构后） | 操作按钮 |
-| `.module-tab` | `src/styles.css`（D2.6 重构后） | 第 4 个 tab 复用现有样式 |
-| `.view-section` | `src/styles.css`（现有） | 模块视图容器 |
+| `.card` | `docs/src/styles.css`（D2.4 重构后） | 所有功能面板容器 |
+| `.btn`, `.btn-sm`, `.btn-outline` | `docs/src/styles.css`（D2.3 重构后） | 操作按钮 |
+| `.module-tab` | `docs/src/styles.css`（D2.6 重构后） | 第 4 个 tab 复用现有样式 |
+| `.view-section` | `docs/src/styles.css`（现有） | 模块视图容器 |
 | `.hidden` | Tailwind（现有） | 视图切换 |
 | `.grid`, `.grid-cols-2`, `.gap-4` | Tailwind（现有） | 四宫格布局 |
 
@@ -481,5 +481,5 @@ E1.1 ──→ E1.2 ──→ E1.3 (补课)
 
 - E1.1 + E1.2 完成后，党务管理模块即可作为独立 tab 展示（含空状态骨架）
 - 各子功能（E1.3-E1.8）可并行开发，互不阻塞
-- E1.3 的实现需同步更新 CLAUDE.md 钩稽矩阵（新增 `src/party.js` 的钩稽声明）
+- E1.3 的实现需同步更新 CLAUDE.md 钩稽矩阵（新增 `docs/src/modules/party.js` 的钩稽声明）
 - E1.7 的实现需由机关党委审查引用渲染合规性

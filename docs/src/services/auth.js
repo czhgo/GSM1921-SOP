@@ -90,11 +90,11 @@ export const AuthStore = {
   },
 
   getViewCategory(primaryRole, activeRole) {
-    if (!primaryRole || !activeRole) return 'visitor-observe';
+    if (!primaryRole || !activeRole) return 'participant-observe';
     if (primaryRole === activeRole) return 'manage';
     const visible = AUTHZ_CHAIN[primaryRole] || [];
     if (visible.includes(activeRole)) return 'manager-observe';
-    return 'visitor-observe';
+    return 'participant-observe';
   },
 
   getRoleLabel(role) {

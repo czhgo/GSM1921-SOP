@@ -18,7 +18,7 @@ status: active
 | 母本层级 | 母本文件/目录 | 子本文件/目录 | 关系说明 |
 |---|---|---|---|
 | 党章 / 官方文件层 | content/references/ | content/SOP/ | 官方文件与党章是所有 SOP 文本的母本。任何 SOP 文本调整，必须先回查 content/references/。 |
-| 文本内容层 | content/SOP/*.md | src/workflow/ | 文本内容层是代码内容层的母本。凡涉及 workflow、字段含义、流程解释，必须先检查 content/SOP/。 |
+| 文本内容层 | content/SOP/*.md | docs/src/workflow/ | 文本内容层是代码内容层的母本。凡涉及 workflow、字段含义、流程解释，必须先检查 content/SOP/。 |
 | 文本内容层 | content/SOP/*.md | docs/src/ | SOP 制度文本是网页代码的母本。凡涉及流程步骤、术语、权限规则，必须先检查 content/SOP/。 |
 | 设计理念层 | content/guides/governance/TERMINOLOGY.md | docs/src/core/constants.js | 术语权威源。代码中的术语必须与 TERMINOLOGY.md 保持一致。 |
 | 设计理念层 | content/guides/architecture/DATA.md | docs/src/ 数据结构代码 | 数据字段定义权威源。代码中的数据结构必须与 DATA.md 保持一致。 |
@@ -94,7 +94,7 @@ status: active
 1. 先查宪章层：.github/copilot-instructions.md
 2. 再查项目中枢：CLAUDE.md（未来执行路线图）
 3. 再查文本母本层：content/SOP/
-4. 再查代码内容层：src/workflow/
+4. 再查代码内容层：docs/src/workflow/
 5. 再查 Skill 层：.github/skills/*/SKILL.md
 6. 最后查执行配置层：.github/agents/
 

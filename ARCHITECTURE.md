@@ -3,7 +3,7 @@ title: "双域五层架构说明"
 type: architecture
 role: "[人机]"
 owner: "Org OS Agent 集群"
-last_updated: "2026-05-15"
+last_updated: "2026-05-18"
 status: active
 ---
 
@@ -89,12 +89,15 @@ Layer 3: Agent 实施层（治理运行时）
   └─ .github/skills/*/SKILL.md              [AI] Skill 接口定义
 
 Layer 4: 代码实现层
-  └─ src/workflow/                          [人机] SOP 数据库与工作流引擎
-  └─ src/domain.js, id.js, state.js, events.js, calendar.js, utils.js, inspector.js, constants.js, styles.css
-  └─ src/service.mock.js, service.runtime.js, main.js
+  └─ docs/src/workflow/                  [人机] SOP 数据库与工作流引擎
+  └─ docs/src/core/ (constants.js, utils.js, id.js, state.js, domain.js)  [人机] 静态常量/工具/UUID/状态/领域
+  └─ docs/src/components/ (calendar.js, inspector.js)  [人机] 日历/检查器渲染
+  └─ docs/src/entries/main-entry.js      [人机] 启动入口（唯一 DOM 更新入口）
+  └─ docs/src/services/ (mock.js, runtime.js)  [人机] 服务层
+  └─ docs/src/styles.css                 [人机] 全局样式
 
 Layer 5: 运行时层
-  └─ index.html                             [人机] Flat Matte UI 骨架
+  └─ docs/index.html                     [人机] Flat Matte UI 骨架
 
 Layer 6: 审计追溯层
   └─ .ctx/CONTEXT.md                        [AI] AI 快速同步入口
@@ -118,45 +121,79 @@ Layer 7: 官方底线层（只读引用）
 ├── ARCHITECTURE.md                    [人机] 本文件，核心架构说明
 ├── CLAUDE.md                         [人机] 未来执行路线图
 ├── SSOT_INDEX.md                     [AI] 母本注册表与溯源参考
-├── index.html                         [人机] UI 入口（Flat Matte 骨架）
+├── docs/                              [人机] 代码实现层与运行时
+│   ├── index.html                     [人机] UI 入口（Flat Matte 骨架）
+│   ├── about.html                     [人机] 系统说明书
+│   ├── archive.html                   [人机] 归档库
+│   ├── search.html                    [人机] 资料查询
+│   ├── feedback.html                  [人机] 意见反馈
+│   ├── workspace/                     [人机] 党建工作台页面
+│   │   ├── index.html                 [人机] 党建工作台入口
+│   │   ├── secretary.html             [人机] 党建·党支书工作台
+│   │   ├── leader.html                [人机] 党建·党小组组长工作台
+│   │   ├── organizer.html             [人机] 党建·组织者工作台
+│   │   ├── deep.html                  [人机] 党建·深度参与者工作台
+│   │   ├── org.html                   [人机] 党建·组织委员工作台
+│   │   ├── prop.html                  [人机] 党建·宣传委员工作台
+│   │   ├── disc.html                  [人机] 党建·纪检委员工作台
+│   │   └── visitor.html               [人机] 党建·参与者只读面板
+│   ├── party/                         [人机] 党务管理页面
+│   │   ├── index.html                 [人机] 党务管理入口
+│   │   ├── secretary.html             [人机] 党务·党支书面板
+│   │   ├── org.html                   [人机] 党务·组织委员面板
+│   │   ├── prop.html                  [人机] 党务·宣传委员面板
+│   │   └── disc.html                  [人机] 党务·纪检委员面板
+│   └── src/                           [人机] 代码实现层
+│       ├── workflow/                  [人机] SOP 核心规则引擎
+│       │   ├── index.js               [人机] 桶文件，统一对外导出
+│       │   ├── sop.js                 [人机] SOP 实例化：日期展开与计算逻辑
+│       │   ├── sopData.js             [人机] SOP 场景任务节点模板原始数据
+│       │   └── activityRecord.js      [人机] 活动记录数据模型
+│       ├── core/                      [人机] 核心模块
+│       │   ├── constants.js           [人机] 静态常量
+│       │   ├── utils.js               [人机] 工具函数
+│       │   ├── id.js                  [人机] UUID 生成
+│       │   ├── state.js               [人机] 全局状态中心
+│       │   └── domain.js              [人机] 领域逻辑
+│       ├── components/                [人机] 渲染组件
+│       │   ├── calendar.js            [人机] 日历渲染
+│       │   └── inspector.js           [人机] 检查器渲染
+│       ├── entries/                   [人机] 入口文件
+│       │   └── main-entry.js          [人机] 启动入口（唯一 DOM 更新入口）
+│       ├── services/                  [人机] 服务层
+│       │   ├── mock.js                [人机] Mock 服务
+│       │   └── runtime.js             [人机] 运行时服务
+│       └── styles.css                 [人机] 全局样式
+│
 ├── .markdownlint.json                 [工具] 代码风格规范
 ├── .markdownlintignore                [工具] 代码风格忽略列表
-│
-├── src/                               [人机] 代码实现层
-│   ├── workflow/                      [人机] SOP 核心规则引擎
-│   │   ├── index.js                   [人机] 桶文件，统一对外导出
-│   │   ├── sop.js                     [人机] SOP 实例化：日期展开与计算逻辑
-│   │   └── sopData.js                 [人机] SOP 场景任务节点模板原始数据
-│   ├── constants.js, utils.js, id.js  [人机] 静态常量/工具/UUID
-│   ├── state.js                       [人机] 全局状态中心
-│   ├── calendar.js, inspector.js      [人机] 日历/检查器渲染
-│   ├── events.js                      [人机] 全量 DOM 事件绑定
-│   ├── main.js                        [人机] 启动入口（唯一 DOM 更新入口）
-│   ├── service.mock.js, service.runtime.js [人机] 服务层
-│   └── styles.css                     [人机] 全局样式
 │
 ├── content/                           [人机] 内容中心
 │   ├── SOP/                           [人机] 制度母本层
 │   │   ├── INDEX.md                   [人机] SOP 导航目录
 │   │   ├── 常见工作场景快速指南.md       [人机] 快速使用指南
 │   │   ├── 支委与党小组定人定责定岗说明.md [人机] 职责分工文档
-│   │   ├── 宣传/纪检/组织委员工作流程指南.md [人机] 功能委员 SOP
+│   │   └── 宣传/纪检/组织委员工作流程指南.md [人机] 功能委员 SOP
 │   ├── guides/                        [人机] 操作指南与设计文档
-│   │   ├── DOC_MAP.md       [人机] 文档导航中心
-│   │   ├── AGENT_USAGE.md             [人机] Agent 使用指南
-│   │   ├── ROLE_CLASSIFICATION.md     [人机] 角色三分类体系
-│   │   ├── DESIGN_SYSTEM.md           [人机] 设计系统规范
-│   │   ├── CALENDAR.md         [人机] 日历功能规划
-│   │   ├── MANAGEMENT_MODE.md [人机] 管理模式架构
-│   │   ├── ORG_BUILDING.md [人机] 党务管理模块
-│   │   ├── COMMISSIONER_SYSTEM.md [人机] 支委系统设计（合并）
-│   │   ├── BRAND_ACTIVITY.md           [人机] 品牌活动方案 ⏸️
-│   │   ├── RECURRING_TASKS.md [人机] 周期性任务机制
-│   │   ├── TERMINOLOGY.md   [人机] 术语规范
-│   │   ├── EMOJI_POLICY.md            [人机] Emoji 使用规范
-│   │   ├── SOP_WEB.md           [人机] SOP 网页指南
-│   │   ├── AGENT_HANDBOOK.md    [人机] 技术操作手册
-│   │   └── README.md                  [人机]
+│   │   ├── governance/                [人机] 治理规范
+│   │   │   ├── DOC_MAP.md             [人机] 文档导航中心
+│   │   │   ├── AGENT_USAGE.md         [人机] Agent 使用指南
+│   │   │   ├── ROLE_CLASSIFICATION.md [人机] 角色三分类体系
+│   │   │   ├── TERMINOLOGY.md         [人机] 术语规范
+│   │   │   ├── EMOJI_POLICY.md        [人机] Emoji 使用规范
+│   │   │   ├── RECURRING_TASKS.md     [人机] 周期性任务机制
+│   │   │   └── AGENT_HANDBOOK.md      [人机] 技术操作手册
+│   │   ├── design/                    [人机] 功能设计方案
+│   │   │   ├── DESIGN_SYSTEM.md       [人机] 设计系统规范
+│   │   │   ├── CALENDAR.md            [人机] 日历功能规划
+│   │   │   ├── COMMISSIONER_SYSTEM.md [人机] 支委系统设计（合并）
+│   │   │   ├── BRAND_ACTIVITY.md      [人机] 品牌活动方案 ⏸️
+│   │   │   └── SOP_WEB.md             [人机] SOP 网页指南
+│   │   ├── architecture/              [人机] 架构设计
+│   │   │   ├── MANAGEMENT_MODE.md     [人机] 管理模式架构
+│   │   │   ├── ORG_BUILDING.md        [人机] 党务管理模块
+│   │   │   └── DATA.md                [人机] 数据模型设计
+│   │   └── README.md                  [人机] guides 目录索引
 │   ├── insights/                      [人机] 经验沉淀
 │   │   └── 党支部管理与实务经验沉淀.md   [人机] 经验沉淀文档
 │   └── references/                    [人]  官方底线与模板
@@ -190,7 +227,7 @@ Layer 7: 官方底线层（只读引用）
 
 ### ActivityRecord（活动记录）
 
-数据结构定义于 `src/workflow/activityRecord.js`。核心12字段模型：
+数据结构定义于 `docs/src/workflow/activityRecord.js`。核心12字段模型：
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
@@ -211,7 +248,7 @@ ActivityRecordStore 为唯一数据源，所有视图从 Store 读取。`filterR
 
 ### Task（任务）
 
-数据结构定义于 `src/service.mock.js`。核心字段：
+数据结构定义于 `docs/src/services/mock.js`。核心字段：
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
@@ -234,7 +271,7 @@ ActivityRecordStore 为唯一数据源，所有视图从 Store 读取。`filterR
 ### 依赖链
 
 ```
-content/SOP/ → src/workflow/ → constants/utils → service layer → state → render → main.js → UI
+content/SOP/ → docs/src/workflow/ → core/constants/utils → services → state → components → entries/main-entry.js → UI
 ```
 
 所有 mutation 必须经过 Service 层；UI 层禁止直接操作 `mockDB`。
@@ -274,13 +311,13 @@ content/SOP/*.md             .github/skills/            .github/agents/
          └─────────────────────────┼─────────────────────────┘
                                    │ 下游传播
                                    ▼
-                          src/workflow/
+                          docs/src/workflow/
                           代码内容层
                                    │
                                    ▼
                     ┌─────────────────────────┐
-                    │  src/*  (service + UI)   │ ← 运行时层
-                    │  index.html              │
+                    │  docs/src/*  (service + UI)   │ ← 运行时层
+                    │  docs/index.html              │
                     └─────────────────────────┘
 ```
 
@@ -290,11 +327,11 @@ content/SOP/*.md             .github/skills/            .github/agents/
 
 ### 门控规则（Gate Check）
 
-- 修改 `src/workflow/` 或更下层前，必须确认母本 `content/SOP/` 已更新
+- 修改 `docs/src/workflow/` 或更下层前，必须确认母本 `content/SOP/` 已更新
 - 修改 Agent 配置或 Skill 定义前，必须确认 `SSOT_INDEX.md` 注册表已同步
 - 跨层修改须先完成上层确认方可推进下层
 
-### Change Trace 四要素（修改 src/ 或 index.html 前必须输出）
+### Change Trace 四要素（修改 docs/src/ 或 docs/index.html 前必须输出）
 
 1. `SSOT source`: 母本变更依据（引用 `SSOT_INDEX.md` 注册表链路）
 2. `SOP impact`: 本次 SOP 变更情况（引用 `content/SOP/` 具体文件与条款，无变化写 `none`）

@@ -149,7 +149,7 @@ status: active
 | 领导照片 | 图片 URL 列表 | （图片文件引用） |
 | 填写人 | 负责此条记录的人 | 安佳晨、梁宸菲 |
 
-**代码实现**：`src/workflow/activityRecord.js` — ActivityRecord 类 + ActivityRecordStore 内存存储 + filterRecordsByRole() 角色过滤
+**代码实现**：`docs/src/workflow/activityRecord.js` — ActivityRecord 类 + ActivityRecordStore 内存存储 + filterRecordsByRole() 角色过滤
 
 ### 活动管理的"写入"机制
 
@@ -187,7 +187,7 @@ status: active
 - **资料查询**：SOP 文档 + 参考资料 + 指南文件（合并原参考指南板块）
 
 **核心新增文件**：
-- `content/guides/DATA_ARCHITECTURE.md`：数据分类体系（10 类）+ 字段规范（9 表）+ 前端数据流 + 8×8 权限矩阵
+- `content/guides/architecture/DATA.md`：数据分类体系（10 类）+ 字段规范（9 表）+ 前端数据流 + 8×8 权限矩阵
 - `CLAUDE.md`：按 6 层工程工作流重组（基建层/数据层/视图层/交互层/制度层/维护层），§十为下一轮启动清单
 
 **SOP↔网页双向修改规则**：
@@ -217,7 +217,7 @@ Agent 调用链长度基于当前模型上下文窗口能力动态规划：`安�
 ## 交叉监督与 SSOT 溯源
 
 - 机关党委监督组织部及宪章；组织部管辖除自身与宪章外的其他 Agent
-- 跨层任务规划前必须先检索 [SSOT_INDEX.md](SSOT_INDEX.md)；修改操作先溯母本、再推子本，子本变更若无法指向母本则禁止写盘
+- 跨层任务规划前必须先检索 [SSOT_INDEX.md](../SSOT_INDEX.md)；修改操作先溯母本、再推子本，子本变更若无法指向母本则禁止写盘
 - IDE 原生规约：以 `#` 形式引用上下文文件；架构修改后输出 HALT 提示要求新建 Session 刷新上下文
 
 ## 文档变更同步

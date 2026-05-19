@@ -284,7 +284,7 @@ export function updateTask(taskId, patch) {
 }
 
 // ── Deliverable CRUD ─────────────────────────────────────────────
-// Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
+// Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
 // 产出物清单：考勤汇总表（纪检委员）+ 组织生活会记录（党小组组长）
 
 /**
@@ -352,7 +352,7 @@ export function updateDeliverable(id, patch) {
  * 初始化组织生活会产出物模板（为指定活动挂载两类必交产出物）
  * - 考勤汇总表：执行人 纪检委员
  * - 组织生活会记录：执行人 党小组组长
- * Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
+ * Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
  * @param {string} activityId - 所属活动 ID
  * @returns {Promise<import('../core/domain.js').Deliverable[]>}
  */
@@ -393,7 +393,7 @@ export function seedOrgLifeDeliverables(activityId) {
  * 将 sopDatabase 中的 tasks 按 timeOffset 分组并标注阶段名称。
  * 组织生活会阶段划分：
  *   会前准备 (T-7 至 T-3) → 会中实施 (T=0) → 会后归档 (T+3 至 T+5)
- * Source: knowledge/SOP/常见工作场景快速指南.md#活动建设组织生活会严肃政治会议
+ * Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
  * @param {string} scenarioId - 场景 ID（如 'org-life'）
  * @param {Array<{scenarioId:string,tasks:Array<{taskId:string,title:string,executor:string,timeOffset:number|null,desc:string}>}>} sopDB - sopDatabase.scenarios 数组
  * @returns {{ phase: string, timeLabel: string, tasks: object[] }[]}

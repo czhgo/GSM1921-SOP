@@ -42,7 +42,7 @@ related_files:
 | **职责** | 人类日常消费使用 + AI 自主读取作为工作上下文 |
 | **权限边界** | AI 可读可引用，修改须 /ask 授权 |
 | **AI 读取规则** | AI 按需检索，Layer 1/2 自动加载 |
-| **存储位置** | `content/SOP/`、`content/guides/`、`content/insights/`、`src/`、根目录核心文档 |
+| **存储位置** | `content/SOP/`、`content/guides/`、`content/insights/`、`docs/src/`、根目录核心文档 |
 | **典型场景** | 委员查阅 SOP 流程、AI 读取架构说明、开发者查看代码 |
 
 ### [AI] — AI Agent 专用
@@ -79,13 +79,13 @@ related_files:
 | content/insights/ | [人机] | 经验沉淀，人类学习 + AI 蒸馏 |
 | content/references/ | [人] | 官方底线，只读引用 |
 
-### src/ 代码层
+### docs/src/ 代码层
 
 | 文件 | 角色 | 理由 |
 |------|------|------|
-| src/workflow/ | [人机] | SOP 规则引擎，开发者维护 + AI 映射 |
-| src/*.js | [人机] | 代码模块，开发者维护 + AI 修改 |
-| src/styles.css | [人机] | 样式，开发者维护 + AI 修改 |
+| docs/src/workflow/ | [人机] | SOP 规则引擎，开发者维护 + AI 映射 |
+| docs/src/*.js | [人机] | 代码模块，开发者维护 + AI 修改 |
+| docs/src/styles.css | [人机] | 样式，开发者维护 + AI 修改 |
 
 ### .github/ 治理层
 
@@ -164,14 +164,14 @@ related_files:
 | 角色 | 存储目录 | 访问控制 |
 |------|---------|---------|
 | [人] | content/references/, assets/ | AI 只读，人类读写 |
-| [人机] | content/SOP/, content/guides/, content/insights/, src/, 根目录 | AI 读取+授权修改，人类读写 |
+| [人机] | content/SOP/, content/guides/, content/insights/, docs/src/, 根目录 | AI 读取+授权修改，人类读写 |
 | [AI] | .github/, .ctx/ | AI 读写（受宪章），人类一般不编辑 |
 
 ### 读取优先级
 
 1. **AI 新对话启动**: copilot-instructions.md → .ctx/CONTEXT.md
-2. **SOP 变更任务**: content/SOP/ → src/workflow/ → SSOT_INDEX.md
-3. **代码修改任务**: .ctx/CONTEXT.md → ARCHITECTURE.md → src/
+2. **SOP 变更任务**: content/SOP/ → docs/src/workflow/ → SSOT_INDEX.md
+3. **代码修改任务**: .ctx/CONTEXT.md → ARCHITECTURE.md → docs/src/
 4. **文档治理任务**: SSOT_INDEX.md → content/guides/governance/DOC_MAP.md
 
 ---

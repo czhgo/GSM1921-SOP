@@ -3,6 +3,7 @@
 
 import { AuthStore, ViewModeStore, ROLE_LABELS } from '../services/auth.js';
 import { NoticeStore } from '../services/notice.js';
+import { getBasePath } from '../core/utils.js';
 
 const MODULE_VIEW_MODES = ['workspace', 'party'];
 
@@ -84,7 +85,7 @@ export function renderHeader(activeModule) {
         <span></span><span></span><span></span>
       </button>
       <div class="party-emblem-wrapper">
-        <img src="./assets/images/party_emblem.png" alt="党徽" class="party-emblem" draggable="false">
+        <img src="${getBasePath()}assets/images/party_emblem.png" alt="党徽" class="party-emblem" draggable="false">
       </div>
       <div class="header-title">
         <h1 class="font-title-cn">光华管理学院本科生党支部管理引擎</h1>
@@ -216,7 +217,7 @@ function _bindRoleSwitcher(header, module) {
       dropdown.classList.add('hidden');
       renderHeader(module);
       document.dispatchEvent(new CustomEvent('header:role-switch', {
-        detail: { role: '', module, category: 'visitor-observe' },
+        detail: { role: '', module, category: 'participant-observe' },
         bubbles: true,
       }));
       return;

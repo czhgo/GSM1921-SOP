@@ -18,7 +18,7 @@ status: active
 
 ### 1.1 当前现状
 
-当前日历实现位于 [calendar.js](file:///d:/GitHub/GSM1921-SOP/src/components/calendar.js)，`renderCalendarByActivities()` 函数硬编码为**月视图表格布局**：
+当前日历实现位于 [calendar.js](file:///d:/GitHub/GSM1921-SOP/docs/src/components/calendar.js)，`renderCalendarByActivities()` 函数硬编码为**月视图表格布局**：
 
 - 使用 CSS Grid `grid-template-columns: repeat(7, 1fr)` 构建 7 列网格
 - 每行代表一周，空白填充由 `firstDow`（当月首日是周几）计算偏移
@@ -96,8 +96,8 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 
 ### 2.1 当前现状
 
-- [calendar.js L88-L92](file:///d:/GitHub/GSM1921-SOP/src/components/calendar.js#L88-L92)：参与者视图使用 `truncate` CSS 类（`overflow: hidden; white-space: nowrap; text-overflow: ellipsis`）实现单行截断
-- [styles.css L743-L757](file:///d:/GitHub/GSM1921-SOP/src/styles.css#L743-L757)：`.cal-task-tag` 同样使用 `white-space: nowrap; text-overflow: ellipsis` 单行截断
+- [calendar.js L88-L92](file:///d:/GitHub/GSM1921-SOP/docs/src/components/calendar.js#L88-L92)：参与者视图使用 `truncate` CSS 类（`overflow: hidden; white-space: nowrap; text-overflow: ellipsis`）实现单行截断
+- [styles.css L743-L757](file:///d:/GitHub/GSM1921-SOP/docs/src/styles.css#L743-L757)：`.cal-task-tag` 同样使用 `white-space: nowrap; text-overflow: ellipsis` 单行截断
 - 截断触发无字符数硬限制，完全依赖 CSS 容器宽度
 - Tooltip 通过 HTML 原生 `title` 属性实现（仅限参与者视图的活动标题）
 - "+N 项" 折叠规则：参与者视图超过 3 个活动 / 管理视图超过 3 个任务时折叠
@@ -256,7 +256,7 @@ localStorage (当前) → Supabase + localStorage(本地缓存) → Supabase + I
 
 ### 3.3 数据结构 Schema 设计
 
-当前 `Activity` 和 `Task` 的字段定义在 [domain.js](file:///d:/GitHub/GSM1921-SOP/src/domain.js) 中已有完善的 JSDoc 注释。以下是对日历功能最有影响的字段分析及扩展建议：
+当前 `Activity` 和 `Task` 的字段定义在 [domain.js](file:///d:/GitHub/GSM1921-SOP/docs/src/core/domain.js) 中已有完善的 JSDoc 注释。以下是对日历功能最有影响的字段分析及扩展建议：
 
 #### Activity 对象（日历视角）
 
@@ -343,7 +343,7 @@ const Task = {
 
 ### 4.1 当前交互分析
 
-当前点击日历日期格的行为链（[calendar.js L137-L143](file:///d:/GitHub/GSM1921-SOP/src/components/calendar.js#L137-L143)）：
+当前点击日历日期格的行为链（[calendar.js L137-L143](file:///d:/GitHub/GSM1921-SOP/docs/src/components/calendar.js#L137-L143)）：
 
 ```
 点击 .cal-cell-large.has-tasks
@@ -506,11 +506,11 @@ function virtualScroll(container, items, rowHeight, buffer = 5) {
 1. 日历容器需设置 `tabindex="0"` 以接收键盘事件
 2. 当前聚焦的日期单元格使用 `aria-selected="true"` 标记
 3. 任务标签使用 `role="button"` + `tabindex="-1"`（避免 Tab 键在每个任务标签上停顿，改用方向键导航）
-4. 所有交互元素必须有可见的 `:focus-visible` 样式（当前已有全局 focus-visible 规则在 [styles.css L798-L804](file:///d:/GitHub/GSM1921-SOP/src/styles.css#L798-L804)）
+4. 所有交互元素必须有可见的 `:focus-visible` 样式（当前已有全局 focus-visible 规则在 [styles.css L798-L804](file:///d:/GitHub/GSM1921-SOP/docs/src/styles.css#L798-L804)）
 
 ### 5.4 打印/导出兼容性
 
-当前 [styles.css L1178-L1198](file:///d:/GitHub/GSM1921-SOP/src/styles.css#L1178-L1198) 已包含基础打印样式，隐藏了 header 和 sidebar。
+当前 [styles.css L1178-L1198](file:///d:/GitHub/GSM1921-SOP/docs/src/styles.css#L1178-L1198) 已包含基础打印样式，隐藏了 header 和 sidebar。
 
 #### 日历打印增强
 
@@ -564,18 +564,17 @@ Phase 4（远期）：键盘导航 + 虚拟滚动 + iCalendar
 
 | 文件 | 关键函数/区域 | 说明 |
 |------|-------------|------|
-| [src/components/calendar.js](file:///d:/GitHub/GSM1921-SOP/src/components/calendar.js#L15-L144) | `renderCalendarByActivities()` | 月视图日历渲染核心 |
-| [src/components/calendar.js](file:///d:/GitHub/GSM1921-SOP/src/components/calendar.js#L152-L197) | `populateMonthSelector()` | 月份选择器填充 |
-| [src/components/inspector.js](file:///d:/GitHub/GSM1921-SOP/src/components/inspector.js#L16-L26) | `filterTasksByManagementRole()` | 管理角色任务过滤器 |
-| [src/components/inspector.js](file:///d:/GitHub/GSM1921-SOP/src/components/inspector.js#L31-L49) | `renderInspectorFromState()` | 检查器状态路由分发 |
-| [src/components/inspector.js](file:///d:/GitHub/GSM1921-SOP/src/components/inspector.js#L87-L174) | `renderInspectorList()` | 活动列表视图渲染 |
-| [src/components/inspector.js](file:///d:/GitHub/GSM1921-SOP/src/components/inspector.js#L179-L336) | `renderInspectorDetail()` | 活动详情视图渲染 |
-| [src/core/state.js](file:///d:/GitHub/GSM1921-SOP/src/core/state.js#L66-L86) | `appState` 初始定义 | 全局状态结构 |
-| [src/core/state.js](file:///d:/GitHub/GSM1921-SOP/src/core/state.js#L101-L112) | `setState()` | Immutable 状态更新 |
-| [src/domain.js](file:///d:/GitHub/GSM1921-SOP/src/domain.js#L11-L60) | JSDoc typedef | 数据结构完整定义 |
-| [src/services/mock.js](file:///d:/GitHub/GSM1921-SOP/src/services/mock.js#L19-L72) | `SANDBOX_MODE` + `saveDB()`/`loadDB()` | 持久化引擎 |
-| [src/services/runtime.js](file:///d:/GitHub/GSM1921-SOP/src/services/runtime.js#L14) | `USE_MOCK` 开关 | 后端切换点 |
-| [src/styles.css](file:///d:/GitHub/GSM1921-SOP/src/styles.css#L696-L757) | `.cal-cell-*` 类 | 日历单元格样式 |
-| [src/entries/main-entry.js](file:///d:/GitHub/GSM1921-SOP/src/entries/main-entry.js#L20-L153) | `renderUI()` | 统一渲染入口 |
-| [src/events.js](file:///d:/GitHub/GSM1921-SOP/src/events.js#L48-L179) | `_initCalendarModule()` | 党建工作台控制台 |
+| [docs/src/components/calendar.js](file:///d:/GitHub/GSM1921-SOP/docs/src/components/calendar.js#L15-L144) | `renderCalendarByActivities()` | 月视图日历渲染核心 |
+| [docs/src/components/calendar.js](file:///d:/GitHub/GSM1921-SOP/docs/src/components/calendar.js#L152-L197) | `populateMonthSelector()` | 月份选择器填充 |
+| [docs/src/components/inspector.js](file:///d:/GitHub/GSM1921-SOP/docs/src/components/inspector.js#L16-L26) | `filterTasksByManagementRole()` | 管理角色任务过滤器 |
+| [docs/src/components/inspector.js](file:///d:/GitHub/GSM1921-SOP/docs/src/components/inspector.js#L31-L49) | `renderInspectorFromState()` | 检查器状态路由分发 |
+| [docs/src/components/inspector.js](file:///d:/GitHub/GSM1921-SOP/docs/src/components/inspector.js#L87-L174) | `renderInspectorList()` | 活动列表视图渲染 |
+| [docs/src/components/inspector.js](file:///d:/GitHub/GSM1921-SOP/docs/src/components/inspector.js#L179-L336) | `renderInspectorDetail()` | 活动详情视图渲染 |
+| [docs/src/core/state.js](file:///d:/GitHub/GSM1921-SOP/docs/src/core/state.js#L66-L86) | `appState` 初始定义 | 全局状态结构 |
+| [docs/src/core/state.js](file:///d:/GitHub/GSM1921-SOP/docs/src/core/state.js#L101-L112) | `setState()` | Immutable 状态更新 |
+| [docs/src/core/domain.js](file:///d:/GitHub/GSM1921-SOP/docs/src/core/domain.js#L11-L60) | JSDoc typedef | 数据结构完整定义 |
+| [docs/src/services/mock.js](file:///d:/GitHub/GSM1921-SOP/docs/src/services/mock.js#L19-L72) | `SANDBOX_MODE` + `saveDB()`/`loadDB()` | 持久化引擎 |
+| [docs/src/services/runtime.js](file:///d:/GitHub/GSM1921-SOP/docs/src/services/runtime.js#L14) | `USE_MOCK` 开关 | 后端切换点 |
+| [docs/src/styles.css](file:///d:/GitHub/GSM1921-SOP/docs/src/styles.css#L696-L757) | `.cal-cell-*` 类 | 日历单元格样式 |
+| [docs/src/entries/main-entry.js](file:///d:/GitHub/GSM1921-SOP/docs/src/entries/main-entry.js#L20-L153) | `renderUI()` | 统一渲染入口 |
 | [CLAUDE.md](file:///d:/GitHub/GSM1921-SOP/CLAUDE.md#L66-L86) | Phase 2/3 | Supabase + Workflow Engine 规划 |

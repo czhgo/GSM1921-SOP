@@ -668,7 +668,7 @@ select.input-flat {
 
 | 文件 | 职责 | 格式 |
 |------|------|------|
-| `src/styles.css` | 全局样式 + 组件样式 + 响应式 + 打印 | CSS |
+| `docs/src/styles.css` | 全局样式 + 组件样式 + 响应式 + 打印 | CSS |
 | `index.html` | Tailwind 配置 + HTML 结构 | HTML |
 | `content/guides/design/DESIGN_SYSTEM.md` | 设计系统规范文档（本文件） | Markdown |
 | `CLAUDE.md` §九 | 设计优化项目规划 | Markdown |
@@ -734,6 +734,6 @@ select.input-flat {
 | 查主色值 | → §2.2 Primary 表格 |
 | 查组件规范 | → §4 组件规范 |
 | 查响应式断点 | → §6.1 断点表 |
-| 查 CSS 变量名 | → `src/styles.css:root` |
+| 查 CSS 变量名 | → `docs/src/styles.css:root` |
 | 查实施进度 | → CLAUDE.md §九 DESIGN-OPT-4 |
 | 提交设计反馈 | → content/references/模板库/FEEDBACK_FORM.md |

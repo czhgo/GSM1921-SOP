@@ -6,7 +6,7 @@ import { BranchService } from '../services/runtime.js';
 import { STATE, setState, registerRenderCallback } from '../core/state.js';
 import { NoticeStore, renderNoticeList } from '../services/notice.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
-import { _fmtDate } from '../core/utils.js';
+import { _fmtDate, getBasePath } from '../core/utils.js';
 import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';
 import { ACTIVITIES } from '../mock/index.js';
@@ -256,8 +256,8 @@ function renderDashboard(state) {
     if (actItem) {
       const actId = actItem.dataset.activityId;
       const url = actId
-        ? CrossPageState.buildURL('./ws-visitor.html', { activityId: actId })
-        : './ws-visitor.html';
+        ? CrossPageState.buildURL(getBasePath() + 'workspace/visitor.html', { activityId: actId })
+        : getBasePath() + 'workspace/visitor.html';
       CrossPageState.save({ selectedRole: 'visitor', activeModule: 'workspace', selectedActivityId: actId || null });
       window.location.href = url;
       return;
@@ -266,8 +266,8 @@ function renderDashboard(state) {
     if (tfItem) {
       const tfId = tfItem.dataset.tfId;
       const url = tfId
-        ? CrossPageState.buildURL('./ws-org-commissioner.html', { taskforceId: tfId })
-        : './ws-org-commissioner.html';
+        ? CrossPageState.buildURL(getBasePath() + 'workspace/org.html', { taskforceId: tfId })
+        : getBasePath() + 'workspace/org.html';
       CrossPageState.save({ selectedRole: 'org-commissioner', activeModule: 'workspace', selectedActivityId: null });
       window.location.href = url;
       return;
@@ -276,8 +276,8 @@ function renderDashboard(state) {
     if (attItem) {
       const actId = attItem.dataset.attendanceActId;
       const url = actId
-        ? CrossPageState.buildURL('./ws-disc-commissioner.html', { activityId: actId, mode: 'readonly' })
-        : CrossPageState.buildURL('./ws-disc-commissioner.html', { mode: 'readonly' });
+        ? CrossPageState.buildURL(getBasePath() + 'workspace/disc.html', { activityId: actId, mode: 'readonly' })
+        : CrossPageState.buildURL(getBasePath() + 'workspace/disc.html', { mode: 'readonly' });
       CrossPageState.save({ selectedRole: 'disc-commissioner', activeModule: 'workspace', selectedActivityId: actId || null });
       window.location.href = url;
       return;

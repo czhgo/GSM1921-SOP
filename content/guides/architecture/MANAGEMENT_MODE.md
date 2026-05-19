@@ -20,10 +20,10 @@ related_files:
   - content/guides/design/CALENDAR.md
 ---
 
-> **⚠️ 架构状态说明（2026-05-06）**：本文档记录管理模式的基础架构设计，但关于 Sidebar-Header Mode 统一、三委员看板视图、日历范围限定等最新架构决策，请参阅 [SOP_WEB.md §B](./SOP_WEB.md#b-网页架构设计最先进设计思路)。本文档的 §六~§七 实现路径已部分被 T26-T29 轮的实际落地代码替代。
+> **⚠️ 架构状态说明（2026-05-06）**：本文档记录管理模式的基础架构设计，但关于 Sidebar-Header Mode 统一、三委员看板视图、日历范围限定等最新架构决策，请参阅 [SOP_WEB.md §B](../design/SOP_WEB.md#b-网页架构设计最先进设计思路)。本文档的 §六~§七 实现路径已部分被 T26-T29 轮的实际落地代码替代。
 
 > **分工声明**：本文档侧重**角色权限与逻辑层面**——三级参与者权限矩阵、数据流、界面实现路径。
-> UI 与模块层面请参阅 [COMMISSIONER_SYSTEM.md](./COMMISSIONER_SYSTEM.md)（条条支委系统设计）。
+> UI 与模块层面请参阅 [COMMISSIONER_SYSTEM.md](../design/COMMISSIONER_SYSTEM.md)（条条支委系统设计）。
 
 # 管理模式架构设计
 
@@ -710,7 +710,7 @@ Q4: 发起方向（必选）→ 自上而下 / 自下而上 → 决定写入权�
 
 - [纪检委员工作流程指南](file:///d:/GitHub/GSM1921-SOP/content/SOP/纪检委员工作流程指南.md) -- 考勤与参与记录的制度母本
 - [角色三分类体系定义](file:///d:/GitHub/GSM1921-SOP/content/guides/governance/ROLE_CLASSIFICATION.md) -- 人/人机/AI 角色分类标准
-- [角色可扩展性评估](file:///d:/GitHub/GSM1921-SOP/content/guides/governance/ROLE_SCALABILITY_ASSESSMENT.md) -- 角色扩展的可行性与风险
+- 角色可扩展性评估（已归档） -- 角色扩展的可行性与风险
 - [ARCHITECTURE.md](file:///d:/GitHub/GSM1921-SOP/ARCHITECTURE.md) -- 项目整体架构
-- [index.html](file:///d:/GitHub/GSM1921-SOP/index.html) -- 侧边栏角色卡片实现
-- [src/styles.css](file:///d:/GitHub/GSM1921-SOP/src/styles.css) -- 角色卡片样式定义
+- [index.html](file:///d:/GitHub/GSM1921-SOP/docs/index.html) -- 侧边栏角色卡片实现
+- [docs/src/styles.css](file:///d:/GitHub/GSM1921-SOP/docs/src/styles.css) -- 角色卡片样式定义

@@ -47,8 +47,8 @@ milestone: "T29 — 全面架构收束：Mode统一、看板体系、日历限�
 | 页面 | 文件 | 用途 | 共享组件 |
 |------|------|------|---------|
 | **主页** | `docs/index.html` | 通知 + 人员招募 + 活动日历摘要 | header.js, sidebar.js |
-| **党建工作台** | `docs/workspace.html` | 活动创建写入、三委员看板、专班管理 | header.js, sidebar.js, workspace-entry.js |
-| **党务管理** | `docs/party.html` | 三委员合规面板、党员发展、档案管理 | header.js, sidebar.js, party.js |
+| **党建工作台** | `docs/workspace/index.html` | 活动创建写入、三委员看板、专班管理 | header.js, sidebar.js, workspace-entry.js |
+| **党务管理** | `docs/party/index.html` | 三委员合规面板、党员发展、档案管理 | header.js, sidebar.js, party.js |
 | **归档库** | `docs/archive.html` | 历史活动/专班归档查询 | header.js, sidebar.js |
 | **资料查询** | `docs/search.html` | 参考资料、网站群、规章文件 | header.js, sidebar.js |
 | **意见反馈** | `docs/feedback.html` | SOP 反馈卡提交、反馈列表 | header.js, sidebar.js, feedback-entry.js |
@@ -68,7 +68,7 @@ milestone: "T29 — 全面架构收束：Mode统一、看板体系、日历限�
 
 - **角色优先**：选择角色后自动进入管理模式，无需手动切换
 - **赋权关系约束**：赋权者可查看被赋权者的工作视图（只读），但不可修改
-- **视图模式三分类**：管理模式 / 管理者只读 / 访客只读
+- **视图模式三分类**：管理模式 / 管理者只读 / 参与者只读
 - **Header 为角色+mode 双主控入口**：全局角色切换器 + 模式切换器
 - **Sidebar 为角色快捷选择器**：与 Header 双向同步
 
@@ -78,7 +78,7 @@ milestone: "T29 — 全面架构收束：Mode统一、看板体系、日历限�
 |------|------|------|
 | 管理模式 (manage) | active role = primary role, mode = manage | 操作自己的工作台，可修改 |
 | 管理者只读 (manager-observe) | active role in auth chain of primary | 查看被赋权者的工作台，不可修改 |
-| 访客只读 (visitor-observe) | 无 primary role | 查看统一信息流面板 |
+| 参与者只读 (participant-observe) | 无 primary role | 查看统一信息流面板 |
 
 #### 模式流转
 
@@ -115,7 +115,7 @@ AuthStore.setPrimaryRole(role)
 AuthStore.getActiveRole(module)      → string (sessionStorage)
 AuthStore.setActiveRole(module, role)
 AuthStore.getVisibleRoles(primary)   → string[] (AUTHZ_CHAIN)
-AuthStore.getViewCategory(primary, active) → 'manage' | 'manager-observe' | 'visitor-observe'
+AuthStore.getViewCategory(primary, active) → 'manage' | 'manager-observe' | 'participant-observe'
 AuthStore.getRoleLabel(role)         → string (ROLE_LABELS)
 AuthStore.getModuleRoles(module)     → string[] (MODULE_ROLES)
 ```
@@ -126,7 +126,7 @@ AuthStore.getModuleRoles(module)     → string[] (MODULE_ROLES)
 ViewModeStore.getMode(module)        → 'manage' | 'observe'
 ViewModeStore.setMode(module, mode)
 ViewModeStore.canManage(role, module) → boolean
-ViewModeStore.getViewCategory(module) → 'manage' | 'manager-observe' | 'visitor-observe'
+ViewModeStore.getViewCategory(module) → 'manage' | 'manager-observe' | 'participant-observe'
 ViewModeStore.isReadOnly(module)      → boolean
 ```
 
@@ -146,7 +146,7 @@ ViewModeStore.isReadOnly(module)      → boolean
 
 | 页面 | 支持 mode 切换 | 说明 |
 |------|:---:|------|
-| 党建工作台 (workspace) | [Y] | 管理模式=职能面板；管理者只读=日历；访客只读=信息流 |
+| 党建工作台 (workspace) | [Y] | 管理模式=职能面板；管理者只读=日历；参与者只读=信息流 |
 | 党务管理 (party) | [Y] | 管理模式=支委编辑面板；管理者只读=只读概览 |
 | 主页 (index) | [N] | 始终为概览模式 |
 | 归档库 (archive) | [N] | 始终为只读查询 |
@@ -392,8 +392,8 @@ STEP 4: 同步更新网页渲染
 
 | 页面 | 入口 JS | 数据源 |
 |------|---------|--------|
-| workspace.html | `entries/workspace-entry.js` | ActivityRecordStore (localStorage) + ViewModeStore (sessionStorage) + AuthStore (localStorage) |
-| party.html | `modules/party.js` | ActivityRecordStore + AuthStore + FeedbackStore |
+| workspace/index.html | `entries/workspace-entry.js` | ActivityRecordStore (localStorage) + ViewModeStore (sessionStorage) + AuthStore (localStorage) |
+| party/index.html | `modules/party.js` | ActivityRecordStore + AuthStore + FeedbackStore |
 | feedback.html | `entries/feedback-entry.js` | FeedbackStore (localStorage) |
 | index.html | `entries/main-entry.js` | ActivityRecordStore + TaskForceRecordStore + NoticeStore |
 

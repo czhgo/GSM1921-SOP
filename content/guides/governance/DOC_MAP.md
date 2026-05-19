@@ -64,20 +64,19 @@ status: active
 
 | 文件 | 角色 | 权威性 | 内容 | 被引用方 |
 |------|------|--------|------|---------|
-| `src/workflow/index.js` | [人机] | 🟢 代码 | 桶文件，统一导出 | ARCHITECTURE |
-| `src/workflow/sop.js` | [人机] | 🟢 代码 | SOP 实例化逻辑 | ARCHITECTURE |
-| `src/workflow/sopData.js` | [人机] | 🟢 代码 | SOP 场景任务模板 | ARCHITECTURE |
-| `src/services/mock.js` | [人机] | 🟢 代码 | Mock 服务层 + LocalStorage | ARCHITECTURE |
-| `src/services/runtime.js` | [人机] | 🟢 代码 | 运行时插槽 | ARCHITECTURE |
-| `src/entries/main-entry.js` | [人机] | 🟢 代码 | 状态机 + DOM 入口 | ARCHITECTURE |
-| `src/core/state.js` | [人机] | 🟢 代码 | 全局状态中心 | ARCHITECTURE |
-| `src/events.js` | [人机] | 🟢 代码 | DOM 事件绑定 | ARCHITECTURE |
-| `src/components/calendar.js` | [人机] | 🟢 代码 | 日历渲染引擎 | ARCHITECTURE |
-| `src/components/inspector.js` | [人机] | 🟢 代码 | 检查器面板 | ARCHITECTURE |
-| `src/core/utils.js` | [人机] | 🟢 代码 | 通用工具函数 | ARCHITECTURE |
-| `src/core/constants.js` | [人机] | 🟢 代码 | 静态常量 | ARCHITECTURE |
-| `src/id.js` | [人机] | 🟢 代码 | UUID 发生器 | ARCHITECTURE |
-| `src/styles.css` | [人机] | 🟢 代码 | 全局样式 | ARCHITECTURE |
+| `docs/src/workflow/index.js` | [人机] | 🟢 代码 | 桶文件，统一导出 | ARCHITECTURE |
+| `docs/src/workflow/sop.js` | [人机] | 🟢 代码 | SOP 实例化逻辑 | ARCHITECTURE |
+| `docs/src/workflow/sopData.js` | [人机] | 🟢 代码 | SOP 场景任务模板 | ARCHITECTURE |
+| `docs/src/services/mock.js` | [人机] | 🟢 代码 | Mock 服务层 + LocalStorage | ARCHITECTURE |
+| `docs/src/services/runtime.js` | [人机] | 🟢 代码 | 运行时插槽 | ARCHITECTURE |
+| `docs/src/entries/main-entry.js` | [人机] | 🟢 代码 | 状态机 + DOM 入口 | ARCHITECTURE |
+| `docs/src/core/state.js` | [人机] | 🟢 代码 | 全局状态中心 | ARCHITECTURE |
+| `docs/src/components/calendar.js` | [人机] | 🟢 代码 | 日历渲染引擎 | ARCHITECTURE |
+| `docs/src/components/inspector.js` | [人机] | 🟢 代码 | 检查器面板 | ARCHITECTURE |
+| `docs/src/core/utils.js` | [人机] | 🟢 代码 | 通用工具函数 | ARCHITECTURE |
+| `docs/src/core/constants.js` | [人机] | 🟢 代码 | 静态常量 | ARCHITECTURE |
+| `docs/src/core/id.js` | [人机] | 🟢 代码 | UUID 发生器 | ARCHITECTURE |
+| `docs/src/styles.css` | [人机] | 🟢 代码 | 全局样式 | ARCHITECTURE |
 | `index.html` | [人机] | 🟢 代码 | UI 入口（Liquid Glass） | ARCHITECTURE |
 
 ### Layer 5: 技术文档层
@@ -91,9 +90,9 @@ status: active
 | `content/guides/design/SOP_WEB.md` | [人机] | 🟡 技术 | SOP 网页优化与同步指南（合并自4文件） | T3+T3a |
 | `content/guides/design/COMMISSIONER_SYSTEM.md` | [人机] | 🟡 技术 | 条条支委系统设计（党务管理+条块交互合并） | E3 |
 | `content/guides/governance/ROLE_CLASSIFICATION.md` | [人机] | 🟡 技术 | 角色三分类体系设计（含可扩展性评估 v3.0） | 社科院 |
-| `content/guides/design/DESIGN_SYSTEM.md` | [人机] | 🟡 技术 | 设计系统规范 | src/styles.css |
+| `content/guides/design/DESIGN_SYSTEM.md` | [人机] | 🟡 技术 | 设计系统规范 | docs/src/styles.css |
 | `content/guides/governance/EMOJI_POLICY.md` | [人机] | 🟡 技术 | Emoji 使用规范 | CLAUDE.md 钩稽 |
-| `content/guides/design/CALENDAR.md` | [人机] | 🟡 技术 | 日历功能规划 | src/components/calendar.js |
+| `content/guides/design/CALENDAR.md` | [人机] | 🟡 技术 | 日历功能规划 | docs/src/components/calendar.js |
 | `content/guides/design/BRAND_ACTIVITY.md` | [人机] | 🟡 技术 | 品牌活动规划与执行方案（合并自2文件） | CLAUDE.md |
 | `content/guides/governance/AGENT_USAGE.md` | [人机] | 🟡 技术 | Agent 使用指南 | ARCHITECTURE（快速导航） |
 | `content/insights/党支部管理与实务经验沉淀.md` | [人机] | 🟡 技术 | 经验沉淀 | 社科院 |
@@ -140,17 +139,17 @@ Agent层
 
 技术文档层
   ├─ ROLE_CLASSIFICATION.md（含可扩展性评估）
-  ├─ DESIGN_SYSTEM.md → src/styles.css
+  ├─ DESIGN_SYSTEM.md → docs/src/styles.css
   ├─ EMOJI_POLICY.md → CLAUDE.md 钩稽
-  ├─ CALENDAR.md → src/components/calendar.js
+  ├─ CALENDAR.md → docs/src/components/calendar.js
   ├─ BRAND_ACTIVITY.md → CLAUDE.md
   ├─ AGENT_USAGE.md → ARCHITECTURE.md
   └─ DOC_MAP.md → 所有文件
 
 代码层
   ├─ ORG_BUILDING.md → index.html (Module 4)
-  ├─ MANAGEMENT_MODE.md → src/*（角色权限引擎）
-  └─ src/* → ARCHITECTURE.md（文档化）
+  ├─ MANAGEMENT_MODE.md → docs/src/*（角色权限引擎）
+  └─ docs/src/* → ARCHITECTURE.md（文档化）
 
 治理机制层
   ├─ RECURRING_TASKS.md → TIMESTAMPS.md → copilot-instructions.md
@@ -177,9 +176,9 @@ Agent层
 | 使用 Agent | content/guides/governance/AGENT_USAGE.md | .github/agents/对应 Agent |
 | 提交改进反馈 | content/guides/design/SOP_WEB.md §E | content/SOP/对应文件 |
 | 了解角色分类体系 | content/guides/governance/ROLE_CLASSIFICATION.md | （含可扩展性评估 §六） |
-| 查看设计系统规范 | content/guides/design/DESIGN_SYSTEM.md | src/styles.css |
+| 查看设计系统规范 | content/guides/design/DESIGN_SYSTEM.md | docs/src/styles.css |
 | 了解 Emoji 使用规范 | content/guides/governance/EMOJI_POLICY.md | CLAUDE.md 钩稽矩阵 |
-| 查看日历功能规划 | content/guides/design/CALENDAR.md | src/components/calendar.js |
+| 查看日历功能规划 | content/guides/design/CALENDAR.md | docs/src/components/calendar.js |
 | 查看品牌活动方案 | content/guides/design/BRAND_ACTIVITY.md | CLAUDE.md |
 | 查官方合规 | content/references/官方文件/ | content/SOP/溯源 |
 | 查看执行日志 | .ctx/logs/EXECUTION_LOG_INDEX.md | 对应月份日志 |

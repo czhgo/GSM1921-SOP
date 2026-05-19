@@ -14,7 +14,7 @@ const savedState = CrossPageState.load();
 const urlParams = CrossPageState.getURLParams();
 const fromHomepage = !!urlParams.activityId || urlParams.mode === 'readonly';
 AuthStore.setActiveRole('workspace', savedState.selectedRole || 'disc-commissioner');
-ViewModeStore.setMode('workspace', fromHomepage ? 'visitor-observe' : 'manage');
+ViewModeStore.setMode('workspace', fromHomepage ? 'participant-observe' : 'manage');
 
 const accent = '#D97706';
 const accentRgba = 'rgba(217,119,6,0.1)';

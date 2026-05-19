@@ -1,4 +1,5 @@
 import { ROLE_LABELS } from '../core/constants.js';
+import { getBasePath } from '../core/utils.js';
 
 const COMMISSIONER_DATA = [
   {
@@ -13,13 +14,13 @@ const COMMISSIONER_DATA = [
       title: '专班建设',
       desc: '招募统筹·定人定责定岗',
       items: ['专班创建与招募管理', '赋权面板操作', '工作量跟踪与记账', '专班解散与汇总报告'],
-      page: './ws-org-commissioner.html',
+      page: 'workspace/org.html',
     },
     party: {
       title: '党员发展全流程',
       desc: '考察/催缴/归档',
       items: ['发展党员追踪看板', '材料催缴提醒', '思想汇报归档', '合规文件管理'],
-      page: './party-org.html',
+      page: 'party/org.html',
     },
   },
   {
@@ -34,13 +35,13 @@ const COMMISSIONER_DATA = [
       title: '活动与专班视图',
       desc: '宣传材料/周报',
       items: ['活动宣传看板', '专班工作量视图', '多维表格视图', '宣传材料管理'],
-      page: './ws-prop-commissioner.html',
+      page: 'workspace/prop.html',
     },
     party: {
       title: '宣传档案合规建设',
       desc: '模板/制度',
       items: ['档案归档管理', '材料标准制定', '模板库维护', '周报报送'],
-      page: './party-prop.html',
+      page: 'party/prop.html',
     },
   },
   {
@@ -55,13 +56,13 @@ const COMMISSIONER_DATA = [
       title: '考勤·考察·监督',
       desc: '考勤管理·考察管理·活动监督复盘',
       items: ['考勤总表管理', '考察总表管理', '活动流程监督', '复盘审核与批注'],
-      page: './ws-disc-commissioner.html',
+      page: 'workspace/disc.html',
     },
     party: {
       title: '补课制度/公邮管理',
       desc: '补课跟踪·公邮查收',
       items: ['补课任务跟踪', '补课完成确认', '公邮查收提醒', '查收历史记录'],
-      page: './party-disc.html',
+      page: 'party/disc.html',
     },
   },
 ];
@@ -88,6 +89,8 @@ const DOMAIN_META = {
 export function renderCommissionerMatrix(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
+
+  const base = getBasePath();
 
   container.innerHTML = `
     <div class="mb-6">
@@ -122,7 +125,7 @@ export function renderCommissionerMatrix(containerId) {
               const d = c[domain];
               const meta = DOMAIN_META[domain];
               return `
-                <a href="${d.page}" class="block p-5 hover:bg-gray-50/50 transition-colors group" style="text-decoration:none;">
+                <a href="${base + d.page}" class="block p-5 hover:bg-gray-50/50 transition-colors group" style="text-decoration:none;">
                   <div class="flex items-center gap-2 mb-2">
                     <span style="color:${meta.accent}">${meta.icon}</span>
                     <span class="font-title-cn text-sm font-semibold text-gray-700 group-hover:text-gray-900">${d.title}</span>

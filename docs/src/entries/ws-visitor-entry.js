@@ -14,7 +14,7 @@ renderHeader('workspace');
 
 const savedState = CrossPageState.load();
 AuthStore.setActiveRole('workspace', savedState.selectedRole || 'all');
-ViewModeStore.setMode('workspace', 'visitor-observe');
+ViewModeStore.setMode('workspace', 'participant-observe');
 
 const ACTIVITY_TYPE_COLORS = {
   '主题党日': { bg: '#FEF2F2', dot: '#DC2626' },
@@ -44,7 +44,7 @@ function renderVisitorUI(state) {
 
   container.innerHTML = `
     <div class="card rounded-2xl p-4 mb-6 border border-amber-200 bg-amber-50/30">
-      <p class="text-xs text-amber-700">您当前处于访客只读模式。如需进入管理模式，请从侧边栏选择角色。</p>
+      <p class="text-xs text-amber-700">您当前处于参与者只读模式。如需进入管理模式，请从侧边栏选择角色。</p>
     </div>
     <div class="flex gap-2 mb-4">
       <button class="visitor-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-vtab="activities" style="background:rgba(122,0,16,0.08);color:var(--primary-700);border:1px solid rgba(122,0,16,0.2);">活动动态</button>
