@@ -97,9 +97,7 @@ export function showToast(type, message) {
 }
 
 export function getBasePath() {
-  const path = window.location.pathname;
-  if (path.includes('/workspace/') || path.includes('/party/')) {
-    return '../';
-  }
+  // 子目录页面已通过 <base href="../"> 将基准URL调至 docs/
+  // JS动态内容同样受 <base> 影响，因此始终返回 './'
   return './';
 }

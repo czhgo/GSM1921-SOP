@@ -2,7 +2,6 @@
 title: "全局文档导航映射"
 type: governance
 role: "[人机]"
-owner: "支委会"
 last_updated: "2026-05-15"
 status: active
 ---
@@ -112,10 +111,9 @@ status: active
 
 | 文件 | 角色 | 权威性 | 内容 | 被引用方 |
 |------|------|--------|------|---------|
-| `content/references/官方文件/*.pdf` | [人] | 🔵 官方 | 党章、条例、规范 | content/SOP（母本溯源） |
-| `content/references/模板库/*.md` | [人] | 🔵 官方 | 工作模板、活动复盘模板 | content/guides/design/SOP_WEB.md |
-| `content/references/党小组会/*.pdf` `*.docx` | [人] | 🔵 官方 | 历史党小组会记录 | 无（历史档案） |
-| `content/references/支部委员会/*.docx` | [人] | 🔵 官方 | 历史支委会记录 | 无（历史档案） |
+| `content/references/合规文件/*.pdf` | [人] | 🔵 官方 | 党章、条例、规范 | content/SOP（母本溯源） |
+| `content/references/工作模板/*.md` | [人] | 🔵 官方 | 工作模板、经验沉淀辅助提示词 | content/guides/design/SOP_WEB.md |
+| `content/references/历史会议材料/*.pdf` `*.docx` | [人] | 🔵 官方 | 历史会议记录 | 无（历史档案） |
 
 ---
 
@@ -180,7 +178,7 @@ Agent层
 | 了解 Emoji 使用规范 | content/guides/governance/EMOJI_POLICY.md | CLAUDE.md 钩稽矩阵 |
 | 查看日历功能规划 | content/guides/design/CALENDAR.md | docs/src/components/calendar.js |
 | 查看品牌活动方案 | content/guides/design/BRAND_ACTIVITY.md | CLAUDE.md |
-| 查官方合规 | content/references/官方文件/ | content/SOP/溯源 |
+| 查官方合规 | content/references/合规文件/ | content/SOP/溯源 |
 | 查看执行日志 | .ctx/logs/EXECUTION_LOG_INDEX.md | 对应月份日志 |
 | 查看 SOP 网页优化 | content/guides/design/SOP_WEB.md | content/SOP/对应 SOP |
 | 了解支委系统设计 | content/guides/design/COMMISSIONER_SYSTEM.md | ORG_BUILDING.md |

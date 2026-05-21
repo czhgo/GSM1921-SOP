@@ -98,6 +98,17 @@ export const sopDatabase = {
       ],
     },
     {
+      scenarioId: 'branch-committee', title: '【党建工作】支委会',
+      domain: 'activity', description: '刚性考勤 · 支委会委员参加 · 研究支部日常工作',
+      tasks: [
+        { taskId: '1e-1', title: '确定议题与通知', executor: 'secretary', supervisor: null, timeOffset: -3, desc: '支部书记确定支委会议题，提前至少3天通知各支委委员。' },
+        { taskId: '1e-2', title: '签到考勤', executor: 'disc-commissioner', supervisor: 'secretary', timeOffset: 0, desc: '执行刚性考勤（三会一课范畴）。纪检委员记录到场情况。' },
+        { taskId: '1e-3', title: '会议记录', executor: 'secretary', supervisor: null, timeOffset: 0, desc: '支部书记主持，记录会议决议。使用党支部工作记录模板。' },
+        { taskId: '1e-4', title: '档案归档', executor: 'prop-commissioner', supervisor: 'secretary', timeOffset: 5, desc: '宣传委员归档会议材料（党支部工作记录），上传智慧党建平台。' },
+        { taskId: '1e-5', title: '补课安排跟进', executor: 'disc-commissioner', supervisor: 'secretary', timeOffset: 7, desc: '对请假/缺勤委员安排补课并跟踪完成。' },
+      ],
+    },
+    {
       scenarioId: 'joint-event', title: '【党建工作】团支部合办活动',
       domain: 'activity', description: '党小组主导 · 团班配合执行',
       tasks: [

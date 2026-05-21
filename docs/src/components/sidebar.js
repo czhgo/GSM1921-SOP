@@ -1,5 +1,5 @@
 // role: [人机]
-// components/sidebar.js — 共享侧边栏（角色卡片 + 模式由 header 统一控制）
+// components/sidebar.js — 共享侧边栏（身份视图卡片 + 模式由站位+视图自动推导）
 
 import { AuthStore, ViewModeStore } from '../services/auth.js';
 import { interceptSidebarNavigation } from './role-selector.js';
@@ -33,6 +33,25 @@ const ROLE_CARDS = {
   ],
 };
 
+// 角色到子页面映射
+const ROLE_PAGE_MAP = {
+  workspace: {
+    'secretary': 'secretary.html',
+    'org-commissioner': 'org.html',
+    'prop-commissioner': 'prop.html',
+    'disc-commissioner': 'disc.html',
+    'leader': 'leader.html',
+    'organizer': 'organizer.html',
+    'deep': 'deep.html',
+  },
+  party: {
+    'secretary': 'secretary.html',
+    'org-commissioner': 'org.html',
+    'prop-commissioner': 'prop.html',
+    'disc-commissioner': 'disc.html',
+  },
+};
+
 function _getSavedRole(module) {
   try { return sessionStorage.getItem(`sidebar-role-${module}`) || ''; } catch { return ''; }
 }
@@ -46,6 +65,7 @@ export function renderSidebar(activeModule) {
   if (!sidebar) return;
 
   const savedRole = _getSavedRole(activeModule);
+  const stance = AuthStore.getPrimaryRole() || AuthStore.getLoginStance();
 
   const navItems = getNavItems();
   const navHTML = navItems.map(item => `
@@ -55,16 +75,36 @@ export function renderSidebar(activeModule) {
     </a>
   `).join('');
 
-  const roleCards = ROLE_CARDS[activeModule] || [];
-  const roleHTML = roleCards.length > 0 ? `
+  // 所有身份视图卡片始终可见——站位只影响模式推导，不影响可见性
+  const allRoleCards = ROLE_CARDS[activeModule] || [];
+
+  const roleHTML = allRoleCards.length > 0 ? `
     <div class="sidebar-divider"></div>
-    <div class="role-cards-container space-y-2">
-      ${roleCards.map(card => `
+    <div style="padding:0 8px 4px;font-size:10px;color:#9CA3AF;font-weight:600;letter-spacing:0.05em;">身份视图</div>
+    <div class="role-cards-container" style="display:flex;flex-direction:column;gap:8px;">
+      ${allRoleCards.map(card => {
+        if (card.role === 'commissioner-group') {
+          return `
+        <div style="display:flex;flex-direction:column;gap:0;">
+          <button class="role-card ${card.cls} ${savedRole === card.role ? 'active' : ''}" data-role="${card.role}" aria-label="${card.label}">
+            <div class="role-card-left"><div class="role-icon">${card.icon}</div></div>
+            <div class="role-card-content"><span class="role-card-title">${card.label}</span><span class="role-card-desc">${card.desc}</span></div>
+          </button>
+          <div class="commissioner-sub-cards" style="max-height:0;overflow:hidden;transition:max-height 0.25s ease-out;padding-left:32px;" data-parent="commissioner-group">
+            <div style="display:flex;gap:8px;padding:4px 0 8px;">
+              <a class="commissioner-sub-link" data-role="org-commissioner" style="font-size:11px;color:var(--neutral-500);cursor:pointer;padding:2px 6px;border-radius:4px;transition:background 0.15s,color 0.15s;">组织委员</a>
+              <a class="commissioner-sub-link" data-role="prop-commissioner" style="font-size:11px;color:var(--neutral-500);cursor:pointer;padding:2px 6px;border-radius:4px;transition:background 0.15s,color 0.15s;">宣传委员</a>
+              <a class="commissioner-sub-link" data-role="disc-commissioner" style="font-size:11px;color:var(--neutral-500);cursor:pointer;padding:2px 6px;border-radius:4px;transition:background 0.15s,color 0.15s;">纪检委员</a>
+            </div>
+          </div>
+        </div>`;
+        }
+        return `
         <button class="role-card ${card.cls} ${savedRole === card.role ? 'active' : ''}" data-role="${card.role}" aria-label="${card.label}">
           <div class="role-card-left"><div class="role-icon">${card.icon}</div></div>
           <div class="role-card-content"><span class="role-card-title">${card.label}</span><span class="role-card-desc">${card.desc}</span></div>
         </button>
-      `).join('')}
+      `}).join('')}
     </div>
   ` : '';
 
@@ -85,7 +125,7 @@ export function renderSidebar(activeModule) {
 
   if (savedRole) {
     const savedMode = ViewModeStore.getMode(activeModule);
-    document.dispatchEvent(new CustomEvent('sidebar:role-restore', {
+    document.dispatchEvent(new CustomEvent('sidebar:view-restore', {
       detail: { role: savedRole, module: activeModule, mode: savedMode },
       bubbles: true,
     }));
@@ -99,20 +139,30 @@ function _selectRole(sidebar, activeModule, role, cardEl) {
   cardEl.classList.add('active');
   _saveRole(activeModule, role);
 
-  const primary = AuthStore.getPrimaryRole();
-  if (!primary) {
-    AuthStore.setPrimaryRole(role);
+  const stance = AuthStore.getPrimaryRole() || AuthStore.getLoginStance();
+  if (!AuthStore.getPrimaryRole()) {
+    AuthStore.setPrimaryRole(stance);
   }
   AuthStore.setActiveRole(activeModule, role);
 
-  const canManage = ViewModeStore.canManage(activeModule, role);
-  const mode = canManage ? 'manage' : 'observe';
-  ViewModeStore.setMode(activeModule, mode);
+  // 模式由 deriveMode 自动推导
+  const mode = AuthStore.deriveMode(stance, role);
+  ViewModeStore.setMode(activeModule, mode === 'manage' ? 'manage' : 'observe');
 
-  document.dispatchEvent(new CustomEvent('sidebar:role-select', {
-    detail: { role, module: activeModule, mode, primaryRole: AuthStore.getPrimaryRole() },
+  document.dispatchEvent(new CustomEvent('sidebar:view-select', {
+    detail: { role, module: activeModule, mode, stance: AuthStore.getPrimaryRole() },
     bubbles: true,
   }));
+
+  // 导航到对应子页面
+  const pageMap = ROLE_PAGE_MAP[activeModule];
+  if (pageMap && pageMap[role]) {
+    const base = getBasePath();
+    const targetDir = activeModule === 'workspace' ? 'workspace/' : 'party/';
+    const targetPage = base + targetDir + pageMap[role];
+    window.location.href = targetPage;
+    return;
+  }
 
   const overlay = document.getElementById('sidebar-overlay');
   if (overlay) overlay.classList.remove('visible');
@@ -120,21 +170,59 @@ function _selectRole(sidebar, activeModule, role, cardEl) {
 }
 
 function _bindRoleCardClicks(sidebar, activeModule) {
-  sidebar.querySelectorAll('.role-card[data-role]').forEach(card => {
+  // commissioner-group 展开/折叠（max-height 动效）
+  const groupCard = sidebar.querySelector('[data-role="commissioner-group"]');
+  if (groupCard) {
+    groupCard.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const subCards = sidebar.querySelector('.commissioner-sub-cards');
+      if (subCards) {
+        const isExpanded = subCards.style.maxHeight !== '0px' && subCards.style.maxHeight !== '';
+        if (isExpanded) {
+          subCards.style.maxHeight = '0px';
+        } else {
+          subCards.style.maxHeight = subCards.scrollHeight + 'px';
+        }
+      }
+    });
+  }
+
+  // 支委子链接点击 → 导航
+  sidebar.querySelectorAll('.commissioner-sub-link[data-role]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const role = link.dataset.role;
+      _selectRole(sidebar, activeModule, role, link);
+    });
+    // hover 效果
+    link.addEventListener('mouseenter', () => { link.style.background = 'var(--neutral-100)'; link.style.color = 'var(--neutral-800)'; });
+    link.addEventListener('mouseleave', () => { link.style.background = ''; link.style.color = 'var(--neutral-500)'; });
+  });
+
+  // 普通角色卡片点击
+  sidebar.querySelectorAll('.role-card[data-role]:not([data-role="commissioner-group"])').forEach(card => {
     card.addEventListener('click', () => {
       const role = card.dataset.role;
       _selectRole(sidebar, activeModule, role, card);
     });
   });
 
-  document.addEventListener('header:role-switch', (e) => {
+  // 监听站位变更事件，重新渲染侧边栏
+  document.addEventListener('header:stance-change', (e) => {
     if (e.detail.module !== activeModule) return;
-    const role = e.detail.role;
-    sidebar.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
-    if (role) {
-      const card = sidebar.querySelector(`.role-card[data-role="${role}"]`);
-      if (card) card.classList.add('active');
+    const newStance = e.detail.stance;
+
+    // 检查当前视图是否在新站位的可选范围内
+    const currentView = AuthStore.getActiveRole(activeModule);
+    const viewOptions = AuthStore.getViewOptions(newStance, activeModule);
+
+    if (currentView && !viewOptions.includes(currentView)) {
+      // 当前视图不在可选范围内，重置为站位本身
+      AuthStore.setActiveRole(activeModule, newStance);
+      _saveRole(activeModule, newStance);
     }
-    _saveRole(activeModule, role);
+
+    renderSidebar(activeModule);
   });
 }

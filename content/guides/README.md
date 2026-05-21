@@ -2,7 +2,6 @@
 title: "设计理念与操作规范索引"
 type: index
 role: "[人机]"
-owner: "支委会"
 last_updated: "2026-05-16"
 status: active
 ---
@@ -10,7 +9,7 @@ status: active
 # Guides 索引
 
 > 本目录存放项目的**设计理念文档与操作规范**。
-> 不管对应功能有没有完成，设计理念始终存在，作为知识留存（CLAUDE.md H3.3）。
+> 不管对应功能有没有完成，设计理念始终存在，作为知识留存（CLAUDE.md H2.3 Guides与Insights定位）。
 
 ---
 
@@ -27,6 +26,8 @@ status: active
 | [AGENT_USAGE.md](governance/AGENT_USAGE.md) | 10 Agent 治理集群注册表与任务域委派链路 | **唯一权威**——Agent 使用的唯一来源 |
 | [AGENT_HANDBOOK.md](governance/AGENT_HANDBOOK.md) | Agent 操作手册：按钮驱动、可审计、低阻尼的工业化流水线 | **唯一权威**——Agent 操作流程 |
 | [RECURRING_TASKS.md](governance/RECURRING_TASKS.md) | 周/月/季/学期级周期性任务自动唤醒机制 | **唯一权威** |
+| [OPERATIONS_GUIDE.md](governance/OPERATIONS_GUIDE.md) | 运行标准详细内容（YAML规范/术语/角色/编码/文档关系/编号/文档层级） | **唯一权威**——CLAUDE.md冷层外移内容 |
+| [KNOWN_PITFALLS.md](governance/KNOWN_PITFALLS.md) | 已知陷阱与上下文丢失教训（判例级） | **唯一权威**——AI防重犯参考 |
 
 ---
 
@@ -39,6 +40,7 @@ status: active
 | [ORG_BUILDING.md](architecture/ORG_BUILDING.md) | 党务管理独立模块的功能边界与界面布局 | **唯一权威**——党务管理模块架构 |
 | [DATA.md](architecture/DATA.md) | 全栈数据分类（10类）、字段规范与权限控制策略 | **唯一权威**——数据模型定义 |
 | [MANAGEMENT_MODE.md](architecture/MANAGEMENT_MODE.md) | 三级管理模式权限矩阵与双场景适配 | **唯一权威**——权限矩阵定义 |
+| [FLAT_DESIGN.md](architecture/FLAT_DESIGN.md) | 组织者与深度参与者的扁平化设计 | **唯一权威**——扁平化参与途径 |
 
 ---
 
@@ -58,13 +60,13 @@ status: active
 
 ## 与 CLAUDE.md 的关系
 
-CLAUDE.md 甲部 H2（核心理论基石）仅保留**核心原则与判例**，详细设计文档全部归档于本目录。具体对应关系：
+CLAUDE.md 甲部 H8（核心理论基石）仅保留**核心原则与判例**，详细设计文档全部归档于本目录。具体对应关系：
 
 | CLAUDE.md 章节 | 对应 Guide 文件 |
 |----------------|----------------|
-| H2.1 双域管理理论 | TERMINOLOGY.md + COMMISSIONER_SYSTEM.md |
-| H2.2 差异化视图规范 | MANAGEMENT_MODE.md + CALENDAR.md |
-| H2.3 专班制 | COMMISSIONER_SYSTEM.md |
-| H2.4 SOP<->网页双向修改 | SOP_WEB.md |
-| H4.3 术语规范 | TERMINOLOGY.md |
-| H4.4 角色三分类 | ROLE_CLASSIFICATION.md |
+| H8.1 双域管理理论 | TERMINOLOGY.md + COMMISSIONER_SYSTEM.md |
+| H8.2 差异化视图规范 | MANAGEMENT_MODE.md + CALENDAR.md |
+| H8.3 专班制 | COMMISSIONER_SYSTEM.md |
+| H8.4 SOP<->网页双向修改 | SOP_WEB.md |
+| TERMINOLOGY.md 术语规范 | TERMINOLOGY.md |
+| ROLE_CLASSIFICATION.md 角色三分类 | ROLE_CLASSIFICATION.md |

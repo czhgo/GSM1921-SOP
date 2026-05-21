@@ -224,6 +224,33 @@ export function archiveActivity(id) {
   });
 }
 
+// ── Brand Activity ──────────────────────────────────────────────
+
+/**
+ * 切换活动的品牌标记（书记认定操作）
+ * Source: content/guides/design/BRAND_ACTIVITY.md §1.3
+ * @param {string} id - 活动 ID
+ * @returns {Promise<import('../core/domain.js').Activity>}
+ */
+export function toggleBrand(id) {
+  return _withDelay(() => {
+    _maybeError('toggleBrand');
+    const idx = mockDB.activities.findIndex(a => a.id === id);
+    if (idx === -1) {
+      throw Object.assign(new Error(`活动 ${id} 不存在`), { type: 'NotFoundError' });
+    }
+    const updated = { ...mockDB.activities[idx], isBrand: !mockDB.activities[idx].isBrand };
+    mockDB.activities = [
+      ...mockDB.activities.slice(0, idx),
+      updated,
+      ...mockDB.activities.slice(idx + 1),
+    ];
+    saveDB();
+    console.info('[MockAdapter] toggleBrand 成功，id=' + id + '，isBrand=' + updated.isBrand);
+    return updated;
+  });
+}
+
 // ── Task CRUD ────────────────────────────────────────────────────
 
 /**

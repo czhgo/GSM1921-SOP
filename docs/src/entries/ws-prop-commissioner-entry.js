@@ -6,13 +6,14 @@ import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';
 import { ViewModeStore, AuthStore } from '../services/auth.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
-import { KANBAN_MOCKS, ACTIVITIES } from '../mock/index.js';
+import { KANBAN_MOCKS, ACTIVITIES, _personName } from '../mock/index.js';
 
 renderSidebar('workspace');
 renderHeader('workspace');
 
 const savedState = CrossPageState.load();
 AuthStore.setActiveRole('workspace', savedState.selectedRole || 'prop-commissioner');
+if (savedState.stance) AuthStore.setPrimaryRole(savedState.stance);
 ViewModeStore.setMode('workspace', 'manage');
 
 const accent = '#10B981';
@@ -31,7 +32,7 @@ function renderPropUI(state) {
   if (!container) return;
 
   const taskforces = TaskForceRecordStore.getAll();
-  const propTf = taskforces.filter(t => t.name.includes('宣传') || t.initiator.includes('宣传'));
+  const propTf = taskforces.filter(t => t.name.includes('宣传') || t.initiator === 'p12');
 
   container.innerHTML = `
     <div class="flex gap-2 mb-4">
@@ -63,34 +64,63 @@ function _renderKanbanContent(activities) {
   if (!container) return;
   const pending = activities.filter(a => a.status === 'draft');
   const active = activities.filter(a => a.status === 'published' || a.status === 'ongoing');
+  const completed = activities.filter(a => a.status === 'completed');
   container.innerHTML = `
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div class="card rounded-2xl p-0 overflow-hidden">
         <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(206,17,38,0.06);color:#ce1126;border-bottom:2px solid rgba(206,17,38,0.15);">待启动 (${pending.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
           ${pending.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无待启动活动</p>' :
-            pending.map(a => `
-              <div class="p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
-                <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
-                <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
-              </div>
-            `).join('')}
+            pending.map(a => _renderActivityCard(a)).join('')}
         </div>
       </div>
       <div class="card rounded-2xl p-0 overflow-hidden">
         <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(59,130,246,0.06);color:#3b82f6;border-bottom:2px solid rgba(59,130,246,0.15);">进行中 (${active.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
           ${active.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无进行中活动</p>' :
-            active.map(a => `
-              <div class="p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
-                <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
-                <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
-              </div>
-            `).join('')}
+            active.map(a => _renderActivityCard(a, true)).join('')}
         </div>
       </div>
     </div>
+    ${completed.length > 0 ? `
+    <details class="card rounded-2xl p-0 overflow-hidden">
+      <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none" style="background:rgba(107,114,128,0.06);color:#6B7280;border-bottom:2px solid rgba(107,114,128,0.15);">已归档 (${completed.length})</summary>
+      <div class="p-3 space-y-2">
+        ${completed.map(a => _renderActivityCard(a)).join('')}
+      </div>
+    </details>` : ''}
   `;
+
+  // ── "确认完成"按钮事件绑定（P2-3 看板交互重构） ──
+  container.querySelectorAll('.activity-complete-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const actId = btn.dataset.actId;
+      const activity = activities.find(a => a.id === actId);
+      if (!activity) return;
+      const confirmed = window.confirm(`确认完成活动「${activity.title || '未命名'}」？完成后将归入已归档。`);
+      if (!confirmed) return;
+      // 更新活动状态为 completed
+      activity.status = 'completed';
+      // 持久化到 BranchService
+      BranchService.updateActivity(actId, { status: 'completed' });
+      showToast('success', `活动「${activity.title || '未命名'}」已完成并归档`);
+      // 刷新看板
+      renderPropUI(getAppState());
+    });
+  });
+}
+
+function _renderActivityCard(a, showCompleteBtn = false) {
+  const completeBtn = showCompleteBtn
+    ? `<button class="activity-complete-btn text-[10px] px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-act-id="${a.id}" onclick="event.stopPropagation();">确认完成</button>`
+    : '';
+  return `
+    <div class="p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+      <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
+      <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
+      ${completeBtn}
+    </div>`;
 }
 
 function _renderWorkloadContent(propTf) {
@@ -100,11 +130,11 @@ function _renderWorkloadContent(propTf) {
   const workloadMap = {};
   propTf.forEach(tf => {
     tf.members.forEach(m => {
-      if (m.name === '待招募') return;
-      if (!workloadMap[m.name]) workloadMap[m.name] = { name: m.name, contributions: 0, tfCount: 0, roles: new Set() };
-      workloadMap[m.name].contributions += (m.contributions || 0);
-      workloadMap[m.name].tfCount += 1;
-      workloadMap[m.name].roles.add(m.role);
+      if (!m.personId) return;
+      if (!workloadMap[m.personId]) workloadMap[m.personId] = { personId: m.personId, contributions: 0, tfCount: 0, roles: new Set() };
+      workloadMap[m.personId].contributions += (m.contributions || 0);
+      workloadMap[m.personId].tfCount += 1;
+      workloadMap[m.personId].roles.add(m.role);
     });
   });
   const members = Object.values(workloadMap);
@@ -119,7 +149,7 @@ function _renderWorkloadContent(propTf) {
         `<div class="space-y-2">${members.map(m => `
           <div class="flex items-center justify-between p-2 rounded-lg bg-white border border-gray-50">
             <div class="flex items-center gap-2">
-              <span class="text-xs font-medium text-gray-700">${m.name}</span>
+              <span class="text-xs font-medium text-gray-700">${_personName(m.personId)}</span>
               <span class="text-[10px] text-gray-400">${Array.from(m.roles).join('·')}</span>
             </div>
             <div class="flex items-center gap-3 text-[10px] text-gray-500">

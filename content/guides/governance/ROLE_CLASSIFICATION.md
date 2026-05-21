@@ -1,11 +1,6 @@
 ---
 title: "角色三分类体系定义"
 type: governance
-audience:
-  - 支委会
-  - AI Agent 开发者
-  - 项目维护者
-owner: "支委会"
 role: "[人机]"
 last_updated: "2026-05-02"
 status: active
@@ -116,7 +111,7 @@ related_files:
 
 子目录默认继承父目录的角色标记，除非子目录内文件显式声明不同角色：
 
-- 父目录 `content/references/` = [人] → 其下所有子目录（`官方文件/`、`模板库/`、`党小组会/`、`支部委员会/`）均继承 [人] 角色
+- 父目录 `content/references/` = [人] → 其下所有子目录（`合规文件/`、`工作模板/`、`历史会议材料/`）均继承 [人] 角色
 - 父目录 `content/SOP/` = [人机] → 其下子目录（`功能委员SOP/`、`党小组长SOP/` 等）均继承 [人机] 角色
 - **例外规则**: 若子目录中某文件显式在 Front Matter 中声明不同 `role`，则覆盖继承规则
 

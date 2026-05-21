@@ -27,7 +27,7 @@ function _saveTaskForces(records) {
   }
 }
 
-import { MOCK_TASKFORCES } from '../mock/index.js';
+import { MOCK_TASKFORCES, _personName } from '../mock/index.js';
 
 export const TaskForceRecordStore = {
   _records: [],
@@ -112,11 +112,11 @@ export const TaskForceRecordStore = {
     return this.update(tfId, { members: [...tf.members, newMember] });
   },
 
-  addContribution(tfId, memberName, contribution) {
+  addContribution(tfId, memberPersonId, contribution) {
     const tf = this._records.find(r => r.id === tfId);
     if (!tf) return null;
     const updatedMembers = tf.members.map(m => {
-      if (m.name === memberName) {
+      if (m.personId === memberPersonId) {
         return { ...m, contributions: [...m.contributions, contribution] };
       }
       return m;
@@ -241,7 +241,7 @@ export function renderRecruitmentList(containerId, limit = 3) {
   };
 
   container.innerHTML = recruiting.map(r => {
-    const filled = r.members.filter(m => m.name !== '待招募').length;
+    const filled = r.members.filter(m => m.personId).length;
     return `
     <div class="taskforce-item flex items-start gap-3 py-2.5 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 rounded-lg px-2 -mx-2 transition-colors"
          data-tf-id="${r.id}">
@@ -250,9 +250,9 @@ export function renderRecruitmentList(containerId, limit = 3) {
         <p class="text-sm font-medium text-gray-800 truncate">${r.name}</p>
         <p class="text-xs text-gray-500 mt-0.5 line-clamp-1">${r.task}</p>
         <div class="flex items-center gap-2 mt-1">
-          <span class="text-[10px] text-gray-400">发起: ${r.initiator}</span>
+          <span class="text-[10px] text-gray-400">发起: ${_personName(r.initiator)}</span>
           <span class="text-[10px] text-gray-300">|</span>
-          <span class="text-[10px] text-gray-400">管理: ${r.manager}</span>
+          <span class="text-[10px] text-gray-400">管理: ${_personName(r.manager)}</span>
         </div>
       </div>
       <div class="text-right whitespace-nowrap">

@@ -27,6 +27,13 @@ renderHeader('party');
 
 const savedState = CrossPageState.load();
 const role = savedState?.selectedRole || AuthStore.getActiveRole();
+// 首次进入时设置站位（stance=视图角色）
+if (savedState?.stance) {
+  AuthStore.setPrimaryRole(savedState.stance);
+}
+if (role) {
+  AuthStore.setActiveRole('party', role);
+}
 
 if (role && ROLE_TO_PAGE[role]) {
   window.location.replace(_resolvePage(ROLE_TO_PAGE[role]));

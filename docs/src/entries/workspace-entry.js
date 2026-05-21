@@ -27,7 +27,7 @@ const ROLE_META = [
   { role: 'org-commissioner', label: '组织委员', desc: '专班管理·追踪看板', color: '#3B82F6', file: 'org.html' },
   { role: 'prop-commissioner', label: '宣传委员', desc: '活动与专班·工作量·多维表格', color: '#10B981', file: 'prop.html' },
   { role: 'disc-commissioner', label: '纪检委员', desc: '考勤·考察·监督复盘', color: '#D97706', file: 'disc.html' },
-  { role: 'visitor', label: '参与者只读', desc: '活动动态·专班进展·考勤概况', color: '#6B7280', file: 'visitor.html' },
+  { role: 'visitor', label: '成员只读', desc: '活动动态·专班进展·考勤概况', color: '#6B7280', file: 'visitor.html' },
 ];
 
 renderSidebar('workspace');
@@ -35,6 +35,13 @@ renderHeader('workspace');
 
 const savedState = CrossPageState.load();
 const role = savedState?.selectedRole || AuthStore.getActiveRole();
+// 首次进入时设置站位（stance=视图角色）
+if (savedState?.stance) {
+  AuthStore.setPrimaryRole(savedState.stance);
+}
+if (role) {
+  AuthStore.setActiveRole('workspace', role);
+}
 
 if (role && ROLE_TO_PAGE[role]) {
   window.location.replace(_resolvePage(ROLE_TO_PAGE[role]));

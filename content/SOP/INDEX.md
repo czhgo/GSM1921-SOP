@@ -2,7 +2,6 @@
 title: "流程指南文档索引"
 type: index
 role: "[人机]"
-owner: "储子禾"
 last_updated: "2026-05-15"
 status: active
 ---

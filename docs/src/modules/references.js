@@ -112,7 +112,7 @@ const REF_DOCS = [
     size: '—',
     desc: '党的根本大法，全体党员必须遵守的行为准则',
     downloadText: '查看',
-    url: './content/references/官方文件/【附件11】中国共产党章程.pdf',
+    url: './content/references/合规文件/【附件11】中国共产党章程.pdf',
   },
   {
     id: 'doc-08',
@@ -167,7 +167,7 @@ const REF_DOCS = [
     size: '6 KB',
     desc: '提交对 SOP 引擎的优化建议与反馈',
     downloadText: '查看',
-    url: './content/references/模板库/FEEDBACK_FORM.md',
+    url: './content/references/工作模板/FEEDBACK_FORM.md',
   },
 ];
 

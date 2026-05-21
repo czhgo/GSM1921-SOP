@@ -2,7 +2,6 @@
 title: "日历功能规划设计"
 type: design
 role: "[人机]"
-owner: "支委会"
 last_updated: "2026-05-15"
 status: active
 ---

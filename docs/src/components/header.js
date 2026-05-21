@@ -1,5 +1,5 @@
 // role: [人机]
-// components/header.js — 共享顶栏组件（全局角色切换器 + 模式切换）
+// components/header.js — 共享顶栏组件（站位选择器 + 模式标签）
 
 import { AuthStore, ViewModeStore, ROLE_LABELS } from '../services/auth.js';
 import { NoticeStore } from '../services/notice.js';
@@ -7,52 +7,49 @@ import { getBasePath } from '../core/utils.js';
 
 const MODULE_VIEW_MODES = ['workspace', 'party'];
 
-function _roleSwitcherHTML(module) {
+// 模式标签文案映射
+const MODE_LABEL_MAP = {
+  'manage': '管理模式',
+  'manager-observe': '管理者只读',
+  'participant-observe': '成员只读',
+  'observe': '只读',
+};
+
+// 模式标签颜色映射
+const MODE_COLOR_MAP = {
+  'manage': '#CE1126',
+  'manager-observe': '#D97706',
+  'participant-observe': '#6B7280',
+  'observe': '#6B7280',
+};
+
+function _stanceSwitcherHTML(module) {
   if (!MODULE_VIEW_MODES.includes(module)) return '';
-  const primary = AuthStore.getPrimaryRole();
-  const active = AuthStore.getActiveRole(module);
-  const displayRole = active || primary;
-  const label = displayRole ? ROLE_LABELS[displayRole] || displayRole : '选择角色';
-  const category = AuthStore.getViewCategory(primary, active);
-  const bg = category === 'manage' ? '#1F2937' : '#4B5563';
-  const prefix = category === 'manager-observe' ? '查看: ' : (category === 'manage' ? '' : '');
+  const stance = AuthStore.getPrimaryRole() || AuthStore.getLoginStance();
+  const label = stance ? ROLE_LABELS[stance] || stance : '选择站位';
 
   return `
-    <div class="role-switcher" id="role-switcher" style="position:relative;">
-      <button id="role-switcher-btn" style="display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:4px;background:${bg};border:none;cursor:pointer;">
-        <span class="text-xs font-medium" id="role-switcher-label" style="color:#FFFFFF;">${prefix}${label}</span>
+    <div class="stance-switcher" id="stance-switcher" style="position:relative;">
+      <button id="stance-switcher-btn" style="display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:4px;background:#1F2937;border:none;cursor:pointer;">
+        <span class="text-xs font-medium" id="stance-switcher-label" style="color:#FFFFFF;">站位: ${label}</span>
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
-      <div class="role-switcher-dropdown hidden" id="role-switcher-dropdown" style="position:absolute;top:calc(100% + 4px);right:0;min-width:220px;background:white;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);z-index:100;overflow:hidden;border:1px solid #E5E7EB;"></div>
+      <div class="stance-switcher-dropdown hidden" id="stance-switcher-dropdown" style="position:absolute;top:calc(100% + 4px);right:0;min-width:220px;background:white;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);z-index:100;overflow:hidden;border:1px solid #E5E7EB;"></div>
     </div>
   `;
 }
 
-function _modeSwitcherHTML(module) {
+function _modeLabelHTML(module) {
   if (!MODULE_VIEW_MODES.includes(module)) return '';
-  const primary = AuthStore.getPrimaryRole();
-  const active = AuthStore.getActiveRole(module);
-  const category = AuthStore.getViewCategory(primary, active);
-
-  if (category === 'manager-observe') {
-    return `
-      <div class="view-mode-switcher" id="view-mode-switcher" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:4px;background:#6B7280;border:none;">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <span class="text-xs font-medium" id="view-mode-badge" style="color:#FFFFFF;">只读</span>
-      </div>
-    `;
-  }
-
-  if (!primary) return '';
-
-  const mode = ViewModeStore.getMode(module);
-  const label = mode === 'manage' ? '管理模式' : '只读模式';
-  const bg = mode === 'manage' ? '#CE1126' : '#4B5563';
+  const stance = AuthStore.getPrimaryRole() || AuthStore.getLoginStance();
+  const view = AuthStore.getActiveRole(module) || stance;
+  const mode = AuthStore.deriveMode(stance, view);
+  const label = MODE_LABEL_MAP[mode] || '只读';
+  const bg = MODE_COLOR_MAP[mode] || '#6B7280';
 
   return `
-    <div class="view-mode-switcher" id="view-mode-switcher" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:5px 12px;border-radius:4px;background:${bg};border:none;">
-      <span class="text-xs font-medium" id="view-mode-badge" style="color:#FFFFFF;">${label}</span>
-      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    <div class="mode-label" id="mode-label" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:4px;background:${bg};border:none;">
+      <span class="text-xs font-medium" id="mode-label-text" style="color:#FFFFFF;">${label}</span>
     </div>
   `;
 }
@@ -85,14 +82,18 @@ export function renderHeader(activeModule) {
         <span></span><span></span><span></span>
       </button>
       <div class="party-emblem-wrapper">
-        <img src="${getBasePath()}assets/images/party_emblem.png" alt="党徽" class="party-emblem" draggable="false">
+        <img src="${getBasePath()}assets/images/party_emblem.png" alt="党徽" class="party-emblem" draggable="false" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <svg class="party-emblem-fallback" width="28" height="28" viewBox="0 0 100 100" style="display:none;" fill="#D4AF37">
+          <circle cx="50" cy="50" r="48" fill="none" stroke="#D4AF37" stroke-width="3"/>
+          <polygon points="50,8 58,35 87,35 64,52 72,80 50,63 28,80 36,52 13,35 42,35"/>
+        </svg>
       </div>
       <div class="header-title">
         <h1 class="font-title-cn">光华管理学院本科生党支部管理引擎</h1>
       </div>
       <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
-        ${_roleSwitcherHTML(activeModule)}
-        ${_modeSwitcherHTML(activeModule)}
+        ${_stanceSwitcherHTML(activeModule)}
+        ${_modeLabelHTML(activeModule)}
         ${_notificationBellHTML()}
       </div>
     </div>
@@ -101,8 +102,7 @@ export function renderHeader(activeModule) {
   _bindHamburger(header);
   _bindNotificationBell(header);
   if (MODULE_VIEW_MODES.includes(activeModule)) {
-    _bindRoleSwitcher(header, activeModule);
-    _bindViewSwitcher(header, activeModule);
+    _bindStanceSwitcher(header, activeModule);
     _bindSidebarSync(header, activeModule);
   }
 }
@@ -132,65 +132,51 @@ function _bindHamburger(header) {
   }
 }
 
-function _populateDropdown(dropdown, module) {
-  const primary = AuthStore.getPrimaryRole();
-  const active = AuthStore.getActiveRole(module);
-  const moduleRoles = AuthStore.getModuleRoles(module);
-  const visibleRoles = AuthStore.getVisibleRoles(primary);
+function _populateStanceDropdown(dropdown, module) {
+  const currentStance = AuthStore.getPrimaryRole() || AuthStore.getLoginStance();
+  const stanceOptions = AuthStore.getStanceOptions();
 
   let html = '';
 
-  if (primary) {
-    html += `<div style="padding:8px 12px 4px;font-size:10px;color:#9CA3AF;font-weight:600;letter-spacing:0.05em;">我的身份</div>`;
-    html += _roleItemHTML(primary, primary === active, false, module);
+  // "我的站位"分组
+  if (currentStance) {
+    html += `<div style="padding:8px 12px 4px;font-size:10px;color:#9CA3AF;font-weight:600;letter-spacing:0.05em;">我的站位</div>`;
+    html += _stanceItemHTML(currentStance, true, module);
   }
 
-  const viewableInModule = moduleRoles.filter(r => r !== primary && visibleRoles.includes(r));
-  if (viewableInModule.length > 0) {
-    html += `<div style="padding:8px 12px 4px;font-size:10px;color:#9CA3AF;font-weight:600;letter-spacing:0.05em;${primary ? 'border-top:1px solid #F3F4F6;margin-top:4px;' : ''}">可查看</div>`;
-    viewableInModule.forEach(r => {
-      html += _roleItemHTML(r, r === active, true, module);
+  // "切换站位"分组
+  const otherStances = stanceOptions.filter(r => r !== currentStance);
+  if (otherStances.length > 0) {
+    html += `<div style="padding:8px 12px 4px;font-size:10px;color:#9CA3AF;font-weight:600;letter-spacing:0.05em;${currentStance ? 'border-top:1px solid #F3F4F6;margin-top:4px;' : ''}">切换站位</div>`;
+    otherStances.forEach(r => {
+      html += _stanceItemHTML(r, false, module);
     });
-  }
-
-  const otherRoles = moduleRoles.filter(r => r !== primary && !visibleRoles.includes(r));
-  if (otherRoles.length > 0 && !primary) {
-    html += `<div style="padding:8px 12px 4px;font-size:10px;color:#9CA3AF;font-weight:600;letter-spacing:0.05em;">选择身份</div>`;
-    otherRoles.forEach(r => {
-      html += _roleItemHTML(r, r === active, false, module);
-    });
-  }
-
-  if (primary) {
-    html += `<div style="border-top:1px solid #F3F4F6;margin-top:4px;">`;
-    html += `<button class="role-dropdown-item" data-action="reset" style="display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;border:none;background:none;cursor:pointer;font-size:0.75rem;color:#EF4444;text-align:left;">切换身份</button>`;
-    html += `</div>`;
   }
 
   dropdown.innerHTML = html;
 }
 
-function _roleItemHTML(role, isActive, isReadOnly, module) {
+function _stanceItemHTML(role, isCurrent, module) {
   const label = ROLE_LABELS[role] || role;
-  const activeBg = isActive ? '#F3F4F6' : 'transparent';
-  const activeFont = isActive ? 'font-weight:600;color:#111827;' : 'color:#374151;';
-  const badge = isReadOnly
-    ? `<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:#FEF3C7;color:#D97706;">只读</span>`
-    : (isActive && AuthStore.getPrimaryRole() === role ? `<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:#FEE2E2;color:#CE1126;">管理</span>` : '');
+  const activeBg = isCurrent ? '#F3F4F6' : 'transparent';
+  const activeFont = isCurrent ? 'font-weight:600;color:#111827;' : 'color:#374151;';
+  const badge = isCurrent
+    ? `<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:#FEE2E2;color:#CE1126;">当前</span>`
+    : '';
 
-  return `<button class="role-dropdown-item" data-role="${role}" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:7px 12px;border:none;background:${activeBg};cursor:pointer;font-size:0.75rem;${activeFont}text-align:left;">${label}${badge}</button>`;
+  return `<button class="stance-dropdown-item" data-role="${role}" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:7px 12px;border:none;background:${activeBg};cursor:pointer;font-size:0.75rem;${activeFont}text-align:left;">${label}${badge}</button>`;
 }
 
-function _bindRoleSwitcher(header, module) {
-  const btn = header.querySelector('#role-switcher-btn');
-  const dropdown = header.querySelector('#role-switcher-dropdown');
+function _bindStanceSwitcher(header, module) {
+  const btn = header.querySelector('#stance-switcher-btn');
+  const dropdown = header.querySelector('#stance-switcher-dropdown');
   if (!btn || !dropdown) return;
 
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
     const isHidden = dropdown.classList.contains('hidden');
     if (isHidden) {
-      _populateDropdown(dropdown, module);
+      _populateStanceDropdown(dropdown, module);
       dropdown.classList.remove('hidden');
     } else {
       dropdown.classList.add('hidden');
@@ -204,123 +190,60 @@ function _bindRoleSwitcher(header, module) {
   });
 
   dropdown.addEventListener('click', (e) => {
-    const item = e.target.closest('.role-dropdown-item');
+    const item = e.target.closest('.stance-dropdown-item');
     if (!item) return;
 
-    const role = item.dataset.role;
-    const action = item.dataset.action;
+    const newStance = item.dataset.role;
+    if (!newStance) return;
 
-    if (action === 'reset') {
-      AuthStore.setPrimaryRole('');
-      AuthStore.setActiveRole(module, '');
-      ViewModeStore.setMode(module, 'observe');
-      dropdown.classList.add('hidden');
-      renderHeader(module);
-      document.dispatchEvent(new CustomEvent('header:role-switch', {
-        detail: { role: '', module, category: 'participant-observe' },
-        bubbles: true,
-      }));
-      return;
-    }
-
-    if (!role) return;
-
-    const primary = AuthStore.getPrimaryRole();
-    const visibleRoles = AuthStore.getVisibleRoles(primary);
-
-    if (!primary) {
-      AuthStore.setPrimaryRole(role);
-      AuthStore.setActiveRole(module, role);
-      ViewModeStore.setMode(module, 'manage');
-    } else if (role === primary) {
-      AuthStore.setActiveRole(module, role);
-      ViewModeStore.setMode(module, 'manage');
-    } else if (visibleRoles.includes(role)) {
-      AuthStore.setActiveRole(module, role);
-    } else {
-      AuthStore.setPrimaryRole(role);
-      AuthStore.setActiveRole(module, role);
-      ViewModeStore.setMode(module, 'manage');
-    }
+    // 更新站位
+    AuthStore.setPrimaryRole(newStance);
+    // 自动重置视图为站位本身
+    AuthStore.setActiveRole(module, newStance);
+    // 自动设置模式
+    const mode = AuthStore.deriveMode(newStance, newStance);
+    ViewModeStore.setMode(module, mode === 'manage' ? 'manage' : 'observe');
 
     dropdown.classList.add('hidden');
     renderHeader(module);
 
-    const newPrimary = AuthStore.getPrimaryRole();
-    const newActive = AuthStore.getActiveRole(module);
-    const category = AuthStore.getViewCategory(newPrimary, newActive);
-
-    document.dispatchEvent(new CustomEvent('header:role-switch', {
-      detail: { role: newActive, primaryRole: newPrimary, module, category },
+    // 触发站位变更事件
+    document.dispatchEvent(new CustomEvent('header:stance-change', {
+      detail: { stance: newStance, module, mode },
       bubbles: true,
     }));
   });
-}
-
-function _bindViewSwitcher(header, module) {
-  const switcher = header.querySelector('#view-mode-switcher');
-  if (!switcher) return;
-
-  const primary = AuthStore.getPrimaryRole();
-  const active = AuthStore.getActiveRole(module);
-  const category = AuthStore.getViewCategory(primary, active);
-
-  if (category === 'manager-observe') return;
-
-  if (!primary) return;
-
-  switcher.style.cursor = 'pointer';
-  switcher.addEventListener('click', () => {
-    const current = ViewModeStore.getMode(module);
-    const next = current === 'manage' ? 'observe' : 'manage';
-    ViewModeStore.setMode(module, next);
-    _updateBadge(switcher, next);
-
-    document.dispatchEvent(new CustomEvent('view:mode-change', {
-      detail: { module, mode: next },
-      bubbles: true,
-    }));
-  });
-}
-
-function _updateBadge(switcher, mode) {
-  const badge = switcher.querySelector('#view-mode-badge');
-  if (badge) {
-    badge.textContent = mode === 'manage' ? '管理模式' : '只读模式';
-    switcher.style.background = mode === 'manage' ? '#CE1126' : '#4B5563';
-  }
 }
 
 function _bindSidebarSync(header, module) {
-  document.addEventListener('sidebar:role-select', (e) => {
+  document.addEventListener('sidebar:view-select', (e) => {
     if (e.detail.module !== module) return;
-    const role = e.detail.role;
-    if (!role) return;
+    const viewRole = e.detail.role;
+    if (!viewRole) return;
 
-    const primary = AuthStore.getPrimaryRole();
-    if (!primary) {
-      AuthStore.setPrimaryRole(role);
+    const stance = AuthStore.getPrimaryRole() || AuthStore.getLoginStance();
+    if (!AuthStore.getPrimaryRole()) {
+      AuthStore.setPrimaryRole(stance);
     }
-    AuthStore.setActiveRole(module, role);
+    AuthStore.setActiveRole(module, viewRole);
 
-    const canManage = ViewModeStore.canManage(module, role);
-    if (canManage) {
-      ViewModeStore.setMode(module, 'manage');
-    }
+    // 模式由 deriveMode 自动推导
+    const mode = AuthStore.deriveMode(stance, viewRole);
+    ViewModeStore.setMode(module, mode === 'manage' ? 'manage' : 'observe');
 
     renderHeader(module);
   });
 
-  document.addEventListener('sidebar:role-restore', (e) => {
+  document.addEventListener('sidebar:view-restore', (e) => {
     if (e.detail.module !== module) return;
-    const role = e.detail.role;
-    if (!role) return;
+    const viewRole = e.detail.role;
+    if (!viewRole) return;
 
-    const primary = AuthStore.getPrimaryRole();
-    if (!primary) {
-      AuthStore.setPrimaryRole(role);
+    const stance = AuthStore.getPrimaryRole() || AuthStore.getLoginStance();
+    if (!AuthStore.getPrimaryRole()) {
+      AuthStore.setPrimaryRole(stance);
     }
-    AuthStore.setActiveRole(module, role);
+    AuthStore.setActiveRole(module, viewRole);
 
     renderHeader(module);
   });

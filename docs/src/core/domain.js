@@ -29,6 +29,7 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  [targetDate]  - 目标日期 ISO 字符串（T-0，兼容旧字段）
  * @property {'leader'|'disc-commissioner'} [attendanceQROwner] - 考勤二维码发布方（组织生活会专用：现场组织的党小组长） - Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
  * @property {string[]} [deliverableIds] - 关联的交付物 ID 列表 - Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
+ * @property {boolean} [isBrand]  - 品牌活动标记（由书记认定） - Source: content/guides/design/BRAND_ACTIVITY.md
  */
 
 /**
@@ -63,6 +64,51 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  title       - 任务标题
  * @property {'pending'|'in_progress'|'completed'} status - 任务状态 - Source: knowledge/SOP/组织委员工作流程指南.md#四大工作场景
  * @property {string}  createdAt   - 创建时间 ISO 字符串（审计字段）
+ */
+
+/**
+ * 参与层级枚举 — Source: content/guides/architecture/MANAGEMENT_MODE.md §5.3
+ * organize = 组织（活动组织者），deep = 深度参与，attend = 出勤
+ */
+export const ParticipationLevel = {
+  ORGANIZE: 'organize',
+  DEEP_PARTICIPATE: 'deep',
+  ATTEND: 'attend',
+};
+
+/** 参与层级中文标签 */
+export const PARTICIPATION_LEVEL_LABELS = {
+  [ParticipationLevel.ORGANIZE]: '组织',
+  [ParticipationLevel.DEEP_PARTICIPATE]: '深度参与',
+  [ParticipationLevel.ATTEND]: '出勤',
+};
+
+/**
+ * @typedef {Object} ParticipationRecord
+ * @property {string}  id            - 唯一标识符（由 id.js 生成）
+ * @property {string}  activityId    - 关联活动 ID
+ * @property {string}  personId      - 人员 ID（引用 people.js）
+ * @property {'organize'|'deep'|'attend'} level - 参与层级 - Source: content/guides/architecture/MANAGEMENT_MODE.md §5.3
+ * @property {string}  role          - 分工角色+描述（如：策划+全流程统筹、视频制作、新闻稿撰写）
+ * @property {string}  recordedBy    - 记录人 personId
+ * @property {string}  recordedAt    - 记录时间 ISO 字符串
+ */
+
+/**
+ * 文件空间记录 — Source: CLAUDE.md 乙部 P2-1
+ * 纯前端无法真正上传文件，以"文件记录"模式管理文件元数据
+ * @typedef {Object} FileSpaceRecord
+ * @property {string}  id            - 唯一标识符 `fs_{timestamp}`
+ * @property {string}  fileName      - 文件名
+ * @property {'experience'|'raw'|'publicity'} category - 文件分类：经验沉淀/原始文件/宣传素材
+ * @property {string}  description   - 文件描述
+ * @property {string}  sourceType    - 关联来源类型：'activity' | 'taskforce' | 'standalone'
+ * @property {string}  sourceId      - 关联来源 ID（standalone 时为空）
+ * @property {string}  sourceName    - 关联来源名称（冗余字段，方便展示）
+ * @property {string}  uploadedBy    - 上传人 personId
+ * @property {string}  uploadedAt    - 上传时间 ISO 字符串
+ * @property {string}  [tags]        - 标签（逗号分隔）
+ * @property {number}  [fileSize]    - 文件大小（字节，可选）
  */
 
 /**
@@ -113,4 +159,7 @@ export const mockDB = {
   // 交付物清单（组织生活会专用：宣传底稿、考勤汇总表、组织生活会记录等）
   // Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
   deliverables: [],
+  /** @type {ParticipationRecord[]} */
+  // 参与记录（参与层级+分工角色+描述）— Source: content/guides/architecture/MANAGEMENT_MODE.md §5.3
+  participations: [],
 };

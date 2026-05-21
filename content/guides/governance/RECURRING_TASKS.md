@@ -2,7 +2,6 @@
 title: "周期性任务自动唤醒机制"
 type: governance
 role: "[人机]"
-owner: "支委会"
 last_updated: "2026-05-15"
 status: active
 ---

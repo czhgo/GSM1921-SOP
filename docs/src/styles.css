@@ -390,6 +390,11 @@ select.input-flat:focus {
   object-fit: contain;
 }
 
+.party-emblem-fallback {
+  width: 28px;
+  height: 28px;
+}
+
 .header-title {
   flex: 1;
   min-width: 0;
@@ -2224,6 +2229,431 @@ label .text-red-500 {
     align-items: flex-end;
     gap: 4px;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT: Workflow Visualization Panel
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Outer card wrapper ── */
+.workflow-panel-card {
+  background: var(--surface-card);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-top: 16px;
+}
+
+.workflow-panel-card .workflow-panel-title {
+  font-family: 'STZhongsong', '华文中宋', 'Noto Serif SC', serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--neutral-800);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workflow-panel-card .workflow-panel-title svg {
+  width: 18px;
+  height: 18px;
+  color: var(--primary-700);
+  flex-shrink: 0;
+}
+
+/* ── SVG flow ── */
+.workflow-svg-wrapper {
+  overflow-x: auto;
+  margin-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.workflow-svg {
+  display: block;
+  min-width: 400px;
+}
+
+/* ── Progress bar ── */
+.workflow-progress-wrapper {
+  margin-bottom: 14px;
+}
+
+.workflow-progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.workflow-progress-label {
+  font-size: 0.75rem;
+  color: var(--neutral-500);
+}
+
+.workflow-progress-value {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--primary-700);
+}
+
+.workflow-progress-track {
+  height: 6px;
+  background: var(--neutral-200);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.workflow-progress-bar {
+  height: 100%;
+  background: var(--primary-700);
+  border-radius: 3px;
+  transition: width 0.4s ease-out;
+}
+
+.workflow-progress-bar.blocked {
+  background: #EF4444;
+}
+
+/* ── State label ── */
+.workflow-state-label {
+  margin-bottom: 14px;
+}
+
+.workflow-state-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.workflow-state-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.workflow-state-dot.active {
+  background: var(--primary-700);
+  box-shadow: 0 0 0 3px rgba(206,17,38,0.15);
+}
+
+.workflow-state-dot.blocked {
+  background: #EF4444;
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.15);
+}
+
+.workflow-state-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--neutral-800);
+}
+
+.workflow-state-phase {
+  font-size: 0.6875rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--primary-50);
+  color: var(--primary-700);
+  font-weight: 500;
+}
+
+.workflow-state-blocked-tag {
+  font-size: 0.6875rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #FEE2E2;
+  color: #DC2626;
+  font-weight: 500;
+}
+
+.workflow-state-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.workflow-meta-item {
+  font-size: 0.6875rem;
+  color: var(--neutral-500);
+}
+
+.workflow-meta-label {
+  color: var(--neutral-400);
+  margin-right: 4px;
+}
+
+.workflow-meta-value {
+  color: var(--neutral-600);
+  font-weight: 500;
+}
+
+/* ── Sub-states ── */
+.workflow-substates-wrapper {
+  margin-bottom: 14px;
+}
+
+.workflow-substates-wrapper.hidden {
+  display: none;
+}
+
+.workflow-substates-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--neutral-700);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--neutral-100);
+}
+
+.workflow-substate-card {
+  background: var(--neutral-50);
+  border: 1px solid var(--neutral-100);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.workflow-substate-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.workflow-substate-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--neutral-700);
+}
+
+.workflow-substate-owner {
+  font-size: 0.6875rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(59,130,246,0.08);
+  color: #3B82F6;
+}
+
+.workflow-substate-done {
+  font-size: 0.6875rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(16,185,129,0.1);
+  color: #059669;
+  font-weight: 500;
+}
+
+.workflow-substate-pct {
+  font-size: 0.6875rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(217,119,6,0.1);
+  color: #D97706;
+  font-weight: 500;
+}
+
+.workflow-substate-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.workflow-substate-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.workflow-substep-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.workflow-substate-step.done .workflow-substep-dot {
+  background: #10B981;
+}
+
+.workflow-substate-step.current .workflow-substep-dot {
+  background: var(--primary-700);
+  box-shadow: 0 0 0 2px rgba(206,17,38,0.15);
+}
+
+.workflow-substate-step.pending .workflow-substep-dot {
+  background: var(--neutral-300);
+}
+
+.workflow-substep-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.workflow-substep-label {
+  font-size: 0.75rem;
+  color: var(--neutral-600);
+  line-height: 1.4;
+}
+
+.workflow-substate-step.done .workflow-substep-label {
+  color: var(--neutral-400);
+  text-decoration: line-through;
+}
+
+.workflow-substep-meta {
+  font-size: 0.6875rem;
+  color: var(--neutral-400);
+}
+
+.workflow-substep-waiting {
+  font-size: 0.6875rem;
+  color: var(--primary-700);
+  font-style: italic;
+}
+
+.workflow-substates-hint {
+  font-size: 0.75rem;
+  color: var(--accent-amber);
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: rgba(217,119,6,0.06);
+  border-radius: 6px;
+}
+
+/* ── History ── */
+.workflow-history-wrapper {
+  border-top: 1px solid var(--neutral-100);
+  padding-top: 12px;
+}
+
+.workflow-history-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--neutral-700);
+  margin-bottom: 10px;
+}
+
+.workflow-history-empty {
+  font-size: 0.75rem;
+  color: var(--neutral-400);
+  text-align: center;
+  padding: 12px;
+}
+
+.workflow-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.workflow-history-item {
+  display: flex;
+  gap: 10px;
+  min-height: 36px;
+}
+
+.workflow-history-spine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.workflow-history-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10B981;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.workflow-history-line {
+  width: 2px;
+  flex: 1;
+  background: var(--neutral-200);
+}
+
+.workflow-history-content {
+  flex: 1;
+  min-width: 0;
+  padding-bottom: 10px;
+}
+
+.workflow-history-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.workflow-history-event {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--neutral-600);
+}
+
+.workflow-history-arrow {
+  font-size: 0.75rem;
+  color: var(--neutral-400);
+}
+
+.workflow-history-to {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--neutral-700);
+}
+
+.workflow-history-detail {
+  display: flex;
+  gap: 10px;
+}
+
+.workflow-history-time {
+  font-size: 0.6875rem;
+  color: var(--neutral-400);
+}
+
+.workflow-history-operator {
+  font-size: 0.6875rem;
+  color: var(--neutral-500);
+}
+
+/* ── Blocking banner ── */
+.workflow-banner-wrapper.hidden {
+  display: none;
+}
+
+.workflow-banner-blocked {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: var(--radius-md);
+  margin-bottom: 14px;
+}
+
+.workflow-banner-icon {
+  color: #EF4444;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.workflow-banner-text {
+  font-size: 0.8125rem;
+  color: #991B1B;
+  line-height: 1.5;
+}
+
+.workflow-banner-text strong {
+  font-weight: 600;
 }
 
 /* ═══════════════════════════════════════════════════════════════

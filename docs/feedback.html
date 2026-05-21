@@ -72,6 +72,9 @@
               <span class="text-sm text-gray-700">特定业务场景专用（Scenario-Specific）</span>
             </label>
           </div>
+          <div id="scenario-name-wrapper" class="mt-2 hidden">
+            <input type="text" id="scenario-name-input" class="input-flat w-full" placeholder="场景名称/编号（如：主题党日-红色1+1共建）">
+          </div>
         </div>
 
         <div class="mb-5">
@@ -94,6 +97,15 @@
           <button id="btn-submit-feedback" class="btn-primary px-8 py-2.5 font-title-cn">提交反馈</button>
           <span id="feedback-submit-msg" class="text-sm text-green-600 hidden">提交成功！感谢你的反馈。</span>
         </div>
+      </div>
+
+      <div class="flex items-center gap-2 mb-4 flex-wrap">
+        <button id="btn-export-md" class="px-4 py-2 text-sm rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 transition-colors">导出 Markdown</button>
+        <button id="btn-export-json" class="px-4 py-2 text-sm rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 transition-colors">导出 JSON</button>
+        <label class="px-4 py-2 text-sm rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 transition-colors cursor-pointer">
+          导入 JSON
+          <input type="file" id="btn-import-json" accept=".json" class="hidden">
+        </label>
       </div>
 
       <div id="recent-feedback-section" class="card rounded-2xl p-6">

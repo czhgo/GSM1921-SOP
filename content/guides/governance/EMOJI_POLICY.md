@@ -2,7 +2,6 @@
 title: "Emoji 使用边界规范"
 type: governance
 role: "[人机]"
-owner: "支委会"
 last_updated: "2026-05-15"
 status: active
 ---
@@ -50,7 +49,7 @@ status: active
 - 表格中的状态标记
 
 **示例文件**：
-- `content/references/模板库/活动复盘/README.md` — 现已按网页接口标准清理，后续新参考文件可保留 Emoji
+- `content/references/工作模板/经验沉淀辅助提示词.md` — 现已按网页接口标准清理（已整合活动复盘模板），后续新参考文件可保留 Emoji
 - 新创建的、仅面向人类的参考文档
 
 ### 3.2 [人机] 角色文件

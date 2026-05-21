@@ -2,7 +2,6 @@
 title: "Agent 使用指南与治理闭环"
 type: governance
 role: "[人机]"
-owner: "Org OS Agent 集群"
 last_updated: "2026-05-15"
 status: active
 ---

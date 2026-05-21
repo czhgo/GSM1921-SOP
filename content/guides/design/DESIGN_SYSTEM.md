@@ -1,8 +1,7 @@
-﻿﻿﻿﻿---
+﻿﻿﻿﻿﻿﻿﻿---
 title: "前端设计系统规范"
 type: design
 role: "[人机]"
-owner: "支委会"
 last_updated: "2026-05-15"
 status: active
 ---
@@ -736,4 +735,4 @@ select.input-flat {
 | 查响应式断点 | → §6.1 断点表 |
 | 查 CSS 变量名 | → `docs/src/styles.css:root` |
 | 查实施进度 | → CLAUDE.md §九 DESIGN-OPT-4 |
-| 提交设计反馈 | → content/references/模板库/FEEDBACK_FORM.md |
+| 提交设计反馈 | → content/references/工作模板/FEEDBACK_FORM.md |

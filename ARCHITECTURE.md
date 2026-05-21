@@ -2,9 +2,10 @@
 title: "双域五层架构说明"
 type: architecture
 role: "[人机]"
-owner: "Org OS Agent 集群"
-last_updated: "2026-05-18"
+last_updated: "2026-05-21"
+version: "6.0"
 status: active
+related_files: [CLAUDE.md, content/guides/architecture/]
 ---
 
 # Architecture
@@ -30,7 +31,7 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 
 | 域 | 涵盖内容 |
 |----|---------|
-| **党建工作** | 主题党日、三会一课、民主评议、换届选举、发展党员、组织生活会 |
+| **党建工作** | 主题党日、三会一课（支部党员大会/支委会/党小组会/党课）、民主评议、换届选举、发展党员 |
 | **党务管理** | 制度修订、职责分工、意见反馈、合规审查、文档规范、定岗定责 |
 
 ### 条块概念
@@ -106,9 +107,9 @@ Layer 6: 审计追溯层
   └─ .ctx/logs/YYYY-MM-EXECUTION_LOG.md     [人机] 月度执行日志
 
 Layer 7: 官方底线层（只读引用）
-  └─ content/references/官方文件/            [人] 党章、条例、规范（PDF/DOCX）
-  └─ content/references/模板库/              [人] 工作模板、活动复盘模板
-  └─ content/references/党小组会/、支部委员会/ [人] 历史会议记录
+  └─ content/references/合规文件/            [人] 党章、条例、规范（PDF/DOCX）
+  └─ content/references/工作模板/            [人] 工作模板、经验沉淀辅助提示词
+  └─ content/references/历史会议材料/         [人] 历史会议记录
 ```
 
 ---
@@ -136,7 +137,7 @@ Layer 7: 官方底线层（只读引用）
 │   │   ├── org.html                   [人机] 党建·组织委员工作台
 │   │   ├── prop.html                  [人机] 党建·宣传委员工作台
 │   │   ├── disc.html                  [人机] 党建·纪检委员工作台
-│   │   └── visitor.html               [人机] 党建·参与者只读面板
+│   │   └── visitor.html               [人机] 党建·成员只读面板
 │   ├── party/                         [人机] 党务管理页面
 │   │   ├── index.html                 [人机] 党务管理入口
 │   │   ├── secretary.html             [人机] 党务·党支书面板
@@ -197,11 +198,10 @@ Layer 7: 官方底线层（只读引用）
 │   ├── insights/                      [人机] 经验沉淀
 │   │   └── 党支部管理与实务经验沉淀.md   [人机] 经验沉淀文档
 │   └── references/                    [人]  官方底线与模板
-│       ├── 官方文件/                   [人] 党章、条例、规范（只读）
-│       ├── 模板库/                     [人] 申报材料模板、活动复盘模板
+│       ├── 合规文件/                   [人] 党章、条例、规范（只读）
+│       ├── 工作模板/                   [人] 经验沉淀辅助提示词、反馈模板
 │       │   └── FEEDBACK_FORM.md        [人机] 反馈模板
-│       ├── 党小组会/                   [人] 历史党小组会记录
-│       ├── 支部委员会/                 [人] 历史支委会记录
+│       ├── 历史会议材料/               [人] 历史会议记录
 │       └── README.md                  [人]
 │
 ├── .github/                           [AI] Agent 治理层
@@ -351,6 +351,6 @@ content/SOP/*.md             .github/skills/            .github/agents/
 | 查审查状态 | .ctx/CONTEXT.md §4 |
 | 查 SOP 流程 | content/SOP/INDEX.md |
 | 查执行日志 | .ctx/logs/YYYY-MM-EXECUTION_LOG.md |
-| 取用工作模板 | content/references/模板库/ |
-| 提交改进反馈 | content/references/模板库/FEEDBACK_FORM.md |
-| 查官方合规文件 | content/references/官方文件/ |
+| 取用工作模板 | content/references/工作模板/ |
+| 提交改进反馈 | content/references/工作模板/FEEDBACK_FORM.md |
+| 查官方合规文件 | content/references/合规文件/ |

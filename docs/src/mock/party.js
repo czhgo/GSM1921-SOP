@@ -26,18 +26,18 @@ export const TEMPLATE_LIST = [
 
 export const PARTY_MOCKS = {
   candidates: [
-    { id: 'c1', name: '赵六', stage: '入党申请人', materialsComplete: false, missingMaterials: 3 },
-    { id: 'c2', name: '钱七', stage: '积极分子', materialsComplete: false, missingMaterials: 1 },
-    { id: 'c3', name: '孙八', stage: '发展对象', materialsComplete: true, missingMaterials: 0 },
-    { id: 'c4', name: '周九', stage: '预备党员', materialsComplete: true, missingMaterials: 0 },
-    { id: 'c5', name: '吴十', stage: '积极分子', materialsComplete: false, missingMaterials: 2 },
+    { id: 'c1', personId: 'p4', stage: '预备党员', materialsComplete: false, missingMaterials: 3 },
+    { id: 'c2', personId: 'p5', stage: '积极分子', materialsComplete: false, missingMaterials: 1 },
+    { id: 'c3', personId: 'p6', stage: '发展对象', materialsComplete: true, missingMaterials: 0 },
+    { id: 'c4', personId: 'p7', stage: '预备党员', materialsComplete: true, missingMaterials: 0 },
+    { id: 'c5', personId: 'p15', stage: '积极分子', materialsComplete: false, missingMaterials: 2 },
   ],
   makeupTasks: [
-    { id: 'mk1', name: '张三', absentActivity: '4月主题党日活动', absentDate: '2026-04-15', completed: false },
-    { id: 'mk2', name: '李四', absentActivity: '4月支委会', absentDate: '2026-04-18', completed: false },
-    { id: 'mk3', name: '王五', absentActivity: '3月党小组会', absentDate: '2026-03-20', completed: true },
-    { id: 'mk4', name: '赵六', absentActivity: '4月党课', absentDate: '2026-04-25', completed: false },
-    { id: 'mk5', name: '钱七', absentActivity: '3月主题党日活动', absentDate: '2026-03-14', completed: true },
+    { id: 'mk1', personId: 'p1', absentActivity: '4月主题党日活动', absentDate: '2026-04-15', completed: false },
+    { id: 'mk2', personId: 'p2', absentActivity: '4月支委会', absentDate: '2026-04-18', completed: false },
+    { id: 'mk3', personId: 'p3', absentActivity: '3月党小组会', absentDate: '2026-03-20', completed: true },
+    { id: 'mk4', personId: 'p4', absentActivity: '4月党课', absentDate: '2026-04-25', completed: false },
+    { id: 'mk5', personId: 'p5', absentActivity: '3月主题党日活动', absentDate: '2026-03-14', completed: true },
   ],
   feedbackItems: [
     { id: 'fb1', content: '建议增加线上学习渠道', status: 'pending', date: '2026-04-20' },

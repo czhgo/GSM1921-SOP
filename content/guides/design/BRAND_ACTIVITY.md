@@ -101,7 +101,7 @@ related_files:
 
 | 文件 | 关系 | 说明 |
 |------|------|------|
-| `CLAUDE.md` H2.2 | 母本 | 品牌活动定位定义于此 |
+| `CLAUDE.md` H8.2 | 母本 | 品牌活动定位定义于此 |
 | `MANAGEMENT_MODE.md` §5 | 关联 | 品牌维度在决策树中的位置 |
 | `DATA.md` §2 | 关联 | ActivityRecord 数据结构（isBrand 字段） |
 | `党支部管理与实务经验沉淀.md` §5.2 | 关联 | 品牌维度的自然消解 |

@@ -9,7 +9,7 @@ import { TaskForceRecordStore } from '../services/taskforce.js';
 import { _fmtDate, getBasePath } from '../core/utils.js';
 import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';
-import { ACTIVITIES } from '../mock/index.js';
+import { ACTIVITIES, _personName } from '../mock/index.js';
 import { ATTENDANCE_RECORDS } from '../mock/index.js';
 import { PEOPLE } from '../mock/index.js';
 import { CrossPageState } from '../core/cross-page-state.js';
@@ -148,7 +148,7 @@ function _renderTaskforceList(taskforces) {
 
   container.innerHTML = display.map(r => {
     const badge = TF_STATUS_BADGE[r.status] || TF_STATUS_BADGE.draft;
-    const filled = r.members.filter(m => m.name !== '待招募').length;
+    const filled = r.members.filter(m => m.personId).length;
     const pct = r.capacity > 0 ? Math.round((filled / r.capacity) * 100) : 0;
     const barColor = pct >= 80 ? 'var(--accent-emerald)' : pct >= 50 ? 'var(--accent-gold)' : 'var(--primary-400)';
 
@@ -168,7 +168,7 @@ function _renderTaskforceList(taskforces) {
           </div>
         </div>
         <div class="text-right whitespace-nowrap flex-shrink-0">
-          <p class="text-[10px] text-gray-400">发起: ${r.initiator}</p>
+          <p class="text-[10px] text-gray-400">发起: ${_personName(r.initiator)}</p>
           ${r.deadline ? `<p class="text-[10px] text-gray-400">截止 ${r.deadline}</p>` : ''}
         </div>
       </div>
@@ -219,6 +219,61 @@ function _renderAttendanceSummary(activities, attendanceRecords) {
   container.innerHTML = rows.join('');
 }
 
+// ── 活动风采（P3-3） ──────────────────────────────────────────
+const GALLERY_TYPE_GRADIENTS = {
+  '主题党日': 'linear-gradient(135deg, #FEF2F2, #FECACA)',
+  '共建':     'linear-gradient(135deg, #FDF2F8, #FBCFE8)',
+  '党课':     'linear-gradient(135deg, #EFF6FF, #BFDBFE)',
+  '参访':     'linear-gradient(135deg, #ECFDF5, #A7F3D0)',
+  '座谈':     'linear-gradient(135deg, #FFF7ED, #FED7AA)',
+  '支委会':   'linear-gradient(135deg, #F5F3FF, #C4B5FD)',
+  '党小组会': 'linear-gradient(135deg, #F0F9FF, #BAE6FD)',
+  '支部党员大会': 'linear-gradient(135deg, #FFFBEB, #FDE68A)',
+};
+
+function _renderGallery(activities) {
+  const container = document.getElementById('dashboard-gallery');
+  if (!container) return;
+
+  // 择优展示：品牌活动优先，然后近期已完成活动，最多6个
+  const brandActivities = activities.filter(a => a.isBrand && !a.archived);
+  const completedActivities = activities.filter(a => (a.status === 'completed' || a.archived) && !a.isBrand)
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  const display = [...brandActivities, ...completedActivities].slice(0, 6);
+
+  if (display.length === 0) {
+    container.innerHTML = '<p class="text-sm text-gray-400">暂无风采展示</p>';
+    return;
+  }
+
+  container.innerHTML = '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">' +
+    display.map(a => {
+      const gradient = GALLERY_TYPE_GRADIENTS[a.type] || 'linear-gradient(135deg, #F9FAFB, #E5E7EB)';
+      const color = ACTIVITY_TYPE_COLORS[a.type] || { dot: '#6B7280', label: a.type || '活动' };
+      const organizerName = PEOPLE.find(p => p.id === a.organizer)?.name || a.organizer || '';
+      const statusInfo = STATUS_LABELS[a.status] || STATUS_LABELS.draft;
+
+      return `
+        <div class="rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+             data-gallery-activity-id="${a.id}">
+          <div class="p-4 relative" style="background:${gradient};">
+            ${a.isBrand ? '<span class="absolute top-2 right-2 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-700 border border-amber-200">品牌</span>' : ''}
+            <div class="flex items-center gap-1.5 mb-1.5">
+              <div class="w-2.5 h-2.5 rounded-full" style="background:${color.dot};"></div>
+              <span class="text-[10px] font-medium text-gray-500">${color.label}</span>
+            </div>
+            <h4 class="text-sm font-bold text-gray-800 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2">${a.title || '未命名活动'}</h4>
+          </div>
+          <div class="p-3 bg-white">
+            <p class="text-[10px] text-gray-500">${a.date ? _fmtDate(new Date(a.date)) : ''}${organizerName ? ' · ' + organizerName : ''}</p>
+            <span class="inline-block mt-1 px-1.5 py-0.5 text-[10px] font-medium rounded-full ${statusInfo.cls}">${statusInfo.text}</span>
+          </div>
+        </div>
+      `;
+    }).join('') + '</div>';
+}
+
 function renderDashboard(state) {
   let activities = state.activities || [];
   if (activities.length === 0 && ACTIVITIES.length > 0) {
@@ -246,6 +301,7 @@ function renderDashboard(state) {
   _renderTaskforceList(taskforces);
   _renderActivityList(activities);
   _renderAttendanceSummary(activities, ATTENDANCE_RECORDS);
+  _renderGallery(activities);
 
   const dashContainer = document.getElementById('view-dashboard');
   if (!dashContainer || dashContainer.dataset.navBound === 'true') return;
@@ -279,6 +335,16 @@ function renderDashboard(state) {
         ? CrossPageState.buildURL(getBasePath() + 'workspace/disc.html', { activityId: actId, mode: 'readonly' })
         : CrossPageState.buildURL(getBasePath() + 'workspace/disc.html', { mode: 'readonly' });
       CrossPageState.save({ selectedRole: 'disc-commissioner', activeModule: 'workspace', selectedActivityId: actId || null });
+      window.location.href = url;
+      return;
+    }
+    const galleryItem = e.target.closest('[data-gallery-activity-id]');
+    if (galleryItem) {
+      const actId = galleryItem.dataset.galleryActivityId;
+      const url = actId
+        ? CrossPageState.buildURL(getBasePath() + 'workspace/visitor.html', { activityId: actId })
+        : getBasePath() + 'workspace/visitor.html';
+      CrossPageState.save({ selectedRole: 'visitor', activeModule: 'workspace', selectedActivityId: actId || null });
       window.location.href = url;
       return;
     }

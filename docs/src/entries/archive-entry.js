@@ -2,13 +2,45 @@
 // archive-entry.js — 归档库独立入口
 import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';
+import { ACTIVITIES } from '../mock/index.js';
+import { PEOPLE } from '../mock/people.js';
+import { MOCK_TASKFORCES } from '../mock/index.js';
 
 renderSidebar('archive');
 renderHeader('archive');
 
+// ── 视图切换 ──────────────────────────────────────────────────
+const listViewBtn = document.getElementById('archive-view-list');
+const galleryViewBtn = document.getElementById('archive-view-gallery');
+const listViewEl = document.getElementById('archive-list-view');
+const galleryViewEl = document.getElementById('archive-gallery-view');
+
+let currentView = 'list';
+
+function switchView(view) {
+  currentView = view;
+  if (view === 'list') {
+    listViewEl.classList.remove('hidden');
+    galleryViewEl.classList.add('hidden');
+    listViewBtn.className = 'px-3 py-1.5 text-xs font-medium transition-colors bg-red-50 text-red-700 border-r border-gray-200';
+    galleryViewBtn.className = 'px-3 py-1.5 text-xs font-medium transition-colors bg-white text-gray-600 hover:bg-gray-50';
+  } else {
+    listViewEl.classList.add('hidden');
+    galleryViewEl.classList.remove('hidden');
+    galleryViewBtn.className = 'px-3 py-1.5 text-xs font-medium transition-colors bg-red-50 text-red-700 border-r border-gray-200';
+    listViewBtn.className = 'px-3 py-1.5 text-xs font-medium transition-colors bg-white text-gray-600 hover:bg-gray-50';
+    renderGalleryView();
+  }
+}
+
+listViewBtn?.addEventListener('click', () => switchView('list'));
+galleryViewBtn?.addEventListener('click', () => switchView('gallery'));
+
+// ── 列表视图搜索与筛选 ────────────────────────────────────────
 document.getElementById('archive-search')?.addEventListener('input', (e) => {
   const q = e.target.value.toLowerCase();
-  document.querySelectorAll('#archive-list > div').forEach(item => {
+  const container = currentView === 'list' ? listViewEl : galleryViewEl;
+  container.querySelectorAll('[data-archive-item]').forEach(item => {
     const text = item.textContent.toLowerCase();
     item.style.display = text.includes(q) ? '' : 'none';
   });
@@ -16,12 +48,90 @@ document.getElementById('archive-search')?.addEventListener('input', (e) => {
 
 document.getElementById('archive-filter')?.addEventListener('change', (e) => {
   const type = e.target.value;
-  document.querySelectorAll('#archive-list > div').forEach(item => {
+  const container = currentView === 'list' ? listViewEl : galleryViewEl;
+  container.querySelectorAll('[data-archive-item]').forEach(item => {
     if (type === 'all') { item.style.display = ''; return; }
-    const text = item.textContent.toLowerCase();
-    const match = (type === 'activity' && text.includes('党建活动')) ||
-                  (type === 'taskforce' && text.includes('专班')) ||
-                  (type === 'notice' && text.includes('通知'));
-    item.style.display = match ? '' : 'none';
+    const itemType = item.dataset.archiveType || '';
+    item.style.display = itemType === type ? '' : 'none';
   });
 });
+
+// ── 画册视图渲染 ──────────────────────────────────────────────
+const ACTIVITY_TYPE_COLORS = {
+  '主题党日': { bg: 'linear-gradient(135deg, #FEF2F2, #FEE2E2)', dot: '#DC2626' },
+  '共建':     { bg: 'linear-gradient(135deg, #FDF2F8, #FCE7F3)', dot: '#DB2777' },
+  '党课':     { bg: 'linear-gradient(135deg, #EFF6FF, #DBEAFE)', dot: '#2563EB' },
+  '参访':     { bg: 'linear-gradient(135deg, #ECFDF5, #D1FAE5)', dot: '#059669' },
+  '座谈':     { bg: 'linear-gradient(135deg, #FFF7ED, #FFEDD5)', dot: '#EA580C' },
+  '支委会':   { bg: 'linear-gradient(135deg, #F5F3FF, #EDE9FE)', dot: '#7C3AED' },
+  '党小组会': { bg: 'linear-gradient(135deg, #F0F9FF, #E0F2FE)', dot: '#0891B2' },
+  '支部党员大会': { bg: 'linear-gradient(135deg, #FFFBEB, #FEF3C7)', dot: '#D97706' },
+};
+
+function renderGalleryView() {
+  const grid = document.getElementById('archive-gallery-grid');
+  if (!grid) return;
+
+  // 收集已完成的活动和专班
+  const completedActivities = ACTIVITIES.filter(a => a.status === 'completed' || a.archived);
+  const completedTaskforces = MOCK_TASKFORCES.filter(tf => tf.status === 'completed');
+
+  // 构建画册卡片数据
+  const cards = [];
+
+  completedActivities.forEach(a => {
+    const organizer = PEOPLE.find(p => p.id === a.organizer);
+    const color = ACTIVITY_TYPE_COLORS[a.type] || { bg: 'linear-gradient(135deg, #F9FAFB, #F3F4F6)', dot: '#6B7280' };
+    cards.push({
+      id: a.id,
+      type: 'activity',
+      title: a.title || '未命名活动',
+      subtitle: `${a.date || ''} · ${a.type || '活动'}`,
+      description: a.description || '',
+      organizer: organizer ? organizer.name : (a.organizer || ''),
+      isBrand: a.isBrand || false,
+      bg: color.bg,
+      dot: color.dot,
+    });
+  });
+
+  completedTaskforces.forEach(tf => {
+    const initiator = PEOPLE.find(p => p.id === tf.initiator);
+    cards.push({
+      id: tf.id,
+      type: 'taskforce',
+      title: tf.name || '未命名专班',
+      subtitle: `${tf.startDate || ''} ~ ${tf.endDate || ''} · 专班`,
+      description: tf.task || '',
+      organizer: initiator ? initiator.name : (tf.initiator || ''),
+      isBrand: false,
+      bg: 'linear-gradient(135deg, #FEF3C7, #FDE68A)',
+      dot: '#D97706',
+    });
+  });
+
+  if (cards.length === 0) {
+    grid.innerHTML = '<p class="text-sm text-gray-400 text-center py-12 col-span-full">暂无已完成的活动或专班</p>';
+    return;
+  }
+
+  grid.innerHTML = cards.map(c => `
+    <div class="rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group" data-archive-item data-archive-type="${c.type}" data-archive-id="${c.id}">
+      <!-- 卡片头部：渐变色区域 -->
+      <div class="p-5 relative" style="background:${c.bg};">
+        ${c.isBrand ? '<span class="absolute top-3 right-3 px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-700 border border-amber-200">品牌</span>' : ''}
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-3 h-3 rounded-full flex-shrink-0" style="background:${c.dot};"></div>
+          <span class="text-[10px] font-medium text-gray-500">${c.type === 'activity' ? '党建活动' : '专班'}</span>
+        </div>
+        <h4 class="text-base font-bold text-gray-800 leading-snug group-hover:text-blue-700 transition-colors">${c.title}</h4>
+      </div>
+      <!-- 卡片内容 -->
+      <div class="p-4 bg-white">
+        <p class="text-xs text-gray-500 mb-2">${c.subtitle}</p>
+        ${c.description ? `<p class="text-xs text-gray-400 line-clamp-2 mb-2">${c.description}</p>` : ''}
+        ${c.organizer ? `<p class="text-[10px] text-gray-400">组织者：${c.organizer}</p>` : ''}
+      </div>
+    </div>
+  `).join('');
+}

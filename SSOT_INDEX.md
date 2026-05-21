@@ -2,9 +2,10 @@
 title: "单一权威源索引"
 type: index
 role: "[AI]"
-owner: "Org OS Agent 集群"
-last_updated: "2026-05-18"
+last_updated: "2026-05-20"
+version: "3.0"
 status: active
+related_files: [CLAUDE.md, ARCHITECTURE.md, content/guides/]
 ---
 
 # SSOT_INDEX.md

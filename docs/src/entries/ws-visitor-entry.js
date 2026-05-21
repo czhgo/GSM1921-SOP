@@ -7,13 +7,14 @@ import { renderHeader } from '../components/header.js';
 import { ViewModeStore, AuthStore } from '../services/auth.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { NoticeStore } from '../services/notice.js';
-import { ATTENDANCE_RECORDS, ACTIVITIES } from '../mock/index.js';
+import { ATTENDANCE_RECORDS, ACTIVITIES, _personName } from '../mock/index.js';
 
 renderSidebar('workspace');
 renderHeader('workspace');
 
 const savedState = CrossPageState.load();
 AuthStore.setActiveRole('workspace', savedState.selectedRole || 'all');
+if (savedState.stance) AuthStore.setPrimaryRole(savedState.stance);
 ViewModeStore.setMode('workspace', 'participant-observe');
 
 const ACTIVITY_TYPE_COLORS = {
@@ -44,7 +45,7 @@ function renderVisitorUI(state) {
 
   container.innerHTML = `
     <div class="card rounded-2xl p-4 mb-6 border border-amber-200 bg-amber-50/30">
-      <p class="text-xs text-amber-700">您当前处于参与者只读模式。如需进入管理模式，请从侧边栏选择角色。</p>
+      <p class="text-xs text-amber-700">您当前处于成员只读模式。如需进入管理模式，请从侧边栏选择角色。</p>
     </div>
     <div class="flex gap-2 mb-4">
       <button class="visitor-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-vtab="activities" style="background:rgba(122,0,16,0.08);color:var(--primary-700);border:1px solid rgba(122,0,16,0.2);">活动动态</button>
@@ -223,7 +224,7 @@ function _renderTaskforces(taskforces) {
       <div class="space-y-2">
         ${filtered.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">无匹配专班</p>' :
           filtered.map(t => {
-            const filled = t.members.filter(m => m.name !== '待招募').length;
+            const filled = t.members.filter(m => m.personId).length;
             return `
               <div class="p-3 rounded-lg border border-gray-100 bg-white">
                 <div class="flex items-center justify-between mb-1">
@@ -231,7 +232,7 @@ function _renderTaskforces(taskforces) {
                   <span class="text-[10px] px-1.5 py-0.5 rounded-full ${statusColor[t.status] || 'bg-gray-100 text-gray-500'}">${statusLabel[t.status] || t.status}</span>
                 </div>
                 <p class="text-xs text-gray-500">${t.task}</p>
-                <div class="text-[10px] text-gray-400 mt-1">${filled}/${t.capacity} 成员 · 发起: ${t.initiator}</div>
+                <div class="text-[10px] text-gray-400 mt-1">${filled}/${t.capacity} 成员 · 发起: ${_personName(t.initiator)}</div>
               </div>
             `;
           }).join('')}

@@ -22,3 +22,4 @@ export { KANBAN_MOCKS } from './kanban.js';
 export { PARTY_MOCKS, CANDIDATE_STAGES, COMPLIANCE_FILES, PUBLICITY_STANDARDS, TEMPLATE_LIST } from './party.js';
 export { MOCK_NOTICES } from './notices.js';
 export { MOCK_TASKFORCES } from './taskforces.js';
+export { PARTICIPATION_RECORDS, participationToDisplay } from './participation.js';

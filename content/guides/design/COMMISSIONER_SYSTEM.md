@@ -1,12 +1,6 @@
 ---
 title: "条条支委系统设计（党务管理职能 + 党小组交互 + 专班制）"
 type: design
-audience:
-  - 支委会
-  - 党小组组长
-  - AI Agent 开发者
-  - 项目维护者
-owner: "支委会"
 role: "[人机]"
 last_updated: "2026-05-18"
 status: active
@@ -25,7 +19,7 @@ input:
 
 # 条条支委系统设计
 
-> 本文档合并原 `COMMISSIONER_ORGANIZATION_ROLE.md`（支委党务管理职能）与 `COMMISSIONER_GROUP_INTERACTION.md`（支委×党小组交互），消除两文件间的角色定义和权限矩阵重复。2026-05-15 追加专班制核心定义与规则（§A.3~A.8），源自 CLAUDE.md H2.3。
+> 本文档合并原 `COMMISSIONER_ORGANIZATION_ROLE.md`（支委党务管理职能）与 `COMMISSIONER_GROUP_INTERACTION.md`（支委×党小组交互），消除两文件间的角色定义和权限矩阵重复。2026-05-15 追加专班制核心定义与规则（§A.3~A.8），源自 CLAUDE.md H8.3。
 >
 > 定位：[人机] — 人类决策参考 + AI 自主读取作为实施上下文。
 
@@ -408,7 +402,7 @@ CSS：commissioner-tab-bar 复用现有 module-tab 样式，active tab 按角色
 
 | 本文档章节 | 关联文件 |
 |-----------|---------|
-| §A.3~A.8 专班制 | CLAUDE.md H2.3（权威源） |
+| §A.3~A.8 专班制 | CLAUDE.md H8.3（权威源） |
 | §B 职责体系 | MANAGEMENT_MODE.md §二 |
 | §C 权限矩阵 | MANAGEMENT_MODE.md |
 | §D UI 体系 | ORG_BUILDING.md §2.3 + §5 |

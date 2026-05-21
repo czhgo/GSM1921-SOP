@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -40,17 +40,25 @@
     <p class="text-sm text-gray-500 mb-6">已完成的工作将归档于此，便于回溯与总结。</p>
 
     <div class="card rounded-2xl p-6 mb-6">
-      <div class="flex items-center gap-3 mb-6">
-        <input type="text" id="archive-search" placeholder="搜索归档内容..." class="input-flat flex-1">
-        <select id="archive-filter" class="input-flat" style="width:140px;">
-          <option value="all">全部类型</option>
-          <option value="activity">党建活动</option>
-          <option value="taskforce">专班</option>
-          <option value="notice">通知</option>
-        </select>
+      <div class="flex items-center gap-4 mb-6">
+        <div class="flex items-center gap-3 flex-1">
+          <input type="text" id="archive-search" placeholder="搜索归档内容..." class="input-flat flex-1">
+          <select id="archive-filter" class="input-flat" style="width:140px;">
+            <option value="all">全部类型</option>
+            <option value="activity">党建活动</option>
+            <option value="taskforce">专班</option>
+            <option value="notice">通知</option>
+          </select>
+        </div>
+        <!-- 视图切换 -->
+        <div class="flex rounded-lg border border-gray-200 overflow-hidden">
+          <button id="archive-view-list" class="px-3 py-1.5 text-xs font-medium transition-colors bg-red-50 text-red-700 border-r border-gray-200">列表视图</button>
+          <button id="archive-view-gallery" class="px-3 py-1.5 text-xs font-medium transition-colors bg-white text-gray-600 hover:bg-gray-50">画册视图</button>
+        </div>
       </div>
 
-      <div id="archive-list" class="space-y-3">
+      <!-- 列表视图 -->
+      <div id="archive-list-view" class="space-y-3">
         <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50">
           <div class="flex items-center justify-between mb-2">
             <span class="text-sm font-medium text-gray-800">2026年4月组织生活会</span>
@@ -78,6 +86,13 @@
             <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-green-100 text-green-700">已归档</span>
           </div>
           <p class="text-xs text-gray-500">2026-03-10 · 通知 · 纪检委员</p>
+        </div>
+      </div>
+
+      <!-- 画册视图（默认隐藏） -->
+      <div id="archive-gallery-view" class="hidden">
+        <div id="archive-gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- 动态渲染 -->
         </div>
       </div>
     </div>

@@ -11,4 +11,7 @@ export const PEOPLE = [
   { id: 'p10', name: '陈十三', studentId: '2400012354', partyGroup: '第二党小组', developStage: '正式党员', roles: ['disc-commissioner'] },
   { id: 'p11', name: '杨十四', studentId: '2400012355', partyGroup: '第三党小组', developStage: '正式党员', roles: ['org-commissioner'] },
   { id: 'p12', name: '林十五', studentId: '2400012356', partyGroup: '第一党小组', developStage: '正式党员', roles: ['prop-commissioner'] },
+  { id: 'p13', name: '沈一', studentId: '2300010001', partyGroup: '第一党小组', developStage: '正式党员', roles: ['secretary'] },
+  { id: 'p14', name: '陆二', studentId: '2300010002', partyGroup: '第二党小组', developStage: '正式党员', roles: ['secretary'] },
+  { id: 'p15', name: '吴十', studentId: '2500010001', partyGroup: '第三党小组', developStage: '积极分子', roles: [] },
 ];

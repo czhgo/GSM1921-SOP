@@ -18,9 +18,9 @@
 | 你想做的事 | 怎么做 |
 |-----------|--------|
 | 查看活动日历 | 打开网页 → 直接看到主页日历 |
-| 查自己的考勤出勤 | 党建工作台 → 参与者只读 → 查看个人考勤 |
-| 了解支委都在做什么 | 党建工作台 → 参与者只读 → 查看各支委工作成果 |
-| 提意见或反馈 | [SOP 优化提案反馈卡](content/references/模板库/FEEDBACK_FORM.md) 或网页【意见反馈】 |
+| 查自己的考勤出勤 | 党建工作台 → 成员只读 → 查看个人考勤 |
+| 了解支委都在做什么 | 党建工作台 → 成员只读 → 查看各支委工作成果 |
+| 提意见或反馈 | [SOP 优化提案反馈卡](content/references/工作模板/FEEDBACK_FORM.md) 或网页【意见反馈】 |
 | 查阅标准流程 | [常见工作场景快速指南](content/SOP/常见工作场景快速指南.md) |
 
 ### 支委和组长能做什么
@@ -102,10 +102,9 @@
 
 | 目录 | 内容 |
 |------|------|
-| [模板库/](content/references/模板库/) | 可复用模板：活动复盘模板、申报材料模板、SOP 优化提案反馈卡 |
-| [官方文件/](content/references/官方文件/) | 党章、党支部工作规范、发展党员工作细则等上级文件 |
-| [党小组会/](content/references/党小组会/) | 党小组会议记录、SOP 流程图等历史资料 |
-| [支部委员会/](content/references/支部委员会/) | 支委工作手册 |
+| [工作模板/](content/references/工作模板/) | 可复用模板：经验沉淀辅助提示词、SOP 优化提案反馈卡 |
+| [合规文件/](content/references/合规文件/) | 党章、党支部工作规范、发展党员工作细则等上级文件 |
+| [历史会议材料/](content/references/历史会议材料/) | 党小组会议记录、支委工作手册、SOP 流程图等历史资料 |
 
 ### 治理与架构文件
 
@@ -205,7 +204,7 @@ content/SOP/ → docs/src/services/ → docs/src/entries/ → docs/（含 worksp
 │   ├── 组织委员工作台（workspace/org.html）
 │   ├── 宣传委员工作台（workspace/prop.html）
 │   ├── 纪检委员工作台（workspace/disc.html）
-│   └── 参与者只读面板（workspace/visitor.html）
+│   └── 成员只读面板（workspace/visitor.html）
 ├── 党务管理（party/index.html → 角色选择面板）
 │   ├── 党支书面板（party/secretary.html）
 │   ├── 组织委员面板（party/org.html）
@@ -248,7 +247,7 @@ content/SOP/ → docs/src/services/ → docs/src/entries/ → docs/（含 worksp
 
 ### 提交流程改进
 
-1. 填写 [SOP 优化提案反馈卡](content/references/模板库/FEEDBACK_FORM.md)
+1. 填写 [SOP 优化提案反馈卡](content/references/工作模板/FEEDBACK_FORM.md)
 2. 书记确认后执行全局修复
 
 ### 代码规范

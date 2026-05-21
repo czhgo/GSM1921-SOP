@@ -2,7 +2,6 @@
 title: "术语标准化使用规范"
 type: governance
 role: "[人机]"
-owner: "支委会"
 last_updated: "2026-05-16"
 status: active
 ---

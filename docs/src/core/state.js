@@ -143,6 +143,8 @@ let appState = {
   viewType:            'participant',    // 'participant' | 'manager'（由selectedRole推导）
   // 归档库独立视图标志
   viewArchived:        false,
+  // 日历视图模式（P2-7）
+  calendarView:        'month',           // 'month' | 'week' | 'day' | 'list'
 };
 
 /** 返回当前全局状态快照 */

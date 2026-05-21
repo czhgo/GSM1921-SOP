@@ -1,10 +1,6 @@
 ---
 title: "SOP优化提案反馈卡"
 type: template
-audience:
-  - 所有支委
-  - 党小组组长
-owner: "储子禾"
 role: "[人机]"
 last_updated: "2026-05-16"
 version: "1.4"

@@ -16,11 +16,15 @@ export const FeedbackStore = {
     const record = {
       id: 'fb-' + Date.now(),
       scope: submission.scope || '',
+      scenarioName: submission.scenarioName || '',
+      painPointFile: submission.painPointFile || '',
+      painPointDetail: submission.painPointDetail || '',
       painPoint: submission.painPoint || '',
       proposedFix: submission.proposedFix || '',
       submittedBy: submission.submittedBy || '匿名',
       submittedAt: new Date().toISOString().slice(0, 10),
       status: 'pending',
+      comments: [],
     };
     list.push(record);
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch {}
@@ -46,5 +50,30 @@ export const FeedbackStore = {
     const item = list.find(f => f.id === id);
     if (item) item.status = status;
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch {}
+  },
+
+  addComment(id, text, author) {
+    const list = this.getAll();
+    const item = list.find(f => f.id === id);
+    if (!item) return null;
+    if (!item.comments) item.comments = [];
+    item.comments.push({ text, author: author || '匿名', date: new Date().toISOString().slice(0, 10) });
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch {}
+    return item;
+  },
+
+  importAll(records) {
+    const list = this.getAll();
+    const existingIds = new Set(list.map(f => f.id));
+    let added = 0;
+    for (const r of records) {
+      if (r.id && !existingIds.has(r.id)) {
+        list.push(r);
+        existingIds.add(r.id);
+        added++;
+      }
+    }
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch {}
+    return added;
   },
 };

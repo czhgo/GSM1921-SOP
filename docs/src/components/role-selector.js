@@ -9,7 +9,7 @@ import { getBasePath } from '../core/utils.js';
 const MODULE_META = {
   workspace: {
     title: '党建工作台',
-    subtitle: '选择角色进入对应工作视图',
+    subtitle: '选择身份视图',
     accent: 'var(--primary-700)',
     roles: [
       { role: 'secretary', label: '党支部书记', desc: '组织统筹·赋权管理·全局决策', page: 'workspace/secretary.html', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>' },
@@ -23,7 +23,7 @@ const MODULE_META = {
   },
   party: {
     title: '党务管理',
-    subtitle: '选择角色进入对应管理视图',
+    subtitle: '选择要查看的身份视图',
     accent: 'var(--primary-700)',
     roles: [
       { role: 'secretary', label: '党支部书记', desc: '批量操作·意见反馈·全局统筹', page: 'party/secretary.html', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>' },
@@ -103,11 +103,13 @@ export function showRoleSelector(module) {
       const role = card.dataset.role;
       const page = card.dataset.page;
       panel.style.display = 'none';
+      // 首次进入时站位=视图（选择身份视图即同时设定站位）
       CrossPageState.save({
         selectedRole: role,
         activeModule: module,
+        stance: role,
       });
-      CrossPageState.navigateTo(page, { selectedRole: role, activeModule: module });
+      CrossPageState.navigateTo(page, { selectedRole: role, activeModule: module, stance: role });
     });
   });
 

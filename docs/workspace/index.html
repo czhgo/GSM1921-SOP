@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!doctype html>
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!doctype html>
 <html lang="zh-CN">
   <head>
     <base href="../">
@@ -189,7 +189,7 @@
                   <optgroup label="三会一课">
                     <option value="party-group-meeting">党小组会</option>
                     <option value="branch-meeting">支部党员大会</option>
-                    <option value="committee-meeting">支委会</option>
+                    <option value="branch-committee">支委会</option>
                     <option value="party-lecture">党课</option>
                   </optgroup>
                 </select>
@@ -406,6 +406,22 @@
                 </div>
                 <div class="text-xs text-gray-500 mt-1">已赋权记录</div>
               </div>
+            </div>
+            <!-- P3-1 意见反馈管理 -->
+            <div class="mt-4 pt-4 border-t border-gray-100">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="font-title-cn text-sm font-bold text-gray-700">意见反馈管理</h3>
+                <div class="flex gap-2 text-xs">
+                  <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700" id="fb-pending-count">0 待处理</span>
+                  <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700" id="fb-processing-count">0 处理中</span>
+                  <span class="px-2 py-0.5 rounded-full bg-green-100 text-green-700" id="fb-done-count">0 已办结</span>
+                </div>
+              </div>
+              <div id="secretary-feedback-list" class="space-y-2 max-h-[320px] overflow-y-auto"></div>
+              <details class="mt-2">
+                <summary class="text-xs text-gray-400 cursor-pointer select-none">已归档反馈</summary>
+                <div id="secretary-feedback-archived" class="mt-2 space-y-2"></div>
+              </details>
             </div>
           </div>
 

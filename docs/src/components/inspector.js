@@ -9,6 +9,7 @@ import { setState, STATE } from '../core/state.js';
 import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js';
 import { _fmtChinese, showToast } from '../core/utils.js';
 import { BranchService } from '../services/runtime.js';
+import { AuthStore } from '../services/auth.js';
 
 // ════════════════════════════════════════════════════════════════
 //  RBAC 任务过滤核
@@ -126,26 +127,35 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
   }
 
   const isParticipant = !viewArchived && (viewType === 'participant' || !viewType);
+  const primaryRole = AuthStore.getPrimaryRole() || AuthStore.getLoginStance();
+  const isSecretary = primaryRole === 'secretary';
 
   const statusMap = { draft: '草稿', published: '已发布', ongoing: '进行中', completed: '已完成' };
   let html = '';
   dateActivities.forEach(act => {
     const label = statusMap[act.status] || act.status;
+    const isBrand = !!act.isBrand;
+    const brandTag = isBrand
+      ? '<span class="font-stheiti text-[10px] px-1.5 py-0.5 rounded" style="background:rgba(234,179,8,0.15);color:#B45309;border:1px solid rgba(234,179,8,0.35);">品牌</span>'
+      : '';
+    const brandBtn = isSecretary
+      ? `<button class="brand-toggle-btn font-stheiti text-[10px] px-2 py-0.5 rounded transition-colors" data-act-id="${act.id}" style="background:${isBrand ? 'rgba(239,68,68,0.10)' : 'rgba(234,179,8,0.10)'};border:1px solid ${isBrand ? 'rgba(239,68,68,0.35)' : 'rgba(234,179,8,0.35)'};color:${isBrand ? '#DC2626' : '#B45309'};cursor:pointer;">${isBrand ? '取消品牌' : '标记品牌'}</button>`
+      : '';
     if (isParticipant) {
-      html += `<div class="inspector-card" data-act-id="${act.id}">`;
+      html += `<div class="inspector-card" data-act-id="${act.id}" style="${isBrand ? 'border-left:3px solid #EAB308;' : ''}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
       html += `<p class="font-stheiti font-bold text-sm text-gray-800 leading-snug flex-1">${act.title}</p>`;
       html += `<span class="badge-time flex-shrink-0">${label}</span>`;
       html += '</div>';
-      html += '<p class="font-stheiti text-[10px] text-gray-400">参与视图 · 仅展示</p>';
+      html += `<div class="flex items-center gap-1.5">${brandTag}<p class="font-stheiti text-[10px] text-gray-400">参与视图 · 仅展示</p></div>`;
       html += '</div>';
     } else {
-      html += `<div class="inspector-card" style="cursor:pointer;" data-act-id="${act.id}">`;
+      html += `<div class="inspector-card" style="cursor:pointer;${isBrand ? 'border-left:3px solid #EAB308;' : ''}" data-act-id="${act.id}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
-      html += `<p class="font-stheiti font-bold text-sm text-gray-800 leading-snug flex-1">${act.title}</p>`;
+      html += `<div class="flex items-center gap-1.5 flex-1"><p class="font-stheiti font-bold text-sm text-gray-800 leading-snug">${act.title}</p>${brandTag}</div>`;
       html += `<span class="badge-time flex-shrink-0">${label}</span>`;
       html += '</div>';
-      html += '<p class="font-stheiti text-[10px] text-gray-400">点击查看任务详情 →</p>';
+      html += `<div class="flex items-center justify-between"><p class="font-stheiti text-[10px] text-gray-400">点击查看任务详情 →</p>${brandBtn}</div>`;
       html += '</div>';
     }
   });
@@ -155,6 +165,27 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
       ? '<div class="font-stheiti text-gray-400 text-sm text-center py-4 border-b border-gray-100 mb-4">提示：请从下方列表或顶部下拉框选择活动，以查看您的专属任务流。</div>'
       : '';
     cardsEl.innerHTML = _guide + html;
+
+    // 品牌认定按钮事件（书记专属）
+    cardsEl.querySelectorAll('.brand-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const actId = btn.dataset.actId;
+        const act = dateActivities.find(a => a.id === actId);
+        if (!act) return;
+        const action = act.isBrand ? '取消品牌认定' : '标记为品牌活动';
+        if (!window.confirm(`确认${action}？`)) return;
+        try {
+          await BranchService.toggleBrand(actId);
+          const activities = await BranchService.listActivities();
+          setState({ activities });
+          showToast('success', `${action}成功`);
+        } catch (err) {
+          showToast('error', (err && err.message) || '操作失败');
+        }
+      });
+    });
+
     if (!isParticipant) {
       cardsEl.querySelectorAll('[data-act-id]').forEach(card => {
         card.addEventListener('click', () => {

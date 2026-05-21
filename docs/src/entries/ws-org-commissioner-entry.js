@@ -6,13 +6,15 @@ import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';
 import { ViewModeStore, AuthStore } from '../services/auth.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
-import { KANBAN_MOCKS, ACTIVITIES } from '../mock/index.js';
+import { PersonPicker } from '../components/person-picker.js';
+import { KANBAN_MOCKS, ACTIVITIES, _personName } from '../mock/index.js';
 
 renderSidebar('workspace');
 renderHeader('workspace');
 
 const savedState = CrossPageState.load();
 AuthStore.setActiveRole('workspace', savedState.selectedRole || 'org-commissioner');
+if (savedState.stance) AuthStore.setPrimaryRole(savedState.stance);
 ViewModeStore.setMode('workspace', 'manage');
 
 const accent = '#CE1126';
@@ -45,6 +47,7 @@ function renderOrgUI(state) {
     <div class="flex gap-2 mb-4">
       <button class="org-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-org-tab="taskforce" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">专班管理</button>
       <button class="org-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-org-tab="tracking" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">追踪看板</button>
+      <button class="org-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-org-tab="compliance" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">合规文件</button>
       <button id="btn-publish-tf" class="ml-auto text-xs px-3 py-2 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" style="cursor:pointer;">发布招募</button>
     </div>
     <div id="org-tab-content"></div>
@@ -59,10 +62,11 @@ function renderOrgUI(state) {
       const tab = btn.dataset.orgTab;
       if (tab === 'taskforce') _renderTaskforceContent(pending, recruiting, active);
       else if (tab === 'tracking') _renderTrackingContent(activities);
+      else if (tab === 'compliance') _renderComplianceContent();
     });
   });
 
-  container.querySelector('#btn-publish-tf')?.addEventListener('click', () => showToast('info', '发布招募表单 — 待实现'));
+  container.querySelector('#btn-publish-tf')?.addEventListener('click', () => _openRecruitForm());
 
   _renderTaskforceContent(pending, recruiting, active);
 
@@ -85,6 +89,9 @@ function _renderTaskforceContent(pending, recruiting, active) {
   const statusLabel = { pending_review: '待审核', recruiting: '招募中', active: '运行中', completed: '已完结', draft: '草稿' };
   const statusColor = { pending_review: '#6366F1', recruiting: '#D97706', active: '#10B981', completed: '#3B82F6', draft: '#6B7280' };
 
+  // 获取已完结专班
+  const completed = TaskForceRecordStore.getAll().filter(t => t.status === 'completed');
+
   container.innerHTML = `
     <div class="flex flex-wrap gap-2 mb-3">
       <input type="text" id="org-tf-search" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索专班名称或任务...">
@@ -100,6 +107,7 @@ function _renderTaskforceContent(pending, recruiting, active) {
     const fp = q ? pending.filter(t => (t.name || '').toLowerCase().includes(q) || (t.task || '').toLowerCase().includes(q)) : pending;
     const fr = q ? recruiting.filter(t => (t.name || '').toLowerCase().includes(q) || (t.task || '').toLowerCase().includes(q)) : recruiting;
     const fa = q ? active.filter(t => (t.name || '').toLowerCase().includes(q) || (t.task || '').toLowerCase().includes(q)) : active;
+    const fc = q ? completed.filter(t => (t.name || '').toLowerCase().includes(q) || (t.task || '').toLowerCase().includes(q)) : completed;
     kb.innerHTML = `
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="card rounded-2xl p-0 overflow-hidden">
@@ -124,12 +132,35 @@ function _renderTaskforceContent(pending, recruiting, active) {
           </div>
         </div>
       </div>
+      ${fc.length > 0 ? `
+      <details class="card rounded-2xl p-0 overflow-hidden">
+        <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none" style="background:rgba(59,130,246,0.06);color:#3B82F6;border-bottom:2px solid rgba(59,130,246,0.15);">已完结 (${fc.length})</summary>
+        <div class="p-3 space-y-3">
+          ${fc.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
+        </div>
+      </details>` : ''}
     `;
     bindCardClicks();
+    bindCompleteButtons();
   }
 
   document.getElementById('org-tf-search')?.addEventListener('input', renderKanban);
   renderKanban();
+
+  // ── "确认完成"按钮事件绑定（P2-3 看板交互重构） ──
+  function bindCompleteButtons() {
+    container.querySelectorAll('.tf-complete-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const tfId = btn.dataset.tfId;
+        const tf = TaskForceRecordStore.getAll().find(r => r.id === tfId);
+        if (!tf || tf.status !== 'active') return;
+        const confirmed = window.confirm(`确认完成专班「${tf.name}」？完成后将回收所有相关赋权记录，专班归入已完结。`);
+        if (!confirmed) return;
+        _dissolveTaskforce(tf);
+      });
+    });
+  }
 
   function bindCardClicks() {
     container.querySelectorAll('.tf-store-card').forEach(card => {
@@ -140,25 +171,198 @@ function _renderTaskforceContent(pending, recruiting, active) {
       const panel = document.getElementById('tf-detail-panel');
       if (!panel) return;
       panel.classList.remove('hidden');
-      const filled = tf.members.filter(m => m.name !== '待招募').length;
+      const filled = tf.members.filter(m => m.personId).length;
+
+      // ── 工作量汇总区域（运行中/已完结专班展示） ──
+      let workSummaryHtml = '';
+      if (tf.status === 'active' || tf.status === 'completed') {
+        const memberRows = tf.members.filter(m => m.personId).map(m => {
+          const contribCount = (m.contributions || []).length;
+          const contribList = (m.contributions || []).length > 0
+            ? `<ul class="mt-1 space-y-0.5">${m.contributions.map(c =>
+                `<li class="text-[11px] text-gray-400 pl-2 border-l-2 border-gray-200">${typeof c === 'string' ? c : (c.description || c.title || JSON.stringify(c))}</li>`
+              ).join('')}</ul>`
+            : '<span class="text-[11px] text-gray-300 pl-2">暂无贡献记录</span>';
+          return `
+            <div class="py-2 border-b border-gray-50 last:border-b-0">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-gray-700">${_personName(m.personId)}</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">${m.role || '深度参与者'}</span>
+                  <span class="text-[10px] text-gray-400">贡献 ${contribCount} 项</span>
+                </div>
+              </div>
+              ${contribList}
+            </div>`;
+        }).join('');
+
+        workSummaryHtml = `
+          <div class="mt-4 pt-3 border-t border-gray-100">
+            <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">${SVG.clipboard} 工作量汇总</h5>
+            ${tf.members.filter(m => m.personId).length === 0
+              ? '<p class="text-xs text-gray-400">暂无成员</p>'
+              : `<div class="bg-gray-50 rounded-lg px-3 py-1">${memberRows}</div>`
+            }
+          </div>`;
+
+        // 仅运行中专班显示解散按钮
+        if (tf.status === 'active') {
+          workSummaryHtml += `
+          <div class="mt-4 pt-3 border-t border-gray-100 flex justify-end">
+            <button id="btn-dissolve-tf" class="text-xs px-4 py-2 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" style="cursor:pointer;">解散专班</button>
+          </div>`;
+        }
+      }
+
+      // ── 子记录区域（P3-4：专班挂载考察+材料2子记录） ──
+      const TF_SUB_KEY = 'tf_sub_records';
+      let subRecords = JSON.parse(localStorage.getItem(TF_SUB_KEY) || '{}');
+      const tfSubs = subRecords[tfId] || { inspection: [], materials: [] };
+
+      function saveTfSubs() {
+        subRecords[tfId] = tfSubs;
+        localStorage.setItem(TF_SUB_KEY, JSON.stringify(subRecords));
+      }
+
+      function renderSubTable(type, items) {
+        const label = type === 'inspection' ? '考察记录' : '材料记录';
+        const color = type === 'inspection' ? '#D97706' : '#3B82F6';
+        const fields = type === 'inspection'
+          ? [{ key: 'person', label: '被考察人' }, { key: 'content', label: '考察内容' }, { key: 'result', label: '考察结论' }]
+          : [{ key: 'name', label: '材料名称' }, { key: 'author', label: '提交人' }, { key: 'note', label: '备注' }];
+
+        const rows = items.map((item, idx) => `
+          <tr class="border-b border-gray-50">
+            ${fields.map(f => `<td class="px-2 py-1.5 text-xs text-gray-700">${item[f.key] || '-'}</td>`).join('')}
+            <td class="px-2 py-1.5 text-center"><button class="sub-del-btn text-[10px] text-red-400 hover:text-red-600" data-type="${type}" data-idx="${idx}">删除</button></td>
+          </tr>
+        `).join('');
+
+        return `
+          <div class="mt-3">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold font-title-cn" style="color:${color}">${label} (${items.length})</span>
+              <button class="sub-add-btn text-[10px] px-2 py-1 rounded border hover:bg-gray-50 transition-colors" style="color:${color};border-color:${color}40" data-type="${type}">+ 添加</button>
+            </div>
+            ${items.length === 0
+              ? '<p class="text-[11px] text-gray-300 pl-2">暂无记录</p>'
+              : `<table class="w-full text-left"><thead><tr class="border-b border-gray-200">
+                  ${fields.map(f => `<th class="px-2 py-1 text-[10px] font-medium text-gray-500">${f.label}</th>`).join('')}
+                  <th class="px-2 py-1 text-[10px] font-medium text-gray-500 w-12"></th>
+                </tr></thead><tbody>${rows}</tbody></table>`
+            }
+          </div>`;
+      }
+
+      const subRecordsHtml = `
+        <div class="mt-4 pt-3 border-t border-gray-100">
+          <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">${SVG.clipboard} 子记录</h5>
+          ${renderSubTable('inspection', tfSubs.inspection)}
+          ${renderSubTable('materials', tfSubs.materials)}
+        </div>`;
+
       panel.innerHTML = `
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">${tf.name}</h4>
         <p class="text-xs text-gray-500 mb-2">${tf.task}</p>
         <div class="flex gap-4 text-xs text-gray-400 mb-3">
           <span>${SVG.people} ${filled}/${tf.capacity}</span>
           ${tf.deadline ? `<span>${SVG.calendar} ${tf.deadline}</span>` : ''}
-          <span>发起: ${tf.initiator}</span>
+          <span>发起: ${_personName(tf.initiator)}</span>
         </div>
-        <div class="text-xs text-gray-500">成员：${tf.members.map(m => m.name).join('、')}</div>
+        <div class="text-xs text-gray-500">成员：${tf.members.map(m => _personName(m.personId)).join('、')}</div>
+        ${workSummaryHtml}
+        ${subRecordsHtml}
       `;
+
+      // ── 解散专班按钮事件 ──
+      const dissolveBtn = panel.querySelector('#btn-dissolve-tf');
+      if (dissolveBtn) {
+        dissolveBtn.addEventListener('click', () => _dissolveTaskforce(tf));
+      }
+
+      // ── 子记录添加/删除事件（P3-4） ──
+      panel.querySelectorAll('.sub-add-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const type = btn.dataset.type;
+          if (type === 'inspection') {
+            const person = prompt('被考察人：');
+            if (!person) return;
+            const content = prompt('考察内容：') || '';
+            const result = prompt('考察结论：') || '';
+            tfSubs.inspection.push({ person, content, result });
+          } else {
+            const name = prompt('材料名称：');
+            if (!name) return;
+            const author = prompt('提交人：') || '';
+            const note = prompt('备注：') || '';
+            tfSubs.materials.push({ name, author, note });
+          }
+          saveTfSubs();
+          // 重新渲染详情面板
+          card.click();
+        });
+      });
+
+      panel.querySelectorAll('.sub-del-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const type = btn.dataset.type;
+          const idx = parseInt(btn.dataset.idx);
+          tfSubs[type].splice(idx, 1);
+          saveTfSubs();
+          // 重新渲染详情面板
+          card.click();
+        });
+      });
     });
   });
   }
 }
 
+// ════════════════════════════════════════════════════════════════
+//  专班解散流程（P1-5）
+// ════════════════════════════════════════════════════════════════
+
+function _dissolveTaskforce(tf) {
+  if (!tf || tf.status !== 'active') return;
+
+  const confirmed = window.confirm(`确定解散专班「${tf.name}」？解散后将回收所有相关赋权记录。`);
+  if (!confirmed) return;
+
+  // 1. 更新专班状态为 completed
+  const updated = TaskForceRecordStore.update(tf.id, { status: 'completed' });
+  if (!updated) {
+    showToast('error', '解散失败：专班记录未找到');
+    return;
+  }
+
+  // 2. 回收该专班相关的赋权记录
+  const authRecords = AuthStore.getAuthState();
+  const relatedRecords = authRecords.filter(r =>
+    r.scope === 'taskforce' && r.scopeRef === tf.id
+  );
+  let revokedCount = 0;
+  relatedRecords.forEach(r => {
+    const ok = AuthStore.revokeAuthorization(r.id);
+    if (ok) revokedCount++;
+  });
+
+  // 3. toast 反馈
+  const revokeMsg = relatedRecords.length > 0
+    ? `，已回收 ${revokedCount} 条赋权记录`
+    : '';
+  showToast('success', `专班「${tf.name}」已解散${revokeMsg}`);
+
+  // 4. 刷新看板
+  renderOrgUI(getAppState());
+}
+
 function _renderTfCard(t, statusLabel, statusColor) {
-  const filled = t.members.filter(m => m.name !== '待招募').length;
+  const filled = t.members.filter(m => m.personId).length;
   const color = statusColor[t.status] || '#6B7280';
+  // 运行中专班显示"确认完成"按钮
+  const completeBtn = t.status === 'active'
+    ? `<button class="tf-complete-btn text-[10px] px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">确认完成</button>`
+    : '';
   return `
     <div class="kanban-card p-4 rounded-xl border border-gray-100 bg-white cursor-pointer tf-store-card hover:shadow-sm transition-shadow" data-tf-id="${t.id}">
       <div class="flex items-start justify-between gap-2 mb-2">
@@ -170,13 +374,202 @@ function _renderTfCard(t, statusLabel, statusColor) {
         <span>${SVG.people} ${filled}/${t.capacity}</span>
         ${t.deadline ? `<span>${SVG.calendar} ${t.deadline}</span>` : ''}
       </div>
+      ${completeBtn}
     </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  发布招募表单面板
+// ════════════════════════════════════════════════════════════════
+
+let _recruitPersonPicker = null;
+
+function _openRecruitForm() {
+  // 移除已有面板
+  _closeRecruitForm();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'recruit-form-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.35);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;';
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) _closeRecruitForm();
+  });
+
+  const publishedActivities = ACTIVITIES.filter(a => a.status === 'published' || a.status === 'ongoing' || a.status === 'draft');
+
+  const panel = document.createElement('div');
+  panel.className = 'card rounded-2xl';
+  panel.style.cssText = 'width:560px;max-height:90vh;overflow-y:auto;padding:24px;position:relative;';
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <h3 class="font-title-cn" style="font-size:1.125rem;font-weight:700;color:#1F2937;margin:0;">发布专班招募</h3>
+      <button id="recruit-form-close" type="button" style="width:32px;height:32px;border-radius:8px;border:none;background:#F3F4F6;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <form id="recruit-form" autocomplete="off">
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">专班名称 <span style="color:#CE1126;">*</span></label>
+        <input type="text" id="rf-name" required placeholder="如：宣传专班（第三期）" class="input rounded-lg border px-3 py-2" style="width:100%;font-size:0.8125rem;border:1.5px solid #E5E7EB;outline:none;transition:border-color 0.15s;" />
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">任务描述 <span style="color:#CE1126;">*</span></label>
+        <textarea id="rf-task" required rows="3" placeholder="描述专班的核心任务与目标" class="input rounded-lg border px-3 py-2" style="width:100%;font-size:0.8125rem;border:1.5px solid #E5E7EB;outline:none;transition:border-color 0.15s;resize:vertical;"></textarea>
+      </div>
+
+      <div style="display:flex;gap:16px;margin-bottom:16px;">
+        <div style="flex:1;">
+          <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">所需人数 <span style="color:#CE1126;">*</span></label>
+          <input type="number" id="rf-capacity" required min="1" max="50" placeholder="如：5" class="input rounded-lg border px-3 py-2" style="width:100%;font-size:0.8125rem;border:1.5px solid #E5E7EB;outline:none;transition:border-color 0.15s;" />
+        </div>
+        <div style="flex:1;">
+          <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">截止日期 <span style="color:#CE1126;">*</span></label>
+          <input type="date" id="rf-deadline" required class="input rounded-lg border px-3 py-2" style="width:100%;font-size:0.8125rem;border:1.5px solid #E5E7EB;outline:none;transition:border-color 0.15s;" />
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">技能要求</label>
+        <input type="text" id="rf-skills" placeholder="如：视频剪辑、文案撰写（选填）" class="input rounded-lg border px-3 py-2" style="width:100%;font-size:0.8125rem;border:1.5px solid #E5E7EB;outline:none;transition:border-color 0.15s;" />
+      </div>
+
+      <div style="display:flex;gap:16px;margin-bottom:16px;">
+        <div style="flex:1;">
+          <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">周期起始</label>
+          <input type="date" id="rf-period-start" class="input rounded-lg border px-3 py-2" style="width:100%;font-size:0.8125rem;border:1.5px solid #E5E7EB;outline:none;transition:border-color 0.15s;" />
+        </div>
+        <div style="flex:1;">
+          <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">周期结束</label>
+          <input type="date" id="rf-period-end" class="input rounded-lg border px-3 py-2" style="width:100%;font-size:0.8125rem;border:1.5px solid #E5E7EB;outline:none;transition:border-color 0.15s;" />
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">关联活动</label>
+        <select id="rf-activity" class="input rounded-lg border px-3 py-2" style="width:100%;font-size:0.8125rem;border:1.5px solid #E5E7EB;outline:none;transition:border-color 0.15s;background:white;">
+          <option value="">不关联活动</option>
+          ${publishedActivities.map(a => `<option value="${a.id}">${a.title}（${a.date}）</option>`).join('')}
+        </select>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">初始成员</label>
+        <div id="rf-members-picker"></div>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">说明</label>
+        <textarea id="rf-notes" rows="2" placeholder="补充说明（选填）" class="input rounded-lg border px-3 py-2" style="width:100%;font-size:0.8125rem;border:1.5px solid #E5E7EB;outline:none;transition:border-color 0.15s;resize:vertical;"></textarea>
+      </div>
+
+      <div style="display:flex;gap:12px;justify-content:flex-end;">
+        <button type="button" id="recruit-form-cancel" style="padding:8px 20px;border-radius:10px;border:1.5px solid #E5E7EB;background:white;color:#6B7280;font-size:0.8125rem;font-weight:500;cursor:pointer;transition:all 0.15s;">取消</button>
+        <button type="submit" style="padding:8px 24px;border-radius:10px;border:none;background:#CE1126;color:white;font-size:0.8125rem;font-weight:600;cursor:pointer;transition:background 0.15s;">发布</button>
+      </div>
+    </form>
+  `;
+
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+
+  // 关闭按钮
+  panel.querySelector('#recruit-form-close').addEventListener('click', () => _closeRecruitForm());
+  panel.querySelector('#recruit-form-cancel').addEventListener('click', () => _closeRecruitForm());
+
+  // 输入框聚焦样式
+  panel.querySelectorAll('input, textarea, select').forEach(el => {
+    el.addEventListener('focus', function() { this.style.borderColor = '#CE1126'; });
+    el.addEventListener('blur', function() { this.style.borderColor = '#E5E7EB'; });
+  });
+
+  // 初始化 PersonPicker
+  const pickerContainer = panel.querySelector('#rf-members-picker');
+  _recruitPersonPicker = new PersonPicker({
+    mode: 'multi',
+    placeholder: '选择初始成员（选填）',
+    onSelect: () => {},
+  });
+  _recruitPersonPicker.render(pickerContainer);
+
+  // 表单提交
+  panel.querySelector('#recruit-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    _submitRecruitForm();
+  });
+}
+
+function _closeRecruitForm() {
+  if (_recruitPersonPicker) {
+    _recruitPersonPicker.destroy();
+    _recruitPersonPicker = null;
+  }
+  const overlay = document.getElementById('recruit-form-overlay');
+  if (overlay) overlay.remove();
+}
+
+function _submitRecruitForm() {
+  const name = document.getElementById('rf-name')?.value?.trim();
+  const task = document.getElementById('rf-task')?.value?.trim();
+  const capacity = parseInt(document.getElementById('rf-capacity')?.value, 10);
+  const deadline = document.getElementById('rf-deadline')?.value || '';
+  const skills = document.getElementById('rf-skills')?.value?.trim() || '';
+  const periodStart = document.getElementById('rf-period-start')?.value || '';
+  const periodEnd = document.getElementById('rf-period-end')?.value || '';
+  const activityId = document.getElementById('rf-activity')?.value || null;
+  const notes = document.getElementById('rf-notes')?.value?.trim() || '';
+
+  // 校验必填项
+  if (!name) { showToast('error', '请填写专班名称'); return; }
+  if (!task) { showToast('error', '请填写任务描述'); return; }
+  if (!capacity || capacity < 1) { showToast('error', '请填写有效的所需人数'); return; }
+  if (!deadline) { showToast('error', '请选择截止日期'); return; }
+
+  // 获取初始成员
+  const selectedIds = _recruitPersonPicker ? _recruitPersonPicker.getSelected() : [];
+  const members = selectedIds.map(pid => ({
+    personId: pid,
+    role: '深度参与者',
+    contributions: [],
+  }));
+
+  // 构建专班记录
+  const record = {
+    name,
+    task,
+    status: 'recruiting',
+    manager: 'p11',
+    initiator: 'p11',
+    members,
+    capacity,
+    deadline,
+    activityId: activityId || null,
+    createdAt: new Date().toISOString().slice(0, 10),
+  };
+
+  // 附加可选字段
+  if (skills) record.skills = skills;
+  if (periodStart && periodEnd) record.period = `${periodStart} ~ ${periodEnd}`;
+  if (notes) record.notes = notes;
+
+  try {
+    TaskForceRecordStore.add(record);
+    showToast('success', `专班「${name}」发布成功`);
+    _closeRecruitForm();
+    // 刷新看板
+    renderOrgUI(getAppState());
+  } catch (err) {
+    console.error('[recruit-form] 创建专班失败：', err);
+    showToast('error', '发布失败，请重试');
+  }
 }
 
 function _renderTrackingContent(activities) {
   const container = document.getElementById('org-tab-content');
   if (!container) return;
   const published = activities.filter(a => a.status === 'published' || a.status === 'ongoing');
+  const completed = activities.filter(a => a.status === 'completed');
   container.innerHTML = `
     <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#CE1126;">
       <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">活动追踪看板</h4>
@@ -185,6 +578,21 @@ function _renderTrackingContent(activities) {
         <input type="text" id="org-track-search" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索活动名称或类型...">
       </div>
       <div id="org-track-list"></div>
+      ${completed.length > 0 ? `
+      <details class="mt-4 pt-3 border-t border-gray-100">
+        <summary class="font-title-cn text-xs font-bold text-gray-500 cursor-pointer select-none">已归档 (${completed.length})</summary>
+        <div class="mt-2 space-y-2">
+          ${completed.map(a => `
+            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50">
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium text-gray-500 line-through">${a.title || '未命名'}</div>
+                <div class="text-xs text-gray-400 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
+              </div>
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">已归档</span>
+            </div>
+          `).join('')}
+        </div>
+      </details>` : ''}
     </div>
   `;
 
@@ -202,15 +610,133 @@ function _renderTrackingContent(activities) {
                 <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
                 <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}${a.location ? ' · ' + a.location : ''}</div>
               </div>
-              <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">已发布</span>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">已发布</span>
+                <button class="track-complete-btn text-[10px] px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors" data-act-id="${a.id}">确认完成</button>
+              </div>
             </div>
           `).join('')}
       </div>
     `;
+
+    // 绑定确认完成按钮
+    listEl.querySelectorAll('.track-complete-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const actId = btn.dataset.actId;
+        const activity = activities.find(a => a.id === actId);
+        if (!activity) return;
+        const confirmed = window.confirm(`确认完成活动「${activity.title || '未命名'}」？完成后将归档。`);
+        if (!confirmed) return;
+        BranchService.updateActivity(actId, { status: 'completed' });
+        showToast('success', `活动「${activity.title || '未命名'}」已完成并归档`);
+        renderOrgUI(getAppState());
+      });
+    });
   }
 
   document.getElementById('org-track-search')?.addEventListener('input', renderList);
   renderList();
+}
+
+// ── 合规文件引用渲染（P3-2：只读不可变，组织委员管理引用列表） ──
+function _renderComplianceContent() {
+  const container = document.getElementById('org-tab-content');
+  if (!container) return;
+
+  const COMPLIANCE_KEY = 'compliance_references';
+  let refs = JSON.parse(localStorage.getItem(COMPLIANCE_KEY) || '[]');
+
+  // 官方合规文件（只读不可变）
+  const officialDocs = [
+    { id: 'doc-11', title: '中国共产党章程', type: 'pdf', tag: '根本大法' },
+    { id: 'doc-12', title: '党支部工作规范（学生）', type: 'pdf', tag: '工作规范' },
+    { id: 'doc-14', title: '中国共产党党员教育管理工作条例', type: 'docx', tag: '教育管理' },
+    { id: 'doc-15', title: '中国共产党发展党员工作细则', type: 'docx', tag: '发展党员' },
+    { id: 'doc-16', title: '中国共产党普通高等学校基层组织工作条例', type: 'docx', tag: '高校党建' },
+    { id: 'doc-17', title: '中国共产党支部工作条例（试行）', type: 'docx', tag: '支部工作' },
+  ];
+
+  function saveRefs() {
+    localStorage.setItem(COMPLIANCE_KEY, JSON.stringify(refs));
+  }
+
+  function renderRefList() {
+    return refs.length === 0
+      ? '<p class="text-xs text-gray-400 text-center py-4">暂无引用记录</p>'
+      : refs.map((r, idx) => `
+          <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-gray-800">${r.docTitle || '未指定'}</div>
+              <div class="text-xs text-gray-500 mt-0.5">引用场景：${r.scene || '-'}</div>
+              ${r.note ? `<div class="text-xs text-gray-400 mt-0.5">备注：${r.note}</div>` : ''}
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600">${r.docTag || ''}</span>
+              <button class="ref-del-btn text-[10px] text-red-400 hover:text-red-600" data-idx="${idx}">移除</button>
+            </div>
+          </div>
+        `).join('');
+  }
+
+  container.innerHTML = `
+    <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#3B82F6;">
+      <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">合规文件引用管理</h4>
+      <p class="text-xs text-gray-500 mb-4">官方合规文件内容只读不可变，组织委员管理引用列表</p>
+
+      <div class="mb-4">
+        <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">官方合规文件（只读）</h5>
+        <div class="space-y-1.5">
+          ${officialDocs.map(d => `
+            <div class="flex items-center justify-between p-2.5 rounded-lg bg-gray-50/80 border border-gray-100">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-medium text-gray-700">${d.title}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">${d.type.toUpperCase()}</span>
+              </div>
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600">${d.tag}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-gray-100">
+        <div class="flex items-center justify-between mb-2">
+          <h5 class="font-title-cn text-xs font-bold text-gray-600">引用记录</h5>
+          <button id="btn-add-ref" class="text-[10px] px-2 py-1 rounded bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors">+ 添加引用</button>
+        </div>
+        <div id="compliance-ref-list" class="space-y-2">${renderRefList()}</div>
+      </div>
+    </div>
+  `;
+
+  // 添加引用
+  container.querySelector('#btn-add-ref')?.addEventListener('click', () => {
+    const docTitle = prompt('引用的合规文件名称：');
+    if (!docTitle) return;
+    const scene = prompt('引用场景（如：三会一课考勤规则依据）：') || '';
+    const note = prompt('备注（选填）：') || '';
+    const matchedDoc = officialDocs.find(d => d.title.includes(docTitle) || docTitle.includes(d.title));
+    refs.push({
+      docTitle,
+      docTag: matchedDoc ? matchedDoc.tag : '自定义',
+      scene,
+      note,
+      addedAt: new Date().toISOString().slice(0, 10),
+    });
+    saveRefs();
+    _renderComplianceContent();
+    showToast('success', '引用已添加');
+  });
+
+  // 移除引用
+  container.querySelectorAll('.ref-del-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx);
+      refs.splice(idx, 1);
+      saveRefs();
+      _renderComplianceContent();
+      showToast('success', '引用已移除');
+    });
+  });
 }
 
 registerRenderCallback(renderOrgUI);

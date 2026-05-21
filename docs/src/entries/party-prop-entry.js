@@ -10,6 +10,7 @@ renderHeader('party');
 
 const savedState = CrossPageState.load();
 AuthStore.setActiveRole('party', savedState.selectedRole || 'prop-commissioner');
+if (savedState.stance) AuthStore.setPrimaryRole(savedState.stance);
 ViewModeStore.setMode('party', 'manage');
 
 const accent = '#10B981';

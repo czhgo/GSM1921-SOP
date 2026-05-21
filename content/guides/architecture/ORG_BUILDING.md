@@ -1,13 +1,8 @@
 ---
 title: "党务管理独立模块架构规划"
 type: architecture
-audience:
-  - 支委会
-  - AI Agent 开发者
-  - 项目维护者
-owner: "支委会"
 role: "[人机]"
-last_updated: "2026-05-04"
+last_updated: "2026-05-21"
 status: active
 related_files:
   - CLAUDE.md
@@ -36,7 +31,7 @@ related_files:
 
 | 域 | 对应模块 | 核心职责 |
 |----|---------|---------|
-| **党建工作** | 党建工作台 | 主题党日、三会一课、民主评议、换届选举、发展党员、组织生活会、专班管理 |
+| **党建工作** | 党建工作台 | 主题党日、三会一课（支部党员大会/支委会/党小组会/党课）、民主评议、换届选举、发展党员、专班管理 |
 | **党务工作** | 党务管理模块（本模块） | 制度修订、职责分工、意见反馈、合规审查、文档规范、定岗定责 |
 
 此双域分类与 [ARCHITECTURE.md](file:///d:/GitHub/GSM1921-SOP/ARCHITECTURE.md#L20-L31) 中定义的领域模型一致。党建工作台承载"党建工作"域，党务管理模块承载"党务工作"域。
@@ -76,7 +71,7 @@ related_files:
 
 ### 1.4 引用渲染机制
 
-党务管理模块在展示 `content/references/` 下的官方文件（如党章、发展党员工作细则、纪律处分条例）时，遵循 [ROLE_CLASSIFICATION.md 引用渲染机制](file:///d:/GitHub/GSM1921-SOP/content/guides/governance/ROLE_CLASSIFICATION.md#L135-L145)：
+党务管理模块在展示 `content/references/` 下的合规文件（如党章、发展党员工作细则、纪律处分条例）时，遵循 [ROLE_CLASSIFICATION.md 引用渲染机制](file:///d:/GitHub/GSM1921-SOP/content/guides/governance/ROLE_CLASSIFICATION.md#L135-L145)：
 
 - AI 可读取 `content/references/` 下的 [人] 角色文件内容
 - 将内容渲染到 HTML 界面的只读展示区（如"合规文件"面板）
@@ -282,7 +277,7 @@ related_files:
 
 ### 4.3 与模板资产的模板引用
 
-党务管理模块涉及的模板（从 `content/references/模板库/` 引用）：
+党务管理模块涉及的模板（从 `content/references/工作模板/` 引用）：
 
 - 入党申请书模板
 - 思想汇报模板
@@ -300,7 +295,7 @@ ROLE_CLASSIFICATION.md                  党务管理模块
 │ 引用渲染机制              │        │ 合规文件展示区         │
 │                          │        │                      │
 │ AI 可读取 [人] 文件       │ ────→  │ AI 读取 content/     │
-│ 渲染到只读展示区          │        │ references/ 官方文件  │
+│ 渲染到只读展示区          │        │ references/ 合规文件  │
 │ 源文件不可变              │        │ 渲染到 .card 面板     │
 │ 文件变更自动同步          │        │ 标注"只读引用"水印    │
 └──────────────────────────┘        └──────────────────────┘

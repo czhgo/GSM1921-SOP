@@ -11,6 +11,7 @@ renderHeader('party');
 
 const savedState = CrossPageState.load();
 AuthStore.setActiveRole('party', savedState.selectedRole || 'secretary');
+if (savedState.stance) AuthStore.setPrimaryRole(savedState.stance);
 ViewModeStore.setMode('party', 'manage');
 
 const accent = '#7A0010';
