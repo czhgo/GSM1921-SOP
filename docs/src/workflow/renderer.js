@@ -10,8 +10,6 @@ import {
   THEME_PARTY_DAY_DEFINITION,
   SHORT_TERM_DEFINITION,
   LONG_TERM_DEFINITION,
-  SHORT_TERM_BRAND_DEFINITION,
-  LONG_TERM_BRAND_DEFINITION,
   DEFINITION_META,
   getDefinition,
 } from './definitions.js';
@@ -21,8 +19,6 @@ const TEMPLATE_REGISTRY = {
   'theme-party-day': THEME_PARTY_DAY_DEFINITION,
   'short-term': SHORT_TERM_DEFINITION,
   'long-term': LONG_TERM_DEFINITION,
-  'short-term-brand': SHORT_TERM_BRAND_DEFINITION,
-  'long-term-brand': LONG_TERM_BRAND_DEFINITION,
 };
 
 // ════════════════════════════════════════════════════════════════
@@ -550,20 +546,6 @@ const MOCK_EVENT_CHAINS = {
     { type: 'APPROVE', target: 'APPROVED' },
     { type: 'SUBMIT', target: 'GROUP_FORMING' },
     { type: 'SUBMIT', target: 'IN_PROGRESS' },
-  ],
-  'short-term-brand': [
-    { type: 'INIT', target: 'DRAFT' },
-    { type: 'SUBMIT', target: 'PENDING_LEADER' },
-    { type: 'APPROVE', target: 'APPROVED' },
-    { type: 'SUBMIT', target: 'PREPARING' },
-    { type: 'SUBMIT', target: 'IN_PROGRESS' },
-    { type: 'COMPLETE', target: 'COMPLETED' },
-  ],
-  'long-term-brand': [
-    { type: 'INIT', target: 'POSITIONING' },
-    { type: 'SUBMIT', target: 'PENDING_LEADER' },
-    { type: 'APPROVE', target: 'APPROVED' },
-    { type: 'SUBMIT', target: 'PROTOTYPE' },
   ],
 };
 

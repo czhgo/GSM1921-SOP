@@ -1,62 +1,19 @@
+import { renderTabBar } from '../components/tab-bar.js';
 import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
 import { BranchService } from '../services/runtime.js';
 import { showToast } from '../core/utils.js';
-import { CrossPageState } from '../core/cross-page-state.js';
-import { renderSidebar } from '../components/sidebar.js';
-import { renderHeader } from '../components/header.js';
-import { ViewModeStore, AuthStore } from '../services/auth.js';
-import { ATTENDANCE_RECORDS, attendanceToLong, INSPECTION_RECORDS, inspectionToLong, ACTIVITIES, PEOPLE, MOCK_TASKFORCES } from '../mock/index.js';
+import { bootstrapPage } from '../core/bootstrap.js';
+import { loadWorkspaceData } from '../core/data-loader.js';
+import { attendanceToLong, inspectionToLong, ACTIVITIES, PEOPLE, MOCK_TASKFORCES } from '../mock/index.js';
 import { PersonPicker } from '../components/person-picker.js';
-import { sopDatabase } from '../workflow/sopData.js';
-import { instantiateSOP } from '../workflow/sop.js';
-import { renderWorkflow } from '../workflow/renderer.js';
+import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, SOURCE_TYPE_LABELS, ParticipationLevel } from '../core/domain.js';
+import { saveDB } from '../services/mock.js';
+import { loadMakeupTasks } from '../services/makeup.js';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js';
+import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js';
 
-renderSidebar('workspace');
-renderHeader('workspace');
-
-const savedState = CrossPageState.load();
-AuthStore.setActiveRole('workspace', savedState.selectedRole || 'leader');
-if (savedState.stance) AuthStore.setPrimaryRole(savedState.stance);
-ViewModeStore.setMode('workspace', 'manage');
-
-const accent = '#CE1126';
-const accentRgba = 'rgba(206,17,38,0.1)';
-const accentBorder = 'rgba(206,17,38,0.3)';
-
-// ── localStorage 辅助函数 ──────────────────────────────────────
-function _loadAttendanceRecords() {
-  try {
-    const raw = localStorage.getItem('attendance_records');
-    if (raw) return JSON.parse(raw);
-  } catch (e) { console.warn('[ws-leader] load attendance_records error', e); }
-  return null;
-}
-
-function _saveAttendanceRecords(records) {
-  localStorage.setItem('attendance_records', JSON.stringify(records));
-}
-
-function _getAttendanceRecords() {
-  const stored = _loadAttendanceRecords();
-  return stored && stored.length > 0 ? stored : [...ATTENDANCE_RECORDS];
-}
-
-function _loadInspectionRecords() {
-  try {
-    const raw = localStorage.getItem('inspection_records');
-    if (raw) return JSON.parse(raw);
-  } catch (e) { console.warn('[ws-leader] load inspection_records error', e); }
-  return null;
-}
-
-function _saveInspectionRecords(records) {
-  localStorage.setItem('inspection_records', JSON.stringify(records));
-}
-
-function _getInspectionRecords() {
-  const stored = _loadInspectionRecords();
-  return stored && stored.length > 0 ? stored : [...INSPECTION_RECORDS];
-}
+const { savedState, accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', defaultRole: 'leader', viewMode: 'manage', accentRole: 'leader' });
 
 // ── 表单状态 ──────────────────────────────────────────────────
 let _attFormVisible = false;
@@ -69,19 +26,6 @@ const LEADER_GROUP_MAP = {
   'p4': '第三党小组',  // 赵六（第三党小组组长）
   'p6': '第一党小组',  // 孙八（第一党小组组长）
 };
-
-// ── 补课任务数据层（只读） ────────────────────────────────────
-const MAKEUP_STORAGE_KEY = 'makeup_tasks';
-
-function _loadMakeupTasks() {
-  try {
-    const raw = localStorage.getItem(MAKEUP_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    console.warn('[ws-leader] 读取补课任务失败', e);
-    return [];
-  }
-}
 
 function _filterByRole(state, role) {
   const activities = (state.activities || []).filter(a => {
@@ -105,29 +49,21 @@ function renderLeaderUI(state) {
   const filteredState = _filterByRole(state, 'leader');
   const filteredActivities = filteredState.activities || [];
 
-  container.innerHTML = `
-    <div class="flex gap-2 mb-4">
-      <button class="leader-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-leader-tab="write" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">活动写入</button>
-      <button class="leader-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-leader-tab="attendance" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">考勤上传</button>
-      <button class="leader-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-leader-tab="inspection" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">考察上传</button>
-    </div>
-    <div id="leader-tab-content"></div>
-  `;
-
-  container.querySelectorAll('.leader-tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      container.querySelectorAll('.leader-tab-btn').forEach(b => {
-        b.style.background = 'white'; b.style.color = '#6B7280'; b.style.border = '1px solid #E5E7EB';
-      });
-      btn.style.background = accentRgba; btn.style.color = accent; btn.style.border = `1px solid ${accentBorder}`;
-      const tab = btn.dataset.leaderTab;
-      if (tab === 'write') _renderWriteContent(filteredActivities);
-      else if (tab === 'attendance') _renderAttendanceContent();
-      else if (tab === 'inspection') _renderInspectionContent();
-    });
+  const tabBar = renderTabBar({
+    prefix: 'leader',
+    tabs: [
+      { id: 'write', label: '活动写入', render: (ctx) => _renderWriteContent(ctx.filteredActivities) },
+      { id: 'attendance', label: '考勤上传', render: () => _renderAttendanceContent() },
+      { id: 'inspection', label: '考察上传', render: () => _renderInspectionContent() },
+    ],
+    accentColor: { accent, accentRgba, accentBorder },
+    renderCtx: { filteredActivities },
   });
 
-  _renderWriteContent(filteredActivities);
+  container.innerHTML = tabBar.html;
+
+  tabBar.bindEvents(container);
+  tabBar.activate('write');
 }
 
 // ── 决策树配置 ──────────────────────────────────────────────────
@@ -254,7 +190,6 @@ function _renderWriteContent(activities) {
   _bindDecisionTreeEvents(container);
 
   // ── 活动点击展开详情+子记录（P3-4） ──
-  const ACT_SUB_KEY = 'act_sub_records';
   container.querySelectorAll('.leader-act-item').forEach(item => {
     item.addEventListener('click', () => {
       const actId = item.dataset.actId;
@@ -264,12 +199,11 @@ function _renderWriteContent(activities) {
       if (!detailPanel) return;
       detailPanel.classList.remove('hidden');
 
-      let subRecords = JSON.parse(localStorage.getItem(ACT_SUB_KEY) || '{}');
-      const actSubs = subRecords[actId] || { attendance: [], inspection: [], publicity: [], materials: [] };
+      const actSubs = (mockDB.actSubRecords && mockDB.actSubRecords[actId]) || { attendance: [], inspection: [], publicity: [], materials: [] };
 
       function saveActSubs() {
-        subRecords[actId] = actSubs;
-        localStorage.setItem(ACT_SUB_KEY, JSON.stringify(subRecords));
+        mockDB.actSubRecords = { ...mockDB.actSubRecords, [actId]: actSubs };
+        saveDB();
       }
 
       function renderActSubTable(type, items) {
@@ -701,7 +635,7 @@ function _renderAttendanceContent() {
   // 清理旧的 PersonPicker 实例
   if (_attPickerInstance) { _attPickerInstance.destroy(); _attPickerInstance = null; }
 
-  const allRecords = _getAttendanceRecords();
+  const allRecords = loadAttendanceRecords();
   const myAttendance = allRecords.filter(r => r.activityId && ACTIVITIES.find(a => a.id === r.activityId)?.type === '党小组');
 
   // 筛选三会一课和主题党日活动
@@ -714,7 +648,7 @@ function _renderAttendanceContent() {
   const myGroup = LEADER_GROUP_MAP[currentLeaderId] || '';
   const myGroupMembers = PEOPLE.filter(p => p.partyGroup === myGroup);
   const myGroupMemberIds = myGroupMembers.map(p => p.id);
-  const makeupTasks = _loadMakeupTasks();
+  const makeupTasks = loadMakeupTasks();
   const myGroupMakeupTasks = makeupTasks.filter(t =>
     myGroupMemberIds.includes(t.personId) && t.status !== 'completed'
   );
@@ -763,7 +697,7 @@ function _renderAttendanceContent() {
             <tr class="border-b border-gray-50 hover:bg-gray-50">
               <td class="py-2 px-3 font-medium text-gray-800">${a.name}</td>
               <td class="py-2 px-3 text-gray-600">${a.activity}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${a.status === '出勤' ? 'bg-green-100 text-green-700' : a.status === '缺勤' ? 'bg-red-100 text-red-700' : a.status === '已补' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${a.status}</span></td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${a.status === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.status === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${ATTENDANCE_STATUS_LABELS[a.status] || a.status}</span></td>
               <td class="py-2 px-3 text-gray-500">${a.confirmer === '—' ? '<span class="text-amber-600">待确认</span>' : '<span class="text-green-600">已确认</span>'}</td>
             </tr>
           `).join('')}</tbody>
@@ -818,6 +752,7 @@ function _initAttForm(container, eligibleActivities) {
     _attPickerInstance = new PersonPicker({
       mode: 'multi',
       placeholder: '选择参会人员',
+      accentColor: '#CE1126',
       onSelect: (ids) => {
         _renderAttStatusRows(ids);
       }
@@ -847,7 +782,7 @@ function _initAttForm(container, eligibleActivities) {
     const records = [];
     for (const personId of selectedIds) {
       const statusEl = container.querySelector(`#att-status-${personId}`);
-      const status = statusEl ? statusEl.value : '出勤';
+      const status = statusEl ? statusEl.value : AttendanceStatus.PRESENT;
       records.push({
         id: 'att_' + Date.now() + '_' + personId,
         personId,
@@ -858,13 +793,13 @@ function _initAttForm(container, eligibleActivities) {
       });
     }
 
-    // 写入 localStorage
-    const allRecords = _getAttendanceRecords();
+    // 写入 mockDB
+    const allRecords = loadAttendanceRecords();
     allRecords.push(...records);
-    _saveAttendanceRecords(allRecords);
+    saveAttendanceRecords(allRecords);
 
     // 检查本组是否有缺勤人员
-    const absentCount = records.filter(r => r.status === '缺勤' || r.status === '请假').length;
+    const absentCount = records.filter(r => r.status === AttendanceStatus.ABSENT || r.status === AttendanceStatus.LEAVE).length;
     const baseMsg = `考勤上传成功，共 ${records.length} 条记录，等待纪检委员确认`;
     if (absentCount > 0) {
       showToast('success', `${baseMsg}。本组有 ${absentCount} 人缺勤，已生成补课任务`);
@@ -898,9 +833,9 @@ function _renderAttStatusRows(selectedIds) {
           <div class="flex items-center gap-3 p-2 rounded-lg bg-gray-50">
             <span class="text-sm font-medium text-gray-800 min-w-[60px]">${name}</span>
             <select id="att-status-${pid}" class="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-red-300">
-              <option value="出勤">出勤</option>
-              <option value="缺勤">缺勤</option>
-              <option value="请假">请假</option>
+              <option value="${AttendanceStatus.PRESENT}">出勤</option>
+              <option value="${AttendanceStatus.ABSENT}">缺勤</option>
+              <option value="${AttendanceStatus.LEAVE}">请假</option>
             </select>
           </div>
         `;
@@ -916,8 +851,8 @@ function _renderInspectionContent() {
   // 清理旧的 PersonPicker 实例
   if (_inspPickerInstance) { _inspPickerInstance.destroy(); _inspPickerInstance = null; }
 
-  const allRecords = _getInspectionRecords();
-  const myInspection = allRecords.filter(r => r.tag === '党小组');
+  const allRecords = loadInspectionRecords();
+  const myInspection = allRecords.filter(r => r.sourceType === SourceType.ACTIVITY);
 
   // 来源类型选项
   const sourceActivities = ACTIVITIES.filter(a =>
@@ -976,8 +911,8 @@ function _renderInspectionContent() {
             <tr class="border-b border-gray-50 hover:bg-gray-50">
               <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
               <td class="py-2 px-3 text-gray-600">${i.source}</td>
-              <td class="py-2 px-3 text-gray-600">${i.content}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${i.status === '已确认' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${i.status}</span></td>
+              <td class="py-2 px-3 text-gray-600">${i.role}</td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
             </tr>
           `).join('')}</tbody>
         </table>
@@ -1005,6 +940,7 @@ function _initInspForm(container, sourceActivities, sourceTaskforces) {
     _inspPickerInstance = new PersonPicker({
       mode: 'multi',
       placeholder: '选择人员',
+      accentColor: '#CE1126',
       onSelect: (ids) => {
         _renderInspContentRows(ids);
       }
@@ -1063,26 +999,24 @@ function _initInspForm(container, sourceActivities, sourceTaskforces) {
 
       const record = {
         id: 'insp_' + Date.now() + '_' + personId,
+        sourceType: sourceType === 'activity' ? SourceType.ACTIVITY : SourceType.TASKFORCE,
+        activityId: sourceType === 'activity' ? sourceId : null,
+        sourceName: sourceType === 'activity' ? null : (sourceOption?.dataset.name || sourceId),
         personId,
-        tag,
-        content,
-        status: '待确认',
+        level: ParticipationLevel.ORGANIZE, // 默认组织层级，可由用户选择
+        role: content,
+        recordedBy: 'u_exec',
+        recordedAt: new Date().toISOString(),
+        status: 'pending',
       };
-
-      if (sourceType === 'activity') {
-        record.activityId = sourceId;
-      } else {
-        record.sourceType = 'taskforce';
-        record.sourceName = sourceOption?.dataset.name || sourceId;
-      }
 
       records.push(record);
     }
 
-    // 写入 localStorage
-    const allRecords = _getInspectionRecords();
+    // 写入 mockDB
+    const allRecords = loadInspectionRecords();
     allRecords.push(...records);
-    _saveInspectionRecords(allRecords);
+    saveInspectionRecords(allRecords);
 
     showToast('success', `考察上传成功，共 ${records.length} 条记录，等待纪检委员确认`);
 
@@ -1121,14 +1055,4 @@ function _renderInspContentRows(selectedIds) {
 
 registerRenderCallback(renderLeaderUI);
 
-(async function init() {
-  try { if (typeof BranchService.loadDB === 'function') BranchService.loadDB(); } catch (e) { console.warn('[ws-leader] loadDB error', e); }
-  setState({ domain: 'activity', role: 'leader', activeModule: 'workspace', status: STATE.LOADING, selectedRole: 'leader' });
-  try {
-    const activities = await BranchService.listActivities();
-    setState({ status: STATE.IDLE, activities });
-  } catch (err) {
-    console.warn('[ws-leader] load failed', err);
-    setState({ status: STATE.IDLE, activities: ACTIVITIES.map(a => ({ ...a, visibility: 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() })) });
-  }
-}());
+loadWorkspaceData({ role: 'leader', fallbackData: () => ACTIVITIES, logTag: 'ws-leader' });

@@ -1,0 +1,17 @@
+// role: [人机]
+// ════════════════════════════════════════════════════════════════
+//  attendance.js — 考勤记录 CRUD 服务
+// ════════════════════════════════════════════════════════════════
+
+import { mockDB } from '../core/domain.js';
+import { saveDB } from '../services/mock.js';
+import { ATTENDANCE_RECORDS } from '../mock/index.js';
+
+export function loadAttendanceRecords() {
+  return mockDB.attendances.length > 0 ? [...mockDB.attendances] : [...ATTENDANCE_RECORDS];
+}
+
+export function saveAttendanceRecords(records) {
+  mockDB.attendances = [...records];
+  saveDB();
+}

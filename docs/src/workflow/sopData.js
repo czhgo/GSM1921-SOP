@@ -22,7 +22,7 @@ export const sopDatabase = {
         { taskId: '1a-6d', title: '组长总结',            executor: 'leader',           supervisor: null,         timeOffset:  0, desc: '块块组长做总结发言，对本次组织生活会进行回顾与总结。' },
         { taskId: '1a-6b', title: '摄影留存宣传底稿',   executor: 'leader',           supervisor: null,         timeOffset:  3, desc: '现场主持的党小组长负责摄影留存，形成宣传底稿（照片+简要文字记录），提交宣传委员备用。 - Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议' },
         { taskId: '1a-7b', title: '后台考勤汇总',       executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  3, desc: '纪检委员在后台考勤小程序中统一汇总出勤数据，字段含：姓名、学号、发展阶段、所属党小组；导出后提交宣传委员归档。 - Source: knowledge/SOP/纪检委员工作流程指南.md#二考勤管理三会一课' },
-        { taskId: '1a-7c', title: '活动参与三层记录',   executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  3, desc: '现场记录组织/深度参与/出勤三层角色；活动后在后台考勤汇总时（T+3）与组织者确认人员名单及分层，整理为参与记录草稿，供月底汇总使用。 - Source: 纪检委员工作流程指南 §1.3「活动参与三层记录规范」' },
+        { taskId: '1a-7c', title: '活动参与三层记录',   executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  3, desc: '现场记录组织/深度参与/出勤三层角色；活动后在后台考勤汇总时（T+3）与组织者确认人员名单及分层，整理为考察记录草稿，供月底汇总使用。 - Source: 纪检委员工作流程指南 §1.3「活动参与三层记录规范」' },
         { taskId: '1a-8', title: '汇总组织生活会记录',  executor: 'leader',           supervisor: null,         timeOffset:  5, desc: '党小组组长会后收集过去一年承担较多工作的骨干同志的检查材料，与图片汇总整理形成完整的组织生活会记录（含述职摘要+对照检查材料精选）。 - Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议' },
         { taskId: '1a-9', title: '档案归档',            executor: 'prop-commissioner',supervisor: 'leader',     timeOffset:  5, desc: '宣传委员归档会议材料（组织生活会记录），上传智慧党建平台，T+5天完成。是否发布推文由宣传委员自由裁量。' },
         { taskId: '1a-10', title: '补课安排跟进',       executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  7, desc: '对请假/缺勤人员事后1周内（T+7）安排补课并跟踪完成；特殊情况可延至T+14，须在备注中标注。 - Source: 纪检委员工作流程指南 §1.3「补课跟进机制」' },
@@ -30,9 +30,9 @@ export const sopDatabase = {
     },
     {
       scenarioId: 'theme-party', title: '【党建工作】党小组主题党日活动',
-      domain: 'activity', description: '弹性考勤 · 全体支部成员可参与（支持标记是否为品牌活动）',
+      domain: 'activity', description: '弹性考勤 · 全体支部成员可参与',
       tasks: [
-        { taskId: '1b-1', title: '活动发起',              executor: 'organizer',        supervisor: 'leader',     timeOffset: -7, desc: '策划活动方案，确定路径 a（有品牌活动，块块组长主导招募）或路径 b（无现成活动，策划参与成本低且有组织效应的活动）。' },
+        { taskId: '1b-1', title: '活动发起',              executor: 'organizer',        supervisor: 'leader',     timeOffset: -7, desc: '策划活动方案，确定路径 a（有现成活动方向，块块组长主导招募）或路径 b（无现成活动，策划参与成本低且有组织效应的活动）。' },
         { taskId: '1b-2', title: '组长审批',              executor: 'leader',           supervisor: null,         timeOffset: -7, desc: '必须报块块组长审批同意后方可推进。组长评估活动是否符合党支部组织意图，以及资源与时间是否可行。' },
         { taskId: '1b-3', title: '联系条条委员',          executor: 'organizer',        supervisor: 'leader',     timeOffset: -7, desc: '按需联系组织委员（通知）、宣传委员（宣传指导）、纪检委员（考勤督办），说明活动计划与需求。' },
         { taskId: '1b-4', title: '发布活动通知',          executor: 'leader',           supervisor: null,         timeOffset: -2, desc: '块块组长通过党小组群发布本组活动通知；外出活动提前2天完成建群并确保所有人员到位。' },
@@ -61,7 +61,7 @@ export const sopDatabase = {
         { taskId: '1c-6c', title: '互相批评',            executor: 'all',              supervisor: null,         timeOffset:  0, desc: '开展批评与自我批评，要有辣味，直指问题。' },
         { taskId: '1c-6d', title: '组长总结',            executor: 'leader',           supervisor: null,         timeOffset:  0, desc: '块块组长做总结发言，对本次支部党员大会进行回顾与总结。' },
         { taskId: '1c-7b', title: '后台考勤汇总',       executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  3, desc: '纪检委员在后台考勤小程序中统一汇总出勤数据，字段含：姓名、学号、发展阶段、所属党小组；导出后提交宣传委员归档。' },
-        { taskId: '1c-7c', title: '活动参与三层记录',   executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  3, desc: '现场记录组织/深度参与/出勤三层角色；活动后在后台考勤汇总时（T+3）与组织者确认人员名单及分层，整理为参与记录草稿，供月底汇总使用。' },
+        { taskId: '1c-7c', title: '活动参与三层记录',   executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  3, desc: '现场记录组织/深度参与/出勤三层角色；活动后在后台考勤汇总时（T+3）与组织者确认人员名单及分层，整理为考察记录草稿，供月底汇总使用。' },
         { taskId: '1c-9', title: '宣传推文+配图',        executor: 'prop-commissioner',supervisor: 'leader',     timeOffset:  5, desc: '宣传委员负责撰写宣传推文并配图，T+5天完成，上传智慧党建平台。' },
         { taskId: '1c-9b', title: '党支部工作记录',     executor: 'prop-commissioner',supervisor: 'leader',     timeOffset:  5, desc: '宣传委员整理党支部工作记录（极简），归档备查，T+5天完成。' },
         { taskId: '1c-10', title: '补课安排跟进',       executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  7, desc: '对请假/缺勤人员事后1周内（T+7）安排补课并跟踪完成；特殊情况可延至T+14，须在备注中标注。' },
@@ -83,7 +83,7 @@ export const sopDatabase = {
         { taskId: '1d-6d', title: '组长总结',            executor: 'leader',           supervisor: null,         timeOffset:  0, desc: '块块组长做总结发言，对本次党小组会进行回顾与总结。' },
         { taskId: '1d-6b', title: '摄影留存宣传底稿',   executor: 'leader',           supervisor: null,         timeOffset:  3, desc: '现场主持的党小组长负责摄影留存，形成宣传底稿（照片+简要文字记录），提交宣传委员备用。' },
         { taskId: '1d-7b', title: '后台考勤汇总',       executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  3, desc: '纪检委员在后台考勤小程序中统一汇总出勤数据，字段含：姓名、学号、发展阶段、所属党小组；导出后提交宣传委员归档。' },
-        { taskId: '1d-7c', title: '活动参与三层记录',   executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  3, desc: '现场记录组织/深度参与/出勤三层角色；活动后在后台考勤汇总时（T+3）与组织者确认人员名单及分层，整理为参与记录草稿，供月底汇总使用。' },
+        { taskId: '1d-7c', title: '活动参与三层记录',   executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  3, desc: '现场记录组织/深度参与/出勤三层角色；活动后在后台考勤汇总时（T+3）与组织者确认人员名单及分层，整理为考察记录草稿，供月底汇总使用。' },
         { taskId: '1d-8', title: '汇总党小组会记录',  executor: 'leader',           supervisor: null,         timeOffset:  5, desc: '党小组组长会后收集过去一年承担较多工作的骨干同志的检查材料，与图片汇总整理形成完整的党小组会记录（含述职摘要+对照检查材料精选）。' },
         { taskId: '1d-9', title: '档案归档',            executor: 'prop-commissioner',supervisor: 'leader',     timeOffset:  5, desc: '宣传委员归档会议材料（党小组会记录），上传智慧党建平台，T+5天完成。' },
         { taskId: '1d-10', title: '补课安排跟进',       executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  7, desc: '对请假/缺勤人员事后1周内（T+7）安排补课并跟踪完成；特殊情况可延至T+14，须在备注中标注。' },
@@ -119,16 +119,7 @@ export const sopDatabase = {
         { taskId: '4-4', title: '活动实施',             executor: 'organizer',        supervisor: 'leader',     timeOffset: null },
       ],
     },
-    {
-      scenarioId: 'brand-activity', title: '【党建工作】品牌活动',
-      domain: 'activity', description: '主题党日子类 · 由组织者指定是否为品牌活动，网页支持标记',
-      tasks: [
-        { taskId: '8-1', title: '明确定位与设计方案',   executor: 'organizer',        supervisor: 'leader',     timeOffset: null },
-        { taskId: '8-2', title: '锁定 Who/What/How',   executor: 'organizer',        supervisor: 'leader',     timeOffset: null },
-        { taskId: '8-3', title: '试点实施与迭代优化',   executor: 'organizer',        supervisor: 'leader',     timeOffset: null },
-        { taskId: '8-4', title: '总结与持续跟进',       executor: 'organizer',        supervisor: 'leader',     timeOffset: null },
-      ],
-    },
+
     {
       scenarioId: 'new-system', title: '【党务工作】制度制定与迭代',
       domain: 'organization', description: '主导角色：条条委员',

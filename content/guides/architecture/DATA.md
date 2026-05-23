@@ -1,6 +1,6 @@
 ---
 role: "[人机]"
-last_updated: "2026-05-20"
+last_updated: "2026-05-22"
 ---
 
 # 数据架构与权限模型
@@ -51,7 +51,7 @@ last_updated: "2026-05-20"
 | targetDate | string (ISO) | 否 | -- | 目标日期 T-0（兼容旧字段） |
 | attendanceQROwner | `'leader'\|'disc-commissioner'` | 否 | -- | 考勤二维码发布方 |
 | deliverableIds | string[] | 否 | -- | 关联交付物 ID 列表 |
-| isBrand | boolean | 否 | `false` | 品牌活动标记（由书记操作认定） |
+| isBrand | boolean | 否 | `false` | 品牌属性标签（由书记认定，不影响工作流选择） |
 
 **活动状态枚举：**
 
@@ -301,7 +301,6 @@ assignedRoles: Array<{
 | `party-group-meeting` | 党小组会 | activity | 刚性考勤 |
 | `party-lecture` | 党课 | activity | 刚性考勤 |
 | `joint-event` | 团支部合办活动 | activity | 党小组主导 |
-| `brand-activity` | 党小组品牌党建工作 | activity | 主题党日子类 |
 | `new-system` | 制度制定与迭代 | organization | -- |
 | `develop-activist` | 考察积极分子 | organization | -- |
 | `info-platform` | 信息平台支持 | organization | -- |
@@ -332,38 +331,30 @@ assignedRoles: Array<{
 | GROUP_FORMING | 组建活动小组 | 组建 | 拆分活动小组，招募组织者+深度参与者 |
 | SYNCING | 组织层同步 | 协调 | 内容同步 + 考勤考察 + 协调层运作 |
 
-**品牌活动专用状态（本轮搁置）：**
-
-| 状态名 | 中文标签 | 说明 |
-|---|---|---|
-| POSITIONING | 定位设计 | 品牌定位与方案设计 |
-| PROTOTYPE | 试点实施 | 小范围试点 |
-| ITERATING | 迭代优化 | 持续改进 |
-| ESTABLISHED | 成熟运营 | 稳定运行 |
-| CERTIFICATION_PENDING | 待认证 | 申请品牌认证 |
-| CERTIFIED | 已认证 | 通过认证 |
-
-**活动三维度分类：**
+**活动分类维度：**
 
 | 维度 | 值 | 说明 |
 |---|---|---|
 | duration | `short-term` | 一次性完成（参访、线下学习等） |
 | duration | `long-term` | 长期打磨/多小组同步推进 |
-| brand | `true` | 品牌活动（本轮搁置） |
-| brand | `false` | 普通日常活动 |
 | direction | `bottom-up` | 自下而上：党小组/成员自发创造性活动 |
 | direction | `top-down` | 自上而下：支委/书记布置的任务 |
 | direction | `either` | 两种发起方式均可 |
 
-**5 套工作流定义模板：**
+**活动属性标签：**
 
-| 定义 ID | 标题 | duration | brand | 状态数 | 状态 |
-|---|---|---|---|---|---|
-| `theme-party-day` | 主题党日活动 | short-term | false | 7 | active |
-| `short-term` | 短期活动 | short-term | false | 7 | active |
-| `long-term` | 长期活动 | long-term | false | 9 | active |
-| `short-term-brand` | 短期品牌活动 | short-term | true | 9 | suspended |
-| `long-term-brand` | 长期品牌活动 | long-term | true | 9 | suspended |
+| 属性 | 值 | 说明 |
+|---|---|---|
+| isBrand | `true` | 品牌活动（由书记认定标记，不影响工作流选择） |
+| isBrand | `false` | 普通日常活动 |
+
+**3 套工作流定义模板：**
+
+| 定义 ID | 标题 | duration | 状态数 | 状态 |
+|---|---|---|---|---|
+| `theme-party-day` | 主题党日活动 | short-term | 7 | active |
+| `short-term` | 短期活动 | short-term | 7 | active |
+| `long-term` | 长期活动 | long-term | 9 | active |
 
 ---
 
@@ -413,17 +404,69 @@ assignedRoles: Array<{
 
 ### 3.2 localStorage 持久化
 
+> **统一全量键架构**（D-197 TAX-5）：所有业务数据通过单一全量键 `workflowos_branch_db_v1` 持久化，消除双重存储与同步断裂风险。
+
+#### 3.2.1 业务数据全量键
+
 | 键名 | 存储内容 | 格式 | 读写位置 |
 |---|---|---|---|
-| `workflowos_branch_db_v1` | 完整 mockDB 状态 | JSON: `{ _schema, users, activities, tasks, attendances, deliverables }` | [services/mock.js](file:///d:/GitHub/GSM1921-SOP/docs/src/services/mock.js#L14) |
-| `sop_org_os_assigned_roles` | 赋权记录列表 | JSON: `Array<{name, role, activity}>` | 已整合至各 entry 文件 |
+| `workflowos_branch_db_v1` | 完整 mockDB 状态（全量序列化） | JSON（见下方字段清单） | [services/mock.js](file:///d:/GitHub/GSM1921-SOP/docs/src/services/mock.js#L29) |
+
+**全量键字段清单**（`saveDB()` 序列化的完整字段）：
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `_schema` | number | Schema 版本号，当前值为 1 |
+| `users` | User[] | 静态预设用户（持久化但不从存储恢复，避免运行时污染） |
+| `activities` | ActivityRecord[] | 活动记录 |
+| `tasks` | Task[] | 任务记录 |
+| `attendances` | AttendanceRecord[] | 考勤记录 |
+| `deliverables` | Deliverable[] | 交付物记录 |
+| `inspections` | InspectionRecord[] | 考察记录 |
+| `assignments` | AssignmentRecord[] | 分工记录 |
+| `handovers` | HandoverRecord[] | 交接记录 |
+| `makeupTasks` | MakeupTask[] | 补课任务 |
+| `actSubRecords` | Object | 活动子记录（按活动 ID 索引） |
+| `tfSubRecords` | Object | 专班子记录（按专班 ID 索引） |
+| `complianceReferences` | ComplianceReference[] | 合规文件引用 |
+| `fileSpaceRecords` | FileSpaceRecord[] | 文件空间记录 |
+| `experienceDeposits` | ExperienceDeposit[] | 经验沉淀记录 |
+| `taskforces` | TaskForceRecord[] | 专班记录 |
+| `notices` | Notice[] | 通知记录 |
+
+#### 3.2.2 UI 状态独立键
+
+> 以下键存储 UI/会话状态，不属于业务数据，保持独立键存储。
+
+| 键名 | 存储内容 | 格式 | 读写位置 |
+|---|---|---|---|
+| `gsm1921-auth-records` | 认证记录 | JSON | [services/auth.js](file:///d:/GitHub/GSM1921-SOP/docs/src/services/auth.js) |
+| `gsm1921-view-mode` | 视图模式 | string | [services/auth.js](file:///d:/GitHub/GSM1921-SOP/docs/src/services/auth.js) |
+| `gsm1921-primary-role` | 主角色 | string | [services/auth.js](file:///d:/GitHub/GSM1921-SOP/docs/src/services/auth.js) |
+| `gsm1921-auth-grants` | 赋权授权记录 | JSON | [services/auth.js](file:///d:/GitHub/GSM1921-SOP/docs/src/services/auth.js) |
+| `sop_org_os_assigned_roles` | 赋权角色列表 | JSON: `Array<{name, role, activity}>` | [services/roles.js](file:///d:/GitHub/GSM1921-SOP/docs/src/services/roles.js) |
+| `gsm1921-feedback-submissions` | 反馈提交记录 | JSON | [services/feedback.js](file:///d:/GitHub/GSM1921-SOP/docs/src/services/feedback.js) |
+| `sop_org_os_session` | 跨页面会话状态 | JSON | [core/cross-page-state.js](file:///d:/GitHub/GSM1921-SOP/docs/src/core/cross-page-state.js) |
+| `sop_org_os_data_version` | 数据版本号（跨页面同步） | number | [core/cross-page-state.js](file:///d:/GitHub/GSM1921-SOP/docs/src/core/cross-page-state.js) |
 
 **持久化机制细节：**
 
 - `workflowos_branch_db_v1`：当前 `SANDBOX_MODE = true`，每次刷新清空持久化存储，使用初始 mock 数据。设为 `false` 可恢复跨刷新持久化
 - Schema 版本校验：loadDB 会检查 `_schema` 与当前 `SCHEMA_VERSION`（值为 1）是否匹配，不匹配则拒绝加载脏数据
-- 写入策略：所有 CRUD 操作（createActivity/updateActivity/deleteActivity/archiveActivity/createTask/createDeliverable 等）在操作成功后调用 `saveDB()` 同步写入 localStorage
+- 写入策略：所有 CRUD 操作在操作成功后调用 `saveDB()`，将 mockDB 全量序列化到单一键，保证数据一致性
+- SANDBOX 清理：`loadDB()` 在 SANDBOX 模式下不仅清理全量键，还清理旧版独立键（兼容性清理），确保无残留
 - 容错：JSON 解析失败 / quota exceeded 均静默处理，不中断用户操作
+
+#### 3.2.3 存储层关键问题追踪
+
+> 来源：D-197 TAX-5 存储层优化
+
+| 问题 | 状态 | 说明 |
+|---|---|---|
+| 双重存储（部分数据同时存在于独立键和全量键） | ✅ 已解决 | 统一全量键架构，所有业务数据通过 `saveDB()` 写入 `workflowos_branch_db_v1` |
+| 同步断裂（独立键与全量键数据不一致） | ✅ 已解决 | 消除独立键写入路径，单一写入点保证一致性 |
+| SANDBOX 清理不彻底（遗漏旧版独立键） | ✅ 已解决 | `loadDB()` SANDBOX 模式下遍历清理所有旧版独立键 |
+| updateTask 不调用 saveDB（任务状态变更未持久化） | ✅ 已解决 | `updateTask()` 现已调用 `saveDB()`，任务状态变更正确持久化 |
 
 ### 3.3 数据写入模式（党建工作台 -> ActivityRecord）
 

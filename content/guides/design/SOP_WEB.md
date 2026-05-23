@@ -92,7 +92,7 @@ Header 显示角色切换器 + 模式切换器
     |     |-- "我的身份" 区：primary role（管理标记）
     |     |-- "可查看" 区：auth chain 中的角色（只读标记）
     |     +-- "切换身份" 按钮：重置 primary role
-    |     → 派发 header:role-switch 事件
+    |     → 派发 permission:stance-change 事件
     |     → Sidebar 同步 active 卡片
     |     → Workspace/Party 根据视图分类渲染
     |
@@ -102,7 +102,7 @@ Header 显示角色切换器 + 模式切换器
     |     → manager-observe 时显示锁定只读标记
     |
     +-- Sidebar 角色卡片点击
-         → dispatch sidebar:role-select (含 role + primaryRole)
+         → dispatch permission:role-select (含 role + stance)
          → Header 同步角色切换器 + 模式切换器
          → Workspace/Party 根据 role + 视图分类渲染
 ```

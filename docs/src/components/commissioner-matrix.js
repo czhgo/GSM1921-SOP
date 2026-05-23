@@ -6,9 +6,9 @@ const COMMISSIONER_DATA = [
     role: 'org-commissioner',
     name: '组织委员',
     person: '侯嘉嵘',
-    color: '#3B82F6',
-    colorBg: 'rgba(59,130,246,0.06)',
-    colorBorder: 'rgba(59,130,246,0.15)',
+    color: '#CE1126',
+    colorBg: 'rgba(206,17,38,0.06)',
+    colorBorder: 'rgba(206,17,38,0.15)',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>',
     workspace: {
       title: '专班建设',

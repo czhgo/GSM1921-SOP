@@ -1,28 +1,20 @@
 import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
-import { BranchService } from '../services/runtime.js';
 import { showToast } from '../core/utils.js';
-import { CrossPageState } from '../core/cross-page-state.js';
-import { renderSidebar } from '../components/sidebar.js';
-import { renderHeader } from '../components/header.js';
-import { ViewModeStore, AuthStore } from '../services/auth.js';
+import { bootstrapPage } from '../core/bootstrap.js';
 import { ACTIVITIES, PEOPLE, MOCK_TASKFORCES } from '../mock/index.js';
+import { mockDB } from '../core/domain.js';
+import { saveDB } from '../services/mock.js';
+import { loadWorkspaceData } from '../core/data-loader.js';
+import { renderTabBar } from '../components/tab-bar.js';
 
-renderSidebar('workspace');
-renderHeader('workspace');
+const { savedState } = bootstrapPage({ module: 'workspace', defaultRole: 'deep', viewMode: 'manage' });
 
-const savedState = CrossPageState.load();
-AuthStore.setActiveRole('workspace', savedState.selectedRole || 'deep');
-if (savedState.stance) AuthStore.setPrimaryRole(savedState.stance);
-ViewModeStore.setMode('workspace', 'manage');
-
-// ── 经验沉淀数据层（localStorage） ────────────────────────────
-const DEPOSIT_STORAGE_KEY = 'experience_deposits';
+// ── 经验沉淀数据层（mockDB） ────────────────────────────
 const DEEP_PERSON_ID = 'p5'; // 深度参与者 personId（模拟）
 
 function _loadDeposits() {
   try {
-    const raw = localStorage.getItem(DEPOSIT_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    return [...mockDB.experienceDeposits];
   } catch (e) {
     console.warn('[ws-deep] 读取经验沉淀失败', e);
     return [];
@@ -31,7 +23,8 @@ function _loadDeposits() {
 
 function _saveDeposits(deposits) {
   try {
-    localStorage.setItem(DEPOSIT_STORAGE_KEY, JSON.stringify(deposits));
+    mockDB.experienceDeposits = [...deposits];
+    saveDB();
   } catch (e) {
     console.warn('[ws-deep] 写入经验沉淀失败', e);
   }
@@ -83,27 +76,21 @@ function renderDeepUI(state) {
   const filteredState = _filterByRole(state, 'deep');
   const filteredActivities = filteredState.activities || [];
 
-  container.innerHTML = `
-    <div class="flex gap-2 mb-4">
-      <button class="deep-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-deep-tab="activities" style="background:rgba(16,185,129,0.1);color:#10B981;border:1px solid rgba(16,185,129,0.3);">关联活动</button>
-      <button class="deep-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-deep-tab="deposit" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">经验沉淀</button>
-    </div>
-    <div id="deep-tab-content"></div>
-  `;
-
-  container.querySelectorAll('.deep-tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      container.querySelectorAll('.deep-tab-btn').forEach(b => {
-        b.style.background = 'white'; b.style.color = '#6B7280'; b.style.border = '1px solid #E5E7EB';
-      });
-      btn.style.background = 'rgba(16,185,129,0.1)'; btn.style.color = '#10B981'; btn.style.border = '1px solid rgba(16,185,129,0.3)';
-      const tab = btn.dataset.deepTab;
-      if (tab === 'activities') _renderActivitiesContent(filteredActivities);
-      else if (tab === 'deposit') _renderDepositContent();
-    });
+  const tabBar = renderTabBar({
+    prefix: 'deep',
+    tabs: [
+      { id: 'activities', label: '关联活动', render: (ctx) => _renderActivitiesContent(ctx.filteredActivities) },
+      { id: 'deposit', label: '经验沉淀', render: () => _renderDepositContent() },
+    ],
+    accentColor: { accent: '#059669', accentRgba: 'rgba(5,150,105,0.1)', accentBorder: 'rgba(5,150,105,0.3)' },
+    defaultTab: 'activities',
+    renderCtx: { filteredActivities },
   });
 
-  _renderActivitiesContent(filteredActivities);
+  container.innerHTML = tabBar.html;
+
+  tabBar.bindEvents(container);
+  tabBar.activate('activities');
 }
 
 function _renderActivitiesContent(filteredActivities) {
@@ -111,7 +98,7 @@ function _renderActivitiesContent(filteredActivities) {
   if (!tc) return;
 
   tc.innerHTML = `
-    <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#10B981;">
+    <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#059669;">
       <div class="mb-4">
         <h3 class="font-title-cn text-base font-bold text-gray-800">关联活动</h3>
         <p class="text-xs text-gray-500 mt-1">深度参与者可更新关联活动的任务状态</p>
@@ -146,7 +133,7 @@ function _renderDepositContent() {
   tc.innerHTML = `
     <div class="space-y-4">
       <!-- 提交表单 -->
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#10B981;">
+      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#059669;">
         <div class="flex items-center justify-between mb-4">
           <div>
             <h3 class="font-title-cn text-base font-bold text-gray-800">提交经验沉淀</h3>
@@ -296,14 +283,4 @@ function _renderDepositCard(d) {
 
 registerRenderCallback(renderDeepUI);
 
-(async function init() {
-  try { if (typeof BranchService.loadDB === 'function') BranchService.loadDB(); } catch (e) { console.warn('[ws-deep] loadDB error', e); }
-  setState({ domain: 'activity', role: 'deep', activeModule: 'workspace', status: STATE.LOADING, selectedRole: 'deep' });
-  try {
-    const activities = await BranchService.listActivities();
-    setState({ status: STATE.IDLE, activities });
-  } catch (err) {
-    console.warn('[ws-deep] load failed', err);
-    setState({ status: STATE.IDLE, activities: ACTIVITIES.map(a => ({ ...a, visibility: 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() })) });
-  }
-}());
+loadWorkspaceData({ role: 'deep', fallbackData: () => ACTIVITIES, logTag: 'ws-deep' });

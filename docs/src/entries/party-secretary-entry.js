@@ -1,47 +1,30 @@
-import { setState, STATE, registerRenderCallback } from '../core/state.js';
-import { CrossPageState } from '../core/cross-page-state.js';
-import { renderSidebar } from '../components/sidebar.js';
-import { renderHeader } from '../components/header.js';
-import { ViewModeStore, AuthStore } from '../services/auth.js';
+import { registerRenderCallback } from '../core/state.js';
+import { bootstrapPage } from '../core/bootstrap.js';
 import { PartyModule } from '../modules/party.js';
 import { showToast } from '../core/utils.js';
+import { loadPartyData } from '../core/data-loader.js';
+import { renderTabBar } from '../components/tab-bar.js';
 
-renderSidebar('party');
-renderHeader('party');
-
-const savedState = CrossPageState.load();
-AuthStore.setActiveRole('party', savedState.selectedRole || 'secretary');
-if (savedState.stance) AuthStore.setPrimaryRole(savedState.stance);
-ViewModeStore.setMode('party', 'manage');
-
-const accent = '#7A0010';
-const accentRgba = 'rgba(122,0,16,0.08)';
-const accentBorder = 'rgba(122,0,16,0.2)';
+const { savedState, accent, accentRgba, accentBorder } = bootstrapPage({ module: 'party', defaultRole: 'secretary', viewMode: 'manage', accentRole: 'secretary', accentAlpha: [0.08, 0.2] });
 
 function renderSecPartyUI() {
   const container = document.getElementById('sec-party-content');
   if (!container) return;
 
-  container.innerHTML = `
-    <div class="flex gap-2 mb-4">
-      <button class="secp-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-secp-tab="overview" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">全局聚合</button>
-      <button class="secp-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-secp-tab="batch" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">批量操作</button>
-      <button class="secp-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-secp-tab="feedback" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">意见反馈</button>
-    </div>
-    <div id="secp-tab-content"></div>
-  `;
-
-  container.querySelectorAll('.secp-tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      container.querySelectorAll('.secp-tab-btn').forEach(b => {
-        b.style.background = 'white'; b.style.color = '#6B7280'; b.style.border = '1px solid #E5E7EB';
-      });
-      btn.style.background = accentRgba; btn.style.color = accent; btn.style.border = `1px solid ${accentBorder}`;
-      _renderTab(btn.dataset.secpTab);
-    });
+  const tabBar = renderTabBar({
+    prefix: 'secp',
+    tabs: [
+      { id: 'overview', label: '全局聚合', render: () => _renderTab('overview') },
+      { id: 'batch', label: '批量操作', render: () => _renderTab('batch') },
+      { id: 'feedback', label: '意见反馈', render: () => _renderTab('feedback') },
+    ],
+    accentColor: { accent, accentRgba, accentBorder },
+    defaultTab: 'overview',
   });
 
-  _renderTab('overview');
+  container.innerHTML = tabBar.html;
+  tabBar.bindEvents(container);
+  tabBar.activate('overview');
 }
 
 function _renderTab(tab) {
@@ -84,6 +67,4 @@ function _renderTab(tab) {
 
 registerRenderCallback(renderSecPartyUI);
 
-PartyModule.loadAll();
-setState({ domain: 'party', role: 'secretary', activeModule: 'party', status: STATE.IDLE, selectedRole: 'secretary' });
-renderSecPartyUI();
+loadPartyData({ role: 'secretary', partyModule: PartyModule, renderFn: renderSecPartyUI });

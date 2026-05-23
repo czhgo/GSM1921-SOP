@@ -46,57 +46,11 @@
       </div>
 
       <div class="card rounded-2xl p-6 mb-6">
-        <h3 class="font-title-cn text-base font-bold text-gray-800 mb-5">SOP 优化提案反馈卡</h3>
-
-        <div class="mb-5">
-          <label class="block text-sm font-medium text-gray-700 mb-2">1. 影响范围 (Scope)</label>
-          <div class="space-y-2" id="scope-options">
-            <label class="flex items-center gap-2 p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors has-[:checked]:bg-red-50 has-[:checked]:border-red-300">
-              <input type="radio" name="scope" value="permanent" class="sr-only peer">
-              <span class="w-4 h-4 rounded-full border-2 border-gray-300 peer-checked:border-red-600 peer-checked:bg-red-600 flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-white hidden peer-checked:block"></span></span>
-              <span class="text-sm text-gray-700">底层架构与原则建议（Permanent）</span>
-            </label>
-            <label class="flex items-center gap-2 p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors has-[:checked]:bg-red-50 has-[:checked]:border-red-300">
-              <input type="radio" name="scope" value="global" class="sr-only peer">
-              <span class="w-4 h-4 rounded-full border-2 border-gray-300 peer-checked:border-red-600 peer-checked:bg-red-600 flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-white hidden peer-checked:block"></span></span>
-              <span class="text-sm text-gray-700">全局通用业务规则（Global）</span>
-            </label>
-            <label class="flex items-center gap-2 p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors has-[:checked]:bg-red-50 has-[:checked]:border-red-300">
-              <input type="radio" name="scope" value="role" class="sr-only peer">
-              <span class="w-4 h-4 rounded-full border-2 border-gray-300 peer-checked:border-red-600 peer-checked:bg-red-600 flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-white hidden peer-checked:block"></span></span>
-              <span class="text-sm text-gray-700">支委分工与权责调整（Role）</span>
-            </label>
-            <label class="flex items-center gap-2 p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors has-[:checked]:bg-red-50 has-[:checked]:border-red-300">
-              <input type="radio" name="scope" value="scenario" class="sr-only peer">
-              <span class="w-4 h-4 rounded-full border-2 border-gray-300 peer-checked:border-red-600 peer-checked:bg-red-600 flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-white hidden peer-checked:block"></span></span>
-              <span class="text-sm text-gray-700">特定业务场景专用（Scenario-Specific）</span>
-            </label>
-          </div>
-          <div id="scenario-name-wrapper" class="mt-2 hidden">
-            <input type="text" id="scenario-name-input" class="input-flat w-full" placeholder="场景名称/编号（如：主题党日-红色1+1共建）">
-          </div>
+        <div class="flex items-center justify-between">
+          <h3 class="font-title-cn text-base font-bold text-gray-800">SOP 优化提案反馈卡</h3>
+          <button id="btn-open-feedback-modal" class="px-6 py-2.5 rounded-lg text-sm font-medium text-white transition-colors" style="background:#D97706;" onmouseover="this.style.background='#B45309'" onmouseout="this.style.background='#D97706'">提交反馈</button>
         </div>
-
-        <div class="mb-5">
-          <label class="block text-sm font-medium text-gray-700 mb-2">2. 现场痛点与卡壳环节 (Pain Point)</label>
-          <input type="text" id="pain-point-input" class="input-flat w-full mb-2" placeholder="卡壳的 SOP 文件与步骤（如：常见场景指南，党小组主题党日活动第3步）">
-          <textarea id="pain-point-detail" class="input-flat w-full" rows="2" placeholder="实际执行困难（一句话说明原流程为何反直觉或不可行）"></textarea>
-        </div>
-
-        <div class="mb-5">
-          <label class="block text-sm font-medium text-gray-700 mb-2">3. 期望的规则更改 (Proposed Fix)</label>
-          <textarea id="proposed-fix-input" class="input-flat w-full" rows="3" placeholder="直接给出新的规则逻辑，无需在意公文措辞。如：非品牌主题党日活动允许微信群口头报备，免去填表。"></textarea>
-        </div>
-
-        <div class="mb-6">
-          <label class="block text-sm font-medium text-gray-700 mb-2">提交人（选填）</label>
-          <input type="text" id="submitter-input" class="input-flat w-full" placeholder="姓名（可留空，默认匿名）">
-        </div>
-
-        <div class="flex items-center gap-3">
-          <button id="btn-submit-feedback" class="btn-primary px-8 py-2.5 font-title-cn">提交反馈</button>
-          <span id="feedback-submit-msg" class="text-sm text-green-600 hidden">提交成功！感谢你的反馈。</span>
-        </div>
+        <p class="text-xs text-gray-400 mt-2">点击"提交反馈"按钮，在弹窗中填写优化提案</p>
       </div>
 
       <div class="flex items-center gap-2 mb-4 flex-wrap">

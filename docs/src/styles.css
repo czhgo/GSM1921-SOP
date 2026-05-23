@@ -29,8 +29,8 @@
   --accent-gold-light: var(--party-gold-light);
   --accent-amber:      #D97706;
   --accent-blue:       #3B82F6;
-  --accent-emerald:    #10B981;
-  --accent-violet:     #8B5CF6;
+  --accent-emerald:    #059669;
+  --accent-violet:     #7A0010;
 
   /* ── LAYER 3: Neutral — 灰度 11 阶 (0→900) ── */
   --neutral-0:   #FFFFFF;
@@ -1436,13 +1436,13 @@ select.input-flat:focus {
   top: 0;
   bottom: 0;
   width: 4px;
-  background-color: var(--primary-500);
+  background-color: #CE1126;
   border-radius: 0 3px 3px 0;
 }
 
 .leader-card .role-icon {
-  background-color: rgba(239,68,68,0.1);
-  color: var(--primary-500);
+  background-color: rgba(206,17,38,0.1);
+  color: #CE1126;
 }
 
 .leader-card:hover { background-color: var(--surface-hover); }
@@ -1519,7 +1519,7 @@ select.input-flat:focus {
 }
 
 .deep-card .role-icon {
-  background-color: rgba(16,185,129,0.1);
+  background-color: rgba(5,150,105,0.1);
   color: var(--accent-emerald);
 }
 
@@ -1545,7 +1545,7 @@ select.input-flat:focus {
 }
 
 .secretary-card .role-icon {
-  background-color: rgba(139,92,246,0.1);
+  background-color: rgba(122,0,16,0.1);
   color: var(--accent-violet);
 }
 
@@ -1601,8 +1601,8 @@ select.input-flat:focus {
   flex-shrink: 0;
 }
 
-.comm-modal-icon.org  { background-color: rgba(59,130,246,0.1);  color: var(--accent-blue);    }
-.comm-modal-icon.prop { background-color: rgba(16,185,129,0.1); color: var(--accent-emerald);  }
+.comm-modal-icon.org  { background-color: rgba(206,17,38,0.1);  color: #CE1126;    }
+.comm-modal-icon.prop { background-color: rgba(16,185,129,0.1); color: #10B981;  }
 .comm-modal-icon.disc { background-color: rgba(217,119,6,0.1);  color: var(--accent-amber);   }
 
 .comm-modal-text {

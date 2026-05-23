@@ -16,7 +16,7 @@ export function _activityType(id) {
 export { PEOPLE } from './people.js';
 export { ACTIVITIES } from './activities.js';
 export { ATTENDANCE_RECORDS, attendanceToLong, attendanceToWide } from './attendance.js';
-export { INSPECTION_RECORDS, inspectionToLong, inspectionToWide } from './inspection.js';
+export { INSPECTION_RECORDS, inspectionToLong, inspectionToWide, inspectionToDisplay } from './inspection.js';
 export { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS, reviewToDisplay } from './review.js';
 export { KANBAN_MOCKS } from './kanban.js';
 export { PARTY_MOCKS, CANDIDATE_STAGES, COMPLIANCE_FILES, PUBLICITY_STANDARDS, TEMPLATE_LIST } from './party.js';

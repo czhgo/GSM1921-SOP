@@ -1,26 +1,18 @@
+import { renderTabBar } from '../components/tab-bar.js';
 import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
-import { BranchService } from '../services/runtime.js';
 import { showToast } from '../core/utils.js';
-import { CrossPageState } from '../core/cross-page-state.js';
-import { renderSidebar } from '../components/sidebar.js';
-import { renderHeader } from '../components/header.js';
-import { ViewModeStore, AuthStore } from '../services/auth.js';
+import { bootstrapPage } from '../core/bootstrap.js';
 import { PersonPicker } from '../components/person-picker.js';
-import { ParticipationLevel, PARTICIPATION_LEVEL_LABELS } from '../core/domain.js';
-import { INSPECTION_RECORDS, inspectionToLong, REVIEW_RECORDS, reviewToDisplay, ACTIVITIES, PARTICIPATION_RECORDS, participationToDisplay, MOCK_TASKFORCES } from '../mock/index.js';
-import { PEOPLE } from '../mock/people.js';
+import { ParticipationLevel, PARTICIPATION_LEVEL_LABELS, mockDB } from '../core/domain.js';
+import { saveDB } from '../services/mock.js';
+import { inspectionToLong, REVIEW_RECORDS, reviewToDisplay, ACTIVITIES, PARTICIPATION_RECORDS, participationToDisplay, MOCK_TASKFORCES, PEOPLE } from '../mock/index.js';
+import { loadWorkspaceData } from '../core/data-loader.js';
+import { loadHandoverRecords, addHandoverRecord, updateHandoverRecord, completeHandoverItem } from '../services/handover.js';
+import { loadAssignmentRecords, checkOverdue, addAssignmentRecord, completeAssignmentRecord } from '../services/assignment.js';
+import { loadInspectionRecords } from '../services/inspection.js';
+import { openFormModal } from '../components/modal.js';
 
-renderSidebar('workspace');
-renderHeader('workspace');
-
-const savedState = CrossPageState.load();
-AuthStore.setActiveRole('workspace', savedState.selectedRole || 'organizer');
-if (savedState.stance) AuthStore.setPrimaryRole(savedState.stance);
-ViewModeStore.setMode('workspace', 'manage');
-
-const accent = '#3B82F6';
-const accentRgba = 'rgba(59,130,246,0.1)';
-const accentBorder = 'rgba(59,130,246,0.3)';
+const { savedState, accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', defaultRole: 'organizer', viewMode: 'manage', accentRole: 'organizer' });
 
 function _filterByRole(state, role) {
   const activities = (state.activities || []).filter(a => {
@@ -44,147 +36,29 @@ function renderOrganizerUI(state) {
   const filteredState = _filterByRole(state, 'organizer');
   const filteredActivities = filteredState.activities || [];
 
-  container.innerHTML = `
-    <div class="flex gap-2 mb-4">
-      <button class="orgz-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-orgz-tab="tasks" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">任务分配</button>
-      <button class="orgz-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-orgz-tab="review" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">复盘提交</button>
-      <button class="orgz-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-orgz-tab="inspection" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">考察查看</button>
-      <button class="orgz-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-orgz-tab="handover" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">数据交接</button>
-      <button class="orgz-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-orgz-tab="filespace" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">文件空间</button>
-    </div>
-    <div id="orgz-tab-content"></div>
-  `;
-
-  container.querySelectorAll('.orgz-tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      container.querySelectorAll('.orgz-tab-btn').forEach(b => {
-        b.style.background = 'white'; b.style.color = '#6B7280'; b.style.border = '1px solid #E5E7EB';
-      });
-      btn.style.background = accentRgba; btn.style.color = accent; btn.style.border = `1px solid ${accentBorder}`;
-      const tab = btn.dataset.orgzTab;
-      if (tab === 'tasks') _renderTasksContent(filteredActivities);
-      else if (tab === 'review') _renderReviewContent();
-      else if (tab === 'inspection') _renderInspectionContent();
-      else if (tab === 'handover') _renderHandoverContent(filteredActivities);
-      else if (tab === 'filespace') _renderFileSpaceContent(filteredActivities);
-    });
+  const tabBar = renderTabBar({
+    prefix: 'orgz',
+    tabs: [
+      { id: 'tasks', label: '任务分配', render: (ctx) => _renderTasksContent(ctx.filteredActivities) },
+      { id: 'review', label: '复盘提交', render: () => _renderReviewContent() },
+      { id: 'inspection', label: '考察查看', render: () => _renderInspectionContent() },
+      { id: 'handover', label: '数据交接', render: (ctx) => _renderHandoverContent(ctx.filteredActivities) },
+      { id: 'filespace', label: '文件空间', render: (ctx) => _renderFileSpaceContent(ctx.filteredActivities) },
+    ],
+    accentColor: { accent, accentRgba, accentBorder },
+    renderCtx: { filteredActivities },
   });
 
-  _renderTasksContent(filteredActivities);
+  container.innerHTML = tabBar.html;
+
+  tabBar.bindEvents(container);
+  tabBar.activate('tasks');
 }
 
-// ── 分工记录数据层（localStorage） ────────────────────────────
-const ASSIGNMENT_STORAGE_KEY = 'assignment_records';
-
-/** 读取所有分工记录 */
-function _loadAssignmentRecords() {
-  try {
-    const raw = localStorage.getItem(ASSIGNMENT_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    console.warn('[ws-organizer] 读取分工记录失败', e);
-    return [];
-  }
-}
-
-/** 写入所有分工记录 */
-function _saveAssignmentRecords(records) {
-  try {
-    localStorage.setItem(ASSIGNMENT_STORAGE_KEY, JSON.stringify(records));
-  } catch (e) {
-    console.warn('[ws-organizer] 写入分工记录失败', e);
-  }
-}
-
-/** 自动逾期检测：将所有 in_progress 且 DDL 已过的记录更新为 overdue */
-function _checkOverdue(records) {
-  const now = new Date();
-  let changed = false;
-  records.forEach(r => {
-    if (r.status === 'in_progress' && new Date(r.ddl) < now) {
-      r.status = 'overdue';
-      changed = true;
-    }
-  });
-  if (changed) _saveAssignmentRecords(records);
-  return records;
-}
-
-/** 新增一条分工记录 */
-function _addAssignmentRecord(record) {
-  const records = _loadAssignmentRecords();
-  records.push(record);
-  _saveAssignmentRecords(records);
-  return records;
-}
-
-/** 标记分工记录为已完成 */
-function _completeAssignmentRecord(recordId) {
-  const records = _loadAssignmentRecords();
-  const r = records.find(r => r.id === recordId);
-  if (r && r.status !== 'completed') {
-    r.status = 'completed';
-    r.completedAt = new Date().toISOString();
-    _saveAssignmentRecords(records);
-  }
-  return records;
-}
-
-// ── 交接记录数据层（localStorage） ────────────────────────────
-const HANDOVER_STORAGE_KEY = 'handover_records';
+// ── 交接记录数据层（已迁移至 services/handover.js） ───────────
 const HANDOVER_ORGANIZER_ID = 'p3'; // 组织者 personId
 
-/** 读取所有交接记录 */
-function _loadHandoverRecords() {
-  try {
-    const raw = localStorage.getItem(HANDOVER_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    console.warn('[ws-organizer] 读取交接记录失败', e);
-    return [];
-  }
-}
-
-/** 写入所有交接记录 */
-function _saveHandoverRecords(records) {
-  try {
-    localStorage.setItem(HANDOVER_STORAGE_KEY, JSON.stringify(records));
-  } catch (e) {
-    console.warn('[ws-organizer] 写入交接记录失败', e);
-  }
-}
-
-/** 新增一条交接记录 */
-function _addHandoverRecord(record) {
-  const records = _loadHandoverRecords();
-  records.push(record);
-  _saveHandoverRecords(records);
-  return records;
-}
-
-/** 更新交接记录 */
-function _updateHandoverRecord(recordId, updates) {
-  const records = _loadHandoverRecords();
-  const r = records.find(r => r.id === recordId);
-  if (r) {
-    Object.assign(r, updates);
-    _saveHandoverRecords(records);
-  }
-  return records;
-}
-
-/** 标记交接项为已完成 */
-function _completeHandoverItem(recordId, itemIndex) {
-  const records = _loadHandoverRecords();
-  const r = records.find(r => r.id === recordId);
-  if (r && r.items[itemIndex]) {
-    r.items[itemIndex].status = 'completed';
-    _saveHandoverRecords(records);
-  }
-  return records;
-}
-
-// ── 参与记录临时状态 ──────────────────────────────────────────
+// ── 考察记录临时状态 ──────────────────────────────────────────
 let _participationDraft = {
   activityId: '',
   selectedPersonIds: [],
@@ -218,7 +92,7 @@ function _renderTasksContent(activities) {
     a.organizer === 'p3' || (typeof a.organizer === 'string' && a.organizer.includes('p3'))
   );
 
-  // 已有参与记录（仅展示当前组织者关联活动的）
+  // 已有考察记录（仅展示当前组织者关联活动的）
   const existingRecords = participationToDisplay(
     PARTICIPATION_RECORDS.filter(r => organizerActivities.some(a => a.id === r.activityId))
   );
@@ -243,10 +117,10 @@ function _renderTasksContent(activities) {
         </div>
       </div>
 
-      <!-- 参与记录录入 -->
+      <!-- 考察记录录入 -->
       <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#CE1126;">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">参与记录录入</h4>
-        <div class="text-xs text-gray-500 mb-4">记录参与层级（组织/深度参与/出勤）与分工角色</div>
+        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">考察记录录入</h4>
+        <div class="text-xs text-gray-500 mb-4">记录考察层级（组织/深度参与）与分工角色（仅组织者和深度参与者有考察记录）</div>
 
         <!-- Step 1: 选择关联活动 -->
         <div class="mb-4">
@@ -268,23 +142,23 @@ function _renderTasksContent(activities) {
 
         <!-- Step 4: 提交按钮 -->
         <div class="flex items-center gap-3">
-          <button id="part-submit-btn" class="px-4 py-2 text-xs font-medium rounded-lg text-white transition-colors" style="background:#CE1126;" disabled>提交参与记录</button>
+          <button id="part-submit-btn" class="px-4 py-2 text-xs font-medium rounded-lg text-white transition-colors" style="background:#CE1126;" disabled>提交考察记录</button>
           <span id="part-submit-hint" class="text-[10px] text-gray-400"></span>
         </div>
       </div>
 
-      <!-- 已有参与记录 -->
+      <!-- 已有考察记录 -->
       <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#10B981;">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">已有参与记录</h4>
-        <div class="text-xs text-gray-500 mb-3">当前组织者关联活动的参与记录</div>
+        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">已有考察记录</h4>
+        <div class="text-xs text-gray-500 mb-3">当前组织者关联活动的考察记录</div>
         ${existingRecords.length === 0
-          ? '<p class="text-xs text-gray-400 text-center py-4">暂无参与记录</p>'
+          ? '<p class="text-xs text-gray-400 text-center py-4">暂无考察记录</p>'
           : `<div class="overflow-x-auto">
               <table class="w-full text-xs">
                 <thead><tr class="border-b border-gray-200">
                   <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
                   <th class="py-2 px-3 text-left text-gray-500 font-medium">活动</th>
-                  <th class="py-2 px-3 text-left text-gray-500 font-medium">参与层级</th>
+                  <th class="py-2 px-3 text-left text-gray-500 font-medium">考察层级</th>
                   <th class="py-2 px-3 text-left text-gray-500 font-medium">分工角色</th>
                   <th class="py-2 px-3 text-left text-gray-500 font-medium">记录人</th>
                 </tr></thead>
@@ -400,8 +274,8 @@ function _formatCompletedAt(isoStr) {
 
 /** 渲染分工记录展示区域 HTML */
 function _renderAssignmentRecordsHTML(organizerActivities) {
-  let records = _loadAssignmentRecords();
-  records = _checkOverdue(records);
+  let records = loadAssignmentRecords();
+  records = checkOverdue();
 
   // 筛选当前组织者关联活动的记录
   const activityIds = new Set(organizerActivities.map(a => a.id));
@@ -492,6 +366,7 @@ function _bindAssignmentEvents(organizerActivities) {
     const picker = new PersonPicker({
       mode: 'single',
       placeholder: '选择被分配人',
+      accentColor: '#3B82F6',
       onSelect: (personIds) => {
         _assignmentDraft.assigneeId = personIds[0] || '';
         _updateAssignSubmitState();
@@ -548,7 +423,7 @@ function _bindAssignmentEvents(organizerActivities) {
       const btn = e.target.closest('.btn-mark-complete');
       if (btn) {
         const recordId = btn.dataset.assignId;
-        _completeAssignmentRecord(recordId);
+        completeAssignmentRecord(recordId);
         showToast('success', '已标记为完成');
         // 刷新展示区域
         const state = getAppState();
@@ -606,7 +481,7 @@ function _submitAssignment(organizerActivities) {
     completedAt: null,
   };
 
-  _addAssignmentRecord(record);
+  addAssignmentRecord(record);
   showToast('success', `分工记录「${record.workName}」已创建`);
 
   // 重置草稿
@@ -637,7 +512,7 @@ function _levelTagStyle(level) {
   }
 }
 
-/** 绑定参与记录录入区域的事件 */
+/** 绑定考察记录录入区域的事件 */
 function _bindParticipationEvents(organizerActivities) {
   // 活动选择
   const activitySelect = document.getElementById('part-activity-select');
@@ -654,6 +529,7 @@ function _bindParticipationEvents(organizerActivities) {
     const picker = new PersonPicker({
       mode: 'multi',
       placeholder: '选择参与人员（可多选）',
+      accentColor: '#3B82F6',
       onSelect: (personIds) => {
         _participationDraft.selectedPersonIds = personIds;
         // 为新增人员初始化默认值
@@ -707,7 +583,7 @@ function _renderPersonDetails() {
 
   container.innerHTML = `
     <div class="space-y-2">
-      <label class="block text-xs font-medium text-gray-600 mb-1">逐人设置参与层级与分工</label>
+      <label class="block text-xs font-medium text-gray-600 mb-1">逐人设置考察层级与分工</label>
       ${selectedPersonIds.map(pid => {
         const person = PEOPLE.find(p => p.id === pid);
         const detail = personDetails[pid] || { level: ParticipationLevel.ATTEND, role: '' };
@@ -718,7 +594,6 @@ function _renderPersonDetails() {
             <select class="part-level-select px-2 py-1 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400" data-person-id="${pid}" style="min-width:90px;">
               <option value="${ParticipationLevel.ORGANIZE}" ${detail.level === ParticipationLevel.ORGANIZE ? 'selected' : ''}>组织</option>
               <option value="${ParticipationLevel.DEEP_PARTICIPATE}" ${detail.level === ParticipationLevel.DEEP_PARTICIPATE ? 'selected' : ''}>深度参与</option>
-              <option value="${ParticipationLevel.ATTEND}" ${detail.level === ParticipationLevel.ATTEND ? 'selected' : ''}>出勤</option>
             </select>
             <input type="text" class="part-role-input flex-1 px-2 py-1 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400 font-stheiti" placeholder="分工角色+描述（如：策划+全流程统筹）" data-person-id="${pid}" value="${detail.role}" />
           </div>
@@ -771,7 +646,7 @@ function _updateSubmitState() {
   }
 }
 
-/** 提交参与记录 */
+/** 提交考察记录 */
 function _submitParticipation() {
   const { activityId, selectedPersonIds, personDetails } = _participationDraft;
   if (!activityId || selectedPersonIds.length === 0) return;
@@ -789,8 +664,8 @@ function _submitParticipation() {
   }));
 
   // 在实际场景中应写入 store，此处 mock 仅 toast 提示
-  console.log('[ws-organizer] 参与记录已提交:', newRecords);
-  showToast('success', `已提交 ${count} 条参与记录`);
+  console.log('[ws-organizer] 考察记录已提交:', newRecords);
+  showToast('success', `已提交 ${count} 条考察记录`);
 
   // 重置草稿
   _participationDraft = { activityId: '', selectedPersonIds: [], personDetails: {} };
@@ -828,7 +703,21 @@ function _renderReviewContent() {
     </div>
   `;
   container.querySelectorAll('.btn-orgz-submit-review').forEach(btn => {
-    btn.addEventListener('click', () => showToast('info', '复盘提交表单 — 待实现'));
+    btn.addEventListener('click', () => {
+      openFormModal({
+        id: 'review-submit',
+        title: '提交复盘',
+        fields: [
+          { key: 'summary', label: '活动总结', type: 'textarea', required: true, placeholder: '请总结活动开展情况...' },
+          { key: 'highlights', label: '亮点与经验', type: 'textarea', placeholder: '有哪些值得推广的做法？' },
+          { key: 'improvements', label: '不足与改进', type: 'textarea', placeholder: '有哪些需要改进的地方？' }
+        ],
+        onSubmit: (values) => {
+          showToast('success', '复盘已提交');
+        },
+        accentColor: accent || '#3B82F6'
+      });
+    });
   });
 }
 
@@ -847,12 +736,12 @@ function _renderInspectionContent() {
             <th class="py-2 px-3 text-left text-gray-500 font-medium">考察内容</th>
             <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
           </tr></thead>
-          <tbody>${inspectionToLong(INSPECTION_RECORDS).map(i => `
+          <tbody>${inspectionToLong(loadInspectionRecords()).map(i => `
             <tr class="border-b border-gray-50 hover:bg-gray-50">
               <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
               <td class="py-2 px-3 text-gray-600">${i.source}</td>
-              <td class="py-2 px-3 text-gray-600">${i.content}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${i.status === '已确认' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${i.status}</span></td>
+              <td class="py-2 px-3 text-gray-600">${i.role}</td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
             </tr>
           `).join('')}</tbody>
         </table>
@@ -894,7 +783,7 @@ function _renderHandoverContent(activities) {
   );
 
   // 已有交接记录
-  const allRecords = _loadHandoverRecords();
+  const allRecords = loadHandoverRecords();
   const myRecords = allRecords.filter(r => r.recorderId === HANDOVER_ORGANIZER_ID);
 
   // 按来源分组
@@ -1166,6 +1055,7 @@ function _bindHandoverEvents(organizerActivities, organizerTaskforces) {
       const picker = new PersonPicker({
         mode: 'single',
         placeholder: '选择负责人',
+        accentColor: '#3B82F6',
         initialIds: item.assigneeId ? [item.assigneeId] : [],
         onSelect: (personIds) => {
           _handoverDraft.items[idx].assigneeId = personIds[0] || '';
@@ -1192,6 +1082,7 @@ function _bindHandoverEvents(organizerActivities, organizerTaskforces) {
           const picker = new PersonPicker({
             mode: 'single',
             placeholder: '选择归档沉淀维护负责人',
+            accentColor: '#3B82F6',
             initialIds: _handoverDraft.archiveAssigneeId ? [_handoverDraft.archiveAssigneeId] : [],
             onSelect: (personIds) => {
               _handoverDraft.archiveAssigneeId = personIds[0] || '';
@@ -1212,6 +1103,7 @@ function _bindHandoverEvents(organizerActivities, organizerTaskforces) {
       const picker = new PersonPicker({
         mode: 'single',
         placeholder: '选择归档沉淀维护负责人',
+        accentColor: '#3B82F6',
         initialIds: _handoverDraft.archiveAssigneeId ? [_handoverDraft.archiveAssigneeId] : [],
         onSelect: (personIds) => {
           _handoverDraft.archiveAssigneeId = personIds[0] || '';
@@ -1245,7 +1137,7 @@ function _bindHandoverEvents(organizerActivities, organizerTaskforces) {
       if (completeBtn) {
         const recordId = completeBtn.dataset.recordId;
         const itemIdx = parseInt(completeBtn.dataset.itemIdx, 10);
-        _completeHandoverItem(recordId, itemIdx);
+        completeHandoverItem(recordId, itemIdx);
         showToast('success', '交接项已标记为完成');
         _refreshHandoverRecordsList();
       }
@@ -1253,7 +1145,7 @@ function _bindHandoverEvents(organizerActivities, organizerTaskforces) {
       const submitHandoverBtn = e.target.closest('.btn-submit-handover');
       if (submitHandoverBtn) {
         const recordId = submitHandoverBtn.dataset.recordId;
-        _updateHandoverRecord(recordId, {
+        updateHandoverRecord(recordId, {
           status: 'submitted',
           submittedAt: new Date().toISOString(),
         });
@@ -1323,7 +1215,7 @@ function _submitHandoverRecord(organizerActivities, organizerTaskforces) {
     createdAt: new Date().toISOString(),
   };
 
-  _addHandoverRecord(record);
+  addHandoverRecord(record);
   showToast('success', `交接记录「${sourceName}」已创建`);
 
   // 重置草稿
@@ -1341,7 +1233,7 @@ function _refreshHandoverRecordsList() {
   const listEl = document.getElementById('handover-records-list');
   if (!listEl) return;
 
-  const allRecords = _loadHandoverRecords();
+  const allRecords = loadHandoverRecords();
   const myRecords = allRecords.filter(r => r.recorderId === HANDOVER_ORGANIZER_ID);
   const activityRecords = myRecords.filter(r => r.type === 'activity');
   const taskforceRecords = myRecords.filter(r => r.type === 'taskforce');
@@ -1349,8 +1241,7 @@ function _refreshHandoverRecordsList() {
   listEl.innerHTML = _renderHandoverRecordsHTML(activityRecords, taskforceRecords);
 }
 
-// ── 文件空间数据层（localStorage） ────────────────────────────
-const FILESPACE_STORAGE_KEY = 'file_space_records';
+// ── 文件空间数据层（mockDB） ────────────────────────────
 const FILESPACE_ORGANIZER_ID = 'p3';
 
 const FILE_CATEGORY_LABELS = {
@@ -1364,29 +1255,20 @@ const FILE_CATEGORY_STYLES = {
   publicity: 'bg-pink-100 text-pink-700',
 };
 const FILE_CATEGORY_ICONS = {
-  experience: '📝',
-  raw: '📎',
-  publicity: '🎨',
+  experience: '经验',
+  raw: '素材',
+  publicity: '宣传',
 };
 
 /** 读取所有文件空间记录 */
 function _loadFileSpaceRecords() {
-  try {
-    const raw = localStorage.getItem(FILESPACE_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    console.warn('[ws-organizer] 读取文件空间记录失败', e);
-    return [];
-  }
+  return mockDB.fileSpaceRecords.length > 0 ? [...mockDB.fileSpaceRecords] : [];
 }
 
 /** 写入所有文件空间记录 */
 function _saveFileSpaceRecords(records) {
-  try {
-    localStorage.setItem(FILESPACE_STORAGE_KEY, JSON.stringify(records));
-  } catch (e) {
-    console.warn('[ws-organizer] 写入文件空间记录失败', e);
-  }
+  mockDB.fileSpaceRecords = [...records];
+  saveDB();
 }
 
 /** 新增一条文件记录 */
@@ -1405,16 +1287,6 @@ function _deleteFileSpaceRecord(recordId) {
   return records;
 }
 
-// ── 文件空间临时状态 ──────────────────────────────────────────
-let _fileSpaceDraft = {
-  fileName: '',
-  category: 'experience',
-  description: '',
-  sourceType: 'standalone',
-  sourceId: '',
-  tags: '',
-};
-
 /** 渲染文件空间 Tab 内容 */
 function _renderFileSpaceContent(activities) {
   const container = document.getElementById('orgz-tab-content');
@@ -1426,13 +1298,6 @@ function _renderFileSpaceContent(activities) {
   // 按分类统计
   const stats = { experience: 0, raw: 0, publicity: 0 };
   myRecords.forEach(r => { if (stats[r.category] !== undefined) stats[r.category]++; });
-
-  // 来源下拉选项
-  const sourceOptions = _fileSpaceDraft.sourceType === 'activity'
-    ? activities.map(a => `<option value="${a.id}" ${_fileSpaceDraft.sourceId === a.id ? 'selected' : ''}>${a.title}（${a.date}）</option>`).join('')
-    : _fileSpaceDraft.sourceType === 'taskforce'
-    ? MOCK_TASKFORCES.map(tf => `<option value="${tf.id}" ${_fileSpaceDraft.sourceId === tf.id ? 'selected' : ''}>${tf.name}</option>`).join('')
-    : '';
 
   // 按分类分组的文件列表
   const groupedRecords = {};
@@ -1463,68 +1328,7 @@ function _renderFileSpaceContent(activities) {
       <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#10B981;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">添加文件记录</h4>
         <div class="text-xs text-gray-500 mb-4">记录文件元数据（文件名、分类、描述、关联来源），纯前端暂不支持实际文件上传</div>
-
-        <!-- 文件名 -->
-        <div class="mb-3">
-          <label class="block text-xs font-medium text-gray-600 mb-1.5">文件名</label>
-          <input type="text" id="fs-file-name" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400 font-stheiti" style="max-width:360px;" placeholder="如：2026年5月党小组会记录.docx" value="${_fileSpaceDraft.fileName}" />
-        </div>
-
-        <!-- 分类 -->
-        <div class="mb-3">
-          <label class="block text-xs font-medium text-gray-600 mb-1.5">文件分类</label>
-          <div class="flex gap-2">
-            ${Object.entries(FILE_CATEGORY_LABELS).map(([key, label]) => `
-              <label class="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg border text-xs transition-colors ${_fileSpaceDraft.category === key ? FILE_CATEGORY_STYLES[key] + ' border-current' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'}">
-                <input type="radio" name="fs-category" value="${key}" ${_fileSpaceDraft.category === key ? 'checked' : ''} class="fs-category-radio" />
-                <span>${FILE_CATEGORY_ICONS[key]} ${label}</span>
-              </label>
-            `).join('')}
-          </div>
-        </div>
-
-        <!-- 描述 -->
-        <div class="mb-3">
-          <label class="block text-xs font-medium text-gray-600 mb-1.5">文件描述</label>
-          <textarea id="fs-description" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400 font-stheiti" rows="2" style="max-width:360px;" placeholder="简要描述文件内容与用途">${_fileSpaceDraft.description}</textarea>
-        </div>
-
-        <!-- 关联来源 -->
-        <div class="mb-3">
-          <label class="block text-xs font-medium text-gray-600 mb-1.5">关联来源</label>
-          <div class="flex gap-3 mb-2">
-            <label class="flex items-center gap-1.5 cursor-pointer">
-              <input type="radio" name="fs-source-type" value="standalone" ${_fileSpaceDraft.sourceType === 'standalone' ? 'checked' : ''} class="fs-source-type-radio" />
-              <span class="text-xs text-gray-700">独立文件</span>
-            </label>
-            <label class="flex items-center gap-1.5 cursor-pointer">
-              <input type="radio" name="fs-source-type" value="activity" ${_fileSpaceDraft.sourceType === 'activity' ? 'checked' : ''} class="fs-source-type-radio" />
-              <span class="text-xs text-gray-700">关联活动</span>
-            </label>
-            <label class="flex items-center gap-1.5 cursor-pointer">
-              <input type="radio" name="fs-source-type" value="taskforce" ${_fileSpaceDraft.sourceType === 'taskforce' ? 'checked' : ''} class="fs-source-type-radio" />
-              <span class="text-xs text-gray-700">关联专班</span>
-            </label>
-          </div>
-          ${_fileSpaceDraft.sourceType !== 'standalone' ? `
-            <select id="fs-source-select" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400 font-stheiti" style="max-width:360px;">
-              <option value="">-- 请选择${_fileSpaceDraft.sourceType === 'activity' ? '活动' : '专班'} --</option>
-              ${sourceOptions}
-            </select>
-          ` : ''}
-        </div>
-
-        <!-- 标签 -->
-        <div class="mb-4">
-          <label class="block text-xs font-medium text-gray-600 mb-1.5">标签（逗号分隔）</label>
-          <input type="text" id="fs-tags" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400 font-stheiti" style="max-width:360px;" placeholder="如：考勤, 三会一课, 宣传" value="${_fileSpaceDraft.tags}" />
-        </div>
-
-        <!-- 提交按钮 -->
-        <div class="flex items-center gap-3">
-          <button id="fs-submit-btn" class="px-4 py-2 text-xs font-medium rounded-lg text-white transition-colors" style="background:#10B981;" disabled>添加文件记录</button>
-          <span id="fs-submit-hint" class="text-[10px] text-gray-400"></span>
-        </div>
+        <button id="fs-upload-btn" class="px-4 py-2 text-xs font-medium rounded-lg text-white transition-colors" style="background:#10B981;cursor:pointer;">上传文件</button>
       </div>
 
       <!-- 文件列表 -->
@@ -1572,73 +1376,39 @@ function _renderFileSpaceContent(activities) {
 
 /** 绑定文件空间 Tab 事件 */
 function _bindFileSpaceEvents(activities) {
-  // 文件名输入
-  const fileNameInput = document.getElementById('fs-file-name');
-  if (fileNameInput) {
-    fileNameInput.addEventListener('input', (e) => {
-      _fileSpaceDraft.fileName = e.target.value;
-      _updateFileSpaceSubmitState();
+  // 上传文件按钮
+  const uploadBtn = document.getElementById('fs-upload-btn');
+  if (uploadBtn) {
+    uploadBtn.addEventListener('click', () => {
+      openFormModal({
+        id: 'file-upload',
+        title: '上传文件',
+        fields: [
+          { key: 'fileName', label: '文件名称', type: 'text', required: true, placeholder: '例：活动照片.zip' },
+          { key: 'category', label: '文件分类', type: 'select', required: true, options: [
+            { value: 'photo', label: '照片' },
+            { value: 'document', label: '文档' },
+            { value: 'video', label: '视频' },
+            { value: 'other', label: '其他' }
+          ]},
+          { key: 'description', label: '文件说明', type: 'textarea', placeholder: '简要描述文件内容...' },
+          { key: 'source', label: '关联来源', type: 'text', placeholder: '关联活动/专班名称' }
+        ],
+        onSubmit: (values) => {
+          const record = { id: 'file_' + Date.now(), ...values, uploadedAt: new Date().toISOString(), uploadedBy: 'current' };
+          if (!mockDB.fileSpaceRecords) mockDB.fileSpaceRecords = [];
+          mockDB.fileSpaceRecords.push(record);
+          saveDB();
+          showToast('success', '文件元数据已记录（纯前端暂不支持实际文件上传）');
+        },
+        accentColor: accent || '#3B82F6'
+      });
     });
-  }
-
-  // 分类切换
-  document.querySelectorAll('.fs-category-radio').forEach(radio => {
-    radio.addEventListener('change', (e) => {
-      _fileSpaceDraft.category = e.target.value;
-      // 重新渲染以更新分类按钮样式
-      const state = getAppState();
-      const filteredState = _filterByRole(state, 'organizer');
-      _renderFileSpaceContent(filteredState.activities || activities);
+    uploadBtn.addEventListener('mouseenter', function() {
+      this.style.background = '#059669';
     });
-  });
-
-  // 描述输入
-  const descInput = document.getElementById('fs-description');
-  if (descInput) {
-    descInput.addEventListener('input', (e) => {
-      _fileSpaceDraft.description = e.target.value;
-    });
-  }
-
-  // 来源类型切换
-  document.querySelectorAll('.fs-source-type-radio').forEach(radio => {
-    radio.addEventListener('change', (e) => {
-      _fileSpaceDraft.sourceType = e.target.value;
-      _fileSpaceDraft.sourceId = '';
-      const state = getAppState();
-      const filteredState = _filterByRole(state, 'organizer');
-      _renderFileSpaceContent(filteredState.activities || activities);
-    });
-  });
-
-  // 来源选择
-  const sourceSelect = document.getElementById('fs-source-select');
-  if (sourceSelect) {
-    sourceSelect.addEventListener('change', (e) => {
-      _fileSpaceDraft.sourceId = e.target.value;
-    });
-  }
-
-  // 标签输入
-  const tagsInput = document.getElementById('fs-tags');
-  if (tagsInput) {
-    tagsInput.addEventListener('input', (e) => {
-      _fileSpaceDraft.tags = e.target.value;
-    });
-  }
-
-  // 提交按钮
-  const submitBtn = document.getElementById('fs-submit-btn');
-  if (submitBtn) {
-    submitBtn.addEventListener('click', () => {
-      _submitFileSpaceRecord(activities);
-    });
-    submitBtn.addEventListener('mouseenter', function() {
-      if (!this.disabled) this.style.background = '#059669';
-    });
-    submitBtn.addEventListener('mouseleave', function() {
-      if (!this.disabled) this.style.background = '#10B981';
-      else this.style.background = '#9CA3AF';
+    uploadBtn.addEventListener('mouseleave', function() {
+      this.style.background = '#10B981';
     });
   }
 
@@ -1659,76 +1429,8 @@ function _bindFileSpaceEvents(activities) {
       }
     });
   }
-
-  _updateFileSpaceSubmitState();
-}
-
-/** 更新文件空间提交按钮状态 */
-function _updateFileSpaceSubmitState() {
-  const btn = document.getElementById('fs-submit-btn');
-  const hint = document.getElementById('fs-submit-hint');
-  if (!btn) return;
-
-  const hasFileName = _fileSpaceDraft.fileName.trim().length > 0;
-  btn.disabled = !hasFileName;
-  btn.style.background = hasFileName ? '#10B981' : '#9CA3AF';
-  btn.style.cursor = hasFileName ? 'pointer' : 'not-allowed';
-
-  if (hint) {
-    hint.textContent = hasFileName ? '' : '请填写文件名';
-  }
-}
-
-/** 提交文件空间记录 */
-function _submitFileSpaceRecord(activities) {
-  const { fileName, category, description, sourceType, sourceId, tags } = _fileSpaceDraft;
-  if (!fileName.trim()) return;
-
-  // 获取来源名称
-  let sourceName = '';
-  if (sourceType === 'activity' && sourceId) {
-    const activity = activities.find(a => a.id === sourceId);
-    sourceName = activity ? activity.title : '';
-  } else if (sourceType === 'taskforce' && sourceId) {
-    const tf = MOCK_TASKFORCES.find(t => t.id === sourceId);
-    sourceName = tf ? tf.name : '';
-  }
-
-  const record = {
-    id: 'fs_' + Date.now(),
-    fileName: fileName.trim(),
-    category,
-    description: description.trim(),
-    sourceType,
-    sourceId: sourceType === 'standalone' ? '' : sourceId,
-    sourceName,
-    uploadedBy: FILESPACE_ORGANIZER_ID,
-    uploadedAt: new Date().toISOString(),
-    tags: tags.trim(),
-  };
-
-  _addFileSpaceRecord(record);
-  showToast('success', `文件记录「${record.fileName}」已添加`);
-
-  // 重置草稿
-  _fileSpaceDraft = { fileName: '', category: 'experience', description: '', sourceType: 'standalone', sourceId: '', tags: '' };
-
-  // 重新渲染
-  const state = getAppState();
-  const filteredState = _filterByRole(state, 'organizer');
-  _renderFileSpaceContent(filteredState.activities || activities);
 }
 
 registerRenderCallback(renderOrganizerUI);
 
-(async function init() {
-  try { if (typeof BranchService.loadDB === 'function') BranchService.loadDB(); } catch (e) { console.warn('[ws-organizer] loadDB error', e); }
-  setState({ domain: 'activity', role: 'organizer', activeModule: 'workspace', status: STATE.LOADING, selectedRole: 'organizer' });
-  try {
-    const activities = await BranchService.listActivities();
-    setState({ status: STATE.IDLE, activities });
-  } catch (err) {
-    console.warn('[ws-organizer] load failed', err);
-    setState({ status: STATE.IDLE, activities: ACTIVITIES.map(a => ({ ...a, visibility: 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() })) });
-  }
-}());
+loadWorkspaceData({ role: 'organizer', fallbackData: () => ACTIVITIES, logTag: 'ws-organizer' });

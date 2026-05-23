@@ -54,7 +54,7 @@ status: active
 | [SOP_WEB.md](design/SOP_WEB.md) | SOP-网页联动方法论，含最先进设计思路 | **唯一权威**——SOP 与网页的双向修改指南 |
 | [DESIGN_SYSTEM.md](design/DESIGN_SYSTEM.md) | 哑光扁平化前端设计语言，五大核心原则 | **唯一权威**——前端视觉规范 |
 | [CALENDAR.md](design/CALENDAR.md) | 日历多视图切换架构与视图范围限定规则 | **唯一权威**——日历功能设计 |
-| [BRAND_ACTIVITY.md](design/BRAND_ACTIVITY.md) | 品牌活动四属性与四阶段生命周期（当前搁置） | **唯一权威**——品牌活动理念 |
+| [BRAND_ACTIVITY.md](design/BRAND_ACTIVITY.md) | 品牌属性标签设计理念——品牌是属性标签而非独立活动类型 | **唯一权威**——品牌标签理念 |
 
 ---
 

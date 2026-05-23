@@ -2,67 +2,101 @@
 // feedback-entry.js — 意见反馈独立入口
 import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';
+import { openFormModal } from '../components/modal.js';
 import { FeedbackStore } from '../services/feedback.js';
 import { showToast } from '../core/utils.js';
 
 renderSidebar('feedback');
 renderHeader('feedback');
 
-// ── 场景名称输入框：动态显示/隐藏 ──
-const scenarioWrapper = document.getElementById('scenario-name-wrapper');
-document.querySelectorAll('input[name="scope"]').forEach(radio => {
-  radio.addEventListener('change', () => {
-    if (scenarioWrapper) {
-      scenarioWrapper.classList.toggle('hidden', radio.value !== 'scenario' || !radio.checked);
-    }
+// ── 浮窗表单字段定义 ──
+const feedbackFields = [
+  {
+    key: 'scope',
+    label: '影响范围',
+    type: 'select',
+    required: true,
+    options: [
+      { value: 'permanent', label: '底层架构与原则建议' },
+      { value: 'global', label: '全局通用业务规则' },
+      { value: 'role', label: '支委分工与权责调整' },
+      { value: 'scenario', label: '特定业务场景专用' },
+    ],
+  },
+  {
+    key: 'scenarioName',
+    label: '场景名称',
+    type: 'text',
+    placeholder: '场景名称/编号（如：主题党日-红色1+1共建）',
+  },
+  {
+    key: 'painPointFile',
+    label: '卡壳文件',
+    type: 'text',
+    placeholder: '卡壳的SOP文件与步骤',
+  },
+  {
+    key: 'painPointDetail',
+    label: '实际困难',
+    type: 'textarea',
+    placeholder: '实际执行困难（一句话说明原流程为何反直觉或不可行）',
+  },
+  {
+    key: 'proposedFix',
+    label: '期望更改',
+    type: 'textarea',
+    placeholder: '直接给出新的规则逻辑',
+    required: true,
+  },
+  {
+    key: 'submittedBy',
+    label: '提交人',
+    type: 'text',
+    placeholder: '姓名（可留空，默认匿名）',
+  },
+];
+
+// ── 打开反馈浮窗 ──
+document.getElementById('btn-open-feedback-modal')?.addEventListener('click', () => {
+  openFormModal({
+    id: 'feedback-form',
+    title: 'SOP 优化提案反馈卡',
+    fields: feedbackFields,
+    submitLabel: '提交反馈',
+    accentColor: '#D97706',
+    onSubmit: (values) => {
+      const scope = values.scope || '';
+      const scenarioName = values.scenarioName?.trim() || '';
+      const painPointFile = values.painPointFile?.trim() || '';
+      const painPointDetail = values.painPointDetail?.trim() || '';
+      const proposedFix = values.proposedFix?.trim() || '';
+      const submittedBy = values.submittedBy?.trim() || '匿名';
+
+      if (!scope) {
+        showToast('error', '请选择影响范围');
+        return false;
+      }
+      if (!painPointFile && !painPointDetail && !proposedFix) {
+        showToast('error', '请至少填写痛点或期望更改');
+        return false;
+      }
+
+      const painPoint = painPointFile + (painPointDetail ? ' | ' + painPointDetail : '');
+
+      FeedbackStore.add({
+        scope,
+        scenarioName,
+        painPointFile,
+        painPointDetail,
+        painPoint,
+        proposedFix,
+        submittedBy,
+      });
+
+      showToast('success', '反馈已提交！感谢你的贡献。');
+      renderRecentFeedback();
+    },
   });
-});
-
-// ── 提交反馈 ──
-document.getElementById('btn-submit-feedback')?.addEventListener('click', () => {
-  const scopeEl = document.querySelector('input[name="scope"]:checked');
-  const scope = scopeEl ? scopeEl.value : '';
-  const scenarioName = document.getElementById('scenario-name-input')?.value.trim() || '';
-  const painPointFile = document.getElementById('pain-point-input')?.value.trim() || '';
-  const painPointDetail = document.getElementById('pain-point-detail')?.value.trim() || '';
-  const proposedFix = document.getElementById('proposed-fix-input')?.value.trim() || '';
-  const submittedBy = document.getElementById('submitter-input')?.value.trim() || '匿名';
-
-  if (!scope) {
-    showToast('error', '请选择影响范围');
-    return;
-  }
-  if (!painPointFile && !painPointDetail && !proposedFix) {
-    showToast('error', '请至少填写痛点或期望更改');
-    return;
-  }
-
-  const painPoint = painPointFile + (painPointDetail ? ' | ' + painPointDetail : '');
-
-  FeedbackStore.add({
-    scope,
-    scenarioName,
-    painPointFile,
-    painPointDetail,
-    painPoint,
-    proposedFix,
-    submittedBy,
-  });
-
-  // 清空表单
-  document.querySelectorAll('input[name="scope"]').forEach(r => r.checked = false);
-  if (scenarioWrapper) scenarioWrapper.classList.add('hidden');
-  document.getElementById('scenario-name-input').value = '';
-  document.getElementById('pain-point-input').value = '';
-  document.getElementById('pain-point-detail').value = '';
-  document.getElementById('proposed-fix-input').value = '';
-  document.getElementById('submitter-input').value = '';
-
-  const msg = document.getElementById('feedback-submit-msg');
-  if (msg) { msg.classList.remove('hidden'); setTimeout(() => msg.classList.add('hidden'), 3000); }
-
-  showToast('success', '反馈已提交！感谢你的贡献。');
-  renderRecentFeedback();
 });
 
 // ── 近期反馈列表渲染 ──

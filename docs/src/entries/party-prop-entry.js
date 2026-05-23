@@ -1,46 +1,29 @@
-import { setState, STATE, registerRenderCallback } from '../core/state.js';
-import { CrossPageState } from '../core/cross-page-state.js';
-import { renderSidebar } from '../components/sidebar.js';
-import { renderHeader } from '../components/header.js';
-import { ViewModeStore, AuthStore } from '../services/auth.js';
+import { registerRenderCallback } from '../core/state.js';
+import { bootstrapPage } from '../core/bootstrap.js';
 import { PartyModule } from '../modules/party.js';
+import { loadPartyData } from '../core/data-loader.js';
+import { renderTabBar } from '../components/tab-bar.js';
 
-renderSidebar('party');
-renderHeader('party');
-
-const savedState = CrossPageState.load();
-AuthStore.setActiveRole('party', savedState.selectedRole || 'prop-commissioner');
-if (savedState.stance) AuthStore.setPrimaryRole(savedState.stance);
-ViewModeStore.setMode('party', 'manage');
-
-const accent = '#10B981';
-const accentRgba = 'rgba(16,185,129,0.1)';
-const accentBorder = 'rgba(16,185,129,0.3)';
+const { savedState, accent, accentRgba, accentBorder } = bootstrapPage({ module: 'party', defaultRole: 'prop-commissioner', viewMode: 'manage', accentRole: 'prop-commissioner' });
 
 function renderPropPartyUI() {
   const container = document.getElementById('prop-party-content');
   if (!container) return;
 
-  container.innerHTML = `
-    <div class="flex gap-2 mb-4">
-      <button class="propp-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-propp-tab="archives" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">档案归档</button>
-      <button class="propp-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-propp-tab="standards" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">材料标准</button>
-      <button class="propp-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-propp-tab="weekly" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">周报报送</button>
-    </div>
-    <div id="propp-tab-content"></div>
-  `;
-
-  container.querySelectorAll('.propp-tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      container.querySelectorAll('.propp-tab-btn').forEach(b => {
-        b.style.background = 'white'; b.style.color = '#6B7280'; b.style.border = '1px solid #E5E7EB';
-      });
-      btn.style.background = accentRgba; btn.style.color = accent; btn.style.border = `1px solid ${accentBorder}`;
-      _renderTab(btn.dataset.proppTab);
-    });
+  const tabBar = renderTabBar({
+    prefix: 'propp',
+    tabs: [
+      { id: 'archives', label: '档案归档', render: () => _renderTab('archives') },
+      { id: 'standards', label: '材料标准', render: () => _renderTab('standards') },
+      { id: 'weekly', label: '周报报送', render: () => _renderTab('weekly') },
+    ],
+    accentColor: { accent, accentRgba, accentBorder },
+    defaultTab: 'archives',
   });
 
-  _renderTab('archives');
+  container.innerHTML = tabBar.html;
+  tabBar.bindEvents(container);
+  tabBar.activate('archives');
 }
 
 function _renderTab(tab) {
@@ -61,6 +44,4 @@ function _renderTab(tab) {
 
 registerRenderCallback(renderPropPartyUI);
 
-PartyModule.loadAll();
-setState({ domain: 'party', role: 'prop-commissioner', activeModule: 'party', status: STATE.IDLE, selectedRole: 'prop-commissioner' });
-renderPropPartyUI();
+loadPartyData({ role: 'prop-commissioner', partyModule: PartyModule, renderFn: renderPropPartyUI });

@@ -6,16 +6,17 @@ import { BranchService } from '../services/runtime.js';
 import { STATE, setState, registerRenderCallback } from '../core/state.js';
 import { NoticeStore, renderNoticeList } from '../services/notice.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
-import { _fmtDate, getBasePath } from '../core/utils.js';
-import { renderSidebar } from '../components/sidebar.js';
-import { renderHeader } from '../components/header.js';
-import { ACTIVITIES, _personName } from '../mock/index.js';
-import { ATTENDANCE_RECORDS } from '../mock/index.js';
+import { _fmtDate, getBasePath, showToast } from '../core/utils.js';
+import { _personName } from '../mock/index.js';
 import { PEOPLE } from '../mock/index.js';
+import { loadAttendanceRecords } from '../services/attendance.js';
 import { CrossPageState } from '../core/cross-page-state.js';
+import { getActivityTypeColors } from '../core/constants.js';
+import { bootstrapPage } from '../core/bootstrap.js';
+import { loadWorkspaceData, fallbackMapActivities } from '../core/data-loader.js';
+import { mockDB } from '../core/domain.js';
 
-renderSidebar('dashboard');
-renderHeader('dashboard');
+bootstrapPage({ module: 'dashboard' });
 
 function renderUI(state) {
   document.querySelectorAll('.module-tab[data-module]').forEach(tab => {
@@ -29,16 +30,7 @@ function renderUI(state) {
 
 registerRenderCallback(renderUI);
 
-const ACTIVITY_TYPE_COLORS = {
-  '主题党日': { bg: '#FEF2F2', dot: '#DC2626', label: '主题党日' },
-  '共建':     { bg: '#FDF2F8', dot: '#DB2777', label: '共建' },
-  '党课':     { bg: '#EFF6FF', dot: '#2563EB', label: '党课' },
-  '参访':     { bg: '#ECFDF5', dot: '#059669', label: '参访' },
-  '座谈':     { bg: '#FFF7ED', dot: '#EA580C', label: '座谈' },
-  '支委会':   { bg: '#F5F3FF', dot: '#7C3AED', label: '支委会' },
-  '党小组会': { bg: '#F0F9FF', dot: '#0891B2', label: '党小组会' },
-  '支部党员大会': { bg: '#FFFBEB', dot: '#D97706', label: '支部党员大会' },
-};
+const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
 
 const STATUS_LABELS = {
   draft: { text: '草稿', cls: 'bg-gray-100 text-gray-600' },
@@ -275,21 +267,11 @@ function _renderGallery(activities) {
 }
 
 function renderDashboard(state) {
-  let activities = state.activities || [];
-  if (activities.length === 0 && ACTIVITIES.length > 0) {
-    activities = ACTIVITIES.map(a => ({
-      ...a,
-      visibility: a.visibility || 'branch',
-      executor: a.organizer || 'u_exec',
-      supervisor: null,
-      createdBy: a.organizer || 'u_exec',
-      createdAt: a.date || new Date().toISOString(),
-    }));
-  }
+  const activities = state.activities || [];
   const taskforces = TaskForceRecordStore.getAll();
   const notices = NoticeStore.getAll();
 
-  _renderStats(activities, taskforces, notices, ATTENDANCE_RECORDS);
+  _renderStats(activities, taskforces, notices, loadAttendanceRecords());
 
   renderNoticeList('dashboard-notice-list', 5);
   const noticeCount = document.getElementById('dashboard-notice-count');
@@ -300,7 +282,7 @@ function renderDashboard(state) {
 
   _renderTaskforceList(taskforces);
   _renderActivityList(activities);
-  _renderAttendanceSummary(activities, ATTENDANCE_RECORDS);
+  _renderAttendanceSummary(activities, loadAttendanceRecords());
   _renderGallery(activities);
 
   const dashContainer = document.getElementById('view-dashboard');
@@ -351,49 +333,36 @@ function renderDashboard(state) {
   });
 }
 
-(async function initApp() {
-  try {
-    if (typeof BranchService.loadDB === 'function') BranchService.loadDB();
-    NoticeStore.init();
-    TaskForceRecordStore.init();
-  } catch (e) {
-    console.warn('[initApp] loadDB 异常（已忽略）', e);
-  }
+loadWorkspaceData({
+  role: 'all',
+  selectedRole: null,
+  activeModule: 'dashboard',
+  fallbackData: () => mockDB.activities,
+  storeInits: [() => NoticeStore.init(), () => TaskForceRecordStore.init()],
+  extraLoads: [() => typeof BranchService.listTasks === 'function' ? BranchService.listTasks() : Promise.resolve([])],
+  logTag: 'initApp'
+});
 
-  const _lastDataVersion = CrossPageState.getDataVersion();
+const _lastDataVersion = CrossPageState.getDataVersion();
 
-  setState({ domain: 'activity', role: 'all', activeModule: 'dashboard', status: STATE.LOADING, selectedRole: null });
-
-  try {
-    const [activities, tasks] = await Promise.all([
-      BranchService.listActivities(),
-      typeof BranchService.listTasks === 'function' ? BranchService.listTasks() : Promise.resolve([]),
-    ]);
-    setState({ status: STATE.IDLE, activities, tasks });
-  } catch (err) {
-    console.warn('[initApp] 初始化加载失败：', err);
-    setState({ status: STATE.ERROR, error: err });
-  }
-
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'sop_org_os_data_version') {
-      const newVersion = CrossPageState.getDataVersion();
-      if (newVersion !== _lastDataVersion) {
-        BranchService.listActivities().then(activities => {
-          setState({ activities });
-        }).catch(() => {});
-      }
+window.addEventListener('storage', (e) => {
+  if (e.key === 'sop_org_os_data_version') {
+    const newVersion = CrossPageState.getDataVersion();
+    if (newVersion !== _lastDataVersion) {
+      BranchService.listActivities().then(activities => {
+        setState({ activities });
+      }).catch(() => {});
     }
-  });
+  }
+});
 
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-      const newVersion = CrossPageState.getDataVersion();
-      if (newVersion !== _lastDataVersion) {
-        BranchService.listActivities().then(activities => {
-          setState({ activities });
-        }).catch(() => {});
-      }
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    const newVersion = CrossPageState.getDataVersion();
+    if (newVersion !== _lastDataVersion) {
+      BranchService.listActivities().then(activities => {
+        setState({ activities });
+      }).catch(() => {});
     }
-  });
-}());
+  }
+});

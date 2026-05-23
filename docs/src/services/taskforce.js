@@ -1,18 +1,19 @@
 // role: [人机]
 // ════════════════════════════════════════════════════════════════
 //  service.taskforce.js — 专班数据模型
-//  提供 TaskForceRecordStore：专班的 CRUD + localStorage 持久化
+//  提供 TaskForceRecordStore：专班的 CRUD + mockDB 持久化
 //  关联 ActivityRecordStore 用于活动维度的专班关联
 // ════════════════════════════════════════════════════════════════
+
+import { mockDB } from '../core/domain.js';
+import { saveDB } from './mock.js';
+import { MOCK_TASKFORCES, _personName } from '../mock/index.js';
 
 const TASKFORCE_STORAGE_KEY = 'workflowos_taskforces_v1';
 
 function _loadTaskForces() {
   try {
-    const raw = localStorage.getItem(TASKFORCE_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    return [...mockDB.taskforces];
   } catch (e) {
     console.warn('[TaskForceRecordStore] 加载失败：', e);
     return [];
@@ -21,13 +22,12 @@ function _loadTaskForces() {
 
 function _saveTaskForces(records) {
   try {
-    localStorage.setItem(TASKFORCE_STORAGE_KEY, JSON.stringify(records));
+    mockDB.taskforces = [...records];
+    saveDB();
   } catch (e) {
     console.warn('[TaskForceRecordStore] 保存失败：', e);
   }
 }
-
-import { MOCK_TASKFORCES, _personName } from '../mock/index.js';
 
 export const TaskForceRecordStore = {
   _records: [],

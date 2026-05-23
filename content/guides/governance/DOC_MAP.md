@@ -92,7 +92,7 @@ status: active
 | `content/guides/design/DESIGN_SYSTEM.md` | [人机] | 🟡 技术 | 设计系统规范 | docs/src/styles.css |
 | `content/guides/governance/EMOJI_POLICY.md` | [人机] | 🟡 技术 | Emoji 使用规范 | CLAUDE.md 钩稽 |
 | `content/guides/design/CALENDAR.md` | [人机] | 🟡 技术 | 日历功能规划 | docs/src/components/calendar.js |
-| `content/guides/design/BRAND_ACTIVITY.md` | [人机] | 🟡 技术 | 品牌活动规划与执行方案（合并自2文件） | CLAUDE.md |
+| `content/guides/design/BRAND_ACTIVITY.md` | [人机] | 🟡 技术 | 品牌属性标签设计理念 | CLAUDE.md |
 | `content/guides/governance/AGENT_USAGE.md` | [人机] | 🟡 技术 | Agent 使用指南 | ARCHITECTURE（快速导航） |
 | `content/insights/党支部管理与实务经验沉淀.md` | [人机] | 🟡 技术 | 经验沉淀 | 社科院 |
 | `content/guides/governance/DOC_MAP.md` | [人机] | 🟡 技术 | 本文档：全局导航中心 | 所有文件 |
@@ -177,7 +177,7 @@ Agent层
 | 查看设计系统规范 | content/guides/design/DESIGN_SYSTEM.md | docs/src/styles.css |
 | 了解 Emoji 使用规范 | content/guides/governance/EMOJI_POLICY.md | CLAUDE.md 钩稽矩阵 |
 | 查看日历功能规划 | content/guides/design/CALENDAR.md | docs/src/components/calendar.js |
-| 查看品牌活动方案 | content/guides/design/BRAND_ACTIVITY.md | CLAUDE.md |
+| 查看品牌标签设计 | content/guides/design/BRAND_ACTIVITY.md | CLAUDE.md |
 | 查官方合规 | content/references/合规文件/ | content/SOP/溯源 |
 | 查看执行日志 | .ctx/logs/EXECUTION_LOG_INDEX.md | 对应月份日志 |
 | 查看 SOP 网页优化 | content/guides/design/SOP_WEB.md | content/SOP/对应 SOP |

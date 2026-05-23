@@ -125,7 +125,7 @@
       <div class="mb-6">
         <h4 class="font-title-cn text-base font-semibold text-gray-700 mb-3">2.4 决策树四层模型</h4>
         <p class="font-title text-base text-gray-700 leading-loose">
-          活动管理不是"分类"问题，而是"决策"问题。四层决策结构：组织场景（L1）→ 活动形式（L2）→ 时长（L3）→ 发起方向（L4），上层自动排除下层的不合法分支。品牌维度被"吸收"为长期活动的一个可选子流程——品牌认定不再是活动的"属性"，而是长期活动发展到一定阶段后的"认定"。
+          活动管理不是"分类"问题，而是"决策"问题。四层决策结构：组织场景（L1）→ 活动形式（L2）→ 时长（L3）→ 发起方向（L4），上层自动排除下层的不合法分支。品牌是活动的属性标签，不是分类维度——品牌认定不再是活动的"属性维度"，而是活动发展到一定阶段后的"认定"，不影响工作流选择。
         </p>
       </div>
 
@@ -289,44 +289,6 @@
   </div>
 </div>
 
-<script type="module">
-  import { renderSidebar } from './src/components/sidebar.js';
-  import { renderHeader } from './src/components/header.js';
-  import { renderCommissionerMatrix } from './src/components/commissioner-matrix.js';
-  renderSidebar('about');
-  renderHeader('about');
-  renderCommissionerMatrix('commissioner-matrix-container');
-
-  const toc = document.getElementById('about-toc');
-  const links = toc.querySelectorAll('a');
-  const sections = [];
-  links.forEach(link => {
-    const id = link.getAttribute('href').slice(1);
-    const el = document.getElementById(id);
-    if (el) sections.push({ id, el, link });
-  });
-
-  function updateActiveToc() {
-    const scrollY = window.scrollY + 120;
-    let current = sections[0];
-    for (const s of sections) {
-      if (s.el.offsetTop <= scrollY) current = s;
-    }
-    links.forEach(l => l.classList.remove('active'));
-    if (current) current.link.classList.add('active');
-  }
-
-  window.addEventListener('scroll', updateActiveToc, { passive: true });
-  updateActiveToc();
-
-  links.forEach(link => {
-    link.addEventListener('click', e => {
-      e.preventDefault();
-      const id = link.getAttribute('href').slice(1);
-      const el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  });
-</script>
+<script type="module" src="./src/entries/about-entry.js"></script>
 </body>
 </html>

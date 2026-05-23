@@ -1,32 +1,18 @@
 import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
-import { BranchService } from '../services/runtime.js';
 import { _fmtDate } from '../core/utils.js';
 import { CrossPageState } from '../core/cross-page-state.js';
-import { renderSidebar } from '../components/sidebar.js';
-import { renderHeader } from '../components/header.js';
-import { ViewModeStore, AuthStore } from '../services/auth.js';
+import { bootstrapPage } from '../core/bootstrap.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { NoticeStore } from '../services/notice.js';
-import { ATTENDANCE_RECORDS, ACTIVITIES, _personName } from '../mock/index.js';
+import { ACTIVITIES, _personName } from '../mock/index.js';
+import { loadAttendanceRecords } from '../services/attendance.js';
+import { getActivityTypeColors } from '../core/constants.js';
+import { renderTabBar } from '../components/tab-bar.js';
+import { renderQueryView } from '../components/query-view.js';
 
-renderSidebar('workspace');
-renderHeader('workspace');
+const { savedState } = bootstrapPage({ module: 'workspace', defaultRole: 'all', viewMode: 'participant-observe' });
 
-const savedState = CrossPageState.load();
-AuthStore.setActiveRole('workspace', savedState.selectedRole || 'all');
-if (savedState.stance) AuthStore.setPrimaryRole(savedState.stance);
-ViewModeStore.setMode('workspace', 'participant-observe');
-
-const ACTIVITY_TYPE_COLORS = {
-  '主题党日': { bg: '#FEF2F2', dot: '#DC2626' },
-  '共建': { bg: '#FDF2F8', dot: '#DB2777' },
-  '党课': { bg: '#EFF6FF', dot: '#2563EB' },
-  '参访': { bg: '#ECFDF5', dot: '#059669' },
-  '座谈': { bg: '#FFF7ED', dot: '#EA580C' },
-  '支委会': { bg: '#F5F3FF', dot: '#7C3AED' },
-  '党小组会': { bg: '#F0F9FF', dot: '#0891B2' },
-  '支部党员大会': { bg: '#FFFBEB', dot: '#D97706' },
-};
+const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
 function renderVisitorUI(state) {
   let activities = state.activities || [];
@@ -43,35 +29,30 @@ function renderVisitorUI(state) {
   const notices = NoticeStore.getAll();
   const activeTf = taskforces.filter(t => t.status === 'active' || t.status === 'recruiting');
 
+  const urlParams = CrossPageState.getURLParams();
+  const highlightId = urlParams.activityId || null;
+
+  const tabBar = renderTabBar({
+    prefix: 'visitor',
+    tabs: [
+      { id: 'activities', label: '活动动态', render: (ctx) => _renderActivities(ctx.activities, ctx.highlightId) },
+      { id: 'taskforces', label: '专班进展', render: (ctx) => _renderTaskforces(ctx.activeTf) },
+      { id: 'attendance', label: '考勤概况', render: (ctx) => _renderAttendance(ctx.activities) },
+    ],
+    accentColor: { accent: 'var(--primary-700)', accentRgba: 'rgba(122,0,16,0.08)', accentBorder: 'rgba(122,0,16,0.2)' },
+    defaultTab: 'activities',
+    renderCtx: { activities, activeTf, highlightId },
+  });
+
   container.innerHTML = `
     <div class="card rounded-2xl p-4 mb-6 border border-amber-200 bg-amber-50/30">
       <p class="text-xs text-amber-700">您当前处于成员只读模式。如需进入管理模式，请从侧边栏选择角色。</p>
     </div>
-    <div class="flex gap-2 mb-4">
-      <button class="visitor-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-vtab="activities" style="background:rgba(122,0,16,0.08);color:var(--primary-700);border:1px solid rgba(122,0,16,0.2);">活动动态</button>
-      <button class="visitor-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-vtab="taskforces" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">专班进展</button>
-      <button class="visitor-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-vtab="attendance" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">考勤概况</button>
-    </div>
-    <div id="visitor-tab-content"></div>
+    ${tabBar.html}
   `;
 
-  container.querySelectorAll('.visitor-tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      container.querySelectorAll('.visitor-tab-btn').forEach(b => {
-        b.style.background = 'white'; b.style.color = '#6B7280'; b.style.border = '1px solid #E5E7EB';
-      });
-      btn.style.background = 'rgba(122,0,16,0.08)'; btn.style.color = 'var(--primary-700)'; btn.style.border = '1px solid rgba(122,0,16,0.2)';
-      const tab = btn.dataset.vtab;
-      if (tab === 'activities') _renderActivities(activities);
-      else if (tab === 'taskforces') _renderTaskforces(activeTf);
-      else if (tab === 'attendance') _renderAttendance(activities);
-    });
-  });
-
-  const urlParams = CrossPageState.getURLParams();
-  const highlightId = urlParams.activityId || null;
-
-  _renderActivities(activities, highlightId);
+  tabBar.bindEvents(container);
+  tabBar.activate('activities');
 }
 
 function _renderActivities(activities, highlightId) {
@@ -89,6 +70,9 @@ function _renderActivities(activities, highlightId) {
         <button class="visitor-view-btn px-2.5 py-1 text-xs rounded-lg border transition-colors" data-vview="calendar" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 日历
         </button>
+        <button class="visitor-view-btn px-2.5 py-1 text-xs rounded-lg border transition-colors" data-vview="query" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> 查询
+        </button>
       </div>
     </div>
     <div id="visitor-act-view"></div>
@@ -102,7 +86,8 @@ function _renderActivities(activities, highlightId) {
       btn.style.background = 'rgba(122,0,16,0.08)'; btn.style.color = 'var(--primary-700)'; btn.style.border = '1px solid rgba(122,0,16,0.2)';
       const view = btn.dataset.vview;
       if (view === 'list') _renderActListView(sorted, highlightId);
-      else _renderActCalendarView(sorted, highlightId);
+      else if (view === 'calendar') _renderActCalendarView(sorted, highlightId);
+      else _renderActQueryView(sorted, highlightId);
     });
   });
 
@@ -192,6 +177,46 @@ function _renderActCalendarView(sorted, highlightId) {
   }
 }
 
+function _renderActQueryView(sorted, highlightId) {
+  const vc = document.getElementById('visitor-act-view');
+  if (!vc) return;
+
+  const typeOptions = Object.keys(ACTIVITY_TYPE_COLORS).map(key => ({
+    value: key,
+    label: key,
+  }));
+
+  renderQueryView(vc, {
+    searchPlaceholder: '搜索活动名称、地点...',
+    searchKey: 'title',
+    filters: [
+      { key: 'type', label: '活动类型', options: typeOptions },
+    ],
+    data: sorted,
+    renderRow: (a) => {
+      const color = ACTIVITY_TYPE_COLORS[a.type || a.category] || { bg: '#F9FAFB', dot: '#6B7280' };
+      const isHL = highlightId && a.id === highlightId;
+      return `
+        <div class="flex items-center gap-3 p-3 rounded-lg border ${isHL ? 'border-blue-400 ring-2 ring-blue-100' : 'border-gray-100'}" style="background:${color.bg}" data-visitor-act-id="${a.id || ''}">
+          <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}"></div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
+            <p class="text-xs text-gray-500 mt-0.5">${a.date || '待定'} · ${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
+          </div>
+          ${isHL ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 flex-shrink-0">当前</span>' : ''}
+        </div>
+      `;
+    },
+    emptyMessage: '无匹配活动',
+    accentColor: '#CE1126',
+  });
+
+  if (highlightId) {
+    const el = vc.querySelector(`[data-visitor-act-id="${highlightId}"]`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
 function _renderTaskforces(taskforces) {
   const tc = document.getElementById('visitor-tab-content');
   if (!tc) return;
@@ -267,7 +292,7 @@ function _renderAttendance(activities) {
       <div class="space-y-2">
         ${filtered.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">无匹配考勤数据</p>' :
           filtered.map(act => {
-            const records = ATTENDANCE_RECORDS.filter(r => r.activityId === act.id);
+            const records = loadAttendanceRecords().filter(r => r.activityId === act.id);
             const present = records.filter(r => r.status === '出勤').length;
             const total = records.length;
             const rate = total > 0 ? Math.round((present / total) * 100) : 0;
@@ -291,14 +316,4 @@ function _renderAttendance(activities) {
 
 registerRenderCallback(renderVisitorUI);
 
-(async function init() {
-  try { if (typeof BranchService.loadDB === 'function') BranchService.loadDB(); NoticeStore.init(); TaskForceRecordStore.init(); } catch (e) { console.warn('[ws-visitor] loadDB error', e); }
-  setState({ domain: 'activity', role: 'all', activeModule: 'workspace', status: STATE.LOADING, selectedRole: null });
-  try {
-    const activities = await BranchService.listActivities();
-    setState({ status: STATE.IDLE, activities });
-  } catch (err) {
-    console.warn('[ws-visitor] load failed', err);
-    setState({ status: STATE.IDLE, activities: ACTIVITIES.map(a => ({ ...a, visibility: 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() })) });
-  }
-}());
+loadWorkspaceData({ role: 'all', selectedRole: null, storeInits: [() => NoticeStore.init(), () => TaskForceRecordStore.init()], fallbackData: () => ACTIVITIES, logTag: 'ws-visitor' });

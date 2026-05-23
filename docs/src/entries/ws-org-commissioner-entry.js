@@ -2,24 +2,18 @@ import { getAppState, setState, STATE, registerRenderCallback } from '../core/st
 import { BranchService } from '../services/runtime.js';
 import { showToast } from '../core/utils.js';
 import { CrossPageState } from '../core/cross-page-state.js';
-import { renderSidebar } from '../components/sidebar.js';
-import { renderHeader } from '../components/header.js';
-import { ViewModeStore, AuthStore } from '../services/auth.js';
+import { AuthStore } from '../services/auth.js';
+import { bootstrapPage } from '../core/bootstrap.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { PersonPicker } from '../components/person-picker.js';
 import { KANBAN_MOCKS, ACTIVITIES, _personName } from '../mock/index.js';
+import { mockDB } from '../core/domain.js';
+import { saveDB } from '../services/mock.js';
+import { loadWorkspaceData } from '../core/data-loader.js';
+import { renderTabBar } from '../components/tab-bar.js';
+import { renderQueryView } from '../components/query-view.js';
 
-renderSidebar('workspace');
-renderHeader('workspace');
-
-const savedState = CrossPageState.load();
-AuthStore.setActiveRole('workspace', savedState.selectedRole || 'org-commissioner');
-if (savedState.stance) AuthStore.setPrimaryRole(savedState.stance);
-ViewModeStore.setMode('workspace', 'manage');
-
-const accent = '#CE1126';
-const accentRgba = 'rgba(206,17,38,0.1)';
-const accentBorder = 'rgba(206,17,38,0.3)';
+const { savedState, accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', defaultRole: 'org-commissioner', viewMode: 'manage', accentRole: 'org-commissioner' });
 
 const SVG = {
   people: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
@@ -43,32 +37,23 @@ function renderOrgUI(state) {
   const recruiting = taskforces.filter(t => t.status === 'recruiting');
   const active = taskforces.filter(t => t.status === 'active');
 
-  container.innerHTML = `
-    <div class="flex gap-2 mb-4">
-      <button class="org-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-org-tab="taskforce" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">专班管理</button>
-      <button class="org-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-org-tab="tracking" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">追踪看板</button>
-      <button class="org-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-org-tab="compliance" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">合规文件</button>
-      <button id="btn-publish-tf" class="ml-auto text-xs px-3 py-2 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" style="cursor:pointer;">发布招募</button>
-    </div>
-    <div id="org-tab-content"></div>
-  `;
-
-  container.querySelectorAll('.org-tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      container.querySelectorAll('.org-tab-btn').forEach(b => {
-        b.style.background = 'white'; b.style.color = '#6B7280'; b.style.border = '1px solid #E5E7EB';
-      });
-      btn.style.background = accentRgba; btn.style.color = accent; btn.style.border = `1px solid ${accentBorder}`;
-      const tab = btn.dataset.orgTab;
-      if (tab === 'taskforce') _renderTaskforceContent(pending, recruiting, active);
-      else if (tab === 'tracking') _renderTrackingContent(activities);
-      else if (tab === 'compliance') _renderComplianceContent();
-    });
+  const tabBar = renderTabBar({
+    prefix: 'org',
+    tabs: [
+      { id: 'taskforce', label: '专班管理', render: (ctx) => _renderTaskforceContent(ctx.pending, ctx.recruiting, ctx.active) },
+      { id: 'tracking', label: '追踪看板', render: (ctx) => _renderTrackingContent(ctx.activities) },
+      { id: 'compliance', label: '合规文件', render: () => _renderComplianceContent() },
+    ],
+    accentColor: { accent, accentRgba, accentBorder },
+    extraRightHtml: '<button id="btn-publish-tf" class="text-xs px-3 py-2 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" style="cursor:pointer;">发布招募</button>',
+    renderCtx: { pending, recruiting, active, activities },
   });
 
-  container.querySelector('#btn-publish-tf')?.addEventListener('click', () => _openRecruitForm());
+  container.innerHTML = tabBar.html;
 
-  _renderTaskforceContent(pending, recruiting, active);
+  tabBar.bindEvents(container);
+  container.querySelector('#btn-publish-tf')?.addEventListener('click', () => _openRecruitForm());
+  tabBar.activate('taskforce');
 
   const urlParams = CrossPageState.getURLParams();
   if (urlParams.taskforceId) {
@@ -215,13 +200,12 @@ function _renderTaskforceContent(pending, recruiting, active) {
       }
 
       // ── 子记录区域（P3-4：专班挂载考察+材料2子记录） ──
-      const TF_SUB_KEY = 'tf_sub_records';
-      let subRecords = JSON.parse(localStorage.getItem(TF_SUB_KEY) || '{}');
+      let subRecords = { ...mockDB.tfSubRecords };
       const tfSubs = subRecords[tfId] || { inspection: [], materials: [] };
 
       function saveTfSubs() {
-        subRecords[tfId] = tfSubs;
-        localStorage.setItem(TF_SUB_KEY, JSON.stringify(subRecords));
+        mockDB.tfSubRecords = { ...mockDB.tfSubRecords, [tfId]: tfSubs };
+        saveDB();
       }
 
       function renderSubTable(type, items) {
@@ -489,6 +473,7 @@ function _openRecruitForm() {
   _recruitPersonPicker = new PersonPicker({
     mode: 'multi',
     placeholder: '选择初始成员（选填）',
+    accentColor: '#CE1126',
     onSelect: () => {},
   });
   _recruitPersonPicker.render(pickerContainer);
@@ -568,74 +553,77 @@ function _submitRecruitForm() {
 function _renderTrackingContent(activities) {
   const container = document.getElementById('org-tab-content');
   if (!container) return;
-  const published = activities.filter(a => a.status === 'published' || a.status === 'ongoing');
-  const completed = activities.filter(a => a.status === 'completed');
+
+  // Prepare data with archived field for filtering
+  const queryData = activities.map(a => ({
+    ...a,
+    archived: String(a.status === 'completed'),
+  }));
+
+  // Extract type options from activities
+  const typeOptions = [...new Set(activities.map(a => a.type).filter(Boolean))].map(t => ({ value: t, label: t }));
+
   container.innerHTML = `
     <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#CE1126;">
       <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">活动追踪看板</h4>
       <div class="text-xs text-gray-500 mb-3">组织委员可追踪所有已发布活动的执行状态</div>
-      <div class="flex flex-wrap gap-2 mb-3">
-        <input type="text" id="org-track-search" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索活动名称或类型...">
-      </div>
-      <div id="org-track-list"></div>
-      ${completed.length > 0 ? `
-      <details class="mt-4 pt-3 border-t border-gray-100">
-        <summary class="font-title-cn text-xs font-bold text-gray-500 cursor-pointer select-none">已归档 (${completed.length})</summary>
-        <div class="mt-2 space-y-2">
-          ${completed.map(a => `
-            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50">
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-gray-500 line-through">${a.title || '未命名'}</div>
-                <div class="text-xs text-gray-400 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
-              </div>
-              <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">已归档</span>
-            </div>
-          `).join('')}
-        </div>
-      </details>` : ''}
+      <div id="org-tracking-query"></div>
     </div>
   `;
 
-  function renderList() {
-    const listEl = document.getElementById('org-track-list');
-    if (!listEl) return;
-    const q = (document.getElementById('org-track-search')?.value || '').trim().toLowerCase();
-    const filtered = q ? published.filter(a => (a.title || '').toLowerCase().includes(q) || (a.type || '').toLowerCase().includes(q)) : published;
-    listEl.innerHTML = `
-      <div class="space-y-2">
-        ${filtered.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">无匹配活动</p>' :
-          filtered.map(a => `
-            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
-                <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}${a.location ? ' · ' + a.location : ''}</div>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">已发布</span>
-                <button class="track-complete-btn text-[10px] px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors" data-act-id="${a.id}">确认完成</button>
-              </div>
+  const queryContainer = document.getElementById('org-tracking-query');
+  if (queryContainer) {
+    renderQueryView(queryContainer, {
+      searchPlaceholder: '搜索活动名称...',
+      searchKey: 'title',
+      filters: [
+        { key: 'type', label: '活动类型', options: typeOptions },
+        { key: 'archived', label: '状态', options: [
+          { value: '', label: '全部' },
+          { value: 'false', label: '进行中' },
+          { value: 'true', label: '已归档' },
+        ]},
+      ],
+      data: queryData,
+      renderRow: (a) => {
+        const isArchived = a.status === 'completed';
+        const statusTag = isArchived
+          ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">已归档</span>'
+          : '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">已发布</span>';
+        const completeBtn = !isArchived
+          ? `<button class="track-complete-btn text-[10px] px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors" data-act-id="${a.id}">确认完成</button>`
+          : '';
+        return `
+          <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium ${isArchived ? 'text-gray-500 line-through' : 'text-gray-800'}">${a.title || '未命名'}</div>
+              <div class="text-xs text-gray-500 mt-0.5">${a.date || ''}${a.type ? ' · ' + a.type : ''}${a.location ? ' · ' + a.location : ''}</div>
             </div>
-          `).join('')}
-      </div>
-    `;
+            <div class="flex items-center gap-2">
+              ${statusTag}
+              ${completeBtn}
+            </div>
+          </div>
+        `;
+      },
+      emptyMessage: '无匹配活动',
+      accentColor: '#3B82F6',
+    });
 
-    // 绑定确认完成按钮
-    listEl.querySelectorAll('.track-complete-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const actId = btn.dataset.actId;
-        const activity = activities.find(a => a.id === actId);
-        if (!activity) return;
-        const confirmed = window.confirm(`确认完成活动「${activity.title || '未命名'}」？完成后将归档。`);
-        if (!confirmed) return;
-        BranchService.updateActivity(actId, { status: 'completed' });
-        showToast('success', `活动「${activity.title || '未命名'}」已完成并归档`);
-        renderOrgUI(getAppState());
-      });
+    // Bind confirm complete buttons using event delegation
+    queryContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('.track-complete-btn');
+      if (!btn) return;
+      const actId = btn.dataset.actId;
+      const activity = activities.find(a => a.id === actId);
+      if (!activity) return;
+      const confirmed = window.confirm(`确认完成活动「${activity.title || '未命名'}」？完成后将归档。`);
+      if (!confirmed) return;
+      BranchService.updateActivity(actId, { status: 'completed' });
+      showToast('success', `活动「${activity.title || '未命名'}」已完成并归档`);
+      renderOrgUI(getAppState());
     });
   }
-
-  document.getElementById('org-track-search')?.addEventListener('input', renderList);
-  renderList();
 }
 
 // ── 合规文件引用渲染（P3-2：只读不可变，组织委员管理引用列表） ──
@@ -643,8 +631,7 @@ function _renderComplianceContent() {
   const container = document.getElementById('org-tab-content');
   if (!container) return;
 
-  const COMPLIANCE_KEY = 'compliance_references';
-  let refs = JSON.parse(localStorage.getItem(COMPLIANCE_KEY) || '[]');
+  let refs = [...mockDB.complianceReferences];
 
   // 官方合规文件（只读不可变）
   const officialDocs = [
@@ -657,7 +644,8 @@ function _renderComplianceContent() {
   ];
 
   function saveRefs() {
-    localStorage.setItem(COMPLIANCE_KEY, JSON.stringify(refs));
+    mockDB.complianceReferences = [...refs];
+    saveDB();
   }
 
   function renderRefList() {
@@ -679,7 +667,7 @@ function _renderComplianceContent() {
   }
 
   container.innerHTML = `
-    <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#3B82F6;">
+    <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#CE1126;">
       <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">合规文件引用管理</h4>
       <p class="text-xs text-gray-500 mb-4">官方合规文件内容只读不可变，组织委员管理引用列表</p>
 
@@ -741,14 +729,4 @@ function _renderComplianceContent() {
 
 registerRenderCallback(renderOrgUI);
 
-(async function init() {
-  try { if (typeof BranchService.loadDB === 'function') BranchService.loadDB(); TaskForceRecordStore.init(); } catch (e) { console.warn('[ws-org] loadDB error', e); }
-  setState({ domain: 'activity', role: 'org-commissioner', activeModule: 'workspace', status: STATE.LOADING, selectedRole: 'org-commissioner' });
-  try {
-    const activities = await BranchService.listActivities();
-    setState({ status: STATE.IDLE, activities });
-  } catch (err) {
-    console.warn('[ws-org] load failed', err);
-    setState({ status: STATE.IDLE, activities: ACTIVITIES.map(a => ({ ...a, visibility: 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() })) });
-  }
-}());
+loadWorkspaceData({ role: 'org-commissioner', storeInits: [() => TaskForceRecordStore.init()], fallbackData: () => ACTIVITIES, logTag: 'ws-org' });

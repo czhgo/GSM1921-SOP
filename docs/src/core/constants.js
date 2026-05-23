@@ -56,7 +56,6 @@ const SCENARIO_TO_CATEGORY = {
   'development':        'development',
   'training':           'training',
   'joint-event':        'party-day-joint',
-  'brand-activity':     'long-term',
 };
 
 /**
@@ -141,3 +140,93 @@ export const ROLE_THEME_CLASS = {
   deep:         'role-theme-deep',
   secretary:    'role-theme-secretary',
 };
+
+// ── 角色强调色（accent 三件套统一来源）──────────────────────────
+// 每个角色对应一个主色 hex，bg/border 由 hexToRgba 派生
+
+/**
+ * hex 转 rgba 字符串
+ * @param {string} hex — 如 '#CE1126' 或 '#3B82F6'
+ * @param {number} alpha — 0~1
+ * @returns {string} — 如 'rgba(206,17,38,0.1)'
+ */
+export function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+export const ACCENT_COLORS = {
+  secretary:           { hex: '#7A0010' },
+  leader:              { hex: '#CE1126' },
+  'org-commissioner':  { hex: '#CE1126' },
+  'prop-commissioner': { hex: '#10B981' },
+  'disc-commissioner': { hex: '#D97706' },
+  commissioner:        { hex: '#D97706' },
+  organizer:           { hex: '#3B82F6' },
+  deep:                { hex: '#059669' },
+  all:                 { hex: '#7C3AED' },
+};
+
+/**
+ * 获取角色的 accent 三件套
+ * @param {string} role — 角色键名
+ * @param {number} [bgAlpha=0.1] — 背景色透明度
+ * @param {number} [borderAlpha=0.3] — 边框色透明度
+ * @returns {{ accent: string, accentRgba: string, accentBorder: string }}
+ */
+export function getAccentColors(role, bgAlpha = 0.1, borderAlpha = 0.3) {
+  const entry = ACCENT_COLORS[role] || ACCENT_COLORS.all;
+  return {
+    accent: entry.hex,
+    accentRgba: hexToRgba(entry.hex, bgAlpha),
+    accentBorder: hexToRgba(entry.hex, borderAlpha),
+  };
+}
+
+// ── 活动类型颜色（中文标签版，用于卡片/列表视图）──────────────────
+// 统一来源，消除 main-entry / ws-visitor-entry / archive-entry 中的重复定义
+
+const _ACTIVITY_TYPE_BASE = {
+  '主题党日':     { bg: '#FEF2F2', dot: '#DC2626' },
+  '共建':         { bg: '#FDF2F8', dot: '#DB2777' },
+  '党课':         { bg: '#EFF6FF', dot: '#2563EB' },
+  '参访':         { bg: '#ECFDF5', dot: '#059669' },
+  '座谈':         { bg: '#FFF7ED', dot: '#EA580C' },
+  '支委会':       { bg: '#F5F3FF', dot: '#7C3AED' },
+  '党小组会':     { bg: '#F0F9FF', dot: '#0891B2' },
+  '支部党员大会': { bg: '#FFFBEB', dot: '#D97706' },
+};
+
+/**
+ * 获取活动类型颜色映射
+ * @param {Object} [opts]
+ * @param {boolean} [opts.withLabel=false] — 是否包含 label 字段
+ * @param {boolean} [opts.useGradient=false] — 是否用渐变色替代纯色背景
+ * @returns {Object}
+ */
+export function getActivityTypeColors({ withLabel = false, useGradient = false } = {}) {
+  const result = {};
+  for (const [key, val] of Object.entries(_ACTIVITY_TYPE_BASE)) {
+    const entry = { ...val };
+    if (useGradient) {
+      // 将 #FEF2F2 转为 linear-gradient(135deg, #FEF2F2, #FEE2E2) 形式
+      entry._flatBg = entry.bg;
+      entry.bg = `linear-gradient(135deg, ${entry.bg}, ${_darken(entry.bg)})`;
+    }
+    if (withLabel) {
+      entry.label = key;
+    }
+    result[key] = entry;
+  }
+  return result;
+}
+
+/** 将 #FEF2F2 这种浅色再加深一档，用于渐变终点 */
+function _darken(hex) {
+  const r = Math.max(0, parseInt(hex.slice(1, 3), 16) - 16);
+  const g = Math.max(0, parseInt(hex.slice(3, 5), 16) - 16);
+  const b = Math.max(0, parseInt(hex.slice(5, 7), 16) - 16);
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}

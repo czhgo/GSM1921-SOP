@@ -2,9 +2,8 @@
 // archive-entry.js — 归档库独立入口
 import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';
-import { ACTIVITIES } from '../mock/index.js';
-import { PEOPLE } from '../mock/people.js';
-import { MOCK_TASKFORCES } from '../mock/index.js';
+import { ACTIVITIES, PEOPLE, MOCK_TASKFORCES } from '../mock/index.js';
+import { getActivityTypeColors } from '../core/constants.js';
 
 renderSidebar('archive');
 renderHeader('archive');
@@ -57,16 +56,7 @@ document.getElementById('archive-filter')?.addEventListener('change', (e) => {
 });
 
 // ── 画册视图渲染 ──────────────────────────────────────────────
-const ACTIVITY_TYPE_COLORS = {
-  '主题党日': { bg: 'linear-gradient(135deg, #FEF2F2, #FEE2E2)', dot: '#DC2626' },
-  '共建':     { bg: 'linear-gradient(135deg, #FDF2F8, #FCE7F3)', dot: '#DB2777' },
-  '党课':     { bg: 'linear-gradient(135deg, #EFF6FF, #DBEAFE)', dot: '#2563EB' },
-  '参访':     { bg: 'linear-gradient(135deg, #ECFDF5, #D1FAE5)', dot: '#059669' },
-  '座谈':     { bg: 'linear-gradient(135deg, #FFF7ED, #FFEDD5)', dot: '#EA580C' },
-  '支委会':   { bg: 'linear-gradient(135deg, #F5F3FF, #EDE9FE)', dot: '#7C3AED' },
-  '党小组会': { bg: 'linear-gradient(135deg, #F0F9FF, #E0F2FE)', dot: '#0891B2' },
-  '支部党员大会': { bg: 'linear-gradient(135deg, #FFFBEB, #FEF3C7)', dot: '#D97706' },
-};
+const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ useGradient: true });
 
 function renderGalleryView() {
   const grid = document.getElementById('archive-gallery-grid');

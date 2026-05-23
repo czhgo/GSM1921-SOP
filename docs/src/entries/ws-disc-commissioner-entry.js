@@ -1,194 +1,32 @@
 import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
-import { BranchService } from '../services/runtime.js';
 import { showToast } from '../core/utils.js';
 import { CrossPageState } from '../core/cross-page-state.js';
-import { renderSidebar } from '../components/sidebar.js';
-import { renderHeader } from '../components/header.js';
-import { ViewModeStore, AuthStore } from '../services/auth.js';
-import { ATTENDANCE_RECORDS, attendanceToLong, attendanceToWide, INSPECTION_RECORDS, inspectionToLong, inspectionToWide, REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS, reviewToDisplay, ACTIVITIES, PEOPLE, MOCK_TASKFORCES } from '../mock/index.js';
+import { bootstrapPage } from '../core/bootstrap.js';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js';
+import { saveDB } from '../services/mock.js';
+import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS, reviewToDisplay, ACTIVITIES, PEOPLE, MOCK_TASKFORCES } from '../mock/index.js';
+import { loadWorkspaceData } from '../core/data-loader.js';
+import { renderTabBar } from '../components/tab-bar.js';
+import { openFormModal } from '../components/modal.js';
+import { loadHandoverRecords, updateHandoverRecord } from '../services/handover.js';
+import { loadMakeupTasks, saveMakeupTasks, updateMakeupTask, autoGenerateMakeupTask } from '../services/makeup.js';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js';
+import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js';
 
-renderSidebar('workspace');
-renderHeader('workspace');
+const { savedState, viewMode, accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', defaultRole: 'disc-commissioner', viewMode: 'auto', accentRole: 'disc-commissioner' });
+const fromHomepage = viewMode === 'participant-observe';
 
-const savedState = CrossPageState.load();
-const urlParams = CrossPageState.getURLParams();
-const fromHomepage = !!urlParams.activityId || urlParams.mode === 'readonly';
-AuthStore.setActiveRole('workspace', savedState.selectedRole || 'disc-commissioner');
-if (savedState.stance) AuthStore.setPrimaryRole(savedState.stance);
-ViewModeStore.setMode('workspace', fromHomepage ? 'participant-observe' : 'manage');
-
-const accent = '#D97706';
-const accentRgba = 'rgba(217,119,6,0.1)';
-const accentBorder = 'rgba(217,119,6,0.3)';
-
-// ── localStorage 辅助函数 ──────────────────────────────────────
 const DISC_COMMISSIONER_ID = 'p10'; // 纪检委员 personId
 
-function _loadAttendanceRecords() {
-  try {
-    const raw = localStorage.getItem('attendance_records');
-    if (raw) return JSON.parse(raw);
-  } catch (e) { console.warn('[ws-disc] load attendance_records error', e); }
-  return null;
-}
-
-function _saveAttendanceRecords(records) {
-  localStorage.setItem('attendance_records', JSON.stringify(records));
-}
-
-function _getAttendanceRecords() {
-  const stored = _loadAttendanceRecords();
-  return stored && stored.length > 0 ? stored : [...ATTENDANCE_RECORDS];
-}
-
-function _loadInspectionRecords() {
-  try {
-    const raw = localStorage.getItem('inspection_records');
-    if (raw) return JSON.parse(raw);
-  } catch (e) { console.warn('[ws-disc] load inspection_records error', e); }
-  return null;
-}
-
-function _saveInspectionRecords(records) {
-  localStorage.setItem('inspection_records', JSON.stringify(records));
-}
-
-function _getInspectionRecords() {
-  const stored = _loadInspectionRecords();
-  return stored && stored.length > 0 ? stored : [...INSPECTION_RECORDS];
-}
-
-// ── 交接记录数据层（localStorage） ────────────────────────────
-const HANDOVER_STORAGE_KEY = 'handover_records';
-
-function _loadHandoverRecords() {
-  try {
-    const raw = localStorage.getItem(HANDOVER_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    console.warn('[ws-disc] 读取交接记录失败', e);
-    return [];
-  }
-}
-
-function _saveHandoverRecords(records) {
-  try {
-    localStorage.setItem(HANDOVER_STORAGE_KEY, JSON.stringify(records));
-  } catch (e) {
-    console.warn('[ws-disc] 写入交接记录失败', e);
-  }
-}
-
-function _updateHandoverRecord(recordId, updates) {
-  const records = _loadHandoverRecords();
-  const r = records.find(r => r.id === recordId);
-  if (r) {
-    Object.assign(r, updates);
-    _saveHandoverRecords(records);
-  }
-  return records;
-}
-
-// ── 补课任务数据层（localStorage） ────────────────────────────
-const MAKEUP_STORAGE_KEY = 'makeup_tasks';
-
-// 三会一课活动类型（强制补课）：支部党员大会、支委会、党小组会、党课
-const MANDATORY_ACTIVITY_TYPES = ['支部党员大会', '支委会', '党小组会', '党课'];
-
-function _loadMakeupTasks() {
-  try {
-    const raw = localStorage.getItem(MAKEUP_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    console.warn('[ws-disc] 读取补课任务失败', e);
-    return [];
-  }
-}
-
-function _saveMakeupTasks(tasks) {
-  try {
-    localStorage.setItem(MAKEUP_STORAGE_KEY, JSON.stringify(tasks));
-  } catch (e) {
-    console.warn('[ws-disc] 写入补课任务失败', e);
-  }
-}
-
-function _addMakeupTask(task) {
-  const tasks = _loadMakeupTasks();
-  tasks.push(task);
-  _saveMakeupTasks(tasks);
-}
-
-function _updateMakeupTask(taskId, updates) {
-  const tasks = _loadMakeupTasks();
-  const t = tasks.find(t => t.id === taskId);
-  if (t) {
-    Object.assign(t, updates);
-    _saveMakeupTasks(tasks);
-  }
-  return tasks;
-}
-
-/** 考勤确认时自动生成补课任务（缺勤/请假 + 三会一课/主题党日 → 生成补课任务） */
-function _autoGenerateMakeupTask(record) {
-  if (record.status !== '缺勤' && record.status !== '请假') return;
-  const activity = ACTIVITIES.find(a => a.id === record.activityId);
-  if (!activity) return;
-
-  // 判断是否三会一课
-  const isMandatory = MANDATORY_ACTIVITY_TYPES.includes(activity.type);
-  // 三会一课和主题党日都生成补课任务
-  if (!isMandatory && activity.type !== '主题党日') return;
-
-  // 防重复：同一人员同一活动已有补课任务则跳过
-  const existing = _loadMakeupTasks();
-  if (existing.find(t => t.personId === record.personId && t.activityId === record.activityId)) return;
-
-  const person = PEOPLE.find(p => p.id === record.personId);
-  const absentDate = activity.date || new Date().toISOString().slice(0, 10);
-  // 截止日期 T+7
-  const deadlineDate = new Date(absentDate);
-  deadlineDate.setDate(deadlineDate.getDate() + 7);
-  const deadline = deadlineDate.toISOString().slice(0, 10);
-
-  const task = {
-    id: 'mk_' + Date.now() + '_' + record.personId,
-    personId: record.personId,
-    activityId: record.activityId,
-    attendanceRecordId: record.id,
-    activityName: activity.title,
-    personName: person ? person.name : record.personId,
-    absentDate,
-    deadline,
-    status: 'pending',
-    isMandatory,
-    proofContent: null,
-    completedAt: null,
-    createdAt: new Date().toISOString(),
-  };
-
-  _addMakeupTask(task);
-}
-
-// ── 经验沉淀数据层（localStorage） ────────────────────────────
-const DEPOSIT_STORAGE_KEY = 'experience_deposits';
+// ── 经验沉淀数据层（mockDB） ────────────────────────────
 
 function _loadDeposits() {
-  try {
-    const raw = localStorage.getItem(DEPOSIT_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    console.warn('[ws-disc] 读取经验沉淀失败', e);
-    return [];
-  }
+  return mockDB.experienceDeposits.length > 0 ? [...mockDB.experienceDeposits] : [];
 }
 
 function _saveDeposits(deposits) {
-  try {
-    localStorage.setItem(DEPOSIT_STORAGE_KEY, JSON.stringify(deposits));
-  } catch (e) {
-    console.warn('[ws-disc] 写入经验沉淀失败', e);
-  }
+  mockDB.experienceDeposits = [...deposits];
+  saveDB();
 }
 
 function renderDiscUI(state) {
@@ -202,36 +40,30 @@ function renderDiscUI(state) {
   const container = document.getElementById('disc-content');
   if (!container) return;
 
-  container.innerHTML = `
-    ${fromHomepage ? '<div class="card rounded-2xl p-4 mb-4 border border-amber-200 bg-amber-50/30"><p class="text-xs text-amber-700">您当前处于只读模式。如需进入管理模式，请从侧边栏选择角色。</p></div>' : ''}
-    <div class="flex gap-2 mb-4">
-      <button class="disc-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-disc-tab="attendance" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">考勤管理</button>
-      <button class="disc-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-disc-tab="inspection" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">考察管理</button>
-      <button class="disc-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-disc-tab="review" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">活动监督复盘</button>
-      <button class="disc-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-disc-tab="handover" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">数据交接</button>
-      <button class="disc-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-disc-tab="deposit" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">经验沉淀</button>
-      <button class="disc-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-disc-tab="makeup" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">补课制度</button>
-    </div>
-    <div id="disc-tab-content"></div>
-  `;
-
-  container.querySelectorAll('.disc-tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      container.querySelectorAll('.disc-tab-btn').forEach(b => {
-        b.style.background = 'white'; b.style.color = '#6B7280'; b.style.border = '1px solid #E5E7EB';
-      });
-      btn.style.background = accentRgba; btn.style.color = accent; btn.style.border = `1px solid ${accentBorder}`;
-      const tab = btn.dataset.discTab;
-      if (tab === 'attendance') _renderAttendanceContent(null);
-      else if (tab === 'inspection') _renderInspectionContent();
-      else if (tab === 'review') _renderReviewContent();
-      else if (tab === 'handover') _renderHandoverContent();
-      else if (tab === 'deposit') _renderDepositContent();
-      else if (tab === 'makeup') _renderMakeupContent();
-    });
+  const tabBar = renderTabBar({
+    prefix: 'disc',
+    tabs: [
+      { id: 'attendance', label: '考勤管理', render: () => _renderAttendanceContent(null) },
+      { id: 'inspection', label: '考察管理', render: () => _renderInspectionContent() },
+      { id: 'review', label: '活动监督复盘', render: () => _renderReviewContent() },
+      { id: 'handover', label: '数据交接', render: () => _renderHandoverContent() },
+      { id: 'deposit', label: '经验沉淀', render: () => _renderDepositContent() },
+      { id: 'makeup', label: '补课制度', render: () => _renderMakeupContent() },
+    ],
+    accentColor: { accent, accentRgba, accentBorder },
+    defaultTab: 'attendance',
+    renderCtx: {},
   });
 
+  container.innerHTML = `
+    ${fromHomepage ? '<div class="card rounded-2xl p-4 mb-4 border border-amber-200 bg-amber-50/30"><p class="text-xs text-amber-700">您当前处于只读模式。如需进入管理模式，请从侧边栏选择角色。</p></div>' : ''}
+    ${tabBar.html}
+  `;
+
+  tabBar.bindEvents(container);
+
   const urlParams = CrossPageState.getURLParams();
+  tabBar.activate('attendance');
   _renderAttendanceContent(urlParams.activityId || null);
 }
 
@@ -239,7 +71,7 @@ function _renderAttendanceContent(filterActivityId) {
   const container = document.getElementById('disc-tab-content');
   if (!container) return;
 
-  const allRecords = _getAttendanceRecords();
+  const allRecords = loadAttendanceRecords();
   const longData = attendanceToLong(allRecords);
   const wideData = attendanceToWide(allRecords);
 
@@ -272,10 +104,10 @@ function _renderAttendanceContent(filterActivityId) {
         <input type="text" id="att-search-input" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索姓名或活动名称...">
         <select id="att-status-filter" class="input-flat text-xs w-24">
           <option value="">全部状态</option>
-          <option value="出勤">出勤</option>
-          <option value="缺勤">缺勤</option>
-          <option value="请假">请假</option>
-          <option value="已补">已补</option>
+          <option value="${AttendanceStatus.PRESENT}">出勤</option>
+          <option value="${AttendanceStatus.ABSENT}">缺勤</option>
+          <option value="${AttendanceStatus.LEAVE}">请假</option>
+          <option value="${AttendanceStatus.MADE_UP}">已补</option>
         </select>
         <select id="att-confirm-filter" class="input-flat text-xs w-28">
           <option value="">全部确认状态</option>
@@ -301,7 +133,7 @@ function _renderAttendanceContent(filterActivityId) {
     const c = confirmEl ? confirmEl.value : '';
     return data.filter(r => {
       if (q && !(r.name || '').toLowerCase().includes(q) && !(r.activity || '').toLowerCase().includes(q)) return false;
-      if (s && r.status !== s) return false;
+      if (s && r.status !== s && ATTENDANCE_STATUS_LABELS[r.status] !== s) return false;
       if (c === 'pending' && r.confirmer !== '—') return false;
       if (c === 'confirmed' && r.confirmer === '—') return false;
       return true;
@@ -335,7 +167,7 @@ function _renderAttendanceContent(filterActivityId) {
             <tr class="border-b border-gray-50 hover:bg-gray-50 ${isPending ? 'bg-amber-50/30' : ''}">
               <td class="py-2 px-3 font-medium text-gray-800">${a.name}</td>
               <td class="py-2 px-3 text-gray-600">${a.activity}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${a.status === '出勤' ? 'bg-green-100 text-green-700' : a.status === '缺勤' ? 'bg-red-100 text-red-700' : a.status === '已补' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${a.status}</span></td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${a.status === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.status === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${ATTENDANCE_STATUS_LABELS[a.status] || a.status}</span></td>
               <td class="py-2 px-3 text-gray-500">${isPending ? '<span class="text-amber-600">待确认</span>' : `<span class="text-green-600">${a.confirmer}</span>`}</td>
               <td class="py-2 px-3">${isPending ? `<button class="text-xs px-2 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors btn-disc-confirm-att" data-record-id="${a.id}" style="cursor:pointer;">确认</button>` : '<span class="text-[10px] text-green-600">已确认</span>'}</td>
             </tr>
@@ -348,13 +180,13 @@ function _renderAttendanceContent(filterActivityId) {
     tc.querySelectorAll('.btn-disc-confirm-att').forEach(btn => {
       btn.addEventListener('click', () => {
         const recordId = btn.dataset.recordId;
-        const records = _getAttendanceRecords();
+        const records = loadAttendanceRecords();
         const record = records.find(r => r.id === recordId);
         if (record) {
           record.confirmer = DISC_COMMISSIONER_ID;
-          _saveAttendanceRecords(records);
+          saveAttendanceRecords(records);
           // 考勤确认后自动生成补课任务
-          _autoGenerateMakeupTask(record);
+          autoGenerateMakeupTask(record);
           showToast('success', `考勤记录已确认（确认人：${PEOPLE.find(p => p.id === DISC_COMMISSIONER_ID)?.name || DISC_COMMISSIONER_ID}）`);
           _renderAttendanceContent(filterActivityId);
         }
@@ -408,11 +240,11 @@ function _renderInspectionContent() {
   const container = document.getElementById('disc-tab-content');
   if (!container) return;
 
-  const allRecords = _getInspectionRecords();
+  const allRecords = loadInspectionRecords();
   const longData = inspectionToLong(allRecords);
   const wideData = inspectionToWide(allRecords);
-  const tagColor = { '支部': 'bg-red-50 text-red-600', '党小组': 'bg-blue-50 text-blue-600', '专班': 'bg-green-50 text-green-600' };
-  const statusColor = { '已确认': 'bg-green-100 text-green-700', '待确认': 'bg-amber-100 text-amber-700' };
+  const tagColor = { 'activity': 'bg-blue-50 text-blue-600', 'taskforce': 'bg-green-50 text-green-600' };
+  const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-amber-100 text-amber-700' };
 
   container.innerHTML = `
     <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#D97706;">
@@ -427,15 +259,14 @@ function _renderInspectionContent() {
       <div class="flex flex-wrap gap-2 mb-3">
         <input type="text" id="insp-search-input" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索姓名或内容...">
         <select id="insp-tag-filter" class="input-flat text-xs w-24">
-          <option value="">全部标签</option>
-          <option value="支部">支部</option>
-          <option value="党小组">党小组</option>
-          <option value="专班">专班</option>
+          <option value="">全部来源</option>
+          <option value="activity">活动</option>
+          <option value="taskforce">专班</option>
         </select>
         <select id="insp-status-filter" class="input-flat text-xs w-24">
           <option value="">全部状态</option>
-          <option value="已确认">已确认</option>
-          <option value="待确认">待确认</option>
+          <option value="confirmed">已确认</option>
+          <option value="pending">待确认</option>
         </select>
       </div>
       <div id="insp-table-container"></div>
@@ -451,8 +282,8 @@ function _renderInspectionContent() {
     const t = tagEl ? tagEl.value : '';
     const s = statusEl ? statusEl.value : '';
     return data.filter(r => {
-      if (q && !(r.name || '').toLowerCase().includes(q) && !(r.content || '').toLowerCase().includes(q)) return false;
-      if (t && r.tag !== t) return false;
+      if (q && !(r.name || '').toLowerCase().includes(q) && !(r.role || '').toLowerCase().includes(q)) return false;
+      if (t && r.sourceType !== t) return false;
       if (s && r.status !== s) return false;
       return true;
     });
@@ -481,14 +312,14 @@ function _renderInspectionContent() {
             <th class="py-2 px-3 text-left text-gray-500 font-medium">操作</th>
           </tr></thead>
           <tbody>${displayData.map(i => {
-            const isPending = i.status === '待确认';
+            const isPending = i.status === 'pending';
             return `
             <tr class="border-b border-gray-50 hover:bg-gray-50 ${isPending ? 'bg-amber-50/30' : ''}">
               <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
               <td class="py-2 px-3 text-gray-600">${i.source}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-[10px] ${tagColor[i.tag] || 'bg-gray-50 text-gray-500'}">${i.tag}</span></td>
-              <td class="py-2 px-3 text-gray-600">${i.content}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${statusColor[i.status] || 'bg-gray-100 text-gray-500'}">${i.status}</span></td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-[10px] ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">${i.sourceType === 'activity' ? '活动' : '专班'}</span></td>
+              <td class="py-2 px-3 text-gray-600">${i.role}</td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${statusColor[i.status] || 'bg-gray-100 text-gray-500'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
               <td class="py-2 px-3">${isPending ? `<button class="text-xs px-2 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button>` : '<span class="text-[10px] text-green-600">已确认</span>'}</td>
             </tr>
           `}).join('')}</tbody>
@@ -500,11 +331,11 @@ function _renderInspectionContent() {
     tc.querySelectorAll('.btn-disc-confirm-insp').forEach(btn => {
       btn.addEventListener('click', () => {
         const recordId = btn.dataset.recordId;
-        const records = _getInspectionRecords();
+        const records = loadInspectionRecords();
         const record = records.find(r => r.id === recordId);
         if (record) {
-          record.status = '已确认';
-          _saveInspectionRecords(records);
+          record.status = 'confirmed';
+          saveInspectionRecords(records);
           showToast('success', '考察记录已确认');
           _renderInspectionContent();
         }
@@ -611,7 +442,25 @@ function _renderReviewContent() {
   `;
 
   container.querySelectorAll('.btn-disc-remind').forEach(btn => btn.addEventListener('click', () => showToast('success', '超时邮件提醒已发送')));
-  container.querySelectorAll('.btn-disc-annotate').forEach(btn => btn.addEventListener('click', () => showToast('info', '批注功能 — 待实现')));
+  container.querySelectorAll('.btn-disc-annotate').forEach(btn => btn.addEventListener('click', () => {
+    openFormModal({
+      id: 'annotation',
+      title: '添加批注',
+      fields: [
+        { key: 'type', label: '批注类型', type: 'select', required: true, options: [
+          { value: 'suggestion', label: '建议' },
+          { value: 'question', label: '疑问' },
+          { value: 'correction', label: '纠正' },
+          { value: 'praise', label: '肯定' }
+        ]},
+        { key: 'content', label: '批注内容', type: 'textarea', required: true, placeholder: '请输入批注内容...' }
+      ],
+      onSubmit: (values) => {
+        showToast('success', '批注已添加');
+      },
+      accentColor: accent || '#D97706'
+    });
+  }));
   container.querySelectorAll('.btn-disc-reject').forEach(btn => btn.addEventListener('click', () => showToast('success', '复盘已打回，要求重新提交')));
   container.querySelectorAll('.btn-disc-confirm').forEach(btn => btn.addEventListener('click', () => showToast('success', '复盘总结已确认，录入后台，活动结束')));
   container.querySelectorAll('.btn-disc-remind-review').forEach(btn => btn.addEventListener('click', () => showToast('success', '复盘超期邮件提醒已发送至组织者')));
@@ -649,7 +498,7 @@ function _renderHandoverContent() {
   const container = document.getElementById('disc-tab-content');
   if (!container) return;
 
-  const allRecords = _loadHandoverRecords();
+  const allRecords = loadHandoverRecords();
 
   // 按状态分组
   const inProgressRecords = allRecords.filter(r => r.status === 'in_progress');
@@ -782,7 +631,7 @@ function _bindDiscHandoverEvents() {
   tabContent.querySelectorAll('.btn-disc-urge-handover').forEach(btn => {
     btn.addEventListener('click', () => {
       const recordId = btn.dataset.recordId;
-      const records = _loadHandoverRecords();
+      const records = loadHandoverRecords();
       const record = records.find(r => r.id === recordId);
       if (record) {
         const recorderName = PEOPLE.find(p => p.id === record.recorderId)?.name || record.recorderId;
@@ -795,7 +644,7 @@ function _bindDiscHandoverEvents() {
   tabContent.querySelectorAll('.btn-disc-confirm-handover').forEach(btn => {
     btn.addEventListener('click', () => {
       const recordId = btn.dataset.recordId;
-      _updateHandoverRecord(recordId, {
+      updateHandoverRecord(recordId, {
         status: 'confirmed',
         confirmedAt: new Date().toISOString(),
       });
@@ -822,7 +671,7 @@ function _renderMakeupContent() {
   const container = document.getElementById('disc-tab-content');
   if (!container) return;
 
-  const allTasks = _loadMakeupTasks();
+  const allTasks = loadMakeupTasks();
 
   // 检查超期状态
   const today = new Date().toISOString().slice(0, 10);
@@ -831,7 +680,7 @@ function _renderMakeupContent() {
       t.status = 'overdue';
     }
   });
-  _saveMakeupTasks(allTasks);
+  saveMakeupTasks(allTasks);
 
   const pendingTasks = allTasks.filter(t => t.status === 'pending');
   const overdueTasks = allTasks.filter(t => t.status === 'overdue');
@@ -950,20 +799,20 @@ function _bindMakeupEvents() {
       if (!confirm('确认该人员已完成补课？确认后考勤记录将回写为"已补"。')) return;
 
       // 1. 更新补课任务状态
-      _updateMakeupTask(taskId, {
+      updateMakeupTask(taskId, {
         status: 'completed',
         completedAt: new Date().toISOString(),
       });
 
       // 2. 回写考勤记录
-      const tasks = _loadMakeupTasks();
+      const tasks = loadMakeupTasks();
       const task = tasks.find(t => t.id === taskId);
       if (task && task.attendanceRecordId) {
-        const records = _getAttendanceRecords();
+        const records = loadAttendanceRecords();
         const record = records.find(r => r.id === task.attendanceRecordId);
         if (record) {
-          record.status = '已补';
-          _saveAttendanceRecords(records);
+          record.status = AttendanceStatus.MADE_UP;
+          saveAttendanceRecords(records);
         }
       }
 
@@ -998,7 +847,7 @@ function _bindMakeupEvents() {
       const content = input?.value?.trim();
       if (!content) { showToast('error', '请输入补课证明内容'); return; }
 
-      _updateMakeupTask(taskId, { proofContent: content });
+      updateMakeupTask(taskId, { proofContent: content });
       showToast('success', '补课证明已保存');
       _renderMakeupContent();
     });
@@ -1191,14 +1040,4 @@ function _bindDiscDepositEvents() {
 
 registerRenderCallback(renderDiscUI);
 
-(async function init() {
-  try { if (typeof BranchService.loadDB === 'function') BranchService.loadDB(); } catch (e) { console.warn('[ws-disc] loadDB error', e); }
-  setState({ domain: 'activity', role: 'disc-commissioner', activeModule: 'workspace', status: STATE.LOADING, selectedRole: 'disc-commissioner' });
-  try {
-    const activities = await BranchService.listActivities();
-    setState({ status: STATE.IDLE, activities });
-  } catch (err) {
-    console.warn('[ws-disc] load failed', err);
-    setState({ status: STATE.IDLE, activities: ACTIVITIES.map(a => ({ ...a, visibility: 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() })) });
-  }
-}());
+loadWorkspaceData({ role: 'disc-commissioner', fallbackData: () => ACTIVITIES, logTag: 'ws-disc' });

@@ -2,7 +2,7 @@
 title: "写入数据验证设计思路"
 type: design
 role: "[人机]"
-last_updated: "2026-05-21"
+last_updated: "2026-05-22"
 status: active
 related_files:
   - CHECKLIST.md
@@ -69,17 +69,17 @@ related_files:
   └→ 组长活动列表 ← 读取 activities 过滤展示
 ```
 
-### 2.2 参与记录写入
+### 2.2 考察记录写入
 
 | 写入端 | 存储层 | 查看端 | 验证点 |
 |--------|--------|--------|--------|
-| 组织者工作台（参与记录录入） | participation.js（mock） | 组织者工作台已有记录表 | 新记录行出现 |
+| 组织者工作台（考察记录录入） | participation.js（mock） | 组织者工作台已有记录表 | 新记录行出现 |
 | 组织者工作台 | 同上 | 纪检委员考察档案 | 对应记录出现 |
 
 **数据流向图**：
 
 ```
-组织者录入参与记录
+组织者录入考察记录
   ├→ participation.js（mock数据，暂未持久化）
   ├→ 组织者已有记录表 ← 读取 PARTICIPATION_RECORDS 渲染
   └→ 纪检考察档案 ← 读取 PARTICIPATION_RECORDS 关联展示
@@ -107,7 +107,7 @@ related_files:
 | 书记工作台 | 同上 | 被赋权者切换视图 | 可进入管理模式 |
 | 书记工作台（撤销赋权） | 同上 | 被赋权者 | 退回只读模式 |
 
-### 2.6 考勤/考察写入
+### 2.6 考勤/考察写入（考勤为基础层，考察为进阶层）
 
 | 写入端 | 存储层 | 查看端 | 验证点 |
 |--------|--------|--------|--------|
@@ -183,21 +183,70 @@ related_files:
 ## 三、localStorage 键值索引
 
 > 所有持久化数据的键值汇总，便于验证存储层是否正确写入。
+> **统一全量键架构**（D-197 TAX-5）：业务数据统一通过 `workflowos_branch_db_v1` 全量序列化，旧版独立键已归并。
+
+### 3.1 业务数据全量键
 
 | localStorage 键 | 写入方 | 数据类型 | 关联查看端 |
 |-----------------|--------|---------|-----------|
-| `workflowos_branch_db_v1` | BranchService | 活动/任务/考勤等全量数据 | 所有工作台 |
-| `sop_org_os_assigned_roles` | 书记赋权 | 赋权记录 | 书记/被赋权者 |
-| `assignment_records` | 组织者 | 分工记录 | 组织者工作台 |
-| `handover_records` | 组织者 | 交接记录 | 组织者/纪检 |
-| `attendance_records` | 组长/纪检 | 考勤记录 | 纪检/组长 |
-| `inspection_records` | 组长/纪检 | 考察记录 | 纪检 |
-| `makeup_tasks` | 纪检（自动生成） | 补课任务 | 纪检/组长 |
-| `act_sub_records` | 组长 | 活动子记录 | 组长工作台 |
-| `tf_sub_records` | 组织委员 | 专班子记录 | 组织委员工作台 |
-| `compliance_references` | 组织委员 | 合规引用 | 组织委员工作台 |
-| `file_space_records` | 组织者 | 文件空间记录 | 组织者工作台 |
-| `experience_deposits` | 深度参与者/纪检 | 经验沉淀 | 深度参与者/纪检 |
+| `workflowos_branch_db_v1` | `saveDB()`（所有业务写入统一调用） | 全量 mockDB 状态 | 所有工作台 |
+
+**全量键字段清单**（`saveDB()` 序列化的完整字段）：
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `_schema` | number | Schema 版本号（当前值为 1） |
+| `users` | User[] | 静态预设用户 |
+| `activities` | ActivityRecord[] | 活动记录 |
+| `tasks` | Task[] | 任务记录 |
+| `attendances` | AttendanceRecord[] | 考勤记录 |
+| `deliverables` | Deliverable[] | 交付物记录 |
+| `inspections` | InspectionRecord[] | 考察记录 |
+| `assignments` | AssignmentRecord[] | 分工记录 |
+| `handovers` | HandoverRecord[] | 交接记录 |
+| `makeupTasks` | MakeupTask[] | 补课任务 |
+| `actSubRecords` | Object | 活动子记录（按活动 ID 索引） |
+| `tfSubRecords` | Object | 专班子记录（按专班 ID 索引） |
+| `complianceReferences` | ComplianceReference[] | 合规文件引用 |
+| `fileSpaceRecords` | FileSpaceRecord[] | 文件空间记录 |
+| `experienceDeposits` | ExperienceDeposit[] | 经验沉淀记录 |
+| `taskforces` | TaskForceRecord[] | 专班记录 |
+| `notices` | Notice[] | 通知记录 |
+
+### 3.2 UI 状态独立键
+
+> 以下键存储 UI/会话状态，不属于业务数据，保持独立键存储。
+
+| localStorage 键 | 写入方 | 数据类型 | 关联查看端 |
+|-----------------|--------|---------|-----------|
+| `gsm1921-auth-records` | auth.js | 认证记录 | 登录/角色切换 |
+| `gsm1921-view-mode` | auth.js | 视图模式 | 角色视图 |
+| `gsm1921-primary-role` | auth.js | 主角色 | 角色选择 |
+| `gsm1921-auth-grants` | auth.js | 赋权授权记录 | 赋权管理 |
+| `sop_org_os_assigned_roles` | roles.js | 赋权角色列表 | 书记/被赋权者 |
+| `gsm1921-feedback-submissions` | feedback.js | 反馈提交记录 | 书记反馈管理 |
+| `sop_org_os_session` | cross-page-state.js | 跨页面会话状态 | 多页面同步 |
+| `sop_org_os_data_version` | cross-page-state.js | 数据版本号 | 跨页面同步 |
+
+### 3.3 已归并的旧版独立键
+
+> 以下键在统一全量键架构前曾独立存储业务数据，现已归并至 `workflowos_branch_db_v1`。
+> SANDBOX 模式下 `loadDB()` 会遍历清理这些旧键，确保无残留。
+
+| 旧版 localStorage 键 | 归并状态 | 原数据类型 | 归并后对应全量键字段 |
+|---|---|---|---|
+| `assignment_records` | 已归并至全量键 | 分工记录 | `assignments` |
+| `handover_records` | 已归并至全量键 | 交接记录 | `handovers` |
+| `attendance_records` | 已归并至全量键 | 考勤记录 | `attendances` |
+| `inspection_records` | 已归并至全量键 | 考察记录 | `inspections` |
+| `makeup_tasks` | 已归并至全量键 | 补课任务 | `makeupTasks` |
+| `act_sub_records` | 已归并至全量键 | 活动子记录 | `actSubRecords` |
+| `tf_sub_records` | 已归并至全量键 | 专班子记录 | `tfSubRecords` |
+| `compliance_references` | 已归并至全量键 | 合规引用 | `complianceReferences` |
+| `file_space_records` | 已归并至全量键 | 文件空间记录 | `fileSpaceRecords` |
+| `experience_deposits` | 已归并至全量键 | 经验沉淀 | `experienceDeposits` |
+| `workflowos_notices_v1` | 已归并至全量键 | 通知记录 | `notices` |
+| `workflowos_taskforces_v1` | 已归并至全量键 | 专班记录 | `taskforces` |
 
 ---
 

@@ -29,7 +29,7 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  [targetDate]  - 目标日期 ISO 字符串（T-0，兼容旧字段）
  * @property {'leader'|'disc-commissioner'} [attendanceQROwner] - 考勤二维码发布方（组织生活会专用：现场组织的党小组长） - Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
  * @property {string[]} [deliverableIds] - 关联的交付物 ID 列表 - Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
- * @property {boolean} [isBrand]  - 品牌活动标记（由书记认定） - Source: content/guides/design/BRAND_ACTIVITY.md
+ * @property {boolean} [isBrand]  - 品牌属性标签（由书记认定，不影响工作流选择） - Source: content/guides/design/BRAND_ACTIVITY.md
  */
 
 /**
@@ -84,14 +84,49 @@ export const PARTICIPATION_LEVEL_LABELS = {
 };
 
 /**
- * @typedef {Object} ParticipationRecord
+ * 考勤状态枚举 — Source: domain.js AttendanceRecord.status
+ */
+export const AttendanceStatus = {
+  PRESENT: 'present',
+  ABSENT: 'absent',
+  LEAVE: 'leave',
+  MADE_UP: 'made_up',
+};
+
+/** 考勤状态中文标签 */
+export const ATTENDANCE_STATUS_LABELS = {
+  [AttendanceStatus.PRESENT]: '出勤',
+  [AttendanceStatus.ABSENT]: '缺勤',
+  [AttendanceStatus.LEAVE]: '请假',
+  [AttendanceStatus.MADE_UP]: '已补',
+};
+
+/**
+ * 考察来源类型枚举 — Source: D-198
+ */
+export const SourceType = {
+  ACTIVITY: 'activity',
+  TASKFORCE: 'taskforce',
+};
+
+/** 考察来源类型中文标签 */
+export const SOURCE_TYPE_LABELS = {
+  [SourceType.ACTIVITY]: '活动',
+  [SourceType.TASKFORCE]: '专班',
+};
+
+/**
+ * @typedef {Object} InspectionRecord
  * @property {string}  id            - 唯一标识符（由 id.js 生成）
- * @property {string}  activityId    - 关联活动 ID
+ * @property {'activity'|'taskforce'} sourceType - 考察来源类型（活动 or 专班）— Source: D-198
+ * @property {string}  activityId    - 关联活动 ID（sourceType='activity'时必填）
+ * @property {string}  sourceName    - 来源名称（sourceType='taskforce'时为专班名称）
  * @property {string}  personId      - 人员 ID（引用 people.js）
- * @property {'organize'|'deep'|'attend'} level - 参与层级 - Source: content/guides/architecture/MANAGEMENT_MODE.md §5.3
- * @property {string}  role          - 分工角色+描述（如：策划+全流程统筹、视频制作、新闻稿撰写）
+ * @property {'organize'|'deep'} level - 考察层级（仅组织者和深度参与者有考察记录） - Source: content/guides/architecture/MANAGEMENT_MODE.md §5.1
+ * @property {string}  role          - 分工角色+描述（如：策划+全流程统筹、视频制作、PPT设计）
  * @property {string}  recordedBy    - 记录人 personId
  * @property {string}  recordedAt    - 记录时间 ISO 字符串
+ * @property {'pending'|'confirmed'} [status] - 考察确认状态（纪检委员确认后录入考察总表）
  */
 
 /**
@@ -159,7 +194,28 @@ export const mockDB = {
   // 交付物清单（组织生活会专用：宣传底稿、考勤汇总表、组织生活会记录等）
   // Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
   deliverables: [],
-  /** @type {ParticipationRecord[]} */
-  // 参与记录（参与层级+分工角色+描述）— Source: content/guides/architecture/MANAGEMENT_MODE.md §5.3
-  participations: [],
+  /** @type {InspectionRecord[]} */
+  // 考察记录（仅组织者和深度参与者的工作量记录）— Source: content/guides/architecture/MANAGEMENT_MODE.md §5.1
+  inspections: [],
+  // ── 以下为存储层统一后从独立键归并的业务数据 ──
+  /** @type {Object[]} 分工记录 */
+  assignments: [],
+  /** @type {Object[]} 交接记录 */
+  handovers: [],
+  /** @type {Object[]} 补课任务 */
+  makeupTasks: [],
+  /** @type {Object} 活动子记录（actId → subRecords） */
+  actSubRecords: {},
+  /** @type {Object} 专班子记录（tfId → subRecords） */
+  tfSubRecords: {},
+  /** @type {Object[]} 合规引用 */
+  complianceReferences: [],
+  /** @type {Object[]} 文件空间记录 */
+  fileSpaceRecords: [],
+  /** @type {Object[]} 经验沉淀 */
+  experienceDeposits: [],
+  /** @type {Object[]} 专班数据 */
+  taskforces: [],
+  /** @type {Object[]} 通知数据 */
+  notices: [],
 };

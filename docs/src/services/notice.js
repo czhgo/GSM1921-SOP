@@ -1,18 +1,19 @@
 // role: [人机]
 // ════════════════════════════════════════════════════════════════
 //  service.notice.js — 通知数据模型
-//  提供 NoticeStore：通知的 CRUD + localStorage 持久化
-//  独立于 mockDB，使用独立 localStorage 键名
+//  提供 NoticeStore：通知的 CRUD + mockDB 持久化
+//  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
+
+import { mockDB } from '../core/domain.js';
+import { saveDB } from './mock.js';
+import { MOCK_NOTICES } from '../mock/index.js';
 
 const NOTICE_STORAGE_KEY = 'workflowos_notices_v1';
 
 function _loadNotices() {
   try {
-    const raw = localStorage.getItem(NOTICE_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    return [...mockDB.notices];
   } catch (e) {
     console.warn('[NoticeStore] 加载失败：', e);
     return [];
@@ -21,13 +22,12 @@ function _loadNotices() {
 
 function _saveNotices(notices) {
   try {
-    localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(notices));
+    mockDB.notices = [...notices];
+    saveDB();
   } catch (e) {
     console.warn('[NoticeStore] 保存失败：', e);
   }
 }
-
-import { MOCK_NOTICES } from '../mock/index.js';
 
 // ════════════════════════════════════════════════════════════════
 //  §D4 权限控制 — 通知发布/编辑/删除必须对接到角色白名单

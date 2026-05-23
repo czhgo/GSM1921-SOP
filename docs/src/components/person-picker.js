@@ -3,11 +3,19 @@
 //  person-picker.js — 通用人员选择组件
 //  功能：点击触发按钮弹出选择面板，支持搜索/筛选/单选/多选
 //  数据源：从 ../mock/people.js 导入 PEOPLE
-//  用途：赋权管理、参与记录、专班成员选择等所有涉及写入人名的场景
+//  用途：赋权管理、考察记录、专班成员选择等所有涉及写入人名的场景
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE } from '../mock/people.js';
-import { ROLE_LABELS } from '../core/constants.js';
+import { PEOPLE } from '../mock/index.js';
+import { ROLE_LABELS, ACCENT_COLORS } from '../core/constants.js';
+
+// ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
 
 // ── 党小组列表（从数据中动态提取） ──────────────────────────────
 const PARTY_GROUPS = [...new Set(PEOPLE.map(p => p.partyGroup))];
@@ -40,6 +48,7 @@ export class PersonPicker {
    * @param {Function}          [options.filter]    - 人员筛选函数 (person) => boolean
    * @param {Function}          [options.onSelect]  - 选中回调 (personIds: string[]) => void
    * @param {string[]}          [options.initialIds]- 初始选中的人员 ID 列表
+   * @param {string}            [options.accentColor] - 主题色 hex，默认 '#CE1126'
    */
   constructor(options = {}) {
     this._mode = options.mode || 'single';
@@ -50,6 +59,7 @@ export class PersonPicker {
     this._searchQuery = '';
     this._activeGroup = '全部';
     this._panelOpen = false;
+    this._accent = options.accentColor || '#CE1126';
 
     // DOM 引用
     this._container = null;
@@ -129,7 +139,7 @@ export class PersonPicker {
       if (this._mode === 'multi') {
         btn.innerHTML = `
           <span style="flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${selectedNames}</span>
-          <span style="background:#CE1126;color:white;font-size:10px;min-width:18px;height:18px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;font-weight:600;">${this._selected.size}</span>
+          <span style="background:${this._accent};color:white;font-size:10px;min-width:18px;height:18px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;font-weight:600;">${this._selected.size}</span>
         `;
       } else {
         btn.innerHTML = `<span style="flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${selectedNames}</span>`;
@@ -146,8 +156,8 @@ export class PersonPicker {
 
     // hover 效果
     btn.addEventListener('mouseenter', () => {
-      btn.style.borderColor = '#CE1126';
-      btn.style.boxShadow = '0 2px 8px rgba(206,17,38,0.10)';
+      btn.style.borderColor = this._accent;
+      btn.style.boxShadow = `0 2px 8px ${hexToRgba(this._accent, 0.10)}`;
     });
     btn.addEventListener('mouseleave', () => {
       if (!this._panelOpen) {
@@ -183,8 +193,8 @@ export class PersonPicker {
 
     // 更新触发按钮样式
     if (this._triggerBtn) {
-      this._triggerBtn.style.borderColor = '#CE1126';
-      this._triggerBtn.style.boxShadow = '0 2px 8px rgba(206,17,38,0.10)';
+      this._triggerBtn.style.borderColor = this._accent;
+      this._triggerBtn.style.boxShadow = `0 2px 8px ${hexToRgba(this._accent, 0.10)}`;
       // 箭头旋转
       const arrowSvg = this._triggerBtn.querySelector('svg');
       if (arrowSvg) arrowSvg.style.transform = 'rotate(180deg)';
@@ -220,6 +230,10 @@ export class PersonPicker {
   // ── 面板创建 ────────────────────────────────────────────────
 
   _createPanel() {
+    const _accent = this._accent;
+    // 简易加深：将 hex 每个通道减 30
+    const _darkerAccent = '#' + [1,3,5].map(i => Math.max(0, parseInt(_accent.slice(i, i+2), 16) - 30).toString(16).padStart(2, '0')).join('');
+
     // 遮罩层
     const overlay = document.createElement('div');
     overlay.className = 'person-picker-overlay';
@@ -269,7 +283,7 @@ export class PersonPicker {
       this._searchQuery = e.target.value.trim();
       this._renderList();
     });
-    searchInput.addEventListener('focus', function() { this.style.borderColor = '#CE1126'; });
+    searchInput.addEventListener('focus', () => { searchInput.style.borderColor = this._accent; });
     searchInput.addEventListener('blur', function() { this.style.borderColor = '#E5E7EB'; });
 
     // ── 党小组筛选 Tab ──
@@ -291,7 +305,7 @@ export class PersonPicker {
         'border:1px solid transparent;cursor:pointer;',
         'transition:all 0.15s;white-space:nowrap;',
         isActive
-          ? 'background:rgba(206,17,38,0.10);color:#991B1B;border-color:rgba(206,17,38,0.25);font-weight:600;'
+          ? `background:${hexToRgba(_accent, 0.10)};color:${_darkerAccent};border-color:${hexToRgba(_accent, 0.25)};font-weight:600;`
           : 'background:#F9FAFB;color:#6B7280;border-color:#E5E7EB;',
       ].join('');
 
@@ -340,11 +354,11 @@ export class PersonPicker {
       confirmBtn.textContent = '确认选择';
       confirmBtn.style.cssText = [
         'padding:6px 16px;border-radius:10px;border:none;',
-        'background:#CE1126;color:white;font-size:0.8125rem;font-weight:600;',
+        `background:${this._accent};color:white;font-size:0.8125rem;font-weight:600;`,
         'cursor:pointer;transition:background 0.15s;',
       ].join('');
-      confirmBtn.addEventListener('mouseenter', function() { this.style.background = '#A0001A'; });
-      confirmBtn.addEventListener('mouseleave', function() { this.style.background = '#CE1126'; });
+      confirmBtn.addEventListener('mouseenter', function() { this.style.background = _darkerAccent; });
+      confirmBtn.addEventListener('mouseleave', function() { this.style.background = _accent; });
       confirmBtn.addEventListener('click', () => {
         this._fireOnSelect();
         this._closePanel();
@@ -421,8 +435,8 @@ export class PersonPicker {
       return `
         <div class="person-picker-item font-stheiti ${isSelected ? 'selected' : ''}"
              data-person-id="${person.id}"
-             style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;cursor:pointer;transition:all 0.12s;border:1.5px solid transparent;${isSelected ? 'background:rgba(206,17,38,0.06);border-color:rgba(206,17,38,0.20);' : ''}">
-          <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${isSelected ? 'rgba(206,17,38,0.12)' : '#F3F4F6'};color:${isSelected ? '#991B1B' : '#6B7280'};font-size:0.75rem;font-weight:600;">
+             style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;cursor:pointer;transition:all 0.12s;border:1.5px solid transparent;${isSelected ? `background:${hexToRgba(this._accent, 0.06)};border-color:${hexToRgba(this._accent, 0.20)};` : ''}">
+          <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${isSelected ? hexToRgba(this._accent, 0.12) : '#F3F4F6'};color:${isSelected ? this._accent : '#6B7280'};font-size:0.75rem;font-weight:600;">
             ${person.name.charAt(0)}
           </div>
           <div style="flex:1;min-width:0;">
@@ -436,7 +450,7 @@ export class PersonPicker {
               ${roleLabel ? `<span style="font-size:0.625rem;color:#6B7280;">${roleLabel}</span>` : ''}
             </div>
           </div>
-          ${isSelected ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CE1126" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+          ${isSelected ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${this._accent}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
         </div>
       `;
     }).join('');

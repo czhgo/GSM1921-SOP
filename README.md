@@ -52,7 +52,7 @@
 
 | 域 | 本质定义 | 判断标准 | 典型工作 |
 |----|---------|---------|---------|
-| **党建工作** | 创新探索——面向"尚不存在的未来" | 是否允许创造性发挥、探索边界？ | 主题党日策划、品牌活动设计、专班组建 |
+| **党建工作** | 创新探索——面向"尚不存在的未来" | 是否允许创造性发挥、探索边界？ | 主题党日策划、品牌认定、专班组建 |
 | **党务工作** | 合规运行——面向"已存在的存量" | 是否要求符合规定、纪律严明？ | 党员发展流程、补课制度、档案归档 |
 
 两者不是"管人"和"管事"的区别，而是**工作者心智模式**的区别——党建域中大脑处于"探索模式"，党务域中大脑处于"执行模式"。
@@ -96,7 +96,7 @@
 |------|------|---------|
 | [governance/](content/guides/governance/) | 治理规范——术语标准、角色分类、文档导航 | [TERMINOLOGY.md](content/guides/governance/TERMINOLOGY.md)、[DOC_MAP.md](content/guides/governance/DOC_MAP.md) |
 | [architecture/](content/guides/architecture/) | 架构设计——数据模型、权限矩阵、管理模式 | [DATA.md](content/guides/architecture/DATA.md)、[MANAGEMENT_MODE.md](content/guides/architecture/MANAGEMENT_MODE.md) |
-| [design/](content/guides/design/) | 功能设计——委员系统、日历、SOP 联动、品牌活动 | [COMMISSIONER_SYSTEM.md](content/guides/design/COMMISSIONER_SYSTEM.md)、[SOP_WEB.md](content/guides/design/SOP_WEB.md) |
+| [design/](content/guides/design/) | 功能设计——委员系统、日历、SOP 联动、品牌属性标签 | [COMMISSIONER_SYSTEM.md](content/guides/design/COMMISSIONER_SYSTEM.md)、[SOP_WEB.md](content/guides/design/SOP_WEB.md) |
 
 ### 模板与参考
 
@@ -222,7 +222,7 @@ content/SOP/ → docs/src/services/ → docs/src/entries/ → docs/（含 worksp
 |------|-----------|---------|
 | **组织委员** | 专班建设（招募统筹·定人定责定岗） | 党员发展全流程（考察/催缴/归档） |
 | **宣传委员** | 活动与专班视图（宣传材料/周报） | 宣传档案合规建设（模板/制度） |
-| **纪检委员** | 考勤管理·考察管理·活动监督复盘 | 补课制度/公邮管理 |
+| **纪检委员** | 考勤管理（基础）·考察管理（进阶）·活动监督复盘 | 补课制度/公邮管理 |
 
 ---
 

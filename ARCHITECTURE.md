@@ -188,7 +188,7 @@ Layer 7: 官方底线层（只读引用）
 │   │   │   ├── DESIGN_SYSTEM.md       [人机] 设计系统规范
 │   │   │   ├── CALENDAR.md            [人机] 日历功能规划
 │   │   │   ├── COMMISSIONER_SYSTEM.md [人机] 支委系统设计（合并）
-│   │   │   ├── BRAND_ACTIVITY.md      [人机] 品牌活动方案 ⏸️
+│   │   │   ├── BRAND_ACTIVITY.md      [人机] 品牌属性标签设计
 │   │   │   └── SOP_WEB.md             [人机] SOP 网页指南
 │   │   ├── architecture/              [人机] 架构设计
 │   │   │   ├── MANAGEMENT_MODE.md     [人机] 管理模式架构

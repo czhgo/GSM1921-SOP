@@ -8,10 +8,12 @@
 import { PARTY_MOCKS, CANDIDATE_STAGES, COMPLIANCE_FILES, PUBLICITY_STANDARDS, TEMPLATE_LIST } from '../mock/index.js';
 import { getAppState } from '../core/state.js';
 import { showToast } from '../core/utils.js';
+import { openFormModal } from '../components/modal.js';
 import { filterForViewProxy, assignedRoles, computeSecretaryStats } from '../services/roles.js';
-import { createStoreWithMockData } from '../workflow/activityRecord.js';
+import { createStoreWithMockData } from '../workflow/index.js';
 import { NoticeStore, NoticePermission } from '../services/notice.js';
 import { FeedbackStore } from '../services/feedback.js';
+import { ACCENT_COLORS } from '../core/constants.js';
 
 // ════════════════════════════════════════════════════════════════
 //  Mock 数据定义
@@ -220,7 +222,7 @@ export const PartyModule = {
 
     const btnOrg = document.getElementById('btn-submit-to-organizer');
     const btnPub = document.getElementById('btn-submit-to-publicity');
-    if (btnOrg) btnOrg.addEventListener('click', () => showToast('success', '参与记录已提交至组织委员'));
+    if (btnOrg) btnOrg.addEventListener('click', () => showToast('success', '考察记录已提交至组织委员'));
     if (btnPub) btnPub.addEventListener('click', () => showToast('success', '考勤记录已提交至宣传委员'));
   },
 
@@ -249,7 +251,23 @@ export const PartyModule = {
     `;
 
     const reviewBtn = document.getElementById('pub-review-btn');
-    if (reviewBtn) reviewBtn.addEventListener('click', () => showToast('info', '复盘记录编辑器 — 待实现'));
+    if (reviewBtn) reviewBtn.addEventListener('click', () => openFormModal({
+      id: 'review-editor',
+      title: '编辑复盘记录',
+      fields: [
+        { key: 'content', label: '复盘内容', type: 'textarea', required: true, placeholder: '请输入复盘内容...' },
+        { key: 'rating', label: '评价等级', type: 'select', options: [
+          { value: 'excellent', label: '优秀' },
+          { value: 'good', label: '良好' },
+          { value: 'average', label: '一般' },
+          { value: 'needs_improvement', label: '待改进' }
+        ]}
+      ],
+      onSubmit: (values) => {
+        showToast('success', '复盘记录已保存');
+      },
+      accentColor: ACCENT_COLORS[getAppState().selectedRole] || ACCENT_COLORS.secretary
+    }));
   },
 
   refreshCandidateTracker() {
@@ -434,7 +452,18 @@ export const PartyModule = {
   },
 
   _editRecord(id) {
-    showToast('info', `编辑记录 ${id} — 弹窗编辑器待实现（当前可直接修改 store 数据）`);
+    openFormModal({
+      id: `edit-record-${id}`,
+      title: '编辑记录',
+      fields: [
+        { key: 'content', label: '记录内容', type: 'textarea', required: true, placeholder: '修改记录内容...' },
+        { key: 'note', label: '备注', type: 'textarea', placeholder: '补充说明...' }
+      ],
+      onSubmit: (values) => {
+        showToast('success', `记录 ${id} 已更新`);
+      },
+      accentColor: ACCENT_COLORS[getAppState().selectedRole] || ACCENT_COLORS.secretary
+    });
   },
 
   _deleteRecord(id) {
@@ -475,7 +504,19 @@ export const PartyModule = {
     body.querySelectorAll('.pub-sub-add-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const type = btn.dataset.type;
-        showToast('success', `${type} 子记录添加功能 — 待接入持久化层`);
+        openFormModal({
+          id: `add-subrecord-${type}`,
+          title: `添加${type}子记录`,
+          fields: [
+            { key: 'title', label: '标题', type: 'text', required: true, placeholder: '子记录标题' },
+            { key: 'content', label: '内容', type: 'textarea', required: true, placeholder: '详细内容...' },
+            { key: 'date', label: '日期', type: 'text', placeholder: 'YYYY-MM-DD' }
+          ],
+          onSubmit: (values) => {
+            showToast('success', `${type}子记录已添加`);
+          },
+          accentColor: ACCENT_COLORS[getAppState().selectedRole] || ACCENT_COLORS.secretary
+        });
       });
     });
   },
@@ -539,7 +580,21 @@ export const PartyModule = {
     `;
 
     const weeklyBtn = document.getElementById('pub-weekly-btn');
-    if (weeklyBtn) weeklyBtn.addEventListener('click', () => showToast('info', '周报生成功能 — 待接入服务层'));
+    if (weeklyBtn) weeklyBtn.addEventListener('click', () => openFormModal({
+      id: 'weekly-report',
+      title: '生成周报',
+      fields: [
+        { key: 'weekRange', label: '周报范围', type: 'text', required: true, placeholder: '例：5.19-5.25' },
+        { key: 'highlights', label: '本周亮点', type: 'textarea', required: true, placeholder: '本周重要工作成果...' },
+        { key: 'issues', label: '存在问题', type: 'textarea', placeholder: '需要关注的问题...' },
+        { key: 'nextPlan', label: '下周计划', type: 'textarea', placeholder: '下周重点工作...' }
+      ],
+      submitLabel: '生成',
+      onSubmit: (values) => {
+        showToast('success', '周报已生成');
+      },
+      accentColor: ACCENT_COLORS[getAppState().selectedRole] || ACCENT_COLORS.secretary
+    }));
   },
 
   refreshDefaultOverview() {

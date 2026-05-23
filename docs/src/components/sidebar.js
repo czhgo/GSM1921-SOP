@@ -2,6 +2,7 @@
 // components/sidebar.js — 共享侧边栏（身份视图卡片 + 模式由站位+视图自动推导）
 
 import { AuthStore, ViewModeStore } from '../services/auth.js';
+import { PermissionManager } from '../services/permission-manager.js';
 import { interceptSidebarNavigation } from './role-selector.js';
 import { getBasePath } from '../core/utils.js';
 
@@ -124,6 +125,7 @@ export function renderSidebar(activeModule) {
   _bindRoleCardClicks(sidebar, activeModule);
 
   if (savedRole) {
+    PermissionManager.restoreRole(savedRole, activeModule);
     const savedMode = ViewModeStore.getMode(activeModule);
     document.dispatchEvent(new CustomEvent('sidebar:view-restore', {
       detail: { role: savedRole, module: activeModule, mode: savedMode },
@@ -139,20 +141,7 @@ function _selectRole(sidebar, activeModule, role, cardEl) {
   cardEl.classList.add('active');
   _saveRole(activeModule, role);
 
-  const stance = AuthStore.getPrimaryRole() || AuthStore.getLoginStance();
-  if (!AuthStore.getPrimaryRole()) {
-    AuthStore.setPrimaryRole(stance);
-  }
-  AuthStore.setActiveRole(activeModule, role);
-
-  // 模式由 deriveMode 自动推导
-  const mode = AuthStore.deriveMode(stance, role);
-  ViewModeStore.setMode(activeModule, mode === 'manage' ? 'manage' : 'observe');
-
-  document.dispatchEvent(new CustomEvent('sidebar:view-select', {
-    detail: { role, module: activeModule, mode, stance: AuthStore.getPrimaryRole() },
-    bubbles: true,
-  }));
+  PermissionManager.selectRole(role, activeModule);
 
   // 导航到对应子页面
   const pageMap = ROLE_PAGE_MAP[activeModule];
@@ -209,7 +198,7 @@ function _bindRoleCardClicks(sidebar, activeModule) {
   });
 
   // 监听站位变更事件，重新渲染侧边栏
-  document.addEventListener('header:stance-change', (e) => {
+  document.addEventListener('permission:stance-change', (e) => {
     if (e.detail.module !== activeModule) return;
     const newStance = e.detail.stance;
 

@@ -1,24 +1,13 @@
+import { renderTabBar } from '../components/tab-bar.js';
 import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
 import { BranchService } from '../services/runtime.js';
 import { showToast } from '../core/utils.js';
-import { CrossPageState } from '../core/cross-page-state.js';
-import { renderSidebar } from '../components/sidebar.js';
-import { renderHeader } from '../components/header.js';
-import { ViewModeStore, AuthStore } from '../services/auth.js';
+import { bootstrapPage } from '../core/bootstrap.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { KANBAN_MOCKS, ACTIVITIES, _personName } from '../mock/index.js';
+import { loadWorkspaceData } from '../core/data-loader.js';
 
-renderSidebar('workspace');
-renderHeader('workspace');
-
-const savedState = CrossPageState.load();
-AuthStore.setActiveRole('workspace', savedState.selectedRole || 'prop-commissioner');
-if (savedState.stance) AuthStore.setPrimaryRole(savedState.stance);
-ViewModeStore.setMode('workspace', 'manage');
-
-const accent = '#10B981';
-const accentRgba = 'rgba(16,185,129,0.1)';
-const accentBorder = 'rgba(16,185,129,0.3)';
+const { savedState, accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', defaultRole: 'prop-commissioner', viewMode: 'manage', accentRole: 'prop-commissioner' });
 
 function renderPropUI(state) {
   let activities = state.activities || [];
@@ -34,29 +23,21 @@ function renderPropUI(state) {
   const taskforces = TaskForceRecordStore.getAll();
   const propTf = taskforces.filter(t => t.name.includes('宣传') || t.initiator === 'p12');
 
-  container.innerHTML = `
-    <div class="flex gap-2 mb-4">
-      <button class="prop-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-prop-tab="kanban" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">活动与专班</button>
-      <button class="prop-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-prop-tab="workload" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">宣传专班工作量</button>
-      <button class="prop-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-prop-tab="multitable" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">多维表格</button>
-    </div>
-    <div id="prop-tab-content"></div>
-  `;
-
-  container.querySelectorAll('.prop-tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      container.querySelectorAll('.prop-tab-btn').forEach(b => {
-        b.style.background = 'white'; b.style.color = '#6B7280'; b.style.border = '1px solid #E5E7EB';
-      });
-      btn.style.background = accentRgba; btn.style.color = accent; btn.style.border = `1px solid ${accentBorder}`;
-      const tab = btn.dataset.propTab;
-      if (tab === 'kanban') _renderKanbanContent(activities);
-      else if (tab === 'workload') _renderWorkloadContent(propTf);
-      else if (tab === 'multitable') _renderMultitableContent(activities);
-    });
+  const tabBar = renderTabBar({
+    prefix: 'prop',
+    tabs: [
+      { id: 'kanban', label: '活动与专班', render: (ctx) => _renderKanbanContent(ctx.activities) },
+      { id: 'workload', label: '宣传专班工作量', render: (ctx) => _renderWorkloadContent(ctx.propTf) },
+      { id: 'multitable', label: '多维表格', render: (ctx) => _renderMultitableContent(ctx.activities) },
+    ],
+    accentColor: { accent, accentRgba, accentBorder },
+    renderCtx: { activities, propTf },
   });
 
-  _renderKanbanContent(activities);
+  container.innerHTML = tabBar.html;
+
+  tabBar.bindEvents(container);
+  tabBar.activate('kanban');
 }
 
 function _renderKanbanContent(activities) {
@@ -234,14 +215,4 @@ function _renderMultitableContent(activities) {
 
 registerRenderCallback(renderPropUI);
 
-(async function init() {
-  try { if (typeof BranchService.loadDB === 'function') BranchService.loadDB(); TaskForceRecordStore.init(); } catch (e) { console.warn('[ws-prop] loadDB error', e); }
-  setState({ domain: 'activity', role: 'prop-commissioner', activeModule: 'workspace', status: STATE.LOADING, selectedRole: 'prop-commissioner' });
-  try {
-    const activities = await BranchService.listActivities();
-    setState({ status: STATE.IDLE, activities });
-  } catch (err) {
-    console.warn('[ws-prop] load failed', err);
-    setState({ status: STATE.IDLE, activities: ACTIVITIES.map(a => ({ ...a, visibility: 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() })) });
-  }
-}());
+loadWorkspaceData({ role: 'prop-commissioner', storeInits: [() => TaskForceRecordStore.init()], fallbackData: () => ACTIVITIES, logTag: 'ws-prop' });

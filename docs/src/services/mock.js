@@ -8,6 +8,7 @@
 import { mockDB, SCHEMA_VERSION } from '../core/domain.js';
 import { generateId } from '../core/id.js';
 import { ACTIVITIES } from '../mock/index.js';
+import { SEED_TASKS, SEED_DELIVERABLES, SEED_ASSIGNMENTS, SEED_HANDOVERS } from '../mock/seed.js';
 
 const MOCK_DELAY_MS = 600;
 
@@ -24,8 +25,9 @@ const SANDBOX_MODE = true;
 
 /**
  * 将当前 mockDB 状态序列化并写入 localStorage
+ * 统一全量键架构：所有业务数据通过单一键持久化，消除双重存储
  */
-function saveDB() {
+export function saveDB() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       _schema:     mockDB._schema,
@@ -34,6 +36,17 @@ function saveDB() {
       tasks:       mockDB.tasks,
       attendances: mockDB.attendances,
       deliverables: mockDB.deliverables,
+      inspections: mockDB.inspections,
+      assignments: mockDB.assignments,
+      handovers:   mockDB.handovers,
+      makeupTasks: mockDB.makeupTasks,
+      actSubRecords: mockDB.actSubRecords,
+      tfSubRecords:  mockDB.tfSubRecords,
+      complianceReferences: mockDB.complianceReferences,
+      fileSpaceRecords: mockDB.fileSpaceRecords,
+      experienceDeposits: mockDB.experienceDeposits,
+      taskforces:  mockDB.taskforces,
+      notices:     mockDB.notices,
     }));
   } catch (e) {
     console.warn('[MockAdapter] saveDB 失败：', e);
@@ -46,9 +59,18 @@ function saveDB() {
  */
 export function loadDB() {
   if (SANDBOX_MODE) {
+    // 清理全量键
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem('workflowos_notices_v1');
     localStorage.removeItem('workflowos_taskforces_v1');
+    // 清理旧版独立键（兼容性清理）
+    const legacyKeys = [
+      'assignment_records', 'handover_records', 'attendance_records',
+      'inspection_records', 'makeup_tasks', 'act_sub_records',
+      'tf_sub_records', 'compliance_references', 'file_space_records',
+      'experience_deposits',
+    ];
+    legacyKeys.forEach(k => localStorage.removeItem(k));
     if (mockDB.activities.length === 0 && ACTIVITIES.length > 0) {
       mockDB.activities = ACTIVITIES.map(a => ({
         ...a,
@@ -59,6 +81,11 @@ export function loadDB() {
         createdAt: a.date || new Date().toISOString(),
       }));
     }
+    // 注入种子数据（仅当对应字段为空时）
+    if (mockDB.tasks.length === 0) mockDB.tasks = [...SEED_TASKS];
+    if (mockDB.deliverables.length === 0) mockDB.deliverables = [...SEED_DELIVERABLES];
+    if (mockDB.assignments.length === 0) mockDB.assignments = [...SEED_ASSIGNMENTS];
+    if (mockDB.handovers.length === 0) mockDB.handovers = [...SEED_HANDOVERS];
     return;
   }
   /* --- 以下为持久化恢复逻辑（SANDBOX_MODE=false 时生效） ---
@@ -76,6 +103,17 @@ export function loadDB() {
     if (Array.isArray(parsed.tasks))        mockDB.tasks        = parsed.tasks;
     if (Array.isArray(parsed.attendances))  mockDB.attendances  = parsed.attendances;
     if (Array.isArray(parsed.deliverables)) mockDB.deliverables = parsed.deliverables;
+    if (Array.isArray(parsed.inspections))  mockDB.inspections  = parsed.inspections;
+    if (Array.isArray(parsed.assignments))  mockDB.assignments  = parsed.assignments;
+    if (Array.isArray(parsed.handovers))    mockDB.handovers    = parsed.handovers;
+    if (Array.isArray(parsed.makeupTasks))  mockDB.makeupTasks  = parsed.makeupTasks;
+    if (parsed.actSubRecords && typeof parsed.actSubRecords === 'object') mockDB.actSubRecords = parsed.actSubRecords;
+    if (parsed.tfSubRecords && typeof parsed.tfSubRecords === 'object')   mockDB.tfSubRecords  = parsed.tfSubRecords;
+    if (Array.isArray(parsed.complianceReferences)) mockDB.complianceReferences = parsed.complianceReferences;
+    if (Array.isArray(parsed.fileSpaceRecords))     mockDB.fileSpaceRecords     = parsed.fileSpaceRecords;
+    if (Array.isArray(parsed.experienceDeposits))   mockDB.experienceDeposits   = parsed.experienceDeposits;
+    if (Array.isArray(parsed.taskforces))  mockDB.taskforces  = parsed.taskforces;
+    if (Array.isArray(parsed.notices))     mockDB.notices     = parsed.notices;
     // 注：users 为静态预设数据，不从持久化存储恢复，以避免运行时数据污染
     console.info('[MockAdapter] loadDB 成功，已恢复持久化数据。');
   } catch (e) {
@@ -287,7 +325,7 @@ export function listTasks() {
 }
 
 /**
- * 更新任务状态（Immutable patch，内存沙盒模式，不调用 saveDB）
+ * 更新任务状态（Immutable patch）
  * 同步函数：直接修改 mockDB.tasks，返回更新后的新数组快照。
  * 适用于 UI 层任务状态切换（无需异步等待，保证即时响应）。
  * @param {string} taskId - 任务 ID（匹配 mockDB.tasks 中的 id 字段）
@@ -306,6 +344,7 @@ export function updateTask(taskId, patch) {
     updated,
     ...mockDB.tasks.slice(idx + 1),
   ];
+  saveDB();
   console.info('[MockAdapter] updateTask 成功，id=' + taskId + '，status=' + updated.status);
   return [...mockDB.tasks];
 }

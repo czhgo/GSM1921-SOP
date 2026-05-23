@@ -1,48 +1,30 @@
-import { setState, STATE, registerRenderCallback } from '../core/state.js';
-import { CrossPageState } from '../core/cross-page-state.js';
-import { renderSidebar } from '../components/sidebar.js';
-import { renderHeader } from '../components/header.js';
-import { ViewModeStore, AuthStore } from '../services/auth.js';
+import { registerRenderCallback } from '../core/state.js';
+import { bootstrapPage } from '../core/bootstrap.js';
 import { PartyModule } from '../modules/party.js';
+import { loadPartyData } from '../core/data-loader.js';
+import { renderTabBar } from '../components/tab-bar.js';
 
-renderSidebar('party');
-renderHeader('party');
-
-const savedState = CrossPageState.load();
-AuthStore.setActiveRole('party', savedState.selectedRole || 'org-commissioner');
-if (savedState.stance) AuthStore.setPrimaryRole(savedState.stance);
-ViewModeStore.setMode('party', 'manage');
-
-const accent = '#CE1126';
-const accentRgba = 'rgba(206,17,38,0.1)';
-const accentBorder = 'rgba(206,17,38,0.3)';
+const { savedState, accent, accentRgba, accentBorder } = bootstrapPage({ module: 'party', defaultRole: 'org-commissioner', viewMode: 'manage', accentRole: 'org-commissioner' });
 
 function renderOrgPartyUI() {
   const container = document.getElementById('org-party-content');
   if (!container) return;
 
-  container.innerHTML = `
-    <div class="flex gap-2 mb-4">
-      <button class="orgp-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-orgp-tab="candidates" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">追踪看板</button>
-      <button class="orgp-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-orgp-tab="material" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">材料催缴</button>
-      <button class="orgp-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-orgp-tab="thought" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">思想汇报</button>
-      <button class="orgp-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors" data-orgp-tab="compliance" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">合规文件</button>
-    </div>
-    <div id="orgp-tab-content"></div>
-  `;
-
-  container.querySelectorAll('.orgp-tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      container.querySelectorAll('.orgp-tab-btn').forEach(b => {
-        b.style.background = 'white'; b.style.color = '#6B7280'; b.style.border = '1px solid #E5E7EB';
-      });
-      btn.style.background = accentRgba; btn.style.color = accent; btn.style.border = `1px solid ${accentBorder}`;
-      const tab = btn.dataset.orgpTab;
-      _renderTab(tab);
-    });
+  const tabBar = renderTabBar({
+    prefix: 'orgp',
+    tabs: [
+      { id: 'candidates', label: '追踪看板', render: () => _renderTab('candidates') },
+      { id: 'material', label: '材料催缴', render: () => _renderTab('material') },
+      { id: 'thought', label: '思想汇报', render: () => _renderTab('thought') },
+      { id: 'compliance', label: '合规文件', render: () => _renderTab('compliance') },
+    ],
+    accentColor: { accent, accentRgba, accentBorder },
+    defaultTab: 'candidates',
   });
 
-  _renderTab('candidates');
+  container.innerHTML = tabBar.html;
+  tabBar.bindEvents(container);
+  tabBar.activate('candidates');
 }
 
 function _renderTab(tab) {
@@ -73,6 +55,4 @@ function _renderTab(tab) {
 
 registerRenderCallback(renderOrgPartyUI);
 
-PartyModule.loadAll();
-setState({ domain: 'party', role: 'org-commissioner', activeModule: 'party', status: STATE.IDLE, selectedRole: 'org-commissioner' });
-renderOrgPartyUI();
+loadPartyData({ role: 'org-commissioner', partyModule: PartyModule, renderFn: renderOrgPartyUI });

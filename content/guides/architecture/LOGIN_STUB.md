@@ -2,7 +2,7 @@
 title: "登录态打桩文档"
 type: guide
 role: "[人机]"
-last_updated: "2026-05-20"
+last_updated: "2026-05-23"
 version: "1.0"
 status: active
 related_files:
@@ -159,5 +159,5 @@ function getStanceOptions() {
 | primaryRole | stance（站位） | 语义升级，逻辑不变 |
 | activeRole | view（身份视图） | 语义升级，逻辑不变 |
 | ViewModeStore.getMode() | deriveMode(stance, view) | 从手动切换改为自动推导 |
-| header:role-switch | header:stance-change | 事件重命名 |
-| sidebar:role-select | sidebar:view-select | 事件重命名 |
+| header:role-switch | permission:stance-change | 事件重命名（经 PermissionManager 统一） |
+| sidebar:role-select | permission:role-select | 事件重命名（经 PermissionManager 统一） |

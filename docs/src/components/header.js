@@ -1,7 +1,8 @@
 // role: [人机]
 // components/header.js — 共享顶栏组件（站位选择器 + 模式标签）
 
-import { AuthStore, ViewModeStore, ROLE_LABELS } from '../services/auth.js';
+import { AuthStore, ROLE_LABELS } from '../services/auth.js';
+import { PermissionManager } from '../services/permission-manager.js';
 import { NoticeStore } from '../services/notice.js';
 import { getBasePath } from '../core/utils.js';
 
@@ -196,41 +197,16 @@ function _bindStanceSwitcher(header, module) {
     const newStance = item.dataset.role;
     if (!newStance) return;
 
-    // 更新站位
-    AuthStore.setPrimaryRole(newStance);
-    // 自动重置视图为站位本身
-    AuthStore.setActiveRole(module, newStance);
-    // 自动设置模式
-    const mode = AuthStore.deriveMode(newStance, newStance);
-    ViewModeStore.setMode(module, mode === 'manage' ? 'manage' : 'observe');
+    PermissionManager.switchStance(newStance, module);
 
     dropdown.classList.add('hidden');
     renderHeader(module);
-
-    // 触发站位变更事件
-    document.dispatchEvent(new CustomEvent('header:stance-change', {
-      detail: { stance: newStance, module, mode },
-      bubbles: true,
-    }));
   });
 }
 
 function _bindSidebarSync(header, module) {
-  document.addEventListener('sidebar:view-select', (e) => {
+  document.addEventListener('permission:role-select', (e) => {
     if (e.detail.module !== module) return;
-    const viewRole = e.detail.role;
-    if (!viewRole) return;
-
-    const stance = AuthStore.getPrimaryRole() || AuthStore.getLoginStance();
-    if (!AuthStore.getPrimaryRole()) {
-      AuthStore.setPrimaryRole(stance);
-    }
-    AuthStore.setActiveRole(module, viewRole);
-
-    // 模式由 deriveMode 自动推导
-    const mode = AuthStore.deriveMode(stance, viewRole);
-    ViewModeStore.setMode(module, mode === 'manage' ? 'manage' : 'observe');
-
     renderHeader(module);
   });
 
@@ -239,12 +215,7 @@ function _bindSidebarSync(header, module) {
     const viewRole = e.detail.role;
     if (!viewRole) return;
 
-    const stance = AuthStore.getPrimaryRole() || AuthStore.getLoginStance();
-    if (!AuthStore.getPrimaryRole()) {
-      AuthStore.setPrimaryRole(stance);
-    }
-    AuthStore.setActiveRole(module, viewRole);
-
+    PermissionManager.restoreRole(viewRole, module);
     renderHeader(module);
   });
 }

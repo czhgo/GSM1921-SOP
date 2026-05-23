@@ -3,28 +3,18 @@ import { BranchService } from '../services/runtime.js';
 import { _fmtDate, showToast, _currentYearMonth } from '../core/utils.js';
 import { populateMonthSelector, renderCalendarByActivities } from '../components/calendar.js';
 import { renderInspectorFromState } from '../components/inspector.js';
-import { CrossPageState } from '../core/cross-page-state.js';
-import { renderSidebar } from '../components/sidebar.js';
-import { renderHeader } from '../components/header.js';
 import { computeSecretaryStats } from '../services/roles.js';
-import { ViewModeStore, AuthStore } from '../services/auth.js';
-import { ACTIVITIES } from '../mock/index.js';
-import { MOCK_TASKFORCES } from '../mock/taskforces.js';
-import { PEOPLE } from '../mock/people.js';
+import { AuthStore } from '../services/auth.js';
+import { bootstrapPage } from '../core/bootstrap.js';
+import { ACTIVITIES, MOCK_TASKFORCES, PEOPLE } from '../mock/index.js';
 import { ROLE_LABELS } from '../core/constants.js';
 import { PersonPicker } from '../components/person-picker.js';
-import { sopDatabase } from '../workflow/sopData.js';
-import { instantiateSOP } from '../workflow/sop.js';
-import { renderWorkflow } from '../workflow/renderer.js';
+import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js';
 import { FeedbackStore } from '../services/feedback.js';
+import { loadWorkspaceData } from '../core/data-loader.js';
+import { renderQueryView } from '../components/query-view.js';
 
-renderSidebar('workspace');
-renderHeader('workspace');
-
-const savedState = CrossPageState.load();
-AuthStore.setActiveRole('workspace', savedState.selectedRole || 'secretary');
-if (savedState.stance) AuthStore.setPrimaryRole(savedState.stance);
-ViewModeStore.setMode('workspace', 'manage');
+const { savedState } = bootstrapPage({ module: 'workspace', defaultRole: 'secretary', viewMode: 'manage' });
 
 function renderSecretaryUI(state) {
   const activities = state.activities || [];
@@ -90,6 +80,40 @@ function renderSecretaryUI(state) {
       ? 'background:rgba(234,179,8,0.15);color:#B45309;border:1px solid rgba(234,179,8,0.40);'
       : 'background:rgba(156,163,175,0.10);color:#6B7280;border:1px solid rgba(156,163,175,0.30);';
     filterBtn.textContent = filterBrand ? '★ 品牌活动（筛选中）' : '☆ 品牌活动';
+  }
+
+  // ── 活动查询视图 ──
+  let querySection = document.getElementById('secretary-query-view');
+  if (!querySection) {
+    querySection = document.createElement('div');
+    querySection.id = 'secretary-query-view';
+    querySection.className = 'card rounded-2xl p-6 mb-6';
+    querySection.innerHTML = '<h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">活动查询</h3><div id="secretary-query-container"></div>';
+    const calendarEl = document.getElementById('secretary-calendar');
+    if (calendarEl) {
+      calendarEl.after(querySection);
+    }
+  }
+  const queryContainer = document.getElementById('secretary-query-container');
+  if (queryContainer) {
+    const typeOptions = [...new Set(displayActivities.map(a => a.type).filter(Boolean))].map(t => ({ value: t, label: t }));
+    renderQueryView(queryContainer, {
+      searchPlaceholder: '搜索活动名称...',
+      searchKey: 'title',
+      filters: [{ key: 'type', label: '活动类型', options: typeOptions }],
+      data: displayActivities,
+      renderRow: (a) => `
+        <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
+            <div class="text-xs text-gray-500 mt-0.5">${a.date || ''}${a.type ? ' · ' + a.type : ''}</div>
+          </div>
+          ${a.type ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-600">${a.type}</span>` : ''}
+        </div>
+      `,
+      emptyMessage: '暂无匹配活动',
+      accentColor: '#7A0010',
+    });
   }
 
   // ── 决策树引导式写入面板 ──────────────────────────────────────────
@@ -675,8 +699,8 @@ const authPanel = {
 
 /** 可赋权角色选项 */
 const AUTH_ROLE_OPTIONS = [
-  { value: 'organizer', label: '组织者', desc: '负责活动/专班的策划与执行统筹', color: '#1e40af', bg: 'rgba(30,64,175,0.08)', border: 'rgba(30,64,175,0.25)' },
-  { value: 'deep', label: '深度参与者', desc: '承担具体工作任务的骨干成员', color: '#166534', bg: 'rgba(22,101,52,0.08)', border: 'rgba(22,101,52,0.25)' },
+  { value: 'organizer', label: '组织者', desc: '负责活动/专班的策划与执行统筹', color: '#3B82F6', bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.25)' },
+  { value: 'deep', label: '深度参与者', desc: '承担具体工作任务的骨干成员', color: '#059669', bg: 'rgba(5,150,105,0.08)', border: 'rgba(5,150,105,0.25)' },
 ];
 
 /** 赋权范围选项 */
@@ -798,6 +822,7 @@ function renderAuthPanel(assignArea) {
     authPanel.personPicker = new PersonPicker({
       mode: 'single',
       placeholder: '选择被赋权同志',
+      accentColor: '#7A0010',
       onSelect: (ids) => {
         authPanel.selectedUserId = ids[0] || null;
       },
@@ -1098,18 +1123,4 @@ document.getElementById('month-selector')?.addEventListener('change', e => {
   setState({ displayMonth: e.target.value });
 });
 
-(async function init() {
-  try {
-    if (typeof BranchService.loadDB === 'function') BranchService.loadDB();
-  } catch (e) { console.warn('[ws-secretary] loadDB error', e); }
-
-  setState({ domain: 'activity', role: 'secretary', activeModule: 'workspace', status: STATE.LOADING, selectedRole: 'secretary' });
-
-  try {
-    const activities = await BranchService.listActivities();
-    setState({ status: STATE.IDLE, activities });
-  } catch (err) {
-    console.warn('[ws-secretary] load failed', err);
-    setState({ status: STATE.IDLE, activities: ACTIVITIES.map(a => ({ ...a, visibility: 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() })) });
-  }
-}());
+loadWorkspaceData({ role: 'secretary', fallbackData: () => ACTIVITIES, logTag: 'ws-secretary' });
