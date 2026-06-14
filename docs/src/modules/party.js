@@ -280,25 +280,110 @@ export const PartyModule = {
       return;
     }
 
-    container.innerHTML = candidates.map(c => {
-      const stageIndex = CANDIDATE_STAGES.indexOf(c.stage);
-      const progressPct = ((stageIndex + 1) / CANDIDATE_STAGES.length * 100).toFixed(0);
-      return `
-        <div class="p-4 bg-gray-50 rounded-xl">
-          <div class="flex items-center justify-between mb-2">
-            <div class="text-sm font-medium text-gray-800">${c.name}</div>
-            <span class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">${c.stage}</span>
-          </div>
-          <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
-            <div class="h-2 rounded-full" style="width:${progressPct}%;background:#3B82F6;"></div>
-          </div>
-          <div class="flex gap-1 text-xs text-gray-400">
-            ${CANDIDATE_STAGES.map((s, i) => `<span class="${i <= stageIndex ? 'text-blue-600 font-medium' : ''}">${s}</span>`).join('<span class="mx-0.5">→</span>')}
-          </div>
-          <div class="text-xs text-gray-500 mt-2">材料状态：${c.materialsComplete ? '<span class="text-green-600">齐全</span>' : '<span class="text-amber-600">缺 ' + c.missingMaterials + ' 项</span>'}</div>
+    // 默认人视图（行=人，列=阶段）
+    const currentView = container.dataset.view || 'person';
+    container.dataset.view = currentView;
+
+    const toggleBtn = `
+      <div class="flex items-center gap-2 mb-3">
+        <button id="candidate-view-toggle" class="text-xs px-3 py-1 rounded-lg border transition-colors"
+          style="border-color:#CE1126;color:#CE1126;background:${currentView === 'person' ? 'rgba(206,17,38,0.08)' : 'transparent'};">
+          ${currentView === 'person' ? '人视图' : '阶段视图'}
+          <span class="ml-1 text-gray-400">⇄ 切换</span>
+        </button>
+        <span class="text-[10px] text-gray-400">${currentView === 'person' ? '行=候选人，列=阶段' : '行=阶段，列=候选人'}</span>
+      </div>
+    `;
+
+    let tableHtml = '';
+    if (currentView === 'person') {
+      // 人视图：行=候选人，列=阶段属性
+      tableHtml = `
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs border-collapse">
+            <thead>
+              <tr class="bg-gray-50">
+                <th class="py-2 px-3 text-left text-gray-600 font-medium sticky left-0 bg-gray-50 z-10">姓名</th>
+                <th class="py-2 px-3 text-left text-gray-600 font-medium">当前阶段</th>
+                <th class="py-2 px-3 text-left text-gray-600 font-medium">进度</th>
+                <th class="py-2 px-3 text-left text-gray-600 font-medium">材料状态</th>
+                <th class="py-2 px-3 text-left text-gray-600 font-medium">缺项</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${candidates.map(c => {
+                const stageIndex = CANDIDATE_STAGES.indexOf(c.stage);
+                const progressPct = ((stageIndex + 1) / CANDIDATE_STAGES.length * 100).toFixed(0);
+                return `
+                  <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-2 px-3 font-medium text-gray-800 sticky left-0 bg-white z-10">${c.name || c.personId}</td>
+                    <td class="py-2 px-3"><span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">${c.stage}</span></td>
+                    <td class="py-2 px-3">
+                      <div class="flex items-center gap-2">
+                        <div class="w-16 bg-gray-200 rounded-full h-1.5">
+                          <div class="h-1.5 rounded-full" style="width:${progressPct}%;background:#3B82F6;"></div>
+                        </div>
+                        <span class="text-gray-500">${progressPct}%</span>
+                      </div>
+                    </td>
+                    <td class="py-2 px-3">${c.materialsComplete ? '<span class="text-green-600">齐全</span>' : '<span class="text-amber-600">不齐全</span>'}</td>
+                    <td class="py-2 px-3 text-gray-500">${c.missingMaterials > 0 ? c.missingMaterials + ' 项' : '—'}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
         </div>
       `;
-    }).join('');
+    } else {
+      // 阶段视图（转置）：行=阶段，列=候选人
+      const stageGroups = {};
+      CANDIDATE_STAGES.forEach(s => { stageGroups[s] = []; });
+      candidates.forEach(c => {
+        if (stageGroups[c.stage]) stageGroups[c.stage].push(c);
+      });
+
+      tableHtml = `
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs border-collapse">
+            <thead>
+              <tr class="bg-gray-50">
+                <th class="py-2 px-3 text-left text-gray-600 font-medium sticky left-0 bg-gray-50 z-10">阶段</th>
+                <th class="py-2 px-3 text-left text-gray-600 font-medium">人数</th>
+                <th class="py-2 px-3 text-left text-gray-600 font-medium">人员</th>
+                <th class="py-2 px-3 text-left text-gray-600 font-medium">材料待补</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${CANDIDATE_STAGES.map(s => {
+                const group = stageGroups[s];
+                if (group.length === 0) return '';
+                const incompleteCount = group.filter(c => !c.materialsComplete).length;
+                return `
+                  <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-2 px-3 font-medium text-gray-800 sticky left-0 bg-white z-10"><span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">${s}</span></td>
+                    <td class="py-2 px-3 text-gray-700">${group.length}</td>
+                    <td class="py-2 px-3 text-gray-700">${group.map(c => c.name || c.personId).join('、')}</td>
+                    <td class="py-2 px-3">${incompleteCount > 0 ? '<span class="text-amber-600">' + incompleteCount + ' 人</span>' : '<span class="text-green-600">—</span>'}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    container.innerHTML = toggleBtn + tableHtml;
+
+    // 绑定转置切换
+    const toggleEl = document.getElementById('candidate-view-toggle');
+    if (toggleEl) {
+      toggleEl.addEventListener('click', () => {
+        container.dataset.view = currentView === 'person' ? 'stage' : 'person';
+        this.refreshCandidateTracker();
+      });
+    }
   },
 
   refreshMaterialRemind() {

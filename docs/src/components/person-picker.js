@@ -250,7 +250,7 @@ export class PersonPicker {
       'position:fixed;z-index:301;',
       'background:white;border-radius:16px;',
       'box-shadow:0 20px 60px rgba(0,0,0,0.15);',
-      'width:380px;max-height:520px;',
+      'width:380px;max-width:calc(100vw - 32px);max-height:520px;',
       'display:flex;flex-direction:column;overflow:hidden;',
     ].join('');
 

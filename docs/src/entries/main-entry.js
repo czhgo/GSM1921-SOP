@@ -61,7 +61,7 @@ function _renderStats(activities, taskforces, notices, attendanceRecords) {
     if (!act || !act.date) return false;
     return act.date >= thisMonth;
   });
-  const presentCount = recentAttendance.filter(r => r.status === '出勤').length;
+  const presentCount = recentAttendance.filter(r => r.status === 'present').length;
   const attendanceRate = recentAttendance.length > 0
     ? Math.round((presentCount / recentAttendance.length) * 100)
     : 0;
@@ -183,9 +183,9 @@ function _renderAttendanceSummary(activities, attendanceRecords) {
 
   const rows = monthActivities.map(act => {
     const records = attendanceRecords.filter(r => r.activityId === act.id);
-    const present = records.filter(r => r.status === '出勤').length;
-    const absent = records.filter(r => r.status === '缺勤').length;
-    const leave = records.filter(r => r.status === '请假').length;
+    const present = records.filter(r => r.status === 'present').length;
+    const absent = records.filter(r => r.status === 'absent').length;
+    const leave = records.filter(r => r.status === 'leave').length;
     const total = records.length;
     const rate = total > 0 ? Math.round((present / total) * 100) : 0;
     const rateColor = rate >= 90 ? 'text-green-600' : rate >= 70 ? 'text-amber-600' : 'text-red-600';

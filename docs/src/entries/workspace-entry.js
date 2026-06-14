@@ -21,11 +21,11 @@ function _resolvePage(filename) {
 }
 
 const ROLE_META = [
-  { role: 'secretary', label: '党支部书记', desc: '日历·写入·赋权·数据后台', color: '#CE1126', file: 'secretary.html' },
-  { role: 'leader', label: '党小组组长', desc: '活动写入·考勤上传·考察上传', color: '#3B82F6', file: 'leader.html' },
-  { role: 'organizer', label: '组织者', desc: '分工记录·复盘提交·考察查看', color: '#8B5CF6', file: 'organizer.html' },
-  { role: 'deep', label: '深度参与者', desc: '任务状态更新', color: '#6366F1', file: 'deep.html' },
-  { role: 'org-commissioner', label: '组织委员', desc: '专班管理·追踪看板', color: '#3B82F6', file: 'org.html' },
+  { role: 'secretary', label: '党支部书记', desc: '日历·写入·赋权·数据后台', color: '#7A0010', file: 'secretary.html' },
+  { role: 'leader', label: '党小组组长', desc: '活动写入·考勤上传·考察上传', color: '#CE1126', file: 'leader.html' },
+  { role: 'organizer', label: '组织者', desc: '分工记录·复盘提交·考察查看', color: '#3B82F6', file: 'organizer.html' },
+  { role: 'deep', label: '深度参与者', desc: '任务状态更新', color: '#059669', file: 'deep.html' },
+  { role: 'org-commissioner', label: '组织委员', desc: '专班管理·追踪看板', color: '#CE1126', file: 'org.html' },
   { role: 'prop-commissioner', label: '宣传委员', desc: '活动与专班·工作量·多维表格', color: '#10B981', file: 'prop.html' },
   { role: 'disc-commissioner', label: '纪检委员', desc: '考勤·考察·监督复盘', color: '#D97706', file: 'disc.html' },
   { role: 'visitor', label: '成员只读', desc: '活动动态·专班进展·考勤概况', color: '#6B7280', file: 'visitor.html' },

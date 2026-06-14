@@ -2,7 +2,7 @@
 title: "党务管理独立模块架构规划"
 type: architecture
 role: "[人机]"
-last_updated: "2026-05-22"
+last_updated: "2026-06-14"
 status: active
 related_files:
   - CLAUDE.md
@@ -34,7 +34,7 @@ related_files:
 | **党建工作** | 党建工作台 | 主题党日、三会一课（支部党员大会/支委会/党小组会/党课）、民主评议、换届选举、发展党员、专班管理 |
 | **党务工作** | 党务管理模块（本模块） | 制度修订、职责分工、意见反馈、合规审查、文档规范、定岗定责 |
 
-此双域分类与 [ARCHITECTURE.md](file:///d:/GitHub/GSM1921-SOP/ARCHITECTURE.md#L20-L31) 中定义的领域模型一致。党建工作台承载"党建工作"域，党务管理模块承载"党务工作"域。
+此双域分类与 [ARCHITECTURE.md](../../../ARCHITECTURE.md#L20-L31) 中定义的领域模型一致。党建工作台承载"党建工作"域，党务管理模块承载"党务工作"域。
 
 ### 1.2 功能边界
 
@@ -67,11 +67,11 @@ related_files:
 
 补课逻辑：考勤记录中出现"请假"或"缺勤"状态时，自动触发补课任务；补课完成后，考勤记录回写为"已补"。此逻辑依赖考勤的 0-1 变量特性，不涉及考察的工作量维度。
 
-> 来源：[纪检委员工作流程指南 1.2](file:///d:/GitHub/GSM1921-SOP/content/SOP/纪检委员工作流程指南.md#L100-L108)
+> 来源：[纪检委员工作流程指南 1.2](../../../content/SOP/纪检委员工作流程指南.md#L100-L108)
 
 ### 1.4 引用渲染机制
 
-党务管理模块在展示 `content/references/` 下的合规文件（如党章、发展党员工作细则、纪律处分条例）时，遵循 [ROLE_CLASSIFICATION.md 引用渲染机制](file:///d:/GitHub/GSM1921-SOP/content/guides/governance/ROLE_CLASSIFICATION.md#L135-L145)：
+党务管理模块在展示 `content/references/` 下的合规文件（如党章、发展党员工作细则、纪律处分条例）时，遵循 [ROLE_CLASSIFICATION.md 引用渲染机制](../../../content/guides/governance/ROLE_CLASSIFICATION.md#L135-L145)：
 
 - AI 可读取 `content/references/` 下的 [人] 角色文件内容
 - 将内容渲染到 HTML 界面的只读展示区（如"合规文件"面板）
@@ -86,7 +86,7 @@ related_files:
 
 ### 2.1 现状分析
 
-当前侧边栏（[index.html L148-L162](file:///d:/GitHub/GSM1921-SOP/index.html#L148-L162)）包含 3 个 module-tab：
+当前侧边栏（[index.html L148-L162](../../../index.html#L148-L162)）包含 3 个 module-tab：
 
 ```
 ┌─────────────────┐
@@ -263,7 +263,7 @@ related_files:
 
 - 党建工作台的考勤记录（0-1 变量：出勤/请假/缺勤）是补课触发的唯一数据源
 - 补课完成后的状态回写直接更新考勤记录，不涉及考察（工作量维度）
-- 数据变更统一经过 Service 层，遵循 [ARCHITECTURE.md 数据变更规则](file:///d:/GitHub/GSM1921-SOP/ARCHITECTURE.md#L224-L239)
+- 数据变更统一经过 Service 层，遵循 [ARCHITECTURE.md 数据变更规则](../../../ARCHITECTURE.md#L224-L239)
 
 ### 4.2 与参考指南的场景域展示
 
@@ -301,7 +301,7 @@ ROLE_CLASSIFICATION.md                  党务管理模块
 └──────────────────────────┘        └──────────────────────┘
 ```
 
-此为 [ROLE_CLASSIFICATION.md 角色关系矩阵](file:///d:/GitHub/GSM1921-SOP/content/guides/governance/ROLE_CLASSIFICATION.md#L127-L135) 中 `[AI] --> [人]（引用渲染）` 规则的首次工程落地。
+此为 [ROLE_CLASSIFICATION.md 角色关系矩阵](../../../content/guides/governance/ROLE_CLASSIFICATION.md#L127-L135) 中 `[AI] --> [人]（引用渲染）` 规则的首次工程落地。
 
 ---
 

@@ -177,7 +177,7 @@ function _renderTasksContent(activities) {
       </div>
 
       <!-- 分工记录录入 -->
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#8B5CF6;">
+      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#3B82F6;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">分工记录录入</h4>
         <div class="text-xs text-gray-500 mb-4">为关联活动创建分工，跟踪完成度（进行中/已完成/已逾期）</div>
 
@@ -216,13 +216,13 @@ function _renderTasksContent(activities) {
 
         <!-- 提交按钮 -->
         <div class="flex items-center gap-3">
-          <button id="assign-submit-btn" class="px-4 py-2 text-xs font-medium rounded-lg text-white transition-colors" style="background:#8B5CF6;" disabled>提交分工记录</button>
+          <button id="assign-submit-btn" class="px-4 py-2 text-xs font-medium rounded-lg text-white transition-colors" style="background:#3B82F6;" disabled>提交分工记录</button>
           <span id="assign-submit-hint" class="text-[10px] text-gray-400"></span>
         </div>
       </div>
 
       <!-- 分工记录展示 -->
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#F59E0B;">
+      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#D97706;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">分工记录</h4>
         <div class="text-xs text-gray-500 mb-3">按活动分组展示，逾期状态根据DDL自动判断</div>
         <div id="assignment-records-list">
@@ -315,7 +315,7 @@ function _renderAssignmentRecordsHTML(organizerActivities) {
     html += `
       <div class="mb-3">
         <div class="text-xs font-medium text-gray-700 mb-2 flex items-center gap-2">
-          <span class="w-1.5 h-1.5 rounded-full" style="background:#F59E0B;"></span>
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#D97706;"></span>
           ${activityTitle}
         </div>
         <div class="space-y-1.5">
@@ -408,10 +408,10 @@ function _bindAssignmentEvents(organizerActivities) {
       _submitAssignment(organizerActivities);
     });
     submitBtn.addEventListener('mouseenter', function() {
-      if (!this.disabled) this.style.background = '#7C3AED';
+      if (!this.disabled) this.style.background = '#2563EB';
     });
     submitBtn.addEventListener('mouseleave', function() {
-      if (!this.disabled) this.style.background = '#8B5CF6';
+      if (!this.disabled) this.style.background = '#3B82F6';
       else this.style.background = '#9CA3AF';
     });
   }
@@ -451,7 +451,7 @@ function _updateAssignSubmitState() {
 
   const canSubmit = hasActivity && hasAssignee && hasWorkName && hasDDL;
   btn.disabled = !canSubmit;
-  btn.style.background = canSubmit ? '#8B5CF6' : '#9CA3AF';
+  btn.style.background = canSubmit ? '#3B82F6' : '#9CA3AF';
   btn.style.cursor = canSubmit ? 'pointer' : 'not-allowed';
 
   if (hint) {
@@ -558,7 +558,7 @@ function _bindParticipationEvents(organizerActivities) {
       _submitParticipation();
     });
     submitBtn.addEventListener('mouseenter', function() {
-      if (!this.disabled) this.style.background = '#A0001A';
+      if (!this.disabled) this.style.background = '#CE1126';
     });
     submitBtn.addEventListener('mouseleave', function() {
       if (!this.disabled) this.style.background = '#CE1126';
@@ -1310,15 +1310,15 @@ function _renderFileSpaceContent(activities) {
     <div class="space-y-4">
       <!-- 统计概览 -->
       <div class="flex gap-3">
-        <div class="flex-1 card rounded-2xl p-4 text-center border-l-4" style="border-left-color:#8B5CF6;">
+        <div class="flex-1 card rounded-2xl p-4 text-center border-l-4" style="border-left-color:#3B82F6;">
           <div class="text-2xl font-bold text-purple-600">${stats.experience}</div>
           <div class="text-[10px] text-gray-500 mt-1">经验沉淀</div>
         </div>
-        <div class="flex-1 card rounded-2xl p-4 text-center border-l-4" style="border-left-color:#F59E0B;">
+        <div class="flex-1 card rounded-2xl p-4 text-center border-l-4" style="border-left-color:#D97706;">
           <div class="text-2xl font-bold text-amber-600">${stats.raw}</div>
           <div class="text-[10px] text-gray-500 mt-1">原始文件</div>
         </div>
-        <div class="flex-1 card rounded-2xl p-4 text-center border-l-4" style="border-left-color:#EC4899;">
+        <div class="flex-1 card rounded-2xl p-4 text-center border-l-4" style="border-left-color:#10B981;">
           <div class="text-2xl font-bold text-pink-600">${stats.publicity}</div>
           <div class="text-[10px] text-gray-500 mt-1">宣传素材</div>
         </div>
@@ -1336,7 +1336,7 @@ function _renderFileSpaceContent(activities) {
         const catRecords = groupedRecords[cat] || [];
         if (catRecords.length === 0) return '';
         return `
-          <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:${cat === 'experience' ? '#8B5CF6' : cat === 'raw' ? '#F59E0B' : '#EC4899'};">
+          <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:${cat === 'experience' ? '#3B82F6' : cat === 'raw' ? '#D97706' : '#10B981'};">
             <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">${FILE_CATEGORY_ICONS[cat]} ${catLabel}（${catRecords.length}）</h4>
             <div class="space-y-2">
               ${catRecords.map(r => {

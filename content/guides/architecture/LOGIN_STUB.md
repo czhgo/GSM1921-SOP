@@ -2,14 +2,16 @@
 title: "登录态打桩文档"
 type: guide
 role: "[人机]"
-last_updated: "2026-05-23"
-version: "1.0"
+last_updated: "2026-06-14"
+version: "2.0"
 status: active
 related_files:
   - docs/src/services/auth.js
   - docs/src/components/header.js
   - docs/src/components/sidebar.js
   - content/guides/architecture/MANAGEMENT_MODE.md
+  - content/guides/architecture/DATA.md
+  - content/guides/design/COMMISSIONER_SYSTEM.md
 category: architecture
 ---
 
@@ -161,3 +163,183 @@ function getStanceOptions() {
 | ViewModeStore.getMode() | deriveMode(stance, view) | 从手动切换改为自动推导 |
 | header:role-switch | permission:stance-change | 事件重命名（经 PermissionManager 统一） |
 | sidebar:role-select | permission:role-select | 事件重命名（经 PermissionManager 统一） |
+
+## 七、用户身份模型（登录系统设计前置）
+
+> 登录系统的地基——不知道"用户"是什么就无法设计登录。
+
+### 7.1 用户实体属性
+
+| 属性 | 字段名 | 类型 | 说明 |
+|------|--------|------|------|
+| 用户ID | userId | string | 唯一标识（学号或系统分配ID） |
+| 姓名 | name | string | 真实姓名 |
+| 学号 | studentId | string | 学校学号 |
+| 政治面貌 | politicalStatus | enum | 共青团员/入党积极分子/发展对象/预备党员/正式党员 |
+| 发展阶段 | developmentStage | enum | 对应政治面貌的细化阶段 |
+| 所属党小组 | groupId | string | 所属块块的ID |
+| 固有角色 | inherentRole | enum | secretary/org-commissioner/prop-commissioner/disc-commissioner/leader/member |
+| 动态角色 | dynamicRoles | array | 由赋权记录决定的组织者/深度参与者角色列表 |
+
+### 7.2 用户-角色映射规则
+
+**一人一固有角色**：每个用户有且仅有一个固有角色（由组织结构决定，不随活动/专班变化）。
+
+**动态角色可叠加**：组织者和深度参与者是动态角色，由赋权记录决定。一个用户可以同时拥有多个动态角色（如既是A活动的组织者，又是B专班的深度参与者）。
+
+**角色优先级**：当用户同时拥有固有角色和动态角色时：
+1. 固有角色决定站位（stance）
+2. 动态角色决定可看视图（view）范围
+3. 站位优先选择固有角色对应的站位
+
+### 7.3 角色冲突解决
+
+| 冲突场景 | 解决规则 |
+|---------|---------|
+| 党小组组长同时是组织者 | 站位=组长（固有优先），可看组织者视图（管理者只读） |
+| 组织委员同时被赋权为某活动组织者 | 站位=组织委员（固有优先），专班域组织者视图已在可看范围内 |
+| 同一人在不同域有不同动态角色 | 按域隔离——活动域组织者仅影响党建工作台，专班域深度参与者仅影响党务管理 |
+
+## 八、认证机制规范（登录系统设计前置）
+
+> 登录系统的核心功能——不知道如何认证就无法实现登录。
+
+### 8.1 认证方式
+
+| 方案 | 适用场景 | 优势 | 劣势 |
+|------|---------|------|------|
+| 学校统一认证（SSO/CAS） | 生产环境 | 无需自建用户系统，与学校身份体系一致 | 依赖学校认证服务可用性 |
+| 本地认证（用户名+密码） | 开发/测试 | 独立运行，不依赖外部服务 | 需自建用户管理 |
+| OAuth2 第三方登录 | 扩展场景 | 灵活接入多种身份源 | 实现复杂度高 |
+
+**推荐方案**：学校统一认证（SSO/CAS）为主，本地认证为开发备用。
+
+### 8.2 认证接口规范
+
+```
+请求：POST /api/auth/login
+  Body: { ticket: string }  // SSO返回的ticket
+
+响应：{
+  userId: string,
+  name: string,
+  inherentRole: string,
+  dynamicRoles: [{ role: string, scope: 'activity'|'taskforce', sourceId: string }],
+  token: string,
+  expiresIn: number
+}
+```
+
+### 8.3 登录后角色获取
+
+1. SSO认证成功后，后端根据学号查询用户表获取固有角色
+2. 后端查询赋权记录表获取动态角色列表（含域标记）
+3. 前端接收角色信息后存入 AuthStore
+
+### 8.4 会话管理
+
+| 维度 | 规范 |
+|------|------|
+| 存储方式 | sessionStorage（页面级，关闭标签页即丢失） |
+| Token刷新 | 登录后获取token，每次API请求携带，过期后重新认证 |
+| 跨页面同步 | 同一标签页内通过 sessionStorage 自动同步；跨标签页通过 storage 事件监听 |
+| 登出流程 | 清除 sessionStorage + 通知 SSO 登出 + 重定向到登录页 |
+| 多设备 | 允许多设备同时登录（无互踢需求） |
+
+## 九、角色判定逻辑（登录系统设计前置）
+
+> 登录后"你是谁"的判定——不知道如何确定角色就无法实现权限。
+
+### 9.1 固有角色判定
+
+固有角色由组织结构决定，存储在用户表中，登录时一次性获取：
+
+| 判定来源 | 角色 | 说明 |
+|---------|------|------|
+| 用户表.inherentRole | secretary | 党支书 |
+| 用户表.inherentRole | org-commissioner | 组织委员 |
+| 用户表.inherentRole | prop-commissioner | 宣传委员 |
+| 用户表.inherentRole | disc-commissioner | 纪检委员 |
+| 用户表.inherentRole | leader | 党小组组长 |
+| 用户表.inherentRole | member | 普通成员（默认） |
+
+### 9.2 动态角色判定
+
+动态角色由赋权记录决定，登录时从赋权记录表查询：
+
+```
+查询条件：userId = 当前用户 AND (endDate IS NULL OR endDate > NOW())
+结果：[{ role: 'organizer', scope: 'activity', sourceId: 'act-10' }, ...]
+```
+
+### 9.3 默认站位确定
+
+```
+if (inherentRole === 'member' && dynamicRoles.length === 0) {
+  stance = null;  // 无站位，进入成员只读面板
+} else if (inherentRole !== 'member') {
+  stance = inherentRole;  // 固有角色优先
+} else {
+  stance = dynamicRoles[0].role;  // 仅动态角色时取第一个
+}
+```
+
+### 9.4 角色变更通知
+
+| 变更场景 | 通知方式 | 前端处理 |
+|---------|---------|---------|
+| 新赋权 | WebSocket 推送 / 下次页面加载时查询 | 更新 AuthStore，刷新侧边栏 |
+| 赋权撤销 | 同上 | 更新 AuthStore，若当前视图不可用则回退 |
+| 固有角色变更（换届） | 管理员手动更新用户表 | 下次登录生效 |
+
+## 十、双域赋权冲突解决方案（登录系统设计前置）
+
+> 解决 §5.3 第1条指出的架构问题——当前扁平数据结构无法区分域。
+
+### 10.1 问题重述
+
+组织委员和党小组组长都可赋权组织者/深度参与者，但赋权域不同：
+- 党小组组长赋权 → 活动域（organizer/deep 的权限仅限于组长创建的活动）
+- 组织委员赋权 → 专班域（organizer/deep 的权限仅限于组织委员管理的专班）
+
+当前 auth.js 的 AUTHZ_CHAIN 中，`org-commissioner` 和 `leader` 都包含 `organizer/deep`，但无法区分域。
+
+### 10.2 解决方案：赋权记录域标记
+
+auth.js 已有 `scope: 'activity' | 'taskforce'` 字段（代码注释中提及），但文档未同步。正式规范如下：
+
+```javascript
+// 赋权记录结构
+{
+  id: 'authz-001',
+  fromPerson: 'p1',        // 赋权者
+  toPerson: 'p5',          // 被赋权者
+  role: 'organizer',       // 授予的角色
+  scope: 'activity',       // 域标记：'activity' | 'taskforce'
+  sourceId: 'act-10',      // 来源ID：活动ID或专班ID
+  sourceName: '五四主题党日', // 来源名称
+  assignedAt: '2026-05-01',
+  endDate: null,           // null表示永久有效
+}
+```
+
+### 10.3 域隔离规则
+
+| 规则 | 说明 |
+|------|------|
+| 活动域赋权仅影响党建工作台 | 被赋权为活动域组织者 → 仅在党建工作台可见组织者视图 |
+| 专班域赋权影响双域 | 被赋权为专班域组织者 → 党建工作台和党务管理均可见组织者视图 |
+| 跨域视图需显式切换 | 用户同时有活动域和专班域赋权时，侧边栏显示两个视图选项，需手动切换 |
+| 域标记不可省略 | 所有赋权记录必须有 scope 字段，默认值由赋权者的固有角色决定（组长→activity，组织委员→taskforce） |
+
+### 10.4 权限判定流程
+
+```
+1. 用户登录 → 获取固有角色 + 动态角色列表（含域标记）
+2. 进入页面 → 根据 module 筛选有效动态角色
+   - workspace 页面：activity 域 + taskforce 域均有效
+   - party 页面：仅 taskforce 域有效
+3. 站位确定 → 固有角色优先
+4. 视图范围 → 固有角色可看视图 + 筛选后的动态角色可看视图
+5. 模式推导 → deriveMode(stance, view) 不变
+```

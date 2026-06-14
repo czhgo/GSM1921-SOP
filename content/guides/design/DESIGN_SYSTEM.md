@@ -1,8 +1,8 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
 title: "前端设计系统规范"
 type: design
 role: "[人机]"
-last_updated: "2026-05-15"
+last_updated: "2026-06-14"
 status: active
 ---
 
@@ -89,7 +89,7 @@ status: active
 | `--accent-amber` | `#D97706` | ██ | 支委角色标识 |
 | `--accent-blue` | `#3B82F6` | ██ | 组织者角色标识 |
 | `--accent-emerald` | `#10B981` | ██ | 深度参与者角色标识 |
-| `--accent-violet` | `#8B5CF6` | ██ | 党支书角色标识 |
+| `--accent-secretary` | `#7A0010` | ██ | 党支书角色标识（深红，非violet） |
 
 **使用约束**：
 - 角色色条（左侧 4px）使用对应 accent 色
@@ -683,7 +683,7 @@ select.input-flat {
 | `--theme-commissioner` | `--accent-amber` | 归入辅助色 |
 | `--theme-organizer` | `--accent-blue` | 归入辅助色 |
 | `--theme-deep` | `--accent-emerald` | 归入辅助色 |
-| `--theme-secretary` | `--accent-violet` | 归入辅助色 |
+| `--theme-secretary` | `--accent-secretary` | 归入辅助色 |
 | `--theme-participant` | `--accent-gold` | 归入辅助色 |
 | `--theme-archived` | `--neutral-500` | 归入中性色 |
 | `--glass-blur / --glass-saturate / --glass-opacity / --glass-border / --glass-inset-*` | **已移除** | 玻璃态全部废弃 |

@@ -8,6 +8,7 @@
 import { setState, STATE } from '../core/state.js';
 import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js';
 import { _fmtChinese, showToast } from '../core/utils.js';
+import { PEOPLE } from '../mock/index.js';
 import { BranchService } from '../services/runtime.js';
 import { AuthStore } from '../services/auth.js';
 
@@ -59,11 +60,18 @@ function _showParticipantModal(act) {
   card.style.cssText = 'background:#fff;border-radius:14px;padding:20px 22px;max-width:320px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);';
 
   let extraHtml = '';
-  if (act.organizerName) {
-    extraHtml += `<p class="font-stheiti text-sm text-gray-700 mb-1">组织者：${act.organizerName}</p>`;
+  const orgPerson = PEOPLE.find(p => p.id === act.organizer);
+  if (orgPerson) {
+    extraHtml += `<p class="font-stheiti text-sm text-gray-700 mb-1">组织者：${orgPerson.name}</p>`;
   }
-  if (act.deepParticipantName) {
-    extraHtml += `<p class="font-stheiti text-sm text-gray-700 mb-1">深度参与者：${act.deepParticipantName}</p>`;
+  if (act.participants && act.participants.length > 0) {
+    const deepNames = act.participants
+      .filter(pid => pid !== act.organizer)
+      .map(pid => PEOPLE.find(p => p.id === pid)?.name)
+      .filter(Boolean);
+    if (deepNames.length > 0) {
+      extraHtml += `<p class="font-stheiti text-sm text-gray-700 mb-1">参与者：${deepNames.join('、')}</p>`;
+    }
   }
 
   card.innerHTML =

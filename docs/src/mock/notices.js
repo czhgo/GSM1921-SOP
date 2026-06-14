@@ -7,7 +7,7 @@ export const MOCK_NOTICES = [
     publishDate: '2026-05-15',
     expireDate: '2026-05-18',
     targetModule: 'workspace',
-    read: false,
+    read: true,
   },
   {
     id: 'notice-002',
@@ -17,7 +17,7 @@ export const MOCK_NOTICES = [
     publishDate: '2026-05-14',
     expireDate: '2026-05-20',
     targetModule: 'workspace',
-    read: false,
+    read: true,
   },
   {
     id: 'notice-003',
@@ -27,7 +27,7 @@ export const MOCK_NOTICES = [
     publishDate: '2026-05-13',
     expireDate: '2026-05-22',
     targetModule: 'workspace',
-    read: false,
+    read: true,
   },
   {
     id: 'notice-004',
@@ -57,6 +57,6 @@ export const MOCK_NOTICES = [
     publishDate: '2026-05-16',
     expireDate: '2026-05-25',
     targetModule: 'party',
-    read: false,
+    read: true,
   },
 ];

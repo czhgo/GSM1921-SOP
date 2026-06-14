@@ -5,13 +5,14 @@ import { bootstrapPage } from '../core/bootstrap.js';
 import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js';
 import { saveDB } from '../services/mock.js';
 import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS, reviewToDisplay, ACTIVITIES, PEOPLE, MOCK_TASKFORCES } from '../mock/index.js';
+import { ViewModeStore } from '../services/auth.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { renderTabBar } from '../components/tab-bar.js';
 import { openFormModal } from '../components/modal.js';
 import { loadHandoverRecords, updateHandoverRecord } from '../services/handover.js';
-import { loadMakeupTasks, saveMakeupTasks, updateMakeupTask, autoGenerateMakeupTask } from '../services/makeup.js';
+import { autoGenerateMakeupTask } from '../services/makeup.js';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js';
-import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js';
+import { loadInspectionRecords, saveInspectionRecords, getOverdueRecords, getRecordsBySource, getRecordsByPerson, confirmInspectionRecord, deleteInspectionRecord } from '../services/inspection.js';
 
 const { savedState, viewMode, accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', defaultRole: 'disc-commissioner', viewMode: 'auto', accentRole: 'disc-commissioner' });
 const fromHomepage = viewMode === 'participant-observe';
@@ -48,7 +49,6 @@ function renderDiscUI(state) {
       { id: 'review', label: '活动监督复盘', render: () => _renderReviewContent() },
       { id: 'handover', label: '数据交接', render: () => _renderHandoverContent() },
       { id: 'deposit', label: '经验沉淀', render: () => _renderDepositContent() },
-      { id: 'makeup', label: '补课制度', render: () => _renderMakeupContent() },
     ],
     accentColor: { accent, accentRgba, accentBorder },
     defaultTab: 'attendance',
@@ -56,7 +56,7 @@ function renderDiscUI(state) {
   });
 
   container.innerHTML = `
-    ${fromHomepage ? '<div class="card rounded-2xl p-4 mb-4 border border-amber-200 bg-amber-50/30"><p class="text-xs text-amber-700">您当前处于只读模式。如需进入管理模式，请从侧边栏选择角色。</p></div>' : ''}
+    ${viewMode === 'participant-observe' ? '<div id="readonly-banner" class="card rounded-2xl p-4 mb-4 border border-amber-200 bg-amber-50/30"><p class="text-xs text-amber-700">您当前处于只读模式。如需进入管理模式，请从侧边栏选择角色。</p></div>' : ''}
     ${tabBar.html}
   `;
 
@@ -65,6 +65,14 @@ function renderDiscUI(state) {
   const urlParams = CrossPageState.getURLParams();
   tabBar.activate('attendance');
   _renderAttendanceContent(urlParams.activityId || null);
+
+  document.addEventListener('permission:role-select', () => {
+    const mode = ViewModeStore.getMode('workspace');
+    const banner = container.querySelector('#readonly-banner');
+    if (mode === 'manage' && banner) {
+      banner.remove();
+    }
+  });
 }
 
 function _renderAttendanceContent(filterActivityId) {
@@ -95,8 +103,8 @@ function _renderAttendanceContent(filterActivityId) {
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤总表</h4>
         <div class="flex gap-2">
-          <button class="att-view-btn text-xs px-2 py-1 rounded-lg border" data-view="long" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">长格式</button>
-          <button class="att-view-btn text-xs px-2 py-1 rounded-lg border" data-view="wide" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">宽格式</button>
+          <button class="att-view-btn text-xs px-2 py-1 rounded-lg border" data-view="long" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">活动视图</button>
+          <button class="att-view-btn text-xs px-2 py-1 rounded-lg border" data-view="wide" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">人视图</button>
         </div>
       </div>
       <div class="text-xs text-gray-500 mb-3">纪检委员维护考勤系统，组织委员的活动出勤数据直接使用本系统</div>
@@ -243,19 +251,32 @@ function _renderInspectionContent() {
   const allRecords = loadInspectionRecords();
   const longData = inspectionToLong(allRecords);
   const wideData = inspectionToWide(allRecords);
+  const overdueRecords = getOverdueRecords(7);
   const tagColor = { 'activity': 'bg-blue-50 text-blue-600', 'taskforce': 'bg-green-50 text-green-600' };
-  const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-amber-100 text-amber-700' };
+  const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-amber-100 text-amber-700', 'overdue': 'bg-red-100 text-red-700' };
+
+  // 超期提醒
+  const overdueHtml = overdueRecords.length > 0 ? `
+    <div class="bg-red-50 border border-red-200 rounded-xl p-3 mb-3">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="text-xs font-bold text-red-700">超期提醒</span>
+        <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">${overdueRecords.length}条</span>
+      </div>
+      <div class="text-xs text-red-600">以下考察记录已超过7天未确认，请尽快处理</div>
+    </div>
+  ` : '';
 
   container.innerHTML = `
     <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#D97706;">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考察总表</h4>
         <div class="flex gap-2">
-          <button class="insp-view-btn text-xs px-2 py-1 rounded-lg border" data-view="long" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">长格式</button>
-          <button class="insp-view-btn text-xs px-2 py-1 rounded-lg border" data-view="wide" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">宽格式</button>
+          <button class="insp-view-btn text-xs px-2 py-1 rounded-lg border" data-view="long" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">活动视图</button>
+          <button class="insp-view-btn text-xs px-2 py-1 rounded-lg border" data-view="wide" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">人视图</button>
         </div>
       </div>
-      <div class="text-xs text-gray-500 mb-3">纪检委员管理考察记录，组长上传 → 纪检确认 → 录入考察总表</div>
+      <div class="text-xs text-gray-500 mb-3">纪检委员管理考察记录，组长/组织委员上传 → 纪检确认 → 录入考察总表</div>
+      ${overdueHtml}
       <div class="flex flex-wrap gap-2 mb-3">
         <input type="text" id="insp-search-input" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索姓名或内容...">
         <select id="insp-tag-filter" class="input-flat text-xs w-24">
@@ -267,11 +288,14 @@ function _renderInspectionContent() {
           <option value="">全部状态</option>
           <option value="confirmed">已确认</option>
           <option value="pending">待确认</option>
+          <option value="overdue">超期</option>
         </select>
       </div>
       <div id="insp-table-container"></div>
     </div>
   `;
+
+  const overdueIds = new Set(overdueRecords.map(r => r.id));
 
   function applyInspFilter(data) {
     const searchEl = document.getElementById('insp-search-input');
@@ -282,8 +306,9 @@ function _renderInspectionContent() {
     const t = tagEl ? tagEl.value : '';
     const s = statusEl ? statusEl.value : '';
     return data.filter(r => {
-      if (q && !(r.name || '').toLowerCase().includes(q) && !(r.role || '').toLowerCase().includes(q)) return false;
+      if (q && !(r.name || '').toLowerCase().includes(q) && !(r.role || '').toLowerCase().includes(q) && !(r.source || '').toLowerCase().includes(q)) return false;
       if (t && r.sourceType !== t) return false;
+      if (s === 'overdue') return overdueIds.has(r.id);
       if (s && r.status !== s) return false;
       return true;
     });
@@ -306,21 +331,23 @@ function _renderInspectionContent() {
           <thead><tr class="border-b border-gray-200">
             <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
             <th class="py-2 px-3 text-left text-gray-500 font-medium">来源</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">标签</th>
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">类别</th>
             <th class="py-2 px-3 text-left text-gray-500 font-medium">内容</th>
             <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
             <th class="py-2 px-3 text-left text-gray-500 font-medium">操作</th>
           </tr></thead>
           <tbody>${displayData.map(i => {
             const isPending = i.status === 'pending';
+            const isOverdue = overdueIds.has(i.id);
+            const rowBg = isOverdue ? 'bg-red-50/40' : isPending ? 'bg-amber-50/30' : '';
             return `
-            <tr class="border-b border-gray-50 hover:bg-gray-50 ${isPending ? 'bg-amber-50/30' : ''}">
+            <tr class="border-b border-gray-50 hover:bg-gray-50 ${rowBg}">
               <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
               <td class="py-2 px-3 text-gray-600">${i.source}</td>
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-[10px] ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">${i.sourceType === 'activity' ? '活动' : '专班'}</span></td>
               <td class="py-2 px-3 text-gray-600">${i.role}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${statusColor[i.status] || 'bg-gray-100 text-gray-500'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
-              <td class="py-2 px-3">${isPending ? `<button class="text-xs px-2 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button>` : '<span class="text-[10px] text-green-600">已确认</span>'}</td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-500'}">${isOverdue ? '超期' : i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
+              <td class="py-2 px-3">${isPending || isOverdue ? `<button class="text-xs px-2 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>` : '<span class="text-[10px] text-green-600">已确认</span>'}</td>
             </tr>
           `}).join('')}</tbody>
         </table>
@@ -331,13 +358,22 @@ function _renderInspectionContent() {
     tc.querySelectorAll('.btn-disc-confirm-insp').forEach(btn => {
       btn.addEventListener('click', () => {
         const recordId = btn.dataset.recordId;
-        const records = loadInspectionRecords();
-        const record = records.find(r => r.id === recordId);
-        if (record) {
-          record.status = 'confirmed';
-          saveInspectionRecords(records);
-          showToast('success', '考察记录已确认');
+        confirmInspectionRecord(recordId);
+        showToast('success', '考察记录已确认');
+        _renderInspectionContent();
+      });
+    });
+
+    // 绑定删除按钮事件
+    tc.querySelectorAll('.btn-disc-delete-insp').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const recordId = btn.dataset.recordId;
+        if (!confirm('确认删除该考察记录？')) return;
+        if (deleteInspectionRecord(recordId)) {
+          showToast('success', '考察记录已删除');
           _renderInspectionContent();
+        } else {
+          showToast('error', '只能删除待确认状态的记录');
         }
       });
     });
@@ -543,7 +579,7 @@ function _renderHandoverContent() {
 
       <!-- 已提交 -->
       ${submittedRecords.length > 0 ? `
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#F59E0B;">
+      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#D97706;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">待确认的交接</h4>
         <div class="text-xs text-gray-500 mb-3">组织者已提交交接数据，请审核后确认</div>
         <div class="space-y-2" id="disc-handover-submitted">
@@ -666,194 +702,6 @@ function _bindDiscHandoverEvents() {
   });
 }
 
-// ── 补课制度 Tab（纪检委员视角） ──────────────────────────────
-function _renderMakeupContent() {
-  const container = document.getElementById('disc-tab-content');
-  if (!container) return;
-
-  const allTasks = loadMakeupTasks();
-
-  // 检查超期状态
-  const today = new Date().toISOString().slice(0, 10);
-  allTasks.forEach(t => {
-    if (t.status === 'pending' && t.deadline < today) {
-      t.status = 'overdue';
-    }
-  });
-  saveMakeupTasks(allTasks);
-
-  const pendingTasks = allTasks.filter(t => t.status === 'pending');
-  const overdueTasks = allTasks.filter(t => t.status === 'overdue');
-  const completedTasks = allTasks.filter(t => t.status === 'completed');
-  const pendingCount = pendingTasks.length;
-  const overdueCount = overdueTasks.length;
-  const completedCount = completedTasks.length;
-
-  container.innerHTML = `
-    <div class="space-y-4">
-      <!-- 统计概览 -->
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#D97706;">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">补课制度概览</h4>
-        <div class="flex gap-4 text-xs">
-          <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-            <span class="text-gray-600">待补课</span>
-            <span class="font-bold text-amber-700">${pendingCount}</span>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-red-500"></span>
-            <span class="text-gray-600">超期</span>
-            <span class="font-bold text-red-700">${overdueCount}</span>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-green-500"></span>
-            <span class="text-gray-600">已完成</span>
-            <span class="font-bold text-green-700">${completedCount}</span>
-          </div>
-        </div>
-        <div class="text-xs text-gray-500 mt-2">三会一课缺勤必须补课，主题党日缺勤建议补课；补课完成后自动回写考勤记录</div>
-      </div>
-
-      <!-- 待补课列表（含超期） -->
-      ${(pendingCount + overdueCount) > 0 ? `
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#F59E0B;">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">待补课人员</h4>
-        <div class="text-xs text-gray-500 mb-3">缺勤人员需在截止日期前完成补课，超期将标红提醒</div>
-        <div class="space-y-2" id="disc-makeup-pending">
-          ${overdueTasks.map(t => _renderMakeupTaskCard(t)).join('')}
-          ${pendingTasks.map(t => _renderMakeupTaskCard(t)).join('')}
-        </div>
-      </div>
-      ` : ''}
-
-      <!-- 已完成列表（折叠） -->
-      ${completedCount > 0 ? `
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#10B981;">
-        <details>
-          <summary class="font-title-cn text-sm font-bold text-gray-700 cursor-pointer">已完成补课（${completedCount}人）</summary>
-          <div class="mt-3 space-y-2" id="disc-makeup-completed">
-            ${completedTasks.map(t => _renderMakeupTaskCard(t)).join('')}
-          </div>
-        </details>
-      </div>
-      ` : ''}
-
-      ${allTasks.length === 0 ? '<div class="card rounded-2xl p-5 text-center"><p class="text-xs text-gray-400 py-6">暂无补课任务</p></div>' : ''}
-    </div>
-  `;
-
-  _bindMakeupEvents();
-}
-
-/** 渲染单条补课任务卡片 */
-function _renderMakeupTaskCard(t) {
-  const isOverdue = t.status === 'overdue';
-  const isCompleted = t.status === 'completed';
-
-  return `
-    <div class="p-3 rounded-xl ${isOverdue ? 'bg-red-50 border border-red-100' : isCompleted ? 'bg-green-50' : 'bg-gray-50'}" data-makeup-id="${t.id}">
-      <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-2">
-          <span class="text-sm font-medium text-gray-800">${t.personName}</span>
-          <span class="text-xs text-gray-500">|</span>
-          <span class="text-xs text-gray-600">${t.activityName}</span>
-        </div>
-        <div class="flex items-center gap-2">
-          ${t.isMandatory
-            ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-600 border border-red-200">必须</span>'
-            : '<span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 border border-blue-200">建议</span>'
-          }
-          ${isOverdue ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-700">超期</span>' : ''}
-          ${isCompleted ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-green-100 text-green-700">已补</span>' : ''}
-        </div>
-      </div>
-      <div class="text-[10px] text-gray-500 mb-2">缺勤日期：${t.absentDate} · 截止日期：${t.deadline}${isCompleted && t.completedAt ? ' · 完成时间：' + t.completedAt.slice(0, 10) : ''}</div>
-      ${t.proofContent ? `<div class="text-xs text-gray-600 mb-2 p-2 bg-white rounded-lg border border-gray-100">补课证明：${t.proofContent}</div>` : ''}
-      ${!isCompleted ? `
-        <div class="flex gap-2">
-          <button class="btn-makeup-complete text-xs px-2 py-1 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors" style="cursor:pointer;" data-task-id="${t.id}">标记已补</button>
-          <button class="btn-makeup-proof text-xs px-2 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors" style="cursor:pointer;" data-task-id="${t.id}">提交证明</button>
-        </div>
-        <!-- 证明输入区（默认隐藏） -->
-        <div class="makeup-proof-form hidden mt-2 pt-2 border-t border-gray-200" data-form-for="${t.id}">
-          <textarea class="input-flat text-xs w-full" rows="2" placeholder="输入补课证明内容..." data-proof-input="${t.id}"></textarea>
-          <div class="flex gap-2 mt-1">
-            <button class="btn-makeup-submit-proof text-xs px-2 py-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors" style="cursor:pointer;" data-task-id="${t.id}">保存证明</button>
-            <button class="btn-makeup-cancel-proof text-xs px-2 py-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors" style="cursor:pointer;" data-task-id="${t.id}">取消</button>
-          </div>
-        </div>
-      ` : ''}
-    </div>
-  `;
-}
-
-/** 绑定补课制度 Tab 事件 */
-function _bindMakeupEvents() {
-  const tabContent = document.getElementById('disc-tab-content');
-  if (!tabContent) return;
-
-  // 标记已补按钮
-  tabContent.querySelectorAll('.btn-makeup-complete').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const taskId = btn.dataset.taskId;
-      if (!confirm('确认该人员已完成补课？确认后考勤记录将回写为"已补"。')) return;
-
-      // 1. 更新补课任务状态
-      updateMakeupTask(taskId, {
-        status: 'completed',
-        completedAt: new Date().toISOString(),
-      });
-
-      // 2. 回写考勤记录
-      const tasks = loadMakeupTasks();
-      const task = tasks.find(t => t.id === taskId);
-      if (task && task.attendanceRecordId) {
-        const records = loadAttendanceRecords();
-        const record = records.find(r => r.id === task.attendanceRecordId);
-        if (record) {
-          record.status = AttendanceStatus.MADE_UP;
-          saveAttendanceRecords(records);
-        }
-      }
-
-      showToast('success', '补课已完成，考勤记录已回写');
-      _renderMakeupContent();
-    });
-  });
-
-  // 提交证明按钮 — 显示证明输入区
-  tabContent.querySelectorAll('.btn-makeup-proof').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const taskId = btn.dataset.taskId;
-      const form = tabContent.querySelector(`.makeup-proof-form[data-form-for="${taskId}"]`);
-      if (form) form.classList.remove('hidden');
-    });
-  });
-
-  // 取消证明输入
-  tabContent.querySelectorAll('.btn-makeup-cancel-proof').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const taskId = btn.dataset.taskId;
-      const form = tabContent.querySelector(`.makeup-proof-form[data-form-for="${taskId}"]`);
-      if (form) form.classList.add('hidden');
-    });
-  });
-
-  // 保存证明
-  tabContent.querySelectorAll('.btn-makeup-submit-proof').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const taskId = btn.dataset.taskId;
-      const input = tabContent.querySelector(`[data-proof-input="${taskId}"]`);
-      const content = input?.value?.trim();
-      if (!content) { showToast('error', '请输入补课证明内容'); return; }
-
-      updateMakeupTask(taskId, { proofContent: content });
-      showToast('success', '补课证明已保存');
-      _renderMakeupContent();
-    });
-  });
-}
-
 // ── 经验沉淀 Tab（纪检委员视角） ──────────────────────────────
 function _renderDepositContent() {
   const container = document.getElementById('disc-tab-content');
@@ -902,7 +750,7 @@ function _renderDepositContent() {
 
       <!-- 已批注 -->
       ${annotatedDeposits.length > 0 ? `
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#F59E0B;">
+      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#D97706;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">已批注的沉淀</h4>
         <div class="text-xs text-gray-500 mb-3">已添加批注，确认后录入后台</div>
         <div class="space-y-2" id="disc-deposit-annotated">

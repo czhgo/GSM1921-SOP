@@ -9,7 +9,7 @@ import { bootstrapPage } from '../core/bootstrap.js';
 import { ACTIVITIES, MOCK_TASKFORCES, PEOPLE } from '../mock/index.js';
 import { ROLE_LABELS } from '../core/constants.js';
 import { PersonPicker } from '../components/person-picker.js';
-import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js';
 import { FeedbackStore } from '../services/feedback.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { renderQueryView } from '../components/query-view.js';
@@ -144,127 +144,12 @@ function renderSecretaryUI(state) {
 //  L1 组织场景 → L2 活动形式 → L3 时长 → L4 发起方向 → 表单
 // ════════════════════════════════════════════════════════════════
 
-/** 决策树配置 */
-const DECISION_TREE = {
-  L1: [
-    { value: 'three-meetings', label: '三会一课', icon: '三', iconColor: '#CE1126', iconBg: 'rgba(206,17,38,0.10)', hasSub: true },
-    { value: 'theme-day', label: '主题党日', icon: '主', iconColor: '#2563EB', iconBg: 'rgba(37,99,235,0.10)', scenarioId: 'theme-party' },
-  ],
-  L1Sub: {
-    'three-meetings': [
-      { value: 'branch-party-meeting', label: '支部党员大会', scenarioId: 'branch-party-meeting' },
-      { value: 'branch-committee', label: '支委会', scenarioId: 'branch-committee' },
-      { value: 'party-group-meeting', label: '党小组会', scenarioId: 'party-group-meeting' },
-      { value: 'party-lecture', label: '党课', scenarioId: 'party-lecture' },
-    ],
-  },
-  L2: {
-    'three-meetings': [
-      { value: 'meeting', label: '会议', color: '#7C3AED', bg: 'rgba(124,58,237,0.10)', border: 'rgba(124,58,237,0.30)' },
-    ],
-    'theme-day': [
-      { value: 'study', label: '学习', color: '#2563EB', bg: 'rgba(37,99,235,0.10)', border: 'rgba(37,99,235,0.30)' },
-      { value: 'visit', label: '参访', color: '#059669', bg: 'rgba(5,150,105,0.10)', border: 'rgba(5,150,105,0.30)' },
-      { value: 'forum', label: '座谈', color: '#D97706', bg: 'rgba(217,119,6,0.10)', border: 'rgba(217,119,6,0.30)' },
-      { value: 'co-build', label: '共建', color: '#DB2777', bg: 'rgba(219,39,119,0.10)', border: 'rgba(219,39,119,0.30)' },
-      { value: 'meeting', label: '会议', color: '#7C3AED', bg: 'rgba(124,58,237,0.10)', border: 'rgba(124,58,237,0.30)' },
-    ],
-  },
-  L3: [
-    { value: 'short', label: '短期', desc: '单次活动，1天内完成' },
-    { value: 'long', label: '长期', desc: '跨天或持续一段时间的活动' },
-  ],
-  L4: [
-    { value: 'top-down', label: '自上而下', desc: '支委/书记发起，向下部署' },
-    { value: 'bottom-up', label: '自下而上', desc: '党小组/成员提议，向上申报' },
-  ],
-};
+/** 决策树状态（已迁移至 services/decision-tree.js） */
+const wp = new DecisionTreeState('secretary');
+const DECISION_TREE = DECISION_TREE_CONFIGS.secretary;
 
 /** 步骤标签 */
 const STEP_LABELS = ['组织场景', '活动形式', '时长', '发起方向', '填写信息'];
-
-/** 写入面板状态 */
-const wp = { step: 1, L1: null, L1Sub: null, L2: null, L3: null, L4: null, submitting: false };
-
-/** 根据 L1/L1Sub 选择获取 scenarioId */
-function getScenarioId() {
-  if (wp.L1 === 'theme-day') return 'theme-party';
-  return wp.L1Sub || null;
-}
-
-/** 获取场景标题 */
-function getScenarioTitle() {
-  const sid = getScenarioId();
-  if (!sid) return '';
-  const sc = sopDatabase.scenarios.find(s => s.scenarioId === sid);
-  return sc ? sc.title : '';
-}
-
-/** 获取已选路径的文字摘要 */
-function getSelectionPath() {
-  const parts = [];
-  if (wp.L1 === 'three-meetings') {
-    const sub = DECISION_TREE.L1Sub['three-meetings'].find(o => o.value === wp.L1Sub);
-    parts.push(sub ? sub.label : '三会一课');
-  } else if (wp.L1 === 'theme-day') {
-    parts.push('主题党日');
-  }
-  if (wp.L2) {
-    const l2Opts = DECISION_TREE.L2[wp.L1] || [];
-    const l2 = l2Opts.find(o => o.value === wp.L2);
-    if (l2) parts.push(l2.label);
-  }
-  if (wp.L3) parts.push(wp.L3 === 'short' ? '短期' : '长期');
-  if (wp.L4) parts.push(wp.L4 === 'top-down' ? '自上而下' : '自下而上');
-  return parts.join(' / ');
-}
-
-/** 根据决策树选择（L3时长 + L1场景）映射工作流定义ID */
-function mapToDefinitionId() {
-  if (wp.L1 === 'theme-day') return 'theme-party-day';
-  // 三会一课场景：根据 L3 时长决定
-  return wp.L3 === 'long' ? 'long-term' : 'short-term';
-}
-
-/** 渲染工作流可视化面板 */
-function renderWorkflowPanel(definitionId, activityTitle) {
-  // 在 secretary-write 卡片下方动态创建工作流面板容器
-  const writeCard = document.getElementById('secretary-write');
-  if (!writeCard) return;
-
-  // 移除已有的工作流面板（避免重复）
-  const existing = document.getElementById('secretary-workflow');
-  if (existing) existing.remove();
-
-  // 创建面板容器
-  const panel = document.createElement('div');
-  panel.id = 'secretary-workflow';
-  panel.className = 'workflow-panel-card';
-  panel.innerHTML = `
-    <div class="workflow-panel-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      工作流追踪 — ${activityTitle || '新活动'}
-    </div>
-    <div id="secretary-workflow-content"></div>
-  `;
-
-  // 插入到 secretary-write 之后
-  writeCard.after(panel);
-
-  // 渲染工作流可视化
-  const contentEl = document.getElementById('secretary-workflow-content');
-  if (contentEl) {
-    try {
-      renderWorkflow(contentEl, definitionId, false);
-    } catch (err) {
-      console.warn('[ws-secretary] renderWorkflow failed:', err);
-      contentEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">工作流渲染失败</p>';
-    }
-  }
-
-  // 滚动到工作流面板
-  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
 
 // ── 渲染函数 ──────────────────────────────────────────────────
 
@@ -279,7 +164,7 @@ function renderWritePanel(container) {
   if (wp.step > 1) {
     html += `<div class="mb-4 px-3 py-2 rounded-lg bg-gray-50 border border-gray-100">`;
     html += `<p class="text-xs text-gray-500 mb-0.5">已选路径</p>`;
-    html += `<p class="text-sm font-medium text-gray-700">${getSelectionPath()}</p>`;
+    html += `<p class="text-sm font-medium text-gray-700">${wp.getSelectionPath()}</p>`;
     html += `</div>`;
   }
 
@@ -333,11 +218,11 @@ function renderStepL1() {
   html += `<p class="text-sm font-medium text-gray-700 mb-3">选择组织场景</p>`;
 
   DECISION_TREE.L1.forEach(opt => {
-    const isSelected = wp.L1 === opt.value;
+    const isSelected = wp.selections.L1 === opt.value;
     const isExpanded = isSelected && opt.hasSub;
 
     html += `<div class="mb-2">`;
-    html += `<button data-action="select-L1" data-value="${opt.value}" class="w-full text-left card rounded-xl p-4 transition-all ${isSelected ? 'ring-2 ring-red-200 bg-red-50/50' : 'hover:bg-gray-50'}">`;
+    html += `<button data-action="select-L1" data-value="${opt.value}" class="w-full text-left bg-white rounded-xl p-4 transition-all ${isSelected ? 'ring-2 ring-red-200 bg-red-50/50' : 'hover:bg-gray-50'}">`;
     html += `<div class="flex items-center justify-between">`;
     html += `<div class="flex items-center gap-3">`;
     html += `<div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:${opt.iconBg};">`;
@@ -356,7 +241,7 @@ function renderStepL1() {
       const subs = DECISION_TREE.L1Sub[opt.value] || [];
       html += `<div class="ml-6 mt-2 flex flex-wrap gap-2">`;
       subs.forEach(sub => {
-        const isSubSelected = wp.L1Sub === sub.value;
+        const isSubSelected = wp.selections.L1Sub === sub.value;
         html += `<button data-action="select-L1Sub" data-value="${sub.value}" class="text-sm px-4 py-2 rounded-lg transition-all ${isSubSelected ? 'bg-red-50 text-red-600 border border-red-200 font-medium' : 'bg-white text-gray-600 border border-gray-200 hover:border-red-200 hover:text-red-500'}">${sub.label}</button>`;
       });
       html += `</div>`;
@@ -371,12 +256,12 @@ function renderStepL1() {
 
 /** L2 活动形式 */
 function renderStepL2() {
-  const options = DECISION_TREE.L2[wp.L1] || [];
+  const options = DECISION_TREE.L2[wp.selections.L1] || [];
   let html = `<div>`;
   html += `<p class="text-sm font-medium text-gray-700 mb-3">选择活动形式</p>`;
   html += `<div class="flex flex-wrap gap-2">`;
   options.forEach(opt => {
-    const isSelected = wp.L2 === opt.value;
+    const isSelected = wp.selections.L2 === opt.value;
     const cls = isSelected
       ? `text-sm px-4 py-2 rounded-lg font-medium transition-all`
       : `text-sm px-4 py-2 rounded-lg transition-all`;
@@ -396,8 +281,8 @@ function renderStepL3() {
   html += `<p class="text-sm font-medium text-gray-700 mb-3">选择活动时长</p>`;
   html += `<div class="flex gap-3">`;
   DECISION_TREE.L3.forEach(opt => {
-    const isSelected = wp.L3 === opt.value;
-    html += `<button data-action="select-L3" data-value="${opt.value}" class="flex-1 text-left card rounded-xl p-4 transition-all ${isSelected ? 'ring-2 ring-red-200 bg-red-50/50' : 'hover:bg-gray-50'}">`;
+    const isSelected = wp.selections.L3 === opt.value;
+    html += `<button data-action="select-L3" data-value="${opt.value}" class="flex-1 text-left bg-white rounded-xl p-4 transition-all ${isSelected ? 'ring-2 ring-red-200 bg-red-50/50' : 'hover:bg-gray-50'}">`;
     html += `<p class="text-sm font-medium ${isSelected ? 'text-red-700' : 'text-gray-700'}">${opt.label}</p>`;
     html += `<p class="text-xs text-gray-400 mt-1">${opt.desc}</p>`;
     html += `</button>`;
@@ -413,8 +298,8 @@ function renderStepL4() {
   html += `<p class="text-sm font-medium text-gray-700 mb-3">选择发起方向</p>`;
   html += `<div class="flex gap-3">`;
   DECISION_TREE.L4.forEach(opt => {
-    const isSelected = wp.L4 === opt.value;
-    html += `<button data-action="select-L4" data-value="${opt.value}" class="flex-1 text-left card rounded-xl p-4 transition-all ${isSelected ? 'ring-2 ring-red-200 bg-red-50/50' : 'hover:bg-gray-50'}">`;
+    const isSelected = wp.selections.L4 === opt.value;
+    html += `<button data-action="select-L4" data-value="${opt.value}" class="flex-1 text-left bg-white rounded-xl p-4 transition-all ${isSelected ? 'ring-2 ring-red-200 bg-red-50/50' : 'hover:bg-gray-50'}">`;
     html += `<p class="text-sm font-medium ${isSelected ? 'text-red-700' : 'text-gray-700'}">${opt.label}</p>`;
     html += `<p class="text-xs text-gray-400 mt-1">${opt.desc}</p>`;
     html += `</button>`;
@@ -426,7 +311,7 @@ function renderStepL4() {
 
 /** Step 5 表单 */
 function renderStepForm() {
-  const scenarioTitle = getScenarioTitle();
+  const scenarioTitle = wp.getScenarioTitle();
   const today = new Date().toISOString().slice(0, 10);
 
   let html = `<div>`;
@@ -490,13 +375,13 @@ function handleWritePanelAction(e) {
   switch (action) {
     case 'select-L1': {
       const val = btn.dataset.value;
-      if (wp.L1 !== val) {
+      if (wp.selections.L1 !== val) {
         // 切换 L1 时清除后续选择
-        wp.L1 = val;
-        wp.L1Sub = null;
-        wp.L2 = null;
-        wp.L3 = null;
-        wp.L4 = null;
+        wp.selections.L1 = val;
+        wp.selections.L1Sub = null;
+        wp.selections.L2 = null;
+        wp.selections.L3 = null;
+        wp.selections.L4 = null;
       }
       // 主题党日无子选项，直接进入 L2
       if (val === 'theme-day') {
@@ -508,35 +393,35 @@ function handleWritePanelAction(e) {
 
     case 'select-L1Sub': {
       const val = btn.dataset.value;
-      wp.L1Sub = val;
-      wp.L2 = null;
-      wp.L3 = null;
-      wp.L4 = null;
+      wp.selections.L1Sub = val;
+      wp.selections.L2 = null;
+      wp.selections.L3 = null;
+      wp.selections.L4 = null;
       // 三会一课只有"会议"一种形式，自动选择并进入 L3
-      if (wp.L1 === 'three-meetings') {
-        wp.L2 = 'meeting';
+      if (wp.selections.L1 === 'three-meetings') {
+        wp.selections.L2 = 'meeting';
         wp.step = 3;
       }
       break;
     }
 
     case 'select-L2': {
-      wp.L2 = btn.dataset.value;
-      wp.L3 = null;
-      wp.L4 = null;
+      wp.selections.L2 = btn.dataset.value;
+      wp.selections.L3 = null;
+      wp.selections.L4 = null;
       wp.step = 3;
       break;
     }
 
     case 'select-L3': {
-      wp.L3 = btn.dataset.value;
-      wp.L4 = null;
+      wp.selections.L3 = btn.dataset.value;
+      wp.selections.L4 = null;
       wp.step = 4;
       break;
     }
 
     case 'select-L4': {
-      wp.L4 = btn.dataset.value;
+      wp.selections.L4 = btn.dataset.value;
       wp.step = 5;
       break;
     }
@@ -546,9 +431,9 @@ function handleWritePanelAction(e) {
         wp.step--;
         // 回退时清除当前步骤及后续的选择
         if (wp.step < 5) { /* form fields are ephemeral */ }
-        if (wp.step < 4) wp.L4 = null;
-        if (wp.step < 3) wp.L3 = null;
-        if (wp.step < 2) { wp.L2 = null; wp.L1Sub = null; }
+        if (wp.step < 4) wp.selections.L4 = null;
+        if (wp.step < 3) wp.selections.L3 = null;
+        if (wp.step < 2) { wp.selections.L2 = null; wp.selections.L1Sub = null; }
       }
       break;
     }
@@ -585,7 +470,7 @@ async function handleSubmitActivity() {
   if (!location) { showToast('error', '请填写活动地点'); locationEl?.focus(); return; }
   if (!title) { showToast('error', '请填写活动名称'); titleEl?.focus(); return; }
 
-  const scenarioId = getScenarioId();
+  const scenarioId = wp.getScenarioId();
   if (!scenarioId) { showToast('error', '场景信息缺失，请重新选择'); return; }
 
   wp.submitting = true;
@@ -593,10 +478,9 @@ async function handleSubmitActivity() {
   if (container) renderWritePanel(container);
 
   try {
-    // 1. 创建活动
     const activityData = {
       title,
-      type: wp.L1 === 'three-meetings' ? '三会一课' : '主题党日',
+      type: wp.selections.L1 === 'three-meetings' ? '三会一课' : '主题党日',
       status: 'draft',
       visibility: 'branch',
       date,
@@ -609,55 +493,21 @@ async function handleSubmitActivity() {
       supervisor: null,
       createdBy: 'u_sec',
       // 决策树元数据
-      _dt_L1: wp.L1,
-      _dt_L1Sub: wp.L1Sub || '',
-      _dt_L2: wp.L2 || '',
-      _dt_L3: wp.L3 || '',
-      _dt_L4: wp.L4 || '',
+      _dt_L1: wp.selections.L1,
+      _dt_L1Sub: wp.selections.L1Sub || '',
+      _dt_L2: wp.selections.L2 || '',
+      _dt_L3: wp.selections.L3 || '',
+      _dt_L4: wp.selections.L4 || '',
     };
-    const activity = await BranchService.createActivity(activityData);
-    console.info('[WritePanel] createActivity 成功, id=' + activity.id);
-
-    // 2. 实例化 SOP 任务节点
-    const taskNodes = instantiateSOP([scenarioId], date);
-    console.info('[WritePanel] instantiateSOP 生成 ' + taskNodes.length + ' 个任务节点');
-
-    // 3. 为每个任务节点创建 Task
-    let createdCount = 0;
-    for (const node of taskNodes) {
-      try {
-        await BranchService.createTask({
-          activityId: activity.id,
-          title: node.title,
-          executor: node.executor,
-          supervisor: node.supervisor,
-          timeOffset: node.timeOffset,
-          date: node.date instanceof Date ? node.date.toISOString().slice(0, 10) : String(node.date),
-          status: 'pending',
-          scenarioId: node.scenarioId,
-          taskId: node.taskId || '',
-          desc: node.desc || '',
-        });
-        createdCount++;
-      } catch (taskErr) {
-        console.warn('[WritePanel] createTask 失败: ' + node.title, taskErr);
-      }
-    }
-
-    showToast('success', `活动写入成功，已生成 ${createdCount} 个任务节点`);
+    const { taskCount } = await writeActivityWithSOP(activityData, scenarioId, date);
+    showToast('success', `活动写入成功，已生成 ${taskCount} 个任务节点`);
 
     // 4. 渲染工作流可视化面板
-    const definitionId = mapToDefinitionId();
-    renderWorkflowPanel(definitionId, title);
+    const definitionId = wp.mapToDefinitionId();
+    renderWorkflowPanel('secretary-workflow', 'secretary-write', definitionId, title);
 
     // 5. 重置面板状态
-    wp.step = 1;
-    wp.L1 = null;
-    wp.L1Sub = null;
-    wp.L2 = null;
-    wp.L3 = null;
-    wp.L4 = null;
-    wp.submitting = false;
+    wp.reset();
 
     // 5. 刷新活动列表
     try {
@@ -736,7 +586,7 @@ function renderAuthPanel(assignArea) {
 
   const panel = document.createElement('div');
   panel.id = 'auth-panel-container';
-  panel.className = 'card rounded-2xl p-6 mt-4 border border-gray-100';
+  panel.className = 'bg-gray-50 rounded-2xl p-6 mt-4 border border-gray-100';
 
   // ── 赋权表单 ──
   let html = '';
@@ -753,7 +603,7 @@ function renderAuthPanel(assignArea) {
   html += `<div class="flex gap-3">`;
   AUTH_ROLE_OPTIONS.forEach(opt => {
     const isSelected = authPanel.role === opt.value;
-    html += `<button data-auth-action="select-role" data-value="${opt.value}" class="flex-1 text-left card rounded-xl p-3 transition-all ${isSelected ? 'ring-2 ring-red-200 bg-red-50/50' : 'hover:bg-gray-50'}">`;
+    html += `<button data-auth-action="select-role" data-value="${opt.value}" class="flex-1 text-left bg-white rounded-xl p-3 transition-all ${isSelected ? 'ring-2 ring-red-200 bg-red-50/50' : 'hover:bg-gray-50'}">`;
     html += `<p class="text-sm font-medium ${isSelected ? 'text-red-700' : 'text-gray-700'}">${opt.label}</p>`;
     html += `<p class="text-xs text-gray-400 mt-0.5">${opt.desc}</p>`;
     html += `</button>`;
@@ -767,7 +617,7 @@ function renderAuthPanel(assignArea) {
   html += `<div class="flex gap-3">`;
   AUTH_SCOPE_OPTIONS.forEach(opt => {
     const isSelected = authPanel.scope === opt.value;
-    html += `<button data-auth-action="select-scope" data-value="${opt.value}" class="flex-1 text-left card rounded-xl p-3 transition-all ${isSelected ? 'ring-2 ring-red-200 bg-red-50/50' : 'hover:bg-gray-50'}">`;
+    html += `<button data-auth-action="select-scope" data-value="${opt.value}" class="flex-1 text-left bg-white rounded-xl p-3 transition-all ${isSelected ? 'ring-2 ring-red-200 bg-red-50/50' : 'hover:bg-gray-50'}">`;
     html += `<p class="text-sm font-medium ${isSelected ? 'text-red-700' : 'text-gray-700'}">${opt.label}</p>`;
     html += `<p class="text-xs text-gray-400 mt-0.5">${opt.desc}</p>`;
     html += `</button>`;

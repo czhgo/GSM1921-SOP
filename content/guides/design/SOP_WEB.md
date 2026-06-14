@@ -2,7 +2,7 @@
 role: "[人机]"
 title: "SOP 网页优化与同步指南"
 type: guide
-last_updated: "2026-05-18"
+last_updated: "2026-06-14"
 version: "4.0"
 milestone: "T29 — 全面架构收束：Mode统一、看板体系、日历限定、系列活动模型"
 ---
@@ -185,6 +185,17 @@ ViewModeStore.isReadOnly(module)      → boolean
 - 宣传委员蓝色调，纪检委员琥珀色调
 - 宣传/纪检在党建维度**服务于**活动和专班，不直接写入活动
 
+#### 写入门禁原则
+
+> 来源：[TERMINOLOGY.md](../governance/TERMINOLOGY.md) §2.5 — 术语权威源
+
+**只有写入型角色可直接创建/修改活动数据；支撑型角色通过审核、确认、备案等流程间接参与，不直接写入活动。**
+
+- 写入型角色：党支书、党小组组长、组织委员（专班域）、组织者（分工记录）
+- 支撑型角色：宣传委员、纪检委员
+- `canWriteActivity(role)` 是写入门禁原则的代码实现——仅 secretary/leader 返回 true
+- 支撑型角色的参与路径：纪检委员确认考勤 → 组织委员归档；宣传委员审核素材 → 备案
+
 #### 组织委员「专班协调视图」
 
 - 最高优先级：专班管理（党建工作域职能）
@@ -229,7 +240,7 @@ ViewModeStore.isReadOnly(module)      → boolean
 
 **权限判定函数** (`services/auth.js`)：
 - `canManage(role)` → 角色是否有管理权限
-- `canWriteActivity(role)` → 能否写入活动（仅 secretary/leader）
+- `canWriteActivity(role)` → 能否写入活动（仅 secretary/leader）— **写入门禁原则的代码实现**
 - `canRecruitTaskForce(role)` → 能否招募专班（仅 secretary/org-commissioner）
 - `canAuthorize(role)` → 能否赋权他人（secretary/leader/org-commissioner）
 - `canInitiateTaskForce(role)` → 能否发起专班（secretary/leader/org-commissioner/prop-commissioner/disc-commissioner）

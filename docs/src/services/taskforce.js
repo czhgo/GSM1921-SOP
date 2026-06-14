@@ -7,7 +7,7 @@
 
 import { mockDB } from '../core/domain.js';
 import { saveDB } from './mock.js';
-import { MOCK_TASKFORCES, _personName } from '../mock/index.js';
+import { MOCK_TASKFORCES, _personName, PEOPLE } from '../mock/index.js';
 
 const TASKFORCE_STORAGE_KEY = 'workflowos_taskforces_v1';
 
@@ -172,11 +172,15 @@ export const TaskForceRecordStore = {
             status: 'dissolved',
             manager: '组织委员',
             initiator: '宣传委员',
-            members: value.map((name, idx) => ({
-              name: typeof name === 'string' ? name : (name.name || '成员' + (idx + 1)),
-              role: '深度参与者',
-              contributions: [],
-            })),
+            members: value.map((name, idx) => {
+              const person = PEOPLE.find(p => p.name === (typeof name === 'string' ? name : name.name));
+              return {
+                personId: person ? person.id : null,
+                name: typeof name === 'string' ? name : (name.name || '成员' + (idx + 1)),
+                role: '深度参与者',
+                contributions: [],
+              };
+            }),
             capacity: value.length,
             deadline: '',
             activityId: null,

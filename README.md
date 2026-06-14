@@ -3,7 +3,7 @@
 > 光华管理学院本科生党支部组织操作系统（Org OS）
 > 将党支部制度文本转化为可执行的代码工作流，让制度从"写在文档里没人看"变成"嵌入系统中必须遵守"。
 
-🌐 **公网访问：[https://czhgo.github.io/GSM1921-SOP/](https://czhgo.github.io/GSM1921-SOP/)**
+**公网访问：[https://czhgo.github.io/GSM1921-SOP/](https://czhgo.github.io/GSM1921-SOP/)**
 
 ---
 

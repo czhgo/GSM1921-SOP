@@ -67,7 +67,7 @@ export function computeSecretaryStats(activities, nowOverride) {
 
 export function filterForViewProxy(activities, proxyRole) {
   const filters = {
-    organizer:      a => a.organizerName || true,
+    organizer:      a => a.organizer ? true : false,
     publicity:      a => a.activityType ? true : false,
     inspector:      a => true,
     'group1-leader': a => a.hostGroup === 'group1',

@@ -55,7 +55,7 @@ export function autoGenerateMakeupTask(attendanceRecord) {
   if (tasks.some(t => t.personId === personId && t.activityId === activityId)) return;
 
   const person = PEOPLE.find(p => p.id === personId);
-  const absentDate = attendanceRecord.date || new Date().toISOString().split('T')[0];
+  const absentDate = activity.date || new Date().toISOString().split('T')[0];
   const deadline = new Date(absentDate);
   deadline.setDate(deadline.getDate() + 7);
 
@@ -64,7 +64,7 @@ export function autoGenerateMakeupTask(attendanceRecord) {
     personId,
     activityId,
     attendanceRecordId: attendanceRecord.id,
-    activityName: activity.name,
+    activityName: activity.title || activity.name,
     personName: person ? person.name : personId,
     absentDate,
     deadline: deadline.toISOString().split('T')[0],

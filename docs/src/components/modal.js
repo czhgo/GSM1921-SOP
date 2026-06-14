@@ -25,7 +25,7 @@ export function openModal({ id, title, bodyHtml, onMount, width = '480px', accen
   overlay.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.35);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;animation:fadeIn 0.15s ease;';
 
   const panel = document.createElement('div');
-  panel.style.cssText = `width:${width};max-height:85vh;background:white;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.2);display:flex;flex-direction:column;animation:slideUp 0.2s ease;overflow:hidden;`;
+  panel.style.cssText = `width:${width};max-width:calc(100vw - 32px);max-height:85vh;background:white;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.2);display:flex;flex-direction:column;animation:slideUp 0.2s ease;overflow:hidden;`;
 
   panel.innerHTML = `
     <div style="padding:16px 20px;border-bottom:1px solid #E5E7EB;display:flex;align-items:center;justify-content:space-between;">

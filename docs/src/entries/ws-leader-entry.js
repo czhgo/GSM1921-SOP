@@ -6,7 +6,7 @@ import { bootstrapPage } from '../core/bootstrap.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { attendanceToLong, inspectionToLong, ACTIVITIES, PEOPLE, MOCK_TASKFORCES } from '../mock/index.js';
 import { PersonPicker } from '../components/person-picker.js';
-import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js';
 import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, SOURCE_TYPE_LABELS, ParticipationLevel } from '../core/domain.js';
 import { saveDB } from '../services/mock.js';
 import { loadMakeupTasks } from '../services/makeup.js';
@@ -66,97 +66,15 @@ function renderLeaderUI(state) {
   tabBar.activate('write');
 }
 
-// ── 决策树配置 ──────────────────────────────────────────────────
-const DECISION_TREE = {
-  L1: [
-    { value: 'party-group-meeting', label: '党小组会', color: '#7C3AED' },
-    { value: 'theme-party', label: '主题党日', color: '#2563EB' },
-  ],
-  L2: {
-    'party-group-meeting': [
-      { value: 'meeting', label: '会议', color: '#7C3AED' },
-    ],
-    'theme-party': [
-      { value: 'study', label: '学习', color: '#2563EB' },
-      { value: 'visit', label: '参访', color: '#059669' },
-      { value: 'forum', label: '座谈', color: '#EA580C' },
-      { value: 'co-build', label: '共建', color: '#DB2777' },
-      { value: 'meeting', label: '会议', color: '#7C3AED' },
-    ],
-  },
-  L3: [
-    { value: 'short', label: '短期' },
-    { value: 'long', label: '长期' },
-  ],
-  L4: [
-    { value: 'top-down', label: '自上而下' },
-    { value: 'bottom-up', label: '自下而上' },
-  ],
-  HOST_GROUPS: ['第二党小组', '第三党小组'],
-  SCENARIO_MAP: {
-    'party-group-meeting': 'party-group-meeting',
-    'theme-party': 'theme-party',
-  },
-};
-
-// 决策树状态
-let dtState = { step: 0, L1: null, L2: null, L3: null, L4: null, hostGroup: null, showPanel: false };
-
-function _resetDtState() {
-  dtState = { step: 0, L1: null, L2: null, L3: null, L4: null, hostGroup: null, showPanel: false };
-}
-
-/** 根据决策树选择（L3时长 + L1场景）映射工作流定义ID */
-function _mapToDefinitionId() {
-  if (dtState.L1 === 'theme-party') return 'theme-party-day';
-  // 党小组会场景：根据 L3 时长决定
-  return dtState.L3 === 'long' ? 'long-term' : 'short-term';
-}
-
-/** 渲染工作流可视化面板 */
-function _renderWorkflowPanel(definitionId, activityTitle) {
-  const container = document.getElementById('leader-tab-content');
-  if (!container) return;
-
-  // 移除已有的工作流面板（避免重复）
-  const existing = document.getElementById('leader-workflow');
-  if (existing) existing.remove();
-
-  // 创建面板容器
-  const panel = document.createElement('div');
-  panel.id = 'leader-workflow';
-  panel.className = 'workflow-panel-card';
-  panel.innerHTML = `
-    <div class="workflow-panel-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      工作流追踪 — ${activityTitle || '新活动'}
-    </div>
-    <div id="leader-workflow-content"></div>
-  `;
-
-  // 插入到容器末尾（活动列表下方）
-  container.appendChild(panel);
-
-  // 渲染工作流可视化
-  const contentEl = document.getElementById('leader-workflow-content');
-  if (contentEl) {
-    try {
-      renderWorkflow(contentEl, definitionId, false);
-    } catch (err) {
-      console.warn('[ws-leader] renderWorkflow failed:', err);
-      contentEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">工作流渲染失败</p>';
-    }
-  }
-
-  // 滚动到工作流面板
-  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
+// ── 决策树状态（已迁移至 services/decision-tree.js） ───────────
+const dt = new DecisionTreeState('leader');
+const DECISION_TREE = DECISION_TREE_CONFIGS.leader;
 
 function _renderWriteContent(activities) {
   const container = document.getElementById('leader-tab-content');
   if (!container) return;
 
-  const panelVisible = dtState.showPanel;
+  const panelVisible = dt.showPanel;
 
   container.innerHTML = `
     <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#CE1126;">
@@ -182,7 +100,7 @@ function _renderWriteContent(activities) {
               </div>
             `).join('')}
         </div>
-        <div id="leader-act-detail" class="hidden mt-3 card rounded-xl p-4 border border-gray-200"></div>
+        <div id="leader-act-detail" class="hidden mt-3 bg-gray-50 rounded-xl p-4 border border-gray-200"></div>
       </div>
     </div>
   `;
@@ -298,7 +216,7 @@ function _renderWriteContent(activities) {
 }
 
 function _renderDecisionTreePanel() {
-  const { step, L1, L2, L3, L4, hostGroup } = dtState;
+  const { L1, L2, L3, L4, hostGroup } = dt.selections;
 
   // 步骤指示器
   const steps = ['组织场景', '活动形式', '时长', '发起方向'];
@@ -439,46 +357,14 @@ function _renderDecisionTreePanel() {
 }
 
 function _renderSopPreview() {
-  const { L1 } = dtState;
-  if (!L1) return '<p class="text-gray-400">请先选择组织场景</p>';
-
-  const scenarioId = DECISION_TREE.SCENARIO_MAP[L1];
-  const scenario = sopDatabase.scenarios.find(s => s.scenarioId === scenarioId);
-  if (!scenario) return '<p class="text-gray-400">未找到对应SOP模板</p>';
-
-  const tasks = scenario.tasks.filter(t => t.timeOffset !== null);
-  if (tasks.length === 0) return '<p class="text-gray-400">该场景无时间锚点任务</p>';
-
-  // 按时间偏移分组
-  const phases = [
-    { label: '会前准备', test: t => t.timeOffset < 0 },
-    { label: '会中实施', test: t => t.timeOffset === 0 },
-    { label: '会后归档', test: t => t.timeOffset > 0 },
-  ];
-
-  return phases.map(phase => {
-    const phaseTasks = tasks.filter(phase.test);
-    if (phaseTasks.length === 0) return '';
-    return `
-      <div class="mb-2">
-        <div class="font-medium text-gray-700 mb-1">${phase.label}（${phaseTasks.length}项）</div>
-        ${phaseTasks.slice(0, 4).map(t => `
-          <div class="pl-2 py-0.5 flex items-center gap-1">
-            <span class="text-gray-300">·</span>
-            <span>T${t.timeOffset >= 0 ? '+' : ''}${t.timeOffset} ${t.title}</span>
-          </div>
-        `).join('')}
-        ${phaseTasks.length > 4 ? `<div class="pl-2 text-gray-400">...及其他${phaseTasks.length - 4}项</div>` : ''}
-      </div>
-    `;
-  }).join('');
+  return dt.renderSopPreview();
 }
 
 function _bindDecisionTreeEvents(container) {
   // 创建/收起按钮
   container.querySelector('#btn-leader-create')?.addEventListener('click', () => {
-    dtState.showPanel = !dtState.showPanel;
-    if (!dtState.showPanel) _resetDtState();
+    dt.showPanel = !dt.showPanel;
+    if (!dt.showPanel) dt.reset();
     const state = getAppState();
     const filteredState = _filterByRole(state, 'leader');
     _renderWriteContent(filteredState.activities || []);
@@ -488,13 +374,12 @@ function _bindDecisionTreeEvents(container) {
   container.querySelectorAll('.dt-l1-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const val = btn.dataset.value;
-      dtState.L1 = val;
-      dtState.step = 1;
+      dt.select('L1', val);
       // L1 变更时重置后续选择
-      dtState.L2 = null;
-      dtState.L3 = null;
-      dtState.L4 = null;
-      dtState.hostGroup = null;
+      dt.select('L2', null);
+      dt.select('L3', null);
+      dt.select('L4', null);
+      dt.select('hostGroup', null);
       const state = getAppState();
       const filteredState = _filterByRole(state, 'leader');
       _renderWriteContent(filteredState.activities || []);
@@ -504,7 +389,7 @@ function _bindDecisionTreeEvents(container) {
   // 承办党小组按钮
   container.querySelectorAll('.dt-host-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      dtState.hostGroup = btn.dataset.value;
+      dt.select('hostGroup', btn.dataset.value);
       const state = getAppState();
       const filteredState = _filterByRole(state, 'leader');
       _renderWriteContent(filteredState.activities || []);
@@ -514,10 +399,9 @@ function _bindDecisionTreeEvents(container) {
   // L2 按钮
   container.querySelectorAll('.dt-l2-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      dtState.L2 = btn.dataset.value;
-      dtState.step = 2;
-      dtState.L3 = null;
-      dtState.L4 = null;
+      dt.select('L2', btn.dataset.value);
+      dt.select('L3', null);
+      dt.select('L4', null);
       const state = getAppState();
       const filteredState = _filterByRole(state, 'leader');
       _renderWriteContent(filteredState.activities || []);
@@ -527,9 +411,8 @@ function _bindDecisionTreeEvents(container) {
   // L3 按钮
   container.querySelectorAll('.dt-l3-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      dtState.L3 = btn.dataset.value;
-      dtState.step = 3;
-      dtState.L4 = null;
+      dt.select('L3', btn.dataset.value);
+      dt.select('L4', null);
       const state = getAppState();
       const filteredState = _filterByRole(state, 'leader');
       _renderWriteContent(filteredState.activities || []);
@@ -539,8 +422,7 @@ function _bindDecisionTreeEvents(container) {
   // L4 按钮
   container.querySelectorAll('.dt-l4-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      dtState.L4 = btn.dataset.value;
-      dtState.step = 4;
+      dt.select('L4', btn.dataset.value);
       const state = getAppState();
       const filteredState = _filterByRole(state, 'leader');
       _renderWriteContent(filteredState.activities || []);
@@ -549,7 +431,7 @@ function _bindDecisionTreeEvents(container) {
 
   // 取消按钮
   container.querySelector('#dt-cancel')?.addEventListener('click', () => {
-    _resetDtState();
+    dt.reset();
     const state = getAppState();
     const filteredState = _filterByRole(state, 'leader');
     _renderWriteContent(filteredState.activities || []);
@@ -557,7 +439,7 @@ function _bindDecisionTreeEvents(container) {
 
   // 写入活动按钮
   container.querySelector('#dt-submit')?.addEventListener('click', async () => {
-    const { L1, L2, L3, L4, hostGroup } = dtState;
+    const { L1, L2, L3, L4, hostGroup } = dt.selections;
     const targetDate = container.querySelector('#dt-target-date')?.value;
     const location = container.querySelector('#dt-location')?.value?.trim();
     const title = container.querySelector('#dt-title')?.value?.trim();
@@ -570,10 +452,9 @@ function _bindDecisionTreeEvents(container) {
 
     const l1Label = DECISION_TREE.L1.find(o => o.value === L1)?.label || L1;
     const l2Label = DECISION_TREE.L2[L1]?.find(o => o.value === L2)?.label || L2;
-    const scenarioId = DECISION_TREE.SCENARIO_MAP[L1];
+    const scenarioId = dt.getScenarioId();
 
     try {
-      // 1. 创建活动
       const activityData = {
         title,
         type: `${l1Label}·${l2Label}`,
@@ -590,35 +471,18 @@ function _bindDecisionTreeEvents(container) {
         visibility: 'group',
         createdBy: 'leader',
       };
-      const activity = await BranchService.createActivity(activityData);
+      const { taskCount } = await writeActivityWithSOP(activityData, scenarioId, targetDate);
       showToast('success', `活动「${title}」创建成功`);
-
-      // 2. 实例化 SOP 任务节点
-      const taskNodes = instantiateSOP([scenarioId], targetDate);
-      if (taskNodes.length > 0) {
-        // 3. 为每个任务节点创建 Task
-        for (const node of taskNodes) {
-          await BranchService.createTask({
-            activityId: activity.id,
-            taskId: node.taskId,
-            title: node.title,
-            executor: node.executor,
-            supervisor: node.supervisor,
-            timeOffset: node.timeOffset,
-            date: node.date.toISOString().slice(0, 10),
-            desc: node.desc,
-            status: 'pending',
-          });
-        }
-        showToast('success', `已生成 ${taskNodes.length} 个SOP任务节点`);
+      if (taskCount > 0) {
+        showToast('success', `已生成 ${taskCount} 个SOP任务节点`);
       }
 
       // 4. 渲染工作流可视化面板
-      const definitionId = _mapToDefinitionId();
-      _renderWorkflowPanel(definitionId, title);
+      const definitionId = dt.mapToDefinitionId();
+      renderWorkflowPanel('leader-workflow', 'leader-tab-content', definitionId, title, 'append');
 
       // 5. 重置面板并刷新
-      _resetDtState();
+      dt.reset();
       const activities = await BranchService.listActivities();
       setState({ activities });
     } catch (err) {
@@ -785,10 +649,10 @@ function _initAttForm(container, eligibleActivities) {
       const status = statusEl ? statusEl.value : AttendanceStatus.PRESENT;
       records.push({
         id: 'att_' + Date.now() + '_' + personId,
-        personId,
+        userId: personId,
         activityId,
         status,
-        confirmer: null,
+        recordedBy: null,
         overdue: false,
       });
     }

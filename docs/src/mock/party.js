@@ -26,18 +26,17 @@ export const TEMPLATE_LIST = [
 
 export const PARTY_MOCKS = {
   candidates: [
-    { id: 'c1', personId: 'p4', stage: '预备党员', materialsComplete: false, missingMaterials: 3 },
-    { id: 'c2', personId: 'p5', stage: '积极分子', materialsComplete: false, missingMaterials: 1 },
+    { id: 'c1', personId: 'p4', stage: '正式党员', materialsComplete: false, missingMaterials: 3 },
     { id: 'c3', personId: 'p6', stage: '发展对象', materialsComplete: true, missingMaterials: 0 },
-    { id: 'c4', personId: 'p7', stage: '预备党员', materialsComplete: true, missingMaterials: 0 },
+    { id: 'c4', personId: 'p7', stage: '积极分子', materialsComplete: true, missingMaterials: 0 },
     { id: 'c5', personId: 'p15', stage: '积极分子', materialsComplete: false, missingMaterials: 2 },
   ],
   makeupTasks: [
-    { id: 'mk1', personId: 'p1', absentActivity: '4月主题党日活动', absentDate: '2026-04-15', completed: false },
-    { id: 'mk2', personId: 'p2', absentActivity: '4月支委会', absentDate: '2026-04-18', completed: false },
-    { id: 'mk3', personId: 'p3', absentActivity: '3月党小组会', absentDate: '2026-03-20', completed: true },
-    { id: 'mk4', personId: 'p4', absentActivity: '4月党课', absentDate: '2026-04-25', completed: false },
-    { id: 'mk5', personId: 'p5', absentActivity: '3月主题党日活动', absentDate: '2026-03-14', completed: true },
+    { id: 'mk1', personId: 'p1', activityId: 'act-7', attendanceRecordId: 'att_p1', activityName: '4月主题党日：红色基地参访', personName: '张三', absentDate: '2026-04-15', deadline: '2026-04-22', status: 'pending', isMandatory: true, proofContent: null, completedAt: null, createdAt: '2026-04-16T08:00:00Z', overdue: true },
+    { id: 'mk2', personId: 'p2', activityId: 'act-5', attendanceRecordId: 'att_p2', activityName: '4月支委会', personName: '李四', absentDate: '2026-04-18', deadline: '2026-04-25', status: 'pending', isMandatory: true, proofContent: null, completedAt: null, createdAt: '2026-04-19T08:00:00Z', overdue: true },
+    { id: 'mk3', personId: 'p3', activityId: 'act-4', attendanceRecordId: 'att_p3', activityName: '4月党小组会', personName: '王五', absentDate: '2026-03-20', deadline: '2026-03-27', status: 'completed', isMandatory: true, proofContent: '已补课', completedAt: '2026-03-25T10:00:00Z', createdAt: '2026-03-21T08:00:00Z' },
+    { id: 'mk4', personId: 'p4', activityId: 'act-6', attendanceRecordId: 'att_p4', activityName: '4月党课：新时代青年担当', personName: '赵六', absentDate: '2026-04-25', deadline: '2026-05-02', status: 'pending', isMandatory: true, proofContent: null, completedAt: null, createdAt: '2026-04-26T08:00:00Z', overdue: true },
+    { id: 'mk5', personId: 'p5', activityId: 'act-3', attendanceRecordId: 'att_p5', activityName: '3月主题党日：学习两会精神', personName: '钱七', absentDate: '2026-03-14', deadline: '2026-03-21', status: 'completed', isMandatory: true, proofContent: '已补课', completedAt: '2026-03-18T14:00:00Z', createdAt: '2026-03-15T08:00:00Z' },
   ],
   feedbackItems: [
     { id: 'fb1', content: '建议增加线上学习渠道', status: 'pending', date: '2026-04-20' },

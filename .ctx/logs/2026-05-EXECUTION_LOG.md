@@ -1250,3 +1250,61 @@ status: active
 - **设计决策**: 默认值保持#CE1126向后兼容，避免未传参数时组件崩溃
 - **结果**: 颜色修复第二批完成，45处不一致全部修复
 - **蒸馏标签**: [经验蒸馏: 是 — 组件参数化模式]
+
+## 2026-05-24 | T12-T14 — 移动端兼容性修复（3项P1缺陷）
+
+- **来源**: 书记指示（优先执行乙部中修复方向明确的事项）
+- **变更文件**: modal.js, person-picker.js, ws-org-commissioner-entry.js, styles.css
+- **关键动作**: T12 ✅ T13 ✅ T14 ✅
+- **变更详情**:
+  - modal.js panel加max-width:calc(100vw-32px)，防止480px弹窗在手机溢出
+  - person-picker.js面板加max-width:calc(100vw-32px)，防止380px面板在手机溢出
+  - ws-org-commissioner-entry.js招募表单面板加max-width:calc(100vw-32px)，防止560px面板溢出
+  - styles.css .pub-row-actions在768px以下始终可见（opacity:1），解决移动端hover不可操作
+  - styles.css .workflow-svg加max-width:100%（wrapper已有overflow-x:auto滚动保护）
+- **结果**: 3项P1缺陷全部修复，乙部已清理
+- **蒸馏标签**: [经验蒸馏: 是 — max-width:calc(100vw-32px)是移动端弹窗通用保护模式]
+
+## 2026-05-24 | 小任务 — P.12决策执行：补课归党务+丙部重复修复
+
+- **来源**: 书记决策 P.12（A归党务）
+- **变更文件**: ws-disc-commissioner-entry.js, CLAUDE.md, 2026-05-DECISION_LOG.md
+- **关键动作**: P.12执行 ✅ 丙部重复修复 ✅
+- **变更详情**:
+  - ws-disc-commissioner-entry.js移除补课制度Tab（第51行）+删除_renderMakeupContent/_renderMakeupTaskCard/_bindMakeupEvents三个函数（约190行）+清理import（仅保留autoGenerateMakeupTask，移除loadMakeupTasks/saveMakeupTasks/updateMakeupTask）
+  - CLAUDE.md丙部删除两个重复的P.12条目（Python脚本确保持久化，H7#9陷阱防范）
+  - CLAUDE.md YAML last_updated更新为2026-05-24
+  - 决策日志写入D-212
+- **设计决策**: 补课归党务——补课是合规闭环机制，属于党务管理范畴（D-212）
+- **结果**: 党建工作台不再展示补课，党务管理页面保留补课Tab，丙部P.12退出
+- **蒸馏标签**: [经验蒸馏: 否 — 补课归属域决策执行]
+
+## 2026-05-24 | 小任务 — div套div嵌套card结构修复
+
+- **来源**: 书记指出"div套div这个格式不是非常合理"
+- **变更文件**: ws-secretary-entry.js, ws-leader-entry.js
+- **关键动作**: 嵌套card消除 ✅
+- **变更详情**:
+  - ws-secretary-entry.js赋权面板：`card rounded-2xl` → `bg-gray-50 rounded-2xl`（第739行，消除3层嵌套→2层）
+  - ws-secretary-entry.js角色/范围选项按钮：`card rounded-xl` → `bg-white rounded-xl`（第756/770行，消除第3层card）
+  - ws-secretary-entry.js决策树L1/L3/L4选项按钮：`card rounded-xl` → `bg-white rounded-xl`（第340/400/417行，消除第2层card）
+  - ws-leader-entry.js活动详情面板：`card rounded-xl` → `bg-gray-50 rounded-xl`（第185行，消除2层嵌套→1层）
+- **设计决策**: 内层容器使用bg-gray-50/bg-white替代card类，保留圆角和内边距，去除card的阴影/白底效果，避免视觉上的"卡片套卡片"
+- **结果**: 3处不合理嵌套card全部消除，其余card使用均为合理平铺
+- **蒸馏标签**: [经验蒸馏: 否 — 嵌套card结构修复]
+
+## 2026-05-24 | 2026-05-T16 — 考察功能实现（4分片）
+
+- **来源**: 书记指示（党小组活动考察+专班考察+多角色视图）
+- **变更文件**: inspection.js, ws-org-commissioner-entry.js, ws-disc-commissioner-entry.js
+- **关键动作**: T16-1 ✅ T16-2 ✅ T16-3 ✅ T16-4 ✅
+- **变更详情**:
+  - inspection.js服务层增强：添加addInspectionRecord/addInspectionRecords/updateInspectionRecord/deleteInspectionRecord/confirmInspectionRecord/getOverdueRecords/getRecordsBySource/getRecordsByPerson/getRecordsByRecorder共9个函数
+  - ws-org-commissioner-entry.js新增考察上传Tab（_renderOrgInspectionContent+_initInspForm+_renderOrgInspContentRows），组织委员可为专班上传考察表单
+  - ws-disc-commissioner-entry.js考察管理增强：超期提醒（7天阈值+红色提示框）、超期状态筛选、删除按钮（仅待确认可删）、搜索范围扩展到来源名、类别标签列（活动/专班自动填入）
+  - ws-leader-entry.js考察上传功能已有（无需修改）
+- **设计决策**: 超期阈值7天（与补课截止一致）；纪检可删除待确认记录（已确认不可删）；搜索支持姓名+内容+来源名
+- **结果**: 考察功能3个分片全部实现，GetDiagnostics零错误
+- **蒸馏标签**: [经验蒸馏: 否 — 考察功能实现]
+
+> 以下条目已迁移至 2026-06-EXECUTION_LOG.md（日期修正：实际发生于2026年6月14日，此前错误标注为5月24日）

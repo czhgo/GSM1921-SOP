@@ -2,7 +2,7 @@
 title: "全局文档导航映射"
 type: governance
 role: "[人机]"
-last_updated: "2026-05-15"
+last_updated: "2026-06-14"
 status: active
 ---
 
@@ -25,6 +25,9 @@ status: active
 
 ## 二、文件总览（按权威性层级排序）
 
+> **D-218 决策**：SOP（执行细节）和 guides（理念概括）是正交维度，不排先后。
+> CLAUDE.md 是最高层上下文入口，承接理念和具体细节。
+
 ### Layer 0: 宪章层（最高权威）
 
 | 文件 | 角色 | 权威性 | 内容 | 被引用方 |
@@ -32,34 +35,61 @@ status: active
 | `.github/copilot-instructions.md` | [AI] | 🔴 最高 | 全局系统指令、Agent 协作规则、授权机制 | 所有 Agent 文件、SSOT_INDEX |
 | `SSOT_INDEX.md` | [AI] | 🔴 最高 | 母本注册表、溯源参考、Agent 注册表 | ARCHITECTURE、所有 Agent 文件 |
 
-### Layer 1: 项目中枢层
+### Layer 1: 上下文层（HARNESS 入口）
 
 | 文件 | 角色 | 权威性 | 内容 | 被引用方 |
 |------|------|--------|------|---------|
-| `CLAUDE.md` | [人机] | 🔴 高 | 未来执行路线图、Phase 1-4 清单、技术产品 Phase 1-3 | README（路线图摘要） |
+| `CLAUDE.md` | [人机] | 🔴 高 | 上下文入口、执行路线图、HARNESS 甲乙丙三部 | README（路线图摘要） |
 | `ARCHITECTURE.md` | [人机] | 🔴 高 | 核心架构说明、分层架构、数据模型、变更流水线 | README（架构图引用）、AGENT_USAGE |
 
-### Layer 2: 制度母本层
+### Layer 2: 理念维度（为什么这样做）— guides/
 
 | 文件 | 角色 | 权威性 | 内容 | 被引用方 |
 |------|------|--------|------|---------|
-| `content/SOP/INDEX.md` | [人机] | 🟡 制度权威 | SOP 导航目录 | ARCHITECTURE、AGENT_USAGE |
-| `content/SOP/常见工作场景快速指南.md` | [人机] | 🟡 制度权威 | 快速使用指南 | INDEX |
-| `content/SOP/支委与党小组定人定责定岗说明.md` | [人机] | 🟡 制度权威 | 职责分工文档 | INDEX |
-| `content/guides/governance/AGENT_HANDBOOK.md` | [人机] | 🟡 制度权威 | 技术操作手册 | INDEX |
-| `content/SOP/宣传委员工作流程指南.md` | [人机] | 🟡 制度权威 | 宣传委员 SOP | INDEX |
-| `content/SOP/组织委员工作流程指南.md` | [人机] | 🟡 制度权威 | 组织委员 SOP | INDEX |
-| `content/SOP/纪检委员工作流程指南.md` | [人机] | 🟡 制度权威 | 纪检委员 SOP | INDEX |
-| `content/SOP/党小组组长工作手册.md` | [人机] | 🟡 制度权威 | 块块组长专用操作指南 | INDEX |
+| `content/guides/architecture/MANAGEMENT_MODE.md` | [人机] | 🟡 理念 | 管理模式架构设计 | CLAUDE.md H8.1/H8.2 |
+| `content/guides/architecture/FLAT_DESIGN.md` | [人机] | 🟡 理念 | 组织者与深度参与者的扁平化设计 | CLAUDE.md H8.6 |
+| `content/guides/architecture/DATA.md` | [人机] | 🟡 理念 | 数据架构与权限模型 | ARCHITECTURE |
+| `content/guides/architecture/LOGIN_STUB.md` | [人机] | 🟡 理念 | 登录态打桩文档 | ARCHITECTURE |
+| `content/guides/architecture/ORG_BUILDING.md` | [人机] | 🟡 理念 | 党务管理独立模块架构 | E1 |
+| `content/guides/design/SOP_WEB.md` | [人机] | 🟡 理念 | SOP 网页优化与同步指南 | CLAUDE.md H8.4 |
+| `content/guides/design/COMMISSIONER_SYSTEM.md` | [人机] | 🟡 理念 | 条条支委系统设计 | CLAUDE.md H8.3/H8.5 |
+| `content/guides/design/WRITE_VERIFY.md` | [人机] | 🟡 理念 | 写入数据验证设计 | ARCHITECTURE |
+| `content/guides/design/DESIGN_SYSTEM.md` | [人机] | 🟡 理念 | 设计系统规范 | docs/src/styles.css |
+| `content/guides/design/CALENDAR.md` | [人机] | 🟡 理念 | 日历功能规划 | docs/src/components/calendar.js |
+| `content/guides/design/BRAND_ACTIVITY.md` | [人机] | 🟡 理念 | 品牌属性标签设计理念 | CLAUDE.md |
+| `content/guides/governance/SYNC_EXTERNAL.md` | [人机] | 🟡 理念 | 外部输入同步流程 | CLAUDE.md H2.1 |
+| `content/guides/governance/OPERATIONS_GUIDE.md` | [人机] | 🟡 理念 | 运行标准 | CLAUDE.md H9 |
+| `content/guides/governance/KNOWN_PITFALLS.md` | [人机] | 🟡 理念 | 已知陷阱判例 | CLAUDE.md H7 |
+| `content/guides/governance/TERMINOLOGY.md` | [人机] | 🟡 理念 | 术语规范使用说明 | 全仓库 |
+| `content/guides/governance/RECURRING_TASKS.md` | [人机] | 🟡 理念 | 经常性工作管理机制 | TIMESTAMPS |
+| `content/guides/governance/ROLE_CLASSIFICATION.md` | [人机] | 🟡 理念 | 角色三分类体系设计 | CLAUDE.md |
+| `content/guides/governance/EMOJI_POLICY.md` | [人机] | 🟡 理念 | Emoji 使用规范 | CLAUDE.md 钩稽 |
+| `content/guides/governance/AGENT_HANDBOOK.md` | [人机] | 🟡 理念 | 技术操作手册 | INDEX |
+| `content/guides/governance/AGENT_USAGE.md` | [人机] | 🟡 理念 | Agent 使用指南 | ARCHITECTURE |
+| `content/guides/governance/DOC_MAP.md` | [人机] | 🟡 理念 | 本文档：全局导航中心 | 所有文件 |
+| `content/guides/README.md` | [人机] | 🟡 理念 | guides目录索引 | ARCHITECTURE |
+| `content/insights/党支部管理与实务经验沉淀.md` | [人机] | 🟡 理念 | 经验沉淀 | 社科院 |
 
-### Layer 3: Agent 治理层
+### Layer 3: 执行维度（怎么做）— content/SOP/
+
+| 文件 | 角色 | 权威性 | 内容 | 被引用方 |
+|------|------|--------|------|---------|
+| `content/SOP/INDEX.md` | [人机] | 🟡 执行权威 | SOP 导航目录 | ARCHITECTURE、AGENT_USAGE |
+| `content/SOP/常见工作场景快速指南.md` | [人机] | 🟡 执行权威 | 快速使用指南 | INDEX |
+| `content/SOP/支委与党小组定人定责定岗说明.md` | [人机] | 🟡 执行权威 | 职责分工文档 | INDEX |
+| `content/SOP/宣传委员工作流程指南.md` | [人机] | 🟡 执行权威 | 宣传委员 SOP | INDEX |
+| `content/SOP/组织委员工作流程指南.md` | [人机] | 🟡 执行权威 | 组织委员 SOP | INDEX |
+| `content/SOP/纪检委员工作流程指南.md` | [人机] | 🟡 执行权威 | 纪检委员 SOP | INDEX |
+| `content/SOP/党小组组长工作手册.md` | [人机] | 🟡 执行权威 | 块块组长专用操作指南 | INDEX |
+
+### Layer 4: Agent 治理层
 
 | 文件 | 角色 | 权威性 | 内容 | 被引用方 |
 |------|------|--------|------|---------|
 | `.github/agents/*.agent.md` (10个) | [AI] | 🟠 配置层 | Agent 定义、职责、工具、handoffs | SSOT_INDEX |
-| `.github/skills/*/SKILL.md` (10个) | [AI] | 🟠 配置层 | Skill 接口定义、执行流程、gotchas | SSOT_INDEX、Agent 文件 |
+| `.github/skills/*/SKILL.md` (11个) | [AI] | 🟠 配置层 | Skill 接口定义、执行流程、gotchas | SSOT_INDEX、Agent 文件 |
 
-### Layer 4: 代码实现层
+### Layer 5: 代码实现层
 
 | 文件 | 角色 | 权威性 | 内容 | 被引用方 |
 |------|------|--------|------|---------|
@@ -76,7 +106,7 @@ status: active
 | `docs/src/core/constants.js` | [人机] | 🟢 代码 | 静态常量 | ARCHITECTURE |
 | `docs/src/core/id.js` | [人机] | 🟢 代码 | UUID 发生器 | ARCHITECTURE |
 | `docs/src/styles.css` | [人机] | 🟢 代码 | 全局样式 | ARCHITECTURE |
-| `index.html` | [人机] | 🟢 代码 | UI 入口（Liquid Glass） | ARCHITECTURE |
+| `docs/index.html` | [人机] | 🟢 代码 | UI 入口（Liquid Glass） | ARCHITECTURE |
 
 ### Layer 5: 技术文档层
 
@@ -106,12 +136,13 @@ status: active
 | `.ctx/SNAPSHOT.md` | [AI] | 🟠 审计 | 系统快照（ACTIVE） | CLAUDE.md |
 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` | [人机] | 🟠 审计 | 月度执行日志 | ARCHITECTURE、CLAUDE.md |
 | `.ctx/logs/EXECUTION_LOG_INDEX.md` | [人机] | 🟠 审计 | 日志导航索引 | ARCHITECTURE |
+| `.ctx/logs/DECISION_LOG.md` | [人机] | 🟠 审计 | 决策日志 | ARCHITECTURE、CLAUDE.md |
 
 ### Layer 7: 官方底线层（只读）
 
 | 文件 | 角色 | 权威性 | 内容 | 被引用方 |
 |------|------|--------|------|---------|
-| `content/references/合规文件/*.pdf` | [人] | 🔵 官方 | 党章、条例、规范 | content/SOP（母本溯源） |
+| `content/references/合规文件/*.pdf, *.docx` | [人] | 🔵 官方 | 党章、条例、规范 | content/SOP（母本溯源） |
 | `content/references/工作模板/*.md` | [人] | 🔵 官方 | 工作模板、经验沉淀辅助提示词 | content/guides/design/SOP_WEB.md |
 | `content/references/历史会议材料/*.pdf` `*.docx` | [人] | 🔵 官方 | 历史会议记录 | 无（历史档案） |
 
@@ -124,42 +155,44 @@ status: active
   ├─ copilot-instructions.md → 所有 Agent 文件
   └─ SSOT_INDEX.md → ARCHITECTURE.md + 所有 Agent 文件
 
-中枢层
+上下文层
   ├─ CLAUDE.md → README.md（路线图摘要）
   └─ ARCHITECTURE.md → README.md（架构图）+ AGENT_USAGE.md
 
-制度层
+理念维度（为什么）
+  ├─ MANAGEMENT_MODE.md → CLAUDE.md H8.1/H8.2
+  ├─ FLAT_DESIGN.md → CLAUDE.md H8.6
+  ├─ SOP_WEB.md → content/SOP/*
+  ├─ COMMISSIONER_SYSTEM.md → CLAUDE.md H8.3/H8.5
+  ├─ ROLE_CLASSIFICATION.md → CLAUDE.md
+  ├─ DESIGN_SYSTEM.md → docs/src/styles.css
+  ├─ EMOJI_POLICY.md → CLAUDE.md 钩稽
+  ├─ CALENDAR.md → docs/src/components/calendar.js
+  ├─ BRAND_ACTIVITY.md → CLAUDE.md
+  ├─ AGENT_USAGE.md → ARCHITECTURE.md
+  ├─ OPERATIONS_GUIDE.md → CLAUDE.md H9
+  ├─ KNOWN_PITFALLS.md → CLAUDE.md H7
+  ├─ TERMINOLOGY.md → 全仓库
+  ├─ SYNC_EXTERNAL.md → CLAUDE.md H2.1
+  └─ DOC_MAP.md → 所有文件
+
+执行维度（怎么做）
   └─ content/SOP/INDEX.md → 所有 SOP 子文件
 
 Agent层
   ├─ agents/*.md → SSOT_INDEX.md（注册）
   └─ skills/*/SKILL.md → SSOT_INDEX.md（注册）+ agents/*.md（挂载）
 
-技术文档层
-  ├─ ROLE_CLASSIFICATION.md（含可扩展性评估）
-  ├─ DESIGN_SYSTEM.md → docs/src/styles.css
-  ├─ EMOJI_POLICY.md → CLAUDE.md 钩稽
-  ├─ CALENDAR.md → docs/src/components/calendar.js
-  ├─ BRAND_ACTIVITY.md → CLAUDE.md
-  ├─ AGENT_USAGE.md → ARCHITECTURE.md
-  └─ DOC_MAP.md → 所有文件
-
 代码层
-  ├─ ORG_BUILDING.md → index.html (Module 4)
+  ├─ ORG_BUILDING.md → docs/index.html (Module 4)
   ├─ MANAGEMENT_MODE.md → docs/src/*（角色权限引擎）
   └─ docs/src/* → ARCHITECTURE.md（文档化）
-
-治理机制层
-  ├─ RECURRING_TASKS.md → TIMESTAMPS.md → copilot-instructions.md
-  ├─ TERMINOLOGY.md → 所有正式文档
-  ├─ SOP_WEB.md → content/SOP/*
-  ├─ COMMISSIONER_SYSTEM.md → ORG_BUILDING.md + MANAGEMENT_MODE.md
 
 审计层
   ├─ CONTEXT.md → ARCHITECTURE.md, copilot-instructions.md
   ├─ .ctx/TIMESTAMPS.md → CLAUDE.md
   ├─ .ctx/SNAPSHOT.md → CLAUDE.md
-  ├─ logs/*.md → CLAUDE.md
+  └─ logs/*.md → CLAUDE.md
 ```
 
 ---

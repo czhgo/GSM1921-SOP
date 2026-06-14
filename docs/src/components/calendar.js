@@ -12,6 +12,18 @@ import { filterTasksByManagementRole } from './inspector.js';
 
 const VIEW_LABELS = { month: '月', week: '周', day: '日', list: '列表' };
 
+// 响应式：窗口宽度变化时重新渲染日历
+let _resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => {
+    const appState = getAppState();
+    if (appState && (appState.calendarView === 'month' || !appState.calendarView)) {
+      renderCalendarByActivities(appState, appState.displayMonth || _currentYearMonth());
+    }
+  }, 250);
+});
+
 // ════════════════════════════════════════════════════════════════
 //  主渲染入口 — 根据 calendarView 分发到对应视图
 // ════════════════════════════════════════════════════════════════
@@ -92,6 +104,8 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
   const MN = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
   const DN = ['一','二','三','四','五','六','日'];
 
+  const isMobile = window.innerWidth < 768;
+
   const actDates = new Set(
     activeActivities.filter(a => typeof a.date === 'string' && a.date.startsWith(month)).map(a => a.date)
   );
@@ -109,7 +123,7 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
 
   let html = `<div class="mb-6">`;
   html += `<div class="font-stheiti text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${y}年 ${MN[m - 1]}</div>`;
-  html += `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">`;
+  html += `<div class="${isMobile ? 'cal-mobile-grid' : ''}" style="display:grid;grid-template-columns:repeat(7,1fr);gap:${isMobile ? '2px' : '4px'};">`;
   DN.forEach(d => { html += `<div class="font-stheiti text-[11px] text-gray-400 text-center pb-1.5 font-semibold">${d}</div>`; });
 
   for (let i = 0; i < firstDow; i++) {
@@ -120,19 +134,27 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
     const isT = k === todayKey;
     const ct = tasksByDate[k] || [];
     const hasActivity = actDates.has(k);
-    let cls = 'cal-cell-large';
+    let cls = isMobile ? 'cal-cell-mobile' : 'cal-cell-large';
     if (ct.length > 0 || hasActivity) cls += ' has-tasks';
     if (isT) cls += ' is-today';
 
     html += `<div class="${cls}" data-date="${k}">`;
-    html += `<div class="font-stheiti text-[11px] font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${day}</div>`;
-    html += _renderCellContent(k, activeActivities, ct, hasActivity, tasks, state);
+    html += `<div class="font-stheiti ${isMobile ? 'text-xs' : 'text-[11px]'} font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${day}</div>`;
+    if (isMobile) {
+      html += _renderMobileDots(k, activeActivities, ct, hasActivity, tasks, state);
+    } else {
+      html += _renderCellContent(k, activeActivities, ct, hasActivity, tasks, state);
+    }
     html += '</div>';
   }
   html += '</div></div>';
   grid.innerHTML = html;
 
-  _bindCellClicks(grid);
+  if (isMobile) {
+    _bindMobileCellClicks(grid, activeActivities, tasks, month, state);
+  } else {
+    _bindCellClicks(grid);
+  }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -381,6 +403,132 @@ function _bindCellClicks(grid) {
       cell.classList.add('selected');
       setState({ selectedDate: cell.dataset.date, viewMode: 'list', selectedActivityId: null });
     });
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+//  手机端交互式日历 — 圆点指示器 + 点击展开详情面板
+// ════════════════════════════════════════════════════════════════
+function _renderMobileDots(dateKey, activeActivities, ct, hasActivity, tasks, state) {
+  const { viewType, managementRole } = state || {};
+  let html = '';
+
+  if (viewType === 'participant') {
+    const dayActs = activeActivities.filter(a => a.date === dateKey);
+    if (dayActs.length > 0) {
+      html += '<div class="cal-mobile-dots">';
+      dayActs.slice(0, 3).forEach(act => {
+        const color = getActivityColor(act);
+        html += `<span class="cal-mobile-dot" style="background:${color.text};"></span>`;
+      });
+      if (dayActs.length > 3) html += `<span class="cal-mobile-dot-more">+${dayActs.length - 3}</span>`;
+      html += '</div>';
+    }
+  } else {
+    // 管理视图：收集所有颜色点
+    const dots = [];
+    if (hasActivity) {
+      const dateActRoles = activeActivities.filter(a => a.date === dateKey).map(a => a.executor || 'all');
+      const uniqueRoles = [...new Set(dateActRoles)];
+      uniqueRoles.forEach(r => {
+        const c = ROLE_COLORS[r] || ROLE_COLORS.all;
+        dots.push(c.text);
+      });
+    }
+    const dayActIds = new Set(activeActivities.filter(a => a.date === dateKey).map(a => a.id));
+    const dayTasksDirect = ct;
+    const dayTasksViaAct = tasks.filter(t => !t.date && t.activityId && dayActIds.has(t.activityId));
+    const allDayTasks = [...dayTasksDirect, ...dayTasksViaAct];
+    const filteredTasks = filterTasksByManagementRole(allDayTasks, managementRole);
+    filteredTasks.forEach(t => {
+      const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
+      if (!dots.includes(c.text)) dots.push(c.text);
+    });
+
+    if (dots.length > 0) {
+      html += '<div class="cal-mobile-dots">';
+      dots.slice(0, 4).forEach(color => {
+        html += `<span class="cal-mobile-dot" style="background:${color};"></span>`;
+      });
+      if (dots.length > 4) html += `<span class="cal-mobile-dot-more">+${dots.length - 4}</span>`;
+      html += '</div>';
+    }
+  }
+  return html;
+}
+
+function _bindMobileCellClicks(grid, activeActivities, tasks, month, state) {
+  grid.querySelectorAll('.cal-cell-mobile.has-tasks').forEach(cell => {
+    cell.addEventListener('click', () => {
+      // 移除之前的选中状态
+      grid.querySelectorAll('.cal-cell-mobile.selected').forEach(c => c.classList.remove('selected'));
+      cell.classList.add('selected');
+      _showMobileDayDetail(cell.dataset.date, activeActivities, tasks, state);
+    });
+  });
+}
+
+function _showMobileDayDetail(dateKey, activeActivities, tasks, state) {
+  let panel = document.getElementById('cal-mobile-detail');
+  if (!panel) {
+    const grid = document.getElementById('cal-main-grid');
+    if (!grid) return;
+    panel = document.createElement('div');
+    panel.id = 'cal-mobile-detail';
+    panel.className = 'cal-mobile-detail';
+    grid.parentNode.insertBefore(panel, grid.nextSibling);
+  }
+
+  const { viewType, managementRole } = state || {};
+  const d = new Date(dateKey);
+  const WEEKDAY = ['日','一','二','三','四','五','六'];
+
+  const dayActivities = activeActivities.filter(a => a.date === dateKey);
+  const dayTasks = tasks.filter(t => t.date === dateKey);
+  const dayActIds = new Set(dayActivities.map(a => a.id));
+  const indirectTasks = tasks.filter(t => !t.date && t.activityId && dayActIds.has(t.activityId));
+  const allTasks = [...dayTasks, ...indirectTasks];
+  const filteredTasks = filterTasksByManagementRole(allTasks, managementRole);
+
+  let html = `<div class="cal-mobile-detail-header">`;
+  html += `<span class="font-stheiti text-sm font-bold text-gray-700">${d.getMonth()+1}月${d.getDate()}日 周${WEEKDAY[d.getDay()]}</span>`;
+  html += `<button id="cal-mobile-detail-close" class="cal-mobile-detail-close">&times;</button>`;
+  html += `</div>`;
+
+  if (dayActivities.length === 0 && filteredTasks.length === 0) {
+    html += `<p class="text-xs text-gray-400 text-center py-4">当日无活动或任务</p>`;
+  } else {
+    if (dayActivities.length > 0) {
+      html += `<div class="cal-mobile-detail-section"><div class="text-xs font-bold text-gray-500 mb-2">活动 (${dayActivities.length})</div>`;
+      dayActivities.forEach(act => {
+        const color = getActivityColor(act);
+        html += `<div class="cal-mobile-detail-card" style="border-left:3px solid ${color.text};">`;
+        html += `<div class="text-sm font-medium" style="color:${color.text};">${act.title || '未命名'}</div>`;
+        html += `<div class="text-xs text-gray-500 mt-1">${act.type || ''} ${act.location ? '· ' + act.location : ''}</div>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+    }
+
+    if (filteredTasks.length > 0) {
+      html += `<div class="cal-mobile-detail-section"><div class="text-xs font-bold text-gray-500 mb-2">任务 (${filteredTasks.length})</div>`;
+      filteredTasks.forEach(t => {
+        const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
+        html += `<div class="cal-mobile-detail-card" style="border-left:3px solid ${c.text};">`;
+        html += `<div class="text-sm font-medium" style="color:${c.text};">${t.title}</div>`;
+        if (t.desc) html += `<div class="text-xs text-gray-500 mt-1">${t.desc}</div>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+    }
+  }
+
+  panel.innerHTML = html;
+  panel.classList.add('visible');
+
+  document.getElementById('cal-mobile-detail-close')?.addEventListener('click', () => {
+    panel.classList.remove('visible');
+    document.querySelectorAll('.cal-cell-mobile.selected').forEach(c => c.classList.remove('selected'));
   });
 }
 

@@ -52,7 +52,7 @@ export const CrossPageState = {
   },
 
   buildURL(page, params) {
-    const url = new URL(page, window.location.origin);
+    const url = new URL(page, window.location.href);
     if (params) {
       Object.entries(params).forEach(([k, v]) => {
         if (v != null && v !== '') url.searchParams.set(k, v);

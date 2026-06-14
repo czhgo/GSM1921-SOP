@@ -2,7 +2,7 @@
 title: "条条支委系统设计（党务管理职能 + 党小组交互 + 专班制）"
 type: design
 role: "[人机]"
-last_updated: "2026-05-22"
+last_updated: "2026-06-14"
 status: active
 merged_from:
   - content/guides/COMMISSIONER_ORGANIZATION_ROLE.md (已删除)
@@ -81,7 +81,60 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了党务管理模块功能；E2（MAN
 解散 → 组织委员点击「解散」→自动生成工作量汇总报告→赋权回收→报告写入个人档案
 ```
 
-### A.8 双域管理升级注（2026-05-04）
+### A.8 赋权操作流程（登录系统设计前置）
+
+> 赋权是组织者/深度参与者角色的唯一来源。登录系统必须能查询赋权记录来确定用户角色。
+
+#### A.8.1 专班域赋权流程（组织委员发起）
+
+```
+1. 需求提出 → 宣传委员/党支书向组织委员提出专班需求
+2. 专班创建 → 组织委员在赋权面板创建专班（名称+人数+周期+考核标准）
+3. 成员招募 → 组织委员在赋权面板勾选同志 → 选择授予角色（组织者/深度参与者）
+4. 域标记写入 → 系统自动标记 scope='taskforce'，sourceId=专班ID
+5. 赋权生效 → 写入赋权记录表 → 被赋权者下次加载页面时可见专班视图
+6. 通知被赋权者 → 系统推送通知（站内信/邮件）
+7. 运行记账 → 被赋权者在专班中的产出自动记入工作量
+```
+
+#### A.8.2 活动域赋权流程（党小组组长发起）
+
+```
+1. 活动创建 → 组长创建活动后，系统自动生成活动域赋权入口
+2. 成员指派 → 组长在活动管理面板勾选同志 → 选择授予角色（组织者/深度参与者）
+3. 域标记写入 → 系统自动标记 scope='activity'，sourceId=活动ID
+4. 赋权生效 → 写入赋权记录表 → 被赋权者下次加载页面时可见组织者视图
+5. 通知被赋权者 → 系统推送通知
+6. 活动结束 → 赋权自动过期（endDate=活动结束日期）
+```
+
+#### A.8.3 赋权撤销流程
+
+```
+1. 发起撤销 → 赋权者（组织委员/组长）在赋权面板点击「撤销」
+2. 记录更新 → 赋权记录 endDate 设为当前时间
+3. 通知被赋权者 → 系统推送通知
+4. 权限回收 → 被赋权者下次操作时，若当前视图已不可用，自动回退到站位视图
+5. 工作量结算 → 撤销前的工作量记录保留，不回溯删除
+```
+
+#### A.8.4 赋权记录数据结构
+
+```javascript
+{
+  id: string,              // 赋权记录ID
+  fromPerson: string,      // 赋权者personId
+  toPerson: string,        // 被赋权者personId
+  role: string,            // 'organizer' | 'deep-participant'
+  scope: string,           // 'activity' | 'taskforce'
+  sourceId: string,        // 活动ID或专班ID
+  sourceName: string,      // 活动名称或专班名称
+  assignedAt: string,      // 赋权时间 ISO 8601
+  endDate: string | null,  // 过期时间，null=永久有效
+}
+```
+
+### A.9 双域管理升级注（2026-05-04）
 
 根据双域管理理论，组织委员在党建工作域的最高优先级职能是专班管理。所有专班的创建、招募、运行、解散统一归口于组织委员。其他委员（宣传委员等）如需专班，须向组织委员提出需求，由组织委员在赋权面板中执行。这意味着：宣传专班虽然服务于宣传委员，但其赋权操作、工作量跟踪、解散评议均通过组织委员完成。下文中"由该条委员发起并管理"的旧表述需按此规则重新理解：发起=提出需求，管理=组织委员执行。
 
@@ -333,8 +386,8 @@ CSS：commissioner-tab-bar 复用现有 module-tab 样式，active tab 按角色
   ├─ 活动小组A 小群（组织者A + 深度参与者A组）
   └─ 活动小组B 小群（组织者B + 深度参与者B组）
 
-核心群 = 各组织者 + 承办党小组长 + 纪检 + 宣传
-（注意：活动小组 ≠ 党小组）
+核心群 = 各组织者 + 承办党小组长 + 书记 + 调研参与者（撰稿、摄影等）+ [联络者] + [审稿者] + [考勤负责人]
+（注意：活动小组 ≠ 党小组；纪检和宣传不在核心群内，通过组长同步至支委扩大群获取信息）
 ```
 
 | 角色 | 职责 | 流动性 |
@@ -346,6 +399,11 @@ CSS：commissioner-tab-bar 复用现有 module-tab 样式，active tab 按角色
 组织者协调清单：承办党小组长（方向对齐）、纪检（考勤确认（基础）+考察确认（进阶）+复盘监督）、宣传（内容同步+产出）、组内深度参与者（分工记录）
 
 ### F.3 信息共享渠道
+
+**信息传递两原则**（D-215）：
+1. **信息传递无遗漏**（原则1）——任何信息在传递链中不得丢失
+2. **最小化信息传递成本**（原则2）——用最少的传递步骤完成信息闭环
+3. **原则1 > 原则2**——当两者冲突时，优先保证信息无遗漏
 
 | 渠道 | 用途 |
 |------|------|
@@ -414,12 +472,12 @@ CSS：commissioner-tab-bar 复用现有 module-tab 样式，active tab 按角色
 
 ## 附录：参考文档
 
-- [ORG_BUILDING.md](file:///d:/GitHub/GSM1921-SOP/content/guides/architecture/ORG_BUILDING.md)
-- [MANAGEMENT_MODE.md](file:///d:/GitHub/GSM1921-SOP/content/guides/architecture/MANAGEMENT_MODE.md)
-- [支委与党小组定人定责定岗说明](file:///d:/GitHub/GSM1921-SOP/content/SOP/支委与党小组定人定责定岗说明.md)
-- [纪检委员工作流程指南](file:///d:/GitHub/GSM1921-SOP/content/SOP/纪检委员工作流程指南.md)
-- [组织委员工作流程指南](file:///d:/GitHub/GSM1921-SOP/content/SOP/组织委员工作流程指南.md)
-- [宣传委员工作流程指南](file:///d:/GitHub/GSM1921-SOP/content/SOP/宣传委员工作流程指南.md)
+- [ORG_BUILDING.md](../../../content/guides/architecture/ORG_BUILDING.md)
+- [MANAGEMENT_MODE.md](../../../content/guides/architecture/MANAGEMENT_MODE.md)
+- [支委与党小组定人定责定岗说明](../../../content/SOP/支委与党小组定人定责定岗说明.md)
+- [纪检委员工作流程指南](../../../content/SOP/纪检委员工作流程指南.md)
+- [组织委员工作流程指南](../../../content/SOP/组织委员工作流程指南.md)
+- [宣传委员工作流程指南](../../../content/SOP/宣传委员工作流程指南.md)
 
 ---
 

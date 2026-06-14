@@ -91,7 +91,7 @@ function renderGalleryView() {
       id: tf.id,
       type: 'taskforce',
       title: tf.name || '未命名专班',
-      subtitle: `${tf.startDate || ''} ~ ${tf.endDate || ''} · 专班`,
+      subtitle: `${tf.createdAt || ''} ~ ${tf.deadline || ''} · 专班`,
       description: tf.task || '',
       organizer: initiator ? initiator.name : (tf.initiator || ''),
       isBrand: false,

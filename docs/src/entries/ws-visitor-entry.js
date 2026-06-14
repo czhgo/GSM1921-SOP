@@ -7,6 +7,7 @@ import { NoticeStore } from '../services/notice.js';
 import { ACTIVITIES, _personName } from '../mock/index.js';
 import { loadAttendanceRecords } from '../services/attendance.js';
 import { getActivityTypeColors } from '../core/constants.js';
+import { ViewModeStore } from '../services/auth.js';
 import { renderTabBar } from '../components/tab-bar.js';
 import { renderQueryView } from '../components/query-view.js';
 
@@ -39,20 +40,33 @@ function renderVisitorUI(state) {
       { id: 'taskforces', label: '专班进展', render: (ctx) => _renderTaskforces(ctx.activeTf) },
       { id: 'attendance', label: '考勤概况', render: (ctx) => _renderAttendance(ctx.activities) },
     ],
-    accentColor: { accent: 'var(--primary-700)', accentRgba: 'rgba(122,0,16,0.08)', accentBorder: 'rgba(122,0,16,0.2)' },
+    accentColor: { accent: 'var(--primary-700)', accentRgba: 'rgba(206,17,38,0.08)', accentBorder: 'rgba(206,17,38,0.2)' },
     defaultTab: 'activities',
     renderCtx: { activities, activeTf, highlightId },
   });
 
+  const currentMode = ViewModeStore.getMode('workspace');
+  const isReadonly = currentMode === 'participant-observe' || currentMode === 'manager-observe' || currentMode === 'observe';
   container.innerHTML = `
-    <div class="card rounded-2xl p-4 mb-6 border border-amber-200 bg-amber-50/30">
-      <p class="text-xs text-amber-700">您当前处于成员只读模式。如需进入管理模式，请从侧边栏选择角色。</p>
-    </div>
+    ${isReadonly ? '<div class="card rounded-2xl p-4 mb-6 border border-amber-200 bg-amber-50/30"><p class="text-xs text-amber-700">您当前处于只读模式。如需进入管理模式，请从侧边栏选择角色。</p></div>' : ''}
     ${tabBar.html}
   `;
 
   tabBar.bindEvents(container);
   tabBar.activate('activities');
+
+  document.addEventListener('permission:role-select', () => {
+    const mode = ViewModeStore.getMode('workspace');
+    const banner = container.querySelector('.border-amber-200');
+    if (mode === 'manage' && banner) {
+      banner.remove();
+    } else if (mode !== 'manage' && !banner) {
+      const newBanner = document.createElement('div');
+      newBanner.className = 'card rounded-2xl p-4 mb-6 border border-amber-200 bg-amber-50/30';
+      newBanner.innerHTML = '<p class="text-xs text-amber-700">您当前处于只读模式。如需进入管理模式，请从侧边栏选择角色。</p>';
+      container.insertBefore(newBanner, container.firstChild);
+    }
+  });
 }
 
 function _renderActivities(activities, highlightId) {
@@ -64,7 +78,7 @@ function _renderActivities(activities, highlightId) {
     <div class="flex items-center justify-between mb-3">
       <span class="text-xs text-gray-500">${sorted.length} 条活动</span>
       <div class="flex gap-1">
-        <button class="visitor-view-btn px-2.5 py-1 text-xs rounded-lg border transition-colors" data-vview="list" style="background:rgba(122,0,16,0.08);color:var(--primary-700);border:1px solid rgba(122,0,16,0.2);">
+        <button class="visitor-view-btn px-2.5 py-1 text-xs rounded-lg border transition-colors" data-vview="list" style="background:rgba(206,17,38,0.08);color:var(--primary-700);border:1px solid rgba(206,17,38,0.2);">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> 列表
         </button>
         <button class="visitor-view-btn px-2.5 py-1 text-xs rounded-lg border transition-colors" data-vview="calendar" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">
@@ -83,7 +97,7 @@ function _renderActivities(activities, highlightId) {
       tc.querySelectorAll('.visitor-view-btn').forEach(b => {
         b.style.background = 'white'; b.style.color = '#6B7280'; b.style.border = '1px solid #E5E7EB';
       });
-      btn.style.background = 'rgba(122,0,16,0.08)'; btn.style.color = 'var(--primary-700)'; btn.style.border = '1px solid rgba(122,0,16,0.2)';
+      btn.style.background = 'rgba(206,17,38,0.08)'; btn.style.color = 'var(--primary-700)'; btn.style.border = '1px solid rgba(206,17,38,0.2)';
       const view = btn.dataset.vview;
       if (view === 'list') _renderActListView(sorted, highlightId);
       else if (view === 'calendar') _renderActCalendarView(sorted, highlightId);
@@ -293,7 +307,7 @@ function _renderAttendance(activities) {
         ${filtered.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">无匹配考勤数据</p>' :
           filtered.map(act => {
             const records = loadAttendanceRecords().filter(r => r.activityId === act.id);
-            const present = records.filter(r => r.status === '出勤').length;
+            const present = records.filter(r => r.status === 'present').length;
             const total = records.length;
             const rate = total > 0 ? Math.round((present / total) * 100) : 0;
             return `

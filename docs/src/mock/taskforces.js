@@ -3,7 +3,7 @@ export const MOCK_TASKFORCES = [
     id: 'tf-001',
     name: '宣传专班（第二期）',
     task: '深度报道与专题视频制作 — 五月大型活动宣传攻坚',
-    status: 'recruiting',
+    status: 'active',
     manager: 'p11',
     initiator: 'p12',
     members: [
@@ -35,7 +35,7 @@ export const MOCK_TASKFORCES = [
     id: 'tf-003',
     name: '五四主题党日筹备专班',
     task: '5月18日五四精神传承主题党日活动全流程筹备',
-    status: 'active',
+    status: 'completed',
     manager: 'p11',
     initiator: 'p1',
     members: [
@@ -53,7 +53,7 @@ export const MOCK_TASKFORCES = [
     id: 'tf-004',
     name: '共建座谈对接专班',
     task: '校企共建座谈（光华 x 中信证券）对接与执行',
-    status: 'active',
+    status: 'completed',
     manager: 'p11',
     initiator: 'p13',
     members: [
@@ -84,7 +84,7 @@ export const MOCK_TASKFORCES = [
     id: 'tf-006',
     name: '参访活动保障专班',
     task: '6月中关村科技企业参访后勤保障与安全',
-    status: 'recruiting',
+    status: 'active',
     manager: 'p11',
     initiator: 'p1',
     members: [],

@@ -6,12 +6,13 @@ import { AuthStore } from '../services/auth.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { PersonPicker } from '../components/person-picker.js';
-import { KANBAN_MOCKS, ACTIVITIES, _personName } from '../mock/index.js';
-import { mockDB } from '../core/domain.js';
+import { ACTIVITIES, _personName, PEOPLE, MOCK_TASKFORCES, inspectionToLong } from '../mock/index.js';
+import { mockDB, SourceType, ParticipationLevel } from '../core/domain.js';
 import { saveDB } from '../services/mock.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { renderTabBar } from '../components/tab-bar.js';
 import { renderQueryView } from '../components/query-view.js';
+import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js';
 
 const { savedState, accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', defaultRole: 'org-commissioner', viewMode: 'manage', accentRole: 'org-commissioner' });
 
@@ -41,6 +42,7 @@ function renderOrgUI(state) {
     prefix: 'org',
     tabs: [
       { id: 'taskforce', label: '专班管理', render: (ctx) => _renderTaskforceContent(ctx.pending, ctx.recruiting, ctx.active) },
+      { id: 'inspection', label: '考察上传', render: () => _renderOrgInspectionContent() },
       { id: 'tracking', label: '追踪看板', render: (ctx) => _renderTrackingContent(ctx.activities) },
       { id: 'compliance', label: '合规文件', render: () => _renderComplianceContent() },
     ],
@@ -383,7 +385,7 @@ function _openRecruitForm() {
 
   const panel = document.createElement('div');
   panel.className = 'card rounded-2xl';
-  panel.style.cssText = 'width:560px;max-height:90vh;overflow-y:auto;padding:24px;position:relative;';
+  panel.style.cssText = 'width:560px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto;padding:24px;position:relative;';
   panel.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
       <h3 class="font-title-cn" style="font-size:1.125rem;font-weight:700;color:#1F2937;margin:0;">发布专班招募</h3>
@@ -607,7 +609,7 @@ function _renderTrackingContent(activities) {
         `;
       },
       emptyMessage: '无匹配活动',
-      accentColor: '#3B82F6',
+      accentColor: '#CE1126',
     });
 
     // Bind confirm complete buttons using event delegation
@@ -725,6 +727,179 @@ function _renderComplianceContent() {
       showToast('success', '引用已移除');
     });
   });
+}
+
+// ── 考察上传 Tab（组织委员视角） ──────────────────────────────
+let _orgInspFormVisible = false;
+let _orgInspPickerInstance = null;
+
+function _renderOrgInspectionContent() {
+  const container = document.getElementById('org-tab-content');
+  if (!container) return;
+
+  if (_orgInspPickerInstance) { _orgInspPickerInstance.destroy(); _orgInspPickerInstance = null; }
+
+  const allRecords = loadInspectionRecords();
+  const tfInspection = allRecords.filter(r => r.sourceType === SourceType.TASKFORCE);
+
+  const activeTaskforces = TaskForceRecordStore.getAll().filter(t => t.status === 'active' || t.status === 'recruiting');
+
+  const formHtml = _orgInspFormVisible ? `
+    <div class="mt-3 p-4 rounded-xl bg-white border border-gray-100 shadow-sm" id="org-insp-form-panel">
+      <div class="text-xs font-bold text-gray-600 mb-3">上传专班考察表单</div>
+      <div class="mb-3">
+        <label class="text-xs text-gray-500 mb-1 block">选择专班 <span class="text-red-500">*</span></label>
+        <select id="org-insp-tf-select" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200 transition-colors">
+          <option value="">请选择专班</option>
+          ${activeTaskforces.map(tf => `<option value="${tf.id}" data-name="${tf.name}">${tf.name}（${tf.status === 'active' ? '运行中' : '招募中'}）</option>`).join('')}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="text-xs text-gray-500 mb-1 block">选择人员 <span class="text-red-500">*</span></label>
+        <div id="org-insp-person-picker-container"></div>
+      </div>
+      <div id="org-insp-content-rows" class="mb-3"></div>
+      <div class="flex items-center gap-3">
+        <button id="org-insp-form-submit" class="text-sm px-5 py-2 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">提交考察</button>
+        <button id="org-insp-form-cancel" class="text-sm px-4 py-2 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+      </div>
+    </div>
+  ` : '';
+
+  const tagColor = { 'activity': 'bg-blue-50 text-blue-600', 'taskforce': 'bg-green-50 text-green-600' };
+  const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-amber-100 text-amber-700' };
+
+  container.innerHTML = `
+    <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#CE1126;">
+      <div class="flex items-center justify-between mb-4">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">专班考察上传</h4>
+        <button class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200" id="btn-org-upload-insp" style="cursor:pointer;">${_orgInspFormVisible ? '收起表单' : '上传考察表单'}</button>
+      </div>
+      <div class="text-xs text-gray-500 mb-3">专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表</div>
+      ${formHtml}
+      <div class="overflow-x-auto ${_orgInspFormVisible ? 'mt-4 pt-3 border-t border-gray-100' : ''}">
+        <table class="w-full text-xs">
+          <thead><tr class="border-b border-gray-200">
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">专班</th>
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">标签</th>
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">考察内容</th>
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
+          </tr></thead>
+          <tbody>${inspectionToLong(tfInspection).map(i => `
+            <tr class="border-b border-gray-50 hover:bg-gray-50">
+              <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
+              <td class="py-2 px-3 text-gray-600">${i.source}</td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-[10px] ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">专班</span></td>
+              <td class="py-2 px-3 text-gray-600">${i.role}</td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${statusColor[i.status] || 'bg-gray-100 text-gray-500'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
+            </tr>
+          `).join('')}</tbody>
+        </table>
+        ${tfInspection.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无专班考察记录</p>' : ''}
+      </div>
+    </div>
+  `;
+
+  // 绑定上传按钮
+  container.querySelector('#btn-org-upload-insp')?.addEventListener('click', () => {
+    _orgInspFormVisible = !_orgInspFormVisible;
+    if (!_orgInspFormVisible && _orgInspPickerInstance) { _orgInspPickerInstance.destroy(); _orgInspPickerInstance = null; }
+    _renderOrgInspectionContent();
+  });
+
+  if (_orgInspFormVisible) {
+    _initOrgInspForm(container, activeTaskforces);
+  }
+}
+
+function _initOrgInspForm(container, activeTaskforces) {
+  const pickerContainer = container.querySelector('#org-insp-person-picker-container');
+  if (pickerContainer) {
+    _orgInspPickerInstance = new PersonPicker({
+      mode: 'multi',
+      placeholder: '选择人员',
+      accentColor: '#CE1126',
+      onSelect: (ids) => {
+        _renderOrgInspContentRows(ids);
+      }
+    });
+    _orgInspPickerInstance.render(pickerContainer);
+  }
+
+  _renderOrgInspContentRows([]);
+
+  container.querySelector('#org-insp-form-cancel')?.addEventListener('click', () => {
+    _orgInspFormVisible = false;
+    if (_orgInspPickerInstance) { _orgInspPickerInstance.destroy(); _orgInspPickerInstance = null; }
+    _renderOrgInspectionContent();
+  });
+
+  container.querySelector('#org-insp-form-submit')?.addEventListener('click', () => {
+    const tfSelect = container.querySelector('#org-insp-tf-select');
+    const tfId = tfSelect?.value;
+    const tfOption = tfSelect?.selectedOptions[0];
+    if (!tfId) { showToast('error', '请选择专班'); return; }
+
+    const tfName = tfOption?.dataset.name || tfId;
+    const selectedIds = _orgInspPickerInstance ? _orgInspPickerInstance.getSelected() : [];
+    if (selectedIds.length === 0) { showToast('error', '请选择人员'); return; }
+
+    const records = [];
+    for (const personId of selectedIds) {
+      const contentEl = container.querySelector(`#org-insp-content-${personId}`);
+      const content = contentEl ? contentEl.value.trim() : '';
+      if (!content) { showToast('error', `请填写 ${PEOPLE.find(p => p.id === personId)?.name || personId} 的考察内容`); return; }
+
+      records.push({
+        id: 'insp_' + Date.now() + '_' + personId,
+        sourceType: SourceType.TASKFORCE,
+        activityId: null,
+        sourceName: tfName,
+        personId,
+        level: ParticipationLevel.DEEP_PARTICIPATE,
+        role: content,
+        recordedBy: 'p13', // 组织委员
+        recordedAt: new Date().toISOString(),
+        status: 'pending',
+      });
+    }
+
+    const allRecords = loadInspectionRecords();
+    allRecords.push(...records);
+    saveInspectionRecords(allRecords);
+
+    showToast('success', `专班考察上传成功，共 ${records.length} 条记录，等待纪检委员确认`);
+    _orgInspFormVisible = false;
+    if (_orgInspPickerInstance) { _orgInspPickerInstance.destroy(); _orgInspPickerInstance = null; }
+    _renderOrgInspectionContent();
+  });
+}
+
+function _renderOrgInspContentRows(selectedIds) {
+  const rowsContainer = document.getElementById('org-insp-content-rows');
+  if (!rowsContainer) return;
+
+  if (selectedIds.length === 0) {
+    rowsContainer.innerHTML = '';
+    return;
+  }
+
+  rowsContainer.innerHTML = `
+    <div class="text-xs font-bold text-gray-600 mb-2">逐人考察内容</div>
+    <div class="space-y-2 max-h-60 overflow-y-auto">
+      ${selectedIds.map(pid => {
+        const person = PEOPLE.find(p => p.id === pid);
+        const name = person ? person.name : pid;
+        return `
+          <div class="flex items-start gap-2">
+            <span class="text-xs font-medium text-gray-700 min-w-[3rem] pt-2">${name}</span>
+            <textarea id="org-insp-content-${pid}" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200 transition-colors resize-none" rows="2" placeholder="请填写考察内容描述"></textarea>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
 }
 
 registerRenderCallback(renderOrgUI);

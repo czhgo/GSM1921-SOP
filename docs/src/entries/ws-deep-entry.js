@@ -56,7 +56,7 @@ function _formatTime(isoStr) {
 
 function _filterByRole(state, role) {
   const activities = (state.activities || []).filter(a => {
-    if (role === 'deep') return a.deepParticipantName || a.deepParticipants;
+    if (role === 'deep') return a.participants && a.participants.length > 0;
     return true;
   });
   return { ...state, activities };
@@ -139,7 +139,7 @@ function _renderDepositContent() {
             <h3 class="font-title-cn text-base font-bold text-gray-800">提交经验沉淀</h3>
             <p class="text-xs text-gray-500 mt-1">边做边学边沉淀——过程中的工作，不是事后补写</p>
           </div>
-          <a href="./src/../../content/references/工作模板/经验沉淀辅助提示词.md" target="_blank" class="text-xs text-emerald-600 hover:text-emerald-800 border border-emerald-200 px-2 py-1 rounded-lg bg-emerald-50">AI辅助提炼提示词</a>
+          <span class="text-xs text-emerald-600 border border-emerald-200 px-2 py-1 rounded-lg bg-emerald-50">AI辅助提炼提示词</span>
         </div>
         <div class="space-y-3">
           <div class="flex gap-3">

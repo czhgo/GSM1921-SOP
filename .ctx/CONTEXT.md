@@ -1,9 +1,9 @@
-﻿﻿---
+﻿---
 title: "会话上下文"
 type: reference
 role: "[AI]"
 owner: "Org OS Agent 集群"
-last_updated: "2026-05-15"
+last_updated: "2026-06-14"
 status: active
 ---
 
@@ -18,12 +18,12 @@ status: active
 
 ```
 SOP Layer       content/SOP/               制度母本，最高权威
-Workflow Layer  src/workflow/              SOP 规则引擎（index/sop/sopData）
-Service Layer   src/service.mock.js        CRUD + LocalStorage（唯一写入点）
-State Layer     src/state.js               appState + setState + registerRenderCallback
-Render Layer    src/calendar.js, inspector.js, events.js
-Entry           src/main.js                initApp + renderUI（唯一 DOM 更新入口）
-UI              index.html                 静态入口
+Workflow Layer  docs/src/workflow/           SOP 规则引擎（index/sop/sopData）
+Service Layer   docs/src/services/mock.js    CRUD + LocalStorage（唯一写入点）
+State Layer     docs/src/core/state.js       appState + setState + registerRenderCallback
+Render Layer    docs/src/components/calendar.js, inspector.js, events.js
+Entry           docs/src/entries/main-entry.js initApp + renderUI（唯一 DOM 更新入口）
+UI              docs/index.html              静态入口
 ```
 
 **依赖方向**: `SOP → workflow → domain/utils → service → state → render → entry → UI`
@@ -37,7 +37,7 @@ UI              index.html                 静态入口
 - **SOP Sovereignty**: content/SOP/ 优先于所有技术实现
 - **Change Pipeline**: SOP → domain.js → service → state → UI，严禁逆向
 - **Single DOM Updater**: renderUI(state) 是唯一合法 DOM 更新入口
-- **Data Privacy**: src/* 和 index.html 中禁止硬编码真人姓名
+- **Data Privacy**: docs/src/* 和 docs/index.html 中禁止硬编码真人姓名
 - **Binary Preservation**: .pdf/.docx/.pptx/.xlsx 只读，禁止修改
 - **Experience Distillation Marker**: 日志条目必须含 `[经验蒸馏: 是/否]`
 
@@ -215,9 +215,10 @@ UI              index.html                 静态入口
 ├── README.md                    [人]  对外门面
 ├── ARCHITECTURE.md              [人机] 核心架构说明
 ├── CLAUDE.md                   [人机] 未来执行路线图
-├── index.html                   [人机] UI 入口
-├── src/                         [人机] 代码实现层
-│   └── workflow/                [人机] SOP 规则引擎
+├── docs/
+│   ├── index.html               [人机] UI 入口
+│   └── src/                     [人机] 代码实现层
+│       └── workflow/            [人机] SOP 规则引擎
 ├── content/                     [人机] 内容中心
 │   ├── SOP/                     [人机] 制度母本层
 │   ├── guides/                  [人机] 操作指南
@@ -225,9 +226,9 @@ UI              index.html                 静态入口
 │   └── references/              [人]  官方底线（只读）
 ├── .github/                     [AI]  Agent 治理层（不可变动）
 │   ├── copilot-instructions.md  [AI]  宪章
-│   ├── SSOT_INDEX.md            [AI]  母本注册表
 │   ├── agents/ (10)             [AI]  Agent 配置
 │   └── skills/ (10)             [AI]  Skill 定义
+├── SSOT_INDEX.md                [AI]  母本注册表
 ├── .ctx/                        [AI]  运行时上下文
 │   ├── CONTEXT.md               [AI]  本文件
 │   ├── TIMESTAMPS.md            [人机] 时间戳注册表
@@ -261,7 +262,7 @@ UI              index.html                 静态入口
 - copilot-instructions.md → agents/*.md + skills/*.md
 - SSOT_INDEX.md → 受影响 agents
 - CLAUDE.md → ARCHITECTURE.md + README.md
-- content/SOP/ → src/workflow/ + SSOT_INDEX.md
+- content/SOP/ → docs/src/workflow/ + SSOT_INDEX.md
 - .ctx/ 结构变更 → 本文件 §5
 
 断链须在执行日志中标记 `[WARNING] 钩稽断链`

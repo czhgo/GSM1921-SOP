@@ -1,6 +1,6 @@
 ---
 role: "[人机]"
-last_updated: "2026-05-22"
+last_updated: "2026-06-14"
 ---
 
 # 数据架构与权限模型
@@ -27,7 +27,7 @@ last_updated: "2026-05-22"
 
 ### 2.1 活动数据 (ActivityRecord)
 
-> 类型定义位于 [domain.js](file:///d:/GitHub/GSM1921-SOP/docs/src/core/domain.js#L12-L32)
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L12-L32)
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -107,7 +107,7 @@ ActivityRecord (主记录)
 
 ### 2.2 角色与权限数据
 
-> 角色类型定义位于 [core/state.js](file:///d:/GitHub/GSM1921-SOP/docs/src/core/state.js#L18-L28)，标签/颜色位于 [core/constants.js](file:///d:/GitHub/GSM1921-SOP/docs/src/core/constants.js)
+> 角色类型定义位于 [core/state.js](../../../docs/src/core/state.js#L18-L28)，标签/颜色位于 [core/constants.js](../../../docs/src/core/constants.js)
 
 | 角色键 | 中文标签 | 视图类型 | 所属分类 |
 |---|---|---|---|
@@ -169,7 +169,7 @@ assignedRoles: Array<{
 
 ### 2.4 考勤数据 (AttendanceRecord)
 
-> 类型定义位于 [domain.js](file:///d:/GitHub/GSM1921-SOP/docs/src/core/domain.js#L34-L45)
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L34-L45)
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -202,7 +202,7 @@ assignedRoles: Array<{
 
 ### 2.5 交付物数据 (Deliverable)
 
-> 类型定义位于 [domain.js](file:///d:/GitHub/GSM1921-SOP/docs/src/core/domain.js#L48-L57)
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L48-L57)
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -227,7 +227,7 @@ assignedRoles: Array<{
 
 ### 2.6 任务数据 (Task)
 
-> 类型定义位于 [domain.js](file:///d:/GitHub/GSM1921-SOP/docs/src/core/domain.js#L59-L66)
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L59-L66)
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -239,7 +239,7 @@ assignedRoles: Array<{
 
 ### 2.7 应用状态数据 (appState)
 
-> 定义位于 [core/state.js](file:///d:/GitHub/GSM1921-SOP/docs/src/core/state.js#L126-L146)
+> 定义位于 [core/state.js](../../../docs/src/core/state.js#L126-L146)
 
 | 字段名 | 类型 | 初始值 | 说明 |
 |---|---|---|---|
@@ -270,7 +270,7 @@ assignedRoles: Array<{
 
 ### 2.8 SOP 场景模板 (Scenario)
 
-> 定义位于 [sopData.js](file:///d:/GitHub/GSM1921-SOP/docs/src/workflow/sopData.js)
+> 定义位于 [sopData.js](../../../docs/src/workflow/sopData.js)
 
 | 字段名 | 类型 | 说明 |
 |---|---|---|
@@ -309,7 +309,7 @@ assignedRoles: Array<{
 
 ### 2.9 工作流定义 (Definition)
 
-> 定义位于 [definitions.js](file:///d:/GitHub/GSM1921-SOP/docs/src/workflow/definitions.js)
+> 定义位于 [definitions.js](../../../docs/src/workflow/definitions.js)
 
 **通用状态节点：**
 
@@ -410,7 +410,7 @@ assignedRoles: Array<{
 
 | 键名 | 存储内容 | 格式 | 读写位置 |
 |---|---|---|---|
-| `workflowos_branch_db_v1` | 完整 mockDB 状态（全量序列化） | JSON（见下方字段清单） | [services/mock.js](file:///d:/GitHub/GSM1921-SOP/docs/src/services/mock.js#L29) |
+| `workflowos_branch_db_v1` | 完整 mockDB 状态（全量序列化） | JSON（见下方字段清单） | [services/mock.js](../../../docs/src/services/mock.js#L29) |
 
 **全量键字段清单**（`saveDB()` 序列化的完整字段）：
 
@@ -440,14 +440,14 @@ assignedRoles: Array<{
 
 | 键名 | 存储内容 | 格式 | 读写位置 |
 |---|---|---|---|
-| `gsm1921-auth-records` | 认证记录 | JSON | [services/auth.js](file:///d:/GitHub/GSM1921-SOP/docs/src/services/auth.js) |
-| `gsm1921-view-mode` | 视图模式 | string | [services/auth.js](file:///d:/GitHub/GSM1921-SOP/docs/src/services/auth.js) |
-| `gsm1921-primary-role` | 主角色 | string | [services/auth.js](file:///d:/GitHub/GSM1921-SOP/docs/src/services/auth.js) |
-| `gsm1921-auth-grants` | 赋权授权记录 | JSON | [services/auth.js](file:///d:/GitHub/GSM1921-SOP/docs/src/services/auth.js) |
-| `sop_org_os_assigned_roles` | 赋权角色列表 | JSON: `Array<{name, role, activity}>` | [services/roles.js](file:///d:/GitHub/GSM1921-SOP/docs/src/services/roles.js) |
-| `gsm1921-feedback-submissions` | 反馈提交记录 | JSON | [services/feedback.js](file:///d:/GitHub/GSM1921-SOP/docs/src/services/feedback.js) |
-| `sop_org_os_session` | 跨页面会话状态 | JSON | [core/cross-page-state.js](file:///d:/GitHub/GSM1921-SOP/docs/src/core/cross-page-state.js) |
-| `sop_org_os_data_version` | 数据版本号（跨页面同步） | number | [core/cross-page-state.js](file:///d:/GitHub/GSM1921-SOP/docs/src/core/cross-page-state.js) |
+| `gsm1921-auth-records` | 认证记录 | JSON | [services/auth.js](../../../docs/src/services/auth.js) |
+| `gsm1921-view-mode` | 视图模式 | string | [services/auth.js](../../../docs/src/services/auth.js) |
+| `gsm1921-primary-role` | 主角色 | string | [services/auth.js](../../../docs/src/services/auth.js) |
+| `gsm1921-auth-grants` | 赋权授权记录 | JSON | [services/auth.js](../../../docs/src/services/auth.js) |
+| `sop_org_os_assigned_roles` | 赋权角色列表 | JSON: `Array<{name, role, activity}>` | [services/roles.js](../../../docs/src/services/roles.js) |
+| `gsm1921-feedback-submissions` | 反馈提交记录 | JSON | [services/feedback.js](../../../docs/src/services/feedback.js) |
+| `sop_org_os_session` | 跨页面会话状态 | JSON | [core/cross-page-state.js](../../../docs/src/core/cross-page-state.js) |
+| `sop_org_os_data_version` | 数据版本号（跨页面同步） | number | [core/cross-page-state.js](../../../docs/src/core/cross-page-state.js) |
 
 **持久化机制细节：**
 
@@ -539,7 +539,7 @@ archiveActivity(id)
 
 ### 4.1 角色权限矩阵
 
-> 基础 ACL 实现位于 [domain.js `can()`](file:///d:/GitHub/GSM1921-SOP/docs/src/core/domain.js#L78-L91)
+> 基础 ACL 实现位于 [domain.js `can()`](../../../docs/src/core/domain.js#L78-L91)
 
 | 角色 | 读活动 | 创建活动 | 管理专班 | 写入考勤 | 读考勤 | 查看考察档案 | 修改考察档案 | 归档操作 | 赋权他人 |
 |---|---|---|---|---|---|---|---|---|---|
@@ -615,7 +615,7 @@ archiveActivity(id)
 
 ## 五、动态角色上下文
 
-> 定义位于 [core/state.js](file:///d:/GitHub/GSM1921-SOP/docs/src/core/state.js#L32-L37)
+> 定义位于 [core/state.js](../../../docs/src/core/state.js#L32-L37)
 
 本系统区分两种角色模型：**用户角色**（控制 Web UI 视图）和**动态文件角色**（控制 AI/人机 协作边界）。
 
