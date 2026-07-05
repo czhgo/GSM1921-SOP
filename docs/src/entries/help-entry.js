@@ -1177,14 +1177,11 @@ function renderNetworkSVG(network, opts) {
     const path = isSelf ? selfLoopPath(from) : edgePath(from, to, 42, labelT, curve);
     const { d, mx, my } = path;
 
-    const g = svgEl('g', { class: `help-edge help-edge--${edge.type}${isSelf ? ' help-edge--self' : ''}`, 'data-from': edge.from, 'data-to': edge.to, 'data-stagger': '', 'data-stagger-delay': (network.nodes.length + i) * 120, ...(edge.stage !== undefined ? { 'data-stage': edge.stage } : {}), ...(inline ? { 'data-state': 'current' } : {}), ...(edge.detail ? { 'data-detail': edge.detail, 'data-label': edge.label || '' } : {}) });
+    const g = svgEl('g', { class: `help-edge help-edge--${edge.type}${isSelf ? ' help-edge--self' : ''}`, 'data-from': edge.from, 'data-to': edge.to, 'data-stagger': '', 'data-stagger-delay': (network.nodes.length + i) * 120, ...(edge.stage !== undefined ? { 'data-stage': edge.stage } : {}), ...(inline ? { 'data-role': 'planet' } : {}), ...(edge.detail ? { 'data-detail': edge.detail, 'data-label': edge.label || '' } : {}) });
 
-    // v4.4.0：inline 模式下给 path 加 id，供脉搏光点 animateMotion 引用
-    const pathId = inline ? `help-edge-path-${i}` : undefined;
     const pathEl = svgEl('path', {
       class: 'help-edge-path',
       d,
-      ...(pathId ? { id: pathId } : {}),
     });
     g.appendChild(pathEl);
 
@@ -1247,30 +1244,6 @@ function renderNetworkSVG(network, opts) {
       g.appendChild(labelG);
     }
 
-    // v4.4.0 Relational Pulse：inline 模式下添加脉搏光点（沿 path 流动的彩色圆点）
-    // 算法艺术化表达——关系网络是"活的"，信息和任务在关系中流动
-    // 不同边类型不同颜色不同节奏，避免视觉同步
-    if (inline && !isSelf) {
-      const pulseColor = edge.type === 'task' ? '#B91C1C' : edge.type === 'info' ? '#3B82F6' : '#9CA3AF';
-      const pulseDur = edge.type === 'task' ? '2.8s' : edge.type === 'info' ? '3.4s' : '4s';
-      const pulse = svgEl('circle', {
-        class: 'help-edge-pulse',
-        r: '2.8',
-        fill: pulseColor,
-        opacity: '0',
-      });
-      const animateMotion = svgEl('animateMotion', {
-        dur: pulseDur,
-        repeatCount: 'indefinite',
-        rotate: 'auto',
-        begin: `${i * 0.3}s`,  // 错峰启动，避免所有脉搏同步
-      });
-      const mpath = svgEl('mpath', { 'href': `#${pathId}`, 'xlink:href': `#${pathId}` });
-      animateMotion.appendChild(mpath);
-      pulse.appendChild(animateMotion);
-      g.appendChild(pulse);
-    }
-
     edgesG.appendChild(g);
   });
   svg.appendChild(edgesG);
@@ -1278,7 +1251,7 @@ function renderNetworkSVG(network, opts) {
   // 节点层（顶层）
   const nodesG = svgEl('g', { class: 'help-nodes' });
   network.nodes.forEach((node, i) => {
-    const g = svgEl('g', { class: 'help-node-svg', 'data-id': node.id, 'data-stagger': '', 'data-stagger-delay': i * 120, ...(node.stage !== undefined ? { 'data-stage': node.stage } : {}), ...(inline ? { 'data-state': 'current' } : {}), transform: `translate(${node.x},${node.y})`, tabindex: '0', role: 'button', 'aria-label': `${node.name}：${node.duty}` });
+    const g = svgEl('g', { class: 'help-node-svg', 'data-id': node.id, 'data-stagger': '', 'data-stagger-delay': i * 120, ...(node.stage !== undefined ? { 'data-stage': node.stage } : {}), ...(inline ? { 'data-role': 'planet' } : {}), transform: `translate(${node.x},${node.y})`, tabindex: '0', role: 'button', 'aria-label': `${node.name}：${node.duty}` });
 
     const circle = svgEl('circle', { class: 'help-node-circle', r: '40', fill: node.color });
     g.appendChild(circle);
@@ -1470,8 +1443,7 @@ function renderMiniNetworkSVG(graph) {
  *  滚动时关系图演化：过去阶段淡入背景，当前阶段满色脉动，未来阶段几乎不可见。
  *  - "双列 sticky" = 左侧大关系图 sticky 钉住，右侧阶段说明滚动推进
  *  - "节点呼吸" = current 状态节点 r 在 40↔42 间缓慢循环（CSS animation 控制 SVG r 属性）
- *  - "边脉搏" = current 状态边上有彩色光点沿 path 流动（SVG SMIL animateMotion + mpath）
- *  - "三态演化" = past（灰化淡出）/ current（满色+呼吸+脉搏）/ future（极淡）
+ *  - "三态演化" = past（灰化淡出）/ current（满色+呼吸）/ future（极淡）
  *  - algorithmic-art 哲学：关系网络是"活的"——信息和任务在关系中流动，不是静态图
  *  - frontend-design 克制：一个 signature element（脉搏），其余克制——配色沿用 8 角色，
  *    字体 Noto Serif SC，结构即信息（图与文的对位）
