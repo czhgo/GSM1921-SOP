@@ -183,6 +183,10 @@ const PLANETARY_CONFIG = {
   transitionStart: 0.8,          // stage 内开始过渡的 progress (80%)
   transitionEnd: 0.2,            // 下一 stage 过渡结束的 progress (20%)
 
+  // 滚动映射
+  scrollStartVh: 0.3,            // stagesContainer 顶部到达视口 30% 时开始
+  scrollEndVhOffset: 0.4,        // 滚动结束位置的 vh 偏移
+
   // 节点尺寸
   starRadius: 52,                // 恒星半径
   planetRadius: 40,              // 行星半径
@@ -279,7 +283,7 @@ function computeControlPoint(p0, p2) {
   return {
     x: midX,
     y: midY - lift,
-    z: midZ + (Math.random() - 0.5) * 20,  // 微小 z 轴变化
+    z: midZ,  // 保持 z 中点（确定性，避免帧间抖动）
   };
 }
 
@@ -420,8 +424,9 @@ function precomputeAllLayouts(network, stages) {
  * @param {number} scrollTop - 当前滚动位置
  * @param {HTMLElement} container - 探索工作 section 容器
  * @param {number} stageCount - stage 总数
- * @returns {Object} {stageIndex, stageProgress, transitionProgress, inTransition}
+ * @returns {Object} {stageIndex, stageProgress, transitionProgress, inTransition, transitionFrom, transitionTo}
  *   inTransition: true 表示在过渡区域，false 表示在静止区域
+ *   transitionFrom/transitionTo: 过渡的起止 stage 索引
  */
 function computeScrollProgress(scrollTop, container, stageCount) {
   const rect = container.getBoundingClientRect();
@@ -429,14 +434,21 @@ function computeScrollProgress(scrollTop, container, stageCount) {
   // stage 说明区域的总高度
   const stagesContainer = container.querySelector('.help-exploration-stages');
   if (!stagesContainer) {
-    return { stageIndex: 0, stageProgress: 0, transitionProgress: 0, inTransition: false };
+    return { stageIndex: 0, stageProgress: 0, transitionProgress: 0, inTransition: false, transitionFrom: 0, transitionTo: 0 };
+  }
+  if (stageCount <= 0) {
+    return { stageIndex: 0, stageProgress: 0, transitionProgress: 0, inTransition: false, transitionFrom: 0, transitionTo: 0 };
   }
   const stagesRect = stagesContainer.getBoundingClientRect();
   const totalScrollRange = stagesRect.height;
   // 滚动进度：stagesContainer 顶部到达视口 30% 时开始，底部到达视口 70% 时结束
-  const startScroll = stagesRect.top - vh * 0.3;
-  const endScroll = startScroll + totalScrollRange - vh * 0.4;
-  const scrollProgress = Math.max(0, Math.min(1, (scrollTop - startScroll) / (endScroll - startScroll)));
+  const startScroll = stagesRect.top - vh * PLANETARY_CONFIG.scrollStartVh;
+  const endScroll = startScroll + totalScrollRange - vh * PLANETARY_CONFIG.scrollEndVhOffset;
+  const scrollRange = endScroll - startScroll;
+  if (scrollRange <= 0) {
+    return { stageIndex: 0, stageProgress: 0, transitionProgress: 0, inTransition: false, transitionFrom: 0, transitionTo: 0 };
+  }
+  const scrollProgress = Math.max(0, Math.min(1, (scrollTop - startScroll) / scrollRange));
 
   // 映射到 stage
   const stageFloat = scrollProgress * stageCount;
