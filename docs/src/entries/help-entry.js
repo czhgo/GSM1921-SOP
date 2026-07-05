@@ -415,6 +415,113 @@ function precomputeAllLayouts(network, stages) {
   return stages.map((_, i) => computeStageLayout(i, network, stages));
 }
 
+/**
+ * 计算当前滚动位置对应的 stage progress
+ * @param {number} scrollTop - 当前滚动位置
+ * @param {HTMLElement} container - 探索工作 section 容器
+ * @param {number} stageCount - stage 总数
+ * @returns {Object} {stageIndex, stageProgress, transitionProgress, inTransition}
+ *   inTransition: true 表示在过渡区域，false 表示在静止区域
+ */
+function computeScrollProgress(scrollTop, container, stageCount) {
+  const rect = container.getBoundingClientRect();
+  const vh = window.innerHeight;
+  // stage 说明区域的总高度
+  const stagesContainer = container.querySelector('.help-exploration-stages');
+  if (!stagesContainer) {
+    return { stageIndex: 0, stageProgress: 0, transitionProgress: 0, inTransition: false };
+  }
+  const stagesRect = stagesContainer.getBoundingClientRect();
+  const totalScrollRange = stagesRect.height;
+  // 滚动进度：stagesContainer 顶部到达视口 30% 时开始，底部到达视口 70% 时结束
+  const startScroll = stagesRect.top - vh * 0.3;
+  const endScroll = startScroll + totalScrollRange - vh * 0.4;
+  const scrollProgress = Math.max(0, Math.min(1, (scrollTop - startScroll) / (endScroll - startScroll)));
+
+  // 映射到 stage
+  const stageFloat = scrollProgress * stageCount;
+  const stageIndex = Math.min(stageCount - 1, Math.floor(stageFloat));
+  const stageProgress = stageFloat - stageIndex;
+
+  // 判断是否在过渡区域
+  const ts = PLANETARY_CONFIG.transitionStart;  // 0.8
+  const te = PLANETARY_CONFIG.transitionEnd;     // 0.2
+  let transitionProgress = 0;
+  let inTransition = false;
+  let transitionFrom = stageIndex;
+  let transitionTo = stageIndex;
+
+  if (stageProgress > ts && stageIndex < stageCount - 1) {
+    // 在当前 stage 的后 20% 过渡区域，向下一 stage 过渡
+    inTransition = true;
+    transitionProgress = (stageProgress - ts) / (1 - ts);
+    transitionFrom = stageIndex;
+    transitionTo = stageIndex + 1;
+  } else if (stageProgress < te && stageIndex > 0) {
+    // 在当前 stage 的前 20% 过渡区域，从上一 stage 过渡过来
+    inTransition = true;
+    transitionProgress = 1 - (stageProgress / te);
+    transitionFrom = stageIndex - 1;
+    transitionTo = stageIndex;
+  }
+
+  return {
+    stageIndex,
+    stageProgress,
+    transitionProgress,
+    inTransition,
+    transitionFrom,
+    transitionTo,
+  };
+}
+
+/**
+ * 在两个 stage 布局之间插值
+ * @param {Map} layoutA - 起 stage 布局
+ * @param {Map} layoutB - 终 stage 布局
+ * @param {number} t - 过渡 progress (0-1)
+ * @returns {Map} 插值后的 3D 位置
+ */
+function interpolatePositions(layoutA, layoutB, t) {
+  const easedT = easeMiddleSlow(t);
+  const result = new Map();
+  const allNodeIds = new Set([...layoutA.keys(), ...layoutB.keys()]);
+
+  allNodeIds.forEach(nodeId => {
+    const a = layoutA.get(nodeId);
+    const b = layoutB.get(nodeId);
+    if (!a && b) {
+      // 节点在 B 中新增：从 B 的外围位置淡入
+      result.set(nodeId, { ...b, opacity: b.opacity * easedT });
+    } else if (a && !b) {
+      // 节点在 B 中消失：从 A 的位置淡出
+      result.set(nodeId, { ...a, opacity: a.opacity * (1 - easedT) });
+    } else if (a && b) {
+      // 节点在两者中都存在：贝塞尔曲线插值
+      const control = computeControlPoint(
+        { x: a.x, y: a.y, z: a.z },
+        { x: b.x, y: b.y, z: b.z }
+      );
+      const pos = bezier3D(
+        { x: a.x, y: a.y, z: a.z },
+        control,
+        { x: b.x, y: b.y, z: b.z },
+        easedT
+      );
+      // 插值视觉属性
+      result.set(nodeId, {
+        x: pos.x, y: pos.y, z: pos.z,
+        scale: a.scale + (b.scale - a.scale) * easedT,
+        opacity: a.opacity + (b.opacity - a.opacity) * easedT,
+        saturate: a.saturate + (b.saturate - a.saturate) * easedT,
+        role: t < 0.5 ? a.role : b.role,
+      });
+    }
+  });
+
+  return result;
+}
+
 // ===== v5.0 Planetary Animation End =====
 
 // 探索工作——分阶段 mini 关系图（v4.3.8 重构：时间轴 + 分阶段小图）
