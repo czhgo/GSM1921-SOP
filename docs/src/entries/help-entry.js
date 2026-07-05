@@ -188,6 +188,11 @@ const PLANETARY_CONFIG = {
   planetRadius: 40,              // 行星半径
   inactiveRadius: 32,            // 非激活节点半径
 
+  // 布局缩放
+  starScale: 1.3,                 // 恒星缩放
+  planetScale: 1.0,               // 行星缩放
+  inactiveScale: 0.8,             // 非激活节点缩放
+
   // 行星轨道半径
   planetOrbitRadius: {
     1: 110,                      // 1 个行星时的轨道半径
@@ -207,6 +212,8 @@ const PLANETARY_CONFIG = {
   // SVG 中心
   activityCenter: { x: 400, y: 300 },
   taskforceCenter: { x: 400, y: 220 },
+  activityPeripheralRadius: 280,  // activity 非激活节点外围半径
+  taskforcePeripheralRadius: 200, // taskforce 非激活节点外围半径
 };
 
 /**
@@ -304,6 +311,29 @@ function computeStageLayout(stageIndex, network, stages) {
     activeNodeIds.add(e.to);
   });
 
+  // Fallback: if no active edges, parse stage.flows to find active nodes
+  // (handles single-node stages like taskforce stage 0)
+  if (activeNodeIds.size === 0 && stage.flows) {
+    const nodeNameMap = new Map();
+    network.nodes.forEach(n => {
+      // Map both name and any alternate labels
+      if (n.name) nodeNameMap.set(n.name, n.id);
+    });
+
+    stage.flows.forEach(flow => {
+      // Parse flow string to extract node names
+      // Formats: '发起人' | 'A → B（desc）' | 'A ↔ B（desc）'
+      // Strip parenthetical descriptions first
+      const cleaned = flow.replace(/（[^）]*）/g, '').trim();
+      // Split on → or ↔
+      const parts = cleaned.split(/[→↔]/).map(s => s.trim()).filter(s => s);
+      parts.forEach(part => {
+        const nodeId = nodeNameMap.get(part);
+        if (nodeId) activeNodeIds.add(nodeId);
+      });
+    });
+  }
+
   // 识别源节点（恒星）= 在该 stage 边中作为 from 出现最多的节点
   const fromCount = new Map();
   activeEdges.forEach(e => {
@@ -329,7 +359,7 @@ function computeStageLayout(stageIndex, network, stages) {
   if (starId) {
     layout.set(starId, {
       x: center.x, y: center.y, z: 0,
-      scale: 1.3, opacity: 1.0, saturate: 1.0,
+      scale: PLANETARY_CONFIG.starScale, opacity: 1.0, saturate: 1.0,
       role: 'star',
     });
   }
@@ -349,14 +379,16 @@ function computeStageLayout(stageIndex, network, stages) {
       x: center.x + ox,
       y: center.y + oy,
       z: oz,
-      scale: 1.0, opacity: 1.0, saturate: 1.0,
+      scale: PLANETARY_CONFIG.planetScale, opacity: 1.0, saturate: 1.0,
       role: 'planet',
     });
   });
 
   // 布局非激活节点（飘到外围 + z 轴深处）
   const inactiveNodes = network.nodes.filter(n => !activeNodeIds.has(n.id));
-  const peripheralRadius = isActivity ? 280 : 200;
+  const peripheralRadius = isActivity
+    ? PLANETARY_CONFIG.activityPeripheralRadius
+    : PLANETARY_CONFIG.taskforcePeripheralRadius;
   inactiveNodes.forEach((node, i) => {
     const angle = (2 * Math.PI * i) / inactiveNodes.length + Math.PI / 4;
     const z = PLANETARY_CONFIG.zRange * (i % 2 === 0 ? 1 : -1);  // 交替正负 z
@@ -364,7 +396,7 @@ function computeStageLayout(stageIndex, network, stages) {
       x: center.x + Math.cos(angle) * peripheralRadius,
       y: center.y + Math.sin(angle) * peripheralRadius,
       z: z,
-      scale: 0.8, opacity: PLANETARY_CONFIG.inactiveOpacity,
+      scale: PLANETARY_CONFIG.inactiveScale, opacity: PLANETARY_CONFIG.inactiveOpacity,
       saturate: PLANETARY_CONFIG.inactiveSaturate,
       role: 'inactive',
     });
