@@ -171,6 +171,7 @@ const PLANETARY_CONFIG = {
   // 3D 透视投影
   focal: 400,                    // 透视焦距
   zRange: 50,                    // z 轴深度范围 (±50)
+  projectionOpacityFloor: 0.7,   // 透视投影 opacity 下限（独立于 inactiveOpacity）
 
   // 倾斜轨道
   orbitTilt: 18,                 // 轨道平面倾斜角度（度）
@@ -233,7 +234,7 @@ function project3DTo2D(pos3D, focal = PLANETARY_CONFIG.focal) {
     screenX: x * factor,
     screenY: y * factor,
     scale: factor,
-    opacity: Math.max(0.7, 1 - (z / 100) * 0.3),
+    opacity: Math.max(PLANETARY_CONFIG.projectionOpacityFloor, 1 - (z / (2 * PLANETARY_CONFIG.zRange)) * 0.3),
   };
 }
 
