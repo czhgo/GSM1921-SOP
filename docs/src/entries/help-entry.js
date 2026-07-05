@@ -276,6 +276,113 @@ function computeControlPoint(p0, p2) {
   };
 }
 
+/**
+ * 计算指定 stage 下所有节点的 3D 目标位置
+ * @param {number} stageIndex - stage 索引
+ * @param {Object} network - 网络图数据 (ACTIVITY_NETWORK 或 TASKFORCE_NETWORK)
+ * @param {Array} stages - stage 数据 (EXPLORATION_STAGES.activity 或 .taskforce)
+ * @returns {Map<string, Object>} nodeId → {x, y, z, scale, opacity, saturate, role}
+ *   role: 'star' | 'planet' | 'inactive'
+ */
+function computeStageLayout(stageIndex, network, stages) {
+  const layout = new Map();
+  const stage = stages[stageIndex];
+  if (!stage) return layout;
+
+  // 确定中心点（根据 network 类型）
+  const isActivity = network === ACTIVITY_NETWORK;
+  const center = isActivity
+    ? PLANETARY_CONFIG.activityCenter
+    : PLANETARY_CONFIG.taskforceCenter;
+
+  // 识别该 stage 的激活节点
+  // 从 network.edges 中找 stage 匹配的边，提取 from/to
+  const activeNodeIds = new Set();
+  const activeEdges = network.edges.filter(e => e.stage === stageIndex);
+  activeEdges.forEach(e => {
+    activeNodeIds.add(e.from);
+    activeNodeIds.add(e.to);
+  });
+
+  // 识别源节点（恒星）= 在该 stage 边中作为 from 出现最多的节点
+  const fromCount = new Map();
+  activeEdges.forEach(e => {
+    fromCount.set(e.from, (fromCount.get(e.from) || 0) + 1);
+  });
+  let starId = null;
+  let maxCount = 0;
+  for (const [id, count] of fromCount) {
+    if (count > maxCount) {
+      maxCount = count;
+      starId = id;
+    }
+  }
+  // 若无 from（如 taskforce stage 0 只有 initiator），取 activeNodeIds 第一个
+  if (!starId && activeNodeIds.size > 0) {
+    starId = Array.from(activeNodeIds)[0];
+  }
+
+  // 行星 = 激活节点中非恒星的
+  const planetIds = Array.from(activeNodeIds).filter(id => id !== starId);
+
+  // 布局恒星
+  if (starId) {
+    layout.set(starId, {
+      x: center.x, y: center.y, z: 0,
+      scale: 1.3, opacity: 1.0, saturate: 1.0,
+      role: 'star',
+    });
+  }
+
+  // 布局行星（等距排列在倾斜轨道上）
+  const planetCount = planetIds.length;
+  const orbitRadius = PLANETARY_CONFIG.planetOrbitRadius[planetCount] || 120;
+  const tiltRad = (PLANETARY_CONFIG.orbitTilt * Math.PI) / 180;
+
+  planetIds.forEach((id, i) => {
+    const angle = (2 * Math.PI * i) / planetCount - Math.PI / 2;  // 从正上方开始
+    // 倾斜轨道：x 不变，y 乘以 cos(tilt)，z 乘以 sin(tilt)
+    const ox = Math.cos(angle) * orbitRadius;
+    const oy = Math.sin(angle) * orbitRadius * Math.cos(tiltRad);
+    const oz = Math.sin(angle) * orbitRadius * Math.sin(tiltRad);
+    layout.set(id, {
+      x: center.x + ox,
+      y: center.y + oy,
+      z: oz,
+      scale: 1.0, opacity: 1.0, saturate: 1.0,
+      role: 'planet',
+    });
+  });
+
+  // 布局非激活节点（飘到外围 + z 轴深处）
+  const inactiveNodes = network.nodes.filter(n => !activeNodeIds.has(n.id));
+  const peripheralRadius = isActivity ? 280 : 200;
+  inactiveNodes.forEach((node, i) => {
+    const angle = (2 * Math.PI * i) / inactiveNodes.length + Math.PI / 4;
+    const z = PLANETARY_CONFIG.zRange * (i % 2 === 0 ? 1 : -1);  // 交替正负 z
+    layout.set(node.id, {
+      x: center.x + Math.cos(angle) * peripheralRadius,
+      y: center.y + Math.sin(angle) * peripheralRadius,
+      z: z,
+      scale: 0.8, opacity: PLANETARY_CONFIG.inactiveOpacity,
+      saturate: PLANETARY_CONFIG.inactiveSaturate,
+      role: 'inactive',
+    });
+  });
+
+  return layout;
+}
+
+/**
+ * 预计算所有 stage 的布局
+ * @param {Object} network - 网络图数据
+ * @param {Array} stages - stage 数据
+ * @returns {Array<Map>} 每个 stage 的布局数组
+ */
+function precomputeAllLayouts(network, stages) {
+  return stages.map((_, i) => computeStageLayout(i, network, stages));
+}
+
 // ===== v5.0 Planetary Animation End =====
 
 // 探索工作——分阶段 mini 关系图（v4.3.8 重构：时间轴 + 分阶段小图）
