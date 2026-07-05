@@ -209,6 +209,7 @@ const PLANETARY_CONFIG = {
   inactiveOpacity: 0.7,          // 非激活节点透明度（保持可见）
   inactiveSaturate: 0.6,         // 非激活节点饱和度
   inactiveEdgeOpacity: 0.15,     // 非激活边透明度
+  edgeLiftFactor: 0.15,          // 边贝塞尔曲线抬升系数
 
   // 视角旋转
   viewRotateXMax: 3,             // 视角旋转最大角度（度）
@@ -543,8 +544,15 @@ function interpolatePositions(layoutA, layoutB, t) {
  * @param {Object} transitionInfo - 过渡信息 {inTransition, transitionFrom, transitionTo, transitionProgress}
  */
 function renderNetwork(svg, positions3D, network, currentStageIndex, transitionInfo) {
-  const nodeMap = {};
-  network.nodes.forEach(n => { nodeMap[n.id] = n; });
+  if (!svg || !positions3D || !network) return;
+
+  // 防御性 guard：确保 transitionInfo 字段完整
+  const safeTransition = {
+    inTransition: !!(transitionInfo && transitionInfo.inTransition),
+    transitionFrom: transitionInfo ? transitionInfo.transitionFrom : 0,
+    transitionTo: transitionInfo ? transitionInfo.transitionTo : 0,
+    transitionProgress: transitionInfo ? Math.max(0, Math.min(1, transitionInfo.transitionProgress || 0)) : 0,
+  };
 
   // 1. 更新节点位置
   positions3D.forEach((pos, nodeId) => {
@@ -593,7 +601,7 @@ function renderNetwork(svg, positions3D, network, currentStageIndex, transitionI
     // 计算贝塞尔曲线 path（边也是曲线，与节点运动一致）
     const midX = (fromProj.screenX + toProj.screenX) / 2;
     const midY = (fromProj.screenY + toProj.screenY) / 2;
-    const lift = Math.sqrt((toProj.screenX - fromProj.screenX) ** 2 + (toProj.screenY - fromProj.screenY) ** 2) * 0.15;
+    const lift = Math.sqrt((toProj.screenX - fromProj.screenX) ** 2 + (toProj.screenY - fromProj.screenY) ** 2) * PLANETARY_CONFIG.edgeLiftFactor;
     const cpX = midX;
     const cpY = midY - lift;
 
@@ -603,12 +611,12 @@ function renderNetwork(svg, positions3D, network, currentStageIndex, transitionI
 
     // 计算边 opacity（stage 过渡混色）
     let edgeOpacity = 0;
-    if (transitionInfo.inTransition) {
+    if (safeTransition.inTransition) {
       // 过渡区域：旧边→新边交叉混色
-      if (edge.stage === transitionInfo.transitionFrom) {
-        edgeOpacity = 1 - transitionInfo.transitionProgress;
-      } else if (edge.stage === transitionInfo.transitionTo) {
-        edgeOpacity = transitionInfo.transitionProgress;
+      if (edge.stage === safeTransition.transitionFrom) {
+        edgeOpacity = 1 - safeTransition.transitionProgress;
+      } else if (edge.stage === safeTransition.transitionTo) {
+        edgeOpacity = safeTransition.transitionProgress;
       } else {
         edgeOpacity = PLANETARY_CONFIG.inactiveEdgeOpacity;
       }
