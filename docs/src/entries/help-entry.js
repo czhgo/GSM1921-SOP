@@ -1945,33 +1945,44 @@ function bindExplorationScrollDriven() {
   const update = () => {
     ticking = false;
     const scrollTop = window.scrollY;
+    const isMobileNow = window.matchMedia('(max-width: 768px)').matches;
 
     sceneData.forEach(data => {
       if (!data.svg || !data.stagesContainer) return;
 
-      // 计算滚动 progress
       const progress = computeScrollProgress(scrollTop, data.scene, data.stageCount);
 
-      // 计算当前 3D 位置
       let currentPositions;
-      if (progress.inTransition) {
-        // 过渡区域：插值
+      if (progress.inTransition && !prefersReduced && !isMobileNow) {
+        // 桌面端：3D 贝塞尔插值
         currentPositions = interpolatePositions(
           data.layouts[progress.transitionFrom],
           data.layouts[progress.transitionTo],
           progress.transitionProgress
         );
       } else {
-        // 静止区域：使用当前 stage 布局
+        // 移动端 / reduced-motion：直接使用当前 stage 布局（2D，无插值）
         currentPositions = data.layouts[progress.stageIndex];
       }
 
-      // 渲染
+      // 移动端：忽略 z 轴（2D 降级）
+      if (isMobileNow) {
+        const positions2D = new Map();
+        currentPositions.forEach((pos, id) => {
+          positions2D.set(id, { ...pos, z: 0 });
+        });
+        currentPositions = positions2D;
+      }
+
       renderNetwork(data.svg, currentPositions, data.network, progress.stageIndex, progress);
 
-      // 视角旋转（subtle）
-      const viewRotateX = Math.sin(scrollTop * 0.001) * PLANETARY_CONFIG.viewRotateXMax;
-      data.svg.style.transform = `perspective(800px) rotateX(${viewRotateX}deg)`;
+      // 视角旋转（仅桌面端）
+      if (!isMobileNow && !prefersReduced) {
+        const viewRotateX = Math.sin(scrollTop * 0.001) * PLANETARY_CONFIG.viewRotateXMax;
+        data.svg.style.transform = `perspective(800px) rotateX(${viewRotateX}deg)`;
+      } else {
+        data.svg.style.transform = '';
+      }
 
       // 更新 stage 说明卡片状态
       const sceneStages = data.scene.querySelectorAll('.help-exploration-stage');
