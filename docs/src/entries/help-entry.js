@@ -534,6 +534,104 @@ function interpolatePositions(layoutA, layoutB, t) {
   return result;
 }
 
+/**
+ * 根据当前 3D 位置渲染网络图（节点 transform + 边 path 重绘）
+ * @param {SVGElement} svg - 网络图 SVG 元素
+ * @param {Map} positions3D - 当前 3D 位置 (nodeId → {x,y,z,scale,opacity,saturate,role})
+ * @param {Object} network - 网络图数据
+ * @param {number} currentStageIndex - 当前 stage 索引（用于边 opacity）
+ * @param {Object} transitionInfo - 过渡信息 {inTransition, transitionFrom, transitionTo, transitionProgress}
+ */
+function renderNetwork(svg, positions3D, network, currentStageIndex, transitionInfo) {
+  const nodeMap = {};
+  network.nodes.forEach(n => { nodeMap[n.id] = n; });
+
+  // 1. 更新节点位置
+  positions3D.forEach((pos, nodeId) => {
+    const nodeEl = svg.querySelector(`.help-node-svg[data-id="${nodeId}"]`);
+    if (!nodeEl) return;
+
+    // 3D 投影
+    const projected = project3DTo2D({ x: pos.x, y: pos.y, z: pos.z });
+    const finalScale = pos.scale * projected.scale;
+
+    // 更新 transform
+    nodeEl.setAttribute('transform', `translate(${projected.screenX},${projected.screenY}) scale(${finalScale})`);
+
+    // 更新视觉属性
+    nodeEl.style.opacity = pos.opacity * projected.opacity;
+    nodeEl.style.filter = `saturate(${pos.saturate})`;
+
+    // 更新 data-role（用于 CSS 样式）
+    nodeEl.setAttribute('data-role', pos.role);
+
+    // 更新 circle 半径（恒星放大）
+    const circle = nodeEl.querySelector('.help-node-circle');
+    if (circle) {
+      const baseRadius = pos.role === 'star'
+        ? PLANETARY_CONFIG.starRadius
+        : pos.role === 'planet'
+          ? PLANETARY_CONFIG.planetRadius
+          : PLANETARY_CONFIG.inactiveRadius;
+      circle.setAttribute('r', baseRadius);
+    }
+  });
+
+  // 2. 更新边 path（实时重绘）
+  network.edges.forEach((edge, i) => {
+    const edgeEl = svg.querySelector(`.help-edge[data-from="${edge.from}"][data-to="${edge.to}"]`);
+    if (!edgeEl) return;
+
+    const fromPos = positions3D.get(edge.from);
+    const toPos = positions3D.get(edge.to);
+    if (!fromPos || !toPos) return;
+
+    // 3D 投影
+    const fromProj = project3DTo2D({ x: fromPos.x, y: fromPos.y, z: fromPos.z });
+    const toProj = project3DTo2D({ x: toPos.x, y: toPos.y, z: toPos.z });
+
+    // 计算贝塞尔曲线 path（边也是曲线，与节点运动一致）
+    const midX = (fromProj.screenX + toProj.screenX) / 2;
+    const midY = (fromProj.screenY + toProj.screenY) / 2;
+    const lift = Math.sqrt((toProj.screenX - fromProj.screenX) ** 2 + (toProj.screenY - fromProj.screenY) ** 2) * 0.15;
+    const cpX = midX;
+    const cpY = midY - lift;
+
+    const d = `M ${fromProj.screenX} ${fromProj.screenY} Q ${cpX} ${cpY} ${toProj.screenX} ${toProj.screenY}`;
+    const pathEl = edgeEl.querySelector('.help-edge-path');
+    if (pathEl) pathEl.setAttribute('d', d);
+
+    // 计算边 opacity（stage 过渡混色）
+    let edgeOpacity = 0;
+    if (transitionInfo.inTransition) {
+      // 过渡区域：旧边→新边交叉混色
+      if (edge.stage === transitionInfo.transitionFrom) {
+        edgeOpacity = 1 - transitionInfo.transitionProgress;
+      } else if (edge.stage === transitionInfo.transitionTo) {
+        edgeOpacity = transitionInfo.transitionProgress;
+      } else {
+        edgeOpacity = PLANETARY_CONFIG.inactiveEdgeOpacity;
+      }
+    } else {
+      // 静止区域：当前 stage 边可见，其他边淡
+      if (edge.stage === currentStageIndex) {
+        edgeOpacity = 1;
+      } else {
+        edgeOpacity = PLANETARY_CONFIG.inactiveEdgeOpacity;
+      }
+    }
+    edgeEl.style.opacity = edgeOpacity;
+
+    // 更新箭头位置（如果有）
+    const arrowEl = edgeEl.querySelector('.help-edge-arrow');
+    if (arrowEl) {
+      const angle = Math.atan2(toProj.screenY - fromProj.screenY, toProj.screenX - fromProj.screenX) * 180 / Math.PI;
+      arrowEl.setAttribute('transform', `translate(${toProj.screenX},${toProj.screenY}) rotate(${angle})`);
+      arrowEl.style.opacity = edgeOpacity;
+    }
+  });
+}
+
 // ===== v5.0 Planetary Animation End =====
 
 // 探索工作——分阶段 mini 关系图（v4.3.8 重构：时间轴 + 分阶段小图）
