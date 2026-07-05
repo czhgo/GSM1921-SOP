@@ -443,7 +443,7 @@ function computeScrollProgress(scrollTop, container, stageCount) {
   const stagesRect = stagesContainer.getBoundingClientRect();
   const totalScrollRange = stagesRect.height;
   // 滚动进度：stagesContainer 顶部到达视口 30% 时开始，底部到达视口 70% 时结束
-  const startScroll = stagesRect.top - vh * PLANETARY_CONFIG.scrollStartVh;
+  const startScroll = stagesRect.top + scrollTop - vh * PLANETARY_CONFIG.scrollStartVh;
   const endScroll = startScroll + totalScrollRange - vh * PLANETARY_CONFIG.scrollEndVhOffset;
   const scrollRange = endScroll - startScroll;
   if (scrollRange <= 0) {
