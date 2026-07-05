@@ -1925,117 +1925,103 @@ function bindTOC() {
   setActive('hero');
 }
 
-/** 探索工作——v4.4.0 Relational Pulse 滚动联动
- *
- *  双列 sticky 布局：左侧大关系图 sticky 钉住，右侧阶段说明滚动推进。
- *  滚动时根据右侧 stage 位置，更新左侧网络图中所有节点和边的 data-state：
- *  - stage 进入视口中部 → 对应节点/边 data-state="current"（满色 + 呼吸 + 脉搏）
- *  - stage 离开视口上方 → 对应节点/边 data-state="past"（灰化淡出）
- *  - stage 离开视口下方 → 对应节点/边 data-state="future"（极淡）
- *
- *  降级策略：
- *  - prefers-reduced-motion: 所有 stage 和节点/边直接 data-state="current"，无呼吸/脉搏动画
+/**
+ * v5.0 行星大动画协调器
+ * 绑定滚动事件，协调 5 个核心组件
  */
-function setNetworkState(networkWrap, currentStage) {
-  if (!networkWrap) return;
-  networkWrap.setAttribute('data-state', 'current');
-
-  networkWrap.querySelectorAll('.help-node-svg').forEach(node => {
-    const stage = parseInt(node.dataset.stage, 10);
-    if (isNaN(stage)) return;
-    if (stage < currentStage) node.setAttribute('data-state', 'past');
-    else if (stage === currentStage) node.setAttribute('data-state', 'current');
-    else node.setAttribute('data-state', 'future');
-  });
-
-  networkWrap.querySelectorAll('.help-edge').forEach(edge => {
-    const stage = parseInt(edge.dataset.stage, 10);
-    if (isNaN(stage)) return;
-    if (stage < currentStage) edge.setAttribute('data-state', 'past');
-    else if (stage === currentStage) edge.setAttribute('data-state', 'current');
-    else edge.setAttribute('data-state', 'future');
-  });
-}
-
 function bindExplorationScrollDriven() {
   const scenes = document.querySelectorAll('.help-exploration-scene');
   if (!scenes.length) return;
 
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
-  // 初始化：每个 scene 的第一个 stage 设为 current，网络图也同步到 stage 0
+  // 预计算所有 stage 的布局
+  const sceneData = [];
   scenes.forEach(scene => {
-    const sceneStages = scene.querySelectorAll('.help-exploration-stage');
-    const networkWrap = scene.querySelector('.help-exploration-network-sticky');
-    if (!sceneStages.length || !networkWrap) return;
-
-    if (prefersReduced) {
-      // 降级：所有 stage 和网络图元素直接 current
-      sceneStages.forEach(s => s.setAttribute('data-state', 'current'));
-      networkWrap.querySelectorAll('.help-node-svg, .help-edge').forEach(el => {
-        el.setAttribute('data-state', 'current');
-      });
-      return;
-    }
-
-    sceneStages.forEach((s, i) => {
-      s.setAttribute('data-state', i === 0 ? 'current' : 'future');
+    const network = scene.dataset.scene === 'activity' ? ACTIVITY_NETWORK : TASKFORCE_NETWORK;
+    const stages = scene.dataset.scene === 'activity'
+      ? EXPLORATION_STAGES.activity
+      : EXPLORATION_STAGES.taskforce;
+    const layouts = precomputeAllLayouts(network, stages);
+    const svg = scene.querySelector('.help-network-svg');
+    const stagesContainer = scene.querySelector('.help-exploration-stages');
+    sceneData.push({
+      scene, network, stages, layouts, svg, stagesContainer,
+      stageCount: stages.length,
+      currentRenderedStage: -1,  // 缓存：上次渲染的 stage
     });
-    setNetworkState(networkWrap, 0);
   });
 
-  if (prefersReduced) return;
+  // 初始化：每个 scene 渲染 stage 0
+  sceneData.forEach(data => {
+    if (!data.svg) return;
+    if (prefersReduced) {
+      // reduced-motion：直接渲染每个 stage 的最终位置（用 stage 0）
+      renderNetwork(data.svg, data.layouts[0], data.network, 0, { inTransition: false });
+    } else {
+      renderNetwork(data.svg, data.layouts[0], data.network, 0, { inTransition: false });
+    }
+  });
 
-  // IntersectionObserver：基于 root zone 内的 stage 位置重新计算所有状态
-  // rootMargin: 顶部 -20%，底部 -30% → 视口中部 20%~70% 的区域作为"current zone"
-  // 策略：每次回调时，遍历每个 scene，找到 root zone 内最接近视口中心的 stage 作为 current
-  //       其余 stage 按 idx 设为 past/future；网络图中的节点/边同步更新
-  const observer = new IntersectionObserver(() => {
-    const vh = window.innerHeight;
-    const rootTop = vh * 0.20;
-    const rootBottom = vh * 0.70;
-    const viewportCenter = vh / 2;
+  if (prefersReduced) return;  // reduced-motion 不绑定滚动驱动
 
-    scenes.forEach(scene => {
-      const sceneStages = scene.querySelectorAll('.help-exploration-stage');
-      const networkWrap = scene.querySelector('.help-exploration-network-sticky');
-      if (!sceneStages.length || !networkWrap) return;
+  // 滚动驱动
+  let ticking = false;
+  let lastScrollTop = window.scrollY;
 
-      // 找到在 root zone 内且最接近视口中心的 stage
-      let currentStage = null;
-      let minDist = Infinity;
-      sceneStages.forEach(s => {
-        const rect = s.getBoundingClientRect();
-        if (rect.bottom > rootTop && rect.top < rootBottom) {
-          const center = rect.top + rect.height / 2;
-          const dist = Math.abs(center - viewportCenter);
-          if (dist < minDist) {
-            minDist = dist;
-            currentStage = s;
-          }
-        }
-      });
+  const update = () => {
+    ticking = false;
+    const scrollTop = window.scrollY;
 
-      // 没有 stage 在 root zone 内，保持现状
-      if (!currentStage) return;
+    sceneData.forEach(data => {
+      if (!data.svg || !data.stagesContainer) return;
 
-      const currentStageIdx = parseInt(currentStage.dataset.stage, 10);
-      sceneStages.forEach(s => {
-        const idx = parseInt(s.dataset.stage, 10);
-        if (idx < currentStageIdx) s.setAttribute('data-state', 'past');
-        else if (idx === currentStageIdx) s.setAttribute('data-state', 'current');
+      // 计算滚动 progress
+      const progress = computeScrollProgress(scrollTop, data.scene, data.stageCount);
+
+      // 计算当前 3D 位置
+      let currentPositions;
+      if (progress.inTransition) {
+        // 过渡区域：插值
+        currentPositions = interpolatePositions(
+          data.layouts[progress.transitionFrom],
+          data.layouts[progress.transitionTo],
+          progress.transitionProgress
+        );
+      } else {
+        // 静止区域：使用当前 stage 布局
+        currentPositions = data.layouts[progress.stageIndex];
+      }
+
+      // 渲染
+      renderNetwork(data.svg, currentPositions, data.network, progress.stageIndex, progress);
+
+      // 视角旋转（subtle）
+      const viewRotateX = Math.sin(scrollTop * 0.001) * PLANETARY_CONFIG.viewRotateXMax;
+      data.svg.style.transform = `perspective(800px) rotateX(${viewRotateX}deg)`;
+
+      // 更新 stage 说明卡片状态
+      const sceneStages = data.scene.querySelectorAll('.help-exploration-stage');
+      sceneStages.forEach((s, i) => {
+        if (i < progress.stageIndex) s.setAttribute('data-state', 'past');
+        else if (i === progress.stageIndex) s.setAttribute('data-state', 'current');
         else s.setAttribute('data-state', 'future');
       });
-
-      // 同步更新左侧网络图
-      setNetworkState(networkWrap, currentStageIdx);
     });
-  }, {
-    threshold: [0, 0.15, 0.4],
-    rootMargin: '-20% 0px -30% 0px',
-  });
+  };
 
-  document.querySelectorAll('.help-exploration-stage').forEach(s => observer.observe(s));
+  const onScroll = () => {
+    lastScrollTop = window.scrollY;
+    if (!ticking) {
+      requestAnimationFrame(update);
+      ticking = true;
+    }
+  };
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  // 初始触发一次
+  update();
 }
 
 // ════════════════════════════════════════════════════════════════
