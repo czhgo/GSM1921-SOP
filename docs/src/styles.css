@@ -1,3 +1,6 @@
+/* 组件样式（@import 必须位于文件顶部） */
+@import url('components/person-picker.css');
+
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
    四层色盘：Party → Primary → Accent → Neutral → Surface
@@ -30,7 +33,33 @@
   --accent-amber:      #D97706;
   --accent-blue:       #3B82F6;
   --accent-emerald:    #059669;
-  --accent-secretary:   #7A0010;
+  --accent-secretary:        #B91C1C;  /* 党支书 — 红色系（深红，Tailwind red-800） */
+  --accent-leader:           #65A30D;  /* 党小组组长 — 石灰绿系 */
+  --accent-org-commissioner: #8B5CF6;  /* 组织委员 — 紫色系 */
+  --accent-prop-commissioner:#3B82F6;  /* 宣传委员 — 蓝色系 */
+  --accent-disc-commissioner:#D97706;  /* 纪检委员 — 琥珀/黄色系 */
+  --accent-organizer:        #06B6D4;  /* 组织者 — 青色系 */
+  --accent-deep:             #10B981;  /* 深度参与者 — 绿色系 */
+  --accent-participant:      #6B7280;  /* 普通参与者 — 灰色系 */
+
+  /* ── 角色识别色 — Light 变体（用于 border-left / 浅底色等低饱和场景） ── */
+  --accent-secretary-light:        #FCA5A5;  /* red-300 */
+  --accent-leader-light:           #BEF264;  /* lime-300 */
+  --accent-org-commissioner-light: #C4B5FD;  /* violet-300 */
+  --accent-prop-commissioner-light:#93C5FD;  /* blue-300 */
+  --accent-disc-commissioner-light:#FCD34D;  /* amber-300 */
+  --accent-organizer-light:        #67E8F9;  /* cyan-300 */
+  --accent-deep-light:             #6EE7B7;  /* emerald-300 */
+  --accent-participant-light:      #D1D5DB;  /* gray-300 */
+  --accent-sky:         #0EA5E9;
+  --accent-indigo:      #6366F1;
+  --accent-violet:      #7C3AED;
+  --accent-violet-light:#8B5CF6;
+  --status-live:        #22c55e;
+  --brand-amber-dark:   #B45309;
+  --blue-hover:         #2563EB;
+  --sky-hover:          #0284C7;
+  --error-dark:         #991B1B;
 
   /* ── LAYER 3: Neutral — 灰度 11 阶 (0→900) ── */
   --neutral-0:   #FFFFFF;
@@ -70,6 +99,8 @@
   --transition-fast:   150ms ease-out;
   --transition-normal: 200ms ease-out;
   --transition-slow:   250ms ease-out;
+
+  --shadow-dropdown: 0 4px 16px rgba(0,0,0,0.12);
 
   /* ── Type — 字号层级 ── */
   --text-xs:   0.625rem;
@@ -237,12 +268,11 @@ body {
   background-color: var(--surface-card);
   border: 1px solid var(--neutral-200);
   border-radius: var(--radius-md);
-  transition: box-shadow 0.3s ease-out, border-color var(--transition-normal), background-color var(--transition-normal);
+  transition: border-color var(--transition-normal), background-color var(--transition-normal);
 }
 
 .card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  border-color: var(--neutral-200);
+  border-color: var(--primary-300);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -274,9 +304,20 @@ select.input-flat {
   -moz-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 14px center;
-  padding-right: 36px;
+  background-position: right 10px center;
+  padding: 6px 30px 6px 10px;
   cursor: pointer;
+}
+
+select.input-flat.text-xs {
+  padding: 5px 28px 5px 8px;
+  font-size: 0.75rem;
+}
+
+select.input-flat.text-\[10px\] {
+  padding: 2px 22px 2px 6px;
+  font-size: 10px;
+  border-radius: 4px;
 }
 
 select.input-flat:focus {
@@ -834,7 +875,7 @@ select.input-flat:focus {
   min-width: 0;
   background-color: var(--surface-card);
   border: 1px solid var(--neutral-200);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
   margin-bottom: 12px;
   transition: border-color var(--transition-normal);
@@ -1222,7 +1263,7 @@ select.input-flat:focus {
   background-color: var(--surface-card);
   border: 1px solid var(--neutral-200);
   border-left: 4px solid var(--primary-700);
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   padding: 16px;
   margin-bottom: 12px;
   transition: border-color var(--transition-fast);
@@ -1450,7 +1491,7 @@ select.input-flat:focus {
 .role-cards-container {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 8px;
 }
 
 .role-card {
@@ -1458,7 +1499,7 @@ select.input-flat:focus {
   align-items: center;
   gap: 14px;
   padding: 14px 16px;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   background-color: var(--surface-card);
   border: 1px solid var(--neutral-200);
   cursor: pointer;
@@ -1469,8 +1510,8 @@ select.input-flat:focus {
 
 .role-card:hover {
   background-color: var(--surface-hover);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  transition: box-shadow 0.3s ease-out, background-color var(--transition-fast);
+  border-color: var(--neutral-300);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
 .role-card.active {
@@ -1551,13 +1592,13 @@ select.input-flat:focus {
   top: 0;
   bottom: 0;
   width: 4px;
-  background-color: #CE1126;
+  background-color: var(--accent-leader);
   border-radius: 0 3px 3px 0;
 }
 
 .leader-card .role-icon {
-  background-color: rgba(206,17,38,0.1);
-  color: #CE1126;
+  background-color: rgba(101,163,13,0.1);
+  color: var(--accent-leader);
 }
 
 .leader-card:hover { background-color: var(--surface-hover); }
@@ -1603,13 +1644,13 @@ select.input-flat:focus {
   top: 0;
   bottom: 0;
   width: 4px;
-  background-color: var(--accent-blue);
+  background-color: var(--accent-organizer);
   border-radius: 0 3px 3px 0;
 }
 
 .organizer-card .role-icon {
-  background-color: rgba(59,130,246,0.1);
-  color: var(--accent-blue);
+  background-color: rgba(6,182,212,0.1);
+  color: var(--accent-organizer);
 }
 
 .organizer-card.active {
@@ -1629,13 +1670,13 @@ select.input-flat:focus {
   top: 0;
   bottom: 0;
   width: 4px;
-  background-color: var(--accent-emerald);
+  background-color: var(--accent-deep);
   border-radius: 0 3px 3px 0;
 }
 
 .deep-card .role-icon {
-  background-color: rgba(5,150,105,0.1);
-  color: var(--accent-emerald);
+  background-color: rgba(16,185,129,0.1);
+  color: var(--accent-deep);
 }
 
 .deep-card.active {
@@ -1660,7 +1701,7 @@ select.input-flat:focus {
 }
 
 .secretary-card .role-icon {
-  background-color: rgba(122,0,16,0.1);
+  background-color: rgba(185,28,28,0.1);
   color: var(--accent-secretary);
 }
 
@@ -1759,11 +1800,10 @@ select.input-flat:focus {
    COMPONENT: Commissioner Kanban — 条条支委看板（两列+详情展开）
    ═══════════════════════════════════════════════════════════════ */
 .kanban-card {
-  transition: box-shadow 0.2s ease-out, border-color 0.15s ease-out;
+  transition: border-color 0.15s ease-out, background-color var(--transition-fast);
 }
 .kanban-card:hover {
-  border-color: var(--neutral-300) !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
+  border-color: var(--neutral-300);
 }
 
 .kanban-col-hdr {
@@ -1775,12 +1815,12 @@ select.input-flat:focus {
 }
 
 .kanban-domain-tag[data-domain="组织"] {
-  background: rgba(206,17,38,0.1);
-  color: #CE1126;
+  background: rgba(139,92,246,0.1);
+  color: #8B5CF6;
 }
 .kanban-domain-tag[data-domain="宣传"] {
-  background: rgba(16,185,129,0.1);
-  color: #10B981;
+  background: rgba(59,130,246,0.1);
+  color: #3B82F6;
 }
 .kanban-domain-tag[data-domain="纪检"] {
   background: rgba(217,119,6,0.1);
@@ -2153,6 +2193,14 @@ select:focus-visible {
   outline-offset: 2px;
 }
 
+/* SVG 关系网络节点：移除浏览器默认 outline（黄色框）
+   节点点击/聚焦时的视觉反馈由 .highlighted 类承担（drop-shadow + ring opacity），
+   浏览器原生 focus ring 在 SVG 上常表现为黄色/橙色框，与品牌色冲突 */
+.help-node-svg:focus,
+.help-node-svg:focus-visible {
+  outline: none;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    SCROLLBAR — WebKit + Firefox
    ═══════════════════════════════════════════════════════════════ */
@@ -2520,7 +2568,7 @@ label .text-red-500 {
 .workflow-panel-card {
   background: var(--surface-card);
   border: 1px solid var(--neutral-200);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   padding: 20px;
   margin-top: 16px;
 }
@@ -2936,6 +2984,1882 @@ label .text-red-500 {
 
 .workflow-banner-text strong {
   font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HELP PAGE v4 — 讲我们支部的故事（滚动叙事 + SVG 关系网络图）
+   设计理念：以党员成长为主线，讲清考察、工作哲学、探索与对话
+   风格：苹果风（纯白 + 大留白 + 大字体 + 微妙动画）
+   签名元素：【管理事，服务人】核心口号 + 活动关系网络 SVG 图
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --help-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --help-party-red: #CE1126;
+  --help-deep-red: #7A0010;
+  --help-blue: #3B82F6;
+  --help-amber: #D97706;
+  --help-emerald: #10B981;
+  --help-text: #1F2937;
+  --help-sub: #6B7280;
+}
+
+/* ── 容器覆盖：突破 max-w-5xl，实现全宽 section ── */
+.help-v3 {
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* ── 全屏 section 基础 ── */
+.help-section {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(60px, 10vh, 120px) clamp(24px, 5vw, 80px);
+  background: #FFFFFF;
+  position: relative;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 800ms var(--help-ease), transform 800ms var(--help-ease);
+}
+
+.help-section.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.help-section-inner {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.help-section-title {
+  font-family: 'Noto Serif SC', 'STZhongsong', serif;
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 700;
+  color: var(--help-text);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0 0 16px;
+}
+
+.help-section-subtitle {
+  font-size: clamp(16px, 2vw, 20px);
+  color: var(--help-sub);
+  margin: 0 0 48px;
+  line-height: 1.6;
+}
+
+/* ── Section 1: Hero ── */
+.help-hero-section {
+  text-align: center;
+}
+
+.help-hero-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.help-hero-title {
+  font-family: 'Noto Serif SC', 'STZhongsong', serif;
+  font-size: clamp(40px, 6vw, 72px);
+  font-weight: 700;
+  color: var(--help-party-red);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.help-hero-subtitle {
+  font-size: clamp(16px, 2vw, 22px);
+  color: var(--help-sub);
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.help-hero-scroll-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--help-sub);
+  margin-top: 48px;
+  animation: help-bounce-hint 2s ease-in-out infinite;
+}
+
+.help-scroll-text {
+  font-size: 13px;
+  letter-spacing: 0.1em;
+}
+
+.help-scroll-arrow {
+  color: var(--help-party-red);
+}
+
+@keyframes help-bounce-hint {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+/* ── Section 2: 考察积极分子（三维度卡片，党建贡献高亮） ── */
+.help-review-section {
+  text-align: left;
+}
+
+.help-review-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.help-review-card {
+  position: relative;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 16px;
+  padding: 28px 24px 24px;
+  transition: transform 280ms var(--help-ease), box-shadow 280ms var(--help-ease), border-color 280ms var(--help-ease);
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.help-review-section.is-revealed .help-review-card {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.help-review-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: #D1D5DB;
+  border-radius: 16px 16px 0 0;
+}
+
+.help-review-card--highlight {
+  border-color: rgba(206, 17, 38, 0.28);
+  background: #FFFCFC;
+  box-shadow: 0 4px 20px rgba(206, 17, 38, 0.06);
+}
+
+.help-review-card--highlight::before {
+  background: var(--help-party-red);
+  height: 4px;
+}
+
+.help-review-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.help-review-card--highlight:hover {
+  border-color: var(--help-party-red);
+}
+
+.help-review-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.help-review-card-name {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--help-text);
+  line-height: 1.2;
+}
+
+.help-review-card--highlight .help-review-card-name {
+  color: var(--help-party-red);
+}
+
+.help-review-card-badge {
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #FFFFFF;
+  background: var(--help-party-red);
+  border-radius: 8px;
+}
+
+.help-review-card-tag {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--help-sub);
+  margin-bottom: 12px;
+  letter-spacing: 0.02em;
+}
+
+.help-review-card--highlight .help-review-card-tag {
+  color: var(--help-party-red);
+}
+
+.help-review-card-desc {
+  font-size: 14px;
+  color: var(--help-sub);
+  line-height: 1.65;
+}
+
+.help-review-footer {
+  text-align: center;
+  font-size: 14px;
+  color: var(--help-sub);
+  padding: 16px 24px;
+  background: #F9FAFB;
+  border-radius: 12px;
+  letter-spacing: 0.02em;
+}
+
+/* ── Section 3: 管理事，服务人——核心口号（签名元素） ── */
+.help-philosophy-section {
+  text-align: center;
+  background: #FFFFFF;
+}
+
+.help-philosophy-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  max-width: 900px;
+}
+
+.help-philosophy-eyebrow {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--help-sub);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.help-philosophy-title {
+  font-family: 'Noto Serif SC', 'STZhongsong', serif;
+  font-size: clamp(48px, 8vw, 96px);
+  font-weight: 800;
+  color: var(--help-party-red);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.help-philosophy-split {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+  max-width: 720px;
+}
+
+.help-philosophy-half {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.help-philosophy-half-label {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--help-text);
+  letter-spacing: 0.04em;
+}
+
+.help-philosophy-half-desc {
+  font-size: 14px;
+  color: var(--help-sub);
+  line-height: 1.5;
+}
+
+.help-philosophy-divider {
+  width: 1px;
+  height: 56px;
+  background: #E5E7EB;
+}
+
+.help-philosophy-reason {
+  max-width: 640px;
+  padding: 24px 28px;
+  background: color-mix(in srgb, var(--help-party-red) 4%, #FFFFFF);
+  border: 1px solid rgba(206, 17, 38, 0.12);
+  border-radius: 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.help-philosophy-reason-q {
+  font-size: 14px;
+  color: var(--help-sub);
+  font-style: italic;
+  letter-spacing: 0.04em;
+}
+
+.help-philosophy-reason-a {
+  font-size: 16px;
+  color: var(--help-text);
+  line-height: 1.7;
+  font-weight: 500;
+}
+
+.help-philosophy-emph {
+  color: var(--help-party-red);
+  font-weight: 700;
+}
+
+.help-philosophy-reason-detail {
+  font-size: 14px;
+  color: var(--help-sub);
+  line-height: 1.6;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(206, 17, 38, 0.18);
+}
+
+.help-philosophy-foot {
+  font-size: 14px;
+  color: var(--help-sub);
+  letter-spacing: 0.06em;
+}
+
+/* ── Section 3.5: 战略认知展开 + 恢复对话能力 ── */
+.help-cognition-section {
+  text-align: center;
+  background: color-mix(in srgb, var(--help-party-red) 2%, #FFFFFF);
+}
+
+.help-cognition-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  max-width: 920px;
+}
+
+.help-cognition-eyebrow {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--help-sub);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.help-cognition-title {
+  font-family: 'Noto Serif SC', 'STZhongsong', serif;
+  font-size: clamp(36px, 6vw, 64px);
+  font-weight: 800;
+  color: var(--help-party-red);
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.help-cognition-lead {
+  max-width: 680px;
+  text-align: center;
+}
+
+.help-cognition-lead p {
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--help-text);
+  margin: 0;
+}
+
+.help-cognition-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.help-cognition-item {
+  text-align: left;
+  padding: 28px 24px;
+  background: #FFFFFF;
+  border: 1px solid #F3F4F6;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.help-cognition-item:hover {
+  border-color: rgba(206, 17, 38, 0.20);
+  box-shadow: 0 4px 16px rgba(206, 17, 38, 0.06);
+}
+
+.help-cognition-item-num {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--help-party-red);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.help-cognition-item-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--help-text);
+  margin: 4px 0 0;
+  letter-spacing: 0.02em;
+}
+
+.help-cognition-item-sub {
+  font-size: 13px;
+  color: var(--help-sub);
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+
+.help-cognition-item-desc {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--help-text);
+  margin: 8px 0 0;
+}
+
+.help-cognition-dialogue {
+  max-width: 720px;
+  padding: 28px 32px;
+  background: #FFFFFF;
+  border-left: 3px solid var(--help-party-red);
+  border-radius: 0 12px 12px 0;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.help-cognition-dialogue-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--help-party-red);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.help-cognition-dialogue-quote {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--help-text);
+  line-height: 1.65;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.help-cognition-dialogue-desc {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--help-sub);
+  margin: 0;
+}
+
+/* ── Section 4: 两种工作（成熟 vs 探索） ── */
+.help-works-section {
+  text-align: left;
+}
+
+.help-works-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.help-works-col {
+  position: relative;
+  border-radius: 18px;
+  padding: 28px 28px 24px;
+  border: 1px solid #E5E7EB;
+  background: #FFFFFF;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: transform 280ms var(--help-ease), box-shadow 280ms var(--help-ease), border-color 280ms var(--help-ease);
+}
+
+.help-works-section.is-revealed .help-works-col {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.help-works-col--mature {
+  background: #FCFCFD;
+  border-color: rgba(107, 114, 128, 0.18);
+}
+
+.help-works-col--explore {
+  background: #FFFCFC;
+  border-color: rgba(206, 17, 38, 0.20);
+}
+
+.help-works-col:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.help-works-col--explore:hover {
+  border-color: var(--help-party-red);
+}
+
+.help-works-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.help-works-tag--mature {
+  background: rgba(107, 114, 128, 0.12);
+  color: #4B5563;
+}
+
+.help-works-tag--explore {
+  background: color-mix(in srgb, var(--help-party-red) 12%, #FFFFFF);
+  color: var(--help-party-red);
+}
+
+.help-works-col-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--help-text);
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.help-works-col-summary {
+  font-size: 14px;
+  color: var(--help-sub);
+  margin: 0 0 22px;
+  line-height: 1.55;
+}
+
+.help-works-block {
+  margin-bottom: 18px;
+}
+
+.help-works-block:last-child {
+  margin-bottom: 0;
+}
+
+.help-works-block-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--help-sub);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.help-works-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.help-works-list li {
+  position: relative;
+  padding-left: 16px;
+  font-size: 14px;
+  color: var(--help-text);
+  line-height: 1.55;
+}
+
+.help-works-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.help-works-col--mature .help-works-list li::before {
+  background: #6B7280;
+  opacity: 0.7;
+}
+
+.help-works-col--explore .help-works-list li::before {
+  background: var(--help-party-red);
+  opacity: 0.7;
+}
+
+.help-works-footer {
+  text-align: center;
+  font-size: 14px;
+  color: var(--help-party-red);
+  padding: 16px 24px;
+  background: color-mix(in srgb, var(--help-party-red) 6%, #FFFFFF);
+  border-radius: 12px;
+  letter-spacing: 0.02em;
+}
+
+/* ── Section 5: 探索工作——scroll-driven animation（进度绑定滚动 + 三态层级） ──
+   术语统一（CLAUDE.md H2.1）：
+   - scroll-driven animation = 滚动驱动动画（进度连续绑定滚动位置，可倒退）
+   - sticky scroll = 粘性滚动（SVG 悬停在视口）
+   - state hierarchy = 状态层级（past 已过 / current 当前 / future 未来）
+   - progress mapping = 进度映射（滚动进度 → stage 进度 → 元素状态）
+   - intra-stage progress = 阶段内进度（0~1，用于连线绘制动画）
+   注：T28/T29 误用术语"scroll-driven"——实际是 scroll-triggered reveal（IntersectionObserver 离散触发）。
+   本版改为真正的 scroll-driven：scroll 监听 + progress 连续计算 + 三态状态更新。 */
+/* ═══════════════════════════════════════════════════════════════
+   Section 5: 探索工作——v4.4.0 Relational Pulse（关系脉动）
+   双列 sticky 布局 + 节点呼吸 + 边脉搏 + 三态演化
+   算法艺术化：关系网络是"活的"——信息和任务在关系中流动
+   ═══════════════════════════════════════════════════════════════ */
+
+.help-exploration-section {
+  text-align: left;
+  align-items: flex-start;
+  /* 覆盖 .help-section 的 opacity:0 / transform:translateY(30px)
+     exploration section 较高（双列 sticky），bindScrollReveal 阈值可能不触发 */
+  opacity: 1;
+  transform: none;
+}
+
+/* scene：垂直布局，每个 scene 包含 head + body + note */
+.help-exploration-scene {
+  margin-bottom: 120px;
+}
+
+.help-exploration-scene:last-child {
+  margin-bottom: 0;
+}
+
+.help-exploration-scene-head {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.help-exploration-block-no {
+  display: block;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--help-party-red);
+  letter-spacing: 0.2em;
+  margin-bottom: 10px;
+}
+
+.help-exploration-block-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--help-text);
+  margin: 0;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+/* ── 双列布局：左 sticky 关系图 + 右滚动阶段说明 ── */
+.help-exploration-scene-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 72px;
+  align-items: start;
+}
+
+/* 左侧 sticky 网络图——视觉锚点，钉在视口中随右侧滚动演化 */
+.help-exploration-network-sticky {
+  position: sticky;
+  top: 80px;
+  height: calc(100vh - 100px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.help-exploration-network-sticky .help-network-wrap {
+  width: 100%;
+  max-width: 520px;
+}
+
+.help-exploration-network-sticky .help-network-container {
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.help-exploration-network-sticky .help-network-svg {
+  width: 100%;
+  height: auto;
+  max-height: 70vh;
+}
+
+/* 左侧网络图内的图例和 tooltip 隐藏（section 顶部已有，避免重复） */
+.help-exploration-network-sticky .help-network-legend {
+  display: none;
+}
+
+.help-exploration-network-sticky .help-network-tooltip {
+  display: none;
+}
+
+/* ── 右侧阶段说明列表 ── */
+.help-exploration-stages {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 18vh 0;
+}
+
+.help-exploration-stage {
+  padding: 36px 32px;
+  background: var(--surface-card, #FFFFFF);
+  border: 1px solid #E5E7EB;
+  border-radius: 14px;
+  min-height: 44vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: opacity 500ms var(--help-ease), filter 500ms var(--help-ease),
+              transform 500ms var(--help-ease), border-color 500ms var(--help-ease),
+              box-shadow 500ms var(--help-ease);
+}
+
+.help-exploration-stage-no {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 48px;
+  font-weight: 800;
+  color: #D1D5DB;
+  line-height: 1;
+  margin-bottom: 20px;
+  letter-spacing: -0.02em;
+  transition: color 500ms var(--help-ease);
+}
+
+.help-exploration-stage-body {
+  flex: 1;
+}
+
+.help-exploration-stage-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--help-text);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  margin: 0 0 14px 0;
+  transition: color 500ms var(--help-ease);
+}
+
+.help-exploration-stage-desc {
+  font-size: 15px;
+  color: var(--help-text);
+  line-height: 1.75;
+  margin: 0 0 20px 0;
+}
+
+.help-exploration-stage-flows {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid #F3F4F6;
+  padding-top: 16px;
+}
+
+.help-exploration-stage-flows li {
+  font-size: 13px;
+  color: #6B7280;
+  padding: 5px 0;
+  padding-left: 18px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.help-exploration-stage-flows li::before {
+  content: '·';
+  position: absolute;
+  left: 6px;
+  top: 3px;
+  color: #9CA3AF;
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* ── 右侧 stage 三态 ── */
+.help-exploration-stage[data-state="past"] {
+  opacity: 0.45;
+  filter: saturate(0.3);
+  transform: scale(0.97);
+}
+
+.help-exploration-stage[data-state="past"] .help-exploration-stage-no {
+  color: #E5E7EB;
+}
+
+.help-exploration-stage[data-state="current"] {
+  opacity: 1;
+  filter: none;
+  transform: scale(1);
+  border-color: var(--help-party-red);
+  box-shadow: 0 6px 28px rgba(185, 28, 28, 0.10);
+}
+
+.help-exploration-stage[data-state="current"] .help-exploration-stage-no {
+  color: var(--help-party-red);
+}
+
+.help-exploration-stage[data-state="current"] .help-exploration-stage-title {
+  color: #111827;
+}
+
+.help-exploration-stage[data-state="future"] {
+  opacity: 0.28;
+  filter: saturate(0.3);
+  transform: scale(0.97);
+}
+
+.help-exploration-stage[data-state="future"] .help-exploration-stage-no {
+  color: #F3F4F6;
+}
+
+/* v5.0 Planetary Animation */
+.help-network-svg {
+  transition: transform 0.3s ease-out;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.help-node-svg {
+  transition: opacity 0.3s ease-out, filter 0.3s ease-out;
+  will-change: transform, opacity, filter;
+}
+
+.help-node-svg[data-role="star"] .help-node-circle {
+  /* 恒星：无发光，仅尺寸放大（由 JS 控制 r） */
+}
+
+.help-node-svg[data-role="inactive"] .help-node-circle {
+  /* 非激活：低饱和（由 JS 控制 filter: saturate） */
+}
+
+.help-edge {
+  transition: opacity 0.3s ease-out;
+  will-change: opacity, d;
+}
+
+/* scene note：底部备注 */
+.help-exploration-scene-note {
+  margin-top: 48px;
+  padding: 18px 24px;
+  background: #F9FAFB;
+  border-left: 3px solid var(--help-party-red);
+  border-radius: 0 10px 10px 0;
+  font-size: 14px;
+  color: var(--help-text);
+  line-height: 1.7;
+}
+
+/* ── prefers-reduced-motion 降级 ──
+   所有元素直接可见，禁用过渡动画 */
+@media (prefers-reduced-motion: reduce) {
+  .help-exploration-stage {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .help-exploration-network-sticky .help-node-svg,
+  .help-exploration-network-sticky .help-edge {
+    opacity: 1 !important;
+    filter: none !important;
+  }
+}
+
+/* ── 移动端降级：单列布局 ── */
+@media (max-width: 768px) {
+  .help-exploration-scene {
+    margin-bottom: 64px;
+  }
+
+  .help-exploration-scene-head {
+    margin-bottom: 32px;
+  }
+
+  .help-exploration-block-title {
+    font-size: 22px;
+  }
+
+  .help-exploration-scene-body {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .help-exploration-network-sticky {
+    position: static;
+    height: auto;
+    margin-bottom: 16px;
+  }
+
+  .help-exploration-network-sticky .help-network-wrap {
+    max-width: 100%;
+  }
+
+  .help-exploration-network-sticky .help-network-container {
+    min-height: 280px;
+  }
+
+  .help-exploration-stages {
+    padding: 0;
+    gap: 20px;
+  }
+
+  .help-exploration-stage {
+    min-height: auto;
+    padding: 24px 20px;
+  }
+
+  .help-exploration-stage-no {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+
+  .help-exploration-stage-title {
+    font-size: 18px;
+  }
+
+  .help-exploration-stage-desc {
+    font-size: 14px;
+  }
+}
+
+/* ── Section 6: 和组织对话——行百里者半九十（四阶段卡片） ── */
+.help-dialogue-section {
+  text-align: left;
+}
+
+.help-dialogue-cycle {
+  position: relative;
+  max-width: 760px;
+  margin: 0 auto 32px;
+}
+
+.help-dialogue-flow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 72px 72px; /* 统一 row/column gap，让 4 个箭头偏移对称（=gap/2） */
+  position: relative;
+}
+
+/* DIALOGUE 卡片显式 grid-area 定位（修复 03/04 位置颠倒 bug）
+   DOM 顺序 01/02/03/04 经 grid 自动排列为 左上/右上/左下/右下，
+   但箭头期望顺时针循环 01→02→03(右下)→04(左下)→01。
+   显式定位强制 03→右下、04→左下，与箭头方向匹配。 */
+.help-dialogue-card--pos01 { grid-area: 1 / 1 / 2 / 2; }
+.help-dialogue-card--pos02 { grid-area: 1 / 2 / 2 / 3; }
+.help-dialogue-card--pos03 { grid-area: 2 / 2 / 3 / 3; }
+.help-dialogue-card--pos04 { grid-area: 2 / 1 / 3 / 2; }
+
+.help-dialogue-card {
+  position: relative;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 14px;
+  padding: 22px 20px 20px;
+  transition: transform 280ms var(--help-ease), box-shadow 280ms var(--help-ease), border-color 280ms var(--help-ease);
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.help-dialogue-section.is-revealed .help-dialogue-card {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.help-dialogue-card:hover {
+  /* 不使用 transform: translateY(-3px)，避免贴在卡片上的 ::after 箭头跟随跳动 */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-color: var(--help-party-red);
+}
+
+/* SVG 椭圆环——循环连线（背景层，拉伸为椭圆，non-scaling-stroke 保持线宽） */
+.help-dialogue-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* SVG 箭头——线+箭头头，精致统一（替代 CSS border 三角形，避免渲染锯齿）
+   4 个箭头绝对定位在 2x2 grid 的 4 个边中点，形成菱形循环视觉 */
+.help-dialogue-arrow {
+  position: absolute;
+  width: 22px;
+  height: 14px;
+  pointer-events: none;
+  z-index: 2;
+  transform-origin: center; /* 显式设置旋转中心（guidelines: Set correct transform-origin） */
+}
+
+.help-dialogue-arrow svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 01→02: 第一行水平间隙中点，指向右（rotate 0） */
+.help-dialogue-arrow--01-02 {
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+
+/* 02→03: 第二列垂直间隙中点，指向下（rotate 90） */
+.help-dialogue-arrow--02-03 {
+  top: 50%;
+  left: 75%;
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+/* 03→04: 第二行水平间隙中点，指向左（rotate 180） */
+.help-dialogue-arrow--03-04 {
+  top: 75%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(180deg);
+}
+
+/* 04→01: 第一列垂直间隙中点，指向上（rotate 270） */
+.help-dialogue-arrow--04-01 {
+  top: 50%;
+  left: 25%;
+  transform: translate(-50%, -50%) rotate(270deg);
+}
+
+.help-dialogue-no {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--help-party-red);
+  line-height: 1;
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+}
+
+.help-dialogue-phase {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--help-text);
+  margin-bottom: 14px;
+  letter-spacing: 0.02em;
+}
+
+.help-dialogue-question {
+  font-size: 13px;
+  color: var(--help-sub);
+  line-height: 1.55;
+  margin-bottom: 10px;
+}
+
+.help-dialogue-answer {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--help-party-red);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.help-dialogue-desc {
+  font-size: 13px;
+  color: var(--help-sub);
+  line-height: 1.6;
+}
+
+.help-dialogue-foot {
+  text-align: center;
+  font-size: 14px;
+  color: var(--help-sub);
+  padding: 16px 24px;
+  background: #F9FAFB;
+  border-radius: 12px;
+  letter-spacing: 0.02em;
+}
+
+/* ── Section 7: 党员发展结语（呼应核心口号） ── */
+.help-development-coda {
+  margin-top: 40px;
+  text-align: center;
+  padding: 24px 28px;
+  background: color-mix(in srgb, var(--help-party-red) 5%, #FFFFFF);
+  border: 1px solid rgba(206, 17, 38, 0.12);
+  border-radius: 14px;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--help-party-red);
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+}
+
+/* ── Section 3 & 4: SVG 关系网络 ── */
+.help-network-section {
+  align-items: flex-start;
+}
+
+.help-network-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.help-network-legend {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.help-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--help-sub);
+}
+
+.help-legend-line {
+  width: 36px; height: 2px;
+  border-radius: 1px;
+}
+
+/* 图例线型与实际 SVG 线型严格对应：实线/长虚线/点线 三态 */
+.help-legend-line--task {
+  background: var(--help-party-red);
+  height: 2.5px;
+}
+
+.help-legend-line--info {
+  background: var(--help-blue);
+  background-image: linear-gradient(90deg, var(--help-blue) 67%, transparent 67%);
+  background-size: 15px 2px;
+  background-repeat: repeat-x;
+}
+
+.help-legend-line--collab {
+  background: #9CA3AF;
+  background-image: linear-gradient(90deg, #9CA3AF 33%, transparent 33%);
+  background-size: 6px 1.5px;
+  background-repeat: repeat-x;
+  height: 1.5px;
+}
+
+.help-network-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.help-network-svg {
+  width: 100%;
+  max-width: 900px;
+  height: auto;
+  overflow: visible;
+}
+
+/* SVG 节点 */
+.help-node-svg {
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 500ms var(--help-ease);
+}
+
+.help-network-section.is-revealed .help-node-svg {
+  opacity: 1;
+}
+
+.help-node-circle {
+  transition: r 280ms var(--help-ease), filter 280ms var(--help-ease);
+}
+
+.help-node-svg:hover .help-node-circle,
+.help-node-svg.highlighted .help-node-circle {
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));
+}
+
+.help-node-svg:hover .help-node-ring,
+.help-node-svg.highlighted .help-node-ring {
+  opacity: 0.6;
+}
+
+.help-node-svg.dimmed {
+  opacity: 0.3;
+}
+
+.help-node-text {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  pointer-events: none;
+  user-select: none;
+}
+
+.help-node-duty {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 11px;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* SVG 连线 */
+.help-edge {
+  opacity: 0;
+  transition: opacity 500ms var(--help-ease);
+}
+
+.help-network-section.is-revealed .help-edge {
+  opacity: 1;
+}
+
+.help-edge-path {
+  fill: none;
+  stroke-width: 2;
+  transition: stroke-width 280ms var(--help-ease), opacity 280ms var(--help-ease);
+}
+
+/* 任务流（派活交付）：红色实线 2.5px —— "派活要落实"的确定性与方向感
+   实线（无 dasharray）与信息流/协作线形成最强对比 */
+.help-edge--task .help-edge-path {
+  stroke: #B91C1C;
+  stroke-width: 2.5;
+  stroke-dasharray: none;
+}
+
+/* 信息流（报备告知）：蓝色长虚线 2px —— "报备要存档"的传递感
+   长虚线（10 5）与任务流实线、协作线点线形成明显区分 */
+.help-edge--info .help-edge-path {
+  stroke: var(--help-blue);
+  stroke-width: 2;
+  stroke-dasharray: 8 4;
+}
+
+/* 协作线（横向配合）：灰色点线 1.5px —— "配合无上下"的平等与静态
+   点线（2 4）最细最淡，无方向，表达横向平等关系 */
+.help-edge--collab .help-edge-path {
+  stroke: #9CA3AF;
+  stroke-dasharray: 2 4;
+  stroke-width: 1.5;
+}
+
+/* v4.3.5：三种线动画统一为 JS scroll-driven dashoffset 绘制动画
+   删除 CSS animation（原 help-flow-info 与 JS dashoffset 冲突）
+   箭头（.help-edge-arrow）为独立 path 元素，初始 opacity:0，
+   JS 在线绘制完成（intraStageProgress > 0.95）后 fade in */
+.help-edge-arrow {
+  transition: opacity 200ms var(--help-ease);
+  pointer-events: none;
+}
+
+.help-edge-dot {
+  transition: opacity 200ms var(--help-ease);
+  pointer-events: none;
+}
+
+/* hover 高亮 */
+.help-network-svg.has-hover .help-edge {
+  opacity: 0.15;
+}
+
+.help-network-svg.has-hover .help-edge.highlighted {
+  opacity: 1;
+}
+
+.help-network-svg.has-hover .help-edge.highlighted .help-edge-path {
+  stroke-width: 3;
+}
+
+.help-edge.hovered .help-edge-path {
+  stroke-width: 3;
+}
+
+.help-edge-label {
+  pointer-events: none;
+}
+
+/* edge label 白色圆角背景，避免与 node / 其他 label 重叠时不可读 */
+.help-edge-label-bg {
+  fill: #FFFFFF;
+  stroke: #E5E7EB;
+  stroke-width: 1;
+  opacity: 0.96;
+}
+
+.help-edge-label-text {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  fill: var(--help-text);
+  pointer-events: none;
+}
+
+.help-edge--task .help-edge-label-text {
+  fill: var(--help-party-red);
+}
+
+.help-edge--info .help-edge-label-text {
+  fill: var(--help-blue);
+}
+
+/* tooltip */
+.help-network-tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  padding: 10px 14px;
+  background: var(--help-text);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms var(--help-ease);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.help-network-tooltip.is-visible {
+  opacity: 1;
+}
+
+.help-tooltip-name {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.help-tooltip-duty {
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+}
+
+/* 专班对比提示 */
+.help-callout-list {
+  list-style: none;
+  padding: 0;
+  margin: 32px auto 0;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.help-callout-list li {
+  padding: 14px 20px;
+  background: #FEF2F2;
+  border-left: 3px solid var(--help-party-red);
+  border-radius: 0 10px 10px 0;
+  font-size: 15px;
+  color: var(--help-text);
+  line-height: 1.6;
+}
+
+/* ── Section 5: 党员发展时间轴 ── */
+.help-development-section {
+  align-items: flex-start;
+}
+
+.help-stage-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.help-stage-card {
+  position: relative;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 14px;
+  padding: 20px 16px 16px;
+  cursor: pointer;
+  transition: transform 280ms var(--help-ease), box-shadow 280ms var(--help-ease), border-color 280ms var(--help-ease);
+  --stage-color: var(--help-party-red);
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.help-development-section.is-revealed .help-stage-card {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.help-stage-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--stage-color), color-mix(in srgb, var(--stage-color) 60%, #FFFFFF));
+  border-radius: 14px 14px 0 0;
+}
+
+.help-stage-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  border-color: var(--stage-color);
+}
+
+.help-stage-card.active {
+  border-color: var(--stage-color);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+}
+
+.help-stage-no {
+  font-family: 'Noto Serif SC', serif;
+  font-size: clamp(36px, 4vw, 48px);
+  font-weight: 700;
+  color: var(--stage-color);
+  line-height: 1;
+}
+
+.help-stage-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--help-text);
+  margin-top: 8px;
+  line-height: 1.3;
+}
+
+.help-stage-range-badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 3px 10px;
+  background: color-mix(in srgb, var(--stage-color) 12%, #FFFFFF);
+  color: var(--stage-color);
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 10px;
+}
+
+.help-stage-owner {
+  font-size: 12px;
+  color: var(--help-sub);
+  margin-top: 10px;
+  line-height: 1.5;
+}
+
+.help-stage-summary {
+  font-size: 12px;
+  color: var(--help-sub);
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+.help-stage-toggle {
+  font-size: 11px;
+  color: var(--stage-color);
+  margin-top: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.help-stage-detail-area {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 420ms var(--help-ease);
+}
+
+.help-stage-detail-placeholder {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--help-sub);
+  font-size: 14px;
+}
+
+.help-stage-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: color-mix(in srgb, var(--stage-color) 8%, #FFFFFF);
+  border-left: 4px solid var(--stage-color);
+  border-radius: 0 12px 12px 0;
+  margin-bottom: 16px;
+  --stage-color: var(--help-party-red);
+}
+
+.help-stage-detail-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--help-text);
+}
+
+.help-stage-detail-range {
+  font-size: 13px;
+  color: var(--stage-color);
+  font-weight: 600;
+}
+
+.help-step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.help-step-row {
+  display: grid;
+  grid-template-columns: 36px 1fr auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #F3F4F6;
+  transition: background 200ms var(--help-ease);
+}
+
+.help-step-row:last-child {
+  border-bottom: none;
+}
+
+.help-step-row:hover {
+  background: #F9FAFB;
+}
+
+.help-step-no {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: #F3F4F6;
+  color: var(--help-sub);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.help-step-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--help-text);
+}
+
+.help-step-owner {
+  font-size: 13px;
+  color: var(--help-sub);
+}
+
+.help-step-time {
+  font-size: 12px;
+  color: var(--help-amber);
+  padding: 3px 10px;
+  background: rgba(217,119,6,0.10);
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.help-step-time--empty {
+  background: none;
+}
+
+/* ── v4 保留：自循环边样式（党建/党务视觉区分与 domain 标签已随对比 section 一并移除） ── */
+
+/* 自循环边样式微调 */
+.help-edge--self .help-edge-path {
+  stroke-dasharray: 14 4;
+}
+
+.help-edge--self.help-edge--info .help-edge-path {
+  stroke-dasharray: 6 4;
+}
+
+/* ── v3.2 增量：右上角竖向圆点导航（替代右侧固定 TOC，更轻盈不胀眼） ── */
+.help-toc-nav {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .help-toc-nav {
+    display: block;
+    position: fixed;
+    right: clamp(16px, 2vw, 28px);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 30;
+    opacity: 0.4;
+    transition: opacity 240ms var(--help-ease);
+    pointer-events: none;
+  }
+
+  .help-toc-nav.is-hovered {
+    opacity: 1;
+  }
+
+  .help-toc-nav-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 8px;
+    pointer-events: auto;
+  }
+
+  .help-toc-dot-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .help-toc-dot-mark {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #D1D5DB;
+    transition: all 240ms var(--help-ease);
+  }
+
+  .help-toc-dot-item:hover .help-toc-dot-mark {
+    background: #9CA3AF;
+    transform: scale(1.15);
+  }
+
+  .help-toc-dot-item.is-active .help-toc-dot-mark {
+    width: 8px;
+    height: 8px;
+    background: var(--help-party-red);
+    box-shadow: 0 0 0 3px rgba(206, 17, 38, 0.12);
+  }
+
+  /* tooltip：hover 时显示 section 名称（轻盈样式，避免过于醒目） */
+  .help-toc-dot-tooltip {
+    position: absolute;
+    right: 22px;
+    top: 50%;
+    transform: translateY(-50%) translateX(4px);
+    padding: 4px 10px;
+    background: #F3F4F6;
+    color: var(--help-text);
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 6px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms var(--help-ease), transform 200ms var(--help-ease);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #E5E7EB;
+  }
+
+  .help-toc-dot-tooltip::after {
+    content: '';
+    position: absolute;
+    right: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 4px solid transparent;
+    border-left-color: #F3F4F6;
+  }
+
+  .help-toc-dot-item:hover .help-toc-dot-tooltip,
+  .help-toc-dot-item.is-active .help-toc-dot-tooltip {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+
+  .help-toc-dot-item.is-active .help-toc-dot-tooltip {
+    background: #FEE2E2;
+    color: var(--help-party-red);
+    border-color: #FECACA;
+  }
+
+  .help-toc-dot-item.is-active .help-toc-dot-tooltip::after {
+    border-left-color: #FEE2E2;
+  }
+}
+
+/* ── 页脚 ── */
+.help-page-footer {
+  padding: 48px 24px 64px;
+  text-align: center;
+  background: #FFFFFF;
+}
+
+.help-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border: 1px solid #E5E7EB;
+  border-radius: 24px;
+  color: var(--help-sub);
+  text-decoration: none;
+  font-size: 14px;
+  transition: all 220ms var(--help-ease);
+}
+
+.help-back-link:hover {
+  border-color: var(--help-party-red);
+  color: var(--help-party-red);
+  transform: translateY(-1px);
+}
+
+/* ── 响应式 ── */
+@media (max-width: 768px) {
+  .help-section {
+    padding: clamp(48px, 8vh, 80px) 20px;
+    min-height: auto;
+  }
+
+  .help-hero-section {
+    min-height: calc(100vh - 64px);
+  }
+
+  /* 移动端：考察三维度改为单列 */
+  .help-review-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  /* 移动端：两种工作改为单列 */
+  .help-works-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .help-works-col {
+    padding: 22px 22px 20px;
+  }
+
+  .help-works-col-title {
+    font-size: 22px;
+  }
+
+  /* 移动端：核心口号缩小，分解改为纵向 */
+  .help-philosophy-title {
+    font-size: clamp(36px, 11vw, 56px);
+  }
+
+  .help-philosophy-split {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .help-philosophy-divider {
+    width: 56px;
+    height: 1px;
+  }
+
+  .help-cognition-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .help-cognition-dialogue {
+    padding: 20px 22px;
+  }
+
+  .help-cognition-dialogue-quote {
+    font-size: 16px;
+  }
+
+  /* 移动端：环形循环回退为纵向单列，SVG 环隐藏，前 3 个箭头统一向下，第 4 个隐藏 */
+  .help-dialogue-flow {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .help-dialogue-ring {
+    display: none;
+  }
+
+  .help-dialogue-arrow--01-02,
+  .help-dialogue-arrow--02-03,
+  .help-dialogue-arrow--03-04 {
+    top: auto;
+    left: 50%;
+    bottom: -14px; /* = gap/2，位于 gap 正中间，与桌面端统一规则 */
+    transform: translate(-50%, 50%) rotate(90deg);
+  }
+
+  .help-dialogue-arrow--04-01 {
+    display: none;
+  }
+
+  .help-stage-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .help-network-svg {
+    max-width: 100%;
+  }
+
+  .help-step-row {
+    grid-template-columns: 28px 1fr;
+    gap: 12px;
+  }
+
+  .help-step-owner,
+  .help-step-time {
+    grid-column: 2;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .help-hero-title {
+    font-size: clamp(32px, 8vw, 44px);
+  }
+
+  .help-section-title {
+    font-size: clamp(26px, 6vw, 32px);
+  }
+}
+
+/* ── 减少动画偏好（可访问性）── */
+@media (prefers-reduced-motion: reduce) {
+  .help-section,
+  .help-review-card,
+  .help-works-col,
+  .help-dialogue-card,
+  .help-node-svg,
+  .help-edge,
+  .help-stage-card {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .help-edge--task .help-edge-path,
+  .help-edge--info .help-edge-path {
+    animation: none;
+  }
+
+  .help-hero-scroll-hint {
+    animation: none;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
