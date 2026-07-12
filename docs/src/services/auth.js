@@ -1,280 +1,368 @@
-// role: [人机]
-// service.auth.js — 赋权 Mock 系统
-// 赋权链对齐 CLAUDE.md H2.5 + H2.6 (D-15):
-//   党支书 → 党小组组长 / 条条支委
-//   党小组组长 → 组织者 / 深度参与者（活动域赋权）
-//   组织委员 → 组织者 / 深度参与者（专班域赋权）
-//   组织者两种赋权路径: Ⅰ自上而下(赋权随承包自动生效) Ⅱ自下而上(须经赋权后方可分派)
-//   宣传委员 / 纪检委员 → 无赋权能力
-//   活动写入: 仅党小组组长 + 党支书
-//   专班招募: 仅组织委员
+// role: [工程师]+[AI]
+// services/auth.js — 权限系统（重构版）
+// 设计文档: docs/superpowers/specs/2026-07-12-permission-system-redesign-design.md
+//
+// 核心变化:
+//   - 去掉 stance/view/mode 三元组
+//   - 去掉 AUTHZ_CHAIN + scope 双轨制
+//   - 改为: 常设角色 + 项目角色 → canDo() 统一判定
+//   - 链式赋权: AUTHORIZE_CHAIN 定义谁可以赋权什么角色
 
-// 登录态打桩（T60-2）：当前无登录系统，默认站位=党支书
-// 未来接入登录后，此值由登录接口返回
-const LOGIN_STANCE = 'secretary';
+import { ROLE_LABELS } from '../core/constants.js';
+import { PEOPLE } from '../mock/people.js';
+import { ACTIVITIES } from '../mock/activities.js';
+import { MOCK_TASKFORCES } from '../mock/taskforces.js';
 
-import { ROLE_LABELS as _ROLE_LABELS } from '../core/constants.js';
+// ── 登录状态 ─────────────────────────────────────
+const LOGIN_KEY = 'gsm1921-login-user';  // localStorage: { userId, role }
 
-const AUTH_KEY = 'gsm1921-auth-records';
-const VIEW_MODE_KEY = 'gsm1921-view-mode';
-const PRIMARY_ROLE_KEY = 'gsm1921-primary-role';
-const ACTIVE_ROLE_KEY_PREFIX = 'gsm1921-active-role';
+// ── 只读视角 ─────────────────────────────────────
+const VIEW_ROLE_KEY = 'gsm1921-view-role';  // sessionStorage
 
-const ROLE_LABELS = _ROLE_LABELS;
+// ── 赋权记录 ─────────────────────────────────────
+const AUTH_RECORDS_KEY = 'gsm1921-auth-records';
 
-const MODULE_ROLES = {
-  workspace: ['secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner', 'leader', 'organizer', 'deep'],
-  party: ['secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'],
+// ── 权限表 ──────────────────────────────────────
+const ROLE_PERMISSIONS = {
+  'secretary':         ['view_all', 'create_activity', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'authorize_taskforce', 'authorize', 'archive', 'manage_members'],
+  'deputy-secretary':  ['view_all', 'create_activity', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'authorize_taskforce', 'authorize', 'archive', 'manage_members'],
+  'org-commissioner':  ['view_all', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'authorize_taskforce', 'archive'],
+  'prop-commissioner': ['view_all', 'manage_taskforce', 'initiate_taskforce', 'archive'],
+  'disc-commissioner': ['view_all', 'record_attendance', 'summarize_inspection', 'record_inspection', 'manage_taskforce', 'initiate_taskforce'],
+  'leader':            ['view_all', 'create_activity', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'assign_project_role'],
+  'participant':       ['view_public', 'record_inspection'],
 };
 
-const AUTHZ_CHAIN = {
-  'secretary': ['org-commissioner', 'prop-commissioner', 'disc-commissioner', 'leader', 'organizer', 'deep'],
-  'org-commissioner': ['prop-commissioner', 'disc-commissioner', 'organizer', 'deep'],
-  'prop-commissioner': ['org-commissioner', 'disc-commissioner'],
-  'disc-commissioner': ['org-commissioner', 'prop-commissioner'],
-  'leader': ['organizer', 'deep'],
-  'organizer': [],
-  'deep': [],
+const PROJECT_PERMISSIONS = {
+  'organizer': ['view_project', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'assign_project_role'],
+  'deep':       ['view_project', 'mark_complete'],
 };
-// NOTE: org-commissioner 和 leader 均包含 organizer/deep，
-//   但赋权域不同：leader → 活动域赋权；org-commissioner → 专班域赋权。
-//   当前扁平数据结构无法直接区分域，域判定需结合业务上下文
-//   （如 assignedRoles.activity 是否为空 → 专班域；非空 → 活动域）。
 
-// 站位选项：根据登录角色，返回可选的站位列表
-// 无登录态下，所有角色都可选（模拟党支书的全权限）
-// 有登录态后，根据实际角色限制可选站位
-function getStanceOptions() {
-  // 打桩：无登录态，返回所有角色
-  // 未来：根据 LOGIN_STANCE 限制
-  if (LOGIN_STANCE === 'secretary') {
-    return ['secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner', 'leader', 'organizer', 'deep'];
+// ── 赋权链 ──────────────────────────────────────
+// 统一记录"谁可以赋权什么角色"，由 authorize() 的 context 参数区分:
+//   context 为空 → 常设角色赋权（系统级，如支委赋权组长）
+//   context = { projectId } → 项目角色指派（项目级，如组长指派组织者）
+// 注: 支委（书记/副书记/三委员）由配置文件预设，不在系统赋权范围内
+const AUTHORIZE_CHAIN = {
+  'secretary':         ['leader'],
+  'deputy-secretary':  ['leader'],
+  'org-commissioner':  ['organizer', 'deep'],
+  'leader':            ['organizer', 'deep'],
+  'organizer':         ['deep'],
+};
+
+// ── 只读可查看视角（比赋权链范围更宽） ────────────
+const VIEWABLE_ROLES = {
+  'secretary':         ['leader', 'org-commissioner', 'prop-commissioner', 'disc-commissioner', 'organizer', 'deep'],
+  'deputy-secretary':  ['leader', 'org-commissioner', 'prop-commissioner', 'disc-commissioner', 'organizer', 'deep'],
+  'org-commissioner':  ['organizer', 'deep'],
+  'prop-commissioner': ['organizer', 'deep'],
+  'disc-commissioner': ['organizer', 'deep'],
+  'leader':            ['organizer', 'deep'],
+};
+
+// ── 角色到页面映射 ──────────────────────────────
+const ROLE_PAGE_MAP = {
+  workspace: {
+    'secretary':         'secretary.html',
+    'deputy-secretary':  'secretary.html',
+    'org-commissioner':  'org.html',
+    'prop-commissioner': 'prop.html',
+    'disc-commissioner': 'disc.html',
+    'leader':            'leader.html',
+    'participant':       'visitor.html',
+  },
+  party: {
+    'secretary':         'secretary.html',
+    'deputy-secretary':  'secretary.html',
+    'org-commissioner':  'org.html',
+    'prop-commissioner': 'prop.html',
+    'disc-commissioner': 'disc.html',
+    // leader / participant 无 party 页面
+  },
+};
+
+// ── 常设角色集合 ────────────────────────────────
+const COMMISSIONER_ROLES = new Set([
+  'secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'
+]);
+
+// ── 获取用户的常设角色 ──────────────────────────
+// 优先级: 赋权记录 > mock 数据
+function _getUserRoleFromMemory(userId) {
+  // 1. 检查赋权记录（组长由支委赋权）
+  const records = _getAuthRecords();
+  const leaderRecord = records.find(r => r.targetUserId === userId && r.role === 'leader');
+  if (leaderRecord) return 'leader';
+
+  // 2. 检查 mock 数据（新格式: role 单一值）
+  const person = PEOPLE.find(p => p.id === userId);
+  if (person && person.role) return person.role;
+
+  return 'participant';
+}
+
+// ── 获取用户在项目中的项目角色 ──────────────────
+function _getProjectRole(userId, projectId) {
+  // 1. 先查活动 assignments
+  const activity = ACTIVITIES.find(a => a.id === projectId);
+  if (activity && Array.isArray(activity.assignments)) {
+    const rec = activity.assignments.find(a => a.personId === userId);
+    if (rec) return rec.role;  // 'organizer' | 'deep'
   }
-  // 打桩：其他登录角色的站位限制
-  if (['org-commissioner', 'prop-commissioner', 'disc-commissioner'].includes(LOGIN_STANCE)) {
-    return [LOGIN_STANCE]; // 支委只能站自己的位
+
+  // 2. 再查专班 members
+  const tf = MOCK_TASKFORCES.find(t => t.id === projectId);
+  if (tf && Array.isArray(tf.members)) {
+    const m = tf.members.find(m => m.personId === userId);
+    if (m) return m.role;  // 'organizer' | 'deep' | 'participant'
   }
-  if (LOGIN_STANCE === 'leader') {
-    return [LOGIN_STANCE]; // 组长只能站自己的位
-  }
-  return [LOGIN_STANCE]; // 其他角色只能站自己的位
+
+  return null;
 }
 
-// 视图选项：根据当前站位，返回在指定模块中可查看的身份视图
-function getViewOptions(stance, module) {
-  const moduleRoles = MODULE_ROLES[module] || [];
-  if (!stance) return moduleRoles;
-
-  // 站位=党支书：可看所有
-  if (stance === 'secretary') return moduleRoles;
-
-  // 站位=支委：可看自身+赋权下游
-  const downstream = AUTHZ_CHAIN[stance] || [];
-  return moduleRoles.filter(r => r === stance || downstream.includes(r));
+// ── 赋权记录存储 ──────────────────────────────
+function _getAuthRecords() {
+  try {
+    const raw = localStorage.getItem(AUTH_RECORDS_KEY);
+    return raw ? JSON.parse(raw) : _defaultAuthRecords();
+  } catch { return _defaultAuthRecords(); }
 }
 
-// 模式推导：根据站位和视图自动决定模式
-function deriveMode(stance, view) {
-  if (!stance || !view) return 'observe';
-  if (stance === view) return 'manage';
-  const downstream = AUTHZ_CHAIN[stance] || [];
-  if (downstream.includes(view)) return 'manager-observe';
-  return 'participant-observe';
+function _saveAuthRecords(records) {
+  try { localStorage.setItem(AUTH_RECORDS_KEY, JSON.stringify(records)); } catch {}
 }
 
-function _defaultAuth() {
-  return {
-    'leader':             { authorizedBy: 'secretary', authorizedAt: '2026-01-10' },
-    'org-commissioner':   { authorizedBy: 'secretary', authorizedAt: '2026-01-15' },
-    'prop-commissioner':  { authorizedBy: 'secretary', authorizedAt: '2026-01-15' },
-    'disc-commissioner':  { authorizedBy: 'secretary', authorizedAt: '2026-01-15' },
-    'organizer':          { authorizedBy: 'leader',    authorizedAt: '2026-02-10' },
-    'deep':               { authorizedBy: 'leader',    authorizedAt: '2026-03-01' },
-    'secretary':          { approved: 'self' },
-  };
+function _defaultAuthRecords() {
+  return [
+    { id: 'auth-001', targetUserId: 'p1',  role: 'leader', authorizedBy: 'p13', authorizedAt: '2026-01-10' },
+    { id: 'auth-002', targetUserId: 'p2',  role: 'leader', authorizedBy: 'p13', authorizedAt: '2026-01-10' },
+    { id: 'auth-003', targetUserId: 'p4',  role: 'leader', authorizedBy: 'p13', authorizedAt: '2026-01-15' },
+  ];
 }
 
-// 赋权记录 key（细粒度：personId + role + scope）
-const AUTH_RECORDS_KEY = 'gsm1921-auth-grants';
-
+// ════════════════════════════════════════════════
+// AuthStore API
+// ════════════════════════════════════════════════
 export const AuthStore = {
-  getRecords() {
-    try { const raw = localStorage.getItem(AUTH_KEY); return raw ? JSON.parse(raw) : _defaultAuth(); }
-    catch { return _defaultAuth(); }
+  /**
+   * 登录（Mock 校验）
+   * @param {string} userId
+   */
+  login(userId) {
+    const role = _getUserRoleFromMemory(userId);
+    const data = { userId, role };
+    try { localStorage.setItem(LOGIN_KEY, JSON.stringify(data)); } catch {}
   },
 
-  // ── 细粒度赋权记录 API（P0-4） ──────────────────────────────
-
   /**
-   * 获取所有细粒度赋权记录
-   * @returns {Array<{id:string, targetUserId:string, role:string, scope:string, scopeRef:string|null, authorizedBy:string, authorizedAt:string}>}
+   * 开发模式直接登录（选身份）
+   * @param {string} role
    */
-  getAuthState() {
+  devLogin(role) {
+    // 找到该角色的第一个 mock 用户
+    const person = PEOPLE.find(p => p.role === role);
+    const userId = person ? person.id : 'p5';
+    const data = { userId, role };
+    try { localStorage.setItem(LOGIN_KEY, JSON.stringify(data)); } catch {}
+  },
+
+  logout() {
     try {
-      const raw = localStorage.getItem(AUTH_RECORDS_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch { return []; }
+      localStorage.removeItem(LOGIN_KEY);
+      sessionStorage.removeItem(VIEW_ROLE_KEY);
+    } catch {}
   },
 
   /**
-   * 赋权：为指定人员赋予角色
-   * @param {string} targetUserId - 被赋权人员 ID（如 'p3'）
-   * @param {string} role - 角色：'organizer' | 'deep'
-   * @param {string} scope - 赋权范围：'activity' | 'taskforce'
-   * @param {string|null} scopeRef - 关联活动/专班 ID
-   * @returns {{ ok:boolean, id:string }}
+   * 获取当前登录用户
+   * @returns {{ userId: string, role: string } | null}
    */
-  authorize(targetUserId, role, scope, scopeRef = null) {
-    if (!targetUserId || !role || !scope) return { ok: false, id: '' };
-    // 书记可赋权角色限制
-    const allowedRoles = ['organizer', 'deep'];
-    if (!allowedRoles.includes(role)) return { ok: false, id: '' };
-    // scope 限制
-    const allowedScopes = ['activity', 'taskforce'];
-    if (!allowedScopes.includes(scope)) return { ok: false, id: '' };
+  getCurrentUser() {
+    try {
+      const raw = localStorage.getItem(LOGIN_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  },
 
-    const records = this.getAuthState();
-    // 查重：同一人 + 同角色 + 同范围 + 同关联对象 → 不重复赋权
+  /**
+   * 获取用户的常设角色
+   */
+  getUserRole(userId) {
+    return _getUserRoleFromMemory(userId);
+  },
+
+  /**
+   * 获取用户在项目内的项目角色
+   */
+  getProjectRole(userId, projectId) {
+    return _getProjectRole(userId, projectId);
+  },
+
+  /**
+   * 统一权限判定
+   * @param {string} userId
+   * @param {string} action - 权限名（如 'create_activity'）
+   * @param {{ projectId?: string }} context - 项目上下文
+   * @returns {boolean}
+   */
+  canDo(userId, action, context = {}) {
+    const userRole = _getUserRoleFromMemory(userId);
+    const perms = ROLE_PERMISSIONS[userRole] || [];
+
+    // 全局权限判定
+    if (perms.includes(action)) return true;
+    if (perms.includes('view_all') && action.startsWith('view_')) return true;
+
+    // 项目上下文: 常设 + 项目角色取并集
+    if (context.projectId) {
+      const projectRole = _getProjectRole(userId, context.projectId);
+      if (projectRole) {
+        const projectPerms = PROJECT_PERMISSIONS[projectRole] || [];
+        if (projectPerms.includes(action)) return true;
+        if (projectPerms.includes('view_project') && action.startsWith('view_')) return true;
+      }
+    }
+
+    return false;
+  },
+
+  /**
+   * 赋权
+   * @param {string} authorizerId - 授权人 ID
+   * @param {string} targetUserId - 被赋权人 ID
+   * @param {string} role - 角色
+   * @param {{ projectId?: string }} context
+   * @returns {{ ok: boolean, id: string }}
+   */
+  authorize(authorizerId, targetUserId, role, context = {}) {
+    if (!authorizerId || !targetUserId || !role) return { ok: false, id: '' };
+
+    // 校验: 授权人是否有权赋权该角色
+    const authorizerRole = _getUserRoleFromMemory(authorizerId);
+    const allowedRoles = AUTHORIZE_CHAIN[authorizerRole] || [];
+    if (!allowedRoles.includes(role)) return { ok: false, id: '' };
+
+    const records = _getAuthRecords();
+    // 查重
+    const scopeRef = context.projectId || null;
     const duplicate = records.find(r =>
       r.targetUserId === targetUserId &&
       r.role === role &&
-      r.scope === scope &&
-      (r.scopeRef || null) === (scopeRef || null)
+      (r.scopeRef || null) === scopeRef
     );
     if (duplicate) return { ok: false, id: duplicate.id };
 
     const id = 'auth-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
-    const record = {
+    records.push({
       id,
       targetUserId,
       role,
-      scope,
-      scopeRef: scopeRef || null,
-      authorizedBy: LOGIN_STANCE,
+      scopeRef,
+      authorizedBy: authorizerId,
       authorizedAt: new Date().toISOString().slice(0, 10),
-    };
-    records.push(record);
-    try { localStorage.setItem(AUTH_RECORDS_KEY, JSON.stringify(records)); } catch {}
+    });
+    _saveAuthRecords(records);
     return { ok: true, id };
   },
 
-  /**
-   * 撤销赋权
-   * @param {string} recordId - 赋权记录 ID
-   * @returns {boolean}
-   */
   revokeAuthorization(recordId) {
     if (!recordId) return false;
-    const records = this.getAuthState();
+    const records = _getAuthRecords();
     const idx = records.findIndex(r => r.id === recordId);
     if (idx === -1) return false;
     records.splice(idx, 1);
-    try { localStorage.setItem(AUTH_RECORDS_KEY, JSON.stringify(records)); } catch {}
+    _saveAuthRecords(records);
     return true;
   },
 
-  isAuthorized(role) {
-    if (!role) return false;
-    if (role === 'secretary') return true;
-    const records = this.getRecords();
-    const record = records[role];
-    return !!(record && (record.authorizedBy || record.approved));
+  getAuthorizations() {
+    return _getAuthRecords();
   },
 
-  getAuthorizer(role) {
-    const records = this.getRecords();
-    return records[role]?.authorizedBy || null;
+  // ── 只读视角切换 ──────────────────────────────
+
+  switchView(targetRole) {
+    try { sessionStorage.setItem(VIEW_ROLE_KEY, targetRole); } catch {}
   },
 
-  getPrimaryRole() {
-    try { return sessionStorage.getItem(PRIMARY_ROLE_KEY) || ''; } catch { return ''; }
+  clearView() {
+    try { sessionStorage.removeItem(VIEW_ROLE_KEY); } catch {}
   },
 
-  setPrimaryRole(role) {
-    try { sessionStorage.setItem(PRIMARY_ROLE_KEY, role || ''); } catch {}
+  getViewRole() {
+    try { return sessionStorage.getItem(VIEW_ROLE_KEY) || ''; } catch { return ''; }
   },
 
-  getActiveRole(module) {
-    try { return sessionStorage.getItem(`${ACTIVE_ROLE_KEY_PREFIX}-${module}`) || ''; } catch { return ''; }
-  },
-
-  setActiveRole(module, role) {
-    try { sessionStorage.setItem(`${ACTIVE_ROLE_KEY_PREFIX}-${module}`, role || ''); } catch {}
-  },
-
-  getVisibleRoles(primaryRole) {
-    if (!primaryRole) return [];
-    return AUTHZ_CHAIN[primaryRole] || [];
-  },
-
-  getViewCategory(primaryRole, activeRole) {
-    return deriveMode(primaryRole || LOGIN_STANCE, activeRole);
-  },
+  // ── 辅助方法 ────────────────────────────────
 
   getRoleLabel(role) {
     return ROLE_LABELS[role] || role;
   },
 
-  getModuleRoles(module) {
-    return MODULE_ROLES[module] || [];
+  getPageForRole(module, role) {
+    return (ROLE_PAGE_MAP[module] || {})[role] || null;
   },
 
-  getLoginStance() { return LOGIN_STANCE; },
-  getStanceOptions,
-  getViewOptions,
-  deriveMode,
+  getViewableRoles(role) {
+    return VIEWABLE_ROLES[role] || [];
+  },
+
+  isCommissioner(role) {
+    return COMMISSIONER_ROLES.has(role);
+  },
 };
 
-export const ViewModeStore = {
-  getMode(module) {
-    try { return sessionStorage.getItem(`${VIEW_MODE_KEY}-${module}`) || 'observe'; }
-    catch { return 'observe'; }
+// ════════════════════════════════════════════════
+// PermissionManager（兼容层）
+// ════════════════════════════════════════════════
+export const PermissionManager = {
+  /**
+   * 获取可切换的只读视角列表
+   */
+  getSwitchableViews(userId) {
+    const role = _getUserRoleFromMemory(userId);
+    return VIEWABLE_ROLES[role] || [];
   },
 
-  setMode(module, mode) {
-    try { sessionStorage.setItem(`${VIEW_MODE_KEY}-${module}`, mode); } catch {}
+  /**
+   * 当前是否处于只读视角
+   */
+  isReadOnly() {
+    return !!AuthStore.getViewRole();
   },
 
-  canManage(module, role) {
-    if (!role) return false;
-    if (role === 'secretary') return true;
-    if (role === 'leader') return true;
-    const partyRoles = ['org-commissioner', 'prop-commissioner', 'disc-commissioner'];
-    if (partyRoles.includes(role)) return true;
-    return AuthStore.isAuthorized(role);
+  // ── 兼容旧 API（过渡期保留，后续删除）──────────
+  /** @deprecated 使用 AuthStore.canDo() 替代 */
+  canManage(role) {
+    return AuthStore.isCommissioner(role) || role === 'leader';
   },
-
+  /** @deprecated 使用 AuthStore.canDo() 替代 */
   canWriteActivity(role) {
-    if (!role) return false;
-    return role === 'secretary' || role === 'leader';
+    return role === 'secretary' || role === 'deputy-secretary' || role === 'leader';
   },
-
+  /** @deprecated 使用 AuthStore.canDo() 替代 */
   canRecruitTaskForce(role) {
-    if (!role) return false;
-    return role === 'secretary' || role === 'org-commissioner';
+    return role === 'secretary' || role === 'deputy-secretary' || role === 'org-commissioner';
   },
-
+  /** @deprecated 使用 AuthStore.canDo() 替代 */
   canAuthorize(role) {
-    if (!role) return false;
-    return role === 'secretary' || role === 'leader' || role === 'org-commissioner';
+    return role === 'secretary' || role === 'deputy-secretary' || role === 'leader' || role === 'org-commissioner';
   },
-
+  /** @deprecated 使用 AuthStore.canDo() 替代 */
   canInitiateTaskForce(role) {
-    if (!role) return false;
-    const initiators = ['secretary', 'leader', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'];
-    return initiators.includes(role);
-  },
-
-  getViewCategory(module) {
-    const primary = AuthStore.getPrimaryRole();
-    const active = AuthStore.getActiveRole(module);
-    return AuthStore.getViewCategory(primary, active);
-  },
-
-  isReadOnly(module) {
-    const category = this.getViewCategory(module);
-    return category !== 'manage' || this.getMode(module) === 'observe';
+    return AuthStore.isCommissioner(role);
   },
 };
 
-export { ROLE_LABELS, MODULE_ROLES, AUTHZ_CHAIN };
+// ════════════════════════════════════════════════
+// ViewModeStore — 已废弃，保留空壳避免 import 报错
+// ════════════════════════════════════════════════
+export const ViewModeStore = {
+  /** @deprecated 权限系统重构后不再有 mode 概念 */
+  getMode() { return 'manage'; },
+  /** @deprecated */
+  setMode() {},
+  /** @deprecated 使用 PermissionManager.isReadOnly() 替代 */
+  isReadOnly() { return PermissionManager.isReadOnly(); },
+};
