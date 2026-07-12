@@ -44,8 +44,8 @@ const PROJECT_PERMISSIONS = {
 //   context = { projectId } → 项目角色指派（项目级，如组长指派组织者）
 // 注: 支委（书记/副书记/三委员）由配置文件预设，不在系统赋权范围内
 const AUTHORIZE_CHAIN = {
-  'secretary':         ['leader'],
-  'deputy-secretary':  ['leader'],
+  'secretary':         ['leader', 'organizer', 'deep'],
+  'deputy-secretary':  ['leader', 'organizer', 'deep'],
   'org-commissioner':  ['organizer', 'deep'],
   'leader':            ['organizer', 'deep'],
   'organizer':         ['deep'],
