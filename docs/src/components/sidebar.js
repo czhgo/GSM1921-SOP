@@ -1,9 +1,13 @@
 // role: [工程师]+[AI]
 // components/sidebar.js — 共享侧边栏（重构版）
 // 变化: 去掉身份卡片区块，模块切换改为自动跳转到角色子页面
+// 第3轮 Task 7: 订阅 view-role-change 事件，re-render 链接（不 reload）
 
 import { AuthStore } from '../services/auth.js';
 import { getBasePath } from '../core/utils.js';
+
+// 记录当前 activeModule，供 view-role-change 事件触发 re-render 使用
+let _lastActiveModule = null;
 
 function getNavItems() {
   const base = getBasePath();
@@ -19,6 +23,7 @@ function getNavItems() {
 }
 
 export function renderSidebar(activeModule) {
+  _lastActiveModule = activeModule;
   const sidebar = document.getElementById('app-sidebar');
   if (!sidebar) return;
 
@@ -83,3 +88,11 @@ function _bindLogout(sidebar) {
     window.location.href = getBasePath() + 'login.html';
   });
 }
+
+// ── 订阅 view-role-change 事件，重新渲染链接（不 reload） ───
+// 当 header 切换视角后派发此事件，sidebar 同步更新各模块跳转目标
+document.addEventListener('view-role-change', () => {
+  if (_lastActiveModule !== null) {
+    renderSidebar(_lastActiveModule);
+  }
+});
