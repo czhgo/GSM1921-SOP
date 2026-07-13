@@ -1,86 +1,64 @@
-// role: [人机]
-// ════════════════════════════════════════════════════════════════
-//  bootstrap.js — 页面初始化统一入口
-// ════════════════════════════════════════════════════════════════
+// role: [工程师]+[AI]
+// bootstrap.js — 页面初始化统一入口（重构版）
+// 变化: 去掉 ViewModeStore/CrossPageState/setActiveRole，改为基于 getCurrentUser() 的登录检查
+// 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 
 import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';
-import { CrossPageState } from './cross-page-state.js';
-import { ViewModeStore, AuthStore } from '../services/auth.js';
+import { AuthStore } from '../services/auth.js';
 import { getAccentColors } from './constants.js';
+import { CrossPageState } from './cross-page-state.js';
+
+// ════════════════════════════════════════════════════════════════
+// 安全最佳实践：开发绕过白名单（security-best-practices Skill 指导）
+// ════════════════════════════════════════════════════════════════
+// ?dev=ROLE 是本地开发便捷绕过登录的机制，生产环境必须拒绝。
+// 防护两层：(1) hostname 必须是本地回环；(2) ROLE 必须在白名单内。
+const DEV_HOSTNAME_WHITELIST = new Set(['localhost', '127.0.0.1', '::1']);
+const DEV_ROLE_WHITELIST = new Set([
+  'secretary', 'deputy-secretary',
+  'org-commissioner', 'prop-commissioner', 'disc-commissioner',
+  'leader', 'participant',
+]);
 
 /**
- * 页面初始化统一入口
- *
- * 将 18 个 entry 中重复的 renderSidebar → renderHeader → CrossPageState →
- * AuthStore → ViewModeStore → getAccentColors 序列收敛为一处。
+ * 页面初始化统一入口（重构版）
  *
  * @param {Object} opts
- * @param {string} opts.module          — 模块名：'workspace' | 'party' | 'dashboard' | 'archive' | 'search' | 'feedback'
- * @param {string} [opts.defaultRole]   — 默认角色键名（无角色系统时省略）
- * @param {string} [opts.viewMode]      — 视图模式：'manage' | 'participant-observe' | 'auto'
- *                                        'auto' 时根据 URL 参数判断（仅 ws-disc-commissioner 使用）
+ * @param {string} opts.module          — 模块名：'workspace' | 'party' | 'dashboard' | 'members' | 'archive' | 'search' | 'feedback'
  * @param {string} [opts.accentRole]    — 强调色角色键名（省略则不获取 accent 三件套）
- * @param {number[]} [opts.accentAlpha] — 自定义透明度 [bgAlpha, borderAlpha]（仅 party-secretary 使用）
+ * @param {number[]} [opts.accentAlpha] — 自定义透明度 [bgAlpha, borderAlpha]
  *
  * @returns {{
- *   savedState: Object,
+ *   user: { userId: string, role: string } | null,
  *   accent: string|undefined,
  *   accentRgba: string|undefined,
- *   accentBorder: string|undefined,
- *   viewMode: string|undefined
+ *   accentBorder: string|undefined
  * }}
  */
-export function bootstrapPage({ module, defaultRole, viewMode, accentRole, accentAlpha }) {
-  // 1. 注册一次性监听器，捕获 sidebar 恢复的角色和模式
-  let restoredRole = null;
-  let restoredMode = null;
-  document.addEventListener('sidebar:view-restore', (e) => {
-    if (e.detail.module === module) {
-      restoredRole = e.detail.role;
-      restoredMode = e.detail.mode;
+export function bootstrapPage({ module, accentRole, accentAlpha }) {
+  // 登录检查
+  const user = AuthStore.getCurrentUser();
+  if (!user) {
+    // 开发绕过：?dev=ROLE 仅在本地 hostname + 白名单角色时生效
+    const devRole = CrossPageState.getParam('dev');
+    const isLocalHost = DEV_HOSTNAME_WHITELIST.has(window.location.hostname);
+    if (devRole && isLocalHost && DEV_ROLE_WHITELIST.has(devRole)) {
+      AuthStore.devLogin(devRole);
+      window.location.reload();
+      return { user: null };
     }
-  }, { once: true });
+    const base = window.location.pathname.includes('/workspace/') || window.location.pathname.includes('/party/')
+      ? '../' : './';
+    window.location.href = base + 'login.html';
+    return { user: null };
+  }
 
-  // 2. 渲染侧边栏（会触发 sidebar:view-restore 事件，被上面的监听器捕获）
+  // 渲染侧边栏 + 顶栏
   renderSidebar(module);
-
-  // 3. 无角色系统的页面（archive/search/feedback）到此结束
-  if (!defaultRole) {
-    renderHeader(module);
-    return { savedState: {}, viewMode: undefined, accent: undefined, accentRgba: undefined, accentBorder: undefined };
-  }
-
-  // 4. 跨页状态恢复
-  const savedState = CrossPageState.load();
-
-  // 5. 角色设定（优先使用 sidebar 恢复的角色）
-  const effectiveRole = restoredRole || savedState.selectedRole || defaultRole;
-  AuthStore.setActiveRole(module, effectiveRole);
-  if (savedState.stance) {
-    AuthStore.setPrimaryRole(savedState.stance);
-  }
-
-  // 6. 视图模式
-  let resolvedViewMode = viewMode;
-  if (viewMode === 'auto') {
-    // 仅 ws-disc-commissioner 使用：根据 URL 参数判断
-    const urlParams = CrossPageState.getURLParams();
-    const fromHomepage = !!urlParams.activityId || urlParams.mode === 'readonly';
-    resolvedViewMode = fromHomepage ? 'participant-observe' : 'manage';
-  }
-  // 如果没有显式 viewMode 且 sidebar 恢复了模式，使用恢复的模式
-  if (!resolvedViewMode && restoredMode) {
-    resolvedViewMode = restoredMode;
-  }
-  if (resolvedViewMode && resolvedViewMode !== 'auto') {
-    ViewModeStore.setMode(module, resolvedViewMode);
-  }
-
-  // 7. 渲染头部（在角色/模式设定完成之后，确保头部使用正确的角色和模式）
   renderHeader(module);
 
-  // 8. 强调色
+  // 强调色
   let accent, accentRgba, accentBorder;
   if (accentRole) {
     if (accentAlpha) {
@@ -90,5 +68,5 @@ export function bootstrapPage({ module, defaultRole, viewMode, accentRole, accen
     }
   }
 
-  return { savedState, viewMode: resolvedViewMode, accent, accentRgba, accentBorder };
+  return { user, accent, accentRgba, accentBorder };
 }
