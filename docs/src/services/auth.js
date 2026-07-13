@@ -104,14 +104,23 @@ function _getUserRoleFromMemory(userId) {
 
 // ── 获取用户在项目中的项目角色 ──────────────────
 function _getProjectRole(userId, projectId) {
-  // 1. 先查活动 assignments
+  // 0. 优先查 auth records（运行时赋权记录）
+  const records = _getAuthRecords();
+  const authRec = records.find(r =>
+    r.targetUserId === userId &&
+    r.role && ['organizer', 'deep'].includes(r.role) &&
+    r.scopeRef === projectId
+  );
+  if (authRec) return authRec.role;
+
+  // 1. 再查活动 assignments（mock 数据）
   const activity = ACTIVITIES.find(a => a.id === projectId);
   if (activity && Array.isArray(activity.assignments)) {
     const rec = activity.assignments.find(a => a.personId === userId);
     if (rec) return rec.role;  // 'organizer' | 'deep'
   }
 
-  // 2. 再查专班 members
+  // 2. 再查专班 members（mock 数据）
   const tf = MOCK_TASKFORCES.find(t => t.id === projectId);
   if (tf && Array.isArray(tf.members)) {
     const m = tf.members.find(m => m.personId === userId);
