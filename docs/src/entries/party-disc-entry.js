@@ -4,7 +4,7 @@ import { PartyModule } from '../modules/party.js';
 import { loadPartyData } from '../core/data-loader.js';
 import { renderTabBar } from '../components/tab-bar.js';
 
-const { savedState, accent, accentRgba, accentBorder } = bootstrapPage({ module: 'party', defaultRole: 'disc-commissioner', viewMode: 'manage', accentRole: 'disc-commissioner' });
+const { accent, accentRgba, accentBorder } = bootstrapPage({ module: 'party', accentRole: 'disc-commissioner' });
 
 function renderDiscPartyUI() {
   const container = document.getElementById('disc-party-content');
@@ -30,10 +30,10 @@ function _renderTab(tab) {
   if (!tc) return;
 
   if (tab === 'makeup') {
-    tc.innerHTML = `<div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#D97706;"><h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">补课制度</h4><div id="inspector-makeup-list"><p class="text-xs text-gray-400">数据加载中...</p></div></div>`;
+    tc.innerHTML = `<div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;"><h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">补课制度</h4><div id="disc-commissioner-makeup-list"><p class="text-xs text-gray-400">数据加载中...</p></div></div>`;
     setTimeout(() => PartyModule.refreshMakeupStatus(), 100);
   } else if (tab === 'mailbox') {
-    tc.innerHTML = `<div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#D97706;"><h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">公邮管理</h4><div id="inspector-mailbox-info"><p class="text-xs text-gray-400">数据加载中...</p></div></div>`;
+    tc.innerHTML = `<div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;"><h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">公邮管理</h4><div id="disc-commissioner-mailbox-info"><p class="text-xs text-gray-400">数据加载中...</p></div></div>`;
     setTimeout(() => PartyModule.refreshMailboxReminder(), 100);
   }
 }

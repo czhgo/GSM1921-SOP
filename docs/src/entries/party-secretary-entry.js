@@ -5,7 +5,7 @@ import { showToast } from '../core/utils.js';
 import { loadPartyData } from '../core/data-loader.js';
 import { renderTabBar } from '../components/tab-bar.js';
 
-const { savedState, accent, accentRgba, accentBorder } = bootstrapPage({ module: 'party', defaultRole: 'secretary', viewMode: 'manage', accentRole: 'secretary', accentAlpha: [0.08, 0.2] });
+const { accent, accentRgba, accentBorder } = bootstrapPage({ module: 'party', accentRole: 'secretary', accentAlpha: [0.08, 0.2] });
 
 function renderSecPartyUI() {
   const container = document.getElementById('sec-party-content');
@@ -36,7 +36,7 @@ function _renderTab(tab) {
     setTimeout(() => PartyModule.refreshSecretaryAggregateView(), 100);
   } else if (tab === 'batch') {
     tc.innerHTML = `
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#7A0010;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#B91C1C;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">批量操作</h4>
         <div class="flex gap-3 mb-3">
           <button id="btn-batch-remind" class="text-xs px-3 py-2 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors" style="cursor:pointer;">批量催缴</button>
@@ -51,7 +51,7 @@ function _renderTab(tab) {
     tc.querySelector('#btn-batch-export')?.addEventListener('click', () => showToast('success', '数据导出完成'));
   } else if (tab === 'feedback') {
     tc.innerHTML = `
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#7A0010;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#B91C1C;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">意见反馈数据集</h4>
         <div class="grid grid-cols-3 gap-3 mb-4">
           <div class="text-center p-3 rounded-lg bg-amber-50"><p class="text-lg font-bold text-amber-600" id="sec-fb-pending">—</p><p class="text-[10px] text-gray-500">待处理</p></div>

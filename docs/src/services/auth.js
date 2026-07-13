@@ -193,6 +193,17 @@ export const AuthStore = {
   },
 
   /**
+   * 获取用户的有效角色（只读视角优先，回退常设角色）
+   * 用途：sidebar/header 等组件根据有效角色决定跳转目标
+   * @param {string} userId
+   * @returns {string} 角色 ID
+   */
+  getEffectiveRole(userId) {
+    const viewRole = this.getViewRole();
+    return viewRole || this.getUserRole(userId);
+  },
+
+  /**
    * 获取用户在项目内的项目角色
    */
   getProjectRole(userId, projectId) {

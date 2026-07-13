@@ -7,11 +7,10 @@ import { NoticeStore } from '../services/notice.js';
 import { ACTIVITIES, _personName } from '../mock/index.js';
 import { loadAttendanceRecords } from '../services/attendance.js';
 import { getActivityTypeColors } from '../core/constants.js';
-import { ViewModeStore } from '../services/auth.js';
 import { renderTabBar } from '../components/tab-bar.js';
 import { renderQueryView } from '../components/query-view.js';
 
-const { savedState } = bootstrapPage({ module: 'workspace', defaultRole: 'all', viewMode: 'participant-observe' });
+bootstrapPage({ module: 'workspace', accentRole: 'participant' });
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -45,28 +44,12 @@ function renderVisitorUI(state) {
     renderCtx: { activities, activeTf, highlightId },
   });
 
-  const currentMode = ViewModeStore.getMode('workspace');
-  const isReadonly = currentMode === 'participant-observe' || currentMode === 'manager-observe' || currentMode === 'observe';
   container.innerHTML = `
-    ${isReadonly ? '<div class="card rounded-2xl p-4 mb-6 border border-amber-200 bg-amber-50/30"><p class="text-xs text-amber-700">您当前处于只读模式。如需进入管理模式，请从侧边栏选择角色。</p></div>' : ''}
     ${tabBar.html}
   `;
 
   tabBar.bindEvents(container);
   tabBar.activate('activities');
-
-  document.addEventListener('permission:role-select', () => {
-    const mode = ViewModeStore.getMode('workspace');
-    const banner = container.querySelector('.border-amber-200');
-    if (mode === 'manage' && banner) {
-      banner.remove();
-    } else if (mode !== 'manage' && !banner) {
-      const newBanner = document.createElement('div');
-      newBanner.className = 'card rounded-2xl p-4 mb-6 border border-amber-200 bg-amber-50/30';
-      newBanner.innerHTML = '<p class="text-xs text-amber-700">您当前处于只读模式。如需进入管理模式，请从侧边栏选择角色。</p>';
-      container.insertBefore(newBanner, container.firstChild);
-    }
-  });
 }
 
 function _renderActivities(activities, highlightId) {

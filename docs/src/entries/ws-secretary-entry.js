@@ -14,7 +14,7 @@ import { FeedbackStore } from '../services/feedback.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { renderQueryView } from '../components/query-view.js';
 
-const { savedState } = bootstrapPage({ module: 'workspace', defaultRole: 'secretary', viewMode: 'manage' });
+bootstrapPage({ module: 'workspace' });
 
 function renderSecretaryUI(state) {
   const activities = state.activities || [];
@@ -41,7 +41,7 @@ function renderSecretaryUI(state) {
       { label: '已赋权记录', value: stats.authGranted, color: '#7C3AED' },
     ];
     statsEl.innerHTML = items.map(s => `
-      <div class="card rounded-xl p-4 flex items-center gap-3">
+      <div class="flex-1 card rounded-xl p-4 flex items-center gap-3">
         <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:${s.color}15;">
           <span class="text-lg font-bold" style="color:${s.color};">${s.value}</span>
         </div>
@@ -67,7 +67,7 @@ function renderSecretaryUI(state) {
     filterBtn.id = 'brand-filter-btn';
     filterBtn.className = 'font-stheiti text-xs px-3 py-1.5 rounded-lg transition-colors mb-3';
     filterBtn.style.cssText = filterBrand
-      ? 'background:rgba(234,179,8,0.15);color:#B45309;border:1px solid rgba(234,179,8,0.40);'
+      ? 'background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);'
       : 'background:rgba(156,163,175,0.10);color:#6B7280;border:1px solid rgba(156,163,175,0.30);';
     filterBtn.textContent = filterBrand ? '★ 品牌活动（筛选中）' : '☆ 品牌活动';
     filterBtn.addEventListener('click', () => {
@@ -77,7 +77,7 @@ function renderSecretaryUI(state) {
   } else if (document.getElementById('brand-filter-btn')) {
     const filterBtn = document.getElementById('brand-filter-btn');
     filterBtn.style.cssText = filterBrand
-      ? 'background:rgba(234,179,8,0.15);color:#B45309;border:1px solid rgba(234,179,8,0.40);'
+      ? 'background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);'
       : 'background:rgba(156,163,175,0.10);color:#6B7280;border:1px solid rgba(156,163,175,0.30);';
     filterBtn.textContent = filterBrand ? '★ 品牌活动（筛选中）' : '☆ 品牌活动';
   }
@@ -87,7 +87,7 @@ function renderSecretaryUI(state) {
   if (!querySection) {
     querySection = document.createElement('div');
     querySection.id = 'secretary-query-view';
-    querySection.className = 'card rounded-2xl p-6 mb-6';
+    querySection.className = 'card rounded-xl p-6 mb-6';
     querySection.innerHTML = '<h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">活动查询</h3><div id="secretary-query-container"></div>';
     const calendarEl = document.getElementById('secretary-calendar');
     if (calendarEl) {
@@ -103,7 +103,7 @@ function renderSecretaryUI(state) {
       filters: [{ key: 'type', label: '活动类型', options: typeOptions }],
       data: displayActivities,
       renderRow: (a) => `
-        <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+        <div class="flex items-center justify-between p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
           <div class="flex-1 min-w-0">
             <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
             <div class="text-xs text-gray-500 mt-0.5">${a.date || ''}${a.type ? ' · ' + a.type : ''}</div>
@@ -112,7 +112,7 @@ function renderSecretaryUI(state) {
         </div>
       `,
       emptyMessage: '暂无匹配活动',
-      accentColor: '#7A0010',
+      accentColor: '#B91C1C',
     });
   }
 
@@ -162,7 +162,7 @@ function renderWritePanel(container) {
 
   // 已选路径摘要（step > 1 时显示）
   if (wp.step > 1) {
-    html += `<div class="mb-4 px-3 py-2 rounded-lg bg-gray-50 border border-gray-100">`;
+    html += `<div class="mb-4 px-3 py-2 rounded-lg bg-gray-100 border border-gray-100">`;
     html += `<p class="text-xs text-gray-500 mb-0.5">已选路径</p>`;
     html += `<p class="text-sm font-medium text-gray-700">${wp.getSelectionPath()}</p>`;
     html += `</div>`;
@@ -549,14 +549,14 @@ const authPanel = {
 
 /** 可赋权角色选项 */
 const AUTH_ROLE_OPTIONS = [
-  { value: 'organizer', label: '组织者', desc: '负责活动/专班的策划与执行统筹', color: '#3B82F6', bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.25)' },
-  { value: 'deep', label: '深度参与者', desc: '承担具体工作任务的骨干成员', color: '#059669', bg: 'rgba(5,150,105,0.08)', border: 'rgba(5,150,105,0.25)' },
+  { value: 'organizer', label: '组织者', desc: '负责活动/专班的策划与执行统筹', color: '#06B6D4', bg: 'rgba(6,182,212,0.08)', border: 'rgba(6,182,212,0.25)' },
+  { value: 'deep', label: '深度参与者', desc: '承担具体工作任务的骨干成员', color: '#10B981', bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.25)' },
 ];
 
 /** 赋权范围选项 */
 const AUTH_SCOPE_OPTIONS = [
-  { value: 'activity', label: '活动域', desc: '赋权范围覆盖指定活动', color: '#7C3AED' },
-  { value: 'taskforce', label: '专班域', desc: '赋权范围覆盖指定专班', color: '#B45309' },
+  { value: 'activity', label: '活动', desc: '赋权范围覆盖指定活动', color: '#7C3AED' },
+  { value: 'taskforce', label: '专班', desc: '赋权范围覆盖指定专班', color: '#B45309' },
 ];
 
 /** 切换赋权面板展开/收起 */
@@ -586,7 +586,7 @@ function renderAuthPanel(assignArea) {
 
   const panel = document.createElement('div');
   panel.id = 'auth-panel-container';
-  panel.className = 'bg-gray-50 rounded-2xl p-6 mt-4 border border-gray-100';
+  panel.className = 'bg-gray-100 rounded-xl p-6 mt-4 border border-gray-100';
 
   // ── 赋权表单 ──
   let html = '';
@@ -629,7 +629,7 @@ function renderAuthPanel(assignArea) {
   if (authPanel.scope === 'activity') {
     html += `<div class="mb-4">`;
     html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">关联活动 <span class="text-red-500">*</span></label>`;
-    html += `<select id="auth-scope-ref" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:border-red-300 focus:ring-1 focus:ring-red-200 outline-none transition-all bg-white">`;
+    html += `<select id="auth-scope-ref" class="input-flat text-xs w-full">`;
     html += `<option value="">请选择活动</option>`;
     ACTIVITIES.forEach(a => {
       const selected = authPanel.scopeRef === a.id ? ' selected' : '';
@@ -640,7 +640,7 @@ function renderAuthPanel(assignArea) {
   } else if (authPanel.scope === 'taskforce') {
     html += `<div class="mb-4">`;
     html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">关联专班 <span class="text-red-500">*</span></label>`;
-    html += `<select id="auth-scope-ref" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:border-red-300 focus:ring-1 focus:ring-red-200 outline-none transition-all bg-white">`;
+    html += `<select id="auth-scope-ref" class="input-flat text-xs w-full">`;
     html += `<option value="">请选择专班</option>`;
     MOCK_TASKFORCES.forEach(tf => {
       const selected = authPanel.scopeRef === tf.id ? ' selected' : '';
@@ -672,7 +672,7 @@ function renderAuthPanel(assignArea) {
     authPanel.personPicker = new PersonPicker({
       mode: 'single',
       placeholder: '选择被赋权同志',
-      accentColor: '#7A0010',
+      accentColor: '#B91C1C',
       onSelect: (ids) => {
         authPanel.selectedUserId = ids[0] || null;
       },
@@ -759,10 +759,10 @@ function handleConfirmAuth() {
 
   // 调用 AuthStore
   const result = AuthStore.authorize(
+    AuthStore.getCurrentUser()?.userId,
     authPanel.selectedUserId,
     authPanel.role,
-    authPanel.scope,
-    authPanel.scopeRef,
+    { projectId: authPanel.scopeRef },
   );
 
   if (result.ok) {
@@ -794,7 +794,7 @@ function renderAuthRecords() {
   const listEl = document.getElementById('auth-records-list');
   if (!listEl) return;
 
-  const records = AuthStore.getAuthState();
+  const records = AuthStore.getAuthorizations();
 
   if (records.length === 0) {
     listEl.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">暂无赋权记录</p>`;
@@ -805,7 +805,7 @@ function renderAuthRecords() {
     const person = PEOPLE.find(p => p.id === record.targetUserId);
     const personName = person ? person.name : record.targetUserId;
     const roleLabel = ROLE_LABELS[record.role] || record.role;
-    const scopeLabel = record.scope === 'activity' ? '活动域' : '专班域';
+    const scopeLabel = record.scope === 'activity' ? '活动' : '专班';
 
     // 关联对象名称
     let scopeRefName = '';
@@ -901,7 +901,7 @@ function renderFeedbackManagement() {
           : '';
 
         return `
-          <div class="p-3 rounded-xl bg-gray-50 border border-gray-100" data-fb-id="${f.id}">
+          <div class="p-3 rounded-xl bg-gray-100 border border-gray-100" data-fb-id="${f.id}">
             <div class="flex items-center justify-between mb-1.5">
               <span class="text-[10px] px-1.5 py-0.5 rounded-full ${cfg.bg} ${cfg.text} font-medium">${cfg.label}</span>
               <span class="text-[10px] text-gray-400">${scopeLabels[f.scope] || f.scope}${f.scenarioName ? ' · ' + f.scenarioName : ''}</span>

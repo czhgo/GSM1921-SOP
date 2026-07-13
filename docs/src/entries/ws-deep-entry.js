@@ -7,7 +7,7 @@ import { saveDB } from '../services/mock.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { renderTabBar } from '../components/tab-bar.js';
 
-const { savedState } = bootstrapPage({ module: 'workspace', defaultRole: 'deep', viewMode: 'manage' });
+const { accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', accentRole: 'deep' });
 
 // ── 经验沉淀数据层（mockDB） ────────────────────────────
 const DEEP_PERSON_ID = 'p5'; // 深度参与者 personId（模拟）
@@ -82,7 +82,7 @@ function renderDeepUI(state) {
       { id: 'activities', label: '关联活动', render: (ctx) => _renderActivitiesContent(ctx.filteredActivities) },
       { id: 'deposit', label: '经验沉淀', render: () => _renderDepositContent() },
     ],
-    accentColor: { accent: '#059669', accentRgba: 'rgba(5,150,105,0.1)', accentBorder: 'rgba(5,150,105,0.3)' },
+    accentColor: { accent, accentRgba, accentBorder },
     defaultTab: 'activities',
     renderCtx: { filteredActivities },
   });
@@ -98,7 +98,7 @@ function _renderActivitiesContent(filteredActivities) {
   if (!tc) return;
 
   tc.innerHTML = `
-    <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#059669;">
+    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-deep);">
       <div class="mb-4">
         <h3 class="font-title-cn text-base font-bold text-gray-800">关联活动</h3>
         <p class="text-xs text-gray-500 mt-1">深度参与者可更新关联活动的任务状态</p>
@@ -106,7 +106,7 @@ function _renderActivitiesContent(filteredActivities) {
       <div class="space-y-2">
         ${filteredActivities.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无关联活动</p>' :
           filteredActivities.map(a => `
-            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
               <div class="flex-1 min-w-0">
                 <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
                 <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
@@ -133,7 +133,7 @@ function _renderDepositContent() {
   tc.innerHTML = `
     <div class="space-y-4">
       <!-- 提交表单 -->
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#059669;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-deep);">
         <div class="flex items-center justify-between mb-4">
           <div>
             <h3 class="font-title-cn text-base font-bold text-gray-800">提交经验沉淀</h3>
@@ -174,7 +174,7 @@ function _renderDepositContent() {
       </div>
 
       <!-- 我的沉淀记录 -->
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#6B7280;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-deep-light);">
         <h3 class="font-title-cn text-base font-bold text-gray-800 mb-3">我的沉淀记录</h3>
         ${myDeposits.length === 0 ? '<p class="text-xs text-gray-400 text-center py-4">暂无沉淀记录</p>' : `
           <div class="space-y-2">
@@ -257,7 +257,7 @@ function _renderDepositCard(d) {
   const sourceColor = d.sourceType === 'activity' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600';
 
   return `
-    <div class="p-3 rounded-xl bg-gray-50">
+    <div class="p-3 rounded-xl bg-gray-100">
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center gap-2">
           <span class="text-[10px] px-1.5 py-0.5 rounded ${sourceColor}">${sourceLabel}</span>

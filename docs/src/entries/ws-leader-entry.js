@@ -13,7 +13,7 @@ import { loadMakeupTasks } from '../services/makeup.js';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js';
 import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js';
 
-const { savedState, accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', defaultRole: 'leader', viewMode: 'manage', accentRole: 'leader' });
+const { accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', accentRole: 'leader' });
 
 // ── 表单状态 ──────────────────────────────────────────────────
 let _attFormVisible = false;
@@ -21,7 +21,7 @@ let _attPickerInstance = null;
 let _inspFormVisible = false;
 let _inspPickerInstance = null;
 
-// ── 组长→党小组映射 ──────────────────────────────────────────
+// ── 党小组组长→党小组映射 ──────────────────────────────────────────
 const LEADER_GROUP_MAP = {
   'p4': '第三党小组',  // 赵六（第三党小组组长）
   'p6': '第一党小组',  // 孙八（第一党小组组长）
@@ -77,12 +77,12 @@ function _renderWriteContent(activities) {
   const panelVisible = dt.showPanel;
 
   container.innerHTML = `
-    <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#CE1126;">
+    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">活动写入</h4>
         <button class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 transition-colors hover:bg-red-100" id="btn-leader-create" style="cursor:pointer;">${panelVisible ? '收起面板' : '创建活动'}</button>
       </div>
-      <div class="text-xs text-gray-500 mb-3">组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点</div>
+      <div class="text-xs text-gray-500 mb-3">党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点</div>
 
       ${panelVisible ? _renderDecisionTreePanel() : ''}
 
@@ -91,7 +91,7 @@ function _renderWriteContent(activities) {
         <div class="space-y-2" id="leader-activity-list">
           ${activities.length === 0 ? '<p class="text-xs text-gray-400 text-center py-4">暂无关联活动</p>' :
             activities.map(a => `
-              <div class="leader-act-item flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer" data-act-id="${a.id}">
+              <div class="leader-act-item flex items-center justify-between p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer" data-act-id="${a.id}">
                 <div class="flex-1 min-w-0">
                   <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
                   <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
@@ -100,7 +100,7 @@ function _renderWriteContent(activities) {
               </div>
             `).join('')}
         </div>
-        <div id="leader-act-detail" class="hidden mt-3 bg-gray-50 rounded-xl p-4 border border-gray-200"></div>
+        <div id="leader-act-detail" class="hidden mt-3 bg-gray-100 rounded-xl p-4 border border-gray-200"></div>
       </div>
     </div>
   `;
@@ -329,7 +329,7 @@ function _renderDecisionTreePanel() {
       </div>
 
       <!-- SOP 预览 -->
-      <div class="mb-4 p-3 rounded-lg bg-gray-50 border border-gray-100">
+      <div class="mb-4 p-3 rounded-lg bg-gray-100 border border-gray-100">
         <div class="text-xs font-bold text-gray-600 mb-2">SOP 任务节点预览</div>
         <div id="dt-sop-preview" class="space-y-1 text-xs text-gray-500">
           ${_renderSopPreview()}
@@ -508,7 +508,7 @@ function _renderAttendanceContent() {
   );
 
   // 获取本组待补课人员
-  const currentLeaderId = 'p4'; // 当前组长（根据实际登录角色调整）
+  const currentLeaderId = 'p4'; // 当前党小组组长（根据实际登录角色调整）
   const myGroup = LEADER_GROUP_MAP[currentLeaderId] || '';
   const myGroupMembers = PEOPLE.filter(p => p.partyGroup === myGroup);
   const myGroupMemberIds = myGroupMembers.map(p => p.id);
@@ -523,7 +523,7 @@ function _renderAttendanceContent() {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         <div>
           <label class="text-xs text-gray-500 mb-1 block">选择活动 <span class="text-red-500">*</span></label>
-          <select id="att-activity-select" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200 transition-colors">
+          <select id="att-activity-select" class="input-flat text-xs w-full">
             <option value="">请选择活动</option>
             ${eligibleActivities.map(a => `<option value="${a.id}">${a.title}（${a.date}）</option>`).join('')}
           </select>
@@ -542,12 +542,12 @@ function _renderAttendanceContent() {
   ` : '';
 
   container.innerHTML = `
-    <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#CE1126;">
+    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤上传</h4>
         <button class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200" id="btn-leader-upload-att" style="cursor:pointer;">${_attFormVisible ? '收起表单' : '上传考勤表单'}</button>
       </div>
-      <div class="text-xs text-gray-500 mb-3">党小组活动考勤：组长上传 → 纪检委员确认 → 录入考勤总表</div>
+      <div class="text-xs text-gray-500 mb-3">党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表</div>
       ${formHtml}
       <div class="overflow-x-auto ${_attFormVisible ? 'mt-4 pt-3 border-t border-gray-100' : ''}">
         <table class="w-full text-xs">
@@ -616,7 +616,7 @@ function _initAttForm(container, eligibleActivities) {
     _attPickerInstance = new PersonPicker({
       mode: 'multi',
       placeholder: '选择参会人员',
-      accentColor: '#CE1126',
+      accentColor: accent,
       onSelect: (ids) => {
         _renderAttStatusRows(ids);
       }
@@ -694,9 +694,9 @@ function _renderAttStatusRows(selectedIds) {
         const person = PEOPLE.find(p => p.id === pid);
         const name = person ? person.name : pid;
         return `
-          <div class="flex items-center gap-3 p-2 rounded-lg bg-gray-50">
+          <div class="flex items-center gap-3 p-2 rounded-lg bg-gray-100">
             <span class="text-sm font-medium text-gray-800 min-w-[60px]">${name}</span>
-            <select id="att-status-${pid}" class="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-red-300">
+            <select id="att-status-${pid}" class="input-flat text-xs">
               <option value="${AttendanceStatus.PRESENT}">出勤</option>
               <option value="${AttendanceStatus.ABSENT}">缺勤</option>
               <option value="${AttendanceStatus.LEAVE}">请假</option>
@@ -730,7 +730,7 @@ function _renderInspectionContent() {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         <div>
           <label class="text-xs text-gray-500 mb-1 block">来源类型 <span class="text-red-500">*</span></label>
-          <select id="insp-source-type" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200 transition-colors">
+          <select id="insp-source-type" class="input-flat text-xs w-full">
             <option value="">请选择来源类型</option>
             <option value="activity">活动</option>
             <option value="taskforce">专班</option>
@@ -738,7 +738,7 @@ function _renderInspectionContent() {
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1 block">选择具体来源 <span class="text-red-500">*</span></label>
-          <select id="insp-source-select" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200 transition-colors" disabled>
+          <select id="insp-source-select" class="input-flat text-xs w-full" disabled>
             <option value="">请先选择来源类型</option>
           </select>
         </div>
@@ -756,12 +756,12 @@ function _renderInspectionContent() {
   ` : '';
 
   container.innerHTML = `
-    <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#CE1126;">
+    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考察上传</h4>
         <button class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200" id="btn-leader-upload-insp" style="cursor:pointer;">${_inspFormVisible ? '收起表单' : '上传考察表单'}</button>
       </div>
-      <div class="text-xs text-gray-500 mb-3">党小组活动考察：组长上传 → 纪检委员确认 → 录入考察总表</div>
+      <div class="text-xs text-gray-500 mb-3">党小组活动考察：党小组组长上传 → 纪检委员确认 → 录入考察总表</div>
       ${formHtml}
       <div class="overflow-x-auto ${_inspFormVisible ? 'mt-4 pt-3 border-t border-gray-100' : ''}">
         <table class="w-full text-xs">
@@ -804,7 +804,7 @@ function _initInspForm(container, sourceActivities, sourceTaskforces) {
     _inspPickerInstance = new PersonPicker({
       mode: 'multi',
       placeholder: '选择人员',
-      accentColor: '#CE1126',
+      accentColor: accent,
       onSelect: (ids) => {
         _renderInspContentRows(ids);
       }
@@ -907,7 +907,7 @@ function _renderInspContentRows(selectedIds) {
         const person = PEOPLE.find(p => p.id === pid);
         const name = person ? person.name : pid;
         return `
-          <div class="p-2 rounded-lg bg-gray-50">
+          <div class="p-2 rounded-lg bg-gray-100">
             <div class="text-sm font-medium text-gray-800 mb-1">${name}</div>
             <textarea id="insp-content-${pid}" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200 transition-colors resize-none" rows="2" placeholder="请填写考察内容描述"></textarea>
           </div>

@@ -1,68 +1,50 @@
-import { CrossPageState } from '../core/cross-page-state.js';
-import { renderSidebar } from '../components/sidebar.js';
-import { renderHeader } from '../components/header.js';
+// role: [工程师]+[AI]
+// party-entry.js — 党务管理入口（重构版）
+// 变化: 去掉角色选择面板，改为自动跳转到角色子页面
+// 第3轮 Task 3: 加入 ROUTE_LOCK 防护 + 使用 getEffectiveRole
+
 import { AuthStore } from '../services/auth.js';
 import { getBasePath } from '../core/utils.js';
 
-const ROLE_TO_PAGE = {
-  secretary: 'secretary.html',
-  'org-commissioner': 'org.html',
-  'prop-commissioner': 'prop.html',
-  'disc-commissioner': 'disc.html',
-};
+// ── 跳转循环防护 ──────────────────────────────────
+const ROUTE_LOCK_KEY = 'gsm1921-route-lock';
+const ROUTE_LOCK_TTL = 500;
 
-function _resolvePage(filename) {
-  return getBasePath() + 'party/' + filename;
+function _acquireRouteLock(targetRole) {
+  const now = Date.now();
+  try {
+    const raw = sessionStorage.getItem(ROUTE_LOCK_KEY);
+    if (raw) {
+      const lock = JSON.parse(raw);
+      if (lock.targetRole === targetRole && (now - lock.timestamp) < ROUTE_LOCK_TTL) {
+        return false;
+      }
+    }
+  } catch {}
+  try {
+    sessionStorage.setItem(ROUTE_LOCK_KEY, JSON.stringify({
+      targetRole,
+      timestamp: now,
+    }));
+  } catch {}
+  return true;
 }
 
-const ROLE_META = [
-  { role: 'secretary', label: '党支部书记', desc: '全局聚合·批量操作·意见反馈', color: '#CE1126', file: 'secretary.html' },
-  { role: 'org-commissioner', label: '组织委员', desc: '追踪看板·材料催缴·思想汇报·合规文件', color: '#3B82F6', file: 'org.html' },
-  { role: 'prop-commissioner', label: '宣传委员', desc: '档案归档·材料标准·周报报送', color: '#10B981', file: 'prop.html' },
-  { role: 'disc-commissioner', label: '纪检委员', desc: '补课制度·公邮管理', color: '#D97706', file: 'disc.html' },
-];
-
-renderSidebar('party');
-renderHeader('party');
-
-const savedState = CrossPageState.load();
-const role = savedState?.selectedRole || AuthStore.getActiveRole();
-// 首次进入时设置站位（stance=视图角色）
-if (savedState?.stance) {
-  AuthStore.setPrimaryRole(savedState.stance);
-}
-if (role) {
-  AuthStore.setActiveRole('party', role);
-}
-
-if (role && ROLE_TO_PAGE[role]) {
-  window.location.replace(_resolvePage(ROLE_TO_PAGE[role]));
+// ── 跳转逻辑 ──────────────────────────────────────
+const user = AuthStore.getCurrentUser();
+if (!user) {
+  window.location.href = getBasePath() + 'login.html';
 } else {
-  _showRoleSelector();
-}
-
-function _showRoleSelector() {
-  const main = document.getElementById('party-main');
-  if (!main) return;
-
-  main.innerHTML = `
-    <div class="max-w-2xl mx-auto py-12 px-4">
-      <div class="text-center mb-8">
-        <h2 class="font-title-cn text-xl font-bold text-gray-800 mb-2">党务管理</h2>
-        <p class="text-sm text-gray-500">请选择您的角色以进入对应工作页面</p>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        ${ROLE_META.map(r => `
-          <a href="${_resolvePage(r.file)}" class="block p-4 rounded-xl border border-gray-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group" style="text-decoration:none;">
-            <div class="flex items-center gap-3 mb-1">
-              <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${r.color};"></div>
-              <span class="font-title-cn text-sm font-semibold text-gray-800 group-hover:text-gray-900">${r.label}</span>
-            </div>
-            <p class="text-xs text-gray-500 ml-5">${r.desc}</p>
-          </a>
-        `).join('')}
-      </div>
-      <p class="text-xs text-gray-400 text-center mt-6">您也可以通过侧边栏的"党务管理"按钮选择角色</p>
-    </div>
-  `;
+  const effectiveRole = AuthStore.getEffectiveRole(user.userId);
+  const page = AuthStore.getPageForRole('party', effectiveRole);
+  if (page) {
+    if (_acquireRouteLock(effectiveRole)) {
+      window.location.replace(getBasePath() + 'party/' + page);
+    }
+  } else {
+    // leader / participant 无 party 页面 → 跳转主页
+    if (_acquireRouteLock('home')) {
+      window.location.replace(getBasePath() + 'index.html');
+    }
+  }
 }

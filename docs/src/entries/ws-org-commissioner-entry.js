@@ -14,7 +14,7 @@ import { renderTabBar } from '../components/tab-bar.js';
 import { renderQueryView } from '../components/query-view.js';
 import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js';
 
-const { savedState, accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', defaultRole: 'org-commissioner', viewMode: 'manage', accentRole: 'org-commissioner' });
+const { accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', accentRole: 'org-commissioner' });
 
 const SVG = {
   people: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
@@ -44,7 +44,7 @@ function renderOrgUI(state) {
       { id: 'taskforce', label: '专班管理', render: (ctx) => _renderTaskforceContent(ctx.pending, ctx.recruiting, ctx.active) },
       { id: 'inspection', label: '考察上传', render: () => _renderOrgInspectionContent() },
       { id: 'tracking', label: '追踪看板', render: (ctx) => _renderTrackingContent(ctx.activities) },
-      { id: 'compliance', label: '合规文件', render: () => _renderComplianceContent() },
+      { id: 'compliance', label: '制度文件', render: () => _renderComplianceContent() },
     ],
     accentColor: { accent, accentRgba, accentBorder },
     extraRightHtml: '<button id="btn-publish-tf" class="text-xs px-3 py-2 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" style="cursor:pointer;">发布招募</button>',
@@ -73,18 +73,18 @@ function _renderTaskforceContent(pending, recruiting, active) {
   const container = document.getElementById('org-tab-content');
   if (!container) return;
 
-  const statusLabel = { pending_review: '待审核', recruiting: '招募中', active: '运行中', completed: '已完结', draft: '草稿' };
-  const statusColor = { pending_review: '#6366F1', recruiting: '#D97706', active: '#10B981', completed: '#3B82F6', draft: '#6B7280' };
+  const statusLabel = { pending_review: '待审核', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', draft: '草稿' };
+  const statusColor = { pending_review: '#6366F1', recruiting: '#D97706', active: '#10B981', completed: '#3B82F6', archived: '#6B7280', draft: '#6B7280' };
 
-  // 获取已完结专班
-  const completed = TaskForceRecordStore.getAll().filter(t => t.status === 'completed');
+  // 获取已完结专班（含 completed 解散 / archived 归档）
+  const completed = TaskForceRecordStore.getAll().filter(t => t.status === 'completed' || t.status === 'archived');
 
   container.innerHTML = `
     <div class="flex flex-wrap gap-2 mb-3">
       <input type="text" id="org-tf-search" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索专班名称或任务...">
     </div>
     <div id="org-tf-kanban"></div>
-    <div id="tf-detail-panel" class="hidden card rounded-2xl p-5 border-l-4" style="border-left-color:#CE1126;"></div>
+    <div id="tf-detail-panel" class="hidden card rounded-xl p-5 border-l-4" style="border-left-color:${accent};"></div>
   `;
 
   function renderKanban() {
@@ -97,22 +97,22 @@ function _renderTaskforceContent(pending, recruiting, active) {
     const fc = q ? completed.filter(t => (t.name || '').toLowerCase().includes(q) || (t.task || '').toLowerCase().includes(q)) : completed;
     kb.innerHTML = `
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div class="card rounded-2xl p-0 overflow-hidden">
-          <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(99,102,241,0.06);color:#6366F1;border-bottom:2px solid rgba(99,102,241,0.15);">待审核 (${fp.length})</div>
+        <div class="card rounded-xl p-0 overflow-hidden">
+          <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(99,102,241,0.06);color:var(--accent-indigo);border-bottom:2px solid rgba(99,102,241,0.15);">待审核 (${fp.length})</div>
           <div class="p-3 space-y-3 min-h-[120px]">
             ${fp.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无待审核专班</p>' :
               fp.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
           </div>
         </div>
-        <div class="card rounded-2xl p-0 overflow-hidden">
+        <div class="card rounded-xl p-0 overflow-hidden">
           <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(217,119,6,0.06);color:#D97706;border-bottom:2px solid rgba(217,119,6,0.15);">招募中 (${fr.length})</div>
           <div class="p-3 space-y-3 min-h-[120px]">
             ${fr.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无招募中专班</p>' :
               fr.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
           </div>
         </div>
-        <div class="card rounded-2xl p-0 overflow-hidden">
-          <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(16,185,129,0.06);color:#10B981;border-bottom:2px solid rgba(16,185,129,0.15);">运行中 (${fa.length})</div>
+        <div class="card rounded-xl p-0 overflow-hidden">
+          <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(139,92,246,0.06);color:var(--accent-org-commissioner-light);border-bottom:2px solid rgba(139,92,246,0.15);">运行中 (${fa.length})</div>
           <div class="p-3 space-y-3 min-h-[120px]">
             ${fa.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无运行中专班</p>' :
               fa.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
@@ -120,31 +120,56 @@ function _renderTaskforceContent(pending, recruiting, active) {
         </div>
       </div>
       ${fc.length > 0 ? `
-      <details class="card rounded-2xl p-0 overflow-hidden">
-        <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none" style="background:rgba(59,130,246,0.06);color:#3B82F6;border-bottom:2px solid rgba(59,130,246,0.15);">已完结 (${fc.length})</summary>
+      <details class="card rounded-xl p-0 overflow-hidden">
+        <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none" style="background:rgba(59,130,246,0.06);color:var(--accent-blue);border-bottom:2px solid rgba(59,130,246,0.15);">已完结 (${fc.length})</summary>
         <div class="p-3 space-y-3">
           ${fc.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
         </div>
       </details>` : ''}
     `;
     bindCardClicks();
-    bindCompleteButtons();
+    bindStatusButtons();
   }
 
   document.getElementById('org-tf-search')?.addEventListener('input', renderKanban);
   renderKanban();
 
-  // ── "确认完成"按钮事件绑定（P2-3 看板交互重构） ──
-  function bindCompleteButtons() {
-    container.querySelectorAll('.tf-complete-btn').forEach(btn => {
+  // ── 招募状态流转按钮事件绑定（recruiting → active → archived） ──
+  function bindStatusButtons() {
+    // 启动专班：recruiting → active
+    container.querySelectorAll('.tf-start-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const tfId = btn.dataset.tfId;
+        const tf = TaskForceRecordStore.getAll().find(r => r.id === tfId);
+        if (!tf || tf.status !== 'recruiting') return;
+        const confirmed = window.confirm(`确认启动专班「${tf.name}」？启动后状态转为运行中。`);
+        if (!confirmed) return;
+        const updated = TaskForceRecordStore.updateStatus(tf.id, 'active');
+        if (updated) {
+          showToast('success', `专班「${tf.name}」已启动`);
+          renderOrgUI(getAppState());
+        } else {
+          showToast('error', '启动失败，状态流转不合法');
+        }
+      });
+    });
+    // 归档专班：active → archived
+    container.querySelectorAll('.tf-archive-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const tfId = btn.dataset.tfId;
         const tf = TaskForceRecordStore.getAll().find(r => r.id === tfId);
         if (!tf || tf.status !== 'active') return;
-        const confirmed = window.confirm(`确认完成专班「${tf.name}」？完成后将回收所有相关赋权记录，专班归入已完结。`);
+        const confirmed = window.confirm(`确认归档专班「${tf.name}」？归档后专班转入已归档状态。`);
         if (!confirmed) return;
-        _dissolveTaskforce(tf);
+        const updated = TaskForceRecordStore.updateStatus(tf.id, 'archived');
+        if (updated) {
+          showToast('success', `专班「${tf.name}」已归档`);
+          renderOrgUI(getAppState());
+        } else {
+          showToast('error', '归档失败，状态流转不合法');
+        }
       });
     });
   }
@@ -160,9 +185,9 @@ function _renderTaskforceContent(pending, recruiting, active) {
       panel.classList.remove('hidden');
       const filled = tf.members.filter(m => m.personId).length;
 
-      // ── 工作量汇总区域（运行中/已完结专班展示） ──
+      // ── 工作量汇总区域（运行中/已完结/已归档专班展示） ──
       let workSummaryHtml = '';
-      if (tf.status === 'active' || tf.status === 'completed') {
+      if (tf.status === 'active' || tf.status === 'completed' || tf.status === 'archived') {
         const memberRows = tf.members.filter(m => m.personId).map(m => {
           const contribCount = (m.contributions || []).length;
           const contribList = (m.contributions || []).length > 0
@@ -188,7 +213,7 @@ function _renderTaskforceContent(pending, recruiting, active) {
             <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">${SVG.clipboard} 工作量汇总</h5>
             ${tf.members.filter(m => m.personId).length === 0
               ? '<p class="text-xs text-gray-400">暂无成员</p>'
-              : `<div class="bg-gray-50 rounded-lg px-3 py-1">${memberRows}</div>`
+              : `<div class="bg-gray-100 rounded-lg px-3 py-1">${memberRows}</div>`
             }
           </div>`;
 
@@ -322,7 +347,7 @@ function _dissolveTaskforce(tf) {
   }
 
   // 2. 回收该专班相关的赋权记录
-  const authRecords = AuthStore.getAuthState();
+  const authRecords = AuthStore.getAuthorizations();
   const relatedRecords = authRecords.filter(r =>
     r.scope === 'taskforce' && r.scopeRef === tf.id
   );
@@ -345,10 +370,13 @@ function _dissolveTaskforce(tf) {
 function _renderTfCard(t, statusLabel, statusColor) {
   const filled = t.members.filter(m => m.personId).length;
   const color = statusColor[t.status] || '#6B7280';
-  // 运行中专班显示"确认完成"按钮
-  const completeBtn = t.status === 'active'
-    ? `<button class="tf-complete-btn text-[10px] px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">确认完成</button>`
-    : '';
+  // 招募状态流转按钮：recruiting → active → archived
+  let statusBtn = '';
+  if (t.status === 'recruiting') {
+    statusBtn = `<button class="tf-start-btn text-[10px] px-2 py-1 rounded bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">启动专班</button>`;
+  } else if (t.status === 'active') {
+    statusBtn = `<button class="tf-archive-btn text-[10px] px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">归档专班</button>`;
+  }
   return `
     <div class="kanban-card p-4 rounded-xl border border-gray-100 bg-white cursor-pointer tf-store-card hover:shadow-sm transition-shadow" data-tf-id="${t.id}">
       <div class="flex items-start justify-between gap-2 mb-2">
@@ -360,7 +388,7 @@ function _renderTfCard(t, statusLabel, statusColor) {
         <span>${SVG.people} ${filled}/${t.capacity}</span>
         ${t.deadline ? `<span>${SVG.calendar} ${t.deadline}</span>` : ''}
       </div>
-      ${completeBtn}
+      ${statusBtn}
     </div>`;
 }
 
@@ -376,15 +404,13 @@ function _openRecruitForm() {
 
   const overlay = document.createElement('div');
   overlay.id = 'recruit-form-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.35);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;';
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) _closeRecruitForm();
   });
 
-  const publishedActivities = ACTIVITIES.filter(a => a.status === 'published' || a.status === 'ongoing' || a.status === 'draft');
-
   const panel = document.createElement('div');
-  panel.className = 'card rounded-2xl';
+  panel.className = 'card rounded-xl';
   panel.style.cssText = 'width:560px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto;padding:24px;position:relative;';
   panel.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
@@ -433,14 +459,6 @@ function _openRecruitForm() {
       </div>
 
       <div style="margin-bottom:16px;">
-        <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">关联活动</label>
-        <select id="rf-activity" class="input rounded-lg border px-3 py-2" style="width:100%;font-size:0.8125rem;border:1.5px solid #E5E7EB;outline:none;transition:border-color 0.15s;background:white;">
-          <option value="">不关联活动</option>
-          ${publishedActivities.map(a => `<option value="${a.id}">${a.title}（${a.date}）</option>`).join('')}
-        </select>
-      </div>
-
-      <div style="margin-bottom:16px;">
         <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">初始成员</label>
         <div id="rf-members-picker"></div>
       </div>
@@ -452,7 +470,7 @@ function _openRecruitForm() {
 
       <div style="display:flex;gap:12px;justify-content:flex-end;">
         <button type="button" id="recruit-form-cancel" style="padding:8px 20px;border-radius:10px;border:1.5px solid #E5E7EB;background:white;color:#6B7280;font-size:0.8125rem;font-weight:500;cursor:pointer;transition:all 0.15s;">取消</button>
-        <button type="submit" style="padding:8px 24px;border-radius:10px;border:none;background:#CE1126;color:white;font-size:0.8125rem;font-weight:600;cursor:pointer;transition:background 0.15s;">发布</button>
+        <button type="submit" style="padding:8px 24px;border-radius:10px;border:none;background:${accent};color:white;font-size:0.8125rem;font-weight:600;cursor:pointer;transition:background 0.15s;">发布</button>
       </div>
     </form>
   `;
@@ -466,7 +484,7 @@ function _openRecruitForm() {
 
   // 输入框聚焦样式
   panel.querySelectorAll('input, textarea, select').forEach(el => {
-    el.addEventListener('focus', function() { this.style.borderColor = '#CE1126'; });
+    el.addEventListener('focus', function() { this.style.borderColor = accent; });
     el.addEventListener('blur', function() { this.style.borderColor = '#E5E7EB'; });
   });
 
@@ -475,7 +493,7 @@ function _openRecruitForm() {
   _recruitPersonPicker = new PersonPicker({
     mode: 'multi',
     placeholder: '选择初始成员（选填）',
-    accentColor: '#CE1126',
+    accentColor: accent,
     onSelect: () => {},
   });
   _recruitPersonPicker.render(pickerContainer);
@@ -504,7 +522,6 @@ function _submitRecruitForm() {
   const skills = document.getElementById('rf-skills')?.value?.trim() || '';
   const periodStart = document.getElementById('rf-period-start')?.value || '';
   const periodEnd = document.getElementById('rf-period-end')?.value || '';
-  const activityId = document.getElementById('rf-activity')?.value || null;
   const notes = document.getElementById('rf-notes')?.value?.trim() || '';
 
   // 校验必填项
@@ -566,7 +583,7 @@ function _renderTrackingContent(activities) {
   const typeOptions = [...new Set(activities.map(a => a.type).filter(Boolean))].map(t => ({ value: t, label: t }));
 
   container.innerHTML = `
-    <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#CE1126;">
+    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
       <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">活动追踪看板</h4>
       <div class="text-xs text-gray-500 mb-3">组织委员可追踪所有已发布活动的执行状态</div>
       <div id="org-tracking-query"></div>
@@ -596,7 +613,7 @@ function _renderTrackingContent(activities) {
           ? `<button class="track-complete-btn text-[10px] px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors" data-act-id="${a.id}">确认完成</button>`
           : '';
         return `
-          <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+          <div class="flex items-center justify-between p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
             <div class="flex-1 min-w-0">
               <div class="text-sm font-medium ${isArchived ? 'text-gray-500 line-through' : 'text-gray-800'}">${a.title || '未命名'}</div>
               <div class="text-xs text-gray-500 mt-0.5">${a.date || ''}${a.type ? ' · ' + a.type : ''}${a.location ? ' · ' + a.location : ''}</div>
@@ -609,7 +626,7 @@ function _renderTrackingContent(activities) {
         `;
       },
       emptyMessage: '无匹配活动',
-      accentColor: '#CE1126',
+      accentColor: accent,
     });
 
     // Bind confirm complete buttons using event delegation
@@ -628,14 +645,14 @@ function _renderTrackingContent(activities) {
   }
 }
 
-// ── 合规文件引用渲染（P3-2：只读不可变，组织委员管理引用列表） ──
+// ── 制度文件引用渲染（P3-2：只读不可变，组织委员管理引用列表） ──
 function _renderComplianceContent() {
   const container = document.getElementById('org-tab-content');
   if (!container) return;
 
   let refs = [...mockDB.complianceReferences];
 
-  // 官方合规文件（只读不可变）
+  // 官方制度文件（只读不可变）
   const officialDocs = [
     { id: 'doc-11', title: '中国共产党章程', type: 'pdf', tag: '根本大法' },
     { id: 'doc-12', title: '党支部工作规范（学生）', type: 'pdf', tag: '工作规范' },
@@ -654,7 +671,7 @@ function _renderComplianceContent() {
     return refs.length === 0
       ? '<p class="text-xs text-gray-400 text-center py-4">暂无引用记录</p>'
       : refs.map((r, idx) => `
-          <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
+          <div class="flex items-center justify-between p-3 rounded-xl bg-gray-100 border border-gray-100">
             <div class="flex-1 min-w-0">
               <div class="text-sm font-medium text-gray-800">${r.docTitle || '未指定'}</div>
               <div class="text-xs text-gray-500 mt-0.5">引用场景：${r.scene || '-'}</div>
@@ -669,12 +686,12 @@ function _renderComplianceContent() {
   }
 
   container.innerHTML = `
-    <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#CE1126;">
-      <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">合规文件引用管理</h4>
-      <p class="text-xs text-gray-500 mb-4">官方合规文件内容只读不可变，组织委员管理引用列表</p>
+    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+      <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">制度文件引用管理</h4>
+      <p class="text-xs text-gray-500 mb-4">官方制度文件内容只读不可变，组织委员管理引用列表</p>
 
       <div class="mb-4">
-        <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">官方合规文件（只读）</h5>
+        <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">官方制度文件（只读）</h5>
         <div class="space-y-1.5">
           ${officialDocs.map(d => `
             <div class="flex items-center justify-between p-2.5 rounded-lg bg-gray-50/80 border border-gray-100">
@@ -700,7 +717,7 @@ function _renderComplianceContent() {
 
   // 添加引用
   container.querySelector('#btn-add-ref')?.addEventListener('click', () => {
-    const docTitle = prompt('引用的合规文件名称：');
+    const docTitle = prompt('引用的制度文件名称：');
     if (!docTitle) return;
     const scene = prompt('引用场景（如：三会一课考勤规则依据）：') || '';
     const note = prompt('备注（选填）：') || '';
@@ -749,7 +766,7 @@ function _renderOrgInspectionContent() {
       <div class="text-xs font-bold text-gray-600 mb-3">上传专班考察表单</div>
       <div class="mb-3">
         <label class="text-xs text-gray-500 mb-1 block">选择专班 <span class="text-red-500">*</span></label>
-        <select id="org-insp-tf-select" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200 transition-colors">
+        <select id="org-insp-tf-select" class="input-flat text-xs w-full">
           <option value="">请选择专班</option>
           ${activeTaskforces.map(tf => `<option value="${tf.id}" data-name="${tf.name}">${tf.name}（${tf.status === 'active' ? '运行中' : '招募中'}）</option>`).join('')}
         </select>
@@ -770,7 +787,7 @@ function _renderOrgInspectionContent() {
   const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-amber-100 text-amber-700' };
 
   container.innerHTML = `
-    <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#CE1126;">
+    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">专班考察上传</h4>
         <button class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200" id="btn-org-upload-insp" style="cursor:pointer;">${_orgInspFormVisible ? '收起表单' : '上传考察表单'}</button>
@@ -819,7 +836,7 @@ function _initOrgInspForm(container, activeTaskforces) {
     _orgInspPickerInstance = new PersonPicker({
       mode: 'multi',
       placeholder: '选择人员',
-      accentColor: '#CE1126',
+      accentColor: accent,
       onSelect: (ids) => {
         _renderOrgInspContentRows(ids);
       }

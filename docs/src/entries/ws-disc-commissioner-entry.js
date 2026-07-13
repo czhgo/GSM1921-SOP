@@ -5,7 +5,6 @@ import { bootstrapPage } from '../core/bootstrap.js';
 import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js';
 import { saveDB } from '../services/mock.js';
 import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS, reviewToDisplay, ACTIVITIES, PEOPLE, MOCK_TASKFORCES } from '../mock/index.js';
-import { ViewModeStore } from '../services/auth.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { renderTabBar } from '../components/tab-bar.js';
 import { openFormModal } from '../components/modal.js';
@@ -14,8 +13,7 @@ import { autoGenerateMakeupTask } from '../services/makeup.js';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js';
 import { loadInspectionRecords, saveInspectionRecords, getOverdueRecords, getRecordsBySource, getRecordsByPerson, confirmInspectionRecord, deleteInspectionRecord } from '../services/inspection.js';
 
-const { savedState, viewMode, accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', defaultRole: 'disc-commissioner', viewMode: 'auto', accentRole: 'disc-commissioner' });
-const fromHomepage = viewMode === 'participant-observe';
+const { accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', accentRole: 'disc-commissioner' });
 
 const DISC_COMMISSIONER_ID = 'p10'; // 纪检委员 personId
 
@@ -56,7 +54,6 @@ function renderDiscUI(state) {
   });
 
   container.innerHTML = `
-    ${viewMode === 'participant-observe' ? '<div id="readonly-banner" class="card rounded-2xl p-4 mb-4 border border-amber-200 bg-amber-50/30"><p class="text-xs text-amber-700">您当前处于只读模式。如需进入管理模式，请从侧边栏选择角色。</p></div>' : ''}
     ${tabBar.html}
   `;
 
@@ -65,14 +62,6 @@ function renderDiscUI(state) {
   const urlParams = CrossPageState.getURLParams();
   tabBar.activate('attendance');
   _renderAttendanceContent(urlParams.activityId || null);
-
-  document.addEventListener('permission:role-select', () => {
-    const mode = ViewModeStore.getMode('workspace');
-    const banner = container.querySelector('#readonly-banner');
-    if (mode === 'manage' && banner) {
-      banner.remove();
-    }
-  });
 }
 
 function _renderAttendanceContent(filterActivityId) {
@@ -99,7 +88,7 @@ function _renderAttendanceContent(filterActivityId) {
 
   container.innerHTML = `
     ${filterBanner}
-    <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#D97706;">
+    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤总表</h4>
         <div class="flex gap-2">
@@ -267,7 +256,7 @@ function _renderInspectionContent() {
   ` : '';
 
   container.innerHTML = `
-    <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#D97706;">
+    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考察总表</h4>
         <div class="flex gap-2">
@@ -275,7 +264,7 @@ function _renderInspectionContent() {
           <button class="insp-view-btn text-xs px-2 py-1 rounded-lg border" data-view="wide" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">人视图</button>
         </div>
       </div>
-      <div class="text-xs text-gray-500 mb-3">纪检委员管理考察记录，组长/组织委员上传 → 纪检确认 → 录入考察总表</div>
+      <div class="text-xs text-gray-500 mb-3">纪检委员管理考察记录，党小组组长/组织委员上传 → 纪检确认 → 录入考察总表</div>
       ${overdueHtml}
       <div class="flex flex-wrap gap-2 mb-3">
         <input type="text" id="insp-search-input" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索姓名或内容...">
@@ -431,12 +420,12 @@ function _renderReviewContent() {
 
   container.innerHTML = `
     <div class="space-y-4">
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#D97706;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">活动流程监督</h4>
         <div class="text-xs text-gray-500 mb-3">阅览党小组活动/专班工作时间流 · 超时确认后邮件提醒</div>
         <div class="space-y-2">
           ${reviewData.map(r => `
-            <div class="flex items-center justify-between p-3 rounded-xl ${r.overdue ? 'bg-red-50 border border-red-100' : 'bg-gray-50'}">
+            <div class="flex items-center justify-between p-3 rounded-xl ${r.overdue ? 'bg-red-50 border border-red-100' : 'bg-gray-100'}">
               <div class="flex-1 min-w-0">
                 <div class="text-sm font-medium text-gray-800">${r.activity}</div>
                 <div class="text-xs text-gray-500 mt-0.5">组织者：${r.organizer}</div>
@@ -449,12 +438,12 @@ function _renderReviewContent() {
           `).join('')}
         </div>
       </div>
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#D97706;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">活动复盘监督</h4>
         <div class="text-xs text-gray-500 mb-3">复盘三态流转：已上传 → 批注中 → 确认/打回</div>
         <div class="space-y-2">
           ${reviewData.filter(r => r.reviewStatus !== '—').map(r => `
-            <div class="p-3 rounded-xl bg-gray-50">
+            <div class="p-3 rounded-xl bg-gray-100">
               <div class="flex items-center justify-between mb-2">
                 <div class="text-sm font-medium text-gray-800">${r.activity}</div>
                 <span class="text-[10px] px-1.5 py-0.5 rounded-full ${reviewColor[r.reviewStatus] || 'bg-gray-100 text-gray-500'}">${r.reviewStatus}</span>
@@ -544,7 +533,7 @@ function _renderHandoverContent() {
   container.innerHTML = `
     <div class="space-y-4">
       <!-- 统计概览 -->
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#D97706;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">数据交接概览</h4>
         <div class="flex gap-4 text-xs">
           <div class="flex items-center gap-1.5">
@@ -568,7 +557,7 @@ function _renderHandoverContent() {
 
       <!-- 进行中 -->
       ${inProgressRecords.length > 0 ? `
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#3B82F6;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner);">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">进行中的交接</h4>
         <div class="text-xs text-gray-500 mb-3">组织者正在填写交接数据，可催促其尽快完成</div>
         <div class="space-y-2" id="disc-handover-in-progress">
@@ -579,7 +568,7 @@ function _renderHandoverContent() {
 
       <!-- 已提交 -->
       ${submittedRecords.length > 0 ? `
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#D97706;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">待确认的交接</h4>
         <div class="text-xs text-gray-500 mb-3">组织者已提交交接数据，请审核后确认</div>
         <div class="space-y-2" id="disc-handover-submitted">
@@ -590,7 +579,7 @@ function _renderHandoverContent() {
 
       <!-- 已确认 -->
       ${confirmedRecords.length > 0 ? `
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#10B981;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner-light);">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">已确认的交接</h4>
         <div class="text-xs text-gray-500 mb-3">交接数据已确认完成</div>
         <div class="space-y-2" id="disc-handover-confirmed">
@@ -599,7 +588,7 @@ function _renderHandoverContent() {
       </div>
       ` : ''}
 
-      ${allRecords.length === 0 ? '<div class="card rounded-2xl p-5 text-center"><p class="text-xs text-gray-400 py-6">暂无交接记录</p></div>' : ''}
+      ${allRecords.length === 0 ? '<div class="card rounded-xl p-5 text-center"><p class="text-xs text-gray-400 py-6">暂无交接记录</p></div>' : ''}
     </div>
   `;
 
@@ -614,7 +603,7 @@ function _renderDiscHandoverRecord(r, group) {
   const typeLabel = r.type === 'activity' ? '活动' : '专班';
 
   return `
-    <div class="p-3 rounded-xl bg-gray-50" data-disc-handover-id="${r.id}">
+    <div class="p-3 rounded-xl bg-gray-100" data-disc-handover-id="${r.id}">
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center gap-2">
           <span class="text-[10px] px-1.5 py-0.5 rounded ${r.type === 'activity' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'}">${typeLabel}</span>
@@ -715,7 +704,7 @@ function _renderDepositContent() {
   container.innerHTML = `
     <div class="space-y-4">
       <!-- 统计概览 -->
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#D97706;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">经验沉淀概览</h4>
         <div class="flex gap-4 text-xs">
           <div class="flex items-center gap-1.5">
@@ -739,7 +728,7 @@ function _renderDepositContent() {
 
       <!-- 待批注 -->
       ${submittedDeposits.length > 0 ? `
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#3B82F6;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner-light);">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">待批注的沉淀</h4>
         <div class="text-xs text-gray-500 mb-3">深度参与者已提交经验沉淀，请批注后确认</div>
         <div class="space-y-2" id="disc-deposit-submitted">
@@ -750,7 +739,7 @@ function _renderDepositContent() {
 
       <!-- 已批注 -->
       ${annotatedDeposits.length > 0 ? `
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#D97706;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">已批注的沉淀</h4>
         <div class="text-xs text-gray-500 mb-3">已添加批注，确认后录入后台</div>
         <div class="space-y-2" id="disc-deposit-annotated">
@@ -761,7 +750,7 @@ function _renderDepositContent() {
 
       <!-- 已确认 -->
       ${confirmedDeposits.length > 0 ? `
-      <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#10B981;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner-light);">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">已确认的沉淀</h4>
         <div class="text-xs text-gray-500 mb-3">经验沉淀已确认，录入后台</div>
         <div class="space-y-2" id="disc-deposit-confirmed">
@@ -770,7 +759,7 @@ function _renderDepositContent() {
       </div>
       ` : ''}
 
-      ${allDeposits.length === 0 ? '<div class="card rounded-2xl p-5 text-center"><p class="text-xs text-gray-400 py-6">暂无经验沉淀记录</p></div>' : ''}
+      ${allDeposits.length === 0 ? '<div class="card rounded-xl p-5 text-center"><p class="text-xs text-gray-400 py-6">暂无经验沉淀记录</p></div>' : ''}
     </div>
   `;
 
@@ -783,7 +772,7 @@ function _renderDiscDepositCard(d, group) {
   const sourceColor = d.sourceType === 'activity' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600';
 
   return `
-    <div class="p-3 rounded-xl bg-gray-50" data-disc-deposit-id="${d.id}">
+    <div class="p-3 rounded-xl bg-gray-100" data-disc-deposit-id="${d.id}">
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center gap-2">
           <span class="text-[10px] px-1.5 py-0.5 rounded ${sourceColor}">${sourceLabel}</span>

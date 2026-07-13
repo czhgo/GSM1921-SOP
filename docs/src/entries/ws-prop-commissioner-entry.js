@@ -7,7 +7,7 @@ import { TaskForceRecordStore } from '../services/taskforce.js';
 import { ACTIVITIES, _personName } from '../mock/index.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 
-const { savedState, accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', defaultRole: 'prop-commissioner', viewMode: 'manage', accentRole: 'prop-commissioner' });
+const { accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', accentRole: 'prop-commissioner' });
 
 function renderPropUI(state) {
   let activities = state.activities || [];
@@ -73,14 +73,14 @@ function _renderKanbanContent(activities, propTf) {
 
   container.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-      <div class="card rounded-2xl p-0 overflow-hidden">
+      <div class="card rounded-xl p-0 overflow-hidden">
         <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(206,17,38,0.06);color:#ce1126;border-bottom:2px solid rgba(206,17,38,0.15);">待启动 (${pending.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
           ${pending.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无待启动项目</p>' :
             pending.map(item => _renderKanbanItem(item)).join('')}
         </div>
       </div>
-      <div class="card rounded-2xl p-0 overflow-hidden">
+      <div class="card rounded-xl p-0 overflow-hidden">
         <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(59,130,246,0.06);color:#3b82f6;border-bottom:2px solid rgba(59,130,246,0.15);">进行中 (${active.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
           ${active.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无进行中项目</p>' :
@@ -89,7 +89,7 @@ function _renderKanbanContent(activities, propTf) {
       </div>
     </div>
     ${completed.length > 0 ? `
-    <details class="card rounded-2xl p-0 overflow-hidden">
+    <details class="card rounded-xl p-0 overflow-hidden">
       <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none" style="background:rgba(107,114,128,0.06);color:#6B7280;border-bottom:2px solid rgba(107,114,128,0.15);">已归档 (${completed.length})</summary>
       <div class="p-3 space-y-2">
         ${completed.map(item => _renderKanbanItem(item)).join('')}
@@ -141,7 +141,7 @@ function _renderKanbanItem(item, showCompleteBtn = false) {
       : `<button class="activity-complete-btn text-[10px] px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-act-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`)
     : '';
   return `
-    <div class="p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+    <div class="p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer">
       <div class="flex items-center gap-2 mb-0.5">
         <span class="text-sm font-medium text-gray-800">${item.title || '未命名'}</span>
         ${typeTag}
@@ -169,7 +169,7 @@ function _renderWorkloadContent(propTf) {
   const members = Object.values(workloadMap);
 
   container.innerHTML = `
-    <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#10B981;">
+    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-prop-commissioner-light);">
       <div class="flex items-center gap-2 mb-3">
         <span class="text-sm font-semibold text-gray-700">宣传专班工作量</span>
         <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">${propTf.length} 个专班</span>
@@ -217,17 +217,7 @@ function _renderMultitableContent(activities) {
     }
   });
 
-  // 从专班members提取（关联activityId）
-  taskforces.forEach(tf => {
-    if (!tf.activityId) return;
-    tf.members.forEach(m => {
-      if (!m.personId) return;
-      if (!personActivityMap[m.personId]) personActivityMap[m.personId] = { name: _personName(m.personId), activityCells: {} };
-      if (!personActivityMap[m.personId].activityCells[tf.activityId]) {
-        personActivityMap[m.personId].activityCells[tf.activityId] = m.role || '专班成员';
-      }
-    });
-  });
+  // 专班与活动并列，不关联活动（专班因不限时间不限地点，与活动互斥）
 
   const wideRows = Object.entries(personActivityMap).map(([pid, data]) => ({
     personId: pid,
@@ -238,11 +228,11 @@ function _renderMultitableContent(activities) {
   let currentView = 'long'; // 默认活动视图（§8.1b 规则3）
 
   container.innerHTML = `
-    <div class="card rounded-2xl p-5 border-l-4" style="border-left-color:#10B981;">
+    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-prop-commissioner-light);">
       <div class="flex items-center justify-between mb-3">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">多维表格视图</h4>
         <div class="flex gap-1">
-          <button class="prop-view-btn text-[11px] px-2.5 py-1 rounded-lg border transition-colors" data-view="long" style="background:rgba(16,185,129,0.1);color:#10B981;border-color:rgba(16,185,129,0.3);">活动视图</button>
+          <button class="prop-view-btn text-[11px] px-2.5 py-1 rounded-lg border transition-colors" data-view="long" style="background:rgba(59,130,246,0.1);color:var(--accent-prop-commissioner-light);border-color:rgba(59,130,246,0.3);">活动视图</button>
           <button class="prop-view-btn text-[11px] px-2.5 py-1 rounded-lg border transition-colors" data-view="wide" style="background:white;color:#6B7280;border-color:#E5E7EB;">人视图</button>
         </div>
       </div>
@@ -273,9 +263,9 @@ function _renderMultitableContent(activities) {
       currentView = btn.dataset.view;
       container.querySelectorAll('.prop-view-btn').forEach(b => {
         if (b.dataset.view === currentView) {
-          b.style.background = 'rgba(16,185,129,0.1)';
-          b.style.color = '#10B981';
-          b.style.borderColor = 'rgba(16,185,129,0.3)';
+          b.style.background = 'rgba(59,130,246,0.1)';
+          b.style.color = 'var(--accent-prop-commissioner-light)';
+          b.style.borderColor = 'rgba(59,130,246,0.3)';
         } else {
           b.style.background = 'white';
           b.style.color = '#6B7280';
