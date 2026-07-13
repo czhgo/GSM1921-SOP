@@ -1,9 +1,11 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // cross-page-state.js — 跨页面状态管理
 // 使用 sessionStorage 传递会话级状态，localStorage 传递持久数据
+// 第3轮 Task 8: 追加 setParam/getParam/clearParam 统一 URL params + sessionStorage 双轨
 
 const SESSION_KEY = 'sop_org_os_session';
 const DATA_VERSION_KEY = 'sop_org_os_data_version';
+const CPS_PREFIX = 'cps-';  // 单值参数前缀，与 SESSION_KEY 区隔
 
 export const CrossPageState = {
   save(session) {
@@ -69,4 +71,67 @@ export const CrossPageState = {
     } catch (_) {}
     return params;
   },
+
+  // ── 单值参数 API（URL params + sessionStorage 双轨） ──────
+  // 用途：替代散落的 URLSearchParams 直接调用
+  // - URL params 作为跨页面传递的载体（书签/分享友好）
+  // - sessionStorage 作为同源页面间快速读取的缓存
+  // - 写入时同时更新 URL 和 sessionStorage
+  // - 读取时优先 sessionStorage（同源快），回退 URL params
+
+  /**
+   * 设置单值参数（同步更新 URL 和 sessionStorage）
+   * @param {string} key
+   * @param {string} value
+   */
+  setParam(key, value) {
+    // 更新 URL（history.replaceState，不触发跳转）
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set(key, value);
+      window.history.replaceState({}, '', url);
+    } catch (_) {}
+    // 同步到 sessionStorage
+    try {
+      sessionStorage.setItem(CPS_PREFIX + key, value);
+    } catch (_) {}
+  },
+
+  /**
+   * 获取单值参数（优先 sessionStorage，回退 URL params）
+   * @param {string} key
+   * @returns {string|null}
+   */
+  getParam(key) {
+    // 优先 sessionStorage
+    try {
+      const ssVal = sessionStorage.getItem(CPS_PREFIX + key);
+      if (ssVal !== null) return ssVal;
+    } catch (_) {}
+    // 回退 URL params
+    try {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(key);
+    } catch (_) {
+      return null;
+    }
+  },
+
+  /**
+   * 清除单值参数
+   * @param {string} key
+   */
+  clearParam(key) {
+    // 清 URL
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete(key);
+      window.history.replaceState({}, '', url);
+    } catch (_) {}
+    // 清 sessionStorage
+    try {
+      sessionStorage.removeItem(CPS_PREFIX + key);
+    } catch (_) {}
+  },
 };
+
