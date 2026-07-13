@@ -675,3 +675,93 @@ related_files:
 
 **蒸馏标签**：[经验蒸馏: 否]（第 2 轮实施经验待后续评估）
 **状态**：✅ 第 2 轮实施完成（含 Final reviewer 问题 1 本轮修复）
+
+---
+
+## T92 权限系统大改·第 3 轮（UI 改造+视角切换重做+登录页重设计+人员管理扩展）
+
+**来源**：书记指示——"继续推进第三轮的工作！一如既往的，有拿不准的地方不要擅做决断，要积极及时使用 ask User！！【不允许随意结束session】，必须推进完成所有工作！！我补充一个点，目前侧边栏包括各种涉及网页跳转逻辑的链接 都非常不稳定和不完善！！请务必思考解决方法！！"
+**Skill**：brainstorming（评议→设计）→ writing-plans（实施计划）→ subagent-driven-development（每 Task implementer）→ frontend-design（Task 10 视觉迭代）
+**Spec**：`docs/superpowers/specs/2026-07-13-permission-system-redesign-round3-design.md`（approved）
+**实施计划**：`docs/superpowers/plans/2026-07-13-permission-system-redesign-round3.md`（11 Tasks）
+
+**Brainstorming 4 项决策**：
+1. 第 3 轮范围 = A+B+C+D 全选（稳定性修复+人员管理扩展+视角切换重做+视觉迭代）
+2. viewSwitcher 保留并完整重做（不删除）
+3. 单一 spec 分阶段实施（不分多个 spec）
+4. 设计目标：简约大气，最符合页面信息展开逻辑（不强制苹果风），调用 frontend-design skill
+
+**实施清单**（11 Task，分 4 阶段）：
+
+**阶段 1（稳定性修复，Task 1-4）**：
+- Task 1: 修复 12 个入口文件 bootstrapPage + AuthStore 旧 API（getAuthState→getAuthorizations, authorize 5参数→4参数{projectId}, 移除 defaultRole/viewMode）— SHA: 308a9e5
+- Task 2: auth.js 新增 getEffectiveRole(userId) 方法 + sidebar.js 用 getEffectiveRole 替代 user.role — SHA: 308a9e5
+- Task 3: workspace-entry.js + party-entry.js 加入 ROUTE_LOCK 防护（500ms TTL sessionStorage 锁，防止快速点击导致跳转循环）— SHA: 308a9e5
+- Task 4: 验证帮助/关于/退出链接（静态代码确认正确，无需修改）
+
+**阶段 2（人员管理扩展，Task 5-6）**：
+- Task 5: auth.js _getProjectRole 函数新增 auth records 优先查询逻辑（修复 Final reviewer 问题 2：authorize 后的赋权对 canDo 不生效）— SHA: 05ee9ae
+- Task 6: members.html + members-entry.js 新增项目角色赋权面板（被赋权人选择+项目类型切换+项目选择+角色选择+确认赋权+记录列表+撤销）— SHA: db2ba75
+
+**阶段 3（视角切换重做，Task 7-9）**：
+- Task 7: header.js _bindViewSwitcher 改为派发 view-role-change 事件（不再 reload）+ _rerenderRoleLabel 更新顶栏标签；sidebar.js 订阅事件 re-render 链接 + _lastActiveModule 跟踪 — SHA: e9fe7ce
+- Task 8: cross-page-state.js 追加 setParam/getParam/clearParam 三方法（URL params + sessionStorage 双轨，CPS_PREFIX='cps-' 前缀与 SESSION_KEY 区隔）— SHA: bfff112
+  - **重要发现**：cross-page-state.js 已存在（被 main-entry.js/ws-disc-commissioner-entry.js/ws-org-commissioner-entry.js/ws-visitor-entry.js 使用），plan 假设不存在。助手适配性追加新 API，保留现有 API（save/load/navigateTo/bumpDataVersion/getDataVersion/buildURL/getURLParams）不破坏向后兼容
+- Task 9: bootstrap.js 改用 CrossPageState.getParam('dev') 读取 dev 参数 + import CrossPageState — SHA: 69b689e
+
+**阶段 4（视觉迭代，Task 10）**：
+- Task 10: 调用 Skill: frontend-design 重设计登录页 — SHA: 6abbffe
+  - 签名元素：顶部红色色带（linear-gradient #7A0010→#9B0000）+ 党徽 + 标题，构建仪式感
+  - 卡片入场动画（loginFadeUp 0.5s cubic-bezier(0.22,0.61,0.36,1)）
+  - 表单输入聚焦红色边框 + 微光圈（border-color:#CE1126 + box-shadow rgba(206,17,38,0.12)）
+  - 开发模式卡片 hover 微动效（translateY(-1px) + box-shadow）
+  - prefers-reduced-motion 支持（animation:none !important）
+
+**Task 11 总验收+收尾**（本条目）：
+- Step 1: 全仓库术语对齐验证 — getAuthState/defaultRole 零残留，viewMode 残留均为 UI 状态非 auth 参数
+- Step 2: GetDiagnostics 验证 — 仅 markdownlint warnings（预存 .md 格式问题，非本次修改引入）
+- Step 3-5: 端到端测试（browser_use subagent）：
+  - ✅ Test 1 登录页视觉验证 PASS（红色色带+党徽+表单+开发模式开关）
+  - ✅ Test 2 开发模式卡片 PASS（静态验证 DEV_CARDS 数组有 7 项含 participant；动态测试视口限制未完整验证全部 7 角色）
+  - ✅ Test 3 视角切换测试 PASS（顶栏标签更新"书记 · 查看 党小组组长"+sidebar 链接即时更新无 reload+切回恢复）
+  - ✅ Test 4 人员管理赋权测试 PASS（选 p5+act-001+organizer→确认赋权→记录显示→撤销→记录消失，流程闭环）
+  - ✅ Test 5 sidebar 链接 PASS（帮助/关于动态跳转正常；退出登录静态代码验证正确——AuthStore.logout()+window.location.href=login.html；browser_use 视口限制无法点击最底部按钮）
+  - ✅ Test 6 ROUTE_LOCK 防护 PASS（静态代码验证 workspace-entry.js + party-entry.js 均正确实现 500ms TTL 锁）
+- Step 6-10: 更新 CLAUDE.md + 追加执行日志 + 索引 + 提交
+
+**关键设计决策**：
+- 事件驱动 vs reload：视角切换改为 view-role-change 事件派发+sidebar 订阅 re-render，保留页面状态
+- CrossPageState 适配性扩展：发现文件已存在，不破坏现有 API 追加新方法，使用 CPS_PREFIX 区隔命名空间
+- _getProjectRole 三层查询：auth records（运行时）→ activities.assignments（mock）→ taskforces.members（mock），解决 Final reviewer 问题 2
+- ROUTE_LOCK 500ms TTL：sessionStorage 临时标记，防止快速点击导致跳转循环
+- 登录页签名元素：红色色带+党徽+标题构建仪式感，与党建主题契合
+
+**修改文件清单**（本次会话）：
+- docs/src/services/auth.js（Task 5: _getProjectRole 优先读 auth records）
+- docs/members.html（Task 6: 新增项目角色赋权卡片）
+- docs/src/entries/members-entry.js（Task 6: 新增 _renderProjectAuthPanel/_bindProjectTypeSwitch/_bindConfirmProjectAuth/_renderProjectAuthRecords 四函数）
+- docs/src/components/header.js（Task 7: _bindViewSwitcher 改事件驱动 + _rerenderRoleLabel）
+- docs/src/components/sidebar.js（Task 7: _lastActiveModule 跟踪 + view-role-change 订阅）
+- docs/src/core/cross-page-state.js（Task 8: 追加 setParam/getParam/clearParam）
+- docs/src/core/bootstrap.js（Task 9: import CrossPageState + dev 参数读取改用 getParam）
+- docs/login.html（Task 10: 完整重写，签名元素+动画+表单体验）
+- CLAUDE.md（Task 11: YAML last_updated + T-2026-07-006 状态更新）
+- .ctx/logs/2026-07-EXECUTION_LOG.md（Task 11: 追加 T92 条目）
+- .ctx/logs/EXECUTION_LOG_INDEX.md（Task 11: 追加索引）
+
+**提交历史**（本次会话）：
+- 308a9e5 feat(auth): 阶段1 稳定性修复（Task 1-3）
+- 05ee9ae fix(auth): _getProjectRole 优先读 auth records
+- db2ba75 feat(members): 新增项目角色赋权面板
+- e9fe7ce feat(ui): viewSwitcher 事件驱动 + sidebar 订阅
+- bfff112 feat(core): CrossPageState 追加单值参数 API
+- 69b689e refactor(core): bootstrap.js 改用 CrossPageState.getParam 读取 dev 参数
+- 6abbffe feat(ui): 登录页重设计（Task 10 视觉迭代）
+
+**第 4 轮候补**：
+- 真实场景迭代（配合实际使用场景调整 mock 数据）
+- mock 数据迭代（数据结构完善+更多场景覆盖）
+- 其他功能完善（如视角切换持久化、AuthStore 挂载 window 调试入口等）
+
+**蒸馏标签**：[经验蒸馏: 否]（第 3 轮实施经验待后续评估）
+**状态**：✅ 第 3 轮完成

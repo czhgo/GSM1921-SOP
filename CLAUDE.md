@@ -1,17 +1,17 @@
 ---
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
-role: "[人机]"
-last_updated: "2026-05-24"
+role: "[工程师]+[AI]"
+last_updated: "2026-07-13"
 status: active
-related_files: [ARCHITECTURE.md, SSOT_INDEX.md, content/guides/, content/insights/, .ctx/logs/]
+related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, content/strategy/, content/design/, content/governance/, content/insights/, .ctx/logs/]
 ---
 
 # CLAUDE.md
 
 > 本文件是 Org OS 项目的最高治理文件，分为**甲乙丙三部**：
 >
-> - **甲部：通用流程与指导思想（Harness）**——管总的，稳定不变，定义工作流、理论基石、运行标准
+> - **甲部：通用流程与指导思想（Harness）**——管总的，稳定不变，定义工作流、一改具改、检查清单、评议机制、外部索引
 > - **乙部：具体执行事项（常为新的）**——AI 每次工作必须读取的上下文，完成即删，补充新项
 > - **丙部：待决策事项**——AI 拿不定主意的问题，提交书记决策
 
@@ -22,7 +22,7 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, content/guides/, content/insight
 > Harness 是项目的"宪法"——定义工作方式、核心原则和运行标准。
 > 修改 Harness 须经书记确认，且必须一改具改（见 H2）。
 >
-> **三层架构**：热层（每次必读）→ 温层（修改时读）→ 冷层（按需参考，外移至guides）
+> **三层架构**：热层（每次必读：H1/H2/H3）→ 温层（修改时读：H4/H5）→ 冷层（按需参考：H6 外部索引）
 > **忽略目录**：`.github/` — 智能体治理仅在VSCode中可用，Trae中忽略此目录（D-186）
 
 ***
@@ -37,12 +37,11 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, content/guides/, content/insight
 
 ### H1.1 审查（每次启动时必做）
 
-> 🔴 **以下 4 步为每次工作的强制前置，不得跳过。**
+> 🔴 **以下 3 步为每次工作的强制前置，不得跳过。**
 
-1. 读入 `.github/copilot-instructions.md`
-2. 读取 `.ctx/TIMESTAMPS.md` 检查周期性任务到期情况
-3. 读取 `.ctx/SNAPSHOT.md` 确定当前基线
-4. 阅读本文件（CLAUDE.md）确认当前待办（乙部）
+1. 读取 `.ctx/TIMESTAMPS.md` 检查周期性任务到期情况
+2. 读取 `.ctx/SNAPSHOT.md` 确定当前基线
+3. 阅读本文件（CLAUDE.md）确认当前待办（乙部）
 
 ### H1.2 执行（单次迭代的标准流程）
 
@@ -55,9 +54,10 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, content/guides/, content/insight
 
 > 🔴 **歧义消解铁律**：人类表达可能有歧义。当任务复杂、庞大、或用户表述不清晰时，**必须**：
 >
-> - 在乙部中拆分为可独立完成的子任务（H6.5 分片规则）
-> - 在丙部中提问确认意图（H5.2 丙部待决策机制）
+> - 在乙部中拆分为可独立完成的子任务（OPERATIONS_GUIDE.md §13.5 分片规则）
+> - 在丙部中提问确认意图（H4.2 丙部待决策机制）
 > - 宁可多问一句，不可误判意图。**不知为不知，是知也。**
+> - 🔴 **有疑问必须主动 /ask 书记确认，不得自行假设或基于猜测执行**——这是防止误判意图的最后一道防线。宁可多问一句，不可自行其是。
 
 ### H1.3 next\_prompt（🔴 每次工作结束的强制输出）
 
@@ -68,6 +68,7 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, content/guides/, content/insight
 - **(a) 未完成的工作项**及 T 编号（若乙部无未完成项，标注"乙部当前无未完成项"）
 - **(b) 需要恢复的上下文要点**（下次接手的 AI 需要了解的关键信息）
 - **(c) 建议的执行顺序**（下一步应该先做什么）
+- **(d) Skill 提醒**：若未完成项涉及可调用 Skill 的场景，必须标注推荐 Skill（如"→ 推荐 Skill: brainstorming"）。可用 Skill 通过 `npx skills find <keyword>` 搜索
 
 **⚠️ 丙部待决策事项**：若丙部有未决事项，必须在 next\_prompt 中列出，交由书记决策。
 
@@ -89,21 +90,24 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, content/guides/, content/insight
 
 **吸收外部输入原则**：当书记或外部来源提供新的评议/文档/制度更新时，必须识别变更范围，归位到权威源，并触发一改具改。具体操作流程见 guides。
 
-→ 详细操作流程见 [SYNC\_EXTERNAL.md](content/guides/governance/SYNC_EXTERNAL.md)
+→ 详细操作流程见 [OPERATIONS\_GUIDE.md §14](content/governance/OPERATIONS_GUIDE.md)
 
 ### H2.2 设计母本与子本
 
-| 关系类型   | 母本                                         | 子本                             | 同步规则                 |
-| ------ | ------------------------------------------ | ------------------------------ | -------------------- |
-| 制度→代码  | `content/SOP/*.md`                         | `docs/src/*.js`                | 母本优先，代码跟随（H8.4 规则 2） |
-| 理论→工程  | `content/guides/*.md`                      | `docs/src/*.js`                | guides 定义设计，代码实现设计   |
-| 路线图→执行 | `CLAUDE.md` 乙部                             | `.ctx/logs/*-EXECUTION_LOG.md` | 完成事项从乙部删除，写入执行日志     |
-| 经验→沉淀  | `.ctx/logs/DECISION_LOG.md`                | `content/insights/*.md`        | 决策日志定期蒸馏为经验沉淀        |
-| 术语→全仓  | `content/guides/governance/TERMINOLOGY.md` | 全仓库所有文件                        | 术语变更触发一改具改           |
+> **本表为5条核心原则**。完整的母本子本注册表（约25条级联关系）见 [SSOT_INDEX.md](SSOT_INDEX.md)，文档权威层级定义见 [OPERATIONS_GUIDE.md §7.1](content/governance/OPERATIONS_GUIDE.md)，文档导航图见 [DOC_MAP.md](content/governance/DOC_MAP.md)。
+> 三者关系：H2.2 提炼核心原则 → SSOT_INDEX 注册全部关系 → OPERATIONS_GUIDE §7.1 定义层级 → DOC_MAP 标注层级。
+
+| 关系类型   | 母本                                          | 子本                             | 同步规则                 |
+| ------ | ------------------------------------------- | ------------------------------ | -------------------- |
+| 制度→代码  | `content/sop/*.md`                          | `docs/src/*.js`                | 母本优先，代码跟随（见 [SOP\_WEB.md](content/governance/SOP_WEB.md)） |
+| 理论→工程  | `content/{strategy,design,governance}/*.md` | `docs/src/*.js`                | guides 定义设计，代码实现设计   |
+| 路线图→执行 | `CLAUDE.md` 乙部                              | `.ctx/logs/*-EXECUTION_LOG.md` | 完成事项从乙部删除，写入执行日志     |
+| 经验→沉淀  | `.ctx/logs/DECISION_LOG.md`                 | `content/insights/*.md`        | 决策日志定期蒸馏为经验沉淀        |
+| 术语→全仓  | `content/governance/USAGE_POLICY.md`         | 全仓库所有文件                        | 术语变更触发一改具改           |
 
 ### H2.3 Guides 与 Insights 的定位
 
-- **Guides（`content/guides/`）**：设计理念文档。不管对应功能有没有完成，设计理念始终存在，作为知识留存。
+- **Guides（`content/strategy/`、`content/design/`、`content/governance/`）**：设计理念文档。不管对应功能有没有完成，设计理念始终存在，作为知识留存。
 - **Insights（`content/insights/`）**：经验沉淀文档。按一定频率根据需求和日志进行蒸馏更新。
 - 两者都是**稳定的知识资产**，不因执行事项的完成而删除。
 
@@ -128,8 +132,8 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, content/guides/, content/insight
 □ 1. 确认修改范围：哪些文件受影响？
 □ 2. 检查钩稽：CLAUDE.md / guides 中是否有对该文件的引用？
 □ 3. 一改具改：全仓库搜索相关引用，逐一同步更新
-□ 4. 术语合规：修改内容是否符合 TERMINOLOGY.md？
-□ 5. 母本优先：若涉及 SOP 制度变更，先改 content/SOP/ 再改代码
+□ 4. 术语合规：修改内容是否符合 USAGE_POLICY.md §一？
+□ 5. 母本优先：若涉及 SOP 制度变更，先改 content/sop/ 再改代码
 □ 6. YAML 更新：🔴 任何有 YAML frontmatter 的文件被修改后，必须更新 last_updated 字段。子任务修改文件时同样必须遵守。遗漏即违规。
 □ 7. 记录日志：写入 .ctx/logs/YYYY-MM-EXECUTION_LOG.md
 □ 8. 乙部更新：若涉及执行事项，更新 CLAUDE.md 乙部
@@ -141,51 +145,13 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, content/guides/, content/insight
 
 # 温层：修改时必读
 
-> 🟡 **以下内容在修改文件、更新乙部/丙部、写入日志时需要参考。**
+> 🟡 **以下内容在修改文件、更新乙部/丙部、执行书记评议时需要参考。**
 
 ***
 
-## H4. 甲部修改与钩稽
+## H4. 乙部与丙部生命周期
 
-### H4.1 甲部修改工作流
-
-> 🔴 **当用户对甲部提出修改意见时，必须按以下 5 步执行，不得跳过任何步骤。**
-
-**Step 1 — 修改甲部**：将用户的新看法准确写入甲部对应章节
-
-**Step 2 — 影响评估**：识别修改波及的范围（甲部内部/guides/insights/SOP/代码）
-
-**Step 3 — 写入乙部**：将同步更新任务写入乙部，作为甲部修改的衍生任务链
-
-**Step 4 — 逐项执行**：按乙部中的任务链顺序执行
-
-**Step 5 — 全局验证**：Grep 确认全仓库无旧版表述残留
-
-**禁止**：仅修改甲部而不写入乙部衍生任务。
-
-### H4.2 钩稽联动
-
-> 🟡 **修改任何文件前触发。**
-
-修改任何文件前，必须检查本文件及 guides 中是否存在对该文件的钩稽声明并按要求联动更新。
-
-### H4.3 Snapshot 更新规则
-
-> 🟢 **仅在特定触发条件下执行。**
-
-`.ctx/SNAPSHOT.md` **不再每次执行更新**。仅在以下触发条件满足时更新：
-
-- (a) 大版本升级（v3→v4），如架构重大变更、角色体系迭代
-- (b) 用户显式指令触发（如"/snapshot"或"生成快照"）
-- (c) 项目阶段性收官（Phase 1/2/3 完成）
-
-日常变更仅由 `EXECUTION_LOG` + `DECISION_LOG` + `TIMESTAMPS` 承载。
-
-***
-
-## H5. 乙部与丙部生命周期
-
-### H5.1 乙部任务生命周期
+### H4.1 乙部任务生命周期
 
 > 🔴 **乙部条目的写入/更新/退出为强制规则，不得违反。**
 
@@ -198,7 +164,7 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, content/guides/, content/insight
 ```
 用户明确要求写入？ ──是──→ 必须写入乙部
         │否
-能否一次完成？ ──否──→ 必须写入乙部（按 H6.5 分片）
+能否一次完成？ ──否──→ 必须写入乙部（按 OPERATIONS_GUIDE.md §13.5 分片）
         │是
 涉及 3+ 文件或制度变更？ ──是──→ 写入乙部
         │否
@@ -209,14 +175,18 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, content/guides/, content/insight
 
 **3. 完成退出**：已写入执行日志 → 从乙部表格直接删去（禁止仅标✅不删除）
 
-### H5.2 丙部待决策机制
+### H4.2 丙部待决策机制
 
 > 🔴 **以下两类场景必须写入丙部提交书记决策，不得自行决定。**
 >
 > 1. **拿不定主意**：AI 在执行任务时遇到选择困难，无法自行判断方向
 > 2. **发现待决策项**：AI 在分析过程中识别出需要人类判断的事项（如孤立组件、设计分歧、功能去留），即使 AI 自己没有选择困难，也必须提交
 
-**自省补丁（D-207）**：此前 H5.2 仅覆盖"拿不定主意"，未覆盖"发现待决策项"。后者是独立触发条件——AI 可能对某事项有自己的判断，但该事项涉及功能去留/设计方向，属于人类决策权范畴，AI 不得自行处置。
+**自省补丁（D-207）**：此前 H4.2 仅覆盖"拿不定主意"，未覆盖"发现待决策项"。后者是独立触发条件——AI 可能对某事项有自己的判断，但该事项涉及功能去留/设计方向，属于人类决策权范畴，AI 不得自行处置。
+
+**理解验证补丁（D-220）**：提交丙部前，必须验证自己对问题的理解是否正确。若对问题本身（而非仅对解决方案）存在不确定，应先向书记确认理解，而非基于错误前提提交伪问题。**提交一个基于错误前提的丙部条目，比不提交更糟糕**——它浪费书记时间，且可能误导决策方向。
+
+**数量过拟合补丁**：当书记用自然语言说出N个观察点时，AI不得自动锁定数量或自造结构性标签（如"支柱""维度"等）。书记的散点表达可能是4个、也可能调整为3个或5个——AI应先确认是否需要结构化，再决定组织方式。AI自行概括的术语属于[工作表达]（见 USAGE_POLICY.md §1.6），不得伪装为书记原话。
 
 **格式规范**：
 
@@ -238,168 +208,107 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, content/guides/, content/insight
 
 ***
 
-## H6. 日志规范
+## H5. 书记评议工作流 [工作表达]
 
-### H6.1 执行日志与决策日志的权责划分
+> "书记评议"是 T3 工作表达术语（AI 为交流便利自行概括，非严肃政治表达），用于系统性抽样评议仓库内容并触发纠偏。
 
-| 维度       | 执行日志（EXECUTION\_LOG） | 决策日志（DECISION\_LOG）     |
-| -------- | -------------------- | ----------------------- |
-| **定位**   | 做了什么                 | 为什么这样做                  |
-| **写入时机** | 每次工作结束后**必须写入**      | 仅在做出**非显而易见的决策**时写入     |
-| **读者**   | 下次接手的 Agent（恢复上下文）   | 书记/支委（理解为什么）、经验蒸馏（提炼模式） |
-| **蒸馏去向** | → insights/（经验沉淀）    | → insights/（管理哲学）       |
+### H5.1 触发条件
+- **按需启动**：书记说"做一次评议"时启动
+- **周期触发**：每周一次，作为 OPERATIONS_GUIDE.md §15 周期任务
 
-### H6.2 日志写入铁律
+### H5.2 抽样规则
+- **抽样范围**：content/ 五子目录（strategy / design / governance / sop / insights）
+- **抽样单位**：具体命题（非完整文档）
+- **选取规则**：AI 按文档现有结构标记抽取（如论断编号 P-001~P-025、反论标记、设计原则、why 讲解、战略命题等）
+- **抽样数量**：每次 10-15 条，每子目录 2-3 条
+- **不重复机制**：AI 启动时扫描最近 4-8 周执行日志中带"书记评议"标记的 T 编号条目，从未评议过的命题中抽取
 
-1. **条目排列**：时间正序，新条目追加到文件末尾
-2. **归档标准**：按蒸馏状态，不按时间。`[经验蒸馏: 是]` 的条目方可归档
-3. **写入后验证**：确认新条目出现在文件末尾
+### H5.3 评议流程
+1. AI 抽样 10-15 条命题
+2. 对每条命题输出四维度预审报告：
+   - **表述**：术语合规性（T1/T2/T3）、设问句、主观预设、书面语风格
+   - **内容**：与母本一致性、跨文件引用断裂、事实准确
+   - **精神实质**：是否传达书记思想精髓（AI 给初步判断+存疑点）
+   - **实现方法**：是否有代码/设计支撑、是否可落地
+3. AI 将完整预审报告写入 `.ctx/REVIEW_QUEUE.md`，通知书记可随时评议
+4. 书记在 REVIEW_QUEUE.md 中填写反馈
+5. AI 读取反馈，按 H5.4 三层分流归档，按 H5.6 校验后将完整记录写入执行日志 T 编号，然后清空 REVIEW_QUEUE.md 当前轮次（REVIEW_QUEUE.md 是上下文文件不是日志文件，历史记录不在此留存）
 
-### H6.3 执行日志模板
+### H5.4 反馈分流归档
 
-```markdown
-## YYYY-MM-DD | YYYY-MM-T<序号> — <一句话摘要>
+书记反馈后，AI 按反馈性质三层分流：
 
-- **来源**: <用户指示 / Agent 执行 / 周期性唤醒>
-- **变更文件**: <文件1>, <文件2>, ...
-- **关键动作**: YYYY-MM-T<序号>-<子序号> ✅ / YYYY-MM-T<序号>-<子序号> ✅
-- **变更详情**:
-  - <紧凑表述：每个变更点一行，用动词开头，不展开实现细节>
-  - ⚠️ 排除Harness固定动作（更新YAML、记录日志、乙部更新等），只记录实质性内容变更
-- **设计决策**: <仅非显而易见的选择，关联 D-<序号>>
-- **结果**: <完成情况>
-- **蒸馏标签**: [经验蒸馏: 否 — <一句话>]（🔴 初次写入只能标[否]，经正式蒸馏写入insights后改为[是]）
-```
+| 反馈类型 | 判定标准 | 处理方式 | 归档位置 |
+|---------|---------|---------|---------|
+| 机械性问题 | 设问句/术语违规/主观预设/表述违规等可模式化识别的问题 | 全仓库扫描同类模式→一并修订→按 H5.6 抽样校验 | 月度执行日志（含全仓库扫描范围+修订数量+校验结果） |
+| 设计性问题 | 结构性争议/设计方向分歧/规范适用范围判定 | 写入丙部 P 编号 | CLAUDE.md 丙部 |
+| 即时小修订 | typo/格式错误/链接断裂等无连锁影响的小问题 | 当场修复 | 月度执行日志 |
 
-### H6.4 决策日志模板
+**关键区分**：机械性问题与设计性问题的边界——若反馈涉及"该规则是否适用于此场景"的判定，归设计性问题；若反馈确认违规且需扫描同类模式，归机械性问题。
 
-```markdown
-## D-<序号> <日期> — <决策标题>
+### H5.5 评议记录
 
-### 背景 / 选项 / 决定 / 理由 / 影响范围 / 一改具改检查
-```
+作为月度执行日志的一条 T 编号条目（如 T73 书记评议·首评），包含：
+- 抽样清单（10-15 条命题+位置）
+- 四维度预审结果摘要
+- 书记反馈摘要
+- 反馈落实摘要：
+  - 机械性问题：全仓库扫描范围 + 修订数量 + 抽样校验清单 + 书记判断结果 + 零残留 Grep 验证结果
+  - 设计性问题：入丙部 P 编号清单
+  - 即时小修订：修订位置清单
+- 衍生任务编号清单（链接到乙部/丙部）
 
-### H6.5 编号与分片规则
+### H5.6 修订校验原则 [工作表达]
 
-**编号规则**（D-188）：执行日志按月重置编号，格式为 `YYYY-MM-T<序号>`（如2026-05-T1、2026-06-T1）。跨月引用需加月份前缀。小任务（可一次性完成、不涉及3+文件或制度变更）不分配T编号，直接写日志。
+> "修订校验"是 T3 工作表达术语，指 AI 全仓库扫描修订后，防止过度修订的抽样校验机制。
+> 修订完成 ≠ 修订正确——AI 修订的最大风险不是"漏改"，而是"过度修订"。
 
-**分片规则**：大任务（5+文件或200+行修改）必须提前分片：预估→拆分→写入乙部→顺序执行→上下文传递
+**核心约束**：当机械性问题触发全仓库扫描修订时，AI 必须防止过拟合——避免把"该改的"和"不该改的"一并修订为"标准模板"。
 
-***
+**校验原则**：
+1. 修订完成后，AI 按修订规模抽样若干项，向书记呈现"修订前后对比"判断题
+2. 抽样比例按修订规模灵活调整，不写死具体数字
+3. 书记判定不通过的修订项，退回调整并重新扫描同类模式
+4. 校验通过后，将抽样清单与书记判断结果写入评议记录（H5.5）
 
-## H7. 已知陷阱与上下文丢失教训
+**为什么需要校验**：书记的判断是修订合理性的最终标尺。AI 自行判定的"标准表述"可能与书记认可的"工作表达"冲突——例如某处设问句是反论结构标记，不应被机械修订为陈述句。
 
-> 🔴 **上下文丢失后，AI容易重复犯错。以下原则级提醒必须遵守。**
-
-1. **文件修改必须验证持久化**：Edit工具可能报告成功但未写入磁盘，关键文件修改后必须用Python验证
-2. **一改具改必须全仓搜索确认零残留**：不能只改"最明显的几处"
-3. **临时文件用完即删**：零容忍.bak/.py遗留，可复用工具归入.tools/
-4. **不得自行推断制度安排**：涉及权限/角色/制度时，先读guides确认
-5. **经验沉淀写入前检查定位**：确认内容与目标文件定位匹配
-6. **选择最合适的工具**：MCP工具 > LLM推理 > Python脚本（仅批量操作）
-7. **终端命令禁止写入含中文的文件内容**：PowerShell默认编码可能损坏UTF-8文件。禁止使用`[System.IO.File]::WriteAllText`或`Set-Content`等命令写入含中文的文件。文件写入必须使用Edit/Write工具，终端仅用于读取验证（`Select-String`、`Get-Content`等）
-8. **对话回退后必须审计仓库实际状态**：回退可能导致部分文件回退、部分未回退的不一致。恢复后必须用Grep/Read检查关键文件的实际内容，以磁盘为准更新乙部
-9. **Read 工具可能返回缓存内容**：Read 工具对 CLAUDE.md 等大文件可能返回与磁盘不一致的缓存内容，与 Edit 工具的"虚假成功"叠加形成**虚假确认闭环**。验证文件修改必须用 Python `open()` 读回确认，不得仅依赖 Read 工具
-10. **书记讲出的重要道理必须检查是否写入 guides/Harness**：当书记在决策中阐述的原则超越本次决策、具有长期指导意义时，必须：(a) 写入决策日志；(b) 检查是否需要写入 guides 的对应文件；(c) 若原则具有全局约束力，写入 Harness 对应章节。不得仅记录决策结果而不沉淀原则
-
-→ **判例级详情**见 [KNOWN\_PITFALLS.md](content/guides/governance/KNOWN_PITFALLS.md)
-
-***
-
-***
-
-# 冷层：按需参考（外移至guides，甲部仅索引）
-
-> 🟢 **以下内容已外移至对应guides文件，甲部仅保留核心原则+链接。AI按需读取guides。**
+**适用范围**：仅适用于机械性问题的全仓库扫描修订；即时小修订和设计性问题不触发校验。
 
 ***
 
-## H8. 理论基石索引
+***
 
-> 详细设计见对应guides文件。甲部仅保留核心原则。
+# 冷层：按需参考
 
-### H8.1 双域管理理论 — 党建 x 党务
-
-- **党建工作** = 创新探索 → **党建工作台**；**党务工作** = 合规运行 → **党务管理**
-- **关键判例**：创建活动仅限党支书和党小组组长；组长可独立创建，须报书记知情同意；组织委员协调的是专班（招募统筹），不是活动
-
-→ 详细设计见 [MANAGEMENT\_MODE.md](content/guides/architecture/MANAGEMENT_MODE.md)
-
-### H8.2 差异化视图设计规范
-
-- **核心原则**：同一数据源，不同切面展示；四维度决策树（Q1组织场景→Q2活动形式→Q3时长→Q4发起方向）
-- **查询视图原则**（D-205）：长期写入越写越多的数据，都要配备查询视图。视图放在哪里取决于"什么站位/身份能看什么"（角色-视图绑定）
-- **应用场景优先原则**（D-205）：没有应用场景就不做视图决策。视图不是功能清单的勾选项，而是解决具体问题的工具
-- **视图-写入源原则**（D-205）：视图必须有对应的写入源。数据没有开始/结束字段→不需要甘特视图；没有状态流转字段→不需要看板视图
-
-→ 详细设计见 [MANAGEMENT\_MODE.md](content/guides/architecture/MANAGEMENT_MODE.md) §八
-
-### H8.3 专班制（Task Force System）
-
-- **核心定义**：专班制包含赋权制度（→ H8.5）和工作量考察制度；组织委员是唯一专班管理节点
-
-→ 详细设计见 [COMMISSIONER\_SYSTEM.md](content/guides/design/COMMISSIONER_SYSTEM.md) §A.3\~A.8
-
-### H8.4 SOP↔网页双向修改规则
-
-- 规则0：文本SOP是母本，网页是实施层；规则2：先改SOP母本→再改网页代码→验证
-
-→ 完整指南见 [SOP\_WEB.md](content/guides/design/SOP_WEB.md)
-
-### H8.5 赋权关系链（专班制子制度 · Authorization Chain）
-
-- 专班制的子制度（见 H8.3）；赋权者有权切换所有被赋权者的视图（只读）；视图模式三分类：管理模式/管理者只读/成员只读
-
-→ 详细实现见 [COMMISSIONER\_SYSTEM.md](content/guides/design/COMMISSIONER_SYSTEM.md) §C 权限矩阵
-
-### H8.6 组织者与深度参与者的扁平化设计
-
-- 组织者和深度参与者之间没有上下级关系，只是分工不同；组织者是项目的脑子，深度参与者是项目的手
-
-→ 详细设计见 [FLAT\_DESIGN.md](content/guides/architecture/FLAT_DESIGN.md)
+> 🟢 **以下内容已外移至对应权威源，本节仅保留链接。AI 按需读取。**
 
 ***
 
-## H9. 运行标准索引
+## H6. 外部权威源索引
 
-> 以下标准的详细内容已外移至 [OPERATIONS\_GUIDE.md](content/guides/governance/OPERATIONS_GUIDE.md)，甲部仅保留链接。
+> 以下内容已外移至对应权威源，本节仅保留链接。AI 按需读取。
 
-| 标准名称               | 甲部链接       | 详细文档                                                                        |
-| ------------------ | ---------- | --------------------------------------------------------------------------- |
-| YAML Frontmatter规范 | H3 检查清单第6项 | [OPERATIONS\_GUIDE.md §1](content/guides/governance/OPERATIONS_GUIDE.md)    |
-| 术语规范               | H3 检查清单第4项 | [TERMINOLOGY.md](content/guides/governance/TERMINOLOGY.md)                  |
-| 角色三分类              | —          | [ROLE\_CLASSIFICATION.md](content/guides/governance/ROLE_CLASSIFICATION.md) |
-| 编码规范               | —          | [OPERATIONS\_GUIDE.md §4](content/guides/governance/OPERATIONS_GUIDE.md)    |
-| 文档关系定义             | H2.2 母本子本表 | [OPERATIONS\_GUIDE.md §5](content/guides/governance/OPERATIONS_GUIDE.md)    |
-| 编号命名规则             | H6.5 分片规则  | [OPERATIONS\_GUIDE.md §6](content/guides/governance/OPERATIONS_GUIDE.md)    |
-| 文档权威层级             | —          | [OPERATIONS\_GUIDE.md §7](content/guides/governance/OPERATIONS_GUIDE.md)    |
-
-***
-
-## H10. 快速导航
-
-| 我需要...   | 去哪里                                                                               |
-| -------- | --------------------------------------------------------------------------------- |
-| 看工作流     | 本文件 H1                                                                            |
-| 看一改具改    | 本文件 H2                                                                            |
-| 看检查清单    | 本文件 H3                                                                            |
-| 看甲部修改规则  | 本文件 H4                                                                            |
-| 看乙部/丙部规则 | 本文件 H5                                                                            |
-| 看日志规范    | 本文件 H6                                                                            |
-| 看已知陷阱    | 本文件 H7 / [KNOWN\_PITFALLS.md](content/guides/governance/KNOWN_PITFALLS.md)        |
-| 看理论基石    | 本文件 H8（索引）→ 对应guides文件                                                            |
-| 看运行标准    | 本文件 H9（索引）→ [OPERATIONS\_GUIDE.md](content/guides/governance/OPERATIONS_GUIDE.md) |
-| 看当前待办    | 本文件乙部                                                                             |
-| 了解项目全貌   | [ARCHITECTURE.md](ARCHITECTURE.md)                                                |
-| 查术语规范    | [TERMINOLOGY.md](content/guides/governance/TERMINOLOGY.md)                        |
-| 查设计理念    | [content/guides/](content/guides/)                                                |
-| 查经验沉淀    | [content/insights/](content/insights/)                                            |
-| 查 SOP 流程 | [content/SOP/INDEX.md](content/SOP/INDEX.md)                                      |
-| 查决策历史    | `.ctx/logs/DECISION_LOG.md`                                                       |
-| 查执行日志    | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`                                              |
-| 查全局规则    | [.github/copilot-instructions.md](.github/copilot-instructions.md)                |
-| 查母本链路    | [SSOT\_INDEX.md](SSOT_INDEX.md)                                                   |
-| 取用模板     | `content/references/工作模板/`                                                        |
+| 我需要... | 去哪里 |
+| ---------- | --------------- |
+| 看一改具改 | 本文件 H2 |
+| 看检查清单 | 本文件 H3 |
+| 看乙部/丙部规则 | 本文件 H4 |
+| 看书记评议工作流 | 本文件 H5 |
+| 看甲部修改流程 | [OPERATIONS_GUIDE.md §12](content/governance/OPERATIONS_GUIDE.md) |
+| 看日志规范 | [OPERATIONS_GUIDE.md §13](content/governance/OPERATIONS_GUIDE.md) |
+| 看面向用户表述规范 | [OPERATIONS_GUIDE.md §11](content/governance/OPERATIONS_GUIDE.md) |
+| 看理论基石 | [SECRETARY_PRONOUNCEMENTS.md](SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档） |
+| 看经验沉淀 | [content/insights/](content/insights/) |
+| 看已知陷阱 | [KNOWN_PITFALLS.md](content/governance/KNOWN_PITFALLS.md) |
+| 看运行标准 | [OPERATIONS_GUIDE.md](content/governance/OPERATIONS_GUIDE.md) |
+| 看术语规范 | [USAGE_POLICY.md](content/governance/USAGE_POLICY.md) |
+| 查 SOP 流程 | [content/sop/INDEX.md](content/sop/INDEX.md) |
+| 查决策历史 | `.ctx/logs/DECISION_LOG.md` |
+| 查执行日志 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` |
+| 查母本链路 | [SSOT_INDEX.md](SSOT_INDEX.md) |
+| 取用模板 | `content/references/工作模板/` |
+| 查可用 Skills | `npx skills find <keyword>` |
 
 ***
 
@@ -409,11 +318,11 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, content/guides/, content/insight
 
 > **常为新的原则**：
 >
-> 1. 每个条目必须有**引用流程**——指向甲部（H1\~H8）或 guides 或 insights 中的对应原则
+> 1. 每个条目必须有**引用流程**——指向甲部（H1\~H6）或 guides 或 insights 中的对应原则
 > 2. 条目完成后，在确认已写入【执行日志】的前提下，**直接删去**
 > 3. 补充新的执行事项时，必须标注引用流程
 > 4. 已完成事项的详细信息归档于 `.ctx/logs/DECISION_LOG.md` 和月度执行日志
-> 5. 大任务必须按 H6.4 分片规则提前拆分
+> 5. 大任务必须按 OPERATIONS_GUIDE.md §13.5 分片规则提前拆分
 
 ***
 
@@ -421,42 +330,55 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, content/guides/, content/insight
 
 > 持续任务没有"完成"状态，只有"进行中"或"暂停"。它们代表需要持续关注的工作方向。
 
-| ID  | 事项                                                                                                                                        | 引用流程                                                              | 修改对象                            | 状态    |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------- | ----- |
-| C-1 | **JS 组件化**：完善 `docs/src/` 下的 JS 组件（renderHeader/renderSidebar/renderFooter/renderCalendar 等），使 HTML 仅需引用/调用特定 JS 组件即可实现功能，消除 HTML 中的硬编码逻辑 | H2.4 规则 2（方向指引）→ [SOP\_WEB.md](content/guides/design/SOP_WEB.md)  | `docs/src/*.js` + `docs/*.html` | 🔄 持续 |
-| C-2 | **一改具改巡检**：定期检查仓库中是否存在信息重复散落，发现后归并至权威源                                                                                                    | H2.1 + OPERATIONS\_GUIDE.md §7                                    | 全仓库                             | 🔄 持续 |
-| C-3 | **经验蒸馏**：从执行日志和决策日志中提炼可复用模式，写入 insights                                                                                                   | H2.4 + H6.1 → [党支部管理与实务经验沉淀.md](content/insights/党支部管理与实务经验沉淀.md) | `content/insights/`             | 🔄 持续 |
+| ID  | 事项                                                                                                                                        | 引用流程                                                              | 修改对象                               | 状态    |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------- | ----- |
+| C-1 | **JS 组件化**：完善 `docs/src/` 下的 JS 组件（renderHeader/renderSidebar/renderFooter/renderCalendar 等），使 HTML 仅需引用/调用特定 JS 组件即可实现功能，消除 HTML 中的硬编码逻辑 | H2.4 规则 2（方向指引）→ [SOP\_WEB.md](content/governance/SOP_WEB.md)         | `docs/src/*.js` + `docs/*.html`    | 🔄 持续 |
+| C-2 | **一改具改巡检**：定期检查仓库中是否存在信息重复散落，发现后归并至权威源                                                                                                    | H2.1 + OPERATIONS\_GUIDE.md §7                                    | 全仓库                                | 🔄 持续 |
+| C-3 | **经验蒸馏**：从执行日志和决策日志中提炼可复用模式，写入 insights                                                                                                   | H2.4 + OPERATIONS_GUIDE.md §13.1 → [党支部管理与实务经验沉淀.md](content/insights/党支部管理与实务经验沉淀.md) | `content/insights/`                | 🔄 持续 |
+| C-4 | **视觉体验持续优化**：颜色方案调优 + 卡片设计（嵌套/并列/顺序排布）审校修订                                                                                                | PARTICIPANT_DATAFLOW.md §八 差异化视图 + DESIGN\_SYSTEM.md                    | `docs/src/styles.css` + 各 entry JS | 🔄 持续 |
+| C-5 | **术语审计**：定期扫描全仓库过时术语（活动建设/组织建设残留、之上/之下、归档→人才库混用等），发现后归并至权威源                                                                               | H2.1 一改具改 + OPERATIONS\_GUIDE.md §7                               | 全仓库                                | 🔄 持续 |
 
 ***
 
 ## P1 — 紧急/阻塞项
 
-| ID  | 事项                                                                                                                  | 类型 | 引用流程                     | 修改对象                                                                                                    | 状态     |
-| --- | ------------------------------------------------------------------------------------------------------------------- | -- | ------------------------ | ------------------------------------------------------------------------------------------------------- | ------ |
-| T11 | **登录系统设计前置文档补全**：扩展 LOGIN_STUB.md（用户身份模型+认证机制+角色判定逻辑+双域赋权冲突解决+会话管理）+ 扩展 COMMISSIONER_SYSTEM.md（赋权操作流程） | 文档  | H8.4 + LOGIN_STUB.md + D-218 | LOGIN_STUB.md, COMMISSIONER_SYSTEM.md                                                                  | 🔄 进行中 |
+当前无紧急/阻塞项。
 
 ***
 
 ## P2 — 数据一致性
 
-| ID        | 事项     | 类型     | 引用流程   | 修改对象   | 状态     |
-| --------- | ------ | ------ | ------ | ------ | ------ |
-| （当前无P2事项） | <br /> | <br /> | <br /> | <br /> | <br /> |
+| ID  | 事项 | 引用流程 | 修改对象 | 状态 |
+| --- | ---- | ------ | ------ | ---- |
+| 当前无待办 | — | — | — | — |
 
 ***
 
 ## P3 — 治理/测试/文档
 
-| ID        | 事项     | 类型     | 引用流程   | 修改对象   | 状态     |
-| --------- | ------ | ------ | ------ | ------ | ------ |
-| （当前无P3事项） | <br /> | <br /> | <br /> | <br /> | <br /> |
+| ID  | 事项 | 引用流程 | 修改对象 | 状态 |
+| --- | ---- | ------ | ------ | ---- |
+| T-2026-07-001 | **sop/ 补 why 讲解（27 处）**：为 sop/ 6 个文件的关键执行流程补充"为什么这样设计/为什么这一步重要/如果不这样会怎样"讲解。分布：常见工作场景快速指南.md 5处、党小组组长工作手册.md 5处、支委与党小组定人定责定岗说明.md 5处、纪检委员工作流程指南.md 5处、组织委员工作流程指南.md 4处、宣传委员工作流程指南.md 3处。母本材料：MANAGE_SERVE.md、PARTICIPANT_DATAFLOW.md、COMMISSIONER_FRAMEWORK.md、FLAT_DESIGN.md。执行方式：建议新开 session，用 spec 模式细化每处补 why 的具体位置和内容方向后再修改。前置：T64 已记录机械性修复+术语合规+T2 分级完成 | spec.md（content-audit-design）+ H2.4 经验沉淀 | `content/sop/*.md` | ⏸️ 暂停 |
+| T-2026-07-006 | **权限系统大改（面向上线）**：书记明确"权限矩阵应该是属于系统设计的部分，这一部分还要大改"。系统面向上线部署，需重新设计角色体系+任务流/信息流（含赋权）+Mock 数据迭代机制。预计 3 轮以上。权限矩阵已迁入 governance/ROLE_CLASSIFICATION.md §九。第 1 轮（权限模型重构）+第 2 轮（项目角色赋权+权限矩阵文档）+第 3 轮（UI 改造+视角切换重做+登录页重设计+人员管理扩展）已完成。第 4 轮候补：真实场景迭代+mock 数据迭代 | H2.2 母本子本关系 + brainstorming skill | `content/governance/ROLE_CLASSIFICATION.md` §九 + `docs/src/services/auth.js` + `docs/src/components/{sidebar,header}.js` + `docs/login.html` + `docs/members.html` | ✅ 第 3 轮完成（待第 4 轮：真实场景迭代+mock 数据迭代） |
 
 ***
 
 # 丙部：待决策事项
 
 > **丙部是"待决策"的问题池**——AI 拿不定主意的事项提交书记决策。
-> 生命周期：写入 → next_prompt 提交 → 书记决策 → Decision Log 归档 → 执行 → 从丙部删除
-> 详细规则见甲部 H5.2
+> 生命周期：写入 → next\_prompt 提交 → 书记决策 → Decision Log 归档 → 执行 → 从丙部删除
+> 详细规则见甲部 H4.2
+
+***
+
+当前无待决策事项。
+
+上一轮 P.1（面向新成员的"组织性"故事重构）已完成决策并执行——第一步（AI 草拟反论框架）+ 第二步（总分总故事结构）均通过 brainstorming 完成决策，第一章已重构为总分总叙事结构。
+
+上一轮 P.2（专班与活动并列）已完成决策——书记选择"A. 全部改为独立"，补充原则"专班因不限时间不限地点，与活动互斥"。已执行：6 个专班 activityId 改为 null + 移除招募表单"关联活动"选择器 + 移除宣传委员视图死代码。
+
+上一轮 P.3（活动复盘模板设计方向）已完成决策——书记选择"B. 系统内表单"。已执行：TEMPLATE_LIST desc 更新为"系统内表单·标准化工作流"。
+
+记录见 `.ctx/logs/2026-07-EXECUTION_LOG.md`。
 
 ***
