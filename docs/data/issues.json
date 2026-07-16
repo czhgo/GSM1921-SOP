@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "updatedAt": "2026-07-17",
+  "issues": [
+    {
+      "id": "issue-001",
+      "number": 1,
+      "title": "三会一课记录流程中第二步卡壳",
+      "body": "执行 SOP 时发现第二步需要支部书记签字，但实际场景中书记常在外开会，导致流程卡壳。期望改为电子签名或预授权机制。",
+      "scope": "scenario",
+      "types": ["bug", "enhancement"],
+      "status": "open",
+      "closedReason": null,
+      "closedAt": null,
+      "submittedBy": "p5",
+      "submittedAt": "2026-07-15",
+      "assignee": null,
+      "milestone": null,
+      "reactions": {
+        "thumbsUp": ["p11", "p1"],
+        "thumbsDown": [],
+        "eyes": ["p13"],
+        "hooray": []
+      },
+      "mentions": [],
+      "references": [],
+      "comments": [
+        {
+          "id": "cmt-001",
+          "author": "p11",
+          "body": "我也遇到类似问题，建议增设预授权。",
+          "createdAt": "2026-07-15",
+          "hidden": false,
+          "hiddenBy": null,
+          "hiddenReason": null,
+          "hiddenAt": null
+        }
+      ],
+      "participants": ["p5", "p11"],
+      "commentCount": 1
+    }
+  ]
+}

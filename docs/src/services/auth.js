@@ -10,11 +10,12 @@
 
 import { ROLE_LABELS } from '../core/constants.js';
 import { PEOPLE } from '../mock/people.js';
+import { getPersonById } from '../mock/index.js';
 import { ACTIVITIES } from '../mock/activities.js';
 import { MOCK_TASKFORCES } from '../mock/taskforces.js';
 
 // ── 登录状态 ─────────────────────────────────────
-const LOGIN_KEY = 'gsm1921-login-user';  // localStorage: { userId, role }
+const LOGIN_KEY = 'gsm1921-login-user';  // localStorage: { personId, role }
 
 // ── 只读视角 ─────────────────────────────────────
 const VIEW_ROLE_KEY = 'gsm1921-view-role';  // sessionStorage
@@ -23,14 +24,26 @@ const VIEW_ROLE_KEY = 'gsm1921-view-role';  // sessionStorage
 const AUTH_RECORDS_KEY = 'gsm1921-auth-records';
 
 // ── 权限表 ──────────────────────────────────────
+// issue.* 权限项遵循 GitHub Issue 风格权限矩阵（spec §五）
+//   全员基础权限（view/create/comment/reaction/mention/reference/edit.own）通过 _ISSUE_PERMS_ALL 注入
+//   书记专属权限（status.change/close/comment.hide/edit.others/milestone.manage/assignee.set/drafts.merge/drafts.reject）
+//   仅 secretary 角色持有（spec §5.1：副书记虽权限较高，但 issue 处置权仍归书记，不可委托）
+const _ISSUE_PERMS_ALL = [
+  'issue.view', 'issue.create', 'issue.comment.add', 'issue.reaction.toggle',
+  'issue.mention', 'issue.reference', 'issue.edit.own',
+];
+const _ISSUE_PERMS_SECRETARY = [
+  'issue.status.change', 'issue.close', 'issue.comment.hide', 'issue.edit.others',
+  'issue.milestone.manage', 'issue.assignee.set', 'issue.drafts.merge', 'issue.drafts.reject',
+];
 const ROLE_PERMISSIONS = {
-  'secretary':         ['view_all', 'create_activity', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'authorize_taskforce', 'authorize', 'archive', 'manage_members'],
-  'deputy-secretary':  ['view_all', 'create_activity', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'authorize_taskforce', 'authorize', 'archive', 'manage_members'],
-  'org-commissioner':  ['view_all', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'authorize_taskforce', 'archive'],
-  'prop-commissioner': ['view_all', 'manage_taskforce', 'initiate_taskforce', 'archive'],
-  'disc-commissioner': ['view_all', 'record_attendance', 'summarize_inspection', 'record_inspection', 'manage_taskforce', 'initiate_taskforce'],
-  'leader':            ['view_all', 'create_activity', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'assign_project_role'],
-  'participant':       ['view_public', 'record_inspection'],
+  'secretary':         ['view_all', 'create_activity', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'authorize_taskforce', 'authorize', 'archive', 'manage_members', ..._ISSUE_PERMS_ALL, ..._ISSUE_PERMS_SECRETARY],
+  'deputy-secretary':  ['view_all', 'create_activity', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'authorize_taskforce', 'authorize', 'archive', 'manage_members', ..._ISSUE_PERMS_ALL],
+  'org-commissioner':  ['view_all', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'authorize_taskforce', 'archive', ..._ISSUE_PERMS_ALL],
+  'prop-commissioner': ['view_all', 'manage_taskforce', 'initiate_taskforce', 'archive', ..._ISSUE_PERMS_ALL],
+  'disc-commissioner': ['view_all', 'record_attendance', 'summarize_inspection', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', ..._ISSUE_PERMS_ALL],
+  'leader':            ['view_all', 'create_activity', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'assign_project_role', ..._ISSUE_PERMS_ALL],
+  'participant':       ['view_public', 'record_inspection', ..._ISSUE_PERMS_ALL],
 };
 
 const PROJECT_PERMISSIONS = {
@@ -89,25 +102,25 @@ const COMMISSIONER_ROLES = new Set([
 
 // ── 获取用户的常设角色 ──────────────────────────
 // 优先级: 赋权记录 > mock 数据
-function _getUserRoleFromMemory(userId) {
+function _getUserRoleFromMemory(personId) {
   // 1. 检查赋权记录（组长由支委赋权）
   const records = _getAuthRecords();
-  const leaderRecord = records.find(r => r.targetUserId === userId && r.role === 'leader');
+  const leaderRecord = records.find(r => r.targetPersonId === personId && r.role === 'leader');
   if (leaderRecord) return 'leader';
 
   // 2. 检查 mock 数据（新格式: role 单一值）
-  const person = PEOPLE.find(p => p.id === userId);
+  const person = getPersonById(personId);
   if (person && person.role) return person.role;
 
   return 'participant';
 }
 
 // ── 获取用户在项目中的项目角色 ──────────────────
-function _getProjectRole(userId, projectId) {
+function _getProjectRole(personId, projectId) {
   // 0. 优先查 auth records（运行时赋权记录）
   const records = _getAuthRecords();
   const authRec = records.find(r =>
-    r.targetUserId === userId &&
+    r.targetPersonId === personId &&
     r.role && ['organizer', 'deep'].includes(r.role) &&
     r.scopeRef === projectId
   );
@@ -116,14 +129,14 @@ function _getProjectRole(userId, projectId) {
   // 1. 再查活动 assignments（mock 数据）
   const activity = ACTIVITIES.find(a => a.id === projectId);
   if (activity && Array.isArray(activity.assignments)) {
-    const rec = activity.assignments.find(a => a.personId === userId);
+    const rec = activity.assignments.find(a => a.personId === personId);
     if (rec) return rec.role;  // 'organizer' | 'deep'
   }
 
   // 2. 再查专班 members（mock 数据）
   const tf = MOCK_TASKFORCES.find(t => t.id === projectId);
   if (tf && Array.isArray(tf.members)) {
-    const m = tf.members.find(m => m.personId === userId);
+    const m = tf.members.find(m => m.personId === personId);
     if (m) return m.role;  // 'organizer' | 'deep' | 'participant'
   }
 
@@ -144,9 +157,30 @@ function _saveAuthRecords(records) {
 
 function _defaultAuthRecords() {
   return [
-    { id: 'auth-001', targetUserId: 'p1',  role: 'leader', authorizedBy: 'p13', authorizedAt: '2026-01-10' },
-    { id: 'auth-002', targetUserId: 'p2',  role: 'leader', authorizedBy: 'p13', authorizedAt: '2026-01-10' },
-    { id: 'auth-003', targetUserId: 'p4',  role: 'leader', authorizedBy: 'p13', authorizedAt: '2026-01-15' },
+    // ── 路径1：书记/副书记 → leader（常设） ──
+    { id: 'auth-001', targetPersonId: 'p1',  role: 'leader', authorizedBy: 'p13', authorizedAt: '2026-01-10' },
+    { id: 'auth-002', targetPersonId: 'p2',  role: 'leader', authorizedBy: 'p13', authorizedAt: '2026-01-10' },
+    { id: 'auth-003', targetPersonId: 'p4',  role: 'leader', authorizedBy: 'p13', authorizedAt: '2026-01-15' },
+
+    // ── 路径2：组织委员 → organizer/deep（专班） ──
+    // D-240: 积极分子 p7 在 tf-002 担任 organizer，由组织委员 p11 赋权
+    { id: 'auth-004', targetPersonId: 'p7',  role: 'organizer', scopeRef: 'tf-002', authorizedBy: 'p11', authorizedAt: '2026-05-03' },
+    // 新增人员 p26（积极分子）在 tf-005 担任 organizer，由组织委员 p11 赋权
+    { id: 'auth-005', targetPersonId: 'p26', role: 'organizer', scopeRef: 'tf-005', authorizedBy: 'p11', authorizedAt: '2026-06-10' },
+    // p8 在 tf-001 担任 deep，由组织委员 p11 赋权
+    { id: 'auth-006', targetPersonId: 'p8',  role: 'deep',      scopeRef: 'tf-001', authorizedBy: 'p11', authorizedAt: '2026-05-02' },
+
+    // ── 路径3：党小组组长 → organizer/deep（活动） ──
+    // p1（第一党小组组长）赋权 p3 在 act-3 担任 organizer
+    { id: 'auth-007', targetPersonId: 'p3',  role: 'organizer', scopeRef: 'act-3',  authorizedBy: 'p1',  authorizedAt: '2026-03-10' },
+    // p4（第三党小组组长）赋权 p7 在 act-19 担任 deep
+    { id: 'auth-008', targetPersonId: 'p7',  role: 'deep',      scopeRef: 'act-19', authorizedBy: 'p4',  authorizedAt: '2026-05-20' },
+
+    // ── 路径4：组织者 → deep（活动） ──
+    // p3（act-3 的 organizer）赋权 p6 在 act-3 担任 deep
+    { id: 'auth-009', targetPersonId: 'p6',  role: 'deep',      scopeRef: 'act-3',  authorizedBy: 'p3',  authorizedAt: '2026-03-15' },
+    // p1（act-9 的 organizer）赋权 p5 在 act-9 担任 deep
+    { id: 'auth-010', targetPersonId: 'p5',  role: 'deep',      scopeRef: 'act-9',  authorizedBy: 'p1',  authorizedAt: '2026-05-10' },
   ];
 }
 
@@ -156,11 +190,11 @@ function _defaultAuthRecords() {
 export const AuthStore = {
   /**
    * 登录（Mock 校验）
-   * @param {string} userId
+   * @param {string} personId
    */
-  login(userId) {
-    const role = _getUserRoleFromMemory(userId);
-    const data = { userId, role };
+  login(personId) {
+    const role = _getUserRoleFromMemory(personId);
+    const data = { personId, role };
     try { localStorage.setItem(LOGIN_KEY, JSON.stringify(data)); } catch {}
   },
 
@@ -171,8 +205,8 @@ export const AuthStore = {
   devLogin(role) {
     // 找到该角色的第一个 mock 用户
     const person = PEOPLE.find(p => p.role === role);
-    const userId = person ? person.id : 'p5';
-    const data = { userId, role };
+    const personId = person ? person.id : 'p5';
+    const data = { personId, role };
     try { localStorage.setItem(LOGIN_KEY, JSON.stringify(data)); } catch {}
   },
 
@@ -185,49 +219,57 @@ export const AuthStore = {
 
   /**
    * 获取当前登录用户
-   * @returns {{ userId: string, role: string } | null}
+   * @returns {{ personId: string, role: string } | null}
    */
   getCurrentUser() {
     try {
       const raw = localStorage.getItem(LOGIN_KEY);
-      return raw ? JSON.parse(raw) : null;
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      // 迁移：旧格式 { userId, role } → 新格式 { personId, role }
+      if (data.userId && !data.personId) {
+        data.personId = data.userId;
+        delete data.userId;
+        localStorage.setItem(LOGIN_KEY, JSON.stringify(data));
+      }
+      return data;
     } catch { return null; }
   },
 
   /**
    * 获取用户的常设角色
    */
-  getUserRole(userId) {
-    return _getUserRoleFromMemory(userId);
+  getUserRole(personId) {
+    return _getUserRoleFromMemory(personId);
   },
 
   /**
    * 获取用户的有效角色（只读视角优先，回退常设角色）
    * 用途：sidebar/header 等组件根据有效角色决定跳转目标
-   * @param {string} userId
+   * @param {string} personId
    * @returns {string} 角色 ID
    */
-  getEffectiveRole(userId) {
+  getEffectiveRole(personId) {
     const viewRole = this.getViewRole();
-    return viewRole || this.getUserRole(userId);
+    return viewRole || this.getUserRole(personId);
   },
 
   /**
    * 获取用户在项目内的项目角色
    */
-  getProjectRole(userId, projectId) {
-    return _getProjectRole(userId, projectId);
+  getProjectRole(personId, projectId) {
+    return _getProjectRole(personId, projectId);
   },
 
   /**
    * 统一权限判定
-   * @param {string} userId
+   * @param {string} personId
    * @param {string} action - 权限名（如 'create_activity'）
    * @param {{ projectId?: string }} context - 项目上下文
    * @returns {boolean}
    */
-  canDo(userId, action, context = {}) {
-    const userRole = _getUserRoleFromMemory(userId);
+  canDo(personId, action, context = {}) {
+    const userRole = _getUserRoleFromMemory(personId);
     const perms = ROLE_PERMISSIONS[userRole] || [];
 
     // 全局权限判定
@@ -236,7 +278,7 @@ export const AuthStore = {
 
     // 项目上下文: 常设 + 项目角色取并集
     if (context.projectId) {
-      const projectRole = _getProjectRole(userId, context.projectId);
+      const projectRole = _getProjectRole(personId, context.projectId);
       if (projectRole) {
         const projectPerms = PROJECT_PERMISSIONS[projectRole] || [];
         if (projectPerms.includes(action)) return true;
@@ -250,13 +292,13 @@ export const AuthStore = {
   /**
    * 赋权
    * @param {string} authorizerId - 授权人 ID
-   * @param {string} targetUserId - 被赋权人 ID
+   * @param {string} targetPersonId - 被赋权人 ID
    * @param {string} role - 角色
    * @param {{ projectId?: string }} context
    * @returns {{ ok: boolean, id: string }}
    */
-  authorize(authorizerId, targetUserId, role, context = {}) {
-    if (!authorizerId || !targetUserId || !role) return { ok: false, id: '' };
+  authorize(authorizerId, targetPersonId, role, context = {}) {
+    if (!authorizerId || !targetPersonId || !role) return { ok: false, id: '' };
 
     // 校验: 授权人是否有权赋权该角色
     const authorizerRole = _getUserRoleFromMemory(authorizerId);
@@ -267,7 +309,7 @@ export const AuthStore = {
     // 查重
     const scopeRef = context.projectId || null;
     const duplicate = records.find(r =>
-      r.targetUserId === targetUserId &&
+      r.targetPersonId === targetPersonId &&
       r.role === role &&
       (r.scopeRef || null) === scopeRef
     );
@@ -276,7 +318,7 @@ export const AuthStore = {
     const id = 'auth-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
     records.push({
       id,
-      targetUserId,
+      targetPersonId,
       role,
       scopeRef,
       authorizedBy: authorizerId,
@@ -340,8 +382,8 @@ export const PermissionManager = {
   /**
    * 获取可切换的只读视角列表
    */
-  getSwitchableViews(userId) {
-    const role = _getUserRoleFromMemory(userId);
+  getSwitchableViews(personId) {
+    const role = _getUserRoleFromMemory(personId);
     return VIEWABLE_ROLES[role] || [];
   },
 

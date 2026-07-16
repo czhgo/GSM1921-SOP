@@ -39,34 +39,26 @@
 
       <div class="flex items-center justify-between mb-4">
         <div>
-          <h2 class="font-title-cn text-xl font-bold text-gray-800">意见反馈</h2>
-          <p class="text-xs text-gray-500 mt-1">SOP 优化与规则补丁提案 — 拒绝形式主义，只写"哪里卡壳"和"期望怎么改"</p>
+          <h2 class="font-title-cn text-xl font-bold text-gray-800">提案讨论</h2>
+          <p class="text-xs text-gray-500 mt-1">开源讨论·集思广益  书记保留处置权 — GitHub Issue 风格</p>
         </div>
         <a href="./index.html" class="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">← 返回主页</a>
       </div>
 
-      <div class="card rounded-2xl p-6 mb-6">
-        <div class="flex items-center justify-between">
-          <h3 class="font-title-cn text-base font-bold text-gray-800">SOP 优化提案反馈卡</h3>
-          <button id="btn-open-feedback-modal" class="px-6 py-2.5 rounded-lg text-sm font-medium text-white transition-colors" style="background:#D97706;" onmouseover="this.style.background='#B45309'" onmouseout="this.style.background='#D97706'">提交反馈</button>
-        </div>
-        <p class="text-xs text-gray-400 mt-2">点击"提交反馈"按钮，在弹窗中填写优化提案</p>
+      <!-- 列表视图 -->
+      <div id="issue-list-view" class="space-y-4">
+        <!-- 列表渲染挂载点 -->
+        <div id="issue-list-container"></div>
       </div>
 
-      <div class="flex items-center gap-2 mb-4 flex-wrap">
-        <button id="btn-export-md" class="px-4 py-2 text-sm rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 transition-colors">导出 Markdown</button>
-        <button id="btn-export-json" class="px-4 py-2 text-sm rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 transition-colors">导出 JSON</button>
-        <label class="px-4 py-2 text-sm rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 transition-colors cursor-pointer">
-          导入 JSON
-          <input type="file" id="btn-import-json" accept=".json" class="hidden">
-        </label>
+      <!-- 详情视图（默认隐藏） -->
+      <div id="issue-detail-view" class="hidden">
+        <div id="issue-detail-container"></div>
       </div>
 
-      <div id="recent-feedback-section" class="card rounded-2xl p-6">
-        <h3 class="font-title-cn text-base font-bold text-gray-800 mb-4">近期反馈一览</h3>
-        <div id="recent-feedback-list" class="space-y-3">
-          <p class="text-sm text-gray-400 text-center py-8">暂无反馈记录。欢迎提交第一条意见！</p>
-        </div>
+      <!-- 新建视图（默认隐藏） -->
+      <div id="issue-new-view" class="hidden">
+        <div id="issue-form-container"></div>
       </div>
 
     </div>

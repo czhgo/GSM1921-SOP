@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "updatedAt": "2026-07-17",
+  "milestones": [
+    {
+      "id": "ms-001",
+      "title": "2026 秋季整改批次",
+      "description": "秋季学期开学前的 SOP 优化整改",
+      "dueDate": "2026-09-01",
+      "issueIds": [],
+      "status": "active"
+    }
+  ]
+}

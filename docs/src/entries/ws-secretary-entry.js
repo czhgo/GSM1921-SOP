@@ -6,17 +6,68 @@ import { renderInspectorFromState } from '../components/inspector.js';
 import { computeSecretaryStats } from '../services/roles.js';
 import { AuthStore } from '../services/auth.js';
 import { bootstrapPage } from '../core/bootstrap.js';
-import { ACTIVITIES, MOCK_TASKFORCES, PEOPLE } from '../mock/index.js';
+import { ACTIVITIES, MOCK_TASKFORCES, getPersonById } from '../mock/index.js';
 import { ROLE_LABELS } from '../core/constants.js';
 import { PersonPicker } from '../components/person-picker.js';
 import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js';
 import { FeedbackStore } from '../services/feedback.js';
+import { IssueStore } from '../services/issues.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { renderQueryView } from '../components/query-view.js';
+import { icon } from '../core/icons.js';
 
 bootstrapPage({ module: 'workspace' });
 
+// ── Tab 切换 ──
+const SEC_TAB_STORAGE_KEY = 'workflowos_tab_secretary';
+let _secActiveTab = 'calendar';
+let _secTabsBound = false;
+
+function _bindSecTabs() {
+  if (_secTabsBound) return;
+  _secTabsBound = true;
+  const buttons = document.querySelectorAll('.sec-tab-btn');
+  const panes = document.querySelectorAll('.sec-tab-pane');
+  const accentStyle = '--tab-accent:#B91C1C;--tab-accent-bg:rgba(185,28,28,0.10);--tab-accent-border:rgba(185,28,28,0.25)';
+
+  // 读取 localStorage 记忆的 Tab（优先级：localStorage > 默认 calendar）
+  let initialTab = 'calendar';
+  try {
+    const saved = localStorage.getItem(SEC_TAB_STORAGE_KEY);
+    if (saved && document.querySelector(`.sec-tab-btn[data-sec-tab="${saved}"]`)) {
+      initialTab = saved;
+    }
+  } catch (_) { /* localStorage 不可用时静默降级 */ }
+  _secActiveTab = initialTab;
+
+  // 应用初始 Tab 状态（覆盖 HTML 静态默认）
+  buttons.forEach(b => { b.classList.remove('tab-btn-active'); b.removeAttribute('style'); });
+  panes.forEach(p => p.classList.add('hidden'));
+  const initialBtn = document.querySelector(`.sec-tab-btn[data-sec-tab="${initialTab}"]`);
+  if (initialBtn) {
+    initialBtn.classList.add('tab-btn-active');
+    initialBtn.setAttribute('style', accentStyle);
+  }
+  const initialPane = document.getElementById(`sec-tab-${initialTab}`);
+  if (initialPane) initialPane.classList.remove('hidden');
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      _secActiveTab = btn.dataset.secTab;
+      buttons.forEach(b => { b.classList.remove('tab-btn-active'); b.removeAttribute('style'); });
+      btn.classList.add('tab-btn-active');
+      btn.setAttribute('style', accentStyle);
+      panes.forEach(p => p.classList.add('hidden'));
+      const targetPane = document.getElementById(`sec-tab-${_secActiveTab}`);
+      if (targetPane) targetPane.classList.remove('hidden');
+      // 记忆到 localStorage
+      try { localStorage.setItem(SEC_TAB_STORAGE_KEY, _secActiveTab); } catch (_) { /* 静默降级 */ }
+    });
+  });
+}
+
 function renderSecretaryUI(state) {
+  _bindSecTabs();
   const activities = state.activities || [];
   if (activities.length === 0 && ACTIVITIES.length > 0) {
     const mapped = ACTIVITIES.map(a => ({
@@ -60,40 +111,26 @@ function renderSecretaryUI(state) {
   renderInspectorFromState(filteredState);
   populateMonthSelector(activities);
 
-  // 品牌筛选按钮
-  const inspectorContainer = document.getElementById('inspector-container');
-  if (inspectorContainer && !document.getElementById('brand-filter-btn')) {
-    const filterBtn = document.createElement('button');
-    filterBtn.id = 'brand-filter-btn';
-    filterBtn.className = 'font-stheiti text-xs px-3 py-1.5 rounded-lg transition-colors mb-3';
-    filterBtn.style.cssText = filterBrand
-      ? 'background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);'
-      : 'background:rgba(156,163,175,0.10);color:#6B7280;border:1px solid rgba(156,163,175,0.30);';
-    filterBtn.textContent = filterBrand ? '★ 品牌活动（筛选中）' : '☆ 品牌活动';
-    filterBtn.addEventListener('click', () => {
-      setState({ filterBrand: !filterBrand });
-    });
-    inspectorContainer.insertBefore(filterBtn, inspectorContainer.firstChild);
-  } else if (document.getElementById('brand-filter-btn')) {
-    const filterBtn = document.getElementById('brand-filter-btn');
+  // 品牌筛选按钮 → 移入 Tab 工具栏（C1）
+  const toolbar = document.getElementById('sec-toolbar');
+  if (toolbar) {
+    let filterBtn = document.getElementById('brand-filter-btn');
+    if (!filterBtn) {
+      filterBtn = document.createElement('button');
+      filterBtn.id = 'brand-filter-btn';
+      filterBtn.className = 'font-stheiti text-xs px-3 py-1.5 rounded-lg transition-colors';
+      filterBtn.addEventListener('click', () => {
+        setState({ filterBrand: !filterBrand });
+      });
+      toolbar.appendChild(filterBtn);
+    }
     filterBtn.style.cssText = filterBrand
       ? 'background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);'
       : 'background:rgba(156,163,175,0.10);color:#6B7280;border:1px solid rgba(156,163,175,0.30);';
     filterBtn.textContent = filterBrand ? '★ 品牌活动（筛选中）' : '☆ 品牌活动';
   }
 
-  // ── 活动查询视图 ──
-  let querySection = document.getElementById('secretary-query-view');
-  if (!querySection) {
-    querySection = document.createElement('div');
-    querySection.id = 'secretary-query-view';
-    querySection.className = 'card rounded-xl p-6 mb-6';
-    querySection.innerHTML = '<h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">活动查询</h3><div id="secretary-query-container"></div>';
-    const calendarEl = document.getElementById('secretary-calendar');
-    if (calendarEl) {
-      calendarEl.after(querySection);
-    }
-  }
+  // ── 活动查询视图（容器已在 HTML 中） ──
   const queryContainer = document.getElementById('secretary-query-container');
   if (queryContainer) {
     const typeOptions = [...new Set(displayActivities.map(a => a.type).filter(Boolean))].map(t => ({ value: t, label: t }));
@@ -135,8 +172,8 @@ function renderSecretaryUI(state) {
     });
   }
 
-  // ── 意见反馈管理（P3-1） ──
-  renderFeedbackManagement();
+  // ── issue 管理（GitHub Issue 风格，替代旧 P3-1 反馈管理） ──
+  renderIssueManagement();
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -180,7 +217,7 @@ function renderWritePanel(container) {
   // 返回按钮（step > 1 时显示）
   if (wp.step > 1) {
     html += `<button data-action="wp-back" class="mt-4 text-xs text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-1">`;
-    html += `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>`;
+    html += icon('chevronLeft', { size: 0, className: 'w-3 h-3' });
     html += `返回上一步</button>`;
   }
 
@@ -231,7 +268,7 @@ function renderStepL1() {
     html += `<span class="text-sm font-medium ${isSelected ? 'text-red-700' : 'text-gray-700'}">${opt.label}</span>`;
     html += `</div>`;
     if (opt.hasSub) {
-      html += `<svg class="w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
+      html += icon('chevronRight', { size: 0, className: `w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}` });
     }
     html += `</div>`;
     html += `</button>`;
@@ -540,7 +577,7 @@ async function handleSubmitActivity() {
 /** 赋权面板状态 */
 const authPanel = {
   open: false,
-  selectedUserId: null,
+  selectedPersonId: null,
   role: null,        // 'organizer' | 'deep'
   scope: null,       // 'activity' | 'taskforce'
   scopeRef: null,    // 关联活动/专班 ID
@@ -674,12 +711,12 @@ function renderAuthPanel(assignArea) {
       placeholder: '选择被赋权同志',
       accentColor: '#B91C1C',
       onSelect: (ids) => {
-        authPanel.selectedUserId = ids[0] || null;
+        authPanel.selectedPersonId = ids[0] || null;
       },
     });
     // 如果已有选中，恢复
-    if (authPanel.selectedUserId) {
-      authPanel.personPicker.setSelected([authPanel.selectedUserId]);
+    if (authPanel.selectedPersonId) {
+      authPanel.personPicker.setSelected([authPanel.selectedPersonId]);
     }
     authPanel.personPicker.render(pickerSlot);
   }
@@ -739,7 +776,7 @@ function handleConfirmAuth() {
   if (scopeRefEl) authPanel.scopeRef = scopeRefEl.value || null;
 
   // 校验
-  if (!authPanel.selectedUserId) {
+  if (!authPanel.selectedPersonId) {
     showToast('error', '请选择被赋权同志');
     return;
   }
@@ -759,20 +796,20 @@ function handleConfirmAuth() {
 
   // 调用 AuthStore
   const result = AuthStore.authorize(
-    AuthStore.getCurrentUser()?.userId,
-    authPanel.selectedUserId,
+    AuthStore.getCurrentUser()?.personId,
+    authPanel.selectedPersonId,
     authPanel.role,
     { projectId: authPanel.scopeRef },
   );
 
   if (result.ok) {
-    const person = PEOPLE.find(p => p.id === authPanel.selectedUserId);
-    const personName = person ? person.name : authPanel.selectedUserId;
+    const person = getPersonById(authPanel.selectedPersonId);
+    const personName = person ? person.name : authPanel.selectedPersonId;
     const roleLabel = ROLE_LABELS[authPanel.role] || authPanel.role;
     showToast('success', `已为 ${personName} 赋予 ${roleLabel} 角色`);
 
     // 重置表单（保留面板打开）
-    authPanel.selectedUserId = null;
+    authPanel.selectedPersonId = null;
     authPanel.role = null;
     authPanel.scope = null;
     authPanel.scopeRef = null;
@@ -802,8 +839,8 @@ function renderAuthRecords() {
   }
 
   listEl.innerHTML = records.map(record => {
-    const person = PEOPLE.find(p => p.id === record.targetUserId);
-    const personName = person ? person.name : record.targetUserId;
+    const person = getPersonById(record.targetPersonId);
+    const personName = person ? person.name : record.targetPersonId;
     const roleLabel = ROLE_LABELS[record.role] || record.role;
     const scopeLabel = record.scope === 'activity' ? '活动' : '专班';
 
@@ -861,110 +898,117 @@ function renderAuthRecords() {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  意见反馈管理 — P3-1：书记操作状态流转（待处理→处理中→已办结）
+//  issue 管理 — GitHub Issue 风格反馈管理面板（替代旧 P3-1）
+//  功能：草稿审核（通过/驳回）+ 全部 issue 列表 + 导出/清除
 // ════════════════════════════════════════════════════════════════
 
-const scopeLabels = {
-  permanent: '底层架构',
-  global: '全局通用',
-  role: '权责调整',
-  scenario: '特定场景',
-};
-
-function renderFeedbackManagement() {
-  const counts = FeedbackStore.countByStatus();
-  const pendingEl = document.getElementById('fb-pending-count');
-  const processingEl = document.getElementById('fb-processing-count');
-  const doneEl = document.getElementById('fb-done-count');
-  if (pendingEl) pendingEl.textContent = `${counts.pending} 待处理`;
-  if (processingEl) processingEl.textContent = `${counts.processing} 处理中`;
-  if (doneEl) doneEl.textContent = `${counts.done} 已办结`;
-
-  const allFeedback = FeedbackStore.getAll();
-  const active = allFeedback.filter(f => f.status !== 'done');
-  const archived = allFeedback.filter(f => f.status === 'done');
-
-  // 渲染活跃反馈（待处理+处理中）
-  const listEl = document.getElementById('secretary-feedback-list');
-  if (listEl) {
-    if (active.length === 0) {
-      listEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">暂无待处理反馈</p>';
+function renderIssueManagement() {
+  // 渲染待审核草稿
+  const draftsEl = document.getElementById('issue-drafts-list');
+  if (draftsEl) {
+    const drafts = IssueStore.getDrafts().filter(d => d.status === 'pending');
+    if (drafts.length === 0) {
+      draftsEl.innerHTML = '<p class="text-xs text-gray-400">暂无待审核草稿</p>';
     } else {
-      listEl.innerHTML = active.map(f => {
-        const statusConfig = {
-          pending: { label: '待处理', bg: 'bg-amber-100', text: 'text-amber-700', nextLabel: '开始处理', nextStatus: 'processing' },
-          processing: { label: '处理中', bg: 'bg-blue-100', text: 'text-blue-700', nextLabel: '办结', nextStatus: 'done' },
-        };
-        const cfg = statusConfig[f.status] || statusConfig.pending;
-        const commentsHtml = (f.comments && f.comments.length > 0)
-          ? f.comments.map(c => `<div class="ml-2 pl-2 border-l-2 border-gray-200 py-0.5"><span class="text-[11px] text-gray-500">${c.author}：${c.text}</span></div>`).join('')
-          : '';
-
-        return `
-          <div class="p-3 rounded-xl bg-gray-100 border border-gray-100" data-fb-id="${f.id}">
-            <div class="flex items-center justify-between mb-1.5">
-              <span class="text-[10px] px-1.5 py-0.5 rounded-full ${cfg.bg} ${cfg.text} font-medium">${cfg.label}</span>
-              <span class="text-[10px] text-gray-400">${scopeLabels[f.scope] || f.scope}${f.scenarioName ? ' · ' + f.scenarioName : ''}</span>
-            </div>
-            ${f.painPointDetail || f.painPoint ? `<p class="text-xs text-gray-700 mb-1">${f.painPointDetail || f.painPoint}</p>` : ''}
-            ${f.proposedFix ? `<p class="text-xs text-gray-500">建议：${f.proposedFix}</p>` : ''}
-            ${commentsHtml ? `<div class="mt-1 space-y-0.5">${commentsHtml}</div>` : ''}
-            <div class="flex items-center justify-between mt-2">
-              <span class="text-[10px] text-gray-400">${f.submittedBy} · ${f.submittedAt}</span>
-              <div class="flex gap-1.5">
-                <button class="fb-status-btn text-[10px] px-2 py-1 rounded bg-white border border-gray-200 hover:bg-gray-50 transition-colors" data-fb-id="${f.id}" data-next-status="${cfg.nextStatus}">${cfg.nextLabel}</button>
-                <button class="fb-comment-btn text-[10px] px-2 py-1 rounded bg-white border border-gray-200 hover:bg-gray-50 transition-colors" data-fb-id="${f.id}">追加评论</button>
-              </div>
-            </div>
-          </div>`;
-      }).join('');
-
-      // 绑定状态流转按钮
-      listEl.querySelectorAll('.fb-status-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const fbId = btn.dataset.fbId;
-          const nextStatus = btn.dataset.nextStatus;
-          const statusLabels = { processing: '处理中', done: '已办结' };
-          const confirmed = window.confirm(`确认将此反馈标记为「${statusLabels[nextStatus]}」？`);
-          if (!confirmed) return;
-          FeedbackStore.updateStatus(fbId, nextStatus);
-          showToast('success', `反馈已标记为${statusLabels[nextStatus]}`);
-          renderFeedbackManagement();
-        });
-      });
-
-      // 绑定追加评论按钮
-      listEl.querySelectorAll('.fb-comment-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const fbId = btn.dataset.fbId;
-          const text = prompt('评论内容：');
-          if (!text) return;
-          FeedbackStore.addComment(fbId, text, '书记');
-          showToast('success', '评论已追加');
-          renderFeedbackManagement();
-        });
-      });
+      draftsEl.innerHTML = drafts.map(d => renderDraftRow(d)).join('');
+      bindDraftEvents();
     }
   }
 
-  // 渲染已归档反馈
-  const archivedEl = document.getElementById('secretary-feedback-archived');
-  if (archivedEl) {
-    if (archived.length === 0) {
-      archivedEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-2">暂无已归档反馈</p>';
+  // 渲染全部 issue
+  const listEl = document.getElementById('issue-secretary-list');
+  if (listEl) {
+    const issues = IssueStore.getAll();
+    if (issues.length === 0) {
+      listEl.innerHTML = '<p class="text-xs text-gray-400">暂无 issue</p>';
     } else {
-      archivedEl.innerHTML = archived.map(f => `
-        <div class="p-2.5 rounded-xl bg-gray-50/50 border border-gray-50">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">已办结</span>
-            <span class="text-[10px] text-gray-400">${scopeLabels[f.scope] || f.scope}</span>
+      listEl.innerHTML = issues.map(i => `
+        <div class="p-2 rounded-lg border border-gray-100 hover:bg-gray-50">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-400 font-mono">#${i.number}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full ${i.status === 'open' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}">${i.status}</span>
           </div>
-          <p class="text-xs text-gray-500 line-through">${f.painPointDetail || f.painPoint || '无内容'}</p>
-          <span class="text-[10px] text-gray-400">${f.submittedBy} · ${f.submittedAt}</span>
+          <p class="text-sm text-gray-700 mt-1">${i.title}</p>
+          <div class="text-[10px] text-gray-400 mt-1">${i.submittedBy} · ${i.commentCount || 0} 评论 · ${i.submittedAt}</div>
         </div>
       `).join('');
     }
   }
+
+  // 工具按钮
+  document.getElementById('btn-export-issues-json')?.addEventListener('click', () => {
+    const json = IssueStore.exportJSON();
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `issues-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('btn-clear-issue-cache')?.addEventListener('click', () => {
+    if (confirm('确定清除本地缓存？此操作不影响 issues.json 权威源，仅清除浏览器缓存与草稿。')) {
+      IssueStore.clearCache();
+      renderIssueManagement();
+    }
+  });
+}
+
+function renderDraftRow(d) {
+  if (d.type === 'new-issue') {
+    const p = d.payload;
+    return `
+      <div class="p-3 rounded-lg bg-amber-50 border border-amber-200" data-draft-id="${d.draftId}">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-[10px] text-amber-700 font-medium">新建 issue 草稿</span>
+          <span class="text-[10px] text-gray-500">${d.author} · ${d.createdAt}</span>
+        </div>
+        <p class="text-sm font-medium text-gray-800">${p.title}</p>
+        <p class="text-xs text-gray-600 mt-1 line-clamp-2">${p.body}</p>
+        <div class="flex gap-1 mt-2">
+          <button class="btn-approve-draft text-[10px] px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700" data-draft-id="${d.draftId}">通过</button>
+          <button class="btn-reject-draft text-[10px] px-2 py-1 rounded bg-white border border-red-200 text-red-600 hover:bg-red-50" data-draft-id="${d.draftId}">驳回</button>
+        </div>
+      </div>
+    `;
+  }
+  if (d.type === 'comment') {
+    return `
+      <div class="p-3 rounded-lg bg-blue-50 border border-blue-200" data-draft-id="${d.draftId}">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-[10px] text-blue-700 font-medium">评论草稿 · 目标 issue: ${d.targetIssueId}</span>
+          <span class="text-[10px] text-gray-500">${d.author} · ${d.createdAt}</span>
+        </div>
+        <p class="text-sm text-gray-700">${d.payload.body}</p>
+        <div class="flex gap-1 mt-2">
+          <button class="btn-approve-draft text-[10px] px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700" data-draft-id="${d.draftId}">通过</button>
+          <button class="btn-reject-draft text-[10px] px-2 py-1 rounded bg-white border border-red-200 text-red-600 hover:bg-red-50" data-draft-id="${d.draftId}">驳回</button>
+        </div>
+      </div>
+    `;
+  }
+  return `<div class="text-xs text-gray-400">未知草稿类型 ${d.type}</div>`;
+}
+
+function bindDraftEvents() {
+  document.querySelectorAll('.btn-approve-draft').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.draftId;
+      IssueStore.approveDraft(id);
+      showToast('success', '草稿已通过，已合并到 issue 列表');
+      renderIssueManagement();
+    });
+  });
+  document.querySelectorAll('.btn-reject-draft').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.draftId;
+      const reason = prompt('请输入驳回原因') || '不符合要求';
+      IssueStore.rejectDraft(id, reason);
+      showToast('info', '草稿已驳回');
+      renderIssueManagement();
+    });
+  });
 }
 
 registerRenderCallback(renderSecretaryUI);
