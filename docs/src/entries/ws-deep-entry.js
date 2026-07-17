@@ -1,6 +1,7 @@
-﻿import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
+import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
 import { showToast } from '../core/utils.js';
 import { bootstrapPage } from '../core/bootstrap.js';
+import { AuthStore } from '../services/auth.js';
 import { ACTIVITIES, PEOPLE, MOCK_TASKFORCES } from '../mock/index.js';
 import { mockDB } from '../core/domain.js';
 import { saveDB } from '../services/mock.js';
@@ -10,7 +11,9 @@ import { renderTabBar } from '../components/tab-bar.js';
 const { accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', accentRole: 'deep' });
 
 // ── 经验沉淀数据层（mockDB） ────────────────────────────
-const DEEP_PERSON_ID = 'p5'; // 深度参与者 personId（模拟）
+// 动态读取当前登录用户的 personId（取代写死的 'p5'，见 spec §3.4）
+const _currentUser = AuthStore.getCurrentUser();
+const DEEP_PERSON_ID = _currentUser?.personId || '';
 
 function _loadDeposits() {
   try {
@@ -55,8 +58,11 @@ function _formatTime(isoStr) {
 }
 
 function _filterByRole(state, role) {
+  // 筛选当前用户作为 deep 角色的活动（用 AuthStore.getProjectRole 判定，取代粗糙的 participants.length > 0）
   const activities = (state.activities || []).filter(a => {
-    if (role === 'deep') return a.participants && a.participants.length > 0;
+    if (role === 'deep') {
+      return AuthStore.getProjectRole(DEEP_PERSON_ID, a.id) === 'deep';
+    }
     return true;
   });
   return { ...state, activities };
@@ -97,6 +103,17 @@ function renderDeepUI(state) {
 function _renderActivitiesContent(filteredActivities) {
   const tc = document.getElementById('deep-tab-content');
   if (!tc) return;
+
+  // 空数据友好提示（spec §3.4）：无赋权记录时直接展示引导文案
+  if (!filteredActivities || filteredActivities.length === 0) {
+    tc.innerHTML = `
+      <div class="card rounded-xl p-8 text-center">
+        <p class="text-sm text-gray-500 mb-2">您当前没有作为深度参与者的活动或专班</p>
+        <p class="text-xs text-gray-400">请联系党小组组长或支委赋权</p>
+      </div>
+    `;
+    return;
+  }
 
   tc.innerHTML = `
     <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-deep);">

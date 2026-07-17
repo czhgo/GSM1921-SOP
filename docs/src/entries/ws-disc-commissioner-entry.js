@@ -93,12 +93,12 @@ function _renderAttendanceContent(filterActivityId) {
 
   container.innerHTML = `
     ${filterBanner}
-    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;">
+    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤总表</h4>
         <div class="flex gap-2">
-          <button class="att-view-btn text-sm px-3 py-1.5 rounded-lg border" data-view="long" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">活动视图</button>
-          <button class="att-view-btn text-sm px-3 py-1.5 rounded-lg border" data-view="wide" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">人视图</button>
+          <button class="att-view-btn text-xs px-2 py-1 rounded-lg border" data-view="long" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">活动视图</button>
+          <button class="att-view-btn text-xs px-2 py-1 rounded-lg border" data-view="wide" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">人视图</button>
         </div>
       </div>
       <div class="text-xs text-gray-500 mb-3">纪检委员维护考勤系统，组织委员的活动出勤数据直接使用本系统</div>
@@ -261,7 +261,7 @@ function _renderInspectionContent() {
   ` : '';
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;">
+    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考察总表</h4>
         <div class="flex gap-2">
@@ -425,7 +425,7 @@ function _renderReviewContent() {
 
   container.innerHTML = `
     <div class="space-y-4">
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">活动流程监督</h4>
         <div class="text-xs text-gray-500 mb-3">阅览党小组活动/专班工作时间流 · 超时确认后邮件提醒</div>
         <div class="space-y-2">
@@ -443,7 +443,7 @@ function _renderReviewContent() {
           `).join('')}
         </div>
       </div>
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">活动复盘监督</h4>
         <div class="text-xs text-gray-500 mb-3">复盘三态流转：已上传 → 批注中 → 确认/打回</div>
         <div class="space-y-2">
@@ -456,9 +456,9 @@ function _renderReviewContent() {
               ${r.reviewContent ? `<div class="text-xs text-gray-600 mb-2 p-2 bg-white rounded-lg border border-gray-100">${r.reviewContent}</div>` : ''}
               <div class="flex gap-2">
                 ${r.reviewStatus === '已上传' ? `
-                  <button class="text-sm px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 btn-disc-annotate" style="cursor:pointer;">批注</button>
-                  <button class="text-sm px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 btn-disc-reject" style="cursor:pointer;">打回</button>
-                  <button class="text-sm px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 btn-disc-confirm" style="cursor:pointer;">确认</button>
+                  <button class="text-xs px-2 py-1 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 btn-disc-annotate" style="cursor:pointer;">批注</button>
+                  <button class="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 border border-red-200 btn-disc-reject" style="cursor:pointer;">打回</button>
+                  <button class="text-xs px-2 py-1 rounded-lg bg-green-50 text-green-700 border border-green-200 btn-disc-confirm" style="cursor:pointer;">确认</button>
                 ` : ''}
                 ${r.reviewStatus === '未提交' ? `
                   <button class="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 border border-red-200 btn-disc-remind-review" style="cursor:pointer;">邮件提醒</button>
@@ -488,7 +488,7 @@ function _renderReviewContent() {
       onSubmit: (values) => {
         showToast('success', '批注已添加');
       },
-      accentColor: accent || '#D97706'
+      accentColor: accent || '#C2410C'
     });
   }));
   container.querySelectorAll('.btn-disc-reject').forEach(btn => btn.addEventListener('click', () => showToast('success', '复盘已打回，要求重新提交')));
@@ -538,7 +538,7 @@ function _renderHandoverContent() {
   container.innerHTML = `
     <div class="space-y-4">
       <!-- 统计概览 -->
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">数据交接概览</h4>
         <div class="flex gap-4 text-xs">
           <div class="flex items-center gap-1.5">
@@ -573,7 +573,7 @@ function _renderHandoverContent() {
 
       <!-- 已提交 -->
       ${submittedRecords.length > 0 ? `
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">待确认的交接</h4>
         <div class="text-xs text-gray-500 mb-3">组织者已提交交接数据，请审核后确认</div>
         <div class="space-y-2" id="disc-handover-submitted">
@@ -709,7 +709,7 @@ function _renderDepositContent() {
   container.innerHTML = `
     <div class="space-y-4">
       <!-- 统计概览 -->
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">经验沉淀概览</h4>
         <div class="flex gap-4 text-xs">
           <div class="flex items-center gap-1.5">
@@ -744,7 +744,7 @@ function _renderDepositContent() {
 
       <!-- 已批注 -->
       ${annotatedDeposits.length > 0 ? `
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">已批注的沉淀</h4>
         <div class="text-xs text-gray-500 mb-3">已添加批注，确认后录入后台</div>
         <div class="space-y-2" id="disc-deposit-annotated">

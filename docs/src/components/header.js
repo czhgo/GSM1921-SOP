@@ -56,10 +56,11 @@ function _viewSwitcherHTML(role) {
 }
 
 function _notificationBellHTML() {
-  const notices = NoticeStore.getAll();
-  const unread = notices.filter(n => !n.read).length;
+  // 只统计未过期的未读通知，与 index 首页通知栏数据一致
+  const activeNotices = NoticeStore.list({ activeOnly: true });
+  const unread = activeNotices.filter(n => !n.read).length;
   const badge = unread > 0
-    ? `<span style="position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--party-gold);border:1.5px solid var(--primary-900);"></span>`
+    ? `<span style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:9999px;background:var(--party-gold);border:1.5px solid var(--primary-900);font-size:10px;font-weight:600;color:#7A0010;display:flex;align-items:center;justify-content:center;padding:0 4px;">${unread > 9 ? '9+' : unread}</span>`
     : '';
 
   return `
@@ -232,14 +233,6 @@ function _rerenderRoleLabel() {
   if (span) span.textContent = text;
 }
 
-function _buildNoticeTargetUrl(target, id) {
-  // 所有通知跳转首页（index.html），因为首页/日历是全员可访问的公共页面
-  // 不跳任何管理页面——考虑最广大的支部成员使用
-  const path = window.location.pathname;
-  const basePath = path.includes('/workspace/') || path.includes('/party/') ? '../' : '';
-  return `${basePath}index.html?notice=${id}`;
-}
-
 function _bindNotificationBell(header) {
   const btn = header.querySelector('#notif-btn');
   const dropdown = header.querySelector('#notif-dropdown');
@@ -249,7 +242,7 @@ function _bindNotificationBell(header) {
     e.stopPropagation();
     dropdown.classList.toggle('hidden');
     if (!dropdown.classList.contains('hidden')) {
-      const notices = NoticeStore.getAll();
+      const notices = NoticeStore.list({ activeOnly: true, sortBy: 'date' });
       if (notices.length === 0) {
         dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:#9CA3AF;font-size:14px;">暂无通知</div>';
         return;
@@ -262,7 +255,7 @@ function _bindNotificationBell(header) {
       };
 
       dropdown.innerHTML = notices.slice(0, 10).map(n => `
-        <div class="notif-dropdown-item" data-notice-id="${n.id}" data-target="${n.targetModule || ''}"
+        <div class="notif-dropdown-item" data-notice-id="${n.id}" data-target="${n.targetModule || ''}" data-target-url="${n.targetUrl || ''}"
              style="padding:12px;border-bottom:1px solid #F3F4F6;cursor:pointer;transition:background 0.15s;">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
             ${priorityBadge[n.priority] || ''}
@@ -272,7 +265,8 @@ function _bindNotificationBell(header) {
         </div>
       `).join('');
 
-      // 绑定点击：标记已读 + 跳转目标模块
+      // 绑定点击：标记已读 + 跳转
+      // 优先级：有 targetUrl 时直接跳 targetUrl（赋权通知等），否则跳首页 index.html?notice=id（向后兼容）
       dropdown.querySelectorAll('.notif-dropdown-item').forEach(item => {
         item.addEventListener('mouseenter', () => {
           item.style.background = '#F9FAFB';
@@ -283,22 +277,36 @@ function _bindNotificationBell(header) {
         item.addEventListener('click', (ev) => {
           ev.stopPropagation();
           const id = item.dataset.noticeId;
-          const target = item.dataset.target;
+          const targetUrl = item.dataset.targetUrl;
           if (id) NoticeStore.markRead(id);
           // 视觉反馈：点击后标题颜色变浅
           const titleP = item.querySelector('p[style*="color:#374151"]');
           if (titleP) titleP.style.color = '#9CA3AF';
-          // 跳转首页（短暂延迟让用户看到视觉反馈）
-          if (target) {
-            setTimeout(() => {
-              window.location.href = _buildNoticeTargetUrl(target, id);
-            }, 150);
-          }
+          // 跳转（短暂延迟让用户看到视觉反馈）
+          setTimeout(() => {
+            const path = window.location.pathname;
+            const basePath = path.includes('/workspace/') || path.includes('/party/') ? '../' : '';
+            const finalUrl = targetUrl
+              ? basePath + targetUrl
+              : `${basePath}index.html?notice=${id}`;
+            window.location.href = finalUrl;
+          }, 150);
         });
       });
     }
   });
 
+  // 点击外部关闭下拉
   document.addEventListener('click', (e) => {
     if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
-      dropdown.classList.add
+      dropdown.classList.add('hidden');
+    }
+  });
+
+  // ESC 关闭下拉
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
+      dropdown.classList.add('hidden');
+    }
+  });
+}

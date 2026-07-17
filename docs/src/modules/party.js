@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 // party.js — 党务管理模块状态管理器
 //  职责：管理四大子功能的数据加载、状态流转、DOM 渲染
@@ -241,7 +241,15 @@ export const PartyModule = {
     }
 
     // 将 completed 布尔值转为字符串，以兼容 renderQueryView 的筛选比较逻辑
-    const queryData = tasks.map(t => ({ ...t, completed: String(t.completed) }));
+    // mock 数据中 status 字段为 'pending'/'completed'，需统一映射为 completed 布尔字符串
+    const queryData = tasks.map(t => ({
+      ...t,
+      // 兼容字段：name = personName, absentActivity = activityName
+      name: t.personName || t.name || '未知',
+      absentActivity: t.activityName || t.absentActivity || '未知活动',
+      absentDate: t.absentDate || '未记录',
+      completed: String(t.status === 'completed' || t.completed === true),
+    }));
 
     renderQueryView(container, {
       searchPlaceholder: '搜索姓名...',
@@ -261,7 +269,7 @@ export const PartyModule = {
         </div>
       `,
       emptyMessage: '无匹配结果',
-      accentColor: '#D97706',
+      accentColor: ACCENT_COLORS['disc-commissioner'].hex,
     });
 
     // renderQueryView 渲染后重新绑定"标记已补"按钮事件
@@ -417,7 +425,7 @@ export const PartyModule = {
     const toggleBtn = `
       <div class="flex items-center gap-2 mb-3">
         <button id="candidate-view-toggle" class="text-xs px-3 py-1 rounded-lg border transition-colors"
-          style="border-color:#0E7490;color:#0E7490;background:${currentView === 'person' ? 'rgba(14,116,144,0.08)' : 'transparent'};">
+          style="border-color:${ACCENT_COLORS['org-commissioner'].hex};color:${ACCENT_COLORS['org-commissioner'].hex};background:${currentView === 'person' ? 'rgba(14,165,233,0.08)' : 'transparent'};">
           ${currentView === 'person' ? '人视图' : '阶段视图'}
           <span class="ml-1 text-gray-400">⇄ 切换</span>
         </button>
@@ -503,14 +511,14 @@ export const PartyModule = {
                 </div>
                 <div class="ml-4 w-20">
                   <div class="w-full bg-gray-200 rounded-full h-1.5">
-                    <div class="h-1.5 rounded-full" style="width:${progressPct}%;background:#0E7490;"></div>
+                    <div class="h-1.5 rounded-full" style="width:${progressPct}%;background:${ACCENT_COLORS['org-commissioner'].hex};"></div>
                   </div>
                 </div>
               </div>
             `;
           },
           emptyMessage: '无匹配候选人',
-          accentColor: '#0E7490',
+          accentColor: ACCENT_COLORS['org-commissioner'].hex,
         });
       }
     }
@@ -543,7 +551,7 @@ export const PartyModule = {
         </div>
       `,
       emptyMessage: '无匹配结果',
-      accentColor: '#1D4ED8',
+      accentColor: ACCENT_COLORS['org-commissioner'].hex,
     });
   },
 
@@ -593,7 +601,7 @@ export const PartyModule = {
         </div>
       `,
       emptyMessage: '无匹配记录',
-      accentColor: '#0E7490',
+      accentColor: ACCENT_COLORS['prop-commissioner'].hex,
     });
 
     // 根据查询栏状态过滤 records 并重新渲染表格（不破坏表格结构与事件绑定）
@@ -880,7 +888,7 @@ export const PartyModule = {
           </div>
         `,
         emptyMessage: '暂无匹配的报送记录',
-        accentColor: '#0E7490',
+        accentColor: ACCENT_COLORS['prop-commissioner'].hex,
       });
     }
 
@@ -1112,7 +1120,7 @@ export const PartyModule = {
       content,
       priority,
       publishDate: new Date().toISOString().slice(0, 10),
-      expireDate: expireDate || undefined,
+      expireDate: expireDate || null,
       targetModule,
       publisher: selectedRole,
     }, selectedRole);
@@ -1202,7 +1210,7 @@ export const PartyModule = {
         </div>
       `,
       emptyMessage: '暂无匹配的反馈',
-      accentColor: '#B91C1C',
+      accentColor: ACCENT_COLORS['secretary'].hex,
     });
   },
 

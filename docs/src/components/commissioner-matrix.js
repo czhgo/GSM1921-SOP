@@ -1,4 +1,4 @@
-﻿import { ROLE_LABELS } from '../core/constants.js';
+﻿﻿import { ROLE_LABELS } from '../core/constants.js';
 import { getBasePath } from '../core/utils.js';
 import { icon } from '../core/icons.js';
 
@@ -7,9 +7,9 @@ const COMMISSIONER_DATA = [
     role: 'org-commissioner',
     name: '组织委员',
     person: '侯嘉嵘',
-    color: '#0E7490',
-    colorBg: 'rgba(14,116,144,0.06)',
-    colorBorder: 'rgba(14,116,144,0.15)',
+    color: '#0EA5E9',
+    colorBg: 'rgba(14,165,233,0.06)',
+    colorBorder: 'rgba(14,165,233,0.15)',
     icon: icon('users', { size: 20, strokeWidth: 1.8 }),
     workspace: {
       title: '专班建设',
@@ -28,9 +28,9 @@ const COMMISSIONER_DATA = [
     role: 'prop-commissioner',
     name: '宣传委员',
     person: '闫鑫岳',
-    color: '#3B82F6',
-    colorBg: 'rgba(59,130,246,0.06)',
-    colorBorder: 'rgba(59,130,246,0.15)',
+    color: '#2563EB',
+    colorBg: 'rgba(37,99,235,0.06)',
+    colorBorder: 'rgba(37,99,235,0.15)',
     icon: icon('megaphone', { size: 20, strokeWidth: 1.8 }),
     workspace: {
       title: '活动与专班视图',
@@ -49,9 +49,9 @@ const COMMISSIONER_DATA = [
     role: 'disc-commissioner',
     name: '纪检委员',
     person: '韩思宁',
-    color: '#D97706',
-    colorBg: 'rgba(217,119,6,0.06)',
-    colorBorder: 'rgba(217,119,6,0.15)',
+    color: '#C2410C',
+    colorBg: 'rgba(194,65,12,0.06)',
+    colorBorder: 'rgba(194,65,12,0.15)',
     icon: icon('scale', { size: 20, strokeWidth: 1.8 }),
     workspace: {
       title: '考勤·考察·监督',

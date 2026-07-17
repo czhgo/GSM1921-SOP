@@ -118,7 +118,7 @@ function renderSecretaryUI(state) {
     if (!filterBtn) {
       filterBtn = document.createElement('button');
       filterBtn.id = 'brand-filter-btn';
-      filterBtn.className = 'font-stheiti text-xs px-3 py-1.5 rounded-lg transition-colors';
+      filterBtn.className = 'font-stheiti text-sm px-3 py-1.5 rounded-lg transition-colors';
       filterBtn.addEventListener('click', () => {
         setState({ filterBrand: !filterBrand });
       });
@@ -586,8 +586,8 @@ const authPanel = {
 
 /** 可赋权角色选项 */
 const AUTH_ROLE_OPTIONS = [
-  { value: 'organizer', label: '组织者', desc: '负责活动/专班的策划与执行统筹', color: '#06B6D4', bg: 'rgba(6,182,212,0.08)', border: 'rgba(6,182,212,0.25)' },
-  { value: 'deep', label: '深度参与者', desc: '承担具体工作任务的骨干成员', color: '#10B981', bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.25)' },
+  { value: 'organizer', label: '组织者', desc: '负责活动/专班的策划与执行统筹', color: '#7DD3FC', bg: 'rgba(125,211,252,0.08)', border: 'rgba(125,211,252,0.25)' },
+  { value: 'deep', label: '深度参与者', desc: '承担具体工作任务的骨干成员', color: '#94a3b8', bg: 'rgba(148,163,184,0.08)', border: 'rgba(148,163,184,0.25)' },
 ];
 
 /** 赋权范围选项 */

@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // entries/help-entry.js — 帮助页入口 v4（讲我们支部的故事）
 // 核心理念：从"关系网络"到"支部的故事"——以党员成长为主线，讲清考察、工作哲学、探索与对话
 // 设计风格：苹果风（纯白 + 大留白 + 大字体 + 微妙动画）
@@ -82,19 +82,19 @@ const ACTIVITY_NETWORK = {
     // L1 顶部——书记居中（屋顶，视觉核心）：审批报备+横向配合
     { id: 'secretary',  name: '党支书',     x: 400, y: 60,  color: '#B91C1C', duty: '审批报备', stage: 1 },
     // L2 上层左——党小组组长（发起者：创建活动+赋权组织者）
-    { id: 'leader',     name: '党小组组长', x: 140, y: 200, color: '#65A30D', duty: '发起者', stage: 0 },
+    { id: 'leader',     name: '党小组组长', x: 140, y: 200, color: '#22C55E', duty: '发起者', stage: 0 },
     // L3 中层——组织者居中（执行核心·脑子），承接党小组组长赋权，负责分工/协调/报备
-    { id: 'organizer',  name: '组织者',     x: 400, y: 320, color: '#06B6D4', duty: '执行核心（脑子）', stage: 0 },
+    { id: 'organizer',  name: '组织者',     x: 400, y: 320, color: '#7DD3FC', duty: '执行核心（脑子）', stage: 0 },
     // L4 底层——深度参与者（承担分工·手）
-    { id: 'deep',       name: '深度参与者', x: 300, y: 500, color: '#10B981', duty: '承担分工（手）', stage: 2 },
+    { id: 'deep',       name: '深度参与者', x: 300, y: 500, color: '#94a3b8', duty: '承担分工（手）', stage: 2 },
     // L4 底层——普通参与者（按通知出席）
     { id: 'normal',     name: '普通参与者', x: 500, y: 500, color: '#6B7280', duty: '按通知出席', stage: 3 },
     // L2 上层右——宣传委员（宣传报道）
-    { id: 'prop-commissioner', name: '宣传委员', x: 660, y: 200, color: '#3B82F6', duty: '宣传报道', stage: 4 },
+    { id: 'prop-commissioner', name: '宣传委员', x: 660, y: 200, color: '#2563EB', duty: '宣传报道', stage: 4 },
     // L3 中层右——纪检委员（考勤考察，原始材料留存处）
-    { id: 'disc-commissioner', name: '纪检委员', x: 660, y: 320, color: '#D97706', duty: '考勤考察', stage: 4 },
+    { id: 'disc-commissioner', name: '纪检委员', x: 660, y: 320, color: '#C2410C', duty: '考勤考察', stage: 4 },
     // L4 底层左——组织委员（考察建档/人才库维护，只收集考察记录不归档宣传素材）
-    { id: 'org-commissioner',  name: '组织委员', x: 140, y: 460, color: '#0E7490', duty: '考察建档/人才库维护', stage: 5 },
+    { id: 'org-commissioner',  name: '组织委员', x: 140, y: 460, color: '#0EA5E9', duty: '考察建档/人才库维护', stage: 5 },
   ],
   edges: [
     // 派活交付（深红实线）——有交付物的转移流
@@ -124,9 +124,9 @@ const TASKFORCE_NETWORK = {
   viewBox: '0 0 800 440',
   nodes: [
     { id: 'initiator',        name: '发起人',     x: 400, y: 80,  color: '#B91C1C', duty: '书记/党小组组长/支委', stage: 0 },
-    { id: 'org-commissioner', name: '组织委员',   x: 660, y: 220, color: '#0E7490', duty: '唯一招募节点', stage: 1 },
-    { id: 'organizer',        name: '组织者',     x: 200, y: 380, color: '#06B6D4', duty: '项目大脑', stage: 2 },
-    { id: 'deep',             name: '深度参与者', x: 600, y: 380, color: '#10B981', duty: '项目之手', stage: 2 },
+    { id: 'org-commissioner', name: '组织委员',   x: 660, y: 220, color: '#0EA5E9', duty: '唯一招募节点', stage: 1 },
+    { id: 'organizer',        name: '组织者',     x: 200, y: 380, color: '#7DD3FC', duty: '项目大脑', stage: 2 },
+    { id: 'deep',             name: '深度参与者', x: 600, y: 380, color: '#94a3b8', duty: '项目之手', stage: 2 },
   ],
   edges: [
     { from: 'initiator',        to: 'org-commissioner', label: '请求招募', type: 'task', stage: 1, detail: '发起人向组织委员提出专班需求（专班名称/人数/周期/考核标准）' },

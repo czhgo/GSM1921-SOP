@@ -10,9 +10,10 @@
 
 import { ROLE_LABELS } from '../core/constants.js';
 import { PEOPLE } from '../mock/people.js';
-import { getPersonById } from '../mock/index.js';
+import { getPersonById, getPersonName } from '../mock/index.js';
 import { ACTIVITIES } from '../mock/activities.js';
 import { MOCK_TASKFORCES } from '../mock/taskforces.js';
+import { NoticeStore } from './notice.js';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';  // localStorage: { personId, role }
@@ -143,6 +144,16 @@ function _getProjectRole(personId, projectId) {
   return null;
 }
 
+// ── 根据 projectId 取项目名称（用于赋权通知文案）──────────────────
+function _getProjectName(projectId) {
+  if (!projectId) return null;
+  const a = ACTIVITIES.find(x => x.id === projectId);
+  if (a) return a.title;
+  const t = MOCK_TASKFORCES.find(x => x.id === projectId);
+  if (t) return t.name;
+  return null;
+}
+
 // ── 赋权记录存储 ──────────────────────────────
 function _getAuthRecords() {
   try {
@@ -262,6 +273,95 @@ export const AuthStore = {
   },
 
   /**
+   * 获取该用户持有的所有项目角色（去重）
+   * 用于 sidebar 渲染"可达的工作台页面"
+   * @param {string} personId
+   * @returns {string[]} - 如 ['organizer', 'deep']
+   */
+  getUserProjectRoles(personId) {
+    if (!personId) return [];
+    const projectRoleSet = new Set();
+
+    // 1. 检查 auth records（运行时赋权记录）
+    const records = _getAuthRecords();
+    records.forEach(r => {
+      if (r.targetPersonId === personId && ['organizer', 'deep'].includes(r.role)) {
+        projectRoleSet.add(r.role);
+      }
+    });
+
+    // 2. 检查 mock 数据（活动 assignments）
+    ACTIVITIES.forEach(a => {
+      if (Array.isArray(a.assignments)) {
+        a.assignments.forEach(rec => {
+          if (rec.personId === personId && ['organizer', 'deep'].includes(rec.role)) {
+            projectRoleSet.add(rec.role);
+          }
+        });
+      }
+    });
+
+    // 3. 检查 mock 数据（专班 members）
+    MOCK_TASKFORCES.forEach(t => {
+      if (Array.isArray(t.members)) {
+        t.members.forEach(m => {
+          if (m.personId === personId && ['organizer', 'deep'].includes(m.role)) {
+            projectRoleSet.add(m.role);
+          }
+        });
+      }
+    });
+
+    return [...projectRoleSet];
+  },
+
+  /**
+   * 便捷判定该用户是否持有某项目角色
+   * @param {string} personId
+   * @param {string} role - 'organizer' | 'deep'
+   * @returns {boolean}
+   */
+  hasProjectRole(personId, role) {
+    if (!personId || !role) return false;
+    return this.getUserProjectRoles(personId).includes(role);
+  },
+
+  /**
+   * 该用户可达的所有 workspace 页面（standing + project）
+   * 用于 sidebar 渲染"党建工作台"链接或子菜单
+   * @param {string} personId
+   * @returns {Array<{ role: string, page: string, label: string }>}
+   */
+  getAccessibleWorkspacePages(personId) {
+    if (!personId) return [];
+    const pages = [];
+    const standingRole = _getUserRoleFromMemory(personId);
+
+    // 1. standing role 对应页面（来自 ROLE_PAGE_MAP.workspace）
+    const standingPage = (ROLE_PAGE_MAP.workspace || {})[standingRole];
+    if (standingPage) {
+      pages.push({
+        role: standingRole,
+        page: standingPage,
+        label: ROLE_LABELS[standingRole] || standingRole,
+      });
+    }
+
+    // 2. 项目角色对应页面（organizer.html / deep.html）
+    const projectRoles = this.getUserProjectRoles(personId);
+    projectRoles.forEach(role => {
+      const page = role === 'organizer' ? 'organizer.html' : 'deep.html';
+      pages.push({
+        role,
+        page,
+        label: ROLE_LABELS[role] || role,
+      });
+    });
+
+    return pages;
+  },
+
+  /**
    * 统一权限判定
    * @param {string} personId
    * @param {string} action - 权限名（如 'create_activity'）
@@ -325,6 +425,33 @@ export const AuthStore = {
       authorizedAt: new Date().toISOString().slice(0, 10),
     });
     _saveAuthRecords(records);
+
+    // ── 赋权通知：organizer / deep 被赋权时给被赋权人推送站内通知 ──
+    // 通知点击直接跳转到对应工作台（spec §3.2 路径 B）
+    if (role === 'organizer' || role === 'deep') {
+      const targetPage = role === 'organizer'
+        ? 'workspace/organizer.html'
+        : 'workspace/deep.html';
+
+      const authorizerName = getPersonName(authorizerId) || authorizerId;
+      const projectName = _getProjectName(scopeRef) || '未命名项目';
+      const roleLabel = ROLE_LABELS[role] || role;
+
+      // 确保 NoticeStore 已初始化（避免 _notices 为空时 add 覆盖 mock 数据）
+      // ws-secretary-entry / ws-visitor-entry / main-entry 已各自调用 init()，
+      // 但 authorize 可能从其它入口（如 party-disc）触发，这里做幂等兜底
+      if (typeof NoticeStore.init === 'function' && NoticeStore._notices.length === 0) {
+        NoticeStore.init();
+      }
+
+      NoticeStore.add({
+        title: '赋权通知',
+        content: `${authorizerName} 已将您赋权为「${projectName}」的${roleLabel}。点击前往工作台。`,
+        priority: 'normal',
+        targetUrl: targetPage,
+      });
+    }
+
     return { ok: true, id };
   },
 

@@ -2,10 +2,11 @@
 import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
 import { showToast } from '../core/utils.js';
 import { bootstrapPage } from '../core/bootstrap.js';
+import { AuthStore } from '../services/auth.js';
 import { PersonPicker } from '../components/person-picker.js';
 import { ParticipationLevel, PARTICIPATION_LEVEL_LABELS, mockDB } from '../core/domain.js';
 import { saveDB } from '../services/mock.js';
-import { inspectionToLong, REVIEW_RECORDS, reviewToDisplay, ACTIVITIES, INSPECTION_RECORDS, inspectionToDisplay, MOCK_TASKFORCES, PEOPLE, getPersonName } from '../mock/index.js';
+import { inspectionToLong, REVIEW_RECORDS, reviewToDisplay, ACTIVITIES, INSPECTION_RECORDS, inspectionToDisplay, MOCK_TASKFORCES, PEOPLE, getPersonName, getPersonById } from '../mock/index.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { loadHandoverRecords, addHandoverRecord, updateHandoverRecord, completeHandoverItem } from '../services/handover.js';
 import { loadAssignmentRecords, checkOverdue, addAssignmentRecord, completeAssignmentRecord } from '../services/assignment.js';
@@ -57,7 +58,9 @@ function renderOrganizerUI(state) {
 }
 
 // ── 交接记录数据层（已迁移至 services/handover.js） ───────────
-const HANDOVER_ORGANIZER_ID = 'p3'; // 组织者 personId
+// 动态读取当前登录用户的 personId（取代写死的 'p3'，见 spec §3.4）
+const _currentUser = AuthStore.getCurrentUser();
+const HANDOVER_ORGANIZER_ID = _currentUser?.personId || '';
 
 // ── 考察记录临时状态 ──────────────────────────────────────────
 let _participationDraft = {
@@ -88,10 +91,21 @@ function _renderTasksContent(activities) {
   const container = document.getElementById('orgz-tab-content');
   if (!container) return;
 
-  // 筛选当前组织者负责的活动（organizer 字段包含 p3 或 organizer 角色）
+  // 筛选当前组织者负责的活动（用 AuthStore.getProjectRole 判定，取代写死的 p3）
   const organizerActivities = activities.filter(a =>
-    a.organizer === 'p3' || (typeof a.organizer === 'string' && a.organizer.includes('p3'))
+    AuthStore.getProjectRole(HANDOVER_ORGANIZER_ID, a.id) === 'organizer'
   );
+
+  // 空数据友好提示（spec §3.4）：无赋权记录时直接展示引导文案，不再渲染录入卡片
+  if (organizerActivities.length === 0) {
+    container.innerHTML = `
+      <div class="card rounded-xl p-8 text-center">
+        <p class="text-sm text-gray-500 mb-2">您当前没有作为组织者的活动或专班</p>
+        <p class="text-xs text-gray-400">请联系党小组组长或支委赋权</p>
+      </div>
+    `;
+    return;
+  }
 
   // 已有考察记录（仅展示当前组织者关联活动的）
   const existingRecords = inspectionToDisplay(
@@ -143,7 +157,7 @@ function _renderTasksContent(activities) {
 
         <!-- Step 4: 提交按钮 -->
         <div class="flex items-center gap-3">
-          <button id="part-submit-btn" class="px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors" style="background:${accent};" disabled>提交考察记录</button>
+          <button id="part-submit-btn" class="px-4 py-2 text-xs font-medium rounded-lg text-white transition-colors" style="background:${accent};" disabled>提交考察记录</button>
           <span id="part-submit-hint" class="text-[10px] text-gray-400"></span>
         </div>
       </div>
@@ -200,19 +214,19 @@ function _renderTasksContent(activities) {
         <!-- 工作名 -->
         <div class="mb-3">
           <label class="block text-xs font-medium text-gray-600 mb-1.5">工作名</label>
-          <input type="text" id="assign-work-name" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400 font-stheiti" style="max-width:360px;" placeholder="如：场地布置、物资采购" value="${_assignmentDraft.workName}" />
+          <input type="text" id="assign-work-name" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400 font-stheiti" style="max-width:360px;" placeholder="如：场地布置、物资采购" value="${_assignmentDraft.workName}" />
         </div>
 
         <!-- 工作描述 -->
         <div class="mb-3">
           <label class="block text-xs font-medium text-gray-600 mb-1.5">工作描述</label>
-          <textarea id="assign-work-desc" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400 font-stheiti" rows="2" style="max-width:360px;" placeholder="详细描述工作内容与要求">${_assignmentDraft.workDescription}</textarea>
+          <textarea id="assign-work-desc" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400 font-stheiti" rows="2" style="max-width:360px;" placeholder="详细描述工作内容与要求">${_assignmentDraft.workDescription}</textarea>
         </div>
 
         <!-- DDL -->
         <div class="mb-4">
           <label class="block text-xs font-medium text-gray-600 mb-1.5">截止时间（DDL）</label>
-          <input type="datetime-local" id="assign-ddl" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400" style="max-width:360px;" value="${_assignmentDraft.ddl}" />
+          <input type="datetime-local" id="assign-ddl" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400" style="max-width:360px;" value="${_assignmentDraft.ddl}" />
         </div>
 
         <!-- 提交按钮 -->
@@ -477,7 +491,7 @@ function _submitAssignment(organizerActivities) {
     ddl: new Date(ddl).toISOString(),
     assigneeId,
     status: 'in_progress',
-    createdBy: 'p3',
+    createdBy: HANDOVER_ORGANIZER_ID,
     createdAt: new Date().toISOString(),
     completedAt: null,
   };
@@ -660,7 +674,7 @@ function _submitParticipation() {
     personId: pid,
     level: personDetails[pid]?.level || ParticipationLevel.ATTEND,
     role: personDetails[pid]?.role || '',
-    recordedBy: 'p3',
+    recordedBy: HANDOVER_ORGANIZER_ID,
     recordedAt: new Date().toISOString(),
   }));
 
@@ -716,7 +730,7 @@ function _renderReviewContent() {
         onSubmit: (values) => {
           showToast('success', '复盘已提交');
         },
-        accentColor: accent || '#06B6D4'
+        accentColor: accent || '#7DD3FC'
       });
     });
   });
@@ -875,7 +889,7 @@ function _renderHandoverContent(activities) {
 
         <!-- 提交按钮 -->
         <div class="flex items-center gap-3">
-          <button id="handover-submit-btn" class="px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors" style="background:var(--accent-organizer);" disabled>创建交接记录</button>
+          <button id="handover-submit-btn" class="px-4 py-2 text-xs font-medium rounded-lg text-white transition-colors" style="background:var(--accent-organizer);" disabled>创建交接记录</button>
           <span id="handover-submit-hint" class="text-[10px] text-gray-400"></span>
         </div>
       </div>
@@ -1243,7 +1257,8 @@ function _refreshHandoverRecordsList() {
 }
 
 // ── 文件空间数据层（mockDB） ────────────────────────────
-const FILESPACE_ORGANIZER_ID = 'p3';
+// 沿用 HANDOVER_ORGANIZER_ID（已动态化为当前登录用户 personId）
+const FILESPACE_ORGANIZER_ID = HANDOVER_ORGANIZER_ID;
 
 const FILE_CATEGORY_LABELS = {
   experience: '经验沉淀',
@@ -1402,7 +1417,7 @@ function _bindFileSpaceEvents(activities) {
           saveDB();
           showToast('success', '文件元数据已记录（纯前端暂不支持实际文件上传）');
         },
-        accentColor: accent || '#06B6D4'
+        accentColor: accent || '#7DD3FC'
       });
     });
     uploadBtn.addEventListener('mouseenter', function() {
