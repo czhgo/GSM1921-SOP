@@ -2746,3 +2746,28 @@ P.5/P.6 已决策归档（D-243/D-244），丙部当前无待决策事项。
 [经验蒸馏: 否 — P.5/P.6 决策执行和一改具改文案替换为常规操作，无新经验需蒸馏。]
 
 **状态**：✅ T106 P.5/P.6 决策执行 + Task 10 一改具改内容文档更新完成（git commit 176c1ff）
+
+---
+
+## 2026-07-17 | T107 — Task 11 dogfood QA 验证（GitHub Issue 风格提案讨论系统）
+
+**引用流程**：T105 实施完成 + T106 一改具改完成
+**Skill**：dogfood（browser_use agent）
+**执行日期**：2026-07-17
+
+### 测试结果（6/6 PASS）
+
+| # | 测试项 | 结果 | 证据 |
+|---|--------|------|------|
+| 1 | feedback.html 列表页加载 | ✅ PASS | 页面标题"提案讨论"，issue 列表含 issue-001 |
+| 2 | issue 列表筛选器 | ✅ PASS | status（全部/open/closed）+ scope（5 选项）+ type（5 选项）筛选 UI 存在 |
+| 3 | issue 详情页 | ✅ PASS | ?id=issue-001 显示标题+1 条评论+侧边栏（状态/标签/Milestone/Assignee/参与者/创建时间） |
+| 4 | 新建表单 | ✅ PASS | ?new=1 显示 title/body/scope（单选）/type（多选）字段 |
+| 5 | 图标+书记工作台 | ✅ PASS | p13 登录后 secretary 工作台"提案讨论"Tab + 支委矩阵图标正常显示 |
+| 6 | sidebar 导航文案 | ✅ PASS | 侧边栏显示"提案讨论"（非"意见反馈"） |
+
+### 蒸馏标签
+
+[经验蒸馏: 否 — dogfood QA 为常规验证，无新经验需蒸馏。]
+
+**状态**：✅ T107 dogfood QA 全部通过（6/6 PASS），GitHub Issue 风格提案讨论系统功能验证完成
