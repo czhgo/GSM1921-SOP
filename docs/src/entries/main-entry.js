@@ -1,4 +1,4 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // main-entry.js — 主页入口
 // index.html 专属，处理 dashboard 全量数据渲染
 
@@ -7,16 +7,27 @@ import { STATE, setState, registerRenderCallback } from '../core/state.js';
 import { NoticeStore, renderNoticeList } from '../services/notice.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { _fmtDate, getBasePath, showToast } from '../core/utils.js';
-import { _personName } from '../mock/index.js';
+import { _personName, getPersonName } from '../mock/index.js';
 import { PEOPLE } from '../mock/index.js';
 import { loadAttendanceRecords } from '../services/attendance.js';
 import { CrossPageState } from '../core/cross-page-state.js';
 import { getActivityTypeColors } from '../core/constants.js';
 import { bootstrapPage } from '../core/bootstrap.js';
+import { AuthStore } from '../services/auth.js';
 import { loadWorkspaceData, fallbackMapActivities } from '../core/data-loader.js';
 import { mockDB } from '../core/domain.js';
+import { icon } from '../core/icons.js';
 
-bootstrapPage({ module: 'dashboard' });
+const { user } = bootstrapPage({ module: 'dashboard' });
+
+// 根据用户角色更新 dashboard 中的 workspace 链接
+if (user) {
+  const wsPage = AuthStore.getPageForRole('workspace', user.role) || 'visitor.html';
+  const wsBase = getBasePath() + 'workspace/' + wsPage;
+  document.querySelectorAll('a[href*="workspace/"]').forEach(a => {
+    a.href = wsBase;
+  });
+}
 
 function renderUI(state) {
   document.querySelectorAll('.module-tab[data-module]').forEach(tab => {
@@ -40,7 +51,7 @@ const STATUS_LABELS = {
 };
 
 const TF_STATUS_BADGE = {
-  recruiting: { text: '招募中', cls: 'bg-amber-100 text-amber-700' },
+  recruiting: { text: '招募中', cls: 'bg-orange-100 text-orange-700' },
   active:     { text: '运行中', cls: 'bg-green-100 text-green-700' },
   completed:  { text: '已完结', cls: 'bg-gray-100 text-gray-600' },
   draft:      { text: '草稿', cls: 'bg-gray-100 text-gray-500' },
@@ -67,16 +78,16 @@ function _renderStats(activities, taskforces, notices, attendanceRecords) {
     : 0;
 
   const stats = [
-    { label: '本月活动', value: monthActivities.length, unit: '场', color: 'var(--primary-700)', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
-    { label: '活跃专班', value: activeTFs.length, unit: '个', color: 'var(--accent-gold)', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
-    { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? 'var(--primary-600)' : 'var(--neutral-400)', icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
-    { label: '本月出勤率', value: attendanceRate, unit: '%', color: attendanceRate >= 80 ? 'var(--accent-emerald)' : 'var(--accent-amber)', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+    { label: '本月活动', value: monthActivities.length, unit: '场', color: 'var(--primary-700)', icon: 'calendarHero' },
+    { label: '活跃专班', value: activeTFs.length, unit: '个', color: 'var(--accent-gold)', icon: 'usersGroup' },
+    { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? 'var(--primary-600)' : 'var(--neutral-400)', icon: 'bellHero' },
+    { label: '本月出勤率', value: attendanceRate, unit: '%', color: attendanceRate >= 80 ? 'var(--accent-emerald)' : 'var(--accent-amber)', icon: 'chartBar' },
   ];
 
   container.innerHTML = stats.map(s => `
     <div class="card rounded-xl p-4 flex items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default">
       <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:${s.color}15;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${s.color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${s.icon}"/></svg>
+        ${icon(s.icon, { size: 20, strokeWidth: 1.8, stroke: s.color })}
       </div>
       <div>
         <p class="text-2xl font-bold" style="color:${s.color};line-height:1.2;">${s.value}<span class="text-xs font-normal ml-0.5" style="color:var(--neutral-400);">${s.unit}</span></p>
@@ -108,7 +119,7 @@ function _renderActivityList(activities) {
     const color = ACTIVITY_TYPE_COLORS[rawCat] || { bg: '#F9FAFB', dot: '#6B7280', label: rawCat };
     const statusInfo = STATUS_LABELS[a.status] || STATUS_LABELS.draft;
     const dateLabel = a.date ? _fmtDate(new Date(a.date)) : '待定';
-    const organizerName = PEOPLE.find(p => p.id === a.organizer)?.name || a.organizer || '';
+    const organizerName = getPersonName(a.organizer);
 
     return `
       <div class="flex items-center gap-3 p-2.5 rounded-lg border border-gray-100 hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group"
@@ -188,7 +199,7 @@ function _renderAttendanceSummary(activities, attendanceRecords) {
     const leave = records.filter(r => r.status === 'leave').length;
     const total = records.length;
     const rate = total > 0 ? Math.round((present / total) * 100) : 0;
-    const rateColor = rate >= 90 ? 'text-green-600' : rate >= 70 ? 'text-amber-600' : 'text-red-600';
+    const rateColor = rate >= 90 ? 'text-green-600' : rate >= 70 ? 'text-orange-600' : 'text-red-600';
 
     return `
       <div class="flex items-center gap-3 py-2 border-b border-gray-50 last:border-b-0 hover:bg-gray-50 rounded-lg px-2 -mx-2 transition-all duration-200 cursor-pointer group"
@@ -201,7 +212,7 @@ function _renderAttendanceSummary(activities, attendanceRecords) {
         <div class="flex items-center gap-3 text-xs whitespace-nowrap">
           <span class="text-green-600">出勤 ${present}</span>
           <span class="text-red-500">缺勤 ${absent}</span>
-          <span class="text-amber-500">请假 ${leave}</span>
+          <span class="text-orange-500">请假 ${leave}</span>
           <span class="font-medium ${rateColor}">${rate}%</span>
         </div>
       </div>
@@ -217,7 +228,7 @@ const GALLERY_TYPE_GRADIENTS = {
   '共建':     'linear-gradient(135deg, #FDF2F8, #FBCFE8)',
   '党课':     'linear-gradient(135deg, #EFF6FF, #BFDBFE)',
   '参访':     'linear-gradient(135deg, #ECFDF5, #A7F3D0)',
-  '座谈':     'linear-gradient(135deg, #FFF7ED, #FED7AA)',
+  '座谈':     'linear-gradient(135deg, #F7FEE7, #D9F99D)',
   '支委会':   'linear-gradient(135deg, #F5F3FF, #C4B5FD)',
   '党小组会': 'linear-gradient(135deg, #F0F9FF, #BAE6FD)',
   '支部党员大会': 'linear-gradient(135deg, #FFFBEB, #FDE68A)',
@@ -243,14 +254,14 @@ function _renderGallery(activities) {
     display.map(a => {
       const gradient = GALLERY_TYPE_GRADIENTS[a.type] || 'linear-gradient(135deg, #F9FAFB, #E5E7EB)';
       const color = ACTIVITY_TYPE_COLORS[a.type] || { dot: '#6B7280', label: a.type || '活动' };
-      const organizerName = PEOPLE.find(p => p.id === a.organizer)?.name || a.organizer || '';
+      const organizerName = getPersonName(a.organizer);
       const statusInfo = STATUS_LABELS[a.status] || STATUS_LABELS.draft;
 
       return `
         <div class="rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
              data-gallery-activity-id="${a.id}">
           <div class="p-4 relative" style="background:${gradient};">
-            ${a.isBrand ? '<span class="absolute top-2 right-2 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-700 border border-amber-200">品牌</span>' : ''}
+            ${a.isBrand ? '<span class="absolute top-2 right-2 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-orange-100 text-orange-700 border border-orange-200">品牌</span>' : ''}
             <div class="flex items-center gap-1.5 mb-1.5">
               <div class="w-2.5 h-2.5 rounded-full" style="background:${color.dot};"></div>
               <span class="text-[10px] font-medium text-gray-500">${color.label}</span>
@@ -290,13 +301,15 @@ function renderDashboard(state) {
   dashContainer.dataset.navBound = 'true';
 
   dashContainer.addEventListener('click', (e) => {
+    const wsPage = AuthStore.getPageForRole('workspace', user.role) || 'visitor.html';
+    const wsBase = getBasePath() + 'workspace/' + wsPage;
+
     const actItem = e.target.closest('[data-activity-id]');
     if (actItem) {
       const actId = actItem.dataset.activityId;
       const url = actId
-        ? CrossPageState.buildURL(getBasePath() + 'workspace/visitor.html', { activityId: actId })
-        : getBasePath() + 'workspace/visitor.html';
-      CrossPageState.save({ selectedRole: 'visitor', activeModule: 'workspace', selectedActivityId: actId || null });
+        ? CrossPageState.buildURL(wsBase, { activityId: actId })
+        : wsBase;
       window.location.href = url;
       return;
     }
@@ -304,9 +317,8 @@ function renderDashboard(state) {
     if (tfItem) {
       const tfId = tfItem.dataset.tfId;
       const url = tfId
-        ? CrossPageState.buildURL(getBasePath() + 'workspace/org.html', { taskforceId: tfId })
-        : getBasePath() + 'workspace/org.html';
-      CrossPageState.save({ selectedRole: 'org-commissioner', activeModule: 'workspace', selectedActivityId: null });
+        ? CrossPageState.buildURL(wsBase, { taskforceId: tfId })
+        : wsBase;
       window.location.href = url;
       return;
     }
@@ -314,9 +326,8 @@ function renderDashboard(state) {
     if (attItem) {
       const actId = attItem.dataset.attendanceActId;
       const url = actId
-        ? CrossPageState.buildURL(getBasePath() + 'workspace/disc.html', { activityId: actId, mode: 'readonly' })
-        : CrossPageState.buildURL(getBasePath() + 'workspace/disc.html', { mode: 'readonly' });
-      CrossPageState.save({ selectedRole: 'disc-commissioner', activeModule: 'workspace', selectedActivityId: actId || null });
+        ? CrossPageState.buildURL(wsBase, { activityId: actId })
+        : wsBase;
       window.location.href = url;
       return;
     }
@@ -324,9 +335,8 @@ function renderDashboard(state) {
     if (galleryItem) {
       const actId = galleryItem.dataset.galleryActivityId;
       const url = actId
-        ? CrossPageState.buildURL(getBasePath() + 'workspace/visitor.html', { activityId: actId })
-        : getBasePath() + 'workspace/visitor.html';
-      CrossPageState.save({ selectedRole: 'visitor', activeModule: 'workspace', selectedActivityId: actId || null });
+        ? CrossPageState.buildURL(wsBase, { activityId: actId })
+        : wsBase;
       window.location.href = url;
       return;
     }

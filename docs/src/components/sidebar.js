@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // components/sidebar.js — 共享侧边栏（重构版）
 // 变化: 去掉身份卡片区块，模块切换改为自动跳转到角色子页面
 // 第3轮 Task 7: 订阅 view-role-change 事件，re-render 链接（不 reload）
@@ -19,7 +19,7 @@ function getNavItems() {
     { module: 'members', label: '人员管理', icon: icon('users'), commissionerOnly: true },
     { module: 'archive', label: '归档库', href: base + 'archive.html', icon: icon('archive') },
     { module: 'search', label: '资料查询', href: base + 'search.html', icon: icon('search') },
-    { module: 'feedback', label: '提案讨论', href: base + 'feedback.html', icon: icon('message') },
+    { module: 'feedback', label: '意见反馈', href: base + 'feedback.html', icon: icon('message') },
   ];
 }
 

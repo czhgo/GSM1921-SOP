@@ -1,5 +1,5 @@
-// role: [工程师]+[AI]
-// issues.js — GitHub Issue 风格提案讨论数据服务
+﻿// role: [工程师]+[AI]
+// issues.js — GitHub Issue 风格意见反馈数据服务
 // 权威源 docs/data/issues.json + localStorage 个人草稿
 
 import { AuthStore } from './auth.js';

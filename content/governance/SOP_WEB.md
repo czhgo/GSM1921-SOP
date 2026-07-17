@@ -1,4 +1,4 @@
----
+﻿---
 role: "[工程师]+[AI]"
 title: "SOP 系统优化与同步指南"
 type: guide
@@ -51,7 +51,7 @@ milestone: "T29 — 全面架构收束：Mode统一、看板体系、日历限�
 | **党务管理** | `docs/party/index.html` | 三委员合规面板、发展党员、档案管理 | header.js, sidebar.js, party.js |
 | **归档库** | `docs/archive.html` | 历史活动/专班归档查询 | header.js, sidebar.js |
 | **资料查询** | `docs/search.html` | 参考资料、网站群、规章文件 | header.js, sidebar.js |
-| **提案讨论** | `docs/feedback.html` | GitHub Issue 风格开源讨论、列表/详情/新建三视图 | header.js, sidebar.js, feedback-entry.js, issue-list.js, issue-detail.js, issue-form.js |
+| **意见反馈** | `docs/feedback.html` | GitHub Issue 风格开源讨论、列表/详情/新建三视图 | header.js, sidebar.js, feedback-entry.js, issue-list.js, issue-detail.js, issue-form.js |
 | **关于** | `docs/about.html` | 分章节系统说明书 | header.js, sidebar.js |
 
 **共享组件架构**：
@@ -146,7 +146,7 @@ ViewModeStore.isReadOnly(module)      → boolean
 | 主页 (index) | [N] | 始终为概览模式 |
 | 归档库 (archive) | [N] | 始终为只读查询 |
 | 资料查询 (search) | [N] | 始终为只读查询 |
-| 提案讨论 (feedback) | [N] | GitHub Issue 风格（列表/详情/新建三视图） |
+| 意见反馈 (feedback) | [N] | GitHub Issue 风格（列表/详情/新建三视图） |
 | 关于 (about) | [N] | 纯展示页 |
 
 ### B.3 三委员看板视图体系

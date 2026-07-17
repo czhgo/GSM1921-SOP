@@ -1,4 +1,4 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  constants.js — 纯静态常量（角色颜色 / 活动类别颜色 / 标签）
 // ════════════════════════════════════════════════════════════════
@@ -8,39 +8,45 @@ export const TRANSITION_DURATION = 320;
 // ── 角色颜色 ────────────────────────────────────────────────────
 
 export const ROLE_COLORS = {
-  leader:              { bg: 'rgba(255, 241, 242, 0.40)', text: '#9b0000',  border: 'rgba(254, 202, 202, 0.70)' },
+  leader:              { bg: 'rgba(171, 215, 200, 0.15)', text: '#2D6A4F',  border: 'rgba(171, 215, 200, 0.40)' },  // 水绿#abd7c8
   commissioner:        { bg: 'rgba(254, 249, 195, 0.40)', text: '#713f12',  border: 'rgba(253, 230, 138, 0.70)' },
-  'org-commissioner':  { bg: 'rgba(254, 249, 195, 0.40)', text: '#713f12',  border: 'rgba(253, 230, 138, 0.70)' },
-  'prop-commissioner': { bg: 'rgba(254, 249, 195, 0.40)', text: '#713f12',  border: 'rgba(253, 230, 138, 0.70)' },
-  'disc-commissioner': { bg: 'rgba(254, 249, 195, 0.40)', text: '#713f12',  border: 'rgba(253, 230, 138, 0.70)' },
-  organizer:           { bg: 'rgba(239, 246, 255, 0.40)', text: '#1e40af',  border: 'rgba(191, 219, 254, 0.70)' },
-  deep:                { bg: 'rgba(240, 253, 244, 0.40)', text: '#166534',  border: 'rgba(187, 247, 208, 0.70)' },
-  all:                 { bg: 'rgba(245, 243, 255, 0.40)', text: '#5b21b6',  border: 'rgba(221, 214, 254, 0.70)' },
-  secretary:           { bg: 'rgba(139, 92, 246, 0.15)',  text: '#7C3AED',  border: 'rgba(139, 92, 246, 0.50)' },
+  'org-commissioner':  { bg: 'rgba(14, 116, 144, 0.10)',  text: '#0E7490',  border: 'rgba(14, 116, 144, 0.30)' },  // 深青#0E7490
+  'prop-commissioner': { bg: 'rgba(37, 99, 235, 0.10)',   text: '#2563EB',  border: 'rgba(37, 99, 235, 0.30)' },  // 海蓝#2563EB
+  'disc-commissioner': { bg: 'rgba(194, 65, 12, 0.10)',   text: '#C2410C',  border: 'rgba(194, 65, 12, 0.30)' },  // 深橙#C2410C
+  organizer:           { bg: 'rgba(164, 217, 244, 0.15)', text: '#1E6091',  border: 'rgba(164, 217, 244, 0.40)' },  // 淡蓝#a4d9f4
+  deep:                { bg: 'rgba(148, 163, 184, 0.12)', text: '#475569',  border: 'rgba(148, 163, 184, 0.30)' },  // 浅灰蓝#94a3b8
+  participant:         { bg: 'rgba(107, 114, 128, 0.10)', text: '#374151',  border: 'rgba(107, 114, 128, 0.30)' },
+  all:                 { bg: 'rgba(14, 116, 144, 0.08)',  text: '#0E7490',  border: 'rgba(14, 116, 144, 0.20)' },
+  secretary:           { bg: 'rgba(185, 28, 28, 0.10)',   text: '#B91C1C',  border: 'rgba(185, 28, 28, 0.30)' },  // 党建红（不动）
 };
 
-// ── 活动类别颜色（按活动类型区分）───────────────────────────────
-// 用于日历视图中为不同类型活动赋予不同颜色
+// ── 活动类别颜色（三大类：三会一课=党建红 / 主题党日=党建金 / 专班=深青）──
+// 书记 2026-07-17 指示：不按共建/学习/参访细分，按"三会一课 vs 主题党日 vs 专班"三大类区分色
 
 const ACTIVITY_CAT_COLOR = {
-  'party-day-joint':  { bg: 'rgba(219, 39, 119, 0.10)',  text: '#BE185D', border: 'rgba(219, 39, 119, 0.30)' },
-  'party-day-study':  { bg: 'rgba(59, 130, 246, 0.10)',  text: '#1D4ED8', border: 'rgba(59, 130, 246, 0.30)' },
-  'party-day-visit':  { bg: 'rgba(16, 185, 129, 0.10)',  text: '#047857', border: 'rgba(16, 185, 129, 0.30)' },
-  'party-day-talk':   { bg: 'rgba(245, 158, 11, 0.10)',  text: '#B45309', border: 'rgba(245, 158, 11, 0.30)' },
-  'party-day-meeting':{ bg: 'rgba(139, 92, 246, 0.10)',  text: '#6D28D9', border: 'rgba(139, 92, 246, 0.30)' },
-  'theme-general':    { bg: 'rgba(206, 17, 38, 0.10)',   text: '#991B1B', border: 'rgba(206, 17, 38, 0.30)' },
-  // ─ 新活动形式（决策树 Q2 直映射） ─
-  'learning':         { bg: 'rgba(59, 130, 246, 0.10)',  text: '#1D4ED8', border: 'rgba(59, 130, 246, 0.30)' },
-  'visit':            { bg: 'rgba(16, 185, 129, 0.10)',  text: '#047857', border: 'rgba(16, 185, 129, 0.30)' },
-  'discussion':       { bg: 'rgba(245, 158, 11, 0.10)',  text: '#B45309', border: 'rgba(245, 158, 11, 0.30)' },
-  'joint':            { bg: 'rgba(219, 39, 119, 0.10)',  text: '#BE185D', border: 'rgba(219, 39, 119, 0.30)' },
-  'meeting':          { bg: 'rgba(139, 92, 246, 0.10)',  text: '#6D28D9', border: 'rgba(139, 92, 246, 0.30)' },
-  // ─ 旧值保持向后兼容 ─
-  'development':      { bg: 'rgba(2, 132, 199, 0.10)',   text: '#0C4A6E', border: 'rgba(2, 132, 199, 0.30)' },
-  'training':         { bg: 'rgba(250, 204, 21, 0.10)',  text: '#854D0E', border: 'rgba(250, 204, 21, 0.30)' },
-  'org-life':         { bg: 'rgba(239, 68, 68, 0.10)',   text: '#991B1B', border: 'rgba(239, 68, 68, 0.30)' },
-  'long-term':        { bg: 'rgba(14, 116, 144, 0.10)',  text: '#155E75', border: 'rgba(14, 116, 144, 0.30)' },
-  'default':          { bg: 'rgba(107, 114, 128, 0.08)', text: '#4B5563', border: 'rgba(107, 114, 128, 0.25)' },
+  // ── 三会一课系（党建红 #CE1126）──
+  'party-day-meeting': { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 支部党员大会/党小组会
+  'branch-meeting':    { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 支部委员会
+  'committee-meeting': { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 支委会
+  'meeting':           { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 会议活动
+  'org-life':          { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 组织生活
+  // ── 主题党日系（党建金 #D4AF37）──
+  'party-day-joint':   { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 共建
+  'party-day-study':   { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 学习
+  'party-day-visit':   { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 参访
+  'party-day-talk':    { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 座谈
+  'theme-general':     { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 主题教育
+  'learning':          { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 学习活动
+  'visit':             { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 参访活动
+  'discussion':        { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 座谈交流
+  'joint':             { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 共建活动
+  'training':          { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 党员培训
+  // ── 专班系（深青 #0E7490）──
+  'taskforce':         { bg: 'rgba(14, 116, 144, 0.10)', text: '#0E7490', border: 'rgba(14, 116, 144, 0.30)' },  // 专班
+  'long-term':         { bg: 'rgba(14, 116, 144, 0.10)', text: '#0E7490', border: 'rgba(14, 116, 144, 0.30)' },  // 长期活动
+  'development':       { bg: 'rgba(14, 116, 144, 0.10)', text: '#0E7490', border: 'rgba(14, 116, 144, 0.30)' },  // 发展党员
+  // ── 默认 ──
+  'default':           { bg: 'rgba(107, 114, 128, 0.08)', text: '#4B5563', border: 'rgba(107, 114, 128, 0.25)' },
 };
 
 /**
@@ -119,6 +125,7 @@ export const ACTIVITY_TYPE_LABELS = {
 
 export const ROLE_LABELS = {
   'secretary':         '党支部书记',
+  'deputy-secretary':  '党支部副书记',
   'org-commissioner':  '组织委员',
   'prop-commissioner': '宣传委员',
   'disc-commissioner': '纪检委员',
@@ -126,6 +133,7 @@ export const ROLE_LABELS = {
   'leader':            '党小组组长',
   'organizer':         '组织者',
   'deep':              '深度参与者',
+  'participant':       '普通参与者',
   'all':               '全体相关',
 };
 
@@ -150,7 +158,7 @@ export const ROLE_THEME_CLASS = {
  * @param {number} alpha — 0~1
  * @returns {string} — 如 'rgba(206,17,38,0.1)'
  */
-export function hexToRgba(hex, alpha) {
+function hexToRgba(hex, alpha) {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
@@ -158,15 +166,16 @@ export function hexToRgba(hex, alpha) {
 }
 
 export const ACCENT_COLORS = {
-  secretary:           { hex: '#7A0010' },
-  leader:              { hex: '#CE1126' },
-  'org-commissioner':  { hex: '#CE1126' },
-  'prop-commissioner': { hex: '#10B981' },
-  'disc-commissioner': { hex: '#D97706' },
-  commissioner:        { hex: '#D97706' },
-  organizer:           { hex: '#3B82F6' },
-  deep:                { hex: '#059669' },
-  all:                 { hex: '#7C3AED' },
+  secretary:           { hex: '#B91C1C' },  // 党建红（不动）
+  leader:              { hex: '#abd7c8' },  // 水绿
+  'org-commissioner':  { hex: '#0E7490' },  // 深青
+  'prop-commissioner': { hex: '#2563EB' },  // 海蓝
+  'disc-commissioner': { hex: '#C2410C' },  // 深橙
+  commissioner:        { hex: '#C2410C' },  // 同纪检
+  organizer:           { hex: '#a4d9f4' },  // 淡蓝
+  deep:                { hex: '#94a3b8' },  // 浅灰蓝
+  participant:         { hex: '#6B7280' },  // 灰色
+  all:                 { hex: '#0E7490' },  // 深青
 };
 
 /**
@@ -189,14 +198,16 @@ export function getAccentColors(role, bgAlpha = 0.1, borderAlpha = 0.3) {
 // 统一来源，消除 main-entry / ws-visitor-entry / archive-entry 中的重复定义
 
 const _ACTIVITY_TYPE_BASE = {
-  '主题党日':     { bg: '#FEF2F2', dot: '#DC2626' },
-  '共建':         { bg: '#FDF2F8', dot: '#DB2777' },
-  '党课':         { bg: '#EFF6FF', dot: '#2563EB' },
-  '参访':         { bg: '#ECFDF5', dot: '#059669' },
-  '座谈':         { bg: '#FFF7ED', dot: '#EA580C' },
-  '支委会':       { bg: '#F5F3FF', dot: '#7C3AED' },
-  '党小组会':     { bg: '#F0F9FF', dot: '#0891B2' },
-  '支部党员大会': { bg: '#FFFBEB', dot: '#D97706' },
+  // 三会一课系（党建红）
+  '主题党日':     { bg: '#FEF2F2', dot: '#CE1126' },
+  '党课':         { bg: '#FEF2F2', dot: '#CE1126' },
+  '支委会':       { bg: '#FEF2F2', dot: '#CE1126' },
+  '党小组会':     { bg: '#FEF2F2', dot: '#CE1126' },
+  '支部党员大会': { bg: '#FEF2F2', dot: '#CE1126' },
+  // 主题党日系（党建金）
+  '共建':         { bg: '#FFFBEB', dot: '#D4AF37' },
+  '参访':         { bg: '#FFFBEB', dot: '#D4AF37' },
+  '座谈':         { bg: '#FFFBEB', dot: '#D4AF37' },
 };
 
 /**

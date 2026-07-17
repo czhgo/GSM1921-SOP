@@ -1,10 +1,10 @@
-import { renderTabBar } from '../components/tab-bar.js';
+﻿import { renderTabBar } from '../components/tab-bar.js';
 import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
 import { BranchService } from '../services/runtime.js';
 import { showToast } from '../core/utils.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
-import { attendanceToLong, inspectionToLong, ACTIVITIES, PEOPLE, MOCK_TASKFORCES } from '../mock/index.js';
+import { attendanceToLong, inspectionToLong, ACTIVITIES, PEOPLE, MOCK_TASKFORCES, getPersonById, getPersonName } from '../mock/index.js';
 import { PersonPicker } from '../components/person-picker.js';
 import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js';
 import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, SOURCE_TYPE_LABELS, ParticipationLevel } from '../core/domain.js';
@@ -58,12 +58,13 @@ function renderLeaderUI(state) {
     ],
     accentColor: { accent, accentRgba, accentBorder },
     renderCtx: { filteredActivities },
+    storageKey: 'workflowos_tab_leader',
   });
 
   container.innerHTML = tabBar.html;
 
   tabBar.bindEvents(container);
-  tabBar.activate('write');
+  tabBar.activate(tabBar.activeTab);
 }
 
 // ── 决策树状态（已迁移至 services/decision-tree.js） ───────────
@@ -96,7 +97,7 @@ function _renderWriteContent(activities) {
                   <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
                   <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
                 </div>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-full ${a.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${a.status === 'published' ? '已发布' : '草稿'}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full ${a.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${a.status === 'published' ? '已发布' : '草稿'}</span>
               </div>
             `).join('')}
         </div>
@@ -128,7 +129,7 @@ function _renderWriteContent(activities) {
         const configs = {
           attendance: { label: '考勤记录', color: '#10B981', fields: [{ key: 'person', label: '姓名' }, { key: 'status', label: '出勤状态' }, { key: 'note', label: '备注' }] },
           inspection: { label: '考察记录', color: '#D97706', fields: [{ key: 'person', label: '被考察人' }, { key: 'content', label: '考察内容' }, { key: 'result', label: '考察结论' }] },
-          publicity: { label: '宣传记录', color: '#8B5CF6', fields: [{ key: 'title', label: '宣传标题' }, { key: 'author', label: '撰写人' }, { key: 'channel', label: '发布渠道' }] },
+          publicity: { label: '宣传记录', color: '#0E7490', fields: [{ key: 'title', label: '宣传标题' }, { key: 'author', label: '撰写人' }, { key: 'channel', label: '发布渠道' }] },
           materials: { label: '材料记录', color: '#3B82F6', fields: [{ key: 'name', label: '材料名称' }, { key: 'author', label: '提交人' }, { key: 'note', label: '备注' }] },
         };
         const cfg = configs[type];
@@ -561,8 +562,8 @@ function _renderAttendanceContent() {
             <tr class="border-b border-gray-50 hover:bg-gray-50">
               <td class="py-2 px-3 font-medium text-gray-800">${a.name}</td>
               <td class="py-2 px-3 text-gray-600">${a.activity}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${a.status === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.status === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${ATTENDANCE_STATUS_LABELS[a.status] || a.status}</span></td>
-              <td class="py-2 px-3 text-gray-500">${a.confirmer === '—' ? '<span class="text-amber-600">待确认</span>' : '<span class="text-green-600">已确认</span>'}</td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${a.status === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.status === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${ATTENDANCE_STATUS_LABELS[a.status] || a.status}</span></td>
+              <td class="py-2 px-3 text-gray-500">${a.confirmer === '—' ? '<span class="text-orange-600">待确认</span>' : '<span class="text-green-600">已确认</span>'}</td>
             </tr>
           `).join('')}</tbody>
         </table>
@@ -573,7 +574,7 @@ function _renderAttendanceContent() {
         <div class="text-xs text-gray-500 mb-2">本组有 ${myGroupMakeupTasks.length} 人缺勤，已生成补课任务</div>
         <div class="space-y-1.5">
           ${myGroupMakeupTasks.map(t => `
-            <div class="flex items-center justify-between p-2 rounded-lg ${t.status === 'overdue' ? 'bg-red-50 border border-red-100' : 'bg-amber-50 border border-amber-100'}">
+            <div class="flex items-center justify-between p-2 rounded-lg ${t.status === 'overdue' ? 'bg-red-50 border border-red-100' : 'bg-orange-50 border border-orange-100'}">
               <div class="flex items-center gap-2">
                 <span class="text-xs font-medium text-gray-800">${t.personName}</span>
                 <span class="text-[10px] text-gray-500">${t.activityName}</span>
@@ -585,7 +586,7 @@ function _renderAttendanceContent() {
                 }
                 ${t.status === 'overdue'
                   ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-700">超期</span>'
-                  : '<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">待补课</span>'
+                  : '<span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">待补课</span>'
                 }
               </div>
             </div>
@@ -649,7 +650,7 @@ function _initAttForm(container, eligibleActivities) {
       const status = statusEl ? statusEl.value : AttendanceStatus.PRESENT;
       records.push({
         id: 'att_' + Date.now() + '_' + personId,
-        userId: personId,
+        personId: personId,
         activityId,
         status,
         recordedBy: null,
@@ -691,7 +692,7 @@ function _renderAttStatusRows(selectedIds) {
     <div class="text-xs font-bold text-gray-600 mb-2">逐人出勤状态</div>
     <div class="space-y-2 max-h-48 overflow-y-auto">
       ${selectedIds.map(pid => {
-        const person = PEOPLE.find(p => p.id === pid);
+        const person = getPersonById(pid);
         const name = person ? person.name : pid;
         return `
           <div class="flex items-center gap-3 p-2 rounded-lg bg-gray-100">
@@ -776,7 +777,7 @@ function _renderInspectionContent() {
               <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
               <td class="py-2 px-3 text-gray-600">${i.source}</td>
               <td class="py-2 px-3 text-gray-600">${i.role}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
             </tr>
           `).join('')}</tbody>
         </table>
@@ -859,7 +860,7 @@ function _initInspForm(container, sourceActivities, sourceTaskforces) {
     for (const personId of selectedIds) {
       const contentEl = container.querySelector(`#insp-content-${personId}`);
       const content = contentEl ? contentEl.value.trim() : '';
-      if (!content) { showToast('error', `请填写 ${PEOPLE.find(p => p.id === personId)?.name || personId} 的考察内容`); return; }
+      if (!content) { showToast('error', `请填写 ${getPersonName(personId)} 的考察内容`); return; }
 
       const record = {
         id: 'insp_' + Date.now() + '_' + personId,
@@ -904,7 +905,7 @@ function _renderInspContentRows(selectedIds) {
     <div class="text-xs font-bold text-gray-600 mb-2">逐人考察内容</div>
     <div class="space-y-2 max-h-60 overflow-y-auto">
       ${selectedIds.map(pid => {
-        const person = PEOPLE.find(p => p.id === pid);
+        const person = getPersonById(pid);
         const name = person ? person.name : pid;
         return `
           <div class="p-2 rounded-lg bg-gray-100">

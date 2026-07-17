@@ -85,12 +85,13 @@ function renderDeepUI(state) {
     accentColor: { accent, accentRgba, accentBorder },
     defaultTab: 'activities',
     renderCtx: { filteredActivities },
+    storageKey: 'workflowos_tab_deep',
   });
 
   container.innerHTML = tabBar.html;
 
   tabBar.bindEvents(container);
-  tabBar.activate('activities');
+  tabBar.activate(tabBar.activeTab);
 }
 
 function _renderActivitiesContent(filteredActivities) {
@@ -245,7 +246,7 @@ function _getSourceName(sourceType, sourceId) {
 function _renderDepositCard(d) {
   const statusStyle = {
     'submitted': 'bg-blue-100 text-blue-700',
-    'annotated': 'bg-amber-100 text-amber-700',
+    'annotated': 'bg-orange-100 text-orange-700',
     'confirmed': 'bg-green-100 text-green-700',
   };
   const statusLabel = {
@@ -271,9 +272,9 @@ function _renderDepositCard(d) {
       ${d.tags && d.tags.length > 0 ? `<div class="flex flex-wrap gap-1 mb-2">${d.tags.map(t => `<span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">${t}</span>`).join('')}</div>` : ''}
       ${d.annotations && d.annotations.length > 0 ? `
         <div class="border-t border-gray-200 pt-2 mt-2">
-          <div class="text-[10px] text-amber-600 font-medium mb-1">纪检批注：</div>
+          <div class="text-[10px] text-orange-600 font-medium mb-1">纪检批注：</div>
           ${d.annotations.map(a => `
-            <div class="text-xs text-gray-600 p-1.5 bg-amber-50 rounded mb-1">${a.content} <span class="text-[10px] text-gray-400">— ${_formatTime(a.annotatedAt)}</span></div>
+            <div class="text-xs text-gray-600 p-1.5 bg-orange-50 rounded mb-1">${a.content} <span class="text-[10px] text-gray-400">— ${_formatTime(a.annotatedAt)}</span></div>
           `).join('')}
         </div>
       ` : ''}

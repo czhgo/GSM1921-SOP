@@ -1,4 +1,4 @@
----
+﻿---
 title: "数据架构设计"
 type: design
 role: "[工程师]+[AI]"
@@ -56,7 +56,7 @@ summary: "系统数据架构设计的单一权威源——涵盖数据模型设�
 | 用户/角色预设 (users) | mockDB.users (内存) | 静态预设 | 3 个内置用户（书记/组织委员/党小组组长） |
 | 赋权记录 (assignedRoles) | localStorage `sop_org_os_assigned_roles` | 跨会话持久化 | 书记赋权给组织者/深度参与者的记录 |
 | 角色常量 (ROLE_LABELS/COLORS) | core/constants.js (静态代码) | 静态，代码级维护 | 9 种角色的中文标签与视觉配色 |
-| 提案讨论 (IssueRecord) | `docs/data/issues.json` + localStorage `gsm1921-issue-drafts` | open->closed->reopened | GitHub Issue 风格开源讨论，双轨数据层，书记维护 issues.json 权威源 |
+| 意见反馈 (IssueRecord) | `docs/data/issues.json` + localStorage `gsm1921-issue-drafts` | open->closed->reopened | GitHub Issue 风格开源讨论，双轨数据层，书记维护 issues.json 权威源 |
 
 ---
 
@@ -563,9 +563,9 @@ assignedRoles: Array<{
 | `short-term` | 短期活动 | short-term | 7 | active |
 | `long-term` | 长期活动 | long-term | 9 | active |
 
-### 2.16 提案讨论数据 (IssueRecord)
+### 2.16 意见反馈数据 (IssueRecord)
 
-> **D-244/T105 变更**：意见反馈已升级为 GitHub Issue 风格提案讨论系统。数据从 localStorage 单轨（FeedbackStore）升级为双轨（issues.json 权威源 + localStorage 草稿）。旧 FeedbackRecord 类型已弃用，保留向后兼容 shim（feedback.js）。
+> **D-244/T105 变更**：意见反馈已升级为 GitHub Issue 风格意见反馈系统。数据从 localStorage 单轨（FeedbackStore）升级为双轨（issues.json 权威源 + localStorage 草稿）。旧 FeedbackRecord 类型已弃用，保留向后兼容 shim（feedback.js）。
 
 > 类型定义位于 [feedback.js](../../docs/src/services/feedback.js)
 
@@ -668,7 +668,7 @@ assignedRoles: Array<{
 | 确认考勤 | 纪检委员 | 党小组组长工作台缺勤列表状态更新；补课任务自动生成 |
 | 数据交接 | 组织者工作台 | 组织者交接记录列表新记录出现；纪检委员交接面板出现已提交状态记录 |
 | 补课制度 | 纪检委员 | 补课制度Tab新补课任务出现；考勤记录缺勤状态→已补 |
-| 提案讨论 | 全员提交 issue + 评论 + 表态 | 书记处置（status/close/milestone/assignee/drafts）+ 新 issue 或新评论通知 |
+| 意见反馈 | 全员提交 issue + 评论 + 表态 | 书记处置（status/close/milestone/assignee/drafts）+ 新 issue 或新评论通知 |
 | 制度文件引用 | 组织委员 | 制度文件Tab新引用记录出现 |
 | 子记录写入 | 党小组组长/组织委员 | 对应详情面板新子记录行出现 |
 | 文件空间 | 组织者工作台 | 文件空间Tab新记录出现；统计概览卡片计数更新 |

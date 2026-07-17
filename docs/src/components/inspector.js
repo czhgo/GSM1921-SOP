@@ -1,4 +1,4 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  inspector.js — 右侧检查器面板渲染逻辑
 //  包含：filterTasksByManagementRole, renderInspectorFromState,
@@ -8,7 +8,7 @@
 import { setState, STATE } from '../core/state.js';
 import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js';
 import { _fmtChinese, showToast } from '../core/utils.js';
-import { PEOPLE } from '../mock/index.js';
+import { PEOPLE, getPersonById } from '../mock/index.js';
 import { BranchService } from '../services/runtime.js';
 import { AuthStore } from '../services/auth.js';
 
@@ -57,17 +57,17 @@ function _showParticipantModal(act) {
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
   const card = document.createElement('div');
-  card.style.cssText = 'background:#fff;border-radius:14px;padding:20px 22px;max-width:320px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);';
+  card.style.cssText = 'background:#fff;border-radius:var(--radius-lg);padding:20px 22px;max-width:320px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);';
 
   let extraHtml = '';
-  const orgPerson = PEOPLE.find(p => p.id === act.organizer);
+  const orgPerson = getPersonById(act.organizer);
   if (orgPerson) {
     extraHtml += `<p class="font-stheiti text-sm text-gray-700 mb-1">组织者：${orgPerson.name}</p>`;
   }
   if (act.participants && act.participants.length > 0) {
     const deepNames = act.participants
       .filter(pid => pid !== act.organizer)
-      .map(pid => PEOPLE.find(p => p.id === pid)?.name)
+      .map(pid => getPersonById(pid)?.name)
       .filter(Boolean);
     if (deepNames.length > 0) {
       extraHtml += `<p class="font-stheiti text-sm text-gray-700 mb-1">参与者：${deepNames.join('、')}</p>`;
@@ -135,8 +135,6 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
   }
 
   const isParticipant = !viewArchived && (viewType === 'participant' || !viewType);
-  const primaryRole = AuthStore.getPrimaryRole() || AuthStore.getLoginStance();
-  const isSecretary = primaryRole === 'secretary';
 
   const statusMap = { draft: '草稿', published: '已发布', ongoing: '进行中', completed: '已完成' };
   let html = '';
@@ -144,10 +142,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
     const label = statusMap[act.status] || act.status;
     const isBrand = !!act.isBrand;
     const brandTag = isBrand
-      ? '<span class="font-stheiti text-[10px] px-1.5 py-0.5 rounded" style="background:rgba(234,179,8,0.15);color:#B45309;border:1px solid rgba(234,179,8,0.35);">品牌</span>'
-      : '';
-    const brandBtn = isSecretary
-      ? `<button class="brand-toggle-btn font-stheiti text-[10px] px-2 py-0.5 rounded transition-colors" data-act-id="${act.id}" style="background:${isBrand ? 'rgba(239,68,68,0.10)' : 'rgba(234,179,8,0.10)'};border:1px solid ${isBrand ? 'rgba(239,68,68,0.35)' : 'rgba(234,179,8,0.35)'};color:${isBrand ? '#DC2626' : '#B45309'};cursor:pointer;">${isBrand ? '取消品牌' : '标记品牌'}</button>`
+      ? '<span class="font-stheiti text-[10px] px-1.5 py-0.5 rounded" style="background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.35);">品牌</span>'
       : '';
     if (isParticipant) {
       html += `<div class="inspector-card" data-act-id="${act.id}" style="${isBrand ? 'border-left:3px solid #EAB308;' : ''}">`;
@@ -163,7 +158,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
       html += `<div class="flex items-center gap-1.5 flex-1"><p class="font-stheiti font-bold text-sm text-gray-800 leading-snug">${act.title}</p>${brandTag}</div>`;
       html += `<span class="badge-time flex-shrink-0">${label}</span>`;
       html += '</div>';
-      html += `<div class="flex items-center justify-between"><p class="font-stheiti text-[10px] text-gray-400">点击查看任务详情 →</p>${brandBtn}</div>`;
+      html += `<p class="font-stheiti text-[10px] text-gray-400">点击查看任务详情 →</p>`;
       html += '</div>';
     }
   });
@@ -173,26 +168,6 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
       ? '<div class="font-stheiti text-gray-400 text-sm text-center py-4 border-b border-gray-100 mb-4">提示：请从下方列表或顶部下拉框选择活动，以查看您的专属任务流。</div>'
       : '';
     cardsEl.innerHTML = _guide + html;
-
-    // 品牌认定按钮事件（书记专属）
-    cardsEl.querySelectorAll('.brand-toggle-btn').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const actId = btn.dataset.actId;
-        const act = dateActivities.find(a => a.id === actId);
-        if (!act) return;
-        const action = act.isBrand ? '取消品牌认定' : '标记为品牌活动';
-        if (!window.confirm(`确认${action}？`)) return;
-        try {
-          await BranchService.toggleBrand(actId);
-          const activities = await BranchService.listActivities();
-          setState({ activities });
-          showToast('success', `${action}成功`);
-        } catch (err) {
-          showToast('error', (err && err.message) || '操作失败');
-        }
-      });
-    });
 
     if (!isParticipant) {
       cardsEl.querySelectorAll('[data-act-id]').forEach(card => {
@@ -214,7 +189,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
 // ════════════════════════════════════════════════════════════════
 //  详情视图：渲染单个活动的任务列表与危险操作按钮
 // ════════════════════════════════════════════════════════════════
-export function renderInspectorDetail(activity, tasks, managementRole) {
+function renderInspectorDetail(activity, tasks, managementRole) {
   const defEl     = document.getElementById('inspector-default');
   const contentEl = document.getElementById('inspector-content');
   const titleEl   = document.getElementById('inspector-date-title');
@@ -231,6 +206,9 @@ export function renderInspectorDetail(activity, tasks, managementRole) {
   const visibleTasks = filterTasksByManagementRole(tasks, managementRole);
   const themeClass   = ROLE_THEME_CLASS[managementRole] || '';
   const isArchived   = activity.archived === true;
+  const _user = AuthStore.getCurrentUser();
+  const isSecretary = _user?.role === 'secretary';
+  const isBrandActive = !!activity.isBrand;
 
   let html = '';
 
@@ -276,7 +254,7 @@ export function renderInspectorDetail(activity, tasks, managementRole) {
       html += `<div class="${cardClass}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
       html += `<p class="font-stheiti font-bold text-sm leading-snug flex-1">${t.title}</p>`;
-      html += `<select class="task-status-select font-stheiti text-[10px] rounded px-1 py-0.5 border border-gray-200 bg-white flex-shrink-0"${isArchived ? ' disabled style="opacity:0.5;cursor:not-allowed;"' : ''} data-task-id="${t.id}" aria-label="任务状态">`;
+      html += `<select class="task-status-select input-flat text-[10px] flex-shrink-0"${isArchived ? ' disabled style="opacity:0.5;cursor:not-allowed;"' : ''} data-task-id="${t.id}" aria-label="任务状态">`;
       html += `<option value="pending"${t.status === 'pending' ? ' selected' : ''}>待处理</option>`;
       html += `<option value="in_progress"${t.status === 'in_progress' ? ' selected' : ''}>进行中</option>`;
       html += `<option value="completed"${t.status === 'completed' ? ' selected' : ''}>已完成</option>`;
@@ -290,6 +268,12 @@ export function renderInspectorDetail(activity, tasks, managementRole) {
     html += '<p class="font-stheiti text-xs text-gray-400 py-2">暂无关联任务</p>';
   }
 
+  if (isSecretary && !isArchived) {
+    html += '<div class="mt-3">';
+    html += `<button id="inspector-brand-toggle-btn" class="font-stheiti text-xs px-3 py-1.5 rounded-lg transition-colors" style="${isBrandActive ? 'background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);' : 'background:rgba(234,179,8,0.06);color:#92400E;border:1px solid rgba(234,179,8,0.25);'}">${isBrandActive ? '★ 取消品牌认定' : '☆ 标记为品牌活动'}</button>`;
+    html += '</div>';
+  }
+
   html += '<div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">';
   if (isArchived) {
     html += '<button id="inspector-restore-btn"'
@@ -297,7 +281,7 @@ export function renderInspectorDetail(activity, tasks, managementRole) {
       + ' style="background:rgba(16,185,129,0.10);border:1px solid rgba(16,185,129,0.40);">恢复活动</button>';
   } else {
     html += '<button id="inspector-archive-btn"'
-      + ' class="font-stheiti text-xs text-amber-700 hover:text-amber-900 px-3 py-1.5 rounded-lg transition-colors"'
+      + ' class="font-stheiti text-xs text-orange-700 hover:text-orange-900 px-3 py-1.5 rounded-lg transition-colors"'
       + ' style="background:rgba(251,191,36,0.10);border:1px solid rgba(251,191,36,0.40);">归档活动</button>';
   }
   html += '<button id="inspector-delete-btn"'
@@ -314,6 +298,24 @@ export function renderInspectorDetail(activity, tasks, managementRole) {
         const newTasks = BranchService.updateTask(sel.dataset.taskId, { status: sel.value });
         setState({ tasks: newTasks });
       });
+    });
+  }
+
+  const brandToggleBtn = document.getElementById('inspector-brand-toggle-btn');
+  if (brandToggleBtn) {
+    brandToggleBtn.addEventListener('click', async () => {
+      const action = isBrandActive ? '取消品牌认定' : '标记为品牌活动';
+      if (!window.confirm(`确认${action}？`)) return;
+      try {
+        setState({ status: STATE.SUBMITTING });
+        await BranchService.toggleBrand(activity.id);
+        const activities = await BranchService.listActivities();
+        setState({ status: STATE.IDLE, activities });
+        showToast('success', `${action}成功`);
+      } catch (err) {
+        setState({ status: STATE.ERROR, error: err });
+        showToast('error', (err && err.message) || '操作失败');
+      }
     });
   }
 

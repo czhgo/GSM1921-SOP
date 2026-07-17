@@ -6,20 +6,21 @@ import { AuthStore } from '../services/auth.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { PersonPicker } from '../components/person-picker.js';
-import { ACTIVITIES, _personName, PEOPLE, MOCK_TASKFORCES, inspectionToLong } from '../mock/index.js';
+import { ACTIVITIES, _personName, PEOPLE, MOCK_TASKFORCES, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js';
 import { mockDB, SourceType, ParticipationLevel } from '../core/domain.js';
 import { saveDB } from '../services/mock.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { renderTabBar } from '../components/tab-bar.js';
 import { renderQueryView } from '../components/query-view.js';
 import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js';
+import { icon } from '../core/icons.js';
 
 const { accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', accentRole: 'org-commissioner' });
 
 const SVG = {
-  people: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-  clipboard: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>',
-  calendar: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>',
+  people: icon('users', { size: 12 }),
+  clipboard: icon('clipboard', { size: 12 }),
+  calendar: icon('calendar', { size: 12 }),
 };
 
 function renderOrgUI(state) {
@@ -47,18 +48,18 @@ function renderOrgUI(state) {
       { id: 'compliance', label: '制度文件', render: () => _renderComplianceContent() },
     ],
     accentColor: { accent, accentRgba, accentBorder },
-    extraRightHtml: '<button id="btn-publish-tf" class="text-xs px-3 py-2 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" style="cursor:pointer;">发布招募</button>',
+    extraRightHtml: '<button id="btn-publish-tf" style="background:var(--accent-org-commissioner);color:white;border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity=\'0.9\'" onmouseout="this.style.opacity=\'1\'">发布招募</button>',
     renderCtx: { pending, recruiting, active, activities },
+    storageKey: 'workflowos_tab_org',
   });
 
   container.innerHTML = tabBar.html;
 
   tabBar.bindEvents(container);
   container.querySelector('#btn-publish-tf')?.addEventListener('click', () => _openRecruitForm());
-  tabBar.activate('taskforce');
-
   const urlParams = CrossPageState.getURLParams();
   if (urlParams.taskforceId) {
+    tabBar.activate('taskforce');
     setTimeout(() => {
       const card = container.querySelector(`.tf-store-card[data-tf-id="${urlParams.taskforceId}"]`);
       if (card) {
@@ -66,6 +67,8 @@ function renderOrgUI(state) {
         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }, 100);
+  } else {
+    tabBar.activate(tabBar.activeTab);
   }
 }
 
@@ -415,8 +418,8 @@ function _openRecruitForm() {
   panel.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
       <h3 class="font-title-cn" style="font-size:1.125rem;font-weight:700;color:#1F2937;margin:0;">发布专班招募</h3>
-      <button id="recruit-form-close" type="button" style="width:32px;height:32px;border-radius:8px;border:none;background:#F3F4F6;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <button id="recruit-form-close" type="button" style="width:32px;height:32px;border-radius:var(--radius-sm);border:none;background:#F3F4F6;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;">
+        ${icon('close', { size: 14, stroke: '#6B7280' })}
       </button>
     </div>
 
@@ -469,8 +472,8 @@ function _openRecruitForm() {
       </div>
 
       <div style="display:flex;gap:12px;justify-content:flex-end;">
-        <button type="button" id="recruit-form-cancel" style="padding:8px 20px;border-radius:10px;border:1.5px solid #E5E7EB;background:white;color:#6B7280;font-size:0.8125rem;font-weight:500;cursor:pointer;transition:all 0.15s;">取消</button>
-        <button type="submit" style="padding:8px 24px;border-radius:10px;border:none;background:${accent};color:white;font-size:0.8125rem;font-weight:600;cursor:pointer;transition:background 0.15s;">发布</button>
+        <button type="button" id="recruit-form-cancel" style="padding:8px 20px;border-radius:var(--radius-md);border:1.5px solid #E5E7EB;background:white;color:#6B7280;font-size:0.8125rem;font-weight:500;cursor:pointer;transition:all 0.15s;">取消</button>
+        <button type="submit" style="padding:8px 24px;border-radius:var(--radius-md);border:none;background:${accent};color:white;font-size:0.8125rem;font-weight:600;cursor:pointer;transition:background 0.15s;">发布</button>
       </div>
     </form>
   `;
@@ -784,7 +787,7 @@ function _renderOrgInspectionContent() {
   ` : '';
 
   const tagColor = { 'activity': 'bg-blue-50 text-blue-600', 'taskforce': 'bg-green-50 text-green-600' };
-  const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-amber-100 text-amber-700' };
+  const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-cyan-100 text-cyan-700' };
 
   container.innerHTML = `
     <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
@@ -866,7 +869,7 @@ function _initOrgInspForm(container, activeTaskforces) {
     for (const personId of selectedIds) {
       const contentEl = container.querySelector(`#org-insp-content-${personId}`);
       const content = contentEl ? contentEl.value.trim() : '';
-      if (!content) { showToast('error', `请填写 ${PEOPLE.find(p => p.id === personId)?.name || personId} 的考察内容`); return; }
+      if (!content) { showToast('error', `请填写 ${getPersonName(personId)} 的考察内容`); return; }
 
       records.push({
         id: 'insp_' + Date.now() + '_' + personId,
@@ -906,7 +909,7 @@ function _renderOrgInspContentRows(selectedIds) {
     <div class="text-xs font-bold text-gray-600 mb-2">逐人考察内容</div>
     <div class="space-y-2 max-h-60 overflow-y-auto">
       ${selectedIds.map(pid => {
-        const person = PEOPLE.find(p => p.id === pid);
+        const person = getPersonById(pid);
         const name = person ? person.name : pid;
         return `
           <div class="flex items-start gap-2">

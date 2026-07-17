@@ -1,4 +1,4 @@
-import { ROLE_LABELS } from '../core/constants.js';
+﻿import { ROLE_LABELS } from '../core/constants.js';
 import { getBasePath } from '../core/utils.js';
 import { icon } from '../core/icons.js';
 
@@ -7,9 +7,9 @@ const COMMISSIONER_DATA = [
     role: 'org-commissioner',
     name: '组织委员',
     person: '侯嘉嵘',
-    color: '#8B5CF6',
-    colorBg: 'rgba(139,92,246,0.06)',
-    colorBorder: 'rgba(139,92,246,0.15)',
+    color: '#0E7490',
+    colorBg: 'rgba(14,116,144,0.06)',
+    colorBorder: 'rgba(14,116,144,0.15)',
     icon: icon('users', { size: 20, strokeWidth: 1.8 }),
     workspace: {
       title: '专班建设',

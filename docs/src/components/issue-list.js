@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // issue-list.js — Issue 列表渲染
 
 import { IssueStore } from '../services/issues.js';
@@ -13,17 +13,17 @@ const SCOPE_LABELS = {
 };
 
 const TYPE_LABELS = {
-  bug: 'bug',
-  enhancement: 'enhancement',
-  proposal: 'proposal',
-  question: 'question',
+  bug: '缺陷',
+  enhancement: '增强',
+  proposal: '提案',
+  question: '疑问',
 };
 
 const TYPE_COLORS = {
-  bug: '#DC2626',
-  enhancement: '#059669',
-  proposal: '#3B82F6',
-  question: '#D97706',
+  bug: '#CE1126',
+  enhancement: '#D4AF37',
+  proposal: '#2563EB',
+  question: '#6B7280',
 };
 
 let _filterState = { status: 'all', scope: 'all', type: 'all', milestone: 'all', keyword: '' };
@@ -38,17 +38,13 @@ export function renderIssueList() {
 
   container.innerHTML = `
     <div class="card rounded-2xl p-6 mb-4">
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <h2 class="font-title-cn text-xl font-bold text-gray-800">提案讨论</h2>
-          <p class="text-xs text-gray-500 mt-1">开源讨论·集思广益  书记保留处置权</p>
-        </div>
-        ${canCreate ? `<button id="btn-new-issue" class="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors" style="background:#059669;" onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#059669'">+ 新 issue</button>` : ''}
+      <div class="flex items-center justify-end mb-4">
+        ${canCreate ? `<button id="btn-new-issue" class="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors" style="background:#CE1126;" onmouseover="this.style.background='#991B1B'" onmouseout="this.style.background='#CE1126'">+ 新 issue</button>` : ''}
       </div>
 
       <div class="flex items-center gap-2 mb-3 flex-wrap text-xs">
         <button class="filter-btn px-3 py-1 rounded-full transition-colors ${_filterState.status === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="all">全部 (${counts.total})</button>
-        <button class="filter-btn px-3 py-1 rounded-full transition-colors ${_filterState.status === 'open' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="open">open (${counts.open})</button>
+        <button class="filter-btn px-3 py-1 rounded-full transition-colors ${_filterState.status === 'open' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" style="${_filterState.status === 'open' ? 'background:#CE1126' : ''}" data-status="open">open (${counts.open})</button>
         <button class="filter-btn px-3 py-1 rounded-full transition-colors ${_filterState.status === 'closed' ? 'bg-gray-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="closed">closed (${counts.closed})</button>
         <span class="mx-2 text-gray-300">|</span>
         <select id="filter-scope" class="input-flat text-xs px-2 py-1 rounded">

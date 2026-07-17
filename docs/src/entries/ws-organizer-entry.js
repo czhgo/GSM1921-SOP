@@ -1,11 +1,11 @@
-import { renderTabBar } from '../components/tab-bar.js';
+﻿import { renderTabBar } from '../components/tab-bar.js';
 import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
 import { showToast } from '../core/utils.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { PersonPicker } from '../components/person-picker.js';
 import { ParticipationLevel, PARTICIPATION_LEVEL_LABELS, mockDB } from '../core/domain.js';
 import { saveDB } from '../services/mock.js';
-import { inspectionToLong, REVIEW_RECORDS, reviewToDisplay, ACTIVITIES, INSPECTION_RECORDS, inspectionToDisplay, MOCK_TASKFORCES, PEOPLE } from '../mock/index.js';
+import { inspectionToLong, REVIEW_RECORDS, reviewToDisplay, ACTIVITIES, INSPECTION_RECORDS, inspectionToDisplay, MOCK_TASKFORCES, PEOPLE, getPersonName } from '../mock/index.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { loadHandoverRecords, addHandoverRecord, updateHandoverRecord, completeHandoverItem } from '../services/handover.js';
 import { loadAssignmentRecords, checkOverdue, addAssignmentRecord, completeAssignmentRecord } from '../services/assignment.js';
@@ -47,12 +47,13 @@ function renderOrganizerUI(state) {
     ],
     accentColor: { accent, accentRgba, accentBorder },
     renderCtx: { filteredActivities },
+    storageKey: 'workflowos_tab_orgz',
   });
 
   container.innerHTML = tabBar.html;
 
   tabBar.bindEvents(container);
-  tabBar.activate('tasks');
+  tabBar.activate(tabBar.activeTab);
 }
 
 // ── 交接记录数据层（已迁移至 services/handover.js） ───────────
@@ -111,7 +112,7 @@ function _renderTasksContent(activities) {
                   <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
                   <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
                 </div>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-full ${a.status === 'published' ? 'bg-green-100 text-green-700' : a.status === 'completed' ? 'bg-gray-100 text-gray-500' : 'bg-amber-100 text-amber-700'}">${a.status === 'published' ? '已发布' : a.status === 'completed' ? '已完成' : '草稿'}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full ${a.status === 'published' ? 'bg-green-100 text-green-700' : a.status === 'completed' ? 'bg-gray-100 text-gray-500' : 'bg-orange-100 text-orange-700'}">${a.status === 'published' ? '已发布' : a.status === 'completed' ? '已完成' : '草稿'}</span>
               </div>
             `).join('')}
         </div>
@@ -320,7 +321,7 @@ function _renderAssignmentRecordsHTML(organizerActivities) {
         </div>
         <div class="space-y-1.5">
           ${recs.map(r => {
-            const person = PEOPLE.find(p => p.id === r.assigneeId);
+            const person = getPersonById(r.assigneeId);
             const personName = person ? person.name : r.assigneeId;
             return `
               <div class="flex items-center justify-between p-2.5 rounded-xl bg-gray-100" data-assign-id="${r.id}">
@@ -585,7 +586,7 @@ function _renderPersonDetails() {
     <div class="space-y-2">
       <label class="block text-xs font-medium text-gray-600 mb-1">逐人设置考察层级与分工</label>
       ${selectedPersonIds.map(pid => {
-        const person = PEOPLE.find(p => p.id === pid);
+        const person = getPersonById(pid);
         const detail = personDetails[pid] || { level: ParticipationLevel.ATTEND, role: '' };
         const name = person ? person.name : pid;
         return `
@@ -690,12 +691,12 @@ function _renderReviewContent() {
           <div class="p-3 rounded-xl bg-gray-100">
             <div class="flex items-center justify-between mb-2">
               <div class="text-sm font-medium text-gray-800">${r.activity}</div>
-              <span class="text-[10px] px-1.5 py-0.5 rounded-full ${r.reviewStatus === '已上传' ? 'bg-amber-100 text-amber-700' : r.reviewStatus === '未提交' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'}">${r.reviewStatus}</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full ${r.reviewStatus === '已上传' ? 'bg-orange-100 text-orange-700' : r.reviewStatus === '未提交' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'}">${r.reviewStatus}</span>
             </div>
             ${r.reviewContent ? `<div class="text-xs text-gray-600 mb-2 p-2 bg-white rounded-lg border border-gray-100">${r.reviewContent}</div>` : ''}
             <div class="flex gap-2">
               ${r.reviewStatus === '—' || r.reviewStatus === '未提交' ? '<button class="text-xs px-2 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 btn-orgz-submit-review" style="cursor:pointer;">提交复盘</button>' : ''}
-              ${r.reviewStatus === '已上传' ? '<span class="text-[10px] text-amber-600">等待纪检委员确认</span>' : ''}
+              ${r.reviewStatus === '已上传' ? '<span class="text-[10px] text-orange-600">等待纪检委员确认</span>' : ''}
             </div>
           </div>
         `).join('')}
@@ -741,7 +742,7 @@ function _renderInspectionContent() {
               <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
               <td class="py-2 px-3 text-gray-600">${i.source}</td>
               <td class="py-2 px-3 text-gray-600">${i.role}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-cyan-100 text-cyan-700'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
             </tr>
           `).join('')}</tbody>
         </table>
@@ -754,7 +755,7 @@ function _renderInspectionContent() {
 function _handoverStatusStyle(status) {
   switch (status) {
     case 'in_progress': return 'bg-blue-100 text-blue-700';
-    case 'submitted': return 'bg-amber-100 text-amber-700';
+    case 'submitted': return 'bg-cyan-100 text-cyan-700';
     case 'confirmed': return 'bg-green-100 text-green-700';
     default: return 'bg-gray-100 text-gray-600';
   }
@@ -947,10 +948,10 @@ function _renderSingleHandoverRecord(r) {
         </div>
         <div class="text-[10px] text-gray-500">${completedItems}/${totalItems} 项已完成</div>
       </div>
-      ${r.hasArchiveAssignment ? `<div class="text-[10px] text-indigo-600 mb-1">归档沉淀维护：${PEOPLE.find(p => p.id === r.archiveAssigneeId)?.name || r.archiveAssigneeId || '—'}</div>` : ''}
+      ${r.hasArchiveAssignment ? `<div class="text-[10px] text-indigo-600 mb-1">归档沉淀维护：${getPersonName(r.archiveAssigneeId)}</div>` : ''}
       <div class="space-y-1">
         ${r.items.map((item, idx) => {
-          const assigneeName = PEOPLE.find(p => p.id === item.assigneeId)?.name || item.assigneeId;
+          const assigneeName = getPersonName(item.assigneeId);
           return `
             <div class="flex items-center justify-between p-2 rounded-lg ${item.status === 'completed' ? 'bg-green-50' : 'bg-white'} border border-gray-100">
               <div class="flex-1 min-w-0">
@@ -970,7 +971,7 @@ function _renderSingleHandoverRecord(r) {
           <button class="btn-submit-handover px-3 py-1.5 text-xs font-medium rounded-lg text-white transition-colors" style="background:var(--accent-organizer);cursor:pointer;" data-record-id="${r.id}">提交交接</button>
         </div>
       ` : ''}
-      ${r.status === 'submitted' ? '<div class="mt-2 text-[10px] text-amber-600">已提交，等待纪检委员确认</div>' : ''}
+      ${r.status === 'submitted' ? '<div class="mt-2 text-[10px] text-cyan-600">已提交，等待纪检委员确认</div>' : ''}
       ${r.status === 'confirmed' ? `<div class="mt-2 text-[10px] text-green-600">已确认${r.confirmedAt ? ' · ' + _formatCompletedAt(r.confirmedAt) : ''}</div>` : ''}
     </div>
   `;
@@ -1250,8 +1251,8 @@ const FILE_CATEGORY_LABELS = {
   publicity: '宣传素材',
 };
 const FILE_CATEGORY_STYLES = {
-  experience: 'bg-purple-100 text-purple-700',
-  raw: 'bg-amber-100 text-amber-700',
+  experience: 'bg-cyan-100 text-cyan-700',
+  raw: 'bg-cyan-100 text-cyan-700',
   publicity: 'bg-pink-100 text-pink-700',
 };
 const FILE_CATEGORY_ICONS = {
@@ -1311,11 +1312,11 @@ function _renderFileSpaceContent(activities) {
       <!-- 统计概览 -->
       <div class="flex gap-3">
         <div class="flex-1 card rounded-xl p-4 text-center border-l-4" style="border-left-color:var(--accent-organizer);">
-          <div class="text-2xl font-bold text-purple-600">${stats.experience}</div>
+          <div class="text-2xl font-bold text-cyan-600">${stats.experience}</div>
           <div class="text-[10px] text-gray-500 mt-1">经验沉淀</div>
         </div>
         <div class="flex-1 card rounded-xl p-4 text-center border-l-4" style="border-left-color:var(--accent-organizer);">
-          <div class="text-2xl font-bold text-amber-600">${stats.raw}</div>
+          <div class="text-2xl font-bold text-cyan-600">${stats.raw}</div>
           <div class="text-[10px] text-gray-500 mt-1">原始文件</div>
         </div>
         <div class="flex-1 card rounded-xl p-4 text-center border-l-4" style="border-left-color:var(--accent-organizer-light);">
@@ -1340,7 +1341,7 @@ function _renderFileSpaceContent(activities) {
             <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">${FILE_CATEGORY_ICONS[cat]} ${catLabel}（${catRecords.length}）</h4>
             <div class="space-y-2">
               ${catRecords.map(r => {
-                const uploader = PEOPLE.find(p => p.id === r.uploadedBy);
+                const uploader = getPersonById(r.uploadedBy);
                 const uploaderName = uploader ? uploader.name : r.uploadedBy;
                 const uploadDate = r.uploadedAt ? _formatCompletedAt(r.uploadedAt) : '—';
                 return `

@@ -1,4 +1,4 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';
@@ -70,7 +70,7 @@ function renderGalleryView() {
   const cards = [];
 
   completedActivities.forEach(a => {
-    const organizer = PEOPLE.find(p => p.id === a.organizer);
+    const organizer = getPersonById(a.organizer);
     const color = ACTIVITY_TYPE_COLORS[a.type] || { bg: 'linear-gradient(135deg, #F9FAFB, #F3F4F6)', dot: '#6B7280' };
     cards.push({
       id: a.id,
@@ -86,7 +86,7 @@ function renderGalleryView() {
   });
 
   completedTaskforces.forEach(tf => {
-    const initiator = PEOPLE.find(p => p.id === tf.initiator);
+    const initiator = getPersonById(tf.initiator);
     cards.push({
       id: tf.id,
       type: 'taskforce',
@@ -106,10 +106,10 @@ function renderGalleryView() {
   }
 
   grid.innerHTML = cards.map(c => `
-    <div class="rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group" data-archive-item data-archive-type="${c.type}" data-archive-id="${c.id}">
+    <div class="rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group" data-archive-item data-archive-type="${c.type}" data-archive-id="${c.id}">
       <!-- 卡片头部：渐变色区域 -->
       <div class="p-5 relative" style="background:${c.bg};">
-        ${c.isBrand ? '<span class="absolute top-3 right-3 px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-700 border border-amber-200">品牌</span>' : ''}
+        ${c.isBrand ? '<span class="absolute top-3 right-3 px-2 py-0.5 text-[10px] font-bold rounded-full bg-orange-100 text-orange-700 border border-orange-200">品牌</span>' : ''}
         <div class="flex items-center gap-2 mb-2">
           <div class="w-3 h-3 rounded-full flex-shrink-0" style="background:${c.dot};"></div>
           <span class="text-[10px] font-medium text-gray-500">${c.type === 'activity' ? '党建活动' : '专班'}</span>

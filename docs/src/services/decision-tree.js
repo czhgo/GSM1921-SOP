@@ -1,32 +1,30 @@
-// role: [人机]
-// services/decision-tree.js — 统一决策树服务
-// 从 ws-leader-entry.js 和 ws-secretary-entry.js 中提取的共享逻辑
-// 包含：配置管理、状态管理、场景映射、工作流面板渲染、活动写入
-
+// role: [工程师]+[AI]
+// services/decision-tree.js �?统一决策树服�?// �?ws-leader-entry.js �?ws-secretary-entry.js 中提取的共享逻辑
+// 包含：配置管理、状态管理、场景映射、工作流面板渲染、活动写�?
 import { BranchService } from './runtime.js';
 import { showToast } from '../core/utils.js';
 import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js';
+import { icon } from '../core/icons.js';
 
 // ════════════════════════════════════════════════════════════════
-//  决策树配置预设
-// ════════════════════════════════════════════════════════════════
+//  决策树配置预�?// ════════════════════════════════════════════════════════════════
 
 export const DECISION_TREE_CONFIGS = {
   leader: {
     L1: [
-      { value: 'party-group-meeting', label: '党小组会', color: '#7C3AED' },
+      { value: 'party-group-meeting', label: '党小组会', color: '#0E7490' },
       { value: 'theme-party', label: '主题党日', color: '#2563EB' },
     ],
     L2: {
       'party-group-meeting': [
-        { value: 'meeting', label: '会议', color: '#7C3AED' },
+        { value: 'meeting', label: '会议', color: '#0E7490' },
       ],
       'theme-party': [
         { value: 'study', label: '学习', color: '#2563EB' },
         { value: 'visit', label: '参访', color: '#059669' },
-        { value: 'forum', label: '座谈', color: '#EA580C' },
+        { value: 'forum', label: '座谈', color: '#65A30D' },
         { value: 'co-build', label: '共建', color: '#DB2777' },
-        { value: 'meeting', label: '会议', color: '#7C3AED' },
+        { value: 'meeting', label: '会议', color: '#0E7490' },
       ],
     },
     L3: [
@@ -37,7 +35,7 @@ export const DECISION_TREE_CONFIGS = {
       { value: 'top-down', label: '自上而下' },
       { value: 'bottom-up', label: '自下而上' },
     ],
-    HOST_GROUPS: ['第二党小组', '第三党小组'],
+    HOST_GROUPS: ['第二党小�?, '第三党小�?],
     SCENARIO_MAP: {
       'party-group-meeting': 'party-group-meeting',
       'theme-party': 'theme-party',
@@ -46,43 +44,42 @@ export const DECISION_TREE_CONFIGS = {
 
   secretary: {
     L1: [
-      { value: 'three-meetings', label: '三会一课', icon: '三', iconColor: '#CE1126', iconBg: 'rgba(206,17,38,0.10)', hasSub: true },
-      { value: 'theme-day', label: '主题党日', icon: '主', iconColor: '#2563EB', iconBg: 'rgba(37,99,235,0.10)', scenarioId: 'theme-party' },
+      { value: 'three-meetings', label: '三会一�?, icon: '�?, iconColor: '#CE1126', iconBg: 'rgba(206,17,38,0.10)', hasSub: true },
+      { value: 'theme-day', label: '主题党日', icon: '�?, iconColor: '#2563EB', iconBg: 'rgba(37,99,235,0.10)', scenarioId: 'theme-party' },
     ],
     L1Sub: {
       'three-meetings': [
         { value: 'branch-party-meeting', label: '支部党员大会', scenarioId: 'branch-party-meeting' },
-        { value: 'branch-committee', label: '支委会', scenarioId: 'branch-committee' },
+        { value: 'branch-committee', label: '支委�?, scenarioId: 'branch-committee' },
         { value: 'party-group-meeting', label: '党小组会', scenarioId: 'party-group-meeting' },
         { value: 'party-lecture', label: '党课', scenarioId: 'party-lecture' },
       ],
     },
     L2: {
       'three-meetings': [
-        { value: 'meeting', label: '会议', color: '#7C3AED', bg: 'rgba(124,58,237,0.10)', border: 'rgba(124,58,237,0.30)' },
+        { value: 'meeting', label: '会议', color: '#0E7490', bg: 'rgba(14,116,144,0.10)', border: 'rgba(14,116,144,0.30)' },
       ],
       'theme-day': [
         { value: 'study', label: '学习', color: '#2563EB', bg: 'rgba(37,99,235,0.10)', border: 'rgba(37,99,235,0.30)' },
         { value: 'visit', label: '参访', color: '#059669', bg: 'rgba(5,150,105,0.10)', border: 'rgba(5,150,105,0.30)' },
         { value: 'forum', label: '座谈', color: '#D97706', bg: 'rgba(217,119,6,0.10)', border: 'rgba(217,119,6,0.30)' },
         { value: 'co-build', label: '共建', color: '#DB2777', bg: 'rgba(219,39,119,0.10)', border: 'rgba(219,39,119,0.30)' },
-        { value: 'meeting', label: '会议', color: '#7C3AED', bg: 'rgba(124,58,237,0.10)', border: 'rgba(124,58,237,0.30)' },
+        { value: 'meeting', label: '会议', color: '#0E7490', bg: 'rgba(14,116,144,0.10)', border: 'rgba(14,116,144,0.30)' },
       ],
     },
     L3: [
-      { value: 'short', label: '短期', desc: '单次活动，1天内完成' },
+      { value: 'short', label: '短期', desc: '单次活动�?天内完成' },
       { value: 'long', label: '长期', desc: '跨天或持续一段时间的活动' },
     ],
     L4: [
-      { value: 'top-down', label: '自上而下', desc: '支委/书记发起，向下部署' },
-      { value: 'bottom-up', label: '自下而上', desc: '党小组/成员提议，向上申报' },
+      { value: 'top-down', label: '自上而下', desc: '支委/书记发起，向下部�? },
+      { value: 'bottom-up', label: '自下而上', desc: '党小�?成员提议，向上申�? },
     ],
   },
 };
 
 // ════════════════════════════════════════════════════════════════
-//  DecisionTreeState — 决策树状态管理
-// ════════════════════════════════════════════════════════════════
+//  DecisionTreeState �?决策树状态管�?// ════════════════════════════════════════════════════════════════
 
 export class DecisionTreeState {
   constructor(configKey) {
@@ -152,7 +149,7 @@ export class DecisionTreeState {
     if (this.configKey === 'secretary') {
       if (L1 === 'three-meetings') {
         const sub = this.config.L1Sub['three-meetings'].find(o => o.value === L1Sub);
-        parts.push(sub ? sub.label : '三会一课');
+        parts.push(sub ? sub.label : '三会一�?);
       } else if (L1 === 'theme-day') {
         parts.push('主题党日');
       }
@@ -173,7 +170,7 @@ export class DecisionTreeState {
     return parts.join(' / ');
   }
 
-  /** 渲染 SOP 预览（leader 专用） */
+  /** 渲染 SOP 预览（leader 专用�?*/
   renderSopPreview() {
     const { L1 } = this.selections;
     if (!L1) return '<p class="text-gray-400">请先选择组织场景</p>';
@@ -196,14 +193,14 @@ export class DecisionTreeState {
       if (phaseTasks.length === 0) return '';
       return `
         <div class="mb-2">
-          <div class="font-medium text-gray-700 mb-1">${phase.label}（${phaseTasks.length}项）</div>
+          <div class="font-medium text-gray-700 mb-1">${phase.label}�?{phaseTasks.length}项）</div>
           ${phaseTasks.slice(0, 4).map(t => `
             <div class="pl-2 py-0.5 flex items-center gap-1">
               <span class="text-gray-300">·</span>
               <span>T${t.timeOffset >= 0 ? '+' : ''}${t.timeOffset} ${t.title}</span>
             </div>
           `).join('')}
-          ${phaseTasks.length > 4 ? `<div class="pl-2 text-gray-400">...及其他${phaseTasks.length - 4}项</div>` : ''}
+          ${phaseTasks.length > 4 ? `<div class="pl-2 text-gray-400">...及其�?{phaseTasks.length - 4}�?/div>` : ''}
         </div>
       `;
     }).join('');
@@ -215,13 +212,10 @@ export class DecisionTreeState {
 // ════════════════════════════════════════════════════════════════
 
 /**
- * 渲染工作流可视化面板（leader 和 secretary 共用）
- * @param {string} panelId - 面板 DOM ID（如 'leader-workflow' 或 'secretary-workflow'）
- * @param {string} anchorId - 锚点元素 ID
+ * 渲染工作流可视化面板（leader �?secretary 共用�? * @param {string} panelId - 面板 DOM ID（如 'leader-workflow' �?'secretary-workflow'�? * @param {string} anchorId - 锚点元素 ID
  * @param {string} definitionId - 工作流定义ID
  * @param {string} activityTitle - 活动标题
- * @param {'after'|'append'} [insertMode='after'] - 插入模式：'after' 插入到锚点之后，'append' 插入到锚点内部末尾
- */
+ * @param {'after'|'append'} [insertMode='after'] - 插入模式�?after' 插入到锚点之后，'append' 插入到锚点内部末�? */
 export function renderWorkflowPanel(panelId, anchorId, definitionId, activityTitle, insertMode = 'after') {
   const anchor = document.getElementById(anchorId);
   if (!anchor) return;
@@ -235,8 +229,8 @@ export function renderWorkflowPanel(panelId, anchorId, definitionId, activityTit
   panel.className = 'workflow-panel-card';
   panel.innerHTML = `
     <div class="workflow-panel-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      工作流追踪 — ${activityTitle || '新活动'}
+      ${icon('clock', { size: 0 })}
+      工作流追�?�?${activityTitle || '新活�?}
     </div>
     <div id="${panelId}-content"></div>
   `;
@@ -253,7 +247,7 @@ export function renderWorkflowPanel(panelId, anchorId, definitionId, activityTit
       renderWorkflow(contentEl, definitionId, false);
     } catch (err) {
       console.warn(`[decision-tree] renderWorkflow failed:`, err);
-      contentEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">工作流渲染失败</p>';
+      contentEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">工作流渲染失�?/p>';
     }
   }
 
@@ -261,11 +255,10 @@ export function renderWorkflowPanel(panelId, anchorId, definitionId, activityTit
 }
 
 // ════════════════════════════════════════════════════════════════
-//  共享函数：活动写入（创建活动 + 实例化SOP + 创建任务节点）
-// ════════════════════════════════════════════════════════════════
+//  共享函数：活动写入（创建活动 + 实例化SOP + 创建任务节点�?// ════════════════════════════════════════════════════════════════
 
 /**
- * 写入活动：创建活动 → 实例化SOP → 创建任务节点
+ * 写入活动：创建活�?�?实例化SOP �?创建任务节点
  * @param {object} activityData - 活动数据
  * @param {string} scenarioId - SOP场景ID
  * @param {string} targetDate - T-0 日期
@@ -276,11 +269,11 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
   const activity = await BranchService.createActivity(activityData);
   console.info('[DecisionTree] createActivity 成功, id=' + activity.id);
 
-  // 2. 实例化 SOP 任务节点
+  // 2. 实例�?SOP 任务节点
   const taskNodes = instantiateSOP([scenarioId], targetDate);
-  console.info('[DecisionTree] instantiateSOP 生成 ' + taskNodes.length + ' 个任务节点');
+  console.info('[DecisionTree] instantiateSOP 生成 ' + taskNodes.length + ' 个任务节�?);
 
-  // 3. 为每个任务节点创建 Task
+  // 3. 为每个任务节点创�?Task
   let createdCount = 0;
   for (const node of taskNodes) {
     try {

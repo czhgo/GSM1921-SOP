@@ -1,4 +1,4 @@
-import { registerRenderCallback } from '../core/state.js';
+﻿import { registerRenderCallback } from '../core/state.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { PartyModule } from '../modules/party.js';
 import { showToast } from '../core/utils.js';
@@ -20,7 +20,7 @@ function renderSecPartyUI() {
     tabs: [
       { id: 'overview', label: '全局聚合', render: () => _renderTab('overview') },
       { id: 'batch', label: '批量操作', render: () => _renderTab('batch') },
-      { id: 'feedback', label: '提案讨论', render: () => _renderTab('feedback') },
+      { id: 'feedback', label: '意见反馈', render: () => _renderTab('feedback') },
     ],
     accentColor: { accent, accentRgba, accentBorder },
     defaultTab: 'overview',
@@ -57,9 +57,9 @@ function _renderTab(tab) {
   } else if (tab === 'feedback') {
     tc.innerHTML = `
       <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#B91C1C;">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">提案讨论数据集</h4>
+        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">意见反馈数据集</h4>
         <div class="grid grid-cols-3 gap-3 mb-4">
-          <div class="text-center p-3 rounded-lg bg-amber-50"><p class="text-lg font-bold text-amber-600" id="sec-fb-pending">—</p><p class="text-[10px] text-gray-500">待处理</p></div>
+          <div class="text-center p-3 rounded-lg bg-orange-50"><p class="text-lg font-bold text-orange-600" id="sec-fb-pending">—</p><p class="text-[10px] text-gray-500">待处理</p></div>
           <div class="text-center p-3 rounded-lg bg-blue-50"><p class="text-lg font-bold text-blue-600" id="sec-fb-processing">—</p><p class="text-[10px] text-gray-500">处理中</p></div>
           <div class="text-center p-3 rounded-lg bg-green-50"><p class="text-lg font-bold text-green-600" id="sec-fb-done">—</p><p class="text-[10px] text-gray-500">已完成</p></div>
         </div>

@@ -32,12 +32,13 @@ function renderPropUI(state) {
     ],
     accentColor: { accent, accentRgba, accentBorder },
     renderCtx: { activities, propTf },
+    storageKey: 'workflowos_tab_prop',
   });
 
   container.innerHTML = tabBar.html;
 
   tabBar.bindEvents(container);
-  tabBar.activate('kanban');
+  tabBar.activate(tabBar.activeTab);
 }
 
 function _renderKanbanContent(activities, propTf) {
@@ -172,7 +173,7 @@ function _renderWorkloadContent(propTf) {
     <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-prop-commissioner-light);">
       <div class="flex items-center gap-2 mb-3">
         <span class="text-sm font-semibold text-gray-700">宣传专班工作量</span>
-        <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">${propTf.length} 个专班</span>
+        <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">${propTf.length} 个专班</span>
       </div>
       ${members.length === 0 ? '<p class="text-xs text-gray-400">暂无宣传专班成员数据</p>' :
         `<div class="space-y-2">${members.map(m => `
@@ -293,7 +294,7 @@ function _renderMultitableContent(activities) {
               <td class="py-2 px-3 font-medium text-gray-800">${a.title || '未命名'}</td>
               <td class="py-2 px-3 text-gray-600">${a.type || '—'}</td>
               <td class="py-2 px-3 text-gray-600">${a.date || '—'}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${a.status === 'published' || a.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${a.status === 'published' ? '已发布' : a.status === 'completed' ? '已完成' : '草稿'}</span></td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${a.status === 'published' || a.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${a.status === 'published' ? '已发布' : a.status === 'completed' ? '已完成' : '草稿'}</span></td>
               <td class="py-2 px-3 text-gray-600">${a.organizer ? _personName(a.organizer) : '—'}</td>
             </tr>
           `).join('')}</tbody>

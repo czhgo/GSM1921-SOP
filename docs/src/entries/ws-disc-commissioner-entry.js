@@ -4,7 +4,7 @@ import { CrossPageState } from '../core/cross-page-state.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js';
 import { saveDB } from '../services/mock.js';
-import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS, reviewToDisplay, ACTIVITIES, PEOPLE, MOCK_TASKFORCES } from '../mock/index.js';
+import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS, reviewToDisplay, ACTIVITIES, PEOPLE, getPersonName, MOCK_TASKFORCES } from '../mock/index.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { renderTabBar } from '../components/tab-bar.js';
 import { openFormModal } from '../components/modal.js';
@@ -51,6 +51,7 @@ function renderDiscUI(state) {
     accentColor: { accent, accentRgba, accentBorder },
     defaultTab: 'attendance',
     renderCtx: {},
+    storageKey: 'workflowos_tab_disc',
   });
 
   container.innerHTML = `
@@ -60,8 +61,12 @@ function renderDiscUI(state) {
   tabBar.bindEvents(container);
 
   const urlParams = CrossPageState.getURLParams();
-  tabBar.activate('attendance');
-  _renderAttendanceContent(urlParams.activityId || null);
+  if (urlParams.activityId) {
+    tabBar.activate('attendance');
+    _renderAttendanceContent(urlParams.activityId);
+  } else {
+    tabBar.activate(tabBar.activeTab);
+  }
 }
 
 function _renderAttendanceContent(filterActivityId) {
@@ -161,12 +166,12 @@ function _renderAttendanceContent(filterActivityId) {
           <tbody>${displayData.map(a => {
             const isPending = a.confirmer === '—';
             return `
-            <tr class="border-b border-gray-50 hover:bg-gray-50 ${isPending ? 'bg-amber-50/30' : ''}">
+            <tr class="border-b border-gray-50 hover:bg-gray-50 ${isPending ? 'bg-orange-50/30' : ''}">
               <td class="py-2 px-3 font-medium text-gray-800">${a.name}</td>
               <td class="py-2 px-3 text-gray-600">${a.activity}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${a.status === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.status === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${ATTENDANCE_STATUS_LABELS[a.status] || a.status}</span></td>
-              <td class="py-2 px-3 text-gray-500">${isPending ? '<span class="text-amber-600">待确认</span>' : `<span class="text-green-600">${a.confirmer}</span>`}</td>
-              <td class="py-2 px-3">${isPending ? `<button class="text-xs px-2 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors btn-disc-confirm-att" data-record-id="${a.id}" style="cursor:pointer;">确认</button>` : '<span class="text-[10px] text-green-600">已确认</span>'}</td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${a.status === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.status === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${ATTENDANCE_STATUS_LABELS[a.status] || a.status}</span></td>
+              <td class="py-2 px-3 text-gray-500">${isPending ? '<span class="text-orange-600">待确认</span>' : `<span class="text-green-600">${a.confirmer}</span>`}</td>
+              <td class="py-2 px-3">${isPending ? `<button class="text-xs px-2 py-1 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors btn-disc-confirm-att" data-record-id="${a.id}" style="cursor:pointer;">确认</button>` : '<span class="text-[10px] text-green-600">已确认</span>'}</td>
             </tr>
           `}).join('')}</tbody>
         </table>
@@ -184,7 +189,7 @@ function _renderAttendanceContent(filterActivityId) {
           saveAttendanceRecords(records);
           // 考勤确认后自动生成补课任务
           autoGenerateMakeupTask(record);
-          showToast('success', `考勤记录已确认（确认人：${PEOPLE.find(p => p.id === DISC_COMMISSIONER_ID)?.name || DISC_COMMISSIONER_ID}）`);
+          showToast('success', `考勤记录已确认（确认人：${getPersonName(DISC_COMMISSIONER_ID)}）`);
           _renderAttendanceContent(filterActivityId);
         }
       });
@@ -242,7 +247,7 @@ function _renderInspectionContent() {
   const wideData = inspectionToWide(allRecords);
   const overdueRecords = getOverdueRecords(7);
   const tagColor = { 'activity': 'bg-blue-50 text-blue-600', 'taskforce': 'bg-green-50 text-green-600' };
-  const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-amber-100 text-amber-700', 'overdue': 'bg-red-100 text-red-700' };
+  const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-orange-100 text-orange-700', 'overdue': 'bg-red-100 text-red-700' };
 
   // 超期提醒
   const overdueHtml = overdueRecords.length > 0 ? `
@@ -328,7 +333,7 @@ function _renderInspectionContent() {
           <tbody>${displayData.map(i => {
             const isPending = i.status === 'pending';
             const isOverdue = overdueIds.has(i.id);
-            const rowBg = isOverdue ? 'bg-red-50/40' : isPending ? 'bg-amber-50/30' : '';
+            const rowBg = isOverdue ? 'bg-red-50/40' : isPending ? 'bg-orange-50/30' : '';
             return `
             <tr class="border-b border-gray-50 hover:bg-gray-50 ${rowBg}">
               <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
@@ -336,7 +341,7 @@ function _renderInspectionContent() {
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-[10px] ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">${i.sourceType === 'activity' ? '活动' : '专班'}</span></td>
               <td class="py-2 px-3 text-gray-600">${i.role}</td>
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-500'}">${isOverdue ? '超期' : i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
-              <td class="py-2 px-3">${isPending || isOverdue ? `<button class="text-xs px-2 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>` : '<span class="text-[10px] text-green-600">已确认</span>'}</td>
+              <td class="py-2 px-3">${isPending || isOverdue ? `<button class="text-xs px-2 py-1 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>` : '<span class="text-[10px] text-green-600">已确认</span>'}</td>
             </tr>
           `}).join('')}</tbody>
         </table>
@@ -415,7 +420,7 @@ function _renderReviewContent() {
   if (!container) return;
 
   const progressColor = { '已完成':'bg-green-100 text-green-700', '超时':'bg-red-100 text-red-700', '进行中':'bg-blue-100 text-blue-700' };
-  const reviewColor = { '已上传':'bg-amber-100 text-amber-700', '未提交':'bg-red-100 text-red-700', '—':'bg-gray-100 text-gray-500' };
+  const reviewColor = { '已上传':'bg-orange-100 text-orange-700', '未提交':'bg-red-100 text-red-700', '—':'bg-gray-100 text-gray-500' };
   const reviewData = reviewToDisplay(REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS);
 
   container.innerHTML = `
@@ -451,7 +456,7 @@ function _renderReviewContent() {
               ${r.reviewContent ? `<div class="text-xs text-gray-600 mb-2 p-2 bg-white rounded-lg border border-gray-100">${r.reviewContent}</div>` : ''}
               <div class="flex gap-2">
                 ${r.reviewStatus === '已上传' ? `
-                  <button class="text-xs px-2 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 btn-disc-annotate" style="cursor:pointer;">批注</button>
+                  <button class="text-xs px-2 py-1 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 btn-disc-annotate" style="cursor:pointer;">批注</button>
                   <button class="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 border border-red-200 btn-disc-reject" style="cursor:pointer;">打回</button>
                   <button class="text-xs px-2 py-1 rounded-lg bg-green-50 text-green-700 border border-green-200 btn-disc-confirm" style="cursor:pointer;">确认</button>
                 ` : ''}
@@ -495,7 +500,7 @@ function _renderReviewContent() {
 function _discHandoverStatusStyle(status) {
   switch (status) {
     case 'in_progress': return 'bg-blue-100 text-blue-700';
-    case 'submitted': return 'bg-amber-100 text-amber-700';
+    case 'submitted': return 'bg-orange-100 text-orange-700';
     case 'confirmed': return 'bg-green-100 text-green-700';
     default: return 'bg-gray-100 text-gray-600';
   }
@@ -542,9 +547,9 @@ function _renderHandoverContent() {
             <span class="font-bold text-blue-700">${inProgressRecords.length}</span>
           </div>
           <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+            <span class="w-2 h-2 rounded-full bg-orange-500"></span>
             <span class="text-gray-600">已提交</span>
-            <span class="font-bold text-amber-700">${submittedRecords.length}</span>
+            <span class="font-bold text-orange-700">${submittedRecords.length}</span>
           </div>
           <div class="flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-green-500"></span>
@@ -597,7 +602,7 @@ function _renderHandoverContent() {
 
 /** 渲染单条交接记录（纪检委员视角） */
 function _renderDiscHandoverRecord(r, group) {
-  const recorderName = PEOPLE.find(p => p.id === r.recorderId)?.name || r.recorderId;
+  const recorderName = getPersonName(r.recorderId);
   const completedItems = r.items.filter(i => i.status === 'completed').length;
   const totalItems = r.items.length;
   const typeLabel = r.type === 'activity' ? '活动' : '专班';
@@ -617,8 +622,8 @@ function _renderDiscHandoverRecord(r, group) {
         </div>
       </div>
       <div class="text-[10px] text-gray-500 mb-1">记录人：${recorderName} · 创建于 ${_discFormatTime(r.createdAt)}</div>
-      ${r.hasArchiveAssignment ? `<div class="text-[10px] text-indigo-600 mb-1">归档沉淀维护：${PEOPLE.find(p => p.id === r.archiveAssigneeId)?.name || r.archiveAssigneeId || '—'}</div>` : ''}
-      ${r.submittedAt ? `<div class="text-[10px] text-amber-600 mb-1">提交于 ${_discFormatTime(r.submittedAt)}</div>` : ''}
+      ${r.hasArchiveAssignment ? `<div class="text-[10px] text-indigo-600 mb-1">归档沉淀维护：${getPersonName(r.archiveAssigneeId)}</div>` : ''}
+      ${r.submittedAt ? `<div class="text-[10px] text-orange-600 mb-1">提交于 ${_discFormatTime(r.submittedAt)}</div>` : ''}
       ${r.confirmedAt ? `<div class="text-[10px] text-green-600 mb-1">确认于 ${_discFormatTime(r.confirmedAt)}</div>` : ''}
 
       <!-- 交接项详情（可展开） -->
@@ -628,7 +633,7 @@ function _renderDiscHandoverRecord(r, group) {
         </button>
         <div class="disc-handover-detail hidden mt-2 space-y-1" data-detail-for="${r.id}">
           ${r.items.map((item, idx) => {
-            const assigneeName = PEOPLE.find(p => p.id === item.assigneeId)?.name || item.assigneeId;
+            const assigneeName = getPersonName(item.assigneeId);
             return `
               <div class="flex items-center justify-between p-2 rounded-lg ${item.status === 'completed' ? 'bg-green-50' : 'bg-white'} border border-gray-100">
                 <div class="flex-1 min-w-0">
@@ -659,7 +664,7 @@ function _bindDiscHandoverEvents() {
       const records = loadHandoverRecords();
       const record = records.find(r => r.id === recordId);
       if (record) {
-        const recorderName = PEOPLE.find(p => p.id === record.recorderId)?.name || record.recorderId;
+        const recorderName = getPersonName(record.recorderId);
         showToast('success', `催促邮件已发送至 ${recorderName}，提醒其尽快完成数据交接`);
       }
     });
@@ -713,9 +718,9 @@ function _renderDepositContent() {
             <span class="font-bold text-blue-700">${submittedDeposits.length}</span>
           </div>
           <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+            <span class="w-2 h-2 rounded-full bg-orange-500"></span>
             <span class="text-gray-600">已批注</span>
-            <span class="font-bold text-amber-700">${annotatedDeposits.length}</span>
+            <span class="font-bold text-orange-700">${annotatedDeposits.length}</span>
           </div>
           <div class="flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-green-500"></span>
@@ -767,7 +772,7 @@ function _renderDepositContent() {
 }
 
 function _renderDiscDepositCard(d, group) {
-  const submitterName = PEOPLE.find(p => p.id === d.submitterId)?.name || d.submitterId;
+  const submitterName = getPersonName(d.submitterId);
   const sourceLabel = d.sourceType === 'activity' ? '活动' : '专班';
   const sourceColor = d.sourceType === 'activity' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600';
 
@@ -780,7 +785,7 @@ function _renderDiscDepositCard(d, group) {
         </div>
         <div class="flex items-center gap-2">
           ${group === 'submitted' ? `
-            <button class="btn-disc-annotate-deposit text-xs px-2 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors" style="cursor:pointer;" data-deposit-id="${d.id}">批注</button>
+            <button class="btn-disc-annotate-deposit text-xs px-2 py-1 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors" style="cursor:pointer;" data-deposit-id="${d.id}">批注</button>
             <button class="btn-disc-confirm-deposit text-xs px-2 py-1 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors" style="cursor:pointer;" data-deposit-id="${d.id}">确认</button>
           ` : ''}
           ${group === 'annotated' ? `
@@ -793,9 +798,9 @@ function _renderDiscDepositCard(d, group) {
       ${d.tags && d.tags.length > 0 ? `<div class="flex flex-wrap gap-1 mb-2">${d.tags.map(t => `<span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">${t}</span>`).join('')}</div>` : ''}
       ${d.annotations && d.annotations.length > 0 ? `
         <div class="border-t border-gray-200 pt-2 mt-2">
-          <div class="text-[10px] text-amber-600 font-medium mb-1">纪检批注：</div>
+          <div class="text-[10px] text-orange-600 font-medium mb-1">纪检批注：</div>
           ${d.annotations.map(a => `
-            <div class="text-xs text-gray-600 p-1.5 bg-amber-50 rounded mb-1">${a.content} <span class="text-[10px] text-gray-400">— ${_discFormatTime(a.annotatedAt)}</span></div>
+            <div class="text-xs text-gray-600 p-1.5 bg-orange-50 rounded mb-1">${a.content} <span class="text-[10px] text-gray-400">— ${_discFormatTime(a.annotatedAt)}</span></div>
           `).join('')}
         </div>
       ` : ''}
@@ -803,7 +808,7 @@ function _renderDiscDepositCard(d, group) {
       <div class="disc-deposit-annotate-form hidden mt-2 pt-2 border-t border-gray-200" data-form-for="${d.id}">
         <textarea class="input-flat text-xs w-full" rows="2" placeholder="输入批注内容..." data-annotate-input="${d.id}"></textarea>
         <div class="flex gap-2 mt-1">
-          <button class="btn-disc-submit-annotation text-xs px-2 py-1 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition-colors" style="cursor:pointer;" data-deposit-id="${d.id}">提交批注</button>
+          <button class="btn-disc-submit-annotation text-xs px-2 py-1 rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition-colors" style="cursor:pointer;" data-deposit-id="${d.id}">提交批注</button>
           <button class="btn-disc-cancel-annotation text-xs px-2 py-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors" style="cursor:pointer;" data-deposit-id="${d.id}">取消</button>
         </div>
       </div>

@@ -8,6 +8,7 @@ import { ACTIVITIES, _personName } from '../mock/index.js';
 import { loadAttendanceRecords } from '../services/attendance.js';
 import { getActivityTypeColors } from '../core/constants.js';
 import { renderTabBar } from '../components/tab-bar.js';
+import { icon } from '../core/icons.js';
 import { renderQueryView } from '../components/query-view.js';
 
 bootstrapPage({ module: 'workspace', accentRole: 'participant' });
@@ -42,6 +43,7 @@ function renderVisitorUI(state) {
     accentColor: { accent: 'var(--primary-700)', accentRgba: 'rgba(206,17,38,0.08)', accentBorder: 'rgba(206,17,38,0.2)' },
     defaultTab: 'activities',
     renderCtx: { activities, activeTf, highlightId },
+    storageKey: 'workflowos_tab_visitor',
   });
 
   container.innerHTML = `
@@ -49,7 +51,11 @@ function renderVisitorUI(state) {
   `;
 
   tabBar.bindEvents(container);
-  tabBar.activate('activities');
+  if (highlightId) {
+    tabBar.activate('activities');
+  } else {
+    tabBar.activate(tabBar.activeTab);
+  }
 }
 
 function _renderActivities(activities, highlightId) {
@@ -62,13 +68,13 @@ function _renderActivities(activities, highlightId) {
       <span class="text-xs text-gray-500">${sorted.length} 条活动</span>
       <div class="flex gap-1">
         <button class="visitor-view-btn px-2.5 py-1 text-xs rounded-lg border transition-colors" data-vview="list" style="background:rgba(206,17,38,0.08);color:var(--primary-700);border:1px solid rgba(206,17,38,0.2);">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> 列表
+          ${icon('list', { size: 14, extra: ' style="display:inline;vertical-align:-2px;"' })} 列表
         </button>
         <button class="visitor-view-btn px-2.5 py-1 text-xs rounded-lg border transition-colors" data-vview="calendar" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 日历
+          ${icon('calendar', { size: 14, extra: ' style="display:inline;vertical-align:-2px;"' })} 日历
         </button>
         <button class="visitor-view-btn px-2.5 py-1 text-xs rounded-lg border transition-colors" data-vview="query" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> 查询
+          ${icon('search', { size: 14, extra: ' style="display:inline;vertical-align:-2px;"' })} 查询
         </button>
       </div>
     </div>
@@ -140,7 +146,7 @@ function _renderActCalendarView(sorted, highlightId) {
       return `
         <div class="mb-5">
           <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary-700)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            ${icon('calendar', { size: 14, stroke: 'var(--primary-700)' })}
             ${monthLabel}
             <span class="text-[10px] font-normal text-gray-400">${acts.length} 场</span>
           </h4>
@@ -218,7 +224,7 @@ function _renderTaskforces(taskforces) {
   const tc = document.getElementById('visitor-tab-content');
   if (!tc) return;
   const statusLabel = { recruiting: '招募中', active: '运行中', completed: '已完结', draft: '草稿' };
-  const statusColor = { recruiting: 'bg-amber-100 text-amber-700', active: 'bg-green-100 text-green-700', completed: 'bg-gray-100 text-gray-600', draft: 'bg-gray-100 text-gray-500' };
+  const statusColor = { recruiting: 'bg-orange-100 text-orange-700', active: 'bg-green-100 text-green-700', completed: 'bg-gray-100 text-gray-600', draft: 'bg-gray-100 text-gray-500' };
   tc.innerHTML = `
     <div class="flex flex-wrap gap-2 mb-3">
       <input type="text" id="visitor-tf-search" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索专班名称或任务...">

@@ -33,23 +33,23 @@
   --accent-amber:      #D97706;
   --accent-blue:       #3B82F6;
   --accent-emerald:    #059669;
-  --accent-secretary:        #B91C1C;  /* 党支书 — 红色系（深红，Tailwind red-800） */
-  --accent-leader:           #65A30D;  /* 党小组组长 — 石灰绿系 */
-  --accent-org-commissioner: #8B5CF6;  /* 组织委员 — 紫色系 */
-  --accent-prop-commissioner:#3B82F6;  /* 宣传委员 — 蓝色系 */
-  --accent-disc-commissioner:#D97706;  /* 纪检委员 — 琥珀/黄色系 */
-  --accent-organizer:        #06B6D4;  /* 组织者 — 青色系 */
-  --accent-deep:             #10B981;  /* 深度参与者 — 绿色系 */
+  --accent-secretary:        #B91C1C;  /* 党支书 — 党建红（不动） */
+  --accent-leader:           #abd7c8;  /* 党小组组长 — 水绿 */
+  --accent-org-commissioner: #0E7490;  /* 组织委员 — 深青 */
+  --accent-prop-commissioner:#2563EB;  /* 宣传委员 — 海蓝 */
+  --accent-disc-commissioner:#C2410C;  /* 纪检委员 — 深橙 */
+  --accent-organizer:        #a4d9f4;  /* 组织者 — 淡蓝 */
+  --accent-deep:             #94a3b8;  /* 深度参与者 — 浅灰蓝 */
   --accent-participant:      #6B7280;  /* 普通参与者 — 灰色系 */
 
   /* ── 角色识别色 — Light 变体（用于 border-left / 浅底色等低饱和场景） ── */
   --accent-secretary-light:        #FCA5A5;  /* red-300 */
-  --accent-leader-light:           #BEF264;  /* lime-300 */
-  --accent-org-commissioner-light: #C4B5FD;  /* violet-300 */
+  --accent-leader-light:           #d1f0e3;  /* 水绿-light */
+  --accent-org-commissioner-light: #67E8F9;  /* cyan-300 */
   --accent-prop-commissioner-light:#93C5FD;  /* blue-300 */
-  --accent-disc-commissioner-light:#FCD34D;  /* amber-300 */
-  --accent-organizer-light:        #67E8F9;  /* cyan-300 */
-  --accent-deep-light:             #6EE7B7;  /* emerald-300 */
+  --accent-disc-commissioner-light:#FDBA74;  /* orange-300 */
+  --accent-organizer-light:        #bae6fd;  /* 淡蓝-light */
+  --accent-deep-light:             #cbd5e1;  /* 浅灰蓝-light */
   --accent-participant-light:      #D1D5DB;  /* gray-300 */
   --accent-sky:         #0EA5E9;
   --accent-indigo:      #6366F1;
@@ -261,7 +261,7 @@ body {
 }
 
 .card-flat:hover {
-  border-color: var(--primary-300);
+  border-color: var(--neutral-300);
 }
 
 .card {
@@ -272,7 +272,7 @@ body {
 }
 
 .card:hover {
-  border-color: var(--primary-300);
+  border-color: var(--neutral-300);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -291,7 +291,7 @@ body {
 
 .input-flat:focus {
   background-color: var(--neutral-0);
-  border-color: var(--primary-500);
+  border-color: var(--party-gold);
 }
 
 .input-flat::placeholder {
@@ -317,11 +317,13 @@ select.input-flat.text-xs {
 select.input-flat.text-\[10px\] {
   padding: 2px 22px 2px 6px;
   font-size: 10px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 select.input-flat:focus {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23EF4444' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-color: var(--neutral-0);
+  border-color: var(--party-gold);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -475,7 +477,7 @@ select.input-flat:focus {
 }
 
 .view-mode-switcher {
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   transition: background-color var(--transition-fast);
   user-select: none;
 }
@@ -520,7 +522,7 @@ select.input-flat:focus {
   font-size: 0.6875rem;
   color: rgba(255,255,255,0.85);
   padding: 6px 12px;
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   background-color: rgba(0,0,0,0.2);
 }
 
@@ -560,7 +562,7 @@ select.input-flat:focus {
   width: 18px;
   height: 2px;
   background-color: var(--neutral-0);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   transition: transform var(--transition-normal), opacity var(--transition-normal);
 }
 
@@ -737,7 +739,7 @@ select.input-flat:focus {
   font-weight: 600;
   font-size: 0.8125rem;
   padding: 10px 20px;
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   border: 2px solid var(--neutral-200);
   color: var(--neutral-600);
   background-color: var(--neutral-0);
@@ -798,7 +800,7 @@ select.input-flat:focus {
   width: 4px;
   height: 18px;
   background-color: var(--primary-700);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 
 .scenario-header-inner span {
@@ -806,7 +808,7 @@ select.input-flat:focus {
   color: var(--neutral-400);
   padding: 3px 10px;
   background-color: var(--neutral-100);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -867,7 +869,7 @@ select.input-flat:focus {
   min-height: 24px;
   margin-top: 6px;
   background-color: var(--neutral-200);
-  border-radius: 1px;
+  border-radius: var(--radius-sm);
 }
 
 .tl-card {
@@ -926,7 +928,7 @@ select.input-flat:focus {
   display: inline-flex;
   align-items: center;
   padding: 4px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 0.6875rem;
   font-weight: 500;
   white-space: nowrap;
@@ -1014,7 +1016,7 @@ select.input-flat:focus {
   text-decoration: underline;
   text-decoration-color: rgba(206,17,38,0.3);
   text-underline-offset: 4px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background-color var(--transition-fast);
 }
@@ -1078,7 +1080,7 @@ select.input-flat:focus {
   align-items: center;
   font-size: 0.625rem;
   line-height: 1.4;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 3px 6px;
   margin-bottom: 3px;
   overflow: hidden;
@@ -1094,7 +1096,7 @@ select.input-flat:focus {
   align-items: center;
   gap: 5px;
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.7rem;
   font-weight: 500;
   white-space: nowrap;
@@ -1220,6 +1222,13 @@ select.input-flat:focus {
   margin-bottom: 6px;
 }
 
+/* ── Tab 按钮 active 状态（CSS 变量驱动，替代 inline style） ── */
+.tab-btn-active {
+  background: var(--tab-accent-bg);
+  color: var(--tab-accent);
+  border: 1px solid var(--tab-accent-border);
+}
+
 @media (min-width: 769px) {
   .cal-mobile-detail {
     display: none !important;
@@ -1234,7 +1243,7 @@ select.input-flat:focus {
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   cursor: default;
   transition: background-color 0.15s ease-out;
@@ -1247,7 +1256,7 @@ select.input-flat:focus {
 .legend-swatch {
   width: 12px;
   height: 12px;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
 }
 
@@ -1278,7 +1287,7 @@ select.input-flat:focus {
   align-items: center;
   gap: 6px;
   padding: 4px 12px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 0.7rem;
   color: var(--neutral-600);
   background-color: var(--neutral-100);
@@ -1318,7 +1327,7 @@ select.input-flat:focus {
    ═══════════════════════════════════════════════════════════════ */
 .ref-cat-btn {
   padding: 6px 14px;
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   border: 1px solid var(--neutral-200);
   background-color: var(--neutral-0);
   color: var(--neutral-600);
@@ -1343,7 +1352,7 @@ select.input-flat:focus {
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--neutral-200);
   background-color: var(--neutral-0);
   text-decoration: none;
@@ -1358,7 +1367,7 @@ select.input-flat:focus {
 .ref-site-icon {
   width: 36px;
   height: 36px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background-color: var(--neutral-100);
   display: flex;
   align-items: center;
@@ -1390,7 +1399,7 @@ select.input-flat:focus {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--neutral-100);
   background-color: var(--neutral-0);
   transition: border-color 0.15s ease-out;
@@ -1414,7 +1423,7 @@ select.input-flat:focus {
   justify-content: center;
   width: 36px;
   height: 24px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.6rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -1463,7 +1472,7 @@ select.input-flat:focus {
   align-items: center;
   gap: 4px;
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background-color: var(--primary-50);
   color: var(--primary-700);
   font-size: 0.7rem;
@@ -1593,7 +1602,7 @@ select.input-flat:focus {
   bottom: 0;
   width: 4px;
   background-color: var(--accent-leader);
-  border-radius: 0 3px 3px 0;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
 .leader-card .role-icon {
@@ -1619,7 +1628,7 @@ select.input-flat:focus {
   bottom: 0;
   width: 4px;
   background-color: var(--accent-amber);
-  border-radius: 0 3px 3px 0;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
 .commissioner-card .role-icon {
@@ -1645,7 +1654,7 @@ select.input-flat:focus {
   bottom: 0;
   width: 4px;
   background-color: var(--accent-organizer);
-  border-radius: 0 3px 3px 0;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
 .organizer-card .role-icon {
@@ -1671,7 +1680,7 @@ select.input-flat:focus {
   bottom: 0;
   width: 4px;
   background-color: var(--accent-deep);
-  border-radius: 0 3px 3px 0;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
 .deep-card .role-icon {
@@ -1697,7 +1706,7 @@ select.input-flat:focus {
   bottom: 0;
   width: 4px;
   background-color: var(--accent-secretary);
-  border-radius: 0 3px 3px 0;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
 .secretary-card .role-icon {
@@ -1733,7 +1742,7 @@ select.input-flat:focus {
   align-items: center;
   gap: 14px;
   padding: 14px 16px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--neutral-200);
   background-color: var(--neutral-0);
   cursor: pointer;
@@ -1750,7 +1759,7 @@ select.input-flat:focus {
 .comm-modal-icon {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1911,7 +1920,7 @@ select.input-flat:focus {
 .pub-type-badge {
   display: inline-block;
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.65rem;
   font-weight: 500;
   background-color: rgba(59,130,246,0.08);
@@ -1944,7 +1953,7 @@ select.input-flat:focus {
   cursor: pointer;
   font-size: 0.75rem;
   padding: 2px 4px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   transition: background-color 0.12s ease-out;
 }
 
@@ -1954,7 +1963,7 @@ select.input-flat:focus {
 .pub-sub-add-btn {
   background: none;
   border: 1px dashed var(--neutral-300);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 3px 10px;
   font-size: 0.6875rem;
   color: var(--primary-700);
@@ -1999,7 +2008,7 @@ select.input-flat:focus {
   color: var(--primary-700);
   background: var(--surface-active);
   padding: 3px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   white-space: nowrap;
   letter-spacing: 0.02em;
   border: 1px solid var(--primary-200);
@@ -2040,7 +2049,7 @@ select.input-flat:focus {
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   background: var(--neutral-0);
   border: 1px solid var(--neutral-200);
   font-size: 0.75rem;
@@ -2151,7 +2160,7 @@ select.input-flat:focus {
   display: inline-block;
   font-size: 0.55rem;
   padding: 0 3px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   margin-left: 3px;
   vertical-align: top;
   position: relative;
@@ -2187,10 +2196,16 @@ select.input-flat:focus {
    ═══════════════════════════════════════════════════════════════ */
 button:focus-visible,
 a:focus-visible,
-input:focus-visible,
-select:focus-visible {
-  outline: 2px solid var(--primary-700);
+input:focus-visible {
+  outline: 2px solid var(--primary-500);
   outline-offset: 2px;
+}
+
+/* select 元素聚焦时不显示原生红色 outline——其视觉反馈由 .input-flat:focus
+   的边框颜色（primary-500）承担，避免双重反馈和"红色框"审美问题 */
+select.input-flat:focus,
+select.input-flat:focus-visible {
+  outline: none;
 }
 
 /* SVG 关系网络节点：移除浏览器默认 outline（黄色框）
@@ -2215,7 +2230,7 @@ select:focus-visible {
 
 ::-webkit-scrollbar-thumb {
   background-color: rgba(0,0,0,0.15);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   transition: background-color var(--transition-fast);
 }
 
@@ -2265,7 +2280,7 @@ label .text-red-500 {
 .dashboard-cal-item {
   background: var(--surface);
   border: 1px solid var(--neutral-100);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   transition: box-shadow var(--transition-fast);
 }
 
@@ -2405,7 +2420,7 @@ label .text-red-500 {
 
   .inspector-card {
     padding: 12px;
-    border-radius: 10px;
+    border-radius: var(--radius-md);
   }
 
   .form-tree-row {
@@ -2630,14 +2645,14 @@ label .text-red-500 {
 .workflow-progress-track {
   height: 6px;
   background: var(--neutral-200);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
 .workflow-progress-bar {
   height: 100%;
   background: var(--primary-700);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   transition: width 0.4s ease-out;
 }
 
@@ -2683,7 +2698,7 @@ label .text-red-500 {
 .workflow-state-phase {
   font-size: 0.6875rem;
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: var(--primary-50);
   color: var(--primary-700);
   font-weight: 500;
@@ -2692,7 +2707,7 @@ label .text-red-500 {
 .workflow-state-blocked-tag {
   font-size: 0.6875rem;
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: #FEE2E2;
   color: #DC2626;
   font-weight: 500;
@@ -2761,7 +2776,7 @@ label .text-red-500 {
 .workflow-substate-owner {
   font-size: 0.6875rem;
   padding: 1px 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: rgba(59,130,246,0.08);
   color: #3B82F6;
 }
@@ -2769,7 +2784,7 @@ label .text-red-500 {
 .workflow-substate-done {
   font-size: 0.6875rem;
   padding: 1px 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: rgba(16,185,129,0.1);
   color: #059669;
   font-weight: 500;
@@ -2778,7 +2793,7 @@ label .text-red-500 {
 .workflow-substate-pct {
   font-size: 0.6875rem;
   padding: 1px 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: rgba(217,119,6,0.1);
   color: #D97706;
   font-weight: 500;
@@ -2851,7 +2866,7 @@ label .text-red-500 {
   margin-top: 8px;
   padding: 6px 10px;
   background: rgba(217,119,6,0.06);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 /* ── History ── */
@@ -3106,7 +3121,7 @@ label .text-red-500 {
   50% { transform: translateY(8px); }
 }
 
-/* ── Section 2: 考察积极分子（三维度卡片，党建贡献高亮） ── */
+/* ── Section 2: 考察积极分子（三项考察内容卡片，党建贡献高亮） ── */
 .help-review-section {
   text-align: left;
 }
@@ -3122,7 +3137,7 @@ label .text-red-500 {
   position: relative;
   background: #FFFFFF;
   border: 1px solid #E5E7EB;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   padding: 28px 24px 24px;
   transition: transform 280ms var(--help-ease), box-shadow 280ms var(--help-ease), border-color 280ms var(--help-ease);
   opacity: 0;
@@ -3140,7 +3155,7 @@ label .text-red-500 {
   top: 0; left: 0; right: 0;
   height: 3px;
   background: #D1D5DB;
-  border-radius: 16px 16px 0 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .help-review-card--highlight {
@@ -3189,7 +3204,7 @@ label .text-red-500 {
   letter-spacing: 0.08em;
   color: #FFFFFF;
   background: var(--help-party-red);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .help-review-card-tag {
@@ -3216,7 +3231,7 @@ label .text-red-500 {
   color: var(--help-sub);
   padding: 16px 24px;
   background: #F9FAFB;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   letter-spacing: 0.02em;
 }
 
@@ -3293,7 +3308,7 @@ label .text-red-500 {
   padding: 24px 28px;
   background: color-mix(in srgb, var(--help-party-red) 4%, #FFFFFF);
   border: 1px solid rgba(206, 17, 38, 0.12);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -3390,7 +3405,7 @@ label .text-red-500 {
   padding: 28px 24px;
   background: #FFFFFF;
   border: 1px solid #F3F4F6;
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -3440,7 +3455,7 @@ label .text-red-500 {
   padding: 28px 32px;
   background: #FFFFFF;
   border-left: 3px solid var(--help-party-red);
-  border-radius: 0 12px 12px 0;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
   text-align: left;
   display: flex;
   flex-direction: column;
@@ -3488,7 +3503,7 @@ label .text-red-500 {
 
 .help-works-col {
   position: relative;
-  border-radius: 18px;
+  border-radius: var(--radius-xl);
   padding: 28px 28px 24px;
   border: 1px solid #E5E7EB;
   background: #FFFFFF;
@@ -3528,7 +3543,7 @@ label .text-red-500 {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.12em;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   margin-bottom: 12px;
 }
 
@@ -3619,7 +3634,7 @@ label .text-red-500 {
   color: var(--help-party-red);
   padding: 16px 24px;
   background: color-mix(in srgb, var(--help-party-red) 6%, #FFFFFF);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   letter-spacing: 0.02em;
 }
 
@@ -3738,7 +3753,7 @@ label .text-red-500 {
   padding: 36px 32px;
   background: var(--surface-card, #FFFFFF);
   border: 1px solid #E5E7EB;
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   min-height: 44vh;
   display: flex;
   flex-direction: column;
@@ -3845,29 +3860,45 @@ label .text-red-500 {
   color: #F3F4F6;
 }
 
-/* v5.0 Planetary Animation */
+/* v5.2 Living Constellation */
 .help-network-svg {
-  transition: transform 0.3s ease-out;
   transform-origin: center center;
-  will-change: transform;
 }
 
-.help-node-svg {
-  transition: opacity 0.3s ease-out, filter 0.3s ease-out;
+/* v5.2 用更具体选择器覆盖 L4217 旧规则（.help-node-svg transition: opacity 500ms）
+   确保 transform/filter transition 在 exploration 场景生效 */
+.help-exploration-network-sticky .help-node-svg {
+  transition: opacity 0.6s ease-out, filter 0.6s ease-out, transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: 0 0;
   will-change: transform, opacity, filter;
 }
 
+/* v5.2 恒星脉冲：活跃 star 节点的"行星运动"视觉锚点 */
+@keyframes star-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
 .help-node-svg[data-role="star"] .help-node-circle {
-  /* 恒星：无发光，仅尺寸放大（由 JS 控制 r） */
+  animation: star-pulse 2.4s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
 }
 
 .help-node-svg[data-role="inactive"] .help-node-circle {
   /* 非激活：低饱和（由 JS 控制 filter: saturate） */
 }
 
-.help-edge {
-  transition: opacity 0.3s ease-out;
-  will-change: opacity, d;
+.help-exploration-network-sticky .help-edge {
+  transition: opacity 0.4s ease-out;
+  will-change: opacity;
+}
+
+/* v5.2: 边绘制效果——stroke-dashoffset transition 让绘制/擦除可见
+   用更具体选择器覆盖 L4270 旧规则（.help-edge-path transition: stroke-width/opacity 280ms） */
+.help-exploration-network-sticky .help-edge-path {
+  transition: stroke-dashoffset 0.8s ease-in-out;
+  will-change: stroke-dashoffset;
 }
 
 /* scene note：底部备注 */
@@ -3876,7 +3907,7 @@ label .text-red-500 {
   padding: 18px 24px;
   background: #F9FAFB;
   border-left: 3px solid var(--help-party-red);
-  border-radius: 0 10px 10px 0;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
   font-size: 14px;
   color: var(--help-text);
   line-height: 1.7;
@@ -3896,6 +3927,16 @@ label .text-red-500 {
   .help-exploration-network-sticky .help-edge {
     opacity: 1 !important;
     filter: none !important;
+    transition: none !important;
+  }
+
+  /* v5.2: 禁用恒星脉冲 + 边绘制效果 */
+  .help-node-svg[data-role="star"] .help-node-circle {
+    animation: none !important;
+  }
+
+  .help-edge-path {
+    transition: none !important;
   }
 }
 
@@ -3987,7 +4028,7 @@ label .text-red-500 {
   position: relative;
   background: #FFFFFF;
   border: 1px solid #E5E7EB;
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   padding: 22px 20px 20px;
   transition: transform 280ms var(--help-ease), box-shadow 280ms var(--help-ease), border-color 280ms var(--help-ease);
   opacity: 0;
@@ -4105,18 +4146,18 @@ label .text-red-500 {
   color: var(--help-sub);
   padding: 16px 24px;
   background: #F9FAFB;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   letter-spacing: 0.02em;
 }
 
-/* ── Section 7: 党员发展结语（呼应核心口号） ── */
+/* ── Section 7: 发展党员结语（呼应核心口号） ── */
 .help-development-coda {
   margin-top: 40px;
   text-align: center;
   padding: 24px 28px;
   background: color-mix(in srgb, var(--help-party-red) 5%, #FFFFFF);
   border: 1px solid rgba(206, 17, 38, 0.12);
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   font-family: 'Noto Serif SC', serif;
   font-size: 17px;
   font-weight: 600;
@@ -4152,7 +4193,7 @@ label .text-red-500 {
 
 .help-legend-line {
   width: 36px; height: 2px;
-  border-radius: 1px;
+  border-radius: var(--radius-sm);
 }
 
 /* 图例线型与实际 SVG 线型严格对应：实线/长虚线/点线 三态 */
@@ -4338,7 +4379,7 @@ label .text-red-500 {
   transform: translate(-50%, -100%);
   padding: 10px 14px;
   background: var(--help-text);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   box-shadow: 0 8px 24px rgba(0,0,0,0.18);
   opacity: 0;
   pointer-events: none;
@@ -4379,13 +4420,13 @@ label .text-red-500 {
   padding: 14px 20px;
   background: #FEF2F2;
   border-left: 3px solid var(--help-party-red);
-  border-radius: 0 10px 10px 0;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
   font-size: 15px;
   color: var(--help-text);
   line-height: 1.6;
 }
 
-/* ── Section 5: 党员发展时间轴 ── */
+/* ── Section 5: 发展党员时间轴 ── */
 .help-development-section {
   align-items: flex-start;
 }
@@ -4401,7 +4442,7 @@ label .text-red-500 {
   position: relative;
   background: #FFFFFF;
   border: 1px solid #E5E7EB;
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   padding: 20px 16px 16px;
   cursor: pointer;
   transition: transform 280ms var(--help-ease), box-shadow 280ms var(--help-ease), border-color 280ms var(--help-ease);
@@ -4420,7 +4461,7 @@ label .text-red-500 {
   top: 0; left: 0; right: 0;
   height: 4px;
   background: linear-gradient(90deg, var(--stage-color), color-mix(in srgb, var(--stage-color) 60%, #FFFFFF));
-  border-radius: 14px 14px 0 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .help-stage-card:hover {
@@ -4458,7 +4499,7 @@ label .text-red-500 {
   color: var(--stage-color);
   font-size: 12px;
   font-weight: 600;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
 }
 
 .help-stage-owner {
@@ -4503,7 +4544,7 @@ label .text-red-500 {
   padding: 16px 20px;
   background: color-mix(in srgb, var(--stage-color) 8%, #FFFFFF);
   border-left: 4px solid var(--stage-color);
-  border-radius: 0 12px 12px 0;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
   margin-bottom: 16px;
   --stage-color: var(--help-party-red);
 }
@@ -4572,7 +4613,7 @@ label .text-red-500 {
   color: var(--help-amber);
   padding: 3px 10px;
   background: rgba(217,119,6,0.10);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   white-space: nowrap;
 }
 
@@ -4663,7 +4704,7 @@ label .text-red-500 {
     color: var(--help-text);
     font-size: 12px;
     font-weight: 500;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     white-space: nowrap;
     opacity: 0;
     pointer-events: none;
@@ -4712,7 +4753,7 @@ label .text-red-500 {
   gap: 6px;
   padding: 10px 20px;
   border: 1px solid #E5E7EB;
-  border-radius: 24px;
+  border-radius: var(--radius-xl);
   color: var(--help-sub);
   text-decoration: none;
   font-size: 14px;

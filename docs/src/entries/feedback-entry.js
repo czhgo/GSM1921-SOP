@@ -1,5 +1,5 @@
-// role: [工程师]+[AI]
-// feedback-entry.js — 提案讨论入口（GitHub Issue 风格）
+﻿// role: [工程师]+[AI]
+// feedback-entry.js — 意见反馈入口（GitHub Issue 风格）
 
 import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';

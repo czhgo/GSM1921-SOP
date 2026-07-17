@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 // party.js — 党务管理模块状态管理器
 //  职责：管理四大子功能的数据加载、状态流转、DOM 渲染
@@ -255,7 +255,7 @@ export const PartyModule = {
             <div class="text-xs text-gray-500 mt-1">缺勤活动：${task.absentActivity} | 缺勤日期：${task.absentDate}</div>
           </div>
           <div class="flex items-center gap-2 ml-4">
-            <span class="text-xs px-2 py-1 rounded-full ${task.completed === 'true' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${task.completed === 'true' ? '已补' : '待补'}</span>
+            <span class="text-xs px-2 py-1 rounded-full ${task.completed === 'true' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${task.completed === 'true' ? '已补' : '待补'}</span>
             ${task.completed !== 'true' ? `<button class="btn-primary" style="padding:4px 12px;font-size:0.6875rem;" data-makeup-id="${task.id}">标记已补</button>` : ''}
           </div>
         </div>
@@ -417,7 +417,7 @@ export const PartyModule = {
     const toggleBtn = `
       <div class="flex items-center gap-2 mb-3">
         <button id="candidate-view-toggle" class="text-xs px-3 py-1 rounded-lg border transition-colors"
-          style="border-color:#8B5CF6;color:#8B5CF6;background:${currentView === 'person' ? 'rgba(139,92,246,0.08)' : 'transparent'};">
+          style="border-color:#0E7490;color:#0E7490;background:${currentView === 'person' ? 'rgba(14,116,144,0.08)' : 'transparent'};">
           ${currentView === 'person' ? '人视图' : '阶段视图'}
           <span class="ml-1 text-gray-400">⇄ 切换</span>
         </button>
@@ -458,7 +458,7 @@ export const PartyModule = {
                     <td class="py-2 px-3 font-medium text-gray-800 sticky left-0 bg-white z-10"><span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">${s}</span></td>
                     <td class="py-2 px-3 text-gray-700">${group.length}</td>
                     <td class="py-2 px-3 text-gray-700">${group.map(c => c.name || c.personId).join('、')}</td>
-                    <td class="py-2 px-3">${incompleteCount > 0 ? '<span class="text-amber-600">' + incompleteCount + ' 人</span>' : '<span class="text-green-600">—</span>'}</td>
+                    <td class="py-2 px-3">${incompleteCount > 0 ? '<span class="text-orange-600">' + incompleteCount + ' 人</span>' : '<span class="text-green-600">—</span>'}</td>
                   </tr>
                 `;
               }).join('')}
@@ -499,18 +499,18 @@ export const PartyModule = {
                     <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs">${c.stage}</span>
                     <span class="text-xs text-gray-500">进度 ${progressPct}%</span>
                   </div>
-                  <div class="text-xs text-gray-500 mt-1">${c.materialsComplete ? '<span class="text-green-600">材料齐全</span>' : '<span class="text-amber-600">材料不齐全</span>'}${c.missingMaterials > 0 ? ' · 缺 ' + c.missingMaterials + ' 项' : ''}</div>
+                  <div class="text-xs text-gray-500 mt-1">${c.materialsComplete ? '<span class="text-green-600">材料齐全</span>' : '<span class="text-orange-600">材料不齐全</span>'}${c.missingMaterials > 0 ? ' · 缺 ' + c.missingMaterials + ' 项' : ''}</div>
                 </div>
                 <div class="ml-4 w-20">
                   <div class="w-full bg-gray-200 rounded-full h-1.5">
-                    <div class="h-1.5 rounded-full" style="width:${progressPct}%;background:#8B5CF6;"></div>
+                    <div class="h-1.5 rounded-full" style="width:${progressPct}%;background:#0E7490;"></div>
                   </div>
                 </div>
               </div>
             `;
           },
           emptyMessage: '无匹配候选人',
-          accentColor: '#8B5CF6',
+          accentColor: '#0E7490',
         });
       }
     }
@@ -534,12 +534,12 @@ export const PartyModule = {
       searchKey: 'name',
       data: incompleteRecords,
       renderRow: (r) => `
-        <div class="flex items-center justify-between p-2 bg-amber-50 rounded-lg border border-amber-200">
+        <div class="flex items-center justify-between p-2 bg-orange-50 rounded-lg border border-orange-200">
           <div class="flex-1 min-w-0">
             <div class="text-sm font-medium text-gray-800">${r.name}</div>
             <div class="text-xs text-gray-500 mt-0.5">${r.date || '—'} · ${r.type || '未分类'}</div>
           </div>
-          <span class="text-xs px-2 py-1 rounded bg-amber-100 text-amber-700 ml-2">待补充</span>
+          <span class="text-xs px-2 py-1 rounded bg-orange-100 text-orange-700 ml-2">待补充</span>
         </div>
       `,
       emptyMessage: '无匹配结果',
@@ -587,13 +587,13 @@ export const PartyModule = {
         <div class="p-2 bg-gray-100 rounded-lg">
           <div class="flex items-center justify-between">
             <span class="text-xs font-medium text-gray-800 truncate max-w-[200px]">${r.name}</span>
-            <span class="text-xs px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">${r.type || '—'}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded bg-cyan-100 text-cyan-700">${r.type || '—'}</span>
           </div>
           <div class="text-xs text-gray-400 mt-0.5">${r.date || '—'} · ${r.filledBy || '—'}</div>
         </div>
       `,
       emptyMessage: '无匹配记录',
-      accentColor: '#7C3AED',
+      accentColor: '#0E7490',
     });
 
     // 根据查询栏状态过滤 records 并重新渲染表格（不破坏表格结构与事件绑定）
@@ -880,7 +880,7 @@ export const PartyModule = {
           </div>
         `,
         emptyMessage: '暂无匹配的报送记录',
-        accentColor: '#7C3AED',
+        accentColor: '#0E7490',
       });
     }
 
@@ -1174,7 +1174,7 @@ export const PartyModule = {
 
     const pending = FeedbackStore.getPending();
     if (pending.length === 0) {
-      listContainer.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">暂无待处理的提案讨论</p>';
+      listContainer.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">暂无待处理的意见反馈</p>';
       return;
     }
 
@@ -1193,7 +1193,7 @@ export const PartyModule = {
         <div class="p-2 bg-gray-100 rounded-lg">
           <div class="flex items-center justify-between mb-1">
             <span class="text-xs font-medium text-gray-700 truncate max-w-[200px]">${f.painPoint || f.proposedFix}</span>
-            <span class="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">${scopeLabels[f.scope] || f.scope}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">${scopeLabels[f.scope] || f.scope}</span>
           </div>
           <div class="flex items-center justify-between text-xs text-gray-400">
             <span>${f.submittedBy}</span>

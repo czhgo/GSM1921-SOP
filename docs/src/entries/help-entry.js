@@ -1,4 +1,4 @@
-// role: [人机]
+﻿// role: [工程师]+[AI]
 // entries/help-entry.js — 帮助页入口 v4（讲我们支部的故事）
 // 核心理念：从"关系网络"到"支部的故事"——以党员成长为主线，讲清考察、工作哲学、探索与对话
 // 设计风格：苹果风（纯白 + 大留白 + 大字体 + 微妙动画）
@@ -8,6 +8,7 @@
 import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';
 import { getBasePath } from '../core/utils.js';
+import { icon } from '../core/icons.js';
 
 // ── 公开访问：不检查登录 ──
 renderSidebar('help');
@@ -66,13 +67,13 @@ const TWO_WORKS = [
 
 // 活动关系网络（签名元素）：8 个角色节点 + 三类流（派活交付/报备告知/横向配合）
 // 🔑 逻辑校准（D-207 衍生）：组织者是活动执行核心（脑子），党小组组长是发起者（创建活动+赋权组织者）
-//   组长可以是组织者，也可以不是——这是两个不同角色，有时由同一人担任
-// 🔑 v4.3.6 校准：4 层节点布局消除线交叠（书记顶/组长+宣传上层/组织者+纪检中层/组织委员+参与者底层）；
+//   党小组组长可以是组织者，也可以不是——这是两个不同角色，有时由同一人担任
+// 🔑 v4.3.6 校准：4 层节点布局消除线交叠（书记顶/党小组组长+宣传上层/组织者+纪检中层/组织委员+参与者底层）；
 //   报备改双向边（organizer↔secretary，label"报备/审批"）显性化书记审批反馈；
 //   删除 secretary↔organizer collab 边（与报备边物理重合，由双向报备边替代）；
 //   动画区分对待：task 用 dashoffset 绘制（有方向），info/collab 用 opacity 渐显（保留 CSS 虚线/点线）；
 //   组织委员不归档宣传素材，只收集考察记录+维护人才库（duty 维持 v4.3.5）
-// 节点布局：4 层结构——L1 书记(顶) / L2 组长+宣传(上) / L3 组织者+纪检(中) / L4 组织委员+深度+普通(底)
+// 节点布局：4 层结构——L1 书记(顶) / L2 党小组组长+宣传(上) / L3 组织者+纪检(中) / L4 组织委员+深度+普通(底)
 // stage 字段：scroll-driven animation 的"信息出现顺序"分组（0=起点, 5=人才库更新终点）
 // detail 字段：连线 tooltip 详情（回答"汇报什么？提交什么？"）
 const ACTIVITY_NETWORK = {
@@ -80,9 +81,9 @@ const ACTIVITY_NETWORK = {
   nodes: [
     // L1 顶部——书记居中（屋顶，视觉核心）：审批报备+横向配合
     { id: 'secretary',  name: '党支书',     x: 400, y: 60,  color: '#B91C1C', duty: '审批报备', stage: 1 },
-    // L2 上层左——组长（发起者：创建活动+赋权组织者）
+    // L2 上层左——党小组组长（发起者：创建活动+赋权组织者）
     { id: 'leader',     name: '党小组组长', x: 140, y: 200, color: '#65A30D', duty: '发起者', stage: 0 },
-    // L3 中层——组织者居中（执行核心·脑子），承接组长赋权，负责分工/协调/报备
+    // L3 中层——组织者居中（执行核心·脑子），承接党小组组长赋权，负责分工/协调/报备
     { id: 'organizer',  name: '组织者',     x: 400, y: 320, color: '#06B6D4', duty: '执行核心（脑子）', stage: 0 },
     // L4 底层——深度参与者（承担分工·手）
     { id: 'deep',       name: '深度参与者', x: 300, y: 500, color: '#10B981', duty: '承担分工（手）', stage: 2 },
@@ -93,11 +94,11 @@ const ACTIVITY_NETWORK = {
     // L3 中层右——纪检委员（考勤考察，原始材料留存处）
     { id: 'disc-commissioner', name: '纪检委员', x: 660, y: 320, color: '#D97706', duty: '考勤考察', stage: 4 },
     // L4 底层左——组织委员（考察建档/人才库维护，只收集考察记录不归档宣传素材）
-    { id: 'org-commissioner',  name: '组织委员', x: 140, y: 460, color: '#8B5CF6', duty: '考察建档/人才库维护', stage: 5 },
+    { id: 'org-commissioner',  name: '组织委员', x: 140, y: 460, color: '#0E7490', duty: '考察建档/人才库维护', stage: 5 },
   ],
   edges: [
     // 派活交付（深红实线）——有交付物的转移流
-    { from: 'leader',    to: 'organizer',         label: '赋权',       type: 'task', stage: 0, detail: '组长创建活动后赋权组织者，组织者获得活动执行权' },
+    { from: 'leader',    to: 'organizer',         label: '赋权',       type: 'task', stage: 0, detail: '党小组组长创建活动后赋权组织者，组织者获得活动执行权' },
     { from: 'organizer', to: 'deep',              label: '分工',       type: 'task', stage: 2, detail: '组织者向深度参与者分派具体任务清单（内容/形式/截止时间）' },
     { from: 'organizer', to: 'prop-commissioner', label: '宣传需求',   type: 'task', labelT: 0.4, stage: 4, detail: '组织者向宣传委员提出宣传需求（活动亮点/报道角度/素材要求）' },
     { from: 'organizer', to: 'org-commissioner',  label: '考察建档',   type: 'task', labelT: 0.45, stage: 5, detail: '组织者向组织委员提交活动考察材料，组织委员据此更新人才库' },
@@ -122,8 +123,8 @@ const ACTIVITY_NETWORK = {
 const TASKFORCE_NETWORK = {
   viewBox: '0 0 800 440',
   nodes: [
-    { id: 'initiator',        name: '发起人',     x: 400, y: 80,  color: '#B91C1C', duty: '书记/组长/支委', stage: 0 },
-    { id: 'org-commissioner', name: '组织委员',   x: 660, y: 220, color: '#8B5CF6', duty: '唯一招募节点', stage: 1 },
+    { id: 'initiator',        name: '发起人',     x: 400, y: 80,  color: '#B91C1C', duty: '书记/党小组组长/支委', stage: 0 },
+    { id: 'org-commissioner', name: '组织委员',   x: 660, y: 220, color: '#0E7490', duty: '唯一招募节点', stage: 1 },
     { id: 'organizer',        name: '组织者',     x: 200, y: 380, color: '#06B6D4', duty: '项目大脑', stage: 2 },
     { id: 'deep',             name: '深度参与者', x: 600, y: 380, color: '#10B981', duty: '项目之手', stage: 2 },
   ],
@@ -144,7 +145,7 @@ const TASKFORCE_NETWORK = {
 // 角色信息融入 stage 说明的 flow 标签（弱化视觉，让 SVG 的"流"成为主角）
 const EXPLORATION_STAGES = {
   activity: [
-    { stage: 0, title: '组长赋权组织者', desc: '组长创建活动后赋权组织者——组织者获得活动执行权，成为活动执行核心。', flows: ['组长 → 组织者（赋权）'] },
+    { stage: 0, title: '党小组组长赋权组织者', desc: '党小组组长创建活动后赋权组织者——组织者获得活动执行权，成为活动执行核心。', flows: ['党小组组长 → 组织者（赋权）'] },
     { stage: 1, title: '组织者向支书报备·支书审批', desc: '组织者向党支书报备活动方案、时间、地点——党支书审批反馈，把握活动执行方向。', flows: ['组织者 ↔ 支书（报备/审批）'] },
     { stage: 2, title: '组织者分工', desc: '组织者作为执行核心（脑子），向深度参与者分派具体任务清单——多线程并行的起点。', flows: ['组织者 → 深度参与者（分工）'] },
     { stage: 3, title: '通知出席 + 带动参与', desc: '组织者通知普通参与者，深度参与者带动普通参与者参与——执行与扩散并行。', flows: ['组织者 → 普通参与者（通知）', '深度参与者 → 普通参与者（带动参与）'] },
@@ -152,163 +153,68 @@ const EXPLORATION_STAGES = {
     { stage: 5, title: '考察建档 + 人才库更新', desc: '组织者提交考察材料，纪检委员提交考察记录——组织委员据此更新支部人才库。原始材料留在纪检委员处。', flows: ['组织者 → 组织委员（考察建档）', '纪检委员 → 组织委员（考察记录）', '支书 ↔ 组织委员（横向配合）'] },
   ],
   taskforce: [
-    { stage: 0, title: '发起人请求招募', desc: '发起人（书记/组长/支委）请求组织委员招募——专班的起点。', flows: ['发起人'] },
+    { stage: 0, title: '发起人请求招募', desc: '发起人（书记/党小组组长/支委）请求组织委员招募——专班的起点。', flows: ['发起人'] },
     { stage: 1, title: '组织委员招募', desc: '组织委员作为唯一招募节点，接收招募请求。', flows: ['发起人 → 组织委员（请求招募）'] },
     { stage: 2, title: '招募赋权 + 业务赋权（多线程）', desc: '组织委员招募赋权 + 发起人业务赋权——同时给组织者和深度参与者赋权。', flows: ['组织委员 → 组织者（招募赋权）', '组织委员 → 深度参与者（招募赋权）', '发起人 → 组织者（业务赋权）', '发起人 → 深度参与者（业务赋权）'] },
     { stage: 3, title: '协调执行 + 交付成果', desc: '组织者协调执行，交付成果给发起人——专班的工作闭环。', flows: ['组织者 → 深度参与者（协调执行）', '组织者 → 发起人（交付成果）'] },
   ],
 };
 
-// ===== v5.0 Planetary Animation =====
-// 行星大动画核心组件——3D 引力舞蹈 + 滚动驱动 + 边重绘
-// 设计原则：参数化配置，模块化组件，便于未来调整
+// ===== v5.2 Living Constellation =====
+// 核心理念：stage 驱动（非 scroll 驱动）+ CSS transition（非每帧 JS 重算）
+// 所有节点始终可见（dim 处理非活跃），边绘制效果通过 CSS transition 可见
+// 设计原则：参数化配置，模块化组件
 
 /**
- * v5.0 行星动画配置参数
+ * v5.2 行星动画配置参数
  * 集中管理所有可调参数，便于未来微调
  */
 const PLANETARY_CONFIG = {
-  // 3D 透视投影
-  focal: 400,                    // 透视焦距
-  zRange: 50,                    // z 轴深度范围 (±50)
-  projectionOpacityFloor: 0.7,   // 透视投影 opacity 下限（独立于 inactiveOpacity）
-
-  // 倾斜轨道
-  orbitTilt: 18,                 // 轨道平面倾斜角度（度）
-
-  // Easing
-  easingK: 0.6,                  // sin 调制系数（中段速度 = 1-k = 40%）
-
-  // Stage 过渡区域
-  transitionStart: 0.8,          // stage 内开始过渡的 progress (80%)
-  transitionEnd: 0.2,            // 下一 stage 过渡结束的 progress (20%)
-
   // 滚动映射
   scrollStartVh: 0.3,            // stagesContainer 顶部到达视口 30% 时开始
   scrollEndVhOffset: 0.4,        // 滚动结束位置的 vh 偏移
 
   // 节点尺寸
-  starRadius: 52,                // 恒星半径
-  planetRadius: 40,              // 行星半径
-  inactiveRadius: 32,            // 非激活节点半径
+  starRadius: 52,                // 恒星半径（活跃 star 节点）
+  planetRadius: 40,              // 行星半径（活跃 planet 节点）
+  inactiveRadius: 36,            // 非活跃节点半径
 
-  // 布局缩放
-  starScale: 1.3,                 // 恒星缩放
-  planetScale: 1.0,               // 行星缩放
-  inactiveScale: 0.8,             // 非激活节点缩放
+  // 节点视觉状态
+  activeOpacity: 1.0,            // 活跃节点透明度
+  inactiveOpacity: 0.25,         // 非活跃节点透明度（dim 但可见，保留组织结构上下文）
+  activeScale: 1.15,             // 活跃节点缩放
+  inactiveScale: 1.0,            // 非活跃节点缩放
+  activeSaturate: 1.0,           // 活跃节点饱和度
+  inactiveSaturate: 0.4,         // 非活跃节点饱和度（灰度处理）
 
-  // 行星轨道半径
-  planetOrbitRadius: {
-    1: 110,                      // 1 个行星时的轨道半径
-    2: 100,
-    3: 110,
-    4: 130,
-  },
-
-  // 视觉属性
-  inactiveOpacity: 0.7,          // 非激活节点透明度（保持可见）
-  inactiveSaturate: 0.6,         // 非激活节点饱和度
-  inactiveEdgeOpacity: 0.15,     // 非激活边透明度
+  // 边视觉状态
+  edgeActiveOpacity: 1.0,        // 活跃边透明度
+  edgeInactiveOpacity: 0,        // 非活跃边透明度（完全隐藏）
   edgeLiftFactor: 0.15,          // 边贝塞尔曲线抬升系数
 
-  // 视角旋转
-  viewRotateXMax: 3,             // 视角旋转最大角度（度）
-
-  // SVG 中心
+  // SVG 中心（保留用于潜在的位置计算）
   activityCenter: { x: 400, y: 300 },
   taskforceCenter: { x: 400, y: 220 },
-  activityPeripheralRadius: 280,  // activity 非激活节点外围半径
-  taskforcePeripheralRadius: 200, // taskforce 非激活节点外围半径
 };
 
 /**
- * sin 调制 easing 函数
- * f(p) = p + k * sin(2πp) / (2π)
- * 中段速度 = 1-k，两端速度 = 1+k
- * @param {number} p - 输入进度 0-1
- * @param {number} k - 调制系数（默认 0.6）
- * @returns {number} 缓动后进度 0-1
+ * 边长度缓存：避免每次 renderNetwork 调用 getTotalLength()
+ * 使用 WeakMap 自动管理内存（pathEl 被回收时缓存自动清理）
  */
-function easeMiddleSlow(p, k = PLANETARY_CONFIG.easingK) {
-  return p + (k * Math.sin(2 * Math.PI * p)) / (2 * Math.PI);
-}
+const EDGE_LENGTH_CACHE = new WeakMap();
 
 /**
- * 3D 透视投影
- * @param {Object} pos3D - {x, y, z} 3D 坐标
- * @param {number} focal - 透视焦距
- * @returns {Object} {screenX, screenY, scale, opacity}
- */
-function project3DTo2D(pos3D, focal = PLANETARY_CONFIG.focal) {
-  const { x, y, z } = pos3D;
-  const factor = focal / (focal + z);
-  return {
-    screenX: x * factor,
-    screenY: y * factor,
-    scale: factor,
-    opacity: Math.max(PLANETARY_CONFIG.projectionOpacityFloor, 1 - (z / (2 * PLANETARY_CONFIG.zRange)) * 0.3),
-  };
-}
-
-/**
- * 贝塞尔曲线插值（二次贝塞尔）
- * @param {Object} p0 - 起点 {x, y, z}
- * @param {Object} p1 - 控制点 {x, y, z}
- * @param {Object} p2 - 终点 {x, y, z}
- * @param {number} t - 参数 0-1
- * @returns {Object} 插值点 {x, y, z}
- */
-function bezier3D(p0, p1, p2, t) {
-  const mt = 1 - t;
-  return {
-    x: mt * mt * p0.x + 2 * mt * t * p1.x + t * t * p2.x,
-    y: mt * mt * p0.y + 2 * mt * t * p1.y + t * t * p2.y,
-    z: mt * mt * p0.z + 2 * mt * t * p1.z + t * t * p2.z,
-  };
-}
-
-/**
- * 计算贝塞尔曲线控制点
- * 使运动轨迹优雅（向上凸起的弧线）
- * @param {Object} p0 - 起点
- * @param {Object} p2 - 终点
- * @returns {Object} 控制点 p1
- */
-function computeControlPoint(p0, p2) {
-  // 中点 + 向上偏移（y 减小）+ z 偏移
-  const midX = (p0.x + p2.x) / 2;
-  const midY = (p0.y + p2.y) / 2;
-  const midZ = (p0.z + p2.z) / 2;
-  // 向上凸起（SVG y 轴向下，所以减小 y）
-  const lift = Math.sqrt((p2.x - p0.x) ** 2 + (p2.y - p0.y) ** 2) * 0.2;
-  return {
-    x: midX,
-    y: midY - lift,
-    z: midZ,  // 保持 z 中点（确定性，避免帧间抖动）
-  };
-}
-
-/**
- * 计算指定 stage 下所有节点的 3D 目标位置
+ * 识别指定 stage 的活跃节点 ID 集合 + star 节点 ID
+ * v5.2：不再计算布局位置——所有节点使用原始 network 位置（固定）
  * @param {number} stageIndex - stage 索引
- * @param {Object} network - 网络图数据 (ACTIVITY_NETWORK 或 TASKFORCE_NETWORK)
- * @param {Array} stages - stage 数据 (EXPLORATION_STAGES.activity 或 .taskforce)
- * @returns {Map<string, Object>} nodeId → {x, y, z, scale, opacity, saturate, role}
- *   role: 'star' | 'planet' | 'inactive'
+ * @param {Object} network - 网络图数据
+ * @param {Array} stages - stage 数据
+ * @returns {{activeNodeIds: Set<string>, starId: string|null}}
  */
-function computeStageLayout(stageIndex, network, stages) {
-  const layout = new Map();
+function identifyActiveNodes(stageIndex, network, stages) {
   const stage = stages[stageIndex];
-  if (!stage) return layout;
+  if (!stage) return { activeNodeIds: new Set(), starId: null };
 
-  // 确定中心点（根据 network 类型）
-  const isActivity = network === ACTIVITY_NETWORK;
-  const center = isActivity
-    ? PLANETARY_CONFIG.activityCenter
-    : PLANETARY_CONFIG.taskforceCenter;
-
-  // 识别该 stage 的激活节点
-  // 从 network.edges 中找 stage 匹配的边，提取 from/to
   const activeNodeIds = new Set();
   const activeEdges = network.edges.filter(e => e.stage === stageIndex);
   activeEdges.forEach(e => {
@@ -316,21 +222,15 @@ function computeStageLayout(stageIndex, network, stages) {
     activeNodeIds.add(e.to);
   });
 
-  // Fallback: if no active edges, parse stage.flows to find active nodes
-  // (handles single-node stages like taskforce stage 0)
+  // Fallback: 从 stage.flows 解析节点名（处理单节点 stage，如 taskforce stage 0）
   if (activeNodeIds.size === 0 && stage.flows) {
     const nodeNameMap = new Map();
     network.nodes.forEach(n => {
-      // Map both name and any alternate labels
       if (n.name) nodeNameMap.set(n.name, n.id);
     });
-
     stage.flows.forEach(flow => {
-      // Parse flow string to extract node names
-      // Formats: '发起人' | 'A → B（desc）' | 'A ↔ B（desc）'
-      // Strip parenthetical descriptions first
+      // 格式：'发起人' | 'A → B（desc）' | 'A ↔ B（desc）'
       const cleaned = flow.replace(/（[^）]*）/g, '').trim();
-      // Split on → or ↔
       const parts = cleaned.split(/[→↔]/).map(s => s.trim()).filter(s => s);
       parts.forEach(part => {
         const nodeId = nodeNameMap.get(part);
@@ -339,7 +239,7 @@ function computeStageLayout(stageIndex, network, stages) {
     });
   }
 
-  // 识别源节点（恒星）= 在该 stage 边中作为 from 出现最多的节点
+  // 识别 star 节点 = 在该 stage 边中作为 from 出现最多的节点
   const fromCount = new Map();
   activeEdges.forEach(e => {
     fromCount.set(e.from, (fromCount.get(e.from) || 0) + 1);
@@ -357,290 +257,138 @@ function computeStageLayout(stageIndex, network, stages) {
     starId = Array.from(activeNodeIds)[0];
   }
 
-  // 行星 = 激活节点中非恒星的
-  const planetIds = Array.from(activeNodeIds).filter(id => id !== starId);
-
-  // 布局恒星
-  if (starId) {
-    layout.set(starId, {
-      x: center.x, y: center.y, z: 0,
-      scale: PLANETARY_CONFIG.starScale, opacity: 1.0, saturate: 1.0,
-      role: 'star',
-    });
-  }
-
-  // 布局行星（等距排列在倾斜轨道上）
-  const planetCount = planetIds.length;
-  const orbitRadius = PLANETARY_CONFIG.planetOrbitRadius[planetCount] || 120;
-  const tiltRad = (PLANETARY_CONFIG.orbitTilt * Math.PI) / 180;
-
-  planetIds.forEach((id, i) => {
-    const angle = (2 * Math.PI * i) / planetCount - Math.PI / 2;  // 从正上方开始
-    // 倾斜轨道：x 不变，y 乘以 cos(tilt)，z 乘以 sin(tilt)
-    const ox = Math.cos(angle) * orbitRadius;
-    const oy = Math.sin(angle) * orbitRadius * Math.cos(tiltRad);
-    const oz = Math.sin(angle) * orbitRadius * Math.sin(tiltRad);
-    layout.set(id, {
-      x: center.x + ox,
-      y: center.y + oy,
-      z: oz,
-      scale: PLANETARY_CONFIG.planetScale, opacity: 1.0, saturate: 1.0,
-      role: 'planet',
-    });
-  });
-
-  // 布局非激活节点（飘到外围 + z 轴深处）
-  const inactiveNodes = network.nodes.filter(n => !activeNodeIds.has(n.id));
-  const peripheralRadius = isActivity
-    ? PLANETARY_CONFIG.activityPeripheralRadius
-    : PLANETARY_CONFIG.taskforcePeripheralRadius;
-  inactiveNodes.forEach((node, i) => {
-    const angle = (2 * Math.PI * i) / inactiveNodes.length + Math.PI / 4;
-    const z = PLANETARY_CONFIG.zRange * (i % 2 === 0 ? 1 : -1);  // 交替正负 z
-    layout.set(node.id, {
-      x: center.x + Math.cos(angle) * peripheralRadius,
-      y: center.y + Math.sin(angle) * peripheralRadius,
-      z: z,
-      scale: PLANETARY_CONFIG.inactiveScale, opacity: PLANETARY_CONFIG.inactiveOpacity,
-      saturate: PLANETARY_CONFIG.inactiveSaturate,
-      role: 'inactive',
-    });
-  });
-
-  return layout;
+  return { activeNodeIds, starId };
 }
 
 /**
- * 预计算所有 stage 的布局
- * @param {Object} network - 网络图数据
- * @param {Array} stages - stage 数据
- * @returns {Array<Map>} 每个 stage 的布局数组
- */
-function precomputeAllLayouts(network, stages) {
-  return stages.map((_, i) => computeStageLayout(i, network, stages));
-}
-
-/**
- * 计算当前滚动位置对应的 stage progress
+ * 计算当前滚动位置对应的 stage 索引
+ * v5.2 简化：仅返回 stageIndex + stageProgress，不再有 transition 信息
+ * （transition 由 CSS transition 负责，不再需要 JS 插值）
  * @param {number} scrollTop - 当前滚动位置
  * @param {HTMLElement} container - 探索工作 section 容器
  * @param {number} stageCount - stage 总数
- * @returns {Object} {stageIndex, stageProgress, transitionProgress, inTransition, transitionFrom, transitionTo}
- *   inTransition: true 表示在过渡区域，false 表示在静止区域
- *   transitionFrom/transitionTo: 过渡的起止 stage 索引
+ * @returns {Object} {stageIndex, stageProgress}
  */
 function computeScrollProgress(scrollTop, container, stageCount) {
-  const rect = container.getBoundingClientRect();
-  const vh = window.innerHeight;
-  // stage 说明区域的总高度
   const stagesContainer = container.querySelector('.help-exploration-stages');
-  if (!stagesContainer) {
-    return { stageIndex: 0, stageProgress: 0, transitionProgress: 0, inTransition: false, transitionFrom: 0, transitionTo: 0 };
-  }
-  if (stageCount <= 0) {
-    return { stageIndex: 0, stageProgress: 0, transitionProgress: 0, inTransition: false, transitionFrom: 0, transitionTo: 0 };
+  if (!stagesContainer || stageCount <= 0) {
+    return { stageIndex: 0, stageProgress: 0 };
   }
   const stagesRect = stagesContainer.getBoundingClientRect();
+  const vh = window.innerHeight;
   const totalScrollRange = stagesRect.height;
-  // 滚动进度：stagesContainer 顶部到达视口 30% 时开始，底部到达视口 70% 时结束
   const startScroll = stagesRect.top + scrollTop - vh * PLANETARY_CONFIG.scrollStartVh;
   const endScroll = startScroll + totalScrollRange - vh * PLANETARY_CONFIG.scrollEndVhOffset;
   const scrollRange = endScroll - startScroll;
   if (scrollRange <= 0) {
-    return { stageIndex: 0, stageProgress: 0, transitionProgress: 0, inTransition: false, transitionFrom: 0, transitionTo: 0 };
+    return { stageIndex: 0, stageProgress: 0 };
   }
   const scrollProgress = Math.max(0, Math.min(1, (scrollTop - startScroll) / scrollRange));
-
-  // 映射到 stage
   const stageFloat = scrollProgress * stageCount;
   const stageIndex = Math.min(stageCount - 1, Math.floor(stageFloat));
   const stageProgress = stageFloat - stageIndex;
-
-  // 判断是否在过渡区域
-  const ts = PLANETARY_CONFIG.transitionStart;  // 0.8
-  const te = PLANETARY_CONFIG.transitionEnd;     // 0.2
-  let transitionProgress = 0;
-  let inTransition = false;
-  let transitionFrom = stageIndex;
-  let transitionTo = stageIndex;
-
-  if (stageProgress > ts && stageIndex < stageCount - 1) {
-    // 在当前 stage 的后 20% 过渡区域，向下一 stage 过渡
-    inTransition = true;
-    transitionProgress = (stageProgress - ts) / (1 - ts);
-    transitionFrom = stageIndex;
-    transitionTo = stageIndex + 1;
-  } else if (stageProgress < te && stageIndex > 0) {
-    // 在当前 stage 的前 20% 过渡区域，从上一 stage 过渡过来
-    inTransition = true;
-    transitionProgress = 1 - (stageProgress / te);
-    transitionFrom = stageIndex - 1;
-    transitionTo = stageIndex;
-  }
-
-  return {
-    stageIndex,
-    stageProgress,
-    transitionProgress,
-    inTransition,
-    transitionFrom,
-    transitionTo,
-  };
+  return { stageIndex, stageProgress };
 }
 
 /**
- * 在两个 stage 布局之间插值
- * @param {Map} layoutA - 起 stage 布局
- * @param {Map} layoutB - 终 stage 布局
- * @param {number} t - 过渡 progress (0-1)
- * @returns {Map} 插值后的 3D 位置
- */
-function interpolatePositions(layoutA, layoutB, t) {
-  const easedT = easeMiddleSlow(t);
-  const result = new Map();
-  const allNodeIds = new Set([...layoutA.keys(), ...layoutB.keys()]);
-
-  allNodeIds.forEach(nodeId => {
-    const a = layoutA.get(nodeId);
-    const b = layoutB.get(nodeId);
-    if (!a && b) {
-      // 节点在 B 中新增：从 B 的外围位置淡入
-      result.set(nodeId, { ...b, opacity: b.opacity * easedT });
-    } else if (a && !b) {
-      // 节点在 B 中消失：从 A 的位置淡出
-      result.set(nodeId, { ...a, opacity: a.opacity * (1 - easedT) });
-    } else if (a && b) {
-      // 节点在两者中都存在：贝塞尔曲线插值
-      const control = computeControlPoint(
-        { x: a.x, y: a.y, z: a.z },
-        { x: b.x, y: b.y, z: b.z }
-      );
-      const pos = bezier3D(
-        { x: a.x, y: a.y, z: a.z },
-        control,
-        { x: b.x, y: b.y, z: b.z },
-        easedT
-      );
-      // 插值视觉属性
-      result.set(nodeId, {
-        x: pos.x, y: pos.y, z: pos.z,
-        scale: a.scale + (b.scale - a.scale) * easedT,
-        opacity: a.opacity + (b.opacity - a.opacity) * easedT,
-        saturate: a.saturate + (b.saturate - a.saturate) * easedT,
-        role: t < 0.5 ? a.role : b.role,
-      });
-    }
-  });
-
-  return result;
-}
-
-/**
- * 根据当前 3D 位置渲染网络图（节点 transform + 边 path 重绘）
+ * v5.2 渲染网络图——设置目标状态，CSS transition 负责动画
+ * 关键：只在 stage 切换时调用，不每帧重算；所有节点始终可见（dim 处理非活跃）
  * @param {SVGElement} svg - 网络图 SVG 元素
- * @param {Map} positions3D - 当前 3D 位置 (nodeId → {x,y,z,scale,opacity,saturate,role})
- * @param {Object} network - 网络图数据
- * @param {number} currentStageIndex - 当前 stage 索引（用于边 opacity）
- * @param {Object} transitionInfo - 过渡信息 {inTransition, transitionFrom, transitionTo, transitionProgress}
+ * @param {Object} network - 网络图数据 (ACTIVITY_NETWORK 或 TASKFORCE_NETWORK)
+ * @param {number} currentStageIndex - 当前 stage 索引
+ * @param {Array} stages - stage 数据 (EXPLORATION_STAGES.activity 或 .taskforce)
  */
-function renderNetwork(svg, positions3D, network, currentStageIndex, transitionInfo) {
-  if (!svg || !positions3D || !network) return;
+function renderNetwork(svg, network, currentStageIndex, stages) {
+  if (!svg || !network) return;
 
-  // 防御性 guard：确保 transitionInfo 字段完整
-  const safeTransition = {
-    inTransition: !!(transitionInfo && transitionInfo.inTransition),
-    transitionFrom: transitionInfo ? transitionInfo.transitionFrom : 0,
-    transitionTo: transitionInfo ? transitionInfo.transitionTo : 0,
-    transitionProgress: transitionInfo ? Math.max(0, Math.min(1, transitionInfo.transitionProgress || 0)) : 0,
-  };
+  const { activeNodeIds, starId } = identifyActiveNodes(currentStageIndex, network, stages);
 
-  // 1. 更新节点位置
-  positions3D.forEach((pos, nodeId) => {
-    const nodeEl = svg.querySelector(`.help-node-svg[data-id="${nodeId}"]`);
+  // 1. 更新所有节点：设置目标状态，CSS transition 0.6s 负责动画
+  //    v5.2 关键改动：所有节点始终可见（非活跃 dim 处理），保留组织结构上下文
+  network.nodes.forEach(node => {
+    const nodeEl = svg.querySelector(`.help-node-svg[data-id="${node.id}"]`);
     if (!nodeEl) return;
 
-    // 3D 投影
-    const projected = project3DTo2D({ x: pos.x, y: pos.y, z: pos.z });
-    const finalScale = pos.scale * projected.scale;
+    const isActive = activeNodeIds.has(node.id);
+    const isStar = node.id === starId;
 
-    // 更新 transform
-    nodeEl.setAttribute('transform', `translate(${projected.screenX},${projected.screenY}) scale(${finalScale})`);
+    // v5.2: 使用 style.transform（非 setAttribute）让 CSS transition 生效
+    //    位置固定（原始 network 位置），仅 scale 随 active/inactive 变化
+    const scale = isActive ? PLANETARY_CONFIG.activeScale : PLANETARY_CONFIG.inactiveScale;
+    nodeEl.style.transform = `translate(${node.x}px, ${node.y}px) scale(${scale})`;
 
-    // 更新视觉属性
-    nodeEl.style.opacity = pos.opacity * projected.opacity;
-    nodeEl.style.filter = `saturate(${pos.saturate})`;
+    // 视觉状态——CSS transition 0.6s 负责过渡
+    nodeEl.style.opacity = isActive ? PLANETARY_CONFIG.activeOpacity : PLANETARY_CONFIG.inactiveOpacity;
+    nodeEl.style.filter = `saturate(${isActive ? PLANETARY_CONFIG.activeSaturate : PLANETARY_CONFIG.inactiveSaturate})`;
 
-    // 更新 data-role（用于 CSS 样式）
-    nodeEl.setAttribute('data-role', pos.role);
+    // role 用于 CSS 恒星脉冲动画（仅 star 节点脉冲）
+    nodeEl.setAttribute('data-role', isStar ? 'star' : (isActive ? 'planet' : 'inactive'));
 
-    // 更新 circle 半径（恒星放大）
+    // circle 半径
     const circle = nodeEl.querySelector('.help-node-circle');
     if (circle) {
-      const baseRadius = pos.role === 'star'
+      const baseRadius = isStar
         ? PLANETARY_CONFIG.starRadius
-        : pos.role === 'planet'
-          ? PLANETARY_CONFIG.planetRadius
-          : PLANETARY_CONFIG.inactiveRadius;
+        : (isActive ? PLANETARY_CONFIG.planetRadius : PLANETARY_CONFIG.inactiveRadius);
       circle.setAttribute('r', baseRadius);
     }
   });
 
-  // 2. 更新边 path（实时重绘）
-  network.edges.forEach((edge, i) => {
+  // 2. 更新所有边：设置目标状态，CSS transition 0.8s 负责绘制/擦除动画
+  network.edges.forEach(edge => {
     const edgeEl = svg.querySelector(`.help-edge[data-from="${edge.from}"][data-to="${edge.to}"]`);
     if (!edgeEl) return;
 
-    const fromPos = positions3D.get(edge.from);
-    const toPos = positions3D.get(edge.to);
-    if (!fromPos || !toPos) return;
-
-    // 3D 投影
-    const fromProj = project3DTo2D({ x: fromPos.x, y: fromPos.y, z: fromPos.z });
-    const toProj = project3DTo2D({ x: toPos.x, y: toPos.y, z: toPos.z });
-
-    // 计算贝塞尔曲线 path（边也是曲线，与节点运动一致）
-    const midX = (fromProj.screenX + toProj.screenX) / 2;
-    const midY = (fromProj.screenY + toProj.screenY) / 2;
-    const lift = Math.sqrt((toProj.screenX - fromProj.screenX) ** 2 + (toProj.screenY - fromProj.screenY) ** 2) * PLANETARY_CONFIG.edgeLiftFactor;
-    const cpX = midX;
-    const cpY = midY - lift;
-
-    const d = `M ${fromProj.screenX} ${fromProj.screenY} Q ${cpX} ${cpY} ${toProj.screenX} ${toProj.screenY}`;
     const pathEl = edgeEl.querySelector('.help-edge-path');
-    if (pathEl) pathEl.setAttribute('d', d);
+    if (!pathEl) return;
 
-    // 计算边 opacity（stage 过渡混色）
-    let edgeOpacity = 0;
-    if (safeTransition.inTransition) {
-      // 过渡区域：旧边→新边交叉混色
-      if (edge.stage === safeTransition.transitionFrom) {
-        edgeOpacity = 1 - safeTransition.transitionProgress;
-      } else if (edge.stage === safeTransition.transitionTo) {
-        edgeOpacity = safeTransition.transitionProgress;
-      } else {
-        edgeOpacity = PLANETARY_CONFIG.inactiveEdgeOpacity;
-      }
-    } else {
-      // 静止区域：当前 stage 边可见，其他边淡
-      if (edge.stage === currentStageIndex) {
-        edgeOpacity = 1;
-      } else {
-        edgeOpacity = PLANETARY_CONFIG.inactiveEdgeOpacity;
+    // path d 使用原始节点位置（固定不动，不随 stage 变化）
+    const fromNode = network.nodes.find(n => n.id === edge.from);
+    const toNode = network.nodes.find(n => n.id === edge.to);
+    if (!fromNode || !toNode) return;
+
+    const midX = (fromNode.x + toNode.x) / 2;
+    const midY = (fromNode.y + toNode.y) / 2;
+    const lift = Math.sqrt((toNode.x - fromNode.x) ** 2 + (toNode.y - fromNode.y) ** 2) * PLANETARY_CONFIG.edgeLiftFactor;
+    const d = `M ${fromNode.x} ${fromNode.y} Q ${midX} ${midY - lift} ${toNode.x} ${toNode.y}`;
+    pathEl.setAttribute('d', d);
+
+    // v5.2: 缓存 path 总长度（仅首次计算，避免每帧 getTotalLength 调用）
+    if (!EDGE_LENGTH_CACHE.has(pathEl)) {
+      try {
+        EDGE_LENGTH_CACHE.set(pathEl, pathEl.getTotalLength());
+      } catch (e) {
+        EDGE_LENGTH_CACHE.set(pathEl, 0);
       }
     }
-    edgeEl.style.opacity = edgeOpacity;
+    const totalLength = EDGE_LENGTH_CACHE.get(pathEl);
 
-    // 更新箭头位置（如果有）
+    // 设置 strokeDasharray（仅首次）
+    if (totalLength > 0 && !pathEl.style.strokeDasharray) {
+      pathEl.style.strokeDasharray = `${totalLength}`;
+    }
+
+    // v5.2 核心改动：设置目标状态——CSS transition 0.8s 负责绘制/擦除动画
+    //    活跃边：opacity 1 + dashoffset 0（绘制完成态）
+    //    非活跃边：opacity 0 + dashoffset totalLength（擦除态）
+    //    stage 切换时，浏览器自动播放 0.8s 的绘制/擦除动画
+    const isActive = edge.stage === currentStageIndex;
+    edgeEl.style.opacity = isActive ? PLANETARY_CONFIG.edgeActiveOpacity : PLANETARY_CONFIG.edgeInactiveOpacity;
+    if (totalLength > 0) {
+      pathEl.style.strokeDashoffset = isActive ? '0' : `${totalLength}`;
+    }
+
+    // 箭头位置和透明度
     const arrowEl = edgeEl.querySelector('.help-edge-arrow');
     if (arrowEl) {
-      const angle = Math.atan2(toProj.screenY - fromProj.screenY, toProj.screenX - fromProj.screenX) * 180 / Math.PI;
-      arrowEl.setAttribute('transform', `translate(${toProj.screenX},${toProj.screenY}) rotate(${angle})`);
-      arrowEl.style.opacity = edgeOpacity;
+      const angle = Math.atan2(toNode.y - fromNode.y, toNode.x - fromNode.x) * 180 / Math.PI;
+      arrowEl.setAttribute('transform', `translate(${toNode.x},${toNode.y}) rotate(${angle})`);
+      arrowEl.style.opacity = isActive ? PLANETARY_CONFIG.edgeActiveOpacity : PLANETARY_CONFIG.edgeInactiveOpacity;
     }
   });
 }
 
-// ===== v5.0 Planetary Animation End =====
+// ===== v5.2 Living Constellation End =====
 
 // 和组织对话——四阶段（行百里者半九十）
 const DIALOGUE_STAGES = [
@@ -648,8 +396,8 @@ const DIALOGUE_STAGES = [
     no: '01',
     phase: '工作之前',
     question: '谁去告诉同志们活动/专班的工作内容？',
-    answer: '组长 / 发起人',
-    desc: '工作开始前，由组长（活动）或发起人（专班）向参与同志讲清工作内容、边界与预期。',
+    answer: '党小组组长 / 发起人',
+    desc: '工作开始前，由党小组组长（活动）或发起人（专班）向参与同志讲清工作内容、边界与预期。',
   },
   {
     no: '02',
@@ -674,13 +422,13 @@ const DIALOGUE_STAGES = [
   },
 ];
 
-// 党员发展 5 阶段 25 步
+// 发展党员 5 阶段 25 步
 const DEVELOPMENT_STAGES = [
   {
-    id: 1, name: '申请入党', stepRange: '1-5', owner: '申请人 / 党支部 / 上级党委',
-    color: '#CE1126', summary: '申请人表达入党意愿，党组织初步了解并推荐为入党积极分子',
+    id: 1, name: '申请入党', stepRange: '1-5', owner: '入党申请人 / 党支部 / 上级党委',
+    color: '#CE1126', summary: '入党申请人表达入党意愿，党组织初步了解并推荐为入党积极分子',
     steps: [
-      { no: 1,  title: '递交入党申请书',     owner: '申请人',     time: null },
+      { no: 1,  title: '递交入党申请书',     owner: '入党申请人', time: null },
       { no: 2,  title: '党组织派人谈话',     owner: '党支部',     time: '15 日内' },
       { no: 3,  title: '推荐入党积极分子',   owner: '团组织/党员', time: null },
       { no: 4,  title: '支委会讨论确定',     owner: '支部委员会', time: null },
@@ -713,7 +461,7 @@ const DEVELOPMENT_STAGES = [
     id: 4, name: '预备党员接收', stepRange: '16-20', owner: '党支部 / 上级党委',
     color: '#10B981', summary: '召开支部大会讨论表决，上级党委审批后举行入党宣誓',
     steps: [
-      { no: 16, title: '填写入党志愿书',     owner: '申请人',       time: null },
+      { no: 16, title: '填写入党志愿书',     owner: '入党申请人',   time: null },
       { no: 17, title: '支部大会表决',       owner: '党支部',       time: '无记名投票' },
       { no: 18, title: '上级党委谈话',       owner: '上级党委',     time: null },
       { no: 19, title: '上级党委审批',       owner: '上级党委',     time: '3 个月内' },
@@ -810,19 +558,16 @@ function selfLoopPath(node) {
 //  渲染函数
 // ════════════════════════════════════════════════════════════════
 
-/** Section 1: Hero — 从申请人到正式党员 */
+/** Section 1: Hero — 从入党申请人到正式党员 */
 function renderHero() {
   return `
     <section id="hero" class="help-section help-hero-section" data-reveal data-toc-id="hero">
       <div class="help-section-inner help-hero-inner">
-        <h1 class="help-hero-title">从申请人到<br/>正式党员</h1>
+        <h1 class="help-hero-title">从入党申请人到<br/>正式党员</h1>
         <p class="help-hero-subtitle">每个同志的成长之路，也是支部的工作之道</p>
         <div class="help-hero-scroll-hint" aria-hidden="true">
           <span class="help-scroll-text">向下滚动</span>
-          <svg class="help-scroll-arrow" width="20" height="28" viewBox="0 0 20 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="10" y1="2" x2="10" y2="24"/>
-            <polyline points="4 18 10 24 16 18"/>
-          </svg>
+          ${icon('scrollDown', { width: 20, height: 28, viewBox: '0 0 20 28', className: 'help-scroll-arrow' })}
         </div>
       </div>
     </section>
@@ -846,7 +591,7 @@ function renderReview() {
     <section id="review" class="help-section help-review-section" data-reveal data-toc-id="review">
       <div class="help-section-inner">
         <h2 class="help-section-title">我们怎么考察积极分子？</h2>
-        <p class="help-section-subtitle">三个维度——党课、贡献、评价，其中党建贡献特别看重原创性</p>
+        <p class="help-section-subtitle">三项考察内容——党课、贡献、评价，其中党建贡献特别看重原创性</p>
         <div class="help-review-grid">${cards}</div>
         <div class="help-review-footer">什么是党建贡献？→ 我们支部有一套工作架构</div>
       </div>
@@ -861,9 +606,9 @@ function renderReview() {
  * --------------------------------------------------
  * 本段为 help 页的浅层展示。"管理事，服务人"不仅是 UI 口号，
  * 而是系统级战略路线认定。详细设计理念见母本：
- * content/strategy/MANAGE_SERVE.md
+ * content/strategy/DEVELOPMENT_PATH.md
  *
- * 核心命题：党支部不是职业准备所，而是通过组织获得成长的平台；组织性是资源而非门槛
+ * 核心命题：各种发展轨迹都可以加入支部，通过组织获得各自的成长
  * 战略认知展开：理解真实（总）/ 善用经验（分·有先例）/ 创新沉淀（分·创新）/ 框架内对话（分·方法补充）
  */
 function renderPhilosophy() {
@@ -901,7 +646,7 @@ function renderPhilosophy() {
 /**
  * Section 3.5: 战略认知展开 + 恢复对话能力（P-041）
  *
- * 母本：content/strategy/MANAGE_SERVE.md 第三章 + 第六章
+ * 母本：content/strategy/DEVELOPMENT_PATH.md 第二章 + 第四章
  * --------------------------------------------------
  * 总分结构：理解真实（总）→ 善用经验 / 创新沉淀 / 框架内对话（分）
  * 延伸段落：P-041 "恢复对话能力"战略表达
@@ -914,7 +659,7 @@ function renderCognition() {
         <h2 class="help-cognition-title">理解真实，才能服务人</h2>
 
         <div class="help-cognition-lead" data-stagger>
-          <p>服务人的核心要义，是理解真实的组织和管理——不是想象中的等级森严，而是有管理的科学、有既往的经验。从这个认知出发，展开三个维度。</p>
+          <p>服务人的核心要义，是理解真实的组织和管理——不是想象中的等级森严，而是有管理的科学、有既往的经验。书记关于这方面的原话整理见下。</p>
         </div>
 
         <div class="help-cognition-grid">
@@ -943,11 +688,8 @@ function renderCognition() {
         <div class="help-cognition-dialogue" data-stagger>
           <div class="help-cognition-dialogue-label">延伸·恢复对话能力</div>
           <blockquote class="help-cognition-dialogue-quote">
-            党建要帮助大家恢复和马克思主义的对话能力，恢复和现实世界的工程判断的对话能力。
+            党建和经管学科科研的交叉点在于恢复和马克思主义的对话能力，恢复理论研究和现实治理之间的对话能力。
           </blockquote>
-          <p class="help-cognition-dialogue-desc">
-            "恢复"而非"建立"——成员原本有这种能力，是在应试教育、脱离实践中逐渐丢了。马克思主义给思想高度，工程判断给实践深度，两个结合才是完整的党建目标。
-          </p>
         </div>
       </div>
     </section>
@@ -1182,10 +924,10 @@ function renderExploration() {
     {
       id: 'activity',
       no: '01',
-      title: '活动：组长发起，同志们参与',
+      title: '活动：党小组组长发起，同志们参与',
       network: ACTIVITY_NETWORK,
       stages: EXPLORATION_STAGES.activity,
-      note: '探索的边界由组长划定，信息流与任务流并行——从策划、通知、执行到考勤、归档，每个环节都有明确的"谁找谁"。',
+      note: '探索的边界由党小组组长划定，信息流与任务流并行——从策划、通知、执行到考勤、归档，每个环节都有明确的"谁找谁"。',
     },
     {
       id: 'taskforce',
@@ -1260,7 +1002,7 @@ function renderDialogue() {
   `).join('');
 
   // 4 个 SVG 箭头（线+箭头头，精致统一，替代 CSS border 三角形）
-  const arrowSVG = `<svg viewBox="0 0 20 14" fill="none" aria-hidden="true"><path d="M3 7 L15 7 M11 2 L15 7 L11 12" stroke="var(--help-party-red)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const arrowSVG = icon('helpArrowRight', { size: 0, viewBox: '0 0 20 14', extra: ' aria-hidden="true"' });
 
   return `
     <section id="dialogue" class="help-section help-dialogue-section" data-reveal data-toc-id="dialogue">
@@ -1268,9 +1010,7 @@ function renderDialogue() {
         <h2 class="help-section-title">行百里者半九十</h2>
         <p class="help-section-subtitle">活动不是做了就行——必须和组织对话，在实践中持续改进</p>
         <div class="help-dialogue-cycle">
-          <svg class="help-dialogue-ring" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <ellipse cx="50" cy="50" rx="46" ry="46" fill="none" stroke="var(--help-party-red)" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.35" vector-effect="non-scaling-stroke" />
-          </svg>
+          ${icon('dialogueRing', { size: 0, viewBox: '0 0 100 100', className: 'help-dialogue-ring', stroke: 'none', fill: 'none', extra: ' preserveAspectRatio="none" aria-hidden="true"' })}
           <div class="help-dialogue-flow">${cards}</div>
           <div class="help-dialogue-arrow help-dialogue-arrow--01-02" aria-hidden="true">${arrowSVG}</div>
           <div class="help-dialogue-arrow help-dialogue-arrow--02-03" aria-hidden="true">${arrowSVG}</div>
@@ -1283,7 +1023,7 @@ function renderDialogue() {
   `;
 }
 
-/** Section 7: 党员发展时间轴 */
+/** Section 7: 发展党员时间轴 */
 function renderDevelopment() {
   const stages = DEVELOPMENT_STAGES.map(stage => `
     <div class="help-stage-card" data-stage="${stage.id}" style="--stage-color:${stage.color};" data-stagger tabindex="0" role="button" aria-expanded="false" aria-label="阶段${stage.id}：${stage.name}">
@@ -1380,7 +1120,7 @@ function renderHelpContent() {
     ${safe('Dialogue', renderDialogue)}
     <footer class="help-page-footer">
       <a href="${base}index.html" class="help-back-link">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        ${icon('arrowLeft', { size: 14 })}
         返回主页
       </a>
     </footer>
@@ -1516,7 +1256,7 @@ function bindNetworkHover() {
   });
 }
 
-/** 党员发展：阶段卡片点击展开 */
+/** 发展党员：阶段卡片点击展开 */
 function bindStageToggle() {
   const content = document.getElementById('help-content');
   if (!content) return;
@@ -1627,93 +1367,60 @@ function bindTOC() {
 }
 
 /**
- * v5.0 行星大动画协调器
- * 绑定滚动事件，协调 5 个核心组件
+ * v5.2 行星大动画协调器
+ * stage 驱动：仅在 stage 切换时调用 renderNetwork，CSS transition 负责动画
  */
 function bindExplorationScrollDriven() {
   const scenes = document.querySelectorAll('.help-exploration-scene');
   if (!scenes.length) return;
 
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
-  // 预计算所有 stage 的布局
+  // 初始化每个 scene
   const sceneData = [];
   scenes.forEach(scene => {
     const network = scene.dataset.scene === 'activity' ? ACTIVITY_NETWORK : TASKFORCE_NETWORK;
     const stages = scene.dataset.scene === 'activity'
       ? EXPLORATION_STAGES.activity
       : EXPLORATION_STAGES.taskforce;
-    const layouts = precomputeAllLayouts(network, stages);
     const svg = scene.querySelector('.help-network-svg');
     const stagesContainer = scene.querySelector('.help-exploration-stages');
     sceneData.push({
-      scene, network, stages, layouts, svg, stagesContainer,
+      scene, network, stages, svg, stagesContainer,
       stageCount: stages.length,
       currentRenderedStage: -1,  // 缓存：上次渲染的 stage
     });
   });
 
-  // 初始化：每个 scene 渲染 stage 0
+  // 初始渲染：stage 0
   sceneData.forEach(data => {
     if (!data.svg) return;
-    if (prefersReduced) {
-      // reduced-motion：直接渲染每个 stage 的最终位置（用 stage 0）
-      renderNetwork(data.svg, data.layouts[0], data.network, 0, { inTransition: false });
-    } else {
-      renderNetwork(data.svg, data.layouts[0], data.network, 0, { inTransition: false });
-    }
+    renderNetwork(data.svg, data.network, 0, data.stages);
+    data.currentRenderedStage = 0;
   });
 
   if (prefersReduced) return;  // reduced-motion 不绑定滚动驱动
 
-  // 滚动驱动
+  // 滚动驱动：仅 stage 切换时重渲染
   let ticking = false;
-  let lastScrollTop = window.scrollY;
 
   const update = () => {
     ticking = false;
     const scrollTop = window.scrollY;
-    const isMobileNow = window.matchMedia('(max-width: 768px)').matches;
 
     sceneData.forEach(data => {
       if (!data.svg || !data.stagesContainer) return;
 
       const progress = computeScrollProgress(scrollTop, data.scene, data.stageCount);
 
-      let currentPositions;
-      if (progress.inTransition && !prefersReduced && !isMobileNow) {
-        // 桌面端：3D 贝塞尔插值
-        currentPositions = interpolatePositions(
-          data.layouts[progress.transitionFrom],
-          data.layouts[progress.transitionTo],
-          progress.transitionProgress
-        );
-      } else {
-        // 移动端 / reduced-motion：直接使用当前 stage 布局（2D，无插值）
-        currentPositions = data.layouts[progress.stageIndex];
+      // v5.2 核心改动：仅当 stage 切换时才重新渲染网络图
+      // CSS transition 负责所有视觉过渡（transform/opacity/filter/stroke-dashoffset）
+      if (progress.stageIndex !== data.currentRenderedStage) {
+        data.currentRenderedStage = progress.stageIndex;
+        renderNetwork(data.svg, data.network, progress.stageIndex, data.stages);
       }
 
-      // 移动端：忽略 z 轴（2D 降级）
-      if (isMobileNow) {
-        const positions2D = new Map();
-        currentPositions.forEach((pos, id) => {
-          positions2D.set(id, { ...pos, z: 0 });
-        });
-        currentPositions = positions2D;
-      }
-
-      renderNetwork(data.svg, currentPositions, data.network, progress.stageIndex, progress);
-
-      // 视角旋转（仅桌面端）
-      if (!isMobileNow && !prefersReduced) {
-        const viewRotateX = Math.sin(scrollTop * 0.001) * PLANETARY_CONFIG.viewRotateXMax;
-        data.svg.style.transform = `perspective(800px) rotateX(${viewRotateX}deg)`;
-      } else {
-        data.svg.style.transform = '';
-      }
-
-      // 更新 stage 说明卡片状态
+      // 更新 stage 说明卡片状态（廉价操作，每帧更新无妨）
       const sceneStages = data.scene.querySelectorAll('.help-exploration-stage');
       sceneStages.forEach((s, i) => {
         if (i < progress.stageIndex) s.setAttribute('data-state', 'past');
@@ -1724,7 +1431,6 @@ function bindExplorationScrollDriven() {
   };
 
   const onScroll = () => {
-    lastScrollTop = window.scrollY;
     if (!ticking) {
       requestAnimationFrame(update);
       ticking = true;
@@ -1732,7 +1438,6 @@ function bindExplorationScrollDriven() {
   };
 
   window.addEventListener('scroll', onScroll, { passive: true });
-  // 初始触发一次
   update();
 }
 

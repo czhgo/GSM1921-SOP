@@ -30,7 +30,7 @@ function _bindSecTabs() {
   const panes = document.querySelectorAll('.sec-tab-pane');
   const accentStyle = '--tab-accent:#B91C1C;--tab-accent-bg:rgba(185,28,28,0.10);--tab-accent-border:rgba(185,28,28,0.25)';
 
-  // 读取 localStorage 记忆的 Tab（优先级：localStorage > 默认 calendar）
+  // 读取 localStorage 记忆�?Tab（优先级：localStorage > 默认 calendar�?
   let initialTab = 'calendar';
   try {
     const saved = localStorage.getItem(SEC_TAB_STORAGE_KEY);
@@ -60,7 +60,7 @@ function _bindSecTabs() {
       panes.forEach(p => p.classList.add('hidden'));
       const targetPane = document.getElementById(`sec-tab-${_secActiveTab}`);
       if (targetPane) targetPane.classList.remove('hidden');
-      // 记忆到 localStorage
+      // 记忆�?localStorage
       try { localStorage.setItem(SEC_TAB_STORAGE_KEY, _secActiveTab); } catch (_) { /* 静默降级 */ }
     });
   });
@@ -86,10 +86,10 @@ function renderSecretaryUI(state) {
   const statsEl = document.getElementById('secretary-stats');
   if (statsEl) {
     const items = [
-      { label: '待赋权活动', value: stats.pendingAuth, color: '#D97706' },
+      { label: '待赋权活�?, value: stats.pendingAuth, color: '#D97706' },
       { label: '活跃活动', value: stats.activeEvents, color: '#059669' },
       { label: '本月活动', value: stats.monthEvents, color: '#2563EB' },
-      { label: '已赋权记录', value: stats.authGranted, color: '#7C3AED' },
+      { label: '已赋权记�?, value: stats.authGranted, color: '#0E7490' },
     ];
     statsEl.innerHTML = items.map(s => `
       <div class="flex-1 card rounded-xl p-4 flex items-center gap-3">
@@ -111,7 +111,7 @@ function renderSecretaryUI(state) {
   renderInspectorFromState(filteredState);
   populateMonthSelector(activities);
 
-  // 品牌筛选按钮 → 移入 Tab 工具栏（C1）
+  // 品牌筛选按�?�?移入 Tab 工具栏（C1�?
   const toolbar = document.getElementById('sec-toolbar');
   if (toolbar) {
     let filterBtn = document.getElementById('brand-filter-btn');
@@ -127,10 +127,10 @@ function renderSecretaryUI(state) {
     filterBtn.style.cssText = filterBrand
       ? 'background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);'
       : 'background:rgba(156,163,175,0.10);color:#6B7280;border:1px solid rgba(156,163,175,0.30);';
-    filterBtn.textContent = filterBrand ? '★ 品牌活动（筛选中）' : '☆ 品牌活动';
+    filterBtn.textContent = filterBrand ? '�?品牌活动（筛选中�? : '�?品牌活动';
   }
 
-  // ── 活动查询视图（容器已在 HTML 中） ──
+  // ── 活动查询视图（容器已�?HTML 中） ──
   const queryContainer = document.getElementById('secretary-query-container');
   if (queryContainer) {
     const typeOptions = [...new Set(displayActivities.map(a => a.type).filter(Boolean))].map(t => ({ value: t, label: t }));
@@ -142,7 +142,7 @@ function renderSecretaryUI(state) {
       renderRow: (a) => `
         <div class="flex items-center justify-between p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
           <div class="flex-1 min-w-0">
-            <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
+            <div class="text-sm font-medium text-gray-800">${a.title || '未命�?}</div>
             <div class="text-xs text-gray-500 mt-0.5">${a.date || ''}${a.type ? ' · ' + a.type : ''}</div>
           </div>
           ${a.type ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-600">${a.type}</span>` : ''}
@@ -164,24 +164,24 @@ function renderSecretaryUI(state) {
   const assignArea = document.getElementById('assign-area');
   if (assignArea && assignArea.childElementCount === 0) {
     assignArea.innerHTML = `
-      <p class="text-xs text-gray-500 mb-3">书记可对活动进行赋权操作，将活动分配给对应角色</p>
-      <button id="ws-sec-assign-btn" class="text-sm px-4 py-2 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors">赋权管理</button>
+      <p class="text-xs text-gray-500 mb-3">书记可对活动进行赋权操作，将活动分配给对应角�?/p>
+      <button id="ws-sec-assign-btn" class="text-sm px-4 py-2 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors">赋权管理</button>
     `;
     assignArea.querySelector('#ws-sec-assign-btn')?.addEventListener('click', () => {
       toggleAuthPanel(assignArea);
     });
   }
 
-  // ── issue 管理（GitHub Issue 风格，替代旧 P3-1 反馈管理） ──
+  // ── issue 管理（GitHub Issue 风格，替代旧 P3-1 反馈管理�?──
   renderIssueManagement();
 }
 
 // ════════════════════════════════════════════════════════════════
-//  决策树引导式写入面板 — D-185 决策实现
-//  L1 组织场景 → L2 活动形式 → L3 时长 → L4 发起方向 → 表单
+//  决策树引导式写入面板 �?D-185 决策实现
+//  L1 组织场景 �?L2 活动形式 �?L3 时长 �?L4 发起方向 �?表单
 // ════════════════════════════════════════════════════════════════
 
-/** 决策树状态（已迁移至 services/decision-tree.js） */
+/** 决策树状态（已迁移至 services/decision-tree.js�?*/
 const wp = new DecisionTreeState('secretary');
 const DECISION_TREE = DECISION_TREE_CONFIGS.secretary;
 
@@ -190,17 +190,17 @@ const STEP_LABELS = ['组织场景', '活动形式', '时长', '发起方向', '
 
 // ── 渲染函数 ──────────────────────────────────────────────────
 
-/** 主渲染入口 */
+/** 主渲染入�?*/
 function renderWritePanel(container) {
   let html = '';
 
-  // 步骤指示器
+  // 步骤指示�?
   html += renderStepper();
 
   // 已选路径摘要（step > 1 时显示）
   if (wp.step > 1) {
     html += `<div class="mb-4 px-3 py-2 rounded-lg bg-gray-100 border border-gray-100">`;
-    html += `<p class="text-xs text-gray-500 mb-0.5">已选路径</p>`;
+    html += `<p class="text-xs text-gray-500 mb-0.5">已选路�?/p>`;
     html += `<p class="text-sm font-medium text-gray-700">${wp.getSelectionPath()}</p>`;
     html += `</div>`;
   }
@@ -218,14 +218,14 @@ function renderWritePanel(container) {
   if (wp.step > 1) {
     html += `<button data-action="wp-back" class="mt-4 text-xs text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-1">`;
     html += icon('chevronLeft', { size: 0, className: 'w-3 h-3' });
-    html += `返回上一步</button>`;
+    html += `返回上一�?/button>`;
   }
 
   container.innerHTML = html;
   bindWritePanelEvents(container);
 }
 
-/** 步骤指示器 */
+/** 步骤指示�?*/
 function renderStepper() {
   let html = `<div class="flex items-center gap-1 mb-5 overflow-x-auto">`;
   STEP_LABELS.forEach((label, i) => {
@@ -355,7 +355,7 @@ function renderStepForm() {
   // SOP 场景提示
   if (scenarioTitle) {
     html += `<div class="mb-4 px-3 py-2 rounded-lg bg-blue-50 border border-blue-100">`;
-    html += `<p class="text-xs text-blue-600 font-medium">SOP 场景：${scenarioTitle}</p>`;
+    html += `<p class="text-xs text-blue-600 font-medium">SOP 场景�?{scenarioTitle}</p>`;
     html += `<p class="text-xs text-blue-400 mt-0.5">写入后将自动生成对应任务节点</p>`;
     html += `</div>`;
   }
@@ -382,14 +382,14 @@ function renderStepForm() {
   html += `<input type="text" id="wp-title" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:border-red-300 focus:ring-1 focus:ring-red-200 outline-none transition-all" placeholder="活动名称">`;
   html += `</div>`;
 
-  // 活动描述（选填）
+  // 活动描述（选填�?
   html += `<div class="mb-5">`;
-  html += `<label class="text-xs text-gray-500 mb-1 block">活动描述 <span class="text-gray-300">（选填）</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1 block">活动描述 <span class="text-gray-300">（选填�?/span></label>`;
   html += `<textarea id="wp-desc" rows="3" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:border-red-300 focus:ring-1 focus:ring-red-200 outline-none transition-all resize-none" placeholder="简要描述活动内容、目标等"></textarea>`;
   html += `</div>`;
 
   // 写入按钮
-  const btnText = wp.submitting ? '写入中...' : '写入活动';
+  const btnText = wp.submitting ? '写入�?..' : '写入活动';
   const btnDisabled = wp.submitting ? 'opacity-50 cursor-not-allowed' : '';
   html += `<button data-action="wp-submit" class="text-sm px-5 py-2.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium ${btnDisabled}">${btnText}</button>`;
 
@@ -420,7 +420,7 @@ function handleWritePanelAction(e) {
         wp.selections.L3 = null;
         wp.selections.L4 = null;
       }
-      // 主题党日无子选项，直接进入 L2
+      // 主题党日无子选项，直接进�?L2
       if (val === 'theme-day') {
         wp.step = 2;
       }
@@ -434,7 +434,7 @@ function handleWritePanelAction(e) {
       wp.selections.L2 = null;
       wp.selections.L3 = null;
       wp.selections.L4 = null;
-      // 三会一课只有"会议"一种形式，自动选择并进入 L3
+      // 三会一课只�?会议"一种形式，自动选择并进�?L3
       if (wp.selections.L1 === 'three-meetings') {
         wp.selections.L2 = 'meeting';
         wp.step = 3;
@@ -477,7 +477,7 @@ function handleWritePanelAction(e) {
 
     case 'wp-submit': {
       handleSubmitActivity();
-      return; // 不重新渲染面板
+      return; // 不重新渲染面�?
     }
 
     default:
@@ -502,10 +502,10 @@ async function handleSubmitActivity() {
   const title = titleEl?.value?.trim();
   const desc = descEl?.value?.trim();
 
-  // 校验必填项
-  if (!date) { showToast('error', '请填写 T-0 日期'); dateEl?.focus(); return; }
-  if (!location) { showToast('error', '请填写活动地点'); locationEl?.focus(); return; }
-  if (!title) { showToast('error', '请填写活动名称'); titleEl?.focus(); return; }
+  // 校验必填�?
+  if (!date) { showToast('error', '请填�?T-0 日期'); dateEl?.focus(); return; }
+  if (!location) { showToast('error', '请填写活动地�?); locationEl?.focus(); return; }
+  if (!title) { showToast('error', '请填写活动名�?); titleEl?.focus(); return; }
 
   const scenarioId = wp.getScenarioId();
   if (!scenarioId) { showToast('error', '场景信息缺失，请重新选择'); return; }
@@ -517,7 +517,7 @@ async function handleSubmitActivity() {
   try {
     const activityData = {
       title,
-      type: wp.selections.L1 === 'three-meetings' ? '三会一课' : '主题党日',
+      type: wp.selections.L1 === 'three-meetings' ? '三会一�? : '主题党日',
       status: 'draft',
       visibility: 'branch',
       date,
@@ -543,20 +543,20 @@ async function handleSubmitActivity() {
     const definitionId = wp.mapToDefinitionId();
     renderWorkflowPanel('secretary-workflow', 'secretary-write', definitionId, title);
 
-    // 5. 重置面板状态
+    // 5. 重置面板状�?
     wp.reset();
 
     // 5. 刷新活动列表
     try {
       const activities = await BranchService.listActivities();
       setState({ activities });
-    } catch (_) { /* 列表刷新失败不影响写入结果 */ }
+    } catch (_) { /* 列表刷新失败不影响写入结�?*/ }
 
   } catch (err) {
     console.error('[WritePanel] 写入失败', err);
     const msg = err.type === 'NetworkError' ? '网络连接失败，请稍后重试'
       : err.type === 'PermissionError' ? '权限不足'
-      : '写入失败：' + (err.message || '未知错误');
+      : '写入失败�? + (err.message || '未知错误');
     showToast('error', msg);
     wp.submitting = false;
   }
@@ -569,12 +569,12 @@ async function handleSubmitActivity() {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  赋权管理面板 — P0-4
-//  功能：PersonPicker 选择人员 → 角色选择 → 范围选择 → 关联选择 → 确认赋权
+//  赋权管理面板 �?P0-4
+//  功能：PersonPicker 选择人员 �?角色选择 �?范围选择 �?关联选择 �?确认赋权
 //  赋权记录列表：展示当前所有赋权记录，支持撤销
 // ════════════════════════════════════════════════════════════════
 
-/** 赋权面板状态 */
+/** 赋权面板状�?*/
 const authPanel = {
   open: false,
   selectedPersonId: null,
@@ -586,13 +586,13 @@ const authPanel = {
 
 /** 可赋权角色选项 */
 const AUTH_ROLE_OPTIONS = [
-  { value: 'organizer', label: '组织者', desc: '负责活动/专班的策划与执行统筹', color: '#06B6D4', bg: 'rgba(6,182,212,0.08)', border: 'rgba(6,182,212,0.25)' },
-  { value: 'deep', label: '深度参与者', desc: '承担具体工作任务的骨干成员', color: '#10B981', bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.25)' },
+  { value: 'organizer', label: '组织�?, desc: '负责活动/专班的策划与执行统筹', color: '#06B6D4', bg: 'rgba(6,182,212,0.08)', border: 'rgba(6,182,212,0.25)' },
+  { value: 'deep', label: '深度参与�?, desc: '承担具体工作任务的骨干成�?, color: '#10B981', bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.25)' },
 ];
 
 /** 赋权范围选项 */
 const AUTH_SCOPE_OPTIONS = [
-  { value: 'activity', label: '活动', desc: '赋权范围覆盖指定活动', color: '#7C3AED' },
+  { value: 'activity', label: '活动', desc: '赋权范围覆盖指定活动', color: '#0E7490' },
   { value: 'taskforce', label: '专班', desc: '赋权范围覆盖指定专班', color: '#B45309' },
 ];
 
@@ -607,7 +607,7 @@ function toggleAuthPanel(assignArea) {
     if (btn) btn.textContent = '赋权管理';
     const panel = document.getElementById('auth-panel-container');
     if (panel) panel.remove();
-    // 销毁 PersonPicker
+    // 销�?PersonPicker
     if (authPanel.personPicker) {
       authPanel.personPicker.destroy();
       authPanel.personPicker = null;
@@ -617,7 +617,7 @@ function toggleAuthPanel(assignArea) {
 
 /** 渲染赋权管理面板 */
 function renderAuthPanel(assignArea) {
-  // 移除旧面板
+  // 移除旧面�?
   const oldPanel = document.getElementById('auth-panel-container');
   if (oldPanel) oldPanel.remove();
 
@@ -630,7 +630,7 @@ function renderAuthPanel(assignArea) {
 
   // 1. 人员选择
   html += `<div class="mb-4">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">选择被赋权同志 <span class="text-red-500">*</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">选择被赋权同�?<span class="text-red-500">*</span></label>`;
   html += `<div id="auth-person-picker-slot"></div>`;
   html += `</div>`;
 
@@ -670,7 +670,7 @@ function renderAuthPanel(assignArea) {
     html += `<option value="">请选择活动</option>`;
     ACTIVITIES.forEach(a => {
       const selected = authPanel.scopeRef === a.id ? ' selected' : '';
-      html += `<option value="${a.id}"${selected}>${a.title}（${a.date}）</option>`;
+      html += `<option value="${a.id}"${selected}>${a.title}�?{a.date}�?/option>`;
     });
     html += `</select>`;
     html += `</div>`;
@@ -681,7 +681,7 @@ function renderAuthPanel(assignArea) {
     html += `<option value="">请选择专班</option>`;
     MOCK_TASKFORCES.forEach(tf => {
       const selected = authPanel.scopeRef === tf.id ? ' selected' : '';
-      html += `<option value="${tf.id}"${selected}>${tf.name}（${tf.status}）</option>`;
+      html += `<option value="${tf.id}"${selected}>${tf.name}�?{tf.status}�?/option>`;
     });
     html += `</select>`;
     html += `</div>`;
@@ -690,7 +690,7 @@ function renderAuthPanel(assignArea) {
   // 5. 确认赋权按钮
   html += `<button data-auth-action="confirm" class="text-sm px-5 py-2.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium">确认赋权</button>`;
 
-  // ── 分隔线 ──
+  // ── 分隔�?──
   html += `<div class="border-t border-gray-100 mt-6 pt-4">`;
   html += `<h4 class="font-title-cn text-sm font-semibold text-gray-700 mb-3">赋权记录</h4>`;
   html += `<div id="auth-records-list"></div>`;
@@ -699,7 +699,7 @@ function renderAuthPanel(assignArea) {
   panel.innerHTML = html;
   assignArea.appendChild(panel);
 
-  // ── 初始化 PersonPicker ──
+  // ── 初始�?PersonPicker ──
   const pickerSlot = document.getElementById('auth-person-picker-slot');
   if (pickerSlot) {
     // 销毁旧实例
@@ -708,13 +708,13 @@ function renderAuthPanel(assignArea) {
     }
     authPanel.personPicker = new PersonPicker({
       mode: 'single',
-      placeholder: '选择被赋权同志',
+      placeholder: '选择被赋权同�?,
       accentColor: '#B91C1C',
       onSelect: (ids) => {
         authPanel.selectedPersonId = ids[0] || null;
       },
     });
-    // 如果已有选中，恢复
+    // 如果已有选中，恢�?
     if (authPanel.selectedPersonId) {
       authPanel.personPicker.setSelected([authPanel.selectedPersonId]);
     }
@@ -758,7 +758,7 @@ function handleAuthAction(e) {
     }
     case 'confirm': {
       handleConfirmAuth();
-      return; // 不重新渲染面板
+      return; // 不重新渲染面�?
     }
     default:
       return;
@@ -777,7 +777,7 @@ function handleConfirmAuth() {
 
   // 校验
   if (!authPanel.selectedPersonId) {
-    showToast('error', '请选择被赋权同志');
+    showToast('error', '请选择被赋权同�?);
     return;
   }
   if (!authPanel.role) {
@@ -808,7 +808,7 @@ function handleConfirmAuth() {
     const roleLabel = ROLE_LABELS[authPanel.role] || authPanel.role;
     showToast('success', `已为 ${personName} 赋予 ${roleLabel} 角色`);
 
-    // 重置表单（保留面板打开）
+    // 重置表单（保留面板打开�?
     authPanel.selectedPersonId = null;
     authPanel.role = null;
     authPanel.scope = null;
@@ -819,9 +819,9 @@ function handleConfirmAuth() {
     if (assignArea) renderAuthPanel(assignArea);
   } else {
     if (result.id) {
-      showToast('warn', '该同志在此范围已有相同角色赋权');
+      showToast('warn', '该同志在此范围已有相同角色赋�?);
     } else {
-      showToast('error', '赋权失败，请检查参数');
+      showToast('error', '赋权失败，请检查参�?);
     }
   }
 }
@@ -848,10 +848,10 @@ function renderAuthRecords() {
     let scopeRefName = '';
     if (record.scope === 'activity') {
       const act = ACTIVITIES.find(a => a.id === record.scopeRef);
-      scopeRefName = act ? act.title : record.scopeRef || '未关联';
+      scopeRefName = act ? act.title : record.scopeRef || '未关�?;
     } else if (record.scope === 'taskforce') {
       const tf = MOCK_TASKFORCES.find(t => t.id === record.scopeRef);
-      scopeRefName = tf ? tf.name : record.scopeRef || '未关联';
+      scopeRefName = tf ? tf.name : record.scopeRef || '未关�?;
     }
 
     // 角色颜色
@@ -898,17 +898,17 @@ function renderAuthRecords() {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  issue 管理 — GitHub Issue 风格反馈管理面板（替代旧 P3-1）
-//  功能：草稿审核（通过/驳回）+ 全部 issue 列表 + 导出/清除
+//  issue 管理 �?GitHub Issue 风格反馈管理面板（替代旧 P3-1�?
+//  功能：草稿审核（通过/驳回�? 全部 issue 列表 + 导出/清除
 // ════════════════════════════════════════════════════════════════
 
 function renderIssueManagement() {
-  // 渲染待审核草稿
+  // 渲染待审核草�?
   const draftsEl = document.getElementById('issue-drafts-list');
   if (draftsEl) {
     const drafts = IssueStore.getDrafts().filter(d => d.status === 'pending');
     if (drafts.length === 0) {
-      draftsEl.innerHTML = '<p class="text-xs text-gray-400">暂无待审核草稿</p>';
+      draftsEl.innerHTML = '<p class="text-xs text-gray-400">暂无待审核草�?/p>';
     } else {
       draftsEl.innerHTML = drafts.map(d => renderDraftRow(d)).join('');
       bindDraftEvents();
@@ -948,7 +948,7 @@ function renderIssueManagement() {
   });
 
   document.getElementById('btn-clear-issue-cache')?.addEventListener('click', () => {
-    if (confirm('确定清除本地缓存？此操作不影响 issues.json 权威源，仅清除浏览器缓存与草稿。')) {
+    if (confirm('确定清除本地缓存？此操作不影�?issues.json 权威源，仅清除浏览器缓存与草稿�?)) {
       IssueStore.clearCache();
       renderIssueManagement();
     }
@@ -959,9 +959,9 @@ function renderDraftRow(d) {
   if (d.type === 'new-issue') {
     const p = d.payload;
     return `
-      <div class="p-3 rounded-lg bg-amber-50 border border-amber-200" data-draft-id="${d.draftId}">
+      <div class="p-3 rounded-lg bg-orange-50 border border-orange-200" data-draft-id="${d.draftId}">
         <div class="flex items-center justify-between mb-1">
-          <span class="text-[10px] text-amber-700 font-medium">新建 issue 草稿</span>
+          <span class="text-[10px] text-orange-700 font-medium">新建 issue 草稿</span>
           <span class="text-[10px] text-gray-500">${d.author} · ${d.createdAt}</span>
         </div>
         <p class="text-sm font-medium text-gray-800">${p.title}</p>
@@ -996,16 +996,16 @@ function bindDraftEvents() {
     btn.addEventListener('click', () => {
       const id = btn.dataset.draftId;
       IssueStore.approveDraft(id);
-      showToast('success', '草稿已通过，已合并到 issue 列表');
+      showToast('success', '草稿已通过，已合并�?issue 列表');
       renderIssueManagement();
     });
   });
   document.querySelectorAll('.btn-reject-draft').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.draftId;
-      const reason = prompt('请输入驳回原因') || '不符合要求';
+      const reason = prompt('请输入驳回原�?) || '不符合要�?;
       IssueStore.rejectDraft(id, reason);
-      showToast('info', '草稿已驳回');
+      showToast('info', '草稿已驳�?);
       renderIssueManagement();
     });
   });

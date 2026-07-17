@@ -1,4 +1,4 @@
----
+﻿---
 title: "统一服务目录"
 type: governance
 role: "[工程师]+[AI]"
@@ -362,8 +362,8 @@ related_files:
 | party | 党务管理 | `docs/party/index.html` | `entries/party-entry.js` |
 | archive | 归档库 | `docs/archive.html` | `entries/archive-entry.js` |
 | search | 资料查询 | `docs/search.html` | `entries/search-entry.js` |
-| feedback | 提案讨论 | `docs/feedback.html` | `entries/feedback-entry.js` |
-| issues | 提案讨论（核心） | `docs/data/issues.json` + localStorage | `services/issues.js` |
+| feedback | 意见反馈 | `docs/feedback.html` | `entries/feedback-entry.js` |
+| issues | 意见反馈（核心） | `docs/data/issues.json` + localStorage | `services/issues.js` |
 | milestones | 批次定义 | `docs/data/milestones.json` | `services/milestones.js` |
 
 ### 5.2 党建工作台角色子页面

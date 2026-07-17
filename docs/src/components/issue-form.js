@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // issue-form.js — Issue 新建表单
 
 import { IssueStore } from '../services/issues.js';
@@ -7,17 +7,17 @@ import { showToast } from '../core/utils.js';
 import { icon } from '../core/icons.js';
 
 const SCOPE_OPTIONS = [
-  { value: 'permanent', label: '底层架构与原则建议' },
-  { value: 'global', label: '全局通用业务规则' },
-  { value: 'role', label: '支委分工与权责调整' },
-  { value: 'scenario', label: '特定业务场景专用' },
+  { value: 'permanent', label: '底层架构' },
+  { value: 'global', label: '全局通用' },
+  { value: 'role', label: '权责调整' },
+  { value: 'scenario', label: '特定场景' },
 ];
 
 const TYPE_OPTIONS = [
-  { value: 'bug', label: 'bug — 现有规则有缺陷', color: '#DC2626' },
-  { value: 'enhancement', label: 'enhancement — 现有规则可优化', color: '#059669' },
-  { value: 'proposal', label: 'proposal — 新规则提议', color: '#3B82F6' },
-  { value: 'question', label: 'question — 规则疑问澄清', color: '#D97706' },
+  { value: 'bug', label: '缺陷', color: '#CE1126' },
+  { value: 'enhancement', label: '增强', color: '#D4AF37' },
+  { value: 'proposal', label: '提案', color: '#2563EB' },
+  { value: 'question', label: '疑问', color: '#6B7280' },
 ];
 
 /** 获取当前登录用户 personId（plan 中为 AuthStore.getCurrentPersonId，修正为实际 API） */
@@ -41,28 +41,28 @@ export function renderIssueForm() {
 
       <div class="space-y-4">
         <div>
-          <label class="text-xs text-gray-600 mb-1 block">标题 <span class="text-red-500">*</span></label>
-          <input type="text" id="form-title" class="input-flat w-full text-sm rounded-lg p-2" placeholder="一句话说清 issue 的核心">
+          <label class="text-xs text-gray-600 mb-1 block font-sans">标题 <span class="text-red-500">*</span></label>
+          <input type="text" id="form-title" class="input-flat w-full text-sm rounded-lg p-2 font-sans" placeholder="一句话说清 issue 的核心">
         </div>
 
         <div>
-          <label class="text-xs text-gray-600 mb-1 block">正文 <span class="text-red-500">*</span></label>
-          <textarea id="form-body" rows="6" class="input-flat w-full text-sm rounded-lg p-2" placeholder="详细描述：背景/痛点/期望/参考资料"></textarea>
+          <label class="text-xs text-gray-600 mb-1 block font-sans">正文 <span class="text-red-500">*</span></label>
+          <textarea id="form-body" rows="6" class="input-flat w-full text-sm rounded-lg p-2 font-sans" placeholder="详细描述：背景/痛点/期望/参考资料"></textarea>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-xs text-gray-600 mb-1 block">scope（单选）<span class="text-red-500">*</span></label>
-            <select id="form-scope" class="input-flat w-full text-sm rounded-lg p-2">
+            <label class="text-xs text-gray-600 mb-1 block font-sans">scope（单选）<span class="text-red-500">*</span></label>
+            <select id="form-scope" class="input-flat w-full text-sm rounded-lg p-2 font-sans">
               ${SCOPE_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
             </select>
           </div>
 
           <div>
-            <label class="text-xs text-gray-600 mb-1 block">type（多选）<span class="text-red-500">*</span></label>
+            <label class="text-xs text-gray-600 mb-1 block font-sans">type（多选）<span class="text-red-500">*</span></label>
             <div class="space-y-1">
               ${TYPE_OPTIONS.map(t => `
-                <label class="flex items-center gap-2 text-xs cursor-pointer">
+                <label class="flex items-center gap-2 text-xs cursor-pointer font-sans">
                   <input type="checkbox" name="form-type" value="${t.value}" class="rounded">
                   <span class="px-1.5 py-0.5 rounded-full font-medium" style="background:${t.color}15;color:${t.color}">${t.label}</span>
                 </label>
@@ -72,8 +72,8 @@ export function renderIssueForm() {
         </div>
 
         <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
-          <a href="./feedback.html" class="px-4 py-2 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</a>
-          <button id="btn-submit-issue" class="px-4 py-2 text-sm rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">提交 issue</button>
+          <a href="./feedback.html" class="px-4 py-2 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 font-sans">取消</a>
+          <button id="btn-submit-issue" class="px-4 py-2 text-sm rounded-lg text-white hover:opacity-90 transition-colors font-sans" style="background:#CE1126;">提交 issue</button>
         </div>
       </div>
     </div>
