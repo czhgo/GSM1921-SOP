@@ -38,7 +38,8 @@ export function renderIssueList() {
 
   container.innerHTML = `
     <div class="card rounded-2xl p-6 mb-4">
-      <div class="flex items-center justify-end mb-4">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-title-cn text-base font-semibold text-gray-700">全部意见 <span class="text-xs font-normal text-gray-400">open ${counts.open} · closed ${counts.closed}</span></h3>
         ${canCreate ? `<button id="btn-new-issue" class="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors" style="background:#CE1126;" onmouseover="this.style.background='#991B1B'" onmouseout="this.style.background='#CE1126'">+ 新 issue</button>` : ''}
       </div>
 

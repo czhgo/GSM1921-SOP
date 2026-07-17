@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // components/header.js — 共享顶栏组件（重构版）
 // 变化: 去掉 mode 标签，改为当前身份标签 + 只读切换下拉
 
@@ -38,8 +38,8 @@ function _viewSwitcherHTML(role) {
     const activeBar = isSelected
       ? `<span style="position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--party-gold);border-radius:1px;"></span>`
       : '';
-    const selectedBg = isSelected ? 'background:rgba(255,255,255,0.08);' : '';
-    return `<div class="view-option" data-role="${r}" style="position:relative;padding:8px 12px;cursor:pointer;color:#FFFFFF;font-size:13px;transition:background 0.15s;${selectedBg}">${activeBar}<span>${ROLE_LABELS[r] || r}</span></div>`;
+    const selectedBg = isSelected ? 'background:var(--surface-hover);' : '';
+    return `<div class="view-option" data-role="${r}" style="position:relative;padding:8px 12px;cursor:pointer;color:var(--neutral-800);font-size:13px;transition:background 0.15s;${selectedBg}">${activeBar}<span>${ROLE_LABELS[r] || r}</span></div>`;
   }).join('');
 
   return `
@@ -48,7 +48,7 @@ function _viewSwitcherHTML(role) {
         <span>我的视角</span>
         <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style="flex-shrink:0;"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <div id="view-switcher-panel" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;width:180px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);background:#1F2937;color:#FFFFFF;overflow:hidden;z-index:100;">
+      <div id="view-switcher-panel" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;width:180px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);background:var(--surface-card);color:var(--neutral-800);overflow:hidden;z-index:100;border:1px solid #E5E7EB;">
         ${optionItems}
       </div>
     </div>
@@ -151,12 +151,12 @@ function _bindViewSwitcher(header) {
   // 点击选项项
   panel.querySelectorAll('.view-option').forEach(opt => {
     opt.addEventListener('mouseenter', () => {
-      opt.style.background = 'rgba(255,255,255,0.1)';
+      opt.style.background = 'var(--surface-hover)';
     });
     opt.addEventListener('mouseleave', () => {
       // 选中项保持高亮背景
       const isSelected = opt.dataset.role === AuthStore.getViewRole();
-      opt.style.background = isSelected ? 'rgba(255,255,255,0.08)' : 'transparent';
+      opt.style.background = isSelected ? 'var(--surface-hover)' : 'transparent';
     });
     opt.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -210,7 +210,7 @@ function _refreshViewSwitcherSelection(panel) {
       existingBar.remove();
     }
     // 更新背景
-    opt.style.background = isSelected ? 'rgba(255,255,255,0.08)' : 'transparent';
+    opt.style.background = isSelected ? 'var(--surface-hover)' : 'transparent';
   });
 }
 
@@ -301,7 +301,4 @@ function _bindNotificationBell(header) {
 
   document.addEventListener('click', (e) => {
     if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
-      dropdown.classList.add('hidden');
-    }
-  });
-}
+      dropdown.classList.add

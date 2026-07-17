@@ -34,8 +34,9 @@
   --accent-blue:       #3B82F6;
   --accent-emerald:    #059669;
   --accent-secretary:        #B91C1C;  /* 党支书 — 党建红（不动） */
-  --accent-leader:           #abd7c8;  /* 党小组组长 — 水绿 */
-  --accent-org-commissioner: #0E7490;  /* 组织委员 — 深青 */
+  --accent-deputy-secretary: #B91C1C;  /* 党支副书记 — 党建红（同书记） */
+  --accent-leader:           #4ADE80;  /* 党小组组长 — 亮绿 */
+  --accent-org-commissioner: #22D3EE;  /* 组织委员 — 亮青 */
   --accent-prop-commissioner:#2563EB;  /* 宣传委员 — 海蓝 */
   --accent-disc-commissioner:#C2410C;  /* 纪检委员 — 深橙 */
   --accent-organizer:        #a4d9f4;  /* 组织者 — 淡蓝 */
@@ -44,8 +45,9 @@
 
   /* ── 角色识别色 — Light 变体（用于 border-left / 浅底色等低饱和场景） ── */
   --accent-secretary-light:        #FCA5A5;  /* red-300 */
-  --accent-leader-light:           #d1f0e3;  /* 水绿-light */
-  --accent-org-commissioner-light: #67E8F9;  /* cyan-300 */
+  --accent-deputy-secretary-light: #FCA5A5;  /* red-300 （同书记） */
+  --accent-leader-light:           #BBF7D0;  /* lime-200 */
+  --accent-org-commissioner-light: #A5F3FC;  /* cyan-200 */
   --accent-prop-commissioner-light:#93C5FD;  /* blue-300 */
   --accent-disc-commissioner-light:#FDBA74;  /* orange-300 */
   --accent-organizer-light:        #bae6fd;  /* 淡蓝-light */
