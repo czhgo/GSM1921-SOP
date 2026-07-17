@@ -1,15 +1,16 @@
 import { ROLE_LABELS } from '../core/constants.js';
 import { getBasePath } from '../core/utils.js';
+import { icon } from '../core/icons.js';
 
 const COMMISSIONER_DATA = [
   {
     role: 'org-commissioner',
     name: '组织委员',
     person: '侯嘉嵘',
-    color: '#CE1126',
-    colorBg: 'rgba(206,17,38,0.06)',
-    colorBorder: 'rgba(206,17,38,0.15)',
-    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>',
+    color: '#8B5CF6',
+    colorBg: 'rgba(139,92,246,0.06)',
+    colorBorder: 'rgba(139,92,246,0.15)',
+    icon: icon('users', { size: 20, strokeWidth: 1.8 }),
     workspace: {
       title: '专班建设',
       desc: '招募统筹·定人定责定岗',
@@ -17,9 +18,9 @@ const COMMISSIONER_DATA = [
       page: 'workspace/org.html',
     },
     party: {
-      title: '党员发展全流程',
+      title: '发展党员全流程',
       desc: '考察/催缴/归档',
-      items: ['发展党员追踪看板', '材料催缴提醒', '思想汇报归档', '合规文件管理'],
+      items: ['发展党员追踪看板', '材料催缴提醒', '制度文件管理'],
       page: 'party/org.html',
     },
   },
@@ -27,10 +28,10 @@ const COMMISSIONER_DATA = [
     role: 'prop-commissioner',
     name: '宣传委员',
     person: '闫鑫岳',
-    color: '#10B981',
-    colorBg: 'rgba(16,185,129,0.06)',
-    colorBorder: 'rgba(16,185,129,0.15)',
-    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>',
+    color: '#3B82F6',
+    colorBg: 'rgba(59,130,246,0.06)',
+    colorBorder: 'rgba(59,130,246,0.15)',
+    icon: icon('megaphone', { size: 20, strokeWidth: 1.8 }),
     workspace: {
       title: '活动与专班视图',
       desc: '宣传材料/周报',
@@ -51,7 +52,7 @@ const COMMISSIONER_DATA = [
     color: '#D97706',
     colorBg: 'rgba(217,119,6,0.06)',
     colorBorder: 'rgba(217,119,6,0.15)',
-    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    icon: icon('scale', { size: 20, strokeWidth: 1.8 }),
     workspace: {
       title: '考勤·考察·监督',
       desc: '考勤管理·考察管理·活动监督复盘',
@@ -70,19 +71,19 @@ const COMMISSIONER_DATA = [
 const DOMAIN_META = {
   workspace: {
     label: '党建工作台',
-    subtitle: '创新探索·面向未来',
+    subtitle: '服务同学们的核心职能',
     accent: '#CE1126',
     accentBg: 'rgba(206,17,38,0.04)',
     accentBorder: 'rgba(206,17,38,0.12)',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
+    icon: icon('cog', { size: 18, strokeWidth: 1.8 }),
   },
   party: {
     label: '党务管理',
-    subtitle: '合规运行·面向存量',
-    accent: '#7A0010',
-    accentBg: 'rgba(122,0,16,0.04)',
-    accentBorder: 'rgba(122,0,16,0.12)',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+    subtitle: '党务管理与运行保障',
+    accent: '#B91C1C',
+    accentBg: 'rgba(185,28,28,0.04)',
+    accentBorder: 'rgba(185,28,28,0.12)',
+    icon: icon('party', { size: 18, strokeWidth: 1.8 }),
   },
 };
 
@@ -95,7 +96,7 @@ export function renderCommissionerMatrix(containerId) {
   container.innerHTML = `
     <div class="mb-6">
       <div class="flex items-center gap-3 mb-2">
-        <h3 class="font-title-cn text-lg font-bold text-gray-800">三委员双域职责矩阵</h3>
+        <h3 class="font-title-cn text-lg font-bold text-gray-800">三委员党建与党务工作职责矩阵</h3>
       </div>
       <p class="text-sm text-gray-500 mb-4">同一位委员，在党建工作台和党务管理中承担不同职责。点击卡片可跳转至对应工作页面。</p>
     </div>
@@ -140,7 +141,7 @@ export function renderCommissionerMatrix(containerId) {
                     `).join('')}
                   </ul>
                   <div class="mt-3 text-[10px] text-gray-400 group-hover:text-blue-500 transition-colors flex items-center gap-1">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+                    ${icon('arrowRight', { size: 12 })}
                     进入${meta.label}
                   </div>
                 </a>
@@ -151,7 +152,7 @@ export function renderCommissionerMatrix(containerId) {
       `).join('')}
     </div>
 
-    <div class="mt-4 p-3 rounded-lg bg-gray-50 border border-gray-100">
+    <div class="mt-4 p-3 rounded-lg bg-gray-100 border border-gray-100">
       <p class="text-xs text-gray-500">
         <strong>核心规则</strong>：组织委员是唯一专班管理节点；纪检委员不生长专班（内控隔离）；宣传委员不可自行招募宣传专班，赋权操作统一归口组织委员。
         考勤数据同源——组织委员的活动出勤数据直接使用纪检委员维护的考勤系统。

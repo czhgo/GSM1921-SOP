@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: "2026-07-13"
+last_updated: "2026-07-17"
 status: active
 related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, content/strategy/, content/design/, content/governance/, content/insights/, .ctx/logs/]
 ---
@@ -22,7 +22,7 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 > Harness 是项目的"宪法"——定义工作方式、核心原则和运行标准。
 > 修改 Harness 须经书记确认，且必须一改具改（见 H2）。
 >
-> **三层架构**：热层（每次必读：H1/H2/H3）→ 温层（修改时读：H4/H5）→ 冷层（按需参考：H6 外部索引）
+> **三层架构**：热层（每次必读：H1/H2/H3）→ 温层（修改时读：H4/H5）→ 冷层（按需参考：H6 外部索引 + H7 项目产出声明）
 > **忽略目录**：`.github/` — 智能体治理仅在VSCode中可用，Trae中忽略此目录（D-186）
 
 ***
@@ -58,6 +58,9 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 > - 在丙部中提问确认意图（H4.2 丙部待决策机制）
 > - 宁可多问一句，不可误判意图。**不知为不知，是知也。**
 > - 🔴 **有疑问必须主动 /ask 书记确认，不得自行假设或基于猜测执行**——这是防止误判意图的最后一道防线。宁可多问一句，不可自行其是。
+> 🔴 **【不允许随意结束 session】**：有拿不准的地方不得擅做决断，必须积极及时使用 AskUserQuestion 询问书记！！必须推进完成所有工作，不得中途放弃或跳过未决事项！！这是一条独立于歧义消解铁律的强制规则——即使任务看似简单，只要存在任何不确定，就必须先确认再执行；即使遇到困难，也必须推进到底，不得以"大致完成"为由提前结束 session。**执行顺序**：歧义消解优先（先问清再做），消解后再推进执行（不半途而废）。
+>
+> **AI 展开原则**：写出的话应是"grill 书记后的话"——吃透精神后用自己的语言讲透，而非复读或标注边界（详见 USAGE_POLICY.md §1.9）。
 
 ### H1.3 next\_prompt（🔴 每次工作结束的强制输出）
 
@@ -137,6 +140,7 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 □ 6. YAML 更新：🔴 任何有 YAML frontmatter 的文件被修改后，必须更新 last_updated 字段。子任务修改文件时同样必须遵守。遗漏即违规。
 □ 7. 记录日志：写入 .ctx/logs/YYYY-MM-EXECUTION_LOG.md
 □ 8. 乙部更新：若涉及执行事项，更新 CLAUDE.md 乙部
+□ 9. 表达合规：若本次修改涉及书记原话展开，必须调用 USAGE_POLICY.md §1.9.3 五条可复用检查规则自查（"而非"警惕/"所以"因果链/反面假设/私加强调/元叙事标签）
 ```
 
 ***
@@ -177,10 +181,11 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 
 ### H4.2 丙部待决策机制
 
-> 🔴 **以下两类场景必须写入丙部提交书记决策，不得自行决定。**
+> 🔴 **以下场景必须写入丙部提交书记决策，不得自行决定。**（含甲部其他规则衍生的写入路径）
 >
 > 1. **拿不定主意**：AI 在执行任务时遇到选择困难，无法自行判断方向
 > 2. **发现待决策项**：AI 在分析过程中识别出需要人类判断的事项（如孤立组件、设计分歧、功能去留），即使 AI 自己没有选择困难，也必须提交
+> 3. **甲部衍生路径**：H2.4 结构不兼容 / H5.4 设计性问题 / 其他甲部规则明确要求入丙部的场景
 
 **自省补丁（D-207）**：此前 H4.2 仅覆盖"拿不定主意"，未覆盖"发现待决策项"。后者是独立触发条件——AI 可能对某事项有自己的判断，但该事项涉及功能去留/设计方向，属于人类决策权范畴，AI 不得自行处置。
 
@@ -225,11 +230,15 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 
 ### H5.3 评议流程
 1. AI 抽样 10-15 条命题
-2. 对每条命题输出四维度预审报告：
+2. 对每条命题按其特性灵活选择预审维度（不锁定数量）：
    - **表述**：术语合规性（T1/T2/T3）、设问句、主观预设、书面语风格
    - **内容**：与母本一致性、跨文件引用断裂、事实准确
    - **精神实质**：是否传达书记思想精髓（AI 给初步判断+存疑点）
    - **实现方法**：是否有代码/设计支撑、是否可落地
+   - **合规溯源**（按需）：是否可追溯到书记原话或制度原文，AI 推导须标注
+   - **奥卡姆剃刀**（按需）：是否存在"为概括而概括""fancy 但无内涵"的标签或结构性数字隐喻
+
+   **维度选择原则**：AI 默认参考上述常规维度，但根据命题特性灵活选择——纯术语违规的命题可只审"表述"一维度，涉及制度设计的命题可增审"合规溯源"维度。若某命题只审部分维度，预审报告中注明"本次仅审 XX 维度，理由：……"。四维度为常规参考，非强制锁定。
 3. AI 将完整预审报告写入 `.ctx/REVIEW_QUEUE.md`，通知书记可随时评议
 4. 书记在 REVIEW_QUEUE.md 中填写反馈
 5. AI 读取反馈，按 H5.4 三层分流归档，按 H5.6 校验后将完整记录写入执行日志 T 编号，然后清空 REVIEW_QUEUE.md 当前轮次（REVIEW_QUEUE.md 是上下文文件不是日志文件，历史记录不在此留存）
@@ -250,7 +259,7 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 
 作为月度执行日志的一条 T 编号条目（如 T73 书记评议·首评），包含：
 - 抽样清单（10-15 条命题+位置）
-- 四维度预审结果摘要
+- 预审结果摘要（按命题特性灵活选择的维度+各维度结果）
 - 书记反馈摘要
 - 反馈落实摘要：
   - 机械性问题：全仓库扫描范围 + 修订数量 + 抽样校验清单 + 书记判断结果 + 零残留 Grep 验证结果
@@ -274,6 +283,8 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 **为什么需要校验**：书记的判断是修订合理性的最终标尺。AI 自行判定的"标准表述"可能与书记认可的"工作表达"冲突——例如某处设问句是反论结构标记，不应被机械修订为陈述句。
 
 **适用范围**：仅适用于机械性问题的全仓库扫描修订；即时小修订和设计性问题不触发校验。
+
+**终止条件**：每轮校验后，若书记仍有反馈则继续迭代；若书记明确"暂时到此"或当前 session 上下文已接近上限，则在 next\_prompt 中记录校验进度和待续项，由下一个 session 继续。不允许因偷懒放弃，但允许因上下文限制而挂起并交接。
 
 ***
 
@@ -309,6 +320,42 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 | 查母本链路 | [SSOT_INDEX.md](SSOT_INDEX.md) |
 | 取用模板 | `content/references/工作模板/` |
 | 查可用 Skills | `npx skills find <keyword>` |
+| 看项目产出声明 | 本文件 H7 |
+
+***
+
+***
+
+## H7. 项目产出声明
+
+> 系统最最重要的产出不是某个功能模块，而是一个完整叙事——"管理事，服务人"作为总论，囊括一整套组织架构/分工/SOP 和一整套关于 AI-driven 的组织形态的仓库工作流。本节是元命题的治理层锚点。
+
+### H7.1 系统最最重要的产出
+
+书记原话（2026-07-14）："系统最最重要的产出，是【管理事，服务人】一个'从入党申请人到正式党员'的完整叙事【这个故事囊括了②和③】，其中最重要的内容（1）一方面是积极分子、发展对象……到正式党员的流程怎么走（这是大家最关心的问题）；（2）另一方面就是我们在实际工作中形成的，关于一个学生的党支部中 组织性如何判定的过程（这里面可能还有一些小小的逻辑缺漏——在这里获得的组织性和生涯发展的关系是什么，为什么这是一个很宝贵的机会，这部分我会做更加详细的判定，但是你要记得这部分是须要补充完整的）。"
+
+**三层产出结构**：
+
+| 层级 | 内容 | 权威源 |
+|------|------|--------|
+| ① 总论叙事 | "管理事，服务人"——从入党申请人到正式党员的完整路径，囊括②和③ | [DEVELOPMENT_PATH.md](content/strategy/DEVELOPMENT_PATH.md) + [SECRETARY_PRONOUNCEMENTS.md P-045](SECRETARY_PRONOUNCEMENTS.md) |
+| ② 组织架构与 SOP | 一整套组织架构、分工、SOP | `content/sop/` + `content/strategy/FLAT_DESIGN.md` + `content/strategy/COMMISSIONER_FRAMEWORK.md` |
+| ③ AI-driven 仓库工作流 | 一整套关于 AI-driven 的组织形态的仓库工作流（上下文、Harness、提示词） | 本文件 CLAUDE.md（Harness）+ `content/governance/OPERATIONS_GUIDE.md` + `.ctx/`（审计底座） |
+
+### H7.2 逻辑缺漏与书记亲补
+
+书记特别标注了一个"逻辑缺漏"——"在这里获得的组织性和生涯发展的关系是什么，为什么这是一个很宝贵的机会"——这部分由书记亲自补充完整，AI 不得自行假设或基于猜测补全。
+
+书记已于 2026-07-14 亲补两个宝贵机会：
+- **机会1**：民主集中制下感受真实组织的两个向度——"赋权"背景下的程序性 和 "探索"背景下的扁平化。详见 [SECRETARY_PRONOUNCEMENTS.md P-043](SECRETARY_PRONOUNCEMENTS.md) + [DEVELOPMENT_PATH.md 第一章收束](content/strategy/DEVELOPMENT_PATH.md)。
+- **机会2**：AI 时代中学生党支部的探索机会——①真实地参与组织制度和组织文化的构建；②在"没有经济负担"的背景下探索 AI 时代下组织转型的萌芽和组织产品的生产。详见 [SECRETARY_PRONOUNCEMENTS.md P-044](SECRETARY_PRONOUNCEMENTS.md) + DEVELOPMENT_PATH.md 第一章收束。
+
+### H7.3 引用流程
+
+- 任何涉及"系统产出是什么"的总论性表述，引用本节 H7
+- 任何涉及"发展路径"的具体叙事，引用 [DEVELOPMENT_PATH.md](content/strategy/DEVELOPMENT_PATH.md)
+- 任何涉及"书记论断"的具体论断，引用 [SECRETARY_PRONOUNCEMENTS.md](SECRETARY_PRONOUNCEMENTS.md)
+- 本节为治理层锚点，不承载叙事全文——叙事全文在 DEVELOPMENT_PATH.md，论断全文在 SECRETARY_PRONOUNCEMENTS.md
 
 ***
 
@@ -318,7 +365,7 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 
 > **常为新的原则**：
 >
-> 1. 每个条目必须有**引用流程**——指向甲部（H1\~H6）或 guides 或 insights 中的对应原则
+> 1. 每个条目必须有**引用流程**——指向甲部（H1\~H7）或 guides 或 insights 中的对应原则
 > 2. 条目完成后，在确认已写入【执行日志】的前提下，**直接删去**
 > 3. 补充新的执行事项时，必须标注引用流程
 > 4. 已完成事项的详细信息归档于 `.ctx/logs/DECISION_LOG.md` 和月度执行日志
@@ -336,7 +383,7 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 | C-2 | **一改具改巡检**：定期检查仓库中是否存在信息重复散落，发现后归并至权威源                                                                                                    | H2.1 + OPERATIONS\_GUIDE.md §7                                    | 全仓库                                | 🔄 持续 |
 | C-3 | **经验蒸馏**：从执行日志和决策日志中提炼可复用模式，写入 insights                                                                                                   | H2.4 + OPERATIONS_GUIDE.md §13.1 → [党支部管理与实务经验沉淀.md](content/insights/党支部管理与实务经验沉淀.md) | `content/insights/`                | 🔄 持续 |
 | C-4 | **视觉体验持续优化**：颜色方案调优 + 卡片设计（嵌套/并列/顺序排布）审校修订                                                                                                | PARTICIPANT_DATAFLOW.md §八 差异化视图 + DESIGN\_SYSTEM.md                    | `docs/src/styles.css` + 各 entry JS | 🔄 持续 |
-| C-5 | **术语审计**：定期扫描全仓库过时术语（活动建设/组织建设残留、之上/之下、归档→人才库混用等），发现后归并至权威源                                                                               | H2.1 一改具改 + OPERATIONS\_GUIDE.md §7                               | 全仓库                                | 🔄 持续 |
+| C-5 | **术语与表达审计**：定期扫描全仓库过时术语（活动建设/组织建设残留、之上/之下、归档→人才库混用等），并调用 USAGE_POLICY §1.9.3 五条可复用检查规则扫描 AI 没吃透精神的表达模式（"而非"对立/"所以"因果链/反面假设/私加强调/元叙事标签），发现后归并至权威源 | H2.1 一改具改 + OPERATIONS\_GUIDE.md §7 + USAGE\_POLICY.md §1.9.3 | 全仓库 | 🔄 持续 |
 
 ***
 
@@ -358,8 +405,7 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 
 | ID  | 事项 | 引用流程 | 修改对象 | 状态 |
 | --- | ---- | ------ | ------ | ---- |
-| T-2026-07-001 | **sop/ 补 why 讲解（27 处）**：为 sop/ 6 个文件的关键执行流程补充"为什么这样设计/为什么这一步重要/如果不这样会怎样"讲解。分布：常见工作场景快速指南.md 5处、党小组组长工作手册.md 5处、支委与党小组定人定责定岗说明.md 5处、纪检委员工作流程指南.md 5处、组织委员工作流程指南.md 4处、宣传委员工作流程指南.md 3处。母本材料：MANAGE_SERVE.md、PARTICIPANT_DATAFLOW.md、COMMISSIONER_FRAMEWORK.md、FLAT_DESIGN.md。执行方式：建议新开 session，用 spec 模式细化每处补 why 的具体位置和内容方向后再修改。前置：T64 已记录机械性修复+术语合规+T2 分级完成 | spec.md（content-audit-design）+ H2.4 经验沉淀 | `content/sop/*.md` | ⏸️ 暂停 |
-| T-2026-07-006 | **权限系统大改（面向上线）**：书记明确"权限矩阵应该是属于系统设计的部分，这一部分还要大改"。系统面向上线部署，需重新设计角色体系+任务流/信息流（含赋权）+Mock 数据迭代机制。预计 3 轮以上。权限矩阵已迁入 governance/ROLE_CLASSIFICATION.md §九。第 1 轮（权限模型重构）+第 2 轮（项目角色赋权+权限矩阵文档）+第 3 轮（UI 改造+视角切换重做+登录页重设计+人员管理扩展）已完成。第 4 轮候补：真实场景迭代+mock 数据迭代 | H2.2 母本子本关系 + brainstorming skill | `content/governance/ROLE_CLASSIFICATION.md` §九 + `docs/src/services/auth.js` + `docs/src/components/{sidebar,header}.js` + `docs/login.html` + `docs/members.html` | ✅ 第 3 轮完成（待第 4 轮：真实场景迭代+mock 数据迭代） |
+| 当前无待办 | — | — | — | — |
 
 ***
 
@@ -373,12 +419,10 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 
 当前无待决策事项。
 
-上一轮 P.1（面向新成员的"组织性"故事重构）已完成决策并执行——第一步（AI 草拟反论框架）+ 第二步（总分总故事结构）均通过 brainstorming 完成决策，第一章已重构为总分总叙事结构。
+> **已决策归档**（2026-07-16）：P.1 统一中文 / P.2 允许并补赋权 / P.3 系统不应有思想汇报功能（手写提交） / P.4 本轮补建复盘状态枚举。详见 DECISION_LOG.md。
+> **已决策方向**（2026-07-17）：UI-P-006 支委应有日历视图（可选切换）。
+> **已决策归档**（2026-07-17）：P.5 动画区分对待原则搁置（D-243，help 动画整体重做时再定）/ P.6 角色图标采用职能动作隐喻（D-244，宣传=喇叭/纪检=天平/组织=齿轮）。详见 DECISION_LOG.md。
 
-上一轮 P.2（专班与活动并列）已完成决策——书记选择"A. 全部改为独立"，补充原则"专班因不限时间不限地点，与活动互斥"。已执行：6 个专班 activityId 改为 null + 移除招募表单"关联活动"选择器 + 移除宣传委员视图死代码。
-
-上一轮 P.3（活动复盘模板设计方向）已完成决策——书记选择"B. 系统内表单"。已执行：TEMPLATE_LIST desc 更新为"系统内表单·标准化工作流"。
-
-记录见 `.ctx/logs/2026-07-EXECUTION_LOG.md`。
+历史决策记录见 `.ctx/logs/2026-07-DECISION_LOG.md` 及 `.ctx/logs/DECISION_LOG.md`。
 
 ***

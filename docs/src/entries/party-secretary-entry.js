@@ -4,6 +4,7 @@ import { PartyModule } from '../modules/party.js';
 import { showToast } from '../core/utils.js';
 import { loadPartyData } from '../core/data-loader.js';
 import { renderTabBar } from '../components/tab-bar.js';
+import { renderPartyCrossNav } from '../components/party-cross-nav.js';
 
 const { accent, accentRgba, accentBorder } = bootstrapPage({ module: 'party', accentRole: 'secretary', accentAlpha: [0.08, 0.2] });
 
@@ -11,20 +12,24 @@ function renderSecPartyUI() {
   const container = document.getElementById('sec-party-content');
   if (!container) return;
 
+  // 跨支委导航栏（A2: party 跨支委查看权限）
+  renderPartyCrossNav('secretary', document.getElementById('party-cross-nav'));
+
   const tabBar = renderTabBar({
     prefix: 'secp',
     tabs: [
       { id: 'overview', label: '全局聚合', render: () => _renderTab('overview') },
       { id: 'batch', label: '批量操作', render: () => _renderTab('batch') },
-      { id: 'feedback', label: '意见反馈', render: () => _renderTab('feedback') },
+      { id: 'feedback', label: '提案讨论', render: () => _renderTab('feedback') },
     ],
     accentColor: { accent, accentRgba, accentBorder },
     defaultTab: 'overview',
+    storageKey: 'workflowos_tab_secp',
   });
 
   container.innerHTML = tabBar.html;
   tabBar.bindEvents(container);
-  tabBar.activate('overview');
+  tabBar.activate(tabBar.activeTab);
 }
 
 function _renderTab(tab) {
@@ -52,7 +57,7 @@ function _renderTab(tab) {
   } else if (tab === 'feedback') {
     tc.innerHTML = `
       <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#B91C1C;">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">意见反馈数据集</h4>
+        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">提案讨论数据集</h4>
         <div class="grid grid-cols-3 gap-3 mb-4">
           <div class="text-center p-3 rounded-lg bg-amber-50"><p class="text-lg font-bold text-amber-600" id="sec-fb-pending">—</p><p class="text-[10px] text-gray-500">待处理</p></div>
           <div class="text-center p-3 rounded-lg bg-blue-50"><p class="text-lg font-bold text-blue-600" id="sec-fb-processing">—</p><p class="text-[10px] text-gray-500">处理中</p></div>

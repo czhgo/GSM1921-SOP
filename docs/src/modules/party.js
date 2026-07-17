@@ -1,19 +1,25 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 // party.js — 党务管理模块状态管理器
 //  职责：管理四大子功能的数据加载、状态流转、DOM 渲染
 //  依赖：state.js（读取 selectedRole）
 // ════════════════════════════════════════════════════════════════
 
-import { PARTY_MOCKS, CANDIDATE_STAGES, COMPLIANCE_FILES, PUBLICITY_STANDARDS, TEMPLATE_LIST } from '../mock/index.js';
+import { PARTY_MOCKS, CANDIDATE_STAGES, COMPLIANCE_FILES, PUBLICITY_STANDARDS, TEMPLATE_LIST, ACTIVITIES, getPersonName } from '../mock/index.js';
 import { getAppState } from '../core/state.js';
 import { showToast } from '../core/utils.js';
+import { icon } from '../core/icons.js';
 import { openFormModal } from '../components/modal.js';
 import { filterForViewProxy, assignedRoles, computeSecretaryStats } from '../services/roles.js';
 import { createStoreWithMockData } from '../workflow/index.js';
 import { NoticeStore, NoticePermission } from '../services/notice.js';
 import { FeedbackStore } from '../services/feedback.js';
+import { ImageRecordStore } from '../services/image.js';
 import { ACCENT_COLORS } from '../core/constants.js';
+import { renderQueryView } from '../components/query-view.js';
+
+// 报送记录归档 localStorage key（每周一报送流程）
+const WEEKLY_REPORT_STORAGE_KEY = 'workflowos_weekly_report_records_v1';
 
 // ════════════════════════════════════════════════════════════════
 //  Mock 数据定义
@@ -29,6 +35,7 @@ export const PartyModule = {
     makeupTasks: [],
     feedbackItems: [],
     mailboxLastCheck: null,
+    weeklyReportRecords: [],
   },
 
   recordStore: null,
@@ -38,6 +45,118 @@ export const PartyModule = {
       this.recordStore = createStoreWithMockData();
     }
     return this.recordStore;
+  },
+
+  // ── 每周一报送流程：报送记录归档（localStorage 持久化） ──
+  _loadWeeklyReports() {
+    try {
+      const raw = localStorage.getItem(WEEKLY_REPORT_STORAGE_KEY);
+      this.state.weeklyReportRecords = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      console.warn('[PartyModule] 报送记录加载失败：', e);
+      this.state.weeklyReportRecords = [];
+    }
+    return this.state.weeklyReportRecords;
+  },
+
+  _saveWeeklyReports() {
+    try {
+      localStorage.setItem(WEEKLY_REPORT_STORAGE_KEY, JSON.stringify(this.state.weeklyReportRecords));
+    } catch (e) {
+      console.warn('[PartyModule] 报送记录保存失败：', e);
+    }
+  },
+
+  // 汇总最近 7 天活动数据 → 生成"每周一报送"内容
+  // 与"生成周报"区分：周报是支部内部（亮点/问题/下周计划），每周一报送是向学工周报负责人报送活动信息
+  _buildWeeklySubmissionContent() {
+    const st = getAppState();
+    const activities = st.activities || [];
+
+    const today = new Date();
+    const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fmt = (d) => d.toISOString().slice(0, 10);
+
+    const weekStart = fmt(sevenDaysAgo);
+    const weekEnd = fmt(today);
+
+    const weekActivities = activities.filter(a => {
+      if (!a.date) return false;
+      const d = a.date.replace(/\//g, '-');
+      return d >= weekStart && d <= weekEnd;
+    }).sort((a, b) => a.date.localeCompare(b.date));
+
+    const items = weekActivities.map(a => ({
+      date: a.date,
+      title: a.title,
+      type: a.type || '—',
+      location: a.location || '—',
+      organizer: getPersonName(a.organizer),
+      direction: a.direction === 'top-down' ? '支部发起' : (a.direction === 'bottom-up' ? '党小组发起' : '—'),
+      status: a.status === 'completed' ? '已完成' : (a.status === 'draft' ? '筹备中' : (a.status || '—')),
+    }));
+
+    const summary = `本周（${weekStart} 至 ${weekEnd}）共开展 ${items.length} 项活动。` +
+      (items.length > 0
+        ? items.map((it, i) =>
+            `${i + 1}. ${it.date} ${it.title}（${it.type}）：地点 ${it.location}，组织者 ${it.organizer}（${it.direction}），状态 ${it.status}`
+          ).join('；')
+        : '本周暂无活动记录。');
+
+    return {
+      weekStart,
+      weekEnd,
+      count: items.length,
+      items,
+      summary,
+    };
+  },
+
+  // 提交每周一报送：生成内容 → 通知书记 → 归档
+  // editedSummary 可选：用户在表单中编辑后的报送内容；省略则使用自动生成内容
+  submitWeeklyReport(editedSummary) {
+    const content = this._buildWeeklySubmissionContent();
+    const summary = editedSummary || content.summary;
+
+    const { selectedRole } = getAppState();
+    const publisher = selectedRole || 'prop-commissioner';
+    const today = new Date().toISOString().slice(0, 10);
+
+    // 发送系统内部通知给书记
+    const notice = NoticeStore.add({
+      title: `每周一报送（${content.weekStart} 至 ${content.weekEnd}）`,
+      content: summary,
+      priority: 'normal',
+      publishDate: today,
+      targetModule: 'party',
+      publisher,
+    }, publisher);
+
+    if (!notice) {
+      showToast('error', '报送失败：通知权限不足');
+      return null;
+    }
+
+    // 归档报送记录（报送时间/内容/通知ID）
+    if (!this.state.weeklyReportRecords.length) {
+      this._loadWeeklyReports();
+    }
+    const record = {
+      id: 'wr-' + Date.now(),
+      submitDate: today,
+      weekStart: content.weekStart,
+      weekEnd: content.weekEnd,
+      count: content.count,
+      summary,
+      items: content.items,
+      noticeId: notice.id,
+      publisher,
+    };
+    this.state.weeklyReportRecords = [record, ...this.state.weeklyReportRecords];
+    this._saveWeeklyReports();
+
+    showToast('success', `报送已提交，通知已发送给书记（本周 ${content.count} 项活动）`);
+    return record;
   },
 
   loadAll() {
@@ -58,9 +177,9 @@ export const PartyModule = {
     if (activeTab) return activeTab.dataset.commissioner;
     const { selectedRole } = getAppState();
     if (selectedRole === 'secretary')           return 'secretary';
-    if (selectedRole === 'disc-commissioner')   return 'inspector';
+    if (selectedRole === 'disc-commissioner')   return 'disc-commissioner';
     if (selectedRole === 'org-commissioner')    return 'organizer';
-    if (selectedRole === 'prop-commissioner')   return 'publicity';
+    if (selectedRole === 'prop-commissioner')   return 'prop-commissioner';
     return 'default';
   },
 
@@ -78,15 +197,14 @@ export const PartyModule = {
 
     if (commissioner === 'secretary') {
       this.refreshSecretaryAggregateView();
-    } else if (commissioner === 'inspector') {
+    } else if (commissioner === 'disc-commissioner') {
       this.refreshMakeupStatus();
       this.refreshMailboxReminder();
     } else if (commissioner === 'organizer') {
       this.refreshCandidateTracker();
       this.refreshMaterialRemind();
-      this.refreshThoughtReport();
       this.renderComplianceRefs('organizer-compliance-file-list', 'organizer-compliance-reader');
-    } else if (commissioner === 'publicity') {
+    } else if (commissioner === 'prop-commissioner') {
       this.refreshArchives();
       this.refreshMaterialStandards();
       this.refreshTemplateMgmt();
@@ -113,7 +231,7 @@ export const PartyModule = {
   },
 
   refreshMakeupStatus() {
-    const container = document.getElementById('inspector-makeup-list');
+    const container = document.getElementById('disc-commissioner-makeup-list');
     if (!container) return;
 
     const tasks = this.state.makeupTasks;
@@ -122,19 +240,31 @@ export const PartyModule = {
       return;
     }
 
-    container.innerHTML = tasks.map(task => `
-      <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-        <div class="flex-1 min-w-0">
-          <div class="text-sm font-medium text-gray-800">${task.name}</div>
-          <div class="text-xs text-gray-500 mt-1">缺勤活动：${task.absentActivity} | 缺勤日期：${task.absentDate}</div>
-        </div>
-        <div class="flex items-center gap-2 ml-4">
-          <span class="text-xs px-2 py-1 rounded-full ${task.completed ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${task.completed ? '已补' : '待补'}</span>
-          ${!task.completed ? `<button class="btn-primary" style="padding:4px 12px;font-size:0.6875rem;" data-makeup-id="${task.id}">标记已补</button>` : ''}
-        </div>
-      </div>
-    `).join('');
+    // 将 completed 布尔值转为字符串，以兼容 renderQueryView 的筛选比较逻辑
+    const queryData = tasks.map(t => ({ ...t, completed: String(t.completed) }));
 
+    renderQueryView(container, {
+      searchPlaceholder: '搜索姓名...',
+      searchKey: 'name',
+      filters: [{ key: 'completed', label: '状态', options: [{ value: 'false', label: '待补' }, { value: 'true', label: '已补' }] }],
+      data: queryData,
+      renderRow: (task) => `
+        <div class="flex items-center justify-between p-3 bg-gray-100 rounded-xl">
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium text-gray-800">${task.name}</div>
+            <div class="text-xs text-gray-500 mt-1">缺勤活动：${task.absentActivity} | 缺勤日期：${task.absentDate}</div>
+          </div>
+          <div class="flex items-center gap-2 ml-4">
+            <span class="text-xs px-2 py-1 rounded-full ${task.completed === 'true' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${task.completed === 'true' ? '已补' : '待补'}</span>
+            ${task.completed !== 'true' ? `<button class="btn-primary" style="padding:4px 12px;font-size:0.6875rem;" data-makeup-id="${task.id}">标记已补</button>` : ''}
+          </div>
+        </div>
+      `,
+      emptyMessage: '无匹配结果',
+      accentColor: '#D97706',
+    });
+
+    // renderQueryView 渲染后重新绑定"标记已补"按钮事件
     container.querySelectorAll('[data-makeup-id]').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.dataset.makeupId;
@@ -153,7 +283,7 @@ export const PartyModule = {
   },
 
   refreshMailboxReminder() {
-    const container = document.getElementById('inspector-mailbox-info');
+    const container = document.getElementById('disc-commissioner-mailbox-info');
     if (!container) return;
 
     const lastCheck = this.state.mailboxLastCheck || '未查收';
@@ -165,7 +295,7 @@ export const PartyModule = {
     const isOverdue = daysSince !== null && daysSince >= 7;
 
     container.innerHTML = `
-      <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+      <div class="flex items-center justify-between p-3 bg-gray-100 rounded-xl">
         <div class="flex-1">
           <div class="text-sm text-gray-800">上次查收：<strong>${lastCheck}</strong></div>
           <div class="text-xs text-gray-500 mt-1">距上次查收：${daysSince !== null ? daysSince + ' 天' : '—'}</div>
@@ -194,7 +324,7 @@ export const PartyModule = {
   },
 
   refreshParticipationSummary() {
-    const container = document.getElementById('inspector-participation-list');
+    const container = document.getElementById('disc-commissioner-participation-list');
     if (!container) return;
 
     const store = this._ensureStore();
@@ -209,25 +339,25 @@ export const PartyModule = {
     ];
 
     container.innerHTML = summaryData.map(item => `
-      <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+      <div class="flex items-center justify-between p-2 bg-gray-100 rounded-lg">
         <span class="text-xs text-gray-600">${item.label}</span>
         <span class="text-sm font-medium text-gray-800">${item.value}</span>
       </div>
     `).join('') + `
       <div class="mt-3">
         <button class="btn-primary" style="padding:6px 16px;font-size:0.75rem;" id="btn-submit-to-organizer">提交至组织委员</button>
-        <button class="btn-primary" style="padding:6px 16px;font-size:0.75rem;margin-left:8px;background-color:#10B981;" id="btn-submit-to-publicity">提交至宣传委员</button>
+        <button class="btn-primary" style="padding:6px 16px;font-size:0.75rem;margin-left:8px;background-color:var(--accent-prop-commissioner-light);" id="btn-submit-to-prop-commissioner">提交至宣传委员</button>
       </div>
     `;
 
     const btnOrg = document.getElementById('btn-submit-to-organizer');
-    const btnPub = document.getElementById('btn-submit-to-publicity');
+    const btnPub = document.getElementById('btn-submit-to-prop-commissioner');
     if (btnOrg) btnOrg.addEventListener('click', () => showToast('success', '考察记录已提交至组织委员'));
     if (btnPub) btnPub.addEventListener('click', () => showToast('success', '考勤记录已提交至宣传委员'));
   },
 
   refreshReviewSupervision() {
-    const container = document.getElementById('inspector-review-list');
+    const container = document.getElementById('disc-commissioner-review-list');
     if (!container) return;
 
     const store = this._ensureStore();
@@ -242,7 +372,7 @@ export const PartyModule = {
     container.innerHTML = `
       <div class="text-xs text-gray-500 mb-3">最近 ${recentRecords.length} 项活动（按时间倒序）：</div>
       ${recentRecords.map(r => `
-        <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+        <div class="flex items-center justify-between p-2 bg-gray-100 rounded-lg">
           <span class="text-xs font-medium text-gray-700">${r.name}</span>
           <span class="text-xs text-gray-400">${r.date || '—'}</span>
         </div>
@@ -287,7 +417,7 @@ export const PartyModule = {
     const toggleBtn = `
       <div class="flex items-center gap-2 mb-3">
         <button id="candidate-view-toggle" class="text-xs px-3 py-1 rounded-lg border transition-colors"
-          style="border-color:#CE1126;color:#CE1126;background:${currentView === 'person' ? 'rgba(206,17,38,0.08)' : 'transparent'};">
+          style="border-color:#8B5CF6;color:#8B5CF6;background:${currentView === 'person' ? 'rgba(139,92,246,0.08)' : 'transparent'};">
           ${currentView === 'person' ? '人视图' : '阶段视图'}
           <span class="ml-1 text-gray-400">⇄ 切换</span>
         </button>
@@ -295,46 +425,10 @@ export const PartyModule = {
       </div>
     `;
 
-    let tableHtml = '';
+    let contentHtml = '';
     if (currentView === 'person') {
-      // 人视图：行=候选人，列=阶段属性
-      tableHtml = `
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs border-collapse">
-            <thead>
-              <tr class="bg-gray-50">
-                <th class="py-2 px-3 text-left text-gray-600 font-medium sticky left-0 bg-gray-50 z-10">姓名</th>
-                <th class="py-2 px-3 text-left text-gray-600 font-medium">当前阶段</th>
-                <th class="py-2 px-3 text-left text-gray-600 font-medium">进度</th>
-                <th class="py-2 px-3 text-left text-gray-600 font-medium">材料状态</th>
-                <th class="py-2 px-3 text-left text-gray-600 font-medium">缺项</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${candidates.map(c => {
-                const stageIndex = CANDIDATE_STAGES.indexOf(c.stage);
-                const progressPct = ((stageIndex + 1) / CANDIDATE_STAGES.length * 100).toFixed(0);
-                return `
-                  <tr class="border-b border-gray-100 hover:bg-gray-50">
-                    <td class="py-2 px-3 font-medium text-gray-800 sticky left-0 bg-white z-10">${c.name || c.personId}</td>
-                    <td class="py-2 px-3"><span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">${c.stage}</span></td>
-                    <td class="py-2 px-3">
-                      <div class="flex items-center gap-2">
-                        <div class="w-16 bg-gray-200 rounded-full h-1.5">
-                          <div class="h-1.5 rounded-full" style="width:${progressPct}%;background:#3B82F6;"></div>
-                        </div>
-                        <span class="text-gray-500">${progressPct}%</span>
-                      </div>
-                    </td>
-                    <td class="py-2 px-3">${c.materialsComplete ? '<span class="text-green-600">齐全</span>' : '<span class="text-amber-600">不齐全</span>'}</td>
-                    <td class="py-2 px-3 text-gray-500">${c.missingMaterials > 0 ? c.missingMaterials + ' 项' : '—'}</td>
-                  </tr>
-                `;
-              }).join('')}
-            </tbody>
-          </table>
-        </div>
-      `;
+      // 人视图：使用查询视图渲染人员卡片列表
+      contentHtml = '<div id="candidate-query-view"></div>';
     } else {
       // 阶段视图（转置）：行=阶段，列=候选人
       const stageGroups = {};
@@ -343,7 +437,7 @@ export const PartyModule = {
         if (stageGroups[c.stage]) stageGroups[c.stage].push(c);
       });
 
-      tableHtml = `
+      contentHtml = `
         <div class="overflow-x-auto">
           <table class="w-full text-xs border-collapse">
             <thead>
@@ -374,7 +468,7 @@ export const PartyModule = {
       `;
     }
 
-    container.innerHTML = toggleBtn + tableHtml;
+    container.innerHTML = toggleBtn + contentHtml;
 
     // 绑定转置切换
     const toggleEl = document.getElementById('candidate-view-toggle');
@@ -383,6 +477,42 @@ export const PartyModule = {
         container.dataset.view = currentView === 'person' ? 'stage' : 'person';
         this.refreshCandidateTracker();
       });
+    }
+
+    // 人视图：渲染查询视图（搜索姓名 + 筛选阶段）
+    if (currentView === 'person') {
+      const queryContainer = document.getElementById('candidate-query-view');
+      if (queryContainer) {
+        renderQueryView(queryContainer, {
+          searchPlaceholder: '搜索姓名...',
+          searchKey: 'name',
+          filters: [{ key: 'stage', label: '阶段', options: CANDIDATE_STAGES.map(s => ({ value: s, label: s })) }],
+          data: candidates,
+          renderRow: (c) => {
+            const stageIndex = CANDIDATE_STAGES.indexOf(c.stage);
+            const progressPct = ((stageIndex + 1) / CANDIDATE_STAGES.length * 100).toFixed(0);
+            return `
+              <div class="flex items-center justify-between p-3 bg-gray-100 rounded-xl">
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium text-gray-800">${c.name || c.personId}</div>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs">${c.stage}</span>
+                    <span class="text-xs text-gray-500">进度 ${progressPct}%</span>
+                  </div>
+                  <div class="text-xs text-gray-500 mt-1">${c.materialsComplete ? '<span class="text-green-600">材料齐全</span>' : '<span class="text-amber-600">材料不齐全</span>'}${c.missingMaterials > 0 ? ' · 缺 ' + c.missingMaterials + ' 项' : ''}</div>
+                </div>
+                <div class="ml-4 w-20">
+                  <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div class="h-1.5 rounded-full" style="width:${progressPct}%;background:#8B5CF6;"></div>
+                  </div>
+                </div>
+              </div>
+            `;
+          },
+          emptyMessage: '无匹配候选人',
+          accentColor: '#8B5CF6',
+        });
+      }
     }
   },
 
@@ -399,42 +529,32 @@ export const PartyModule = {
       return;
     }
 
-    container.innerHTML = `
-      <p class="text-xs text-gray-500 mb-3">以下 ${incompleteRecords.length} 项活动记录信息不完整，请补充：</p>
-      ${incompleteRecords.map(r => `
+    renderQueryView(container, {
+      searchPlaceholder: '搜索活动名称...',
+      searchKey: 'name',
+      data: incompleteRecords,
+      renderRow: (r) => `
         <div class="flex items-center justify-between p-2 bg-amber-50 rounded-lg border border-amber-200">
-          <span class="text-sm font-medium text-gray-800">${r.name}</span>
-          <span class="text-xs px-2 py-1 rounded bg-amber-100 text-amber-700">待补充</span>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium text-gray-800">${r.name}</div>
+            <div class="text-xs text-gray-500 mt-0.5">${r.date || '—'} · ${r.type || '未分类'}</div>
+          </div>
+          <span class="text-xs px-2 py-1 rounded bg-amber-100 text-amber-700 ml-2">待补充</span>
         </div>
-      `).join('')}
-    `;
+      `,
+      emptyMessage: '无匹配结果',
+      accentColor: '#1D4ED8',
+    });
   },
 
   refreshThoughtReport() {
-    const container = document.getElementById('organizer-thought-list');
-    if (!container) return;
-
-    const mockData = [
-      { quarter: '2026 Q1', total: 15, submitted: 13, rate: '86.7%' },
-      { quarter: '2025 Q4', total: 15, submitted: 15, rate: '100%' },
-    ];
-
-    container.innerHTML = mockData.map(item => `
-      <div class="p-3 bg-gray-50 rounded-xl">
-        <div class="flex items-center justify-between">
-          <div class="text-sm font-medium text-gray-800">${item.quarter}</div>
-          <span class="text-xs px-2 py-1 rounded-full ${parseFloat(item.rate) >= 90 ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">提交率：${item.rate}</span>
-        </div>
-        <div class="text-xs text-gray-500 mt-1">已提交：${item.submitted}/${item.total}</div>
-        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-          <div class="h-1.5 rounded-full" style="width:${item.rate};background:#3B82F6;"></div>
-        </div>
-      </div>
-    `).join('');
+    // D-241: 思想汇报不在系统业务范围（手写提交），此方法保留为空以避免外部调用报错
+    // UI Tab 已从 party-org-entry.js 移除，此方法仅作为向后兼容的空占位
+    return;
   },
 
   refreshArchives() {
-    const container = document.getElementById('publicity-archives-list');
+    const container = document.getElementById('prop-commissioner-archives-list');
     if (!container) return;
 
     const store = this._ensureStore();
@@ -445,7 +565,68 @@ export const PartyModule = {
       return;
     }
 
-    const headerHtml = `
+    // 提取类型选项（去重）
+    const typeOptions = [...new Set(records.map(r => r.type).filter(Boolean))].map(t => ({ value: t, label: t }));
+
+    // 容器分为查询栏 + 表格区两部分
+    container.innerHTML = `
+      <div id="archives-query-bar"></div>
+      <div id="archives-table-area"></div>
+    `;
+
+    const queryBar = document.getElementById('archives-query-bar');
+    const tableArea = document.getElementById('archives-table-area');
+
+    // 渲染查询栏（搜索活动名 + 筛选类型），renderRow 渲染简化卡片
+    const { uid } = renderQueryView(queryBar, {
+      searchPlaceholder: '搜索活动名称...',
+      searchKey: 'name',
+      filters: [{ key: 'type', label: '类型', options: typeOptions }],
+      data: records,
+      renderRow: (r) => `
+        <div class="p-2 bg-gray-100 rounded-lg">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-gray-800 truncate max-w-[200px]">${r.name}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">${r.type || '—'}</span>
+          </div>
+          <div class="text-xs text-gray-400 mt-0.5">${r.date || '—'} · ${r.filledBy || '—'}</div>
+        </div>
+      `,
+      emptyMessage: '无匹配记录',
+      accentColor: '#7C3AED',
+    });
+
+    // 根据查询栏状态过滤 records 并重新渲染表格（不破坏表格结构与事件绑定）
+    const applyTableFilter = () => {
+      const searchEl = document.getElementById(`${uid}-search`);
+      const filterEl = document.getElementById(`${uid}-filter-type`);
+      const query = (searchEl?.value || '').trim().toLowerCase();
+      const typeVal = filterEl?.value || '';
+
+      const filtered = records.filter(r => {
+        if (query && !String(r.name || '').toLowerCase().includes(query)) return false;
+        if (typeVal && (r.type || '') !== typeVal) return false;
+        return true;
+      });
+      this._renderArchivesTable(tableArea, filtered);
+    };
+
+    // 监听查询栏变化，重新渲染表格
+    document.getElementById(`${uid}-search`)?.addEventListener('input', applyTableFilter);
+    document.getElementById(`${uid}-filter-type`)?.addEventListener('change', applyTableFilter);
+    document.getElementById(`${uid}-clear`)?.addEventListener('click', () => setTimeout(applyTableFilter, 0));
+
+    // 初始渲染表格
+    applyTableFilter();
+  },
+
+  // 辅助方法：在指定容器中渲染档案表格（保留原有结构与事件绑定）
+  _renderArchivesTable(container, records) {
+    if (records.length === 0) {
+      container.innerHTML = '<p class="text-sm text-gray-400 py-6">无匹配记录</p>';
+      return;
+    }
+    container.innerHTML = `
       <div class="pub-table-wrap">
         <table class="pub-table">
           <thead>
@@ -496,8 +677,6 @@ export const PartyModule = {
           <div id="pub-subrecords-body"></div>
         </div>
       </div>`;
-
-    container.innerHTML = headerHtml;
     this._bindPubTableEvents();
   },
 
@@ -567,7 +746,7 @@ export const PartyModule = {
 
     area.classList.remove('hidden');
     body.innerHTML = `
-      <div class="pub-sub-info mb-3 p-3 bg-gray-50 rounded-lg">
+      <div class="pub-sub-info mb-3 p-3 bg-gray-100 rounded-lg">
         <span class="font-medium text-sm">${record.name}</span>
         <span class="text-xs text-gray-400 ml-2">ID: ${recordId}</span>
       </div>
@@ -607,7 +786,7 @@ export const PartyModule = {
   },
 
   refreshMaterialStandards() {
-    const container = document.getElementById('publicity-standards-content');
+    const container = document.getElementById('prop-commissioner-standards-content');
     if (!container) return;
 
     container.innerHTML = PUBLICITY_STANDARDS.map(cat => `
@@ -621,14 +800,14 @@ export const PartyModule = {
   },
 
   refreshTemplateMgmt() {
-    const container = document.getElementById('publicity-template-list');
+    const container = document.getElementById('prop-commissioner-template-list');
     if (!container) return;
 
     container.innerHTML = TEMPLATE_LIST.map(t => `
       <div class="card rounded-xl p-4 cursor-pointer">
         <div class="flex items-center gap-3 mb-2">
           <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:${t.bgColor};">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${t.color}" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            ${icon('file', { size: 20, stroke: t.color })}
           </div>
           <div>
             <div class="text-sm font-medium text-gray-800">${t.name}</div>
@@ -640,7 +819,7 @@ export const PartyModule = {
   },
 
   refreshWeeklyReport() {
-    const container = document.getElementById('publicity-weekly-list');
+    const container = document.getElementById('prop-commissioner-weekly-list');
     if (!container) return;
 
     const store = this._ensureStore();
@@ -651,6 +830,12 @@ export const PartyModule = {
       return d.startsWith(new Date().toISOString().slice(0, 7));
     });
 
+    // 加载历史报送记录（每周一报送流程归档）
+    if (!this.state.weeklyReportRecords.length) {
+      this._loadWeeklyReports();
+    }
+    const reportRecords = this.state.weeklyReportRecords;
+
     container.innerHTML = `
       <div class="flex items-center justify-between mb-3">
         <span class="text-xs text-gray-500">本月活动统计</span>
@@ -658,11 +843,46 @@ export const PartyModule = {
       </div>
       ${thisMonthRecords.length > 0 ? `
         <div class="space-y-2 mb-3">
-          ${thisMonthRecords.map(r => `<div class="p-2 bg-gray-50 rounded-lg"><span class="text-xs font-medium">${r.name}</span><span class="text-xs text-gray-400 ml-2">${r.type || '—'}</span></div>`).join('')}
+          ${thisMonthRecords.map(r => `<div class="p-2 bg-gray-100 rounded-lg"><span class="text-xs font-medium">${r.name}</span><span class="text-xs text-gray-400 ml-2">${r.type || '—'}</span></div>`).join('')}
         </div>
       ` : '<p class="text-sm text-gray-400 py-2">本月暂无记录</p>'}
-      <button id="pub-weekly-btn" class="w-full py-2 btn-primary" style="font-size:0.75rem;">生成周报</button>
+      <div class="grid grid-cols-2 gap-2 mb-4">
+        <button id="pub-weekly-btn" class="py-2 btn-primary" style="font-size:0.75rem;">生成周报</button>
+        <button id="pub-submit-btn" class="py-2 btn-primary" style="font-size:0.75rem; background:#0EA5E9;">每周一报送</button>
+      </div>
+      <div class="border-t border-gray-200 pt-3 mt-2">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs text-gray-500">每周一报送记录</span>
+          <span class="text-xs font-medium">${reportRecords.length} 条</span>
+        </div>
+        <div id="weekly-report-query"></div>
+      </div>
     `;
+
+    // 渲染报送记录查询视图（搜索周报范围 + 无筛选器）
+    const queryContainer = document.getElementById('weekly-report-query');
+    if (queryContainer) {
+      renderQueryView(queryContainer, {
+        searchPlaceholder: '搜索周报范围（起始日期）...',
+        searchKey: 'weekStart',
+        data: reportRecords,
+        renderRow: (r) => `
+          <div class="p-2 bg-blue-50 rounded-lg border border-blue-100">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-medium text-blue-800">${r.weekStart} 至 ${r.weekEnd}</span>
+              <span class="text-[10px] text-gray-500">${r.submitDate}</span>
+            </div>
+            <div class="text-[11px] text-gray-600">本周 ${r.count} 项活动 · 通知ID: ${r.noticeId}</div>
+            <details class="mt-1">
+              <summary class="text-[10px] text-gray-400 cursor-pointer">查看报送内容</summary>
+              <p class="text-[11px] text-gray-600 mt-1 leading-relaxed">${r.summary}</p>
+            </details>
+          </div>
+        `,
+        emptyMessage: '暂无匹配的报送记录',
+        accentColor: '#7C3AED',
+      });
+    }
 
     const weeklyBtn = document.getElementById('pub-weekly-btn');
     if (weeklyBtn) weeklyBtn.addEventListener('click', () => openFormModal({
@@ -680,6 +900,106 @@ export const PartyModule = {
       },
       accentColor: ACCENT_COLORS[getAppState().selectedRole] || ACCENT_COLORS.secretary
     }));
+
+    // 每周一报送：基于活动数据自动生成报送内容 → 提交后通知书记 + 归档
+    const submitBtn = document.getElementById('pub-submit-btn');
+    if (submitBtn) submitBtn.addEventListener('click', () => {
+      const content = this._buildWeeklySubmissionContent();
+      openFormModal({
+        id: 'weekly-submission',
+        title: `每周一报送（${content.weekStart} 至 ${content.weekEnd}）`,
+        fields: [
+          { key: 'weekRange', label: '报送范围', type: 'text', required: true },
+          { key: 'activityCount', label: '本周活动数', type: 'text', required: true },
+          { key: 'summary', label: '报送内容（自动生成，可编辑）', type: 'textarea', required: true, placeholder: '本周活动汇总...' }
+        ],
+        initialValues: {
+          weekRange: `${content.weekStart} 至 ${content.weekEnd}`,
+          activityCount: String(content.count),
+          summary: content.summary,
+        },
+        submitLabel: '提交报送',
+        onSubmit: (values) => {
+          // 若用户编辑了 summary，使用编辑后的内容覆盖自动生成内容
+          const record = this.submitWeeklyReport(values.summary || content.summary);
+          if (record) {
+            this.refreshWeeklyReport();
+          }
+        },
+        accentColor: ACCENT_COLORS[getAppState().selectedRole] || ACCENT_COLORS.secretary
+      });
+    });
+  },
+
+  refreshImageGallery() {
+    const container = document.getElementById('prop-commissioner-image-gallery');
+    if (!container) return;
+
+    const records = ImageRecordStore.list();
+    if (records.length === 0) {
+      container.innerHTML = '<p class="text-xs text-gray-400 py-4">暂无图片记录，请上传图片</p>';
+      return;
+    }
+
+    // 按日期分组（list 已按日期倒序）
+    const groups = {};
+    records.forEach(r => {
+      const dateKey = r.date || '未知日期';
+      if (!groups[dateKey]) groups[dateKey] = [];
+      groups[dateKey].push(r);
+    });
+
+    const groupHtml = Object.keys(groups).sort((a, b) => b.localeCompare(a)).map(date => {
+      const items = groups[date];
+      return `
+        <div class="mb-4">
+          <div class="text-xs font-semibold text-gray-600 mb-2 pb-1 border-b border-gray-200">${date}（${items.length} 张）</div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            ${items.map(r => {
+              const actTitle = r.activityId ? (ACTIVITIES.find(a => a.id === r.activityId)?.title || '—') : '—';
+              return `
+                <div class="pub-image-card" data-image-id="${r.id}" style="cursor:pointer;">
+                  <div class="rounded-lg overflow-hidden border border-gray-200" style="aspect-ratio:4/3;background:#f3f4f6;">
+                    <img src="${r.base64}" alt="${r.title}" class="w-full h-full object-cover" />
+                  </div>
+                  <div class="text-xs text-gray-700 mt-1 truncate">${r.title}</div>
+                  <div class="pub-image-detail hidden mt-2 p-2 bg-gray-50 rounded text-xs text-gray-600 space-y-1">
+                    <div><span class="text-gray-400">日期：</span>${r.date || '—'}</div>
+                    <div><span class="text-gray-400">标题：</span>${r.title}</div>
+                    <div><span class="text-gray-400">拍摄主体：</span>${r.subject || '—'}</div>
+                    <div><span class="text-gray-400">关联活动：</span>${actTitle}</div>
+                    <div><span class="text-gray-400">上传人：</span>${r.uploadedBy || '—'}</div>
+                    <button class="pub-image-del-btn text-xs text-red-500 hover:text-red-700" data-id="${r.id}" style="background:none;border:none;cursor:pointer;padding:2px 0;">删除此图片</button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>`;
+    }).join('');
+
+    container.innerHTML = groupHtml;
+
+    // 绑定点击展开/收起标注信息
+    container.querySelectorAll('.pub-image-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.pub-image-del-btn')) return;
+        const detail = card.querySelector('.pub-image-detail');
+        if (detail) detail.classList.toggle('hidden');
+      });
+    });
+
+    // 绑定删除按钮
+    container.querySelectorAll('.pub-image-del-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.id;
+        if (ImageRecordStore.remove(id)) {
+          showToast('success', '图片已删除');
+          this.refreshImageGallery();
+        }
+      });
+    });
   },
 
   refreshDefaultOverview() {
@@ -722,7 +1042,7 @@ export const PartyModule = {
     listContainer.innerHTML = COMPLIANCE_FILES.map(file => `
       <div class="compliance-ref-card" data-file-path="${file.path}" data-file-note="${file.note || ''}">
         <div class="flex items-center gap-2">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          ${icon('fileText', { size: 14 })}
           <span class="text-sm text-gray-700">${file.name}</span>
         </div>
         <span class="text-xs text-blue-600 hover:text-blue-800 cursor-pointer">资料查询 →</span>
@@ -854,23 +1174,36 @@ export const PartyModule = {
 
     const pending = FeedbackStore.getPending();
     if (pending.length === 0) {
-      listContainer.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">暂无待处理的意见反馈</p>';
+      listContainer.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">暂无待处理的提案讨论</p>';
       return;
     }
 
     const scopeLabels = { permanent: '底层架构', global: '全局通用', role: '权责调整', scenario: '特定场景' };
-    listContainer.innerHTML = pending.slice(0, 5).map(f => `
-      <div class="p-2 bg-gray-50 rounded-lg">
-        <div class="flex items-center justify-between mb-1">
-          <span class="text-xs font-medium text-gray-700 truncate max-w-[200px]">${f.painPoint || f.proposedFix}</span>
-          <span class="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">${scopeLabels[f.scope] || f.scope}</span>
+    renderQueryView(listContainer, {
+      searchPlaceholder: '搜索反馈内容...',
+      searchKey: 'painPoint',
+      filters: [{ key: 'scope', label: '范围', options: [
+        { value: 'permanent', label: '底层架构' },
+        { value: 'global', label: '全局通用' },
+        { value: 'role', label: '权责调整' },
+        { value: 'scenario', label: '特定场景' },
+      ] }],
+      data: pending,
+      renderRow: (f) => `
+        <div class="p-2 bg-gray-100 rounded-lg">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-medium text-gray-700 truncate max-w-[200px]">${f.painPoint || f.proposedFix}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">${scopeLabels[f.scope] || f.scope}</span>
+          </div>
+          <div class="flex items-center justify-between text-xs text-gray-400">
+            <span>${f.submittedBy}</span>
+            <span>${f.submittedAt}</span>
+          </div>
         </div>
-        <div class="flex items-center justify-between text-xs text-gray-400">
-          <span>${f.submittedBy}</span>
-          <span>${f.submittedAt}</span>
-        </div>
-      </div>
-    `).join('');
+      `,
+      emptyMessage: '暂无匹配的反馈',
+      accentColor: '#B91C1C',
+    });
   },
 
   _initSecretaryShortcuts() {
