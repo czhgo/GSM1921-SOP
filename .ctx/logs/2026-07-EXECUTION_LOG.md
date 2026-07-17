@@ -2661,3 +2661,88 @@ open → closed（completed/duplicate/wontfix/not_planned）→ reopened → ope
 [经验蒸馏: 否 — GitHub Issue 风格反馈系统首次实施，完整流程（brainstorming 6 轮 → spec 10 章节 → plan 11 task → subagent-driven 9 task 实施 → 3 偏差自行修正 → 两阶段 review → git commit）已沉淀为本 T105 条目；"双轨数据层映射 GitHub fork+PR 模型"和"权力矩阵 11 角色 × 14 操作"作为可复用架构模式，待后续视情况沉淀至 insights。]
 
 **状态**：✅ T105 GitHub Issue 风格提案讨论系统核心代码实施完成（Task 1-9 + git commit 11b9c55）；Task 10 一改具改内容文档更新 + Task 11 dogfood QA 验证 留待后续 session 执行
+
+---
+
+## 2026-07-17 | T106 — P.5/P.6 丙部决策执行 + Task 10 一改具改内容文档更新
+
+**引用流程**：H2.1 一改具改 + H4.2 丙部待决策机制 + D-243 P.5 搁置 + D-244 P.6 职能动作隐喻
+**执行日期**：2026-07-17
+
+### 书记决策
+
+**P.5 动画区分对待原则**：书记指示"整个 help 中的这部分动画都要重头再思考和重做"——搁置（D-243），随 help 动画整体重做时再定。AI 推荐方向 A（不冲突：速度维度与方式维度正交），供参考。
+
+**P.6 角色图标体系**：书记选择"职能动作隐喻"（D-244）——宣传=喇叭（发声）/ 纪检=天平（衡量）/ 组织=齿轮（连接运转）。
+
+### D-244 图标映射更新
+
+- `icons.js` 新增 3 个职能动作隐喻图标：megaphone / scale / cog
+- `commissioner-matrix.js` 替换：pencil→megaphone / shield→scale / layers→cog
+- 旧图标 pencil/shield/layers 保留向后兼容（标注 @deprecated）
+- 全仓库 Grep 验证：commissioner-matrix.js 外无引用旧图标的代码，零残留
+
+### 文案一改具改（"意见反馈"→"提案讨论"）
+
+全仓库扫描"意见反馈"残留后，按一改具改原则分三类处理：
+
+**UI 可见文案（7 处，必须改）**：
+- `party.js` L1177：暂无待处理的意见反馈 → 提案讨论
+- `party-secretary-entry.js` L23：Tab label → 提案讨论
+- `party-secretary-entry.js` L60：意见反馈数据集 → 提案讨论数据集
+- `feedback.html` L7：meta description → 提案讨论
+- `about.html` L316：导航树 → 提案讨论
+- `about.html` L337：功能说明 → 提案讨论
+- `party/secretary.html` L42：副标题 → 提案讨论
+
+**代码注释（3 处，已改）**：
+- `issues.js` L2 / `feedback-entry.js` L2：意见反馈 → 提案讨论
+
+**T1 制度性用语（保留不改）**：
+- `content/sop/纪检委员工作流程指南.md`："意见反馈"是 T1 制度用语，不改
+- `content/sop/常见工作场景快速指南.md`：同上
+- `content/strategy/COMMISSIONER_FRAMEWORK.md`：保留原用语
+- `content/strategy/DEVELOPMENT_PATH.md`：保留原用语
+
+### 内容文档更新（Task 10）
+
+1. **insights §3.2**：补充开源讨论机制说明——"讨论层 vs 决策层正交"（全员可参与 issue.create/comment/reaction，书记保留 8 项处置权）；追加"开源讨论不改变处置权归属——讨论是'集思广益'，处置是'一锤定音'，两者正交"
+2. **MODULE_UI_DESIGN.md**：意见反馈管理 → 提案讨论（双轨数据层 + 双轴标签 + 权限体系）
+3. **DATA_ARCHITECTURE.md**：FeedbackRecord → IssueRecord（双轨数据层 + D-244/T105 变更说明）
+4. **SERVICE_CATALOG.md**：feedback label → 提案讨论 + 新增 issues / milestones 服务
+5. **SOP_WEB.md**：页面表 + 权限表更新（GitHub Issue 风格三视图）
+
+### CLAUDE.md 丙部更新
+
+P.5/P.6 已决策归档（D-243/D-244），丙部当前无待决策事项。
+
+### 修改文件清单
+
+- `docs/src/core/icons.js`（+3 新图标）
+- `docs/src/components/commissioner-matrix.js`（3 处图标引用替换）
+- `docs/src/modules/party.js`（1 处文案）
+- `docs/src/entries/party-secretary-entry.js`（2 处文案）
+- `docs/src/services/issues.js`（1 处注释）
+- `docs/src/entries/feedback-entry.js`（1 处注释）
+- `docs/feedback.html`（1 处 meta）
+- `docs/about.html`（2 处文案）
+- `docs/party/secretary.html`（1 处文案）
+- `content/insights/党支部管理与实务经验沉淀.md`（§3.2 补充开源讨论机制）
+- `content/design/MODULE_UI_DESIGN.md`（意见反馈→提案讨论）
+- `content/design/DATA_ARCHITECTURE.md`（FeedbackRecord→IssueRecord）
+- `content/governance/SERVICE_CATALOG.md`（+issues/milestones 服务）
+- `content/governance/SOP_WEB.md`（页面表+权限表更新）
+- `CLAUDE.md`（丙部清空 P.5/P.6）
+- `.ctx/logs/2026-07-DECISION_LOG.md`（+D-243/D-244）
+
+### Git commit 信息
+
+- **Commit hash**：176c1ff
+- **变更统计**：16 文件，+4413/-534 行
+- **Commit message**：`feat(ui): P.5/P.6 决策执行 + Task 10 一改具改内容文档更新`
+
+### 蒸馏标签
+
+[经验蒸馏: 否 — P.5/P.6 决策执行和一改具改文案替换为常规操作，无新经验需蒸馏。]
+
+**状态**：✅ T106 P.5/P.6 决策执行 + Task 10 一改具改内容文档更新完成（git commit 176c1ff）
