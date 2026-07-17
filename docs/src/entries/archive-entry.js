@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';
@@ -114,7 +114,7 @@ function renderGalleryView() {
           <div class="w-3 h-3 rounded-full flex-shrink-0" style="background:${c.dot};"></div>
           <span class="text-[10px] font-medium text-gray-500">${c.type === 'activity' ? '党建活动' : '专班'}</span>
         </div>
-        <h4 class="text-base font-bold text-gray-800 leading-snug group-hover:text-blue-700 transition-colors">${c.title}</h4>
+        <h4 class="text-sm font-bold text-gray-800 leading-snug group-hover:text-blue-700 transition-colors">${c.title}</h4>
       </div>
       <!-- 卡片内容 -->
       <div class="p-4 bg-white">

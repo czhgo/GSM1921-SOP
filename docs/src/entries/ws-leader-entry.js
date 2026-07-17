@@ -158,7 +158,7 @@ function _renderWriteContent(activities) {
 
       detailPanel.innerHTML = `
         <div class="flex items-center justify-between mb-3">
-          <h5 class="font-title-cn text-sm font-bold text-gray-700">${activity.title || '未命名'}</h5>
+          <h5 class="font-title-cn text-xs font-semibold text-gray-700">${activity.title || '未命名'}</h5>
           <button id="btn-close-act-detail" class="text-xs text-gray-400 hover:text-gray-600">收起</button>
         </div>
         <div class="text-xs text-gray-500 mb-2">${activity.date || ''} ${activity.type ? '· ' + activity.type : ''}</div>
@@ -246,7 +246,7 @@ function _renderDecisionTreePanel() {
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L1.map(opt => {
           const selected = L1 === opt.value;
-          return `<button class="dt-l1-btn px-4 py-2 text-xs font-medium rounded-lg transition-all" data-value="${opt.value}" style="background:${selected ? accentRgba : 'white'};color:${selected ? accent : '#6B7280'};border:1.5px solid ${selected ? accentBorder : '#E5E7EB'};cursor:pointer;">${opt.label}</button>`;
+          return `<button class="dt-l1-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="background:${selected ? accentRgba : 'white'};color:${selected ? accent : '#6B7280'};border:1.5px solid ${selected ? accentBorder : '#E5E7EB'};cursor:pointer;">${opt.label}</button>`;
         }).join('')}
       </div>
     </div>
@@ -259,7 +259,7 @@ function _renderDecisionTreePanel() {
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.HOST_GROUPS.map(g => {
           const selected = hostGroup === g;
-          return `<button class="dt-host-btn px-4 py-2 text-xs font-medium rounded-lg transition-all" data-value="${g}" style="background:${selected ? accentRgba : 'white'};color:${selected ? accent : '#6B7280'};border:1.5px solid ${selected ? accentBorder : '#E5E7EB'};cursor:pointer;">${g}</button>`;
+          return `<button class="dt-host-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${g}" style="background:${selected ? accentRgba : 'white'};color:${selected ? accent : '#6B7280'};border:1.5px solid ${selected ? accentBorder : '#E5E7EB'};cursor:pointer;">${g}</button>`;
         }).join('')}
       </div>
     </div>
@@ -273,7 +273,7 @@ function _renderDecisionTreePanel() {
       <div class="flex flex-wrap gap-2">
         ${l2Options.map(opt => {
           const selected = L2 === opt.value;
-          return `<button class="dt-l2-btn px-4 py-2 text-xs font-medium rounded-lg transition-all" data-value="${opt.value}" style="background:${selected ? accentRgba : 'white'};color:${selected ? accent : '#6B7280'};border:1.5px solid ${selected ? accentBorder : '#E5E7EB'};cursor:pointer;">${opt.label}</button>`;
+          return `<button class="dt-l2-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="background:${selected ? accentRgba : 'white'};color:${selected ? accent : '#6B7280'};border:1.5px solid ${selected ? accentBorder : '#E5E7EB'};cursor:pointer;">${opt.label}</button>`;
         }).join('')}
       </div>
     </div>
@@ -286,7 +286,7 @@ function _renderDecisionTreePanel() {
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L3.map(opt => {
           const selected = L3 === opt.value;
-          return `<button class="dt-l3-btn px-4 py-2 text-xs font-medium rounded-lg transition-all" data-value="${opt.value}" style="background:${selected ? accentRgba : 'white'};color:${selected ? accent : '#6B7280'};border:1.5px solid ${selected ? accentBorder : '#E5E7EB'};cursor:pointer;">${opt.label}</button>`;
+          return `<button class="dt-l3-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="background:${selected ? accentRgba : 'white'};color:${selected ? accent : '#6B7280'};border:1.5px solid ${selected ? accentBorder : '#E5E7EB'};cursor:pointer;">${opt.label}</button>`;
         }).join('')}
       </div>
     </div>
@@ -299,7 +299,7 @@ function _renderDecisionTreePanel() {
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L4.map(opt => {
           const selected = L4 === opt.value;
-          return `<button class="dt-l4-btn px-4 py-2 text-xs font-medium rounded-lg transition-all" data-value="${opt.value}" style="background:${selected ? accentRgba : 'white'};color:${selected ? accent : '#6B7280'};border:1.5px solid ${selected ? accentBorder : '#E5E7EB'};cursor:pointer;">${opt.label}</button>`;
+          return `<button class="dt-l4-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="background:${selected ? accentRgba : 'white'};color:${selected ? accent : '#6B7280'};border:1.5px solid ${selected ? accentBorder : '#E5E7EB'};cursor:pointer;">${opt.label}</button>`;
         }).join('')}
       </div>
     </div>

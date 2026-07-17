@@ -143,7 +143,7 @@ function _renderTasksContent(activities) {
 
         <!-- Step 4: 提交按钮 -->
         <div class="flex items-center gap-3">
-          <button id="part-submit-btn" class="px-4 py-2 text-xs font-medium rounded-lg text-white transition-colors" style="background:${accent};" disabled>提交考察记录</button>
+          <button id="part-submit-btn" class="px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors" style="background:${accent};" disabled>提交考察记录</button>
           <span id="part-submit-hint" class="text-[10px] text-gray-400"></span>
         </div>
       </div>
@@ -200,19 +200,19 @@ function _renderTasksContent(activities) {
         <!-- 工作名 -->
         <div class="mb-3">
           <label class="block text-xs font-medium text-gray-600 mb-1.5">工作名</label>
-          <input type="text" id="assign-work-name" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400 font-stheiti" style="max-width:360px;" placeholder="如：场地布置、物资采购" value="${_assignmentDraft.workName}" />
+          <input type="text" id="assign-work-name" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400 font-stheiti" style="max-width:360px;" placeholder="如：场地布置、物资采购" value="${_assignmentDraft.workName}" />
         </div>
 
         <!-- 工作描述 -->
         <div class="mb-3">
           <label class="block text-xs font-medium text-gray-600 mb-1.5">工作描述</label>
-          <textarea id="assign-work-desc" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400 font-stheiti" rows="2" style="max-width:360px;" placeholder="详细描述工作内容与要求">${_assignmentDraft.workDescription}</textarea>
+          <textarea id="assign-work-desc" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400 font-stheiti" rows="2" style="max-width:360px;" placeholder="详细描述工作内容与要求">${_assignmentDraft.workDescription}</textarea>
         </div>
 
         <!-- DDL -->
         <div class="mb-4">
           <label class="block text-xs font-medium text-gray-600 mb-1.5">截止时间（DDL）</label>
-          <input type="datetime-local" id="assign-ddl" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400" style="max-width:360px;" value="${_assignmentDraft.ddl}" />
+          <input type="datetime-local" id="assign-ddl" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400" style="max-width:360px;" value="${_assignmentDraft.ddl}" />
         </div>
 
         <!-- 提交按钮 -->
@@ -875,7 +875,7 @@ function _renderHandoverContent(activities) {
 
         <!-- 提交按钮 -->
         <div class="flex items-center gap-3">
-          <button id="handover-submit-btn" class="px-4 py-2 text-xs font-medium rounded-lg text-white transition-colors" style="background:var(--accent-organizer);" disabled>创建交接记录</button>
+          <button id="handover-submit-btn" class="px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors" style="background:var(--accent-organizer);" disabled>创建交接记录</button>
           <span id="handover-submit-hint" class="text-[10px] text-gray-400"></span>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
+﻿import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
 import { BranchService } from '../services/runtime.js';
 import { showToast } from '../core/utils.js';
 import { CrossPageState } from '../core/cross-page-state.js';
@@ -224,7 +224,7 @@ function _renderTaskforceContent(pending, recruiting, active) {
         if (tf.status === 'active') {
           workSummaryHtml += `
           <div class="mt-4 pt-3 border-t border-gray-100 flex justify-end">
-            <button id="btn-dissolve-tf" class="text-xs px-4 py-2 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" style="cursor:pointer;">解散专班</button>
+            <button id="btn-dissolve-tf" class="text-sm px-4 py-2 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" style="cursor:pointer;">解散专班</button>
           </div>`;
         }
       }
@@ -386,8 +386,8 @@ function _renderTfCard(t, statusLabel, statusColor) {
         <span class="text-sm font-semibold text-gray-800 leading-snug">${t.name}</span>
         <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium" style="background:${color}15;color:${color};">${statusLabel[t.status] || t.status}</span>
       </div>
-      <p class="text-xs text-gray-500 mb-2 line-clamp-2">${t.task}</p>
-      <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
+      <p class="text-xs text-gray-600 mb-2 line-clamp-2">${t.task}</p>
+      <div class="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-400">
         <span>${SVG.people} ${filled}/${t.capacity}</span>
         ${t.deadline ? `<span>${SVG.calendar} ${t.deadline}</span>` : ''}
       </div>

@@ -1,4 +1,4 @@
-import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
+﻿import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
 import { showToast } from '../core/utils.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { ACTIVITIES, PEOPLE, MOCK_TASKFORCES } from '../mock/index.js';
@@ -112,7 +112,7 @@ function _renderActivitiesContent(filteredActivities) {
                 <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
                 <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
               </div>
-              <button class="text-xs px-2 py-1 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors" style="cursor:pointer;">更新状态</button>
+              <button class="text-sm px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors" style="cursor:pointer;">更新状态</button>
             </div>
           `).join('')}
       </div>
@@ -146,31 +146,31 @@ function _renderDepositContent() {
           <div class="flex gap-3">
             <div class="flex-1">
               <label class="text-xs text-gray-600 font-medium mb-1 block">来源类型</label>
-              <select id="deposit-source-type" class="input-flat text-xs w-full">
+              <select id="deposit-source-type" class="input-flat text-sm w-full">
                 <option value="activity">活动</option>
                 <option value="taskforce">专班</option>
               </select>
             </div>
             <div class="flex-1">
               <label class="text-xs text-gray-600 font-medium mb-1 block">关联来源</label>
-              <select id="deposit-source-id" class="input-flat text-xs w-full">
+              <select id="deposit-source-id" class="input-flat text-sm w-full">
                 ${activityOptions}
               </select>
             </div>
           </div>
           <div>
             <label class="text-xs text-gray-600 font-medium mb-1 block">沉淀标题</label>
-            <input type="text" id="deposit-title" class="input-flat text-xs w-full" placeholder="一句话概括这次经验的核心要点">
+            <input type="text" id="deposit-title" class="input-flat text-sm w-full" placeholder="一句话概括这次经验的核心要点">
           </div>
           <div>
             <label class="text-xs text-gray-600 font-medium mb-1 block">沉淀内容</label>
-            <textarea id="deposit-content" class="input-flat text-xs w-full" rows="5" placeholder="可以包括：做了什么、遇到了什么问题、怎么解决的、有什么收获、下次可以怎么做更好...&#10;&#10;提示：可使用右上角「AI辅助提炼提示词」，从工作沟通和决策原始材料中提炼经验"></textarea>
+            <textarea id="deposit-content" class="input-flat text-sm w-full" rows="5" placeholder="可以包括：做了什么、遇到了什么问题、怎么解决的、有什么收获、下次可以怎么做更好...&#10;&#10;提示：可使用右上角「AI辅助提炼提示词」，从工作沟通和决策原始材料中提炼经验"></textarea>
           </div>
           <div>
             <label class="text-xs text-gray-600 font-medium mb-1 block">标签（可选）</label>
-            <input type="text" id="deposit-tags" class="input-flat text-xs w-full" placeholder="用逗号分隔，如：沟通技巧,时间管理,活动策划">
+            <input type="text" id="deposit-tags" class="input-flat text-sm w-full" placeholder="用逗号分隔，如：沟通技巧,时间管理,活动策划">
           </div>
-          <button id="btn-submit-deposit" class="text-xs px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors" style="cursor:pointer;">提交沉淀</button>
+          <button id="btn-submit-deposit" class="text-sm px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors" style="cursor:pointer;">提交沉淀</button>
         </div>
       </div>
 

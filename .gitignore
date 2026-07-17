@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# IDE / tool artifacts
+.trae/
+.vscode/
+*.swp
+*.swo
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temp / process files
+*.py
+*.tmp

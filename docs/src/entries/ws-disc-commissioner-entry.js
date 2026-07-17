@@ -1,4 +1,4 @@
-import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
+﻿import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
 import { showToast } from '../core/utils.js';
 import { CrossPageState } from '../core/cross-page-state.js';
 import { bootstrapPage } from '../core/bootstrap.js';
@@ -97,8 +97,8 @@ function _renderAttendanceContent(filterActivityId) {
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤总表</h4>
         <div class="flex gap-2">
-          <button class="att-view-btn text-xs px-2 py-1 rounded-lg border" data-view="long" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">活动视图</button>
-          <button class="att-view-btn text-xs px-2 py-1 rounded-lg border" data-view="wide" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">人视图</button>
+          <button class="att-view-btn text-sm px-3 py-1.5 rounded-lg border" data-view="long" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">活动视图</button>
+          <button class="att-view-btn text-sm px-3 py-1.5 rounded-lg border" data-view="wide" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">人视图</button>
         </div>
       </div>
       <div class="text-xs text-gray-500 mb-3">纪检委员维护考勤系统，组织委员的活动出勤数据直接使用本系统</div>
@@ -456,9 +456,9 @@ function _renderReviewContent() {
               ${r.reviewContent ? `<div class="text-xs text-gray-600 mb-2 p-2 bg-white rounded-lg border border-gray-100">${r.reviewContent}</div>` : ''}
               <div class="flex gap-2">
                 ${r.reviewStatus === '已上传' ? `
-                  <button class="text-xs px-2 py-1 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 btn-disc-annotate" style="cursor:pointer;">批注</button>
-                  <button class="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 border border-red-200 btn-disc-reject" style="cursor:pointer;">打回</button>
-                  <button class="text-xs px-2 py-1 rounded-lg bg-green-50 text-green-700 border border-green-200 btn-disc-confirm" style="cursor:pointer;">确认</button>
+                  <button class="text-sm px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 btn-disc-annotate" style="cursor:pointer;">批注</button>
+                  <button class="text-sm px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 btn-disc-reject" style="cursor:pointer;">打回</button>
+                  <button class="text-sm px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 btn-disc-confirm" style="cursor:pointer;">确认</button>
                 ` : ''}
                 ${r.reviewStatus === '未提交' ? `
                   <button class="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 border border-red-200 btn-disc-remind-review" style="cursor:pointer;">邮件提醒</button>
