@@ -2,7 +2,7 @@
 title: "书记重要论断汇编"
 type: governance
 role: "[用户]+[AI]"
-last_updated: "2026-07-18"
+last_updated: "2026-07-19"
 status: active
 related_files: [CLAUDE.md, ARCHITECTURE.md, content/strategy/DEVELOPMENT_PATH.md, content/design/DATA_ARCHITECTURE.md, content/governance/ROLE_CLASSIFICATION.md, content/strategy/FLAT_DESIGN.md, content/strategy/COMMISSIONER_FRAMEWORK.md, content/governance/SOP_WEB.md, content/governance/USAGE_POLICY.md, content/governance/OPERATIONS_GUIDE.md, content/insights/党支部管理与实务经验沉淀.md]
 ---
@@ -804,7 +804,7 @@ T24 任务已完成。以下论断已从第二级提升至第一级（原 CLAUDE
 |------|------|---------|
 | P-019 | 丙部触发条件：发现待决策项 | CLAUDE.md H5.2 |
 | P-020 | 提交丙部前必须验证理解正确性 | CLAUDE.md H5.2（D-220 补丁） |
-| P-034 | 不需要≠搁置 | insights §4.5 |
+| P-034 | 决策状态三分：待决策/搁置/不需要的语义边界 | insights §4.5 |
 | P-025 | 信息传递两原则：无遗漏 > 最小化成本 | COMMISSIONER_FRAMEWORK.md §F.3 + insights |
 
 > **删除依据**：P.19 决策（D-230）——非 meta 级判断（治理操作规则/术语辨析/工程设计原则）应另寻他处，本文件聚焦 meta 级判断（讲清楚"为什么采取这个制度"、"为什么这件事比那件事在现在更重要"）。
