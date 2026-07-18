@@ -1,8 +1,8 @@
----
+﻿---
 title: "五层架构说明"
 type: architecture
 role: "[工程师]+[AI]"
-last_updated: "2026-07-14"
+last_updated: "2026-07-18"
 version: "6.0"
 status: active
 related_files: [CLAUDE.md, content/design/]
@@ -34,7 +34,7 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 | **党建工作** | 主题党日、三会一课（支部党员大会/支委会/党小组会/党课）、民主评议党员、换届选举、发展党员 |
 | **党务管理** | 制度修订、职责分工、意见反馈、合规审查、文档规范、定岗定责 |
 
-### 条块概念
+### 条块概念 [工作表达]
 
 - **条条**: 功能委员线（组织委员 / 宣传委员 / 纪检委员）
 - **块块**: 党小组组长线（group1 / group2 / group3）
@@ -49,25 +49,25 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 
 | Agent | 类型 | 职责 | 工具权限 | Handoffs | 关联 Skill |
 |-------|------|------|---------|----------|-----------|
-| 秘书处 | 协调型 | 计划拆解、排序、依赖梳理 | read, search | ✅ | — |
-| 组织部 | 执行型 | 文档规范化、术语治理 | read, agent, edit, search | ✅ (→档案馆) | term-cleaner, anchor-fixer |
-| 发改委 | 执行型 | 文本母本与内容层治理 | read, agent, edit, search | ✅ (→档案馆) | sop-sync, yaml-slim |
-| 工信部 | 执行型 | 代码内容层与 SOP 映射 | read, agent, edit, search | ✅ (→档案馆) | sop2code, data-inspector |
-| 外交部 | 执行型 | UI 交互与可用性 | read, agent, edit, search | ✅ (→档案馆) | ui-verifier |
-| 司法部 | 执行型 | 违宪审查与合规纠偏 | read, agent, edit, search | ✅ (→档案馆) | audit-report |
-| 检察院 | 审查型 | 三层合规审查与独立巡视 | read, search | ❌ | audit-report, data-inspector, ui-verifier |
-| 机关党委 | 监督型 | 全局宪章与架构监督 | read, agent, edit, search | ❌ | — |
-| 社科院 | 分析型 | 经验提炼与沉淀 | read, edit, search | ❌ | experience-distiller |
-| 档案馆 | 记录型 | 系统变更日志记录 | read, edit, search | ❌ | log-recorder |
+| 协调调度Agent | 协调型 | 计划拆解、排序、依赖梳理 | read, search | ✅ | — |
+| 规范执行Agent | 执行型 | 文档规范化、术语治理 | read, agent, edit, search | ✅ (→日志记录Agent) | term-cleaner, anchor-fixer |
+| 文本执行Agent | 执行型 | 文本母本与内容层治理 | read, agent, edit, search | ✅ (→日志记录Agent) | sop-sync, yaml-slim |
+| 代码执行Agent | 执行型 | 代码内容层与 SOP 映射 | read, agent, edit, search | ✅ (→日志记录Agent) | sop2code, data-inspector |
+| UI执行Agent | 执行型 | UI 交互与可用性 | read, agent, edit, search | ✅ (→日志记录Agent) | ui-verifier |
+| 合规执行Agent | 执行型 | 规则审查与合规纠偏 | read, agent, edit, search | ✅ (→日志记录Agent) | audit-report |
+| 独立审查Agent | 审查型 | 三层合规审查与独立巡视 | read, search | ❌ | audit-report, data-inspector, ui-verifier |
+| 架构监督Agent | 监督型 | 全局核心规则与架构监督 | read, agent, edit, search | ❌ | — |
+| 经验分析Agent | 分析型 | 经验提炼与沉淀 | read, edit, search | ❌ | experience-distiller |
+| 日志记录Agent | 记录型 | 系统变更日志记录 | read, edit, search | ❌ | log-recorder |
 
 ### 任务域 → Agent 委派链路
 
 | 任务域 | 触发关键词 | Agent 委派链路 |
 |--------|-----------|---------------|
-| 党建工作 | 主题党日、三会一课、民主评议党员、换届、发展党员 | 秘书处 → 发改委 → 工信部 → 外交部 → 档案馆 |
-| 党务管理 | 制度修订、职责分工、意见反馈、合规审查、文档规范 | 秘书处 → 组织部 → 司法部 → 检察院 → 档案馆 |
-| 架构治理 | 宪章修改、Agent配置、Skill注册、权限变更、架构重构 | 机关党委 → 秘书处 → 档案馆 |
-| 经验提炼 | 经验沉淀、日志分析、复盘总结、最佳实践 | 社科院 → 档案馆 |
+| 党建工作 | 主题党日、三会一课、民主评议党员、换届、发展党员 | 协调调度Agent → 文本执行Agent → 代码执行Agent → UI执行Agent → 日志记录Agent |
+| 党务管理 | 制度修订、职责分工、意见反馈、合规审查、文档规范 | 协调调度Agent → 规范执行Agent → 合规执行Agent → 独立审查Agent → 日志记录Agent |
+| 架构治理 | 核心规则修改、Agent配置、Skill注册、权限变更、架构重构 | 架构监督Agent → 协调调度Agent → 日志记录Agent |
+| 经验提炼 | 经验沉淀、日志分析、复盘总结、最佳实践 | 经验分析Agent → 日志记录Agent |
 
 **优先级**: 架构治理 > 党务管理 > 党建工作 > 经验提炼
 
@@ -76,8 +76,8 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 ## 四、分层架构
 
 ```
-Layer 0: 宪章层（最高权威）
-  └─ CLAUDE.md                            [工程师]+[AI] 全局系统指令（宪章）
+Layer 0: 核心层（最高权威）
+  └─ CLAUDE.md                            [工程师]+[AI] 全局系统指令（核心规则）
 
 Layer 1: 注册表层（SSOT 溯源中枢）
   └─ SSOT_INDEX.md                           [AI] 母本注册表与溯源参考
@@ -297,7 +297,7 @@ content/sop/ → docs/src/workflow/ → core/constants/utils → services → st
 
 ```
                     ┌─────────────────────────────────┐
-                    │  CLAUDE.md                       │ ← 宪章层（治理起点）
+                    │  CLAUDE.md                       │ ← 核心层（治理起点）
                     │  SSOT_INDEX.md                   │ ← 母本注册表
                     └──────────────┬──────────────────┘
                                    │ 溯源校验
@@ -323,7 +323,7 @@ content/sop/*.md             .github/skills/            .github/agents/
 
 修改子本前必须先查母本。子本变更若无法指向母本 → 禁止写盘。
 
-### 门控规则（Gate Check）
+### 适用规则（Gate Check）
 
 - 修改 `docs/src/workflow/` 或更下层前，必须确认母本 `content/sop/` 已更新
 - 修改 Agent 配置或 Skill 定义前，必须确认 `SSOT_INDEX.md` 注册表已同步

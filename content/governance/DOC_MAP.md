@@ -40,20 +40,20 @@ related_files: [content/governance/OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md
 |------|---------|------|
 | [用户] | `README.md` | 项目门面，一句话说清是什么 |
 | [工程师]+[AI] | `ARCHITECTURE.md` | 核心架构说明，技术全景 |
-| [工程师]+[AI] | `CLAUDE.md` | 宪章层权威源（HARNESS 甲乙丙三部）、AI 执行依据 |
+| [工程师]+[AI] | `CLAUDE.md` | 核心层权威源（HARNESS 甲乙丙三部）、AI 执行依据 |
 
 ---
 
 ## 二、文件总览（按权威层级 L0-L6）
 
-> **层级定义见 [OPERATIONS_GUIDE.md §7.1](OPERATIONS_GUIDE.md#71-文档权威层级7层模型)**：L0 宪章层 / L1 上下文层 / L2 理念维度 / L3 执行维度 / L4 实现层 / L5 审计层 / L6 官方层。
+> **层级定义见 [OPERATIONS_GUIDE.md §7.1](OPERATIONS_GUIDE.md#71-文档权威层级7层模型)**：L0 核心层 / L1 上下文层 / L2 理念维度 / L3 执行维度 / L4 实现层 / L5 审计层 / L6 官方层。
 > L2 与 L3 为正交维度，互不覆盖。
 
-### L0 宪章层（最高权威）
+### L0 核心层（最高权威）
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `CLAUDE.md` | [工程师]+[AI] | 宪章层权威源（HARNESS 甲乙丙三部）、执行路线图、Agent 协作规则、授权机制 | 所有 Agent 文件、SSOT_INDEX、README（路线图摘要） |
+| `CLAUDE.md` | [工程师]+[AI] | 核心层权威源（HARNESS 甲乙丙三部）、执行路线图、Agent 协作规则、授权机制 | 所有 Agent 文件、SSOT_INDEX、README（路线图摘要） |
 
 ### L1 上下文层（项目上下文入口）
 
@@ -85,7 +85,7 @@ related_files: [content/governance/OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md
 | `content/strategy/README.md` | [工程师]+[AI] | 战略路线目录索引 | ARCHITECTURE |
 | `content/governance/README.md` | [工程师]+[AI] | 系统治理目录索引 | ARCHITECTURE |
 | `content/design/README.md` | [工程师]+[AI] | 设计理念目录索引 | ARCHITECTURE |
-| `content/insights/党支部管理与实务经验沉淀.md` | [用户]+[AI] | 经验沉淀（三卷：道/术/器） | 社科院 |
+| `content/insights/党支部管理与实务经验沉淀.md` | [用户]+[AI] | 经验沉淀（三卷：理论/方法/实操） | 经验分析Agent |
 
 ### L3 执行维度（怎么做）— content/sop/
 
@@ -145,7 +145,7 @@ related_files: [content/governance/OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md
 ## 三、引用关系图
 
 ```
-L0 宪章层
+L0 核心层
   ├─ CLAUDE.md → 所有 Agent 文件
   └─ SSOT_INDEX.md → ARCHITECTURE.md + 所有 Agent 文件
 
@@ -243,4 +243,4 @@ L5 审计层
 | `.ctx/SNAPSHOT.md` | ✅ 活跃 | 系统快照、AI 快速同步入口（审计追溯层，融合原 AI_CONTEXT + REVIEW_STATE） |
 | `.ctx/AI_CONTEXT.md` | ✅ 已融合 | 内容迁移至 SNAPSHOT.md |
 | `.ctx/REVIEW_STATE.md` | ✅ 已融合 | 内容迁移至 SNAPSHOT.md |
-| `.ctx/SNAPSHOT_v1.3/v2.0/v2.1` | ✅ 已归档 | 旧快照删除，新 v3.0 生成 |
+| `.ctx/SNAPSHOT_v1.3/v2.0/v2.1` | ✅ 已归档 | 旧快照删除，新 v3.0

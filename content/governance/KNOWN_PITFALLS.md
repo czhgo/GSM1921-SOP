@@ -1,8 +1,8 @@
----
+﻿---
 title: "已知陷阱与上下文丢失教训"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-07-14"
+last_updated: "2026-07-18"
 version: "1.4"
 status: active
 related_files: [CLAUDE.md, content/governance/OPERATIONS_GUIDE.md, content/insights/党支部管理与实务经验沉淀.md]
@@ -112,7 +112,7 @@ related_files: [CLAUDE.md, content/governance/OPERATIONS_GUIDE.md, content/insig
 
 ### 7.3 待监测的潜在冲突
 
-- **insights 卷结构与 L 层级**：insights 卷一/二/三是 L2 理念维度内部的细分，但"卷一 道"与"L2 道"的"道"字可能产生混淆——需在引用时标明"卷一"而非"道层"
+- **insights 卷结构与 L 层级**：insights 卷一/二/三是 L2 理念维度内部的细分，引用时标明"卷一/卷二/卷三"
 - **Agent 职能分类与文件角色分类**：Agent 协调型/执行型等是职能维度，[用户]/[工程师]/[AI] 是消费者维度——需在 ARCHITECTURE.md 中明确区分
 
 ## 8. 上下文丢失教训

@@ -2,13 +2,9 @@
 title: "文件角色分类体系"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-07-12"
+last_updated: "2026-07-18"
 status: active
-related_files:
-  - ARCHITECTURE.md
-  - CLAUDE.md
-  - content/governance/DOC_MAP.md
-  - content/governance/OPERATIONS_GUIDE.md
+related_files: [ARCHITECTURE.md, CLAUDE.md, content/governance/DOC_MAP.md, content/governance/OPERATIONS_GUIDE.md]
 ---
 
 # 文件角色分类体系
@@ -47,9 +43,9 @@ related_files:
 |------|------|
 | **标记** | `[AI]` |
 | **职责** | AI Agent 专用指令、配置、运行时上下文 |
-| **权限边界** | AI 可读写（受宪章约束），人类一般不直接编辑 |
+| **权限边界** | AI 可读写（受核心规则约束），人类一般不直接编辑 |
 | **AI 读取规则** | always-on（CLAUDE.md）或 relevance-triggered |
-| **典型场景** | Agent 执行日志记录、Skill 工作流触发、宪章规则校验 |
+| **典型场景** | Agent 执行日志记录、Skill 工作流触发、核心规则校验 |
 
 ### 判定标准（核心）
 
@@ -95,7 +91,7 @@ related_files:
 |------|------|---------|
 | `README.md` | `[用户]` | 对外门面，用户第一接触点 |
 | `ARCHITECTURE.md` | `[工程师]+[AI]` | 核心架构，工程师维护 + AI 上下文 |
-| `CLAUDE.md` | `[工程师]+[AI]` | 宪章、执行路线图，工程师维护 + AI 执行依据 |
+| `CLAUDE.md` | `[工程师]+[AI]` | 核心规则、执行路线图，工程师维护 + AI 执行依据 |
 | `SSOT_INDEX.md` | `[工程师]+[AI]` | 注册表，工程师溯源 + Agent 配置参考 |
 | `SECRETARY_PRONOUNCEMENTS.md` | `[用户]+[AI]` | 书记论断汇编，用户查阅 + AI 引用 |
 | `index.html` | `[用户]+[AI]` | 用户界面 + AI 修改目标 |
@@ -106,7 +102,7 @@ related_files:
 |--------|------|---------|
 | `content/strategy/` | `[用户]+[AI]` | 党支部建设思路、书记表述 |
 | `content/sop/` | `[用户]+[AI]` | 党员操作指南、AI 溯源 |
-| `content/insights/` | `[用户]+[AI]` | 党支部建设经验沉淀、AI 蒸馏 |
+| `content/insights/` | `[用户]+[AI]` | 党支部建设经验沉淀、AI 沉淀 |
 | `content/references/合规文件/` | `[用户]` | 党员查阅党章原文，AI 只读不写入上下文 |
 | `content/references/工作模板/` | `[用户]+[AI]` | 用户填写 + AI 辅助生成 |
 | `content/design/` | `[工程师]+[AI]` | 系统设计、编程落地 |
@@ -124,7 +120,7 @@ related_files:
 
 | 子目录 | 角色 | 理由 |
 |--------|------|------|
-| `copilot-instructions.md` | `[AI]` | 宪章，Agent 行为约束 |
+| `copilot-instructions.md` | `[AI]` | 核心规则，Agent 行为约束 |
 | `agents/` | `[AI]` | Agent 配置，Agent 运行时 |
 | `skills/` | `[AI]` | Skill 定义，Agent 能力挂载 |
 
@@ -164,9 +160,9 @@ related_files:
 |------|---------|---------|
 | `[用户]` | ✅ 只读引用 | ❌ 须 /ask |
 | `[工程师]` | ✅ 只读引用 | ❌ 须 /ask |
-| `[AI]` | ✅ | ✅（受宪章约束） |
-| `[用户]+[AI]` | ✅ | ✅（受宪章约束） |
-| `[工程师]+[AI]` | ✅ | ✅（受宪章约束） |
+| `[AI]` | ✅ | ✅（受核心规则约束） |
+| `[用户]+[AI]` | ✅ | ✅（受核心规则约束） |
+| `[工程师]+[AI]` | ✅ | ✅（受核心规则约束） |
 
 ### 跨角色修改规则
 
@@ -208,7 +204,7 @@ related_files:
 | `[用户]` | `content/references/合规文件/`、`assets/`、`README.md` | AI 只读，用户读写 |
 | `[用户]+[AI]` | `content/strategy/`、`content/sop/`、`content/insights/`、`content/references/工作模板/`、`SECRETARY_PRONOUNCEMENTS.md` | AI 读取+授权修改，用户读写 |
 | `[工程师]+[AI]` | `content/design/`、`content/governance/`、`docs/src/`、根目录核心文档、`.ctx/TIMESTAMPS.md`、`.ctx/logs/` | AI 读取+授权修改，工程师读写 |
-| `[AI]` | `.github/`（D-186 忽略）、`.ctx/SNAPSHOT.md` | AI 读写（受宪章），人类一般不编辑 |
+| `[AI]` | `.github/`（D-186 忽略）、`.ctx/SNAPSHOT.md` | AI 读写（受核心规则约束），人类一般不编辑 |
 
 ### 读取优先级
 

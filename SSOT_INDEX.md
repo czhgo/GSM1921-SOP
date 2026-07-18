@@ -28,11 +28,11 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/strategy/, content/design/, 
 
 > 按权威层级（L0-L6，见 [OPERATIONS_GUIDE.md §7.1](content/governance/OPERATIONS_GUIDE.md#71-文档权威层级7层模型)）组织。每条关系标注母本→子本及同步规则。
 
-### L0 宪章层 → L4 实现层
+### L0 核心层 → L4 实现层
 
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
-| `CLAUDE.md` | `.github/agents/*.agent.md`、`.github/skills/*/SKILL.md` | 宪章是所有 Agent 配置与 Skill 定义的母本。凡涉及 Agent 行为、边界、写盘、交互、链长控制、/ask 与 /confirm 指令规范，必须先检查宪章 |
+| `CLAUDE.md` | `.github/agents/*.agent.md`、`.github/skills/*/SKILL.md` | 核心原则是所有 Agent 配置与 Skill 定义的母本。凡涉及 Agent 行为、边界、写盘、交互、链长控制、/ask 与 /confirm 指令规范，必须先检查核心原则 |
 | `.github/skills/*/SKILL.md` | `.github/agents/*.md`（引用侧） | Skill 接口定义是 Agent 挂载引用的母本。Skill 变更时必须同步更新所有挂载该 Skill 的 Agent 文件 |
 
 ### L1 上下文层 → L2/L4/L5
@@ -88,7 +88,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/strategy/, content/design/, 
 
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
-| `.ctx/logs/DECISION_LOG.md` | `content/insights/*.md` | 经验→沉淀。决策日志定期蒸馏为经验沉淀（H2.4 经验沉淀规则） |
+| `.ctx/logs/DECISION_LOG.md` | `content/insights/*.md` | 经验→沉淀。决策日志定期沉淀为经验沉淀（H2.4 经验沉淀规则） |
 
 ---
 
@@ -96,16 +96,16 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/strategy/, content/design/, 
 
 | Agent 文件名 | Agent 名称 (frontmatter) | Agent 类型 | 主要职责 | 工具配置 | 是否支持 Handoff | 关联 Skill |
 |---|---|---|---|---|---|---|
-| mishuchu.agent.md | "秘书处" | 协调型（Coordinator） | 计划、拆解、排序、依赖梳理 | ['read', 'search'] | ✅ (可委派给其他 Agent) | — |
-| zuzhibu.agent.md | "组织部" | 执行型（Worker） | 文档规范化、术语治理 | ['read', 'agent', 'edit', 'search'] | ✅ (可委派给档案馆) | term-cleaner, anchor-fixer |
-| fagaiwei.agent.md | "发改委" | 执行型（Worker） | 文本母本与内容层治理 | ['read', 'agent', 'edit', 'search'] | ✅ (可委派给档案馆) | sop-sync, sop-web-sync, yaml-slim |
-| gongxinbu.agent.md | "工信部" | 执行型（Worker） | 代码内容层与 SOP 映射 | ['read', 'agent', 'edit', 'search'] | ✅ (可委派给档案馆) | sop2code, data-inspector |
-| waijiaobu.agent.md | "外交部" | 执行型（Worker） | UI 交互与可用性 | ['read', 'agent', 'edit', 'search'] | ✅ (可委派给档案馆) | ui-verifier |
-| sifabu.agent.md | "司法部" | 执行型（Worker） | 违宪审查与合规纠偏 | ['read', 'agent', 'edit', 'search'] | ✅ (可委派给档案馆) | audit-report |
-| jianchayuan.agent.md | "检察院" | 审查型（Auditor） | 三层合规审查与独立巡视 | ['read', 'search'] | ❌ (纯只读) | audit-report, data-inspector, ui-verifier |
-| jiguandangwei.agent.md | "机关党委" | 监督型（Supervisor） | 全局宪章与架构监督 | ['read', 'agent', 'edit', 'search'] | ❌ (高权限，不直接委派) | — |
-| shekeyuan.agent.md | "社科院" | 分析型（Analyst） | 经验提炼与沉淀 | ['read', 'edit', 'search'] | ❌ (历史档案层) | experience-distiller |
-| danganguan.agent.md | "档案馆" | 记录型（Recorder） | 系统变更日志记录 | ['read', 'edit', 'search'] | ❌ (历史档案层) | log-recorder |
+| mishuchu.agent.md | "协调调度Agent" | 协调型（Coordinator） | 计划、拆解、排序、依赖梳理 | ['read', 'search'] | ✅ (可委派给其他 Agent) | — |
+| zuzhibu.agent.md | "规范执行Agent" | 执行型（Worker） | 文档规范化、术语治理 | ['read', 'agent', 'edit', 'search'] | ✅ (可委派给日志记录Agent) | term-cleaner, anchor-fixer |
+| fagaiwei.agent.md | "文本执行Agent" | 执行型（Worker） | 文本母本与内容层治理 | ['read', 'agent', 'edit', 'search'] | ✅ (可委派给日志记录Agent) | sop-sync, sop-web-sync, yaml-slim |
+| gongxinbu.agent.md | "代码执行Agent" | 执行型（Worker） | 代码内容层与 SOP 映射 | ['read', 'agent', 'edit', 'search'] | ✅ (可委派给日志记录Agent) | sop2code, data-inspector |
+| waijiaobu.agent.md | "UI执行Agent" | 执行型（Worker） | UI 交互与可用性 | ['read', 'agent', 'edit', 'search'] | ✅ (可委派给日志记录Agent) | ui-verifier |
+| sifabu.agent.md | "合规执行Agent" | 执行型（Worker） | 规则审查与合规纠偏 | ['read', 'agent', 'edit', 'search'] | ✅ (可委派给日志记录Agent) | audit-report |
+| jianchayuan.agent.md | "独立审查Agent" | 审查型（Auditor） | 三层合规审查与独立巡视 | ['read', 'search'] | ❌ (纯只读) | audit-report, data-inspector, ui-verifier |
+| jiguandangwei.agent.md | "架构监督Agent" | 监督型（Supervisor） | 全局核心原则与架构监督 | ['read', 'agent', 'edit', 'search'] | ❌ (高权限，不直接委派) | — |
+| shekeyuan.agent.md | "经验分析Agent" | 分析型（Analyst） | 经验提炼与沉淀 | ['read', 'edit', 'search'] | ❌ (历史档案层) | experience-distiller |
+| danganguan.agent.md | "日志记录Agent" | 记录型（Recorder） | 系统变更日志记录 | ['read', 'edit', 'search'] | ❌ (历史档案层) | log-recorder |
 
 ## Skill 配置清单
 
@@ -143,7 +143,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/strategy/, content/design/, 
 
 1. **变更源识别**：确定变更发起的母本文件与具体变更内容。
 2. **影响面分析**：基于本注册表的映射关系，列出所有受影响的子本文件。
-3. **逐文件同步**：按审查顺序（宪章层 → Skill 层 → Agent 配置层）逐个更新子本。
+3. **逐文件同步**：按审查顺序（核心层 → Skill 层 → Agent 配置层）逐个更新子本。
 4. **一致性校验**：同步完成后，输出《同步校验报告》。
 5. **日志记录**：将同步操作记录至当月执行日志。
 
@@ -158,7 +158,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/strategy/, content/design/, 
 
 ## 审查顺序
 
-1. 先查宪章层：CLAUDE.md
+1. 先查核心层：CLAUDE.md
 2. 再查项目中枢：CLAUDE.md（未来执行路线图）
 3. 再查文本母本层：content/sop/
 4. 再查代码内容层：docs/src/workflow/
