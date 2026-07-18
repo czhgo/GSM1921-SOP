@@ -1,8 +1,8 @@
 ---
-role: "[人机]"
+role: "[工程师]+[AI]"
 title: "Snapshot 历史版本索引"
 type: index
-last_updated: "2026-05-03"
+last_updated: "2026-07-11"
 ---
 
 # Snapshot 历史版本索引

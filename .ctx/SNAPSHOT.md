@@ -3,18 +3,18 @@ role: "[AI]"
 title: "系统快照"
 type: snapshot
 status: "ACTIVE"
-date: "2026-06-14"
-version: "v10"
-milestone: "H-1数据断裂修复 + D-218正交维度模型 + 响应式断点补全 + 转置切换 + 周期性任务全域修复 + file:///清零"
-last_updated: "2026-06-14"
+date: "2026-07-03"
+last_updated: "2026-07-11"
+version: "v11"
+milestone: "文档按受众×层级归类重组 + content/guides/ 拆分为 strategy/design/governance"
 ---
 
-# System Snapshot — v10
+# System Snapshot — v11
 
 > 当前活跃基线。历史快照见 `.ctx/snapshots/`。
-> **生成**: 2026-06-14 — H-1数据断裂修复 + D-218正交维度模型 + 周期性任务全域修复
-> **上版**: v9 (2026-05-18)
-> **变更来源**: T6(H-1修复+响应式+转置) + T7(kanban清理+周期任务) + T8(M5审查+路径修复) + T9(D-218决策执行)
+> **生成**: 2026-07-03 — 文档按受众×层级归类重组
+> **上版**: v10 (2026-06-14)
+> **变更来源**: 文档归类重组 spec（classify-documents-by-audience）
 
 ## I. 全局物理拓扑
 
@@ -57,22 +57,18 @@ GSM1921-SOP/
 │       ├── workflow/           ← 工作流引擎（7 个）
 │       └── styles.css          ← 全局样式
 ├── content/
-│   ├── SOP/                    ← [人机] 制度母本（6 文件 + INDEX.md）
-│   ├── guides/                 ← [人机] 设计理念与操作规范（MECE 三分类 22 文件）
-│   │   ├── governance/         ← 治理规范（11 文件）
-│   │   ├── architecture/       ← 架构设计（5 文件）
-│   │   ├── design/             ← 功能设计（5 文件）
-│   │   └── README.md           ← guides 唯一入口索引
-│   ├── insights/               ← [人机] 经验沉淀（v18.0，道/术/器三层架构）
-│   └── references/             ← [人]  官方文件+模板库（只读）
-├── .github/                    ← [AI] Agent & Skill 治理
-│   ├── copilot-instructions.md ← 全局系统指令（宪章）
+│   ├── strategy/               ← [用户] 战略路线层（meta 级，1 文件 + README）
+│   ├── SOP/                    ← [用户] 执行流程层（具体操作，6 文件 + INDEX.md）
+│   ├── design/                 ← [工程师] 设计理念层（架构+功能设计，13 文件 + README）
+│   ├── governance/             ← [工程师] 系统治理层（术语/角色/文档/流程，10 文件 + README）
+│   ├── insights/               ← [用户]+[AI] 经验沉淀（v21.0，道/术/器三层架构）
+│   └── references/             ← [用户]  官方文件+模板库（只读）
+├── .github/                    ← [AI] Agent & Skill 治理（仅VSCode可用，Trae中忽略，D-186）
 │   ├── agents/                 ← Agent 配置
 │   └── skills/                 ← Skill 定义（11 个）
-└── .ctx/                       ← [AI]/[人机] 审计底座
-    ├── SNAPSHOT.md             ← 系统快照（ACTIVE）
+└── .ctx/                       ← [AI]/[工程师]+[AI] 审计底座
+    ├── SNAPSHOT.md             ← 当前基线快照
     ├── TIMESTAMPS.md           ← 文件时间戳注册表
-    ├── CONTEXT.md              ← 上下文恢复文件（路径已更新）
     ├── snapshots/              ← 历史快照归档
     └── logs/                   ← 执行日志+决策日志
 ```
@@ -81,14 +77,15 @@ GSM1921-SOP/
 
 | Layer | 名称 | 位置 | 角色 |
 |-------|------|------|------|
-| 0 | 宪章层 | `.github/copilot-instructions.md` + `SSOT_INDEX.md` | [AI] |
-| 1 | 上下文层 | `CLAUDE.md`（HARNESS 入口）+ `ARCHITECTURE.md` | [人机] |
-| 2 | 理念维度 | `content/guides/`（为什么这样做） | [人机] |
-| 3 | 执行维度 | `content/SOP/`（怎么做） | [人机] |
+| 0 | 宪章层 | `CLAUDE.md` + `SSOT_INDEX.md` | [工程师]+[AI] |
+| 1 | 上下文层 | `CLAUDE.md`（HARNESS 入口）+ `ARCHITECTURE.md` | [工程师]+[AI] |
+| 2 | 理念维度 | `content/strategy/` + `content/design/`（为什么这样做/为什么这样设计） | [用户]/[工程师] |
+| 2.5 | 治理维度 | `content/governance/`（系统治理规范） | [工程师] |
+| 3 | 执行维度 | `content/sop/`（怎么做） | [用户]+[AI] |
 | 4 | Agent 治理层 | `.github/agents/` + `.github/skills/` | [AI] |
-| 5 | 代码实现层 | `docs/src/` + `docs/*.html`（19 页面） | [人机] |
-| 6 | 审计层 | `.ctx/`（logs/snapshots/TIMESTAMPS） | [AI]/[人机] |
-| 7 | 参考层 | `content/references/` | [人] |
+| 5 | 代码实现层 | `docs/src/` + `docs/*.html`（19 页面） | [工程师]+[AI] |
+| 6 | 审计层 | `.ctx/`（logs/snapshots/TIMESTAMPS） | [AI]/[工程师]+[AI] |
+| 7 | 参考层 | `content/references/` | [用户] |
 
 > **D-218**：SOP（执行细节）和 guides（理念概括）是正交维度，不排先后。
 > CLAUDE.md 是最高层上下文入口，承接理念和具体细节。
@@ -102,7 +99,6 @@ GSM1921-SOP/
 | `CLAUDE.md` | ✅ | 上下文入口：甲部(Harness)+乙部(执行)+丙部(待决策) |
 | `ARCHITECTURE.md` | ✅ | 分层架构+数据模型+变更流水线 |
 | `SSOT_INDEX.md` | ✅ | 母本注册表+同步触发矩阵（根目录） |
-| `.github/copilot-instructions.md` | ✅ | 全局系统指令 |
 
 ### 前端页面（19 个 HTML）
 
@@ -120,10 +116,10 @@ GSM1921-SOP/
 | `workspace/visitor.html` | 子页面 | 党建·成员只读（活动动态+专班进展+考勤+日历/列表切换） |
 | `party/index.html` | 入口 | 党务管理入口→角色选择→子页面跳转 |
 | `party/secretary.html` | 子页面 | 党务·党支书（全局聚合+意见反馈数据） |
-| `party/org.html` | 子页面 | 党务·组织委员（党员发展全流程+材料催缴） |
+| `party/org.html` | 子页面 | 党务·组织委员（发展党员全流程+材料催缴） |
 | `party/prop.html` | 子页面 | 党务·宣传委员（宣传档案+周报） |
 | `party/disc.html` | 子页面 | 党务·纪检委员（补课制度+公邮管理） |
-| `about.html` | 独立 | 系统说明书（含三委员双域职责矩阵） |
+| `about.html` | 独立 | 系统说明书（含三委员党建与党务工作职责矩阵） |
 | `archive.html` | 独立 | 归档库 |
 | `search.html` | 独立 | 资料查询 |
 | `feedback.html` | 独立 | 意见反馈 |
@@ -132,11 +128,11 @@ GSM1921-SOP/
 
 | 理论 | 核心公式 | 详细文档 |
 |------|---------|---------|
-| 双域管理 | 党建工作(创新探索) x 党务工作(合规运行) | MANAGEMENT_MODE.md |
-| 专班制 | 专班建设配套的定人定责定岗工作要点；专班 = 赋权 x 工作量考察 | COMMISSIONER_SYSTEM.md §A.3~A.8 |
-| 差异化视图 | 同一数据源，不同切面展示 | MANAGEMENT_MODE.md §八 |
-| 赋权关系链 | 党支书→支委/组长；组长→组织者/深度参与者；组织委员→专班成员 | COMMISSIONER_SYSTEM.md §C |
-| SOP双向修改 | 文本SOP是母本，网页是实施层 | SOP_WEB.md |
+| 党建与党务工作 | 党建工作(服务同学) x 党务工作(发展党员/党费缴纳/档案管理) | DATA_ARCHITECTURE.md + USAGE_POLICY.md §1.1 |
+| 专班 | 活动之外考察积极分子的载体；赋权是运行支撑机制，工作量记录是运行保障机制 | COMMISSIONER_FRAMEWORK.md §A.3~A.8 |
+| 差异化视图 | 同一数据源，不同切面展示 | PARTICIPANT_DATAFLOW.md §八 |
+| 赋权关系链 | 党支书→支委/党小组组长；党小组组长→组织者/深度参与者；组织委员→专班成员 | COMMISSIONER_FRAMEWORK.md §C |
+| SOP双向修改 | 文本SOP是母本，系统是实施层 | SOP_WEB.md |
 | 视图模式三分类 | 管理模式(基类) / 管理者只读(继承-写入) / 成员只读(独立视图) | CLAUDE.md H2.5 |
 | 正交维度模型 | SOP(执行细节) ⊥ guides(理念概括)；CLAUDE.md = 上下文入口 | OPERATIONS_GUIDE.md §7.1 (D-218) |
 
@@ -167,3 +163,4 @@ GSM1921-SOP/
 | v8 | 2026-05-17 | D-12 子页面拆分(19页) + D-13 首页跳转体验 + 大型数据表筛选搜索 + 文档同步自动化 + 经验蒸馏 v10.0 |
 | v9 | 2026-05-18 | 开源准备(README+LICENSE) + 合并后全域断链修复(38处) + 术语一改具改 + YAML/关联文献修复 + 经验沉淀v13.0 |
 | **v10** | **2026-06-14** | **H-1看板数据断裂修复(kanban从taskforces动态派生) + D-218正交维度模型(SOP⊥guides,CLAUDE.md=上下文入口) + 响应式断点补全(768px/640px) + 宣传委员多维表格转置切换 + 周期性任务全域修复(W1-W3/M1/M3/M4/M5) + file:///全仓清零 + 经验沉淀v18.0(§10.14看板动态派生判例)** |
+| **v11** | **2026-07-03** | **文档按受众×层级归类重组：content/guides/ 拆分为 strategy/(用户·meta) + design/(工程师·设计) + governance/(工程师·治理)，消除受众混淆/层级混淆/主题混淆，确认唯一信息源，更新 SNAPSHOT 和经验沉淀** |

@@ -3,7 +3,7 @@ title: "Agent Execution Ledger — Index & Redirect"
 type: log_index
 owner: "Org OS Agent 集群"
 role: "[工程师]+[AI]"
-last_updated: "2026-07-13"
+last_updated: "2026-07-14"
 status: active
 ---
 
@@ -138,6 +138,8 @@ status: active
 | T90 | 2026-07-12 | 权限系统大改·第 1 轮（权限模型重构：brainstorming+writing-plans+17 Task 实施；auth.js ROLE_PERMISSIONS/PROJECT_PERMISSIONS/AUTHORIZE_CHAIN+AuthStore API+login.html+sidebar/header+members.html；4 新建+8 重写+5 修改+3 删除） |
 | T91 | 2026-07-12 | 权限系统大改·第 2 轮（项目角色赋权+Mock 数据迭代+权限矩阵文档+术语对齐：brainstorming 12 决策+spec+9 Task 实施；auth.js _getProjectRole 实现+taskforces role 英文化+activities assignments+ROLE_CLASSIFICATION §九 重写 9a~9g） |
 | T92 | 2026-07-13 | 权限系统大改·第 3 轮（UI 改造+视角切换重做+登录页重设计+人员管理扩展：brainstorming 4 决策+spec+11 Task 实施；getEffectiveRole+ROUTE_LOCK+_getProjectRole 优先读 auth records+项目角色赋权面板+viewSwitcher 事件驱动+CrossPageState+frontend-design 登录页重设计） |
+| T93 | 2026-07-14 | 权限系统大改·第 4 轮·四评·UI+功能评议（15 命题+6 决策点+H5.4 三层分流：A1 secretary 5 Tab+C1 brand-filter-btn 迁移+C2 brand-toggle-btn 移详情页+A2 party 跨支委查看权限+insights §10.16 查询形式按数据主体定+§11.3 全支部人员必查询+附录 #71/#72） |
+| T94 | 2026-07-14 | 权限系统大改·第 4 轮成果补强（4 方向：查询功能补全前序完成+Tab 体验优化 11 entry storageKey 全量补齐+secretary 手动 Tab 记忆+A2 跨支委跳转反馈 toast+功能 bug 检查；verification-before-completion 揭示 7 处遗漏并修复：5 entry 缺 storageKey+2 entry activate 硬编码） |
 
 ## 归档文件
 

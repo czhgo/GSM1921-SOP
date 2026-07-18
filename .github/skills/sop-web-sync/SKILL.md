@@ -2,14 +2,14 @@
 role: "[AI]"
 name: sop-web-sync
 description: SOP 母本与网页代码的双向同步校验。适用场景：SOP 变更后识别受影响代码、代码变更后溯源 SOP、术语/流程一致性校验。
-last_updated: "2026-05-17"
+last_updated: "2026-07-03"
 ---
 
 # SOP ↔ 网页双向同步校验
 
 ## 目标
 
-确保 SOP 母本（`content/SOP/`）与网页代码（`docs/src/`）之间的双向一致性，支撑 H2.4（SOP↔网页双向修改规则）和 H3.1（一改具改）的自动化校验。
+确保 SOP 母本（`content/sop/`）与网页代码（`docs/src/`）之间的双向一致性，支撑 H2.4（SOP↔网页双向修改规则）和 H3.1（一改具改）的自动化校验。
 
 ## 输入项
 
@@ -24,28 +24,28 @@ SOP 母本与代码的对应关系：
 
 | SOP 母本 | 代码子本 | 关系 |
 |---------|---------|------|
-| `content/SOP/活动管理.md` | `docs/src/entries/ws-leader-entry.js`（活动写入） | 活动写入流程 |
-| `content/SOP/活动管理.md` | `docs/src/entries/ws-secretary-entry.js`（日历+写入） | 活动写入流程 |
-| `content/SOP/考勤管理.md` | `docs/src/entries/ws-disc-commissioner-entry.js`（考勤 Tab） | 考勤管理流程 |
-| `content/SOP/考察管理.md` | `docs/src/entries/ws-disc-commissioner-entry.js`（考察 Tab） | 考察管理流程 |
-| `content/SOP/专班管理.md` | `docs/src/entries/ws-org-commissioner-entry.js` | 专班管理流程 |
-| `content/SOP/宣传管理.md` | `docs/src/entries/ws-prop-commissioner-entry.js` | 宣传管理流程 |
-| `content/SOP/补课制度.md` | `docs/src/entries/party-disc-entry.js` | 补课制度流程 |
-| `content/SOP/公邮管理.md` | `docs/src/entries/party-disc-entry.js` | 公邮管理流程 |
-| `content/SOP/党员发展.md` | `docs/src/entries/party-org-entry.js` | 党员发展流程 |
-| `content/SOP/档案归档.md` | `docs/src/entries/party-prop-entry.js` | 档案归档流程 |
-| `content/guides/governance/TERMINOLOGY.md` | `docs/src/core/constants.js`（ROLE_LABELS 等） | 术语权威源 |
-| `content/guides/design/COMMISSIONER_SYSTEM.md` | `docs/src/components/commissioner-matrix.js` | 委员系统设计 |
-| `content/guides/design/COMMISSIONER_SYSTEM.md` | `docs/src/services/auth.js`（AUTHZ_CHAIN） | 赋权关系链 |
-| `content/guides/architecture/MANAGEMENT_MODE.md` | `docs/src/entries/ws-*-entry.js`（各角色视图） | 差异化视图设计 |
+| `content/sop/活动管理.md` | `docs/src/entries/ws-leader-entry.js`（活动写入） | 活动写入流程 |
+| `content/sop/活动管理.md` | `docs/src/entries/ws-secretary-entry.js`（日历+写入） | 活动写入流程 |
+| `content/sop/考勤管理.md` | `docs/src/entries/ws-disc-commissioner-entry.js`（考勤 Tab） | 考勤管理流程 |
+| `content/sop/考察管理.md` | `docs/src/entries/ws-disc-commissioner-entry.js`（考察 Tab） | 考察管理流程 |
+| `content/sop/专班管理.md` | `docs/src/entries/ws-org-commissioner-entry.js` | 专班管理流程 |
+| `content/sop/宣传管理.md` | `docs/src/entries/ws-prop-commissioner-entry.js` | 宣传管理流程 |
+| `content/sop/补课制度.md` | `docs/src/entries/party-disc-entry.js` | 补课制度流程 |
+| `content/sop/公邮管理.md` | `docs/src/entries/party-disc-entry.js` | 公邮管理流程 |
+| `content/sop/党员发展.md` | `docs/src/entries/party-org-entry.js` | 党员发展流程 |
+| `content/sop/档案归档.md` | `docs/src/entries/party-prop-entry.js` | 档案归档流程 |
+| `content/governance/TERMINOLOGY.md` | `docs/src/core/constants.js`（ROLE_LABELS 等） | 术语权威源 |
+| `content/design/COMMISSIONER_SYSTEM.md` | `docs/src/components/commissioner-matrix.js` | 委员系统设计 |
+| `content/design/COMMISSIONER_SYSTEM.md` | `docs/src/services/auth.js`（AUTHZ_CHAIN） | 赋权关系链 |
+| `content/design/MANAGEMENT_MODE.md` | `docs/src/entries/ws-*-entry.js`（各角色视图） | 差异化视图设计 |
 
 ## Gotchas
 
 - **母本优先**：SOP 与代码不一致时，以 SOP 母本为准（H2.4 规则 3）
-- **先改母本再改代码**：任何修改先改 `content/SOP/`，再改 `docs/src/`（H2.4 规则 2）
+- **先改母本再改代码**：任何修改先改 `content/sop/`，再改 `docs/src/`（H2.4 规则 2）
 - **术语权威源**：TERMINOLOGY.md 是术语的唯一权威源，constants.js 必须与其保持一致
 - **代码豁免**：代码中的技术实现细节（CSS 类名、DOM 结构、事件处理）不属于 SOP 同步范围
-- **数据结构是桥梁**：`content/guides/architecture/DATA.md` 定义的数据字段是 SOP 和代码的共同约束
+- **数据结构是桥梁**：`content/design/DATA.md` 定义的数据字段是 SOP 和代码的共同约束
 
 ## 执行流程
 

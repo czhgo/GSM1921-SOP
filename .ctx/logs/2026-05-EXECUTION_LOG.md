@@ -2,7 +2,7 @@
 title: "Agent Execution Ledger — 2026年05月"
 type: log
 owner: "Org OS Agent 集群"
-role: "[人机]"
+role: "[工程师]+[AI]"
 last_updated: "2026-05-22"
 version: "1.0"
 status: active
