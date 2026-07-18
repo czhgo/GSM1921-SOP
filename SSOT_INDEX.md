@@ -1,30 +1,96 @@
 ---
 title: "单一权威源索引"
 type: index
-role: "[AI]"
-last_updated: "2026-05-20"
-version: "3.0"
+role: "[工程师]+[AI]"
+last_updated: "2026-07-18"
+version: "3.4"
 status: active
-related_files: [CLAUDE.md, ARCHITECTURE.md, content/guides/]
+related_files: [CLAUDE.md, ARCHITECTURE.md, content/strategy/, content/design/, content/governance/, content/sop/, content/insights/, .github/agents/, .github/skills/]
 ---
 
 # SSOT_INDEX.md
 
-## 绝对母本参考图
+## 定位
 
-本文件是全工作区内在一致性审查与修改规划的绝对母本参考图。
+本文件是全工作区母本子本关系的**完整注册表**——所有"哪个文件是哪个文件的母本"的级联关系都在此注册。
+
+**与相关文件的关系**（参见 [CLAUDE.md H2.2](CLAUDE.md#h22-设计母本与子本)）：
+- **CLAUDE.md H2.2**：提炼5条核心原则（制度→代码 / 理论→工程 / 路线图→执行 / 经验→沉淀 / 术语→全仓）
+- **本文件（SSOT_INDEX.md）**：注册全部约25条级联关系，是母本子本关系的唯一权威注册表
+- **OPERATIONS_GUIDE.md §7.1**：定义文档权威层级（L0-L6）与冲突裁决规则
+- **DOC_MAP.md**：按目录结构组织的导航图，标注每个文件的权威层级
+
+三者关系：H2.2 提炼核心原则 → SSOT_INDEX 注册全部关系 → OPERATIONS_GUIDE §7.1 定义层级 → DOC_MAP 标注层级。
+
+---
 
 ## 注册表映射
 
-| 母本层级 | 母本文件/目录 | 子本文件/目录 | 关系说明 |
-|---|---|---|---|
-| 党章 / 官方文件层 | content/references/ | content/SOP/ | 官方文件与党章是所有 SOP 文本的母本。任何 SOP 文本调整，必须先回查 content/references/。 |
-| 文本内容层 | content/SOP/*.md | docs/src/workflow/ | 文本内容层是代码内容层的母本。凡涉及 workflow、字段含义、流程解释，必须先检查 content/SOP/。 |
-| 文本内容层 | content/SOP/*.md | docs/src/ | SOP 制度文本是网页代码的母本。凡涉及流程步骤、术语、权限规则，必须先检查 content/SOP/。 |
-| 设计理念层 | content/guides/governance/TERMINOLOGY.md | docs/src/core/constants.js | 术语权威源。代码中的术语必须与 TERMINOLOGY.md 保持一致。 |
-| 设计理念层 | content/guides/architecture/DATA.md | docs/src/ 数据结构代码 | 数据字段定义权威源。代码中的数据结构必须与 DATA.md 保持一致。 |
-| 宪章层 | .github/copilot-instructions.md | .github/agents/*.md, .github/skills/*/SKILL.md | 宪章是所有 Agent 配置文件与 Skill 定义的母本。凡涉及 Agent 行为、边界、写盘、交互、链长控制、/ask 与 /confirm 指令规范，必须先检查宪章。 |
-| Skill 层 | .github/skills/*/SKILL.md | .github/agents/*.md（引用侧） | Skill 接口定义是 Agent 挂载引用的母本。Skill 变更时必须同步更新所有挂载该 Skill 的 Agent 文件。 |
+> 按权威层级（L0-L6，见 [OPERATIONS_GUIDE.md §7.1](content/governance/OPERATIONS_GUIDE.md#71-文档权威层级7层模型)）组织。每条关系标注母本→子本及同步规则。
+
+### L0 宪章层 → L4 实现层
+
+| 母本 | 子本 | 同步规则 |
+|------|------|---------|
+| `CLAUDE.md` | `.github/agents/*.agent.md`、`.github/skills/*/SKILL.md` | 宪章是所有 Agent 配置与 Skill 定义的母本。凡涉及 Agent 行为、边界、写盘、交互、链长控制、/ask 与 /confirm 指令规范，必须先检查宪章 |
+| `.github/skills/*/SKILL.md` | `.github/agents/*.md`（引用侧） | Skill 接口定义是 Agent 挂载引用的母本。Skill 变更时必须同步更新所有挂载该 Skill 的 Agent 文件 |
+
+### L1 上下文层 → L2/L4/L5
+
+| 母本 | 子本 | 同步规则 |
+|------|------|---------|
+| `CLAUDE.md` 甲部 H8 | `content/strategy/`、`content/design/`、`content/governance/` | Harness 是 guides 的摘要和索引（非副本）。甲部保留核心原则+判例，详细设计归 guides。甲部引用的原则变更必须同步更新 guides |
+| `CLAUDE.md` 乙部 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` | 路线图→执行。完成事项从乙部删除，写入执行日志 |
+| `SECRETARY_PRONOUNCEMENTS.md` | `CLAUDE.md` H8/H11 | 书记论断汇编是 H8 理论基石索引和 H11 论断索引的母本。新增论断时同步更新 H11.3 索引表 |
+| `SSOT_INDEX.md` | `ARCHITECTURE.md` + 所有 Agent 文件 | 注册表是架构说明和 Agent 配置的溯源参考 |
+
+### L2 理念维度内部（strategy ↔ design ↔ governance ↔ insights）
+
+| 母本 | 子本 | 同步规则 |
+|------|------|---------|
+| `content/strategy/DEVELOPMENT_PATH.md` | `content/design/DATA_ARCHITECTURE.md` | 战略→设计。DEVELOPMENT_PATH 是上游哲学锚点，DATA_ARCHITECTURE 是数据流设计的落地（原 PARTICIPANT_DATAFLOW.md） |
+| `content/strategy/DEVELOPMENT_PATH.md` | `content/strategy/FLAT_DESIGN.md` | 战略→设计。FLAT_DESIGN 的扁平化是"理解真实"认知的具体实现。冲突时以 DEVELOPMENT_PATH 为准 |
+| `content/design/DATA_ARCHITECTURE.md` | `content/strategy/COMMISSIONER_FRAMEWORK.md` | 数据流→支委系统。DATA_ARCHITECTURE 定义三级参与者数据流，COMMISSIONER_FRAMEWORK 细化支委系统设计 |
+| `content/governance/SOP_WEB.md` | `content/sop/*.md`（双向） | 双向修改规则（H8.4）。规则0：文本SOP是母本；规则2：先改SOP母本→再改系统代码→验证 |
+| `content/insights/党支部管理与实务经验沉淀.md` | `content/strategy/`、`content/design/` | 经验→设计反馈。insights 是经验沉淀，可反哺战略和设计校准。当经验与战略冲突时提交书记决策 |
+
+### L2/L3 → L4 实现层（设计/制度 → 代码）
+
+| 母本 | 子本 | 同步规则 |
+|------|------|---------|
+| `content/sop/*.md` | `docs/src/workflow/`、`docs/src/` | 制度→代码（H2.2 规则1）。SOP 制度文本是系统代码的母本。凡涉及流程步骤、术语、权限规则，必须先检查 content/sop/ |
+| `content/design/DATA_ARCHITECTURE.md` | `docs/src/`（角色权限引擎） | 设计→代码。数据流架构定义角色数据流、§登录态打桩设计，代码实现设计（原 PARTICIPANT_DATAFLOW.md） |
+| `content/strategy/COMMISSIONER_FRAMEWORK.md` | `docs/src/`（专班管理 + 审批流程） | 设计→代码。支委系统设计定义专班管理逻辑和§审批流程规范，代码实现 |
+| `content/design/DESIGN_SYSTEM.md` | `docs/src/styles.css` | 设计→样式。设计系统规范是全局样式的母本 |
+| `content/design/MODULE_UI_DESIGN.md` | `docs/src/components/calendar.js` | 设计→代码。日历功能规划（原 CALENDAR.md）是日历渲染引擎的母本 |
+| `content/design/DATA_ARCHITECTURE.md` | `docs/src/core/domain.js` | 数据→代码。数据字段定义权威源（含§写入数据验证设计，原 DATA.md），代码中的数据结构必须与 DATA_ARCHITECTURE.md 一致 |
+| `content/design/DATA_ARCHITECTURE.md` | `docs/src/core/state.js` | 设计→代码。DATA_ARCHITECTURE §登录态打桩设计是状态中心登录逻辑的母本（原 LOGIN_STUB.md §一~§五，原 PARTICIPANT_DATAFLOW.md） |
+| `content/design/DATA_ARCHITECTURE.md` | `docs/src/services/auth.js`（未来） | 设计→代码（预留）。登录系统设计前置规范定义未来登录系统的用户身份模型和认证机制（原 LOGIN_STUB.md §六~§十一，原 LOGIN_SYSTEM_DESIGN.md） |
+| `content/design/DATA_ARCHITECTURE.md` | `docs/src/services/auth.js`（T110 新增 API） | 设计→代码。DATA_ARCHITECTURE 定义角色数据流模型，auth.js 实现 `getUserProjectRoles` / `hasProjectRole` / `getAccessibleWorkspacePages` 三个公开 API（T110 新增，含 `getPageForRole` 内部映射） |
+| `content/design/MODULE_UI_DESIGN.md` | `docs/index.html`（Module 4） | 设计→代码。模块界面设计（原 PAFFAIRS_UI.md，原 ORG_BUILDING.md 拆分后的系统设计部分）是党务模块UI的母本 |
+| `content/governance/SERVICE_CATALOG.md` | `docs/src/entries/*.js` | 治理→代码。服务清单是各入口文件服务实现的母本（原 design/ 迁移至 governance/） |
+
+### L2 治理 → 全仓库
+
+| 母本 | 子本 | 同步规则 |
+|------|------|---------|
+| `content/governance/USAGE_POLICY.md` | 全仓库 + `docs/src/core/constants.js` | 术语→全仓。术语变更触发一改具改（H2.1）。代码中的术语必须与 USAGE_POLICY.md §一 一致（2026-07-12 合并自 TERMINOLOGY.md + EMOJI_POLICY.md） |
+| `content/governance/OPERATIONS_GUIDE.md` | 全仓库 | 运行标准→全仓。YAML/编码/编号/文档关系/权威层级/三类文件角色规范/§15 周期性任务，全仓库必须遵守（2026-07-12 合并原 RECURRING_TASKS.md 为 §15） |
+| `content/governance/ROLE_CLASSIFICATION.md` | `docs/src/core/state.js` | 角色分类→代码。文件角色分类体系是 state.js 角色常量的母本 |
+
+### L6 官方层 → L3 执行维度
+
+| 母本 | 子本 | 同步规则 |
+|------|------|---------|
+| `content/references/合规文件/` | `content/sop/` | 官方文件→SOP。官方文件与党章是所有 SOP 文本的母本。任何 SOP 文本调整，必须先回查 content/references/ |
+
+### L5 审计层 → L2 理念维度
+
+| 母本 | 子本 | 同步规则 |
+|------|------|---------|
+| `.ctx/logs/DECISION_LOG.md` | `content/insights/*.md` | 经验→沉淀。决策日志定期蒸馏为经验沉淀（H2.4 经验沉淀规则） |
+
+---
 
 ## Agent 注册表 (基于 VS Code 原生子代理机制)
 
@@ -65,13 +131,13 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/guides/]
 
 | 变更源（母本） | 触发条件 | 必须同步的子本 |
 |---|---|---|
-| copilot-instructions.md | 规则增删改、链长策略变更、/ask 与 /confirm 规范变更 | 所有 agents/*.agent.md、所有 skills/*/SKILL.md |
+| CLAUDE.md | 规则增删改、链长策略变更、/ask 与 /confirm 规范变更 | 所有 agents/*.agent.md、所有 skills/*/SKILL.md |
 | SSOT_INDEX.md | 映射关系增删改 | 受影响的 agents/*.agent.md |
-| agents/*.agent.md | 职责/权限/链长规则变更 | copilot-instructions.md（反向校验）、同层其他 agent 文件（交叉引用校验） |
+| agents/*.agent.md | 职责/权限/链长规则变更 | CLAUDE.md（反向校验）、同层其他 agent 文件（交叉引用校验） |
 | skills/*/SKILL.md | 接口/流程/输出契约变更 | 所有挂载该 Skill 的 agent 文件 |
-| content/SOP/*.md | 制度条款/流程步骤/术语变更 | docs/src/ 对应代码文件（见 sop-web-sync 映射表） |
-| content/guides/governance/TERMINOLOGY.md | 术语增删改 | docs/src/core/constants.js + 全仓库引用 |
-| content/guides/architecture/DATA.md | 数据字段定义变更 | docs/src/ 对应数据结构代码 |
+| content/sop/*.md | 制度条款/流程步骤/术语变更 | docs/src/ 对应代码文件（见 sop-web-sync 映射表） |
+| content/governance/USAGE_POLICY.md | 术语增删改 | docs/src/core/constants.js + 全仓库引用 |
+| content/design/DATA_ARCHITECTURE.md | 数据字段定义变更 | docs/src/ 对应数据结构代码 |
 
 ### 同步执行步骤
 
@@ -92,9 +158,9 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/guides/]
 
 ## 审查顺序
 
-1. 先查宪章层：.github/copilot-instructions.md
+1. 先查宪章层：CLAUDE.md
 2. 再查项目中枢：CLAUDE.md（未来执行路线图）
-3. 再查文本母本层：content/SOP/
+3. 再查文本母本层：content/sop/
 4. 再查代码内容层：docs/src/workflow/
 5. 再查 Skill 层：.github/skills/*/SKILL.md
 6. 最后查执行配置层：.github/agents/
@@ -106,12 +172,31 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/guides/]
 | governance/* | → CLAUDE.md §五/§六（整合）或删除 | 2026-05-02 |
 | backlog/* | → CLAUDE.md §五（整合）或删除 | 2026-05-02 |
 | .vibe_context/* | → .ctx/（迁移）或删除 | 2026-05-02 |
-| knowledge/SOP/ | → content/SOP/ | 2026-05-02 |
+| knowledge/SOP/ | → content/sop/ | 2026-05-02 |
 | docs/ | → content/guides/ + content/insights/ | 2026-05-02 |
 | 参考资料/ | → content/references/ | 2026-05-02 |
 | AI_ENTRYPOINT.md | → 已合并至 ARCHITECTURE.md | 2026-05-01 |
 | SYSTEM_CLAUDE.md | → CLAUDE.md | 2026-05-02 |
 | .github/SSOT_INDEX.md | → SSOT_INDEX.md（移至根目录） | 2026-05-18 |
+| content/design/PERMISSION_MATRIX.md | → MANAGEMENT_MODE.md §权限矩阵权威源（精简合并） | 2026-07-08 |
+| content/design/LOGIN_STUB.md | → MANAGEMENT_MODE.md §登录态打桩设计（§一~§五）+ DATA_ARCHITECTURE.md §登录系统设计前置（§六~§十一，经 LOGIN_SYSTEM_DESIGN.md 合并） | 2026-07-08 |
+| content/design/APPROVAL_FLOW.md | → COMMISSIONER_FRAMEWORK.md §审批流程规范（全量合并） | 2026-07-08 |
+| content/design/WRITE_VERIFY.md | → DATA_ARCHITECTURE.md §写入数据验证设计（精简合并，§三/§五删除，经 DATA.md 合并） | 2026-07-08 |
+| content/governance/LAYERING_FRAMEWORK.md | → OPERATIONS_GUIDE.md §7.3/§7.4（独有内容合并）+ KNOWN_PITFALLS.md §7（历史冲突记录）+ RECURRING_TASKS.md Q4（5 步流程） | 2026-07-09 |
+| content/design/SERVICE_CATALOG.md | → content/governance/SERVICE_CATALOG.md（迁移至治理层） | 2026-07-11 |
+| content/design/ORG_BUILDING.md | → content/design/MODULE_UI_DESIGN.md（系统设计部分，经 PAFFAIRS_UI.md 合并）+ content/strategy/DEVELOPMENT_PATH.md 第七章（战略分类部分） | 2026-07-11 |
+| content/design/COMMISSIONER_SYSTEM.md | → content/strategy/COMMISSIONER_FRAMEWORK.md（迁移至战略层+重命名，"FRAMEWORK"避免"SYSTEM"歧义） | 2026-07-11 |
+| content/design/DATA.md | → content/design/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
+| content/design/PARTICIPANT_DATAFLOW.md | → content/design/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
+| content/design/LOGIN_SYSTEM_DESIGN.md | → content/design/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
+| content/design/BRAND_ACTIVITY.md | → content/design/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
+| content/design/PAFFAIRS_UI.md | → content/design/MODULE_UI_DESIGN.md（合并至模块界面设计总文件） | 2026-07-12 |
+| content/design/CALENDAR.md | → content/design/MODULE_UI_DESIGN.md（合并至模块界面设计总文件） | 2026-07-12 |
+| content/design/SOP_WEB.md | → content/governance/SOP_WEB.md（迁移至治理层） | 2026-07-12 |
+| content/design/FLAT_DESIGN.md | → content/strategy/FLAT_DESIGN.md（迁移至战略层） | 2026-07-12 |
+| content/governance/TERMINOLOGY.md | → content/governance/USAGE_POLICY.md §一（合并至使用规范） | 2026-07-12 |
+| content/governance/EMOJI_POLICY.md | → content/governance/USAGE_POLICY.md §二（合并至使用规范） | 2026-07-12 |
+| content/governance/RECURRING_TASKS.md | → content/governance/OPERATIONS_GUIDE.md §15（合并为周期性任务章节，删除原 §五附录初始化清单） | 2026-07-12 |
 
 ## 使用规则
 

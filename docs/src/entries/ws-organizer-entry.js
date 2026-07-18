@@ -157,7 +157,7 @@ function _renderTasksContent(activities) {
 
         <!-- Step 4: 提交按钮 -->
         <div class="flex items-center gap-3">
-          <button id="part-submit-btn" class="px-4 py-2 text-xs font-medium rounded-lg text-white transition-colors" style="background:${accent};" disabled>提交考察记录</button>
+          <button id="part-submit-btn" class="px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors" style="background:${accent};" disabled>提交考察记录</button>
           <span id="part-submit-hint" class="text-[10px] text-gray-400"></span>
         </div>
       </div>
@@ -231,7 +231,7 @@ function _renderTasksContent(activities) {
 
         <!-- 提交按钮 -->
         <div class="flex items-center gap-3">
-          <button id="assign-submit-btn" class="px-4 py-2 text-xs font-medium rounded-lg text-white transition-colors" style="background:var(--accent-organizer);" disabled>提交分工记录</button>
+          <button id="assign-submit-btn" class="px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors" style="background:var(--accent-organizer);" disabled>提交分工记录</button>
           <span id="assign-submit-hint" class="text-[10px] text-gray-400"></span>
         </div>
       </div>
@@ -889,7 +889,7 @@ function _renderHandoverContent(activities) {
 
         <!-- 提交按钮 -->
         <div class="flex items-center gap-3">
-          <button id="handover-submit-btn" class="px-4 py-2 text-xs font-medium rounded-lg text-white transition-colors" style="background:var(--accent-organizer);" disabled>创建交接记录</button>
+          <button id="handover-submit-btn" class="px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors" style="background:var(--accent-organizer);" disabled>创建交接记录</button>
           <span id="handover-submit-hint" class="text-[10px] text-gray-400"></span>
         </div>
       </div>
@@ -1344,7 +1344,7 @@ function _renderFileSpaceContent(activities) {
       <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-organizer-light);">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">添加文件记录</h4>
         <div class="text-xs text-gray-500 mb-4">记录文件元数据（文件名、分类、描述、关联来源），纯前端暂不支持实际文件上传</div>
-        <button id="fs-upload-btn" class="px-4 py-2 text-xs font-medium rounded-lg text-white transition-colors" style="background:var(--accent-organizer-light);cursor:pointer;">上传文件</button>
+        <button id="fs-upload-btn" class="px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors" style="background:var(--accent-organizer-light);cursor:pointer;">上传文件</button>
       </div>
 
       <!-- 文件列表 -->

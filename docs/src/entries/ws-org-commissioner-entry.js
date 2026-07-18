@@ -386,8 +386,8 @@ function _renderTfCard(t, statusLabel, statusColor) {
         <span class="text-sm font-semibold text-gray-800 leading-snug">${t.name}</span>
         <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium" style="background:${color}15;color:${color};">${statusLabel[t.status] || t.status}</span>
       </div>
-      <p class="text-xs text-gray-600 mb-2 line-clamp-2">${t.task}</p>
-      <div class="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-400">
+      <p class="text-xs text-gray-500 mb-2 line-clamp-2">${t.task}</p>
+      <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
         <span>${SVG.people} ${filled}/${t.capacity}</span>
         ${t.deadline ? `<span>${SVG.calendar} ${t.deadline}</span>` : ''}
       </div>

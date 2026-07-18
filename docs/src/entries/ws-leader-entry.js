@@ -1,4 +1,4 @@
-﻿import { renderTabBar } from '../components/tab-bar.js';
+﻿﻿import { renderTabBar } from '../components/tab-bar.js';
 import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
 import { BranchService } from '../services/runtime.js';
 import { showToast } from '../core/utils.js';
@@ -158,7 +158,7 @@ function _renderWriteContent(activities) {
 
       detailPanel.innerHTML = `
         <div class="flex items-center justify-between mb-3">
-          <h5 class="font-title-cn text-xs font-semibold text-gray-700">${activity.title || '未命名'}</h5>
+          <h5 class="font-title-cn text-sm font-bold text-gray-700">${activity.title || '未命名'}</h5>
           <button id="btn-close-act-detail" class="text-xs text-gray-400 hover:text-gray-600">收起</button>
         </div>
         <div class="text-xs text-gray-500 mb-2">${activity.date || ''} ${activity.type ? '· ' + activity.type : ''}</div>

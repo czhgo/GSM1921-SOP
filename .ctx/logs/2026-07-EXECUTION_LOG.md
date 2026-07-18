@@ -3134,3 +3134,61 @@ eturn { activity, taskCount: createdCount }; 及闭合 }
 - ⏸️ 测试8：控制台错误检查（BLOCKED — 浏览器自动化环境限制，建议后续在完整浏览器环境中补充）
 
 **状态**：✅ T111 sidebar 恢复 + emoji 清理 + 未覆盖遗漏审查 完成（8/9 E2E PASS，1 项因环境限制 BLOCKED）
+
+---
+
+## T112 书记评议·T109/T110 未覆盖遗漏审查·归档（2026-07-18）
+
+**审查依据**：spec 2026-07-18-sidebar-restore-and-emoji-cleanup-design.md §4 + CLAUDE.md H5
+**审查范围**：T109/T110 未覆盖的 4 个维度
+
+### 抽样清单
+
+1. `docs/src/services/runtime.js:20` — "确保提前失败而非静默错误"（术语·"而非"表达）
+2. `docs/src/entries/workspace-entry.js:39` — "使用 getEffectiveRole 而非 user.role"（术语·"而非"表达）
+3. `docs/src/entries/ws-organizer-entry.js:160` — CTA 按钮 text-xs + px-4 py-2（UI·壳大字小）
+4. `docs/src/entries/ws-organizer-entry.js:234` — CTA 按钮 text-xs + px-4 py-2（UI·壳大字小）
+5. `docs/src/entries/ws-organizer-entry.js:892` — CTA 按钮 text-xs + px-4 py-2（UI·壳大字小）
+6. `docs/src/entries/ws-organizer-entry.js:1347` — CTA 按钮 text-xs + px-4 py-2（UI·壳大字小）
+7. `docs/src/entries/ws-org-commissioner-entry.js:227` — CTA 按钮 text-xs + px-4 py-2（UI·壳大字小）
+8. `docs/src/entries/ws-leader-entry.js:249` — 决策树按钮 text-xs + px-4 py-2（UI·壳大字小）
+9. `docs/src/entries/ws-leader-entry.js:262` — 决策树按钮 text-xs + px-4 py-2（UI·壳大字小）
+10. `docs/src/entries/ws-leader-entry.js:276/289/302` — 决策树按钮 text-xs + px-4 py-2（UI·壳大字小）
+11. `docs/src/services/auth.js` — T110 新增 3 API 未在 SSOT_INDEX 注册（母本子本·设计性问题）
+
+### 预审结果摘要
+
+| 维度 | 审查结果 |
+|------|---------|
+| 1 术语合规 | ✅ 零残留（2 处"而非"为技术语境合理使用，书记认可） |
+| 2 UI 一致性 | ⚠️ 10 处壳大字小 CTA 按钮（原报 6 处，补充扫描发现 4 处） |
+| 3 母本子本 | ⚠️ T110 新增 3 API 未在 SSOT_INDEX 注册（设计性问题） |
+| 4 装饰符号 | ✅ 零残留 |
+
+### 书记反馈摘要
+
+1. **维度 1.5 "而非"**：认可合理使用（技术语境对比说明）
+2. **维度 2.1 壳大字小**：批准批量修复 10 处 CTA 按钮（text-xs → text-sm）
+3. **维度 3.3 SSOT_INDEX**：方向 A，注册 T110 新增 3 API 母本子本关系
+
+### 反馈落实摘要
+
+**机械性问题（维度 2.1 壳大字小）**：
+- 全仓库扫描范围：`docs/src/entries/` 下 3 个文件
+- 修订数量：10 处（ws-organizer-entry.js 4 处 + ws-org-commissioner-entry.js 1 处 + ws-leader-entry.js 5 处）
+- Grep 零残留验证：`text-xs.*px-4.*py-2` + `px-4 py-2 text-xs` + `text-xs px-4 py-2` 三模式均零命中
+- H5.6 抽样校验：3 项抽样（L160/L249/L227）书记全部认可
+- 语法验证：3 文件 `node --check` 全部通过
+
+**设计性问题（维度 3.3 SSOT_INDEX）**：
+- SSOT_INDEX.md L2/L3→L4 部分新增 1 行：`DATA_ARCHITECTURE.md → auth.js（T110 新增 API）`
+- YAML last_updated 更新为 2026-07-18
+
+**即时确认（维度 1.5 "而非"）**：
+- 无需修改，书记认可合理使用
+
+### 衍生任务编号清单
+
+无新增乙部/丙部条目。
+
+**状态**：✅ T112 书记评议·T109/T110 未覆盖遗漏审查·归档 完成
