@@ -72,7 +72,7 @@ last_updated: "2026-07-18"
 | .ctx/logs/2026-03-EXECUTION_LOG.md | 2026-03-31 11:12:14 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/2026-04-EXECUTION_LOG.md | 2026-04-06 17:12:44 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/2026-05-EXECUTION_LOG.md | 2026-05-03 00:00:00 | [工程师]+[AI] | 已归档 |
-| .ctx/logs/archive/2026-07-early-entries.md | 2026-07-12 00:00:00 | [工程师]+[AI] | T22-T70 早期条目归档（母本：2026-07-EXECUTION_LOG.md） |
+| .ctx/logs/archive/2026-07-early-entries.md | 2026-07-12 00:00:00 | [工程师]+[AI] | T22-T90 早期条目归档（母本：2026-07-EXECUTION_LOG.md） |
 
 ## src/ (代码实现层)
 
@@ -106,7 +106,7 @@ last_updated: "2026-07-18"
 |---------|-------------|------|------|
 | content/sop/INDEX.md | 2026-03-07 08:54:51 | [用户]+[AI] | SOP 导航 |
 | content/sop/README.md | 2026-03-17 08:14:58 | [用户]+[AI] | |
-| content/sop/Org_OS_极客操作手册.md | 2026-04-29 01:47:32 | [用户]+[AI] | |
+| content/sop/Org_OS_极客操作手册.md | 2026-04-29 01:47:32 | [用户]+[AI] | 🗑️ 已删除 |
 | content/sop/常见工作场景快速指南.md | 2026-04-01 02:28:01 | [用户]+[AI] | |
 | content/sop/支委与党小组定人定责定岗说明.md | 2026-04-01 02:28:01 | [用户]+[AI] | |
 | content/sop/宣传委员工作流程指南.md | 2026-04-01 02:28:01 | [用户]+[AI] | |
@@ -230,3 +230,8 @@ last_updated: "2026-07-18"
 | content/governance/EMOJI_POLICY.md | 2026-07-12 | 已合并至 USAGE_POLICY.md §二（Emoji 使用规范） |
 | content/governance/RECURRING_TASKS.md | 2026-07-12 | 已合并至 OPERATIONS_GUIDE.md §15（周期性任务与自动唤醒机制） |
 | content/strategy/MANAGE_SERVE.md | 2026-07-14 | 改名为 DEVELOPMENT_PATH.md（发展路径）。原"管理事、服务人战略路线"文件改名为"发展路径"，承载"从入党申请人到正式党员"的完整叙事。MANAGE_SERVE.md 已不再存在，所有引用同步至 DEVELOPMENT_PATH.md。 |
+| content/references/工作模板/FEEDBACK_FORM.md | 2026-07-18 | 鸡肋文件删除——系统已有 feedback.html 在线反馈功能，模板冗余 |
+| docs/superpowers/ | 2026-07-18 | 过程文件目录删除——3个已完成spec/plan（T110/T111），结果已落地 |
+| .ctx/tmp/ | 2026-07-18 | 空目录删除 |
+| .superpowers/ | 2026-07-18 | 空目录删除（brainstorming skill 残留） |
+| .tools/ | 2026-07-18 | 空目录删除 |
