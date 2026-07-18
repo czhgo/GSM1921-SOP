@@ -7,6 +7,7 @@
 import { AuthStore } from '../services/auth.js';
 import { getBasePath, showToast } from '../core/utils.js';
 import { getAccentColors } from '../core/constants.js';
+import { icon } from '../core/icons.js';
 
 // party 页面配置：role → { page, label }
 // 颜色不再硬编码，统一走 getAccentColors(role) 取色（spec §7.3.2 一改具改）
@@ -96,7 +97,7 @@ export function renderPartyCrossNav(currentPageRole, mountEl) {
   // 只读模式提示（显示当前查看的页面名称，让用户明确知道在看谁的页面）
   if (!isEditingThisPage) {
     const currentPageLabel = PARTY_PAGES[currentPageRole]?.label || '';
-    html += `<span class="font-stheiti text-[10px] px-2 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-200 mr-2">👁 只读查看 · ${currentPageLabel}</span>`;
+    html += `<span class="font-stheiti text-[10px] px-2 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-200 mr-2 inline-flex items-center gap-1">${icon('eye', { size: 10 })} 只读查看 · ${currentPageLabel}</span>`;
   }
 
   tabs.forEach(tab => {
@@ -108,7 +109,7 @@ export function renderPartyCrossNav(currentPageRole, mountEl) {
       ? `--tab-accent:${accent};--tab-accent-bg:${accent}1A;--tab-accent-border:${accent}40;`
       : 'color:#6B7280;background:rgba(156,163,175,0.06);border:1px solid rgba(156,163,175,0.20);';
 
-    const readonlyMark = tab.isReadOnly ? ' <span class="text-[9px] opacity-70">👁</span>' : '';
+    const readonlyMark = tab.isReadOnly ? ` <span class="inline-flex items-center opacity-70">${icon('eye', { size: 10 })}</span>` : '';
     html += `<button class="${baseCls} ${activeCls}" data-target-role="${tab.role}" style="${style}">${tab.label}${readonlyMark}</button>`;
   });
 

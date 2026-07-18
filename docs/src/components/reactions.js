@@ -4,12 +4,13 @@
 import { IssueStore } from '../services/issues.js';
 import { AuthStore } from '../services/auth.js';
 import { showToast } from '../core/utils.js';
+import { icon } from '../core/icons.js';
 
 const REACTIONS = [
-  { key: 'thumbsUp', emoji: '👍', label: '赞同', activeColor: '#059669' },
-  { key: 'thumbsDown', emoji: '👎', label: '反对', activeColor: '#DC2626' },
-  { key: 'eyes', emoji: '👀', label: '关注', activeColor: '#3B82F6' },
-  { key: 'hooray', emoji: '🎉', label: '庆祝', activeColor: '#D97706' },
+  { key: 'thumbsUp', icon: 'thumbsUp', label: '赞同', activeColor: '#059669' },
+  { key: 'thumbsDown', icon: 'thumbsDown', label: '反对', activeColor: '#DC2626' },
+  { key: 'eyes', icon: 'eyes', label: '关注', activeColor: '#3B82F6' },
+  { key: 'hooray', icon: 'hooray', label: '庆祝', activeColor: '#D97706' },
 ];
 
 /** 获取当前登录用户 personId（plan 中为 AuthStore.getCurrentPersonId，修正为实际 API） */
@@ -34,7 +35,7 @@ export function renderReactions(issue) {
                   data-issue-id="${issue.id}"
                   data-reaction="${r.key}"
                   title="${r.label}">
-            <span>${r.emoji}</span>
+            <span>${icon(r.icon, { size: 14 })}</span>
             <span>${list.length}</span>
           </button>
         `;

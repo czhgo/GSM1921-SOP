@@ -127,7 +127,7 @@ function renderSecretaryUI(state) {
     filterBtn.style.cssText = filterBrand
       ? 'background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);'
       : 'background:rgba(156,163,175,0.10);color:#6B7280;border:1px solid rgba(156,163,175,0.30);';
-    filterBtn.textContent = filterBrand ? '🔥品牌活动（筛选中）' : '🔥品牌活动';
+    filterBtn.textContent = filterBrand ? '品牌活动（筛选中）' : '品牌活动';
   }
 
   // ── 活动查询视图（容器已在 HTML 中） ──

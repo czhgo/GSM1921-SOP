@@ -8,6 +8,7 @@
 import { setState, STATE } from '../core/state.js';
 import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js';
 import { _fmtChinese, showToast } from '../core/utils.js';
+import { icon } from '../core/icons.js';
 import { PEOPLE, getPersonById } from '../mock/index.js';
 import { BranchService } from '../services/runtime.js';
 import { AuthStore } from '../services/auth.js';
@@ -270,7 +271,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
 
   if (isSecretary && !isArchived) {
     html += '<div class="mt-3">';
-    html += `<button id="inspector-brand-toggle-btn" class="font-stheiti text-xs px-3 py-1.5 rounded-lg transition-colors" style="${isBrandActive ? 'background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);' : 'background:rgba(234,179,8,0.06);color:#92400E;border:1px solid rgba(234,179,8,0.25);'}">${isBrandActive ? '★ 取消品牌认定' : '☆ 标记为品牌活动'}</button>`;
+    html += `<button id="inspector-brand-toggle-btn" class="font-stheiti text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="${isBrandActive ? 'background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);' : 'background:rgba(234,179,8,0.06);color:#92400E;border:1px solid rgba(234,179,8,0.25);'}">${isBrandActive ? icon('starFilled', { size: 12 }) + ' 取消品牌认定' : icon('starOutline', { size: 12 }) + ' 标记为品牌活动'}</button>`;
     html += '</div>';
   }
 

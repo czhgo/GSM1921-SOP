@@ -39,7 +39,7 @@ export function renderIssueList() {
   container.innerHTML = `
     <div class="card rounded-2xl p-6 mb-4">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="font-title-cn text-base font-semibold text-gray-700">全部意见 <span class="text-xs font-normal text-gray-400">open ${counts.open} · closed ${counts.closed}</span></h3>
+        <h3 class="font-title-cn text-lg font-bold text-gray-700">全部意见 <span class="text-xs font-normal text-gray-400">open ${counts.open} · closed ${counts.closed}</span></h3>
         ${canCreate ? `<button id="btn-new-issue" class="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors" style="background:#CE1126;" onmouseover="this.style.background='#991B1B'" onmouseout="this.style.background='#CE1126'">+ 新 issue</button>` : ''}
       </div>
 
@@ -80,8 +80,9 @@ function renderIssueRow(issue) {
     : `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">closed · ${issue.closedReason || 'completed'}</span>`;
 
   const reactions = Object.entries(issue.reactions || {}).filter(([_, list]) => list.length > 0).map(([type, list]) => {
-    const emoji = { thumbsUp: '👍', thumbsDown: '👎', eyes: '👀', hooray: '🎉' }[type] || '·';
-    return `<span class="text-[10px] text-gray-500">${emoji}${list.length}</span>`;
+    const iconName = { thumbsUp: 'thumbsUp', thumbsDown: 'thumbsDown', eyes: 'eyes', hooray: 'hooray' }[type];
+    const iconHTML = iconName ? icon(iconName, { size: 12 }) : '·';
+    return `<span class="text-[10px] text-gray-500 inline-flex items-center gap-0.5">${iconHTML}${list.length}</span>`;
   }).join(' ');
 
   return `
