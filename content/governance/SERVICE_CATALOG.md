@@ -2,17 +2,9 @@
 title: "统一服务目录"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-07-17"
+last_updated: "2026-07-18"
 status: active
-related_files:
-  - docs/src/services/auth.js
-  - docs/src/services/permission-manager.js
-  - docs/src/core/bootstrap.js
-  - docs/src/components/sidebar.js
-  - ../design/DATA_ARCHITECTURE.md
-  - ../design/DATA_ARCHITECTURE.md
-  - ../strategy/COMMISSIONER_FRAMEWORK.md
-  - content/governance/ROLE_CLASSIFICATION.md
+related_files: [docs/src/services/auth.js, docs/src/services/permission-manager.js, docs/src/core/bootstrap.js, docs/src/components/sidebar.js, content/design/DATA_ARCHITECTURE.md, content/strategy/COMMISSIONER_FRAMEWORK.md, content/governance/ROLE_CLASSIFICATION.md]
 ---
 
 # 统一服务目录（Service Catalog）

@@ -3,15 +3,10 @@ title: "模块界面设计"
 type: design
 role: "[工程师]+[AI]"
 version: "2.0"
-last_updated: "2026-07-17"
+last_updated: "2026-07-18"
 status: active
-merged_from:
-  - content/design/PAFFAIRS_UI.md
-  - content/design/CALENDAR.md
-related_files:
-  - content/design/DESIGN_SYSTEM.md
-  - content/design/DATA_ARCHITECTURE.md
-  - content/strategy/COMMISSIONER_FRAMEWORK.md
+merged_from: [content/design/PAFFAIRS_UI.md, content/design/CALENDAR.md]
+related_files: [content/design/DESIGN_SYSTEM.md, content/design/DATA_ARCHITECTURE.md, content/strategy/COMMISSIONER_FRAMEWORK.md]
 summary: "系统功能模块的界面设计规范——涵盖党务管理模块和日历功能模块的界面布局、交互逻辑、视图切换。合并自 PAFFAIRS_UI.md + CALENDAR.md。"
 ---
 

@@ -2,20 +2,9 @@
 title: "书记重要论断汇编"
 type: governance
 role: "[用户]+[AI]"
-last_updated: "2026-07-16"
+last_updated: "2026-07-18"
 status: active
-related_files:
-  - CLAUDE.md
-  - ARCHITECTURE.md
-  - content/strategy/DEVELOPMENT_PATH.md
-  - content/design/DATA_ARCHITECTURE.md
-  - content/governance/ROLE_CLASSIFICATION.md
-  - content/strategy/FLAT_DESIGN.md
-  - content/strategy/COMMISSIONER_FRAMEWORK.md
-  - content/governance/SOP_WEB.md
-  - content/governance/USAGE_POLICY.md
-  - content/governance/OPERATIONS_GUIDE.md
-  - content/insights/党支部管理与实务经验沉淀.md
+related_files: [CLAUDE.md, ARCHITECTURE.md, content/strategy/DEVELOPMENT_PATH.md, content/design/DATA_ARCHITECTURE.md, content/governance/ROLE_CLASSIFICATION.md, content/strategy/FLAT_DESIGN.md, content/strategy/COMMISSIONER_FRAMEWORK.md, content/governance/SOP_WEB.md, content/governance/USAGE_POLICY.md, content/governance/OPERATIONS_GUIDE.md, content/insights/党支部管理与实务经验沉淀.md]
 ---
 
 # 书记重要论断汇编
@@ -421,7 +410,7 @@ P-043 讲的是"适应能力"，P-044 讲的是"探索机会"。作为AI时代�
 
 条的边界是垂直穿透，块的边界是横向覆盖。专班打破了条块格局——既不完全是"条"（跨职能），也不完全是"块"（跨小组），而是临时性、目标导向的横向切口。
 
-常规模式（接力）下，支委决策→党小组组长中转→触达党员；专班模式（直达）下，支委直接从各小组抽调党员，党小组组长仅确认可用性，不介入执行协调。
+常规模式（接力）下，支委决策→党小组组长中转→触达党员；专班模式下，支委直接从各小组抽调党员。~~党小组组长仅确认可用性，不介入执行协调~~（⚠️ 2026-07-18 反论评议第一轮确认：此"常规vs专班"并列对比及"中转站→确认者"角色变化为AI推导，非书记原话，已从 insights §3.3 和 FLAT_DESIGN.md §四删除。此处保留标注供溯源。）
 
 <details>
 <summary>元数据</summary>
@@ -802,7 +791,7 @@ T24 任务已完成。以下论断已从第二级提升至第一级（原 CLAUDE
 | P-031 | 命名即认知框架 | insights §7.1 |
 | P-032 | 用户截图即需求 | insights §7.5 |
 | P-033 | 复盘从"事后提交"到"过程中沉淀" | insights §7.6 |
-| P-035 | 专班减负门控 | insights §4.1 |
+| P-035 | 减负审查标准 | insights §4.1 |
 | P-036 | Mock欺诈 | insights §4.4 |
 | P-037 | 同一概念只在一个地方表达 | insights §7.3 |
 | P-038 | DOM 是事实，state 是意图 | insights §10.3 |

@@ -2,17 +2,9 @@
 title: "发展路径"
 type: guide
 role: "[用户]+[AI]"
-last_updated: "2026-07-16"
+last_updated: "2026-07-18"
 status: active
-related_files:
-  - ARCHITECTURE.md
-  - CLAUDE.md
-  - content/design/DATA_ARCHITECTURE.md
-  - content/governance/ROLE_CLASSIFICATION.md
-  - content/strategy/FLAT_DESIGN.md
-  - content/insights/党支部管理与实务经验沉淀.md
-  - content/sop/支委与党小组定人定责定岗说明.md
-  - SECRETARY_PRONOUNCEMENTS.md
+related_files: [ARCHITECTURE.md, CLAUDE.md, content/design/DATA_ARCHITECTURE.md, content/governance/ROLE_CLASSIFICATION.md, content/strategy/FLAT_DESIGN.md, content/insights/党支部管理与实务经验沉淀.md, content/sop/支委与党小组定人定责定岗说明.md, SECRETARY_PRONOUNCEMENTS.md]
 ---
 
 > 受众：[用户]（党支书、支委、党员等关心战略方向的读者）
