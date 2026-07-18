@@ -1,4 +1,4 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  domain.js — 领域层 (Domain Layer)
 //  光华管理学院本科生党支部 SOP 引擎 v10.0
@@ -13,7 +13,7 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  id          - 唯一标识符（由 id.js 生成）
  * @property {string}  title       - 活动标题
  * @property {string}  type        - 活动类型（如 '组织生活会'、'主题党日'）
- * @property {'draft'|'published'|'ongoing'|'completed'} status - 活动状态 - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
+ * @property {'draft'|'published'|'ongoing'|'completed'|'cancelled'} status - 活动状态 - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
  * @property {'branch'|'group'} visibility - 可见范围：全支部 or 党小组 - Source: knowledge/SOP/支委与党小组定人定责定岗说明.md#一、人员结构与双重身份体系
  * @property {string}  date        - 活动日期 ISO 字符串（YYYY-MM-DD）
  * @property {string}  executor    - 执行角色 - Source: knowledge/SOP/组织委员工作流程指南.md#一、工作职责总览
@@ -27,34 +27,21 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  [scenarioId] - 关联的场景 ID（对应 sopDatabase）* - Source: knowledge/SOP/常见工作场景快速指南.md#目录
  * @property {string}  [description] - 活动描述
  * @property {string}  [targetDate]  - 目标日期 ISO 字符串（T-0，兼容旧字段）
- * @property {'leader'|'disc-commissioner'} [attendanceQROwner] - 考勤二维码发布方（组织生活会专用：现场组织的党小组长） - Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
- * @property {string[]} [deliverableIds] - 关联的交付物 ID 列表 - Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
- * @property {boolean} [isBrand]  - 品牌属性标签（由书记认定，不影响工作流选择） - Source: content/guides/design/BRAND_ACTIVITY.md
+ * @property {'leader'|'disc-commissioner'} [attendanceQROwner] - 考勤二维码发布方（组织生活会专用：现场组织的党小组组长） - Source: content/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
+ * @property {boolean} [isBrand]  - 品牌属性标签（由书记认定，不影响工作流选择） - Source: content/design/DATA_ARCHITECTURE.md
  */
 
 /**
  * @typedef {Object} AttendanceRecord
  * @property {string}  id          - 唯一标识符（由 id.js 生成）
  * @property {string}  activityId  - 所属活动 ID
- * @property {string}  userId      - 参会成员用户 ID
+ * @property {string}  personId    - 参会成员人员 ID
  * @property {'present'|'absent'|'leave'} status - 出勤状态
  * @property {string}  recordedBy  - 记录人用户 ID（纪检委员）
  * @property {string}  recordedAt  - 记录时间 ISO 字符串
- * @property {string}  [studentId] - 学号 - Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
- * @property {'party_member'|'probationary'|'activist'|'candidate'} [developStage] - 发展阶段 - Source: knowledge/SOP/纪检委员工作流程指南.md#二考勤管理三会一课
- * @property {string}  [partyGroup] - 所属党小组 - Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
- */
-
-/**
- * @typedef {Object} Deliverable
- * @property {string}  id          - 唯一标识符（由 id.js 生成）
- * @property {string}  activityId  - 所属活动 ID
- * @property {'photography_draft'|'attendance_summary'|'meeting_record'|'propaganda'|'check_material'} type - 交付物类型 - Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
- * @property {string}  owner       - 责任角色标识符（执行方角色）- Source: knowledge/SOP/支委与党小组定人定责定岗说明.md
- * @property {string}  [ownerName] - 责任角色描述（具体角色说明，如"党小组组长"、"纪检委员"）- Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
- * @property {'pending'|'submitted'|'archived'} status - 交付物状态
- * @property {string}  [submittedAt] - 提交时间 ISO 字符串
- * @property {string}  [note]      - 备注说明
+ * @property {string}  [studentId] - 学号 - Source: content/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
+ * @property {'入党申请人'|'积极分子'|'发展对象'|'预备党员'|'正式党员'} [developStage] - 发展阶段（中文枚举，D-239 统一） - Source: content/sop/纪检委员工作流程指南.md#二考勤管理三会一课 + content/design/DATA_ARCHITECTURE.md §2.5
+ * @property {string}  [partyGroup] - 所属党小组 - Source: content/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
  */
 
 /**
@@ -67,8 +54,8 @@ export const SCHEMA_VERSION = 1;
  */
 
 /**
- * 参与层级枚举 — Source: content/guides/architecture/MANAGEMENT_MODE.md §5.3
- * organize = 组织（活动组织者），deep = 深度参与，attend = 出勤
+ * 参与层级枚举 — Source: content/design/MANAGEMENT_MODE.md §5.3
+ * organize = 组织者，deep = 深度参与者，attend = 出勤
  */
 export const ParticipationLevel = {
   ORGANIZE: 'organize',
@@ -116,13 +103,54 @@ export const SOURCE_TYPE_LABELS = {
 };
 
 /**
+ * 复盘状态枚举 — Source: D-242（本轮补建）
+ * 支持复盘三态流转：未提交→已上传→批注中→确认/打回
+ */
+export const ReviewStatus = {
+  NOT_SUBMITTED: '未提交',
+  UPLOADED: '已上传',
+  ANNOTATING: '批注中',
+  CONFIRMED: '已确认',
+  REJECTED: '已打回',
+};
+
+/** 复盘状态中文标签（与枚举值一致，保持中文显示） */
+export const REVIEW_STATUS_LABELS = {
+  [ReviewStatus.NOT_SUBMITTED]: '未提交',
+  [ReviewStatus.UPLOADED]: '已上传',
+  [ReviewStatus.ANNOTATING]: '批注中',
+  [ReviewStatus.CONFIRMED]: '已确认',
+  [ReviewStatus.REJECTED]: '已打回',
+};
+
+/**
+ * 复盘记录 — Source: content/design/DATA_ARCHITECTURE.md §3.1.2 数据流第⑧步 + D-242
+ * 活动或专班完成后，组织者提交复盘报告，纪检委员批注/打回/确认
+ * @typedef {Object} ReviewRecord
+ * @property {string}  id            - 唯一标识符
+ * @property {string}  activityId    - 关联活动 ID（活动复盘时必填）
+ * @property {string}  [sourceType]  - 来源类型：'activity' | 'taskforce'（专班复盘时为 'taskforce'）
+ * @property {string}  [sourceName]  - 来源名称（专班复盘时为专班名称）
+ * @property {string}  organizerId   - 组织者人员 ID（须为活动/专班的实际 organizer）
+ * @property {string}  progress      - 进度状态（如 '已完成'/'进行中'/'超时'）
+ * @property {boolean} overdue       - 是否超时
+ * @property {ReviewStatus} reviewStatus - 复盘状态（D-242 枚举）
+ * @property {string}  reviewContent - 复盘内容
+ * @property {string}  [annotation]  - 批注内容（reviewStatus='批注中'/'已打回'时填写）
+ * @property {string}  [annotatedBy] - 批注人 personId（纪检委员）
+ * @property {string}  [annotatedAt] - 批注时间 ISO 字符串
+ * @property {string}  [submittedAt] - 提交时间 ISO 字符串（reviewStatus 非'未提交'时填写）
+ * @property {string}  [confirmedAt] - 确认时间 ISO 字符串（reviewStatus='已确认'时填写）
+ */
+
+/**
  * @typedef {Object} InspectionRecord
  * @property {string}  id            - 唯一标识符（由 id.js 生成）
  * @property {'activity'|'taskforce'} sourceType - 考察来源类型（活动 or 专班）— Source: D-198
  * @property {string}  activityId    - 关联活动 ID（sourceType='activity'时必填）
  * @property {string}  sourceName    - 来源名称（sourceType='taskforce'时为专班名称）
  * @property {string}  personId      - 人员 ID（引用 people.js）
- * @property {'organize'|'deep'} level - 考察层级（仅组织者和深度参与者有考察记录） - Source: content/guides/architecture/MANAGEMENT_MODE.md §5.1
+ * @property {'organize'|'deep'} level - 考察层级（仅组织者和深度参与者有考察记录） - Source: content/design/MANAGEMENT_MODE.md §5.1
  * @property {string}  role          - 分工角色+描述（如：策划+全流程统筹、视频制作、PPT设计）
  * @property {string}  recordedBy    - 记录人 personId
  * @property {string}  recordedAt    - 记录时间 ISO 字符串
@@ -147,29 +175,18 @@ export const SOURCE_TYPE_LABELS = {
  */
 
 /**
- * 简单权限判断函数 (ACL)
- * 依据 WORKFLOW_MASTER.md [数据安全与 ACL 宪法]
- * - 【考勤信息】全员公开可读，仅纪检委员/支委可写
- * - 【考察信息】仅支委可读写，普通成员绝对隔离
- * @param {'secretary'|'commissioner'|'leader'|'member'} role
- * @param {'read'|'write'|'delete'|'admin'} action
- * @param {'activity'|'attendance'|'evaluation'|string} [resource]
- * @returns {boolean}
+ * 图片记录 — Source: content/sop/宣传委员工作流程指南.md#图片管理规则
+ * 宣传委员上传的活动图片，含标注信息与 Base64 编码
+ * @typedef {Object} ImageRecord
+ * @property {string}  id            - 唯一标识符 `img_{timestamp}`
+ * @property {string}  date          - 拍摄日期 YYYY-MM-DD
+ * @property {string}  title         - 图片标题
+ * @property {string}  subject       - 拍摄主体（如人物/场景/物件）
+ * @property {string}  [activityId]  - 关联活动 ID（可选）
+ * @property {string}  base64        - Base64 编码图片数据
+ * @property {string}  uploadedBy    - 上传人
+ * @property {string}  uploadedAt    - 上传时间 ISO 字符串
  */
-export function can(role, action, resource) {
-  // 考察档案：最高机密，仅支委可读写
-  if (resource === 'evaluation') {
-    return role === 'secretary' || role === 'org-commissioner';
-  }
-  /** @type {Record<string, string[]>} */
-  const rules = {
-    secretary:    ['read', 'write', 'delete', 'admin'],
-    commissioner: ['read', 'write'],
-    leader:       ['read', 'write'],
-    member:       ['read'],
-  };
-  return (rules[role] || ['read']).includes(action);
-}
 
 /**
  * 内存数据库（Mock 层写入此处）
@@ -178,9 +195,14 @@ export function can(role, action, resource) {
 export const mockDB = {
   _schema: SCHEMA_VERSION,
   users: [
-    { id: 'u_sec',  role: 'secretary',        name: '支部书记' },
-    { id: 'u_org',  role: 'org-commissioner', name: '组织委员' },
-    { id: 'u_exec', role: 'leader',            name: '党小组长' },
+    { id: 'u_sec',  role: 'secretary',         name: '支部书记' },
+    { id: 'u_dep',  role: 'deputy-secretary',  name: '支部副书记' },
+    { id: 'u_org',  role: 'org-commissioner',  name: '组织委员' },
+    { id: 'u_prop', role: 'prop-commissioner', name: '宣传委员' },
+    { id: 'u_disc', role: 'disc-commissioner', name: '纪检委员' },
+    { id: 'u_exec', role: 'leader',            name: '党小组组长' },
+    { id: 'u_orgz', role: 'organizer',         name: '组织者' },
+    { id: 'u_deep', role: 'deep',              name: '深度参与者' },
   ],
   /** @type {Activity[]} */
   activities: [],
@@ -188,14 +210,10 @@ export const mockDB = {
   tasks: [],
   /** @type {AttendanceRecord[]} */
   // Fields: studentId（学号）, developStage（发展阶段）, partyGroup（所属党小组）are required for 组织生活会 attendance summary
-  // Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
+  // Source: content/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
   attendances: [],
-  /** @type {Deliverable[]} */
-  // 交付物清单（组织生活会专用：宣传底稿、考勤汇总表、组织生活会记录等）
-  // Source: content/SOP/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
-  deliverables: [],
   /** @type {InspectionRecord[]} */
-  // 考察记录（仅组织者和深度参与者的工作量记录）— Source: content/guides/architecture/MANAGEMENT_MODE.md §5.1
+  // 考察记录（仅组织者和深度参与者的工作量记录）— Source: content/design/MANAGEMENT_MODE.md §5.1
   inspections: [],
   // ── 以下为存储层统一后从独立键归并的业务数据 ──
   /** @type {Object[]} 分工记录 */
@@ -218,4 +236,6 @@ export const mockDB = {
   taskforces: [],
   /** @type {Object[]} 通知数据 */
   notices: [],
+  /** @type {ImageRecord[]} 图片记录 — Source: content/sop/宣传委员工作流程指南.md#图片管理规则 */
+  imageRecords: [],
 };

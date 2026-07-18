@@ -1,4 +1,4 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  state.js — 全局状态管理 (STATE 枚举 / appState / setState)
 //  使用 registerRenderCallback 模式避免循环依赖
@@ -15,7 +15,7 @@ export const STATE = {
 };
 
 // ── 角色类型定义 ─────────────────────────────────────────────────
-export const ROLE_TYPES = {
+const ROLE_TYPES = {
   PARTICIPANT:       'participant',       // 参与视图 - 默认参与者
   LEADER:            'leader',            // 管理视图 - 党小组组长
   ORG_COMMISSIONER:  'org-commissioner',  // 管理视图 - 组织委员
@@ -27,63 +27,8 @@ export const ROLE_TYPES = {
   GLOBAL:            'global',            // 全局视图 - 参考指南专用
 };
 
-// ── 动态角色上下文 ───────────────────────────────────────────────
-// 用于 AI 会话中的动态角色判定（见 copilot-instructions.md §写盘权限）
-export const DYNAMIC_ROLE_CONTEXT = {
-  SNAPSHOT_ACTIVE:   '[AI]',      // SNAPSHOT.md status="ACTIVE" 时为 AI 可读写
-  SNAPSHOT_ARCHIVED: '[人机]',    // SNAPSHOT.md 归档后人类可查
-  TIMESTAMPS_AUTO:   '[AI]',      // 周期性任务自动更新时
-  TIMESTAMPS_MANUAL: '[人机]',    // 人工维护时
-};
-
-// ── 获取给定文件路径的动态角色 ───────────────────────────────────
-const SNAPSHOT_DYNAMIC = {
-  pattern: /SNAPSHOT.*\.md$/,
-  activeRole:  '[AI]',
-  archivedRole: '[人机]',
-};
-
-const TIMESTAMPS_DYNAMIC = {
-  pattern: /TIMESTAMPS\.md$/,
-  autoRole:    '[AI]',
-  manualRole:  '[人机]',
-};
-
-export function resolveDynamicRole(filePath, context = 'runtime') {
-  if (SNAPSHOT_DYNAMIC.pattern.test(filePath)) {
-    return context === 'runtime' ? SNAPSHOT_DYNAMIC.activeRole : SNAPSHOT_DYNAMIC.archivedRole;
-  }
-  if (TIMESTAMPS_DYNAMIC.pattern.test(filePath)) {
-    return context === 'auto_update' ? TIMESTAMPS_DYNAMIC.autoRole : TIMESTAMPS_DYNAMIC.manualRole;
-  }
-  return null;
-}
-
-// ── AI 可修改文件白名单 ───────────────────────────────────────────
-// 配合 copilot-instructions.md §can-modify 白名单使用
-// 规则：白名单内文件在 [AI] 上下文中可免 /ask；白名单外 [AI] 文件修改须 /ask
-export const AI_CAN_MODIFY_WHITELIST = [
-  '.ctx/TIMESTAMPS.md',
-  '.ctx/CONTEXT.md',
-  '.ctx/SNAPSHOT.md',
-  '.ctx/logs/',
-];
-
-export function canAIModify(filePath) {
-  if (AI_CAN_MODIFY_WHITELIST.some(entry => filePath.startsWith(entry))) {
-    return { allowed: true, reason: 'whitelist' };
-  }
-  if (filePath.includes('/.github/agents/') || filePath.includes('/.github/skills/')) {
-    return { allowed: false, reason: 'agent_skill_file', requiresAsk: true };
-  }
-  if (filePath === '.github/copilot-instructions.md' || filePath === 'SSOT_INDEX.md') {
-    return { allowed: false, reason: 'charter_file', requiresAsk: true };
-  }
-  return { allowed: false, reason: 'unknown', requiresAsk: true };
-}
-
 // ── 管理角色列表（用于判断是否为管理视图）───────────────────────
-export const MANAGEMENT_ROLES = [
+const MANAGEMENT_ROLES = [
   ROLE_TYPES.LEADER,
   ROLE_TYPES.ORG_COMMISSIONER,
   ROLE_TYPES.PROP_COMMISSIONER,
@@ -94,12 +39,12 @@ export const MANAGEMENT_ROLES = [
 ];
 
 // ── 判断是否为管理角色 ───────────────────────────────────────────
-export function isManagementRole(role) {
+function isManagementRole(role) {
   return MANAGEMENT_ROLES.includes(role);
 }
 
 // ── 判断是否为参与角色 ───────────────────────────────────────────
-export function isParticipantRole(role) {
+function isParticipantRole(role) {
   return role === ROLE_TYPES.PARTICIPANT;
 }
 
@@ -113,7 +58,7 @@ export function getViewTypeByRole(role) {
 }
 
 // ── 根据角色获取参考指南显示角色 ─────────────────────────────────
-export function getReferenceRoleBySelectedRole(selectedRole) {
+function getReferenceRoleBySelectedRole(selectedRole) {
   if (!selectedRole || isParticipantRole(selectedRole)) {
     return 'all';
   }

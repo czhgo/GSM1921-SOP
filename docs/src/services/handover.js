@@ -1,4 +1,4 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  handover.js — 交接记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
@@ -11,7 +11,7 @@ export function loadHandoverRecords() {
   return [...mockDB.handovers];
 }
 
-export function saveHandoverRecords(records) {
+function saveHandoverRecords(records) {
   mockDB.handovers = records;
   saveDB();
 }

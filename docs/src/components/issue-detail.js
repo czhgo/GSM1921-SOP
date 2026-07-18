@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+﻿﻿// role: [工程师]+[AI]
 // issue-detail.js — Issue 详情渲染
 
 import { IssueStore } from '../services/issues.js';
@@ -116,7 +116,7 @@ export function renderIssueDetail(issueId) {
                   <span class="mx-1">·</span>
                   <button id="btn-reference" class="text-blue-600 hover:text-blue-800">#引用</button>
                 </div>
-                <button id="btn-submit-comment" class="px-3 py-1 rounded-lg text-xs bg-gray-800 text-white hover:bg-gray-700 transition-colors font-sans">提交评论</button>
+                <button id="btn-submit-comment" class="px-4 py-2 rounded-lg text-sm bg-gray-800 text-white hover:bg-gray-700 transition-colors font-sans">提交评论</button>
               </div>
             </div>
           </div>
@@ -144,7 +144,7 @@ export function renderIssueDetail(issueId) {
                   <option value="wontfix" ${issue.closedReason === 'wontfix' ? 'selected' : ''}>不修复</option>
                   <option value="not_planned" ${issue.closedReason === 'not_planned' ? 'selected' : ''}>暂不计划</option>
                 </select>
-                <button id="btn-apply-status" class="mt-2 w-full text-xs py-1 rounded bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 font-sans">应用</button>`
+                <button id="btn-apply-status" class="mt-2 w-full text-sm py-2 rounded bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 font-sans">应用</button>`
               : `<p class="text-gray-700 font-sans">${issue.status}${issue.closedReason ? ' · ' + (CLOSED_REASON_LABELS[issue.closedReason] || issue.closedReason) : ''}</p>`
             }
           </div>

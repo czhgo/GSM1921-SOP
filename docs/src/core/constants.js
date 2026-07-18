@@ -9,14 +9,14 @@ export const TRANSITION_DURATION = 320;
 
 export const ROLE_COLORS = {
   'deputy-secretary':  { bg: 'rgba(185, 28, 28, 0.10)',   text: '#B91C1C',  border: 'rgba(185, 28, 28, 0.30)' },  // 党建红（同书记）
-  leader:              { bg: 'rgba(74, 222, 128, 0.15)',  text: '#15803D',  border: 'rgba(74, 222, 128, 0.40)' },  // 亮绿#4ADE80
-  commissioner:        { bg: 'rgba(254, 249, 195, 0.40)', text: '#713f12',  border: 'rgba(253, 230, 138, 0.70)' },
-  'org-commissioner':  { bg: 'rgba(34, 211, 238, 0.10)',  text: '#0891B2',  border: 'rgba(34, 211, 238, 0.30)' },  // 亮青#22D3EE
+  leader:              { bg: 'rgba(34, 197, 94, 0.15)',  text: '#22C55E',  border: 'rgba(34, 197, 94, 0.40)' },  // 翠绿#22C55E
+  commissioner:        { bg: 'rgba(194, 65, 12, 0.15)',  text: '#C2410C',  border: 'rgba(194, 65, 12, 0.30)' },  // 同纪检#C2410C
+  'org-commissioner':  { bg: 'rgba(14, 165, 233, 0.10)',  text: '#0EA5E9',  border: 'rgba(14, 165, 233, 0.30)' },  // 天蓝#0EA5E9
   'prop-commissioner': { bg: 'rgba(37, 99, 235, 0.10)',   text: '#2563EB',  border: 'rgba(37, 99, 235, 0.30)' },  // 海蓝#2563EB
   'disc-commissioner': { bg: 'rgba(194, 65, 12, 0.10)',   text: '#C2410C',  border: 'rgba(194, 65, 12, 0.30)' },  // 深橙#C2410C
-  organizer:           { bg: 'rgba(164, 217, 244, 0.15)', text: '#1E6091',  border: 'rgba(164, 217, 244, 0.40)' },  // 淡蓝#a4d9f4
-  deep:                { bg: 'rgba(148, 163, 184, 0.12)', text: '#475569',  border: 'rgba(148, 163, 184, 0.30)' },  // 浅灰蓝#94a3b8
-  participant:         { bg: 'rgba(107, 114, 128, 0.10)', text: '#374151',  border: 'rgba(107, 114, 128, 0.30)' },
+  organizer:           { bg: 'rgba(125, 211, 252, 0.15)', text: '#7DD3FC',  border: 'rgba(125, 211, 252, 0.40)' },  // 亮天蓝#7DD3FC
+  deep:                { bg: 'rgba(148, 163, 184, 0.12)', text: '#94a3b8',  border: 'rgba(148, 163, 184, 0.30)' },  // 浅灰蓝#94a3b8
+  participant:         { bg: 'rgba(107, 114, 128, 0.10)', text: '#6B7280',  border: 'rgba(107, 114, 128, 0.30)' },  // 灰色#6B7280
   all:                 { bg: 'rgba(14, 116, 144, 0.08)',  text: '#0E7490',  border: 'rgba(14, 116, 144, 0.20)' },
   secretary:           { bg: 'rgba(185, 28, 28, 0.10)',   text: '#B91C1C',  border: 'rgba(185, 28, 28, 0.30)' },  // 党建红（不动）
 };
@@ -169,12 +169,12 @@ function hexToRgba(hex, alpha) {
 export const ACCENT_COLORS = {
   secretary:           { hex: '#B91C1C' },  // 党建红（不动）
   'deputy-secretary':  { hex: '#B91C1C' },  // 党建红（同书记）
-  leader:              { hex: '#4ADE80' },  // 亮绿
-  'org-commissioner':  { hex: '#22D3EE' },  // 亮青
+  leader:              { hex: '#22C55E' },  // 翠绿
+  'org-commissioner':  { hex: '#0EA5E9' },  // 天蓝
   'prop-commissioner': { hex: '#2563EB' },  // 海蓝
   'disc-commissioner': { hex: '#C2410C' },  // 深橙
   commissioner:        { hex: '#C2410C' },  // 同纪检
-  organizer:           { hex: '#a4d9f4' },  // 淡蓝
+  organizer:           { hex: '#7DD3FC' },  // 亮天蓝
   deep:                { hex: '#94a3b8' },  // 浅灰蓝
   participant:         { hex: '#6B7280' },  // 灰色
   all:                 { hex: '#0E7490' },  // 深青

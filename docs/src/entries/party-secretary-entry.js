@@ -1,4 +1,4 @@
-﻿import { registerRenderCallback } from '../core/state.js';
+﻿﻿import { registerRenderCallback } from '../core/state.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { PartyModule } from '../modules/party.js';
 import { showToast } from '../core/utils.js';
@@ -44,9 +44,9 @@ function _renderTab(tab) {
       <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#B91C1C;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">批量操作</h4>
         <div class="flex gap-3 mb-3">
-          <button id="btn-batch-remind" class="text-sm px-4 py-2 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors" style="cursor:pointer;">批量催缴</button>
-          <button id="btn-batch-archive" class="text-sm px-4 py-2 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors" style="cursor:pointer;">批量归档</button>
-          <button id="btn-batch-export" class="text-sm px-4 py-2 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors" style="cursor:pointer;">批量导出</button>
+          <button id="btn-batch-remind" class="text-xs px-3 py-2 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors" style="cursor:pointer;">批量催缴</button>
+          <button id="btn-batch-archive" class="text-xs px-3 py-2 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors" style="cursor:pointer;">批量归档</button>
+          <button id="btn-batch-export" class="text-xs px-3 py-2 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors" style="cursor:pointer;">批量导出</button>
         </div>
         <div id="batch-op-msg"></div>
       </div>

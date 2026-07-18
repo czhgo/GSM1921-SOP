@@ -1,4 +1,4 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // ================================================================
 //  service.roles.js — 角色赋权共享服务
 //  消除 party.js 之间的重复统计逻辑
@@ -30,12 +30,12 @@ export function saveAssignedRoles() {
 
 _load();
 
-export function addAssignedRole(entry) {
+function addAssignedRole(entry) {
   assignedRoles.push({ ...entry, assignedAt: new Date().toISOString() });
   saveAssignedRoles();
 }
 
-export function removeAssignedRole(index) {
+function removeAssignedRole(index) {
   assignedRoles.splice(index, 1);
   saveAssignedRoles();
 }
@@ -67,9 +67,9 @@ export function computeSecretaryStats(activities, nowOverride) {
 
 export function filterForViewProxy(activities, proxyRole) {
   const filters = {
-    organizer:      a => a.organizer ? true : false,
-    publicity:      a => a.activityType ? true : false,
-    inspector:      a => true,
+    organizer:            a => a.organizer ? true : false,
+    'prop-commissioner':  a => a.activityType ? true : false,
+    'disc-commissioner':  a => true,
     'group1-leader': a => a.hostGroup === 'group1',
     'group2-leader': a => a.hostGroup === 'group2',
     'group3-leader': a => a.hostGroup === 'group3',

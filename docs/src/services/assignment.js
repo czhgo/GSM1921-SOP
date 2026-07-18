@@ -1,4 +1,4 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  assignment.js — 分工记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
@@ -11,7 +11,7 @@ export function loadAssignmentRecords() {
   return [...mockDB.assignments];
 }
 
-export function saveAssignmentRecords(records) {
+function saveAssignmentRecords(records) {
   mockDB.assignments = records;
   saveDB();
 }

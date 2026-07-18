@@ -1,12 +1,12 @@
 export const CANDIDATE_STAGES = ['入党申请人', '积极分子', '发展对象', '预备党员', '正式党员'];
 
 export const COMPLIANCE_FILES = [
-  { name: '中国共产党章程', path: '#search', note: '请通过「资料查询」模块获取' },
-  { name: '党支部工作规范（学生）', path: '#search', note: '请通过「资料查询」模块获取' },
-  { name: '党员教育管理工作条例', path: '#search', note: '请通过「资料查询」模块获取' },
-  { name: '发展党员工作细则', path: '#search', note: '请通过「资料查询」模块获取' },
-  { name: '高校基层组织工作条例', path: '#search', note: '请通过「资料查询」模块获取' },
-  { name: '支部工作条例（试行）', path: '#search', note: '请通过「资料查询」模块获取' },
+  { name: '中国共产党章程', path: '../content/references/合规文件/【附件11】中国共产党章程.pdf', note: 'T1 上级制度原文' },
+  { name: '党支部工作规范（学生）', path: '../content/references/合规文件/【附件12】党支部工作规范（学生）.pdf', note: 'T1 上级制度原文' },
+  { name: '党员教育管理工作条例', path: '../content/references/合规文件/【附件14】中国共产党党员教育管理工作条例（2019年5月21日）.docx', note: 'T1 上级制度原文' },
+  { name: '发展党员工作细则', path: '../content/references/合规文件/【附件15】中国共产党发展党员工作细则（2014年）.docx', note: 'T1 上级制度原文' },
+  { name: '高校基层组织工作条例', path: '../content/references/合规文件/【附件16】中国共产党普通高等学校基层组织工作条例（2010年8月13日）.docx', note: 'T1 上级制度原文' },
+  { name: '支部工作条例（试行）', path: '../content/references/合规文件/【附件17】中国共产党支部工作条例（试行）（2018年10月28日）.docx', note: 'T1 上级制度原文' },
 ];
 
 export const PUBLICITY_STANDARDS = [
@@ -16,27 +16,26 @@ export const PUBLICITY_STANDARDS = [
 ];
 
 export const TEMPLATE_LIST = [
-  { name: '活动总结模板', desc: '用于总结各类党支部活动', color: '#CE1126', bgColor: 'rgba(206,17,38,0.08)' },
-  { name: '会议记录模板', desc: '规范记录党支部会议内容', color: '#3B82F6', bgColor: 'rgba(59,130,246,0.08)' },
-  { name: '入党申请书模板', desc: '入党申请人撰写参考', color: '#10B981', bgColor: 'rgba(16,185,129,0.08)' },
-  { name: '思想汇报模板', desc: '季度思想汇报撰写参考', color: '#8B5CF6', bgColor: 'rgba(139,92,246,0.08)' },
-  { name: '转正申请书模板', desc: '预备党员转正申请参考', color: '#D97706', bgColor: 'rgba(217,119,6,0.08)' },
-  { name: '活动复盘模板', desc: '活动复盘与经验总结', color: '#EF4444', bgColor: 'rgba(239,68,68,0.08)' },
+  { name: '活动复盘模板', desc: '活动复盘与经验总结（系统内表单·标准化工作流）', color: '#EF4444', bgColor: 'rgba(239,68,68,0.08)' },
 ];
 
+// 最后更新：2026-07-16（T-2026-07-006 第 5 轮 mock 数据迭代）
+// candidates: 补充 c1/c2 使 ID 连续为 c1~c5，使用新增人员确保 stage 与 developStage 一致
+// makeupTasks: 以 attendance.js 考勤记录为准重写，attendanceRecordId 指向真实存在的记录
 export const PARTY_MOCKS = {
   candidates: [
-    { id: 'c1', personId: 'p4', stage: '正式党员', materialsComplete: false, missingMaterials: 3 },
-    { id: 'c3', personId: 'p6', stage: '发展对象', materialsComplete: true, missingMaterials: 0 },
-    { id: 'c4', personId: 'p7', stage: '积极分子', materialsComplete: true, missingMaterials: 0 },
-    { id: 'c5', personId: 'p15', stage: '积极分子', materialsComplete: false, missingMaterials: 2 },
+    { id: 'c1', personId: 'p21', name: '沈佳琪', stage: '入党申请人', materialsComplete: false, missingMaterials: 3 },
+    { id: 'c2', personId: 'p18', name: '谢晓东', stage: '积极分子',   materialsComplete: true,  missingMaterials: 0 },
+    { id: 'c3', personId: 'p6',  name: '孙八',   stage: '发展对象',   materialsComplete: true,  missingMaterials: 0 },
+    { id: 'c4', personId: 'p7',  name: '周九',   stage: '积极分子',   materialsComplete: true,  missingMaterials: 0 },
+    { id: 'c5', personId: 'p15', name: '吴十',   stage: '积极分子',   materialsComplete: false, missingMaterials: 2 },
   ],
   makeupTasks: [
-    { id: 'mk1', personId: 'p1', activityId: 'act-7', attendanceRecordId: 'att_p1', activityName: '4月主题党日：红色基地参访', personName: '张三', absentDate: '2026-04-15', deadline: '2026-04-22', status: 'pending', isMandatory: true, proofContent: null, completedAt: null, createdAt: '2026-04-16T08:00:00Z', overdue: true },
-    { id: 'mk2', personId: 'p2', activityId: 'act-5', attendanceRecordId: 'att_p2', activityName: '4月支委会', personName: '李四', absentDate: '2026-04-18', deadline: '2026-04-25', status: 'pending', isMandatory: true, proofContent: null, completedAt: null, createdAt: '2026-04-19T08:00:00Z', overdue: true },
-    { id: 'mk3', personId: 'p3', activityId: 'act-4', attendanceRecordId: 'att_p3', activityName: '4月党小组会', personName: '王五', absentDate: '2026-03-20', deadline: '2026-03-27', status: 'completed', isMandatory: true, proofContent: '已补课', completedAt: '2026-03-25T10:00:00Z', createdAt: '2026-03-21T08:00:00Z' },
-    { id: 'mk4', personId: 'p4', activityId: 'act-6', attendanceRecordId: 'att_p4', activityName: '4月党课：新时代青年担当', personName: '赵六', absentDate: '2026-04-25', deadline: '2026-05-02', status: 'pending', isMandatory: true, proofContent: null, completedAt: null, createdAt: '2026-04-26T08:00:00Z', overdue: true },
-    { id: 'mk5', personId: 'p5', activityId: 'act-3', attendanceRecordId: 'att_p5', activityName: '3月主题党日：学习两会精神', personName: '钱七', absentDate: '2026-03-14', deadline: '2026-03-21', status: 'completed', isMandatory: true, proofContent: '已补课', completedAt: '2026-03-18T14:00:00Z', createdAt: '2026-03-15T08:00:00Z' },
+    { id: 'mk1', personId: 'p2',  activityId: 'act-2',  attendanceRecordId: 'att3',  activityName: '3月支委会',                 personName: '李四', absentDate: '2026-03-18', deadline: '2026-03-25', status: 'pending',   isMandatory: true, proofContent: null,    completedAt: null,                   createdAt: '2026-03-19T08:00:00Z', overdue: true },
+    { id: 'mk2', personId: 'p4',  activityId: 'act-2',  attendanceRecordId: 'att5',  activityName: '3月支委会',                 personName: '赵六', absentDate: '2026-03-18', deadline: '2026-03-25', status: 'pending',   isMandatory: true, proofContent: null,    completedAt: null,                   createdAt: '2026-03-19T08:00:00Z', overdue: true },
+    { id: 'mk3', personId: 'p7',  activityId: 'act-9',  attendanceRecordId: 'att27', activityName: '5月党小组会',               personName: '周九', absentDate: '2026-05-14', deadline: '2026-05-21', status: 'completed', isMandatory: true, proofContent: '已补课', completedAt: '2026-05-18T10:00:00Z', createdAt: '2026-05-15T08:00:00Z' },
+    { id: 'mk4', personId: 'p5',  activityId: 'act-11', attendanceRecordId: 'att38', activityName: '5月支委会',                 personName: '钱七', absentDate: '2026-05-20', deadline: '2026-05-27', status: 'pending',   isMandatory: true, proofContent: null,    completedAt: null,                   createdAt: '2026-05-21T08:00:00Z', overdue: true },
+    { id: 'mk5', personId: 'p15', activityId: 'act-6',  attendanceRecordId: 'att14', activityName: '4月党课：新时代青年担当',   personName: '吴十', absentDate: '2026-04-25', deadline: '2026-05-02', status: 'completed', isMandatory: true, proofContent: '已补课', completedAt: '2026-04-29T14:00:00Z', createdAt: '2026-04-26T08:00:00Z' },
   ],
   feedbackItems: [
     { id: 'fb1', content: '建议增加线上学习渠道', status: 'pending', date: '2026-04-20' },

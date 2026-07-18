@@ -1,6 +1,18 @@
 import { PEOPLE } from './people.js';
 import { ACTIVITIES } from './activities.js';
 
+/** 按 ID 查询人员，返回 person 对象或 null */
+export function getPersonById(id) {
+  if (!id) return null;
+  return PEOPLE.find(p => p.id === id) || null;
+}
+
+/** 按 ID 查询人员姓名，返回 name 或 fallback 到 id */
+export function getPersonName(id) {
+  if (!id) return '—';
+  return getPersonById(id)?.name || id;
+}
+
 export function _personName(id) {
   if (!id) return '—';
   return PEOPLE.find(p => p.id === id)?.name || id;
@@ -22,4 +34,3 @@ export { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS, reviewToDisplay } from './rev
 export { PARTY_MOCKS, CANDIDATE_STAGES, COMPLIANCE_FILES, PUBLICITY_STANDARDS, TEMPLATE_LIST } from './party.js';
 export { MOCK_NOTICES } from './notices.js';
 export { MOCK_TASKFORCES } from './taskforces.js';
-export { PARTICIPATION_RECORDS, participationToDisplay } from './participation.js';

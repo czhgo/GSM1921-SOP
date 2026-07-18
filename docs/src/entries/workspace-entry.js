@@ -37,7 +37,7 @@ if (!user) {
   window.location.href = getBasePath() + 'login.html';
 } else {
   // 使用 getEffectiveRole 而非 user.role，保证切换视角后跳转到正确页面
-  const effectiveRole = AuthStore.getEffectiveRole(user.userId);
+  const effectiveRole = AuthStore.getEffectiveRole(user.personId);
   const page = AuthStore.getPageForRole('workspace', effectiveRole);
   if (page) {
     if (_acquireRouteLock(effectiveRole)) {

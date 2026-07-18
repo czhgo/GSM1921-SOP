@@ -1,12 +1,10 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  utils.js — 格式化工具、动画辅助、Toast 组件
 // ════════════════════════════════════════════════════════════════
 
-import { TRANSITION_DURATION } from './constants.js';
-
 // ── 日期格式化 ─────────────────────────────────────────────────
-export function _pad(n) { return n < 10 ? '0' + n : '' + n; }
+function _pad(n) { return n < 10 ? '0' + n : '' + n; }
 
 export function _fmtDate(d) {
   return d.getFullYear() + '-' + _pad(d.getMonth() + 1) + '-' + _pad(d.getDate());
@@ -20,27 +18,6 @@ export function _fmtChinese(d) {
 export function _currentYearMonth() {
   const n = new Date();
   return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0');
-}
-
-// ── 动画工具 ────────────────────────────────────────────────────
-export function enterEl(el) {
-  clearTimeout(el._leaveTimer);
-  el.classList.remove('hidden');
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      el.classList.remove('opacity-0', 'translate-y-4');
-      el.classList.add('opacity-100', 'translate-y-0');
-    });
-  });
-}
-
-export function leaveEl(el) {
-  el.classList.remove('opacity-100', 'translate-y-0');
-  el.classList.add('opacity-0', 'translate-y-4');
-  clearTimeout(el._leaveTimer);
-  el._leaveTimer = setTimeout(() => {
-    el.classList.add('hidden');
-  }, TRANSITION_DURATION);
 }
 
 // ── Toast 组件 — 浮层通知（固定定位，不影响文档流）─────────────
@@ -72,8 +49,8 @@ export function showToast(type, message) {
 
   const toast = document.createElement('div');
   toast.style.cssText = [
-    `background:${bg}`, 'backdrop-filter:blur(8px)',
-    `border:1px solid ${border}`, 'border-radius:0.75rem',
+    `background:${bg}`,
+    `border:1px solid ${border}`, 'border-radius:var(--radius-md)',
     'padding:0.625rem 1rem', 'display:flex', 'align-items:center',
     'gap:0.5rem', 'font-size:0.875rem', 'color:#f1f5f9',
     'box-shadow:0 4px 24px rgba(0,0,0,0.3)',

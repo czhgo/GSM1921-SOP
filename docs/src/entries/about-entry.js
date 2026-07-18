@@ -1,12 +1,14 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // about-entry.js — 关于页面入口
 
 import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';
 import { renderCommissionerMatrix } from '../components/commissioner-matrix.js';
+import { renderRoleHierarchy } from '../components/role-hierarchy.js';
 
 renderSidebar('about');
 renderHeader('about');
+renderRoleHierarchy('role-hierarchy-container');
 renderCommissionerMatrix('commissioner-matrix-container');
 
 // TOC 高亮跟随滚动

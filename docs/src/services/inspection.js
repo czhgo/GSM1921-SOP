@@ -1,4 +1,4 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  inspection.js — 考察记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
@@ -16,24 +16,8 @@ export function saveInspectionRecords(records) {
   saveDB();
 }
 
-/** 添加单条考察记录 */
-export function addInspectionRecord(record) {
-  const records = loadInspectionRecords();
-  records.push(record);
-  saveInspectionRecords(records);
-  return record;
-}
-
-/** 批量添加考察记录（一次上传多人） */
-export function addInspectionRecords(newRecords) {
-  const records = loadInspectionRecords();
-  newRecords.forEach(r => records.push(r));
-  saveInspectionRecords(records);
-  return newRecords;
-}
-
 /** 更新考察记录 */
-export function updateInspectionRecord(id, updates) {
+function updateInspectionRecord(id, updates) {
   const records = loadInspectionRecords();
   const idx = records.findIndex(r => r.id === id);
   if (idx !== -1) {
@@ -91,9 +75,4 @@ export function getRecordsBySource(sourceType, sourceId) {
 /** 按人员查询考察记录 */
 export function getRecordsByPerson(personId) {
   return loadInspectionRecords().filter(r => r.personId === personId);
-}
-
-/** 按记录人查询考察记录 */
-export function getRecordsByRecorder(recordedBy) {
-  return loadInspectionRecords().filter(r => r.recordedBy === recordedBy);
 }

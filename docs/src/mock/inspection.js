@@ -29,10 +29,10 @@ export const INSPECTION_RECORDS = [
   { id: 'insp-10', sourceType: SourceType.ACTIVITY, activityId: 'act-12', sourceName: null, personId: 'p10', level: ParticipationLevel.DEEP_PARTICIPATE, role: '现场记录+纪要整理',   recordedBy: 'p11', recordedAt: '2026-05-20T14:05:00', status: 'pending' },
 
   // ── 专班考察记录 ──────────────────────────────────────────
-  // 宣传专班（第二期）（p2 李四）
-  { id: 'insp-11', sourceType: SourceType.TASKFORCE, activityId: null, sourceName: '宣传专班（第二期）', personId: 'p2',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '文案撰写',           recordedBy: 'p1',  recordedAt: '2026-04-01T09:00:00', status: 'pending' },
-  // 共建座谈对接专班（p4 赵六）
-  { id: 'insp-12', sourceType: SourceType.TASKFORCE, activityId: null, sourceName: '共建座谈对接专班', personId: 'p4',  level: ParticipationLevel.DEEP_PARTICIPATE, role: 'PPT设计',            recordedBy: 'p11', recordedAt: '2026-04-10T10:00:00', status: 'pending' },
+  // 宣传专班（第二期）（p9 冯十二 — tf-001 实际成员）
+  { id: 'insp-11', sourceType: SourceType.TASKFORCE, activityId: null, sourceName: '宣传专班（第二期）', personId: 'p9',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '文案撰写',           recordedBy: 'p1',  recordedAt: '2026-04-01T09:00:00', status: 'pending' },
+  // 共建座谈对接专班（p10 陈十三 — tf-004 实际成员）
+  { id: 'insp-12', sourceType: SourceType.TASKFORCE, activityId: null, sourceName: '共建座谈对接专班', personId: 'p10', level: ParticipationLevel.DEEP_PARTICIPATE, role: 'PPT设计',            recordedBy: 'p11', recordedAt: '2026-04-10T10:00:00', status: 'pending' },
 ];
 
 /**

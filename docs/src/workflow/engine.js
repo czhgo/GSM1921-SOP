@@ -1,4 +1,4 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  engine.js — 工作流引擎 v2.0
 //  v1.0: 状态机 + 流转规则 + 事件触发 + 历史日志 + 阻塞检测
@@ -410,76 +410,4 @@ export function createEngine(definition, operator = 'system') {
   const engine = new WorkflowEngine(definition);
   engine.start(definition.initialState, operator);
   return engine;
-}
-
-// ════════════════════════════════════════════════════════════════
-//  纯函数工具
-// ════════════════════════════════════════════════════════════════
-
-export function canTransition(stateMap, current, event) {
-  const currentCfg = stateMap instanceof Map ? stateMap.get(current) : stateMap[current];
-  if (!currentCfg) return { allowed: false, reason: `Unknown current: ${current}` };
-  const allowed = currentCfg.allowedTransitions || [];
-  if (!allowed.includes(event.target))
-    return { allowed: false, reason: `"${current}" → "${event.target}" not in [${allowed.join(', ')}]` };
-  return { allowed: true };
-}
-
-export function calcTimeoutStatus(node, now = Date.now()) {
-  if (!node.enteredAt || !node.timeoutHours) return null;
-  const elapsed = (now - new Date(node.enteredAt).getTime()) / (1000 * 60 * 60);
-  return { isBlocked: elapsed > node.timeoutHours, elapsedHours: Math.round(elapsed * 10) / 10, remainingHours: Math.round((node.timeoutHours - elapsed) * 10) / 10 };
-}
-
-// ════════════════════════════════════════════════════════════════
-//  预定义事件类型常量
-// ════════════════════════════════════════════════════════════════
-
-export const EVENT_TYPES = {
-  INIT: 'INIT', SUBMIT: 'SUBMIT', APPROVE: 'APPROVE', REJECT: 'REJECT',
-  CANCEL: 'CANCEL', COMPLETE: 'COMPLETE', REVIEW: 'REVIEW',
-  ARCHIVE: 'ARCHIVE', CERTIFY: 'CERTIFY', TIMEOUT: 'TIMEOUT',
-  // v2.0 子状态事件
-  ATTENDANCE_CONFIRMED: 'ATTENDANCE_CONFIRMED',
-  ATTENDANCE_EXECUTED:  'ATTENDANCE_EXECUTED',
-  ATTENDANCE_SUBMITTED: 'ATTENDANCE_SUBMITTED',
-  PUBLICITY_REVIEWED:   'PUBLICITY_REVIEWED',
-  PUBLICITY_COORDINATED:'PUBLICITY_COORDINATED',
-  PUBLICITY_ARCHIVED:   'PUBLICITY_ARCHIVED',
-};
-
-// ════════════════════════════════════════════════════════════════
-//  角色权限矩阵（v2.0）
-// ════════════════════════════════════════════════════════════════
-
-/**
- * 定义每个角色在每种状态下可以执行的操作。
- * 格式: { roleName: { read: bool, write: bool, confirm: bool, assign: bool } }
- *
- * 权限级别：
- *   read    — 查看（所有人默认有）
- *   write   — 编辑活动信息（组织者、书记、对应条条委员）
- *   confirm — 确认/审批（组长、书记、对应条条委员）
- *   assign  — 给特定同志赋权（仅书记、组织委员、党小组组长）
- */
-export const ROLE_PERMISSIONS = {
-  participant:  { read: true,  write: false, confirm: false, assign: false },
-  deep:         { read: true,  write: false, confirm: false, assign: false },
-  leader:       { read: true,  write: true,  confirm: true,  assign: true },
-  organizer:    { read: true,  write: true,  confirm: false, assign: false },
-  secretary:    { read: true,  write: true,  confirm: true,  assign: true },
-  'disc-commissioner':  { read: true,  write: true,  confirm: true,  assign: true },
-  'org-commissioner':   { read: true,  write: true,  confirm: true,  assign: true },
-  'prop-commissioner':  { read: true,  write: true,  confirm: true,  assign: false },
-  global:       { read: true,  write: true,  confirm: true,  assign: true },
-};
-
-/**
- * 检查某个角色是否有指定权限。
- * @param {string} role - 角色
- * @param {'read'|'write'|'confirm'|'assign'} permission - 权限类型
- */
-export function hasPermission(role, permission) {
-  const perms = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.participant;
-  return !!perms[permission];
 }

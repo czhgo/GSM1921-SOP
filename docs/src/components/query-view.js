@@ -24,7 +24,7 @@
  * @param {Array} config.data - 数据数组
  * @param {Function} config.renderRow - 单行渲染函数 (item) => htmlString
  * @param {string} [config.emptyMessage='无匹配结果'] - 空结果提示
- * @param {string} [config.accentColor='#3B82F6'] - 强调色
+ * @param {string} [config.accentColor='#3B82F6'] - 强调色（仅用于内部 accent，不再渲染左侧竖线——外层 card 已提供视觉边界）
  */
 export function renderQueryView(container, config) {
   const {
@@ -49,7 +49,7 @@ export function renderQueryView(container, config) {
   `).join('');
 
   container.innerHTML = `
-    <div class="query-view" style="border-left:3px solid ${accentColor};padding-left:8px;">
+    <div class="query-view">
       <div class="flex flex-wrap items-center gap-2 mb-3">
         <input type="text" id="${uid}-search" class="input-flat text-xs flex-1 min-w-[160px]"
                placeholder="${searchPlaceholder}" />

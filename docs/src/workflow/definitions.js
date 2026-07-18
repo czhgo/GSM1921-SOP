@@ -1,8 +1,8 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  definitions.js — 活动流程定义模板 v2.0
 //  核心：短期活动双轨 / 长期活动双轨
-//  三维度：时长 / 发起方向（品牌为属性标签 isBrand，非工作流维度）
+//  两个分类依据：时长 / 发起方向（品牌为属性标签 isBrand，非工作流分类依据）
 // ════════════════════════════════════════════════════════════════
 
 // ════════════════════════════════════════════════════════════════
@@ -19,7 +19,7 @@ const DRAFT = (timeoutHours = 168) => ({
 
 const PENDING_LEADER = (timeoutHours = 48) => ({
   name: 'PENDING_LEADER',
-  label: '待组长审批',
+  label: '待党小组组长审批',
   allowedTransitions: ['APPROVED', 'DRAFT'],
   timeoutHours,
   metadata: { phase: '审批', editable: false },
@@ -205,9 +205,9 @@ export const THEME_PARTY_DAY_DEFINITION = {
       metadata: {
         phase: '审批',
         sopTaskId: '1b-2',
-        sopTaskTitle: '组长审批',
+        sopTaskTitle: '党小组组长审批',
         sopExecutor: 'leader',
-        sopDesc: '必须报块块组长审批同意后方可推进。',
+        sopDesc: '必须报党小组组长审批同意后方可推进。',
       },
     },
     {
@@ -376,18 +376,6 @@ export const LONG_TERM_DEFINITION = {
  *   不是独立活动类型，不影响工作流选择。被赋予品牌标签的活动可有更多归档、展示方面的制度探索。
  */
 
-export const DIMENSION_DEFINITIONS = {
-  duration: {
-    'short-term': { label: '短期活动', rule: '一次性完成（参访、线下学习等）', timeoutMultiplier: 1.0 },
-    'long-term': { label: '长期活动', rule: '长期打磨/接续工作/多活动小组同步推进', timeoutMultiplier: 2.0 },
-  },
-  direction: {
-    'bottom-up': { label: '自下而上', rule: '党小组/成员自发创造性活动' },
-    'top-down': { label: '自上而下', rule: '支委/书记布置的任务' },
-    'either': { label: '未限定', rule: '两种发起方式均可' },
-  },
-};
-
 // ════════════════════════════════════════════════════════════════
 //  G. 定义索引
 // ════════════════════════════════════════════════════════════════
@@ -405,18 +393,6 @@ export const DEFINITION_INDEX = {
 export function getDefinition(duration, isBrand = false) {
   const key = duration === 'long-term' ? 'long-term' : 'short-term';
   return DEFINITION_INDEX[key];
-}
-
-/**
- * 根据维度查询最匹配的定义。
- * @param {'short-term'|'long-term'} duration
- * @param {boolean} isBrand — 保留参数兼容性，不影响工作流选择
- * @param {'bottom-up'|'top-down'|'either'} direction
- */
-export function findDefinition(duration, isBrand = false, direction = 'either') {
-  const def = getDefinition(duration, isBrand);
-  if (def.direction === 'either' || def.direction === direction) return def;
-  return { ...def, direction }; // 以实际 direction 覆盖
 }
 
 // ════════════════════════════════════════════════════════════════

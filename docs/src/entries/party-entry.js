@@ -35,7 +35,7 @@ const user = AuthStore.getCurrentUser();
 if (!user) {
   window.location.href = getBasePath() + 'login.html';
 } else {
-  const effectiveRole = AuthStore.getEffectiveRole(user.userId);
+  const effectiveRole = AuthStore.getEffectiveRole(user.personId);
   const page = AuthStore.getPageForRole('party', effectiveRole);
   if (page) {
     if (_acquireRouteLock(effectiveRole)) {

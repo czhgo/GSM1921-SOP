@@ -1,11 +1,11 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  makeup.js — 补课任务 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
 import { mockDB, AttendanceStatus } from '../core/domain.js';
 import { saveDB } from '../services/mock.js';
-import { ACTIVITIES, PEOPLE } from '../mock/index.js';
+import { ACTIVITIES, PEOPLE, getPersonById } from '../mock/index.js';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js';
 
 const MANDATORY_ACTIVITY_TYPES = ['支部党员大会', '党小组会', '党课'];
@@ -24,15 +24,6 @@ export function addMakeupTask(task) {
   const tasks = loadMakeupTasks();
   tasks.push(task);
   saveMakeupTasks(tasks);
-}
-
-export function updateMakeupTask(id, updates) {
-  const tasks = loadMakeupTasks();
-  const idx = tasks.findIndex(t => t.id === id);
-  if (idx !== -1) {
-    tasks[idx] = { ...tasks[idx], ...updates };
-    saveMakeupTasks(tasks);
-  }
 }
 
 /**
@@ -54,7 +45,7 @@ export function autoGenerateMakeupTask(attendanceRecord) {
   // 防重复：同一人员同一活动已有补课任务则跳过
   if (tasks.some(t => t.personId === personId && t.activityId === activityId)) return;
 
-  const person = PEOPLE.find(p => p.id === personId);
+  const person = getPersonById(personId);
   const absentDate = activity.date || new Date().toISOString().split('T')[0];
   const deadline = new Date(absentDate);
   deadline.setDate(deadline.getDate() + 7);

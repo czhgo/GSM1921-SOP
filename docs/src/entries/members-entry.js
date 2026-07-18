@@ -5,6 +5,7 @@
 import { bootstrapPage } from '../core/bootstrap.js';
 import { AuthStore } from '../services/auth.js';
 import { PEOPLE } from '../mock/people.js';
+import { getPersonById } from '../mock/index.js';
 import { ACTIVITIES } from '../mock/activities.js';
 import { MOCK_TASKFORCES } from '../mock/taskforces.js';
 import { ROLE_LABELS } from '../core/constants.js';
@@ -26,7 +27,7 @@ function _renderMembers() {
   if (!container) return;
 
   const records = AuthStore.getAuthorizations();
-  const leaderIds = records.filter(r => r.role === 'leader').map(r => r.targetUserId);
+  const leaderIds = records.filter(r => r.role === 'leader').map(r => r.targetPersonId);
 
   container.innerHTML = PEOPLE.map(p => {
     const isLeader = leaderIds.includes(p.id);
@@ -55,13 +56,13 @@ function _renderMembers() {
   container.querySelectorAll('[data-action]').forEach(btn => {
     btn.addEventListener('click', () => {
       const action = btn.dataset.action;
-      const targetUserId = btn.dataset.user;
+      const targetPersonId = btn.dataset.user;
 
       if (action === 'authorize') {
-        const result = AuthStore.authorize(user.userId, targetUserId, 'leader');
+        const result = AuthStore.authorize(user.personId, targetPersonId, 'leader');
         showToast(result.ok ? 'success' : 'error', result.ok ? '已设为组长' : '赋权失败');
       } else if (action === 'revoke') {
-        const record = records.find(r => r.targetUserId === targetUserId && r.role === 'leader');
+        const record = records.find(r => r.targetPersonId === targetPersonId && r.role === 'leader');
         if (record) {
           const ok = AuthStore.revokeAuthorization(record.id);
           showToast(ok ? 'success' : 'error', ok ? '已取消组长' : '操作失败');
@@ -178,7 +179,7 @@ function _bindConfirmProjectAuth() {
     }
 
     const result = AuthStore.authorize(
-      user.userId,
+      user.personId,
       personId,
       role,
       { projectId }
@@ -212,11 +213,11 @@ function _renderProjectAuthRecords() {
   }
 
   listEl.innerHTML = records.map(r => {
-    const person = PEOPLE.find(p => p.id === r.targetUserId);
+    const person = getPersonById(r.targetPersonId);
     const project = ACTIVITIES.find(a => a.id === r.scopeRef) || MOCK_TASKFORCES.find(t => t.id === r.scopeRef);
     const projectName = project ? (project.title || project.name) : r.scopeRef;
     const roleLabel = ROLE_LABELS[r.role] || r.role;
-    const personName = person?.name || r.targetUserId;
+    const personName = person?.name || r.targetPersonId;
     return `
       <div class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50">
         <div>
@@ -255,14 +256,14 @@ function _renderAuthRecords() {
   }
 
   container.innerHTML = records.map(r => {
-    const person = PEOPLE.find(p => p.id === r.targetUserId);
-    const authorizer = PEOPLE.find(p => p.id === r.authorizedBy);
+    const person = getPersonById(r.targetPersonId);
+    const authorizer = getPersonById(r.authorizedBy);
     const roleLabel = ROLE_LABELS[r.role] || r.role;
 
     return `
       <div class="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50">
         <div>
-          <span class="font-medium text-sm text-gray-800">${person?.name || r.targetUserId}</span>
+          <span class="font-medium text-sm text-gray-800">${person?.name || r.targetPersonId}</span>
           <span class="text-xs text-gray-400 ml-2">被设为 ${roleLabel}</span>
           <span class="text-xs text-gray-400 ml-2">由 ${authorizer?.name || r.authorizedBy} 赋权</span>
           <span class="text-xs text-gray-400 ml-2">${r.authorizedAt}</span>

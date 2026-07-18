@@ -1,4 +1,4 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  service.taskforce.js — 专班数据模型
 //  提供 TaskForceRecordStore：专班的 CRUD + mockDB 持久化
@@ -95,6 +95,21 @@ export const TaskForceRecordStore = {
     ];
     _saveTaskForces(this._records);
     return updated;
+  },
+
+  // 招募状态跟踪：recruiting → active → archived
+  updateStatus(id, newStatus) {
+    const validTransitions = {
+      recruiting: ['active', 'dissolved'],
+      active: ['archived', 'dissolved'],
+      archived: [],
+      dissolved: [],
+    };
+    const tf = this._records.find(r => r.id === id);
+    if (!tf) return null;
+    const allowed = validTransitions[tf.status] || [];
+    if (!allowed.includes(newStatus)) return null;
+    return this.update(id, { status: newStatus });
   },
 
   remove(id) {
@@ -226,44 +241,3 @@ export const TaskForceRecordStore = {
     return [...this._migrationReport];
   },
 };
-
-export function renderRecruitmentList(containerId, limit = 3) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-
-  const recruiting = TaskForceRecordStore.getActiveRecruiting().slice(0, limit);
-
-  if (recruiting.length === 0) {
-    container.innerHTML = '<p class="text-sm text-gray-400">暂无待招募信息</p>';
-    return;
-  }
-
-  const statusBadge = {
-    recruiting: '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-amber-100 text-amber-700">招募中</span>',
-    active:    '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-green-100 text-green-700">运行中</span>',
-    completed: '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-gray-100 text-gray-600">已完结</span>',
-  };
-
-  container.innerHTML = recruiting.map(r => {
-    const filled = r.members.filter(m => m.personId).length;
-    return `
-    <div class="taskforce-item flex items-start gap-3 py-2.5 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 rounded-lg px-2 -mx-2 transition-colors"
-         data-tf-id="${r.id}">
-      ${statusBadge[r.status] || ''}
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium text-gray-800 truncate">${r.name}</p>
-        <p class="text-xs text-gray-500 mt-0.5 line-clamp-1">${r.task}</p>
-        <div class="flex items-center gap-2 mt-1">
-          <span class="text-[10px] text-gray-400">发起: ${_personName(r.initiator)}</span>
-          <span class="text-[10px] text-gray-300">|</span>
-          <span class="text-[10px] text-gray-400">管理: ${_personName(r.manager)}</span>
-        </div>
-      </div>
-      <div class="text-right whitespace-nowrap">
-        <span class="text-xs font-medium text-amber-600">${filled}/${r.capacity}</span>
-        <p class="text-[10px] text-gray-400">截止 ${r.deadline}</p>
-      </div>
-    </div>
-  `;
-  }).join('');
-}

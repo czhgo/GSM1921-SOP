@@ -1,4 +1,4 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  seed.js — mockDB 核心种子数据
 // ════════════════════════════════════════════════════════════════
@@ -17,20 +17,11 @@ export const SEED_TASKS = [
   { id: 'tsk-008', activityId: 'act-10', title: '收集参与者反馈', status: 'pending', createdAt: '2026-05-10T08:00:00Z' },
 ];
 
-// ── 交付物种子 ──────────────────────────────────────────────
-export const SEED_DELIVERABLES = [
-  { id: 'dlv-001', activityId: 'act-1', type: 'meeting_record', owner: 'leader', ownerName: '党小组组长', status: 'archived', submittedAt: '2026-03-02T10:00:00Z', note: '3月党小组会记录' },
-  { id: 'dlv-002', activityId: 'act-2', type: 'meeting_record', owner: 'secretary', ownerName: '支部书记', status: 'archived', submittedAt: '2026-03-05T10:00:00Z', note: '3月支委会记录' },
-  { id: 'dlv-003', activityId: 'act-3', type: 'propaganda', owner: 'prop-commissioner', ownerName: '宣传委员', status: 'archived', submittedAt: '2026-03-18T10:00:00Z', note: '两会精神学习宣传稿' },
-  { id: 'dlv-004', activityId: 'act-5', type: 'photography_draft', owner: 'organizer', ownerName: '活动组织者', status: 'archived', submittedAt: '2026-04-10T10:00:00Z', note: '参访活动照片' },
-  { id: 'dlv-005', activityId: 'act-10', type: 'attendance_summary', owner: 'disc-commissioner', ownerName: '纪检委员', status: 'pending', note: '5月主题党日考勤汇总' },
-];
-
 // ── 分工种子（组织者分配） ──────────────────────────────────
 export const SEED_ASSIGNMENTS = [
   { id: 'assign_seed_001', activityId: 'act-3', workName: '撰写学习材料', workDescription: '整理两会精神要点，制作学习PPT', ddl: '2026-03-12T00:00:00Z', assigneeId: 'p3', status: 'completed', createdBy: 'p1', createdAt: '2026-03-10T08:00:00Z', completedAt: '2026-03-11T16:00:00Z' },
   { id: 'assign_seed_002', activityId: 'act-3', workName: '场地布置', workDescription: '准备投影设备、签到表、座位安排', ddl: '2026-03-14T00:00:00Z', assigneeId: 'p5', status: 'completed', createdBy: 'p1', createdAt: '2026-03-10T08:00:00Z', completedAt: '2026-03-14T08:00:00Z' },
-  { id: 'assign_seed_003', activityId: 'act-5', workName: '联系共建单位', workDescription: '确认参访时间、路线、交流内容', ddl: '2026-04-03T00:00:00Z', assigneeId: 'p3', status: 'completed', createdBy: 'p1', createdAt: '2026-04-01T08:00:00Z', completedAt: '2026-04-02T10:00:00Z' },
+  { id: 'assign_seed_003', activityId: 'act-5', workName: '联系共建单位', workDescription: '确认参访时间、路线、交流内容', ddl: '2026-04-03T00:00:00Z', assigneeId: 'p3', status: 'completed', createdBy: 'p11', createdAt: '2026-04-01T08:00:00Z', completedAt: '2026-04-02T10:00:00Z' },
   { id: 'assign_seed_004', activityId: 'act-5', workName: '拍摄活动照片', workDescription: '全程拍摄参访活动照片，活动结束后提交', ddl: '2026-04-08T00:00:00Z', assigneeId: 'p5', status: 'completed', createdBy: 'p3', createdAt: '2026-04-01T08:00:00Z', completedAt: null },
   { id: 'assign_seed_005', activityId: 'act-10', workName: '准备活动方案', workDescription: '撰写主题党日活动方案，含议程和分工', ddl: '2026-05-08T00:00:00Z', assigneeId: 'p3', status: 'in_progress', createdBy: 'p1', createdAt: '2026-05-01T08:00:00Z', completedAt: null },
 ];

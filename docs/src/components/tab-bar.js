@@ -1,4 +1,4 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  tab-bar.js — 通用 Tab 切换组件
 // ════════════════════════════════════════════════════════════════
@@ -24,21 +24,32 @@
  *   - html: Tab 栏 + 内容容器的 HTML 字符串
  *   - activate: 手动激活指定 Tab 的方法
  */
-export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRightHtml, renderCtx }) {
+export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRightHtml, renderCtx, storageKey }) {
   const btnClass = `${prefix}-tab-btn`;
   const dataAttr = `data-${prefix}-tab`;
   const contentId = `${prefix}-tab-content`;
-  const activeTab = defaultTab || tabs[0]?.id;
+
+  // 优先级：localStorage 记忆 > defaultTab > tabs[0]
+  let activeTab = defaultTab || tabs[0]?.id;
+  if (storageKey) {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved && tabs.some(t => t.id === saved)) {
+        activeTab = saved;
+      }
+    } catch (_) { /* localStorage 不可用时静默降级 */ }
+  }
 
   const { accent, accentRgba, accentBorder } = accentColor;
 
-  // 生成 Tab 按钮 HTML
+  // 生成 Tab 按钮 HTML（active 状态由 CSS 类 + CSS 变量驱动）
   const btnsHtml = tabs.map(({ id, label }) => {
     const isActive = id === activeTab;
-    const style = isActive
-      ? `background:${accentRgba};color:${accent};border:1px solid ${accentBorder}`
-      : `background:white;color:#6B7280;border:1px solid #E5E7EB`;
-    return `<button class="${btnClass} px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}" style="${style}">${label}</button>`;
+    const activeClass = isActive ? ' tab-btn-active' : '';
+    const activeStyle = isActive
+      ? ` style="--tab-accent:${accent};--tab-accent-bg:${accentRgba};--tab-accent-border:${accentBorder}"`
+      : '';
+    return `<button class="${btnClass}${activeClass} px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}"${activeStyle}>${label}</button>`;
   }).join('\n');
 
   const extraHtml = extraRightHtml ? `<div class="ml-auto">${extraRightHtml}</div>` : '';
@@ -49,14 +60,20 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
   function bindEvents(container) {
     container.querySelectorAll(`.${btnClass}`).forEach(btn => {
       btn.addEventListener('click', () => {
-        // 重置所有 Tab 样式
+        // 重置所有 Tab 样式（移除 active 类 + 清空 inline style）
         container.querySelectorAll(`.${btnClass}`).forEach(b => {
-          b.style.background = 'white'; b.style.color = '#6B7280'; b.style.border = '1px solid #E5E7EB';
+          b.classList.remove('tab-btn-active');
+          b.removeAttribute('style');
         });
-        // 激活当前 Tab
-        btn.style.background = accentRgba; btn.style.color = accent; btn.style.border = `1px solid ${accentBorder}`;
+        // 激活当前 Tab（添加 active 类 + 注入 CSS 变量）
+        btn.classList.add('tab-btn-active');
+        btn.setAttribute('style', `--tab-accent:${accent};--tab-accent-bg:${accentRgba};--tab-accent-border:${accentBorder}`);
         // 渲染内容
         const tabId = btn.getAttribute(dataAttr);
+        // 记忆到 localStorage
+        if (storageKey) {
+          try { localStorage.setItem(storageKey, tabId); } catch (_) { /* 静默降级 */ }
+        }
         const tab = tabs.find(t => t.id === tabId);
         if (tab) tab.render(renderCtx);
       });
@@ -69,5 +86,5 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
     if (tab) tab.render(ctx || renderCtx);
   }
 
-  return { html, bindEvents, activate, contentId };
+  return { html, bindEvents, activate, contentId, activeTab };
 }

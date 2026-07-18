@@ -1,4 +1,4 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  calendar.js — 日历渲染引擎（P2-7 多视图升级）
 //  包含：renderCalendarByActivities, populateMonthSelector

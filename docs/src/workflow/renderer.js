@@ -1,8 +1,8 @@
-// role: [人机]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  renderer.js — 工作流可视化渲染器 v1.0
 //  依赖 engine.js + definitions.js
-//  产出：SVG 节点图 · 进度条 · 状态标签 · 历史面板 · 阻塞横幅
+//  产出：进度条 · 状态标签 · 子状态面板 · 阻塞横幅
 // ════════════════════════════════════════════════════════════════
 
 import { WorkflowEngine, createEngine } from './engine.js';
@@ -10,28 +10,15 @@ import {
   THEME_PARTY_DAY_DEFINITION,
   SHORT_TERM_DEFINITION,
   LONG_TERM_DEFINITION,
-  DEFINITION_META,
   getDefinition,
 } from './definitions.js';
+import { icon } from '../core/icons.js';
 
 // ── 可用模板列表（渲染器使用）──────────────────────────────────
 const TEMPLATE_REGISTRY = {
   'theme-party-day': THEME_PARTY_DAY_DEFINITION,
   'short-term': SHORT_TERM_DEFINITION,
   'long-term': LONG_TERM_DEFINITION,
-};
-
-// ════════════════════════════════════════════════════════════════
-//  颜色映射
-// ════════════════════════════════════════════════════════════════
-
-const COLORS = {
-  active:   { fill: '#CE1126', stroke: '#9B0000', text: '#FFFFFF' },
-  completed:{ fill: '#10B981', stroke: '#059669', text: '#FFFFFF' },
-  pending:  { fill: '#E5E7EB', stroke: '#D1D5DB', text: '#6B7280' },
-  blocked:  { fill: '#EF4444', stroke: '#DC2626', text: '#FFFFFF' },
-  connector_completed: '#10B981',
-  connector_pending: '#D1D5DB',
 };
 
 // ════════════════════════════════════════════════════════════════
@@ -55,111 +42,8 @@ export class WorkflowRenderer {
     container.innerHTML = '';
     container.appendChild(this._renderBlockingBanner());
     container.appendChild(this._renderProgressBar());
-    container.appendChild(this._renderSVGFlow());
     container.appendChild(this._renderStateLabel());
     container.appendChild(this._renderSubStates()); // v2.0 子状态面板
-    container.appendChild(this._renderHistory());
-  }
-
-  // ── SVG 流程节点图 ────────────────────────────────────────────
-  _renderSVGFlow() {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'workflow-svg-wrapper';
-
-    const states = this.definition.states;
-    const currentIdx = states.findIndex(s => s.name === this.engine.currentState);
-    const isBlocked = this.engine.blockedNodes.has(this.engine.currentState);
-
-    const nodeW = 100, nodeH = 48, gapX = 60, padX = 24, padY = 20;
-    const totalW = states.length * nodeW + (states.length - 1) * gapX + padX * 2;
-    const totalH = nodeH + padY * 2;
-
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', `0 0 ${totalW} ${totalH}`);
-    svg.setAttribute('width', '100%');
-    svg.setAttribute('height', String(totalH));
-    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-    svg.classList.add('workflow-svg');
-
-    // 连接线
-    for (let i = 0; i < states.length - 1; i++) {
-      const x1 = padX + i * (nodeW + gapX) + nodeW;
-      const x2 = x1 + gapX;
-      const y = padY + nodeH / 2;
-      const color = i < currentIdx ? COLORS.connector_completed : COLORS.connector_pending;
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', String(x1));
-      line.setAttribute('y1', String(y));
-      line.setAttribute('x2', String(x2));
-      line.setAttribute('y2', String(y));
-      line.setAttribute('stroke', color);
-      line.setAttribute('stroke-width', '2');
-      line.setAttribute('stroke-linecap', 'round');
-      svg.appendChild(line);
-
-      // 箭头
-      const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-      arrow.setAttribute('points', `${x2-6},${y-4} ${x2},${y} ${x2-6},${y+4}`);
-      arrow.setAttribute('fill', color);
-      svg.appendChild(arrow);
-    }
-
-    // 状态节点
-    states.forEach((state, i) => {
-      const x = padX + i * (nodeW + gapX);
-      const y = padY;
-      let colorSet;
-      if (i < currentIdx) {
-        colorSet = COLORS.completed;
-      } else if (i === currentIdx) {
-        colorSet = isBlocked ? COLORS.blocked : COLORS.active;
-      } else {
-        colorSet = COLORS.pending;
-      }
-
-      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      rect.setAttribute('x', String(x));
-      rect.setAttribute('y', String(y));
-      rect.setAttribute('width', String(nodeW));
-      rect.setAttribute('height', String(nodeH));
-      rect.setAttribute('rx', '8');
-      rect.setAttribute('ry', '8');
-      rect.setAttribute('fill', colorSet.fill);
-      rect.setAttribute('stroke', colorSet.stroke);
-      rect.setAttribute('stroke-width', i === currentIdx ? '2.5' : '1.5');
-      svg.appendChild(rect);
-
-      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      text.setAttribute('x', String(x + nodeW / 2));
-      text.setAttribute('y', String(y + nodeH / 2 + 1));
-      text.setAttribute('text-anchor', 'middle');
-      text.setAttribute('dominant-baseline', 'central');
-      text.setAttribute('fill', colorSet.text);
-      text.setAttribute('font-size', '11');
-      text.setAttribute('font-family', 'Noto Sans SC, PingFang SC, Microsoft YaHei, sans-serif');
-      text.setAttribute('font-weight', i === currentIdx ? '600' : '400');
-      text.textContent = state.label;
-
-      if (i === currentIdx && isBlocked) {
-        text.textContent = state.label + ' (!)';
-      }
-
-      svg.appendChild(text);
-
-      // 步骤编号
-      const idxText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      idxText.setAttribute('x', String(x + 10));
-      idxText.setAttribute('y', String(y + 14));
-      idxText.setAttribute('text-anchor', 'start');
-      idxText.setAttribute('fill', colorSet.fill === '#E5E7EB' ? '#9CA3AF' : 'rgba(255,255,255,0.7)');
-      idxText.setAttribute('font-size', '9');
-      idxText.setAttribute('font-family', 'sans-serif');
-      idxText.textContent = String(i + 1);
-      svg.appendChild(idxText);
-    });
-
-    wrapper.appendChild(svg);
-    return wrapper;
   }
 
   // ── 进度条 ────────────────────────────────────────────────────
@@ -387,88 +271,6 @@ export class WorkflowRenderer {
     return map[roleKey] || roleKey;
   }
 
-  // ── 流转历史面板 ──────────────────────────────────────────────
-  _renderHistory() {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'workflow-history-wrapper';
-
-    const title = document.createElement('div');
-    title.className = 'workflow-history-title';
-    title.textContent = '流转历史';
-    wrapper.appendChild(title);
-
-    const history = this.engine.getHistory();
-    if (history.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'workflow-history-empty';
-      empty.textContent = '暂无流转记录';
-      wrapper.appendChild(empty);
-      return wrapper;
-    }
-
-    const list = document.createElement('div');
-    list.className = 'workflow-history-list';
-
-    history.forEach((record, idx) => {
-      const item = document.createElement('div');
-      item.className = 'workflow-history-item';
-
-      const spine = document.createElement('div');
-      spine.className = 'workflow-history-spine';
-
-      const dot = document.createElement('div');
-      dot.className = 'workflow-history-dot';
-      spine.appendChild(dot);
-
-      if (idx < history.length - 1) {
-        const line = document.createElement('div');
-        line.className = 'workflow-history-line';
-        spine.appendChild(line);
-      }
-
-      const content = document.createElement('div');
-      content.className = 'workflow-history-content';
-
-      const header = document.createElement('div');
-      header.className = 'workflow-history-header';
-
-      const eventType = document.createElement('span');
-      eventType.className = 'workflow-history-event';
-      eventType.textContent = record.eventType;
-      header.appendChild(eventType);
-
-      const arrow = document.createElement('span');
-      arrow.className = 'workflow-history-arrow';
-      arrow.textContent = '→';
-      header.appendChild(arrow);
-
-      const toLabel = this._getStateLabel(record.to);
-      header.appendChild(toLabel);
-
-      const detail = document.createElement('div');
-      detail.className = 'workflow-history-detail';
-
-      const time = document.createElement('span');
-      time.className = 'workflow-history-time';
-      time.textContent = this._formatTime(record.timestamp);
-      detail.appendChild(time);
-
-      const op = document.createElement('span');
-      op.className = 'workflow-history-operator';
-      op.textContent = record.operator;
-      detail.appendChild(op);
-
-      content.appendChild(header);
-      content.appendChild(detail);
-      item.appendChild(spine);
-      item.appendChild(content);
-      list.appendChild(item);
-    });
-
-    wrapper.appendChild(list);
-    return wrapper;
-  }
-
   // ── 阻塞警告横幅 ──────────────────────────────────────────────
   _renderBlockingBanner() {
     const wrapper = document.createElement('div');
@@ -488,10 +290,10 @@ export class WorkflowRenderer {
 
     wrapper.classList.add('workflow-banner-blocked');
 
-    const icon = document.createElement('span');
-    icon.className = 'workflow-banner-icon';
-    icon.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
-    wrapper.appendChild(icon);
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'workflow-banner-icon';
+    iconSpan.innerHTML = icon('warning', { size: 20 });
+    wrapper.appendChild(iconSpan);
 
     const text = document.createElement('div');
     text.className = 'workflow-banner-text';
@@ -499,15 +301,6 @@ export class WorkflowRenderer {
     wrapper.appendChild(text);
 
     return wrapper;
-  }
-
-  // ── 辅助：获取状态中文标签 ─────────────────────────────────────
-  _getStateLabel(stateName) {
-    const state = this.definition.states.find(s => s.name === stateName);
-    const label = document.createElement('span');
-    label.className = 'workflow-history-to';
-    label.textContent = state ? state.label : stateName;
-    return label;
   }
 
   // ── 辅助：时间格式化 ──────────────────────────────────────────
@@ -603,5 +396,3 @@ export function renderWorkflow(container, definitionId, blocked = false) {
   renderer.render(container);
   return { engine, renderer };
 }
-
-export { TEMPLATE_REGISTRY, DEFINITION_META };
