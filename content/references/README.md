@@ -1,12 +1,12 @@
 ---
 title: "参考资料与工作模板"
 type: index
-role: "[人]"
-last_updated: "2026-05-20"
+role: "[用户]+[AI]"
+last_updated: "2026-07-11"
 status: active
 ---
 
-> **全局文档路由**: 了解本目录在全站的定位，请参阅 [DOC_MAP.md](../guides/governance/DOC_MAP.md)
+> **全局文档路由**: 了解本目录在全站的定位，请参阅 [DOC_MAP.md](../governance/DOC_MAP.md)
 
 # content/references/
 

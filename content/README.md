@@ -1,22 +1,24 @@
 ---
 title: "内容中心"
 type: index
-role: "[人机]"
-last_updated: "2026-05-16"
+role: "[用户]+[AI]"
+last_updated: "2026-07-12"
 status: active
 ---
 
-> **全局文档路由**: 了解本目录在全站的定位，请参阅 [DOC_MAP.md](guides/governance/DOC_MAP.md)
+> **全局文档路由**: 了解本目录在全站的定位，请参阅 [DOC_MAP.md](governance/DOC_MAP.md)
 
 # Knowledge Layer
 
 本目录存放项目的制度知识与设计理念。
 
-| 子目录 | 内容 | type |
-|--------|------|------|
-| `SOP/` | 制度母本——支部工作流程指南 | SOP |
-| `guides/` | 设计理念与操作规范（governance/architecture/design） | guide/governance/architecture/design |
-| `insights/` | 经验沉淀 | experience_doc |
-| `references/` | 合规文件 + 工作模板 + 历史会议材料（只读） | reference/template |
+| 子目录 | 中文名 | 内容 | 受众 |
+|--------|--------|------|------|
+| `strategy/` | 战略路线 | 党支部为什么存在、通过组织获得成长 | 用户 |
+| `sop/` | 标准流程 | 各角色工作流程指南 | 用户 |
+| `design/` | 设计理念 | 架构设计与功能设计 | 工程师 |
+| `governance/` | 系统治理 | 术语/角色/文档/流程规范 | 工程师 |
+| `insights/` | 经验沉淀 | 历届支委集体萃取的组织智慧 | 人机 |
+| `references/` | 参考资料 | 合规文件+工作模板+历史材料 | 用户 |
 
 所有系统逻辑、数据模型和 UI 行为必须从 SOP 文档推导而来（H8.4 规则 0）。

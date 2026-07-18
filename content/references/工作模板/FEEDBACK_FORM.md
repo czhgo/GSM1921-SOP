@@ -1,14 +1,14 @@
 ---
 title: "SOP优化提案反馈卡"
 type: template
-role: "[人机]"
-last_updated: "2026-05-16"
+role: "[用户]+[AI]"
+last_updated: "2026-07-11"
 version: "1.4"
 status: active
 related_files:
   - "CLAUDE.md"
-  - ".ctx/CONTEXT.md"
-  - "content/SOP/常见工作场景快速指南.md"
+  - ".ctx/SNAPSHOT.md"
+  - "content/sop/常见工作场景快速指南.md"
 ---
 
 # SOP 优化与规则补丁提案
@@ -42,4 +42,4 @@ related_files:
 
 *(以下为 AI 处理区，人类无需填写)*
 
-**AI 提取指令**：读取上述内容，转化为 REVIEW_STATE.md 中的结构化待办任务，并分配正确的 Scope 标签。
+**AI 提取指令**：读取上述内容，转化为 SNAPSHOT.md 中的结构化待办任务，并分配正确的 Scope 标签。
