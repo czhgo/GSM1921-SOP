@@ -3,18 +3,18 @@ role: "[AI]"
 title: "系统快照"
 type: snapshot
 status: "ACTIVE"
-date: "2026-07-03"
-last_updated: "2026-07-11"
-version: "v11"
-milestone: "文档按受众×层级归类重组 + content/guides/ 拆分为 strategy/design/governance"
+date: "2026-07-18"
+last_updated: "2026-07-18"
+version: "v12"
+milestone: "权限系统重构 + UI系统性修复 + organizer/deep可达性 + emoji清零 + 书记评议工作流落地"
 ---
 
-# System Snapshot — v11
+# System Snapshot — v12
 
 > 当前活跃基线。历史快照见 `.ctx/snapshots/`。
-> **生成**: 2026-07-03 — 文档按受众×层级归类重组
-> **上版**: v10 (2026-06-14)
-> **变更来源**: 文档归类重组 spec（classify-documents-by-audience）
+> **生成**: 2026-07-18 — 权限系统重构+UI系统性修复+可达性+emoji清零
+> **上版**: v11 (2026-07-03)
+> **变更来源**: T71-T112 多轮迭代（权限系统5轮+UI修复+评议+emoji清理）
 
 ## I. 全局物理拓扑
 
@@ -31,8 +31,8 @@ GSM1921-SOP/
 │   ├── archive.html            ← 归档库
 │   ├── search.html             ← 资料查询
 │   ├── feedback.html           ← 意见反馈
-│   ├── workspace/              ← 党建工作台页面（9 个 HTML）
-│   │   ├── index.html          ← 党建工作台入口（路由跳转页）
+│   ├── help.html               ← 帮助与探索工作页面
+│   ├── workspace/              ← 党建工作台页面（8 个 HTML）
 │   │   ├── secretary.html      ← 党建·党支书工作台
 │   │   ├── leader.html         ← 党建·党小组组长工作台
 │   │   ├── organizer.html      ← 党建·组织者工作台
@@ -41,28 +41,27 @@ GSM1921-SOP/
 │   │   ├── prop.html           ← 党建·宣传委员工作台
 │   │   ├── disc.html           ← 党建·纪检委员工作台
 │   │   └── visitor.html        ← 党建·成员只读面板
-│   ├── party/                  ← 党务管理页面（5 个 HTML）
-│   │   ├── index.html          ← 党务管理入口（路由跳转页）
+│   ├── party/                  ← 党务管理页面（4 个 HTML）
 │   │   ├── secretary.html      ← 党务·党支书面板
 │   │   ├── org.html            ← 党务·组织委员面板
 │   │   ├── prop.html           ← 党务·宣传委员面板
 │   │   └── disc.html           ← 党务·纪检委员面板
 │   └── src/                    ← ESM 模块化源码
 │       ├── entries/            ← 页面入口（18 个 entry JS）
-│       ├── components/         ← 共享组件（6 个）
-│       ├── core/               ← 核心工具（7 个）
-│       ├── services/           ← 服务层（7 个）
-│       ├── mock/               ← Mock 数据（9 个，kanban.js 已删除）
+│       ├── components/         ← 共享组件（9 个，含 workspace-popover/role-hierarchy/notice-badge）
+│       ├── core/               ← 核心工具（8 个，含 config/）
+│       ├── services/           ← 服务层（14 个，含 auth/notice/decision-tree/image）
+│       ├── mock/               ← Mock 数据（9 个，含 accounts）
 │       ├── modules/            ← 业务模块（2 个）
 │       ├── workflow/           ← 工作流引擎（7 个）
 │       └── styles.css          ← 全局样式
 ├── content/
-│   ├── strategy/               ← [用户] 战略路线层（meta 级，1 文件 + README）
-│   ├── SOP/                    ← [用户] 执行流程层（具体操作，6 文件 + INDEX.md）
-│   ├── design/                 ← [工程师] 设计理念层（架构+功能设计，13 文件 + README）
-│   ├── governance/             ← [工程师] 系统治理层（术语/角色/文档/流程，10 文件 + README）
-│   ├── insights/               ← [用户]+[AI] 经验沉淀（v21.0，道/术/器三层架构）
-│   └── references/             ← [用户]  官方文件+模板库（只读）
+│   ├── strategy/               ← [用户] 战略路线层（3 文件 + README：DEVELOPMENT_PATH/FLAT_DESIGN/COMMISSIONER_FRAMEWORK）
+│   ├── sop/                    ← [用户] 执行流程层（6 文件 + INDEX.md，why 补充完成）
+│   ├── design/                 ← [工程师] 设计理念层（4 文件 + README）
+│   ├── governance/             ← [工程师] 系统治理层（8 文件 + README，含 USAGE_POLICY §一+§二）
+│   ├── insights/               ← [用户]+[AI] 经验沉淀（道/术/器三层架构）
+│   └── references/             ← [用户]  官方文件+模板库+建设探索（只读）
 ├── .github/                    ← [AI] Agent & Skill 治理（仅VSCode可用，Trae中忽略，D-186）
 │   ├── agents/                 ← Agent 配置
 │   └── skills/                 ← Skill 定义（11 个）
@@ -100,12 +99,12 @@ GSM1921-SOP/
 | `ARCHITECTURE.md` | ✅ | 分层架构+数据模型+变更流水线 |
 | `SSOT_INDEX.md` | ✅ | 母本注册表+同步触发矩阵（根目录） |
 
-### 前端页面（19 个 HTML）
+### 前端页面（18 个 HTML）
 
 | 页面 | 类型 | 说明 |
 |------|------|------|
 | `index.html` | 入口 | 主页（通知/招募/日历） |
-| `workspace/index.html` | 入口 | 党建工作台入口→角色选择→子页面跳转 |
+| `help.html` | 独立 | 帮助与探索工作页面（角色体系+发展路径可视化） |
 | `workspace/secretary.html` | 子页面 | 党建·党支书（活动写入+日历+数据后台） |
 | `workspace/leader.html` | 子页面 | 党建·党小组组长（活动写入+日历+组员管理） |
 | `workspace/organizer.html` | 子页面 | 党建·组织者（日历+任务查看） |
@@ -114,7 +113,6 @@ GSM1921-SOP/
 | `workspace/prop.html` | 子页面 | 党建·宣传委员（活动+专班看板+多维表格+转置切换+搜索筛选） |
 | `workspace/disc.html` | 子页面 | 党建·纪检委员（考勤+考察+活动监督+搜索筛选+只读模式） |
 | `workspace/visitor.html` | 子页面 | 党建·成员只读（活动动态+专班进展+考勤+日历/列表切换） |
-| `party/index.html` | 入口 | 党务管理入口→角色选择→子页面跳转 |
 | `party/secretary.html` | 子页面 | 党务·党支书（全局聚合+意见反馈数据） |
 | `party/org.html` | 子页面 | 党务·组织委员（发展党员全流程+材料催缴） |
 | `party/prop.html` | 子页面 | 党务·宣传委员（宣传档案+周报） |
@@ -164,3 +162,4 @@ GSM1921-SOP/
 | v9 | 2026-05-18 | 开源准备(README+LICENSE) + 合并后全域断链修复(38处) + 术语一改具改 + YAML/关联文献修复 + 经验沉淀v13.0 |
 | **v10** | **2026-06-14** | **H-1看板数据断裂修复(kanban从taskforces动态派生) + D-218正交维度模型(SOP⊥guides,CLAUDE.md=上下文入口) + 响应式断点补全(768px/640px) + 宣传委员多维表格转置切换 + 周期性任务全域修复(W1-W3/M1/M3/M4/M5) + file:///全仓清零 + 经验沉淀v18.0(§10.14看板动态派生判例)** |
 | **v11** | **2026-07-03** | **文档按受众×层级归类重组：content/guides/ 拆分为 strategy/(用户·meta) + design/(工程师·设计) + governance/(工程师·治理)，消除受众混淆/层级混淆/主题混淆，确认唯一信息源，更新 SNAPSHOT 和经验沉淀** |
+| **v12** | **2026-07-18** | **权限系统5轮重构+organizer/deep可达性实施+UI系统性修复(色系/侧边栏/壳大字小)+emoji清零+书记评议H5工作流落地+GitHub Issue风格提案讨论系统+SECRETARY_PRONOUNCEMENTS升格根目录+SOP why补充27处** |

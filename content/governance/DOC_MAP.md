@@ -2,7 +2,7 @@
 title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-07-15"
+last_updated: "2026-07-18"
 version: "1.5"
 status: active
 related_files: [content/governance/OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
@@ -79,9 +79,11 @@ related_files: [content/governance/OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md
 | `content/governance/USAGE_POLICY.md` | [工程师]+[AI] | 使用规范（术语标准 §一 + Emoji 边界 §二，合并自 TERMINOLOGY.md + EMOJI_POLICY.md） | 全仓库 |
 | `content/governance/KNOWN_PITFALLS.md` | [工程师]+[AI] | 已知陷阱判例（AI工具使用陷阱） | CLAUDE.md H6 |
 | `content/governance/ROLE_CLASSIFICATION.md` | [工程师]+[AI] | 文件角色分类体系设计 | CLAUDE.md |
-| `content/governance/AGENT_HANDBOOK.md` | [工程师]+[AI] | 技术操作手册（已移至 .github/，Trae 忽略） | INDEX |
-| `content/governance/AGENT_USAGE.md` | [工程师]+[AI] | Agent 使用指南（已移至 .github/，Trae 忽略） | ARCHITECTURE |
+| `.github/AGENT_HANDBOOK.md` | [工程师]+[AI] | 技术操作手册（Trae 忽略，仅 VSCode 可用） | INDEX |
+| `.github/AGENT_USAGE.md` | [工程师]+[AI] | Agent 使用指南（Trae 忽略，仅 VSCode 可用） | ARCHITECTURE |
 | `content/governance/DOC_MAP.md` | [工程师]+[AI] | 本文档：全局导航中心 | 所有文件 |
+| `content/strategy/README.md` | [工程师]+[AI] | 战略路线目录索引 | ARCHITECTURE |
+| `content/governance/README.md` | [工程师]+[AI] | 系统治理目录索引 | ARCHITECTURE |
 | `content/design/README.md` | [工程师]+[AI] | 设计理念目录索引 | ARCHITECTURE |
 | `content/insights/党支部管理与实务经验沉淀.md` | [用户]+[AI] | 经验沉淀（三卷：道/术/器） | 社科院 |
 
@@ -98,6 +100,8 @@ related_files: [content/governance/OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md
 | `content/sop/党小组组长工作手册.md` | [用户]+[AI] | 党小组组长专用操作指南 | INDEX |
 
 ### L4 实现层（代码与配置）
+
+> **收录策略**：L4 采用"代表性收录"——仅列出架构关键文件。全量文件清单见 `docs/src/` 目录及 SNAPSHOT.md III 核心文件清单。
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
