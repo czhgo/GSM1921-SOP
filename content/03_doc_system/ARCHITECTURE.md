@@ -3,7 +3,7 @@ title: "五层架构说明"
 type: architecture
 role: "[工程师]+[AI]"
 last_updated: "2026-07-21"
-version: "7.1"
+version: "7.2"
 status: active
 related_files: [CLAUDE.md, content/04_web_design/]
 ---
@@ -11,7 +11,7 @@ related_files: [CLAUDE.md, content/04_web_design/]
 # Architecture
 
 > 光华管理学院本科生党支部组织操作系统 — 核心架构说明
-> last_updated: "2026-07-11" | 目标读者: [工程师]+[AI]
+> last_updated: "2026-07-21" | 目标读者: [工程师]+[AI]
 
 ---
 
@@ -91,8 +91,6 @@ Layer 1: 理论层（为什么这样做）
 Layer 2: 治理层（怎么做）
   └─ content/03_doc_system/                  [工程师]+[AI] 治理规范（USAGE_POLICY/OPERATIONS_GUIDE 等）
   └─ content/02_institution/sop/                         [用户]+[AI] 制度母本，所有代码逻辑的来源
-  └─ .github/agents/                      [AI] Agent 配置（仅VSCode可用，Trae中忽略，D-186）
-  └─ .github/skills/                      [AI] Skill 接口定义（仅VSCode可用，Trae中忽略，D-186）
 
 Layer 3: 实现层（代码实现与运行时）
   └─ docs/src/workflow/                   [工程师]+[AI] SOP 数据库与工作流引擎
@@ -207,10 +205,6 @@ Layer 4: 审计参考层（审计与参考）
 │       ├── 党支部工作记录.docx          [用户] 党支部工作记录
 │       └── README.md                  [用户]
 │
-├── .github/                           [AI] Agent 治理层（仅VSCode可用，Trae中忽略，D-186）
-│   ├── agents/ (10)                   [AI] 自定义 Agent 配置
-│   └── skills/ (10)                   [AI] 可装配 Skill 定义
-│
 ├── .ctx/                              [AI] 运行时上下文
 │   ├── TIMESTAMPS.md                  [工程师]+[AI] 文件时间戳注册表
 │   ├── SNAPSHOT.md                    [AI] 当前基线快照
@@ -304,12 +298,9 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
                     │  SSOT_INDEX.md                   │ ← 母本注册表
                     └──────────────┬──────────────────┘
                                    │ 溯源校验
-         ┌─────────────────────────┼─────────────────────────┐
-         ▼                         ▼                         ▼
-content/02_institution/sop/*.md             .github/skills/            .github/agents/
-  文本母本层                Skill接口定义层            Agent配置层
-         │                         │                         │
-         └─────────────────────────┼─────────────────────────┘
+                                   ▼
+                          content/02_institution/sop/*.md
+                          文本母本层
                                    │ 下游传播
                                    ▼
                           docs/src/workflow/

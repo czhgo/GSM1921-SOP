@@ -3,7 +3,7 @@ title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
 last_updated: "2026-07-21"
-version: "2.1"
+version: "2.2"
 status: active
 related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 ---
@@ -28,7 +28,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 |------|---------|---------|
 | `[用户]` | 党支书/党员 | content/01_strategy/、content/02_institution/sop/ |
 | `[工程师]` | 系统维护者/开发者 | content/03_doc_system/、content/04_web_design/ |
-| `[AI]` | AI Agent | .github/（Trae 忽略）、.ctx/SNAPSHOT.md |
+| `[AI]` | AI Agent | .ctx/SNAPSHOT.md |
 
 **废弃概念**：`[人]`/`[人机]` 已于 2026-07-11 废弃，详见 ROLE_CLASSIFICATION.md §一。
 
@@ -136,8 +136,6 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | `.ctx/SNAPSHOT.md` | [AI] | 系统快照、AI 快速同步入口（审计追溯层） | ARCHITECTURE.md、CLAUDE.md |
 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` | [工程师] | 月度执行日志 | ARCHITECTURE.md、CLAUDE.md |
 | `.ctx/logs/DECISION_LOG.md` | [工程师] | 决策日志 | ARCHITECTURE.md、CLAUDE.md |
-| `.github/agents/*.agent.md` | [AI] | Agent 定义、职责、工具、handoffs（Trae 忽略，仅 VSCode 可用） | SSOT_INDEX.md |
-| `.github/skills/*/SKILL.md` | [AI] | Skill 接口定义、执行流程、gotchas（Trae 忽略，仅 VSCode 可用） | SSOT_INDEX.md、Agent 文件 |
 | `docs/src/*` | [工程师] | 代码实现（workflow/services/entries/core/components/styles） | ARCHITECTURE.md |
 
 ---
@@ -186,9 +184,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
   ├─ .ctx/TIMESTAMPS.md → CLAUDE.md
   └─ logs/*.md → CLAUDE.md
 
-实现层（.github/ + docs/src/）
-  ├─ agents/*.md → SSOT_INDEX.md（注册）
-  ├─ skills/*/SKILL.md → SSOT_INDEX.md（注册）+ agents/*.md（挂载）
+实现层（docs/src/）
   └─ docs/src/* → ARCHITECTURE.md（文档化）
 ```
 
@@ -201,7 +197,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | 了解项目全貌 | README.md | content/03_doc_system/ARCHITECTURE.md |
 | 查看待办任务 | CLAUDE.md §C | .ctx/logs/DECISION_LOG.md |
 | 查 SOP 流程 | content/02_institution/sop/INDEX.md | 对应功能委员 SOP |
-| 使用 Agent | .github/agents/对应 Agent（Trae 忽略） | — |
+| 使用 Agent | （已迁出至 `D:\GitHub\System-Residual\.github\`，VSCode 中使用） | — |
 | 提交改进反馈 | content/04_web_design/SOP_WEB.md §E | content/02_institution/sop/对应文件 |
 | 了解角色分类体系 | content/02_institution/ROLE_CLASSIFICATION.md | （含可扩展性评估 §六） |
 | 查看设计系统规范 | content/04_web_design/DESIGN_SYSTEM.md | docs/src/styles.css |

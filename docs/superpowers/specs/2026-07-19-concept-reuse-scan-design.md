@@ -37,7 +37,7 @@ T-116 反论评议·第三轮完成后，书记临时穿插"概念复用性扫�
 
 | 范围 | 排除原因 |
 |------|---------|
-| .github/ | D-186 决策：Trae 中忽略此目录 |
+| .github/ | D-186 终结：已于 2026-07-21 物理迁出至 `D:\GitHub\System-Residual\.github\` |
 | .ctx/logs/ | §8.6 历史记录不可变原则 |
 | .ctx/snapshots/ | 历史快照，归档冻结 |
 | docs/superpowers/specs/ | spec 文档本身 |

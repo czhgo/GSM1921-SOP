@@ -2,10 +2,10 @@
 title: "单一权威源索引"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-07-20"
-version: "3.5"
+last_updated: "2026-07-21"
+version: "3.6"
 status: active
-related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web_design/, content/03_doc_system/, content/02_institution/sop/, content/insights/, .github/agents/, .github/skills/]
+related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web_design/, content/03_doc_system/, content/02_institution/sop/, content/insights/]
 ---
 
 # SSOT_INDEX.md
@@ -28,13 +28,6 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 
 > 按权威层级（L0-L4，见 [OPERATIONS_GUIDE.md §7.1](content/03_doc_system/OPERATIONS_GUIDE.md#71-文档权威层级5层模型)）组织。每条关系标注母本→子本及同步规则。
 
-### L0 核心层 → L3 实现层
-
-| 母本 | 子本 | 同步规则 |
-|------|------|---------|
-| `CLAUDE.md` | `.github/agents/*.agent.md`、`.github/skills/*/SKILL.md` | 核心原则是所有 Agent 配置与 Skill 定义的母本。凡涉及 Agent 行为、边界、写盘、交互、链长控制、/ask 与 /confirm 指令规范，必须先检查核心原则 |
-| `.github/skills/*/SKILL.md` | `.github/agents/*.md`（引用侧） | Skill 接口定义是 Agent 挂载引用的母本。Skill 变更时必须同步更新所有挂载该 Skill 的 Agent 文件 |
-
 ### L0 核心层 → L1/L2/L3/L4
 
 | 母本 | 子本 | 同步规则 |
@@ -42,7 +35,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | `CLAUDE.md` 甲部 H2.2 | `content/01_strategy/`、`content/04_web_design/`、`content/03_doc_system/` | Harness 是 guides 的摘要和索引（非副本）。甲部保留核心原则+判例，详细设计归 guides。甲部引用的原则变更必须同步更新 guides |
 | `CLAUDE.md` 乙部 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` | 路线图→执行。完成事项从乙部删除，写入执行日志 |
 | `SECRETARY_PRONOUNCEMENTS.md` | `CLAUDE.md` H6（外部权威源索引） | 书记论断汇编是理论基石的母本。新增论断时同步更新 CLAUDE.md H6 索引表 |
-| `SSOT_INDEX.md` | `ARCHITECTURE.md` + 所有 Agent 文件 | 注册表是架构说明和 Agent 配置的溯源参考 |
+| `SSOT_INDEX.md` | `ARCHITECTURE.md` | 注册表是架构说明的溯源参考 |
 
 ### L1/L2 内部及交叉（strategy ↔ design ↔ governance ↔ insights ↔ sop）
 
@@ -92,7 +85,9 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 
 ---
 
-## Agent 注册表 (基于 VS Code 原生子代理机制)
+## Agent 注册表（已迁出）
+
+> **2026-07-21 D-186 终结**：`.github/` 目录已物理迁出至 `D:\GitHub\System-Residual\.github\`，不再属于本仓库。VSCode Agent/Skill 配置外部管理，以下注册表仅作为历史档案保留。
 
 | Agent 文件名 | Agent 名称 (frontmatter) | Agent 类型 | 主要职责 | 工具配置 | 是否支持 Handoff | 关联 Skill |
 |---|---|---|---|---|---|---|
@@ -125,16 +120,12 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 
 ## 文档变更同步机制
 
-当 `.github/` 目录下的任何 Agent 相关文档被修改时，必须按以下流程执行全仓库一致性同步：
-
 ### 同步触发矩阵
 
 | 变更源（母本） | 触发条件 | 必须同步的子本 |
 |---|---|---|
-| CLAUDE.md | 规则增删改、链长策略变更、/ask 与 /confirm 规范变更 | 所有 agents/*.agent.md、所有 skills/*/SKILL.md |
-| SSOT_INDEX.md | 映射关系增删改 | 受影响的 agents/*.agent.md |
-| agents/*.agent.md | 职责/权限/链长规则变更 | CLAUDE.md（反向校验）、同层其他 agent 文件（交叉引用校验） |
-| skills/*/SKILL.md | 接口/流程/输出契约变更 | 所有挂载该 Skill 的 agent 文件 |
+| CLAUDE.md | 规则增删改、链长策略变更、/ask 与 /confirm 规范变更 | 全仓库所有引用方 |
+| SSOT_INDEX.md | 映射关系增删改 | 受影响的子本文件 |
 | content/02_institution/sop/*.md | 制度条款/流程步骤/术语变更 | docs/src/ 对应代码文件（见 sop-web-sync 映射表） |
 | content/03_doc_system/USAGE_POLICY.md | 术语增删改 | docs/src/core/constants.js + 全仓库引用 |
 | content/04_web_design/DATA_ARCHITECTURE.md | 数据字段定义变更 | docs/src/ 对应数据结构代码 |
@@ -143,7 +134,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 
 1. **变更源识别**：确定变更发起的母本文件与具体变更内容。
 2. **影响面分析**：基于本注册表的映射关系，列出所有受影响的子本文件。
-3. **逐文件同步**：按审查顺序（核心层 → Skill 层 → Agent 配置层）逐个更新子本。
+3. **逐文件同步**：按审查顺序逐个更新子本。
 4. **一致性校验**：同步完成后，输出《同步校验报告》。
 5. **日志记录**：将同步操作记录至当月执行日志。
 
@@ -162,8 +153,8 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 2. 再查项目中枢：CLAUDE.md（未来执行路线图）
 3. 再查文本母本层：content/02_institution/sop/
 4. 再查代码内容层：docs/src/workflow/
-5. 再查 Skill 层：.github/skills/*/SKILL.md
-6. 最后查执行配置层：.github/agents/
+
+> 注：VSCode Agent/Skill 配置已于 2026-07-21 迁出至 `D:\GitHub\System-Residual\.github\`，不再纳入本仓库审查范围。
 
 ## 已迁移文件索引
 

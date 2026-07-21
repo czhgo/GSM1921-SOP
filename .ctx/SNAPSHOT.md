@@ -4,7 +4,7 @@ title: "系统快照"
 type: snapshot
 status: "ACTIVE"
 date: "2026-07-18"
-last_updated: "2026-07-20"
+last_updated: "2026-07-21"
 version: "v12"
 milestone: "权限系统重构 + UI系统性修复 + organizer/deep可达性 + emoji清零 + 书记评议工作流落地"
 ---
@@ -62,9 +62,6 @@ GSM1921-SOP/
 │   ├── governance/             ← [工程师] 系统治理层（8 文件 + README，含 USAGE_POLICY §一+§二）
 │   ├── insights/               ← [用户]+[AI] 经验沉淀（道/术/器三层架构）
 │   └── references/             ← [用户]  官方文件+模板库+建设探索（只读）
-├── .github/                    ← [AI] Agent & Skill 治理（仅VSCode可用，Trae中忽略，D-186）
-│   ├── agents/                 ← Agent 配置
-│   └── skills/                 ← Skill 定义（11 个）
 └── .ctx/                       ← [AI]/[工程师]+[AI] 审计底座
     ├── SNAPSHOT.md             ← 当前基线快照
     ├── TIMESTAMPS.md           ← 文件时间戳注册表
@@ -81,10 +78,9 @@ GSM1921-SOP/
 | 2 | 理念维度 | `content/01_strategy/` + `content/04_web_design/`（为什么这样做/为什么这样设计） | [用户]/[工程师] |
 | 2.5 | 治理维度 | `content/03_doc_system/`（系统治理规范） | [工程师] |
 | 3 | 执行维度 | `content/02_institution/sop/`（怎么做） | [用户]+[AI] |
-| 4 | Agent 治理层 | `.github/agents/` + `.github/skills/` | [AI] |
-| 5 | 代码实现层 | `docs/src/` + `docs/*.html`（19 页面） | [工程师]+[AI] |
-| 6 | 审计层 | `.ctx/`（logs/snapshots/TIMESTAMPS） | [AI]/[工程师]+[AI] |
-| 7 | 参考层 | `content/references/` | [用户] |
+| 4 | 代码实现层 | `docs/src/` + `docs/*.html`（19 页面） | [工程师]+[AI] |
+| 5 | 审计层 | `.ctx/`（logs/snapshots/TIMESTAMPS） | [AI]/[工程师]+[AI] |
+| 6 | 参考层 | `content/references/` | [用户] |
 
 > **D-218**：SOP（执行细节）和 guides（理念概括）是正交维度，不排先后。
 > CLAUDE.md 是最高层上下文入口，承接理念和具体细节。

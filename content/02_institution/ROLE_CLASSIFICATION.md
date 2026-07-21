@@ -2,7 +2,7 @@
 title: "文件角色分类体系"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-07-20"
+last_updated: "2026-07-21"
 status: active
 related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -116,14 +116,6 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 | `docs/src/*.js` | `[工程师]+[AI]` | 代码模块，开发者维护 + AI 修改 |
 | `docs/src/styles.css` | `[工程师]+[AI]` | 样式，开发者维护 + AI 修改 |
 
-### .github/ 治理层（Trae 中忽略，仅 VSCode 可用，按 D-186）
-
-| 子目录 | 角色 | 理由 |
-|--------|------|------|
-| `copilot-instructions.md` | `[AI]` | 核心规则，Agent 行为约束 |
-| `agents/` | `[AI]` | Agent 配置，Agent 运行时 |
-| `skills/` | `[AI]` | Skill 定义，Agent 能力挂载 |
-
 ### .ctx/ 运行时
 
 | 文件 | 角色 | 理由 |
@@ -204,7 +196,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 | `[用户]` | `content/references/合规文件/`、`assets/`、`README.md` | AI 只读，用户读写 |
 | `[用户]+[AI]` | `content/01_strategy/`、`content/02_institution/sop/`、`content/insights/`、`content/references/工作模板/`、`SECRETARY_PRONOUNCEMENTS.md` | AI 读取+授权修改，用户读写 |
 | `[工程师]+[AI]` | `content/04_web_design/`、`content/03_doc_system/`、`docs/src/`、根目录核心文档、`.ctx/TIMESTAMPS.md`、`.ctx/logs/` | AI 读取+授权修改，工程师读写 |
-| `[AI]` | `.github/`（D-186 忽略）、`.ctx/SNAPSHOT.md` | AI 读写（受核心规则约束），人类一般不编辑 |
+| `[AI]` | `.ctx/SNAPSHOT.md` | AI 读写（受核心规则约束），人类一般不编辑 |
 
 ### 读取优先级
 

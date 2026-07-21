@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: "2026-07-20"
+last_updated: "2026-07-21"
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSOT_INDEX.md, content/01_strategy/SECRETARY_PRONOUNCEMENTS.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, .ctx/logs/]
 ---
@@ -23,7 +23,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 > 修改 Harness 须经书记确认，且必须一改具改（见 H2）。
 >
 > **三层架构 [工作表达]**：热层（每次必读：H1/H2/H3）→ 温层（修改时读：H4/H5）→ 冷层（按需参考：H6 外部索引 + H7 项目产出声明）
-> **忽略目录**：`.github/` — 智能体治理仅在VSCode中可用，Trae中忽略此目录（D-186）
+> **已迁出目录**：`.github/`（智能体治理层）已于 2026-07-21 物理迁出至 `D:\GitHub\System-Residual\.github\`——VSCode Agent 治理不再属于本仓库（D-186 终结）
 
 ***
 

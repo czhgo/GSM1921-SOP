@@ -3,13 +3,13 @@ role: "[工程师]+[AI]"
 dynamic_role:
   maintenance: "[工程师]+[AI]"
   auto_update: "[AI]"
-last_updated: "2026-07-20"
+last_updated: "2026-07-21"
 ---
 
 # File Timestamp Registry
 
 > 全项目文件最后更新时间注册表
-> last_updated: "2026-07-20" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
+> last_updated: "2026-07-21" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
 
 ---
 
@@ -33,31 +33,6 @@ last_updated: "2026-07-20"
 | index.html | 2026-05-04 00:00:00 | [用户]+[AI] | UI 入口 |
 | .markdownlint.json | 2026-04-06 17:12:44 | [工具] | Markdown 规范 |
 | .markdownlintignore | 2026-04-01 02:28:01 | [工具] | Markdown 忽略 |
-
-## .github/ (Agent 治理层)
-
-| 文件路径 | last_updated | 角色 | 备注 |
-|---------|-------------|------|------|
-| .github/agents/mishuchu.agent.md | 2026-04-29 01:47:32 | [AI] | 秘书处 |
-| .github/agents/zuzhibu.agent.md | 2026-04-29 01:47:32 | [AI] | 组织部 |
-| .github/agents/fagaiwei.agent.md | 2026-04-29 01:47:32 | [AI] | 发改委 |
-| .github/agents/gongxinbu.agent.md | 2026-04-29 01:47:32 | [AI] | 工信部 |
-| .github/agents/waijiaobu.agent.md | 2026-04-29 01:47:32 | [AI] | 外交部 |
-| .github/agents/sifabu.agent.md | 2026-04-06 17:12:44 | [AI] | 司法部 |
-| .github/agents/jianchayuan.agent.md | 2026-04-06 17:12:44 | [AI] | 检察院 |
-| .github/agents/jiguandangwei.agent.md | 2026-04-06 17:12:44 | [AI] | 机关党委 |
-| .github/agents/shekeyuan.agent.md | 2026-04-06 17:12:44 | [AI] | 社科院 |
-| .github/agents/danganguan.agent.md | 2026-04-06 17:12:44 | [AI] | 档案馆 |
-| .github/skills/term-cleaner/SKILL.md | 2026-04-06 17:12:44 | [AI] | |
-| .github/skills/anchor-fixer/SKILL.md | 2026-04-06 17:12:44 | [AI] | |
-| .github/skills/yaml-slim/SKILL.md | 2026-04-06 17:12:44 | [AI] | |
-| .github/skills/sop-sync/SKILL.md | 2026-04-06 17:12:44 | [AI] | |
-| .github/skills/log-recorder/SKILL.md | 2026-04-06 17:12:44 | [AI] | |
-| .github/skills/audit-report/SKILL.md | 2026-04-06 17:12:44 | [AI] | |
-| .github/skills/data-inspector/SKILL.md | 2026-04-06 17:12:44 | [AI] | |
-| .github/skills/ui-verifier/SKILL.md | 2026-04-06 17:12:44 | [AI] | |
-| .github/skills/experience-distiller/SKILL.md | 2026-04-06 17:12:44 | [AI] | |
-| .github/skills/sop2code/SKILL.md | 2026-04-06 14:52:33 | [AI] | |
 
 ## .ctx/ (审计底座)
 

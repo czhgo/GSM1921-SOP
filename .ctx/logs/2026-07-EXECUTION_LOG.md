@@ -2,7 +2,7 @@
 title: "2026年7月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-07-20"
+last_updated: "2026-07-21"
 status: active
 related_files:
   - CLAUDE.md
@@ -3908,4 +3908,70 @@ T-121 主条目完成后，按 KNOWN_PITFALLS §9 原则核查 T-119 第一批�
 ### 蒸馏标签
 
 [经验沉淀: 是 — 一改具改遗漏经验沉淀至 KNOWN_PITFALLS.md §10；insights 拆分操作经验沉淀至 工程演进与设计方法论.md §7]
+
+---
+
+## T128 .github/ 物理迁出 + 引用清除 + 过程性文档清理（2026-07-21）
+
+### 背景
+
+承接书记指令（2026-07-21）："我计划将 .github/ 这个文件夹移动到 'D:\GitHub\System-Residual'中。并在全仓库中清除引用——请你检查是否还有不合理的残留！其他一些过程性文档——①.ctx中的csv文档；②node_modules/ 请思考如何处理！此外 gitignore；markdownlint；skills-lock 这些文档，我个人不太推荐在根目录，你如何理解？"
+
+书记确认执行方式："完全迁出并清除引用（推荐）"+"直接执行（推荐）"。
+
+### 执行动作
+
+#### 阶段 3.1：.github/ 物理迁出
+- `Move-Item "d:\GitHub\GSM1921-SOP\.github" "D:\GitHub\System-Residual\.github" -Force` —— 24 个文件（10 个 .agent.md + 11 个 SKILL.md + AGENT_USAGE.md + AGENT_HANDBOOK.md + copilot-instructions.md + skills-lock.json）物理迁出成功
+- `git rm -r .github/` —— 从 git 跟踪中移除
+
+#### 阶段 3.2：清除 30 处 .github/ 引用
+
+**活动文件（10 个，已修订）**：
+
+| 文件 | 修订内容 |
+|------|---------|
+| `CLAUDE.md` L26 | "忽略目录" → "已迁出目录"，标注 D-186 终结 |
+| `.ctx/TIMESTAMPS.md` L37-60 | 删除整个 ".github/ (Agent 治理层)" section（20 个文件条目） |
+| `.ctx/SNAPSHOT.md` L65-67, L84 | 删除架构树 .github/ 块 + 层级表 Layer 4 条目，层级编号 4→6 重排 |
+| `content/03_doc_system/ARCHITECTURE.md` L94-95, L210-212, L309-312 | 删除 Layer 2 中 .github 条目 + 文件树 .github 块 + 双向变更流水线图 .github 框 |
+| `content/03_doc_system/DOC_MAP.md` L31, L139-140, L189-192, L204 | 删除角色映射 .github 行 + 文件列表 .github 行 + 引用关系图实现层简化 + 任务导航 .github 行改为迁出说明 |
+| `content/03_doc_system/OPERATIONS_GUIDE.md` L250 | L3 迁移表 .github 行更新为"已于 2026-07-21 物理迁出" |
+| `content/03_doc_system/SSOT_INDEX.md` L8, L31-36, L88, L121, L159, L165-166 | YAML related_files 删除 .github 路径 + L0→L3 实现层 master-copy 表删除 + Agent 注册表标题加"已迁出"注释 + 同步触发矩阵删除 .github 条目 + 审查顺序删除 .github 步骤 + 注释外部管理说明 |
+| `content/02_institution/ROLE_CLASSIFICATION.md` L119-126, L207 | 删除 .github/ 治理层 section + 角色映射 .github 行 |
+| `content/insights/工程演进与设计方法论.md` §5.3 | "配置应隔离" → "配置应物理隔离"，更新描述：从 .ignore 隔离升级为整体物理迁出 |
+| `docs/superpowers/specs/2026-07-19-concept-reuse-scan-design.md` L40 | 排除范围 .github 说明更新为"D-186 终结：已于 2026-07-21 物理迁出" |
+
+**历史文件（6 个，按 §3.6 历史不可变原则保留）**：
+- `.ctx/logs/archive/2026-07-early-entries.md`
+- `.ctx/logs/2026-07-EXECUTION_LOG.md`（本文件——历史 T 编号条目中的 .github 引用保留）
+- `.ctx/snapshots/SNAPSHOT_v3_20260502.md`（归档快照）
+- `.ctx/logs/2026-05-DECISION_LOG.md`
+- `.ctx/logs/2026-04-EXECUTION_LOG.md`
+- `.ctx/logs/archive/2026-05-early-EXECUTION_LOG.md`
+
+**SSOT_INDEX.md 历史迁移表保留**：L171 `.github/SSOT_INDEX.md → SSOT_INDEX.md（移至根目录） 2026-05-18` —— 历史迁移记录，保留。
+
+#### 阶段 4：过程性文档清理（已于 84b097d commit 中完成）
+- 删除 5 个 csv（.ctx/rare-concepts-*.csv）—— T-121 中间产物
+- 删除 skills-lock.json —— skills 已迁出
+
+### 零残留验证
+
+- ✅ `Test-Path "d:\GitHub\GSM1921-SOP\.github"` → REMOVED
+- ✅ `Test-Path "D:\GitHub\System-Residual\.github"` → EXISTS
+- ✅ Grep `\.github/` 全仓库仅 11 处残留（5 活动文件均已更新为"已迁出"标注 + 6 历史日志按 §3.6 保留）
+- ✅ Grep `\.github[/\\]` 在 *.html/*.js/*.json/*.css 文件中零残留
+
+### 设计决策
+
+**D-263 决策（D-186 终结）**：原 D-186 决策（Trae 中忽略 .github/）已由"忽略"升级为"物理迁出"。VSCode Agent/Skill 配置外部管理于 `D:\GitHub\System-Residual\.github\`，不再属于本仓库。详见 D-263 决策日志。
+
+**SSOT_INDEX.md Agent 注册表处理**：保留历史 Agent 注册表和 Skill 配置清单（标注"已迁出"），作为历史档案。不删除——这些信息对了解 VSCode Agent 系统结构仍有参考价值。
+
+**ROLE_CLASSIFICATION.md .github/ 治理层 section 处理**：整段删除。理由：.github/ 已不属于本仓库，本仓库的角色分类不再涉及 .github/。
+
+### 蒸馏标签
+
+[经验沉淀: 是 — 工具配置物理隔离经验沉淀至 insights/工程演进与设计方法论.md §5.3，从"配置应隔离"升级为"配置应物理隔离"]
 
