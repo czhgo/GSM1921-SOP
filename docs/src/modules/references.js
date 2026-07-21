@@ -94,7 +94,7 @@ const REF_DOCS = [
     size: '28 KB',
     desc: '颜色/字体/控件/布局等设计标准',
     downloadText: '查看文档',
-    url: './content/design/DESIGN_SYSTEM.md',
+    url: './content/04_web_design/DESIGN_SYSTEM.md',
   },
   {
     id: 'doc-06',

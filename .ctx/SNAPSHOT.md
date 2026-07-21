@@ -1,10 +1,10 @@
----
+﻿---
 role: "[AI]"
 title: "系统快照"
 type: snapshot
 status: "ACTIVE"
 date: "2026-07-18"
-last_updated: "2026-07-18"
+last_updated: "2026-07-20"
 version: "v12"
 milestone: "权限系统重构 + UI系统性修复 + organizer/deep可达性 + emoji清零 + 书记评议工作流落地"
 ---
@@ -78,9 +78,9 @@ GSM1921-SOP/
 |-------|------|------|------|
 | 0 | 宪章层 | `CLAUDE.md` + `SSOT_INDEX.md` | [工程师]+[AI] |
 | 1 | 上下文层 | `CLAUDE.md`（HARNESS 入口）+ `ARCHITECTURE.md` | [工程师]+[AI] |
-| 2 | 理念维度 | `content/strategy/` + `content/design/`（为什么这样做/为什么这样设计） | [用户]/[工程师] |
-| 2.5 | 治理维度 | `content/governance/`（系统治理规范） | [工程师] |
-| 3 | 执行维度 | `content/sop/`（怎么做） | [用户]+[AI] |
+| 2 | 理念维度 | `content/01_strategy/` + `content/04_web_design/`（为什么这样做/为什么这样设计） | [用户]/[工程师] |
+| 2.5 | 治理维度 | `content/03_doc_system/`（系统治理规范） | [工程师] |
+| 3 | 执行维度 | `content/02_institution/sop/`（怎么做） | [用户]+[AI] |
 | 4 | Agent 治理层 | `.github/agents/` + `.github/skills/` | [AI] |
 | 5 | 代码实现层 | `docs/src/` + `docs/*.html`（19 页面） | [工程师]+[AI] |
 | 6 | 审计层 | `.ctx/`（logs/snapshots/TIMESTAMPS） | [AI]/[工程师]+[AI] |
@@ -117,7 +117,7 @@ GSM1921-SOP/
 | `party/org.html` | 子页面 | 党务·组织委员（发展党员全流程+材料催缴） |
 | `party/prop.html` | 子页面 | 党务·宣传委员（宣传档案+周报） |
 | `party/disc.html` | 子页面 | 党务·纪检委员（补课制度+公邮管理） |
-| `about.html` | 独立 | 系统说明书（含三委员党建与党务工作职责矩阵） |
+| `about.html` | 独立 | 系统说明书（含三支委党建与党务工作职责矩阵） |
 | `archive.html` | 独立 | 归档库 |
 | `search.html` | 独立 | 资料查询 |
 | `feedback.html` | 独立 | 意见反馈 |
@@ -126,7 +126,7 @@ GSM1921-SOP/
 
 | 理论 | 核心公式 | 详细文档 |
 |------|---------|---------|
-| 党建与党务工作 | 党建工作(服务同学) x 党务工作(发展党员/党费缴纳/档案管理) | DATA_ARCHITECTURE.md + USAGE_POLICY.md §1.1 |
+| 党建与党务工作 | 党建工作(管理组织活动) x 党务工作(管理人员发展)，两者都是"管理事，服务人" | DATA_ARCHITECTURE.md + USAGE_POLICY.md §1.1 |
 | 专班 | 活动之外考察积极分子的载体；赋权是运行支撑机制，工作量记录是运行保障机制 | COMMISSIONER_FRAMEWORK.md §A.3~A.8 |
 | 差异化视图 | 同一数据源，不同切面展示 | PARTICIPANT_DATAFLOW.md §八 |
 | 赋权关系链 | 党支书→支委/党小组组长；党小组组长→组织者/深度参与者；组织委员→专班成员 | COMMISSIONER_FRAMEWORK.md §C |
@@ -156,7 +156,7 @@ GSM1921-SOP/
 | v3 | 2026-05-02 | 文件架构重整 + 角色体系 v2.0 + 党务管理模块上线 |
 | v4 | 2026-05-03 | 术语全量清理 + 多页面迁移 + YAML 规范化 |
 | v5 | 2026-05-05 | 差异化视图 + Emoji 清零 + 重复逻辑消除 |
-| v6 | 2026-05-10 | 赋权链重写 + 工作台面板路由 + 三委员看板 |
+| v6 | 2026-05-10 | 赋权链重写 + 工作台面板路由 + 三支委看板 |
 | v7 | 2026-05-16 | 甲部瘦身 + Guides MECE 重构 + 专班赋权落地 + 文件定位合规化 |
 | v8 | 2026-05-17 | D-12 子页面拆分(19页) + D-13 首页跳转体验 + 大型数据表筛选搜索 + 文档同步自动化 + 经验蒸馏 v10.0 |
 | v9 | 2026-05-18 | 开源准备(README+LICENSE) + 合并后全域断链修复(38处) + 术语一改具改 + YAML/关联文献修复 + 经验沉淀v13.0 |

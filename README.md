@@ -1,4 +1,4 @@
-# GSM1921-SOP
+﻿# GSM1921-SOP
 
 > 光华管理学院本科生党支部组织操作系统（Org OS）
 > 将党支部制度文本转化为可执行的代码工作流，让制度从"写在文档里没人看"变成"嵌入系统中必须遵守"。
@@ -13,7 +13,7 @@ GSM1921-SOP 是光华管理学院本科生党支部的组织运行操作系统�
 
 这个系统的回答是三件事：
 
-1. **制度即代码** — 所有工作流源自 `content/sop/` 制度母本，改一处制度，全系统同步
+1. **制度即代码** — 所有工作流源自 `content/02_institution/sop/` 制度母本，改一处制度，全系统同步
 2. **角色即视图** — 同一数据源，不同角色看到不同的工作切面。每个角色只看到自己该看的事，但所有角色的数据来自同一个真相源
 3. **经验可传承** — 每一次决策、每一次执行、每一次从错误中长出的教训，都被记录和沉淀。换届不是"从零开始"，而是"站在前人的肩膀上"
 
@@ -29,7 +29,7 @@ GSM1921-SOP 是光华管理学院本科生党支部的组织运行操作系统�
 - **个人考勤查询** — 在党建工作台以成员只读视角查看自己的出勤情况
 - **支委工作透明化** — 查看各支委的工作成果，了解支委在做什么
 - **标准流程查阅** — 通过常见工作场景快速指南，了解各类工作的标准做法
-- **意见反馈** — 通过系统【意见反馈】入口或 [SOP 优化提案反馈卡](content/references/工作模板/FEEDBACK_FORM.md) 提交建议
+- **意见反馈** — 通过系统【意见反馈】入口（`feedback.html`）提交建议
 
 对于支委和党小组组长，系统提供与角色对应的工作台：
 
@@ -39,10 +39,10 @@ GSM1921-SOP 是光华管理学院本科生党支部的组织运行操作系统�
 | **宣传委员** | 活动与专班视图（宣传材料、周报） | 宣传档案合规建设（模板、制度） |
 | **纪检委员** | 考勤管理、考察管理、活动监督复盘 | 补课制度、公邮管理 |
 | **党小组组长** | 本组活动组织、条块协作、数据提交 | — |
-| **党支书** | 全局工作台与 [定人定责定岗说明](content/sop/支委与党小组定人定责定岗说明.md) | 党务决策面板 |
+| **党支书** | 全局工作台与 [定人定责定岗说明](content/02_institution/sop/支委与党小组定人定责定岗说明.md) | 党务决策面板 |
 | **组织者/深度参与者** | 经赋权后进入对应专班工作台 | — |
 
-同一份数据，不同角色看到不同的切面——党建板块服务同学们，党务板块供支委会决策。
+同一份数据，不同角色看到不同的切面——党建管组织活动，党务管人员发展，两者都是"管理事，服务人"。
 
 ---
 
@@ -68,9 +68,9 @@ GSM1921-SOP 是光华管理学院本科生党支部的组织运行操作系统�
 
 | 角色 | 阅读顺序 |
 |------|---------|
-| **普通成员** | 本 README → [书记重要论断汇编](SECRETARY_PRONOUNCEMENTS.md)（理解支部为什么这样运作）→ [常见工作场景快速指南](content/sop/常见工作场景快速指南.md) → 系统工作台 |
-| **支委 / 党小组组长** | 本 README → [书记重要论断汇编](SECRETARY_PRONOUNCEMENTS.md) → [对应角色的工作流程指南](content/sop/INDEX.md) → 系统对应工作台 → [ARCHITECTURE.md](ARCHITECTURE.md)（如需了解架构） |
-| **系统维护者** | 本 README → [ARCHITECTURE.md](ARCHITECTURE.md)（核心架构说明）→ [CLAUDE.md](CLAUDE.md)（项目治理文件）→ [OPERATIONS_GUIDE.md](content/governance/OPERATIONS_GUIDE.md) → [DOC_MAP.md](content/governance/DOC_MAP.md) → [SSOT_INDEX.md](SSOT_INDEX.md)（母本子本注册表） |
+| **普通成员** | 本 README → [书记重要论断汇编](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（理解支部为什么这样运作）→ [常见工作场景快速指南](content/02_institution/sop/常见工作场景快速指南.md) → 系统工作台 |
+| **支委 / 党小组组长** | 本 README → [书记重要论断汇编](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) → [对应角色的工作流程指南](content/02_institution/sop/INDEX.md) → 系统对应工作台 → [ARCHITECTURE.md](content/03_doc_system/ARCHITECTURE.md)（如需了解架构） |
+| **系统维护者** | 本 README → [ARCHITECTURE.md](content/03_doc_system/ARCHITECTURE.md)（核心架构说明）→ [CLAUDE.md](CLAUDE.md)（项目治理文件）→ [OPERATIONS_GUIDE.md](content/03_doc_system/OPERATIONS_GUIDE.md) → [DOC_MAP.md](content/03_doc_system/DOC_MAP.md) → [SSOT_INDEX.md](content/03_doc_system/SSOT_INDEX.md)（母本子本注册表） |
 
 普通成员只需理解"为什么这样做"和"怎么用"，重点在理论理解和操作指南；支委和党小组组长需要熟悉自己角色的完整流程，并能在工作台中执行；系统维护者需要理解整个仓库的架构、治理规范和母本子本关系。
 
@@ -80,7 +80,7 @@ GSM1921-SOP 是光华管理学院本科生党支部的组织运行操作系统�
 
 **报告问题**
 
-在 GitHub Issues 中创建新 Issue，标题格式建议 `[SOP]/[UI]/[Doc] 简要描述`，标注问题所属的层面。如果是流程改进建议，可以填写 [SOP 优化提案反馈卡](content/references/工作模板/FEEDBACK_FORM.md)，由书记确认后执行全局修复。
+在 GitHub Issues 中创建新 Issue，标题格式建议 `[SOP]/[UI]/[Doc] 简要描述`，标注问题所属的层面。如果是流程改进建议，可通过系统【意见反馈】入口（`feedback.html`）提交，由书记确认后执行全局修复。
 
 **查找已有答案**
 
@@ -88,13 +88,13 @@ GSM1921-SOP 是光华管理学院本科生党支部的组织运行操作系统�
 
 - **执行日志**（`.ctx/logs/YYYY-MM-EXECUTION_LOG.md`）记录了每次工作做了什么、改了哪些文件
 - **决策日志**（`.ctx/logs/DECISION_LOG.md`）记录了每一次非显而易见决策的背景、选项和理由——理解"为什么选 A 不选 B"
-- **经验沉淀**（[content/insights/](content/insights/)）是历届支委集体萃取的组织智慧，按道/术/器三层组织
+- **经验沉淀**（[content/insights/](content/insights/)）是历届支委集体萃取的组织智慧，按 5 类知识类型组织
 
 制度不是凭空产生的——每一条规则背后都是一次选择。选择意味着放弃，被放弃的方案、被纠正的认知、被淘汰的设计都记录在决策日志中。不了解"为什么不是那样"，就无法真正理解"为什么是这样"。
 
 **术语不明时**
 
-遇到不熟悉的术语（如"党建工作与党务工作""条块二元""专班"等），查阅 [USAGE_POLICY.md](content/governance/USAGE_POLICY.md)——它是全仓库术语的权威源，所有文档使用的术语都以它为准。
+遇到不熟悉的术语（如"党建工作与党务工作""条块二元""专班"等），查阅 [USAGE_POLICY.md](content/03_doc_system/USAGE_POLICY.md)——它是全仓库术语的权威源，所有文档使用的术语都以它为准。
 
 ---
 
@@ -103,7 +103,7 @@ GSM1921-SOP 是光华管理学院本科生党支部的组织运行操作系统�
 这个系统不是工具的堆砌，而是有一套完整的设计理念支撑。核心理论包括：
 
 - **"管理事、服务人"战略路线** — 各种发展轨迹都可以加入支部，通过组织获得各自的成长
-- **党建工作与党务工作** — 党建工作（服务同学们的核心职能）与党务工作（发展党员、党费缴纳、档案管理）是工作内容的区分，不是"创新 vs 合规"——党建有合规的部分，党务也有创新的部分
+- **党建工作与党务工作** — 党建工作（管理组织活动：三会一课、主题党日、专班）与党务工作（管理人员发展：党员发展、考勤考察）都是"管理事，服务人"的工作，区分标准是工作内容，不是"服务同学 vs 供支委决策"。"管理事，服务人"不仅仅是针对支委而言的——任何一名党员（包括支委会在内）在管理事和服务人方面都有自己的用武之地和成长空间（详见 [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) 第二章）
 - **专班** — 跨小组跨职能抽调人手集中推进某项工作时组建的临时性组织形式；专班是活动之外考察积极分子的载体，赋权是运行支撑机制，工作量记录是运行保障机制；发起是提出需求，招募是统筹执行，两者分离
 - **条块二元** — 委员（条）持有功能决策权，党小组组长（块）持有信息触达权，两者是接力关系而非上下级；书记是条块间的协调节点
 - **扁平化设计** — 组织者和深度参与者之间无上下级，只是分工不同；组织者是项目的脑子，深度参与者是项目的手
@@ -111,7 +111,7 @@ GSM1921-SOP 是光华管理学院本科生党支部的组织运行操作系统�
 
 这些理论不是抽象的口号，而是每一条制度设计背后的理由。理解了它们，才能理解为什么系统是这样组织的，也才能在场景变化时判断原则在什么条件下成立。
 
-→ 完整的理论阐述见 [书记重要论断汇编](SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档，25 条路线级论断）和 ["管理事、服务人"战略路线](content/strategy/DEVELOPMENT_PATH.md)
+→ 完整的理论阐述见 [书记重要论断汇编](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档，28 条路线级论断 + P-045/P-047 元命题引子）和 ["管理事、服务人"战略路线](content/01_strategy/DEVELOPMENT_PATH.md)
 
 ---
 
@@ -122,9 +122,9 @@ GSM1921-SOP 是光华管理学院本科生党支部的组织运行操作系统�
 | 你想了解... | 看这份文档 |
 |------------|----------|
 | 项目是什么 | [README.md](README.md)（本文件） |
-| 架构是什么 | [ARCHITECTURE.md](ARCHITECTURE.md) — 分层模型、数据模型、Agent 治理集群、变更流水线 |
-| 制度在哪 | [content/sop/INDEX.md](content/sop/INDEX.md) — 各角色工作流程指南导航 |
-| 理论在哪 | [SECRETARY_PRONOUNCEMENTS.md](SECRETARY_PRONOUNCEMENTS.md) + [content/strategy/DEVELOPMENT_PATH.md](content/strategy/DEVELOPMENT_PATH.md) + [content/insights/](content/insights/) |
+| 架构是什么 | [ARCHITECTURE.md](content/03_doc_system/ARCHITECTURE.md) — 分层模型、数据模型、Agent 治理集群、变更流水线 |
+| 制度在哪 | [content/02_institution/sop/INDEX.md](content/02_institution/sop/INDEX.md) — 各角色工作流程指南导航 |
+| 理论在哪 | [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) + [content/01_strategy/DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) + [content/insights/](content/insights/) |
 | 工作流是什么 | [CLAUDE.md](CLAUDE.md) — 项目最高治理文件，定义工作方式、核心原则和运行标准 |
 
 ---
@@ -138,13 +138,13 @@ GSM1921-SOP 是光华管理学院本科生党支部的组织运行操作系统�
 | **前台（UI）** | `docs/`（19 个页面，含 `workspace/` 和 `party/` 子目录） | 页面骨架，零硬编码逻辑 |
 | **中台（路由+渲染）** | `docs/src/entries/`（18 个 entry JS） | 角色面板路由、视图切换、DOM 渲染 |
 | **后台（服务层）** | `docs/src/services/`（7 个 service JS） | 数据 CRUD、权限计算、持久化（localStorage） |
-| **母本层** | `content/sop/` | 所有代码逻辑的制度来源 |
+| **母本层** | `content/02_institution/sop/` | 所有代码逻辑的制度来源 |
 
-数据变更遵循铁律：`content/sop/ → docs/src/services/ → docs/src/entries/ → docs/`，所有数据变更必须经过 Service 层，UI 层禁止直接操作 Store。修改代码前必须确认 SOP 母本已更新。详细架构约束见 [ARCHITECTURE.md](ARCHITECTURE.md)。
+数据变更遵循铁律：`content/02_institution/sop/ → docs/src/services/ → docs/src/entries/ → docs/`，所有数据变更必须经过 Service 层，UI 层禁止直接操作 Store。修改代码前必须确认 SOP 母本已更新。详细架构约束见 [ARCHITECTURE.md](content/03_doc_system/ARCHITECTURE.md)。
 
 ---
 
-## 迭代路线图
+## 九、迭代路线图
 
 | Phase | 状态 | 内容 |
 |-------|------|------|

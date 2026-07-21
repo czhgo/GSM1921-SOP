@@ -3,7 +3,7 @@
 //  service.image.js — 图片记录数据服务（localStorage 持久化）
 //  提供 ImageRecordStore：图片的 CRUD + localStorage 持久化
 //  使用独立 localStorage 键，避免 Base64 数据膨胀主 mockDB
-//  Source: content/sop/宣传委员工作流程指南.md#图片管理规则
+//  Source: content/02_institution/sop/宣传委员工作流程指南.md#图片管理规则
 // ════════════════════════════════════════════════════════════════
 
 const STORAGE_KEY = 'gsm1921-image-records';

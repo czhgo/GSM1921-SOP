@@ -2,14 +2,14 @@
 title: "数据架构全面审计报告"
 type: audit-report
 role: "[工程师]+[AI]"
-last_updated: "2026-07-15"
+last_updated: "2026-07-20"
 status: active
 summary: "对系统数据架构进行全面审计，包含数据类别清单、需求匹配度分析、字段共用性分析（重点）、问题与改进方向。"
 ---
 
 # 数据架构全面审计报告
 
-> **审计范围**：`content/design/DATA_ARCHITECTURE.md` + `docs/src/core/domain.js` + `docs/src/services/mock.js`
+> **审计范围**：`content/04_web_design/DATA_ARCHITECTURE.md` + `docs/src/core/domain.js` + `docs/src/services/mock.js`
 > **审计日期**：2026-07-15
 > **审计重点**：字段共用性分析（书记特别强调）
 
@@ -435,7 +435,7 @@ summary: "对系统数据架构进行全面审计，包含数据类别清单、�
 
 ### 2.1 系统功能需求对照
 
-根据 `content/strategy/COMMISSIONER_FRAMEWORK.md` 和 `content/sop/` 目录下的文件，系统需支持以下核心业务场景：
+根据 `content/02_institution/COMMISSIONER_FRAMEWORK.md` 和 `content/02_institution/sop/` 目录下的文件，系统需支持以下核心业务场景：
 
 | 业务场景 | 涉及数据类别 | 匹配度 | 缺失/冗余情况 |
 |---------|-------------|--------|--------------|
@@ -771,13 +771,13 @@ summary: "对系统数据架构进行全面审计，包含数据类别清单、�
 
 ### 6.3 审计依据
 
-- `content/design/DATA_ARCHITECTURE.md`
+- `content/04_web_design/DATA_ARCHITECTURE.md`
 - `docs/src/core/domain.js`
 - `docs/src/services/mock.js`
 - `docs/src/core/state.js`
-- `content/strategy/COMMISSIONER_FRAMEWORK.md`
-- `content/strategy/FLAT_DESIGN.md`
-- `content/sop/` 目录下的文件
+- `content/02_institution/COMMISSIONER_FRAMEWORK.md`
+- `content/02_institution/FLAT_DESIGN.md`
+- `content/02_institution/sop/` 目录下的文件
 
 ---
 

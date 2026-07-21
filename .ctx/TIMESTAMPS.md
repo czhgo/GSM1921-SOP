@@ -3,13 +3,13 @@ role: "[工程师]+[AI]"
 dynamic_role:
   maintenance: "[工程师]+[AI]"
   auto_update: "[AI]"
-last_updated: "2026-07-18"
+last_updated: "2026-07-20"
 ---
 
 # File Timestamp Registry
 
 > 全项目文件最后更新时间注册表
-> last_updated: "2026-07-18" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
+> last_updated: "2026-07-20" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
 
 ---
 
@@ -100,7 +100,7 @@ last_updated: "2026-07-18"
 | src/workflow/renderer.js | 2026-04-29 01:47:32 | [工程师]+[AI] | 工作流渲染器 |
 | src/workflow/activityRecord.js | 2026-05-02 00:00:00 | [工程师]+[AI] | 活动记录数据模型 |
 
-## content/sop/ (制度母本层)
+## content/02_institution/sop/ (制度母本层)
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
@@ -113,7 +113,7 @@ last_updated: "2026-07-18"
 | content/sop/纪检委员工作流程指南.md | 2026-04-01 02:28:01 | [用户]+[AI] | |
 | content/sop/组织委员工作流程指南.md | 2026-04-01 02:28:01 | [用户]+[AI] | |
 
-## content/strategy/ (战略路线层)
+## content/01_strategy/ (战略路线层)
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
@@ -122,7 +122,7 @@ last_updated: "2026-07-18"
 | content/strategy/COMMISSIONER_FRAMEWORK.md | 2026-07-08 00:00:00 | [用户]+[AI] | 支委框架与专班（含§审批流程规范） |
 | content/strategy/README.md | 2026-07-03 00:00:00 | [用户]+[AI] | strategy 目录索引 |
 
-## content/design/ (设计理念层)
+## content/04_web_design/ (设计理念层)
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
@@ -131,7 +131,7 @@ last_updated: "2026-07-18"
 | content/design/DESIGN_SYSTEM.md | 2026-07-03 00:00:00 | [工程师]+[AI] | 前端设计系统 |
 | content/design/README.md | 2026-07-08 00:00:00 | [工程师]+[AI] | design 目录索引 |
 
-## content/governance/ (系统治理层)
+## content/03_doc_system/ (系统治理层)
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|

@@ -2,9 +2,9 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: "2026-07-19"
+last_updated: "2026-07-20"
 status: active
-related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, content/strategy/, content/design/, content/governance/, content/insights/, .ctx/logs/]
+related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSOT_INDEX.md, content/01_strategy/SECRETARY_PRONOUNCEMENTS.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, .ctx/logs/]
 ---
 
 # CLAUDE.md
@@ -93,24 +93,24 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 
 **吸收外部输入原则**：当书记或外部来源提供新的评议/文档/制度更新时，必须识别变更范围，归位到权威源，并触发一改具改。具体操作流程见 guides。
 
-→ 详细操作流程见 [OPERATIONS\_GUIDE.md §14](content/governance/OPERATIONS_GUIDE.md)
+→ 详细操作流程见 [OPERATIONS\_GUIDE.md §14](content/03_doc_system/OPERATIONS_GUIDE.md)
 
 ### H2.2 设计母本与子本
 
-> **本表为5条核心原则**。完整的母本子本注册表（约25条级联关系）见 [SSOT_INDEX.md](SSOT_INDEX.md)，文档权威层级定义见 [OPERATIONS_GUIDE.md §7.1](content/governance/OPERATIONS_GUIDE.md)，文档导航图见 [DOC_MAP.md](content/governance/DOC_MAP.md)。
+> **本表为5条核心原则**。完整的母本子本注册表（约25条级联关系）见 [SSOT_INDEX.md](content/03_doc_system/SSOT_INDEX.md)，文档权威层级定义见 [OPERATIONS_GUIDE.md §7.1](content/03_doc_system/OPERATIONS_GUIDE.md)，文档导航图见 [DOC_MAP.md](content/03_doc_system/DOC_MAP.md)。
 > 三者关系：H2.2 提炼核心原则 → SSOT_INDEX 注册全部关系 → OPERATIONS_GUIDE §7.1 定义层级 → DOC_MAP 标注层级。
 
 | 关系类型   | 母本                                          | 子本                             | 同步规则                 |
 | ------ | ------------------------------------------- | ------------------------------ | -------------------- |
-| 制度→代码  | `content/sop/*.md`                          | `docs/src/*.js`                | 母本优先，代码跟随（见 [SOP\_WEB.md](content/governance/SOP_WEB.md)） |
-| 理论→工程  | `content/{strategy,design,governance}/*.md` | `docs/src/*.js`                | guides 定义设计，代码实现设计   |
+| 制度→代码  | `content/02_institution/sop/*.md`                          | `docs/src/*.js`                | 母本优先，代码跟随（见 [SOP\_WEB.md](content/04_web_design/SOP_WEB.md)） |
+| 理论→工程  | `content/{01_strategy,02_institution,03_doc_system,04_web_design,05_ai_coding}/*.md` | `docs/src/*.js`                | guides 定义设计，代码实现设计   |
 | 路线图→执行 | `CLAUDE.md` 乙部                              | `.ctx/logs/*-EXECUTION_LOG.md` | 完成事项从乙部删除，写入执行日志     |
 | 经验→沉淀  | `.ctx/logs/DECISION_LOG.md`                 | `content/insights/*.md`        | 决策日志定期沉淀为经验沉淀        |
-| 术语→全仓  | `content/governance/USAGE_POLICY.md`         | 全仓库所有文件                        | 术语变更触发一改具改           |
+| 术语→全仓  | `content/03_doc_system/USAGE_POLICY.md`         | 全仓库所有文件                        | 术语变更触发一改具改           |
 
 ### H2.3 Guides 与 Insights 的定位
 
-- **Guides（`content/strategy/`、`content/design/`、`content/governance/`）**：设计理念文档。不管对应功能有没有完成，设计理念始终存在，作为知识留存。
+- **Guides（`content/01_strategy/`、`content/02_institution/`、`content/03_doc_system/`、`content/04_web_design/`、`content/05_ai_coding/`）**：设计理念文档。不管对应功能有没有完成，设计理念始终存在，作为知识留存。
 - **Insights（`content/insights/`）**：经验沉淀文档。按一定频率根据需求和日志进行沉淀更新。
 - 两者都是**稳定的知识资产**，不因执行事项的完成而删除。
 
@@ -119,7 +119,7 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 > 🔴 **每次向 insights/ 写入内容时必须遵守以下规则。**
 
 1. **结构兼容性**：写入前与既有结构逐节比对，兼容则追加，不兼容则写入丙部
-2. **正反两面论**：必须同时回答"为什么是这样"和"为什么不是那样"
+2. **按需正反两面论**：只有当命题存在真正的对立方案（读者可能真正会想到的替代选择）时，才需要反论。判定依据见 [OPERATIONS_GUIDE.md §10.2/§10.3/§10.7/§10.9](content/03_doc_system/OPERATIONS_GUIDE.md)
 3. **禁止冗余标记**：正文中不标注版本号/批次/时间戳，这些归YAML
 4. **沉淀标签闭环**：沉淀完成后，将日志中 `[经验沉淀: 否]` 改为 `[经验沉淀: 是]`
 5. **后推翻前规则**：时间靠后的决策可能推翻先前的决策，时间靠后的执行可能推翻先前的执行。经验沉淀必须标注**生效条件**——在什么前提下成立。当新经验与旧经验矛盾时，不得删除旧经验，而是在旧经验条目下追加"已被XX条件下的新经验修正"标注，在新经验条目中注明"修正了XX条件下的旧经验"。经验不打架，而是条件化。
@@ -136,13 +136,32 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 □ 2. 检查钩稽：CLAUDE.md / guides 中是否有对该文件的引用？
 □ 3. 一改具改：全仓库搜索相关引用，逐一同步更新
 □ 4. 术语合规：修改内容是否符合 USAGE_POLICY.md §一？
-□ 5. 母本优先：若涉及 SOP 制度变更，先改 content/sop/ 再改代码
+□ 5. 母本优先：若涉及 SOP 制度变更，先改 content/02_institution/sop/ 再改代码
 □ 6. YAML 更新：🔴 任何有 YAML frontmatter 的文件被修改后，必须更新 last_updated 字段。子任务修改文件时同样必须遵守。遗漏即违规。
 □ 7. 记录日志：写入 .ctx/logs/YYYY-MM-EXECUTION_LOG.md
 □ 8. 乙部更新：若涉及执行事项，更新 CLAUDE.md 乙部
 □ 9. 表达合规：若本次修改涉及书记原话展开，必须调用 USAGE_POLICY.md §1.9.3 五条可复用检查规则自查（"而非"警惕/"所以"因果链/反面假设/私加强调/元叙事标签）
 □ 10. 反论合规：若本次修改涉及反论（"为什么不是..."），必须按 OPERATIONS_GUIDE.md §10.6 自检清单逐项验证，含§10.7历史范畴检查（被否定项是否仍在使用）和§10.8 AI治理技术特殊性（涉及AI工具使用时需联网补充）
+□ 11. 概念命名合规：若本次修改涉及概念命名或标签创建，必须按 H3.1 概念命名守则自检
 ```
+
+### H3.1 概念命名守则 [工作表达]
+
+> 书记元洞察（2026-07-19 概念复用性扫描评议）："最大的根因在于：一个大的命题可能有很多个小命题。AI专注于过拟合那些小的命题的命名。但事实上，只需要给总的大命题命名即可。"
+
+**适用范围**：全仓库所有概念标签、速查表、insights 沉淀、governance 文档中出现的命名性标签
+
+**五条守则**：
+
+1. **大命题原则**：一个大的命题可能有很多个小命题，只给大命题命名，小命题作为大命题下的描述存在，不单独命名。判断标准：该命题是否有独立的理论地位或实践领域？若无，则归入大命题。
+
+2. **"="式命名禁令**：不得使用"="连接两个概念作为标签名（如`[A=B]`）。"="暗示数学等价，但 insights 中的"="用法几乎都是单向蕴含（A导致B、A意味着B、A的判定标准是B）。替代方案：用"即"式（如`[A即B]`）或叙述式。
+
+3. **AI层级标签禁令**：不得添加"基础层/进阶层""初级/高级"等无依据的层级标签。除非书记明确提过分层，否则并列关系不得被AI擅自标为层级递进。
+
+4. **一致性检查**：如果只有某一类有独立标签（如只有"纪检工作内容"而没有"组织工作内容""宣传工作内容"），必须质疑组织方式的准确性——要么三类都有，要么归入统一的大命题下。
+
+5. **术语精确性**：党支部委员简称是"支委"不是"委员"；党建 = 三会一课、主题党日、专班工作；党务 = 党员发展、考勤考察；两者都是"管理事，服务人"的工作，不用"服务同学 vs 供支委决策"区分（P-007 修正）。
 
 ***
 
@@ -210,7 +229,7 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 
 **生命周期**：写入丙部 → next\_prompt提交 → 书记决策 → Decision Log归档 → 执行 → 从丙部删除
 
-**多步决策规则**：丙部条目可能包含多步决策。当所有步骤均已获得书记明确方向（包括"搁置"/"删除"等否定性决策）时，该条目视为决策完成，应退出丙部。三种决策状态的语义边界（详见 insights §4.5）：待决策=未决策（停留丙部）；搁置=时机判断（已决策"现在不做"，退出丙部）；删除/不需要=终局判断（已决策"明确不需要"，退出丙部）。"搁置"是已做出的决策，不是"待决策"的暂存。
+**多步决策规则**：丙部条目可能包含多步决策。当所有步骤均已获得书记明确方向（包括"搁置"/"删除"等否定性决策）时，该条目视为决策完成，应退出丙部。三种决策状态的语义边界（详见 insights 工程演进与设计方法论.md §2.5）：待决策=未决策（停留丙部）；搁置=时机判断（已决策"现在不做"，退出丙部）；删除/不需要=终局判断（已决策"明确不需要"，退出丙部）。"搁置"是已做出的决策，不是"待决策"的暂存。
 
 ***
 
@@ -238,6 +257,7 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
    - **实现方法**：是否有代码/设计支撑、是否可落地
    - **合规溯源**（按需）：是否可追溯到书记原话或制度原文，AI 推导须标注
    - **奥卡姆剃刀**（按需）：是否存在"为概括而概括""fancy 但无内涵"的标签或结构性数字隐喻
+   - **概念过拟合**（按需）：是否存在 AI 擅自命名的小命题标签、无依据的层级标签、"="式命名、孤立概念——详见 H5.7
 
    **维度选择原则**：AI 默认参考上述常规维度，但根据命题特性灵活选择——纯术语违规的命题可只审"表述"一维度，涉及制度设计的命题可增审"合规溯源"维度。若某命题只审部分维度，预审报告中注明"本次仅审 XX 维度，理由：……"。四维度为常规参考，非强制锁定。
 3. AI 将完整预审报告写入 `.ctx/REVIEW_QUEUE.md`，通知书记可随时评议
@@ -289,6 +309,80 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 
 **终止条件**：每轮校验后，若书记仍有反馈则继续迭代；若书记明确"暂时到此"或当前 session 上下文已接近上限，则在 next\_prompt 中记录校验进度和待续项，由下一个 session 继续。不允许因偷懒放弃，但允许因上下文限制而挂起并交接。
 
+### H5.7 概念复用性扫描与文件瘦身 [工作表达]
+
+> "概念复用性扫描"是 T3 工作表达术语，指系统性扫描全仓库中 AI 过拟合命名的孤立概念标签，识别瘦身空间，并触发归并或删除。
+> 书记元洞察（2026-07-19）："最大的根因在于：一个大的命题可能有很多个小命题。AI专注于过拟合那些小的命题的命名。但事实上，只需要给总的大命题命名即可。"
+
+**扫描范围**：不仅限于 insights 文件——content/ 五子目录和根目录 .md 文件都存在概念膨胀和表述冗余的空间。
+
+**扫描方法**：概念标签法——从文档中的命名性标签（速查表条目、「」命名概念、标题级概念）出发，按频次和复用性分类，而非全量 n-gram 扫描。
+
+**五条判定维度**：
+
+1. **B 表达原因·特定场景**：该概念因特定表达需要而存在，保留
+2. **C AI 错误扩充**：AI 擅自创造的概念，书记从未提过，删除
+3. **D AI 错误概括**：AI 擅自概括的标签，应归入大命题或删除
+4. **D 应归并到大命题**：小命题标签，应归入大命题下作为描述，不单独命名
+5. **需重命名**：命名方式违规（如"="式命名），需修正
+
+**文件瘦身原则**：
+
+1. **大命题优先**：多个小命题归入一个大命题，只保留大命题的命名标签
+2. **重复表述归并**：同一命题在不同文件中的重复展开，保留最权威版本，其他文件仅引用
+3. **AI 概括清零**：无书记原话或制度依据的 AI 自创概念标签，一律删除
+4. **跨文件瘦身**：概念膨胀不仅出现在 insights 速查表中——governance 文档的过细分类标签、strategy 文档的冗余阐述、sop 文档的重复定义，都应纳入瘦身范围
+5. **根目录瘦身**：README.md、SNAPSHOT.md 等根目录文件，以及 ARCHITECTURE.md（已移至 content/03_doc_system/）等已迁移文件中的过时表述，同样需要随一改具改同步更新
+6. **零补丁原则**：书记论断（2026-07-19）——"瘦身的一个重要方面是把文档变成一个有机整体。由于书记论述的批次不同，很容易出现到处打补丁的现象——新增内容单独成段落，即使和前面的段落也是相关的。"AI 无法自行判断如何融入（修改原命题的表述以切中新命题，还是调整新命题以适配原命题结构），须提交书记判定。**最终目标：所有涉及用户阅读的文档，零补丁识别。**
+
+**执行流程**：
+1. AI 扫描概念标签，按频次和性质分类
+2. 逐条通过 AskUserQuestion 提请书记判定
+3. 按判定结果执行：删除/归并/重命名/保留
+4. 全仓库一改具改（H2.1），确保零残留
+5. 记录至执行日志 T 编号
+
+**与 H3.1 的关系**：H3.1 是预防性守则（修改时自检），H5.7 是纠正性扫描（系统性排查）。两者互补。
+
+### H5.8 书记评议类型速查 [工作表达]
+
+> 三类有过具体规定的书记评议，复用性相对较高。本节整理各类评议的核心规定，便于后续复用。
+
+#### H5.8.1 反论评议
+
+**目的**：评审全仓库反论的表述质量和命题准确性
+**触发**：H5.1 触发条件 + T 编号任务
+**核心规定**：
+- 三类问题维度：正确的废话（删除反论改为正面陈述）/ 命题错误（删除反论用书记原话替代）/ 重点偏差（修正重点关联书记判断的核心关切）
+- 三种处置关系：保留 / 融入正论 / 删除反论+补充正论
+- 反论用例例子选择约束：避免军事术语/历史典故，优先工程实践或日常管理场景
+- 预判差异记录：书记判断与AI预审不同时，差异须在评议记录中分析原因
+- AI推导识别与级联修改（§14.4）
+- 历史范畴检查：被否定项是否仍在使用（§10.7）
+- AI治理技术特殊性：涉及AI工具使用时需联网补充（§10.8）
+**详细维度体系**：[OPERATIONS_GUIDE.md §10.9](content/03_doc_system/OPERATIONS_GUIDE.md)
+
+#### H5.8.2 理论复用评议
+
+**目的**：评审全仓库跨节/跨文件引用的复用准确性、适用性及效果
+**触发**：H5.1 触发条件 + T 编号任务
+**核心规定**：
+- 复用评议指标：复用是否准确、是否过时、是否遗漏、是否过度引用
+- 母本子本关系：下游命题对上游命题的复用，母本优先（H2.2）
+- 散落即漂移原则：信息重复散落视为漂移风险（OPERATIONS_GUIDE §7.4）
+- 分轮规划：① insights内部复用链 ② governance文档间复用 ③ strategy/design→sop复用链 ④ 跨目录复用断链检查
+
+#### H5.8.3 补丁审查（零补丁识别评议）
+
+**目的**：识别用户文档中新增内容单独成段落（与前面段落/章节相关但不融入）的"补丁"现象，触发融入或调整
+**触发**：H5.1 触发条件 + T 编号任务
+**核心规定**：
+- 零补丁原则：书记论断（2026-07-19）——"瘦身的一个重要方面是把文档变成一个有机整体。由于书记论述的批次不同，很容易出现到处打补丁的现象——新增内容单独成段落，即使和前面的段落也是相关的。"
+- 多层过滤方法：问题脉络→主题相关→时间维度
+- 三种处置：融入原命题 / 调整新命题 / 保留独立
+- AI不得自行判断如何融入——须提交书记判定
+- 最终目标：所有涉及用户阅读的文档，零补丁识别
+
 ***
 
 ***
@@ -309,19 +403,19 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 | 看检查清单 | 本文件 H3 |
 | 看乙部/丙部规则 | 本文件 H4 |
 | 看书记评议工作流 | 本文件 H5 |
-| 看甲部修改流程 | [OPERATIONS_GUIDE.md §12](content/governance/OPERATIONS_GUIDE.md) |
-| 看日志规范 | [OPERATIONS_GUIDE.md §13](content/governance/OPERATIONS_GUIDE.md) |
-| 看面向用户表述规范 | [OPERATIONS_GUIDE.md §11](content/governance/OPERATIONS_GUIDE.md) |
-| 看理论基石 | [SECRETARY_PRONOUNCEMENTS.md](SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档） |
+| 看甲部修改流程 | [OPERATIONS_GUIDE.md §12](content/03_doc_system/OPERATIONS_GUIDE.md) |
+| 看日志规范 | [OPERATIONS_GUIDE.md §13](content/03_doc_system/OPERATIONS_GUIDE.md) |
+| 看面向用户表述规范 | [OPERATIONS_GUIDE.md §11](content/03_doc_system/OPERATIONS_GUIDE.md) |
+| 看理论基石 | [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档） |
 | 看经验沉淀 | [content/insights/](content/insights/) |
-| 看已知陷阱 | [KNOWN_PITFALLS.md](content/governance/KNOWN_PITFALLS.md) |
-| 看运行标准 | [OPERATIONS_GUIDE.md](content/governance/OPERATIONS_GUIDE.md) |
-| 看术语规范 | [USAGE_POLICY.md](content/governance/USAGE_POLICY.md) |
-| 查 SOP 流程 | [content/sop/INDEX.md](content/sop/INDEX.md) |
+| 看已知陷阱 | [KNOWN_PITFALLS.md](content/05_ai_coding/KNOWN_PITFALLS.md) |
+| 看运行标准 | [OPERATIONS_GUIDE.md](content/03_doc_system/OPERATIONS_GUIDE.md) |
+| 看术语规范 | [USAGE_POLICY.md](content/03_doc_system/USAGE_POLICY.md) |
+| 查 SOP 流程 | [content/02_institution/sop/INDEX.md](content/02_institution/sop/INDEX.md) |
 | 查决策历史 | `.ctx/logs/DECISION_LOG.md` |
 | 查执行日志 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` |
-| 查母本链路 | [SSOT_INDEX.md](SSOT_INDEX.md) |
-| 取用模板 | `content/references/工作模板/` |
+| 查母本链路 | [SSOT_INDEX.md](content/03_doc_system/SSOT_INDEX.md) |
+| 取用模板 | `content/03_doc_system/工作模板/` |
 | 查可用 Skills | `npx skills find <keyword>` |
 | 看项目产出声明 | 本文件 H7 |
 
@@ -337,27 +431,29 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 
 书记原话（2026-07-14）："系统最最重要的产出，是【管理事，服务人】一个'从入党申请人到正式党员'的完整叙事【这个故事囊括了②和③】，其中最重要的内容（1）一方面是积极分子、发展对象……到正式党员的流程怎么走（这是大家最关心的问题）；（2）另一方面就是我们在实际工作中形成的，关于一个学生的党支部中 组织性如何判定的过程（这里面可能还有一些小小的逻辑缺漏——在这里获得的组织性和生涯发展的关系是什么，为什么这是一个很宝贵的机会，这部分我会做更加详细的判定，但是你要记得这部分是须要补充完整的）。"
 
+书记原话（2026-07-20）："管理事，服务人 这件叙事，他不是仅仅针对支委而言的；我们需要讲好 一个人从积极分子一路成长为党员的时候，他的身份角色要发生怎样的改变。（不要把'先锋模范'看作一个 抽象符号，先锋模范在具体的工作中就能体现，任何一名党员（包括支委会在内）在管理事 和 服务人 方面都有自己的用武之地和成长空间！！）这解释了为什么我认为这是一套完整的叙事！！"
+
 **系统产出的三个组成部分**：
 
 | 层级 | 内容 | 权威源 |
 |------|------|--------|
-| ① 总论叙事 | "管理事，服务人"——从入党申请人到正式党员的完整路径，囊括②和③ | [DEVELOPMENT_PATH.md](content/strategy/DEVELOPMENT_PATH.md) + [SECRETARY_PRONOUNCEMENTS.md P-045](SECRETARY_PRONOUNCEMENTS.md) |
-| ② 组织架构与 SOP | 一整套组织架构、分工、SOP | `content/sop/` + `content/strategy/FLAT_DESIGN.md` + `content/strategy/COMMISSIONER_FRAMEWORK.md` |
-| ③ AI-driven 仓库工作流 | 一整套关于 AI-driven 的组织形态的仓库工作流（上下文、Harness、提示词） | 本文件 CLAUDE.md（Harness）+ `content/governance/OPERATIONS_GUIDE.md` + `.ctx/`（审计底座） |
+| ① 总论叙事 | "管理事，服务人"——从入党申请人到正式党员的完整路径，囊括②和③ | [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) + [SECRETARY_PRONOUNCEMENTS.md P-045/P-047](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) |
+| ② 组织架构与 SOP | 一整套组织架构、分工、SOP | `content/02_institution/sop/` + `content/02_institution/FLAT_DESIGN.md` + `content/02_institution/COMMISSIONER_FRAMEWORK.md` |
+| ③ AI-driven 仓库工作流 | 一整套关于 AI-driven 的组织形态的仓库工作流（上下文、Harness、提示词） | 本文件 CLAUDE.md（Harness）+ `content/03_doc_system/OPERATIONS_GUIDE.md` + `.ctx/`（审计底座） |
 
 ### H7.2 逻辑缺漏与书记亲补
 
 书记特别标注了一个"逻辑缺漏"——"在这里获得的组织性和生涯发展的关系是什么，为什么这是一个很宝贵的机会"——这部分由书记亲自补充完整，AI 不得自行假设或基于猜测补全。
 
 书记已于 2026-07-14 亲补两个宝贵机会：
-- **机会1**：民主集中制下感受真实组织的两个向度——"赋权"背景下的程序性 和 "探索"背景下的扁平化。详见 [SECRETARY_PRONOUNCEMENTS.md P-043](SECRETARY_PRONOUNCEMENTS.md) + [DEVELOPMENT_PATH.md 第一章收束](content/strategy/DEVELOPMENT_PATH.md)。
-- **机会2**：AI 时代中学生党支部的探索机会——①真实地参与组织制度和组织文化的构建；②在"没有经济负担"的背景下探索 AI 时代下组织转型的萌芽和组织产品的生产。详见 [SECRETARY_PRONOUNCEMENTS.md P-044](SECRETARY_PRONOUNCEMENTS.md) + DEVELOPMENT_PATH.md 第一章收束。
+- **机会1**：民主集中制下感受真实组织的两个向度——"赋权"背景下的程序性 和 "探索"背景下的扁平化。详见 [SECRETARY_PRONOUNCEMENTS.md P-043](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) + [DEVELOPMENT_PATH.md 第一章收束](content/01_strategy/DEVELOPMENT_PATH.md)。
+- **机会2**：AI 时代中学生党支部的探索机会——①真实地参与组织制度和组织文化的构建；②在"没有经济负担"的背景下探索 AI 时代下组织转型的萌芽和组织产品的生产。详见 [SECRETARY_PRONOUNCEMENTS.md P-044](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) + DEVELOPMENT_PATH.md 第一章收束。
 
 ### H7.3 引用流程
 
 - 任何涉及"系统产出是什么"的总论性表述，引用本节 H7
-- 任何涉及"发展路径"的具体叙事，引用 [DEVELOPMENT_PATH.md](content/strategy/DEVELOPMENT_PATH.md)
-- 任何涉及"书记论断"的具体论断，引用 [SECRETARY_PRONOUNCEMENTS.md](SECRETARY_PRONOUNCEMENTS.md)
+- 任何涉及"发展路径"的具体叙事，引用 [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)
+- 任何涉及"书记论断"的具体论断，引用 [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)
 - 本节为治理层锚点，不承载叙事全文——叙事全文在 DEVELOPMENT_PATH.md，论断全文在 SECRETARY_PRONOUNCEMENTS.md
 
 ***
@@ -382,7 +478,7 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 
 | ID  | 事项                                                                                                                                        | 引用流程                                                              | 修改对象                               | 状态    |
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------- | ----- |
-| C-1 | **JS 组件化**：完善 `docs/src/` 下的 JS 组件（renderHeader/renderSidebar/renderFooter/renderCalendar 等），使 HTML 仅需引用/调用特定 JS 组件即可实现功能，消除 HTML 中的硬编码逻辑 | H2.4 规则 2（方向指引）→ [SOP\_WEB.md](content/governance/SOP_WEB.md)         | `docs/src/*.js` + `docs/*.html`    | 🔄 持续 |
+| C-1 | **JS 组件化**：完善 `docs/src/` 下的 JS 组件（renderHeader/renderSidebar/renderFooter/renderCalendar 等），使 HTML 仅需引用/调用特定 JS 组件即可实现功能，消除 HTML 中的硬编码逻辑 | H2.4 规则 2（方向指引）→ [SOP\_WEB.md](content/04_web_design/SOP_WEB.md)         | `docs/src/*.js` + `docs/*.html`    | 🔄 持续 |
 | C-2 | **一改具改巡检**：定期检查仓库中是否存在信息重复散落，发现后归并至权威源                                                                                                    | H2.1 + OPERATIONS\_GUIDE.md §7                                    | 全仓库                                | 🔄 持续 |
 | C-3 | **经验沉淀**：从执行日志和决策日志中提炼可复用模式，写入 insights                                                                                                   | H2.4 + OPERATIONS_GUIDE.md §13.1 → [党支部管理与实务经验沉淀.md](content/insights/党支部管理与实务经验沉淀.md) | `content/insights/`                | 🔄 持续 |
 | C-4 | **视觉体验持续优化**：颜色方案调优 + 卡片设计（嵌套/并列/顺序排布）审校修订                                                                                                | PARTICIPANT_DATAFLOW.md §八 差异化视图 + DESIGN\_SYSTEM.md                    | `docs/src/styles.css` + 各 entry JS | 🔄 持续 |
@@ -408,9 +504,11 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 
 | ID  | 事项 | 引用流程 | 修改对象 | 状态 |
 | --- | ---- | ------ | ------ | ---- |
-| T-116 | **反论评议·系统性**（4-5轮）：全仓库100处反论的书记评议。分轮规划：① insights卷一（理论·§1-§4）② insights卷二（方法·§5-§8）③ insights卷三（实操·§9-§11）④ governance+strategy ⑤ sop+design+根目录。每轮按H5工作流抽样→预审→书记反馈→三层分流。**第一轮**（insights§1-§6前部12条）已完成，8条即时修订+1条AI推导删除+2条入丙部（P.7已决策归档）。**第二轮**（insights卷二§5-§8，12条）已完成，7条即时修订（R13/R15/R16/R17/R18/R20/R22）+5条保留+2条预判差异沉淀到§10.9判定细则补充。**第三轮**（insights卷三§9-§11，12条）已完成，4条即时修订（R30融入正论/R31修正重点/R32融入正论/R34删除反论+补充正论·去除"三大纪律"例子）+8条保留+3条预判差异沉淀到§10.9判定细则补充·二（保留vs融入正论边界/删除反论+补充正论判定/反论用例例子选择约束）。评审标准已沉淀：§10.9评议维度体系（含判定细则补充·一+·二）+§14.4 AI推导识别与级联修改+H5.3预判差异记录+§10.7历史范畴检查+§10.8 AI治理技术特殊性 | H5 书记评议 + USAGE_POLICY §1.9.3 + OPERATIONS_GUIDE §10 | 全仓库 | 🔄 进行中 |
-| T-117 | **理论复用评议**（3-4轮）：全仓库163处跨节/跨文件引用（下游命题对上游命题的复用）的书记评议——关注复用准确性、适用性及效果。分轮规划：① insights内部复用链（卷一→卷二→卷三的引用）② governance文档间复用（USAGE_POLICY/OPERATIONS_GUIDE/ROLE_CLASSIFICATION等）③ strategy/design→sop复用链 ④ 跨目录复用断链检查。每轮建立明确评议指标：复用是否准确、是否过时、是否遗漏、是否过度引用 | H5 书记评议 + H2.2 母本子本 + OPERATIONS_GUIDE §7.4 散落=漂移 | 全仓库 | ⏳ 待启动 |
+| T-116 | **反论评议·系统性**（4-5轮）：全仓库100处反论的书记评议。分轮规划：① insights §1-§4（理论）② insights §5-§8（方法）③ insights §9-§11（实操）④ governance+strategy ⑤ sop+design+根目录。每轮按H5工作流抽样→预审→书记反馈→三层分流。**第一轮**（insights§1-§6前部12条）已完成，8条即时修订+1条AI推导删除+2条入丙部（P.7已决策归档）。**第二轮**（insights §5-§8，12条）已完成，7条即时修订（R13/R15/R16/R17/R18/R20/R22）+5条保留+2条预判差异沉淀到§10.9判定细则补充。**第三轮**（insights §9-§11，12条）已完成，4条即时修订（R30融入正论/R31修正重点/R32融入正论/R34删除反论+补充正论·去除"三大纪律"例子）+8条保留+3条预判差异沉淀到§10.9判定细则补充·二（保留vs融入正论边界/删除反论+补充正论判定/反论用例例子选择约束）。评审标准已沉淀：§10.9评议维度体系（含判定细则补充·一+·二）+§14.4 AI推导识别与级联修改+H5.3预判差异记录+§10.7历史范畴检查+§10.8 AI治理技术特殊性 | H5 书记评议 + USAGE_POLICY §1.9.3 + OPERATIONS_GUIDE §10 | 全仓库 | 🔄 进行中 |
+| T-117 | **理论复用评议**（3-4轮）：全仓库163处跨节/跨文件引用（下游命题对上游命题的复用）的书记评议——关注复用准确性、适用性及效果。分轮规划：① insights内部复用链（§1~§11 内部复用链）② governance文档间复用（USAGE_POLICY/OPERATIONS_GUIDE/ROLE_CLASSIFICATION等）③ strategy/design→sop复用链 ④ 跨目录复用断链检查。每轮建立明确评议指标：复用是否准确、是否过时、是否遗漏、是否过度引用 | H5 书记评议 + H2.2 母本子本 + OPERATIONS_GUIDE §7.4 散落即漂移 | 全仓库 | ⏳ 待启动 |
 | T-118 | **治理文档完善+用户文档体系梳理**：基于Harness框架同步推进治理文档完善，梳理现有用户文档体系，识别缺失/冗余/过时 | H2.2 母本子本 + H7 项目产出声明 | content/ + docs/ | ⏳ 待启动 |
+| T-122 | **零补丁识别评议**（4轮）：全仓库用户文档"零补丁 detected"评议。书记元洞察（2026-07-20）："会出现新增的内容单独成段落，即使和前面的段落/章节也是相关的，乃至应该属于前面的段落/章节。"分轮规划：① SECRETARY_PRONOUNCEMENTS.md（理论基石）② insights（B1 重组后）③ README+ARCHITECTURE ④ sop/strategy/design/governance [用户]部分。每轮按"多层过滤"方法（问题脉络→主题相关→时间维度）识别补丁，提交书记决策（融入原命题/调整新命题/保留独立），按决策执行修订。**四轮均已完成**：第一轮 P-046 融入 P-045；第二轮 §2.1 乘积关系修正融入+§11.6 跨主题段落移至§7.1；第三轮 README+ARCHITECTURE 9 处修复；第四轮 sop/strategy/design/governance 7 处强补丁修订（含 FLAT_DESIGN 破例）+附录 B 移至乙部 T-123 | H5 书记评议 + H2.4 经验沉淀 + USAGE_POLICY §1.9.3 + H2.2 母本子本 | 全仓库用户文档 | ✅ 完成 |
+| T-127 | **文档【逻辑顺序】重组**：基于 spec `.trae/specs/document-logical-order-restructure-continuation/` 执行阶段 1 续（机械性修复：30 个 .md + 7 个代码文件路径替换 + §5.2/§5.3 编号修复）+ 阶段 2（设计性重组：DEVELOPMENT_PATH.md 5 章→3 章+附录 A/B、SECRETARY_PRONOUNCEMENTS.md P-045/P-047 移到第一章 + P-008/P-021 移出至 insights 文件 2、insights 拆分为双文件、CLAUDE.md H2.4 规则 2 "正反两面论"→"按需正反两面论"）。46/46 验证项全部通过 | H2.1 一改具改 + H2.2 母本子本 + H2.4 经验沉淀 + OPERATIONS_GUIDE §11.7 文档【逻辑顺序】 | 全仓库 | ✅ 完成 |
 
 ***
 
@@ -427,7 +525,7 @@ related_files: [ARCHITECTURE.md, SSOT_INDEX.md, SECRETARY_PRONOUNCEMENTS.md, con
 > **已决策归档**（2026-07-16）：P.1 统一中文 / P.2 允许并补赋权 / P.3 系统不应有思想汇报功能（手写提交） / P.4 本轮补建复盘状态枚举。详见 DECISION_LOG.md。
 > **已决策方向**（2026-07-17）：UI-P-006 支委应有日历视图（可选切换）。
 > **已决策归档**（2026-07-17）：P.5 动画区分对待原则搁置（D-243，help 动画整体重做时再定）/ P.6 角色图标采用职能动作隐喻（D-244，宣传=喇叭/纪检=天平/组织=齿轮）。详见 DECISION_LOG.md。
-> **已决策归档**（2026-07-19）：P.7 AI治理技术反论——联网搜索两方向（AI状态管理最佳实践+LLM上下文信息生命周期）已完成，R7/R8反论有强普适性支撑（planned/committed区分+TTL删除/deferred区分），书记决策保留并要求表述精进为正例。insights §4.5已从反论改为正例简化，全仓库一改具改完成。
+> **已决策归档**（2026-07-19）：P.7 AI治理技术反论——联网搜索两方向（AI状态管理最佳实践+LLM上下文信息生命周期）已完成，R7/R8反论有强普适性支撑（planned/committed区分+TTL删除/deferred区分），书记决策保留并要求表述精进为正例。insights 工程演进与设计方法论.md §2.5已从反论改为正例简化，全仓库一改具改完成。
 
 历史决策记录见 `.ctx/logs/2026-07-DECISION_LOG.md` 及 `.ctx/logs/DECISION_LOG.md`。
 

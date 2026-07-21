@@ -1,4 +1,4 @@
-# CHECKLIST — 工程质检操作手册
+﻿# CHECKLIST — 工程质检操作手册
 
 > 本文档是人机共读的工程质检流程。按操作步骤逐步检查：**如果在某处看到了某数据，可以预期在其他地方看到同源的数据。**
 >
@@ -135,7 +135,7 @@
 - [ ] 页面使用华文中宋字体渲染
 - [ ] 权限体系表格显示正确的角色权限
 - [ ] 关键约束中"创建活动仅限党支书和党小组组长"表述正确
-- [ ] 三委员职责矩阵（`#commissioner-matrix-container`）由 `commissioner-matrix.js` 动态渲染
+- [ ] 三支委职责矩阵（`#commissioner-matrix-container`）由 `commissioner-matrix.js` 动态渲染
 
 ---
 
@@ -151,7 +151,7 @@
 - [ ] 主页招募区域的专班 = 组织委员看板中recruiting状态的专班
 - [ ] 专班详情中的成员 = people.js中对应角色的成员
 
-### 5.3 考勤/考察数据一致性（考勤为基础层，考察为进阶层）
+### 5.3 考勤/考察数据一致性
 
 - [ ] 纪检委员考勤总表中的出勤人数 = 对应活动的考勤记录中status=present的数量
 - [ ] 纪检委员考察档案中的标签（党小组/专班/会议） = 活动类型或专班来源的对应关系
@@ -235,7 +235,7 @@
 | **person-picker.js** | PersonPicker | 4 | ws-organizer/leader/org-commissioner/secretary-entry | 人员选择弹窗，搜索+选择 |
 | **sidebar.js** | renderSidebar | 7+bootstrap | feedback/workspace/about/archive/party/search-entry, bootstrap.js | 侧边栏渲染，角色切换 |
 | **header.js** | renderHeader | 7+bootstrap | feedback/workspace/about/archive/party/search-entry, bootstrap.js | 顶栏渲染，通知铃铛 |
-| **commissioner-matrix.js** | renderCommissionerMatrix | 1 | about-entry | 三委员职责矩阵表格 |
+| **commissioner-matrix.js** | renderCommissionerMatrix | 1 | about-entry | 三支委职责矩阵表格 |
 | **inspector.js** | renderInspectorFromState | 1 | ws-secretary-entry | 书记面板数据检查器 |
 | ⚠️ **role-selector.js** | interceptSidebarNavigation | **1** | sidebar.js | 角色选择面板拦截导航，非孤立（§8.7已修正） |
 
@@ -356,4 +356,4 @@
 - [ ] 组织者记录活动交接数据后 → 纪检委员面板应能看到汇总
 - [ ] 组织者记录专班交接数据后 → 纪检委员面板应能看到汇总
 
-> **已完成**：配套设计文档见 [DATA_ARCHITECTURE.md §写入数据验证设计](content/design/DATA_ARCHITECTURE.md)（原 WRITE_VERIFY.md 已合并）。
+> **已完成**：配套设计文档见 [DATA_ARCHITECTURE.md §写入数据验证设计](content/04_web_design/DATA_ARCHITECTURE.md)（原 WRITE_VERIFY.md 已合并）。

@@ -606,7 +606,7 @@ function renderReview() {
  * --------------------------------------------------
  * 本段为 help 页的浅层展示。"管理事，服务人"不仅是 UI 口号，
  * 而是系统级战略路线认定。详细设计理念见母本：
- * content/strategy/DEVELOPMENT_PATH.md
+ * content/01_strategy/DEVELOPMENT_PATH.md
  *
  * 核心命题：各种发展轨迹都可以加入支部，通过组织获得各自的成长
  * 战略认知展开：理解真实（总）/ 善用经验（分·有先例）/ 创新沉淀（分·创新）/ 框架内对话（分·方法补充）
@@ -634,7 +634,7 @@ function renderPhilosophy() {
             因为我们要求党员的<span class="help-philosophy-emph">先锋模范作用落地</span>——不是喊口号，而是具体的。
           </div>
           <div class="help-philosophy-reason-detail">
-            党员同志要帮助积极分子、发展对象同志熟悉支部工作、支部架构。
+            党员同志要帮助积极分子、发展对象同志熟悉支部工作、支部架构。任何一名党员（包括支委会在内）在管理事和服务人方面都有自己的用武之地和成长空间。
           </div>
         </div>
         <div class="help-philosophy-foot">先锋模范作用落地，才是"管理事，服务人"的真正含义</div>
@@ -646,9 +646,9 @@ function renderPhilosophy() {
 /**
  * Section 3.5: 战略认知展开 + 恢复对话能力（P-041）
  *
- * 母本：content/strategy/DEVELOPMENT_PATH.md 第二章 + 第四章
+ * 母本：content/01_strategy/DEVELOPMENT_PATH.md 第三章（恢复对话能力）
  * --------------------------------------------------
- * 总分结构：理解真实（总）→ 善用经验 / 创新沉淀 / 框架内对话（分）
+ * 总分结构：理解真实（总）→ 善用经验 / 创新沉淀 / 框架内对话（分）—— 书记原话汇编见 SECRETARY_PRONOUNCEMENTS.md P-002~P-005
  * 延伸段落：P-041 "恢复对话能力"战略表达
  */
 function renderCognition() {

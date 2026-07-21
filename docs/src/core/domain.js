@@ -27,8 +27,8 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  [scenarioId] - 关联的场景 ID（对应 sopDatabase）* - Source: knowledge/SOP/常见工作场景快速指南.md#目录
  * @property {string}  [description] - 活动描述
  * @property {string}  [targetDate]  - 目标日期 ISO 字符串（T-0，兼容旧字段）
- * @property {'leader'|'disc-commissioner'} [attendanceQROwner] - 考勤二维码发布方（组织生活会专用：现场组织的党小组组长） - Source: content/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
- * @property {boolean} [isBrand]  - 品牌属性标签（由书记认定，不影响工作流选择） - Source: content/design/DATA_ARCHITECTURE.md
+ * @property {'leader'|'disc-commissioner'} [attendanceQROwner] - 考勤二维码发布方（组织生活会专用：现场组织的党小组组长） - Source: content/02_institution/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
+ * @property {boolean} [isBrand]  - 品牌属性标签（由书记认定，不影响工作流选择） - Source: content/04_web_design/DATA_ARCHITECTURE.md
  */
 
 /**
@@ -39,9 +39,9 @@ export const SCHEMA_VERSION = 1;
  * @property {'present'|'absent'|'leave'} status - 出勤状态
  * @property {string}  recordedBy  - 记录人用户 ID（纪检委员）
  * @property {string}  recordedAt  - 记录时间 ISO 字符串
- * @property {string}  [studentId] - 学号 - Source: content/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
- * @property {'入党申请人'|'积极分子'|'发展对象'|'预备党员'|'正式党员'} [developStage] - 发展阶段（中文枚举，D-239 统一） - Source: content/sop/纪检委员工作流程指南.md#二考勤管理三会一课 + content/design/DATA_ARCHITECTURE.md §2.5
- * @property {string}  [partyGroup] - 所属党小组 - Source: content/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
+ * @property {string}  [studentId] - 学号 - Source: content/02_institution/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
+ * @property {'入党申请人'|'积极分子'|'发展对象'|'预备党员'|'正式党员'} [developStage] - 发展阶段（中文枚举，D-239 统一） - Source: content/02_institution/sop/纪检委员工作流程指南.md#二考勤管理三会一课 + content/04_web_design/DATA_ARCHITECTURE.md §2.5
+ * @property {string}  [partyGroup] - 所属党小组 - Source: content/02_institution/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
  */
 
 /**
@@ -124,7 +124,7 @@ export const REVIEW_STATUS_LABELS = {
 };
 
 /**
- * 复盘记录 — Source: content/design/DATA_ARCHITECTURE.md §3.1.2 数据流第⑧步 + D-242
+ * 复盘记录 — Source: content/04_web_design/DATA_ARCHITECTURE.md §3.1.2 数据流第⑧步 + D-242
  * 活动或专班完成后，组织者提交复盘报告，纪检委员批注/打回/确认
  * @typedef {Object} ReviewRecord
  * @property {string}  id            - 唯一标识符
@@ -175,7 +175,7 @@ export const REVIEW_STATUS_LABELS = {
  */
 
 /**
- * 图片记录 — Source: content/sop/宣传委员工作流程指南.md#图片管理规则
+ * 图片记录 — Source: content/02_institution/sop/宣传委员工作流程指南.md#图片管理规则
  * 宣传委员上传的活动图片，含标注信息与 Base64 编码
  * @typedef {Object} ImageRecord
  * @property {string}  id            - 唯一标识符 `img_{timestamp}`
@@ -210,7 +210,7 @@ export const mockDB = {
   tasks: [],
   /** @type {AttendanceRecord[]} */
   // Fields: studentId（学号）, developStage（发展阶段）, partyGroup（所属党小组）are required for 组织生活会 attendance summary
-  // Source: content/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
+  // Source: content/02_institution/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
   attendances: [],
   /** @type {InspectionRecord[]} */
   // 考察记录（仅组织者和深度参与者的工作量记录）— Source: content/design/MANAGEMENT_MODE.md §5.1
@@ -236,6 +236,6 @@ export const mockDB = {
   taskforces: [],
   /** @type {Object[]} 通知数据 */
   notices: [],
-  /** @type {ImageRecord[]} 图片记录 — Source: content/sop/宣传委员工作流程指南.md#图片管理规则 */
+  /** @type {ImageRecord[]} 图片记录 — Source: content/02_institution/sop/宣传委员工作流程指南.md#图片管理规则 */
   imageRecords: [],
 };
