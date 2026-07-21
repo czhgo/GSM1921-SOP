@@ -3975,3 +3975,64 @@ T-121 主条目完成后，按 KNOWN_PITFALLS §9 原则核查 T-119 第一批�
 
 [经验沉淀: 是 — 工具配置物理隔离经验沉淀至 insights/工程演进与设计方法论.md §5.3，从"配置应隔离"升级为"配置应物理隔离"]
 
+---
+
+## T129 旧框架标签清除 + 过程性文件清理（2026-07-21）
+
+### 背景
+
+书记指令（2026-07-21）："1. node_modules 似乎仍在根文件夹，请考虑处理；2. docs文件夹下有一个 superpowers 似乎也是过程性文件，请思考处理；3. insights 文件似乎依旧存在【旧框架的表达】，请检查并进行系统性地替换！"
+
+D-262 决策已将"4 层文档层次"降级为局部维度，但 insights 两个文件中仍使用旧 L0-L4 层级标签（84 处），且 SSOT_INDEX.md、KNOWN_PITFALLS.md 等文件仍有旧框架引用。
+
+### 执行动作
+
+#### 1. node_modules 删除
+- 物理目录仅含 acorn 1 个包（markdownlint-cli 依赖），项目无 package.json 无构建流程
+- `Remove-Item -Recurse -Force node_modules` —— 已删除
+- .gitignore 已包含 `node_modules/`，无需额外配置
+
+#### 2. docs/superpowers/ 删除
+- 仅剩 `2026-07-19-concept-reuse-scan-design.md`（概念复用扫描 spec，T-117 仍⏳待启动）
+- 历史记录中 T66 已多次清理 superpowers/ 下的过时 spec/plan
+- `Remove-Item -Recurse -Force docs/superpowers` —— 已删除
+
+#### 3. 旧框架 L0-L4 层级标签系统性替换（84 处）
+
+**insights/ 两个文件（84 处标题标签 + 2 处文件头说明）**：
+- `content/insights/工程演进与设计方法论.md`：58 处 ×L 层级标签 + 文件头说明 + §5.6 L0-L4 引用
+- `content/insights/党支部管理与实务经验沉淀.md`：26 处 ×L 层级标签 + 文件头说明
+
+**替换规则**：`[知识类型×L层级]` → `[知识类型]`（删除 L 层级部分，保留知识类型）
+
+| 旧标签 | 新标签 |
+|--------|--------|
+| `[工程演进×L0核心]` | `[工程演进]` |
+| `[工程演进×L1理论]` | `[工程演进]` |
+| `[工程演进×L2治理]` | `[工程演进]` |
+| `[工程演进×L3实现]` | `[工程演进]` |
+| `[工程演进×L4审计参考]` | `[工程演进]` |
+| `[设计方法×L0核心]` | `[设计方法]` |
+| `[共识×L0核心]` | `[共识]` |
+| ...等 | 删除 ×L 部分 |
+
+**其他活跃文件（3 处）**：
+- `content/03_doc_system/SSOT_INDEX.md` L29：注册表映射说明从"按权威层级（L0-L4）"改为"按 5 类知识类型" + 6 个节标题从 L 层级改为知识类型/目录
+- `content/03_doc_system/SSOT_INDEX.md` version: 3.6→3.7
+- `content/05_ai_coding/KNOWN_PITFALLS.md` L115：`[工程演进×L0核心]` → `[工程演进]`
+
+**历史文件（按 §3.6 保留）**：
+- `content/insights/党支部管理与实务经验沉淀.md` YAML milestone 字段（含"4 层文档层次"历史描述）
+- `.ctx/logs/` 历史日志
+
+### 零残留验证
+
+- ✅ Grep `×L[0-4](核心|理论|治理|实现|审计参考)` 全仓库零匹配
+- ✅ Grep `L层级` 全仓库零匹配
+- ✅ `Test-Path "d:\GitHub\GSM1921-SOP\node_modules"` → NOT_EXISTS
+- ✅ `Test-Path "d:\GitHub\GSM1921-SOP\docs\superpowers"` → NOT_EXISTS
+
+### 蒸馏标签
+
+[经验沉淀: 是 — 旧框架标签系统性替换触发一改具改：D-262 降级后旧标签必须全仓库清除，包括标题标签、文件头说明、其他文件的引用；YAML milestone 等历史字段按 §3.6 保留]
+

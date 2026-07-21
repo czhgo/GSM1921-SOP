@@ -3,7 +3,7 @@ title: "单一权威源索引"
 type: index
 role: "[工程师]+[AI]"
 last_updated: "2026-07-21"
-version: "3.6"
+version: "3.7"
 status: active
 related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web_design/, content/03_doc_system/, content/02_institution/sop/, content/insights/]
 ---
@@ -26,9 +26,9 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 
 ## 注册表映射
 
-> 按权威层级（L0-L4，见 [OPERATIONS_GUIDE.md §7.1](content/03_doc_system/OPERATIONS_GUIDE.md#71-文档权威层级5层模型)）组织。每条关系标注母本→子本及同步规则。
+> 按 5 类知识类型（见 [OPERATIONS_GUIDE.md §7.1](content/03_doc_system/OPERATIONS_GUIDE.md)）组织。每条关系标注母本→子本及同步规则。
 
-### L0 核心层 → L1/L2/L3/L4
+### 根目录 → content/ 各知识类型
 
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
@@ -37,7 +37,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | `SECRETARY_PRONOUNCEMENTS.md` | `CLAUDE.md` H6（外部权威源索引） | 书记论断汇编是理论基石的母本。新增论断时同步更新 CLAUDE.md H6 索引表 |
 | `SSOT_INDEX.md` | `ARCHITECTURE.md` | 注册表是架构说明的溯源参考 |
 
-### L1/L2 内部及交叉（strategy ↔ design ↔ governance ↔ insights ↔ sop）
+### content/ 内部及交叉（strategy ↔ institution ↔ doc_system ↔ web_design ↔ insights）
 
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
@@ -47,7 +47,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | `content/04_web_design/SOP_WEB.md` | `content/02_institution/sop/*.md`（双向） | 双向修改规则（CLAUDE.md H2.2 制度→代码）。规则0：文本SOP是母本；规则2：先改SOP母本→再改系统代码→验证 |
 | `content/insights/党支部管理与实务经验沉淀.md` | `content/01_strategy/`、`content/04_web_design/` | 经验→设计反馈。insights 是经验沉淀，可反哺战略和设计校准。当经验与战略冲突时提交书记决策 |
 
-### L1/L2 → L3 实现层（设计/制度 → 代码）
+### content/ → docs/src/（设计/制度 → 代码）
 
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
@@ -63,7 +63,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | `content/04_web_design/MODULE_UI_DESIGN.md` | `docs/index.html`（Module 4） | 设计→代码。模块界面设计（原 PAFFAIRS_UI.md，原 ORG_BUILDING.md 拆分后的系统设计部分）是党务模块UI的母本 |
 | `content/03_doc_system/SERVICE_CATALOG.md` | `docs/src/entries/*.js` | 治理→代码。服务清单是各入口文件服务实现的母本（原 design/ 迁移至 governance/） |
 
-### L2 治理层 → 全仓库
+### doc_system/ → 全仓库
 
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
@@ -71,13 +71,13 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | `content/03_doc_system/OPERATIONS_GUIDE.md` | 全仓库 | 运行标准→全仓。YAML/编码/编号/文档关系/权威层级/三类文件角色规范/§15 周期性任务，全仓库必须遵守（2026-07-12 合并原 RECURRING_TASKS.md 为 §15） |
 | `content/02_institution/ROLE_CLASSIFICATION.md` | `docs/src/core/state.js` | 角色分类→代码。文件角色分类体系是 state.js 角色常量的母本 |
 
-### L4 审计参考层 → L2 治理层
+### 审计参考层 → content/ 制度
 
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
 | `content/references/合规文件/` | `content/02_institution/sop/` | 官方文件→SOP。官方文件与党章是所有 SOP 文本的母本。任何 SOP 文本调整，必须先回查 content/references/ |
 
-### L4 审计参考层 → L1 理论层
+### 审计参考层 → content/ 理论
 
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|

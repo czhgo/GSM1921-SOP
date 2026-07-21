@@ -112,7 +112,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 
 ### 7.3 待监测的潜在冲突
 
-- **insights 知识类型标注**：insights 按 5 类知识类型标注（如[工程演进×L0核心]），引用时标明"§X.Y"+知识类型标注
+- **insights 知识类型标注**：insights 按 5 类知识类型标注（如[工程演进]），引用时标明"§X.Y"+知识类型标注
 - **Agent 职能分类与文件角色分类**：Agent 协调型/执行型等是职能维度，[用户]/[工程师]/[AI] 是消费者维度——需在 ARCHITECTURE.md 中明确区分
 
 ## 8. 上下文丢失教训
