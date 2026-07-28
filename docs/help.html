@@ -25,7 +25,13 @@
       }
     };
   </script>
-  <link rel="stylesheet" href="./src/styles.css?v=t40">
+  <link rel="stylesheet" href="./src/styles.css?v=v15-focus-dialogue">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <!-- GSAP CDN（Exploration Canvas v2 滚动控制 + 镜头推拉） -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 </head>
 <body>
 
@@ -48,31 +54,25 @@
   window.addEventListener('unhandledrejection', (e) => {
     console.error('[diag] unhandled promise rejection:', e.reason);
   });
-  // 页面加载后检查 SVG 渲染状态
+  // 页面加载后检查 Exploration Canvas v2 渲染状态
   window.addEventListener('load', () => {
     setTimeout(() => {
-      const scene = document.querySelector('.help-exploration-scene');
-      console.log('[diag] exploration scene found:', !!scene);
-      if (scene) {
-        const svg = scene.querySelector('svg.help-network-svg');
-        console.log('[diag] svg found:', !!svg);
-        if (svg) {
-          const r = svg.getBoundingClientRect();
-          const cs = window.getComputedStyle(svg);
-          console.log('[diag] svg rect:', JSON.stringify({w:r.width,h:r.height,x:r.x,y:r.y}), 'display:', cs.display, 'visibility:', cs.visibility);
+      const section = document.querySelector('.help-exploration-section');
+      console.log('[diag] exploration section found:', !!section);
+      if (section) {
+        const canvas = section.querySelector('.help-exploration-fullscreen-canvas');
+        console.log('[diag] fullscreen canvas found:', !!canvas);
+        if (canvas) {
+          const r = canvas.getBoundingClientRect();
+          const cs = window.getComputedStyle(canvas);
+          console.log('[diag] canvas rect:', JSON.stringify({w:r.width,h:r.height,x:r.x,y:r.y}), 'display:', cs.display, 'visibility:', cs.visibility);
         }
-        const node = scene.querySelector('.help-node-svg');
-        if (node) {
-          const nr = node.getBoundingClientRect();
-          const ncs = window.getComputedStyle(node);
-          console.log('[diag] first node rect:', JSON.stringify({w:nr.width,h:nr.height}), 'opacity:', ncs.opacity, 'display:', ncs.display);
-        } else {
-          console.log('[diag] no .help-node-svg found in scene');
-        }
+        const subtitle = section.querySelector('.help-exploration-subtitle');
+        console.log('[diag] subtitle found:', !!subtitle);
       }
     }, 1500);
   });
 </script>
-<script type="module" src="./src/entries/help-entry.js?v=t40"></script>
+<script type="module" src="./src/entries/help-entry.js?v=v15-focus-dialogue"></script>
 </body>
 </html>

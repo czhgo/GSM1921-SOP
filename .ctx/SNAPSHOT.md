@@ -1,10 +1,10 @@
-﻿---
+﻿﻿﻿﻿﻿﻿﻿﻿---
 role: "[AI]"
 title: "系统快照"
 type: snapshot
 status: "ACTIVE"
 date: "2026-07-18"
-last_updated: "2026-07-21"
+last_updated: "2026-07-22"
 version: "v12"
 milestone: "权限系统重构 + UI系统性修复 + organizer/deep可达性 + emoji清零 + 书记评议工作流落地"
 ---
@@ -124,7 +124,7 @@ GSM1921-SOP/
 |------|---------|---------|
 | 党建与党务工作 | 党建工作(管理组织活动) x 党务工作(管理人员发展)，两者都是"管理事，服务人" | DATA_ARCHITECTURE.md + USAGE_POLICY.md §1.1 |
 | 专班 | 活动之外考察积极分子的载体；赋权是运行支撑机制，工作量记录是运行保障机制 | COMMISSIONER_FRAMEWORK.md §A.3~A.8 |
-| 差异化视图 | 同一数据源，不同切面展示 | PARTICIPANT_DATAFLOW.md §八 |
+| 差异化视图 | 同一数据源，不同切面展示 | DATA_ARCHITECTURE.md §三 |
 | 赋权关系链 | 党支书→支委/党小组组长；党小组组长→组织者/深度参与者；组织委员→专班成员 | COMMISSIONER_FRAMEWORK.md §C |
 | SOP双向修改 | 文本SOP是母本，系统是实施层 | SOP_WEB.md |
 | 视图模式三分类 | 管理模式(基类) / 管理者只读(继承-写入) / 成员只读(独立视图) | CLAUDE.md H2.5 |

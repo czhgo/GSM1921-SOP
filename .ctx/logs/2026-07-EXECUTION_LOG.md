@@ -2,7 +2,7 @@
 title: "2026年7月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-07-21"
+last_updated: "2026-07-27"
 status: active
 related_files:
   - CLAUDE.md
@@ -4035,4 +4035,1108 @@ D-262 决策已将"4 层文档层次"降级为局部维度，但 insights 两个
 ### 蒸馏标签
 
 [经验沉淀: 是 — 旧框架标签系统性替换触发一改具改：D-262 降级后旧标签必须全仓库清除，包括标题标签、文件头说明、其他文件的引用；YAML milestone 等历史字段按 §3.6 保留]
+
+## T130 insights 知识类型标签统一替换——消除独立分类体系，对齐 5 类知识类型编号（2026-07-22）
+
+### 背景
+
+书记批评（2026-07-21）：T129 仅机械删除 ×L0-L4 后缀、保留旧知识类型名（工程演进/设计方法/架构迁移/共识/管理与实务），未映射到全仓库统一的 5 类知识类型编号 [1]~[5]。"这就是理论复用表现差的一个典型场景"——全仓库有统一的知识类型框架（OPERATIONS_GUIDE §7.1），但 insights 使用独立分类体系，增加理解负担。
+
+**理论复用差的含义**：有统一框架但不用——insights 独立造了一套分类体系（工程演进/设计方法/架构迁移/共识/管理与实务），与全仓库 5 类知识类型 [1]~[5] 语义重叠但编码不同，导致：(1) 理解负担双倍；(2) 框架变更时需同步两套体系（T129 就是没同步的例证）；(3) 理论没有真正指导实践。
+
+### 执行动作
+
+#### 1. 文件 2（工程演进与设计方法论.md）标签替换
+
+**整节映射 + §6 逐条**（用户选择粒度）：
+
+| 节 | 旧标签 | 新标签 | 说明 |
+|----|--------|--------|------|
+| §1（7 条） | [工程演进] | [3] | 文档系统管理 |
+| §2（6 条） | [工程演进]/[共识] | [3] | 上下文治理制度 |
+| §3（7 条） | [工程演进]/[设计方法]/[共识] | [3] | 文档系统管理 |
+| §4.1-4.5 | [设计方法] | [4] | 网站设计 |
+| §4.6-4.8 | [设计方法] | [3] | 文档组织方式，非网站设计 |
+| §5（8 条） | [架构迁移] | [3] | 文档系统管理 |
+| §6（17 条逐条） | 混合 | 按条目判定 | 6.1→[5], 6.2→[3], 6.3→[4], 6.4→[5], 6.5→[4], 6.6→[4], 6.7→[3], 6.8→[3], 6.9→[4], 6.11→[3], 6.12→[2], 6.13→[4], 6.14→[4], 6.15→[3], 6.16→[4], 6.17→[4] |
+
+#### 2. 文件 1（党支部管理与实务经验沉淀.md）标签替换
+
+| 节 | 旧标签 | 新标签 | 说明 |
+|----|--------|--------|------|
+| §1（3 条） | [管理与实务] | [1] | 支部战略 |
+| §2.1 | [共识] | [1+2] | 条块二元跨战略+制度 |
+| §2.2 | [共识] | [2] | 书记全权负责事项属支部制度 |
+| §2.3 | [共识] | [1+2] | 专班协作跨战略+制度 |
+| §2.4 | [共识] | [2] | 赋权链属支部制度 |
+| §3.1 | [管理与实务] | [1] | 专班核心定义属战略 |
+| §3.2 | [共识] | [2] | 组织委员管理节点属制度 |
+| §3.3 | [管理与实务] | [2] | 三重启动判据属制度 |
+| §4.1-4.3 | [管理与实务] | [2] | 三支委角色设计属支部制度 |
+| §4.4-4.6 | [管理与实务] | [4] | 图标/日历/视图属网站设计 |
+| §4.7-4.8 | [共识] | [2] | 人才库制度属支部制度 |
+| §5.1-5.3 | [管理与实务] | [1] | 活动决策树属战略框架 |
+
+#### 3. "共识"标签消除
+
+书记质疑："究竟是谁和谁的共识？"——"共识"不回答主体归属，是空标签。每条原"共识"经验都有明确的 [1]~[5] 归属，已逐一映射。
+
+#### 4. 文件头说明更新
+
+两个文件的"组织方式"说明从 `每条经验标注 [知识类型（工程演进/设计方法/架构迁移/共识）]` 更新为 `每条经验标注 [1]~[5] 编号（[1]支部战略 / [2]支部制度 / [3]文档系统管理 / [4]网站设计 / [5]AI coding，见 OPERATIONS_GUIDE.md §7.1）`。
+
+#### 5. 一改具改同步
+
+- `content/05_ai_coding/KNOWN_PITFALLS.md` L115：`[工程演进]` → `[3]` + 引用 OPERATIONS_GUIDE §7.1
+- 文件 2 附录速查表 #19：误替换的 `[3]` 恢复为命题标签 `[架构迁移]`（附录速查表的标签列是命题标签，不是知识类型编号）
+- DOC_MAP.md / SSOT_INDEX.md / OPERATIONS_GUIDE.md：已确认无旧标签残留
+
+#### 6. YAML 更新
+
+- 两个 insights 文件 + KNOWN_PITFALLS.md 的 `last_updated` → 2026-07-22
+
+### 零残留验证
+
+- ✅ Grep `\[工程演进\]|\[设计方法\]|\[架构迁移\]|\[共识\]|\[管理与实务\]` 活跃文件零匹配（附录命题标签除外）
+- ✅ Grep `知识类型（工程演进|知识类型（管理与实务|知识类型（共识` 全仓库零匹配
+- ✅ KNOWN_PITFALLS.md L115 已更新
+
+### 蒸馏标签
+
+[经验沉淀: 是 — 理论复用差典型场景：全仓库有统一框架但子模块使用独立分类体系，导致框架变更时同步遗漏；正确做法是消除独立体系、直接使用统一编码]
+
+---
+
+## T131 help 页面重构——Phase 3-6（GSAP 动画 + T3 清除 + 验证归档）（2026-07-22）
+
+### 背景
+
+承接前序 session（T-2026-07-HelpRestructure），用户三项原始任务：
+1. help 叙述逻辑重构（"言简意赅；逻辑通过排布自显"）
+2. 25 步骤精简为关键时间节点（参考《中国共产党发展党员工作细则（2026年）》T1 原文）
+3. 工作流动画重做（"逻辑最清晰、交互最舒适"）
+
+用户补充关键反馈：
+- "补丁"精确定义：T3 表达的错误概括/扩充，包括错误地使用中心词
+- T1 严谨性：发展的程序性是 T1 级别，"至少"等约束绝对不能少
+- Exploration 动画授权深度重构
+- 前端必须使用正确的 skill（GSAP core/scrolltrigger/timeline）
+
+本 session 接续 Phase 3（Exploration GSAP 动画）+ Phase 4（叙述语言精简）+ Phase 5（验证）+ Phase 6（归档）。
+
+### 执行动作
+
+#### Phase 3：Exploration GSAP 动画（本 session 完成）
+
+**架构决策**：
+- CSS `position: sticky`（已存在于 styles.css 行 3806）替代 GSAP `pin`，避免冲突
+- `ScrollTrigger scrub: 1` 让动画平滑跟随滚动
+- master timeline 内每个 stage 占据一个时段，stage 切换时同步：节点激活/暗下 + 边绘制/淡出
+- `gsap.matchMedia()` 处理 `prefers-reduced-motion`，CSS 层保留 fallback
+
+**实现细节**：
+1. `docs/help.html` 引入 GSAP CDN（gsap.min.js + ScrollTrigger.min.js）+ help-entry.js 版本号 v=t40 → v=t41
+2. `docs/src/entries/help-entry.js`：
+   - 删除 v5.2 代码块（PLANETARY_CONFIG + EDGE_LENGTH_CACHE + identifyActiveNodes + computeScrollProgress + renderNetwork + bindExplorationScrollDriven）共约 230 行
+   - 新增 `bindExplorationGSAP()` 函数：
+     - 节点激活：autoAlpha 0.25→1 + scale 1→1.15，stagger from center
+     - 边激活：strokeDashoffset totalLength→0（绘制）+ autoAlpha 0→1
+     - 边淡出：仅 autoAlpha 1→0，保留 strokeDashoffset=0，避免 reverse 时跳变
+     - `getActiveNodeIds()` 提供 fallback：从 stage.flows 解析节点名
+3. `docs/src/styles.css`：删除 v5.2 专属 CSS 规则（CSS transitions + star-pulse keyframes + data-role 选择器），保留 `.help-network-svg { transform-origin: center center; }`
+
+#### Phase 4：叙述语言精简（本 session 完成 9 处 T3 修正）
+
+**前序 session 已完成 5 处**（Fix 1~5）：
+1. 删除"每个阶段都是一次生动的脉动"（TwoWorks 探索副标题 T3 诗意扩充）
+2. 精简 Philosophy lead（删除"因为"因果链）
+3. 删除"循环往复"（Dialogue foot T3 诗意扩充）
+4. 精简 Cognition lead（叙述性引言 → 命题立论）
+5. 修正"学术组/就业组" T3 错误扩充（对照母本 DEVELOPMENT_PATH.md）
+
+**本 session 完成 4 处**（Fix 6~9）：
+6. TASKFORCE_NETWORK duty 字段统一：`'项目大脑'` → `'执行核心（脑子）'`，`'项目之手'` → `'承担分工（手）'`（消除与 ACTIVITY_NETWORK 的不一致隐喻 + 删除"项目大脑/项目之手" T3 自造隐喻）
+7. 删除"多线程"T3 编程行话：
+   - line 150 desc：`'多线程并行的起点'` → `'分工并行的起点'`
+   - line 158 title：`'招募赋权 + 业务赋权（多线程）'` → `'招募赋权 + 业务赋权'`
+8. 删除"迭代"T3 编程行话：
+   - DIALOGUE_STAGES phase 04：`'下一次迭代'` → `'下一次活动'`
+   - DIALOGUE_STAGES desc：`'持续迭代的对话关系'` → `'持续的对话关系'`
+9. 简化 scene note（专班）T3 比喻：`'组织者是项目的脑子，深度参与者是项目的手'` → `'组织者负责协调，深度参与者承担分工'`（scene note 是叙述性文本，应使用平实表达而非 SVG 节点 duty 标签的隐喻）
+
+**T3 词汇判别方法（本 session 沉淀）**：
+- 母本 grep 验证：DEVELOPMENT_PATH.md 中存在的措辞不是 T3（如"场域"在 line 37、"管理知识→管理能力"在 line 51）
+- 母本不存在的编程行话/自造隐喻是 T3（如"多线程"、"迭代"、"项目之手"、"项目的脑子"）
+
+#### Phase 5：验证（本 session 完成）
+
+- ✅ GetDiagnostics 通过（help-entry.js / styles.css / help.html 三文件零错误）
+- ✅ T1 术语 grep 零残留（`支委会|支部大会|3 ?天|24 ?学时|赞成过半` 零匹配；`党委审批` 仅在 T1 原文上下文）
+- ✅ v5.2 残留 grep 零匹配（`PLANETARY_CONFIG|EDGE_LENGTH_CACHE|identifyActiveNodes|computeScrollProgress|renderNetwork\b|bindExplorationScrollDriven|v5\.2|Living Constellation|star-pulse|data-role="star"|data-role="inactive"`）
+- ✅ T3 编程行话 grep 零匹配（`多线程|项目之手|项目的脑子|项目大脑|下一次迭代|持续迭代`）
+- ✅ 浏览器加载验证（http://localhost:8765/help.html 加载成功，仅字体 CDN 网络错误，非代码问题）
+- ✅ 图标存在性验证（`dialogueRing`/`helpArrowRight`/`scrollDown` 均存在于 icons.js）
+
+### 文件变更清单
+
+| 文件 | 变更类型 | 说明 |
+|------|---------|------|
+| `docs/help.html` | 修改 | script 版本号 v=t40 → v=t41 |
+| `docs/src/entries/help-entry.js` | 删除 + 新增 + 修改 | 删除 v5.2 代码 ~230 行；新增 bindExplorationGSAP 函数 ~200 行；Phase 4 共 9 处 T3 修正 |
+| `docs/src/styles.css` | 删除 | 删除 v5.2 专属 CSS 规则（CSS transitions + star-pulse + data-role 选择器）|
+
+### 母本子本一致性（H2.2）
+
+- help-entry.js Cognition/Philosophy section 内容引用 DEVELOPMENT_PATH.md 母本
+- DEVELOPMENT_TIMELINE 13 节点引用《中国共产党发展党员工作细则（2026年）》T1 原文（条号已标注）
+- T1 严谨性：`'一般不少于三天或者不少于二十四个学时'`（C2.3）、`'赞成人数超过应到会有表决权的党员人数的半数'`（C2.4）等"至少/不少于/超过"约束已全部保留
+
+### 丙部待决策事项
+
+无新增丙部事项。前序 session 的 P-007（AI治理技术反论）已决策归档。
+
+### 蒸馏标签
+
+[经验沉淀: 是 — T3 编程行话识别方法：以母本 grep 验证为基础，编程行话（多线程/迭代）和自造隐喻（项目之手/项目的脑子）属于 T3，母本已有的诗意化措辞（场域/管理知识→管理能力）属于 T2 保留；SVG 节点 duty 标签的隐喻（脑子/手）可作可视化设计语言接受，但在叙述性文本中应替换为平实表达]
+
+---
+
+## T132 help 页面重构第二轮——Hero/Cognition/Development/Conclusion 修改 + T3 清除（2026-07-22）
+
+### 背景
+
+承接 T131（help 页面重构 Phase 3-6），用户提出 7 项反馈：
+1. GSAP 动画无法显示（最优先）
+2. 故事逻辑围绕成长路径——"管理事，服务人"不应在 Hero，应作为暗线贯穿+收束
+3. 原文结构 ≠ 网页结构
+4. T3 表达必须清除——3 处具体 T3（"每个同志的成长之路，也是支部的工作之道"/"三个误解，三次重塑"/"三个递进疑问"）
+5. 副标题冗余——"依据……"就足够
+6. 布局+事实错误——"三会决策节点"是 T3 AND 事实错误（上级党委不属于三会）
+7. 背景色不一致
+
+本 session（第二轮）先执行已确认的修改（Hero/Cognition/Development/Conclusion），剩余问题（GSAP 动画修复、时间轴竖向重构、背景色）后续讨论。
+
+### 执行动作
+
+#### 1. GSAP 动画可见性临时修复（前序 session 已完成）
+
+**根因诊断**：
+- CSS `.help-node-svg { opacity: 0 }` 和 `.help-edge { opacity: 0 }` 初始状态
+- CSS 显示条件 `.help-network-section.is-revealed .help-node-svg { opacity: 1 }` 永远不匹配（Exploration SVG 在 `.help-exploration-network-sticky` 内，不在 `.help-network-section` 内）
+- GSAP `autoAlpha: 0`（边）和 `autoAlpha: 0.25`（节点）作为初始状态
+- ScrollTrigger 创建了 2 个实例但滚动后 timeline 未执行
+- 没有 CSS fallback——GSAP 失败时元素永远不可见
+
+**临时修复**：
+- styles.css L3842-3857：添加 CSS fallback（`opacity: 1 !important`）让 Exploration section 元素默认可见
+- help-entry.js L1369-1372：注释掉 `bindExplorationGSAP()` 调用
+
+#### 2. Hero section 重构
+
+- 标题：`管理事，服务人` → `从入党申请人到正式党员`
+- 副标题：`从入党申请人到正式党员——每个同志的成长之路，也是支部的工作之道` → `光华管理学院本科生党支部`
+- 移除 T3"每个同志的成长之路，也是支部的工作之道"
+
+#### 3. Cognition section 重构（辩证法结构）
+
+- 标题：`三个误解，三次重塑` → `组织性`
+- eyebrow：`认知重塑` → `组织性`
+- 引言：`新同志面对"党支部是光华管理学院现成的组织"这一事实，会有三个递进疑问。` → `从入党申请人到党员，组织性是贯穿始终的成长途径。`
+- 3 阶段标题（移除 T3 标签，用书记原话金句）：
+  - `门槛 → 途径` → `各种发展轨迹都能加入获得成长`
+  - `等级 → 过程` → `事情运作有管理科学和既往经验`
+  - `服从 → 整合` → `发挥主人翁精神在框架内真实表达`
+- 3 阶段结构：移除"误解/真相/具体化"三段式，改为辩证法结构（个体→组织 / 组织→个体 / 个体→组织）
+- 方向标签：每阶段增加"个体 → 组织"或"组织 → 个体"方向标签
+- 移除 T3"三个递进疑问"/"三个误解，三次重塑"/"门槛→途径"/"等级→过程"/"服从→整合"
+
+#### 4. Development section 修改
+
+- 副标题：`13 个关键时间节点 · 7 个三会决策节点（金色光晕标记）· 依据《中国共产党发展党员工作细则（2026年）》` → `依据《中国共产党发展党员工作细则（2026年）》`
+- 图例：`三会决策节点` → `关键决策节点`
+- 详情徽章：移除"三会决策节点"文字，保留视觉标记（aria-label="关键决策节点"）
+- 注释修正：`三会决策节点（党支部委员会/党支部党员大会/上级党委）` → `关键决策节点（含党支部委员会/党支部党员大会/上级党委）`（修正事实错误——上级党委不属于三会）
+
+#### 5. 新增 Conclusion section（收束——管理事，服务人）
+
+- 位置：Dialogue section 之后
+- 标题：`管理事，服务人`
+- 点题语：`党建与党务的统一主语，贯穿从入党申请人到正式党员的全路径。`
+- 样式：极简点题式（大标题 + 一句点题语，居中显示，类似 Hero section 视觉权重）
+- CSS 样式：L4269-4299 新增 `.help-conclusion-section`/`.help-conclusion-inner`/`.help-conclusion-title`/`.help-conclusion-lead` 样式
+
+#### 6. TOC 更新
+
+- 圆点数量：7 → 8
+- cognition label：`认知重塑` → `组织性`
+- 新增 conclusion label：`管理事，服务人`
+
+### 验证
+
+- ✅ GetDiagnostics 通过（help-entry.js 零错误）
+- ✅ 浏览器验证通过（browser subagent 逐项确认 6 项验证全部 PASS）
+- ✅ 版本号更新 t42→t43，help-entry.js 版本注释 v6→v7
+
+### 文件变更清单
+
+| 文件 | 变更类型 | 说明 |
+|------|---------|------|
+| `docs/src/entries/help-entry.js` | 修改 | Hero/Cognition/Development/Conclusion 修改 + TOC 更新 + 版本号 v6→v7 |
+| `docs/src/styles.css` | 修改 | 新增 Conclusion section 样式（L4269-4299）+ CSS fallback（L3842-3857，前序 session）|
+| `docs/help.html` | 修改 | 版本号 t42→t43 |
+
+### 母本子本一致性（H2.2）
+
+- help-entry.js Cognition section 3 阶段标题引用 DEVELOPMENT_PATH.md 第一章母本（书记原话金句）
+- DEVELOPMENT_PATH.md 第一章母本的 T3 标签（门槛→途径/等级→过程/服从→整合）待同步修改（exec-7 待执行）
+- help-entry.js Development section 副标题精简为"依据《中国共产党发展党员工作细则（2026年）》"，符合 T1 严谨性
+
+### 待续事项
+
+- GSAP 滚动驱动动画修复（ScrollTrigger 不触发 timeline 的根因和修复方案）
+- Development 时间轴竖向重构（横向改竖向紧凑+点击轴左/右侧展开）
+- 背景色统一
+
+---
+
+### 续：书记原话微调 + DEVELOPMENT_PATH.md 第一章重组（exec-续，2026-07-22）
+
+承接 T132 第一批修改，本 session 完成母本子本同步：
+
+#### 7. 书记原话微调（P-002/P-047）一改具改
+
+**P-002 微调（SECRETARY_PRONOUNCEMENTS.md 3 处）**：
+- L143 书记原话（观察点 1）：`事情的运作有管理的科学，有既往的经验，在执行已沉淀的工作流的基础上，自身可以得到成长和锻炼。` → `事情的运作固然有管理的科学和既往的经验。作为支部成员，在执行已沉淀的工作流的基础上，本身便可以得到成长和锻炼`
+- L147 正文引用：清理"成员自身可以得到成长和锻炼"为微调后原话；移除 T3"理解真实的组织和真实的管理——事情的运作有管理的科学，有既往的经验"重复表述
+- L163 P-003 独立引用：同步修改为微调后原话
+
+**P-047 微调（4 处）**：
+- SECRETARY_PRONOUNCEMENTS.md L89 书记原话：`党员可以更好地帮助组织进行工作改革` → `支部成员可以更好地帮助组织进行工作改革`
+- SECRETARY_PRONOUNCEMENTS.md L95 正文引用：同步修改
+- DEVELOPMENT_PATH.md L168 书记原话引用：同步修改
+- DEVELOPMENT_PATH.md L174 正文引用：同步修改
+
+**全仓库 Grep 验证零残留**：
+- P-002 旧文残留 0 处
+- P-047 旧文残留 1 处（执行日志 L3714 历史记录，合理保留）
+
+#### 8. DEVELOPMENT_PATH.md 第一章重组
+
+**3 个小标题替换为书记原话金句**：
+- `第一阶段·门槛 → 途径` → `第一阶段·各种发展轨迹都能加入获得成长`（P-001）
+- `第二阶段·等级 → 过程` → `第二阶段·事情运作有管理科学和既往经验`（P-002 微调后）
+- `第三阶段·服从 → 整合` → `第三阶段·发挥主人翁精神在框架内真实表达`（综合 P-004+P-005）
+
+**L29 引言清理 T3 表达**：
+- 旧：`心里会冒出三个递进的疑问——...这三个疑问对应三个普遍误解，构成三阶段递进。`
+- 新：`心里会冒出几个递进的疑问——...下面的三个阶段分别回应这三个疑问。`
+- 清理 T3"三个递进的疑问"/"三个普遍误解"/"三阶段递进"
+
+**L47 清理"="式表达**：
+- 旧：`这个误解的潜台词是：组织性=服从性，加入组织意味着接受上级指挥，个人意志要让位于层级权威。`
+- 新：`这个误解的潜台词是：把组织性当作服从性，加入组织意味着接受上级指挥，个人意志要让位于层级权威。`
+- 按 H3.1 概念命名守则第 2 条"="式命名禁令
+
+**SECRETARY_PRONOUNCEMENTS.md 元数据一改具改（4 处）**：
+- P-002 元数据 L152-153：`第一章第二阶段·等级→过程` → `第一章第二阶段·事情运作有管理科学和既往经验`
+- P-003 元数据 L170-171：同上
+- P-004 元数据 L188-189：`第一章第三阶段·服从→整合` → `第一章第三阶段·发挥主人翁精神在框架内真实表达`
+- P-005 元数据 L208-209：同上
+
+**全仓库 Grep 验证零残留**：
+- 旧 T3 标签残留 0 处（仅日志历史记录保留）
+
+#### 9. 母本子本一致性验证
+
+DEVELOPMENT_PATH.md（母本）3 阶段标题与 help-entry.js Cognition section（子本）3 阶段标题完全一致：
+- 各种发展轨迹都能加入获得成长
+- 事情运作有管理科学和既往经验
+- 发挥主人翁精神在框架内真实表达
+
+#### 10. YAML 更新
+
+- SECRETARY_PRONOUNCEMENTS.md：last_updated `2026-07-20` → `2026-07-22`
+- DEVELOPMENT_PATH.md：last_updated `2026-07-20` → `2026-07-22`
+
+### 文件变更清单（续）
+
+| 文件 | 变更类型 | 说明 |
+|------|---------|------|
+| `content/01_strategy/SECRETARY_PRONOUNCEMENTS.md` | 修改 | P-002 微调 3 处 + P-047 微调 2 处 + 4 处元数据同步 + YAML 更新 |
+| `content/01_strategy/DEVELOPMENT_PATH.md` | 修改 | P-047 微调 2 处 + 第一章重组（3 小标题 + L29 引言 + L47 =式表达清理）+ YAML 更新 |
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 本轮修改为已确认方案的执行，待剩余问题讨论完成后统一沉淀]
+
+---
+
+## T133 help 页面重构第二轮·续——GSAP 景深方案 + 时间轴竖向重构 + 背景色统一（2026-07-22）
+
+### 背景
+
+承接 T132（help 页面重构第二轮），本 session 完成剩余三项工作：
+1. Exploration GSAP 景深方案（修复动画无法显示的根因）
+2. Development 时间轴竖向重构（横向改竖向紧凑 + 详情两侧交替展开）
+3. 背景色统一（全部纯白 #FFFFFF）
+
+用户确认的修改原则：help.html 和 strategy 文档共用同一套故事；一改具改；书记原话以 SECRETARY_PRONOUNCEMENTS.md 为遵循。
+
+### 执行动作
+
+#### 1. Exploration GSAP 景深方案（根因诊断 + 修复）
+
+**根因诊断**（前序 session 已确认）：
+- CSS fallback `opacity:1 !important` 覆盖了 GSAP 的 `autoAlpha` 控制
+- 导致 GSAP 动画无法显示——节点和边永远可见，scrub 动画无效果
+
+**景深方案实现**（用户确认）：
+- CSS filter（blur + saturate + brightness + drop-shadow）让平面 SVG 有"景深"感
+- 休眠节点（`.is-dormant`）：`filter: blur(1.8px) saturate(0.25) brightness(0.75)`
+- 激活节点（`.is-active`）：`filter: blur(0) saturate(1) brightness(1) drop-shadow(0 3px 10px rgba(0,0,0,0.18))`
+- 节点初始 `opacity: 0.4`（休眠状态，避免 GSAP 加载前闪烁）
+
+**styles.css 修改**（L3842-3879）：
+- 替换 CSS fallback `opacity:1 !important` 为景深方案样式
+- 新增 `.is-dormant` / `.is-active` / `.gsap-failed` class 样式
+- graceful fallback：GSAP 加载失败时添加 `.gsap-failed` class，元素全可见
+
+**help-entry.js `bindExplorationGSAP()` 重写**（L1186-1405）：
+- graceful fallback：GSAP 加载失败时添加 `.gsap-failed` class
+- 初始状态：节点添加 `is-dormant` class + `autoAlpha: 0.4` + `scale: 0.88`
+- 景深 class 在 `onUpdate` 中统一切换（非 `tl.call()`），确保 scrub 反向滚动时 class 正确回退
+- 节点激活：`autoAlpha: 1, scale: 1.0, ease: 'back.out(1.4)'`（弹性）
+- 边绘制：`autoAlpha: 0.85`（从 1 降低为 0.85，更含蓄）
+- 节点休眠：`autoAlpha: 0.4, scale: 0.88`
+
+**GSAP 警告修复**（v=t47）：
+- 问题：console 出现 "GSAP target [object NodeList] not found" 和 "GSAP target  not found" 警告
+- 根因：taskforce stage 0 没有 edges，`activeEdges` 为空 NodeList；`activeArrows` 可能为空数组
+- 修复：所有 `gsap.set()` 和 `tl.to()` 调用前判断集合非空（`if (edges.length > 0)`）
+- 验证：v=debug20260722 版本 console 无 GSAP 警告（仅 Tailwind CDN 生产警告）
+
+#### 2. Development 时间轴竖向重构
+
+**styles.css 修改**（L4588-4931）：
+- 替换整个横向时间轴样式为竖向紧凑布局
+- `.help-timeline-vertical`：容器，中央竖线用 `::before` 伪元素
+- `.help-timeline-v-row`：`grid-template-columns: 1fr auto 1fr`（三列布局）
+- `.help-timeline-v-detail-slot`：`max-height: 0` → `.is-expanded` → `max-height: 800px`
+- `.help-timeline-v-node`：节点按钮在 `grid-column: 2`
+- `.help-timeline-v-halo`：决策节点金色光晕（脉冲动画）
+- 移动端 `@media (max-width: 768px)`：单列布局，竖线左移
+
+**help-entry.js 修改**：
+- `renderDevelopment()` 重写（L799-874）：HTML 结构从横向 scroll track 改为竖向 `help-timeline-vertical`，每行含 `data-detail-side`（奇数 left、偶数 right）
+- `bindTimelineToggle()` 重写（L1059-1121）：从集中式 detail area 改为每行 inline detail slot，点击展开/折叠
+
+**旧 class 名清理**：
+- 移动端响应式（L5160-5189）：7 处旧 class 名替换（`.help-timeline-node` → `.help-timeline-v-node` 等）
+- reduced-motion（L5214, L5220）：2 处旧 class 名替换（`.help-timeline-node` → `.help-timeline-v-node`，`.help-timeline-node-halo` → `.help-timeline-v-halo`）
+- 全仓库 Grep 验证零残留
+
+#### 3. 背景色统一（全部纯白 #FFFFFF）
+
+**排查范围**：help section 范围内（styles.css L3032 之后）所有非纯白背景色
+
+**修改清单**：
+| 行号 | 旧值 | 新值 | 所属 class |
+|------|------|------|-----------|
+| L3165 | `#FFFCFC` | `#FFFFFF` | `.help-review-card--highlight` |
+| L3235 | `#F9FAFB` | `#FFFFFF` | `.help-review-footer` |
+| L3331 | `rgba(206, 17, 38, 0.03)` | `#FFFFFF` | `.help-philosophy-opp-quote` |
+| L3585 | `#FCFCFD` | `#FFFFFF` | `.help-works-col--mature` |
+| L3590 | `#FFFCFC` | `#FFFFFF` | `.help-works-col--explore` |
+| L4010 | `#F9FAFB` | `#FFFFFF` | `.help-exploration-scene-note` |
+| L4246 | `#F9FAFB` | `#FFFFFF` | `.help-dialogue-foot` |
+| L4575 | `#FEF2F2` | `#FFFFFF` | `.help-callout-list li` |
+
+**保留不改**（装饰性 UI 元素，非 section 背景）：
+- `.help-timeline-legend-item--decision .help-timeline-legend-dot`（`#F59E0B`，决策节点图例小圆点填充色）
+- `.help-timeline-v-node--decision .help-timeline-v-dot`（`#F59E0B`，决策节点 dot 填充色）
+- `.help-timeline-v-detail-article`（`#F3F4F6`，详情条号小标签背景）
+- `.help-toc-dot-tooltip`（`#F3F4F6` / `#FEE2E2`，小目录 tooltip 浮层背景）
+
+### 验证
+
+- ✅ GetDiagnostics 通过（help-entry.js / styles.css / help.html 零错误）
+- ✅ GSAP 警告消失（v=debug20260722 console 无 GSAP 警告，仅 Tailwind CDN 生产警告）
+- ✅ Development 时间轴竖向重构浏览器测试 PASS（browser subagent 确认布局+交互+响应式）
+- ✅ 背景色统一浏览器测试 PASS（browser subagent 确认无浅红/浅灰 section 背景）
+- ✅ DOM 状态确认（2 个 scenes，scene 0 有 8 节点 12 边，scene 1 有 4 节点 7 边）
+- ✅ SVG 渲染状态确认（SVG rect 382×287，节点 circle fill rgb(185,28,28)，elementFromPoint 返回 circle，未被遮挡）
+- ⚠️ Exploration section 可见性：browser subagent 截图未显示 SVG（但 DOM 状态+computed style+elementFromPoint 均正常，疑似截图工具问题），需用户手动验证
+
+### 文件变更清单
+
+| 文件 | 变更类型 | 说明 |
+|------|---------|------|
+| `docs/src/styles.css` | 修改 | Exploration 景深样式（L3842-3879）+ Development 竖向时间轴样式（L4588-4931）+ 移动端旧 class 名清理（L5160-5189）+ reduced-motion 旧 class 名清理（L5214, L5220）+ 背景色统一 8 处 |
+| `docs/src/entries/help-entry.js` | 修改 | `bindExplorationGSAP()` 重写（景深方案+空集合判断）+ `renderDevelopment()` 重写（竖向布局）+ `bindTimelineToggle()` 重写（inline detail slot）+ 启用 `bindExplorationGSAP()` 调用 |
+| `docs/help.html` | 修改 | 版本号 t44→t47 + no-cache meta 标签 |
+
+### 母本子本一致性（H2.2）
+
+- help-entry.js Development section 时间轴数据引用 DEVELOPMENT_TIMELINE（依据《中国共产党发展党员工作细则（2026年）》T1 原文）
+- help-entry.js Cognition section 3 阶段标题引用 DEVELOPMENT_PATH.md 第一章母本（T132 已同步）
+
+### 待续事项
+
+- Exploration section GSAP 景深动画效果需用户手动浏览器验证（browser subagent 截图工具疑似问题）
+- 如动画效果有问题，可调整景深参数（blur/saturate/brightness 数值）或 ease 曲线
+
+### 补充验证（2026-07-22 续 session）
+
+**GSAP ScrollTrigger 深度诊断**：
+- ✅ `window.gsap` 与 `window.ScrollTrigger` 均存在
+- ✅ `ScrollTrigger.getAll()` 返回 2 个 trigger，均绑定到 `.help-exploration-stages` 元素
+- ✅ stagesContainer 元素状态正常（2 个，rect 非零，display/visibility/opacity 正常）
+- ✅ sticky 容器 position:sticky，top:80px，height:560px，未影响 trigger 计算
+- ✅ **滚动到正确位置后 ScrollTrigger 正常触发**：scrollY≈6418 时，第一个 trigger progress=0.51，isActive=true，**is-active 节点数从 0 变为 3**，class 正确切换
+- ✅ console 无 GSAP 警告（仅 Tailwind CDN 生产警告）
+
+**关键发现**：
+- GSAP 技术层面完全正常工作——景深方案实现正确
+- 之前 browser subagent 报告"FAIL"是因为用 `scrollIntoView({block:'center'})` 滚动位置不准，未进入 trigger 激活范围
+- 改用 `window.scrollTo(0, targetY)` 精确计算目标位置后，ScrollTrigger 正常触发
+- browser subagent 截图工具无法渲染 SVG（Playwright 已知限制），但 DOM 状态+computed style 均正常
+
+**视觉验证状态**：
+- 技术验证 PASS：GSAP 景深方案正常工作
+- 截图验证 FAIL：browser subagent 截图工具限制，无法渲染 SVG
+- **需用户手动浏览器验证**：打开 http://localhost:8765/help.html?v=t47，滚动经过 Exploration section 的 6 个 stage 卡片，观察节点景深切换效果
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 本轮修改为已确认方案的执行，GSAP 景深方案的实现细节属于一次性工程操作，无需沉淀为通用经验]
+
+**经验补充**（2026-07-22 续 session）：
+- browser subagent 截图工具无法渲染 SVG 关系网络图（Playwright 已知限制），DOM 状态检查正常但截图空白
+- `scrollIntoView({block:'center'})` 在 GSAP ScrollTrigger 场景下可能滚动位置不准，应改用 `window.scrollTo(0, targetY)` 精确计算目标位置
+- 诊断 ScrollTrigger 是否触发：检查 `ScrollTrigger.getAll()` 的 `progress` 和 `isActive`，而非仅检查 class 切换
+
+## T134 T-117 第1轮理论复用评议（insights 内部复用链）+ R3/R2/R7/R5 修复（2026-07-22）
+
+### 背景
+
+启动 T-117（理论复用评议）第1轮：insights 两个文件内部的跨节复用链。按 H5.8.2 理论复用评议指标（复用准确性/过时/遗漏/过度引用），抽样 14 条复用点进行预审。
+
+### 预审结果
+
+**抽样清单**：14 条复用点（R1~R14），覆盖 §1↔§3 边界、§4.9↔§6.13 双向引用、§4.3 内部引用、§4.4→§5.1、§5↔§6 边界、§6 内部关联、附录速查表归属。
+
+**三类问题**：
+- **机械性问题**：R3（§4.9 元数据引用链断裂——PARTICIPANT_DATAFLOW.md 不存在 + DATA_ARCHITECTURE.md §八 不存在）
+- **设计性问题**：R2（§4.9↔§6.13 "三大原则"内容高度重复——散落即漂移）/ R7（§4.4→§5.1 关联不准确）
+- **即时小修订**：R5（§4.3 中 L308 和 L320 都引用§6.13，内容几乎相同）
+
+**书记决策**：
+- R3 → 全仓库扫描修订（6 处活跃文件修复）
+- R2 → §4.9 去重，仅保留书记原话+简要概括+"详见§6.13"
+- R7 → 删除§4.4→§5.1 关联
+- R5 → 合合 L308/L320 为一处（删除 L308 重复引用）
+
+### 修复执行
+
+**R3 断裂引用修复（机械性问题，全仓库扫描修订）**：
+| 行号 | 旧值 | 新值 | 所属文件 |
+|------|------|------|---------|
+| CLAUDE.md L484 | `PARTICIPANT_DATAFLOW.md §八 差异化视图` | `DATA_ARCHITECTURE.md §三 差异化视图` | CLAUDE.md |
+| SNAPSHOT.md L127 | `PARTICIPANT_DATAFLOW.md §八` | `DATA_ARCHITECTURE.md §三` | SNAPSHOT.md |
+| SECRETARY_PRONOUNCEMENTS.md L281 | `PARTICIPANT_DATAFLOW.md` | `DATA_ARCHITECTURE.md §三` | SECRETARY_PRONOUNCEMENTS.md |
+| SECRETARY_PRONOUNCEMENTS.md L750 | `DATA_ARCHITECTURE.md §八` | `DATA_ARCHITECTURE.md §三` | SECRETARY_PRONOUNCEMENTS.md |
+| insights L389 | `DATA_ARCHITECTURE.md §八` | `DATA_ARCHITECTURE.md §三` | 工程演进与设计方法论.md |
+| insights L402-403 | `PARTICIPANT_DATAFLOW.md §八` + `DATA_ARCHITECTURE.md §八` | `DATA_ARCHITECTURE.md §三` | 工程演进与设计方法论.md |
+
+保留不改（历史记录/命名规范示例）：OPERATIONS_GUIDE.md L337/L343、TIMESTAMPS.md、SSOT_INDEX.md、ARCHITECTURE.md、DATA_ARCHITECTURE.md、DOC_MAP.md、archive/日志。
+
+**R2 §4.9 去重**：删除§4.9 中 L393-L397 的三大原则详细展开（约 4 行），替换为"三大原则详见§6.13判例版本的展开与论证"。§6.13 保持不变。
+
+**R7 删除关联**：删除§4.4 后的"关联：§5.1 架构迁移四步法"引用。
+
+**R5 合并重复引用**：删除§4.3 中 L308 的"关联：§6.13 视图按需取用三大原则——查询视图配备依据是数据增长特性"。L320 的超集引用保留。
+
+### YAML 更新
+
+- `工程演进与设计方法论.md` last_updated 已为 2026-07-22（无需更新）
+- `SNAPSHOT.md` last_updated 更新为 2026-07-22
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 本轮修改为书记决策后的执行，断裂引用修复和散落即漂移去重属于一改具改范畴，无需沉淀为通用经验]
+
+---
+
+## T135 Help 页面叙事级重构（2026-07-22）
+
+### 变更摘要
+
+书记反馈 4 项 UI 问题后，经 brainstorming 流程确认方案 B（叙事级重构），按 spec 执行：
+
+1. **背景色统一**：5 处 `color-mix()` 淡红色底色替换为 `#FFFFFF`（L3374/L3619/L3699/L4264/L4280），保留 L4537 非底色 border 用途
+2. **GSAP 全页面动画架构**：删除 CSS `is-revealed` + `IntersectionObserver` 机制（6 处 CSS + JS bindScrollReveal），新增 `bindPageAnimations()` 函数统一管理全页面 GSAP ScrollTrigger 动画（Hero/Cognition/Development/Philosophy/Review/Works/Dialogue/Conclusion + Exploration），`gsap.matchMedia()` 处理 `prefers-reduced-motion` 降级
+3. **Exploration 景深修复**：节点初始 `autoAlpha: 0.4→0.6, scale: 0.88→0.92`；休眠 filter 改为 `blur(0.8px) saturate(0.5) brightness(0.85)`；激活 filter 增加 `drop-shadow`；边可见度 `0.85→0.7`
+4. **Development 时间轴重构**：三列 grid 布局（`1fr 60px 1fr`，容器 `max-width: 1400px`）；阶段交替双列（永久信息侧 + 交互信息侧，4 阶段交替左右）；阶段分隔线；交互信息默认显示条号+决策主体，点击展开详情
+5. **Dialogue 重构**：2×2 grid + 箭头循环 → 竖向四步（编号圆 + 竖连线 + phase/question/answer/desc）
+6. **Hero 优化**：标题字重 `700→800`、字号 `40px→44px` min；金色装饰线（`.help-hero-accent-line`）；GSAP 入场动画
+7. **字号层级统一**：L1(28px/800) → L2(22px/700) → L3(16px/600) → L4(14px/400) → L5(12px/400)
+8. **TOC 优化**：圆点旁始终显示 label 文字（`.help-toc-label`，0.75rem）
+9. **版本号**：v7 → v8
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/styles.css` | 背景色 5 处 + is-revealed 清理 6 处 + 时间轴 grid 重写 + Dialogue 重写 + Hero 装饰线 + 字号统一 + TOC label + Exploration 景深 CSS |
+| `docs/src/entries/help-entry.js` | `bindPageAnimations()` + 各 section GSAP 动画 + IntersectionObserver 清理 + 时间轴 HTML 重构 + Dialogue HTML 重构 + Hero 装饰线 + TOC label + Exploration 景深参数 |
+| `docs/help.html` | 版本号 `v=v8-narrative` |
+
+### 验证
+
+- GetDiagnostics：help-entry.js + styles.css 零错误
+- 浏览器验证：7/7 PASS（Hero 装饰线可见 / 时间轴三列 / Dialogue 竖向 / Exploration SVG 可见 / 零 GSAP 警告 / TOC label 显示 / 无 JS 报错）
+
+### 引用流程
+
+H2.1 一改具改 + H2.4 经验沉淀 + SPEC `.trae/specs/help-page-narrative-redesign/spec.md`
+
+### 蒸馏标签
+
+[经验沉淀: 否 — UI 重构属于执行范畴]
+
+## T136 党建/党务一改具改 + T1 表达修正（2026-07-22）
+
+### 变更摘要
+
+1. **党建/党务分类修正**：民主评议党员、换届选举、发展党员从"党建工作"移至"党务工作"——按书记 P-007 原话（党建=三会一课、主题党日、专班……；党务=党员发展、考勤考察……），这三项涉及人员管理，归党务
+2. **T3 概括识别**："党建=管理组织活动之事，党务=管理人员发展之事"是 AI 自行概括的 T3 表达，书记从未说过。书记用的是举例方式。已修正 SECRETARY_PRONOUNCEMENTS.md 中的部分 T3 用法
+3. **DEVELOPMENT_TIMELINE T1 表达修正**：13 条 decisionMaker 逐条对照《发展党员工作细则》原文，修正 2 处：no.7 "党组织执行"→"党组织对发展对象进行政治审查"（§16）；no.12 "党支部持续教育考察"→"党组织继续教育和考察"（§28/§31）
+4. **"组织性"标题一改具改**：SECRETARY_PRONOUNCEMENTS.md 目录+正文 + insights 示例 → "组织性"的展开
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `content/03_doc_system/ARCHITECTURE.md` | 党建工作内容列表移除民主评议党员/换届选举/发展党员，党务工作列表加入；"党务管理"→"党务工作"；YAML last_updated |
+| `content/01_strategy/DEVELOPMENT_PATH.md` | 同上 |
+| `content/03_doc_system/USAGE_POLICY.md` | 党务工作区分要诀加入"民主评议党员、换届选举" |
+| `content/01_strategy/SECRETARY_PRONOUNCEMENTS.md` | P-006 展开中 T3"管理组织活动之事/管理人员发展之事"改为直接举例；P-007 判断标准加入"民主评议党员、换届选举"；"组织性"→"组织性"的展开 |
+| `content/insights/党支部管理与实务经验沉淀.md` | 党务板块举例加入"民主评议党员、换届选举" |
+| `content/02_institution/sop/INDEX.md` | 党务工作定义加入"民主评议党员、换届选举" |
+| `docs/src/entries/help-entry.js` | no.7/no.12 decisionMaker 修正；"组织性"→"组织性"的展开 |
+
+### 验证
+
+- Grep 全仓库扫描：党建工作相关位置无"民主评议党员/换届选举/发展党员"残留（insights L96 跨域描述除外，无需修改）
+- 书记确认 T1 表达 OK
+
+### 引用流程
+
+H2.1 一改具改 + H2.2 母本子本 + P-006/P-007 + USAGE_POLICY §1.1
+
+### 蒸馏标签
+
+[经验沉淀: 是 — T3 概括识别方法：当书记原话是举例式（"党建 = 三会一课、主题党日……"），AI 不得将举例概括为定义式（"党建 = 管理组织活动之事"）。举例→定义的跃迁是 T3 自行概括。已沉淀至 insights §1.1 命名即认知框架]
+
+## T137 Help 页面动画 v9/v10 重构（2026-07-22）
+
+### 变更摘要
+
+书记反馈 6 类问题后，经 brainstorming + grill-me 逐块讨论确认动画方案：
+
+1. **Development 时间轴 v9**：删三列 grid + 中央竖线 + 阶段分隔线装饰 + 左右交替逻辑；回归居中单列卡片模式（编号+标题+时间默认显示，点击 GSAP 展开详情）；决策节点左侧 3px 琥珀色条替代金色光晕
+2. **Development 动画升级**：改用 ScrollTrigger 分阶段触发 + once:true；每个阶段（4阶段）作为整体触发点；阶段标签 scale:0.9→1 入场；阶段内卡片 y:40→0 stagger:0.12 入场（power3.out）
+3. **Exploration v10 大重构**：SVG 节点改为 HTML div 节点 + SVG 连线覆盖层；编排式 GSAP timeline 替代 scrub（"导演调度"级别）；beat 数据结构定义每个节点的入场时序和动效；节点有 dimmed/highlighted/hover 三态
+4. **Hero 优雅入场**：标题 y:60→0 power3.out + 金色线 clipPath 从左向右擦除 + 副标题 delay 0.15s
+5. **TOC 极简化**：删除 label 文字，只保留 8px 小圆点，hover 显示 tooltip
+6. **4 内容块统一入场**：Cognition/Review/Works/Dialogue 统一 gsap.from（y:30→0, autoAlpha:0→1, stagger:0.1, power2.out, ScrollTrigger once:true）
+7. **reduced-motion 降级**：所有动画都有 prefers-reduced-motion 降级（duration:0 或直接 set autoAlpha:1）
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/entries/help-entry.js` | v10：renderNetworkSVG() 重写（HTML div 节点 + SVG 连线）；bindExplorationOrchestration() 替代 bindExplorationGSAP()；bindDevelopmentEntranceAnimation() 分阶段触发；Hero 入场改为优雅方案；TOC 删除 label；4 内容块统一入场 |
+| `docs/src/styles.css` | 删除旧 SVG 节点样式；新增 `.help-network-container/nodes/node/icon/name/duty` + dimmed/highlighted/hover 状态；时间轴 v9 居中卡片样式；TOC 极简化 |
+| `docs/help.html` | 版本号 `v=v10-narrative` |
+
+### 确认的动画方案
+
+| 块 | 方案 |
+|------|------|
+| Hero | 优雅入场（y:60 + clipPath 擦除 + 级联 delay） |
+| TOC | 极简圆点（8px，无 label，hover tooltip） |
+| Development | ScrollTrigger 分阶段触发 + once:true + stagger 入场 |
+| Cognition/Review/Works/Dialogue | 统一 gsap.from 入场（y:30, stagger:0.1, power2.out） |
+| Exploration | HTML div 节点 + SVG 连线 + 编排式 timeline（导演调度） |
+
+### 备选方案（如效果不满意可切换）
+
+- Development：A 节奏入场 / B 聚焦序列 / C 展卷式
+- Exploration：A 阶段切换（离散帧）/ C 交互式点击切换
+- Hero：B 弹性冲击 / C 拆字序列
+- 媒介：Exploration 可升级为 PixiJS（WebGL 粒子效果）或 Lottie（需 AE 制作）
+
+### 验证
+
+- GetDiagnostics：help-entry.js + styles.css 零错误
+- Grep 全仓库扫描：`.help-node-svg`/`.help-node-circle` 等旧选择器零残留
+
+### 引用流程
+
+H2.4 经验沉淀 + gsap-core skill + gsap-scrolltrigger skill + frontend-design skill
+
+### 蒸馏标签
+
+[经验沉淀: 否 — UI 动画重构属于执行范畴]
+
+## T138 Help 页面动画 v11 重构（2026-07-22）
+
+### 变更摘要
+
+基于 T137 v9/v10 方案，经 brainstorming + grill-me 逐块深度讨论后大幅重构。书记对 Development 和 Exploration 方案均不满意，要求推倒重来。最终确认方案：
+
+1. **Development 时间轴大改**：居中单列卡片 → 三列交替 grid 布局（中列步骤编号+标题，详情和常驻注释左右交替错开）；手风琴式交互（同一时间只展开一个详情）；左侧琥珀色条 hover 改为 amber dot；4 步添加 stickyNote 常驻注释（步5/10/12/13）
+2. **Philosophy 小改**：删除「宝贵机会」eyebrow div（赘肉）；动画从两侧滑入改为统一上浮
+3. **Exploration 推倒重来**：HTML div 节点+SVG 连线 → Canvas+HTML 混合架构 + 像素小人 sprite + 编导式 beat 动画。新增约 720 行代码：renderExplorationCanvas()、drawPixelCharacter()（16×10 像素风角色，idle/walk/action 三态）、calcEdgeCurvePoints()、drawCanvasConnection()（task 实线绘制+info/collab 渐显）、drawArrowHead()、bindExplorationCanvas()、setupSceneCanvas()（ResizeObserver+rAF 渲染循环+hover 命中检测+GSAP 编排式 timeline）
+4. **GSAP 语法修正**：`addCallback()` → `call()` 全局替换，参数修正 `tl.call(fn, t)` → `tl.call(fn, null, t)`
+5. **sidebar.js 修复**：`user.personId` null guard（help 页面公开访问不检查登录，user 可能为 null）
+6. **其余块**：Hero/TOC/Cognition/Review/Works/Dialogue/Conclusion 保持现状
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/entries/help-entry.js` | v11：Development renderDevelopment() 重写（三列交替 grid + 手风琴 + amber dot + stickyNote）；renderExplorationCanvas() 新增（Canvas+HTML 混合）；drawPixelCharacter()/drawCharacterLabel()/calcEdgeCurvePoints()/drawCanvasConnection()/drawArrowHead()/bindExplorationCanvas()/setupSceneCanvas() 新增；bindTimelineToggle() 改手风琴模式；Philosophy 删 eyebrow div + 统一上浮；GSAP call() 语法修正 |
+| `docs/src/styles.css` | 删除旧 `.help-timeline-v-*` 样式；新增 `.help-tl-*`（row/side/detail/sticky/dot--decision）+ Canvas 样式；删除 `.help-philosophy-eyebrow` |
+| `docs/help.html` | 版本号 `?v=v11-canvas` |
+| `docs/src/components/sidebar.js` | L53: `user.personId` → `user ? AuthStore.getAccessibleWorkspacePages(user.personId) : []` |
+
+### 确认的动画方案
+
+| 块 | 方案 | 改动范围 |
+|------|------|------|
+| Hero | 保持当前简洁入场 | 无改动 |
+| TOC | 保持极简圆点 | 无改动 |
+| Cognition | 保持当前统一上浮 | 无改动 |
+| Development | 三列交替 grid + 手风琴 + amber dot + sticky notes | 大改 |
+| Philosophy | 统一上浮 + 删除赘肉 div | 小改 |
+| Review | 保持现状 | 无改动 |
+| Works | 保持现状 | 无改动 |
+| Exploration | Canvas+HTML 混合 + 像素小人 + 编导式 beat 动画 | 推倒重来 |
+| Dialogue | 保持现状 | 无改动 |
+| Conclusion | 保持现状 | 无改动 |
+
+### 待决事项
+
+- P.8：Development 常驻注释（哪些步骤需要）+ 详情内容待书记决断（已写入丙部）
+- 像素小人当前为过程式绘制的简单图形，未来可升级为 sprite sheet 实现更精细的帧动画
+- 旧代码 renderNetworkSVG()/bindNetworkHover()/bindExplorationOrchestration() 仍保留，可清理
+
+### 验证
+
+- Node 语法检查通过（无 SyntaxError）
+- 浏览器验证因缓存问题未能通过 browser_use 确认，需用户本地硬刷新验证
+
+### 引用流程
+
+H2.4 经验沉淀 + gsap-core skill + gsap-scrolltrigger skill + frontend-design skill + brainstorming skill + grill-me
+
+### 蒸馏标签
+
+[经验沉淀: 否 — UI 动画重构属于执行范畴]
+
+---
+
+## T139 Exploration Canvas 像素人动画升级 v13（2026-07-23）
+
+### 变更摘要
+
+基于 T138 v12-roaming，书记提出三大改进要求：(1) 像素人手脚走动而非飘着；(2) 扩大活动范围；(3) 对话气泡系统。经多轮 brainstorming + grill-me + web-design-guidelines + 像素素材 WebSearch 后确认分阶段实现方案。本次为第一阶段（核心动画升级）。
+
+**核心设计决策**（经多轮 grill 确认）：
+1. **6帧行走循环**：替换 pogo stick 式整体弹跳（`bob = Math.abs(Math.sin(phase))`），改为标准 6 帧循环（Contact/Passing-dn/Passing-up/Contact-opposite/Passing-dn-opposite/Passing-up-opposite）。每 6 帧切换一次，腿真正抬起迈步（x+y 偏移），身体高度随帧变化。
+2. **扩大活动范围**：wanderZone 从 rx:0.1-0.2, ry:0.1 → rx:0.3-0.4, ry:0.22。角色活动空间扩大约 3 倍。
+3. **像素风对话气泡**：方角黑边框（2px）+ 白底 + Noto Sans SC 字体。10 条专门对话台词（AI 起草书记审阅通过），气泡生命周期：waiting(delay) → popping(0.2s) → showing(1.8s) → fading(0.3s) → done。
+4. **删除镜头推拉**：camera.zoom 固定 1.0，移除 GSAP zoom 动画。保持像素游戏一贯做法。
+5. **美学沉淀**：DESIGN_SYSTEM.md §5.4 替换过时的"探索工作动画区分对待原则"为"Exploration Canvas 像素美学原则"（五条原则：固定视角/6帧行走/空间叙事/对话气泡/生活动作）。
+
+**未来阶段**（本次未实现）：
+- 第二阶段：多隔间背景（会议室/教室/宿舍/图书馆）+ 公交车转场载具
+- 第三阶段：生活动作（吃饭/睡觉/玩电脑/上课）+ 时间变化（白天/黑夜）
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/entries/help-entry.js` | v13：6帧行走循环帧表（WALK_FRAMES）替换 pogo stick；wanderZone 扩大（rx:0.3-0.4, ry:0.22）；BEATS 添加 dialogue 字段（10条台词）；新增 drawDialogueBubbleCanvas() 全局函数；新增 dialogueBubbles 数组 + spawnDialogueBubble() + 生命周期更新；render 新增气泡绘制层；删除镜头推拉（ctx.scale 固定 1.0，移除 GSAP zoom 动画） |
+| `docs/help.html` | 版本号 `?v=v13-pixel-walk` |
+| `content/04_web_design/DESIGN_SYSTEM.md` | §5.4 替换为"Exploration Canvas 像素美学原则"（五条原则）；YAML last_updated 更新为 2026-07-23 |
+
+### 6帧行走循环帧表
+
+| 帧 | 名称 | 左腿(x,y) | 右腿(x,y) | 身体下沉 | 手臂摆动 |
+|----|------|-----------|-----------|---------|---------|
+| F0 | Contact | (-1.5, 0) | (1.5, 0) | 0 | 1（右前）|
+| F1 | Passing-dn | (0, -1.5) | (0, 0) | 1（低）| 0.5 |
+| F2 | Passing-up | (1, -1) | (-1, 0) | 0 | 0 |
+| F3 | Contact-opposite | (1.5, 0) | (-1.5, 0) | 0 | -1（左前）|
+| F4 | Passing-dn-opp | (0, 0) | (0, -1.5) | 1（低）| -0.5 |
+| F5 | Passing-up-opp | (-1, 0) | (1, -1) | 0 | 0 |
+
+### 10 条对话台词
+
+| Beat | from 台词 | to 台词 | subtitle |
+|------|----------|---------|----------|
+| 1 | 这次活动你来组织 | 收到，我来负责 | 党小组组长赋权组织者 |
+| 2 | 书记，活动方案报备 | 方案通过，注意细节 | 组织者向支书报备·支书审批 |
+| 3 | 你负责现场协调 | 好的，我来 | 组织者向深度参与者分工 |
+| 4 | 明天准时出席 | 收到 | 通知出席·带动参与 |
+| 5 | 考勤表给你 | 好的 | 提交考勤·宣传需求 |
+| 6 | 考察材料 | 已建档 | 考察建档·人才库更新 |
+| 7 | 专班需要招募人手 | 我来安排招募 | 发起人请求招募 |
+| 8 | 招募授权给你 | 收到 | 招募赋权·业务赋权 |
+| 9 | 执行进度怎么样 | 按计划推进 | 协调执行 |
+| 10 | 专班成果交付 | 辛苦了 | 交付成果 |
+
+### 验证
+
+- GetDiagnostics 零错误
+- node --check 退出码 0（无 SyntaxError）
+- 浏览器验证需用户本地硬刷新确认
+
+### 引用流程
+
+H2.4 经验沉淀 + brainstorming skill + web-design-guidelines skill + grill-me skill + DESIGN_SYSTEM.md §5.4
+
+### 蒸馏标签
+
+[经验沉淀: 否 — UI 动画升级属于执行范畴，美学原则已沉淀到 DESIGN_SYSTEM.md]
+
+## T140 Exploration Canvas v14 多场景架构——室内隔间+室外红色教育基地+公交车转场（2026-07-23）
+
+### 变更摘要
+
+基于 T139 v13-pixel-walk 第一阶段，本次为第二阶段：多场景架构升级。经 7 轮 grill-me + brainstorming 确认设计决策。
+
+**核心设计决策**（经 7 轮 grill 确认）：
+1. **场景架构**：室内4列隔间（会议室/教室/宿舍/图书馆，水平4列布局）+ 室外红色教育基地。隔间表示室内空间，外出参访绘制室外场景。
+2. **BEATS 场景映射**：beat1-3 室内会议室策划 → beat3→4 公交车转场 → beat4-6 室外红色教育基地参访 → beat6→7 公交车转场回室内 → beat7-10 室内隔间分散。
+3. **外出角色**：执行者外出（3类）——组织者+普通参与者+深度参与者。留守角色：支书+党小组组长+纪检+宣传+组织委员。
+4. **画布组织**：beat4-6 完全切换到室外场景，留守角色隐身，但可通过 texting 短信与室外角色互动。
+5. **公交车转场**：像素马赛克过渡。流程：角色走向右侧→公交车驶入→上车→驶出→马赛克过渡→场景切换→马赛克消散→公交车驶入新场景→下车→驶出。
+6. **texting 短信气泡**：蓝色背景+白字（区别于白底黑字对话气泡），从画布左缘（室内方向）发出到达外出角色。beat5-6 触发（室外→室内提交考勤/考察建档）。
+7. **隔间家具**：会议室（长会议桌+椅子）/教室（课桌排+黑板）/宿舍（床+书桌+台灯）/图书馆（书架+彩色书脊+阅读桌）。
+8. **beat7-10 隔间分配**：beat7 会议室/beat8 图书馆/beat9 教室/beat10 会议室。
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/entries/help-entry.js` | v14：BEATS 扩展（新增 scene/texting 字段，时间调整 beat4-6 室外+beat7-10 隔间分散）；新增场景状态变量（currentScene/bus/mosaicProgress/transitionDir/OUTDOOR_CHAR_IDS）；新增 drawIndoorBackground（4列隔间+4个家具绘制函数）+ drawOutdoorBackground（纪念碑/红旗/树木/草地）+ drawBus（像素公交车侧视图）+ drawMosaicTransition（像素马赛克）+ drawTextingBubbleCanvas（蓝色短信气泡）+ spawnTextingBubble；render 函数根据 currentScene 绘制不同背景+控制角色可见性（outdoor 隐藏留守+_hidden 检查）；update 新增 texting 气泡更新+公交车移动；beat 编排新增 playBusTransition 转场函数+texting 类型处理+getConvergeCenter 场景感知 |
+| `docs/help.html` | 版本号 `?v=v14-bus-scene` |
+
+### 验证
+
+- GetDiagnostics 零错误
+- node --check 退出码 0（无 SyntaxError）
+- 浏览器验证需用户本地硬刷新确认
+
+### 引用流程
+
+H2.4 经验沉淀 + brainstorming skill + grill-me skill + DESIGN_SYSTEM.md §5.4
+
+### 蒸馏标签
+
+[经验沉淀: 否 — UI 多场景架构属于执行范畴，美学原则已沉淀到 DESIGN_SYSTEM.md §5.4]
+
+---
+
+## T141 Exploration Canvas v15 视觉焦点分层对话系统——焦点高亮+方向箭头+场景标题+过渡叙事（2026-07-23）
+
+### 变更摘要
+
+基于 T140 v14 多场景架构，本次为 v15：视觉焦点分层对话系统。用户反馈 v14 "terrible"——字幕信息传递差、两故事衔接突兀、说话人-被说话人无视觉交互。经 grill-me（4项问题识别）+ brainstorming（设计文档）+ gsap-core（API 就绪）三个 skill 协同完成。
+
+**核心设计决策**（基于游戏 UI 设计通用原则，避免过拟合）：
+1. **视觉焦点引导**：当前 beat 的 from/to/extra 角色放大 1.4× + 焦点光环（角色色虚线椭圆+径向渐变光晕）+ 全不透明；其他角色缩小 1.1× + 不透明度 0.6。用户能在 1s 内识别当前交互焦点。
+2. **名称常驻标识**：每个角色头顶常驻名字（已有 drawCharacterLabel），焦点角色加大（scale 1.0 vs 0.75）。
+3. **方向性视觉引导**：from→to 之间画临时虚线箭头（角色色，2px，5-3 虚线模式），缩进角色半径避免覆盖。距离<50px 不画。
+4. **对话气泡明确对应**：气泡边框改为角色色（原黑色），尾巴边线也用角色色。用户看气泡边框颜色即可对应说话人。
+5. **信息三层分层**：顶部场景标题（"活动故事·室内策划"/"活动故事·室外参访"/"专班故事·室内协作"，金色边框+衬线字体）+ 中部画布（角色+气泡+箭头）+ 底部字幕（场景描述）。
+6. **故事过渡帧**：beat3→4 转场期间显示"外出参访·途中"+"前往红色教育基地"；beat6→7 转场期间显示"活动结束→专班启动"+"活动告一段落，新的专班工作即将开始"。转场期间清除 currentBeat 焦点。
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/entries/help-entry.js` | v15：新增 currentBeat 变量（L1531）；新增 drawFocusRing（L701-723，径向渐变光晕+虚线椭圆）+ drawDirectionArrow（L731-772，虚线+箭头头部）；render 函数角色层添加焦点高亮逻辑（isFocus 判断+scl/opacity 差异+光环绘制）+ 方向箭头绘制（L2371-2383）；drawDialogueBubbleCanvas 边框改为角色色（L936-983）；HTML 新增 help-exploration-scene-title 元素（L471）；beatTL 新增 getSceneTitle 辅助函数+beat 开始时设置场景标题（L2554-2580）+转场过渡叙事（L2698-2731）；文件头 v15 注释 |
+| `docs/src/styles.css` | 新增 .help-exploration-scene-title 样式（L3759-3782，顶部居中+金色边框+衬线字体+白底半透明） |
+| `docs/help.html` | 版本号 `?v=v15-focus-dialogue` |
+| `.trae/specs/exploration-canvas-v15-focus-dialogue/spec.md` | 新建设计文档（问题诊断+6条设计原则+技术实现要点+验收标准） |
+| `CLAUDE.md` | T-140 状态更新为 v15 已完成 |
+
+### 验证
+
+- node --check 退出码 0（语法零错误）
+- 浏览器验证需用户本地硬刷新确认 v15-focus-dialogue 动画效果
+
+### 引用流程
+
+H2.4 经验沉淀 + DESIGN_SYSTEM.md §5.4 + brainstorming skill + grill-me skill + gsap-core skill
+
+### 蒸馏标签
+
+[经验沉淀: 否 — UI 焦点引导属于执行范畴，设计原则已沉淀到 spec.md]
+
+---
+
+## T142 Exploration Canvas 像素部分完整设计文稿（v16 PixiJS 重构方向确立）（2026-07-23）
+
+### 变更摘要
+
+用户对 T141 v15 Canvas 手绘动画明确不满意（"现在所有的素材都不可用！完全丑陋至极"），要求方法论根本性转变——先完成一份【像素部分】的完整设计文稿，反复打磨内容与提示词表达，形成【规范化表达】文档，避免不同 AI 之间错位。
+
+经 grill-me + grill-with-docs + brainstorming + gsap-core 四 skill 协同完成：
+- **5 维度 grilling**：页面设计→动画设计→角色设计→背景设计→故事设计
+- **7 待定项 grilling**：中文字体/8 角色调色板/画布宽度/素材分辨率/v15 代码处理/PixiJS 版本/移动端适配
+- **形成 23 条 ADR 决策记录 + 术语表 + 主设计文稿**，作为素材生成/动画实现/网页集成三阶段的唯一权威规范
+
+### 核心决策（23 条 ADR 汇总）
+
+| ADR | 决策 |
+|-----|------|
+| ADR-001 | 舞台式 16:9 居中布局 |
+| ADR-002 | 全部像素化含像素字体 |
+| ADR-003 | 渲染引擎选型 PixiJS |
+| ADR-004 | 素材工作流 Aseprite + Texture Packer |
+| ADR-005 | 三头身 Q 版角色规范 |
+| ADR-006 | 双色调/三色调调色板约束 |
+| ADR-007 | 角色识别策略 颜色+配饰双重区分 |
+| ADR-008 | 角色动作集 11 种 |
+| ADR-009 | 场景精简合并为 4 个 |
+| ADR-010 | 美术基调 像素色块拼接 + 禁止抗锯齿 |
+| ADR-011 | 会议室光影方案 吊灯暖黄主光 |
+| ADR-012 | 学习空间场景方案 极简平光书架 |
+| ADR-013 | 宿舍场景方案 极简平光单人床 |
+| ADR-014 | 室外场景方案 自然光+宣誓墙主体 |
+| ADR-015 | 故事架构 保留双故事+调整场景映射 |
+| ADR-016 | 宿舍 beat 内容 线上汇报 |
+| ADR-017 | 素材分辨率 混合分辨率 |
+| ADR-018 | 中文字体方案 zpix |
+| ADR-019 | PixiJS 版本 v7.x |
+| ADR-020 | 现有 v15 代码处理 完全重写 |
+| ADR-021 | 画布最大宽度 1024px |
+| ADR-022 | 移动端适配 横屏提示 |
+| ADR-023 | 8 角色调色板+配饰方案 重新调色 |
+
+### 书记元洞察（2026-07-23）
+
+**宿舍场景的叙事定位**：宿舍是用来表述——专班 不限时间，不限地点！
+
+宿舍场景的叙事定位是体现专班工作的"不限时间、不限地点"特性——专班工作可能发生在宿舍、走廊、食堂等任何场所，宿舍是这一特性的视觉表达。新增 beat 9.5（宿舍线上汇报）正是这一洞察的落地。
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `.trae/specs/pixel-design-spec/spec.md` | 新建主设计文稿（5 维度+素材制作工作流+实施路线图+验收标准+待定项决策汇总） |
+| `.trae/specs/pixel-design-spec/adr.md` | 新建 ADR 决策记录（23 条 ADR，含状态/日期/决策/理由/后果） |
+| `.trae/specs/pixel-design-spec/glossary.md` | 新建术语表（A-Z 术语定义，关联 ADR） |
+| `CLAUDE.md` | T-140 状态更新为 v16 PixiJS 重构方向确立，描述更新 |
+
+### 验证
+
+- 用户已通过 NotifyUser 审阅并批准 3 份文档
+- ADR 决策均经过 grill-me 会话逐项确认
+- 待定项全部决策完毕，无遗留开放问题（除性能预算/Aseprite 与 SD 混合策略/CDN 引入方式 3 项实施细节）
+
+### 引用流程
+
+H2.4 经验沉淀 + DESIGN_SYSTEM.md §5.4 + brainstorming skill + grill-me skill + gsap-core skill + grill-with-docs skill
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 设计文稿属于执行范畴，待 v16 实施完成后视情况沉淀美学经验到 insights]
+
+---
+
+## T142 续 Exploration Canvas 像素部分·阶段1素材制作尝试（2026-07-24）
+
+### 变更摘要
+
+用户选择"进入阶段1素材制作"，要求使用 brainstorming skill，保持开放，生成后用 AskUserQuestion 确认图像。
+
+### 执行过程
+
+1. 删除旧草图 secretary_pixel_sketch.html（按用户之前指示）
+2. 按 spec + ADR-024/025 从头制作 v1 草图
+3. AskUserQuestion 确认 → 书记反馈"需要重做"，并补充"阅读好ADR！"
+4. 自查发现 v1 多处偏离 ADR-025：
+   - 眼睛 2×2 → 应为 3×3（ADR-025）
+   - 腮红 1×1 → 应为 2×2（ADR-025）
+   - 嘴巴 1×3 → 应为 1×4（ADR-025）
+   - 耳朵加了多余深色边 → ADR-025 只用深肤色 #D9A57E
+   - 肤色 #FCD7B6 → 应为 #FCD5B5（ADR-025）
+   - 脸部椭圆偏离坐标（额头 X 26-39 → 应为 X 27-38；脸部主体 X 22-43 → 应为 X 23-42）
+5. 严格按 ADR-025 重做 v2 草图
+6. AskUserQuestion 确认 → 书记反馈"需要重做"，指示：删除所有 sketch，保留设计 markdown 文档，明天再继续思考
+7. 删除 secretary_pixel_sketch.html + 空 sketches 目录
+8. 保留 spec.md / adr.md / glossary.md 三份设计文档
+
+### 书记反馈要点
+
+- v1/v2 草图均不满意，问题涉及"整体风格、身体比例、头部/发型/五官"三方面
+- 强调"阅读好ADR！"——暗示草图未能充分体现 ADR 规范精神（虽 v2 已严格按坐标，但仍未达到预期效果）
+- 决定暂停素材制作，明天重新思考方向
+
+### 待思考问题（明天接手）
+
+1. 严格按 ADR-025 坐标绘制的 v2 为何仍不达标？是坐标本身需要修订，还是绘制方式（Canvas 像素块拼接）本身有局限？
+2. 是否应转向 SD/AI 生图方式，而非代码草图？
+3. ADR-025 的脸部椭圆坐标是否需要调整？（v2 严格按坐标但仍未通过）
+4. "整体风格"问题——是否需要重新审视 Q 版治愈风的美学方向？
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `.trae/specs/pixel-design-spec/sketches/secretary_pixel_sketch.html` | v1 创建→v2 重做→最终删除（按书记指示） |
+| `.trae/specs/pixel-design-spec/sketches/` | 空目录删除（避免污染） |
+
+### 保留文件
+
+- `.trae/specs/pixel-design-spec/spec.md`（主设计文稿）
+- `.trae/specs/pixel-design-spec/adr.md`（ADR 决策记录，含 ADR-024/025）
+- `.trae/specs/pixel-design-spec/glossary.md`（术语表）
+
+### 引用流程
+
+H2.4 经验沉淀 + brainstorming skill + ADR-024/025 角色布局规范
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 素材制作尝试未成功，待明天重新思考方向后视情况沉淀]
+
+---
+
+## T143 像素素材制作方向决策（ADR-026/027/028）+ 星露谷画风研究
+
+**日期**：2026-07-27
+**任务**：T-140 阶段1 素材制作方向决策
+**引用流程**：H2.4 经验沉淀 + H4.2 丙部待决策 + ADR-026/027/028
+
+### 背景
+
+v1-v10 共 10 版代码草图均未通过书记验收（"整体风格/身体比例/头部发型五官"），已按书记指示删除所有 sketch。上一 session 的 next_prompt 提出需要与书记对齐三个方向问题。
+
+### 书记三项决策（2026-07-27）
+
+1. **素材制作方式 → SD/AI 生图**（ADR-026）：代码草图正式废弃，转为 Stable Diffusion Pixel Art 模型 / AI 生图工具生成像素底图
+2. **美学方向 → 星露谷物语画风**（ADR-027）：从泛"Q版治愈风"锚定为星露谷画风，核心变化：色相偏移阴影替代纯平涂、选择性描边、发型加阴影阶、温暖手作感气质
+3. **ADR-025 坐标 → 保持不变**：问题不在坐标而在制作方式
+
+### 执行内容
+
+1. **星露谷画风研究**：搜索 stardewvalleywiki.com Modding 文档 + sprite-ai.art 像素风格指南 + pixelsandbloom.com Stardew 分析 + major-tom WALK-FRAME-PROMPTS.md。核心发现：NPC 精灵 16×32 / 4帧走 / 16-32色 / 分层绘制 / 色相偏移阴影 / 暖色季节色板
+2. **ADR-026 写入**：素材制作方式决策（代码草图→SD/AI生图），含背景/理由/后果
+3. **ADR-027 写入**：美学方向锚定（星露谷画风），含 11 维度对比表（星露谷原版 vs 本项目适配）+ 与 ADR-010 关系
+4. **ADR-028 写入**：SD/AI 生图 Prompt Template 决策记录
+5. **spec.md 6 处更新**：§0.3 美学原则（7条→含色相偏移+选择性描边）+ §2.2 素材工作流（SD/AI生图+Aseprite精修）+ §3.1 角色规范（对齐ADR-025+ADR-027）+ §3.3 调色板约束（4-5基色×2-3阶色相偏移）+ §6.1 素材工作流总览（6步流程+SD工具链）+ §8.2 开放问题（第2条已决策标记）
+6. **sd-prompt-template.md 创建**：完整 secretary prompt 示例 + 8 角色调色板 + 色相偏移计算参考表 + ControlNet/IP-Adapter 约束 + 后处理流程 + ADR-028 记录
+7. **CLAUDE.md 乙部 T-140 更新**：描述更新为三项决策+下一步
+
+### Trae API 生图尝试
+
+尝试用 Trae API text_to_image 生成 secretary candidate，但图片在对话中不可见（CDN 链接渲染失败，确认 3 次）。留待书记用外部 SD 工具按 sd-prompt-template.md 执行。
+
+### 修改文件清单
+
+| 文件 | 变更 |
+|------|------|
+| `.trae/specs/pixel-design-spec/adr.md` | 新增 ADR-026/027/028，YAML last_updated 更新 |
+| `.trae/specs/pixel-design-spec/spec.md` | §0.3/§2.2/§3.1/§3.3/§6.1/§8.2 共 6 处更新，YAML last_updated 更新 |
+| `.trae/specs/pixel-design-spec/sd-prompt-template.md` | 新建（prompt template 完整文档） |
+| `CLAUDE.md` | 乙部 T-140 描述更新，YAML last_updated 更新 |
+
+### 引用流程
+
+H2.4 经验沉淀 + H4.2 丙部待决策 + ADR-026/027/028
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 方向决策+文档更新，待素材生成验收后视情况沉淀]
+
+---
+
+## T144 像素提示词归总（prompts/ 目录 10 文件）+ 旧文件清理
+
+**日期**：2026-07-27
+**任务**：T-140 阶段1 提示词归总
+**引用流程**：ADR-026/027/028 + brainstorming skill + grill-me skill
+
+### 背景
+
+书记要求将所有像素提示词做最后归总，区分角色/背景/场景/动作，分文件生成，可直接复制粘贴使用。书记将转用 Codex（GPT + Figma 插件）进行生图和 UI 搭建，需清理无关文件便于 Codex 读取。
+
+### 书记决策
+
+1. **文件分类方式**：4 类合文件（通用+角色+场景+动作），动作按 4 类各 1 文件，场景合并为 4 文件
+2. **不需要 .design 文件**：Codex 有 Figma 插件，但 prompt 用 .md 文件管理最适合
+3. **旧过程性文件全部删除**：v15/v2/help spec + sd-prompt-template.md
+
+### 执行内容
+
+1. **prompts/ 目录创建**（10 个文件）：
+   - `00-global-style.md`：通用正向+负向 prompt
+   - `01-characters.md`：8 角色完整 prompt + 色相偏移速查表
+   - `02-scene-meeting-room.md`：会议室场景（吊灯光影+硬阴影）
+   - `02-scene-study-space.md`：学习空间场景（平光无阴影）
+   - `02-scene-dormitory.md`：宿舍场景（平光+窗户暗示光源）
+   - `02-scene-outdoor.md`：室外场景（自然光+软阴影）
+   - `03-action-basic.md`：基础动作（Idle/Walk/Turn）
+   - `03-action-interact.md`：交互动作（Talk/Give/Receive）
+   - `03-action-emotion.md`：情绪动作（Nod/Wave/Think）
+   - `03-action-scene.md`：场景动作（Sit/Read/Write）
+   - `04-post-processing.md`：Aseprite 精修+ControlNet+ADR-025 验收清单
+
+2. **旧文件清理**（7 文件 + 4 空文件夹）：
+   - 删除 sd-prompt-template.md（内容已拆分到 prompts/）
+   - 删除 exploration-canvas-v15-focus-dialogue/spec.md
+   - 删除 exploration-canvas-v2-redesign/spec.md
+   - 删除 help-page-narrative-redesign/spec.md
+   - 删除 help-page-restructure/spec.md + checklist.md + tasks.md
+   - 清理 4 个空文件夹
+
+3. **ADR-028 引用更新**：从 sd-prompt-template.md 改为 prompts/ 目录
+
+4. **CLAUDE.md 乙部 T-140 更新**：描述更新为提示词归总完成+Codex 方向
+
+### 书记验收
+
+通过（2026-07-27）
+
+### 修改文件清单
+
+| 文件 | 变更 |
+|------|------|
+| `prompts/00-global-style.md` | 新建 |
+| `prompts/01-characters.md` | 新建 |
+| `prompts/02-scene-meeting-room.md` | 新建 |
+| `prompts/02-scene-study-space.md` | 新建 |
+| `prompts/02-scene-dormitory.md` | 新建 |
+| `prompts/02-scene-outdoor.md` | 新建 |
+| `prompts/03-action-basic.md` | 新建 |
+| `prompts/03-action-interact.md` | 新建 |
+| `prompts/03-action-emotion.md` | 新建 |
+| `prompts/03-action-scene.md` | 新建 |
+| `prompts/04-post-processing.md` | 新建 |
+| `adr.md` | ADR-028 引用更新 |
+| `CLAUDE.md` | 乙部 T-140 更新 |
+| `sd-prompt-template.md` | 删除 |
+| 4 旧 spec 文件夹 | 删除（7 文件 + 4 空文件夹） |
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 文档整理，无新经验]
 

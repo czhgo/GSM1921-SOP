@@ -50,7 +50,7 @@ export function renderSidebar(activeModule) {
     let extraInner = '';
     if (item.module === 'workspace') {
       // spec §2.2: 始终渲染 <a>，多身份时由 workspace-popover 拦截
-      const pages = AuthStore.getAccessibleWorkspacePages(user.personId);
+      const pages = user ? AuthStore.getAccessibleWorkspacePages(user.personId) : [];
       if (pages.length === 0) return '';  // 无对应页面则隐藏
       // 始终用 standing role 取页面（恢复旧版逻辑）
       const standingPage = AuthStore.getPageForRole('workspace', role);
