@@ -341,17 +341,21 @@ function _renderMyRoles() {
     });
   });
 
-  // 渲染卡片（外层 card 已有"我的角色"标题，此处不再重复）
+  // 渲染身份条（横向布局，可点击跳转）
   container.innerHTML = `
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+    <div class="space-y-2">
       ${cards.map(c => `
-        <a href="${c.href}" class="card rounded-xl p-3.5 flex flex-col items-center gap-2 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group" style="border-left:3px solid ${c.color};">
-          <div class="w-9 h-9 rounded-full flex items-center justify-center" style="background:${c.bg};">
-            ${icon(c.icon, { size: 18, stroke: c.color })}
+        <a href="${c.href}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer group" style="border-left:3px solid ${c.color};">
+          <div class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style="background:${c.bg};">
+            ${icon(c.icon, { size: 22, stroke: c.color })}
           </div>
-          <div class="text-center">
-            <p class="text-sm font-medium text-gray-800 group-hover:text-blue-700 transition-colors">${c.title}</p>
-            <p class="text-[10px] text-gray-400 mt-0.5 line-clamp-1">${c.subtitle}</p>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-gray-800 group-hover:text-blue-700 transition-colors">${c.title}</p>
+            <p class="text-xs text-gray-400 mt-0.5">${c.subtitle}</p>
+          </div>
+          <div class="flex items-center gap-1 text-xs text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0">
+            <span>进入工作台</span>
+            ${icon('arrowRight', { size: 14 })}
           </div>
         </a>
       `).join('')}
@@ -371,15 +375,25 @@ function _renderMyAttendance() {
   const makeup = records.filter(r => r.status === 'makeup').length;
   const total = records.length;
   const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+  const rateColor = rate >= 80 ? '#10B981' : rate >= 60 ? '#D97706' : '#EF4444';
 
-  // 统计概览
+  // SVG 环形进度图
+  const R = 28, C = 2 * Math.PI * R;
+  const dashOffset = C * (1 - rate / 100);
+  const ring = `
+    <svg width="72" height="72" viewBox="0 0 72 72" class="flex-shrink-0">
+      <circle cx="36" cy="36" r="${R}" fill="none" stroke="#F3F4F6" stroke-width="6"/>
+      <circle cx="36" cy="36" r="${R}" fill="none" stroke="${rateColor}" stroke-width="6"
+              stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${dashOffset}"
+              transform="rotate(-90 36 36)"/>
+      <text x="36" y="40" text-anchor="middle" font-size="16" font-weight="700" fill="${rateColor}">${rate}%</text>
+    </svg>
+  `;
+
   let html = `
     <div class="flex items-center gap-4 mb-3">
-      <div class="text-center">
-        <p class="text-2xl font-bold" style="color:${rate >= 80 ? '#10B981' : rate >= 60 ? '#D97706' : '#EF4444'};">${rate}%</p>
-        <p class="text-[10px] text-gray-400">出勤率</p>
-      </div>
-      <div class="flex gap-3 text-xs">
+      ${ring}
+      <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs">
         <span class="text-green-600">出勤 ${present}</span>
         <span class="text-red-500">缺勤 ${absent}</span>
         <span class="text-orange-500">请假 ${leave}</span>
@@ -397,29 +411,28 @@ function _renderMyAttendance() {
   }).slice(0, 5);
 
   if (sorted.length > 0) {
-    html += '<div class="space-y-1.5">';
+    html += '<div class="space-y-1">';
     sorted.forEach(r => {
       const act = activities.find(a => a.id === r.activityId);
       const statusMap = {
-        present: { text: '出勤', cls: 'text-green-600' },
-        absent:  { text: '缺勤', cls: 'text-red-500' },
-        leave:   { text: '请假', cls: 'text-orange-500' },
-        makeup:  { text: '已补', cls: 'text-blue-500' },
+        present: { text: '出勤', cls: 'text-green-600', dot: '#10B981' },
+        absent:  { text: '缺勤', cls: 'text-red-500', dot: '#EF4444' },
+        leave:   { text: '请假', cls: 'text-orange-500', dot: '#F97316' },
+        makeup:  { text: '已补', cls: 'text-blue-500', dot: '#3B82F6' },
       };
-      const s = statusMap[r.status] || { text: r.status, cls: 'text-gray-400' };
+      const s = statusMap[r.status] || { text: r.status, cls: 'text-gray-400', dot: '#9CA3AF' };
       html += `
-        <div class="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-gray-50">
-          <span class="text-sm text-gray-700 truncate">${act?.title || r.activityId}</span>
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-gray-400">${act?.date ? _fmtDate(new Date(act.date)) : ''}</span>
-            <span class="text-xs font-medium ${s.cls}">${s.text}</span>
-          </div>
+        <div class="flex items-center gap-2 py-1">
+          <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${s.dot};"></span>
+          <span class="text-sm text-gray-700 truncate flex-1">${act?.title || r.activityId}</span>
+          <span class="text-xs text-gray-400 flex-shrink-0">${act?.date ? _fmtDate(new Date(act.date)) : ''}</span>
+          <span class="text-xs font-medium ${s.cls} flex-shrink-0 w-8 text-right">${s.text}</span>
         </div>
       `;
     });
     html += '</div>';
   } else {
-    html += '<p class="text-xs text-gray-400">暂无考勤记录</p>';
+    html += '<p class="text-xs text-gray-400 py-2">暂无考勤记录</p>';
   }
 
   container.innerHTML = html;
@@ -438,14 +451,20 @@ function _renderMyInspection() {
   const confirmed = display.filter(r => r.status === 'confirmed').length;
   const pending = display.filter(r => r.status === 'pending').length;
 
-  // 统计概览
+  // SVG 数字环形（考察无比率概念，用数字展示）
+  const numColor = total > 0 ? '#3B82F6' : '#D1D5DB';
+  const ring = `
+    <svg width="72" height="72" viewBox="0 0 72 72" class="flex-shrink-0">
+      <circle cx="36" cy="36" r="28" fill="none" stroke="#F3F4F6" stroke-width="6"/>
+      <text x="36" y="38" text-anchor="middle" font-size="20" font-weight="700" fill="${numColor}">${total}</text>
+      <text x="36" y="50" text-anchor="middle" font-size="9" fill="#9CA3AF">记录</text>
+    </svg>
+  `;
+
   let html = `
     <div class="flex items-center gap-4 mb-3">
-      <div class="text-center">
-        <p class="text-2xl font-bold text-gray-800">${total}</p>
-        <p class="text-[10px] text-gray-400">考察记录</p>
-      </div>
-      <div class="flex gap-3 text-xs">
+      ${ring}
+      <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs">
         <span class="text-green-600">已确认 ${confirmed}</span>
         <span class="text-orange-500">待确认 ${pending}</span>
       </div>
@@ -456,26 +475,25 @@ function _renderMyInspection() {
   const sorted = [...display].sort((a, b) => (b.recordedAt || '').localeCompare(a.recordedAt || '')).slice(0, 5);
 
   if (sorted.length > 0) {
-    html += '<div class="space-y-1.5">';
+    html += '<div class="space-y-1">';
     sorted.forEach(r => {
       const statusCls = r.status === 'confirmed' ? 'text-green-600' : 'text-orange-500';
+      const statusDot = r.status === 'confirmed' ? '#10B981' : '#F97316';
       const statusText = r.status === 'confirmed' ? '已确认' : '待确认';
       html += `
-        <div class="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-gray-50">
+        <div class="flex items-center gap-2 py-1">
+          <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${statusDot};"></span>
           <div class="flex-1 min-w-0">
             <p class="text-sm text-gray-700 truncate">${r.activityTitle || r.sourceName || '—'}</p>
-            <p class="text-[10px] text-gray-400">${r.levelLabel} · ${r.role}</p>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-gray-400">${r.recordedAt ? r.recordedAt.slice(0, 10) : ''}</span>
-            <span class="text-xs font-medium ${statusCls}">${statusText}</span>
-          </div>
+          <span class="text-xs text-gray-400 flex-shrink-0">${r.recordedAt ? r.recordedAt.slice(0, 10) : ''}</span>
+          <span class="text-xs font-medium ${statusCls} flex-shrink-0 w-10 text-right">${statusText}</span>
         </div>
       `;
     });
     html += '</div>';
   } else {
-    html += '<p class="text-xs text-gray-400">暂无考察记录</p>';
+    html += '<p class="text-xs text-gray-400 py-2">暂无考察记录</p>';
   }
 
   container.innerHTML = html;
