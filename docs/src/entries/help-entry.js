@@ -1,8 +1,15 @@
 // role: [工程师]+[AI]
-// entries/help-entry.js — 帮助页入口 v4（讲我们支部的故事）
+// entries/help-entry.js — 帮助页入口 v13（讲我们支部的故事）
 // 核心理念：从"关系网络"到"支部的故事"——以党员成长为主线，讲清考察、工作哲学、探索与对话
 // 设计风格：苹果风（纯白 + 大留白 + 大字体 + 微妙动画）
-// 签名元素：【管理事，服务人】核心口号 + 活动关系网络 SVG 图
+// 签名元素：【管理事，服务人】收束点题 + Exploration SVG 关系网络
+// v13 变更：Exploration 从 Canvas 像素人动画切换为 SVG 关系网络脉动（Living Constellation v5.2），保留 13 步 Development 时间轴 + GSAP 动画
+// v12 变更：Exploration Canvas v2 重构——全屏沉浸 + RPG 风像素人（12×20）+ 自由漫步 AI + 镜头推拉 + 脚印粒子 + 物件传递 + 10 beat 编排 + 滚动控制 + 底部字幕
+// v10 变更：Exploration SVG 活动关系网络重构为 HTML div 节点 + SVG 连线 + 编排式 GSAP timeline（导演调度）替代 scrub 景深动画
+// v9 变更：Development 时间轴重构为居中单列卡片布局（typography-first）+ 删除三列 grid/辅助线/交替布局 + GSAP 入场动画替代 scrub + 卡片点击展开详情（GSAP 动画）+ 决策节点用左侧色条区分（非金色光晕）
+// v8 变更：GSAP ScrollTrigger 全接管（移除 IntersectionObserver + is-revealed）+ Hero 金色装饰线 + TOC 始终可见 label + Development 阶段交替双列布局 + Dialogue 竖向四步 + bindPageAnimations 统一动画入口 + Exploration 景深参数调优（0.6/0.92/0.7 + filter）
+// v7 变更：Hero 标题改为成长路径 + Cognition 重构为组织性辩证法（个体→组织/组织→个体/个体→组织）+ Development 副标题精简 + 移除"三会决策节点"T3 表达 + 新增 Conclusion 收束 section（管理事，服务人）
+// v6 变更：Section 重组（8→7）+ 13 节点横向时间轴（7 决策节点金色光晕）+ Exploration GSAP scrub 动画（替代 v5.2）+ T3 编程行话/自造隐喻清除
 // v4 变更：去党建vs党务对比/考勤/思想汇报/角色独立section；新增考察积极分子/核心口号/两种工作/探索工作/行百里者半九十
 
 import { renderSidebar } from '../components/sidebar.js';
@@ -171,26 +178,26 @@ const EXPLORATION_STAGES = {
  */
 const PLANETARY_CONFIG = {
   // 滚动映射
-  scrollStartVh: 0.3,            // stagesContainer 顶部到达视口 30% 时开始
-  scrollEndVhOffset: 0.4,        // 滚动结束位置的 vh 偏移
+  scrollStartVh: 0.3,
+  scrollEndVhOffset: 0.4,
 
   // 节点尺寸
-  starRadius: 52,                // 恒星半径（活跃 star 节点）
-  planetRadius: 40,              // 行星半径（活跃 planet 节点）
-  inactiveRadius: 36,            // 非活跃节点半径
+  starRadius: 52,
+  planetRadius: 40,
+  inactiveRadius: 36,
 
   // 节点视觉状态
-  activeOpacity: 1.0,            // 活跃节点透明度
-  inactiveOpacity: 0.25,         // 非活跃节点透明度（dim 但可见，保留组织结构上下文）
-  activeScale: 1.15,             // 活跃节点缩放
-  inactiveScale: 1.0,            // 非活跃节点缩放
-  activeSaturate: 1.0,           // 活跃节点饱和度
-  inactiveSaturate: 0.4,         // 非活跃节点饱和度（灰度处理）
+  activeOpacity: 1.0,
+  inactiveOpacity: 0.25,
+  activeScale: 1.15,
+  inactiveScale: 1.0,
+  activeSaturate: 1.0,
+  inactiveSaturate: 0.4,
 
   // 边视觉状态
-  edgeActiveOpacity: 1.0,        // 活跃边透明度
-  edgeInactiveOpacity: 0,        // 非活跃边透明度（完全隐藏）
-  edgeLiftFactor: 0.15,          // 边贝塞尔曲线抬升系数
+  edgeActiveOpacity: 1.0,
+  edgeInactiveOpacity: 0,
+  edgeLiftFactor: 0.15,
 
   // SVG 中心（保留用于潜在的位置计算）
   activityCenter: { x: 400, y: 300 },
@@ -199,17 +206,11 @@ const PLANETARY_CONFIG = {
 
 /**
  * 边长度缓存：避免每次 renderNetwork 调用 getTotalLength()
- * 使用 WeakMap 自动管理内存（pathEl 被回收时缓存自动清理）
  */
 const EDGE_LENGTH_CACHE = new WeakMap();
 
 /**
  * 识别指定 stage 的活跃节点 ID 集合 + star 节点 ID
- * v5.2：不再计算布局位置——所有节点使用原始 network 位置（固定）
- * @param {number} stageIndex - stage 索引
- * @param {Object} network - 网络图数据
- * @param {Array} stages - stage 数据
- * @returns {{activeNodeIds: Set<string>, starId: string|null}}
  */
 function identifyActiveNodes(stageIndex, network, stages) {
   const stage = stages[stageIndex];
@@ -222,14 +223,13 @@ function identifyActiveNodes(stageIndex, network, stages) {
     activeNodeIds.add(e.to);
   });
 
-  // Fallback: 从 stage.flows 解析节点名（处理单节点 stage，如 taskforce stage 0）
+  // Fallback: 从 stage.flows 解析节点名
   if (activeNodeIds.size === 0 && stage.flows) {
     const nodeNameMap = new Map();
     network.nodes.forEach(n => {
       if (n.name) nodeNameMap.set(n.name, n.id);
     });
     stage.flows.forEach(flow => {
-      // 格式：'发起人' | 'A → B（desc）' | 'A ↔ B（desc）'
       const cleaned = flow.replace(/（[^）]*）/g, '').trim();
       const parts = cleaned.split(/[→↔]/).map(s => s.trim()).filter(s => s);
       parts.forEach(part => {
@@ -239,7 +239,7 @@ function identifyActiveNodes(stageIndex, network, stages) {
     });
   }
 
-  // 识别 star 节点 = 在该 stage 边中作为 from 出现最多的节点
+  // 识别 star 节点
   const fromCount = new Map();
   activeEdges.forEach(e => {
     fromCount.set(e.from, (fromCount.get(e.from) || 0) + 1);
@@ -252,7 +252,6 @@ function identifyActiveNodes(stageIndex, network, stages) {
       starId = id;
     }
   }
-  // 若无 from（如 taskforce stage 0 只有 initiator），取 activeNodeIds 第一个
   if (!starId && activeNodeIds.size > 0) {
     starId = Array.from(activeNodeIds)[0];
   }
@@ -262,12 +261,6 @@ function identifyActiveNodes(stageIndex, network, stages) {
 
 /**
  * 计算当前滚动位置对应的 stage 索引
- * v5.2 简化：仅返回 stageIndex + stageProgress，不再有 transition 信息
- * （transition 由 CSS transition 负责，不再需要 JS 插值）
- * @param {number} scrollTop - 当前滚动位置
- * @param {HTMLElement} container - 探索工作 section 容器
- * @param {number} stageCount - stage 总数
- * @returns {Object} {stageIndex, stageProgress}
  */
 function computeScrollProgress(scrollTop, container, stageCount) {
   const stagesContainer = container.querySelector('.help-exploration-stages');
@@ -292,19 +285,13 @@ function computeScrollProgress(scrollTop, container, stageCount) {
 
 /**
  * v5.2 渲染网络图——设置目标状态，CSS transition 负责动画
- * 关键：只在 stage 切换时调用，不每帧重算；所有节点始终可见（dim 处理非活跃）
- * @param {SVGElement} svg - 网络图 SVG 元素
- * @param {Object} network - 网络图数据 (ACTIVITY_NETWORK 或 TASKFORCE_NETWORK)
- * @param {number} currentStageIndex - 当前 stage 索引
- * @param {Array} stages - stage 数据 (EXPLORATION_STAGES.activity 或 .taskforce)
  */
 function renderNetwork(svg, network, currentStageIndex, stages) {
   if (!svg || !network) return;
 
   const { activeNodeIds, starId } = identifyActiveNodes(currentStageIndex, network, stages);
 
-  // 1. 更新所有节点：设置目标状态，CSS transition 0.6s 负责动画
-  //    v5.2 关键改动：所有节点始终可见（非活跃 dim 处理），保留组织结构上下文
+  // 1. 更新所有节点
   network.nodes.forEach(node => {
     const nodeEl = svg.querySelector(`.help-node-svg[data-id="${node.id}"]`);
     if (!nodeEl) return;
@@ -312,19 +299,14 @@ function renderNetwork(svg, network, currentStageIndex, stages) {
     const isActive = activeNodeIds.has(node.id);
     const isStar = node.id === starId;
 
-    // v5.2: 使用 style.transform（非 setAttribute）让 CSS transition 生效
-    //    位置固定（原始 network 位置），仅 scale 随 active/inactive 变化
     const scale = isActive ? PLANETARY_CONFIG.activeScale : PLANETARY_CONFIG.inactiveScale;
     nodeEl.style.transform = `translate(${node.x}px, ${node.y}px) scale(${scale})`;
 
-    // 视觉状态——CSS transition 0.6s 负责过渡
     nodeEl.style.opacity = isActive ? PLANETARY_CONFIG.activeOpacity : PLANETARY_CONFIG.inactiveOpacity;
     nodeEl.style.filter = `saturate(${isActive ? PLANETARY_CONFIG.activeSaturate : PLANETARY_CONFIG.inactiveSaturate})`;
 
-    // role 用于 CSS 恒星脉冲动画（仅 star 节点脉冲）
     nodeEl.setAttribute('data-role', isStar ? 'star' : (isActive ? 'planet' : 'inactive'));
 
-    // circle 半径
     const circle = nodeEl.querySelector('.help-node-circle');
     if (circle) {
       const baseRadius = isStar
@@ -334,7 +316,7 @@ function renderNetwork(svg, network, currentStageIndex, stages) {
     }
   });
 
-  // 2. 更新所有边：设置目标状态，CSS transition 0.8s 负责绘制/擦除动画
+  // 2. 更新所有边
   network.edges.forEach(edge => {
     const edgeEl = svg.querySelector(`.help-edge[data-from="${edge.from}"][data-to="${edge.to}"]`);
     if (!edgeEl) return;
@@ -342,7 +324,6 @@ function renderNetwork(svg, network, currentStageIndex, stages) {
     const pathEl = edgeEl.querySelector('.help-edge-path');
     if (!pathEl) return;
 
-    // path d 使用原始节点位置（固定不动，不随 stage 变化）
     const fromNode = network.nodes.find(n => n.id === edge.from);
     const toNode = network.nodes.find(n => n.id === edge.to);
     if (!fromNode || !toNode) return;
@@ -353,7 +334,6 @@ function renderNetwork(svg, network, currentStageIndex, stages) {
     const d = `M ${fromNode.x} ${fromNode.y} Q ${midX} ${midY - lift} ${toNode.x} ${toNode.y}`;
     pathEl.setAttribute('d', d);
 
-    // v5.2: 缓存 path 总长度（仅首次计算，避免每帧 getTotalLength 调用）
     if (!EDGE_LENGTH_CACHE.has(pathEl)) {
       try {
         EDGE_LENGTH_CACHE.set(pathEl, pathEl.getTotalLength());
@@ -363,22 +343,16 @@ function renderNetwork(svg, network, currentStageIndex, stages) {
     }
     const totalLength = EDGE_LENGTH_CACHE.get(pathEl);
 
-    // 设置 strokeDasharray（仅首次）
     if (totalLength > 0 && !pathEl.style.strokeDasharray) {
       pathEl.style.strokeDasharray = `${totalLength}`;
     }
 
-    // v5.2 核心改动：设置目标状态——CSS transition 0.8s 负责绘制/擦除动画
-    //    活跃边：opacity 1 + dashoffset 0（绘制完成态）
-    //    非活跃边：opacity 0 + dashoffset totalLength（擦除态）
-    //    stage 切换时，浏览器自动播放 0.8s 的绘制/擦除动画
     const isActive = edge.stage === currentStageIndex;
     edgeEl.style.opacity = isActive ? PLANETARY_CONFIG.edgeActiveOpacity : PLANETARY_CONFIG.edgeInactiveOpacity;
     if (totalLength > 0) {
       pathEl.style.strokeDashoffset = isActive ? '0' : `${totalLength}`;
     }
 
-    // 箭头位置和透明度
     const arrowEl = edgeEl.querySelector('.help-edge-arrow');
     if (arrowEl) {
       const angle = Math.atan2(toNode.y - fromNode.y, toNode.x - fromNode.x) * 180 / Math.PI;
@@ -415,82 +389,48 @@ const DIALOGUE_STAGES = [
   },
   {
     no: '04',
-    phase: '下一次迭代',
+    phase: '下一次活动',
     question: '经验如何传承？',
     answer: '从这次到下一次',
-    desc: '从一次活动/专班到下一次，同志与组织形成持续迭代的对话关系——上次的经验成为下次的起点，在实践中不断改进工作内容与模式。',
+    desc: '从一次活动/专班到下一次，同志与组织形成持续的对话关系——上次的经验成为下次的起点，在实践中不断改进工作内容与模式。',
   },
 ];
 
-// 发展党员 5 阶段 25 步
-const DEVELOPMENT_STAGES = [
-  {
-    id: 1, name: '申请入党', stepRange: '1-5', owner: '入党申请人 / 党支部 / 上级党委',
-    color: '#CE1126', summary: '入党申请人表达入党意愿，党组织初步了解并推荐为入党积极分子',
-    steps: [
-      { no: 1,  title: '递交入党申请书',     owner: '入党申请人', time: null },
-      { no: 2,  title: '党组织派人谈话',     owner: '党支部',     time: '15 日内' },
-      { no: 3,  title: '推荐入党积极分子',   owner: '团组织/党员', time: null },
-      { no: 4,  title: '支委会讨论确定',     owner: '支部委员会', time: null },
-      { no: 5,  title: '报上级党委备案',     owner: '上级党委',   time: null },
-    ],
-  },
-  {
-    id: 2, name: '积极分子培养', stepRange: '6-10', owner: '培养联系人 / 党支部',
-    color: '#3B82F6', summary: '对入党积极分子进行系统培养教育考察，符合条件的确定为发展对象',
-    steps: [
-      { no: 6,  title: '指定培养联系人',     owner: '党支部',       time: null },
-      { no: 7,  title: '培养教育考察',       owner: '培养联系人',   time: '至少一年' },
-      { no: 8,  title: '听取群众意见',       owner: '党支部',       time: null },
-      { no: 9,  title: '支委会确定发展对象', owner: '支部委员会',   time: null },
-      { no: 10, title: '报上级党委备案',     owner: '上级党委',     time: null },
-    ],
-  },
-  {
-    id: 3, name: '发展对象考察', stepRange: '11-15', owner: '入党介绍人 / 党支部 / 上级党委',
-    color: '#D97706', summary: '对发展对象进行政治审查和集中培训，经上级党委预审后准备接收',
-    steps: [
-      { no: 11, title: '确定入党介绍人',     owner: '党支部',       time: null },
-      { no: 12, title: '政治审查',           owner: '党支部',       time: null },
-      { no: 13, title: '开展集中培训',       owner: '党支部',       time: '不少于 3 天' },
-      { no: 14, title: '支委会审查',         owner: '支部委员会',   time: null },
-      { no: 15, title: '上级党委预审',       owner: '上级党委',     time: null },
-    ],
-  },
-  {
-    id: 4, name: '预备党员接收', stepRange: '16-20', owner: '党支部 / 上级党委',
-    color: '#10B981', summary: '召开支部大会讨论表决，上级党委审批后举行入党宣誓',
-    steps: [
-      { no: 16, title: '填写入党志愿书',     owner: '入党申请人',   time: null },
-      { no: 17, title: '支部大会表决',       owner: '党支部',       time: '无记名投票' },
-      { no: 18, title: '上级党委谈话',       owner: '上级党委',     time: null },
-      { no: 19, title: '上级党委审批',       owner: '上级党委',     time: '3 个月内' },
-      { no: 20, title: '举行入党宣誓',       owner: '党支部',       time: null },
-    ],
-  },
-  {
-    id: 5, name: '预备党员转正', stepRange: '21-25', owner: '党支部 / 党小组 / 上级党委',
-    color: '#B91C1C', summary: '预备党员在预备期内接受教育考察，期满后按程序转正',
-    steps: [
-      { no: 21, title: '编入党支部和党小组', owner: '党支部',       time: null },
-      { no: 22, title: '教育考察',           owner: '党支部',       time: '预备期一年' },
-      { no: 23, title: '提出转正申请',       owner: '预备党员',     time: '期满前' },
-      { no: 24, title: '支部大会表决',       owner: '党支部',       time: null },
-      { no: 25, title: '上级党委审批',       owner: '上级党委',     time: null },
-    ],
-  },
+// 发展党员 13 关键时间节点（依据《中国共产党发展党员工作细则（2026年）》T1 原文）
+// isDecisionNode: 关键决策节点（含党支部委员会/党支部党员大会/上级党委），用金色光晕环标记
+// article: 条号（T1 原文出处）
+const DEVELOPMENT_TIMELINE = [
+  // 阶段 1：入党申请人 → 入党积极分子
+  { no: 1,  title: '递交入党申请书',     time: '年满十八岁',     decisionMaker: '本人自愿',            decisionDetail: '入党申请人表达意愿',                       article: '§5',  isDecisionNode: false, stage: 'applicant', stickyNote: null },
+  { no: 2,  title: '党组织派人谈话',     time: '一个月内',       decisionMaker: '党组织派人',           decisionDetail: '了解基本情况，介绍党的基本知识',           article: '§7',  isDecisionNode: false, stage: 'applicant', stickyNote: null },
+  { no: 3,  title: '确定入党积极分子',   time: '—',              decisionMaker: '党支部委员会会议研究决定', decisionDetail: '在党员推荐、群团组织推优人选中确定',   article: '§8',  isDecisionNode: true,  stage: 'activist', stickyNote: null },
+  { no: 4,  title: '报上级党委备案',     time: '—',              decisionMaker: '上级党委备案',   decisionDetail: '备案入党积极分子名单',                     article: '§8',  isDecisionNode: true,  stage: 'activist', stickyNote: null },
+  { no: 5,  title: '指定培养联系人 + 培养考察', time: '一年以上', decisionMaker: '党支部每半年考察一次', decisionDetail: '培养联系人指导培养；党支部持续考察',     article: '§9/§11', isDecisionNode: false, stage: 'activist', stickyNote: '一年以上培养考察期' },
+  // 阶段 2：入党积极分子 → 发展对象
+  { no: 6,  title: '确定发展对象（公示）', time: '公示五个工作日', decisionMaker: '党支部委员会会议研究讨论并报上级党委同意', decisionDetail: '在听取党小组、培养联系人、党员和群众意见基础上确定', article: '§13', isDecisionNode: true, stage: 'prospect', stickyNote: null },
+  { no: 7,  title: '政治审查',           time: '—',              decisionMaker: '党组织对发展对象进行政治审查',     decisionDetail: '深入了解入党动机、政治素质和现实表现',     article: '§16', isDecisionNode: false, stage: 'prospect', stickyNote: null },
+  { no: 8,  title: '短期集中培训',       time: '一般不少于三天或者不少于二十四个学时', decisionMaker: '基层党委或县级党委组织部门', decisionDetail: '培训合格方可发展入党', article: '§17', isDecisionNode: false, stage: 'prospect', stickyNote: null },
+  // 阶段 3：发展对象 → 预备党员
+  { no: 9,  title: '党支部委员会审查 + 上级党委预审', time: '—', decisionMaker: '党支部委员会集体讨论 + 基层党委预审', decisionDetail: '审查合格后发放《中国共产党入党志愿书》', article: '§18', isDecisionNode: true, stage: 'probationary', stickyNote: null },
+  { no: 10, title: '党支部党员大会讨论表决', time: '预审合格后一个月内', decisionMaker: '党支部党员大会（无记名投票，赞成人数超过应到会有表决权的党员人数的半数）', decisionDetail: '通过接收预备党员的决议', article: '§19/§20', isDecisionNode: true, stage: 'probationary', stickyNote: '支部大会无记名投票表决' },
+  { no: 11, title: '上级党委审批',       time: '三个月内',       decisionMaker: '党委集体讨论和表决', decisionDetail: '批准预备党员，报上级党委组织部门备案',     article: '§25', isDecisionNode: true,  stage: 'probationary', stickyNote: null },
+  // 阶段 4：预备党员 → 正式党员
+  { no: 12, title: '预备期',             time: '一年',           decisionMaker: '党组织继续教育和考察', decisionDetail: '预备期从党支部党员大会通过其为预备党员之日算起', article: '§28/§31', isDecisionNode: false, stage: 'full', stickyNote: '预备期一年' },
+  { no: 13, title: '转正手续',           time: '预备期满',       decisionMaker: '党支部委员会审查 + 党支部党员大会讨论表决通过 + 报上级党委审批', decisionDetail: '本人书面申请 → 征求党小组、党员、群众意见 → 党支部委员会审查 → 党支部党员大会讨论表决通过 → 报上级党委审批', article: '§32/§33', isDecisionNode: true, stage: 'full', stickyNote: '书面申请→征求意见→支部大会→上级审批' },
 ];
 
-// 小目录条目（7 个 section 对应 7 个圆点）
+// 小目录条目（9 个 section 对应 9 个圆点）
+// 主线：开篇 → 组织性 → 流程怎么走 → 为什么是宝贵机会 → 考察维度 → 工作分类 → 探索运作 → 行百里者半九十 → 管理事服务人
 const TOC_ITEMS = [
   { id: 'hero',         label: '开篇' },
+  { id: 'cognition',    label: '"组织性"的展开' },
   { id: 'development',  label: '身份阶段' },
-  { id: 'review',       label: '考察积极分子' },
-  { id: 'philosophy',   label: '管理事，服务人' },
-  { id: 'cognition',    label: '战略认知展开' },
+  { id: 'philosophy',   label: '宝贵机会' },
+  { id: 'review',       label: '考察维度' },
   { id: 'works',        label: '两种工作' },
-  { id: 'exploration',  label: '探索工作' },
+  { id: 'exploration',  label: '探索运作' },
   { id: 'dialogue',     label: '行百里者半九十' },
+  { id: 'conclusion',   label: '管理事，服务人' },
 ];
 
 // ════════════════════════════════════════════════════════════════
@@ -558,13 +498,14 @@ function selfLoopPath(node) {
 //  渲染函数
 // ════════════════════════════════════════════════════════════════
 
-/** Section 1: Hero — 从入党申请人到正式党员 */
+/** Section 1: Hero — 从入党申请人到正式党员（成长路径开篇） */
 function renderHero() {
   return `
-    <section id="hero" class="help-section help-hero-section" data-reveal data-toc-id="hero">
+    <section id="hero" class="help-section help-hero-section" data-toc-id="hero">
       <div class="help-section-inner help-hero-inner">
-        <h1 class="help-hero-title">从入党申请人到<br/>正式党员</h1>
-        <p class="help-hero-subtitle">每个同志的成长之路，也是支部的工作之道</p>
+        <h1 class="help-hero-title">从入党申请人<br/>到正式党员</h1>
+        <p class="help-hero-subtitle">光华管理学院本科生党支部</p>
+        <div class="help-hero-accent-line"></div>
         <div class="help-hero-scroll-hint" aria-hidden="true">
           <span class="help-scroll-text">向下滚动</span>
           ${icon('scrollDown', { width: 20, height: 28, viewBox: '0 0 20 28', className: 'help-scroll-arrow' })}
@@ -588,7 +529,7 @@ function renderReview() {
   `).join('');
 
   return `
-    <section id="review" class="help-section help-review-section" data-reveal data-toc-id="review">
+    <section id="review" class="help-section help-review-section" data-toc-id="review">
       <div class="help-section-inner">
         <h2 class="help-section-title">我们怎么考察积极分子？</h2>
         <p class="help-section-subtitle">三项考察内容——党课、贡献、评价，其中党建贡献特别看重原创性</p>
@@ -600,95 +541,120 @@ function renderReview() {
 }
 
 /**
- * Section 3: 管理事，服务人——先锋模范作用落地论证
+ * Section 4: 两条宝贵机会
  *
- * 战略路线认定："管理事，服务人"
- * --------------------------------------------------
- * 本段为 help 页的浅层展示。"管理事，服务人"不仅是 UI 口号，
- * 而是系统级战略路线认定。详细设计理念见母本：
- * content/strategy/DEVELOPMENT_PATH.md
- *
- * 核心命题：各种发展轨迹都可以加入支部，通过组织获得各自的成长
- * 战略认知展开：理解真实（总）/ 善用经验（分·有先例）/ 创新沉淀（分·创新）/ 框架内对话（分·方法补充）
+ * 母本：content/01_strategy/DEVELOPMENT_PATH.md 第一章·两条宝贵机会
  */
 function renderPhilosophy() {
+  const opportunities = [
+    {
+      no: '机会 1',
+      title: '民主集中制下感受真实组织的两个向度',
+      quote: '"民主集中制"下 感受真实的组织的两个向度："赋权"背景下的程序性 和 "探索"背景下的扁平化。这也就意味着真实的组织，不能只靠程序性令人凝聚在一起，也不能只靠"扁平化"而不去形成共识、带来效率。——提高生涯发展中对于所处组织的适应能力和开放心态。',
+      points: [
+        { label: '程序性', desc: '"赋权"背景下——组织通过分工、流程、记录、复盘让人凝聚' },
+        { label: '扁平化', desc: '"探索"背景下——组织通过平等协商、无上下级分工让人创新' },
+      ],
+      insight: '在支部中体悟这两个向度的平衡，能提高生涯发展中对于所处组织的适应能力和开放心态——理解真实组织必然包含这两个向度，并学会在其中游刃有余。',
+    },
+    {
+      no: '机会 2',
+      title: 'AI时代中学生党支部的探索机会',
+      quote: '作为AI时代中一个建设方兴未艾的学生组织，①可以真实地参与组织制度和组织文化的构建；②可以在"没有经济负担"的背景下探索AI时代下组织转型的萌芽和组织产品的生产。',
+      points: [
+        { label: '参与构建', desc: '不是进入一个成熟组织去适应，而是参与组织制度和组织文化的构建' },
+        { label: '探索自由度', desc: '在"没有经济负担"的背景下探索组织转型的萌芽和组织产品的生产——未来进入职场后难以获得' },
+      ],
+      insight: '学生党支部的"方兴未艾"恰恰是机会所在：成熟组织没有这种探索空间，而学生组织有。服务人的根本目标之一，就是让成员获得未来进入职场后难以获得的探索自由度。',
+    },
+  ];
+
+  const cards = opportunities.map(opp => {
+    const pointsHTML = opp.points.map(p => `
+      <div class="help-philosophy-opp-point">
+        <span class="help-philosophy-opp-point-label">${p.label}</span>
+        <span class="help-philosophy-opp-point-desc">${p.desc}</span>
+      </div>
+    `).join('');
+
+    return `
+      <article class="help-philosophy-opp" data-stagger>
+        <div class="help-philosophy-opp-no">${opp.no}</div>
+        <h3 class="help-philosophy-opp-title">${opp.title}</h3>
+        <blockquote class="help-philosophy-opp-quote">${opp.quote}</blockquote>
+        <div class="help-philosophy-opp-points">${pointsHTML}</div>
+        <p class="help-philosophy-opp-insight">${opp.insight}</p>
+      </article>
+    `;
+  }).join('');
+
   return `
-    <section id="philosophy" class="help-section help-philosophy-section" data-reveal data-toc-id="philosophy">
+    <section id="philosophy" class="help-section help-philosophy-section" data-toc-id="philosophy">
       <div class="help-section-inner help-philosophy-inner">
-        <div class="help-philosophy-eyebrow">我们支部的工作哲学</div>
-        <h2 class="help-philosophy-title">管理事，<br/>服务人</h2>
-        <div class="help-philosophy-split">
-          <div class="help-philosophy-half">
-            <div class="help-philosophy-half-label">管理事</div>
-            <div class="help-philosophy-half-desc">把事情做好，工作有架构</div>
-          </div>
-          <div class="help-philosophy-divider" aria-hidden="true"></div>
-          <div class="help-philosophy-half">
-            <div class="help-philosophy-half-label">服务人</div>
-            <div class="help-philosophy-half-desc">帮助同志成长，发展有路径</div>
-          </div>
-        </div>
-        <div class="help-philosophy-reason" data-stagger>
-          <div class="help-philosophy-reason-q">凭什么这样说？</div>
-          <div class="help-philosophy-reason-a">
-            因为我们要求党员的<span class="help-philosophy-emph">先锋模范作用落地</span>——不是喊口号，而是具体的。
-          </div>
-          <div class="help-philosophy-reason-detail">
-            党员同志要帮助积极分子、发展对象同志熟悉支部工作、支部架构。
-          </div>
-        </div>
-        <div class="help-philosophy-foot">先锋模范作用落地，才是"管理事，服务人"的真正含义</div>
+        <h2 class="help-philosophy-title">两条宝贵机会</h2>
+        <p class="help-philosophy-lead" data-stagger>
+          爱具体的组织——光华管理学院本科生党支部提供两条难得的成长机会。
+        </p>
+        <div class="help-philosophy-opportunities">${cards}</div>
       </div>
     </section>
   `;
 }
 
 /**
- * Section 3.5: 战略认知展开 + 恢复对话能力（P-041）
+ * Section 2: 组织性——贯穿成长路径的辩证法
  *
- * 母本：content/strategy/DEVELOPMENT_PATH.md 第二章 + 第四章
- * --------------------------------------------------
- * 总分结构：理解真实（总）→ 善用经验 / 创新沉淀 / 框架内对话（分）
- * 延伸段落：P-041 "恢复对话能力"战略表达
+ * 母本：content/01_strategy/DEVELOPMENT_PATH.md 第一章
  */
 function renderCognition() {
+  const stages = [
+    {
+      num: '01',
+      direction: '个体 → 组织',
+      title: '各种发展轨迹都能加入获得成长',
+      body: '组织性是组织化成长途径，不是排他门槛。各种发展导向的同学——想进体制的、想走学术的、想去企业的——都能在组织中获得各自的成长。成长有两条路：个人闷头努力，或借由组织的经验、流程、集体智慧放大努力。后者才是"组织化"。光华管理学院本科生党支部就是你能在学院里接触到的那个具体组织。',
+    },
+    {
+      num: '02',
+      direction: '组织 → 个体',
+      title: '事情运作有管理科学和既往经验',
+      body: '真实组织运作靠流程和经验，不是层级命令。事情的运转有管理科学——分工、流程、记录、复盘有规律；有既往经验——历届支委沉淀的工作流是可复用的资产。成员调取并执行这些工作流，本身就是成长：执行过程让抽象的"管理知识"变成手上会用的"管理能力"。支书主持会议、副书记协助、组织委员统筹专班、宣传委员管档案、纪检委员管考勤——这些是具体的分工，不是抽象的"层级"。',
+    },
+    {
+      num: '03',
+      direction: '个体 → 组织',
+      title: '发挥主人翁精神在框架内真实表达',
+      body: '组织性的真正功能是让各种发展轨迹的人通过组织获得成长——个人通过组织实现诉求，不是个人服从组织。批评要在框架内提出：找准对象、找准时机。创新沉淀，就是把"没先例"变成"有先例"。你想做学术、想去企业、想走自己的路——支部的创新沉淀机制给你提供"把个人实践变成组织先例"的途径。',
+    },
+  ];
+
+  const cards = stages.map(s => `
+    <article class="help-cognition-item" data-stagger>
+      <div class="help-cognition-item-num">${s.num}</div>
+      <h3 class="help-cognition-item-title">${s.title}</h3>
+      <p class="help-cognition-item-sub">${s.direction}</p>
+      <div class="help-cognition-item-body">
+        <p class="help-cognition-item-truth">${s.body}</p>
+      </div>
+    </article>
+  `).join('');
+
   return `
-    <section id="cognition" class="help-section help-cognition-section" data-reveal data-toc-id="cognition">
+    <section id="cognition" class="help-section help-cognition-section" data-toc-id="cognition">
       <div class="help-section-inner help-cognition-inner">
-        <div class="help-cognition-eyebrow">战略认知展开</div>
-        <h2 class="help-cognition-title">理解真实，才能服务人</h2>
+        <div class="help-cognition-eyebrow">"组织性"的展开</div>
+        <h2 class="help-cognition-title">"组织性"的展开</h2>
 
         <div class="help-cognition-lead" data-stagger>
-          <p>服务人的核心要义，是理解真实的组织和管理——不是想象中的等级森严，而是有管理的科学、有既往的经验。书记关于这方面的原话整理见下。</p>
+          <p>从入党申请人到党员，组织性是贯穿始终的成长途径。</p>
         </div>
 
-        <div class="help-cognition-grid">
-          <article class="help-cognition-item" data-stagger>
-            <div class="help-cognition-item-num">01</div>
-            <h3 class="help-cognition-item-title">善用经验</h3>
-            <p class="help-cognition-item-sub">对于有先例的工作</p>
-            <p class="help-cognition-item-desc">先从既有工作流开始，理解流程为什么这样设计，再考虑要不要改。这样你才和组织发生实际的对话——不是凭空"我觉得"，而是基于已有经验去判断。</p>
-          </article>
-
-          <article class="help-cognition-item" data-stagger>
-            <div class="help-cognition-item-num">02</div>
-            <h3 class="help-cognition-item-title">创新沉淀</h3>
-            <p class="help-cognition-item-sub">对于创新性的工作</p>
-            <p class="help-cognition-item-desc">没有权威，没有"正确答案"等你去执行。每个人的意见和实践选择都很重要，组织要充分吸收个体经验，沉淀为新的工作流。</p>
-          </article>
-
-          <article class="help-cognition-item" data-stagger>
-            <div class="help-cognition-item-num">03</div>
-            <h3 class="help-cognition-item-title">框架内对话</h3>
-            <p class="help-cognition-item-sub">两种工作的方法补充</p>
-            <p class="help-cognition-item-desc">不要怕"说错话"——特别怕大家因为认为是"党支部"，所以怕说错话而选择不真实表达。框架内表达不是不许批评，而是批评要找准对象、找准时机。</p>
-          </article>
-        </div>
+        <div class="help-cognition-grid">${cards}</div>
 
         <div class="help-cognition-dialogue" data-stagger>
-          <div class="help-cognition-dialogue-label">延伸·恢复对话能力</div>
+          <div class="help-cognition-dialogue-label">核心命题</div>
           <blockquote class="help-cognition-dialogue-quote">
-            党建和经管学科科研的交叉点在于恢复和马克思主义的对话能力，恢复理论研究和现实治理之间的对话能力。
+            爱具体的人而不是爱抽象的人，爱具体的组织而不是爱抽象的组织。
           </blockquote>
         </div>
       </div>
@@ -696,7 +662,7 @@ function renderCognition() {
   `;
 }
 
-/** Section 4: 两种工作（成熟 vs 探索） */
+/** Section 6: 两种工作（仅卡片，探索运作独立为 Exploration section） */
 function renderTwoWorks() {
   const cols = TWO_WORKS.map(w => {
     const examples = w.examples.map(e => `<li>${e}</li>`).join('');
@@ -719,12 +685,11 @@ function renderTwoWorks() {
   }).join('');
 
   return `
-    <section id="works" class="help-section help-works-section" data-reveal data-toc-id="works">
+    <section id="works" class="help-section help-works-section" data-toc-id="works">
       <div class="help-section-inner">
         <h2 class="help-section-title">我们面对两种工作</h2>
         <p class="help-section-subtitle">一种是接续发力，一种是试错创造——探索工作是人人都参与的场域，包括积极分子</p>
         <div class="help-works-grid">${cols}</div>
-        <div class="help-works-footer">探索工作——发挥所有人智慧的场域 →</div>
       </div>
     </section>
   `;
@@ -740,11 +705,6 @@ function renderNetworkSVG(network, opts) {
     preserveAspectRatio: 'xMidYMid meet',
     'aria-label': title || sectionClass,
   });
-
-  // v4.3.5：箭头改为独立 path 元素（原 SVG marker 无法直接控制 opacity）
-  // 任务流=实心三角（派活交付的确定性），信息流=空心三角（报备告知的传递性）
-  // 协作线无箭头（横向配合无方向），在连线两端用圆点表达平等关系
-  // 箭头/圆点初始 opacity:0，JS 在线绘制完成（intraStageProgress > 0.95）后 fade in
 
   // 节点查找表
   const nodeMap = {};
@@ -772,9 +732,7 @@ function renderNetworkSVG(network, opts) {
     });
     g.appendChild(pathEl);
 
-    // 箭头：独立 path 元素，初始 opacity:0，JS 在线绘制完成后 fade in
-    // 非 collab 边才有箭头；计算方向角并旋转
-    // v4.3.6：箭头统一实心三角（task 深红 #B91C1C / info 蓝 #3B82F6）；双向边在起点添加反向箭头
+    // 箭头：独立 path 元素
     if (edge.type !== 'collab' && !isSelf) {
       const angle = Math.atan2(path.y2 - path.y1, path.x2 - path.x1) * 180 / Math.PI;
       const arrowFill = edge.type === 'task' ? '#B91C1C' : '#3B82F6';
@@ -786,7 +744,7 @@ function renderNetworkSVG(network, opts) {
         opacity: '0',
       });
       g.appendChild(arrowEl);
-      // 双向边：起点添加反向箭头（organizer↔secretary 报备/审批）
+      // 双向边：起点添加反向箭头
       if (edge.bidirectional) {
         const reverseArrowEl = svgEl('path', {
           d: 'M -8 -4 L 0 0 L -8 4 z',
@@ -799,21 +757,18 @@ function renderNetworkSVG(network, opts) {
       }
     }
 
-    // 协作线两端圆点：表达"横向配合"的平等关系（无方向，两端对等）
-    // 初始 opacity:0，JS 在线绘制完成后 fade in
+    // 协作线两端圆点
     if (edge.type === 'collab' && !isSelf) {
       const dotR = 3;
       g.appendChild(svgEl('circle', { cx: path.x1, cy: path.y1, r: dotR, fill: '#9CA3AF', class: 'help-edge-dot', opacity: '0' }));
       g.appendChild(svgEl('circle', { cx: path.x2, cy: path.y2, r: dotR, fill: '#9CA3AF', class: 'help-edge-dot', opacity: '0' }));
     }
 
-    // 标签：rect 白色背景 + text（避免与 node / 其他 label 重叠时不可读）
-    // 协作线 label 为空，不渲染标签；支持手动 labelDx/labelDy 偏移
+    // 标签
     if (edge.label) {
       const labelDx = edge.labelDx || 0;
       const labelDy = edge.labelDy || 0;
       const labelG = svgEl('g', { class: 'help-edge-label', transform: `translate(${mx + labelDx},${my + labelDy})` });
-      // 先估算文本宽度（中文每字 ~12px，最小宽度 36px）
       const labelWidth = Math.max(36, edge.label.length * 13 + 12);
       const labelHeight = 20;
       const labelBg = svgEl('rect', {
@@ -850,7 +805,6 @@ function renderNetworkSVG(network, opts) {
     text.textContent = node.name;
     g.appendChild(text);
 
-    // 职责（节点下方）
     const duty = svgEl('text', { class: 'help-node-duty', 'text-anchor': 'middle', 'dominant-baseline': 'middle', x: 0, y: 58, fill: '#6B7280' });
     duty.textContent = node.duty;
     g.appendChild(duty);
@@ -859,7 +813,7 @@ function renderNetworkSVG(network, opts) {
   });
   svg.appendChild(nodesG);
 
-  // domain 标签（党建/党务）—— v4 一般不用，保留兼容
+  // domain 标签
   const domainHTML = domain
     ? `<span class="help-section-domain help-section-domain--${domain}">${domain === 'building' ? '党建工作' : '党务工作'}</span>`
     : '';
@@ -869,12 +823,10 @@ function renderNetworkSVG(network, opts) {
     ? `<ul class="help-callout-list">${callouts.map(c => `<li>${c}</li>`).join('')}</ul>`
     : '';
 
-  // 序列化 SVG：用 XMLSerializer 确保包含 xmlns 命名空间属性。
-  // outerHTML 对 createElementNS 创建的 SVG 元素可能不包含 xmlns，
-  // 导致 innerHTML 插入后浏览器不识别为 SVG 元素，内容不显示。
+  // 序列化 SVG
   const svgString = new XMLSerializer().serializeToString(svg);
 
-  // wrap 内容（legend + container + tooltip）
+  // wrap 内容
   const wrapContent = `
     <div class="help-network-legend">
       <span class="help-legend-item"><span class="help-legend-line help-legend-line--task"></span>派活交付（实线·有方向）</span>
@@ -885,7 +837,7 @@ function renderNetworkSVG(network, opts) {
     <div class="help-network-tooltip" aria-hidden="true"></div>
   `;
 
-  // inline 模式：返回不带 section 包裹的内容（用于内嵌到 exploration section）
+  // inline 模式
   if (inline) {
     return `
       <div class="help-network-wrap ${sectionClass}">
@@ -895,7 +847,7 @@ function renderNetworkSVG(network, opts) {
   }
 
   return `
-    <section id="${sectionId}" class="help-section help-network-section ${sectionClass} ${modifier}" data-reveal data-toc-id="${sectionId}">
+    <section id="${sectionId}" class="help-section help-network-section ${sectionClass} ${modifier}" data-toc-id="${sectionId}">
       <div class="help-section-inner">
         ${domainHTML}
         <h2 class="help-section-title">${title}</h2>
@@ -909,16 +861,7 @@ function renderNetworkSVG(network, opts) {
   `;
 }
 
-/** Section 5: 探索工作——v4.4.0 Relational Pulse（关系脉动）
- *  设计理念：把支部关系网络想象成有生命的有机体——节点呼吸，边上脉搏流动。
- *  滚动时关系图演化：过去阶段淡入背景，当前阶段满色脉动，未来阶段几乎不可见。
- *  - "双列 sticky" = 左侧大关系图 sticky 钉住，右侧阶段说明滚动推进
- *  - "节点呼吸" = current 状态节点 r 在 40↔42 间缓慢循环（CSS animation 控制 SVG r 属性）
- *  - "三态演化" = past（灰化淡出）/ current（满色+呼吸）/ future（极淡）
- *  - algorithmic-art 哲学：关系网络是"活的"——信息和任务在关系中流动，不是静态图
- *  - frontend-design 克制：一个 signature element（脉搏），其余克制——配色沿用 8 角色，
- *    字体 Noto Serif SC，结构即信息（图与文的对位）
- */
+/** Section 5: 探索工作——SVG 关系网络脉动（Living Constellation v5.2） */
 function renderExploration() {
   const scenes = [
     {
@@ -940,7 +883,6 @@ function renderExploration() {
   ];
 
   const scenesHTML = scenes.map(scene => {
-    // inline 模式渲染大关系图（含脉搏光点）
     const networkSVG = renderNetworkSVG(scene.network, {
       sectionClass: `help-exploration-network--${scene.id}`,
       inline: true,
@@ -979,7 +921,7 @@ function renderExploration() {
   }).join('');
 
   return `
-    <section id="exploration" class="help-section help-network-section help-exploration-section" data-reveal data-toc-id="exploration">
+    <section id="exploration" class="help-section help-network-section help-exploration-section" data-toc-id="exploration">
       <div class="help-section-inner">
         <h2 class="help-section-title">探索工作——谁在什么时候该去找谁？</h2>
         <p class="help-section-subtitle">活动与专班，两种探索方式——滚动看关系如何展开，每个阶段都是一次生动的脉动</p>
@@ -989,85 +931,122 @@ function renderExploration() {
   `;
 }
 
-/** Section 6: 和组织对话——行百里者半九十（四阶段环形循环） */
+/** Section 7: 和组织对话——行百里者半九十（竖向四步） */
 function renderDialogue() {
-  const cards = DIALOGUE_STAGES.map(s => `
-    <div class="help-dialogue-card help-dialogue-card--pos${s.no}" data-stagger tabindex="0">
-      <div class="help-dialogue-no">${s.no}</div>
-      <div class="help-dialogue-phase">${s.phase}</div>
-      <div class="help-dialogue-question">${s.question}</div>
-      <div class="help-dialogue-answer">${s.answer}</div>
-      <div class="help-dialogue-desc">${s.desc}</div>
+  const stepsHTML = DIALOGUE_STAGES.map(s => `
+    <div class="help-dialogue-step">
+      <div class="help-dialogue-step-no">${s.no}</div>
+      <div class="help-dialogue-step-body">
+        <div class="help-dialogue-step-phase">${s.phase}</div>
+        <div class="help-dialogue-step-question">${s.question}</div>
+        <div class="help-dialogue-step-answer">${s.answer}</div>
+        <div class="help-dialogue-step-desc">${s.desc}</div>
+      </div>
     </div>
   `).join('');
 
-  // 4 个 SVG 箭头（线+箭头头，精致统一，替代 CSS border 三角形）
-  const arrowSVG = icon('helpArrowRight', { size: 0, viewBox: '0 0 20 14', extra: ' aria-hidden="true"' });
-
   return `
-    <section id="dialogue" class="help-section help-dialogue-section" data-reveal data-toc-id="dialogue">
+    <section id="dialogue" class="help-section help-dialogue-section" data-toc-id="dialogue">
       <div class="help-section-inner">
+        <div class="help-dialogue-eyebrow">恢复对话能力</div>
         <h2 class="help-section-title">行百里者半九十</h2>
         <p class="help-section-subtitle">活动不是做了就行——必须和组织对话，在实践中持续改进</p>
-        <div class="help-dialogue-cycle">
-          ${icon('dialogueRing', { size: 0, viewBox: '0 0 100 100', className: 'help-dialogue-ring', stroke: 'none', fill: 'none', extra: ' preserveAspectRatio="none" aria-hidden="true"' })}
-          <div class="help-dialogue-flow">${cards}</div>
-          <div class="help-dialogue-arrow help-dialogue-arrow--01-02" aria-hidden="true">${arrowSVG}</div>
-          <div class="help-dialogue-arrow help-dialogue-arrow--02-03" aria-hidden="true">${arrowSVG}</div>
-          <div class="help-dialogue-arrow help-dialogue-arrow--03-04" aria-hidden="true">${arrowSVG}</div>
-          <div class="help-dialogue-arrow help-dialogue-arrow--04-01" aria-hidden="true">${arrowSVG}</div>
-        </div>
-        <div class="help-dialogue-foot">事前 → 事中 → 事后 → 下一次——循环往复，同志与组织在实践中不断改进</div>
+        <div class="help-dialogue-steps">${stepsHTML}</div>
+        <blockquote class="help-dialogue-coda" data-stagger>
+          党建和经管学科科研的交叉点在于恢复和马克思主义的对话能力，恢复理论研究和现实治理之间的对话能力。
+        </blockquote>
       </div>
     </section>
   `;
 }
 
-/** Section 7: 发展党员时间轴 */
-function renderDevelopment() {
-  const stages = DEVELOPMENT_STAGES.map(stage => `
-    <div class="help-stage-card" data-stage="${stage.id}" style="--stage-color:${stage.color};" data-stagger tabindex="0" role="button" aria-expanded="false" aria-label="阶段${stage.id}：${stage.name}">
-      <div class="help-stage-bar"></div>
-      <div class="help-stage-no">${stage.id}</div>
-      <div class="help-stage-name">${stage.name}</div>
-      <div class="help-stage-range-badge">步骤 ${stage.stepRange}</div>
-      <div class="help-stage-owner">${stage.owner}</div>
-      <div class="help-stage-summary">${stage.summary}</div>
-      <div class="help-stage-toggle">点击展开详情</div>
-    </div>
-  `).join('');
+/** Section 8: 收束——管理事，服务人（极简点题式） */
+function renderConclusion() {
+  return `
+    <section id="conclusion" class="help-section help-conclusion-section" data-toc-id="conclusion">
+      <div class="help-section-inner help-conclusion-inner">
+        <h2 class="help-conclusion-title">管理事，<br/>服务人</h2>
+        <p class="help-conclusion-lead" data-stagger>
+          党建与党务的统一主语，贯穿从入党申请人到正式党员的全路径。
+        </p>
+      </div>
+    </section>
+  `;
+}
 
-  const details = DEVELOPMENT_STAGES.map(stage => {
-    const steps = stage.steps.map(s => `
-      <div class="help-step-row">
-        <span class="help-step-no">${s.no}</span>
-        <span class="help-step-title">${s.title}</span>
-        <span class="help-step-owner">${s.owner}</span>
-        ${s.time ? `<span class="help-step-time">${s.time}</span>` : '<span class="help-step-time help-step-time--empty"></span>'}
-      </div>
-    `).join('');
-    return `
-      <div class="help-stage-detail" data-stage-detail="${stage.id}">
-        <div class="help-stage-detail-header" style="--stage-color:${stage.color};">
-          <span class="help-stage-detail-name">阶段 ${stage.id} · ${stage.name}</span>
-          <span class="help-stage-detail-range">步骤 ${stage.stepRange}</span>
+/** Section 3: 发展党员交替时间轴（13 关键节点，居中列 + 左右交替侧面板） */
+function renderDevelopment() {
+  // 阶段定义（4 阶段）
+  const STAGES = [
+    { key: 'applicant',    label: '入党申请人 → 入党积极分子', nos: [1,2,3,4,5] },
+    { key: 'activist',     label: '入党积极分子 → 发展对象',   nos: [6,7,8] },
+    { key: 'prospect',     label: '发展对象 → 预备党员',       nos: [9,10,11] },
+    { key: 'probationary', label: '预备党员 → 正式党员',       nos: [12,13] },
+  ];
+
+  const nodeMap = {};
+  DEVELOPMENT_TIMELINE.forEach(n => { nodeMap[n.no] = n; });
+
+  let html = '';
+
+  STAGES.forEach(stage => {
+    html += `<div class="help-tl-stage">${stage.label}</div>`;
+
+    stage.nos.forEach(no => {
+      const node = nodeMap[no];
+      if (!node) return;
+
+      const isDecision = node.isDecisionNode;
+      const isOdd = node.no % 2 === 1;
+
+      const dotClass = isDecision ? 'help-tl-dot--decision' : '';
+      const noClass = isDecision ? 'help-tl-no--decision' : '';
+
+      const leftContent = isOdd
+        ? `<div class="help-tl-detail" data-step="${node.no}">
+             <span class="help-tl-detail-article">${node.article}</span>
+             <span class="help-tl-detail-decision">${node.decisionMaker}</span>
+             <div class="help-tl-detail-text">${node.decisionDetail}</div>
+           </div>`
+        : (node.stickyNote
+            ? `<span class="help-tl-sticky${isDecision ? ' help-tl-sticky--decision' : ''}">${node.stickyNote}</span>`
+            : '');
+
+      const rightContent = isOdd
+        ? (node.stickyNote
+            ? `<span class="help-tl-sticky${isDecision ? ' help-tl-sticky--decision' : ''}">${node.stickyNote}</span>`
+            : '')
+        : `<div class="help-tl-detail" data-step="${node.no}">
+             <span class="help-tl-detail-article">${node.article}</span>
+             <span class="help-tl-detail-decision">${node.decisionMaker}</span>
+             <div class="help-tl-detail-text">${node.decisionDetail}</div>
+           </div>`;
+
+      html += `
+        <div class="help-tl-row${isDecision ? ' help-tl-row--decision' : ''}" data-step="${node.no}">
+          <div class="help-tl-side help-tl-side--left">${leftContent}</div>
+          <div class="help-tl-center">
+            <span class="help-tl-dot ${dotClass}"></span>
+            <span class="help-tl-no ${noClass}">${node.no}</span>
+            <span class="help-tl-title">${node.title}</span>
+            ${node.time && node.time !== '—' ? `<span class="help-tl-time">${node.time}</span>` : ''}
+          </div>
+          <div class="help-tl-side help-tl-side--right">${rightContent}</div>
         </div>
-        <div class="help-step-list">${steps}</div>
-      </div>
-    `;
-  }).join('');
+      `;
+    });
+  });
 
   return `
-    <section id="development" class="help-section help-development-section" data-reveal data-toc-id="development">
+    <section id="development" class="help-section help-development-section" data-toc-id="development">
       <div class="help-section-inner">
-        <h2 class="help-section-title">5 个阶段，25 个步骤</h2>
-        <p class="help-section-subtitle">身份阶段的演进——点击阶段卡片展开详情</p>
-        <div class="help-stage-grid">${stages}</div>
-        <div class="help-stage-detail-area" id="help-stage-detail-area">
-          <div class="help-stage-detail-placeholder">点击上方任意阶段，查看该阶段的具体步骤</div>
+        <h2 class="help-section-title">从入党申请人到正式党员</h2>
+        <p class="help-section-subtitle">依据《中国共产党发展党员工作细则（2026年）》</p>
+        <div class="help-timeline-legend">
+          <span class="help-timeline-legend-item"><span class="help-timeline-legend-dot"></span>普通节点</span>
+          <span class="help-timeline-legend-item help-timeline-legend-item--decision"><span class="help-timeline-legend-dot"></span>关键决策节点</span>
         </div>
-        <div class="help-stage-detail-templates" hidden>${details}</div>
-        <div class="help-development-coda">身份阶段的演进只是起点——支部如何考察每一位积极分子？</div>
+        <div class="help-timeline-alternating">${html}</div>
       </div>
     </section>
   `;
@@ -1075,7 +1054,6 @@ function renderDevelopment() {
 
 /** 固定小目录（桌面端右侧，移动端隐藏） */
 function renderTOC() {
-  // 右上角竖向圆点导航：7 个圆点对应 7 个 section，半透明、hover 显 tooltip
   const items = TOC_ITEMS.map(item => `
     <a href="#${item.id}" class="help-toc-dot-item" data-toc="${item.id}" aria-label="跳转到${item.label}">
       <span class="help-toc-dot-mark" aria-hidden="true"></span>
@@ -1111,13 +1089,14 @@ function renderHelpContent() {
   content.innerHTML = `
     ${safe('TOC', renderTOC)}
     ${safe('Hero', renderHero)}
-    ${safe('Development', renderDevelopment)}
-    ${safe('Review', renderReview)}
-    ${safe('Philosophy', renderPhilosophy)}
     ${safe('Cognition', renderCognition)}
+    ${safe('Development', renderDevelopment)}
+    ${safe('Philosophy', renderPhilosophy)}
+    ${safe('Review', renderReview)}
     ${safe('TwoWorks', renderTwoWorks)}
     ${safe('Exploration', renderExploration)}
     ${safe('Dialogue', renderDialogue)}
+    ${safe('Conclusion', renderConclusion)}
     <footer class="help-page-footer">
       <a href="${base}index.html" class="help-back-link">
         ${icon('arrowLeft', { size: 14 })}
@@ -1131,27 +1110,318 @@ function renderHelpContent() {
 //  交互逻辑
 // ════════════════════════════════════════════════════════════════
 
-/** 滚动触发淡入 + stagger 动画 */
-function bindScrollReveal() {
-  const sections = document.querySelectorAll('[data-reveal]');
-  if (!sections.length) return;
+/** 发展党员：时间轴手风琴展开/收起详情（GSAP 动画） */
+function bindTimelineToggle() {
+  const container = document.querySelector('.help-timeline-alternating');
+  if (!container) return;
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('is-revealed');
-        // 触发内部 stagger 元素
-        entry.target.querySelectorAll('[data-stagger]').forEach(el => {
-          const delay = el.dataset.staggerDelay || 0;
-          el.style.transitionDelay = `${delay}ms`;
-          el.style.animationDelay = `${delay}ms`;
+  const allDetails = container.querySelectorAll('.help-tl-detail');
+  if (allDetails.length > 0) {
+    gsap.set(allDetails, { autoAlpha: 0, height: 0 });
+  }
+
+  let currentExpanded = null;
+
+  container.querySelectorAll('.help-tl-row').forEach(row => {
+    const center = row.querySelector('.help-tl-center');
+    const detail = row.querySelector('.help-tl-detail');
+    if (!center || !detail) return;
+
+    center.style.cursor = 'pointer';
+
+    center.addEventListener('click', () => {
+      if (currentExpanded === row) {
+        gsap.to(detail, {
+          autoAlpha: 0,
+          height: 0,
+          duration: 0.3,
+          ease: 'power2.in',
+          overwrite: true,
         });
-        observer.unobserve(entry.target);
+        row.classList.remove('is-expanded');
+        currentExpanded = null;
+        return;
+      }
+
+      if (currentExpanded) {
+        const prevDetail = currentExpanded.querySelector('.help-tl-detail');
+        if (prevDetail) {
+          gsap.to(prevDetail, {
+            autoAlpha: 0,
+            height: 0,
+            duration: 0.25,
+            ease: 'power2.in',
+            overwrite: true,
+          });
+        }
+        currentExpanded.classList.remove('is-expanded');
+      }
+
+      row.classList.add('is-expanded');
+      gsap.to(detail, {
+        autoAlpha: 1,
+        height: 'auto',
+        duration: 0.4,
+        ease: 'power2.out',
+        overwrite: true,
+      });
+      currentExpanded = row;
+    });
+  });
+}
+
+/** 固定小目录：点击跳转 + 当前 section 高亮 */
+function bindTOC() {
+  const tocItems = document.querySelectorAll('.help-toc-dot-item');
+  const tocNav = document.querySelector('.help-toc-nav');
+  const sections = document.querySelectorAll('.help-section[data-toc-id]');
+  if (!tocItems.length || !sections.length) return;
+
+  tocItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = item.dataset.toc;
+      const target = document.getElementById(id);
+      if (target) {
+        const headerOffset = 64;
+        const top = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+        window.scrollTo({ top, behavior: 'smooth' });
       }
     });
-  }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+  });
+
+  if (tocNav) {
+    tocNav.addEventListener('mouseenter', () => tocNav.classList.add('is-hovered'));
+    tocNav.addEventListener('mouseleave', () => tocNav.classList.remove('is-hovered'));
+  }
+
+  let currentId = null;
+  const setActive = (id) => {
+    if (id === currentId) return;
+    currentId = id;
+    tocItems.forEach(item => {
+      item.classList.toggle('is-active', item.dataset.toc === id);
+    });
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    const visible = entries
+      .filter(e => e.isIntersecting)
+      .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+    if (visible.length > 0) {
+      setActive(visible[0].target.dataset.tocId);
+    }
+  }, { threshold: [0.15, 0.4, 0.6], rootMargin: '-15% 0px -55% 0px' });
 
   sections.forEach(s => observer.observe(s));
+
+  setActive('hero');
+}
+
+/** 全页面 GSAP 动画（ScrollTrigger + matchMedia 优雅降级） */
+function bindPageAnimations() {
+  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
+    document.querySelectorAll('.help-section').forEach(s => s.style.opacity = '1');
+    return;
+  }
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const mm = gsap.matchMedia();
+
+  // ── 标准动画 ──
+  mm.add('(prefers-reduced-motion: no-preference)', () => {
+
+    // Hero — 优雅入场
+    const heroTitle = document.querySelector('.help-hero-title');
+    const heroAccent = document.querySelector('.help-hero-accent-line');
+    const heroSubtitle = document.querySelector('.help-hero-subtitle');
+    if (heroTitle) {
+      gsap.from(heroTitle, { y: 60, autoAlpha: 0, duration: 0.8, ease: 'power3.out' });
+    }
+    if (heroAccent) {
+      gsap.from(heroAccent, { clipPath: 'inset(0 100% 0 0)', duration: 0.6, delay: 0.3, ease: 'power2.inOut' });
+    }
+    if (heroSubtitle) {
+      gsap.from(heroSubtitle, { y: 20, autoAlpha: 0, duration: 0.6, delay: 0.15, ease: 'power2.out' });
+    }
+
+    // Cognition
+    const cognitionSection = document.querySelector('.help-cognition-section');
+    if (cognitionSection) {
+      const cognitionEls = cognitionSection.querySelectorAll('.help-cognition-eyebrow, .help-cognition-title, .help-cognition-lead, .help-cognition-item, .help-cognition-dialogue');
+      if (cognitionEls.length) {
+        gsap.from(cognitionEls, {
+          autoAlpha: 0,
+          y: 30,
+          duration: 0.5,
+          stagger: 0.1,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: cognitionSection,
+            start: 'top 80%',
+            once: true,
+          },
+        });
+      }
+    }
+
+    // Development
+    bindDevelopmentEntranceAnimation();
+
+    // Philosophy
+    const philosophySection = document.querySelector('.help-philosophy-section');
+    if (philosophySection) {
+      const philosophyEls = philosophySection.querySelectorAll('.help-philosophy-title, .help-philosophy-lead, .help-philosophy-opp');
+      if (philosophyEls.length) {
+        gsap.from(philosophyEls, {
+          autoAlpha: 0,
+          y: 30,
+          duration: 0.5,
+          stagger: 0.1,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: philosophySection,
+            start: 'top 80%',
+            once: true,
+          },
+        });
+      }
+    }
+
+    // Review
+    const reviewSection = document.querySelector('.help-review-section');
+    if (reviewSection) {
+      const reviewEls = reviewSection.querySelectorAll('.help-section-title, .help-section-subtitle, .help-review-card');
+      if (reviewEls.length) {
+        gsap.from(reviewEls, {
+          autoAlpha: 0,
+          y: 30,
+          duration: 0.5,
+          stagger: 0.1,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: reviewSection,
+            start: 'top 80%',
+            once: true,
+          },
+        });
+      }
+    }
+
+    // Works
+    const worksSection = document.querySelector('.help-works-section');
+    if (worksSection) {
+      const worksEls = worksSection.querySelectorAll('.help-section-title, .help-section-subtitle, .help-works-col');
+      if (worksEls.length) {
+        gsap.from(worksEls, {
+          autoAlpha: 0,
+          y: 30,
+          duration: 0.5,
+          stagger: 0.1,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: worksSection,
+            start: 'top 80%',
+            once: true,
+          },
+        });
+      }
+    }
+
+    // Dialogue
+    const dialogueSection = document.querySelector('.help-dialogue-section');
+    if (dialogueSection) {
+      const dialogueEls = dialogueSection.querySelectorAll('.help-dialogue-eyebrow, .help-section-title, .help-section-subtitle, .help-dialogue-step, .help-dialogue-coda');
+      if (dialogueEls.length) {
+        gsap.from(dialogueEls, {
+          autoAlpha: 0,
+          y: 30,
+          duration: 0.5,
+          stagger: 0.1,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: dialogueSection,
+            start: 'top 80%',
+            once: true,
+          },
+        });
+      }
+    }
+
+    // Conclusion
+    const conclusionSection = document.querySelector('.help-conclusion-section');
+    if (conclusionSection) {
+      gsap.from(conclusionSection.children, {
+        scale: 0.9, opacity: 0, duration: 0.6, stagger: 0.15, ease: 'back.out(1.2)',
+        scrollTrigger: { trigger: '.help-conclusion-section', start: 'top 80%' }
+      });
+    }
+
+    return () => ScrollTrigger.getAll().forEach(t => t.kill());
+  });
+
+  // ── reduced-motion 降级 ──
+  mm.add('(prefers-reduced-motion: reduce)', () => {
+    gsap.set('.help-hero-title, .help-hero-subtitle, .help-hero-accent-line, .help-cognition-eyebrow, .help-cognition-title, .help-cognition-lead, .help-cognition-item, .help-cognition-dialogue, .help-philosophy-opp, .help-section-title, .help-section-subtitle, .help-review-card, .help-works-col, .help-dialogue-eyebrow, .help-dialogue-step, .help-dialogue-coda, .help-conclusion-section, .help-tl-row, .help-tl-stage', { autoAlpha: 1, y: 0, x: 0, scale: 1, clipPath: 'inset(0 0% 0 0)' });
+  });
+}
+
+/** Development 时间轴入场动画 */
+function bindDevelopmentEntranceAnimation() {
+  const section = document.querySelector('.help-development-section');
+  if (!section) return;
+  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+  gsap.registerPlugin(ScrollTrigger);
+
+  const mm = gsap.matchMedia();
+
+  mm.add('(prefers-reduced-motion: reduce)', () => {
+    gsap.set(section.querySelectorAll('.help-tl-row, .help-tl-stage'), { autoAlpha: 1, y: 0 });
+    return;
+  });
+
+  mm.add('(prefers-reduced-motion: no-preference)', () => {
+    const dividers = section.querySelectorAll('.help-tl-stage');
+
+    dividers.forEach((divider, stageIdx) => {
+      const stageRows = [];
+      let next = divider.nextElementSibling;
+      while (next && !next.classList.contains('help-tl-stage')) {
+        if (next.classList.contains('help-tl-row')) {
+          stageRows.push(next);
+        }
+        next = next.nextElementSibling;
+      }
+
+      gsap.from(divider, {
+        autoAlpha: 0,
+        scale: 0.9,
+        duration: 0.4,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: divider,
+          start: 'top 85%',
+          once: true,
+        },
+      });
+
+      if (stageRows.length) {
+        gsap.from(stageRows, {
+          autoAlpha: 0,
+          y: 40,
+          duration: 0.5,
+          stagger: 0.12,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: divider,
+            start: 'top 80%',
+            once: true,
+          },
+        });
+      }
+    });
+  });
 }
 
 /** SVG 关系网络 hover 交互：悬停节点高亮相关连线 */
@@ -1164,7 +1434,6 @@ function bindNetworkHover() {
     const tooltip = container.parentNode.querySelector('.help-network-tooltip');
     const nodeDataMap = {};
 
-    // 收集节点数据用于 tooltip
     svg.querySelectorAll('.help-node-svg').forEach(n => {
       const id = n.dataset.id;
       const circle = n.querySelector('.help-node-circle');
@@ -1210,7 +1479,6 @@ function bindNetworkHover() {
         <span class="help-tooltip-duty">${data.duty}</span>
       `;
       tooltip.classList.add('is-visible');
-      // 定位到节点上方
       const nodeRect = node.getBoundingClientRect();
       const wrapRect = container.parentNode.getBoundingClientRect();
       tooltip.style.left = (nodeRect.left - wrapRect.left + nodeRect.width / 2) + 'px';
@@ -1227,13 +1495,12 @@ function bindNetworkHover() {
       node.addEventListener('blur', reset);
     });
 
-    // 连线 hover 加粗 + tooltip 显示详情（回答"汇报什么？提交什么？"）
+    // 连线 hover
     edges.forEach(edge => {
       edge.addEventListener('mouseenter', (e) => {
         if (!svg.classList.contains('has-hover')) {
           edge.classList.add('hovered');
         }
-        // 显示连线 tooltip
         const detail = edge.dataset.detail;
         const label = edge.dataset.label;
         if (tooltip && detail) {
@@ -1256,116 +1523,6 @@ function bindNetworkHover() {
   });
 }
 
-/** 发展党员：阶段卡片点击展开 */
-function bindStageToggle() {
-  const content = document.getElementById('help-content');
-  if (!content) return;
-  const area = document.getElementById('help-stage-detail-area');
-  if (!area) return;
-
-  const activate = (stageId) => {
-    const stage = DEVELOPMENT_STAGES.find(s => s.id === stageId);
-    if (!stage) return;
-
-    const cards = content.querySelectorAll('.help-stage-card');
-    const current = content.querySelector(`.help-stage-card[data-stage="${stageId}"]`);
-    const isAlreadyActive = current?.classList.contains('active');
-
-    if (isAlreadyActive) {
-      // 折叠
-      cards.forEach(c => { c.classList.remove('active'); c.setAttribute('aria-expanded', 'false'); });
-      area.classList.remove('is-expanded');
-      area.style.maxHeight = area.scrollHeight + 'px';
-      requestAnimationFrame(() => { area.style.maxHeight = '0px'; });
-      return;
-    }
-
-    cards.forEach(c => { c.classList.toggle('active', Number(c.dataset.stage) === stageId); c.setAttribute('aria-expanded', String(Number(c.dataset.stage) === stageId)); });
-
-    const tpl = content.querySelector(`[data-stage-detail="${stageId}"]`);
-    const wasExpanded = area.classList.contains('is-expanded');
-    area.innerHTML = tpl ? tpl.innerHTML : '<div class="help-stage-detail-placeholder">暂无数据</div>';
-    area.classList.add('is-expanded');
-
-    if (!wasExpanded) {
-      area.style.maxHeight = '0px';
-      requestAnimationFrame(() => { area.style.maxHeight = area.scrollHeight + 'px'; });
-      const onEnd = (e) => {
-        if (e.propertyName === 'max-height') {
-          area.style.maxHeight = 'none';
-          area.removeEventListener('transitionend', onEnd);
-        }
-      };
-      area.addEventListener('transitionend', onEnd);
-    } else {
-      area.style.maxHeight = 'none';
-    }
-  };
-
-  content.addEventListener('click', e => {
-    const card = e.target.closest('.help-stage-card');
-    if (card) { activate(Number(card.dataset.stage)); return; }
-  });
-  content.addEventListener('keydown', e => {
-    if (e.key !== 'Enter' && e.key !== ' ') return;
-    const card = e.target.closest('.help-stage-card');
-    if (card) { e.preventDefault(); activate(Number(card.dataset.stage)); }
-  });
-}
-
-/** 固定小目录：点击跳转 + 当前 section 高亮 */
-function bindTOC() {
-  const tocItems = document.querySelectorAll('.help-toc-dot-item');
-  const tocNav = document.querySelector('.help-toc-nav');
-  const sections = document.querySelectorAll('.help-section[data-toc-id]');
-  if (!tocItems.length || !sections.length) return;
-
-  // 点击跳转（平滑滚动，考虑固定 header 高度）
-  tocItems.forEach(item => {
-    item.addEventListener('click', (e) => {
-      e.preventDefault();
-      const id = item.dataset.toc;
-      const target = document.getElementById(id);
-      if (target) {
-        const headerOffset = 64;
-        const top = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
-        window.scrollTo({ top, behavior: 'smooth' });
-      }
-    });
-  });
-
-  // hover 整体 nav 时提升不透明度
-  if (tocNav) {
-    tocNav.addEventListener('mouseenter', () => tocNav.classList.add('is-hovered'));
-    tocNav.addEventListener('mouseleave', () => tocNav.classList.remove('is-hovered'));
-  }
-
-  // 高亮当前 section（IntersectionObserver）
-  let currentId = null;
-  const setActive = (id) => {
-    if (id === currentId) return;
-    currentId = id;
-    tocItems.forEach(item => {
-      item.classList.toggle('is-active', item.dataset.toc === id);
-    });
-  };
-
-  const observer = new IntersectionObserver((entries) => {
-    // 取可视区内最靠上的 section 作为当前
-    const visible = entries
-      .filter(e => e.isIntersecting)
-      .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-    if (visible.length > 0) {
-      setActive(visible[0].target.dataset.tocId);
-    }
-  }, { threshold: [0.15, 0.4, 0.6], rootMargin: '-15% 0px -55% 0px' });
-
-  sections.forEach(s => observer.observe(s));
-
-  // 初始高亮 hero
-  setActive('hero');
-}
-
 /**
  * v5.2 行星大动画协调器
  * stage 驱动：仅在 stage 切换时调用 renderNetwork，CSS transition 负责动画
@@ -1376,7 +1533,6 @@ function bindExplorationScrollDriven() {
 
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // 初始化每个 scene
   const sceneData = [];
   scenes.forEach(scene => {
     const network = scene.dataset.scene === 'activity' ? ACTIVITY_NETWORK : TASKFORCE_NETWORK;
@@ -1388,7 +1544,7 @@ function bindExplorationScrollDriven() {
     sceneData.push({
       scene, network, stages, svg, stagesContainer,
       stageCount: stages.length,
-      currentRenderedStage: -1,  // 缓存：上次渲染的 stage
+      currentRenderedStage: -1,
     });
   });
 
@@ -1399,9 +1555,9 @@ function bindExplorationScrollDriven() {
     data.currentRenderedStage = 0;
   });
 
-  if (prefersReduced) return;  // reduced-motion 不绑定滚动驱动
+  if (prefersReduced) return;
 
-  // 滚动驱动：仅 stage 切换时重渲染
+  // 滚动驱动
   let ticking = false;
 
   const update = () => {
@@ -1413,14 +1569,11 @@ function bindExplorationScrollDriven() {
 
       const progress = computeScrollProgress(scrollTop, data.scene, data.stageCount);
 
-      // v5.2 核心改动：仅当 stage 切换时才重新渲染网络图
-      // CSS transition 负责所有视觉过渡（transform/opacity/filter/stroke-dashoffset）
       if (progress.stageIndex !== data.currentRenderedStage) {
         data.currentRenderedStage = progress.stageIndex;
         renderNetwork(data.svg, data.network, progress.stageIndex, data.stages);
       }
 
-      // 更新 stage 说明卡片状态（廉价操作，每帧更新无妨）
       const sceneStages = data.scene.querySelectorAll('.help-exploration-stage');
       sceneStages.forEach((s, i) => {
         if (i < progress.stageIndex) s.setAttribute('data-state', 'past');
@@ -1446,8 +1599,8 @@ function bindExplorationScrollDriven() {
 // ════════════════════════════════════════════════════════════════
 
 renderHelpContent();
-bindScrollReveal();
-bindNetworkHover();
-bindStageToggle();
+bindTimelineToggle();
 bindTOC();
+bindPageAnimations();
+bindNetworkHover();
 bindExplorationScrollDriven();

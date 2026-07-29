@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿---
+﻿﻿﻿﻿﻿﻿﻿---
 role: "[AI]"
 title: "系统快照"
 type: snapshot
@@ -105,8 +105,8 @@ GSM1921-SOP/
 | `workspace/leader.html` | 子页面 | 党建·党小组组长（活动写入+日历+组员管理） |
 | `workspace/organizer.html` | 子页面 | 党建·组织者（日历+任务查看） |
 | `workspace/deep.html` | 子页面 | 党建·深度参与者（日历+任务查看） |
-| `workspace/org.html` | 子页面 | 党建·组织委员（专班管理看板+追踪看板+搜索） |
-| `workspace/prop.html` | 子页面 | 党建·宣传委员（活动+专班看板+多维表格+转置切换+搜索筛选） |
+| `workspace/org.html` | 子页面 | 党建·组织委员（考察上传+专班管理+人才库） |
+| `workspace/prop.html` | 子页面 | 党建·宣传委员（宣传任务+活动与专班） |
 | `workspace/disc.html` | 子页面 | 党建·纪检委员（考勤+考察+活动监督+搜索筛选+只读模式） |
 | `workspace/visitor.html` | 子页面 | 党建·成员只读（活动动态+专班进展+考勤+日历/列表切换） |
 | `party/secretary.html` | 子页面 | 党务·党支书（全局聚合+意见反馈数据） |

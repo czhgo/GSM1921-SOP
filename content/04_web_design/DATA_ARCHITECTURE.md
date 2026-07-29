@@ -1,9 +1,9 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
 title: "数据架构设计"
 type: design
 role: "[工程师]+[AI]"
 version: "3.0"
-last_updated: "2026-07-20"
+last_updated: "2026-07-29"
 status: active
 merged_from: [content/design/DATA.md, content/design/PARTICIPANT_DATAFLOW.md, content/design/LOGIN_SYSTEM_DESIGN.md, content/design/BRAND_ACTIVITY.md]
 related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/MODULE_UI_DESIGN.md, content/04_web_design/DESIGN_SYSTEM.md]
@@ -756,7 +756,22 @@ assignedRoles: Array<{
 - SANDBOX 清理：`loadDB()` 在 SANDBOX 模式下不仅清理全量键，还清理旧版独立键（兼容性清理），确保无残留
 - 容错：JSON 解析失败 / quota exceeded 均静默处理，不中断用户操作
 
-### 4.3 数据写入模式
+### 4.3 数据源使用边界（D-248）
+
+> **问题背景**：此前全仓库存在 28 处直接使用静态 `ACTIVITIES`（来自 mock/index.js）而非 `mockDB.activities` 的引用，导致跨页面/跨视图数据不一致。D-248 数据统一修复已将所有非 fallback 引用替换为 `mockDB.activities`。
+
+**三条使用规则：**
+
+| 场景 | 应使用 | 禁止使用 | 原因 |
+|------|--------|----------|------|
+| 组件渲染（下拉框、查找、筛选） | `mockDB.activities` 或 `getAppState().activities` | `ACTIVITIES` | mockDB 是运行时数据源，ACTIVITIES 是静态初始数据 |
+| 数据加载 fallback | `fallbackData: () => ACTIVITIES` | — | 仅在 BranchService 失败时作为安全网，已禁用 _maybeError（D-248），极少触发 |
+| Mock 数据生成（seed 阶段） | `ACTIVITIES` | — | mock/index.js 中 `_activityTitle`/`_activityType` 辅助函数在 seed 阶段使用静态数据，正确 |
+| 服务层查找 | `mockDB.activities` | `ACTIVITIES` | auth.js/makeup.js/party.js 等服务层应读取运行时数据 |
+
+**已禁用 `_maybeError` 随机错误模拟**（D-248）：原设计 10% 错误率触发 fallback 返回静态 ACTIVITIES，导致跨页面数据漂移。后端接入后真实错误由后端返回。
+
+### 4.4 数据写入模式
 
 > 实现细节见 `docs/src/` 对应文件（`services/mock.js`、`core/state.js`、`entries/main-entry.js`）。
 > 写入数据验证设计见 §2.17。

@@ -59,9 +59,9 @@ function _renderTab(tab) {
       <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#B91C1C;">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">意见反馈数据集</h4>
         <div class="grid grid-cols-3 gap-3 mb-4">
-          <div class="text-center p-3 rounded-lg bg-orange-50"><p class="text-lg font-bold text-orange-600" id="sec-fb-pending">—</p><p class="text-[10px] text-gray-500">待处理</p></div>
-          <div class="text-center p-3 rounded-lg bg-blue-50"><p class="text-lg font-bold text-blue-600" id="sec-fb-processing">—</p><p class="text-[10px] text-gray-500">处理中</p></div>
-          <div class="text-center p-3 rounded-lg bg-green-50"><p class="text-lg font-bold text-green-600" id="sec-fb-done">—</p><p class="text-[10px] text-gray-500">已完成</p></div>
+          <div class="text-center p-3 rounded-lg"><p class="text-lg font-bold text-orange-600" id="sec-fb-pending">—</p><p class="text-[10px] text-gray-500">待处理</p></div>
+          <div class="text-center p-3 rounded-lg"><p class="text-lg font-bold text-blue-600" id="sec-fb-processing">—</p><p class="text-[10px] text-gray-500">处理中</p></div>
+          <div class="text-center p-3 rounded-lg"><p class="text-lg font-bold text-green-600" id="sec-fb-done">—</p><p class="text-[10px] text-gray-500">已完成</p></div>
         </div>
         <div id="sec-feedback-list"><p class="text-xs text-gray-400">数据加载中...</p></div>
       </div>

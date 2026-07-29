@@ -1,4 +1,4 @@
-﻿import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
+import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
 import { BranchService } from '../services/runtime.js';
 import { _fmtDate, showToast, _currentYearMonth } from '../core/utils.js';
 import { populateMonthSelector, renderCalendarByActivities } from '../components/calendar.js';
@@ -7,6 +7,7 @@ import { computeSecretaryStats } from '../services/roles.js';
 import { AuthStore } from '../services/auth.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { ACTIVITIES, MOCK_TASKFORCES, getPersonById } from '../mock/index.js';
+import { mockDB } from '../core/domain.js';
 import { ROLE_LABELS } from '../core/constants.js';
 import { PersonPicker } from '../components/person-picker.js';
 import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js';
@@ -140,7 +141,7 @@ function renderSecretaryUI(state) {
       filters: [{ key: 'type', label: '活动类型', options: typeOptions }],
       data: displayActivities,
       renderRow: (a) => `
-        <div class="flex items-center justify-between p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
+        <div class="flex items-center justify-between p-3 rounded-xl bg-white transition-colors">
           <div class="flex-1 min-w-0">
             <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
             <div class="text-xs text-gray-500 mt-0.5">${a.date || ''}${a.type ? ' · ' + a.type : ''}</div>
@@ -164,8 +165,8 @@ function renderSecretaryUI(state) {
   const assignArea = document.getElementById('assign-area');
   if (assignArea && assignArea.childElementCount === 0) {
     assignArea.innerHTML = `
-      <p class="text-xs text-gray-500 mb-3">书记可对活动进行赋权操作，将活动分配给对应角色</p>
-      <button id="ws-sec-assign-btn" class="text-sm px-4 py-2 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors">赋权管理</button>
+      <p class="text-xs text-gray-500 mb-3">设党小组组长——角色指派靠口头/群聊，系统内设+记录可追溯</p>
+      <button id="ws-sec-assign-btn" class="text-sm px-4 py-2 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors">设党小组组长</button>
     `;
     assignArea.querySelector('#ws-sec-assign-btn')?.addEventListener('click', () => {
       toggleAuthPanel(assignArea);
@@ -199,7 +200,7 @@ function renderWritePanel(container) {
 
   // 已选路径摘要（step > 1 时显示）
   if (wp.step > 1) {
-    html += `<div class="mb-4 px-3 py-2 rounded-lg bg-gray-100 border border-gray-100">`;
+    html += `<div class="mb-4 px-3 py-2 rounded-lg">`;
     html += `<p class="text-xs text-gray-500 mb-0.5">已选路径</p>`;
     html += `<p class="text-sm font-medium text-gray-700">${wp.getSelectionPath()}</p>`;
     html += `</div>`;
@@ -259,7 +260,7 @@ function renderStepL1() {
     const isExpanded = isSelected && opt.hasSub;
 
     html += `<div class="mb-2">`;
-    html += `<button data-action="select-L1" data-value="${opt.value}" class="w-full text-left bg-white rounded-xl p-4 transition-all ${isSelected ? 'ring-2 ring-red-200 bg-red-50/50' : 'hover:bg-gray-50'}">`;
+    html += `<button data-action="select-L1" data-value="${opt.value}" class="w-full text-left rounded-xl p-4 transition-all ${isSelected ? 'ring-2 ring-red-200' : ''}">`;
     html += `<div class="flex items-center justify-between">`;
     html += `<div class="flex items-center gap-3">`;
     html += `<div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:${opt.iconBg};">`;
@@ -279,7 +280,7 @@ function renderStepL1() {
       html += `<div class="ml-6 mt-2 flex flex-wrap gap-2">`;
       subs.forEach(sub => {
         const isSubSelected = wp.selections.L1Sub === sub.value;
-        html += `<button data-action="select-L1Sub" data-value="${sub.value}" class="text-sm px-4 py-2 rounded-lg transition-all ${isSubSelected ? 'bg-red-50 text-red-600 border border-red-200 font-medium' : 'bg-white text-gray-600 border border-gray-200 hover:border-red-200 hover:text-red-500'}">${sub.label}</button>`;
+        html += `<button data-action="select-L1Sub" data-value="${sub.value}" class="text-sm px-4 py-2 rounded-lg transition-all ${isSubSelected ? 'text-red-600 border border-red-200 font-medium' : 'text-gray-600 border border-gray-200 hover:border-red-200 hover:text-red-500'}">${sub.label}</button>`;
       });
       html += `</div>`;
     }
@@ -303,8 +304,8 @@ function renderStepL2() {
       ? `text-sm px-4 py-2 rounded-lg font-medium transition-all`
       : `text-sm px-4 py-2 rounded-lg transition-all`;
     const style = isSelected
-      ? `background:${opt.bg};color:${opt.color};border:1px solid ${opt.border};`
-      : `background:white;color:#4B5563;border:1px solid #E5E7EB;`;
+      ? `color:${opt.color};border:1px solid ${opt.border};`
+      : `color:#4B5563;border:1px solid #E5E7EB;`;
     html += `<button data-action="select-L2" data-value="${opt.value}" class="${cls}" style="${style}">${opt.label}</button>`;
   });
   html += `</div>`;
@@ -319,7 +320,7 @@ function renderStepL3() {
   html += `<div class="flex gap-3">`;
   DECISION_TREE.L3.forEach(opt => {
     const isSelected = wp.selections.L3 === opt.value;
-    html += `<button data-action="select-L3" data-value="${opt.value}" class="flex-1 text-left bg-white rounded-xl p-4 transition-all ${isSelected ? 'ring-2 ring-red-200 bg-red-50/50' : 'hover:bg-gray-50'}">`;
+    html += `<button data-action="select-L3" data-value="${opt.value}" class="flex-1 text-left rounded-xl p-4 transition-all ${isSelected ? 'ring-2 ring-red-200' : ''}">`;
     html += `<p class="text-sm font-medium ${isSelected ? 'text-red-700' : 'text-gray-700'}">${opt.label}</p>`;
     html += `<p class="text-xs text-gray-400 mt-1">${opt.desc}</p>`;
     html += `</button>`;
@@ -336,7 +337,7 @@ function renderStepL4() {
   html += `<div class="flex gap-3">`;
   DECISION_TREE.L4.forEach(opt => {
     const isSelected = wp.selections.L4 === opt.value;
-    html += `<button data-action="select-L4" data-value="${opt.value}" class="flex-1 text-left bg-white rounded-xl p-4 transition-all ${isSelected ? 'ring-2 ring-red-200 bg-red-50/50' : 'hover:bg-gray-50'}">`;
+    html += `<button data-action="select-L4" data-value="${opt.value}" class="flex-1 text-left rounded-xl p-4 transition-all ${isSelected ? 'ring-2 ring-red-200' : ''}">`;
     html += `<p class="text-sm font-medium ${isSelected ? 'text-red-700' : 'text-gray-700'}">${opt.label}</p>`;
     html += `<p class="text-xs text-gray-400 mt-1">${opt.desc}</p>`;
     html += `</button>`;
@@ -354,7 +355,7 @@ function renderStepForm() {
   let html = `<div>`;
   // SOP 场景提示
   if (scenarioTitle) {
-    html += `<div class="mb-4 px-3 py-2 rounded-lg bg-blue-50 border border-blue-100">`;
+    html += `<div class="mb-4 px-3 py-2 rounded-lg">`;
     html += `<p class="text-xs text-blue-600 font-medium">SOP 场景：${scenarioTitle}</p>`;
     html += `<p class="text-xs text-blue-400 mt-0.5">写入后将自动生成对应任务节点</p>`;
     html += `</div>`;
@@ -365,13 +366,13 @@ function renderStepForm() {
   // T-0 日期（必填）
   html += `<div>`;
   html += `<label class="text-xs text-gray-500 mb-1 block">T-0 日期 <span class="text-red-500">*</span></label>`;
-  html += `<input type="date" id="wp-date" value="${today}" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:border-red-300 focus:ring-1 focus:ring-red-200 outline-none transition-all">`;
+  html += `<input type="date" id="wp-date" value="${today}" class="input-flat w-full">`;
   html += `</div>`;
 
   // 活动地点（必填）
   html += `<div>`;
   html += `<label class="text-xs text-gray-500 mb-1 block">活动地点 <span class="text-red-500">*</span></label>`;
-  html += `<input type="text" id="wp-location" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:border-red-300 focus:ring-1 focus:ring-red-200 outline-none transition-all" placeholder="活动地点">`;
+  html += `<input type="text" id="wp-location" class="input-flat w-full" placeholder="活动地点">`;
   html += `</div>`;
 
   html += `</div>`;
@@ -379,13 +380,13 @@ function renderStepForm() {
   // 活动名称（必填）
   html += `<div class="mb-4">`;
   html += `<label class="text-xs text-gray-500 mb-1 block">活动名称 <span class="text-red-500">*</span></label>`;
-  html += `<input type="text" id="wp-title" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:border-red-300 focus:ring-1 focus:ring-red-200 outline-none transition-all" placeholder="活动名称">`;
+  html += `<input type="text" id="wp-title" class="input-flat w-full" placeholder="活动名称">`;
   html += `</div>`;
 
   // 活动描述（选填）
   html += `<div class="mb-5">`;
   html += `<label class="text-xs text-gray-500 mb-1 block">活动描述 <span class="text-gray-300">（选填）</span></label>`;
-  html += `<textarea id="wp-desc" rows="3" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:border-red-300 focus:ring-1 focus:ring-red-200 outline-none transition-all resize-none" placeholder="简要描述活动内容、目标等"></textarea>`;
+  html += `<textarea id="wp-desc" rows="3" class="input-flat w-full" placeholder="简要描述活动内容、目标等"></textarea>`;
   html += `</div>`;
 
   // 写入按钮
@@ -569,32 +570,21 @@ async function handleSubmitActivity() {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  赋权管理面板 → P0-4
-//  功能：PersonPicker 选择人员 → 角色选择 → 范围选择 → 关联选择 → 确认赋权
-//  赋权记录列表：展示当前所有赋权记录，支持撤销
+//  常设赋权面板
+//  功能：设党小组组长 — 选择人员 → 选择党小组 → 确认赋权
+//  当前党小组组长列表（只读）
 // ════════════════════════════════════════════════════════════════
 
-/** 赋权面板状态*/
+/** 赋权面板状态 */
 const authPanel = {
   open: false,
   selectedPersonId: null,
-  role: null,        // 'organizer' | 'deep'
-  scope: null,       // 'activity' | 'taskforce'
-  scopeRef: null,    // 关联活动/专班 ID
+  selectedGroup: null,
   personPicker: null,
 };
 
-/** 可赋权角色选项 */
-const AUTH_ROLE_OPTIONS = [
-  { value: 'organizer', label: '组织者', desc: '负责活动/专班的策划与执行统筹', color: '#7DD3FC', bg: 'rgba(125,211,252,0.08)', border: 'rgba(125,211,252,0.25)' },
-  { value: 'deep', label: '深度参与者', desc: '承担具体工作任务的骨干成员', color: '#94a3b8', bg: 'rgba(148,163,184,0.08)', border: 'rgba(148,163,184,0.25)' },
-];
-
-/** 赋权范围选项 */
-const AUTH_SCOPE_OPTIONS = [
-  { value: 'activity', label: '活动', desc: '赋权范围覆盖指定活动', color: '#0E7490' },
-  { value: 'taskforce', label: '专班', desc: '赋权范围覆盖指定专班', color: '#B45309' },
-];
+/** 党小组列表 */
+const PARTY_GROUPS = ['第一党小组', '第二党小组', '第三党小组'];
 
 /** 切换赋权面板展开/收起 */
 function toggleAuthPanel(assignArea) {
@@ -604,10 +594,9 @@ function toggleAuthPanel(assignArea) {
     if (btn) btn.textContent = '收起面板';
     renderAuthPanel(assignArea);
   } else {
-    if (btn) btn.textContent = '赋权管理';
+    if (btn) btn.textContent = '设党小组组长';
     const panel = document.getElementById('auth-panel-container');
     if (panel) panel.remove();
-    // 销毁 PersonPicker
     if (authPanel.personPicker) {
       authPanel.personPicker.destroy();
       authPanel.personPicker = null;
@@ -615,264 +604,165 @@ function toggleAuthPanel(assignArea) {
   }
 }
 
-/** 渲染赋权管理面板 */
+/** 渲染常设赋权面板 */
 function renderAuthPanel(assignArea) {
-  // 移除旧面板
   const oldPanel = document.getElementById('auth-panel-container');
   if (oldPanel) oldPanel.remove();
 
   const panel = document.createElement('div');
   panel.id = 'auth-panel-container';
-  panel.className = 'bg-gray-100 rounded-xl p-6 mt-4 border border-gray-100';
+  panel.className = 'rounded-xl p-6 mt-4 bg-white';
 
-  // ── 赋权表单 ──
   let html = '';
 
   // 1. 人员选择
   html += `<div class="mb-4">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">选择被赋权同志<span class="text-red-500">*</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">选择同志 <span class="text-red-500">*</span></label>`;
   html += `<div id="auth-person-picker-slot"></div>`;
   html += `</div>`;
 
-  // 2. 角色选择
-  html += `<div class="mb-4">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">赋权角色 <span class="text-red-500">*</span></label>`;
-  html += `<div class="flex gap-3">`;
-  AUTH_ROLE_OPTIONS.forEach(opt => {
-    const isSelected = authPanel.role === opt.value;
-    html += `<button data-auth-action="select-role" data-value="${opt.value}" class="flex-1 text-left bg-white rounded-xl p-3 transition-all ${isSelected ? 'ring-2 ring-red-200 bg-red-50/50' : 'hover:bg-gray-50'}">`;
-    html += `<p class="text-sm font-medium ${isSelected ? 'text-red-700' : 'text-gray-700'}">${opt.label}</p>`;
-    html += `<p class="text-xs text-gray-400 mt-0.5">${opt.desc}</p>`;
-    html += `</button>`;
+  // 2. 党小组选择
+  html += `<div class="mb-5">`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">指定为党小组组长 <span class="text-red-500">*</span></label>`;
+  html += `<div class="flex gap-2">`;
+  PARTY_GROUPS.forEach(group => {
+    const isSelected = authPanel.selectedGroup === group;
+    const cls = isSelected
+      ? 'text-sm px-4 py-2 rounded-lg font-medium border border-red-200 text-red-700 bg-red-50'
+      : 'text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-red-200 hover:text-red-500';
+    html += `<button data-auth-action="select-group" data-value="${group}" class="${cls}">${group}</button>`;
   });
   html += `</div>`;
   html += `</div>`;
 
-  // 3. 赋权范围
-  html += `<div class="mb-4">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">赋权范围 <span class="text-red-500">*</span></label>`;
-  html += `<div class="flex gap-3">`;
-  AUTH_SCOPE_OPTIONS.forEach(opt => {
-    const isSelected = authPanel.scope === opt.value;
-    html += `<button data-auth-action="select-scope" data-value="${opt.value}" class="flex-1 text-left bg-white rounded-xl p-3 transition-all ${isSelected ? 'ring-2 ring-red-200 bg-red-50/50' : 'hover:bg-gray-50'}">`;
-    html += `<p class="text-sm font-medium ${isSelected ? 'text-red-700' : 'text-gray-700'}">${opt.label}</p>`;
-    html += `<p class="text-xs text-gray-400 mt-0.5">${opt.desc}</p>`;
-    html += `</button>`;
-  });
-  html += `</div>`;
-  html += `</div>`;
+  // 3. 确认按钮
+  html += `<button data-auth-action="confirm" class="text-sm px-5 py-2.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium">确认设为党小组组长</button>`;
 
-  // 4. 关联活动/专班选择器（根据 scope 动态渲染）
-  if (authPanel.scope === 'activity') {
-    html += `<div class="mb-4">`;
-    html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">关联活动 <span class="text-red-500">*</span></label>`;
-    html += `<select id="auth-scope-ref" class="input-flat text-xs w-full">`;
-    html += `<option value="">请选择活动</option>`;
-    ACTIVITIES.forEach(a => {
-      const selected = authPanel.scopeRef === a.id ? ' selected' : '';
-      html += `<option value="${a.id}"${selected}>${a.title}（${a.date}）</option>`;
-    });
-    html += `</select>`;
-    html += `</div>`;
-  } else if (authPanel.scope === 'taskforce') {
-    html += `<div class="mb-4">`;
-    html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">关联专班 <span class="text-red-500">*</span></label>`;
-    html += `<select id="auth-scope-ref" class="input-flat text-xs w-full">`;
-    html += `<option value="">请选择专班</option>`;
-    MOCK_TASKFORCES.forEach(tf => {
-      const selected = authPanel.scopeRef === tf.id ? ' selected' : '';
-      html += `<option value="${tf.id}"${selected}>${tf.name}（${tf.status}）</option>`;
-    });
-    html += `</select>`;
-    html += `</div>`;
-  }
-
-  // 5. 确认赋权按钮
-  html += `<button data-auth-action="confirm" class="text-sm px-5 py-2.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium">确认赋权</button>`;
-
-  // ── 分隔线──
+  // ── 分隔线 ──
   html += `<div class="border-t border-gray-100 mt-6 pt-4">`;
-  html += `<h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">赋权记录</h4>`;
+  html += `<h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">当前党小组组长</h4>`;
   html += `<div id="auth-records-list"></div>`;
   html += `</div>`;
 
   panel.innerHTML = html;
   assignArea.appendChild(panel);
 
-  // ── 初始化 PersonPicker ──
+  // 初始化 PersonPicker
   const pickerSlot = document.getElementById('auth-person-picker-slot');
   if (pickerSlot) {
-    // 销毁旧实例
-    if (authPanel.personPicker) {
-      authPanel.personPicker.destroy();
-    }
+    if (authPanel.personPicker) authPanel.personPicker.destroy();
     authPanel.personPicker = new PersonPicker({
       mode: 'single',
-      placeholder: '选择被赋权同志',
+      placeholder: '选择同志',
       accentColor: '#B91C1C',
       onSelect: (ids) => {
         authPanel.selectedPersonId = ids[0] || null;
       },
     });
-    // 如果已有选中，恢复
     if (authPanel.selectedPersonId) {
       authPanel.personPicker.setSelected([authPanel.selectedPersonId]);
     }
     authPanel.personPicker.render(pickerSlot);
   }
 
-  // ── 绑定事件 ──
+  // 绑定事件
   panel.querySelectorAll('[data-auth-action]').forEach(el => {
     el.addEventListener('click', handleAuthAction);
   });
 
-  // scope-ref select 变更
-  const scopeRefSelect = document.getElementById('auth-scope-ref');
-  if (scopeRefSelect) {
-    scopeRefSelect.addEventListener('change', (e) => {
-      authPanel.scopeRef = e.target.value || null;
-    });
-  }
-
-  // ── 渲染赋权记录列表 ──
   renderAuthRecords();
 }
 
-/** 处理赋权面板操作 */
+/** 处理常设赋权面板操作 */
 function handleAuthAction(e) {
   const btn = e.currentTarget;
   const action = btn.dataset.authAction;
 
   switch (action) {
-    case 'select-role': {
-      authPanel.role = btn.dataset.value;
-      break;
-    }
-    case 'select-scope': {
-      const newScope = btn.dataset.value;
-      if (authPanel.scope !== newScope) {
-        authPanel.scope = newScope;
-        authPanel.scopeRef = null; // 切换范围时清空关联选择
-      }
+    case 'select-group': {
+      authPanel.selectedGroup = btn.dataset.value;
       break;
     }
     case 'confirm': {
-      handleConfirmAuth();
-      return; // 不重新渲染面板
+      handleConfirmLeader();
+      return;
     }
     default:
       return;
   }
 
-  // 重新渲染面板（保留状态）
   const assignArea = document.getElementById('assign-area');
   if (assignArea) renderAuthPanel(assignArea);
 }
 
-/** 确认赋权 */
-function handleConfirmAuth() {
-  // 读取 scopeRef（从 select 中获取最新值）
-  const scopeRefEl = document.getElementById('auth-scope-ref');
-  if (scopeRefEl) authPanel.scopeRef = scopeRefEl.value || null;
-
-  // 校验
+/** 确认设为党小组组长 */
+function handleConfirmLeader() {
   if (!authPanel.selectedPersonId) {
-    showToast('error', '请选择被赋权同志');
+    showToast('error', '请选择同志');
     return;
   }
-  if (!authPanel.role) {
-    showToast('error', '请选择赋权角色');
-    return;
-  }
-  if (!authPanel.scope) {
-    showToast('error', '请选择赋权范围');
-    return;
-  }
-  if (!authPanel.scopeRef) {
-    const scopeLabel = authPanel.scope === 'activity' ? '活动' : '专班';
-    showToast('error', `请选择关联${scopeLabel}`);
+  if (!authPanel.selectedGroup) {
+    showToast('error', '请选择党小组');
     return;
   }
 
-  // 调用 AuthStore
+  // 调用 AuthStore，role='leader', scope='group', scopeRef=党小组名
   const result = AuthStore.authorize(
     AuthStore.getCurrentUser()?.personId,
     authPanel.selectedPersonId,
-    authPanel.role,
-    { projectId: authPanel.scopeRef },
+    'leader',
+    { projectId: authPanel.selectedGroup },
   );
 
   if (result.ok) {
     const person = getPersonById(authPanel.selectedPersonId);
     const personName = person ? person.name : authPanel.selectedPersonId;
-    const roleLabel = ROLE_LABELS[authPanel.role] || authPanel.role;
-    showToast('success', `已为 ${personName} 赋予 ${roleLabel} 角色`);
+    showToast('success', `已将 ${personName} 设为 ${authPanel.selectedGroup} 组长`);
 
-    // 重置表单（保留面板打开）
     authPanel.selectedPersonId = null;
-    authPanel.role = null;
-    authPanel.scope = null;
-    authPanel.scopeRef = null;
+    authPanel.selectedGroup = null;
 
-    // 重新渲染面板
     const assignArea = document.getElementById('assign-area');
     if (assignArea) renderAuthPanel(assignArea);
   } else {
     if (result.id) {
-      showToast('warn', '该同志在此范围已有相同角色赋权');
+      showToast('warn', '该同志已是该党小组组长');
     } else {
-      showToast('error', '赋权失败，请检查参数');
+      showToast('error', '设置失败，请检查参数');
     }
   }
 }
 
-/** 渲染赋权记录列表 */
+/** 渲染当前党小组组长列表 */
 function renderAuthRecords() {
   const listEl = document.getElementById('auth-records-list');
   if (!listEl) return;
 
-  const records = AuthStore.getAuthorizations();
+  const allRecords = AuthStore.getAuthorizations();
+  const leaderRecords = allRecords.filter(r => r.role === 'leader');
 
-  if (records.length === 0) {
-    listEl.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">暂无赋权记录</p>`;
+  if (leaderRecords.length === 0) {
+    listEl.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">暂无党小组组长记录</p>`;
     return;
   }
 
-  listEl.innerHTML = records.map(record => {
+  listEl.innerHTML = leaderRecords.map(record => {
     const person = getPersonById(record.targetPersonId);
     const personName = person ? person.name : record.targetPersonId;
-    const roleLabel = ROLE_LABELS[record.role] || record.role;
-    const scopeLabel = record.scope === 'activity' ? '活动' : '专班';
-
-    // 关联对象名称
-    let scopeRefName = '';
-    if (record.scope === 'activity') {
-      const act = ACTIVITIES.find(a => a.id === record.scopeRef);
-      scopeRefName = act ? act.title : record.scopeRef || '未关联';
-    } else if (record.scope === 'taskforce') {
-      const tf = MOCK_TASKFORCES.find(t => t.id === record.scopeRef);
-      scopeRefName = tf ? tf.name : record.scopeRef || '未关联';
-    }
-
-    // 角色颜色
-    const roleOpt = AUTH_ROLE_OPTIONS.find(o => o.value === record.role);
-    const roleColor = roleOpt ? roleOpt.color : '#6B7280';
-    const roleBg = roleOpt ? roleOpt.bg : 'rgba(107,114,128,0.08)';
-    const roleBorder = roleOpt ? roleOpt.border : 'rgba(107,114,128,0.20)';
+    const groupName = record.scopeRef || '未指定';
 
     return `
-      <div class="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors group" data-record-id="${record.id}">
+      <div class="flex items-center justify-between py-2.5 px-3 rounded-lg bg-white transition-colors group" data-record-id="${record.id}">
         <div class="flex items-center gap-3 min-w-0 flex-1">
-          <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-gray-100 text-gray-600 text-xs font-bold">
+          <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-red-50 text-red-700 text-xs font-bold">
             ${personName.charAt(0)}
           </div>
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2 flex-wrap">
               <span class="text-sm font-medium text-gray-700">${personName}</span>
-              <span class="text-xs font-medium px-1.5 py-0.5 rounded" style="background:${roleBg};color:${roleColor};border:1px solid ${roleBorder};">${roleLabel}</span>
-              <span class="text-[11px] text-gray-400">${scopeLabel}</span>
+              <span class="text-xs font-medium px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">党小组组长</span>
             </div>
-            <p class="text-xs text-gray-400 mt-0.5 truncate">${scopeRefName} · ${record.authorizedAt}</p>
+            <p class="text-xs text-gray-400 mt-0.5">${groupName} · ${record.authorizedAt}</p>
           </div>
         </div>
         <button data-auth-action="revoke" data-record-id="${record.id}" class="text-xs text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-2 py-1 rounded hover:bg-red-50">
@@ -882,13 +772,12 @@ function renderAuthRecords() {
     `;
   }).join('');
 
-  // 绑定撤销事件
   listEl.querySelectorAll('[data-auth-action="revoke"]').forEach(btn => {
     btn.addEventListener('click', () => {
       const recordId = btn.dataset.recordId;
       const success = AuthStore.revokeAuthorization(recordId);
       if (success) {
-        showToast('success', '已撤销赋权');
+        showToast('success', '已撤销党小组组长');
         renderAuthRecords();
       } else {
         showToast('error', '撤销失败');
@@ -923,7 +812,7 @@ function renderIssueManagement() {
       listEl.innerHTML = '<p class="text-xs text-gray-400">暂无 issue</p>';
     } else {
       listEl.innerHTML = issues.map(i => `
-        <div class="p-2 rounded-lg border border-gray-100 hover:bg-gray-50">
+        <div class="p-2 rounded-lg bg-white">
           <div class="flex items-center justify-between">
             <span class="text-xs text-gray-400 font-mono">#${i.number}</span>
             <span class="text-[10px] px-1.5 py-0.5 rounded-full ${i.status === 'open' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}">${i.status}</span>
@@ -959,7 +848,7 @@ function renderDraftRow(d) {
   if (d.type === 'new-issue') {
     const p = d.payload;
     return `
-      <div class="p-3 rounded-lg bg-orange-50 border border-orange-200" data-draft-id="${d.draftId}">
+      <div class="p-3 rounded-lg bg-white border border-orange-200" data-draft-id="${d.draftId}">
         <div class="flex items-center justify-between mb-1">
           <span class="text-[10px] text-orange-700 font-medium">新建 issue 草稿</span>
           <span class="text-[10px] text-gray-500">${d.author} · ${d.createdAt}</span>
@@ -975,7 +864,7 @@ function renderDraftRow(d) {
   }
   if (d.type === 'comment') {
     return `
-      <div class="p-3 rounded-lg bg-blue-50 border border-blue-200" data-draft-id="${d.draftId}">
+      <div class="p-3 rounded-lg bg-white border border-blue-200" data-draft-id="${d.draftId}">
         <div class="flex items-center justify-between mb-1">
           <span class="text-[10px] text-blue-700 font-medium">评论草稿 · 目标 issue: ${d.targetIssueId}</span>
           <span class="text-[10px] text-gray-500">${d.author} · ${d.createdAt}</span>

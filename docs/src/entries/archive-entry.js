@@ -1,12 +1,17 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';
-import { ACTIVITIES, PEOPLE, MOCK_TASKFORCES, getPersonById } from '../mock/index.js';
+import { mockDB } from '../core/domain.js';
+import { BranchService } from '../services/runtime.js';
+import { getPersonById } from '../mock/index.js';
 import { getActivityTypeColors } from '../core/constants.js';
 
 renderSidebar('archive');
 renderHeader('archive');
+
+// 初始化 mockDB 数据
+BranchService.loadDB();
 
 // ── 视图切换 ──────────────────────────────────────────────────
 const listViewBtn = document.getElementById('archive-view-list');
@@ -63,8 +68,8 @@ function renderGalleryView() {
   if (!grid) return;
 
   // 收集已完成的活动和专班
-  const completedActivities = ACTIVITIES.filter(a => a.status === 'completed' || a.archived);
-  const completedTaskforces = MOCK_TASKFORCES.filter(tf => tf.status === 'completed');
+  const completedActivities = mockDB.activities.filter(a => a.status === 'completed' || a.archived);
+  const completedTaskforces = mockDB.taskforces.filter(tf => tf.status === 'completed');
 
   // 构建画册卡片数据
   const cards = [];

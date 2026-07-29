@@ -1,4 +1,4 @@
-﻿import { renderTabBar } from '../components/tab-bar.js';
+import { renderTabBar } from '../components/tab-bar.js';
 import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
 import { showToast } from '../core/utils.js';
 import { bootstrapPage } from '../core/bootstrap.js';
@@ -121,7 +121,7 @@ function _renderTasksContent(activities) {
         <div class="space-y-2">
           ${organizerActivities.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无关联活动</p>' :
             organizerActivities.map(a => `
-              <div class="flex items-center justify-between p-3 rounded-xl bg-gray-100">
+              <div class="flex items-center justify-between p-3 rounded-xl bg-white">
                 <div class="flex-1 min-w-0">
                   <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
                   <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
@@ -214,19 +214,19 @@ function _renderTasksContent(activities) {
         <!-- 工作名 -->
         <div class="mb-3">
           <label class="block text-xs font-medium text-gray-600 mb-1.5">工作名</label>
-          <input type="text" id="assign-work-name" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400 font-stheiti" style="max-width:360px;" placeholder="如：场地布置、物资采购" value="${_assignmentDraft.workName}" />
+          <input type="text" id="assign-work-name" class="input-flat w-full text-xs font-stheiti" style="max-width:360px;" placeholder="如：场地布置、物资采购" value="${_assignmentDraft.workName}" />
         </div>
 
         <!-- 工作描述 -->
         <div class="mb-3">
           <label class="block text-xs font-medium text-gray-600 mb-1.5">工作描述</label>
-          <textarea id="assign-work-desc" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400 font-stheiti" rows="2" style="max-width:360px;" placeholder="详细描述工作内容与要求">${_assignmentDraft.workDescription}</textarea>
+          <textarea id="assign-work-desc" class="input-flat w-full text-xs font-stheiti" rows="2" style="max-width:360px;" placeholder="详细描述工作内容与要求">${_assignmentDraft.workDescription}</textarea>
         </div>
 
         <!-- DDL -->
         <div class="mb-4">
           <label class="block text-xs font-medium text-gray-600 mb-1.5">截止时间（DDL）</label>
-          <input type="datetime-local" id="assign-ddl" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400" style="max-width:360px;" value="${_assignmentDraft.ddl}" />
+          <input type="datetime-local" id="assign-ddl" class="input-flat w-full text-xs" style="max-width:360px;" value="${_assignmentDraft.ddl}" />
         </div>
 
         <!-- 提交按钮 -->
@@ -338,7 +338,7 @@ function _renderAssignmentRecordsHTML(organizerActivities) {
             const person = getPersonById(r.assigneeId);
             const personName = person ? person.name : r.assigneeId;
             return `
-              <div class="flex items-center justify-between p-2.5 rounded-xl bg-gray-100" data-assign-id="${r.id}">
+              <div class="flex items-center justify-between p-2.5 rounded-xl bg-white" data-assign-id="${r.id}">
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">
                     <span class="text-xs font-medium text-gray-800">${r.workName}</span>
@@ -604,13 +604,13 @@ function _renderPersonDetails() {
         const detail = personDetails[pid] || { level: ParticipationLevel.ATTEND, role: '' };
         const name = person ? person.name : pid;
         return `
-          <div class="flex items-center gap-3 p-2.5 rounded-xl bg-gray-100" data-person-row="${pid}">
+          <div class="flex items-center gap-3 p-2.5 rounded-xl bg-white" data-person-row="${pid}">
             <span class="text-xs font-medium text-gray-800 w-16 flex-shrink-0">${name}</span>
             <select class="part-level-select input-flat text-xs" data-person-id="${pid}" style="min-width:90px;">
               <option value="${ParticipationLevel.ORGANIZE}" ${detail.level === ParticipationLevel.ORGANIZE ? 'selected' : ''}>组织</option>
               <option value="${ParticipationLevel.DEEP_PARTICIPATE}" ${detail.level === ParticipationLevel.DEEP_PARTICIPATE ? 'selected' : ''}>深度参与</option>
             </select>
-            <input type="text" class="part-role-input flex-1 px-2 py-1 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400 font-stheiti" placeholder="分工角色+描述（如：策划+全流程统筹）" data-person-id="${pid}" value="${detail.role}" />
+            <input type="text" class="part-role-input input-flat flex-1 text-xs font-stheiti" placeholder="分工角色+描述（如：策划+全流程统筹）" data-person-id="${pid}" value="${detail.role}" />
           </div>
         `;
       }).join('')}
@@ -702,7 +702,7 @@ function _renderReviewContent() {
       <div class="text-xs text-gray-500 mb-3">组织者须在活动结束后 T+7 天内提交复盘总结，纪检委员监督</div>
       <div class="space-y-2">
         ${reviewData.map(r => `
-          <div class="p-3 rounded-xl bg-gray-100">
+          <div class="p-3 rounded-xl bg-white">
             <div class="flex items-center justify-between mb-2">
               <div class="text-sm font-medium text-gray-800">${r.activity}</div>
               <span class="text-[10px] px-1.5 py-0.5 rounded-full ${r.reviewStatus === '已上传' ? 'bg-orange-100 text-orange-700' : r.reviewStatus === '未提交' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'}">${r.reviewStatus}</span>
@@ -814,16 +814,16 @@ function _renderHandoverContent(activities) {
   const itemsHTML = _handoverDraft.items.length === 0
     ? '<p class="text-xs text-gray-400 text-center py-3">暂无交接项，请点击下方按钮添加</p>'
     : _handoverDraft.items.map((item, idx) => `
-      <div class="p-3 rounded-xl bg-gray-100 space-y-2 relative" data-handover-item-idx="${idx}">
+      <div class="p-3 rounded-xl bg-white space-y-2 relative" data-handover-item-idx="${idx}">
         <button class="absolute top-2 right-2 w-5 h-5 rounded-full bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center text-xs btn-handover-remove-item" data-item-idx="${idx}" style="cursor:pointer;border:none;line-height:1;">x</button>
         <div class="flex gap-2">
           <div class="flex-1">
             <label class="block text-[10px] font-medium text-gray-500 mb-1">交接项名称</label>
-            <input type="text" class="handover-item-name w-full px-2 py-1.5 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400 font-stheiti" placeholder="如：考勤数据、宣传档案" data-item-idx="${idx}" value="${item.name}" />
+            <input type="text" class="handover-item-name input-flat w-full text-xs font-stheiti" placeholder="如：考勤数据、宣传档案" data-item-idx="${idx}" value="${item.name}" />
           </div>
           <div class="flex-1">
             <label class="block text-[10px] font-medium text-gray-500 mb-1">描述</label>
-            <input type="text" class="handover-item-desc w-full px-2 py-1.5 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-400 font-stheiti" placeholder="交接项说明" data-item-idx="${idx}" value="${item.description}" />
+            <input type="text" class="handover-item-desc input-flat w-full text-xs font-stheiti" placeholder="交接项说明" data-item-idx="${idx}" value="${item.description}" />
           </div>
         </div>
         <div>
@@ -954,7 +954,7 @@ function _renderSingleHandoverRecord(r) {
   const allItemsCompleted = totalItems > 0 && completedItems === totalItems;
 
   return `
-    <div class="p-3 rounded-xl bg-gray-100" data-handover-record-id="${r.id}">
+    <div class="p-3 rounded-xl bg-white" data-handover-record-id="${r.id}">
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center gap-2">
           <span class="text-sm font-medium text-gray-800">${r.sourceName}</span>
@@ -967,7 +967,7 @@ function _renderSingleHandoverRecord(r) {
         ${r.items.map((item, idx) => {
           const assigneeName = getPersonName(item.assigneeId);
           return `
-            <div class="flex items-center justify-between p-2 rounded-lg ${item.status === 'completed' ? 'bg-green-50' : 'bg-white'} border border-gray-100">
+            <div class="flex items-center justify-between p-2 rounded-lg bg-white">
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2">
                   <span class="text-xs font-medium text-gray-700">${item.name}</span>
@@ -1360,7 +1360,7 @@ function _renderFileSpaceContent(activities) {
                 const uploaderName = uploader ? uploader.name : r.uploadedBy;
                 const uploadDate = r.uploadedAt ? _formatCompletedAt(r.uploadedAt) : '—';
                 return `
-                  <div class="flex items-center justify-between p-3 rounded-xl bg-gray-100" data-fs-id="${r.id}">
+                  <div class="flex items-center justify-between p-3 rounded-xl bg-white" data-fs-id="${r.id}">
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-800">${r.fileName}</span>

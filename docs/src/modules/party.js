@@ -5,7 +5,8 @@
 //  依赖：state.js（读取 selectedRole）
 // ════════════════════════════════════════════════════════════════
 
-import { PARTY_MOCKS, CANDIDATE_STAGES, COMPLIANCE_FILES, PUBLICITY_STANDARDS, TEMPLATE_LIST, ACTIVITIES, getPersonName } from '../mock/index.js';
+import { PARTY_MOCKS, CANDIDATE_STAGES, COMPLIANCE_FILES, PUBLICITY_STANDARDS, TEMPLATE_LIST, getPersonName } from '../mock/index.js';
+import { mockDB } from '../core/domain.js';
 import { getAppState } from '../core/state.js';
 import { showToast } from '../core/utils.js';
 import { icon } from '../core/icons.js';
@@ -84,7 +85,7 @@ export const PartyModule = {
       if (!a.date) return false;
       const d = a.date.replace(/\//g, '-');
       return d >= weekStart && d <= weekEnd;
-    }).sort((a, b) => a.date.localeCompare(b.date));
+    }).sort((a, b) => b.date.localeCompare(a.date));
 
     const items = weekActivities.map(a => ({
       date: a.date,
@@ -964,7 +965,7 @@ export const PartyModule = {
           <div class="text-xs font-semibold text-gray-600 mb-2 pb-1 border-b border-gray-200">${date}（${items.length} 张）</div>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
             ${items.map(r => {
-              const actTitle = r.activityId ? (ACTIVITIES.find(a => a.id === r.activityId)?.title || '—') : '—';
+              const actTitle = r.activityId ? (mockDB.activities.find(a => a.id === r.activityId)?.title || '—') : '—';
               return `
                 <div class="pub-image-card" data-image-id="${r.id}" style="cursor:pointer;">
                   <div class="rounded-lg overflow-hidden border border-gray-200" style="aspect-ratio:4/3;background:#f3f4f6;">
@@ -1150,12 +1151,41 @@ export const PartyModule = {
     const acts = st.activities || [];
     const stats = computeSecretaryStats(acts);
 
-    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    set('sec-stat-active',   stats.activeEvents);
-    set('sec-stat-month',    stats.monthEvents);
-    set('sec-stat-pending',  stats.pendingAuth);
-    set('sec-stat-auth',     stats.authGranted);
-    set('sec-stat-archived', stats.archivedEvents);
+    // 渲染聚合视图主体（替换「数据加载中」占位文本）
+    const aggView = document.getElementById('secretary-aggregate-view');
+    if (aggView) {
+      const pendingActs = acts.filter(a => !a.archived && a.direction === 'bottom-up' && !(a.authorizedBy || a.authorized));
+      const monthActs = acts.filter(a => {
+        if (a.archived) return false;
+        const d = new Date(a.date);
+        const now = new Date();
+        return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+      });
+
+      aggView.innerHTML = `
+        <div class="grid grid-cols-5 gap-3 mb-4">
+          <div class="text-center p-3 rounded-lg bg-amber-50"><p class="text-lg font-bold text-amber-600">${stats.pendingAuth}</p><p class="text-[10px] text-gray-500">待赋权</p></div>
+          <div class="text-center p-3 rounded-lg bg-emerald-50"><p class="text-lg font-bold text-emerald-600">${stats.activeEvents}</p><p class="text-[10px] text-gray-500">活跃活动</p></div>
+          <div class="text-center p-3 rounded-lg bg-blue-50"><p class="text-lg font-bold text-blue-600">${stats.monthEvents}</p><p class="text-[10px] text-gray-500">本月活动</p></div>
+          <div class="text-center p-3 rounded-lg bg-cyan-50"><p class="text-lg font-bold text-cyan-600">${stats.authGranted}</p><p class="text-[10px] text-gray-500">已赋权</p></div>
+          <div class="text-center p-3 rounded-lg bg-gray-50"><p class="text-lg font-bold text-gray-600">${stats.archivedEvents}</p><p class="text-[10px] text-gray-500">已归档</p></div>
+        </div>
+        ${pendingActs.length > 0 ? `
+        <div class="mb-3">
+          <h5 class="text-xs font-bold text-amber-700 mb-2">待赋权活动</h5>
+          <div class="space-y-1">
+            ${pendingActs.map(a => `<div class="flex items-center justify-between p-2 bg-amber-50 rounded-lg text-xs"><span class="text-gray-700">${a.title || a.id}</span><span class="text-gray-400">${a.date || ''}</span></div>`).join('')}
+          </div>
+        </div>` : ''}
+        ${monthActs.length > 0 ? `
+        <div>
+          <h5 class="text-xs font-bold text-blue-700 mb-2">本月活动</h5>
+          <div class="space-y-1">
+            ${monthActs.map(a => `<div class="flex items-center justify-between p-2 bg-blue-50 rounded-lg text-xs"><span class="text-gray-700">${a.title || a.id}</span><span class="text-gray-400">${a.type || ''}</span></div>`).join('')}
+          </div>
+        </div>` : '<p class="text-xs text-gray-400 text-center py-4">本月暂无活动</p>'}
+      `;
+    }
 
     this._refreshFeedbackData();
 

@@ -104,7 +104,7 @@ function _renderActivityList(activities) {
   const now = new Date();
   const sorted = [...activities]
     .filter(a => a.date && !a.archived)
-    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   const upcoming = sorted.filter(a => new Date(a.date) >= new Date(now.getFullYear(), now.getMonth(), 1));
   const display = upcoming.length > 0 ? upcoming.slice(0, 10) : sorted.slice(-10);
@@ -122,8 +122,7 @@ function _renderActivityList(activities) {
     const organizerName = getPersonName(a.organizer);
 
     return `
-      <div class="flex items-center gap-3 p-2.5 rounded-lg border border-gray-100 hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group"
-           style="background: ${color.bg}"
+      <div class="flex items-center gap-3 p-2.5 rounded-lg hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group"
            data-activity-id="${a.id || ''}"
            title="${a.title || '未命名活动'} | ${dateLabel} | ${color.label}${a.location ? ' | ' + a.location : ''}">
         <div class="w-2.5 h-2.5 rounded-full flex-shrink-0 group-hover:scale-125 transition-transform" style="background: ${color.dot}"></div>

@@ -2,7 +2,7 @@
 title: "2026年7月决策日志"
 type: decision_log
 role: "[工程师]+[AI]"
-last_updated: "2026-07-21"
+last_updated: "2026-07-29"
 status: active
 related_files:
   - CLAUDE.md
@@ -610,3 +610,160 @@ D-186 的"忽略"是折中方案——.github/ 物理留在仓库中导致：(1)
 - [x] T128 执行日志已记录
 
 [经验蒸馏: 是 — 工具配置物理隔离经验沉淀至 insights/工程演进与设计方法论.md §5.3，从"配置应隔离"升级为"配置应物理隔离"]
+
+---
+
+## D-248 2026-07-29 — 跨视图数据统一修复+P.9 第二/五步决策
+
+### 背景
+
+书记发现"不同的localhost在数据显示上也不完全一致"，调查发现三类数据分裂：(1) 归档页直接读取静态 ACTIVITIES 而非 mockDB；(2) 全仓库 28 处 ACTIVITIES 静态引用绕过 mockDB 运行时数据源；(3) _maybeError 10% 随机错误率触发 fallback 返回静态数据。
+
+### 选项
+
+| 方向 | 含义 | 后果 |
+|------|------|------|
+| A. 统一数据源+禁用错误模拟 | 所有非 fallback 引用替换为 mockDB.activities，禁用 _maybeError | 数据一致，错误模拟后端接入后由真实错误替代 |
+| B. 统一数据源+保留错误模拟 | 同 A，但保留 _maybeError 改为 1% | 保留错误模拟能力但仍有极小概率触发 fallback |
+| C. 彻底消灭 ACTIVITIES 静态导出 | 移除 ACTIVITIES 导出，初始化由 mockDB.loadDB 统一完成 | 最彻底但变更范围更大 |
+
+### 决定
+
+A. 统一数据源+禁用错误模拟。
+
+### 理由
+
+方案 A 在消除数据不一致的同时保留了 fallback 安全网（极少触发），变更范围可控。_maybeError 的设计初衷是模拟后端错误，但实际导致跨页面数据漂移，弊大于利。后端接入后真实错误由后端返回，无需前端模拟。
+
+### 影响范围
+
+**代码修改（9 个文件）**：
+- `services/mock.js`：禁用 _maybeError
+- `entries/archive-entry.js`：改用 mockDB 数据源
+- `services/auth.js`：ACTIVITIES → mockDB.activities（3 处）
+- `services/makeup.js`：ACTIVITIES → mockDB.activities（1 处）
+- `modules/party.js`：ACTIVITIES → mockDB.activities（1 处）
+- `entries/ws-secretary-entry.js`：赋权管理 dropdown/lookup → mockDB.activities（2 处）
+- `entries/ws-leader-entry.js`：filter/lookup → mockDB.activities（3 处）
+- `entries/ws-deep-entry.js`：dropdown/lookup → mockDB.activities（2 处）
+- `entries/members-entry.js`：dropdown/lookup → mockDB.activities（3 处）
+- `entries/party-prop-entry.js`：dropdown → mockDB.activities（1 处）
+
+**文档修改**：
+- `content/04_web_design/DATA_ARCHITECTURE.md`：新增 §4.3 数据源使用边界
+
+**P.9 决策归档**：
+- 第二步：保留 AI 本地部署+文档记录接入需求（SCHOOL_IT_DEPLOYMENT.md 已创建）
+- 第五步：归档库实现月份+分页；意见反馈先跑通业务流程
+
+### 一改具改检查
+
+- [x] _maybeError 已禁用
+- [x] archive-entry.js 改用 mockDB
+- [x] 9 个代码文件 ACTIVITIES 替换完成
+- [x] 全仓库 Grep ACTIVITIES.(filter|find|map|forEach) 残留验证：仅 fallback/seed 用途
+- [x] DATA_ARCHITECTURE.md §4.3 数据源使用边界已补充
+- [x] P.9 丙部已归档（第二步/第五步决策写入）
+- [x] CLAUDE.md YAML last_updated 待更新
+
+[经验沉淀: 否]
+
+---
+
+## D-249 2026-07-29 — 卡片背景色清除 + 输入组件统一迁移
+
+### 背景
+
+书记指出两个 UI 问题：(1)"div 背景一整片会让视觉效果非常脏"——全系统 224 处卡片/列表项使用背景色，与圆点标识重复；(2)"输入部分非常粗糙，和整体UI设计风格完全不一致"——10 处 input 使用内联 Tailwind 而非设计系统 input-flat。
+
+### 选项
+
+**A. 卡片背景色**：
+
+| 方向 | 含义 | 后果 |
+|------|------|------|
+| 白底+左边线 | 色条延伸替代背景 | 有色区分但比背景轻 |
+| 纯白底+仅圆点 | 最简洁，圆点已够标识 | 极简，无视觉冗余 |
+| 白底+底部分隔线 | 适合列表视图 | 间距分隔更自然 |
+
+**B. 输入组件**：
+
+| 方向 | 含义 | 后果 |
+|------|------|------|
+| 统一迁移 input-flat | 10处→input-flat + 补充尺寸变体 | 改动小、见效快 |
+| 全新设计输入体系 | 重新设计"Apple风"组件 | 工作量大但效果更佳 |
+| 仅修复最差部分 | 只改10处，布局留后续 | 最小改动 |
+
+### 决定
+
+A. 纯白底+仅圆点。B. 统一迁移 input-flat。
+
+### 理由
+
+A: 书记选择最简方案——圆点已够标识类型，背景色是视觉冗余，灰色背景也丑。
+B: input-flat 已有 33 处使用，10 处迁移是收尾工作，补充 input-flat-sm 和 textarea.input-flat 即可覆盖全场景。
+
+### 影响范围
+
+14 个 entry 文件 + styles.css，详见 T152 执行日志。
+
+### 一改具改检查
+
+- [x] 全系统卡片背景色清除（56 inline + 168 Tailwind bg-*-50）
+- [x] 10 处内联 Tailwind input → input-flat
+- [x] styles.css 新增 input-flat-sm + textarea.input-flat
+- [x] 表单布局 gap 加宽松
+- [x] 浏览器验证通过
+
+[经验沉淀: 否 — 视觉清理类任务]
+
+---
+
+## D-250 2026-07-29 — 页面底色+时间倒序+标签顺序三合一修复
+
+### 背景
+
+D-249 清除卡片背景色后白底卡片与白底页面融为一体，"平铺"效果差。全系统 5 处时间排序为升序（旧→新），违反"最新在前"原则。各角色标签顺序不符合增量>存量原则。
+
+书记核心决策：(1) 页面底色浅灰+卡片白底恢复视觉分隔；(2) 所有时间戳数据必须倒序；(3) 标签按增量>存量排列，日历+写入合并为"工作台"标签；(4) 赋权是"便捷操作空间"而非"人员管理的操作视图"；(5) 只有涉及时间戳+待办的任务数据才能和日历同区。
+
+### 选项
+
+**A. 卡片视觉分隔**：
+
+| 方向 | 含义 | 后果 |
+|------|------|------|
+| 页面底色浅灰+卡片白底 | 页面 #F9FAFB，卡片 #FFFFFF | 卡片自然浮起，不闷 |
+| 白底+细边线 | 边线分隔 | 较轻但需要额外元素 |
+| 白底+淡投影 | 阴影浮起 | Apple 风格但增加视觉复杂度 |
+
+**B. 标签顺序原则**：
+
+| 方向 | 含义 | 后果 |
+|------|------|------|
+| 增量>存量 | 产生新数据的操作排在查看已有数据之前 | 符合工作流直觉 |
+| 管理>归档 | 管理类排在归档类之前 | 表述不够清晰（书记否决） |
+
+### 决定
+
+A. 页面底色浅灰+卡片白底。B. 增量>存量（书记否决"管理>归档"表述为"太不清晰"）。
+
+### 理由
+
+A: 页面已有 `--surface-page: #F8F9FA`，只需给卡片加 `bg-white` 即可恢复浮起效果，零成本。
+B: 书记原话"我放弃【管理和归档的说法】，因为表述太不清晰了"。增量和存量是更精确的概念——增量=产生新数据的操作，存量=查看已有数据。增量内部和存量内部的具体顺序需具体分析。
+
+### 影响范围
+
+7 个 entry 文件（bg-white）+ 4 个文件（排序修复）+ 3 个 entry 文件（标签重排）+ secretary.html（标签合并）+ DESIGN_SYSTEM.md（新增排序原则），详见 T153 执行日志。
+
+### 一改具改检查
+
+- [x] 7 个 entry 文件卡片添加 bg-white
+- [x] 5 处升序→降序排序修复
+- [x] 书记/组织/纪检标签顺序重排
+- [x] secretary.html 日历+写入合并为"工作台"
+- [x] DESIGN_SYSTEM.md §4.6 新增排序原则
+- [x] 浏览器验证通过
+
+[经验沉淀: 否 — 视觉修复+排序+标签调整类任务]

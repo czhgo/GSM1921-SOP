@@ -5,6 +5,7 @@ import { bootstrapPage } from '../core/bootstrap.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { NoticeStore } from '../services/notice.js';
 import { ACTIVITIES, _personName } from '../mock/index.js';
+import { loadWorkspaceData } from '../core/data-loader.js';
 import { loadAttendanceRecords } from '../services/attendance.js';
 import { getActivityTypeColors } from '../core/constants.js';
 import { renderTabBar } from '../components/tab-bar.js';
@@ -61,7 +62,7 @@ function renderVisitorUI(state) {
 function _renderActivities(activities, highlightId) {
   const tc = document.getElementById('visitor-tab-content');
   if (!tc) return;
-  const sorted = [...activities].filter(a => a.date && !a.archived).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  const sorted = [...activities].filter(a => a.date && !a.archived).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   tc.innerHTML = `
     <div class="flex items-center justify-between mb-3">
@@ -107,7 +108,7 @@ function _renderActListView(sorted, highlightId) {
           const color = ACTIVITY_TYPE_COLORS[a.type || a.category] || { bg: '#F9FAFB', dot: '#6B7280' };
           const isHL = highlightId && a.id === highlightId;
           return `
-            <div class="flex items-center gap-3 p-3 rounded-lg border ${isHL ? 'border-blue-400 ring-2 ring-blue-100' : 'border-gray-100'}" style="background:${color.bg}" data-visitor-act-id="${a.id || ''}">
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-white ${isHL ? 'border border-blue-400 ring-2 ring-blue-100' : ''}" data-visitor-act-id="${a.id || ''}">
               <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}"></div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
@@ -135,7 +136,7 @@ function _renderActCalendarView(sorted, highlightId) {
     if (!byMonth[m]) byMonth[m] = [];
     byMonth[m].push(a);
   });
-  const months = Object.keys(byMonth).sort();
+  const months = Object.keys(byMonth).sort().reverse();
 
   vc.innerHTML = months.length === 0
     ? '<p class="text-xs text-gray-400 text-center py-6">暂无活动</p>'
@@ -156,7 +157,7 @@ function _renderActCalendarView(sorted, highlightId) {
               const isHL = highlightId && a.id === highlightId;
               const day = (a.date || '').substring(8, 10);
               return `
-                <div class="flex items-start gap-3 p-3 rounded-lg border ${isHL ? 'border-blue-400 ring-2 ring-blue-100' : 'border-gray-100'}" style="background:${color.bg}" data-visitor-act-id="${a.id || ''}">
+                <div class="flex items-start gap-3 p-3 rounded-lg bg-white ${isHL ? 'border border-blue-400 ring-2 ring-blue-100' : ''}" data-visitor-act-id="${a.id || ''}">
                   <div class="text-center flex-shrink-0 w-10">
                     <div class="text-lg font-bold" style="color:${color.dot};line-height:1;">${day || '?'}</div>
                     <div class="text-[10px] text-gray-400">日</div>
@@ -200,7 +201,7 @@ function _renderActQueryView(sorted, highlightId) {
       const color = ACTIVITY_TYPE_COLORS[a.type || a.category] || { bg: '#F9FAFB', dot: '#6B7280' };
       const isHL = highlightId && a.id === highlightId;
       return `
-        <div class="flex items-center gap-3 p-3 rounded-lg border ${isHL ? 'border-blue-400 ring-2 ring-blue-100' : 'border-gray-100'}" style="background:${color.bg}" data-visitor-act-id="${a.id || ''}">
+        <div class="flex items-center gap-3 p-3 rounded-lg bg-white ${isHL ? 'border border-blue-400 ring-2 ring-blue-100' : ''}" data-visitor-act-id="${a.id || ''}">
           <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}"></div>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
@@ -254,7 +255,7 @@ function _renderTaskforces(taskforces) {
           filtered.map(t => {
             const filled = t.members.filter(m => m.personId).length;
             return `
-              <div class="p-3 rounded-lg border border-gray-100 bg-white">
+              <div class="p-3 rounded-lg bg-white">
                 <div class="flex items-center justify-between mb-1">
                   <p class="text-sm font-medium text-gray-800">${t.name}</p>
                   <span class="text-[10px] px-1.5 py-0.5 rounded-full ${statusColor[t.status] || 'bg-gray-100 text-gray-500'}">${statusLabel[t.status] || t.status}</span>
@@ -300,7 +301,7 @@ function _renderAttendance(activities) {
             const total = records.length;
             const rate = total > 0 ? Math.round((present / total) * 100) : 0;
             return `
-              <div class="flex items-center justify-between p-3 rounded-lg border border-gray-100 bg-white">
+              <div class="flex items-center justify-between p-3 rounded-lg bg-white">
                 <div class="flex-1 min-w-0">
                   <p class="text-sm font-medium text-gray-800">${act.title}</p>
                   <p class="text-xs text-gray-400">${act.date}</p>

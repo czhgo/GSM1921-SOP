@@ -1,4 +1,4 @@
-﻿import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
+import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
 import { showToast } from '../core/utils.js';
 import { CrossPageState } from '../core/cross-page-state.js';
 import { bootstrapPage } from '../core/bootstrap.js';
@@ -43,10 +43,9 @@ function renderDiscUI(state) {
     prefix: 'disc',
     tabs: [
       { id: 'attendance', label: '考勤管理', render: () => _renderAttendanceContent(null) },
-      { id: 'inspection', label: '考察管理', render: () => _renderInspectionContent() },
       { id: 'review', label: '活动监督复盘', render: () => _renderReviewContent() },
+      { id: 'inspection', label: '考察管理', render: () => _renderInspectionContent() },
       { id: 'handover', label: '数据交接', render: () => _renderHandoverContent() },
-      { id: 'deposit', label: '经验沉淀', render: () => _renderDepositContent() },
     ],
     accentColor: { accent, accentRgba, accentBorder },
     defaultTab: 'attendance',
@@ -423,6 +422,17 @@ function _renderReviewContent() {
   const reviewColor = { '已上传':'bg-orange-100 text-orange-700', '未提交':'bg-red-100 text-red-700', '—':'bg-gray-100 text-gray-500' };
   const reviewData = reviewToDisplay(REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS);
 
+  // 经验沉淀交叉引用：判断已完成复盘的活动是否已有沉淀
+  const deposits = _loadDeposits();
+  const depositedSources = new Set(deposits.map(d => d.sourceName));
+  function hasDeposit(reviewItem) {
+    const name = reviewItem.sourceName || reviewItem.activity;
+    return depositedSources.has(name);
+  }
+
+  // 经验沉淀督促清单：已确认复盘但未沉淀的活动
+  const unDepositedReviews = reviewData.filter(r => r.reviewStatus === '已确认' && !hasDeposit(r));
+
   container.innerHTML = `
     <div class="space-y-4">
       <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
@@ -430,7 +440,7 @@ function _renderReviewContent() {
         <div class="text-xs text-gray-500 mb-3">阅览党小组活动/专班工作时间流 · 超时确认后邮件提醒</div>
         <div class="space-y-2">
           ${reviewData.map(r => `
-            <div class="flex items-center justify-between p-3 rounded-xl ${r.overdue ? 'bg-red-50 border border-red-100' : 'bg-gray-100'}">
+            <div class="flex items-center justify-between p-3 rounded-xl bg-white ${r.overdue ? 'border border-red-100' : ''}">
               <div class="flex-1 min-w-0">
                 <div class="text-sm font-medium text-gray-800">${r.activity}</div>
                 <div class="text-xs text-gray-500 mt-0.5">组织者：${r.organizer}</div>
@@ -448,10 +458,13 @@ function _renderReviewContent() {
         <div class="text-xs text-gray-500 mb-3">复盘三态流转：已上传 → 批注中 → 确认/打回</div>
         <div class="space-y-2">
           ${reviewData.filter(r => r.reviewStatus !== '—').map(r => `
-            <div class="p-3 rounded-xl bg-gray-100">
+            <div class="p-3 rounded-xl bg-white">
               <div class="flex items-center justify-between mb-2">
                 <div class="text-sm font-medium text-gray-800">${r.activity}</div>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-full ${reviewColor[r.reviewStatus] || 'bg-gray-100 text-gray-500'}">${r.reviewStatus}</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-full ${reviewColor[r.reviewStatus] || 'bg-gray-100 text-gray-500'}">${r.reviewStatus}</span>
+                  ${r.reviewStatus === '已确认' ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full ${hasDeposit(r) ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${hasDeposit(r) ? '已沉淀' : '未沉淀'}</span>` : ''}
+                </div>
               </div>
               ${r.reviewContent ? `<div class="text-xs text-gray-600 mb-2 p-2 bg-white rounded-lg border border-gray-100">${r.reviewContent}</div>` : ''}
               <div class="flex gap-2">
@@ -463,11 +476,31 @@ function _renderReviewContent() {
                 ${r.reviewStatus === '未提交' ? `
                   <button class="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 border border-red-200 btn-disc-remind-review" style="cursor:pointer;">邮件提醒</button>
                 ` : ''}
+                ${r.reviewStatus === '已确认' && !hasDeposit(r) ? `
+                  <button class="text-xs px-2 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 btn-disc-urge-deposit" style="cursor:pointer;" data-activity-name="${r.sourceName || r.activity}" data-organizer="${r.organizer}">督促沉淀</button>
+                ` : ''}
               </div>
             </div>
           `).join('')}
         </div>
       </div>
+      ${unDepositedReviews.length > 0 ? `
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">经验沉淀督促清单</h4>
+        <div class="text-xs text-gray-500 mb-3">以下活动复盘已确认但尚未沉淀经验，请督促深度参与者提交</div>
+        <div class="space-y-2">
+          ${unDepositedReviews.map(r => `
+            <div class="flex items-center justify-between p-3 rounded-xl bg-white">
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium text-gray-800">${r.activity}</div>
+                <div class="text-xs text-gray-500 mt-0.5">组织者：${r.organizer}</div>
+              </div>
+              <button class="text-xs px-2 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 btn-disc-urge-deposit" style="cursor:pointer;" data-activity-name="${r.sourceName || r.activity}" data-organizer="${r.organizer}">督促沉淀</button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      ` : ''}
     </div>
   `;
 
@@ -494,6 +527,11 @@ function _renderReviewContent() {
   container.querySelectorAll('.btn-disc-reject').forEach(btn => btn.addEventListener('click', () => showToast('success', '复盘已打回，要求重新提交')));
   container.querySelectorAll('.btn-disc-confirm').forEach(btn => btn.addEventListener('click', () => showToast('success', '复盘总结已确认，录入后台，活动结束')));
   container.querySelectorAll('.btn-disc-remind-review').forEach(btn => btn.addEventListener('click', () => showToast('success', '复盘超期邮件提醒已发送至组织者')));
+  // 督促沉淀按钮
+  container.querySelectorAll('.btn-disc-urge-deposit').forEach(btn => btn.addEventListener('click', () => {
+    const organizer = btn.dataset.organizer;
+    showToast('success', `已发送沉淀督促提醒至 ${organizer}`);
+  }));
 }
 
 // ── 交接记录状态标签 ──────────────────────────────────────────
@@ -608,7 +646,7 @@ function _renderDiscHandoverRecord(r, group) {
   const typeLabel = r.type === 'activity' ? '活动' : '专班';
 
   return `
-    <div class="p-3 rounded-xl bg-gray-100" data-disc-handover-id="${r.id}">
+    <div class="p-3 rounded-xl bg-white" data-disc-handover-id="${r.id}">
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center gap-2">
           <span class="text-[10px] px-1.5 py-0.5 rounded ${r.type === 'activity' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'}">${typeLabel}</span>
@@ -635,7 +673,7 @@ function _renderDiscHandoverRecord(r, group) {
           ${r.items.map((item, idx) => {
             const assigneeName = getPersonName(item.assigneeId);
             return `
-              <div class="flex items-center justify-between p-2 rounded-lg ${item.status === 'completed' ? 'bg-green-50' : 'bg-white'} border border-gray-100">
+              <div class="flex items-center justify-between p-2 rounded-lg bg-white">
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">
                     <span class="text-xs font-medium text-gray-700">${item.name}</span>
@@ -691,190 +729,6 @@ function _bindDiscHandoverEvents() {
       if (detailEl) {
         detailEl.classList.toggle('hidden');
         btn.textContent = detailEl.classList.contains('hidden') ? '查看交接项详情 ▾' : '收起交接项详情 ▴';
-      }
-    });
-  });
-}
-
-// ── 经验沉淀 Tab（纪检委员视角） ──────────────────────────────
-function _renderDepositContent() {
-  const container = document.getElementById('disc-tab-content');
-  if (!container) return;
-
-  const allDeposits = _loadDeposits();
-  const submittedDeposits = allDeposits.filter(d => d.status === 'submitted');
-  const annotatedDeposits = allDeposits.filter(d => d.status === 'annotated');
-  const confirmedDeposits = allDeposits.filter(d => d.status === 'confirmed');
-
-  container.innerHTML = `
-    <div class="space-y-4">
-      <!-- 统计概览 -->
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">经验沉淀概览</h4>
-        <div class="flex gap-4 text-xs">
-          <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-            <span class="text-gray-600">待批注</span>
-            <span class="font-bold text-blue-700">${submittedDeposits.length}</span>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-orange-500"></span>
-            <span class="text-gray-600">已批注</span>
-            <span class="font-bold text-orange-700">${annotatedDeposits.length}</span>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-green-500"></span>
-            <span class="text-gray-600">已确认</span>
-            <span class="font-bold text-green-700">${confirmedDeposits.length}</span>
-          </div>
-        </div>
-        <div class="text-xs text-gray-500 mt-2">深度参与者提交经验沉淀，纪检委员批注确认后录入后台</div>
-      </div>
-
-      <!-- 待批注 -->
-      ${submittedDeposits.length > 0 ? `
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner-light);">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">待批注的沉淀</h4>
-        <div class="text-xs text-gray-500 mb-3">深度参与者已提交经验沉淀，请批注后确认</div>
-        <div class="space-y-2" id="disc-deposit-submitted">
-          ${submittedDeposits.map(d => _renderDiscDepositCard(d, 'submitted')).join('')}
-        </div>
-      </div>
-      ` : ''}
-
-      <!-- 已批注 -->
-      ${annotatedDeposits.length > 0 ? `
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">已批注的沉淀</h4>
-        <div class="text-xs text-gray-500 mb-3">已添加批注，确认后录入后台</div>
-        <div class="space-y-2" id="disc-deposit-annotated">
-          ${annotatedDeposits.map(d => _renderDiscDepositCard(d, 'annotated')).join('')}
-        </div>
-      </div>
-      ` : ''}
-
-      <!-- 已确认 -->
-      ${confirmedDeposits.length > 0 ? `
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner-light);">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">已确认的沉淀</h4>
-        <div class="text-xs text-gray-500 mb-3">经验沉淀已确认，录入后台</div>
-        <div class="space-y-2" id="disc-deposit-confirmed">
-          ${confirmedDeposits.map(d => _renderDiscDepositCard(d, 'confirmed')).join('')}
-        </div>
-      </div>
-      ` : ''}
-
-      ${allDeposits.length === 0 ? '<div class="card rounded-xl p-5 text-center"><p class="text-xs text-gray-400 py-6">暂无经验沉淀记录</p></div>' : ''}
-    </div>
-  `;
-
-  _bindDiscDepositEvents();
-}
-
-function _renderDiscDepositCard(d, group) {
-  const submitterName = getPersonName(d.submitterId);
-  const sourceLabel = d.sourceType === 'activity' ? '活动' : '专班';
-  const sourceColor = d.sourceType === 'activity' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600';
-
-  return `
-    <div class="p-3 rounded-xl bg-gray-100" data-disc-deposit-id="${d.id}">
-      <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] px-1.5 py-0.5 rounded ${sourceColor}">${sourceLabel}</span>
-          <span class="text-sm font-medium text-gray-800">${d.title}</span>
-        </div>
-        <div class="flex items-center gap-2">
-          ${group === 'submitted' ? `
-            <button class="btn-disc-annotate-deposit text-xs px-2 py-1 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors" style="cursor:pointer;" data-deposit-id="${d.id}">批注</button>
-            <button class="btn-disc-confirm-deposit text-xs px-2 py-1 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors" style="cursor:pointer;" data-deposit-id="${d.id}">确认</button>
-          ` : ''}
-          ${group === 'annotated' ? `
-            <button class="btn-disc-confirm-deposit text-xs px-2 py-1 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors" style="cursor:pointer;" data-deposit-id="${d.id}">确认</button>
-          ` : ''}
-        </div>
-      </div>
-      <div class="text-[10px] text-gray-500 mb-1">提交人：${submitterName} · 来源：${d.sourceName} · ${_discFormatTime(d.createdAt)}</div>
-      <div class="text-xs text-gray-700 mb-2 p-2 bg-white rounded-lg border border-gray-100 whitespace-pre-wrap">${d.content}</div>
-      ${d.tags && d.tags.length > 0 ? `<div class="flex flex-wrap gap-1 mb-2">${d.tags.map(t => `<span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">${t}</span>`).join('')}</div>` : ''}
-      ${d.annotations && d.annotations.length > 0 ? `
-        <div class="border-t border-gray-200 pt-2 mt-2">
-          <div class="text-[10px] text-orange-600 font-medium mb-1">纪检批注：</div>
-          ${d.annotations.map(a => `
-            <div class="text-xs text-gray-600 p-1.5 bg-orange-50 rounded mb-1">${a.content} <span class="text-[10px] text-gray-400">— ${_discFormatTime(a.annotatedAt)}</span></div>
-          `).join('')}
-        </div>
-      ` : ''}
-      <!-- 批注输入区（默认隐藏） -->
-      <div class="disc-deposit-annotate-form hidden mt-2 pt-2 border-t border-gray-200" data-form-for="${d.id}">
-        <textarea class="input-flat text-xs w-full" rows="2" placeholder="输入批注内容..." data-annotate-input="${d.id}"></textarea>
-        <div class="flex gap-2 mt-1">
-          <button class="btn-disc-submit-annotation text-xs px-2 py-1 rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition-colors" style="cursor:pointer;" data-deposit-id="${d.id}">提交批注</button>
-          <button class="btn-disc-cancel-annotation text-xs px-2 py-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors" style="cursor:pointer;" data-deposit-id="${d.id}">取消</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function _bindDiscDepositEvents() {
-  const tabContent = document.getElementById('disc-tab-content');
-  if (!tabContent) return;
-
-  // 批注按钮 — 显示批注输入区
-  tabContent.querySelectorAll('.btn-disc-annotate-deposit').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const depositId = btn.dataset.depositId;
-      const form = tabContent.querySelector(`.disc-deposit-annotate-form[data-form-for="${depositId}"]`);
-      if (form) form.classList.remove('hidden');
-    });
-  });
-
-  // 取消批注
-  tabContent.querySelectorAll('.btn-disc-cancel-annotation').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const depositId = btn.dataset.depositId;
-      const form = tabContent.querySelector(`.disc-deposit-annotate-form[data-form-for="${depositId}"]`);
-      if (form) form.classList.add('hidden');
-    });
-  });
-
-  // 提交批注
-  tabContent.querySelectorAll('.btn-disc-submit-annotation').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const depositId = btn.dataset.depositId;
-      const input = tabContent.querySelector(`[data-annotate-input="${depositId}"]`);
-      const content = input?.value?.trim();
-      if (!content) { showToast('error', '请输入批注内容'); return; }
-
-      const deposits = _loadDeposits();
-      const d = deposits.find(d => d.id === depositId);
-      if (d) {
-        if (!d.annotations) d.annotations = [];
-        d.annotations.push({
-          content,
-          annotatorId: DISC_COMMISSIONER_ID,
-          annotatedAt: new Date().toISOString(),
-        });
-        d.status = 'annotated';
-        _saveDeposits(deposits);
-        showToast('success', '批注已提交');
-        _renderDepositContent();
-      }
-    });
-  });
-
-  // 确认按钮
-  tabContent.querySelectorAll('.btn-disc-confirm-deposit').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const depositId = btn.dataset.depositId;
-      const deposits = _loadDeposits();
-      const d = deposits.find(d => d.id === depositId);
-      if (d) {
-        d.status = 'confirmed';
-        d.confirmedAt = new Date().toISOString();
-        _saveDeposits(deposits);
-        showToast('success', '经验沉淀已确认，录入后台');
-        _renderDepositContent();
       }
     });
   });

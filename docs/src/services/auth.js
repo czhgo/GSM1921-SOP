@@ -11,7 +11,7 @@
 import { ROLE_LABELS } from '../core/constants.js';
 import { PEOPLE } from '../mock/people.js';
 import { getPersonById, getPersonName } from '../mock/index.js';
-import { ACTIVITIES } from '../mock/activities.js';
+import { mockDB } from '../core/domain.js';
 import { MOCK_TASKFORCES } from '../mock/taskforces.js';
 import { NoticeStore } from './notice.js';
 
@@ -128,7 +128,7 @@ function _getProjectRole(personId, projectId) {
   if (authRec) return authRec.role;
 
   // 1. 再查活动 assignments（mock 数据）
-  const activity = ACTIVITIES.find(a => a.id === projectId);
+  const activity = mockDB.activities.find(a => a.id === projectId);
   if (activity && Array.isArray(activity.assignments)) {
     const rec = activity.assignments.find(a => a.personId === personId);
     if (rec) return rec.role;  // 'organizer' | 'deep'
@@ -147,7 +147,7 @@ function _getProjectRole(personId, projectId) {
 // ── 根据 projectId 取项目名称（用于赋权通知文案）──────────────────
 function _getProjectName(projectId) {
   if (!projectId) return null;
-  const a = ACTIVITIES.find(x => x.id === projectId);
+  const a = mockDB.activities.find(x => x.id === projectId);
   if (a) return a.title;
   const t = MOCK_TASKFORCES.find(x => x.id === projectId);
   if (t) return t.name;
@@ -291,7 +291,7 @@ export const AuthStore = {
     });
 
     // 2. 检查 mock 数据（活动 assignments）
-    ACTIVITIES.forEach(a => {
+    mockDB.activities.forEach(a => {
       if (Array.isArray(a.assignments)) {
         a.assignments.forEach(rec => {
           if (rec.personId === personId && ['organizer', 'deep'].includes(rec.role)) {

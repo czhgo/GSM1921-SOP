@@ -2,7 +2,7 @@
 title: "2026年7月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-07-27"
+last_updated: "2026-07-29"
 status: active
 related_files:
   - CLAUDE.md
@@ -5139,4 +5139,465 @@ H2.4 经验沉淀 + H4.2 丙部待决策 + ADR-026/027/028
 ### 蒸馏标签
 
 [经验沉淀: 否 — 文档整理，无新经验]
+
+## T145 Help 页面 v11 Development 时间轴恢复 + Exploration SVG 保留（2026-07-28）
+
+**日期**：2026-07-28
+**任务**：P.8 原版恢复——Development 恢复到 v11 三列交替 grid + 手风琴 + stickyNote，Exploration 保持当前 SVG v5.0 Living Constellation
+**引用流程**：H1.2 执行 + H2.4 经验沉淀 + T138 执行日志
+
+### 背景
+
+书记要求恢复 help 页面的总体逻辑到 P.8 原本处理的旧版（v11），仅 Exploration 部分保持当前 SVG 状态。此前 commit 9844175 回退了 Exploration Canvas → SVG，但同时也将 Development 从 v11（13步时间轴+手风琴+stickyNote）回退到了旧版（4阶段卡片+IntersectionObserver）。
+
+### 变更摘要
+
+1. **help-entry.js**：从 e0b0df2 版本恢复 v11 Development 代码（DEVELOPMENT_TIMELINE 13步+stickyNote/decisionDetail + renderDevelopment 三列交替grid + bindTimelineToggle 手风琴 + bindPageAnimations + bindDevelopmentEntranceAnimation + renderConclusion），移除旧版 DEVELOPMENT_STAGES/bindScrollReveal/bindStageToggle，保留当前 SVG Exploration 代码（ACTIVITY_NETWORK/TASKFORCE_NETWORK/renderNetworkSVG/renderNetwork/bindExplorationScrollDriven），移除 Canvas 相关代码（drawPixelCharacter/setupSceneCanvas/drawDialogueBubbleCanvas/WALK_FRAMES/BEATS/bindExplorationCanvas）
+2. **styles.css**：移除旧 5 阶段卡片样式（help-stage-*），添加 v11 Development 时间轴样式（help-tl-* + help-timeline-alternating），保留 SVG Exploration 样式
+3. **help.html**：恢复 GSAP CDN 引用 + 版本号 ?v=v11-restore + 缓存控制 meta
+
+### 验证
+
+- `node --check` 退出码 0（无 SyntaxError）
+- 浏览器验证 12 项全部 PASS：
+  - Development 13步/4阶段结构 ✅
+  - 步5/10/12/13 stickyNote 注释可见 ✅
+  - 决策节点琥珀色圆点 ✅
+  - 手风琴交互（点击展开/收起详情）✅
+  - 三列交替 grid 布局 ✅
+  - Exploration SVG 8+4 节点 ✅
+  - 节点中文标签 ✅
+  - hover 高亮连线 ✅
+  - 滚动驱动动画 ✅
+  - 无 JS 错误 ✅
+  - GSAP 加载正常 ✅
+  - Section 渲染顺序正确 ✅
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/entries/help-entry.js` | v11 Development 恢复 + Canvas 清除 + SVG Exploration 保留 |
+| `docs/src/styles.css` | v11 Development 时间轴样式 + 旧卡片样式清除 + SVG Exploration 样式保留 |
+| `docs/help.html` | GSAP CDN + ?v=v11-restore + 缓存控制 meta |
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 版本回退恢复，无新经验]
+
+## T146 Help 页面 CSS is-revealed 残留修复（2026-07-28）
+
+**日期**：2026-07-28
+**任务**：修复 help 页面除 Exploration 外所有 section 不可见的 bug
+**引用流程**：verification-before-completion skill + H1.2 执行
+
+### 背景
+
+T145 恢复 v11 Development 后，browser_use 报告 12 项 PASS，但该验证只检查了源代码结构而非实际渲染。用户实际打开页面发现除 Exploration 外所有 section 不可见。
+
+### 根因
+
+CSS 中有 6 处旧 IntersectionObserver 机制的 `is-revealed` 规则 + 4 处 `opacity: 0` 初始状态残留。v11 重构时 JS 改用 GSAP ScrollTrigger（`gsap.from()`），但 CSS 中的 `opacity: 0` 初始状态未同步清理。当 GSAP 加载失败或动画未触发时，元素保持 `opacity: 0` 不可见。
+
+Exploration 正常是因为 `renderNetwork()` 用 inline style 直接覆盖了 CSS 的 `opacity: 0`，不依赖 GSAP。
+
+### 变更摘要
+
+1. **删除 4 处 `opacity: 0` + `transform: translateY()` 初始状态**：
+   - `.help-section`（L3039-3041）— 影响所有 section
+   - `.help-review-card`（L3137-3138）— 考察卡片
+   - `.help-works-col`（L3498-3499）— 两种工作列
+   - `.help-dialogue-card`（L4014-4015）— 对话卡片
+2. **删除 6 处 `.is-revealed` 规则**：
+   - `.help-section.is-revealed`
+   - `.help-review-section.is-revealed .help-review-card`
+   - `.help-works-section.is-revealed .help-works-col`
+   - `.help-dialogue-section.is-revealed .help-dialogue-card`
+   - `.help-network-section.is-revealed .help-node-svg`
+   - `.help-network-section.is-revealed .help-edge`
+3. **保留 `.help-node-svg` / `.help-edge` 的 `opacity: 0`**：Exploration 的 `renderNetwork()` 用 inline style 覆盖
+4. **保留 tooltip 的 `opacity: 0`**：hover 交互的合理设计
+5. **版本号**：`?v=v11-restore` → `?v=v11-fix1`
+
+### 验证
+
+浏览器实际渲染验证（非源代码检查）14 项全部 PASS：
+- 9 个 section 全部 VISIBLE ✅
+- Development 手风琴交互正常 ✅
+- 不依赖 GSAP 即可见（CSS opacity:0 已删除）✅
+- 控制台无阻断性 JS 错误 ✅
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/styles.css` | 删除 4 处 opacity:0/transform 初始状态 + 6 处 is-revealed 规则 |
+| `docs/help.html` | 版本号 v11-restore → v11-fix1 |
+
+### 经验沉淀
+
+[经验沉淀: 否 — 验证教训待沉淀：browser_use subagent 的"验证通过"不等于真实验证。subagent 可能只检查源代码结构而非实际渲染效果。必须要求 subagent 截图并报告屏幕上实际可见的内容，而非 DOM 结构。待写入 insights 工程演进与设计方法论.md]
+
+## T147 全仓库过程性内容系统清理（2026-07-28）
+
+**日期**：2026-07-28
+**任务**：系统清理仓库中残留的过程性内容
+**引用流程**：H1.2 执行 + 用户偏好"dislikes process files remaining in repository as they contaminate the system"
+
+### 清理范围
+
+1. **`.ctx/` 根目录临时 JS 文件**（10 个）：e0b0df2-final.js / e0b0df2-full.js / e0b0df2-help-entry.js / e0b0df2-part1~5.js / e0b0df2-v2.js / e0b0df2-v3.js——从 git 提取 e0b0df2 版本 help-entry.js 时的中间产物
+2. **`.ctx/tmp/` 目录**：e0b0df2-help-entry.js + 空目录删除
+3. **`.trae/documents/` 目录**（2 个文档）：help-development-restore-plan.md / help-entry-merge-verification.md——T145 恢复计划文档 + 空目录删除
+4. **`projects/` 目录**：gsm1921-secretary-idle/queue.json（PixVerse CLI 路由配置）+ 空目录删除
+
+共删除 14 个文件 + 3 个空目录。
+
+### 保留的内容
+
+- `.trae/specs/pixel-design-spec/`——T-140 活跃设计文稿（书记正在用 Codex 读取生成素材）
+- `.ctx/logs/`——执行日志和决策日志（审计底座）
+- `.ctx/SNAPSHOT.md` / `TIMESTAMPS.md` / `REVIEW_QUEUE.md`——活跃上下文文件
+- `CHECKLIST.md`——用户未要求清理
+
+### 验证
+
+- `Glob .ctx/*.js` → 零结果 ✅
+- `Test-Path .ctx/tmp` → False ✅
+- `Test-Path .trae/documents` → False ✅
+- `Test-Path projects` → False ✅
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 文件清理，无新经验]
+
+## T148 侧边栏箭头去除 + undefined 检查 + 未落地功能审计（2026-07-28）
+
+**日期**：2026-07-28
+**任务**：(1) 去掉侧边栏党建工作台箭头 (2) 全页面 undefined 检查 (3) 未落地功能审计写入丙部
+**引用流程**：H1.2 执行 + verification-before-completion skill
+
+### 变更摘要
+
+1. **sidebar.js 箭头去除**：删除第 62 行的 `extraInner` SVG 箭头赋值，保留 `data-workspace-popover="1"` 和 popover 功能。用户点击"党建工作台"仍弹出悬浮选择表单，但不再显示下拉箭头。
+2. **undefined 检查**：浏览器实际渲染验证 7 个主要页面（workspace/secretary、party/secretary、members、help、archive、index）均无 "undefined" 文本显示。静态分析未发现 undefined 渲染风险。
+3. **未落地功能审计**：写入丙部 P.9，包含 3 步路线图（后端接入+数据持久化 / AI辅助提炼 / 其他待确认功能）
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/components/sidebar.js` | 删除箭头 SVG（extraInner 赋值），保留 popover 标记 |
+| `CLAUDE.md` | 丙部新增 P.9 网页未落地功能清单 |
+
+### 验证
+
+- sidebar.js Grep `extraInner` → 仅剩初始化 `''` 和模板引用（空字符串）✅
+- styles.css Grep `popover-indicator` → 零残留 ✅
+- 浏览器验证 7 个页面均无 undefined ✅
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 功能修复与审计，无新经验]
+
+## T149 工作台身份选择从侧边弹窗改为居中模态框（2026-07-28）
+
+**日期**：2026-07-28
+**任务**：将"党建工作台"多身份选择从侧边 popover 改为居中模态框
+**引用流程**：H1.2 执行 + grill-me skill + verification-before-completion skill
+
+### 背景
+
+T148 去掉了侧边栏箭头但保留了 popover。用户反馈 popover 仍在侧边栏旁弹出（`position:absolute; left:100%`），不是期望的"浮窗表单选择"。经 grill-me 确认：用户要的是居中模态框（半透明遮罩+白卡+标题+选项），单身份直接跳转。
+
+### 变更摘要
+
+1. **workspace-popover.js 重写**：从 `position:absolute; left:100%` 侧边弹窗改为 `position:fixed; inset:0` 居中模态框
+   - 遮罩层：`rgba(0,0,0,0.4)` + flex 居中
+   - 卡片：白底 16px 圆角 + 阴影 + scale-in 动画
+   - 标题："选择进入身份"
+   - 选项：当前身份红色高亮+「当前」标记，其他灰色
+   - 关闭：点击遮罩 / ESC
+2. **styles.css 新增动画**：`@keyframes ws-fade-in` + `@keyframes ws-scale-in`
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/components/workspace-popover.js` | 完全重写：侧边 popover → 居中模态框 |
+| `docs/src/styles.css` | 新增 ws-fade-in + ws-scale-in 动画 keyframes |
+
+### 验证
+
+浏览器实际渲染验证 10 项：
+- 无箭头图标 ✅ | 模态框居中弹出 ✅ | 标题"选择进入身份" ✅
+- 当前身份红色高亮 ✅ | 切换角色跳转正常 ✅ | ESC 关闭 ✅
+- 水平+垂直居中 ✅ | 淡入+缩放动画 ✅ | Apple 风格视觉 ✅
+- 点击遮罩关闭：BLOCKED（浏览器工具限制，源码已实现）
+
+### 蒸馏标签
+
+[经验沉淀: 否 — UI 交互改进，无新经验]
+
+## T150 Bug修复+通知系统设计+像素素材归档（2026-07-28）
+
+**日期**：2026-07-28
+**任务**：(1) 修复党支书视图"数据加载中"bug (2) 修复日历无条目bug+mock数据协调 (3) 通知系统单维度设计 (4) 像素素材T-140归档 (5) 经验沉淀
+**引用流程**：H1.2 执行 + verification-before-completion skill + brainstorming skill
+
+### 变更摘要
+
+1. **Bug #3 修复**：`party.js` 的 `refreshSecretaryAggregateView()` 原先只更新 `sec-stat-*` 统计数字，从不替换 `secretary-aggregate-view` 容器内的"数据加载中"占位文本。现补充完整渲染逻辑：5列统计网格 + 待赋权活动列表 + 本月活动列表。
+2. **Bug #4 修复**：`activities.js` 补充 5 条 7 月活动（act-21~act-25），与 `notices.js` 已有的 7 月通知保持数据协调。日历现在显示 7 月条目。
+3. **通知系统设计**：经 grill 和分析，推荐 `actionRequired + source` 单维度方案替代四象限方案，写入丙部 P.9 第三步。`actionRequired: boolean` 驱动交互行为（跳转 vs 弹窗），`source` 标识来源（程序/人）。
+4. **T-140 归档**：像素素材制作任务标记完成（放弃），设计过程作为探索尝试留存于 `.trae/specs/pixel-design-spec/`。
+5. **经验沉淀**：§6.19 Mock 数据内部协调——不同 mock 文件之间的信息必须一致（T150 判例）。
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/modules/party.js` | refreshSecretaryAggregateView 补充聚合视图渲染逻辑 |
+| `docs/src/mock/activities.js` | 补充 5 条 7 月活动（act-21~act-25） |
+| `CLAUDE.md` | P.9 新增第三步通知系统设计+第四步数据防爆；T-140 标记完成 |
+| `content/insights/工程演进与设计方法论.md` | 新增 §6.19 Mock 数据内部协调 |
+
+### 验证
+
+- 语法检查 party.js + activities.js + party-secretary-entry.js → exit code 0 ✅
+- 浏览器验证 4 项：
+  - 全局聚合视图不再显示"数据加载中" ✅
+  - 5 列统计网格正确渲染 ✅
+  - 日历显示 7 月条目（1日/8日/10日/25日/28日） ✅
+  - 两页面均无 undefined 文本 ✅
+
+### 蒸馏标签
+
+[经验沉淀: 是 — §6.19 Mock 数据内部协调已写入 insights]
+
+---
+
+## T151 跨视图数据统一修复·续（D-248）（2026-07-29）
+
+**日期**：2026-07-29
+**任务**：(1) D-248 数据统一修复验证 + 遗漏修复 (2) P.9 第二/五步决策确认 (3) ws-visitor-entry.js 遗漏 import 修复
+**引用流程**：H1.2 执行 + verification-before-completion skill + D-248
+
+### 变更摘要
+
+1. **D-248 验证**：全仓库 Grep 确认 ACTIVITIES 静态引用全部属于合理用途（fallback/seed/dev-mode），46 处引用中无遗漏。_maybeError 已禁用（mock.js 第 122-130 行）。archive-entry.js 已改用 mockDB + BranchService.loadDB()。
+2. **ws-visitor-entry.js 遗漏修复**：发现 `loadWorkspaceData` 未导入（第 323 行调用但无 import），导致浏览器 `ReferenceError: loadWorkspaceData is not defined`。已补充 `import { loadWorkspaceData } from '../core/data-loader.js';`。
+3. **浏览器验证**：硬刷新后 visitor 页面正常加载，25 条活动数据跨页面一致（secretary/visitor 均显示 25 条活动）。归档库仅显示 completed/archived 活动（4 条），属预期筛选逻辑差异。
+4. **P.9 决策确认**：第二步（AI 本地部署保留+文档记录接入需求）和第五步（归档库实现月份+分页；意见反馈先跑通业务流程）已在上一 session 写入 CLAUDE.md 和 DECISION_LOG.md。
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/entries/ws-visitor-entry.js` | 补充 `import { loadWorkspaceData } from '../core/data-loader.js';` |
+| `.ctx/logs/2026-07-EXECUTION_LOG.md` | T151 执行日志 |
+
+### 验证
+
+- Grep 全仓库 ACTIVITIES 引用：46 处全部属于合理用途（fallback/seed/dev-mode） ✅
+- _maybeError 已禁用：mock.js 第 122-130 行确认 ✅
+- archive-entry.js 已改用 mockDB：import + BranchService.loadDB() 确认 ✅
+- 浏览器硬刷新后 visitor 页面无 `loadWorkspaceData is not defined` 错误 ✅
+- 跨页面活动数据一致：secretary/visitor 均显示 25 条活动 ✅
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 本轮为验证+遗漏修复，无需新沉淀]
+
+---
+
+## T152 卡片背景色清除 + 输入组件统一迁移（D-249）（2026-07-29）
+
+**日期**：2026-07-29
+**任务**：(1) 全系统卡片背景色清除 (2) 输入组件统一迁移至 input-flat (3) 表单布局加宽松
+**引用流程**：H1.2 执行 + brainstorming skill + frontend-design skill + verification-before-completion skill
+
+### 变更摘要
+
+1. **卡片背景色全清**：全系统 56 处 inline `style="background:*"` 卡片背景 + 168 处 Tailwind `bg-*-50` 背景类 + 灰色容器背景 + 卡片边框，全部清除。卡片改为纯白底，仅靠彩色圆点做类型区分。豁免：通知 badge、侧边栏选中高亮、日历今日格子、按钮背景、看板列头等功能性色块。
+2. **输入组件统一迁移**：10 处内联 Tailwind input/textarea（ws-secretary 4处 + ws-leader 5处 + ws-org-commissioner 1处）全部替换为 `input-flat w-full`。ws-org-commissioner 的考察 textarea 使用 `input-flat-sm`。
+3. **styles.css 扩展**：新增 `.input-flat-sm`（小号输入）和 `textarea.input-flat`。
+4. **表单布局**：ws-leader 写入活动表单 gap-3→gap-4；ws-secretary 写入活动表单已是 gap-4 无需修改。
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/styles.css` | 新增 `.input-flat-sm` + `textarea.input-flat` |
+| `docs/src/entries/ws-visitor-entry.js` | 5 处卡片背景色移除 |
+| `docs/src/entries/ws-secretary-entry.js` | 15 处卡片背景色移除 + 4 处 input→input-flat |
+| `docs/src/entries/ws-leader-entry.js` | 6 处卡片背景色移除 + 5 处 input→input-flat + gap-3→gap-4 |
+| `docs/src/entries/ws-org-commissioner-entry.js` | 5 处卡片背景色移除 + 1 处 textarea→input-flat-sm |
+| `docs/src/entries/ws-organizer-entry.js` | 7 处卡片背景色移除 + 5 处 input→input-flat |
+| `docs/src/entries/ws-prop-commissioner-entry.js` | 3 处卡片背景色移除 |
+| `docs/src/entries/ws-disc-commissioner-entry.js` | 4 处卡片背景色移除 |
+| `docs/src/entries/ws-deep-entry.js` | 2 处卡片背景色移除 |
+| `docs/src/entries/main-entry.js` | 5 处卡片背景色移除 |
+| `docs/src/entries/members-entry.js` | 1 处卡片背景色移除 |
+| `docs/src/entries/party-secretary-entry.js` | 3 处卡片背景色移除 |
+| `docs/src/entries/party-prop-entry.js` | 1 处卡片背景色移除 |
+
+### 验证
+
+- Grep `style="background:${color.bg}"` 零残留 ✅
+- Grep 内联 Tailwind input 模式零残留 ✅
+- 浏览器硬刷新后：visitor 卡片无背景色、仅圆点 ✅
+- 浏览器硬刷新后：secretary 表单 input 使用 input-flat、聚焦 party-gold ✅
+- 两页面控制台无 JS 错误 ✅
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 视觉清理类任务，无通用经验需沉淀]
+
+---
+
+## T153 页面底色+时间倒序+标签顺序三合一修复（D-250）（2026-07-29）
+
+**日期**：2026-07-29
+**任务**：(1) 卡片白底+页面浅灰恢复视觉分隔 (2) 时间倒序修复 (3) 标签顺序按增量>存量重排
+**引用流程**：H1.2 执行 + brainstorming skill + frontend-design skill + DESIGN_SYSTEM.md §4.6
+
+### 变更摘要
+
+1. **卡片白底恢复**：7 个 entry 文件中添加 `bg-white` 类到卡片/列表项，使其在浅灰页面（#F8F9FA）上浮起。页面底色本身已是 `--surface-page: #F8F9FA`，无需修改。
+2. **时间倒序修复**：5 处升序排序改为降序（新→旧）：visitor 2处 + main 1处 + party 1处 + sop 1处。
+3. **标签顺序重排**：
+   - 书记：日历总览→活动查询→活动写入→赋权管理→issue → **工作台（日历+写入合并）→ 赋权管理 → 活动查询 → issue管理**
+   - 组织委员：专班管理→考察上传→追踪看板→制度文件 → **考察上传→专班管理→追踪看板→制度文件**
+   - 纪检委员：考勤管理→考察管理→活动监督复盘→数据交接→经验沉淀 → **考勤管理→活动监督复盘→考察管理→数据交接→经验沉淀**
+4. **DESIGN_SYSTEM.md**：§4.6 新增"排序原则"——增量>存量。
+5. **secretary.html**：写入面板从独立 tab 移入日历 tab 内部。
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/entries/ws-visitor-entry.js` | 2处排序升→降 + bg-white |
+| `docs/src/entries/main-entry.js` | 1处排序升→降 |
+| `docs/src/modules/party.js` | 1处排序升→降 |
+| `docs/src/workflow/sop.js` | 1处排序升→降 |
+| `docs/src/entries/ws-org-commissioner-entry.js` | 标签重排 + bg-white |
+| `docs/src/entries/ws-disc-commissioner-entry.js` | 标签重排 + bg-white |
+| `docs/src/entries/ws-organizer-entry.js` | bg-white |
+| `docs/src/entries/ws-prop-commissioner-entry.js` | bg-white |
+| `docs/src/entries/ws-deep-entry.js` | bg-white |
+| `docs/src/entries/ws-leader-entry.js` | bg-white |
+| `docs/src/entries/ws-secretary-entry.js` | bg-white |
+| `docs/workspace/secretary.html` | 标签合并（日历+写入→工作台）+ 删除独立写入tab |
+| `content/04_web_design/DESIGN_SYSTEM.md` | §4.6 新增排序原则 |
+
+### 验证
+
+- 浏览器：visitor 卡片白底浮起在浅灰页面上 ✅
+- 浏览器：活动列表最新在前（2026-07-28 排第一） ✅
+- 浏览器：书记工作台标签"工作台"为首，日历+写入同屏 ✅
+- 浏览器：两页面无 JS 错误 ✅
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 视觉修复+排序+标签调整类任务]
+
+---
+
+## T154 功能定位修正+缺失补全·设计阶段（2026-07-29）
+
+**日期**：2026-07-29
+**任务**：对每个角色视图的每个tab进行"谁用/怎么用/为什么集成"拷问，识别功能缺失和定位错误，完成设计spec
+**引用流程**：H1.2 执行 + brainstorming skill + grill-with-docs skill + COMMISSIONER_FRAMEWORK.md §D.1
+
+### 变更摘要
+
+1. **逐角色拷问**：对6个角色/页面的每个tab进行"谁用/怎么用/为什么集成"拷问，识别9处问题
+2. **功能定位修正**：
+   - 人员管理→人全景（只读，全员可访问，赋权者可操作受范围约束）
+   - 书记赋权管理→常设赋权（仅设党小组组长，专班审批不属于此范畴）
+   - 纪检经验沉淀→融入监督复盘tab
+3. **4个功能缺失补全**：
+   - 首页"我的角色"区块（角色卡片+我的考勤/我的考察）
+   - 党务模块+发展党员追踪（仅确认走到哪一步，不做材料缺失）
+   - 党小组长+复盘提交tab
+   - 宣传委员+宣传任务tab（替代多维表格）
+4. **tab重组**：组织委员-制度文件-追踪看板+人才库；宣传委员-多维表格-专班工作量+宣传任务
+5. **数据同源**：AuthStore/TaskForceRecordStore→mockDB统一存储
+
+### 决策记录
+
+| 决策项 | 书记方向 |
+|--------|---------|
+| 人员管理定位 | 重新定位为人全景，全局只读 |
+| 普通成员可见范围 | 全局只读（可看所有人角色） |
+| 赋权权限 | 各管各的（书记常设赋权、组织委员专班赋权、党小组长活动赋权） |
+| 发展党员追踪位置 | 党务模块子功能 |
+| 宣传委员增量操作 | 宣传任务接管 |
+| 成员个人视图 | 首页"我的角色"区块，我的考勤/考察集成在"我的角色"中 |
+| 导航重构 | 不做大重构，侧边栏保持现状 |
+| 专班审批 | 工作台tab，不属于常设赋权 |
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `.trae/specs/role-driven-navigation-restructure/spec.md` | 新建完整spec |
+| `content/02_institution/COMMISSIONER_FRAMEWORK.md` | §D.1 功能定位声明全面更新 |
+| `CLAUDE.md` | 乙部新增 T-141 |
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 设计阶段，待实施后沉淀]
+
+## T155 功能定位修正+缺失补全·阶段1：tab重组（2026-07-29）
+
+**日期**：2026-07-29
+**任务**：执行spec阶段1——各角色工作台tab重组代码改动
+**引用流程**：H1.2 执行 + T-141 spec + DESIGN_SYSTEM §4.6 + COMMISSIONER_FRAMEWORK §D.1
+
+### 变更摘要
+
+**5个工作台tab重组全部完成**：
+
+| 工作台 | 变更 |
+|--------|------|
+| 书记工作台 | 移除"活动查询"tab（融入工作台）+ 赋权管理→常设赋权（仅设党小组组长） |
+| 党小组长工作台 | +复盘提交tab（活动列表+复盘表单+状态分桶） |
+| 组织委员工作台 | -制度文件tab -追踪看板tab +人才库tab +追踪看板融入专班管理 |
+| 宣传委员工作台 | -多维表格tab -专班工作量独立tab +宣传任务tab +工作量融入活动与专班 |
+| 纪检委员工作台 | -经验沉淀独立tab +经验沉淀督促功能融入监督复盘 |
+
+### 提炼的设计原则（写入 DESIGN_SYSTEM §4.6）
+
+1. **功能融入优于独立**：辅助性功能融入主功能tab，不独立成tab
+2. **职责有入口**：角色有职责就必须有系统入口
+3. **视角正交**：同一数据可从不同视角查看，不重复操作入口
+
+写入 COMMISSIONER_FRAMEWORK §D.1：
+4. **赋权范围约束**：赋权操作按角色分工分散到对应入口
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `docs/workspace/secretary.html` | 移除活动查询tab+按钮，赋权管理→常设赋权，活动查询融入工作台 |
+| `docs/src/entries/ws-secretary-entry.js` | 赋权面板简化为设党小组组长（选人→选党小组→确认），移除通用赋权 |
+| `docs/workspace/leader.html` | 副标题更新 |
+| `docs/src/entries/ws-leader-entry.js` | +复盘提交tab（活动分桶+复盘表单+提交逻辑） |
+| `docs/src/entries/ws-org-commissioner-entry.js` | -制度文件-追踪看板+人才库，追踪融入专班管理 |
+| `docs/workspace/prop.html` | 副标题更新 |
+| `docs/src/entries/ws-prop-commissioner-entry.js` | -多维表格-专班工作量+宣传任务，工作量融入活动与专班 |
+| `docs/src/entries/ws-disc-commissioner-entry.js` | -经验沉淀独立tab，督促功能融入监督复盘 |
+| `content/04_web_design/DESIGN_SYSTEM.md` | §4.6新增3条原则（融入优于独立/职责有入口/视角正交） |
+| `content/02_institution/COMMISSIONER_FRAMEWORK.md` | §D.1新增赋权范围约束原则 |
+| `CLAUDE.md` | T-141状态更新为🔄进行中，YAML更新 |
+
+### 诊断验证
+
+5个entry文件均零诊断错误。
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 阶段1完成，阶段2/3待执行]
 

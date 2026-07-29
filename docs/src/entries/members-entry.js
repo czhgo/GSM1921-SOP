@@ -6,8 +6,8 @@ import { bootstrapPage } from '../core/bootstrap.js';
 import { AuthStore } from '../services/auth.js';
 import { PEOPLE } from '../mock/people.js';
 import { getPersonById } from '../mock/index.js';
-import { ACTIVITIES } from '../mock/activities.js';
 import { MOCK_TASKFORCES } from '../mock/taskforces.js';
+import { mockDB } from '../core/domain.js';
 import { ROLE_LABELS } from '../core/constants.js';
 import { showToast } from '../core/utils.js';
 
@@ -107,7 +107,7 @@ function _renderProjectAuthPanel() {
       <div>
         <label class="text-xs text-gray-500 mb-1 block">选择项目</label>
         <select id="project-id-select" class="input-flat text-xs w-full">
-          ${ACTIVITIES.map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('')}
+          ${mockDB.activities.map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('')}
         </select>
       </div>
 
@@ -148,7 +148,7 @@ function _bindProjectTypeSwitch() {
   typeSelect.addEventListener('change', () => {
     const type = typeSelect.value;
     if (type === 'activity') {
-      idSelect.innerHTML = ACTIVITIES.map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('');
+      idSelect.innerHTML = mockDB.activities.map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('');
     } else {
       idSelect.innerHTML = MOCK_TASKFORCES.map(tf => `<option value="${tf.id}" data-type="taskforce">${tf.name}</option>`).join('');
     }
@@ -214,7 +214,7 @@ function _renderProjectAuthRecords() {
 
   listEl.innerHTML = records.map(r => {
     const person = getPersonById(r.targetPersonId);
-    const project = ACTIVITIES.find(a => a.id === r.scopeRef) || MOCK_TASKFORCES.find(t => t.id === r.scopeRef);
+    const project = mockDB.activities.find(a => a.id === r.scopeRef) || MOCK_TASKFORCES.find(t => t.id === r.scopeRef);
     const projectName = project ? (project.title || project.name) : r.scopeRef;
     const roleLabel = ROLE_LABELS[r.role] || r.role;
     const personName = person?.name || r.targetPersonId;
@@ -261,7 +261,7 @@ function _renderAuthRecords() {
     const roleLabel = ROLE_LABELS[r.role] || r.role;
 
     return `
-      <div class="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50">
+      <div class="flex items-center justify-between py-2 px-3 rounded-lg">
         <div>
           <span class="font-medium text-sm text-gray-800">${person?.name || r.targetPersonId}</span>
           <span class="text-xs text-gray-400 ml-2">被设为 ${roleLabel}</span>

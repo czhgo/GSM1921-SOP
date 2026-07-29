@@ -119,19 +119,14 @@ export function loadDB() {
   --- */
 }
 
-/** 模拟随机错误（5% NetworkError + 5% PermissionError = 10% 总错误率） */
+/** 随机错误模拟（已禁用）
+ * 原设计：5% NetworkError + 5% PermissionError = 10% 总错误率
+ * 禁用原因：随机错误触发 loadWorkspaceData fallback 路径，返回静态 ACTIVITIES
+ * 而非 mockDB 当前数据，导致跨页面数据不一致（D-248 数据统一修复）
+ * 后端接入后，真实错误由后端返回，无需前端模拟
+ */
 function _maybeError(opName) {
-  const rand = Math.random();
-  if (rand < 0.05) {
-    const err = Object.assign(new Error('网络连接失败，请稍后重试'), { type: 'NetworkError' });
-    console.warn(`[MockAdapter] ${opName} 失败：NetworkError`);
-    throw err;
-  }
-  if (rand < 0.10) {
-    const err = Object.assign(new Error('权限不足，无法执行此操作'), { type: 'PermissionError' });
-    console.warn(`[MockAdapter] ${opName} 失败：PermissionError`);
-    throw err;
-  }
+  // no-op：已禁用随机错误模拟
 }
 
 /** 包装为带固定延迟的 Promise */

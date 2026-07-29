@@ -1,13 +1,13 @@
-﻿﻿import { renderTabBar } from '../components/tab-bar.js';
+import { renderTabBar } from '../components/tab-bar.js';
 import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
 import { BranchService } from '../services/runtime.js';
 import { showToast } from '../core/utils.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
-import { attendanceToLong, inspectionToLong, ACTIVITIES, PEOPLE, MOCK_TASKFORCES, getPersonById, getPersonName } from '../mock/index.js';
+import { attendanceToLong, inspectionToLong, ACTIVITIES, PEOPLE, MOCK_TASKFORCES, REVIEW_RECORDS, getPersonById, getPersonName } from '../mock/index.js';
 import { PersonPicker } from '../components/person-picker.js';
 import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, SOURCE_TYPE_LABELS, ParticipationLevel } from '../core/domain.js';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, SOURCE_TYPE_LABELS, ParticipationLevel, ReviewStatus, REVIEW_STATUS_LABELS } from '../core/domain.js';
 import { saveDB } from '../services/mock.js';
 import { loadMakeupTasks } from '../services/makeup.js';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js';
@@ -55,6 +55,7 @@ function renderLeaderUI(state) {
       { id: 'write', label: '活动写入', render: (ctx) => _renderWriteContent(ctx.filteredActivities) },
       { id: 'attendance', label: '考勤上传', render: () => _renderAttendanceContent() },
       { id: 'inspection', label: '考察上传', render: () => _renderInspectionContent() },
+      { id: 'review', label: '复盘提交', render: () => _renderReviewContent() },
     ],
     accentColor: { accent, accentRgba, accentBorder },
     renderCtx: { filteredActivities },
@@ -92,7 +93,7 @@ function _renderWriteContent(activities) {
         <div class="space-y-2" id="leader-activity-list">
           ${activities.length === 0 ? '<p class="text-xs text-gray-400 text-center py-4">暂无关联活动</p>' :
             activities.map(a => `
-              <div class="leader-act-item flex items-center justify-between p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer" data-act-id="${a.id}">
+              <div class="leader-act-item flex items-center justify-between p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors cursor-pointer" data-act-id="${a.id}">
                 <div class="flex-1 min-w-0">
                   <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
                   <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
@@ -101,7 +102,7 @@ function _renderWriteContent(activities) {
               </div>
             `).join('')}
         </div>
-        <div id="leader-act-detail" class="hidden mt-3 bg-gray-100 rounded-xl p-4 border border-gray-200"></div>
+        <div id="leader-act-detail" class="hidden mt-3 rounded-xl p-4"></div>
       </div>
     </div>
   `;
@@ -310,27 +311,27 @@ function _renderDecisionTreePanel() {
   const formHtml = allSelected ? `
     <div class="mt-4 pt-4 border-t border-dashed border-gray-200">
       <div class="text-xs font-bold text-gray-600 mb-3">填写活动信息</div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
         <div>
           <label class="text-xs text-gray-500 mb-1 block">T-0 日期 <span class="text-red-500">*</span></label>
-          <input type="date" id="dt-target-date" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200 transition-colors">
+          <input type="date" id="dt-target-date" class="input-flat w-full">
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1 block">活动地点 <span class="text-red-500">*</span></label>
-          <input type="text" id="dt-location" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200 transition-colors" placeholder="活动地点">
+          <input type="text" id="dt-location" class="input-flat w-full" placeholder="活动地点">
         </div>
       </div>
       <div class="mb-3">
         <label class="text-xs text-gray-500 mb-1 block">活动名称 <span class="text-red-500">*</span></label>
-        <input type="text" id="dt-title" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200 transition-colors" placeholder="活动名称">
+        <input type="text" id="dt-title" class="input-flat w-full" placeholder="活动名称">
       </div>
       <div class="mb-4">
         <label class="text-xs text-gray-500 mb-1 block">活动描述（选填）</label>
-        <textarea id="dt-desc" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200 transition-colors resize-none" rows="2" placeholder="简要描述活动内容"></textarea>
+        <textarea id="dt-desc" class="input-flat w-full resize-none" rows="2" placeholder="简要描述活动内容"></textarea>
       </div>
 
       <!-- SOP 预览 -->
-      <div class="mb-4 p-3 rounded-lg bg-gray-100 border border-gray-100">
+      <div class="mb-4 p-3 rounded-lg bg-white">
         <div class="text-xs font-bold text-gray-600 mb-2">SOP 任务节点预览</div>
         <div id="dt-sop-preview" class="space-y-1 text-xs text-gray-500">
           ${_renderSopPreview()}
@@ -501,10 +502,10 @@ function _renderAttendanceContent() {
   if (_attPickerInstance) { _attPickerInstance.destroy(); _attPickerInstance = null; }
 
   const allRecords = loadAttendanceRecords();
-  const myAttendance = allRecords.filter(r => r.activityId && ACTIVITIES.find(a => a.id === r.activityId)?.type === '党小组');
+  const myAttendance = allRecords.filter(r => r.activityId && mockDB.activities.find(a => a.id === r.activityId)?.type === '党小组');
 
   // 筛选三会一课和主题党日活动
-  const eligibleActivities = ACTIVITIES.filter(a =>
+  const eligibleActivities = mockDB.activities.filter(a =>
     a.type === '党小组会' || a.type === '主题党日' || a.type === '党课' || a.type === '支部党员大会'
   );
 
@@ -574,7 +575,7 @@ function _renderAttendanceContent() {
         <div class="text-xs text-gray-500 mb-2">本组有 ${myGroupMakeupTasks.length} 人缺勤，已生成补课任务</div>
         <div class="space-y-1.5">
           ${myGroupMakeupTasks.map(t => `
-            <div class="flex items-center justify-between p-2 rounded-lg ${t.status === 'overdue' ? 'bg-red-50 border border-red-100' : 'bg-orange-50 border border-orange-100'}">
+            <div class="flex items-center justify-between p-2 rounded-lg bg-white ${t.status === 'overdue' ? 'border border-red-100' : 'border border-orange-100'}">
               <div class="flex items-center gap-2">
                 <span class="text-xs font-medium text-gray-800">${t.personName}</span>
                 <span class="text-[10px] text-gray-500">${t.activityName}</span>
@@ -695,7 +696,7 @@ function _renderAttStatusRows(selectedIds) {
         const person = getPersonById(pid);
         const name = person ? person.name : pid;
         return `
-          <div class="flex items-center gap-3 p-2 rounded-lg bg-gray-100">
+          <div class="flex items-center gap-3 p-2 rounded-lg bg-white">
             <span class="text-sm font-medium text-gray-800 min-w-[60px]">${name}</span>
             <select id="att-status-${pid}" class="input-flat text-xs">
               <option value="${AttendanceStatus.PRESENT}">出勤</option>
@@ -720,7 +721,7 @@ function _renderInspectionContent() {
   const myInspection = allRecords.filter(r => r.sourceType === SourceType.ACTIVITY);
 
   // 来源类型选项
-  const sourceActivities = ACTIVITIES.filter(a =>
+  const sourceActivities = mockDB.activities.filter(a =>
     a.type === '党小组会' || a.type === '主题党日' || a.type === '党课' || a.type === '支部党员大会'
   );
   const sourceTaskforces = MOCK_TASKFORCES;
@@ -908,12 +909,206 @@ function _renderInspContentRows(selectedIds) {
         const person = getPersonById(pid);
         const name = person ? person.name : pid;
         return `
-          <div class="p-2 rounded-lg bg-gray-100">
+          <div class="p-2 rounded-lg bg-white">
             <div class="text-sm font-medium text-gray-800 mb-1">${name}</div>
-            <textarea id="insp-content-${pid}" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200 transition-colors resize-none" rows="2" placeholder="请填写考察内容描述"></textarea>
+            <textarea id="insp-content-${pid}" class="input-flat w-full text-xs resize-none" rows="2" placeholder="请填写考察内容描述"></textarea>
           </div>
         `;
       }).join('')}
+    </div>
+  `;
+}
+
+// ── 复盘提交 ──────────────────────────────────────────────────
+
+// 当前展开复盘表单的活动 ID（null 表示全部收起）
+let _reviewExpandedId = null;
+
+/**
+ * 复盘提交 tab：展示本组活动列表，按复盘状态分桶（待复盘/已复盘），
+ * 待复盘活动可展开填写复盘总结并提交。
+ */
+function _renderReviewContent() {
+  const container = document.getElementById('leader-tab-content');
+  if (!container) return;
+
+  // 当前组长身份（默认 p4 赵六·第三党小组）
+  const currentLeaderId = 'p4';
+  const myGroup = LEADER_GROUP_MAP[currentLeaderId] || '';
+
+  // 筛选本组活动（党小组会/组织生活会/主题党日等由本组组长组织的活动）
+  const myGroupActivities = mockDB.activities.filter(a => {
+    // 按组织者属于本组 或 按 hostGroup 匹配
+    const organizer = PEOPLE.find(p => p.id === a.organizer);
+    return organizer && organizer.partyGroup === myGroup && a.status !== 'cancelled';
+  });
+
+  // 获取已有复盘记录
+  const reviewMap = {};
+  for (const r of REVIEW_RECORDS) {
+    if (r.activityId) reviewMap[r.activityId] = r;
+  }
+
+  // 按复盘状态分桶
+  const pending = [];   // 待复盘：未提交 / 已打回
+  const completed = []; // 已复盘：已上传 / 批注中 / 已确认
+  for (const act of myGroupActivities) {
+    const rev = reviewMap[act.id];
+    if (!rev || rev.reviewStatus === ReviewStatus.NOT_SUBMITTED || rev.reviewStatus === ReviewStatus.REJECTED) {
+      pending.push({ act, rev: rev || null });
+    } else {
+      completed.push({ act, rev });
+    }
+  }
+
+  // 复盘状态颜色映射
+  const reviewColorMap = {
+    [ReviewStatus.NOT_SUBMITTED]: 'bg-red-100 text-red-700',
+    [ReviewStatus.UPLOADED]: 'bg-orange-100 text-orange-700',
+    [ReviewStatus.ANNOTATING]: 'bg-blue-100 text-blue-700',
+    [ReviewStatus.CONFIRMED]: 'bg-green-100 text-green-700',
+    [ReviewStatus.REJECTED]: 'bg-red-100 text-red-700',
+  };
+
+  function renderActivityCard(item, bucket) {
+    const { act, rev } = item;
+    const isPending = bucket === 'pending';
+    const statusLabel = rev ? REVIEW_STATUS_LABELS[rev.reviewStatus] : '未提交';
+    const statusColor = reviewColorMap[rev?.reviewStatus || ReviewStatus.NOT_SUBMITTED] || 'bg-gray-100 text-gray-500';
+    const isExpanded = _reviewExpandedId === act.id;
+
+    return `
+      <div class="leader-review-item p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors ${rev?.reviewStatus === ReviewStatus.REJECTED ? 'border border-red-100' : ''}" data-act-id="${act.id}">
+        <div class="flex items-center justify-between cursor-pointer review-toggle">
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium text-gray-800">${act.title || '未命名'}</div>
+            <div class="text-xs text-gray-500 mt-0.5">${act.date || ''} ${act.type ? '· ' + act.type : ''}</div>
+          </div>
+          <div class="flex items-center gap-2 ml-4">
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
+            ${rev?.reviewStatus === ReviewStatus.REJECTED ? '<span class="text-[10px] text-red-500">需修改</span>' : ''}
+          </div>
+        </div>
+        ${isExpanded && isPending ? _renderReviewForm(act, rev) : ''}
+        ${isExpanded && !isPending && rev ? _renderReviewDetail(rev) : ''}
+      </div>
+    `;
+  }
+
+  container.innerHTML = `
+    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+      <div class="flex items-center justify-between mb-4">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">复盘提交</h4>
+      </div>
+      <div class="text-xs text-gray-500 mb-4">党小组组长提交活动复盘总结 → 纪检委员批注/确认</div>
+
+      <!-- 待复盘 -->
+      <div class="mb-4">
+        <div class="text-xs font-bold text-gray-600 mb-2">待复盘 <span class="text-gray-400 font-normal">(${pending.length})</span></div>
+        <div class="space-y-2" id="leader-review-pending">
+          ${pending.length === 0 ? '<p class="text-xs text-gray-400 text-center py-3">暂无待复盘活动</p>' :
+            pending.map(item => renderActivityCard(item, 'pending')).join('')}
+        </div>
+      </div>
+
+      <!-- 已复盘 -->
+      <div class="pt-3 border-t border-gray-100">
+        <div class="text-xs font-bold text-gray-600 mb-2">已复盘 <span class="text-gray-400 font-normal">(${completed.length})</span></div>
+        <div class="space-y-2" id="leader-review-completed">
+          ${completed.length === 0 ? '<p class="text-xs text-gray-400 text-center py-3">暂无已复盘活动</p>' :
+            completed.map(item => renderActivityCard(item, 'completed')).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 绑定活动卡片点击展开/收起
+  container.querySelectorAll('.review-toggle').forEach(toggle => {
+    toggle.addEventListener('click', () => {
+      const item = toggle.closest('.leader-review-item');
+      const actId = item?.dataset.actId;
+      _reviewExpandedId = _reviewExpandedId === actId ? null : actId;
+      _renderReviewContent();
+    });
+  });
+
+  // 绑定复盘表单提交按钮
+  container.querySelectorAll('.btn-review-submit').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const actId = btn.dataset.actId;
+      const textarea = container.querySelector(`#review-textarea-${actId}`);
+      const content = textarea?.value?.trim();
+      if (!content) {
+        showToast('error', '请填写复盘总结');
+        return;
+      }
+
+      // 在 REVIEW_RECORDS 中查找或创建复盘记录
+      const existIdx = REVIEW_RECORDS.findIndex(r => r.activityId === actId);
+      if (existIdx >= 0) {
+        // 更新已有记录（如已打回重新提交）
+        const isResubmit = REVIEW_RECORDS[existIdx].reviewStatus === ReviewStatus.REJECTED;
+        REVIEW_RECORDS[existIdx].reviewContent = content;
+        REVIEW_RECORDS[existIdx].reviewStatus = ReviewStatus.UPLOADED;
+        REVIEW_RECORDS[existIdx].submittedAt = new Date().toISOString();
+        // 清除打回批注
+        if (isResubmit) {
+          REVIEW_RECORDS[existIdx].annotation = '';
+        }
+      } else {
+        // 新建复盘记录
+        REVIEW_RECORDS.push({
+          id: 'rev_' + Date.now(),
+          activityId: actId,
+          organizerId: currentLeaderId,
+          progress: '已完成',
+          overdue: false,
+          reviewStatus: ReviewStatus.UPLOADED,
+          reviewContent: content,
+          submittedAt: new Date().toISOString(),
+        });
+      }
+
+      _reviewExpandedId = null;
+      showToast('success', '复盘总结已提交，等待纪检委员确认');
+      _renderReviewContent();
+    });
+  });
+}
+
+/** 渲染复盘表单（待复盘活动展开时） */
+function _renderReviewForm(act, rev) {
+  const existingContent = rev?.reviewContent || '';
+  const isRejected = rev?.reviewStatus === ReviewStatus.REJECTED;
+  return `
+    <div class="mt-3 pt-3 border-t border-gray-100">
+      ${isRejected && rev.annotation ? `
+        <div class="mb-2 p-2 rounded-lg bg-red-50 border border-red-100">
+          <div class="text-[10px] text-red-500 font-bold mb-1">纪检委员批注</div>
+          <div class="text-xs text-red-700">${rev.annotation}</div>
+        </div>
+      ` : ''}
+      <textarea id="review-textarea-${act.id}" class="input-flat w-full text-xs resize-none" rows="4" placeholder="请填写复盘总结（活动成效、经验教训、改进建议等）">${existingContent}</textarea>
+      <div class="flex items-center gap-2 mt-2">
+        <button class="btn-review-submit text-xs px-4 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" data-act-id="${act.id}" style="background:${accent};cursor:pointer;">提交复盘</button>
+        <span class="text-[10px] text-gray-400">提交后纪检委员将在监督复盘tab收到通知</span>
+      </div>
+    </div>
+  `;
+}
+
+/** 渲染复盘详情（已复盘活动展开时） */
+function _renderReviewDetail(rev) {
+  return `
+    <div class="mt-3 pt-3 border-t border-gray-100">
+      <div class="text-xs text-gray-600 p-2 bg-gray-50 rounded-lg border border-gray-100">${rev.reviewContent || ''}</div>
+      ${rev.submittedAt ? `<div class="text-[10px] text-gray-400 mt-1">提交时间：${rev.submittedAt.slice(0, 16).replace('T', ' ')}</div>` : ''}
+      ${rev.annotation ? `
+        <div class="mt-2 p-2 rounded-lg bg-blue-50 border border-blue-100">
+          <div class="text-[10px] text-blue-500 font-bold mb-1">纪检委员批注</div>
+          <div class="text-xs text-blue-700">${rev.annotation}</div>
+        </div>
+      ` : ''}
     </div>
   `;
 }

@@ -1,4 +1,4 @@
-﻿﻿import { ROLE_LABELS } from '../core/constants.js';
+﻿import { ROLE_LABELS } from '../core/constants.js';
 import { getBasePath } from '../core/utils.js';
 import { icon } from '../core/icons.js';
 
@@ -14,13 +14,13 @@ const COMMISSIONER_DATA = [
     workspace: {
       title: '专班建设',
       desc: '招募统筹·定人定责定岗',
-      items: ['专班创建与招募管理', '赋权面板操作', '工作量跟踪与记账', '专班解散与汇总报告'],
+      items: ['考察上传与确认', '专班创建与招募管理', '人才库（考察表有机汇总）'],
       page: 'workspace/org.html',
     },
     party: {
       title: '发展党员全流程',
       desc: '考察/催缴/归档',
-      items: ['发展党员追踪看板', '材料催缴提醒', '制度文件管理'],
+      items: ['发展党员追踪看板', '材料催缴提醒'],
       page: 'party/org.html',
     },
   },
@@ -35,7 +35,7 @@ const COMMISSIONER_DATA = [
     workspace: {
       title: '活动与专班视图',
       desc: '宣传材料/周报',
-      items: ['活动宣传看板', '专班工作量视图', '多维表格视图', '宣传材料管理'],
+      items: ['宣传任务接收与执行', '活动与专班看板', '专班工作量统计'],
       page: 'workspace/prop.html',
     },
     party: {

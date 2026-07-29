@@ -56,10 +56,9 @@ export function renderSidebar(activeModule) {
       const standingPage = AuthStore.getPageForRole('workspace', role);
       if (!standingPage) return '';
       href = getBasePath() + 'workspace/' + standingPage;
-      // 多身份时加 popover 标记
+      // 多身份时加 popover 标记（点击弹出悬浮选择，无需箭头）
       if (pages.length > 1) {
         extraAttrs = ' data-workspace-popover="1"';
-        extraInner = '<svg class="popover-indicator" width="10" height="6" viewBox="0 0 10 6" fill="none" style="flex-shrink:0;margin-left:auto;"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       }
     } else if (item.module === 'party') {
       const page = AuthStore.getPageForRole('party', role);

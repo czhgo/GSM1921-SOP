@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: "2026-07-27"
+last_updated: "2026-07-29"
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSOT_INDEX.md, content/01_strategy/SECRETARY_PRONOUNCEMENTS.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, .ctx/logs/]
 ---
@@ -509,7 +509,8 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | T-118 | **治理文档完善+用户文档体系梳理**：基于Harness框架同步推进治理文档完善，梳理现有用户文档体系，识别缺失/冗余/过时 | H2.2 母本子本 + H7 项目产出声明 | content/ + docs/ | ⏳ 待启动 |
 | T-122 | **零补丁识别评议**（4轮）：全仓库用户文档"零补丁 detected"评议。书记元洞察（2026-07-20）："会出现新增的内容单独成段落，即使和前面的段落/章节也是相关的，乃至应该属于前面的段落/章节。"分轮规划：① SECRETARY_PRONOUNCEMENTS.md（理论基石）② insights（B1 重组后）③ README+ARCHITECTURE ④ sop/strategy/design/governance [用户]部分。每轮按"多层过滤"方法（问题脉络→主题相关→时间维度）识别补丁，提交书记决策（融入原命题/调整新命题/保留独立），按决策执行修订。**四轮均已完成**：第一轮 P-046 融入 P-045；第二轮 §2.1 乘积关系修正融入+§11.6 跨主题段落移至§7.1；第三轮 README+ARCHITECTURE 9 处修复；第四轮 sop/strategy/design/governance 7 处强补丁修订（含 FLAT_DESIGN 破例）+附录 B 移至乙部 T-123 | H5 书记评议 + H2.4 经验沉淀 + USAGE_POLICY §1.9.3 + H2.2 母本子本 | 全仓库用户文档 | ✅ 完成 |
 | T-127 | **文档【逻辑顺序】重组**：基于 spec `.trae/specs/document-logical-order-restructure-continuation/` 执行阶段 1 续（机械性修复：30 个 .md + 7 个代码文件路径替换 + §5.2/§5.3 编号修复）+ 阶段 2（设计性重组：DEVELOPMENT_PATH.md 5 章→3 章+附录 A/B、SECRETARY_PRONOUNCEMENTS.md P-045/P-047 移到第一章 + P-008/P-021 移出至 insights 文件 2、insights 拆分为双文件、CLAUDE.md H2.4 规则 2 "正反两面论"→"按需正反两面论"）。46/46 验证项全部通过 | H2.1 一改具改 + H2.2 母本子本 + H2.4 经验沉淀 + OPERATIONS_GUIDE §11.7 文档【逻辑顺序】 | 全仓库 | ✅ 完成 |
-| T-140 | **Exploration Canvas 像素部分·阶段1 素材制作**：设计文稿已完成（`.trae/specs/pixel-design-spec/`，28 ADR+术语表+主文稿）。**2026-07-27 书记三项决策**：①素材制作方式→SD/AI 生图（ADR-026，代码草图v1-v10全部未通过，正式废弃）②美学方向→星露谷物语画风（ADR-027，色相偏移阴影+选择性描边+温暖手作感，修正ADR-010纯平涂）③ADR-025坐标→保持不变。**提示词归总完成**：prompts/ 目录下 10 个分文件（00-global-style + 01-characters×8 + 02-scene×4 + 03-action×4类11动作 + 04-post-processing），每个文件可直接复制粘贴到 SD/Codex 工具。旧过程性文件已清理（v15/v2/help spec + sd-prompt-template.md）。**下一步**：书记用 Codex 读取 `.trae/specs/pixel-design-spec/` 下所有文件，按 prompts/ 中的 prompt 生成 secretary idle 帧 candidate 并验收 | H2.4 经验沉淀 + DESIGN_SYSTEM.md §5.4 + ADR-026/027/028 | .trae/specs/pixel-design-spec/ + docs/src/entries/help-entry.js | 🔄 进行中 |
+| T-140 | **Exploration Canvas 像素部分·阶段1 素材制作**：设计文稿已完成（`.trae/specs/pixel-design-spec/`，28 ADR+术语表+主文稿）。2026-07-27 书记三项决策：①素材制作方式→SD/AI 生图（ADR-026）②美学方向→星露谷物语画风（ADR-027）③ADR-025坐标→保持不变。提示词归总完成（prompts/ 10 个分文件）。**2026-07-28 书记决定放弃像素素材制作**，设计过程作为探索尝试留存于 `.trae/specs/pixel-design-spec/`，不再推进 | H2.4 经验沉淀 + DESIGN_SYSTEM.md §5.4 | .trae/specs/pixel-design-spec/ | ✅ 完成（放弃，设计文档留存） |
+| T-141 | **功能定位修正+缺失补全**：基于"谁用/怎么用/为什么集成"拷问，重新定位人员管理→人全景（只读）、书记赋权管理→常设赋权、纪检经验沉淀→融入监督复盘；补全4个缺失（首页"我的角色"区块、发展党员追踪、党小组长复盘提交、宣传委员宣传任务）；移除制度文件/多维表格/专班工作量/追踪看板独立tab。Spec 已批准：`.trae/specs/role-driven-navigation-restructure/spec.md`。COMMISSIONER_FRAMEWORK.md §D.1 已更新。DESIGN_SYSTEM §4.6 新增3条原则（功能融入优于独立/职责有入口/视角正交）。分3阶段：①tab重组（代码）✅完成 ②页面级功能补全 ③数据同源（AuthStore/TaskForceRecordStore→mockDB） | H2.2 母本子本 + COMMISSIONER_FRAMEWORK §D + DESIGN_SYSTEM §4.6 | docs/src/entries/* + members-entry.js + main-entry.js + party.js | 🔄 进行中 |
 
 ***
 

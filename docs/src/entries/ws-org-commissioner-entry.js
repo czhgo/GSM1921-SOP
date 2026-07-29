@@ -1,4 +1,4 @@
-﻿import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
+import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
 import { BranchService } from '../services/runtime.js';
 import { showToast } from '../core/utils.js';
 import { CrossPageState } from '../core/cross-page-state.js';
@@ -42,10 +42,9 @@ function renderOrgUI(state) {
   const tabBar = renderTabBar({
     prefix: 'org',
     tabs: [
-      { id: 'taskforce', label: '专班管理', render: (ctx) => _renderTaskforceContent(ctx.pending, ctx.recruiting, ctx.active) },
       { id: 'inspection', label: '考察上传', render: () => _renderOrgInspectionContent() },
-      { id: 'tracking', label: '追踪看板', render: (ctx) => _renderTrackingContent(ctx.activities) },
-      { id: 'compliance', label: '制度文件', render: () => _renderComplianceContent() },
+      { id: 'taskforce', label: '专班管理', render: (ctx) => _renderTaskforceContent(ctx.pending, ctx.recruiting, ctx.active, ctx.activities) },
+      { id: 'talent', label: '人才库', render: () => _renderTalentContent() },
     ],
     accentColor: { accent, accentRgba, accentBorder },
     extraRightHtml: '<button id="btn-publish-tf" style="background:var(--accent-org-commissioner);color:white;border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity=\'0.9\'" onmouseout="this.style.opacity=\'1\'">发布招募</button>',
@@ -72,7 +71,7 @@ function renderOrgUI(state) {
   }
 }
 
-function _renderTaskforceContent(pending, recruiting, active) {
+function _renderTaskforceContent(pending, recruiting, active, activities) {
   const container = document.getElementById('org-tab-content');
   if (!container) return;
 
@@ -88,6 +87,7 @@ function _renderTaskforceContent(pending, recruiting, active) {
     </div>
     <div id="org-tf-kanban"></div>
     <div id="tf-detail-panel" class="hidden card rounded-xl p-5 border-l-4" style="border-left-color:${accent};"></div>
+    <div id="org-activity-progress" class="mt-4"></div>
   `;
 
   function renderKanban() {
@@ -136,6 +136,9 @@ function _renderTaskforceContent(pending, recruiting, active) {
 
   document.getElementById('org-tf-search')?.addEventListener('input', renderKanban);
   renderKanban();
+
+  // ── 活动进度区块（原追踪看板内容融入） ──
+  _renderActivityProgress(activities);
 
   // ── 招募状态流转按钮事件绑定（recruiting → active → archived） ──
   function bindStatusButtons() {
@@ -216,7 +219,7 @@ function _renderTaskforceContent(pending, recruiting, active) {
             <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">${SVG.clipboard} 工作量汇总</h5>
             ${tf.members.filter(m => m.personId).length === 0
               ? '<p class="text-xs text-gray-400">暂无成员</p>'
-              : `<div class="bg-gray-100 rounded-lg px-3 py-1">${memberRows}</div>`
+              : `<div class="rounded-lg px-3 py-1">${memberRows}</div>`
             }
           </div>`;
 
@@ -381,7 +384,7 @@ function _renderTfCard(t, statusLabel, statusColor) {
     statusBtn = `<button class="tf-archive-btn text-[10px] px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">归档专班</button>`;
   }
   return `
-    <div class="kanban-card p-4 rounded-xl border border-gray-100 bg-white cursor-pointer tf-store-card hover:shadow-sm transition-shadow" data-tf-id="${t.id}">
+    <div class="kanban-card p-4 rounded-xl bg-white cursor-pointer tf-store-card hover:shadow-sm transition-shadow" data-tf-id="${t.id}">
       <div class="flex items-start justify-between gap-2 mb-2">
         <span class="text-sm font-semibold text-gray-800 leading-snug">${t.name}</span>
         <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium" style="background:${color}15;color:${color};">${statusLabel[t.status] || t.status}</span>
@@ -572,180 +575,228 @@ function _submitRecruitForm() {
   }
 }
 
-function _renderTrackingContent(activities) {
-  const container = document.getElementById('org-tab-content');
-  if (!container) return;
+// ── 活动进度区块（融入专班管理tab，原追踪看板） ──
+function _renderActivityProgress(activities) {
+  const progressEl = document.getElementById('org-activity-progress');
+  if (!progressEl) return;
 
-  // Prepare data with archived field for filtering
-  const queryData = activities.map(a => ({
-    ...a,
-    archived: String(a.status === 'completed'),
-  }));
-
-  // Extract type options from activities
   const typeOptions = [...new Set(activities.map(a => a.type).filter(Boolean))].map(t => ({ value: t, label: t }));
+  const queryData = activities.map(a => ({ ...a, archived: String(a.status === 'completed') }));
 
-  container.innerHTML = `
+  progressEl.innerHTML = `
     <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
-      <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">活动追踪看板</h4>
-      <div class="text-xs text-gray-500 mb-3">组织委员可追踪所有已发布活动的执行状态</div>
-      <div id="org-tracking-query"></div>
+      <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">${SVG.clipboard} 活动进度</h4>
+      <div class="text-xs text-gray-500 mb-3">追踪所有已发布活动的执行状态</div>
+      <div id="org-activity-query"></div>
     </div>
   `;
 
-  const queryContainer = document.getElementById('org-tracking-query');
-  if (queryContainer) {
-    renderQueryView(queryContainer, {
-      searchPlaceholder: '搜索活动名称...',
-      searchKey: 'title',
-      filters: [
-        { key: 'type', label: '活动类型', options: typeOptions },
-        { key: 'archived', label: '状态', options: [
-          { value: '', label: '全部' },
-          { value: 'false', label: '进行中' },
-          { value: 'true', label: '已归档' },
-        ]},
-      ],
-      data: queryData,
-      renderRow: (a) => {
-        const isArchived = a.status === 'completed';
-        const statusTag = isArchived
-          ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">已归档</span>'
-          : '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">已发布</span>';
-        const completeBtn = !isArchived
-          ? `<button class="track-complete-btn text-[10px] px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors" data-act-id="${a.id}">确认完成</button>`
-          : '';
-        return `
-          <div class="flex items-center justify-between p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
-            <div class="flex-1 min-w-0">
-              <div class="text-sm font-medium ${isArchived ? 'text-gray-500 line-through' : 'text-gray-800'}">${a.title || '未命名'}</div>
-              <div class="text-xs text-gray-500 mt-0.5">${a.date || ''}${a.type ? ' · ' + a.type : ''}${a.location ? ' · ' + a.location : ''}</div>
-            </div>
-            <div class="flex items-center gap-2">
-              ${statusTag}
-              ${completeBtn}
-            </div>
+  const queryContainer = document.getElementById('org-activity-query');
+  if (!queryContainer) return;
+
+  renderQueryView(queryContainer, {
+    searchPlaceholder: '搜索活动名称...',
+    searchKey: 'title',
+    filters: [
+      { key: 'type', label: '活动类型', options: typeOptions },
+      { key: 'archived', label: '状态', options: [
+        { value: '', label: '全部' },
+        { value: 'false', label: '进行中' },
+        { value: 'true', label: '已归档' },
+      ]},
+    ],
+    data: queryData,
+    renderRow: (a) => {
+      const isArchived = a.status === 'completed';
+      const statusTag = isArchived
+        ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">已归档</span>'
+        : '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">已发布</span>';
+      const completeBtn = !isArchived
+        ? `<button class="track-complete-btn text-[10px] px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors" data-act-id="${a.id}">确认完成</button>`
+        : '';
+      return `
+        <div class="flex items-center justify-between p-3 rounded-xl bg-white transition-colors">
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium ${isArchived ? 'text-gray-500 line-through' : 'text-gray-800'}">${a.title || '未命名'}</div>
+            <div class="text-xs text-gray-500 mt-0.5">${a.date || ''}${a.type ? ' · ' + a.type : ''}${a.location ? ' · ' + a.location : ''}</div>
           </div>
-        `;
-      },
-      emptyMessage: '无匹配活动',
-      accentColor: accent,
-    });
-
-    // Bind confirm complete buttons using event delegation
-    queryContainer.addEventListener('click', (e) => {
-      const btn = e.target.closest('.track-complete-btn');
-      if (!btn) return;
-      const actId = btn.dataset.actId;
-      const activity = activities.find(a => a.id === actId);
-      if (!activity) return;
-      const confirmed = window.confirm(`确认完成活动「${activity.title || '未命名'}」？完成后将归档。`);
-      if (!confirmed) return;
-      BranchService.updateActivity(actId, { status: 'completed' });
-      showToast('success', `活动「${activity.title || '未命名'}」已完成并归档`);
-      renderOrgUI(getAppState());
-    });
-  }
-}
-
-// ── 制度文件引用渲染（P3-2：只读不可变，组织委员管理引用列表） ──
-function _renderComplianceContent() {
-  const container = document.getElementById('org-tab-content');
-  if (!container) return;
-
-  let refs = [...mockDB.complianceReferences];
-
-  // 官方制度文件（只读不可变）
-  const officialDocs = [
-    { id: 'doc-11', title: '中国共产党章程', type: 'pdf', tag: '根本大法' },
-    { id: 'doc-12', title: '党支部工作规范（学生）', type: 'pdf', tag: '工作规范' },
-    { id: 'doc-14', title: '中国共产党党员教育管理工作条例', type: 'docx', tag: '教育管理' },
-    { id: 'doc-15', title: '中国共产党发展党员工作细则', type: 'docx', tag: '发展党员' },
-    { id: 'doc-16', title: '中国共产党普通高等学校基层组织工作条例', type: 'docx', tag: '高校党建' },
-    { id: 'doc-17', title: '中国共产党支部工作条例（试行）', type: 'docx', tag: '支部工作' },
-  ];
-
-  function saveRefs() {
-    mockDB.complianceReferences = [...refs];
-    saveDB();
-  }
-
-  function renderRefList() {
-    return refs.length === 0
-      ? '<p class="text-xs text-gray-400 text-center py-4">暂无引用记录</p>'
-      : refs.map((r, idx) => `
-          <div class="flex items-center justify-between p-3 rounded-xl bg-gray-100 border border-gray-100">
-            <div class="flex-1 min-w-0">
-              <div class="text-sm font-medium text-gray-800">${r.docTitle || '未指定'}</div>
-              <div class="text-xs text-gray-500 mt-0.5">引用场景：${r.scene || '-'}</div>
-              ${r.note ? `<div class="text-xs text-gray-400 mt-0.5">备注：${r.note}</div>` : ''}
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600">${r.docTag || ''}</span>
-              <button class="ref-del-btn text-[10px] text-red-400 hover:text-red-600" data-idx="${idx}">移除</button>
-            </div>
+          <div class="flex items-center gap-2">
+            ${statusTag}
+            ${completeBtn}
           </div>
-        `).join('');
-  }
-
-  container.innerHTML = `
-    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
-      <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">制度文件引用管理</h4>
-      <p class="text-xs text-gray-500 mb-4">官方制度文件内容只读不可变，组织委员管理引用列表</p>
-
-      <div class="mb-4">
-        <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">官方制度文件（只读）</h5>
-        <div class="space-y-1.5">
-          ${officialDocs.map(d => `
-            <div class="flex items-center justify-between p-2.5 rounded-lg bg-gray-50/80 border border-gray-100">
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-medium text-gray-700">${d.title}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">${d.type.toUpperCase()}</span>
-              </div>
-              <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600">${d.tag}</span>
-            </div>
-          `).join('')}
         </div>
-      </div>
-
-      <div class="pt-3 border-t border-gray-100">
-        <div class="flex items-center justify-between mb-2">
-          <h5 class="font-title-cn text-xs font-bold text-gray-600">引用记录</h5>
-          <button id="btn-add-ref" class="text-[10px] px-2 py-1 rounded bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors">+ 添加引用</button>
-        </div>
-        <div id="compliance-ref-list" class="space-y-2">${renderRefList()}</div>
-      </div>
-    </div>
-  `;
-
-  // 添加引用
-  container.querySelector('#btn-add-ref')?.addEventListener('click', () => {
-    const docTitle = prompt('引用的制度文件名称：');
-    if (!docTitle) return;
-    const scene = prompt('引用场景（如：三会一课考勤规则依据）：') || '';
-    const note = prompt('备注（选填）：') || '';
-    const matchedDoc = officialDocs.find(d => d.title.includes(docTitle) || docTitle.includes(d.title));
-    refs.push({
-      docTitle,
-      docTag: matchedDoc ? matchedDoc.tag : '自定义',
-      scene,
-      note,
-      addedAt: new Date().toISOString().slice(0, 10),
-    });
-    saveRefs();
-    _renderComplianceContent();
-    showToast('success', '引用已添加');
+      `;
+    },
+    emptyMessage: '无匹配活动',
+    accentColor: accent,
   });
 
-  // 移除引用
-  container.querySelectorAll('.ref-del-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = parseInt(btn.dataset.idx);
-      refs.splice(idx, 1);
-      saveRefs();
-      _renderComplianceContent();
-      showToast('success', '引用已移除');
-    });
+  // 绑定确认完成按钮
+  queryContainer.addEventListener('click', (e) => {
+    const btn = e.target.closest('.track-complete-btn');
+    if (!btn) return;
+    const actId = btn.dataset.actId;
+    const activity = activities.find(a => a.id === actId);
+    if (!activity) return;
+    const confirmed = window.confirm(`确认完成活动「${activity.title || '未命名'}」？完成后将归档。`);
+    if (!confirmed) return;
+    BranchService.updateActivity(actId, { status: 'completed' });
+    showToast('success', `活动「${activity.title || '未命名'}」已完成并归档`);
+    renderOrgUI(getAppState());
+  });
+}
+
+// ── 人才库 Tab ──
+function _renderTalentContent() {
+  const container = document.getElementById('org-tab-content');
+  if (!container) return;
+
+  const people = [...PEOPLE];
+  const allInspections = loadInspectionRecords();
+
+  // 提取筛选选项
+  const stageOptions = [...new Set(people.map(p => p.developStage).filter(Boolean))].map(s => ({ value: s, label: s }));
+  const groupOptions = [...new Set(people.map(p => p.partyGroup).filter(Boolean))].map(g => ({ value: g, label: g }));
+
+  container.innerHTML = `
+    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">${SVG.people} 人才库</h4>
+        <span class="text-xs text-gray-400">${people.length} 人</span>
+      </div>
+      <div class="text-xs text-gray-500 mb-4">人员信息有机汇总，输出人才画像</div>
+      <div id="org-talent-query"></div>
+    </div>
+    <div id="org-talent-detail" class="hidden card rounded-xl p-5 border-l-4 mt-3" style="border-left-color:${accent};"></div>
+  `;
+
+  const queryContainer = document.getElementById('org-talent-query');
+  if (!queryContainer) return;
+
+  // 构建查询数据（附加考察记录数）
+  const queryData = people.map(p => ({
+    ...p,
+    inspCount: allInspections.filter(r => r.personId === p.id).length,
+  }));
+
+  // 发展阶段颜色映射
+  const stageColor = {
+    '正式党员': 'bg-green-100 text-green-700',
+    '预备党员': 'bg-blue-100 text-blue-700',
+    '发展对象': 'bg-amber-100 text-amber-700',
+    '积极分子': 'bg-cyan-100 text-cyan-700',
+    '入党申请人': 'bg-gray-100 text-gray-600',
+  };
+
+  renderQueryView(queryContainer, {
+    searchPlaceholder: '搜索姓名...',
+    searchKey: 'name',
+    filters: [
+      { key: 'developStage', label: '发展阶段', options: stageOptions },
+      { key: 'partyGroup', label: '党小组', options: groupOptions },
+    ],
+    data: queryData,
+    renderRow: (p) => {
+      const colorCls = stageColor[p.developStage] || 'bg-gray-100 text-gray-500';
+      return `
+        <div class="flex items-center justify-between p-3 rounded-xl bg-white cursor-pointer talent-person-card hover:bg-gray-50 transition-colors" data-person-id="${p.id}">
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium text-gray-800">${p.name}</div>
+            <div class="text-xs text-gray-500 mt-0.5">${p.partyGroup || ''}${p.role && p.role !== 'participant' ? ' · ' + p.role : ''}</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full ${colorCls}">${p.developStage || ''}</span>
+            ${p.inspCount > 0 ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600">考察 ${p.inspCount}</span>` : ''}
+          </div>
+        </div>
+      `;
+    },
+    emptyMessage: '无匹配人员',
+    accentColor: accent,
+  });
+
+  // 点击人员展开考察记录汇总
+  queryContainer.addEventListener('click', (e) => {
+    const card = e.target.closest('.talent-person-card');
+    if (!card) return;
+    const personId = card.dataset.personId;
+    _renderTalentDetail(personId);
+  });
+}
+
+// ── 人才库详情：考察记录汇总 ──
+function _renderTalentDetail(personId) {
+  const panel = document.getElementById('org-talent-detail');
+  if (!panel) return;
+
+  const person = getPersonById(personId);
+  if (!person) return;
+
+  const allInspections = loadInspectionRecords();
+  const personInspections = allInspections.filter(r => r.personId === personId);
+
+  // 发展阶段颜色映射
+  const stageColor = {
+    '正式党员': 'bg-green-100 text-green-700',
+    '预备党员': 'bg-blue-100 text-blue-700',
+    '发展对象': 'bg-amber-100 text-amber-700',
+    '积极分子': 'bg-cyan-100 text-cyan-700',
+    '入党申请人': 'bg-gray-100 text-gray-600',
+  };
+  const colorCls = stageColor[person.developStage] || 'bg-gray-100 text-gray-500';
+
+  // 角色标签映射
+  const roleLabel = {
+    'secretary': '支部书记', 'deputy-secretary': '支部副书记',
+    'org-commissioner': '组织委员', 'prop-commissioner': '宣传委员',
+    'disc-commissioner': '纪检委员', 'leader': '党小组组长',
+    'participant': '', 'organizer': '组织者',
+  };
+
+  // 考察来源类型标签
+  const sourceTagColor = { 'activity': 'bg-blue-50 text-blue-600', 'taskforce': 'bg-green-50 text-green-600' };
+  const sourceTagLabel = { 'activity': '活动', 'taskforce': '专班' };
+  const inspStatusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-cyan-100 text-cyan-700' };
+
+  panel.classList.remove('hidden');
+  panel.innerHTML = `
+    <div class="flex items-start justify-between mb-3">
+      <div>
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">${person.name}</h4>
+        <div class="flex items-center gap-2 mt-1">
+          <span class="text-[10px] px-1.5 py-0.5 rounded-full ${colorCls}">${person.developStage || ''}</span>
+          <span class="text-xs text-gray-500">${person.partyGroup || ''}</span>
+          ${roleLabel[person.role] ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-600">${roleLabel[person.role]}</span>` : ''}
+        </div>
+      </div>
+      <button id="talent-detail-close" class="text-gray-400 hover:text-gray-600 transition-colors" style="cursor:pointer;">${icon('close', { size: 14, stroke: '#6B7280' })}</button>
+    </div>
+    <div class="mt-3">
+      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">${SVG.clipboard} 考察记录汇总 (${personInspections.length})</h5>
+      ${personInspections.length === 0
+        ? '<p class="text-xs text-gray-400 pl-2">暂无考察记录</p>'
+        : `<div class="space-y-2">
+          ${personInspections.map(r => `
+            <div class="p-2.5 rounded-lg bg-white border border-gray-50">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-medium text-gray-700">${r.sourceName || r.role || '-'}</span>
+                <div class="flex items-center gap-1.5">
+                  ${r.sourceType ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full ${sourceTagColor[r.sourceType] || 'bg-gray-50 text-gray-500'}">${sourceTagLabel[r.sourceType] || r.sourceType}</span>` : ''}
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-full ${inspStatusColor[r.status] || 'bg-gray-100 text-gray-500'}">${r.status === 'confirmed' ? '已确认' : '待确认'}</span>
+                </div>
+              </div>
+              <p class="text-[11px] text-gray-500">${r.role || '-'}</p>
+              ${r.recordedAt ? `<p class="text-[10px] text-gray-400 mt-0.5">记录时间：${r.recordedAt.slice(0, 10)}</p>` : ''}
+            </div>
+          `).join('')}
+        </div>`
+      }
+    </div>
+  `;
+
+  // 关闭详情
+  panel.querySelector('#talent-detail-close')?.addEventListener('click', () => {
+    panel.classList.add('hidden');
   });
 }
 
@@ -914,7 +965,7 @@ function _renderOrgInspContentRows(selectedIds) {
         return `
           <div class="flex items-start gap-2">
             <span class="text-xs font-medium text-gray-700 min-w-[3rem] pt-2">${name}</span>
-            <textarea id="org-insp-content-${pid}" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200 transition-colors resize-none" rows="2" placeholder="请填写考察内容描述"></textarea>
+            <textarea id="org-insp-content-${pid}" class="input-flat-sm w-full resize-none" rows="2" placeholder="请填写考察内容描述"></textarea>
           </div>
         `;
       }).join('')}

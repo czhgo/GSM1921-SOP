@@ -33,6 +33,6 @@ export function instantiateSOP(scenarioIdArray, targetDateStr) {
       });
     });
   });
-  results.sort((a, b) => a.date - b.date);
+  results.sort((a, b) => b.date - a.date);
   return results;
 }

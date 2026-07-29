@@ -124,7 +124,7 @@ function _renderActivitiesContent(filteredActivities) {
       <div class="space-y-2">
         ${filteredActivities.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无关联活动</p>' :
           filteredActivities.map(a => `
-            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
+            <div class="flex items-center justify-between p-3 rounded-xl bg-white hover:bg-gray-200 transition-colors">
               <div class="flex-1 min-w-0">
                 <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
                 <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
@@ -145,7 +145,7 @@ function _renderDepositContent() {
   const myDeposits = deposits.filter(d => d.submitterId === DEEP_PERSON_ID);
 
   // 来源选项
-  const activityOptions = ACTIVITIES.map(a => `<option value="act_${a.id}">${a.title || a.id}</option>`).join('');
+  const activityOptions = mockDB.activities.map(a => `<option value="act_${a.id}">${a.title || a.id}</option>`).join('');
   const taskforceOptions = MOCK_TASKFORCES.map(t => `<option value="tf_${t.id}">${t.name || t.id}</option>`).join('');
 
   tc.innerHTML = `
@@ -252,7 +252,7 @@ function _renderDepositContent() {
 
 function _getSourceName(sourceType, sourceId) {
   if (sourceType === 'activity') {
-    const a = ACTIVITIES.find(a => `act_${a.id}` === sourceId);
+    const a = mockDB.activities.find(a => `act_${a.id}` === sourceId);
     return a ? a.title : sourceId;
   } else {
     const t = MOCK_TASKFORCES.find(t => `tf_${t.id}` === sourceId);
@@ -275,7 +275,7 @@ function _renderDepositCard(d) {
   const sourceColor = d.sourceType === 'activity' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600';
 
   return `
-    <div class="p-3 rounded-xl bg-gray-100">
+    <div class="p-3 rounded-xl bg-white">
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center gap-2">
           <span class="text-[10px] px-1.5 py-0.5 rounded ${sourceColor}">${sourceLabel}</span>
