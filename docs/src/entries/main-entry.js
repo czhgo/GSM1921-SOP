@@ -11,7 +11,9 @@ import { _personName, getPersonName } from '../mock/index.js';
 import { PEOPLE } from '../mock/index.js';
 import { loadAttendanceRecords } from '../services/attendance.js';
 import { CrossPageState } from '../core/cross-page-state.js';
-import { getActivityTypeColors } from '../core/constants.js';
+import { getActivityTypeColors, ROLE_LABELS } from '../core/constants.js';
+import { INSPECTION_RECORDS, inspectionToDisplay } from '../mock/index.js';
+import { MOCK_TASKFORCES } from '../mock/taskforces.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { AuthStore } from '../services/auth.js';
 import { loadWorkspaceData, fallbackMapActivities } from '../core/data-loader.js';
@@ -276,12 +278,228 @@ function _renderGallery(activities) {
     }).join('') + '</div>';
 }
 
+// ── 我的角色区块 ──────────────────────────────────────
+const ROLE_THEME = {
+  'secretary':         { icon: 'flag',      color: '#9B0000', bg: '#FEF2F2', label: '书记工作台' },
+  'deputy-secretary':  { icon: 'flag',      color: '#9B0000', bg: '#FEF2F2', label: '书记工作台' },
+  'org-commissioner':  { icon: 'cog',       color: '#3B82F6', bg: '#EFF6FF', label: '组织委员工作台' },
+  'prop-commissioner': { icon: 'megaphone', color: '#8B5CF6', bg: '#F5F3FF', label: '宣传委员工作台' },
+  'disc-commissioner': { icon: 'scale',     color: '#D97706', bg: '#FFFBEB', label: '纪检委员工作台' },
+  'leader':            { icon: 'shield',    color: '#10B981', bg: '#ECFDF5', label: '组长工作台' },
+  'organizer':         { icon: 'flag',      color: '#3B82F6', bg: '#EFF6FF', label: '组织者' },
+  'deep':              { icon: 'users',     color: '#6B7280', bg: '#F3F4F6', label: '深度参与者' },
+  'participant':       { icon: 'users',     color: '#6B7280', bg: '#F3F4F6', label: '成员视图' },
+};
+
+function _renderMyRoles() {
+  const container = document.getElementById('dashboard-my-roles');
+  if (!container || !user) return;
+
+  const personId = user.personId;
+  const cards = [];
+
+  // 1. 常设角色
+  const standingRole = AuthStore.getUserRole(personId);
+  const standingTheme = ROLE_THEME[standingRole] || ROLE_THEME['participant'];
+  const standingPage = AuthStore.getPageForRole('workspace', standingRole) || 'visitor.html';
+  cards.push({
+    icon: standingTheme.icon,
+    color: standingTheme.color,
+    bg: standingTheme.bg,
+    title: ROLE_LABELS[standingRole] || standingRole,
+    subtitle: standingTheme.label,
+    href: getBasePath() + 'workspace/' + standingPage,
+  });
+
+  // 2. 党小组组长（从赋权记录）
+  const authRecords = AuthStore.getAuthorizations();
+  const leaderRecords = authRecords.filter(r => r.targetPersonId === personId && r.role === 'leader');
+  if (leaderRecords.length > 0 && standingRole !== 'leader') {
+    const theme = ROLE_THEME['leader'];
+    cards.push({
+      icon: theme.icon,
+      color: theme.color,
+      bg: theme.bg,
+      title: '党小组组长',
+      subtitle: '组长工作台',
+      href: getBasePath() + 'workspace/leader.html',
+    });
+  }
+
+  // 3. 项目角色（organizer/deep）
+  const projectRecords = authRecords.filter(r =>
+    r.targetPersonId === personId && ['organizer', 'deep'].includes(r.role) && r.scopeRef
+  );
+  projectRecords.forEach(r => {
+    const project = mockDB.activities.find(a => a.id === r.scopeRef) || MOCK_TASKFORCES.find(t => t.id === r.scopeRef);
+    const projectName = project ? (project.title || project.name) : r.scopeRef;
+    const theme = ROLE_THEME[r.role] || ROLE_THEME['deep'];
+    // 项目角色点击跳转对应工作台（通过 CrossPageState 传递项目信息）
+    const wsPage = standingPage;
+    cards.push({
+      icon: theme.icon,
+      color: theme.color,
+      bg: theme.bg,
+      title: ROLE_LABELS[r.role] || r.role,
+      subtitle: projectName,
+      href: getBasePath() + 'workspace/' + wsPage,
+    });
+  });
+
+  // 渲染卡片
+  container.innerHTML = `
+    <div class="flex items-center gap-2 mb-3">
+      <span class="text-base font-semibold text-gray-800 font-title-cn">我的角色</span>
+      <span class="text-xs text-gray-400">${cards.length} 个身份</span>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+      ${cards.map(c => `
+        <a href="${c.href}" class="card rounded-xl p-4 flex flex-col items-center gap-2 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group" style="border-left:3px solid ${c.color};">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:${c.bg};">
+            ${icon(c.icon, { size: 20, stroke: c.color })}
+          </div>
+          <div class="text-center">
+            <p class="text-sm font-medium text-gray-800 group-hover:text-blue-700 transition-colors">${c.title}</p>
+            <p class="text-[10px] text-gray-400 mt-0.5 line-clamp-1">${c.subtitle}</p>
+          </div>
+        </a>
+      `).join('')}
+    </div>
+  `;
+}
+
+function _renderMyAttendance() {
+  const container = document.getElementById('dashboard-my-attendance');
+  if (!container || !user) return;
+
+  const personId = user.personId;
+  const records = loadAttendanceRecords().filter(r => r.personId === personId);
+  const present = records.filter(r => r.status === 'present').length;
+  const absent = records.filter(r => r.status === 'absent').length;
+  const leave = records.filter(r => r.status === 'leave').length;
+  const makeup = records.filter(r => r.status === 'makeup').length;
+  const total = records.length;
+  const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+
+  // 统计概览
+  let html = `
+    <div class="flex items-center gap-4 mb-3">
+      <div class="text-center">
+        <p class="text-2xl font-bold" style="color:${rate >= 80 ? '#10B981' : rate >= 60 ? '#D97706' : '#EF4444'};">${rate}%</p>
+        <p class="text-[10px] text-gray-400">出勤率</p>
+      </div>
+      <div class="flex gap-3 text-xs">
+        <span class="text-green-600">出勤 ${present}</span>
+        <span class="text-red-500">缺勤 ${absent}</span>
+        <span class="text-orange-500">请假 ${leave}</span>
+        ${makeup > 0 ? `<span class="text-blue-500">已补 ${makeup}</span>` : ''}
+      </div>
+    </div>
+  `;
+
+  // 历次考勤（倒序，最近5条）
+  const activities = mockDB.activities;
+  const sorted = [...records].sort((a, b) => {
+    const actA = activities.find(x => x.id === a.activityId);
+    const actB = activities.find(x => x.id === b.activityId);
+    return ((actB?.date || '')).localeCompare(actA?.date || '');
+  }).slice(0, 5);
+
+  if (sorted.length > 0) {
+    html += '<div class="space-y-1.5">';
+    sorted.forEach(r => {
+      const act = activities.find(a => a.id === r.activityId);
+      const statusMap = {
+        present: { text: '出勤', cls: 'text-green-600' },
+        absent:  { text: '缺勤', cls: 'text-red-500' },
+        leave:   { text: '请假', cls: 'text-orange-500' },
+        makeup:  { text: '已补', cls: 'text-blue-500' },
+      };
+      const s = statusMap[r.status] || { text: r.status, cls: 'text-gray-400' };
+      html += `
+        <div class="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-gray-50">
+          <span class="text-sm text-gray-700 truncate">${act?.title || r.activityId}</span>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-400">${act?.date ? _fmtDate(new Date(act.date)) : ''}</span>
+            <span class="text-xs font-medium ${s.cls}">${s.text}</span>
+          </div>
+        </div>
+      `;
+    });
+    html += '</div>';
+  } else {
+    html += '<p class="text-xs text-gray-400">暂无考勤记录</p>';
+  }
+
+  container.innerHTML = html;
+}
+
+function _renderMyInspection() {
+  const container = document.getElementById('dashboard-my-inspection');
+  if (!container || !user) return;
+
+  const personId = user.personId;
+  // 考察记录仅本人可见（spec §五 数据访问规则）
+  const allRecords = mockDB.inspections?.length > 0 ? mockDB.inspections : INSPECTION_RECORDS;
+  const myRecords = allRecords.filter(r => r.personId === personId);
+  const display = inspectionToDisplay(myRecords);
+  const total = display.length;
+  const confirmed = display.filter(r => r.status === 'confirmed').length;
+  const pending = display.filter(r => r.status === 'pending').length;
+
+  // 统计概览
+  let html = `
+    <div class="flex items-center gap-4 mb-3">
+      <div class="text-center">
+        <p class="text-2xl font-bold text-gray-800">${total}</p>
+        <p class="text-[10px] text-gray-400">考察记录</p>
+      </div>
+      <div class="flex gap-3 text-xs">
+        <span class="text-green-600">已确认 ${confirmed}</span>
+        <span class="text-orange-500">待确认 ${pending}</span>
+      </div>
+    </div>
+  `;
+
+  // 历次考察（倒序，最近5条）
+  const sorted = [...display].sort((a, b) => (b.recordedAt || '').localeCompare(a.recordedAt || '')).slice(0, 5);
+
+  if (sorted.length > 0) {
+    html += '<div class="space-y-1.5">';
+    sorted.forEach(r => {
+      const statusCls = r.status === 'confirmed' ? 'text-green-600' : 'text-orange-500';
+      const statusText = r.status === 'confirmed' ? '已确认' : '待确认';
+      html += `
+        <div class="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-gray-50">
+          <div class="flex-1 min-w-0">
+            <p class="text-sm text-gray-700 truncate">${r.activityTitle || r.sourceName || '—'}</p>
+            <p class="text-[10px] text-gray-400">${r.levelLabel} · ${r.role}</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-400">${r.recordedAt ? r.recordedAt.slice(0, 10) : ''}</span>
+            <span class="text-xs font-medium ${statusCls}">${statusText}</span>
+          </div>
+        </div>
+      `;
+    });
+    html += '</div>';
+  } else {
+    html += '<p class="text-xs text-gray-400">暂无考察记录</p>';
+  }
+
+  container.innerHTML = html;
+}
+
 function renderDashboard(state) {
   const activities = state.activities || [];
   const taskforces = TaskForceRecordStore.getAll();
   const notices = NoticeStore.getAll();
 
   _renderStats(activities, taskforces, notices, loadAttendanceRecords());
+
+  _renderMyRoles();
+  _renderMyAttendance();
+  _renderMyInspection();
 
   renderNoticeList('dashboard-notice-list', 5);
   const noticeCount = document.getElementById('dashboard-notice-count');
