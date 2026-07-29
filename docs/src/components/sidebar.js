@@ -68,9 +68,9 @@ export function renderSidebar(activeModule) {
 
   const footerItems = getFooterItems();
   const footerHTML = footerItems.map(item => `
-    <a href="${item.href}" class="module-tab ${item.module === activeModule ? 'active' : ''}" data-module="${item.module}">
-      ${item.icon}
-      <span class="font-title-cn">${item.label}</span>
+    <a href="${item.href}" data-module="${item.module}" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-400);text-decoration:none;border:none;">
+      ${icon(item.module === 'help' ? 'book' : 'info', { size: 12, stroke: 'var(--neutral-400)' })}
+      <span>${item.label}</span>
     </a>
   `).join('');
 
@@ -79,9 +79,9 @@ export function renderSidebar(activeModule) {
       <div class="flex flex-col gap-2 mb-2">${navHTML}</div>
     </nav>
     <div class="sidebar-footer">
-      <div class="flex flex-col gap-1 mb-2">${footerHTML}</div>
-      <button id="sidebar-logout" class="module-tab" style="border:none;justify-content:flex-start;gap:8px 8px;font-size:0.75rem;color:var(--neutral-400);cursor:pointer;">
-        ${icon('logout', { size: 14 })}
+      <div class="flex flex-col gap-0.5 mb-2">${footerHTML}</div>
+      <button id="sidebar-logout" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-400);cursor:pointer;border:none;background:none;">
+        ${icon('logout', { size: 12, stroke: 'var(--neutral-400)' })}
         <span>退出登录</span>
       </button>
     </div>

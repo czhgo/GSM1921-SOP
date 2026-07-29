@@ -2,7 +2,7 @@
 title: "前端设计系统规范"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-07-29"
+last_updated: "2026-07-30"
 status: active
 ---
 
@@ -263,6 +263,12 @@ li + li { margin-top: 0.25em; }
 
 > CSS 实现见 `docs/src/styles.css`。禁止：`backdrop-filter`、`box-shadow`、`transform`。
 
+#### 列表项白底原则
+
+列表项/卡片一律白底，不设背景色，不加边线。类型区分仅靠圆点颜色，背景色是重复表达。灰色背景容器一并清除，改为透明底，卡片间分隔靠间距（gap）。
+
+**豁免**（保留背景色）：通知 badge 未读标记、侧边栏选中项高亮、日历当日格子标记、登录页品牌色区域、header 品牌色区域。
+
 ### 4.3 输入框（Input / Select）
 
 #### 规范
@@ -290,6 +296,10 @@ li + li { margin-top: 0.25em; }
 - 右侧内边距 `36px`（为箭头留空间）
 
 > CSS 实现见 `docs/src/styles.css` 的 `.input` 和 `select.input-flat` 选择器。
+
+#### 输入组件统一原则
+
+所有 `<input>`/`<select>`/`<textarea>` 使用 `input-flat` 体系，禁用内联 Tailwind input 样式（如 `border border-gray-200 rounded-lg px-3 py-2 focus:border-red-300` 等）。紧凑场景使用 `input-flat-sm`，多行文本使用 `textarea.input-flat`。
 
 ### 4.4 侧边栏（Sidebar）
 

@@ -5677,5 +5677,52 @@ T148 去掉了侧边栏箭头但保留了 popover。用户反馈 popover 仍在�
 
 ### 蒸馏标签
 
-[经验沉淀: 否]
+[经验沉淀: 是]（Store 数据同源迁移经验已沉淀到 insights §4.3）
+
+---
+
+## T157 首页布局优化+push授权规则+Spec整理+空文件夹清理+footer样式（2026-07-30）
+
+**日期**：2026-07-30
+**任务**：4项独立任务：①首页3合1 card+出勤率卡片移除 ②侧边栏重排 ③CLAUDE.md push授权规则 ④Spec蒸馏整理+空文件夹清理+footer样式
+**引用流程**：H1.2 执行 + H2.1 一改具改 + H2.4 经验沉淀
+
+### 变更摘要
+
+**任务1：首页布局优化**
+- "我的角色"+"我的考勤"+"我的考察"合并为一个白底 card，标题"我的角色"
+- 角色卡片在上，考勤/考察左右并列在下
+- 移除"本月出勤率"统计卡片（与我的考勤冗余）
+- 统计卡片从4列改为3列
+
+**任务2：侧边栏重排**
+- 主导航：首页/工作台/归档库/资料查询/意见反馈
+- 底部区域：帮助/关于/退出登录（缩小变灰，0.7rem + neutral-400）
+
+**任务3：CLAUDE.md 甲部新增 Git 操作授权规则**
+- H1.2 新增：`git commit` 可自动执行；`git push` 必须经书记确认
+
+**任务4：Spec 蒸馏整理**
+- DESIGN_SYSTEM §4.2 新增"列表项白底原则"
+- DESIGN_SYSTEM §4.3 新增"输入组件统一原则"
+- insights §4.3 新增"Store 数据同源迁移"经验
+- 删除4个spec目录：pixel-design-spec / role-driven-navigation-restructure / ui-card-input-cleanup / ui-triple-fix
+
+**任务5：空文件夹清理**
+- 删除 docs/party（合并遗留）+ .uploads（临时目录）
+
+### 修改文件清单
+
+| 文件 | 变更 |
+|------|------|
+| docs/index.html | 3合1 card 布局 |
+| docs/src/entries/main-entry.js | 移除出勤率统计项+调整角色渲染 |
+| docs/src/components/sidebar.js | footer样式缩小变灰 |
+| CLAUDE.md | H1.2 新增 Git 操作授权规则 |
+| content/04_web_design/DESIGN_SYSTEM.md | §4.2/§4.3 蒸馏设计原则 |
+| content/insights/工程演进与设计方法论.md | §4.3 蒸馏数据同源迁移经验 |
+
+### 蒸馏标签
+
+[经验沉淀: 是]（Store 数据同源迁移 + 列表项白底原则 + 输入组件统一原则已沉淀）
 

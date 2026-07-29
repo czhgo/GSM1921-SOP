@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: "2026-07-29T23:30:00"
+last_updated: "2026-07-30T00:15:00"
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSOT_INDEX.md, content/01_strategy/SECRETARY_PRONOUNCEMENTS.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, .ctx/logs/]
 ---
@@ -59,6 +59,8 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 > - 宁可多问一句，不可误判意图。**不知为不知，是知也。**
 > - 🔴 **有疑问必须主动 /ask 书记确认，不得自行假设或基于猜测执行**——这是防止误判意图的最后一道防线。宁可多问一句，不可自行其是。
 > 🔴 **【不允许随意结束 session】**：有拿不准的地方不得擅做决断，必须积极及时使用 AskUserQuestion 询问书记！！必须推进完成所有工作，不得中途放弃或跳过未决事项！！这是一条独立于歧义消解铁律的强制规则——即使任务看似简单，只要存在任何不确定，就必须先确认再执行；即使遇到困难，也必须推进到底，不得以"大致完成"为由提前结束 session。**执行顺序**：歧义消解优先（先问清再做），消解后再推进执行（不半途而废）。
+>
+> 🔴 **【Git 操作授权规则】**：`git commit` 可由 AI 自动执行（无需逐次确认）；`git push` **必须经书记明确确认后方可执行**，AI 绝不允许擅自 push。每次需要 push 时，AI 必须通过 AskUserQuestion 提请书记确认，获得明确同意后方可执行 push 操作。
 >
 > **AI 展开原则**：写出的话应是"grill 书记后的话"——吃透精神后用自己的语言讲透，而非复读或标注边界（详见 USAGE_POLICY.md §1.9）。
 
