@@ -9,13 +9,28 @@ import { loadWorkspaceData } from '../core/data-loader.js';
 import { renderTabBar } from '../components/tab-bar.js';
 import { openFormModal } from '../components/modal.js';
 import { loadHandoverRecords, updateHandoverRecord } from '../services/handover.js';
-import { autoGenerateMakeupTask } from '../services/makeup.js';
+import { autoGenerateMakeupTask, loadMakeupTasks, saveMakeupTasks } from '../services/makeup.js';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js';
 import { loadInspectionRecords, saveInspectionRecords, getOverdueRecords, getRecordsBySource, getRecordsByPerson, confirmInspectionRecord, deleteInspectionRecord } from '../services/inspection.js';
 
 const { accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', accentRole: 'disc-commissioner' });
 
 const DISC_COMMISSIONER_ID = 'p10'; // 纪检委员 personId
+
+// ── 公邮管理 Mock 数据 ──────────────────────────────────────────
+const MAILBOX_CONFIG = {
+  email: 'gsm1921_branch@edu.cn',
+  checkCycleDays: 3,
+  lastCheckAt: '2026-07-27T10:00:00Z',
+};
+
+const MAILBOX_HISTORY = [
+  { id: 'mh1', checkedAt: '2026-07-27T10:00:00Z', checkedBy: 'p10', summary: '收到学院通知1封，已转发至支委群', hasAction: false },
+  { id: 'mh2', checkedAt: '2026-07-24T09:30:00Z', checkedBy: 'p10', summary: '收到组织关系转接确认函，已归档', hasAction: true },
+  { id: 'mh3', checkedAt: '2026-07-21T11:00:00Z', checkedBy: 'p10', summary: '无新邮件', hasAction: false },
+  { id: 'mh4', checkedAt: '2026-07-18T10:15:00Z', checkedBy: 'p10', summary: '收到主题党日通知，已安排宣传委员跟进', hasAction: true },
+  { id: 'mh5', checkedAt: '2026-07-15T09:45:00Z', checkedBy: 'p10', summary: '收到党委文件1份，已存档', hasAction: true },
+];
 
 // ── 经验沉淀数据层（mockDB） ────────────────────────────
 
@@ -42,10 +57,11 @@ function renderDiscUI(state) {
   const tabBar = renderTabBar({
     prefix: 'disc',
     tabs: [
-      { id: 'attendance', label: '考勤管理', render: () => _renderAttendanceContent(null) },
+      { id: 'attendance', label: '考勤管理(含交接)', render: () => _renderAttendanceContent(null) },
       { id: 'review', label: '活动监督复盘', render: () => _renderReviewContent() },
       { id: 'inspection', label: '考察管理', render: () => _renderInspectionContent() },
-      { id: 'handover', label: '数据交接', render: () => _renderHandoverContent() },
+      { id: 'makeup', label: '<span class="text-[9px] px-1 py-0.5 rounded bg-amber-50 text-amber-700 mr-1 align-middle">党务</span>补课制度', render: () => _renderMakeupContent() },
+      { id: 'mailbox', label: '<span class="text-[9px] px-1 py-0.5 rounded bg-amber-50 text-amber-700 mr-1 align-middle">党务</span>公邮管理', render: () => _renderMailboxContent() },
     ],
     accentColor: { accent, accentRgba, accentBorder },
     defaultTab: 'attendance',
@@ -58,6 +74,18 @@ function renderDiscUI(state) {
   `;
 
   tabBar.bindEvents(container);
+
+  // 插入党务分隔线（考察管理 与 补课制度 之间）
+  const tabBarEl = container.querySelector('.flex.gap-2');
+  if (tabBarEl) {
+    const buttons = tabBarEl.querySelectorAll('button');
+    if (buttons.length >= 4) {
+      const divider = document.createElement('div');
+      divider.className = 'self-stretch w-px bg-gray-200 mx-1';
+      divider.setAttribute('aria-hidden', 'true');
+      buttons[2].after(divider);
+    }
+  }
 
   const urlParams = CrossPageState.getURLParams();
   if (urlParams.activityId) {
@@ -75,6 +103,12 @@ function _renderAttendanceContent(filterActivityId) {
   const allRecords = loadAttendanceRecords();
   const longData = attendanceToLong(allRecords);
   const wideData = attendanceToWide(allRecords);
+
+  // 加载交接数据（已合并入考勤管理 tab）
+  const handoverRecords = loadHandoverRecords();
+  const handoverInProgress = handoverRecords.filter(r => r.status === 'in_progress');
+  const handoverSubmitted = handoverRecords.filter(r => r.status === 'submitted');
+  const handoverConfirmed = handoverRecords.filter(r => r.status === 'confirmed');
 
   const filtered = filterActivityId
     ? longData.filter(r => r.activityId === filterActivityId)
@@ -117,6 +151,18 @@ function _renderAttendanceContent(filterActivityId) {
         </select>
       </div>
       <div id="att-table-container"></div>
+    </div>
+    <div class="card rounded-xl p-5 border-l-4 mt-4" style="border-left-color:#C2410C;">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">数据交接</h4>
+        <div class="flex gap-4 text-xs">
+          <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span><span class="text-gray-600">进行中</span><span class="font-bold text-blue-700">${handoverInProgress.length}</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500"></span><span class="text-gray-600">已提交</span><span class="font-bold text-orange-700">${handoverSubmitted.length}</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-green-500"></span><span class="text-gray-600">已确认</span><span class="font-bold text-green-700">${handoverConfirmed.length}</span></div>
+        </div>
+      </div>
+      <div class="text-xs text-gray-500 mb-3">所有交接数据汇总到纪检委员处，纪检委员有义务催促未完成交接的组织者</div>
+      ${handoverRecords.length === 0 ? '<div class="text-xs text-gray-400 py-4 text-center">暂无交接记录</div>' : `<div class="space-y-2">${handoverRecords.map(r => _renderDiscHandoverRecord(r, r.status)).join('')}</div>`}
     </div>
   `;
 
@@ -235,6 +281,7 @@ function _renderAttendanceContent(filterActivityId) {
   });
 
   renderLong();
+  _bindDiscHandoverEvents();
 }
 
 function _renderInspectionContent() {
@@ -717,7 +764,7 @@ function _bindDiscHandoverEvents() {
         confirmedAt: new Date().toISOString(),
       });
       showToast('success', '交接记录已确认');
-      _renderHandoverContent();
+      _renderAttendanceContent(null);
     });
   });
 
@@ -731,6 +778,196 @@ function _bindDiscHandoverEvents() {
         btn.textContent = detailEl.classList.contains('hidden') ? '查看交接项详情 ▾' : '收起交接项详情 ▴';
       }
     });
+  });
+}
+
+// ── 补课制度 Tab（党务） ──────────────────────────────────────────
+
+function _renderMakeupContent() {
+  const container = document.getElementById('disc-tab-content');
+  if (!container) return;
+
+  const tasks = loadMakeupTasks();
+  const pendingTasks = tasks.filter(t => t.status === 'pending');
+  const completedTasks = tasks.filter(t => t.status === 'completed');
+  const overdueTasks = pendingTasks.filter(t => new Date(t.deadline) < new Date());
+
+  const statusBadge = (task) => {
+    if (task.status === 'completed') return '<span class="px-1.5 py-0.5 rounded-full text-[10px] bg-green-100 text-green-700">已完成</span>';
+    if (new Date(task.deadline) < new Date()) return '<span class="px-1.5 py-0.5 rounded-full text-[10px] bg-red-100 text-red-700">已超期</span>';
+    return '<span class="px-1.5 py-0.5 rounded-full text-[10px] bg-orange-100 text-orange-700">待补课</span>';
+  };
+
+  container.innerHTML = `
+    <div class="space-y-4">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="font-title-cn text-sm font-bold text-gray-700">补课任务</h4>
+          <div class="flex gap-4 text-xs">
+            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500"></span><span class="text-gray-600">待补课</span><span class="font-bold text-orange-700">${pendingTasks.length}</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span><span class="text-gray-600">已超期</span><span class="font-bold text-red-700">${overdueTasks.length}</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-green-500"></span><span class="text-gray-600">已完成</span><span class="font-bold text-green-700">${completedTasks.length}</span></div>
+          </div>
+        </div>
+        <div class="text-xs text-gray-500 mb-3">缺勤/请假的三会一课、主题党日须在7日内补课，纪检委员确认完成</div>
+        ${tasks.length === 0 ? '<div class="text-xs text-gray-400 py-6 text-center">暂无补课任务</div>' : `
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs">
+            <thead><tr class="border-b border-gray-200">
+              <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
+              <th class="py-2 px-3 text-left text-gray-500 font-medium">缺席活动</th>
+              <th class="py-2 px-3 text-left text-gray-500 font-medium">补课方式</th>
+              <th class="py-2 px-3 text-left text-gray-500 font-medium">截止日期</th>
+              <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
+              <th class="py-2 px-3 text-left text-gray-500 font-medium">操作</th>
+            </tr></thead>
+            <tbody>${tasks.map(t => {
+              const isOverdue = t.status === 'pending' && new Date(t.deadline) < new Date();
+              const rowBg = isOverdue ? 'bg-red-50/40' : t.status === 'completed' ? '' : 'bg-orange-50/20';
+              return `
+              <tr class="border-b border-gray-50 hover:bg-gray-50 ${rowBg}">
+                <td class="py-2 px-3 font-medium text-gray-800">${t.personName || getPersonName(t.personId)}</td>
+                <td class="py-2 px-3 text-gray-600">${t.activityName || '—'}</td>
+                <td class="py-2 px-3 text-gray-600">${t.isMandatory ? '<span class="text-[10px] px-1 py-0.5 rounded bg-red-50 text-red-600">必修</span> 自学+心得' : '<span class="text-[10px] px-1 py-0.5 rounded bg-blue-50 text-blue-600">选修</span> 自学'}</td>
+                <td class="py-2 px-3 text-gray-600">${t.deadline || '—'}</td>
+                <td class="py-2 px-3">${statusBadge(t)}</td>
+                <td class="py-2 px-3">${t.status === 'pending' ? `<button class="text-xs px-2 py-1 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors btn-disc-confirm-makeup" data-task-id="${t.id}" style="cursor:pointer;">确认完成</button>` : '<span class="text-[10px] text-gray-400">—</span>'}</td>
+              </tr>
+            `}).join('')}</tbody>
+          </table>
+        </div>
+        `}
+      </div>
+
+      ${overdueTasks.length > 0 ? `
+      <div class="bg-red-50 border border-red-200 rounded-xl p-3">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-xs font-bold text-red-700">超期提醒</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">${overdueTasks.length}条</span>
+        </div>
+        <div class="text-xs text-red-600">以下补课任务已超期，请尽快督促完成</div>
+        <div class="mt-2 space-y-1">
+          ${overdueTasks.map(t => `
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-gray-700">${t.personName || getPersonName(t.personId)} — ${t.activityName || '—'}</span>
+              <span class="text-red-500">截止 ${t.deadline}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      ` : ''}
+    </div>
+  `;
+
+  // 绑定"确认完成"按钮事件
+  container.querySelectorAll('.btn-disc-confirm-makeup').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const taskId = btn.dataset.taskId;
+      const tasks = loadMakeupTasks();
+      const task = tasks.find(t => t.id === taskId);
+      if (task) {
+        task.status = 'completed';
+        task.completedAt = new Date().toISOString();
+        saveMakeupTasks(tasks);
+        showToast('success', `${task.personName || getPersonName(task.personId)} 的补课任务已确认完成`);
+        _renderMakeupContent();
+      }
+    });
+  });
+}
+
+// ── 公邮管理 Tab（党务） ──────────────────────────────────────────
+
+function _renderMailboxContent() {
+  const container = document.getElementById('disc-tab-content');
+  if (!container) return;
+
+  // 计算下次查收倒计时
+  const lastCheck = new Date(MAILBOX_CONFIG.lastCheckAt);
+  const nextCheck = new Date(lastCheck);
+  nextCheck.setDate(nextCheck.getDate() + MAILBOX_CONFIG.checkCycleDays);
+  const now = new Date();
+  const diffMs = nextCheck - now;
+  const isOverdue = diffMs < 0;
+  const absDiffMs = Math.abs(diffMs);
+  const daysLeft = Math.floor(absDiffMs / (1000 * 60 * 60 * 24));
+  const hoursLeft = Math.floor((absDiffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+  const countdownText = isOverdue
+    ? `已超期 ${daysLeft}天${hoursLeft}小时`
+    : `${daysLeft}天${hoursLeft}小时`;
+  const countdownColor = isOverdue ? 'text-red-600' : 'text-green-600';
+  const countdownBg = isOverdue ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200';
+
+  container.innerHTML = `
+    <div class="space-y-4">
+      <!-- 邮箱信息 + 倒计时 -->
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">支部公邮</h4>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="flex-1">
+            <div class="text-xs text-gray-500 mb-1">邮箱地址</div>
+            <div class="text-sm font-mono font-medium text-gray-800">${MAILBOX_CONFIG.email}</div>
+          </div>
+          <div class="flex-1">
+            <div class="text-xs text-gray-500 mb-1">查收周期</div>
+            <div class="text-sm font-medium text-gray-800">每 ${MAILBOX_CONFIG.checkCycleDays} 天</div>
+          </div>
+        </div>
+        <div class="p-3 rounded-xl border ${countdownBg}">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-xs text-gray-600 mb-0.5">${isOverdue ? '距上次查收已过' : '距下次查收'}</div>
+              <div class="text-lg font-bold ${countdownColor}">${countdownText}</div>
+            </div>
+            <div class="text-right">
+              <div class="text-[10px] text-gray-500">上次查收</div>
+              <div class="text-xs text-gray-600">${_discFormatTime(MAILBOX_CONFIG.lastCheckAt)}</div>
+            </div>
+          </div>
+          ${isOverdue ? '<div class="text-xs text-red-500 mt-2">已超期，请尽快查收公邮</div>' : ''}
+        </div>
+        <div class="mt-3 flex gap-2">
+          <button class="text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors btn-disc-check-mailbox" style="cursor:pointer;">标记已查收</button>
+        </div>
+      </div>
+
+      <!-- 查收历史 -->
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">查收历史</h4>
+        <div class="text-xs text-gray-500 mb-3">纪检委员定期查收支部公邮，处理来往邮件</div>
+        <div class="space-y-2">
+          ${MAILBOX_HISTORY.map(h => `
+            <div class="p-3 rounded-xl bg-white">
+              <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] px-1.5 py-0.5 rounded ${h.hasAction ? 'bg-amber-50 text-amber-700' : 'bg-gray-50 text-gray-500'}">${h.hasAction ? '有处理' : '无待办'}</span>
+                  <span class="text-xs text-gray-600">${_discFormatTime(h.checkedAt)}</span>
+                </div>
+                <span class="text-[10px] text-gray-400">${getPersonName(h.checkedBy)}</span>
+              </div>
+              <div class="text-xs text-gray-700">${h.summary}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 绑定"标记已查收"按钮事件
+  container.querySelector('.btn-disc-check-mailbox')?.addEventListener('click', () => {
+    const now = new Date().toISOString();
+    const newRecord = {
+      id: 'mh_' + Date.now(),
+      checkedAt: now,
+      checkedBy: DISC_COMMISSIONER_ID,
+      summary: '已查收，暂无待处理邮件',
+      hasAction: false,
+    };
+    MAILBOX_HISTORY.unshift(newRecord);
+    MAILBOX_CONFIG.lastCheckAt = now;
+    showToast('success', '公邮查收已记录');
+    _renderMailboxContent();
   });
 }
 

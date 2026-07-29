@@ -204,8 +204,8 @@ export function renderNoticeList(containerId, limit = 5) {
       // 视觉反馈：点击后标题颜色变浅
       item.querySelector('p.text-sm')?.classList.add('text-gray-500');
 
-      // basePath 计算（workspace/ 和 party/ 子目录需要 ../ 前缀）
-      const basePath = window.location.pathname.includes('/workspace/') || window.location.pathname.includes('/party/') ? '../' : '';
+      // basePath 计算（workspace/ 子目录需要 ../ 前缀）
+      const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
 
       // 有 targetUrl（如赋权通知）→ 直接跳转
       // 无 targetUrl（普通通知）→ 跳首页并带 notice 参数（向后兼容）

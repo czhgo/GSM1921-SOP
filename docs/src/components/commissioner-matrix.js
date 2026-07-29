@@ -21,7 +21,7 @@ const COMMISSIONER_DATA = [
       title: '发展党员全流程',
       desc: '考察/催缴/归档',
       items: ['发展党员追踪看板', '材料催缴提醒'],
-      page: 'party/org.html',
+      page: 'workspace/org.html',
     },
   },
   {
@@ -42,7 +42,7 @@ const COMMISSIONER_DATA = [
       title: '宣传档案合规建设',
       desc: '模板/制度',
       items: ['档案归档管理', '材料标准制定', '模板库维护', '周报报送'],
-      page: 'party/prop.html',
+      page: 'workspace/prop.html',
     },
   },
   {
@@ -63,7 +63,7 @@ const COMMISSIONER_DATA = [
       title: '补课制度/公邮管理',
       desc: '补课跟踪·公邮查收',
       items: ['补课任务跟踪', '补课完成确认', '公邮查收提醒', '查收历史记录'],
-      page: 'party/disc.html',
+      page: 'workspace/disc.html',
     },
   },
 ];

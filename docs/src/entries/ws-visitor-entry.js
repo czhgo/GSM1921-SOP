@@ -4,7 +4,8 @@ import { CrossPageState } from '../core/cross-page-state.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { NoticeStore } from '../services/notice.js';
-import { ACTIVITIES, _personName } from '../mock/index.js';
+import { AuthStore } from '../services/auth.js';
+import { ACTIVITIES, PEOPLE, _personName } from '../mock/index.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { loadAttendanceRecords } from '../services/attendance.js';
 import { getActivityTypeColors } from '../core/constants.js';
@@ -29,7 +30,6 @@ function renderVisitorUI(state) {
 
   const taskforces = TaskForceRecordStore.getAll();
   const notices = NoticeStore.getAll();
-  const activeTf = taskforces.filter(t => t.status === 'active' || t.status === 'recruiting');
 
   const urlParams = CrossPageState.getURLParams();
   const highlightId = urlParams.activityId || null;
@@ -37,13 +37,13 @@ function renderVisitorUI(state) {
   const tabBar = renderTabBar({
     prefix: 'visitor',
     tabs: [
+      { id: 'projects', label: '项目分工', render: (ctx) => _renderProjectDivision(ctx.activities, ctx.allTf, ctx.authRecords) },
       { id: 'activities', label: '活动动态', render: (ctx) => _renderActivities(ctx.activities, ctx.highlightId) },
-      { id: 'taskforces', label: '专班进展', render: (ctx) => _renderTaskforces(ctx.activeTf) },
       { id: 'attendance', label: '考勤概况', render: (ctx) => _renderAttendance(ctx.activities) },
     ],
     accentColor: { accent: 'var(--primary-700)', accentRgba: 'rgba(206,17,38,0.08)', accentBorder: 'rgba(206,17,38,0.2)' },
     defaultTab: 'activities',
-    renderCtx: { activities, activeTf, highlightId },
+    renderCtx: { activities, allTf: taskforces, authRecords: AuthStore.getAuthorizations(), highlightId },
     storageKey: 'workflowos_tab_visitor',
   });
 
@@ -57,6 +57,202 @@ function renderVisitorUI(state) {
   } else {
     tabBar.activate(tabBar.activeTab);
   }
+}
+
+// ── 项目分工 Tab ──────────────────────────────────
+function _renderProjectDivision(activities, taskforces, authRecords) {
+  const tc = document.getElementById('visitor-tab-content');
+  if (!tc) return;
+
+  // 构建统一项目列表：活动 + 专班
+  const actProjects = activities
+    .filter(a => !a.archived && a.status !== 'cancelled')
+    .map(a => {
+      // 人员：从 assignments + authRecords 合并
+      const personnel = _buildPersonnel(a.id, a.assignments || [], authRecords);
+      const organizer = PEOPLE.find(p => p.id === a.organizer);
+      return {
+        id: a.id,
+        name: a.title || '未命名',
+        type: '活动',
+        typeBadge: a.type || '活动',
+        group: organizer ? organizer.partyGroup : '',
+        status: _actStatusLabel(a.status),
+        statusColor: _actStatusColor(a.status),
+        date: a.date || '',
+        personnel,
+      };
+    });
+
+  const tfProjects = taskforces.map(t => {
+    const personnel = _buildPersonnelFromTf(t, authRecords);
+    return {
+      id: t.id,
+      name: t.name || '未命名',
+      type: '专班',
+      typeBadge: '专班',
+      group: '',
+      status: _tfStatusLabel(t.status),
+      statusColor: _tfStatusColor(t.status),
+      date: t.deadline || t.createdAt || '',
+      personnel,
+    };
+  });
+
+  const allProjects = [...actProjects, ...tfProjects];
+
+  // 党小组列表（用于筛选）
+  const partyGroups = [...new Set(PEOPLE.map(p => p.partyGroup).filter(Boolean))].sort();
+
+  tc.innerHTML = `
+    <div class="flex flex-wrap gap-2 mb-3 items-center">
+      <select id="visitor-proj-type" class="input-flat text-xs w-20">
+        <option value="">全部</option>
+        <option value="活动">活动</option>
+        <option value="专班">专班</option>
+      </select>
+      <select id="visitor-proj-group" class="input-flat text-xs w-28">
+        <option value="">全部党小组</option>
+        ${partyGroups.map(g => `<option value="${g}">${g}</option>`).join('')}
+      </select>
+      <input type="text" id="visitor-proj-search" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索项目名称或人员...">
+      <span id="visitor-proj-count" class="text-[10px] text-gray-400 ml-1"></span>
+    </div>
+    <div id="visitor-proj-list"></div>
+  `;
+
+  function renderList() {
+    const listEl = document.getElementById('visitor-proj-list');
+    const countEl = document.getElementById('visitor-proj-count');
+    if (!listEl) return;
+    const typeFilter = document.getElementById('visitor-proj-type')?.value || '';
+    const groupFilter = document.getElementById('visitor-proj-group')?.value || '';
+    const q = (document.getElementById('visitor-proj-search')?.value || '').trim().toLowerCase();
+
+    const filtered = allProjects.filter(p => {
+      if (typeFilter && p.type !== typeFilter) return false;
+      if (groupFilter && p.group !== groupFilter) return false;
+      if (q) {
+        const nameMatch = p.name.toLowerCase().includes(q);
+        const personnelMatch = p.personnel.some(pm => pm.name.toLowerCase().includes(q));
+        if (!nameMatch && !personnelMatch) return false;
+      }
+      return true;
+    });
+
+    if (countEl) countEl.textContent = `${filtered.length} 个项目`;
+
+    listEl.innerHTML = filtered.length === 0
+      ? '<p class="text-xs text-gray-400 text-center py-6">无匹配项目</p>'
+      : `<div class="space-y-2">${filtered.map(p => _renderProjectCard(p)).join('')}</div>`;
+  }
+
+  document.getElementById('visitor-proj-type')?.addEventListener('change', renderList);
+  document.getElementById('visitor-proj-group')?.addEventListener('change', renderList);
+  document.getElementById('visitor-proj-search')?.addEventListener('input', renderList);
+  renderList();
+}
+
+function _buildPersonnel(projectId, assignments, authRecords) {
+  // 合并 assignments（mock）+ authRecords（运行时赋权）
+  const map = new Map(); // personId → { name, role }
+  for (const a of assignments) {
+    const person = PEOPLE.find(p => p.id === a.personId);
+    if (person) map.set(a.personId, { name: person.name, role: a.role });
+  }
+  for (const r of authRecords) {
+    if (r.scopeRef === projectId && ['organizer', 'deep'].includes(r.role)) {
+      const person = PEOPLE.find(p => p.id === r.targetPersonId);
+      if (person && !map.has(r.targetPersonId)) {
+        map.set(r.targetPersonId, { name: person.name, role: r.role });
+      }
+    }
+  }
+  return [...map.values()];
+}
+
+function _buildPersonnelFromTf(tf, authRecords) {
+  const map = new Map();
+  // members 数组
+  if (Array.isArray(tf.members)) {
+    for (const m of tf.members) {
+      if (!m.personId) continue;
+      const person = PEOPLE.find(p => p.id === m.personId);
+      if (person) map.set(m.personId, { name: person.name, role: m.role });
+    }
+  }
+  // initiator
+  if (tf.initiator) {
+    const person = PEOPLE.find(p => p.id === tf.initiator);
+    if (person && !map.has(tf.initiator)) {
+      map.set(tf.initiator, { name: person.name, role: 'initiator' });
+    }
+  }
+  // authRecords 补充
+  for (const r of authRecords) {
+    if (r.scopeRef === tf.id && ['organizer', 'deep'].includes(r.role)) {
+      const person = PEOPLE.find(p => p.id === r.targetPersonId);
+      if (person && !map.has(r.targetPersonId)) {
+        map.set(r.targetPersonId, { name: person.name, role: r.role });
+      }
+    }
+  }
+  return [...map.values()];
+}
+
+function _actStatusLabel(status) {
+  const map = { completed: '已完成', ongoing: '进行中', published: '已发布', draft: '草稿', cancelled: '已取消' };
+  return map[status] || status || '进行中';
+}
+function _actStatusColor(status) {
+  const map = { completed: 'bg-gray-100 text-gray-600', ongoing: 'bg-green-100 text-green-700', published: 'bg-blue-100 text-blue-700', draft: 'bg-yellow-100 text-yellow-700', cancelled: 'bg-red-100 text-red-600' };
+  return map[status] || 'bg-gray-100 text-gray-500';
+}
+function _tfStatusLabel(status) {
+  const map = { recruiting: '招募中', active: '进行中', completed: '已完成', dissolved: '已解散', draft: '草稿' };
+  return map[status] || status || '进行中';
+}
+function _tfStatusColor(status) {
+  const map = { recruiting: 'bg-orange-100 text-orange-700', active: 'bg-green-100 text-green-700', completed: 'bg-gray-100 text-gray-600', dissolved: 'bg-red-100 text-red-600', draft: 'bg-yellow-100 text-yellow-700' };
+  return map[status] || 'bg-gray-100 text-gray-500';
+}
+
+function _personnelRoleLabel(role) {
+  const map = { organizer: '组织者', deep: '深度参与', participant: '参与者', initiator: '发起人' };
+  return map[role] || role;
+}
+function _personnelRoleColor(role) {
+  const map = { organizer: 'bg-red-50 text-red-600', deep: 'bg-amber-50 text-amber-700', participant: 'bg-gray-50 text-gray-500', initiator: 'bg-blue-50 text-blue-600' };
+  return map[role] || 'bg-gray-50 text-gray-500';
+}
+
+function _renderProjectCard(project) {
+  const organizers = project.personnel.filter(p => p.role === 'organizer' || p.role === 'initiator');
+  const deepParticipants = project.personnel.filter(p => p.role === 'deep');
+  const others = project.personnel.filter(p => p.role === 'participant');
+
+  return `
+    <div class="p-3 rounded-lg bg-white">
+      <div class="flex items-center justify-between mb-1.5">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${project.type === '活动' ? 'bg-red-50 text-red-700' : 'bg-sky-50 text-sky-700'}">${project.typeBadge}</span>
+          <p class="text-sm font-medium text-gray-800 truncate">${project.name}</p>
+        </div>
+        <span class="text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${project.statusColor}">${project.status}</span>
+      </div>
+      <div class="flex items-center gap-3 text-[11px] text-gray-500 mb-2">
+        ${project.group ? `<span class="flex items-center gap-0.5">${icon('users', { size: 11 })} ${project.group}</span>` : ''}
+        ${project.date ? `<span class="flex items-center gap-0.5">${icon('calendar', { size: 11 })} ${project.date}</span>` : ''}
+      </div>
+      ${project.personnel.length > 0 ? `
+        <div class="flex flex-wrap gap-1.5">
+          ${organizers.map(p => `<span class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full ${_personnelRoleColor(p.role)}">${icon('starFilled', { size: 9 })} ${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
+          ${deepParticipants.map(p => `<span class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full ${_personnelRoleColor(p.role)}">${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
+          ${others.map(p => `<span class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full ${_personnelRoleColor(p.role)}">${p.name}</span>`).join('')}
+        </div>
+      ` : '<p class="text-[10px] text-gray-400">暂无人员</p>'}
+    </div>
+  `;
 }
 
 function _renderActivities(activities, highlightId) {
@@ -219,59 +415,6 @@ function _renderActQueryView(sorted, highlightId) {
     const el = vc.querySelector(`[data-visitor-act-id="${highlightId}"]`);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
-}
-
-function _renderTaskforces(taskforces) {
-  const tc = document.getElementById('visitor-tab-content');
-  if (!tc) return;
-  const statusLabel = { recruiting: '招募中', active: '运行中', completed: '已完结', draft: '草稿' };
-  const statusColor = { recruiting: 'bg-orange-100 text-orange-700', active: 'bg-green-100 text-green-700', completed: 'bg-gray-100 text-gray-600', draft: 'bg-gray-100 text-gray-500' };
-  tc.innerHTML = `
-    <div class="flex flex-wrap gap-2 mb-3">
-      <input type="text" id="visitor-tf-search" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索专班名称或任务...">
-      <select id="visitor-tf-status-filter" class="input-flat text-xs w-24">
-        <option value="">全部状态</option>
-        <option value="recruiting">招募中</option>
-        <option value="active">运行中</option>
-        <option value="completed">已完结</option>
-      </select>
-    </div>
-    <div id="visitor-tf-list"></div>
-  `;
-
-  function renderList() {
-    const listEl = document.getElementById('visitor-tf-list');
-    if (!listEl) return;
-    const q = (document.getElementById('visitor-tf-search')?.value || '').trim().toLowerCase();
-    const s = document.getElementById('visitor-tf-status-filter')?.value || '';
-    const filtered = taskforces.filter(t => {
-      if (q && !(t.name || '').toLowerCase().includes(q) && !(t.task || '').toLowerCase().includes(q)) return false;
-      if (s && t.status !== s) return false;
-      return true;
-    });
-    listEl.innerHTML = `
-      <div class="space-y-2">
-        ${filtered.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">无匹配专班</p>' :
-          filtered.map(t => {
-            const filled = t.members.filter(m => m.personId).length;
-            return `
-              <div class="p-3 rounded-lg bg-white">
-                <div class="flex items-center justify-between mb-1">
-                  <p class="text-sm font-medium text-gray-800">${t.name}</p>
-                  <span class="text-[10px] px-1.5 py-0.5 rounded-full ${statusColor[t.status] || 'bg-gray-100 text-gray-500'}">${statusLabel[t.status] || t.status}</span>
-                </div>
-                <p class="text-xs text-gray-500">${t.task}</p>
-                <div class="text-[10px] text-gray-400 mt-1">${filled}/${t.capacity} 成员 · 发起: ${_personName(t.initiator)}</div>
-              </div>
-            `;
-          }).join('')}
-      </div>
-    `;
-  }
-
-  document.getElementById('visitor-tf-search')?.addEventListener('input', renderList);
-  document.getElementById('visitor-tf-status-filter')?.addEventListener('change', renderList);
-  renderList();
 }
 
 function _renderAttendance(activities) {

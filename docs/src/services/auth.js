@@ -7,6 +7,7 @@
 //   - 去掉 AUTHZ_CHAIN + scope 双轨制
 //   - 改为: 常设角色 + 项目角色 → canDo() 统一判定
 //   - 链式赋权: AUTHORIZE_CHAIN 定义谁可以赋权什么角色
+//   - party 页面已移除，organizer/deep 内容归入首页"我的角色"区块
 
 import { ROLE_LABELS } from '../core/constants.js';
 import { PEOPLE } from '../mock/people.js';
@@ -76,6 +77,7 @@ const VIEWABLE_ROLES = {
 };
 
 // ── 角色到页面映射 ──────────────────────────────
+// party 页面已移除（T-141 功能定位修正），organizer/deep 内容归入首页"我的角色"区块
 const ROLE_PAGE_MAP = {
   workspace: {
     'secretary':         'secretary.html',
@@ -85,14 +87,6 @@ const ROLE_PAGE_MAP = {
     'disc-commissioner': 'disc.html',
     'leader':            'leader.html',
     'participant':       'visitor.html',
-  },
-  party: {
-    'secretary':         'secretary.html',
-    'deputy-secretary':  'secretary.html',
-    'org-commissioner':  'org.html',
-    'prop-commissioner': 'prop.html',
-    'disc-commissioner': 'disc.html',
-    // leader / participant 无 party 页面
   },
 };
 
@@ -347,13 +341,12 @@ export const AuthStore = {
       });
     }
 
-    // 2. 项目角色对应页面（organizer.html / deep.html）
+    // 2. 项目角色对应页面（organizer/deep 内容已归入首页"我的角色"区块）
     const projectRoles = this.getUserProjectRoles(personId);
     projectRoles.forEach(role => {
-      const page = role === 'organizer' ? 'organizer.html' : 'deep.html';
       pages.push({
         role,
-        page,
+        page: 'index.html',
         label: ROLE_LABELS[role] || role,
       });
     });
@@ -427,11 +420,9 @@ export const AuthStore = {
     _saveAuthRecords(records);
 
     // ── 赋权通知：organizer / deep 被赋权时给被赋权人推送站内通知 ──
-    // 通知点击直接跳转到对应工作台（spec §3.2 路径 B）
+    // 通知点击跳转到首页"我的角色"区块（organizer/deep 无独立页面）
     if (role === 'organizer' || role === 'deep') {
-      const targetPage = role === 'organizer'
-        ? 'workspace/organizer.html'
-        : 'workspace/deep.html';
+      const targetPage = 'index.html';
 
       const authorizerName = getPersonName(authorizerId) || authorizerId;
       const projectName = _getProjectName(scopeRef) || '未命名项目';

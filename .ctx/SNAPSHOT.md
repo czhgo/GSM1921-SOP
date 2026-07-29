@@ -1,20 +1,20 @@
-﻿﻿﻿﻿﻿﻿﻿---
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
 role: "[AI]"
 title: "系统快照"
 type: snapshot
 status: "ACTIVE"
 date: "2026-07-18"
-last_updated: "2026-07-22"
-version: "v12"
-milestone: "权限系统重构 + UI系统性修复 + organizer/deep可达性 + emoji清零 + 书记评议工作流落地"
+last_updated: "2026-07-29"
+version: "v13"
+milestone: "角色单页制重构 + 党建/党务合并 + organizer/deep移除 + party/目录移除 + members视图"
 ---
 
-# System Snapshot — v12
+# System Snapshot — v13
 
 > 当前活跃基线。历史快照见 `.ctx/snapshots/`。
-> **生成**: 2026-07-18 — 权限系统重构+UI系统性修复+可达性+emoji清零
-> **上版**: v11 (2026-07-03)
-> **变更来源**: T71-T112 多轮迭代（权限系统5轮+UI修复+评议+emoji清理）
+> **生成**: 2026-07-29 — 角色单页制重构（党建/党务合并+organizer/deep移除+party/目录移除）
+> **上版**: v12 (2026-07-18)
+> **变更来源**: T-141 功能定位修正·阶段1 tab重组
 
 ## I. 全局物理拓扑
 
@@ -25,27 +25,22 @@ GSM1921-SOP/
 ├── ARCHITECTURE.md             ← 核心架构说明（分层、数据模型、变更流水线）
 ├── CLAUDE.md                   ← 上下文入口（甲部 Harness + 乙部执行 + 丙部待决策）
 ├── SSOT_INDEX.md               ← 单一权威源索引（母本与子本映射关系）
-├── docs/                       ← 前端代码层（5 个根 HTML + workspace/ + party/ 子目录 + ESM 模块化源码）
+├── docs/                       ← 前端代码层（8 个根 HTML + workspace/ 子目录 + ESM 模块化源码）
 │   ├── index.html              ← 主页入口（通知/招募/日历三组件）
 │   ├── about.html              ← 系统说明书
 │   ├── archive.html            ← 归档库
 │   ├── search.html             ← 资料查询
 │   ├── feedback.html           ← 意见反馈
 │   ├── help.html               ← 帮助与探索工作页面
-│   ├── workspace/              ← 党建工作台页面（8 个 HTML）
-│   │   ├── secretary.html      ← 党建·党支书工作台
-│   │   ├── leader.html         ← 党建·党小组组长工作台
-│   │   ├── organizer.html      ← 党建·组织者工作台
-│   │   ├── deep.html           ← 党建·深度参与者工作台
-│   │   ├── org.html            ← 党建·组织委员工作台
-│   │   ├── prop.html           ← 党建·宣传委员工作台
-│   │   ├── disc.html           ← 党建·纪检委员工作台
-│   │   └── visitor.html        ← 党建·成员只读面板
-│   ├── party/                  ← 党务管理页面（4 个 HTML）
-│   │   ├── secretary.html      ← 党务·党支书面板
-│   │   ├── org.html            ← 党务·组织委员面板
-│   │   ├── prop.html           ← 党务·宣传委员面板
-│   │   └── disc.html           ← 党务·纪检委员面板
+│   ├── members.html            ← 成员视图（人全景只读）
+│   ├── login.html              ← 登录页
+│   ├── workspace/              ← 角色工作台页面（6 个 HTML，党建+党务合一）
+│   │   ├── secretary.html      ← 书记工作台（工作台+常设赋权+issue管理+通知发布）
+│   │   ├── leader.html         ← 党小组组长工作台（活动写入+考勤上传+考察上传+复盘提交）
+│   │   ├── org.html            ← 组织委员工作台（考察上传+专班管理+人才库+发展党员）
+│   │   ├── prop.html           ← 宣传委员工作台（宣传任务+项目看板+档案归档+周报报送）
+│   │   ├── disc.html           ← 纪检委员工作台（考勤管理+监督复盘+考察管理+补课制度+公邮管理）
+│   │   └── visitor.html        ← 成员只读面板
 │   └── src/                    ← ESM 模块化源码
 │       ├── entries/            ← 页面入口（18 个 entry JS）
 │       ├── components/         ← 共享组件（9 个，含 workspace-popover/role-hierarchy/notice-badge）
@@ -78,7 +73,7 @@ GSM1921-SOP/
 | 2 | 理念维度 | `content/01_strategy/` + `content/04_web_design/`（为什么这样做/为什么这样设计） | [用户]/[工程师] |
 | 2.5 | 治理维度 | `content/03_doc_system/`（系统治理规范） | [工程师] |
 | 3 | 执行维度 | `content/02_institution/sop/`（怎么做） | [用户]+[AI] |
-| 4 | 代码实现层 | `docs/src/` + `docs/*.html`（19 页面） | [工程师]+[AI] |
+| 4 | 代码实现层 | `docs/src/` + `docs/*.html`（14 页面） | [工程师]+[AI] |
 | 5 | 审计层 | `.ctx/`（logs/snapshots/TIMESTAMPS） | [AI]/[工程师]+[AI] |
 | 6 | 参考层 | `content/references/` | [用户] |
 
@@ -95,24 +90,20 @@ GSM1921-SOP/
 | `ARCHITECTURE.md` | ✅ | 分层架构+数据模型+变更流水线 |
 | `SSOT_INDEX.md` | ✅ | 母本注册表+同步触发矩阵（根目录） |
 
-### 前端页面（18 个 HTML）
+### 前端页面（14 个 HTML）
 
 | 页面 | 类型 | 说明 |
 |------|------|------|
 | `index.html` | 入口 | 主页（通知/招募/日历） |
 | `help.html` | 独立 | 帮助与探索工作页面（角色体系+发展路径可视化） |
-| `workspace/secretary.html` | 子页面 | 党建·党支书（活动写入+日历+数据后台） |
-| `workspace/leader.html` | 子页面 | 党建·党小组组长（活动写入+日历+组员管理） |
-| `workspace/organizer.html` | 子页面 | 党建·组织者（日历+任务查看） |
-| `workspace/deep.html` | 子页面 | 党建·深度参与者（日历+任务查看） |
-| `workspace/org.html` | 子页面 | 党建·组织委员（考察上传+专班管理+人才库） |
-| `workspace/prop.html` | 子页面 | 党建·宣传委员（宣传任务+活动与专班） |
-| `workspace/disc.html` | 子页面 | 党建·纪检委员（考勤+考察+活动监督+搜索筛选+只读模式） |
-| `workspace/visitor.html` | 子页面 | 党建·成员只读（活动动态+专班进展+考勤+日历/列表切换） |
-| `party/secretary.html` | 子页面 | 党务·党支书（全局聚合+意见反馈数据） |
-| `party/org.html` | 子页面 | 党务·组织委员（发展党员全流程+材料催缴） |
-| `party/prop.html` | 子页面 | 党务·宣传委员（宣传档案+周报） |
-| `party/disc.html` | 子页面 | 党务·纪检委员（补课制度+公邮管理） |
+| `members.html` | 独立 | 成员视图（人全景只读） |
+| `login.html` | 独立 | 登录页 |
+| `workspace/secretary.html` | 子页面 | 书记工作台（工作台+常设赋权+issue管理+通知发布） |
+| `workspace/leader.html` | 子页面 | 党小组组长工作台（活动写入+考勤上传+考察上传+复盘提交） |
+| `workspace/org.html` | 子页面 | 组织委员工作台（考察上传+专班管理+人才库+发展党员） |
+| `workspace/prop.html` | 子页面 | 宣传委员工作台（宣传任务+项目看板+档案归档+周报报送） |
+| `workspace/disc.html` | 子页面 | 纪检委员工作台（考勤管理+监督复盘+考察管理+补课制度+公邮管理） |
+| `workspace/visitor.html` | 子页面 | 成员只读（活动动态+专班进展+考勤+日历/列表切换） |
 | `about.html` | 独立 | 系统说明书（含三支委党建与党务工作职责矩阵） |
 | `archive.html` | 独立 | 归档库 |
 | `search.html` | 独立 | 资料查询 |
@@ -132,16 +123,14 @@ GSM1921-SOP/
 
 ## V. 权限矩阵摘要
 
-| 角色 | 党建工作台 | 党务管理 |
-|------|-----------|---------|
-| 党支书 | 全局视图+活动写入+专班发起 | 全局视图+全部权限 |
-| 组织委员 | 专班建设（招募统筹·定人定责定岗）+专班发起 | 发展党员全流程 |
-| 宣传委员 | 活动与专班视图（多维表格+转置切换+搜索筛选） | 宣传档案合规建设 |
-| 纪检委员 | 考勤管理·考察管理·活动监督复盘 | 补课制度·公邮管理 |
-| 党小组组长 | 块块活动管理+活动写入+专班发起 | 小组成员管理 |
-| 组织者 | 活动/专班编辑视图（经赋权） | — |
-| 深度参与者 | 任务查看视图（经赋权） | — |
-| 参与者 | 成员只读（独立视图，查看支委工作成果+个人考勤） | — |
+| 角色 | 工作台（党建+党务合一） |
+|------|----------------------|
+| 党支书 | 全局视图+活动写入+专班发起+常设赋权+issue管理+通知发布 |
+| 组织委员 | 专班建设（招募统筹·定人定责定岗）+专班发起+考察上传+人才库+发展党员 |
+| 宣传委员 | 宣传任务+项目看板+档案归档+周报报送 |
+| 纪检委员 | 考勤管理+考察管理+活动监督复盘+补课制度+公邮管理 |
+| 党小组组长 | 块块活动管理+活动写入+考勤上传+考察上传+复盘提交 |
+| 参与者 | 成员只读（独立视图，查看支委工作成果+个人考勤） |
 
 ## VI. 版本里程碑
 
@@ -159,3 +148,4 @@ GSM1921-SOP/
 | **v10** | **2026-06-14** | **H-1看板数据断裂修复(kanban从taskforces动态派生) + D-218正交维度模型(SOP⊥guides,CLAUDE.md=上下文入口) + 响应式断点补全(768px/640px) + 宣传委员多维表格转置切换 + 周期性任务全域修复(W1-W3/M1/M3/M4/M5) + file:///全仓清零 + 经验沉淀v18.0(§10.14看板动态派生判例)** |
 | **v11** | **2026-07-03** | **文档按受众×层级归类重组：content/guides/ 拆分为 strategy/(用户·meta) + design/(工程师·设计) + governance/(工程师·治理)，消除受众混淆/层级混淆/主题混淆，确认唯一信息源，更新 SNAPSHOT 和经验沉淀** |
 | **v12** | **2026-07-18** | **权限系统5轮重构+organizer/deep可达性实施+UI系统性修复(色系/侧边栏/壳大字小)+emoji清零+书记评议H5工作流落地+GitHub Issue风格提案讨论系统+SECRETARY_PRONOUNCEMENTS升格根目录+SOP why补充27处** |
+| **v13** | **2026-07-29** | **角色单页制重构：党建/党务合并为单页面(tab切换)+organizer/deep移除(归入首页"我的角色")+party/目录移除+members视图(人全景只读)+14页面** |

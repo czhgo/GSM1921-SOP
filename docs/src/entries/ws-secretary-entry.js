@@ -175,6 +175,9 @@ function renderSecretaryUI(state) {
 
   // ── issue 管理（GitHub Issue 风格，替代旧 P3-1 反馈管理）──
   renderIssueManagement();
+
+  // ── 通知发布（党务） ──
+  renderNotificationPanel();
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -896,6 +899,192 @@ function bindDraftEvents() {
       IssueStore.rejectDraft(id, reason);
       showToast('info', '草稿已驳回');
       renderIssueManagement();
+    });
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+//  通知发布（党务）
+//  功能：书记发布通知（标题+内容+目标受众）+ 已发布通知列表
+// ════════════════════════════════════════════════════════════════
+
+const NOTIFICATION_STORAGE_KEY = 'workflowos_notifications';
+const NOTIFICATION_AUDIENCES = [
+  { value: 'all', label: '全体党员' },
+  { value: 'leaders', label: '党小组组长' },
+  { value: 'activists', label: '入党积极分子' },
+  { value: 'candidates', label: '发展对象' },
+];
+
+/** 读取已发布通知 */
+function _loadNotifications() {
+  try {
+    const raw = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (_) { return []; }
+}
+
+/** 保存通知列表 */
+function _saveNotifications(list) {
+  try {
+    localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(list));
+  } catch (_) { /* 静默降级 */ }
+}
+
+/** 渲染通知发布面板（表单 + 列表） */
+function renderNotificationPanel() {
+  renderNotificationForm();
+  renderNotificationList();
+}
+
+/** 渲染发布表单 */
+function renderNotificationForm() {
+  const formArea = document.getElementById('notification-form-area');
+  if (!formArea) return;
+
+  let html = '';
+
+  // 通知标题
+  html += `<div class="mb-4">`;
+  html += `<label class="text-xs text-gray-500 mb-1 block">通知标题 <span class="text-red-500">*</span></label>`;
+  html += `<input type="text" id="notif-title" class="input-flat w-full" placeholder="通知标题">`;
+  html += `</div>`;
+
+  // 通知内容
+  html += `<div class="mb-4">`;
+  html += `<label class="text-xs text-gray-500 mb-1 block">通知内容 <span class="text-red-500">*</span></label>`;
+  html += `<textarea id="notif-content" rows="4" class="input-flat w-full" placeholder="通知正文"></textarea>`;
+  html += `</div>`;
+
+  // 目标受众
+  html += `<div class="mb-5">`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">目标受众 <span class="text-red-500">*</span></label>`;
+  html += `<div class="flex flex-wrap gap-2">`;
+  NOTIFICATION_AUDIENCES.forEach(a => {
+    html += `<button data-notif-action="select-audience" data-value="${a.value}" class="text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-red-200 hover:text-red-500 transition-all">${a.label}</button>`;
+  });
+  html += `</div>`;
+  html += `</div>`;
+
+  // 发布按钮
+  html += `<button data-notif-action="publish" class="text-sm px-5 py-2.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium">发布通知</button>`;
+
+  formArea.innerHTML = html;
+
+  // 绑定事件
+  formArea.querySelectorAll('[data-notif-action]').forEach(el => {
+    el.addEventListener('click', handleNotifAction);
+  });
+}
+
+/** 通知表单状态 */
+let _selectedAudience = null;
+
+/** 处理通知面板操作 */
+function handleNotifAction(e) {
+  const btn = e.currentTarget;
+  const action = btn.dataset.notifAction;
+
+  switch (action) {
+    case 'select-audience': {
+      _selectedAudience = btn.dataset.value;
+      // 更新按钮视觉状态
+      const formArea = document.getElementById('notification-form-area');
+      if (formArea) {
+        formArea.querySelectorAll('[data-notif-action="select-audience"]').forEach(b => {
+          if (b.dataset.value === _selectedAudience) {
+            b.className = 'text-sm px-4 py-2 rounded-lg font-medium border border-red-200 text-red-700 bg-red-50 transition-all';
+          } else {
+            b.className = 'text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-red-200 hover:text-red-500 transition-all';
+          }
+        });
+      }
+      break;
+    }
+
+    case 'publish': {
+      handlePublishNotification();
+      break;
+    }
+
+    default:
+      return;
+  }
+}
+
+/** 发布通知 */
+function handlePublishNotification() {
+  const titleEl = document.getElementById('notif-title');
+  const contentEl = document.getElementById('notif-content');
+
+  const title = titleEl?.value?.trim();
+  const content = contentEl?.value?.trim();
+
+  if (!title) { showToast('error', '请填写通知标题'); titleEl?.focus(); return; }
+  if (!content) { showToast('error', '请填写通知内容'); contentEl?.focus(); return; }
+  if (!_selectedAudience) { showToast('error', '请选择目标受众'); return; }
+
+  const audience = NOTIFICATION_AUDIENCES.find(a => a.value === _selectedAudience);
+  const notifications = _loadNotifications();
+
+  const notification = {
+    id: `notif-${Date.now()}`,
+    title,
+    content,
+    audience: _selectedAudience,
+    audienceLabel: audience ? audience.label : _selectedAudience,
+    publishedAt: new Date().toISOString(),
+    publishedBy: '书记',
+  };
+
+  notifications.unshift(notification);
+  _saveNotifications(notifications);
+
+  showToast('success', `通知「${title}」已发布至${notification.audienceLabel}`);
+
+  // 重置表单
+  _selectedAudience = null;
+  renderNotificationForm();
+  renderNotificationList();
+}
+
+/** 渲染已发布通知列表 */
+function renderNotificationList() {
+  const listArea = document.getElementById('notification-list-area');
+  if (!listArea) return;
+
+  const notifications = _loadNotifications();
+
+  if (notifications.length === 0) {
+    listArea.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">暂无已发布通知</p>';
+    return;
+  }
+
+  listArea.innerHTML = notifications.map(n => {
+    const dateStr = _fmtDate(n.publishedAt);
+    return `
+      <div class="py-3 px-4 rounded-xl bg-white transition-colors group" data-notif-id="${n.id}">
+        <div class="flex items-center justify-between mb-1">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-medium text-gray-800">${n.title}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200">${n.audienceLabel}</span>
+          </div>
+          <button data-notif-action="delete" data-notif-id="${n.id}" class="text-xs text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-2 py-1 rounded hover:bg-red-50">删除</button>
+        </div>
+        <p class="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">${n.content}</p>
+        <p class="text-[10px] text-gray-400 mt-1.5">${n.publishedBy} · ${dateStr}</p>
+      </div>
+    `;
+  }).join('<div class="border-b border-gray-100"></div>');
+
+  // 绑定删除事件
+  listArea.querySelectorAll('[data-notif-action="delete"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const notifId = btn.dataset.notifId;
+      const notifications = _loadNotifications().filter(n => n.id !== notifId);
+      _saveNotifications(notifications);
+      showToast('success', '通知已删除');
+      renderNotificationList();
     });
   });
 }

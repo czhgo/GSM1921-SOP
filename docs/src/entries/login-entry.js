@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
@@ -13,7 +13,6 @@ if (user) {
 }
 
 // ── 开发模式卡片数据 ──────────────────────────────
-// 2026-07-18: 追加 organizer / deep 项目角色（spec §3.5.2）
 const DEV_CARDS = [
   { role: 'secretary',         label: '党支部书记',   desc: '组织统筹决策' },
   { role: 'deputy-secretary',  label: '党支部副书记', desc: '协助书记工作' },
@@ -22,8 +21,6 @@ const DEV_CARDS = [
   { role: 'disc-commissioner', label: '纪检委员',     desc: '考勤考察' },
   { role: 'leader',            label: '党小组组长',   desc: '活动统筹' },
   { role: 'participant',       label: '普通参与者',   desc: '查看信息' },
-  { role: 'organizer',         label: '组织者',       desc: '任务分配·复盘提交' },
-  { role: 'deep',              label: '深度参与者',   desc: '任务状态更新·经验沉淀' },
 ];
 
 // ── 渲染开发模式卡片 ──────────────────────────────
@@ -49,13 +46,6 @@ function _renderDevCards() {
   container.querySelectorAll('[data-role]').forEach(card => {
     card.addEventListener('click', () => {
       const role = card.dataset.role;
-      // 项目角色（organizer / deep）特殊处理：通过 URL 参数让 bootstrapPage 处理
-      // spec §3.5.2: 找到持有该 project role 的 mock 用户 → 用其 standing role 登录 → 跳转 workspace 页面
-      if (role === 'organizer' || role === 'deep') {
-        const targetPage = role === 'organizer' ? 'organizer.html' : 'deep.html';
-        window.location.href = `./workspace/${targetPage}?dev=${role}`;
-        return;
-      }
       AuthStore.devLogin(role);
       window.location.href = './index.html';
     });

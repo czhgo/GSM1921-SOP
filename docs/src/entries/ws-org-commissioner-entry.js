@@ -21,7 +21,31 @@ const SVG = {
   people: icon('users', { size: 12 }),
   clipboard: icon('clipboard', { size: 12 }),
   calendar: icon('calendar', { size: 12 }),
+  arrowRight: icon('arrowRight', { size: 12 }),
 };
+
+// ════════════════════════════════════════════════════════════════
+//  发展党员追踪 — Mock 数据
+// ════════════════════════════════════════════════════════════════
+
+const STAGE_ORDER = ['入党申请人', '积极分子', '发展对象', '预备党员', '正式党员'];
+
+const STAGE_COLOR = {
+  '入党申请人': { bg: 'bg-gray-100', text: 'text-gray-600', dot: '#9CA3AF' },
+  '积极分子':   { bg: 'bg-cyan-100', text: 'text-cyan-700', dot: '#06B6D4' },
+  '发展对象':   { bg: 'bg-amber-100', text: 'text-amber-700', dot: '#F59E0B' },
+  '预备党员':   { bg: 'bg-blue-100', text: 'text-blue-700', dot: '#3B82F6' },
+  '正式党员':   { bg: 'bg-green-100', text: 'text-green-700', dot: '#10B981' },
+};
+
+let MOCK_CANDIDATES = [
+  { id: 'dc1', name: '赵思远', stage: '入党申请人', entryDate: '2025-11-15', note: '已提交入党申请书' },
+  { id: 'dc2', name: '孙明辉', stage: '积极分子',   entryDate: '2025-05-20', note: '培养考察期中' },
+  { id: 'dc3', name: '周佳怡', stage: '积极分子',   entryDate: '2025-03-10', note: '培养考察满一年，拟推进' },
+  { id: 'dc4', name: '吴思齐', stage: '发展对象',   entryDate: '2025-01-08', note: '已完成政审' },
+  { id: 'dc5', name: '郑凯文', stage: '预备党员',   entryDate: '2024-09-01', note: '预备期中' },
+  { id: 'dc6', name: '陈晨',   stage: '正式党员',   entryDate: '2023-06-15', note: '已转正' },
+];
 
 function renderOrgUI(state) {
   let activities = state.activities || [];
@@ -45,6 +69,7 @@ function renderOrgUI(state) {
       { id: 'inspection', label: '考察上传', render: () => _renderOrgInspectionContent() },
       { id: 'taskforce', label: '专班管理', render: (ctx) => _renderTaskforceContent(ctx.pending, ctx.recruiting, ctx.active, ctx.activities) },
       { id: 'talent', label: '人才库', render: () => _renderTalentContent() },
+      { id: 'development', label: '发展党员', render: () => _renderDevelopmentContent(), groupLabel: '党务' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
     extraRightHtml: '<button id="btn-publish-tf" style="background:var(--accent-org-commissioner);color:white;border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity=\'0.9\'" onmouseout="this.style.opacity=\'1\'">发布招募</button>',
@@ -644,6 +669,135 @@ function _renderActivityProgress(activities) {
     showToast('success', `活动「${activity.title || '未命名'}」已完成并归档`);
     renderOrgUI(getAppState());
   });
+}
+
+// ── 发展党员追踪 Tab（党务） ──
+
+function _renderDevelopmentContent() {
+  const container = document.getElementById('org-tab-content');
+  if (!container) return;
+
+  // 当前筛选状态
+  let _devFilter = 'all';
+
+  function render() {
+    const filtered = _devFilter === 'all'
+      ? MOCK_CANDIDATES
+      : MOCK_CANDIDATES.filter(c => c.stage === _devFilter);
+
+    // 阶段统计
+    const stageCounts = {};
+    for (const s of STAGE_ORDER) {
+      stageCounts[s] = MOCK_CANDIDATES.filter(c => c.stage === s).length;
+    }
+
+    // 管线概览条
+    const pipelineHtml = STAGE_ORDER.map((s, idx) => {
+      const sc = STAGE_COLOR[s];
+      const count = stageCounts[s];
+      const arrow = idx < STAGE_ORDER.length - 1
+        ? `<span class="text-gray-300 mx-0.5">${SVG.arrowRight}</span>`
+        : '';
+      return `<span class="inline-flex items-center gap-1"><span style="width:8px;height:8px;border-radius:50%;background:${sc.dot};display:inline-block;"></span><span class="text-[11px] text-gray-600">${s}</span><span class="text-[10px] font-bold" style="color:${sc.dot};">${count}</span></span>${arrow}`;
+    }).join('');
+
+    // 筛选按钮
+    const filterBtns = [
+      { value: 'all', label: '全部' },
+      ...STAGE_ORDER.map(s => ({ value: s, label: s })),
+    ].map(f => {
+      const isActive = _devFilter === f.value;
+      const activeCls = isActive
+        ? 'bg-sky-50 text-sky-700 border-sky-200'
+        : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50';
+      return `<button class="dev-filter-btn text-[11px] px-2.5 py-1 rounded-full border transition-colors ${activeCls}" data-filter="${f.value}">${f.label}</button>`;
+    }).join('');
+
+    // 候选人卡片
+    const cardsHtml = filtered.length === 0
+      ? '<p class="text-xs text-gray-400 text-center py-8">当前筛选无候选人</p>'
+      : filtered.map(c => {
+          const sc = STAGE_COLOR[c.stage];
+          const stageIdx = STAGE_ORDER.indexOf(c.stage);
+          const isLast = stageIdx === STAGE_ORDER.length - 1;
+          const nextStage = isLast ? null : STAGE_ORDER[stageIdx + 1];
+          const advanceBtn = !isLast
+            ? `<button class="dev-advance-btn text-[10px] px-2.5 py-1 rounded-md bg-sky-50 text-sky-600 border border-sky-200 hover:bg-sky-100 transition-colors" data-candidate-id="${c.id}" data-next-stage="${nextStage}">推进至${nextStage}</button>`
+            : `<span class="text-[10px] px-2.5 py-1 rounded-md bg-green-50 text-green-600 border border-green-200">已转正</span>`;
+
+          // 进度条（当前阶段高亮）
+          const progressDots = STAGE_ORDER.map((s, i) => {
+            const dotColor = i <= stageIdx ? sc.dot : '#E5E7EB';
+            const isCurrent = i === stageIdx;
+            return `<span style="width:${isCurrent ? '10px' : '6px'};height:${isCurrent ? '10px' : '6px'};border-radius:50%;background:${dotColor};display:inline-block;transition:all 0.2s;"></span>`;
+          }).join('<span style="width:12px;height:1.5px;background:#E5E7EB;display:inline-block;vertical-align:middle;"></span>');
+
+          return `
+            <div class="p-4 rounded-xl bg-white border border-gray-50 hover:shadow-sm transition-shadow">
+              <div class="flex items-start justify-between gap-3 mb-2">
+                <div>
+                  <div class="text-sm font-semibold text-gray-800">${c.name}</div>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-full ${sc.bg} ${sc.text} font-medium">${c.stage}</span>
+                    <span class="text-[10px] text-gray-400">进入当前阶段：${c.entryDate}</span>
+                  </div>
+                </div>
+                ${advanceBtn}
+              </div>
+              <div class="flex items-center gap-0.5 mb-2">${progressDots}</div>
+              <div class="text-[11px] text-gray-500">${c.note || ''}</div>
+            </div>`;
+        }).join('');
+
+    container.innerHTML = `
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="font-title-cn text-sm font-bold text-gray-700">${SVG.people} 发展党员追踪</h4>
+          <span class="text-xs text-gray-400">${MOCK_CANDIDATES.length} 人</span>
+        </div>
+        <div class="text-xs text-gray-500 mb-4">从入党申请人到正式党员的完整发展路径追踪</div>
+        <!-- 管线概览 -->
+        <div class="flex items-center flex-wrap gap-1 mb-4 p-3 rounded-lg bg-gray-50">
+          ${pipelineHtml}
+        </div>
+        <!-- 筛选栏 -->
+        <div class="flex flex-wrap gap-1.5 mb-4">
+          ${filterBtns}
+        </div>
+        <!-- 候选人列表 -->
+        <div class="space-y-3">
+          ${cardsHtml}
+        </div>
+      </div>
+    `;
+
+    // 绑定筛选事件
+    container.querySelectorAll('.dev-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        _devFilter = btn.dataset.filter;
+        render();
+      });
+    });
+
+    // 绑定推进事件
+    container.querySelectorAll('.dev-advance-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const candidateId = btn.dataset.candidateId;
+        const nextStage = btn.dataset.nextStage;
+        const candidate = MOCK_CANDIDATES.find(c => c.id === candidateId);
+        if (!candidate) return;
+        const confirmed = window.confirm(`确认将「${candidate.name}」从${candidate.stage}推进至${nextStage}？`);
+        if (!confirmed) return;
+        candidate.stage = nextStage;
+        candidate.entryDate = new Date().toISOString().slice(0, 10);
+        candidate.note = `已推进至${nextStage}`;
+        showToast('success', `「${candidate.name}」已推进至${nextStage}`);
+        render();
+      });
+    });
+  }
+
+  render();
 }
 
 // ── 人才库 Tab ──

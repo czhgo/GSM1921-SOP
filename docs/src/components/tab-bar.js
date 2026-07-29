@@ -43,13 +43,17 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
   const { accent, accentRgba, accentBorder } = accentColor;
 
   // 生成 Tab 按钮 HTML（active 状态由 CSS 类 + CSS 变量驱动）
-  const btnsHtml = tabs.map(({ id, label }) => {
+  const btnsHtml = tabs.map(({ id, label, groupLabel }) => {
     const isActive = id === activeTab;
     const activeClass = isActive ? ' tab-btn-active' : '';
     const activeStyle = isActive
       ? ` style="--tab-accent:${accent};--tab-accent-bg:${accentRgba};--tab-accent-border:${accentBorder}"`
       : '';
-    return `<button class="${btnClass}${activeClass} px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}"${activeStyle}>${label}</button>`;
+    // 如果有 groupLabel，在标签前渲染分隔线+小标签
+    const groupHtml = groupLabel
+      ? `<span class="inline-flex items-center gap-1.5"><span style="width:1px;height:14px;background:#E5E7EB;display:inline-block;margin-right:4px;vertical-align:middle;"></span><span style="font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(14,165,233,0.08);color:#0EA5E9;font-weight:600;letter-spacing:0.5px;vertical-align:middle;">${groupLabel}</span></span> `
+      : '';
+    return `<button class="${btnClass}${activeClass} px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}"${activeStyle}>${groupHtml}${label}</button>`;
   }).join('\n');
 
   const extraHtml = extraRightHtml ? `<div class="ml-auto">${extraRightHtml}</div>` : '';

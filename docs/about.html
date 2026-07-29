@@ -192,7 +192,7 @@
       </div>
 
       <!-- 三委员矩阵 -->
-      <p class="font-title text-sm text-gray-500 mb-3">同一位委员，在党建工作台和党务管理中承担不同职责：</p>
+      <p class="font-title text-sm text-gray-500 mb-3">同一位委员，在党建和党务中承担不同职责，两者合并在同一页面通过 tab 切换：</p>
       <div id="commissioner-matrix-container"></div>
 
       <!-- 2.3 党小组组长 -->
@@ -304,15 +304,15 @@
       <!-- 4.1 页面导航 -->
       <h4 class="font-title-cn text-base font-semibold text-gray-700 mb-3">4.1 页面导航</h4>
       <p class="font-title text-base text-gray-700 leading-loose mb-4">
-        系统由 19 个独立页面组成，通过侧边栏全局导航和角色选择面板串联。所有子页面共享同一套数据源，不同角色看到的是同一数据的不同切面。
+        系统由 14 个独立页面组成，通过侧边栏全局导航和角色选择面板串联。每个角色对应一个单页面，党建与党务功能通过页内 tab 切换。所有子页面共享同一套数据源，不同角色看到的是同一数据的不同切面。
       </p>
 
       <div class="mb-5">
         <p class="font-title text-sm font-semibold text-gray-600 mb-2">全局导航结构</p>
         <div class="bg-gray-50 rounded-lg p-4 font-mono text-sm text-gray-600 leading-relaxed">
           主页（通知/招募/日历）<br>
-          ├── 党建工作台 → 角色选择面板 → 8 个角色子页面<br>
-          ├── 党务管理 → 角色选择面板 → 4 个委员子页面<br>
+          ├── 工作台 → 角色选择面板 → 6 个角色单页面（党建+党务合一）<br>
+          ├── 成员视图<br>
           ├── 归档库 · 资料查询 · 意见反馈 · 关于
         </div>
       </div>
@@ -321,17 +321,12 @@
         <p class="font-title text-sm font-semibold text-gray-600 mb-2">各页面功能</p>
         <div class="space-y-2">
           <div class="p-3 bg-gray-50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>主页</strong> — 通知公告 + 人员招募 + 活动日历全景；点击条目跳转至对应子页面</div>
-          <div class="p-3 bg-red-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党建·党支书</strong> — 工作台（日历+写入+查询）+ 常设赋权 + issue 管理</div>
+          <div class="p-3 bg-red-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党建·党支书</strong> — 工作台（日历+写入+查询）+ 常设赋权 + issue管理 + 通知发布</div>
           <div class="p-3 bg-red-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党建·党小组组长</strong> — 活动写入 + 考勤上传 + 考察上传 + 复盘提交</div>
-          <div class="p-3 bg-red-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党建·组织者</strong> — 日历视图 + 分工记录（经赋权后可编辑）</div>
-          <div class="p-3 bg-red-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党建·深度参与者</strong> — 日历视图 + 任务查看（经赋权后可编辑）</div>
-          <div class="p-3 bg-blue-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党建·组织委员</strong> — 考察上传 + 专班管理 + 人才库</div>
-          <div class="p-3 bg-emerald-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党建·宣传委员</strong> — 宣传任务 + 活动与专班</div>
-          <div class="p-3 bg-amber-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党建·纪检委员</strong> — 考勤总表 + 考察总表 + 活动监督复盘 + 搜索筛选</div>
-          <div class="p-3 bg-gray-50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党建·成员只读</strong> — 活动动态（日历/列表切换）+ 专班进展 + 考勤概况</div>
-          <div class="p-3 bg-blue-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党务·组织委员</strong> — 发展党员全流程 + 材料催缴</div>
-          <div class="p-3 bg-emerald-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党务·宣传委员</strong> — 宣传档案合规建设 + 周报</div>
-          <div class="p-3 bg-amber-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党务·纪检委员</strong> — 补课制度 + 公邮管理</div>
+          <div class="p-3 bg-blue-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党建·组织委员</strong> — 考察上传 + 专班管理 + 人才库 + 发展党员</div>
+          <div class="p-3 bg-emerald-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党建·宣传委员</strong> — 宣传任务 + 项目看板 + 档案归档 + 周报报送</div>
+          <div class="p-3 bg-amber-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党建·纪检委员</strong> — 考勤管理 + 活动监督复盘 + 考察管理 + 补课制度 + 公邮管理</div>
+          <div class="p-3 bg-gray-50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>成员视图</strong> — 活动动态（日历/列表切换）+ 专班进展 + 考勤概况</div>
           <div class="p-3 bg-gray-50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>归档库</strong> — 已完成工作归档与回溯 + 搜索 + 类别过滤</div>
           <div class="p-3 bg-gray-50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>资料查询</strong> — 制度文件 · 操作指南 · SOP 文档 · 外部链接</div>
           <div class="p-3 bg-gray-50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>意见反馈</strong> — SOP 优化提案与开源讨论</div>
@@ -393,7 +388,7 @@
           <table class="w-full font-title text-sm text-gray-700 leading-loose border-collapse">
             <thead><tr class="bg-gray-50"><th class="p-3 text-left border-b">层</th><th class="p-3 text-left border-b">位置</th><th class="p-3 text-left border-b">职责</th></tr></thead>
             <tbody>
-              <tr><td class="p-3 border-b font-semibold">前台（UI）</td><td class="p-3 border-b">docs/*.html（19 页面）</td><td class="p-3 border-b">页面骨架，零硬编码逻辑</td></tr>
+              <tr><td class="p-3 border-b font-semibold">前台（UI）</td><td class="p-3 border-b">docs/*.html（14 页面）</td><td class="p-3 border-b">页面骨架，零硬编码逻辑</td></tr>
               <tr><td class="p-3 border-b font-semibold">中台（路由+渲染）</td><td class="p-3 border-b">docs/src/entries/（18 个 entry JS）</td><td class="p-3 border-b">角色面板路由、视图切换、DOM 渲染</td></tr>
               <tr><td class="p-3 border-b font-semibold">后台（服务层）</td><td class="p-3 border-b">docs/src/services/（7 个 service JS）</td><td class="p-3 border-b">数据 CRUD、权限计算、持久化</td></tr>
               <tr><td class="p-3 border-b font-semibold">母本层</td><td class="p-3 border-b">content/02_institution/sop/</td><td class="p-3 border-b">所有代码逻辑的制度来源</td></tr>
@@ -410,7 +405,7 @@
           <li>Tailwind CSS CDN — 原子化样式引擎</li>
           <li>sessionStorage / localStorage — 跨页面状态持久化</li>
           <li>Custom Events — 组件间解耦通信</li>
-          <li>多页面应用（MPA）— 19 个独立 HTML 页面</li>
+          <li>多页面应用（MPA）— 14 个独立 HTML 页面</li>
         </ul>
       </div>
     </div>

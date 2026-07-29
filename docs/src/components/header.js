@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // components/header.js — 共享顶栏组件（重构版）
 // 变化: 去掉 mode 标签，改为当前身份标签 + 只读切换下拉
 
@@ -285,7 +285,7 @@ function _bindNotificationBell(header) {
           // 跳转（短暂延迟让用户看到视觉反馈）
           setTimeout(() => {
             const path = window.location.pathname;
-            const basePath = path.includes('/workspace/') || path.includes('/party/') ? '../' : '';
+            const basePath = path.includes('/workspace/') ? '../' : '';
             const finalUrl = targetUrl
               ? basePath + targetUrl
               : `${basePath}index.html?notice=${id}`;
