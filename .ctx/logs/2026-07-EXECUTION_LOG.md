@@ -5601,3 +5601,81 @@ T148 去掉了侧边栏箭头但保留了 popover。用户反馈 popover 仍在�
 
 [经验沉淀: 否 — 阶段1完成，阶段2/3待执行]
 
+---
+
+## T156 角色单页制+架构简化·阶段1续：页面合并+侧边栏重构（2026-07-29）
+
+**日期**：2026-07-29
+**任务**：执行spec `.trae/specs/role-driven-navigation-restructure/spec.md` 阶段1续——workspace+party合并为角色单页面，侧边栏简化
+**引用流程**：H1.2 执行 + T-141 spec + DESIGN_SYSTEM §4.6 + COMMISSIONER_FRAMEWORK §D.1
+
+### 变更摘要
+
+**阶段1（页面合并+侧边栏重构）**：
+- 合并 workspace/ + party/ 为6个角色单页面（书记/副书记→secretary, 组织→org, 宣传→prop, 纪检→disc, 组长→leader, 成员→visitor）
+- 删除4个party HTML + 5个party entry JS + organizer/deep页面（共13文件删除，-3007行）
+- 侧边栏简化为"工作台"单入口（角色自适应跳转）
+- 各角色新增党务tab：书记(通知发布)、组织(发展党员)、宣传(档案归档+周报报送)、纪检(补课制度+公邮管理)
+- 成员视图新增"项目分工"tab，合并专班进展
+- 宣传"活动与专班"更名"项目看板"，术语统一
+
+**阶段2（功能补全）**：
+- 首页增加"我的角色"区块（角色卡片+我的考勤+我的考察）
+- 角色卡片显示常设角色、党小组组长、项目角色，点击跳转对应工作台
+- 我的考勤：出勤/缺勤/已补统计 + 历次考勤列表（倒序）
+- 我的考察：记录总数 + 确认/待确认统计 + 历次考察列表（倒序），仅本人可见
+
+**阶段3（数据同源）**：
+- AuthStore 赋权记录从独立 localStorage 键迁移至 mockDB.authorizations
+- mockDB 新增 authorizations 字段，saveDB/loadDB 同步更新
+- 旧 localStorage 键 'gsm1921-auth-records' 纳入清理列表
+
+**阶段4（术语一改具改）**：
+- 用户面向"活动与专班"→"项目看板"/"项目视图"
+- commissioner-matrix / help-entry / COMMISSIONER_FRAMEWORK / DESIGN_SYSTEM / SOP_WEB / 宣传纪检SOP指南 等文档同步更新
+- 概念解释性内容和书记原话保留原始术语
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `docs/index.html` | +我的角色/考勤/考察容器 |
+| `docs/src/entries/main-entry.js` | +_renderMyRoles/_renderMyAttendance/_renderMyInspection |
+| `docs/src/entries/ws-secretary-entry.js` | +通知发布tab |
+| `docs/src/entries/ws-org-commissioner-entry.js` | +发展党员tab |
+| `docs/src/entries/ws-prop-commissioner-entry.js` | +档案归档+周报报送tab，活动与专班→项目看板 |
+| `docs/src/entries/ws-disc-commissioner-entry.js` | +补课制度+公邮管理tab，数据交接融入考勤 |
+| `docs/src/entries/ws-visitor-entry.js` | +项目分工tab |
+| `docs/src/components/sidebar.js` | 侧边栏简化为"工作台"单入口 |
+| `docs/src/components/commissioner-matrix.js` | 活动与专班视图→项目视图 |
+| `docs/src/core/bootstrap.js` | 移除party模块+organizer/deep特殊处理 |
+| `docs/src/core/domain.js` | +authorizations字段 |
+| `docs/src/services/auth.js` | 赋权记录迁移至mockDB.authorizations |
+| `docs/src/services/mock.js` | saveDB/loadDB+authorizations |
+| `docs/about.html` | 角色功能描述更新 |
+| `.ctx/SNAPSHOT.md` | 页面描述更新 |
+| `content/02_institution/COMMISSIONER_FRAMEWORK.md` | tab描述更新 |
+| `content/04_web_design/DESIGN_SYSTEM.md` | 术语更新 |
+| `content/04_web_design/SOP_WEB.md` | 术语更新 |
+| `content/insights/党支部管理与实务经验沉淀.md` | 术语更新 |
+| `content/02_institution/sop/宣传委员工作流程指南.md` | 术语更新 |
+| `content/02_institution/sop/纪检委员工作流程指南.md` | 术语更新 |
+| 删除 13 文件 | 4 party HTML + 5 party entry JS + organizer HTML/JS + deep HTML/JS |
+
+### Git 提交
+
+| commit | 描述 |
+|--------|------|
+| 5df7fa4 | feat(architecture): T-141 phase1 role-single-page + sidebar simplification |
+| f51eccb | feat(dashboard): add my-roles section with attendance and inspection panels |
+| 6d99d5e | feat(data): AuthStore migrated to mockDB.authorizations for data consistency |
+| 98671bb | feat(terminology): replace UI label references from activity+taskforce to project kanban |
+
+### 诊断验证
+
+所有修改文件 GetDiagnostics 零错误。
+
+### 蒸馏标签
+
+[经验沉淀: 否]
+
