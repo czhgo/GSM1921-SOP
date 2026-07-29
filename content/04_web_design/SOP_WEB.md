@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿---
+﻿﻿﻿﻿﻿﻿﻿---
 role: "[工程师]+[AI]"
 title: "SOP 系统优化与同步指南"
 type: guide
@@ -159,8 +159,8 @@ ViewModeStore.isReadOnly(module)      → boolean
 |------|---------|---------|
 | **secretary / leader** | 活动写入面板 + 日历 | write panel + calendar |
 | **org-commissioner** | 专班协调看板 | 2列看板（待启动/进行中）+ 发布招募表单 + 专班详情展开 |
-| **prop-commissioner** | 活动与专班视图 | 2列看板 + 卡片展开子任务详情 |
-| **disc-commissioner** | 活动与专班视图 | 2列看板 + 卡片展开子任务详情 |
+| **prop-commissioner** | 项目看板 | 2列看板 + 卡片展开子任务详情 |
+| **disc-commissioner** | 项目看板 | 2列看板 + 卡片展开子任务详情 |
 | **commissioner-group** | 支委选择重定向 | 3张支委卡片，点击后切换至具体支委 |
 | **organizer / deep** | 日历视图 | 何时何地参会（日历是给参与者用的工具） |
 
@@ -172,7 +172,7 @@ ViewModeStore.isReadOnly(module)      → boolean
 - 完成的子任务沉到子任务列表底部
 - 设计精神：「完成不放飞，但不下沉视野」
 
-#### 宣传/纪检「活动与专班视图」
+#### 宣传/纪检「项目看板」
 
 - 卡片区分 `type`（活动/专班），用 domain tag 着色
 - 点击任意卡片 → 展开子任务详情面板
@@ -210,8 +210,8 @@ ViewModeStore.isReadOnly(module)      → boolean
 | 管理模式 · secretary/leader | ✅ | 需要同时管理活动和看日历 |
 | 管理模式 · organizer/deep | ✅ | 需要知道何时何地参会 |
 | 管理模式 · org-commissioner | ❌ | 只看专班协调看板 |
-| 管理模式 · prop-commissioner | ❌ | 只看活动与专班视图 |
-| 管理模式 · disc-commissioner | ❌ | 只看活动与专班视图 |
+| 管理模式 · prop-commissioner | ❌ | 只看项目看板 |
+| 管理模式 · disc-commissioner | ❌ | 只看项目看板 |
 
 ### B.5 赋权链 (Authorization Chain)
 

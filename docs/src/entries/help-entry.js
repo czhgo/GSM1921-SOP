@@ -924,7 +924,7 @@ function renderExploration() {
     <section id="exploration" class="help-section help-network-section help-exploration-section" data-toc-id="exploration">
       <div class="help-section-inner">
         <h2 class="help-section-title">探索工作——谁在什么时候该去找谁？</h2>
-        <p class="help-section-subtitle">活动与专班，两种探索方式——滚动看关系如何展开，每个阶段都是一次生动的脉动</p>
+        <p class="help-section-subtitle">项目——活动与专班两种探索方式，滚动看关系如何展开，每个阶段都是一次生动的脉动</p>
         ${scenesHTML}
       </div>
     </section>

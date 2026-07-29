@@ -271,7 +271,7 @@ function _renderKanbanItem(item, showCompleteBtn = false) {
     </div>`;
 }
 
-// ── 专班工作量区块（融入活动与专班 tab 底部） ──
+// ── 专班工作量区块（融入项目看板 tab 底部） ──
 function _renderWorkloadBlock(propTf) {
   const workloadMap = {};
   propTf.forEach(tf => {

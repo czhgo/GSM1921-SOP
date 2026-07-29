@@ -2,7 +2,7 @@
 title: "委员体系框架"
 type: design
 role: "[用户]+[AI]"
-last_updated: "2026-07-29"
+last_updated: "2026-07-29T22:00:00"
 status: active
 merged_from:
   - content/guides/COMMISSIONER_ORGANIZATION_ROLE.md (已删除)
@@ -332,7 +332,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了党务管理模块功能；E2（MAN
 | 功能 | 线下痛点 | 集成理由 | 视角 |
 |------|---------|---------|------|
 | 宣传任务 | 宣传需求靠群聊传达，无追踪 | 条条支委下发→系统内接收+执行+反馈 | 增量 |
-| 活动与专班 | 宣传素材获取靠群聊，信息不全 | 完整活动/专班信息+专班工作量统计 | 存量 |
+| 项目看板 | 宣传素材获取靠群聊，信息不全 | 完整项目信息+专班工作量统计 | 存量 |
 
 **纪检委员工作台**
 

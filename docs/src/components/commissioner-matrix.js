@@ -1,4 +1,4 @@
-﻿import { ROLE_LABELS } from '../core/constants.js';
+import { ROLE_LABELS } from '../core/constants.js';
 import { getBasePath } from '../core/utils.js';
 import { icon } from '../core/icons.js';
 
@@ -33,9 +33,9 @@ const COMMISSIONER_DATA = [
     colorBorder: 'rgba(37,99,235,0.15)',
     icon: icon('megaphone', { size: 20, strokeWidth: 1.8 }),
     workspace: {
-      title: '活动与专班视图',
+      title: '项目视图',
       desc: '宣传材料/周报',
-      items: ['宣传任务接收与执行', '活动与专班看板', '专班工作量统计'],
+      items: ['宣传任务接收与执行', '项目看板', '专班工作量统计'],
       page: 'workspace/prop.html',
     },
     party: {
