@@ -234,6 +234,8 @@ export const mockDB = {
   experienceDeposits: [],
   /** @type {Object[]} 专班数据 */
   taskforces: [],
+  /** @type {Object[]} 赋权记录（数据同源：AuthStore 统一读写 mockDB.authorizations） */
+  authorizations: [],
   /** @type {Object[]} 通知数据 */
   notices: [],
   /** @type {ImageRecord[]} 图片记录 — Source: content/02_institution/sop/宣传委员工作流程指南.md#图片管理规则 */

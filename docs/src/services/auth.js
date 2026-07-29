@@ -15,15 +15,13 @@ import { getPersonById, getPersonName } from '../mock/index.js';
 import { mockDB } from '../core/domain.js';
 import { MOCK_TASKFORCES } from '../mock/taskforces.js';
 import { NoticeStore } from './notice.js';
+import { saveDB } from './mock.js';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';  // localStorage: { personId, role }
 
 // ── 只读视角 ─────────────────────────────────────
 const VIEW_ROLE_KEY = 'gsm1921-view-role';  // sessionStorage
-
-// ── 赋权记录 ─────────────────────────────────────
-const AUTH_RECORDS_KEY = 'gsm1921-auth-records';
 
 // ── 权限表 ──────────────────────────────────────
 // issue.* 权限项遵循 GitHub Issue 风格权限矩阵（spec §五）
@@ -148,16 +146,18 @@ function _getProjectName(projectId) {
   return null;
 }
 
-// ── 赋权记录存储 ──────────────────────────────
+// ── 赋权记录存储（数据同源：统一读写 mockDB.authorizations）──────────
 function _getAuthRecords() {
-  try {
-    const raw = localStorage.getItem(AUTH_RECORDS_KEY);
-    return raw ? JSON.parse(raw) : _defaultAuthRecords();
-  } catch { return _defaultAuthRecords(); }
+  // 首次加载：mockDB.authorizations 为空时注入默认数据
+  if (mockDB.authorizations.length === 0) {
+    mockDB.authorizations = _defaultAuthRecords();
+  }
+  return mockDB.authorizations;
 }
 
 function _saveAuthRecords(records) {
-  try { localStorage.setItem(AUTH_RECORDS_KEY, JSON.stringify(records)); } catch {}
+  mockDB.authorizations = records;
+  saveDB();
 }
 
 function _defaultAuthRecords() {

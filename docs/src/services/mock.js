@@ -45,6 +45,7 @@ export function saveDB() {
       fileSpaceRecords: mockDB.fileSpaceRecords,
       experienceDeposits: mockDB.experienceDeposits,
       taskforces:  mockDB.taskforces,
+      authorizations: mockDB.authorizations,
       notices:     mockDB.notices,
     }));
   } catch (e) {
@@ -67,7 +68,7 @@ export function loadDB() {
       'assignment_records', 'handover_records', 'attendance_records',
       'inspection_records', 'makeup_tasks', 'act_sub_records',
       'tf_sub_records', 'compliance_references', 'file_space_records',
-      'experience_deposits',
+      'experience_deposits', 'gsm1921-auth-records',
     ];
     legacyKeys.forEach(k => localStorage.removeItem(k));
     if (mockDB.activities.length === 0 && ACTIVITIES.length > 0) {
@@ -110,6 +111,7 @@ export function loadDB() {
     if (Array.isArray(parsed.fileSpaceRecords))     mockDB.fileSpaceRecords     = parsed.fileSpaceRecords;
     if (Array.isArray(parsed.experienceDeposits))   mockDB.experienceDeposits   = parsed.experienceDeposits;
     if (Array.isArray(parsed.taskforces))  mockDB.taskforces  = parsed.taskforces;
+    if (Array.isArray(parsed.authorizations)) mockDB.authorizations = parsed.authorizations;
     if (Array.isArray(parsed.notices))     mockDB.notices     = parsed.notices;
     // 注：users 为静态预设数据，不从持久化存储恢复，以避免运行时数据污染
     console.info('[MockAdapter] loadDB 成功，已恢复持久化数据。');
