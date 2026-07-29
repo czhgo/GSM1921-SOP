@@ -74,16 +74,11 @@ function _renderStats(activities, taskforces, notices, attendanceRecords) {
     if (!act || !act.date) return false;
     return act.date >= thisMonth;
   });
-  const presentCount = recentAttendance.filter(r => r.status === 'present').length;
-  const attendanceRate = recentAttendance.length > 0
-    ? Math.round((presentCount / recentAttendance.length) * 100)
-    : 0;
 
   const stats = [
     { label: '本月活动', value: monthActivities.length, unit: '场', color: 'var(--primary-700)', icon: 'calendarHero' },
     { label: '活跃专班', value: activeTFs.length, unit: '个', color: 'var(--accent-gold)', icon: 'usersGroup' },
     { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? 'var(--primary-600)' : 'var(--neutral-400)', icon: 'bellHero' },
-    { label: '本月出勤率', value: attendanceRate, unit: '%', color: attendanceRate >= 80 ? 'var(--accent-emerald)' : 'var(--accent-amber)', icon: 'chartBar' },
   ];
 
   container.innerHTML = stats.map(s => `
@@ -346,17 +341,13 @@ function _renderMyRoles() {
     });
   });
 
-  // 渲染卡片
+  // 渲染卡片（外层 card 已有"我的角色"标题，此处不再重复）
   container.innerHTML = `
-    <div class="flex items-center gap-2 mb-3">
-      <span class="text-base font-semibold text-gray-800 font-title-cn">我的角色</span>
-      <span class="text-xs text-gray-400">${cards.length} 个身份</span>
-    </div>
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
       ${cards.map(c => `
-        <a href="${c.href}" class="card rounded-xl p-4 flex flex-col items-center gap-2 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group" style="border-left:3px solid ${c.color};">
-          <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:${c.bg};">
-            ${icon(c.icon, { size: 20, stroke: c.color })}
+        <a href="${c.href}" class="card rounded-xl p-3.5 flex flex-col items-center gap-2 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group" style="border-left:3px solid ${c.color};">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center" style="background:${c.bg};">
+            ${icon(c.icon, { size: 18, stroke: c.color })}
           </div>
           <div class="text-center">
             <p class="text-sm font-medium text-gray-800 group-hover:text-blue-700 transition-colors">${c.title}</p>

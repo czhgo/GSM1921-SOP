@@ -53,19 +53,24 @@
           <img src="./assets/images/party_emblem.png" alt="党徽" class="mx-auto mb-3" style="width:48px;height:48px;" draggable="false">
           <h2 class="font-title-cn text-2xl font-bold text-gray-800 mb-1">光华管理学院本科生党支部管理引擎</h2>
         </div>
-        <!-- 我的角色 -->
-        <div id="dashboard-my-roles" class="mb-6"></div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div class="card rounded-2xl p-6">
-            <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">我的考勤</h3>
-            <div id="dashboard-my-attendance" class="text-sm text-gray-500"><p>暂无考勤数据</p></div>
+        <div id="dashboard-stats" class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6"></div>
+        <!-- 我的角色（含角色卡片+考勤+考察） -->
+        <div class="card rounded-2xl p-6 mb-6">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="font-title-cn text-base font-semibold text-gray-800">我的角色</span>
           </div>
-          <div class="card rounded-2xl p-6">
-            <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">我的考察</h3>
-            <div id="dashboard-my-inspection" class="text-sm text-gray-500"><p>暂无考察数据</p></div>
+          <div id="dashboard-my-roles" class="mb-5"></div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 class="font-title-cn text-sm font-semibold text-gray-700 mb-3">我的考勤</h4>
+              <div id="dashboard-my-attendance" class="text-sm text-gray-500"><p>暂无考勤数据</p></div>
+            </div>
+            <div>
+              <h4 class="font-title-cn text-sm font-semibold text-gray-700 mb-3">我的考察</h4>
+              <div id="dashboard-my-inspection" class="text-sm text-gray-500"><p>暂无考察数据</p></div>
+            </div>
           </div>
         </div>
-        <div id="dashboard-stats" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
         <div class="card rounded-2xl p-6 mb-6">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-title-cn text-base font-semibold text-gray-800">重要通知</h3>
