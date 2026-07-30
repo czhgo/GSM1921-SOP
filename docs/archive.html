@@ -1,9 +1,9 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>光华管理学院本科生党支部管理引擎</title>
+  <title>归档库 — 光华管理学院本科生党支部管理引擎</title>
   <meta name="description" content="归档库 — 已完成工作归档">
   <link rel="preload" href="https://fonts.gstatic.com/s/notosanssc/v36/k3kCo84MPvpLmixcA63oeAL7Iqp5IZJF9bmaG9_FnYxNbPzS5HE.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,58 +43,14 @@
       <div class="flex items-center gap-4 mb-6">
         <div class="flex items-center gap-3 flex-1">
           <input type="text" id="archive-search" placeholder="搜索归档内容..." class="input-flat flex-1">
-          <select id="archive-filter" class="input-flat" style="width:140px;">
-            <option value="all">全部类型</option>
-            <option value="activity">党建活动</option>
-            <option value="taskforce">专班</option>
-            <option value="notice">通知</option>
-          </select>
-        </div>
-        <!-- 视图切换 -->
-        <div class="flex rounded-lg border border-gray-200 overflow-hidden">
-          <button id="archive-view-list" class="px-3 py-1.5 text-xs font-medium transition-colors bg-red-50 text-red-700 border-r border-gray-200">列表视图</button>
-          <button id="archive-view-gallery" class="px-3 py-1.5 text-xs font-medium transition-colors bg-white text-gray-600 hover:bg-gray-50">画册视图</button>
         </div>
       </div>
 
-      <!-- 列表视图 -->
-      <div id="archive-list-view" class="space-y-3">
-        <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-medium text-gray-800">2026年4月组织生活会</span>
-            <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-green-100 text-green-700">已归档</span>
-          </div>
-          <p class="text-xs text-gray-500">2026-04-15 · 党建活动 · 第一党小组</p>
-        </div>
-        <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-medium text-gray-800">宣传专班（第一期）</span>
-            <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-green-100 text-green-700">已归档</span>
-          </div>
-          <p class="text-xs text-gray-500">2026-04-01 ~ 2026-04-30 · 专班 · 宣传委员发起</p>
-        </div>
-        <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-medium text-gray-800">2026年3月支部大会</span>
-            <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-green-100 text-green-700">已归档</span>
-          </div>
-          <p class="text-xs text-gray-500">2026-03-20 · 党建活动 · 支部大会</p>
-        </div>
-        <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-medium text-gray-800">关于补课制度的通知</span>
-            <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-green-100 text-green-700">已归档</span>
-          </div>
-          <p class="text-xs text-gray-500">2026-03-10 · 通知 · 纪检委员</p>
-        </div>
-      </div>
+      <!-- Tab 分类 -->
+      <div id="archive-tabs" class="flex items-center gap-2 mb-6"></div>
 
-      <!-- 画册视图（默认隐藏） -->
-      <div id="archive-gallery-view" class="hidden">
-        <div id="archive-gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <!-- 动态渲染 -->
-        </div>
-      </div>
+      <!-- Tab 内容区 -->
+      <div id="archive-tab-content"></div>
     </div>
   </div>
 </div>

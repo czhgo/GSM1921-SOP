@@ -4,7 +4,7 @@ import { BranchService } from '../services/runtime.js';
 import { showToast } from '../core/utils.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
-import { attendanceToLong, inspectionToLong, ACTIVITIES, PEOPLE, MOCK_TASKFORCES, REVIEW_RECORDS, getPersonById, getPersonName } from '../mock/index.js';
+import { attendanceToLong, inspectionToLong, PEOPLE, getPersonById, getPersonName } from '../mock/index.js';
 import { PersonPicker } from '../components/person-picker.js';
 import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js';
 import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, SOURCE_TYPE_LABELS, ParticipationLevel, ReviewStatus, REVIEW_STATUS_LABELS } from '../core/domain.js';
@@ -12,8 +12,12 @@ import { saveDB } from '../services/mock.js';
 import { loadMakeupTasks } from '../services/makeup.js';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js';
 import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js';
+import { loadActivities } from '../services/activity.js';
+import { TaskForceRecordStore } from '../services/taskforce.js';
+import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../services/review.js';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js';
 
-const { accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', accentRole: 'leader' });
+const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'leader' });
 
 // ── 表单状态 ──────────────────────────────────────────────────
 let _attFormVisible = false;
@@ -37,8 +41,9 @@ function _filterByRole(state, role) {
 
 function renderLeaderUI(state) {
   let activities = state.activities || [];
-  if (activities.length === 0 && ACTIVITIES.length > 0) {
-    activities = ACTIVITIES.map(a => ({ ...a, visibility: 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() }));
+  const allActs = loadActivities();
+  if (activities.length === 0 && allActs.length > 0) {
+    activities = allActs.map(a => ({ ...a, visibility: 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() }));
     setState({ activities });
     return;
   }
@@ -56,6 +61,7 @@ function renderLeaderUI(state) {
       { id: 'attendance', label: '考勤上传', render: () => _renderAttendanceContent() },
       { id: 'inspection', label: '考察上传', render: () => _renderInspectionContent() },
       { id: 'review', label: '复盘提交', render: () => _renderReviewContent() },
+      { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('leader-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('leader', 'u_leader_1'); bindMyDispatchEvents(el, 'leader', 'u_leader_1'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
     renderCtx: { filteredActivities },
@@ -502,10 +508,10 @@ function _renderAttendanceContent() {
   if (_attPickerInstance) { _attPickerInstance.destroy(); _attPickerInstance = null; }
 
   const allRecords = loadAttendanceRecords();
-  const myAttendance = allRecords.filter(r => r.activityId && mockDB.activities.find(a => a.id === r.activityId)?.type === '党小组');
+  const myAttendance = allRecords.filter(r => r.activityId && loadActivities().find(a => a.id === r.activityId)?.type === '党小组');
 
   // 筛选三会一课和主题党日活动
-  const eligibleActivities = mockDB.activities.filter(a =>
+  const eligibleActivities = loadActivities().filter(a =>
     a.type === '党小组会' || a.type === '主题党日' || a.type === '党课' || a.type === '支部党员大会'
   );
 
@@ -721,10 +727,10 @@ function _renderInspectionContent() {
   const myInspection = allRecords.filter(r => r.sourceType === SourceType.ACTIVITY);
 
   // 来源类型选项
-  const sourceActivities = mockDB.activities.filter(a =>
+  const sourceActivities = loadActivities().filter(a =>
     a.type === '党小组会' || a.type === '主题党日' || a.type === '党课' || a.type === '支部党员大会'
   );
-  const sourceTaskforces = MOCK_TASKFORCES;
+  const sourceTaskforces = TaskForceRecordStore.getAll();
 
   const formHtml = _inspFormVisible ? `
     <div class="mt-3 p-4 rounded-xl bg-white border border-gray-100 shadow-sm" id="insp-form-panel">
@@ -937,7 +943,7 @@ function _renderReviewContent() {
   const myGroup = LEADER_GROUP_MAP[currentLeaderId] || '';
 
   // 筛选本组活动（党小组会/组织生活会/主题党日等由本组组长组织的活动）
-  const myGroupActivities = mockDB.activities.filter(a => {
+  const myGroupActivities = loadActivities().filter(a => {
     // 按组织者属于本组 或 按 hostGroup 匹配
     const organizer = PEOPLE.find(p => p.id === a.organizer);
     return organizer && organizer.partyGroup === myGroup && a.status !== 'cancelled';
@@ -945,7 +951,7 @@ function _renderReviewContent() {
 
   // 获取已有复盘记录
   const reviewMap = {};
-  for (const r of REVIEW_RECORDS) {
+  for (const r of loadActivityReviews()) {
     if (r.activityId) reviewMap[r.activityId] = r;
   }
 
@@ -1043,21 +1049,21 @@ function _renderReviewContent() {
         return;
       }
 
-      // 在 REVIEW_RECORDS 中查找或创建复盘记录
-      const existIdx = REVIEW_RECORDS.findIndex(r => r.activityId === actId);
+      // 在复盘记录中查找或创建
+      const existIdx = findActivityReviewIndex(actId);
       if (existIdx >= 0) {
         // 更新已有记录（如已打回重新提交）
-        const isResubmit = REVIEW_RECORDS[existIdx].reviewStatus === ReviewStatus.REJECTED;
-        REVIEW_RECORDS[existIdx].reviewContent = content;
-        REVIEW_RECORDS[existIdx].reviewStatus = ReviewStatus.UPLOADED;
-        REVIEW_RECORDS[existIdx].submittedAt = new Date().toISOString();
-        // 清除打回批注
-        if (isResubmit) {
-          REVIEW_RECORDS[existIdx].annotation = '';
-        }
+        const existing = loadActivityReviews()[existIdx];
+        const isResubmit = existing.reviewStatus === ReviewStatus.REJECTED;
+        updateActivityReview(actId, {
+          reviewContent: content,
+          reviewStatus: ReviewStatus.UPLOADED,
+          submittedAt: new Date().toISOString(),
+          ...(isResubmit ? { annotation: '' } : {}),
+        });
       } else {
         // 新建复盘记录
-        REVIEW_RECORDS.push({
+        addActivityReview({
           id: 'rev_' + Date.now(),
           activityId: actId,
           organizerId: currentLeaderId,
@@ -1115,4 +1121,4 @@ function _renderReviewDetail(rev) {
 
 registerRenderCallback(renderLeaderUI);
 
-loadWorkspaceData({ role: 'leader', fallbackData: () => ACTIVITIES, logTag: 'ws-leader' });
+loadWorkspaceData({ role: 'leader', fallbackData: () => loadActivities(), logTag: 'ws-leader' });
