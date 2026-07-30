@@ -1,9 +1,10 @@
-﻿// role: [工程师]+[AI]
-// issue-list.js — Issue 列表渲染
+// role: [工程师]+[AI]
+// issue-list.js — 反馈列表渲染
 
 import { IssueStore } from '../services/issues.js';
 import { AuthStore } from '../services/auth.js';
 import { icon } from '../core/icons.js';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -39,21 +40,21 @@ export function renderIssueList() {
   container.innerHTML = `
     <div class="card rounded-2xl p-6 mb-4">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="font-title-cn text-lg font-bold text-gray-700">全部意见 <span class="text-xs font-normal text-gray-400">open ${counts.open} · closed ${counts.closed}</span></h3>
-        ${canCreate ? `<button id="btn-new-issue" class="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors" style="background:#CE1126;" onmouseover="this.style.background='#991B1B'" onmouseout="this.style.background='#CE1126'">+ 新 issue</button>` : ''}
+        <h3 class="font-title-cn text-lg font-bold text-gray-700">全部意见 <span class="text-xs font-normal text-gray-400">开放中 ${counts.open} · 已关闭 ${counts.closed}</span></h3>
+        ${canCreate ? `<button id="btn-new-issue" class="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors" style="background:#CE1126;" onmouseover="this.style.background='#991B1B'" onmouseout="this.style.background='#CE1126'">+ 新反馈</button>` : ''}
       </div>
 
       <div class="flex items-center gap-2 mb-3 flex-wrap text-xs">
         <button class="filter-btn px-3 py-1 rounded-full transition-colors ${_filterState.status === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="all">全部 (${counts.total})</button>
-        <button class="filter-btn px-3 py-1 rounded-full transition-colors ${_filterState.status === 'open' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" style="${_filterState.status === 'open' ? 'background:#CE1126' : ''}" data-status="open">open (${counts.open})</button>
-        <button class="filter-btn px-3 py-1 rounded-full transition-colors ${_filterState.status === 'closed' ? 'bg-gray-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="closed">closed (${counts.closed})</button>
+        <button class="filter-btn px-3 py-1 rounded-full transition-colors ${_filterState.status === 'open' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" style="${_filterState.status === 'open' ? 'background:#CE1126' : ''}" data-status="open">开放中 (${counts.open})</button>
+        <button class="filter-btn px-3 py-1 rounded-full transition-colors ${_filterState.status === 'closed' ? 'bg-gray-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="closed">已关闭 (${counts.closed})</button>
         <span class="mx-2 text-gray-300">|</span>
         <select id="filter-scope" class="input-flat text-xs px-2 py-1 rounded">
-          <option value="all" ${_filterState.scope === 'all' ? 'selected' : ''}>所有 scope</option>
+          <option value="all" ${_filterState.scope === 'all' ? 'selected' : ''}>所有范围</option>
           ${Object.entries(SCOPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.scope === v ? 'selected' : ''}>${l}</option>`).join('')}
         </select>
         <select id="filter-type" class="input-flat text-xs px-2 py-1 rounded">
-          <option value="all" ${_filterState.type === 'all' ? 'selected' : ''}>所有 type</option>
+          <option value="all" ${_filterState.type === 'all' ? 'selected' : ''}>所有类型</option>
           ${Object.entries(TYPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.type === v ? 'selected' : ''}>${l}</option>`).join('')}
         </select>
         <input type="text" id="filter-keyword" placeholder="搜索标题/正文..." value="${_filterState.keyword}" class="input-flat text-xs px-2 py-1 rounded flex-1 min-w-[120px]">
@@ -61,7 +62,7 @@ export function renderIssueList() {
 
       <div id="issue-list" class="space-y-2">
         ${filtered.length === 0
-          ? '<p class="text-sm text-gray-400 text-center py-8">暂无匹配 issue。欢迎提交第一条！</p>'
+          ? '<p class="text-sm text-gray-400 text-center py-8">暂无匹配反馈。欢迎提交第一条！</p>'
           : filtered.map(renderIssueRow).join('')}
       </div>
     </div>
@@ -76,12 +77,12 @@ function renderIssueRow(issue) {
   ).join('');
 
   const statusBadge = issue.status === 'open'
-    ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-700 font-medium">open</span>'
-    : `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">closed · ${issue.closedReason || 'completed'}</span>`;
+    ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-700 font-medium">开放中</span>'
+    : `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">已关闭 · ${ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || '已解决'}</span>`;
 
   const reactions = Object.entries(issue.reactions || {}).filter(([_, list]) => list.length > 0).map(([type, list]) => {
     const iconName = { thumbsUp: 'thumbsUp', thumbsDown: 'thumbsDown', eyes: 'eyes', hooray: 'hooray' }[type];
-    const iconHTML = iconName ? icon(iconName, { size: 12 }) : '·';
+    const iconHTML = iconName ? icon(iconName, { className: 'w-3 h-3' }) : '·';
     return `<span class="text-[10px] text-gray-500 inline-flex items-center gap-0.5">${iconHTML}${list.length}</span>`;
   }).join(' ');
 
@@ -106,7 +107,7 @@ function renderIssueRow(issue) {
             ${reactions ? `<span class="ml-2 flex items-center gap-1">${reactions}</span>` : ''}
           </div>
         </div>
-        ${icon('chevronRight', { size: 0, className: 'w-4 h-4 text-gray-400 flex-shrink-0 mt-2' })}
+        ${icon('chevronRight', { className: 'w-4 h-4 text-gray-400 flex-shrink-0 mt-2' })}
       </div>
     </div>
   `;

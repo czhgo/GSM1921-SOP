@@ -20,7 +20,7 @@ export const SCHEMA_VERSION = 1;
  * @property {string|null} supervisor - 督办角色（可为 null） - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
  * @property {string}  createdBy   - 创建者用户 ID
  * @property {string}  createdAt   - 创建时间 ISO 字符串
- * @property {'low'|'normal'|'urgent'} [priority] - 优先级（工作流引擎用） - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
+ * @property {'normal'|'urgent'} [priority] - 优先级（工作流引擎用） - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
  * @property {string}  [dueDate]   - 截止日期 ISO 字符串（自动化提醒锚点）
  * @property {boolean} [archived]  - 软删除标记（true 表示已归档）
  * @property {string}  [domain]    - 领域：'activity' | 'organization' - Source: knowledge/SOP/支委与党小组定人定责定岗说明.md#二、"条条"与"块块"双线管理体系

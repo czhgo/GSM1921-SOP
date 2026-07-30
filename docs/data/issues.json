@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "updatedAt": "2026-07-17",
+  "version": 2,
+  "updatedAt": "2026-07-30",
   "issues": [
     {
       "id": "issue-001",
@@ -15,7 +15,12 @@
       "submittedBy": "p5",
       "submittedAt": "2026-07-15",
       "assignee": null,
+      "assigneeRole": null,
+      "dispatchHistory": [],
       "milestone": null,
+      "hidden": false,
+      "mergedInto": null,
+      "resultPending": false,
       "reactions": {
         "thumbsUp": ["p11", "p1"],
         "thumbsDown": [],
@@ -28,8 +33,10 @@
         {
           "id": "cmt-001",
           "author": "p11",
+          "authorRole": null,
           "body": "我也遇到类似问题，建议增设预授权。",
           "createdAt": "2026-07-15",
+          "kind": "comment",
           "hidden": false,
           "hiddenBy": null,
           "hiddenReason": null,
@@ -38,6 +45,210 @@
       ],
       "participants": ["p5", "p11"],
       "commentCount": 1
+    },
+    {
+      "id": "issue-002",
+      "number": 2,
+      "title": "支委会会议纪要模板缺失「下一步行动」字段",
+      "body": "当前支委会纪要只有讨论记录，没有明确的下一步行动与责任人字段，导致会议决议难以追踪。",
+      "scope": "scenario",
+      "types": ["enhancement"],
+      "status": "open",
+      "closedReason": null,
+      "closedAt": null,
+      "submittedBy": "p3",
+      "submittedAt": "2026-07-22",
+      "assignee": "u_org_commissioner",
+      "assigneeRole": "org-commissioner",
+      "dispatchHistory": [
+        {
+          "from": null,
+          "to": "u_org_commissioner",
+          "by": "u_sec",
+          "at": "2026-07-23",
+          "note": "请组织委员核实并补充模板字段"
+        }
+      ],
+      "milestone": null,
+      "hidden": false,
+      "mergedInto": null,
+      "resultPending": false,
+      "reactions": {
+        "thumbsUp": ["p7"],
+        "thumbsDown": [],
+        "eyes": [],
+        "hooray": []
+      },
+      "mentions": [],
+      "references": [],
+      "comments": [
+        {
+          "id": "cmt-002",
+          "author": "u_sec",
+          "authorRole": "secretary",
+          "body": "指派给 org-commissioner：请组织委员核实并补充模板字段",
+          "createdAt": "2026-07-23",
+          "kind": "dispatch",
+          "hidden": false,
+          "hiddenBy": null,
+          "hiddenReason": null,
+          "hiddenAt": null
+        },
+        {
+          "id": "cmt-003",
+          "author": "u_org_commissioner",
+          "authorRole": "org-commissioner",
+          "body": "已与宣传委员沟通，确认模板需要在「讨论记录」后追加「下一步行动」「责任人」「完成时限」三列。预计本周内提交修订版。",
+          "createdAt": "2026-07-26",
+          "kind": "comment",
+          "hidden": false,
+          "hiddenBy": null,
+          "hiddenReason": null,
+          "hiddenAt": null
+        }
+      ],
+      "participants": ["p3", "u_sec", "u_org_commissioner"],
+      "commentCount": 2
+    },
+    {
+      "id": "issue-003",
+      "number": 3,
+      "title": "党小组会签到流程建议改为扫码",
+      "body": "目前党小组会签到由组长手工记录，效率较低且易遗漏。建议改为扫码签到，数据直接回传系统。",
+      "scope": "scenario",
+      "types": ["proposal"],
+      "status": "open",
+      "closedReason": null,
+      "closedAt": null,
+      "submittedBy": "p8",
+      "submittedAt": "2026-07-25",
+      "assignee": "u_leader_1",
+      "assigneeRole": "leader",
+      "dispatchHistory": [
+        {
+          "from": null,
+          "to": "u_leader_1",
+          "by": "u_sec",
+          "at": "2026-07-26",
+          "note": "请第一党小组组长评估在本小组试点的可行性"
+        }
+      ],
+      "milestone": null,
+      "hidden": false,
+      "mergedInto": null,
+      "resultPending": true,
+      "reactions": {
+        "thumbsUp": [],
+        "thumbsDown": [],
+        "eyes": ["p2"],
+        "hooray": []
+      },
+      "mentions": [],
+      "references": [],
+      "comments": [
+        {
+          "id": "cmt-004",
+          "author": "u_sec",
+          "authorRole": "secretary",
+          "body": "指派给 leader：请第一党小组组长评估在本小组试点的可行性",
+          "createdAt": "2026-07-26",
+          "kind": "dispatch",
+          "hidden": false,
+          "hiddenBy": null,
+          "hiddenReason": null,
+          "hiddenAt": null
+        },
+        {
+          "id": "cmt-005",
+          "author": "u_leader_1",
+          "authorRole": "leader",
+          "body": "已与组内同志讨论，可在 8 月党小组会试点扫码签到，需 IT 支持生成专属二维码。建议先用现有问卷工具，后续再集成。",
+          "createdAt": "2026-07-29",
+          "kind": "result",
+          "hidden": false,
+          "hiddenBy": null,
+          "hiddenReason": null,
+          "hiddenAt": null
+        }
+      ],
+      "participants": ["p8", "u_sec", "u_leader_1"],
+      "commentCount": 2
+    },
+    {
+      "id": "issue-004",
+      "number": 4,
+      "title": "主题党日参访报名统计靠微信群接龙容易漏人",
+      "body": "参访活动报名通过微信群接龙，统计时容易漏人且无法与系统人员名单核对。期望系统支持活动报名登记。",
+      "scope": "scenario",
+      "types": ["enhancement"],
+      "status": "closed",
+      "closedReason": "completed",
+      "closedAt": "2026-07-20",
+      "submittedBy": "p15",
+      "submittedAt": "2026-07-12",
+      "assignee": "u_prop_commissioner",
+      "assigneeRole": "prop-commissioner",
+      "dispatchHistory": [
+        {
+          "from": null,
+          "to": "u_prop_commissioner",
+          "by": "u_sec",
+          "at": "2026-07-13",
+          "note": "请宣传委员设计系统内报名登记方案"
+        }
+      ],
+      "milestone": null,
+      "hidden": false,
+      "mergedInto": null,
+      "resultPending": false,
+      "reactions": {
+        "thumbsUp": ["p1", "p4"],
+        "thumbsDown": [],
+        "eyes": [],
+        "hooray": ["p15"]
+      },
+      "mentions": [],
+      "references": [],
+      "comments": [
+        {
+          "id": "cmt-006",
+          "author": "u_sec",
+          "authorRole": "secretary",
+          "body": "指派给 prop-commissioner：请宣传委员设计系统内报名登记方案",
+          "createdAt": "2026-07-13",
+          "kind": "dispatch",
+          "hidden": false,
+          "hiddenBy": null,
+          "hiddenReason": null,
+          "hiddenAt": null
+        },
+        {
+          "id": "cmt-007",
+          "author": "u_prop_commissioner",
+          "authorRole": "prop-commissioner",
+          "body": "已完成活动报名功能设计，在「活动写入」中增加「参与人」字段，活动详情页可查看报名列表。",
+          "createdAt": "2026-07-18",
+          "kind": "result",
+          "hidden": false,
+          "hiddenBy": null,
+          "hiddenReason": null,
+          "hiddenAt": null
+        },
+        {
+          "id": "cmt-008",
+          "author": "u_sec",
+          "authorRole": "secretary",
+          "body": "关闭反馈（completed）：方案已采纳并实施，下次主题党日起启用。",
+          "createdAt": "2026-07-20",
+          "kind": "verdict",
+          "hidden": false,
+          "hiddenBy": null,
+          "hiddenReason": null,
+          "hiddenAt": null
+        }
+      ],
+      "participants": ["p15", "u_sec", "u_prop_commissioner"],
+      "commentCount": 3
     }
   ]
 }

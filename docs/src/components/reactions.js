@@ -35,7 +35,7 @@ export function renderReactions(issue) {
                   data-issue-id="${issue.id}"
                   data-reaction="${r.key}"
                   title="${r.label}">
-            <span>${icon(r.icon, { size: 14 })}</span>
+            <span>${icon(r.icon, { className: 'w-3.5 h-3.5' })}</span>
             <span>${list.length}</span>
           </button>
         `;

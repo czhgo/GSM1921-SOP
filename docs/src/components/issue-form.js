@@ -1,5 +1,5 @@
-﻿﻿// role: [工程师]+[AI]
-// issue-form.js — Issue 新建表单
+// role: [工程师]+[AI]
+// issue-form.js — 反馈新建表单
 
 import { IssueStore } from '../services/issues.js';
 import { AuthStore } from '../services/auth.js';
@@ -32,17 +32,17 @@ export function renderIssueForm() {
   container.innerHTML = `
     <div class="mb-4">
       <a href="./feedback.html" class="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
-        ${icon('chevronLeft', { size: 0, className: 'w-3 h-3' })} 返回列表
+        ${icon('chevronLeft', { className: 'w-3 h-3' })} 返回列表
       </a>
     </div>
 
     <div class="card rounded-2xl p-6">
-      <h2 class="font-title-cn text-lg font-bold text-gray-800 mb-4">新建 issue</h2>
+      <h2 class="font-title-cn text-lg font-bold text-gray-800 mb-4">新建反馈</h2>
 
       <div class="space-y-4">
         <div>
           <label class="text-xs text-gray-600 mb-1 block font-sans">标题 <span class="text-red-500">*</span></label>
-          <input type="text" id="form-title" class="input-flat w-full text-sm rounded-lg p-2 font-sans" placeholder="一句话说清 issue 的核心">
+          <input type="text" id="form-title" class="input-flat w-full text-sm rounded-lg p-2 font-sans" placeholder="一句话说清反馈的核心">
         </div>
 
         <div>
@@ -52,14 +52,14 @@ export function renderIssueForm() {
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-xs text-gray-600 mb-1 block font-sans">scope（单选）<span class="text-red-500">*</span></label>
+            <label class="text-xs text-gray-600 mb-1 block font-sans">范围（单选）<span class="text-red-500">*</span></label>
             <select id="form-scope" class="input-flat w-full text-sm rounded-lg p-2 font-sans">
               ${SCOPE_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
             </select>
           </div>
 
           <div>
-            <label class="text-xs text-gray-600 mb-1 block font-sans">type（多选）<span class="text-red-500">*</span></label>
+            <label class="text-xs text-gray-600 mb-1 block font-sans">类型（多选）<span class="text-red-500">*</span></label>
             <div class="space-y-1">
               ${TYPE_OPTIONS.map(t => `
                 <label class="flex items-center gap-2 text-xs cursor-pointer font-sans">
@@ -73,7 +73,7 @@ export function renderIssueForm() {
 
         <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
           <a href="./feedback.html" class="px-4 py-2 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 font-sans">取消</a>
-          <button id="btn-submit-issue" class="px-4 py-2 text-sm rounded-lg text-white hover:opacity-90 transition-colors font-sans" style="background:#CE1126;">提交 issue</button>
+          <button id="btn-submit-issue" class="px-4 py-2 text-sm rounded-lg text-white hover:opacity-90 transition-colors font-sans" style="background:#CE1126;">提交反馈</button>
         </div>
       </div>
     </div>
@@ -87,8 +87,8 @@ export function renderIssueForm() {
 
     if (!title) { showToast('error', '请输入标题'); return; }
     if (!body) { showToast('error', '请输入正文'); return; }
-    if (!scope) { showToast('error', '请选择 scope'); return; }
-    if (types.length === 0) { showToast('error', '请至少选择一个 type'); return; }
+    if (!scope) { showToast('error', '请选择范围'); return; }
+    if (types.length === 0) { showToast('error', '请至少选择一个类型'); return; }
 
     const author = _currentPersonId();
 
@@ -102,7 +102,7 @@ export function renderIssueForm() {
       },
     });
 
-    showToast('success', 'Issue 已提交，等待书记审核后公开');
+    showToast('success', '反馈已提交，等待书记审核后公开');
     window.location.href = './feedback.html';
   });
 }

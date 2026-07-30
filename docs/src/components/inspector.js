@@ -33,12 +33,12 @@ export function filterTasksByManagementRole(tasks, managementRole) {
 //  检查器状态路由分发（根据 viewMode / viewType 切换 List / Detail）
 // ════════════════════════════════════════════════════════════════
 export function renderInspectorFromState(state) {
-  if (state.viewType === 'participant') {
+  if (state.viewType === 'participant' && state.viewMode !== 'detail') {
     renderInspectorList(state.activities, state.selectedDate, state.viewType, state.viewArchived);
     return;
   }
 
-  if (state.viewMode === 'detail' && state.selectedActivityId && state.viewType === 'manager') {
+  if (state.viewMode === 'detail' && state.selectedActivityId) {
     const act = state.activities.find(a => a.id === state.selectedActivityId);
     if (act) {
       const actTasks = state.tasks.filter(t => t.activityId === act.id);
@@ -135,6 +135,9 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
       : _fmtChinese(new Date(dateKey + 'T00:00:00')) + ' · 活动列表';
   }
 
+  // 确保 inspector 可见：滚动到视图中
+  contentEl.closest('#inspector-container')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
   const isParticipant = !viewArchived && (viewType === 'participant' || !viewType);
 
   const statusMap = { draft: '草稿', published: '已发布', ongoing: '进行中', completed: '已完成' };
@@ -201,6 +204,9 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   contentEl.classList.remove('hidden');
 
   if (titleEl) titleEl.textContent = activity.title;
+
+  // 确保 inspector 可见：滚动到视图中
+  contentEl.closest('#inspector-container')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
   const statusMap = { draft: '草稿', published: '已发布', ongoing: '进行中', completed: '已完成' };
 
@@ -271,7 +277,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
 
   if (isSecretary && !isArchived) {
     html += '<div class="mt-3">';
-    html += `<button id="inspector-brand-toggle-btn" class="font-stheiti text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="${isBrandActive ? 'background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);' : 'background:rgba(234,179,8,0.06);color:#92400E;border:1px solid rgba(234,179,8,0.25);'}">${isBrandActive ? icon('starFilled', { size: 12 }) + ' 取消品牌认定' : icon('starOutline', { size: 12 }) + ' 标记为品牌活动'}</button>`;
+    html += `<button id="inspector-brand-toggle-btn" class="font-stheiti text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="${isBrandActive ? 'background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);' : 'background:rgba(234,179,8,0.06);color:#92400E;border:1px solid rgba(234,179,8,0.25);'}">${isBrandActive ? icon('starFilled', { className: 'w-3 h-3' }) + ' 取消品牌认定' : icon('starOutline', { className: 'w-3 h-3' }) + ' 标记为品牌活动'}</button>`;
     html += '</div>';
   }
 

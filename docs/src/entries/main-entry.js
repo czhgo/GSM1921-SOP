@@ -11,16 +11,14 @@ import { _personName, getPersonName } from '../mock/index.js';
 import { PEOPLE } from '../mock/index.js';
 import { loadAttendanceRecords } from '../services/attendance.js';
 import { CrossPageState } from '../core/cross-page-state.js';
-import { getActivityTypeColors, ROLE_LABELS } from '../core/constants.js';
-import { INSPECTION_RECORDS, inspectionToDisplay } from '../mock/index.js';
-import { MOCK_TASKFORCES } from '../mock/taskforces.js';
+import { getActivityTypeColors } from '../core/constants.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { AuthStore } from '../services/auth.js';
 import { loadWorkspaceData, fallbackMapActivities } from '../core/data-loader.js';
 import { mockDB } from '../core/domain.js';
 import { icon } from '../core/icons.js';
 
-const { user } = bootstrapPage({ module: 'dashboard' });
+const { user } = await bootstrapPage({ module: 'dashboard' });
 
 // 根据用户角色更新 dashboard 中的 workspace 链接
 if (user) {
@@ -59,32 +57,67 @@ const TF_STATUS_BADGE = {
   draft:      { text: '草稿', cls: 'bg-gray-100 text-gray-500' },
 };
 
-function _renderStats(activities, taskforces, notices, attendanceRecords) {
+function _renderStats(activities, taskforces, notices, attendanceRecords, isLoading = false) {
   const container = document.getElementById('dashboard-stats');
   if (!container) return;
+
+  // 加载中：显示骨架屏，避免 0→真实值 闪烁
+  if (isLoading) {
+    const skeletonItems = [
+      { label: '本月活动', icon: 'calendarHero' },
+      { label: '活跃专班', icon: 'usersGroup' },
+      { label: '未读通知', icon: 'bellHero' },
+      { label: '我的考勤', icon: 'clipboard' },
+    ];
+    container.innerHTML = skeletonItems.map(s => `
+      <div class="card rounded-xl p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-gray-100 animate-pulse">
+          ${icon(s.icon, { strokeWidth: 1.8, stroke: '#D1D5DB', className: 'w-5 h-5' })}
+        </div>
+        <div>
+          <div class="h-7 w-12 rounded bg-gray-100 animate-pulse mb-1"></div>
+          <p class="text-xs" style="color:var(--neutral-400);">${s.label}</p>
+        </div>
+      </div>
+    `).join('');
+    return;
+  }
 
   const now = new Date();
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const monthActivities = activities.filter(a => (a.date || '').startsWith(thisMonth));
   const activeTFs = taskforces.filter(t => t.status === 'active' || t.status === 'recruiting');
-  const unreadNotices = notices.filter(n => !n.read).length;
+  const unreadNotices = NoticeStore.list({ activeOnly: true }).filter(n => !n.read).length;
 
-  const recentAttendance = attendanceRecords.filter(r => {
-    const act = activities.find(a => a.id === r.activityId);
-    if (!act || !act.date) return false;
-    return act.date >= thisMonth;
-  });
+  // 我的考勤（本月）
+  const userPersonId = user?.personId;
+  const myMonthAttendance = userPersonId
+    ? attendanceRecords.filter(r => {
+        if (r.personId !== userPersonId) return false;
+        const act = activities.find(a => a.id === r.activityId);
+        return act && act.date && act.date.startsWith(thisMonth);
+      })
+    : [];
+  const myPresent = myMonthAttendance.filter(r => r.status === 'present').length;
+  const myTotal = myMonthAttendance.length;
+  const myRate = myTotal > 0 ? Math.round((myPresent / myTotal) * 100) : 0;
+  const myColor = myTotal === 0 ? 'var(--neutral-400)'
+    : myRate >= 80 ? 'var(--accent-emerald)'
+    : myRate >= 60 ? 'var(--accent-amber)'
+    : 'var(--primary-600)';
 
   const stats = [
-    { label: '本月活动', value: monthActivities.length, unit: '场', color: 'var(--primary-700)', icon: 'calendarHero' },
-    { label: '活跃专班', value: activeTFs.length, unit: '个', color: 'var(--accent-gold)', icon: 'usersGroup' },
-    { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? 'var(--primary-600)' : 'var(--neutral-400)', icon: 'bellHero' },
+    { label: '本月活动', value: monthActivities.length, unit: '场', color: 'var(--primary-700)', icon: 'calendarHero', interactive: false },
+    { label: '活跃专班', value: activeTFs.length, unit: '个', color: 'var(--accent-gold)', icon: 'usersGroup', interactive: false },
+    { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? 'var(--primary-600)' : 'var(--neutral-400)', icon: 'bellHero', interactive: false },
+    { label: '我的考勤', value: myTotal > 0 ? `${myPresent}/${myTotal}` : '—', unit: '', color: myColor, icon: 'clipboard', interactive: true },
   ];
 
   container.innerHTML = stats.map(s => `
-    <div class="card rounded-xl p-4 flex items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default">
+    <div class="card rounded-xl p-4 flex items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${s.interactive ? 'cursor-pointer' : 'cursor-default'}"
+         ${s.interactive ? 'data-attendance-popover="1"' : ''}>
       <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:${s.color}15;">
-        ${icon(s.icon, { size: 20, strokeWidth: 1.8, stroke: s.color })}
+        ${icon(s.icon, { strokeWidth: 1.8, stroke: s.color, className: 'w-5 h-5' })}
       </div>
       <div>
         <p class="text-2xl font-bold" style="color:${s.color};line-height:1.2;">${s.value}<span class="text-xs font-normal ml-0.5" style="color:var(--neutral-400);">${s.unit}</span></p>
@@ -92,6 +125,88 @@ function _renderStats(activities, taskforces, notices, attendanceRecords) {
       </div>
     </div>
   `).join('');
+
+  // 绑定我的考勤弹窗
+  if (userPersonId) {
+    _bindAttendancePopover(activities, attendanceRecords, thisMonth);
+  }
+}
+
+// ── 我的考勤弹窗 ──────────────────────────────────────
+const ATTENDANCE_STATUS_DOT = {
+  present:  { text: '出勤', cls: 'text-green-600', dot: '#10B981' },
+  absent:   { text: '缺勤', cls: 'text-red-500',  dot: '#EF4444' },
+  leave:    { text: '请假', cls: 'text-orange-500', dot: '#F97316' },
+  made_up:  { text: '已补', cls: 'text-blue-500', dot: '#3B82F6' },
+};
+
+function _bindAttendancePopover(activities, attendanceRecords, thisMonth) {
+  const trigger = document.querySelector('[data-attendance-popover="1"]');
+  if (!trigger) return;
+
+  let popover = document.getElementById('attendance-popover');
+  if (!popover) {
+    popover = document.createElement('div');
+    popover.id = 'attendance-popover';
+    popover.style.cssText = 'position:absolute;z-index:50;background:white;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.12);border:1px solid #E5E7EB;padding:12px;width:300px;display:none;';
+    document.body.appendChild(popover);
+  }
+
+  trigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (popover.style.display === 'none' || popover.style.display === '') {
+      const userPersonId = user.personId;
+      const myRecords = attendanceRecords.filter(r => {
+        if (r.personId !== userPersonId) return false;
+        const act = activities.find(a => a.id === r.activityId);
+        return act && act.date && act.date.startsWith(thisMonth);
+      }).sort((a, b) => {
+        const actA = activities.find(x => x.id === a.activityId);
+        const actB = activities.find(x => x.id === b.activityId);
+        return (actB?.date || '').localeCompare(actA?.date || '');
+      });
+
+      const listHTML = myRecords.length === 0
+        ? '<p class="text-xs text-gray-400 text-center py-4">本月暂无考勤记录</p>'
+        : myRecords.map(r => {
+            const act = activities.find(a => a.id === r.activityId);
+            const s = ATTENDANCE_STATUS_DOT[r.status] || { text: r.status, cls: 'text-gray-400', dot: '#9CA3AF' };
+            return `
+              <div class="flex items-center gap-2 py-1.5 border-b border-gray-50 last:border-b-0">
+                <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${s.dot};"></span>
+                <span class="text-sm text-gray-700 truncate flex-1">${act?.title || r.activityId}</span>
+                <span class="text-xs text-gray-400 flex-shrink-0">${act?.date ? _fmtDate(new Date(act.date)) : ''}</span>
+                <span class="text-xs font-medium ${s.cls} flex-shrink-0 w-8 text-right">${s.text}</span>
+              </div>
+            `;
+          }).join('');
+
+      popover.innerHTML = `
+        <div class="flex items-center justify-between mb-2 pb-2 border-b border-gray-100">
+          <span class="font-title-cn text-sm font-semibold text-gray-800">我的本月考勤</span>
+          <span class="text-xs text-gray-400">${myRecords.length} 条记录</span>
+        </div>
+        <div class="max-h-64 overflow-y-auto">${listHTML}</div>
+      `;
+
+      const rect = trigger.getBoundingClientRect();
+      popover.style.top = `${rect.bottom + window.scrollY + 8}px`;
+      popover.style.left = `${rect.left + window.scrollX}px`;
+      popover.style.display = 'block';
+    } else {
+      popover.style.display = 'none';
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!popover.contains(e.target) && !trigger.contains(e.target)) {
+      popover.style.display = 'none';
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') popover.style.display = 'none';
+  });
 }
 
 function _renderActivityList(activities) {
@@ -273,248 +388,23 @@ function _renderGallery(activities) {
     }).join('') + '</div>';
 }
 
-// ── 我的角色区块 ──────────────────────────────────────
-const ROLE_THEME = {
-  'secretary':         { icon: 'flag',      color: '#9B0000', bg: '#FEF2F2', label: '书记工作台' },
-  'deputy-secretary':  { icon: 'flag',      color: '#9B0000', bg: '#FEF2F2', label: '书记工作台' },
-  'org-commissioner':  { icon: 'cog',       color: '#3B82F6', bg: '#EFF6FF', label: '组织委员工作台' },
-  'prop-commissioner': { icon: 'megaphone', color: '#8B5CF6', bg: '#F5F3FF', label: '宣传委员工作台' },
-  'disc-commissioner': { icon: 'scale',     color: '#D97706', bg: '#FFFBEB', label: '纪检委员工作台' },
-  'leader':            { icon: 'shield',    color: '#10B981', bg: '#ECFDF5', label: '组长工作台' },
-  'organizer':         { icon: 'flag',      color: '#3B82F6', bg: '#EFF6FF', label: '组织者' },
-  'deep':              { icon: 'users',     color: '#6B7280', bg: '#F3F4F6', label: '深度参与者' },
-  'participant':       { icon: 'users',     color: '#6B7280', bg: '#F3F4F6', label: '成员视图' },
-};
-
-function _renderMyRoles() {
-  const container = document.getElementById('dashboard-my-roles');
-  if (!container || !user) return;
-
-  const personId = user.personId;
-  const cards = [];
-
-  // 1. 常设角色
-  const standingRole = AuthStore.getUserRole(personId);
-  const standingTheme = ROLE_THEME[standingRole] || ROLE_THEME['participant'];
-  const standingPage = AuthStore.getPageForRole('workspace', standingRole) || 'visitor.html';
-  cards.push({
-    icon: standingTheme.icon,
-    color: standingTheme.color,
-    bg: standingTheme.bg,
-    title: ROLE_LABELS[standingRole] || standingRole,
-    subtitle: standingTheme.label,
-    href: getBasePath() + 'workspace/' + standingPage,
-  });
-
-  // 2. 党小组组长（从赋权记录）
-  const authRecords = AuthStore.getAuthorizations();
-  const leaderRecords = authRecords.filter(r => r.targetPersonId === personId && r.role === 'leader');
-  if (leaderRecords.length > 0 && standingRole !== 'leader') {
-    const theme = ROLE_THEME['leader'];
-    cards.push({
-      icon: theme.icon,
-      color: theme.color,
-      bg: theme.bg,
-      title: '党小组组长',
-      subtitle: '组长工作台',
-      href: getBasePath() + 'workspace/leader.html',
-    });
-  }
-
-  // 3. 项目角色（organizer/deep）
-  const projectRecords = authRecords.filter(r =>
-    r.targetPersonId === personId && ['organizer', 'deep'].includes(r.role) && r.scopeRef
-  );
-  projectRecords.forEach(r => {
-    const project = mockDB.activities.find(a => a.id === r.scopeRef) || MOCK_TASKFORCES.find(t => t.id === r.scopeRef);
-    const projectName = project ? (project.title || project.name) : r.scopeRef;
-    const theme = ROLE_THEME[r.role] || ROLE_THEME['deep'];
-    // 项目角色点击跳转对应工作台（通过 CrossPageState 传递项目信息）
-    const wsPage = standingPage;
-    cards.push({
-      icon: theme.icon,
-      color: theme.color,
-      bg: theme.bg,
-      title: ROLE_LABELS[r.role] || r.role,
-      subtitle: projectName,
-      href: getBasePath() + 'workspace/' + wsPage,
-    });
-  });
-
-  // 渲染身份条（横向布局，可点击跳转）
-  container.innerHTML = `
-    <div class="space-y-2">
-      ${cards.map(c => `
-        <a href="${c.href}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer group" style="border-left:3px solid ${c.color};">
-          <div class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style="background:${c.bg};">
-            ${icon(c.icon, { size: 22, stroke: c.color })}
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-gray-800 group-hover:text-blue-700 transition-colors">${c.title}</p>
-            <p class="text-xs text-gray-400 mt-0.5">${c.subtitle}</p>
-          </div>
-          <div class="flex items-center gap-1 text-xs text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0">
-            <span>进入工作台</span>
-            ${icon('arrowRight', { size: 14 })}
-          </div>
-        </a>
-      `).join('')}
-    </div>
-  `;
-}
-
-function _renderMyAttendance() {
-  const container = document.getElementById('dashboard-my-attendance');
-  if (!container || !user) return;
-
-  const personId = user.personId;
-  const records = loadAttendanceRecords().filter(r => r.personId === personId);
-  const present = records.filter(r => r.status === 'present').length;
-  const absent = records.filter(r => r.status === 'absent').length;
-  const leave = records.filter(r => r.status === 'leave').length;
-  const makeup = records.filter(r => r.status === 'makeup').length;
-  const total = records.length;
-  const rate = total > 0 ? Math.round((present / total) * 100) : 0;
-  const rateColor = rate >= 80 ? '#10B981' : rate >= 60 ? '#D97706' : '#EF4444';
-
-  // SVG 环形进度图
-  const R = 28, C = 2 * Math.PI * R;
-  const dashOffset = C * (1 - rate / 100);
-  const ring = `
-    <svg width="72" height="72" viewBox="0 0 72 72" class="flex-shrink-0">
-      <circle cx="36" cy="36" r="${R}" fill="none" stroke="#F3F4F6" stroke-width="6"/>
-      <circle cx="36" cy="36" r="${R}" fill="none" stroke="${rateColor}" stroke-width="6"
-              stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${dashOffset}"
-              transform="rotate(-90 36 36)"/>
-      <text x="36" y="40" text-anchor="middle" font-size="16" font-weight="700" fill="${rateColor}">${rate}%</text>
-    </svg>
-  `;
-
-  let html = `
-    <div class="flex items-center gap-4 mb-3">
-      ${ring}
-      <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs">
-        <span class="text-green-600">出勤 ${present}</span>
-        <span class="text-red-500">缺勤 ${absent}</span>
-        <span class="text-orange-500">请假 ${leave}</span>
-        ${makeup > 0 ? `<span class="text-blue-500">已补 ${makeup}</span>` : ''}
-      </div>
-    </div>
-  `;
-
-  // 历次考勤（倒序，最近5条）
-  const activities = mockDB.activities;
-  const sorted = [...records].sort((a, b) => {
-    const actA = activities.find(x => x.id === a.activityId);
-    const actB = activities.find(x => x.id === b.activityId);
-    return ((actB?.date || '')).localeCompare(actA?.date || '');
-  }).slice(0, 5);
-
-  if (sorted.length > 0) {
-    html += '<div class="space-y-1">';
-    sorted.forEach(r => {
-      const act = activities.find(a => a.id === r.activityId);
-      const statusMap = {
-        present: { text: '出勤', cls: 'text-green-600', dot: '#10B981' },
-        absent:  { text: '缺勤', cls: 'text-red-500', dot: '#EF4444' },
-        leave:   { text: '请假', cls: 'text-orange-500', dot: '#F97316' },
-        makeup:  { text: '已补', cls: 'text-blue-500', dot: '#3B82F6' },
-      };
-      const s = statusMap[r.status] || { text: r.status, cls: 'text-gray-400', dot: '#9CA3AF' };
-      html += `
-        <div class="flex items-center gap-2 py-1">
-          <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${s.dot};"></span>
-          <span class="text-sm text-gray-700 truncate flex-1">${act?.title || r.activityId}</span>
-          <span class="text-xs text-gray-400 flex-shrink-0">${act?.date ? _fmtDate(new Date(act.date)) : ''}</span>
-          <span class="text-xs font-medium ${s.cls} flex-shrink-0 w-8 text-right">${s.text}</span>
-        </div>
-      `;
-    });
-    html += '</div>';
-  } else {
-    html += '<p class="text-xs text-gray-400 py-2">暂无考勤记录</p>';
-  }
-
-  container.innerHTML = html;
-}
-
-function _renderMyInspection() {
-  const container = document.getElementById('dashboard-my-inspection');
-  if (!container || !user) return;
-
-  const personId = user.personId;
-  // 考察记录仅本人可见（spec §五 数据访问规则）
-  const allRecords = mockDB.inspections?.length > 0 ? mockDB.inspections : INSPECTION_RECORDS;
-  const myRecords = allRecords.filter(r => r.personId === personId);
-  const display = inspectionToDisplay(myRecords);
-  const total = display.length;
-  const confirmed = display.filter(r => r.status === 'confirmed').length;
-  const pending = display.filter(r => r.status === 'pending').length;
-
-  // SVG 数字环形（考察无比率概念，用数字展示）
-  const numColor = total > 0 ? '#3B82F6' : '#D1D5DB';
-  const ring = `
-    <svg width="72" height="72" viewBox="0 0 72 72" class="flex-shrink-0">
-      <circle cx="36" cy="36" r="28" fill="none" stroke="#F3F4F6" stroke-width="6"/>
-      <text x="36" y="38" text-anchor="middle" font-size="20" font-weight="700" fill="${numColor}">${total}</text>
-      <text x="36" y="50" text-anchor="middle" font-size="9" fill="#9CA3AF">记录</text>
-    </svg>
-  `;
-
-  let html = `
-    <div class="flex items-center gap-4 mb-3">
-      ${ring}
-      <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs">
-        <span class="text-green-600">已确认 ${confirmed}</span>
-        <span class="text-orange-500">待确认 ${pending}</span>
-      </div>
-    </div>
-  `;
-
-  // 历次考察（倒序，最近5条）
-  const sorted = [...display].sort((a, b) => (b.recordedAt || '').localeCompare(a.recordedAt || '')).slice(0, 5);
-
-  if (sorted.length > 0) {
-    html += '<div class="space-y-1">';
-    sorted.forEach(r => {
-      const statusCls = r.status === 'confirmed' ? 'text-green-600' : 'text-orange-500';
-      const statusDot = r.status === 'confirmed' ? '#10B981' : '#F97316';
-      const statusText = r.status === 'confirmed' ? '已确认' : '待确认';
-      html += `
-        <div class="flex items-center gap-2 py-1">
-          <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${statusDot};"></span>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm text-gray-700 truncate">${r.activityTitle || r.sourceName || '—'}</p>
-          </div>
-          <span class="text-xs text-gray-400 flex-shrink-0">${r.recordedAt ? r.recordedAt.slice(0, 10) : ''}</span>
-          <span class="text-xs font-medium ${statusCls} flex-shrink-0 w-10 text-right">${statusText}</span>
-        </div>
-      `;
-    });
-    html += '</div>';
-  } else {
-    html += '<p class="text-xs text-gray-400 py-2">暂无考察记录</p>';
-  }
-
-  container.innerHTML = html;
-}
+// ── 我的角色区块已迁移：角色切换移至 header view-switcher，考勤弹窗并入顶部统计行 ──
 
 function renderDashboard(state) {
   const activities = state.activities || [];
   const taskforces = TaskForceRecordStore.getAll();
   const notices = NoticeStore.getAll();
+  const isLoading = state.status === STATE.LOADING && activities.length === 0;
 
-  _renderStats(activities, taskforces, notices, loadAttendanceRecords());
+  _renderStats(activities, taskforces, notices, loadAttendanceRecords(), isLoading);
 
-  _renderMyRoles();
-  _renderMyAttendance();
-  _renderMyInspection();
+  if (isLoading) return; // 等数据就绪再渲染其余区域，避免"暂无"→实际数据闪烁
 
   renderNoticeList('dashboard-notice-list', 5);
   const noticeCount = document.getElementById('dashboard-notice-count');
   if (noticeCount) {
-    const unread = notices.filter(n => !n.read).length;
-    noticeCount.textContent = unread > 0 ? `${unread} 条未读` : '';
+    const activeUnread = NoticeStore.list({ activeOnly: true }).filter(n => !n.read).length;
+    noticeCount.textContent = activeUnread > 0 ? `${activeUnread} 条未读` : '';
   }
 
   _renderTaskforceList(taskforces);
@@ -573,7 +463,7 @@ loadWorkspaceData({
   role: 'all',
   selectedRole: null,
   activeModule: 'dashboard',
-  fallbackData: () => mockDB.activities,
+  fallbackData: () => loadActivities(),
   storeInits: [() => NoticeStore.init(), () => TaskForceRecordStore.init()],
   extraLoads: [() => typeof BranchService.listTasks === 'function' ? BranchService.listTasks() : Promise.resolve([])],
   logTag: 'initApp'

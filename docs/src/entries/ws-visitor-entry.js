@@ -5,22 +5,26 @@ import { bootstrapPage } from '../core/bootstrap.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { NoticeStore } from '../services/notice.js';
 import { AuthStore } from '../services/auth.js';
-import { ACTIVITIES, PEOPLE, _personName } from '../mock/index.js';
+import { PEOPLE, _personName } from '../mock/index.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { loadAttendanceRecords } from '../services/attendance.js';
+import { loadInspectionRecords } from '../services/inspection.js';
+import { inspectionToDisplay } from '../mock/index.js';
+import { loadActivities } from '../services/activity.js';
 import { getActivityTypeColors } from '../core/constants.js';
 import { renderTabBar } from '../components/tab-bar.js';
 import { icon } from '../core/icons.js';
 import { renderQueryView } from '../components/query-view.js';
 
-bootstrapPage({ module: 'workspace', accentRole: 'participant' });
+await bootstrapPage({ module: 'workspace', accentRole: 'participant' });
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
 function renderVisitorUI(state) {
   let activities = state.activities || [];
-  if (activities.length === 0 && ACTIVITIES.length > 0) {
-    activities = ACTIVITIES.map(a => ({ ...a, visibility: 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() }));
+  const allActivities = loadActivities();
+  if (activities.length === 0 && allActivities.length > 0) {
+    activities = allActivities.map(a => ({ ...a, visibility: 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() }));
     setState({ activities });
     return;
   }
@@ -40,6 +44,7 @@ function renderVisitorUI(state) {
       { id: 'projects', label: '项目分工', render: (ctx) => _renderProjectDivision(ctx.activities, ctx.allTf, ctx.authRecords) },
       { id: 'activities', label: '活动动态', render: (ctx) => _renderActivities(ctx.activities, ctx.highlightId) },
       { id: 'attendance', label: '考勤概况', render: (ctx) => _renderAttendance(ctx.activities) },
+      { id: 'inspection', label: '我的考察', render: () => _renderMyInspection() },
     ],
     accentColor: { accent: 'var(--primary-700)', accentRgba: 'rgba(206,17,38,0.08)', accentBorder: 'rgba(206,17,38,0.2)' },
     defaultTab: 'activities',
@@ -241,12 +246,12 @@ function _renderProjectCard(project) {
         <span class="text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${project.statusColor}">${project.status}</span>
       </div>
       <div class="flex items-center gap-3 text-[11px] text-gray-500 mb-2">
-        ${project.group ? `<span class="flex items-center gap-0.5">${icon('users', { size: 11 })} ${project.group}</span>` : ''}
-        ${project.date ? `<span class="flex items-center gap-0.5">${icon('calendar', { size: 11 })} ${project.date}</span>` : ''}
+        ${project.group ? `<span class="flex items-center gap-0.5">${project.group}</span>` : ''}
+        ${project.date ? `<span class="flex items-center gap-0.5">${project.date}</span>` : ''}
       </div>
       ${project.personnel.length > 0 ? `
         <div class="flex flex-wrap gap-1.5">
-          ${organizers.map(p => `<span class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full ${_personnelRoleColor(p.role)}">${icon('starFilled', { size: 9 })} ${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
+          ${organizers.map(p => `<span class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full ${_personnelRoleColor(p.role)}">${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
           ${deepParticipants.map(p => `<span class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full ${_personnelRoleColor(p.role)}">${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
           ${others.map(p => `<span class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full ${_personnelRoleColor(p.role)}">${p.name}</span>`).join('')}
         </div>
@@ -265,13 +270,13 @@ function _renderActivities(activities, highlightId) {
       <span class="text-xs text-gray-500">${sorted.length} 条活动</span>
       <div class="flex gap-1">
         <button class="visitor-view-btn px-2.5 py-1 text-xs rounded-lg border transition-colors" data-vview="list" style="background:rgba(206,17,38,0.08);color:var(--primary-700);border:1px solid rgba(206,17,38,0.2);">
-          ${icon('list', { size: 14, extra: ' style="display:inline;vertical-align:-2px;"' })} 列表
+          ${icon('list', { className: 'w-3.5 h-3.5' })} 列表
         </button>
         <button class="visitor-view-btn px-2.5 py-1 text-xs rounded-lg border transition-colors" data-vview="calendar" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">
-          ${icon('calendar', { size: 14, extra: ' style="display:inline;vertical-align:-2px;"' })} 日历
+          ${icon('calendar', { className: 'w-3.5 h-3.5' })} 日历
         </button>
         <button class="visitor-view-btn px-2.5 py-1 text-xs rounded-lg border transition-colors" data-vview="query" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">
-          ${icon('search', { size: 14, extra: ' style="display:inline;vertical-align:-2px;"' })} 查询
+          ${icon('search', { className: 'w-3.5 h-3.5' })} 查询
         </button>
       </div>
     </div>
@@ -343,7 +348,7 @@ function _renderActCalendarView(sorted, highlightId) {
       return `
         <div class="mb-5">
           <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-            ${icon('calendar', { size: 14, stroke: 'var(--primary-700)' })}
+            ${icon('calendar', { stroke: 'var(--primary-700)', className: 'w-3.5 h-3.5' })}
             ${monthLabel}
             <span class="text-[10px] font-normal text-gray-400">${acts.length} 场</span>
           </h4>
@@ -409,6 +414,8 @@ function _renderActQueryView(sorted, highlightId) {
     },
     emptyMessage: '无匹配活动',
     accentColor: '#CE1126',
+    sortKey: 'date',
+    sortDir: 'desc',
   });
 
   if (highlightId) {
@@ -461,6 +468,78 @@ function _renderAttendance(activities) {
   renderList();
 }
 
+// ── 我的考察 Tab ──────────────────────────────────
+// 个人考察记录查询视图（spec §五 数据访问规则：支部成员对自己的历次活动参与考察情况有查询视图）
+function _renderMyInspection() {
+  const tc = document.getElementById('visitor-tab-content');
+  if (!tc) return;
+
+  const user = AuthStore.getCurrentUser();
+  if (!user) {
+    tc.innerHTML = '<p class="text-sm text-gray-400 text-center py-6">请先登录</p>';
+    return;
+  }
+
+  const personId = user.personId;
+  const allRecords = loadInspectionRecords();
+  const myRecords = allRecords.filter(r => r.personId === personId);
+  const display = inspectionToDisplay(myRecords);
+  const total = display.length;
+  const confirmed = display.filter(r => r.status === 'confirmed').length;
+  const pending = display.filter(r => r.status === 'pending').length;
+
+  // 按录入时间倒序
+  const sorted = [...display].sort((a, b) => (b.recordedAt || '').localeCompare(a.recordedAt || ''));
+
+  tc.innerHTML = `
+    <div class="mb-3 p-3 rounded-lg bg-white flex items-center gap-4">
+      <div class="flex-1">
+        <p class="text-sm font-semibold text-gray-800">我的考察记录</p>
+        <p class="text-xs text-gray-400 mt-0.5">共 ${total} 条 · 已确认 ${confirmed} · 待确认 ${pending}</p>
+      </div>
+    </div>
+    <div id="visitor-insp-list" class="space-y-2"></div>
+  `;
+
+  const listEl = document.getElementById('visitor-insp-list');
+  if (!listEl) return;
+
+  if (sorted.length === 0) {
+    listEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">暂无考察记录</p>';
+    return;
+  }
+
+  const SOURCE_TYPE_LABEL = { activity: '活动', taskforce: '专班' };
+  const LEVEL_LABEL = { organize: '组织者', deep: '深度参与者' };
+
+  listEl.innerHTML = sorted.map(r => {
+    const statusCls = r.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700';
+    const statusText = r.status === 'confirmed' ? '已确认' : '待确认';
+    const sourceLabel = SOURCE_TYPE_LABEL[r.sourceType] || r.sourceType;
+    const levelLabel = LEVEL_LABEL[r.level] || r.level;
+    const sourceTitle = r.activityTitle || r.sourceName || '—';
+    const recordedDate = r.recordedAt ? r.recordedAt.slice(0, 10) : '—';
+
+    return `
+      <div class="p-3 rounded-lg bg-white hover:shadow-sm transition-shadow">
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center gap-2">
+            <span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-gray-100 text-gray-600">${sourceLabel}</span>
+            <span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-blue-50 text-blue-700">${levelLabel}</span>
+          </div>
+          <span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full ${statusCls}">${statusText}</span>
+        </div>
+        <p class="text-sm font-medium text-gray-800">${sourceTitle}</p>
+        ${r.role ? `<p class="text-xs text-gray-500 mt-1">工作内容：${r.role}</p>` : ''}
+        <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
+          <p class="text-[10px] text-gray-400">录入人：${r.recordedByName || '—'}</p>
+          <p class="text-[10px] text-gray-400">${recordedDate}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
 registerRenderCallback(renderVisitorUI);
 
-loadWorkspaceData({ role: 'all', selectedRole: null, storeInits: [() => NoticeStore.init(), () => TaskForceRecordStore.init()], fallbackData: () => ACTIVITIES, logTag: 'ws-visitor' });
+loadWorkspaceData({ role: 'all', selectedRole: null, storeInits: [() => NoticeStore.init(), () => TaskForceRecordStore.init()], fallbackData: () => loadActivities(), logTag: 'ws-visitor' });

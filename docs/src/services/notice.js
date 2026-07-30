@@ -197,21 +197,14 @@ export function renderNoticeList(containerId, limit = 5) {
     </div>
   `).join('');
 
-  // 绑定确认读取按钮：stopPropagation 防止触发外层跳转
+  // 绑定确认读取按钮：先弹出完整消息浮窗，浮窗中确认已读
   container.querySelectorAll('.notice-confirm-read').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const id = btn.dataset.noticeId;
-      if (id) {
-        NoticeStore.markRead(id);
-        // 视觉反馈：标题变浅 + 移除按钮
-        const item = btn.closest('.notice-item');
-        if (item) {
-          item.querySelector('p.text-sm')?.classList.add('text-gray-500');
-          btn.remove();
-        }
-        showToast('success', '已确认读取');
-      }
+      const notice = NoticeStore._notices.find(n => n.id === id);
+      if (!notice) return;
+      _showNoticePopover(notice, btn);
     });
   });
 
@@ -236,4 +229,86 @@ export function renderNoticeList(containerId, limit = 5) {
       window.location.href = finalUrl;
     });
   });
+}
+
+/**
+ * 通知浮窗：展示完整消息内容 + 确认已读按钮
+ * 点击"确认读取"时弹出，确认后标记已读并关闭浮窗
+ */
+function _showNoticePopover(notice, triggerBtn) {
+  // 移除已有浮窗
+  const existing = document.getElementById('notice-read-popover');
+  if (existing) existing.remove();
+
+  const priorityBadge = {
+    urgent: '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-red-100 text-red-700">紧急</span>',
+    normal: '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-blue-100 text-blue-700">重要</span>',
+  };
+
+  const popover = document.createElement('div');
+  popover.id = 'notice-read-popover';
+  popover.style.cssText = 'position:fixed;z-index:100;background:white;border-radius:12px;box-shadow:0 12px 36px rgba(0,0,0,0.15);border:1px solid #E5E7EB;padding:16px;width:360px;max-height:80vh;overflow-y:auto;';
+
+  popover.innerHTML = `
+    <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
+      <div class="flex items-center gap-2">
+        ${priorityBadge[notice.priority] || ''}
+        <span class="font-title-cn text-sm font-semibold text-gray-800">${notice.title}</span>
+      </div>
+      <button id="notice-popover-close" class="text-gray-400 hover:text-gray-600 text-sm leading-none">&times;</button>
+    </div>
+    <div class="text-xs text-gray-400 mb-3">${notice.publishDate || ''}</div>
+    <div class="text-sm text-gray-700 leading-relaxed mb-4 whitespace-pre-wrap">${notice.content || '无内容'}</div>
+    <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+      <button id="notice-popover-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
+      <button id="notice-popover-confirm" class="text-xs px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">确认已读</button>
+    </div>
+  `;
+
+  document.body.appendChild(popover);
+
+  // 定位：在触发按钮附近
+  const rect = triggerBtn.getBoundingClientRect();
+  const popoverRect = popover.getBoundingClientRect();
+  let top = rect.bottom + 8;
+  let left = rect.left;
+  // 防止溢出视口
+  if (top + popoverRect.height > window.innerHeight) top = Math.max(8, rect.top - popoverRect.height - 8);
+  if (left + 360 > window.innerWidth) left = Math.max(8, window.innerWidth - 368);
+  popover.style.top = top + 'px';
+  popover.style.left = left + 'px';
+
+  // 关闭浮窗
+  const closePopover = () => popover.remove();
+
+  popover.querySelector('#notice-popover-close')?.addEventListener('click', closePopover);
+  popover.querySelector('#notice-popover-cancel')?.addEventListener('click', closePopover);
+
+  // 确认已读
+  popover.querySelector('#notice-popover-confirm')?.addEventListener('click', () => {
+    NoticeStore.markRead(notice.id);
+    // 视觉反馈：列表项标题变浅 + 移除"确认读取"按钮
+    const item = triggerBtn.closest('.notice-item');
+    if (item) {
+      item.querySelector('p.text-sm')?.classList.add('text-gray-500');
+      triggerBtn.remove();
+    }
+    closePopover();
+    showToast('success', '已确认读取');
+  });
+
+  // 点击外部关闭
+  const outsideHandler = (e) => {
+    if (!popover.contains(e.target) && !triggerBtn.contains(e.target)) {
+      closePopover();
+      document.removeEventListener('click', outsideHandler, true);
+    }
+  };
+  setTimeout(() => document.addEventListener('click', outsideHandler, true), 0);
+
+  // ESC 关闭
+  const escHandler = (e) => {
+    if (e.key === 'Escape') { closePopover(); document.removeEventListener('keydown', escHandler); }
+  };
+  document.addEventListener('keydown', escHandler);
 }

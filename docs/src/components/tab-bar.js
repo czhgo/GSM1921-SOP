@@ -43,17 +43,27 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
   const { accent, accentRgba, accentBorder } = accentColor;
 
   // 生成 Tab 按钮 HTML（active 状态由 CSS 类 + CSS 变量驱动）
+  // groupLabel 去重：同组只在首项前渲染标签（独立元素，不嵌在 button 内）
+  // 首组（整行第一个出现的标签）不加竖线，后续组加竖线分隔
+  const seenGroups = new Set();
+  let isFirstGroup = true; // 整行第一个 groupLabel 不加竖线
   const btnsHtml = tabs.map(({ id, label, groupLabel }) => {
     const isActive = id === activeTab;
     const activeClass = isActive ? ' tab-btn-active' : '';
     const activeStyle = isActive
       ? ` style="--tab-accent:${accent};--tab-accent-bg:${accentRgba};--tab-accent-border:${accentBorder}"`
       : '';
-    // 如果有 groupLabel，在标签前渲染分隔线+小标签
-    const groupHtml = groupLabel
-      ? `<span class="inline-flex items-center gap-1.5"><span style="width:1px;height:14px;background:#E5E7EB;display:inline-block;margin-right:4px;vertical-align:middle;"></span><span style="font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(14,165,233,0.08);color:#0EA5E9;font-weight:600;letter-spacing:0.5px;vertical-align:middle;">${groupLabel}</span></span> `
-      : '';
-    return `<button class="${btnClass}${activeClass} px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}"${activeStyle}>${groupHtml}${label}</button>`;
+    // groupLabel 只在该组首次出现时渲染（独立元素，不被 button 选中态影响）
+    let groupHtml = '';
+    if (groupLabel && !seenGroups.has(groupLabel)) {
+      seenGroups.add(groupLabel);
+      const divider = isFirstGroup
+        ? ''
+        : `<span style="width:1px;height:14px;background:#E5E7EB;display:inline-block;margin-right:4px;vertical-align:middle;"></span>`;
+      groupHtml = `<span class="tab-group-label inline-flex items-center gap-1.5" style="pointer-events:none;user-select:none;">${divider}<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:${accent}12;color:${accent};font-weight:600;letter-spacing:0.5px;vertical-align:middle;">${groupLabel}</span></span>`;
+      isFirstGroup = false;
+    }
+    return `${groupHtml}<button class="${btnClass}${activeClass} px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}"${activeStyle}>${label}</button>`;
   }).join('\n');
 
   const extraHtml = extraRightHtml ? `<div class="ml-auto">${extraRightHtml}</div>` : '';

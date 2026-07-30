@@ -10,7 +10,7 @@ const COMMISSIONER_DATA = [
     color: '#0EA5E9',
     colorBg: 'rgba(14,165,233,0.06)',
     colorBorder: 'rgba(14,165,233,0.15)',
-    icon: icon('users', { size: 20, strokeWidth: 1.8 }),
+    icon: icon('users', { strokeWidth: 1.8, className: 'w-5 h-5' }),
     workspace: {
       title: '专班建设',
       desc: '招募统筹·定人定责定岗',
@@ -31,7 +31,7 @@ const COMMISSIONER_DATA = [
     color: '#2563EB',
     colorBg: 'rgba(37,99,235,0.06)',
     colorBorder: 'rgba(37,99,235,0.15)',
-    icon: icon('megaphone', { size: 20, strokeWidth: 1.8 }),
+    icon: icon('megaphone', { strokeWidth: 1.8, className: 'w-5 h-5' }),
     workspace: {
       title: '项目视图',
       desc: '宣传材料/周报',
@@ -52,7 +52,7 @@ const COMMISSIONER_DATA = [
     color: '#C2410C',
     colorBg: 'rgba(194,65,12,0.06)',
     colorBorder: 'rgba(194,65,12,0.15)',
-    icon: icon('scale', { size: 20, strokeWidth: 1.8 }),
+    icon: icon('scale', { strokeWidth: 1.8, className: 'w-5 h-5' }),
     workspace: {
       title: '考勤·考察·监督',
       desc: '考勤管理·考察管理·活动监督复盘',
@@ -75,7 +75,7 @@ const DOMAIN_META = {
     accent: '#CE1126',
     accentBg: 'rgba(206,17,38,0.04)',
     accentBorder: 'rgba(206,17,38,0.12)',
-    icon: icon('cog', { size: 18, strokeWidth: 1.8 }),
+    icon: icon('cog', { strokeWidth: 1.8, className: 'w-[18px] h-[18px]' }),
   },
   party: {
     label: '党务管理',
@@ -83,7 +83,7 @@ const DOMAIN_META = {
     accent: '#B91C1C',
     accentBg: 'rgba(185,28,28,0.04)',
     accentBorder: 'rgba(185,28,28,0.12)',
-    icon: icon('party', { size: 18, strokeWidth: 1.8 }),
+    icon: icon('party', { strokeWidth: 1.8, className: 'w-[18px] h-[18px]' }),
   },
 };
 
@@ -141,7 +141,7 @@ export function renderCommissionerMatrix(containerId) {
                     `).join('')}
                   </ul>
                   <div class="mt-3 text-[10px] text-gray-400 group-hover:text-blue-500 transition-colors flex items-center gap-1">
-                    ${icon('arrowRight', { size: 12 })}
+                    ${icon('arrowRight', { className: 'w-3 h-3' })}
                     进入${meta.label}
                   </div>
                 </a>

@@ -6,12 +6,15 @@ import { bootstrapPage } from '../core/bootstrap.js';
 import { AuthStore } from '../services/auth.js';
 import { PEOPLE } from '../mock/people.js';
 import { getPersonById } from '../mock/index.js';
-import { MOCK_TASKFORCES } from '../mock/taskforces.js';
-import { mockDB } from '../core/domain.js';
+import { TaskForceRecordStore } from '../services/taskforce.js';
+import { loadActivities } from '../services/activity.js';
 import { ROLE_LABELS } from '../core/constants.js';
 import { showToast } from '../core/utils.js';
 
-const { user } = bootstrapPage({ module: 'members' });
+const { user } = await bootstrapPage({ module: 'members' });
+
+// 初始化数据存储（确保 TaskForceRecordStore 有数据）
+TaskForceRecordStore.init();
 
 if (!user || !AuthStore.isCommissioner(user.role)) {
   window.location.href = './index.html';
@@ -107,7 +110,7 @@ function _renderProjectAuthPanel() {
       <div>
         <label class="text-xs text-gray-500 mb-1 block">选择项目</label>
         <select id="project-id-select" class="input-flat text-xs w-full">
-          ${mockDB.activities.map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('')}
+          ${loadActivities().map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('')}
         </select>
       </div>
 
@@ -148,9 +151,9 @@ function _bindProjectTypeSwitch() {
   typeSelect.addEventListener('change', () => {
     const type = typeSelect.value;
     if (type === 'activity') {
-      idSelect.innerHTML = mockDB.activities.map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('');
+      idSelect.innerHTML = loadActivities().map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('');
     } else {
-      idSelect.innerHTML = MOCK_TASKFORCES.map(tf => `<option value="${tf.id}" data-type="taskforce">${tf.name}</option>`).join('');
+      idSelect.innerHTML = TaskForceRecordStore.getAll().map(tf => `<option value="${tf.id}" data-type="taskforce">${tf.name}</option>`).join('');
     }
   });
 }
@@ -214,7 +217,7 @@ function _renderProjectAuthRecords() {
 
   listEl.innerHTML = records.map(r => {
     const person = getPersonById(r.targetPersonId);
-    const project = mockDB.activities.find(a => a.id === r.scopeRef) || MOCK_TASKFORCES.find(t => t.id === r.scopeRef);
+    const project = loadActivities().find(a => a.id === r.scopeRef) || TaskForceRecordStore.getAll().find(t => t.id === r.scopeRef);
     const projectName = project ? (project.title || project.name) : r.scopeRef;
     const roleLabel = ROLE_LABELS[r.role] || r.role;
     const personName = person?.name || r.targetPersonId;

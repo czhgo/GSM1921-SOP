@@ -1,5 +1,5 @@
-﻿﻿// role: [工程师]+[AI]
-// issue-detail.js — Issue 详情渲染
+// role: [工程师]+[AI]
+// issue-detail.js — 反馈详情渲染
 
 import { IssueStore } from '../services/issues.js';
 import { MilestoneStore } from '../services/milestones.js';
@@ -7,6 +7,7 @@ import { AuthStore } from '../services/auth.js';
 import { showToast } from '../core/utils.js';
 import { icon } from '../core/icons.js';
 import { renderReactions, bindReactions } from './reactions.js';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -29,13 +30,6 @@ const TYPE_COLORS = {
   question: '#6B7280',
 };
 
-const CLOSED_REASON_LABELS = {
-  completed: '已解决',
-  duplicate: '重复',
-  wontfix: '不修复',
-  not_planned: '暂不计划',
-};
-
 /** 获取当前登录用户 personId（plan 中为 AuthStore.getCurrentPersonId，修正为实际 API） */
 function _currentPersonId() {
   return AuthStore.getCurrentUser()?.personId || '匿名';
@@ -49,7 +43,7 @@ export function renderIssueDetail(issueId) {
   if (!issue) {
     container.innerHTML = `
       <div class="card rounded-2xl p-6 text-center">
-        <p class="text-sm text-gray-400 mb-3">Issue 不存在或已被删除</p>
+        <p class="text-sm text-gray-400 mb-3">反馈不存在或已被删除</p>
         <a href="./feedback.html" class="text-xs text-blue-600 hover:text-blue-800">← 返回列表</a>
       </div>
     `;
@@ -65,7 +59,7 @@ export function renderIssueDetail(issueId) {
   container.innerHTML = `
     <div class="mb-4">
       <a href="./feedback.html" class="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
-        ${icon('chevronLeft', { size: 0, className: 'w-3 h-3' })} 返回列表
+        ${icon('chevronLeft', { className: 'w-3 h-3' })} 返回列表
       </a>
     </div>
 
@@ -76,8 +70,8 @@ export function renderIssueDetail(issueId) {
           <div class="flex items-center gap-2 mb-3">
             <span class="text-xs text-gray-400 font-mono">#${issue.number}</span>
             ${issue.status === 'open'
-              ? '<span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700 font-medium">open</span>'
-              : `<span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">closed · ${CLOSED_REASON_LABELS[issue.closedReason] || issue.closedReason}</span>`
+              ? '<span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700 font-medium">开放中</span>'
+              : `<span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">已关闭 · ${ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || '已解决'}</span>`
             }
           </div>
 
@@ -135,8 +129,8 @@ export function renderIssueDetail(issueId) {
             <p class="text-gray-400 mb-1">状态</p>
             ${canManage
               ? `<select id="status-select" class="input-flat w-full text-xs rounded font-sans">
-                  <option value="open" ${issue.status === 'open' ? 'selected' : ''}>open</option>
-                  <option value="closed" ${issue.status === 'closed' ? 'selected' : ''}>closed</option>
+                  <option value="open" ${issue.status === 'open' ? 'selected' : ''}>开放中</option>
+                  <option value="closed" ${issue.status === 'closed' ? 'selected' : ''}>已关闭</option>
                 </select>
                 <select id="closed-reason-select" class="input-flat w-full text-xs rounded mt-1 font-sans ${issue.status === 'open' ? 'hidden' : ''}">
                   <option value="completed" ${issue.closedReason === 'completed' ? 'selected' : ''}>已解决</option>
@@ -145,7 +139,7 @@ export function renderIssueDetail(issueId) {
                   <option value="not_planned" ${issue.closedReason === 'not_planned' ? 'selected' : ''}>暂不计划</option>
                 </select>
                 <button id="btn-apply-status" class="mt-2 w-full text-sm py-2 rounded bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 font-sans">应用</button>`
-              : `<p class="text-gray-700 font-sans">${issue.status}${issue.closedReason ? ' · ' + (CLOSED_REASON_LABELS[issue.closedReason] || issue.closedReason) : ''}</p>`
+              : `<p class="text-gray-700 font-sans">${ISSUE_STATUS_LABELS[issue.status] || issue.status}${issue.closedReason ? ' · ' + (ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || issue.closedReason) : ''}</p>`
             }
           </div>
 
@@ -160,12 +154,12 @@ export function renderIssueDetail(issueId) {
           </div>
 
           <div class="mb-3">
-            <p class="text-gray-400 mb-1">Milestone</p>
+            <p class="text-gray-400 mb-1">里程碑</p>
             <p class="text-gray-700 font-sans">${milestone ? milestone.title : '无'}</p>
           </div>
 
           <div class="mb-3">
-            <p class="text-gray-400 mb-1">Assignee</p>
+            <p class="text-gray-400 mb-1">指派人</p>
             <p class="text-gray-700 font-sans">${issue.assignee || '无'}</p>
           </div>
 
@@ -256,7 +250,7 @@ function bindDetailEvents(issue) {
     const reasonSelect = document.getElementById('closed-reason-select');
     const reason = status === 'closed' ? (reasonSelect?.value || 'completed') : null;
     IssueStore.changeStatus(issue.id, status, reason);
-    showToast('success', `状态已改为 ${status}${reason ? ' · ' + reason : ''}`);
+    showToast('success', `状态已改为 ${ISSUE_STATUS_LABELS[status] || status}${reason ? ' · ' + (ISSUE_CLOSED_REASON_LABELS[reason] || reason) : ''}`);
     renderIssueDetail(issue.id);
   });
 

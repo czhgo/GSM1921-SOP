@@ -64,7 +64,7 @@ export const MOCK_NOTICES = [
     id: 'notice-107',
     title: '新学期工作部署预备通知',
     content: '秋季学期党支部工作部署会议将于8月底召开，请支委成员提前准备分管工作总结。',
-    priority: 'low',
+    priority: 'normal',
     publishDate: '2026-07-17',
     expireDate: '2026-08-31',
     targetModule: 'workspace',

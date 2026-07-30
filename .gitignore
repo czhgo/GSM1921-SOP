@@ -15,3 +15,6 @@ desktop.ini
 # Temp / process files
 *.py
 *.tmp
+
+# Build output (project uses ESM directly, no bundler needed)
+docs/dist/

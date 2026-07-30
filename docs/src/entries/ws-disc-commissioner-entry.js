@@ -61,7 +61,7 @@ function renderDiscUI(state) {
   const tabBar = renderTabBar({
     prefix: 'disc',
     tabs: [
-      { id: 'attendance', label: '考勤管理(含交接)', render: () => _renderAttendanceContent(null) },
+      { id: 'attendance', label: '考勤管理(含交接)', render: () => _renderAttendanceContent(null), groupLabel: '党建' },
       { id: 'review', label: '活动监督复盘', render: () => _renderReviewContent() },
       { id: 'inspection', label: '考察管理', render: () => _renderInspectionContent() },
       { id: 'makeup', label: '补课制度', render: () => _renderMakeupContent(), groupLabel: '党务' },

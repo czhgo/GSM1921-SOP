@@ -174,8 +174,8 @@ const REF_DOCS = [
 ];
 
 function _iconSVG(name) {
-  if (name === 'github') return icon('github', { size: 16, fill: 'currentColor', stroke: 'none' });
-  return icon(name, { size: 16 }) || icon('globe', { size: 16 });
+  if (name === 'github') return icon('github', { fill: 'currentColor', stroke: 'none', className: 'w-4 h-4' });
+  return icon(name, { className: 'w-4 h-4' }) || icon('globe', { className: 'w-4 h-4' });
 }
 
 function _formatIcon(icon) {
@@ -287,7 +287,7 @@ export class ReferencesModule {
         <div class="ref-doc-right">
           <span class="ref-doc-size">${d.size}</span>
           <a class="ref-download-btn" href="${d.url || '#'}" ${d.url ? '' : 'onclick="return false;"'}>
-            ${icon('download', { size: 14 })}
+            ${icon('download', { className: 'w-3.5 h-3.5' })}
             ${d.downloadText || '下载'}
           </a>
         </div>

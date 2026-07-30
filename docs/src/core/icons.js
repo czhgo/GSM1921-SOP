@@ -6,28 +6,36 @@
 
 /**
  * 图标字典 — key 为语义名称，value 为 SVG inner HTML（不含 <svg> 标签）
- * 使用方式：icon('home', { size: 18 }) 或 icon('bell', { stroke: '#FFF' })
+ * 使用方式：icon('home', { className: 'w-[18px] h-[18px]' }) 或 icon('bell', { stroke: '#FFF', className: 'w-4 h-4' })
+ *
+ * 尺寸规范（CSS 类驱动，不硬编码 width/height）：
+ *   xs  → w-3 h-3   (12px)  内联徽章、reaction 计数
+ *   sm  → w-3.5 h-3.5 (14px)  小按钮、次要操作
+ *   md  → w-4 h-4   (16px)  标准按钮、列表项
+ *   lg  → w-5 h-5   (20px)  卡片标题、统计图标
+ *   nav → w-[18px] h-[18px]  侧边栏导航
+ *
  * @param {string} name - 图标语义名
  * @param {{ size?: number, width?: number, height?: number, strokeWidth?: number, stroke?: string, fill?: string, viewBox?: string, className?: string, extra?: string }} [opts]
  * @returns {string} 完整 <svg>...</svg> HTML 字符串
  */
 export function icon(name, opts = {}) {
   const {
-    size = 18,
+    size = 0, // 默认不输出 width/height，由 CSS 类控制尺寸
     width,
     height,
     strokeWidth = 2,
     stroke = 'currentColor',
     fill = 'none',
     viewBox = '0 0 24 24',
-    className = '',
+    className = 'icon-base', // 默认基础类（1em 尺寸 + vertical-align）
     extra = '',
   } = opts;
   const inner = ICONS[name];
   if (!inner) return '';
   const w = width !== undefined ? width : size;
   const h = height !== undefined ? height : size;
-  const wh = w ? ` width="${w}" height="${h}"` : '';
+  const wh = w ? ` width="${w}" height="${h}"` : ''; // 仅在明确传入 size 时输出
   const cls = className ? ` class="${className}"` : '';
   return `<svg${wh}${cls} viewBox="${viewBox}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"${extra}>${inner}</svg>`;
 }

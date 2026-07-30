@@ -7,6 +7,7 @@ import { mockDB, AttendanceStatus } from '../core/domain.js';
 import { saveDB } from '../services/mock.js';
 import { PEOPLE, getPersonById } from '../mock/index.js';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js';
+import { findActivityById } from '../services/activity.js';
 
 const MANDATORY_ACTIVITY_TYPES = ['支部党员大会', '党小组会', '党课'];
 
@@ -36,7 +37,7 @@ export function autoGenerateMakeupTask(attendanceRecord) {
   const { personId, activityId, status } = attendanceRecord;
   if (status !== AttendanceStatus.ABSENT && status !== AttendanceStatus.LEAVE) return;
 
-  const activity = mockDB.activities.find(a => a.id === activityId);
+  const activity = findActivityById(activityId);
   if (!activity) return;
 
   const isMandatory = MANDATORY_ACTIVITY_TYPES.includes(activity.type) || activity.type === '主题党日';

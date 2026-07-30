@@ -292,7 +292,7 @@ export class WorkflowRenderer {
 
     const iconSpan = document.createElement('span');
     iconSpan.className = 'workflow-banner-icon';
-    iconSpan.innerHTML = icon('warning', { size: 20 });
+    iconSpan.innerHTML = icon('warning', { className: 'w-5 h-5' });
     wrapper.appendChild(iconSpan);
 
     const text = document.createElement('div');

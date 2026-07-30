@@ -57,7 +57,7 @@ function renderLeaderUI(state) {
   const tabBar = renderTabBar({
     prefix: 'leader',
     tabs: [
-      { id: 'write', label: '活动写入', render: (ctx) => _renderWriteContent(ctx.filteredActivities) },
+      { id: 'write', label: '活动写入', render: (ctx) => _renderWriteContent(ctx.filteredActivities), groupLabel: '党建' },
       { id: 'attendance', label: '考勤上传', render: () => _renderAttendanceContent() },
       { id: 'inspection', label: '考察上传', render: () => _renderInspectionContent() },
       { id: 'review', label: '复盘提交', render: () => _renderReviewContent() },

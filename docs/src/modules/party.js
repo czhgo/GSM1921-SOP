@@ -13,6 +13,7 @@ import { icon } from '../core/icons.js';
 import { openFormModal } from '../components/modal.js';
 import { filterForViewProxy, assignedRoles, computeSecretaryStats } from '../services/roles.js';
 import { createStoreWithMockData } from '../workflow/index.js';
+import { findActivityById } from '../services/activity.js';
 import { NoticeStore, NoticePermission } from '../services/notice.js';
 import { FeedbackStore } from '../services/feedback.js';
 import { ImageRecordStore } from '../services/image.js';
@@ -271,6 +272,8 @@ export const PartyModule = {
       `,
       emptyMessage: '无匹配结果',
       accentColor: ACCENT_COLORS['disc-commissioner'].hex,
+      sortKey: 'name',
+      sortDir: 'asc',
     });
 
     // renderQueryView 渲染后重新绑定"标记已补"按钮事件
@@ -520,6 +523,8 @@ export const PartyModule = {
           },
           emptyMessage: '无匹配候选人',
           accentColor: ACCENT_COLORS['org-commissioner'].hex,
+          sortKey: 'name',
+          sortDir: 'asc',
         });
       }
     }
@@ -553,6 +558,8 @@ export const PartyModule = {
       `,
       emptyMessage: '无匹配结果',
       accentColor: ACCENT_COLORS['org-commissioner'].hex,
+      sortKey: 'date',
+      sortDir: 'desc',
     });
   },
 
@@ -603,6 +610,8 @@ export const PartyModule = {
       `,
       emptyMessage: '无匹配记录',
       accentColor: ACCENT_COLORS['prop-commissioner'].hex,
+      sortKey: 'date',
+      sortDir: 'desc',
     });
 
     // 根据查询栏状态过滤 records 并重新渲染表格（不破坏表格结构与事件绑定）
@@ -816,7 +825,7 @@ export const PartyModule = {
       <div class="card rounded-xl p-4 cursor-pointer">
         <div class="flex items-center gap-3 mb-2">
           <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:${t.bgColor};">
-            ${icon('file', { size: 20, stroke: t.color })}
+            ${icon('file', { stroke: t.color, className: 'w-5 h-5' })}
           </div>
           <div>
             <div class="text-sm font-medium text-gray-800">${t.name}</div>
@@ -890,6 +899,8 @@ export const PartyModule = {
         `,
         emptyMessage: '暂无匹配的报送记录',
         accentColor: ACCENT_COLORS['prop-commissioner'].hex,
+        sortKey: 'weekStart',
+        sortDir: 'desc',
       });
     }
 
@@ -965,7 +976,7 @@ export const PartyModule = {
           <div class="text-xs font-semibold text-gray-600 mb-2 pb-1 border-b border-gray-200">${date}（${items.length} 张）</div>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
             ${items.map(r => {
-              const actTitle = r.activityId ? (mockDB.activities.find(a => a.id === r.activityId)?.title || '—') : '—';
+              const actTitle = r.activityId ? (findActivityById(r.activityId)?.title || '—') : '—';
               return `
                 <div class="pub-image-card" data-image-id="${r.id}" style="cursor:pointer;">
                   <div class="rounded-lg overflow-hidden border border-gray-200" style="aspect-ratio:4/3;background:#f3f4f6;">
@@ -1051,7 +1062,7 @@ export const PartyModule = {
     listContainer.innerHTML = COMPLIANCE_FILES.map(file => `
       <div class="compliance-ref-card" data-file-path="${file.path}" data-file-note="${file.note || ''}">
         <div class="flex items-center gap-2">
-          ${icon('fileText', { size: 14 })}
+          ${icon('fileText', { className: 'w-3.5 h-3.5' })}
           <span class="text-sm text-gray-700">${file.name}</span>
         </div>
         <span class="text-xs text-blue-600 hover:text-blue-800 cursor-pointer">资料查询 →</span>
@@ -1241,6 +1252,8 @@ export const PartyModule = {
       `,
       emptyMessage: '暂无匹配的反馈',
       accentColor: ACCENT_COLORS['secretary'].hex,
+      sortKey: 'submittedAt',
+      sortDir: 'desc',
     });
   },
 

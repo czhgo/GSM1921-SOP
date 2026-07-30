@@ -65,17 +65,20 @@ const AUTHORIZE_CHAIN = {
 };
 
 // ── 只读可查看视角（比赋权链范围更宽） ────────────
+// 2026-07-30: 移除 organizer/deep 死代码（无对应 workspace 页面，T-141 角色单页制重构后遗留）
+// 仅保留 leader 视角——支委/书记可切换到组长只读视角
 const VIEWABLE_ROLES = {
-  'secretary':         ['leader', 'org-commissioner', 'prop-commissioner', 'disc-commissioner', 'organizer', 'deep'],
-  'deputy-secretary':  ['leader', 'org-commissioner', 'prop-commissioner', 'disc-commissioner', 'organizer', 'deep'],
-  'org-commissioner':  ['organizer', 'deep'],
-  'prop-commissioner': ['organizer', 'deep'],
-  'disc-commissioner': ['organizer', 'deep'],
-  'leader':            ['organizer', 'deep'],
+  'secretary':         ['leader', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'],
+  'deputy-secretary':  ['leader', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'],
+  'org-commissioner':  [],
+  'prop-commissioner': [],
+  'disc-commissioner': [],
+  'leader':            [],
 };
 
 // ── 角色到页面映射 ──────────────────────────────
-// party 页面已移除（T-141 功能定位修正），organizer/deep 内容归入首页"我的角色"区块
+// 2026-07-30: organizer/deep 无独立 workspace 页面（T-141 角色单页制重构后归入工作台）
+// header view-switcher 仅展示有独立页面的工作台身份（standing role + leader）
 const ROLE_PAGE_MAP = {
   workspace: {
     'secretary':         'secretary.html',

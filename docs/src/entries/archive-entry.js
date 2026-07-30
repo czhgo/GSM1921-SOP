@@ -58,7 +58,9 @@ function renderContent() {
 
 // ── 活动归档 ──
 function renderActivityArchive() {
-  const completedActivities = loadActivities().filter(a => a.status === 'completed' || a.archived);
+  const completedActivities = loadActivities()
+    .filter(a => a.status === 'completed' || a.archived)
+    .sort((a, b) => (b.date || '').localeCompare(a.date || '')); // 新日期在前
 
   if (completedActivities.length === 0) {
     contentContainer.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">暂无已归档活动</p>';
@@ -89,7 +91,9 @@ function renderActivityArchive() {
 
 // ── 专班归档 ──
 function renderTaskforceArchive() {
-  const completedTaskforces = TaskForceRecordStore.getAll().filter(tf => tf.status === 'completed' || tf.status === 'archived');
+  const completedTaskforces = TaskForceRecordStore.getAll()
+    .filter(tf => tf.status === 'completed' || tf.status === 'archived')
+    .sort((a, b) => (b.deadline || b.createdAt || '').localeCompare(a.deadline || a.createdAt || '')); // 新日期在前
 
   if (completedTaskforces.length === 0) {
     contentContainer.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">暂无已归档专班</p>';

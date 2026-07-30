@@ -1099,7 +1099,7 @@ function renderHelpContent() {
     ${safe('Conclusion', renderConclusion)}
     <footer class="help-page-footer">
       <a href="${base}index.html" class="help-back-link">
-        ${icon('arrowLeft', { size: 14 })}
+        ${icon('arrowLeft', { className: 'w-3.5 h-3.5' })}
         返回主页
       </a>
     </footer>

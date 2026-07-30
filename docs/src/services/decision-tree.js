@@ -235,7 +235,7 @@ export function renderWorkflowPanel(panelId, anchorId, definitionId, activityTit
   panel.className = 'workflow-panel-card';
   panel.innerHTML = `
     <div class="workflow-panel-title">
-      ${icon('clock', { size: 0 })}
+      ${icon('clock')}
       工作流追踪 — ${activityTitle || '新活动'}
     </div>
     <div id="${panelId}-content"></div>

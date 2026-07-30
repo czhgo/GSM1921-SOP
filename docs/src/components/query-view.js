@@ -25,6 +25,8 @@
  * @param {Function} config.renderRow - 单行渲染函数 (item) => htmlString
  * @param {string} [config.emptyMessage='无匹配结果'] - 空结果提示
  * @param {string} [config.accentColor='#3B82F6'] - 强调色（仅用于内部 accent，不再渲染左侧竖线——外层 card 已提供视觉边界）
+ * @param {string} [config.sortKey='date'] - 默认排序字段（组件层强制排序，根治"屡禁不止"正序问题）
+ * @param {string} [config.sortDir='desc'] - 默认排序方向：desc 倒序（最新在前）/ asc 正序
  */
 export function renderQueryView(container, config) {
   const {
@@ -35,6 +37,8 @@ export function renderQueryView(container, config) {
     renderRow,
     emptyMessage = '无匹配结果',
     accentColor = '#3B82F6',
+    sortKey = 'date',
+    sortDir = 'desc',
   } = config;
 
   // 生成唯一 ID
@@ -42,7 +46,7 @@ export function renderQueryView(container, config) {
 
   // 搜索栏 + 筛选器 HTML
   const filtersHtml = filters.map(f => `
-    <select id="${uid}-filter-${f.key}" class="input-flat text-xs" style="min-width:80px;">
+    <select id="${uid}-filter-${f.key}" class="input-flat text-xs py-1.5 min-w-[100px]">
       <option value="">${f.label}</option>
       ${f.options.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
     </select>
@@ -51,10 +55,10 @@ export function renderQueryView(container, config) {
   container.innerHTML = `
     <div class="query-view">
       <div class="flex flex-wrap items-center gap-2 mb-3">
-        <input type="text" id="${uid}-search" class="input-flat text-xs flex-1 min-w-[160px]"
+        <input type="text" id="${uid}-search" class="input-flat text-xs flex-1 min-w-[160px] py-1.5"
                placeholder="${searchPlaceholder}" />
         ${filtersHtml}
-        <button id="${uid}-clear" class="text-xs text-gray-400 hover:text-gray-600 px-2 py-1">清除</button>
+        <button id="${uid}-clear" class="text-xs text-gray-400 hover:text-gray-600 px-2 py-1.5">清除</button>
       </div>
       <div id="${uid}-results" class="space-y-1"></div>
       <div id="${uid}-count" class="text-xs text-gray-400 mt-2"></div>
@@ -87,6 +91,13 @@ export function renderQueryView(container, config) {
         if (value && String(item[key] || '') !== value) return false;
       }
       return true;
+    });
+
+    // 组件层强制默认排序（根治"屡禁不止"正序问题）
+    filtered.sort((a, b) => {
+      const va = String(a[sortKey] || '');
+      const vb = String(b[sortKey] || '');
+      return sortDir === 'desc' ? vb.localeCompare(va) : va.localeCompare(vb);
     });
 
     if (filtered.length === 0) {

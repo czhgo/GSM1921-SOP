@@ -30,7 +30,7 @@ function renderPropUI(state) {
   const tabBar = renderTabBar({
     prefix: 'prop',
     tabs: [
-      { id: 'tasks', label: '宣传任务', render: (ctx) => _renderTasksContent() },
+      { id: 'tasks', label: '宣传任务', render: (ctx) => _renderTasksContent(), groupLabel: '党建' },
       { id: 'kanban', label: '项目看板', render: (ctx) => _renderKanbanContent(ctx.activities, ctx.propTf) },
       { id: 'archive', label: '档案归档', render: (ctx) => _renderArchiveContent(), groupLabel: '党务' },
       { id: 'weekly', label: '周报报送', render: (ctx) => _renderWeeklyContent(), groupLabel: '党务' },
@@ -421,17 +421,14 @@ function _renderArchiveContent() {
   filterCategory.addEventListener('change', applyFilter);
   filterStatus.addEventListener('change', applyFilter);
 
-  // 归档推进按钮
+  // 归档推进按钮：弹出材料确认浮窗而非直接推进
   container.querySelectorAll('.archive-advance-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const recordId = btn.dataset.recordId;
       const record = ARCHIVE_RECORDS.find(r => r.id === recordId);
       if (!record || record.status === 'archived') return;
-      const nextStatus = record.status === 'pending' ? 'in_progress' : 'archived';
-      record.status = nextStatus;
-      showToast('success', `「${record.activityName}」${ARCHIVE_STATUS_LABEL[nextStatus]}`);
-      _renderArchiveContent();
+      _showArchiveAdvancePopover(record, btn);
     });
   });
 
@@ -448,13 +445,24 @@ function _renderArchiveList(records) {
   if (records.length === 0) {
     return '<p class="text-xs text-gray-400 text-center py-8">无匹配的归档记录</p>';
   }
-  return records.map(r => {
+  // 按日期降序排列（新日期在前）
+  const sorted = [...records].sort((a, b) => (b.archiveDate || '').localeCompare(a.archiveDate || ''));
+  return sorted.map(r => {
     const catStyle = ARCHIVE_CATEGORY_STYLE[r.category] || 'bg-gray-50 text-gray-600';
     const statusStyle = ARCHIVE_STATUS_STYLE[r.status];
     const isFinal = r.status === 'archived';
+    const isInProgress = r.status === 'in_progress';
     const advanceLabel = r.status === 'pending' ? '开始归档' : '确认归档';
     const advanceBtn = !isFinal
       ? `<button class="archive-advance-btn text-[10px] px-2 py-1 rounded bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors" data-record-id="${r.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
+      : '';
+    // 归档中状态显示进度
+    const progressHtml = isInProgress && r._checklistState
+      ? `<span class="text-[10px] text-blue-600">材料 ${r._checklistState.checked}/${r._checklistState.total}</span>`
+      : '';
+    // 已归档状态显示完成标记
+    const doneHtml = isFinal
+      ? `<span class="text-[10px] text-green-600">✓</span>`
       : '';
     return `
       <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors flex items-center justify-between gap-3">
@@ -463,6 +471,7 @@ function _renderArchiveList(records) {
             <span class="text-sm font-medium text-gray-800 truncate">${r.activityName}</span>
             <span class="text-[10px] px-1.5 py-0.5 rounded-full ${catStyle} shrink-0">${r.category}</span>
             <span class="text-[10px] px-1.5 py-0.5 rounded-full border ${statusStyle} shrink-0">${ARCHIVE_STATUS_LABEL[r.status]}</span>
+            ${progressHtml}${doneHtml}
           </div>
           <span class="text-[10px] text-gray-400">归档日期：${r.archiveDate}</span>
         </div>
@@ -577,6 +586,140 @@ function _renderWeeklyReportItem(report) {
       </div>
       ${report.content ? `<div class="weekly-detail-content hidden mt-2 p-2.5 rounded-lg bg-gray-50 text-xs text-gray-600 whitespace-pre-line">${report.content}</div>` : '<p class="text-[10px] text-gray-400 mt-1">暂无内容</p>'}
     </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  归档推进浮窗：弹出材料确认清单，而非直接改状态标签
+// ════════════════════════════════════════════════════════════════
+function _showArchiveAdvancePopover(record, triggerBtn) {
+  // 移除已有浮窗
+  const existing = document.getElementById('archive-advance-popover');
+  if (existing) existing.remove();
+
+  const isStart = record.status === 'pending';
+  const nextStatus = isStart ? 'in_progress' : 'archived';
+  const nextLabel = ARCHIVE_STATUS_LABEL[nextStatus];
+
+  // 根据归档类别获取材料标准
+  const categoryStandard = MATERIAL_STANDARDS.find(s => s.category === record.category) || MATERIAL_STANDARDS[MATERIAL_STANDARDS.length - 1];
+  // 拆分材料标准为检查项
+  const checklist = _parseChecklistFromStandard(categoryStandard.standard, record.category);
+
+  const popover = document.createElement('div');
+  popover.id = 'archive-advance-popover';
+  popover.style.cssText = 'position:fixed;z-index:100;background:white;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,0.15);border:1px solid #E5E7EB;padding:0;width:380px;max-height:80vh;overflow-y:auto;';
+
+  // ── 浮窗内容 ──
+  let html = '';
+  // 标题栏
+  html += `<div class="px-5 pt-4 pb-3 border-b border-gray-100">`;
+  html += `<div class="flex items-center justify-between mb-1">`;
+  html += `<span class="font-title-cn text-sm font-semibold text-gray-800">${isStart ? '开始归档' : '确认归档'}</span>`;
+  html += `<button id="archive-popover-close" class="text-gray-400 hover:text-gray-600 text-sm leading-none">&times;</button>`;
+  html += `</div>`;
+  html += `<div class="text-xs text-gray-500">${record.activityName} · <span class="px-1 py-0.5 rounded ${ARCHIVE_CATEGORY_STYLE[record.category] || ''}">${record.category}</span></div>`;
+  html += `</div>`;
+
+  if (isStart) {
+    // 开始归档：显示材料标准检查清单
+    html += `<div class="px-5 py-4">`;
+    html += `<p class="text-xs text-gray-600 mb-3">请确认以下材料标准是否满足：</p>`;
+    html += `<div class="space-y-2 mb-4">`;
+    checklist.forEach((item, i) => {
+      html += `<label class="flex items-start gap-2.5 cursor-pointer group">`;
+      html += `<input type="checkbox" class="archive-checklist-item mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-300" data-check-idx="${i}" />`;
+      html += `<span class="text-xs text-gray-700 leading-relaxed group-hover:text-gray-900">${item}</span>`;
+      html += `</label>`;
+    });
+    html += `</div>`;
+    html += `<div class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 mb-4">`;
+    html += `<p class="text-[11px] text-amber-700">提示：未全部勾选也可推进状态，但请确保后续补齐。</p>`;
+    html += `</div>`;
+    html += `</div>`;
+  } else {
+    // 确认归档：显示归档总结
+    html += `<div class="px-5 py-4">`;
+    html += `<p class="text-xs text-gray-600 mb-3">确认将以下条目归档？归档后将从待处理列表移除。</p>`;
+    html += `<div class="rounded-lg bg-gray-50 px-3 py-2.5 mb-4 space-y-1.5">`;
+    html += `<div class="flex items-center justify-between text-xs"><span class="text-gray-500">活动名称</span><span class="text-gray-800 font-medium">${record.activityName}</span></div>`;
+    html += `<div class="flex items-center justify-between text-xs"><span class="text-gray-500">归档类别</span><span class="text-gray-800">${record.category}</span></div>`;
+    html += `<div class="flex items-center justify-between text-xs"><span class="text-gray-500">归档日期</span><span class="text-gray-800">${record.archiveDate}</span></div>`;
+    html += `</div>`;
+    html += `<div class="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 mb-4">`;
+    html += `<p class="text-[11px] text-blue-700">材料标准：${categoryStandard.standard}</p>`;
+    html += `</div>`;
+    html += `</div>`;
+  }
+
+  // 操作按钮
+  html += `<div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">`;
+  html += `<button id="archive-popover-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">取消</button>`;
+  html += `<button id="archive-popover-confirm" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="background:${accent}">${nextLabel}</button>`;
+  html += `</div>`;
+
+  popover.innerHTML = html;
+  document.body.appendChild(popover);
+
+  // 定位
+  const rect = triggerBtn.getBoundingClientRect();
+  let top = rect.bottom + 8;
+  let left = rect.left;
+  if (left + 380 > window.innerWidth) left = Math.max(8, window.innerWidth - 392);
+  if (top + popover.offsetHeight > window.innerHeight) top = Math.max(8, rect.top - popover.offsetHeight - 8);
+  popover.style.top = top + 'px';
+  popover.style.left = left + 'px';
+
+  const closePopover = () => { popover.remove(); };
+
+  popover.querySelector('#archive-popover-close')?.addEventListener('click', closePopover);
+  popover.querySelector('#archive-popover-cancel')?.addEventListener('click', closePopover);
+
+  // 确认推进
+  popover.querySelector('#archive-popover-confirm')?.addEventListener('click', () => {
+    if (isStart) {
+      // 开始归档：收集勾选状态
+      const checks = popover.querySelectorAll('.archive-checklist-item');
+      const checkedCount = [...checks].filter(c => c.checked).length;
+      const totalCount = checks.length;
+      record._checklistState = { checked: checkedCount, total: totalCount };
+    }
+    record.status = nextStatus;
+    closePopover();
+    showToast('success', `「${record.activityName}」${nextLabel}${isStart ? '，请按材料标准准备' : ''}`);
+    _renderArchiveContent();
+  });
+
+  // 点击外部关闭
+  const outsideHandler = (e) => {
+    if (!popover.contains(e.target) && !triggerBtn.contains(e.target)) {
+      closePopover();
+      document.removeEventListener('click', outsideHandler, true);
+    }
+  };
+  setTimeout(() => document.addEventListener('click', outsideHandler, true), 0);
+
+  // ESC 关闭
+  const escHandler = (e) => {
+    if (e.key === 'Escape') { closePopover(); document.removeEventListener('keydown', escHandler); }
+  };
+  document.addEventListener('keydown', escHandler);
+}
+
+/**
+ * 从材料标准文本解析出检查清单项
+ */
+function _parseChecklistFromStandard(standard, category) {
+  // 尝试按逗号/顿号分隔
+  const parts = standard.split(/[，,、；;]/).map(s => s.trim()).filter(Boolean);
+  if (parts.length >= 2) return parts;
+  // 无法分隔时按类别返回默认清单
+  const defaults = {
+    '新闻稿': ['含标题', '正文完整', '配图3张以上', '署名', 'Word+PDF双格式'],
+    '照片': ['原图≥3MB', '横版为主', '含全景+特写', '命名：日期_活动名_序号'],
+    '视频': ['1080p及以上', '画面稳定', '含字幕（可选）', 'MP4格式'],
+    '其他': ['材料完整性确认', '可追溯性确认'],
+  };
+  return defaults[category] || ['材料完整性确认', '可追溯性确认'];
 }
 
 registerRenderCallback(renderPropUI);

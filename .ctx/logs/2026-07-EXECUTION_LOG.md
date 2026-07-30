@@ -2,7 +2,7 @@
 title: "2026年7月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-07-29"
+last_updated: "2026-07-31"
 status: active
 related_files:
   - CLAUDE.md
@@ -5725,4 +5725,279 @@ T148 去掉了侧边栏箭头但保留了 popover。用户反馈 popover 仍在�
 ### 蒸馏标签
 
 [经验沉淀: 是]（Store 数据同源迁移 + 列表项白底原则 + 输入组件统一原则已沉淀）
+
+---
+
+## T158 考勤/考察关系梳理+数据同源全仓库修复+visitor 我的考察 tab+view-switcher 重构（2026-07-30）
+
+**日期**：2026-07-30
+**任务**：基于书记 4 项提问——①考勤与考察关系 ②数据安放评估 ③"我的角色"卡片美学否定 ④全仓库数据同源测试
+**引用流程**：H1.2 执行 + H2.4 经验沉淀 + verification-before-completion Skill + brainstorming Skill + web-design-guidelines Skill
+
+### 变更摘要
+
+**1. 考勤与考察关系梳理**（brainstorming Skill 完成）
+- 考勤：是否到场的客观记录（0-1变量），全员适用，由纪检委员记录
+- 考察：工作表现评估（做了什么），仅深度参与者和组织者，由组织委员记录
+- 两者均由纪检委员归口管理但来源不同——考勤是出席记录，考察是工作评估
+
+**2. "我的角色"卡片美学否定后的重组**
+- 删除首页"我的角色"卡片（原"身份条+环形图"方案被书记否定为"非常丑陋"）
+- 角色切换功能迁移至 header "我的视角"下拉菜单
+- 考勤数据移至顶部统计行（出勤次数/总次数+点击弹出详情）
+- 个人考察记录首页完全不展示
+
+**3. visitor "我的考察" tab 新增**（修复逻辑漏洞）
+- 普通参与者原本无入口查看个人考察记录
+- 在 ws-visitor-entry.js 新增"我的考察"tab
+- 通过 loadInspectionRecords() 获取本人记录展示
+- 符合"支部成员对自己历次活动参与考察情况有查询视图"制度要求
+
+**4. view-switcher 死代码清理+重构**
+- VIEWABLE_ROLES 原含 organizer/deep 但无对应工作台页面（死代码）
+- 清理 VIEWABLE_ROLES，仅保留 leader 视角
+- 重构为"切换工作台身份+查看视角"两组菜单合并为一个下拉
+- 名称沿用"我的视角"
+
+**5. 数据同源全仓库修复**（14处违规全部修复）
+
+新增 Service 层：
+- `docs/src/services/activity.js`：统一活动数据访问（mockDB 优先 + ACTIVITIES 常量 fallback）
+- `docs/src/services/review.js`：统一复盘记录访问（_activityReviews + _taskforceReviews 缓存层）
+
+修复 8 个 entry 文件直接 import mock 常量违规：
+- main-entry.js：移除 PEOPLE 直接 import（保留 _personName/getPersonName），activities fallback 改为 loadActivities()
+- archive-entry.js：修复 mockDB.activities/taskforces 直接 filter
+- members-entry.js：修复 PEOPLE/MOCK_TASKFORCES import
+- ws-disc-commissioner-entry.js：修复 5 个 mock 常量 import
+- ws-org-commissioner-entry.js：修复 3 个 mock 常量 import
+- ws-prop-commissioner-entry.js：修复 ACTIVITIES import
+- ws-secretary-entry.js：修复 ACTIVITIES/MOCK_TASKFORCES import
+- ws-visitor-entry.js：修复 ACTIVITIES/PEOPLE import
+
+修复 6 处直接访问 mockDB 违规：
+- ws-leader-entry.js：4 处 mockDB.activities 直接访问替换为 loadActivities()，REVIEW_RECORDS 替换为 loadActivityReviews()，MOCK_TASKFORCES 替换为 TaskForceRecordStore.getAll()
+- modules/party.js：mockDB.activities.find 替换为 findActivityById
+- services/makeup.js：mockDB.activities.find 替换为 findActivityById
+
+### 修改文件清单
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/services/activity.js` | 新建：loadActivities/findActivityById/filterActivities 等 |
+| `docs/src/services/review.js` | 新建：loadActivityReviews/updateActivityReview/addActivityReview 等 |
+| `docs/src/entries/main-entry.js` | 移除 PEOPLE 直接 import + activities fallback 改用 Service |
+| `docs/src/entries/archive-entry.js` | 替换 mockDB 直接访问为 Service 调用 |
+| `docs/src/entries/members-entry.js` | 替换 mock 常量 import 为 Service 调用 |
+| `docs/src/entries/ws-disc-commissioner-entry.js` | 替换 5 个 mock 常量 import 为 Service 调用 |
+| `docs/src/entries/ws-org-commissioner-entry.js` | 替换 3 个 mock 常量 import 为 Service 调用 |
+| `docs/src/entries/ws-prop-commissioner-entry.js` | 替换 ACTIVITIES import 为 Service 调用 |
+| `docs/src/entries/ws-secretary-entry.js` | 替换 ACTIVITIES/MOCK_TASKFORCES import 为 Service 调用 |
+| `docs/src/entries/ws-visitor-entry.js` | 替换 ACTIVITIES/PEOPLE import + 新增"我的考察"tab |
+| `docs/src/entries/ws-leader-entry.js` | 4 处 mockDB.activities 替换为 loadActivities() + REVIEW_RECORDS/MOCK_TASKFORCES 替换为 Service |
+| `docs/src/modules/party.js` | mockDB.activities.find 替换为 findActivityById |
+| `docs/src/services/makeup.js` | mockDB.activities.find 替换为 findActivityById |
+| `docs/src/components/header.js` | view-switcher 重构（合并切换+查看为单下拉） |
+
+### 验证结果（verification-before-completion Skill 执行）
+
+- **GetDiagnostics**：JS/TS 代码零错误（仅 markdown 格式警告，与本次变更无关）
+- **Grep #1**（entries 直接 import mock 数据常量）：0 匹配 ✅
+- **Grep #2**（mockDB.activities/taskforces 直接访问）：12 匹配全部在 services/ 目录内（activity.js/auth.js/mock.js），属 Service 层内部实现，entries/ 和 modules/ 零违规 ✅
+- **Grep #3**（从 mock/index.js import）：11 匹配全部为 PEOPLE 人员档案或工具函数（getPersonById/_personName/inspectionToLong 等），无数据常量 import ✅
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 数据同源 Service 层模式已在 T157 §4.3 沉淀，本次为其应用执行，无新经验需蒸馏]
+
+---
+
+## T159 跨页面数据同步修复+UI 全中文清理（2026-07-30）
+
+**日期**：2026-07-30
+**任务**：基于书记发现的数据不同步案例（feedback 有数据但书记工作台 issue 管理中无数据），系统性诊断全仓库数据同源问题；同时执行 UI 全中文清理（issue→反馈、open→开放中、closed→已关闭、Milestone→里程碑等）
+**引用流程**：H1.2 执行 + H2.2 母本子本 + verification-before-completion Skill + web-design-guidelines Skill + brainstorming Skill + fullstack-developer Skill
+
+### 变更摘要
+
+**1. 数据同步根因诊断**（brainstorming Skill）
+- 根因：`ws-secretary-entry.js` 同步调用 `IssueStore.getAll()` 拿到空数组，因未先执行 `IssueStore.loadAll()`
+- 此前 `feedback-entry.js` 已正确 `await IssueStore.loadAll()`，但其他 entry 依赖 IssueStore 的页面均未加载
+
+**2. bootstrap.js 改为 async 统一预加载**（H2.2 母本子本·数据层统一入口）
+- `bootstrapPage()` 改为 `async`，登录检查后并行预加载 `IssueStore.loadAll()` + `MilestoneStore.loadAll()`
+- 所有 8 个 entry 文件改为 `await bootstrapPage(...)`：main-entry/members-entry/ws-*-entry（5 个）
+- `feedback-entry.js` 不依赖登录，保留独立的 `await IssueStore.loadAll()`
+
+**3. 状态值映射表集中管理**（H2.2 数据层英文/UI 层中文分离原则）
+- `constants.js` 新增三个映射表：
+  - `ISSUE_STATUS_LABELS`：open→开放中、closed→已关闭
+  - `DRAFT_TYPE_LABELS`：new-issue→新建反馈、comment→评论
+  - `ISSUE_CLOSED_REASON_LABELS`：completed→已解决、duplicate→重复、wontfix→不修复、not_planned→暂不计划
+- 数据层保留英文（向后兼容），UI 渲染层通过映射表显示中文
+
+**4. UI 英文清理（issue→反馈等）**
+- `issue-list.js`：「全部意见」→「开放中 N · 已关闭 N」、「+ 新反馈」、「开放中/已关闭」筛选按钮、「所有范围/所有类型」下拉
+- `issue-detail.js`：「里程碑/指派人/参与者/提交时间/关闭时间」字段标签、状态下拉「开放中/已关闭」、关闭理由下拉「已解决/重复/不修复/暂不计划」
+- `issue-form.js`：「新建反馈」标题、「范围（单选）/类型（多选）/标题/正文」标签、「提交反馈」按钮
+- `ws-secretary-entry.js`：「反馈管理」Tab 标题、「待审核草稿/全部反馈」分区、「导出反馈数据/清除缓存」按钮、「草稿已通过/草稿已驳回」通知
+- `secretary.html`：Tab 按钮 data-sec-tab="feedback" 文本改为「反馈管理」、面板标题改为「反馈管理」、按钮文本中文化
+- `about.html`：「issue管理」→「反馈管理」
+- `feedback-entry.js`：迁移通知「新 issue 格式」→「新数据格式」
+
+**5. 残留英文扫描验证**
+- 全仓库 Grep 扫描 `>issue<` / `>Open<` / `>Closed<` / `>Milestone<` / `>Assignee<` / `>Submit<` / `>Cancel<` / `>Export<` 等：0 匹配 ✅
+- showToast 消息全中文（除变量名）✅
+- placeholder 默认值全中文 ✅
+- DOCX/XLSX/PDF 通用缩写按规则保留 ✅
+
+### 关键设计决策
+
+| 决策 | 理由 |
+|------|------|
+| bootstrap.js 改为 async + Promise.all 预加载 | 统一数据入口，消除跨页面数据不同步根因；Promise.all 并行不阻塞渲染 |
+| 数据层英文/UI 层中文映射表分离 | 保持数据兼容性（已存储的 status='open' 等不变），同时满足 UI 全中文要求 |
+| 状态映射表集中在 constants.js | 消除 issue-detail.js 中重复定义的 CLOSED_REASON_LABELS，单一权威源 |
+
+### 修改文件清单
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/core/bootstrap.js` | 改为 async，新增 IssueStore/MilestoneStore 并行预加载 |
+| `docs/src/core/constants.js` | 新增 ISSUE_STATUS_LABELS / DRAFT_TYPE_LABELS / ISSUE_CLOSED_REASON_LABELS |
+| `docs/src/components/issue-list.js` | UI 文本中文化（开放中/已关闭/所有范围/所有类型/新反馈） |
+| `docs/src/components/issue-detail.js` | UI 文本中文化（里程碑/指派人/参与者/状态/关闭理由） |
+| `docs/src/components/issue-form.js` | UI 文本中文化（新建反馈/范围/类型/提交反馈） |
+| `docs/src/entries/ws-secretary-entry.js` | 「issue 管理」→「反馈管理」+ 通知文本中文化 |
+| `docs/src/entries/feedback-entry.js` | 迁移通知文本「新 issue 格式」→「新数据格式」 |
+| `docs/src/entries/main-entry.js` | 添加 await bootstrapPage |
+| `docs/src/entries/members-entry.js` | 添加 await bootstrapPage |
+| `docs/src/entries/ws-disc-commissioner-entry.js` | 添加 await bootstrapPage |
+| `docs/src/entries/ws-leader-entry.js` | 添加 await bootstrapPage |
+| `docs/src/entries/ws-org-commissioner-entry.js` | 添加 await bootstrapPage |
+| `docs/src/entries/ws-prop-commissioner-entry.js` | 添加 await bootstrapPage |
+| `docs/src/entries/ws-visitor-entry.js` | 添加 await bootstrapPage |
+| `docs/workspace/secretary.html` | Tab 标题/面板标题/按钮文本中文化 |
+| `docs/about.html` | 「issue管理」→「反馈管理」 |
+
+### 验证结果（verification-before-completion Skill 执行）
+
+- **GetDiagnostics**：JS 代码零错误（仅 .md 文档格式警告，与本次变更无关）✅
+- **Grep 全仓库扫描**：用户可见 UI 文本中无 issue/Open/Closed/Milestone/Assignee/Submit/Cancel/Export 等英文术语 ✅
+- **浏览器实际运行验证**（browser_use subagent）：
+  - 数据同步验证 PASS：feedback.html 与 secretary.html 反馈管理均显示同一条反馈数据「三会一课记录流程中第二步卡壳」✅
+  - UI 英文清理验证 PASS：两页可见文本全中文，无残留英文术语 ✅
+  - 控制台错误检查 PASS：无阻塞性 JS 错误；IssueStore.loadAll() / MilestoneStore.loadAll() / bootstrapPage 流程均成功执行 ✅
+  - 截图留存：feedback-page.png + secretary-feedback-page.png ✅
+
+### 蒸馏标签
+
+[经验沉淀: 是 — "bootstrap.js async 统一预加载+UI 层中文映射表"是可复用的数据同源治理模式，已应用至全仓库；同类型多 Service 跨页面同步问题可参照此模式解决]
+
+---
+
+## T-142 反馈分发与「我的处置」Tab 渲染修复
+
+**日期**: 2026-07-30
+**引用流程**: H2.2 母本子本 + spec `.trae/specs/secretary-workspace-enhancement/spec.md`
+
+### 变更概述
+
+修复各角色工作台「我的处置」Tab 点击后内容不渲染/不切换的问题。根因：`renderMyDispatchTab()` 只返回 HTML 字符串但未写入 DOM 容器，与其他 Tab 的 render 函数（直接 `document.getElementById('xxx-tab-content').innerHTML = ...`）不一致。
+
+### 修改文件
+
+| 文件 | 变更内容 |
+|------|---------|
+| `docs/src/entries/ws-org-commissioner-entry.js` | my-dispatch Tab render 函数改为写入 org-tab-content + 内部调用 bindMyDispatchEvents；移除冗余的外部 bindMyDispatchEvents 调用 |
+| `docs/src/entries/ws-prop-commissioner-entry.js` | 同上，写入 prop-tab-content |
+| `docs/src/entries/ws-disc-commissioner-entry.js` | 同上，写入 disc-tab-content |
+| `docs/src/entries/ws-leader-entry.js` | 同上，写入 leader-tab-content |
+
+### 验证结果
+
+- **GetDiagnostics**：4 个 entry 文件零 JS 错误 ✅
+- **浏览器验证**（browser_use subagent）：
+  - 组织委员「我的处置」Tab：点击后正确渲染反馈列表内容 ✅
+  - 宣传委员「我的处置」Tab：点击后正确渲染三列任务卡片 ✅
+  - 纪检委员「我的处置」Tab：标签可见且点击切换正常 ✅
+  - 党小组组长「我的处置」Tab：标签可见且点击切换正常 ✅
+  - 书记工作台「反馈管理」Tab：列表渲染+指派操作均正常 ✅
+
+### 根因分析
+
+tab-bar 组件的 `tab.render(renderCtx)` 调用不处理返回值——各 Tab 的 render 函数必须自行写入 DOM 容器。`renderMyDispatchTab()` 设计为返回 HTML 字符串的工具函数，但 Tab render 函数仅调用而未写入容器，导致返回值被丢弃。
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 这是 tab-bar 组件使用约定的问题，已有明确的 render 函数写入 DOM 模式可参照，属于一次性遗漏]
+
+---
+
+## T160 交互实质化+归档排序+工作台详情三合一修复（2026-07-31）
+
+**日期**：2026-07-31
+**任务**：书记发现三类交互问题：①归档流程纯形式主义（点击"开始归档/确认归档"无实质变化）、②归档库时间排序错误（新条目排在下面）、③工作台点击活动日期无详情显示。统一修复。
+**引用流程**：H1.2 执行 + verification-before-completion Skill + web-design-guidelines Skill + brainstorming Skill
+
+### 变更摘要
+
+**1. 归档流程实质化**（ws-prop-commissioner-entry.js）
+- 问题：点击"开始归档/确认归档"仅改变状态标签，无实质交互
+- 修复：添加 `_showArchiveAdvancePopover()` 浮窗函数
+  - 开始归档：弹出材料标准检查清单（复选框），收集勾选状态，记录 `_checklistState`
+  - 确认归档：弹出归档总结面板（活动名称/类别/日期+材料标准），确认后归档
+- 添加 `_parseChecklistFromStandard()` 解析材料标准文本为检查项
+
+**2. 通知已读浮窗交互**（notice.js）
+- 问题：点击"确认读取"直接标记已读，用户未看到完整消息
+- 修复：添加 `_showNoticePopover()` 浮窗函数
+  - 点击"确认读取"先弹出完整通知内容浮窗（标题+日期+正文）
+  - 浮窗内"确认已读"按钮才真正标记已读
+  - 支持 ESC/点击外部关闭
+
+**3. 归档库时间排序**（archive-entry.js + ws-prop-commissioner-entry.js）
+- 问题：归档记录按日期升序（旧在前），新条目排在下面
+- 修复：
+  - archive-entry.js：活动归档 `.sort((a, b) => (b.date || '').localeCompare(a.date || ''))`
+  - archive-entry.js：专班归档 `.sort((a, b) => (b.deadline || b.createdAt || '').localeCompare(...))`
+  - ws-prop-commissioner-entry.js：`_renderArchiveList()` 内按 `archiveDate` 降序排序
+
+**4. 工作台活动详情**（calendar.js + inspector.js + secretary.html）
+- 问题：点击日历日期/活动条目后右侧 inspector 无内容
+- 根因：secretary.html 中 `inspector-content` 缺少 `inspector-date-title` 和 `inspector-cards` 子元素
+- 修复：
+  - secretary.html：添加缺失的子元素 `<h4 id="inspector-date-title">` 和 `<div id="inspector-cards">`
+  - calendar.js：列表项点击设置 `viewMode: 'detail'`（原为 'list'）
+  - calendar.js：活动条目点击设置 `viewMode: 'detail'` + `selectedActivityId`
+  - inspector.js：添加 `scrollIntoView` 确保面板可见
+  - secretary.html：布局改为日历+inspector 并排 grid
+
+**5. 调试代码清理**
+- 移除 ws-secretary-entry.js 中的 setTimeout 自动选择调试逻辑
+- 移除 inspector.js 中的 console.log 调试日志
+
+### 修改文件清单
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/entries/ws-prop-commissioner-entry.js` | 添加 `_showArchiveAdvancePopover` / `_parseChecklistFromStandard` / 归档列表降序排序 / 进度显示 |
+| `docs/src/services/notice.js` | 添加 `_showNoticePopover` 浮窗函数，重构确认读取按钮事件 |
+| `docs/src/entries/archive-entry.js` | 活动/专班归档列表降序排序 |
+| `docs/src/components/calendar.js` | 列表项点击 viewMode 改为 'detail' |
+| `docs/src/components/inspector.js` | 移除调试日志，添加 scrollIntoView |
+| `docs/src/entries/ws-secretary-entry.js` | 移除 setTimeout 自动选择调试代码 |
+| `docs/workspace/secretary.html` | 添加 inspector 子元素，布局改为并排 grid |
+
+### 验证结果（verification-before-completion Skill + browser_use 实测）
+
+- **归档流程浮窗** PASS：点击"开始归档"弹出材料检查清单弹窗；点击"确认归档"弹出总结确认弹窗 ✅
+- **通知已读浮窗** PASS：点击"确认读取"弹出完整通知内容浮窗，含"确认已读"按钮 ✅
+- **归档库排序** PASS：三个 tab（活动/专班/通知）均按日期降序排列 ✅
+- **工作台活动详情** PASS：点击日期格→显示当日活动列表；点击活动条→进入完整详情视图 ✅
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 浮窗交互模式已有先例（PersonPicker等），属于一次性遗漏+DOM子元素缺失]
+
 

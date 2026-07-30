@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // issues.js — GitHub Issue 风格意见反馈数据服务
 // 权威源 docs/data/issues.json + localStorage 个人草稿
 
@@ -6,7 +6,10 @@ import { AuthStore } from './auth.js';
 
 const ISSUES_JSON_PATH = './data/issues.json';
 const DRAFT_KEY = 'gsm1921-issue-drafts';
-const CACHE_KEY = 'gsm1921-issue-cache';
+// 2026-07-30 v2：新增 dispatchHistory/comments.kind/hidden/mergedInto 字段，需重新加载 mock 数据
+const CACHE_KEY = 'gsm1921-issue-cache-v2';
+const CACHE_VERSION_KEY = 'gsm1921-issue-cache-version';
+const CACHE_VERSION = '2';
 const MIGRATED_KEY = 'gsm1921-feedback-migrated';
 
 let _issuesCache = null;
@@ -24,6 +27,14 @@ export const IssueStore = {
   async loadAll() {
     // 优先从内存缓存读
     if (_issuesCache) return _issuesCache;
+    // 缓存版本检查：版本不匹配则丢弃旧缓存，强制从 issues.json 重新加载
+    try {
+      const cachedVer = localStorage.getItem(CACHE_VERSION_KEY);
+      if (cachedVer !== CACHE_VERSION) {
+        localStorage.removeItem(CACHE_KEY);
+        localStorage.setItem(CACHE_VERSION_KEY, CACHE_VERSION);
+      }
+    } catch {}
     // 其次从 localStorage 缓存读
     try {
       const cached = localStorage.getItem(CACHE_KEY);
@@ -230,9 +241,175 @@ export const IssueStore = {
     return issue;
   },
 
-  /** 书记设置 assignee */
+  /** 书记设置 assignee（旧接口，保留兼容；新代码用 assignIssue） */
   setAssignee(id, personId) {
     return this.editIssue(id, { assignee: personId });
+  },
+
+  // ── 2026-07-30 新增：反馈分发与处置（spec §3.1） ──────────────
+
+  /**
+   * 书记指派反馈给某人
+   * @param {string} issueId
+   * @param {string} assigneeId   被指派人 personId（如 'u_org_commissioner'）
+   * @param {string} assigneeRole 被指派人角色键（'org-commissioner' | 'leader' | 'secretary' | ...）
+   * @param {string} note         指派备注（可选）
+   * @returns {Object|null} 更新后的 issue
+   */
+  assignIssue(issueId, assigneeId, assigneeRole, note = '') {
+    const issue = this.getById(issueId);
+    if (!issue) return null;
+    const prevAssignee = issue.assignee || null;
+    const by = _currentPersonId();
+    const at = new Date().toISOString().slice(0, 10);
+    issue.assignee = assigneeId;
+    issue.assigneeRole = assigneeRole || null;
+    // 指派历史时间线
+    if (!Array.isArray(issue.dispatchHistory)) issue.dispatchHistory = [];
+    issue.dispatchHistory.push({ from: prevAssignee, to: assigneeId, by, at, note });
+    // 同时作为评论时间线的一条 kind='dispatch' 事件
+    if (!Array.isArray(issue.comments)) issue.comments = [];
+    issue.comments.push({
+      id: 'cmt-' + Date.now(),
+      author: by,
+      authorRole: 'secretary',
+      body: note ? `指派给 ${assigneeRole || assigneeId}：${note}` : `指派给 ${assigneeRole || assigneeId}`,
+      createdAt: at,
+      kind: 'dispatch',
+      hidden: false, hiddenBy: null, hiddenReason: null, hiddenAt: null,
+    });
+    issue.commentCount = (issue.commentCount || 0) + 1;
+    if (!issue.participants.includes(by)) issue.participants.push(by);
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    // 触发通知：被指派人工作台「我的处置」Tab 角标 +1
+    if (assigneeId && assigneeId !== by) {
+      IssueNotify.markUnread(assigneeId, issueId);
+    }
+    return issue;
+  },
+
+  /**
+   * 添加评论 / 批复 / 处置结果
+   * @param {string} issueId
+   * @param {string} author       personId
+   * @param {string} authorRole   角色键
+   * @param {string} body         正文
+   * @param {string} kind         'comment' | 'verdict' | 'dispatch' | 'result'
+   * @returns {Object|null} 更新后的 issue
+   */
+  addComment(issueId, author, authorRole, body, kind = 'comment') {
+    const issue = this.getById(issueId);
+    if (!issue) return null;
+    if (!Array.isArray(issue.comments)) issue.comments = [];
+    const at = new Date().toISOString().slice(0, 10);
+    issue.comments.push({
+      id: 'cmt-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+      author,
+      authorRole: authorRole || null,
+      body,
+      createdAt: at,
+      kind,
+      hidden: false, hiddenBy: null, hiddenReason: null, hiddenAt: null,
+    });
+    issue.commentCount = (issue.commentCount || 0) + 1;
+    if (!issue.participants.includes(author)) issue.participants.push(author);
+    // 处置结果提交后，标记 issue 为「待终审」（resultPending=true），等待书记关闭
+    if (kind === 'result') {
+      issue.resultPending = true;
+      issue.resultSubmittedAt = at;
+      // 触发书记工作台「待终审」高亮
+      IssueNotify.markSecretaryReviewPending(issueId);
+    }
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    return issue;
+  },
+
+  /**
+   * 书记关闭反馈
+   * @param {string} issueId
+   * @param {string} reason  'completed' | 'duplicate' | 'wontfix' | 'not_planned'
+   * @param {string} note    关闭备注（可选）
+   */
+  closeIssue(issueId, reason = 'completed', note = '') {
+    const issue = this.getById(issueId);
+    if (!issue) return null;
+    issue.status = 'closed';
+    issue.closedReason = reason;
+    issue.closedAt = new Date().toISOString().slice(0, 10);
+    issue.resultPending = false;
+    // 关闭后清除「待终审」未读标记
+    IssueNotify.markSecretaryReviewRead(issueId);
+    if (note) {
+      // 关闭备注作为 verdict 评论记录
+      this.addComment(issueId, _currentPersonId(), 'secretary', `关闭反馈（${reason}）：${note}`, 'verdict');
+    }
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    return issue;
+  },
+
+  /** 书记重新开放 */
+  reopenIssue(issueId) {
+    const issue = this.getById(issueId);
+    if (!issue) return null;
+    issue.status = 'open';
+    issue.closedReason = null;
+    issue.closedAt = null;
+    issue.resultPending = false;
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    return issue;
+  },
+
+  /** 书记隐藏反馈（不在公开列表显示） */
+  hideIssue(issueId) {
+    return this.editIssue(issueId, { hidden: true });
+  },
+
+  /** 书记取消隐藏 */
+  unhideIssue(issueId) {
+    return this.editIssue(issueId, { hidden: false });
+  },
+
+  /**
+   * 书记合并反馈：将 sourceId 合并到 targetId
+   * - source 标记 mergedInto=targetId 并隐藏
+   * - target 评论时间线追加一条 merge 事件
+   */
+  mergeIssue(sourceId, targetId) {
+    const source = this.getById(sourceId);
+    const target = this.getById(targetId);
+    if (!source || !target) return null;
+    source.mergedInto = targetId;
+    source.hidden = true;
+    source.status = 'closed';
+    source.closedReason = 'duplicate';
+    source.closedAt = new Date().toISOString().slice(0, 10);
+    if (!Array.isArray(target.comments)) target.comments = [];
+    target.comments.push({
+      id: 'cmt-merge-' + Date.now(),
+      author: _currentPersonId(),
+      authorRole: 'secretary',
+      body: `合并自 #${source.number || source.id}：${source.title || ''}`,
+      createdAt: new Date().toISOString().slice(0, 10),
+      kind: 'verdict',
+      hidden: false, hiddenBy: null, hiddenReason: null, hiddenAt: null,
+    });
+    target.commentCount = (target.commentCount || 0) + 1;
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    return { source, target };
+  },
+
+  /** 被指派给某人的反馈（开放中） */
+  getAssignedTo(userId) {
+    return (_issuesCache || []).filter(i =>
+      i.assignee === userId && i.status === 'open' && !i.hidden && !i.mergedInto
+    );
+  },
+
+  /** 被指派给某角色的反馈（开放中） */
+  getAssignedToRole(role) {
+    return (_issuesCache || []).filter(i =>
+      i.assigneeRole === role && i.status === 'open' && !i.hidden && !i.mergedInto
+    );
   },
 
   /** 书记设置 milestone */
@@ -308,3 +485,225 @@ export const IssueStore = {
     } catch {}
   },
 };
+
+// ════════════════════════════════════════════════════════════════
+//  派生显示状态（UI 层使用，数据层不存储）
+//  根据 status / assignee / resultPending 派生「开放中 / 已指派 / 处置中 / 待终审 / 已关闭」
+// ════════════════════════════════════════════════════════════════
+
+/**
+ * 计算反馈的派生显示状态
+ * @param {Object} issue
+ * @returns {{ key: string, label: string, badgeClass: string }}
+ */
+export function deriveIssueDisplayState(issue) {
+  if (!issue) return { key: 'unknown', label: '未知', badgeClass: 'bg-gray-100 text-gray-500' };
+  if (issue.status === 'closed') {
+    return { key: 'closed', label: '已关闭', badgeClass: 'bg-gray-100 text-gray-600' };
+  }
+  // 开放中分支
+  if (issue.resultPending) {
+    return { key: 'pending-review', label: '待终审', badgeClass: 'bg-amber-100 text-amber-700' };
+  }
+  if (issue.assignee) {
+    // 有指派人，且评论时间线中存在 kind='result' 但 resultPending 还未触发（理论上不会）— 简化为「处置中」
+    const hasResult = (issue.comments || []).some(c => c.kind === 'result');
+    if (hasResult) {
+      return { key: 'pending-review', label: '待终审', badgeClass: 'bg-amber-100 text-amber-700' };
+    }
+    return { key: 'assigned', label: '已指派', badgeClass: 'bg-blue-100 text-blue-700' };
+  }
+  return { key: 'open', label: '开放中', badgeClass: 'bg-green-100 text-green-700' };
+}
+
+/** 通知未读计数（按被指派人 personId 维度，localStorage 标记） */
+const UNREAD_KEY_PREFIX = 'gsm1921-issue-unread-';
+
+export const IssueNotify = {
+  /** 标记某条指派为未读（被指派人维度） */
+  markUnread(assigneeId, issueId) {
+    try {
+      const key = UNREAD_KEY_PREFIX + assigneeId;
+      const set = new Set(JSON.parse(localStorage.getItem(key) || '[]'));
+      set.add(issueId);
+      localStorage.setItem(key, JSON.stringify([...set]));
+    } catch {}
+  },
+  /** 标记已读 */
+  markRead(assigneeId, issueId) {
+    try {
+      const key = UNREAD_KEY_PREFIX + assigneeId;
+      const set = new Set(JSON.parse(localStorage.getItem(key) || '[]'));
+      set.delete(issueId);
+      localStorage.setItem(key, JSON.stringify([...set]));
+    } catch {}
+  },
+  /** 获取未读反馈 ID 列表 */
+  getUnread(assigneeId) {
+    try {
+      return JSON.parse(localStorage.getItem(UNREAD_KEY_PREFIX + assigneeId) || '[]');
+    } catch { return []; }
+  },
+  /** 获取未读数 */
+  getUnreadCount(assigneeId) {
+    return this.getUnread(assigneeId).length;
+  },
+  /** 标记某 issue 为「待终审」未读（书记维度） */
+  markSecretaryReviewPending(issueId) {
+    try {
+      const set = new Set(JSON.parse(localStorage.getItem(UNREAD_KEY_PREFIX + 'secretary-review') || '[]'));
+      set.add(issueId);
+      localStorage.setItem(UNREAD_KEY_PREFIX + 'secretary-review', JSON.stringify([...set]));
+    } catch {}
+  },
+  markSecretaryReviewRead(issueId) {
+    try {
+      const set = new Set(JSON.parse(localStorage.getItem(UNREAD_KEY_PREFIX + 'secretary-review') || '[]'));
+      set.delete(issueId);
+      localStorage.setItem(UNREAD_KEY_PREFIX + 'secretary-review', JSON.stringify([...set]));
+    } catch {}
+  },
+  getSecretaryReviewUnread() {
+    try {
+      return JSON.parse(localStorage.getItem(UNREAD_KEY_PREFIX + 'secretary-review') || '[]');
+    } catch { return []; }
+  },
+};
+
+// ════════════════════════════════════════════════════════════════
+//  「我的处置」Tab 渲染工具（各角色工作台复用）
+//  2026-07-30 新增：被指派人视角的反馈列表+详情+评论/提交处置结果
+// ════════════════════════════════════════════════════════════════
+
+/**
+ * 渲染「我的处置」Tab 内容
+ * @param {string} role 角色键（如 'org-commissioner'）
+ * @param {string} userId 被指派人 personId（如 'u_org_commissioner'）
+ * @returns {string} HTML
+ */
+export function renderMyDispatchTab(role, userId) {
+  const issues = IssueStore.getAssignedTo(userId);
+  const unread = IssueNotify.getUnread(userId);
+
+  // 标记全部已读
+  unread.forEach(id => IssueNotify.markRead(userId, id));
+
+  let html = `<div class="space-y-3">`;
+  html += `<p class="text-xs text-gray-500">指派给你的开放反馈，可评论或提交处置结果</p>`;
+
+  if (issues.length === 0) {
+    html += `<p class="text-xs text-gray-400 text-center py-6">暂无待处置反馈</p>`;
+    html += `</div>`;
+    return html;
+  }
+
+  issues.forEach(issue => {
+    const ds = deriveIssueDisplayState(issue);
+    const dispatchNote = (issue.dispatchHistory || []).find(d => d.to === userId);
+    html += `<div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 cursor-pointer transition-all" data-mydispatch-action="open" data-issue-id="${issue.id}">`;
+    html += `<div class="flex items-center justify-between mb-1">`;
+    html += `<span class="text-xs text-gray-400 font-mono">#${issue.number}</span>`;
+    html += `<span class="text-[10px] px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
+    html += `</div>`;
+    html += `<p class="text-sm text-gray-800 font-medium">${issue.title}</p>`;
+    if (dispatchNote?.note) {
+      html += `<p class="text-[10px] text-blue-600 mt-1">书记备注：${dispatchNote.note}</p>`;
+    }
+    html += `<div class="text-[10px] text-gray-400 mt-1">${issue.submittedBy} · ${issue.submittedAt} · ${issue.commentCount || 0} 评论</div>`;
+    html += `</div>`;
+  });
+
+  html += `</div>`;
+  html += `<div id="mydispatch-detail" class="hidden"></div>`;
+  return html;
+}
+
+/**
+ * 绑定「我的处置」Tab 事件（在 tab 内容渲染后调用）
+ */
+export function bindMyDispatchEvents(container, role, userId) {
+  container.querySelectorAll('[data-mydispatch-action="open"]').forEach(el => {
+    el.addEventListener('click', () => {
+      _renderMyDispatchDetail(el.dataset.issueId, role, userId, container);
+    });
+  });
+}
+
+function _renderMyDispatchDetail(issueId, role, userId, container) {
+  const detailEl = container.querySelector('#mydispatch-detail');
+  if (!detailEl) return;
+  const issue = IssueStore.getById(issueId);
+  if (!issue) return;
+  IssueNotify.markRead(userId, issueId);
+  const ds = deriveIssueDisplayState(issue);
+
+  let html = `<div class="card rounded-2xl p-6">`;
+  html += `<button data-mydispatch-action="back" class="text-xs text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-1 mb-4">← 返回列表</button>`;
+  html += `<div class="flex items-center gap-2 mb-2">`;
+  html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
+  html += `<span class="text-[10px] px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
+  html += `</div>`;
+  if (issue.body) html += `<p class="text-sm text-gray-600 whitespace-pre-wrap mb-4">${issue.body}</p>`;
+  html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-gray-400 mb-4 pb-4 border-b border-gray-100">`;
+  html += `<span>#${issue.number}</span><span>提交人：${issue.submittedBy}</span><span>提交时间：${issue.submittedAt}</span>`;
+  html += `</div>`;
+
+  // 指派历史
+  if (issue.dispatchHistory?.length) {
+    html += `<div class="mb-4 pb-4 border-b border-gray-100">`;
+    html += `<span class="text-xs font-medium text-gray-700 block mb-2">指派历史</span><div class="space-y-1">`;
+    issue.dispatchHistory.forEach(d => {
+      html += `<div class="text-[10px] text-gray-500">● ${d.at} · ${d.to}${d.note ? '：' + d.note : ''}</div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // 评论时间线
+  html += `<div class="mb-4"><span class="text-xs font-medium text-gray-700 block mb-3">评论与事件</span><div class="space-y-2">`;
+  (issue.comments || []).forEach(c => {
+    if (c.hidden) return;
+    const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'verdict' ? '★' : '';
+    const kindBg = c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'result' ? 'bg-green-50' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
+    html += `<div class="rounded-lg p-2.5 ${kindBg}">`;
+    html += `<span class="text-[10px] font-medium text-gray-700">${kindIcon} ${c.author}</span>`;
+    html += `<span class="text-[10px] text-gray-400 ml-1">${c.createdAt}</span>`;
+    html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;
+  });
+  html += `</div></div>`;
+
+  if (issue.status === 'open') {
+    html += `<div class="pt-3 border-t border-gray-100"><div class="flex gap-2">`;
+    html += `<input type="text" id="mydispatch-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论…">`;
+    html += `<button data-mydispatch-action="comment" class="text-[10px] px-3 py-1.5 rounded-lg bg-gray-700 text-white hover:bg-gray-800 transition-colors">评论</button>`;
+    html += `<button data-mydispatch-action="submit-result" class="text-[10px] px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">提交处置结果</button>`;
+    html += `</div></div>`;
+  }
+  html += `</div>`;
+
+  detailEl.innerHTML = html;
+  detailEl.classList.remove('hidden');
+  const listDiv = detailEl.previousElementSibling;
+  if (listDiv) listDiv.classList.add('hidden');
+
+  detailEl.querySelectorAll('[data-mydispatch-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.mydispatchAction;
+      if (action === 'back') {
+        detailEl.classList.add('hidden');
+        if (listDiv) listDiv.classList.remove('hidden');
+      } else if (action === 'comment') {
+        const body = document.getElementById('mydispatch-comment-input')?.value?.trim();
+        if (!body) { showToast('error', '请输入评论内容'); return; }
+        IssueStore.addComment(issueId, userId, role, body, 'comment');
+        showToast('success', '评论已添加');
+        _renderMyDispatchDetail(issueId, role, userId, container);
+      } else if (action === 'submit-result') {
+        const body = document.getElementById('mydispatch-comment-input')?.value?.trim();
+        if (!body) { showToast('error', '请输入处置结果内容'); return; }
+        IssueStore.addComment(issueId, userId, role, body, 'result');
+        showToast('success', '处置结果已提交，等待书记终审');
+        _renderMyDispatchDetail(issueId, role, userId, container);
+      }
+    });
+  });
+}

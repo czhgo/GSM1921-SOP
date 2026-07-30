@@ -63,7 +63,7 @@ function renderOrgUI(state) {
   const tabBar = renderTabBar({
     prefix: 'org',
     tabs: [
-      { id: 'inspection', label: '考察上传', render: () => _renderOrgInspectionContent() },
+      { id: 'inspection', label: '考察上传', render: () => _renderOrgInspectionContent(), groupLabel: '党建' },
       { id: 'taskforce', label: '专班管理', render: (ctx) => _renderTaskforceContent(ctx.pending, ctx.recruiting, ctx.active, ctx.activities) },
       { id: 'talent', label: '人才库', render: () => _renderTalentContent() },
       { id: 'development', label: '发展党员', render: () => _renderDevelopmentContent(), groupLabel: '党务' },

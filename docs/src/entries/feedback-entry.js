@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // feedback-entry.js — 意见反馈入口（GitHub Issue 风格）
 
 import { renderSidebar } from '../components/sidebar.js';
@@ -24,7 +24,7 @@ async function initRoute() {
   // 旧数据迁移（一次性）
   const migrated = IssueStore.migrateFromFeedbackStore();
   if (migrated > 0) {
-    showToast('info', `已自动迁移 ${migrated} 条旧反馈到新 issue 格式`);
+    showToast('info', `已自动迁移 ${migrated} 条旧反馈到新数据格式`);
   }
 
   // 加载数据

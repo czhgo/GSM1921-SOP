@@ -338,10 +338,10 @@ function _renderListView(grid, activeActivities, tasks, month, state) {
   html += `</div>`;
   grid.innerHTML = html;
 
-  // 列表项点击
+  // 列表项点击：进入该活动详情
   grid.querySelectorAll('.cal-list-item').forEach(item => {
     item.addEventListener('click', () => {
-      setState({ selectedDate: item.dataset.date, selectedActivityId: item.dataset.actId, viewMode: 'list' });
+      setState({ selectedDate: item.dataset.date, selectedActivityId: item.dataset.actId, viewMode: 'detail' });
     });
   });
 }
@@ -358,13 +358,24 @@ function _renderCellContent(dateKey, activeActivities, ct, hasActivity, tasks, s
     const dayActs = activeActivities.filter(a => a.date === dateKey);
     dayActs.slice(0, maxItems).forEach(act => {
       const color = getActivityColor(act);
-      html += `<div class="cal-activity-tag" style="background:${color.bg};color:${color.text};border:1px solid ${color.border};" title="${act.title || ''}">` +
+      html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" style="background:${color.bg};color:${color.text};border:1px solid ${color.border};" title="${act.title || ''}">` +
               `<span class="cal-activity-dot" style="background:${color.text};"></span>` +
               `<span class="truncate">${act.title || ''}</span></div>`;
     });
     if (dayActs.length > maxItems) html += `<div class="font-stheiti text-[9px] text-gray-400 text-center mt-0.5">+${dayActs.length - maxItems} 项活动</div>`;
   } else {
-    if (hasActivity) {
+    // 管理视图：先渲染活动条目（可点击进入详情）
+    const dayActs = activeActivities.filter(a => a.date === dateKey);
+    if (dayActs.length > 0) {
+      dayActs.slice(0, maxItems).forEach(act => {
+        const color = getActivityColor(act);
+        html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" style="background:${color.bg};color:${color.text};border:1px solid ${color.border};" title="${act.title || ''}">` +
+                `<span class="cal-activity-dot" style="background:${color.text};"></span>` +
+                `<span class="truncate">${act.title || ''}</span></div>`;
+      });
+      if (dayActs.length > maxItems) html += `<div class="font-stheiti text-[9px] text-gray-400 text-center mt-0.5">+${dayActs.length - maxItems} 项活动</div>`;
+    } else if (hasActivity) {
+      // 仅有活动标记但无具体活动条目时，保留原角色点指示
       const dateActRoles = activeActivities.filter(a => a.date === dateKey).map(a => a.executor || 'all');
       const uniqueRoles = [...new Set(dateActRoles)];
       const ROLE_ORDER = ['leader', 'commissioner', 'organizer', 'deep', 'all'];
@@ -377,7 +388,7 @@ function _renderCellContent(dateKey, activeActivities, ct, hasActivity, tasks, s
       });
       html += '</div>';
     }
-    const dayActIds = new Set(activeActivities.filter(a => a.date === dateKey).map(a => a.id));
+    const dayActIds = new Set(dayActs.map(a => a.id));
     const dayTasksDirect = ct;
     const dayTasksViaAct = tasks.filter(t => !t.date && t.activityId && dayActIds.has(t.activityId));
     const allDayTasks = [...dayTasksDirect, ...dayTasksViaAct];
@@ -397,11 +408,32 @@ function _renderCellContent(dateKey, activeActivities, ct, hasActivity, tasks, s
 }
 
 function _bindCellClicks(grid) {
+  // 单元格空白处点击（保留原"选中日期"行为，显示该日列表）
   grid.querySelectorAll('.cal-cell-large.has-tasks').forEach(cell => {
-    cell.addEventListener('click', () => {
+    cell.addEventListener('click', (e) => {
+      // 如果点击的是活动条目，不触发单元格选中（由活动条目独立处理）
+      if (e.target.closest('.cal-activity-item')) return;
       grid.querySelectorAll('.cal-cell-large.selected').forEach(c => c.classList.remove('selected'));
       cell.classList.add('selected');
       setState({ selectedDate: cell.dataset.date, viewMode: 'list', selectedActivityId: null });
+    });
+  });
+  // 活动条目独立 click：直接进入该活动详情（取消"先选日、再选活动"两步）
+  grid.querySelectorAll('.cal-activity-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const actId = item.dataset.actId;
+      const date = item.dataset.date;
+      if (!actId) return;
+      // 选中该单元格视觉状态
+      grid.querySelectorAll('.cal-cell-large.selected').forEach(c => c.classList.remove('selected'));
+      const parentCell = item.closest('.cal-cell-large');
+      if (parentCell) parentCell.classList.add('selected');
+      setState({
+        selectedDate: date,
+        selectedActivityId: actId,
+        viewMode: 'detail',
+      });
     });
   });
 }

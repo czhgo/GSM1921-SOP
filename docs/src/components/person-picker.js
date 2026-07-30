@@ -170,7 +170,7 @@ export class PersonPicker {
     // 下拉箭头
     const arrow = document.createElement('span');
     arrow.className = 'person-picker-arrow';
-    arrow.innerHTML = icon('chevronDown', { size: 14 });
+    arrow.innerHTML = icon('chevronDown', { className: 'w-3.5 h-3.5' });
     btn.appendChild(arrow);
 
     btn.addEventListener('click', (e) => {
@@ -256,7 +256,7 @@ export class PersonPicker {
       <div class="person-picker-header-row">
         <h4 class="person-picker-title font-stheiti">选择人员</h4>
         <button type="button" class="person-picker-close-btn">
-          ${icon('close', { size: 14, stroke: '#6B7280' })}
+          ${icon('close', { stroke: '#6B7280', className: 'w-3.5 h-3.5' })}
         </button>
       </div>
       <input type="text" class="person-picker-search font-stheiti" placeholder="搜索姓名或学号..." />
@@ -409,7 +409,7 @@ export class PersonPicker {
               ${roleLabel ? `<span class="person-picker-item-role">${roleLabel}</span>` : ''}
             </div>
           </div>
-          ${isSelected ? icon('check', { size: 16, strokeWidth: 2.5, stroke: this._accent, className: 'person-picker-check' }) : ''}
+          ${isSelected ? icon('check', { strokeWidth: 2.5, stroke: this._accent, className: 'w-4 h-4 person-picker-check' }) : ''}
         </div>
       `;
     }).join('');

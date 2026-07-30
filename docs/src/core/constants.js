@@ -243,3 +243,24 @@ function _darken(hex) {
   const b = Math.max(0, parseInt(hex.slice(5, 7), 16) - 16);
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
+
+// ── 反馈（Issue）状态值→中文标签映射 ──────────────────────────
+// 数据层保留英文（'open'/'closed'），UI 渲染层通过此映射显示中文
+export const ISSUE_STATUS_LABELS = {
+  open: '开放中',
+  closed: '已关闭',
+};
+
+// ── 反馈草稿类型→中文标签映射 ──────────────────────────────
+export const DRAFT_TYPE_LABELS = {
+  'new-issue': '新建反馈',
+  'comment': '评论',
+};
+
+// ── 反馈关闭理由→中文标签映射（已在 issue-detail.js 中定义，统一至此）──
+export const ISSUE_CLOSED_REASON_LABELS = {
+  completed: '已解决',
+  duplicate: '重复',
+  wontfix: '不修复',
+  not_planned: '暂不计划',
+};
