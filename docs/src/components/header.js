@@ -27,20 +27,86 @@ function _roleLabelHTML(role) {
   `;
 }
 
-function _viewSwitcherHTML(role) {
-  const viewableRoles = AuthStore.getViewableRoles(role);
-  if (viewableRoles.length === 0) return '';
+function _viewSwitcherHTML(role, user) {
+  if (!user) return '';
 
+  // ── 组1：切换工作台身份（有独立页面的身份） ──
+  const workspaces = [];
+  // 1a. 常设角色对应工作台（排除 participant，因为 participant 默认就是首页）
+  const standingPage = AuthStore.getPageForRole('workspace', role);
+  if (standingPage && role !== 'participant') {
+    workspaces.push({
+      type: 'workspace',
+      role,
+      label: ROLE_LABELS[role] || role,
+      href: getBasePath() + 'workspace/' + standingPage,
+      isCurrent: true,
+    });
+  }
+  // 1b. 党小组组长（如有赋权且非当前常设角色）
+  const authRecords = AuthStore.getAuthorizations();
+  const hasLeaderAuth = authRecords.some(r => r.targetPersonId === user.personId && r.role === 'leader');
+  if (hasLeaderAuth && role !== 'leader') {
+    workspaces.push({
+      type: 'workspace',
+      role: 'leader',
+      label: '党小组组长工作台',
+      href: getBasePath() + 'workspace/leader.html',
+      isCurrent: false,
+    });
+  }
+
+  // ── 组2：查看视角（仅支委可见，移除 organizer/deep 死代码后只剩 leader） ──
+  const viewableRoles = (AuthStore.getViewableRoles(role) || []).filter(r => r === 'leader');
   const currentView = AuthStore.getViewRole();
+  const views = viewableRoles.map(r => ({
+    type: 'view',
+    role: r,
+    label: `${ROLE_LABELS[r] || r} 视角`,
+    isCurrent: r === currentView,
+  }));
+  // 增加"取消视角"项（当前处于视角时显示）
+  if (currentView) {
+    views.push({
+      type: 'view',
+      role: '',
+      label: '取消视角',
+      isCurrent: false,
+    });
+  }
 
-  const optionItems = viewableRoles.map(r => {
-    const isSelected = r === currentView;
-    const activeBar = isSelected
-      ? `<span style="position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--party-gold);border-radius:1px;"></span>`
-      : '';
-    const selectedBg = isSelected ? 'background:var(--surface-hover);' : '';
-    return `<div class="view-option" data-role="${r}" style="position:relative;padding:8px 12px;cursor:pointer;color:var(--neutral-800);font-size:13px;transition:background 0.15s;${selectedBg}">${activeBar}<span>${ROLE_LABELS[r] || r}</span></div>`;
-  }).join('');
+  // 两组都为空时隐藏按钮（单一身份的普通参与者）
+  if (workspaces.length === 0 && views.length === 0) return '';
+
+  // 渲染分组
+  let groupsHTML = '';
+  if (workspaces.length > 0) {
+    groupsHTML += `
+      <div style="padding:6px 12px;font-size:10px;color:var(--neutral-400);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">切换工作台</div>
+      ${workspaces.map(w => `
+        <a href="${w.href}" data-ws-role="${w.role}" class="view-option" data-type="workspace" style="position:relative;display:flex;align-items:center;gap:6px;padding:8px 12px;cursor:pointer;color:var(--neutral-800);font-size:13px;transition:background 0.15s;text-decoration:none;">
+          ${w.isCurrent ? '<span style="position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--party-gold);border-radius:1px;"></span>' : ''}
+          <span>${w.label}</span>
+          ${w.isCurrent ? '<span style="margin-left:auto;font-size:10px;color:var(--neutral-400);">当前</span>' : ''}
+        </a>
+      `).join('')}
+    `;
+  }
+  if (views.length > 0) {
+    if (workspaces.length > 0) {
+      groupsHTML += '<div style="height:1px;background:#F3F4F6;margin:4px 0;"></div>';
+    }
+    groupsHTML += `
+      <div style="padding:6px 12px;font-size:10px;color:var(--neutral-400);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">查看视角</div>
+      ${views.map(v => `
+        <div class="view-option" data-type="view" data-role="${v.role}" style="position:relative;padding:8px 12px;cursor:pointer;color:var(--neutral-800);font-size:13px;transition:background 0.15s;">
+          ${v.isCurrent ? '<span style="position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--party-gold);border-radius:1px;"></span>' : ''}
+          <span>${v.label}</span>
+          ${v.isCurrent ? '<span style="margin-left:auto;font-size:10px;color:var(--neutral-400);">当前</span>' : ''}
+        </div>
+      `).join('')}
+    `;
+  }
 
   return `
     <div id="view-switcher" style="position:relative;">
@@ -48,8 +114,8 @@ function _viewSwitcherHTML(role) {
         <span>我的视角</span>
         <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style="flex-shrink:0;"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <div id="view-switcher-panel" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;width:180px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);background:var(--surface-card);color:var(--neutral-800);overflow:hidden;z-index:100;border:1px solid #E5E7EB;">
-        ${optionItems}
+      <div id="view-switcher-panel" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;min-width:200px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);background:var(--surface-card);color:var(--neutral-800);overflow:hidden;z-index:100;border:1px solid #E5E7EB;">
+        ${groupsHTML}
       </div>
     </div>
   `;
@@ -66,7 +132,7 @@ function _notificationBellHTML() {
   return `
     <div id="notification-bell" style="position:relative;">
       <button id="notif-btn" style="width:40px;height:40px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;cursor:pointer;">
-        ${icon('bell', { size: 16, stroke: '#FFFFFF' })}
+        ${icon('bell', { stroke: '#FFFFFF', className: 'w-4 h-4' })}
         ${badge}
       </button>
       <div id="notif-dropdown" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;width:320px;background:white;border-radius:var(--radius-sm);box-shadow:var(--shadow-dropdown);z-index:100;overflow:hidden;border:1px solid #E5E7EB;"></div>
@@ -94,7 +160,7 @@ export function renderHeader(activeModule) {
       </div>
       <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
         ${_roleLabelHTML(role)}
-        ${_viewSwitcherHTML(role)}
+        ${_viewSwitcherHTML(role, user)}
         ${_notificationBellHTML()}
       </div>
     </div>
@@ -149,18 +215,26 @@ function _bindViewSwitcher(header) {
     btn.style.background = 'rgba(255,255,255,0.1)';
   });
 
-  // 点击选项项
+  // 点击选项项（区分 workspace 跳转 和 view 视角切换）
   panel.querySelectorAll('.view-option').forEach(opt => {
     opt.addEventListener('mouseenter', () => {
       opt.style.background = 'var(--surface-hover)';
     });
     opt.addEventListener('mouseleave', () => {
-      // 选中项保持高亮背景
-      const isSelected = opt.dataset.role === AuthStore.getViewRole();
+      const isSelected = opt.dataset.type === 'view' && opt.dataset.role === AuthStore.getViewRole();
       opt.style.background = isSelected ? 'var(--surface-hover)' : 'transparent';
     });
     opt.addEventListener('click', (e) => {
+      const type = opt.dataset.type;
+      if (type === 'workspace') {
+        // workspace 类型：<a> 标签会自动跳转，这里只需关闭面板
+        e.stopPropagation();
+        panel.classList.add('hidden');
+        return;
+      }
+      // view 类型：切换只读视角
       e.stopPropagation();
+      e.preventDefault();
       const targetRole = opt.dataset.role;
       const prevRole = AuthStore.getViewRole();
       if (targetRole) {
@@ -168,13 +242,10 @@ function _bindViewSwitcher(header) {
       } else {
         AuthStore.clearView();
       }
-      // 派发事件，sidebar 自身订阅并 re-render（不 reload）
       document.dispatchEvent(new CustomEvent('view-role-change', {
         detail: { viewRole: targetRole || '', prevRole }
       }));
-      // 顶栏角色标签自身也需要更新
       _rerenderRoleLabel();
-      // 收起面板并刷新选中态
       panel.classList.add('hidden');
       _refreshViewSwitcherSelection(panel);
     });
@@ -195,23 +266,25 @@ function _bindViewSwitcher(header) {
   });
 }
 
-// 刷新自定义下拉的选中态（左侧竖条 + 背景高亮）
+// 刷新自定义下拉的选中态（仅 view 类型有选中态；workspace 类型选中态在渲染时固定）
 function _refreshViewSwitcherSelection(panel) {
   const currentView = AuthStore.getViewRole();
-  panel.querySelectorAll('.view-option').forEach(opt => {
+  panel.querySelectorAll('.view-option[data-type="view"]').forEach(opt => {
     const r = opt.dataset.role;
-    const isSelected = r === currentView;
+    const isSelected = r === currentView && r !== '';
+    // "取消视角"项在已有视角时高亮
+    const isCancelActive = r === '' && currentView !== '';
+    const highlight = isSelected || isCancelActive;
     // 更新左侧竖条
     const existingBar = opt.querySelector('span[style*="party-gold"]');
-    if (isSelected && !existingBar) {
+    if (highlight && !existingBar) {
       const bar = document.createElement('span');
       bar.style.cssText = 'position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--party-gold);border-radius:1px;';
       opt.prepend(bar);
-    } else if (!isSelected && existingBar) {
+    } else if (!highlight && existingBar) {
       existingBar.remove();
     }
-    // 更新背景
-    opt.style.background = isSelected ? 'var(--surface-hover)' : 'transparent';
+    opt.style.background = highlight ? 'var(--surface-hover)' : 'transparent';
   });
 }
 
@@ -250,8 +323,7 @@ function _bindNotificationBell(header) {
 
       const priorityBadge = {
         urgent: '<span style="display:inline-block;padding:1px 6px;font-size:10px;font-weight:500;border-radius:9999px;background:#FEE2E2;color:#B91C1C;">紧急</span>',
-        normal: '<span style="display:inline-block;padding:1px 6px;font-size:10px;font-weight:500;border-radius:9999px;background:#DBEAFE;color:#1D4ED8;">一般</span>',
-        low:    '<span style="display:inline-block;padding:1px 6px;font-size:10px;font-weight:500;border-radius:9999px;background:#F3F4F6;color:#4B5563;">低优</span>',
+        normal: '<span style="display:inline-block;padding:1px 6px;font-size:10px;font-weight:500;border-radius:9999px;background:#DBEAFE;color:#1D4ED8;">重要</span>',
       };
 
       dropdown.innerHTML = notices.slice(0, 10).map(n => `
@@ -260,13 +332,30 @@ function _bindNotificationBell(header) {
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
             ${priorityBadge[n.priority] || ''}
             <p style="font-size:13px;color:#374151;margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${n.title || n.content}</p>
+            ${!n.read ? `<button class="notif-mark-read" data-notice-id="${n.id}" style="font-size:10px;color:#2563EB;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;transition:background 0.15s;flex-shrink:0;" onmouseenter="this.style.background='#EFF6FF'" onmouseleave="this.style.background='none'">已读</button>` : ''}
           </div>
           <p style="font-size:11px;color:#9CA3AF;margin:0;">${n.publishDate || n.date || ''}</p>
         </div>
       `).join('');
 
+      // 绑定"已读"按钮：stopPropagation 防止触发外层跳转
+      dropdown.querySelectorAll('.notif-mark-read').forEach(btn => {
+        btn.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          const id = btn.dataset.noticeId;
+          if (id) {
+            NoticeStore.markRead(id);
+            // 视觉反馈：标题变浅 + 移除按钮
+            const item = btn.closest('.notif-dropdown-item');
+            const titleP = item?.querySelector('p[style*="color:#374151"]');
+            if (titleP) titleP.style.color = '#9CA3AF';
+            btn.remove();
+          }
+        });
+      });
+
       // 绑定点击：标记已读 + 跳转
-      // 优先级：有 targetUrl 时直接跳 targetUrl（赋权通知等），否则跳首页 index.html?notice=id（向后兼容）
+      // 优先级：有 targetUrl 时直接跳 targetUrl（赋权通知等），否则跳通知详情页
       dropdown.querySelectorAll('.notif-dropdown-item').forEach(item => {
         item.addEventListener('mouseenter', () => {
           item.style.background = '#F9FAFB';
@@ -288,7 +377,7 @@ function _bindNotificationBell(header) {
             const basePath = path.includes('/workspace/') ? '../' : '';
             const finalUrl = targetUrl
               ? basePath + targetUrl
-              : `${basePath}index.html?notice=${id}`;
+              : `${basePath}notice.html?id=${id}`;
             window.location.href = finalUrl;
           }, 150);
         });

@@ -8,6 +8,7 @@
 import { mockDB } from '../core/domain.js';
 import { saveDB } from './mock.js';
 import { MOCK_NOTICES } from '../mock/index.js';
+import { showToast } from '../core/utils.js';
 
 const NOTICE_STORAGE_KEY = 'workflowos_notices_v1';
 
@@ -90,7 +91,7 @@ export const NoticeStore = {
     if (filter.sortBy === 'date') {
       result.sort((a, b) => b.publishDate.localeCompare(a.publishDate));
     } else {
-      const priorityOrder = { urgent: 0, normal: 1, low: 2 };
+      const priorityOrder = { urgent: 0, normal: 1 };
       result.sort((a, b) => (priorityOrder[a.priority] || 1) - (priorityOrder[b.priority] || 1));
     }
 
@@ -177,8 +178,7 @@ export function renderNoticeList(containerId, limit = 5) {
 
   const priorityBadge = {
     urgent: '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-red-100 text-red-700">紧急</span>',
-    normal: '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-blue-100 text-blue-700">一般</span>',
-    low:    '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-gray-100 text-gray-600">低优</span>',
+    normal: '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-blue-100 text-blue-700">重要</span>',
   };
 
   container.innerHTML = notices.map(n => `
@@ -190,9 +190,30 @@ export function renderNoticeList(containerId, limit = 5) {
         <p class="text-sm font-medium text-gray-800 truncate group-hover:text-blue-700 transition-colors">${n.title}</p>
         <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">${n.content}</p>
       </div>
-      <span class="text-[10px] text-gray-400 whitespace-nowrap mt-0.5">${n.publishDate}</span>
+      <div class="flex items-center gap-1 whitespace-nowrap mt-0.5">
+        ${!n.read ? `<button class="notice-confirm-read text-[10px] text-blue-600 hover:text-blue-800 px-1.5 py-0.5 rounded hover:bg-blue-50 transition-colors" data-notice-id="${n.id}">确认读取</button>` : ''}
+        <span class="text-[10px] text-gray-400">${n.publishDate}</span>
+      </div>
     </div>
   `).join('');
+
+  // 绑定确认读取按钮：stopPropagation 防止触发外层跳转
+  container.querySelectorAll('.notice-confirm-read').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.noticeId;
+      if (id) {
+        NoticeStore.markRead(id);
+        // 视觉反馈：标题变浅 + 移除按钮
+        const item = btn.closest('.notice-item');
+        if (item) {
+          item.querySelector('p.text-sm')?.classList.add('text-gray-500');
+          btn.remove();
+        }
+        showToast('success', '已确认读取');
+      }
+    });
+  });
 
   // 绑定点击：标记已读 + 跳转
   // 优先级：有 targetUrl 时直接跳 targetUrl，否则跳 index.html?notice=id（向后兼容）
@@ -208,10 +229,10 @@ export function renderNoticeList(containerId, limit = 5) {
       const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
 
       // 有 targetUrl（如赋权通知）→ 直接跳转
-      // 无 targetUrl（普通通知）→ 跳首页并带 notice 参数（向后兼容）
+      // 无 targetUrl（普通通知）→ 跳通知详情页
       const finalUrl = targetUrl
         ? basePath + targetUrl
-        : `${basePath}index.html?notice=${id}`;
+        : `${basePath}notice.html?id=${id}`;
       window.location.href = finalUrl;
     });
   });

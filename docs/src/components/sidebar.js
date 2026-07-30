@@ -18,9 +18,9 @@ function getNavItems() {
   return [
     { module: 'dashboard', label: '首页', href: base + 'index.html', icon: icon('home') },
     { module: 'workspace', label: '工作台', icon: icon('calendar') },
-    { module: 'archive', label: '归档库', href: base + 'archive.html', icon: icon('archive') },
     { module: 'search', label: '资料查询', href: base + 'search.html', icon: icon('search') },
     { module: 'feedback', label: '意见反馈', href: base + 'feedback.html', icon: icon('message') },
+    { module: 'archive', label: '归档库', href: base + 'archive.html', icon: icon('archive') },
   ];
 }
 
@@ -69,7 +69,7 @@ export function renderSidebar(activeModule) {
   const footerItems = getFooterItems();
   const footerHTML = footerItems.map(item => `
     <a href="${item.href}" data-module="${item.module}" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-400);text-decoration:none;border:none;">
-      ${icon(item.module === 'help' ? 'book' : 'info', { size: 12, stroke: 'var(--neutral-400)' })}
+      ${icon(item.module === 'help' ? 'book' : 'info', { stroke: 'var(--neutral-400)' })}
       <span>${item.label}</span>
     </a>
   `).join('');
@@ -81,7 +81,7 @@ export function renderSidebar(activeModule) {
     <div class="sidebar-footer">
       <div class="flex flex-col gap-0.5 mb-2">${footerHTML}</div>
       <button id="sidebar-logout" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-400);cursor:pointer;border:none;background:none;">
-        ${icon('logout', { size: 12, stroke: 'var(--neutral-400)' })}
+        ${icon('logout', { stroke: 'var(--neutral-400)' })}
         <span>退出登录</span>
       </button>
     </div>
