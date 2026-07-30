@@ -106,7 +106,7 @@ function renderNoticeDetail(n) {
       activity: 'index.html',
       party: 'workspace/secretary.html',
       workspace: 'workspace/secretary.html',
-      attendance: 'workspace/disc-commissioner.html',
+      attendance: 'workspace/disc.html',
     };
     const base = getBasePath();
     const url = moduleUrls[n.targetModule] || 'index.html';

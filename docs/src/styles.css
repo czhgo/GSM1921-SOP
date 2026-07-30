@@ -436,6 +436,78 @@ textarea.input-flat {
   cursor: not-allowed;
 }
 
+/* ── Action Button — 小型操作按钮（表格行内/列表操作） ── */
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 150ms ease-out, border-color 150ms ease-out;
+  white-space: nowrap;
+}
+
+.btn-action:hover { filter: brightness(0.95); }
+.btn-action:active { filter: brightness(0.9); }
+
+/* Action Button — 色彩变体 */
+.btn-action-red   { background: #FEF2F2; color: #B91C1C; border-color: #FECACA; }
+.btn-action-blue  { background: #EFF6FF; color: #1D4ED8; border-color: #BFDBFE; }
+.btn-action-green { background: #F0FDF4; color: #15803D; border-color: #BBF7D0; }
+.btn-action-amber { background: #FFFBEB; color: #B45309; border-color: #FDE68A; }
+.btn-action-orange{ background: #FFF7ED; color: #C2410C; border-color: #FED7AA; }
+.btn-action-gray  { background: #F9FAFB; color: #4B5563; border-color: #E5E7EB; }
+
+/* ── Tab Button — Tab 切换按钮 ── */
+.btn-tab {
+  padding: 8px 16px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--neutral-200);
+  background: var(--neutral-0);
+  color: var(--neutral-600);
+  cursor: pointer;
+  transition: all 150ms ease-out;
+}
+
+.btn-tab:hover { background: var(--neutral-50); border-color: var(--neutral-300); }
+
+.btn-tab.active {
+  background: var(--primary-50);
+  color: var(--primary-700);
+  border-color: var(--primary-200);
+}
+
+/* ── Medium Button — 中等操作按钮 ── */
+.btn-md {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 150ms ease-out, border-color 150ms ease-out;
+  white-space: nowrap;
+}
+
+.btn-md:hover { filter: brightness(0.95); }
+.btn-md:active { filter: brightness(0.9); }
+
+.btn-md-red   { background: #FEF2F2; color: #B91C1C; border-color: #FECACA; }
+.btn-md-blue  { background: #EFF6FF; color: #1D4ED8; border-color: #BFDBFE; }
+.btn-md-green { background: #F0FDF4; color: #15803D; border-color: #BBF7D0; }
+.btn-md-amber { background: #FFFBEB; color: #B45309; border-color: #FDE68A; }
+.btn-md-gray  { background: #F9FAFB; color: #4B5563; border-color: #E5E7EB; }
+
 /* ═══════════════════════════════════════════════════════════════
    COMPONENT: Header
    ═══════════════════════════════════════════════════════════════ */

@@ -4,7 +4,7 @@ import { CrossPageState } from '../core/cross-page-state.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js';
 import { saveDB } from '../services/mock.js';
-import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS, reviewToDisplay, ACTIVITIES, PEOPLE, getPersonName, MOCK_TASKFORCES } from '../mock/index.js';
+import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, reviewToDisplay, PEOPLE, getPersonName } from '../mock/index.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { renderTabBar } from '../components/tab-bar.js';
 import { openFormModal } from '../components/modal.js';
@@ -12,8 +12,11 @@ import { loadHandoverRecords, updateHandoverRecord } from '../services/handover.
 import { autoGenerateMakeupTask, loadMakeupTasks, saveMakeupTasks } from '../services/makeup.js';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js';
 import { loadInspectionRecords, saveInspectionRecords, getOverdueRecords, getRecordsBySource, getRecordsByPerson, confirmInspectionRecord, deleteInspectionRecord } from '../services/inspection.js';
+import { loadActivities } from '../services/activity.js';
+import { loadActivityReviews, loadTaskforceReviews } from '../services/review.js';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js';
 
-const { accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', accentRole: 'disc-commissioner' });
+const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'disc-commissioner' });
 
 const DISC_COMMISSIONER_ID = 'p10'; // 纪检委员 personId
 
@@ -45,8 +48,9 @@ function _saveDeposits(deposits) {
 
 function renderDiscUI(state) {
   let activities = state.activities || [];
-  if (activities.length === 0 && ACTIVITIES.length > 0) {
-    activities = ACTIVITIES.map(a => ({ ...a, visibility: 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() }));
+  const allActivities = loadActivities();
+  if (activities.length === 0 && allActivities.length > 0) {
+    activities = allActivities.map(a => ({ ...a, visibility: 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() }));
     setState({ activities });
     return;
   }
@@ -60,8 +64,9 @@ function renderDiscUI(state) {
       { id: 'attendance', label: '考勤管理(含交接)', render: () => _renderAttendanceContent(null) },
       { id: 'review', label: '活动监督复盘', render: () => _renderReviewContent() },
       { id: 'inspection', label: '考察管理', render: () => _renderInspectionContent() },
-      { id: 'makeup', label: '<span class="text-[9px] px-1 py-0.5 rounded bg-amber-50 text-amber-700 mr-1 align-middle">党务</span>补课制度', render: () => _renderMakeupContent() },
-      { id: 'mailbox', label: '<span class="text-[9px] px-1 py-0.5 rounded bg-amber-50 text-amber-700 mr-1 align-middle">党务</span>公邮管理', render: () => _renderMailboxContent() },
+      { id: 'makeup', label: '补课制度', render: () => _renderMakeupContent(), groupLabel: '党务' },
+      { id: 'mailbox', label: '公邮管理', render: () => _renderMailboxContent(), groupLabel: '党务' },
+      { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('disc-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('disc-commissioner', 'u_disc_commissioner'); bindMyDispatchEvents(el, 'disc-commissioner', 'u_disc_commissioner'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
     defaultTab: 'attendance',
@@ -74,18 +79,6 @@ function renderDiscUI(state) {
   `;
 
   tabBar.bindEvents(container);
-
-  // 插入党务分隔线（考察管理 与 补课制度 之间）
-  const tabBarEl = container.querySelector('.flex.gap-2');
-  if (tabBarEl) {
-    const buttons = tabBarEl.querySelectorAll('button');
-    if (buttons.length >= 4) {
-      const divider = document.createElement('div');
-      divider.className = 'self-stretch w-px bg-gray-200 mx-1';
-      divider.setAttribute('aria-hidden', 'true');
-      buttons[2].after(divider);
-    }
-  }
 
   const urlParams = CrossPageState.getURLParams();
   if (urlParams.activityId) {
@@ -130,8 +123,8 @@ function _renderAttendanceContent(filterActivityId) {
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤总表</h4>
         <div class="flex gap-2">
-          <button class="att-view-btn text-xs px-2 py-1 rounded-lg border" data-view="long" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">活动视图</button>
-          <button class="att-view-btn text-xs px-2 py-1 rounded-lg border" data-view="wide" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">人视图</button>
+          <button class="att-view-btn btn-tab active" data-view="long">活动视图</button>
+          <button class="att-view-btn btn-tab" data-view="wide">人视图</button>
         </div>
       </div>
       <div class="text-xs text-gray-500 mb-3">纪检委员维护考勤系统，组织委员的活动出勤数据直接使用本系统</div>
@@ -216,7 +209,7 @@ function _renderAttendanceContent(filterActivityId) {
               <td class="py-2 px-3 text-gray-600">${a.activity}</td>
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${a.status === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.status === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${ATTENDANCE_STATUS_LABELS[a.status] || a.status}</span></td>
               <td class="py-2 px-3 text-gray-500">${isPending ? '<span class="text-orange-600">待确认</span>' : `<span class="text-green-600">${a.confirmer}</span>`}</td>
-              <td class="py-2 px-3">${isPending ? `<button class="text-xs px-2 py-1 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors btn-disc-confirm-att" data-record-id="${a.id}" style="cursor:pointer;">确认</button>` : '<span class="text-[10px] text-green-600">已确认</span>'}</td>
+              <td class="py-2 px-3">${isPending ? `<button class="btn-action btn-action-orange btn-disc-confirm-att" data-record-id="${a.id}">确认</button>` : '<span class="text-[10px] text-green-600">已确认</span>'}</td>
             </tr>
           `}).join('')}</tbody>
         </table>
@@ -311,8 +304,8 @@ function _renderInspectionContent() {
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考察总表</h4>
         <div class="flex gap-2">
-          <button class="insp-view-btn text-xs px-2 py-1 rounded-lg border" data-view="long" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">活动视图</button>
-          <button class="insp-view-btn text-xs px-2 py-1 rounded-lg border" data-view="wide" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">人视图</button>
+          <button class="insp-view-btn btn-tab active" data-view="long">活动视图</button>
+          <button class="insp-view-btn btn-tab" data-view="wide">人视图</button>
         </div>
       </div>
       <div class="text-xs text-gray-500 mb-3">纪检委员管理考察记录，党小组组长/组织委员上传 → 纪检确认 → 录入考察总表</div>
@@ -467,7 +460,7 @@ function _renderReviewContent() {
 
   const progressColor = { '已完成':'bg-green-100 text-green-700', '超时':'bg-red-100 text-red-700', '进行中':'bg-blue-100 text-blue-700' };
   const reviewColor = { '已上传':'bg-orange-100 text-orange-700', '未提交':'bg-red-100 text-red-700', '—':'bg-gray-100 text-gray-500' };
-  const reviewData = reviewToDisplay(REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS);
+  const reviewData = reviewToDisplay(loadActivityReviews(), loadTaskforceReviews());
 
   // 经验沉淀交叉引用：判断已完成复盘的活动是否已有沉淀
   const deposits = _loadDeposits();
@@ -494,7 +487,7 @@ function _renderReviewContent() {
               </div>
               <div class="flex items-center gap-2 ml-4">
                 <span class="text-[10px] px-1.5 py-0.5 rounded-full ${progressColor[r.progress] || 'bg-gray-100 text-gray-500'}">${r.progress}</span>
-                ${r.overdue ? '<button class="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 border border-red-200 btn-disc-remind" style="cursor:pointer;">邮件提醒</button>' : ''}
+                ${r.overdue ? '<button class="btn-action btn-action-red btn-disc-remind">邮件提醒</button>' : ''}
               </div>
             </div>
           `).join('')}
@@ -516,15 +509,15 @@ function _renderReviewContent() {
               ${r.reviewContent ? `<div class="text-xs text-gray-600 mb-2 p-2 bg-white rounded-lg border border-gray-100">${r.reviewContent}</div>` : ''}
               <div class="flex gap-2">
                 ${r.reviewStatus === '已上传' ? `
-                  <button class="text-xs px-2 py-1 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 btn-disc-annotate" style="cursor:pointer;">批注</button>
-                  <button class="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 border border-red-200 btn-disc-reject" style="cursor:pointer;">打回</button>
-                  <button class="text-xs px-2 py-1 rounded-lg bg-green-50 text-green-700 border border-green-200 btn-disc-confirm" style="cursor:pointer;">确认</button>
+                  <button class="btn-action btn-action-orange btn-disc-annotate">批注</button>
+                  <button class="btn-action btn-action-red btn-disc-reject">打回</button>
+                  <button class="btn-action btn-action-green btn-disc-confirm">确认</button>
                 ` : ''}
                 ${r.reviewStatus === '未提交' ? `
-                  <button class="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 border border-red-200 btn-disc-remind-review" style="cursor:pointer;">邮件提醒</button>
+                  <button class="btn-action btn-action-red btn-disc-remind-review">邮件提醒</button>
                 ` : ''}
                 ${r.reviewStatus === '已确认' && !hasDeposit(r) ? `
-                  <button class="text-xs px-2 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 btn-disc-urge-deposit" style="cursor:pointer;" data-activity-name="${r.sourceName || r.activity}" data-organizer="${r.organizer}">督促沉淀</button>
+                  <button class="btn-action btn-action-amber btn-disc-urge-deposit" data-activity-name="${r.sourceName || r.activity}" data-organizer="${r.organizer}">督促沉淀</button>
                 ` : ''}
               </div>
             </div>
@@ -702,8 +695,8 @@ function _renderDiscHandoverRecord(r, group) {
         </div>
         <div class="flex items-center gap-2">
           <span class="text-[10px] text-gray-500">${completedItems}/${totalItems} 项</span>
-          ${group === 'in_progress' ? `<button class="btn-disc-urge-handover text-xs px-2 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors" style="cursor:pointer;" data-record-id="${r.id}">催促</button>` : ''}
-          ${group === 'submitted' ? `<button class="btn-disc-confirm-handover text-xs px-2 py-1 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors" style="cursor:pointer;" data-record-id="${r.id}">确认</button>` : ''}
+          ${group === 'in_progress' ? `<button class="btn-action btn-action-blue btn-disc-urge-handover" data-record-id="${r.id}">催促</button>` : ''}
+          ${group === 'submitted' ? `<button class="btn-action btn-action-green btn-disc-confirm-handover" data-record-id="${r.id}">确认</button>` : ''}
         </div>
       </div>
       <div class="text-[10px] text-gray-500 mb-1">记录人：${recorderName} · 创建于 ${_discFormatTime(r.createdAt)}</div>
@@ -831,7 +824,7 @@ function _renderMakeupContent() {
                 <td class="py-2 px-3 text-gray-600">${t.isMandatory ? '<span class="text-[10px] px-1 py-0.5 rounded bg-red-50 text-red-600">必修</span> 自学+心得' : '<span class="text-[10px] px-1 py-0.5 rounded bg-blue-50 text-blue-600">选修</span> 自学'}</td>
                 <td class="py-2 px-3 text-gray-600">${t.deadline || '—'}</td>
                 <td class="py-2 px-3">${statusBadge(t)}</td>
-                <td class="py-2 px-3">${t.status === 'pending' ? `<button class="text-xs px-2 py-1 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors btn-disc-confirm-makeup" data-task-id="${t.id}" style="cursor:pointer;">确认完成</button>` : '<span class="text-[10px] text-gray-400">—</span>'}</td>
+                <td class="py-2 px-3">${t.status === 'pending' ? `<button class="btn-action btn-action-green btn-disc-confirm-makeup" data-task-id="${t.id}">确认完成</button>` : '<span class="text-[10px] text-gray-400">—</span>'}</td>
               </tr>
             `}).join('')}</tbody>
           </table>
@@ -928,7 +921,7 @@ function _renderMailboxContent() {
           ${isOverdue ? '<div class="text-xs text-red-500 mt-2">已超期，请尽快查收公邮</div>' : ''}
         </div>
         <div class="mt-3 flex gap-2">
-          <button class="text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors btn-disc-check-mailbox" style="cursor:pointer;">标记已查收</button>
+          <button class="btn-md btn-md-green btn-disc-check-mailbox">标记已查收</button>
         </div>
       </div>
 
@@ -973,4 +966,4 @@ function _renderMailboxContent() {
 
 registerRenderCallback(renderDiscUI);
 
-loadWorkspaceData({ role: 'disc-commissioner', fallbackData: () => ACTIVITIES, logTag: 'ws-disc' });
+loadWorkspaceData({ role: 'disc-commissioner', fallbackData: () => loadActivities(), logTag: 'ws-disc' });

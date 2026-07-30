@@ -4,15 +4,19 @@ import { BranchService } from '../services/runtime.js';
 import { showToast } from '../core/utils.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
-import { ACTIVITIES, _personName } from '../mock/index.js';
+import { _personName } from '../mock/index.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
+import { icon } from '../core/icons.js';
+import { loadActivities } from '../services/activity.js';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js';
 
-const { accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', accentRole: 'prop-commissioner' });
+const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'prop-commissioner' });
 
 function renderPropUI(state) {
   let activities = state.activities || [];
-  if (activities.length === 0 && ACTIVITIES.length > 0) {
-    activities = ACTIVITIES.map(a => ({ ...a, visibility: 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() }));
+  const allActivities = loadActivities();
+  if (activities.length === 0 && allActivities.length > 0) {
+    activities = allActivities.map(a => ({ ...a, visibility: 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() }));
     setState({ activities });
     return;
   }
@@ -28,8 +32,9 @@ function renderPropUI(state) {
     tabs: [
       { id: 'tasks', label: '宣传任务', render: (ctx) => _renderTasksContent() },
       { id: 'kanban', label: '项目看板', render: (ctx) => _renderKanbanContent(ctx.activities, ctx.propTf) },
-      { id: 'archive', label: '档案归档', render: (ctx) => _renderArchiveContent() },
-      { id: 'weekly', label: '周报报送', render: (ctx) => _renderWeeklyContent() },
+      { id: 'archive', label: '档案归档', render: (ctx) => _renderArchiveContent(), groupLabel: '党务' },
+      { id: 'weekly', label: '周报报送', render: (ctx) => _renderWeeklyContent(), groupLabel: '党务' },
+      { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('prop-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('prop-commissioner', 'u_prop_commissioner'); bindMyDispatchEvents(el, 'prop-commissioner', 'u_prop_commissioner'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
     renderCtx: { activities, propTf },
@@ -37,21 +42,6 @@ function renderPropUI(state) {
   });
 
   container.innerHTML = tabBar.html;
-
-  // 在「项目看板」和「档案归档」之间插入党务分组指示器
-  const kanbanBtn = container.querySelector('[data-prop-tab="kanban"]');
-  const archiveBtn = container.querySelector('[data-prop-tab="archive"]');
-  if (kanbanBtn && archiveBtn) {
-    const divider = document.createElement('span');
-    divider.className = 'self-stretch w-px bg-gray-300 mx-1 my-1.5';
-    divider.setAttribute('aria-hidden', 'true');
-    kanbanBtn.insertAdjacentElement('afterend', divider);
-    // 在「档案归档」前加党务标签
-    const label = document.createElement('span');
-    label.className = 'text-[10px] text-gray-400 font-medium self-center px-1 select-none';
-    label.textContent = '党务';
-    divider.insertAdjacentElement('afterend', label);
-  }
 
   tabBar.bindEvents(container);
   tabBar.activate(tabBar.activeTab);
@@ -353,17 +343,17 @@ function _renderArchiveContent() {
   container.innerHTML = `
     <div class="mb-4 flex flex-col sm:flex-row gap-3">
       <div class="relative flex-1">
-        <input id="archive-search" type="text" placeholder="搜索活动名称..." class="w-full pl-8 pr-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 transition" />
-        <svg class="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input id="archive-search" type="text" placeholder="搜索活动名称..." class="input-flat text-xs flex-1" />
+        ${icon('search', { className: 'absolute left-2.5 top-2.5 w-3.5 h-3.5 text-gray-400' })}
       </div>
-      <select id="archive-filter-category" class="px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">
+      <select id="archive-filter-category" class="input-flat text-xs">
         <option value="">全部类别</option>
         <option value="新闻稿">新闻稿</option>
         <option value="照片">照片</option>
         <option value="视频">视频</option>
         <option value="其他">其他</option>
       </select>
-      <select id="archive-filter-status" class="px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">
+      <select id="archive-filter-status" class="input-flat text-xs">
         <option value="">全部状态</option>
         <option value="pending">待归档</option>
         <option value="in_progress">归档中</option>
@@ -378,7 +368,7 @@ function _renderArchiveContent() {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="card rounded-xl p-5">
         <div class="flex items-center gap-2 mb-3">
-          <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          ${icon('fileText', { className: 'w-4 h-4 text-blue-600' })}
           <span class="text-sm font-semibold text-gray-700">材料标准</span>
         </div>
         <div class="space-y-2">
@@ -393,7 +383,7 @@ function _renderArchiveContent() {
 
       <div class="card rounded-xl p-5">
         <div class="flex items-center gap-2 mb-3">
-          <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          ${icon('download', { className: 'w-4 h-4 text-purple-600' })}
           <span class="text-sm font-semibold text-gray-700">模板下载</span>
         </div>
         <div class="space-y-2">
@@ -505,7 +495,7 @@ function _renderWeeklyContent() {
     <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
       <div class="lg:col-span-2 card rounded-xl p-5">
         <div class="flex items-center gap-2 mb-4">
-          <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          ${icon('pencil', { className: 'w-4 h-4 text-blue-600' })}
           <span class="text-sm font-semibold text-gray-700">填写周报</span>
           ${draftReport ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full border ${WEEKLY_STATUS_STYLE.draft}">${draftReport.week}</span>` : ''}
         </div>
@@ -526,7 +516,7 @@ function _renderWeeklyContent() {
 
       <div class="lg:col-span-3 card rounded-xl p-5">
         <div class="flex items-center gap-2 mb-3">
-          <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          ${icon('clock', { className: 'w-4 h-4 text-gray-500' })}
           <span class="text-sm font-semibold text-gray-700">报送历史</span>
         </div>
         <div class="space-y-2">
@@ -591,4 +581,4 @@ function _renderWeeklyReportItem(report) {
 
 registerRenderCallback(renderPropUI);
 
-loadWorkspaceData({ role: 'prop-commissioner', storeInits: [() => TaskForceRecordStore.init()], fallbackData: () => ACTIVITIES, logTag: 'ws-prop' });
+loadWorkspaceData({ role: 'prop-commissioner', storeInits: [() => TaskForceRecordStore.init()], fallbackData: () => loadActivities(), logTag: 'ws-prop' });

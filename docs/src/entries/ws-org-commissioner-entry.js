@@ -6,23 +6,19 @@ import { AuthStore } from '../services/auth.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { PersonPicker } from '../components/person-picker.js';
-import { ACTIVITIES, _personName, PEOPLE, MOCK_TASKFORCES, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js';
+import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js';
 import { mockDB, SourceType, ParticipationLevel } from '../core/domain.js';
 import { saveDB } from '../services/mock.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { renderTabBar } from '../components/tab-bar.js';
 import { renderQueryView } from '../components/query-view.js';
 import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js';
+import { loadActivities } from '../services/activity.js';
 import { icon } from '../core/icons.js';
+import { IssueStore, deriveIssueDisplayState, IssueNotify, renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js';
+import { ROLE_LABELS } from '../core/constants.js';
 
-const { accent, accentRgba, accentBorder } = bootstrapPage({ module: 'workspace', accentRole: 'org-commissioner' });
-
-const SVG = {
-  people: icon('users', { size: 12 }),
-  clipboard: icon('clipboard', { size: 12 }),
-  calendar: icon('calendar', { size: 12 }),
-  arrowRight: icon('arrowRight', { size: 12 }),
-};
+const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'org-commissioner' });
 
 // ════════════════════════════════════════════════════════════════
 //  发展党员追踪 — Mock 数据
@@ -49,8 +45,9 @@ let MOCK_CANDIDATES = [
 
 function renderOrgUI(state) {
   let activities = state.activities || [];
-  if (activities.length === 0 && ACTIVITIES.length > 0) {
-    activities = ACTIVITIES.map(a => ({ ...a, visibility: 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() }));
+  const allActivities = loadActivities();
+  if (activities.length === 0 && allActivities.length > 0) {
+    activities = allActivities.map(a => ({ ...a, visibility: 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() }));
     setState({ activities });
     return;
   }
@@ -70,6 +67,7 @@ function renderOrgUI(state) {
       { id: 'taskforce', label: '专班管理', render: (ctx) => _renderTaskforceContent(ctx.pending, ctx.recruiting, ctx.active, ctx.activities) },
       { id: 'talent', label: '人才库', render: () => _renderTalentContent() },
       { id: 'development', label: '发展党员', render: () => _renderDevelopmentContent(), groupLabel: '党务' },
+      { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('org-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('org-commissioner', 'u_org_commissioner'); bindMyDispatchEvents(el, 'org-commissioner', 'u_org_commissioner'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
     extraRightHtml: '<button id="btn-publish-tf" style="background:var(--accent-org-commissioner);color:white;border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity=\'0.9\'" onmouseout="this.style.opacity=\'1\'">发布招募</button>',
@@ -241,7 +239,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
 
         workSummaryHtml = `
           <div class="mt-4 pt-3 border-t border-gray-100">
-            <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">${SVG.clipboard} 工作量汇总</h5>
+            <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">工作量汇总</h5>
             ${tf.members.filter(m => m.personId).length === 0
               ? '<p class="text-xs text-gray-400">暂无成员</p>'
               : `<div class="rounded-lg px-3 py-1">${memberRows}</div>`
@@ -252,7 +250,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
         if (tf.status === 'active') {
           workSummaryHtml += `
           <div class="mt-4 pt-3 border-t border-gray-100 flex justify-end">
-            <button id="btn-dissolve-tf" class="text-sm px-4 py-2 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" style="cursor:pointer;">解散专班</button>
+            <button id="btn-dissolve-tf" class="btn-md btn-md-red">解散专班</button>
           </div>`;
         }
       }
@@ -298,7 +296,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
 
       const subRecordsHtml = `
         <div class="mt-4 pt-3 border-t border-gray-100">
-          <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">${SVG.clipboard} 子记录</h5>
+          <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">子记录</h5>
           ${renderSubTable('inspection', tfSubs.inspection)}
           ${renderSubTable('materials', tfSubs.materials)}
         </div>`;
@@ -307,8 +305,8 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">${tf.name}</h4>
         <p class="text-xs text-gray-500 mb-2">${tf.task}</p>
         <div class="flex gap-4 text-xs text-gray-400 mb-3">
-          <span>${SVG.people} ${filled}/${tf.capacity}</span>
-          ${tf.deadline ? `<span>${SVG.calendar} ${tf.deadline}</span>` : ''}
+          <span>${filled}/${tf.capacity}</span>
+          ${tf.deadline ? `<span>${tf.deadline}</span>` : ''}
           <span>发起: ${_personName(tf.initiator)}</span>
         </div>
         <div class="text-xs text-gray-500">成员：${tf.members.map(m => _personName(m.personId)).join('、')}</div>
@@ -416,8 +414,8 @@ function _renderTfCard(t, statusLabel, statusColor) {
       </div>
       <p class="text-xs text-gray-500 mb-2 line-clamp-2">${t.task}</p>
       <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
-        <span>${SVG.people} ${filled}/${t.capacity}</span>
-        ${t.deadline ? `<span>${SVG.calendar} ${t.deadline}</span>` : ''}
+        <span>${filled}/${t.capacity}</span>
+        ${t.deadline ? `<span>${t.deadline}</span>` : ''}
       </div>
       ${statusBtn}
     </div>`;
@@ -447,7 +445,7 @@ function _openRecruitForm() {
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
       <h3 class="font-title-cn" style="font-size:1.125rem;font-weight:700;color:#1F2937;margin:0;">发布专班招募</h3>
       <button id="recruit-form-close" type="button" style="width:32px;height:32px;border-radius:var(--radius-sm);border:none;background:#F3F4F6;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;">
-        ${icon('close', { size: 14, stroke: '#6B7280' })}
+        ${icon('close', { stroke: '#6B7280', className: 'w-3.5 h-3.5' })}
       </button>
     </div>
 
@@ -610,7 +608,7 @@ function _renderActivityProgress(activities) {
 
   progressEl.innerHTML = `
     <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
-      <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">${SVG.clipboard} 活动进度</h4>
+      <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">活动进度</h4>
       <div class="text-xs text-gray-500 mb-3">追踪所有已发布活动的执行状态</div>
       <div id="org-activity-query"></div>
     </div>
@@ -654,6 +652,8 @@ function _renderActivityProgress(activities) {
     },
     emptyMessage: '无匹配活动',
     accentColor: accent,
+    sortKey: 'date',
+    sortDir: 'desc',
   });
 
   // 绑定确认完成按钮
@@ -696,7 +696,7 @@ function _renderDevelopmentContent() {
       const sc = STAGE_COLOR[s];
       const count = stageCounts[s];
       const arrow = idx < STAGE_ORDER.length - 1
-        ? `<span class="text-gray-300 mx-0.5">${SVG.arrowRight}</span>`
+        ? `<span class="text-gray-300 mx-0.5">→</span>`
         : '';
       return `<span class="inline-flex items-center gap-1"><span style="width:8px;height:8px;border-radius:50%;background:${sc.dot};display:inline-block;"></span><span class="text-[11px] text-gray-600">${s}</span><span class="text-[10px] font-bold" style="color:${sc.dot};">${count}</span></span>${arrow}`;
     }).join('');
@@ -752,7 +752,7 @@ function _renderDevelopmentContent() {
     container.innerHTML = `
       <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
         <div class="flex items-center justify-between mb-3">
-          <h4 class="font-title-cn text-sm font-bold text-gray-700">${SVG.people} 发展党员追踪</h4>
+          <h4 class="font-title-cn text-sm font-bold text-gray-700">发展党员追踪</h4>
           <span class="text-xs text-gray-400">${MOCK_CANDIDATES.length} 人</span>
         </div>
         <div class="text-xs text-gray-500 mb-4">从入党申请人到正式党员的完整发展路径追踪</div>
@@ -815,7 +815,7 @@ function _renderTalentContent() {
   container.innerHTML = `
     <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
       <div class="flex items-center justify-between mb-3">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">${SVG.people} 人才库</h4>
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">人才库</h4>
         <span class="text-xs text-gray-400">${people.length} 人</span>
       </div>
       <div class="text-xs text-gray-500 mb-4">人员信息有机汇总，输出人才画像</div>
@@ -867,6 +867,8 @@ function _renderTalentContent() {
     },
     emptyMessage: '无匹配人员',
     accentColor: accent,
+    sortKey: 'name',
+    sortDir: 'asc',
   });
 
   // 点击人员展开考察记录汇总
@@ -923,10 +925,10 @@ function _renderTalentDetail(personId) {
           ${roleLabel[person.role] ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-600">${roleLabel[person.role]}</span>` : ''}
         </div>
       </div>
-      <button id="talent-detail-close" class="text-gray-400 hover:text-gray-600 transition-colors" style="cursor:pointer;">${icon('close', { size: 14, stroke: '#6B7280' })}</button>
+      <button id="talent-detail-close" class="text-gray-400 hover:text-gray-600 transition-colors" style="cursor:pointer;">${icon('close', { stroke: '#6B7280', className: 'w-3.5 h-3.5' })}</button>
     </div>
     <div class="mt-3">
-      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">${SVG.clipboard} 考察记录汇总 (${personInspections.length})</h5>
+      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">考察记录汇总 (${personInspections.length})</h5>
       ${personInspections.length === 0
         ? '<p class="text-xs text-gray-400 pl-2">暂无考察记录</p>'
         : `<div class="space-y-2">
@@ -998,7 +1000,7 @@ function _renderOrgInspectionContent() {
     <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">专班考察上传</h4>
-        <button class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200" id="btn-org-upload-insp" style="cursor:pointer;">${_orgInspFormVisible ? '收起表单' : '上传考察表单'}</button>
+        <button class="btn-md btn-md-red" id="btn-org-upload-insp">${_orgInspFormVisible ? '收起表单' : '上传考察表单'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表</div>
       ${formHtml}
@@ -1129,4 +1131,4 @@ function _renderOrgInspContentRows(selectedIds) {
 
 registerRenderCallback(renderOrgUI);
 
-loadWorkspaceData({ role: 'org-commissioner', storeInits: [() => TaskForceRecordStore.init()], fallbackData: () => ACTIVITIES, logTag: 'ws-org' });
+loadWorkspaceData({ role: 'org-commissioner', storeInits: [() => TaskForceRecordStore.init()], fallbackData: () => loadActivities(), logTag: 'ws-org' });

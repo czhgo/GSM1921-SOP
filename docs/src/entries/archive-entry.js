@@ -33,10 +33,10 @@ function renderTabs() {
   if (!tabContainer) return;
   tabContainer.innerHTML = ARCHIVE_TABS.map(t => {
     const isActive = t.id === _activeTab;
-    return `<button class="archive-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-colors ${isActive ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}" data-tab="${t.id}">${t.label}</button>`;
+    return `<button class="btn-tab ${isActive ? 'active' : ''}" data-tab="${t.id}">${t.label}</button>`;
   }).join('');
 
-  tabContainer.querySelectorAll('.archive-tab-btn').forEach(btn => {
+  tabContainer.querySelectorAll('.btn-tab').forEach(btn => {
     btn.addEventListener('click', () => {
       _activeTab = btn.dataset.tab;
       renderTabs();
@@ -51,6 +51,9 @@ function renderContent() {
   if (_activeTab === 'activity') renderActivityArchive();
   else if (_activeTab === 'taskforce') renderTaskforceArchive();
   else if (_activeTab === 'notice') renderNoticeArchive();
+
+  // Tab 切换后重新应用搜索
+  applySearch();
 }
 
 // ── 活动归档 ──
@@ -154,12 +157,20 @@ function renderNoticeArchive() {
 
 // ── 搜索 ──
 const archiveSearch = document.getElementById('archive-search');
-archiveSearch?.addEventListener('input', (e) => {
-  const q = e.target.value.toLowerCase();
-  contentContainer?.querySelectorAll('[data-archive-item], [data-notice-id]').forEach(item => {
+let _searchQuery = '';
+
+function applySearch() {
+  if (!contentContainer) return;
+  const q = _searchQuery.toLowerCase();
+  contentContainer.querySelectorAll('[data-archive-item], [data-notice-id]').forEach(item => {
     const text = item.textContent.toLowerCase();
-    item.style.display = text.includes(q) ? '' : 'none';
+    item.style.display = (!q || text.includes(q)) ? '' : 'none';
   });
+}
+
+archiveSearch?.addEventListener('input', (e) => {
+  _searchQuery = e.target.value.trim();
+  applySearch();
 });
 
 // ── 初始渲染 ──
