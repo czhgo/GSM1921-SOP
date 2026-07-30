@@ -163,6 +163,45 @@ body {
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
 
 /* ═══════════════════════════════════════════════════════════════
+   ICON SYSTEM — CSS 类驱动尺寸与对齐
+   icon() 默认输出 class="icon-base"，不硬编码 width/height
+   调用方通过 Tailwind 类覆盖尺寸：w-3 h-3 / w-4 h-4 / w-5 h-5 等
+   ═══════════════════════════════════════════════════════════════ */
+.icon-base {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em; /* 与文字基线对齐 */
+  flex-shrink: 0;
+}
+
+/* 侧边栏导航图标：与文字对齐，固定尺寸 */
+.module-tab .icon-base {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* 侧边栏页脚图标：小尺寸 */
+.sidebar-footer .icon-base {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* 委员矩阵图标：lg 尺寸 */
+.role-icon .icon-base {
+  width: 20px;
+  height: 20px;
+}
+
+/* 仪表盘统计卡片图标 */
+.party-stat-card .icon-base {
+  width: 20px;
+  height: 20px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
    UTILITY — 排版工具类（G3.4）
    ═══════════════════════════════════════════════════════════════ */
 
@@ -307,12 +346,12 @@ select.input-flat {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
-  padding: 6px 30px 6px 10px;
+  padding: 10px 30px 10px 12px;
   cursor: pointer;
 }
 
 select.input-flat.text-xs {
-  padding: 5px 28px 5px 8px;
+  padding: 8px 28px 8px 10px;
   font-size: 0.75rem;
 }
 
