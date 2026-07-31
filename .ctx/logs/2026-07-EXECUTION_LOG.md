@@ -1,4 +1,4 @@
----
+﻿---
 title: "2026年7月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
@@ -15,7 +15,7 @@ related_files:
 
 > 本文件记录 2026 年 7 月所有工作的执行动作。
 > 早期条目（T22-T90）已归档至 [archive/2026-07-early-entries.md](archive/2026-07-early-entries.md)，中段条目（T91-T130）已归档至 [archive/2026-07-mid-entries.md](archive/2026-07-mid-entries.md)，本文件保留摘要表 + 近期详细记录。
-> 每条记录包含来源/关键动作/设计决策/结果/蒸馏标签。
+> 每条记录包含来源/关键动作/设计决策/结果/沉淀标签。
 
 ---
 
@@ -23,7 +23,7 @@ related_files:
 
 > 详细内容见 [archive/2026-07-early-entries.md](archive/2026-07-early-entries.md)
 
-| T编号 | 日期 | 标题 | 关键决策 | 衍生任务 | 蒸馏 |
+| T编号 | 日期 | 标题 | 关键决策 | 衍生任务 | 沉淀 |
 |-------|------|------|---------|---------|------|
 | T37 | 07-01 | 确立"管理事、服务人"战略路线 | D-227 | — | ✅ |
 | T38 | 07-01 | 书记论断汇编工作流确立 | D-228 | T24/T25/T26 | ✅ |
@@ -32,65 +32,65 @@ related_files:
 | T41 | 07-01 | 经验蒸馏闭环 | — | — | ✅ |
 | T42 | 07-02 | SECRETARY_PRONOUNCEMENTS 重构 | — | — | ✅ |
 | T43 | 07-02 | SECRETARY_PRONOUNCEMENTS 升格根目录 | D-230 | — | ✅ |
-| T44 | 07-02 | 裸字减速 v2（sin easing） | — | — | 否 |
-| T45 | 07-02 | 裸字与SVG渲染同步修复 | — | — | 否 |
+| T44 | 07-02 | 裸字减速 v2（sin easing） | — | — | — |
+| T45 | 07-02 | 裸字与SVG渲染同步修复 | — | — | — |
 | T46 | 07-02 | 动效分层修复+可理解性重构 | D-232 | — | ✅ |
 | T47 | 07-03 | 全仓库文档按受众×层级归类重组 | — | — | ✅ |
 | T48 | 07-03 | 命名统一+README 完善 | D-235 | — | ✅ |
-| T49 | 07-03 | CLAUDE.md H12 Skills 索引 | — | — | 否 |
+| T49 | 07-03 | CLAUDE.md H12 Skills 索引 | — | — | — |
 | T22 | 07-03 | 关于页改造：8角色体系 | D-236 | — | ✅ |
-| T23 | 07-04 | 全仓库颜色同步 | — | — | 否 |
-| T24 | 07-04 | H8 索引补齐+条块二元理论 | — | — | 否 |
-| T25 | 07-04 | D-222 沉淀至 DESIGN_SYSTEM | — | — | 否 |
-| T26 | 07-04 | insights 反论显式引用 | — | — | 否 |
+| T23 | 07-04 | 全仓库颜色同步 | — | — | — |
+| T24 | 07-04 | H8 索引补齐+条块二元理论 | — | — | — |
+| T25 | 07-04 | D-222 沉淀至 DESIGN_SYSTEM | — | — | — |
+| T26 | 07-04 | insights 反论显式引用 | — | — | — |
 | T50 | 07-05 | P.20决策：MANAGE_SERVE 总分结构 | D-237 | — | ✅ |
-| T51 | 07-05 | L1术语层级修正 | — | T28 | 否 |
+| T51 | 07-05 | L1术语层级修正 | — | T28 | — |
 | T52 | 07-05 | T29 知识层次体系重构（8步） | — | — | ✅ |
-| T53 | 07-05 | T27 网页内容对齐（高偏差） | — | — | 否 |
-| T54 | 07-05 | 探索工作 v4.3.8 重构 | — | — | 否 |
-| T55 | 07-05 | 探索工作 v4.4.0 Relational Pulse | — | — | 否 |
-| T56 | 07-05 | v5.0 行星大动画 | — | — | 否 |
-| T57 | 07-05 | v5.1 聚焦驱动动画 | — | — | 否 |
-| T58 | 07-05 | T3 登录绕开安全审查 | — | — | 否 |
-| T59 | 07-06 | v5.2「活的星座」动画 | — | — | 否 |
-| T60 | 07-06 | T3 安全修复方案 A | — | — | 否 |
-| T61 | 07-06 | 过程性文件清理 | — | — | 否 |
+| T53 | 07-05 | T27 网页内容对齐（高偏差） | — | — | — |
+| T54 | 07-05 | 探索工作 v4.3.8 重构 | — | — | — |
+| T55 | 07-05 | 探索工作 v4.4.0 Relational Pulse | — | — | — |
+| T56 | 07-05 | v5.0 行星大动画 | — | — | — |
+| T57 | 07-05 | v5.1 聚焦驱动动画 | — | — | — |
+| T58 | 07-05 | T3 登录绕开安全审查 | — | — | — |
+| T59 | 07-06 | v5.2「活的星座」动画 | — | — | — |
+| T60 | 07-06 | T3 安全修复方案 A | — | — | — |
+| T61 | 07-06 | 过程性文件清理 | — | — | — |
 | T62 | 07-06 | content/ 梳理第1批 design/ | D-250~D-253 | — | ✅ |
-| T63 | 07-06 | content/ 梳理第2批 governance/ | D-254~D-258 | — | 否 |
-| T64 | 07-07 | content/ 梳理第3批 sop/ | D-259~D-261 | T-2026-07-001 | 否 |
-| T65 | 07-07 | P.1 第一步实现 | — | — | 否 |
-| T66 | 07-07 | 死链死代码清查第一批 | — | — | 否 |
-| T67 | 07-08 | 死代码第二批清理 | — | — | 否 |
-| T68 | 07-08 | P.2 决策：术语一改具改 | — | — | 否 |
-| T69 | 07-08 | Deliverable API 删除 | — | — | 否 |
+| T63 | 07-06 | content/ 梳理第2批 governance/ | D-254~D-258 | — | — |
+| T64 | 07-07 | content/ 梳理第3批 sop/ | D-259~D-261 | T-2026-07-001 | — |
+| T65 | 07-07 | P.1 第一步实现 | — | — | — |
+| T66 | 07-07 | 死链死代码清查第一批 | — | — | — |
+| T67 | 07-08 | 死代码第二批清理 | — | — | — |
+| T68 | 07-08 | P.2 决策：术语一改具改 | — | — | — |
+| T69 | 07-08 | Deliverable API 删除 | — | — | — |
 | T70 | 07-08 | content/ 层次体系重构 | — | — | ✅ |
 
 ## T71-T90 早期条目摘要
 
 > 详细内容见 [archive/2026-07-early-entries.md](archive/2026-07-early-entries.md)
 
-| T编号 | 日期 | 标题 | 关键决策 | 衍生任务 | 蒸馏 |
+| T编号 | 日期 | 标题 | 关键决策 | 衍生任务 | 沉淀 |
 |-------|------|------|---------|---------|------|
 | T71 | 07-08 | 内容治理与可读性优化 | — | — | ✅ |
 | T72 | 07-09 | 治理文件功能审计与拆分 | — | — | ✅ |
-| T73 | 07-09 | 书记评议·首评 | — | — | 否 |
-| T74 | 07-09 | 评议工作流优化 | D-230 | — | 否 |
-| T75 | 07-09 | REVIEW_QUEUE 功能定位修正 | D-231 | — | 否 |
-| T76 | 07-10 | 首评 B1-B4 反馈处理 | D-232/D-233 | — | 否 |
-| T77 | 07-10 | P.1"组织性"故事重构 | — | — | 否 |
-| T78 | 07-10 | VSCode 时代遗留文件清理 | — | — | 否 |
-| T79 | 07-10 | 书记评议·二评 | — | — | 否 |
-| T80 | 07-11 | B1 全仓库去重归并 | — | — | 否 |
-| T81 | 07-11 | 术语规范自查+spec/plan清理+三评瘦身 | — | — | 否 |
-| T82 | 07-11 | 书记评议·三评·design/纯化 | — | T-2026-07-005 | 否 |
-| T83 | 07-11 | 文件角色分类体系升级 | — | — | 否 |
-| T84 | 07-11 | design/纯化 Batch 3+术语纠正+精简 | — | — | 否 |
-| T85 | 07-12 | content/目录优化+前提关系调整 | — | — | 否 |
-| T86 | 07-12 | content/目录重构与优化 | — | — | 否 |
+| T73 | 07-09 | 书记评议·首评 | — | — | — |
+| T74 | 07-09 | 评议工作流优化 | D-230 | — | — |
+| T75 | 07-09 | REVIEW_QUEUE 功能定位修正 | D-231 | — | — |
+| T76 | 07-10 | 首评 B1-B4 反馈处理 | D-232/D-233 | — | — |
+| T77 | 07-10 | P.1"组织性"故事重构 | — | — | — |
+| T78 | 07-10 | VSCode 时代遗留文件清理 | — | — | — |
+| T79 | 07-10 | 书记评议·二评 | — | — | — |
+| T80 | 07-11 | B1 全仓库去重归并 | — | — | — |
+| T81 | 07-11 | 术语规范自查+spec/plan清理+三评瘦身 | — | — | — |
+| T82 | 07-11 | 书记评议·三评·design/纯化 | — | T-2026-07-005 | — |
+| T83 | 07-11 | 文件角色分类体系升级 | — | — | — |
+| T84 | 07-11 | design/纯化 Batch 3+术语纠正+精简 | — | — | — |
+| T85 | 07-12 | content/目录优化+前提关系调整 | — | — | — |
+| T86 | 07-12 | content/目录重构与优化 | — | — | — |
 | T87 | 07-12 | 执行日志瘦身 | — | — | ✅ |
-| T88 | 07-12 | governance/目录优化与合并 | — | — | 否 |
-| T89 | 07-12 | 书记评议·三评·docs/代码评议 | — | P.2/P.3 | 否 |
-| T90 | 07-12 | 权限系统大改·评议启动 | — | T-2026-07-006 | 否 |
+| T88 | 07-12 | governance/目录优化与合并 | — | — | — |
+| T89 | 07-12 | 书记评议·三评·docs/代码评议 | — | P.2/P.3 | — |
+| T90 | 07-12 | 权限系统大改·评议启动 | — | T-2026-07-006 | — |
 
 ---
 ## T91-T130 中段条目摘要
@@ -99,30 +99,30 @@ related_files:
 
 | T编号 | 日期 | 标题 | 关键变更文件 | 沉淀 |
 |-------|------|------|-------------|------|
-| T91 | 07-12 | 权限系统大改·第2轮 | auth.js/ROLE_CLASSIFICATION.md | 否 |
-| T92 | 07-13 | 权限系统大改·第3轮 | auth.js/members.html/login.html/header.js/sidebar.js/cross-page-state.js/bootstrap.js | 否 |
+| T91 | 07-12 | 权限系统大改·第2轮 | auth.js/ROLE_CLASSIFICATION.md | — |
+| T92 | 07-13 | 权限系统大改·第3轮 | auth.js/members.html/login.html/header.js/sidebar.js/cross-page-state.js/bootstrap.js | — |
 | T93 | 07-14 | 权限系统大改·第4轮·四评 | styles.css/icons.js/insights§10.16+§11.3 | 是 |
 | T94 | 07-14 | 权限系统大改·第4轮成果补强 | auth.js/members-entry.js | 是 |
-| T95 | 07-14 | 发展路径叙事重构+双域术语一改具改 | SECRETARY_PRONOUNCEMENTS/README/ARCHITECTURE/insights(24处) | 否 |
-| T96 | 07-14 | T3系统性修订·书记评议·二评 | insights/USAGE_POLICY§1.7 | 否 |
+| T95 | 07-14 | 发展路径叙事重构+双域术语一改具改 | SECRETARY_PRONOUNCEMENTS/README/ARCHITECTURE/insights(24处) | — |
+| T96 | 07-14 | T3系统性修订·书记评议·二评 | insights/USAGE_POLICY§1.7 | — |
 | T97 | 07-14 | AI冒充内容系统性排查 | project_memory.md/USAGE_POLICY§1.8 | 是 |
-| T98 | 07-14 | 奥卡姆剃刀原则系统性审查 | insights速查表 | 否 |
-| T99 | 07-15 | 数据架构全面审计 | DATA_AUDIT_REPORT.md | 否 |
-| T100 | 07-15 | 数据架构审计改进执行 | DATA_ARCHITECTURE.md/mock.js | 否 |
-| T101 | 07-15 | 数据架构审计改进·补全 | DATA_ARCHITECTURE.md | 否 |
+| T98 | 07-14 | 奥卡姆剃刀原则系统性审查 | insights速查表 | — |
+| T99 | 07-15 | 数据架构全面审计 | DATA_AUDIT_REPORT.md | — |
+| T100 | 07-15 | 数据架构审计改进执行 | DATA_ARCHITECTURE.md/mock.js | — |
+| T101 | 07-15 | 数据架构审计改进·补全 | DATA_ARCHITECTURE.md | — |
 | T102 | 07-15/17 | 仓库卫生清理+UI修复+dogfood QA | styles.css/多个entry | 是 |
-| T103 | 07-17 | G5 dogfood QA补测 | 多个entry | 否 |
-| T104 | 07-17 | UI书记评议·首评 | insights§10.17 | 否 |
-| T105 | 07-17 | GitHub Issue风格提案讨论系统 | feedback系统全套代码 | 否 |
-| T106 | 07-17 | P.5/P.6丙部决策执行 | DATA_ARCHITECTURE.md/insights§3.2 | 否 |
-| T107 | 07-17 | dogfood QA验证 | — | 否 |
-| T108 | 07-17 | 书记五项UI系统性问题修复 | styles.css/header.js/sidebar.js | 否 |
-| T109 | 07-17 | 全仓库代码硬伤清查+字体修复 | styles.css/mock.js | 否 |
-| T110 | 07-17 | organizer/deep工作台可达性设计 | ws-leader/ws-org/ws-sec entry | 否 |
-| T111 | 07-18 | sidebar恢复+emoji清理+遗漏审查 | sidebar.js/多个entry | 否 |
-| T112 | 07-18 | 书记评议·T109/T110遗漏审查归档 | — | 否 |
-| T113 | 07-18 | 逾期周期性任务集中执行+批量提交 | — | 否 |
-| T114 | 07-18 | 全仓库YAML格式修复+文件夹清理 | 全仓库YAML | 否 |
+| T103 | 07-17 | G5 dogfood QA补测 | 多个entry | — |
+| T104 | 07-17 | UI书记评议·首评 | insights§10.17 | — |
+| T105 | 07-17 | GitHub Issue风格提案讨论系统 | feedback系统全套代码 | — |
+| T106 | 07-17 | P.5/P.6丙部决策执行 | DATA_ARCHITECTURE.md/insights§3.2 | — |
+| T107 | 07-17 | dogfood QA验证 | — | — |
+| T108 | 07-17 | 书记五项UI系统性问题修复 | styles.css/header.js/sidebar.js | — |
+| T109 | 07-17 | 全仓库代码硬伤清查+字体修复 | styles.css/mock.js | — |
+| T110 | 07-17 | organizer/deep工作台可达性设计 | ws-leader/ws-org/ws-sec entry | — |
+| T111 | 07-18 | sidebar恢复+emoji清理+遗漏审查 | sidebar.js/多个entry | — |
+| T112 | 07-18 | 书记评议·T109/T110遗漏审查归档 | — | — |
+| T113 | 07-18 | 逾期周期性任务集中执行+批量提交 | — | — |
+| T114 | 07-18 | 全仓库YAML格式修复+文件夹清理 | 全仓库YAML | — |
 | T115 | 07-18 | T3工作表达书记评议·第二轮·反馈分流 | insights/OPERATIONS_GUIDE | 是 |
 | T116 | 07-18 | 反论评议·第一轮 | insights/OPERATIONS_GUIDE§10.9+§14.4 | 是 |
 | T117 | 07-19 | 反论评议评审标准沉淀 | OPERATIONS_GUIDE.md | 是 |
@@ -130,10 +130,10 @@ related_files:
 | T119 | 07-19 | 反论评议·第二轮 | insights§5-§8 | 是 |
 | T120 | 07-19 | 反论评议·第三轮 | insights§9-§11 | 是 |
 | T121 | 07-19/20 | skill移动+B1/B2/B3重构 | insights/ | 是+否 |
-| T122 | 07-20 | 零补丁识别评议·四轮 | insights/ | 否 |
-| T124 | 07-20 | "管理事，服务人"叙事整合 | SECRETARY_PRONOUNCEMENTS | 否 |
-| T125 | 07-20 | 三项修正：§2.2表达+P-047+评议整理 | insights | 否 |
-| T126 | 07-20 | §2.2再次修正——AI错误扩充清除 | insights | 否 |
+| T122 | 07-20 | 零补丁识别评议·四轮 | insights/ | — |
+| T124 | 07-20 | "管理事，服务人"叙事整合 | SECRETARY_PRONOUNCEMENTS | — |
+| T125 | 07-20 | 三项修正：§2.2表达+P-047+评议整理 | insights | — |
+| T126 | 07-20 | §2.2再次修正——AI错误扩充清除 | insights | — |
 | T127 | 07-20 | 文档逻辑顺序重组 | insights/KNOWN_PITFALLS | 是 |
 | T128 | 07-21 | .github/物理迁出+引用清除 | insights | 是 |
 | T129 | 07-21 | 旧框架标签清除+过程性文件清理 | insights | 是 |
@@ -227,7 +227,7 @@ related_files:
 
 无新增丙部事项。前序 session 的 P-007（AI治理技术反论）已决策归档。
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 是 — T3 编程行话识别方法：以母本 grep 验证为基础，编程行话（多线程/迭代）和自造隐喻（项目之手/项目的脑子）属于 T3，母本已有的诗意化措辞（场域/管理知识→管理能力）属于 T2 保留；SVG 节点 duty 标签的隐喻（脑子/手）可作可视化设计语言接受，但在叙述性文本中应替换为平实表达]
 
@@ -397,7 +397,7 @@ DEVELOPMENT_PATH.md（母本）3 阶段标题与 help-entry.js Cognition section
 | `content/01_strategy/SECRETARY_PRONOUNCEMENTS.md` | 修改 | P-002 微调 3 处 + P-047 微调 2 处 + 4 处元数据同步 + YAML 更新 |
 | `content/01_strategy/DEVELOPMENT_PATH.md` | 修改 | P-047 微调 2 处 + 第一章重组（3 小标题 + L29 引言 + L47 =式表达清理）+ YAML 更新 |
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 本轮修改为已确认方案的执行，待剩余问题讨论完成后统一沉淀]
 
@@ -596,7 +596,7 @@ DEVELOPMENT_PATH.md（母本）3 阶段标题与 help-entry.js Cognition section
 - 截图验证 FAIL：browser subagent 截图工具限制，无法渲染 SVG
 - **需用户手动浏览器验证**：打开 http://localhost:8765/help.html?v=t47，滚动经过 Exploration section 的 6 个 stage 卡片，观察节点景深切换效果
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 本轮修改为已确认方案的执行，GSAP 景深方案的实现细节属于一次性工程操作，无需沉淀为通用经验]
 
@@ -651,7 +651,7 @@ DEVELOPMENT_PATH.md（母本）3 阶段标题与 help-entry.js Cognition section
 - `工程演进与设计方法论.md` last_updated 已为 2026-07-22（无需更新）
 - `SNAPSHOT.md` last_updated 更新为 2026-07-22
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 本轮修改为书记决策后的执行，断裂引用修复和散落即漂移去重属于一改具改范畴，无需沉淀为通用经验]
 
@@ -690,7 +690,7 @@ DEVELOPMENT_PATH.md（母本）3 阶段标题与 help-entry.js Cognition section
 
 H2.1 一改具改 + H2.4 经验沉淀 + SPEC `.trae/specs/help-page-narrative-redesign/spec.md`
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — UI 重构属于执行范畴]
 
@@ -724,7 +724,7 @@ H2.1 一改具改 + H2.4 经验沉淀 + SPEC `.trae/specs/help-page-narrative-re
 
 H2.1 一改具改 + H2.2 母本子本 + P-006/P-007 + USAGE_POLICY §1.1
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 是 — T3 概括识别方法：当书记原话是举例式（"党建 = 三会一课、主题党日……"），AI 不得将举例概括为定义式（"党建 = 管理组织活动之事"）。举例→定义的跃迁是 T3 自行概括。已沉淀至 insights §1.1 命名即认知框架]
 
@@ -776,7 +776,7 @@ H2.1 一改具改 + H2.2 母本子本 + P-006/P-007 + USAGE_POLICY §1.1
 
 H2.4 经验沉淀 + gsap-core skill + gsap-scrolltrigger skill + frontend-design skill
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — UI 动画重构属于执行范畴]
 
@@ -832,7 +832,7 @@ H2.4 经验沉淀 + gsap-core skill + gsap-scrolltrigger skill + frontend-design
 
 H2.4 经验沉淀 + gsap-core skill + gsap-scrolltrigger skill + frontend-design skill + brainstorming skill + grill-me
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — UI 动画重构属于执行范畴]
 
@@ -899,7 +899,7 @@ H2.4 经验沉淀 + gsap-core skill + gsap-scrolltrigger skill + frontend-design
 
 H2.4 经验沉淀 + brainstorming skill + web-design-guidelines skill + grill-me skill + DESIGN_SYSTEM.md §5.4
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — UI 动画升级属于执行范畴，美学原则已沉淀到 DESIGN_SYSTEM.md]
 
@@ -936,7 +936,7 @@ H2.4 经验沉淀 + brainstorming skill + web-design-guidelines skill + grill-me
 
 H2.4 经验沉淀 + brainstorming skill + grill-me skill + DESIGN_SYSTEM.md §5.4
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — UI 多场景架构属于执行范畴，美学原则已沉淀到 DESIGN_SYSTEM.md §5.4]
 
@@ -975,7 +975,7 @@ H2.4 经验沉淀 + brainstorming skill + grill-me skill + DESIGN_SYSTEM.md §5.
 
 H2.4 经验沉淀 + DESIGN_SYSTEM.md §5.4 + brainstorming skill + grill-me skill + gsap-core skill
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — UI 焦点引导属于执行范畴，设计原则已沉淀到 spec.md]
 
@@ -1045,7 +1045,7 @@ H2.4 经验沉淀 + DESIGN_SYSTEM.md §5.4 + brainstorming skill + grill-me skil
 
 H2.4 经验沉淀 + DESIGN_SYSTEM.md §5.4 + brainstorming skill + grill-me skill + gsap-core skill + grill-with-docs skill
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 设计文稿属于执行范畴，待 v16 实施完成后视情况沉淀美学经验到 insights]
 
@@ -1104,7 +1104,7 @@ H2.4 经验沉淀 + DESIGN_SYSTEM.md §5.4 + brainstorming skill + grill-me skil
 
 H2.4 经验沉淀 + brainstorming skill + ADR-024/025 角色布局规范
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 素材制作尝试未成功，待明天重新思考方向后视情况沉淀]
 
@@ -1153,7 +1153,7 @@ v1-v10 共 10 版代码草图均未通过书记验收（"整体风格/身体比�
 
 H2.4 经验沉淀 + H4.2 丙部待决策 + ADR-026/027/028
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 方向决策+文档更新，待素材生成验收后视情况沉淀]
 
@@ -1226,7 +1226,7 @@ H2.4 经验沉淀 + H4.2 丙部待决策 + ADR-026/027/028
 | `sd-prompt-template.md` | 删除 |
 | 4 旧 spec 文件夹 | 删除（7 文件 + 4 空文件夹） |
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 文档整理，无新经验]
 
@@ -1271,7 +1271,7 @@ H2.4 经验沉淀 + H4.2 丙部待决策 + ADR-026/027/028
 | `docs/src/styles.css` | v11 Development 时间轴样式 + 旧卡片样式清除 + SVG Exploration 样式保留 |
 | `docs/help.html` | GSAP CDN + ?v=v11-restore + 缓存控制 meta |
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 版本回退恢复，无新经验]
 
@@ -1357,7 +1357,7 @@ Exploration 正常是因为 `renderNetwork()` 用 inline style 直接覆盖了 C
 - `Test-Path .trae/documents` → False ✅
 - `Test-Path projects` → False ✅
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 文件清理，无新经验]
 
@@ -1386,7 +1386,7 @@ Exploration 正常是因为 `renderNetwork()` 用 inline style 直接覆盖了 C
 - styles.css Grep `popover-indicator` → 零残留 ✅
 - 浏览器验证 7 个页面均无 undefined ✅
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 功能修复与审计，无新经验]
 
@@ -1425,7 +1425,7 @@ T148 去掉了侧边栏箭头但保留了 popover。用户反馈 popover 仍在�
 - 水平+垂直居中 ✅ | 淡入+缩放动画 ✅ | Apple 风格视觉 ✅
 - 点击遮罩关闭：BLOCKED（浏览器工具限制，源码已实现）
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — UI 交互改进，无新经验]
 
@@ -1461,7 +1461,7 @@ T148 去掉了侧边栏箭头但保留了 popover。用户反馈 popover 仍在�
   - 日历显示 7 月条目（1日/8日/10日/25日/28日） ✅
   - 两页面均无 undefined 文本 ✅
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 是 — §6.19 Mock 数据内部协调已写入 insights]
 
@@ -1495,7 +1495,7 @@ T148 去掉了侧边栏箭头但保留了 popover。用户反馈 popover 仍在�
 - 浏览器硬刷新后 visitor 页面无 `loadWorkspaceData is not defined` 错误 ✅
 - 跨页面活动数据一致：secretary/visitor 均显示 25 条活动 ✅
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 本轮为验证+遗漏修复，无需新沉淀]
 
@@ -1540,7 +1540,7 @@ T148 去掉了侧边栏箭头但保留了 popover。用户反馈 popover 仍在�
 - 浏览器硬刷新后：secretary 表单 input 使用 input-flat、聚焦 party-gold ✅
 - 两页面控制台无 JS 错误 ✅
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 视觉清理类任务，无通用经验需沉淀]
 
@@ -1588,7 +1588,7 @@ T148 去掉了侧边栏箭头但保留了 popover。用户反馈 popover 仍在�
 - 浏览器：书记工作台标签"工作台"为首，日历+写入同屏 ✅
 - 浏览器：两页面无 JS 错误 ✅
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 视觉修复+排序+标签调整类任务]
 
@@ -1636,7 +1636,7 @@ T148 去掉了侧边栏箭头但保留了 popover。用户反馈 popover 仍在�
 | `content/02_institution/COMMISSIONER_FRAMEWORK.md` | §D.1 功能定位声明全面更新 |
 | `CLAUDE.md` | 乙部新增 T-141 |
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 设计阶段，待实施后沉淀]
 
@@ -1687,7 +1687,7 @@ T148 去掉了侧边栏箭头但保留了 popover。用户反馈 popover 仍在�
 
 5个entry文件均零诊断错误。
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 阶段1完成，阶段2/3待执行]
 
@@ -1765,7 +1765,7 @@ T148 去掉了侧边栏箭头但保留了 popover。用户反馈 popover 仍在�
 
 所有修改文件 GetDiagnostics 零错误。
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 是]（Store 数据同源迁移经验已沉淀到 insights §4.3）
 
@@ -1774,7 +1774,7 @@ T148 去掉了侧边栏箭头但保留了 popover。用户反馈 popover 仍在�
 ## T157 首页布局优化+push授权规则+Spec整理+空文件夹清理+footer样式（2026-07-30）
 
 **日期**：2026-07-30
-**任务**：4项独立任务：①首页3合1 card+出勤率卡片移除 ②侧边栏重排 ③CLAUDE.md push授权规则 ④Spec蒸馏整理+空文件夹清理+footer样式
+**任务**：4项独立任务：①首页3合1 card+出勤率卡片移除 ②侧边栏重排 ③CLAUDE.md push授权规则 ④Spec沉淀整理+空文件夹清理+footer样式
 **引用流程**：H1.2 执行 + H2.1 一改具改 + H2.4 经验沉淀
 
 ### 变更摘要
@@ -1792,7 +1792,7 @@ T148 去掉了侧边栏箭头但保留了 popover。用户反馈 popover 仍在�
 **任务3：CLAUDE.md 甲部新增 Git 操作授权规则**
 - H1.2 新增：`git commit` 可自动执行；`git push` 必须经书记确认
 
-**任务4：Spec 蒸馏整理**
+**任务4：Spec 沉淀整理**
 - DESIGN_SYSTEM §4.2 新增"列表项白底原则"
 - DESIGN_SYSTEM §4.3 新增"输入组件统一原则"
 - insights §4.3 新增"Store 数据同源迁移"经验
@@ -1809,10 +1809,10 @@ T148 去掉了侧边栏箭头但保留了 popover。用户反馈 popover 仍在�
 | docs/src/entries/main-entry.js | 移除出勤率统计项+调整角色渲染 |
 | docs/src/components/sidebar.js | footer样式缩小变灰 |
 | CLAUDE.md | H1.2 新增 Git 操作授权规则 |
-| content/04_web_design/DESIGN_SYSTEM.md | §4.2/§4.3 蒸馏设计原则 |
-| content/insights/工程演进与设计方法论.md | §4.3 蒸馏数据同源迁移经验 |
+| content/04_web_design/DESIGN_SYSTEM.md | §4.2/§4.3 沉淀设计原则 |
+| content/insights/工程演进与设计方法论.md | §4.3 沉淀数据同源迁移经验 |
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 是]（Store 数据同源迁移 + 列表项白底原则 + 输入组件统一原则已沉淀）
 
@@ -1896,9 +1896,9 @@ T148 去掉了侧边栏箭头但保留了 popover。用户反馈 popover 仍在�
 - **Grep #2**（mockDB.activities/taskforces 直接访问）：12 匹配全部在 services/ 目录内（activity.js/auth.js/mock.js），属 Service 层内部实现，entries/ 和 modules/ 零违规 ✅
 - **Grep #3**（从 mock/index.js import）：11 匹配全部为 PEOPLE 人员档案或工具函数（getPersonById/_personName/inspectionToLong 等），无数据常量 import ✅
 
-### 蒸馏标签
+### 沉淀标签
 
-[经验沉淀: 否 — 数据同源 Service 层模式已在 T157 §4.3 沉淀，本次为其应用执行，无新经验需蒸馏]
+[经验沉淀: 否 — 数据同源 Service 层模式已在 T157 §4.3 沉淀，本次为其应用执行，无新经验需沉淀]
 
 ---
 
@@ -1980,7 +1980,7 @@ T148 去掉了侧边栏箭头但保留了 popover。用户反馈 popover 仍在�
   - 控制台错误检查 PASS：无阻塞性 JS 错误；IssueStore.loadAll() / MilestoneStore.loadAll() / bootstrapPage 流程均成功执行 ✅
   - 截图留存：feedback-page.png + secretary-feedback-page.png ✅
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 是 — "bootstrap.js async 统一预加载+UI 层中文映射表"是可复用的数据同源治理模式，已应用至全仓库；同类型多 Service 跨页面同步问题可参照此模式解决]
 
@@ -2018,7 +2018,7 @@ T148 去掉了侧边栏箭头但保留了 popover。用户反馈 popover 仍在�
 
 tab-bar 组件的 `tab.render(renderCtx)` 调用不处理返回值——各 Tab 的 render 函数必须自行写入 DOM 容器。`renderMyDispatchTab()` 设计为返回 HTML 字符串的工具函数，但 Tab render 函数仅调用而未写入容器，导致返回值被丢弃。
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 这是 tab-bar 组件使用约定的问题，已有明确的 render 函数写入 DOM 模式可参照，属于一次性遗漏]
 
@@ -2086,7 +2086,7 @@ tab-bar 组件的 `tab.render(renderCtx)` 调用不处理返回值——各 Tab 
 - **归档库排序** PASS：三个 tab（活动/专班/通知）均按日期降序排列 ✅
 - **工作台活动详情** PASS：点击日期格→显示当日活动列表；点击活动条→进入完整详情视图 ✅
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 浮窗交互模式已有先例（PersonPicker等），属于一次性遗漏+DOM子元素缺失]
 
@@ -2139,7 +2139,7 @@ tab-bar 组件的 `tab.render(renderCtx)` 调用不处理返回值——各 Tab 
 - **归档浮窗 ESC 关闭** PASS：按 ESC 键浮窗成功关闭 ✅
 - **inspector 空状态** PASS：移除"请选择活动"提示，改为简洁的"点击日历日期查看活动" ✅
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 三项变更均为 spec 阶段1C 的机械性实施，复用现有 calendar/archive 组件模式，无新的设计方法论沉淀]
 
@@ -2187,7 +2187,7 @@ tab-bar 组件的 `tab.render(renderCtx)` 调用不处理返回值——各 Tab 
 - **党小组组长工作台待办 tab** PASS：同上 ✅
 - **访客工作台待办 tab** PASS：同上 ✅
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 待办 tab 推广为模板复用，P.9 为待决策项写入丙部，无新的设计方法论沉淀]
 
@@ -2244,7 +2244,7 @@ tab-bar 组件的 `tab.render(renderCtx)` 调用不处理返回值——各 Tab 
 - **切换回中号** PASS：点击"中"按钮后 html class 清除，localStorage 写入 `medium`，字号恢复正常 ✅
 - **布局无严重错乱** PASS：字号变化未导致布局偏移或溢出 ✅
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 字体二档调节为标准无障碍功能，CSS 变量覆盖 + Tailwind 类覆盖是常规做法]
 
@@ -2297,7 +2297,7 @@ tab-bar 组件的 `tab.render(renderCtx)` 调用不处理返回值——各 Tab 
 - **SOP 文件 YAML 更新** PASS：3 个文件 last_updated 已更新为 2026-07-31 ✅
 - **P.9 已决策归档** PASS：CLAUDE.md 丙部已更新 ✅
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 是 — P.9 第三步揭示了"网页逻辑反整合到SOP"的工作模式：SOP是给人读的（业务语言），网页是给机器执行的（编程用语），反整合时必须用业务语言翻译。已沉淀至 insights §4.11。]
 
@@ -2348,8 +2348,49 @@ tab-bar 组件的 `tab.render(renderCtx)` 调用不处理返回值——各 Tab 
 - **"第6条"引用零残留** PASS：Grep确认content/下0匹配 ✅
 - **GetDiagnostics** PASS：4个JS文件均返回 `diagnostics: []` ✅
 
-### 蒸馏标签
+### 沉淀标签
 
 [经验沉淀: 否 — 内联font-size→CSS类是标准前端实践，原则重排序为一改具改的常规执行]
 
 
+
+
+## T164 日志归档制度化+沉淀标签统一+归档标题格式统一（2026-07-31）
+
+- **来源**: 书记全局性质询——归档日志与活跃日志的关系、insight与日志的关系、Harness工作流调整、AI上下文负担、七月日志去向
+- **变更文件**: content/03_doc_system/OPERATIONS_GUIDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/archive/2026-07-early-entries.md, .ctx/logs/archive/2026-07-mid-entries.md
+- **关键动作**: T164-1 ✅ 全局分析5个问题 / T164-2 ✅ OPERATIONS_GUIDE §13.6 日志归档机制写入 / T164-3 ✅ §13.3 执行日志模板沉淀标签更新为条件触发制 / T164-4 ✅ 摘要表"否"→"—"替换（65处）/ T164-5 ✅ 归档文件标题格式统一（99处）/ T164-6 ✅ 归档文件"否"→"—"替换（81处）
+- **变更详情**:
+  - OPERATIONS_GUIDE §13.2 删除旧归档标准（"按沉淀状态归档"），新增 §13.6 日志归档机制
+  - §13.6 定义硬阈值触发条件（>50KB 或 >30条详细条目）、归档操作、摘要表格式、沉淀列条件触发三档、归档标题统一格式、归档边界划分、与H1.1关系
+  - §13.3 执行日志模板标题格式从 YYYY-MM-DD | YYYY-MM-T<N> — 统一为 T<N> <摘要>（YYYY-MM-DD）
+  - §13.3 沉淀标签从 [经验沉淀: 否] 更新为条件触发制
+  - 活跃日志摘要表中 65 处 "否" → "—" 替换
+  - 早期归档 64 个标题格式统一 + 48 处 "否" → "—" 替换
+  - 中段归档 35 个标题格式统一 + 33 处 "否" → "—" 替换
+- **设计决策**: 书记确认两个方向——①归档设硬阈值自动归档（非周期性）②摘要表沉淀标签统一为条件触发制
+- **结果**: ✅ 五项问题全部回答，两项制度调整落地，归档文件标题格式统一完成
+- **关键发现**: 七月日志没有被删除，全部正确归档。初始误判因归档标题格式不统一（## T91 vs ## 2026-07-15 | T102）导致 Grep 搜索遗漏。标题格式统一后此问题消除。
+
+## T165 首页活动日历+近期活动卡片合并（2026-07-31）
+
+**任务**：首页"活动日历"（md:col-span-2）和"近期活动"（单列）两张卡片合并为一张"近期活动"卡片，内部通过 Tab 切换日历/列表视图
+**引用流程**：H1.2 执行 + 最小三成本原则（DESIGN_SYSTEM §一 第2条）+ spec `.trae/specs/homepage-activity-card-merge/spec.md`
+**来源**：书记要求——"首页的活动日历和近期活动我认为应当合并，大小就大致为【近期活动】目前卡片的大小合并到这个卡片中，在卡片内部切换列表和日历视图"
+
+- **变更文件**:
+  - `docs/index.html` — 删除"活动日历"独立卡片，改造"近期活动"卡片为合并容器，新增 Tab 切换按钮和两个视图容器
+  - `docs/src/entries/main-entry.js` — 修改 import（引入 renderCalendarForDashboard/populateMonthSelector），删除原 _renderDashboardCalendar，新增 Tab 切换逻辑（_switchActivityView/_bindActivityTabs）+ URL 参数同步（_getInitialActivityView/_getInitialMonth/_syncURL）+ 活动列表渲染（_renderActivityList）
+  - `docs/src/components/calendar.js` — 新增首页专用渲染入口 renderCalendarForDashboard（仅月视图+maxItems=2）+ 精简月视图 _renderMonthViewCompact + 悬停浮窗（_bindHoverPreview/_showHoverPopover/_hideHoverPopover）
+  - `docs/src/styles.css` — 新增 .activity-tab-btn 和 #cal-hover-popover 样式
+
+- **设计决策**:
+  - Tab 切换日历/列表视图，默认日历视图
+  - URL 参数同步（view + month），通过 history.replaceState 无刷新更新
+  - 日历仅保留月视图（周/日/列表视图在工作台已有），每格最多显示 2 条活动标签
+  - 悬停浮窗预览（桌面端）：mouseenter 触发，mouseleave 延迟 150ms 隐藏，显示日期+活动列表
+  - 移动端保持点击展开交互（复用 _showMobileDayDetail 逻辑）
+  - 活动条目点击跳转工作台（CrossPageState.buildURL）
+  - 工作台日历 4 视图不受影响
+
+- **结果**: ✅ 合并完成，Tab 切换正常，URL 同步正常，悬停浮窗正常，工作台日历不受影响
