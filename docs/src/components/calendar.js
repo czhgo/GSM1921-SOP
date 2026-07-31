@@ -668,3 +668,162 @@ function _renderLegend(activeActivities) {
     };
   }
 }
+
+// ════════════════════════════════════════════════════════════════
+//  首页专用渲染入口 — 仅月视图 + 精简（maxItems=2）+ 悬停浮窗
+// ════════════════════════════════════════════════════════════════
+
+let _hoverPopover = null;
+let _hoverTimer = null;
+
+function _bindHoverPreview(grid, activeActivities) {
+  if (window.innerWidth < 768) return;
+  const cells = grid.querySelectorAll('.cal-cell-large.has-tasks');
+  cells.forEach(cell => {
+    cell.addEventListener('mouseenter', () => {
+      clearTimeout(_hoverTimer);
+      const dateKey = cell.dataset.date;
+      const dayActs = activeActivities.filter(a => a.date === dateKey);
+      if (dayActs.length === 0) return;
+      _showHoverPopover(cell, dateKey, dayActs);
+    });
+    cell.addEventListener('mouseleave', () => {
+      _hoverTimer = setTimeout(() => _hideHoverPopover(), 150);
+    });
+  });
+}
+
+function _showHoverPopover(anchor, dateKey, dayActs) {
+  if (!_hoverPopover) {
+    _hoverPopover = document.createElement('div');
+    _hoverPopover.id = 'cal-hover-popover';
+    _hoverPopover.addEventListener('mouseenter', () => clearTimeout(_hoverTimer));
+    _hoverPopover.addEventListener('mouseleave', () => {
+      _hoverTimer = setTimeout(() => _hideHoverPopover(), 150);
+    });
+    document.body.appendChild(_hoverPopover);
+  }
+
+  const d = new Date(dateKey);
+  const WEEKDAY = ['日','一','二','三','四','五','六'];
+  const maxShow = 5;
+
+  let listHTML = dayActs.slice(0, maxShow).map(act => {
+    const color = getActivityColor(act);
+    return `<div class="flex items-center gap-2 py-1.5 border-b border-gray-50 last:border-b-0">
+      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${color.text};"></span>
+      <span class="text-sm text-gray-700 truncate flex-1">${act.title || '未命名'}</span>
+      <span class="text-xs text-gray-400 flex-shrink-0">${act.type || ''}</span>
+    </div>`;
+  }).join('');
+  if (dayActs.length > maxShow) {
+    listHTML += `<div class="text-xs text-gray-400 text-center py-1">+${dayActs.length - maxShow} 项</div>`;
+  }
+
+  _hoverPopover.innerHTML = `
+    <div class="px-3 py-2 border-b border-gray-100">
+      <span class="font-medium text-sm text-gray-800">${d.getMonth()+1}月${d.getDate()}日 周${WEEKDAY[d.getDay()]}</span>
+    </div>
+    <div class="px-3 py-1.5 max-h-48 overflow-y-auto">${listHTML}</div>
+  `;
+
+  const rect = anchor.getBoundingClientRect();
+  const popoverWidth = 240;
+  let left = rect.right + window.scrollX + 8;
+  let top = rect.top + window.scrollY;
+
+  if (rect.right + popoverWidth + 16 > window.innerWidth) {
+    left = rect.left + window.scrollX - popoverWidth - 8;
+  }
+  if (left < window.scrollX) {
+    left = rect.left + window.scrollX;
+    top = rect.bottom + window.scrollY + 8;
+  }
+
+  _hoverPopover.style.cssText = `
+    position:absolute;z-index:50;background:white;border-radius:12px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.12);border:1px solid #E5E7EB;
+    width:${popoverWidth}px;display:block;
+    left:${left}px;top:${top}px;
+  `;
+}
+
+function _hideHoverPopover() {
+  if (_hoverPopover) _hoverPopover.style.display = 'none';
+}
+
+function _renderMonthViewCompact(grid, activeActivities, month, state) {
+  const now = new Date();
+  const [y, m] = month.split('-').map(Number);
+  const todayKey = _fmtDate(now);
+  const MN = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+  const DN = ['一','二','三','四','五','六','日'];
+
+  const actDates = new Set(
+    activeActivities.filter(a => typeof a.date === 'string' && a.date.startsWith(month)).map(a => a.date)
+  );
+
+  const rawFirst = new Date(y, m - 1, 1).getDay();
+  const firstDow = (rawFirst + 6) % 7;
+  const daysInMonth = new Date(y, m, 0).getDate();
+
+  let html = `<div class="mb-6">`;
+  html += `<div class="font-stheiti text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${y}年 ${MN[m - 1]}</div>`;
+  html += `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">`;
+  DN.forEach(d => { html += `<div class="font-stheiti text-[11px] text-gray-400 text-center pb-1.5 font-semibold">${d}</div>`; });
+
+  for (let i = 0; i < firstDow; i++) {
+    html += '<div class="cal-cell-large" style="background:transparent;border-color:transparent;min-height:auto;"></div>';
+  }
+  for (let day = 1; day <= daysInMonth; day++) {
+    const k = `${month}-${String(day).padStart(2, '0')}`;
+    const isT = k === todayKey;
+    const hasActivity = actDates.has(k);
+    let cls = 'cal-cell-large';
+    if (hasActivity) cls += ' has-tasks';
+    if (isT) cls += ' is-today';
+
+    html += `<div class="${cls}" data-date="${k}" style="min-height:auto;">`;
+    html += `<div class="font-stheiti text-[11px] font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${day}</div>`;
+    const dayActs = activeActivities.filter(a => a.date === k);
+    dayActs.slice(0, 2).forEach(act => {
+      const color = getActivityColor(act);
+      html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${k}" style="background:${color.bg};color:${color.text};border:1px solid ${color.border};" title="${act.title || ''}">` +
+              `<span class="cal-activity-dot" style="background:${color.text};"></span>` +
+              `<span class="truncate">${act.title || ''}</span></div>`;
+    });
+    if (dayActs.length > 2) html += `<div class="font-stheiti text-[9px] text-gray-400 text-center mt-0.5">+${dayActs.length - 2} 项</div>`;
+    html += '</div>';
+  }
+  html += '</div></div>';
+  grid.innerHTML = html;
+
+  _bindCellClicks(grid);
+  _bindHoverPreview(grid, activeActivities);
+}
+
+export function renderCalendarForDashboard(state, targetMonth) {
+  const grid  = document.getElementById('cal-main-grid');
+  const empty = document.getElementById('cal-main-empty');
+  if (!grid) return;
+
+  const { activities: rawActivities } = state || {};
+  const activities = rawActivities || [];
+  const activeActivities = activities.filter(a => !a.archived);
+
+  if (activeActivities.length === 0) {
+    grid.classList.add('hidden');
+    if (empty) empty.classList.remove('hidden');
+    const legend = document.getElementById('calendar-legend');
+    if (legend) legend.classList.add('hidden');
+    return;
+  }
+
+  _renderLegend(activeActivities);
+
+  if (empty) empty.classList.add('hidden');
+  grid.classList.remove('hidden');
+
+  const month = targetMonth || _currentYearMonth();
+  _renderMonthViewCompact(grid, activeActivities, month, state);
+}
