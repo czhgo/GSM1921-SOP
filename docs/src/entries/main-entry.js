@@ -3,7 +3,7 @@
 // index.html 专属，处理 dashboard 全量数据渲染
 
 import { BranchService } from '../services/runtime.js';
-import { STATE, setState, registerRenderCallback } from '../core/state.js';
+import { STATE, setState, registerRenderCallback, getAppState } from '../core/state.js';
 import { NoticeStore, renderNoticeList } from '../services/notice.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { _fmtDate, getBasePath, showToast } from '../core/utils.js';
@@ -17,7 +17,7 @@ import { AuthStore } from '../services/auth.js';
 import { loadWorkspaceData, fallbackMapActivities } from '../core/data-loader.js';
 import { mockDB } from '../core/domain.js';
 import { icon } from '../core/icons.js';
-import { renderCalendarByActivities, populateMonthSelector } from '../components/calendar.js';
+import { renderCalendarForDashboard, populateMonthSelector } from '../components/calendar.js';
 
 const { user } = await bootstrapPage({ module: 'dashboard' });
 
@@ -210,6 +210,72 @@ function _bindAttendancePopover(activities, attendanceRecords, thisMonth) {
   });
 }
 
+// ── 近期活动卡片：tab 切换 + URL 同步 ──────────────────
+const DASHBOARD_DEFAULT_VIEW = 'calendar';
+
+function _getInitialActivityView() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('view') || DASHBOARD_DEFAULT_VIEW;
+}
+
+function _getInitialMonth() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('month') || '';
+}
+
+function _syncURL(view, month) {
+  const url = new URL(window.location);
+  if (view === DASHBOARD_DEFAULT_VIEW) {
+    url.searchParams.delete('view');
+  } else {
+    url.searchParams.set('view', view);
+  }
+  if (month) {
+    url.searchParams.set('month', month);
+  } else {
+    url.searchParams.delete('month');
+  }
+  history.replaceState(null, '', url);
+}
+
+function _switchActivityView(view) {
+  const calView = document.getElementById('activity-calendar-view');
+  const listView = document.getElementById('activity-list-view');
+  if (!calView || !listView) return;
+
+  if (view === 'list') {
+    calView.classList.add('hidden');
+    listView.classList.remove('hidden');
+  } else {
+    calView.classList.remove('hidden');
+    listView.classList.add('hidden');
+  }
+
+  // 更新 tab 样式
+  document.querySelectorAll('.activity-tab-btn').forEach(btn => {
+    const isActive = btn.dataset.view === view;
+    btn.className = `activity-tab-btn px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+      isActive
+        ? 'bg-party-50 text-party-700 border border-party-200'
+        : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+    }`;
+  });
+
+  // 同步 URL
+  const appState = getAppState();
+  const month = appState?.displayMonth || '';
+  _syncURL(view, view === 'calendar' ? month : '');
+}
+
+function _bindActivityTabs() {
+  const tabs = document.querySelectorAll('.activity-tab-btn');
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      _switchActivityView(btn.dataset.view);
+    });
+  });
+}
+
 function _renderActivityList(activities) {
   const container = document.getElementById('dashboard-activity-list');
   if (!container) return;
@@ -391,20 +457,6 @@ function _renderGallery(activities) {
 
 // ── 我的角色区块已迁移：角色切换移至 header view-switcher，考勤弹窗并入顶部统计行 ──
 
-// ── 首页活动日历（阶段1C-1：从工作台迁移至首页） ──────────────
-function _renderDashboardCalendar(state) {
-  const grid = document.getElementById('cal-main-grid');
-  if (!grid) return;
-
-  const activities = state.activities || [];
-  const targetMonth = populateMonthSelector(activities);
-  // 同步 displayMonth 到 state，确保日历组件读取正确月份
-  if (!state.displayMonth) {
-    setState({ displayMonth: targetMonth });
-  }
-  renderCalendarByActivities(state, targetMonth);
-}
-
 function renderDashboard(state) {
   const activities = state.activities || [];
   const taskforces = TaskForceRecordStore.getAll();
@@ -427,11 +479,28 @@ function renderDashboard(state) {
   _renderAttendanceSummary(activities, loadAttendanceRecords());
   _renderGallery(activities);
 
-  // 渲染活动日历（最小三成本原则·阶段1C-1：日历迁移至首页）
-  _renderDashboardCalendar(state);
+  // ── 近期活动卡片渲染 ──
+  const currentView = _getInitialActivityView();
+  _switchActivityView(currentView);
+
+  if (currentView === 'calendar') {
+    const targetMonth = populateMonthSelector(activities);
+    if (!state.displayMonth) {
+      const initialMonth = _getInitialMonth() || targetMonth;
+      setState({ displayMonth: initialMonth });
+    }
+    renderCalendarForDashboard(state, state.displayMonth || targetMonth);
+  }
 
   const dashContainer = document.getElementById('view-dashboard');
   if (!dashContainer || dashContainer.dataset.navBound === 'true') return;
+
+  // 绑定 tab 切换（仅绑定一次）
+  if (!dashContainer.dataset.tabsBound) {
+    dashContainer.dataset.tabsBound = 'true';
+    _bindActivityTabs();
+  }
+
   dashContainer.dataset.navBound = 'true';
 
   dashContainer.addEventListener('click', (e) => {
