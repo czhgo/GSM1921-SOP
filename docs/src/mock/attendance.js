@@ -1,5 +1,13 @@
-import { _personName, _activityTitle, _activityType } from './index.js';
+// 修复（T175）：不再从 ./index.js 导入 _personName 等辅助函数，
+// 消除 mock/index.js ↔ mock/attendance.js 循环依赖。
+// 直接依赖 services/person.js + mock/activities.js。
+import { getPersonName } from '../services/person.js';
+import { ACTIVITIES } from './activities.js';
 import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js';
+
+const _personName = (id) => getPersonName(id);
+const _activityTitle = (id) => ACTIVITIES.find(a => a.id === id)?.title || id;
+const _activityType = (id) => ACTIVITIES.find(a => a.id === id)?.type || '未知';
 
 // 最后更新：2026-07-16（T-2026-07-006 第 5 轮 mock 数据迭代）
 // ID 重排为连续序列 att1~att43，补充 recordedAt 字段
@@ -73,6 +81,10 @@ export const ATTENDANCE_RECORDS = [
   { id: 'att41', personId: 'p6',  activityId: 'act-19', status: AttendanceStatus.PRESENT,  recordedBy: 'p10', recordedAt: '2026-05-28T18:00:00Z', overdue: false, studentId: '2400012350', developStage: '发展对象', partyGroup: '第一党小组' },
   { id: 'att42', personId: 'p7',  activityId: 'act-19', status: AttendanceStatus.ABSENT,   recordedBy: 'p10', recordedAt: '2026-05-28T18:00:00Z', overdue: false, studentId: '2400012351', developStage: '积极分子', partyGroup: '第三党小组' },
   { id: 'att43', personId: 'p8',  activityId: 'act-19', status: AttendanceStatus.LEAVE,    recordedBy: 'p10', recordedAt: '2026-05-28T18:00:00Z', overdue: false, studentId: '2400012352', developStage: '正式党员', partyGroup: '第二党小组' },
+
+  // ── act-26 (2026-08-07) 8月党小组会（暑期线上） ─────────────
+  { id: 'att44', personId: 'p1',  activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
+  { id: 'att45', personId: 'p3',  activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
 ];
 
 export function attendanceToLong(records) {

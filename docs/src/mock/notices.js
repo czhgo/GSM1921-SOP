@@ -70,6 +70,37 @@ export const MOCK_NOTICES = [
     targetModule: 'workspace',
     read: false,
   },
+  // ── 8 月通知（暑期特色，与 activities.js 保持数据协调）─────────
+  {
+    id: 'notice-108',
+    title: '暑期实践总结分享会通知',
+    content: '8月20日下午14:00在光华1号楼101报告厅举行暑期实践总结分享会，请各党小组组织成员回顾暑期实践成果并做好分享准备。',
+    priority: 'normal',
+    publishDate: '2026-08-08',
+    expireDate: '2026-08-20',
+    targetModule: 'activity',
+    read: false,
+  },
+  {
+    id: 'notice-109',
+    title: '发展对象暑期谈话考察安排',
+    content: '8月15日起开展发展对象暑期一对一谈话考察，请发展对象本人提前准备好思想汇报材料，考察结果将纳入发展参考。',
+    priority: 'normal',
+    publishDate: '2026-08-05',
+    expireDate: '2026-08-25',
+    targetModule: 'party',
+    read: false,
+  },
+  {
+    id: 'notice-110',
+    title: '秋季学期工作部署会通知',
+    content: '8月28日在光华1号楼101报告厅召开秋季学期党支部工作部署会，请支委成员提前准备分管工作总结与新学期计划。',
+    priority: 'urgent',
+    publishDate: '2026-08-18',
+    expireDate: '2026-08-28',
+    targetModule: 'workspace',
+    read: false,
+  },
   // ── 历史通知（已过期，仅供归档参考）────────────────────────
   {
     id: 'notice-001',

@@ -382,6 +382,25 @@ body {
   color: var(--neutral-400);
 }
 
+/* 主题党日正交维度选项（共建性质/是否外出/活动载体多选） */
+.wp-dim-chip {
+  background-color: var(--neutral-0);
+  border-color: var(--neutral-200);
+  color: var(--neutral-600);
+  cursor: pointer;
+  user-select: none;
+}
+.wp-dim-chip:hover {
+  border-color: var(--party-gold);
+  color: #854D0E;
+}
+.wp-dim-chip.wp-dim-on {
+  background-color: rgba(212, 175, 55, 0.10);
+  border-color: var(--party-gold);
+  color: #854D0E;
+  font-weight: 500;
+}
+
 select.input-flat {
   appearance: none;
   -webkit-appearance: none;
@@ -1243,6 +1262,14 @@ textarea.input-flat {
   overflow: hidden;
 }
 
+/* 首页 compact 日历格子：正方形（高=宽），只容纳最多3个活动标签，压缩上下留白 */
+.cal-cell-large.cal-cell-compact {
+  min-height: 0;
+  aspect-ratio: 1 / 1;
+  padding: 4px;
+  overflow: hidden;
+}
+
 .cal-cell-large.has-tasks {
   background-color: var(--neutral-0);
   cursor: pointer;
@@ -1297,23 +1324,32 @@ textarea.input-flat {
 .cal-activity-tag {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 2px 8px;
+  gap: 4px;
+  padding: 1px 6px;
   border-radius: var(--radius-sm);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 500;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
   transition: opacity 0.15s ease-out;
 }
 
+/* compact 日历格子中的标签：更紧凑 */
+.cal-cell-compact .cal-activity-tag {
+  padding: 1px 4px;
+  gap: 3px;
+  font-size: 0.6rem;
+}
+
 .cal-activity-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+.cal-cell-compact .cal-activity-dot {
+  width: 4px;
+  height: 4px;
 }
 
 /* ── Mobile Calendar (768px以下交互式日历) ── */

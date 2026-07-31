@@ -19,6 +19,8 @@ import { renderQueryView } from '../components/query-view.js';
 import { icon } from '../core/icons.js';
 import { renderTodoList } from '../components/todo-list.js';
 import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js';
+import { loadAttendanceRecords } from '../services/attendance.js';
+import { SecretaryOverviewStore } from '../services/secretary-overview.js';
 
 await bootstrapPage({ module: 'workspace' });
 
@@ -95,10 +97,10 @@ function renderSecretaryUI(state) {
   if (statsEl) {
     // 统计条：紧凑文本概览（圆点+数字+标签），替代原 4 张大卡平铺
     const items = [
-      { label: '待赋权活动', value: stats.pendingAuth, color: '#D97706' },
-      { label: '活跃活动', value: stats.activeEvents, color: '#059669' },
-      { label: '本月活动', value: stats.monthEvents, color: '#2563EB' },
-      { label: '已赋权记录', value: stats.authGranted, color: '#0E7490' },
+      { label: '待赋权活动', value: stats.pendingAuth, color: accent },
+      { label: '活跃活动', value: stats.activeEvents, color: accent },
+      { label: '本月活动', value: stats.monthEvents, color: accent },
+      { label: '已赋权记录', value: stats.authGranted, color: accent },
     ];
     statsEl.innerHTML = items.map(s => `
       <span class="inline-flex items-center gap-1.5">
@@ -108,6 +110,9 @@ function renderSecretaryUI(state) {
       </span>
     `).join('');
   }
+
+  // ── 考勤概况（从首页迁移） ──
+  _renderAttendanceSummary(activities);
 
   const filterBrand = state.filterBrand || false;
   const displayActivities = filterBrand
@@ -200,8 +205,125 @@ function renderSecretaryUI(state) {
   // ── 通知发布（党务） ──
   renderNotificationPanel();
 
+  // ── 全局概况 tab ──
+  _renderOverviewContent();
+
   // ── 待办 tab 内容渲染（最小三成本原则落地） ──
   _renderTodoContent();
+}
+
+// ── 考勤概况渲染（从首页迁移） ──
+function _renderAttendanceSummary(activities) {
+  const container = document.getElementById('secretary-attendance-summary');
+  if (!container) return;
+
+  const now = new Date();
+  const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const monthActivities = activities.filter(a => (a.date || '').startsWith(thisMonth) && !a.archived);
+
+  if (monthActivities.length === 0) {
+    container.innerHTML = '<p class="text-sm text-gray-400">本月暂无考勤数据</p>';
+    return;
+  }
+
+  const attendanceRecords = loadAttendanceRecords();
+  const rows = monthActivities.map(act => {
+    const records = attendanceRecords.filter(r => r.activityId === act.id);
+    const present = records.filter(r => r.status === 'present').length;
+    const absent = records.filter(r => r.status === 'absent').length;
+    const leave = records.filter(r => r.status === 'leave').length;
+    const total = records.length;
+    const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+    const rateColor = rate >= 90 ? 'text-green-600' : rate >= 70 ? 'text-orange-600' : 'text-red-600';
+
+    return `
+      <div class="flex items-center gap-3 py-2 border-b border-gray-50 last:border-b-0 hover:bg-gray-50 rounded-lg px-2 -mx-2 transition-all duration-200">
+        <div class="flex-1 min-w-0">
+          <p class="text-sm text-gray-800 truncate">${act.title}</p>
+          <p class="text-xs text-gray-400">${_fmtDate(new Date(act.date))}</p>
+        </div>
+        <div class="flex items-center gap-3 text-xs whitespace-nowrap">
+          <span class="text-green-600">出勤 ${present}</span>
+          <span class="text-red-500">缺勤 ${absent}</span>
+          <span class="text-orange-500">请假 ${leave}</span>
+          <span class="font-medium ${rateColor}">${rate}%</span>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = rows.join('');
+}
+
+// ── 全局概况 tab 渲染（T-143） ──────────────────────────────
+function _renderOverviewContent() {
+  const container = document.getElementById('secretary-overview-content');
+  if (!container) return;
+
+  const data = SecretaryOverviewStore.getOverview();
+
+  const cards = [
+    {
+      title: '考勤与纪律',
+      color: '#C2410C',
+      items: [
+        { label: '本月出勤率', value: `${data.attendance.attendanceRate}%`, alert: data.attendance.alert, alertText: data.attendance.alert ? '偏低' : '' },
+        { label: '缺勤人员', value: data.attendance.absentPeople.length > 0 ? data.attendance.absentPeople.join('、') : '无', alert: data.attendance.absentPeople.length > 0 },
+        { label: '补课未完成', value: data.attendance.makeupPending, alert: data.attendance.makeupPending > 0 },
+      ],
+    },
+    {
+      title: '发展与考察',
+      color: '#0EA5E9',
+      items: [
+        { label: '积极分子', value: `${data.inspection.stageCounts.activist}人` },
+        { label: '发展对象', value: `${data.inspection.stageCounts.target}人` },
+        { label: '预备党员', value: `${data.inspection.stageCounts.probationary}人` },
+        { label: '考察待确认', value: data.inspection.pendingInspections, alert: data.inspection.pendingInspections > 0 },
+        { label: '考察超期', value: data.inspection.overdueInspections, alert: data.inspection.overdueInspections > 0 },
+      ],
+    },
+    {
+      title: '活动与专班进度',
+      color: '#B91C1C',
+      items: [
+        { label: '进行中活动', value: data.activity.activeActivities },
+        { label: '进行中专班', value: data.activity.activeTaskforces },
+        { label: '赋权待审批', value: data.activity.pendingAuth, alert: data.activity.pendingAuth > 0 },
+        { label: '复盘完成率', value: `${data.activity.reviewRate}%` },
+      ],
+    },
+    {
+      title: '宣传与档案',
+      color: '#2563EB',
+      items: [
+        { label: '本月通知', value: data.propaganda.noticeCount },
+        { label: '待归档活动', value: data.propaganda.pendingArchive, alert: data.propaganda.pendingArchive > 0 },
+        { label: '归档完成率', value: `${data.propaganda.archiveRate}%` },
+      ],
+    },
+  ];
+
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      ${cards.map(card => `
+        <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${card.color};">
+          <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-4">${card.title}</h4>
+          <div class="space-y-2.5">
+            ${card.items.map(item => `
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-600">${item.label}</span>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-sm font-medium ${item.alert ? 'text-orange-600' : 'text-gray-800'}">${item.value}</span>
+                  ${item.alertText ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-200">${item.alertText}</span>` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
 }
 
 // ── 待办列表+详情面板（最小三成本原则落地） ───────────────────
@@ -352,7 +474,7 @@ const wp = new DecisionTreeState('secretary');
 
 /**
  * 活动模板配置（2 步式 Step 1 使用）
- * 两类：三会一课（党建红）/ 主题党日（党建蓝）
+ * 两类：三会一课（党建红）/ 主题党日（党建金）
  */
 const WRITE_TEMPLATES = [
   {
@@ -371,16 +493,12 @@ const WRITE_TEMPLATES = [
   {
     category: 'theme-day',
     categoryLabel: '主题党日',
-    color: '#2563EB',
-    bg: 'rgba(37,99,235,0.08)',
-    border: 'rgba(37,99,235,0.25)',
-    subtypes: [
-      { value: 'study', label: '学习', scenarioId: 'theme-party', activityType: 'study' },
-      { value: 'visit', label: '参访', scenarioId: 'theme-party', activityType: 'visit' },
-      { value: 'forum', label: '座谈', scenarioId: 'theme-party', activityType: 'forum' },
-      { value: 'co-build', label: '共建', scenarioId: 'theme-party', activityType: 'co-build' },
-      { value: 'meeting', label: '会议', scenarioId: 'theme-party', activityType: 'meeting' },
-    ],
+    color: '#D4AF37',
+    bg: 'rgba(212,175,55,0.10)',
+    border: 'rgba(212,175,55,0.30)',
+    scenarioId: 'theme-party',
+    // 主题党日无固定子分类，采用正交维度（Step 2 表单中呈现：共建性质/是否外出/活动载体）
+    subtypes: [],
   },
 ];
 
@@ -430,12 +548,20 @@ function renderTemplateStep() {
     html += `</div>`;
     // 子类型按钮列表
     html += `<div class="p-2 space-y-1">`;
-    tpl.subtypes.forEach(sub => {
-      const isSelected = wp.selections.L1 === tpl.category && wp.selections.L1Sub === sub.value;
-      html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="${sub.value}" data-scenario-id="${sub.scenarioId}" data-activity-type="${sub.activityType || ''}" data-color="${tpl.color}" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'bg-red-50 text-red-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}">`;
-      html += sub.label;
+    if (tpl.subtypes.length === 0) {
+      // 主题党日无固定子类型，直接选择模板（正交维度在 Step 2 表单中填写）
+      const isSelected = wp.selections.L1 === tpl.category;
+      html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="" data-scenario-id="${tpl.scenarioId || 'theme-party'}" data-activity-type="" data-color="${tpl.color}" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'bg-red-50 text-red-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}">`;
+      html += `选择${tpl.categoryLabel}（正交维度在下一步填写）`;
       html += `</button>`;
-    });
+    } else {
+      tpl.subtypes.forEach(sub => {
+        const isSelected = wp.selections.L1 === tpl.category && wp.selections.L1Sub === sub.value;
+        html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="${sub.value}" data-scenario-id="${sub.scenarioId}" data-activity-type="${sub.activityType || ''}" data-color="${tpl.color}" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'bg-red-50 text-red-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}">`;
+        html += sub.label;
+        html += `</button>`;
+      });
+    }
     html += `</div>`;
     html += `</div>`;
   });
@@ -454,8 +580,9 @@ function renderFormStep() {
     wp.step = 1;
     return renderTemplateStep();
   }
+  // 三会一课需选子类；主题党日无固定子类
   const sub = tpl.subtypes.find(s => s.value === wp.selections.L1Sub);
-  if (!sub) {
+  if (tpl.subtypes.length > 0 && !sub) {
     wp.step = 1;
     return renderTemplateStep();
   }
@@ -466,7 +593,7 @@ function renderFormStep() {
   let html = `<div>`;
   // 已选模板提示
   html += `<div class="mb-4 px-3 py-2 rounded-lg" style="background:${tpl.bg};border:1px solid ${tpl.border};">`;
-  html += `<p class="text-xs font-medium" style="color:${tpl.color};">已选模板：${tpl.categoryLabel} · ${sub.label}</p>`;
+  html += `<p class="text-xs font-medium" style="color:${tpl.color};">已选模板：${tpl.categoryLabel}${sub ? ' · ' + sub.label : ''}</p>`;
   if (scenarioTitle) {
     html += `<p class="text-[11px] text-gray-500 mt-0.5">SOP 场景：${scenarioTitle}（写入后自动生成任务节点）</p>`;
   }
@@ -495,6 +622,11 @@ function renderFormStep() {
   html += `<label class="text-xs text-gray-500 mb-1 block">地点 <span class="text-red-500">*</span></label>`;
   html += `<input type="text" id="wp-location" class="input-flat w-full" placeholder="活动地点">`;
   html += `</div>`;
+
+  // 主题党日正交维度（共建性质 / 是否外出 / 活动载体）
+  if (tpl.category === 'theme-day') {
+    html += renderThemeDayDimensions();
+  }
 
   // 主持人（默认当前用户）
   html += `<div class="mb-3">`;
@@ -542,11 +674,62 @@ function renderFormStep() {
   return html;
 }
 
-// ── 事件绑定 ──────────────────────────────────────────────────
+/** 主题党日正交维度字段组（共建性质 / 是否外出 / 活动载体多选） */
+function renderThemeDayDimensions() {
+  const dims = wp.config?.THEME_PARTY_DIMENSIONS;
+  if (!dims) return '';
+  let html = `<div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3">`;
+
+  // 维度1 共建性质
+  html += `<div class="mb-2.5">`;
+  html += `<label class="text-xs text-gray-500 mb-1 block">共建性质</label>`;
+  html += `<div class="flex gap-2">`;
+  dims.isJoint.forEach(opt => {
+    html += `<button type="button" data-wp-dim data-wp-group="isJoint" data-wp-dim-value="${opt.value}" data-wp-multi="false" class="wp-dim-chip text-xs px-3 py-1.5 rounded-lg border transition-colors">${opt.label}</button>`;
+  });
+  html += `</div>`;
+  html += `</div>`;
+
+  // 维度2 是否外出
+  html += `<div class="mb-2.5">`;
+  html += `<label class="text-xs text-gray-500 mb-1 block">是否外出</label>`;
+  html += `<div class="flex gap-2">`;
+  dims.isOutdoor.forEach(opt => {
+    html += `<button type="button" data-wp-dim data-wp-group="isOutdoor" data-wp-dim-value="${opt.value}" data-wp-multi="false" class="wp-dim-chip text-xs px-3 py-1.5 rounded-lg border transition-colors">${opt.label}</button>`;
+  });
+  html += `</div>`;
+  html += `</div>`;
+
+  // 维度3 活动载体（多选）
+  html += `<div>`;
+  html += `<label class="text-xs text-gray-500 mb-1 block">活动载体 <span class="text-gray-300">（可多选）</span></label>`;
+  html += `<div class="flex flex-wrap gap-2">`;
+  dims.carriers.forEach(opt => {
+    html += `<button type="button" data-wp-dim data-wp-group="carriers" data-wp-dim-value="${opt.value}" data-wp-multi="true" class="wp-dim-chip text-xs px-3 py-1.5 rounded-lg border transition-colors">${opt.label}</button>`;
+  });
+  html += `</div>`;
+  html += `</div>`;
+
+  html += `</div>`;
+  return html;
+}
 
 function bindWritePanelEvents(container) {
   container.querySelectorAll('[data-action]').forEach(el => {
     el.addEventListener('click', handleWritePanelAction);
+  });
+  // 主题党日正交维度按钮（单选组互斥 / 载体多选）
+  container.querySelectorAll('[data-wp-dim]').forEach(el => {
+    el.addEventListener('click', () => {
+      const group = el.dataset.wpGroup;
+      const multi = el.dataset.wpMulti === 'true';
+      if (multi) {
+        el.classList.toggle('wp-dim-on');
+      } else {
+        container.querySelectorAll(`[data-wp-group="${group}"]`).forEach(o => o.classList.remove('wp-dim-on'));
+        el.classList.add('wp-dim-on');
+      }
+    });
   });
 }
 
@@ -610,6 +793,20 @@ async function handleSubmitActivity() {
   const direction = directionEl?.value || '';
   const duration = durationEl?.value || '';
 
+  // 主题党日正交维度（共建性质 / 是否外出 / 活动载体多选）
+  let dimIsJoint = '';
+  let dimIsOutdoor = '';
+  let dimCarriers = [];
+  if (wp.selections.L1 === 'theme-day') {
+    const formArea = document.getElementById('write-form-area');
+    if (formArea) {
+      const picked = [...formArea.querySelectorAll('[data-wp-dim].wp-dim-on')];
+      dimIsJoint = picked.find(o => o.dataset.wpGroup === 'isJoint')?.dataset.wpDimValue || '';
+      dimIsOutdoor = picked.find(o => o.dataset.wpGroup === 'isOutdoor')?.dataset.wpDimValue || '';
+      dimCarriers = picked.filter(o => o.dataset.wpGroup === 'carriers').map(o => o.dataset.wpDimValue);
+    }
+  }
+
   // 校验必填项
   if (!title) { showToast('error', '请填写活动名称'); titleEl?.focus(); return; }
   if (!date) { showToast('error', '请选择日期'); dateEl?.focus(); return; }
@@ -646,6 +843,10 @@ async function handleSubmitActivity() {
       _dt_L2: wp.selections.L2 || '',
       _dt_direction: direction,
       _dt_duration: duration,
+      // 主题党日正交维度（业务首类字段，见 DATA_ARCHITECTURE.md §2.1.2）
+      isJoint: dimIsJoint,
+      isOutdoor: dimIsOutdoor,
+      carriers: dimCarriers,
     };
     const { taskCount } = await writeActivityWithSOP(activityData, scenarioId, date);
     showToast('success', `活动写入成功，已生成 ${taskCount} 个任务节点`);
@@ -920,7 +1121,10 @@ function renderIssueManagement() {
   const listEl = document.getElementById('issue-secretary-list');
   const pillEl = document.getElementById('issue-summary-pill');
   if (listEl) {
-    let issues = IssueStore.getAll().filter(i => !i.hidden && !i.mergedInto);
+    // 书记规则（2026-08-01）：带时间字段的列示按提交时间倒序（最新在前）
+    let issues = IssueStore.getAll()
+      .filter(i => !i.hidden && !i.mergedInto)
+      .sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || ''));
     // 筛选
     const filterStatus = document.getElementById('issue-filter-status')?.value || 'all';
     const filterAssignee = document.getElementById('issue-filter-assignee')?.value || 'all';

@@ -582,7 +582,9 @@ export const IssueNotify = {
  * @returns {string} HTML
  */
 export function renderMyDispatchTab(role, userId) {
-  const issues = IssueStore.getAssignedTo(userId);
+  // 书记规则（2026-08-01）：带时间字段的列示按提交时间倒序（最新在前）
+  const issues = IssueStore.getAssignedTo(userId)
+    .sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || ''));
   const unread = IssueNotify.getUnread(userId);
 
   // 标记全部已读

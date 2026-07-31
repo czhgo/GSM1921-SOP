@@ -6,7 +6,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { mockDB } from '../core/domain.js';
-import { saveDB } from './mock.js';
+import { persist } from '../core/data-adapter.js';
 import { MOCK_NOTICES } from '../mock/index.js';
 import { showToast } from '../core/utils.js';
 import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js';
@@ -25,7 +25,7 @@ function _loadNotices() {
 function _saveNotices(notices) {
   try {
     mockDB.notices = [...notices];
-    saveDB();
+    persist();
   } catch (e) {
     console.warn('[NoticeStore] 保存失败：', e);
   }
@@ -182,7 +182,8 @@ export function renderNoticeList(containerId, limit = 5) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  const notices = NoticeStore.list({ activeOnly: true, limit });
+  // 书记规则（2026-08-01）：任何带时间字段的列示一律按时间倒序（最新在前）
+  const notices = NoticeStore.list({ activeOnly: true, limit, sortBy: 'date' });
 
   if (notices.length === 0) {
     container.innerHTML = '<p class="text-sm text-gray-400">暂无通知</p>';

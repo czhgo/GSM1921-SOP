@@ -150,7 +150,7 @@ function _renderCategoryGroup(prefix, category, todos, accent, today) {
 
   return `
     <div class="${prefix}-todo-group mb-3" data-category="${category}">
-      <div class="${prefix}-todo-group-header flex items-center justify-between px-3 py-2 rounded-t-lg cursor-pointer hover:bg-gray-50 transition-colors ${hasExpired ? 'border-l-2 border-red-400' : ''}" style="border-left:3px solid ${hasExpired ? '#EF4444' : accent + '40'};">
+      <div class="${prefix}-todo-group-header flex items-center justify-between px-3 py-2 rounded-t-lg cursor-pointer hover:bg-gray-50 transition-colors">
         <div class="flex items-center gap-2">
           <svg class="${prefix}-todo-arrow w-3 h-3 text-gray-400 transition-transform" style="transform:${isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)'};" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -160,7 +160,7 @@ function _renderCategoryGroup(prefix, category, todos, accent, today) {
         </div>
         <span class="text-xs text-gray-400">${todos.length}</span>
       </div>
-      <div class="${prefix}-todo-group-items ${isExpanded ? '' : 'hidden'} bg-white rounded-b-lg border border-gray-100 border-t-0">
+      <div class="${prefix}-todo-group-items ${isExpanded ? '' : 'hidden'} rounded-b-lg">
         ${itemsHtml}
       </div>
     </div>
