@@ -62,26 +62,30 @@
           <div id="dashboard-notice-list" class="text-sm text-gray-500"><p>暂无通知</p></div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div class="card rounded-2xl p-6 md:col-span-2">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="font-title-cn text-base font-semibold text-gray-800">活动日历</h3>
-              <div class="flex items-center gap-3">
-                <select id="month-selector" class="input-flat text-xs" style="min-width:120px;"></select>
-                <a href="./workspace/visitor.html" class="text-xs text-blue-600 hover:text-blue-800">工作台 →</a>
-              </div>
-            </div>
-            <div id="cal-main-empty" class="hidden text-sm text-gray-400 text-center py-8">本月暂无活动</div>
-            <div id="cal-main-grid"></div>
-            <div id="calendar-legend" class="mt-3">
-              <div id="legend-items" class="flex flex-wrap gap-3 text-xs text-gray-500"></div>
-            </div>
-          </div>
           <div class="card rounded-2xl p-6">
             <div class="flex items-center justify-between mb-4">
               <h3 class="font-title-cn text-base font-semibold text-gray-800">近期活动</h3>
-              <a href="./workspace/visitor.html" class="text-xs text-blue-600 hover:text-blue-800">查看全部 →</a>
+              <div class="flex items-center gap-3">
+                <div id="activity-view-tabs" class="flex gap-1">
+                  <button class="activity-tab-btn px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-party-50 text-party-700 border border-party-200" data-view="calendar">日历</button>
+                  <button class="activity-tab-btn px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-white text-gray-500 border border-gray-200 hover:bg-gray-50" data-view="list">列表</button>
+                </div>
+                <a href="./workspace/visitor.html" class="text-xs text-blue-600 hover:text-blue-800">工作台 →</a>
+              </div>
             </div>
-            <div id="dashboard-activity-list" class="text-sm text-gray-500"><p>暂无活动</p></div>
+            <div id="activity-calendar-view">
+              <div class="mb-3">
+                <select id="month-selector" class="input-flat text-xs" style="min-width:120px;"></select>
+              </div>
+              <div id="cal-main-empty" class="hidden text-sm text-gray-400 text-center py-8">本月暂无活动</div>
+              <div id="cal-main-grid"></div>
+              <div id="calendar-legend" class="mt-3">
+                <div id="legend-items" class="flex flex-wrap gap-3 text-xs text-gray-500"></div>
+              </div>
+            </div>
+            <div id="activity-list-view" class="hidden">
+              <div id="dashboard-activity-list" class="text-sm text-gray-500"><p>暂无活动</p></div>
+            </div>
           </div>
           <div class="card rounded-2xl p-6">
             <div class="flex items-center justify-between mb-4">
