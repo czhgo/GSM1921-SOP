@@ -5151,3 +5151,17 @@ label .text-red-500 {
     transform: scale(1);
   }
 }
+
+/* ── 首页近期活动 Tab 样式 ─────────────────────────── */
+.activity-tab-btn {
+  transition: all 0.15s ease;
+}
+.activity-tab-btn:hover {
+  transform: none;
+}
+
+/* ── 日历悬停浮窗 ─────────────────────────────── */
+#cal-hover-popover {
+  pointer-events: auto;
+  transition: opacity 0.15s ease;
+}
