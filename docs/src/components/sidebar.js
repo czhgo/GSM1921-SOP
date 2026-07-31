@@ -80,6 +80,11 @@ export function renderSidebar(activeModule) {
     </nav>
     <div class="sidebar-footer">
       <div class="flex flex-col gap-0.5 mb-2">${footerHTML}</div>
+      <div class="sidebar-font-size-toggle">
+        <span style="font-size:0.65rem;color:var(--neutral-400);">字号</span>
+        <button id="font-size-medium" class="font-size-btn ${_currentFontSize() === 'medium' ? 'active' : ''}" title="中号字体">中</button>
+        <button id="font-size-large" class="font-size-btn ${_currentFontSize() === 'large' ? 'active' : ''}" title="大号字体">大</button>
+      </div>
       <button id="sidebar-logout" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-400);cursor:pointer;border:none;background:none;">
         ${icon('logout', { stroke: 'var(--neutral-400)' })}
         <span>退出登录</span>
@@ -88,6 +93,7 @@ export function renderSidebar(activeModule) {
   `;
 
   _bindLogout(sidebar);
+  _bindFontSizeToggle(sidebar);
   bindWorkspacePopover(sidebar);
 }
 
@@ -98,6 +104,30 @@ function _bindLogout(sidebar) {
     AuthStore.logout();
     window.location.href = getBasePath() + 'login.html';
   });
+}
+
+function _currentFontSize() {
+  return localStorage.getItem('workflowos_font_size') || 'medium';
+}
+
+function _bindFontSizeToggle(sidebar) {
+  const btnMedium = sidebar.querySelector('#font-size-medium');
+  const btnLarge = sidebar.querySelector('#font-size-large');
+  if (!btnMedium || !btnLarge) return;
+
+  const apply = (size) => {
+    localStorage.setItem('workflowos_font_size', size);
+    if (size === 'large') {
+      document.documentElement.classList.add('font-size-large');
+    } else {
+      document.documentElement.classList.remove('font-size-large');
+    }
+    btnMedium.classList.toggle('active', size === 'medium');
+    btnLarge.classList.toggle('active', size === 'large');
+  };
+
+  btnMedium.addEventListener('click', () => apply('medium'));
+  btnLarge.addEventListener('click', () => apply('large'));
 }
 
 // ── 订阅 view-role-change 事件，重新渲染链接（不 reload） ───

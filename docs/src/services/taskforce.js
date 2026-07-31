@@ -81,6 +81,11 @@ export const TaskForceRecordStore = {
     };
     this._records = [...this._records, newRecord];
     _saveTaskForces(this._records);
+    // 派生赋权待办给组织委员（最小三成本原则·阶段1C-3）
+    // 使用 dynamic import 避免与 todo.js 的潜在循环依赖
+    import('./todo.js').then(({ LifecycleTodoDeriver }) => {
+      LifecycleTodoDeriver.deriveFromTaskforceCreate(newRecord);
+    }).catch(e => console.warn('[TaskForceRecordStore] 派生专班赋权待办失败：', e));
     return newRecord;
   },
 

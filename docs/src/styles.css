@@ -125,6 +125,49 @@
   --tracking-wide: 0.02em;
 }
 
+/* ── 字体二档调节：大档覆盖（等差递增·小字多加 +3px） ── */
+html.font-size-large {
+  --text-xs:   0.8125rem;   /* 10px → 13px (+3) */
+  --text-sm:   0.9375rem;   /* 12px → 15px (+3) */
+  --text-base: 1.0625rem;   /* 14px → 17px (+3) */
+  --text-md:   1.1875rem;   /* 16px → 19px (+3) */
+  --text-lg:   1.3125rem;   /* 18px → 21px (+3) */
+  --text-xl:   1.4375rem;   /* 20px → 23px (+3) */
+  --text-2xl:  1.5625rem;   /* 22px → 25px (+3) */
+  --text-3xl:  1.6875rem;   /* 24px → 27px (+3) */
+}
+
+/* ── 字体二档调节：Tailwind 字号类覆盖（基于 Tailwind 默认值 +3px） ── */
+html.font-size-large .text-xs   { font-size: 0.9375rem !important; }   /* 12px → 15px */
+html.font-size-large .text-sm   { font-size: 1.0625rem !important; }   /* 14px → 17px */
+html.font-size-large .text-base { font-size: 1.1875rem !important; }   /* 16px → 19px */
+html.font-size-large .text-lg   { font-size: 1.3125rem !important; }   /* 18px → 21px */
+html.font-size-large .text-xl   { font-size: 1.4375rem !important; }   /* 20px → 23px */
+html.font-size-large .text-2xl  { font-size: 1.6875rem !important; }   /* 24px → 27px */
+html.font-size-large .text-3xl  { font-size: 2.0625rem !important; }   /* 30px → 33px */
+/* 任意值字号覆盖（10px→13px, 11px→14px, 9px→12px） */
+html.font-size-large .text-\[10px\] { font-size: 0.8125rem !important; }
+html.font-size-large .text-\[11px\] { font-size: 0.875rem !important; }
+html.font-size-large .text-\[9px\]  { font-size: 0.75rem !important; }
+
+/* ── 字体二档调节：CSS 组件类字号覆盖（基于中档值 +3px） ── */
+html.font-size-large .text-h1       { font-size: 1.6875rem !important; }   /* 24px → 27px */
+html.font-size-large .text-h2       { font-size: 1.4375rem !important; }   /* 20px → 23px */
+html.font-size-large .text-h3       { font-size: 1.3125rem !important; }   /* 18px → 21px */
+html.font-size-large .text-body-lg  { font-size: 1.1875rem !important; }   /* 16px → 19px */
+html.font-size-large .text-body     { font-size: 1.0625rem !important; }   /* 14px → 17px */
+html.font-size-large .text-body-sm  { font-size: 1rem !important; }        /* 13px → 16px */
+html.font-size-large .text-caption  { font-size: 0.9375rem !important; }   /* 12px → 15px */
+html.font-size-large .text-overline { font-size: 0.875rem !important; }    /* 11px → 14px */
+html.font-size-large .input-flat    { font-size: 1.0625rem !important; }   /* 14px → 17px */
+html.font-size-large .input-flat-sm { font-size: 0.9375rem !important; }       /* 12px → 15px */
+html.font-size-large .btn-primary   { font-size: 1.0625rem !important; }   /* 14px → 17px */
+html.font-size-large .btn-secondary { font-size: 1.0625rem !important; }   /* 14px → 17px */
+html.font-size-large .btn-action    { font-size: 0.875rem !important; }    /* 11px → 14px */
+html.font-size-large .btn-tab       { font-size: 0.9375rem !important; }   /* 12px → 15px */
+html.font-size-large .btn-md        { font-size: 0.9375rem !important; }   /* 12px → 15px */
+html.font-size-large .domain-btn    { font-size: 1rem !important; }        /* 13px → 16px */
+
 /* ═══════════════════════════════════════════════════════════════
    RESET
    ═══════════════════════════════════════════════════════════════ */
@@ -857,6 +900,39 @@ textarea.input-flat {
   padding-top: 12px;
   border-top: 1px solid var(--neutral-100);
   margin-top: auto;
+}
+
+/* ── 字号切换按钮 ── */
+.sidebar-font-size-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+}
+
+.font-size-btn {
+  padding: 2px 8px;
+  font-size: 0.65rem;
+  font-weight: 500;
+  border-radius: 4px;
+  border: 1px solid var(--neutral-200);
+  background: var(--neutral-0);
+  color: var(--neutral-400);
+  cursor: pointer;
+  transition: all 150ms ease-out;
+  line-height: 1.4;
+}
+
+.font-size-btn:hover {
+  border-color: var(--neutral-300);
+  color: var(--neutral-600);
+}
+
+.font-size-btn.active {
+  background: var(--primary-50);
+  color: var(--primary-700);
+  border-color: var(--primary-200);
 }
 
 /* ═══════════════════════════════════════════════════════════════

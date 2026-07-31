@@ -3,20 +3,20 @@ role: "[工程师]+[AI]"
 dynamic_role:
   maintenance: "[工程师]+[AI]"
   auto_update: "[AI]"
-last_updated: "2026-07-21"
+last_updated: "2026-07-31"
 ---
 
 # File Timestamp Registry
 
 > 全项目文件最后更新时间注册表
-> last_updated: "2026-07-21" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
+> last_updated: "2026-07-31" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
 
 ---
 
 ## 更新规则
 
 1. 本注册表在周期性任务 M2（SNAPSHOT 更新）执行时批量刷新，不随日常文件修改逐条更新
-2. 时间戳格式: `YYYY-MM-DD HH:MM:SS`
+2. 时间戳格式: `YYYY-MM-DD`（精确时间仅在有 git log 依据时使用 `YYYY-MM-DD HH:MM:SS`）
 3. 新增文件须在本注册表中追加条目
 4. 删除文件须将对应条目标记为 `🗑️ 已删除`
 5. 本文件自身的时间戳在每次批量刷新时同步
@@ -27,133 +27,265 @@ last_updated: "2026-07-21"
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| README.md | 2026-05-01 00:00:00 | [用户] | 对外门面 |
-| ARCHITECTURE.md | 2026-05-03 00:00:00 | [工程师]+[AI] | 核心架构说明 |
-| CLAUDE.md | 2026-05-04 00:00:00 | [工程师]+[AI] | 待实施路线图 |
-| index.html | 2026-05-04 00:00:00 | [用户]+[AI] | UI 入口 |
-| .markdownlint.json | 2026-04-06 17:12:44 | [工具] | Markdown 规范 |
-| .markdownlintignore | 2026-04-01 02:28:01 | [工具] | Markdown 忽略 |
+| README.md | 2026-07-31 | [用户]+[AI] | 对外门面 |
+| CLAUDE.md | 2026-07-31 | [工程师]+[AI] | Harness（甲乙丙三部） |
+| CHECKLIST.md | — | — | 🗑️ 已删除（迁移至 content/03_doc_system/CHECKLIST.md） |
+| LICENSE | 2026-02-17 | [用户] | 开源许可 |
+| .gitignore | 2026-04-06 | [工具] | Git 忽略 |
+| .markdownlint.json | 2026-04-06 | [工具] | Markdown 规范 |
+| ARCHITECTURE.md | — | — | 🗑️ 已删除（迁移至 content/03_doc_system/ARCHITECTURE.md） |
+| index.html | — | — | 🗑️ 已删除（迁移至 docs/index.html） |
 
 ## .ctx/ (审计底座)
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| .ctx/TIMESTAMPS.md | 2026-05-04 00:00:00 | [工程师]+[AI] | 本文件 |
-| .ctx/SNAPSHOT.md | 2026-05-04 00:00:00 | [AI] | ACTIVE v4 |
-| .ctx/snapshots/INDEX.md | 2026-05-03 00:00:00 | [工程师]+[AI] | 快照历史索引 |
-| .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-05-02 00:00:00 | [工程师]+[AI] | 日志索引 |
-| .ctx/logs/DECISION_LOG.md | 2026-05-02 00:00:00 | [工程师]+[AI] | 决策日志 |
-| .ctx/logs/2026-02-EXECUTION_LOG.md | 2026-02-28 14:00:25 | [工程师]+[AI] | 已归档 |
-| .ctx/logs/2026-03-EXECUTION_LOG.md | 2026-03-31 11:12:14 | [工程师]+[AI] | 已归档 |
-| .ctx/logs/2026-04-EXECUTION_LOG.md | 2026-04-06 17:12:44 | [工程师]+[AI] | 已归档 |
-| .ctx/logs/2026-05-EXECUTION_LOG.md | 2026-05-03 00:00:00 | [工程师]+[AI] | 已归档 |
-| .ctx/logs/archive/2026-07-early-entries.md | 2026-07-12 00:00:00 | [工程师]+[AI] | T22-T90 早期条目归档（母本：2026-07-EXECUTION_LOG.md） |
-
-## src/ (代码实现层)
-
-| 文件路径 | last_updated | 角色 | 备注 |
-|---------|-------------|------|------|
-| src/main.js | 2026-05-04 00:00:00 | [工程师]+[AI] | 主控入口 + data-modules 过滤 |
-| src/state.js | 2026-05-04 00:00:00 | [工程师]+[AI] | 全局状态（activeModule默认→dashboard） |
-| src/events.js | 2026-05-04 00:00:00 | [工程师]+[AI] | 事件绑定 + 主页导航联动 |
-| src/calendar.js | 2026-05-04 00:00:00 | [工程师]+[AI] | 日历渲染 |
-| src/party.js | 2026-05-02 00:00:00 | [工程师]+[AI] | 党务管理模块 |
-| src/inspector.js | 2026-05-02 00:00:00 | [工程师]+[AI] | 检查器面板 |
-| src/references.js | 2026-04-29 01:47:32 | [工程师]+[AI] | 资料查询模块 |
-| src/styles.css | 2026-05-04 00:00:00 | [工程师]+[AI] | 全局样式（Flat Matte） |
-| src/domain.js | 2026-03-17 07:46:46 | [工程师]+[AI] | 领域模型 |
-| src/constants.js | 2026-05-04 00:00:00 | [工程师]+[AI] | 静态常量 |
-| src/utils.js | 2026-03-20 11:16:27 | [工程师]+[AI] | 通用工具 |
-| src/id.js | 2026-03-05 07:44:34 | [工程师]+[AI] | UUID 发生器 |
-| src/service.mock.js | 2026-03-20 11:33:28 | [工程师]+[AI] | Mock 服务层 |
-| src/service.runtime.js | 2026-03-04 15:56:42 | [工程师]+[AI] | 运行时插槽 |
-| src/workflow/index.js | 2026-04-29 01:47:32 | [工程师]+[AI] | 桶文件 |
-| src/workflow/sop.js | 2026-03-23 11:25:24 | [工程师]+[AI] | SOP 实例化 |
-| src/workflow/sopData.js | 2026-03-26 12:31:50 | [工程师]+[AI] | SOP 数据模板 |
-| src/workflow/engine.js | 2026-04-29 01:47:32 | [工程师]+[AI] | 工作流引擎 |
-| src/workflow/definitions.js | 2026-04-29 01:47:32 | [工程师]+[AI] | 工作流定义 |
-| src/workflow/renderer.js | 2026-04-29 01:47:32 | [工程师]+[AI] | 工作流渲染器 |
-| src/workflow/activityRecord.js | 2026-05-02 00:00:00 | [工程师]+[AI] | 活动记录数据模型 |
-
-## content/02_institution/sop/ (制度母本层)
-
-| 文件路径 | last_updated | 角色 | 备注 |
-|---------|-------------|------|------|
-| content/sop/INDEX.md | 2026-03-07 08:54:51 | [用户]+[AI] | SOP 导航 |
-| content/sop/README.md | 2026-03-17 08:14:58 | [用户]+[AI] | |
-| content/sop/Org_OS_极客操作手册.md | 2026-04-29 01:47:32 | [用户]+[AI] | 🗑️ 已删除 |
-| content/sop/常见工作场景快速指南.md | 2026-04-01 02:28:01 | [用户]+[AI] | |
-| content/sop/支委与党小组定人定责定岗说明.md | 2026-04-01 02:28:01 | [用户]+[AI] | |
-| content/sop/宣传委员工作流程指南.md | 2026-04-01 02:28:01 | [用户]+[AI] | |
-| content/sop/纪检委员工作流程指南.md | 2026-04-01 02:28:01 | [用户]+[AI] | |
-| content/sop/组织委员工作流程指南.md | 2026-04-01 02:28:01 | [用户]+[AI] | |
+| .ctx/TIMESTAMPS.md | 2026-07-31 | [工程师]+[AI] | 本文件 |
+| .ctx/SNAPSHOT.md | 2026-07-31 | [AI] | 当前基线 |
+| .ctx/REVIEW_QUEUE.md | 2026-07-31 | [工程师]+[AI] | 书记评议队列 |
+| .ctx/snapshots/INDEX.md | 2026-05-03 | [工程师]+[AI] | 快照历史索引 |
+| .ctx/snapshots/SNAPSHOT_v3_20260502.md | 2026-05-02 | [工程师]+[AI] | v3 快照 |
+| .ctx/snapshots/DATA_AUDIT_REPORT_2026-07-15.md | 2026-07-15 | [工程师]+[AI] | 数据审计报告 |
+| .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-05-02 | [工程师]+[AI] | 日志索引 |
+| .ctx/logs/DECISION_LOG.md | 2026-07-31 | [工程师]+[AI] | 总决策日志 |
+| .ctx/logs/2026-02-EXECUTION_LOG.md | 2026-02-28 | [工程师]+[AI] | 已归档 |
+| .ctx/logs/2026-03-EXECUTION_LOG.md | 2026-03-31 | [工程师]+[AI] | 已归档 |
+| .ctx/logs/2026-04-EXECUTION_LOG.md | 2026-04-06 | [工程师]+[AI] | 已归档 |
+| .ctx/logs/2026-05-EXECUTION_LOG.md | 2026-05-03 | [工程师]+[AI] | 已归档 |
+| .ctx/logs/2026-05-DECISION_LOG.md | 2026-05-31 | [工程师]+[AI] | 5月决策日志 |
+| .ctx/logs/2026-06-EXECUTION_LOG.md | 2026-06-30 | [工程师]+[AI] | 已归档 |
+| .ctx/logs/2026-06-DECISION_LOG.md | 2026-06-30 | [工程师]+[AI] | 6月决策日志 |
+| .ctx/logs/2026-07-EXECUTION_LOG.md | 2026-07-31 | [工程师]+[AI] | 7月执行日志（当前活跃） |
+| .ctx/logs/2026-07-DECISION_LOG.md | 2026-07-31 | [工程师]+[AI] | 7月决策日志 |
+| .ctx/logs/archive/2026-05-early-EXECUTION_LOG.md | 2026-05-03 | [工程师]+[AI] | 5月早期条目归档 |
+| .ctx/logs/archive/2026-07-early-entries.md | 2026-07-12 | [工程师]+[AI] | T22-T90 早期条目归档（母本：2026-07-EXECUTION_LOG.md） |
 
 ## content/01_strategy/ (战略路线层)
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/strategy/DEVELOPMENT_PATH.md | 2026-07-14 00:00:00 | [用户]+[AI] | 发展路径（原 MANAGE_SERVE.md，2026-07-14 改名为 DEVELOPMENT_PATH.md） |
-| content/strategy/FLAT_DESIGN.md | 2026-07-03 00:00:00 | [工程师]+[AI] | 扁平化设计 |
-| content/strategy/COMMISSIONER_FRAMEWORK.md | 2026-07-08 00:00:00 | [用户]+[AI] | 支委框架与专班（含§审批流程规范） |
-| content/strategy/README.md | 2026-07-03 00:00:00 | [用户]+[AI] | strategy 目录索引 |
+| content/01_strategy/DEVELOPMENT_PATH.md | 2026-07-31 | [用户]+[AI] | 发展路径（原 MANAGE_SERVE.md→strategy/DEVELOPMENT_PATH.md，文档逻辑顺序重组后迁至01_strategy/） |
+| content/01_strategy/SECRETARY_PRONOUNCEMENTS.md | 2026-07-31 | [用户]+[AI] | 书记论断（项目顶级战略文档） |
+| content/01_strategy/README.md | 2026-07-31 | [用户]+[AI] | 01_strategy 目录索引 |
+| content/01_strategy/references/历史会议材料/ | 2026-02-28 | [用户] | 只读 |
+| content/01_strategy/references/合规文件/ | 2026-02-17 | [用户] | 只读 |
+| content/01_strategy/references/建设探索/ | 2026-02-28 | [用户] | 只读 |
+| content/01_strategy/references/党支部工作记录.docx | 2026-02-28 | [用户] | 只读 |
 
-## content/04_web_design/ (设计理念层)
+## content/02_institution/ (制度层)
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/design/DATA_ARCHITECTURE.md | 2026-07-12 00:00:00 | [工程师]+[AI] | 数据架构设计（合并 DATA+PARTICIPANT_DATAFLOW+LOGIN_SYSTEM_DESIGN+BRAND_ACTIVITY） |
-| content/design/MODULE_UI_DESIGN.md | 2026-07-12 00:00:00 | [工程师]+[AI] | 模块界面设计（合并 PAFFAIRS_UI+CALENDAR） |
-| content/design/DESIGN_SYSTEM.md | 2026-07-03 00:00:00 | [工程师]+[AI] | 前端设计系统 |
-| content/design/README.md | 2026-07-08 00:00:00 | [工程师]+[AI] | design 目录索引 |
+| content/02_institution/COMMISSIONER_FRAMEWORK.md | 2026-07-31 | [用户]+[AI] | 支委框架与赋权（含§D赋权入口设计） |
+| content/02_institution/FLAT_DESIGN.md | 2026-07-31 | [工程师]+[AI] | 扁平化设计 |
+| content/02_institution/ROLE_CLASSIFICATION.md | 2026-07-31 | [工程师]+[AI] | 角色分类 |
+| content/02_institution/README.md | 2026-07-31 | [用户]+[AI] | 02_institution 目录索引 |
+| content/02_institution/sop/INDEX.md | 2026-07-31 | [用户]+[AI] | SOP 导航 |
+| content/02_institution/sop/常见工作场景快速指南.md | 2026-04-01 | [用户]+[AI] | |
+| content/02_institution/sop/支委与党小组定人定责定岗说明.md | 2026-04-01 | [用户]+[AI] | |
+| content/02_institution/sop/宣传委员工作流程指南.md | 2026-07-31 | [用户]+[AI] | |
+| content/02_institution/sop/纪检委员工作流程指南.md | 2026-07-31 | [用户]+[AI] | |
+| content/02_institution/sop/组织委员工作流程指南.md | 2026-07-31 | [用户]+[AI] | |
+| content/02_institution/sop/党小组组长工作手册.md | 2026-07-31 | [用户]+[AI] | |
 
 ## content/03_doc_system/ (系统治理层)
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/governance/SOP_WEB.md | 2026-07-03 00:00:00 | [工程师]+[AI] | SOP-系统联动方法 |
-| content/governance/SERVICE_CATALOG.md | 2026-07-11 00:00:00 | [工程师]+[AI] | 服务目录（迁移自 design/） |
-| content/governance/DOC_MAP.md | 2026-07-09 00:00:00 | [工程师]+[AI] | 全局文档导航 |
-| content/governance/OPERATIONS_GUIDE.md | 2026-07-12 00:00:00 | [工程师]+[AI] | 运行标准（含 §7.3 分层体系索引 + §7.4 一致性检查规范 + §9 文件命名规范 + §10 反论表述审核标准 + §14 吸收外部输入流程 + §15 周期性任务与自动唤醒机制） |
-| content/governance/USAGE_POLICY.md | 2026-07-12 00:00:00 | [工程师]+[AI] | 使用规范（术语 §一 + Emoji §二，合并自 TERMINOLOGY.md + EMOJI_POLICY.md） |
-| content/governance/ROLE_CLASSIFICATION.md | 2026-07-03 00:00:00 | [工程师]+[AI] | 角色分类 |
-| content/governance/KNOWN_PITFALLS.md | 2026-07-09 00:00:00 | [工程师]+[AI] | 已知陷阱（含 §7 分层体系冲突记录） |
-| content/governance/TERMINOLOGY.md | 2026-07-03 00:00:00 | [工程师]+[AI] | 🗑️ 已删除 2026-07-12（合并至 USAGE_POLICY.md §一） |
-| content/governance/EMOJI_POLICY.md | 2026-07-03 00:00:00 | [工程师]+[AI] | 🗑️ 已删除 2026-07-12（合并至 USAGE_POLICY.md §二） |
-| content/governance/SYNC_EXTERNAL.md | 2026-07-11 00:00:00 | [工程师]+[AI] | 🗑️ 已合并入 OPERATIONS_GUIDE.md §14 |
-| content/governance/RECURRING_TASKS.md | 2026-07-09 00:00:00 | [工程师]+[AI] | 🗑️ 已删除 2026-07-12（合并至 OPERATIONS_GUIDE.md §15） |
-| content/governance/LAYERING_FRAMEWORK.md | 2026-07-08 00:00:00 | [工程师]+[AI] | 🗑️ 已删除 2026-07-09（独有内容合并至 OPERATIONS_GUIDE.md §7.3/§7.4 + KNOWN_PITFALLS.md §7 + RECURRING_TASKS.md Q4） |
-| content/governance/AGENT_HANDBOOK.md | 2026-07-03 00:00:00 | [工程师]+[AI] | Agent 操作手册 |
-| content/governance/AGENT_USAGE.md | 2026-07-03 00:00:00 | [工程师]+[AI] | Agent 使用指南 |
-| content/governance/README.md | 2026-07-09 00:00:00 | [工程师]+[AI] | governance 目录索引 |
+| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-07-31 | [工程师]+[AI] | 运行标准（含 §7.3 分层体系索引 + §7.4 一致性检查规范 + §9 文件命名规范 + §10 反论表述审核标准 + §14 吸收外部输入流程 + §15 周期性任务与自动唤醒机制） |
+| content/03_doc_system/USAGE_POLICY.md | 2026-07-31 | [工程师]+[AI] | 使用规范（术语 §一 + Emoji §二） |
+| content/03_doc_system/ARCHITECTURE.md | 2026-07-31 | [工程师]+[AI] | 核心架构说明（迁移自根目录 ARCHITECTURE.md） |
+| content/03_doc_system/DOC_MAP.md | 2026-07-31 | [工程师]+[AI] | 全局文档导航 |
+| content/03_doc_system/SSOT_INDEX.md | 2026-07-31 | [工程师]+[AI] | 母本子本注册表 |
+| content/03_doc_system/SERVICE_CATALOG.md | 2026-07-31 | [工程师]+[AI] | 服务目录 |
+| content/03_doc_system/README.md | 2026-07-31 | [工程师]+[AI] | 03_doc_system 目录索引 |
+| content/03_doc_system/工作模板/经验沉淀辅助提示词.md | 2026-07-31 | [工程师]+[AI] | 沉淀辅助 |
+
+## content/04_web_design/ (设计理念层)
+
+| 文件路径 | last_updated | 角色 | 备注 |
+|---------|-------------|------|------|
+| content/04_web_design/DESIGN_SYSTEM.md | 2026-07-31 | [工程师]+[AI] | 前端设计系统（含§一第2条"最小三成本"原则） |
+| content/04_web_design/DATA_ARCHITECTURE.md | 2026-07-31 | [工程师]+[AI] | 数据架构设计（含§2.18-§2.20 待办任务数据模型） |
+| content/04_web_design/MODULE_UI_DESIGN.md | 2026-07-31 | [工程师]+[AI] | 模块界面设计 |
+| content/04_web_design/SOP_WEB.md | 2026-07-31 | [工程师]+[AI] | SOP-系统联动方法 |
+| content/04_web_design/SCHOOL_IT_DEPLOYMENT.md | 2026-07-31 | [工程师]+[AI] | 部署方案 |
+| content/04_web_design/README.md | 2026-07-31 | [工程师]+[AI] | 04_web_design 目录索引 |
+
+## content/05_ai_coding/ (AI 编码层)
+
+| 文件路径 | last_updated | 角色 | 备注 |
+|---------|-------------|------|------|
+| content/05_ai_coding/KNOWN_PITFALLS.md | 2026-07-31 | [工程师]+[AI] | 已知陷阱（含 §7 分层体系冲突记录） |
+| content/05_ai_coding/README.md | 2026-07-31 | [工程师]+[AI] | 05_ai_coding 目录索引 |
 
 ## content/insights/ (经验沉淀)
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/insights/党支部管理与实务经验沉淀.md | 2026-05-04 00:00:00 | [用户]+[AI] | v4.0 — 党建与党务工作理论贡献 |
+| content/insights/党支部管理与实务经验沉淀.md | 2026-07-31 | [用户]+[AI] | 党建与党务工作理论贡献 |
+| content/insights/工程演进与设计方法论.md | 2026-07-31 | [用户]+[AI] | 工程演进与设计方法论（文档逻辑顺序重组后拆分为独立文件） |
 
-## content/references/ (官方底线层)
-
-| 文件路径 | last_updated | 角色 | 备注 |
-|---------|-------------|------|------|
-| content/references/README.md | 2026-02-28 16:48:20 | [用户] | |
-| content/references/党小组会/*.pdf/docx | 2026-02-28 16:48:20 | [用户] | 只读 |
-| content/references/官方文件/*.pdf/docx | 2026-02-17 16:01:31 | [用户] | 只读 |
-| content/references/支部委员会/*.docx | 2026-02-28 16:48:20 | [用户] | 只读 |
-| content/references/模板库/**/*.md/docx | 2026-03-31 11:02:06 | [用户] | 只读 |
-
-## .vscode/ (工具配置)
+## content/README.md
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| .vscode/settings.json | 2026-04-06 14:52:33 | [工具] | |
+| content/README.md | 2026-07-31 | [用户]+[AI] | content 目录总索引 |
 
-## assets/ (静态资源)
+## docs/ (前端应用)
+
+### docs/ HTML 页面
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| assets/.gitkeep | 2026-03-07 05:27:23 | [工具] | |
-| assets/images/party_emblem.png | 2026-03-07 16:07:57 | [用户] | |
+| docs/index.html | 2026-07-31 | [用户]+[AI] | 首页入口（含日历） |
+| docs/login.html | 2026-07-31 | [用户]+[AI] | 登录页 |
+| docs/about.html | 2026-07-31 | [用户]+[AI] | 关于页 |
+| docs/archive.html | 2026-07-31 | [用户]+[AI] | 归档页 |
+| docs/feedback.html | 2026-07-31 | [用户]+[AI] | 反馈页 |
+| docs/help.html | 2026-07-31 | [用户]+[AI] | 帮助页 |
+| docs/members.html | 2026-07-31 | [用户]+[AI] | 人员页 |
+| docs/notice.html | 2026-07-31 | [用户]+[AI] | 通知页 |
+| docs/search.html | 2026-07-31 | [用户]+[AI] | 搜索页 |
+| docs/workspace/secretary.html | 2026-07-31 | [用户]+[AI] | 书记工作台 |
+| docs/workspace/org.html | 2026-07-31 | [用户]+[AI] | 组织委员工作台 |
+| docs/workspace/prop.html | 2026-07-31 | [用户]+[AI] | 宣传委员工作台 |
+| docs/workspace/disc.html | 2026-07-31 | [用户]+[AI] | 纪检委员工作台 |
+| docs/workspace/leader.html | 2026-07-31 | [用户]+[AI] | 党小组组长工作台 |
+| docs/workspace/visitor.html | 2026-07-31 | [用户]+[AI] | 访客工作台 |
+
+### docs/src/core/ (核心层)
+
+| 文件路径 | last_updated | 角色 | 备注 |
+|---------|-------------|------|------|
+| docs/src/core/bootstrap.js | 2026-07-31 | [工程师]+[AI] | 引导启动 |
+| docs/src/core/constants.js | 2026-07-31 | [工程师]+[AI] | 静态常量 |
+| docs/src/core/cross-page-state.js | 2026-07-31 | [工程师]+[AI] | 跨页状态 |
+| docs/src/core/data-loader.js | 2026-07-31 | [工程师]+[AI] | 数据加载 |
+| docs/src/core/domain.js | 2026-07-31 | [工程师]+[AI] | 领域模型 |
+| docs/src/core/icons.js | 2026-07-31 | [工程师]+[AI] | 图标系统 |
+| docs/src/core/id.js | 2026-07-31 | [工程师]+[AI] | UUID 发生器 |
+| docs/src/core/state.js | 2026-07-31 | [工程师]+[AI] | 全局状态 |
+| docs/src/core/utils.js | 2026-07-31 | [工程师]+[AI] | 通用工具 |
+
+### docs/src/components/ (组件层)
+
+| 文件路径 | last_updated | 角色 | 备注 |
+|---------|-------------|------|------|
+| docs/src/components/header.js | 2026-07-31 | [工程师]+[AI] | 页头组件 |
+| docs/src/components/sidebar.js | 2026-07-31 | [工程师]+[AI] | 侧边栏组件 |
+| docs/src/components/calendar.js | 2026-07-31 | [工程师]+[AI] | 日历组件 |
+| docs/src/components/inspector.js | 2026-07-31 | [工程师]+[AI] | 检查器组件 |
+| docs/src/components/modal.js | 2026-07-31 | [工程师]+[AI] | 模态框组件 |
+| docs/src/components/tab-bar.js | 2026-07-31 | [工程师]+[AI] | 标签栏组件 |
+| docs/src/components/todo-list.js | 2026-07-31 | [工程师]+[AI] | 待办列表组件 |
+| docs/src/components/commissioner-matrix.js | 2026-07-31 | [工程师]+[AI] | 支委矩阵组件 |
+| docs/src/components/issue-detail.js | 2026-07-31 | [工程师]+[AI] | 事项详情组件 |
+| docs/src/components/issue-form.js | 2026-07-31 | [工程师]+[AI] | 事项表单组件 |
+| docs/src/components/issue-list.js | 2026-07-31 | [工程师]+[AI] | 事项列表组件 |
+| docs/src/components/party-cross-nav.js | 2026-07-31 | [工程师]+[AI] | 党务跨导航组件 |
+| docs/src/components/person-picker.js | 2026-07-31 | [工程师]+[AI] | 人员选择器组件 |
+| docs/src/components/person-picker.css | 2026-07-31 | [工程师]+[AI] | 人员选择器样式 |
+| docs/src/components/query-view.js | 2026-07-31 | [工程师]+[AI] | 查询视图组件 |
+| docs/src/components/reactions.js | 2026-07-31 | [工程师]+[AI] | 表态组件 |
+| docs/src/components/role-hierarchy.js | 2026-07-31 | [工程师]+[AI] | 角色层级组件 |
+| docs/src/components/workspace-popover.js | 2026-07-31 | [工程师]+[AI] | 工作台浮窗组件 |
+
+### docs/src/entries/ (页面入口层)
+
+| 文件路径 | last_updated | 角色 | 备注 |
+|---------|-------------|------|------|
+| docs/src/entries/main-entry.js | 2026-07-31 | [工程师]+[AI] | 首页入口（含日历+通知待办） |
+| docs/src/entries/login-entry.js | 2026-07-31 | [工程师]+[AI] | 登录页入口 |
+| docs/src/entries/about-entry.js | 2026-07-31 | [工程师]+[AI] | 关于页入口 |
+| docs/src/entries/archive-entry.js | 2026-07-31 | [工程师]+[AI] | 归档页入口 |
+| docs/src/entries/feedback-entry.js | 2026-07-31 | [工程师]+[AI] | 反馈页入口 |
+| docs/src/entries/help-entry.js | 2026-07-31 | [工程师]+[AI] | 帮助页入口 |
+| docs/src/entries/members-entry.js | 2026-07-31 | [工程师]+[AI] | 人员页入口 |
+| docs/src/entries/notice-entry.js | 2026-07-31 | [工程师]+[AI] | 通知页入口 |
+| docs/src/entries/search-entry.js | 2026-07-31 | [工程师]+[AI] | 搜索页入口 |
+| docs/src/entries/workspace-entry.js | 2026-07-31 | [工程师]+[AI] | 工作台路由入口 |
+| docs/src/entries/ws-secretary-entry.js | 2026-07-31 | [工程师]+[AI] | 书记工作台入口 |
+| docs/src/entries/ws-org-commissioner-entry.js | 2026-07-31 | [工程师]+[AI] | 组织委员工作台入口 |
+| docs/src/entries/ws-prop-commissioner-entry.js | 2026-07-31 | [工程师]+[AI] | 宣传委员工作台入口 |
+| docs/src/entries/ws-disc-commissioner-entry.js | 2026-07-31 | [工程师]+[AI] | 纪检委员工作台入口 |
+| docs/src/entries/ws-leader-entry.js | 2026-07-31 | [工程师]+[AI] | 党小组组长工作台入口 |
+| docs/src/entries/ws-visitor-entry.js | 2026-07-31 | [工程师]+[AI] | 访客工作台入口 |
+
+### docs/src/services/ (服务层)
+
+| 文件路径 | last_updated | 角色 | 备注 |
+|---------|-------------|------|------|
+| docs/src/services/mock.js | 2026-07-31 | [工程师]+[AI] | Mock 数据总服务 |
+| docs/src/services/auth.js | 2026-07-31 | [工程师]+[AI] | 认证与赋权服务 |
+| docs/src/services/activity.js | 2026-07-31 | [工程师]+[AI] | 活动服务 |
+| docs/src/services/assignment.js | 2026-07-31 | [工程师]+[AI] | 赋权分配服务 |
+| docs/src/services/attendance.js | 2026-07-31 | [工程师]+[AI] | 考勤服务 |
+| docs/src/services/decision-tree.js | 2026-07-31 | [工程师]+[AI] | 决策树服务 |
+| docs/src/services/feedback.js | 2026-07-31 | [工程师]+[AI] | 反馈服务 |
+| docs/src/services/handover.js | 2026-07-31 | [工程师]+[AI] | 数据交接服务 |
+| docs/src/services/image.js | 2026-07-31 | [工程师]+[AI] | 图片服务 |
+| docs/src/services/inspection.js | 2026-07-31 | [工程师]+[AI] | 纪检服务 |
+| docs/src/services/issues.js | 2026-07-31 | [工程师]+[AI] | 事项服务 |
+| docs/src/services/makeup.js | 2026-07-31 | [工程师]+[AI] | 补课服务 |
+| docs/src/services/milestones.js | 2026-07-31 | [工程师]+[AI] | 里程碑服务 |
+| docs/src/services/notice.js | 2026-07-31 | [工程师]+[AI] | 通知服务（含通知→待办派生） |
+| docs/src/services/permission-manager.js | 2026-07-31 | [工程师]+[AI] | 权限管理服务 |
+| docs/src/services/review.js | 2026-07-31 | [工程师]+[AI] | 审查服务 |
+| docs/src/services/roles.js | 2026-07-31 | [工程师]+[AI] | 角色服务 |
+| docs/src/services/runtime.js | 2026-07-31 | [工程师]+[AI] | 运行时插槽 |
+| docs/src/services/taskforce.js | 2026-07-31 | [工程师]+[AI] | 专班服务（含专班→待办派生） |
+| docs/src/services/todo.js | 2026-07-31 | [工程师]+[AI] | 待办服务（TodoStore+NoticeTodoDeriver+LifecycleTodoDeriver） |
+
+### docs/src/mock/ (Mock 数据层)
+
+| 文件路径 | last_updated | 角色 | 备注 |
+|---------|-------------|------|------|
+| docs/src/mock/index.js | 2026-07-31 | [工程师]+[AI] | Mock 数据桶文件 |
+| docs/src/mock/accounts.js | 2026-07-31 | [工程师]+[AI] | 账户数据 |
+| docs/src/mock/activities.js | 2026-07-31 | [工程师]+[AI] | 活动数据 |
+| docs/src/mock/attendance.js | 2026-07-31 | [工程师]+[AI] | 考勤数据 |
+| docs/src/mock/inspection.js | 2026-07-31 | [工程师]+[AI] | 纪检数据 |
+| docs/src/mock/notices.js | 2026-07-31 | [工程师]+[AI] | 通知数据 |
+| docs/src/mock/party.js | 2026-07-31 | [工程师]+[AI] | 党务数据 |
+| docs/src/mock/people.js | 2026-07-31 | [工程师]+[AI] | 人员数据 |
+| docs/src/mock/review.js | 2026-07-31 | [工程师]+[AI] | 审查数据 |
+| docs/src/mock/seed.js | 2026-07-31 | [工程师]+[AI] | 种子数据 |
+| docs/src/mock/taskforces.js | 2026-07-31 | [工程师]+[AI] | 专班数据 |
+
+### docs/src/modules/ (功能模块层)
+
+| 文件路径 | last_updated | 角色 | 备注 |
+|---------|-------------|------|------|
+| docs/src/modules/party.js | 2026-07-31 | [工程师]+[AI] | 党务管理模块 |
+| docs/src/modules/references.js | 2026-07-31 | [工程师]+[AI] | 资料查询模块 |
+
+### docs/src/workflow/ (工作流层)
+
+| 文件路径 | last_updated | 角色 | 备注 |
+|---------|-------------|------|------|
+| docs/src/workflow/index.js | 2026-07-31 | [工程师]+[AI] | 桶文件 |
+| docs/src/workflow/sop.js | 2026-07-31 | [工程师]+[AI] | SOP 实例化 |
+| docs/src/workflow/sopData.js | 2026-07-31 | [工程师]+[AI] | SOP 数据模板 |
+| docs/src/workflow/engine.js | 2026-07-31 | [工程师]+[AI] | 工作流引擎 |
+| docs/src/workflow/definitions.js | 2026-07-31 | [工程师]+[AI] | 工作流定义 |
+| docs/src/workflow/renderer.js | 2026-07-31 | [工程师]+[AI] | 工作流渲染器 |
+| docs/src/workflow/activityRecord.js | 2026-07-31 | [工程师]+[AI] | 活动记录数据模型 |
+
+### docs/src/ 其他
+
+| 文件路径 | last_updated | 角色 | 备注 |
+|---------|-------------|------|------|
+| docs/src/styles.css | 2026-07-31 | [工程师]+[AI] | 全局样式 |
+| docs/src/config/branch.json | 2026-07-31 | [工程师]+[AI] | 分支配置 |
+
+### docs/ 其他
+
+| 文件路径 | last_updated | 角色 | 备注 |
+|---------|-------------|------|------|
+| docs/assets/images/party_emblem.png | 2026-03-07 | [用户] | 党徽 |
+| docs/data/issues.json | 2026-07-31 | [工程师]+[AI] | 事项数据 |
+| docs/data/milestones.json | 2026-07-31 | [工程师]+[AI] | 里程碑数据 |
 
 ---
 
@@ -161,14 +293,14 @@ last_updated: "2026-07-21"
 
 | 编号 | 任务 | 最后执行 | 下次到期 | 状态 |
 |------|------|---------|---------|------|
-| W1 | 执行日志扫描 | 2026-07-18 | 2026-07-25 | OK |
-| W2 | Emoji 合规扫描 | 2026-07-18 | 2026-07-25 | OK |
-| W3 | 书记内容评议 | 2026-07-18 | 2026-07-25 | 待书记触发 |
-| M1 | CLAUDE.md 清理 | 2026-07-18 | 2026-08-18 | OK |
-| M2 | SNAPSHOT 更新 | 2026-07-18 | 2026-08-18 | OK |
-| M3 | 全仓断链扫描 | 2026-07-18 | 2026-08-18 | OK |
-| M4 | Insights 经验蒸馏 | 2026-07-18 | 2026-08-18 | OK |
-| M5 | DOCUMENTATION_MAP 审查 | 2026-07-18 | 2026-08-18 | OK |
+| W1 | 执行日志扫描 | 2026-07-31 | 2026-08-07 | OK |
+| W2 | Emoji 合规扫描 | 2026-07-31 | 2026-08-07 | OK |
+| W3 | 书记内容评议 | 2026-07-31 | 2026-08-07 | 待书记触发 |
+| M1 | CLAUDE.md 清理 | 2026-07-31 | 2026-08-31 | OK |
+| M2 | SNAPSHOT 更新 | 2026-07-31 | 2026-08-31 | OK |
+| M3 | 全仓断链扫描 | 2026-07-31 | 2026-08-31 | OK |
+| M4 | Insights 经验蒸馏 | 2026-07-31 | 2026-08-31 | OK |
+| M5 | DOCUMENTATION_MAP 审查 | 2026-07-31 | 2026-08-31 | OK |
 | M6 | README 审查 | — | — | 待初始化 |
 | Q1 | ARCHITECTURE 审查 | — | — | 待初始化 |
 | Q2 | 角色体系健康度 | — | — | 待初始化 |
@@ -204,9 +336,39 @@ last_updated: "2026-07-21"
 | content/governance/TERMINOLOGY.md | 2026-07-12 | 已合并至 USAGE_POLICY.md §一（术语使用规范） |
 | content/governance/EMOJI_POLICY.md | 2026-07-12 | 已合并至 USAGE_POLICY.md §二（Emoji 使用规范） |
 | content/governance/RECURRING_TASKS.md | 2026-07-12 | 已合并至 OPERATIONS_GUIDE.md §15（周期性任务与自动唤醒机制） |
-| content/strategy/MANAGE_SERVE.md | 2026-07-14 | 改名为 DEVELOPMENT_PATH.md（发展路径）。原"管理事、服务人战略路线"文件改名为"发展路径"，承载"从入党申请人到正式党员"的完整叙事。MANAGE_SERVE.md 已不再存在，所有引用同步至 DEVELOPMENT_PATH.md。 |
-| content/references/工作模板/FEEDBACK_FORM.md | 2026-07-18 | 鸡肋文件删除——系统已有 feedback.html 在线反馈功能，模板冗余 |
-| docs/superpowers/ | 2026-07-18 | 过程文件目录删除——3个已完成spec/plan（T110/T111），结果已落地 |
+| content/governance/SYNC_EXTERNAL.md | 2026-07-11 | 已合并入 OPERATIONS_GUIDE.md §14 |
+| content/governance/AGENT_HANDBOOK.md | 2026-07-03 | Agent 操作手册（废弃） |
+| content/governance/AGENT_USAGE.md | 2026-07-03 | Agent 使用指南（废弃） |
+| content/strategy/MANAGE_SERVE.md | 2026-07-14 | 改名为 DEVELOPMENT_PATH.md |
+| content/strategy/README.md | 2026-07-14 | 目录迁至 content/01_strategy/ |
+| content/strategy/FLAT_DESIGN.md | 2026-07-14 | 迁至 content/02_institution/FLAT_DESIGN.md |
+| content/strategy/COMMISSIONER_FRAMEWORK.md | 2026-07-14 | 迁至 content/02_institution/COMMISSIONER_FRAMEWORK.md |
+| content/sop/ | 2026-07-14 | 迁至 content/02_institution/sop/ |
+| content/design/ | 2026-07-14 | 迁至 content/04_web_design/ |
+| content/governance/ | 2026-07-14 | 迁至 content/03_doc_system/ |
+| content/references/ | 2026-07-14 | 迁至 content/01_strategy/references/ |
+| src/ (根目录) | 2026-07-14 | 迁至 docs/src/（目录结构重组） |
+| index.html (根目录) | 2026-07-14 | 迁至 docs/index.html |
+| content/references/工作模板/FEEDBACK_FORM.md | 2026-07-18 | 系统已有 feedback.html 在线反馈功能，模板冗余 |
+| docs/superpowers/ | 2026-07-18 | 过程文件目录删除 |
 | .ctx/tmp/ | 2026-07-18 | 空目录删除 |
-| .superpowers/ | 2026-07-18 | 空目录删除（brainstorming skill 残留） |
+| .superpowers/ | 2026-07-18 | 空目录删除 |
 | .tools/ | 2026-07-18 | 空目录删除 |
+| src/party.js | 2026-07-21 | 迁至 docs/src/modules/party.js |
+| src/main.js | 2026-07-21 | 拆分为 docs/src/entries/main-entry.js |
+| src/state.js | 2026-07-21 | 迁至 docs/src/core/state.js |
+| src/events.js | 2026-07-21 | 事件逻辑分散至各 entry 文件 |
+| src/calendar.js | 2026-07-21 | 迁至 docs/src/components/calendar.js |
+| src/inspector.js | 2026-07-21 | 迁至 docs/src/components/inspector.js |
+| src/references.js | 2026-07-21 | 迁至 docs/src/modules/references.js |
+| src/domain.js | 2026-07-21 | 迁至 docs/src/core/domain.js |
+| src/constants.js | 2026-07-21 | 迁至 docs/src/core/constants.js |
+| src/utils.js | 2026-07-21 | 迁至 docs/src/core/utils.js |
+| src/id.js | 2026-07-21 | 迁至 docs/src/core/id.js |
+| src/service.mock.js | 2026-07-21 | 迁至 docs/src/services/mock.js |
+| src/service.runtime.js | 2026-07-21 | 迁至 docs/src/services/runtime.js |
+| src/styles.css | 2026-07-21 | 迁至 docs/src/styles.css |
+| assets/ | 2026-07-21 | 迁至 docs/assets/ |
+| .vscode/ | 2026-07-21 | 工具配置删除 |
+| ARCHITECTURE.md (根目录) | 2026-07-21 | 迁至 content/03_doc_system/ARCHITECTURE.md |
+| content/insights/党支部管理与实务经验沉淀.md (旧路径 content/strategy/...) | 2026-07-21 | 目录重组，路径不变但旧引用过时 |

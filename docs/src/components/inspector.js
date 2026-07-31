@@ -112,14 +112,12 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
 
   if (dateActivities.length === 0) {
     defEl.classList.remove('hidden');
-    const _mgr = !viewArchived && viewType === 'manager';
-    const _guide = '<div class="font-stheiti text-gray-400 text-sm text-center py-4 border-b border-gray-100 mb-4">提示：请从下方列表或顶部下拉框选择活动，以查看您的专属任务流。</div>';
     if (viewArchived) {
       defEl.innerHTML = '<p class="font-stheiti text-sm text-gray-400 text-center py-8">归档库暂无内容</p>';
     } else if (dateKey) {
-      defEl.innerHTML = (_mgr ? _guide : '') + '<div class="text-center text-gray-400 py-8 font-stheiti text-sm">当日暂无活动</div>';
-    } else if (_mgr) {
-      defEl.innerHTML = _guide;
+      defEl.innerHTML = '<div class="text-center text-gray-400 py-8 font-stheiti text-sm">当日暂无活动</div>';
+    } else {
+      defEl.innerHTML = '<div class="text-center text-gray-400 py-8 font-stheiti text-sm">点击日历日期查看活动</div>';
     }
     contentEl.classList.add('hidden');
     return;
@@ -168,10 +166,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
   });
 
   if (cardsEl) {
-    const _guide = (!isParticipant && !viewArchived)
-      ? '<div class="font-stheiti text-gray-400 text-sm text-center py-4 border-b border-gray-100 mb-4">提示：请从下方列表或顶部下拉框选择活动，以查看您的专属任务流。</div>'
-      : '';
-    cardsEl.innerHTML = _guide + html;
+    cardsEl.innerHTML = html;
 
     if (!isParticipant) {
       cardsEl.querySelectorAll('[data-act-id]').forEach(card => {

@@ -2,8 +2,8 @@
 title: "已知陷阱与上下文丢失教训"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-07-22"
-version: "1.6"
+last_updated: "2026-07-31"
+version: "1.7"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/工程演进与设计方法论.md]
 ---
@@ -185,3 +185,15 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 4. 任务描述中的"X 处"是参考值，子代理应按实际 Grep 结果执行，不局限于数字
 
 **修复成本**：主代理发现后直接修复成本低；若进入下一阶段才被发现，需重新打开文件做二次修改，成本翻倍。
+
+## 11. Subagent 验证虚假确认陷阱
+
+**问题**：browser_use subagent 报告"验证通过"不等于真实验证——subagent 可能只检查 DOM 结构或源代码，而非屏幕上实际渲染的效果。
+
+**根因**：browser_use subagent 的默认验证行为是检查 DOM 元素是否存在、CSS 类是否正确，而不是截图确认视觉效果。当 CSS 规则冲突或被覆盖时（如 `opacity:0` 的元素仍在 DOM 中），subagent 会报告"元素存在=验证通过"，但用户实际看不到任何内容。
+
+**典型实例（T147）**：help.html 中 6 处元素设置了 `opacity:0` + GSAP `is-revealed` 触发机制，但 GSAP 未执行导致元素始终不可见。browser_use subagent 检查 DOM 结构后报告"验证通过"，实际屏幕上这些元素完全不可见。
+
+**预防机制**：要求 subagent 截图并报告屏幕上实际可见的内容，而非仅检查 DOM 结构。验证声明必须附带截图证据，不接受"DOM 元素存在"作为视觉验证的充分条件。
+
+**生效条件**：使用 browser_use subagent 进行视觉验证时适用。纯逻辑验证（如数据正确性、链接有效性）不受此限制。

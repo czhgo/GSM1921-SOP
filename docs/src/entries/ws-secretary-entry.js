@@ -17,12 +17,17 @@ import { loadActivities } from '../services/activity.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { renderQueryView } from '../components/query-view.js';
 import { icon } from '../core/icons.js';
+import { renderTodoList } from '../components/todo-list.js';
+import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js';
 
 await bootstrapPage({ module: 'workspace' });
 
+// 书记工作台使用固定红色作为强调色（与 HTML 中 .sec-tab-btn 样式一致）
+const accent = '#B91C1C';
+
 // ── Tab 切换 ──
 const SEC_TAB_STORAGE_KEY = 'workflowos_tab_secretary';
-let _secActiveTab = 'calendar';
+let _secActiveTab = 'todo';
 let _secTabsBound = false;
 
 function _bindSecTabs() {
@@ -32,8 +37,8 @@ function _bindSecTabs() {
   const panes = document.querySelectorAll('.sec-tab-pane');
   const accentStyle = '--tab-accent:#B91C1C;--tab-accent-bg:rgba(185,28,28,0.10);--tab-accent-border:rgba(185,28,28,0.25)';
 
-  // 读取 localStorage 记忆的 Tab（优先级：localStorage > 默认 calendar）
-  let initialTab = 'calendar';
+  // 读取 localStorage 记忆的 Tab（优先级：localStorage > 默认 todo）
+  let initialTab = 'todo';
   try {
     const saved = localStorage.getItem(SEC_TAB_STORAGE_KEY);
     if (saved && document.querySelector(`.sec-tab-btn[data-sec-tab="${saved}"]`)) {
@@ -194,6 +199,147 @@ function renderSecretaryUI(state) {
 
   // ── 通知发布（党务） ──
   renderNotificationPanel();
+
+  // ── 待办 tab 内容渲染（最小三成本原则落地） ──
+  _renderTodoContent();
+}
+
+// ── 待办列表+详情面板（最小三成本原则落地） ───────────────────
+let _selectedTodoId = null;
+
+function _renderTodoContent() {
+  const container = document.getElementById('sec-tab-todo');
+  if (!container) return;
+
+  // 刷新过期状态
+  TodoStore.refreshExpiredStatus();
+
+  const groupedTodos = TodoStore.getGroupedByCategory('secretary');
+  const stats = TodoStore.getStatsByRole('secretary');
+  const selectedTodo = _selectedTodoId ? TodoStore.getById(_selectedTodoId) : null;
+
+  const { html: todoListHtml, bindEvents } = renderTodoList({
+    prefix: 'secretary',
+    groupedTodos,
+    stats,
+    accent,
+    onSelectTodo: (todo) => {
+      _selectedTodoId = todo.id;
+      _renderTodoContent();
+    },
+    onCompleteTodo: (todoId) => {
+      TodoStore.complete(todoId);
+      if (_selectedTodoId === todoId) _selectedTodoId = null;
+      showToast('success', '待办已完成');
+      _renderTodoContent();
+    },
+    onActionTodo: (todo) => {
+      _handleTodoAction(todo);
+    },
+  });
+
+  const detailHtml = selectedTodo ? _renderTodoDetail(selectedTodo) : `
+    <div class="text-center py-12 text-gray-400">
+      <p class="text-sm">点击左侧待办查看详情</p>
+      <p class="text-xs mt-1">或直接点击"去赋权/去审核"等按钮处理</p>
+    </div>
+  `;
+
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div class="lg:col-span-2">
+        <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+          <div class="flex items-center justify-between mb-4">
+            <h4 class="font-title-cn text-sm font-bold text-gray-700">我的待办</h4>
+          </div>
+          ${todoListHtml}
+        </div>
+      </div>
+      <div class="lg:col-span-1">
+        <div class="card rounded-xl p-5 sticky top-20">
+          <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-4">详情</h4>
+          ${detailHtml}
+        </div>
+      </div>
+    </div>
+  `;
+
+  bindEvents(container);
+  _bindTodoDetailEvents();
+}
+
+function _renderTodoDetail(todo) {
+  const statusLabel = {
+    pending: '待处理',
+    in_progress: '进行中',
+    completed: '已完成',
+    expired: '已过期',
+  }[todo.status] || todo.status;
+
+  const statusColor = {
+    pending: 'bg-orange-100 text-orange-700',
+    in_progress: 'bg-blue-100 text-blue-700',
+    completed: 'bg-green-100 text-green-700',
+    expired: 'bg-red-100 text-red-700',
+  }[todo.status] || 'bg-gray-100 text-gray-500';
+
+  return `
+    <div class="space-y-3">
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-[10px] px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
+          ${todo.priority === 'urgent' ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
+        </div>
+        <p class="font-title-cn text-sm font-bold text-gray-800">${todo.title}</p>
+      </div>
+      ${todo.description ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.description}</p>` : ''}
+      ${todo.deadline ? `<div class="text-xs text-gray-500">截止：${todo.deadline}</div>` : ''}
+      <div class="text-xs text-gray-400">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
+      <div class="pt-3 border-t border-gray-100 flex gap-2">
+        ${todo.status !== 'completed' ? `
+          <button class="secretary-todo-detail-complete text-xs px-4 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">标记完成</button>
+          ${todo.actionType ? `<button class="secretary-todo-detail-action text-xs px-4 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
+        ` : '<span class="text-xs text-green-600">已完成</span>'}
+      </div>
+    </div>
+  `;
+}
+
+function _handleTodoAction(todo) {
+  // 根据 actionType 跳转到对应 tab
+  const tabMap = {
+    authorize: 'assign',
+    write: 'calendar',
+    review: 'feedback',
+    notify: 'notification',
+  };
+  const targetTab = tabMap[todo.actionType];
+  if (targetTab) {
+    const btn = document.querySelector(`.sec-tab-btn[data-sec-tab="${targetTab}"]`);
+    if (btn) btn.click();
+    showToast('info', `已跳转，请处理：${todo.title}`);
+  } else {
+    showToast('info', `请处理：${todo.title}`);
+  }
+}
+
+function _bindTodoDetailEvents() {
+  const container = document.getElementById('sec-tab-todo');
+  if (!container) return;
+  container.querySelector('.secretary-todo-detail-complete')?.addEventListener('click', () => {
+    if (_selectedTodoId) {
+      TodoStore.complete(_selectedTodoId);
+      _selectedTodoId = null;
+      showToast('success', '待办已完成');
+      _renderTodoContent();
+    }
+  });
+  container.querySelector('.secretary-todo-detail-action')?.addEventListener('click', () => {
+    if (_selectedTodoId) {
+      const todo = TodoStore.getById(_selectedTodoId);
+      if (todo) _handleTodoAction(todo);
+    }
+  });
 }
 
 // ════════════════════════════════════════════════════════════════

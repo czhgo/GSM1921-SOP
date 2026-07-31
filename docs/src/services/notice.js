@@ -9,6 +9,7 @@ import { mockDB } from '../core/domain.js';
 import { saveDB } from './mock.js';
 import { MOCK_NOTICES } from '../mock/index.js';
 import { showToast } from '../core/utils.js';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js';
 
 const NOTICE_STORAGE_KEY = 'workflowos_notices_v1';
 
@@ -114,6 +115,12 @@ export const NoticeStore = {
     };
     this._notices = [...this._notices, newNotice];
     _saveNotices(this._notices);
+    // 行动性通知自动派生对应角色待办（最小三成本原则·阶段1C-2）
+    try {
+      NoticeTodoDeriver.deriveFromNotice(newNotice);
+    } catch (e) {
+      console.warn('[NoticeStore] 派生待办失败：', e);
+    }
     return newNotice;
   },
 
@@ -143,6 +150,12 @@ export const NoticeStore = {
     this._notices = this._notices.filter(n => n.id !== id);
     if (this._notices.length === prev) return false;
     _saveNotices(this._notices);
+    // 通知删除时联动删除关联待办（避免遗留孤儿待办）
+    try {
+      TodoStore.deleteBySource(TodoSourceType.NOTICE, id);
+    } catch (e) {
+      console.warn('[NoticeStore] 联动删除待办失败：', e);
+    }
     return true;
   },
 

@@ -47,6 +47,7 @@ export function saveDB() {
       taskforces:  mockDB.taskforces,
       authorizations: mockDB.authorizations,
       notices:     mockDB.notices,
+      todos:       mockDB.todos,
     }));
   } catch (e) {
     console.warn('[MockAdapter] saveDB 失败：', e);
@@ -113,6 +114,7 @@ export function loadDB() {
     if (Array.isArray(parsed.taskforces))  mockDB.taskforces  = parsed.taskforces;
     if (Array.isArray(parsed.authorizations)) mockDB.authorizations = parsed.authorizations;
     if (Array.isArray(parsed.notices))     mockDB.notices     = parsed.notices;
+    if (Array.isArray(parsed.todos))       mockDB.todos       = parsed.todos;
     // 注：users 为静态预设数据，不从持久化存储恢复，以避免运行时数据污染
     console.info('[MockAdapter] loadDB 成功，已恢复持久化数据。');
   } catch (e) {
@@ -166,6 +168,11 @@ export function createActivity(data) {
     saveDB();
     console.info('[MockAdapter] createActivity 成功，id=' + newItem.id
       + '，当前 activities 总数：' + mockDB.activities.length);
+    // 派生赋权待办（最小三成本原则·阶段1C-3）
+    // 使用 dynamic import 避免与 todo.js 的静态循环依赖
+    import('./todo.js').then(({ LifecycleTodoDeriver }) => {
+      LifecycleTodoDeriver.deriveFromActivityCreate(newItem);
+    }).catch(e => console.warn('[MockAdapter] 派生活动赋权待办失败：', e));
     return newItem;
   });
 }
@@ -221,6 +228,10 @@ export function deleteActivity(id) {
     }
     saveDB();
     console.info('[MockAdapter] deleteActivity 成功，id=' + id);
+    // 联动删除关联待办（避免遗留孤儿待办）
+    import('./todo.js').then(({ LifecycleTodoDeriver }) => {
+      LifecycleTodoDeriver.deleteByActivity(id);
+    }).catch(e => console.warn('[MockAdapter] 联动删除待办失败：', e));
     return { id };
   });
 }
@@ -252,6 +263,10 @@ export function archiveActivity(id) {
     saveDB();
     console.info('[MockAdapter] archiveActivity 成功，id=' + id
       + '，级联完成下属 tasks。');
+    // 派生归档待办给宣传委员（最小三成本原则·阶段1C-3）
+    import('./todo.js').then(({ LifecycleTodoDeriver }) => {
+      LifecycleTodoDeriver.deriveFromActivityArchive(archived);
+    }).catch(e => console.warn('[MockAdapter] 派生活动归档待办失败：', e));
     return archived;
   });
 }

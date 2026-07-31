@@ -238,6 +238,8 @@ export const mockDB = {
   authorizations: [],
   /** @type {Object[]} 通知数据 */
   notices: [],
+  /** @type {Object[]} 待办任务数据 — Source: content/04_web_design/DATA_ARCHITECTURE.md §2.18 */
+  todos: [],
   /** @type {ImageRecord[]} 图片记录 — Source: content/02_institution/sop/宣传委员工作流程指南.md#图片管理规则 */
   imageRecords: [],
 };

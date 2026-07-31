@@ -61,6 +61,12 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
     return { user: null };
   }
 
+  // 字体二档调节：读取 localStorage 偏好并应用
+  const savedFontSize = localStorage.getItem('workflowos_font_size') || 'medium';
+  if (savedFontSize === 'large') {
+    document.documentElement.classList.add('font-size-large');
+  }
+
   // 渲染侧边栏 + 顶栏
   renderSidebar(module);
   renderHeader(module);

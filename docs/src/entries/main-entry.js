@@ -17,6 +17,7 @@ import { AuthStore } from '../services/auth.js';
 import { loadWorkspaceData, fallbackMapActivities } from '../core/data-loader.js';
 import { mockDB } from '../core/domain.js';
 import { icon } from '../core/icons.js';
+import { renderCalendarByActivities, populateMonthSelector } from '../components/calendar.js';
 
 const { user } = await bootstrapPage({ module: 'dashboard' });
 
@@ -390,6 +391,20 @@ function _renderGallery(activities) {
 
 // ── 我的角色区块已迁移：角色切换移至 header view-switcher，考勤弹窗并入顶部统计行 ──
 
+// ── 首页活动日历（阶段1C-1：从工作台迁移至首页） ──────────────
+function _renderDashboardCalendar(state) {
+  const grid = document.getElementById('cal-main-grid');
+  if (!grid) return;
+
+  const activities = state.activities || [];
+  const targetMonth = populateMonthSelector(activities);
+  // 同步 displayMonth 到 state，确保日历组件读取正确月份
+  if (!state.displayMonth) {
+    setState({ displayMonth: targetMonth });
+  }
+  renderCalendarByActivities(state, targetMonth);
+}
+
 function renderDashboard(state) {
   const activities = state.activities || [];
   const taskforces = TaskForceRecordStore.getAll();
@@ -411,6 +426,9 @@ function renderDashboard(state) {
   _renderActivityList(activities);
   _renderAttendanceSummary(activities, loadAttendanceRecords());
   _renderGallery(activities);
+
+  // 渲染活动日历（最小三成本原则·阶段1C-1：日历迁移至首页）
+  _renderDashboardCalendar(state);
 
   const dashContainer = document.getElementById('view-dashboard');
   if (!dashContainer || dashContainer.dataset.navBound === 'true') return;
@@ -450,6 +468,16 @@ function renderDashboard(state) {
     const galleryItem = e.target.closest('[data-gallery-activity-id]');
     if (galleryItem) {
       const actId = galleryItem.dataset.galleryActivityId;
+      const url = actId
+        ? CrossPageState.buildURL(wsBase, { activityId: actId })
+        : wsBase;
+      window.location.href = url;
+      return;
+    }
+    // 日历活动条目点击：跳转到对应工作台
+    const calItem = e.target.closest('.cal-activity-item');
+    if (calItem) {
+      const actId = calItem.dataset.actId;
       const url = actId
         ? CrossPageState.buildURL(wsBase, { activityId: actId })
         : wsBase;
