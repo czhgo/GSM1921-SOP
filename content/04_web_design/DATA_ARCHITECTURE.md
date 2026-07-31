@@ -1,9 +1,9 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
 title: "数据架构设计"
 type: design
 role: "[工程师]+[AI]"
 version: "3.0"
-last_updated: "2026-07-29"
+last_updated: "2026-07-31"
 status: active
 merged_from: [content/design/DATA.md, content/design/PARTICIPANT_DATAFLOW.md, content/design/LOGIN_SYSTEM_DESIGN.md, content/design/BRAND_ACTIVITY.md]
 related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/MODULE_UI_DESIGN.md, content/04_web_design/DESIGN_SYSTEM.md]
@@ -35,7 +35,8 @@ summary: "系统数据架构设计的单一权威源——涵盖数据模型设�
 | 分工记录 (AssignmentRecord) | mockDB.assignments + localStorage | 随活动创建->待办->进行中->已完成 | 组织者创建分工，深度参与者执行 |
 | 交接记录 (HandoverRecord) | mockDB.handovers + localStorage | 随交接创建->持久化 | 组织者发起交接，纪检委员确认 |
 | 补课任务 (MakeupTask) | mockDB.makeupTasks + localStorage | 缺勤触发->待补课->已完成 | 纪检委员创建，缺勤者执行补课 |
-| 通知 (Notice) | mockDB.notices + localStorage | 创建->持久化 | 系统通知，按类型分级 |
+| 通知 (Notice) | mockDB.notices + localStorage | 创建->持久化 | 系统通知，按类型分级（含行动性通知派生待办机制，见 §2.19） |
+| 待办任务 (Todo) | mockDB.todos + localStorage | 创建->pending->in_progress->completed/expired | 最小三成本原则落地——任务流默认直接展示在工作台（见 §2.18） |
 | 经验沉淀 (ExperienceDeposit) | mockDB.experienceDeposits + localStorage | 创建->持久化 | 深度参与者经验总结 |
 | 制度文件引用 (ComplianceReference) | mockDB.complianceReferences + localStorage | 引用->持久化 | 组织委员引用的制度文件 |
 | 任务 (Task) | mockDB.tasks + localStorage | 随活动创建->待办->进行中->已完成 | 活动子任务，由 SOP 模板生成 |
@@ -600,6 +601,137 @@ assignedRoles: Array<{
 
 依赖 `CrossPageState` 和 `storage` 事件同步机制——写入后触发 `bumpDataVersion()`，其他页面监听 `storage` 事件刷新，页面切换时通过 `load()` 恢复上下文。
 
+### 2.18 待办任务数据 (Todo) — 最小三成本原则落地
+
+> **设计依据**：最小三成本原则（见 [DESIGN_SYSTEM.md §一 第2条](DESIGN_SYSTEM.md)）——任务流默认直接展示在工作台，不要求用户额外操作才能看到"我需要做什么"。
+> **派生来源**：通知派生（§2.19）+ 活动生命周期事件派生 + 专班生命周期事件派生 + 手动创建。
+> **类型定义将位于** [domain.js](../../docs/src/core/domain.js)（待新增）。
+
+#### 2.18.1 字段定义
+
+| 字段名 | 类型 | 必填 | 默认值 | 说明 |
+|---|---|---|---|---|
+| id | string | 是 | `generateId('todo')` | 唯一标识符，前缀 `todo_` |
+| title | string | 是 | -- | 待办标题 |
+| description | string | 否 | `''` | 待办描述 |
+| role | string | 是 | -- | 目标角色（secretary/leader/org-commissioner/prop-commissioner/disc-commissioner/organizer/deep/participant） |
+| personId | string \| null | 否 | `null` | 目标人员 ID（null=该角色所有人） |
+| category | `'auth' \| 'archive' \| 'review' \| 'notice' \| 'submit' \| 'track'` | 是 | -- | 分类（赋权/归档/审核/通知/提交/追踪） |
+| priority | `'urgent' \| 'normal'` | 是 | `'normal'` | 优先级 |
+| status | `'pending' \| 'in_progress' \| 'completed' \| 'expired'` | 是 | `'pending'` | 状态 |
+| deadline | string (ISO) \| null | 否 | `null` | 截止日期 |
+| createdAt | string (ISO) | 是 | `new Date().toISOString()` | 创建时间 |
+| completedAt | string (ISO) \| null | 否 | `null` | 完成时间 |
+| sourceType | `'notice' \| 'activity' \| 'taskforce' \| 'manual'` | 是 | -- | 来源类型 |
+| sourceId | string \| null | 否 | `null` | 来源 ID（通知ID/活动ID/专班ID） |
+| actionType | `'authorize' \| 'archive' \| 'review' \| 'read' \| 'submit' \| 'track' \| null` | 否 | `null` | 行动类型，决定点击后跳转/弹出的操作面板 |
+| actionData | object \| null | 否 | `null` | 行动数据（如赋权参数 `{scope, sourceId, sourceName}`、归档参数等） |
+
+#### 2.18.2 分类与展示规则
+
+待办按 `category` 分组展示，支持折叠/展开，避免信息爆炸：
+
+| 分类 | category 值 | 包含事项 | 默认状态 |
+|---|---|---|---|
+| 赋权类 | `auth` | 待赋权活动、待赋权专班、待设党小组组长 | 默认展开（最需要即时处理） |
+| 归档类 | `archive` | 待归档活动、待归档专班 | 默认折叠 |
+| 审核类 | `review` | 考勤确认、考察确认、复盘审核、活动审批 | 默认展开 |
+| 通知类 | `notice` | 通知阅读、通知催读 | 默认折叠 |
+| 提交类 | `submit` | 考勤上传、考察上传、复盘提交、周报报送 | 默认折叠 |
+| 追踪类 | `track` | 发展党员追踪、材料催缴、补课跟进 | 默认折叠 |
+
+每类内部按截止时间升序排列，过期待办（status=`pending` 且 deadline < today）红色标记排在各类最前。
+
+#### 2.18.3 各角色待办来源矩阵
+
+| 角色 | auth | archive | review | notice | submit | track |
+|---|---|---|---|---|---|---|
+| 书记 | 待设党小组组长 | -- | 待审批事项 | 通知未读超期 | -- | -- |
+| 党小组组长 | 待赋权活动 | -- | -- | 通知阅读 | 活动写入/考勤上传/考察上传/复盘提交 | -- |
+| 组织委员 | 待赋权专班 | -- | 考察审核 | 通知阅读 | 考察上传 | 发展党员追踪/材料催缴 |
+| 宣传委员 | -- | 待归档活动 | -- | 通知阅读 | 宣传任务/周报报送 | -- |
+| 纪检委员 | -- | -- | 考勤确认/考察确认/复盘审核 | 通知阅读 | -- | 补课跟进 |
+| 成员只读 | -- | -- | -- | 通知阅读 | -- | 个人考勤查询 |
+
+#### 2.18.4 状态流转
+
+```
+pending ──用户开始处理──→ in_progress ──完成──→ completed
+   │                                          ▲
+   │                                          │
+   └─── 超过 deadline ──→ expired ──重新激活──┘
+```
+
+`expired` 不是终态——超期未处理自动转 `expired` 红色标记，用户仍可激活完成。
+
+### 2.19 通知→待办派生机制
+
+> **设计依据**：通知分类（信息性 vs 行动性）+ 最小三成本原则——行动性通知自动派生为对应角色待办，用户无需手动从通知列表中筛选"我需要做什么"。
+
+#### 2.19.1 通知扩展字段
+
+通知数据结构（§2.9）新增字段：
+
+| 字段名 | 类型 | 必填 | 默认值 | 说明 |
+|---|---|---|---|---|
+| actionable | boolean | 是 | `false` | 是否为行动性通知 |
+| actionRoles | string[] | 否 | `[]` | 需要执行的角色列表（actionable=true 时必填） |
+| actionTask | string | 否 | -- | 待办任务标题（actionable=true 时必填） |
+| actionDeadline | string (YYYY-MM-DD) | 否 | -- | 行动截止日期 |
+| readBy | string[] | 是 | `[]` | 已读人员 ID 列表（用于未读名单查看） |
+| reminderDays | number | 是 | `3` | 自动提醒触发天数（书记发布时配置） |
+| reminders | Array&lt;{type, sentAt, sentBy, targetPersonIds}&gt; | 是 | `[]` | 提醒记录（auto/manual） |
+
+#### 2.19.2 派生规则
+
+- 通知发布时，若 `actionable === true`，系统自动为 `actionRoles` 中的每个角色生成一条待办
+- 待办 `category = 'notice'`，`sourceType = 'notice'`，`sourceId = 通知ID`
+- 待办 `actionType` 由通知类型决定（如材料审核通知→`actionType='review'`）
+- 通知过期或被取消时，关联待办自动标记为 `expired`
+
+#### 2.19.3 通知未读提醒机制
+
+| 提醒类型 | 触发条件 | 执行者 | 频率 |
+|---|---|---|---|
+| 自动提醒 | 发布后 `reminderDays` 天仍未读 | 系统 | 每条通知每用户仅触发一次 |
+| 手动催读 | 书记在通知管理中点击"催读" | 书记 | 可多次，记录写入 `reminders` 数组 |
+
+**权力归属**：通知发布权=书记；自动提醒=系统；手动催读=书记。
+
+#### 2.19.4 通知分类示例
+
+| 类型 | 示例 | 处理方式 |
+|---|---|---|
+| 信息性通知 | "七一活动总结已发布" | 仅首页通知区展示 |
+| 行动性通知 | "本月发展党员材料审核截止7月30日" | 首页展示 + 自动生成组织委员待办 |
+
+### 2.20 归档记录扩展字段
+
+> **设计依据**：归档详情浮窗需求——归档后可点击具体活动/专班条目查看归档完整内容，包括材料清单。
+
+归档记录（ActivityRecord.archived=true 时）新增字段：
+
+| 字段名 | 类型 | 必填 | 默认值 | 说明 |
+|---|---|---|---|---|
+| archivedBy | string | 是 | -- | 归档人 personId |
+| archivedAt | string (ISO) | 是 | -- | 归档时间 |
+| materials | Array&lt;Material&gt; | 是 | `[]` | 已归档材料清单 |
+| checklistResult | object \| null | 否 | `null` | 归档检查清单结果 |
+
+**Material 子结构**：
+
+| 字段名 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| id | string | 是 | 材料 ID |
+| name | string | 是 | 文件名 |
+| type | `'image' \| 'document' \| 'video' \| 'other'` | 是 | 文件类型 |
+| url | string \| null | 是 | 文件 URL（阶段2 后端支持时填充，mock 阶段为 null） |
+| uploadedAt | string (ISO) | 是 | 上传时间 |
+| uploadedBy | string | 是 | 上传人 personId |
+| size | number \| null | 否 | 文件大小（字节） |
+
+**阶段2 后端支持**：归档浮窗中材料清单每项可点击查看——图片预览/文档下载/视频预览，需后端文件存储支持。
+
 ---
 
 ## 三、参与者数据流设计
@@ -732,6 +864,7 @@ assignedRoles: Array<{
 | `experienceDeposits` | ExperienceDeposit[] | 经验沉淀记录 |
 | `taskforces` | TaskForceRecord[] | 专班记录 |
 | `notices` | Notice[] | 通知记录 |
+| `todos` | Todo[] | 待办任务记录（最小三成本原则落地，见 §2.18） |
 
 #### 6.2.2 UI 状态独立键
 

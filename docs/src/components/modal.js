@@ -29,8 +29,8 @@ export function openModal({ id, title, bodyHtml, onMount, width = '480px', accen
 
   panel.innerHTML = `
     <div style="padding:16px 20px;border-bottom:1px solid #E5E7EB;display:flex;align-items:center;justify-content:space-between;">
-      <h3 style="margin:0;font-size:15px;font-weight:600;color:#1F2937;">${title}</h3>
-      <button data-modal-close="${id}" style="background:none;border:none;cursor:pointer;color:#9CA3AF;font-size:20px;line-height:1;padding:4px 8px;border-radius:var(--radius-sm);transition:all 0.15s;" onmouseover="this.style.background='#F3F4F6';this.style.color='#374151'" onmouseout="this.style.background='none';this.style.color='#9CA3AF'">&times;</button>
+      <h3 style="margin:0;font-weight:600;color:#1F2937;" class="text-body-sm">${title}</h3>
+      <button data-modal-close="${id}" style="background:none;border:none;cursor:pointer;color:#9CA3AF;line-height:1;padding:4px 8px;border-radius:var(--radius-sm);transition:all 0.15s;" class="text-xl" onmouseover="this.style.background='#F3F4F6';this.style.color='#374151'" onmouseout="this.style.background='none';this.style.color='#9CA3AF'">&times;</button>
     </div>
     <div class="modal-body" style="padding:20px;overflow-y:auto;flex:1;">
       ${bodyHtml}
@@ -86,20 +86,20 @@ export function openFormModal({ id, title, fields, onSubmit, submitLabel = '提�
     const req = f.required ? '<span style="color:#EF4444;">*</span>' : '';
     if (f.type === 'select') {
       const opts = (f.options || []).map(o => `<option value="${o.value}" ${val === o.value ? 'selected' : ''}>${o.label}</option>`).join('');
-      return `<div style="margin-bottom:14px;"><label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:4px;">${f.label}${req}</label><select data-field="${f.key}" class="input-flat text-xs w-full">${opts}</select></div>`;
+      return `<div style="margin-bottom:14px;"><label style="display:block;font-weight:500;color:#374151;margin-bottom:4px;" class="text-body-sm">${f.label}${req}</label><select data-field="${f.key}" class="input-flat text-xs w-full">${opts}</select></div>`;
     }
     if (f.type === 'textarea') {
-      return `<div style="margin-bottom:14px;"><label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:4px;">${f.label}${req}</label><textarea data-field="${f.key}" rows="3" placeholder="${f.placeholder || ''}" style="width:100%;padding:8px 12px;border:1px solid #D1D5DB;border-radius:var(--radius-sm);font-size:13px;color:#374151;resize:vertical;">${val}</textarea></div>`;
+      return `<div style="margin-bottom:14px;"><label style="display:block;font-weight:500;color:#374151;margin-bottom:4px;" class="text-body-sm">${f.label}${req}</label><textarea data-field="${f.key}" rows="3" placeholder="${f.placeholder || ''}" class="input-flat-sm w-full" style="color:#374151;resize:vertical;">${val}</textarea></div>`;
     }
-    return `<div style="margin-bottom:14px;"><label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:4px;">${f.label}${req}</label><input data-field="${f.key}" type="${f.type || 'text'}" value="${val}" placeholder="${f.placeholder || ''}" style="width:100%;padding:8px 12px;border:1px solid #D1D5DB;border-radius:var(--radius-sm);font-size:13px;color:#374151;" /></div>`;
+    return `<div style="margin-bottom:14px;"><label style="display:block;font-weight:500;color:#374151;margin-bottom:4px;" class="text-body-sm">${f.label}${req}</label><input data-field="${f.key}" type="${f.type || 'text'}" value="${val}" placeholder="${f.placeholder || ''}" class="input-flat-sm w-full" style="color:#374151;" /></div>`;
   }).join('');
 
   const bodyHtml = `
     <form data-modal-form="${id}">
       ${fieldsHtml}
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
-        <button type="button" data-modal-cancel="${id}" style="padding:8px 16px;border:1px solid #D1D5DB;border-radius:var(--radius-sm);background:white;color:#6B7280;font-size:13px;cursor:pointer;">取消</button>
-        <button type="submit" style="padding:8px 16px;border:none;border-radius:var(--radius-sm);background:${accentColor};color:white;font-size:13px;font-weight:500;cursor:pointer;">${submitLabel}</button>
+        <button type="button" data-modal-cancel="${id}" class="btn-secondary" style="padding:8px 16px;cursor:pointer;">取消</button>
+        <button type="submit" class="btn-primary" style="padding:8px 16px;background:${accentColor};cursor:pointer;">${submitLabel}</button>
       </div>
     </form>
   `;

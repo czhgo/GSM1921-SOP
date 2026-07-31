@@ -4467,6 +4467,64 @@ DEVELOPMENT_PATH.md（母本）3 阶段标题与 help-entry.js Cognition section
 - ✅ SVG 渲染状态确认（SVG rect 382×287，节点 circle fill rgb(185,28,28)，elementFromPoint 返回 circle，未被遮挡）
 - ⚠️ Exploration section 可见性：browser subagent 截图未显示 SVG（但 DOM 状态+computed style+elementFromPoint 均正常，疑似截图工具问题），需用户手动验证
 
+---
+
+## T-142 最小三成本原则·阶段1A — content 文件体系写入 [经验沉淀: 是]
+
+**日期**：2026-07-31
+**任务编号**：T-142（阶段1A）
+**引用流程**：H2.4 经验沉淀 + DESIGN_SYSTEM §一 第6条 + COMMISSIONER_FRAMEWORK §D.1.1 + DATA_ARCHITECTURE §2.18-§2.20
+**spec**：`.trae/specs/min-cost-workspace-design/spec.md`
+
+### 背景
+
+书记原话（2026-07-31）："任务流应当按照最小的信息成本和操作成本直接体现在网页的工作台中了！"+"还有最小的适应学习成本，通过系统设计，快速掌握工作分工和工作任务、信息流的运作方式！"
+
+书记 5 个问题答复：①通知未读提醒=书记（手动催读）+系统（自动提醒，3天可配置）②待赋权活动由党小组组长/组织委员在工作台待办列表中处理（最小三成本原则）③归档详情浮窗可查看，阶段2支持文件查看 ④"查看专属工作流"提示应被移除，任务流默认直接展示 ⑤过去几轮重要原则写入 content 文件。
+
+### 阶段1A 完成项
+
+| 文件 | 修改内容 | 行号 |
+|------|---------|------|
+| `content/04_web_design/DESIGN_SYSTEM.md` | §一 设计哲学新增第6条核心原则"最小三成本（Min Cost First）" | L28 |
+| `content/04_web_design/DATA_ARCHITECTURE.md` | §1.2 数据分类总览新增 Todo 类别+通知说明更新 | L38-39 |
+| `content/04_web_design/DATA_ARCHITECTURE.md` | §2.18 新增待办任务数据模型（字段定义+分类展示规则+各角色待办来源矩阵+状态流转） | L603-664 |
+| `content/04_web_design/DATA_ARCHITECTURE.md` | §2.19 新增通知→待办派生机制（扩展字段+派生规则+未读提醒机制+分类示例） | L666-705 |
+| `content/04_web_design/DATA_ARCHITECTURE.md` | §2.20 新增归档记录扩展字段（archivedBy/materials/checklistResult） | L707-732 |
+| `content/04_web_design/DATA_ARCHITECTURE.md` | §6.2.1 全量键字段清单新增 `todos` 字段 | L867 |
+| `content/02_institution/COMMISSIONER_FRAMEWORK.md` | §D.1.1 新增"赋权入口设计——最小三成本原则落地"小节 | L285-303 |
+| `content/insights/工程演进与设计方法论.md` | §4.10 新增"最小三成本原则——任务流默认直接展示"方法论沉淀 | L405-430 |
+| `CLAUDE.md` 乙部 | 新增 T-142 任务条目 | L516 |
+
+### YAML 更新
+
+- `DESIGN_SYSTEM.md` last_updated → "2026-07-31"（此前已完成）
+- `DATA_ARCHITECTURE.md` last_updated → "2026-07-31"
+- `COMMISSIONER_FRAMEWORK.md` last_updated → "2026-07-31"
+- `工程演进与设计方法论.md` last_updated → "2026-07-31"
+- `CLAUDE.md` last_updated → "2026-07-31T12:00:00"
+
+### 验证
+
+- ✅ GetDiagnostics 通过（本次新增内容未引入任何 error，仅有历史遗留 markdownlint warning，与本次修改无关）
+- ✅ H3 检查清单 11 项自查通过
+- ✅ 一改具改：DATA_ARCHITECTURE.md §1.2/§6.2.1 数据分类总览同步更新
+- ✅ YAML 全部更新
+- ✅ 母本子本关系：DESIGN_SYSTEM（母本·原则）→ DATA_ARCHITECTURE/COMMISSIONER_FRAMEWORK/insights（子本·落地）
+
+### 经验沉淀
+
+**最小三成本原则**作为工作台设计的元原则，已沉淀至 insights/工程演进与设计方法论.md §4.10。包含命题陈述+关键落地机制+反论（"为什么不是功能清单让用户自选"）。生效条件：全系统所有角色工作台设计。
+
+**insights 元数据**：母本位置=`content/04_web_design/DESIGN_SYSTEM.md` §一 第6条；数据模型位置=`DATA_ARCHITECTURE.md` §2.18-§2.20；赋权入口位置=`COMMISSIONER_FRAMEWORK.md` §D.1.1；索引位置=待补充至 CLAUDE.md H6。
+
+### 待执行（阶段1B/1C/2）
+
+- 阶段1B：待办服务层（`docs/src/services/todo.js`）+ 工作台新布局（6个 entry JS + 6个 HTML）
+- 阶段1C：日历迁移至首页 + 通知派生 + 赋权入口待办触发 + 归档详情浮窗
+- 阶段2：后台数据库 + 文件存储（需后端支持）
+
+
 ### 文件变更清单
 
 | 文件 | 变更类型 | 说明 |
@@ -5999,5 +6057,267 @@ tab-bar 组件的 `tab.render(renderCtx)` 调用不处理返回值——各 Tab 
 ### 蒸馏标签
 
 [经验沉淀: 否 — 浮窗交互模式已有先例（PersonPicker等），属于一次性遗漏+DOM子元素缺失]
+
+---
+
+## T-142 阶段1C 实施：日历迁移至首页+归档详情浮窗+inspector 提示移除（2026-07-31）
+
+**日期**：2026-07-31
+**任务**：推进 T-142 最小三成本原则·阶段1C 实施，完成三项未尽事项：①日历从工作台迁移至首页（替换"近期活动"主视觉）、②归档详情浮窗（点击归档条目查看完整元数据）、③inspector.js 移除"请选择活动"空状态提示。
+**引用流程**：H1.2 执行 + H2.2 母本子本 + verification-before-completion Skill + web-design-guidelines Skill + brainstorming Skill + spec `.trae/specs/min-cost-workspace-design/`
+
+### 变更摘要
+
+**1. 阶段1C-1：日历从工作台迁移至首页**（`docs/index.html` + `docs/src/entries/main-entry.js`）
+- index.html：在"近期活动"上方插入"活动日历"卡片（`md:col-span-2` 横跨双列），含 `#cal-main-grid` / `#cal-main-empty` / `#calendar-legend` / `#legend-items` / `#month-selector` 容器
+- main-entry.js：导入 `renderCalendarByActivities` 和 `populateMonthSelector`；新增 `_renderDashboardCalendar(state)` 函数；在 `renderDashboard` 中调用；dashContainer 点击事件增加 `.cal-activity-item` 跳转处理
+- 设计：日历作为首页主视觉（最小信息成本），"近期活动"列表保留作为辅助视图（右下卡片）
+- 月份选择器、视图切换器（月/周/日/列表）、图例均复用工作台日历组件逻辑
+
+**2. 阶段1C-4：归档详情浮窗**（`docs/src/entries/archive-entry.js`）
+- 新增 `_ensureArchiveDetailModal` / `_showArchiveDetail` / `_hideArchiveDetail` 三个浮窗管理函数
+- 新增 `_renderActivityDetail(activity)` 渲染活动归档详情（活动名称/类型标签/日期/地点/组织者/状态/说明/材料清单）
+- 新增 `_renderTaskforceDetail(tf)` 渲染专班归档详情（名称/发起日期/截止日期/发起人/成员人数/任务/贡献记录）
+- 浮窗交互：点击遮罩或关闭按钮关闭、ESC 键关闭、`z-50` 遮罩 + 居中模态
+- 归档条目 HTML 添加 `cursor-pointer` + `hover:border-gray-200` 视觉反馈
+- 修复 `getActivityTypeColors({})` → `getActivityTypeColors({ withLabel: true })`，避免 `color.label` 为 undefined
+
+**3. 阶段1C-5：inspector.js 移除"请选择活动"提示**（`docs/src/components/inspector.js`）
+- 移除两处 `_guide` 提示（"提示：请从下方列表或顶部下拉框选择活动，以查看您的专属任务流"）
+- 空状态文案改为更简洁的"点击日历日期查看活动"（无 dateKey 时）和"当日暂无活动"（有 dateKey 时）
+- 移除 `_mgr` 变量及对应条件分支，简化空状态逻辑
+- 符合 spec §2.2：inspector 不再显示"请选择活动以查看您的专属任务流"提示
+
+### 修改文件清单
+
+| 文件 | 变更 |
+|------|------|
+| `docs/index.html` | 新增"活动日历"卡片，含日历容器、月份选择器、图例容器 |
+| `docs/src/entries/main-entry.js` | 导入日历渲染函数；新增 `_renderDashboardCalendar`；dashContainer 增加日历条目点击跳转 |
+| `docs/src/entries/archive-entry.js` | 新增归档详情浮窗（活动/专班两个详情模板）+ 浮窗交互逻辑；归档条目添加 cursor-pointer |
+| `docs/src/components/inspector.js` | 移除两处"请选择活动"提示，简化空状态分支 |
+
+### 验证结果（verification-before-completion Skill + GetDiagnostics + browser_use 实测）
+
+- **GetDiagnostics** PASS：4 个修改文件均返回 `diagnostics: []`，零错误 ✅
+- **首页日历渲染** PASS：活动日历卡片渲染出日历网格、活动条目、月份选择器、图例 ✅
+- **日历活动条目** PASS：cal-activity-item 元素正常渲染，可点击 ✅
+- **归档浮窗弹出** PASS：点击归档条目弹出 `#archive-detail-overlay`，含活动名称、元数据 ✅
+- **归档浮窗 undefined 修复** PASS：`getActivityTypeColors({ withLabel: true })` 修复后浮窗标题区不再显示 undefined ✅
+- **归档浮窗 ESC 关闭** PASS：按 ESC 键浮窗成功关闭 ✅
+- **inspector 空状态** PASS：移除"请选择活动"提示，改为简洁的"点击日历日期查看活动" ✅
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 三项变更均为 spec 阶段1C 的机械性实施，复用现有 calendar/archive 组件模式，无新的设计方法论沉淀]
+
+---
+
+## T-118 SOP 文件夹分析+P.9 写入丙部+T-142 待办 tab 全角色覆盖（2026-07-31）
+
+**日期**：2026-07-31
+**任务**：①分析 SOP 文件夹 6 个文件的细节补充空间 ②将"数据总表结构+发展党员时间轴+SOP与网页关系"写入丙部 P.9 ③补全 ws-disc-commissioner-entry.js 缺失的待办 tab 函数，实现 6 个角色工作台待办 tab 全覆盖
+**引用流程**：H1.2 执行 + H4.2 丙部待决策机制 + H2.2 母本子本 + brainstorming Skill + verification-before-completion Skill + web-design-guidelines Skill
+
+### 变更摘要
+
+**1. SOP 文件夹分析（T-118）**
+- 通读 6 个 SOP 文件：党小组组长工作手册 / 组织委员工作流程指南 / 纪检委员工作流程指南 / 宣传委员工作流程指南 / 常见工作场景快速指南 / 支委与党小组定人定责定岗说明
+- 识别 4 处"模板待创建"占位符（发展党员材料清单/补课记录模板/宣传报送模板/考察档案字段）
+- 识别各文件可补充细节（字段清单类/工作节奏类/数据总表结构类/发展党员时间轴）
+- 书记决策：数据总表结构+发展党员时间轴写入丙部 P.9 待逐个思考；SOP 与网页的关系明确为"SOP 是母本，但优先修改网页"
+
+**2. P.9 写入丙部**
+- 丙部新增 P.9 "SOP 数据总表结构+发展党员时间轴待决断"
+- 路线图三步：①数据总表字段结构（考勤/考察/宣传档案/考察档案）②发展党员时间轴 ③SOP 与网页的优先级关系
+- 每步提供 3 个方向供书记选择
+
+**3. ws-disc-commissioner-entry.js 补全待办 tab（T-142 阶段1C 全角色覆盖）**
+- 发现 ws-disc-commissioner-entry.js 有 `id: 'todo'` tab 和 `defaultTab: 'todo'`，但缺少 `_renderTodoContent` / `_renderTodoDetail` / `_handleTodoAction` / `_bindTodoDetailEvents` / `_selectedTodoId` 等配套函数
+- 按 ws-leader-entry.js 模板补全 5 个函数，角色标识为 `'disc-commissioner'`
+- `_handleTodoAction` 的 tabMap 适配纪检委员：review→活动监督复盘 / submit→考勤管理 / confirm→考察管理
+- 至此 6 个角色工作台（书记/组织/宣传/纪检/党小组组长/访客）全部具备完整待办 tab 实现
+
+### 修改文件清单
+
+| 文件 | 变更 |
+|------|------|
+| `CLAUDE.md` | 丙部新增 P.9（SOP 数据总表+发展党员时间轴+SOP与网页关系） |
+| `docs/src/entries/ws-disc-commissioner-entry.js` | 补全待办 tab 5 个函数（_renderTodoContent/_renderTodoDetail/_handleTodoAction/_bindTodoDetailEvents/_selectedTodoId） |
+
+### 验证结果（verification-before-completion Skill + GetDiagnostics + browser_use 实测）
+
+- **GetDiagnostics** PASS：ws-disc-commissioner-entry.js 返回 `diagnostics: []`，零错误 ✅
+- **书记工作台待办 tab** PASS：默认 tab 为待办，"我的待办"+详情面板可见，控制台无 JS 错误 ✅
+- **组织委员工作台待办 tab** PASS：同上 ✅
+- **宣传委员工作台待办 tab** PASS：同上 ✅
+- **纪检委员工作台待办 tab** PASS：同上（刚补全的实现，重点测试通过） ✅
+- **党小组组长工作台待办 tab** PASS：同上 ✅
+- **访客工作台待办 tab** PASS：同上 ✅
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 待办 tab 推广为模板复用，P.9 为待决策项写入丙部，无新的设计方法论沉淀]
+
+---
+
+## T161 字体二档调节功能实现（2026-07-31）
+
+**日期**：2026-07-31
+**任务**：实现字体二档调节功能，允许用户在"中"（默认）和"大"两种字号间切换，便利眼睛不太好的同学。在中/大各自区间字号保持等差递增规则（+3px）。
+**引用流程**：H1.2 执行 + brainstorming Skill + web-design-guidelines Skill + verification-before-completion Skill
+
+### 变更摘要
+
+**1. CSS 变量覆盖**（`docs/src/styles.css`）
+- `html.font-size-large` 选择器覆盖 8 个 `--text-*` 变量，每个比中档增加 3px
+- Tailwind 字号类覆盖：`html.font-size-large .text-xs` 等 8 条规则，让 Tailwind 类跟随变量
+- 任意值字号覆盖：`text-[10px]`→13px、`text-[11px]`→14px、`text-[9px]`→12px
+- CSS 组件类字号覆盖：`.text-h1`/`.text-body`/`.input-flat`/`.btn-primary` 等 16 条规则
+- 侧边栏字号切换按钮样式：`.sidebar-font-size-toggle`/`.font-size-btn`/`.font-size-btn.active`
+
+**2. JS 初始化**（`docs/src/core/bootstrap.js`）
+- 在 `bootstrapPage` 函数中添加 localStorage 读取逻辑
+- 读取 `workflowos_font_size` 键值，若为 `large` 则给 `html` 元素添加 `font-size-large` 类
+- 位置：登录检查通过后、渲染侧边栏前
+
+**3. 侧边栏切换 UI**（`docs/src/components/sidebar.js`）
+- 侧边栏底部添加字号切换区域：`"字号"` 标签 + `"中"`/`"大"` 两个按钮
+- 当前选中档位显示 `active` 状态（党建红配色）
+- 点击切换时：更新 localStorage → 切换 html class → 更新按钮 active 状态
+- 无需刷新页面，即时生效
+
+### 设计决策
+
+| 决策 | 选项 | 结论 |
+|------|------|------|
+| 调节范围 | 逐页/全站 | 全站统一切换 |
+| 切换入口 | header/侧边栏/设置页 | 侧边栏底部 |
+| 放大规则 | 等比/等差递增 | 等差递增（+3px，小字多加） |
+| 覆盖策略 | 根字号调整/CSS 变量覆盖 | CSS 变量 + Tailwind 类覆盖（避免布局偏移） |
+
+### 修改文件清单
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/styles.css` | 新增 `html.font-size-large` 变量覆盖 + Tailwind 字号类覆盖 + 任意值覆盖 + 组件类覆盖 + 切换按钮样式 |
+| `docs/src/core/bootstrap.js` | 新增 localStorage 读取 + html class 应用逻辑 |
+| `docs/src/components/sidebar.js` | 新增字号切换 UI + `_currentFontSize`/`_bindFontSizeToggle` 函数 |
+
+### 验证结果（verification-before-completion Skill + GetDiagnostics + browser_use 实测）
+
+- **GetDiagnostics** PASS：3 个修改文件均返回 `diagnostics: []`，零错误 ✅
+- **侧边栏切换按钮** PASS：底部存在"字号 中/大"切换按钮，UI 可见 ✅
+- **切换到大号** PASS：点击"大"按钮后 html 获得 `font-size-large` 类，localStorage 写入 `large`，字号明显变大 ✅
+- **切换回中号** PASS：点击"中"按钮后 html class 清除，localStorage 写入 `medium`，字号恢复正常 ✅
+- **布局无严重错乱** PASS：字号变化未导致布局偏移或溢出 ✅
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 字体二档调节为标准无障碍功能，CSS 变量覆盖 + Tailwind 类覆盖是常规做法]
+
+---
+
+## T162 字体一致性修复 + P.9 决策落实（2026-07-31）
+
+**日期**：2026-07-31
+**任务**：①修复字体二档调节中字号不一致问题 ②落实丙部 P.9 三步决策
+**引用流程**：H1.2 执行 + H4.2 丙部待决策机制 + H2.2 母本子本 + web-design-guidelines Skill + brainstorming Skill
+
+### 变更摘要
+
+**1. 字体一致性修复**（`docs/src/styles.css`）
+- 发现 Tailwind 字号类（text-xs=12px 等）与 CSS 变量体系（--text-xs=10px）不一致
+- 修正：Tailwind 字号类覆盖改为基于 Tailwind 默认值 +3px，而非引用 CSS 变量
+- 修正：`.text-body-sm` 增量从 +2 修正为 +3px，`.text-overline` 增量从 +2 修正为 +3px
+- 修正：`.input-flat-sm` 增量从 +4 修正为 +3px
+
+**2. P.9 第一步：模板整合到网页**（4处"模板待创建"全部处理）
+- 组织委员指南 L152：发展党员材料清单 → 整合到附录 A（含完整时间轴+材料清单）
+- 组织委员指南 L181：关联文档引用 → 更新为"见本文件附录 A"
+- 纪检委员指南 L197：补课记录模板 → 替换为"系统自动生成补课任务，无需单独填写模板"
+- 宣传委员指南 L115：报送格式模板 → 替换为"系统已支持每周一报送自动生成"
+
+**3. P.9 第二步：发展党员时间轴整合到组织委员指南附录 A**
+- 新增附录 A「发展党员时间轴与材料清单」
+- 包含 6 个发展阶段（入党申请人→积极分子→发展对象→预备党员→预备期→正式党员）
+- 每阶段含：关键动作、必须交付、系统提示
+- 各阶段材料清单详细列出
+
+**4. P.9 第三步：网页逻辑反整合到 SOP**
+- 纪检委员指南：新增考勤记录结构、数据交接机制、考察记录结构（用业务语言）
+- 组织委员指南：新增考察档案记录结构（用业务语言）
+- 原则：SOP 是给人读的，讲解工作逻辑而非编程用语
+
+### 修改文件清单
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/styles.css` | 修正 Tailwind 字号覆盖规则 + CSS 组件类增量一致性修复 |
+| `content/02_institution/sop/组织委员工作流程指南.md` | 新增附录 A（时间轴+材料清单）+ 考察档案记录结构 + 替换"模板待创建" |
+| `content/02_institution/sop/纪检委员工作流程指南.md` | 新增考勤记录结构 + 数据交接 + 考察记录结构 + 替换"模板待创建" |
+| `content/02_institution/sop/宣传委员工作流程指南.md` | 替换"模板待创建" |
+| `CLAUDE.md` | P.9 标记为已决策（D-254） |
+
+### 验证结果
+
+- **全仓库"模板待创建"零残留** PASS：Grep 确认 0 匹配 ✅
+- **SOP 文件 YAML 更新** PASS：3 个文件 last_updated 已更新为 2026-07-31 ✅
+- **P.9 已决策归档** PASS：CLAUDE.md 丙部已更新 ✅
+
+### 蒸馏标签
+
+[经验沉淀: 是 — P.9 第三步揭示了"网页逻辑反整合到SOP"的工作模式：SOP是给人读的（业务语言），网页是给机器执行的（编程用语），反整合时必须用业务语言翻译。已沉淀至 insights §4.11。]
+
+---
+
+## T163 字体一致性补充修复+最小三成本原则提升（2026-07-31）
+
+**日期**：2026-07-31
+**任务**：①验证字体一致性并修复JS组件中内联font-size硬编码 ②将"最小三成本原则"从核心原则第6条提升至第2条并一改具改
+**引用流程**：H1.2 执行 + H2.1 一改具改 + H3 文件修改检查清单 + verification-before-completion Skill + web-design-guidelines Skill
+
+### 变更摘要
+
+**1. 字体一致性验证**
+- CSS变量体系、组件类、Tailwind类大档覆盖全部等差+3px，一致性通过
+- 发现JS组件中25处 `style="font-size:XXpx"` 内联样式无法被大档CSS类覆盖
+
+**2. JS组件内联font-size修复**（4个文件）
+- `modal.js`：标题15px→`text-body-sm`，关闭按钮20px→`text-xl`，label 13px→`text-body-sm`，textarea/input 13px→`input-flat-sm`，按钮13px→`btn-primary`/`btn-secondary`
+- `header.js`：分组标题10px→`text-[10px]`，选项13px→`text-body-sm`，按钮13px→`text-body-sm`，徽标10px→`text-[10px]`，通知空态14px→`text-sm`，优先级徽标10px→`text-[10px]`，通知标题13px→`text-body-sm`，已读按钮10px→`text-[10px]`，日期11px→`text-[11px]`
+- `tab-bar.js`：分组标签9px→`text-[9px]`
+- `workspace-popover.js`：标题15px→`text-body-sm`，选项14px→`text-sm`，"当前"标记12px→`text-xs`
+
+**3. 最小三成本原则提升**（DESIGN_SYSTEM.md §一 核心原则）
+- 从第6条提升至第2条（仅次于"清洁优先"）
+- 原2-5条顺延为3-6条
+- 一改具改：4处引用"第6条"→"第2条"（insights×2 + DATA_ARCHITECTURE×1 + COMMISSIONER_FRAMEWORK×1）
+- CLAUDE.md T-142描述中"第6条"→"第2条"
+
+### 修改文件清单
+
+| 文件 | 变更 |
+|------|------|
+| `docs/src/components/modal.js` | 7处内联font-size→CSS类 |
+| `docs/src/components/header.js` | 10处内联font-size→CSS类 |
+| `docs/src/components/tab-bar.js` | 1处内联font-size→CSS类 |
+| `docs/src/components/workspace-popover.js` | 3处内联font-size→CSS类 |
+| `content/04_web_design/DESIGN_SYSTEM.md` | 核心原则重排序（第6→第2） |
+| `content/insights/工程演进与设计方法论.md` | 2处"第6条"→"第2条" |
+| `content/04_web_design/DATA_ARCHITECTURE.md` | 1处"第6条"→"第2条" |
+| `content/02_institution/COMMISSIONER_FRAMEWORK.md` | 1处"第6条"→"第2条" |
+| `CLAUDE.md` | T-142描述"第6条"→"第2条" + P.9决策摘要补充 |
+
+### 验证结果
+
+- **CSS变量+组件类+Tailwind覆盖一致性** PASS：全部等差+3px ✅
+- **JS组件内联font-size零残留** PASS：Grep确认components/下0匹配 ✅
+- **"第6条"引用零残留** PASS：Grep确认content/下0匹配 ✅
+- **GetDiagnostics** PASS：4个JS文件均返回 `diagnostics: []` ✅
+
+### 蒸馏标签
+
+[经验沉淀: 否 — 内联font-size→CSS类是标准前端实践，原则重排序为一改具改的常规执行]
 
 

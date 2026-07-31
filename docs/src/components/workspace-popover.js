@@ -48,9 +48,10 @@ export function bindWorkspacePopover(sidebar) {
     // 标题
     const title = document.createElement('div');
     title.style.cssText = `
-      font-size:15px; font-weight:600; color:#1F2937;
+      font-weight:600; color:#1F2937;
       margin-bottom:16px; text-align:center;
     `;
+    title.className = 'text-body-sm';
     title.textContent = '选择进入身份';
     modal.appendChild(title);
 
@@ -63,15 +64,16 @@ export function bindWorkspacePopover(sidebar) {
       item.style.cssText = `
         display:flex; align-items:center; justify-content:center;
         padding:12px 16px; border-radius:10px; margin-bottom:8px;
-        font-size:14px; font-weight:500; text-decoration:none;
+        font-weight:500; text-decoration:none;
         transition:background 0.15s, color 0.15s;
         background:${isActive ? '#FEF2F2' : '#F8F9FA'};
         color:${isActive ? '#CE1126' : '#374151'};
         border:1px solid ${isActive ? '#FECACA' : 'transparent'};
       `;
+      item.className = 'text-sm';
       item.innerHTML = `<span>${p.label}</span>`;
       if (isActive) {
-        item.innerHTML = `<span>${p.label}</span><span style="margin-left:8px;font-size:12px;color:#9CA3AF;">当前</span>`;
+        item.innerHTML = `<span>${p.label}</span><span style="margin-left:8px;color:#9CA3AF;" class="text-xs">当前</span>`;
       }
 
       item.addEventListener('mouseenter', () => {

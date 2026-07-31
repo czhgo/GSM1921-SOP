@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: "2026-07-30T00:15:00"
+last_updated: "2026-07-31T12:00:00"
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSOT_INDEX.md, content/01_strategy/SECRETARY_PRONOUNCEMENTS.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, .ctx/logs/]
 ---
@@ -513,6 +513,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | T-127 | **文档【逻辑顺序】重组**：基于 spec `.trae/specs/document-logical-order-restructure-continuation/` 执行阶段 1 续（机械性修复：30 个 .md + 7 个代码文件路径替换 + §5.2/§5.3 编号修复）+ 阶段 2（设计性重组：DEVELOPMENT_PATH.md 5 章→3 章+附录 A/B、SECRETARY_PRONOUNCEMENTS.md P-045/P-047 移到第一章 + P-008/P-021 移出至 insights 文件 2、insights 拆分为双文件、CLAUDE.md H2.4 规则 2 "正反两面论"→"按需正反两面论"）。46/46 验证项全部通过 | H2.1 一改具改 + H2.2 母本子本 + H2.4 经验沉淀 + OPERATIONS_GUIDE §11.7 文档【逻辑顺序】 | 全仓库 | ✅ 完成 |
 | T-140 | **Exploration Canvas 像素部分·阶段1 素材制作**：设计文稿已完成（`.trae/specs/pixel-design-spec/`，28 ADR+术语表+主文稿）。2026-07-27 书记三项决策：①素材制作方式→SD/AI 生图（ADR-026）②美学方向→星露谷物语画风（ADR-027）③ADR-025坐标→保持不变。提示词归总完成（prompts/ 10 个分文件）。**2026-07-28 书记决定放弃像素素材制作**，设计过程作为探索尝试留存于 `.trae/specs/pixel-design-spec/`，不再推进 | H2.4 经验沉淀 + DESIGN_SYSTEM.md §5.4 | .trae/specs/pixel-design-spec/ | ✅ 完成（放弃，设计文档留存） |
 | T-141 | **功能定位修正+缺失补全+角色单页制+架构简化**：基于"谁用/怎么用/为什么集成"拷问，重新定位人员管理→人全景（只读）、书记赋权管理→常设赋权、纪检经验沉淀→融入监督复盘；补全4个缺失（首页"我的角色"区块、发展党员追踪、党小组长复盘提交、宣传委员宣传任务）；移除制度文件/多维表格/专班工作量/追踪看板独立tab；合并workspace/+party/为6个角色单页面；侧边栏简化为"工作台"单入口；术语"项目"替代"活动+专班"统称；AuthStore数据同源迁移至mockDB.authorizations。4阶段全部完成：①tab重组 ②页面级功能补全 ③数据同源 ④术语一改具改 | H2.2 母本子本 + COMMISSIONER_FRAMEWORK §D + DESIGN_SYSTEM §4.6 | docs/src/entries/* + main-entry.js + auth.js + mock.js + domain.js | ✅ 完成 |
+| T-142 | **最小三成本原则·工作台重构+通知待办体系+后台数据模型**：基于 spec `.trae/specs/min-cost-workspace-design/` 分4阶段实施。书记原话（2026-07-31）："任务流应当按照最小的信息成本和操作成本直接体现在网页的工作台中了！"+"还有最小的适应学习成本，通过系统设计，快速掌握工作分工和工作任务、信息流的运作方式！"已决策：通知自动提醒触发天数可配置（P.9，默认3天）；待办列表时间范围=全部未完成含过期（P.10，通过分类+折叠展示避免信息爆炸）。**阶段1A已完成**：①DESIGN_SYSTEM.md §一 新增第2条核心原则"最小三成本"（已从第6条提升至第2条）②DATA_ARCHITECTURE.md §2.18-§2.20 新增待办任务数据模型+通知→待办派生机制+归档记录扩展字段+§1.2/§6.2.1 数据分类总览更新 ③COMMISSIONER_FRAMEWORK.md §D.1.1 新增赋权入口设计（待办列表中体现）④insights 工程演进与设计方法论.md §4.10 新增方法论沉淀。**阶段1B已完成**：todo.js 服务层（TodoStore+NoticeTodoDeriver+LifecycleTodoDeriver）+ todo-list.js 组件 + ws-leader-entry.js 待办tab+双栏布局。**阶段1C已完成**：①1C-1 日历迁移至首页（index.html+main-entry.js）②1C-2 通知→待办派生（notice.js）③1C-3 活动/专班→待办派生（mock.js+taskforce.js）④1C-4 归档详情浮窗（archive-entry.js）⑤1C-5 inspector.js 移除"请选择"提示 ⑥1C-6 待办 tab 全角色覆盖（6个角色工作台均已完成：书记/组织/宣传/纪检/党小组组长/访客，其中纪检委员工作台补全了缺失的 _renderTodoContent 等函数）。**待执行**：阶段2（后台数据库+文件存储，需后端支持） | H2.4 经验沉淀 + DESIGN_SYSTEM §一 第2条 + COMMISSIONER_FRAMEWORK §D.1.1 + DATA_ARCHITECTURE §2.18-§2.20 | content/04_web_design/* + content/02_institution/* + content/insights/* + docs/src/* | 🔄 进行中 |
 
 ***
 
@@ -543,6 +544,15 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 当前详情面板展示 `decisionDetail` 字段内容——是否需要调整措辞或补充信息？需书记逐条审查 13 步的详情内容。
 
 **当前状态**：等待书记选择第 1 步方向
+
+***
+
+## P.9 ~~SOP 数据总表结构+发展党员时间轴待决断~~（已决策，D-254）
+
+**决策摘要**（2026-07-31）：
+- 第一步：模板如必要应有机整合到网页中（表单/代码逻辑），减负——不创建独立模板文件。4处"模板待创建"已全部处理：补课记录/宣传报送/考察档案已由系统实现，占位符替换为说明；发展党员材料清单整合到组织委员指南附录A。
+- 第二步：发展党员时间轴整合到组织委员指南附录A（非单独建手册）。
+- 第三步：将网页中已实现的工作逻辑反整合到SOP中（用业务语言，非编程用语），使SOP成为规范、结构化、清晰的制度母本。考勤记录结构、数据交接、考察记录结构已补充到纪检委员指南。"三个最小成本原则"已从核心原则第6条提升至第2条（一改具改完成：4处引用更新）。
 
 > **已决策归档**（2026-07-16）：P.1 统一中文 / P.2 允许并补赋权 / P.3 系统不应有思想汇报功能（手写提交） / P.4 本轮补建复盘状态枚举。详见 DECISION_LOG.md。
 > **已决策方向**（2026-07-17）：UI-P-006 支委应有日历视图（可选切换）。

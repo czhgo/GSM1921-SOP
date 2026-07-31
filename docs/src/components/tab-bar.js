@@ -60,7 +60,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
       const divider = isFirstGroup
         ? ''
         : `<span style="width:1px;height:14px;background:#E5E7EB;display:inline-block;margin-right:4px;vertical-align:middle;"></span>`;
-      groupHtml = `<span class="tab-group-label inline-flex items-center gap-1.5" style="pointer-events:none;user-select:none;">${divider}<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:${accent}12;color:${accent};font-weight:600;letter-spacing:0.5px;vertical-align:middle;">${groupLabel}</span></span>`;
+      groupHtml = `<span class="tab-group-label inline-flex items-center gap-1.5" style="pointer-events:none;user-select:none;">${divider}<span style="padding:1px 5px;border-radius:3px;background:${accent}12;color:${accent};font-weight:600;letter-spacing:0.5px;vertical-align:middle;" class="text-[9px]">${groupLabel}</span></span>`;
       isFirstGroup = false;
     }
     return `${groupHtml}<button class="${btnClass}${activeClass} px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}"${activeStyle}>${label}</button>`;

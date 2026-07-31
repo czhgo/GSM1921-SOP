@@ -82,12 +82,12 @@ function _viewSwitcherHTML(role, user) {
   let groupsHTML = '';
   if (workspaces.length > 0) {
     groupsHTML += `
-      <div style="padding:6px 12px;font-size:10px;color:var(--neutral-400);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">切换工作台</div>
+      <div style="padding:6px 12px;color:var(--neutral-400);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;" class="text-[10px]">切换工作台</div>
       ${workspaces.map(w => `
-        <a href="${w.href}" data-ws-role="${w.role}" class="view-option" data-type="workspace" style="position:relative;display:flex;align-items:center;gap:6px;padding:8px 12px;cursor:pointer;color:var(--neutral-800);font-size:13px;transition:background 0.15s;text-decoration:none;">
+        <a href="${w.href}" data-ws-role="${w.role}" class="view-option text-body-sm" data-type="workspace" style="position:relative;display:flex;align-items:center;gap:6px;padding:8px 12px;cursor:pointer;color:var(--neutral-800);transition:background 0.15s;text-decoration:none;">
           ${w.isCurrent ? '<span style="position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--party-gold);border-radius:1px;"></span>' : ''}
           <span>${w.label}</span>
-          ${w.isCurrent ? '<span style="margin-left:auto;font-size:10px;color:var(--neutral-400);">当前</span>' : ''}
+          ${w.isCurrent ? '<span style="margin-left:auto;color:var(--neutral-400);" class="text-[10px]">当前</span>' : ''}
         </a>
       `).join('')}
     `;
@@ -97,12 +97,12 @@ function _viewSwitcherHTML(role, user) {
       groupsHTML += '<div style="height:1px;background:#F3F4F6;margin:4px 0;"></div>';
     }
     groupsHTML += `
-      <div style="padding:6px 12px;font-size:10px;color:var(--neutral-400);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">查看视角</div>
+      <div style="padding:6px 12px;color:var(--neutral-400);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;" class="text-[10px]">查看视角</div>
       ${views.map(v => `
-        <div class="view-option" data-type="view" data-role="${v.role}" style="position:relative;padding:8px 12px;cursor:pointer;color:var(--neutral-800);font-size:13px;transition:background 0.15s;">
+        <div class="view-option text-body-sm" data-type="view" data-role="${v.role}" style="position:relative;padding:8px 12px;cursor:pointer;color:var(--neutral-800);transition:background 0.15s;">
           ${v.isCurrent ? '<span style="position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--party-gold);border-radius:1px;"></span>' : ''}
           <span>${v.label}</span>
-          ${v.isCurrent ? '<span style="margin-left:auto;font-size:10px;color:var(--neutral-400);">当前</span>' : ''}
+          ${v.isCurrent ? '<span style="margin-left:auto;color:var(--neutral-400);" class="text-[10px]">当前</span>' : ''}
         </div>
       `).join('')}
     `;
@@ -110,7 +110,7 @@ function _viewSwitcherHTML(role, user) {
 
   return `
     <div id="view-switcher" style="position:relative;">
-      <button id="view-switcher-btn" style="display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:8px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.25);color:#FFFFFF;font-size:13px;cursor:pointer;transition:background 0.15s;white-space:nowrap;">
+      <button id="view-switcher-btn" style="display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:8px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.25);color:#FFFFFF;cursor:pointer;transition:background 0.15s;white-space:nowrap;" class="text-body-sm">
         <span>我的视角</span>
         <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style="flex-shrink:0;"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
@@ -126,7 +126,7 @@ function _notificationBellHTML() {
   const activeNotices = NoticeStore.list({ activeOnly: true });
   const unread = activeNotices.filter(n => !n.read).length;
   const badge = unread > 0
-    ? `<span style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:9999px;background:var(--party-gold);border:1.5px solid var(--primary-900);font-size:10px;font-weight:600;color:#7A0010;display:flex;align-items:center;justify-content:center;padding:0 4px;">${unread > 9 ? '9+' : unread}</span>`
+    ? `<span style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:9999px;background:var(--party-gold);border:1.5px solid var(--primary-900);font-weight:600;color:#7A0010;display:flex;align-items:center;justify-content:center;padding:0 4px;" class="text-[10px]">${unread > 9 ? '9+' : unread}</span>`
     : '';
 
   return `
@@ -317,13 +317,13 @@ function _bindNotificationBell(header) {
     if (!dropdown.classList.contains('hidden')) {
       const notices = NoticeStore.list({ activeOnly: true, sortBy: 'date' });
       if (notices.length === 0) {
-        dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:#9CA3AF;font-size:14px;">暂无通知</div>';
+        dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:#9CA3AF;" class="text-sm">暂无通知</div>';
         return;
       }
 
       const priorityBadge = {
-        urgent: '<span style="display:inline-block;padding:1px 6px;font-size:10px;font-weight:500;border-radius:9999px;background:#FEE2E2;color:#B91C1C;">紧急</span>',
-        normal: '<span style="display:inline-block;padding:1px 6px;font-size:10px;font-weight:500;border-radius:9999px;background:#DBEAFE;color:#1D4ED8;">重要</span>',
+        urgent: '<span style="display:inline-block;padding:1px 6px;font-weight:500;border-radius:9999px;background:#FEE2E2;color:#B91C1C;" class="text-[10px]">紧急</span>',
+        normal: '<span style="display:inline-block;padding:1px 6px;font-weight:500;border-radius:9999px;background:#DBEAFE;color:#1D4ED8;" class="text-[10px]">重要</span>',
       };
 
       dropdown.innerHTML = notices.slice(0, 10).map(n => `
@@ -331,10 +331,10 @@ function _bindNotificationBell(header) {
              style="padding:12px;border-bottom:1px solid #F3F4F6;cursor:pointer;transition:background 0.15s;">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
             ${priorityBadge[n.priority] || ''}
-            <p style="font-size:13px;color:#374151;margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${n.title || n.content}</p>
-            ${!n.read ? `<button class="notif-mark-read" data-notice-id="${n.id}" style="font-size:10px;color:#2563EB;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;transition:background 0.15s;flex-shrink:0;" onmouseenter="this.style.background='#EFF6FF'" onmouseleave="this.style.background='none'">已读</button>` : ''}
+            <p style="color:#374151;margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" class="text-body-sm">${n.title || n.content}</p>
+            ${!n.read ? `<button class="notif-mark-read text-[10px]" data-notice-id="${n.id}" style="color:#2563EB;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;transition:background 0.15s;flex-shrink:0;" onmouseenter="this.style.background='#EFF6FF'" onmouseleave="this.style.background='none'">已读</button>` : ''}
           </div>
-          <p style="font-size:11px;color:#9CA3AF;margin:0;">${n.publishDate || n.date || ''}</p>
+          <p style="color:#9CA3AF;margin:0;" class="text-[11px]">${n.publishDate || n.date || ''}</p>
         </div>
       `).join('');
 
