@@ -152,3 +152,29 @@ related_files:
   - ✅ 书记统计条 4 圆点全 #B91C1C；「我的待办」卡片仅最外层红色左边框、内部无嵌套边框/竖线
   - ✅ 两页无 JS 报错；GetDiagnostics 全部修改文件无错误
   - ✅ 8月活动/通知/考勤数据联调正常（书记工作台"本月活动"显示 5 场，与 act-26~30 一致）
+
+## T178 Help 帮助页美学评估（web-design-guidelines Skill，未做任何内容修改）（2026-08-01）
+
+**任务**：书记要求——"请在不做任何内容修改的情况下，对 help 这个界面做美学评估！！Use Skill: web-design-guidelines 评议结果输出到丙部！"
+**引用流程**：H1.2 执行 + web-design-guidelines Skill + H4.2 丙部待决策机制（H4.2 场景 2 发现待决策项——设计方向属人类决策权范畴，AI 不得自行处置）
+
+**调查过程**：
+- 拉取 web-design-guidelines 最新指南（vercel-labs/web-interface-guidelines command.md）
+- 通读 `docs/help.html`（84 行外壳）、`docs/src/entries/help-entry.js`（1606 行全部渲染逻辑）、`docs/src/styles.css` help 区块（3243-5145 行「HELP PAGE v4」）
+- 启动本地 http.server 5500，browser_use 两轮实测：① 11 张截图 + 控制台（无 JS 运行时错误，"Exploration scene found: true"，SVG 正常；仅 CDN Tailwind 生产警告）② getComputedStyle 逐条精确验证（当前模型无法读图，改用 computed style 返回 JSON 确证）
+
+**确证的核心缺陷**：
+1. **「两条宝贵机会」板块裸文本渲染**：`.help-philosophy-opp*` 类（help-entry.js 约 574-598 行）在 styles.css 零命中——getComputedStyle 实测 display:block、padding:0px、border:0px、background:transparent、borderRadius:0px，卡片完全无样式，与全页苹果风严重割裂
+2. **「行百里者半九十」板块裸文本渲染**：`.help-dialogue-step*` 类（help-entry.js 约 937-943 行）同样在 styles.css 零命中，四步卡片裸文本堆叠
+3. **类名断链**：`.help-cognition-item-truth`（JS 渲染正文）vs CSS 仅有 `.help-cognition-item-desc`——组织性正文 `<p>` 无样式
+4. **旧版样式死代码**：`.help-dialogue-*` 旧卡片/环形箭头（styles.css 约 4222-4361 行）+ `.help-philosophy-*` 旧布局（3494-3573 行）已不在 DOM（getComputedStyle 实测 cardExists:false），约 20 处废弃选择器残留
+
+**合规项（file:line）**：`docs/help.html:11-12` CDN Tailwind 生产警告；`docs/help.html:50-56` 诊断脚本残留（console.log 调试语句）；`help-entry.js:521` 审查卡 role="button"+tabindex 但无点击行为（伪交互）；`help-entry.js:1130` `.help-tl-center` 用 div 绑定 click 折叠（应为 button）
+
+**正例亮点（已确证）**：`help-entry.js:1058` TOC 用 `<a>`、`:796` SVG 节点含 aria-label、`:837` tooltip 含 aria-hidden、`:509` scroll-hint 含 aria-hidden；`styles.css` reduced-motion 完整（4135-4158、5124-5145）；移动端断点完整（4994-5122）；gsap.matchMedia 正确处理 prefers-reduced-motion（help-entry.js:1233/1365）；配色克制（白底 + 党建红点缀 + 衬线标题）；滚动叙事 + SVG 关系网络
+
+**输出**：评议结果写入 CLAUDE.md 丙部 P.10（待书记决策：两个裸文本板块处理方向 + 旧版样式清理范围）
+**变更文件**：`CLAUDE.md`（丙部 P.10 新增）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+**验证结果**：✅ grep 全仓库确认 `.help-philosophy-opp*`/`.help-dialogue-step*` 仅出现在 JS、CSS 零命中；浏览器 getComputedStyle 实测确证裸文本渲染与死代码不在 DOM
+
+- **沉淀标签**: `[待沉淀: 简述新发现]` — 新发现：模型无法读图时，美学/视觉审查可用 browser_evaluate 执行 getComputedStyle 返回精确 JSON（display/padding/border/background/borderRadius/fontSize/fontFamily），将"看起来没样式"转化为可复现的确凿证据；JS 渲染类名与 CSS 选择器的一致性必须用 grep 双侧交叉验证（JS 有类名、CSS 零命中即断链）
