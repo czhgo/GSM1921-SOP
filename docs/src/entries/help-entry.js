@@ -401,7 +401,8 @@ const DIALOGUE_STAGES = [
 // article: 条号（T1 原文出处）
 const DEVELOPMENT_TIMELINE = [
   // 阶段 1：入党申请人 → 入党积极分子
-  { no: 1,  title: '递交入党申请书',     time: '年满十八岁',     decisionMaker: '本人自愿',            decisionDetail: '入党申请人表达意愿',                       article: '§5',  isDecisionNode: false, stage: 'applicant', stickyNote: null },
+  // timeHighlight：递交入党申请书须年满十八周岁（书记决策，2026-08-01 重点标注）
+  { no: 1,  title: '递交入党申请书',     time: '年满十八岁',     decisionMaker: '本人自愿',            decisionDetail: '入党申请人表达意愿',                       article: '§5',  isDecisionNode: false, stage: 'applicant', stickyNote: null, timeHighlight: true },
   { no: 2,  title: '党组织派人谈话',     time: '一个月内',       decisionMaker: '党组织派人',           decisionDetail: '了解基本情况，介绍党的基本知识',           article: '§7',  isDecisionNode: false, stage: 'applicant', stickyNote: null },
   { no: 3,  title: '确定入党积极分子',   time: '—',              decisionMaker: '党支部委员会会议研究决定', decisionDetail: '在党员推荐、群团组织推优人选中确定',   article: '§8',  isDecisionNode: true,  stage: 'activist', stickyNote: null },
   { no: 4,  title: '报上级党委备案',     time: '—',              decisionMaker: '上级党委备案',   decisionDetail: '备案入党积极分子名单',                     article: '§8',  isDecisionNode: true,  stage: 'activist', stickyNote: null },
@@ -1053,7 +1054,7 @@ function renderDevelopment() {
             <span class="help-tl-dot ${dotClass}"></span>
             <span class="help-tl-no ${noClass}">${node.no}</span>
             <span class="help-tl-title">${node.title}</span>
-            ${node.time && node.time !== '—' ? `<span class="help-tl-time">${node.time}</span>` : ''}
+            ${node.time && node.time !== '—' ? `<span class="help-tl-time${node.timeHighlight ? ' help-tl-time--hl' : ''}">${node.time}</span>` : ''}
           </div>
           <div class="help-tl-side help-tl-side--right">${rightContent}</div>
         </div>

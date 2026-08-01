@@ -4827,6 +4827,19 @@ label .text-red-500 {
   white-space: nowrap;
 }
 
+/* 时间标签高亮（入党申请书须年满十八周岁，书记决策重点标注） */
+.help-tl-time--hl {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  background: var(--accent-red, #CE1126);
+  box-shadow: 0 2px 8px rgba(206, 17, 38, 0.30);
+}
+
 /* 展开的详情卡片 */
 .help-tl-detail {
   background: #FFFFFF;

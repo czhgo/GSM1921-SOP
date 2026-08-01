@@ -69,7 +69,7 @@ function renderDiscUI(state) {
       { id: 'inspection', label: '考察管理', render: () => _renderInspectionContent() },
       { id: 'makeup', label: '补课制度', render: () => _renderMakeupContent(), groupLabel: '党务' },
       { id: 'mailbox', label: '公邮管理', render: () => _renderMailboxContent(), groupLabel: '党务' },
-      { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('disc-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('disc-commissioner', 'u_disc_commissioner'); bindMyDispatchEvents(el, 'disc-commissioner', 'u_disc_commissioner'); } }, groupLabel: '反馈' },
+      { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('disc-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('disc-commissioner', 'u_disc'); bindMyDispatchEvents(el, 'disc-commissioner', 'u_disc'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
     defaultTab: 'todo',

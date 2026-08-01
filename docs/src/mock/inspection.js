@@ -76,7 +76,7 @@ export const INSPECTION_RECORDS = [
   { id: 'insp-34', sourceType: SourceType.ACTIVITY, activityId: 'act-26', sourceName: null, personId: 'p41', level: ParticipationLevel.DEEP_PARTICIPATE, role: '学习心得分享',       recordedBy: 'p1',  recordedAt: '2026-08-07T20:45:00', status: 'confirmed' },
   { id: 'insp-35', sourceType: SourceType.ACTIVITY, activityId: 'act-26', sourceName: null, personId: 'p42', level: ParticipationLevel.DEEP_PARTICIPATE, role: '资料整理',           recordedBy: 'p1',  recordedAt: '2026-08-07T20:50:00', status: 'confirmed' },
   { id: 'insp-36', sourceType: SourceType.ACTIVITY, activityId: 'act-26', sourceName: null, personId: 'p43', level: ParticipationLevel.DEEP_PARTICIPATE, role: '宣传照片采集',       recordedBy: 'p1',  recordedAt: '2026-08-07T20:55:00', status: 'confirmed' },
-  // 入党申请人（p44~p50）参与 8月党小组会（act-26，旁听学习+记录）
+  // 积极分子（p44~p50，2026-08-01 申请人并入积极分子）参与 8月党小组会（act-26，旁听学习+记录）
   { id: 'insp-37', sourceType: SourceType.ACTIVITY, activityId: 'act-26', sourceName: null, personId: 'p44', level: ParticipationLevel.DEEP_PARTICIPATE, role: '旁听学习记录',       recordedBy: 'p1',  recordedAt: '2026-08-07T21:00:00', status: 'confirmed' },
   { id: 'insp-38', sourceType: SourceType.ACTIVITY, activityId: 'act-26', sourceName: null, personId: 'p45', level: ParticipationLevel.DEEP_PARTICIPATE, role: '思想汇报准备',       recordedBy: 'p1',  recordedAt: '2026-08-07T21:05:00', status: 'confirmed' },
   { id: 'insp-39', sourceType: SourceType.ACTIVITY, activityId: 'act-26', sourceName: null, personId: 'p46', level: ParticipationLevel.DEEP_PARTICIPATE, role: '会议纪要协助',       recordedBy: 'p1',  recordedAt: '2026-08-07T21:10:00', status: 'confirmed' },

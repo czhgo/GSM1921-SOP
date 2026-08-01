@@ -13,7 +13,7 @@ export const MOCK_ACCOUNTS = [
   // === T4.4 补充角色切换样本（2026-07-16）===
   { studentId: '2500010012', password: '123456', personId: 'p26' },  // 积极分子 朱欣怡（D-240 organizer 候选）
   { studentId: '2500010010', password: '123456', personId: 'p24' },  // 预备党员 曹雅婷
-  { studentId: '2500010007', password: '123456', personId: 'p21' },  // 入党申请人 沈佳琪
+  { studentId: '2500010007', password: '123456', personId: 'p21' },  // 积极分子 沈佳琪
   // === 50 人规模扩充账号（2026-08-01）===
   { studentId: '2500010002', password: '123456', personId: 'p16' },  // 预备党员 黄志远
   { studentId: '2500010003', password: '123456', personId: 'p17' },  // 预备党员 顾文博

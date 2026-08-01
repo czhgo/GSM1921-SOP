@@ -3,13 +3,20 @@
 // 权威源 docs/data/issues.json + localStorage 个人草稿
 
 import { AuthStore } from './auth.js';
+import { PersonStore } from './person.js';
+
+/** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
+function _displayName(id) {
+  return id ? PersonStore.getName(id) : '';
+}
 
 const ISSUES_JSON_PATH = './data/issues.json';
 const DRAFT_KEY = 'gsm1921-issue-drafts';
 // 2026-07-30 v2：新增 dispatchHistory/comments.kind/hidden/mergedInto 字段，需重新加载 mock 数据
-const CACHE_KEY = 'gsm1921-issue-cache-v2';
+// 2026-08-01 v3：反馈数据长 ID（u_org_commissioner 等）统一改短 ID（u_org），强制清旧缓存重拉
+const CACHE_KEY = 'gsm1921-issue-cache-v3';
 const CACHE_VERSION_KEY = 'gsm1921-issue-cache-version';
-const CACHE_VERSION = '2';
+const CACHE_VERSION = '3';
 const MIGRATED_KEY = 'gsm1921-feedback-migrated';
 
 let _issuesCache = null;
@@ -251,7 +258,7 @@ export const IssueStore = {
   /**
    * 书记指派反馈给某人
    * @param {string} issueId
-   * @param {string} assigneeId   被指派人 personId（如 'u_org_commissioner'）
+   * @param {string} assigneeId   被指派人 personId（如 'u_org'）
    * @param {string} assigneeRole 被指派人角色键（'org-commissioner' | 'leader' | 'secretary' | ...）
    * @param {string} note         指派备注（可选）
    * @returns {Object|null} 更新后的 issue
@@ -578,7 +585,7 @@ export const IssueNotify = {
 /**
  * 渲染「我的处置」Tab 内容
  * @param {string} role 角色键（如 'org-commissioner'）
- * @param {string} userId 被指派人 personId（如 'u_org_commissioner'）
+ * @param {string} userId 被指派人 personId（如 'u_org'）
  * @returns {string} HTML
  */
 export function renderMyDispatchTab(role, userId) {
@@ -611,7 +618,7 @@ export function renderMyDispatchTab(role, userId) {
     if (dispatchNote?.note) {
       html += `<p class="text-[10px] text-blue-600 mt-1">书记备注：${dispatchNote.note}</p>`;
     }
-    html += `<div class="text-[10px] text-gray-400 mt-1">${issue.submittedBy} · ${issue.submittedAt} · ${issue.commentCount || 0} 评论</div>`;
+    html += `<div class="text-[10px] text-gray-400 mt-1">${_displayName(issue.submittedBy)} · ${issue.submittedAt} · ${issue.commentCount || 0} 评论</div>`;
     html += `</div>`;
   });
 
@@ -647,7 +654,7 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
   html += `</div>`;
   if (issue.body) html += `<p class="text-sm text-gray-600 whitespace-pre-wrap mb-4">${issue.body}</p>`;
   html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-gray-400 mb-4 pb-4 border-b border-gray-100">`;
-  html += `<span>#${issue.number}</span><span>提交人：${issue.submittedBy}</span><span>提交时间：${issue.submittedAt}</span>`;
+  html += `<span>#${issue.number}</span><span>提交人：${_displayName(issue.submittedBy)}</span><span>提交时间：${issue.submittedAt}</span>`;
   html += `</div>`;
 
   // 指派历史
@@ -655,7 +662,7 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
     html += `<div class="mb-4 pb-4 border-b border-gray-100">`;
     html += `<span class="text-xs font-medium text-gray-700 block mb-2">指派历史</span><div class="space-y-1">`;
     issue.dispatchHistory.forEach(d => {
-      html += `<div class="text-[10px] text-gray-500">● ${d.at} · ${d.to}${d.note ? '：' + d.note : ''}</div>`;
+      html += `<div class="text-[10px] text-gray-500">● ${d.at} · ${_displayName(d.to)}${d.note ? '：' + d.note : ''}</div>`;
     });
     html += `</div></div>`;
   }
@@ -667,7 +674,7 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
     const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'verdict' ? '★' : '';
     const kindBg = c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'result' ? 'bg-green-50' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
     html += `<div class="rounded-lg p-2.5 ${kindBg}">`;
-    html += `<span class="text-[10px] font-medium text-gray-700">${kindIcon} ${c.author}</span>`;
+    html += `<span class="text-[10px] font-medium text-gray-700">${kindIcon} ${_displayName(c.author)}</span>`;
     html += `<span class="text-[10px] text-gray-400 ml-1">${c.createdAt}</span>`;
     html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;
   });

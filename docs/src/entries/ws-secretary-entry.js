@@ -6,7 +6,7 @@ import { renderInspectorFromState } from '../components/inspector.js';
 import { computeSecretaryStats } from '../services/roles.js';
 import { AuthStore } from '../services/auth.js';
 import { bootstrapPage } from '../core/bootstrap.js';
-import { getPersonById } from '../mock/index.js';
+import { getPersonById, getPersonName } from '../mock/index.js';
 import { mockDB } from '../core/domain.js';
 import { ROLE_LABELS, ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS, DRAFT_TYPE_LABELS } from '../core/constants.js';
 import { PersonPicker } from '../components/person-picker.js';
@@ -499,7 +499,7 @@ function _renderOverviewContent() {
       title: '发展与考察',
       color: '#0EA5E9',
       items: [
-        { label: '发展分布', value: `申请${data.inspection.stageCounts.applicant}·积极${data.inspection.stageCounts.activist}·发展${data.inspection.stageCounts.target}·预备${data.inspection.stageCounts.probationary}·正式${data.inspection.stageCounts.full}` },
+        { label: '发展分布', value: `积极${data.inspection.stageCounts.activist}·发展${data.inspection.stageCounts.target}·预备${data.inspection.stageCounts.probationary}·正式${data.inspection.stageCounts.full}` },
         { label: '考察待确认', value: data.inspection.pendingInspections, alert: data.inspection.pendingInspections > 0 },
         { label: '考察超期', value: data.inspection.overdueInspections, alert: data.inspection.overdueInspections > 0 },
       ],
@@ -1408,7 +1408,7 @@ function renderIssueManagement() {
               </div>
             </div>
             <p class="text-sm text-gray-800 font-medium">${i.title}</p>
-            <div class="text-[10px] text-gray-400 mt-1">${i.submittedBy} · ${i.commentCount || 0} 评论 · ${i.submittedAt}</div>
+            <div class="text-[10px] text-gray-400 mt-1">${getPersonName(i.submittedBy)} · ${i.commentCount || 0} 评论 · ${i.submittedAt}</div>
           </div>
         `;
       }).join('');
@@ -1459,9 +1459,9 @@ function renderIssueManagement() {
 /** 指派目标选项 */
 const ASSIGNEE_OPTIONS = [
   { personId: 'u_sec', role: 'secretary', label: '书记处置' },
-  { personId: 'u_org_commissioner', role: 'org-commissioner', label: '组织委员' },
-  { personId: 'u_prop_commissioner', role: 'prop-commissioner', label: '宣传委员' },
-  { personId: 'u_disc_commissioner', role: 'disc-commissioner', label: '纪检委员' },
+  { personId: 'u_org', role: 'org-commissioner', label: '组织委员' },
+  { personId: 'u_prop', role: 'prop-commissioner', label: '宣传委员' },
+  { personId: 'u_disc', role: 'disc-commissioner', label: '纪检委员' },
   { personId: 'u_leader_1', role: 'leader', label: '第一党小组组长' },
   { personId: 'u_leader_2', role: 'leader', label: '第二党小组组长' },
   { personId: 'u_leader_3', role: 'leader', label: '第三党小组组长' },
@@ -1541,7 +1541,7 @@ function _renderIssueDetail(issueId) {
   html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-gray-400 mb-4 pb-4 border-b border-gray-100">`;
   html += `<span>范围：${issue.scope || '—'}</span>`;
   html += `<span>类型：${(issue.types || []).join(', ') || '—'}</span>`;
-  html += `<span>提交人：${issue.submittedBy || '匿名'}</span>`;
+  html += `<span>提交人：${getPersonName(issue.submittedBy) || '匿名'}</span>`;
   html += `<span>提交时间：${issue.submittedAt || '—'}</span>`;
   if (issue.closedAt) html += `<span>关闭时间：${issue.closedAt}</span>`;
   html += `</div>`;
@@ -1762,7 +1762,7 @@ function renderDraftRow(d) {
       <div class="p-3 rounded-lg bg-white border border-orange-200" data-draft-id="${d.draftId}">
         <div class="flex items-center justify-between mb-1">
           <span class="text-[10px] text-orange-700 font-medium">新建反馈草稿</span>
-          <span class="text-[10px] text-gray-500">${d.author} · ${d.createdAt}</span>
+          <span class="text-[10px] text-gray-500">${getPersonName(d.author)} · ${d.createdAt}</span>
         </div>
         <p class="text-sm font-medium text-gray-800">${p.title}</p>
         <p class="text-xs text-gray-600 mt-1 line-clamp-2">${p.body}</p>
@@ -1778,7 +1778,7 @@ function renderDraftRow(d) {
       <div class="p-3 rounded-lg bg-white border border-blue-200" data-draft-id="${d.draftId}">
         <div class="flex items-center justify-between mb-1">
           <span class="text-[10px] text-blue-700 font-medium">评论草稿 · 目标反馈: ${d.targetIssueId}</span>
-          <span class="text-[10px] text-gray-500">${d.author} · ${d.createdAt}</span>
+          <span class="text-[10px] text-gray-500">${getPersonName(d.author)} · ${d.createdAt}</span>
         </div>
         <p class="text-sm text-gray-700">${d.payload.body}</p>
         <div class="flex gap-1 mt-2">

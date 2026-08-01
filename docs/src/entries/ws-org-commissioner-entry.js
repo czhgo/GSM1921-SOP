@@ -6,7 +6,7 @@ import { AuthStore } from '../services/auth.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { PersonPicker } from '../components/person-picker.js';
-import { _personName, PEOPLE, PARTY_MOCKS, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js';
+import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js';
 import { mockDB, SourceType, ParticipationLevel } from '../core/domain.js';
 import { persist } from '../core/data-adapter.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
@@ -26,30 +26,49 @@ const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'work
 //  发展党员追踪 — Mock 数据
 // ════════════════════════════════════════════════════════════════
 
-const STAGE_ORDER = ['入党申请人', '积极分子', '发展对象', '预备党员', '正式党员'];
+const STAGE_ORDER = ['积极分子', '发展对象', '预备党员', '正式党员'];
 
 const STAGE_COLOR = {
-  '入党申请人': { bg: 'bg-gray-100', text: 'text-gray-600', dot: '#9CA3AF' },
   '积极分子':   { bg: 'bg-cyan-100', text: 'text-cyan-700', dot: '#06B6D4' },
   '发展对象':   { bg: 'bg-amber-100', text: 'text-amber-700', dot: '#F59E0B' },
   '预备党员':   { bg: 'bg-blue-100', text: 'text-blue-700', dot: '#3B82F6' },
   '正式党员':   { bg: 'bg-green-100', text: 'text-green-700', dot: '#10B981' },
 };
 
-// 发展党员追踪 — Mock 数据
-// 2026-08-01 修正：与 50 人库同源（消除硬编码假名单，数据一致性），
-// 数据源：PARTY_MOCKS.candidates（party.js，引用真实人员）+ 补充预备党员代表
-let MOCK_CANDIDATES = [
-  ...PARTY_MOCKS.candidates.map(c => ({
-    id: `dc_${c.id}`,
-    name: getPersonName(c.personId),
-    stage: c.stage,
-    entryDate: '2026-01-01',
-    note: c.materialsComplete ? '材料齐全' : `缺 ${c.missingMaterials} 项材料`,
-  })),
-  // 补充预备党员代表（party.js candidates 未覆盖预备阶段）
-  { id: 'dc_p17', name: getPersonName('p17'), stage: '预备党员', entryDate: '2026-01-01', note: '预备期中' },
-];
+// 发展党员追踪 — 数据源：PEOPLE（唯一人员数据源）+ 考察记录 + 推进覆盖档案
+// 2026-08-01 重构：废弃硬编码名单（原 6 条模拟字段），从 PEOPLE 派生所有非正式党员
+// （积极分子/发展对象/预备党员），与人员库全系统同源一致。
+const DEV_STAGE_OVERRIDES_KEY = 'gsm1921-dev-stage-overrides';
+
+function _loadDevOverrides() {
+  try { return JSON.parse(localStorage.getItem(DEV_STAGE_OVERRIDES_KEY) || '{}'); } catch { return {}; }
+}
+
+function _saveDevOverrides(overrides) {
+  try { localStorage.setItem(DEV_STAGE_OVERRIDES_KEY, JSON.stringify(overrides)); } catch {}
+}
+
+/** 从唯一人员数据源派生发展党员候选人列表 */
+function _buildCandidates() {
+  const overrides = _loadDevOverrides();
+  const allInspections = loadInspectionRecords();
+  return PEOPLE
+    .filter(p => p.developStage && p.developStage !== '正式党员')
+    .map(p => {
+      const ov = overrides[p.id] || {};
+      const inspCount = allInspections.filter(r => r.personId === p.id).length;
+      return {
+        id: `dc_${p.id}`,
+        personId: p.id,
+        name: p.name,
+        partyGroup: p.partyGroup || '',
+        stage: ov.stage || p.developStage,
+        entryDate: ov.entryDate || '2026-01-01',
+        inspCount,
+        note: ov.note || (inspCount > 0 ? `已参与 ${inspCount} 次考察记录` : '培养考察中'),
+      };
+    });
+}
 
 function renderOrgUI(state) {
   let activities = state.activities || [];
@@ -76,7 +95,7 @@ function renderOrgUI(state) {
       { id: 'taskforce', label: '专班管理', render: (ctx) => _renderTaskforceContent(ctx.pending, ctx.recruiting, ctx.active, ctx.activities) },
       { id: 'talent', label: '人才库', render: () => _renderTalentContent() },
       { id: 'development', label: '发展党员', render: () => _renderDevelopmentContent(), groupLabel: '党务' },
-      { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('org-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('org-commissioner', 'u_org_commissioner'); bindMyDispatchEvents(el, 'org-commissioner', 'u_org_commissioner'); } }, groupLabel: '反馈' },
+      { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('org-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('org-commissioner', 'u_org'); bindMyDispatchEvents(el, 'org-commissioner', 'u_org'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
     extraRightHtml: '<button id="btn-publish-tf" style="background:var(--accent-org-commissioner);color:white;border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity=\'0.9\'" onmouseout="this.style.opacity=\'1\'">发布招募</button>',
@@ -829,14 +848,15 @@ function _renderDevelopmentContent() {
   let _devFilter = 'all';
 
   function render() {
+    const candidates = _buildCandidates();
     const filtered = _devFilter === 'all'
-      ? MOCK_CANDIDATES
-      : MOCK_CANDIDATES.filter(c => c.stage === _devFilter);
+      ? candidates
+      : candidates.filter(c => c.stage === _devFilter);
 
     // 阶段统计
     const stageCounts = {};
     for (const s of STAGE_ORDER) {
-      stageCounts[s] = MOCK_CANDIDATES.filter(c => c.stage === s).length;
+      stageCounts[s] = candidates.filter(c => c.stage === s).length;
     }
 
     // 管线概览条
@@ -887,7 +907,9 @@ function _renderDevelopmentContent() {
                   <div class="text-sm font-semibold text-gray-800">${c.name}</div>
                   <div class="flex items-center gap-2 mt-1">
                     <span class="text-[10px] px-1.5 py-0.5 rounded-full ${sc.bg} ${sc.text} font-medium">${c.stage}</span>
+                    ${c.partyGroup ? `<span class="text-[10px] text-gray-400">${c.partyGroup}</span>` : ''}
                     <span class="text-[10px] text-gray-400">进入当前阶段：${c.entryDate}</span>
+                    ${c.inspCount > 0 ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600">考察 ${c.inspCount}</span>` : ''}
                   </div>
                 </div>
                 ${advanceBtn}
@@ -901,9 +923,9 @@ function _renderDevelopmentContent() {
       <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">发展党员追踪</h4>
-          <span class="text-xs text-gray-400">${MOCK_CANDIDATES.length} 人</span>
+          <span class="text-xs text-gray-400">${candidates.length} 人</span>
         </div>
-        <div class="text-xs text-gray-500 mb-4">从入党申请人到正式党员的完整发展路径追踪</div>
+        <div class="text-xs text-gray-500 mb-4">从积极分子到正式党员的完整发展路径追踪</div>
         <!-- 管线概览 -->
         <div class="flex items-center flex-wrap gap-1 mb-4 p-3 rounded-lg bg-gray-50">
           ${pipelineHtml}
@@ -932,13 +954,18 @@ function _renderDevelopmentContent() {
       btn.addEventListener('click', () => {
         const candidateId = btn.dataset.candidateId;
         const nextStage = btn.dataset.nextStage;
-        const candidate = MOCK_CANDIDATES.find(c => c.id === candidateId);
+        const candidate = _buildCandidates().find(c => c.id === candidateId);
         if (!candidate) return;
         const confirmed = window.confirm(`确认将「${candidate.name}」从${candidate.stage}推进至${nextStage}？`);
         if (!confirmed) return;
-        candidate.stage = nextStage;
-        candidate.entryDate = new Date().toISOString().slice(0, 10);
-        candidate.note = `已推进至${nextStage}`;
+        // 推进结果写入覆盖档案（人员库静态阶段 + 推进档案动态阶段 = 当前显示阶段）
+        const overrides = _loadDevOverrides();
+        overrides[candidate.personId] = {
+          stage: nextStage,
+          entryDate: new Date().toISOString().slice(0, 10),
+          note: `已推进至${nextStage}`,
+        };
+        _saveDevOverrides(overrides);
         showToast('success', `「${candidate.name}」已推进至${nextStage}`);
         render();
       });
@@ -987,7 +1014,6 @@ function _renderTalentContent() {
     '预备党员': 'bg-blue-100 text-blue-700',
     '发展对象': 'bg-amber-100 text-amber-700',
     '积极分子': 'bg-cyan-100 text-cyan-700',
-    '入党申请人': 'bg-gray-100 text-gray-600',
   };
 
   renderQueryView(queryContainer, {
@@ -1045,7 +1071,6 @@ function _renderTalentDetail(personId) {
     '预备党员': 'bg-blue-100 text-blue-700',
     '发展对象': 'bg-amber-100 text-amber-700',
     '积极分子': 'bg-cyan-100 text-cyan-700',
-    '入党申请人': 'bg-gray-100 text-gray-600',
   };
   const colorCls = stageColor[person.developStage] || 'bg-gray-100 text-gray-500';
 

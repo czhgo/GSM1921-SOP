@@ -58,12 +58,12 @@
       "closedAt": null,
       "submittedBy": "p3",
       "submittedAt": "2026-07-22",
-      "assignee": "u_org_commissioner",
+      "assignee": "u_org",
       "assigneeRole": "org-commissioner",
       "dispatchHistory": [
         {
           "from": null,
-          "to": "u_org_commissioner",
+          "to": "u_org",
           "by": "u_sec",
           "at": "2026-07-23",
           "note": "请组织委员核实并补充模板字段"
@@ -96,7 +96,7 @@
         },
         {
           "id": "cmt-003",
-          "author": "u_org_commissioner",
+          "author": "u_org",
           "authorRole": "org-commissioner",
           "body": "已与宣传委员沟通，确认模板需要在「讨论记录」后追加「下一步行动」「责任人」「完成时限」三列。预计本周内提交修订版。",
           "createdAt": "2026-07-26",
@@ -107,7 +107,7 @@
           "hiddenAt": null
         }
       ],
-      "participants": ["p3", "u_sec", "u_org_commissioner"],
+      "participants": ["p3", "u_sec", "u_org"],
       "commentCount": 2
     },
     {
@@ -186,12 +186,12 @@
       "closedAt": "2026-07-20",
       "submittedBy": "p15",
       "submittedAt": "2026-07-12",
-      "assignee": "u_prop_commissioner",
+      "assignee": "u_prop",
       "assigneeRole": "prop-commissioner",
       "dispatchHistory": [
         {
           "from": null,
-          "to": "u_prop_commissioner",
+          "to": "u_prop",
           "by": "u_sec",
           "at": "2026-07-13",
           "note": "请宣传委员设计系统内报名登记方案"
@@ -224,7 +224,7 @@
         },
         {
           "id": "cmt-007",
-          "author": "u_prop_commissioner",
+          "author": "u_prop",
           "authorRole": "prop-commissioner",
           "body": "已完成活动报名功能设计，在「活动写入」中增加「参与人」字段，活动详情页可查看报名列表。",
           "createdAt": "2026-07-18",
@@ -247,7 +247,7 @@
           "hiddenAt": null
         }
       ],
-      "participants": ["p15", "u_sec", "u_prop_commissioner"],
+      "participants": ["p15", "u_sec", "u_prop"],
       "commentCount": 3
     }
   ]

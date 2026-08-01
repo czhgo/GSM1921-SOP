@@ -128,11 +128,11 @@ export const SecretaryOverviewStore = {
     const inspections = loadInspectionRecords();
 
     // 各阶段全量人数（50 人规模，2026-08-01 口径修正：按人员库全量统计，非"有考察记录者"）
-    const stageCounts = { applicant: 0, activist: 0, target: 0, probationary: 0, full: 0 };
+    // 2026-08-01 身份四阶段：申请人并入积极分子，无独立 applicant 档
+    const stageCounts = { activist: 0, target: 0, probationary: 0, full: 0 };
     for (const p of PEOPLE) {
       const stage = p.developStage;
-      if (stage === '入党申请人') stageCounts.applicant++;
-      else if (stage === '积极分子') stageCounts.activist++;
+      if (stage === '积极分子') stageCounts.activist++;
       else if (stage === '发展对象') stageCounts.target++;
       else if (stage === '预备党员') stageCounts.probationary++;
       else if (stage === '正式党员') stageCounts.full++;

@@ -37,7 +37,7 @@ function renderPropUI(state) {
       { id: 'kanban', label: '项目看板', render: (ctx) => _renderKanbanContent(ctx.activities, ctx.propTf) },
       { id: 'archive', label: '档案归档', render: (ctx) => _renderArchiveContent(), groupLabel: '党务' },
       { id: 'weekly', label: '周报报送', render: (ctx) => _renderWeeklyContent(), groupLabel: '党务' },
-      { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('prop-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('prop-commissioner', 'u_prop_commissioner'); bindMyDispatchEvents(el, 'prop-commissioner', 'u_prop_commissioner'); } }, groupLabel: '反馈' },
+      { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('prop-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('prop-commissioner', 'u_prop'); bindMyDispatchEvents(el, 'prop-commissioner', 'u_prop'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
     renderCtx: { activities, propTf },

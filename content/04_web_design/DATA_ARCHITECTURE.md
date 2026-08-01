@@ -286,7 +286,7 @@ assignedRoles: Array<{
 | recordedBy | string | 是 | -- | 记录人用户 ID（纪检委员） |
 | recordedAt | string (ISO) | 是 | -- | 记录时间 |
 | studentId | string | 否 | -- | 学号 |
-| developStage | `'入党申请人'\|'积极分子'\|'发展对象'\|'预备党员'\|'正式党员'` | 否 | -- | 发展阶段（D-239 统一中文枚举） |
+| developStage | `'积极分子'\|'发展对象'\|'预备党员'\|'正式党员'` | 否 | -- | 发展阶段（D-239 统一中文枚举；2026-08-01 书记决策收敛为四阶段，移除【入党申请人】） |
 | partyGroup | string | 否 | -- | 所属党小组 |
 
 **出勤状态枚举：**
@@ -298,11 +298,12 @@ assignedRoles: Array<{
 | `leave` | 请假 | 事假须提前1天申请；病假可事后补假 |
 | `made_up` | 已补 | 补课完成后考勤状态变更为"已补"（§2.17.2 补课制度） |
 
-**发展阶段枚举（D-239 统一中文）：**
+**发展阶段枚举（D-239 统一中文，2026-08-01 收敛为四阶段）：**
+
+> 书记决策（2026-08-01）：从系统简洁性出发，系统身份不考虑【入党申请人】这一档，仅保留 积极分子/发展对象/预备党员/正式党员。原【入党申请人】人员并入积极分子。帮助页仍保留"从入党申请人到正式党员"的完整党章流程叙事（宣传教育用途，非系统身份档位），其中须点明"递交入党申请书须年满十八周岁"这一时间前提。
 
 | 值 | 说明 |
 |---|---|
-| `入党申请人` | 入党申请人阶段 |
 | `积极分子` | 入党积极分子 |
 | `发展对象` | 发展对象 |
 | `预备党员` | 预备党员 |
@@ -577,6 +578,8 @@ assignedRoles: Array<{
 | comments | {text: string, author: string, date: string}[] | 是 | `[]` | 书记/支委回复评论列表 |
 
 **处理流程**：提交(pending) → 书记审阅(processing) → 回复/采纳(done)
+
+> **人员 ID 规范（2026-08-01 T187）**：`submittedBy`/`participants`/`assignee`/评论 `author`/`dispatchHistory` 等一律存短 ID（`p*` 或 `u_sec`/`u_org`/`u_prop`/`u_disc`/`u_leader_*`），渲染层统一经 `PersonStore.getName()` 转中文姓名，禁止出现 `u_org_commissioner` 类长 ID 或直接展示原始 ID。issues.js 缓存版本已升 v3（`gsm1921-issue-cache-v3`）强制清除用户浏览器残留旧长 ID 缓存。
 
 ### 2.16.1 复盘数据 (ReviewRecord) — D-242 本轮补建
 
@@ -956,6 +959,16 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 服务层查找 | `mockDB.activities` | `ACTIVITIES` | auth.js/makeup.js/party.js 等服务层应读取运行时数据 |
 
 **已禁用 `_maybeError` 随机错误模拟**（D-248）：原设计 10% 错误率触发 fallback 返回静态 ACTIVITIES，导致跨页面数据漂移。后端接入后真实错误由后端返回。
+
+**唯一数据源原则（2026-08-01 T187）：**
+
+| 数据域 | 唯一权威源 | 派生/引用方 | 说明 |
+|---|---|---|---|
+| 人员（学生+系统账号） | `PEOPLE`（people.js）+ `mockDB.users`（domain.js，u_* 系统账号） | 全部渲染层经 `PersonStore.getAll()/getName()` 解析 | 任何模块不得自行硬编码人员名单 |
+| 发展党员追踪 | `PEOPLE.developStage` + localStorage 推进覆盖档案 `gsm1921-dev-stage-overrides` | 组织委员工作台发展党员/人才库 | 候选人由 `_buildCandidates()` 从 PEOPLE 派生（非正式党员），推进落覆盖档案 |
+| 反馈系统人员 ID | 短 ID（`p*` / `u_sec`/`u_org`/`u_prop`/`u_disc`/`u_leader_*`/`u_exec`） | issue-list/issue-detail/issues.js 渲染层统一 `getPersonName()`/`PersonStore.getName()` 转姓名 | 存储与渲染均不得出现 `u_org_commissioner` 等长 ID；`PersonStore.getName` 解析不到时回退返回 ID 本身 |
+
+> 关联缓存版本链：`cross-page-state.js CODE_VERSION` + HTML `?v=` 参数 + `issues.js CACHE_VERSION` 三者任一升级都会强制用户浏览器丢弃旧 localStorage 缓存重新拉取，保证"数据干净、唯一数据源"落地（T187）。
 
 ### 4.4 数据访问抽象层（DataAdapter）— T-142 阶段2
 

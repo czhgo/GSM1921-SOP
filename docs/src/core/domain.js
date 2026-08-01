@@ -40,7 +40,7 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  recordedBy  - 记录人用户 ID（纪检委员）
  * @property {string}  recordedAt  - 记录时间 ISO 字符串
  * @property {string}  [studentId] - 学号 - Source: content/02_institution/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
- * @property {'入党申请人'|'积极分子'|'发展对象'|'预备党员'|'正式党员'} [developStage] - 发展阶段（中文枚举，D-239 统一） - Source: content/02_institution/sop/纪检委员工作流程指南.md#二考勤管理三会一课 + content/04_web_design/DATA_ARCHITECTURE.md §2.5
+ * @property {'积极分子'|'发展对象'|'预备党员'|'正式党员'} [developStage] - 发展阶段（四阶段，2026-08-01 书记决策移除【入党申请人】） - Source: content/02_institution/sop/纪检委员工作流程指南.md#二考勤管理三会一课 + content/04_web_design/DATA_ARCHITECTURE.md §2.5
  * @property {string}  [partyGroup] - 所属党小组 - Source: content/02_institution/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
  */
 
@@ -200,6 +200,9 @@ export const mockDB = {
     { id: 'u_org',  role: 'org-commissioner',  name: '组织委员' },
     { id: 'u_prop', role: 'prop-commissioner', name: '宣传委员' },
     { id: 'u_disc', role: 'disc-commissioner', name: '纪检委员' },
+    { id: 'u_leader_1', role: 'leader',        name: '第一党小组组长' },
+    { id: 'u_leader_2', role: 'leader',        name: '第二党小组组长' },
+    { id: 'u_leader_3', role: 'leader',        name: '第三党小组组长' },
     { id: 'u_exec', role: 'leader',            name: '党小组组长' },
     { id: 'u_orgz', role: 'organizer',         name: '组织者' },
     { id: 'u_deep', role: 'deep',              name: '深度参与者' },

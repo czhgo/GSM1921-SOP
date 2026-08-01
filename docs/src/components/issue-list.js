@@ -4,6 +4,7 @@
 import { IssueStore } from '../services/issues.js';
 import { AuthStore } from '../services/auth.js';
 import { icon } from '../core/icons.js';
+import { getPersonName } from '../mock/index.js';
 import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js';
 
 const SCOPE_LABELS = {
@@ -99,7 +100,7 @@ function renderIssueRow(issue) {
           <div class="flex items-center gap-2 mt-1 text-[10px] text-gray-400">
             <span>${SCOPE_LABELS[issue.scope] || issue.scope}</span>
             <span>·</span>
-            <span>${issue.submittedBy}</span>
+            <span>${getPersonName(issue.submittedBy)}</span>
             <span>·</span>
             <span>${issue.commentCount || 0} 评论</span>
             <span>·</span>

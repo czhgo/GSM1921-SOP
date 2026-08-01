@@ -6,6 +6,7 @@ import { MilestoneStore } from '../services/milestones.js';
 import { AuthStore } from '../services/auth.js';
 import { showToast } from '../core/utils.js';
 import { icon } from '../core/icons.js';
+import { getPersonName } from '../mock/index.js';
 import { renderReactions, bindReactions } from './reactions.js';
 import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js';
 
@@ -88,7 +89,7 @@ export function renderIssueDetail(issueId) {
           </div>
 
           <div class="border-l-2 border-gray-200 pl-3 mb-4">
-            <p class="text-xs text-gray-500 mb-1 font-sans">${issue.submittedBy} · ${issue.submittedAt}</p>
+            <p class="text-xs text-gray-500 mb-1 font-sans">${getPersonName(issue.submittedBy)} · ${issue.submittedAt}</p>
             <p class="text-sm text-gray-700 whitespace-pre-wrap font-sans">${issue.body || '(无正文)'}</p>
           </div>
 
@@ -122,7 +123,7 @@ export function renderIssueDetail(issueId) {
         <div class="card rounded-2xl p-4 text-xs">
           <div class="mb-3">
             <p class="text-gray-400 mb-1">提交者</p>
-            <p class="text-gray-700 font-medium font-sans">${issue.submittedBy}</p>
+            <p class="text-gray-700 font-medium font-sans">${getPersonName(issue.submittedBy)}</p>
           </div>
 
           <div class="mb-3">
@@ -165,7 +166,7 @@ export function renderIssueDetail(issueId) {
 
           <div class="mb-3">
             <p class="text-gray-400 mb-1">参与者</p>
-            <p class="text-gray-700 font-sans">${(issue.participants || []).join(' · ') || '无'}</p>
+            <p class="text-gray-700 font-sans">${(issue.participants || []).map(pid => getPersonName(pid)).join(' · ') || '无'}</p>
           </div>
 
           <div class="mb-3">
@@ -200,7 +201,7 @@ function renderComment(comment, canManage, issueId) {
   return `
     <div class="border-l-2 border-gray-200 pl-3 py-2 ${hiddenClass}">
       <div class="flex items-center text-xs text-gray-500 mb-1">
-        <span class="font-medium text-gray-700 font-sans">${comment.author}</span>
+        <span class="font-medium text-gray-700 font-sans">${getPersonName(comment.author)}</span>
         <span class="ml-2">${comment.createdAt}</span>
         ${hideButton}
         ${hiddenNote}

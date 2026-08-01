@@ -379,3 +379,30 @@ related_files:
   - 备注：visitor 列表 ✓ 快捷完成按钮保持灰中性（次要操作，符合"灰只做中性"）
 - **git 提交**：`a975e4a`
 - **沉淀标签**：`[已沉淀: content/insights/工程演进与设计方法论.md §4.13]` — 主体色配色规则五连（X 主视觉→辅助强调色功能点缀→状态色统一→暖白底统一→灰只做中性）；双权威源分离（角色冷色/活动暖色）；内联三件套（accentRgba/accentBorder 拼 style）替代 Tailwind 类变体；语义红清单（告警危险语义保留）
+
+## T187 数据统一与身份精简：四阶段身份 + 唯一数据源 + 反馈短 ID 体系 + 缓存版本链（2026-08-01）
+
+**任务**：①所有用户/活动/专班数据统一完成接口工作（组织委员工作台发展党员模块从 6 条硬编码模拟字段改为全系统唯一数据源派生）；②系统身份收敛为四阶段（移除【入党申请人】）；③反馈系统不再暴露内部长 ID（`u_org_commissioner` 等）；④切查 mock 数据/浏览器缓存/其他缓存，确保数据干净、有唯一数据源
+**引用流程**：H1.2 执行 + H2.2 母本子本 + DATA_ARCHITECTURE §4.3 数据源使用边界 + verification-before-completion Skill（browser_use 五步实测 + GetDiagnostics）
+**来源**：书记指令——"请确保 所有的用户、活动、专班 等等数据都统一完成接口工作！！……我们不考虑【入党申请人】这个身份，只有 积极分子、发展对象、预备党员 和 正式党员。……`p` `p` 这些字段模拟我认为都不合适！！请务必 切查 mock数据、浏览器缓存、其他缓存。务必确保所有数据干净、且有唯一数据源！！"
+
+**书记决策（AskUserQuestion 确认）**：
+- 原 10 名申请阶段人员（p21/p25/p27/p44~p50）→ 并入**积极分子**
+- 帮助页保留「从入党申请人到正式党员」完整流程叙事（宣传教育用途），但**前提是入党申请需年满十八周岁，此时间点必须点出来**
+
+**实施内容**：
+- **模块A · 四阶段身份**：`people.js` 10 人 `'入党申请人'→'积极分子'`（分布更新为 正式12/预备9/发展对象9/积极分子20）；`party.js` `CANDIDATE_STAGES` 五阶段→四阶段 `['积极分子','发展对象','预备党员','正式党员']`，c1 阶段同步；`accounts.js`/`inspection.js` 注释同步；`secretary-overview.js` `stageCounts` 移除 applicant 档（书记全局概况发展分布：积极20·发展9·预备9·正式12）；`domain.js` JSDoc 四阶段标注
+- **模块B · 发展党员唯一数据源**：`ws-org-commissioner-entry.js` 重构——废弃 6 条硬编码名单，新增 `_buildCandidates()` 从 `PEOPLE` 派生全部非正式党员（38 人：积极分子20+发展对象9+预备党员9），合并考察记录数（考察 N 徽标），推进写 localStorage 覆盖档案 `gsm1921-dev-stage-overrides`；副标题"从入党申请人到正式党员"→"从积极分子到正式党员"；人才库 stageColor 删 `'入党申请人'`
+- **模块C · 反馈短 ID 体系**：`domain.js` `mockDB.users` 补齐 `u_leader_1/2/3`（保留 u_exec 泛称）；`issues.json` 全部 `u_org_commissioner→u_org`、`u_prop_commissioner→u_prop`；4 个 entry `my-dispatch` 传参改短 ID（`u_org`/`u_prop`/`u_disc`）；`ws-secretary-entry.js` `ASSIGNEE_OPTIONS` 改短 ID；`issue-list.js`/`issue-detail.js`/`issues.js` 渲染层统一 `getPersonName()`/`PersonStore.getName()` 姓名化（列表提交人、详情提交人/指派人/参与者、评论作者、指派历史）
+- **模块D · 缓存版本链升级（切查缓存落地）**：`cross-page-state.js` `CODE_VERSION 3→4`；15 个 HTML `?v=20260803→?v=20260804`；`issues.js` `CACHE_KEY→gsm1921-issue-cache-v3`、`CACHE_VERSION '2'→'3'`——强制用户浏览器丢弃旧长 ID issue 缓存重新拉取
+- **模块E · 帮助页 18 周岁时间点**：`help-entry.js` 节点1 `timeHighlight:true`；`styles.css` 新增 `.help-tl-time--hl`（党建红底白字圆角胶囊徽章），渲染"年满十八岁"显著标注
+
+- **变更文件**：`docs/src/mock/people.js`、`docs/src/mock/party.js`、`docs/src/mock/accounts.js`、`docs/src/mock/inspection.js`、`docs/src/services/secretary-overview.js`、`docs/src/core/domain.js`、`docs/src/core/cross-page-state.js`、`docs/src/entries/ws-org-commissioner-entry.js`、`docs/src/entries/ws-secretary-entry.js`、`docs/src/entries/ws-prop-commissioner-entry.js`、`docs/src/entries/ws-disc-commissioner-entry.js`、`docs/src/components/issue-list.js`、`docs/src/components/issue-detail.js`、`docs/src/services/issues.js`、`docs/src/entries/help-entry.js`、`docs/src/styles.css`、`docs/data/issues.json`、15 个 `docs/*.html`+`docs/workspace/*.html`、`content/04_web_design/DATA_ARCHITECTURE.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **验证结果（browser_use 五步实测 + GetDiagnostics）**：
+  - ✅ 组织委员发展党员 Tab：38 人（积极分子20/发展对象9/预备党员9），候选人卡片含姓名+党小组+发展阶段，全页无"入党申请人"；人才库筛选仅四档
+  - ✅ 反馈系统：列表/详情提交人、评论作者、参与者全部中文姓名，无 `u_sec`/`u_org`/`u_prop`/`u_org_commissioner` 等英文 ID
+  - ✅ 帮助页时间轴：节点1"递交入党申请书"时间"年满十八岁"红色高亮徽章（rgb(206,17,38) 白字圆角胶囊），区别于其余灰色时间标签
+  - ✅ 缓存失效：注入旧 v2 issue 缓存（含 `u_org_commissioner`）后刷新，旧缓存被丢弃、v3 键生成、数据从 issues.json 重拉、无英文 ID
+  - ✅ 书记全局概况发展分布：积极20·发展9·预备9·正式12 四档，无"入党申请人"
+  - ✅ GetDiagnostics 全部修改 JS 零错误
+- **沉淀标签**：`[已沉淀: content/04_web_design/DATA_ARCHITECTURE.md §4.3 唯一数据源原则]` — 人员=PEOPLE+mockDB.users 唯一权威源（渲染层一律 PersonStore 解析）；发展党员追踪从 PEOPLE 派生不硬编码；反馈短 ID 体系（存储与渲染双层不泄露长 ID）；缓存版本链三件套（CODE_VERSION + HTML?v + CACHE_VERSION）作为"数据干净"的强制刷新机制

@@ -1,4 +1,5 @@
-export const CANDIDATE_STAGES = ['入党申请人', '积极分子', '发展对象', '预备党员', '正式党员'];
+// 系统身份四阶段（2026-08-01 书记决策：不考虑【入党申请人】身份，从系统简洁性出发）
+export const CANDIDATE_STAGES = ['积极分子', '发展对象', '预备党员', '正式党员'];
 
 export const COMPLIANCE_FILES = [
   { name: '中国共产党章程', path: '../content/references/合规文件/【附件11】中国共产党章程.pdf', note: 'T1 上级制度原文' },
@@ -24,7 +25,7 @@ export const TEMPLATE_LIST = [
 // makeupTasks: 以 attendance.js 考勤记录为准重写，attendanceRecordId 指向真实存在的记录
 export const PARTY_MOCKS = {
   candidates: [
-    { id: 'c1', personId: 'p21', name: '沈佳琪', stage: '入党申请人', materialsComplete: false, missingMaterials: 3 },
+    { id: 'c1', personId: 'p21', name: '沈佳琪', stage: '积极分子',   materialsComplete: false, missingMaterials: 3 },
     { id: 'c2', personId: 'p18', name: '谢晓东', stage: '积极分子',   materialsComplete: true,  missingMaterials: 0 },
     { id: 'c3', personId: 'p6',  name: '孙八',   stage: '发展对象',   materialsComplete: true,  missingMaterials: 0 },
     { id: 'c4', personId: 'p7',  name: '周九',   stage: '积极分子',   materialsComplete: true,  missingMaterials: 0 },
