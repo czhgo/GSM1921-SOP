@@ -232,3 +232,39 @@ related_files:
   - ✅ GetDiagnostics 全部修改文件零错误
 
 - **沉淀标签**: `[已沉淀: content/insights/工程演进与设计方法论.md §6.22]` — 按规执行（Store + Deriver 封装模式复用），省略新沉淀。
+
+## T182 书记 8 项并行任务：label统一/考勤流程/日历统一/待办重设计/考察删除/数据一致性/50人模拟/论断整合（2026-08-01）
+
+**任务**：书记 8 项指令——① label 全站统一 ② 考勤确认流程质疑（科学程序 vs 减负提效）③ 日历美学统一（方形格+简写+浮窗）④ 书记待办视觉重设计（web-design-guidelines）⑤ 删除首页日历「考察」活动 ⑥ 模拟数据全链路一致性 ⑦ 50 人规模模拟【全仓库数据整合】⑧ 书记论断整合（brainstorming）
+**引用流程**：H1.2 执行 + web-design-guidelines Skill + brainstorming Skill + H3 检查清单 + H4.2 丙部待决策机制 + H2.4 经验沉淀
+
+**书记决策（AskUserQuestion 四轮确认）**：
+- 考勤流程：保留两步「组长上传→纪检确认」+ 修 Bug（不删确认环节）
+- 考察范围：删活动（act-28）保留机制（发展流程考察记录 + help 页"怎么考察"板块 + notice-109）
+- 50 人分布：12 正式 / 9 预备 / 9 发展对象 / 20 积极分子（含 10 入党申请人），自然化避免零有整
+- 论断整合位置：content/insights/工程演进与设计方法论.md §4 新增小节
+- 待办布局：双栏优化；日历基线：统一方形格+简写+浮窗
+- 附加指示："书记原话是很宝贵的财富！！请整个系统对于我的表达 保持谨慎（特别是方向性的表述，高度判定性的表述）！！"
+
+**① label 全站统一**：6 文件 33 处统一为 `text-xs text-gray-500 mb-1.5 block font-medium`（ws-secretary/ws-leader/ws-prop/ws-disc-commissioner/members-entry/issue-form；行内 label 未动）
+**② 考勤确认流程**：保留两步 + 修 2 Bug——纪检确认按钮写 `record.confirmer` 但展示列读 `recordedBy`（无读方）→ 改 `record.recordedBy = DISC_COMMISSIONER_ID`；组长考勤过滤 `?.type === '党小组'` 与 mock `'党小组会'` 不匹配→恒空，修正
+**③ 日历统一**：`_renderMonthView` 月视图统一方形格 `cal-cell-large cal-cell-compact` + gap 2px + `ACTIVITY_TYPE_SHORT` 简写常驻（最多 3 条 + "+N 项"，无活动时才显示任务标签）+ 非移动端 `_bindHoverPreview` 浮窗 280px；周视图保留完整标题。浏览器实测书记 48×48 / 首页 66×66 方形、简写党会党日、hover 浮窗正常、首页无「考察」
+**④ 书记待办重设计**：`todo-list.js` 单行紧凑式（优先级色条+标题/截止/状态同行、分组头 button 化）；`ws-secretary-entry.js` 双栏 + 首访补 `seedTodos()+SecretaryTodoDeriver.deriveAll()` + 未选中自动选第一条 + 右卡 sticky；**修复隐含 Bug——派生待办"标记完成即重生"**（`_isDuplicate` 仅排除未完成态，complete 后同源 PENDING 立即重建；改 `includeCompleted: true` 后连续完成 4 条只减不增）
+**⑤ 考察删除**：`activities.js` 删 act-28；`inspection.js` 删 insp-17；日历图例/首页零「考察」残留；机制保留（发展流程考察记录 + notice-109 + help"怎么考察"）
+**⑥ 数据一致性**：todo_seed_1 引用不存在的 `act-001`→`act-25`（七一建党105周年活动）；todo_seed_3「暑期共建专班」→`tf-001`（宣传专班第二期，周期/截止对齐）；notice-103 悬空专班→「暑期实践总结分享筹备中」（对齐 act-29）；组织委员发展党员追踪硬编码假名单（赵思远等）→与 PARTY_MOCKS.candidates 同源（真实人员 6 人）
+**⑦ 50 人模拟数据**：people.js 扩至 50 人（正式12/预备9/发展对象9/积极分子10/入党申请人10，三党小组 17/17/16）；inspection.js 新增 23 条（insp-21~43，p28-p50 全覆盖，统一 confirmed 避免超期派生）；attendance.js 新增 15 条（att46~60，act-26 三党小组代表）；accounts.js 新增 6 账号；书记全局概况「发展与考察」口径修正——按人员库全量统计（原按"有考察记录者"导致 4/0/3 与 50 人分布严重不符），渲染为「发展分布 申请10·积极10·发展9·预备9·正式12」单行
+**⑧ 论断整合**：方法论 §4 新增 **4.12 系统功能与视觉设计决策原则**（6 小节：最小三成本提级/模拟数据一致性/科学程序vs减负/全站视觉一致性排查/布局视觉平衡/反复强调内容提级机制）；收录标准：不收细节、只收功能美学重要考虑、书记原话辅以"重视"证据
+
+- **变更文件**：`docs/src/components/calendar.js`、`docs/src/components/todo-list.js`、`docs/src/components/issue-form.js`、`docs/src/entries/members-entry.js`、`docs/src/entries/ws-leader-entry.js`、`docs/src/entries/ws-disc-commissioner-entry.js`、`docs/src/entries/ws-prop-commissioner-entry.js`、`docs/src/entries/ws-secretary-entry.js`、`docs/src/entries/ws-org-commissioner-entry.js`、`docs/src/mock/people.js`、`docs/src/mock/inspection.js`、`docs/src/mock/attendance.js`、`docs/src/mock/accounts.js`、`docs/src/mock/activities.js`、`docs/src/mock/notices.js`、`docs/src/services/todo.js`、`docs/src/services/secretary-overview.js`、`content/insights/工程演进与设计方法论.md`
+- **git 提交**：3 笔（论断整合 e266a33 / 界面流程 5b2e4ea / 50人数据一致性 7ba357e）
+
+- **验证结果（浏览器三轮实测通过）**：
+  - ✅ 全站回归：首页/书记/组织委员/纪检/组长 5 页无 JS 报错，日历 8-07「党会」简写+浮窗正常
+  - ✅ 书记全局概况四维度：发展分布 申请10·积极10·发展9·预备9·正式12（与 people.js 逐项吻合）、8月出勤率 94%、待办 21 条双栏均衡（663:346）
+  - ✅ 组织委员发展党员追踪：6 人全部真实（沈佳琪/谢晓东/孙八/周九/吴十/顾文博），无假名残留
+  - ✅ 纪检考勤确认：act-26 17 条记录全显示（含新成员），考察总表 43 条全渲染
+  - ✅ 派生待办重生 Bug 修复复测：连续完成 4 条只减不增
+  - ✅ GetDiagnostics 全部修改文件零错误；全仓 grep 零残留（act-001/暑期共建专班/七一建党节座谈会/act-28/insp-17/赵思远等）
+  - ⚠️ 环境提示：本地浏览器 ES Module 内存缓存可能命中旧版 JS（people.js 27 人），需 `fetch('...js',{cache:'reload'})` 或清缓存后刷新方可显示 50 人；属浏览器缓存怪癖非代码 bug
+
+- **沉淀标签**: `[已沉淀: content/insights/工程演进与设计方法论.md §4.12]` — 书记论断整合（模拟数据一致性/科学程序vs减负/视觉一致性/布局平衡/反复强调提级/最小三成本提级）；按规执行部分省略标签。
