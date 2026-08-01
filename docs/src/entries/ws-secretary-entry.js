@@ -728,9 +728,9 @@ const WRITE_TEMPLATES = [
   {
     category: 'theme-day',
     categoryLabel: '主题党日',
-    color: '#D4AF37',
-    bg: 'rgba(212,175,55,0.10)',
-    border: 'rgba(212,175,55,0.30)',
+    color: '#FFD700',
+    bg: 'rgba(255,215,0,0.12)',
+    border: 'rgba(255,215,0,0.35)',
     scenarioId: 'theme-party',
     // 主题党日无固定子分类，采用正交维度（Step 2 表单中呈现：共建性质/是否外出/活动载体）
     subtypes: [],

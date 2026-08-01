@@ -22,7 +22,7 @@ const TYPE_LABELS = {
 
 const TYPE_COLORS = {
   bug: '#CE1126',
-  enhancement: '#D4AF37',
+  enhancement: '#B45309',
   proposal: '#2563EB',
   question: '#6B7280',
 };

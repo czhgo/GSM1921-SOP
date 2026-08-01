@@ -15,7 +15,7 @@ const SCOPE_OPTIONS = [
 
 const TYPE_OPTIONS = [
   { value: 'bug', label: '缺陷', color: '#CE1126' },
-  { value: 'enhancement', label: '增强', color: '#D4AF37' },
+  { value: 'enhancement', label: '增强', color: '#B45309' },
   { value: 'proposal', label: '提案', color: '#2563EB' },
   { value: 'question', label: '疑问', color: '#6B7280' },
 ];

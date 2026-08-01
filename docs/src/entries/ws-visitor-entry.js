@@ -11,7 +11,7 @@ import { loadAttendanceRecords } from '../services/attendance.js';
 import { loadInspectionRecords } from '../services/inspection.js';
 import { inspectionToDisplay } from '../mock/index.js';
 import { loadActivities } from '../services/activity.js';
-import { getActivityTypeColors } from '../core/constants.js';
+import { getActivityTypeColors, ROLE_COLORS } from '../core/constants.js';
 import { renderTabBar } from '../components/tab-bar.js';
 import { icon } from '../core/icons.js';
 import { renderQueryView } from '../components/query-view.js';
@@ -253,8 +253,10 @@ function _personnelRoleLabel(role) {
   return map[role] || role;
 }
 function _personnelRoleColor(role) {
-  const map = { organizer: 'bg-red-50 text-red-600', deep: 'bg-orange-50 text-orange-700', participant: 'bg-amber-50 text-amber-700', initiator: 'bg-sky-50 text-sky-600' };
-  return map[role] || 'bg-amber-50 text-amber-700';
+  // 角色色统一来自 ROLE_COLORS（organizer=天蓝 / deep=紫 / participant=灰 / initiator=靛蓝），
+  // 与活动类型暖色系（红/金）彻底区分，避免"红色太多、意义不明确"（书记 2026-08-01 决策）
+  const c = ROLE_COLORS[role] || ROLE_COLORS.participant;
+  return `background:${c.bg};color:${c.text};border:1px solid ${c.border};`;
 }
 
 function _renderProjectCard(project) {
@@ -277,9 +279,9 @@ function _renderProjectCard(project) {
       </div>
       ${project.personnel.length > 0 ? `
         <div class="flex flex-wrap gap-1.5">
-          ${organizers.map(p => `<span class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full ${_personnelRoleColor(p.role)}">${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
-          ${deepParticipants.map(p => `<span class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full ${_personnelRoleColor(p.role)}">${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
-          ${others.map(p => `<span class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full ${_personnelRoleColor(p.role)}">${p.name}</span>`).join('')}
+          ${organizers.map(p => `<span class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full" style="${_personnelRoleColor(p.role)}">${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
+          ${deepParticipants.map(p => `<span class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full" style="${_personnelRoleColor(p.role)}">${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
+          ${others.map(p => `<span class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full" style="${_personnelRoleColor(p.role)}">${p.name}</span>`).join('')}
         </div>
       ` : '<p class="text-[10px] text-gray-400">暂无人员</p>'}
     </div>
@@ -336,7 +338,7 @@ function _renderActListView(sorted, highlightId) {
           const isHL = highlightId && a.id === highlightId;
           return `
             <div class="flex items-center gap-3 p-3 rounded-lg bg-white ${isHL ? 'border border-blue-400 ring-2 ring-blue-100' : ''}" data-visitor-act-id="${a.id || ''}">
-              <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}"></div>
+              <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''}"></div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
                 <p class="text-xs text-gray-500 mt-0.5">${a.date || '待定'} · ${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
@@ -386,7 +388,7 @@ function _renderActCalendarView(sorted, highlightId) {
               return `
                 <div class="flex items-start gap-3 p-3 rounded-lg bg-white ${isHL ? 'border border-blue-400 ring-2 ring-blue-100' : ''}" data-visitor-act-id="${a.id || ''}">
                   <div class="text-center flex-shrink-0 w-10">
-                    <div class="text-lg font-bold" style="color:${color.dot};line-height:1;">${day || '?'}</div>
+                    <div class="text-lg font-bold" style="color:${color.text || color.dot};line-height:1;">${day || '?'}</div>
                     <div class="text-[10px] text-gray-400">日</div>
                   </div>
                   <div class="flex-1 min-w-0">
@@ -429,7 +431,7 @@ function _renderActQueryView(sorted, highlightId) {
       const isHL = highlightId && a.id === highlightId;
       return `
         <div class="flex items-center gap-3 p-3 rounded-lg bg-white ${isHL ? 'border border-blue-400 ring-2 ring-blue-100' : ''}" data-visitor-act-id="${a.id || ''}">
-          <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}"></div>
+          <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''}"></div>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
             <p class="text-xs text-gray-500 mt-0.5">${a.date || '待定'} · ${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
@@ -439,7 +441,6 @@ function _renderActQueryView(sorted, highlightId) {
       `;
     },
     emptyMessage: '无匹配活动',
-    accentColor: '#CE1126',
     sortKey: 'date',
     sortDir: 'desc',
   });
@@ -538,12 +539,16 @@ function _renderMyInspection() {
 
   const SOURCE_TYPE_LABEL = { activity: '活动', taskforce: '专班' };
   const LEVEL_LABEL = { organize: '组织者', deep: '深度参与者' };
+  // 考察等级本质是角色维度 → 复用 ROLE_COLORS 冷色系（organizer=天蓝 / deep=紫），不再用红（书记 2026-08-01）
+  const LEVEL_ROLE = { organize: 'organizer', deep: 'deep' };
 
   listEl.innerHTML = sorted.map(r => {
     const statusCls = r.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700';
     const statusText = r.status === 'confirmed' ? '已确认' : '待确认';
     const sourceLabel = SOURCE_TYPE_LABEL[r.sourceType] || r.sourceType;
     const levelLabel = LEVEL_LABEL[r.level] || r.level;
+    const levelRole = LEVEL_ROLE[r.level] || 'participant';
+    const lc = ROLE_COLORS[levelRole] || ROLE_COLORS.participant;
     const sourceTitle = r.activityTitle || r.sourceName || '—';
     const recordedDate = r.recordedAt ? r.recordedAt.slice(0, 10) : '—';
 
@@ -552,7 +557,7 @@ function _renderMyInspection() {
         <div class="flex items-center justify-between mb-1.5">
           <div class="flex items-center gap-2">
             <span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-50 text-amber-700">${sourceLabel}</span>
-            <span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-red-50 text-red-600">${levelLabel}</span>
+            <span class="px-1.5 py-0.5 text-[10px] font-medium rounded" style="background:${lc.bg};color:${lc.text};border:1px solid ${lc.border};">${levelLabel}</span>
           </div>
           <span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full ${statusCls}">${statusText}</span>
         </div>
@@ -611,7 +616,7 @@ function _renderTodoContent() {
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2">
-        <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+        <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--party-gold);">
           <div class="flex items-center justify-between mb-4">
             <h4 class="font-title-cn text-sm font-bold text-gray-700">我的待办</h4>
           </div>
@@ -660,7 +665,7 @@ function _renderTodoDetail(todo) {
       <div class="text-xs text-gray-400">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
         ${todo.status !== 'completed' ? `
-          <button class="visitor-todo-detail-complete text-xs px-4 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">标记完成</button>
+          <button class="visitor-todo-detail-complete text-xs px-4 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:#16A34A;">标记完成</button>
           ${todo.actionType ? `<button class="visitor-todo-detail-action text-xs px-4 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
         ` : '<span class="text-xs text-green-600">已完成</span>'}
       </div>

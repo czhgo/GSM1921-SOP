@@ -11,8 +11,8 @@
    ────────────────────────────────────────────── */
 :root {
   --party-red:        #CE1126;
-  --party-gold:       #D4AF37;
-  --party-gold-light: #F5DEB3;
+  --party-gold:       #FFD700;
+  --party-gold-light: #FDE68A;
 
   /* ── LAYER 1: Primary — 党建红系 10 阶 ── */
   --primary-50:  #FEF2F2;
@@ -200,11 +200,9 @@ body {
 }
 
 /* 普通参与者工作台 — 暖白底（打样版 2026-08-01，作用域限定 visitor 页面，不影响其他角色页）
-   同时在该页面作用域内将党徽金提亮为 #FFD700（书记要求"金再亮一些"，原 #D4AF37 偏灰/脏） */
+   党徽金 #FFD700 已全局统一（:root --party-gold），本页不再需要作用域覆写 */
 body.visitor-page {
   background-color: #FAFAF5;
-  --party-gold: #FFD700;
-  --accent-gold: #FFD700;
 }
 
 /* ═══════════════════════════════════════════════════════════════

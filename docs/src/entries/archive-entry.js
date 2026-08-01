@@ -239,7 +239,7 @@ function _renderActivityDetail(activity) {
       <div class="flex items-start justify-between mb-4">
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-2">
-            <span class="w-2 h-2 rounded-full" style="background:${color.dot};"></span>
+            <span class="w-2 h-2 rounded-full" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''};"></span>
             <span class="text-xs text-gray-500">${color.label}</span>
             ${activity.isBrand ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 border border-amber-200">品牌</span>' : ''}
           </div>

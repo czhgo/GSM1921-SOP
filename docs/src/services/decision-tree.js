@@ -15,7 +15,7 @@ export const DECISION_TREE_CONFIGS = {
   leader: {
     L1: [
       { value: 'party-group-meeting', label: '党小组会', color: '#CE1126' },
-      { value: 'theme-party', label: '主题党日', color: '#D4AF37' },
+      { value: 'theme-party', label: '主题党日', color: '#FFD700' },
     ],
     // 主题党日正交维度（多选）
     THEME_PARTY_DIMENSIONS: {
@@ -64,7 +64,7 @@ export const DECISION_TREE_CONFIGS = {
   secretary: {
     L1: [
       { value: 'three-meetings', label: '三会一课', icon: '三', iconColor: '#CE1126', iconBg: 'rgba(206,17,38,0.10)', hasSub: true },
-      { value: 'theme-party', label: '主题党日', icon: '主', iconColor: '#D4AF37', iconBg: 'rgba(212,175,55,0.10)', scenarioId: 'theme-party' },
+      { value: 'theme-party', label: '主题党日', icon: '主', iconColor: '#FFD700', iconBg: 'rgba(255,215,0,0.12)', scenarioId: 'theme-party' },
     ],
     L1Sub: {
       'three-meetings': [

@@ -14,9 +14,10 @@ export const ROLE_COLORS = {
   'org-commissioner':  { bg: 'rgba(14, 165, 233, 0.10)',  text: '#0EA5E9',  border: 'rgba(14, 165, 233, 0.30)' },  // 天蓝#0EA5E9
   'prop-commissioner': { bg: 'rgba(37, 99, 235, 0.10)',   text: '#2563EB',  border: 'rgba(37, 99, 235, 0.30)' },  // 海蓝#2563EB
   'disc-commissioner': { bg: 'rgba(194, 65, 12, 0.10)',   text: '#C2410C',  border: 'rgba(194, 65, 12, 0.30)' },  // 深橙#C2410C
-  organizer:           { bg: 'rgba(125, 211, 252, 0.15)', text: '#7DD3FC',  border: 'rgba(125, 211, 252, 0.40)' },  // 亮天蓝#7DD3FC
-  deep:                { bg: 'rgba(148, 163, 184, 0.12)', text: '#94a3b8',  border: 'rgba(148, 163, 184, 0.30)' },  // 浅灰蓝#94a3b8
-  participant:         { bg: 'rgba(206, 17, 38, 0.10)', text: '#CE1126',  border: 'rgba(206, 17, 38, 0.30)' },  // 党建红（普通参与者打样版 2026-08-01）
+  organizer:           { bg: 'rgba(14, 165, 233, 0.10)', text: '#0369A1',  border: 'rgba(14, 165, 233, 0.30)' },  // 天蓝#0369A1（sky-700，角色色系冷色）
+  deep:                { bg: 'rgba(124, 58, 237, 0.10)', text: '#7C3AED',  border: 'rgba(124, 58, 237, 0.30)' },  // 紫罗兰#7C3AED（violet-600，与组织者区分）
+  participant:         { bg: 'rgba(107, 114, 128, 0.10)', text: '#6B7280', border: 'rgba(107, 114, 128, 0.30)' },  // 中性灰（默认身份，红不再充当参与者角色色，2026-08-01 修正）
+  initiator:           { bg: 'rgba(79, 70, 229, 0.10)', text: '#4F46E5',  border: 'rgba(79, 70, 229, 0.30)' },  // 靛蓝#4F46E5（indigo-600，发起人）
   all:                 { bg: 'rgba(14, 116, 144, 0.08)',  text: '#0E7490',  border: 'rgba(14, 116, 144, 0.20)' },
   secretary:           { bg: 'rgba(185, 28, 28, 0.10)',   text: '#B91C1C',  border: 'rgba(185, 28, 28, 0.30)' },  // 党建红（不动）
 };
@@ -181,11 +182,11 @@ const _ACTIVITY_TYPE_BASE = {
   '党小组会':     { bg: '#FEF2F2', dot: '#CE1126' },
   '支部党员大会': { bg: '#FEF2F2', dot: '#CE1126' },
   '组织生活会':   { bg: '#FEF2F2', dot: '#CE1126' },
-  // 主题党日系（党徽金 #FFD700，2026-08-01 亮金化）
-  '主题党日':     { bg: '#FEFCE8', dot: '#FFD700' },
-  '共建':         { bg: '#FEFCE8', dot: '#FFD700' },
-  '参访':         { bg: '#FEFCE8', dot: '#FFD700' },
-  '座谈':         { bg: '#FEFCE8', dot: '#FFD700' },
+  // 主题党日系（党徽金 #FFD700，2026-08-01 亮金化；text=深金文字供日期数字、dotBorder=金点描边恢复暖底可辨性）
+  '主题党日':     { bg: '#FEFCE8', dot: '#FFD700', text: '#B45309', dotBorder: 'rgba(180, 83, 9, 0.35)' },
+  '共建':         { bg: '#FEFCE8', dot: '#FFD700', text: '#B45309', dotBorder: 'rgba(180, 83, 9, 0.35)' },
+  '参访':         { bg: '#FEFCE8', dot: '#FFD700', text: '#B45309', dotBorder: 'rgba(180, 83, 9, 0.35)' },
+  '座谈':         { bg: '#FEFCE8', dot: '#FFD700', text: '#B45309', dotBorder: 'rgba(180, 83, 9, 0.35)' },
 };
 
 /**

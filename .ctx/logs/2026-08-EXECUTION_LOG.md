@@ -314,5 +314,35 @@ related_files:
   - ✅ 作用域隔离：secretary 页 `--party-gold` 仍 #D4AF37、body 无 visitor-page 类，不受影响
   - ✅ 回归：secretary/org 顶栏 role-label 正常（党建红 #B91C1C/天蓝 #0EA5E9）、无 JS 运行时错误
   - ✅ GetDiagnostics 全部修改文件零错误
-- **git 提交**：spec `09d48ea`；实施代码待提交
+- **git 提交**：spec `09d48ea`；实施代码 `3737c19`
 - **沉淀标签**：`[待沉淀: 主体色配色规则五连（DESIGN_SYSTEM §2.7 已落位，后续推广轮完成后可沉淀方法论 §4.13）]`
+
+## T185 显示问题修复轮：金点描边 + 角色/活动色系分离 + 全站旧金统一 + 版本化防缓存（2026-08-01）
+
+**任务**：书记实测反馈"显示似乎存在一些问题"——金点不可辨、新旧金混用、visitor 工作台"红色太多、颜色意义不明确"——先行修复后继续推进未完成工作
+**引用流程**：H1.2 执行 + brainstorming Skill（HARD-GATE 获批→AskUserQuestion 两轮确认）+ verification-before-completion Skill（三轮浏览器实测）+ web-design-guidelines Skill + H2.1 一改具改
+**来源**：书记指令——"我注意到显示似乎存在一些问题，所以请你先行修复问题" + "就目前的 visitor 工作台视图而言，我认为【红色太多】几乎只要是彩色就是红色。我不认为这是一个好的做法。颜色没有这么多样，且意义不明确"
+
+**书记决策（AskUserQuestion 两轮确认）**：
+- 金点方案："金点+深色描边（推荐）"；旧金统一范围："本轮全部统一（推荐）"；角色色权威源："统一到 ROLE_COLORS（推荐）"
+- 角色/活动色："参与者、组织者、深度参与 这些尝试区分开。和活动类型的配色 也要区分一下！！"；"不加图例"
+
+**实施内容**：
+- ① **金点描边 + 深金文字**：`_ACTIVITY_TYPE_BASE` 金系 4 条目新增 `text:'#B45309'`/`dotBorder:'rgba(180,83,9,0.35)'`；5 处金点渲染（visitor 列表 L341/查询 L434、main-entry L308/L445、archive-entry L242）加 1px 描边；日历日期数字改用 `color.text || color.dot`（深金，修复亮金 on 白底 1.4:1 不可辨）
+- ② **角色色系（冷色）与活动色系（暖色）彻底分离**：`ROLE_COLORS` 定为角色权威源——organizer 天蓝 `#0369A1`/deep 紫 `#7C3AED`/participant 中性灰 `#6B7280`（回归默认身份，"没有标记就是标记"）/initiator 靛蓝 `#4F46E5`；visitor 人员 chips、考察等级标签（organize→organizer 天蓝/deep→deep 紫）改用 `_personnelRoleColor()` 内联三件套（`background`/`color`/`border`，Tailwind 类名写进 style 属性会失效）；活动类型维度保持暖色（三会一课红 `#CE1126`、主题党日系金 `#FFD700`）
+- ③ **全站旧金统一**：styles.css `--party-gold` 全局提亮 `#D4AF37→#FFD700`、`gold-light #F5DEB3→#FDE68A`；12 个 HTML（主目录 9 + workspace 6）tailwind `gold`/`gold-light` 全量替换；decision-tree.js/ws-secretary-entry.js 旧金同步；反馈页"增强"标签 `#D4AF37→#B45309`（2:1 对比度修复）
+- ④ **待办区去红**：visitor 待办卡片左缘色条 → `var(--party-gold)`、"标记完成"按钮 → 状态绿 `#16A34A`，红色收敛到品牌语义
+- ⑤ **查询视图死参数清理**：`accentColor:'#CE1126'` 移除
+- ⑥ **版本化防缓存**：`CODE_VERSION` 1→2→3，15 个 HTML 模块参数 `?v=20260801→?v=20260803`（主目录 9 + workspace 6），旧会话强制刷新
+- ⑦ **文档同步**：DESIGN_SYSTEM.md §2.7 新增"角色色系与活动色系彻底分离"补丁段；spec 新增"五、修复轮补充"四节
+
+- **变更文件**：`docs/src/core/constants.js`、`docs/src/core/cross-page-state.js`、`docs/src/entries/ws-visitor-entry.js`、`docs/src/entries/main-entry.js`、`docs/src/entries/archive-entry.js`、`docs/src/entries/ws-secretary-entry.js`、`docs/src/components/issue-list.js`、`docs/src/components/issue-form.js`、`docs/src/components/issue-detail.js`、`docs/src/services/decision-tree.js`、`docs/src/styles.css`、15 个 HTML（主目录 9 + workspace 6）、`content/04_web_design/DESIGN_SYSTEM.md`、spec
+- **验证结果（v20260803 最终轮浏览器实测 + GetDiagnostics）**：
+  - ✅ 12 个金点全部 `withBorder`（无 withoutBorder）；日历日期 computed `rgb(180,83,9)`=深金
+  - ✅ `#D4AF37` 全仓仅剩注释历史值；`?v=20260801/20260802` 零残留、15 文件 `?v=20260803`
+  - ✅ visitor chips 4 类角色 uniqueColors/uniqueBgs 精确匹配 `#0369A1`/`#7C3AED`/`#6B7280`/`#4F46E5`；考察等级标签冷色（天蓝/紫）
+  - ✅ 待办卡片金边 + 完成按钮绿 rgb(22,163,74)；查询视图 accentColor 死参数移除
+  - ✅ GetDiagnostics 全部修改 JS 零错误
+- **坑位记录（并行编辑竞态）**：单文件多处并行 Edit 会互相覆盖（实测 `_personnelRoleColor` 与查询金点两处丢失，浏览器首轮实测误判为缓存问题）——修复：改为串行重放 + grep 全量复核落盘；双保险仍升级 CODE_VERSION 防缓存
+- **git 提交**：`0d5a481`
+- **沉淀标签**：`[待沉淀: 角色色系与活动色系必须双权威源分离（ROLE_COLORS 冷色 / getActivityTypeColors 暖色），避免"满目皆红、意义不明确"；单文件多处修改不可并行 Edit，改后必须 grep/Read 复核实际落盘]`
