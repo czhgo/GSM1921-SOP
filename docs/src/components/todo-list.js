@@ -193,6 +193,7 @@ function _renderTodoItem(prefix, todo, accent, today) {
     read: '去阅读',
     submit: '去提交',
     track: '去追踪',
+    participate: '去参与',
   };
   const actionLabel = actionLabels[todo.actionType] || '处理';
 

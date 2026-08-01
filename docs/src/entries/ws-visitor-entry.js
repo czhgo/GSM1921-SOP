@@ -16,7 +16,7 @@ import { renderTabBar } from '../components/tab-bar.js';
 import { icon } from '../core/icons.js';
 import { renderQueryView } from '../components/query-view.js';
 import { renderTodoList } from '../components/todo-list.js';
-import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js';
+import { TodoStore, seedTodos, TodoStatus, VisitorTodoDeriver } from '../services/todo.js';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'participant' });
 
@@ -37,6 +37,17 @@ function renderVisitorUI(state) {
   const taskforces = TaskForceRecordStore.getAll();
   const notices = NoticeStore.getAll();
 
+  // visitor 待办派生：通知待阅读 + 活动待参与（幂等去重，可随渲染重复调用）
+  const currentUser = AuthStore.getCurrentUser();
+  if (currentUser?.personId) {
+    VisitorTodoDeriver.deriveAll({
+      personId: currentUser.personId,
+      person: PEOPLE.find(p => p.id === currentUser.personId) || null,
+      notices,
+      activities,
+    });
+  }
+
   const urlParams = CrossPageState.getURLParams();
   const highlightId = urlParams.activityId || null;
 
@@ -45,9 +56,9 @@ function renderVisitorUI(state) {
     tabs: [
       { id: 'todo', label: '待办', render: () => _renderTodoContent(), groupLabel: '工作台' },
       { id: 'projects', label: '项目分工', render: (ctx) => _renderProjectDivision(ctx.activities, ctx.allTf, ctx.authRecords), groupLabel: '党建' },
-      { id: 'activities', label: '活动动态', render: (ctx) => _renderActivities(ctx.activities, ctx.highlightId) },
-      { id: 'attendance', label: '考勤概况', render: (ctx) => _renderAttendance(ctx.activities) },
-      { id: 'inspection', label: '我的考察', render: () => _renderMyInspection() },
+      { id: 'activities', label: '活动动态', render: (ctx) => _renderActivities(ctx.activities, ctx.highlightId), groupLabel: '党建' },
+      { id: 'attendance', label: '考勤概况', render: (ctx) => _renderAttendance(ctx.activities), groupLabel: '党建' },
+      { id: 'inspection', label: '我的考察', render: () => _renderMyInspection(), groupLabel: '党建' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
     defaultTab: 'todo',
@@ -266,7 +277,7 @@ function _renderProjectCard(project) {
 function _renderActivities(activities, highlightId) {
   const tc = document.getElementById('visitor-tab-content');
   if (!tc) return;
-  const sorted = [...activities].filter(a => a.date && !a.archived).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const sorted = [...activities].filter(a => a.date && !a.archived && a.status !== 'cancelled').sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   tc.innerHTML = `
     <div class="flex items-center justify-between mb-3">
@@ -645,16 +656,23 @@ function _renderTodoDetail(todo) {
 }
 
 function _handleTodoAction(todo) {
+  // 通知类待办：优先跳转通知详情页
+  if (todo.sourceType === 'notice' && todo.actionData?.noticeId) {
+    const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
+    window.location.href = `${basePath}notice.html?id=${todo.actionData.noticeId}`;
+    return;
+  }
   // 根据 actionType 跳转到对应 tab
   const tabMap = {
     read: 'activities',
     submit: 'inspection',
+    participate: 'activities',
   };
   const targetTab = tabMap[todo.actionType];
   if (targetTab) {
     const btn = document.querySelector(`.visitor-tab-btn[data-visitor-tab="${targetTab}"]`);
     if (btn) btn.click();
-    const tabLabels = { read: '活动动态', submit: '我的考察' };
+    const tabLabels = { read: '活动动态', submit: '我的考察', participate: '活动动态' };
     showToast('info', `已跳转到${tabLabels[todo.actionType] || '对应功能'}，请处理：${todo.title}`);
   } else {
     showToast('info', `请处理：${todo.title}`);

@@ -19,12 +19,14 @@
  * @param {string} [opts.defaultTab]     — 默认激活的 Tab ID（默认取 tabs[0].id）
  * @param {string} [opts.extraRightHtml] — Tab 栏右侧额外 HTML（如"发布招募"按钮）
  * @param {Object} [opts.renderCtx]      — 传递给 render 函数的上下文对象
+ * @param {Function} [opts.onTabChange]  — Tab 切换回调 (tabId: string, tab: Object) => void
  *
  * @returns {{ html: string, activate: (tabId: string, ctx?: Object) => void }}
  *   - html: Tab 栏 + 内容容器的 HTML 字符串
  *   - activate: 手动激活指定 Tab 的方法
+ *   - currentTab: 当前激活的 Tab ID（getter）
  */
-export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRightHtml, renderCtx, storageKey }) {
+export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRightHtml, renderCtx, storageKey, onTabChange }) {
   const btnClass = `${prefix}-tab-btn`;
   const dataAttr = `data-${prefix}-tab`;
   const contentId = `${prefix}-tab-content`;
@@ -39,6 +41,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
       }
     } catch (_) { /* localStorage 不可用时静默降级 */ }
   }
+  let currentTab = activeTab;
 
   const { accent, accentRgba, accentBorder } = accentColor;
 
@@ -89,6 +92,8 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
           try { localStorage.setItem(storageKey, tabId); } catch (_) { /* 静默降级 */ }
         }
         const tab = tabs.find(t => t.id === tabId);
+        currentTab = tabId;
+        if (typeof onTabChange === 'function') onTabChange(tabId, tab);
         if (tab) tab.render(renderCtx);
       });
     });
@@ -96,9 +101,10 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
   // 激活指定 Tab
   function activate(tabId, ctx) {
+    currentTab = tabId;
     const tab = tabs.find(t => t.id === tabId);
     if (tab) tab.render(ctx || renderCtx);
   }
 
-  return { html, bindEvents, activate, contentId, activeTab };
+  return { html, bindEvents, activate, contentId, activeTab, get currentTab() { return currentTab; } };
 }

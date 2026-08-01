@@ -18,65 +18,198 @@ import { loadWorkspaceData } from '../core/data-loader.js';
 import { renderQueryView } from '../components/query-view.js';
 import { icon } from '../core/icons.js';
 import { renderTodoList } from '../components/todo-list.js';
+import { renderTabBar } from '../components/tab-bar.js';
 import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js';
 import { loadAttendanceRecords } from '../services/attendance.js';
 import { SecretaryOverviewStore } from '../services/secretary-overview.js';
+import { NoticeStore } from '../services/notice.js';
 
 await bootstrapPage({ module: 'workspace' });
 
-// 书记工作台使用固定红色作为强调色（与 HTML 中 .sec-tab-btn 样式一致）
+// 书记工作台使用固定红色作为强调色
 const accent = '#B91C1C';
 
-// ── Tab 切换 ──
+// ── Tab 切换（renderTabBar 统一架构，分组：工作台/党建/党务/反馈） ──
 const SEC_TAB_STORAGE_KEY = 'workflowos_tab_secretary';
-let _secActiveTab = 'todo';
-let _secTabsBound = false;
+let _secTabBar = null;
+let _secTabBarInited = false;
+let _secCurrentTab = 'todo';
 
-function _bindSecTabs() {
-  if (_secTabsBound) return;
-  _secTabsBound = true;
-  const buttons = document.querySelectorAll('.sec-tab-btn');
-  const panes = document.querySelectorAll('.sec-tab-pane');
-  const accentStyle = '--tab-accent:#B91C1C;--tab-accent-bg:rgba(185,28,28,0.10);--tab-accent-border:rgba(185,28,28,0.25)';
+// 各 Tab 内容骨架模板（复用原 HTML 静态容器结构，由 render 函数按需注入）
+const SEC_CALENDAR_TAB_HTML = `
+  <!-- 统计条（紧凑文本概览） -->
+  <div id="secretary-stats" class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500 mb-4 py-2 border-b border-gray-100"></div>
+  <!-- 考勤概况（从首页迁移） -->
+  <div class="card rounded-xl p-4 mb-4 border-l-4" style="border-left-color:#B91C1C;">
+    <div class="flex items-center justify-between mb-3">
+      <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤概况</h4>
+      <a href="./disc.html?mode=readonly" class="text-xs text-blue-600 hover:text-blue-800">查看详情 →</a>
+    </div>
+    <div id="secretary-attendance-summary" class="text-sm text-gray-500"><p>暂无考勤数据</p></div>
+  </div>
+  <!-- 日历+检查器+写入 -->
+  <div class="grid lg:grid-cols-5 gap-4 mb-4">
+    <div class="lg:col-span-3 card rounded-2xl p-6">
+      <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">活动日历</h3>
+      <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <div class="lg:col-span-3">
+          <select id="month-selector" class="input-flat text-xs mb-3"></select>
+          <div id="cal-main-grid"></div>
+          <div id="calendar-legend" class="mt-3"></div>
+        </div>
+        <div id="inspector-container" class="lg:col-span-2 rounded-xl bg-gray-50/50 border border-gray-100 p-3">
+          <div id="inspector-default" class="text-sm text-gray-400 text-center py-8">点击日期查看活动详情，或点击活动条目直接进入详情</div>
+          <div id="inspector-content" class="hidden">
+            <h4 id="inspector-date-title" class="font-title-cn text-sm font-semibold text-gray-800 mb-3"></h4>
+            <div id="inspector-cards"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="lg:col-span-2 card rounded-2xl p-6">
+      <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">活动写入</h3>
+      <div id="write-form-area"></div>
+    </div>
+  </div>
+  <!-- 活动查询（默认折叠，点击展开） -->
+  <div class="card rounded-2xl">
+    <button id="query-toggle" type="button" class="w-full px-6 py-3 text-left flex items-center justify-between hover:bg-gray-50 transition-colors rounded-2xl">
+      <span class="font-title-cn text-base font-semibold text-gray-800">活动查询</span>
+      <svg id="query-toggle-icon" class="w-4 h-4 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+      </svg>
+    </button>
+    <div id="query-collapsible" class="hidden px-6 pb-6">
+      <div id="secretary-query-container"></div>
+    </div>
+  </div>
+`;
 
-  // 读取 localStorage 记忆的 Tab（优先级：localStorage > 默认 todo）
-  let initialTab = 'todo';
-  try {
-    const saved = localStorage.getItem(SEC_TAB_STORAGE_KEY);
-    if (saved && document.querySelector(`.sec-tab-btn[data-sec-tab="${saved}"]`)) {
-      initialTab = saved;
-    }
-  } catch (_) { /* localStorage 不可用时静默降级 */ }
-  _secActiveTab = initialTab;
+const SEC_ASSIGN_TAB_HTML = `
+  <div class="card rounded-2xl p-6">
+    <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">常设赋权</h3>
+    <p class="text-xs text-gray-500 mb-3">设党小组组长——角色指派靠口头/群聊，系统内设+记录可追溯</p>
+    <button id="ws-sec-assign-btn" class="text-sm px-4 py-2 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors">设党小组组长</button>
+    <div id="assign-area"></div>
+    <div class="border-t border-gray-100 mt-6 pt-4">
+      <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">当前党小组组长</h4>
+      <div id="assign-leaders-list"></div>
+    </div>
+  </div>
+`;
 
-  // 应用初始 Tab 状态（覆盖 HTML 静态默认）
-  buttons.forEach(b => { b.classList.remove('tab-btn-active'); b.removeAttribute('style'); });
-  panes.forEach(p => p.classList.add('hidden'));
-  const initialBtn = document.querySelector(`.sec-tab-btn[data-sec-tab="${initialTab}"]`);
-  if (initialBtn) {
-    initialBtn.classList.add('tab-btn-active');
-    initialBtn.setAttribute('style', accentStyle);
-  }
-  const initialPane = document.getElementById(`sec-tab-${initialTab}`);
-  if (initialPane) initialPane.classList.remove('hidden');
+const SEC_FEEDBACK_TAB_HTML = `
+  <!-- 列表面板 -->
+  <div id="issue-list-panel" class="card rounded-2xl p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-title-cn text-base font-semibold text-gray-800">反馈管理</h3>
+      <div class="flex items-center gap-2 text-[10px]">
+        <span id="issue-summary-pill" class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">0 条</span>
+      </div>
+    </div>
+    <p class="text-xs text-gray-500 mb-4">开源讨论集思广益；书记保留处置权（指派/审核/状态/隐藏/合并）</p>
 
-  buttons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      _secActiveTab = btn.dataset.secTab;
-      buttons.forEach(b => { b.classList.remove('tab-btn-active'); b.removeAttribute('style'); });
-      btn.classList.add('tab-btn-active');
-      btn.setAttribute('style', accentStyle);
-      panes.forEach(p => p.classList.add('hidden'));
-      const targetPane = document.getElementById(`sec-tab-${_secActiveTab}`);
-      if (targetPane) targetPane.classList.remove('hidden');
-      // 记忆到 localStorage
-      try { localStorage.setItem(SEC_TAB_STORAGE_KEY, _secActiveTab); } catch (_) { /* 静默降级 */ }
-    });
+    <!-- 待审核草稿 -->
+    <details class="mb-4 rounded-lg border border-orange-200 bg-orange-50/40" id="issue-drafts-details">
+      <summary class="px-3 py-2 cursor-pointer text-sm font-medium text-orange-700 flex items-center justify-between">
+        <span>待审核草稿</span>
+        <span id="issue-drafts-count" class="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">0</span>
+      </summary>
+      <div id="issue-drafts-list" class="px-3 pb-3 space-y-2"></div>
+    </details>
+
+    <!-- 筛选条 -->
+    <div class="flex flex-wrap items-center gap-2 mb-3">
+      <select id="issue-filter-status" class="input-flat text-xs w-24">
+        <option value="all">全部状态</option>
+        <option value="open">开放中</option>
+        <option value="assigned">已指派</option>
+        <option value="pending-review">待终审</option>
+        <option value="closed">已关闭</option>
+      </select>
+      <select id="issue-filter-assignee" class="input-flat text-xs w-32">
+        <option value="all">全部指派</option>
+        <option value="unassigned">未指派</option>
+        <option value="secretary">书记处置中</option>
+        <option value="org-commissioner">组织委员</option>
+        <option value="prop-commissioner">宣传委员</option>
+        <option value="disc-commissioner">纪检委员</option>
+        <option value="leader">党小组组长</option>
+      </select>
+      <input type="text" id="issue-filter-keyword" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索标题或正文...">
+    </div>
+
+    <!-- 全部反馈 -->
+    <div id="issue-secretary-list" class="space-y-2"></div>
+
+    <!-- 工具区 -->
+    <div class="pt-3 mt-3 border-t border-gray-100 text-right space-x-2">
+      <button id="btn-export-issues-json" class="text-[10px] px-2 py-1 rounded bg-white border border-gray-200 text-gray-600 hover:bg-gray-50">导出反馈数据</button>
+      <button id="btn-clear-issue-cache" class="text-[10px] px-2 py-1 rounded bg-white border border-red-200 text-red-600 hover:bg-red-50">清除缓存</button>
+    </div>
+  </div>
+
+  <!-- 详情面板（点击列表项进入，默认 hidden） -->
+  <div id="issue-detail-panel" class="hidden"></div>
+`;
+
+const SEC_NOTIFICATION_TAB_HTML = `
+  <div class="card rounded-2xl p-6 mb-6">
+    <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">发布通知</h3>
+    <div id="notification-form-area"></div>
+  </div>
+  <div class="card rounded-2xl p-6">
+    <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">已发布通知</h3>
+    <div id="notification-list-area"></div>
+  </div>
+`;
+
+const SEC_OVERVIEW_TAB_HTML = `
+  <div id="secretary-overview-content"></div>
+`;
+
+/** 初始化书记 Tab 栏（仅首次构建，state 变化时仅刷新内容） */
+function _ensureSecTabBar() {
+  const container = document.getElementById('secretary-content');
+  if (!container || _secTabBarInited) return;
+
+  _secTabBar = renderTabBar({
+    prefix: 'secretary',
+    tabs: [
+      { id: 'todo', label: '待办', render: () => _renderTodoTabContent(), groupLabel: '工作台' },
+      { id: 'overview', label: '全局概况', render: () => _renderOverviewTabContent() },
+      { id: 'calendar', label: '活动管理', render: () => _renderCalendarTabContent(getAppState()), groupLabel: '党建' },
+      { id: 'assign', label: '常设赋权', render: () => _renderAssignTabContent() },
+      { id: 'notification', label: '通知发布', render: () => _renderNotificationTabContent(), groupLabel: '党务' },
+      { id: 'feedback', label: '反馈管理', render: () => _renderFeedbackTabContent(), groupLabel: '反馈' },
+    ],
+    accentColor: { accent, accentRgba: 'rgba(185,28,28,0.10)', accentBorder: 'rgba(185,28,28,0.25)' },
+    defaultTab: 'todo',
+    extraRightHtml: `<div class="flex items-center gap-2" id="sec-toolbar"></div>`,
+    storageKey: SEC_TAB_STORAGE_KEY,
+    onTabChange: (tabId) => { _secCurrentTab = tabId; },
   });
+
+  container.innerHTML = _secTabBar.html;
+  _secTabBar.bindEvents(container);
+  _secTabBarInited = true;
+  _secCurrentTab = _secTabBar.currentTab;
+}
+
+/** 渲染当前激活 Tab 内容（state 变化时增量刷新） */
+function _renderSecCurrentTab(state) {
+  if (!_secTabBarInited) return;
+  switch (_secCurrentTab) {
+    case 'calendar': _renderCalendarTabContent(state); break;
+    case 'assign': _renderAssignTabContent(); break;
+    case 'feedback': _renderFeedbackTabContent(); break;
+    case 'notification': _renderNotificationTabContent(); break;
+    case 'overview': _renderOverviewTabContent(); break;
+    default: _renderTodoTabContent();
+  }
 }
 
 function renderSecretaryUI(state) {
-  _bindSecTabs();
   const activities = state.activities || [];
   const allActivities = loadActivities();
   if (activities.length === 0 && allActivities.length > 0) {
@@ -91,84 +224,205 @@ function renderSecretaryUI(state) {
     setState({ activities: mapped, viewType: 'manager', managementRole: 'secretary' });
     return;
   }
+  _ensureSecTabBar();
+  _renderSecCurrentTab(state);
+}
 
-  const stats = computeSecretaryStats(activities);
-  const statsEl = document.getElementById('secretary-stats');
-  if (statsEl) {
-    // 统计条：紧凑文本概览（圆点+数字+标签），替代原 4 张大卡平铺
-    const items = [
-      { label: '待赋权活动', value: stats.pendingAuth, color: accent },
-      { label: '活跃活动', value: stats.activeEvents, color: accent },
-      { label: '本月活动', value: stats.monthEvents, color: accent },
-      { label: '已赋权记录', value: stats.authGranted, color: accent },
-    ];
-    statsEl.innerHTML = items.map(s => `
-      <span class="inline-flex items-center gap-1.5">
-        <span class="inline-block w-1.5 h-1.5 rounded-full" style="background:${s.color};"></span>
-        <span class="font-semibold text-gray-700">${s.value}</span>
-        <span>${s.label}</span>
-      </span>
-    `).join('');
+// ── 各 Tab 内容渲染（renderTabBar 统一驱动） ─────────────────
+
+/** 待办 tab：双栏（列表+详情） */
+function _renderTodoTabContent() {
+  _renderTodoContent();
+}
+
+/** 全局概况 tab */
+function _renderOverviewTabContent() {
+  const tc = document.getElementById('secretary-tab-content');
+  if (!tc) return;
+  if (tc.dataset.currentTab !== 'overview') {
+    tc.innerHTML = SEC_OVERVIEW_TAB_HTML;
+    tc.dataset.currentTab = 'overview';
+  }
+  _renderOverviewContent();
+}
+
+/** 活动管理 tab：统计条+考勤+日历+写入+查询（增量刷新，写入面板防重渲染） */
+function _renderCalendarTabContent(state) {
+  const tc = document.getElementById('secretary-tab-content');
+  if (!tc) return;
+  if (tc.dataset.currentTab !== 'calendar') {
+    tc.innerHTML = SEC_CALENDAR_TAB_HTML;
+    tc.dataset.currentTab = 'calendar';
   }
 
-  // ── 考勤概况（从首页迁移） ──
+  const activities = state.activities || [];
+  _ensureBrandFilterBtn(state.filterBrand || false);
+  _renderSecretaryStats(activities);
   _renderAttendanceSummary(activities);
 
   const filterBrand = state.filterBrand || false;
-  const displayActivities = filterBrand
-    ? activities.filter(a => a.isBrand)
-    : activities;
-
+  const displayActivities = filterBrand ? activities.filter(a => a.isBrand) : activities;
   const filteredState = { ...state, activities: displayActivities };
-  renderCalendarByActivities(filteredState, state.displayMonth || _currentYearMonth());
+  // 月份一致性：以月份选择器为准（含"默认跟随当前月"规则），避免与 state.displayMonth 分叉
+  const displayMonth = populateMonthSelector(displayActivities);
+  renderCalendarByActivities(filteredState, displayMonth);
   renderInspectorFromState(filteredState);
-  populateMonthSelector(activities);
+  _bindMonthSelector();
+  _renderQueryView(displayActivities);
+  _bindQueryToggle();
 
-  // 品牌筛选按钮，移入 Tab 工具栏（C1）
-  const toolbar = document.getElementById('sec-toolbar');
-  if (toolbar) {
-    let filterBtn = document.getElementById('brand-filter-btn');
-    if (!filterBtn) {
-      filterBtn = document.createElement('button');
-      filterBtn.id = 'brand-filter-btn';
-      filterBtn.className = 'font-stheiti text-sm px-3 py-1.5 rounded-lg transition-colors';
-      filterBtn.addEventListener('click', () => {
-        setState({ filterBrand: !filterBrand });
-      });
-      toolbar.appendChild(filterBtn);
-    }
-    filterBtn.style.cssText = filterBrand
-      ? 'background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);'
-      : 'background:rgba(156,163,175,0.10);color:#6B7280;border:1px solid rgba(156,163,175,0.30);';
-    filterBtn.textContent = filterBrand ? '品牌活动（筛选中）' : '品牌活动';
+  // 决策树引导式写入面板（panelInit 防重渲染保护，避免全局状态刷新时丢失用户输入）
+  const writeArea = document.getElementById('write-form-area');
+  if (writeArea && !writeArea.dataset.panelInit) {
+    writeArea.dataset.panelInit = '1';
+    renderWritePanel(writeArea);
   }
+}
 
-  // ── 活动查询视图（容器已在 HTML 中，位于折叠面板内） ──
-  const queryContainer = document.getElementById('secretary-query-container');
-  if (queryContainer) {
-    const typeOptions = [...new Set(displayActivities.map(a => a.type).filter(Boolean))].map(t => ({ value: t, label: t }));
-    renderQueryView(queryContainer, {
-      searchPlaceholder: '搜索活动名称...',
-      searchKey: 'title',
-      filters: [{ key: 'type', label: '活动类型', options: typeOptions }],
-      data: displayActivities,
-      renderRow: (a) => `
-        <div class="flex items-center justify-between p-3 rounded-xl bg-white transition-colors">
-          <div class="flex-1 min-w-0">
-            <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
-            <div class="text-xs text-gray-500 mt-0.5">${a.date || ''}${a.type ? ' · ' + a.type : ''}</div>
-          </div>
-          ${a.type ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-600">${a.type}</span>` : ''}
-        </div>
-      `,
-      emptyMessage: '暂无匹配活动',
-      accentColor: '#B91C1C',
-      sortKey: 'date',
-      sortDir: 'desc',
+/** 常设赋权 tab */
+function _renderAssignTabContent() {
+  const tc = document.getElementById('secretary-tab-content');
+  if (!tc) return;
+  if (tc.dataset.currentTab !== 'assign') {
+    tc.innerHTML = SEC_ASSIGN_TAB_HTML;
+    tc.dataset.currentTab = 'assign';
+    const assignArea = document.getElementById('assign-area');
+    document.getElementById('ws-sec-assign-btn')?.addEventListener('click', () => {
+      toggleAuthPanel(assignArea);
     });
   }
+  _renderAssignLeaders();
+}
 
-  // 活动查询折叠面板绑定（默认折叠，点击展开/收起）
+/** 渲染当前党小组组长列表（默认展示，无需展开面板即可查看） */
+function _renderAssignLeaders() {
+  const listEl = document.getElementById('assign-leaders-list');
+  if (!listEl) return;
+  const leaderRecords = AuthStore.getAuthorizations().filter(r => r.role === 'leader');
+  if (leaderRecords.length === 0) {
+    listEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">暂无党小组组长记录</p>';
+    return;
+  }
+  listEl.innerHTML = leaderRecords.map(record => {
+    const person = getPersonById(record.targetPersonId);
+    const personName = person ? person.name : record.targetPersonId;
+    const groupName = record.scopeRef || '未指定';
+    return `
+      <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-white transition-colors group" data-record-id="${record.id}">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-red-50 text-red-700 text-xs font-bold">${personName.charAt(0)}</div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-sm font-medium text-gray-700">${personName}</span>
+            <span class="text-xs font-medium px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">党小组组长</span>
+          </div>
+          <p class="text-xs text-gray-400 mt-0.5">${groupName} · ${record.authorizedAt}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/** 反馈管理 tab */
+function _renderFeedbackTabContent() {
+  const tc = document.getElementById('secretary-tab-content');
+  if (!tc) return;
+  if (tc.dataset.currentTab !== 'feedback') {
+    tc.innerHTML = SEC_FEEDBACK_TAB_HTML;
+    tc.dataset.currentTab = 'feedback';
+  }
+  renderIssueManagement();
+}
+
+/** 通知发布 tab */
+function _renderNotificationTabContent() {
+  const tc = document.getElementById('secretary-tab-content');
+  if (!tc) return;
+  if (tc.dataset.currentTab !== 'notification') {
+    tc.innerHTML = SEC_NOTIFICATION_TAB_HTML;
+    tc.dataset.currentTab = 'notification';
+  }
+  renderNotificationPanel();
+}
+
+// ── 活动管理 tab 子模块 ──────────────────────────────────
+
+/** 统计条：紧凑文本概览（圆点+数字+标签） */
+function _renderSecretaryStats(activities) {
+  const stats = computeSecretaryStats(activities);
+  const statsEl = document.getElementById('secretary-stats');
+  if (!statsEl) return;
+  const items = [
+    { label: '待赋权活动', value: stats.pendingAuth, color: accent },
+    { label: '活跃活动', value: stats.activeEvents, color: accent },
+    { label: '本月活动', value: stats.monthEvents, color: accent },
+    { label: '已赋权记录', value: stats.authGranted, color: accent },
+  ];
+  statsEl.innerHTML = items.map(s => `
+    <span class="inline-flex items-center gap-1.5">
+      <span class="inline-block w-1.5 h-1.5 rounded-full" style="background:${s.color};"></span>
+      <span class="font-semibold text-gray-700">${s.value}</span>
+      <span>${s.label}</span>
+    </span>
+  `).join('');
+}
+
+/** 品牌筛选按钮（Tab 工具栏）——语义：动作按钮表达"切换筛选" */
+function _ensureBrandFilterBtn(filterBrand) {
+  const toolbar = document.getElementById('sec-toolbar');
+  if (!toolbar) return;
+  let filterBtn = document.getElementById('brand-filter-btn');
+  if (!filterBtn) {
+    filterBtn = document.createElement('button');
+    filterBtn.id = 'brand-filter-btn';
+    filterBtn.className = 'font-stheiti text-sm px-3 py-1.5 rounded-lg transition-colors';
+    filterBtn.addEventListener('click', () => {
+      setState({ filterBrand: !getAppState().filterBrand });
+    });
+    toolbar.appendChild(filterBtn);
+  }
+  filterBtn.style.cssText = filterBrand
+    ? 'background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);'
+    : 'background:rgba(156,163,175,0.10);color:#6B7280;border:1px solid rgba(156,163,175,0.30);';
+  filterBtn.textContent = filterBrand ? '显示全部活动' : '只看品牌活动';
+}
+
+/** 活动查询视图 */
+function _renderQueryView(displayActivities) {
+  const queryContainer = document.getElementById('secretary-query-container');
+  if (!queryContainer) return;
+  const typeOptions = [...new Set(displayActivities.map(a => a.type).filter(Boolean))].map(t => ({ value: t, label: t }));
+  renderQueryView(queryContainer, {
+    searchPlaceholder: '搜索活动名称...',
+    searchKey: 'title',
+    filters: [{ key: 'type', label: '活动类型', options: typeOptions }],
+    data: displayActivities,
+    renderRow: (a) => `
+      <div class="flex items-center justify-between p-3 rounded-xl bg-white transition-colors">
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
+          <div class="text-xs text-gray-500 mt-0.5">${a.date || ''}${a.type ? ' · ' + a.type : ''}</div>
+        </div>
+        ${a.type ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-600">${a.type}</span>` : ''}
+      </div>
+    `,
+    emptyMessage: '暂无匹配活动',
+    accentColor: '#B91C1C',
+    sortKey: 'date',
+    sortDir: 'desc',
+  });
+}
+
+/** 月份选择器事件绑定（防重复） */
+function _bindMonthSelector() {
+  const sel = document.getElementById('month-selector');
+  if (sel && !sel.dataset.bound) {
+    sel.dataset.bound = '1';
+    sel.addEventListener('change', e => setState({ displayMonth: e.target.value }));
+  }
+}
+
+/** 活动查询折叠面板绑定（默认折叠，点击展开/收起，防重复） */
+function _bindQueryToggle() {
   const queryToggle = document.getElementById('query-toggle');
   const queryCollapsible = document.getElementById('query-collapsible');
   const queryToggleIcon = document.getElementById('query-toggle-icon');
@@ -179,37 +433,6 @@ function renderSecretaryUI(state) {
       if (queryToggleIcon) queryToggleIcon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
     });
   }
-
-  // ── 决策树引导式写入面板 ──────────────────────────────────────────
-  // 仅在面板未初始化时渲染，避免全局状态刷新时丢失用户输入
-  const writeArea = document.getElementById('write-form-area');
-  if (writeArea && !writeArea.dataset.panelInit) {
-    writeArea.dataset.panelInit = '1';
-    renderWritePanel(writeArea);
-  }
-
-  const assignArea = document.getElementById('assign-area');
-  if (assignArea && assignArea.childElementCount === 0) {
-    assignArea.innerHTML = `
-      <p class="text-xs text-gray-500 mb-3">设党小组组长——角色指派靠口头/群聊，系统内设+记录可追溯</p>
-      <button id="ws-sec-assign-btn" class="text-sm px-4 py-2 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors">设党小组组长</button>
-    `;
-    assignArea.querySelector('#ws-sec-assign-btn')?.addEventListener('click', () => {
-      toggleAuthPanel(assignArea);
-    });
-  }
-
-  // ── issue 管理（GitHub Issue 风格，替代旧 P3-1 反馈管理）──
-  renderIssueManagement();
-
-  // ── 通知发布（党务） ──
-  renderNotificationPanel();
-
-  // ── 全局概况 tab ──
-  _renderOverviewContent();
-
-  // ── 待办 tab 内容渲染（最小三成本原则落地） ──
-  _renderTodoContent();
 }
 
 // ── 考勤概况渲染（从首页迁移） ──
@@ -330,8 +553,9 @@ function _renderOverviewContent() {
 let _selectedTodoId = null;
 
 function _renderTodoContent() {
-  const container = document.getElementById('sec-tab-todo');
+  const container = document.getElementById('secretary-tab-content');
   if (!container) return;
+  container.dataset.currentTab = 'todo';
 
   // 刷新过期状态
   TodoStore.refreshExpiredStatus();
@@ -428,7 +652,7 @@ function _renderTodoDetail(todo) {
 }
 
 function _handleTodoAction(todo) {
-  // 根据 actionType 跳转到对应 tab
+  // 根据 actionType 跳转到对应 tab（renderTabBar 统一按钮类名）
   const tabMap = {
     authorize: 'assign',
     write: 'calendar',
@@ -437,7 +661,7 @@ function _handleTodoAction(todo) {
   };
   const targetTab = tabMap[todo.actionType];
   if (targetTab) {
-    const btn = document.querySelector(`.sec-tab-btn[data-sec-tab="${targetTab}"]`);
+    const btn = document.querySelector(`.secretary-tab-btn[data-secretary-tab="${targetTab}"]`);
     if (btn) btn.click();
     showToast('info', `已跳转，请处理：${todo.title}`);
   } else {
@@ -446,7 +670,7 @@ function _handleTodoAction(todo) {
 }
 
 function _bindTodoDetailEvents() {
-  const container = document.getElementById('sec-tab-todo');
+  const container = document.getElementById('secretary-tab-content');
   if (!container) return;
   container.querySelector('.secretary-todo-detail-complete')?.addEventListener('click', () => {
     if (_selectedTodoId) {
@@ -1579,30 +1803,15 @@ function bindDraftEvents() {
 // ════════════════════════════════════════════════════════════════
 //  通知发布（党务）
 //  功能：书记发布通知（标题+内容+目标受众）+ 已发布通知列表
+//  数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）
 // ════════════════════════════════════════════════════════════════
 
-const NOTIFICATION_STORAGE_KEY = 'workflowos_notifications';
 const NOTIFICATION_AUDIENCES = [
   { value: 'all', label: '全体党员' },
   { value: 'leaders', label: '党小组组长' },
   { value: 'activists', label: '入党积极分子' },
   { value: 'candidates', label: '发展对象' },
 ];
-
-/** 读取已发布通知 */
-function _loadNotifications() {
-  try {
-    const raw = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (_) { return []; }
-}
-
-/** 保存通知列表 */
-function _saveNotifications(list) {
-  try {
-    localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(list));
-  } catch (_) { /* 静默降级 */ }
-}
 
 /** 渲染通知发布面板（表单 + 列表） */
 function renderNotificationPanel() {
@@ -1685,7 +1894,7 @@ function handleNotifAction(e) {
   }
 }
 
-/** 发布通知 */
+/** 发布通知（写入 NoticeStore，与首页/全局概况/visitor 同源） */
 function handlePublishNotification() {
   const titleEl = document.getElementById('notif-title');
   const contentEl = document.getElementById('notif-content');
@@ -1698,20 +1907,20 @@ function handlePublishNotification() {
   if (!_selectedAudience) { showToast('error', '请选择目标受众'); return; }
 
   const audience = NOTIFICATION_AUDIENCES.find(a => a.value === _selectedAudience);
-  const notifications = _loadNotifications();
-
   const notification = {
-    id: `notif-${Date.now()}`,
     title,
     content,
+    priority: 'normal',
+    publishDate: new Date().toISOString().slice(0, 10),
+    expireDate: null,
+    targetModule: 'workspace',
+    read: false,
     audience: _selectedAudience,
     audienceLabel: audience ? audience.label : _selectedAudience,
-    publishedAt: new Date().toISOString(),
     publishedBy: '书记',
   };
 
-  notifications.unshift(notification);
-  _saveNotifications(notifications);
+  NoticeStore.add(notification, 'secretary');
 
   showToast('success', `通知「${title}」已发布至${notification.audienceLabel}`);
 
@@ -1721,12 +1930,13 @@ function handlePublishNotification() {
   renderNotificationList();
 }
 
-/** 渲染已发布通知列表 */
+/** 渲染已发布通知列表（NoticeStore 全部通知，按发布日期倒序） */
 function renderNotificationList() {
   const listArea = document.getElementById('notification-list-area');
   if (!listArea) return;
 
-  const notifications = _loadNotifications();
+  const notifications = NoticeStore.getAll()
+    .sort((a, b) => (b.publishDate || '').localeCompare(a.publishDate || ''));
 
   if (notifications.length === 0) {
     listArea.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">暂无已发布通知</p>';
@@ -1734,28 +1944,31 @@ function renderNotificationList() {
   }
 
   listArea.innerHTML = notifications.map(n => {
-    const dateStr = _fmtDate(n.publishedAt);
+    const audienceLabel = n.audienceLabel || '全体党员';
+    // publishDate 为字符串（'2026-07-15'）时直接切片，兼容 Date 对象走 _fmtDate
+    const dateStr = n.publishDate
+      ? (typeof n.publishDate === 'string' ? n.publishDate.slice(0, 10) : _fmtDate(n.publishDate))
+      : '';
     return `
       <div class="py-3 px-4 rounded-xl bg-white transition-colors group" data-notif-id="${n.id}">
         <div class="flex items-center justify-between mb-1">
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-gray-800">${n.title}</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200">${n.audienceLabel}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200">${audienceLabel}</span>
           </div>
           <button data-notif-action="delete" data-notif-id="${n.id}" class="text-xs text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-2 py-1 rounded hover:bg-red-50">删除</button>
         </div>
         <p class="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">${n.content}</p>
-        <p class="text-[10px] text-gray-400 mt-1.5">${n.publishedBy} · ${dateStr}</p>
+        <p class="text-[10px] text-gray-400 mt-1.5">${n.publishedBy || '书记'} · ${dateStr}</p>
       </div>
     `;
   }).join('<div class="border-b border-gray-100"></div>');
 
-  // 绑定删除事件
+  // 绑定删除事件（NoticeStore 删除联动清理关联待办）
   listArea.querySelectorAll('[data-notif-action="delete"]').forEach(btn => {
     btn.addEventListener('click', () => {
       const notifId = btn.dataset.notifId;
-      const notifications = _loadNotifications().filter(n => n.id !== notifId);
-      _saveNotifications(notifications);
+      NoticeStore.remove(notifId, 'secretary');
       showToast('success', '通知已删除');
       renderNotificationList();
     });
@@ -1763,9 +1976,5 @@ function renderNotificationList() {
 }
 
 registerRenderCallback(renderSecretaryUI);
-
-document.getElementById('month-selector')?.addEventListener('change', e => {
-  setState({ displayMonth: e.target.value });
-});
 
 loadWorkspaceData({ role: 'secretary', fallbackData: () => loadActivities(), logTag: 'ws-secretary' });

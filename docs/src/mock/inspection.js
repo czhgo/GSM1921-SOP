@@ -5,8 +5,16 @@
 // 考察查询以人为中心，写入以活动/专班的具体工作计入
 // 考勤=0-1变量对所有人成立；考察=对深度参与者和组织者的工作量记录
 
-import { _personName, _activityTitle, _activityType } from './index.js';
+// 修复（T175）：不再从 ./index.js 导入 _personName 等辅助函数，
+// 消除 mock/index.js ↔ mock/inspection.js 循环依赖。
+// 直接依赖 services/person.js + mock/activities.js。
+import { getPersonName } from '../services/person.js';
+import { ACTIVITIES } from './activities.js';
 import { ParticipationLevel, PARTICIPATION_LEVEL_LABELS, SourceType, SOURCE_TYPE_LABELS } from '../core/domain.js';
+
+const _personName = (id) => getPersonName(id);
+const _activityTitle = (id) => ACTIVITIES.find(a => a.id === id)?.title || id;
+const _activityType = (id) => ACTIVITIES.find(a => a.id === id)?.type || '未知';
 
 export const INSPECTION_RECORDS = [
   // ── 活动考察记录 ──────────────────────────────────────────
@@ -33,6 +41,20 @@ export const INSPECTION_RECORDS = [
   { id: 'insp-11', sourceType: SourceType.TASKFORCE, activityId: null, sourceName: '宣传专班（第二期）', personId: 'p9',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '文案撰写',           recordedBy: 'p1',  recordedAt: '2026-04-01T09:00:00', status: 'pending' },
   // 共建座谈对接专班（p10 陈十三 — tf-004 实际成员）
   { id: 'insp-12', sourceType: SourceType.TASKFORCE, activityId: null, sourceName: '共建座谈对接专班', personId: 'p10', level: ParticipationLevel.DEEP_PARTICIPATE, role: 'PPT设计',            recordedBy: 'p11', recordedAt: '2026-04-10T10:00:00', status: 'pending' },
+
+  // ── 各发展阶段人员考察记录（补齐书记全局概况"发展与考察"阶段人数）──
+  // 积极分子（p7 周九 / p15 吴十 / p18 谢晓东 / p26 朱欣怡）— 参与积极分子座谈会
+  { id: 'insp-13', sourceType: SourceType.ACTIVITY, activityId: 'act-18', sourceName: null, personId: 'p7',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '发言准备',           recordedBy: 'p11', recordedAt: '2026-05-25T10:00:00', status: 'confirmed' },
+  { id: 'insp-14', sourceType: SourceType.ACTIVITY, activityId: 'act-18', sourceName: null, personId: 'p15', level: ParticipationLevel.DEEP_PARTICIPATE, role: '会议记录',           recordedBy: 'p11', recordedAt: '2026-05-25T10:05:00', status: 'confirmed' },
+  { id: 'insp-15', sourceType: SourceType.ACTIVITY, activityId: 'act-18', sourceName: null, personId: 'p18', level: ParticipationLevel.DEEP_PARTICIPATE, role: '学习心得分享',       recordedBy: 'p11', recordedAt: '2026-05-25T10:10:00', status: 'pending' },
+  // 积极分子 7月座谈会（act-22）：p26 朱欣怡
+  { id: 'insp-16', sourceType: SourceType.ACTIVITY, activityId: 'act-22', sourceName: null, personId: 'p26', level: ParticipationLevel.DEEP_PARTICIPATE, role: '发言准备+反馈收集',  recordedBy: 'p11', recordedAt: '2026-07-28T10:00:00', status: 'confirmed' },
+  // 发展对象（p6 孙八）— 暑期谈话考察（act-28）
+  { id: 'insp-17', sourceType: SourceType.ACTIVITY, activityId: 'act-28', sourceName: null, personId: 'p6',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '思想汇报材料',       recordedBy: 'p4',  recordedAt: '2026-08-15T09:00:00', status: 'pending' },
+  // 预备党员（p17 顾文博 / p20 韩雨欣 / p24 曹雅婷）— 参与7月主题党日：深化改革（act-21）
+  { id: 'insp-18', sourceType: SourceType.ACTIVITY, activityId: 'act-21', sourceName: null, personId: 'p17', level: ParticipationLevel.DEEP_PARTICIPATE, role: '现场组织协助',       recordedBy: 'p1',  recordedAt: '2026-07-25T15:00:00', status: 'confirmed' },
+  { id: 'insp-19', sourceType: SourceType.ACTIVITY, activityId: 'act-21', sourceName: null, personId: 'p20', level: ParticipationLevel.DEEP_PARTICIPATE, role: '宣传素材整理',       recordedBy: 'p1',  recordedAt: '2026-07-25T15:05:00', status: 'pending' },
+  { id: 'insp-20', sourceType: SourceType.ACTIVITY, activityId: 'act-21', sourceName: null, personId: 'p24', level: ParticipationLevel.DEEP_PARTICIPATE, role: '新闻稿撰写',         recordedBy: 'p1',  recordedAt: '2026-07-25T15:10:00', status: 'confirmed' },
 ];
 
 /**

@@ -7,7 +7,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { mockDB } from '../core/domain.js';
-import { saveDB } from './mock.js';
+import { persist } from '../core/data-adapter.js';
 import { generateId } from '../core/id.js';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
@@ -71,6 +71,7 @@ export const TodoActionType = {
   READ: 'read',           // 阅读
   SUBMIT: 'submit',       // 提交
   TRACK: 'track',         // 追踪
+  PARTICIPATE: 'participate', // 参与（visitor 活动待参与）
 };
 
 // ── 默认折叠状态（按分类） ────────────────────────────────────
@@ -95,7 +96,7 @@ function _loadTodos() {
 function _saveTodos(todos) {
   try {
     mockDB.todos = [...todos];
-    saveDB();
+    persist();
   } catch (e) {
     console.warn('[TodoStore] 保存失败：', e);
   }
@@ -468,6 +469,107 @@ export const LifecycleTodoDeriver = {
 };
 
 // ════════════════════════════════════════════════════════════════
+//  Visitor 待办派生（普通成员/访客）
+//  通知待阅读（未读·未过期·受众相关）+ 活动待参与（未来·本人参与）
+//  幂等：按 sourceType+sourceId 去重，可安全重复调用
+// ════════════════════════════════════════════════════════════════
+
+export const VisitorTodoDeriver = {
+  /**
+   * 派生全部 visitor 待办（通知待阅读 + 活动待参与）
+   * @param {Object} opts
+   * @param {string} opts.personId — 当前用户 personId
+   * @param {Object} [opts.person] — 当前用户人员对象（用于受众匹配）
+   * @param {Array}  opts.notices  — NoticeStore.getAll() 结果
+   * @param {Array}  opts.activities — 已映射的活动列表（含 assignments/organizer）
+   */
+  deriveAll({ personId, person, notices, activities }) {
+    const created = [];
+    created.push(...this.deriveFromNotices({ personId, person, notices }));
+    created.push(...this.deriveFromActivities({ personId, activities }));
+    return created;
+  },
+
+  /**
+   * 通知待阅读：未读、未过期、受众相关的通知
+   * 受众规则：attendance（纪检考勤）不派给普通成员；party（发展党员）只派给非正式党员
+   */
+  deriveFromNotices({ personId, person, notices }) {
+    if (!personId) return [];
+    const today = new Date().toISOString().slice(0, 10);
+    const items = [];
+    for (const n of notices || []) {
+      if (n.read) continue;
+      if (n.expireDate && n.expireDate < today) continue;
+      const module = n.targetModule;
+      if (module === 'attendance') continue;
+      if (module === 'party' && person && person.developStage === '正式党员') continue;
+      const dup = TodoStore.getBySource(TodoSourceType.NOTICE, n.id).some(t => t.status !== TodoStatus.COMPLETED);
+      if (dup) continue;
+      items.push({
+        title: `阅读通知「${n.title}」`,
+        description: n.content || '',
+        role: 'visitor',
+        category: TodoCategory.NOTICE,
+        priority: n.priority || 'normal',
+        deadline: n.expireDate || null,
+        sourceType: TodoSourceType.NOTICE,
+        sourceId: n.id,
+        actionType: TodoActionType.READ,
+        actionData: { noticeId: n.id },
+      });
+    }
+    return TodoStore.createBatch(items);
+  },
+
+  /**
+   * 活动待参与：未来、未归档/未取消/非草稿、本人参与的活动
+   * 同时清理已取消/已过期的残留待办，避免孤儿项
+   */
+  deriveFromActivities({ personId, activities }) {
+    if (!personId) return [];
+    const today = new Date().toISOString().slice(0, 10);
+    const applicableIds = new Set();
+    const items = [];
+    for (const a of activities || []) {
+      if (!a || !a.id) continue;
+      if (a.archived || a.status === 'cancelled' || a.status === 'draft') continue;
+      if (!a.date || a.date < today) continue;
+      const mine = a.organizer === personId ||
+        (Array.isArray(a.assignments) && a.assignments.some(x => x.personId === personId));
+      if (!mine) continue;
+      applicableIds.add(a.id);
+      const dup = TodoStore.getBySource(TodoSourceType.ACTIVITY, a.id).some(t => t.status !== TodoStatus.COMPLETED);
+      if (dup) continue;
+      items.push({
+        title: `参与活动「${a.title || '未命名'}」`,
+        description: `活动日期：${a.date}。请按时参与并配合考勤。`,
+        role: 'visitor',
+        category: TodoCategory.TRACK,
+        priority: 'normal',
+        deadline: a.date,
+        sourceType: TodoSourceType.ACTIVITY,
+        sourceId: a.id,
+        actionType: TodoActionType.PARTICIPATE,
+        actionData: { activityId: a.id },
+      });
+    }
+    // 清理：本人已不适用（取消/过期/归档）的活动待办 → 移除
+    const stale = _loadTodos().filter(t =>
+      t.role === 'visitor' &&
+      t.sourceType === TodoSourceType.ACTIVITY &&
+      t.status !== TodoStatus.COMPLETED &&
+      !applicableIds.has(t.sourceId)
+    );
+    if (stale.length > 0) {
+      const remaining = _loadTodos().filter(t => !stale.some(s => s.id === t.id));
+      _saveTodos(remaining);
+    }
+    return TodoStore.createBatch(items);
+  },
+};
+
+// ════════════════════════════════════════════════════════════════
 //  种子数据 — mock 待办示例
 // ════════════════════════════════════════════════════════════════
 
@@ -584,9 +686,11 @@ export const SEED_TODOS = [
   },
 ];
 
-/** 初始化种子数据（仅在 todos 为空时注入） */
+/** 初始化种子数据（幂等：按 id 补齐缺失种子，不依赖"全部为空"条件） */
 export function seedTodos() {
   const existing = _loadTodos();
-  if (existing.length > 0) return;
-  _saveTodos(SEED_TODOS);
+  const existingIds = new Set(existing.map(t => t.id));
+  const missing = SEED_TODOS.filter(t => !existingIds.has(t.id));
+  if (missing.length === 0) return;
+  _saveTodos([...existing, ...missing]);
 }

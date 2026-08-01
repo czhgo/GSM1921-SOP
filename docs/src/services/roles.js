@@ -2,8 +2,11 @@
 // ================================================================
 //  service.roles.js — 角色赋权共享服务
 //  消除 party.js 之间的重复统计逻辑
-//  单例：assignedRoles 仅在 localStorage 中持久化
+//  assignedRoles：兼容旧调用（party.js），仅 localStorage 持久化
+//  authGranted：以 AuthStore 实际赋权记录为准（含 mock 初始数据）
 // ================================================================
+
+import { AuthStore } from './auth.js';
 
 const STORAGE_KEY = 'sop_org_os_assigned_roles';
 
@@ -60,7 +63,8 @@ export function computeSecretaryStats(activities, nowOverride) {
     activeEvents,
     monthEvents,
     pendingAuth,
-    authGranted: assignedRoles.length,
+    // 已赋权记录：以 AuthStore 实际 leader 赋权为准（mock 已含 3 位党小组组长）
+    authGranted: AuthStore.getAuthorizations().filter(r => r.role === 'leader').length,
     archivedEvents,
   };
 }
