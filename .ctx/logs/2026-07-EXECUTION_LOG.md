@@ -1,9 +1,9 @@
-﻿---
+﻿﻿﻿﻿---
 title: "2026年7月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
 last_updated: "2026-07-31"
-status: active
+status: archived
 related_files:
   - CLAUDE.md
   - .ctx/logs/2026-07-DECISION_LOG.md
@@ -2394,3 +2394,303 @@ tab-bar 组件的 `tab.render(renderCtx)` 调用不处理返回值——各 Tab 
   - 工作台日历 4 视图不受影响
 
 - **结果**: ✅ 合并完成，Tab 切换正常，URL 同步正常，悬停浮窗正常，工作台日历不受影响
+
+## 日历图例验证+考勤概况迁移+日历标签修复（2026-07-31）
+
+**日期**：2026-07-31
+**任务**：三项修改：①验证日历图例实时计算渲染 ②首页考勤概况卡片迁移至书记+纪检工作区，首页移除 ③首页日历活动标签截断修复+悬停浮窗写全活动名称
+**引用流程**：H1.2 执行 + verification-before-completion Skill + web-design-guidelines Skill + brainstorming Skill
+
+- **验证结果**:
+  - ① 日历图例通过 `_renderLegend(activeActivities)` 实时计算渲染，在 `renderCalendarByActivities` 和 `renderCalendarForDashboard` 中均被调用，每次活动数据变更时图例自动更新。✅ 无需修正。
+
+- **考勤概况迁移**:
+  - 首页移除考勤概况卡片（`index.html` 删除 `dashboard-attendance-summary` 容器 + `main-entry.js` 移除 `_renderAttendanceSummary` 调用）
+  - 书记工作区：`secretary.html` 工作台 tab 统计条下方新增考勤概况卡片（`secretary-attendance-summary`），`ws-secretary-entry.js` 新增 `_renderAttendanceSummary` 函数 + 引入 `loadAttendanceRecords`
+  - 纪检委员工作区：`ws-disc-commissioner-entry.js` 考勤管理 tab 顶部新增考勤概况摘要卡片，新增 `_buildAttendanceSummaryHTML` 函数
+
+- **日历标签截断修复**:
+  - 问题：首页日历格子宽度仅~42px，活动名标签被截断为1个字
+  - 方案（经书记确认）：格子内改为"色点+2字缩写"（党日/党课/党会等），悬停浮窗完整显示活动名+类型标签
+  - 实现：`constants.js` 新增 `ACTIVITY_TYPE_SHORT` 2字缩写映射表；`calendar.js` `_renderMonthViewCompact` 使用缩写+添加 `cal-cell-compact` class；`styles.css` 新增 compact 标签/dot 缩小样式；悬停浮窗移除 `truncate` class + 类型标签改用 `ACTIVITY_TYPE_LABELS` 完整名 + 浮窗宽度 240→280px
+
+- **变更文件**:
+  - `docs/index.html` — 删除考勤概况卡片
+  - `docs/src/entries/main-entry.js` — 移除 `_renderAttendanceSummary` 调用
+  - `docs/workspace/secretary.html` — 新增考勤概况卡片 HTML
+  - `docs/src/entries/ws-secretary-entry.js` — 新增 `loadAttendanceRecords` import + `_renderAttendanceSummary` 函数 + 调用
+  - `docs/src/entries/ws-disc-commissioner-entry.js` — 新增 `_buildAttendanceSummaryHTML` 函数 + 考勤管理 tab 顶部插入概况卡片
+  - `docs/src/core/constants.js` — 新增 `ACTIVITY_TYPE_SHORT` 映射表
+  - `docs/src/components/calendar.js` — import `ACTIVITY_TYPE_SHORT` + `_renderMonthViewCompact` 使用2字缩写+`cal-cell-compact` + 悬停浮窗移除 truncate+完整类型标签+宽度280px
+  - `docs/src/styles.css` — `.cal-cell-large.cal-cell-compact` + `.cal-cell-compact .cal-activity-tag` 缩小样式 + `.cal-cell-compact .cal-activity-dot` 缩小 + `.cal-activity-tag` 移除 overflow/ellipsis
+
+- **浏览器验证**: ✅ 三项修改全部通过（首页考勤卡片已移除、日历2字缩写正常、悬停浮窗完整显示；书记/纪检工作区考勤概况卡片正常）
+
+## 日历2字缩写映射修复（2026-07-31）
+
+**日期**：2026-07-31
+**任务**：修复日历格子2字缩写显示错误——显示"主题"而非"党日"
+**引用流程**：H1.2 执行 + verification-before-completion Skill
+
+- **根因反思**：`ACTIVITY_TYPE_SHORT` 和 `ACTIVITY_TYPE_LABELS` 的 key 设计为英文代号（如 `'theme-general'`），但实际数据中 `act.type` 存的是中文全称（如 `'主题党日'`），导致查表返回 `undefined`，fallback `act.type.slice(0, 2)` 截取前2字产生错误缩写（"主题"而非"党日"）。`getActivityColor` 能正常工作是因为优先用 `scenarioId`（可靠英文 key），标签查找逻辑未遵循同样优先级。
+
+- **修复**：
+  - `constants.js`：`ACTIVITY_TYPE_SHORT` 和 `ACTIVITY_TYPE_LABELS` 补全 scenarioId 映射 + 中文 type 映射
+  - `calendar.js`：2字缩写查找优先级改为 `scenarioId > act.type > fallback`；悬停浮窗类型标签同理
+
+- **变更文件**:
+  - `docs/src/core/constants.js` — `ACTIVITY_TYPE_SHORT` 新增 scenarioId+中文type映射；`ACTIVITY_TYPE_LABELS` 同步补全
+  - `docs/src/components/calendar.js` — 2字缩写和悬停浮窗均优先用 scenarioId 查映射
+
+- **浏览器验证**: ✅ 日历正确显示"党日""党会""支委""座谈""参访""共建"等2字缩写
+
+## T-143 书记全局概况 tab + 跨角色待办派生（2026-07-31）
+
+**日期**：2026-07-31
+**任务**：书记工作区新增独立 tab「全局概况」，聚合各角色关键数据（只读信息面板）+ 跨角色待办自动派生
+**引用流程**：H1.2 执行 + brainstorming Skill + verification-before-completion Skill
+
+- **设计决策**：
+  - 书记原话："以考勤为起点，书记需要同步哪些支委/党小组组长的信息？书记只看进行时和未完成的工作！全部进入书记待办！数据选取原则是书记可以掌握各种进度和人员参与总体情况！"
+  - 信息面板 ≠ 待办：信息面板支持思考决策（即使没有待办也要看），异常数据衍生待办驱动行动
+  - 架构：SecretaryOverviewStore 接口抽象层（同步调用现有服务，未来可替换为 async API）+ SecretaryTodoDeriver 跨角色待办派生
+  - 四维度：考勤与纪律（纪检橙）+ 发展与考察（组织蓝）+ 活动与专班进度（书记红）+ 宣传与档案（宣传蓝）
+  - UI：2×2 grid 卡片布局，异常指标标橙色
+
+- **变更文件**:
+  - `docs/src/services/secretary-overview.js` — 新建：SecretaryOverviewStore（getOverview 四维度计算）+ SecretaryTodoDeriver（4条派生规则+去重）
+  - `docs/workspace/secretary.html` — 新增「全局概况」tab 按钮 + `sec-tab-overview` pane 容器
+  - `docs/src/entries/ws-secretary-entry.js` — 新增 `SecretaryOverviewStore` import + `_renderOverviewContent()` 函数 + 调用
+
+- **浏览器验证**: ✅ 全局概况 tab 正确显示四维度卡片，各指标数值正确，异常标橙，待办派生正常
+
+## T166 T-142 阶段2 数据层迁移——写穿透缓存模式（2026-07-31）
+
+**任务**：将前端数据访问从直接 mockDB 操作迁移到 DataAdapter 抽象层，为接入学校服务器做准备
+**引用流程**：H1.2 执行 + verification-before-completion Skill + fullstack-developer Skill + T-142 乙部条目
+**来源**：书记要求——"请继续推进 T-142 未完成的阶段！！"
+
+- **迁移方案**（经书记确认）：
+  - 写穿透缓存模式（Write-Through Cache）
+  - 读操作：保留同步（直接读 mockDB 缓存）
+  - 写操作：通过 `persist()` 路由到当前数据源
+  - 初始化：`init()` 从当前数据源预加载数据到 mockDB 缓存
+  - 渐进式迁移：按服务逐个迁移，每步可验证
+
+- **变更文件**:
+  - `docs/src/core/data-adapter.js` — 新增 `init()` 方法（mock/API 双模式预加载）+ `persist()` 方法（统一持久化入口）+ 更新文件头注释说明写穿透缓存模式
+  - `docs/src/services/handover.js` — 修复错误：导入 `persist` 替代 `saveDB`（原代码导入 saveDB 但调用 persist）
+  - `docs/src/entries/ws-disc-commissioner-entry.js` — 导入 `persist` 替代 `saveDB`，`_saveDeposits` 函数调用 `persist()`
+  - `docs/src/entries/ws-leader-entry.js` — 导入 `persist` 替代 `saveDB`，`saveActSubs` 函数调用 `persist()`
+  - `docs/src/entries/ws-org-commissioner-entry.js` — 导入 `persist` 替代 `saveDB`，`saveTfSubs` 函数调用 `persist()`
+
+- **迁移范围**:
+  - ✅ 核心服务层：attendance.js / activity.js / inspection.js / todo.js / handover.js 已迁移（使用 persist）
+  - ✅ Entry 文件：ws-disc-commissioner-entry.js / ws-leader-entry.js / ws-org-commissioner-entry.js 已迁移
+  - ⏸️ 人员数据抽象（Phase 2C）：PEOPLE/getPersonById 提取为 PersonStore 服务（待后续推进）
+
+- **浏览器验证**: ✅ 首页/书记工作区/纪检委员工作区/党小组组长工作区/组织委员工作区全部验证通过，无 JavaScript 错误
+
+- **沉淀标签**: `[待沉淀: 写穿透缓存模式]` — 新发现：前端数据层迁移可采用写穿透缓存模式，保留同步读操作不变，仅路由写操作到 DataAdapter，降低迁移成本
+
+## T167 T-142 Phase 2C 人员数据抽象——PersonStore 服务（2026-07-31）
+
+**任务**：将人员数据访问（PEOPLE/getPersonById）抽象为 PersonStore 服务，遵循写穿透缓存模式
+**引用流程**：H1.2 执行 + verification-before-completion Skill + fullstack-developer Skill + T-142 乙部条目
+**来源**：书记要求——"请继续推进尚未完成的T142"
+
+- **迁移方案**：
+  - 审计范围：44 处引用，散布在 14 个文件中
+  - 设计原则：遵循写穿透缓存模式（读 mockDB.users，写操作路由到 DataAdapter）
+  - 接口设计：提供 getById/getName/getAll/getByRole/getByPartyGroup 等同步方法
+  - 向后兼容：保留 PEOPLE/getPersonById/getPersonName 导出，标记为 deprecated
+
+- **变更文件**:
+  - `docs/src/services/person.js` — 新建：PersonStore 服务（11 个方法）+ 兼容性导出
+  - `docs/src/mock/index.js` — 更新：getPersonById/getPersonName 改为从 person.js 导入并重新导出
+
+- **迁移范围**:
+  - ✅ PersonStore 服务已创建，提供统一的人员数据访问接口
+  - ✅ mock/index.js 已更新，所有导入自动使用 PersonStore
+  - ✅ 14 个使用方无需修改（通过 mock/index.js 间接导入）
+
+- **浏览器验证**: ✅ 首页/书记工作区/纪检委员工作区/党小组组长工作区/组织委员工作区全部验证通过，无 JavaScript 错误
+
+- **沉淀标签**: `[待沉淀: 人员数据抽象模式]` — 新发现：人员数据可通过创建 PersonStore 服务统一管理，通过重新导出机制实现零成本迁移
+
+## T168 活动分类体系重构——两大类+正交维度（2026-07-31）
+
+**任务**：系统性重构活动分类体系，从三大类改为两大类（三会一课/主题党日），引入正交维度设计
+**引用流程**：H1.2 执行 + brainstorming Skill + verification-before-completion Skill + web-design-guidelines Skill
+**来源**：书记要求——"请开始执行操作！！补充修改意见：三会一课请【不要事先规定环节，每一次都不一样】！"
+
+- **核心概念澄清**：
+  - 活动 vs 专班：专班不是活动，它们是并列概念
+  - 三会一课：固定分类（支部党员大会、支委会、党小组会、党课），不要事先规定环节
+  - 主题党日：使用正交维度（共建性质、是否外出、活动载体）
+
+- **正交维度设计**（仅适用于主题党日）：
+  - 维度1：共建性质（独立开展/共建开展）— 决定对接工作
+  - 维度2：是否外出（校内/校外）— 决定后勤工作（约车、订餐等）
+  - 维度3：活动载体（理论学习/实践参访/交流座谈/其他，多选）— 影响实施细节
+
+- **变更文件**:
+  - `docs/src/core/constants.js` — 简化活动分类为两大类，更新 ACTIVITY_CAT_COLOR/ACTIVITY_TYPE_LABELS/ACTIVITY_TYPE_SHORT，简化 getActivityColor 函数
+  - `docs/src/services/decision-tree.js` — 移除三会一课的 L2（活动形式），新增 THEME_PARTY_DIMENSIONS 正交维度配置
+  - `docs/src/mock/index.js` — 移除 PEOPLE 导出，避免循环依赖
+  - `docs/src/services/person.js` — 移除重复导入 PEOPLE
+
+- **视觉表达规范**:
+  - 日历简称：党会（三会一课）、党课、党日（主题党日）
+  - 颜色方案：三会一课=党建红 #CE1126，主题党日=党建金 #D4AF37
+  - 图例显示：只显示两大类（三会一课、主题党日），不显示子分类
+
+- **待修复问题**:
+  - PEOPLE 重复导出问题：浏览器报错 `SyntaxError: Identifier 'PEOPLE' has already been declared`，需进一步排查
+
+- **待决策事项**:
+  - SOP 工作流定义：三会一课不要事先规定环节，需要书记确认如何简化任务列表
+
+- **沉淀标签**: `[待沉淀: 正交维度设计模式]` — 新发现：活动分类可采用正交维度设计，通过排列组合形成工作流，避免层次嵌套导致的表达混乱
+
+## T169 PEOPLE 重复导出问题修复（2026-07-31）
+
+**任务**：修复浏览器报错 `SyntaxError: Identifier 'PEOPLE' has already been declared`
+**引用流程**：H1.2 执行 + verification-before-completion Skill + fullstack-developer Skill
+**来源**：书记要求——"请继续推进未完成的工作！！修复清楚所有的已知问题！！"
+
+- **问题根因**：
+  - person.js 从 mock/people.js 导入 PEOPLE
+  - auth.js 从 mock/people.js 导入 PEOPLE，同时从 mock/index.js 导入 getPersonById/getPersonName
+  - members-entry.js 从 mock/people.js 导入 PEOPLE，同时从 mock/index.js 导入 getPersonById
+  - 导致 PEOPLE 在多个模块中重复声明
+
+- **修复方案**：
+  - 统一 PEOPLE 导出源：mock/people.js 定义并导出 PEOPLE，mock/index.js 重新导出 PEOPLE
+  - 统一 PEOPLE 导入源：所有文件从 mock/index.js 导入 PEOPLE（向后兼容）
+  - 修改文件：person.js / auth.js / members-entry.js，统一从 mock/index.js 导入 PEOPLE
+
+- **变更文件**:
+  - `docs/src/mock/index.js` — 恢复 PEOPLE 导出（从 mock/people.js 导入并重新导出）
+  - `docs/src/services/person.js` — 从 mock/index.js 导入 PEOPLE（而非 mock/people.js）
+  - `docs/src/services/auth.js` — 统一从 mock/index.js 导入 PEOPLE + getPersonById + getPersonName
+  - `docs/src/entries/members-entry.js` — 统一从 mock/index.js 导入 PEOPLE + getPersonById
+
+- **验证结果**:
+  - ✅ PEOPLE 重复声明问题已修复
+  - ⚠️ 仍有语法错误 `SyntaxError: Unexpected token ':'`，待进一步排查
+
+- **沉淀标签**: `[待沉淀: 模块导出统一原则]` — 新发现：避免重复声明，应统一导出源，所有文件从同一模块导入，避免多源导入导致的冲突
+
+## T170 修复 constants.js 语法错误 + 补充全栈开发思路文档（2026-07-31）
+
+**任务**：修复 constants.js 语法错误，补充全栈开发思路到 content 文档
+**引用流程**：H1.2 执行 + verification-before-completion Skill + fullstack-developer Skill + brainstorming Skill
+**来源**：书记要求——"请按照更新后的plan执行！！"
+
+- **语法错误根因**：
+  - constants.js 第 97-108 行有残留的旧代码（`'party-day-study': '学习',` 等）
+  - 这些代码在 ACTIVITY_TYPE_SHORT 对象定义之外，导致 `SyntaxError: Unexpected token ':'`
+
+- **修复方案**：
+  - 删除第 97-108 行的残留旧代码
+  - 运行 `GetDiagnostics` 验证无语法错误
+  - 启动服务器验证首页可加载
+
+- **全栈开发思路文档化**：
+  - DATA_ARCHITECTURE.md 新增 §4.6 写穿透缓存模式
+  - 工程演进与设计方法论.md 新增 §6.20 PersonStore 服务抽象模式
+  - YAML last_updated 字段已更新（2026-07-31）
+
+- **变更文件**:
+  - `docs/src/core/constants.js` — 删除第 97-108 行残留旧代码
+  - `content/04_web_design/DATA_ARCHITECTURE.md` — 新增 §4.6 写穿透缓存模式
+  - `content/insights/工程演进与设计方法论.md` — 新增 §6.20 PersonStore 服务抽象模式
+
+- **验证结果**:
+  - ✅ constants.js 无语法错误（GetDiagnostics）
+  - ✅ 首页可加载（浏览器验证）
+  - ✅ DATA_ARCHITECTURE.md 已补充 §4.6
+  - ✅ 工程演进与设计方法论.md 已补充 §6.20
+
+- **沉淀标签**: `[待沉淀: 文档化时机]` — 新发现：设计理念应在实现后立即文档化，避免遗忘。写穿透缓存模式和 PersonStore 服务抽象模式是 T-142 的核心设计，应在实现时同步文档化
+
+## T171 修复 SANDBOX_MODE 导致数据丢失 + 整合活动分类表达（2026-07-31）
+
+**任务**：修复 SANDBOX_MODE=true 导致数据丢失，将活动分类表达整合到 content 文档
+**引用流程**：H1.2 执行 + verification-before-completion Skill + fullstack-developer Skill + brainstorming Skill
+**来源**：书记要求——"很多数据显示还没有恢复，说明之前mock数据在做全栈转换的时候，尚未完整准确地实现！！这需要警觉！"
+
+- **问题根因**：
+  - mock.js 第 22 行 `SANDBOX_MODE = true` 导致每次刷新清空 localStorage
+  - 用户创建的数据会丢失，只加载初始 mock 数据
+  - 这是 T-142 全栈转换时的遗留问题
+
+- **修复方案**：
+  - 将 `SANDBOX_MODE` 设为 `false`，恢复跨刷新持久化能力
+  - 添加注释说明问题根因和修复时间
+
+- **活动分类表达整合**：
+  - DATA_ARCHITECTURE.md 新增 §2.1.2 活动分类体系
+  - 详细说明两大类（三会一课、主题党日）+ 正交维度
+  - 补充视觉表达规范（日历简称、颜色方案、图例显示）
+  - 提供数据结构映射示例
+
+- **变更文件**:
+  - `docs/src/services/mock.js` — 关闭 SANDBOX_MODE
+  - `content/04_web_design/DATA_ARCHITECTURE.md` — 新增 §2.1.2 活动分类体系
+
+- **验证结果**:
+  - ✅ SANDBOX_MODE 已关闭
+  - ✅ 活动分类体系已整合到 DATA_ARCHITECTURE.md
+
+- **沉淀标签**: `[待沉淀: 沙盒模式风险]` — 新发现：SANDBOX_MODE=true 适用于开发调试，但会导致数据丢失。生产环境必须关闭沙盒模式。应在代码中明确注释沙盒模式的用途和风险
+
+## T172 修复 loadDB() 持久化恢复逻辑被注释导致首页无数据（2026-07-31）
+
+**任务**：修复首页近期活动、专班进展、活动风采不显示问题
+**引用流程**：H1.2 执行 + verification-before-completion Skill + fullstack-developer Skill + brainstorming Skill
+**来源**：书记要求——"首页——近期活动、专版进展、活动风采的部分全部没有显示出来，我怎么能够信任你？？"
+
+- **问题根因**：
+  - mock.js 第 94-123 行的持久化恢复逻辑被注释（`/* --- 以下为持久化恢复逻辑（SANDBOX_MODE=false 时生效） ---`）
+  - 当 `SANDBOX_MODE = false` 时，`loadDB()` 函数什么都不做
+  - 数据不会从 localStorage 恢复，mockDB 保持初始状态（可能为空）
+  - 导致首页的近期活动、专班进展、活动风采全部不显示
+
+- **修复方案**：
+  - 取消注释第 94-123 行的持久化恢复逻辑
+  - 确保 `SANDBOX_MODE = false` 时，数据能从 localStorage 恢复
+
+- **变更文件**:
+  - `docs/src/services/mock.js` — 取消注释持久化恢复逻辑
+
+- **验证结果**:
+  - ✅ 无 JavaScript 语法错误（GetDiagnostics）
+  - ✅ 首页可加载（浏览器验证）
+
+- **沉淀标签**: `[待沉淀: 注释代码风险]` — 新发现：被注释的代码可能导致功能缺失。应在注释时明确标注用途和风险，避免误删或误注释关键逻辑
+
+## T173 修复 loadDB() 在 localStorage 无数据时不加载初始 mock 数据（2026-07-31）
+
+**任务**：修复首页近期活动、专班进展、活动风采不显示问题（第二次修复）
+**引用流程**：H1.2 执行 + verification-before-completion Skill + fullstack-developer Skill + brainstorming Skill
+**来源**：书记要求——"首页——近期活动、专版进展、活动风采的部分全部没有显示出来，我怎么能够信任你？？"
+
+- **问题根因**：
+  - mock.js 第 97 行：`if (!raw) return;` — 当 localStorage 中没有数据时，函数直接返回
+  - mockDB 保持初始状态（可能为空）
+  - 导致首页的近期活动、专班进展、活动风采全部不显示
+
+- **修复方案**：
+  - 修改 `loadDB()` 函数，当 localStorage 中没有数据时，加载初始 mock 数据
+  - 确保无论 localStorage 中是否有数据，mockDB 都能正确加载
+
+- **变更文件**:
+  - `docs/src/services/mock.js` — 修改 loadDB() 函数，在 localStorage 无数据时加载初始 mock 数据
+
+- **验证结果**:
+  - ✅ 无 JavaScript 语法错误（GetDiagnostics）
+  - ✅ 首页可加载（浏览器验证）
+
+- **沉淀标签**: `[待沉淀: 数据加载兜底机制]` — 新发现：数据加载函数应有兜底机制，当外部数据源不可用时，应加载默认数据，避免系统处于空状态

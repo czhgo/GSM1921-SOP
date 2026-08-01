@@ -1,7 +1,7 @@
 ---
 title: 学校计算中心对接准备文档
 created: 2026-07-28
-last_updated: 2026-07-28
+last_updated: 2026-07-31
 author: AI起草，书记审定
 status: draft
 related_files:
@@ -9,6 +9,9 @@ related_files:
   - docs/src/services/issues.js
   - docs/src/services/auth.js
   - docs/src/core/data-loader.js
+  - docs/src/core/data-adapter.js
+  - docs/src/core/mock-adapter.js
+  - docs/src/core/api-adapter.js
 ---
 
 # 学校计算中心对接准备文档
@@ -49,12 +52,19 @@ related_files:
 
 ### 2.3 API 设计要求
 
-当前 `services/runtime.js` 已预留 mock/api 切换点（`USE_MOCK = true`）。对接后改为：
+当前 `services/runtime.js` 已预留 mock/api 切换点。T-142 阶段2已实现 DataAdapter 抽象层，对接后只需：
 
+```javascript
+// runtime.js 中调用：
+setDataSource('api', {
+  apiBaseUrl: 'https://<计算中心提供的域名>/api/v1',
+  authToken: '<JWT Token>',
+});
 ```
-USE_MOCK = false  // 切换到真实 API
-API_BASE_URL = 'https://<计算中心提供的域名>/api/v1'
-```
+
+UI 层零改动，通过 `getAdapter()` 访问数据自动走 API 适配器。
+
+DataAdapter 架构详见 DATA_ARCHITECTURE.md §4.4。
 
 API 需满足以下规范：
 - RESTful 风格
@@ -62,6 +72,7 @@ API 需满足以下规范：
 - JWT 会话认证
 - 分页查询支持（`?page=1&per_page=20`）
 - 月份分组查询支持（`?month=2026-07`）
+- 完整路由设计见 DATA_ARCHITECTURE.md §4.4.5
 
 ### 2.4 信息安全与可见性
 
@@ -105,8 +116,11 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 
 | 文档 | 位置 | 内容 |
 |------|------|------|
-| 数据架构设计 | `content/04_web_design/DATA_ARCHITECTURE.md` | 全部数据模型定义、字段规格、关系图 |
-| API 切换点说明 | `docs/src/services/runtime.js` | mock/api 切换逻辑、API_BASE_URL 配置 |
+| 数据架构设计 | `content/04_web_design/DATA_ARCHITECTURE.md` | 全部数据模型定义、字段规格、DataAdapter 接口规范、API 路由设计 |
+| API 适配器实现 | `docs/src/core/api-adapter.js` | REST API 完整路由映射（28 个端点），学校计算中心按此实现后端 |
+| Mock 适配器实现 | `docs/src/core/mock-adapter.js` | DataAdapter 的 mock 实现，供参考数据结构和业务逻辑 |
+| 数据访问抽象层 | `docs/src/core/data-adapter.js` | 统一切换机制（setDataSource），学校计算中心无需修改 |
+| 运行时插槽 | `docs/src/services/runtime.js` | 初始化入口，注册适配器实例 |
 | 认证流程说明 | `docs/src/services/auth.js` | 登录/注销/会话管理逻辑 |
 | 可见性规则说明 | 本文档 §2.4 | 多级可见性的过滤逻辑 |
 | AI 接入需求 | 本文档 §3 | AI 本地部署的场景和模型要求 |

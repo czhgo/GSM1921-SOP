@@ -22,7 +22,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 > Harness 是项目的核心原则——定义工作方式、核心原则和运行标准。
 > 修改 Harness 须经书记确认，且必须一改具改（见 H2）。
 >
-> **三层架构 [工作表达]**：热层（每次必读：H1/H2/H3）→ 温层（修改时读：H4/H5）→ 冷层（按需参考：H6 外部索引 + H7 项目产出声明）
+> **三层架构 \[工作表达]**：热层（每次必读：H1/H2/H3）→ 温层（修改时读：H4/H5）→ 冷层（按需参考：H6 外部索引 + H7 项目产出声明）
 > **已迁出目录**：`.github/`（智能体治理层）已于 2026-07-21 物理迁出至 `D:\GitHub\System-Residual\.github\`——VSCode Agent 治理不再属于本仓库（D-186 终结）
 
 ***
@@ -54,15 +54,15 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 > 🔴 **歧义消解铁律**：人类表达可能有歧义。当任务复杂、庞大、或用户表述不清晰时，**必须**：
 >
-> - 在乙部中拆分为可独立完成的子任务（OPERATIONS_GUIDE.md §13.5 分片规则）
+> - 在乙部中拆分为可独立完成的子任务（OPERATIONS\_GUIDE.md §13.5 分片规则）
 > - 在丙部中提问确认意图（H4.2 丙部待决策机制）
 > - 宁可多问一句，不可误判意图。**不知为不知，是知也。**
 > - 🔴 **有疑问必须主动 /ask 书记确认，不得自行假设或基于猜测执行**——这是防止误判意图的最后一道防线。宁可多问一句，不可自行其是。
-> 🔴 **【不允许随意结束 session】**：有拿不准的地方不得擅做决断，必须积极及时使用 AskUserQuestion 询问书记！！必须推进完成所有工作，不得中途放弃或跳过未决事项！！这是一条独立于歧义消解铁律的强制规则——即使任务看似简单，只要存在任何不确定，就必须先确认再执行；即使遇到困难，也必须推进到底，不得以"大致完成"为由提前结束 session。**执行顺序**：歧义消解优先（先问清再做），消解后再推进执行（不半途而废）。
+>   🔴 **【不允许随意结束 session】**：有拿不准的地方不得擅做决断，必须积极及时使用 AskUserQuestion 询问书记！！必须推进完成所有工作，不得中途放弃或跳过未决事项！！这是一条独立于歧义消解铁律的强制规则——即使任务看似简单，只要存在任何不确定，就必须先确认再执行；即使遇到困难，也必须推进到底，不得以"大致完成"为由提前结束 session。**执行顺序**：歧义消解优先（先问清再做），消解后再推进执行（不半途而废）。
 >
 > 🔴 **【Git 操作授权规则】**：`git commit` 可由 AI 自动执行（无需逐次确认）；`git push` **必须经书记明确确认后方可执行**，AI 绝不允许擅自 push。每次需要 push 时，AI 必须通过 AskUserQuestion 提请书记确认，获得明确同意后方可执行 push 操作。
 >
-> **AI 展开原则**：写出的话应是"grill 书记后的话"——吃透精神后用自己的语言讲透，而非复读或标注边界（详见 USAGE_POLICY.md §1.9）。
+> **AI 展开原则**：写出的话应是"grill 书记后的话"——吃透精神后用自己的语言讲透，而非复读或标注边界（详见 USAGE\_POLICY.md §1.9）。
 
 ### H1.3 next\_prompt（🔴 每次工作结束的强制输出）
 
@@ -99,16 +99,16 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 ### H2.2 设计母本与子本
 
-> **本表为5条核心原则**。完整的母本子本注册表（约25条级联关系）见 [SSOT_INDEX.md](content/03_doc_system/SSOT_INDEX.md)，文档权威层级定义见 [OPERATIONS_GUIDE.md §7.1](content/03_doc_system/OPERATIONS_GUIDE.md)，文档导航图见 [DOC_MAP.md](content/03_doc_system/DOC_MAP.md)。
-> 三者关系：H2.2 提炼核心原则 → SSOT_INDEX 注册全部关系 → OPERATIONS_GUIDE §7.1 定义层级 → DOC_MAP 标注层级。
+> **本表为5条核心原则**。完整的母本子本注册表（约25条级联关系）见 [SSOT\_INDEX.md](content/03_doc_system/SSOT_INDEX.md)，文档权威层级定义见 [OPERATIONS\_GUIDE.md §7.1](content/03_doc_system/OPERATIONS_GUIDE.md)，文档导航图见 [DOC\_MAP.md](content/03_doc_system/DOC_MAP.md)。
+> 三者关系：H2.2 提炼核心原则 → SSOT\_INDEX 注册全部关系 → OPERATIONS\_GUIDE §7.1 定义层级 → DOC\_MAP 标注层级。
 
-| 关系类型   | 母本                                          | 子本                             | 同步规则                 |
-| ------ | ------------------------------------------- | ------------------------------ | -------------------- |
-| 制度→代码  | `content/02_institution/sop/*.md`                          | `docs/src/*.js`                | 母本优先，代码跟随（见 [SOP\_WEB.md](content/04_web_design/SOP_WEB.md)） |
-| 理论→工程  | `content/{01_strategy,02_institution,03_doc_system,04_web_design,05_ai_coding}/*.md` | `docs/src/*.js`                | guides 定义设计，代码实现设计   |
-| 路线图→执行 | `CLAUDE.md` 乙部                              | `.ctx/logs/*-EXECUTION_LOG.md` | 完成事项从乙部删除，写入执行日志     |
-| 经验→沉淀  | `.ctx/logs/DECISION_LOG.md`                 | `content/insights/*.md`        | 决策日志定期沉淀为经验沉淀        |
-| 术语→全仓  | `content/03_doc_system/USAGE_POLICY.md`         | 全仓库所有文件                        | 术语变更触发一改具改           |
+| 关系类型   | 母本                                                                                   | 子本                             | 同步规则                                                         |
+| ------ | ------------------------------------------------------------------------------------ | ------------------------------ | ------------------------------------------------------------ |
+| 制度→代码  | `content/02_institution/sop/*.md`                                                    | `docs/src/*.js`                | 母本优先，代码跟随（见 [SOP\_WEB.md](content/04_web_design/SOP_WEB.md)） |
+| 理论→工程  | `content/{01_strategy,02_institution,03_doc_system,04_web_design,05_ai_coding}/*.md` | `docs/src/*.js`                | guides 定义设计，代码实现设计                                           |
+| 路线图→执行 | `CLAUDE.md` 乙部                                                                       | `.ctx/logs/*-EXECUTION_LOG.md` | 完成事项从乙部删除，写入执行日志                                             |
+| 经验→沉淀  | `.ctx/logs/DECISION_LOG.md`                                                          | `content/insights/*.md`        | 决策日志定期沉淀为经验沉淀                                                |
+| 术语→全仓  | `content/03_doc_system/USAGE_POLICY.md`                                              | 全仓库所有文件                        | 术语变更触发一改具改                                                   |
 
 ### H2.3 Guides 与 Insights 的定位
 
@@ -121,12 +121,12 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 > 🔴 **每次向 insights/ 写入内容时必须遵守以下规则。**
 
 1. **结构兼容性**：写入前与既有结构逐节比对，兼容则追加，不兼容则写入丙部
-2. **按需正反两面论**：只有当命题存在真正的对立方案（读者可能真正会想到的替代选择）时，才需要反论。判定依据见 [OPERATIONS_GUIDE.md §10.2/§10.3/§10.7/§10.9](content/03_doc_system/OPERATIONS_GUIDE.md)
+2. **按需正反两面论**：只有当命题存在真正的对立方案（读者可能真正会想到的替代选择）时，才需要反论。判定依据见 [OPERATIONS\_GUIDE.md §10.2/§10.3/§10.7/§10.9](content/03_doc_system/OPERATIONS_GUIDE.md)
 3. **禁止冗余标记**：正文中不标注版本号/批次/时间戳，这些归YAML
 4. **沉淀标签闭环**：沉淀完成后，将日志中 `[待沉淀]` 改为 `[已沉淀: 沉淀位置]`
 5. **后推翻前规则**：时间靠后的决策可能推翻先前的决策，时间靠后的执行可能推翻先前的执行。经验沉淀必须标注**生效条件**——在什么前提下成立。当新经验与旧经验矛盾时，不得删除旧经验，而是在旧经验条目下追加"已被XX条件下的新经验修正"标注，在新经验条目中注明"修正了XX条件下的旧经验"。经验不打架，而是条件化。
 6. **沉淀标签预审查**（2026-07-31 更新）：日志条目的沉淀标签从二档（是/否）改为条件触发——**只有产生新模式时才需标注**，否则省略标签。具体规则：
-   - **按规执行**：如果工作完全按 insights/Harness/KNOWN_PITFALLS 中已有原则执行，**省略沉淀标签**（日志条目仍需记录，只是不写沉淀判定段）
+   - **按规执行**：如果工作完全按 insights/Harness/KNOWN\_PITFALLS 中已有原则执行，**省略沉淀标签**（日志条目仍需记录，只是不写沉淀判定段）
    - **`[待沉淀: 简述新发现]`**：工作中发现 insights 中没有的新模式/新教训时标注
    - **`[已沉淀: 沉淀位置]`**：完成沉淀后将`[待沉淀]`改为`[已沉淀]`
    - **不再使用`[否]`标签**：之前的`[经验沉淀: 否]`不再使用
@@ -151,7 +151,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 □ 11. 概念命名合规：若本次修改涉及概念命名或标签创建，必须按 H3.1 概念命名守则自检
 ```
 
-### H3.1 概念命名守则 [工作表达]
+### H3.1 概念命名守则 \[工作表达]
 
 > 书记元洞察（2026-07-19 概念复用性扫描评议）："最大的根因在于：一个大的命题可能有很多个小命题。AI专注于过拟合那些小的命题的命名。但事实上，只需要给总的大命题命名即可。"
 
@@ -160,13 +160,9 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 **五条守则**：
 
 1. **大命题原则**：一个大的命题可能有很多个小命题，只给大命题命名，小命题作为大命题下的描述存在，不单独命名。判断标准：该命题是否有独立的理论地位或实践领域？若无，则归入大命题。
-
 2. **"="式命名禁令**：不得使用"="连接两个概念作为标签名（如`[A=B]`）。"="暗示数学等价，但 insights 中的"="用法几乎都是单向蕴含（A导致B、A意味着B、A的判定标准是B）。替代方案：用"即"式（如`[A即B]`）或叙述式。
-
 3. **AI层级标签禁令**：不得添加"基础层/进阶层""初级/高级"等无依据的层级标签。除非书记明确提过分层，否则并列关系不得被AI擅自标为层级递进。
-
 4. **一致性检查**：如果只有某一类有独立标签（如只有"纪检工作内容"而没有"组织工作内容""宣传工作内容"），必须质疑组织方式的准确性——要么三类都有，要么归入统一的大命题下。
-
 5. **术语精确性**：党支部委员简称是"支委"不是"委员"；党建 = 三会一课、主题党日、专班工作；党务 = 党员发展、考勤考察；两者都是"管理事，服务人"的工作，不用"服务同学 vs 供支委决策"区分（P-007 修正）。
 
 ***
@@ -217,7 +213,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 **理解验证补丁（D-220）**：提交丙部前，必须验证自己对问题的理解是否正确。若对问题本身（而非仅对解决方案）存在不确定，应先向书记确认理解，而非基于错误前提提交伪问题。**提交一个基于错误前提的丙部条目，比不提交更糟糕**——它浪费书记时间，且可能误导决策方向。
 
-**数量过拟合补丁**：当书记用自然语言说出N个观察点时，AI不得自动锁定数量或自造结构性标签（如"支柱""维度"等）。书记的散点表达可能是4个、也可能调整为3个或5个——AI应先确认是否需要结构化，再决定组织方式。AI自行概括的术语属于[工作表达]（见 USAGE_POLICY.md §1.6），不得伪装为书记原话。
+**数量过拟合补丁**：当书记用自然语言说出N个观察点时，AI不得自动锁定数量或自造结构性标签（如"支柱""维度"等）。书记的散点表达可能是4个、也可能调整为3个或5个——AI应先确认是否需要结构化，再决定组织方式。AI自行概括的术语属于\[工作表达]（见 USAGE\_POLICY.md §1.6），不得伪装为书记原话。
 
 **格式规范**：
 
@@ -239,22 +235,25 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 ***
 
-## H5. 书记评议工作流 [工作表达]
+## H5. 书记评议工作流 \[工作表达]
 
 > "书记评议"是 T3 工作表达术语（AI 为交流便利自行概括，非严肃政治表达），用于系统性抽样评议仓库内容并触发纠偏。
 
 ### H5.1 触发条件
+
 - **按需启动**：书记说"做一次评议"时启动
-- **周期触发**：每周一次，作为 OPERATIONS_GUIDE.md §15 周期任务
+- **周期触发**：每周一次，作为 OPERATIONS\_GUIDE.md §15 周期任务
 
 ### H5.2 抽样规则
+
 - **抽样范围**：content/ 五子目录（strategy / design / governance / sop / insights）
 - **抽样单位**：具体命题（非完整文档）
-- **选取规则**：AI 按文档现有结构标记抽取（如论断编号 P-001~P-025、反论标记、设计原则、why 讲解、战略命题等）
+- **选取规则**：AI 按文档现有结构标记抽取（如论断编号 P-001\~P-025、反论标记、设计原则、why 讲解、战略命题等）
 - **抽样数量**：每次 10-15 条，每子目录 2-3 条
 - **不重复机制**：AI 启动时扫描最近 4-8 周执行日志中带"书记评议"标记的 T 编号条目，从未评议过的命题中抽取
 
 ### H5.3 评议流程
+
 1. AI 抽样 10-15 条命题
 2. 对每条命题按其特性灵活选择预审维度（不锁定数量）：
    - **表述**：术语合规性（T1/T2/T3）、设问句、主观预设、书面语风格
@@ -264,29 +263,30 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
    - **合规溯源**（按需）：是否可追溯到书记原话或制度原文，AI 推导须标注
    - **奥卡姆剃刀**（按需）：是否存在"为概括而概括""fancy 但无内涵"的标签或结构性数字隐喻
    - **概念过拟合**（按需）：是否存在 AI 擅自命名的小命题标签、无依据的层级标签、"="式命名、孤立概念——详见 H5.7
-
    **维度选择原则**：AI 默认参考上述常规维度，但根据命题特性灵活选择——纯术语违规的命题可只审"表述"一维度，涉及制度设计的命题可增审"合规溯源"维度。若某命题只审部分维度，预审报告中注明"本次仅审 XX 维度，理由：……"。四维度为常规参考，非强制锁定。
 3. AI 将完整预审报告写入 `.ctx/REVIEW_QUEUE.md`，通知书记可随时评议
 
-> **预判差异记录**：当书记判断与AI预审结果不同时，差异本身是学习信号——须在评议记录中分析差异原因（如AI未检查历史范畴、AI错误组合概念、AI未识别重点偏移等），并评估是否需要沉淀为新的评议维度或检查规则。反论评议专用维度见 OPERATIONS_GUIDE.md §10.9。
-4. 书记在 REVIEW_QUEUE.md 中填写反馈
-5. AI 读取反馈，按 H5.4 三层分流归档，按 H5.6 校验后将完整记录写入执行日志 T 编号，然后清空 REVIEW_QUEUE.md 当前轮次（REVIEW_QUEUE.md 是上下文文件不是日志文件，历史记录不在此留存）
+> **预判差异记录**：当书记判断与AI预审结果不同时，差异本身是学习信号——须在评议记录中分析差异原因（如AI未检查历史范畴、AI错误组合概念、AI未识别重点偏移等），并评估是否需要沉淀为新的评议维度或检查规则。反论评议专用维度见 OPERATIONS\_GUIDE.md §10.9。
+
+1. 书记在 REVIEW\_QUEUE.md 中填写反馈
+2. AI 读取反馈，按 H5.4 三层分流归档，按 H5.6 校验后将完整记录写入执行日志 T 编号，然后清空 REVIEW\_QUEUE.md 当前轮次（REVIEW\_QUEUE.md 是上下文文件不是日志文件，历史记录不在此留存）
 
 ### H5.4 反馈分流归档
 
 书记反馈后，AI 按反馈性质三层分流：
 
-| 反馈类型 | 判定标准 | 处理方式 | 归档位置 |
-|---------|---------|---------|---------|
+| 反馈类型  | 判定标准                         | 处理方式                       | 归档位置                       |
+| ----- | ---------------------------- | -------------------------- | -------------------------- |
 | 机械性问题 | 设问句/术语违规/主观预设/表述违规等可模式化识别的问题 | 全仓库扫描同类模式→一并修订→按 H5.6 抽样校验 | 月度执行日志（含全仓库扫描范围+修订数量+校验结果） |
-| 设计性问题 | 结构性争议/设计方向分歧/规范适用范围判定 | 写入丙部 P 编号 | CLAUDE.md 丙部 |
-| 即时小修订 | typo/格式错误/链接断裂等无连锁影响的小问题 | 当场修复 | 月度执行日志 |
+| 设计性问题 | 结构性争议/设计方向分歧/规范适用范围判定        | 写入丙部 P 编号                  | CLAUDE.md 丙部               |
+| 即时小修订 | typo/格式错误/链接断裂等无连锁影响的小问题     | 当场修复                       | 月度执行日志                     |
 
 **关键区分**：机械性问题与设计性问题的边界——若反馈涉及"该规则是否适用于此场景"的判定，归设计性问题；若反馈确认违规且需扫描同类模式，归机械性问题。
 
 ### H5.5 评议记录
 
 作为月度执行日志的一条 T 编号条目（如 T73 书记评议·首评），包含：
+
 - 抽样清单（10-15 条命题+位置）
 - 预审结果摘要（按命题特性灵活选择的维度+各维度结果）
 - 书记反馈摘要
@@ -296,7 +296,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
   - 即时小修订：修订位置清单
 - 衍生任务编号清单（链接到乙部/丙部）
 
-### H5.6 修订校验原则 [工作表达]
+### H5.6 修订校验原则 \[工作表达]
 
 > "修订校验"是 T3 工作表达术语，指 AI 全仓库扫描修订后，防止过度修订的抽样校验机制。
 > 修订完成 ≠ 修订正确——AI 修订的最大风险不是"漏改"，而是"过度修订"。
@@ -304,6 +304,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 **核心约束**：当机械性问题触发全仓库扫描修订时，AI 必须防止过拟合——避免把"该改的"和"不该改的"一并修订为"标准模板"。
 
 **校验原则**：
+
 1. 修订完成后，AI 按修订规模抽样若干项，向书记呈现"修订前后对比"判断题
 2. 抽样比例按修订规模灵活调整，不写死具体数字
 3. 书记判定不通过的修订项，退回调整并重新扫描同类模式
@@ -315,7 +316,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 **终止条件**：每轮校验后，若书记仍有反馈则继续迭代；若书记明确"暂时到此"或当前 session 上下文已接近上限，则在 next\_prompt 中记录校验进度和待续项，由下一个 session 继续。不允许因偷懒放弃，但允许因上下文限制而挂起并交接。
 
-### H5.7 概念复用性扫描与文件瘦身 [工作表达]
+### H5.7 概念复用性扫描与文件瘦身 \[工作表达]
 
 > "概念复用性扫描"是 T3 工作表达术语，指系统性扫描全仓库中 AI 过拟合命名的孤立概念标签，识别瘦身空间，并触发归并或删除。
 > 书记元洞察（2026-07-19）："最大的根因在于：一个大的命题可能有很多个小命题。AI专注于过拟合那些小的命题的命名。但事实上，只需要给总的大命题命名即可。"
@@ -338,10 +339,11 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 2. **重复表述归并**：同一命题在不同文件中的重复展开，保留最权威版本，其他文件仅引用
 3. **AI 概括清零**：无书记原话或制度依据的 AI 自创概念标签，一律删除
 4. **跨文件瘦身**：概念膨胀不仅出现在 insights 速查表中——governance 文档的过细分类标签、strategy 文档的冗余阐述、sop 文档的重复定义，都应纳入瘦身范围
-5. **根目录瘦身**：README.md、SNAPSHOT.md 等根目录文件，以及 ARCHITECTURE.md（已移至 content/03_doc_system/）等已迁移文件中的过时表述，同样需要随一改具改同步更新
+5. **根目录瘦身**：README.md、SNAPSHOT.md 等根目录文件，以及 ARCHITECTURE.md（已移至 content/03\_doc\_system/）等已迁移文件中的过时表述，同样需要随一改具改同步更新
 6. **零补丁原则**：书记论断（2026-07-19）——"瘦身的一个重要方面是把文档变成一个有机整体。由于书记论述的批次不同，很容易出现到处打补丁的现象——新增内容单独成段落，即使和前面的段落也是相关的。"AI 无法自行判断如何融入（修改原命题的表述以切中新命题，还是调整新命题以适配原命题结构），须提交书记判定。**最终目标：所有涉及用户阅读的文档，零补丁识别。**
 
 **执行流程**：
+
 1. AI 扫描概念标签，按频次和性质分类
 2. 逐条通过 AskUserQuestion 提请书记判定
 3. 按判定结果执行：删除/归并/重命名/保留
@@ -350,7 +352,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 **与 H3.1 的关系**：H3.1 是预防性守则（修改时自检），H5.7 是纠正性扫描（系统性排查）。两者互补。
 
-### H5.8 书记评议类型速查 [工作表达]
+### H5.8 书记评议类型速查 \[工作表达]
 
 > 三类有过具体规定的书记评议，复用性相对较高。本节整理各类评议的核心规定，便于后续复用。
 
@@ -359,6 +361,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 **目的**：评审全仓库反论的表述质量和命题准确性
 **触发**：H5.1 触发条件 + T 编号任务
 **核心规定**：
+
 - 三类问题维度：正确的废话（删除反论改为正面陈述）/ 命题错误（删除反论用书记原话替代）/ 重点偏差（修正重点关联书记判断的核心关切）
 - 三种处置关系：保留 / 融入正论 / 删除反论+补充正论
 - 反论用例例子选择约束：避免军事术语/历史典故，优先工程实践或日常管理场景
@@ -366,16 +369,17 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 - AI推导识别与级联修改（§14.4）
 - 历史范畴检查：被否定项是否仍在使用（§10.7）
 - AI治理技术特殊性：涉及AI工具使用时需联网补充（§10.8）
-**详细维度体系**：[OPERATIONS_GUIDE.md §10.9](content/03_doc_system/OPERATIONS_GUIDE.md)
+  **详细维度体系**：[OPERATIONS\_GUIDE.md §10.9](content/03_doc_system/OPERATIONS_GUIDE.md)
 
 #### H5.8.2 理论复用评议
 
 **目的**：评审全仓库跨节/跨文件引用的复用准确性、适用性及效果
 **触发**：H5.1 触发条件 + T 编号任务
 **核心规定**：
+
 - 复用评议指标：复用是否准确、是否过时、是否遗漏、是否过度引用
 - 母本子本关系：下游命题对上游命题的复用，母本优先（H2.2）
-- 散落即漂移原则：信息重复散落视为漂移风险（OPERATIONS_GUIDE §7.4）
+- 散落即漂移原则：信息重复散落视为漂移风险（OPERATIONS\_GUIDE §7.4）
 - 分轮规划：① insights内部复用链 ② governance文档间复用 ③ strategy/design→sop复用链 ④ 跨目录复用断链检查
 
 #### H5.8.3 补丁审查（零补丁识别评议）
@@ -383,6 +387,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 **目的**：识别用户文档中新增内容单独成段落（与前面段落/章节相关但不融入）的"补丁"现象，触发融入或调整
 **触发**：H5.1 触发条件 + T 编号任务
 **核心规定**：
+
 - 零补丁原则：书记论断（2026-07-19）——"瘦身的一个重要方面是把文档变成一个有机整体。由于书记论述的批次不同，很容易出现到处打补丁的现象——新增内容单独成段落，即使和前面的段落也是相关的。"
 - 多层过滤方法：问题脉络→主题相关→时间维度
 - 三种处置：融入原命题 / 调整新命题 / 保留独立
@@ -403,28 +408,28 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 > 以下内容已外移至对应权威源，本节仅保留链接。AI 按需读取。
 
-| 我需要... | 去哪里 |
-| ---------- | --------------- |
-| 看一改具改 | 本文件 H2 |
-| 看检查清单 | 本文件 H3 |
-| 看乙部/丙部规则 | 本文件 H4 |
-| 看书记评议工作流 | 本文件 H5 |
-| 看甲部修改流程 | [OPERATIONS_GUIDE.md §12](content/03_doc_system/OPERATIONS_GUIDE.md) |
-| 看日志规范 | [OPERATIONS_GUIDE.md §13](content/03_doc_system/OPERATIONS_GUIDE.md) |
-| 看面向用户表述规范 | [OPERATIONS_GUIDE.md §11](content/03_doc_system/OPERATIONS_GUIDE.md) |
-| 看理论基石 | [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档） |
-| 看经验沉淀 | [content/insights/](content/insights/) |
-| 看已知陷阱 | [KNOWN_PITFALLS.md](content/05_ai_coding/KNOWN_PITFALLS.md) |
-| 看运行标准 | [OPERATIONS_GUIDE.md](content/03_doc_system/OPERATIONS_GUIDE.md) |
-| 看术语规范 | [USAGE_POLICY.md](content/03_doc_system/USAGE_POLICY.md) |
-| 查 SOP 流程 | [content/02_institution/sop/INDEX.md](content/02_institution/sop/INDEX.md) |
-| 查决策历史 | `.ctx/logs/DECISION_LOG.md` |
-| 查执行日志 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` |
-| 查母本链路 | [SSOT_INDEX.md](content/03_doc_system/SSOT_INDEX.md) |
-| 查数据一致性 | [CHECKLIST.md](content/03_doc_system/CHECKLIST.md) |
-| 取用模板 | `content/03_doc_system/工作模板/` |
-| 查可用 Skills | `npx skills find <keyword>` |
-| 看项目产出声明 | 本文件 H7 |
+| 我需要...     | 去哪里                                                                                       |
+| ---------- | ----------------------------------------------------------------------------------------- |
+| 看一改具改      | 本文件 H2                                                                                    |
+| 看检查清单      | 本文件 H3                                                                                    |
+| 看乙部/丙部规则   | 本文件 H4                                                                                    |
+| 看书记评议工作流   | 本文件 H5                                                                                    |
+| 看甲部修改流程    | [OPERATIONS\_GUIDE.md §12](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
+| 看日志规范      | [OPERATIONS\_GUIDE.md §13](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
+| 看面向用户表述规范  | [OPERATIONS\_GUIDE.md §11](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
+| 看理论基石      | [SECRETARY\_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档） |
+| 看经验沉淀      | [content/insights/](content/insights/)                                                    |
+| 看已知陷阱      | [KNOWN\_PITFALLS.md](content/05_ai_coding/KNOWN_PITFALLS.md)                              |
+| 看运行标准      | [OPERATIONS\_GUIDE.md](content/03_doc_system/OPERATIONS_GUIDE.md)                         |
+| 看术语规范      | [USAGE\_POLICY.md](content/03_doc_system/USAGE_POLICY.md)                                 |
+| 查 SOP 流程   | [content/02\_institution/sop/INDEX.md](content/02_institution/sop/INDEX.md)               |
+| 查决策历史      | `.ctx/logs/DECISION_LOG.md`                                                               |
+| 查执行日志      | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`                                                      |
+| 查母本链路      | [SSOT\_INDEX.md](content/03_doc_system/SSOT_INDEX.md)                                     |
+| 查数据一致性     | [CHECKLIST.md](content/03_doc_system/CHECKLIST.md)                                        |
+| 取用模板       | `content/03_doc_system/工作模板/`                                                             |
+| 查可用 Skills | `npx skills find <keyword>`                                                               |
+| 看项目产出声明    | 本文件 H7                                                                                    |
 
 ***
 
@@ -442,26 +447,27 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 **系统产出的三个组成部分**：
 
-| 层级 | 内容 | 权威源 |
-|------|------|--------|
-| ① 总论叙事 | "管理事，服务人"——从入党申请人到正式党员的完整路径，囊括②和③ | [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) + [SECRETARY_PRONOUNCEMENTS.md P-045/P-047](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) |
-| ② 组织架构与 SOP | 一整套组织架构、分工、SOP | `content/02_institution/sop/` + `content/02_institution/FLAT_DESIGN.md` + `content/02_institution/COMMISSIONER_FRAMEWORK.md` |
-| ③ AI-driven 仓库工作流 | 一整套关于 AI-driven 的组织形态的仓库工作流（上下文、Harness、提示词） | 本文件 CLAUDE.md（Harness）+ `content/03_doc_system/OPERATIONS_GUIDE.md` + `.ctx/`（审计底座） |
+| 层级                | 内容                                           | 权威源                                                                                                                                                           |
+| ----------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ① 总论叙事            | "管理事，服务人"——从入党申请人到正式党员的完整路径，囊括②和③            | [DEVELOPMENT\_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) + [SECRETARY\_PRONOUNCEMENTS.md P-045/P-047](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) |
+| ② 组织架构与 SOP       | 一整套组织架构、分工、SOP                               | `content/02_institution/sop/` + `content/02_institution/FLAT_DESIGN.md` + `content/02_institution/COMMISSIONER_FRAMEWORK.md`                                  |
+| ③ AI-driven 仓库工作流 | 一整套关于 AI-driven 的组织形态的仓库工作流（上下文、Harness、提示词） | 本文件 CLAUDE.md（Harness）+ `content/03_doc_system/OPERATIONS_GUIDE.md` + `.ctx/`（审计底座）                                                                           |
 
 ### H7.2 逻辑缺漏与书记亲补
 
 书记特别标注了一个"逻辑缺漏"——"在这里获得的组织性和生涯发展的关系是什么，为什么这是一个很宝贵的机会"——这部分由书记亲自补充完整，AI 不得自行假设或基于猜测补全。
 
 书记已于 2026-07-14 亲补两个宝贵机会：
-- **机会1**：民主集中制下感受真实组织的两个向度——"赋权"背景下的程序性 和 "探索"背景下的扁平化。详见 [SECRETARY_PRONOUNCEMENTS.md P-043](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) + [DEVELOPMENT_PATH.md 第一章收束](content/01_strategy/DEVELOPMENT_PATH.md)。
-- **机会2**：AI 时代中学生党支部的探索机会——①真实地参与组织制度和组织文化的构建；②在"没有经济负担"的背景下探索 AI 时代下组织转型的萌芽和组织产品的生产。详见 [SECRETARY_PRONOUNCEMENTS.md P-044](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) + DEVELOPMENT_PATH.md 第一章收束。
+
+- **机会1**：民主集中制下感受真实组织的两个向度——"赋权"背景下的程序性 和 "探索"背景下的扁平化。详见 [SECRETARY\_PRONOUNCEMENTS.md P-043](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) + [DEVELOPMENT\_PATH.md 第一章收束](content/01_strategy/DEVELOPMENT_PATH.md)。
+- **机会2**：AI 时代中学生党支部的探索机会——①真实地参与组织制度和组织文化的构建；②在"没有经济负担"的背景下探索 AI 时代下组织转型的萌芽和组织产品的生产。详见 [SECRETARY\_PRONOUNCEMENTS.md P-044](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) + DEVELOPMENT\_PATH.md 第一章收束。
 
 ### H7.3 引用流程
 
 - 任何涉及"系统产出是什么"的总论性表述，引用本节 H7
-- 任何涉及"发展路径"的具体叙事，引用 [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)
-- 任何涉及"书记论断"的具体论断，引用 [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)
-- 本节为治理层锚点，不承载叙事全文——叙事全文在 DEVELOPMENT_PATH.md，论断全文在 SECRETARY_PRONOUNCEMENTS.md
+- 任何涉及"发展路径"的具体叙事，引用 [DEVELOPMENT\_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)
+- 任何涉及"书记论断"的具体论断，引用 [SECRETARY\_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)
+- 本节为治理层锚点，不承载叙事全文——叙事全文在 DEVELOPMENT\_PATH.md，论断全文在 SECRETARY\_PRONOUNCEMENTS.md
 
 ***
 
@@ -475,7 +481,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 > 2. 条目完成后，在确认已写入【执行日志】的前提下，**直接删去**
 > 3. 补充新的执行事项时，必须标注引用流程
 > 4. 已完成事项的详细信息归档于 `.ctx/logs/DECISION_LOG.md` 和月度执行日志
-> 5. 大任务必须按 OPERATIONS_GUIDE.md §13.5 分片规则提前拆分
+> 5. 大任务必须按 OPERATIONS\_GUIDE.md §13.5 分片规则提前拆分
 
 ***
 
@@ -483,13 +489,13 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 > 持续任务没有"完成"状态，只有"进行中"或"暂停"。它们代表需要持续关注的工作方向。
 
-| ID  | 事项                                                                                                                                        | 引用流程                                                              | 修改对象                               | 状态    |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------- | ----- |
-| C-1 | **JS 组件化**：完善 `docs/src/` 下的 JS 组件（renderHeader/renderSidebar/renderFooter/renderCalendar 等），使 HTML 仅需引用/调用特定 JS 组件即可实现功能，消除 HTML 中的硬编码逻辑 | H2.4 规则 2（方向指引）→ [SOP\_WEB.md](content/04_web_design/SOP_WEB.md)         | `docs/src/*.js` + `docs/*.html`    | 🔄 持续 |
-| C-2 | **一改具改巡检**：定期检查仓库中是否存在信息重复散落，发现后归并至权威源                                                                                                    | H2.1 + OPERATIONS\_GUIDE.md §7                                    | 全仓库                                | 🔄 持续 |
-| C-3 | **经验沉淀**：从执行日志和决策日志中提炼可复用模式，写入 insights                                                                                                   | H2.4 + OPERATIONS_GUIDE.md §13.1 → [党支部管理与实务经验沉淀.md](content/insights/党支部管理与实务经验沉淀.md) | `content/insights/`                | 🔄 持续 |
-| C-4 | **视觉体验持续优化**：颜色方案调优 + 卡片设计（嵌套/并列/顺序排布）审校修订                                                                                                | DATA_ARCHITECTURE.md §三 差异化视图 + DESIGN\_SYSTEM.md                    | `docs/src/styles.css` + 各 entry JS | 🔄 持续 |
-| C-5 | **术语与表达审计**：定期扫描全仓库过时术语（活动建设/组织建设残留、之上/之下、归档→人才库混用等），并调用 USAGE_POLICY §1.9.3 五条可复用检查规则扫描 AI 没吃透精神的表达模式（"而非"对立/"所以"因果链/反面假设/私加强调/元叙事标签），发现后归并至权威源 | H2.1 一改具改 + OPERATIONS\_GUIDE.md §7 + USAGE\_POLICY.md §1.9.3 | 全仓库 | 🔄 持续 |
+| ID  | 事项                                                                                                                                                | 引用流程                                                                                    | 修改对象                               | 状态    |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ---------------------------------- | ----- |
+| C-1 | **JS 组件化**：完善 `docs/src/` 下的 JS 组件（renderHeader/renderSidebar/renderFooter/renderCalendar 等），使 HTML 仅需引用/调用特定 JS 组件即可实现功能，消除 HTML 中的硬编码逻辑         | H2.4 规则 2（方向指引）→ [SOP\_WEB.md](content/04_web_design/SOP_WEB.md)                        | `docs/src/*.js` + `docs/*.html`    | 🔄 持续 |
+| C-2 | **一改具改巡检**：定期检查仓库中是否存在信息重复散落，发现后归并至权威源                                                                                                            | H2.1 + OPERATIONS\_GUIDE.md §7                                                          | 全仓库                                | 🔄 持续 |
+| C-3 | **经验沉淀**：从执行日志和决策日志中提炼可复用模式，写入 insights                                                                                                           | H2.4 + OPERATIONS\_GUIDE.md §13.1 → [党支部管理与实务经验沉淀.md](content/insights/党支部管理与实务经验沉淀.md) | `content/insights/`                | 🔄 持续 |
+| C-4 | **视觉体验持续优化**：颜色方案调优 + 卡片设计（嵌套/并列/顺序排布）审校修订                                                                                                        | DATA\_ARCHITECTURE.md §三 差异化视图 + DESIGN\_SYSTEM.md                                      | `docs/src/styles.css` + 各 entry JS | 🔄 持续 |
+| C-5 | **术语与表达审计**：定期扫描全仓库过时术语（活动建设/组织建设残留、之上/之下、归档→人才库混用等），并调用 USAGE\_POLICY §1.9.3 五条可复用检查规则扫描 AI 没吃透精神的表达模式（"而非"对立/"所以"因果链/反面假设/私加强调/元叙事标签），发现后归并至权威源 | H2.1 一改具改 + OPERATIONS\_GUIDE.md §7 + USAGE\_POLICY.md §1.9.3                           | 全仓库                                | 🔄 持续 |
 
 ***
 
@@ -501,25 +507,25 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 ## P2 — 数据一致性
 
-| ID  | 事项 | 引用流程 | 修改对象 | 状态 |
-| --- | ---- | ------ | ------ | ---- |
-| 当前无待办 | — | — | — | — |
+| ID    | 事项 | 引用流程 | 修改对象 | 状态 |
+| ----- | -- | ---- | ---- | -- |
+| 当前无待办 | —  | —    | —    | —  |
 
 ***
 
 ## P3 — 治理/测试/文档
 
-| ID  | 事项 | 引用流程 | 修改对象 | 状态 |
-| --- | ---- | ------ | ------ | ---- |
-| T-116 | **反论评议·系统性**（4-5轮）：全仓库100处反论的书记评议。分轮规划：① insights §1-§4（理论）② insights §5-§8（方法）③ insights §9-§11（实操）④ governance+strategy ⑤ sop+design+根目录。每轮按H5工作流抽样→预审→书记反馈→三层分流。**第一轮**（insights§1-§6前部12条）已完成，8条即时修订+1条AI推导删除+2条入丙部（P.7已决策归档）。**第二轮**（insights §5-§8，12条）已完成，7条即时修订（R13/R15/R16/R17/R18/R20/R22）+5条保留+2条预判差异沉淀到§10.9判定细则补充。**第三轮**（insights §9-§11，12条）已完成，4条即时修订（R30融入正论/R31修正重点/R32融入正论/R34删除反论+补充正论·去除"三大纪律"例子）+8条保留+3条预判差异沉淀到§10.9判定细则补充·二（保留vs融入正论边界/删除反论+补充正论判定/反论用例例子选择约束）。评审标准已沉淀：§10.9评议维度体系（含判定细则补充·一+·二）+§14.4 AI推导识别与级联修改+H5.3预判差异记录+§10.7历史范畴检查+§10.8 AI治理技术特殊性 | H5 书记评议 + USAGE_POLICY §1.9.3 + OPERATIONS_GUIDE §10 | 全仓库 | 🔄 进行中 |
-| T-117 | **理论复用评议**（3-4轮）：全仓库163处跨节/跨文件引用（下游命题对上游命题的复用）的书记评议——关注复用准确性、适用性及效果。分轮规划：① insights内部复用链（§1~§11 内部复用链）② governance文档间复用（USAGE_POLICY/OPERATIONS_GUIDE/ROLE_CLASSIFICATION等）③ strategy/design→sop复用链 ④ 跨目录复用断链检查。每轮建立明确评议指标：复用是否准确、是否过时、是否遗漏、是否过度引用 | H5 书记评议 + H2.2 母本子本 + OPERATIONS_GUIDE §7.4 散落即漂移 | 全仓库 | ⏳ 待启动 |
-| T-118 | **治理文档完善+用户文档体系梳理**：基于Harness框架同步推进治理文档完善，梳理现有用户文档体系，识别缺失/冗余/过时 | H2.2 母本子本 + H7 项目产出声明 | content/ + docs/ | ⏳ 待启动 |
-| T-122 | **零补丁识别评议**（4轮）：全仓库用户文档"零补丁 detected"评议。书记元洞察（2026-07-20）："会出现新增的内容单独成段落，即使和前面的段落/章节也是相关的，乃至应该属于前面的段落/章节。"分轮规划：① SECRETARY_PRONOUNCEMENTS.md（理论基石）② insights（B1 重组后）③ README+ARCHITECTURE ④ sop/strategy/design/governance [用户]部分。每轮按"多层过滤"方法（问题脉络→主题相关→时间维度）识别补丁，提交书记决策（融入原命题/调整新命题/保留独立），按决策执行修订。**四轮均已完成**：第一轮 P-046 融入 P-045；第二轮 §2.1 乘积关系修正融入+§11.6 跨主题段落移至§7.1；第三轮 README+ARCHITECTURE 9 处修复；第四轮 sop/strategy/design/governance 7 处强补丁修订（含 FLAT_DESIGN 破例）+附录 B 移至乙部 T-123 | H5 书记评议 + H2.4 经验沉淀 + USAGE_POLICY §1.9.3 + H2.2 母本子本 | 全仓库用户文档 | ✅ 完成 |
-| T-127 | **文档【逻辑顺序】重组**：基于 spec `.trae/specs/document-logical-order-restructure-continuation/` 执行阶段 1 续（机械性修复：30 个 .md + 7 个代码文件路径替换 + §5.2/§5.3 编号修复）+ 阶段 2（设计性重组：DEVELOPMENT_PATH.md 5 章→3 章+附录 A/B、SECRETARY_PRONOUNCEMENTS.md P-045/P-047 移到第一章 + P-008/P-021 移出至 insights 文件 2、insights 拆分为双文件、CLAUDE.md H2.4 规则 2 "正反两面论"→"按需正反两面论"）。46/46 验证项全部通过 | H2.1 一改具改 + H2.2 母本子本 + H2.4 经验沉淀 + OPERATIONS_GUIDE §11.7 文档【逻辑顺序】 | 全仓库 | ✅ 完成 |
-| T-140 | **Exploration Canvas 像素部分·阶段1 素材制作**：设计文稿已完成（`.trae/specs/pixel-design-spec/`，28 ADR+术语表+主文稿）。2026-07-27 书记三项决策：①素材制作方式→SD/AI 生图（ADR-026）②美学方向→星露谷物语画风（ADR-027）③ADR-025坐标→保持不变。提示词归总完成（prompts/ 10 个分文件）。**2026-07-28 书记决定放弃像素素材制作**，设计过程作为探索尝试留存于 `.trae/specs/pixel-design-spec/`，不再推进 | H2.4 经验沉淀 + DESIGN_SYSTEM.md §5.4 | .trae/specs/pixel-design-spec/ | ✅ 完成（放弃，设计文档留存） |
-| T-141 | **功能定位修正+缺失补全+角色单页制+架构简化**：基于"谁用/怎么用/为什么集成"拷问，重新定位人员管理→人全景（只读）、书记赋权管理→常设赋权、纪检经验沉淀→融入监督复盘；补全4个缺失（首页"我的角色"区块、发展党员追踪、党小组长复盘提交、宣传委员宣传任务）；移除制度文件/多维表格/专班工作量/追踪看板独立tab；合并workspace/+party/为6个角色单页面；侧边栏简化为"工作台"单入口；术语"项目"替代"活动+专班"统称；AuthStore数据同源迁移至mockDB.authorizations。4阶段全部完成：①tab重组 ②页面级功能补全 ③数据同源 ④术语一改具改 | H2.2 母本子本 + COMMISSIONER_FRAMEWORK §D + DESIGN_SYSTEM §4.6 | docs/src/entries/* + main-entry.js + auth.js + mock.js + domain.js | ✅ 完成 |
-| T-142 | **最小三成本原则·工作台重构+通知待办体系+后台数据模型**：基于 spec `.trae/specs/min-cost-workspace-design/` 分4阶段实施。书记原话（2026-07-31）："任务流应当按照最小的信息成本和操作成本直接体现在网页的工作台中了！"+"还有最小的适应学习成本，通过系统设计，快速掌握工作分工和工作任务、信息流的运作方式！"已决策：通知自动提醒触发天数可配置（P.9，默认3天）；待办列表时间范围=全部未完成含过期（P.10，通过分类+折叠展示避免信息爆炸）。**阶段1A已完成**：①DESIGN_SYSTEM.md §一 新增第2条核心原则"最小三成本"（已从第6条提升至第2条）②DATA_ARCHITECTURE.md §2.18-§2.20 新增待办任务数据模型+通知→待办派生机制+归档记录扩展字段+§1.2/§6.2.1 数据分类总览更新 ③COMMISSIONER_FRAMEWORK.md §D.1.1 新增赋权入口设计（待办列表中体现）④insights 工程演进与设计方法论.md §4.10 新增方法论沉淀。**阶段1B已完成**：todo.js 服务层（TodoStore+NoticeTodoDeriver+LifecycleTodoDeriver）+ todo-list.js 组件 + ws-leader-entry.js 待办tab+双栏布局。**阶段1C已完成**：①1C-1 日历迁移至首页（index.html+main-entry.js）②1C-2 通知→待办派生（notice.js）③1C-3 活动/专班→待办派生（mock.js+taskforce.js）④1C-4 归档详情浮窗（archive-entry.js）⑤1C-5 inspector.js 移除"请选择"提示 ⑥1C-6 待办 tab 全角色覆盖（6个角色工作台均已完成：书记/组织/宣传/纪检/党小组组长/访客，其中纪检委员工作台补全了缺失的 _renderTodoContent 等函数）。**阶段2已完成**：数据层迁移——写穿透缓存模式（data-adapter.js 新增 init()/persist()，服务层+entry 文件 saveDB→persist 迁移，浏览器验证通过）+ 人员数据抽象（PersonStore 服务，44 处引用零成本迁移，浏览器验证通过）。**待执行**：阶段3（后台数据库+文件存储，需后端支持） | H2.4 经验沉淀 + DESIGN_SYSTEM §一 第2条 + COMMISSIONER_FRAMEWORK §D.1.1 + DATA_ARCHITECTURE §2.18-§2.20 | content/04_web_design/* + content/02_institution/* + content/insights/* + docs/src/* | 🔄 进行中 |
-| T-143 | **书记全局概况tab+跨角色待办派生**：书记工作区新增独立tab「全局概况」，四维度信息面板（考勤与纪律、发展与考察、活动与专班进度、宣传与档案），展示各角色进行时+未完成的关键指标；异常数据自动派生为书记待办（考勤待确认、考察超期、活动待复盘、宣传待提交等）。底层同一套数据，不同身份统一自动渲染。书记原话（2026-07-31）："以考勤为起点，书记需要同步哪些支委/党小组组长的信息？书记只看进行时和未完成的工作！全部进入书记待办！数据选取原则是书记可以掌握各种进度和人员参与总体情况！"**已完成**：SecretaryOverviewStore（接口抽象层，四维度计算）+ SecretaryTodoDeriver（4条派生规则+去重）+ 书记工作区全局概况tab（2x2 grid卡片，异常标橙）+ 浏览器验证通过 | H2.4 经验沉淀 + DESIGN_SYSTEM §一 第2条 最小三成本 + COMMISSIONER_FRAMEWORK §B 条块双线 + DATA_ARCHITECTURE | docs/src/services/secretary-overview.js + docs/workspace/secretary.html + docs/src/entries/ws-secretary-entry.js | ✅ 完成 |
+| ID    | 事项                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | 引用流程                                                                                                | 修改对象                                                                                                              | 状态              |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | --------------- |
+| T-116 | **反论评议·系统性**（4-5轮）：全仓库100处反论的书记评议。分轮规划：① insights §1-§4（理论）② insights §5-§8（方法）③ insights §9-§11（实操）④ governance+strategy ⑤ sop+design+根目录。每轮按H5工作流抽样→预审→书记反馈→三层分流。**第一轮**（insights§1-§6前部12条）已完成，8条即时修订+1条AI推导删除+2条入丙部（P.7已决策归档）。**第二轮**（insights §5-§8，12条）已完成，7条即时修订（R13/R15/R16/R17/R18/R20/R22）+5条保留+2条预判差异沉淀到§10.9判定细则补充。**第三轮**（insights §9-§11，12条）已完成，4条即时修订（R30融入正论/R31修正重点/R32融入正论/R34删除反论+补充正论·去除"三大纪律"例子）+8条保留+3条预判差异沉淀到§10.9判定细则补充·二（保留vs融入正论边界/删除反论+补充正论判定/反论用例例子选择约束）。评审标准已沉淀：§10.9评议维度体系（含判定细则补充·一+·二）+§14.4 AI推导识别与级联修改+H5.3预判差异记录+§10.7历史范畴检查+§10.8 AI治理技术特殊性                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | H5 书记评议 + USAGE\_POLICY §1.9.3 + OPERATIONS\_GUIDE §10                                              | 全仓库                                                                                                               | 🔄 进行中          |
+| T-117 | **理论复用评议**（3-4轮）：全仓库163处跨节/跨文件引用（下游命题对上游命题的复用）的书记评议——关注复用准确性、适用性及效果。分轮规划：① insights内部复用链（§1\~§11 内部复用链）② governance文档间复用（USAGE\_POLICY/OPERATIONS\_GUIDE/ROLE\_CLASSIFICATION等）③ strategy/design→sop复用链 ④ 跨目录复用断链检查。每轮建立明确评议指标：复用是否准确、是否过时、是否遗漏、是否过度引用                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | H5 书记评议 + H2.2 母本子本 + OPERATIONS\_GUIDE §7.4 散落即漂移                                                  | 全仓库                                                                                                               | ⏳ 待启动           |
+| T-118 | **治理文档完善+用户文档体系梳理**：基于Harness框架同步推进治理文档完善，梳理现有用户文档体系，识别缺失/冗余/过时                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | H2.2 母本子本 + H7 项目产出声明                                                                               | content/ + docs/                                                                                                  | ⏳ 待启动           |
+| T-122 | **零补丁识别评议**（4轮）：全仓库用户文档"零补丁 detected"评议。书记元洞察（2026-07-20）："会出现新增的内容单独成段落，即使和前面的段落/章节也是相关的，乃至应该属于前面的段落/章节。"分轮规划：① SECRETARY\_PRONOUNCEMENTS.md（理论基石）② insights（B1 重组后）③ README+ARCHITECTURE ④ sop/strategy/design/governance \[用户]部分。每轮按"多层过滤"方法（问题脉络→主题相关→时间维度）识别补丁，提交书记决策（融入原命题/调整新命题/保留独立），按决策执行修订。**四轮均已完成**：第一轮 P-046 融入 P-045；第二轮 §2.1 乘积关系修正融入+§11.6 跨主题段落移至§7.1；第三轮 README+ARCHITECTURE 9 处修复；第四轮 sop/strategy/design/governance 7 处强补丁修订（含 FLAT\_DESIGN 破例）+附录 B 移至乙部 T-123                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | H5 书记评议 + H2.4 经验沉淀 + USAGE\_POLICY §1.9.3 + H2.2 母本子本                                              | 全仓库用户文档                                                                                                           | ✅ 完成            |
+| T-127 | **文档【逻辑顺序】重组**：基于 spec `.trae/specs/document-logical-order-restructure-continuation/` 执行阶段 1 续（机械性修复：30 个 .md + 7 个代码文件路径替换 + §5.2/§5.3 编号修复）+ 阶段 2（设计性重组：DEVELOPMENT\_PATH.md 5 章→3 章+附录 A/B、SECRETARY\_PRONOUNCEMENTS.md P-045/P-047 移到第一章 + P-008/P-021 移出至 insights 文件 2、insights 拆分为双文件、CLAUDE.md H2.4 规则 2 "正反两面论"→"按需正反两面论"）。46/46 验证项全部通过                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | H2.1 一改具改 + H2.2 母本子本 + H2.4 经验沉淀 + OPERATIONS\_GUIDE §11.7 文档【逻辑顺序】                                | 全仓库                                                                                                               | ✅ 完成            |
+| T-140 | **Exploration Canvas 像素部分·阶段1 素材制作**：设计文稿已完成（`.trae/specs/pixel-design-spec/`，28 ADR+术语表+主文稿）。2026-07-27 书记三项决策：①素材制作方式→SD/AI 生图（ADR-026）②美学方向→星露谷物语画风（ADR-027）③ADR-025坐标→保持不变。提示词归总完成（prompts/ 10 个分文件）。**2026-07-28 书记决定放弃像素素材制作**，设计过程作为探索尝试留存于 `.trae/specs/pixel-design-spec/`，不再推进                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | H2.4 经验沉淀 + DESIGN\_SYSTEM.md §5.4                                                                  | .trae/specs/pixel-design-spec/                                                                                    | ✅ 完成（放弃，设计文档留存） |
+| T-141 | **功能定位修正+缺失补全+角色单页制+架构简化**：基于"谁用/怎么用/为什么集成"拷问，重新定位人员管理→人全景（只读）、书记赋权管理→常设赋权、纪检经验沉淀→融入监督复盘；补全4个缺失（首页"我的角色"区块、发展党员追踪、党小组长复盘提交、宣传委员宣传任务）；移除制度文件/多维表格/专班工作量/追踪看板独立tab；合并workspace/+party/为6个角色单页面；侧边栏简化为"工作台"单入口；术语"项目"替代"活动+专班"统称；AuthStore数据同源迁移至mockDB.authorizations。4阶段全部完成：①tab重组 ②页面级功能补全 ③数据同源 ④术语一改具改                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | H2.2 母本子本 + COMMISSIONER\_FRAMEWORK §D + DESIGN\_SYSTEM §4.6                                        | docs/src/entries/\* + main-entry.js + auth.js + mock.js + domain.js                                               | ✅ 完成            |
+| T-142 | **最小三成本原则·工作台重构+通知待办体系+后台数据模型**：基于 spec `.trae/specs/min-cost-workspace-design/` 分4阶段实施。书记原话（2026-07-31）："任务流应当按照最小的信息成本和操作成本直接体现在网页的工作台中了！"+"还有最小的适应学习成本，通过系统设计，快速掌握工作分工和工作任务、信息流的运作方式！"已决策：通知自动提醒触发天数可配置（P.9，默认3天）；待办列表时间范围=全部未完成含过期（P.10，通过分类+折叠展示避免信息爆炸）。**阶段1A已完成**：①DESIGN\_SYSTEM.md §一 新增第2条核心原则"最小三成本"（已从第6条提升至第2条）②DATA\_ARCHITECTURE.md §2.18-§2.20 新增待办任务数据模型+通知→待办派生机制+归档记录扩展字段+§1.2/§6.2.1 数据分类总览更新 ③COMMISSIONER\_FRAMEWORK.md §D.1.1 新增赋权入口设计（待办列表中体现）④insights 工程演进与设计方法论.md §4.10 新增方法论沉淀。**阶段1B已完成**：todo.js 服务层（TodoStore+NoticeTodoDeriver+LifecycleTodoDeriver）+ todo-list.js 组件 + ws-leader-entry.js 待办tab+双栏布局。**阶段1C已完成**：①1C-1 日历迁移至首页（index.html+main-entry.js）②1C-2 通知→待办派生（notice.js）③1C-3 活动/专班→待办派生（mock.js+taskforce.js）④1C-4 归档详情浮窗（archive-entry.js）⑤1C-5 inspector.js 移除"请选择"提示 ⑥1C-6 待办 tab 全角色覆盖（6个角色工作台均已完成：书记/组织/宣传/纪检/党小组组长/访客，其中纪检委员工作台补全了缺失的 \_renderTodoContent 等函数）。**阶段2已完成**：数据层迁移——写穿透缓存模式（data-adapter.js 新增 init()/persist()，服务层+entry 文件 saveDB→persist 迁移，浏览器验证通过）+ 人员数据抽象（PersonStore 服务，44 处引用零成本迁移，浏览器验证通过）。**待执行**：阶段3（后台数据库+文件存储，需后端支持） | H2.4 经验沉淀 + DESIGN\_SYSTEM §一 第2条 + COMMISSIONER\_FRAMEWORK §D.1.1 + DATA\_ARCHITECTURE §2.18-§2.20 | content/04\_web\_design/\* + content/02\_institution/\* + content/insights/\* + docs/src/\*                       | 🔄 进行中          |
+| T-143 | **书记全局概况tab+跨角色待办派生**：书记工作区新增独立tab「全局概况」，四维度信息面板（考勤与纪律、发展与考察、活动与专班进度、宣传与档案），展示各角色进行时+未完成的关键指标；异常数据自动派生为书记待办（考勤待确认、考察超期、活动待复盘、宣传待提交等）。底层同一套数据，不同身份统一自动渲染。书记原话（2026-07-31）："以考勤为起点，书记需要同步哪些支委/党小组组长的信息？书记只看进行时和未完成的工作！全部进入书记待办！数据选取原则是书记可以掌握各种进度和人员参与总体情况！"**已完成**：SecretaryOverviewStore（接口抽象层，四维度计算）+ SecretaryTodoDeriver（4条派生规则+去重）+ 书记工作区全局概况tab（2x2 grid卡片，异常标橙）+ 浏览器验证通过                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | H2.4 经验沉淀 + DESIGN\_SYSTEM §一 第2条 最小三成本 + COMMISSIONER\_FRAMEWORK §B 条块双线 + DATA\_ARCHITECTURE      | docs/src/services/secretary-overview\.js + docs/workspace/secretary.html + docs/src/entries/ws-secretary-entry.js | ✅ 完成            |
 
 ***
 
@@ -540,11 +546,11 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 **第一步：哪些步骤需要常驻注释？**
 当前已实现的常驻注释（stickyNote）：步5「一年以上培养考察期」、步10「支部大会无记名投票表决」、步12「预备期一年」、步13「书面申请→征求意见→支部大会→上级审批」。是否需要增减？
 
-| 方向 | 含义 | 后果 |
-|------|------|------|
-| 保持现有 4 条 | 仅标注时间跨度+关键流程要点 | 4/13 步有常驻注释，其余无 |
-| 增加更多 | 更多步骤加注释（如步3/4/6/9 等） | 信息更全但可能过密 |
-| 减少 | 只保留时间跨度类注释（步5/12） | 更简洁但丢失关键流程提示 |
+| 方向       | 含义                   | 后果              |
+| -------- | -------------------- | --------------- |
+| 保持现有 4 条 | 仅标注时间跨度+关键流程要点       | 4/13 步有常驻注释，其余无 |
+| 增加更多     | 更多步骤加注释（如步3/4/6/9 等） | 信息更全但可能过密       |
+| 减少       | 只保留时间跨度类注释（步5/12）    | 更简洁但丢失关键流程提示    |
 
 **第二步：详情面板内容审查**
 当前详情面板展示 `decisionDetail` 字段内容——是否需要调整措辞或补充信息？需书记逐条审查 13 步的详情内容。
@@ -553,40 +559,3 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 ***
 
-## P.10 Help 帮助页美学评估——两个板块裸文本渲染 + 旧版样式死代码待决断
-
-**为什么需要决策**：书记要求对 help 界面做美学评估（web-design-guidelines Skill，未做任何内容修改）。浏览器 getComputedStyle 实测发现：「两条宝贵机会」「行百里者半九十」两个板块的卡片完全无样式（裸文本堆叠），与全页苹果风严重割裂；全页还残留约 20 处旧版废弃样式。是否修复、如何修复需书记定夺。
-
-**路线图**：
-
-**第一步：「两条宝贵机会」与「行百里者半九十」两个裸文本板块如何处理？**
-两个板块的卡片在页面中无任何样式（无边框/背景/间距/排版层次），浏览器实测确认，属渲染缺陷而非设计意图。
-
-| 方向 | 含义（人话） | 后果（人话） |
-|------|------------|------------|
-| 按全页风格补齐样式（推荐） | 为两个板块补卡片、间距、排版样式，与其余 7 个板块统一 | 帮助页完整美观，工作量中等 |
-| 保持现状 | 不处理，维持裸文本 | 两个板块明显失修，与页面整体质量不符 |
-| 压缩为极简文本 | 删除卡片结构，只留标题+段落 | 更简洁但与全页卡片语言不一致 |
-
-**第二步：旧版废弃样式是否清理？**
-全页残留约 20 处旧版样式（环形箭头、旧卡片布局等，与当前页面结构不对应）——清理可消除污染，但需书记确认清理范围。
-
-**当前状态**：等待书记选择第 1 步方向
-
-***
-
-## P.9 ~~SOP 数据总表结构+发展党员时间轴待决断~~（已决策，D-254）
-
-**决策摘要**（2026-07-31）：
-- 第一步：模板如必要应有机整合到网页中（表单/代码逻辑），减负——不创建独立模板文件。4处"模板待创建"已全部处理：补课记录/宣传报送/考察档案已由系统实现，占位符替换为说明；发展党员材料清单整合到组织委员指南附录A。
-- 第二步：发展党员时间轴整合到组织委员指南附录A（非单独建手册）。
-- 第三步：将网页中已实现的工作逻辑反整合到SOP中（用业务语言，非编程用语），使SOP成为规范、结构化、清晰的制度母本。考勤记录结构、数据交接、考察记录结构已补充到纪检委员指南。"三个最小成本原则"已从核心原则第6条提升至第2条（一改具改完成：4处引用更新）。
-
-> **已决策归档**（2026-07-16）：P.1 统一中文 / P.2 允许并补赋权 / P.3 系统不应有思想汇报功能（手写提交） / P.4 本轮补建复盘状态枚举。详见 DECISION_LOG.md。
-> **已决策方向**（2026-07-17）：UI-P-006 支委应有日历视图（可选切换）。
-> **已决策归档**（2026-07-17）：P.5 动画区分对待原则搁置（D-243，help 动画整体重做时再定）/ P.6 角色图标采用职能动作隐喻（D-244，宣传=喇叭/纪检=天平/组织=齿轮）。详见 DECISION_LOG.md。
-> **已决策归档**（2026-07-19）：P.7 AI治理技术反论——联网搜索两方向（AI状态管理最佳实践+LLM上下文信息生命周期）已完成，R7/R8反论有强普适性支撑（planned/committed区分+TTL删除/deferred区分），书记决策保留并要求表述精进为正例。insights 工程演进与设计方法论.md §2.5已从反论改为正例简化，全仓库一改具改完成。
-
-历史决策记录见 `.ctx/logs/2026-07-DECISION_LOG.md` 及 `.ctx/logs/DECISION_LOG.md`。
-
-***

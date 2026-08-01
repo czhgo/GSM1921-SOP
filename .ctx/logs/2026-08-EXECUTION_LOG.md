@@ -178,3 +178,57 @@ related_files:
 **验证结果**：✅ grep 全仓库确认 `.help-philosophy-opp*`/`.help-dialogue-step*` 仅出现在 JS、CSS 零命中；浏览器 getComputedStyle 实测确证裸文本渲染与死代码不在 DOM
 
 - **沉淀标签**: `[待沉淀: 简述新发现]` — 新发现：模型无法读图时，美学/视觉审查可用 browser_evaluate 执行 getComputedStyle 返回精确 JSON（display/padding/border/background/borderRadius/fontSize/fontFamily），将"看起来没样式"转化为可复现的确凿证据；JS 渲染类名与 CSS 选择器的一致性必须用 grep 双侧交叉验证（JS 有类名、CSS 零命中即断链）
+
+## T179 丙部已归档决策清理 + P.10 决策归档（2026-08-01）
+
+**任务**：书记指令——"1. 丙部已归档的决策，请务必 清理干净，确保我们上下文清晰准确凝练！！"
+**引用流程**：H1.2 执行 + H4.2 丙部待决策机制（生命周期：写入 → 决策 → Decision Log 归档 → 执行 → 从丙部删除）
+
+- **清理动作**：
+  - CLAUDE.md 丙部 P.10 整节删除（已决策归档，生命周期闭环）；丙部仅保留 P.8（仍在等待书记决策）
+  - 新建 `.ctx/logs/2026-08-DECISION_LOG.md`，归档 D-264（P.10 决策）/ D-265（书记工作台 renderTabBar 架构）/ D-266（visitor 待办派生与数据补全）
+  - `.ctx/logs/DECISION_LOG.md` 索引表新增 2026-08 行
+
+- **变更文件**：`CLAUDE.md`、`.ctx/logs/2026-08-DECISION_LOG.md`（新建）、`.ctx/logs/DECISION_LOG.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+
+## T180 P.10 执行：Help 两个裸文本板块修复 + 行百里者半九十做成环形 + 旧样式清理（2026-08-01）
+
+**任务**：书记决策（P.10）——第一步按全页风格补齐样式（推荐）；第二步清理旧样式；且【行百里者半九十】必须做成环形。Use Skill: web-design-guidelines
+**引用流程**：H1.2 执行 + web-design-guidelines Skill + D-264 归档决策
+
+- **执行明细**：
+  - 「两条宝贵机会」板块：补卡片/间距/排版样式（`.help-philosophy-opp*`），与全页苹果风统一（getComputedStyle 实测非裸文本）
+  - 「行百里者半九十」板块：实现**环形四阶段**——2x2 grid（`help-dialogue-card--pos01~04`）+ SVG 椭圆环（`.help-dialogue-ring`）+ 箭头，四阶段循环闭环语义视觉化
+  - 旧版废弃样式清理（约 20 处 `.help-dialogue-*`/`.help-philosophy-*` 旧选择器不再在 DOM）
+- **变更文件**：`docs/src/entries/help-entry.js`、`docs/src/styles.css`
+- **验证结果**：✅ 浏览器渲染正常；✅ GetDiagnostics 无错误
+
+## T181 T-142 推进：书记工作台 renderTabBar 统一架构重构 + visitor 系统梳理 + 双数据源统一（2026-08-01）
+
+**任务**：书记指令——"3. 继续推进【T-142】。请着重针对 书记 和 visitor 的做一次系统的梳理和检查！！Use Skill: brainstorming Use Skill: dogfood"；追加反馈——"书记工作台的 tab 排列顺序和党建、党务、反馈、工作台 的设计都非常糟糕！！请你也尝试学习参考其他角色的tab设计"
+**引用流程**：H1.2 执行 + brainstorming Skill + dogfood Skill + web-design-guidelines Skill + D-265/D-266 归档决策
+
+- **书记工作台（D-265，renderTabBar 统一架构）**：
+  - `tab-bar.js`：新增 `onTabChange` 回调 + `currentTab` getter
+  - `secretary.html`：删除唯一硬编码 tab 栏 + 6 个静态 pane，改为 `#secretary-content` 单容器
+  - `ws-secretary-entry.js`：`_ensureSecTabBar` 统一构建（分组：工作台/党建/党务/反馈）+ 各 tab 骨架模板 + 增量渲染（`dataset.currentTab`/`dataset.panelInit` 防重）+ 待办容器/行动跳转适配 + 品牌筛选按钮语义修正（只看品牌活动/显示全部活动）+ 月份一致性修复（以 `populateMonthSelector` 返回值为权威）
+  - 修复：活动管理 tab renderCtx 崩溃（`() => _renderCalendarTabContent(getAppState())`）；文件尾部旧 month-selector 监听死代码删除
+- **visitor 系统梳理（D-266）**：
+  - `todo.js`：新增 `VisitorTodoDeriver`（通知待阅读 + 活动待参与，sourceType+sourceId 幂等去重，清理已取消/过期/归档遗留）+ `TodoActionType.PARTICIPATE` + `seedTodos` 幂等化
+  - `ws-visitor-entry.js`：接入派生；`_handleTodoAction` 通知类直跳 `notice.html?id=`（B5）、participate 跳活动动态；活动动态/考勤过滤 cancelled
+  - `todo-list.js`：`participate` 按钮文案「去参与」
+  - `activities.js`：act-29 补 p5 participant（书记批准，覆盖「活动待参与」演示分支）
+- **全局概况/数据（T-142 系统检查）**：
+  - `inspection.js`（mock）：补 insp-13~20 考察记录（积极分子 4/发展对象 1/预备党员 3），对齐 developStage 分类
+  - `roles.js`：`authGranted` 改为 AuthStore leader 赋权记录数（3 位党小组组长），修复初装为 0
+  - 通知发布接入 NoticeStore（`NoticeStore.add/remove`），消除 localStorage('workflowos_notifications') 双数据源
+- **A5 修复（回归发现）**：`renderNotificationList` 中 `_fmtDate(n.publishDate)` 对字符串日期抛 `TypeError: d.getFullYear is not a function`（mock 通知 publishDate 为 '2026-07-15' 字符串）——改为 `typeof === 'string'` 走 `.slice(0,10)`、否则 `_fmtDate`，列表恢复正常渲染
+- **B5 修复（回归发现）**：visitor「去阅读」未跳转 notice.html——`_handleTodoAction` 通知分支缺失，重新补入
+- **变更文件**：`docs/src/components/tab-bar.js`、`docs/src/components/todo-list.js`、`docs/workspace/secretary.html`、`docs/src/entries/ws-secretary-entry.js`、`docs/src/entries/ws-visitor-entry.js`、`docs/src/services/todo.js`、`docs/src/mock/activities.js`、`docs/src/mock/inspection.js`、`docs/src/services/roles.js`
+- **验证结果（浏览器双轮实测通过）**：
+  - ✅ 书记工作台 6 tab 全流程：待办/全局概况/活动管理/常设赋权/通知发布/反馈管理，分组标签齐全，无 JS 报错
+  - ✅ 通知发布：列表 13 条正常渲染（A5 修复）、发布→删除闭环成功
+  - ✅ visitor 5 tab 分组（工作台/党建）正常；待办派生 4 条阅读通知 + 1 条参与活动；「去阅读」跳转 notice.html?id=notice-103 成功（B5 修复）；「去参与」跳转活动动态成功；cancelled 过滤生效
+  - ✅ GetDiagnostics 全部修改文件零错误
+
+- **沉淀标签**: `[已沉淀: content/insights/工程演进与设计方法论.md §6.22]` — 按规执行（Store + Deriver 封装模式复用），省略新沉淀。

@@ -1,9 +1,9 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
 title: "数据架构设计"
 type: design
 role: "[工程师]+[AI]"
-version: "3.0"
-last_updated: "2026-07-31"
+version: "4.0"
+last_updated: "2026-08-01"
 status: active
 merged_from: [content/design/DATA.md, content/design/PARTICIPANT_DATAFLOW.md, content/design/LOGIN_SYSTEM_DESIGN.md, content/design/BRAND_ACTIVITY.md]
 related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/MODULE_UI_DESIGN.md, content/04_web_design/DESIGN_SYSTEM.md]
@@ -130,6 +130,59 @@ ActivityRecord (主记录)
 - `materials` 子记录 → 对应 `mockDB.fileSpaceRecords` 中 `activityId` 匹配且 category 非 `publicity` 的 FileSpaceRecord 集合
 - `publicity` 子记录 → 对应 `mockDB.fileSpaceRecords` 中 `activityId` 匹配且 category=`publicity` 的 FileSpaceRecord 集合
 - 主记录的 `deliverableIds` 字段已废弃，子记录通过 `activityId` 直接查询
+
+#### 2.1.2 活动分类体系（2026-07-31 重构）
+
+> **设计理念**：活动顶层分类为两大类，三会一课固定分类，主题党日使用正交维度。
+> **书记指示**（2026-07-31）：活动分类应清晰表达层次关系，避免视觉混乱。
+
+**活动顶层分类**：
+
+**1. 三会一课**（固定分类，无正交维度）
+
+- 支部党员大会
+- 支委会
+- 党小组会
+- 党课
+
+> **组织生活会**（`scenarioId: 'org-life'`）归入三会一课系（书记 2026-08-01 决策）：组织生活会是**会议内容**（如开展批评与自我批评），**形式上仍是三会**（支部党员大会/支委会/党小组会，都有可能），故不单独成类。颜色/简称/图例均按三会一课系（党建红）呈现，SOP 场景独立保留（见 `sopData.js`）。
+
+**2. 主题党日**（使用正交维度）
+
+- **维度1：共建性质**（独立开展 / 共建开展）— 决定对接工作
+- **维度2：是否外出**（校内 / 校外）— 决定后勤工作（约车、订餐等）
+- **维度3：活动载体**（理论学习 / 实践参访 / 交流座谈 / 其他，多选）— 影响实施细节
+
+**视觉表达规范**：
+
+| 元素 | 规范 | 说明 |
+|------|------|------|
+| **日历简称** | 三会一课：党会（支部党员大会/支委会/党小组会）、党课<br>主题党日：党日 | 格子宽度受限，使用2字简称 |
+| **颜色方案** | 三会一课：党建红 #CE1126<br>主题党日：党建金 #D4AF37 | 顶层分类颜色，不细分 |
+| **图例显示** | 顶层显示：三会一课、主题党日两大类<br>不显示子分类 | 避免层次混乱 |
+
+**数据结构映射**：
+
+```javascript
+// 三会一课数据结构
+{
+  scenarioId: 'branch-party-meeting', // 支部党员大会
+  // 或 'branch-committee'（支委会）
+  // 或 'party-group-meeting'（党小组会）
+  // 或 'party-lecture'（党课）
+}
+
+// 主题党日数据结构（正交维度）
+{
+  scenarioId: 'theme-party',
+  isJoint: false,           // 共建性质
+  isOutdoor: false,         // 是否外出
+  carriers: ['理论学习'],    // 活动载体（多选）
+  carrierOther: null,       // 其他载体（需书记权限）
+}
+```
+
+**与 §2.1 的关系**：§2.1 定义活动数据结构，本节定义活动分类体系。两者互补，共同构成活动数据的完整定义。
 
 ### 2.2 角色与权限数据
 
@@ -904,7 +957,156 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 **已禁用 `_maybeError` 随机错误模拟**（D-248）：原设计 10% 错误率触发 fallback 返回静态 ACTIVITIES，导致跨页面数据漂移。后端接入后真实错误由后端返回。
 
-### 4.4 数据写入模式
+### 4.4 数据访问抽象层（DataAdapter）— T-142 阶段2
+
+> **设计目标**：为接入学校服务器做前端数据层抽象准备，实现 mock/API 无缝切换。
+
+#### 4.4.1 架构
+
+```
+UI 层（entries/components/services）
+         │
+         ▼
+   BranchService（兼容层，代理到 mock.js）
+         │
+   ┌─────┴─────────────────┐
+   │                       │
+   ▼                       ▼
+data-adapter.js         data-adapter.js
+（便捷方法）            （getAdapter() 直接访问）
+   │                       │
+   ▼                       ▼
+MockAdapter            ApiAdapter
+（mockDB+localStorage） （REST API+JWT）
+```
+
+#### 4.4.2 核心文件
+
+| 文件 | 位置 | 职责 |
+|------|------|------|
+| `data-adapter.js` | `docs/src/core/` | 统一接口定义 + 切换机制 + 便捷方法 |
+| `mock-adapter.js` | `docs/src/core/` | DataAdapter 的 mock 实现（操作 mockDB） |
+| `api-adapter.js` | `docs/src/core/` | DataAdapter 的 REST API 实现（接入后端时使用） |
+| `runtime.js` | `docs/src/services/` | 初始化 DataAdapter + 暴露 BranchService（兼容层） |
+
+#### 4.4.3 切换方式
+
+一处配置，全局切换：
+
+```javascript
+// runtime.js 中：
+setDataSource('api', {
+  apiBaseUrl: 'https://<学校计算中心域名>/api/v1',
+  authToken: '<JWT Token>',
+});
+```
+
+UI 层零改动。
+
+#### 4.4.4 DataAdapter 接口规范
+
+按资源分组，每组包含 CRUD 方法，所有方法返回 Promise：
+
+| 资源分组 | 方法 | 说明 |
+|---------|------|------|
+| activities | list/create/update/delete/archive/toggleBrand | 活动管理 |
+| tasks | list/create/update | 任务管理 |
+| attendances | list/listByActivity/create/update | 考勤管理 |
+| inspections | list/create | 考察管理 |
+| taskforces | list/create/update/delete | 专班管理 |
+| notices | list/create/update | 通知管理 |
+| todos | list/create/update/delete | 待办管理 |
+| assignments | list/create | 分工管理 |
+| handovers | list/create | 交接管理 |
+| makeupTasks | list/create/update | 补课任务 |
+| authorizations | list/create/delete | 赋权记录 |
+| fileSpaceRecords | list/create | 文件空间 |
+| imageRecords | list/create | 图片记录 |
+| experienceDeposits | list/create | 经验沉淀 |
+| complianceReferences | list/create | 合规引用 |
+
+#### 4.4.5 API 路由设计
+
+| 资源 | 路径 | 方法 |
+|------|------|------|
+| 活动 | `/api/v1/activities` | GET/POST |
+| 活动(单) | `/api/v1/activities/:id` | GET/PATCH/DELETE |
+| 活动归档 | `/api/v1/activities/:id/archive` | POST |
+| 活动品牌 | `/api/v1/activities/:id/brand` | POST |
+| 任务 | `/api/v1/tasks` | GET/POST |
+| 任务(单) | `/api/v1/tasks/:id` | PATCH |
+| 考勤 | `/api/v1/attendances` | GET/POST |
+| 考勤(单) | `/api/v1/attendances/:id` | PATCH |
+| 考察 | `/api/v1/inspections` | GET/POST |
+| 专班 | `/api/v1/taskforces` | GET/POST |
+| 专班(单) | `/api/v1/taskforces/:id` | PATCH/DELETE |
+| 通知 | `/api/v1/notices` | GET/POST |
+| 通知(单) | `/api/v1/notices/:id` | PATCH |
+| 待办 | `/api/v1/todos` | GET/POST |
+| 待办(单) | `/api/v1/todos/:id` | PATCH/DELETE |
+| 分工 | `/api/v1/assignments` | GET/POST |
+| 交接 | `/api/v1/handovers` | GET/POST |
+| 补课 | `/api/v1/makeup-tasks` | GET/POST |
+| 补课(单) | `/api/v1/makeup-tasks/:id` | PATCH |
+| 赋权 | `/api/v1/authorizations` | GET/POST |
+| 赋权(单) | `/api/v1/authorizations/:id` | DELETE |
+| 文件空间 | `/api/v1/files` | GET/POST |
+| 图片 | `/api/v1/images` | GET/POST |
+| 经验沉淀 | `/api/v1/experiences` | GET/POST |
+| 合规引用 | `/api/v1/compliance-refs` | GET/POST |
+| 认证登录 | `/api/v1/auth/login` | POST |
+| 认证注销 | `/api/v1/auth/logout` | POST |
+
+#### 4.4.6 兼容性说明
+
+- **BranchService（兼容层）**：仍代理到 mock.js，现有调用方无需修改
+- **DataAdapter（新接口）**：新代码通过 `getAdapter()` 访问数据
+- 两者并行运行，渐进式迁移
+
+### 4.5 数据写入模式
 
 > 实现细节见 `docs/src/` 对应文件（`services/mock.js`、`core/state.js`、`entries/main-entry.js`）。
 > 写入数据验证设计见 §2.17。
+
+### 4.6 写穿透缓存模式（T-142 Phase 2B）
+
+> **设计理念**：前端数据层采用"写穿透缓存"模式，实现零成本迁移到后端数据库。
+> **实现文件**：`docs/src/core/data-adapter.js`（`init()` + `persist()` 方法）
+
+**核心机制**：
+
+| 操作类型 | 实现方式 | 说明 |
+|---------|---------|------|
+| 读操作 | 同步读 mockDB 缓存 | 前端零改动，保持同步访问 |
+| 写操作 | 通过 `persist()` 路由到当前数据源 | 自动路由到 mock/api 适配器 |
+| 初始化 | `init()` 从当前数据源预加载数据 | 页面加载时调用，填充 mockDB 缓存 |
+
+**代码示例**：
+
+```javascript
+// runtime.js 初始化
+import { init, setDataSource } from '../core/data-adapter.js';
+
+// 启动时预加载数据
+await init();
+
+// 切换数据源（接入后端时）
+setDataSource('api', {
+  apiBaseUrl: 'https://计算中心提供的域名/api/v1',
+  authToken: '<JWT Token>',
+});
+```
+
+**优势**：
+
+1. **前端零改动**：所有读操作保持同步，无需改为 async/await
+2. **平滑接入后端**：只需调用 `setDataSource('api', ...)` 即可切换
+3. **数据一致性**：写操作自动路由到当前数据源，避免数据分裂
+
+**适用场景**：
+
+- 前端数据层需要接入后端数据库
+- 需要保持前端代码零改动
+- 需要支持 mock/api 双模式切换
+
+**与 §4.4 的关系**：§4.4 定义 DataAdapter 接口规范，本节定义写穿透缓存模式的具体实现。
