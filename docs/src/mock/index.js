@@ -1,21 +1,21 @@
-import { PEOPLE } from './people.js';
 import { ACTIVITIES } from './activities.js';
+import { PEOPLE } from './people.js';
 
-/** 按 ID 查询人员，返回 person 对象或 null */
-export function getPersonById(id) {
-  if (!id) return null;
-  return PEOPLE.find(p => p.id === id) || null;
-}
+// ════════════════════════════════════════════════════════════════
+//  人员数据访问 — 从 person.js 统一导入（T-142 Phase 2C）
+// ════════════════════════════════════════════════════════════════
 
-/** 按 ID 查询人员姓名，返回 name 或 fallback 到 id */
-export function getPersonName(id) {
-  if (!id) return '—';
-  return getPersonById(id)?.name || id;
-}
+// 修复（T174）：re-export 语法不创建当前模块作用域绑定，
+// 导致 _personName 内直接引用 getPersonName 抛 ReferenceError。
+// 改为显式 import + 显式 re-export，确保绑定可用。
+import { getPersonById, getPersonName } from '../services/person.js';
+export { getPersonById, getPersonName };
+// PEOPLE 从 mock/people.js 导入并重新导出（向后兼容）
+export { PEOPLE };
 
+/** @deprecated 请使用 getPersonName() */
 export function _personName(id) {
-  if (!id) return '—';
-  return PEOPLE.find(p => p.id === id)?.name || id;
+  return getPersonName(id);
 }
 
 export function _activityTitle(id) {
@@ -26,7 +26,6 @@ export function _activityType(id) {
   return ACTIVITIES.find(a => a.id === id)?.type || '未知';
 }
 
-export { PEOPLE } from './people.js';
 export { ACTIVITIES } from './activities.js';
 export { ATTENDANCE_RECORDS, attendanceToLong, attendanceToWide } from './attendance.js';
 export { INSPECTION_RECORDS, inspectionToLong, inspectionToWide, inspectionToDisplay } from './inspection.js';

@@ -14,19 +14,36 @@ import { icon } from '../core/icons.js';
 export const DECISION_TREE_CONFIGS = {
   leader: {
     L1: [
-      { value: 'party-group-meeting', label: '党小组会', color: '#0E7490' },
-      { value: 'theme-party', label: '主题党日', color: '#2563EB' },
+      { value: 'party-group-meeting', label: '党小组会', color: '#CE1126' },
+      { value: 'theme-party', label: '主题党日', color: '#D4AF37' },
     ],
+    // 主题党日正交维度（多选）
+    THEME_PARTY_DIMENSIONS: {
+      isJoint: [
+        { value: false, label: '独立开展' },
+        { value: true, label: '共建开展' },
+      ],
+      isOutdoor: [
+        { value: false, label: '校内' },
+        { value: true, label: '校外' },
+      ],
+      carriers: [
+        { value: '理论学习', label: '理论学习' },
+        { value: '实践参访', label: '实践参访' },
+        { value: '交流座谈', label: '交流座谈' },
+        { value: '其他', label: '其他' },
+      ],
+    },
+    // L2 活动形式（书记 2026-08-01 活动分类：党小组会无子分类，主题党日 L2=活动载体）
     L2: {
       'party-group-meeting': [
-        { value: 'meeting', label: '会议', color: '#0E7490' },
+        { value: 'party-group-meeting', label: '党小组会' },
       ],
       'theme-party': [
-        { value: 'study', label: '学习', color: '#2563EB' },
-        { value: 'visit', label: '参访', color: '#059669' },
-        { value: 'forum', label: '座谈', color: '#65A30D' },
-        { value: 'co-build', label: '共建', color: '#DB2777' },
-        { value: 'meeting', label: '会议', color: '#0E7490' },
+        { value: '理论学习', label: '理论学习' },
+        { value: '实践参访', label: '实践参访' },
+        { value: '交流座谈', label: '交流座谈' },
+        { value: '其他', label: '其他' },
       ],
     },
     L3: [
@@ -47,7 +64,7 @@ export const DECISION_TREE_CONFIGS = {
   secretary: {
     L1: [
       { value: 'three-meetings', label: '三会一课', icon: '三', iconColor: '#CE1126', iconBg: 'rgba(206,17,38,0.10)', hasSub: true },
-      { value: 'theme-day', label: '主题党日', icon: '主', iconColor: '#2563EB', iconBg: 'rgba(37,99,235,0.10)', scenarioId: 'theme-party' },
+      { value: 'theme-party', label: '主题党日', icon: '主', iconColor: '#D4AF37', iconBg: 'rgba(212,175,55,0.10)', scenarioId: 'theme-party' },
     ],
     L1Sub: {
       'three-meetings': [
@@ -57,16 +74,21 @@ export const DECISION_TREE_CONFIGS = {
         { value: 'party-lecture', label: '党课', scenarioId: 'party-lecture' },
       ],
     },
-    L2: {
-      'three-meetings': [
-        { value: 'meeting', label: '会议', color: '#0E7490', bg: 'rgba(14,116,144,0.10)', border: 'rgba(14,116,144,0.30)' },
+    // 主题党日正交维度（多选）
+    THEME_PARTY_DIMENSIONS: {
+      isJoint: [
+        { value: false, label: '独立开展' },
+        { value: true, label: '共建开展' },
       ],
-      'theme-day': [
-        { value: 'study', label: '学习', color: '#2563EB', bg: 'rgba(37,99,235,0.10)', border: 'rgba(37,99,235,0.30)' },
-        { value: 'visit', label: '参访', color: '#059669', bg: 'rgba(5,150,105,0.10)', border: 'rgba(5,150,105,0.30)' },
-        { value: 'forum', label: '座谈', color: '#D97706', bg: 'rgba(217,119,6,0.10)', border: 'rgba(217,119,6,0.30)' },
-        { value: 'co-build', label: '共建', color: '#DB2777', bg: 'rgba(219,39,119,0.10)', border: 'rgba(219,39,119,0.30)' },
-        { value: 'meeting', label: '会议', color: '#0E7490', bg: 'rgba(14,116,144,0.10)', border: 'rgba(14,116,144,0.30)' },
+      isOutdoor: [
+        { value: false, label: '校内' },
+        { value: true, label: '校外' },
+      ],
+      carriers: [
+        { value: '理论学习', label: '理论学习' },
+        { value: '实践参访', label: '实践参访' },
+        { value: '交流座谈', label: '交流座谈' },
+        { value: '其他', label: '其他' },
       ],
     },
     L3: [
@@ -132,7 +154,7 @@ export class DecisionTreeState {
       return this.config.SCENARIO_MAP[L1] || null;
     }
     // secretary
-    if (L1 === 'theme-day') return 'theme-party';
+    if (L1 === 'theme-party') return 'theme-party';
     return L1Sub || null;
   }
 

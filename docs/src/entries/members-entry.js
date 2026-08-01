@@ -4,8 +4,7 @@
 
 import { bootstrapPage } from '../core/bootstrap.js';
 import { AuthStore } from '../services/auth.js';
-import { PEOPLE } from '../mock/people.js';
-import { getPersonById } from '../mock/index.js';
+import { PEOPLE, getPersonById } from '../mock/index.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { loadActivities } from '../services/activity.js';
 import { ROLE_LABELS } from '../core/constants.js';

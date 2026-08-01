@@ -4,7 +4,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { mockDB } from '../core/domain.js';
-import { saveDB } from '../services/mock.js';
+import { persist } from '../core/data-adapter.js';
 import { ATTENDANCE_RECORDS } from '../mock/index.js';
 
 export function loadAttendanceRecords() {
@@ -13,5 +13,5 @@ export function loadAttendanceRecords() {
 
 export function saveAttendanceRecords(records) {
   mockDB.attendances = [...records];
-  saveDB();
+  persist();
 }

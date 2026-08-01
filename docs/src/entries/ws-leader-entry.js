@@ -9,7 +9,7 @@ import { attendanceToLong, inspectionToLong, PEOPLE, getPersonById, getPersonNam
 import { PersonPicker } from '../components/person-picker.js';
 import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js';
 import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, SOURCE_TYPE_LABELS, ParticipationLevel, ReviewStatus, REVIEW_STATUS_LABELS } from '../core/domain.js';
-import { saveDB } from '../services/mock.js';
+import { persist } from '../core/data-adapter.js';
 import { loadMakeupTasks } from '../services/makeup.js';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js';
 import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js';
@@ -272,7 +272,7 @@ function _renderWriteContent(activities) {
 
       function saveActSubs() {
         mockDB.actSubRecords = { ...mockDB.actSubRecords, [actId]: actSubs };
-        saveDB();
+        persist();
       }
 
       function renderActSubTable(type, items) {
@@ -608,7 +608,8 @@ function _bindDecisionTreeEvents(container) {
     try {
       const activityData = {
         title,
-        type: `${l1Label}·${l2Label}`,
+        // L2 与 L1 同名时（党小组会无子分类）不重复拼接
+        type: l2Label && l2Label !== l1Label ? `${l1Label}·${l2Label}` : l1Label,
         date: targetDate,
         targetDate,
         location,

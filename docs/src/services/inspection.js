@@ -4,7 +4,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { mockDB, SourceType } from '../core/domain.js';
-import { saveDB } from '../services/mock.js';
+import { persist } from '../core/data-adapter.js';
 import { INSPECTION_RECORDS } from '../mock/index.js';
 
 export function loadInspectionRecords() {
@@ -13,7 +13,7 @@ export function loadInspectionRecords() {
 
 export function saveInspectionRecords(records) {
   mockDB.inspections = [...records];
-  saveDB();
+  persist();
 }
 
 /** 更新考察记录 */

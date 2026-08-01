@@ -1,36 +1,39 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  service.runtime.js — 运行时插槽 (Runtime Slot)
-//  光华管理学院本科生党支部 SOP 引擎 v10.0
+//  光华管理学院本科生党支部 SOP 引擎 v11.0
 //
-//  此文件是未来唯一的后端替换点。
-//  步骤：① 将 USE_MOCK 切换为 false；② import supabaseService；
-//  ③ 将 supabaseService 赋值给 BranchService 的 false 分支。
-//  UI 层零改动，平滑接入 Supabase 或学校计算中心后端。
+//  T-142 阶段2改造：通过 DataAdapter 抽象层统一数据访问。
+//  切换方式：setDataSource('api', { apiBaseUrl, authToken })
+//  UI 层零改动，平滑接入学校计算中心后端。
+//
+//  兼容性：BranchService 仍暴露 mock.js 的完整 API，
+//  确保现有调用方无需修改。
 // ════════════════════════════════════════════════════════════════
 
 import * as mockService from './mock.js';
+import { registerMockAdapter, registerApiAdapter, setDataSource, getDataSource } from '../core/data-adapter.js';
+import { MockAdapter } from '../core/mock-adapter.js';
+import { ApiAdapter } from '../core/api-adapter.js';
 
-/** 切换为 false 并替换下方 false 分支导入即可接入真实后端 */
-const USE_MOCK = true;
+// ── 初始化 DataAdapter ──────────────────────────────────────────
 
-// TODO: 接入真实后端时，替换此处导入并将 USE_MOCK 设为 false
-// import * as supabaseService from './supabase.js';
+// 注册两个适配器实例
+registerMockAdapter(MockAdapter);
+registerApiAdapter(ApiAdapter);
 
-/** 未实现的真实后端占位符，确保提前失败而非静默错误 */
-const notImplemented = new Proxy({}, {
-  get(_, key) {
-    return () => Promise.reject(
-      Object.assign(new Error(`[RuntimeSlot] 真实后端服务 '${key}' 尚未实现，请先实现 service.supabase.js`), { type: 'NotImplementedError' })
-    );
-  },
-});
+// 当前使用 mock 模式（切换为 'api' 时自动走 API 适配器）
+setDataSource('mock');
+
+// ── BranchService — 党支部统一服务接口 ──────────────────────────
 
 /**
- * BranchService — 党支部统一服务接口
- * 当前暴露：createActivity
- * 未来扩展：getActivities, updateActivity, deleteActivity 等
+ * BranchService 保持向后兼容，直接代理到 mock.js。
+ * 新代码建议通过 data-adapter.js 的 getAdapter() 访问数据。
+ *
+ * 未来接入后端时：
+ * 1. 在此处调用 setDataSource('api', { apiBaseUrl: 'https://...', authToken: '...' })
+ * 2. BranchService 仍可用（mock.js 的 saveDB/loadDB 继续工作）
+ * 3. 通过 getAdapter() 访问的数据走 API 适配器
  */
-export const BranchService = USE_MOCK
-  ? mockService
-  : notImplemented; // TODO: replace notImplemented with supabaseService
+export const BranchService = mockService;

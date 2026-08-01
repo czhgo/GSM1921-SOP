@@ -3,7 +3,7 @@ import { showToast } from '../core/utils.js';
 import { CrossPageState } from '../core/cross-page-state.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js';
-import { saveDB } from '../services/mock.js';
+import { persist } from '../core/data-adapter.js';
 import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, reviewToDisplay, PEOPLE, getPersonName } from '../mock/index.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { renderTabBar } from '../components/tab-bar.js';
@@ -45,7 +45,7 @@ function _loadDeposits() {
 
 function _saveDeposits(deposits) {
   mockDB.experienceDeposits = [...deposits];
-  saveDB();
+  persist();
 }
 
 function renderDiscUI(state) {
@@ -229,6 +229,46 @@ function _bindTodoDetailEvents() {
   });
 }
 
+// ── 考勤概况渲染（从首页迁移） ──
+function _buildAttendanceSummaryHTML() {
+  const now = new Date();
+  const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const allActivities = loadActivities();
+  const monthActivities = allActivities.filter(a => (a.date || '').startsWith(thisMonth) && !a.archived);
+
+  if (monthActivities.length === 0) {
+    return '<p class="text-sm text-gray-400">本月暂无考勤数据</p>';
+  }
+
+  const attendanceRecords = loadAttendanceRecords();
+  const rows = monthActivities.map(act => {
+    const records = attendanceRecords.filter(r => r.activityId === act.id);
+    const present = records.filter(r => r.status === 'present').length;
+    const absent = records.filter(r => r.status === 'absent').length;
+    const leave = records.filter(r => r.status === 'leave').length;
+    const total = records.length;
+    const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+    const rateColor = rate >= 90 ? 'text-green-600' : rate >= 70 ? 'text-orange-600' : 'text-red-600';
+
+    return `
+      <div class="flex items-center gap-3 py-2 border-b border-gray-50 last:border-b-0 hover:bg-gray-50 rounded-lg px-2 -mx-2 transition-all duration-200">
+        <div class="flex-1 min-w-0">
+          <p class="text-sm text-gray-800 truncate">${act.title}</p>
+          <p class="text-xs text-gray-400">${act.date || ''}</p>
+        </div>
+        <div class="flex items-center gap-3 text-xs whitespace-nowrap">
+          <span class="text-green-600">出勤 ${present}</span>
+          <span class="text-red-500">缺勤 ${absent}</span>
+          <span class="text-orange-500">请假 ${leave}</span>
+          <span class="font-medium ${rateColor}">${rate}%</span>
+        </div>
+      </div>
+    `;
+  });
+
+  return rows.join('');
+}
+
 function _renderAttendanceContent(filterActivityId) {
   const container = document.getElementById('disc-tab-content');
   if (!container) return;
@@ -259,6 +299,12 @@ function _renderAttendanceContent(filterActivityId) {
 
   container.innerHTML = `
     ${filterBanner}
+    <div class="card rounded-xl p-4 mb-4 border-l-4" style="border-left-color:${accent};">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤概况</h4>
+      </div>
+      <div id="disc-attendance-summary">${_buildAttendanceSummaryHTML()}</div>
+    </div>
     <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤总表</h4>

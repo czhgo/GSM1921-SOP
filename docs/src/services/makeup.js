@@ -4,7 +4,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { mockDB, AttendanceStatus } from '../core/domain.js';
-import { saveDB } from '../services/mock.js';
+import { persist } from '../core/data-adapter.js';
 import { PEOPLE, getPersonById } from '../mock/index.js';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js';
 import { findActivityById } from '../services/activity.js';
@@ -18,7 +18,7 @@ export function loadMakeupTasks() {
 
 export function saveMakeupTasks(tasks) {
   mockDB.makeupTasks = tasks;
-  saveDB();
+  persist();
 }
 
 export function addMakeupTask(task) {

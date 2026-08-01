@@ -10,12 +10,11 @@
 //   - party 页面已移除，organizer/deep 内容归入首页"我的角色"区块
 
 import { ROLE_LABELS } from '../core/constants.js';
-import { PEOPLE } from '../mock/people.js';
-import { getPersonById, getPersonName } from '../mock/index.js';
+import { PEOPLE, getPersonById, getPersonName } from '../mock/index.js';
 import { mockDB } from '../core/domain.js';
 import { MOCK_TASKFORCES } from '../mock/taskforces.js';
 import { NoticeStore } from './notice.js';
-import { saveDB } from './mock.js';
+import { persist } from '../core/data-adapter.js';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';  // localStorage: { personId, role }
@@ -160,7 +159,7 @@ function _getAuthRecords() {
 
 function _saveAuthRecords(records) {
   mockDB.authorizations = records;
-  saveDB();
+  persist();
 }
 
 function _defaultAuthRecords() {

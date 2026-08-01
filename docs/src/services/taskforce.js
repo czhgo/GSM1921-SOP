@@ -6,7 +6,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { mockDB } from '../core/domain.js';
-import { saveDB } from './mock.js';
+import { persist } from '../core/data-adapter.js';
 import { MOCK_TASKFORCES, _personName, PEOPLE } from '../mock/index.js';
 
 const TASKFORCE_STORAGE_KEY = 'workflowos_taskforces_v1';
@@ -23,7 +23,7 @@ function _loadTaskForces() {
 function _saveTaskForces(records) {
   try {
     mockDB.taskforces = [...records];
-    saveDB();
+    persist();
   } catch (e) {
     console.warn('[TaskForceRecordStore] 保存失败：', e);
   }

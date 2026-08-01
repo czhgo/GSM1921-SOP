@@ -8,7 +8,7 @@ import { TaskForceRecordStore } from '../services/taskforce.js';
 import { PersonPicker } from '../components/person-picker.js';
 import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js';
 import { mockDB, SourceType, ParticipationLevel } from '../core/domain.js';
-import { saveDB } from '../services/mock.js';
+import { persist } from '../core/data-adapter.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { renderTabBar } from '../components/tab-bar.js';
 import { renderQueryView } from '../components/query-view.js';
@@ -403,7 +403,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
 
       function saveTfSubs() {
         mockDB.tfSubRecords = { ...mockDB.tfSubRecords, [tfId]: tfSubs };
-        saveDB();
+        persist();
       }
 
       function renderSubTable(type, items) {

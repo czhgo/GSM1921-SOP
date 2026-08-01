@@ -5,7 +5,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { mockDB } from '../core/domain.js';
-import { saveDB } from './mock.js';
+import { persist } from '../core/data-adapter.js';
 import { ACTIVITIES } from '../mock/index.js';
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
@@ -28,5 +28,5 @@ export function filterActivities(predicate) {
 /** 保存活动列表（全量替换） */
 export function saveActivities(records) {
   mockDB.activities = [...records];
-  saveDB();
+  persist();
 }

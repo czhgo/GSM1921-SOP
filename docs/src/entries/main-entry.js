@@ -10,6 +10,7 @@ import { _fmtDate, getBasePath, showToast } from '../core/utils.js';
 import { _personName, getPersonName } from '../mock/index.js';
 import { PEOPLE } from '../mock/index.js';
 import { loadAttendanceRecords } from '../services/attendance.js';
+import { loadActivities } from '../services/activity.js';
 import { CrossPageState } from '../core/cross-page-state.js';
 import { getActivityTypeColors } from '../core/constants.js';
 import { bootstrapPage } from '../core/bootstrap.js';
@@ -476,7 +477,7 @@ function renderDashboard(state) {
 
   _renderTaskforceList(taskforces);
   _renderActivityList(activities);
-  _renderAttendanceSummary(activities, loadAttendanceRecords());
+  // 考勤概况已迁移至书记+纪检工作区，首页不再渲染
   _renderGallery(activities);
 
   // ── 近期活动卡片渲染 ──

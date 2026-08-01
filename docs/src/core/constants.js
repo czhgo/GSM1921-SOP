@@ -21,48 +21,32 @@ export const ROLE_COLORS = {
   secretary:           { bg: 'rgba(185, 28, 28, 0.10)',   text: '#B91C1C',  border: 'rgba(185, 28, 28, 0.30)' },  // 党建红（不动）
 };
 
-// ── 活动类别颜色（三大类：三会一课=党建红 / 主题党日=党建金 / 专班=深青）──
-// 书记 2026-07-17 指示：不按共建/学习/参访细分，按"三会一课 vs 主题党日 vs 专班"三大类区分色
+// ── 活动类别颜色（两大类：三会一课=党建红 / 主题党日=党建金）──
+// 书记 2026-07-31 指示：活动顶层分类为两大类，三会一课固定分类，主题党日使用正交维度
 
 const ACTIVITY_CAT_COLOR = {
   // ── 三会一课系（党建红 #CE1126）──
-  'party-day-meeting': { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 支部党员大会/党小组会
-  'branch-meeting':    { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 支部委员会
-  'committee-meeting': { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 支委会
-  'meeting':           { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 会议活动
-  'org-life':          { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 组织生活
+  'branch-party-meeting': { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 支部党员大会
+  'branch-committee':      { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 支委会
+  'party-group-meeting':   { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 党小组会
+  'party-lecture':         { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 党课
   // ── 主题党日系（党建金 #D4AF37）──
-  'party-day-joint':   { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 共建
-  'party-day-study':   { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 学习
-  'party-day-visit':   { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 参访
-  'party-day-talk':    { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 座谈
-  'theme-general':     { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 主题教育
-  'learning':          { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 学习活动
-  'visit':             { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 参访活动
-  'discussion':        { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 座谈交流
-  'joint':             { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 共建活动
-  'training':          { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 党员培训
-  // ── 专班系（深青 #0E7490）──
-  'taskforce':         { bg: 'rgba(14, 116, 144, 0.10)', text: '#0E7490', border: 'rgba(14, 116, 144, 0.30)' },  // 专班
-  'long-term':         { bg: 'rgba(14, 116, 144, 0.10)', text: '#0E7490', border: 'rgba(14, 116, 144, 0.30)' },  // 长期活动
-  'development':       { bg: 'rgba(14, 116, 144, 0.10)', text: '#0E7490', border: 'rgba(14, 116, 144, 0.30)' },  // 发展党员
+  'theme-party':           { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 主题党日
   // ── 默认 ──
-  'default':           { bg: 'rgba(107, 114, 128, 0.08)', text: '#4B5563', border: 'rgba(107, 114, 128, 0.25)' },
+  'default':               { bg: 'rgba(107, 114, 128, 0.08)', text: '#4B5563', border: 'rgba(107, 114, 128, 0.25)' },
 };
 
 /**
  * scenarioId → 活动类别键 映射
  */
 const SCENARIO_TO_CATEGORY = {
-  'theme-party':        'party-day-study',
-  'branch-meeting':     'party-day-meeting',
-  'party-group-meeting': 'party-day-meeting',
-  'committee-meeting':  'meeting',
-  'party-lecture':      'learning',
-  'org-life':           'org-life',
-  'development':        'development',
-  'training':           'training',
-  'joint-event':        'party-day-joint',
+  'branch-party-meeting': 'branch-party-meeting',
+  'branch-committee':     'branch-committee',
+  'party-group-meeting':  'party-group-meeting',
+  'party-lecture':        'party-lecture',
+  // 组织生活会：会议内容（批评与自我批评），形式上归入三会一课系（书记 2026-08-01 决策）
+  'org-life':             'party-group-meeting',
+  'theme-party':          'theme-party',
 };
 
 /**
@@ -79,49 +63,40 @@ export function getActivityColor(activity) {
     return ACTIVITY_CAT_COLOR[SCENARIO_TO_CATEGORY[activity.scenarioId]];
   }
 
-  // 2) activityType 字段（决策树 Q2 直映射 + 旧值向后兼容）
-  if (activity.activityType) {
-    const at = activity.activityType;
-    if (at === 'party-day-joint'   || at.startsWith('党日日-共建')) return ACTIVITY_CAT_COLOR['party-day-joint'];
-    if (at === 'party-day-study'   || at.startsWith('党日日-学习')) return ACTIVITY_CAT_COLOR['party-day-study'];
-    if (at === 'party-day-visit'   || at.startsWith('党日日-参访')) return ACTIVITY_CAT_COLOR['party-day-visit'];
-    if (at === 'party-day-talk'    || at.startsWith('党日日-座谈')) return ACTIVITY_CAT_COLOR['party-day-talk'];
-    if (at === 'party-day-meeting' || at.startsWith('党日日-会议')) return ACTIVITY_CAT_COLOR['party-day-meeting'];
-    if (at === 'theme-party' || at === 'theme-general')  return ACTIVITY_CAT_COLOR['theme-general'];
-    if (at === 'learning')                              return ACTIVITY_CAT_COLOR.learning;
-    if (at === 'visit')                                 return ACTIVITY_CAT_COLOR.visit;
-    if (at === 'discussion')                            return ACTIVITY_CAT_COLOR.discussion;
-    if (at === 'joint')                                 return ACTIVITY_CAT_COLOR.joint;
-    if (at === 'meeting')                               return ACTIVITY_CAT_COLOR.meeting;
-    if (at === 'long-term')                             return ACTIVITY_CAT_COLOR['long-term'];
-  }
-
-  // 3) duration/domain 兜底
-  if (activity.duration === 'long-term') return ACTIVITY_CAT_COLOR['long-term'];
-  if (activity.domain === 'meeting') return ACTIVITY_CAT_COLOR.meeting;
-
+  // 2) 兜底
   return ACTIVITY_CAT_COLOR.default;
 }
 
 export const ACTIVITY_CATEGORY_COLORS = ACTIVITY_CAT_COLOR;
 
 export const ACTIVITY_TYPE_LABELS = {
-  'party-day-joint':   '共建活动',
-  'party-day-study':   '学习活动',
-  'party-day-visit':   '参访活动',
-  'party-day-talk':    '座谈交流',
-  'party-day-meeting': '党日会议',
-  'theme-general':     '主题党日',
-  'learning':          '学习活动',
-  'visit':             '参访活动',
-  'discussion':        '座谈交流',
-  'joint':             '共建活动',
-  'meeting':           '会议活动',
-  'development':       '发展党员',
-  'training':          '党员培训',
-  'org-life':          '组织生活',
-  'long-term':         '长期活动',
-  'default':           '其他活动',
+  // ── 三会一课 ──
+  'branch-party-meeting': '三会一课',
+  'branch-committee':     '三会一课',
+  'party-group-meeting':  '三会一课',
+  'party-lecture':        '三会一课',
+  'org-life':             '三会一课',
+  // ── 主题党日 ──
+  'theme-party':          '主题党日',
+  // ── 默认 ──
+  'default':              '其他活动',
+};
+
+/**
+ * 首页日历格子内2字缩写（格子宽度受限，完整标签显示不下）
+ * 书记 2026-07-31 指示：日历简称使用"党会""党课""党日"
+ */
+export const ACTIVITY_TYPE_SHORT = {
+  // ── 三会一课 ──
+  'branch-party-meeting': '党会',
+  'branch-committee':     '党会',
+  'party-group-meeting':  '党会',
+  'party-lecture':        '党课',
+  'org-life':             '党会',
+  // ── 主题党日 ──
+  'theme-party':          '党日',
+  // ── 默认 ──
+  'default':              '活动',
 };
 
 export const ROLE_LABELS = {
@@ -201,12 +176,13 @@ export function getAccentColors(role, bgAlpha = 0.1, borderAlpha = 0.3) {
 
 const _ACTIVITY_TYPE_BASE = {
   // 三会一课系（党建红）
-  '主题党日':     { bg: '#FEF2F2', dot: '#CE1126' },
   '党课':         { bg: '#FEF2F2', dot: '#CE1126' },
   '支委会':       { bg: '#FEF2F2', dot: '#CE1126' },
   '党小组会':     { bg: '#FEF2F2', dot: '#CE1126' },
   '支部党员大会': { bg: '#FEF2F2', dot: '#CE1126' },
+  '组织生活会':   { bg: '#FEF2F2', dot: '#CE1126' },
   // 主题党日系（党建金）
+  '主题党日':     { bg: '#FFFBEB', dot: '#D4AF37' },
   '共建':         { bg: '#FFFBEB', dot: '#D4AF37' },
   '参访':         { bg: '#FFFBEB', dot: '#D4AF37' },
   '座谈':         { bg: '#FFFBEB', dot: '#D4AF37' },

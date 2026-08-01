@@ -4,7 +4,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { mockDB } from '../core/domain.js';
-import { saveDB } from '../services/mock.js';
+import { persist } from '../core/data-adapter.js';
 
 export function loadAssignmentRecords() {
   if (!mockDB.assignments) mockDB.assignments = [];
@@ -13,7 +13,7 @@ export function loadAssignmentRecords() {
 
 function saveAssignmentRecords(records) {
   mockDB.assignments = records;
-  saveDB();
+  persist();
 }
 
 /**

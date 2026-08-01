@@ -4,7 +4,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { mockDB } from '../core/domain.js';
-import { saveDB } from '../services/mock.js';
+import { persist } from '../core/data-adapter.js';
 
 export function loadHandoverRecords() {
   if (!mockDB.handovers) mockDB.handovers = [];
@@ -13,7 +13,7 @@ export function loadHandoverRecords() {
 
 function saveHandoverRecords(records) {
   mockDB.handovers = records;
-  saveDB();
+  persist();
 }
 
 export function addHandoverRecord(record) {

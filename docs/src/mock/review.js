@@ -3,8 +3,15 @@
 // 复盘三态流转：未提交→已上传→批注中→确认/打回
 // 组织者提交复盘报告，纪检委员批注/打回/确认
 
-import { _personName, _activityTitle } from './index.js';
+// 修复（T175）：不再从 ./index.js 导入 _personName/_activityTitle，
+// 消除 mock/index.js ↔ mock/review.js 循环依赖。
+// 直接依赖 services/person.js + mock/activities.js。
+import { getPersonName } from '../services/person.js';
+import { ACTIVITIES } from './activities.js';
 import { ReviewStatus } from '../core/domain.js';
+
+const _personName = (id) => getPersonName(id);
+const _activityTitle = (id) => ACTIVITIES.find(a => a.id === id)?.title || id;
 
 /**
  * 活动复盘记录

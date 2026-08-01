@@ -7,7 +7,10 @@
 
 import { mockDB, SCHEMA_VERSION } from '../core/domain.js';
 import { generateId } from '../core/id.js';
-import { ACTIVITIES } from '../mock/index.js';
+// 修复（T175）：直接从 mock/activities.js 导入 ACTIVITIES，
+// 绕过 mock/index.js 的 re-export 转发（纯 re-export + 循环依赖存在 TDZ 风险，
+// 曾导致 loadDB() seed 阶段 ACTIVITIES.length 抛错被静默吞掉）
+import { ACTIVITIES } from '../mock/activities.js';
 import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_HANDOVERS } from '../mock/seed.js';
 
 const MOCK_DELAY_MS = 600;
@@ -18,8 +21,11 @@ const STORAGE_KEY = 'workflowos_branch_db_v1';
 /**
  * 内存沙盒模式开关：设为 true 时，每次刷新自动清空持久化存储，始终使用初始 mock 数据。
  * 设为 false 可恢复跨刷新持久化能力。
+ * 
+ * 2026-07-31 书记指出"很多数据显示还没有恢复"，根因是 SANDBOX_MODE=true 导致数据丢失。
+ * 已修复：关闭沙盒模式，恢复跨刷新持久化能力。
  */
-const SANDBOX_MODE = true;
+const SANDBOX_MODE = false;
 
 // ── 持久化引擎 ──────────────────────────────────────────────────
 
@@ -88,10 +94,17 @@ export function loadDB() {
     if (mockDB.handovers.length === 0) mockDB.handovers = [...SEED_HANDOVERS];
     return;
   }
-  /* --- 以下为持久化恢复逻辑（SANDBOX_MODE=false 时生效） ---
+  // --- 持久化恢复逻辑（SANDBOX_MODE=false 时生效） ---
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
+    
+    // 如果 localStorage 中没有数据，加载初始 mock 数据
+    if (!raw) {
+      console.info('[MockAdapter] localStorage 中无数据，加载初始 mock 数据。');
+      _seedInitialData();
+      return;
+    }
+    
     const parsed = JSON.parse(raw);
     if (parsed._schema == null || parsed._schema !== SCHEMA_VERSION) {
       console.warn(
@@ -117,10 +130,39 @@ export function loadDB() {
     if (Array.isArray(parsed.todos))       mockDB.todos       = parsed.todos;
     // 注：users 为静态预设数据，不从持久化存储恢复，以避免运行时数据污染
     console.info('[MockAdapter] loadDB 成功，已恢复持久化数据。');
+    // 修复（T175）：恢复后若核心数据仍为空（历史被污染的 localStorage 中
+    // activities/tasks 双 0 被持久化），回填 seed 数据，防止页面空态。
+    if (mockDB.activities.length === 0) {
+      console.warn('[MockAdapter] 恢复后 activities 仍为空，回填初始 seed 数据。');
+      _seedInitialData();
+      saveDB();
+    }
   } catch (e) {
-    console.warn('[MockAdapter] loadDB 失败（JSON 解析错误）：', e);
+    // 修复（T175）：不再静默吞掉 seed/解析错误——透出真实原因，
+    // 避免"页面空态但控制台无报错"的假象。
+    console.error('[MockAdapter] loadDB 失败（JSON 解析或 seed 错误）：', e);
   }
-  --- */
+}
+
+/**
+ * 加载初始 seed 数据到 mockDB（仅当对应字段为空时）
+ * 抽出为独立函数：供 !raw 分支、恢复后回填守卫共用（对齐 core/mock-adapter.js）
+ */
+function _seedInitialData() {
+  if (mockDB.activities.length === 0 && ACTIVITIES.length > 0) {
+    mockDB.activities = ACTIVITIES.map(a => ({
+      ...a,
+      visibility: a.visibility || 'branch',
+      executor: a.organizer || 'u_exec',
+      supervisor: null,
+      createdBy: a.organizer || 'u_exec',
+      createdAt: a.date || new Date().toISOString(),
+    }));
+  }
+  // 注入种子数据（仅当对应字段为空时）
+  if (mockDB.tasks.length === 0) mockDB.tasks = [...SEED_TASKS];
+  if (mockDB.assignments.length === 0) mockDB.assignments = [...SEED_ASSIGNMENTS];
+  if (mockDB.handovers.length === 0) mockDB.handovers = [...SEED_HANDOVERS];
 }
 
 /** 随机错误模拟（已禁用）
