@@ -91,7 +91,7 @@ function _renderProjectAuthPanel() {
   container.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div>
-        <label class="text-xs text-gray-500 mb-1 block">选择被赋权人</label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择被赋权人</label>
         <select id="project-auth-person" class="input-flat text-xs w-full">
           <option value="">— 请选择 —</option>
           ${candidatePeople.map(p => `<option value="${p.id}">${p.name}（${p.studentId}）</option>`).join('')}
@@ -99,7 +99,7 @@ function _renderProjectAuthPanel() {
       </div>
 
       <div>
-        <label class="text-xs text-gray-500 mb-1 block">选择项目类型</label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择项目类型</label>
         <select id="project-type-select" class="input-flat text-xs w-full">
           <option value="activity">活动</option>
           <option value="taskforce">专班</option>
@@ -107,14 +107,14 @@ function _renderProjectAuthPanel() {
       </div>
 
       <div>
-        <label class="text-xs text-gray-500 mb-1 block">选择项目</label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择项目</label>
         <select id="project-id-select" class="input-flat text-xs w-full">
           ${loadActivities().map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('')}
         </select>
       </div>
 
       <div>
-        <label class="text-xs text-gray-500 mb-1 block">选择角色</label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择角色</label>
         <div class="flex gap-3 pt-1">
           ${projectRoles.map(r => `
             <label class="flex items-center gap-2 text-sm">

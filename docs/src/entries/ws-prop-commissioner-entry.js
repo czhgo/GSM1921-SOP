@@ -651,13 +651,13 @@ function _renderWeeklyContent() {
         </div>
         <div class="space-y-3">
           <div>
-            <label class="block text-[11px] font-medium text-gray-600 mb-1">选择周次</label>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择周次</label>
             <select id="weekly-week" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">
               ${WEEKLY_REPORTS.map(r => `<option value="${r.id}" ${r.status === 'draft' ? 'selected' : ''}>${r.week}（${r.weekRange}）</option>`).join('')}
             </select>
           </div>
           <div>
-            <label class="block text-[11px] font-medium text-gray-600 mb-1">周报内容</label>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium">周报内容</label>
             <textarea id="weekly-content" rows="6" placeholder="请填写本周工作内容，每条一行..." class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none">${draftReport ? draftReport.content : ''}</textarea>
           </div>
           <button id="weekly-submit-btn" class="w-full py-2 text-xs font-medium text-white rounded-lg transition-colors" style="background:${accent}">报送</button>

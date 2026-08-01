@@ -131,7 +131,7 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
 
   let html = `<div class="mb-6">`;
   html += `<div class="font-stheiti text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${y}年 ${MN[m - 1]}</div>`;
-  html += `<div class="${isMobile ? 'cal-mobile-grid' : ''}" style="display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:1fr;gap:${isMobile ? '2px' : '4px'};">`;
+  html += `<div class="${isMobile ? 'cal-mobile-grid' : ''}" style="display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:1fr;gap:2px;">`;
   DN.forEach(d => { html += `<div class="font-stheiti text-[11px] text-gray-400 text-center pb-1.5 font-semibold">${d}</div>`; });
 
   for (let i = 0; i < firstDow; i++) {
@@ -142,7 +142,7 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
     const isT = k === todayKey;
     const ct = tasksByDate[k] || [];
     const hasActivity = actDates.has(k);
-    let cls = isMobile ? 'cal-cell-mobile' : 'cal-cell-large';
+    let cls = isMobile ? 'cal-cell-mobile' : 'cal-cell-large cal-cell-compact';
     if (ct.length > 0 || hasActivity) cls += ' has-tasks';
     if (isT) cls += ' is-today';
 
@@ -151,7 +151,7 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
     if (isMobile) {
       html += _renderMobileDots(k, activeActivities, ct, hasActivity, tasks, state);
     } else {
-      html += _renderCellContent(k, activeActivities, ct, hasActivity, tasks, state);
+      html += _renderCompactCellContent(k, activeActivities, ct, hasActivity, tasks, state);
     }
     html += '</div>';
   }
@@ -162,7 +162,39 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
     _bindMobileCellClicks(grid, activeActivities, tasks, month, state);
   } else {
     _bindCellClicks(grid);
+    _bindHoverPreview(grid, activeActivities);
   }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  月视图格子内容（紧凑方形格：简写常驻 + 最多 3 条活动标签）
+//  2026-08-01 统一全站月视图基线：方形格 + 简写 + hover 浮窗
+// ════════════════════════════════════════════════════════════════
+function _renderCompactCellContent(dateKey, activeActivities, ct, hasActivity, tasks, state) {
+  const { managementRole } = state || {};
+  let html = '';
+  const dayActs = activeActivities.filter(a => a.date === dateKey);
+  dayActs.slice(0, 3).forEach(act => {
+    const color = getActivityColor(act);
+    const shortLabel = ACTIVITY_TYPE_SHORT[act.scenarioId] || ACTIVITY_TYPE_SHORT[act.type] || (act.type ? act.type.slice(0, 2) : '活动');
+    html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" style="background:${color.bg};color:${color.text};border:1px solid ${color.border};" title="${act.title || ''}">` +
+            `<span class="cal-activity-dot" style="background:${color.text};"></span>` +
+            `<span>${shortLabel}</span></div>`;
+  });
+  if (dayActs.length > 3) html += `<div class="font-stheiti text-[9px] text-gray-400 text-center mt-0.5">+${dayActs.length - 3} 项</div>`;
+  // 无活动时才显示任务标签（紧凑，最多 2 条，避免挤爆方形格）
+  if (dayActs.length === 0) {
+    const dayActIds = new Set(dayActs.map(a => a.id));
+    const dayTasksDirect = ct;
+    const dayTasksViaAct = tasks.filter(t => !t.date && t.activityId && dayActIds.has(t.activityId));
+    const allDayTasks = [...dayTasksDirect, ...dayTasksViaAct];
+    const filteredTasks = filterTasksByManagementRole(allDayTasks, managementRole);
+    filteredTasks.slice(0, 2).forEach(t => {
+      const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
+      html += `<div class="cal-task-tag" style="background:${c.bg};color:${c.text};border:1px solid ${c.border};"><span class="task-dot" style="background:${c.text};"></span><span class="truncate">${t.title}</span></div>`;
+    });
+  }
+  return html;
 }
 
 // ════════════════════════════════════════════════════════════════

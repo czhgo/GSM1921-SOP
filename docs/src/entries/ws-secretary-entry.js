@@ -21,7 +21,7 @@ import { renderTodoList } from '../components/todo-list.js';
 import { renderTabBar } from '../components/tab-bar.js';
 import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js';
 import { loadAttendanceRecords } from '../services/attendance.js';
-import { SecretaryOverviewStore } from '../services/secretary-overview.js';
+import { SecretaryOverviewStore, SecretaryTodoDeriver } from '../services/secretary-overview.js';
 import { NoticeStore } from '../services/notice.js';
 
 await bootstrapPage({ module: 'workspace' });
@@ -499,9 +499,7 @@ function _renderOverviewContent() {
       title: '发展与考察',
       color: '#0EA5E9',
       items: [
-        { label: '积极分子', value: `${data.inspection.stageCounts.activist}人` },
-        { label: '发展对象', value: `${data.inspection.stageCounts.target}人` },
-        { label: '预备党员', value: `${data.inspection.stageCounts.probationary}人` },
+        { label: '发展分布', value: `申请${data.inspection.stageCounts.applicant}·积极${data.inspection.stageCounts.activist}·发展${data.inspection.stageCounts.target}·预备${data.inspection.stageCounts.probationary}·正式${data.inspection.stageCounts.full}` },
         { label: '考察待确认', value: data.inspection.pendingInspections, alert: data.inspection.pendingInspections > 0 },
         { label: '考察超期', value: data.inspection.overdueInspections, alert: data.inspection.overdueInspections > 0 },
       ],
@@ -557,18 +555,31 @@ function _renderTodoContent() {
   if (!container) return;
   container.dataset.currentTab = 'todo';
 
+  // 补种子数据 + 派生活动/专班/考勤异常待办（幂等，确保首访即有数据，不依赖先打开全局概况）
+  seedTodos();
+  SecretaryTodoDeriver.deriveAll();
+
   // 刷新过期状态
   TodoStore.refreshExpiredStatus();
 
   const groupedTodos = TodoStore.getGroupedByCategory('secretary');
   const stats = TodoStore.getStatsByRole('secretary');
-  const selectedTodo = _selectedTodoId ? TodoStore.getById(_selectedTodoId) : null;
+
+  // 未选中任何待办时自动选中第一条（按分类顺序）——避免右卡空占位造成的左右失衡
+  let selectedTodo = _selectedTodoId ? TodoStore.getById(_selectedTodoId) : null;
+  if (!selectedTodo && stats._total > 0) {
+    for (const cat of Object.keys(groupedTodos)) {
+      const first = (groupedTodos[cat] || [])[0];
+      if (first) { selectedTodo = first; _selectedTodoId = first.id; break; }
+    }
+  }
 
   const { html: todoListHtml, bindEvents } = renderTodoList({
     prefix: 'secretary',
     groupedTodos,
     stats,
     accent,
+    selectedTodoId: _selectedTodoId,
     onSelectTodo: (todo) => {
       _selectedTodoId = todo.id;
       _renderTodoContent();
@@ -585,9 +596,9 @@ function _renderTodoContent() {
   });
 
   const detailHtml = selectedTodo ? _renderTodoDetail(selectedTodo) : `
-    <div class="text-center py-12 text-gray-400">
-      <p class="text-sm">点击左侧待办查看详情</p>
-      <p class="text-xs mt-1">或直接点击"去赋权/去审核"等按钮处理</p>
+    <div class="text-center py-10 text-gray-400">
+      <p class="text-sm">暂无待办</p>
+      <p class="text-xs mt-1">所有任务已完成</p>
     </div>
   `;
 
@@ -602,8 +613,8 @@ function _renderTodoContent() {
         </div>
       </div>
       <div class="lg:col-span-1">
-        <div class="card rounded-xl p-5 sticky top-20">
-          <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-4">详情</h4>
+        <div class="card rounded-xl p-5 lg:sticky lg:top-20">
+          <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-4">待办详情</h4>
           ${detailHtml}
         </div>
       </div>
@@ -825,25 +836,25 @@ function renderFormStep() {
 
   // 标题（必填）
   html += `<div class="mb-3">`;
-  html += `<label class="text-xs text-gray-500 mb-1 block">活动名称 <span class="text-red-500">*</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">活动名称 <span class="text-red-500">*</span></label>`;
   html += `<input type="text" id="wp-title" class="input-flat w-full" placeholder="活动名称">`;
   html += `</div>`;
 
   // 日期 + 时间
   html += `<div class="grid grid-cols-2 gap-3 mb-3">`;
   html += `<div>`;
-  html += `<label class="text-xs text-gray-500 mb-1 block">日期 <span class="text-red-500">*</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">日期 <span class="text-red-500">*</span></label>`;
   html += `<input type="date" id="wp-date" value="${today}" class="input-flat w-full">`;
   html += `</div>`;
   html += `<div>`;
-  html += `<label class="text-xs text-gray-500 mb-1 block">时间 <span class="text-gray-300">（选填）</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">时间 <span class="text-gray-300">（选填）</span></label>`;
   html += `<input type="text" id="wp-time" class="input-flat w-full" placeholder="如 14:00-16:00">`;
   html += `</div>`;
   html += `</div>`;
 
   // 地点（必填）
   html += `<div class="mb-3">`;
-  html += `<label class="text-xs text-gray-500 mb-1 block">地点 <span class="text-red-500">*</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">地点 <span class="text-red-500">*</span></label>`;
   html += `<input type="text" id="wp-location" class="input-flat w-full" placeholder="活动地点">`;
   html += `</div>`;
 
@@ -854,13 +865,13 @@ function renderFormStep() {
 
   // 主持人（默认当前用户）
   html += `<div class="mb-3">`;
-  html += `<label class="text-xs text-gray-500 mb-1 block">主持人 <span class="text-gray-300">（选填）</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">主持人 <span class="text-gray-300">（选填）</span></label>`;
   html += `<input type="text" id="wp-host" class="input-flat w-full" placeholder="默认为当前用户">`;
   html += `</div>`;
 
   // 备注
   html += `<div class="mb-3">`;
-  html += `<label class="text-xs text-gray-500 mb-1 block">备注 <span class="text-gray-300">（选填）</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">备注 <span class="text-gray-300">（选填）</span></label>`;
   html += `<textarea id="wp-desc" rows="2" class="input-flat w-full" placeholder="活动内容/目标等"></textarea>`;
   html += `</div>`;
 
@@ -870,7 +881,7 @@ function renderFormStep() {
   html += `<div class="mt-2 grid grid-cols-2 gap-3">`;
   // 发起方向
   html += `<div>`;
-  html += `<label class="text-xs text-gray-500 mb-1 block">发起方向</label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">发起方向</label>`;
   html += `<select id="wp-direction" class="input-flat w-full">`;
   html += `<option value="">不指定</option>`;
   html += `<option value="top-down">自上而下</option>`;
@@ -879,7 +890,7 @@ function renderFormStep() {
   html += `</div>`;
   // 时长
   html += `<div>`;
-  html += `<label class="text-xs text-gray-500 mb-1 block">时长</label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">时长</label>`;
   html += `<select id="wp-duration" class="input-flat w-full">`;
   html += `<option value="">不指定</option>`;
   html += `<option value="short">短期</option>`;
@@ -906,7 +917,7 @@ function renderThemeDayDimensions() {
 
   // 维度1 共建性质
   html += `<div class="mb-2.5">`;
-  html += `<label class="text-xs text-gray-500 mb-1 block">共建性质</label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">共建性质</label>`;
   html += `<div class="flex gap-2">`;
   dims.isJoint.forEach(opt => {
     html += `<button type="button" data-wp-dim data-wp-group="isJoint" data-wp-dim-value="${opt.value}" data-wp-multi="false" class="wp-dim-chip text-xs px-3 py-1.5 rounded-lg border transition-colors">${opt.label}</button>`;
@@ -916,7 +927,7 @@ function renderThemeDayDimensions() {
 
   // 维度2 是否外出
   html += `<div class="mb-2.5">`;
-  html += `<label class="text-xs text-gray-500 mb-1 block">是否外出</label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">是否外出</label>`;
   html += `<div class="flex gap-2">`;
   dims.isOutdoor.forEach(opt => {
     html += `<button type="button" data-wp-dim data-wp-group="isOutdoor" data-wp-dim-value="${opt.value}" data-wp-multi="false" class="wp-dim-chip text-xs px-3 py-1.5 rounded-lg border transition-colors">${opt.label}</button>`;
@@ -926,7 +937,7 @@ function renderThemeDayDimensions() {
 
   // 维度3 活动载体（多选）
   html += `<div>`;
-  html += `<label class="text-xs text-gray-500 mb-1 block">活动载体 <span class="text-gray-300">（可多选）</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">活动载体 <span class="text-gray-300">（可多选）</span></label>`;
   html += `<div class="flex flex-wrap gap-2">`;
   dims.carriers.forEach(opt => {
     html += `<button type="button" data-wp-dim data-wp-group="carriers" data-wp-dim-value="${opt.value}" data-wp-multi="true" class="wp-dim-chip text-xs px-3 py-1.5 rounded-lg border transition-colors">${opt.label}</button>`;
@@ -1828,13 +1839,13 @@ function renderNotificationForm() {
 
   // 通知标题
   html += `<div class="mb-4">`;
-  html += `<label class="text-xs text-gray-500 mb-1 block">通知标题 <span class="text-red-500">*</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">通知标题 <span class="text-red-500">*</span></label>`;
   html += `<input type="text" id="notif-title" class="input-flat w-full" placeholder="通知标题">`;
   html += `</div>`;
 
   // 通知内容
   html += `<div class="mb-4">`;
-  html += `<label class="text-xs text-gray-500 mb-1 block">通知内容 <span class="text-red-500">*</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">通知内容 <span class="text-red-500">*</span></label>`;
   html += `<textarea id="notif-content" rows="4" class="input-flat w-full" placeholder="通知正文"></textarea>`;
   html += `</div>`;
 

@@ -409,7 +409,7 @@ function _renderAttendanceContent(filterActivityId) {
         const records = loadAttendanceRecords();
         const record = records.find(r => r.id === recordId);
         if (record) {
-          record.confirmer = DISC_COMMISSIONER_ID;
+          record.recordedBy = DISC_COMMISSIONER_ID;
           saveAttendanceRecords(records);
           // 考勤确认后自动生成补课任务
           autoGenerateMakeupTask(record);

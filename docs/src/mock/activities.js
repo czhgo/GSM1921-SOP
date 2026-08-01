@@ -37,7 +37,6 @@ export const ACTIVITIES = [
   // ── 8 月活动（暑期特色，与 notices.js 保持数据协调）────────────
   { id: 'act-26', title: '8月党小组会（暑期线上）', date: '2026-08-07', type: '党小组会', organizer: 'p1', direction: 'bottom-up', location: '线上·腾讯会议', status: 'completed', scenarioId: 'party-group-meeting', domain: 'party-building', assignments: [{ personId: 'p1', role: 'organizer' }] },
   { id: 'act-27', title: '8月支委会：新学期筹备', date: '2026-08-11', type: '支委会', organizer: 'p11', direction: 'top-down', location: '光华1号楼305会议室', status: 'published', scenarioId: 'branch-committee', domain: 'party-building', assignments: [{ personId: 'p11', role: 'organizer' }] },
-  { id: 'act-28', title: '发展对象暑期谈话考察', date: '2026-08-15', type: '考察', organizer: 'p4', direction: 'top-down', location: '线上·一对一谈话', status: 'ongoing', domain: 'party-building', assignments: [{ personId: 'p4', role: 'organizer' }, { personId: 'p6', role: 'deep' }] },
   { id: 'act-29', title: '暑期实践总结分享', date: '2026-08-20', type: '主题党日', organizer: 'p1', direction: 'bottom-up', location: '光华1号楼101报告厅', status: 'published', isBrand: true, scenarioId: 'theme-party', domain: 'party-building', assignments: [{ personId: 'p1', role: 'organizer' }, { personId: 'p8', role: 'deep' }, { personId: 'p5', role: 'participant' }] },
   { id: 'act-30', title: '秋季学期工作部署会', date: '2026-08-28', type: '支部党员大会', organizer: 'p11', direction: 'top-down', location: '光华1号楼101报告厅', status: 'draft', scenarioId: 'branch-party-meeting', domain: 'party-building', assignments: [{ personId: 'p11', role: 'organizer' }] },
 ];

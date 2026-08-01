@@ -462,20 +462,20 @@ function _renderDecisionTreePanel() {
       <div class="text-xs font-bold text-gray-600 mb-3">填写活动信息</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
         <div>
-          <label class="text-xs text-gray-500 mb-1 block">T-0 日期 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">T-0 日期 <span class="text-red-500">*</span></label>
           <input type="date" id="dt-target-date" class="input-flat w-full">
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1 block">活动地点 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动地点 <span class="text-red-500">*</span></label>
           <input type="text" id="dt-location" class="input-flat w-full" placeholder="活动地点">
         </div>
       </div>
       <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1 block">活动名称 <span class="text-red-500">*</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动名称 <span class="text-red-500">*</span></label>
         <input type="text" id="dt-title" class="input-flat w-full" placeholder="活动名称">
       </div>
       <div class="mb-4">
-        <label class="text-xs text-gray-500 mb-1 block">活动描述（选填）</label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动描述（选填）</label>
         <textarea id="dt-desc" class="input-flat w-full resize-none" rows="2" placeholder="简要描述活动内容"></textarea>
       </div>
 
@@ -652,7 +652,7 @@ function _renderAttendanceContent() {
   if (_attPickerInstance) { _attPickerInstance.destroy(); _attPickerInstance = null; }
 
   const allRecords = loadAttendanceRecords();
-  const myAttendance = allRecords.filter(r => r.activityId && loadActivities().find(a => a.id === r.activityId)?.type === '党小组');
+  const myAttendance = allRecords.filter(r => r.activityId && loadActivities().find(a => a.id === r.activityId)?.type === '党小组会');
 
   // 筛选三会一课和主题党日活动
   const eligibleActivities = loadActivities().filter(a =>
@@ -674,7 +674,7 @@ function _renderAttendanceContent() {
       <div class="text-xs font-bold text-gray-600 mb-3">上传考勤表单</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         <div>
-          <label class="text-xs text-gray-500 mb-1 block">选择活动 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择活动 <span class="text-red-500">*</span></label>
           <select id="att-activity-select" class="input-flat text-xs w-full">
             <option value="">请选择活动</option>
             ${eligibleActivities.map(a => `<option value="${a.id}">${a.title}（${a.date}）</option>`).join('')}
@@ -682,7 +682,7 @@ function _renderAttendanceContent() {
         </div>
       </div>
       <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1 block">选择参会人员 <span class="text-red-500">*</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择参会人员 <span class="text-red-500">*</span></label>
         <div id="att-person-picker-container"></div>
       </div>
       <div id="att-status-rows" class="mb-3"></div>
@@ -881,7 +881,7 @@ function _renderInspectionContent() {
       <div class="text-xs font-bold text-gray-600 mb-3">上传考察表单</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         <div>
-          <label class="text-xs text-gray-500 mb-1 block">来源类型 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">来源类型 <span class="text-red-500">*</span></label>
           <select id="insp-source-type" class="input-flat text-xs w-full">
             <option value="">请选择来源类型</option>
             <option value="activity">活动</option>
@@ -889,14 +889,14 @@ function _renderInspectionContent() {
           </select>
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1 block">选择具体来源 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择具体来源 <span class="text-red-500">*</span></label>
           <select id="insp-source-select" class="input-flat text-xs w-full" disabled>
             <option value="">请先选择来源类型</option>
           </select>
         </div>
       </div>
       <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1 block">选择人员 <span class="text-red-500">*</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择人员 <span class="text-red-500">*</span></label>
         <div id="insp-person-picker-container"></div>
       </div>
       <div id="insp-content-rows" class="mb-3"></div>

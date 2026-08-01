@@ -34,6 +34,7 @@ export function renderTodoList(opts) {
     groupedTodos,
     stats,
     accent,
+    selectedTodoId = null,
     onSelectTodo = () => {},
     onCompleteTodo = () => {},
     onActionTodo = () => {},
@@ -47,13 +48,13 @@ export function renderTodoList(opts) {
     <div class="flex items-center gap-4 mb-4 text-xs text-gray-500">
       <span class="inline-flex items-center gap-1.5">
         <span class="inline-block w-1.5 h-1.5 rounded-full" style="background:${accent};"></span>
-        <span class="font-semibold text-gray-700">${stats._total}</span>
+        <span class="font-semibold text-gray-700 tabular-nums">${stats._total}</span>
         <span>待办</span>
       </span>
       ${stats._expired > 0 ? `
       <span class="inline-flex items-center gap-1.5">
         <span class="inline-block w-1.5 h-1.5 rounded-full bg-red-500"></span>
-        <span class="font-semibold text-red-600">${stats._expired}</span>
+        <span class="font-semibold text-red-600 tabular-nums">${stats._expired}</span>
         <span class="text-red-500">已过期</span>
       </span>
       ` : ''}
@@ -72,7 +73,7 @@ export function renderTodoList(opts) {
 
   const groupsHtml = categoryOrder
     .filter(cat => groupedTodos[cat] && groupedTodos[cat].length > 0)
-    .map(cat => _renderCategoryGroup(prefix, cat, groupedTodos[cat], accent, today))
+    .map(cat => _renderCategoryGroup(prefix, cat, groupedTodos[cat], accent, today, selectedTodoId))
     .join('');
 
   const emptyHtml = (!groupsHtml) ? `
@@ -106,12 +107,10 @@ export function renderTodoList(opts) {
       });
     });
 
-    // 待办项点击
-    container.querySelectorAll(`.${prefix}-todo-item`).forEach(item => {
-      item.addEventListener('click', (e) => {
-        // 排除按钮区域点击
-        if (e.target.closest('button')) return;
-        const todoId = item.dataset.todoId;
+    // 待办项点击（主体按钮区，右侧操作/完成按钮单独绑定）
+    container.querySelectorAll(`.${prefix}-todo-item-main`).forEach(main => {
+      main.addEventListener('click', () => {
+        const todoId = main.dataset.todoId;
         const todo = _findTodoInGrouped(groupedTodos, todoId);
         if (todo) onSelectTodo(todo);
       });
@@ -141,25 +140,25 @@ export function renderTodoList(opts) {
 }
 
 // ── 渲染单个分类分组 ──────────────────────────────────────────
-function _renderCategoryGroup(prefix, category, todos, accent, today) {
+function _renderCategoryGroup(prefix, category, todos, accent, today, selectedTodoId) {
   const label = TODO_CATEGORY_LABELS[category] || category;
   const isExpanded = DEFAULT_EXPANDED_CATEGORIES.has(category);
   const hasExpired = todos.some(t => _isExpired(t, today));
 
-  const itemsHtml = todos.map(todo => _renderTodoItem(prefix, todo, accent, today)).join('');
+  const itemsHtml = todos.map(todo => _renderTodoItem(prefix, todo, accent, today, selectedTodoId)).join('');
 
   return `
     <div class="${prefix}-todo-group mb-3" data-category="${category}">
-      <div class="${prefix}-todo-group-header flex items-center justify-between px-3 py-2 rounded-t-lg cursor-pointer hover:bg-gray-50 transition-colors">
+      <button type="button" class="${prefix}-todo-group-header w-full text-left flex items-center justify-between px-3 py-2 rounded-t-lg cursor-pointer bg-transparent border-0 hover:bg-gray-50 transition-colors">
         <div class="flex items-center gap-2">
-          <svg class="${prefix}-todo-arrow w-3 h-3 text-gray-400 transition-transform" style="transform:${isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)'};" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="${prefix}-todo-arrow w-3 h-3 text-gray-400 transition-transform" style="transform:${isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)'};" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
           </svg>
           <span class="font-title-cn text-sm font-bold text-gray-700">${label}</span>
           ${hasExpired ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-600">含过期</span>` : ''}
         </div>
-        <span class="text-xs text-gray-400">${todos.length}</span>
-      </div>
+        <span class="text-xs text-gray-400 tabular-nums">${todos.length}</span>
+      </button>
       <div class="${prefix}-todo-group-items ${isExpanded ? '' : 'hidden'} rounded-b-lg">
         ${itemsHtml}
       </div>
@@ -167,10 +166,11 @@ function _renderCategoryGroup(prefix, category, todos, accent, today) {
   `;
 }
 
-// ── 渲染单个待办项 ────────────────────────────────────────────
-function _renderTodoItem(prefix, todo, accent, today) {
+// ── 渲染单个待办项（单行紧凑式：色条+标题+截止/状态+行动/完成按钮）──
+function _renderTodoItem(prefix, todo, accent, today, selectedTodoId) {
   const isExpired = _isExpired(todo, today);
   const isUrgent = todo.priority === 'urgent';
+  const isSelected = todo.id === selectedTodoId;
   const statusLabel = TODO_STATUS_LABELS[todo.status] || todo.status;
   const hasAction = !!todo.actionType;
 
@@ -197,24 +197,30 @@ function _renderTodoItem(prefix, todo, accent, today) {
   };
   const actionLabel = actionLabels[todo.actionType] || '处理';
 
+  const flagHtml =
+    (isExpired ? '<span class="text-[10px] px-1 py-0.5 rounded bg-red-100 text-red-600 font-medium flex-shrink-0">过期</span>' : '') +
+    (isUrgent && !isExpired ? '<span class="text-[10px] px-1 py-0.5 rounded bg-orange-100 text-orange-600 font-medium flex-shrink-0">紧急</span>' : '');
+
+  const barColor = isExpired ? '#EF4444' : isUrgent ? '#F97316' : isSelected ? accent : 'transparent';
+
   return `
-    <div class="${prefix}-todo-item flex items-center justify-between px-3 py-2.5 border-b border-gray-50 last:border-b-0 hover:bg-gray-50 transition-colors cursor-pointer ${isExpired ? 'bg-red-50' : ''}" data-todo-id="${todo.id}">
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-1.5 mb-0.5">
-          ${isExpired ? '<span class="text-[10px] px-1 py-0.5 rounded bg-red-100 text-red-600 font-medium">过期</span>' : ''}
-          ${isUrgent && !isExpired ? '<span class="text-[10px] px-1 py-0.5 rounded bg-orange-100 text-orange-600 font-medium">紧急</span>' : ''}
+    <div class="${prefix}-todo-item flex items-center border-b border-gray-50 last:border-b-0 ${isExpired ? 'bg-red-50' : ''}" data-todo-id="${todo.id}">
+      <span class="w-1 self-stretch flex-shrink-0" style="background:${barColor};"></span>
+      <button type="button" class="${prefix}-todo-item-main flex-1 min-w-0 flex items-center gap-2 px-3 py-2.5 text-left bg-transparent border-0 transition-colors hover:bg-gray-50 ${isSelected ? 'bg-gray-50' : ''}" data-todo-id="${todo.id}">
+        <span class="flex items-center gap-1.5 min-w-0 flex-1">
+          ${flagHtml}
           <span class="text-sm font-medium ${isExpired ? 'text-red-700' : 'text-gray-800'} truncate">${todo.title}</span>
-        </div>
-        <div class="flex items-center gap-2">
+        </span>
+        <span class="flex items-center gap-2 flex-shrink-0">
           ${deadlineHtml}
           <span class="text-[10px] text-gray-400">${statusLabel}</span>
-        </div>
-      </div>
-      <div class="flex items-center gap-1.5 ml-2 flex-shrink-0">
+        </span>
+      </button>
+      <div class="flex items-center gap-1.5 ml-2 pr-3 flex-shrink-0">
         ${hasAction ? `
-          <button class="${prefix}-todo-action-btn text-[10px] px-2 py-1 rounded text-white transition-colors hover:opacity-90" data-todo-id="${todo.id}" style="background:${accent};">${actionLabel}</button>
+          <button type="button" class="${prefix}-todo-action-btn text-[10px] px-2 py-1 rounded text-white transition-colors hover:opacity-90" data-todo-id="${todo.id}" style="background:${accent};">${actionLabel}</button>
         ` : ''}
-        <button class="${prefix}-todo-complete-btn text-[10px] px-2 py-1 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" data-todo-id="${todo.id}" title="标记完成">✓</button>
+        <button type="button" class="${prefix}-todo-complete-btn text-[10px] px-2 py-1 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" data-todo-id="${todo.id}" aria-label="标记完成">✓</button>
       </div>
     </div>
   `;
