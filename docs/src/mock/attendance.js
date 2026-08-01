@@ -85,6 +85,28 @@ export const ATTENDANCE_RECORDS = [
   // ── act-26 (2026-08-07) 8月党小组会（暑期线上） ─────────────
   { id: 'att44', personId: 'p1',  activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
   { id: 'att45', personId: 'p3',  activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
+
+  // ── act-26 考勤扩充（p16~p50 代表，2026-08-01）──────────────
+  // 50 人规模整合：三党小组代表参与 8 月线上党小组会，统一待纪检确认（recordedBy null）
+  // 第一党小组
+  { id: 'att46', personId: 'p16', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
+  { id: 'att47', personId: 'p17', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
+  { id: 'att48', personId: 'p18', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
+  { id: 'att49', personId: 'p28', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
+  // 第二党小组
+  { id: 'att50', personId: 'p19', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
+  { id: 'att51', personId: 'p20', activityId: 'act-26', status: AttendanceStatus.LEAVE,    recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
+  { id: 'att52', personId: 'p22', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
+  { id: 'att53', personId: 'p29', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
+  // 第三党小组
+  { id: 'att54', personId: 'p23', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
+  { id: 'att55', personId: 'p24', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
+  { id: 'att56', personId: 'p26', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
+  { id: 'att57', personId: 'p30', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
+  // 50 人新批次代表
+  { id: 'att58', personId: 'p32', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
+  { id: 'att59', personId: 'p39', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
+  { id: 'att60', personId: 'p44', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
 ];
 
 export function attendanceToLong(records) {

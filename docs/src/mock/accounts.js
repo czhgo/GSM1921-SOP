@@ -14,6 +14,13 @@ export const MOCK_ACCOUNTS = [
   { studentId: '2500010012', password: '123456', personId: 'p26' },  // 积极分子 朱欣怡（D-240 organizer 候选）
   { studentId: '2500010010', password: '123456', personId: 'p24' },  // 预备党员 曹雅婷
   { studentId: '2500010007', password: '123456', personId: 'p21' },  // 入党申请人 沈佳琪
+  // === 50 人规模扩充账号（2026-08-01）===
+  { studentId: '2500010002', password: '123456', personId: 'p16' },  // 预备党员 黄志远
+  { studentId: '2500010003', password: '123456', personId: 'p17' },  // 预备党员 顾文博
+  { studentId: '2500010008', password: '123456', personId: 'p22' },  // 发展对象 邓子涵
+  { studentId: '2500010009', password: '123456', personId: 'p23' },  // 积极分子 程思源
+  { studentId: '2500010014', password: '123456', personId: 'p28' },  // 预备党员 陈晓彤
+  { studentId: '2500010025', password: '123456', personId: 'p39' },  // 积极分子 赵倩
 ];
 
 /**

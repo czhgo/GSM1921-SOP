@@ -577,7 +577,7 @@ export const SEED_TODOS = [
   // 党小组组长待办
   {
     id: 'todo_seed_1',
-    title: '为活动「七一建党节座谈会」赋权组织者',
+    title: '为活动「七一建党105周年活动」赋权组织者',
     description: '活动日期：2026-07-01。请选择人员授予组织者或深度参与者角色。',
     role: 'leader',
     category: TodoCategory.AUTH,
@@ -586,9 +586,9 @@ export const SEED_TODOS = [
     deadline: '2026-07-25',
     createdAt: '2026-07-15T08:00:00',
     sourceType: TodoSourceType.ACTIVITY,
-    sourceId: 'act-001',
+    sourceId: 'act-25',
     actionType: TodoActionType.AUTHORIZE,
-    actionData: { scope: 'activity', sourceId: 'act-001', sourceName: '七一建党节座谈会' },
+    actionData: { scope: 'activity', sourceId: 'act-25', sourceName: '七一建党105周年活动' },
   },
   {
     id: 'todo_seed_2',
@@ -608,18 +608,18 @@ export const SEED_TODOS = [
   // 组织委员待办
   {
     id: 'todo_seed_3',
-    title: '为专班「暑期共建专班」赋权组织者',
-    description: '专班周期：2026-07-15 ~ 2026-08-15。请选择人员授予组织者或深度参与者角色。',
+    title: '为专班「宣传专班（第二期）」赋权组织者',
+    description: '专班周期：2026-05-02 ~ 2026-05-20。请选择人员授予组织者或深度参与者角色。',
     role: 'org-commissioner',
     category: TodoCategory.AUTH,
     priority: 'urgent',
     status: TodoStatus.PENDING,
-    deadline: '2026-07-25',
-    createdAt: '2026-07-12T08:00:00',
+    deadline: '2026-05-20',
+    createdAt: '2026-05-02T08:00:00',
     sourceType: TodoSourceType.TASKFORCE,
     sourceId: 'tf-001',
     actionType: TodoActionType.AUTHORIZE,
-    actionData: { scope: 'taskforce', sourceId: 'tf-001', sourceName: '暑期共建专班' },
+    actionData: { scope: 'taskforce', sourceId: 'tf-001', sourceName: '宣传专班（第二期）' },
   },
   {
     id: 'todo_seed_4',

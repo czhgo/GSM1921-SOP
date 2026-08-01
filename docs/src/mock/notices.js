@@ -22,8 +22,8 @@ export const MOCK_NOTICES = [
   },
   {
     id: 'notice-103',
-    title: '暑期共建专班招募中',
-    content: '暑期校企共建专班面向全体支部成员开放报名，请有意向的同志联系组织委员。',
+    title: '暑期实践总结分享筹备中',
+    content: '8月20日暑期实践总结分享会筹备中，面向全体支部成员开放参与，请有意向的同志联系组织委员。',
     priority: 'normal',
     publishDate: '2026-07-12',
     expireDate: '2026-08-01',

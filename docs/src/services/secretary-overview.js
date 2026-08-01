@@ -14,7 +14,7 @@ import { TaskForceRecordStore } from './taskforce.js';
 import { loadActivityReviews } from './review.js';
 import { NoticeStore } from './notice.js';
 import { TodoStore, TodoCategory, TodoStatus, TodoSourceType, TodoActionType } from './todo.js';
-import { getPersonById } from '../mock/index.js';
+import { getPersonById, PEOPLE } from '../mock/index.js';
 import { AttendanceStatus } from '../core/domain.js';
 
 // ════════════════════════════════════════════════════════════════
@@ -126,52 +126,16 @@ export const SecretaryOverviewStore = {
 
   _computeInspection() {
     const inspections = loadInspectionRecords();
-    const activities  = loadActivities();
 
-    // 各阶段人数：从 inspection 记录中按 personId 去重，按最新记录推断
-    const stageCounts = { activist: 0, target: 0, probationary: 0, full: 0 };
-
-    if (inspections.length > 0) {
-      // 按 personId 分组，取最新记录
-      const personLatest = {};
-      for (const r of inspections) {
-        const existing = personLatest[r.personId];
-        if (!existing || r.recordedAt > existing.recordedAt) {
-          personLatest[r.personId] = r;
-        }
-      }
-
-      // 从人员数据中获取 developStage 分类
-      for (const personId of Object.keys(personLatest)) {
-        const person = getPersonById(personId);
-        if (!person) continue;
-        const stage = person.developStage;
-        if (stage === '积极分子')      stageCounts.activist++;
-        else if (stage === '发展对象')  stageCounts.target++;
-        else if (stage === '预备党员')  stageCounts.probationary++;
-        else if (stage === '正式党员')  stageCounts.full++;
-      }
-    } else {
-      // 无 inspection 数据时从 activities 中推导
-      const devActivities = activities.filter(a =>
-        (a.type || '').includes('发展') || (a.title || '').includes('发展')
-      );
-      // 简化推导：从参与人员的 developStage 字段分类
-      const personIds = new Set();
-      for (const act of devActivities) {
-        if (act.assignments) {
-          for (const a of act.assignments) personIds.add(a.personId);
-        }
-      }
-      for (const id of personIds) {
-        const person = getPersonById(id);
-        if (!person) continue;
-        const stage = person.developStage;
-        if (stage === '积极分子')      stageCounts.activist++;
-        else if (stage === '发展对象')  stageCounts.target++;
-        else if (stage === '预备党员')  stageCounts.probationary++;
-        else if (stage === '正式党员')  stageCounts.full++;
-      }
+    // 各阶段全量人数（50 人规模，2026-08-01 口径修正：按人员库全量统计，非"有考察记录者"）
+    const stageCounts = { applicant: 0, activist: 0, target: 0, probationary: 0, full: 0 };
+    for (const p of PEOPLE) {
+      const stage = p.developStage;
+      if (stage === '入党申请人') stageCounts.applicant++;
+      else if (stage === '积极分子') stageCounts.activist++;
+      else if (stage === '发展对象') stageCounts.target++;
+      else if (stage === '预备党员') stageCounts.probationary++;
+      else if (stage === '正式党员') stageCounts.full++;
     }
 
     // 待确认考察记录数
@@ -284,15 +248,16 @@ export const SecretaryTodoDeriver = {
   },
 
   /**
-   * 去重检查：同 sourceType+sourceId 的待办已存在且未完成则跳过
+   * 去重检查：同 sourceType+sourceId 的待办已存在（含已完成）则跳过
+   * 2026-08-01 修复：此前仅排除未完成待办，导致"标记完成"后同源待办立即重生（列表只增不减）
    * @param {string} sourceType
    * @param {string} sourceId
    * @returns {boolean} true=已存在需跳过
    */
   _isDuplicate(sourceType, sourceId) {
-    const existing = TodoStore.getByRole('secretary', { includeCompleted: false });
+    const existing = TodoStore.getByRole('secretary', { includeCompleted: true });
     return existing.some(t =>
-      t.sourceType === sourceType && t.sourceId === sourceId && t.status !== TodoStatus.COMPLETED
+      t.sourceType === sourceType && t.sourceId === sourceId
     );
   },
 

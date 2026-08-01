@@ -6,7 +6,7 @@ import { AuthStore } from '../services/auth.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { PersonPicker } from '../components/person-picker.js';
-import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js';
+import { _personName, PEOPLE, PARTY_MOCKS, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js';
 import { mockDB, SourceType, ParticipationLevel } from '../core/domain.js';
 import { persist } from '../core/data-adapter.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
@@ -36,13 +36,19 @@ const STAGE_COLOR = {
   '正式党员':   { bg: 'bg-green-100', text: 'text-green-700', dot: '#10B981' },
 };
 
+// 发展党员追踪 — Mock 数据
+// 2026-08-01 修正：与 50 人库同源（消除硬编码假名单，数据一致性），
+// 数据源：PARTY_MOCKS.candidates（party.js，引用真实人员）+ 补充预备党员代表
 let MOCK_CANDIDATES = [
-  { id: 'dc1', name: '赵思远', stage: '入党申请人', entryDate: '2025-11-15', note: '已提交入党申请书' },
-  { id: 'dc2', name: '孙明辉', stage: '积极分子',   entryDate: '2025-05-20', note: '培养考察期中' },
-  { id: 'dc3', name: '周佳怡', stage: '积极分子',   entryDate: '2025-03-10', note: '培养考察满一年，拟推进' },
-  { id: 'dc4', name: '吴思齐', stage: '发展对象',   entryDate: '2025-01-08', note: '已完成政审' },
-  { id: 'dc5', name: '郑凯文', stage: '预备党员',   entryDate: '2024-09-01', note: '预备期中' },
-  { id: 'dc6', name: '陈晨',   stage: '正式党员',   entryDate: '2023-06-15', note: '已转正' },
+  ...PARTY_MOCKS.candidates.map(c => ({
+    id: `dc_${c.id}`,
+    name: getPersonName(c.personId),
+    stage: c.stage,
+    entryDate: '2026-01-01',
+    note: c.materialsComplete ? '材料齐全' : `缺 ${c.missingMaterials} 项材料`,
+  })),
+  // 补充预备党员代表（party.js candidates 未覆盖预备阶段）
+  { id: 'dc_p17', name: getPersonName('p17'), stage: '预备党员', entryDate: '2026-01-01', note: '预备期中' },
 ];
 
 function renderOrgUI(state) {
@@ -1117,14 +1123,14 @@ function _renderOrgInspectionContent() {
     <div class="mt-3 p-4 rounded-xl bg-white border border-gray-100 shadow-sm" id="org-insp-form-panel">
       <div class="text-xs font-bold text-gray-600 mb-3">上传专班考察表单</div>
       <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1 block">选择专班 <span class="text-red-500">*</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择专班 <span class="text-red-500">*</span></label>
         <select id="org-insp-tf-select" class="input-flat text-xs w-full">
           <option value="">请选择专班</option>
           ${activeTaskforces.map(tf => `<option value="${tf.id}" data-name="${tf.name}">${tf.name}（${tf.status === 'active' ? '运行中' : '招募中'}）</option>`).join('')}
         </select>
       </div>
       <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1 block">选择人员 <span class="text-red-500">*</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择人员 <span class="text-red-500">*</span></label>
         <div id="org-insp-person-picker-container"></div>
       </div>
       <div id="org-insp-content-rows" class="mb-3"></div>
