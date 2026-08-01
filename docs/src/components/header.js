@@ -10,6 +10,8 @@ import { icon } from '../core/icons.js';
 
 function _roleLabelHTML(role) {
   if (!role) return '';
+  // 普通参与者默认无标记：没有标记就是普通参与者的标记（书记 2026-08-01 决策）
+  if (role === 'participant') return '';
   const { accent } = getAccentColors(role);
   const label = ROLE_LABELS[role] || role;
   const viewRole = AuthStore.getViewRole();

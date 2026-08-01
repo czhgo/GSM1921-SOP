@@ -41,7 +41,7 @@
   --accent-disc-commissioner:#C2410C;  /* 纪检委员 — 深橙 */
   --accent-organizer:        #7DD3FC;  /* 组织者 — 亮天蓝 */
   --accent-deep:             #94a3b8;  /* 深度参与者 — 浅灰蓝 */
-  --accent-participant:      #6B7280;  /* 普通参与者 — 灰色系 */
+  --accent-participant:      #CE1126;  /* 普通参与者 — 党建红（打样版 2026-08-01） */
 
   /* ── 角色识别色 — Light 变体（用于 border-left / 浅底色等低饱和场景） ── */
   --accent-secretary-light:        #FCA5A5;  /* red-300 */
@@ -52,7 +52,7 @@
   --accent-disc-commissioner-light:#FDBA74;  /* orange-300 */
   --accent-organizer-light:        #E0F2FE;  /* sky-100 */
   --accent-deep-light:             #cbd5e1;  /* 浅灰蓝-light */
-  --accent-participant-light:      #D1D5DB;  /* gray-300 */
+  --accent-participant-light:      #FCA5A5;  /* red-300 */
   --accent-sky:         #0EA5E9;
   --accent-indigo:      #6366F1;
   --accent-violet:      #7C3AED;
@@ -197,6 +197,14 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+/* 普通参与者工作台 — 暖白底（打样版 2026-08-01，作用域限定 visitor 页面，不影响其他角色页）
+   同时在该页面作用域内将党徽金提亮为 #FFD700（书记要求"金再亮一些"，原 #D4AF37 偏灰/脏） */
+body.visitor-page {
+  background-color: #FAFAF5;
+  --party-gold: #FFD700;
+  --accent-gold: #FFD700;
 }
 
 /* ═══════════════════════════════════════════════════════════════

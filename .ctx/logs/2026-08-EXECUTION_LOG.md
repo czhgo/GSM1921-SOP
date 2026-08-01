@@ -268,3 +268,51 @@ related_files:
   - ⚠️ 环境提示：本地浏览器 ES Module 内存缓存可能命中旧版 JS（people.js 27 人），需 `fetch('...js',{cache:'reload'})` 或清缓存后刷新方可显示 50 人；属浏览器缓存怪癖非代码 bug
 
 - **沉淀标签**: `[已沉淀: content/insights/工程演进与设计方法论.md §4.12]` — 书记论断整合（模拟数据一致性/科学程序vs减负/视觉一致性/布局平衡/反复强调提级/最小三成本提级）；按规执行部分省略标签。
+
+## T183 人员数据全系统同步修复（先行修复，2026-08-01）
+
+**任务**：书记反馈"目前人员数据没有全系统同步——至少从组织委员工作台看来，没有50个人！"——50 人数据已入库但浏览器仍显示 27 人
+**引用流程**：H1.2 执行 + verification-before-completion Skill + systematic-debugging
+**来源**：书记要求——"先行修复：目前人员数据没有全系统同步呢——至少从组织委员工作台看来，没有50个人！"
+
+- **问题根因**：**不是代码没同步**——服务器 people.js 已是 50 人版（6221 字符）、运行时 import 50 人；根因是 **localhost origin 浏览器 ES Module 会话级缓存持有旧模块**（普通 fetch 返回 3359 字符 27 人版）。HTTP no-cache 无法阻止"更新前已打开且未刷新"的页面持旧模块
+- **修复方案（双管齐下）**：
+  - 15 个 HTML 模块引用全部加版本参数 `?v=20260801`（index/about/archive/feedback/help/login/members/notice/search + workspace 7 页），绕过 HTTP 旧缓存
+  - [bootstrap.js](docs/src/core/bootstrap.js) 挂 `CrossPageState.isStaleCodeVersion()` 自检——`CODE_VERSION`（cross-page-state.js，初始 1）与 localStorage 数据版本比对，不一致时写 `sessionStorage cps-reloaded`（防无限刷新）后 `reload` 一次
+  - 顺带修正书记全局概况发展分布口径（已并入 T182 ⑦）与组织委员追踪假名单（并入 T182 ⑥）
+- **变更文件**：15 个 HTML + `docs/src/core/cross-page-state.js` + `docs/src/core/bootstrap.js`
+- **验证结果**：localhost 普通访问（未清缓存未加参数）人才库 50 人、首页正常、无报错；数据版本 0→1 自检链路完整生效
+- **git 提交**：`b58afe3`
+- **沉淀标签**：无（按规执行，浏览器模块会话缓存问题已在 T182 ⚠️ 预判，本项为闭环）
+
+## T184 普通参与者界面视觉重设计·打样（2026-08-01）
+
+**任务**：系统最大使用者（普通参与者）界面"满目灰色"压抑问题——打样版：党建红主视觉 + 党徽金辅助 + 状态色 + 暖白底，右上角无标记
+**引用流程**：H1.2 执行 + brainstorming Skill（完整流程：澄清→方案→设计批准→spec→实施）+ web-design-guidelines Skill（书记指令）+ verification-before-completion Skill + H2.1 一改具改 + H3 检查清单
+**来源**：书记要求——"普通参与者的界面能不能做得再漂亮一点。不要这么压抑。通过 党建红和党徽黄等等 颜色，把功能和视觉元素之间的关系做得更加到位！！这会给我们其他角色的界面打一个样！！" + "金色虽然还是辅助，但是可以适当多一些——现在的【金】还有点 灰/脏，微调即可！"
+
+**书记决策（AskUserQuestion 三轮确认）**：
+- 色板完整性："你认为是否两个颜色足够使用？是否引入其他功能色？请务必把方案做完整" → 四层完整色板
+- 风格："庄重党建风：红主金辅（推荐）" + 金色加亮（#D4AF37→提 #EAB308→"再亮一些"→最终 **#FFD700**）
+- 范围："仅 visitor 工作台打样（推荐）"；灰降级为纯中性；右上角移除标签 + 全局主要界面不出现「普通参与者」字样
+- 核心洞察（书记原话）："**没有标记就是普通参与者的标记**"——用"缺席"表达"默认"
+
+**实施内容**：
+- ① **四层色板**：品牌红 `#CE1126`（主视觉）/ 党徽金 `#FFD700`（配套深文字 `#B45309`/浅背景 `rgba(255,215,0,0.12)`/边框 `rgba(255,215,0,0.35)`）/ 状态三色（完成绿 `#16A34A`/提醒琥珀 `#D97706`/告警红 `#EF4444`）/ 暖白底 `#FAFAF5` / 灰 `#6B7280` 降级纯中性
+- ② **constants.js**：`ROLE_COLORS.participant` 灰→党建红三件套；`ACCENT_COLORS.participant` → `#CE1126`（驱动 tab 高亮/登录卡片）；`ACTIVITY_CAT_COLOR.theme-party` 与 `_ACTIVITY_TYPE_BASE` 主题党日系（主题党日/共建/参访/座谈）金色 → `#FFD700` 系
+- ③ **header.js**：`_roleLabelHTML` 对 participant 返回空（右上角无 div = 默认身份标记）
+- ④ **ws-visitor-entry.js**：欢迎语"欢迎回来，{姓名}·支部动态与个人成长一览"（身份表达替代）；项目分工 type 徽章（活动红/专班金）、人员分工 chips 去灰（组织者红/深度参与橙/参与者金/发起人天蓝）；考勤出勤率状态三色（≥80 绿 / ≥60 琥珀 / 否则红）；我的考察来源标签金底+等级标签红底
+- ⑤ **styles.css**：`--accent-participant` → `#CE1126`、light 变体 → red-300；`body.visitor-page` 暖白底 + 页面作用域 `--party-gold/--accent-gold: #FFD700`（不影响其他角色页）
+- ⑥ **visitor.html**：body 加 `visitor-page` 类；副标题改"支部动态与个人成长一屏掌握"（去除误导性的"选择角色以进入管理模式"）
+- ⑦ **DESIGN_SYSTEM.md**：新增 **§2.7 主体色配色规则（给定主体主题色 X）— 打样样板**——规则五连（X 主视觉→辅助强调色功能点缀→状态色全局统一→暖白底全局统一→灰只做中性）+ 打样实例 + 上下文隔离要点（品牌红=标签语境 vs 告警红=数字/图标语境不得混用）；YAML last_updated 更新
+- ⑧ **全仓排查**：主要界面（visitor 工作台+首页）零「普通参与者」残留；保留登录选择卡（功能必需）与帮助页（spec 允许）
+- ⑨ **范围边界**：仅 visitor 工作台打样；全局 `--party-gold` 等其余角色页留待推广轮（T-144）
+
+- **变更文件**：`docs/src/core/constants.js`、`docs/src/components/header.js`、`docs/src/entries/ws-visitor-entry.js`、`docs/src/styles.css`、`docs/workspace/visitor.html`、`content/04_web_design/DESIGN_SYSTEM.md` + 设计 spec `docs/superpowers/specs/2026-08-01-visitor-visual-redesign-design.md`
+- **验证结果（浏览器两轮实测通过）**：
+  - ✅ visitor 工作台：`#role-label` 为 null（无标记）、欢迎语"欢迎回来，王五"、激活 tab `--tab-accent:#CE1126`、活动徽章红底红字/专班徽章金黄底、参与者 chips `bg-amber-50` 金黄（非灰）、主题党日圆点 `rgb(255,215,0)`=#FFD700、考勤状态色实测绿 rgb(22,163,74)/红 rgb(220,38,38)、考察标签来源金黄底+等级红底、body 背景 `rgb(250,250,245)`=#FAFAF5、`--party-gold` 覆写生效 #FFD700
+  - ✅ 作用域隔离：secretary 页 `--party-gold` 仍 #D4AF37、body 无 visitor-page 类，不受影响
+  - ✅ 回归：secretary/org 顶栏 role-label 正常（党建红 #B91C1C/天蓝 #0EA5E9）、无 JS 运行时错误
+  - ✅ GetDiagnostics 全部修改文件零错误
+- **git 提交**：spec `09d48ea`；实施代码待提交
+- **沉淀标签**：`[待沉淀: 主体色配色规则五连（DESIGN_SYSTEM §2.7 已落位，后续推广轮完成后可沉淀方法论 §4.13）]`

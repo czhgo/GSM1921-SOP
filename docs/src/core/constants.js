@@ -16,7 +16,7 @@ export const ROLE_COLORS = {
   'disc-commissioner': { bg: 'rgba(194, 65, 12, 0.10)',   text: '#C2410C',  border: 'rgba(194, 65, 12, 0.30)' },  // 深橙#C2410C
   organizer:           { bg: 'rgba(125, 211, 252, 0.15)', text: '#7DD3FC',  border: 'rgba(125, 211, 252, 0.40)' },  // 亮天蓝#7DD3FC
   deep:                { bg: 'rgba(148, 163, 184, 0.12)', text: '#94a3b8',  border: 'rgba(148, 163, 184, 0.30)' },  // 浅灰蓝#94a3b8
-  participant:         { bg: 'rgba(107, 114, 128, 0.10)', text: '#6B7280',  border: 'rgba(107, 114, 128, 0.30)' },  // 灰色#6B7280
+  participant:         { bg: 'rgba(206, 17, 38, 0.10)', text: '#CE1126',  border: 'rgba(206, 17, 38, 0.30)' },  // 党建红（普通参与者打样版 2026-08-01）
   all:                 { bg: 'rgba(14, 116, 144, 0.08)',  text: '#0E7490',  border: 'rgba(14, 116, 144, 0.20)' },
   secretary:           { bg: 'rgba(185, 28, 28, 0.10)',   text: '#B91C1C',  border: 'rgba(185, 28, 28, 0.30)' },  // 党建红（不动）
 };
@@ -30,8 +30,8 @@ const ACTIVITY_CAT_COLOR = {
   'branch-committee':      { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 支委会
   'party-group-meeting':   { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 党小组会
   'party-lecture':         { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 党课
-  // ── 主题党日系（党建金 #D4AF37）──
-  'theme-party':           { bg: 'rgba(212, 175, 55, 0.10)', text: '#854D0E', border: 'rgba(212, 175, 55, 0.30)' },  // 主题党日
+  // ── 主题党日系（党徽金 #FFD700，2026-08-01 书记要求"再亮一些"，原 #D4AF37 偏灰/脏）──
+  'theme-party':           { bg: 'rgba(255, 215, 0, 0.12)', text: '#B45309', border: 'rgba(255, 215, 0, 0.35)' },  // 主题党日
   // ── 默认 ──
   'default':               { bg: 'rgba(107, 114, 128, 0.08)', text: '#4B5563', border: 'rgba(107, 114, 128, 0.25)' },
 };
@@ -151,7 +151,7 @@ export const ACCENT_COLORS = {
   commissioner:        { hex: '#C2410C' },  // 同纪检
   organizer:           { hex: '#7DD3FC' },  // 亮天蓝
   deep:                { hex: '#94a3b8' },  // 浅灰蓝
-  participant:         { hex: '#6B7280' },  // 灰色
+  participant:         { hex: '#CE1126' },  // 党建红（普通参与者打样版 2026-08-01）
   all:                 { hex: '#0E7490' },  // 深青
 };
 
@@ -181,11 +181,11 @@ const _ACTIVITY_TYPE_BASE = {
   '党小组会':     { bg: '#FEF2F2', dot: '#CE1126' },
   '支部党员大会': { bg: '#FEF2F2', dot: '#CE1126' },
   '组织生活会':   { bg: '#FEF2F2', dot: '#CE1126' },
-  // 主题党日系（党建金）
-  '主题党日':     { bg: '#FFFBEB', dot: '#D4AF37' },
-  '共建':         { bg: '#FFFBEB', dot: '#D4AF37' },
-  '参访':         { bg: '#FFFBEB', dot: '#D4AF37' },
-  '座谈':         { bg: '#FFFBEB', dot: '#D4AF37' },
+  // 主题党日系（党徽金 #FFD700，2026-08-01 亮金化）
+  '主题党日':     { bg: '#FEFCE8', dot: '#FFD700' },
+  '共建':         { bg: '#FEFCE8', dot: '#FFD700' },
+  '参访':         { bg: '#FEFCE8', dot: '#FFD700' },
+  '座谈':         { bg: '#FEFCE8', dot: '#FFD700' },
 };
 
 /**

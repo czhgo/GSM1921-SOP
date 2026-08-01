@@ -34,11 +34,22 @@ function renderVisitorUI(state) {
   const container = document.getElementById('visitor-content');
   if (!container) return;
 
+  const currentUser = AuthStore.getCurrentUser();
+
+  // 欢迎语替代身份标记（普通参与者无右上角 role-label，书记 2026-08-01 决策）
+  const userName = currentUser?.personId ? (PEOPLE.find(p => p.id === currentUser.personId)?.name || '') : '';
+  const welcomeLine = userName
+    ? `
+    <div class="mb-4 flex items-center gap-2.5">
+      <span class="inline-block w-1 h-4 rounded-full flex-shrink-0" style="background:var(--party-red);"></span>
+      <p class="text-sm text-gray-700"><span class="font-semibold text-gray-800">欢迎回来，${userName}</span><span class="text-xs text-gray-400 ml-1">· 支部动态与个人成长一览</span></p>
+    </div>`
+    : '';
+
   const taskforces = TaskForceRecordStore.getAll();
   const notices = NoticeStore.getAll();
 
   // visitor 待办派生：通知待阅读 + 活动待参与（幂等去重，可随渲染重复调用）
-  const currentUser = AuthStore.getCurrentUser();
   if (currentUser?.personId) {
     VisitorTodoDeriver.deriveAll({
       personId: currentUser.personId,
@@ -67,6 +78,7 @@ function renderVisitorUI(state) {
   });
 
   container.innerHTML = `
+    ${welcomeLine}
     ${tabBar.html}
   `;
 
@@ -241,8 +253,8 @@ function _personnelRoleLabel(role) {
   return map[role] || role;
 }
 function _personnelRoleColor(role) {
-  const map = { organizer: 'bg-red-50 text-red-600', deep: 'bg-amber-50 text-amber-700', participant: 'bg-gray-50 text-gray-500', initiator: 'bg-blue-50 text-blue-600' };
-  return map[role] || 'bg-gray-50 text-gray-500';
+  const map = { organizer: 'bg-red-50 text-red-600', deep: 'bg-orange-50 text-orange-700', participant: 'bg-amber-50 text-amber-700', initiator: 'bg-sky-50 text-sky-600' };
+  return map[role] || 'bg-amber-50 text-amber-700';
 }
 
 function _renderProjectCard(project) {
@@ -254,7 +266,7 @@ function _renderProjectCard(project) {
     <div class="p-3 rounded-lg bg-white">
       <div class="flex items-center justify-between mb-1.5">
         <div class="flex items-center gap-2 min-w-0">
-          <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${project.type === '活动' ? 'bg-red-50 text-red-700' : 'bg-sky-50 text-sky-700'}">${project.typeBadge}</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${project.type === '活动' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}">${project.typeBadge}</span>
           <p class="text-sm font-medium text-gray-800 truncate">${project.name}</p>
         </div>
         <span class="text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${project.statusColor}">${project.status}</span>
@@ -464,13 +476,14 @@ function _renderAttendance(activities) {
             const present = records.filter(r => r.status === 'present').length;
             const total = records.length;
             const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+            const rateColor = rate >= 80 ? 'text-green-600' : rate >= 60 ? 'text-amber-600' : 'text-red-600';
             return `
               <div class="flex items-center justify-between p-3 rounded-lg bg-white">
                 <div class="flex-1 min-w-0">
                   <p class="text-sm font-medium text-gray-800">${act.title}</p>
                   <p class="text-xs text-gray-400">${act.date}</p>
                 </div>
-                <div class="text-xs text-gray-500">出勤 ${present}/${total} · ${rate}%</div>
+                <div class="text-xs font-medium ${rateColor}">出勤 ${present}/${total} · ${rate}%</div>
               </div>
             `;
           }).join('')}
@@ -538,8 +551,8 @@ function _renderMyInspection() {
       <div class="p-3 rounded-lg bg-white hover:shadow-sm transition-shadow">
         <div class="flex items-center justify-between mb-1.5">
           <div class="flex items-center gap-2">
-            <span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-gray-100 text-gray-600">${sourceLabel}</span>
-            <span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-blue-50 text-blue-700">${levelLabel}</span>
+            <span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-50 text-amber-700">${sourceLabel}</span>
+            <span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-red-50 text-red-600">${levelLabel}</span>
           </div>
           <span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full ${statusCls}">${statusText}</span>
         </div>
