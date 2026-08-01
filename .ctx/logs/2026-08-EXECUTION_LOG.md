@@ -405,4 +405,5 @@ related_files:
   - ✅ 缓存失效：注入旧 v2 issue 缓存（含 `u_org_commissioner`）后刷新，旧缓存被丢弃、v3 键生成、数据从 issues.json 重拉、无英文 ID
   - ✅ 书记全局概况发展分布：积极20·发展9·预备9·正式12 四档，无"入党申请人"
   - ✅ GetDiagnostics 全部修改 JS 零错误
+- **git 提交**：`0f595c3`
 - **沉淀标签**：`[已沉淀: content/04_web_design/DATA_ARCHITECTURE.md §4.3 唯一数据源原则]` — 人员=PEOPLE+mockDB.users 唯一权威源（渲染层一律 PersonStore 解析）；发展党员追踪从 PEOPLE 派生不硬编码；反馈短 ID 体系（存储与渲染双层不泄露长 ID）；缓存版本链三件套（CODE_VERSION + HTML?v + CACHE_VERSION）作为"数据干净"的强制刷新机制
