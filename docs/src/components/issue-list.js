@@ -74,17 +74,17 @@ export function renderIssueList() {
 
 function renderIssueRow(issue) {
   const typeBadges = (issue.types || []).map(t =>
-    `<span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium" style="background:${(TYPE_COLORS[t] || '#6B7280')}15;color:${TYPE_COLORS[t] || '#6B7280'}">${TYPE_LABELS[t] || t}</span>`
+    `<span class="text-xs px-1.5 py-0.5 rounded-full font-medium" style="background:${(TYPE_COLORS[t] || '#6B7280')}15;color:${TYPE_COLORS[t] || '#6B7280'}">${TYPE_LABELS[t] || t}</span>`
   ).join('');
 
   const statusBadge = issue.status === 'open'
-    ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-700 font-medium">开放中</span>'
-    : `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">已关闭 · ${ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || '已解决'}</span>`;
+    ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-green-50 text-green-700 font-medium">开放中</span>'
+    : `<span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">已关闭 · ${ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || '已解决'}</span>`;
 
   const reactions = Object.entries(issue.reactions || {}).filter(([_, list]) => list.length > 0).map(([type, list]) => {
     const iconName = { thumbsUp: 'thumbsUp', thumbsDown: 'thumbsDown', eyes: 'eyes', hooray: 'hooray' }[type];
     const iconHTML = iconName ? icon(iconName, { className: 'w-3 h-3' }) : '·';
-    return `<span class="text-[10px] text-gray-500 inline-flex items-center gap-0.5">${iconHTML}${list.length}</span>`;
+    return `<span class="text-xs text-gray-500 inline-flex items-center gap-0.5">${iconHTML}${list.length}</span>`;
   }).join(' ');
 
   return `
@@ -97,7 +97,7 @@ function renderIssueRow(issue) {
             ${typeBadges}
           </div>
           <p class="text-sm font-medium text-gray-800 truncate">${issue.title || '(无标题)'}</p>
-          <div class="flex items-center gap-2 mt-1 text-[10px] text-gray-400">
+          <div class="flex items-center gap-2 mt-1 text-xs text-gray-400">
             <span>${SCOPE_LABELS[issue.scope] || issue.scope}</span>
             <span>·</span>
             <span>${getPersonName(issue.submittedBy)}</span>

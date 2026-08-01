@@ -447,6 +447,120 @@ textarea.input-flat {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   COMPONENT: Custom Select（S2 自定义圆角下拉）
+   视觉层与 input-flat 完全一致；原生 select 作为值载体保留
+   ═══════════════════════════════════════════════════════════════ */
+.cs-select {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  width: auto;
+  margin: 0;
+}
+/* 触发器继承原 select 的 input-flat 类时，校正 padding 档位以与原 select 外观一致 */
+.cs-trigger.input-flat {
+  padding: 10px 12px;
+}
+.cs-trigger.input-flat.text-xs {
+  padding: 8px 12px;
+  font-size: 0.75rem;
+}
+.cs-trigger.input-flat.text-\[10px\] {
+  padding: 2px 8px;
+  font-size: 10px;
+}
+.cs-select select.cs-native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+}
+.cs-trigger {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background-color: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  color: var(--neutral-800);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  margin: 0;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.cs-trigger:hover {
+  border-color: var(--neutral-300);
+}
+.cs-trigger:focus-visible {
+  outline: 2px solid var(--party-gold);
+  outline-offset: 1px;
+}
+.cs-select.is-open .cs-trigger {
+  border-color: var(--party-gold);
+}
+.cs-trigger .cs-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cs-trigger .cs-chevron {
+  flex-shrink: 0;
+  color: var(--neutral-400);
+  transition: transform var(--transition-fast);
+}
+.cs-select.is-open .cs-chevron {
+  transform: rotate(180deg);
+  color: var(--party-gold);
+}
+.cs-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 60;
+  min-width: 100%;
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-dropdown);
+  padding: 4px;
+}
+.cs-option {
+  padding: 8px 12px;
+  border-radius: calc(var(--radius-sm) - 2px);
+  font-size: 0.75rem;
+  color: var(--neutral-700);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+.cs-option:hover {
+  background: var(--neutral-100);
+}
+.cs-option.is-selected {
+  background: rgba(212, 175, 55, 0.10);
+  color: #854D0E;
+  font-weight: 500;
+}
+.cs-option.is-disabled {
+  color: var(--neutral-300);
+  cursor: not-allowed;
+}
+
+/* ═══════════════════════════════════════════════════════════════
    COMPONENT: Button
    ═══════════════════════════════════════════════════════════════ */
 .btn-primary {
@@ -501,13 +615,14 @@ textarea.input-flat {
   cursor: not-allowed;
 }
 
-/* ── Action Button — 小型操作按钮（表格行内/列表操作） ── */
+/* ── Action Button — 小型操作按钮（表格行内/列表操作） ──
+   S1 统一：行内微操作档 text-xs，废弃 text-[11px] 按钮字（2026-08-01） */
 .btn-action {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   padding: 4px 10px;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   line-height: 1.4;
   font-weight: 500;
   border-radius: var(--radius-sm);
@@ -1330,7 +1445,8 @@ textarea.input-flat {
   gap: 4px;
   padding: 1px 6px;
   border-radius: var(--radius-sm);
-  font-size: 0.65rem;
+  font-size: 0.6875rem; /* 10.4px → 11px（A-05 全量上调一档） */
+  font-family: '华文仿宋', 'STFangsong', '仿宋', 'FangSong', 'FangSong_GB2312', 'Noto Sans SC', sans-serif;
   font-weight: 500;
   white-space: nowrap;
   transition: opacity 0.15s ease-out;
@@ -1340,7 +1456,17 @@ textarea.input-flat {
 .cal-cell-compact .cal-activity-tag {
   padding: 1px 4px;
   gap: 3px;
-  font-size: 0.6rem;
+  font-size: 0.625rem; /* 9.6px → 10px（A-05 全量上调一档） */
+}
+
+/* ── A-05 细体：徽标（状态芯片）用华文仿宋【细体】──
+   书记 2026-08-02 判定：仅徽标+日历标签应用细体。
+   徽标 = 小字 status chip（px-1.5/py-0.5 或 px-2/py-0.5、px-2/py-1 + rounded-full），
+   按钮类（filter-btn / dev-filter-btn）不在此列。 */
+.rounded-full.px-1\.5.py-0\.5,
+.rounded-full.px-2\.py-0\.5,
+.rounded-full.px-2\.py-1 {
+  font-family: '华文仿宋', 'STFangsong', '仿宋', 'FangSong', 'FangSong_GB2312', 'Noto Sans SC', sans-serif;
 }
 
 .cal-activity-dot {

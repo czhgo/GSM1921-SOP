@@ -612,13 +612,13 @@ export function renderMyDispatchTab(role, userId) {
     html += `<div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 cursor-pointer transition-all" data-mydispatch-action="open" data-issue-id="${issue.id}">`;
     html += `<div class="flex items-center justify-between mb-1">`;
     html += `<span class="text-xs text-gray-400 font-mono">#${issue.number}</span>`;
-    html += `<span class="text-[10px] px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
+    html += `<span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
     html += `</div>`;
     html += `<p class="text-sm text-gray-800 font-medium">${issue.title}</p>`;
     if (dispatchNote?.note) {
-      html += `<p class="text-[10px] text-blue-600 mt-1">书记备注：${dispatchNote.note}</p>`;
+      html += `<p class="text-xs text-blue-600 mt-1">书记备注：${dispatchNote.note}</p>`;
     }
-    html += `<div class="text-[10px] text-gray-400 mt-1">${_displayName(issue.submittedBy)} · ${issue.submittedAt} · ${issue.commentCount || 0} 评论</div>`;
+    html += `<div class="text-xs text-gray-400 mt-1">${_displayName(issue.submittedBy)} · ${issue.submittedAt} · ${issue.commentCount || 0} 评论</div>`;
     html += `</div>`;
   });
 
@@ -650,10 +650,10 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
   html += `<button data-mydispatch-action="back" class="text-xs text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
-  html += `<span class="text-[10px] px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
+  html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
   html += `</div>`;
   if (issue.body) html += `<p class="text-sm text-gray-600 whitespace-pre-wrap mb-4">${issue.body}</p>`;
-  html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-gray-400 mb-4 pb-4 border-b border-gray-100">`;
+  html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400 mb-4 pb-4 border-b border-gray-100">`;
   html += `<span>#${issue.number}</span><span>提交人：${_displayName(issue.submittedBy)}</span><span>提交时间：${issue.submittedAt}</span>`;
   html += `</div>`;
 
@@ -662,7 +662,7 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
     html += `<div class="mb-4 pb-4 border-b border-gray-100">`;
     html += `<span class="text-xs font-medium text-gray-700 block mb-2">指派历史</span><div class="space-y-1">`;
     issue.dispatchHistory.forEach(d => {
-      html += `<div class="text-[10px] text-gray-500">● ${d.at} · ${_displayName(d.to)}${d.note ? '：' + d.note : ''}</div>`;
+      html += `<div class="text-xs text-gray-500">● ${d.at} · ${_displayName(d.to)}${d.note ? '：' + d.note : ''}</div>`;
     });
     html += `</div></div>`;
   }
@@ -674,8 +674,8 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
     const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'verdict' ? '★' : '';
     const kindBg = c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'result' ? 'bg-green-50' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
     html += `<div class="rounded-lg p-2.5 ${kindBg}">`;
-    html += `<span class="text-[10px] font-medium text-gray-700">${kindIcon} ${_displayName(c.author)}</span>`;
-    html += `<span class="text-[10px] text-gray-400 ml-1">${c.createdAt}</span>`;
+    html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${_displayName(c.author)}</span>`;
+    html += `<span class="text-xs text-gray-400 ml-1">${c.createdAt}</span>`;
     html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;
   });
   html += `</div></div>`;
@@ -683,8 +683,8 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
   if (issue.status === 'open') {
     html += `<div class="pt-3 border-t border-gray-100"><div class="flex gap-2">`;
     html += `<input type="text" id="mydispatch-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论…">`;
-    html += `<button data-mydispatch-action="comment" class="text-[10px] px-3 py-1.5 rounded-lg bg-gray-700 text-white hover:bg-gray-800 transition-colors">评论</button>`;
-    html += `<button data-mydispatch-action="submit-result" class="text-[10px] px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">提交处置结果</button>`;
+    html += `<button data-mydispatch-action="comment" class="text-xs px-3 py-1.5 rounded-lg bg-gray-700 text-white hover:bg-gray-800 transition-colors">评论</button>`;
+    html += `<button data-mydispatch-action="submit-result" class="text-xs px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">提交处置结果</button>`;
     html += `</div></div>`;
   }
   html += `</div>`;

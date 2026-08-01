@@ -152,7 +152,7 @@ export const ACCENT_COLORS = {
   commissioner:        { hex: '#C2410C' },  // 同纪检
   organizer:           { hex: '#7DD3FC' },  // 亮天蓝
   deep:                { hex: '#94a3b8' },  // 浅灰蓝
-  participant:         { hex: '#CE1126' },  // 党建红（普通参与者打样版 2026-08-01）
+  participant:         { hex: '#B45309' },  // 党徽金（访客强调色，与中性灰身份色并存，2026-08-01 改，原党建红#CE1126）
   all:                 { hex: '#0E7490' },  // 深青
 };
 

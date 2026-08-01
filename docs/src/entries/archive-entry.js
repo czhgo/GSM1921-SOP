@@ -77,9 +77,9 @@ function renderActivityArchive() {
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center gap-2">
                 <span class="text-sm font-medium text-gray-800">${a.title || '未命名活动'}</span>
-                ${isBrand ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 border border-amber-200">品牌</span>' : ''}
+                ${isBrand ? '<span class="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 border border-amber-200">品牌</span>' : ''}
               </div>
-              <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-green-100 text-green-700">已归档</span>
+              <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">已归档</span>
             </div>
             <p class="text-xs text-gray-500">${a.date || ''} · ${a.type || '活动'}${organizer ? ' · ' + organizer.name : ''}</p>
           </div>
@@ -108,7 +108,7 @@ function renderTaskforceArchive() {
           <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:shadow-sm hover:border-gray-200 transition-all cursor-pointer" data-archive-item data-archive-type="taskforce" data-archive-id="${tf.id}">
             <div class="flex items-center justify-between mb-2">
               <span class="text-sm font-medium text-gray-800">${tf.name || '未命名专班'}</span>
-              <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-green-100 text-green-700">已归档</span>
+              <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">已归档</span>
             </div>
             <p class="text-xs text-gray-500">${tf.createdAt || ''} ~ ${tf.deadline || ''} · 专班${initiator ? ' · ' + initiator.name : ''}</p>
           </div>
@@ -128,8 +128,8 @@ function renderNoticeArchive() {
   }
 
   const priorityBadge = {
-    urgent: '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-red-100 text-red-700">紧急</span>',
-    normal: '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-blue-100 text-blue-700">重要</span>',
+    urgent: '<span class="px-1.5 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-700">紧急</span>',
+    normal: '<span class="px-1.5 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-700">重要</span>',
   };
 
   contentContainer.innerHTML = `
@@ -141,7 +141,7 @@ function renderNoticeArchive() {
               ${priorityBadge[n.priority] || ''}
               <span class="text-sm font-medium text-gray-800">${n.title}</span>
             </div>
-            <span class="text-[10px] text-gray-400">${n.publishDate || ''}</span>
+            <span class="text-xs text-gray-400">${n.publishDate || ''}</span>
           </div>
           <p class="text-xs text-gray-500 line-clamp-2">${n.content || ''}</p>
         </div>
@@ -241,7 +241,7 @@ function _renderActivityDetail(activity) {
           <div class="flex items-center gap-2 mb-2">
             <span class="w-2 h-2 rounded-full" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''};"></span>
             <span class="text-xs text-gray-500">${color.label}</span>
-            ${activity.isBrand ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 border border-amber-200">品牌</span>' : ''}
+            ${activity.isBrand ? '<span class="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 border border-amber-200">品牌</span>' : ''}
           </div>
           <h3 class="font-title-cn text-lg font-bold text-gray-800">${activity.title || '未命名活动'}</h3>
         </div>
@@ -281,7 +281,7 @@ function _renderActivityDetail(activity) {
       <div class="border-t border-gray-100 pt-4">
         <div class="flex items-center justify-between mb-3">
           <p class="text-xs font-medium text-gray-600">归档材料清单</p>
-          <span class="text-[10px] text-gray-400">阶段2支持文件查看</span>
+          <span class="text-xs text-gray-400">阶段2支持文件查看</span>
         </div>
         ${(activity.materials && activity.materials.length > 0) ? `
           <div class="space-y-2">
@@ -291,7 +291,7 @@ function _renderActivityDetail(activity) {
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                 </svg>
                 <span class="text-sm text-gray-700 flex-1 truncate">${m.name || '未命名文件'}</span>
-                <span class="text-[10px] text-gray-400">${m.type || 'file'}</span>
+                <span class="text-xs text-gray-400">${m.type || 'file'}</span>
               </div>
             `).join('')}
           </div>
@@ -312,8 +312,8 @@ function _renderTaskforceDetail(tf) {
       <div class="flex items-start justify-between mb-4">
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-2">
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">专班</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-green-100 text-green-700">已归档</span>
+            <span class="text-xs px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">专班</span>
+            <span class="text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-700">已归档</span>
           </div>
           <h3 class="font-title-cn text-lg font-bold text-gray-800">${tf.name || '未命名专班'}</h3>
         </div>
@@ -361,8 +361,8 @@ function _renderTaskforceDetail(tf) {
                 <div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
                   <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
                   <span class="text-sm text-gray-700 flex-1">${person ? person.name : (m.name || '未知成员')}</span>
-                  <span class="text-[10px] text-gray-400">${m.role || '成员'}</span>
-                  <span class="text-[10px] text-gray-500">${contributions} 项贡献</span>
+                  <span class="text-xs text-gray-400">${m.role || '成员'}</span>
+                  <span class="text-xs text-gray-500">${contributions} 项贡献</span>
                 </div>
               `;
             }).join('')}

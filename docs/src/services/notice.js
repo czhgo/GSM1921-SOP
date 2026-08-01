@@ -191,8 +191,8 @@ export function renderNoticeList(containerId, limit = 5) {
   }
 
   const priorityBadge = {
-    urgent: '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-red-100 text-red-700">紧急</span>',
-    normal: '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-blue-100 text-blue-700">重要</span>',
+    urgent: '<span class="px-1.5 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-700">紧急</span>',
+    normal: '<span class="px-1.5 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-700">重要</span>',
   };
 
   container.innerHTML = notices.map(n => `
@@ -205,8 +205,8 @@ export function renderNoticeList(containerId, limit = 5) {
         <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">${n.content}</p>
       </div>
       <div class="flex items-center gap-1 whitespace-nowrap mt-0.5">
-        ${!n.read ? `<button class="notice-confirm-read text-[10px] text-blue-600 hover:text-blue-800 px-1.5 py-0.5 rounded hover:bg-blue-50 transition-colors" data-notice-id="${n.id}">确认读取</button>` : ''}
-        <span class="text-[10px] text-gray-400">${n.publishDate}</span>
+        ${!n.read ? `<button class="notice-confirm-read text-xs text-blue-600 hover:text-blue-800 px-1.5 py-0.5 rounded hover:bg-blue-50 transition-colors" data-notice-id="${n.id}">确认读取</button>` : ''}
+        <span class="text-xs text-gray-400">${n.publishDate}</span>
       </div>
     </div>
   `).join('');
@@ -255,8 +255,8 @@ function _showNoticePopover(notice, triggerBtn) {
   if (existing) existing.remove();
 
   const priorityBadge = {
-    urgent: '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-red-100 text-red-700">紧急</span>',
-    normal: '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-blue-100 text-blue-700">重要</span>',
+    urgent: '<span class="px-1.5 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-700">紧急</span>',
+    normal: '<span class="px-1.5 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-700">重要</span>',
   };
 
   const popover = document.createElement('div');

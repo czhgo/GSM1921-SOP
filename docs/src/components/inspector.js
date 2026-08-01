@@ -144,7 +144,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
     const label = statusMap[act.status] || act.status;
     const isBrand = !!act.isBrand;
     const brandTag = isBrand
-      ? '<span class="font-stheiti text-[10px] px-1.5 py-0.5 rounded" style="background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.35);">品牌</span>'
+      ? '<span class="font-stheiti text-xs px-1.5 py-0.5 rounded" style="background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.35);">品牌</span>'
       : '';
     if (isParticipant) {
       html += `<div class="inspector-card" data-act-id="${act.id}" style="${isBrand ? 'border-left:3px solid #EAB308;' : ''}">`;
@@ -152,7 +152,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
       html += `<p class="font-stheiti font-bold text-sm text-gray-800 leading-snug flex-1">${act.title}</p>`;
       html += `<span class="badge-time flex-shrink-0">${label}</span>`;
       html += '</div>';
-      html += `<div class="flex items-center gap-1.5">${brandTag}<p class="font-stheiti text-[10px] text-gray-400">参与视图 · 仅展示</p></div>`;
+      html += `<div class="flex items-center gap-1.5">${brandTag}<p class="font-stheiti text-xs text-gray-400">参与视图 · 仅展示</p></div>`;
       html += '</div>';
     } else {
       html += `<div class="inspector-card" style="cursor:pointer;${isBrand ? 'border-left:3px solid #EAB308;' : ''}" data-act-id="${act.id}">`;
@@ -160,7 +160,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
       html += `<div class="flex items-center gap-1.5 flex-1"><p class="font-stheiti font-bold text-sm text-gray-800 leading-snug">${act.title}</p>${brandTag}</div>`;
       html += `<span class="badge-time flex-shrink-0">${label}</span>`;
       html += '</div>';
-      html += `<p class="font-stheiti text-[10px] text-gray-400">点击查看任务详情 →</p>`;
+      html += `<p class="font-stheiti text-xs text-gray-400">点击查看任务详情 →</p>`;
       html += '</div>';
     }
   });
@@ -238,10 +238,10 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   html += '<div class="flex items-center gap-1.5 flex-wrap mb-3">';
   html += `<span class="badge-time">${statusMap[activity.status] || activity.status}</span>`;
   if (isArchived) {
-    html += '<span class="font-stheiti text-[10px] px-1.5 py-0.5 rounded" style="background:rgba(156,163,175,0.2);color:#6B7280;">已归档</span>';
+    html += '<span class="font-stheiti text-xs px-1.5 py-0.5 rounded" style="background:rgba(156,163,175,0.2);color:#6B7280;">已归档</span>';
   }
   if (activity.date) {
-    html += `<span class="font-stheiti text-[10px] text-gray-400">${activity.date}</span>`;
+    html += `<span class="font-stheiti text-xs text-gray-400">${activity.date}</span>`;
   }
   html += '</div>';
 
@@ -256,7 +256,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
       html += `<div class="${cardClass}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
       html += `<p class="font-stheiti font-bold text-sm leading-snug flex-1">${t.title}</p>`;
-      html += `<select class="task-status-select input-flat text-[10px] flex-shrink-0"${isArchived ? ' disabled style="opacity:0.5;cursor:not-allowed;"' : ''} data-task-id="${t.id}" aria-label="任务状态">`;
+      html += `<select class="task-status-select input-flat text-xs flex-shrink-0"${isArchived ? ' disabled style="opacity:0.5;cursor:not-allowed;"' : ''} data-task-id="${t.id}" aria-label="任务状态">`;
       html += `<option value="pending"${t.status === 'pending' ? ' selected' : ''}>待处理</option>`;
       html += `<option value="in_progress"${t.status === 'in_progress' ? ' selected' : ''}>进行中</option>`;
       html += `<option value="completed"${t.status === 'completed' ? ' selected' : ''}>已完成</option>`;

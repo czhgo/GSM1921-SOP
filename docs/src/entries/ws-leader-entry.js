@@ -60,7 +60,7 @@ function renderLeaderUI(state) {
     prefix: 'leader',
     tabs: [
       { id: 'todo', label: '待办', render: () => _renderTodoContent(), groupLabel: '工作台' },
-      { id: 'write', label: '活动写入', render: (ctx) => _renderWriteContent(ctx.filteredActivities), groupLabel: '党建' },
+      { id: 'write', label: '活动管理', render: (ctx) => _renderWriteContent(ctx.filteredActivities), groupLabel: '党建' },
       { id: 'attendance', label: '考勤上传', render: () => _renderAttendanceContent() },
       { id: 'inspection', label: '考察上传', render: () => _renderInspectionContent() },
       { id: 'review', label: '复盘提交', render: () => _renderReviewContent() },
@@ -161,8 +161,8 @@ function _renderTodoDetail(todo) {
     <div class="space-y-3">
       <div>
         <div class="flex items-center gap-2 mb-2">
-          <span class="text-[10px] px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-          ${todo.priority === 'urgent' ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
+          ${todo.priority === 'urgent' ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
         </div>
         <p class="font-title-cn text-sm font-bold text-gray-800">${todo.title}</p>
       </div>
@@ -247,7 +247,7 @@ function _renderWriteContent(activities) {
                   <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
                   <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
                 </div>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-full ${a.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${a.status === 'published' ? '已发布' : '草稿'}</span>
+                <span class="text-xs px-1.5 py-0.5 rounded-full ${a.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${a.status === 'published' ? '已发布' : '草稿'}</span>
               </div>
             `).join('')}
         </div>
@@ -286,7 +286,7 @@ function _renderWriteContent(activities) {
         const rows = items.map((item, idx) => `
           <tr class="border-b border-gray-50">
             ${cfg.fields.map(f => `<td class="px-2 py-1.5 text-xs text-gray-700">${item[f.key] || '-'}</td>`).join('')}
-            <td class="px-2 py-1.5 text-center"><button class="act-sub-del-btn text-[10px] text-red-400 hover:text-red-600" data-type="${type}" data-idx="${idx}">删除</button></td>
+            <td class="px-2 py-1.5 text-center"><button class="act-sub-del-btn text-xs text-red-400 hover:text-red-600" data-type="${type}" data-idx="${idx}">删除</button></td>
           </tr>
         `).join('');
 
@@ -294,13 +294,13 @@ function _renderWriteContent(activities) {
           <div class="mt-3">
             <div class="flex items-center justify-between mb-1.5">
               <span class="text-xs font-bold font-title-cn" style="color:${cfg.color}">${cfg.label} (${items.length})</span>
-              <button class="act-sub-add-btn text-[10px] px-2 py-1 rounded border hover:bg-gray-50 transition-colors" style="color:${cfg.color};border-color:${cfg.color}40" data-type="${type}">+ 添加</button>
+              <button class="act-sub-add-btn text-xs px-2 py-1 rounded border hover:bg-gray-50 transition-colors" style="color:${cfg.color};border-color:${cfg.color}40" data-type="${type}">+ 添加</button>
             </div>
             ${items.length === 0
-              ? '<p class="text-[11px] text-gray-300 pl-2">暂无记录</p>'
+              ? '<p class="text-[12px] text-gray-300 pl-2">暂无记录</p>'
               : `<table class="w-full text-left"><thead><tr class="border-b border-gray-200">
-                  ${cfg.fields.map(f => `<th class="px-2 py-1 text-[10px] font-medium text-gray-500">${f.label}</th>`).join('')}
-                  <th class="px-2 py-1 text-[10px] font-medium text-gray-500 w-12"></th>
+                  ${cfg.fields.map(f => `<th class="px-2 py-1 text-xs font-medium text-gray-500">${f.label}</th>`).join('')}
+                  <th class="px-2 py-1 text-xs font-medium text-gray-500 w-12"></th>
                 </tr></thead><tbody>${rows}</tbody></table>`
             }
           </div>`;
@@ -369,6 +369,10 @@ function _renderWriteContent(activities) {
 function _renderDecisionTreePanel() {
   const { L1, L2, L3, L4, hostGroup } = dt.selections;
 
+  // 当前进行到第几步（S6 修复：原代码引用未定义变量 step 导致面板渲染崩溃）
+  // 步骤指示器：组织场景→活动形式→时长→发起方向
+  const step = !L1 ? 1 : !L2 ? 2 : !L3 ? 3 : 4;
+
   // 步骤指示器
   const steps = ['组织场景', '活动形式', '时长', '发起方向'];
   const stepperHtml = `
@@ -381,8 +385,8 @@ function _renderDecisionTreePanel() {
         return `
           ${i > 0 ? `<div class="flex-1 h-0.5 rounded" style="background:${lineColor};"></div>` : ''}
           <div class="flex items-center gap-1.5 flex-shrink-0">
-            <div class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold" style="background:${isDone || isActive ? accentRgba : '#F3F4F6'};color:${dotColor};border:1.5px solid ${dotColor};">${isDone ? '&#10003;' : i + 1}</div>
-            <span class="text-[10px] ${isActive ? 'font-bold' : ''}" style="color:${dotColor};">${s}</span>
+            <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold" style="background:${isDone || isActive ? accentRgba : '#F3F4F6'};color:${dotColor};border:1.5px solid ${dotColor};">${isDone ? '&#10003;' : i + 1}</div>
+            <span class="text-xs ${isActive ? 'font-bold' : ''}" style="color:${dotColor};">${s}</span>
           </div>
         `;
       }).join('')}
@@ -713,7 +717,7 @@ function _renderAttendanceContent() {
             <tr class="border-b border-gray-50 hover:bg-gray-50">
               <td class="py-2 px-3 font-medium text-gray-800">${a.name}</td>
               <td class="py-2 px-3 text-gray-600">${a.activity}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${a.status === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.status === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${ATTENDANCE_STATUS_LABELS[a.status] || a.status}</span></td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${a.status === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.status === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${ATTENDANCE_STATUS_LABELS[a.status] || a.status}</span></td>
               <td class="py-2 px-3 text-gray-500">${a.confirmer === '—' ? '<span class="text-orange-600">待确认</span>' : '<span class="text-green-600">已确认</span>'}</td>
             </tr>
           `).join('')}</tbody>
@@ -728,16 +732,16 @@ function _renderAttendanceContent() {
             <div class="flex items-center justify-between p-2 rounded-lg bg-white ${t.status === 'overdue' ? 'border border-red-100' : 'border border-orange-100'}">
               <div class="flex items-center gap-2">
                 <span class="text-xs font-medium text-gray-800">${t.personName}</span>
-                <span class="text-[10px] text-gray-500">${t.activityName}</span>
+                <span class="text-xs text-gray-500">${t.activityName}</span>
               </div>
               <div class="flex items-center gap-2">
                 ${t.isMandatory
-                  ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-600">必须</span>'
-                  : '<span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">建议</span>'
+                  ? '<span class="text-xs px-1.5 py-0.5 rounded bg-red-50 text-red-600">必须</span>'
+                  : '<span class="text-xs px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">建议</span>'
                 }
                 ${t.status === 'overdue'
-                  ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-700">超期</span>'
-                  : '<span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">待补课</span>'
+                  ? '<span class="text-xs px-1.5 py-0.5 rounded bg-red-100 text-red-700">超期</span>'
+                  : '<span class="text-xs px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">待补课</span>'
                 }
               </div>
             </div>
@@ -928,7 +932,7 @@ function _renderInspectionContent() {
               <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
               <td class="py-2 px-3 text-gray-600">${i.source}</td>
               <td class="py-2 px-3 text-gray-600">${i.role}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
             </tr>
           `).join('')}</tbody>
         </table>
@@ -1135,8 +1139,8 @@ function _renderReviewContent() {
             <div class="text-xs text-gray-500 mt-0.5">${act.date || ''} ${act.type ? '· ' + act.type : ''}</div>
           </div>
           <div class="flex items-center gap-2 ml-4">
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-            ${rev?.reviewStatus === ReviewStatus.REJECTED ? '<span class="text-[10px] text-red-500">需修改</span>' : ''}
+            <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
+            ${rev?.reviewStatus === ReviewStatus.REJECTED ? '<span class="text-xs text-red-500">需修改</span>' : ''}
           </div>
         </div>
         ${isExpanded && isPending ? _renderReviewForm(act, rev) : ''}
@@ -1234,14 +1238,14 @@ function _renderReviewForm(act, rev) {
     <div class="mt-3 pt-3 border-t border-gray-100">
       ${isRejected && rev.annotation ? `
         <div class="mb-2 p-2 rounded-lg bg-red-50 border border-red-100">
-          <div class="text-[10px] text-red-500 font-bold mb-1">纪检委员批注</div>
+          <div class="text-xs text-red-500 font-bold mb-1">纪检委员批注</div>
           <div class="text-xs text-red-700">${rev.annotation}</div>
         </div>
       ` : ''}
       <textarea id="review-textarea-${act.id}" class="input-flat w-full text-xs resize-none" rows="4" placeholder="请填写复盘总结（活动成效、经验教训、改进建议等）">${existingContent}</textarea>
       <div class="flex items-center gap-2 mt-2">
         <button class="btn-review-submit text-xs px-4 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" data-act-id="${act.id}" style="background:${accent};cursor:pointer;">提交复盘</button>
-        <span class="text-[10px] text-gray-400">提交后纪检委员将在监督复盘tab收到通知</span>
+        <span class="text-xs text-gray-400">提交后纪检委员将在监督复盘tab收到通知</span>
       </div>
     </div>
   `;
@@ -1252,10 +1256,10 @@ function _renderReviewDetail(rev) {
   return `
     <div class="mt-3 pt-3 border-t border-gray-100">
       <div class="text-xs text-gray-600 p-2 bg-gray-50 rounded-lg border border-gray-100">${rev.reviewContent || ''}</div>
-      ${rev.submittedAt ? `<div class="text-[10px] text-gray-400 mt-1">提交时间：${rev.submittedAt.slice(0, 16).replace('T', ' ')}</div>` : ''}
+      ${rev.submittedAt ? `<div class="text-xs text-gray-400 mt-1">提交时间：${rev.submittedAt.slice(0, 16).replace('T', ' ')}</div>` : ''}
       ${rev.annotation ? `
         <div class="mt-2 p-2 rounded-lg bg-blue-50 border border-blue-100">
-          <div class="text-[10px] text-blue-500 font-bold mb-1">纪检委员批注</div>
+          <div class="text-xs text-blue-500 font-bold mb-1">纪检委员批注</div>
           <div class="text-xs text-blue-700">${rev.annotation}</div>
         </div>
       ` : ''}

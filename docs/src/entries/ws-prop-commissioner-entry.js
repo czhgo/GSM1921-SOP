@@ -134,8 +134,8 @@ function _renderTodoDetail(todo) {
     <div class="space-y-3">
       <div>
         <div class="flex items-center gap-2 mb-2">
-          <span class="text-[10px] px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-          ${todo.priority === 'urgent' ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
+          ${todo.priority === 'urgent' ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
         </div>
         <p class="font-title-cn text-sm font-bold text-gray-800">${todo.title}</p>
       </div>
@@ -270,7 +270,7 @@ function _renderTaskCard(task) {
   const isFinal = task.status === 'submitted';
   const advanceLabel = task.status === 'pending' ? '接收' : '提交';
   const advanceBtn = !isFinal
-    ? `<button class="task-advance-btn text-[10px] px-2 py-1 rounded bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors mt-1" data-task-id="${task.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
+    ? `<button class="task-advance-btn text-xs px-2 py-1 rounded bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors mt-1" data-task-id="${task.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
     : '';
   const typeStyle = TASK_TYPE_STYLE[task.type] || 'bg-gray-50 text-gray-700';
   const statusStyle = TASK_STATUS_STYLE[task.status];
@@ -278,12 +278,12 @@ function _renderTaskCard(task) {
   return `
     <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors">
       <div class="flex items-center gap-2 mb-1">
-        <span class="text-[10px] px-1.5 py-0.5 rounded-full ${typeStyle}">${task.type}</span>
-        <span class="text-[10px] px-1.5 py-0.5 rounded-full border ${statusStyle}">${TASK_STATUS_LABEL[task.status]}</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full ${typeStyle}">${task.type}</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full border ${statusStyle}">${TASK_STATUS_LABEL[task.status]}</span>
       </div>
       <div class="text-sm font-medium text-gray-800 mt-1">${task.summary}</div>
       <div class="flex items-center justify-between mt-1.5">
-        <span class="text-[10px] text-gray-400">来自：${task.source} · ${task.createdAt}</span>
+        <span class="text-xs text-gray-400">来自：${task.source} · ${task.createdAt}</span>
         ${advanceBtn}
       </div>
     </div>`;
@@ -380,15 +380,15 @@ function _renderKanbanContent(activities, propTf) {
 function _renderKanbanItem(item, showCompleteBtn = false) {
   const isTf = item._type === 'taskforce';
   const typeTag = isTf
-    ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">专班</span>'
-    : (item.type ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700">${item.type}</span>` : '');
+    ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">专班</span>'
+    : (item.type ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700">${item.type}</span>` : '');
   const subInfo = isTf
-    ? `<span class="text-[10px] text-gray-400">${item.filled}/${item.capacity} 人</span>`
+    ? `<span class="text-xs text-gray-400">${item.filled}/${item.capacity} 人</span>`
     : '';
   const completeBtn = showCompleteBtn
     ? (isTf
-      ? `<button class="tf-complete-btn text-[10px] px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-tf-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`
-      : `<button class="activity-complete-btn text-[10px] px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-act-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`)
+      ? `<button class="tf-complete-btn text-xs px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-tf-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`
+      : `<button class="activity-complete-btn text-xs px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-act-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`)
     : '';
   return `
     <div class="p-3 rounded-xl bg-white hover:bg-gray-200 transition-colors cursor-pointer">
@@ -397,7 +397,7 @@ function _renderKanbanItem(item, showCompleteBtn = false) {
         ${typeTag}
       </div>
       <div class="text-xs text-gray-500 mt-0.5">${item.date || ''} ${subInfo}</div>
-      ${isTf && item.task ? `<div class="text-[11px] text-gray-400 mt-0.5 line-clamp-1">${item.task}</div>` : ''}
+      ${isTf && item.task ? `<div class="text-[12px] text-gray-400 mt-0.5 line-clamp-1">${item.task}</div>` : ''}
       ${completeBtn}
     </div>`;
 }
@@ -420,16 +420,16 @@ function _renderWorkloadBlock(propTf) {
     <div class="card rounded-xl p-5 border-l-4 mt-4" style="border-left-color:var(--accent-prop-commissioner-light);">
       <div class="flex items-center gap-2 mb-3">
         <span class="text-sm font-semibold text-gray-700">专班工作量</span>
-        <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">${propTf.length} 个专班</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">${propTf.length} 个专班</span>
       </div>
       ${members.length === 0 ? '<p class="text-xs text-gray-400">暂无宣传专班成员数据</p>' :
         `<div class="space-y-2">${members.map(m => `
           <div class="flex items-center justify-between p-2 rounded-lg bg-white">
             <div class="flex items-center gap-2">
               <span class="text-xs font-medium text-gray-700">${_personName(m.personId)}</span>
-              <span class="text-[10px] text-gray-400">${Array.from(m.roles).join('·')}</span>
+              <span class="text-xs text-gray-400">${Array.from(m.roles).join('·')}</span>
             </div>
-            <div class="flex items-center gap-3 text-[10px] text-gray-500">
+            <div class="flex items-center gap-3 text-xs text-gray-500">
               <span>${m.contributions} 产出</span>
               <span>${m.tfCount} 专班</span>
             </div>
@@ -515,7 +515,7 @@ function _renderArchiveContent() {
         <div class="space-y-2">
           ${MATERIAL_STANDARDS.map(s => `
             <div class="p-2.5 rounded-lg bg-gray-50">
-              <span class="text-[10px] px-1.5 py-0.5 rounded-full ${ARCHIVE_CATEGORY_STYLE[s.category]} mr-1.5">${s.category}</span>
+              <span class="text-xs px-1.5 py-0.5 rounded-full ${ARCHIVE_CATEGORY_STYLE[s.category]} mr-1.5">${s.category}</span>
               <span class="text-xs text-gray-600">${s.standard}</span>
             </div>
           `).join('')}
@@ -532,9 +532,9 @@ function _renderArchiveContent() {
             <div class="flex items-center justify-between p-2.5 rounded-lg bg-gray-50">
               <div>
                 <span class="text-xs font-medium text-gray-700">${t.name}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-full ${ARCHIVE_CATEGORY_STYLE[t.category]} ml-1.5">${t.category}</span>
+                <span class="text-xs px-1.5 py-0.5 rounded-full ${ARCHIVE_CATEGORY_STYLE[t.category]} ml-1.5">${t.category}</span>
               </div>
-              <button class="archive-tpl-btn text-[10px] px-2 py-1 rounded bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 transition-colors" data-tpl-name="${t.name}">下载</button>
+              <button class="archive-tpl-btn text-xs px-2 py-1 rounded bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 transition-colors" data-tpl-name="${t.name}">下载</button>
             </div>
           `).join('')}
         </div>
@@ -595,26 +595,26 @@ function _renderArchiveList(records) {
     const isInProgress = r.status === 'in_progress';
     const advanceLabel = r.status === 'pending' ? '开始归档' : '确认归档';
     const advanceBtn = !isFinal
-      ? `<button class="archive-advance-btn text-[10px] px-2 py-1 rounded bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors" data-record-id="${r.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
+      ? `<button class="archive-advance-btn text-xs px-2 py-1 rounded bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors" data-record-id="${r.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
       : '';
     // 归档中状态显示进度
     const progressHtml = isInProgress && r._checklistState
-      ? `<span class="text-[10px] text-blue-600">材料 ${r._checklistState.checked}/${r._checklistState.total}</span>`
+      ? `<span class="text-xs text-blue-600">材料 ${r._checklistState.checked}/${r._checklistState.total}</span>`
       : '';
     // 已归档状态显示完成标记
     const doneHtml = isFinal
-      ? `<span class="text-[10px] text-green-600">✓</span>`
+      ? `<span class="text-xs text-green-600">✓</span>`
       : '';
     return `
       <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors flex items-center justify-between gap-3">
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-gray-800 truncate">${r.activityName}</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full ${catStyle} shrink-0">${r.category}</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full border ${statusStyle} shrink-0">${ARCHIVE_STATUS_LABEL[r.status]}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-full ${catStyle} shrink-0">${r.category}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-full border ${statusStyle} shrink-0">${ARCHIVE_STATUS_LABEL[r.status]}</span>
             ${progressHtml}${doneHtml}
           </div>
-          <span class="text-[10px] text-gray-400">归档日期：${r.archiveDate}</span>
+          <span class="text-xs text-gray-400">归档日期：${r.archiveDate}</span>
         </div>
         ${advanceBtn}
       </div>`;
@@ -647,7 +647,7 @@ function _renderWeeklyContent() {
         <div class="flex items-center gap-2 mb-4">
           ${icon('pencil', { className: 'w-4 h-4 text-blue-600' })}
           <span class="text-sm font-semibold text-gray-700">填写周报</span>
-          ${draftReport ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full border ${WEEKLY_STATUS_STYLE.draft}">${draftReport.week}</span>` : ''}
+          ${draftReport ? `<span class="text-xs px-1.5 py-0.5 rounded-full border ${WEEKLY_STATUS_STYLE.draft}">${draftReport.week}</span>` : ''}
         </div>
         <div class="space-y-3">
           <div>
@@ -717,15 +717,15 @@ function _renderWeeklyReportItem(report) {
       <div class="flex items-center justify-between mb-1">
         <div class="flex items-center gap-2">
           <span class="text-sm font-medium text-gray-800">${report.week}</span>
-          <span class="text-[10px] text-gray-400">${report.weekRange}</span>
-          <span class="text-[10px] px-1.5 py-0.5 rounded-full border ${statusStyle}">${WEEKLY_STATUS_LABEL[report.status]}</span>
+          <span class="text-xs text-gray-400">${report.weekRange}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full border ${statusStyle}">${WEEKLY_STATUS_LABEL[report.status]}</span>
         </div>
         <div class="flex items-center gap-2">
-          ${isSubmitted && report.submittedAt ? `<span class="text-[10px] text-gray-400">报送于 ${report.submittedAt}</span>` : ''}
-          ${report.content ? `<button class="weekly-detail-toggle text-[10px] px-2 py-0.5 rounded bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors">展开</button>` : ''}
+          ${isSubmitted && report.submittedAt ? `<span class="text-xs text-gray-400">报送于 ${report.submittedAt}</span>` : ''}
+          ${report.content ? `<button class="weekly-detail-toggle text-xs px-2 py-0.5 rounded bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors">展开</button>` : ''}
         </div>
       </div>
-      ${report.content ? `<div class="weekly-detail-content hidden mt-2 p-2.5 rounded-lg bg-gray-50 text-xs text-gray-600 whitespace-pre-line">${report.content}</div>` : '<p class="text-[10px] text-gray-400 mt-1">暂无内容</p>'}
+      ${report.content ? `<div class="weekly-detail-content hidden mt-2 p-2.5 rounded-lg bg-gray-50 text-xs text-gray-600 whitespace-pre-line">${report.content}</div>` : '<p class="text-xs text-gray-400 mt-1">暂无内容</p>'}
     </div>`;
 }
 
@@ -774,7 +774,7 @@ function _showArchiveAdvancePopover(record, triggerBtn) {
     });
     html += `</div>`;
     html += `<div class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 mb-4">`;
-    html += `<p class="text-[11px] text-amber-700">提示：未全部勾选也可推进状态，但请确保后续补齐。</p>`;
+    html += `<p class="text-[12px] text-amber-700">提示：未全部勾选也可推进状态，但请确保后续补齐。</p>`;
     html += `</div>`;
     html += `</div>`;
   } else {
@@ -787,7 +787,7 @@ function _showArchiveAdvancePopover(record, triggerBtn) {
     html += `<div class="flex items-center justify-between text-xs"><span class="text-gray-500">归档日期</span><span class="text-gray-800">${record.archiveDate}</span></div>`;
     html += `</div>`;
     html += `<div class="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 mb-4">`;
-    html += `<p class="text-[11px] text-blue-700">材料标准：${categoryStandard.standard}</p>`;
+    html += `<p class="text-[12px] text-blue-700">材料标准：${categoryStandard.standard}</p>`;
     html += `</div>`;
     html += `</div>`;
   }

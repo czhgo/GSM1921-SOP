@@ -206,8 +206,8 @@ function _renderTodoDetail(todo) {
     <div class="space-y-3">
       <div>
         <div class="flex items-center gap-2 mb-2">
-          <span class="text-[10px] px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-          ${todo.priority === 'urgent' ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
+          ${todo.priority === 'urgent' ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
         </div>
         <p class="font-title-cn text-sm font-bold text-gray-800">${todo.title}</p>
       </div>
@@ -388,16 +388,16 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
           const contribCount = (m.contributions || []).length;
           const contribList = (m.contributions || []).length > 0
             ? `<ul class="mt-1 space-y-0.5">${m.contributions.map(c =>
-                `<li class="text-[11px] text-gray-400 pl-2 border-l-2 border-gray-200">${typeof c === 'string' ? c : (c.description || c.title || JSON.stringify(c))}</li>`
+                `<li class="text-[12px] text-gray-400 pl-2 border-l-2 border-gray-200">${typeof c === 'string' ? c : (c.description || c.title || JSON.stringify(c))}</li>`
               ).join('')}</ul>`
-            : '<span class="text-[11px] text-gray-300 pl-2">暂无贡献记录</span>';
+            : '<span class="text-[12px] text-gray-300 pl-2">暂无贡献记录</span>';
           return `
             <div class="py-2 border-b border-gray-50 last:border-b-0">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-gray-700">${_personName(m.personId)}</span>
                 <div class="flex items-center gap-2">
-                  <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">${m.role || '深度参与者'}</span>
-                  <span class="text-[10px] text-gray-400">贡献 ${contribCount} 项</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">${m.role || '深度参与者'}</span>
+                  <span class="text-xs text-gray-400">贡献 ${contribCount} 项</span>
                 </div>
               </div>
               ${contribList}
@@ -441,7 +441,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
         const rows = items.map((item, idx) => `
           <tr class="border-b border-gray-50">
             ${fields.map(f => `<td class="px-2 py-1.5 text-xs text-gray-700">${item[f.key] || '-'}</td>`).join('')}
-            <td class="px-2 py-1.5 text-center"><button class="sub-del-btn text-[10px] text-red-400 hover:text-red-600" data-type="${type}" data-idx="${idx}">删除</button></td>
+            <td class="px-2 py-1.5 text-center"><button class="sub-del-btn text-xs text-red-400 hover:text-red-600" data-type="${type}" data-idx="${idx}">删除</button></td>
           </tr>
         `).join('');
 
@@ -449,13 +449,13 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
           <div class="mt-3">
             <div class="flex items-center justify-between mb-1.5">
               <span class="text-xs font-bold font-title-cn" style="color:${color}">${label} (${items.length})</span>
-              <button class="sub-add-btn text-[10px] px-2 py-1 rounded border hover:bg-gray-50 transition-colors" style="color:${color};border-color:${color}40" data-type="${type}">+ 添加</button>
+              <button class="sub-add-btn text-xs px-2 py-1 rounded border hover:bg-gray-50 transition-colors" style="color:${color};border-color:${color}40" data-type="${type}">+ 添加</button>
             </div>
             ${items.length === 0
-              ? '<p class="text-[11px] text-gray-300 pl-2">暂无记录</p>'
+              ? '<p class="text-[12px] text-gray-300 pl-2">暂无记录</p>'
               : `<table class="w-full text-left"><thead><tr class="border-b border-gray-200">
-                  ${fields.map(f => `<th class="px-2 py-1 text-[10px] font-medium text-gray-500">${f.label}</th>`).join('')}
-                  <th class="px-2 py-1 text-[10px] font-medium text-gray-500 w-12"></th>
+                  ${fields.map(f => `<th class="px-2 py-1 text-xs font-medium text-gray-500">${f.label}</th>`).join('')}
+                  <th class="px-2 py-1 text-xs font-medium text-gray-500 w-12"></th>
                 </tr></thead><tbody>${rows}</tbody></table>`
             }
           </div>`;
@@ -569,15 +569,15 @@ function _renderTfCard(t, statusLabel, statusColor) {
   // 招募状态流转按钮：recruiting → active → archived
   let statusBtn = '';
   if (t.status === 'recruiting') {
-    statusBtn = `<button class="tf-start-btn text-[10px] px-2 py-1 rounded bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">启动专班</button>`;
+    statusBtn = `<button class="tf-start-btn text-xs px-2 py-1 rounded bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">启动专班</button>`;
   } else if (t.status === 'active') {
-    statusBtn = `<button class="tf-archive-btn text-[10px] px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">归档专班</button>`;
+    statusBtn = `<button class="tf-archive-btn text-xs px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">归档专班</button>`;
   }
   return `
     <div class="kanban-card p-4 rounded-xl bg-white cursor-pointer tf-store-card hover:shadow-sm transition-shadow" data-tf-id="${t.id}">
       <div class="flex items-start justify-between gap-2 mb-2">
         <span class="text-sm font-semibold text-gray-800 leading-snug">${t.name}</span>
-        <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium" style="background:${color}15;color:${color};">${statusLabel[t.status] || t.status}</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full font-medium" style="background:${color}15;color:${color};">${statusLabel[t.status] || t.status}</span>
       </div>
       <p class="text-xs text-gray-500 mb-2 line-clamp-2">${t.task}</p>
       <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
@@ -799,10 +799,10 @@ function _renderActivityProgress(activities) {
     renderRow: (a) => {
       const isArchived = a.status === 'completed';
       const statusTag = isArchived
-        ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">已归档</span>'
-        : '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">已发布</span>';
+        ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">已归档</span>'
+        : '<span class="text-xs px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">已发布</span>';
       const completeBtn = !isArchived
-        ? `<button class="track-complete-btn text-[10px] px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors" data-act-id="${a.id}">确认完成</button>`
+        ? `<button class="track-complete-btn text-xs px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors" data-act-id="${a.id}">确认完成</button>`
         : '';
       return `
         <div class="flex items-center justify-between p-3 rounded-xl bg-white transition-colors">
@@ -866,7 +866,7 @@ function _renderDevelopmentContent() {
       const arrow = idx < STAGE_ORDER.length - 1
         ? `<span class="text-gray-300 mx-0.5">→</span>`
         : '';
-      return `<span class="inline-flex items-center gap-1"><span style="width:8px;height:8px;border-radius:50%;background:${sc.dot};display:inline-block;"></span><span class="text-[11px] text-gray-600">${s}</span><span class="text-[10px] font-bold" style="color:${sc.dot};">${count}</span></span>${arrow}`;
+      return `<span class="inline-flex items-center gap-1"><span style="width:8px;height:8px;border-radius:50%;background:${sc.dot};display:inline-block;"></span><span class="text-[12px] text-gray-600">${s}</span><span class="text-xs font-bold" style="color:${sc.dot};">${count}</span></span>${arrow}`;
     }).join('');
 
     // 筛选按钮
@@ -878,7 +878,7 @@ function _renderDevelopmentContent() {
       const activeCls = isActive
         ? 'bg-sky-50 text-sky-700 border-sky-200'
         : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50';
-      return `<button class="dev-filter-btn text-[11px] px-2.5 py-1 rounded-full border transition-colors ${activeCls}" data-filter="${f.value}">${f.label}</button>`;
+      return `<button class="dev-filter-btn text-[12px] px-2.5 py-1 rounded-full border transition-colors ${activeCls}" data-filter="${f.value}">${f.label}</button>`;
     }).join('');
 
     // 候选人卡片
@@ -890,8 +890,8 @@ function _renderDevelopmentContent() {
           const isLast = stageIdx === STAGE_ORDER.length - 1;
           const nextStage = isLast ? null : STAGE_ORDER[stageIdx + 1];
           const advanceBtn = !isLast
-            ? `<button class="dev-advance-btn text-[10px] px-2.5 py-1 rounded-md bg-sky-50 text-sky-600 border border-sky-200 hover:bg-sky-100 transition-colors" data-candidate-id="${c.id}" data-next-stage="${nextStage}">推进至${nextStage}</button>`
-            : `<span class="text-[10px] px-2.5 py-1 rounded-md bg-green-50 text-green-600 border border-green-200">已转正</span>`;
+            ? `<button class="dev-advance-btn text-xs px-2.5 py-1 rounded-md bg-sky-50 text-sky-600 border border-sky-200 hover:bg-sky-100 transition-colors" data-candidate-id="${c.id}" data-next-stage="${nextStage}">推进至${nextStage}</button>`
+            : `<span class="text-xs px-2.5 py-1 rounded-md bg-green-50 text-green-600 border border-green-200">已转正</span>`;
 
           // 进度条（当前阶段高亮）
           const progressDots = STAGE_ORDER.map((s, i) => {
@@ -906,16 +906,16 @@ function _renderDevelopmentContent() {
                 <div>
                   <div class="text-sm font-semibold text-gray-800">${c.name}</div>
                   <div class="flex items-center gap-2 mt-1">
-                    <span class="text-[10px] px-1.5 py-0.5 rounded-full ${sc.bg} ${sc.text} font-medium">${c.stage}</span>
-                    ${c.partyGroup ? `<span class="text-[10px] text-gray-400">${c.partyGroup}</span>` : ''}
-                    <span class="text-[10px] text-gray-400">进入当前阶段：${c.entryDate}</span>
-                    ${c.inspCount > 0 ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600">考察 ${c.inspCount}</span>` : ''}
+                    <span class="text-xs px-1.5 py-0.5 rounded-full ${sc.bg} ${sc.text} font-medium">${c.stage}</span>
+                    ${c.partyGroup ? `<span class="text-xs text-gray-400">${c.partyGroup}</span>` : ''}
+                    <span class="text-xs text-gray-400">进入当前阶段：${c.entryDate}</span>
+                    ${c.inspCount > 0 ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600">考察 ${c.inspCount}</span>` : ''}
                   </div>
                 </div>
                 ${advanceBtn}
               </div>
               <div class="flex items-center gap-0.5 mb-2">${progressDots}</div>
-              <div class="text-[11px] text-gray-500">${c.note || ''}</div>
+              <div class="text-[12px] text-gray-500">${c.note || ''}</div>
             </div>`;
         }).join('');
 
@@ -1033,8 +1033,8 @@ function _renderTalentContent() {
             <div class="text-xs text-gray-500 mt-0.5">${p.partyGroup || ''}${p.role && p.role !== 'participant' ? ' · ' + p.role : ''}</div>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full ${colorCls}">${p.developStage || ''}</span>
-            ${p.inspCount > 0 ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600">考察 ${p.inspCount}</span>` : ''}
+            <span class="text-xs px-1.5 py-0.5 rounded-full ${colorCls}">${p.developStage || ''}</span>
+            ${p.inspCount > 0 ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600">考察 ${p.inspCount}</span>` : ''}
           </div>
         </div>
       `;
@@ -1093,9 +1093,9 @@ function _renderTalentDetail(personId) {
       <div>
         <h4 class="font-title-cn text-sm font-bold text-gray-700">${person.name}</h4>
         <div class="flex items-center gap-2 mt-1">
-          <span class="text-[10px] px-1.5 py-0.5 rounded-full ${colorCls}">${person.developStage || ''}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${colorCls}">${person.developStage || ''}</span>
           <span class="text-xs text-gray-500">${person.partyGroup || ''}</span>
-          ${roleLabel[person.role] ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-600">${roleLabel[person.role]}</span>` : ''}
+          ${roleLabel[person.role] ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-600">${roleLabel[person.role]}</span>` : ''}
         </div>
       </div>
       <button id="talent-detail-close" class="text-gray-400 hover:text-gray-600 transition-colors" style="cursor:pointer;">${icon('close', { stroke: '#6B7280', className: 'w-3.5 h-3.5' })}</button>
@@ -1110,12 +1110,12 @@ function _renderTalentDetail(personId) {
               <div class="flex items-center justify-between mb-1">
                 <span class="text-xs font-medium text-gray-700">${r.sourceName || r.role || '-'}</span>
                 <div class="flex items-center gap-1.5">
-                  ${r.sourceType ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full ${sourceTagColor[r.sourceType] || 'bg-gray-50 text-gray-500'}">${sourceTagLabel[r.sourceType] || r.sourceType}</span>` : ''}
-                  <span class="text-[10px] px-1.5 py-0.5 rounded-full ${inspStatusColor[r.status] || 'bg-gray-100 text-gray-500'}">${r.status === 'confirmed' ? '已确认' : '待确认'}</span>
+                  ${r.sourceType ? `<span class="text-xs px-1.5 py-0.5 rounded-full ${sourceTagColor[r.sourceType] || 'bg-gray-50 text-gray-500'}">${sourceTagLabel[r.sourceType] || r.sourceType}</span>` : ''}
+                  <span class="text-xs px-1.5 py-0.5 rounded-full ${inspStatusColor[r.status] || 'bg-gray-100 text-gray-500'}">${r.status === 'confirmed' ? '已确认' : '待确认'}</span>
                 </div>
               </div>
-              <p class="text-[11px] text-gray-500">${r.role || '-'}</p>
-              ${r.recordedAt ? `<p class="text-[10px] text-gray-400 mt-0.5">记录时间：${r.recordedAt.slice(0, 10)}</p>` : ''}
+              <p class="text-[12px] text-gray-500">${r.role || '-'}</p>
+              ${r.recordedAt ? `<p class="text-xs text-gray-400 mt-0.5">记录时间：${r.recordedAt.slice(0, 10)}</p>` : ''}
             </div>
           `).join('')}
         </div>`
@@ -1190,9 +1190,9 @@ function _renderOrgInspectionContent() {
             <tr class="border-b border-gray-50 hover:bg-gray-50">
               <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
               <td class="py-2 px-3 text-gray-600">${i.source}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-[10px] ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">专班</span></td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-xs ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">专班</span></td>
               <td class="py-2 px-3 text-gray-600">${i.role}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${statusColor[i.status] || 'bg-gray-100 text-gray-500'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${statusColor[i.status] || 'bg-gray-100 text-gray-500'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
             </tr>
           `).join('')}</tbody>
         </table>

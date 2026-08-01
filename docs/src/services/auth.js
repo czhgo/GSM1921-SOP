@@ -17,7 +17,39 @@ import { NoticeStore } from './notice.js';
 import { persist } from '../core/data-adapter.js';
 
 // ── 登录状态 ─────────────────────────────────────
-const LOGIN_KEY = 'gsm1921-login-user';  // localStorage: { personId, role }
+const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
+const TAB_KEY = 'gsm1921-tab-id';         // sessionStorage: 当前标签页唯一 ID（A-11 防串扰）
+const SESSION_KEY = 'gsm1921-session-snap'; // sessionStorage: 本标签页登录会话快照
+
+// A-11 多标签页登录防串扰：每个标签页生成唯一 tabId。
+// 登录写入 localStorage（带 tabId）+ sessionStorage 快照；
+// getCurrentUser 校验 tabId——localStorage 被其它标签页覆盖时回退到本页快照，B 页登录不再改变 A 页身份。
+function _getTabId() {
+  let id = null;
+  try { id = sessionStorage.getItem(TAB_KEY); } catch {}
+  if (!id) {
+    id = 'tab-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+    try { sessionStorage.setItem(TAB_KEY, id); } catch {}
+  }
+  return id;
+}
+
+function _writeLogin(data) {
+  const payload = { ...data, tabId: _getTabId() };
+  try {
+    localStorage.setItem(LOGIN_KEY, JSON.stringify(payload));
+    // 本标签页会话快照（不含 tabId，供被覆盖时回退）
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ personId: data.personId, role: data.role }));
+  } catch {}
+}
+
+// 其它标签页改动登录状态 → 派发 auth-changed 事件，供页面刷新用户区（防串扰辅助）
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key !== LOGIN_KEY) return;
+    document.dispatchEvent(new CustomEvent('gsm1921:auth-changed', { detail: { storageEvent: e } }));
+  });
+}
 
 // ── 只读视角 ─────────────────────────────────────
 const VIEW_ROLE_KEY = 'gsm1921-view-role';  // sessionStorage
@@ -201,8 +233,7 @@ export const AuthStore = {
    */
   login(personId) {
     const role = _getUserRoleFromMemory(personId);
-    const data = { personId, role };
-    try { localStorage.setItem(LOGIN_KEY, JSON.stringify(data)); } catch {}
+    _writeLogin({ personId, role });
   },
 
   /**
@@ -213,14 +244,14 @@ export const AuthStore = {
     // 找到该角色的第一个 mock 用户
     const person = PEOPLE.find(p => p.role === role);
     const personId = person ? person.id : 'p5';
-    const data = { personId, role };
-    try { localStorage.setItem(LOGIN_KEY, JSON.stringify(data)); } catch {}
+    _writeLogin({ personId, role });
   },
 
   logout() {
     try {
       localStorage.removeItem(LOGIN_KEY);
       sessionStorage.removeItem(VIEW_ROLE_KEY);
+      sessionStorage.removeItem(SESSION_KEY);
     } catch {}
   },
 
@@ -233,6 +264,13 @@ export const AuthStore = {
       const raw = localStorage.getItem(LOGIN_KEY);
       if (!raw) return null;
       const data = JSON.parse(raw);
+      // A-11 防串扰：localStorage 中的登录若由其它标签页写入（tabId 不匹配），
+      // 回退到本标签页会话快照，避免 B 页登录改变 A 页身份。
+      if (data.tabId && data.tabId !== _getTabId()) {
+        const snapRaw = sessionStorage.getItem(SESSION_KEY);
+        if (snapRaw) return JSON.parse(snapRaw);
+        return null;
+      }
       // 迁移：旧格式 { userId, role } → 新格式 { personId, role }
       if (data.userId && !data.personId) {
         data.personId = data.userId;

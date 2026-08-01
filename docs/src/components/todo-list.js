@@ -157,7 +157,7 @@ function _renderCategoryGroup(prefix, category, todos, accent, today, selectedTo
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
           </svg>
           <span class="font-title-cn text-sm font-bold text-gray-700">${label}</span>
-          ${hasExpired ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-600">含过期</span>` : ''}
+          ${hasExpired ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-red-100 text-red-600">含过期</span>` : ''}
         </div>
         <span class="text-xs text-gray-400 tabular-nums">${todos.length}</span>
       </button>
@@ -184,7 +184,7 @@ function _renderTodoItem(prefix, todo, accent, today, selectedTodoId, actionBtnS
     const isPast = d < today;
     const color = isPast ? 'text-red-600' : isToday ? 'text-orange-600' : 'text-gray-400';
     const prefix_text = isPast ? '已过期 ' : isToday ? '今日 ' : '';
-    deadlineHtml = `<span class="text-[10px] ${color}">${prefix_text}${d}</span>`;
+    deadlineHtml = `<span class="text-xs ${color}">${prefix_text}${d}</span>`;
   }
 
   // 行动按钮文案
@@ -200,29 +200,30 @@ function _renderTodoItem(prefix, todo, accent, today, selectedTodoId, actionBtnS
   const actionLabel = actionLabels[todo.actionType] || '处理';
 
   const flagHtml =
-    (isExpired ? '<span class="text-[10px] px-1 py-0.5 rounded bg-red-100 text-red-600 font-medium flex-shrink-0">过期</span>' : '') +
-    (isUrgent && !isExpired ? '<span class="text-[10px] px-1 py-0.5 rounded bg-orange-100 text-orange-600 font-medium flex-shrink-0">紧急</span>' : '');
+    (isExpired ? '<span class="text-xs px-1 py-0.5 rounded bg-red-100 text-red-600 font-medium flex-shrink-0">过期</span>' : '') +
+    (isUrgent && !isExpired ? '<span class="text-xs px-1 py-0.5 rounded bg-orange-100 text-orange-600 font-medium flex-shrink-0">紧急</span>' : '');
 
-  const barColor = isExpired ? '#EF4444' : isUrgent ? '#F97316' : isSelected ? accent : 'transparent';
+  // 行内强调色（S4：过期不再使用红条，避免与组长翠绿主题页红绿相撞；仅紧急保留橙条）
+  const barColor = !isExpired && isUrgent ? '#F97316' : isSelected ? accent : 'transparent';
 
   return `
-    <div class="${prefix}-todo-item flex items-center border-b border-gray-50 last:border-b-0 ${isExpired ? 'bg-red-50' : ''}" data-todo-id="${todo.id}">
+    <div class="${prefix}-todo-item flex items-center border-b border-gray-50 last:border-b-0" data-todo-id="${todo.id}">
       <span class="w-1 self-stretch flex-shrink-0" style="background:${barColor};"></span>
       <button type="button" class="${prefix}-todo-item-main flex-1 min-w-0 flex items-center gap-2 px-3 py-2.5 text-left bg-transparent border-0 transition-colors hover:bg-gray-50 ${isSelected ? 'bg-gray-50' : ''}" data-todo-id="${todo.id}">
         <span class="flex items-center gap-1.5 min-w-0 flex-1">
           ${flagHtml}
-          <span class="text-sm font-medium ${isExpired ? 'text-red-700' : 'text-gray-800'} truncate">${todo.title}</span>
+          <span class="text-sm font-medium text-gray-800 truncate">${todo.title}</span>
         </span>
         <span class="flex items-center gap-2 flex-shrink-0">
           ${deadlineHtml}
-          <span class="text-[10px] text-gray-400">${statusLabel}</span>
+          <span class="text-xs text-gray-400">${statusLabel}</span>
         </span>
       </button>
       <div class="flex items-center gap-1.5 ml-2 pr-3 flex-shrink-0">
         ${hasAction ? `
-          <button type="button" class="${prefix}-todo-action-btn text-[10px] px-2 py-1 rounded transition-colors hover:opacity-90" data-todo-id="${todo.id}" style="${actionBtnStyle || `background:${accent};color:#fff;`}">${actionLabel}</button>
+          <button type="button" class="${prefix}-todo-action-btn text-xs px-2 py-1 rounded transition-colors hover:opacity-90" data-todo-id="${todo.id}" style="${actionBtnStyle || `background:${accent};color:#fff;`}">${actionLabel}</button>
         ` : ''}
-        <button type="button" class="${prefix}-todo-complete-btn text-[10px] px-2 py-1 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" data-todo-id="${todo.id}" aria-label="标记完成">✓</button>
+        <button type="button" class="${prefix}-todo-complete-btn text-xs px-2 py-1 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" data-todo-id="${todo.id}" aria-label="标记完成">✓</button>
       </div>
     </div>
   `;

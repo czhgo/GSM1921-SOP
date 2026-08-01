@@ -64,7 +64,7 @@ function renderDiscUI(state) {
     prefix: 'disc',
     tabs: [
       { id: 'todo', label: '待办', render: () => _renderTodoContent(), groupLabel: '工作台' },
-      { id: 'attendance', label: '考勤管理(含交接)', render: () => _renderAttendanceContent(null), groupLabel: '党建' },
+      { id: 'attendance', label: '考勤管理', render: () => _renderAttendanceContent(null), groupLabel: '党建' },
       { id: 'review', label: '活动监督复盘', render: () => _renderReviewContent() },
       { id: 'inspection', label: '考察管理', render: () => _renderInspectionContent() },
       { id: 'makeup', label: '补课制度', render: () => _renderMakeupContent(), groupLabel: '党务' },
@@ -135,7 +135,7 @@ function _renderTodoContent() {
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2">
-        <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+        <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner);">
           <div class="flex items-center justify-between mb-4">
             <h4 class="font-title-cn text-sm font-bold text-gray-700">我的待办</h4>
           </div>
@@ -174,8 +174,8 @@ function _renderTodoDetail(todo) {
     <div class="space-y-3">
       <div>
         <div class="flex items-center gap-2 mb-2">
-          <span class="text-[10px] px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-          ${todo.priority === 'urgent' ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
+          ${todo.priority === 'urgent' ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
         </div>
         <p class="font-title-cn text-sm font-bold text-gray-800">${todo.title}</p>
       </div>
@@ -184,7 +184,7 @@ function _renderTodoDetail(todo) {
       <div class="text-xs text-gray-400">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
         ${todo.status !== 'completed' ? `
-          <button class="disc-todo-detail-complete text-xs px-4 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">标记完成</button>
+          <button class="disc-todo-detail-complete text-xs px-4 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:var(--accent-disc-commissioner);">标记完成</button>
           ${todo.actionType ? `<button class="disc-todo-detail-action text-xs px-4 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
         ` : '<span class="text-xs text-green-600">已完成</span>'}
       </div>
@@ -299,13 +299,13 @@ function _renderAttendanceContent(filterActivityId) {
 
   container.innerHTML = `
     ${filterBanner}
-    <div class="card rounded-xl p-4 mb-4 border-l-4" style="border-left-color:${accent};">
+    <div class="card rounded-xl p-4 mb-4 border-l-4" style="border-left-color:var(--accent-disc-commissioner);">
       <div class="flex items-center justify-between mb-3">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤概况</h4>
       </div>
       <div id="disc-attendance-summary">${_buildAttendanceSummaryHTML()}</div>
     </div>
-    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
+    <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤总表</h4>
         <div class="flex gap-2">
@@ -331,7 +331,7 @@ function _renderAttendanceContent(filterActivityId) {
       </div>
       <div id="att-table-container"></div>
     </div>
-    <div class="card rounded-xl p-5 border-l-4 mt-4" style="border-left-color:#C2410C;">
+    <div class="card rounded-xl p-5 mt-4">
       <div class="flex items-center justify-between mb-3">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">数据交接</h4>
         <div class="flex gap-4 text-xs">
@@ -377,30 +377,61 @@ function _renderAttendanceContent(filterActivityId) {
     const tc = document.getElementById('att-table-container');
     if (!tc) return;
     const displayData = applySearchFilter(filtered);
-    tc.innerHTML = `
-      <div class="overflow-x-auto">
-        <table class="w-full text-xs">
-          <thead><tr class="border-b border-gray-200">
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">活动</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">确认人</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">操作</th>
-          </tr></thead>
-          <tbody>${displayData.map(a => {
-            const isPending = a.confirmer === '—';
-            return `
-            <tr class="border-b border-gray-50 hover:bg-gray-50 ${isPending ? 'bg-orange-50/30' : ''}">
-              <td class="py-2 px-3 font-medium text-gray-800">${a.name}</td>
-              <td class="py-2 px-3 text-gray-600">${a.activity}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${a.status === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.status === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${ATTENDANCE_STATUS_LABELS[a.status] || a.status}</span></td>
-              <td class="py-2 px-3 text-gray-500">${isPending ? '<span class="text-orange-600">待确认</span>' : `<span class="text-green-600">${a.confirmer}</span>`}</td>
-              <td class="py-2 px-3">${isPending ? `<button class="btn-action btn-action-orange btn-disc-confirm-att" data-record-id="${a.id}">确认</button>` : '<span class="text-[10px] text-green-600">已确认</span>'}</td>
-            </tr>
-          `}).join('')}</tbody>
-        </table>
-      </div>
-    `;
+
+    // A-10 修复：考勤记录按月分组展示（按活动日期归属月份）
+    const recById = new Map(allRecords.map(r => [r.id, r]));
+    const actById = new Map(loadActivities().map(a => [a.id, a]));
+    const groups = new Map();
+    displayData.forEach(a => {
+      const actId = recById.get(a.id)?.activityId;
+      const date = actId ? actById.get(actId)?.date : null;
+      const monthKey = date ? date.slice(0, 7) : '未排期';
+      if (!groups.has(monthKey)) groups.set(monthKey, []);
+      groups.get(monthKey).push(a);
+    });
+    // 月份降序（最新在前），未排期放最后
+    const monthKeys = [...groups.keys()].sort((x, y) => {
+      if (x === '未排期') return 1;
+      if (y === '未排期') return -1;
+      return y.localeCompare(x);
+    });
+
+    const tableHeader = `
+      <thead><tr class="border-b border-gray-200">
+        <th class="sticky top-0 z-10 bg-white py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
+        <th class="sticky top-0 z-10 bg-white py-2 px-3 text-left text-gray-500 font-medium">活动</th>
+        <th class="sticky top-0 z-10 bg-white py-2 px-3 text-left text-gray-500 font-medium">状态</th>
+        <th class="sticky top-0 z-10 bg-white py-2 px-3 text-left text-gray-500 font-medium">确认人</th>
+        <th class="sticky top-0 z-10 bg-white py-2 px-3 text-left text-gray-500 font-medium">操作</th>
+      </tr></thead>`;
+
+    tc.innerHTML = monthKeys.map(monthKey => {
+      const rows = groups.get(monthKey);
+      const monthLabel = monthKey === '未排期' ? '未排期活动' : `${monthKey.slice(0, 4)}年${Number(monthKey.slice(5, 7))}月`;
+      return `
+        <div class="mb-4 last:mb-0">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="font-title-cn text-xs font-bold text-gray-700">${monthLabel}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">${rows.length} 条</span>
+          </div>
+          <div class="overflow-x-auto max-h-96 overflow-y-auto">
+            <table class="w-full text-xs">
+              ${tableHeader}
+              <tbody>${rows.map(a => {
+                const isPending = a.confirmer === '—';
+                return `
+                <tr class="border-b border-gray-50 hover:bg-gray-50 ${isPending ? 'bg-orange-50/30' : ''}">
+                  <td class="py-2 px-3 font-medium text-gray-800">${a.name}</td>
+                  <td class="py-2 px-3 text-gray-600">${a.activity}</td>
+                  <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${a.status === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.status === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${a.status}</span></td>
+                  <td class="py-2 px-3 text-gray-500">${isPending ? '<span class="text-orange-600">待确认</span>' : `<span class="text-green-600">${a.confirmer}</span>`}</td>
+                  <td class="py-2 px-3">${isPending ? `<button class="btn-action btn-action-orange btn-disc-confirm-att" data-record-id="${a.id}">确认</button>` : '<span class="text-xs text-green-600">已确认</span>'}</td>
+                </tr>
+              `}).join('')}</tbody>
+            </table>
+          </div>
+        </div>`;
+    }).join('');
 
     // 绑定确认按钮事件
     tc.querySelectorAll('.btn-disc-confirm-att').forEach(btn => {
@@ -433,14 +464,14 @@ function _renderAttendanceContent(filterActivityId) {
         <table class="w-full text-xs">
           <thead><tr class="border-b border-gray-200">
             <th class="py-2 px-3 text-left text-gray-500 font-medium sticky left-0 bg-white">姓名</th>
-            ${filteredWide.columns.map(c => `<th class="py-2 px-3 text-center text-gray-500 font-medium"><div class="text-[10px]">${c.title}</div></th>`).join('')}
+            ${filteredWide.columns.map(c => `<th class="py-2 px-3 text-center text-gray-500 font-medium"><div class="text-xs">${c.title}</div></th>`).join('')}
           </tr></thead>
           <tbody>${rows.map(row => `
             <tr class="border-b border-gray-50 hover:bg-gray-50">
               <td class="py-2 px-3 font-medium text-gray-800 sticky left-0 bg-white">${row.name}</td>
               ${filteredWide.columns.map(c => {
                 const val = row.cells[c.key] || '—';
-                return `<td class="py-2 px-3 text-center text-[10px] text-gray-600">${val}</td>`;
+                return `<td class="py-2 px-3 text-center text-xs text-gray-600">${val}</td>`;
               }).join('')}
             </tr>
           `).join('')}</tbody>
@@ -479,14 +510,14 @@ function _renderInspectionContent() {
     <div class="bg-red-50 border border-red-200 rounded-xl p-3 mb-3">
       <div class="flex items-center gap-2 mb-1">
         <span class="text-xs font-bold text-red-700">超期提醒</span>
-        <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">${overdueRecords.length}条</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">${overdueRecords.length}条</span>
       </div>
       <div class="text-xs text-red-600">以下考察记录已超过7天未确认，请尽快处理</div>
     </div>
   ` : '';
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
+    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner);">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考察总表</h4>
         <div class="flex gap-2">
@@ -563,10 +594,10 @@ function _renderInspectionContent() {
             <tr class="border-b border-gray-50 hover:bg-gray-50 ${rowBg}">
               <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
               <td class="py-2 px-3 text-gray-600">${i.source}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-[10px] ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">${i.sourceType === 'activity' ? '活动' : '专班'}</span></td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-xs ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">${i.sourceType === 'activity' ? '活动' : '专班'}</span></td>
               <td class="py-2 px-3 text-gray-600">${i.role}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-[10px] ${isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-500'}">${isOverdue ? '超期' : i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
-              <td class="py-2 px-3">${isPending || isOverdue ? `<button class="text-xs px-2 py-1 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>` : '<span class="text-[10px] text-green-600">已确认</span>'}</td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-500'}">${isOverdue ? '超期' : i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
+              <td class="py-2 px-3">${isPending || isOverdue ? `<button class="text-xs px-2 py-1 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>` : '<span class="text-xs text-green-600">已确认</span>'}</td>
             </tr>
           `}).join('')}</tbody>
         </table>
@@ -611,14 +642,14 @@ function _renderInspectionContent() {
         <table class="w-full text-xs">
           <thead><tr class="border-b border-gray-200">
             <th class="py-2 px-3 text-left text-gray-500 font-medium sticky left-0 bg-white">姓名</th>
-            ${wideData.columns.map(c => `<th class="py-2 px-3 text-center text-gray-500 font-medium"><div class="text-[10px]">${c.title}</div><div class="text-[9px] ${tagColor[c.type] || 'text-gray-400'}">${c.type}</div></th>`).join('')}
+            ${wideData.columns.map(c => `<th class="py-2 px-3 text-center text-gray-500 font-medium"><div class="text-xs">${c.title}</div><div class="text-[11px] ${tagColor[c.type] || 'text-gray-400'}">${c.type}</div></th>`).join('')}
           </tr></thead>
           <tbody>${rows.map(row => `
             <tr class="border-b border-gray-50 hover:bg-gray-50">
               <td class="py-2 px-3 font-medium text-gray-800 sticky left-0 bg-white">${row.name}</td>
               ${wideData.columns.map(c => {
                 const val = row.cells[c.key] || '—';
-                return `<td class="py-2 px-3 text-center text-[10px] text-gray-600">${val}</td>`;
+                return `<td class="py-2 px-3 text-center text-xs text-gray-600">${val}</td>`;
               }).join('')}
             </tr>
           `).join('')}</tbody>
@@ -661,7 +692,7 @@ function _renderReviewContent() {
 
   container.innerHTML = `
     <div class="space-y-4">
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner);">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">活动流程监督</h4>
         <div class="text-xs text-gray-500 mb-3">阅览党小组活动/专班工作时间流 · 超时确认后邮件提醒</div>
         <div class="space-y-2">
@@ -672,14 +703,14 @@ function _renderReviewContent() {
                 <div class="text-xs text-gray-500 mt-0.5">组织者：${r.organizer}</div>
               </div>
               <div class="flex items-center gap-2 ml-4">
-                <span class="text-[10px] px-1.5 py-0.5 rounded-full ${progressColor[r.progress] || 'bg-gray-100 text-gray-500'}">${r.progress}</span>
+                <span class="text-xs px-1.5 py-0.5 rounded-full ${progressColor[r.progress] || 'bg-gray-100 text-gray-500'}">${r.progress}</span>
                 ${r.overdue ? '<button class="btn-action btn-action-red btn-disc-remind">邮件提醒</button>' : ''}
               </div>
             </div>
           `).join('')}
         </div>
       </div>
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
+      <div class="card rounded-xl p-5">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">活动复盘监督</h4>
         <div class="text-xs text-gray-500 mb-3">复盘三态流转：已上传 → 批注中 → 确认/打回</div>
         <div class="space-y-2">
@@ -688,8 +719,8 @@ function _renderReviewContent() {
               <div class="flex items-center justify-between mb-2">
                 <div class="text-sm font-medium text-gray-800">${r.activity}</div>
                 <div class="flex items-center gap-2">
-                  <span class="text-[10px] px-1.5 py-0.5 rounded-full ${reviewColor[r.reviewStatus] || 'bg-gray-100 text-gray-500'}">${r.reviewStatus}</span>
-                  ${r.reviewStatus === '已确认' ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full ${hasDeposit(r) ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${hasDeposit(r) ? '已沉淀' : '未沉淀'}</span>` : ''}
+                  <span class="text-xs px-1.5 py-0.5 rounded-full ${reviewColor[r.reviewStatus] || 'bg-gray-100 text-gray-500'}">${r.reviewStatus}</span>
+                  ${r.reviewStatus === '已确认' ? `<span class="text-xs px-1.5 py-0.5 rounded-full ${hasDeposit(r) ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${hasDeposit(r) ? '已沉淀' : '未沉淀'}</span>` : ''}
                 </div>
               </div>
               ${r.reviewContent ? `<div class="text-xs text-gray-600 mb-2 p-2 bg-white rounded-lg border border-gray-100">${r.reviewContent}</div>` : ''}
@@ -711,7 +742,7 @@ function _renderReviewContent() {
         </div>
       </div>
       ${unDepositedReviews.length > 0 ? `
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#D97706;">
+      <div class="card rounded-xl p-5">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">经验沉淀督促清单</h4>
         <div class="text-xs text-gray-500 mb-3">以下活动复盘已确认但尚未沉淀经验，请督促深度参与者提交</div>
         <div class="space-y-2">
@@ -747,7 +778,7 @@ function _renderReviewContent() {
       onSubmit: (values) => {
         showToast('success', '批注已添加');
       },
-      accentColor: accent || '#C2410C'
+      accentColor: accent || 'var(--accent-disc-commissioner)'
     });
   }));
   container.querySelectorAll('.btn-disc-reject').forEach(btn => btn.addEventListener('click', () => showToast('success', '复盘已打回，要求重新提交')));
@@ -802,7 +833,7 @@ function _renderHandoverContent() {
   container.innerHTML = `
     <div class="space-y-4">
       <!-- 统计概览 -->
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner);">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">数据交接概览</h4>
         <div class="flex gap-4 text-xs">
           <div class="flex items-center gap-1.5">
@@ -837,7 +868,7 @@ function _renderHandoverContent() {
 
       <!-- 已提交 -->
       ${submittedRecords.length > 0 ? `
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner);">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">待确认的交接</h4>
         <div class="text-xs text-gray-500 mb-3">组织者已提交交接数据，请审核后确认</div>
         <div class="space-y-2" id="disc-handover-submitted">
@@ -875,24 +906,24 @@ function _renderDiscHandoverRecord(r, group) {
     <div class="p-3 rounded-xl bg-white" data-disc-handover-id="${r.id}">
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center gap-2">
-          <span class="text-[10px] px-1.5 py-0.5 rounded ${r.type === 'activity' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'}">${typeLabel}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded ${r.type === 'activity' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'}">${typeLabel}</span>
           <span class="text-sm font-medium text-gray-800">${r.sourceName}</span>
-          <span class="px-1.5 py-0.5 rounded-full text-[10px] ${_discHandoverStatusStyle(r.status)}">${_discHandoverStatusLabel(r.status)}</span>
+          <span class="px-1.5 py-0.5 rounded-full text-xs ${_discHandoverStatusStyle(r.status)}">${_discHandoverStatusLabel(r.status)}</span>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-[10px] text-gray-500">${completedItems}/${totalItems} 项</span>
+          <span class="text-xs text-gray-500">${completedItems}/${totalItems} 项</span>
           ${group === 'in_progress' ? `<button class="btn-action btn-action-orange btn-disc-urge-handover" data-record-id="${r.id}">催促</button>` : ''}
           ${group === 'submitted' ? `<button class="btn-action btn-action-green btn-disc-confirm-handover" data-record-id="${r.id}">确认</button>` : ''}
         </div>
       </div>
-      <div class="text-[10px] text-gray-500 mb-1">记录人：${recorderName} · 创建于 ${_discFormatTime(r.createdAt)}</div>
-      ${r.hasArchiveAssignment ? `<div class="text-[10px] text-indigo-600 mb-1">归档沉淀维护：${getPersonName(r.archiveAssigneeId)}</div>` : ''}
-      ${r.submittedAt ? `<div class="text-[10px] text-orange-600 mb-1">提交于 ${_discFormatTime(r.submittedAt)}</div>` : ''}
-      ${r.confirmedAt ? `<div class="text-[10px] text-green-600 mb-1">确认于 ${_discFormatTime(r.confirmedAt)}</div>` : ''}
+      <div class="text-xs text-gray-500 mb-1">记录人：${recorderName} · 创建于 ${_discFormatTime(r.createdAt)}</div>
+      ${r.hasArchiveAssignment ? `<div class="text-xs text-indigo-600 mb-1">归档沉淀维护：${getPersonName(r.archiveAssigneeId)}</div>` : ''}
+      ${r.submittedAt ? `<div class="text-xs text-orange-600 mb-1">提交于 ${_discFormatTime(r.submittedAt)}</div>` : ''}
+      ${r.confirmedAt ? `<div class="text-xs text-green-600 mb-1">确认于 ${_discFormatTime(r.confirmedAt)}</div>` : ''}
 
       <!-- 交接项详情（可展开） -->
       <div class="mt-2">
-        <button class="btn-disc-toggle-handover-detail text-[10px] text-gray-500 hover:text-gray-700 transition-colors" style="cursor:pointer;border:none;background:none;padding:0;" data-record-id="${r.id}">
+        <button class="btn-disc-toggle-handover-detail text-xs text-gray-500 hover:text-gray-700 transition-colors" style="cursor:pointer;border:none;background:none;padding:0;" data-record-id="${r.id}">
           查看交接项详情 ▾
         </button>
         <div class="disc-handover-detail hidden mt-2 space-y-1" data-detail-for="${r.id}">
@@ -903,9 +934,9 @@ function _renderDiscHandoverRecord(r, group) {
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">
                     <span class="text-xs font-medium text-gray-700">${item.name}</span>
-                    <span class="px-1 py-0.5 rounded text-[10px] ${item.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}">${item.status === 'completed' ? '已完成' : '待完成'}</span>
+                    <span class="px-1 py-0.5 rounded text-xs ${item.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}">${item.status === 'completed' ? '已完成' : '待完成'}</span>
                   </div>
-                  <div class="text-[10px] text-gray-400 mt-0.5">${item.description ? item.description + ' · ' : ''}负责人：${assigneeName}</div>
+                  <div class="text-xs text-gray-400 mt-0.5">${item.description ? item.description + ' · ' : ''}负责人：${assigneeName}</div>
                 </div>
               </div>
             `;
@@ -972,14 +1003,14 @@ function _renderMakeupContent() {
   const overdueTasks = pendingTasks.filter(t => new Date(t.deadline) < new Date());
 
   const statusBadge = (task) => {
-    if (task.status === 'completed') return '<span class="px-1.5 py-0.5 rounded-full text-[10px] bg-green-100 text-green-700">已完成</span>';
-    if (new Date(task.deadline) < new Date()) return '<span class="px-1.5 py-0.5 rounded-full text-[10px] bg-red-100 text-red-700">已超期</span>';
-    return '<span class="px-1.5 py-0.5 rounded-full text-[10px] bg-orange-100 text-orange-700">待补课</span>';
+    if (task.status === 'completed') return '<span class="px-1.5 py-0.5 rounded-full text-xs bg-green-100 text-green-700">已完成</span>';
+    if (new Date(task.deadline) < new Date()) return '<span class="px-1.5 py-0.5 rounded-full text-xs bg-red-100 text-red-700">已超期</span>';
+    return '<span class="px-1.5 py-0.5 rounded-full text-xs bg-orange-100 text-orange-700">待补课</span>';
   };
 
   container.innerHTML = `
     <div class="space-y-4">
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner);">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">补课任务</h4>
           <div class="flex gap-4 text-xs">
@@ -1007,10 +1038,10 @@ function _renderMakeupContent() {
               <tr class="border-b border-gray-50 hover:bg-gray-50 ${rowBg}">
                 <td class="py-2 px-3 font-medium text-gray-800">${t.personName || getPersonName(t.personId)}</td>
                 <td class="py-2 px-3 text-gray-600">${t.activityName || '—'}</td>
-                <td class="py-2 px-3 text-gray-600">${t.isMandatory ? '<span class="text-[10px] px-1 py-0.5 rounded bg-red-50 text-red-600">必修</span> 自学+心得' : '<span class="text-[10px] px-1 py-0.5 rounded bg-blue-50 text-blue-600">选修</span> 自学'}</td>
+                <td class="py-2 px-3 text-gray-600">${t.isMandatory ? '<span class="text-xs px-1 py-0.5 rounded bg-red-50 text-red-600">必修</span> 自学+心得' : '<span class="text-xs px-1 py-0.5 rounded bg-blue-50 text-blue-600">选修</span> 自学'}</td>
                 <td class="py-2 px-3 text-gray-600">${t.deadline || '—'}</td>
                 <td class="py-2 px-3">${statusBadge(t)}</td>
-                <td class="py-2 px-3">${t.status === 'pending' ? `<button class="btn-action btn-action-green btn-disc-confirm-makeup" data-task-id="${t.id}">确认完成</button>` : '<span class="text-[10px] text-gray-400">—</span>'}</td>
+                <td class="py-2 px-3">${t.status === 'pending' ? `<button class="btn-action btn-action-green btn-disc-confirm-makeup" data-task-id="${t.id}">确认完成</button>` : '<span class="text-xs text-gray-400">—</span>'}</td>
               </tr>
             `}).join('')}</tbody>
           </table>
@@ -1022,7 +1053,7 @@ function _renderMakeupContent() {
       <div class="bg-red-50 border border-red-200 rounded-xl p-3">
         <div class="flex items-center gap-2 mb-1">
           <span class="text-xs font-bold text-red-700">超期提醒</span>
-          <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">${overdueTasks.length}条</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">${overdueTasks.length}条</span>
         </div>
         <div class="text-xs text-red-600">以下补课任务已超期，请尽快督促完成</div>
         <div class="mt-2 space-y-1">
@@ -1081,7 +1112,7 @@ function _renderMailboxContent() {
   container.innerHTML = `
     <div class="space-y-4">
       <!-- 邮箱信息 + 倒计时 -->
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
+      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner);">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">支部公邮</h4>
         <div class="flex items-center gap-3 mb-4">
           <div class="flex-1">
@@ -1100,7 +1131,7 @@ function _renderMailboxContent() {
               <div class="text-lg font-bold ${countdownColor}">${countdownText}</div>
             </div>
             <div class="text-right">
-              <div class="text-[10px] text-gray-500">上次查收</div>
+              <div class="text-xs text-gray-500">上次查收</div>
               <div class="text-xs text-gray-600">${_discFormatTime(MAILBOX_CONFIG.lastCheckAt)}</div>
             </div>
           </div>
@@ -1112,7 +1143,7 @@ function _renderMailboxContent() {
       </div>
 
       <!-- 查收历史 -->
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:#C2410C;">
+      <div class="card rounded-xl p-5">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">查收历史</h4>
         <div class="text-xs text-gray-500 mb-3">纪检委员定期查收支部公邮，处理来往邮件</div>
         <div class="space-y-2">
@@ -1120,10 +1151,10 @@ function _renderMailboxContent() {
             <div class="p-3 rounded-xl bg-white">
               <div class="flex items-center justify-between mb-1">
                 <div class="flex items-center gap-2">
-                  <span class="text-[10px] px-1.5 py-0.5 rounded ${h.hasAction ? 'bg-amber-50 text-amber-700' : 'bg-gray-50 text-gray-500'}">${h.hasAction ? '有处理' : '无待办'}</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded ${h.hasAction ? 'bg-amber-50 text-amber-700' : 'bg-gray-50 text-gray-500'}">${h.hasAction ? '有处理' : '无待办'}</span>
                   <span class="text-xs text-gray-600">${_discFormatTime(h.checkedAt)}</span>
                 </div>
-                <span class="text-[10px] text-gray-400">${getPersonName(h.checkedBy)}</span>
+                <span class="text-xs text-gray-400">${getPersonName(h.checkedBy)}</span>
               </div>
               <div class="text-xs text-gray-700">${h.summary}</div>
             </div>

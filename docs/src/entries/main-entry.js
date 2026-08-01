@@ -103,15 +103,17 @@ function _renderStats(activities, taskforces, notices, attendanceRecords, isLoad
   const myPresent = myMonthAttendance.filter(r => r.status === 'present').length;
   const myTotal = myMonthAttendance.length;
   const myRate = myTotal > 0 ? Math.round((myPresent / myTotal) * 100) : 0;
-  const myColor = myTotal === 0 ? 'var(--neutral-400)'
-    : myRate >= 80 ? 'var(--accent-emerald)'
-    : myRate >= 60 ? 'var(--accent-amber)'
-    : 'var(--primary-600)';
+  const myColor = myTotal === 0 ? '#9CA3AF'
+    : myRate >= 80 ? '#059669'
+    : myRate >= 60 ? '#D97706'
+    : '#DC2626';
 
+  // A-01 修复：color 统一为 hex 常量，图标底色用 8 位 hex（${hex}15），var+hex 拼接无法解析
   const stats = [
-    { label: '本月活动', value: monthActivities.length, unit: '场', color: 'var(--primary-700)', icon: 'calendarHero', interactive: false },
-    { label: '活跃专班', value: activeTFs.length, unit: '个', color: 'var(--accent-gold)', icon: 'usersGroup', interactive: false },
-    { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? 'var(--primary-600)' : 'var(--neutral-400)', icon: 'bellHero', interactive: false },
+    { label: '本月活动', value: monthActivities.length, unit: '场', color: '#CE1126', icon: 'calendarHero', interactive: false },
+    // A-09 修复：活跃专班亮金 #FFD700 白卡辨识度低 → 深金 #B45309（与访客金色系一致）
+    { label: '活跃专班', value: activeTFs.length, unit: '个', color: '#B45309', icon: 'usersGroup', interactive: false },
+    { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? '#DC2626' : '#9CA3AF', icon: 'bellHero', interactive: false },
     { label: '我的考勤', value: myTotal > 0 ? `${myPresent}/${myTotal}` : '—', unit: '', color: myColor, icon: 'clipboard', interactive: true },
   ];
 
@@ -191,9 +193,13 @@ function _bindAttendancePopover(activities, attendanceRecords, thisMonth) {
         <div class="max-h-64 overflow-y-auto">${listHTML}</div>
       `;
 
+      // A-02 修复：clamp 定位，防止第 4 列统计卡触发时右缘溢出视口
       const rect = trigger.getBoundingClientRect();
+      const POPOVER_WIDTH = 300;
+      const POPOVER_MARGIN = 8;
+      const popoverLeft = Math.min(rect.left + window.scrollX, window.innerWidth - POPOVER_WIDTH - POPOVER_MARGIN);
       popover.style.top = `${rect.bottom + window.scrollY + 8}px`;
-      popover.style.left = `${rect.left + window.scrollX}px`;
+      popover.style.left = `${Math.max(POPOVER_MARGIN, popoverLeft)}px`;
       popover.style.display = 'block';
     } else {
       popover.style.display = 'none';
@@ -310,7 +316,7 @@ function _renderActivityList(activities) {
           <p class="text-sm font-medium text-gray-800 truncate group-hover:text-blue-700 transition-colors">${a.title || '未命名活动'}</p>
           <p class="text-xs text-gray-500 mt-0.5">${dateLabel} · ${color.label}${organizerName ? ' · ' + organizerName : ''}${a.location ? ' · ' + a.location : ''}</p>
         </div>
-        <span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full ${statusInfo.cls} flex-shrink-0">${statusInfo.text}</span>
+        <span class="px-1.5 py-0.5 text-xs font-medium rounded-full ${statusInfo.cls} flex-shrink-0">${statusInfo.text}</span>
       </div>
     `;
   }).join('') + '</div>';
@@ -338,7 +344,7 @@ function _renderTaskforceList(taskforces) {
       <div class="flex items-start gap-3 py-2.5 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 hover:shadow-sm rounded-lg px-2 -mx-2 transition-all duration-200 group"
            data-tf-id="${r.id}"
            title="${r.name} — ${r.task}">
-        <span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full ${badge.cls} flex-shrink-0 mt-0.5">${badge.text}</span>
+        <span class="px-1.5 py-0.5 text-xs font-medium rounded-full ${badge.cls} flex-shrink-0 mt-0.5">${badge.text}</span>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium text-gray-800 truncate group-hover:text-blue-700 transition-colors">${r.name}</p>
           <p class="text-xs text-gray-500 mt-0.5 line-clamp-1">${r.task}</p>
@@ -346,12 +352,12 @@ function _renderTaskforceList(taskforces) {
             <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <div class="h-full rounded-full" style="width:${pct}%;background:${barColor};transition:width 0.3s;"></div>
             </div>
-            <span class="text-[10px] text-gray-400 whitespace-nowrap">${filled}/${r.capacity}</span>
+            <span class="text-xs text-gray-400 whitespace-nowrap">${filled}/${r.capacity}</span>
           </div>
         </div>
         <div class="text-right whitespace-nowrap flex-shrink-0">
-          <p class="text-[10px] text-gray-400">发起: ${_personName(r.initiator)}</p>
-          ${r.deadline ? `<p class="text-[10px] text-gray-400">截止 ${r.deadline}</p>` : ''}
+          <p class="text-xs text-gray-400">发起: ${_personName(r.initiator)}</p>
+          ${r.deadline ? `<p class="text-xs text-gray-400">截止 ${r.deadline}</p>` : ''}
         </div>
       </div>
     `;
@@ -417,12 +423,11 @@ function _renderGallery(activities) {
   const container = document.getElementById('dashboard-gallery');
   if (!container) return;
 
-  // 择优展示：品牌活动优先，然后近期已完成活动，最多6个
-  const brandActivities = activities.filter(a => a.isBrand && !a.archived);
-  const completedActivities = activities.filter(a => (a.status === 'completed' || a.archived) && !a.isBrand)
-    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-
-  const display = [...brandActivities, ...completedActivities].slice(0, 6);
+  // A-03 修复：最新在前（按日期降序）排序，品牌活动保留标识，最多6个；保留渐变设计效果
+  const candidates = activities.filter(a => (a.isBrand && !a.archived) || ((a.status === 'completed' || a.archived) && !a.isBrand));
+  const display = candidates
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+    .slice(0, 6);
 
   if (display.length === 0) {
     container.innerHTML = '<p class="text-sm text-gray-400">暂无风采展示</p>';
@@ -440,16 +445,16 @@ function _renderGallery(activities) {
         <div class="rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
              data-gallery-activity-id="${a.id}">
           <div class="p-4 relative" style="background:${gradient};">
-            ${a.isBrand ? '<span class="absolute top-2 right-2 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-orange-100 text-orange-700 border border-orange-200">品牌</span>' : ''}
+            ${a.isBrand ? '<span class="absolute top-2 right-2 px-1.5 py-0.5 text-xs font-bold rounded-full bg-orange-100 text-orange-700 border border-orange-200">品牌</span>' : ''}
             <div class="flex items-center gap-1.5 mb-1.5">
               <div class="w-2.5 h-2.5 rounded-full" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''};"></div>
-              <span class="text-[10px] font-medium text-gray-500">${color.label}</span>
+              <span class="text-xs font-medium text-gray-500">${color.label}</span>
             </div>
             <h4 class="text-sm font-bold text-gray-800 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2">${a.title || '未命名活动'}</h4>
           </div>
           <div class="p-3 bg-white">
-            <p class="text-[10px] text-gray-500">${a.date ? _fmtDate(new Date(a.date)) : ''}${organizerName ? ' · ' + organizerName : ''}</p>
-            <span class="inline-block mt-1 px-1.5 py-0.5 text-[10px] font-medium rounded-full ${statusInfo.cls}">${statusInfo.text}</span>
+            <p class="text-xs text-gray-500">${a.date ? _fmtDate(new Date(a.date)) : ''}${organizerName ? ' · ' + organizerName : ''}</p>
+            <span class="inline-block mt-1 px-1.5 py-0.5 text-xs font-medium rounded-full ${statusInfo.cls}">${statusInfo.text}</span>
           </div>
         </div>
       `;

@@ -12,6 +12,31 @@ import { MilestoneStore } from '../services/milestones.js';
 import { getAccentColors } from './constants.js';
 import { CrossPageState } from './cross-page-state.js';
 import { getBasePath } from './utils.js';
+import { enhanceSelects } from '../components/custom-select.js';
+
+// ════════════════════════════════════════════════════════════════
+// S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）
+// 任何时刻动态渲染出的 .input-flat select 都会被增强为自定义圆角下拉，
+// 无需在各渲染点逐处调用（组件内 data-cs-enhanced 标记防重）。
+// ════════════════════════════════════════════════════════════════
+let _csScanTimer = null;
+function _scheduleEnhance() {
+  if (_csScanTimer) return;
+  _csScanTimer = setTimeout(() => {
+    _csScanTimer = null;
+    enhanceSelects(document);
+  }, 60);
+}
+if (typeof MutationObserver !== 'undefined' && document.body) {
+  new MutationObserver(_scheduleEnhance).observe(document.body, { childList: true, subtree: true });
+} else if (document.body) {
+  _scheduleEnhance();
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _scheduleEnhance);
+} else {
+  _scheduleEnhance();
+}
 
 // ════════════════════════════════════════════════════════════════
 // 安全最佳实践：开发绕过白名单（security-best-practices Skill 指导）

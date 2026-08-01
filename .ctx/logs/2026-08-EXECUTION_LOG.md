@@ -2,7 +2,7 @@
 title: "2026年8月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-08-01"
+last_updated: "2026-08-02"
 status: active
 related_files:
   - CLAUDE.md
@@ -407,3 +407,33 @@ related_files:
   - ✅ GetDiagnostics 全部修改 JS 零错误
 - **git 提交**：`0f595c3`
 - **沉淀标签**：`[已沉淀: content/04_web_design/DATA_ARCHITECTURE.md §4.3 唯一数据源原则]` — 人员=PEOPLE+mockDB.users 唯一权威源（渲染层一律 PersonStore 解析）；发展党员追踪从 PEOPLE 派生不硬编码；反馈短 ID 体系（存储与渲染双层不泄露长 ID）；缓存版本链三件套（CODE_VERSION + HTML?v + CACHE_VERSION）作为"数据干净"的强制刷新机制
+
+## T188 T-188 最小三成本与审美审计轮（四里程碑全流程闭环）（2026-08-02）
+
+**任务**：书记（2026-08-01）"请再做一次三个最小成本的检查。目前很多显示我都觉得审美还达不上需求！"——按"先出清单→逐条评议→分步修复"节奏完成 12 项问题修复与验证
+**引用流程**：H5 书记评议 + web-design-guidelines + sample-diff-learning + brainstorming + DESIGN_SYSTEM §一 第2条/第4条 + verification-before-completion Skill（browser_use 实测）
+
+- **里程碑 1（审计）**：browser_use DOM 级实测（getComputedStyle 数值证据）+ 代码静态审查 + web-design-guidelines 规则对照 + DESIGN_SYSTEM §一 对照，产出 12 项问题清单（A-01~A-12：2 Bug + 7 审美 + 3 三成本遗留）写入 REVIEW_QUEUE.md
+- **里程碑 2（评议）**：逐条 AskUserQuestion 判定（书记关键决策 4 项：A-02 通过；A-05 全量上调一档+仅徽标/日历标签细体；A-08→P.9 重设计为进度总览）
+- **里程碑 3（分步修复）**：
+  - **A-01** 首页统计卡图标底色：`main-entry.js` color 统一 hex 常量 + `${hex}15` 8 位 hex 拼接（修复 var+hex 后缀无法解析）
+  - **A-02** 考勤弹窗：clamp 定位（`Math.min(rect.left + window.scrollX, innerWidth - POPOVER_WIDTH - 8)`），修正滚动错位
+  - **A-03** 活动风采：保留渐变但按日期最新在前（`(b.date||'').localeCompare(a.date||'')`）
+  - **A-05** 全量字号上调一档：19 个 JS 文件 `text-[11px]`→`text-xs`（218 处）、`text-[10px]`→`text-[11px]`、日历 9.6px→10px、tab 分组 9px→10px；细体范围=仅徽标（3 个 rounded-full chip 选择器）+ 日历标签用华文仿宋【细体】（styles.css 新增 font-family 规则）
+  - **A-06** 纪检左边条：仅保留每 tab 首个主卡片左边条（6 个可见 tab 各仅首个主卡留条）
+  - **A-07** 纪检颜色统一：硬编码 `#C2410C/#D97706` 清零 + 收尾 3 处 JS 注入 `${accent}`→`var(--accent-disc-commissioner)`
+  - **A-08→P.9** 书记全局概况重设计：`_renderOverviewContent()` 从 2x2 四色卡片重写为**单列进度总览**——4 行卡片（考勤与纪律/发展与考察/活动与专班/宣传与档案），每行图标+标题+进度条（`var(--accent-secretary)`）或发展四阶段堆叠段条（灰/蓝/黄/红+图例）+ 指标 chips（异常值 `text-orange-600`）；顶部说明"党支部整体运行态势 · 只看进行时和未完成"；设计初衷写入 CLAUDE.md 丙部 P.9 与函数头注释
+  - **A-09** 活跃专班改深金 `#B45309`
+  - **A-10** 纪检考勤 sticky 表头 + 按月分组（`date.slice(0,7)` 月份降序）
+  - **A-11** 登录防串扰：`auth.js` tabId + sessionStorage 快照 + storage 事件
+  - **A-12** 组长 tab「活动写入」→「活动管理」
+  - 新增 `docs/src/components/custom-select.js` 自定义下拉组件（与圆角 UI 风格统一）
+- **里程碑 4（验证与沉淀）**：
+  - **浏览器回归（browser_use 13 项全通过）**：A-01 图标底色 rgba(206,17,38,0.082) ✓ / A-02 弹窗 right 1134≤视口 1142 ✓ / A-03 6 卡严格降序 ✓ / A-09 rgb(180,83,9) ✓ / A-05 无 <12px 碎片（日历标签 10px 豁免）✓ / P.9 进度总览 4 行卡+4 色堆叠条+橙异常 chips ✓ / 书记 5 tab 无溢出 ✓ / A-06 每 tab 恰 1 左边条 ✓ / A-07 全页统一 #C2410C ✓ / A-10 表头 sticky 滚动后 delta=0 ✓ / A-12 7 tab 无括号 ✓ / 组织/宣传抽查无溢出 ✓ / 控制台无 JS 错误 ✓
+  - **经验沉淀**：insights §4.14「审美审计轮方法论——字号档位与色彩克制」新增（见沉淀标签）
+  - **决策归档**：D-267（P.9 进度总览方向决策）写入 2026-08-DECISION_LOG.md
+  - **REVIEW_QUEUE.md 清空**（12 项判定已全部回填后归档清空）
+  - **CLAUDE.md**：乙部 T-188 → ✅ 完成；丙部 P.9 → 删除（生命周期闭环）
+- **变更文件**：`docs/src/entries/main-entry.js`、`docs/src/entries/ws-secretary-entry.js`、`docs/src/entries/ws-disc-commissioner-entry.js`、`docs/src/entries/ws-leader-entry.js`、`docs/src/entries/ws-org-commissioner-entry.js`、`docs/src/entries/ws-prop-commissioner-entry.js`、`docs/src/entries/ws-visitor-entry.js`、`docs/src/entries/archive-entry.js`、`docs/src/entries/notice-entry.js`、`docs/src/components/calendar.js`、`docs/src/components/header.js`、`docs/src/components/inspector.js`、`docs/src/components/issue-detail.js`、`docs/src/components/issue-list.js`、`docs/src/components/tab-bar.js`、`docs/src/components/todo-list.js`、`docs/src/components/custom-select.js`（新）、`docs/src/modules/party.js`、`docs/src/services/issues.js`、`docs/src/services/notice.js`、`docs/src/services/auth.js`、`docs/src/styles.css`、`CLAUDE.md`、`.ctx/REVIEW_QUEUE.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）、`.ctx/logs/2026-08-DECISION_LOG.md`
+- **git 提交**：待书记确认后 push
+- **沉淀标签**：`[已沉淀: content/insights/工程演进与设计方法论.md §4.14]` — 审美审计轮方法论：①字号档位碎片（9/9.6/10/11px 四档并存）是"视觉细碎感"的隐蔽根因，统一档位需全仓 grep 清零式替换；②小字/小徽标用系统衬线细体（华文仿宋）可降低"廉价感"，但范围必须收敛（仅徽标+日历标签）；③审计→评议→分步修复→验证沉淀四里程碑闭环，修复项必须先有 computed style 数值证据再动手

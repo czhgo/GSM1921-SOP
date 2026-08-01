@@ -140,7 +140,7 @@ export function renderCommissionerMatrix(containerId) {
                       </li>
                     `).join('')}
                   </ul>
-                  <div class="mt-3 text-[10px] text-gray-400 group-hover:text-blue-500 transition-colors flex items-center gap-1">
+                  <div class="mt-3 text-xs text-gray-400 group-hover:text-blue-500 transition-colors flex items-center gap-1">
                     ${icon('arrowRight', { className: 'w-3 h-3' })}
                     进入${meta.label}
                   </div>

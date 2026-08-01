@@ -433,7 +433,7 @@ export const PartyModule = {
           ${currentView === 'person' ? '人视图' : '阶段视图'}
           <span class="ml-1 text-gray-400">⇄ 切换</span>
         </button>
-        <span class="text-[10px] text-gray-400">${currentView === 'person' ? '行=候选人，列=阶段' : '行=阶段，列=候选人'}</span>
+        <span class="text-xs text-gray-400">${currentView === 'person' ? '行=候选人，列=阶段' : '行=阶段，列=候选人'}</span>
       </div>
     `;
 
@@ -888,12 +888,12 @@ export const PartyModule = {
           <div class="p-2 bg-blue-50 rounded-lg border border-blue-100">
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs font-medium text-blue-800">${r.weekStart} 至 ${r.weekEnd}</span>
-              <span class="text-[10px] text-gray-500">${r.submitDate}</span>
+              <span class="text-xs text-gray-500">${r.submitDate}</span>
             </div>
-            <div class="text-[11px] text-gray-600">本周 ${r.count} 项活动 · 通知ID: ${r.noticeId}</div>
+            <div class="text-[12px] text-gray-600">本周 ${r.count} 项活动 · 通知ID: ${r.noticeId}</div>
             <details class="mt-1">
-              <summary class="text-[10px] text-gray-400 cursor-pointer">查看报送内容</summary>
-              <p class="text-[11px] text-gray-600 mt-1 leading-relaxed">${r.summary}</p>
+              <summary class="text-xs text-gray-400 cursor-pointer">查看报送内容</summary>
+              <p class="text-[12px] text-gray-600 mt-1 leading-relaxed">${r.summary}</p>
             </details>
           </div>
         `,
@@ -1175,11 +1175,11 @@ export const PartyModule = {
 
       aggView.innerHTML = `
         <div class="grid grid-cols-5 gap-3 mb-4">
-          <div class="text-center p-3 rounded-lg bg-amber-50"><p class="text-lg font-bold text-amber-600">${stats.pendingAuth}</p><p class="text-[10px] text-gray-500">待赋权</p></div>
-          <div class="text-center p-3 rounded-lg bg-emerald-50"><p class="text-lg font-bold text-emerald-600">${stats.activeEvents}</p><p class="text-[10px] text-gray-500">活跃活动</p></div>
-          <div class="text-center p-3 rounded-lg bg-blue-50"><p class="text-lg font-bold text-blue-600">${stats.monthEvents}</p><p class="text-[10px] text-gray-500">本月活动</p></div>
-          <div class="text-center p-3 rounded-lg bg-cyan-50"><p class="text-lg font-bold text-cyan-600">${stats.authGranted}</p><p class="text-[10px] text-gray-500">已赋权</p></div>
-          <div class="text-center p-3 rounded-lg bg-gray-50"><p class="text-lg font-bold text-gray-600">${stats.archivedEvents}</p><p class="text-[10px] text-gray-500">已归档</p></div>
+          <div class="text-center p-3 rounded-lg bg-amber-50"><p class="text-lg font-bold text-amber-600">${stats.pendingAuth}</p><p class="text-xs text-gray-500">待赋权</p></div>
+          <div class="text-center p-3 rounded-lg bg-emerald-50"><p class="text-lg font-bold text-emerald-600">${stats.activeEvents}</p><p class="text-xs text-gray-500">活跃活动</p></div>
+          <div class="text-center p-3 rounded-lg bg-blue-50"><p class="text-lg font-bold text-blue-600">${stats.monthEvents}</p><p class="text-xs text-gray-500">本月活动</p></div>
+          <div class="text-center p-3 rounded-lg bg-cyan-50"><p class="text-lg font-bold text-cyan-600">${stats.authGranted}</p><p class="text-xs text-gray-500">已赋权</p></div>
+          <div class="text-center p-3 rounded-lg bg-gray-50"><p class="text-lg font-bold text-gray-600">${stats.archivedEvents}</p><p class="text-xs text-gray-500">已归档</p></div>
         </div>
         ${pendingActs.length > 0 ? `
         <div class="mb-3">

@@ -103,7 +103,7 @@ const SEC_FEEDBACK_TAB_HTML = `
   <div id="issue-list-panel" class="card rounded-2xl p-6">
     <div class="flex items-center justify-between mb-4">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">反馈管理</h3>
-      <div class="flex items-center gap-2 text-[10px]">
+      <div class="flex items-center gap-2 text-xs">
         <span id="issue-summary-pill" class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">0 条</span>
       </div>
     </div>
@@ -113,7 +113,7 @@ const SEC_FEEDBACK_TAB_HTML = `
     <details class="mb-4 rounded-lg border border-orange-200 bg-orange-50/40" id="issue-drafts-details">
       <summary class="px-3 py-2 cursor-pointer text-sm font-medium text-orange-700 flex items-center justify-between">
         <span>待审核草稿</span>
-        <span id="issue-drafts-count" class="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">0</span>
+        <span id="issue-drafts-count" class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">0</span>
       </summary>
       <div id="issue-drafts-list" class="px-3 pb-3 space-y-2"></div>
     </details>
@@ -144,8 +144,8 @@ const SEC_FEEDBACK_TAB_HTML = `
 
     <!-- 工具区 -->
     <div class="pt-3 mt-3 border-t border-gray-100 text-right space-x-2">
-      <button id="btn-export-issues-json" class="text-[10px] px-2 py-1 rounded bg-white border border-gray-200 text-gray-600 hover:bg-gray-50">导出反馈数据</button>
-      <button id="btn-clear-issue-cache" class="text-[10px] px-2 py-1 rounded bg-white border border-red-200 text-red-600 hover:bg-red-50">清除缓存</button>
+      <button id="btn-export-issues-json" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-600 hover:bg-gray-50">导出反馈数据</button>
+      <button id="btn-clear-issue-cache" class="text-xs px-2 py-1 rounded bg-white border border-red-200 text-red-600 hover:bg-red-50">清除缓存</button>
     </div>
   </div>
 
@@ -402,7 +402,7 @@ function _renderQueryView(displayActivities) {
           <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
           <div class="text-xs text-gray-500 mt-0.5">${a.date || ''}${a.type ? ' · ' + a.type : ''}</div>
         </div>
-        ${a.type ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-600">${a.type}</span>` : ''}
+        ${a.type ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-red-50 text-red-600">${a.type}</span>` : ''}
       </div>
     `,
     emptyMessage: '暂无匹配活动',
@@ -478,68 +478,121 @@ function _renderAttendanceSummary(activities) {
   container.innerHTML = rows.join('');
 }
 
-// ── 全局概况 tab 渲染（T-143） ──────────────────────────────
+// ── 全局概况 tab 渲染（T-143 → P.9 进度总览重设计） ─────────────
+// 设计初衷（书记 2026-08-02 确认方向后记录）：
+//   为什么有全局概况——书记需同步各支委/组长/委员工作进度，形成党支部整体运行态势总览；
+//   解决什么问题——书记只看"进行时和未完成"的工作，快速掌握各维度进度与人员参与总体情况；
+//   数据选取原则——同一套底层数据统一自动渲染，异常数据标橙并派生为书记待办。
+// 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 function _renderOverviewContent() {
   const container = document.getElementById('secretary-overview-content');
   if (!container) return;
 
   const data = SecretaryOverviewStore.getOverview();
 
-  const cards = [
+  // 党员发展各阶段分布（堆叠段条）
+  const stages = [
+    { label: '积极分子', value: data.inspection.stageCounts.activist,     color: '#94A3B8' },
+    { label: '发展对象', value: data.inspection.stageCounts.target,       color: '#38BDF8' },
+    { label: '预备党员', value: data.inspection.stageCounts.probationary, color: '#FBBF24' },
+    { label: '正式党员', value: data.inspection.stageCounts.full,         color: '#EF4444' },
+  ];
+  const stageTotal = stages.reduce((s, x) => s + x.value, 0) || 1;
+
+  const metricChips = (metrics) => metrics.map(m => `
+    <span class="inline-flex items-center gap-1.5 text-xs">
+      <span class="text-gray-500">${m.label}</span>
+      <span class="font-medium ${m.alert ? 'text-orange-600' : 'text-gray-800'}">${m.value}</span>
+    </span>
+  `).join('');
+
+  const rows = [
     {
+      icon: icon('calendarHero', { className: 'w-4 h-4' }),
       title: '考勤与纪律',
-      color: '#C2410C',
-      items: [
-        { label: '本月出勤率', value: `${data.attendance.attendanceRate}%`, alert: data.attendance.alert, alertText: data.attendance.alert ? '偏低' : '' },
-        { label: '缺勤人员', value: data.attendance.absentPeople.length > 0 ? data.attendance.absentPeople.join('、') : '无', alert: data.attendance.absentPeople.length > 0 },
+      desc: '本月出勤情况',
+      rate: data.attendance.attendanceRate,
+      rateLabel: '出勤率',
+      metrics: [
+        { label: '缺勤', value: data.attendance.absentPeople.length ? data.attendance.absentPeople.join('、') : '无', alert: data.attendance.absentPeople.length > 0 },
         { label: '补课未完成', value: data.attendance.makeupPending, alert: data.attendance.makeupPending > 0 },
       ],
     },
     {
+      icon: icon('users', { className: 'w-4 h-4' }),
       title: '发展与考察',
-      color: '#0EA5E9',
-      items: [
-        { label: '发展分布', value: `积极${data.inspection.stageCounts.activist}·发展${data.inspection.stageCounts.target}·预备${data.inspection.stageCounts.probationary}·正式${data.inspection.stageCounts.full}` },
+      desc: '党员发展培养阶段分布',
+      stages,
+      stageTotal,
+      metrics: [
         { label: '考察待确认', value: data.inspection.pendingInspections, alert: data.inspection.pendingInspections > 0 },
         { label: '考察超期', value: data.inspection.overdueInspections, alert: data.inspection.overdueInspections > 0 },
       ],
     },
     {
-      title: '活动与专班进度',
-      color: '#B91C1C',
-      items: [
+      icon: icon('flag', { className: 'w-4 h-4' }),
+      title: '活动与专班',
+      desc: '活动复盘完成情况',
+      rate: data.activity.reviewRate,
+      rateLabel: '复盘完成率',
+      metrics: [
         { label: '进行中活动', value: data.activity.activeActivities },
         { label: '进行中专班', value: data.activity.activeTaskforces },
         { label: '赋权待审批', value: data.activity.pendingAuth, alert: data.activity.pendingAuth > 0 },
-        { label: '复盘完成率', value: `${data.activity.reviewRate}%` },
       ],
     },
     {
+      icon: icon('archive', { className: 'w-4 h-4' }),
       title: '宣传与档案',
-      color: '#2563EB',
-      items: [
+      desc: '归档完成情况',
+      rate: data.propaganda.archiveRate,
+      rateLabel: '归档完成率',
+      metrics: [
+        { label: '待归档', value: data.propaganda.pendingArchive, alert: data.propaganda.pendingArchive > 0 },
         { label: '本月通知', value: data.propaganda.noticeCount },
-        { label: '待归档活动', value: data.propaganda.pendingArchive, alert: data.propaganda.pendingArchive > 0 },
-        { label: '归档完成率', value: `${data.propaganda.archiveRate}%` },
       ],
     },
   ];
 
+  const rateBar = (rate) => `
+    <div class="flex items-center gap-3">
+      <div class="flex-1 h-2 rounded-full bg-neutral-100 overflow-hidden">
+        <div class="h-2 rounded-full transition-all duration-500" style="width:${rate}%;background:var(--accent-secretary);"></div>
+      </div>
+      <span class="text-xs font-medium text-gray-600 w-10 text-right">${rate}%</span>
+    </div>
+  `;
+
+  const stageBar = `
+    <div class="flex items-center gap-3">
+      <div class="flex-1 h-2 rounded-full bg-neutral-100 overflow-hidden flex">
+        ${stages.map(s => s.value > 0 ? `<div style="width:${(s.value / stageTotal * 100).toFixed(1)}%;background:${s.color};" title="${s.label} ${s.value}人"></div>` : '').join('')}
+      </div>
+      <div class="flex items-center gap-2.5 flex-wrap justify-end">
+        ${stages.map(s => `
+          <span class="inline-flex items-center gap-1 text-xs text-gray-600">
+            <span class="w-2 h-2 rounded-full" style="background:${s.color};"></span>${s.label} ${s.value}
+          </span>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
   container.innerHTML = `
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      ${cards.map(card => `
-        <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${card.color};">
-          <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-4">${card.title}</h4>
-          <div class="space-y-2.5">
-            ${card.items.map(item => `
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-gray-600">${item.label}</span>
-                <div class="flex items-center gap-1.5">
-                  <span class="text-sm font-medium ${item.alert ? 'text-orange-600' : 'text-gray-800'}">${item.value}</span>
-                  ${item.alertText ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-200">${item.alertText}</span>` : ''}
-                </div>
-              </div>
-            `).join('')}
+    <div class="space-y-4">
+      <div class="text-xs text-gray-500">党支部整体运行态势 · 只看进行时和未完成</div>
+      ${rows.map(row => `
+        <div class="card rounded-xl p-5">
+          <div class="flex items-center gap-2.5 mb-3">
+            <span class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:var(--accent-secretary)12;color:var(--accent-secretary);">${row.icon}</span>
+            <div>
+              <h4 class="font-title-cn text-sm font-bold text-gray-700 leading-tight">${row.title}</h4>
+              <p class="text-xs text-gray-400 mt-0.5">${row.desc}</p>
+            </div>
+          </div>
+          ${row.stages ? stageBar : rateBar(row.rate)}
+          <div class="mt-3.5 pt-3 border-t border-gray-100 flex flex-wrap gap-x-5 gap-y-1.5">
+            ${metricChips(row.metrics)}
           </div>
         </div>
       `).join('')}
@@ -644,8 +697,8 @@ function _renderTodoDetail(todo) {
     <div class="space-y-3">
       <div>
         <div class="flex items-center gap-2 mb-2">
-          <span class="text-[10px] px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-          ${todo.priority === 'urgent' ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
+          ${todo.priority === 'urgent' ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
         </div>
         <p class="font-title-cn text-sm font-bold text-gray-800">${todo.title}</p>
       </div>
@@ -830,7 +883,7 @@ function renderFormStep() {
   html += `<div class="mb-4 px-3 py-2 rounded-lg" style="background:${tpl.bg};border:1px solid ${tpl.border};">`;
   html += `<p class="text-xs font-medium" style="color:${tpl.color};">已选模板：${tpl.categoryLabel}${sub ? ' · ' + sub.label : ''}</p>`;
   if (scenarioTitle) {
-    html += `<p class="text-[11px] text-gray-500 mt-0.5">SOP 场景：${scenarioTitle}（写入后自动生成任务节点）</p>`;
+    html += `<p class="text-[12px] text-gray-500 mt-0.5">SOP 场景：${scenarioTitle}（写入后自动生成任务节点）</p>`;
   }
   html += `</div>`;
 
@@ -1402,13 +1455,13 @@ function renderIssueManagement() {
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs text-gray-400 font-mono">#${i.number}</span>
               <div class="flex items-center gap-1.5">
-                ${isReviewUnread ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">待终审</span>' : ''}
-                <span class="text-[10px] px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>
-                ${assigneeLabel ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600">→${assigneeLabel}</span>` : ''}
+                ${isReviewUnread ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">待终审</span>' : ''}
+                <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>
+                ${assigneeLabel ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600">→${assigneeLabel}</span>` : ''}
               </div>
             </div>
             <p class="text-sm text-gray-800 font-medium">${i.title}</p>
-            <div class="text-[10px] text-gray-400 mt-1">${getPersonName(i.submittedBy)} · ${i.commentCount || 0} 评论 · ${i.submittedAt}</div>
+            <div class="text-xs text-gray-400 mt-1">${getPersonName(i.submittedBy)} · ${i.commentCount || 0} 评论 · ${i.submittedAt}</div>
           </div>
         `;
       }).join('');
@@ -1523,9 +1576,9 @@ function _renderIssueDetail(issueId) {
   html += `<span class="text-xs text-gray-400 font-mono">#${issue.number}</span>`;
   html += `</div>`;
   html += `<div class="flex items-center gap-2">`;
-  html += `<span class="text-[10px] px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
+  html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
   if (issue.assignee) {
-    html += `<span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">→${assigneeLabel}</span>`;
+    html += `<span class="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">→${assigneeLabel}</span>`;
   }
   html += `</div></div>`;
 
@@ -1538,7 +1591,7 @@ function _renderIssueDetail(issueId) {
   }
 
   // ── 元信息 ──
-  html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-gray-400 mb-4 pb-4 border-b border-gray-100">`;
+  html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400 mb-4 pb-4 border-b border-gray-100">`;
   html += `<span>范围：${issue.scope || '—'}</span>`;
   html += `<span>类型：${(issue.types || []).join(', ') || '—'}</span>`;
   html += `<span>提交人：${getPersonName(issue.submittedBy) || '匿名'}</span>`;
@@ -1551,7 +1604,7 @@ function _renderIssueDetail(issueId) {
   html += `<div class="flex items-center justify-between mb-2">`;
   html += `<span class="text-xs font-medium text-gray-700">指派</span>`;
   if (issue.status === 'open') {
-    html += `<button data-detail-action="show-assign" class="text-[10px] px-2 py-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">指派</button>`;
+    html += `<button data-detail-action="show-assign" class="text-xs px-2 py-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">指派</button>`;
   }
   html += `</div>`;
   // 指派历史时间线
@@ -1559,14 +1612,14 @@ function _renderIssueDetail(issueId) {
     html += `<div class="space-y-1">`;
     issue.dispatchHistory.forEach(d => {
       const toLabel = ROLE_LABELS[d.to] || d.to;
-      html += `<div class="text-[10px] text-gray-500 flex items-start gap-1">`;
+      html += `<div class="text-xs text-gray-500 flex items-start gap-1">`;
       html += `<span class="text-gray-300">●</span>`;
       html += `<span>${d.at} · ${toLabel}${d.note ? '：' + d.note : ''}</span>`;
       html += `</div>`;
     });
     html += `</div>`;
   } else {
-    html += `<p class="text-[10px] text-gray-400">尚未指派</p>`;
+    html += `<p class="text-xs text-gray-400">尚未指派</p>`;
   }
   // 指派选择器（默认隐藏）
   html += `<div id="issue-assign-selector" class="hidden mt-2 p-3 rounded-lg bg-blue-50/50 border border-blue-100">`;
@@ -1574,7 +1627,7 @@ function _renderIssueDetail(issueId) {
   html += `<div class="flex flex-wrap gap-2">`;
   ASSIGNEE_OPTIONS.forEach(opt => {
     const isCurrent = issue.assignee === opt.personId && issue.assigneeRole === opt.role;
-    html += `<button data-detail-action="assign" data-assignee-id="${opt.personId}" data-assignee-role="${opt.role}" class="text-[10px] px-2.5 py-1 rounded-lg transition-all ${isCurrent ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'}">${opt.label}</button>`;
+    html += `<button data-detail-action="assign" data-assignee-id="${opt.personId}" data-assignee-role="${opt.role}" class="text-xs px-2.5 py-1 rounded-lg transition-all ${isCurrent ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'}">${opt.label}</button>`;
   });
   html += `</div>`;
   html += `<div class="mt-2 flex items-center gap-2">`;
@@ -1587,16 +1640,16 @@ function _renderIssueDetail(issueId) {
     html += `<div class="mb-4 pb-4 border-b border-gray-100">`;
     html += `<span class="text-xs font-medium text-gray-700 block mb-2">操作</span>`;
     html += `<div class="flex flex-wrap gap-2">`;
-    html += `<button data-detail-action="close" class="text-[10px] px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">关闭反馈</button>`;
-    html += `<button data-detail-action="hide" class="text-[10px] px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">隐藏</button>`;
-    html += `<button data-detail-action="show-merge" class="text-[10px] px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">合并到…</button>`;
+    html += `<button data-detail-action="close" class="text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">关闭反馈</button>`;
+    html += `<button data-detail-action="hide" class="text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">隐藏</button>`;
+    html += `<button data-detail-action="show-merge" class="text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">合并到…</button>`;
     html += `</div>`;
     // 关闭理由选择器（默认隐藏）
     html += `<div id="issue-close-selector" class="hidden mt-2 p-3 rounded-lg bg-gray-50 border border-gray-200">`;
     html += `<p class="text-xs text-gray-600 mb-2">选择关闭理由</p>`;
     html += `<div class="flex flex-wrap gap-2 mb-2">`;
     CLOSE_REASONS.forEach(r => {
-      html += `<button data-detail-action="confirm-close" data-reason="${r.value}" class="text-[10px] px-2.5 py-1 rounded-lg bg-white text-gray-600 border border-gray-200 hover:border-red-300 transition-all">${r.label}</button>`;
+      html += `<button data-detail-action="confirm-close" data-reason="${r.value}" class="text-xs px-2.5 py-1 rounded-lg bg-white text-gray-600 border border-gray-200 hover:border-red-300 transition-all">${r.label}</button>`;
     });
     html += `</div>`;
     html += `<input type="text" id="close-note-input" class="input-flat text-xs w-full" placeholder="关闭备注（选填）">`;
@@ -1612,7 +1665,7 @@ function _renderIssueDetail(issueId) {
       });
       html += `</div>`;
     } else {
-      html += `<p class="text-[10px] text-gray-400">无可用合并目标</p>`;
+      html += `<p class="text-xs text-gray-400">无可用合并目标</p>`;
     }
     html += `</div>`;
     html += `</div>`;
@@ -1621,7 +1674,7 @@ function _renderIssueDetail(issueId) {
     html += `<div class="mb-4 pb-4 border-b border-gray-100">`;
     html += `<span class="text-xs font-medium text-gray-700 block mb-2">操作</span>`;
     html += `<div class="flex flex-wrap gap-2">`;
-    html += `<button data-detail-action="reopen" class="text-[10px] px-3 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors">重新开放</button>`;
+    html += `<button data-detail-action="reopen" class="text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors">重新开放</button>`;
     html += `</div></div>`;
   }
 
@@ -1630,7 +1683,7 @@ function _renderIssueDetail(issueId) {
   html += `<span class="text-xs font-medium text-gray-700 block mb-3">评论与事件</span>`;
   const comments = issue.comments || [];
   if (comments.length === 0) {
-    html += `<p class="text-[10px] text-gray-400">暂无评论</p>`;
+    html += `<p class="text-xs text-gray-400">暂无评论</p>`;
   } else {
     html += `<div class="space-y-3">`;
     comments.forEach(c => {
@@ -1640,8 +1693,8 @@ function _renderIssueDetail(issueId) {
       const authorName = ROLE_LABELS[c.authorRole] || c.author;
       html += `<div class="rounded-lg p-2.5 ${kindBg}">`;
       html += `<div class="flex items-center gap-1.5 mb-1">`;
-      html += `<span class="text-[10px] font-medium text-gray-700">${kindIcon} ${authorName}</span>`;
-      html += `<span class="text-[10px] text-gray-400">${c.createdAt}</span>`;
+      html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${authorName}</span>`;
+      html += `<span class="text-xs text-gray-400">${c.createdAt}</span>`;
       html += `</div>`;
       html += `<p class="text-xs text-gray-600">${c.body}</p>`;
       html += `</div>`;
@@ -1655,8 +1708,8 @@ function _renderIssueDetail(issueId) {
     html += `<div class="pt-3 border-t border-gray-100">`;
     html += `<div class="flex gap-2">`;
     html += `<input type="text" id="issue-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论…">`;
-    html += `<button data-detail-action="add-comment" class="text-[10px] px-3 py-1.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors">评论</button>`;
-    html += `<button data-detail-action="add-verdict" class="text-[10px] px-3 py-1.5 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition-colors">批复</button>`;
+    html += `<button data-detail-action="add-comment" class="text-xs px-3 py-1.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors">评论</button>`;
+    html += `<button data-detail-action="add-verdict" class="text-xs px-3 py-1.5 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition-colors">批复</button>`;
     html += `</div></div>`;
   }
 
@@ -1761,14 +1814,14 @@ function renderDraftRow(d) {
     return `
       <div class="p-3 rounded-lg bg-white border border-orange-200" data-draft-id="${d.draftId}">
         <div class="flex items-center justify-between mb-1">
-          <span class="text-[10px] text-orange-700 font-medium">新建反馈草稿</span>
-          <span class="text-[10px] text-gray-500">${getPersonName(d.author)} · ${d.createdAt}</span>
+          <span class="text-xs text-orange-700 font-medium">新建反馈草稿</span>
+          <span class="text-xs text-gray-500">${getPersonName(d.author)} · ${d.createdAt}</span>
         </div>
         <p class="text-sm font-medium text-gray-800">${p.title}</p>
         <p class="text-xs text-gray-600 mt-1 line-clamp-2">${p.body}</p>
         <div class="flex gap-1 mt-2">
-          <button class="btn-approve-draft text-[10px] px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700" data-draft-id="${d.draftId}">通过</button>
-          <button class="btn-reject-draft text-[10px] px-2 py-1 rounded bg-white border border-red-200 text-red-600 hover:bg-red-50" data-draft-id="${d.draftId}">驳回</button>
+          <button class="btn-approve-draft text-xs px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700" data-draft-id="${d.draftId}">通过</button>
+          <button class="btn-reject-draft text-xs px-2 py-1 rounded bg-white border border-red-200 text-red-600 hover:bg-red-50" data-draft-id="${d.draftId}">驳回</button>
         </div>
       </div>
     `;
@@ -1777,13 +1830,13 @@ function renderDraftRow(d) {
     return `
       <div class="p-3 rounded-lg bg-white border border-blue-200" data-draft-id="${d.draftId}">
         <div class="flex items-center justify-between mb-1">
-          <span class="text-[10px] text-blue-700 font-medium">评论草稿 · 目标反馈: ${d.targetIssueId}</span>
-          <span class="text-[10px] text-gray-500">${getPersonName(d.author)} · ${d.createdAt}</span>
+          <span class="text-xs text-blue-700 font-medium">评论草稿 · 目标反馈: ${d.targetIssueId}</span>
+          <span class="text-xs text-gray-500">${getPersonName(d.author)} · ${d.createdAt}</span>
         </div>
         <p class="text-sm text-gray-700">${d.payload.body}</p>
         <div class="flex gap-1 mt-2">
-          <button class="btn-approve-draft text-[10px] px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700" data-draft-id="${d.draftId}">通过</button>
-          <button class="btn-reject-draft text-[10px] px-2 py-1 rounded bg-white border border-red-200 text-red-600 hover:bg-red-50" data-draft-id="${d.draftId}">驳回</button>
+          <button class="btn-approve-draft text-xs px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700" data-draft-id="${d.draftId}">通过</button>
+          <button class="btn-reject-draft text-xs px-2 py-1 rounded bg-white border border-red-200 text-red-600 hover:bg-red-50" data-draft-id="${d.draftId}">驳回</button>
         </div>
       </div>
     `;
@@ -1965,12 +2018,12 @@ function renderNotificationList() {
         <div class="flex items-center justify-between mb-1">
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-gray-800">${n.title}</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200">${audienceLabel}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200">${audienceLabel}</span>
           </div>
           <button data-notif-action="delete" data-notif-id="${n.id}" class="text-xs text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-2 py-1 rounded hover:bg-red-50">删除</button>
         </div>
         <p class="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">${n.content}</p>
-        <p class="text-[10px] text-gray-400 mt-1.5">${n.publishedBy || '书记'} · ${dateStr}</p>
+        <p class="text-xs text-gray-400 mt-1.5">${n.publishedBy || '书记'} · ${dateStr}</p>
       </div>
     `;
   }).join('<div class="border-b border-gray-100"></div>');

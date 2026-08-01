@@ -147,9 +147,9 @@ export function renderIssueDetail(issueId) {
           <div class="mb-3">
             <p class="text-gray-400 mb-1">标签</p>
             <div class="flex flex-wrap gap-1">
-              <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 font-sans">${SCOPE_LABELS[issue.scope] || issue.scope}</span>
+              <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 font-sans">${SCOPE_LABELS[issue.scope] || issue.scope}</span>
               ${(issue.types || []).map(t =>
-                `<span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium" style="background:${(TYPE_COLORS[t] || '#6B7280')}15;color:${TYPE_COLORS[t] || '#6B7280'}">${TYPE_LABELS[t] || t}</span>`
+                `<span class="text-xs px-1.5 py-0.5 rounded-full font-medium" style="background:${(TYPE_COLORS[t] || '#6B7280')}15;color:${TYPE_COLORS[t] || '#6B7280'}">${TYPE_LABELS[t] || t}</span>`
               ).join('')}
             </div>
           </div>
@@ -191,11 +191,11 @@ export function renderIssueDetail(issueId) {
 function renderComment(comment, canManage, issueId) {
   const hiddenClass = comment.hidden ? 'opacity-50' : '';
   const hideButton = canManage && !comment.hidden
-    ? `<button class="btn-hide-comment text-[10px] text-orange-600 hover:text-orange-800 ml-2 font-sans" data-issue-id="${issueId}" data-comment-id="${comment.id}">隐藏</button>`
+    ? `<button class="btn-hide-comment text-xs text-orange-600 hover:text-orange-800 ml-2 font-sans" data-issue-id="${issueId}" data-comment-id="${comment.id}">隐藏</button>`
     : '';
 
   const hiddenNote = comment.hidden
-    ? `<span class="text-[10px] text-orange-600 ml-2 font-sans">[已隐藏 · ${comment.hiddenReason || '原因未说明'}]</span>`
+    ? `<span class="text-xs text-orange-600 ml-2 font-sans">[已隐藏 · ${comment.hiddenReason || '原因未说明'}]</span>`
     : '';
 
   return `

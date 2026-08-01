@@ -84,12 +84,12 @@ function _viewSwitcherHTML(role, user) {
   let groupsHTML = '';
   if (workspaces.length > 0) {
     groupsHTML += `
-      <div style="padding:6px 12px;color:var(--neutral-400);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;" class="text-[10px]">切换工作台</div>
+      <div style="padding:6px 12px;color:var(--neutral-400);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;" class="text-xs">切换工作台</div>
       ${workspaces.map(w => `
         <a href="${w.href}" data-ws-role="${w.role}" class="view-option text-body-sm" data-type="workspace" style="position:relative;display:flex;align-items:center;gap:6px;padding:8px 12px;cursor:pointer;color:var(--neutral-800);transition:background 0.15s;text-decoration:none;">
           ${w.isCurrent ? '<span style="position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--party-gold);border-radius:1px;"></span>' : ''}
           <span>${w.label}</span>
-          ${w.isCurrent ? '<span style="margin-left:auto;color:var(--neutral-400);" class="text-[10px]">当前</span>' : ''}
+          ${w.isCurrent ? '<span style="margin-left:auto;color:var(--neutral-400);" class="text-xs">当前</span>' : ''}
         </a>
       `).join('')}
     `;
@@ -99,12 +99,12 @@ function _viewSwitcherHTML(role, user) {
       groupsHTML += '<div style="height:1px;background:#F3F4F6;margin:4px 0;"></div>';
     }
     groupsHTML += `
-      <div style="padding:6px 12px;color:var(--neutral-400);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;" class="text-[10px]">查看视角</div>
+      <div style="padding:6px 12px;color:var(--neutral-400);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;" class="text-xs">查看视角</div>
       ${views.map(v => `
         <div class="view-option text-body-sm" data-type="view" data-role="${v.role}" style="position:relative;padding:8px 12px;cursor:pointer;color:var(--neutral-800);transition:background 0.15s;">
           ${v.isCurrent ? '<span style="position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--party-gold);border-radius:1px;"></span>' : ''}
           <span>${v.label}</span>
-          ${v.isCurrent ? '<span style="margin-left:auto;color:var(--neutral-400);" class="text-[10px]">当前</span>' : ''}
+          ${v.isCurrent ? '<span style="margin-left:auto;color:var(--neutral-400);" class="text-xs">当前</span>' : ''}
         </div>
       `).join('')}
     `;
@@ -128,7 +128,7 @@ function _notificationBellHTML() {
   const activeNotices = NoticeStore.list({ activeOnly: true });
   const unread = activeNotices.filter(n => !n.read).length;
   const badge = unread > 0
-    ? `<span style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:9999px;background:var(--party-gold);border:1.5px solid var(--primary-900);font-weight:600;color:#7A0010;display:flex;align-items:center;justify-content:center;padding:0 4px;" class="text-[10px]">${unread > 9 ? '9+' : unread}</span>`
+    ? `<span style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:9999px;background:var(--party-gold);border:1.5px solid var(--primary-900);font-weight:600;color:#7A0010;display:flex;align-items:center;justify-content:center;padding:0 4px;" class="text-xs">${unread > 9 ? '9+' : unread}</span>`
     : '';
 
   return `
@@ -324,8 +324,8 @@ function _bindNotificationBell(header) {
       }
 
       const priorityBadge = {
-        urgent: '<span style="display:inline-block;padding:1px 6px;font-weight:500;border-radius:9999px;background:#FEE2E2;color:#B91C1C;" class="text-[10px]">紧急</span>',
-        normal: '<span style="display:inline-block;padding:1px 6px;font-weight:500;border-radius:9999px;background:#DBEAFE;color:#1D4ED8;" class="text-[10px]">重要</span>',
+        urgent: '<span style="display:inline-block;padding:1px 6px;font-weight:500;border-radius:9999px;background:#FEE2E2;color:#B91C1C;" class="text-xs">紧急</span>',
+        normal: '<span style="display:inline-block;padding:1px 6px;font-weight:500;border-radius:9999px;background:#DBEAFE;color:#1D4ED8;" class="text-xs">重要</span>',
       };
 
       dropdown.innerHTML = notices.slice(0, 10).map(n => `
@@ -334,9 +334,9 @@ function _bindNotificationBell(header) {
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
             ${priorityBadge[n.priority] || ''}
             <p style="color:#374151;margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" class="text-body-sm">${n.title || n.content}</p>
-            ${!n.read ? `<button class="notif-mark-read text-[10px]" data-notice-id="${n.id}" style="color:#2563EB;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;transition:background 0.15s;flex-shrink:0;" onmouseenter="this.style.background='#EFF6FF'" onmouseleave="this.style.background='none'">已读</button>` : ''}
+            ${!n.read ? `<button class="notif-mark-read text-xs" data-notice-id="${n.id}" style="color:#2563EB;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;transition:background 0.15s;flex-shrink:0;" onmouseenter="this.style.background='#EFF6FF'" onmouseleave="this.style.background='none'">已读</button>` : ''}
           </div>
-          <p style="color:#9CA3AF;margin:0;" class="text-[11px]">${n.publishDate || n.date || ''}</p>
+          <p style="color:#9CA3AF;margin:0;" class="text-[12px]">${n.publishDate || n.date || ''}</p>
         </div>
       `).join('');
 

@@ -147,7 +147,7 @@ function _renderProjectDivision(activities, taskforces, authRecords) {
         ${partyGroups.map(g => `<option value="${g}">${g}</option>`).join('')}
       </select>
       <input type="text" id="visitor-proj-search" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索项目名称或人员...">
-      <span id="visitor-proj-count" class="text-[10px] text-gray-400 ml-1"></span>
+      <span id="visitor-proj-count" class="text-xs text-gray-400 ml-1"></span>
     </div>
     <div id="visitor-proj-list"></div>
   `;
@@ -268,22 +268,22 @@ function _renderProjectCard(project) {
     <div class="p-3 rounded-lg bg-white">
       <div class="flex items-center justify-between mb-1.5">
         <div class="flex items-center gap-2 min-w-0">
-          <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${project.type === '活动' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}">${project.typeBadge}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${project.type === '活动' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}">${project.typeBadge}</span>
           <p class="text-sm font-medium text-gray-800 truncate">${project.name}</p>
         </div>
-        <span class="text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${project.statusColor}">${project.status}</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${project.statusColor}">${project.status}</span>
       </div>
-      <div class="flex items-center gap-3 text-[11px] text-gray-500 mb-2">
+      <div class="flex items-center gap-3 text-[12px] text-gray-500 mb-2">
         ${project.group ? `<span class="flex items-center gap-0.5">${project.group}</span>` : ''}
         ${project.date ? `<span class="flex items-center gap-0.5">${project.date}</span>` : ''}
       </div>
       ${project.personnel.length > 0 ? `
         <div class="flex flex-wrap gap-1.5">
-          ${organizers.map(p => `<span class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full" style="${_personnelRoleColor(p.role)}">${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
-          ${deepParticipants.map(p => `<span class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full" style="${_personnelRoleColor(p.role)}">${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
-          ${others.map(p => `<span class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full" style="${_personnelRoleColor(p.role)}">${p.name}</span>`).join('')}
+          ${organizers.map(p => `<span class="inline-flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full" style="${_personnelRoleColor(p.role)}">${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
+          ${deepParticipants.map(p => `<span class="inline-flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full" style="${_personnelRoleColor(p.role)}">${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
+          ${others.map(p => `<span class="inline-flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full" style="${_personnelRoleColor(p.role)}">${p.name}</span>`).join('')}
         </div>
-      ` : '<p class="text-[10px] text-gray-400">暂无人员</p>'}
+      ` : '<p class="text-xs text-gray-400">暂无人员</p>'}
     </div>
   `;
 }
@@ -343,7 +343,7 @@ function _renderActListView(sorted, highlightId) {
                 <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
                 <p class="text-xs text-gray-500 mt-0.5">${a.date || '待定'} · ${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
               </div>
-              ${isHL ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 flex-shrink-0">当前</span>' : ''}
+              ${isHL ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 flex-shrink-0">当前</span>' : ''}
             </div>
           `;
         }).join('')}
@@ -378,7 +378,7 @@ function _renderActCalendarView(sorted, highlightId) {
           <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
             ${icon('calendar', { stroke: 'var(--primary-700)', className: 'w-3.5 h-3.5' })}
             ${monthLabel}
-            <span class="text-[10px] font-normal text-gray-400">${acts.length} 场</span>
+            <span class="text-xs font-normal text-gray-400">${acts.length} 场</span>
           </h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
             ${acts.map(a => {
@@ -389,13 +389,13 @@ function _renderActCalendarView(sorted, highlightId) {
                 <div class="flex items-start gap-3 p-3 rounded-lg bg-white ${isHL ? 'border border-blue-400 ring-2 ring-blue-100' : ''}" data-visitor-act-id="${a.id || ''}">
                   <div class="text-center flex-shrink-0 w-10">
                     <div class="text-lg font-bold" style="color:${color.text || color.dot};line-height:1;">${day || '?'}</div>
-                    <div class="text-[10px] text-gray-400">日</div>
+                    <div class="text-xs text-gray-400">日</div>
                   </div>
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
                     <p class="text-xs text-gray-500 mt-0.5">${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
                   </div>
-                  ${isHL ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 flex-shrink-0 mt-0.5">当前</span>' : ''}
+                  ${isHL ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 flex-shrink-0 mt-0.5">当前</span>' : ''}
                 </div>
               `;
             }).join('')}
@@ -436,7 +436,7 @@ function _renderActQueryView(sorted, highlightId) {
             <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
             <p class="text-xs text-gray-500 mt-0.5">${a.date || '待定'} · ${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
           </div>
-          ${isHL ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 flex-shrink-0">当前</span>' : ''}
+          ${isHL ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 flex-shrink-0">当前</span>' : ''}
         </div>
       `;
     },
@@ -556,16 +556,16 @@ function _renderMyInspection() {
       <div class="p-3 rounded-lg bg-white hover:shadow-sm transition-shadow">
         <div class="flex items-center justify-between mb-1.5">
           <div class="flex items-center gap-2">
-            <span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-50 text-amber-700">${sourceLabel}</span>
-            <span class="px-1.5 py-0.5 text-[10px] font-medium rounded" style="background:${lc.bg};color:${lc.text};border:1px solid ${lc.border};">${levelLabel}</span>
+            <span class="px-1.5 py-0.5 text-xs font-medium rounded bg-amber-50 text-amber-700">${sourceLabel}</span>
+            <span class="px-1.5 py-0.5 text-xs font-medium rounded" style="background:${lc.bg};color:${lc.text};border:1px solid ${lc.border};">${levelLabel}</span>
           </div>
-          <span class="px-1.5 py-0.5 text-[10px] font-medium rounded-full ${statusCls}">${statusText}</span>
+          <span class="px-1.5 py-0.5 text-xs font-medium rounded-full ${statusCls}">${statusText}</span>
         </div>
         <p class="text-sm font-medium text-gray-800">${sourceTitle}</p>
         ${r.role ? `<p class="text-xs text-gray-500 mt-1">工作内容：${r.role}</p>` : ''}
         <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
-          <p class="text-[10px] text-gray-400">录入人：${r.recordedByName || '—'}</p>
-          <p class="text-[10px] text-gray-400">${recordedDate}</p>
+          <p class="text-xs text-gray-400">录入人：${r.recordedByName || '—'}</p>
+          <p class="text-xs text-gray-400">${recordedDate}</p>
         </div>
       </div>
     `;
@@ -657,8 +657,8 @@ function _renderTodoDetail(todo) {
     <div class="space-y-3">
       <div>
         <div class="flex items-center gap-2 mb-2">
-          <span class="text-[10px] px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-          ${todo.priority === 'urgent' ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
+          ${todo.priority === 'urgent' ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
         </div>
         <p class="font-title-cn text-sm font-bold text-gray-800">${todo.title}</p>
       </div>
