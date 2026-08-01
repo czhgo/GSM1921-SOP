@@ -3473,103 +3473,95 @@ label .text-red-500 {
   max-width: 900px;
 }
 
-.help-philosophy-eyebrow {
-  font-size: 13px;
+.help-philosophy-opportunities {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  width: 100%;
+  max-width: 1100px;
+  margin-top: 8px;
+}
+
+.help-philosophy-opp {
+  text-align: left;
+  padding: 32px 28px 28px;
+  background: #FFFFFF;
+  border: 1px solid #F3F4F6;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.help-philosophy-opp:hover {
+  border-color: rgba(206, 17, 38, 0.20);
+  box-shadow: 0 4px 16px rgba(206, 17, 38, 0.06);
+}
+
+.help-philosophy-opp-no {
+  font-size: 12px;
   font-weight: 600;
-  color: var(--help-sub);
-  letter-spacing: 0.28em;
+  color: var(--help-party-red);
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
-.help-philosophy-title {
-  font-family: 'Noto Serif SC', 'STZhongsong', serif;
-  font-size: clamp(48px, 8vw, 96px);
-  font-weight: 800;
-  color: var(--help-party-red);
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  margin: 0;
-}
-
-.help-philosophy-split {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 32px;
-  width: 100%;
-  max-width: 720px;
-}
-
-.help-philosophy-half {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: center;
-}
-
-.help-philosophy-half-label {
+.help-philosophy-opp-title {
   font-family: 'Noto Serif SC', serif;
   font-size: 22px;
   font-weight: 700;
   color: var(--help-text);
-  letter-spacing: 0.04em;
+  margin: 0;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
 }
 
-.help-philosophy-half-desc {
+.help-philosophy-opp-quote {
+  margin: 0;
+  padding: 14px 16px;
+  background: color-mix(in srgb, var(--help-party-red) 3%, #FFFFFF);
+  border-left: 3px solid var(--help-party-red);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   font-size: 14px;
-  color: var(--help-sub);
-  line-height: 1.5;
+  line-height: 1.75;
+  color: var(--help-text);
 }
 
-.help-philosophy-divider {
-  width: 1px;
-  height: 56px;
-  background: #E5E7EB;
-}
-
-.help-philosophy-reason {
-  max-width: 640px;
-  padding: 24px 28px;
-  background: color-mix(in srgb, var(--help-party-red) 4%, #FFFFFF);
-  border: 1px solid rgba(206, 17, 38, 0.12);
-  border-radius: var(--radius-md);
-  text-align: center;
+.help-philosophy-opp-points {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  margin-top: 2px;
 }
 
-.help-philosophy-reason-q {
-  font-size: 14px;
-  color: var(--help-sub);
-  font-style: italic;
-  letter-spacing: 0.04em;
+.help-philosophy-opp-point {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
 }
 
-.help-philosophy-reason-a {
-  font-size: 16px;
-  color: var(--help-text);
-  line-height: 1.7;
-  font-weight: 500;
-}
-
-.help-philosophy-emph {
-  color: var(--help-party-red);
+.help-philosophy-opp-point-label {
+  flex-shrink: 0;
+  font-size: 13px;
   font-weight: 700;
+  color: var(--help-deep-red);
+  letter-spacing: 0.02em;
 }
 
-.help-philosophy-reason-detail {
-  font-size: 14px;
-  color: var(--help-sub);
+.help-philosophy-opp-point-desc {
+  font-size: 13px;
   line-height: 1.6;
-  padding-top: 10px;
-  border-top: 1px dashed rgba(206, 17, 38, 0.18);
+  color: var(--help-sub);
 }
 
-.help-philosophy-foot {
+.help-philosophy-opp-insight {
+  margin: 2px 0 0;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(206, 17, 38, 0.18);
   font-size: 14px;
-  color: var(--help-sub);
-  letter-spacing: 0.06em;
+  line-height: 1.7;
+  color: var(--help-text);
 }
 
 /* ── Section 3.5: 战略认知展开 + 恢复对话能力 ── */
@@ -3668,6 +3660,17 @@ label .text-red-500 {
 }
 
 .help-cognition-item-desc {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--help-text);
+  margin: 8px 0 0;
+}
+
+.help-cognition-item-body {
+  margin: 0;
+}
+
+.help-cognition-item-truth {
   font-size: 14px;
   line-height: 1.7;
   color: var(--help-text);
@@ -4214,9 +4217,33 @@ label .text-red-500 {
   }
 }
 
-/* ── Section 6: 和组织对话——行百里者半九十（四阶段卡片） ── */
+/* ── Section 6: 和组织对话——行百里者半九十（环形四阶段卡片） ── */
 .help-dialogue-section {
-  text-align: left;
+  text-align: center;
+}
+
+.help-dialogue-eyebrow {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--help-sub);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.help-dialogue-coda {
+  max-width: 720px;
+  margin: 40px auto 0;
+  padding: 24px 32px;
+  background: color-mix(in srgb, var(--help-party-red) 2%, #FFFFFF);
+  border: 1px solid rgba(206, 17, 38, 0.12);
+  border-radius: var(--radius-md);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.7;
+  color: var(--help-text);
+  text-align: center;
 }
 
 .help-dialogue-cycle {
@@ -4247,6 +4274,7 @@ label .text-red-500 {
   border: 1px solid #E5E7EB;
   border-radius: var(--radius-lg);
   padding: 22px 20px 20px;
+  text-align: left;
   transition: transform 280ms var(--help-ease), box-shadow 280ms var(--help-ease), border-color 280ms var(--help-ease);
 }
 
@@ -5022,19 +5050,10 @@ label .text-red-500 {
     font-size: 22px;
   }
 
-  /* 移动端：核心口号缩小，分解改为纵向 */
-  .help-philosophy-title {
-    font-size: clamp(36px, 11vw, 56px);
-  }
-
-  .help-philosophy-split {
+  /* 移动端：两条宝贵机会改为单列 */
+  .help-philosophy-opportunities {
     grid-template-columns: 1fr;
-    gap: 20px;
-  }
-
-  .help-philosophy-divider {
-    width: 56px;
-    height: 1px;
+    gap: 16px;
   }
 
   .help-cognition-grid {
@@ -5127,6 +5146,7 @@ label .text-red-500 {
   .help-review-card,
   .help-works-col,
   .help-dialogue-card,
+  .help-philosophy-opp,
   .help-node-svg,
   .help-edge {
     opacity: 1 !important;

@@ -591,8 +591,8 @@ function renderPhilosophy() {
   return `
     <section id="philosophy" class="help-section help-philosophy-section" data-toc-id="philosophy">
       <div class="help-section-inner help-philosophy-inner">
-        <h2 class="help-philosophy-title">两条宝贵机会</h2>
-        <p class="help-philosophy-lead" data-stagger>
+        <h2 class="help-section-title">两条宝贵机会</h2>
+        <p class="help-section-subtitle" data-stagger>
           爱具体的组织——光华管理学院本科生党支部提供两条难得的成长机会。
         </p>
         <div class="help-philosophy-opportunities">${cards}</div>
@@ -931,19 +931,39 @@ function renderExploration() {
   `;
 }
 
-/** Section 7: 和组织对话——行百里者半九十（竖向四步） */
+/** Section 7: 和组织对话——行百里者半九十（环形四阶段：2x2 循环 + 椭圆环 + 箭头） */
 function renderDialogue() {
-  const stepsHTML = DIALOGUE_STAGES.map(s => `
-    <div class="help-dialogue-step">
-      <div class="help-dialogue-step-no">${s.no}</div>
-      <div class="help-dialogue-step-body">
-        <div class="help-dialogue-step-phase">${s.phase}</div>
-        <div class="help-dialogue-step-question">${s.question}</div>
-        <div class="help-dialogue-step-answer">${s.answer}</div>
-        <div class="help-dialogue-step-desc">${s.desc}</div>
-      </div>
-    </div>
+  const stepsHTML = DIALOGUE_STAGES.map((s, i) => {
+    const pos = `help-dialogue-card--pos${String(i + 1).padStart(2, '0')}`;
+    return `
+      <article class="help-dialogue-card ${pos}" data-stagger>
+        <div class="help-dialogue-no">${s.no}</div>
+        <div class="help-dialogue-phase">${s.phase}</div>
+        <div class="help-dialogue-question">${s.question}</div>
+        <div class="help-dialogue-answer">${s.answer}</div>
+        <div class="help-dialogue-desc">${s.desc}</div>
+      </article>
+    `;
+  }).join('');
+
+  // 4 个箭头：基础路径均为向右，靠 CSS rotate 变换指向（90/180/270 构成循环）
+  const arrowsHTML = [
+    'help-dialogue-arrow--01-02',
+    'help-dialogue-arrow--02-03',
+    'help-dialogue-arrow--03-04',
+    'help-dialogue-arrow--04-01',
+  ].map(cls => `
+    <svg class="help-dialogue-arrow ${cls}" viewBox="0 0 22 14" aria-hidden="true">
+      <path d="M1 7h18M15.5 1.5L21 7l-5.5 5.5" fill="none" stroke="#CE1126" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
   `).join('');
+
+  // 椭圆环——循环连线背景层（preserveAspectRatio="none" 拉伸为椭圆）
+  const ringHTML = `
+    <svg class="help-dialogue-ring" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <ellipse cx="50" cy="50" rx="49" ry="49" fill="none" stroke="#E5E7EB" stroke-width="1" stroke-dasharray="4 5"/>
+    </svg>
+  `;
 
   return `
     <section id="dialogue" class="help-section help-dialogue-section" data-toc-id="dialogue">
@@ -951,7 +971,11 @@ function renderDialogue() {
         <div class="help-dialogue-eyebrow">恢复对话能力</div>
         <h2 class="help-section-title">行百里者半九十</h2>
         <p class="help-section-subtitle">活动不是做了就行——必须和组织对话，在实践中持续改进</p>
-        <div class="help-dialogue-steps">${stepsHTML}</div>
+        <div class="help-dialogue-cycle">
+          ${ringHTML}
+          <div class="help-dialogue-flow">${stepsHTML}</div>
+          ${arrowsHTML}
+        </div>
         <blockquote class="help-dialogue-coda" data-stagger>
           党建和经管学科科研的交叉点在于恢复和马克思主义的对话能力，恢复理论研究和现实治理之间的对话能力。
         </blockquote>
@@ -1272,7 +1296,7 @@ function bindPageAnimations() {
     // Philosophy
     const philosophySection = document.querySelector('.help-philosophy-section');
     if (philosophySection) {
-      const philosophyEls = philosophySection.querySelectorAll('.help-philosophy-title, .help-philosophy-lead, .help-philosophy-opp');
+      const philosophyEls = philosophySection.querySelectorAll('.help-section-title, .help-section-subtitle, .help-philosophy-opp');
       if (philosophyEls.length) {
         gsap.from(philosophyEls, {
           autoAlpha: 0,
@@ -1332,7 +1356,7 @@ function bindPageAnimations() {
     // Dialogue
     const dialogueSection = document.querySelector('.help-dialogue-section');
     if (dialogueSection) {
-      const dialogueEls = dialogueSection.querySelectorAll('.help-dialogue-eyebrow, .help-section-title, .help-section-subtitle, .help-dialogue-step, .help-dialogue-coda');
+      const dialogueEls = dialogueSection.querySelectorAll('.help-dialogue-eyebrow, .help-section-title, .help-section-subtitle, .help-dialogue-card, .help-dialogue-coda');
       if (dialogueEls.length) {
         gsap.from(dialogueEls, {
           autoAlpha: 0,
@@ -1363,7 +1387,7 @@ function bindPageAnimations() {
 
   // ── reduced-motion 降级 ──
   mm.add('(prefers-reduced-motion: reduce)', () => {
-    gsap.set('.help-hero-title, .help-hero-subtitle, .help-hero-accent-line, .help-cognition-eyebrow, .help-cognition-title, .help-cognition-lead, .help-cognition-item, .help-cognition-dialogue, .help-philosophy-opp, .help-section-title, .help-section-subtitle, .help-review-card, .help-works-col, .help-dialogue-eyebrow, .help-dialogue-step, .help-dialogue-coda, .help-conclusion-section, .help-tl-row, .help-tl-stage', { autoAlpha: 1, y: 0, x: 0, scale: 1, clipPath: 'inset(0 0% 0 0)' });
+    gsap.set('.help-hero-title, .help-hero-subtitle, .help-hero-accent-line, .help-cognition-eyebrow, .help-cognition-title, .help-cognition-lead, .help-cognition-item, .help-cognition-dialogue, .help-philosophy-opp, .help-section-title, .help-section-subtitle, .help-review-card, .help-works-col, .help-dialogue-eyebrow, .help-dialogue-card, .help-dialogue-coda, .help-conclusion-section, .help-tl-row, .help-tl-stage', { autoAlpha: 1, y: 0, x: 0, scale: 1, clipPath: 'inset(0 0% 0 0)' });
   });
 }
 
