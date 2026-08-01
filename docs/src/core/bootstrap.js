@@ -44,6 +44,14 @@ const DEV_ROLE_WHITELIST = new Set([
  * }>}
  */
 export async function bootstrapPage({ module, accentRole, accentAlpha }) {
+  // 代码数据版本自检：旧 tab 持有旧 ES 模块时自动刷新一次加载新模块
+  // （2026-08-01 引入，配合 cross-page-state 的 CODE_VERSION）
+  if (CrossPageState.isStaleCodeVersion()) {
+    CrossPageState.bumpDataVersion();
+    window.location.reload();
+    return { user: null };
+  }
+
   // 登录检查
   const user = AuthStore.getCurrentUser();
   if (!user) {
