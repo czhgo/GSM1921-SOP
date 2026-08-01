@@ -550,7 +550,7 @@ function _renderTfCard(t, statusLabel, statusColor) {
   // 招募状态流转按钮：recruiting → active → archived
   let statusBtn = '';
   if (t.status === 'recruiting') {
-    statusBtn = `<button class="tf-start-btn text-[10px] px-2 py-1 rounded bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">启动专班</button>`;
+    statusBtn = `<button class="tf-start-btn text-[10px] px-2 py-1 rounded bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">启动专班</button>`;
   } else if (t.status === 'active') {
     statusBtn = `<button class="tf-archive-btn text-[10px] px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">归档专班</button>`;
   }
@@ -1148,7 +1148,7 @@ function _renderOrgInspectionContent() {
     <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">专班考察上传</h4>
-        <button class="btn-md btn-md-red" id="btn-org-upload-insp">${_orgInspFormVisible ? '收起表单' : '上传考察表单'}</button>
+        <button class="btn-md" id="btn-org-upload-insp" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_orgInspFormVisible ? '收起表单' : '上传考察表单'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表</div>
       ${formHtml}

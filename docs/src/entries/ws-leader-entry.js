@@ -231,7 +231,7 @@ function _renderWriteContent(activities) {
     <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">活动写入</h4>
-        <button class="btn-md btn-md-red" id="btn-leader-create">${panelVisible ? '收起面板' : '创建活动'}</button>
+        <button class="btn-md" id="btn-leader-create" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${panelVisible ? '收起面板' : '创建活动'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点</div>
 
@@ -697,7 +697,7 @@ function _renderAttendanceContent() {
     <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤上传</h4>
-        <button class="btn-md btn-md-red" id="btn-leader-upload-att">${_attFormVisible ? '收起表单' : '上传考勤表单'}</button>
+        <button class="btn-md" id="btn-leader-upload-att" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_attFormVisible ? '收起表单' : '上传考勤表单'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表</div>
       ${formHtml}
@@ -911,7 +911,7 @@ function _renderInspectionContent() {
     <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考察上传</h4>
-        <button class="btn-md btn-md-red" id="btn-leader-upload-insp">${_inspFormVisible ? '收起表单' : '上传考察表单'}</button>
+        <button class="btn-md" id="btn-leader-upload-insp" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_inspFormVisible ? '收起表单' : '上传考察表单'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">党小组活动考察：党小组组长上传 → 纪检委员确认 → 录入考察总表</div>
       ${formHtml}

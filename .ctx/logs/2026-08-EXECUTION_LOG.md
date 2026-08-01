@@ -346,3 +346,36 @@ related_files:
 - **坑位记录（并行编辑竞态）**：单文件多处并行 Edit 会互相覆盖（实测 `_personnelRoleColor` 与查询金点两处丢失，浏览器首轮实测误判为缓存问题）——修复：改为串行重放 + grep 全量复核落盘；双保险仍升级 CODE_VERSION 防缓存
 - **git 提交**：`4e58cf2`
 - **沉淀标签**：`[待沉淀: 角色色系与活动色系必须双权威源分离（ROLE_COLORS 冷色 / getActivityTypeColors 暖色），避免"满目皆红、意义不明确"；单文件多处修改不可并行 Edit，改后必须 grep/Read 复核实际落盘]`
+
+## T186 T-144 推广轮：主体色配色规则五连推广至 5 角色页 + visitor 待办行动按钮金色（2026-08-01）
+
+**任务**：将 visitor 打样的 DESIGN_SYSTEM §2.7「主体色配色规则五连」推广至其余 5 个角色页（书记/组织/宣传/纪检/党小组组长），并落实书记"visitor 待办行动按钮改金色"决策
+**引用流程**：H1.2 执行 + web-design-guidelines Skill（书记指令）+ DESIGN_SYSTEM §2.7 规则五连 + H2.2 母本子本 + H2.4 经验沉淀（§4.13）+ verification-before-completion Skill（search 子代理审计 + browser_use 全角色实测）
+**来源**：书记指令——"然后继续推进未完成工作！！Use Skill: web-design-guidelines" + AskUserQuestion 决策："本轮 5 页全部纳入（推荐）"、"改金色"
+
+**书记决策（AskUserQuestion 确认）**：
+- T-144 范围：本轮 5 页全部纳入（书记/组织/宣传/纪检/党小组组长）
+- visitor 待办行动按钮（原品牌红 #CE1126 实心）：改金色
+
+**实施内容（search 子代理全量配色审计 → 逐项修复）**：
+- ① **暖白底全局统一**：styles.css `--surface-page` 全局 `#F8F9FA→#FAFAF5`；`body.visitor-page` 打样期作用域覆写删除（并入全局）；visitor.html 移除冗余 body 类
+- ② **组织委员**（X=天蓝 #0EA5E9）：专班「启动专班」blue-600→sky 天蓝系（bg-sky-50/text-sky-700/border-sky-200）；「上传考察表单」btn-md-red→内联 accent 三件套（`background:${accentRgba};color:${accent};border:1px solid ${accentBorder}`）
+- ③ **宣传委员**（X=海蓝 #2563EB）：看板「待启动」列头 #CE1126→#2563EB 系；「接收/提交」「开始归档/确认归档」灰白边框按钮→海蓝系（bg-blue-50/text-blue-600/border-blue-200）
+- ④ **党小组组长**（X=翠绿 #22C55E）：「创建活动」「上传考勤表单」「上传考察表单」3 处 btn-md-red→内联 accent 三件套
+- ⑤ **纪检委员**（X=深橙 #C2410C）：交接「催促」btn-action-blue→btn-action-orange
+- ⑥ **visitor 待办行动按钮金色**：todo-list.js `renderTodoList` 新增 `actionBtnStyle` 可选参数（默认 `background:${accent};color:#fff` 不变），visitor 传 `background:var(--party-gold);color:#B45309;`；待办详情「处理」按钮同金系（rgba(255,215,0,0.12)/#B45309/rgba(255,215,0,0.35)）
+- ⑦ **语义红保留清单**：超期/打回/删除/必填星号/解散专班（破坏性）等告警危险语义保留不改
+- ⑧ **文档同步**：DESIGN_SYSTEM §2.6 surface-page 更新 + §2.7 追加推广轮完成段（含内联三件套规范）；insights §4.13「主体色配色规则五连」方法论沉淀；spec 追加"六、T-144 推广轮完成"；CLAUDE.md 乙部 T-144 → ✅ 完成
+
+- **变更文件**：`docs/src/styles.css`、`docs/src/components/todo-list.js`、`docs/src/entries/ws-visitor-entry.js`、`docs/src/entries/ws-org-commissioner-entry.js`、`docs/src/entries/ws-prop-commissioner-entry.js`、`docs/src/entries/ws-leader-entry.js`、`docs/src/entries/ws-disc-commissioner-entry.js`、`docs/workspace/visitor.html`、`content/04_web_design/DESIGN_SYSTEM.md`、`content/insights/工程演进与设计方法论.md`、`CLAUDE.md`、spec、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **验证结果（browser_use 全角色实测 + GetDiagnostics）**：
+  - ✅ 首页/全工作台 body 暖白 `rgb(250,250,245)`=#FAFAF5
+  - ✅ 组织委员：启动专班 sky 系（bg #F0F9FF/字 #0369A1/边 #BAE6FD）、上传考察表单 inline rgba(14,165,233,0.1)/#0EA5E9
+  - ✅ 宣传委员：待启动列头 rgb(37,99,235)=#2563EB 非红；接收/提交/归档按钮 bg #EFF6FF/字 #2563EB
+  - ✅ 党小组组长：创建活动/上传考勤/上传考察 3 按钮 inline rgba(34,197,94,0.1)/#22C55E/边 rgba(34,197,94,0.3)
+  - ✅ 纪检委员：催促按钮 btn-action-orange（源码+CSS 双重确认，默认 mock 数据无 in_progress 交接故真实渲染受限，属数据态限制）
+  - ✅ visitor：待办行动按钮 `bg #FFD700/字 #B45309`（4 处去阅读）、详情「处理」金系、标记完成 #16A34A
+  - ✅ 全角色页面无 JS 运行时错误；GetDiagnostics 修改 JS 零错误
+  - 备注：visitor 列表 ✓ 快捷完成按钮保持灰中性（次要操作，符合"灰只做中性"）
+- **git 提交**：`待提交`
+- **沉淀标签**：`[已沉淀: content/insights/工程演进与设计方法论.md §4.13]` — 主体色配色规则五连（X 主视觉→辅助强调色功能点缀→状态色统一→暖白底统一→灰只做中性）；双权威源分离（角色冷色/活动暖色）；内联三件套（accentRgba/accentBorder 拼 style）替代 Tailwind 类变体；语义红清单（告警危险语义保留）

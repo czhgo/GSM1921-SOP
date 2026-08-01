@@ -38,6 +38,8 @@ export function renderTodoList(opts) {
     onSelectTodo = () => {},
     onCompleteTodo = () => {},
     onActionTodo = () => {},
+    // 行动按钮自定义内联样式（默认使用角色 accent 实心；visitor 传金色系，T-144 推广轮 2026-08-01）
+    actionBtnStyle = '',
   } = opts;
 
   const today = new Date().toISOString().slice(0, 10);
@@ -73,7 +75,7 @@ export function renderTodoList(opts) {
 
   const groupsHtml = categoryOrder
     .filter(cat => groupedTodos[cat] && groupedTodos[cat].length > 0)
-    .map(cat => _renderCategoryGroup(prefix, cat, groupedTodos[cat], accent, today, selectedTodoId))
+    .map(cat => _renderCategoryGroup(prefix, cat, groupedTodos[cat], accent, today, selectedTodoId, actionBtnStyle))
     .join('');
 
   const emptyHtml = (!groupsHtml) ? `
@@ -140,12 +142,12 @@ export function renderTodoList(opts) {
 }
 
 // ── 渲染单个分类分组 ──────────────────────────────────────────
-function _renderCategoryGroup(prefix, category, todos, accent, today, selectedTodoId) {
+function _renderCategoryGroup(prefix, category, todos, accent, today, selectedTodoId, actionBtnStyle) {
   const label = TODO_CATEGORY_LABELS[category] || category;
   const isExpanded = DEFAULT_EXPANDED_CATEGORIES.has(category);
   const hasExpired = todos.some(t => _isExpired(t, today));
 
-  const itemsHtml = todos.map(todo => _renderTodoItem(prefix, todo, accent, today, selectedTodoId)).join('');
+  const itemsHtml = todos.map(todo => _renderTodoItem(prefix, todo, accent, today, selectedTodoId, actionBtnStyle)).join('');
 
   return `
     <div class="${prefix}-todo-group mb-3" data-category="${category}">
@@ -167,7 +169,7 @@ function _renderCategoryGroup(prefix, category, todos, accent, today, selectedTo
 }
 
 // ── 渲染单个待办项（单行紧凑式：色条+标题+截止/状态+行动/完成按钮）──
-function _renderTodoItem(prefix, todo, accent, today, selectedTodoId) {
+function _renderTodoItem(prefix, todo, accent, today, selectedTodoId, actionBtnStyle) {
   const isExpired = _isExpired(todo, today);
   const isUrgent = todo.priority === 'urgent';
   const isSelected = todo.id === selectedTodoId;
@@ -218,7 +220,7 @@ function _renderTodoItem(prefix, todo, accent, today, selectedTodoId) {
       </button>
       <div class="flex items-center gap-1.5 ml-2 pr-3 flex-shrink-0">
         ${hasAction ? `
-          <button type="button" class="${prefix}-todo-action-btn text-[10px] px-2 py-1 rounded text-white transition-colors hover:opacity-90" data-todo-id="${todo.id}" style="background:${accent};">${actionLabel}</button>
+          <button type="button" class="${prefix}-todo-action-btn text-[10px] px-2 py-1 rounded transition-colors hover:opacity-90" data-todo-id="${todo.id}" style="${actionBtnStyle || `background:${accent};color:#fff;`}">${actionLabel}</button>
         ` : ''}
         <button type="button" class="${prefix}-todo-complete-btn text-[10px] px-2 py-1 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" data-todo-id="${todo.id}" aria-label="标记完成">✓</button>
       </div>

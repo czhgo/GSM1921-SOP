@@ -77,7 +77,7 @@
   --neutral-900: #111827;
 
   /* ── LAYER 4: Surface — 组件层级深度 ── */
-  --surface-page:     #F8F9FA;
+  --surface-page:     #FAFAF5;
   --surface-card:     #FFFFFF;
   --surface-elevated: #FFFFFF;
   --surface-header:   #7A0010;
@@ -199,11 +199,8 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* 普通参与者工作台 — 暖白底（打样版 2026-08-01，作用域限定 visitor 页面，不影响其他角色页）
-   党徽金 #FFD700 已全局统一（:root --party-gold），本页不再需要作用域覆写 */
-body.visitor-page {
-  background-color: #FAFAF5;
-}
+/* 暖白底 #FAFAF5 已全局统一（T-144 推广轮 2026-08-01，规则五连第④条），全角色工作台/主目录页共享；
+   原 visitor 打样作用域覆写 body.visitor-page 已并入全局，无需再保留 */
 
 /* ═══════════════════════════════════════════════════════════════
    UTILITY — 显隐 / 可访问性

@@ -604,6 +604,8 @@ function _renderTodoContent() {
     onActionTodo: (todo) => {
       _handleTodoAction(todo);
     },
+    // 待办行动按钮金色系（书记 2026-08-01 决策：改金色，与完成绿呼应，红色收敛到品牌语义）
+    actionBtnStyle: 'background:var(--party-gold);color:#B45309;',
   });
 
   const detailHtml = selectedTodo ? _renderTodoDetail(selectedTodo) : `
@@ -666,7 +668,7 @@ function _renderTodoDetail(todo) {
       <div class="pt-3 border-t border-gray-100 flex gap-2">
         ${todo.status !== 'completed' ? `
           <button class="visitor-todo-detail-complete text-xs px-4 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:#16A34A;">标记完成</button>
-          ${todo.actionType ? `<button class="visitor-todo-detail-action text-xs px-4 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
+          ${todo.actionType ? `<button class="visitor-todo-detail-action text-xs px-4 py-1.5 rounded-lg transition-colors" style="background:rgba(255,215,0,0.12);color:#B45309;border:1px solid rgba(255,215,0,0.35);">处理</button>` : ''}
         ` : '<span class="text-xs text-green-600">已完成</span>'}
       </div>
     </div>

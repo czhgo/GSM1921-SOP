@@ -270,7 +270,7 @@ function _renderTaskCard(task) {
   const isFinal = task.status === 'submitted';
   const advanceLabel = task.status === 'pending' ? '接收' : '提交';
   const advanceBtn = !isFinal
-    ? `<button class="task-advance-btn text-[10px] px-2 py-1 rounded bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors mt-1" data-task-id="${task.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
+    ? `<button class="task-advance-btn text-[10px] px-2 py-1 rounded bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors mt-1" data-task-id="${task.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
     : '';
   const typeStyle = TASK_TYPE_STYLE[task.type] || 'bg-gray-50 text-gray-700';
   const statusStyle = TASK_STATUS_STYLE[task.status];
@@ -323,7 +323,7 @@ function _renderKanbanContent(activities, propTf) {
   container.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(206,17,38,0.06);color:#ce1126;border-bottom:2px solid rgba(206,17,38,0.15);">待启动 (${pending.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(37,99,235,0.06);color:#2563eb;border-bottom:2px solid rgba(37,99,235,0.15);">待启动 (${pending.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
           ${pending.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无待启动项目</p>' :
             pending.map(item => _renderKanbanItem(item)).join('')}
@@ -595,7 +595,7 @@ function _renderArchiveList(records) {
     const isInProgress = r.status === 'in_progress';
     const advanceLabel = r.status === 'pending' ? '开始归档' : '确认归档';
     const advanceBtn = !isFinal
-      ? `<button class="archive-advance-btn text-[10px] px-2 py-1 rounded bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors" data-record-id="${r.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
+      ? `<button class="archive-advance-btn text-[10px] px-2 py-1 rounded bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors" data-record-id="${r.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
       : '';
     // 归档中状态显示进度
     const progressHtml = isInProgress && r._checklistState

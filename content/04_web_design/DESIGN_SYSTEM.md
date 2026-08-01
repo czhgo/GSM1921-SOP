@@ -158,7 +158,7 @@ status: active
 
 | Token | 色值 | 色块 | 用途 |
 |-------|------|------|------|
-| `--surface-page` | `#F8F9FA` | ██ | 页面背景 |
+| `--surface-page` | `#FAFAF5` | ██ | 页面背景（暖白，T-144 推广轮 2026-08-01 全局统一；原 #F8F9FA 冷灰白已弃用） |
 | `--surface-card` | `#FFFFFF` | ██ | 卡片背景 |
 | `--surface-elevated` | `#FFFFFF` | ██ | 浮层背景 |
 | `--surface-header` | `#7A0010` | ██ | 顶部导航背景 |
@@ -198,6 +198,18 @@ status: active
   - 三会一课 = 党建红 `#CE1126`、主题党日系（主题党日/共建/参访/座谈）= 党徽金 `#FFD700`。
 - **金点描边约定**：亮金 `#FFD700` 圆点单独使用对比度不足（约 1.4:1），必须配套 1px 深色描边 `rgba(180,83,9,0.35)`；金底上的文字/数字一律用深金 `#B45309`（`dotBorder`/`text` 字段已内置在 `_ACTIVITY_TYPE_BASE`）。
 - **待办区去红**：待办卡片左缘色条用党徽金 `var(--party-gold)`，"标记完成"用状态绿 `#16A34A`；红色只保留品牌语义（tab 高亮、主按钮、党务标签），避免"满目皆红、意义不明确"。
+
+**推广轮完成（T-144，2026-08-01，书记决策"本轮 5 页全部纳入"）**：
+
+- **暖白底全局统一**：`--surface-page` 全局改为 `#FAFAF5`（styles.css :root），全角色工作台与主目录页共享；visitor 打样期 `body.visitor-page` 作用域覆写已删除（并入全局）。`--neutral-50` 灰阶保持不动（中性色职责）。
+- **装饰红→角色主题色**（红色只保留语义场景，主操作一律回归角色主题色 X）：
+  - 组织委员：专班看板「启动专班」蓝→天蓝 sky 系（X=#0EA5E9）；「上传考察表单」btn-md-red → 内联 accent 三件套（`background:${accentRgba};color:${accent};border:1px solid ${accentBorder}`）。
+  - 宣传委员：宣传任务看板「待启动」列头 `#CE1126` → X 海蓝 `#2563EB`；「接收/提交」「开始归档/确认归档」灰白边框按钮 → X 海蓝系（bg-blue-50/text-blue-600/border-blue-200）。
+  - 党小组组长：「创建活动」「上传考勤表单」「上传考察表单」三处 btn-md-red → 内联 accent 三件套（X=翠绿 `#22C55E`）。
+  - 纪检委员：交接「催促」按钮 btn-action-blue → btn-action-orange（X=深橙 `#C2410C`）。
+- **visitor 待办行动按钮金色**（书记决策"改金色"）：`todo-list.js` `renderTodoList` 新增 `actionBtnStyle` 可选参数（默认角色 accent 实心不变），visitor 传金色系 `background:var(--party-gold);color:#B45309;`；待办详情「处理」按钮同金系。列表 ✓ 快捷完成按钮保持灰色中性（次要操作）。
+- **语义红保留清单**（不改）：超期/过期/打回/删除/必填星号/「必修」标签/解散专班（破坏性操作）等告警与危险语义。
+- **内联三件套规范**：主操作按钮需角色主题色时，优先用 `bootstrapPage` 解构的 `accentRgba/accentBorder` 拼内联样式，避免新增 Tailwind 类变体。
 
 ---
 

@@ -881,7 +881,7 @@ function _renderDiscHandoverRecord(r, group) {
         </div>
         <div class="flex items-center gap-2">
           <span class="text-[10px] text-gray-500">${completedItems}/${totalItems} 项</span>
-          ${group === 'in_progress' ? `<button class="btn-action btn-action-blue btn-disc-urge-handover" data-record-id="${r.id}">催促</button>` : ''}
+          ${group === 'in_progress' ? `<button class="btn-action btn-action-orange btn-disc-urge-handover" data-record-id="${r.id}">催促</button>` : ''}
           ${group === 'submitted' ? `<button class="btn-action btn-action-green btn-disc-confirm-handover" data-record-id="${r.id}">确认</button>` : ''}
         </div>
       </div>
