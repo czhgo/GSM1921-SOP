@@ -344,5 +344,5 @@ related_files:
   - ✅ 待办卡片金边 + 完成按钮绿 rgb(22,163,74)；查询视图 accentColor 死参数移除
   - ✅ GetDiagnostics 全部修改 JS 零错误
 - **坑位记录（并行编辑竞态）**：单文件多处并行 Edit 会互相覆盖（实测 `_personnelRoleColor` 与查询金点两处丢失，浏览器首轮实测误判为缓存问题）——修复：改为串行重放 + grep 全量复核落盘；双保险仍升级 CODE_VERSION 防缓存
-- **git 提交**：`0d5a481`
+- **git 提交**：`4e58cf2`
 - **沉淀标签**：`[待沉淀: 角色色系与活动色系必须双权威源分离（ROLE_COLORS 冷色 / getActivityTypeColors 暖色），避免"满目皆红、意义不明确"；单文件多处修改不可并行 Edit，改后必须 grep/Read 复核实际落盘]`
