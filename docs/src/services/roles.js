@@ -2,46 +2,13 @@
 // ================================================================
 //  service.roles.js — 角色赋权共享服务
 //  消除 party.js 之间的重复统计逻辑
-//  assignedRoles：兼容旧调用（party.js），仅 localStorage 持久化
-//  authGranted：以 AuthStore 实际赋权记录为准（含 mock 初始数据）
+//  assignedRoles 遗留键（sop_org_os_assigned_roles）已删除，启动时清一次存储残留
 // ================================================================
 
 import { AuthStore } from './auth.js';
 
-const STORAGE_KEY = 'sop_org_os_assigned_roles';
-
-export const assignedRoles = [];
-
-function _load() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        assignedRoles.length = 0;
-        assignedRoles.push(...parsed);
-      }
-    }
-  } catch (_) { /* 格式错误则丢弃 */ }
-}
-
-export function saveAssignedRoles() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(assignedRoles));
-  } catch (_) { /* quota exceeded 静默失败 */ }
-}
-
-_load();
-
-function addAssignedRole(entry) {
-  assignedRoles.push({ ...entry, assignedAt: new Date().toISOString() });
-  saveAssignedRoles();
-}
-
-function removeAssignedRole(index) {
-  assignedRoles.splice(index, 1);
-  saveAssignedRoles();
-}
+// 遗留键清理（P2-6）：sop_org_os_assigned_roles 已无调用方，此处清一次存储残留
+try { localStorage.removeItem('sop_org_os_assigned_roles'); } catch (_) {}
 
 export function computeSecretaryStats(activities, nowOverride) {
   const now = nowOverride || new Date();

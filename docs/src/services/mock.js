@@ -51,7 +51,6 @@ export function saveDB() {
       fileSpaceRecords: mockDB.fileSpaceRecords,
       experienceDeposits: mockDB.experienceDeposits,
       taskforces:  mockDB.taskforces,
-      authorizations: mockDB.authorizations,
       notices:     mockDB.notices,
       todos:       mockDB.todos,
     }));
@@ -125,7 +124,6 @@ export function loadDB() {
     if (Array.isArray(parsed.fileSpaceRecords))     mockDB.fileSpaceRecords     = parsed.fileSpaceRecords;
     if (Array.isArray(parsed.experienceDeposits))   mockDB.experienceDeposits   = parsed.experienceDeposits;
     if (Array.isArray(parsed.taskforces))  mockDB.taskforces  = parsed.taskforces;
-    if (Array.isArray(parsed.authorizations)) mockDB.authorizations = parsed.authorizations;
     if (Array.isArray(parsed.notices))     mockDB.notices     = parsed.notices;
     if (Array.isArray(parsed.todos))       mockDB.todos       = parsed.todos;
     // 注：users 为静态预设数据，不从持久化存储恢复，以避免运行时数据污染

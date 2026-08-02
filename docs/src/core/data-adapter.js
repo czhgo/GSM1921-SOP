@@ -35,7 +35,6 @@
  * - assignments: 分工管理
  * - handovers: 交接管理
  * - makeupTasks: 补课任务
- * - authorizations: 赋权记录
  * - fileSpaceRecords: 文件空间
  * - imageRecords: 图片记录
  * - experienceDeposits: 经验沉淀
@@ -185,7 +184,7 @@ export async function init() {
       const [
         activities, tasks, attendances, inspections,
         taskforces, notices, todos, assignments,
-        handovers, makeupTasks, authorizations,
+        handovers, makeupTasks,
       ] = await Promise.all([
         adapter.activities.list(),
         adapter.tasks.list(),
@@ -197,7 +196,6 @@ export async function init() {
         adapter.assignments.list(),
         adapter.handovers.list(),
         adapter.makeupTasks.list(),
-        adapter.authorizations.list(),
       ]);
 
       // 填充 mockDB 缓存（供服务层同步读取）
@@ -212,7 +210,6 @@ export async function init() {
       mockDB.assignments = assignments || [];
       mockDB.handovers = handovers || [];
       mockDB.makeupTasks = makeupTasks || [];
-      mockDB.authorizations = authorizations || [];
 
       console.info('[DataAdapter] init: API 模式，已从后端拉取数据到缓存');
     } catch (e) {

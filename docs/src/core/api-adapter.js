@@ -96,8 +96,6 @@ function _delete(path) {
 //  | 交接        | /api/v1/handovers       | GET/POST  |
 //  | 补课        | /api/v1/makeup-tasks    | GET/POST  |
 //  | 补课(单)    | /api/v1/makeup-tasks/:id| PATCH     |
-//  | 赋权        | /api/v1/authorizations  | GET/POST  |
-//  | 赋权(单)    | /api/v1/authorizations/:id | DELETE |
 //  | 文件空间    | /api/v1/files           | GET/POST  |
 //  | 图片        | /api/v1/images          | GET/POST  |
 //  | 经验沉淀    | /api/v1/experiences     | GET/POST  |
@@ -281,21 +279,6 @@ export const ApiAdapter = {
 
     update(id, patch) {
       return _patch(`/api/v1/makeup-tasks/${id}`, patch);
-    },
-  },
-
-  authorizations: {
-    list(params = {}) {
-      const query = new URLSearchParams(params).toString();
-      return _get(`/api/v1/authorizations${query ? '?' + query : ''}`);
-    },
-
-    create(data) {
-      return _post('/api/v1/authorizations', data);
-    },
-
-    delete(id) {
-      return _delete(`/api/v1/authorizations/${id}`);
     },
   },
 

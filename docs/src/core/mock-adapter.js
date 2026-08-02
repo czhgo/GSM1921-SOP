@@ -46,7 +46,6 @@ function _saveToStorage() {
       fileSpaceRecords: mockDB.fileSpaceRecords,
       experienceDeposits: mockDB.experienceDeposits,
       taskforces:  mockDB.taskforces,
-      authorizations: mockDB.authorizations,
       notices:     mockDB.notices,
       todos:       mockDB.todos,
     }));
@@ -110,7 +109,6 @@ function _loadFromStorage() {
     if (Array.isArray(parsed.fileSpaceRecords))     mockDB.fileSpaceRecords     = parsed.fileSpaceRecords;
     if (Array.isArray(parsed.experienceDeposits))   mockDB.experienceDeposits   = parsed.experienceDeposits;
     if (Array.isArray(parsed.taskforces))  mockDB.taskforces  = parsed.taskforces;
-    if (Array.isArray(parsed.authorizations)) mockDB.authorizations = parsed.authorizations;
     if (Array.isArray(parsed.notices))     mockDB.notices     = parsed.notices;
     if (Array.isArray(parsed.todos))       mockDB.todos       = parsed.todos;
 
@@ -477,25 +475,6 @@ export const MockAdapter = {
         ];
         _saveToStorage();
         return mockDB.makeupTasks[idx];
-      });
-    },
-  },
-
-  authorizations: {
-    list() { return _withDelay(() => [...mockDB.authorizations]); },
-    create(data) {
-      return _withDelay(() => {
-        const auth = { ...data, id: generateId('auth'), createdAt: new Date().toISOString() };
-        mockDB.authorizations = [...mockDB.authorizations, auth];
-        _saveToStorage();
-        return auth;
-      });
-    },
-    delete(id) {
-      return _withDelay(() => {
-        mockDB.authorizations = mockDB.authorizations.filter(a => a.id !== id);
-        _saveToStorage();
-        return { id };
       });
     },
   },

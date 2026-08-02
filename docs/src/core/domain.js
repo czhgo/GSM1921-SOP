@@ -237,8 +237,6 @@ export const mockDB = {
   experienceDeposits: [],
   /** @type {Object[]} 专班数据 */
   taskforces: [],
-  /** @type {Object[]} 赋权记录（数据同源：AuthStore 统一读写 mockDB.authorizations） */
-  authorizations: [],
   /** @type {Object[]} 通知数据 */
   notices: [],
   /** @type {Object[]} 待办任务数据 — Source: content/04_web_design/DATA_ARCHITECTURE.md §2.18 */
