@@ -13,7 +13,7 @@ before(async () => {
 });
 after(() => server.close());
 
-test('snapshot 全量覆盖保存，重启后可读回', async () => {
+test('snapshot 全量覆盖保存后能读回新增活动', async () => {
   const tokenRes = await fetch(`${base}/api/v1/auth/login`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ personId: 'p13' }),
