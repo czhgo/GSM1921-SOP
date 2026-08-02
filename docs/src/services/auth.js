@@ -15,6 +15,7 @@ import { mockDB } from '../core/domain.js';
 import { NoticeStore } from './notice.js';
 import { updateActivity } from './mock.js';
 import { TaskForceRecordStore } from './taskforce.js';
+import { persist } from '../core/data-adapter.js';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
@@ -130,12 +131,13 @@ const COMMISSIONER_ROLES = new Set([
 // ── 获取用户的常设角色 ──────────────────────────
 // 优先级: 赋权记录 > mock 数据
 function _getUserRoleFromMemory(personId) {
-  // 1. 检查赋权记录（组长由支委赋权）
+  // 1. 检查赋权记录（组长由支委赋权）——取最新一条判定（revoke 追加语义）
   const records = _getAuthRecords();
-  const leaderRecord = records.find(r =>
-    r.targetPersonId === personId && r.role === 'leader' && r.action !== 'revoke'
-  );
-  if (leaderRecord) return 'leader';
+  const leaderRecs = records.filter(r => r.targetPersonId === personId && r.role === 'leader');
+  if (leaderRecs.length > 0) {
+    const latest = leaderRecs[leaderRecs.length - 1]; // 数组顺序即时间顺序
+    if (latest.action !== 'revoke') return 'leader';
+  }
 
   // 2. 检查 mock 数据（新格式: role 单一值）
   const person = getPersonById(personId);
@@ -147,8 +149,7 @@ function _getUserRoleFromMemory(personId) {
 // ── 获取用户在项目中的项目角色 ──────────────────
 // 统一读入口：一级读主源（活动 assignments / 专班 members 运行时数据），
 // 二级回退审计快照（仅历史数据；按角色取最新一条 action 判定是否已回收）。
-// 中间态说明：Task 1→Task 2 过渡期 authorize 尚未写穿主源，若主源已登记 participant
-// 而快照有更新的 organizer/deep，主源会压制快照（判定为 participant）——Task 2 写穿后自愈，勿误判为 bug。
+// 注：主源优先于快照——若主源登记 participant 而快照有更新的 organizer/deep，以主源为准（快照仅历史兜底）。
 function _getProjectRole(personId, projectId) {
   if (!projectId) return null;
 
@@ -216,7 +217,7 @@ function _notifyProjectAuth(projectId, authorizerId, targetPersonId, role) {
 
 // ── 追加审计快照条目 ──────────────────────────────
 function _appendAuditEntries(scopeRef, actorId, entries, action) {
-  if (!scopeRef || !Array.isArray(entries) || entries.length === 0) return 0;
+  if (!Array.isArray(entries) || entries.length === 0) return 0;
   const records = _getAuthRecords();
   entries.forEach(e => {
     records.push({
@@ -235,7 +236,7 @@ function _appendAuditEntries(scopeRef, actorId, entries, action) {
 
 // ── 审计快照存储（独立 localStorage 键，移出 /docs 代码栈）──────────
 // T-190：赋权审计快照不再是 mockDB 实体，独立持久化，杜绝双轨数据。
-// 注：当前 revokeAuthorization 仍为 splice 物理删除（见下），Task 2 将改为追加 action:'revoke' 记录，实现真正只增不改。
+// revoke 为追加 action:'revoke' 记录（快照只增不改），判定时取最新一条。
 const AUDIT_KEY = 'sop_org_os_auth_audit';
 
 function _getAuthRecords() {
@@ -470,15 +471,15 @@ export const AuthStore = {
 
     const scopeRef = context.projectId || null;
 
-    // 查重（审计快照：grant 且未撤销）
+    // 查重（审计快照：grant 且未撤销，取最新一条判定）
     const records = _getAuthRecords();
-    const duplicate = records.find(r =>
+    const dupRecs = records.filter(r =>
       r.targetPersonId === targetPersonId &&
       r.role === role &&
-      (r.scopeRef || null) === scopeRef &&
-      r.action !== 'revoke'
+      (r.scopeRef || null) === scopeRef
     );
-    if (duplicate) return { ok: false, id: duplicate.id };
+    const latestDup = dupRecs.length > 0 ? dupRecs[dupRecs.length - 1] : null;
+    if (latestDup && latestDup.action !== 'revoke') return { ok: false, id: latestDup.id };
 
     // ① 写主源（活动 assignments / 专班 members，合并去重）
     try {
@@ -492,6 +493,7 @@ export const AuthStore = {
               { personId: targetPersonId, role },
             ],
           });
+          persist(); // 活动主源写入后落盘（updateActivity 不自动 persist）
         } else {
           const tf = mockDB.taskforces.find(t => t.id === scopeRef);
           if (tf) {
@@ -499,7 +501,7 @@ export const AuthStore = {
             TaskForceRecordStore.update(scopeRef, {
               members: [
                 ...cur.filter(m => !(m.personId === targetPersonId && m.role === role)),
-                { personId: targetPersonId, role },
+                { personId: targetPersonId, role, contributions: [] },
               ],
             });
           }
@@ -553,6 +555,7 @@ export const AuthStore = {
           await updateActivity(scopeRef, {
             assignments: activity.assignments.filter(x => !(x.personId === personId && x.role === role)),
           });
+          persist(); // 活动主源写入后落盘（updateActivity 不自动 persist）
         } else {
           const tf = mockDB.taskforces.find(t => t.id === scopeRef);
           if (tf && Array.isArray(tf.members)) {
@@ -563,6 +566,7 @@ export const AuthStore = {
         }
       } catch (e) {
         console.warn('[AuthStore] revoke 写主源失败：', e);
+        return false; // 主源未删成功不追加 revoke 快照，避免快照与主源不一致
       }
     }
 
@@ -612,16 +616,19 @@ export const AuthStore = {
         ? activity.assignments.filter(x => x.role !== 'organizer' && x.role !== 'deep')
         : [];
       await updateActivity(scopeRef, { assignments: [...nonProj, ...desired] });
+      persist(); // 活动主源写入后落盘（updateActivity 不自动 persist）
     } else if (tf) {
       const prevMembers = Array.isArray(tf.members) ? tf.members : [];
       const contributionsById = {};
       prevMembers.forEach(m => { if (m.personId) contributionsById[m.personId] = m.contributions || []; });
+      // 保留非 organizer/deep 成员（participant 等，含 contributions），与活动分支对齐
+      const nonProj = prevMembers.filter(m => m.role !== 'organizer' && m.role !== 'deep');
       const desiredWithCtx = desired.map(x => ({
         personId: x.personId,
         role: x.role,
         contributions: contributionsById[x.personId] || [],
       }));
-      TaskForceRecordStore.update(scopeRef, { members: [...desiredWithCtx] });
+      TaskForceRecordStore.update(scopeRef, { members: [...nonProj, ...desiredWithCtx] });
     }
 
     // 追加快照 + 通知
@@ -645,10 +652,11 @@ export const AuthStore = {
     let count = 0;
     assignments.forEach(a => {
       if (!a.personId || (a.role !== 'organizer' && a.role !== 'deep')) return;
-      const dup = records.find(r =>
-        r.targetPersonId === a.personId && r.role === a.role && r.scopeRef === scopeRef && r.action !== 'revoke'
+      const dupRecs = records.filter(r =>
+        r.targetPersonId === a.personId && r.role === a.role && r.scopeRef === scopeRef
       );
-      if (dup) return;
+      const latestDup = dupRecs.length > 0 ? dupRecs[dupRecs.length - 1] : null;
+      if (latestDup && latestDup.action !== 'revoke') return;
       records.push({
         id: 'auth-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
         targetPersonId: a.personId,
