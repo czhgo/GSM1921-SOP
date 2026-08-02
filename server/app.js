@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { initDb } from './db.js';
 import { createAuthRouter } from './routes/auth.js';
 import { createResourcesRouter } from './routes/resources.js';
+import { createUploadsRouter } from './routes/uploads.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DOCS_DIR = path.resolve(__dirname, '../docs');
@@ -19,6 +20,8 @@ export function createApp({ dbPath = ':memory:' } = {}) {
   app.use('/api/v1/auth', createAuthRouter(app.locals.db));
 
   app.use('/api/v1', createResourcesRouter(app.locals.db));
+
+  app.use('/api/v1', createUploadsRouter(app.locals.db));
 
   app.use(express.static(DOCS_DIR));
 
