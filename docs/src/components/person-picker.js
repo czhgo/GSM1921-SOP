@@ -170,7 +170,7 @@ export class PersonPicker {
     // 下拉箭头
     const arrow = document.createElement('span');
     arrow.className = 'person-picker-arrow';
-    arrow.innerHTML = icon('chevronDown', { className: 'w-3.5 h-3.5' });
+    arrow.innerHTML = icon('chevronDown', { className: 'w-3.5 h-3.5', extra: ' aria-hidden="true"' });
     btn.appendChild(arrow);
 
     btn.addEventListener('click', (e) => {
@@ -234,17 +234,21 @@ export class PersonPicker {
   // ── 面板创建 ────────────────────────────────────────────────
 
   _createPanel() {
-    // 遮罩层
+    // 遮罩层（语义化 backdrop：点击空白关闭）
     const overlay = document.createElement('div');
     overlay.className = 'person-picker-overlay';
+    overlay.setAttribute('aria-hidden', 'true');
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) this._closePanel();
     });
     this._overlayEl = overlay;
 
-    // 面板主体
+    // 面板主体（dialog 语义 + modal 焦点管理）
     const panel = document.createElement('div');
     panel.className = 'person-picker-panel card rounded-2xl shadow-xl';
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-modal', 'true');
+    panel.setAttribute('aria-label', '选择人员');
 
     // 定位面板（在触发按钮下方）
     this._positionPanel(panel);
@@ -255,11 +259,11 @@ export class PersonPicker {
     header.innerHTML = `
       <div class="person-picker-header-row">
         <h4 class="person-picker-title ">选择人员</h4>
-        <button type="button" class="person-picker-close-btn">
-          ${icon('close', { stroke: '#6B7280', className: 'w-3.5 h-3.5' })}
+        <button type="button" class="person-picker-close-btn" aria-label="关闭">
+          ${icon('close', { stroke: '#6B7280', className: 'w-3.5 h-3.5', extra: ' aria-hidden="true"' })}
         </button>
       </div>
-      <input type="text" class="person-picker-search " placeholder="搜索姓名或学号..." />
+      <input type="text" class="person-picker-search " placeholder="搜索姓名或学号…" aria-label="搜索人员" />
     `;
     panel.appendChild(header);
 
@@ -393,24 +397,25 @@ export class PersonPicker {
       const roleLabel = person.role ? (ROLE_LABELS[person.role] || person.role) : '';
 
       return `
-        <div class="person-picker-item  ${isSelected ? 'selected' : ''}"
-             data-person-id="${person.id}">
-          <div class="person-picker-item-avatar">
+        <button type="button" class="person-picker-item ${isSelected ? 'selected' : ''}"
+             data-person-id="${person.id}"
+             aria-pressed="${isSelected}">
+          <span class="person-picker-item-avatar" aria-hidden="true">
             ${person.name.charAt(0)}
-          </div>
-          <div class="person-picker-item-info">
-            <div class="person-picker-item-name-row">
+          </span>
+          <span class="person-picker-item-info">
+            <span class="person-picker-item-name-row">
               <span class="person-picker-item-name">${person.name}</span>
               <span class="person-picker-item-stage" style="background:${stageColor.bg};color:${stageColor.text};border:1px solid ${stageColor.border};">${stageLabel}</span>
-            </div>
-            <div class="person-picker-item-meta">
+            </span>
+            <span class="person-picker-item-meta">
               <span class="person-picker-item-meta-text">${person.studentId}</span>
               <span class="person-picker-item-meta-text">${person.partyGroup.replace('党小组', '')}</span>
               ${roleLabel ? `<span class="person-picker-item-role">${roleLabel}</span>` : ''}
-            </div>
-          </div>
-          ${isSelected ? icon('check', { strokeWidth: 2.5, stroke: this._accent, className: 'w-4 h-4 person-picker-check' }) : ''}
-        </div>
+            </span>
+          </span>
+          ${isSelected ? icon('check', { strokeWidth: 2.5, stroke: this._accent, className: 'w-4 h-4 person-picker-check', extra: ' aria-hidden="true"' }) : ''}
+        </button>
       `;
     }).join('');
 

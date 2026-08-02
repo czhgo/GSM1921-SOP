@@ -201,6 +201,16 @@
   cursor: pointer;
   transition: all 0.12s;
   border: 1.5px solid transparent;
+  background: transparent;      /* 重置 button 默认背景 */
+  width: 100%;                  /* 重置 button 默认内边距收缩 */
+  text-align: left;             /* 重置 button 默认居中 */
+  font: inherit;                /* 重置 button 默认字体 */
+  color: inherit;               /* 重置 button 默认文字色 */
+}
+
+.person-picker-item:focus-visible {
+  outline: 2px solid var(--pp-accent);
+  outline-offset: -2px;
 }
 
 .person-picker-item:not(.selected):hover {
