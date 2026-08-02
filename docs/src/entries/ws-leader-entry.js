@@ -42,11 +42,12 @@ function _filterByRole(state, role) {
   const currentLeaderId = AuthStore.getCurrentUser()?.personId || 'p4';
   const activities = (state.activities || []).filter(a => {
     if (role === 'leader') {
-      // 组长可见：上级下发（top-down）或本人组织/参与的活动（读主源 assignments，非 'leader' 角色名 hack）
+      // 组长可见：上级下发（top-down）、本人组织/参与（读主源 assignments，非 'leader' 角色名 hack）、
+      // 或本人创建的活动（含清空赋权的待办兜底场景，保证「去赋权」待办能直达详情）
       const isMine = Array.isArray(a.assignments)
         ? a.assignments.some(x => x.personId === currentLeaderId && (x.role === 'organizer' || x.role === 'deep'))
         : (a.organizer === currentLeaderId);
-      return a.direction === 'top-down' || isMine;
+      return a.direction === 'top-down' || isMine || a.createdBy === currentLeaderId;
     }
     return true;
   });
