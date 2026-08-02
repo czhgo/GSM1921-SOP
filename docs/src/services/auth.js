@@ -12,7 +12,8 @@
 import { ROLE_LABELS } from '../core/constants.js';
 import { PEOPLE, getPersonById, getPersonName } from '../mock/index.js';
 import { mockDB } from '../core/domain.js';
-import { MOCK_TASKFORCES } from '../mock/taskforces.js';
+import { updateActivity } from './mock.js';
+import { TaskForceRecordStore } from './taskforce.js';
 import { NoticeStore } from './notice.js';
 import { persist } from '../core/data-adapter.js';
 
@@ -132,7 +133,9 @@ const COMMISSIONER_ROLES = new Set([
 function _getUserRoleFromMemory(personId) {
   // 1. 检查赋权记录（组长由支委赋权）
   const records = _getAuthRecords();
-  const leaderRecord = records.find(r => r.targetPersonId === personId && r.role === 'leader');
+  const leaderRecord = records.find(r =>
+    r.targetPersonId === personId && r.role === 'leader' && r.action !== 'revoke'
+  );
   if (leaderRecord) return 'leader';
 
   // 2. 检查 mock 数据（新格式: role 单一值）
@@ -143,28 +146,37 @@ function _getUserRoleFromMemory(personId) {
 }
 
 // ── 获取用户在项目中的项目角色 ──────────────────
+// 统一读入口：一级读主源（活动 assignments / 专班 members 运行时数据），
+// 二级回退审计快照（仅历史数据；按角色取最新一条 action 判定是否已回收）。
 function _getProjectRole(personId, projectId) {
-  // 0. 优先查 auth records（运行时赋权记录）
+  if (!projectId) return null;
+
+  // 一级：主源 — 活动 assignments
+  const activity = mockDB.activities.find(a => a.id === projectId);
+  if (activity && Array.isArray(activity.assignments)) {
+    const rec = activity.assignments.find(a => a.personId === personId);
+    if (rec) return rec.role;  // 'organizer' | 'deep' | 'participant'
+  }
+
+  // 一级：主源 — 专班 members
+  const tf = mockDB.taskforces.find(t => t.id === projectId);
+  if (tf && Array.isArray(tf.members)) {
+    const m = tf.members.find(m => m.personId === personId);
+    if (m) return m.role;  // 'organizer' | 'deep' | 'participant'
+  }
+
+  // 二级：审计快照回退（按 (personId, role, scopeRef) 取最新一条，revoke 视为已回收）
   const records = _getAuthRecords();
-  const authRec = records.find(r =>
+  const roleRecs = records.filter(r =>
     r.targetPersonId === personId &&
     r.role && ['organizer', 'deep'].includes(r.role) &&
     r.scopeRef === projectId
   );
-  if (authRec) return authRec.role;
-
-  // 1. 再查活动 assignments（mock 数据）
-  const activity = mockDB.activities.find(a => a.id === projectId);
-  if (activity && Array.isArray(activity.assignments)) {
-    const rec = activity.assignments.find(a => a.personId === personId);
-    if (rec) return rec.role;  // 'organizer' | 'deep'
-  }
-
-  // 2. 再查专班 members（mock 数据）
-  const tf = MOCK_TASKFORCES.find(t => t.id === projectId);
-  if (tf && Array.isArray(tf.members)) {
-    const m = tf.members.find(m => m.personId === personId);
-    if (m) return m.role;  // 'organizer' | 'deep' | 'participant'
+  const latestByRole = {};
+  roleRecs.forEach(r => { latestByRole[r.role] = r; }); // 数组顺序即时间顺序
+  for (const role of ['organizer', 'deep']) {
+    const rec = latestByRole[role];
+    if (rec && rec.action !== 'revoke') return role;
   }
 
   return null;
@@ -175,52 +187,26 @@ function _getProjectName(projectId) {
   if (!projectId) return null;
   const a = mockDB.activities.find(x => x.id === projectId);
   if (a) return a.title;
-  const t = MOCK_TASKFORCES.find(x => x.id === projectId);
+  const t = mockDB.taskforces.find(x => x.id === projectId);
   if (t) return t.name;
   return null;
 }
 
-// ── 赋权记录存储（数据同源：统一读写 mockDB.authorizations）──────────
+// ── 审计快照存储（独立 localStorage 键，只增不改，移出 /docs 代码栈）──────────
+// T-190：赋权审计快照不再是 mockDB 实体，独立持久化，杜绝双轨数据。
+const AUDIT_KEY = 'sop_org_os_auth_audit';
+
 function _getAuthRecords() {
-  // 首次加载：mockDB.authorizations 为空时注入默认数据
-  if (mockDB.authorizations.length === 0) {
-    mockDB.authorizations = _defaultAuthRecords();
-  }
-  return mockDB.authorizations;
+  try {
+    const raw = localStorage.getItem(AUDIT_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (_) { return []; }
 }
 
 function _saveAuthRecords(records) {
-  mockDB.authorizations = records;
-  persist();
-}
-
-function _defaultAuthRecords() {
-  return [
-    // ── 路径1：书记/副书记 → leader（常设） ──
-    { id: 'auth-001', targetPersonId: 'p1',  role: 'leader', authorizedBy: 'p13', authorizedAt: '2026-01-10' },
-    { id: 'auth-002', targetPersonId: 'p2',  role: 'leader', authorizedBy: 'p13', authorizedAt: '2026-01-10' },
-    { id: 'auth-003', targetPersonId: 'p4',  role: 'leader', authorizedBy: 'p13', authorizedAt: '2026-01-15' },
-
-    // ── 路径2：组织委员 → organizer/deep（专班） ──
-    // D-240: 积极分子 p7 在 tf-002 担任 organizer，由组织委员 p11 赋权
-    { id: 'auth-004', targetPersonId: 'p7',  role: 'organizer', scopeRef: 'tf-002', authorizedBy: 'p11', authorizedAt: '2026-05-03' },
-    // 新增人员 p26（积极分子）在 tf-005 担任 organizer，由组织委员 p11 赋权
-    { id: 'auth-005', targetPersonId: 'p26', role: 'organizer', scopeRef: 'tf-005', authorizedBy: 'p11', authorizedAt: '2026-06-10' },
-    // p8 在 tf-001 担任 deep，由组织委员 p11 赋权
-    { id: 'auth-006', targetPersonId: 'p8',  role: 'deep',      scopeRef: 'tf-001', authorizedBy: 'p11', authorizedAt: '2026-05-02' },
-
-    // ── 路径3：党小组组长 → organizer/deep（活动） ──
-    // p1（第一党小组组长）赋权 p3 在 act-3 担任 organizer
-    { id: 'auth-007', targetPersonId: 'p3',  role: 'organizer', scopeRef: 'act-3',  authorizedBy: 'p1',  authorizedAt: '2026-03-10' },
-    // p4（第三党小组组长）赋权 p7 在 act-19 担任 deep
-    { id: 'auth-008', targetPersonId: 'p7',  role: 'deep',      scopeRef: 'act-19', authorizedBy: 'p4',  authorizedAt: '2026-05-20' },
-
-    // ── 路径4：组织者 → deep（活动） ──
-    // p3（act-3 的 organizer）赋权 p6 在 act-3 担任 deep
-    { id: 'auth-009', targetPersonId: 'p6',  role: 'deep',      scopeRef: 'act-3',  authorizedBy: 'p3',  authorizedAt: '2026-03-15' },
-    // p1（act-9 的 organizer）赋权 p5 在 act-9 担任 deep
-    { id: 'auth-010', targetPersonId: 'p5',  role: 'deep',      scopeRef: 'act-9',  authorizedBy: 'p1',  authorizedAt: '2026-05-10' },
-  ];
+  try { localStorage.setItem(AUDIT_KEY, JSON.stringify(records)); } catch (_) { /* quota exceeded 静默降级 */ }
 }
 
 // ════════════════════════════════════════════════
@@ -327,15 +313,7 @@ export const AuthStore = {
     if (!personId) return [];
     const projectRoleSet = new Set();
 
-    // 1. 检查 auth records（运行时赋权记录）
-    const records = _getAuthRecords();
-    records.forEach(r => {
-      if (r.targetPersonId === personId && ['organizer', 'deep'].includes(r.role)) {
-        projectRoleSet.add(r.role);
-      }
-    });
-
-    // 2. 检查 mock 数据（活动 assignments）
+    // 仅读主源（活动 assignments / 专班 members）；审计快照只增不改，不做读源
     mockDB.activities.forEach(a => {
       if (Array.isArray(a.assignments)) {
         a.assignments.forEach(rec => {
@@ -346,8 +324,7 @@ export const AuthStore = {
       }
     });
 
-    // 3. 检查 mock 数据（专班 members）
-    MOCK_TASKFORCES.forEach(t => {
+    mockDB.taskforces.forEach(t => {
       if (Array.isArray(t.members)) {
         t.members.forEach(m => {
           if (m.personId === personId && ['organizer', 'deep'].includes(m.role)) {
