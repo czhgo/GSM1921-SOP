@@ -813,7 +813,7 @@ function _submitRecruitForm() {
     members,
     capacity,
     deadline,
-    activityId: activityId || null,
+    activityId: null, // T-190 修复：招募表单无活动关联字段，原 activityId 未声明抛 ReferenceError
     createdAt: new Date().toISOString().slice(0, 10),
   };
 

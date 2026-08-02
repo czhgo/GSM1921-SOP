@@ -751,15 +751,17 @@ function _bindDecisionTreeEvents(container) {
         ...organizerIds.map(personId => ({ personId, role: 'organizer' })),
         ...deepIds.map(personId => ({ personId, role: 'deep' })),
       ];
-      // 组织者默认含组长本人（即使 picker 被清空也保证组长为发起组织者，原则2 启动不困难）
-      if (assignments.length === 0) assignments.push({ personId: currentLeaderId, role: 'organizer' });
+      // T-190 修复：删除「清空后强加组长本人」兜底——与 spec 偏差A「未选人保留待办兜底」矛盾，
+      // 该兜底使 assignments 永不为空，mock.js 的 assignments.length===0 分支永不触发，待办从未派生
       activityData.assignments = assignments;
 
       const { activity, taskCount } = await writeActivityWithSOP(activityData, scenarioId, targetDate);
 
       // 顺路赋权：追加审计快照 + 通知被赋权人（主源已由创建写入，原则7 不重复填写）
+      // 组长本人作为默认组织者属「发起认领」，不计入「顺路赋权」计数/快照/通知
       const actorId = AuthStore.getCurrentUser()?.personId;
-      const granted = AuthStore.recordProjectGrants(activity.id, assignments, actorId);
+      const grantedEntries = assignments.filter(a => a.personId !== currentLeaderId);
+      const granted = AuthStore.recordProjectGrants(activity.id, grantedEntries, actorId);
       if (granted > 0) {
         showToast('success', `已顺路赋权 ${granted} 名成员`);
       }
