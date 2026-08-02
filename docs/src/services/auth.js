@@ -13,6 +13,8 @@ import { ROLE_LABELS } from '../core/constants.js';
 import { PEOPLE, getPersonById, getPersonName } from '../mock/index.js';
 import { mockDB } from '../core/domain.js';
 import { NoticeStore } from './notice.js';
+import { updateActivity } from './mock.js';
+import { TaskForceRecordStore } from './taskforce.js';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
@@ -189,6 +191,46 @@ function _getProjectName(projectId) {
   const t = mockDB.taskforces.find(x => x.id === projectId);
   if (t) return t.name;
   return null;
+}
+
+// ── 项目角色赋权通知（organizer / deep 被赋权时推送）──────────────
+function _notifyProjectAuth(projectId, authorizerId, targetPersonId, role) {
+  const targetPage = 'index.html';
+
+  const authorizerName = getPersonName(authorizerId) || authorizerId;
+  const projectName = _getProjectName(projectId) || '未命名项目';
+  const roleLabel = ROLE_LABELS[role] || role;
+
+  // 确保 NoticeStore 已初始化（幂等兜底）
+  if (typeof NoticeStore.init === 'function' && NoticeStore._notices.length === 0) {
+    NoticeStore.init();
+  }
+
+  NoticeStore.add({
+    title: '赋权通知',
+    content: `${authorizerName} 已将您赋权为「${projectName}」的${roleLabel}。点击前往工作台。`,
+    priority: 'normal',
+    targetUrl: targetPage,
+  });
+}
+
+// ── 追加审计快照条目 ──────────────────────────────
+function _appendAuditEntries(scopeRef, actorId, entries, action) {
+  if (!scopeRef || !Array.isArray(entries) || entries.length === 0) return 0;
+  const records = _getAuthRecords();
+  entries.forEach(e => {
+    records.push({
+      id: 'auth-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+      targetPersonId: e.personId,
+      role: e.role || null,
+      scopeRef,
+      authorizedBy: actorId || null,
+      authorizedAt: new Date().toISOString().slice(0, 10),
+      action, // 'grant' | 'revoke'
+    });
+  });
+  _saveAuthRecords(records);
+  return entries.length;
 }
 
 // ── 审计快照存储（独立 localStorage 键，移出 /docs 代码栈）──────────
@@ -411,14 +453,14 @@ export const AuthStore = {
   },
 
   /**
-   * 赋权
+   * 赋权（三合一：写主源 + 追加快照 + 发通知）
    * @param {string} authorizerId - 授权人 ID
    * @param {string} targetPersonId - 被赋权人 ID
    * @param {string} role - 角色
    * @param {{ projectId?: string }} context
-   * @returns {{ ok: boolean, id: string }}
+   * @returns {Promise<{ ok: boolean, id: string }>}
    */
-  authorize(authorizerId, targetPersonId, role, context = {}) {
+  async authorize(authorizerId, targetPersonId, role, context = {}) {
     if (!authorizerId || !targetPersonId || !role) return { ok: false, id: '' };
 
     // 校验: 授权人是否有权赋权该角色
@@ -426,16 +468,49 @@ export const AuthStore = {
     const allowedRoles = AUTHORIZE_CHAIN[authorizerRole] || [];
     if (!allowedRoles.includes(role)) return { ok: false, id: '' };
 
-    const records = _getAuthRecords();
-    // 查重
     const scopeRef = context.projectId || null;
+
+    // 查重（审计快照：grant 且未撤销）
+    const records = _getAuthRecords();
     const duplicate = records.find(r =>
       r.targetPersonId === targetPersonId &&
       r.role === role &&
-      (r.scopeRef || null) === scopeRef
+      (r.scopeRef || null) === scopeRef &&
+      r.action !== 'revoke'
     );
     if (duplicate) return { ok: false, id: duplicate.id };
 
+    // ① 写主源（活动 assignments / 专班 members，合并去重）
+    try {
+      if (scopeRef) {
+        const activity = mockDB.activities.find(a => a.id === scopeRef);
+        if (activity) {
+          const current = Array.isArray(activity.assignments) ? activity.assignments : [];
+          await updateActivity(scopeRef, {
+            assignments: [
+              ...current.filter(x => !(x.personId === targetPersonId && x.role === role)),
+              { personId: targetPersonId, role },
+            ],
+          });
+        } else {
+          const tf = mockDB.taskforces.find(t => t.id === scopeRef);
+          if (tf) {
+            const cur = Array.isArray(tf.members) ? tf.members : [];
+            TaskForceRecordStore.update(scopeRef, {
+              members: [
+                ...cur.filter(m => !(m.personId === targetPersonId && m.role === role)),
+                { personId: targetPersonId, role },
+              ],
+            });
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[AuthStore] authorize 写主源失败：', e);
+      return { ok: false, id: '' };
+    }
+
+    // ② 追加审计快照
     const id = 'auth-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
     records.push({
       id,
@@ -444,48 +519,161 @@ export const AuthStore = {
       scopeRef,
       authorizedBy: authorizerId,
       authorizedAt: new Date().toISOString().slice(0, 10),
+      action: 'grant',
     });
     _saveAuthRecords(records);
 
-    // ── 赋权通知：organizer / deep 被赋权时给被赋权人推送站内通知 ──
-    // 通知点击跳转到首页"我的角色"区块（organizer/deep 无独立页面）
+    // ③ 赋权通知（organizer / deep）
     if (role === 'organizer' || role === 'deep') {
-      const targetPage = 'index.html';
-
-      const authorizerName = getPersonName(authorizerId) || authorizerId;
-      const projectName = _getProjectName(scopeRef) || '未命名项目';
-      const roleLabel = ROLE_LABELS[role] || role;
-
-      // 确保 NoticeStore 已初始化（避免 _notices 为空时 add 覆盖 mock 数据）
-      // ws-secretary-entry / ws-visitor-entry / main-entry 已各自调用 init()，
-      // 但 authorize 可能从其它入口（如 party-disc）触发，这里做幂等兜底
-      if (typeof NoticeStore.init === 'function' && NoticeStore._notices.length === 0) {
-        NoticeStore.init();
-      }
-
-      NoticeStore.add({
-        title: '赋权通知',
-        content: `${authorizerName} 已将您赋权为「${projectName}」的${roleLabel}。点击前往工作台。`,
-        priority: 'normal',
-        targetUrl: targetPage,
-      });
+      _notifyProjectAuth(scopeRef, authorizerId, targetPersonId, role);
     }
 
     return { ok: true, id };
   },
 
-  revokeAuthorization(recordId) {
+  /**
+   * 撤销赋权（三合一：删主源 + 追加 revoke 快照）
+   * 快照只增不改：保留原 grant 记录，追加一条 action='revoke' 记录。
+   * @param {string} recordId - 审计快照记录 ID
+   * @returns {Promise<boolean>}
+   */
+  async revokeAuthorization(recordId) {
     if (!recordId) return false;
     const records = _getAuthRecords();
-    const idx = records.findIndex(r => r.id === recordId);
-    if (idx === -1) return false;
-    records.splice(idx, 1);
-    _saveAuthRecords(records);
+    const rec = records.find(r => r.id === recordId);
+    if (!rec) return false;
+
+    const { personId, role, scopeRef } = rec;
+
+    // 删主源（仅 organizer/deep 有主源载体）
+    if (scopeRef && role && (role === 'organizer' || role === 'deep')) {
+      try {
+        const activity = mockDB.activities.find(a => a.id === scopeRef);
+        if (activity && Array.isArray(activity.assignments)) {
+          await updateActivity(scopeRef, {
+            assignments: activity.assignments.filter(x => !(x.personId === personId && x.role === role)),
+          });
+        } else {
+          const tf = mockDB.taskforces.find(t => t.id === scopeRef);
+          if (tf && Array.isArray(tf.members)) {
+            TaskForceRecordStore.update(scopeRef, {
+              members: tf.members.filter(m => !(m.personId === personId && m.role === role)),
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('[AuthStore] revoke 写主源失败：', e);
+      }
+    }
+
+    // 追加 revoke 快照
+    _appendAuditEntries(scopeRef, rec.authorizedBy || null, [{ personId, role }], 'revoke');
     return true;
   },
 
   getAuthorizations() {
     return _getAuthRecords();
+  },
+
+  /**
+   * 整组同步项目角色（活动详情 / 专班详情内联编辑共用）
+   * 三合一：写主源（全量覆盖 organizer/deep，保留 participant 等其它角色）+
+   * 追加快照（新增 grant / 移除 revoke）+ 通知。
+   * @param {{ scopeRef: string, assignments: Array<{personId:string, role:string}>, actorId?: string }} opts
+   * @returns {Promise<{ added: number, removed: number }>}
+   */
+  async syncProjectRoles({ scopeRef, assignments = [], actorId }) {
+    if (!scopeRef) return { added: 0, removed: 0 };
+    const desired = assignments.filter(x => x.personId && (x.role === 'organizer' || x.role === 'deep'));
+
+    const activity = mockDB.activities.find(a => a.id === scopeRef);
+    const tf = mockDB.taskforces.find(t => t.id === scopeRef);
+    let current = [];
+    if (activity) {
+      current = Array.isArray(activity.assignments)
+        ? activity.assignments.filter(x => x.role === 'organizer' || x.role === 'deep')
+        : [];
+    } else if (tf) {
+      current = Array.isArray(tf.members)
+        ? tf.members.filter(m => m.role === 'organizer' || m.role === 'deep')
+        : [];
+    } else {
+      return { added: 0, removed: 0 };
+    }
+
+    const currentKeys = new Set(current.map(x => x.personId + ':' + x.role));
+    const desiredKeys = new Set(desired.map(x => x.personId + ':' + x.role));
+    const added = desired.filter(x => !currentKeys.has(x.personId + ':' + x.role));
+    const removed = current.filter(x => !desiredKeys.has(x.personId + ':' + x.role));
+
+    // 写主源：保留非 organizer/deep 条目（活动 participant / 专班含 contributions 的成员）
+    if (activity) {
+      const nonProj = Array.isArray(activity.assignments)
+        ? activity.assignments.filter(x => x.role !== 'organizer' && x.role !== 'deep')
+        : [];
+      await updateActivity(scopeRef, { assignments: [...nonProj, ...desired] });
+    } else if (tf) {
+      const prevMembers = Array.isArray(tf.members) ? tf.members : [];
+      const contributionsById = {};
+      prevMembers.forEach(m => { if (m.personId) contributionsById[m.personId] = m.contributions || []; });
+      const desiredWithCtx = desired.map(x => ({
+        personId: x.personId,
+        role: x.role,
+        contributions: contributionsById[x.personId] || [],
+      }));
+      TaskForceRecordStore.update(scopeRef, { members: [...desiredWithCtx] });
+    }
+
+    // 追加快照 + 通知
+    _appendAuditEntries(scopeRef, actorId, added, 'grant');
+    added.forEach(x => _notifyProjectAuth(scopeRef, actorId, x.personId, x.role));
+    _appendAuditEntries(scopeRef, actorId, removed, 'revoke');
+
+    return { added: added.length, removed: removed.length };
+  },
+
+  /**
+   * 记录项目角色授予（主源已写入后的快照+通知，创建活动内联赋权/专班招募用）
+   * @param {string} scopeRef - 活动或专班 ID
+   * @param {Array<{personId:string, role:string}>} assignments
+   * @param {string} [actorId]
+   * @returns {number} 实际新增快照条数
+   */
+  recordProjectGrants(scopeRef, assignments, actorId) {
+    if (!scopeRef || !Array.isArray(assignments)) return 0;
+    const records = _getAuthRecords();
+    let count = 0;
+    assignments.forEach(a => {
+      if (!a.personId || (a.role !== 'organizer' && a.role !== 'deep')) return;
+      const dup = records.find(r =>
+        r.targetPersonId === a.personId && r.role === a.role && r.scopeRef === scopeRef && r.action !== 'revoke'
+      );
+      if (dup) return;
+      records.push({
+        id: 'auth-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+        targetPersonId: a.personId,
+        role: a.role,
+        scopeRef,
+        authorizedBy: actorId || null,
+        authorizedAt: new Date().toISOString().slice(0, 10),
+        action: 'grant',
+      });
+      _notifyProjectAuth(scopeRef, actorId, a.personId, a.role);
+      count++;
+    });
+    _saveAuthRecords(records);
+    return count;
+  },
+
+  /**
+   * 批量记录项目角色回收（专班解散等批量场景：主源由调用方清空，此处只追加快照）
+   * @param {string} scopeRef
+   * @param {Array<{personId:string, role?:string}>} entries
+   * @param {string} [actorId]
+   * @returns {number}
+   */
+  recordProjectRevokes(scopeRef, entries, actorId) {
+    return _appendAuditEntries(scopeRef, actorId, entries || [], 'revoke');
   },
 
   // ── 只读视角切换 ──────────────────────────────
