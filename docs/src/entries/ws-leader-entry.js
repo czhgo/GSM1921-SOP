@@ -29,6 +29,8 @@ let _inspFormVisible = false;
 let _inspPickerInstance = null;
 let _dtOrgPicker = null;      // 决策树表单：组织者多选
 let _dtDeepPicker = null;     // 决策树表单：深度参与者多选
+let _detailOrgPicker = null;   // 活动详情：组织者多选（预填现有 assignments）
+let _detailDeepPicker = null;  // 活动详情：深度参与者多选
 
 // ── 党小组组长→党小组映射 ──────────────────────────────────────────
 const LEADER_GROUP_MAP = {
@@ -201,6 +203,11 @@ function _handleTodoAction(todo) {
     // 激活对应 tab
     const btn = document.querySelector(`.leader-tab-btn[data-leader-tab="${targetTab}"]`);
     if (btn) btn.click();
+    // T-190 赋权待办兜底：直达活动详情内联编辑（≤2 跳）
+    if (todo.actionType === 'authorize' && todo.sourceId) {
+      const actItem = document.querySelector(`.leader-act-item[data-act-id="${todo.sourceId}"]`);
+      if (actItem) actItem.click();
+    }
     showToast('info', `已跳转到${todo.actionType === 'authorize' ? '活动写入' : todo.actionType === 'submit' ? '考勤上传' : '复盘提交'}，请处理：${todo.title}`);
   } else {
     showToast('info', `请处理：${todo.title}`);
@@ -337,6 +344,26 @@ function _renderWriteContent(activities) {
           <button id="btn-close-act-detail" class="text-xs text-gray-400 hover:text-gray-600">收起</button>
         </div>
         <div class="text-xs text-gray-500 mb-2">${activity.date || ''} ${activity.type ? '· ' + activity.type : ''}</div>
+
+        <!-- T-190 活动角色内联编辑：主源 assignments 预填，保存走 syncProjectRoles 三合一 -->
+        <div class="mt-3 pt-3 border-t border-gray-100">
+          <div class="flex items-center justify-between mb-2">
+            <h6 class="font-title-cn text-xs font-bold text-gray-600">活动角色</h6>
+            <button id="btn-save-activity-roles" class="text-xs px-3 py-1 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">保存角色</button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <div class="text-[12px] text-gray-400 mb-1">组织者</div>
+              <div id="detail-org-picker"></div>
+            </div>
+            <div>
+              <div class="text-[12px] text-gray-400 mb-1">深度参与者</div>
+              <div id="detail-deep-picker"></div>
+            </div>
+          </div>
+          <p class="text-[12px] text-gray-400 mt-2">提示：此处修改将同步写入活动主源数据，被赋权人将收到通知。</p>
+        </div>
+
         <div class="mt-3 pt-3 border-t border-gray-100">
           <h6 class="font-title-cn text-xs font-bold text-gray-600 mb-1">子记录</h6>
           ${renderActSubTable('attendance', actSubs.attendance)}
@@ -345,6 +372,54 @@ function _renderWriteContent(activities) {
           ${renderActSubTable('materials', actSubs.materials)}
         </div>
       `;
+
+      // 初始化详情角色 PersonPicker（预填主源 assignments）
+      if (_detailOrgPicker) { _detailOrgPicker.destroy(); _detailOrgPicker = null; }
+      if (_detailDeepPicker) { _detailDeepPicker.destroy(); _detailDeepPicker = null; }
+      const detailOrgEl = detailPanel.querySelector('#detail-org-picker');
+      const detailDeepEl = detailPanel.querySelector('#detail-deep-picker');
+      const actAssigns = Array.isArray(activity.assignments) ? activity.assignments : [];
+      if (detailOrgEl) {
+        _detailOrgPicker = new PersonPicker({
+          mode: 'multi',
+          placeholder: '选择组织者',
+          accentColor: accent,
+          initialIds: actAssigns.filter(x => x.role === 'organizer').map(x => x.personId),
+          onSelect: () => {},
+        });
+        _detailOrgPicker.render(detailOrgEl);
+      }
+      if (detailDeepEl) {
+        _detailDeepPicker = new PersonPicker({
+          mode: 'multi',
+          placeholder: '选择深度参与者',
+          accentColor: accent,
+          initialIds: actAssigns.filter(x => x.role === 'deep').map(x => x.personId),
+          onSelect: () => {},
+        });
+        _detailDeepPicker.render(detailDeepEl);
+      }
+
+      // 保存角色：syncProjectRoles 三合一（写主源 + 快照 + 通知）
+      detailPanel.querySelector('#btn-save-activity-roles')?.addEventListener('click', async () => {
+        const orgIds = _detailOrgPicker ? _detailOrgPicker.getSelected() : [];
+        const deepIds = _detailDeepPicker ? _detailDeepPicker.getSelected() : [];
+        const newAssignments = [
+          ...orgIds.map(personId => ({ personId, role: 'organizer' })),
+          ...deepIds.map(personId => ({ personId, role: 'deep' })),
+        ];
+        const actorId = AuthStore.getCurrentUser()?.personId;
+        const { added, removed } = await AuthStore.syncProjectRoles({ scopeRef: actId, assignments: newAssignments, actorId });
+        if (added > 0 || removed > 0) {
+          showToast('success', `活动角色已更新：新增 ${added} 人，移除 ${removed} 人`);
+        } else {
+          showToast('info', '活动角色未发生变化');
+        }
+        // 刷新活动列表与详情（读取最新主源）
+        const fresh = await BranchService.listActivities();
+        setState({ activities: fresh });
+        detailPanel.querySelector('#btn-close-act-detail')?.click();
+      });
 
       // 收起按钮
       detailPanel.querySelector('#btn-close-act-detail')?.addEventListener('click', () => {
