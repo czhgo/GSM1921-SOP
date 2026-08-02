@@ -18,6 +18,7 @@ import { TaskForceRecordStore } from '../services/taskforce.js';
 import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../services/review.js';
 import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js';
 import { TodoStore, seedTodos } from '../services/todo.js';
+import { AuthStore } from '../services/auth.js';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'leader' });
 
@@ -26,6 +27,8 @@ let _attFormVisible = false;
 let _attPickerInstance = null;
 let _inspFormVisible = false;
 let _inspPickerInstance = null;
+let _dtOrgPicker = null;      // 决策树表单：组织者多选
+let _dtDeepPicker = null;     // 决策树表单：深度参与者多选
 
 // ── 党小组组长→党小组映射 ──────────────────────────────────────────
 const LEADER_GROUP_MAP = {
@@ -34,8 +37,15 @@ const LEADER_GROUP_MAP = {
 };
 
 function _filterByRole(state, role) {
+  const currentLeaderId = AuthStore.getCurrentUser()?.personId || 'p4';
   const activities = (state.activities || []).filter(a => {
-    if (role === 'leader') return a.direction === 'top-down' || (a.organizer && a.organizer.includes('leader'));
+    if (role === 'leader') {
+      // 组长可见：上级下发（top-down）或本人组织/参与的活动（读主源 assignments，非 'leader' 角色名 hack）
+      const isMine = Array.isArray(a.assignments)
+        ? a.assignments.some(x => x.personId === currentLeaderId && (x.role === 'organizer' || x.role === 'deep'))
+        : (a.organizer === currentLeaderId);
+      return a.direction === 'top-down' || isMine;
+    }
     return true;
   });
   return { ...state, activities };
@@ -257,6 +267,21 @@ function _renderWriteContent(activities) {
   `;
 
   _bindDecisionTreeEvents(container);
+
+  // ── 决策树表单内联赋权 PersonPicker（表单可见时初始化，随渲染重建） ──
+  const dtOrgEl = container.querySelector('#dt-org-picker');
+  const dtDeepEl = container.querySelector('#dt-deep-picker');
+  const currentLeaderId = AuthStore.getCurrentUser()?.personId || 'p4'; // 组长本人（顺路赋权默认值）
+  if (dtOrgEl) {
+    if (_dtOrgPicker) { _dtOrgPicker.destroy(); _dtOrgPicker = null; }
+    _dtOrgPicker = new PersonPicker({ mode: 'multi', placeholder: '选择组织者', accentColor: accent, initialIds: [currentLeaderId], onSelect: () => {} });
+    _dtOrgPicker.render(dtOrgEl);
+  }
+  if (dtDeepEl) {
+    if (_dtDeepPicker) { _dtDeepPicker.destroy(); _dtDeepPicker = null; }
+    _dtDeepPicker = new PersonPicker({ mode: 'multi', placeholder: '选择深度参与者', accentColor: accent, onSelect: () => {} });
+    _dtDeepPicker.render(dtDeepEl);
+  }
 
   // ── 活动点击展开详情+子记录（P3-4） ──
   container.querySelectorAll('.leader-act-item').forEach(item => {
@@ -483,6 +508,21 @@ function _renderDecisionTreePanel() {
         <textarea id="dt-desc" class="input-flat w-full resize-none" rows="2" placeholder="简要描述活动内容"></textarea>
       </div>
 
+      <!-- T-190 活动角色：创建即赋权（顺路产生），组织者默认组长本人 -->
+      <div class="mb-4">
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动角色（创建即赋权，组织者默认组长本人）</label>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <div class="text-[12px] text-gray-400 mb-1">组织者（默认组长本人，可改）</div>
+            <div id="dt-org-picker"></div>
+          </div>
+          <div>
+            <div class="text-[12px] text-gray-400 mb-1">深度参与者（选填）</div>
+            <div id="dt-deep-picker"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- SOP 预览 -->
       <div class="mb-4 p-3 rounded-lg bg-white">
         <div class="text-xs font-bold text-gray-600 mb-2">SOP 任务节点预览</div>
@@ -610,6 +650,7 @@ function _bindDecisionTreeEvents(container) {
     const scenarioId = dt.getScenarioId();
 
     try {
+      const currentLeaderId = AuthStore.getCurrentUser()?.personId || 'p4';
       const activityData = {
         title,
         // L2 与 L1 同名时（党小组会无子分类）不重复拼接
@@ -618,16 +659,36 @@ function _bindDecisionTreeEvents(container) {
         targetDate,
         location,
         description: desc || '',
-        organizer: 'leader',
+        organizer: currentLeaderId, // 顶层 organizer 写真实 personId（原则7 同一套数据，修复 'leader' 角色名 hack）
         direction: L4,
         duration: L3,
         hostGroup,
         scenarioId,
         status: 'draft',
         visibility: 'group',
-        createdBy: 'leader',
+        createdBy: currentLeaderId,
       };
-      const { taskCount } = await writeActivityWithSOP(activityData, scenarioId, targetDate);
+
+      // T-190：创建时内联赋权（顺路产生）——组织者（默认组长本人）+ 深度参与者写入主源 assignments
+      const organizerIds = _dtOrgPicker ? _dtOrgPicker.getSelected() : [currentLeaderId];
+      const deepIds = _dtDeepPicker ? _dtDeepPicker.getSelected() : [];
+      const assignments = [
+        ...organizerIds.map(personId => ({ personId, role: 'organizer' })),
+        ...deepIds.map(personId => ({ personId, role: 'deep' })),
+      ];
+      // 组织者默认含组长本人（即使 picker 被清空也保证组长为发起组织者，原则2 启动不困难）
+      if (assignments.length === 0) assignments.push({ personId: currentLeaderId, role: 'organizer' });
+      activityData.assignments = assignments;
+
+      const { activity, taskCount } = await writeActivityWithSOP(activityData, scenarioId, targetDate);
+
+      // 顺路赋权：追加审计快照 + 通知被赋权人（主源已由创建写入，原则7 不重复填写）
+      const actorId = AuthStore.getCurrentUser()?.personId;
+      const granted = AuthStore.recordProjectGrants(activity.id, assignments, actorId);
+      if (granted > 0) {
+        showToast('success', `已顺路赋权 ${granted} 名成员`);
+      }
+
       showToast('success', `活动「${title}」创建成功`);
       if (taskCount > 0) {
         showToast('success', `已生成 ${taskCount} 个SOP任务节点`);

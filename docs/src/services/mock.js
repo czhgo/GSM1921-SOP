@@ -209,10 +209,12 @@ export function createActivity(data) {
     console.info('[MockAdapter] createActivity 成功，id=' + newItem.id
       + '，当前 activities 总数：' + mockDB.activities.length);
     // 派生赋权待办（最小三成本原则·阶段1C-3）
-    // 使用 dynamic import 避免与 todo.js 的静态循环依赖
-    import('./todo.js').then(({ LifecycleTodoDeriver }) => {
-      LifecycleTodoDeriver.deriveFromActivityCreate(newItem);
-    }).catch(e => console.warn('[MockAdapter] 派生活动赋权待办失败：', e));
+    // T-190：创建时已内联赋权（assignments 非空）则不再派生；未选人保留待办兜底
+    if (!newItem.assignments || newItem.assignments.length === 0) {
+      import('./todo.js').then(({ LifecycleTodoDeriver }) => {
+        LifecycleTodoDeriver.deriveFromActivityCreate(newItem);
+      }).catch(e => console.warn('[MockAdapter] 派生活动赋权待办失败：', e));
+    }
     return newItem;
   });
 }
