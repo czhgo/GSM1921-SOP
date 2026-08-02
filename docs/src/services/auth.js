@@ -12,10 +12,7 @@
 import { ROLE_LABELS } from '../core/constants.js';
 import { PEOPLE, getPersonById, getPersonName } from '../mock/index.js';
 import { mockDB } from '../core/domain.js';
-import { updateActivity } from './mock.js';
-import { TaskForceRecordStore } from './taskforce.js';
 import { NoticeStore } from './notice.js';
-import { persist } from '../core/data-adapter.js';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
@@ -148,6 +145,8 @@ function _getUserRoleFromMemory(personId) {
 // ── 获取用户在项目中的项目角色 ──────────────────
 // 统一读入口：一级读主源（活动 assignments / 专班 members 运行时数据），
 // 二级回退审计快照（仅历史数据；按角色取最新一条 action 判定是否已回收）。
+// 中间态说明：Task 1→Task 2 过渡期 authorize 尚未写穿主源，若主源已登记 participant
+// 而快照有更新的 organizer/deep，主源会压制快照（判定为 participant）——Task 2 写穿后自愈，勿误判为 bug。
 function _getProjectRole(personId, projectId) {
   if (!projectId) return null;
 
@@ -192,8 +191,9 @@ function _getProjectName(projectId) {
   return null;
 }
 
-// ── 审计快照存储（独立 localStorage 键，只增不改，移出 /docs 代码栈）──────────
+// ── 审计快照存储（独立 localStorage 键，移出 /docs 代码栈）──────────
 // T-190：赋权审计快照不再是 mockDB 实体，独立持久化，杜绝双轨数据。
+// 注：当前 revokeAuthorization 仍为 splice 物理删除（见下），Task 2 将改为追加 action:'revoke' 记录，实现真正只增不改。
 const AUDIT_KEY = 'sop_org_os_auth_audit';
 
 function _getAuthRecords() {
