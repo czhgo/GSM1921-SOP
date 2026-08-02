@@ -13,6 +13,8 @@ import { getAccentColors } from './constants.js';
 import { CrossPageState } from './cross-page-state.js';
 import { getBasePath } from './utils.js';
 import { enhanceSelects } from '../components/custom-select.js';
+import { registerApiAdapter, setDataSource } from './data-adapter.js';
+import { ApiAdapter } from './api-adapter.js';
 
 // ════════════════════════════════════════════════════════════════
 // S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）

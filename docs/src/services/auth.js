@@ -16,6 +16,7 @@ import { NoticeStore } from './notice.js';
 import { updateActivity } from './mock.js';
 import { TaskForceRecordStore } from './taskforce.js';
 import { persist } from '../core/data-adapter.js';
+import { enableApiMode } from './runtime.js';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
