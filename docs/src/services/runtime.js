@@ -25,6 +25,16 @@ registerApiAdapter(ApiAdapter);
 // 当前使用 mock 模式（切换为 'api' 时自动走 API 适配器）
 setDataSource('mock');
 
+// P1 后端接入：登录后由 auth.js 调用此函数切换到 API 数据源
+export function enableApiMode(token) {
+  setDataSource('api', { apiBaseUrl: '', authToken: token });
+  sessionStorage.setItem('gsm1921-api-token', token);
+}
+
+export function isApiMode() {
+  return getDataSource() === 'api';
+}
+
 // ── BranchService — 党支部统一服务接口 ──────────────────────────
 
 /**

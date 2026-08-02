@@ -86,7 +86,9 @@ if (loginForm) {
     }
 
     errorEl.classList.add('hidden');
-    AuthStore.login(result.personId);
-    window.location.href = './index.html';
+    // 等待登录完成（含后端 token 获取）后再跳转，确保 API 模式在导航前已生效
+    AuthStore.login(result.personId).then(() => {
+      window.location.href = './index.html';
+    });
   });
 }

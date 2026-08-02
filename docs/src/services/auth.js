@@ -270,12 +270,33 @@ function _saveAuthRecords(records) {
 // ════════════════════════════════════════════════
 export const AuthStore = {
   /**
-   * 登录（Mock 校验）
+   * 登录（本地角色判定 + 后端 token 会话，失败静默降级本地模式）
    * @param {string} personId
+   * @returns {Promise<void>}
    */
-  login(personId) {
+  async login(personId) {
     const role = _getUserRoleFromMemory(personId);
     _writeLogin({ personId, role });
+
+    // 后端登录获取 token（失败静默降级到本地，不阻断使用）
+    try {
+      const r = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ personId }),
+      });
+      const data = r.ok ? await r.json() : null;
+      if (data && data.token) {
+        enableApiMode(data.token);
+        // 以后端返回的角色为准刷新本地会话
+        if (data.user && data.user.role) {
+          _writeLogin({ personId: data.user.id || personId, role: data.user.role });
+        }
+        console.info('[AuthStore] 已切换至 API 数据源');
+      }
+    } catch (e) {
+      console.warn('[AuthStore] 后端登录失败，保持本地模式', e);
+    }
   },
 
   /**
