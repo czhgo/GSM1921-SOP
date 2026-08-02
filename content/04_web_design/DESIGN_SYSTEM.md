@@ -26,6 +26,8 @@ status: active
 4. **色彩克制（Color Restraint）**：每个页面主色 ≤ 2 种，功能色仅用于状态指示
 5. **动效适度（Motion Modesty）**：过渡动画 150-250ms，仅使用 opacity/transform（GPU 加速）
 6. **渐进增强（Progressive Enhancement）**：基础体验不依赖 backdrop-filter（低端设备友好）
+7. **同一套数据（One Source, Multi Entry）**：能够顺路产生的数据，尽可能不要单独填写，但可以保留多个入口——只要做到读取、写入、写出的数据是同一套数据。例如活动数据必然携带诸多副产物字段，赋权这类副产物应整合进活动数据流，而非另起一套与活动数据割裂的记录。可验证条件：`has_parent(entity, byproduct)` 且 `parent_record[byproduct] == 所有入口读取值` 视为通过；存在独立表/独立数组承载同类副产物数据 → 违反。（书记原话 2026-08-02）
+8. **降低填写负担（Low Friction Filling）**：降低每一个功能的填写负担，让填写者愿意填写、有正向反馈（确实完成了某项工作，且启动不那么困难）。三个可验证条件：① `field_derivable(field)` → 必须自动填充/预填，不得要求手填；② `action_completed` → 必须有正向反馈（toast / 状态流转 / 记录可见）；③ 从待办/列表到可操作状态 ≤ 2 跳，启动直达。（书记原话 2026-08-02，呼应原则 2 最小三成本）
 
 ### 设计参考
 
