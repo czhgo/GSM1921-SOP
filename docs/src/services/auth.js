@@ -198,7 +198,7 @@ function _getProjectName(projectId) {
 function _notifyProjectAuth(projectId, authorizerId, targetPersonId, role) {
   const targetPage = 'index.html';
 
-  const authorizerName = getPersonName(authorizerId) || authorizerId;
+  const authorizerName = getPersonName(authorizerId) || authorizerId || '系统';
   const projectName = _getProjectName(projectId) || '未命名项目';
   const roleLabel = ROLE_LABELS[role] || role;
 
@@ -495,8 +495,9 @@ export const AuthStore = {
     if (latestDup && latestDup.action !== 'revoke') return { ok: false, id: latestDup.id };
 
     // ① 写主源（活动 assignments / 专班 members，合并去重）
+    // 仅 organizer/deep 有主源载体（与 revoke 对称）；leader 等角色只走审计快照，防止污染主源。
     try {
-      if (scopeRef) {
+      if (scopeRef && (role === 'organizer' || role === 'deep')) {
         const activity = mockDB.activities.find(a => a.id === scopeRef);
         if (activity) {
           const current = Array.isArray(activity.assignments) ? activity.assignments : [];
@@ -626,25 +627,30 @@ export const AuthStore = {
     const removed = current.filter(x => !desiredKeys.has(x.personId + ':' + x.role));
 
     // 写主源：保留非 organizer/deep 条目（活动 participant / 专班含 contributions 的成员）
-    if (activity) {
-      const nonProj = Array.isArray(activity.assignments)
-        ? activity.assignments.filter(x => x.role !== 'organizer' && x.role !== 'deep')
-        : [];
-      const updated = await updateActivity(scopeRef, { assignments: [...nonProj, ...desired] });
-      _syncTopLevelOrganizer(updated); // 原则7：顶层 organizer 与主源 assignments 同步派生
-      persist(); // 活动主源写入后落盘（updateActivity 不自动 persist）
-    } else if (tf) {
-      const prevMembers = Array.isArray(tf.members) ? tf.members : [];
-      const contributionsById = {};
-      prevMembers.forEach(m => { if (m.personId) contributionsById[m.personId] = m.contributions || []; });
-      // 保留非 organizer/deep 成员（participant 等，含 contributions），与活动分支对齐
-      const nonProj = prevMembers.filter(m => m.role !== 'organizer' && m.role !== 'deep');
-      const desiredWithCtx = desired.map(x => ({
-        personId: x.personId,
-        role: x.role,
-        contributions: contributionsById[x.personId] || [],
-      }));
-      TaskForceRecordStore.update(scopeRef, { members: [...nonProj, ...desiredWithCtx] });
+    try {
+      if (activity) {
+        const nonProj = Array.isArray(activity.assignments)
+          ? activity.assignments.filter(x => x.role !== 'organizer' && x.role !== 'deep')
+          : [];
+        const updated = await updateActivity(scopeRef, { assignments: [...nonProj, ...desired] });
+        _syncTopLevelOrganizer(updated); // 原则7：顶层 organizer 与主源 assignments 同步派生
+        persist(); // 活动主源写入后落盘（updateActivity 不自动 persist）
+      } else if (tf) {
+        const prevMembers = Array.isArray(tf.members) ? tf.members : [];
+        const contributionsById = {};
+        prevMembers.forEach(m => { if (m.personId) contributionsById[m.personId] = m.contributions || []; });
+        // 保留非 organizer/deep 成员（participant 等，含 contributions），与活动分支对齐
+        const nonProj = prevMembers.filter(m => m.role !== 'organizer' && m.role !== 'deep');
+        const desiredWithCtx = desired.map(x => ({
+          personId: x.personId,
+          role: x.role,
+          contributions: contributionsById[x.personId] || [],
+        }));
+        TaskForceRecordStore.update(scopeRef, { members: [...nonProj, ...desiredWithCtx] });
+      }
+    } catch (e) {
+      console.warn('[AuthStore] syncProjectRoles 写主源失败：', e);
+      return { added: 0, removed: 0 }; // 主源未写成功不追加审计快照，避免快照与主源不一致
     }
 
     // 追加快照 + 通知
