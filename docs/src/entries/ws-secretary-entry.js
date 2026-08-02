@@ -411,7 +411,7 @@ function _bindConfirmProjectAuth() {
   const btn = document.getElementById('confirm-project-auth-btn');
   if (!btn) return;
 
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click', async () => {
     const personId = document.getElementById('project-auth-person')?.value;
     const projectId = document.getElementById('project-id-select')?.value;
     const role = document.querySelector('input[name="project-role"]:checked')?.value;
@@ -420,7 +420,7 @@ function _bindConfirmProjectAuth() {
     if (!projectId) { showToast('error', '请选择项目'); return; }
     if (!role) { showToast('error', '请选择角色'); return; }
 
-    const result = AuthStore.authorize(
+    const result = await AuthStore.authorize(
       AuthStore.getCurrentUser()?.personId,
       personId,
       role,
@@ -472,8 +472,8 @@ function _renderProjectAuthRecords() {
   }).join('');
 
   listEl.querySelectorAll('.revoke-project-auth').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (AuthStore.revokeAuthorization(btn.dataset.recordId)) {
+    btn.addEventListener('click', async () => {
+      if (await AuthStore.revokeAuthorization(btn.dataset.recordId)) {
         showToast('success', '已撤销赋权');
         _renderProjectAuthRecords();
       }
@@ -1609,7 +1609,7 @@ function handleAuthAction(e) {
 }
 
 /** 确认设为党小组组长 */
-function handleConfirmLeader() {
+async function handleConfirmLeader() {
   if (!authPanel.selectedPersonId) {
     showToast('error', '请选择同志');
     return;
@@ -1620,7 +1620,7 @@ function handleConfirmLeader() {
   }
 
   // 调用 AuthStore，role='leader', scope='group', scopeRef=党小组名
-  const result = AuthStore.authorize(
+  const result = await AuthStore.authorize(
     AuthStore.getCurrentUser()?.personId,
     authPanel.selectedPersonId,
     'leader',
@@ -1646,26 +1646,43 @@ function handleConfirmLeader() {
   }
 }
 
-/** 渲染当前党小组组长列表 */
+/** 渲染当前党小组组长列表（主源 = PEOPLE 预设 role:'leader' + 审计快照运行时授予） */
 function renderAuthRecords() {
   const listEl = document.getElementById('auth-records-list');
   if (!listEl) return;
 
-  const allRecords = AuthStore.getAuthorizations();
-  const leaderRecords = allRecords.filter(r => r.role === 'leader');
+  // 常设组长主源 = PEOPLE role:'leader'（预设）；运行时授予 = 审计快照 role:'leader'
+  const presetLeaders = PEOPLE.filter(p => p.role === 'leader');
+  const granted = AuthStore.getAuthorizations().filter(r => r.role === 'leader' && r.action !== 'revoke');
+  const grantedById = {};
+  granted.forEach(g => { grantedById[g.targetPersonId] = g; });
+  const grantedUnique = Object.values(grantedById); // 按人去重（grant→revoke→grant 周期后取最新一条）
 
-  if (leaderRecords.length === 0) {
+  const rows = [];
+  presetLeaders.forEach(p => {
+    rows.push({ person: p, record: null });
+  });
+  grantedUnique.forEach(g => {
+    const person = getPersonById(g.targetPersonId);
+    if (!person || person.role !== 'leader') {
+      rows.push({ person: person || { id: g.targetPersonId, name: g.targetPersonId }, record: g });
+    }
+  });
+
+  if (rows.length === 0) {
     listEl.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">暂无党小组组长记录</p>`;
     return;
   }
 
-  listEl.innerHTML = leaderRecords.map(record => {
-    const person = getPersonById(record.targetPersonId);
-    const personName = person ? person.name : record.targetPersonId;
-    const groupName = record.scopeRef || '未指定';
+  listEl.innerHTML = rows.map(({ person, record }) => {
+    const personName = person.name || person.targetPersonId;
+    const groupName = record ? (record.scopeRef || '未指定') : (person.partyGroup || '未指定');
+    const revokeBtn = record
+      ? `<button type="button" data-auth-action="revoke" data-record-id="${record.id}" class="text-xs text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-2 py-1 rounded hover:bg-red-50">撤销</button>`
+      : '<span class="text-xs text-gray-300 ml-2 flex-shrink-0">预设</span>';
 
     return `
-      <div class="flex items-center justify-between py-2.5 px-3 rounded-lg bg-white transition-colors group" data-record-id="${record.id}">
+      <div class="flex items-center justify-between py-2.5 px-3 rounded-lg bg-white transition-colors group">
         <div class="flex items-center gap-3 min-w-0 flex-1">
           <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-red-50 text-red-700 text-xs font-bold">
             ${personName.charAt(0)}
@@ -1675,21 +1692,18 @@ function renderAuthRecords() {
               <span class="text-sm font-medium text-gray-700">${personName}</span>
               <span class="text-xs font-medium px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">党小组组长</span>
             </div>
-            <p class="text-xs text-gray-400 mt-0.5">${groupName} · ${record.authorizedAt}</p>
+            <p class="text-xs text-gray-400 mt-0.5">${groupName}${record ? ' · ' + (record.authorizedAt || '') : ''}</p>
           </div>
         </div>
-        <button data-auth-action="revoke" data-record-id="${record.id}" class="text-xs text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-2 py-1 rounded hover:bg-red-50">
-          撤销
-        </button>
+        ${revokeBtn}
       </div>
     `;
   }).join('');
 
   listEl.querySelectorAll('[data-auth-action="revoke"]').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       const recordId = btn.dataset.recordId;
-      const success = AuthStore.revokeAuthorization(recordId);
-      if (success) {
+      if (await AuthStore.revokeAuthorization(recordId)) {
         showToast('success', '已撤销党小组组长');
         renderAuthRecords();
       } else {
