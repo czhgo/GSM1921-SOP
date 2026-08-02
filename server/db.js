@@ -33,8 +33,11 @@ export function initDb(dbPath) {
   return db;
 }
 
-// 辅助：整表替换写入（写穿透快照用）
+// 辅助：整表替换写入（写穿透快照用）。table 限定白名单，杜绝 SQL 注入。
 export function replaceCollection(db, table, rows) {
+  if (!RESOURCE_TABLES.includes(table)) {
+    throw new Error(`未知资源表: ${table}`);
+  }
   db.exec(`DELETE FROM ${table}`);
   const stmt = db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`);
   for (const row of rows) {
