@@ -556,26 +556,94 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
         dissolveBtn.addEventListener('click', () => _dissolveTaskforce(tf));
       }
 
-      // ── 子记录添加/删除事件（P3-4） ──
+      // ── 子记录添加/删除事件（P3-4）— 内联表单替代 prompt，考察同步正式考察库 ──
       panel.querySelectorAll('.sub-add-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const type = btn.dataset.type;
+          const panelEl = btn.closest('.mt-3');
+          const existing = panelEl?.querySelector('.sub-inline-form');
+          if (existing) { existing.remove(); return; }
+
+          const resultOpts = ['考察合格', '待观察', '需补材料'];
+          let formHtml = '';
           if (type === 'inspection') {
-            const person = prompt('被考察人：');
-            if (!person) return;
-            const content = prompt('考察内容：') || '';
-            const result = prompt('考察结论：') || '';
-            tfSubs.inspection.push({ person, content, result });
+            formHtml = `
+              <div class="sub-inline-form mt-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
+                <div class="text-[12px] font-bold text-gray-600 mb-2">添加考察记录（同步正式考察库，待纪检委员确认）</div>
+                <div class="mb-2 sub-picker"></div>
+                <textarea class="f-content input-flat text-xs w-full resize-none mb-2" rows="2" placeholder="考察内容描述（必填）"></textarea>
+                <select class="f-result input-flat text-xs w-full mb-2">${resultOpts.map(r => `<option>${r}</option>`).join('')}</select>
+                <div class="flex gap-2 justify-end">
+                  <button type="button" class="sub-cancel-btn text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
+                  <button type="button" class="sub-save-btn text-xs px-3 py-1 rounded-lg text-white transition-colors" style="background:${accent};">保存</button>
+                </div>
+              </div>`;
           } else {
-            const name = prompt('材料名称：');
-            if (!name) return;
-            const author = prompt('提交人：') || '';
-            const note = prompt('备注：') || '';
-            tfSubs.materials.push({ name, author, note });
+            formHtml = `
+              <div class="sub-inline-form mt-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
+                <div class="text-[12px] font-bold text-gray-600 mb-2">添加材料记录</div>
+                <input class="f-name input-flat text-xs w-full mb-2" placeholder="材料名称（必填）">
+                <input class="f-author input-flat text-xs w-full mb-2" placeholder="提交人（选填）">
+                <input class="f-note input-flat text-xs w-full mb-2" placeholder="备注（选填）">
+                <div class="flex gap-2 justify-end">
+                  <button type="button" class="sub-cancel-btn text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
+                  <button type="button" class="sub-save-btn text-xs px-3 py-1 rounded-lg text-white transition-colors" style="background:${accent};">保存</button>
+                </div>
+              </div>`;
           }
-          saveTfSubs();
-          // 重新渲染详情面板
-          card.click();
+
+          panelEl.insertAdjacentHTML('beforeend', formHtml);
+          const form = panelEl.querySelector('.sub-inline-form');
+
+          if (type === 'inspection') {
+            const picker = new PersonPicker({ mode: 'multi', placeholder: '选择被考察人', accentColor: accent, onSelect: () => {} });
+            picker.render(form.querySelector('.sub-picker'));
+            form._picker = picker;
+          }
+
+          form.querySelector('.sub-cancel-btn').addEventListener('click', () => {
+            if (form._picker?.destroy) form._picker.destroy();
+            form.remove();
+          });
+
+          form.querySelector('.sub-save-btn').addEventListener('click', () => {
+            if (type === 'inspection') {
+              const content = form.querySelector('.f-content').value.trim();
+              if (!content) { showToast('error', '请填写考察内容'); return; }
+              const ids = form._picker ? form._picker.getSelected() : [];
+              if (ids.length === 0) { showToast('error', '请选择被考察人'); return; }
+              const result = form.querySelector('.f-result').value;
+              const newRecords = [];
+              ids.forEach(pid => {
+                tfSubs.inspection.push({ person: getPersonName(pid), personId: pid, content, result });
+                // P1-5 语义修复：考察内容入 content，role 存角色职责标签
+                newRecords.push({
+                  id: 'insp_' + Date.now() + '_' + pid,
+                  sourceType: SourceType.TASKFORCE, activityId: null, sourceName: tf.name,
+                  personId: pid, level: ParticipationLevel.DEEP_PARTICIPATE,
+                  content, role: '深度参与者',
+                  recordedBy: 'u_exec', recordedAt: new Date().toISOString(), status: 'pending',
+                });
+              });
+              const all = loadInspectionRecords();
+              saveInspectionRecords([...all, ...newRecords]);
+              showToast('success', `已添加 ${ids.length} 条考察记录并同步正式考察库`);
+            } else {
+              const name = form.querySelector('.f-name').value.trim();
+              if (!name) { showToast('error', '请填写材料名称'); return; }
+              tfSubs.materials.push({
+                name,
+                author: form.querySelector('.f-author').value.trim(),
+                note: form.querySelector('.f-note').value.trim(),
+              });
+              showToast('success', '已添加');
+            }
+            saveTfSubs();
+            if (form._picker?.destroy) form._picker.destroy();
+            form.remove();
+            // 重新渲染详情面板
+            card.click();
+          });
         });
       });
 

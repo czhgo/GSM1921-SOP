@@ -218,6 +218,10 @@ export const mockDB = {
   /** @type {InspectionRecord[]} */
   // 考察记录（仅组织者和深度参与者的工作量记录）— Source: content/design/MANAGEMENT_MODE.md §5.1
   inspections: [],
+  /** @type {Object[]} 活动复盘记录 */
+  activityReviews: [],
+  /** @type {Object[]} 专班复盘记录 */
+  taskforceReviews: [],
   // ── 以下为存储层统一后从独立键归并的业务数据 ──
   /** @type {Object[]} 分工记录 */
   assignments: [],

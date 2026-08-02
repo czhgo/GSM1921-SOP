@@ -40,25 +40,42 @@ export function showToast(type, message) {
     document.body.appendChild(_toastContainer);
   }
 
+  // 状态色点缀（DESIGN_SYSTEM 状态色统一：完成绿 #16A34A / 告警红 #EF4444 / 信息蓝 #3B82F6）
+  // 主色收敛原则：Toast 为状态指示，用状态色而非角色主题色；白色实底 + 深色文字保证高对比度
   const COLORS = {
-    success: { bg: 'rgba(34,197,94,0.15)',  border: '#22c55e', icon: 'OK' },
-    error:   { bg: 'rgba(239,68,68,0.15)',  border: '#ef4444', icon: '!!' },
-    info:    { bg: 'rgba(99,102,241,0.15)', border: '#6366f1', icon: 'i' },
+    success: { accent: '#16A34A', bg: '#F0FDF4', icon: '✓' },
+    error:   { accent: '#EF4444', bg: '#FEF2F2', icon: '!' },
+    info:    { accent: '#3B82F6', bg: '#EFF6FF', icon: 'i' },
   };
-  const { bg, border, icon } = COLORS[type] || COLORS.info;
+  const { accent, bg, icon } = COLORS[type] || COLORS.info;
 
   const toast = document.createElement('div');
   toast.style.cssText = [
     `background:${bg}`,
-    `border:1px solid ${border}`, 'border-radius:var(--radius-md)',
+    `border:1px solid ${accent}`, `border-left:4px solid ${accent}`,
+    'border-radius:var(--radius-md)',
     'padding:0.625rem 1rem', 'display:flex', 'align-items:center',
-    'gap:0.5rem', 'font-size:0.875rem', 'color:#f1f5f9',
-    'box-shadow:0 4px 24px rgba(0,0,0,0.3)',
+    'gap:0.625rem', 'font-size:0.875rem', 'color:#1F2937',
+    'box-shadow:0 4px 24px rgba(0,0,0,0.12)',
     'opacity:0', 'transform:translateY(0.5rem)',
     'transition:opacity 0.25s ease,transform 0.25s ease',
     'pointer-events:none', 'max-width:22rem', 'word-break:break-word',
   ].join(';');
-  toast.textContent = icon + '  ' + message;
+
+  // 状态色圆形图标（白字 glyph）+ 深色正文（textContent 防注入）
+  const iconEl = document.createElement('span');
+  iconEl.style.cssText = [
+    'display:inline-flex', 'align-items:center', 'justify-content:center',
+    'width:18px', 'height:18px', 'border-radius:9999px',
+    `background:${accent}`, 'color:#fff', 'font-size:11px', 'font-weight:700',
+    'flex-shrink:0',
+  ].join(';');
+  iconEl.textContent = icon;
+  const msgEl = document.createElement('span');
+  msgEl.style.cssText = 'color:#1F2937;';
+  msgEl.textContent = message;
+  toast.appendChild(iconEl);
+  toast.appendChild(msgEl);
   _toastContainer.appendChild(toast);
 
   requestAnimationFrame(() => requestAnimationFrame(() => {

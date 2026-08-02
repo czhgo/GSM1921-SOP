@@ -153,7 +153,7 @@ const SEC_FEEDBACK_TAB_HTML = `
     <!-- 工具区 -->
     <div class="pt-3 mt-3 border-t border-gray-100 text-right space-x-2">
       <button id="btn-export-issues-json" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-600 hover:bg-gray-50">导出反馈数据</button>
-      <button id="btn-clear-issue-cache" class="text-xs px-2 py-1 rounded bg-white border border-red-200 text-red-600 hover:bg-red-50">清除缓存</button>
+      <button id="btn-clear-issue-cache" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-600 hover:bg-gray-50">清除缓存</button>
     </div>
   </div>
 
@@ -466,7 +466,7 @@ function _renderProjectAuthRecords() {
           <span class="text-xs px-1.5 py-0.5 rounded ml-2" style="background:#FEE2E2;color:#9B0000;">${roleLabel}</span>
           <span class="text-xs text-gray-400 ml-2">${r.authorizedAt || ''}</span>
         </div>
-        <button type="button" class="revoke-project-auth text-xs text-red-500 hover:text-red-700" data-record-id="${r.id}">撤销</button>
+        <button type="button" class="revoke-project-auth text-xs text-gray-400 hover:text-red-600" data-record-id="${r.id}">撤销</button>
       </div>
     `;
   }).join('');
@@ -776,7 +776,7 @@ function _renderOverviewContent() {
   const rateBar = (rate) => `
     <div class="flex items-center gap-3">
       <div class="flex-1 h-2 rounded-full bg-neutral-100 overflow-hidden">
-        <div class="h-2 rounded-full transition-all duration-500" style="width:${rate}%;background:var(--accent-secretary);"></div>
+        <div class="h-2 rounded-full transition-all duration-500" style="width:${rate}%;background:${rate >= 90 ? '#16A34A' : rate >= 70 ? '#D97706' : '#EF4444'};"></div>
       </div>
       <span class="text-xs font-medium text-gray-600 w-10 text-right">${rate}%</span>
     </div>
@@ -803,7 +803,7 @@ function _renderOverviewContent() {
       ${rows.map(row => `
         <div class="card rounded-xl p-5">
           <div class="flex items-center gap-2.5 mb-3">
-            <span class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:var(--accent-secretary)12;color:var(--accent-secretary);">${row.icon}</span>
+            <span class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:var(--neutral-100);color:var(--neutral-600);">${row.icon}</span>
             <div>
               <h4 class="font-title-cn text-sm font-bold text-gray-700 leading-tight">${row.title}</h4>
               <p class="text-xs text-gray-400 mt-0.5">${row.desc}</p>
@@ -1977,7 +1977,7 @@ function _renderIssueDetail(issueId) {
     html += `<p class="text-xs text-gray-600 mb-2">选择关闭理由</p>`;
     html += `<div class="flex flex-wrap gap-2 mb-2">`;
     CLOSE_REASONS.forEach(r => {
-      html += `<button data-detail-action="confirm-close" data-reason="${r.value}" class="text-xs px-2.5 py-1 rounded-lg bg-white text-gray-600 border border-gray-200 hover:border-red-300 transition-all">${r.label}</button>`;
+      html += `<button data-detail-action="confirm-close" data-reason="${r.value}" class="text-xs px-2.5 py-1 rounded-lg bg-white text-gray-600 border border-gray-200 hover:border-gray-300 transition-all">${r.label}</button>`;
     });
     html += `</div>`;
     html += `<input type="text" id="close-note-input" class="input-flat text-xs w-full" placeholder="关闭备注（选填）">`;
@@ -2149,7 +2149,7 @@ function renderDraftRow(d) {
         <p class="text-xs text-gray-600 mt-1 line-clamp-2">${p.body}</p>
         <div class="flex gap-1 mt-2">
           <button class="btn-approve-draft text-xs px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700" data-draft-id="${d.draftId}">通过</button>
-          <button class="btn-reject-draft text-xs px-2 py-1 rounded bg-white border border-red-200 text-red-600 hover:bg-red-50" data-draft-id="${d.draftId}">驳回</button>
+          <button class="btn-reject-draft text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-600 hover:bg-gray-50" data-draft-id="${d.draftId}">驳回</button>
         </div>
       </div>
     `;
@@ -2164,7 +2164,7 @@ function renderDraftRow(d) {
         <p class="text-sm text-gray-700">${d.payload.body}</p>
         <div class="flex gap-1 mt-2">
           <button class="btn-approve-draft text-xs px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700" data-draft-id="${d.draftId}">通过</button>
-          <button class="btn-reject-draft text-xs px-2 py-1 rounded bg-white border border-red-200 text-red-600 hover:bg-red-50" data-draft-id="${d.draftId}">驳回</button>
+          <button class="btn-reject-draft text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-600 hover:bg-gray-50" data-draft-id="${d.draftId}">驳回</button>
         </div>
       </div>
     `;
@@ -2235,7 +2235,7 @@ function renderNotificationForm() {
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">目标受众 <span class="text-red-500">*</span></label>`;
   html += `<div class="flex flex-wrap gap-2">`;
   NOTIFICATION_AUDIENCES.forEach(a => {
-    html += `<button data-notif-action="select-audience" data-value="${a.value}" class="text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-red-200 hover:text-red-500 transition-all">${a.label}</button>`;
+    html += `<button data-notif-action="select-audience" data-value="${a.value}" class="text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-700 transition-all">${a.label}</button>`;
   });
   html += `</div>`;
   html += `</div>`;
@@ -2269,7 +2269,7 @@ function handleNotifAction(e) {
           if (b.dataset.value === _selectedAudience) {
             b.className = 'text-sm px-4 py-2 rounded-lg font-medium border border-red-200 text-red-700 bg-red-50 transition-all';
           } else {
-            b.className = 'text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-red-200 hover:text-red-500 transition-all';
+            b.className = 'text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-700 transition-all';
           }
         });
       }

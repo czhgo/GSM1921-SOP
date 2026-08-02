@@ -496,3 +496,41 @@ related_files:
 - **变更文件**：`docs/src/services/auth.js`、`docs/src/entries/ws-secretary-entry.js`、`docs/src/entries/ws-leader-entry.js`、`docs/src/entries/ws-org-commissioner-entry.js`、`docs/src/components/person-picker.js`、`docs/src/components/person-picker.css`、`docs/src/core/domain.js`、`docs/src/core/mock-adapter.js`、`docs/src/core/data-adapter.js`、`docs/src/services/mock.js`、`docs/src/services/taskforce.js`、`docs/src/services/roles.js`、`docs/src/services/secretary-overview.js`、`content/05_ai_coding/KNOWN_PITFALLS.md`（§12）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
 - **git 提交**：Task 0-8 共 8 笔（`0a98006`/`c24e155`/`bbbda9d`/`28f71bf`/`20cd2ca`/`8ed4faf`/`87659b5` 等）；Task 9 归档 `docs(log): T-190 归档 auth-001~010 历史赋权种子`；待书记确认后 push
 - **沉淀标签**：`[已沉淀: content/05_ai_coding/KNOWN_PITFALLS.md §12]` — 「同一套数据原则执行盲区」：同类数据双轨/三轨并存时，单文件局部 grep 无法暴露跨文件孤岛，必须全仓范围巡检（含偏差 B 附加项：hack 值清零验证不能只查单文件）；`[经验: 不可变更新 API 陷阱]` — `updateActivity` 返回新对象，写主源后必须在返回值上同步派生字段（`_syncTopLevelOrganizer(updated)`），对旧引用操作会静默丢失
+
+## T191 巡检修复与体验优化轮：Toast 对比度 + 书记工作台主色收敛 + 子记录内联表单 + 复盘/考察持久化语义修复 + CHECKLIST 同步（2026-08-02）
+
+**任务**：书记四项指令——① 思考巡检结果与 CHECKLIST 的关系并清理过程性截图 ② 右下角操作提醒（Toast）对比度提升 ③ 各角色工作台辅助色（书记工作台"满目红"压抑，button/span 设计跳脱）④ 继续完成 P0/P1/P2 未完成工作
+**引用流程**：H1.2 执行 + web-design-guidelines Skill + fullstack-developer Skill + brainstorming Skill + H3 检查清单
+**来源**：书记指令——"提醒操作对比度可以更加高一点""每个角色的工作台，我都会希望有一些【辅助色】""请继续完成尚未完成的工作——特别是，如果要检查多个角色的界面，请不要 dispatch parallel agents！！"
+
+- **设计决策（AskUserQuestion 已确认）**：
+  - 辅助色方案 = **主色收敛 + 状态色点缀**：主色只用于身份标识（左边条/主 CTA/激活 tab/头像），统计卡/进度条/徽章改用功能色（完成绿 #16A34A / 待办金 #D97706 / 警示橙红 #EF4444），次要元素归中性灰（DESIGN_SYSTEM 原则 4 色彩克制 + 状态色全局统一）
+  - P2 范围 = **P0/P1 必做 + P2 重点项**（本轮选取考勤批量录入、反馈三份存储归一）
+
+- **任务 0 思考结论（巡检 ↔ CHECKLIST）**：巡检出的 P0/P1 本质是 CHECKLIST（数据同源一致性校验手册）的**漏检类**问题——T-190 已修 3 个 P0/P1，但 CHECKLIST §8 仍写旧架构（`mockDB.authorizations`），校验手册本身没跟上架构演进，审计时不会核对新主源。解决：T7 同步 CHECKLIST §8 + 补「读端全量核对」类校验点固化巡检缺口。过程性截图（约 140MB，6 个会话文件夹）在删除白名单之外，**需书记手动清理**。
+
+- **执行明细（T1-T7）**：
+  - **T1 Toast 对比度**（`core/utils.js`）：浅色半透明底+近白字 → 浅色状态底（#F0FDF4/#FEF2F2/#EFF6FF）+ 状态色 4px 左边条 + 状态色圆形图标（白字 glyph）+ 深色正文 #1F2937（textContent 防注入）
+  - **T2 书记工作台主色收敛**（`ws-secretary-entry.js` 共 12 处）：全局概况 4 行图标块红→中性灰；rateBar 进度条主题红→按完成度分级（≥90 绿 / ≥70 金 / 其余红）；清除缓存/驳回草稿/关闭理由/受众选择/撤销赋权按钮红色系→中性灰（hover 保留红语义）；保留身份标识红（左边条/主 CTA/激活 tab/组长头像徽章/考勤卡）
+  - **T3a/T3b P0-2 prompt() → 内联表单**（`ws-leader-entry.js` / `ws-org-commissioner-entry.js`）：活动/专班子记录「添加」改为内联表单（PersonPicker + 状态下拉 + 备注/考察内容/考察结论），attendance/inspection 类目**同步写入正式考勤/考察库**（`loadAttendanceRecords`+`saveAttendanceRecords` / `loadInspectionRecords`+`saveInspectionRecords`，专班子记录带 `sourceName: tf.name`），同一数据仅一套正式存储
+  - **T4 P1-4 复盘持久化**（`review.js` + `core/domain.js`）：模块内变量 → mockDB + persist() 模式（与 attendance/inspection 同构），`mockDB.activityReviews`/`mockDB.taskforceReviews` 新增字段，刷新不再丢失
+  - **T5 P1-5 考察语义修复**（`inspection.js` + 纪检/组长两处展示层）：考察内容入新增 `content` 字段，`role` 恢复角色职责标签；展示层 `i.content || i.role` 兼容旧数据
+  - **T6 P2 重点**（`issues.js` + `ws-leader-entry.js`）：反馈三份存储归一（迁移完成后清理旧键 `gsm1921-feedback-submissions`）+ 考勤逐人表新增「批量设置」工具栏（下拉一次应用状态到全部人员）
+  - **T7 CHECKLIST 同步**（`content/03_doc_system/CHECKLIST.md`）：§8 赋权数据更新为 T-190 一主源+一快照架构，新增校验点（已赋权记录=审计快照 / 新建数据主源可查 / 撤销解散后主源移除+快照追加 revoke / 全仓禁止幽灵字段 authorizedBy/scope）；§5 考察数据新增 P1-5 字段语义与 P0-2 单套存储固化；§12 复盘数据更新运行时为 mockDB+persist，新增"刷新后记录仍在"校验点
+  - **版本号防缓存**：`secretary.html`/`leader.html`/`org.html` entry 脚本 `?v=20260801b → 20260802`
+
+- **变更文件**：`docs/src/core/utils.js`、`docs/src/entries/ws-secretary-entry.js`、`docs/src/entries/ws-leader-entry.js`、`docs/src/entries/ws-org-commissioner-entry.js`、`docs/src/services/review.js`、`docs/src/core/domain.js`、`docs/src/mock/inspection.js`、`docs/src/entries/ws-disc-commissioner-entry.js`、`docs/src/services/issues.js`、`content/03_doc_system/CHECKLIST.md`、`docs/workspace/secretary.html`、`docs/workspace/leader.html`、`docs/workspace/org.html`
+
+- **验证结果（浏览器串行实测通过，未 dispatch parallel agents）**：
+  - ✅ 登录书记工作台（2300010001）
+  - ✅ 全局概况 3 条进度条全部状态色（94% 绿 #16A34A / 61% 红 #EF4444 / 0% 红 #EF4444），无主题红 --accent-secretary
+  - ✅ 清除缓存按钮灰色系（border-gray-200 text-gray-600，无 red）
+  - ✅ Toast 浅底深字 + 4px 状态色左边条 + 圆形状态色图标（computed 实测 #EFF6FF 底 / #1F2937 字 / #3B82F6 左条）
+  - ✅ 撤销赋权按钮灰色系（rgb(156,163,175)），hover 保留红
+  - ✅ 版本号缓存修复确认：entry 脚本加载 ?v=20260802
+  - ✅ 控制台无 JS 运行时异常（仅字体外网 ERR_ABORTED 与 Tailwind CDN 警告）
+  - ✅ GetDiagnostics 全部修改文件无错误
+
+- **执行过程中的重要发现**：对同一文件并行发起多个 Edit 存在**竞态风险**——本次 ws-secretary-entry.js 四个并行 Edit 中有一处（撤销赋权按钮）实际未落盘（工具返回成功但磁盘未变更），git diff 复查才发现遗漏。教训：同文件多处编辑必须串行逐个确认，或以 git diff 复查落盘结果，不能依赖 Edit 工具返回片段。
+
+- **沉淀标签**：`[已沉淀: content/04_web_design/DESIGN_SYSTEM.md 状态色统一事件]` — 主色收敛+状态色点缀方案：主色仅用于身份标识（左边条/主 CTA/激活 tab/头像），功能数据视觉（统计卡/进度条/徽章/Toast）一律用全局状态色，次要操作按钮归中性灰，hover 才显语义色；`[经验: 巡检结果应先反查校验手册而非只改代码]` — 数据同源一致性巡检发现的孤岛/幽灵字段，根因往往是 CHECKLIST 校验手册未随架构演进，修代码前必须先同步校验手册并固化新校验点；`[经验: 同文件并行 Edit 竞态]` — Edit 工具对同一文件的并行调用存在未落盘风险，须串行或 git diff 复查

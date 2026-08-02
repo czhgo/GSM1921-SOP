@@ -478,6 +478,8 @@ export const IssueStore = {
       try {
         localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache));
         localStorage.setItem(MIGRATED_KEY, '1');
+        // 归一：迁移完成后清理旧键，避免历史提交数据残留污染（P2）
+        localStorage.removeItem('gsm1921-feedback-submissions');
       } catch {}
       return added;
     } catch { return 0; }

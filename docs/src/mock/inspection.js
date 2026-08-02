@@ -103,6 +103,7 @@ export function inspectionToDisplay(records) {
     sourceName: r.sourceName,
     level: r.level,
     levelLabel: PARTICIPATION_LEVEL_LABELS[r.level] || r.level,
+    content: r.content || r.role, // P1-5：content 优先，旧数据以 role 兜底
     role: r.role,
     recordedByName: _personName(r.recordedBy),
     recordedAt: r.recordedAt,
@@ -143,7 +144,7 @@ export function inspectionToWide(records) {
     if (!personMap[r.personId]) {
       personMap[r.personId] = { name: _personName(r.personId), personId: r.personId, cells: {} };
     }
-    personMap[r.personId].cells[sourceKey] = r.role;
+    personMap[r.personId].cells[sourceKey] = r.content || r.role; // P1-5：content 优先
   });
   return {
     columns: sourceIds,

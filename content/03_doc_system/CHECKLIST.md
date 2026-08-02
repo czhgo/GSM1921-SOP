@@ -154,6 +154,8 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 - [ ] 专班考察记录（sourceType='taskforce'）的 sourceName 在 MOCK_TASKFORCES 中有对应名称
 - [ ] 考察层级（organize/deep）= 活动的 assignments 中对应人员角色
 - [ ] 某人的考察记录数量 = 该人作为 organize/deep 参与的活动/专班数
+- [ ] 考察记录字段语义（P1-5 固化）：考察内容入 `content` 字段，`role` 存角色职责标签，禁止把内容文本塞进 role
+- [ ] 组长/组织委员录入的考察子记录同步写入正式考察库（P0-2 固化），同一数据仅一套正式存储
 
 ---
 
@@ -209,23 +211,29 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 
 ## 8. 赋权数据
 
-**存储**：`mockDB.authorizations`（数据同源：AuthStore 统一读写 mockDB.authorizations）
-**持久化**：localStorage `sop_org_os_assigned_roles`
-**Service**：`docs/src/services/auth.js` → `AuthStore`
+**架构（T-190 赋权整合闭环）**：一主源 + 一审计快照 + 双写 + 单读
+- **主源**：活动角色 `mockDB.activities[].assignments` / 专班成员 `mockDB.taskforces[].members`（统一英文编码 `organizer`/`deep`）
+- **审计快照**：localStorage `sop_org_os_auth_audit`（只增不改；revoke 为追加记录，判定取最新一条）
+- **常设赋权**（党小组组长 leader）：AuthStore 赋权链（AUTHORIZE_CHAIN），快照同样记录
+- **Service**：`docs/src/services/auth.js` → `AuthStore`（authorize / revokeAuthorization / syncProjectRoles 三合一：写主源 + 追加快照 + 通知）
 
 **展示页面**：
 
 | 页面 | 展示方式 | 角色 |
 |------|---------|------|
 | workspace/secretary.html | 赋权管理 tab：常设赋权（设为/取消组长）+项目赋权（organizer/deep） | 书记 |
+| workspace/leader.html | 活动详情内联编辑角色（保存走 syncProjectRoles） | 组长 |
+| workspace/org-commissioner.html | 专班详情内联编辑成员角色（保存走 syncProjectRoles） | 组织委员 |
 
 **同源校验点**：
 
-- [ ] 书记工作台赋权管理 tab 的赋权记录 = mockDB.authorizations
+- [ ] 书记工作台赋权管理 tab 的「已赋权记录」= 审计快照 `sop_org_os_auth_audit`
+- [ ] 活动/专班项目角色（organizer/deep）主源 = `activity.assignments` / `taskforce.members`，新建数据在主源可查
 - [ ] 赋权记录中 targetPersonId 在 PEOPLE 中存在
 - [ ] 被赋权角色（organizer/deep/leader）在 auth.js AUTHORIZE_CHAIN 中有赋权链定义
 - [ ] 赋权后，被赋权者切换到管理模式时 AuthStore.canDo() 返回 true
-- [ ] 撤销赋权后，被赋权者退回只读模式
+- [ ] 撤销/解散专班回收赋权后：主源角色被移除 + 快照追加 revoke，被赋权者退回只读模式
+- [ ] 全仓禁止幽灵字段：授权记录上的 `authorizedBy`/`scope` 必须有主源写入点（巡检 P0-1/P0-3 缺口固化）
 
 ---
 
@@ -297,7 +305,7 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 ## 12. 复盘数据
 
 **存储**：`docs/src/mock/review.js` → `REVIEW_RECORDS`（11 条活动复盘）+ `TASKFORCE_REVIEW_RECORDS`（2 条专班复盘）
-**运行时**：`mockDB` 中对应字段
+**运行时**：`mockDB.activityReviews` / `mockDB.taskforceReviews`（P1-4 修复后写入 mockDB + persist()，刷新不丢失）
 **Service**：`docs/src/services/review.js`
 
 **展示页面**：
@@ -305,6 +313,7 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 | 页面 | 展示方式 | 角色 |
 |------|---------|------|
 | workspace/disc.html | 复盘审核（批注/打回/确认） | 纪检委员 |
+| workspace/leader.html | 复盘提交 | 党小组组长 |
 
 **同源校验点**：
 
@@ -313,6 +322,7 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 - [ ] 复盘状态流转覆盖 5 种：未提交→已上传→批注中→已确认/已打回
 - [ ] 已打回复盘（rev7 act-7）有 annotation 和 annotatedBy 字段
 - [ ] 复盘的 organizerId = 对应活动/专班的 organizer 字段
+- [ ] 复盘提交后持久化（P1-4 固化）：刷新页面后记录仍在，书记「复盘完成率」据此统计
 
 ---
 

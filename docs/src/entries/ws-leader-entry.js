@@ -427,28 +427,133 @@ function _renderWriteContent(activities) {
         detailPanel.classList.add('hidden');
       });
 
-      // 添加子记录
+      // 添加子记录（内联表单替代 prompt 弹窗；attendance/inspection 同步写入正式考勤/考察库，消除双轨维护）
       detailPanel.querySelectorAll('.act-sub-add-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const type = btn.dataset.type;
-          const prompts = {
-            attendance: [['姓名', 'person'], ['出勤状态', 'status'], ['备注', 'note']],
-            inspection: [['被考察人', 'person'], ['考察内容', 'content'], ['考察结论', 'result']],
-            publicity: [['宣传标题', 'title'], ['撰写人', 'author'], ['发布渠道', 'channel']],
-            materials: [['材料名称', 'name'], ['提交人', 'author'], ['备注', 'note']],
+          const panelEl = btn.closest('.mt-3');
+          const existing = panelEl?.querySelector('.act-sub-inline-form');
+          if (existing) { existing.remove(); return; }
+
+          // 内联表单 HTML（person 字段由 PersonPicker 渲染，其余为原生控件）
+          const statusOpts = [
+            { value: AttendanceStatus.PRESENT, label: '出勤' },
+            { value: AttendanceStatus.LEAVE, label: '请假' },
+            { value: AttendanceStatus.ABSENT, label: '缺席' },
+            { value: AttendanceStatus.MADE_UP, label: '已补课' },
+          ];
+          const resultOpts = ['考察合格', '待观察', '需补材料'];
+          const textFields = {
+            publicity: [['title', '宣传标题'], ['author', '撰写人'], ['channel', '发布渠道']],
+            materials: [['name', '材料名称'], ['author', '提交人'], ['note', '备注']],
           };
-          const fields = prompts[type];
-          const newEntry = {};
-          for (const [label, key] of fields) {
-            const val = prompt(label + '：');
-            if (key === fields[0][1] && !val) return;
-            newEntry[key] = val || '';
+
+          let formHtml = '';
+          if (type === 'attendance') {
+            formHtml = `
+              <div class="act-sub-inline-form mt-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
+                <div class="text-[12px] font-bold text-gray-600 mb-2">添加考勤记录（同步正式考勤库）</div>
+                <div class="mb-2 act-sub-picker"></div>
+                <div class="flex gap-2 mb-2">
+                  <select class="f-status input-flat text-xs flex-1">${statusOpts.map(s => `<option value="${s.value}">${s.label}</option>`).join('')}</select>
+                  <input class="f-note input-flat text-xs flex-1" placeholder="备注（选填）">
+                </div>
+                <div class="flex gap-2 justify-end">
+                  <button type="button" class="act-sub-cancel-btn text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
+                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1 rounded-lg text-white transition-colors" style="background:${accent};">保存</button>
+                </div>
+              </div>`;
+          } else if (type === 'inspection') {
+            formHtml = `
+              <div class="act-sub-inline-form mt-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
+                <div class="text-[12px] font-bold text-gray-600 mb-2">添加考察记录（同步正式考察库，待纪检委员确认）</div>
+                <div class="mb-2 act-sub-picker"></div>
+                <textarea class="f-content input-flat text-xs w-full resize-none mb-2" rows="2" placeholder="考察内容描述（必填）"></textarea>
+                <select class="f-result input-flat text-xs w-full mb-2">${resultOpts.map(r => `<option>${r}</option>`).join('')}</select>
+                <div class="flex gap-2 justify-end">
+                  <button type="button" class="act-sub-cancel-btn text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
+                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1 rounded-lg text-white transition-colors" style="background:${accent};">保存</button>
+                </div>
+              </div>`;
+          } else {
+            const fields = textFields[type];
+            formHtml = `
+              <div class="act-sub-inline-form mt-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
+                <div class="text-[12px] font-bold text-gray-600 mb-2">添加${type === 'publicity' ? '宣传' : '材料'}记录</div>
+                ${fields.map(([key, label]) => `<input class="f-${key} input-flat text-xs w-full mb-2" placeholder="${label}${key === 'title' || key === 'name' ? '（必填）' : '（选填）'}">`).join('')}
+                <div class="flex gap-2 justify-end">
+                  <button type="button" class="act-sub-cancel-btn text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
+                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1 rounded-lg text-white transition-colors" style="background:${accent};">保存</button>
+                </div>
+              </div>`;
           }
-          actSubs[type].push(newEntry);
-          saveActSubs();
-          // 重新点击活动项刷新详情
-          const actEl = container.querySelector(`.leader-act-item[data-act-id="${actId}"]`);
-          if (actEl) actEl.click();
+
+          panelEl.insertAdjacentHTML('beforeend', formHtml);
+          const form = panelEl.querySelector('.act-sub-inline-form');
+
+          // person 类记录用 PersonPicker 选人（直接得 personId，对齐正式库）
+          if (type === 'attendance' || type === 'inspection') {
+            const picker = new PersonPicker({ mode: 'multi', placeholder: '选择人员', accentColor: accent, onSelect: () => {} });
+            picker.render(form.querySelector('.act-sub-picker'));
+            form._picker = picker;
+          }
+
+          form.querySelector('.act-sub-cancel-btn').addEventListener('click', () => {
+            if (form._picker?.destroy) form._picker.destroy();
+            form.remove();
+          });
+
+          form.querySelector('.act-sub-save-btn').addEventListener('click', () => {
+            if (type === 'attendance') {
+              const ids = form._picker ? form._picker.getSelected() : [];
+              if (ids.length === 0) { showToast('error', '请选择人员'); return; }
+              const statusEnum = form.querySelector('.f-status').value;
+              const note = form.querySelector('.f-note').value.trim();
+              const newAtts = [];
+              ids.forEach(pid => {
+                actSubs[type].push({ person: getPersonName(pid), personId: pid, status: ATTENDANCE_STATUS_LABELS[statusEnum], note });
+                newAtts.push({ id: 'att_' + Date.now() + '_' + pid, personId: pid, activityId: actId, status: statusEnum, recordedBy: 'u_exec', recordedAt: new Date().toISOString(), overdue: false });
+              });
+              const all = loadAttendanceRecords();
+              saveAttendanceRecords([...all, ...newAtts]);
+              showToast('success', `已添加 ${ids.length} 条考勤记录并同步正式考勤库`);
+            } else if (type === 'inspection') {
+              const content = form.querySelector('.f-content').value.trim();
+              if (!content) { showToast('error', '请填写考察内容'); return; }
+              const ids = form._picker ? form._picker.getSelected() : [];
+              if (ids.length === 0) { showToast('error', '请选择被考察人'); return; }
+              const result = form.querySelector('.f-result').value;
+              const newRecords = [];
+              ids.forEach(pid => {
+                actSubs[type].push({ person: getPersonName(pid), personId: pid, content, result });
+                // P1-5 语义修复：考察内容入 content，role 存角色职责标签
+                newRecords.push({
+                  id: 'insp_' + Date.now() + '_' + pid,
+                  sourceType: SourceType.ACTIVITY, activityId: actId, sourceName: null,
+                  personId: pid, level: ParticipationLevel.ORGANIZE,
+                  content, role: '组织者',
+                  recordedBy: 'u_exec', recordedAt: new Date().toISOString(), status: 'pending',
+                });
+              });
+              const all = loadInspectionRecords();
+              saveInspectionRecords([...all, ...newRecords]);
+              showToast('success', `已添加 ${ids.length} 条考察记录并同步正式考察库`);
+            } else {
+              const fields = textFields[type];
+              const requiredKey = type === 'publicity' ? 'title' : 'name';
+              const requiredVal = form.querySelector(`.f-${requiredKey}`).value.trim();
+              if (!requiredVal) { showToast('error', `请填写${type === 'publicity' ? '宣传标题' : '材料名称'}`); return; }
+              const entry = {};
+              fields.forEach(([key]) => { entry[key] = form.querySelector(`.f-${key}`).value.trim(); });
+              actSubs[type].push(entry);
+              showToast('success', '已添加');
+            }
+            saveActSubs();
+            if (form._picker?.destroy) form._picker.destroy();
+            form.remove();
+            const actEl = container.querySelector(`.leader-act-item[data-act-id="${actId}"]`);
+            if (actEl) actEl.click();
+          });
         });
       });
 
@@ -982,8 +1087,19 @@ function _renderAttStatusRows(selectedIds) {
     return;
   }
 
+  // P2 批量录入：批量设置工具栏一键应用状态，再按需微调个别人
   rowsContainer.innerHTML = `
     <div class="text-xs font-bold text-gray-600 mb-2">逐人出勤状态</div>
+    <div class="flex items-center gap-2 mb-2">
+      <span class="text-xs text-gray-500">批量设置：</span>
+      <select id="att-batch-status" class="input-flat text-xs">
+        <option value="">— 选择状态 —</option>
+        <option value="${AttendanceStatus.PRESENT}">全部出勤</option>
+        <option value="${AttendanceStatus.ABSENT}">全部缺勤</option>
+        <option value="${AttendanceStatus.LEAVE}">全部请假</option>
+      </select>
+      <button id="att-batch-apply" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">应用到全部</button>
+    </div>
     <div class="space-y-2 max-h-48 overflow-y-auto">
       ${selectedIds.map(pid => {
         const person = getPersonById(pid);
@@ -1001,6 +1117,19 @@ function _renderAttStatusRows(selectedIds) {
       }).join('')}
     </div>
   `;
+
+  const applyBtn = rowsContainer.querySelector('#att-batch-apply');
+  if (applyBtn) {
+    applyBtn.addEventListener('click', () => {
+      const batchVal = rowsContainer.querySelector('#att-batch-status')?.value;
+      if (!batchVal) { showToast('error', '请先选择要应用的状态'); return; }
+      selectedIds.forEach(pid => {
+        const sel = rowsContainer.querySelector(`#att-status-${pid}`);
+        if (sel) sel.value = batchVal;
+      });
+      showToast('success', `已批量设为「${ATTENDANCE_STATUS_LABELS[batchVal]}」，可按需微调个别人`);
+    });
+  }
 }
 
 function _renderInspectionContent() {
@@ -1070,7 +1199,7 @@ function _renderInspectionContent() {
             <tr class="border-b border-gray-50 hover:bg-gray-50">
               <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
               <td class="py-2 px-3 text-gray-600">${i.source}</td>
-              <td class="py-2 px-3 text-gray-600">${i.role}</td>
+              <td class="py-2 px-3 text-gray-600">${i.content || i.role}</td>
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
             </tr>
           `).join('')}</tbody>
@@ -1163,7 +1292,8 @@ function _initInspForm(container, sourceActivities, sourceTaskforces) {
         sourceName: sourceType === 'activity' ? null : (sourceOption?.dataset.name || sourceId),
         personId,
         level: ParticipationLevel.ORGANIZE, // 默认组织层级，可由用户选择
-        role: content,
+        content,   // P1-5 修复：考察内容入 content 字段
+        role: '组织者', // role 字段恢复为角色职责标签
         recordedBy: 'u_exec',
         recordedAt: new Date().toISOString(),
         status: 'pending',
