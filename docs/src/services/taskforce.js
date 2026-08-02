@@ -82,10 +82,13 @@ export const TaskForceRecordStore = {
     this._records = [...this._records, newRecord];
     _saveTaskForces(this._records);
     // 派生赋权待办给组织委员（最小三成本原则·阶段1C-3）
+    // T-190：招募时已内联选初始成员（members 非空）则不再派生；未选人保留待办兜底
     // 使用 dynamic import 避免与 todo.js 的潜在循环依赖
-    import('./todo.js').then(({ LifecycleTodoDeriver }) => {
-      LifecycleTodoDeriver.deriveFromTaskforceCreate(newRecord);
-    }).catch(e => console.warn('[TaskForceRecordStore] 派生专班赋权待办失败：', e));
+    if (!newRecord.members || newRecord.members.length === 0) {
+      import('./todo.js').then(({ LifecycleTodoDeriver }) => {
+        LifecycleTodoDeriver.deriveFromTaskforceCreate(newRecord);
+      }).catch(e => console.warn('[TaskForceRecordStore] 派生专班赋权待办失败：', e));
+    }
     return newRecord;
   },
 
@@ -197,7 +200,7 @@ export const TaskForceRecordStore = {
               return {
                 personId: person ? person.id : null,
                 name: typeof name === 'string' ? name : (name.name || '成员' + (idx + 1)),
-                role: '深度参与者',
+                role: 'deep',
                 contributions: [],
               };
             }),
@@ -217,7 +220,7 @@ export const TaskForceRecordStore = {
             initiator: '宣传委员',
             members: (value.members || []).map(m => ({
               name: typeof m === 'string' ? m : (m.name || '未知'),
-              role: m.role || '深度参与者',
+              role: m.role || 'deep',
               contributions: m.contributions || [],
             })),
             capacity: (value.members || []).length,

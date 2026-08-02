@@ -234,6 +234,11 @@ function _handleTodoAction(todo) {
   if (targetTab) {
     const btn = document.querySelector(`.org-tab-btn[data-org-tab="${targetTab}"]`);
     if (btn) btn.click();
+    // T-190 赋权待办兜底：直达专班详情成员角色编辑（≤2 跳）
+    if (todo.actionType === 'authorize' && todo.sourceId) {
+      const tfCard = document.querySelector(`.tf-store-card[data-tf-id="${todo.sourceId}"]`);
+      if (tfCard) tfCard.click();
+    }
     const tabLabels = { authorize: '专班管理', review: '考察上传', track: '发展党员' };
     showToast('info', `已跳转到${tabLabels[todo.actionType] || '对应功能'}，请处理：${todo.title}`);
   } else {
@@ -476,9 +481,74 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
           <span>发起: ${_personName(tf.initiator)}</span>
         </div>
         <div class="text-xs text-gray-500">成员：${tf.members.map(m => _personName(m.personId)).join('、')}</div>
+
+        <!-- T-190 成员角色内联编辑：主源 members 预填，保存走 syncProjectRoles 三合一 -->
+        <div class="mt-4 pt-3 border-t border-gray-100">
+          <div class="flex items-center justify-between mb-2">
+            <h6 class="font-title-cn text-xs font-bold text-gray-600">成员角色</h6>
+            <button id="btn-save-tf-roles" class="text-xs px-3 py-1 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">保存角色</button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <div class="text-[12px] text-gray-400 mb-1">组织者</div>
+              <div id="tf-org-picker"></div>
+            </div>
+            <div>
+              <div class="text-[12px] text-gray-400 mb-1">深度参与者</div>
+              <div id="tf-deep-picker"></div>
+            </div>
+          </div>
+          <p class="text-[12px] text-gray-400 mt-2">提示：此处修改将同步写入专班主源数据，被赋权人将收到通知。</p>
+        </div>
+
         ${workSummaryHtml}
         ${subRecordsHtml}
       `;
+
+      // 初始化成员角色 PersonPicker（预填主源 members）
+      if (_tfOrgPicker) { _tfOrgPicker.destroy(); _tfOrgPicker = null; }
+      if (_tfDeepPicker) { _tfDeepPicker.destroy(); _tfDeepPicker = null; }
+      const tfOrgEl = panel.querySelector('#tf-org-picker');
+      const tfDeepEl = panel.querySelector('#tf-deep-picker');
+      const tfAssigns = Array.isArray(tf.members) ? tf.members.filter(m => m.personId) : [];
+      if (tfOrgEl) {
+        _tfOrgPicker = new PersonPicker({
+          mode: 'multi',
+          placeholder: '选择组织者',
+          accentColor: accent,
+          initialIds: tfAssigns.filter(m => m.role === 'organizer').map(m => m.personId),
+          onSelect: () => {},
+        });
+        _tfOrgPicker.render(tfOrgEl);
+      }
+      if (tfDeepEl) {
+        _tfDeepPicker = new PersonPicker({
+          mode: 'multi',
+          placeholder: '选择深度参与者',
+          accentColor: accent,
+          initialIds: tfAssigns.filter(m => m.role === 'deep').map(m => m.personId),
+          onSelect: () => {},
+        });
+        _tfDeepPicker.render(tfDeepEl);
+      }
+
+      // 保存成员角色：syncProjectRoles 三合一
+      panel.querySelector('#btn-save-tf-roles')?.addEventListener('click', async () => {
+        const orgIds = _tfOrgPicker ? _tfOrgPicker.getSelected() : [];
+        const deepIds = _tfDeepPicker ? _tfDeepPicker.getSelected() : [];
+        const newAssignments = [
+          ...orgIds.map(personId => ({ personId, role: 'organizer' })),
+          ...deepIds.map(personId => ({ personId, role: 'deep' })),
+        ];
+        const actorId = AuthStore.getCurrentUser()?.personId;
+        const { added, removed } = await AuthStore.syncProjectRoles({ scopeRef: tf.id, assignments: newAssignments, actorId });
+        if (added > 0 || removed > 0) {
+          showToast('success', `专班成员角色已更新：新增 ${added} 人，移除 ${removed} 人`);
+        } else {
+          showToast('info', '专班成员角色未发生变化');
+        }
+        renderOrgUI(getAppState());
+      });
 
       // ── 解散专班按钮事件 ──
       const dissolveBtn = panel.querySelector('#btn-dissolve-tf');
@@ -528,32 +598,30 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
 //  专班解散流程（P1-5）
 // ════════════════════════════════════════════════════════════════
 
-function _dissolveTaskforce(tf) {
+async function _dissolveTaskforce(tf) {
   if (!tf || tf.status !== 'active') return;
 
   const confirmed = window.confirm(`确定解散专班「${tf.name}」？解散后将回收所有相关赋权记录。`);
   if (!confirmed) return;
 
-  // 1. 更新专班状态为 completed
-  const updated = TaskForceRecordStore.update(tf.id, { status: 'completed' });
+  // 1. 主源：清空 members（含角色）并置状态 completed
+  const assignedMembers = (tf.members || []).filter(m => m.personId && (m.role === 'organizer' || m.role === 'deep'));
+  const updated = TaskForceRecordStore.update(tf.id, { status: 'completed', members: [] });
   if (!updated) {
     showToast('error', '解散失败：专班记录未找到');
     return;
   }
 
-  // 2. 回收该专班相关的赋权记录
-  const authRecords = AuthStore.getAuthorizations();
-  const relatedRecords = authRecords.filter(r =>
-    r.scope === 'taskforce' && r.scopeRef === tf.id
+  // 2. 审计快照：为原 organizer/deep 成员追加 revoke 记录（只增不改）
+  const actorId = AuthStore.getCurrentUser()?.personId;
+  const revokedCount = AuthStore.recordProjectRevokes(
+    tf.id,
+    assignedMembers.map(m => ({ personId: m.personId, role: m.role })),
+    actorId
   );
-  let revokedCount = 0;
-  relatedRecords.forEach(r => {
-    const ok = AuthStore.revokeAuthorization(r.id);
-    if (ok) revokedCount++;
-  });
 
   // 3. toast 反馈
-  const revokeMsg = relatedRecords.length > 0
+  const revokeMsg = revokedCount > 0
     ? `，已回收 ${revokedCount} 条赋权记录`
     : '';
   showToast('success', `专班「${tf.name}」已解散${revokeMsg}`);
@@ -592,6 +660,8 @@ function _renderTfCard(t, statusLabel, statusColor) {
 // ════════════════════════════════════════════════════════════════
 
 let _recruitPersonPicker = null;
+let _tfOrgPicker = null;    // 专班详情：组织者多选
+let _tfDeepPicker = null;   // 专班详情：深度参与者多选
 
 function _openRecruitForm() {
   // 移除已有面板
@@ -725,11 +795,11 @@ function _submitRecruitForm() {
   if (!capacity || capacity < 1) { showToast('error', '请填写有效的所需人数'); return; }
   if (!deadline) { showToast('error', '请选择截止日期'); return; }
 
-  // 获取初始成员
+  // 获取初始成员（统一英文编码 role: 'deep'，T-190 修复 P1-2 中英文混用）
   const selectedIds = _recruitPersonPicker ? _recruitPersonPicker.getSelected() : [];
   const members = selectedIds.map(pid => ({
     personId: pid,
-    role: '深度参与者',
+    role: 'deep',
     contributions: [],
   }));
 
@@ -753,7 +823,12 @@ function _submitRecruitForm() {
   if (notes) record.notes = notes;
 
   try {
-    TaskForceRecordStore.add(record);
+    const created = TaskForceRecordStore.add(record);
+    // T-190 顺路赋权：追加审计快照 + 通知初始成员（主源已由招募写入，原则7 不重复填写）
+    if (created && members.length > 0) {
+      const actorId = AuthStore.getCurrentUser()?.personId;
+      AuthStore.recordProjectGrants(created.id, members, actorId);
+    }
     showToast('success', `专班「${name}」发布成功`);
     _closeRecruitForm();
     // 刷新看板
