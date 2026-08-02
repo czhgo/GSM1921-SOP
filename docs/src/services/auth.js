@@ -215,6 +215,19 @@ function _notifyProjectAuth(projectId, authorizerId, targetPersonId, role) {
   });
 }
 
+// ── 同步活动顶层 organizer 派生字段（原则7 同一套数据）──────────────
+// 顶层 activity.organizer 是历史遗留字段，全仓 41 处读端（archive/main/inspector/todo/roles/
+// ws-leader-entry 等）仍消费它。T-190 主源为 activity.assignments，本函数保证二者一致：
+// activity.organizer = assignments 中首个 organizer 的 personId；无 organizer 时置 null。
+// 书记裁决（2026-08-02）：采用"同步派生字段"方案统一双轨，不迁移 41 处读端。
+function _syncTopLevelOrganizer(activity) {
+  if (!activity) return;
+  const orgAssign = Array.isArray(activity.assignments)
+    ? activity.assignments.find(a => a.role === 'organizer')
+    : null;
+  activity.organizer = orgAssign ? orgAssign.personId : null;
+}
+
 // ── 追加审计快照条目 ──────────────────────────────
 function _appendAuditEntries(scopeRef, actorId, entries, action) {
   if (!Array.isArray(entries) || entries.length === 0) return 0;
@@ -487,12 +500,13 @@ export const AuthStore = {
         const activity = mockDB.activities.find(a => a.id === scopeRef);
         if (activity) {
           const current = Array.isArray(activity.assignments) ? activity.assignments : [];
-          await updateActivity(scopeRef, {
+          const updated = await updateActivity(scopeRef, {
             assignments: [
               ...current.filter(x => !(x.personId === targetPersonId && x.role === role)),
               { personId: targetPersonId, role },
             ],
           });
+          _syncTopLevelOrganizer(updated); // 原则7：顶层 organizer 与主源 assignments 同步派生
           persist(); // 活动主源写入后落盘（updateActivity 不自动 persist）
         } else {
           const tf = mockDB.taskforces.find(t => t.id === scopeRef);
@@ -552,9 +566,10 @@ export const AuthStore = {
       try {
         const activity = mockDB.activities.find(a => a.id === scopeRef);
         if (activity && Array.isArray(activity.assignments)) {
-          await updateActivity(scopeRef, {
+          const updated = await updateActivity(scopeRef, {
             assignments: activity.assignments.filter(x => !(x.personId === personId && x.role === role)),
           });
+          _syncTopLevelOrganizer(updated); // 原则7：顶层 organizer 与主源 assignments 同步派生
           persist(); // 活动主源写入后落盘（updateActivity 不自动 persist）
         } else {
           const tf = mockDB.taskforces.find(t => t.id === scopeRef);
@@ -615,7 +630,8 @@ export const AuthStore = {
       const nonProj = Array.isArray(activity.assignments)
         ? activity.assignments.filter(x => x.role !== 'organizer' && x.role !== 'deep')
         : [];
-      await updateActivity(scopeRef, { assignments: [...nonProj, ...desired] });
+      const updated = await updateActivity(scopeRef, { assignments: [...nonProj, ...desired] });
+      _syncTopLevelOrganizer(updated); // 原则7：顶层 organizer 与主源 assignments 同步派生
       persist(); // 活动主源写入后落盘（updateActivity 不自动 persist）
     } else if (tf) {
       const prevMembers = Array.isArray(tf.members) ? tf.members : [];
