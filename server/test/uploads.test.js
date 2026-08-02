@@ -1,7 +1,13 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const UPLOAD_DIR = path.resolve(__dirname, '../uploads');
 
 let server, base;
 
@@ -30,6 +36,8 @@ test('登录后上传附件返回元数据', async () => {
   const meta = await res.json();
   assert.ok(meta.id);
   assert.equal(meta.filename, 'test.png');
+  // 清理测试上传文件，避免污染 server/uploads/
+  fs.unlinkSync(path.join(UPLOAD_DIR, path.basename(meta.path)));
 });
 
 test('未登录上传返回 401', async () => {
