@@ -153,6 +153,7 @@ export class PersonPicker {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'person-picker-trigger ';
+    btn.setAttribute('aria-expanded', 'false');
 
     if (hasSelection) {
       if (this._mode === 'multi') {
@@ -197,6 +198,7 @@ export class PersonPicker {
   _openPanel() {
     if (this._panelOpen) return;
     this._panelOpen = true;
+    this._triggerBtn?.setAttribute('aria-expanded', 'true');
 
     // 更新触发按钮样式（通过类名切换，CSS 控制具体样式）
     if (this._triggerBtn) {
@@ -212,6 +214,7 @@ export class PersonPicker {
   _closePanel() {
     if (!this._panelOpen) return;
     this._panelOpen = false;
+    this._triggerBtn?.setAttribute('aria-expanded', 'false');
 
     // 恢复触发按钮样式
     if (this._triggerBtn) {
@@ -229,15 +232,17 @@ export class PersonPicker {
 
     // 解绑全局事件
     this._unbindGlobalEvents();
+
+    // 关闭后归还焦点到触发按钮（rAF 保证重建 DOM 后执行）
+    requestAnimationFrame(() => this._triggerBtn?.focus());
   }
 
   // ── 面板创建 ────────────────────────────────────────────────
 
   _createPanel() {
-    // 遮罩层（语义化 backdrop：点击空白关闭）
+    // 遮罩层（纯视觉 backdrop，无语义内容：点击空白关闭）
     const overlay = document.createElement('div');
     overlay.className = 'person-picker-overlay';
-    overlay.setAttribute('aria-hidden', 'true');
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) this._closePanel();
     });
