@@ -456,3 +456,43 @@ related_files:
 - **变更文件**：`docs/src/entries/ws-secretary-entry.js`、`docs/src/services/auth.js`、`docs/src/styles.css`、`docs/members.html`（删）、`docs/src/entries/members-entry.js`（删）、`docs/src/components/party-cross-nav.js`（删）、`docs/src/services/permission-manager.js`（删）、`docs/src/services/assignment.js`（删）、`docs/src/mock/party.js`（删）、`docs/src/modules/party.js`（删）、`docs/src/workflow/activityRecord.js`（删）、`content/03_doc_system/CHECKLIST.md`、`content/04_web_design/DESIGN_SYSTEM.md`、`.ctx/SNAPSHOT.md`、`CLAUDE.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）、`.ctx/logs/2026-08-DECISION_LOG.md`
 - **git 提交**：待书记确认后 push
 - **沉淀标签**：`[已沉淀: content/04_web_design/DESIGN_SYSTEM.md §4.2 边线语义]` — 左侧边线是"强调/可交互/角色归属"的视觉编码（4px 强调色可交互 + border-l-4 角色主题色职责卡 + 3px 引述 + 1-2px 灰嵌套），纯白是中性内容容器，区分有逻辑非随机；`[已决策: D-268 华文仿宋撤回]` — 字体选择应先小范围打样并经书记确认后再推广，避免全仓铺开后返工；`[经验: 就地解决 > 1 跳 > 2 跳]` — 跨页死链参数（disc.html?mode=readonly）是无操作价值的无效跳转，审计时应全仓 grep 参数使用是否真的被读取
+
+## T190 赋权整合闭环（一主源+一快照+双写+单读）（2026-08-02）
+
+**任务**：将活动/专班赋权整合进主源数据流（`activity.assignments` / `taskforce.members`），消除 3 个 P0 与 3 个 P1 赋权数据孤岛
+**引用流程**：H1.2 执行 + subagent-driven-development + brainstorming + H2.1 一改具改 + KNOWN_PITFALLS §12 反思
+**来源**：书记两条设计原则（2026-08-02）——「同一套数据」「降低填写负担」（已沉淀 DESIGN_SYSTEM §一 原则 7/8）；偏差 A/B 书记裁决："组长创建活动时组织者自动预填组长本人（可改/可删）" + "采用同步派生字段方案统一双轨"（附言：请务必反思为什么反复没有检查出来）
+
+- **架构**：一主源（活动 `assignments` / 专班 `members`，统一英文编码 organizer/deep）+ 一审计快照（localStorage 独立键 `sop_org_os_auth_audit`，只增不改，移出 /docs）+ 统一写入口 `AuthStore.authorize()`（写主源 + 追加快照 + 发通知三合一）/ `syncProjectRoles` / `recordProjectGrants` + 统一读入口 `_getProjectRole()`（一级读主源、二级回退快照 filter+latest 判定 revoke）
+- **Task 0-8 实施完成**（12+1 任务制，逐任务提交）：Task 0 PersonPicker 无障碍加固（7 处 web-design-guidelines 修复）→ Task 1 审计快照独立键 + 统一读入口 → Task 2 authorize 三合一 + `_syncTopLevelOrganizer` 顶层 organizer 同步派生 + 3 条 P2 修复（白名单守卫 / try-catch / actorId 兜底）→ Task 3 书记侧写穿（await + 组长列表读主源 + 撤销回调）→ Task 4 移出 /docs 清理（domain/mock-adapter/data-adapter/mock/api-adapter/roles 删除 authorizations 实体）→ Task 5 统计口径读主源（roles.js / secretary-overview.js）→ Task 6 组长创建活动内联赋权（organizer 预填组长本人，可改/可删，未选人保留待办兜底）→ Task 7 组长详情内联编辑 + 待办直达 → Task 8 组织委员专班写穿（members 英文编码）+ 解散修复（清主源 + 批量 revoke 快照）+ 详情编辑 + 待办直达
+- **偏差 B 修复要点**：`_syncTopLevelOrganizer` 在 authorize / revoke / syncProjectRoles 三处写主源后同步顶层 `organizer` 派生字段；`updateActivity` 为不可变更新，必须在 `const updated = await updateActivity(...)` 后对 `updated` 调用同步
+- **Task 9 一改具改 grep 巡检（全通过）**：
+  - `mockDB\.authorizations|authorizations:` → 无匹配 ✓
+  - `MOCK_TASKFORCES` → 仅剩 `mock/taskforces.js`（种子）+ `mock/index.js`（re-export）+ `services/taskforce.js`（种子回退），无 auth.js 引用 ✓
+  - `assigned_roles|authorizedBy|r\.scope === 'taskforce'` → 无匹配 ✓（`authorizedBy` 残留均为快照新字段正常使用；`sop_org_os_assigned_roles` 仅剩 roles.js 启动清理代码）
+  - `organizer: 'leader'|includes\('leader'\)` → 无匹配 ✓（偏差 B 附加清零验证）
+- **auth-001~010 历史赋权种子归档**（原 `docs/src/services/auth.js _defaultAuthRecords`，随审计快照移出 /docs 代码栈）：
+
+```json
+{
+  "archived_at": "2026-08-02",
+  "context": "T-190 审计快照移出 /docs，历史赋权种子归档（原 docs/src/services/auth.js _defaultAuthRecords）",
+  "seeds": [
+    { "id": "auth-001", "targetPersonId": "p1",  "role": "leader",    "authorizedBy": "p13", "authorizedAt": "2026-01-10", "note": "路径1 书记→组长" },
+    { "id": "auth-002", "targetPersonId": "p2",  "role": "leader",    "authorizedBy": "p13", "authorizedAt": "2026-01-10", "note": "路径1 书记→组长" },
+    { "id": "auth-003", "targetPersonId": "p4",  "role": "leader",    "authorizedBy": "p13", "authorizedAt": "2026-01-15", "note": "路径1 书记→组长" },
+    { "id": "auth-004", "targetPersonId": "p7",  "role": "organizer", "scopeRef": "tf-002", "authorizedBy": "p11", "authorizedAt": "2026-05-03", "note": "路径2 组织委员→专班(D-240)" },
+    { "id": "auth-005", "targetPersonId": "p26", "role": "organizer", "scopeRef": "tf-005", "authorizedBy": "p11", "authorizedAt": "2026-06-10", "note": "路径2 组织委员→专班" },
+    { "id": "auth-006", "targetPersonId": "p8",  "role": "deep",      "scopeRef": "tf-001", "authorizedBy": "p11", "authorizedAt": "2026-05-02", "note": "路径2 组织委员→专班" },
+    { "id": "auth-007", "targetPersonId": "p3",  "role": "organizer", "scopeRef": "act-3",  "authorizedBy": "p1",  "authorizedAt": "2026-03-10", "note": "路径3 组长→活动" },
+    { "id": "auth-008", "targetPersonId": "p7",  "role": "deep",      "scopeRef": "act-19", "authorizedBy": "p4",  "authorizedAt": "2026-05-20", "note": "路径3 组长→活动" },
+    { "id": "auth-009", "targetPersonId": "p6",  "role": "deep",      "scopeRef": "act-3",  "authorizedBy": "p3",  "authorizedAt": "2026-03-15", "note": "路径4 组织者→deep" },
+    { "id": "auth-010", "targetPersonId": "p5",  "role": "deep",      "scopeRef": "act-9",  "authorizedBy": "p1",  "authorizedAt": "2026-05-10", "note": "路径4 组织者→deep" }
+  ],
+  "data_coverage": "组长常设角色(p1/p2/p4)已由 mock/people.js role:'leader' 主源覆盖；auth-004~007 已由 ACTIVITIES.assignments / MOCK_TASKFORCES.members 主源覆盖；auth-008~010 为历史活动深度角色，主源种子未含，归档保留"
+}
+```
+
+- **变更文件**：`docs/src/services/auth.js`、`docs/src/entries/ws-secretary-entry.js`、`docs/src/entries/ws-leader-entry.js`、`docs/src/entries/ws-org-commissioner-entry.js`、`docs/src/components/person-picker.js`、`docs/src/components/person-picker.css`、`docs/src/core/domain.js`、`docs/src/core/mock-adapter.js`、`docs/src/core/data-adapter.js`、`docs/src/services/mock.js`、`docs/src/services/taskforce.js`、`docs/src/services/roles.js`、`docs/src/services/secretary-overview.js`、`content/05_ai_coding/KNOWN_PITFALLS.md`（§12）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **git 提交**：Task 0-8 共 8 笔（`0a98006`/`c24e155`/`bbbda9d`/`28f71bf`/`20cd2ca`/`8ed4faf`/`87659b5` 等）；Task 9 归档 `docs(log): T-190 归档 auth-001~010 历史赋权种子`；待书记确认后 push
+- **沉淀标签**：`[已沉淀: content/05_ai_coding/KNOWN_PITFALLS.md §12]` — 「同一套数据原则执行盲区」：同类数据双轨/三轨并存时，单文件局部 grep 无法暴露跨文件孤岛，必须全仓范围巡检（含偏差 B 附加项：hack 值清零验证不能只查单文件）；`[经验: 不可变更新 API 陷阱]` — `updateActivity` 返回新对象，写主源后必须在返回值上同步派生字段（`_syncTopLevelOrganizer(updated)`），对旧引用操作会静默丢失
