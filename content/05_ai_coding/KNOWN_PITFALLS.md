@@ -197,3 +197,22 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 **预防机制**：要求 subagent 截图并报告屏幕上实际可见的内容，而非仅检查 DOM 结构。验证声明必须附带截图证据，不接受"DOM 元素存在"作为视觉验证的充分条件。
 
 **生效条件**：使用 browser_use subagent 进行视觉验证时适用。纯逻辑验证（如数据正确性、链接有效性）不受此限制。
+
+## 12. "同一套数据"原则执行盲区（T-190 赋权整合反思）
+
+**原则**：书记设计原则 7（同一套数据：读取、写入、写出的数据必须是同一套）在实施时必须做**读端全量审计**——不仅查"要删的旧字段"，还要查"旧字段被哪些读端消费"。AI 反复漏掉这个检查，原因是把"一改具改"窄化为"删除旧字段"，而非"收敛所有读端到主源"。
+
+**判例（T-190，2026-08-02）**：活动赋权整合闭环引入主源 `activity.assignments`，同时清理 `mockDB.authorizations` 种子与序列化。实施计划只 grep 了 `authorizations`/`MOCK_TASKFORCES`/`assigned_roles` 三类旧标识，**漏掉了顶层 `activity.organizer` 字段的全仓 41 处读端**（archive-entry/main-entry/inspector/todo/roles/ws-leader-entry 等）。而组长新建活动写的是 `organizer: 'leader'`（角色名，非 personId），种子却是 `organizer: 'p3'`（personId）——两处读端语义不一致。赋权变更写 assignments 后，顶层 organizer 不同步，41 处读端仍显示旧组织者 → 违反原则 7。书记质问"为什么反复没有检查出来"。
+
+**根因**：
+1. **以"删除目标"而非"读端消费"为搜索起点**——一改具改只查被删字段的残留，没查同语义字段（顶层 organizer 与 assignments.organizer 是同一语义的两份拷贝）
+2. **未把设计原则翻译成可执行检查项**——原则 7 的布尔条件（`parent_record[byproduct] == 所有入口读取值`）没有被固化为"新增主源后必须 grep 同语义旧字段的全部读端"这一动作
+3. **种子字段与运行时写入字段编码不一致未被发现**——种子 organizer 是 personId、运行时是角色名，两套编码共存无人核对
+
+**纠正（可执行清单）**：
+1. 引入主源字段时，先 grep 同语义旧字段（如 `\.organizer\b`）的全部读端，逐一确认"读主源或读同步派生字段"
+2. 主源变更写入点（authorize/syncProjectRoles）必须同步派生字段（activity.organizer = 首个 organizer personId），保证旧读端不破
+3. 全仓 grep 同类语义字段的**编码一致性**（personId vs 角色名），发现混用立即修正
+4. 计划文件 Self-Review 增加"同语义字段读端审计"条目，作为强制检查项
+
+**生效条件**：任何"新增主源/收敛数据源"类任务适用。判断标准：被重构字段是否被 5 个以上文件消费 → 必须做读端全量审计。
