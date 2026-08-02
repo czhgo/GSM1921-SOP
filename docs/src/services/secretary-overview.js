@@ -166,11 +166,11 @@ export const SecretaryOverviewStore = {
       tf.status === 'active' || tf.status === 'recruiting'
     ).length;
 
-    // 待赋权活动数（bottom-up 且未授权）
+    // 待赋权活动数（bottom-up 且主源 assignments 中无组织者）
     const pendingAuth = activities.filter(a =>
       !a.archived &&
       a.direction === 'bottom-up' &&
-      !(a.authorizedBy || a.authorized)
+      !(a.assignments || []).some(x => x.role === 'organizer')
     ).length;
 
     // 复盘完成率

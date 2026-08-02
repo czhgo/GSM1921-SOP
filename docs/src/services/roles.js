@@ -5,7 +5,7 @@
 //  assignedRoles 遗留键（sop_org_os_assigned_roles）已删除，启动时清一次存储残留
 // ================================================================
 
-import { AuthStore } from './auth.js';
+import { PEOPLE } from '../mock/index.js';
 
 // 遗留键清理（P2-6）：sop_org_os_assigned_roles 已无调用方，此处清一次存储残留
 try { localStorage.removeItem('sop_org_os_assigned_roles'); } catch (_) {}
@@ -21,7 +21,8 @@ export function computeSecretaryStats(activities, nowOverride) {
     if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) {
       monthEvents++;
     }
-    if (a.direction === 'bottom-up' && !(a.authorizedBy || a.authorized)) {
+    // 待赋权 = bottom-up 活动且主源 assignments 中无组织者（读主源，非幽灵字段 authorizedBy）
+    if (a.direction === 'bottom-up' && !(a.assignments || []).some(x => x.role === 'organizer')) {
       pendingAuth++;
     }
   });
@@ -30,8 +31,8 @@ export function computeSecretaryStats(activities, nowOverride) {
     activeEvents,
     monthEvents,
     pendingAuth,
-    // 已赋权记录：以 AuthStore 实际 leader 赋权为准（mock 已含 3 位党小组组长）
-    authGranted: AuthStore.getAuthorizations().filter(r => r.role === 'leader').length,
+    // 已赋权组长 = PEOPLE 主源预设（leader 为常设角色，存于 mock 人员数据）
+    authGranted: PEOPLE.filter(p => p.role === 'leader').length,
     archivedEvents,
   };
 }
