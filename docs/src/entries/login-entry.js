@@ -4,7 +4,7 @@
 
 import { AuthStore } from '../services/auth.js';
 import { mockLogin } from '../mock/accounts.js';
-import { ROLE_LABELS, getAccentColors } from '../core/constants.js';
+import { getAccentColors } from '../core/constants.js';
 
 // 已登录则直接跳转
 const user = AuthStore.getCurrentUser();

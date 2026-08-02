@@ -152,7 +152,7 @@ export class PersonPicker {
     // 触发按钮
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'person-picker-trigger font-stheiti';
+    btn.className = 'person-picker-trigger ';
 
     if (hasSelection) {
       if (this._mode === 'multi') {
@@ -254,12 +254,12 @@ export class PersonPicker {
     header.className = 'person-picker-header';
     header.innerHTML = `
       <div class="person-picker-header-row">
-        <h4 class="person-picker-title font-stheiti">选择人员</h4>
+        <h4 class="person-picker-title ">选择人员</h4>
         <button type="button" class="person-picker-close-btn">
           ${icon('close', { stroke: '#6B7280', className: 'w-3.5 h-3.5' })}
         </button>
       </div>
-      <input type="text" class="person-picker-search font-stheiti" placeholder="搜索姓名或学号..." />
+      <input type="text" class="person-picker-search " placeholder="搜索姓名或学号..." />
     `;
     panel.appendChild(header);
 
@@ -281,7 +281,7 @@ export class PersonPicker {
     groups.forEach(group => {
       const tab = document.createElement('button');
       tab.type = 'button';
-      tab.className = 'person-picker-tab font-stheiti';
+      tab.className = 'person-picker-tab ';
       tab.textContent = group === '全部' ? '全部' : group.replace('党小组', '');
       tab.dataset.group = group;
 
@@ -313,13 +313,13 @@ export class PersonPicker {
       footer.className = 'person-picker-footer';
 
       const countSpan = document.createElement('span');
-      countSpan.className = 'person-picker-count font-stheiti';
+      countSpan.className = 'person-picker-count ';
       countSpan.textContent = `已选 ${this._selected.size} 人`;
       footer.appendChild(countSpan);
 
       const confirmBtn = document.createElement('button');
       confirmBtn.type = 'button';
-      confirmBtn.className = 'person-picker-confirm font-stheiti';
+      confirmBtn.className = 'person-picker-confirm ';
       confirmBtn.textContent = '确认选择';
       confirmBtn.addEventListener('click', () => {
         this._fireOnSelect();
@@ -379,7 +379,7 @@ export class PersonPicker {
 
     if (people.length === 0) {
       listEl.innerHTML = `
-        <div class="person-picker-empty font-stheiti">
+        <div class="person-picker-empty ">
           ${this._searchQuery ? '未找到匹配的人员' : '暂无可选人员'}
         </div>
       `;
@@ -393,7 +393,7 @@ export class PersonPicker {
       const roleLabel = person.role ? (ROLE_LABELS[person.role] || person.role) : '';
 
       return `
-        <div class="person-picker-item font-stheiti ${isSelected ? 'selected' : ''}"
+        <div class="person-picker-item  ${isSelected ? 'selected' : ''}"
              data-person-id="${person.id}">
           <div class="person-picker-item-avatar">
             ${person.name.charAt(0)}

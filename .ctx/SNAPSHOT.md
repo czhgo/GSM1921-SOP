@@ -31,10 +31,9 @@ GSM1921-SOP/
 │   ├── search.html             ← 资料查询
 │   ├── feedback.html           ← 意见反馈
 │   ├── help.html               ← 帮助与探索工作页面
-│   ├── members.html            ← 成员视图（人全景只读）
 │   ├── login.html              ← 登录页
 │   ├── workspace/              ← 角色工作台页面（6 个 HTML，党建+党务+待办合一）
-│   │   ├── secretary.html      ← 书记工作台（工作台+常设赋权+issue管理+通知发布+待办）
+│   │   ├── secretary.html      ← 书记工作台（工作台+赋权管理+issue管理+通知发布+待办）
 │   │   ├── leader.html         ← 党小组组长工作台（活动写入+考勤上传+考察上传+复盘提交+待办）
 │   │   ├── org.html            ← 组织委员工作台（考察上传+专班管理+人才库+发展党员+待办）
 │   │   ├── prop.html           ← 宣传委员工作台（宣传任务+项目看板+档案归档+周报报送+待办）
@@ -98,9 +97,8 @@ GSM1921-SOP/
 | `index.html` | 入口 | 主页（通知/招募/日历/待办） |
 | `notice.html` | 独立 | 通知独立页 |
 | `help.html` | 独立 | 帮助与探索工作页面（角色体系+发展路径可视化） |
-| `members.html` | 独立 | 成员视图（人全景只读） |
 | `login.html` | 独立 | 登录页 |
-| `workspace/secretary.html` | 子页面 | 书记工作台（工作台+常设赋权+issue管理+通知发布+待办） |
+| `workspace/secretary.html` | 子页面 | 书记工作台（工作台+赋权管理+issue管理+通知发布+待办） |
 | `workspace/leader.html` | 子页面 | 党小组组长工作台（活动写入+考勤上传+考察上传+复盘提交+待办） |
 | `workspace/org.html` | 子页面 | 组织委员工作台（考察上传+专班管理+人才库+发展党员+待办） |
 | `workspace/prop.html` | 子页面 | 宣传委员工作台（宣传任务+项目看板+档案归档+周报报送+待办） |

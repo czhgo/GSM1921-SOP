@@ -130,12 +130,12 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
   const daysInMonth = new Date(y, m, 0).getDate();
 
   let html = `<div class="mb-6">`;
-  html += `<div class="font-stheiti text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${y}年 ${MN[m - 1]}</div>`;
-  html += `<div class="${isMobile ? 'cal-mobile-grid' : ''}" style="display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:1fr;gap:2px;">`;
-  DN.forEach(d => { html += `<div class="font-stheiti text-[12px] text-gray-400 text-center pb-1.5 font-semibold">${d}</div>`; });
+  html += `<div class=" text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${y}年 ${MN[m - 1]}</div>`;
+  html += `<div class="${isMobile ? 'cal-mobile-grid' : ''}" style="display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:auto;gap:2px;">`;
+  DN.forEach(d => { html += `<div class=" text-[12px] text-gray-400 text-center pb-1.5 font-semibold">${d}</div>`; });
 
   for (let i = 0; i < firstDow; i++) {
-    html += '<div class="cal-cell-large" style="background:transparent;border-color:transparent;"></div>';
+    html += '<div class="cal-cell-large cal-cell-compact" style="background:transparent;border-color:transparent;"></div>';
   }
   for (let day = 1; day <= daysInMonth; day++) {
     const k = `${month}-${String(day).padStart(2, '0')}`;
@@ -147,7 +147,7 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
     if (isT) cls += ' is-today';
 
     html += `<div class="${cls}" data-date="${k}">`;
-    html += `<div class="font-stheiti ${isMobile ? 'text-xs' : 'text-[12px]'} font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${day}</div>`;
+    html += `<div class=" ${isMobile ? 'text-xs' : 'text-[12px]'} font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${day}</div>`;
     if (isMobile) {
       html += _renderMobileDots(k, activeActivities, ct, hasActivity, tasks, state);
     } else {
@@ -181,7 +181,7 @@ function _renderCompactCellContent(dateKey, activeActivities, ct, hasActivity, t
             `<span class="cal-activity-dot" style="background:${color.text};"></span>` +
             `<span>${shortLabel}</span></div>`;
   });
-  if (dayActs.length > 3) html += `<div class="font-stheiti text-[11px] text-gray-400 text-center mt-0.5">+${dayActs.length - 3} 项</div>`;
+  if (dayActs.length > 3) html += `<div class=" text-[11px] text-gray-400 text-center mt-0.5">+${dayActs.length - 3} 项</div>`;
   // 无活动时才显示任务标签（紧凑，最多 2 条，避免挤爆方形格）
   if (dayActs.length === 0) {
     const dayActIds = new Set(dayActs.map(a => a.id));
@@ -222,14 +222,14 @@ function _renderWeekView(grid, activeActivities, tasks, month, state) {
 
   let html = `<div class="mb-6">`;
   html += `<div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">`;
-  html += `<span class="font-stheiti text-sm font-bold text-gray-700">${weekStart.getFullYear()}年 第${_getWeekNumber(weekStart)}周</span>`;
+  html += `<span class=" text-sm font-bold text-gray-700">${weekStart.getFullYear()}年 第${_getWeekNumber(weekStart)}周</span>`;
   html += `<div class="flex gap-1">`;
   html += `<button id="cal-week-prev" class="text-xs px-2 py-1 rounded border border-gray-200 hover:bg-gray-50">上一周</button>`;
   html += `<button id="cal-week-next" class="text-xs px-2 py-1 rounded border border-gray-200 hover:bg-gray-50">下一周</button>`;
   html += `</div></div>`;
 
   html += `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">`;
-  DN.forEach(d => { html += `<div class="font-stheiti text-[12px] text-gray-400 text-center pb-1 font-semibold">${d}</div>`; });
+  DN.forEach(d => { html += `<div class=" text-[12px] text-gray-400 text-center pb-1 font-semibold">${d}</div>`; });
 
   for (let i = 0; i < 7; i++) {
     const d = new Date(weekStart);
@@ -244,7 +244,7 @@ function _renderWeekView(grid, activeActivities, tasks, month, state) {
     if (k === selectedDate) cls += ' selected';
 
     html += `<div class="${cls}" data-date="${k}" style="min-height:8rem;">`;
-    html += `<div class="font-stheiti text-[12px] font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${d.getDate()}</div>`;
+    html += `<div class=" text-[12px] font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${d.getDate()}</div>`;
     html += _renderCellContent(k, activeActivities, ct, hasActivity, tasks, state, 8);
     html += '</div>';
   }
@@ -287,7 +287,7 @@ function _renderDayView(grid, activeActivities, tasks, month, state) {
 
   let html = `<div class="mb-6">`;
   html += `<div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">`;
-  html += `<span class="font-stheiti text-sm font-bold text-gray-700">${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 周${WEEKDAY[d.getDay()]}</span>`;
+  html += `<span class=" text-sm font-bold text-gray-700">${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 周${WEEKDAY[d.getDay()]}</span>`;
   html += `<div class="flex gap-1">`;
   html += `<button id="cal-day-prev" class="text-xs px-2 py-1 rounded border border-gray-200 hover:bg-gray-50">前一天</button>`;
   html += `<button id="cal-day-next" class="text-xs px-2 py-1 rounded border border-gray-200 hover:bg-gray-50">后一天</button>`;
@@ -351,7 +351,7 @@ function _renderListView(grid, activeActivities, tasks, month, state) {
   monthActivities.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   let html = `<div class="mb-6">`;
-  html += `<div class="font-stheiti text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${y}年${m}月 活动列表</div>`;
+  html += `<div class=" text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${y}年${m}月 活动列表</div>`;
 
   if (monthActivities.length === 0) {
     html += `<p class="text-xs text-gray-400 text-center py-8">本月无活动</p>`;
@@ -362,7 +362,7 @@ function _renderListView(grid, activeActivities, tasks, month, state) {
         lastDate = act.date;
         const d = new Date(act.date);
         const WEEKDAY = ['日','一','二','三','四','五','六'];
-        html += `<div class="font-stheiti text-xs font-bold text-gray-500 mt-3 mb-1.5 pb-1 border-b border-gray-100">${d.getMonth()+1}月${d.getDate()}日 周${WEEKDAY[d.getDay()]}</div>`;
+        html += `<div class=" text-xs font-bold text-gray-500 mt-3 mb-1.5 pb-1 border-b border-gray-100">${d.getMonth()+1}月${d.getDate()}日 周${WEEKDAY[d.getDay()]}</div>`;
       }
       const color = getActivityColor(act);
       html += `<div class="flex items-center gap-2 p-2.5 rounded-lg hover:bg-gray-50 cursor-pointer cal-list-item" data-act-id="${act.id}" data-date="${act.date}">`;
@@ -402,7 +402,7 @@ function _renderCellContent(dateKey, activeActivities, ct, hasActivity, tasks, s
               `<span class="cal-activity-dot" style="background:${color.text};"></span>` +
               `<span class="truncate">${act.title || ''}</span></div>`;
     });
-    if (dayActs.length > maxItems) html += `<div class="font-stheiti text-[11px] text-gray-400 text-center mt-0.5">+${dayActs.length - maxItems} 项活动</div>`;
+    if (dayActs.length > maxItems) html += `<div class=" text-[11px] text-gray-400 text-center mt-0.5">+${dayActs.length - maxItems} 项活动</div>`;
   } else {
     // 管理视图：先渲染活动条目（可点击进入详情）
     const dayActs = activeActivities.filter(a => a.date === dateKey);
@@ -413,7 +413,7 @@ function _renderCellContent(dateKey, activeActivities, ct, hasActivity, tasks, s
                 `<span class="cal-activity-dot" style="background:${color.text};"></span>` +
                 `<span class="truncate">${act.title || ''}</span></div>`;
       });
-      if (dayActs.length > maxItems) html += `<div class="font-stheiti text-[11px] text-gray-400 text-center mt-0.5">+${dayActs.length - maxItems} 项活动</div>`;
+      if (dayActs.length > maxItems) html += `<div class=" text-[11px] text-gray-400 text-center mt-0.5">+${dayActs.length - maxItems} 项活动</div>`;
     } else if (hasActivity) {
       // 仅有活动标记但无具体活动条目时，保留原角色点指示
       const dateActRoles = activeActivities.filter(a => a.date === dateKey).map(a => a.executor || 'all');
@@ -442,7 +442,7 @@ function _renderCellContent(dateKey, activeActivities, ct, hasActivity, tasks, s
               `<span class="task-dot" style="background:${c.text};"></span>` +
               `<span class="truncate">${t.title}</span></div>`;
     });
-    if (focusedTasks.length > maxItems) html += `<div class="font-stheiti text-[11px] text-gray-400 mt-0.5">+${focusedTasks.length - maxItems} 项任务</div>`;
+    if (focusedTasks.length > maxItems) html += `<div class=" text-[11px] text-gray-400 mt-0.5">+${focusedTasks.length - maxItems} 项任务</div>`;
   }
   return html;
 }
@@ -563,7 +563,7 @@ function _showMobileDayDetail(dateKey, activeActivities, tasks, state) {
   const filteredTasks = filterTasksByManagementRole(allTasks, managementRole);
 
   let html = `<div class="cal-mobile-detail-header">`;
-  html += `<span class="font-stheiti text-sm font-bold text-gray-700">${d.getMonth()+1}月${d.getDate()}日 周${WEEKDAY[d.getDay()]}</span>`;
+  html += `<span class=" text-sm font-bold text-gray-700">${d.getMonth()+1}月${d.getDate()}日 周${WEEKDAY[d.getDay()]}</span>`;
   html += `<button id="cal-mobile-detail-close" class="cal-mobile-detail-close">&times;</button>`;
   html += `</div>`;
 
@@ -811,12 +811,12 @@ function _renderMonthViewCompact(grid, activeActivities, month, state) {
   const daysInMonth = new Date(y, m, 0).getDate();
 
   let html = `<div class="mb-6">`;
-  html += `<div class="font-stheiti text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${y}年 ${MN[m - 1]}</div>`;
-  html += `<div style="display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:1fr;gap:2px;">`;
-  DN.forEach(d => { html += `<div class="font-stheiti text-[12px] text-gray-400 text-center pb-1.5 font-semibold">${d}</div>`; });
+  html += `<div class=" text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${y}年 ${MN[m - 1]}</div>`;
+  html += `<div style="display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:auto;gap:2px;">`;
+  DN.forEach(d => { html += `<div class=" text-[12px] text-gray-400 text-center pb-1.5 font-semibold">${d}</div>`; });
 
   for (let i = 0; i < firstDow; i++) {
-    html += '<div class="cal-cell-large" style="background:transparent;border-color:transparent;"></div>';
+    html += '<div class="cal-cell-large cal-cell-compact" style="background:transparent;border-color:transparent;"></div>';
   }
   for (let day = 1; day <= daysInMonth; day++) {
     const k = `${month}-${String(day).padStart(2, '0')}`;
@@ -827,7 +827,7 @@ function _renderMonthViewCompact(grid, activeActivities, month, state) {
     if (isT) cls += ' is-today';
 
     html += `<div class="${cls} cal-cell-compact" data-date="${k}">`;
-    html += `<div class="font-stheiti text-[12px] font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${day}</div>`;
+    html += `<div class=" text-[12px] font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${day}</div>`;
     const dayActs = activeActivities.filter(a => a.date === k);
     dayActs.slice(0, 3).forEach(act => {
       const color = getActivityColor(act);
@@ -836,7 +836,7 @@ function _renderMonthViewCompact(grid, activeActivities, month, state) {
               `<span class="cal-activity-dot" style="background:${color.text};"></span>` +
               `<span>${shortLabel}</span></div>`;
     });
-    if (dayActs.length > 3) html += `<div class="font-stheiti text-[11px] text-gray-400 text-center mt-0.5">+${dayActs.length - 3} 项</div>`;
+    if (dayActs.length > 3) html += `<div class=" text-[11px] text-gray-400 text-center mt-0.5">+${dayActs.length - 3} 项</div>`;
     html += '</div>';
   }
   html += '</div></div>';

@@ -5,12 +5,11 @@
 //  产出：进度条 · 状态标签 · 子状态面板 · 阻塞横幅
 // ════════════════════════════════════════════════════════════════
 
-import { WorkflowEngine, createEngine } from './engine.js';
+import { WorkflowEngine } from './engine.js';
 import {
   THEME_PARTY_DAY_DEFINITION,
   SHORT_TERM_DEFINITION,
   LONG_TERM_DEFINITION,
-  getDefinition,
 } from './definitions.js';
 import { icon } from '../core/icons.js';
 
@@ -25,7 +24,7 @@ const TEMPLATE_REGISTRY = {
 //  WorkflowRenderer
 // ════════════════════════════════════════════════════════════════
 
-export class WorkflowRenderer {
+class WorkflowRenderer {
 
   /**
    * @param {WorkflowEngine} engine - 已启动的引擎实例

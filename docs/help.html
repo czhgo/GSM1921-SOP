@@ -45,40 +45,6 @@
   </main>
 </div>
 
-<script>
-  // 诊断：确认页面加载
-  console.log('[diag] help.html loaded, DOM ready');
-  window.addEventListener('error', (e) => {
-    console.error('[diag] window error:', e.message, e.filename, e.lineno);
-  });
-  window.addEventListener('unhandledrejection', (e) => {
-    console.error('[diag] unhandled promise rejection:', e.reason);
-  });
-  // 页面加载后检查 SVG 渲染状态
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      const scene = document.querySelector('.help-exploration-scene');
-      console.log('[diag] exploration scene found:', !!scene);
-      if (scene) {
-        const svg = scene.querySelector('svg.help-network-svg');
-        console.log('[diag] svg found:', !!svg);
-        if (svg) {
-          const r = svg.getBoundingClientRect();
-          const cs = window.getComputedStyle(svg);
-          console.log('[diag] svg rect:', JSON.stringify({w:r.width,h:r.height,x:r.x,y:r.y}), 'display:', cs.display, 'visibility:', cs.visibility);
-        }
-        const node = scene.querySelector('.help-node-svg');
-        if (node) {
-          const nr = node.getBoundingClientRect();
-          const ncs = window.getComputedStyle(node);
-          console.log('[diag] first node rect:', JSON.stringify({w:nr.width,h:nr.height}), 'opacity:', ncs.opacity, 'display:', ncs.display);
-        } else {
-          console.log('[diag] no .help-node-svg found in scene');
-        }
-      }
-    }, 1500);
-  });
-</script>
 <script type="module" src="./src/entries/help-entry.js?v=20260801b"></script>
 </body>
 </html>

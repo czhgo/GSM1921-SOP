@@ -1,22 +1,22 @@
-import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
+import { setState, registerRenderCallback } from '../core/state.js';
 import { showToast } from '../core/utils.js';
 import { CrossPageState } from '../core/cross-page-state.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js';
 import { persist } from '../core/data-adapter.js';
-import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, reviewToDisplay, PEOPLE, getPersonName } from '../mock/index.js';
+import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, reviewToDisplay, getPersonName } from '../mock/index.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { renderTabBar } from '../components/tab-bar.js';
 import { openFormModal } from '../components/modal.js';
 import { loadHandoverRecords, updateHandoverRecord } from '../services/handover.js';
 import { autoGenerateMakeupTask, loadMakeupTasks, saveMakeupTasks } from '../services/makeup.js';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js';
-import { loadInspectionRecords, saveInspectionRecords, getOverdueRecords, getRecordsBySource, getRecordsByPerson, confirmInspectionRecord, deleteInspectionRecord } from '../services/inspection.js';
+import { loadInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../services/inspection.js';
 import { loadActivities } from '../services/activity.js';
 import { loadActivityReviews, loadTaskforceReviews } from '../services/review.js';
 import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js';
 import { renderTodoList } from '../components/todo-list.js';
-import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js';
+import { TodoStore } from '../services/todo.js';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'disc-commissioner' });
 
@@ -816,83 +816,6 @@ function _discFormatTime(isoStr) {
   const d = new Date(isoStr);
   const pad = n => String(n).padStart(2, '0');
   return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-/** 渲染数据交接 Tab 内容（纪检委员视角） */
-function _renderHandoverContent() {
-  const container = document.getElementById('disc-tab-content');
-  if (!container) return;
-
-  const allRecords = loadHandoverRecords();
-
-  // 按状态分组
-  const inProgressRecords = allRecords.filter(r => r.status === 'in_progress');
-  const submittedRecords = allRecords.filter(r => r.status === 'submitted');
-  const confirmedRecords = allRecords.filter(r => r.status === 'confirmed');
-
-  container.innerHTML = `
-    <div class="space-y-4">
-      <!-- 统计概览 -->
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner);">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">数据交接概览</h4>
-        <div class="flex gap-4 text-xs">
-          <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-            <span class="text-gray-600">进行中</span>
-            <span class="font-bold text-blue-700">${inProgressRecords.length}</span>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-orange-500"></span>
-            <span class="text-gray-600">已提交</span>
-            <span class="font-bold text-orange-700">${submittedRecords.length}</span>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-green-500"></span>
-            <span class="text-gray-600">已确认</span>
-            <span class="font-bold text-green-700">${confirmedRecords.length}</span>
-          </div>
-        </div>
-        <div class="text-xs text-gray-500 mt-2">所有交接数据汇总到纪检委员处，纪检委员有义务催促未完成交接的组织者</div>
-      </div>
-
-      <!-- 进行中 -->
-      ${inProgressRecords.length > 0 ? `
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner);">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">进行中的交接</h4>
-        <div class="text-xs text-gray-500 mb-3">组织者正在填写交接数据，可催促其尽快完成</div>
-        <div class="space-y-2" id="disc-handover-in-progress">
-          ${inProgressRecords.map(r => _renderDiscHandoverRecord(r, 'in_progress')).join('')}
-        </div>
-      </div>
-      ` : ''}
-
-      <!-- 已提交 -->
-      ${submittedRecords.length > 0 ? `
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner);">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">待确认的交接</h4>
-        <div class="text-xs text-gray-500 mb-3">组织者已提交交接数据，请审核后确认</div>
-        <div class="space-y-2" id="disc-handover-submitted">
-          ${submittedRecords.map(r => _renderDiscHandoverRecord(r, 'submitted')).join('')}
-        </div>
-      </div>
-      ` : ''}
-
-      <!-- 已确认 -->
-      ${confirmedRecords.length > 0 ? `
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner-light);">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">已确认的交接</h4>
-        <div class="text-xs text-gray-500 mb-3">交接数据已确认完成</div>
-        <div class="space-y-2" id="disc-handover-confirmed">
-          ${confirmedRecords.map(r => _renderDiscHandoverRecord(r, 'confirmed')).join('')}
-        </div>
-      </div>
-      ` : ''}
-
-      ${allRecords.length === 0 ? '<div class="card rounded-xl p-5 text-center"><p class="text-xs text-gray-400 py-6">暂无交接记录</p></div>' : ''}
-    </div>
-  `;
-
-  _bindDiscHandoverEvents();
 }
 
 /** 渲染单条交接记录（纪检委员视角） */

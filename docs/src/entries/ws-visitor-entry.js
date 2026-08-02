@@ -1,11 +1,11 @@
-import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
-import { _fmtDate, showToast } from '../core/utils.js';
+import { setState, registerRenderCallback } from '../core/state.js';
+import { showToast } from '../core/utils.js';
 import { CrossPageState } from '../core/cross-page-state.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { NoticeStore } from '../services/notice.js';
 import { AuthStore } from '../services/auth.js';
-import { PEOPLE, _personName } from '../mock/index.js';
+import { PEOPLE } from '../mock/index.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { loadAttendanceRecords } from '../services/attendance.js';
 import { loadInspectionRecords } from '../services/inspection.js';
@@ -16,7 +16,7 @@ import { renderTabBar } from '../components/tab-bar.js';
 import { icon } from '../core/icons.js';
 import { renderQueryView } from '../components/query-view.js';
 import { renderTodoList } from '../components/todo-list.js';
-import { TodoStore, seedTodos, TodoStatus, VisitorTodoDeriver } from '../services/todo.js';
+import { TodoStore, seedTodos, VisitorTodoDeriver } from '../services/todo.js';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'participant' });
 

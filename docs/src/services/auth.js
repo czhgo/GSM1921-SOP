@@ -238,6 +238,8 @@ export const AuthStore = {
 
   /**
    * 开发模式直接登录（选身份）
+   * 附带清除各工作台 Tab 缓存记忆（workflowos_tab_*），
+   * 使开发模式打开页面始终显示默认 Tab（书记 2026-08-02 反馈"浏览器缓存干扰默认显示"）。
    * @param {string} role
    */
   devLogin(role) {
@@ -245,6 +247,15 @@ export const AuthStore = {
     const person = PEOPLE.find(p => p.role === role);
     const personId = person ? person.id : 'p5';
     _writeLogin({ personId, role });
+    // 开发模式默认显示：清除 Tab 记忆，打开页面显示 defaultTab
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('workflowos_tab_')) {
+          localStorage.removeItem(k);
+        }
+      }
+    } catch (_) { /* localStorage 不可用时静默降级 */ }
   },
 
   logout() {

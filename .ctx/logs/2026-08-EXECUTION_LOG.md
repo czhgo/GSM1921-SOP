@@ -419,7 +419,7 @@ related_files:
   - **A-01** 首页统计卡图标底色：`main-entry.js` color 统一 hex 常量 + `${hex}15` 8 位 hex 拼接（修复 var+hex 后缀无法解析）
   - **A-02** 考勤弹窗：clamp 定位（`Math.min(rect.left + window.scrollX, innerWidth - POPOVER_WIDTH - 8)`），修正滚动错位
   - **A-03** 活动风采：保留渐变但按日期最新在前（`(b.date||'').localeCompare(a.date||'')`）
-  - **A-05** 全量字号上调一档：19 个 JS 文件 `text-[11px]`→`text-xs`（218 处）、`text-[10px]`→`text-[11px]`、日历 9.6px→10px、tab 分组 9px→10px；细体范围=仅徽标（3 个 rounded-full chip 选择器）+ 日历标签用华文仿宋【细体】（styles.css 新增 font-family 规则）
+  - **A-05** 全量字号上调一档：19 个 JS 文件 `text-[11px]`→`text-xs`（218 处）、`text-[10px]`→`text-[11px]`、日历 9.6px→10px、tab 分组 9px→10px；细体范围=仅徽标（3 个 rounded-full chip 选择器）+ 日历标签用华文仿宋【细体】（styles.css 新增 font-family 规则）→【华文仿宋已于 2026-08-02 由书记撤回，styles.css 字体规则全仓清理删除，恢复默认字体，见 D-268】
   - **A-06** 纪检左边条：仅保留每 tab 首个主卡片左边条（6 个可见 tab 各仅首个主卡留条）
   - **A-07** 纪检颜色统一：硬编码 `#C2410C/#D97706` 清零 + 收尾 3 处 JS 注入 `${accent}`→`var(--accent-disc-commissioner)`
   - **A-08→P.9** 书记全局概况重设计：`_renderOverviewContent()` 从 2x2 四色卡片重写为**单列进度总览**——4 行卡片（考勤与纪律/发展与考察/活动与专班/宣传与档案），每行图标+标题+进度条（`var(--accent-secretary)`）或发展四阶段堆叠段条（灰/蓝/黄/红+图例）+ 指标 chips（异常值 `text-orange-600`）；顶部说明"党支部整体运行态势 · 只看进行时和未完成"；设计初衷写入 CLAUDE.md 丙部 P.9 与函数头注释
@@ -436,4 +436,23 @@ related_files:
   - **CLAUDE.md**：乙部 T-188 → ✅ 完成；丙部 P.9 → 删除（生命周期闭环）
 - **变更文件**：`docs/src/entries/main-entry.js`、`docs/src/entries/ws-secretary-entry.js`、`docs/src/entries/ws-disc-commissioner-entry.js`、`docs/src/entries/ws-leader-entry.js`、`docs/src/entries/ws-org-commissioner-entry.js`、`docs/src/entries/ws-prop-commissioner-entry.js`、`docs/src/entries/ws-visitor-entry.js`、`docs/src/entries/archive-entry.js`、`docs/src/entries/notice-entry.js`、`docs/src/components/calendar.js`、`docs/src/components/header.js`、`docs/src/components/inspector.js`、`docs/src/components/issue-detail.js`、`docs/src/components/issue-list.js`、`docs/src/components/tab-bar.js`、`docs/src/components/todo-list.js`、`docs/src/components/custom-select.js`（新）、`docs/src/modules/party.js`、`docs/src/services/issues.js`、`docs/src/services/notice.js`、`docs/src/services/auth.js`、`docs/src/styles.css`、`CLAUDE.md`、`.ctx/REVIEW_QUEUE.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）、`.ctx/logs/2026-08-DECISION_LOG.md`
 - **git 提交**：待书记确认后 push
-- **沉淀标签**：`[已沉淀: content/insights/工程演进与设计方法论.md §4.14]` — 审美审计轮方法论：①字号档位碎片（9/9.6/10/11px 四档并存）是"视觉细碎感"的隐蔽根因，统一档位需全仓 grep 清零式替换；②小字/小徽标用系统衬线细体（华文仿宋）可降低"廉价感"，但范围必须收敛（仅徽标+日历标签）；③审计→评议→分步修复→验证沉淀四里程碑闭环，修复项必须先有 computed style 数值证据再动手
+- **沉淀标签**：`[已沉淀: content/insights/工程演进与设计方法论.md §4.14]` — 审美审计轮方法论：①字号档位碎片（9/9.6/10/11px 四档并存）是"视觉细碎感"的隐蔽根因，统一档位需全仓 grep 清零式替换；②~~小字/小徽标用系统衬线细体（华文仿宋）可降低"廉价感"，但范围必须收敛（仅徽标+日历标签）~~→ 已撤回：书记判定【华文仿宋】不好看，2026-08-02 全仓清理，教训见 §4.14「字体选择撤回教训」与 D-268；③审计→评议→分步修复→验证沉淀四里程碑闭环，修复项必须先有 computed style 数值证据再动手
+
+## T189 最小三成本·书记工作台跳转优化轮（2026-08-02）
+
+**任务**：承接书记五项指令——①开发模式默认显示（清浏览器缓存）②members.html 存废评估 ③华文仿宋字体撤回全仓清理 ④纯白卡片 vs 左侧边线分析 ⑤最小成本原则（"至多跳转 2 次，一般 1 次，能就地解决就地解决"）
+**引用流程**：H1.2 执行 + brainstorming + web-design-guidelines + sample-diff-learning + verification-before-completion + AskUserQuestion 逐项裁定
+**来源**：书记（2026-08-02）"现在的工作流还不够满足最小成本的原则——需要操作的功能都要跳转很多次。这是绝对不允许的！我认为至多跳转2次。一般跳转1次就要实现功能，能就地解决的固然就就地解决最好！！"
+
+- **① devLogin 清 tab 缓存**：`auth.js` `devLogin()` 登录时遍历清除所有 `workflowos_tab_*` 键（try/catch 静默降级），开发模式打开各角色页面恢复默认 tab（书记=待办）。浏览器验证通过
+- **② members.html 存废**：书记裁定删除 + 项目赋权迁入书记工作台「赋权管理」tab（原常设赋权 tab 更名）。删除 `docs/members.html` + `docs/src/entries/members-entry.js` + 依赖的 `party-cross-nav.js`/`permission-manager.js` 等；迁移 4 个函数（`_renderProjectAuthPanel`/`_bindProjectTypeSwitch`/`_bindConfirmProjectAuth`/`_renderProjectAuthRecords`），`loadWorkspaceData` 补传 `storeInits: [() => TaskForceRecordStore.init()]` 修复专班下拉为空 bug。CHECKLIST.md / SNAPSHOT.md 引用同步替换
+- **③ 华文仿宋字体撤回**：styles.css 中华文仿宋字体栈声明 + A-05 细体规则块删除（恢复默认字体），CLAUDE.md / insights §4.14 / 双日志标注撤回，决策归档 D-268
+- **④ 边线语义分析**：确认有逻辑非随机——`border-l-4` 角色主题色=职责核心卡、4px 强调色=可交互高亮（hover 加深）、3px=引述要点、1-2px 灰=嵌套时间线、纯白=中性内容容器；沉淀 DESIGN_SYSTEM.md §4.2「边线语义（Border-Left Semantics）」
+- **⑤ 最小三成本三连（t5a/t5b/t5c）**：
+  - **t5a** 考勤概况卡：删无效跳转 `disc.html?mode=readonly`（3 步死链），改卡片内「查看明细/收起明细」就地展开只读明细（活动标题/日期/出勤率/缺勤+请假人名），书记只读监督不越界
+  - **t5b** 全局概况四卡：alert 指标旁加「催办」按钮（缺勤/补课/考察待确认/考察超期→纪检委员、待归档→宣传委员，走 `NoticeStore.add()` 通知+待办派生，未来接北大学生邮箱）；「赋权待审批」加「直达」按钮（切本人赋权管理 tab）
+  - **t5c** 待办行动按钮：切 tab 后按 `actionData.scope` 自动展开目标面板——scope=leader 自动展开设组长面板、scope=activity/taskforce 预选项目类型与项目并滚动到表单
+- **浏览器验证（browser_use 6 项全通过）**：默认待办 tab ✓ / 考勤概况就地展开明细（无跳转、人名齐全）✓ / 全局概况 4 催办+1 直达按钮 + toast 成功 ✓ / 直达跳转 ✓ / 待办去赋权自动展开设组长面板 ✓ / console 无应用级 JS 错误 ✓
+- **变更文件**：`docs/src/entries/ws-secretary-entry.js`、`docs/src/services/auth.js`、`docs/src/styles.css`、`docs/members.html`（删）、`docs/src/entries/members-entry.js`（删）、`docs/src/components/party-cross-nav.js`（删）、`docs/src/services/permission-manager.js`（删）、`docs/src/services/assignment.js`（删）、`docs/src/mock/party.js`（删）、`docs/src/modules/party.js`（删）、`docs/src/workflow/activityRecord.js`（删）、`content/03_doc_system/CHECKLIST.md`、`content/04_web_design/DESIGN_SYSTEM.md`、`.ctx/SNAPSHOT.md`、`CLAUDE.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）、`.ctx/logs/2026-08-DECISION_LOG.md`
+- **git 提交**：待书记确认后 push
+- **沉淀标签**：`[已沉淀: content/04_web_design/DESIGN_SYSTEM.md §4.2 边线语义]` — 左侧边线是"强调/可交互/角色归属"的视觉编码（4px 强调色可交互 + border-l-4 角色主题色职责卡 + 3px 引述 + 1-2px 灰嵌套），纯白是中性内容容器，区分有逻辑非随机；`[已决策: D-268 华文仿宋撤回]` — 字体选择应先小范围打样并经书记确认后再推广，避免全仓铺开后返工；`[经验: 就地解决 > 1 跳 > 2 跳]` — 跨页死链参数（disc.html?mode=readonly）是无操作价值的无效跳转，审计时应全仓 grep 参数使用是否真的被读取

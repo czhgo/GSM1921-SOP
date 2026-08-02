@@ -1,17 +1,16 @@
-import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js';
 import { BranchService } from '../services/runtime.js';
-import { _fmtDate, showToast, _currentYearMonth } from '../core/utils.js';
+import { _fmtDate, showToast } from '../core/utils.js';
 import { populateMonthSelector, renderCalendarByActivities } from '../components/calendar.js';
 import { renderInspectorFromState } from '../components/inspector.js';
 import { computeSecretaryStats } from '../services/roles.js';
 import { AuthStore } from '../services/auth.js';
 import { bootstrapPage } from '../core/bootstrap.js';
-import { getPersonById, getPersonName } from '../mock/index.js';
-import { mockDB } from '../core/domain.js';
-import { ROLE_LABELS, ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS, DRAFT_TYPE_LABELS } from '../core/constants.js';
+import { getPersonById, getPersonName, PEOPLE } from '../mock/index.js';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../core/constants.js';
+import { TaskForceRecordStore } from '../services/taskforce.js';
 import { PersonPicker } from '../components/person-picker.js';
 import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js';
-import { FeedbackStore } from '../services/feedback.js';
 import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../services/issues.js';
 import { loadActivities } from '../services/activity.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
@@ -19,7 +18,7 @@ import { renderQueryView } from '../components/query-view.js';
 import { icon } from '../core/icons.js';
 import { renderTodoList } from '../components/todo-list.js';
 import { renderTabBar } from '../components/tab-bar.js';
-import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js';
+import { TodoStore, seedTodos } from '../services/todo.js';
 import { loadAttendanceRecords } from '../services/attendance.js';
 import { SecretaryOverviewStore, SecretaryTodoDeriver } from '../services/secretary-overview.js';
 import { NoticeStore } from '../services/notice.js';
@@ -39,17 +38,21 @@ let _secCurrentTab = 'todo';
 const SEC_CALENDAR_TAB_HTML = `
   <!-- 统计条（紧凑文本概览） -->
   <div id="secretary-stats" class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500 mb-4 py-2 border-b border-gray-100"></div>
-  <!-- 考勤概况（从首页迁移） -->
+  <!-- 考勤概况（从首页迁移；t5a 就地方案：删无效跳转，点击就地展开只读明细，书记只读监督不越界） -->
   <div class="card rounded-xl p-4 mb-4 border-l-4" style="border-left-color:#B91C1C;">
     <div class="flex items-center justify-between mb-3">
       <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤概况</h4>
-      <a href="./disc.html?mode=readonly" class="text-xs text-blue-600 hover:text-blue-800">查看详情 →</a>
+      <button id="secretary-att-detail-toggle" type="button" class="text-xs text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 transition-colors">
+        <span id="secretary-att-detail-toggle-text">查看明细</span>
+        <svg id="secretary-att-detail-toggle-icon" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </button>
     </div>
     <div id="secretary-attendance-summary" class="text-sm text-gray-500"><p>暂无考勤数据</p></div>
+    <div id="secretary-attendance-detail" class="hidden mt-3 pt-3 border-t border-gray-100"></div>
   </div>
-  <!-- 日历+检查器+写入 -->
-  <div class="grid lg:grid-cols-5 gap-4 mb-4">
-    <div class="lg:col-span-3 card rounded-2xl p-6">
+  <!-- 日历（独占整行）+ 活动写入（独立一行） -->
+  <div class="space-y-4 mb-4">
+    <div class="card rounded-2xl p-6">
       <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">活动日历</h3>
       <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <div class="lg:col-span-3">
@@ -60,13 +63,13 @@ const SEC_CALENDAR_TAB_HTML = `
         <div id="inspector-container" class="lg:col-span-2 rounded-xl bg-gray-50/50 border border-gray-100 p-3">
           <div id="inspector-default" class="text-sm text-gray-400 text-center py-8">点击日期查看活动详情，或点击活动条目直接进入详情</div>
           <div id="inspector-content" class="hidden">
-            <h4 id="inspector-date-title" class="font-title-cn text-sm font-semibold text-gray-800 mb-3"></h4>
+            <h4 id="inspector-date-title" class="text-sm font-bold text-gray-800 mb-3"></h4>
             <div id="inspector-cards"></div>
           </div>
         </div>
       </div>
     </div>
-    <div class="lg:col-span-2 card rounded-2xl p-6">
+    <div class="card rounded-2xl p-6">
       <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">活动写入</h3>
       <div id="write-form-area"></div>
     </div>
@@ -86,7 +89,7 @@ const SEC_CALENDAR_TAB_HTML = `
 `;
 
 const SEC_ASSIGN_TAB_HTML = `
-  <div class="card rounded-2xl p-6">
+  <div class="card rounded-2xl p-6 mb-6">
     <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">常设赋权</h3>
     <p class="text-xs text-gray-500 mb-3">设党小组组长——角色指派靠口头/群聊，系统内设+记录可追溯</p>
     <button id="ws-sec-assign-btn" class="text-sm px-4 py-2 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors">设党小组组长</button>
@@ -95,6 +98,11 @@ const SEC_ASSIGN_TAB_HTML = `
       <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">当前党小组组长</h4>
       <div id="assign-leaders-list"></div>
     </div>
+  </div>
+  <div class="card rounded-2xl p-6">
+    <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">项目赋权</h3>
+    <p class="text-xs text-gray-500 mb-4">为同志赋权项目角色（组织者/深度参与者），赋权后该同志在对应活动/专班中拥有相应权限。</p>
+    <div id="project-auth-panel"></div>
   </div>
 `;
 
@@ -179,7 +187,7 @@ function _ensureSecTabBar() {
       { id: 'todo', label: '待办', render: () => _renderTodoTabContent(), groupLabel: '工作台' },
       { id: 'overview', label: '全局概况', render: () => _renderOverviewTabContent() },
       { id: 'calendar', label: '活动管理', render: () => _renderCalendarTabContent(getAppState()), groupLabel: '党建' },
-      { id: 'assign', label: '常设赋权', render: () => _renderAssignTabContent() },
+      { id: 'assign', label: '赋权管理', render: () => _renderAssignTabContent() },
       { id: 'notification', label: '通知发布', render: () => _renderNotificationTabContent(), groupLabel: '党务' },
       { id: 'feedback', label: '反馈管理', render: () => _renderFeedbackTabContent(), groupLabel: '反馈' },
     ],
@@ -279,7 +287,7 @@ function _renderCalendarTabContent(state) {
   }
 }
 
-/** 常设赋权 tab */
+/** 赋权管理 tab（常设赋权 + 项目赋权，书记 2026-08-02 迁入） */
 function _renderAssignTabContent() {
   const tc = document.getElementById('secretary-tab-content');
   if (!tc) return;
@@ -290,8 +298,10 @@ function _renderAssignTabContent() {
     document.getElementById('ws-sec-assign-btn')?.addEventListener('click', () => {
       toggleAuthPanel(assignArea);
     });
+    _renderProjectAuthPanel();
   }
   _renderAssignLeaders();
+  _renderProjectAuthRecords();
 }
 
 /** 渲染当前党小组组长列表（默认展示，无需展开面板即可查看） */
@@ -320,6 +330,155 @@ function _renderAssignLeaders() {
       </div>
     `;
   }).join('');
+}
+
+// ── 项目角色赋权（organizer/deep，2026-08-02 自 members.html 迁入书记工作台） ──
+/** 渲染项目赋权表单（首次进入 tab 时构建，避免全局刷新丢失输入） */
+function _renderProjectAuthPanel() {
+  const container = document.getElementById('project-auth-panel');
+  if (!container) return;
+
+  const projectRoles = ['organizer', 'deep'];
+  // 候选被赋权人：排除支委（支委为常设角色，无需被赋权项目角色）
+  const candidatePeople = PEOPLE.filter(p => !AuthStore.isCommissioner(p.role));
+
+  container.innerHTML = `
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择被赋权人</label>
+        <select id="project-auth-person" class="input-flat text-xs w-full">
+          <option value="">— 请选择 —</option>
+          ${candidatePeople.map(p => `<option value="${p.id}">${p.name}（${p.studentId}）</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择项目类型</label>
+        <select id="project-type-select" class="input-flat text-xs w-full">
+          <option value="activity">活动</option>
+          <option value="taskforce">专班</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择项目</label>
+        <select id="project-id-select" class="input-flat text-xs w-full">
+          ${loadActivities().map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择角色</label>
+        <div class="flex gap-3 pt-1">
+          ${projectRoles.map(r => `
+            <label class="flex items-center gap-2 text-sm">
+              <input type="radio" name="project-role" value="${r}" class="project-role-radio">
+              <span>${ROLE_LABELS[r] || r}</span>
+            </label>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+    <button id="confirm-project-auth-btn" type="button" class="text-sm px-4 py-2 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors">
+      确认赋权
+    </button>
+    <div class="mt-6">
+      <h4 class="text-xs font-medium text-gray-600 mb-2">已赋权记录</h4>
+      <div id="project-auth-records-list"></div>
+    </div>
+  `;
+
+  _bindProjectTypeSwitch();
+  _bindConfirmProjectAuth();
+  _renderProjectAuthRecords();
+}
+
+/** 项目类型切换：活动/专班联动项目下拉 */
+function _bindProjectTypeSwitch() {
+  const typeSelect = document.getElementById('project-type-select');
+  const idSelect = document.getElementById('project-id-select');
+  if (!typeSelect || !idSelect) return;
+
+  typeSelect.addEventListener('change', () => {
+    const type = typeSelect.value;
+    if (type === 'activity') {
+      idSelect.innerHTML = loadActivities().map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('');
+    } else {
+      idSelect.innerHTML = TaskForceRecordStore.getAll().map(tf => `<option value="${tf.id}" data-type="taskforce">${tf.name}</option>`).join('');
+    }
+  });
+}
+
+/** 确认项目赋权（organizer/deep） */
+function _bindConfirmProjectAuth() {
+  const btn = document.getElementById('confirm-project-auth-btn');
+  if (!btn) return;
+
+  btn.addEventListener('click', () => {
+    const personId = document.getElementById('project-auth-person')?.value;
+    const projectId = document.getElementById('project-id-select')?.value;
+    const role = document.querySelector('input[name="project-role"]:checked')?.value;
+
+    if (!personId) { showToast('error', '请选择被赋权人'); return; }
+    if (!projectId) { showToast('error', '请选择项目'); return; }
+    if (!role) { showToast('error', '请选择角色'); return; }
+
+    const result = AuthStore.authorize(
+      AuthStore.getCurrentUser()?.personId,
+      personId,
+      role,
+      { projectId }
+    );
+
+    if (result.ok) {
+      showToast('success', '项目角色赋权成功');
+      _renderProjectAuthRecords();
+    } else if (result.id) {
+      showToast('warn', '该同志在此项目已有相同角色赋权');
+    } else {
+      showToast('error', '赋权失败，您可能无权赋权该角色');
+    }
+  });
+}
+
+/** 渲染项目角色赋权记录（organizer/deep + 撤销） */
+function _renderProjectAuthRecords() {
+  const listEl = document.getElementById('project-auth-records-list');
+  if (!listEl) return;
+
+  const records = AuthStore.getAuthorizations().filter(r =>
+    ['organizer', 'deep'].includes(r.role) && r.scopeRef
+  );
+
+  if (records.length === 0) {
+    listEl.innerHTML = '<p class="text-xs text-gray-400">暂无项目角色赋权记录</p>';
+    return;
+  }
+
+  listEl.innerHTML = records.map(r => {
+    const person = getPersonById(r.targetPersonId);
+    const project = loadActivities().find(a => a.id === r.scopeRef) || TaskForceRecordStore.getAll().find(t => t.id === r.scopeRef);
+    const projectName = project ? (project.title || project.name) : r.scopeRef;
+    const roleLabel = ROLE_LABELS[r.role] || r.role;
+    const personName = person?.name || r.targetPersonId;
+    return `
+      <div class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50">
+        <div>
+          <span class="text-sm font-medium text-gray-700">${personName}</span>
+          <span class="text-xs text-gray-500 ml-2">${projectName}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded ml-2" style="background:#FEE2E2;color:#9B0000;">${roleLabel}</span>
+          <span class="text-xs text-gray-400 ml-2">${r.authorizedAt || ''}</span>
+        </div>
+        <button type="button" class="revoke-project-auth text-xs text-red-500 hover:text-red-700" data-record-id="${r.id}">撤销</button>
+      </div>
+    `;
+  }).join('');
+
+  listEl.querySelectorAll('.revoke-project-auth').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (AuthStore.revokeAuthorization(btn.dataset.recordId)) {
+        showToast('success', '已撤销赋权');
+        _renderProjectAuthRecords();
+      }
+    });
+  });
 }
 
 /** 反馈管理 tab */
@@ -374,7 +533,7 @@ function _ensureBrandFilterBtn(filterBrand) {
   if (!filterBtn) {
     filterBtn = document.createElement('button');
     filterBtn.id = 'brand-filter-btn';
-    filterBtn.className = 'font-stheiti text-sm px-3 py-1.5 rounded-lg transition-colors';
+    filterBtn.className = ' text-sm px-3 py-1.5 rounded-lg transition-colors';
     filterBtn.addEventListener('click', () => {
       setState({ filterBrand: !getAppState().filterBrand });
     });
@@ -436,6 +595,9 @@ function _bindQueryToggle() {
 }
 
 // ── 考勤概况渲染（从首页迁移） ──
+// 考勤概况明细展开状态（t5a：就地展开，跨渲染保持）
+let _secAttDetailOpen = false;
+
 function _renderAttendanceSummary(activities) {
   const container = document.getElementById('secretary-attendance-summary');
   if (!container) return;
@@ -443,6 +605,61 @@ function _renderAttendanceSummary(activities) {
   const now = new Date();
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const monthActivities = activities.filter(a => (a.date || '').startsWith(thisMonth) && !a.archived);
+
+  // ── 明细区（就地方案：书记只读监督，不越界处理） ──
+  const detailEl = document.getElementById('secretary-attendance-detail');
+  if (detailEl) {
+    if (monthActivities.length === 0) {
+      detailEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-3">本月暂无考勤明细</p>';
+    } else {
+      const attendanceRecords = loadAttendanceRecords();
+      detailEl.innerHTML = monthActivities.map(act => {
+        const records = attendanceRecords.filter(r => r.activityId === act.id);
+        const present = records.filter(r => r.status === 'present').length;
+        const absent = records.filter(r => r.status === 'absent');
+        const leave = records.filter(r => r.status === 'leave');
+        const total = records.length;
+        const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+        const rateColor = rate >= 90 ? 'text-green-600' : rate >= 70 ? 'text-orange-600' : 'text-red-600';
+        const nameList = (arr, cls) => arr.length
+          ? `<span class="${cls}">${arr.map(r => getPersonName(r.personId)).join('、')}</span>`
+          : '<span class="text-gray-400">无</span>';
+        return `
+          <div class="py-2 border-b border-gray-50 last:border-b-0">
+            <div class="flex items-center justify-between gap-3">
+              <div class="min-w-0">
+                <p class="text-sm text-gray-800 truncate">${act.title}</p>
+                <p class="text-xs text-gray-400">${_fmtDate(new Date(act.date))} · 出勤 ${present}/${total}</p>
+              </div>
+              <span class="text-xs font-medium flex-shrink-0 ${rateColor}">${rate}%</span>
+            </div>
+            <div class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+              <span class="text-gray-500">缺勤：${nameList(absent, 'text-red-500')}</span>
+              <span class="text-gray-500">请假：${nameList(leave, 'text-orange-500')}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    detailEl.classList.toggle('hidden', !_secAttDetailOpen);
+  }
+
+  // 明细切换按钮（就地方案：查看/收起，不跳纪检工作台）
+  const toggleBtn = document.getElementById('secretary-att-detail-toggle');
+  const toggleText = document.getElementById('secretary-att-detail-toggle-text');
+  const toggleIcon = document.getElementById('secretary-att-detail-toggle-icon');
+  const syncToggleUI = () => {
+    if (toggleText) toggleText.textContent = _secAttDetailOpen ? '收起明细' : '查看明细';
+    if (toggleIcon) toggleIcon.style.transform = _secAttDetailOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+  };
+  if (toggleBtn) {
+    toggleBtn.onclick = () => {
+      _secAttDetailOpen = !_secAttDetailOpen;
+      detailEl?.classList.toggle('hidden', !_secAttDetailOpen);
+      syncToggleUI();
+    };
+    syncToggleUI();
+  }
 
   if (monthActivities.length === 0) {
     container.innerHTML = '<p class="text-sm text-gray-400">本月暂无考勤数据</p>';
@@ -503,6 +720,8 @@ function _renderOverviewContent() {
     <span class="inline-flex items-center gap-1.5 text-xs">
       <span class="text-gray-500">${m.label}</span>
       <span class="font-medium ${m.alert ? 'text-orange-600' : 'text-gray-800'}">${m.value}</span>
+      ${m.alert && m.urge ? `<button type="button" class="sec-urge-btn text-xs px-1.5 py-0.5 rounded-md border border-orange-200 text-orange-600 hover:bg-orange-50 transition-colors" data-urge="${m.urge}">催办</button>` : ''}
+      ${m.alert && m.direct ? `<button type="button" class="sec-urge-btn text-xs px-1.5 py-0.5 rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" data-direct="${m.direct}">直达</button>` : ''}
     </span>
   `).join('');
 
@@ -514,8 +733,8 @@ function _renderOverviewContent() {
       rate: data.attendance.attendanceRate,
       rateLabel: '出勤率',
       metrics: [
-        { label: '缺勤', value: data.attendance.absentPeople.length ? data.attendance.absentPeople.join('、') : '无', alert: data.attendance.absentPeople.length > 0 },
-        { label: '补课未完成', value: data.attendance.makeupPending, alert: data.attendance.makeupPending > 0 },
+        { label: '缺勤', value: data.attendance.absentPeople.length ? data.attendance.absentPeople.join('、') : '无', alert: data.attendance.absentPeople.length > 0, urge: 'attendance-absent' },
+        { label: '补课未完成', value: data.attendance.makeupPending, alert: data.attendance.makeupPending > 0, urge: 'attendance-makeup' },
       ],
     },
     {
@@ -525,8 +744,8 @@ function _renderOverviewContent() {
       stages,
       stageTotal,
       metrics: [
-        { label: '考察待确认', value: data.inspection.pendingInspections, alert: data.inspection.pendingInspections > 0 },
-        { label: '考察超期', value: data.inspection.overdueInspections, alert: data.inspection.overdueInspections > 0 },
+        { label: '考察待确认', value: data.inspection.pendingInspections, alert: data.inspection.pendingInspections > 0, urge: 'inspection-pending' },
+        { label: '考察超期', value: data.inspection.overdueInspections, alert: data.inspection.overdueInspections > 0, urge: 'inspection-overdue' },
       ],
     },
     {
@@ -538,7 +757,7 @@ function _renderOverviewContent() {
       metrics: [
         { label: '进行中活动', value: data.activity.activeActivities },
         { label: '进行中专班', value: data.activity.activeTaskforces },
-        { label: '赋权待审批', value: data.activity.pendingAuth, alert: data.activity.pendingAuth > 0 },
+        { label: '赋权待审批', value: data.activity.pendingAuth, alert: data.activity.pendingAuth > 0, direct: 'assign' },
       ],
     },
     {
@@ -548,7 +767,7 @@ function _renderOverviewContent() {
       rate: data.propaganda.archiveRate,
       rateLabel: '归档完成率',
       metrics: [
-        { label: '待归档', value: data.propaganda.pendingArchive, alert: data.propaganda.pendingArchive > 0 },
+        { label: '待归档', value: data.propaganda.pendingArchive, alert: data.propaganda.pendingArchive > 0, urge: 'archive-pending' },
         { label: '本月通知', value: data.propaganda.noticeCount },
       ],
     },
@@ -598,6 +817,75 @@ function _renderOverviewContent() {
       `).join('')}
     </div>
   `;
+
+  // t5b：催办/直达按钮绑定（就地方案，书记不越界处理——催办通知对应委员/直达本人工作台）
+  container.querySelectorAll('.sec-urge-btn[data-urge]').forEach(btn => {
+    btn.addEventListener('click', () => _handleUrge(btn.dataset.urge));
+  });
+  container.querySelectorAll('.sec-urge-btn[data-direct]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabId = btn.dataset.direct;
+      const tabBtn = document.querySelector(`.secretary-tab-btn[data-secretary-tab="${tabId}"]`);
+      if (tabBtn) tabBtn.click();
+      showToast('info', '已直达赋权管理，请处理待审批赋权');
+    });
+  });
+}
+
+// t5b：催办映射——全局概况异常指标 → 对应委员（现以系统通知+待办落地，未来接入北大学生邮箱发送）
+const URGE_MAP = {
+  'attendance-absent': {
+    role: 'disc-commissioner',
+    title: '考勤催办',
+    content: '书记提醒：本月存在缺勤记录，请及时核实确认缺勤情况并跟进补课安排。',
+    targetModule: 'attendance',
+    targetUrl: 'workspace/disc.html',
+  },
+  'attendance-makeup': {
+    role: 'disc-commissioner',
+    title: '补课催办',
+    content: '书记提醒：本月存在未完成的补课任务，请跟进确认补课完成情况。',
+    targetModule: 'attendance',
+    targetUrl: 'workspace/disc.html',
+  },
+  'inspection-pending': {
+    role: 'disc-commissioner',
+    title: '考察确认催办',
+    content: '书记提醒：存在待确认的考察记录，请及时处理。',
+    targetModule: 'party',
+    targetUrl: 'workspace/disc.html',
+  },
+  'inspection-overdue': {
+    role: 'disc-commissioner',
+    title: '考察超期催办',
+    content: '书记提醒：存在考察超期记录，请尽快处理。',
+    targetModule: 'party',
+    targetUrl: 'workspace/disc.html',
+  },
+  'archive-pending': {
+    role: 'prop-commissioner',
+    title: '归档催办',
+    content: '书记提醒：存在待归档的档案材料，请及时完成归档。',
+    targetModule: 'workspace',
+    targetUrl: 'workspace/prop.html',
+  },
+};
+
+function _handleUrge(urgeKey) {
+  const cfg = URGE_MAP[urgeKey];
+  if (!cfg) return;
+  NoticeStore.add({
+    title: cfg.title,
+    content: cfg.content,
+    priority: 'urgent',
+    targetModule: cfg.targetModule,
+    targetUrl: cfg.targetUrl,
+    actionable: true,
+    actionRoles: [cfg.role],
+    actionTask: cfg.title,
+  }, 'secretary');
+  const roleLabel = ROLE_LABELS[cfg.role] || cfg.role;
+  showToast('success', `已向${roleLabel}发送催办通知`);
 }
 
 // ── 待办列表+详情面板（最小三成本原则落地） ───────────────────
@@ -727,9 +1015,35 @@ function _handleTodoAction(todo) {
   if (targetTab) {
     const btn = document.querySelector(`.secretary-tab-btn[data-secretary-tab="${targetTab}"]`);
     if (btn) btn.click();
+    // t5c：切 tab 后自动展开目标面板（最小三成本——行动按钮一次直达可操作状态）
+    if (targetTab === 'assign' && todo.actionType === 'authorize') {
+      _expandAssignPanelForTodo(todo);
+    }
     showToast('info', `已跳转，请处理：${todo.title}`);
   } else {
     showToast('info', `请处理：${todo.title}`);
+  }
+}
+
+/** t5c：赋权管理 tab 落地后，按待办 scope 自动展开对应赋权面板 */
+function _expandAssignPanelForTodo(todo) {
+  const scope = todo.actionData?.scope;
+  const sourceId = todo.actionData?.sourceId;
+  if (scope === 'leader') {
+    // 常设赋权（设党小组组长）：若面板未展开则自动展开
+    const assignBtn = document.getElementById('ws-sec-assign-btn');
+    if (assignBtn && assignBtn.textContent.includes('设党小组组长')) assignBtn.click();
+  } else if (scope === 'activity' || scope === 'taskforce') {
+    // 项目赋权：预选项目类型与项目并滚动到表单
+    const typeSelect = document.getElementById('project-type-select');
+    const idSelect = document.getElementById('project-id-select');
+    if (typeSelect && idSelect) {
+      typeSelect.value = scope;
+      typeSelect.dispatchEvent(new Event('change'));
+      const opt = [...idSelect.options].find(o => o.value === sourceId);
+      if (opt) idSelect.value = sourceId;
+      document.getElementById('project-auth-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }
 }
 
@@ -2041,4 +2355,4 @@ function renderNotificationList() {
 
 registerRenderCallback(renderSecretaryUI);
 
-loadWorkspaceData({ role: 'secretary', fallbackData: () => loadActivities(), logTag: 'ws-secretary' });
+loadWorkspaceData({ role: 'secretary', storeInits: [() => TaskForceRecordStore.init()], fallbackData: () => loadActivities(), logTag: 'ws-secretary' });

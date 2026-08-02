@@ -401,13 +401,3 @@ export class WorkflowEngine {
     this.history.push({ from, to, eventType, operator, timestamp: new Date().toISOString(), payload });
   }
 }
-
-// ════════════════════════════════════════════════════════════════
-//  便捷工厂
-// ════════════════════════════════════════════════════════════════
-
-export function createEngine(definition, operator = 'system') {
-  const engine = new WorkflowEngine(definition);
-  engine.start(definition.initialState, operator);
-  return engine;
-}

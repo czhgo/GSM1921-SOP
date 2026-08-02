@@ -63,7 +63,7 @@ function _showParticipantModal(act) {
   let extraHtml = '';
   const orgPerson = getPersonById(act.organizer);
   if (orgPerson) {
-    extraHtml += `<p class="font-stheiti text-sm text-gray-700 mb-1">组织者：${orgPerson.name}</p>`;
+    extraHtml += `<p class=" text-sm text-gray-700 mb-1">组织者：${orgPerson.name}</p>`;
   }
   if (act.participants && act.participants.length > 0) {
     const deepNames = act.participants
@@ -71,18 +71,18 @@ function _showParticipantModal(act) {
       .map(pid => getPersonById(pid)?.name)
       .filter(Boolean);
     if (deepNames.length > 0) {
-      extraHtml += `<p class="font-stheiti text-sm text-gray-700 mb-1">参与者：${deepNames.join('、')}</p>`;
+      extraHtml += `<p class=" text-sm text-gray-700 mb-1">参与者：${deepNames.join('、')}</p>`;
     }
   }
 
   card.innerHTML =
-    '<p class="font-stheiti font-bold text-sm text-gray-800 mb-3">【活动摘要】</p>'
-    + `<p class="font-stheiti text-sm text-gray-700 mb-1">标题：${act.title}</p>`
-    + `<p class="font-stheiti text-sm text-gray-700 mb-2">日期：${act.date || '未设定'}</p>`
+    '<p class=" font-bold text-sm text-gray-800 mb-3">【活动摘要】</p>'
+    + `<p class=" text-sm text-gray-700 mb-1">标题：${act.title}</p>`
+    + `<p class=" text-sm text-gray-700 mb-2">日期：${act.date || '未设定'}</p>`
     + extraHtml
-    + '<p class="font-stheiti text-xs text-gray-500 border-t border-gray-100 pt-3 mt-2 leading-relaxed">'
+    + '<p class=" text-xs text-gray-500 border-t border-gray-100 pt-3 mt-2 leading-relaxed">'
     + '如需查看任务详情，请在左侧切换管理视图。</p>'
-    + '<button class="font-stheiti text-xs text-white px-4 py-1.5 rounded-lg mt-4 w-full transition-colors" '
+    + '<button class=" text-xs text-white px-4 py-1.5 rounded-lg mt-4 w-full transition-colors" '
     + 'style="background:#CE1126;">关闭</button>';
   card.querySelector('button').addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
@@ -113,11 +113,11 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
   if (dateActivities.length === 0) {
     defEl.classList.remove('hidden');
     if (viewArchived) {
-      defEl.innerHTML = '<p class="font-stheiti text-sm text-gray-400 text-center py-8">归档库暂无内容</p>';
+      defEl.innerHTML = '<p class=" text-sm text-gray-400 text-center py-8">归档库暂无内容</p>';
     } else if (dateKey) {
-      defEl.innerHTML = '<div class="text-center text-gray-400 py-8 font-stheiti text-sm">当日暂无活动</div>';
+      defEl.innerHTML = '<div class="text-center text-gray-400 py-8  text-sm">当日暂无活动</div>';
     } else {
-      defEl.innerHTML = '<div class="text-center text-gray-400 py-8 font-stheiti text-sm">点击日历日期查看活动</div>';
+      defEl.innerHTML = '<div class="text-center text-gray-400 py-8  text-sm">点击日历日期查看活动</div>';
     }
     contentEl.classList.add('hidden');
     return;
@@ -144,23 +144,23 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
     const label = statusMap[act.status] || act.status;
     const isBrand = !!act.isBrand;
     const brandTag = isBrand
-      ? '<span class="font-stheiti text-xs px-1.5 py-0.5 rounded" style="background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.35);">品牌</span>'
+      ? '<span class=" text-xs px-1.5 py-0.5 rounded" style="background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.35);">品牌</span>'
       : '';
     if (isParticipant) {
       html += `<div class="inspector-card" data-act-id="${act.id}" style="${isBrand ? 'border-left:3px solid #EAB308;' : ''}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
-      html += `<p class="font-stheiti font-bold text-sm text-gray-800 leading-snug flex-1">${act.title}</p>`;
+      html += `<p class=" font-bold text-sm text-gray-800 leading-snug flex-1">${act.title}</p>`;
       html += `<span class="badge-time flex-shrink-0">${label}</span>`;
       html += '</div>';
-      html += `<div class="flex items-center gap-1.5">${brandTag}<p class="font-stheiti text-xs text-gray-400">参与视图 · 仅展示</p></div>`;
+      html += `<div class="flex items-center gap-1.5">${brandTag}<p class=" text-xs text-gray-400">参与视图 · 仅展示</p></div>`;
       html += '</div>';
     } else {
       html += `<div class="inspector-card" style="cursor:pointer;${isBrand ? 'border-left:3px solid #EAB308;' : ''}" data-act-id="${act.id}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
-      html += `<div class="flex items-center gap-1.5 flex-1"><p class="font-stheiti font-bold text-sm text-gray-800 leading-snug">${act.title}</p>${brandTag}</div>`;
+      html += `<div class="flex items-center gap-1.5 flex-1"><p class=" font-bold text-sm text-gray-800 leading-snug">${act.title}</p>${brandTag}</div>`;
       html += `<span class="badge-time flex-shrink-0">${label}</span>`;
       html += '</div>';
-      html += `<p class="font-stheiti text-xs text-gray-400">点击查看任务详情 →</p>`;
+      html += `<p class=" text-xs text-gray-400">点击查看任务详情 →</p>`;
       html += '</div>';
     }
   });
@@ -215,7 +215,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   let html = '';
 
   html += '<button id="inspector-back-btn"'
-    + ' class="font-stheiti text-xs text-red-700 hover:text-red-900 mb-3'
+    + ' class=" text-xs text-red-700 hover:text-red-900 mb-3'
     + ' flex items-center gap-1 transition-colors"'
     + ' style="background:none;border:none;cursor:pointer;padding:0;">'
     + '← 返回列表</button>';
@@ -232,22 +232,60 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   const mgrLabel = mgrLabels[managementRole] || managementRole;
   const mgrTheme = ROLE_THEME_CLASS[managementRole] || '';
   if (managementRole && managementRole !== 'participant') {
-    html += `<div class="inspector-role-banner ${mgrTheme}"><span class="font-title-cn">${mgrLabel}</span> 管理视图</div>`;
+    html += `<div class="inspector-role-banner ${mgrTheme}"><span class="font-semibold">${mgrLabel}</span> 管理视图</div>`;
   }
 
   html += '<div class="flex items-center gap-1.5 flex-wrap mb-3">';
   html += `<span class="badge-time">${statusMap[activity.status] || activity.status}</span>`;
   if (isArchived) {
-    html += '<span class="font-stheiti text-xs px-1.5 py-0.5 rounded" style="background:rgba(156,163,175,0.2);color:#6B7280;">已归档</span>';
+    html += '<span class=" text-xs px-1.5 py-0.5 rounded" style="background:rgba(156,163,175,0.2);color:#6B7280;">已归档</span>';
   }
   if (activity.date) {
-    html += `<span class="font-stheiti text-xs text-gray-400">${activity.date}</span>`;
+    html += `<span class=" text-xs text-gray-400">${activity.date}</span>`;
   }
   html += '</div>';
 
+  // ── 活动信息（复用写入时收集的详情字段：时间/地点/主持人/组织者/参与者/方向/维度/描述）──
+  const infoRows = [];
+  if (activity.time) infoRows.push({ label: '时间', value: activity.time });
+  if (activity.location) infoRows.push({ label: '地点', value: activity.location });
+  if (activity.host) infoRows.push({ label: '主持人', value: activity.host });
+  if (activity.organizer) {
+    const orgPerson = getPersonById(activity.organizer);
+    if (orgPerson) infoRows.push({ label: '组织者', value: orgPerson.name });
+  }
+  let memberNames = [];
+  if (Array.isArray(activity.participants)) {
+    memberNames = activity.participants.filter(pid => pid !== activity.organizer).map(pid => getPersonById(pid)?.name).filter(Boolean);
+  }
+  if (memberNames.length === 0 && Array.isArray(activity.assignments)) {
+    memberNames = activity.assignments.filter(a => a.role !== 'organizer').map(a => getPersonById(a.personId)?.name).filter(Boolean);
+  }
+  if (memberNames.length) infoRows.push({ label: '参与者', value: memberNames.join('、') });
+  const directionVal = activity._dt_direction || activity.direction;
+  if (directionVal) infoRows.push({ label: '发起方向', value: directionVal === 'top-down' ? '自上而下' : directionVal === 'bottom-up' ? '自下而上' : directionVal });
+  const durationVal = activity._dt_duration;
+  if (durationVal) infoRows.push({ label: '时长', value: durationVal === 'short' ? '短期' : durationVal === 'long' ? '长期' : durationVal });
+  const dimParts = [];
+  if (activity.isJoint !== undefined && activity.isJoint !== '') dimParts.push(activity.isJoint === 'true' || activity.isJoint === true ? '共建开展' : '独立开展');
+  if (activity.isOutdoor !== undefined && activity.isOutdoor !== '') dimParts.push(activity.isOutdoor === 'true' || activity.isOutdoor === true ? '校外' : '校内');
+  if (Array.isArray(activity.carriers) && activity.carriers.length) dimParts.push(activity.carriers.join('、'));
+  if (dimParts.length) infoRows.push({ label: '活动维度', value: dimParts.join(' · ') });
+
+  if (infoRows.length) {
+    html += '<div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3 space-y-1">';
+    infoRows.forEach(r => {
+      html += `<div class="flex items-start gap-2 text-xs"><span class="text-gray-400 flex-shrink-0 w-14">${r.label}</span><span class="text-gray-700">${r.value}</span></div>`;
+    });
+    html += '</div>';
+  }
+  if (activity.description) {
+    html += `<div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3"><p class="text-xs text-gray-400 mb-1">活动详情</p><p class="text-xs text-gray-700 leading-relaxed">${activity.description}</p></div>`;
+  }
+
   if (visibleTasks.length > 0) {
     const completedCount = visibleTasks.filter(t => t.status === 'completed').length;
-    html += `<p class="font-stheiti text-xs text-gray-500 mb-3">进度：${completedCount}/${visibleTasks.length} 已完成</p>`;
+    html += `<p class=" text-xs text-gray-500 mb-3">进度：${completedCount}/${visibleTasks.length} 已完成</p>`;
   }
 
   if (visibleTasks.length > 0) {
@@ -255,7 +293,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
       const cardClass = themeClass ? `inspector-card ${themeClass}` : 'inspector-card';
       html += `<div class="${cardClass}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
-      html += `<p class="font-stheiti font-bold text-sm leading-snug flex-1">${t.title}</p>`;
+      html += `<p class=" font-bold text-sm leading-snug flex-1">${t.title}</p>`;
       html += `<select class="task-status-select input-flat text-xs flex-shrink-0"${isArchived ? ' disabled style="opacity:0.5;cursor:not-allowed;"' : ''} data-task-id="${t.id}" aria-label="任务状态">`;
       html += `<option value="pending"${t.status === 'pending' ? ' selected' : ''}>待处理</option>`;
       html += `<option value="in_progress"${t.status === 'in_progress' ? ' selected' : ''}>进行中</option>`;
@@ -265,29 +303,29 @@ function renderInspectorDetail(activity, tasks, managementRole) {
       html += '</div>';
     });
   } else if (tasks.length > 0) {
-    html += '<div class="font-stheiti text-gray-400 text-center py-8">该角色在此活动中暂无专属任务节点</div>';
+    html += '<div class=" text-gray-400 text-center py-8">该角色在此活动中暂无专属任务节点</div>';
   } else {
-    html += '<p class="font-stheiti text-xs text-gray-400 py-2">暂无关联任务</p>';
+    html += '<p class=" text-xs text-gray-400 py-2">暂无关联任务</p>';
   }
 
   if (isSecretary && !isArchived) {
     html += '<div class="mt-3">';
-    html += `<button id="inspector-brand-toggle-btn" class="font-stheiti text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="${isBrandActive ? 'background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);' : 'background:rgba(234,179,8,0.06);color:#92400E;border:1px solid rgba(234,179,8,0.25);'}">${isBrandActive ? icon('starFilled', { className: 'w-3 h-3' }) + ' 取消品牌认定' : icon('starOutline', { className: 'w-3 h-3' }) + ' 标记为品牌活动'}</button>`;
+    html += `<button id="inspector-brand-toggle-btn" class=" text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="${isBrandActive ? 'background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);' : 'background:rgba(234,179,8,0.06);color:#92400E;border:1px solid rgba(234,179,8,0.25);'}">${isBrandActive ? icon('starFilled', { className: 'w-3 h-3' }) + ' 取消品牌认定' : icon('starOutline', { className: 'w-3 h-3' }) + ' 标记为品牌活动'}</button>`;
     html += '</div>';
   }
 
   html += '<div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">';
   if (isArchived) {
     html += '<button id="inspector-restore-btn"'
-      + ' class="font-stheiti text-xs text-green-700 hover:text-green-900 px-3 py-1.5 rounded-lg transition-colors"'
+      + ' class=" text-xs text-green-700 hover:text-green-900 px-3 py-1.5 rounded-lg transition-colors"'
       + ' style="background:rgba(16,185,129,0.10);border:1px solid rgba(16,185,129,0.40);">恢复活动</button>';
   } else {
     html += '<button id="inspector-archive-btn"'
-      + ' class="font-stheiti text-xs text-orange-700 hover:text-orange-900 px-3 py-1.5 rounded-lg transition-colors"'
+      + ' class=" text-xs text-orange-700 hover:text-orange-900 px-3 py-1.5 rounded-lg transition-colors"'
       + ' style="background:rgba(251,191,36,0.10);border:1px solid rgba(251,191,36,0.40);">归档活动</button>';
   }
   html += '<button id="inspector-delete-btn"'
-    + ' class="font-stheiti text-xs text-red-700 hover:text-red-900 px-3 py-1.5 rounded-lg transition-colors"'
+    + ' class=" text-xs text-red-700 hover:text-red-900 px-3 py-1.5 rounded-lg transition-colors"'
     + ' style="background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.40);">删除活动</button>';
   html += '</div>';
 

@@ -386,21 +386,6 @@ export const DEFINITION_INDEX = {
   'long-term': LONG_TERM_DEFINITION,
 };
 
-/**
- * 按时长维度获取对应定义。
- * 品牌是属性标签（isBrand），不影响工作流选择。
- */
-export function getDefinition(duration, isBrand = false) {
-  const key = duration === 'long-term' ? 'long-term' : 'short-term';
-  return DEFINITION_INDEX[key];
-}
-
 // ════════════════════════════════════════════════════════════════
 //  H. 流程定义元数据汇总表
 // ════════════════════════════════════════════════════════════════
-
-export const DEFINITION_META = [
-  { id: 'theme-party-day',  title: '主题党日活动',  duration: 'short-term', brand: false, direction: 'bottom-up', sopScenarioId: 'theme-party',    stateCount: 7, status: 'active' },
-  { id: 'short-term',       title: '短期活动',      duration: 'short-term', brand: false, direction: 'either',    sopScenarioId: null,              stateCount: 7, status: 'active' },
-  { id: 'long-term',        title: '长期活动',      duration: 'long-term',  brand: false, direction: 'either',    sopScenarioId: null,              stateCount: 9, status: 'active' },
-];

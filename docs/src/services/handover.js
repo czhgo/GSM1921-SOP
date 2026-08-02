@@ -16,26 +16,11 @@ function saveHandoverRecords(records) {
   persist();
 }
 
-export function addHandoverRecord(record) {
-  const records = loadHandoverRecords();
-  records.push(record);
-  saveHandoverRecords(records);
-}
-
 export function updateHandoverRecord(id, updates) {
   const records = loadHandoverRecords();
   const idx = records.findIndex(r => r.id === id);
   if (idx !== -1) {
     records[idx] = { ...records[idx], ...updates };
-    saveHandoverRecords(records);
-  }
-}
-
-export function completeHandoverItem(recordId, itemIndex) {
-  const records = loadHandoverRecords();
-  const record = records.find(r => r.id === recordId);
-  if (record && record.items && record.items[itemIndex]) {
-    record.items[itemIndex].status = 'completed';
     saveHandoverRecords(records);
   }
 }

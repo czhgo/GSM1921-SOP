@@ -1,5 +1,5 @@
 import { renderTabBar } from '../components/tab-bar.js';
-import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js';
 import { BranchService } from '../services/runtime.js';
 import { showToast } from '../core/utils.js';
 import { bootstrapPage } from '../core/bootstrap.js';
@@ -10,7 +10,7 @@ import { icon } from '../core/icons.js';
 import { loadActivities } from '../services/activity.js';
 import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js';
 import { renderTodoList } from '../components/todo-list.js';
-import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js';
+import { TodoStore, seedTodos } from '../services/todo.js';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'prop-commissioner' });
 

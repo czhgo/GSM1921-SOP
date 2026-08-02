@@ -32,8 +32,7 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 | 页面 | 展示方式 | 角色 |
 |------|---------|------|
 | index.html | 首页日历中的组织者信息 | 全部 |
-| members.html | 人全景（只读列表+常设赋权/项目赋权） | 支委 |
-| workspace/secretary.html | 人员选择器、统计卡片 | 书记 |
+| workspace/secretary.html | 赋权管理 tab：常设赋权（设组长）+项目赋权（organizer/deep）；人员选择器、统计卡片 | 书记 |
 | workspace/org.html | 人员选择器、发展党员追踪 | 组织委员 |
 | workspace/prop.html | 宣传任务关联人员 | 宣传委员 |
 | workspace/disc.html | 考勤/考察/补课涉及人员 | 纪检委员 |
@@ -43,11 +42,11 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 
 **同源校验点**：
 
-- [ ] members.html 中的总人数 = PEOPLE 中的记录数（27 条）
+- [ ] 书记工作台赋权管理 tab 中被赋权人候选列表 = PEOPLE 中非支委成员
 - [ ] 各工作台人员选择器中的列表 = PEOPLE 中 developStage='正式党员' 的成员
 - [ ] 人员发展阶段在各页面中一致（入党申请人/积极分子/发展对象/预备党员/正式党员），与 people.js 定义相同
 - [ ] 登录页输入 accounts.js 中的学号+密码 → 成功登录后跳转对应角色工作台
-- [ ] members.html 中的常设角色标签（书记/支委/组长）= PEOPLE 中 role 字段
+- [ ] 书记工作台赋权管理 tab 中常设角色标签（书记/支委/组长）= PEOPLE 中 role 字段 + AuthStore 赋权记录
 - [ ] 发展党员追踪候选人（c1~c5）的 personId 在 PEOPLE 中存在，且 stage 与 developStage 一致
 
 ---
@@ -94,12 +93,11 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 | 页面 | 展示方式 | 角色 |
 |------|---------|------|
 | index.html | 首页招募区（recruiting 状态专班） | 全部 |
-| workspace/secretary.html | 专班总览+赋权管理 | 书记 |
+| workspace/secretary.html | 专班总览+赋权管理 tab（专班成员赋权记录） | 书记 |
 | workspace/org.html | 专班看板（待启动/进行中/已完成）+发布招募 | 组织委员 |
 | workspace/prop.html | 专班看板 | 宣传委员 |
 | workspace/disc.html | 专班考察记录 | 纪检委员 |
 | workspace/visitor.html | 只读专班信息 | 访客 |
-| members.html | 项目赋权面板（专班成员赋权记录） | 支委 |
 
 **同源校验点**：
 
@@ -219,12 +217,11 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 
 | 页面 | 展示方式 | 角色 |
 |------|---------|------|
-| workspace/secretary.html | 常设赋权管理面板 | 书记 |
-| members.html | 常设角色赋权（设为/取消组长）+项目赋权面板 | 支委 |
+| workspace/secretary.html | 赋权管理 tab：常设赋权（设为/取消组长）+项目赋权（organizer/deep） | 书记 |
 
 **同源校验点**：
 
-- [ ] 书记工作台的赋权记录 = members.html 的项目赋权面板数据 = mockDB.authorizations
+- [ ] 书记工作台赋权管理 tab 的赋权记录 = mockDB.authorizations
 - [ ] 赋权记录中 targetPersonId 在 PEOPLE 中存在
 - [ ] 被赋权角色（organizer/deep/leader）在 auth.js AUTHORIZE_CHAIN 中有赋权链定义
 - [ ] 赋权后，被赋权者切换到管理模式时 AuthStore.canDo() 返回 true

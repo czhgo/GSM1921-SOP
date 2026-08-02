@@ -1,6 +1,6 @@
 import { renderTabBar } from '../components/tab-bar.js';
 import { renderTodoList } from '../components/todo-list.js';
-import { getAppState, setState, STATE, registerRenderCallback } from '../core/state.js';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js';
 import { BranchService } from '../services/runtime.js';
 import { showToast } from '../core/utils.js';
 import { bootstrapPage } from '../core/bootstrap.js';
@@ -8,7 +8,7 @@ import { loadWorkspaceData } from '../core/data-loader.js';
 import { attendanceToLong, inspectionToLong, PEOPLE, getPersonById, getPersonName } from '../mock/index.js';
 import { PersonPicker } from '../components/person-picker.js';
 import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, SOURCE_TYPE_LABELS, ParticipationLevel, ReviewStatus, REVIEW_STATUS_LABELS } from '../core/domain.js';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, ReviewStatus, REVIEW_STATUS_LABELS } from '../core/domain.js';
 import { persist } from '../core/data-adapter.js';
 import { loadMakeupTasks } from '../services/makeup.js';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js';
@@ -17,7 +17,7 @@ import { loadActivities } from '../services/activity.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../services/review.js';
 import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js';
-import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js';
+import { TodoStore, seedTodos } from '../services/todo.js';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'leader' });
 

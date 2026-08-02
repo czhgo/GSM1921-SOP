@@ -5,9 +5,8 @@ import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';
 import { NoticeStore } from '../services/notice.js';
 import { getBasePath, showToast } from '../core/utils.js';
-import { icon } from '../core/icons.js';
 import { AuthStore } from '../services/auth.js';
-import { PEOPLE, getPersonById } from '../mock/index.js';
+import { getPersonById } from '../mock/index.js';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
