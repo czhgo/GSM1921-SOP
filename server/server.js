@@ -12,5 +12,6 @@ if (db.prepare('SELECT COUNT(*) AS c FROM users').get().c === 0) {
   await seedDatabase(db);
   console.log('[server] 已导入种子数据');
 }
+db.close();
 const app = createApp({ dbPath: DB_PATH });
-app.listen(PORT, () => console.log(`[server] http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`[server] 光华党支部管理引擎后端已启动: http://localhost:${PORT}`));

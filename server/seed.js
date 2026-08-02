@@ -13,8 +13,8 @@ export async function seedDatabase(db) {
   replaceCollection(db, 'users', peopleMod.PEOPLE);
   replaceCollection(db, 'activities', activitiesMod.ACTIVITIES);
   replaceCollection(db, 'notices', noticesMod.MOCK_NOTICES);
-  replaceCollection(db, 'taskforces', taskforcesMod.MOCK_TASKFORCES || []);
-  replaceCollection(db, 'tasks', seedMod.SEED_TASKS || []);
-  replaceCollection(db, 'assignments', seedMod.SEED_ASSIGNMENTS || []);
-  replaceCollection(db, 'handovers', seedMod.SEED_HANDOVERS || []);
+  replaceCollection(db, 'taskforces', taskforcesMod.MOCK_TASKFORCES);
+  replaceCollection(db, 'tasks', seedMod.SEED_TASKS);
+  replaceCollection(db, 'assignments', seedMod.SEED_ASSIGNMENTS);
+  replaceCollection(db, 'handovers', seedMod.SEED_HANDOVERS);
 }
