@@ -527,3 +527,30 @@ export const MockAdapter = {
     },
   },
 };
+
+/**
+ * 仅恢复「非服务端集合」到 mockDB（P1 写穿后调用）
+ *
+ * API 模式下 10 个服务端集合以服务器为准（由 init() 拉取覆盖），但
+ * 文件空间/经验沉淀/合规引用/子记录等集合 P2 才入后端 —— 本函数从
+ * localStorage 备份恢复它们，避免 API 模式下这些功能空态。
+ *
+ * 注意：绝不动 10 个服务端集合（activities/tasks/.../makeupTasks）。
+ * 无数据或解析失败静默跳过（仅 warn）。
+ */
+export function restoreNicheCollections() {
+  if (SANDBOX_MODE) return;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (parsed.actSubRecords && typeof parsed.actSubRecords === 'object') mockDB.actSubRecords = parsed.actSubRecords;
+    if (parsed.tfSubRecords && typeof parsed.tfSubRecords === 'object')   mockDB.tfSubRecords  = parsed.tfSubRecords;
+    if (Array.isArray(parsed.complianceReferences)) mockDB.complianceReferences = parsed.complianceReferences;
+    if (Array.isArray(parsed.fileSpaceRecords))     mockDB.fileSpaceRecords     = parsed.fileSpaceRecords;
+    if (Array.isArray(parsed.experienceDeposits))   mockDB.experienceDeposits   = parsed.experienceDeposits;
+    if (Array.isArray(parsed.imageRecords))         mockDB.imageRecords         = parsed.imageRecords;
+  } catch (e) {
+    console.warn('[MockAdapter] restoreNicheCollections 失败（本地备份解析错误，已跳过）：', e);
+  }
+}

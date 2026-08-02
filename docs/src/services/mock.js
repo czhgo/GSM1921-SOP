@@ -64,6 +64,9 @@ export function saveDB() {
  * 若数据不存在、解析失败或 _schema 版本不匹配，则拒绝加载脏数据
  */
 export function loadDB() {
+  // API 模式由 init() 从服务器填充，跳过 localStorage 恢复防覆盖
+  // （C1 读路径守卫：后端数据不得被本地旧备份冲掉）
+  if (getDataSource() === 'api') return;
   if (SANDBOX_MODE) {
     // 清理全量键
     localStorage.removeItem(STORAGE_KEY);

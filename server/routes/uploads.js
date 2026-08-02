@@ -32,7 +32,8 @@ export function createUploadsRouter(db) {
     const meta = {
       id: randomUUID(),
       filename: req.file.originalname,
-      path: `/uploads/${req.file.filename}`,
+      // 2026-08-03（I1）：与真实下载路由一致（下载为 /api/v1/uploads/:name）
+      path: `/api/v1/uploads/${req.file.filename}`,
       size: req.file.size,
       uploadedBy: req.session.person_id,
       uploadedAt: new Date().toISOString(),

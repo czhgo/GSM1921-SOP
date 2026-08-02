@@ -26,7 +26,12 @@ export function createApp({ dbPath = ':memory:' } = {}) {
   app.use(express.static(DOCS_DIR));
 
   // 统一 JSON 错误响应：multer 大小超限 → 413，其余 → 500（避免默认 HTML 错误页破坏 API 契约）
+  // 2026-08-03（I2）：express.json 超限（2mb）抛出的 PayloadTooLargeError 自带 err.status=413，
+  // 先前被误判为 500 —— 有 err.status 的（body-parser/multer 等）优先透传其状态码。
   app.use((err, req, res, next) => {
+    if (err.status) {
+      return res.status(err.status).json({ error: err.message });
+    }
     if (err && err.code === 'LIMIT_FILE_SIZE') {
       return res.status(413).json({ error: '文件超过大小限制' });
     }

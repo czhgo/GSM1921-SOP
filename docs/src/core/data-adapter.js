@@ -211,6 +211,15 @@ export async function init() {
       mockDB.handovers = handovers || [];
       mockDB.makeupTasks = makeupTasks || [];
 
+      // 非服务端集合从本地备份恢复（文件空间/经验沉淀/合规引用等，
+      // P2 才把这些表入后端，避免 API 模式下这些功能空态）
+      try {
+        const { restoreNicheCollections } = await import('./mock-adapter.js');
+        restoreNicheCollections();
+      } catch (e) {
+        console.warn('[DataAdapter] init: 本地非服务端集合恢复失败：', e);
+      }
+
       console.info('[DataAdapter] init: API 模式，已从后端拉取数据到缓存');
     } catch (e) {
       console.error('[DataAdapter] init: API 模式初始化失败：', e);
@@ -223,7 +232,7 @@ export async function init() {
  * 持久化当前 mockDB 状态到存储
  *
  * - Mock 模式：序列化 mockDB 到 localStorage（等价于原 saveDB）
- * - API 模式：数据通过 API 调用自动持久化，此处为 no-op
+ * - API 模式：防抖全量快照写穿服务器（POST /api/v1/snapshot）+ 本地备份双保险
  *
  * 服务层写操作后调用此方法替代原 saveDB()
  */
@@ -231,8 +240,51 @@ export function persist() {
   if (DATA_SOURCE === 'mock') {
     _mockAdapter?.saveDB();
   } else {
-    // API 模式：每次写操作已通过 adapter 方法自动持久化
-    console.info('[DataAdapter] persist: API 模式下数据已通过 API 自动持久化');
+    // API 模式：本地备份（服务器瞬时不可达不丢数据；mockDB 内容在 API 模式
+    // 由 init() 从服务器填充，本地备份不参与读）+ 防抖全量快照写穿
+    _mockAdapter?.saveDB();
+    _scheduleSnapshot();
+  }
+}
+
+// ── API 模式全量快照写穿（防抖）──────────────────────────────
+
+let _snapshotTimer = null;
+
+/** 快照写穿防抖间隔（ms）：多次连续写合并为一次全量快照 */
+const SNAPSHOT_DEBOUNCE_MS = 800;
+
+/** 调度一次防抖快照写穿（已有排程则合并） */
+function _scheduleSnapshot() {
+  if (_snapshotTimer) return;
+  _snapshotTimer = setTimeout(_flushSnapshot, SNAPSHOT_DEBOUNCE_MS);
+}
+
+/**
+ * 执行全量快照写穿：读取 mockDB 的 10 个服务端集合（不含 users），
+ * 整体 POST /api/v1/snapshot 覆盖写服务器。失败仅告警不抛出（不阻断 UI）。
+ */
+async function _flushSnapshot() {
+  _snapshotTimer = null;
+  // flush 时若数据源已切回 mock（如服务器不可达回退），跳过写穿
+  if (DATA_SOURCE !== 'api') return;
+  try {
+    const { mockDB } = await import('./domain.js');
+    const payload = {
+      activities:  mockDB.activities,
+      tasks:       mockDB.tasks,
+      attendances: mockDB.attendances,
+      inspections: mockDB.inspections,
+      taskforces:  mockDB.taskforces,
+      notices:     mockDB.notices,
+      todos:       mockDB.todos,
+      assignments: mockDB.assignments,
+      handovers:   mockDB.handovers,
+      makeupTasks: mockDB.makeupTasks,
+    };
+    await getAdapter().snapshot(payload);
+  } catch (e) {
+    console.warn('[DataAdapter] 全量快照写穿失败（已保留本地备份）：', e);
   }
 }
 

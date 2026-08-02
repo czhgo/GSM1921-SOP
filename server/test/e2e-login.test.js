@@ -1,7 +1,8 @@
-// server/test/e2e-login.test.js — Task 9 端到端验证
+// server/test/e2e-login.test.js — Task 9 端到端验证（P1 最终审查强化版）
 //
 // 全链路：账号密码登录 → 后端签发 token → 前端切换 API 数据源
-//         → 首页渲染 → 同源后端数据可达
+//         → bootstrap init() 从服务器拉全量数据（读路径）
+//         → snapshot 写穿服务器并 reload 读回（写穿闭环）
 //
 // 自包含设计：测试内用 createApp({ dbPath: ':memory:' }) + seedDatabase
 // 启动真实服务并监听随机端口，不依赖外部已启动的服务器；
@@ -12,6 +13,11 @@
 // - 合法账号 2300010001/123456 → personId 'p13'（党支部书记 沈一），p13 在种子 users 表中。
 // - fresh browser context 下 localStorage 为空：登录页不会因已登录自动跳转；
 //   首页首次加载会触发 CODE_VERSION 自检 reload 一次，sessionStorage（含 API token）在 reload 间保留。
+//
+// 2026-08-03 强化（P1 最终审查 C1/C2 验收）：
+// - 读路径断言：页面加载期间捕获 GET /api/v1/activities —— 证明 bootstrap init() 确实从服务器拉数；
+// - 写穿闭环断言：page.evaluate fetch POST /api/v1/snapshot 写入唯一活动 → reload →
+//   首页「近期活动」渲染出该标题 + 服务端 GET 读回该标题（双保险）。
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -41,9 +47,36 @@ after(async () => {
   }
 });
 
+/** 轮询等待 body 文本包含目标（导航期间 evaluate 上下文销毁时自动重试） */
+async function waitForBodyText(page, text, timeout = 10000) {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    try {
+      const found = await page.evaluate(
+        (t) => Boolean(document.body && document.body.textContent.includes(t)),
+        text
+      );
+      if (found) return;
+    } catch (_) {
+      // 页面导航导致执行上下文销毁：忽略并重试
+    }
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  throw new Error(`超时：页面 body 文本未包含 "${text}"`);
+}
+
 test('账号密码登录后切换 API 数据源，首页渲染且后端数据可达', async () => {
   const page = await browser.newPage();
   try {
+    // 0. 捕获 API 读请求（读路径证据）：登录跳转后的页面加载期间，
+    //    bootstrap init() 应发起 GET /api/v1/activities 等读请求
+    const apiGets = [];
+    page.on('request', (req) => {
+      if (req.method() === 'GET' && req.url().includes('/api/v1/')) {
+        apiGets.push(req.url());
+      }
+    });
+
     // 1. 打开登录页（fresh context，无历史登录态）
     await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
 
@@ -66,7 +99,15 @@ test('账号密码登录后切换 API 数据源，首页渲染且后端数据可
     }, { timeout: 10000 });
     assert.match(await page.title(), /管理引擎/);
 
-    // 5. 后端数据可达：页面上下文同源 fetch bootstrap 应返回 users 数组
+    // 5. 读路径断言（C1）：bootstrap init() 确实从服务器拉数
+    //    说明：捕获的是登录跳转后整个页面加载过程（含 CODE_VERSION 自检 reload）
+    //    发出的 GET /api/v1/activities —— 若读路径未接线，将无此请求。
+    assert.ok(
+      apiGets.some((u) => u.includes('/api/v1/activities')),
+      `读路径未接线：页面加载期间未捕获 GET /api/v1/activities。捕获到的 GET：${apiGets.join(', ')}`
+    );
+
+    // 6. 后端数据可达：页面上下文同源 fetch bootstrap 应返回 users 数组
     const bootstrap = await page.evaluate(async () => {
       const res = await fetch('/api/v1/bootstrap');
       if (!res.ok) return { ok: false, status: res.status };
@@ -78,6 +119,47 @@ test('账号密码登录后切换 API 数据源，首页渲染且后端数据可
       Array.isArray(bootstrap.users) && bootstrap.users.length > 0,
       'bootstrap 应返回非空 users 数组'
     );
+
+    // 7. 写穿闭环（C2）：经页面上下文 POST /api/v1/snapshot 写入一条唯一活动
+    const uniqueTitle = `E2E写穿验证-${Date.now()}`;
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const snap = await page.evaluate(async ({ uniqueTitle, dateStr }) => {
+      const tok = sessionStorage.getItem('gsm1921-api-token');
+      const list = await (await fetch('/api/v1/activities')).json();
+      list.push({
+        id: 'act-e2e-' + Date.now(),
+        title: uniqueTitle,
+        date: dateStr,
+        type: '会议',
+        status: 'published',
+        visibility: 'branch',
+        createdAt: new Date().toISOString(),
+      });
+      const res = await fetch('/api/v1/snapshot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tok}` },
+        body: JSON.stringify({ activities: list }),
+      });
+      return { status: res.status };
+    }, { uniqueTitle, dateStr });
+    assert.equal(snap.status, 204, 'snapshot 写穿应返回 204');
+
+    // 8. reload 后数据闭环验证：
+    //    a) 服务端读回：GET /api/v1/activities 应包含该唯一标题；
+    //    b) UI 渲染：首页「近期活动」板块（列表视图容器默认隐藏，但已渲染进 DOM）
+    //       的 body 文本应包含该标题 —— 证明 init() 从服务器拉回并渲染。
+    //    选择说明：首页日历视图只渲染活动类型短标签（title 只在 title 属性中），
+    //    故 UI 断言用 body.textContent（hidden 容器的文本同样计入），主闭环以
+    //    服务端读回 + 首页渲染双断言锁定，避免单一渲染路径的偶发不确定性。
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await waitForBodyText(page, uniqueTitle);
+
+    const readback = await page.evaluate(async (t) => {
+      const list = await (await fetch('/api/v1/activities')).json();
+      return { ok: list.some((a) => a.title === t), count: list.length };
+    }, uniqueTitle);
+    assert.equal(readback.ok, true, `服务端应能读回写穿的活动 ${uniqueTitle}`);
   } finally {
     await page.close();
   }

@@ -13,7 +13,7 @@ import { getAccentColors } from './constants.js';
 import { CrossPageState } from './cross-page-state.js';
 import { getBasePath } from './utils.js';
 import { enhanceSelects } from '../components/custom-select.js';
-import { registerApiAdapter, setDataSource } from './data-adapter.js';
+import { registerApiAdapter, setDataSource, init } from './data-adapter.js';
 import { ApiAdapter } from './api-adapter.js';
 
 // ════════════════════════════════════════════════════════════════
@@ -77,6 +77,12 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
   const savedToken = sessionStorage.getItem('gsm1921-api-token');
   if (savedToken) {
     setDataSource('api', { apiBaseUrl: '', authToken: savedToken });
+    try {
+      await init(); // 从后端拉取全量数据填充 mockDB（读路径）
+    } catch (e) {
+      console.warn('[bootstrap] API 数据加载失败，回退本地 mock 模式', e);
+      setDataSource('mock'); // 服务器不可达→完整回退本地模式，后续流程照常走 loadDB
+    }
   }
 
   // 代码数据版本自检：旧 tab 持有旧 ES 模块时自动刷新一次加载新模块

@@ -1,14 +1,13 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
-//  api-adapter.js — REST API 数据适配器（占位实现）
-//  T-142 阶段2：接入学校服务器时填充此文件
+//  api-adapter.js — REST API 数据适配器
+//  T-142 阶段2：DataAdapter 接口的 REST API 实现（P1：读列表 + snapshot 写穿已就绪；
+//  资源级 CRUD 为 P2）
 //
-//  本文件是 DataAdapter 接口的 REST API 实现。
-//  当前为占位符，所有方法抛出 NotImplementedError。
-//  接入后端时，按以下步骤实现：
-//  1. 在 data-adapter.js 中 setDataSource('api', { apiBaseUrl, authToken })
-//  2. 逐一实现下方每个方法，使用 fetch() + JWT 认证
-//  3. 注册此适配器：registerApiAdapter(ApiAdapter)
+//  P1 已实现能力：
+//  1. 10 个服务端资源分组的 list()（供 data-adapter init() 拉取全量数据填充 mockDB）
+//  2. snapshot()：全量快照写穿（POST /api/v1/snapshot，认证保护，供 persist() 防抖调度）
+//  3. _request()：统一 fetch + Bearer token 认证（token 由 getAuthToken() 提供）
 //
 //  Source: content/04_web_design/SCHOOL_IT_DEPLOYMENT.md
 //         content/04_web_design/DATA_ARCHITECTURE.md §8.4
@@ -116,6 +115,17 @@ export const ApiAdapter = {
   saveDB() {
     // API 模式下数据自动持久化，无需手动保存
     console.info('[ApiAdapter] saveDB: API 模式下自动持久化');
+  },
+
+  /**
+   * 全量快照写穿：将当前 mockDB 的 10 个服务端集合整体覆盖写入后端（认证保护）。
+   * 由 data-adapter 的 persist() 防抖调度调用；P2 资源级 CRUD 落地前，
+   * 这是服务层写入穿透到服务器的唯一通道。
+   * @param {Object} payload - { activities, tasks, attendances, inspections, taskforces, notices, todos, assignments, handovers, makeupTasks }
+   * @returns {Promise<null>} 204 No Content
+   */
+  snapshot(payload) {
+    return _post('/api/v1/snapshot', payload);
   },
 
   // ── 资源分组接口 ──────────────────────────────────────────
@@ -270,7 +280,8 @@ export const ApiAdapter = {
   makeupTasks: {
     list(params = {}) {
       const query = new URLSearchParams(params).toString();
-      return _get(`/api/v1/makeup-tasks${query ? '?' + query : ''}`);
+      // 注：服务端按资源名注册路由（/makeupTasks），非连字符形式 —— 与 resources.js 对齐
+      return _get(`/api/v1/makeupTasks${query ? '?' + query : ''}`);
     },
 
     create(data) {
