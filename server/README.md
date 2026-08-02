@@ -31,4 +31,5 @@ npm test           # 运行全部测试（裸 node --test 自动发现 test/ 下
 ## 测试说明
 
 - 15 个后端单测/集成测试 + 1 个 Playwright E2E（`test/e2e-login.test.js`），共 16 个用例。
-- E2E 自包含：测试内用 `createApp({ dbPath: ':memory:' })` + 种子启动真实服务并监听随机端口，无需外部启动服务器；浏览器二进制已随 playwright 缓存，无需额外下载。
+- E2E 自包含：测试内用 `createApp({ dbPath: ':memory:' })` + 种子启动真实服务并监听随机端口，无需外部启动服务器。
+- `playwright` 锁定精确版本 `1.60.0`（与其配套的 chromium 浏览器二进制已随本机缓存；若在全新环境安装依赖，需先执行一次 `npx playwright install chromium` 下载浏览器）。
