@@ -28,7 +28,7 @@ last_updated: "2026-08-03"
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
 | README.md | 2026-08-03 | [用户]+[AI] | 对外门面 |
-| CLAUDE.md | 2026-07-31 | [工程师]+[AI] | Harness（甲乙丙三部） |
+| CLAUDE.md | 2026-08-03 | [工程师]+[AI] | Harness（甲乙丙三部） |
 | CHECKLIST.md | — | — | 🗑️ 已删除（迁移至 content/03_doc_system/CHECKLIST.md） |
 | LICENSE | 2026-02-17 | [用户] | 开源许可 |
 | .gitignore | 2026-04-06 | [工具] | Git 忽略 |
