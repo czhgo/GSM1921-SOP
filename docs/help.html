@@ -36,11 +36,13 @@
     .doc-h2 { font-family:'Noto Serif SC','STZhongsong',serif; font-size:1.35rem; font-weight:700; color:#1F2937; letter-spacing:0.02em; line-height:1.3; display:flex; align-items:baseline; gap:12px; }
     .doc-h2 .doc-num { color:#CE1126; font-weight:800; font-size:1.5rem; }
     .doc-divider { height:1px; background:linear-gradient(90deg,#CE1126 0 64px,#E5E7EB 64px 100%); margin:14px 0 22px; border:none; }
-    .doc-h3 { font-family:'Noto Serif SC','STZhongsong',serif; font-size:1.02rem; font-weight:600; color:#111827; margin:30px 0 12px; }
+    .doc-h3 { display:flex; align-items:center; gap:10px; font-family:'Noto Serif SC','STZhongsong',serif; font-size:1.02rem; font-weight:600; color:#111827; margin:30px 0 12px; }
+    .doc-h3-badge { flex-shrink:0; width:32px; height:32px; border-radius:9px; background:#FDF2F2; border:1px solid #F6D1D1; color:#CE1126; font-family:'Times New Roman','Noto Serif SC',serif; font-size:0.84rem; font-weight:700; display:inline-flex; align-items:center; justify-content:center; }
     .doc-p { font-size:0.95rem; line-height:1.95; color:#374151; text-align:justify; }
     .doc-p + .doc-p { margin-top:14px; }
     .doc-p strong { color:#111827; font-weight:700; }
-    .doc-lead { font-size:1rem; color:#4B5563; }
+    .doc-lead { font-size:1rem; color:#4B5563; line-height:1.9; margin-bottom:20px; }
+    .doc-lead strong { color:#111827; }
 
     /* ── 快速上手：全局导航结构 ── */
     .nav-tree { background:#F8F9FA; border:1px solid #EEEFF2; border-radius:14px; padding:16px 20px; font-family:ui-monospace,'SF Mono',Consolas,monospace; font-size:0.85rem; color:#4B5563; line-height:1.9; margin:12px 0 6px; }
@@ -85,8 +87,30 @@
     .doc-list li::before { content:''; position:absolute; left:0; top:0.72em; width:6px; height:6px; border-radius:50%; background:#CE1126; }
     .doc-note { margin-top:14px; padding:12px 16px; border-radius:12px; background:#FEF2F2; border-left:3px solid #CE1126; font-size:0.85rem; color:#7A0010; line-height:1.8; }
 
+    /* ── 正文版式增强：要点卡 / 对比卡 / 查找卡 / 引语 / 理念卡 ── */
+    .doc-key { margin:14px 0; padding:11px 18px; border-radius:12px; background:#FEF2F2; border-left:3px solid #CE1126; font-size:0.9rem; color:#7A0010; line-height:1.85; }
+    .doc-key strong { color:#991B1B; }
+    .doc-duo { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:14px 0; }
+    .doc-duo-item { border-radius:14px; padding:13px 16px; border:1px solid #EDEEF0; background:#FAFAF9; }
+    .doc-duo-item h4 { font-size:0.8rem; font-weight:700; margin-bottom:7px; letter-spacing:0.03em; color:#111827; }
+    .doc-duo-item h4 .dv { font-family:'Times New Roman',serif; color:#9CA3AF; font-weight:600; margin-right:6px; }
+    .doc-duo-item p { font-size:0.82rem; line-height:1.85; color:#374151; margin:0; }
+    .doc-finder { margin:14px 0; border-radius:14px; border:1px solid #EEEFF2; background:#FAFAF9; padding:12px 16px; }
+    .doc-finder h4 { font-size:0.75rem; font-weight:700; color:#6B7280; letter-spacing:0.05em; margin-bottom:9px; }
+    .doc-fmap { display:flex; flex-wrap:wrap; gap:7px; }
+    .doc-fpair { display:inline-flex; align-items:center; gap:6px; font-size:0.78rem; color:#374151; background:#fff; border:1px solid #E5E7EB; border-radius:999px; padding:2px 10px; }
+    .doc-fpair strong { font-weight:600; color:#111827; }
+    .doc-farrow { color:#D1D5DB; }
+    .doc-quote { margin:14px 0 4px; padding:4px 0 4px 20px; border-left:2px solid #FFD700; font-family:'Noto Serif SC','STZhongsong',serif; font-size:1rem; color:#92400E; line-height:1.9; }
+    .doc-minis { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:14px 0; }
+    .doc-mini { border-radius:14px; padding:14px 16px; border:1px solid #EDEEF0; background:#FAFAF9; }
+    .doc-mini h4 { font-size:0.82rem; font-weight:700; color:#B91C1C; margin-bottom:6px; }
+    .doc-mini p { font-size:0.8rem; line-height:1.8; color:#374151; margin:0; }
+
     @media (max-width:640px) {
       .doc-card { padding:26px 20px; }
+      .doc-duo { grid-template-columns:1fr; }
+      .doc-minis { grid-template-columns:1fr; }
     }
 
     /* ═══════════ Role Hierarchy 组件样式 ═══════════ */
@@ -175,7 +199,7 @@
         </p>
 
         <!-- 1.1 页面导航 -->
-        <h3 class="doc-h3">1.1 页面导航</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">1.1</span>页面导航</h3>
         <p class="doc-p">
           系统由 14 个独立页面组成，通过侧边栏全局导航串联。六类角色各自对应一个工作台页面，各项功能通过页内 tab 切换。所有页面共享同一套数据源，不同角色看到的是同一数据的不同视角。
         </p>
@@ -250,7 +274,7 @@
         </div>
 
         <!-- 1.2 权限体系 -->
-        <h3 class="doc-h3">1.2 权限体系</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">1.2</span>权限体系</h3>
         <p class="doc-p">系统权限不是"给你一个账号就什么都能做"，而是<strong>赋权关系链</strong>——谁给你赋的权，你就在谁的赋权范围里干活。三个视图模式，界定"能看什么"：</p>
         <div class="doc-table-wrap">
           <table class="doc-table">
@@ -306,14 +330,14 @@
         </p>
 
         <!-- 3.1 角色总览 -->
-        <h3 class="doc-h3">3.1 角色总览</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">3.1</span>角色总览</h3>
         <div id="role-hierarchy-container"></div>
         <p class="doc-p" style="font-size:0.9rem; color:#6B7280;">
           组织者与深度参与者是<strong>扁平化执行角色</strong>，服务活动也服务专班，由党小组组长（活动）或组织委员（专班）赋权产生。
         </p>
 
         <!-- 3.2 条块双线 -->
-        <h3 class="doc-h3">3.2 条块双线</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">3.2</span>条块双线</h3>
         <p class="doc-p">
           纵线是支委的职能线：组织委员管发展党员与专班统筹、宣传委员管宣传档案、纪检委员管考勤考察——各管一类专业事务。
         </p>
@@ -326,7 +350,7 @@
         <div id="commissioner-matrix-container"></div>
 
         <!-- 3.3 两个执行角色 -->
-        <h3 class="doc-h3">3.3 两个执行角色：组织者与深度参与者</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">3.3</span>两个执行角色：组织者与深度参与者</h3>
         <p class="doc-p">
           组织者与深度参与者是推动工作扁平化的两种角色，服务活动也服务专班，由赋权产生。
         </p>
@@ -335,7 +359,7 @@
         </p>
 
         <!-- 3.4 活动走谁的门 -->
-        <h3 class="doc-h3">3.4 活动走谁的门</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">3.4</span>活动走谁的门</h3>
         <p class="doc-p">
           党小组组长是活动的天然写入者——创建活动、向组织者赋权；组织者做好分工记录，深度参与者执行分工。
         </p>
@@ -344,7 +368,7 @@
         </p>
 
         <!-- 3.5 专班走谁的门 -->
-        <h3 class="doc-h3">3.5 专班走谁的门</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">3.5</span>专班走谁的门</h3>
         <p class="doc-p">
           发起人（书记/党小组组长/支委）提出需求，由组织委员统一招募统筹——<strong>唯一专班管理节点</strong>；招募赋权组织者与深度参与者，任务完成即解散。
         </p>
@@ -353,7 +377,7 @@
         </p>
 
         <!-- 3.6 普通成员 -->
-        <h3 class="doc-h3">3.6 普通成员</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">3.6</span>普通成员</h3>
         <p class="doc-p">
           普通成员以只读方式查看活动动态、专班进展与考勤概况——不参与管理，但有知情权与监督权。
         </p>
@@ -365,7 +389,7 @@
         <hr class="doc-divider">
 
         <!-- 4.1 这个组织靠什么运作 -->
-        <h3 class="doc-h3">4.1 这个组织靠什么运作</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">4.1</span>这个组织靠什么运作</h3>
         <p class="doc-p">
           这个组织靠<strong>分工、协商、记录</strong>三件事运转，而不是级别：谁做什么由制度定好，组织者与深度参与者之间平等协商，做的过程有记录可查。
         </p>
@@ -377,7 +401,7 @@
         </p>
 
         <!-- 4.2 活动与专班：两种工作，两种节奏 -->
-        <h3 class="doc-h3">4.2 活动与专班：两种工作，两种节奏</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">4.2</span>活动与专班：两种工作，两种节奏</h3>
         <p class="doc-p">
           活动是支部的<strong>常规节奏</strong>：固定时间地点、面向全体、重在参与与规范，党小组是基本单元。
         </p>
@@ -392,7 +416,7 @@
         </p>
 
         <!-- 4.3 扁平化：不靠级别，靠协商 -->
-        <h3 class="doc-h3">4.3 扁平化：不靠级别，靠协商</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">4.3</span>扁平化：不靠级别，靠协商</h3>
         <p class="doc-p">
           组织者不是"领导"——核心职能是<strong>做好分工记录</strong>，不靠命令压人；深度参与者不是"下属"——执行的是协商后的分工。
         </p>
@@ -404,7 +428,7 @@
         </p>
 
         <!-- 4.4 职能线与小组线 -->
-        <h3 class="doc-h3">4.4 职能线与小组线</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">4.4</span>职能线与小组线</h3>
         <p class="doc-p">
           这套系统的中间层有两条线。一条是支委的职能线：组织委员管发展党员与专班统筹，宣传委员管宣传档案，纪检委员管考勤考察——三委员各管一摊专业事务，纵向穿透所有党小组。
         </p>
@@ -419,7 +443,7 @@
         </p>
 
         <!-- 4.5 普通成员：参与与监督 -->
-        <h3 class="doc-h3">4.5 普通成员：参与与监督</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">4.5</span>普通成员：参与与监督</h3>
         <p class="doc-p">
           不参与管理不等于没有位置：你有<strong>知情权</strong>（活动动态/专班进展/考勤概况）与<strong>监督权</strong>。
         </p>
@@ -442,7 +466,7 @@
         <hr class="doc-divider">
 
         <!-- 5.1 前中后台分层 -->
-        <h3 class="doc-h3">5.1 前中后台分层</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">5.1</span>前中后台分层</h3>
         <div class="doc-table-wrap">
           <table class="doc-table">
             <thead><tr><th style="width:16%;">层</th><th style="width:42%;">位置</th><th>职责</th></tr></thead>
@@ -456,7 +480,7 @@
         </div>
 
         <!-- 5.2 技术栈 -->
-        <h3 class="doc-h3">5.2 技术栈</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">5.2</span>技术栈</h3>
         <ul class="doc-list">
           <li>纯前端静态架构 — 无需后端部署，GitHub Pages 直接托管</li>
           <li>ES Modules — 无构建工具、零打包依赖</li>
