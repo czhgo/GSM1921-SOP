@@ -3,13 +3,13 @@ role: "[工程师]+[AI]"
 dynamic_role:
   maintenance: "[工程师]+[AI]"
   auto_update: "[AI]"
-last_updated: "2026-07-31"
+last_updated: "2026-08-03"
 ---
 
 # File Timestamp Registry
 
 > 全项目文件最后更新时间注册表
-> last_updated: "2026-07-31" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
+> last_updated: "2026-08-03" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
 
 ---
 
@@ -27,7 +27,7 @@ last_updated: "2026-07-31"
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| README.md | 2026-07-31 | [用户]+[AI] | 对外门面 |
+| README.md | 2026-08-03 | [用户]+[AI] | 对外门面 |
 | CLAUDE.md | 2026-07-31 | [工程师]+[AI] | Harness（甲乙丙三部） |
 | CHECKLIST.md | — | — | 🗑️ 已删除（迁移至 content/03_doc_system/CHECKLIST.md） |
 | LICENSE | 2026-02-17 | [用户] | 开源许可 |
@@ -40,8 +40,8 @@ last_updated: "2026-07-31"
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| .ctx/TIMESTAMPS.md | 2026-07-31 | [工程师]+[AI] | 本文件 |
-| .ctx/SNAPSHOT.md | 2026-07-31 | [AI] | 当前基线 |
+| .ctx/TIMESTAMPS.md | 2026-08-03 | [工程师]+[AI] | 本文件 |
+| .ctx/SNAPSHOT.md | 2026-08-03 | [AI] | 当前基线 |
 | .ctx/REVIEW_QUEUE.md | 2026-07-31 | [工程师]+[AI] | 书记评议队列 |
 | .ctx/snapshots/INDEX.md | 2026-05-03 | [工程师]+[AI] | 快照历史索引 |
 | .ctx/snapshots/SNAPSHOT_v3_20260502.md | 2026-05-02 | [工程师]+[AI] | v3 快照 |
@@ -130,7 +130,38 @@ last_updated: "2026-07-31"
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/README.md | 2026-07-31 | [用户]+[AI] | content 目录总索引 |
+| content/README.md | 2026-08-03 | [用户]+[AI] | content 目录总索引 |
+
+## server/ (后端服务)
+
+| 文件路径 | last_updated | 角色 | 备注 |
+|---------|-------------|------|------|
+| server/server.js | 2026-08-03 | [工程师]+[AI] | 启动入口（node server.js，默认端口 3000） |
+| server/app.js | 2026-08-03 | [工程师]+[AI] | createApp 工厂 + JSON 错误中间件 |
+| server/db.js | 2026-08-03 | [工程师]+[AI] | 11 JSON 资源表 + sessions/attachments |
+| server/seed.js | 2026-08-03 | [工程师]+[AI] | 复用前端 mock 导入种子 |
+| server/routes/auth.js | 2026-08-03 | [工程师]+[AI] | 登录/token/me |
+| server/routes/resources.js | 2026-08-03 | [工程师]+[AI] | 10 资源 list/create/update + bootstrap + snapshot |
+| server/routes/uploads.js | 2026-08-03 | [工程师]+[AI] | 附件上传（jpg/png/pdf/docx/xlsx，≤10MB） |
+| server/test/*.test.js | 2026-08-03 | [工程师]+[AI] | 8 测试文件 16 用例（含 Playwright E2E） |
+| server/README.md | 2026-08-03 | [工程师]+[AI] | 安装/启动/测试/部署对接说明 |
+| server/package.json | 2026-08-03 | [工程师]+[AI] | better-sqlite3 ^12.0.0、playwright 1.60.0 |
+| server/package-lock.json | 2026-08-03 | [工具] | 依赖锁文件 |
+| server/.gitignore | 2026-08-03 | [工具] | 忽略 data.db/uploads 等运行时产物 |
+| server/data.db | — | — | 🗑️ 运行时产物（不入库，.gitignore 忽略） |
+
+## docs/superpowers/ (过程文件)
+
+| 文件路径 | last_updated | 角色 | 备注 |
+|---------|-------------|------|------|
+| docs/superpowers/specs/2026-08-01-visitor-visual-redesign-design.md | 2026-08-01 | [工程师]+[AI] | spec |
+| docs/superpowers/specs/2026-08-01-homepage-2026-08-design.md | 2026-08-01 | [工程师]+[AI] | spec |
+| docs/superpowers/specs/2026-08-02-真实工作集成-design.md | 2026-08-02 | [工程师]+[AI] | spec（P1 依据） |
+| docs/superpowers/specs/2026-08-02-赋权整合闭环-design.md | 2026-08-02 | [工程师]+[AI] | spec |
+| docs/superpowers/specs/2026-08-03-根目录文档更新-design.md | 2026-08-03 | [工程师]+[AI] | spec（本任务） |
+| docs/superpowers/plans/2026-08-02-后端基建-P1.md | 2026-08-03 | [工程师]+[AI] | plan（P1） |
+| docs/superpowers/plans/2026-08-02-赋权整合闭环.md | 2026-08-02 | [工程师]+[AI] | plan |
+| docs/superpowers/plans/2026-08-03-根目录文档更新.md | 2026-08-03 | [工程师]+[AI] | plan（本任务） |
 
 ## docs/ (前端应用)
 
@@ -144,7 +175,6 @@ last_updated: "2026-07-31"
 | docs/archive.html | 2026-07-31 | [用户]+[AI] | 归档页 |
 | docs/feedback.html | 2026-07-31 | [用户]+[AI] | 反馈页 |
 | docs/help.html | 2026-07-31 | [用户]+[AI] | 帮助页 |
-| docs/members.html | 2026-07-31 | [用户]+[AI] | 人员页 |
 | docs/notice.html | 2026-07-31 | [用户]+[AI] | 通知页 |
 | docs/search.html | 2026-07-31 | [用户]+[AI] | 搜索页 |
 | docs/workspace/secretary.html | 2026-07-31 | [用户]+[AI] | 书记工作台 |
@@ -162,6 +192,9 @@ last_updated: "2026-07-31"
 | docs/src/core/constants.js | 2026-07-31 | [工程师]+[AI] | 静态常量 |
 | docs/src/core/cross-page-state.js | 2026-07-31 | [工程师]+[AI] | 跨页状态 |
 | docs/src/core/data-loader.js | 2026-07-31 | [工程师]+[AI] | 数据加载 |
+| docs/src/core/data-adapter.js | 2026-08-03 | [工程师]+[AI] | 数据适配器（setDataSource/init/persist） |
+| docs/src/core/api-adapter.js | 2026-08-03 | [工程师]+[AI] | API 模式适配器（10 资源 + snapshot） |
+| docs/src/core/mock-adapter.js | 2026-08-03 | [工程师]+[AI] | Mock 模式适配器（restoreNicheCollections） |
 | docs/src/core/domain.js | 2026-07-31 | [工程师]+[AI] | 领域模型 |
 | docs/src/core/icons.js | 2026-07-31 | [工程师]+[AI] | 图标系统 |
 | docs/src/core/id.js | 2026-07-31 | [工程师]+[AI] | UUID 发生器 |
@@ -183,7 +216,7 @@ last_updated: "2026-07-31"
 | docs/src/components/issue-detail.js | 2026-07-31 | [工程师]+[AI] | 事项详情组件 |
 | docs/src/components/issue-form.js | 2026-07-31 | [工程师]+[AI] | 事项表单组件 |
 | docs/src/components/issue-list.js | 2026-07-31 | [工程师]+[AI] | 事项列表组件 |
-| docs/src/components/party-cross-nav.js | 2026-07-31 | [工程师]+[AI] | 党务跨导航组件 |
+| docs/src/components/custom-select.js | 2026-08-03 | [工程师]+[AI] | 自定义下拉组件（T-188 A-12） |
 | docs/src/components/person-picker.js | 2026-07-31 | [工程师]+[AI] | 人员选择器组件 |
 | docs/src/components/person-picker.css | 2026-07-31 | [工程师]+[AI] | 人员选择器样式 |
 | docs/src/components/query-view.js | 2026-07-31 | [工程师]+[AI] | 查询视图组件 |
@@ -201,7 +234,6 @@ last_updated: "2026-07-31"
 | docs/src/entries/archive-entry.js | 2026-07-31 | [工程师]+[AI] | 归档页入口 |
 | docs/src/entries/feedback-entry.js | 2026-07-31 | [工程师]+[AI] | 反馈页入口 |
 | docs/src/entries/help-entry.js | 2026-07-31 | [工程师]+[AI] | 帮助页入口 |
-| docs/src/entries/members-entry.js | 2026-07-31 | [工程师]+[AI] | 人员页入口 |
 | docs/src/entries/notice-entry.js | 2026-07-31 | [工程师]+[AI] | 通知页入口 |
 | docs/src/entries/search-entry.js | 2026-07-31 | [工程师]+[AI] | 搜索页入口 |
 | docs/src/entries/workspace-entry.js | 2026-07-31 | [工程师]+[AI] | 工作台路由入口 |
@@ -219,7 +251,6 @@ last_updated: "2026-07-31"
 | docs/src/services/mock.js | 2026-07-31 | [工程师]+[AI] | Mock 数据总服务 |
 | docs/src/services/auth.js | 2026-07-31 | [工程师]+[AI] | 认证与赋权服务 |
 | docs/src/services/activity.js | 2026-07-31 | [工程师]+[AI] | 活动服务 |
-| docs/src/services/assignment.js | 2026-07-31 | [工程师]+[AI] | 赋权分配服务 |
 | docs/src/services/attendance.js | 2026-07-31 | [工程师]+[AI] | 考勤服务 |
 | docs/src/services/decision-tree.js | 2026-07-31 | [工程师]+[AI] | 决策树服务 |
 | docs/src/services/feedback.js | 2026-07-31 | [工程师]+[AI] | 反馈服务 |
@@ -230,7 +261,8 @@ last_updated: "2026-07-31"
 | docs/src/services/makeup.js | 2026-07-31 | [工程师]+[AI] | 补课服务 |
 | docs/src/services/milestones.js | 2026-07-31 | [工程师]+[AI] | 里程碑服务 |
 | docs/src/services/notice.js | 2026-07-31 | [工程师]+[AI] | 通知服务（含通知→待办派生） |
-| docs/src/services/permission-manager.js | 2026-07-31 | [工程师]+[AI] | 权限管理服务 |
+| docs/src/services/person.js | 2026-08-03 | [工程师]+[AI] | 人员数据抽象服务（PersonStore，T-142 阶段2） |
+| docs/src/services/secretary-overview.js | 2026-08-03 | [工程师]+[AI] | 书记全局概况服务（T-143） |
 | docs/src/services/review.js | 2026-07-31 | [工程师]+[AI] | 审查服务 |
 | docs/src/services/roles.js | 2026-07-31 | [工程师]+[AI] | 角色服务 |
 | docs/src/services/runtime.js | 2026-07-31 | [工程师]+[AI] | 运行时插槽 |
@@ -247,7 +279,6 @@ last_updated: "2026-07-31"
 | docs/src/mock/attendance.js | 2026-07-31 | [工程师]+[AI] | 考勤数据 |
 | docs/src/mock/inspection.js | 2026-07-31 | [工程师]+[AI] | 纪检数据 |
 | docs/src/mock/notices.js | 2026-07-31 | [工程师]+[AI] | 通知数据 |
-| docs/src/mock/party.js | 2026-07-31 | [工程师]+[AI] | 党务数据 |
 | docs/src/mock/people.js | 2026-07-31 | [工程师]+[AI] | 人员数据 |
 | docs/src/mock/review.js | 2026-07-31 | [工程师]+[AI] | 审查数据 |
 | docs/src/mock/seed.js | 2026-07-31 | [工程师]+[AI] | 种子数据 |
@@ -257,7 +288,6 @@ last_updated: "2026-07-31"
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| docs/src/modules/party.js | 2026-07-31 | [工程师]+[AI] | 党务管理模块 |
 | docs/src/modules/references.js | 2026-07-31 | [工程师]+[AI] | 资料查询模块 |
 
 ### docs/src/workflow/ (工作流层)
@@ -270,7 +300,6 @@ last_updated: "2026-07-31"
 | docs/src/workflow/engine.js | 2026-07-31 | [工程师]+[AI] | 工作流引擎 |
 | docs/src/workflow/definitions.js | 2026-07-31 | [工程师]+[AI] | 工作流定义 |
 | docs/src/workflow/renderer.js | 2026-07-31 | [工程师]+[AI] | 工作流渲染器 |
-| docs/src/workflow/activityRecord.js | 2026-07-31 | [工程师]+[AI] | 活动记录数据模型 |
 
 ### docs/src/ 其他
 
@@ -301,7 +330,7 @@ last_updated: "2026-07-31"
 | M3 | 全仓断链扫描 | 2026-07-31 | 2026-08-31 | OK |
 | M4 | Insights 经验蒸馏 | 2026-07-31 | 2026-08-31 | OK |
 | M5 | DOCUMENTATION_MAP 审查 | 2026-07-31 | 2026-08-31 | OK |
-| M6 | README 审查 | — | — | 待初始化 |
+| M6 | README 审查 | 2026-08-03 | 2026-08-31 | OK |
 | Q1 | ARCHITECTURE 审查 | — | — | 待初始化 |
 | Q2 | 角色体系健康度 | — | — | 待初始化 |
 | Q3 | SOP 文本审查 | — | — | 待初始化 |
@@ -372,3 +401,11 @@ last_updated: "2026-07-31"
 | .vscode/ | 2026-07-21 | 工具配置删除 |
 | ARCHITECTURE.md (根目录) | 2026-07-21 | 迁至 content/03_doc_system/ARCHITECTURE.md |
 | content/insights/党支部管理与实务经验沉淀.md (旧路径 content/strategy/...) | 2026-07-21 | 目录重组，路径不变但旧引用过时 |
+| docs/members.html | 2026-08-02 | T-189 删除，项目赋权迁入书记工作台「赋权管理」tab |
+| docs/src/entries/members-entry.js | 2026-08-02 | 随 members.html 删除 |
+| docs/src/mock/party.js | 2026-07-29 | v13 角色单页制重构移除 party/ 体系 |
+| docs/src/modules/party.js | 2026-07-29 | v13 角色单页制重构移除 party/ 体系 |
+| docs/src/components/party-cross-nav.js | 2026-07-29 | v13 角色单页制重构移除 |
+| docs/src/workflow/activityRecord.js | 2026-07-29 | v13 角色单页制重构移除 |
+| docs/src/services/assignment.js | 2026-07-29 | v13 数据同源迁移（AuthStore→mockDB.authorizations） |
+| docs/src/services/permission-manager.js | 2026-07-29 | v13 权限体系重构移除 |
