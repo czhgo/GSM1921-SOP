@@ -20,9 +20,9 @@ status: active
 
 **块块** = 横向党小组（各党小组组长）
 
-**党建工作** = 管理组织活动之事（三会一课、主题党日、专班）→ 党建工作台
+**党建工作** = 管理组织活动之事（三会一课、主题党日、专班）→ 工作台
 
-**党务工作** = 管理人员发展之事（党员发展、民主评议党员、换届选举、考勤考察）→ 党务管理
+**党务工作** = 管理人员发展之事（党员发展、民主评议党员、换届选举、考勤考察）→ 工作台
 
 > 两者都是"管理事，服务人"的工作。详见 [DATA_ARCHITECTURE.md](../04_web_design/DATA_ARCHITECTURE.md)。
 
@@ -36,7 +36,7 @@ status: active
 | 纪检委员工作流程指南.md | 描述纪检委员职责与考勤管理流程（三会一课考勤、活动考察记录、意见建议反馈） | 纪检委员 | `Activity.status`, `AttendanceRecord.status`, `AttendanceRecord.recordedBy` |
 | 宣传委员工作流程指南.md | 描述宣传委员职责与宣传档案制度流程（支部大会宣传、活动材料归档、模板体系建设） | 宣传委员 | `Activity.type`, `Activity.title` |
 | 党小组组长工作手册.md | 党小组组长专用操作指南——党小组日常活动组织、条块协作、数据提交流程 | 党小组组长 | `Activity.executor`, `Activity.supervisor` |
-| 常见工作场景快速指南.md | 为所有支委和党小组成员提供常见工作场景（党建工作、党务管理）的快速操作指南 | 支部书记 | `Activity.type`, `Activity.status`, `Activity.executor`, `Activity.supervisor` |
+| 常见工作场景快速指南.md | 为所有支委和党小组成员提供常见工作场景（党建工作、党务工作）的快速操作指南 | 支部书记 | `Activity.type`, `Activity.status`, `Activity.executor`, `Activity.supervisor` |
 | 支委与党小组定人定责定岗说明.md | 说明支委会成员与党小组的人员结构、双重身份体系及条条块块双线管理协调机制 | 支部书记 | `Activity.executor`, `Activity.supervisor` |
 
 ---
@@ -54,4 +54,4 @@ Physical `.md` files in `content/02_institution/sop/` (excluding `INDEX.md` itse
 | `常见工作场景快速指南.md` | ✅ 已登记 |
 | `支委与党小组定人定责定岗说明.md` | ✅ 已登记 |
 
-**结论：** 无孤岛 SOP，物理账本与导航索引 100% 对齐。✅
+**结论：** 全部 SOP 均已登记，物理账本与导航索引 100% 对齐。

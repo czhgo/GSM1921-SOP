@@ -77,7 +77,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 ### 2.1 活动管理服务
 
 - **所属类别**：党建工作
-- **功能描述**：活动的创建、编辑、发布、归档全生命周期管理，支持四维度决策树（组织场景 / 活动形式 / 时长 / 发起方向）。
+- **功能描述**：活动的创建、编辑、发布、归档全生命周期管理，支持决策树式创建引导（三会一课 / 主题党日，主题党日含共建性质、是否外出、活动载体三个正交维度）。
 - **入口页面**：`workspace/secretary.html`（党支书 / 副书记）、`workspace/leader.html`（党小组组长）
 - **核心操作**：创建 / 读取 / 更新 / 删除 / 发布 / 归档 / 品牌标签
 - **关键实现**：`BranchService`（`services/runtime.js` 运行时插槽，当前指向 mock 层：`services/mock.js` 的 `createActivity / updateActivity / archiveActivity / toggleBrand` 等）；读取经 `services/activity.js`（loadActivities / findActivityById / filterActivities）；`DECISION_TREE_CONFIGS`（`services/decision-tree.js`，区分 leader / secretary 两套预设 + `writeActivityWithSOP` 按 SOP 场景写活动）
@@ -189,7 +189,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 ### 2.8 复盘服务
 
 - **所属类别**：党务工作
-- **功能描述**：纪检委员对活动 / 专班完成后的复盘总结进行批注 / 打回 / 确认，复盘状态三态流转（未提交 → 已上传 → 批注中 → 确认 / 打回）。
+- **功能描述**：纪检委员对活动 / 专班完成后的复盘总结进行批注 / 打回 / 确认，复盘状态流转（未提交 → 已上传 → 批注中 → 确认 / 打回）。
 - **入口页面**：`workspace/disc.html`（纪检委员监督复盘）
 - **核心操作**：提交复盘 / 批注 / 打回 / 确认 / 超期提醒
 - **关键实现**：`loadActivityReviews / loadTaskforceReviews / findActivityReviewById / updateActivityReview / addActivityReview`（`services/review.js`；`ReviewStatus` 枚举定义于 `core/domain.js`，D-242）
@@ -260,7 +260,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 
 ### 2.14 认证服务
 
-- **用途**：登录态管理（站位 / 视图 / 模式三概念）、赋权记录 CRUD、角色-页面映射（ROLE_PAGE_MAP）。
+- **用途**：登录态管理（视图 / 模式概念）、赋权记录 CRUD、角色-页面映射（ROLE_PAGE_MAP）。
 - **入口页面**：`login.html`（登录页，全站共用）
 
 ### 2.15 权限服务
@@ -359,7 +359,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 
 ### 4.3 跨类别数据共享
 
-依据 [DATA_ARCHITECTURE.md §8.2 党建与党务同源说明](../04_web_design/DATA_ARCHITECTURE.md)，党建板块与党务板块在后台指向同一份数据（`mockDB`，经 `core/data-adapter.js` 读写），差异仅在于展示切面：
+党建板块与党务板块在后台指向同一份数据（`mockDB`，经 `core/data-adapter.js` 读写），差异仅在于展示切面（同源不同视角，见 [SECRETARY_PRONOUNCEMENTS.md P-007 同源不同视角原则](../../01_strategy/SECRETARY_PRONOUNCEMENTS.md)）：
 
 | 数据源 | 参与视角展示切面 | 管理视角展示切面 |
 |--------|----------------|----------------|
@@ -367,6 +367,8 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 | `mockDB.inspections` | "你的考察记录"（个人参与视角） | "全支部的考察汇总"（纪检确认 + 组织建档） |
 | `mockDB.taskforces` | "活跃专班进展"（组织者执行视角） | "专班名单同步 + 工作量"（纪检监督视角） |
 | `mockDB.activities[].assignments` | "我的分工"（参与者视角） | "分工闭环 + 角色同步"（书记 / 组长 / 组织者管理视角） |
+
+> **注意**：参与/管理视角是同一系统内数据展示的通用原则（同源不同视角），**不是**党建与党务的区分标准——区分标准是工作内容（P-006）。
 
 ### 4.4 赋权关系链
 
@@ -421,7 +423,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 
 | 页面 | 入口 JS | 用途 |
 |------|--------|------|
-| `docs/login.html` | `entries/login-entry.js` | 登录站位选择（D-219） |
+| `docs/login.html` | `entries/login-entry.js` | 登录视图选择（D-219） |
 | `docs/about.html` | `entries/about-entry.js` | 系统说明书 |
 | `docs/help.html` | `entries/help-entry.js` | 帮助与探索工作页面 |
 | `docs/notice.html` | `entries/notice-entry.js` | 通知独立页 |

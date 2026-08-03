@@ -93,7 +93,7 @@ function renderOrgUI(state) {
       { id: 'inspection', label: '考察上传', render: () => _renderOrgInspectionContent(), groupLabel: '党建' },
       { id: 'taskforce', label: '专班管理', render: (ctx) => _renderTaskforceContent(ctx.pending, ctx.recruiting, ctx.active, ctx.activities) },
       { id: 'talent', label: '人才库', render: () => _renderTalentContent() },
-      { id: 'development', label: '发展党员', render: () => _renderDevelopmentContent(), groupLabel: '党务' },
+      { id: 'development', label: '发展党员', render: () => _renderDevelopmentContent(), groupLabel: '党建' },
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('org-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('org-commissioner', 'u_org'); bindMyDispatchEvents(el, 'org-commissioner', 'u_org'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
@@ -892,7 +892,7 @@ function _submitRecruitForm() {
 
   try {
     const created = TaskForceRecordStore.add(record);
-    // T-190 顺路赋权：追加审计快照 + 通知初始成员（主源已由招募写入，原则7 不重复填写）
+    // T-190 同步赋权：追加审计快照 + 通知初始成员（主源已由招募写入，原则7 不重复填写）
     if (created && members.length > 0) {
       const actorId = AuthStore.getCurrentUser()?.personId;
       AuthStore.recordProjectGrants(created.id, members, actorId);
@@ -980,7 +980,7 @@ function _renderActivityProgress(activities) {
   });
 }
 
-// ── 发展党员追踪 Tab（党务） ──
+// ── 发展党员追踪 Tab（党建） ──
 
 function _renderDevelopmentContent() {
   const container = document.getElementById('org-tab-content');
@@ -1135,7 +1135,7 @@ function _renderTalentContent() {
         <h4 class="font-title-cn text-sm font-bold text-gray-700">人才库</h4>
         <span class="text-xs text-gray-400">${people.length} 人</span>
       </div>
-      <div class="text-xs text-gray-500 mb-4">人员信息有机汇总，输出人才画像</div>
+      <div class="text-xs text-gray-500 mb-4">人员信息汇总提炼，输出人才画像</div>
       <div id="org-talent-query"></div>
     </div>
     <div id="org-talent-detail" class="hidden card rounded-xl p-5 border-l-4 mt-3" style="border-left-color:${accent};"></div>

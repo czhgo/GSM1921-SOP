@@ -104,7 +104,7 @@ export const SOURCE_TYPE_LABELS = {
 
 /**
  * 复盘状态枚举 — Source: D-242（本轮补建）
- * 支持复盘三态流转：未提交→已上传→批注中→确认/打回
+ * 支持复盘状态流转：未提交→已上传→批注中→确认/打回
  */
 export const ReviewStatus = {
   NOT_SUBMITTED: '未提交',

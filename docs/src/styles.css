@@ -3476,11 +3476,11 @@ label .text-red-500 {
 }
 
 .help-philosophy-opportunities {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
   width: 100%;
-  max-width: 1100px;
+  max-width: 720px;
   margin-top: 8px;
 }
 
@@ -3494,11 +3494,23 @@ label .text-red-500 {
   flex-direction: column;
   gap: 14px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
 }
 
 .help-philosophy-opp:hover {
   border-color: rgba(206, 17, 38, 0.20);
   box-shadow: 0 4px 16px rgba(206, 17, 38, 0.06);
+}
+
+/* 展开态（展示书记原话全文）：更明显的边界与投影 */
+.help-philosophy-opp[aria-expanded='true'] {
+  border-color: rgba(206, 17, 38, 0.28);
+  box-shadow: 0 6px 20px rgba(206, 17, 38, 0.08);
+}
+
+.help-philosophy-opp:focus-visible {
+  outline: 2px solid var(--help-party-red);
+  outline-offset: 2px;
 }
 
 .help-philosophy-opp-no {
@@ -4068,7 +4080,7 @@ label .text-red-500 {
   color: #F3F4F6;
 }
 
-/* v5.2 Living Constellation */
+/* SVG 关系网络（脉动动画） */
 .help-network-svg {
   transform-origin: center center;
 }
@@ -5041,9 +5053,8 @@ label .text-red-500 {
     font-size: 22px;
   }
 
-  /* 移动端：两条宝贵机会改为单列 */
+  /* 移动端：两条宝贵机会卡片间距收紧 */
   .help-philosophy-opportunities {
-    grid-template-columns: 1fr;
     gap: 16px;
   }
 

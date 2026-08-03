@@ -3,9 +3,9 @@
 // 核心理念：从"关系网络"到"支部的故事"——以党员成长为主线，讲清考察、工作哲学、探索与对话
 // 设计风格：苹果风（纯白 + 大留白 + 大字体 + 微妙动画）
 // 签名元素：【管理事，服务人】收束点题 + Exploration SVG 关系网络
-// v13 变更：Exploration 从 Canvas 像素人动画切换为 SVG 关系网络脉动（Living Constellation v5.2），保留 13 步 Development 时间轴 + GSAP 动画
-// v12 变更：Exploration Canvas v2 重构——全屏沉浸 + RPG 风像素人（12×20）+ 自由漫步 AI + 镜头推拉 + 脚印粒子 + 物件传递 + 10 beat 编排 + 滚动控制 + 底部字幕
-// v10 变更：Exploration SVG 活动关系网络重构为 HTML div 节点 + SVG 连线 + 编排式 GSAP timeline（导演调度）替代 scrub 景深动画
+// v13 变更：Exploration 从 Canvas 像素人动画切换为 SVG 关系网络脉动动画，保留 13 步 Development 时间轴 + GSAP 动画
+// v12 变更：Exploration Canvas v2 重构——全屏沉浸 + 像素人 + 自由漫步 + 镜头推拉 + 脚印粒子 + 物件传递 + 编排式动画 + 滚动控制 + 底部字幕
+// v10 变更：Exploration SVG 活动关系网络重构为 HTML div 节点 + SVG 连线 + 编排式 GSAP timeline（统一调度）替代 scrub 景深动画
 // v9 变更：Development 时间轴重构为居中单列卡片布局（typography-first）+ 删除三列 grid/辅助线/交替布局 + GSAP 入场动画替代 scrub + 卡片点击展开详情（GSAP 动画）+ 决策节点用左侧色条区分（非金色光晕）
 // v8 变更：GSAP ScrollTrigger 全接管（移除 IntersectionObserver + is-revealed）+ Hero 金色装饰线 + TOC 始终可见 label + Development 阶段交替双列布局 + Dialogue 竖向四步 + bindPageAnimations 统一动画入口 + Exploration 景深参数调优（0.6/0.92/0.7 + filter）
 // v7 变更：Hero 标题改为成长路径 + Cognition 重构为组织性辩证法（个体→组织/组织→个体/个体→组织）+ Development 副标题精简 + 移除"三会决策节点"T3 表达 + 新增 Conclusion 收束 section（管理事，服务人）
@@ -154,7 +154,7 @@ const EXPLORATION_STAGES = {
   activity: [
     { stage: 0, title: '党小组组长赋权组织者', desc: '党小组组长创建活动后赋权组织者——组织者获得活动执行权，成为活动执行核心。', flows: ['党小组组长 → 组织者（赋权）'] },
     { stage: 1, title: '组织者向支书报备·支书审批', desc: '组织者向党支书报备活动方案、时间、地点——党支书审批反馈，把握活动执行方向。', flows: ['组织者 ↔ 支书（报备/审批）'] },
-    { stage: 2, title: '组织者分工', desc: '组织者作为执行核心（脑子），向深度参与者分派具体任务清单——多线程并行的起点。', flows: ['组织者 → 深度参与者（分工）'] },
+    { stage: 2, title: '组织者分工', desc: '组织者作为执行核心（脑子），向深度参与者分派具体任务清单——分工并行的起点。', flows: ['组织者 → 深度参与者（分工）'] },
     { stage: 3, title: '通知出席 + 带动参与', desc: '组织者通知普通参与者，深度参与者带动普通参与者参与——执行与扩散并行。', flows: ['组织者 → 普通参与者（通知）', '深度参与者 → 普通参与者（带动参与）'] },
     { stage: 4, title: '考勤考察 + 宣传报道', desc: '组织者提交考勤给纪检委员，向宣传委员提出宣传需求——监督与传播并行。', flows: ['组织者 → 纪检委员（提交考勤）', '组织者 → 宣传委员（宣传需求）', '支书 ↔ 纪检委员（横向配合）', '支书 ↔ 宣传委员（横向配合）'] },
     { stage: 5, title: '考察建档 + 人才库更新', desc: '组织者提交考察材料，纪检委员提交考察记录——组织委员据此更新支部人才库。原始材料留在纪检委员处。', flows: ['组织者 → 组织委员（考察建档）', '纪检委员 → 组织委员（考察记录）', '支书 ↔ 组织委员（横向配合）'] },
@@ -162,12 +162,12 @@ const EXPLORATION_STAGES = {
   taskforce: [
     { stage: 0, title: '发起人请求招募', desc: '发起人（书记/党小组组长/支委）请求组织委员招募——专班的起点。', flows: ['发起人'] },
     { stage: 1, title: '组织委员招募', desc: '组织委员作为唯一招募节点，接收招募请求。', flows: ['发起人 → 组织委员（请求招募）'] },
-    { stage: 2, title: '招募赋权 + 业务赋权（多线程）', desc: '组织委员招募赋权 + 发起人业务赋权——同时给组织者和深度参与者赋权。', flows: ['组织委员 → 组织者（招募赋权）', '组织委员 → 深度参与者（招募赋权）', '发起人 → 组织者（业务赋权）', '发起人 → 深度参与者（业务赋权）'] },
+    { stage: 2, title: '招募赋权 + 业务赋权', desc: '组织委员招募赋权 + 发起人业务赋权——同时给组织者和深度参与者赋权。', flows: ['组织委员 → 组织者（招募赋权）', '组织委员 → 深度参与者（招募赋权）', '发起人 → 组织者（业务赋权）', '发起人 → 深度参与者（业务赋权）'] },
     { stage: 3, title: '协调执行 + 交付成果', desc: '组织者协调执行，交付成果给发起人——专班的工作闭环。', flows: ['组织者 → 深度参与者（协调执行）', '组织者 → 发起人（交付成果）'] },
   ],
 };
 
-// ===== v5.2 Living Constellation =====
+// ===== SVG 关系网络（脉动动画） =====
 // 核心理念：stage 驱动（非 scroll 驱动）+ CSS transition（非每帧 JS 重算）
 // 所有节点始终可见（dim 处理非活跃），边绘制效果通过 CSS transition 可见
 // 设计原则：参数化配置，模块化组件
@@ -362,7 +362,7 @@ function renderNetwork(svg, network, currentStageIndex, stages) {
   });
 }
 
-// ===== v5.2 Living Constellation End =====
+// ===== SVG 关系网络（脉动动画） End =====
 
 // 和组织对话——四阶段（行百里者半九十）
 const DIALOGUE_STAGES = [
@@ -545,28 +545,34 @@ function renderReview() {
  * Section 4: 两条宝贵机会
  *
  * 母本：content/01_strategy/DEVELOPMENT_PATH.md 第一章·两条宝贵机会
+ * T-195 第3轮重构：提炼版 quote 默认展示（梳理逻辑一目了然），点击卡片平滑切换为书记原话全文
+ *   机会1（辩证递进结构）：quote 提炼=辩证句，points=两个向度定义，insight=在册意义句
+ *   机会2（总起并列结构）：quote 提炼=总起+两条机会，points=要点解释，insight=在册论断句
+ *   基线：SECRETARY_PRONOUNCEMENTS.md P-043 / P-044 书记原话与在册正文
  */
 function renderPhilosophy() {
   const opportunities = [
     {
       no: '机会 1',
       title: '民主集中制下感受真实组织的两个向度',
-      quote: '"民主集中制"下 感受真实的组织的两个向度："赋权"背景下的程序性 和 "探索"背景下的扁平化。这也就意味着真实的组织，不能只靠程序性令人凝聚在一起，也不能只靠"扁平化"而不去形成共识、带来效率。——提高生涯发展中对于所处组织的适应能力和开放心态。',
+      quote: '真实的组织不能只靠程序性，也不能只靠扁平化——两个向度的平衡，是支部生活中宝贵的成长机会。',
+      fullQuote: '"民主集中制"下 感受真实的组织的两个向度："赋权"背景下的程序性 和 "探索"背景下的扁平化。这也就意味着真实的组织，不能只靠程序性令人凝聚在一起，也不能只靠"扁平化"而不去形成共识、带来效率。——提高生涯发展中对于所处组织的适应能力和开放心态。',
       points: [
         { label: '程序性', desc: '"赋权"背景下——组织通过分工、流程、记录、复盘让人凝聚' },
         { label: '扁平化', desc: '"探索"背景下——组织通过平等协商、无上下级分工让人创新' },
       ],
-      insight: '在支部中体悟这两个向度的平衡，能提高生涯发展中对于所处组织的适应能力和开放心态——理解真实组织必然包含这两个向度，并学会在其中游刃有余。',
+      insight: '体悟这种平衡，能提高生涯发展中对于所处组织的适应能力和开放心态——未来无论进入什么组织，都能理解真实组织既有程序性的一面，也有扁平化的一面。',
     },
     {
       no: '机会 2',
       title: 'AI时代中学生党支部的探索机会',
-      quote: '作为AI时代中一个建设方兴未艾的学生组织，①可以真实地参与组织制度和组织文化的构建；②可以在"没有经济负担"的背景下探索AI时代下组织转型的萌芽和组织产品的生产。',
+      quote: '作为AI时代中一个建设方兴未艾的学生组织，支部提供两条独特的探索机会：①真实地参与组织制度和组织文化的构建；②在"没有经济负担"的背景下探索AI时代组织转型的萌芽和组织产品的生产。',
+      fullQuote: '作为AI时代中一个建设方兴未艾的学生组织，①可以真实地参与组织制度和组织文化的构建；②可以在"没有经济负担"的背景下探索AI时代下组织转型的萌芽和组织产品的生产。',
       points: [
         { label: '参与构建', desc: '不是进入一个成熟组织去适应，而是参与组织制度和组织文化的构建' },
         { label: '探索自由度', desc: '在"没有经济负担"的背景下探索组织转型的萌芽和组织产品的生产——未来进入职场后难以获得' },
       ],
-      insight: '学生党支部的"方兴未艾"恰恰是机会所在：成熟组织没有这种探索空间，而学生组织有。服务人的根本目标之一，就是让成员获得未来进入职场后难以获得的探索自由度。',
+      insight: '学生党支部的"方兴未艾"恰恰是机会所在：成熟组织没有这种探索空间，而学生组织有。',
     },
   ];
 
@@ -579,10 +585,12 @@ function renderPhilosophy() {
     `).join('');
 
     return `
-      <article class="help-philosophy-opp" data-stagger>
+      <article class="help-philosophy-opp" data-stagger tabindex="0" role="button" aria-expanded="false" aria-label="${opp.no}：点击查看书记原话全文">
         <div class="help-philosophy-opp-no">${opp.no}</div>
         <h3 class="help-philosophy-opp-title">${opp.title}</h3>
-        <blockquote class="help-philosophy-opp-quote">${opp.quote}</blockquote>
+        <blockquote class="help-philosophy-opp-quote" data-brief="${encodeURIComponent(opp.quote)}" data-full="${encodeURIComponent(opp.fullQuote)}">
+          ${opp.quote}
+        </blockquote>
         <div class="help-philosophy-opp-points">${pointsHTML}</div>
         <p class="help-philosophy-opp-insight">${opp.insight}</p>
       </article>
@@ -862,7 +870,7 @@ function renderNetworkSVG(network, opts) {
   `;
 }
 
-/** Section 5: 探索工作——SVG 关系网络脉动（Living Constellation v5.2） */
+/** Section 5: 探索工作——SVG 关系网络脉动动画 */
 function renderExploration() {
   const scenes = [
     {
@@ -925,7 +933,7 @@ function renderExploration() {
     <section id="exploration" class="help-section help-network-section help-exploration-section" data-toc-id="exploration">
       <div class="help-section-inner">
         <h2 class="help-section-title">探索工作——谁在什么时候该去找谁？</h2>
-        <p class="help-section-subtitle">项目——活动与专班两种探索方式，滚动看关系如何展开，每个阶段都是一次生动的脉动</p>
+        <p class="help-section-subtitle">项目——活动与专班两种探索方式，滚动看关系如何展开，每个阶段的信息流逐步点亮</p>
         ${scenesHTML}
       </div>
     </section>
@@ -1294,17 +1302,17 @@ function bindPageAnimations() {
     // Development
     bindDevelopmentEntranceAnimation();
 
-    // Philosophy
+    // Philosophy —— 两卡片纵向递进入场（KeyNote 式平滑：先标题副标题，再卡片依次出现）
     const philosophySection = document.querySelector('.help-philosophy-section');
     if (philosophySection) {
       const philosophyEls = philosophySection.querySelectorAll('.help-section-title, .help-section-subtitle, .help-philosophy-opp');
       if (philosophyEls.length) {
         gsap.from(philosophyEls, {
           autoAlpha: 0,
-          y: 30,
-          duration: 0.5,
-          stagger: 0.1,
-          ease: 'power2.out',
+          y: 40,
+          duration: 0.8,
+          stagger: 0.18,
+          ease: 'power3.out',
           scrollTrigger: {
             trigger: philosophySection,
             start: 'top 80%',
@@ -1313,6 +1321,7 @@ function bindPageAnimations() {
         });
       }
     }
+    bindPhilosophyExpand();
 
     // Review
     const reviewSection = document.querySelector('.help-review-section');
@@ -1389,6 +1398,63 @@ function bindPageAnimations() {
   // ── reduced-motion 降级 ──
   mm.add('(prefers-reduced-motion: reduce)', () => {
     gsap.set('.help-hero-title, .help-hero-subtitle, .help-hero-accent-line, .help-cognition-eyebrow, .help-cognition-title, .help-cognition-lead, .help-cognition-item, .help-cognition-dialogue, .help-philosophy-opp, .help-section-title, .help-section-subtitle, .help-review-card, .help-works-col, .help-dialogue-eyebrow, .help-dialogue-card, .help-dialogue-coda, .help-conclusion-section, .help-tl-row, .help-tl-stage', { autoAlpha: 1, y: 0, x: 0, scale: 1, clipPath: 'inset(0 0% 0 0)' });
+  });
+}
+
+/** 机会区块：点击卡片在提炼版与原话全文间平滑切换（KeyNote 式交叉淡入，无"点击展开"文字按钮） */
+function bindPhilosophyExpand() {
+  const cards = document.querySelectorAll('.help-philosophy-opp');
+  if (!cards.length) return;
+
+  // 无 GSAP 时降级：直接切换内容
+  if (typeof gsap === 'undefined') {
+    cards.forEach(card => {
+      const quoteEl = card.querySelector('.help-philosophy-opp-quote');
+      if (!quoteEl) return;
+      const brief = decodeURIComponent(quoteEl.dataset.brief || '');
+      const full = decodeURIComponent(quoteEl.dataset.full || '');
+      let expanded = false;
+      const toggle = () => {
+        expanded = !expanded;
+        card.setAttribute('aria-expanded', String(expanded));
+        quoteEl.innerHTML = expanded ? full : brief;
+      };
+      card.addEventListener('click', toggle);
+      card.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+      });
+    });
+    return;
+  }
+
+  cards.forEach(card => {
+    const quoteEl = card.querySelector('.help-philosophy-opp-quote');
+    if (!quoteEl) return;
+    const brief = decodeURIComponent(quoteEl.dataset.brief || '');
+    const full = decodeURIComponent(quoteEl.dataset.full || '');
+    let expanded = false;
+
+    const toggle = () => {
+      expanded = !expanded;
+      card.setAttribute('aria-expanded', String(expanded));
+      const target = expanded ? full : brief;
+      // KeyNote 式平滑：内容淡出上移 → 替换 → 淡入归位
+      gsap.to(quoteEl, {
+        autoAlpha: 0,
+        y: -8,
+        duration: 0.22,
+        ease: 'power2.in',
+        onComplete: () => {
+          quoteEl.innerHTML = target;
+          gsap.fromTo(quoteEl, { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out' });
+        },
+      });
+    };
+
+    card.addEventListener('click', toggle);
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
   });
 }
 

@@ -17,7 +17,7 @@ related_files: [CLAUDE.md, content/04_web_design/]
 
 ## 一、项目概述
 
-Org OS 是光华管理学院本科生党支部的组织运行操作系统。它将党支部制度文本（SOP）转化为可执行的代码工作流，并由 10 个 AI Agent 组成治理集群进行持续维护与迭代。
+Org OS 是光华管理学院本科生党支部的组织运行操作系统。它将党支部制度文本（SOP）转化为可执行的代码工作流，并由 10 个 AI Agent 协作维护与迭代。
 
 **核心命题**: 如何让一套制度文本持续驱动一个可运行的软件系统？
 
@@ -41,7 +41,7 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 
 ---
 
-## 三、Agent 治理集群
+## 三、Agent 协作体系
 
 系统由 10 个 VS Code 自定义 Agent 组成，通过 handoffs 按钮形成协作链路。
 
@@ -60,9 +60,9 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 | 经验分析Agent | 分析型 | 经验提炼与沉淀 | read, edit, search | ❌ | experience-distiller |
 | 日志记录Agent | 记录型 | 系统变更日志记录 | read, edit, search | ❌ | log-recorder |
 
-### 任务域 → Agent 委派链路
+### 任务类别 → Agent 委派链路
 
-| 任务域 | 触发关键词 | Agent 委派链路 |
+| 任务类别 | 触发关键词 | Agent 委派链路 |
 |--------|-----------|---------------|
 | 党建工作 | 主题党日、三会一课、专班管理 | 协调调度Agent → 文本执行Agent → 代码执行Agent → UI执行Agent → 日志记录Agent |
 | 党务工作 | 发展党员、民主评议党员、换届选举、考勤考察、制度修订、职责分工、意见反馈、合规审查、文档规范 | 协调调度Agent → 规范执行Agent → 合规执行Agent → 独立审查Agent → 日志记录Agent |
@@ -78,7 +78,7 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 > 文档按"5 类知识类型"组织（完整定义见 [OPERATIONS_GUIDE.md §7.1](./OPERATIONS_GUIDE.md#71-文档权威层级5类知识类型)）。本节给出各层物理分布。
 
 ```
-Layer 0: 宪章层（最高权威）
+Layer 0: 核心层（最高权威）
   └─ CLAUDE.md                            [工程师]+[AI] 全局系统指令（Harness，最高层上下文入口）
   └─ content/03_doc_system/SSOT_INDEX.md  [AI] 母本注册表与溯源参考
 

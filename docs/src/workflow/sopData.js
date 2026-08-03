@@ -10,7 +10,7 @@ export const sopDatabase = {
       scenarioId: 'org-life', title: '【党建工作】组织生活会',
       domain: 'activity', description: '刚性考勤 · 仅限党员和预备党员',
       tasks: [
-        { taskId: '1a-0', title: '时间统筹（三党小组组长协调）',  executor: 'leader',           supervisor: null,             timeOffset: -7, desc: '三位党小组组长各自统计本组党员可用时间，取最大公因数（重叠时间段）；在支委群中同步结果；由支部书记在党支部大群统一发布，要求全员至少参与一场。' },
+        { taskId: '1a-0', title: '时间统筹（三党小组组长协调）',  executor: 'leader',           supervisor: null,             timeOffset: -7, desc: '三位党小组组长各自统计本组党员可用时间，取重叠时间段；在支委群中同步结果；由支部书记在党支部大群统一发布，要求全员至少参与一场。' },
         { taskId: '1a-1', title: '确定会议主题',        executor: 'leader',           supervisor: null,         timeOffset: -7, desc: '党小组组长根据支委会部署确定会议主题，确保与年度工作重点一致。' },
         { taskId: '1a-2', title: '会前谈心谈话',        executor: 'leader',           supervisor: null,         timeOffset: -7, desc: '党小组组长与本组党员逐一谈心，了解思想状况，为会议提供信息基础。' },
         { taskId: '1a-2b', title: '全员述职回顾',       executor: 'all',              supervisor: 'leader',     timeOffset: -5, desc: '会前5天，全体参会党员回顾总结过去一年在党支部中承担的工作（述职），作为个人对照检查材料的基础素材。 - Source: content/02_institution/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议' },
@@ -51,7 +51,7 @@ export const sopDatabase = {
       scenarioId: 'branch-party-meeting', title: '【党建工作】支部党员大会',
       domain: 'activity', description: '刚性考勤 · 仅限党员和预备党员',
       tasks: [
-        { taskId: '1c-0', title: '时间统筹（三党小组组长协调）',  executor: 'leader',           supervisor: null,             timeOffset: -7, desc: '三位党小组组长各自统计本组党员可用时间，取最大公因数（重叠时间段）；在支委群中同步结果；由支部书记在党支部大群统一发布，要求全员至少参与一场。' },
+        { taskId: '1c-0', title: '时间统筹（三党小组组长协调）',  executor: 'leader',           supervisor: null,             timeOffset: -7, desc: '三位党小组组长各自统计本组党员可用时间，取重叠时间段；在支委群中同步结果；由支部书记在党支部大群统一发布，要求全员至少参与一场。' },
         { taskId: '1c-1', title: '确定会议主题',        executor: 'leader',           supervisor: null,         timeOffset: -7, desc: '党小组组长根据支委会部署确定会议主题，确保与年度工作重点一致。' },
         { taskId: '1c-2', title: '会前谈心谈话',        executor: 'leader',           supervisor: null,         timeOffset: -7, desc: '党小组组长与本组党员逐一谈心，了解思想状况，为会议提供信息基础。' },
         { taskId: '1c-4', title: '通知到人',          executor: 'leader',           supervisor: null,         timeOffset: -3, desc: '党小组组长通过党小组群发送正式会议通知，注明时间、地点、参会要求，必须提前至少3天；如需覆盖全支部，由支部书记通过党支部大群统一发布。' },
@@ -71,7 +71,7 @@ export const sopDatabase = {
       scenarioId: 'party-group-meeting', title: '【党建工作】党小组会',
       domain: 'activity', description: '刚性考勤 · 仅限党员和预备党员',
       tasks: [
-        { taskId: '1d-0', title: '时间统筹（三党小组组长协调）',  executor: 'leader',           supervisor: null,             timeOffset: -7, desc: '三位党小组组长各自统计本组党员可用时间，取最大公因数（重叠时间段）；在支委群中同步结果；由支部书记在党支部大群统一发布，要求全员至少参与一场。' },
+        { taskId: '1d-0', title: '时间统筹（三党小组组长协调）',  executor: 'leader',           supervisor: null,             timeOffset: -7, desc: '三位党小组组长各自统计本组党员可用时间，取重叠时间段；在支委群中同步结果；由支部书记在党支部大群统一发布，要求全员至少参与一场。' },
         { taskId: '1d-1', title: '确定会议主题',        executor: 'leader',           supervisor: null,         timeOffset: -7, desc: '党小组组长根据支委会部署确定会议主题，确保与年度工作重点一致。' },
         { taskId: '1d-2', title: '会前谈心谈话',        executor: 'leader',           supervisor: null,         timeOffset: -7, desc: '党小组组长与本组党员逐一谈心，了解思想状况，为会议提供信息基础。' },
         { taskId: '1d-2b', title: '全员述职回顾',       executor: 'all',              supervisor: 'leader',     timeOffset: -5, desc: '会前5天，全体参会党员回顾总结过去一年在党支部中承担的工作（述职），作为个人对照检查材料的基础素材。' },

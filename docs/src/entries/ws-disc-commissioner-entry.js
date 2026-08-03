@@ -67,8 +67,8 @@ function renderDiscUI(state) {
       { id: 'attendance', label: '考勤管理', render: () => _renderAttendanceContent(null), groupLabel: '党建' },
       { id: 'review', label: '活动监督复盘', render: () => _renderReviewContent() },
       { id: 'inspection', label: '考察管理', render: () => _renderInspectionContent() },
-      { id: 'makeup', label: '补课制度', render: () => _renderMakeupContent(), groupLabel: '党务' },
-      { id: 'mailbox', label: '公邮管理', render: () => _renderMailboxContent(), groupLabel: '党务' },
+      { id: 'makeup', label: '补课制度', render: () => _renderMakeupContent(), groupLabel: '党建' },
+      { id: 'mailbox', label: '公邮管理', render: () => _renderMailboxContent(), groupLabel: '党建' },
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('disc-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('disc-commissioner', 'u_disc'); bindMyDispatchEvents(el, 'disc-commissioner', 'u_disc'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
@@ -712,7 +712,7 @@ function _renderReviewContent() {
       </div>
       <div class="card rounded-xl p-5">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">活动复盘监督</h4>
-        <div class="text-xs text-gray-500 mb-3">复盘三态流转：已上传 → 批注中 → 确认/打回</div>
+        <div class="text-xs text-gray-500 mb-3">复盘状态流转：已上传 → 批注中 → 确认/打回</div>
         <div class="space-y-2">
           ${reviewData.filter(r => r.reviewStatus !== '—').map(r => `
             <div class="p-3 rounded-xl bg-white">
@@ -914,7 +914,7 @@ function _bindDiscHandoverEvents() {
   });
 }
 
-// ── 补课制度 Tab（党务） ──────────────────────────────────────────
+// ── 补课制度 Tab（党建） ──────────────────────────────────────────
 
 function _renderMakeupContent() {
   const container = document.getElementById('disc-tab-content');
@@ -1009,7 +1009,7 @@ function _renderMakeupContent() {
   });
 }
 
-// ── 公邮管理 Tab（党务） ──────────────────────────────────────────
+// ── 公邮管理 Tab（党建） ──────────────────────────────────────────
 
 function _renderMailboxContent() {
   const container = document.getElementById('disc-tab-content');

@@ -39,6 +39,6 @@ status: active
 
 ## 与其他知识类型的关系
 
-- **知识类型 1（战略）**：本目录制度的战略上级，见 `content/01_strategy/`
+- **知识类型 1（战略）**：本目录制度的战略依据，见 `content/01_strategy/`
 - **知识类型 3（文档系统管理）**：本目录文档的治理规范，见 `content/03_doc_system/`
 - **经验沉淀**：制度设计的经验沉淀，见 `content/insights/`

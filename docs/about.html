@@ -129,42 +129,6 @@
       <p class="font-title text-base text-gray-700 leading-loose" style="text-indent:2em;">
         这个系统是北京大学光华管理学院本科生党支部的数字化管理工具。它要解决的核心问题是：党支部工作如何从"人治"走向"制度治理"？支委换届频繁，经验随人走、制度随人变；新支委上任后需要数月摸索才能上手；同一种工作在不同人手里做法完全不同——本系统通过<strong>制度即代码、角色即视图、经验可传承</strong>三大设计理念，将党支部制度文本转化为可执行的代码工作流。
       </p>
-
-      <!-- 党建工作 vs 党务工作 对比表 -->
-      <h4 class="font-title-cn text-base font-semibold text-gray-700 mt-6 mb-3">党建工作 vs 党务工作</h4>
-      <p class="font-title text-sm text-gray-500 mb-3">党支部的工作分为两大块，内容不同，管的人也不同。</p>
-      <div class="overflow-x-auto">
-        <table class="w-full font-title text-sm text-gray-700 leading-loose border-collapse">
-          <thead><tr class="bg-gray-50"><th class="p-3 text-left border-b w-1/4">维度</th><th class="p-3 text-left border-b">党建工作</th><th class="p-3 text-left border-b">党务工作</th></tr></thead>
-          <tbody>
-            <tr><td class="p-3 border-b font-semibold">做什么</td><td class="p-3 border-b">服务同学们的核心职能（活动组织、专班建设等）</td><td class="p-3 border-b">发展党员、党费缴纳、档案管理</td></tr>
-            <tr><td class="p-3 border-b font-semibold">谁来管</td><td class="p-3 border-b">党支书 + 党小组组长 + 三委员</td><td class="p-3 border-b">三委员（各自分管一块）</td></tr>
-            <tr><td class="p-3 border-b font-semibold">工作形态</td><td class="p-3 border-b">活动 + 专班（两种并列的工作类型）</td><td class="p-3 border-b">固定流程，按章执行</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- 常见误解提示框 -->
-      <div class="mt-4 p-4 rounded-lg bg-amber-50 border border-amber-200">
-        <div class="flex items-start gap-2">
-          <svg class="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
-          <p class="font-title text-sm text-amber-800 leading-loose">
-            <strong>常见误解</strong>：党建≠创新，党务≠合规。党建工作有合规的部分（如三会一课制度），党务工作也有创新的部分（如数字化管理）。两者是<strong>工作内容</strong>的不同，不是创新与合规的对立。
-          </p>
-        </div>
-      </div>
-
-      <!-- 活动和专班并列 -->
-      <h4 class="font-title-cn text-base font-semibold text-gray-700 mt-6 mb-3">党建工作内部分类：活动 vs 专班</h4>
-      <p class="font-title text-base text-gray-700 leading-loose">
-        党建工作内部又分为<strong>活动</strong>和<strong>专班</strong>两个并列的工作类型——活动由党小组组长管辖，专班由组织委员统筹。两者不是从属关系，而是不同人管的不同事。
-      </p>
-
-      <!-- 成熟工作 vs 亟待创新的工作 -->
-      <h4 class="font-title-cn text-base font-semibold text-gray-700 mt-6 mb-3">成熟的工作 vs 亟待创新的工作</h4>
-      <p class="font-title text-base text-gray-700 leading-loose">
-        在具体执行中，每项工作又分为<strong>成熟的工作</strong>（有明确流程，照着做就行）和<strong>亟待创新的工作</strong>（流程还不完善，需要请示答复、摸索前进）。这是执行层面的区分，和党建/党务不是同一维度——无论是党建工作还是党务工作，都有成熟的部分，也都有需要创新的部分。
-      </p>
     </div>
 
     <!-- ========== 二、分工中的制度设计 ========== -->
@@ -191,7 +155,7 @@
       </div>
 
       <!-- 三委员矩阵 -->
-      <p class="font-title text-sm text-gray-500 mb-3">同一位委员，在党建和党务中承担不同职责，两者合并在同一页面通过 tab 切换：</p>
+      <p class="font-title text-sm text-gray-500 mb-3">各委员的职责集中在各自的角色工作台页面呈现：</p>
       <div id="commissioner-matrix-container"></div>
 
       <!-- 2.3 党小组组长 -->
@@ -303,14 +267,14 @@
       <!-- 4.1 页面导航 -->
       <h4 class="font-title-cn text-base font-semibold text-gray-700 mb-3">4.1 页面导航</h4>
       <p class="font-title text-base text-gray-700 leading-loose mb-4">
-        系统由 14 个独立页面组成，通过侧边栏全局导航和角色选择面板串联。每个角色对应一个单页面，党建与党务功能通过页内 tab 切换。所有子页面共享同一套数据源，不同角色看到的是同一数据的不同视角。
+        系统由 14 个独立页面组成，通过侧边栏全局导航和角色选择面板串联。每个角色对应一个单页面，各项功能通过页内 tab 切换。所有子页面共享同一套数据源，不同角色看到的是同一数据的不同视角。
       </p>
 
       <div class="mb-5">
         <p class="font-title text-sm font-semibold text-gray-600 mb-2">全局导航结构</p>
         <div class="bg-gray-50 rounded-lg p-4 font-mono text-sm text-gray-600 leading-relaxed">
           主页（通知/招募/日历）<br>
-          ├── 工作台 → 角色选择面板 → 6 个角色单页面（党建+党务合一）<br>
+          ├── 工作台 → 角色选择面板 → 6 个角色单页面<br>
           ├── 成员视图<br>
           ├── 归档库 · 资料查询 · 意见反馈 · 关于
         </div>
@@ -320,11 +284,11 @@
         <p class="font-title text-sm font-semibold text-gray-600 mb-2">各页面功能</p>
         <div class="space-y-2">
           <div class="p-3 bg-gray-50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>主页</strong> — 通知公告 + 人员招募 + 活动日历全景；点击条目跳转至对应子页面</div>
-          <div class="p-3 bg-red-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党建·党支书</strong> — 工作台（日历+写入+查询）+ 常设赋权 + 反馈管理 + 通知发布</div>
-          <div class="p-3 bg-red-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党建·党小组组长</strong> — 活动写入 + 考勤上传 + 考察上传 + 复盘提交</div>
-          <div class="p-3 bg-blue-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党建·组织委员</strong> — 考察上传 + 专班管理 + 人才库 + 发展党员</div>
-          <div class="p-3 bg-emerald-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党建·宣传委员</strong> — 宣传任务 + 项目看板 + 档案归档 + 周报报送</div>
-          <div class="p-3 bg-amber-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党建·纪检委员</strong> — 考勤管理 + 活动监督复盘 + 考察管理 + 补课制度 + 公邮管理</div>
+          <div class="p-3 bg-red-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党支书</strong> — 工作台（日历+写入+查询）+ 常设赋权 + 反馈管理 + 通知发布</div>
+          <div class="p-3 bg-red-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党小组组长</strong> — 活动写入 + 考勤上传 + 考察上传 + 复盘提交</div>
+          <div class="p-3 bg-blue-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>组织委员</strong> — 考察上传 + 专班管理 + 人才库 + 发展党员</div>
+          <div class="p-3 bg-emerald-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>宣传委员</strong> — 宣传任务 + 项目看板 + 档案归档 + 周报报送</div>
+          <div class="p-3 bg-amber-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>纪检委员</strong> — 考勤管理 + 活动监督复盘 + 考察管理 + 补课制度 + 公邮管理</div>
           <div class="p-3 bg-gray-50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>成员视图</strong> — 活动动态（日历/列表切换）+ 专班进展 + 考勤概况</div>
           <div class="p-3 bg-gray-50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>归档库</strong> — 已完成工作归档与回溯 + 搜索 + 类别过滤</div>
           <div class="p-3 bg-gray-50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>资料查询</strong> — 制度文件 · 操作指南 · SOP 文档 · 外部链接</div>

@@ -42,7 +42,7 @@ function _filterByRole(state, role) {
   const currentLeaderId = AuthStore.getCurrentUser()?.personId || 'p4';
   const activities = (state.activities || []).filter(a => {
     if (role === 'leader') {
-      // 组长可见：上级下发（top-down）、本人组织/参与（读主源 assignments，非 'leader' 角色名 hack）、
+      // 组长可见：上级下发（top-down）、本人组织/参与（读主源 assignments，非 'leader' 角色名临时方案）、
       // 或本人创建的活动（含清空赋权的待办兜底场景，保证「去赋权」待办能直达详情）
       const isMine = Array.isArray(a.assignments)
         ? a.assignments.some(x => x.personId === currentLeaderId && (x.role === 'organizer' || x.role === 'deep'))
@@ -279,7 +279,7 @@ function _renderWriteContent(activities) {
   // ── 决策树表单内联赋权 PersonPicker（表单可见时初始化，随渲染重建） ──
   const dtOrgEl = container.querySelector('#dt-org-picker');
   const dtDeepEl = container.querySelector('#dt-deep-picker');
-  const currentLeaderId = AuthStore.getCurrentUser()?.personId || 'p4'; // 组长本人（顺路赋权默认值）
+  const currentLeaderId = AuthStore.getCurrentUser()?.personId || 'p4'; // 组长本人（默认赋权对象）
   if (dtOrgEl) {
     if (_dtOrgPicker) { _dtOrgPicker.destroy(); _dtOrgPicker = null; }
     _dtOrgPicker = new PersonPicker({ mode: 'multi', placeholder: '选择组织者', accentColor: accent, initialIds: [currentLeaderId], onSelect: () => {} });
@@ -689,7 +689,7 @@ function _renderDecisionTreePanel() {
         <textarea id="dt-desc" class="input-flat w-full resize-none" rows="2" placeholder="简要描述活动内容"></textarea>
       </div>
 
-      <!-- T-190 活动角色：创建即赋权（顺路产生），组织者默认组长本人 -->
+      <!-- T-190 活动角色：创建即赋权，组织者默认组长本人 -->
       <div class="mb-4">
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动角色（创建即赋权，组织者默认组长本人）</label>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -840,7 +840,7 @@ function _bindDecisionTreeEvents(container) {
         targetDate,
         location,
         description: desc || '',
-        organizer: currentLeaderId, // 顶层 organizer 写真实 personId（原则7 同一套数据，修复 'leader' 角色名 hack）
+        organizer: currentLeaderId, // 顶层 organizer 写真实 personId（原则7 同一套数据，修复 'leader' 角色名临时方案）
         direction: L4,
         duration: L3,
         hostGroup,
@@ -850,7 +850,7 @@ function _bindDecisionTreeEvents(container) {
         createdBy: currentLeaderId,
       };
 
-      // T-190：创建时内联赋权（顺路产生）——组织者（默认组长本人）+ 深度参与者写入主源 assignments
+      // T-190：创建时同步赋权——组织者（默认组长本人）+ 深度参与者写入主源 assignments
       const organizerIds = _dtOrgPicker ? _dtOrgPicker.getSelected() : [currentLeaderId];
       const deepIds = _dtDeepPicker ? _dtDeepPicker.getSelected() : [];
       const assignments = [
@@ -863,13 +863,13 @@ function _bindDecisionTreeEvents(container) {
 
       const { activity, taskCount } = await writeActivityWithSOP(activityData, scenarioId, targetDate);
 
-      // 顺路赋权：追加审计快照 + 通知被赋权人（主源已由创建写入，原则7 不重复填写）
-      // 组长本人作为默认组织者属「发起认领」，不计入「顺路赋权」计数/快照/通知
+      // 同步赋权：追加审计快照 + 通知被赋权人（主源已由创建写入，原则7 不重复填写）
+      // 组长本人作为默认组织者属发起人，不重复计入赋权统计/快照/通知
       const actorId = AuthStore.getCurrentUser()?.personId;
       const grantedEntries = assignments.filter(a => a.personId !== currentLeaderId);
       const granted = AuthStore.recordProjectGrants(activity.id, grantedEntries, actorId);
       if (granted > 0) {
-        showToast('success', `已顺路赋权 ${granted} 名成员`);
+        showToast('success', `已同步赋权 ${granted} 名成员`);
       }
 
       showToast('success', `活动「${title}」创建成功`);

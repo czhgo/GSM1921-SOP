@@ -26,7 +26,7 @@ status: active
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
 | [MODULE_UI_DESIGN.md](MODULE_UI_DESIGN.md) | 模块界面设计：党务管理模块界面+日历功能模块 | **唯一权威**——党务管理模块与日历功能界面设计 |
-| [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) | 哑光扁平化前端设计语言，五大核心原则 | **唯一权威**——前端视觉规范 |
+| [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) | 哑光扁平化前端设计语言，核心设计原则 | **唯一权威**——前端视觉规范 |
 
 ### 三、SOP-系统联动
 
@@ -38,7 +38,7 @@ status: active
 
 ## 与其他知识类型的关系
 
-- **知识类型 1（战略）**：设计的战略上级，见 `content/01_strategy/`
+- **知识类型 1（战略）**：设计的战略依据，见 `content/01_strategy/`
 - **知识类型 2（制度）**：设计落地的制度，见 `content/02_institution/`
 - **知识类型 3（文档系统管理）**：本目录文档的治理规范，见 `content/03_doc_system/`
 - **知识类型 5（AI coding）**：本目录设计的 AI coding 实践，见 `content/05_ai_coding/`

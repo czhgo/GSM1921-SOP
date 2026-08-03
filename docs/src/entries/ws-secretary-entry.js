@@ -28,7 +28,7 @@ await bootstrapPage({ module: 'workspace' });
 // 书记工作台使用固定红色作为强调色
 const accent = '#B91C1C';
 
-// ── Tab 切换（renderTabBar 统一架构，分组：工作台/党建/党务/反馈） ──
+// ── Tab 切换（renderTabBar 统一架构，分组：工作台/党建/反馈） ──
 const SEC_TAB_STORAGE_KEY = 'workflowos_tab_secretary';
 let _secTabBar = null;
 let _secTabBarInited = false;
@@ -188,7 +188,7 @@ function _ensureSecTabBar() {
       { id: 'overview', label: '全局概况', render: () => _renderOverviewTabContent() },
       { id: 'calendar', label: '活动管理', render: () => _renderCalendarTabContent(getAppState()), groupLabel: '党建' },
       { id: 'assign', label: '赋权管理', render: () => _renderAssignTabContent() },
-      { id: 'notification', label: '通知发布', render: () => _renderNotificationTabContent(), groupLabel: '党务' },
+      { id: 'notification', label: '通知发布', render: () => _renderNotificationTabContent(), groupLabel: '党建' },
       { id: 'feedback', label: '反馈管理', render: () => _renderFeedbackTabContent(), groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba: 'rgba(185,28,28,0.10)', accentBorder: 'rgba(185,28,28,0.25)' },
@@ -2193,7 +2193,7 @@ function bindDraftEvents() {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  通知发布（党务）
+//  通知发布（党建）
 //  功能：书记发布通知（标题+内容+目标受众）+ 已发布通知列表
 //  数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）
 // ════════════════════════════════════════════════════════════════

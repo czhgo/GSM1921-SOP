@@ -2,7 +2,7 @@
 title: "2026年8月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-08-02"
+last_updated: "2026-08-03"
 status: active
 related_files:
   - CLAUDE.md
@@ -684,3 +684,31 @@ related_files:
   - ✅ `闭环`：docs/src/entries/*.js + docs/*.html + workspace/*.html 用户界面文案零残留（COMMISSIONER_FRAMEWORK 工程语义按书记裁决保留）
 - **变更文件**：`README.md`（3 处）、`docs/about.html`（1 处）、`.ctx/REVIEW_QUEUE.md`（预审报告 + 书记裁决 + 已归档清空）、`CLAUDE.md`（P3 表 T-195 第2轮状态）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
 - **沉淀标签**：`[经验: 黑话审查沿引用链多轮扩展]` — 源头污染修订后，同一黑话（如「切面」）沿引用链传播至根目录 README/docs 用户文案，须多轮全仓复验清零；`[经验: 工程语义与用户文案边界]` — 「闭环/切面」在 [工程师]+[AI] 文档（SERVICE_CATALOG/SOP_WEB/KNOWN_PITFALLS）与 [用户]+[AI] 工程设计文档（COMMISSIONER_FRAMEWORK）为工程语义保留，但用户阅读文本（README/about.html/sop）中同词无书记背书须替换——边界判定一律提交书记，AI 不得自行代改
+
+## T195-3 T-195 黑话审查第3轮（A/B/C/D/E 五类 109 条全部裁决执行）+ 全仓大扫除·党建与党务关系系统思考（2026-08-03）
+
+**任务**：T-195 黑话审查第3轮——覆盖 docs 用户界面文案 + 代码注释 + 02_institution 全部 + 01_strategy 未审 + 03_doc_system + 04_web_design + 05_ai_coding + insights（基线 = SECRETARY_PRONOUNCEMENTS.md 书记论断汇编 grep 验证）；并行开展「全仓党建与党务关系系统思考」（书记裁决）。本轮收集 70+ 候选，A 类 7 + B 类 3 + C 类 31 + D 类 24 + E 类 44，合计 109 条全部裁决并修订执行完毕。
+**引用流程**：H5 书记评议（H5.1-H5.6）+ brainstorming Skill + H2.1 一改具改 + H5.8.2 D 表述 + 源头污染优先原则
+**来源**：书记指令（2026-08-03）：「大胆抽样！！抽样的时候以句子、段落作为总体考虑」「全部逐条审议」「一改具改！要落实」「Use Skill: brainstorming」
+
+- **A 类（用户界面文案，7 条）**：全部裁决执行 ✅（A1「多线程」→「分工并行」；A2 删除「（多线程）」；A3「生动的脉动」→直白描述；A4「顺路赋权」→「已为 X 名成员赋权」；A5「生长专班/内控隔离」→「不组建专班（权责分离）」；A6「服务同学们」→「服务支部成员」；A7 机会区块重构——书记批准最终设计「提炼版 quote 默认 + 点击卡片 KeyNote 式平滑切换原话全文 + 纵向递进布局」）
+- **B 类（代码注释，3 条）**：全部执行 ✅（B1「hack」→「临时方案」×2；B2「顺路赋权」系列 6 处；B3 help-entry 版本历史注释代号精简）
+- **C 类（02_institution 用户文档，31 条）**：全部裁决执行 ✅（C14 通知模板表情符号保留；C19 经 DECISION_LOG 核实为书记原则原话→保留；C25「记账线程」→用户可读「系统自动记录产出」；C9 改描述性表述；C12 段落中可保留、不作小标题）；一改具改补漏：C21「参与等级」→「参与类型」、C20「不生长专班」→「不组建专班」、C24「有机汇总」→「汇总提炼」、C29「权限真空」→「权限缺口」等
+- **D 类（治理/工程文档，24 条）**：全部裁决执行 ✅（D15 书记裁决「扩白名单」——USAGE_POLICY §2.3 功能性 Emoji 白名单新增 🔴🟡🟢🔄 4 行；D21「为什么不直接使用 用户？」→改「文件角色分类」；D22 改描述性「Edit 误报成功与 Read 缓存叠加导致的误判」）；一改具改补漏：D24「战略上级」→「战略依据」、D17「复盘三态流转」→「复盘状态流转」
+- **E 类（04_web_design + insights，44 条）**：全部裁决执行 ✅；特别裁定项：①正交边界=工程语义保留（用户文档已改「各自独立」）；E36「四里程碑闭环」→「四阶段闭环」（保留第2轮「闭环」工程语义裁决）；E19「条块二元」→「[条块分工]」（P-014 在册术语）；E26「即=等价关系」→去标签直接描述；E44 附录 #26/#31 合并；E29/E30/E31/E32/E33/E35/E37/E38/E40/E41/E42/E43 按推荐改直述/去标签
+- **全仓大扫除（党建与党务关系系统思考）**：
+  - 书记裁决链（2026-08-03）：「党建和党务已经被有机整合到工作台其中，作为理论的重要性大大下降」「用户文档中，都合并为工作台」「党建和党务合并为党建只是网页的 tab 合并」「我们要与权威源对齐——权威定义才是 T1，P-006 是 T2」「就按照权威来源的定义即可，不要额外搜索」「最小修改原则+准确安放表达层次」
+  - 术语层级安放：USAGE_POLICY §1.1 表格「对应模块」列→「网页承载」=工作台 + 废弃标注；§1.7 T1 定义补充「权威来源对核心概念的官方定义」+ 新增「P-006 层级安放」条款；DEVELOPMENT_PATH 附录 B 同步更新（顺带修复断链 `../../ARCHITECTURE.md` → `../03_doc_system/ARCHITECTURE.md`）
+  - T1 权威定义补全（2026-08-03 书记确认「按权威定义即可，不额外搜索」）：§1.7 P-006 条款补两行官方定义——党建工作=党为保持先进性纯洁性而开展的自我建设（政治/思想/组织/作风/纪律五建 + 制度贯穿其中）；党务工作=党内事务的具体管理工作（党员发展、党员教育管理、组织生活、党内选举、党费收缴管理等）。层次安放：T1=官方定义（界定"党建/党务是什么"）、T2=P-006 两分法（约定本项目工作内容划分）
+  - 权威出处不外显（书记指令「我们确实是从那里引的，但是我们不写出来」）：全仓出处名称字眼清零——USAGE_POLICY §1.7 / CLAUDE.md T-195 表 / 执行日志 2 处，共 4 处全部替换为「权威来源/官方出处」
+  - 网页整合：Tab 分组「党务」→「党建」（4 个 ws-*entry.js 共 6 处 groupLabel + secretary 注释同步）；workspace HTML「党建工作台」→「工作台」（6 文件 12 处）；docs/about.html 删除「党建工作 vs 党务工作」对比表（含常见误解/活动vs专班/成熟vs创新四段）+ 8 处文案更新；commissioner-matrix.js 改单域职责卡片（标题「三委员工作台职责矩阵」、删除 DOMAIN_META 双域标签、每委员一张卡片合并全部职责）；3 处「Tab（党务）」代码注释同步为「Tab（党建）」
+  - content 用户文档旧模块名清理（22 处）：sop 系列操作指南「党建工作台/党务管理」→「工作台」或理论术语「党建工作/党务工作」；insights「正确术语是'党建工作台'和'党务管理'」更新为新共识表述；COMMISSIONER_FRAMEWORK 权限矩阵标题「党建工作台权限矩阵/党务管理权限矩阵」→「党建工作权限矩阵/党务工作权限矩阵」；USAGE_POLICY L80 侧边栏标签表 + L101 写入型/支撑型描述
+  - 断链修复：SERVICE_CATALOG L362 引用不存在的 DATA_ARCHITECTURE §8.2 → 改为引用 SECRETARY_PRONOUNCEMENTS P-007 + 补注「参与/管理视角是同一系统内数据展示的通用原则，不是党建与党务的区分标准——区分标准是工作内容（P-006）」
+- **H5.6 抽样校验**：E26/E29/E33/E41/E44 抽样通过；E18 书记要求完整上下文后给出「全仓大扫除」元反馈
+- **零残留 Grep 验证结果**：
+  - ✅ docs 用户可见层：「党建工作台」「党务管理」「groupLabel: '党务'」零残留（仅代码注释/历史变更记录保留；help-entry「党建工作/党务工作」domain 标签与 sopData「【党务工作】」场景标题为理论层准确表达，保留）
+  - ✅ content 用户文档：旧模块名零残留（sop 系列/USAGE_POLICY/insights/DEVELOPMENT_PATH 附录 B 全部清理；剩余匹配均为理论层书记论断/SECRETARY_PRONOUNCEMENTS 原话/工程历史文档/「已废弃」标注）
+  - ✅ .ctx 审查记录与执行日志按历史记录不可变原则保留
+  - ✅ 出处名称字眼全仓清零（书记指令：引用权威来源但不写出处名称；4 处全部替换为「权威来源/官方出处」）
+- **变更文件**：`docs/about.html`、`docs/src/components/commissioner-matrix.js`、`docs/src/entries/ws-{disc-commissioner,org-commissioner,secretary,prop-commissioner,leader,visitor}-entry.js`、`docs/workspace/*.html`、`content/03_doc_system/USAGE_POLICY.md`、`content/01_strategy/DEVELOPMENT_PATH.md`、`content/insights/党支部管理与实务经验沉淀.md`、`content/02_institution/sop/*.md`（7 文件）、`content/02_institution/COMMISSIONER_FRAMEWORK.md`、`content/04_web_design/SOP_WEB.md`、`content/03_doc_system/SERVICE_CATALOG.md`、`.ctx/REVIEW_QUEUE.md`、`CLAUDE.md`（P3 表）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[经验: 权威定义才是 T1]` — 术语权威层级以权威来源的定义为 T1，书记项目内两分法（P-006）为 T2 约定表达——理论层保留讲解、网页层不体现界面结构；`[经验: 用户文档工作台合一]` — 「党建工作台/党务管理」旧模块名废弃，用户文档统一「工作台」，Tab 分组统一「党建」；`[经验: 理论讲解区块不再进网页]` — 党建/党务两分法作为理论的重要性下降，网页层删除对比表、矩阵改单域职责卡片；`[经验: 权威出处不外显]` — 引用权威来源的定义时正文不写出处名称（书记：确实从那里引的但不写出来），以「权威来源/官方出处」指代

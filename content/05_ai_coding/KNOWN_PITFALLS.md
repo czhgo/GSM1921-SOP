@@ -20,7 +20,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 
 **判例**：2026-05-20，Edit 工具报告修改 CLAUDE.md 成功（返回 diff 显示正确），但 PowerShell 读取磁盘文件发现修改未持久化。连续 3 次 Edit 均报告成功但实际未写入。最终使用 Python 脚本 `fs.writeFileSync` 才成功持久化。
 
-**虚假确认闭环**：Edit 工具对 CLAUDE.md 等大文件报告"成功"但实际未写入磁盘，与 Read 工具的缓存内容叠加形成**虚假确认闭环**——Edit 报告成功 → Read 返回缓存中的"已修改"内容 → AI 误以为修改已持久化。丙部 P.8/P.9 曾在一次会话中被 Edit 工具报告为写入成功，但下次会话磁盘上仍是"当前无丙部待决策事项"。
+**Edit 误报成功与 Read 缓存叠加导致的误判**：Edit 工具对 CLAUDE.md 等大文件报告"成功"但实际未写入磁盘，与 Read 工具的缓存内容叠加形成误判——Edit 报告成功 → Read 返回缓存中的"已修改"内容 → AI 误以为修改已持久化。丙部 P.8/P.9 曾在一次会话中被 Edit 工具报告为写入成功，但下次会话磁盘上仍是"当前无丙部待决策事项"。
 
 **根因**：Edit 工具对大文件（CLAUDE.md 约 500+ 行）的修改可能因缓冲区未刷新而丢失。AI 在写入后未执行 H7 #9 要求的 Python 验证，仅依赖 Edit 的返回值和 Read 工具的缓存内容确认。Edit 的"成功"是工具层面的返回值，不是文件系统的确认——这是 AI 工具链的固有缺陷，不是偶发事件。
 
@@ -91,7 +91,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 
 ## 7. 分层体系冲突记录
 
-> **本节聚焦仓库 8 套分层体系（L0-L4 文档权威层级 / T1-T3 术语层级 / 热温冷三层 / 目录结构 / 受众维度 / 文件角色分类 / 党建与党务五层 / insights 卷结构）的命名、引用、混淆判例**。一致性检查规范见 [OPERATIONS_GUIDE.md §7.4](OPERATIONS_GUIDE.md#74-一致性检查规范)，定期扫描任务见 [OPERATIONS_GUIDE.md §15.2 Q4](OPERATIONS_GUIDE.md#152-周期性任务清单)。
+> **本节聚焦仓库 7 套分层体系（5 类知识类型 / T1-T3 术语层级 / 热温冷三层 / content/ 目录结构层级 / 文件角色分类 / insights 5 类知识类型结构 / ARCHITECTURE.md 五层架构）的命名、引用、混淆判例**。一致性检查规范见 [OPERATIONS_GUIDE.md §7.4](OPERATIONS_GUIDE.md#74-一致性检查规范)，定期扫描任务见 [OPERATIONS_GUIDE.md §15.2 Q4](OPERATIONS_GUIDE.md#152-周期性任务清单)。
 
 ### 7.1 L1/L2/L3 与 T1/T2/T3 混淆事件（已解决）
 
@@ -113,7 +113,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 ### 7.3 待监测的潜在冲突
 
 - **insights 知识类型标注**：insights 按 5 类知识类型标注（如 [3]，见 OPERATIONS_GUIDE §7.1），引用时标明"§X.Y"+知识类型编号
-- **Agent 职能分类与文件角色分类**：Agent 协调型/执行型等是职能维度，[用户]/[工程师]/[AI] 是消费者维度——需在 ARCHITECTURE.md 中明确区分
+- **Agent 职能分类与文件角色分类**：Agent 协调型/执行型等是职能分类，[用户]/[工程师]/[AI] 是文件角色分类——需在 ARCHITECTURE.md 中明确区分
 
 ## 8. 上下文丢失教训
 
@@ -128,7 +128,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 6. **选择最合适的工具**：MCP工具 > LLM推理 > Python脚本（仅批量操作）
 7. **终端命令禁止写入含中文的文件内容**：PowerShell默认编码可能损坏UTF-8文件。禁止使用`[System.IO.File]::WriteAllText`或`Set-Content`等命令写入含中文的文件。文件写入必须使用Edit/Write工具，终端仅用于读取验证（`Select-String`、`Get-Content`等）
 8. **对话回退后必须审计仓库实际状态**：回退可能导致部分文件回退、部分未回退的不一致。恢复后必须用Grep/Read检查关键文件的实际内容，以磁盘为准更新乙部
-9. **Read 工具可能返回缓存内容**：Read 工具对 CLAUDE.md 等大文件可能返回与磁盘不一致的缓存内容，与 Edit 工具的"虚假成功"叠加形成**虚假确认闭环**。验证文件修改必须用 Python `open()` 读回确认，不得仅依赖 Read 工具
+9. **Read 工具可能返回缓存内容**：Read 工具对 CLAUDE.md 等大文件可能返回与磁盘不一致的缓存内容，与 Edit 工具的"虚假成功"叠加形成误判。验证文件修改必须用 Python `open()` 读回确认，不得仅依赖 Read 工具
 10. **书记讲出的重要道理必须检查是否写入 guides/Harness**：当书记在决策中阐述的原则超越本次决策、具有长期指导意义时，必须：(a) 写入决策日志；(b) 检查是否需要写入 guides 的对应文件；(c) 若原则具有全局约束力，写入 Harness 对应章节。不得仅记录决策结果而不沉淀原则
 
 ## 9. 对话总结虚假完成陷阱

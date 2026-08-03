@@ -14,7 +14,7 @@ const COMMISSIONER_DATA = [
     workspace: {
       title: '专班建设',
       desc: '招募统筹·定人定责定岗',
-      items: ['考察上传与确认', '专班创建与招募管理', '人才库（考察表有机汇总）'],
+      items: ['考察上传与确认', '专班创建与招募管理', '人才库（考察表汇总提炼）'],
       page: 'workspace/org.html',
     },
     party: {
@@ -68,25 +68,6 @@ const COMMISSIONER_DATA = [
   },
 ];
 
-const DOMAIN_META = {
-  workspace: {
-    label: '党建工作台',
-    subtitle: '服务同学们的核心职能',
-    accent: '#CE1126',
-    accentBg: 'rgba(206,17,38,0.04)',
-    accentBorder: 'rgba(206,17,38,0.12)',
-    icon: icon('cog', { strokeWidth: 1.8, className: 'w-[18px] h-[18px]' }),
-  },
-  party: {
-    label: '党务管理',
-    subtitle: '党务管理与运行保障',
-    accent: '#B91C1C',
-    accentBg: 'rgba(185,28,28,0.04)',
-    accentBorder: 'rgba(185,28,28,0.12)',
-    icon: icon('party', { strokeWidth: 1.8, className: 'w-[18px] h-[18px]' }),
-  },
-};
-
 export function renderCommissionerMatrix(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -95,22 +76,8 @@ export function renderCommissionerMatrix(containerId) {
 
   container.innerHTML = `
     <div class="mb-6">
-      <div class="flex items-center gap-3 mb-2">
-        <h3 class="font-title-cn text-lg font-bold text-gray-800">三委员党建与党务工作职责矩阵</h3>
-      </div>
-      <p class="text-sm text-gray-500 mb-4">同一位委员，在党建工作台和党务管理中承担不同职责。点击卡片可跳转至对应工作页面。</p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      ${Object.entries(DOMAIN_META).map(([key, meta]) => `
-        <div class="card rounded-2xl p-4 border-l-4" style="border-left-color:${meta.accent};background:${meta.accentBg};">
-          <div class="flex items-center gap-2 mb-1">
-            <span style="color:${meta.accent}">${meta.icon}</span>
-            <span class="font-title-cn text-sm font-bold" style="color:${meta.accent}">${meta.label}</span>
-          </div>
-          <span class="text-xs text-gray-500">${meta.subtitle}</span>
-        </div>
-      `).join('')}
+      <h3 class="font-title-cn text-lg font-bold text-gray-800 mb-2">三委员工作台职责矩阵</h3>
+      <p class="text-sm text-gray-500 mb-4">三位委员的工作台职责一览。点击卡片可跳转至对应工作页面。</p>
     </div>
 
     <div class="space-y-4">
@@ -124,11 +91,10 @@ export function renderCommissionerMatrix(containerId) {
           <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100">
             ${['workspace', 'party'].map(domain => {
               const d = c[domain];
-              const meta = DOMAIN_META[domain];
               return `
                 <a href="${base + d.page}" class="block p-5 hover:bg-gray-50/50 transition-colors group" style="text-decoration:none;">
                   <div class="flex items-center gap-2 mb-2">
-                    <span style="color:${meta.accent}">${meta.icon}</span>
+                    <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${c.color};"></span>
                     <span class="font-title-cn text-sm font-semibold text-gray-700 group-hover:text-gray-900">${d.title}</span>
                   </div>
                   <p class="text-xs text-gray-400 mb-3">${d.desc}</p>
@@ -142,7 +108,7 @@ export function renderCommissionerMatrix(containerId) {
                   </ul>
                   <div class="mt-3 text-xs text-gray-400 group-hover:text-blue-500 transition-colors flex items-center gap-1">
                     ${icon('arrowRight', { className: 'w-3 h-3' })}
-                    进入${meta.label}
+                    进入工作台
                   </div>
                 </a>
               `;
@@ -154,7 +120,7 @@ export function renderCommissionerMatrix(containerId) {
 
     <div class="mt-4 p-3 rounded-lg bg-gray-100 border border-gray-100">
       <p class="text-xs text-gray-500">
-        <strong>核心规则</strong>：组织委员是唯一专班管理节点；纪检委员不生长专班（内控隔离）；宣传委员不可自行招募宣传专班，赋权操作统一归口组织委员。
+        <strong>核心规则</strong>：组织委员是唯一专班管理节点；纪检委员不组建专班（权责分离）；宣传委员不可自行招募宣传专班，赋权操作统一归口组织委员。
         考勤数据同源——组织委员的活动出勤数据直接使用纪检委员维护的考勤系统。
       </p>
     </div>
