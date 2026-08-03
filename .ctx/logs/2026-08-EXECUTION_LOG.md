@@ -659,3 +659,28 @@ related_files:
   - ✅ `正交|漂移|粒度`：content/01_strategy/ 零残留；其余目录（02_institution/04_web_design/03_doc_system）保留——工程/治理权威文件（D-218 正交维度模型、T168 活动分类正交维度等为已确立的工程语义术语）
 - **变更文件**：`content/01_strategy/SECRETARY_PRONOUNCEMENTS.md`、`content/01_strategy/DEVELOPMENT_PATH.md`、`content/02_institution/sop/宣传委员工作流程指南.md`、`支委与党小组定人定责定岗说明.md`、`党小组组长工作手册.md`、`content/insights/工程演进与设计方法论.md`、`content/insights/党支部管理与实务经验沉淀.md`、`content/03_doc_system/SSOT_INDEX.md`、`CLAUDE.md`（H5.8.2 黑话审查维度 + P3 表 T-195 状态）、`.ctx/REVIEW_QUEUE.md`（已清空）
 - **沉淀标签**：`[经验: 黑话审查基线=书记论断汇编]` — 书记论断汇编（SECRETARY_PRONOUNCEMENTS.md）是最接近原话的基线，DEVELOPMENT_PATH 等 AI 编写文档可能自身已被污染，不能单独作为基线；`[经验: 源头污染优先]` — 引用链路修复只保证链接正确，源头表述若被污染则下游全部传播，审查须从权威源/母本源头逐层向下；`[经验: 语气轻浮为黑话维度]` — 书记判例（2026-08-03）：对"这不是'催你'"评价"表达就很轻浮！！"，带引号俏皮口吻等不庄重表达纳入黑话审查维度，须庄重化
+
+## T195-2 T-195 黑话审查第2轮（根目录/03_doc_system/04_web_design/docs 用户文案）（2026-08-03）
+
+**任务**：T-195 黑话审查第2轮——在第一轮源头污染修订基础上，扩展到根目录 README + 03_doc_system + 04_web_design + docs/ 用户界面文案 + 05_ai_coding。
+**引用流程**：H5 书记评议（H5.1-H5.6）+ sample-diff-learning Skill + brainstorming Skill + H2.1 一改具改 + H5.8.2 D 表述（黑话审查条目）
+**来源**：书记指令（2026-08-03）："请推进下一轮的书记评议【任意乙部的评议都可】；这些评议维度，请长期保留在CLAUDE.md，我们要更多次！" + Use Skill brainstorming + Use Skill sample-diff-learning。书记选定 T-195 第2轮。
+
+- **基线方法**（H5.8.2）：以**书记论断汇编**（SECRETARY_PRONOUNCEMENTS.md）grep 验证——汇编存在的措辞非 T3；DEVELOPMENT_PATH 等 AI 编写文档可能自身已被污染，不能单独作为基线
+- **预审发现（三类）**：
+  - A 类用户文档黑话残留 4 处：README.md:17「工作切面」、:72「不同的切面」、:130「不同切面展示」、docs/about.html:306「不同切面」——A4 裁决「同源不同切面→同源不同视角」的下游传播残留，用户阅读文本无书记背书
+  - B 类「闭环」边界判定 8 处：COMMISSIONER_FRAMEWORK ×7（协作闭环/无法闭环追踪/纪检审核闭环/月度闭环流程/任务对接闭环/信息闭环等，[用户]+[AI] 设计文档，工程流程语义）+ help-entry.js:166「专班的工作闭环」（用户帮助页文案）
+  - C 类已核查保留：SERVICE_CATALOG「切面视图」（[工程师]+[AI]）、SOP_WEB「切面视图」、insights §5.7「切面视图原则」、OPERATIONS_GUIDE「闭环/漂移/粒度」、KNOWN_PITFALLS「虚假确认闭环」、CHECKLIST「赋权整合闭环」（任务名）、USAGE_POLICY「正交双维度」（历史）、FLAT_DESIGN「管理闭环」（P-010 母本 T1）、DEVELOPMENT_PATH「战略经验闭环」（A1 保留）、help-entry/ws-secretary「脑子/手」（P-011 书记论断 T1）、04_web_design「锚点/粒度」等
+- **书记裁决（2026-08-03 AskUserQuestion）**：
+  - A 类=全部替换为「视角」（4 处）
+  - B 类=工程保留+用户替换 → 但 H5.6 抽样③书记裁定 help-entry.js「专班的工作闭环」**保留闭环**——最终 B 类 8 处「闭环」全部保留（COMMISSIONER_FRAMEWORK 工程语义 + help-entry 书记特别裁定）
+  - C 类=确认保留不动
+- **反馈落实（修订 2 文件 4 处）**：
+  - README.md：L17「工作切面」→「工作视角」、L72「不同的切面」→「不同的视角」、L130「不同切面展示」→「不同视角展示」
+  - docs/about.html：L306「不同切面」→「不同视角」
+- **H5.6 抽样校验（修订后抽样 4 条，逐条 /ask）**：① A1 README「工作切面→工作视角」接受 ✅；② A4 about.html「不同切面→不同视角」接受 ✅；③ B8 help-entry「专班的工作闭环→专班工作至此完成」书记裁定「保留闭环」（撤销替换，恢复原状）；④ B/C 类保留确认 ✅
+- **零残留 Grep 验证结果**：
+  - ✅ `切面`：README/about.html/help-entry 等用户文档零残留（仅工程/权威文档「切面视图」合法保留 + .ctx 内部文档 + docs/superpowers 工程师向历史快照）
+  - ✅ `闭环`：docs/src/entries/*.js + docs/*.html + workspace/*.html 用户界面文案零残留（COMMISSIONER_FRAMEWORK 工程语义按书记裁决保留）
+- **变更文件**：`README.md`（3 处）、`docs/about.html`（1 处）、`.ctx/REVIEW_QUEUE.md`（预审报告 + 书记裁决 + 已归档清空）、`CLAUDE.md`（P3 表 T-195 第2轮状态）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[经验: 黑话审查沿引用链多轮扩展]` — 源头污染修订后，同一黑话（如「切面」）沿引用链传播至根目录 README/docs 用户文案，须多轮全仓复验清零；`[经验: 工程语义与用户文案边界]` — 「闭环/切面」在 [工程师]+[AI] 文档（SERVICE_CATALOG/SOP_WEB/KNOWN_PITFALLS）与 [用户]+[AI] 工程设计文档（COMMISSIONER_FRAMEWORK）为工程语义保留，但用户阅读文本（README/about.html/sop）中同词无书记背书须替换——边界判定一律提交书记，AI 不得自行代改
