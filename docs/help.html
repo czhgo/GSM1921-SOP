@@ -43,6 +43,8 @@
     .doc-p strong { color:#111827; font-weight:700; }
     .doc-lead { font-size:1rem; color:#4B5563; line-height:1.9; margin-bottom:20px; }
     .doc-lead strong { color:#111827; }
+    .doc-ack { font-family:'STFangsong','华文仿宋','FangSong','仿宋',serif; font-size:1.02rem; line-height:2.05; color:#374151; }
+    .doc-ack strong { color:#111827; font-weight:700; }
 
     /* ── 快速上手：全局导航结构 ── */
     .nav-tree { background:#F8F9FA; border:1px solid #EEEFF2; border-radius:14px; padding:16px 20px; font-family:ui-monospace,'SF Mono',Consolas,monospace; font-size:0.85rem; color:#4B5563; line-height:1.9; margin:12px 0 6px; }
@@ -56,14 +58,14 @@
     .qn-table-wrap { overflow-x:auto; margin-top:4px; }
     table.qn-matrix { width:100%; border-collapse:collapse; table-layout:fixed; min-width:640px; }
     table.qn-matrix th { font-size:0.72rem; font-weight:700; color:#374151; padding:8px; text-align:left; border-bottom:1.5px solid #E5E7EB; }
-    table.qn-matrix td { font-size:0.7rem; color:#6B7280; padding:9px 8px; vertical-align:top; border-bottom:1px solid #F1F2F4; }
+    table.qn-matrix td { font-size:0.72rem; color:#6B7280; padding:9px 8px; vertical-align:top; border-bottom:1px solid #F1F2F4; }
     table.qn-matrix tr:last-child td { border-bottom:none; }
-    td.qn-domain { font-weight:700; color:#111827; font-size:0.78rem; width:88px; white-space:nowrap; }
+    .qn-matrix td.qn-domain { font-weight:700; color:#111827; font-size:0.8rem; width:88px; white-space:nowrap; }
     td.qn-empty { background:#FAFAF9; }
     .qn-role { display:flex; align-items:center; gap:5px; }
     .qn-role-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
     .qn-cell { display:flex; flex-direction:column; gap:4px; }
-    a.qn-fn { font-size:0.66rem; color:#374151; background:#fff; border:1px solid; border-radius:999px; padding:1px 8px; line-height:1.6; text-decoration:none; width:fit-content; transition:background-color 0.2s, border-color 0.2s; }
+    a.qn-fn { font-size:0.7rem; color:#374151; background:#fff; border:1px solid; border-radius:999px; padding:1px 8px; line-height:1.6; text-decoration:none; width:fit-content; transition:background-color 0.2s, border-color 0.2s; }
     a.qn-fn:hover { background:#F8F9FA; }
     a.qn-fn:focus-visible { outline:2px solid #CE1126; outline-offset:2px; }
     a.qn-fn-leader { border-color:#86EFAC; color:#15803D; }
@@ -85,7 +87,7 @@
     .doc-list li { position:relative; padding-left:18px; font-size:0.9rem; line-height:1.8; color:#374151; }
     .doc-list li + li { margin-top:8px; }
     .doc-list li::before { content:''; position:absolute; left:0; top:0.72em; width:6px; height:6px; border-radius:50%; background:#CE1126; }
-    .doc-note { margin-top:14px; padding:12px 16px; border-radius:12px; background:#FEF2F2; border-left:3px solid #CE1126; font-size:0.85rem; color:#7A0010; line-height:1.8; }
+    .doc-note { margin-top:14px; padding:12px 16px; border-radius:12px; background:#FEF2F2; border-left:3px solid #CE1126; font-family:'Noto Serif SC','STZhongsong',serif; font-size:0.9rem; color:#7A0010; line-height:1.9; }
 
     /* ── 正文版式增强：要点卡 / 对比卡 / 查找卡 / 引语 / 理念卡 ── */
     .doc-key { margin:14px 0; padding:11px 18px; border-radius:12px; background:#FEF2F2; border-left:3px solid #CE1126; font-size:0.9rem; color:#7A0010; line-height:1.85; }
@@ -179,7 +181,7 @@
       <section class="doc-card" id="sec-ack" data-toc-id="sec-ack">
         <h2 class="doc-h2">致谢</h2>
         <hr class="doc-divider">
-        <p class="doc-p">
+        <p class="doc-p doc-ack">
           感谢<strong>党委领导马化祥书记、鞠晓副书记</strong>对本支部数字化管理探索的大力支持。
           感谢支部委员：赵雅萱、代艺、徐瑗依、秦若琳、韩思宁、辛长乐、侯嘉嵘、王峥旭、王溪斌、悦佳荷——正是各位委员在各自岗位上精益求精的实务耕耘，才为本系统的设计提供了丰富的场景素材与实践检验。
           特别感谢<strong>赵雅萱、闫鑫岳</strong>同志对于宣传档案工作的鼎力指导。
