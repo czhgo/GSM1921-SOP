@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // role-hierarchy.js — 8角色层级可视化组件
-// 渲染：党支书(顶) → 纵线三委员+横线三党小组组长(中) → 成员+专班浮层(底)
+// 渲染：党支书(顶) → 纵线三委员+横线三党小组组长(中) → 成员+组织者+深度参与者平级(底)
 
 import { ROLE_LABELS } from '../core/constants.js';
 import { getBasePath } from '../core/utils.js';
@@ -68,19 +68,11 @@ export function renderRoleHierarchy(containerId) {
       </div>
       <div class="rh-connector">┃</div>
 
-      <!-- 底层 -->
+      <!-- 底层：平级角色 -->
       <div class="rh-bottom">
         ${roleCard(ROLE_DATA.member, 'style="min-width:130px"')}
-        <div class="rh-taskforce">
-          <div class="rh-taskforce-label">专班（临时项目组）</div>
-          <div class="rh-cards-row">
-            ${roleCard(ROLE_DATA.organizer, 'style="min-width:100px"')}
-            ${roleCard(ROLE_DATA.deep, 'style="min-width:100px"')}
-          </div>
-          <p class="rh-taskforce-note">
-            组织者和深度参与者同时服务<strong>活动</strong>和<strong>专班</strong>——两者是党建工作下的并列工作内容，归不同人管理。专班任务完成后解散。
-          </p>
-        </div>
+        ${roleCard(ROLE_DATA.organizer, 'style="min-width:120px"')}
+        ${roleCard(ROLE_DATA.deep, 'style="min-width:120px"')}
       </div>
     </div>
   `;

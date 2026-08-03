@@ -764,4 +764,35 @@ related_files:
 - ✅ 第三轮（d 版）：5/5 全部通过——scrollY=0→sec-ack / 4300→sec-what / 9200→sec-tech / 底部 9317→sec-disclaimer（兜底生效）/ 上滚 100px 恢复正常判定；console 无 JS 错误
 - ✅ GetDiagnostics 修改文件零错误
 
-**沉淀标签**：`[待沉淀: IntersectionObserver 阈值方案对高章节失效]` — 章节高度远大于观察带高度时，相交比永远低于 threshold，TOC 滚动高亮永不切换（帮助页快速上手 3532px 相交比仅 5.6% < 15%）；改用「章节顶部越过标记线」scroll 定位法（只读顶部位置，与章节高度无关）+ 页面底部兜底激活末章（页面总高不足时末章顶部永远无法越过标记线）
+**沉淀标签**：`[已沉淀: content/insights/工程演进与设计方法论.md §6.24]` — 章节高度远大于观察带高度时，相交比永远低于 threshold，TOC 滚动高亮永不切换（帮助页快速上手 3532px 相交比仅 5.6% < 15%）；改用「章节顶部越过标记线」scroll 定位法（只读顶部位置，与章节高度无关）+ 页面底部兜底激活末章（页面总高不足时末章顶部永远无法越过标记线）
+
+## T198 T-198 帮助页三/四章节重写 + entry 命名一致（2026-08-03）
+
+**任务**：承接书记两条指令——①about/help 与各自 entry 命名一致（help.html 原用 about-entry.js、about.html 原用 help-entry.js，互换归位）；②help 页三、四章节全权重写——修正角色总览图"组织者/深度参与者框进专班盒子"问题（书记："我还把组织者和深度参与者 放在专班中！我非常不认可！"），议题与表述逐条经书记把关。
+**引用流程**：brainstorming Skill（逐轮 AskUserQuestion 把关）+ web-design-guidelines Skill + H2.1 一改具改 + verification-before-completion Skill（browser_use 两轮实测）
+**来源**：书记指令（2026-08-03）——"about和help 与 他们各自的entry 需要命名一致！！""我认为help中的三、四 都值得重写！里面表述的问题我觉得①有问题——特别是画图的部分，明说 专班和活动并列，还把组织者和深度参与者 放在专班中！我非常不认可！②具体要展示什么内容/什么议题，怎么表述，我都要从头到尾把关！"
+
+**书记决策（brainstorming + AskUserQuestion 逐条确认，见 `.trae/specs/help-chapters-rewrite/spec.md`）**：
+- 画图结构=独立底层·去专班盒（底部「普通成员/组织者/深度参与者」三平级卡，删除专班盒子）
+- 并列概念处理=仅改帮助页画图与表述（母本 FLAT_DESIGN/COMMISSIONER_FRAMEWORK/USAGE_POLICY 不动，论断放四章 4.2 以工作特征叙述讲清）
+- 三章议题 6 项通过（角色总览/条块双线/两个执行角色/活动线/专班线/普通成员）；四章方向="怎么理解具体的这个组织"（A+B+C：工作特征+组织目的+身份视角）；四章全文有机版通过；战略认知收尾保留；赋权链两处都留
+- **表述原则确立**：不用"为什么需要……"疑问句，改叙述式有机表达——把理由织进叙述（"制度因此比个人可靠""才不会有真空地带"），沉淀至 insights §4.15
+
+**实施内容**：
+- ① **entry 命名互换（git mv 三步归位）**：about-entry.js ↔ help-entry.js 内容互换——`git mv about-entry.js __swap_tmp-entry.js; git mv help-entry.js about-entry.js; git mv __swap_tmp-entry.js help-entry.js`；互换后 help-entry.js=系统说明书逻辑（renderSidebar/Header('help')）、about-entry.js=支部故事逻辑（renderSidebar/Header('about')）；两文件注释头修正
+- ② **help.html 三/四章整段替换**：三章=「分工中的制度设计」6 节（3.1 角色总览/3.2 条块双线/3.3 两个执行角色/3.4 活动走谁的门/3.5 专班走谁的门/3.6 普通成员）；四章=「怎么理解具体的这个组织」5 节（4.1 这个组织靠什么运作/4.2 活动与专班：两种工作两种节奏/4.3 扁平化：不靠级别靠协商/4.4 条块双线：办事找对线/4.5 普通成员：参与与监督）+「管理事，服务人」收尾 doc-note；删除旧四章「为什么这样设计」全节（含旧设问式标题与活动/专班对比表）；入口脚本 `about-entry.js?v=...` → `help-entry.js?v=20260803e→f`（bump）
+- ③ **role-hierarchy.js 去专班盒重构**：底部 `.rh-taskforce`「专班（临时项目组）」盒子删除，改为「普通成员/组织者/深度参与者」三平级卡；文件头注释同步；`help.html` 内联样式 `.rh-taskforce*` 三行清理（styles.css 无残留）
+- ④ **about.html 入口互换**：`help-entry.js?v=20260803` → `about-entry.js?v=20260803e`
+- ⑤ **一改具改**：SOP_WEB.md L55-56、SERVICE_CATALOG.md L405-406/L427-428 entry 映射互换；TIMESTAMPS.md L233/L236 描述互换
+- ⑥ **TOC tooltip 对齐正文标题**（浏览器验证发现）：help-entry.js TOC_ITEMS 标签「系统定位/制度设计/设计理念」→「这个系统在干什么/分工中的制度设计/怎么理解具体的这个组织」，与正文 h2 命名一致（与 about 页 TOC 惯例对齐）
+- ⑦ **表述原则沉淀**：insights 工程演进与设计方法论.md 新增 §4.15「叙述式有机表达」；顺带将 T-197 遗留 `[待沉淀: IntersectionObserver 阈值方案]` 闭环为 §6.24（相交比阈值法对高章节失效）
+
+**变更文件**：`docs/src/entries/help-entry.js`、`docs/src/entries/about-entry.js`、`docs/help.html`、`docs/about.html`、`docs/src/components/role-hierarchy.js`、`content/04_web_design/SOP_WEB.md`、`content/03_doc_system/SERVICE_CATALOG.md`、`.ctx/TIMESTAMPS.md`、`content/insights/工程演进与设计方法论.md`、`.trae/specs/help-chapters-rewrite/spec.md`（新增）
+
+**验证结果（browser_use 两轮实测 + GetDiagnostics + 全仓 Grep）**：
+- ✅ GetDiagnostics：help.html/about.html/help-entry.js/about-entry.js/role-hierarchy.js 全部零错误
+- ✅ 全仓 Grep：entry↔页面映射一致（about.html→about-entry.js、help.html→help-entry.js、renderSidebar('about')/renderSidebar('help')）；帮助页旧表述（"为什么这样设计""为什么是并列的""权限从哪来"等）零残留
+- ✅ 第一轮浏览器：help 页新三/四章节全部渲染（旧四章无残留）；#role-hierarchy-container 内 `.rh-taskforce` 数量为 0、底部三平级卡（普通成员/组织者/深度参与者）正确；圆点导航 7 项滚动高亮正常；about 页互换后支部故事渲染正常、GSAP 正常；console 无 TypeError/404
+- ✅ 第二轮浏览器（f 版）：help TOC tooltip 与正文标题完全一致（致谢/快速上手/这个系统在干什么/分工中的制度设计/怎么理解具体的这个组织/技术架构/免责声明），console 无错误
+
+**沉淀标签**：`[已沉淀: content/insights/工程演进与设计方法论.md §4.15]` — 面向人类读者的制度/说明内容，陈述理由不用"为什么需要……"疑问句，把理由织进叙述（叙述式有机表达）；生效条件：人类读者文档，AI 运行规则与技术表格不受限

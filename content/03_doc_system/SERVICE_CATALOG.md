@@ -402,8 +402,8 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 | feedback | 意见反馈 | `docs/feedback.html` | `entries/feedback-entry.js` |
 | issues | 意见反馈（核心） | `docs/data/issues.json` + localStorage | `services/issues.js` |
 | milestones | 批次定义 | `docs/data/milestones.json` | `services/milestones.js` |
-| help | 系统说明书 | `docs/help.html` | `entries/about-entry.js` |
-| about | 支部的故事 | `docs/about.html` | `entries/help-entry.js` |
+| help | 系统说明书 | `docs/help.html` | `entries/help-entry.js` |
+| about | 支部的故事 | `docs/about.html` | `entries/about-entry.js` |
 | login | 登录页 | `docs/login.html` | `entries/login-entry.js` |
 
 ### 5.2 角色工作台子页面
@@ -424,8 +424,8 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 | 页面 | 入口 JS | 用途 |
 |------|--------|------|
 | `docs/login.html` | `entries/login-entry.js` | 登录视图选择（D-219） |
-| `docs/about.html` | `entries/help-entry.js` | 支部的故事 |
-| `docs/help.html` | `entries/about-entry.js` | 系统说明书 |
+| `docs/about.html` | `entries/about-entry.js` | 支部的故事 |
+| `docs/help.html` | `entries/help-entry.js` | 系统说明书 |
 | `docs/notice.html` | `entries/notice-entry.js` | 通知独立页 |
 | `docs/search.html` | `entries/search-entry.js` | 资料查询 |
 | `docs/archive.html` | `entries/archive-entry.js` | 归档库 |

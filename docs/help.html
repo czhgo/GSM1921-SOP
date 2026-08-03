@@ -119,9 +119,6 @@
     .rh-card.role-deep .rh-name { color:#10B981; }
     .rh-card.role-deep .rh-tag { color:#059669; }
     .rh-bottom { display:flex; justify-content:center; align-items:flex-start; gap:24px; flex-wrap:wrap; }
-    .rh-taskforce { border:1px dashed rgba(139,92,246,0.3); border-radius:var(--radius-md); padding:12px 16px; background:rgba(139,92,246,0.02); }
-    .rh-taskforce-label { font-size:0.75rem; font-weight:600; color:#7C3AED; margin-bottom:8px; }
-    .rh-taskforce-note { font-size:0.72rem; color:#6B7280; margin-top:8px; line-height:1.6; text-align:left; }
   </style>
 </head>
 <body>
@@ -403,132 +400,138 @@
       <section class="doc-card" id="sec-design" data-toc-id="sec-design">
         <h2 class="doc-h2"><span class="doc-num">三</span>分工中的制度设计</h2>
         <hr class="doc-divider">
-
-        <!-- 3.1 角色总览图 -->
-        <h3 class="doc-h3">3.1 角色总览</h3>
         <p class="doc-p">
-          系统中的 8 种角色，按管理层级排列。支委是纵线（职能线），党小组组长是横线（小组线）——条块双线管理。其中六类角色有专属工作台（党支书、党小组组长、组织委员、宣传委员、纪检委员、普通成员）；组织者与深度参与者是扁平化执行角色，由党小组组长或组织委员在具体工作中赋权产生。
+          这套系统的 8 种身份，分三层理解：上层是管全局的党支书；中间是两条管理线——支委的职能线与党小组组长的小组线；下层是普通成员与两个执行角色。
         </p>
+
+        <!-- 3.1 角色总览 -->
+        <h3 class="doc-h3">3.1 角色总览</h3>
         <div id="role-hierarchy-container"></div>
+        <p class="doc-p" style="font-size:0.9rem; color:#6B7280;">
+          组织者与深度参与者是<strong>扁平化执行角色</strong>，服务活动也服务专班，由党小组组长（活动）或组织委员（专班）赋权产生。
+        </p>
 
-        <!-- 3.2 支委会 -->
-        <h3 class="doc-h3">3.2 支委会</h3>
-
-        <!-- 党支书卡片 -->
-        <div class="mb-4 p-5 rounded-xl border-l-4" style="border-left-color:#B91C1C; background:rgba(185,28,28,0.03);">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="font-title-cn text-sm font-bold" style="color:#B91C1C;">党支书</span>
-            <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:rgba(185,28,28,0.1); color:#B91C1C;">全局统筹</span>
-          </div>
-          <p class="doc-p" style="font-size:0.9rem;">
-            管理所有工作，是唯一的最终决策者。创建活动须经书记知情同意，专班发起和赋权均需书记授权或默认。
-          </p>
-        </div>
-
-        <!-- 三委员矩阵 -->
-        <p class="doc-p">各委员的职责集中在各自的角色工作台页面呈现：</p>
+        <!-- 3.2 条块双线 -->
+        <h3 class="doc-h3">3.2 条块双线</h3>
+        <p class="doc-p">
+          纵线是支委的职能线：组织委员管发展党员与专班统筹、宣传委员管宣传档案、纪检委员管考勤考察——各管一类专业事务。
+        </p>
+        <p class="doc-p">
+          横线是党小组组长的小组线：按就业/学术方向划分小组，负责组织学习、开展活动。
+        </p>
+        <p class="doc-p">
+          两条线交汇于党支书——全局统筹与最终决策者。
+        </p>
         <div id="commissioner-matrix-container"></div>
 
-        <!-- 3.3 党小组组长 -->
-        <h3 class="doc-h3">3.3 党小组组长</h3>
-        <div class="mb-4 p-5 rounded-xl border-l-4" style="border-left-color:#65A30D; background:rgba(101,163,13,0.03);">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="font-title-cn text-sm font-bold" style="color:#65A30D;">党小组组长</span>
-            <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:rgba(101,163,13,0.1); color:#65A30D;">横线 · 小组线</span>
-          </div>
-          <p class="doc-p" style="font-size:0.9rem;">
-            按就业/学术方向划分，横向统筹党小组活动。负责组织学习、开展活动，是活动的天然写入者。党小组组长可以独立创建活动，但须报书记知情同意。党小组组长有权向组织者和深度参与者赋权。
-          </p>
-        </div>
+        <!-- 3.3 两个执行角色 -->
+        <h3 class="doc-h3">3.3 两个执行角色：组织者与深度参与者</h3>
+        <p class="doc-p">
+          组织者与深度参与者是推动工作扁平化的两种角色，服务活动也服务专班，由赋权产生。
+        </p>
+        <p class="doc-p">
+          两者之间<strong>没有上下级关系，只是分工不同</strong>：组织者是项目的脑子，负责分工记录与协调；深度参与者是项目的手，负责执行具体工作、提交交付物。
+        </p>
 
-        <!-- 3.4 专班参与者 -->
-        <h3 class="doc-h3">3.4 专班参与者</h3>
-        <div class="mb-4 p-5 rounded-xl border-l-4" style="border-left-color:#06B6D4; background:rgba(6,182,212,0.03);">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="font-title-cn text-sm font-bold" style="color:#06B6D4;">组织者</span>
-            <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:rgba(6,182,212,0.1); color:#06B6D4;">牵头策划</span>
-            <span class="font-title-cn text-sm font-bold ml-3" style="color:#10B981;">深度参与者</span>
-            <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:rgba(16,185,129,0.1); color:#10B981;">推进执行</span>
-          </div>
-          <p class="doc-p" style="font-size:0.9rem;">
-            组织者和深度参与者是推动支部工作扁平化的两种角色。<strong>两者之间没有上下级关系，只是分工不同。</strong>核心比喻：组织者是项目的脑子，深度参与者是项目的手。
-          </p>
-          <div class="mt-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
-            <p class="doc-p" style="font-size:0.82rem; color:#6B7280;">
-              <strong>注意</strong>：组织者和深度参与者同时服务<strong>活动</strong>和<strong>专班</strong>——两者是党建工作下的并列工作内容，归不同人管理。在活动中，由党小组组长赋权；在专班中，由组织委员赋权。
-            </p>
-          </div>
-        </div>
+        <!-- 3.4 活动走谁的门 -->
+        <h3 class="doc-h3">3.4 活动走谁的门</h3>
+        <p class="doc-p">
+          党小组组长是活动的天然写入者——创建活动、向组织者赋权；组织者做好分工记录，深度参与者执行分工。
+        </p>
+        <p class="doc-p">
+          活动的考勤归纪检委员、宣传归宣传委员——一件事从创建到归档，门门有对。
+        </p>
 
-        <!-- 3.5 普通成员 -->
-        <h3 class="doc-h3">3.5 普通成员</h3>
-        <div class="mb-4 p-5 rounded-xl border-l-4" style="border-left-color:#6B7280; background:rgba(107,114,128,0.03);">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="font-title-cn text-sm font-bold" style="color:#4B5563;">普通成员</span>
-            <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:rgba(107,114,128,0.1); color:#6B7280;">参与 + 监督</span>
-          </div>
-          <p class="doc-p" style="font-size:0.9rem;">
-            普通成员以只读模式查看活动动态、专班进展和考勤概况。成员不参与管理工作，但拥有知情权和监督权。
-          </p>
-        </div>
+        <!-- 3.5 专班走谁的门 -->
+        <h3 class="doc-h3">3.5 专班走谁的门</h3>
+        <p class="doc-p">
+          发起人（书记/党小组组长/支委）提出需求，由组织委员统一招募统筹——<strong>唯一专班管理节点</strong>；招募赋权组织者与深度参与者，任务完成即解散。
+        </p>
+        <p class="doc-p">
+          活动与专班走不同的门：活动的门在党小组组长，专班的门在组织委员。
+        </p>
+
+        <!-- 3.6 普通成员 -->
+        <h3 class="doc-h3">3.6 普通成员</h3>
+        <p class="doc-p">
+          普通成员以只读方式查看活动动态、专班进展与考勤概况——不参与管理，但有知情权与监督权。
+        </p>
       </section>
 
-      <!-- ========== 四、为什么这样设计 ========== -->
+      <!-- ========== 四、怎么理解具体的这个组织 ========== -->
       <section class="doc-card" id="sec-why" data-toc-id="sec-why">
-        <h2 class="doc-h2"><span class="doc-num">四</span>为什么这样设计</h2>
+        <h2 class="doc-h2"><span class="doc-num">四</span>怎么理解具体的这个组织</h2>
         <hr class="doc-divider">
 
-        <!-- 4.1 为什么分纵线和横线 -->
-        <h3 class="doc-h3">4.1 为什么分纵线和横线？</h3>
+        <!-- 4.1 这个组织靠什么运作 -->
+        <h3 class="doc-h3">4.1 这个组织靠什么运作</h3>
         <p class="doc-p">
-          支委是纵线（职能线），管的是某一类专业事务——组织委员管发展、宣传委员管档案、纪检委员管考勤。党小组组长是横线（小组线），管的是一组人——按就业/学术方向划分的党小组。这两条线不是上下级关系，而是<strong>条块双线管理</strong>：<strong>条管功能决策，块管信息触达</strong>——纵线决定"做什么、怎么做"（功能决策），横线负责"传到谁、怎么传达"（信息触达），两条线交汇于具体工作。书记是条块之间的协调节点，确保功能决策和信息执行不脱节。这样的好处是：专业的事有人把关（委员），人的事有人管（党小组组长），不会出现"谁都管又谁都不管"的真空地带。
+          这个组织靠<strong>分工、协商、记录</strong>三件事运转，而不是级别：谁做什么由制度定好，组织者与深度参与者之间平等协商，做的过程有记录可查。
+        </p>
+        <p class="doc-p">
+          支委换届频繁、经验容易随人走，制度因此比个人可靠——工作不依赖某个人，才能一届一届接续下去。
+        </p>
+        <p class="doc-p">
+          你在这里的位置，由"你在做什么事"决定：承担了组织者的活就是组织者，年级与政治面貌不决定你是否胜任。
         </p>
 
-        <!-- 4.2 活动和专班为什么并列 -->
-        <h3 class="doc-h3">4.2 活动和专班为什么是并列的？</h3>
+        <!-- 4.2 活动与专班：两种工作，两种节奏 -->
+        <h3 class="doc-h3">4.2 活动与专班：两种工作，两种节奏</h3>
         <p class="doc-p">
-          活动和专班虽然都属于党建工作，但归不同人管理、走不同的赋权流程——它们不是"活动包含专班"或"专班属于活动"的从属关系，而是两条独立的线。
+          活动是支部的<strong>常规节奏</strong>：固定时间地点、面向全体、重在参与与规范，党小组是基本单元。
         </p>
-        <div class="doc-table-wrap">
-          <table class="doc-table">
-            <thead><tr><th style="width:20%;">维度</th><th>活动</th><th>专班</th></tr></thead>
-            <tbody>
-              <tr><td>管辖</td><td>党小组组长</td><td>组织委员</td></tr>
-              <tr><td>赋权范围</td><td>activity</td><td>taskforce</td></tr>
-              <tr><td>时间</td><td>固定时间地点</td><td>无严格限制</td></tr>
-              <tr><td>组织者来源</td><td>党小组组长赋权</td><td>组织委员招募</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- 4.3 权限从哪来 -->
-        <h3 class="doc-h3">4.3 权限从哪来？</h3>
         <p class="doc-p">
-          这个系统里的权限不是"给你一个账号就什么都能做"，而是<strong>赋权关系链</strong>——谁给你赋的权，你就在谁的赋权范围里干活。党支书天然拥有所有权限；支委和党小组组长的管理权限也是天然的；但组织者和深度参与者的写入权限，必须由党小组组长（活动）或组织委员（专班）显式赋权。赋权者可以查看被赋权者的工作视图（只读），但不可修改。宣传委员和纪检委员<strong>没有赋权能力</strong>——这是内控要求，与职能性质相关。
+          专班是支部的<strong>攻坚方式</strong>：临时组建、小范围抽调、重产出，任务完成即解散；同时是考察积极分子的载体。
+        </p>
+        <p class="doc-p">
+          两种工作分开管理、走不同的赋权流程——常规的组织生活需要稳定节奏，而时效紧、跨角色、不可拆分的任务需要集中攻坚。
+        </p>
+        <p class="doc-p">
+          你在其中：活动的组织者做好分工记录；专班参与者是经组织委员统筹、从小组抽调的攻坚成员。
         </p>
 
-        <!-- 4.4 专班是什么 -->
-        <h3 class="doc-h3">4.4 专班是什么？</h3>
+        <!-- 4.3 扁平化：不靠级别，靠协商 -->
+        <h3 class="doc-h3">4.3 扁平化：不靠级别，靠协商</h3>
         <p class="doc-p">
-          专班是<strong>活动之外考察积极分子的载体</strong>——赋权是专班运行的支撑机制，工作量记录是专班运行的保障机制。组织委员是<strong>唯一专班管理节点</strong>——所有专班的组建与解散必须经由组织委员统一管理，防止专班泛滥。专班有明确的解散条件：任务完成或截止时间到达即解散，不得转为常设机构。
+          组织者不是"领导"——核心职能是<strong>做好分工记录</strong>，不靠命令压人；深度参与者不是"下属"——执行的是协商后的分工。
         </p>
         <p class="doc-p">
-          专班里的组织者和深度参与者之间<strong>没有上下级关系</strong>——组织者负责分工协调、进度同步、打包提交工作成果，深度参与者负责执行具体工作、提交交付物。核心比喻：组织者是项目的脑子，深度参与者是项目的手。身份不是最重要的，年级和政治面貌不决定是否胜任。
+          扁平化让每个人——包括积极分子——都有机会承担建设性工作；身份、年级、政治面貌都不决定是否胜任。
+        </p>
+        <p class="doc-p">
+          被赋权为组织者，你的价值在"记录好分工"；被赋权为深度参与者，你的价值在"把交付物做好"。
         </p>
 
-        <!-- 4.5 战略认知 -->
-        <h3 class="doc-h3">4.5 战略认知是什么？</h3>
+        <!-- 4.4 条块双线：办事找对线 -->
+        <h3 class="doc-h3">4.4 条块双线：办事找对线</h3>
         <p class="doc-p">
-          "管理事，服务人"不是一句口号，背后有一套战略认知：<strong>服务人的核心要义，是理解真实的组织和管理</strong>——不是想象中的等级森严，而是有管理的科学、有既往的经验。从这个认知出发，展开四个维度：
+          纵线（支委）管"事"：组织委员管发展党员与专班统筹、宣传委员管宣传档案、纪检委员管考勤考察。
         </p>
-        <ul class="doc-list">
-          <li><strong>理解真实</strong>——真实的组织靠流程和经验，不是谁坐在哪个位置上。成长在办事中体悟，不在抽象培训中。</li>
-          <li><strong>善用经验</strong>——有先例的工作，先从既有工作流开始，理解流程为什么这样设计，再考虑要不要改。</li>
-          <li><strong>创新沉淀</strong>——创新性的工作没有权威，每个人的意见和实践选择都很重要，组织要充分吸收个体经验，沉淀为新的工作流。</li>
-          <li><strong>框架内对话</strong>——不要怕"说错话"，特别怕大家因为认为是"党支部"而自我审查。框架内表达不是不许批评，而是批评要找准对象、找准时机。</li>
-        </ul>
+        <p class="doc-p">
+          横线（党小组组长）管"人"：按就业/学术方向划分小组，负责组织学习、开展活动。
+        </p>
+        <p class="doc-p">
+          专业事务需要专人把关、人的组织需要专人负责，两条线在书记处交汇——才不会有"谁都管又谁都不管"的真空地带。
+        </p>
+        <p class="doc-p">
+          办事找对线：功能问题找对应委员，人的问题找党小组组长。
+        </p>
+
+        <!-- 4.5 普通成员：参与与监督 -->
+        <h3 class="doc-h3">4.5 普通成员：参与与监督</h3>
+        <p class="doc-p">
+          不参与管理不等于没有位置：你有<strong>知情权</strong>（活动动态/专班进展/考勤概况）与<strong>监督权</strong>。
+        </p>
+        <p class="doc-p">
+          支部工作对每个成员公开，参与感建立在了解之上。
+        </p>
+        <p class="doc-p">
+          按通知参与，用知情与监督行使你的位置。
+        </p>
+
+        <!-- 收尾：战略认知 -->
         <div class="doc-note">
-          <strong>延伸·恢复对话能力：</strong>党建和经管学科科研的交叉点在于恢复和马克思主义的对话能力，恢复理论研究和现实治理之间的对话能力。
+          <strong>管理事，服务人</strong>——服务人的核心，是理解真实的组织与管理：有流程的经验、有科学的协作。理解真实、善用经验、创新沉淀、框架内对话，是理解这个组织的四个入口。
         </div>
       </section>
 
@@ -579,6 +582,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/about-entry.js?v=20260803d"></script>
+<script type="module" src="./src/entries/help-entry.js?v=20260803f"></script>
 </body>
 </html>
