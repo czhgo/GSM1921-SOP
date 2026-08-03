@@ -160,6 +160,69 @@ test('账号密码登录后切换 API 数据源，首页渲染且后端数据可
       return { ok: list.some((a) => a.title === t), count: list.length };
     }, uniqueTitle);
     assert.equal(readback.ok, true, `服务端应能读回写穿的活动 ${uniqueTitle}`);
+
+    // 9. 真实 UI 写穿闭环（P1 审查 M5 验收补强）：不直接 fetch POST snapshot，
+    //    而是操作书记工作台待办列表的真实 UI 元素（勾选完成 → persist() →
+    //    防抖快照写穿）→ reload 后状态保持已变更（服务端读回 + DOM 双断言）。
+    //    验证的是 persist() → _flushSnapshot() 整条防抖链，而非绕过它。
+    await page.goto(`${base}/workspace/secretary.html`, { waitUntil: 'domcontentloaded' });
+
+    // 9a. 等待工作台渲染出书记身份 + 待办完成按钮（todo tab 为默认激活 tab）
+    await page.waitForFunction(() => {
+      const header = document.getElementById('app-header');
+      return header && header.textContent.includes('党支部书记');
+    }, { timeout: 15000 });
+    await page.waitForSelector('.secretary-todo-complete-btn', { timeout: 15000 });
+
+    // 9b. 动态取第一个待办项（不硬编码 seed id，选择器更稳健）
+    const todoId = await page.evaluate(() => {
+      const item = document.querySelector('.secretary-todo-item');
+      return item ? item.dataset.todoId : null;
+    });
+    assert.ok(todoId, '书记工作台待办列表应至少有一个可勾选待办');
+    const todoTitle = await page.evaluate((id) => {
+      const item = document.querySelector(`.secretary-todo-item[data-todo-id="${id}"]`);
+      return item ? (item.textContent || '').trim() : null;
+    }, todoId);
+
+    // 9c. 注册 snapshot 监听 → 点击完成按钮（真实 UI 触发 persist() → 防抖快照）
+    const snapRespP = page.waitForResponse(
+      (r) => r.request().method() === 'POST' && new URL(r.url()).pathname === '/api/v1/snapshot',
+      { timeout: 15000 }
+    );
+    await page.click(`.secretary-todo-item[data-todo-id="${todoId}"] .secretary-todo-complete-btn`);
+    const snapResp = await snapRespP;
+    assert.ok([200, 204].includes(snapResp.status()), `防抖快照应写穿服务器，实际 ${snapResp.status()}`);
+
+    // 9d. 点击后该待办应从列表消失（completed 默认不展示）
+    await page.waitForFunction((id) => {
+      return !document.querySelector(`.secretary-todo-item[data-todo-id="${id}"]`);
+    }, todoId, { timeout: 10000 });
+
+    // 9e. reload：若防抖快照真实落库，该待办在服务端为 completed，
+    //     reload 后 init() 从服务器读回，列表中仍不出现（未回退为 pending）
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => {
+      const header = document.getElementById('app-header');
+      return header && header.textContent.includes('党支部书记');
+    }, { timeout: 15000 });
+    await page.waitForSelector('.secretary-todo-list', { timeout: 15000 });
+    const stillGone = await page.evaluate((id) => {
+      return !document.querySelector(`.secretary-todo-item[data-todo-id="${id}"]`);
+    }, todoId);
+    assert.equal(
+      stillGone,
+      true,
+      `reload 后已完成的待办「${todoTitle || todoId}」不应回退（防抖快照写穿需在 reload 前落库）`
+    );
+
+    // 9f. 服务端读回双保险：GET /api/v1/todos 中该待办应为 completed
+    const serverStatus = await page.evaluate(async (id) => {
+      const list = await (await fetch('/api/v1/todos')).json();
+      const t = list.find((x) => x.id === id);
+      return t ? t.status : null;
+    }, todoId);
+    assert.equal(serverStatus, 'completed', `服务端应读回待办 ${todoId} 为 completed`);
   } finally {
     await page.close();
   }

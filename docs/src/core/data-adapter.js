@@ -200,6 +200,9 @@ export async function init() {
 
       // 填充 mockDB 缓存（供服务层同步读取）
       const { mockDB } = await import('./domain.js');
+      // 缓存引用：pagehide 同步冲刷时不能再 await 动态 import（文档卸载中挂起），
+      // 必须直接同步读取（见 _flushSnapshotSync）
+      _cachedMockDB = mockDB;
       mockDB.activities = activities || [];
       mockDB.tasks = tasks || [];
       mockDB.attendances = attendances || [];
@@ -254,6 +257,10 @@ let _snapshotTimer = null;
 /** 快照写穿防抖间隔（ms）：多次连续写合并为一次全量快照 */
 const SNAPSHOT_DEBOUNCE_MS = 800;
 
+/** domain.js mockDB 的缓存引用（init()/_flushSnapshot 加载后回写）：
+ *  供 pagehide 同步冲刷使用——卸载期间动态 import 的 await 会挂起，无法异步取数 */
+let _cachedMockDB = null;
+
 /** 调度一次防抖快照写穿（已有排程则合并） */
 function _scheduleSnapshot() {
   if (_snapshotTimer) return;
@@ -270,6 +277,7 @@ async function _flushSnapshot() {
   if (DATA_SOURCE !== 'api') return;
   try {
     const { mockDB } = await import('./domain.js');
+    _cachedMockDB = mockDB;
     const payload = {
       activities:  mockDB.activities,
       tasks:       mockDB.tasks,
@@ -286,6 +294,58 @@ async function _flushSnapshot() {
   } catch (e) {
     console.warn('[DataAdapter] 全量快照写穿失败（已保留本地备份）：', e);
   }
+}
+
+/**
+ * pagehide 同步冲刷（I1）：防抖窗口内切页时，旧上下文的 setTimeout 随文档销毁，
+ * 必须在卸载前【同步】发起快照请求（keepalive:true 由浏览器接管完成）。
+ * 不能复用 _flushSnapshot：其 await import() 在卸载期间挂起，fetch 不会发出。
+ * 依赖 _cachedMockDB 已由 init()（API 模式必经）缓存；未缓存时回退异步路径。
+ */
+function _flushSnapshotSync() {
+  if (DATA_SOURCE !== 'api') return;
+  if (!_cachedMockDB) {
+    _flushSnapshot();
+    return;
+  }
+  const mockDB = _cachedMockDB;
+  const payload = {
+    activities:  mockDB.activities,
+    tasks:       mockDB.tasks,
+    attendances: mockDB.attendances,
+    inspections: mockDB.inspections,
+    taskforces:  mockDB.taskforces,
+    notices:     mockDB.notices,
+    todos:       mockDB.todos,
+    assignments: mockDB.assignments,
+    handovers:   mockDB.handovers,
+    makeupTasks: mockDB.makeupTasks,
+  };
+  try {
+    // snapshot() 内部为 async：fetch 在同步调用栈内发出（keepalive），
+    // 卸载后剩余 await 可忽略；rejection 兜底避免 unhandledrejection
+    getAdapter().snapshot(payload).catch((e) => {
+      console.warn('[DataAdapter] 全量快照写穿失败（pagehide，已保留本地备份）：', e);
+    });
+  } catch (e) {
+    console.warn('[DataAdapter] pagehide 快照发起失败（已保留本地备份）：', e);
+  }
+}
+
+// ── 防抖快照 pagehide 兜底（P1 审查 I1）────────────────────────
+// 本项目为多页应用（切页整页 reload）：用户在 800ms 防抖窗口内写入后立刻切页时，
+// _snapshotTimer 随旧上下文销毁、快照永不发出，改动在服务器与下一页面同时消失且
+// 用户零感知。故模块级注册 pagehide：有未冲刷的防抖排程时立即同步冲刷。
+// 仅注册一次即可：_flushSnapshotSync 内部已校验数据源（非 api 直接 return），
+// mock 模式下本监听不产生任何请求，不影响 dev 登录路径。
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+  window.addEventListener('pagehide', () => {
+    if (_snapshotTimer) {
+      clearTimeout(_snapshotTimer);
+      _snapshotTimer = null;
+      _flushSnapshotSync();
+    }
+  });
 }
 
 // ── 便捷方法（代理到当前适配器）──────────────────────────────

@@ -71,6 +71,15 @@ const DEV_ROLE_WHITELIST = new Set([
  * }>}
  */
 export async function bootstrapPage({ module, accentRole, accentAlpha }) {
+  // 代码数据版本自检（2026-08-01 引入，配合 cross-page-state 的 CODE_VERSION）：
+  // 旧 tab 持有旧 ES 模块时自动刷新一次加载新模块。必须放在最顶部（API 恢复/init 之前），
+  // 否则部署后首次访问会 init 两遍（旧模块 + reload 后新模块各 10 个 fetch，P1 审查 M6）。
+  if (CrossPageState.isStaleCodeVersion()) {
+    CrossPageState.bumpDataVersion();
+    window.location.reload();
+    return { user: null };
+  }
+
   // 恢复 API 数据源：已登录且存在 token 时切换到后端（认证由 api-adapter 读取 authToken）
   // registerApiAdapter 幂等（重复注册仅覆盖同一实例），与 runtime.js 的注册不冲突
   registerApiAdapter(ApiAdapter);
@@ -83,14 +92,6 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
       console.warn('[bootstrap] API 数据加载失败，回退本地 mock 模式', e);
       setDataSource('mock'); // 服务器不可达→完整回退本地模式，后续流程照常走 loadDB
     }
-  }
-
-  // 代码数据版本自检：旧 tab 持有旧 ES 模块时自动刷新一次加载新模块
-  // （2026-08-01 引入，配合 cross-page-state 的 CODE_VERSION）
-  if (CrossPageState.isStaleCodeVersion()) {
-    CrossPageState.bumpDataVersion();
-    window.location.reload();
-    return { user: null };
   }
 
   // 登录检查

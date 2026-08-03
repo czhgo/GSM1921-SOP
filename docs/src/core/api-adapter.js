@@ -17,6 +17,9 @@ import { getApiBaseUrl, getAuthToken } from './data-adapter.js';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
+/** 普通请求超时（ms）。keepalive 请求不设超时，见 _request 注释 */
+const REQUEST_TIMEOUT_MS = 8000;
+
 /**
  * 发送认证 HTTP 请求
  * @param {string} path - API 路径（不含 base URL）
@@ -33,7 +36,33 @@ async function _request(path, options = {}) {
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  const response = await fetch(url, { ...options, headers });
+
+  // M2：请求超时兜底——服务器"接受但不响应"时，避免 bootstrap 的 await init()
+  // 永久阻塞首屏（白屏）。仅对普通请求启用 8s 超时；keepalive 请求（pagehide
+  // 兜底快照）在导航卸载期间由浏览器接管发送，超时 abort 会干扰切页写穿，
+  // 故 keepalive 请求不设超时（浏览器导航本身会终结该请求）。
+  let controller = null;
+  let timer = null;
+  if (!options.keepalive) {
+    controller = new AbortController();
+    timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  }
+
+  let response;
+  try {
+    response = await fetch(url, { ...options, headers, signal: options.signal || controller?.signal });
+  } catch (e) {
+    if (controller && e?.name === 'AbortError') {
+      const error = new Error(`API 请求超时(${REQUEST_TIMEOUT_MS}ms): ${path}`);
+      error.status = 408;
+      error.type = 'TimeoutError';
+      throw error;
+    }
+    throw e;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+
   if (!response.ok) {
     const error = new Error(`API 请求失败: ${response.status} ${response.statusText}`);
     error.status = response.status;
@@ -93,8 +122,8 @@ function _delete(path) {
 //  | 待办(单)    | /api/v1/todos/:id       | PATCH/DELETE |
 //  | 分工        | /api/v1/assignments     | GET/POST  |
 //  | 交接        | /api/v1/handovers       | GET/POST  |
-//  | 补课        | /api/v1/makeup-tasks    | GET/POST  |
-//  | 补课(单)    | /api/v1/makeup-tasks/:id| PATCH     |
+//  | 补课        | /api/v1/makeupTasks    | GET/POST  |
+//  | 补课(单)    | /api/v1/makeupTasks/:id| PATCH     |
 //  | 文件空间    | /api/v1/files           | GET/POST  |
 //  | 图片        | /api/v1/images          | GET/POST  |
 //  | 经验沉淀    | /api/v1/experiences     | GET/POST  |
@@ -125,7 +154,13 @@ export const ApiAdapter = {
    * @returns {Promise<null>} 204 No Content
    */
   snapshot(payload) {
-    return _post('/api/v1/snapshot', payload);
+    // keepalive + pagehide 兜底（I1）：导航（整页 reload/切页）卸载瞬间仍能发出快照，
+    // 避免 800ms 防抖窗口内的写入随旧上下文销毁而静默丢失
+    return _request('/api/v1/snapshot', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      keepalive: true,
+    });
   },
 
   // ── 资源分组接口 ──────────────────────────────────────────
@@ -285,11 +320,11 @@ export const ApiAdapter = {
     },
 
     create(data) {
-      return _post('/api/v1/makeup-tasks', data);
+      return _post('/api/v1/makeupTasks', data);
     },
 
     update(id, patch) {
-      return _patch(`/api/v1/makeup-tasks/${id}`, patch);
+      return _patch(`/api/v1/makeupTasks/${id}`, patch);
     },
   },
 

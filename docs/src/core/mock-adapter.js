@@ -549,7 +549,8 @@ export function restoreNicheCollections() {
     if (Array.isArray(parsed.complianceReferences)) mockDB.complianceReferences = parsed.complianceReferences;
     if (Array.isArray(parsed.fileSpaceRecords))     mockDB.fileSpaceRecords     = parsed.fileSpaceRecords;
     if (Array.isArray(parsed.experienceDeposits))   mockDB.experienceDeposits   = parsed.experienceDeposits;
-    if (Array.isArray(parsed.imageRecords))         mockDB.imageRecords         = parsed.imageRecords;
+    // 注：imageRecords 不在两处 saveDB 序列化字段内（备份恒无此键），恢复恒为 undefined，
+    // 属无效代码，故不在此恢复（P2 图片表入后端后再从服务端读）
   } catch (e) {
     console.warn('[MockAdapter] restoreNicheCollections 失败（本地备份解析错误，已跳过）：', e);
   }
