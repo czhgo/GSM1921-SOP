@@ -3,8 +3,8 @@
 
 import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';
-import { renderCommissionerMatrix } from '../components/commissioner-matrix.js';
-import { renderRoleHierarchy } from '../components/role-hierarchy.js';
+import { renderCommissionerMatrix } from '../components/commissioner-matrix.js?v=20260803h';
+import { renderRoleHierarchy } from '../components/role-hierarchy.js?v=20260803h';
 
 renderSidebar('help');
 renderHeader('help');
