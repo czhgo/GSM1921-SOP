@@ -7,6 +7,7 @@
 
 import { mockDB, SCHEMA_VERSION } from '../core/domain.js';
 import { generateId } from '../core/id.js';
+import { getDataSource } from '../core/data-adapter.js';
 // 修复（T175）：直接从 mock/activities.js 导入 ACTIVITIES，
 // 绕过 mock/index.js 的 re-export 转发（纯 re-export + 循环依赖存在 TDZ 风险，
 // 曾导致 loadDB() seed 阶段 ACTIVITIES.length 抛错被静默吞掉）
