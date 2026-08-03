@@ -2,7 +2,7 @@
 title: "单一权威源索引"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-08-03"
+last_updated: "2026-08-04"
 version: "3.7"
 status: active
 related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web_design/, content/03_doc_system/, content/02_institution/sop/, content/insights/]
@@ -14,7 +14,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 
 本文件是全工作区母本子本关系的**完整注册表**——所有"哪个文件是哪个文件的母本"的级联关系都在此注册。
 
-**与相关文件的关系**（参见 [CLAUDE.md H2.2](CLAUDE.md#h22-设计母本与子本)）：
+**与相关文件的关系**（参见 [CLAUDE.md H2.2](../../CLAUDE.md#h22-设计母本与子本)）：
 - **CLAUDE.md H2.2**：提炼5条核心原则（制度→代码 / 理论→工程 / 路线图→执行 / 经验→沉淀 / 术语→全仓）
 - **本文件（SSOT_INDEX.md）**：注册全部约25条级联关系，是母本子本关系的唯一权威注册表
 - **OPERATIONS_GUIDE.md §7.1**：定义文档权威层级（5 类知识类型）与冲突裁决规则

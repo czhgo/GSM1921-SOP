@@ -2,7 +2,7 @@
 title: "制度层索引——支部发展和管理 的 制度"
 type: index
 role: "[用户]+[工程师]+[AI]"
-last_updated: "2026-07-21"
+last_updated: "2026-08-04"
 status: active
 ---
 
@@ -33,7 +33,7 @@ status: active
 
 | 子目录 | 内容 | type |
 |--------|------|------|
-| [sop/](sop/) | 工作流程指南（各委员 SOP + 党小组组长工作手册 + 快速指南） | SOP |
+| [sop/](sop/INDEX.md) | 工作流程指南（各委员 SOP + 党小组组长工作手册 + 快速指南） | SOP |
 
 ---
 

@@ -2,7 +2,7 @@
 title: "发展路径"
 type: guide
 role: "[用户]+[AI]"
-last_updated: "2026-07-22"
+last_updated: "2026-08-04"
 status: active
 related_files: [ARCHITECTURE.md, CLAUDE.md, content/04_web_design/DATA_ARCHITECTURE.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/FLAT_DESIGN.md, content/insights/党支部管理与实务经验沉淀.md, content/02_institution/sop/支委与党小组定人定责定岗说明.md, SECRETARY_PRONOUNCEMENTS.md]
 ---
@@ -104,7 +104,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/04_web_design/DATA_ARCHITECT
 
 > 书记原话（2026-07-14）："积极分子、发展对象……到正式党员的流程怎么走（这是大家最关心的问题）"
 >
-> 以下流程严格依据《中国共产党发展党员工作细则（2026年）》（见 [合规文件](../references/合规文件/中国共产党发展党员工作细则（2026年）.md)），条文号为该细则原文条号。操作层面的具体步骤见 [常见工作场景快速指南·积极分子考察](../02_institution/sop/常见工作场景快速指南.md) 和 [组织委员工作流程指南](../02_institution/sop/组织委员工作流程指南.md)。
+> 以下流程严格依据《中国共产党发展党员工作细则（2026年）》（见 [合规文件](references/合规文件/中国共产党发展党员工作细则（2026年）.md)），条文号为该细则原文条号。操作层面的具体步骤见 [常见工作场景快速指南·积极分子考察](../02_institution/sop/常见工作场景快速指南.md) 和 [组织委员工作流程指南](../02_institution/sop/组织委员工作流程指南.md)。
 
 **入党申请人 → 入党积极分子**
 

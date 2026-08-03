@@ -2,7 +2,7 @@
 title: "统一服务目录"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-03"
+last_updated: "2026-08-04"
 version: "3.0"
 status: active
 related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/src/core/data-adapter.js, content/04_web_design/DATA_ARCHITECTURE.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/02_institution/ROLE_CLASSIFICATION.md]
@@ -14,7 +14,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 >
 > 定位：[工程师]+[AI] — 工程师决策参考 + AI 自主读取作为实施上下文。
 >
-> 引用流程：[SECRETARY_PRONOUNCEMENTS.md P-006+P-007](../../01_strategy/SECRETARY_PRONOUNCEMENTS.md)（党建与党务工作理论）→ P-012+P-013（专班与赋权考察）→ [DATA_ARCHITECTURE.md](../04_web_design/DATA_ARCHITECTURE.md)（数据架构）→ [COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md)（支委系统）→ [ROLE_CLASSIFICATION.md](ROLE_CLASSIFICATION.md)（角色权限矩阵）
+> 引用流程：[SECRETARY_PRONOUNCEMENTS.md P-006+P-007](../01_strategy/SECRETARY_PRONOUNCEMENTS.md)（党建与党务工作理论）→ P-012+P-013（专班与赋权考察）→ [DATA_ARCHITECTURE.md](../04_web_design/DATA_ARCHITECTURE.md)（数据架构）→ [COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md)（支委系统）→ [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md)（角色权限矩阵）
 
 ---
 
@@ -29,13 +29,13 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 | **无权限（—）** | 既不可读也不可写（或仅可见自身相关数据） |
 | **自身（Self）** | 仅可操作/查看与本人相关的数据 |
 
-> 角色权限依据 `docs/src/services/auth.js` 中 `PermissionManager` 的 `canManage / canWriteActivity / canRecruitTaskForce / canAuthorize / canInitiateTaskForce` 等判定函数，以及 [ROLE_CLASSIFICATION.md §9](ROLE_CLASSIFICATION.md)（权限矩阵权威源）、[COMMISSIONER_FRAMEWORK.md §C](../02_institution/COMMISSIONER_FRAMEWORK.md) 综合得出。
+> 角色权限依据 `docs/src/services/auth.js` 中 `PermissionManager` 的 `canManage / canWriteActivity / canRecruitTaskForce / canAuthorize / canInitiateTaskForce` 等判定函数，以及 [ROLE_CLASSIFICATION.md §9](../02_institution/ROLE_CLASSIFICATION.md)（权限矩阵权威源）、[COMMISSIONER_FRAMEWORK.md §C](../02_institution/COMMISSIONER_FRAMEWORK.md) 综合得出。
 
 ---
 
 ## 一、服务分类框架
 
-系统服务按党建与党务工作理论（[P-006+P-007](../../01_strategy/SECRETARY_PRONOUNCEMENTS.md)）分为三大类。文件路径均相对于 `docs/src/`。
+系统服务按党建与党务工作理论（[P-006+P-007](../01_strategy/SECRETARY_PRONOUNCEMENTS.md)）分为三大类。文件路径均相对于 `docs/src/`。
 
 ### 党建工作
 
@@ -292,7 +292,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 
 ## 三、角色-服务权限矩阵
 
-> **权威源**：[ROLE_CLASSIFICATION.md §9](ROLE_CLASSIFICATION.md)（角色权限矩阵）。本表为该权威源在服务目录中的切面视图，冲突时以权威源为准。
+> **权威源**：[ROLE_CLASSIFICATION.md §9](../02_institution/ROLE_CLASSIFICATION.md)（角色权限矩阵）。本表为该权威源在服务目录中的切面视图，冲突时以权威源为准。
 > 行：服务；列：9 个角色。单元格：M=管理模式 / R=只读 / Self=仅自身 / —=无权限。党支部副书记与党支书同权，共享书记工作台（`workspace/secretary.html`）。
 
 | 服务 | 党支书 | 副书记 | 组织委员 | 宣传委员 | 纪检委员 | 党小组组长 | 组织者 | 深度参与者 | 普通成员 |
@@ -359,7 +359,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 
 ### 4.3 跨类别数据共享
 
-党建板块与党务板块在后台指向同一份数据（`mockDB`，经 `core/data-adapter.js` 读写），差异仅在于展示切面（同源不同视角，见 [SECRETARY_PRONOUNCEMENTS.md P-007 同源不同视角原则](../../01_strategy/SECRETARY_PRONOUNCEMENTS.md)）：
+党建板块与党务板块在后台指向同一份数据（`mockDB`，经 `core/data-adapter.js` 读写），差异仅在于展示切面（同源不同视角，见 [SECRETARY_PRONOUNCEMENTS.md P-007 同源不同视角原则](../01_strategy/SECRETARY_PRONOUNCEMENTS.md)）：
 
 | 数据源 | 参与视角展示切面 | 管理视角展示切面 |
 |--------|----------------|----------------|
@@ -436,7 +436,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 ## 六、参考文档
 
 - [DATA_ARCHITECTURE.md](../04_web_design/DATA_ARCHITECTURE.md) — 参与者数据流设计（数据流 + 数据架构）
-- [ROLE_CLASSIFICATION.md](ROLE_CLASSIFICATION.md) §九 — 角色权限矩阵（权限矩阵权威源）
+- [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) §九 — 角色权限矩阵（权限矩阵权威源）
 - [COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md) — 支委系统设计（专班 + 权限矩阵 + §审批流程规范）
 - [FLAT_DESIGN.md](../02_institution/FLAT_DESIGN.md) — 组织者与深度参与者的扁平化设计
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — 项目整体架构

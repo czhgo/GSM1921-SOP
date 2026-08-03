@@ -3,7 +3,7 @@ title: "模块界面设计"
 type: design
 role: "[工程师]+[AI]"
 version: "2.0"
-last_updated: "2026-07-20"
+last_updated: "2026-08-04"
 status: active
 merged_from: [content/design/PAFFAIRS_UI.md, content/design/CALENDAR.md]
 related_files: [content/04_web_design/DESIGN_SYSTEM.md, content/04_web_design/DATA_ARCHITECTURE.md, content/02_institution/COMMISSIONER_FRAMEWORK.md]
@@ -218,7 +218,7 @@ summary: "系统功能模块的界面设计规范——涵盖党务管理模块�
 
 - 党建工作台的考勤记录（0-1 变量：出勤/请假/缺勤）是补课触发的唯一数据源
 - 补课完成后的状态回写直接更新考勤记录，不涉及考察（工作量维度）
-- 数据变更统一经过 Service 层，遵循 [ARCHITECTURE.md 数据变更规则](../../ARCHITECTURE.md)
+- 数据变更统一经过 Service 层，遵循 [ARCHITECTURE.md 数据变更规则](../03_doc_system/ARCHITECTURE.md)
 
 #### 与参考指南的场景展示
 
@@ -519,4 +519,4 @@ const Task = {
 | [COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md) | 支委系统设计 |
 | [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) | 引用渲染机制、角色关系矩阵 |
 | [SOP_WEB.md](./SOP_WEB.md) | 日历视图范围限定（§B.4） |
-| [ARCHITECTURE.md](../../ARCHITECTURE.md) | 数据变更规则 |
+| [ARCHITECTURE.md](../03_doc_system/ARCHITECTURE.md) | 数据变更规则 |

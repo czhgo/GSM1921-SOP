@@ -91,7 +91,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 
 ## 7. 分层体系冲突记录
 
-> **本节聚焦仓库 7 套分层体系（5 类知识类型 / T1-T3 术语层级 / 热温冷三层 / content/ 目录结构层级 / 文件角色分类 / insights 5 类知识类型结构 / ARCHITECTURE.md 五层架构）的命名、引用、混淆判例**。一致性检查规范见 [OPERATIONS_GUIDE.md §7.4](OPERATIONS_GUIDE.md#74-一致性检查规范)，定期扫描任务见 [OPERATIONS_GUIDE.md §15.2 Q4](OPERATIONS_GUIDE.md#152-周期性任务清单)。
+> **本节聚焦仓库 7 套分层体系（5 类知识类型 / T1-T3 术语层级 / 热温冷三层 / content/ 目录结构层级 / 文件角色分类 / insights 5 类知识类型结构 / ARCHITECTURE.md 五层架构）的命名、引用、混淆判例**。一致性检查规范见 [OPERATIONS_GUIDE.md §7.4](../03_doc_system/OPERATIONS_GUIDE.md#74-一致性检查规范)，定期扫描任务见 [OPERATIONS_GUIDE.md §15.2 Q4](../03_doc_system/OPERATIONS_GUIDE.md#152-周期性任务清单)。
 
 ### 7.1 L1/L2/L3 与 T1/T2/T3 混淆事件（已解决）
 

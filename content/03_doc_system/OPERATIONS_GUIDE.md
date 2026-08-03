@@ -2,7 +2,7 @@
 title: "运行标准与操作规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-03"
+last_updated: "2026-08-04"
 version: "3.0"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/USAGE_POLICY.md, content/02_institution/ROLE_CLASSIFICATION.md, content/03_doc_system/DOC_MAP.md, content/05_ai_coding/KNOWN_PITFALLS.md, content/03_doc_system/SSOT_INDEX.md]
@@ -55,7 +55,7 @@ related_files: [...]
 
 ## 3. 文件角色分类
 
-文件按 `[用户]`/`[工程师]`/`[AI]` 三类标记（可用 `+` 连接形成复合标记），定义见 [ROLE_CLASSIFICATION.md §一](ROLE_CLASSIFICATION.md)。
+文件按 `[用户]`/`[工程师]`/`[AI]` 三类标记（可用 `+` 连接形成复合标记），定义见 [ROLE_CLASSIFICATION.md §一](../02_institution/ROLE_CLASSIFICATION.md)。
 
 ## 4. 编码规范
 
@@ -142,7 +142,7 @@ H1.1.1 ← 三级章节（细则，仅在必要时使用）
 | H6 | 外部权威源索引 | 外部权威源导航表（按需参考层）                              |
 | H7 | 项目产出声明 | 系统最最重要的产出/逻辑缺漏与书记亲补/引用流程                       |
 
-> **理论基石**已外移到 [SECRETARY_PRONOUNCEMENTS.md](../../01_strategy/SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档，27 条论断，P-045/P-047 为元命题引子）；**运行标准**即本文件（OPERATIONS_GUIDE.md）；**日志规范**见本文件 §13；**已知陷阱**见 [KNOWN_PITFALLS.md](../05_ai_coding/KNOWN_PITFALLS.md)。
+> **理论基石**已外移到 [SECRETARY_PRONOUNCEMENTS.md](../01_strategy/SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档，27 条论断，P-045/P-047 为元命题引子）；**运行标准**即本文件（OPERATIONS_GUIDE.md）；**日志规范**见本文件 §13；**已知陷阱**见 [KNOWN_PITFALLS.md](../05_ai_coding/KNOWN_PITFALLS.md)。
 
 ### 6.2 乙部任务编号体系
 
@@ -304,7 +304,7 @@ Guides 文件不使用数字编号，使用**语义化文件名**（大写+下�
 
 ### 8.1 三类文件角色定义
 
-文档按 `[用户]` / `[工程师]` / `[AI]` 三类标记文件角色（可用 `+` 连接形成复合标记，如 `[用户]+[AI]`）。**完整定义、读者画像、信息需求、表述风格见** [ROLE_CLASSIFICATION.md §一](ROLE_CLASSIFICATION.md) + [USAGE_POLICY.md §1.6](USAGE_POLICY.md)。本节不重复展开。
+文档按 `[用户]` / `[工程师]` / `[AI]` 三类标记文件角色（可用 `+` 连接形成复合标记，如 `[用户]+[AI]`）。**完整定义、读者画像、信息需求、表述风格见** [ROLE_CLASSIFICATION.md §一](../02_institution/ROLE_CLASSIFICATION.md) + [USAGE_POLICY.md §1.6](USAGE_POLICY.md)。本节不重复展开。
 
 **适用位置**：文件角色分类同时用于 DOC_MAP.md 的"受众"列和各文件 YAML `role:` 字段（同一维度，保持一致）。
 
@@ -312,7 +312,7 @@ Guides 文件不使用数字编号，使用**语义化文件名**（大写+下�
 
 当某文件需要从"一刀切"表述拆分为多受众表述时，按以下流程执行：
 
-1. **判断当前受众归属**：阅读文件内容，判断主要面向用户还是工程师（参照 [ROLE_CLASSIFICATION.md §一 读者画像](ROLE_CLASSIFICATION.md)）
+1. **判断当前受众归属**：阅读文件内容，判断主要面向用户还是工程师（参照 [ROLE_CLASSIFICATION.md §一 读者画像](../02_institution/ROLE_CLASSIFICATION.md)）
 2. **标记受众**：在 DOC_MAP.md 中将"受众"列标记为对应类别
 3. **检查表述一致性**：
    - 若标记为 `[用户]`：检查是否包含技术变量名/文件路径/架构决策理由 → 若有，移至 `[工程师]` 文件或在文件内独立章节标注"工程师参考"

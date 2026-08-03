@@ -907,3 +907,32 @@ related_files:
 - ✅ grep 复扫：`攻坚` 实时文件零残留（仅 .ctx/logs 历史）；`临时性` 实时文件零残留；`三重启动判据|走谁的门|commissioner-matrix` 仅日志/归档保留
 
 **沉淀标签**：`[已沉淀: SECRETARY_PRONOUNCEMENTS.md P-014（2026-08-04 复核）]` — 专班唯一特点为"不限时间、不限地点，推动支部长期建设"，一切"攻坚/临时性/时效窗口"表述均需同步母本；`[已沉淀: CLAUDE.md H2.4 例外]` — 反论段清除原则：修改文本时删除"为什么需要/为什么不是"类解释段，直接陈述规则
+
+## T203 全仓链接引用机械修订（dispatching-parallel-agents + 主线程兜底复核）（2026-08-04）
+
+**任务**：书记指令——"请对全仓库做一次 机械的 链接引用 的修订，确保所有引用准确！！ Use Skill: dispatching-parallel-agents"。对全仓 markdown 文件的站内链接（相对路径 + 锚点）做机械式审计与修正。
+
+**引用流程**：dispatching-parallel-agents Skill（5 个并行 agent 分域审计）+ 主线程 PowerShell 机械复核（Test-Path 全量路径存在性检查）+ verification-before-completion Skill
+
+**实施内容**：
+- **并行 agent 修复 25 处**（A 根目录/01_strategy/README 10 处 + B 02_institution 1 处 + C 03/04/05 13 处 + D insights 1 处 + E docs/superpowers 0 处）：
+  - 路径层级修正：`../03_doc_system/`、`../02_institution/` 前缀补齐（SECRETARY_PRONOUNCEMENTS/OPERATIONS_GUIDE/SERVICE_CATALOG/USAGE_POLICY/SOP_WEB/MODULE_UI_DESIGN 等）
+  - 冗余前缀清除：SECRETARY_PRONOUNCEMENTS 内 `content/01_strategy/` 前缀移除（同目录直接文件名）
+  - 目录链接改指具体文件：01_strategy/README `references/建设探索/`→具体 md；02_institution/README `sop/`→`sop/INDEX.md`
+  - 越级路径修正：DEVELOPMENT_PATH `../references/`→`references/`
+- **主线程兜底复核发现并修复 11 处 agent 遗漏断链**（全量 Test-Path 机械扫描）：
+  - `../../01_strategy/SECRETARY_PRONOUNCEMENTS.md`→`../01_strategy/`（COMMISSIONER_FRAMEWORK ×3、SERVICE_CATALOG ×3、USAGE_POLICY ×2、OPERATIONS_GUIDE ×1）
+  - `../04_web_design/SOP_WEB.md`→`../../04_web_design/`（宣传/纪检/组织委员指南各 1）+ `../04_web_design/DATA_ARCHITECTURE.md`→`../../`（sop/INDEX）
+  - `../03_doc_system/工作模板/…`→`../../03_doc_system/`（常见工作场景快速指南 ×3）
+  - SSOT_INDEX `CLAUDE.md`→`../../CLAUDE.md`；KNOWN_PITFALLS `OPERATIONS_GUIDE.md`→`../03_doc_system/OPERATIONS_GUIDE.md`（×2）
+- **锚点核验**：SECRETARY_PRONOUNCEMENTS L42 slug 锚点恢复原式（空格→连字符规则，宽松匹配误改已还原）；SOP_WEB `#b3-三支委看板视图体系`、CLAUDE `#h22-设计母本与子本`、OPERATIONS_GUIDE `#74/#152` 锚点逐一对应标题存在
+- **YAML last_updated 同步**：本次新增修改的 6 个文件（sop/INDEX、宣传/纪检/组织委员指南、常见工作场景快速指南、SSOT_INDEX）统一至 2026-08-04
+
+**变更文件（18 个）**：`content/01_strategy/{DEVELOPMENT_PATH,README,SECRETARY_PRONOUNCEMENTS}.md`、`content/02_institution/{README,COMMISSIONER_FRAMEWORK}.md`、`content/02_institution/sop/{INDEX,宣传委员,纪检委员,组织委员,常见工作场景快速指南}*.md`、`content/03_doc_system/{OPERATIONS_GUIDE,SERVICE_CATALOG,USAGE_POLICY,SSOT_INDEX}.md`、`content/04_web_design/{MODULE_UI_DESIGN,SOP_WEB}.md`、`content/05_ai_coding/KNOWN_PITFALLS.md`、`content/insights/党支部管理与实务经验沉淀.md`
+
+**验证结果**：
+- ✅ PowerShell 全量 Test-Path：全仓 21 处修改后链接路径全部有效（唯一剩余 `archive/YYYY-MM-early-entries.md` 为代码块内归档模板占位符，属预期豁免）
+- ✅ 目录链接（`insights/`、`references/合规文件/`、`references/历史会议材料/`、`工作模板/` 等 7 处）指向真实存在目录，GitHub 渲染有效
+- ✅ 锚点逐一核验：改动涉及的 4 组 slug 锚点与目标标题等值匹配
+
+**沉淀标签**：`[待沉淀]` — 并行 agent 审计后必须加主线程全量机械复核兜底（本次 agent 遗漏 11/36 处断链，占 31%）；GitHub slug 锚点遵循"空格→连字符、中文保留"规则，宽松匹配仅用于验证不得用于改写

@@ -2,7 +2,7 @@
 title: "流程指南文档索引"
 type: index
 role: "[用户]+[AI]"
-last_updated: "2026-07-20"
+last_updated: "2026-08-04"
 status: active
 ---
 
@@ -24,7 +24,7 @@ status: active
 
 **党务工作** = 管理人员发展之事（党员发展、民主评议党员、换届选举、考勤考察）→ 工作台
 
-> 两者都是"管理事，服务人"的工作。详见 [DATA_ARCHITECTURE.md](../04_web_design/DATA_ARCHITECTURE.md)。
+> 两者都是"管理事，服务人"的工作。详见 [DATA_ARCHITECTURE.md](../../04_web_design/DATA_ARCHITECTURE.md)。
 
 ---
 

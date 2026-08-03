@@ -2,7 +2,7 @@
 title: "使用规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-03"
+last_updated: "2026-08-04"
 status: active
 related_files: [CLAUDE.md, content/02_institution/ROLE_CLASSIFICATION.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -129,7 +129,7 @@ related_files: [CLAUDE.md, content/02_institution/ROLE_CLASSIFICATION.md, conten
 
 > **确立日期**：2026-07-01 | **最近更新**：2026-07-11（升级为新三分类，合并正交双维度）
 > **确立背景**：书记指出"【人】可以划分为'用户'和'工程师'两种角色"——涉及党支部具体建设的解释、思路、书记的具体表述是给用户看的，工程师看的只是跟编程、系统设计、需求落地相关的文档。
-> **权威定义源**：[ROLE_CLASSIFICATION.md §一](ROLE_CLASSIFICATION.md) — 完整定义见权威源，本节仅索引要点
+> **权威定义源**：[ROLE_CLASSIFICATION.md §一](../02_institution/ROLE_CLASSIFICATION.md) — 完整定义见权威源，本节仅索引要点
 
 #### 1.6.1 三分类定义
 
@@ -165,7 +165,7 @@ related_files: [CLAUDE.md, content/02_institution/ROLE_CLASSIFICATION.md, conten
 
 - **文件 YAML** 的 `role:` 字段使用 `[用户]`/`[工程师]`/`[AI]` 及其复合标记，不再使用 `[人]`/`[人机]`
 - **DOC_MAP.md** 的"受众"列使用同一套标记，不再区分两个维度
-- 三分类的完整定义（读者画像+权限边界+AI 读取规则）见 [ROLE_CLASSIFICATION.md §一](ROLE_CLASSIFICATION.md)
+- 三分类的完整定义（读者画像+权限边界+AI 读取规则）见 [ROLE_CLASSIFICATION.md §一](../02_institution/ROLE_CLASSIFICATION.md)
 
 ---
 
@@ -182,7 +182,7 @@ related_files: [CLAUDE.md, content/02_institution/ROLE_CLASSIFICATION.md, conten
 
 **重要区分**：书记在项目中的原话属于T2约定表达，不属于T1官方表达——"官方表达"仅指制度性文件和上级文件的原文用语。上级文件的用语是非常准确的。
 
-**P-006 层级安放（2026-08-03）**：「党建＝管理组织活动之事；党务＝管理人员发展之事」两分法（[P-006](../../01_strategy/SECRETARY_PRONOUNCEMENTS.md)）为书记论断，**保留作理论历史**（书记原话见 SECRETARY_PRONOUNCEMENTS P-006，insights §1.1 有讲解）；「党建」「党务」的**官方定义**（权威来源）为 **T1**，网页层以此为准：
+**P-006 层级安放（2026-08-03）**：「党建＝管理组织活动之事；党务＝管理人员发展之事」两分法（[P-006](../01_strategy/SECRETARY_PRONOUNCEMENTS.md)）为书记论断，**保留作理论历史**（书记原话见 SECRETARY_PRONOUNCEMENTS P-006，insights §1.1 有讲解）；「党建」「党务」的**官方定义**（权威来源）为 **T1**，网页层以此为准：
 
 - **党建工作**（党的建设）：党为保持先进性纯洁性而开展的自我建设，涵盖政治建设、思想建设、组织建设、作风建设、纪律建设，并把制度建设贯穿其中
 - **党务工作**：党内事务的具体管理工作，是党的建设的重要组成部分，包括党员发展、党员教育管理、组织生活、党内选举、党费收缴管理等
@@ -238,7 +238,7 @@ T1 官方定义界定"党建/党务是什么"，取代 T2 两分法作为网页�
 ### 1.9 AI 展开原则——"吃透精神后写出，而非标注边界"
 
 > **确立日期**：2026-07-16 | **确立背景**：书记指出"AI 作为秘书，写出的话应该就是 grill 书记后的话——不需要在用户文档中区隔'书记写的'和'AI写的'，因为吃透精神后两者本应一致。问题只在于 AI 没吃透就写了"
-> **同步索引**：[OPERATIONS_GUIDE.md §11.6](OPERATIONS_GUIDE.md) + [SECRETARY_PRONOUNCEMENTS.md P-046](../../01_strategy/SECRETARY_PRONOUNCEMENTS.md)
+> **同步索引**：[OPERATIONS_GUIDE.md §11.6](OPERATIONS_GUIDE.md) + [SECRETARY_PRONOUNCEMENTS.md P-046](../01_strategy/SECRETARY_PRONOUNCEMENTS.md)
 
 #### 1.9.1 核心原则
 

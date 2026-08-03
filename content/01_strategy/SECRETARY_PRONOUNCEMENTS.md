@@ -58,9 +58,9 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 书记特别标注了一个"逻辑缺漏"——"在这里获得的组织性和生涯发展的关系是什么，为什么这是一个很宝贵的机会"——这部分由书记亲自补充完整（见 P-043/P-044）。这是整个发展路径叙事中需要书记亲自判定的关键环节，AI 不得自行假设或基于猜测补全。
 
-**AI 展开原则（原 P-046，2026-07-16 融入）**：AI 作为书记的秘书，写出的话应该就是"grill 书记后的话"——经过与书记的思想交互、反复锤炼，秘书的展开与书记的原话在精神上应无张力。读者无需看到"这段是书记的，那是 AI 的"区隔标注，因为吃透精神后两者本应一致。问题只在于 AI 没吃透就写了——用自己概括的术语替代书记会用人话（如"核心价值"替代"宝贵机会"），或者方向对但措辞走形，或者精神重心偏移，或者私加书记没说的逻辑链。排查的目标是找到没吃透的地方，修正到吃透。吃透后的重写，读者分不出是书记说的还是秘书写的——这才是正确的状态。规范落地：[USAGE_POLICY.md §1.9](content/03_doc_system/USAGE_POLICY.md) + [OPERATIONS_GUIDE.md §11.6](content/03_doc_system/OPERATIONS_GUIDE.md)。
+**AI 展开原则（原 P-046，2026-07-16 融入）**：AI 作为书记的秘书，写出的话应该就是"grill 书记后的话"——经过与书记的思想交互、反复锤炼，秘书的展开与书记的原话在精神上应无张力。读者无需看到"这段是书记的，那是 AI 的"区隔标注，因为吃透精神后两者本应一致。问题只在于 AI 没吃透就写了——用自己概括的术语替代书记会用人话（如"核心价值"替代"宝贵机会"），或者方向对但措辞走形，或者精神重心偏移，或者私加书记没说的逻辑链。排查的目标是找到没吃透的地方，修正到吃透。吃透后的重写，读者分不出是书记说的还是秘书写的——这才是正确的状态。规范落地：[USAGE_POLICY.md §1.9](../03_doc_system/USAGE_POLICY.md) + [OPERATIONS_GUIDE.md §11.6](../03_doc_system/OPERATIONS_GUIDE.md)。
 
-**与 CLAUDE.md H7 的关系**：本条是元命题记录，CLAUDE.md 甲部 H7"项目产出声明"承载该元命题的治理层锚点。详细叙事见 [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) 第一章。
+**与 CLAUDE.md H7 的关系**：本条是元命题记录，CLAUDE.md 甲部 H7"项目产出声明"承载该元命题的治理层锚点。详细叙事见 [DEVELOPMENT_PATH.md](DEVELOPMENT_PATH.md) 第一章。
 
 <details>
 <summary>元数据</summary>
@@ -100,7 +100,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 **与 P-045 的关系**：P-045 是关于"系统产出是什么"的元命题，P-047 是关于"为什么这是一套完整叙事"的元命题深化——两者共同构成元命题引子。P-045 回答"系统产出是什么"，P-047 回答"为什么这套产出是完整叙事"——前者指向产出本身，后者指向产出的完整性。
 
-**母本位置**：本条详细叙事见 [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) 第一章 + 第二章。
+**母本位置**：本条详细叙事见 [DEVELOPMENT_PATH.md](DEVELOPMENT_PATH.md) 第一章 + 第二章。
 
 <details>
 <summary>元数据</summary>
@@ -124,7 +124,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 > 书记原话："曾经大家一贯认为，党支部的工作是只有将来进入体制内的人才会进入的场所。但实际上是各种发展轨迹，都可以加入其中，获得他想要的成长，并且是通过组织获得他想要的成长。这对于一个要求'组织性'的身份来说是必不可少的！！"
 
-> 完整叙事见 [DEVELOPMENT_PATH.md 第一章](content/01_strategy/DEVELOPMENT_PATH.md)。
+> 完整叙事见 [DEVELOPMENT_PATH.md 第一章](DEVELOPMENT_PATH.md)。
 
 <details>
 <summary>元数据</summary>
@@ -220,7 +220,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 P-001~P-005 回答了"组织性是资源"——但这个资源为什么宝贵？书记指出，民主集中制下真实的组织有两个向度：程序性（赋权背景下，组织通过分工、流程、记录、复盘让人凝聚）和扁平化（探索背景下，组织通过平等协商让人创新）。真实的组织不能只靠程序性，也不能只靠扁平化——两个向度的平衡，是支部生活中宝贵的成长机会：体悟这种平衡，能提高生涯发展中对于所处组织的适应能力和开放心态——未来无论进入什么组织，都能理解真实组织既有程序性的一面，也有扁平化的一面。
 
-**母本位置**：本条详细叙事见 [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) 第一章收束·为什么是宝贵机会·机会1。
+**母本位置**：本条详细叙事见 [DEVELOPMENT_PATH.md](DEVELOPMENT_PATH.md) 第一章收束·为什么是宝贵机会·机会1。
 
 <details>
 <summary>元数据</summary>
@@ -243,7 +243,7 @@ P-043 讲的是"适应能力"，P-044 讲的是"探索机会"。作为AI时代�
 
 这两条机会与 P-004"创新沉淀"一脉相承——创新沉淀是"把没先例变成有先例"，而 AI 时代的探索机会是"在没先例的组织形态中创造先例"。学生党支部的"方兴未艾"恰恰是机会所在：成熟组织没有这种探索空间，而学生组织有。
 
-**母本位置**：本条详细叙事见 [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) 第一章收束·为什么是宝贵机会·机会2。
+**母本位置**：本条详细叙事见 [DEVELOPMENT_PATH.md](DEVELOPMENT_PATH.md) 第一章收束·为什么是宝贵机会·机会2。
 
 <details>
 <summary>元数据</summary>

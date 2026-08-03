@@ -2,7 +2,7 @@
 title: "战略层索引——支部发展和管理 的 战略"
 type: index
 role: "[用户]+[AI]"
-last_updated: "2026-07-21"
+last_updated: "2026-08-04"
 status: active
 ---
 
@@ -26,7 +26,7 @@ status: active
 |--------|------|------|
 | [references/合规文件/](references/合规文件/) | 党章、党支部工作规范、党员教育管理条例等官方文件（只读） | reference |
 | [references/历史会议材料/](references/历史会议材料/) | 历次党小组会议记录、支委工作手册等存档材料（只读） | reference |
-| [references/建设探索/](references/建设探索/) | 党建工作知识特点与优化路径等建设探索文档 | reference |
+| [references/建设探索/](references/建设探索/经管学科党建工作的知识特点与优化路径.md) | 党建工作知识特点与优化路径等建设探索文档 | reference |
 
 ---
 

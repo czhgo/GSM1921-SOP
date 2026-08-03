@@ -2,7 +2,7 @@
 role: "[工程师]+[AI]"
 title: "SOP 系统优化与同步指南"
 type: guide
-last_updated: "2026-08-03"
+last_updated: "2026-08-04"
 version: "4.1"
 milestone: "T29 — 全面架构收束：Mode统一、看板体系、日历限定、系列活动模型"
 ---
@@ -184,7 +184,7 @@ ViewModeStore.isReadOnly(module)      → boolean
 
 #### 写入门禁原则
 
-> 来源：[USAGE_POLICY.md](./USAGE_POLICY.md) §1.2.5 — 术语权威源；[ROLE_CLASSIFICATION.md §九 角色权限矩阵](./ROLE_CLASSIFICATION.md) — 权限矩阵权威源（原 PERMISSION_MATRIX.md §一/§四）
+> 来源：[USAGE_POLICY.md](../03_doc_system/USAGE_POLICY.md) §1.2.5 — 术语权威源；[ROLE_CLASSIFICATION.md §九 角色权限矩阵](../02_institution/ROLE_CLASSIFICATION.md) — 权限矩阵权威源（原 PERMISSION_MATRIX.md §一/§四）
 
 **只有写入型角色可直接创建/修改活动数据；支撑型角色通过审核、确认、备案等流程间接参与，不直接写入活动。**
 
