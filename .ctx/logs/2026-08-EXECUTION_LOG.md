@@ -737,3 +737,31 @@ related_files:
   - ✅ SERVICE_CATALOG.md L405-406 并行编辑被覆盖丢失一次，已串行补回并复查确认
 - **变更文件**：`docs/help.html`（重写为说明书）、`docs/about.html`（改写为支部故事）、`docs/src/entries/about-entry.js`、`docs/src/entries/help-entry.js`、`docs/src/core/icons.js`、`content/03_doc_system/USAGE_POLICY.md`、`content/03_doc_system/ARCHITECTURE.md`、`content/03_doc_system/SERVICE_CATALOG.md`、`content/03_doc_system/CHECKLIST.md`、`content/05_ai_coding/KNOWN_PITFALLS.md`、`content/04_web_design/SOP_WEB.md`、`content/04_web_design/DESIGN_SYSTEM.md`、`content/04_web_design/DATA_ARCHITECTURE.md`、`content/insights/党支部管理与实务经验沉淀.md`、`.ctx/SNAPSHOT.md`、`.ctx/TIMESTAMPS.md`、`CLAUDE.md`（乙部 T-196 删除）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
 - **沉淀标签**：`[待沉淀: 同文件多处编辑须串行执行]` — 对同一文件的两个并行 Edit 中，后写入的编辑可能覆盖先写入的编辑导致变更丢失（SERVICE_CATALOG L405-406 实例），须串行执行或事后复查确认
+
+## T197 T-197 帮助页（说明书）全域改造：章节重排 + 快速上手前置详细化 + 圆点导航 + Apple 极简美学（2026-08-03）
+
+**任务**：承接书记三条指令——①确认 help 界面已从 entry 脚本同步名称；②帮助页美学风格全域思考改进（Apple 极简风中等改造）；③内容检查与结构重排（使用说明书内容往前方），侧边目录参考 about 页圆点导航。brainstorming Skill 已确认三项方向（圆点导航 / 快速上手提到最前 / 中等美学改造），方案获书记批准。
+**引用流程**：H1.2 执行 + brainstorming Skill + web-design-guidelines Skill + H2.1 一改具改 + verification-before-completion Skill（browser_use 三轮实测）
+**来源**：书记指令（2026-08-03）——"请检查help界面目前是否已经从entry 的脚步也同步名称？""help界面的美学风格不行，必须全域思考改进！且内容上再次检查，结构上，把使用说明书 相关的内容往前方。侧边的目录参考about"
+
+**书记决策（brainstorming + AskUserQuestion 确认）**：
+- 侧边目录=改为圆点导航（参考 .help-toc-nav：右侧固定圆点 + hover tooltip + 当前章节党建红高亮）
+- 章节顺序=快速上手提到最前（推荐）+ 相对详细地列示功能
+- 美学深度=中等改造（排版/卡片/字体/间距/配色全面升级，无滚动动画）
+
+**实施内容**：
+- ① **help.html 整文件重写（585 行）**：移除旧 `.about-toc` 170px 文本目录 nav 与 about-main 容器；章节重排为 致谢（原文不动）→ 一快速上手 → 二这个系统在干什么 → 三分工中的制度设计 → 四为什么这样设计 → 五技术架构 → 免责声明；每个 section 带 `data-toc-id` 属性；新增内联 `.doc-*`/`.quick-*` 文档样式（衬线标题 + 党建红编号 + 渐变装饰线 + 暖白卡片 + hover 党建红描边 + chip 标签）；快速上手前置详细化——公共页面 + 六角色工作台分组卡片网格（29 张 quick-card，覆盖 tab 级功能）+ 1.1 页面导航树 + 1.2 权限体系三表
+- ② **about-entry.js 重写（96 行）**：新增 `TOC_ITEMS` 数组（7 项）+ `renderTOC()` 动态创建 `.help-toc-nav` 圆点导航追加到 body + `bindTOC()`（点击平滑滚动 headerOffset 64 + 滚动高亮）；移除旧 `.about-toc` 文本目录逻辑；组件渲染（role-hierarchy / commissioner-matrix）保留
+- ③ **滚动高亮 bug 修复（浏览器验证发现并根治）**：原 IntersectionObserver 阈值方案（threshold 0.15/0.4/0.6 + rootMargin -15%/-55%）对高章节失效——快速上手章节 3532px 高，观察带仅视口中间 30%（≈198px），最大相交比 5.6% 永远低于 15% 阈值，永不切换；改为「章节顶部越过 120px 标记线」scroll 定位法（与章节高度无关）+ 滚动到底部兜底激活末章（页面总高不足时免责声明顶部无法越过标记线）
+- ④ **版本号 bump 防缓存**：about-entry.js?v=20260803 → b → c → d（三轮迭代）
+- ⑤ **零残留确认**：`.about-toc`/`.about-main` 全仓（含 styles.css）零残留，无需清理；styles.css `--help-*` 变量（:root L3252-3261）与 `.help-toc-nav` 圆点样式（L4891-4997）已存在可直接复用
+
+**变更文件**：`docs/help.html`、`docs/src/entries/about-entry.js`
+
+**验证结果（browser_use 三轮实测 + GetDiagnostics）**：
+- ✅ 第一轮（b 版）：页眉/圆点导航 7 圆点+tooltip/快速上手 29 卡片/role-hierarchy+commissioner-matrix 组件全渲染；章节顺序正确（致谢→一快速上手→…→免责声明）；发现高章节无法高亮 + 1 条 TypeError
+- ✅ 第二轮（c 版）：6/7 通过——三个高章节（快速上手/制度设计/设计理念）高亮切换全部生效；TypeError 确认为旧版 b 残留（c 版全新加载 console 无错误）；仅剩页面底部免责声明无法高亮（页面总高不足）
+- ✅ 第三轮（d 版）：5/5 全部通过——scrollY=0→sec-ack / 4300→sec-what / 9200→sec-tech / 底部 9317→sec-disclaimer（兜底生效）/ 上滚 100px 恢复正常判定；console 无 JS 错误
+- ✅ GetDiagnostics 修改文件零错误
+
+**沉淀标签**：`[待沉淀: IntersectionObserver 阈值方案对高章节失效]` — 章节高度远大于观察带高度时，相交比永远低于 threshold，TOC 滚动高亮永不切换（帮助页快速上手 3532px 相交比仅 5.6% < 15%）；改用「章节顶部越过标记线」scroll 定位法（只读顶部位置，与章节高度无关）+ 页面底部兜底激活末章（页面总高不足时末章顶部永远无法越过标记线）
