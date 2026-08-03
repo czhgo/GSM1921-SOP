@@ -593,3 +593,36 @@ related_files:
 - **变更文件**：`content/03_doc_system/SERVICE_CATALOG.md`（重构）、`ARCHITECTURE.md`、`CHECKLIST.md`、`OPERATIONS_GUIDE.md`、`SSOT_INDEX.md`、`USAGE_POLICY.md`、`content/02_institution/ROLE_CLASSIFICATION.md`、`COMMISSIONER_FRAMEWORK.md`、`content/02_institution/sop/党小组组长工作手册.md`、`常见工作场景快速指南.md`、`组织委员工作流程指南.md`、`content/04_web_design/SOP_WEB.md`、`MODULE_UI_DESIGN.md`、`content/insights/工程演进与设计方法论.md`、`CLAUDE.md`（T-117 状态 → 🔄 进行中）、`.ctx/REVIEW_QUEUE.md`（已清空）
 - **衍生任务**：T-117 第3轮（strategy/design → sop 复用链）与第4轮（跨目录复用断链检查）待启动
 - **沉淀标签**：`[经验: 概念改名须全仓引用同步（L0-L4 → 5 类知识类型）]` — 权威源章节改名后，其他文件中对旧概念的引用（SSOT_INDEX「文档权威层级（L0-L4）」/USAGE_POLICY「L0-L4（Layer）」/OPERATIONS_GUIDE「五层架构」）会残留为 C 类拓扑错误；一改具改（H2.1）必须覆盖概念名引用而非仅权威源本体。本轮 H5.6 抽样 5 条书记全部接受（AI 修订与书记意图一致，无预判差异需沉淀）
+
+## T194 T-117 第3轮理论复用评议（strategy/design → sop 复用链）四类修订 + 母本引用统一加链接 + H5.6 抽样 6 条全接受（2026-08-03）
+
+**任务**：T-117 理论复用评议第3轮——strategy/design → sop 复用链（H5.8.2 ③）。基线对照：`.ctx/SNAPSHOT.md` v15 权威拓扑 + 实际文件系统 glob 双向验证。
+**引用流程**：H5 书记评议（H5.1-H5.6）+ sample-diff-learning Skill + brainstorming Skill + H2.1 一改具改 + H2.2 母本子本
+**来源**：书记指令——"请推进下一轮的书记评议【任意乙部的评议都可】……这些评议维度，请长期保留在CLAUDE.md，我们要更多次！"（预审报告已于 2026-08-03 落盘 REVIEW_QUEUE.md）
+
+- **预审发现（四类 + 格式观察点）**：
+  - A 断裂链接 4 处：sop/ 出发多一级 `../02_institution/`（FLAT_DESIGN ×2、COMMISSIONER_FRAMEWORK ×2）
+  - B 已删引用 9 处：组织/宣传/纪检 related_files `ARCHITECTURE.md`（根目录已删 → content/03_doc_system/）；常见工作场景正文 5 处旧 references/ 路径（T193 只改 YAML 头、正文漏改，本轮补漏）；FLAT_DESIGN related_files SECRETARY_PRONOUNCEMENTS.md 无路径
+  - C 拓扑错误 9 处：DATA_ARCHITECTURE 章节号引用旧结构 6 处（§3.5/§5 品牌/§5.1.2/§2.2.4 均不存在 → 修正为 §3.3/§2.15/ROLE_CLASSIFICATION §九）+ YAML last_updated 3 处与 TIMESTAMPS 不一致
+  - D 表述核查：D-15 组织者定义 ×2、P-009~P-011、DEVELOPMENT_PATH 阶段、DATA_ARCHITECTURE §2.5/§2.9/§3.2、FLAT_DESIGN §一/§三/§五、SOP_WEB §B.3 锚点 ×3 全部准确（书记元洞察：表述是大头，逐条核查）
+  - 格式观察点：「母本引用：[XX.md]」无链接格式 26 处（sop 全目录统一约定）
+- **书记裁决（2026-08-03 AskUserQuestion）**：① 范围=四类全部纳入（含格式观察点）；② 方式=机械性批量修；③ 母本引用统一加链接
+- **反馈落实（修订 7 文件）**：
+  - A 类 4 处路径修正；B 类 9 处已删引用替换；C 类 9 处（章节号重定向 + last_updated 同步 08-03）
+  - 母本引用加链接 26 处 + SECRETARY_PRONOUNCEMENTS 无链接引用加链接 3 处
+- **H5.6 抽样校验（修订后分层抽样 6 条，逐条 /ask，书记全部「接受」）**：
+  - ① A 类路径（常见工作场景 FLAT_DESIGN）✅
+  - ② B 类已删引用（常见工作场景 references 路径补漏）✅
+  - ③ C 类章节号（纪检 DATA_ARCHITECTURE §3.5→§3.3 考勤与考察的核心区分）✅
+  - ④ C 类语义重定向（宣传 DATA_ARCHITECTURE §2.2.4→ROLE_CLASSIFICATION §九 数据共享规则权威源）✅
+  - ⑤ 格式观察点（母本引用统一加链接）✅
+  - ⑥ D 类核查（D-15 组织者定义表述与 FLAT_DESIGN 母本一致）✅
+  - 抽样时书记追加指令："我们也要开启一下表述上的 黑话审查，特别是【AI自己编造的黑话】" → 衍生任务 T-195
+- **零残留 Grep 验证结果（全通过）**：
+  - ✅ A 类 `../02_institution/`：sop/ 目录零残留
+  - ✅ B 类 `../references/`：content/ 零残留
+  - ✅ C 类 `§3.5|§5 品牌|§5.1.2|§2.2.4`：sop/ 零残留（SECRETARY_PRONOUNCEMENTS 中 §3.5 指 insights 合法章节，非误报）
+  - ✅ 母本引用格式：26 处全部带链接（行末无链接模式零命中）
+- **变更文件**：`content/02_institution/sop/纪检委员工作流程指南.md`、`宣传委员工作流程指南.md`、`组织委员工作流程指南.md`、`常见工作场景快速指南.md`、`支委与党小组定人定责定岗说明.md`、`党小组组长工作手册.md`、`content/02_institution/FLAT_DESIGN.md`、`CLAUDE.md`（H5.8.2 黑话审查维度 + T-117 第3轮状态 + P3 表 T-195 立项）、`.ctx/REVIEW_QUEUE.md`（已清空）
+- **衍生任务**：① 黑话审查（T-195，书记追加指令，已列入丙部 P3 表）② T-117 第4轮（跨目录复用断链检查）待启动
+- **沉淀标签**：`[经验: 母本引用统一使用链接格式（[XX.md](相对路径)）]` — 无链接「母本引用：[XX.md]」无法点击定位权威源，sop 全目录 26 处统一加链接；`[经验: D 表述为最高权重维度]` — 书记元洞察（2026-08-03）："【表述】是一个大头，因为这个系统的工作性质，要求表达非常严谨！"，D 类预审逐条核查、处置一律书记判定；`[经验: 黑话审查（AI 自己编造的黑话）]` — 书记指令开启表述维度专项审查：AI 编造黑话（概念过拟合/无依据层级标签/孤立概念/生造术语）须识别并提交书记判定，AI 不得自行代改。本轮 H5.6 抽样 6 条书记全部接受（无预判差异）

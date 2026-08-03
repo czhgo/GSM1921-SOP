@@ -2,10 +2,10 @@
 title: "组织者与深度参与者的扁平化设计"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-07-20"
+last_updated: "2026-08-03"
 version: "2.0"
 status: active
-related_files: [CLAUDE.md, content/04_web_design/DATA_ARCHITECTURE.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/insights/党支部管理与实务经验沉淀.md, SECRETARY_PRONOUNCEMENTS.md]
+related_files: [CLAUDE.md, content/04_web_design/DATA_ARCHITECTURE.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/insights/党支部管理与实务经验沉淀.md, content/01_strategy/SECRETARY_PRONOUNCEMENTS.md]
 ---
 
 # 组织者与深度参与者的扁平化设计
