@@ -41,7 +41,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
-| `content/01_strategy/DEVELOPMENT_PATH.md` | `content/04_web_design/DATA_ARCHITECTURE.md` | 战略→设计。DEVELOPMENT_PATH 是上游哲学锚点，DATA_ARCHITECTURE 是数据流设计的落地（原 PARTICIPANT_DATAFLOW.md） |
+| `content/01_strategy/DEVELOPMENT_PATH.md` | `content/04_web_design/DATA_ARCHITECTURE.md` | 战略→设计。DEVELOPMENT_PATH 是上游战略依据，DATA_ARCHITECTURE 是数据流设计的落地（原 PARTICIPANT_DATAFLOW.md） |
 | `content/01_strategy/DEVELOPMENT_PATH.md` | `content/02_institution/FLAT_DESIGN.md` | 战略→设计。FLAT_DESIGN 的扁平化是"理解真实"认知的具体实现。冲突时以 DEVELOPMENT_PATH 为准 |
 | `content/04_web_design/DATA_ARCHITECTURE.md` | `content/02_institution/COMMISSIONER_FRAMEWORK.md` | 数据流→支委系统。DATA_ARCHITECTURE 定义三级参与者数据流，COMMISSIONER_FRAMEWORK 细化支委系统设计 |
 | `content/04_web_design/SOP_WEB.md` | `content/02_institution/sop/*.md`（双向） | 双向修改规则（CLAUDE.md H2.2 制度→代码）。规则0：文本SOP是母本；规则2：先改SOP母本→再改系统代码→验证 |

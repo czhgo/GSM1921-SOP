@@ -11,7 +11,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/04_web_design/DATA_ARCHITECT
 
 > **分工声明**：本文档侧重**战略路线哲学层面**——回答"党支部为什么存在""通过组织获得成长"的根本命题，确立"管理事、服务人"作为党建与党务工作的统一主语。
 >
-> - 与 [DATA_ARCHITECTURE.md](../04_web_design/DATA_ARCHITECTURE.md) 的分工：DATA_ARCHITECTURE.md 侧重**数据流与界面实现**——三级参与者数据流、界面实现路径；[ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) §九 侧重**角色权限**——权限矩阵。本文档是两者的上游哲学锚点，两者是本文档在执行层的落地。
+> - 与 [DATA_ARCHITECTURE.md](../04_web_design/DATA_ARCHITECTURE.md) 的分工：DATA_ARCHITECTURE.md 侧重**数据流与界面实现**——三级参与者数据流、界面实现路径；[ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) §九 侧重**角色权限**——权限矩阵。本文档是两者的上游战略依据，两者是本文档在执行层的落地。
 > - 与 [FLAT_DESIGN.md](../02_institution/FLAT_DESIGN.md) 的分工：FLAT_DESIGN.md 侧重**组织者与深度参与者的扁平化设计**——分工内容、考勤要求、退出机制。FLAT_DESIGN.md 的扁平化设计是本文档"理解真实"认知的具体实现——理解真实组织意味着身份由分工决定而非由层级决定。
 >
 > 三者关系：DEVELOPMENT_PATH.md（为什么）→ DATA_ARCHITECTURE.md（怎么管）→ FLAT_DESIGN.md（谁来做）。
@@ -223,7 +223,7 @@ P-041 是第一章战略路线在"服务人"维度的延伸——服务人的根
 
 ### 与 DATA_ARCHITECTURE.md 的关系
 
-DEVELOPMENT_PATH.md 是上游哲学锚点，DATA_ARCHITECTURE.md 是其在数据流与界面实现层的落地。
+DEVELOPMENT_PATH.md 是上游战略依据，DATA_ARCHITECTURE.md 是其在数据流与界面实现层的落地。
 
 - DEVELOPMENT_PATH.md 回答"为什么需要理解真实的组织和管理"——是战略层的"为什么"。
 - DATA_ARCHITECTURE.md 回答"数据如何流转、界面如何实现"——ROLE_CLASSIFICATION.md §九 回答"三级参与者各自能做什么"——两者共同构成执行层的"怎么管"。
