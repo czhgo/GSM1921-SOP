@@ -534,3 +534,28 @@ related_files:
 - **执行过程中的重要发现**：对同一文件并行发起多个 Edit 存在**竞态风险**——本次 ws-secretary-entry.js 四个并行 Edit 中有一处（撤销赋权按钮）实际未落盘（工具返回成功但磁盘未变更），git diff 复查才发现遗漏。教训：同文件多处编辑必须串行逐个确认，或以 git diff 复查落盘结果，不能依赖 Edit 工具返回片段。
 
 - **沉淀标签**：`[已沉淀: content/04_web_design/DESIGN_SYSTEM.md 状态色统一事件]` — 主色收敛+状态色点缀方案：主色仅用于身份标识（左边条/主 CTA/激活 tab/头像），功能数据视觉（统计卡/进度条/徽章/Toast）一律用全局状态色，次要操作按钮归中性灰，hover 才显语义色；`[经验: 巡检结果应先反查校验手册而非只改代码]` — 数据同源一致性巡检发现的孤岛/幽灵字段，根因往往是 CHECKLIST 校验手册未随架构演进，修代码前必须先同步校验手册并固化新校验点；`[经验: 同文件并行 Edit 竞态]` — Edit 工具对同一文件的并行调用存在未落盘风险，须串行或 git diff 复查
+
+## T192 根目录文档更新：README 九章读者旅程重构 + CLAUDE/content README/SNAPSHOT v15/TIMESTAMPS 批量刷新（2026-08-03）
+
+**任务**：将根目录五份文档系统更新至 2026-08-03 状态，与 P1 后端基建落地后的代码事实一一对应
+**引用流程**：H1.2 执行 + H2.1 一改具改 + writing-plans Skill + subagent-driven-development Skill + H3 检查清单 + AskUserQuestion（书记裁决）
+**来源**：spec `docs/superpowers/specs/2026-08-03-根目录文档更新-design.md` — P1 后端基建落地（server/ Node 一体化）导致根目录文档大面积过时（计数错/已删文件引用/过时架构表述）
+
+- **执行概况（计划 7 任务全闭环）**：
+  - **Task 1 前置事实核对**：Glob 实测前端计数（HTML 14 / entries 15 / services 20 / mock 10 / core 12 / components 18 / workflow 6 / modules 1）+ Grep 确认 8 个已删文件不在磁盘——全部与前提事实一致
+  - **Task 2 README 九章读者旅程重构**（commit 27ea6a2）：一这是什么/二怎么开始用/三能做什么/四该看什么/五出问题怎么办/六理解系统/七系统架构与部署/八迭代路线图 + License；修复 R1-R8 全部事实错误（19→14 页面、18→15 entries、7→20 services、纯前端→双形态、Supabase→Node 一体化后端、编号断裂修复）
+  - **Task 3 CLAUDE.md 四项轻量更新**（8d5ec38）：YAML last_updated 2026-08-03 + related_files 追加 server/ + T-142 阶段3 标记完成（🔄→✅）+ T-118 关联备注
+  - **Task 4 content/README.md 时间戳**（99721d3）：last_updated 2026-07-21→2026-08-03，正文未动
+  - **Task 5 SNAPSHOT v15**（4b0a6f2）：YAML/标题/里程碑 → v15；拓扑 docs 计数修正（8 根 HTML/15 entries/12 core/10 mock/1 modules/6 workflow）+ 新增 server/ 段 + superpowers 注释；Layer 4 追加 server/；IV 增补「打卡化判定」（insights §6.23）；VI 增补 v15 里程碑
+  - **Task 6 TIMESTAMPS 批量刷新**（024d902）：YAML/页首/README/CLAUDE 行时间戳 → 2026-08-03；新增 server/ 段（13 行）+ docs/superpowers/ 段（8 行）；8 个已删文件行清理 + 6 个新增文件补登（custom-select/data-adapter/api-adapter/mock-adapter/secretary-overview/person）；M6 周期性任务标记已执行（OK）
+  - **收尾书记裁决 + 一致性修正**（f91d192）：README.md 工作区出现来源不明的未提交格式改动（标题行 BOM 零宽字符残留、加粗全部丢失、表格空格对齐、`---`→`***`），经 AskUserQuestion 书记裁决「回滚为规范 Markdown」+「License 保持 ## License 无编号」；`git restore README.md` 恢复干净版本；TIMESTAMPS 根目录表 CLAUDE.md 行 2026-07-31→2026-08-03（spec T8 一致性顺带修正）
+
+- **变更文件**：`README.md`、`CLAUDE.md`、`content/README.md`、`.ctx/SNAPSHOT.md`、`.ctx/TIMESTAMPS.md`
+
+- **验证结果（只读验收全过）**：
+  - ✅ 零残留：README 模式 A/B（party//Supabase/纯前端静态/19 页面/28 条论断 等）零命中；SNAPSHOT 模式 C（9 根 HTML/16 entry/11 个/15 页面 等）零命中（仅「核心工具（12 个）」合法新计数误匹配）；TIMESTAMPS 仅「已删除文件记录」段含 8 个已删文件名（正常）
+  - ✅ 时间戳一致性：CLAUDE.md / content README / SNAPSHOT / TIMESTAMPS YAML 全部 2026-08-03；SNAPSHOT version=v15
+  - ✅ README 结构：`## 一、`~`## 八、` 编号连续无跳号 + `## License` 无编号（书记决策）；`## 七、` 含 server/ 与 14 页面计数
+  - ✅ git 工作区干净；6 个文档 commit 全部落地（27ea6a2 / 8d5ec38 / 99721d3 / 4b0a6f2 / 024d902 / f91d192）
+
+- **沉淀标签**：`[经验: README 等对外门面文档的工作区异常格式改动须先书记裁决再处置]` — 文档出现来源不明的未提交格式污染（BOM 残留/加粗丢失）时，语义与已提交版本一致但格式被工具意外改写，不能擅断回滚或保留，须 AskUserQuestion 请书记裁决；`[经验: plan 验证条款与内容自相矛盾时以 spec 为上级 + 书记裁决收口]` — Task 2 内容只到「八、」而验证要求「一~九」，属 plan 内部矛盾，最终以书记「License 无编号」决策收口
