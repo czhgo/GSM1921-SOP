@@ -6,7 +6,6 @@ const COMMISSIONER_DATA = [
   {
     role: 'org-commissioner',
     name: '组织委员',
-    person: '侯嘉嵘',
     color: '#0EA5E9',
     colorBg: 'rgba(14,165,233,0.06)',
     colorBorder: 'rgba(14,165,233,0.15)',
@@ -27,7 +26,6 @@ const COMMISSIONER_DATA = [
   {
     role: 'prop-commissioner',
     name: '宣传委员',
-    person: '闫鑫岳',
     color: '#2563EB',
     colorBg: 'rgba(37,99,235,0.06)',
     colorBorder: 'rgba(37,99,235,0.15)',
@@ -48,7 +46,6 @@ const COMMISSIONER_DATA = [
   {
     role: 'disc-commissioner',
     name: '纪检委员',
-    person: '韩思宁',
     color: '#C2410C',
     colorBg: 'rgba(194,65,12,0.06)',
     colorBorder: 'rgba(194,65,12,0.15)',
@@ -86,7 +83,6 @@ export function renderCommissionerMatrix(containerId) {
           <div class="px-5 py-3 flex items-center gap-3" style="background:${c.colorBg};border-bottom:1px solid ${c.colorBorder};">
             <span style="color:${c.color}">${c.icon}</span>
             <span class="font-title-cn text-sm font-bold" style="color:${c.color}">${c.name}</span>
-            <span class="text-xs text-gray-400">${c.person}</span>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100">
             ${['workspace', 'party'].map(domain => {
