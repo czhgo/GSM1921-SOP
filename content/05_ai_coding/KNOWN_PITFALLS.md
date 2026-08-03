@@ -2,8 +2,8 @@
 title: "已知陷阱与上下文丢失教训"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-03"
-version: "1.7"
+last_updated: "2026-08-04"
+version: "1.8"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/工程演进与设计方法论.md]
 ---
@@ -216,3 +216,16 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 4. 计划文件 Self-Review 增加"同语义字段读端审计"条目，作为强制检查项
 
 **生效条件**：任何"新增主源/收敛数据源"类任务适用。判断标准：被重构字段是否被 5 个以上文件消费 → 必须做读端全量审计。
+
+## 13. 子组件 JS 导入缺失版本参数 → 浏览器长期缓存旧版组件（T-201 判例）
+
+**原则**：`docs/` 静态站点靠 `?v=` 参数失效浏览器缓存。主入口脚本带 `?v=` 只失效入口自身——**所有子组件 import 路径必须同步带版本参数**，否则入口 URL 变了、子组件 URL 没变，浏览器仍复用旧版组件缓存，磁盘代码正确但页面渲染"旧代码复活"。
+
+**判例（T-201，2026-08-04）**：help 页 role-hierarchy.js 已在 T-198 移除「专班（临时项目组）」盒子（磁盘代码正确、git 已提交），但浏览器实测组织者/深度参与者旁仍出现"专班盒"。三重验证（Read 磁盘 + curl 服务器返回新代码 + git log 提交记录）确认磁盘无误后，锁定根因：`help-entry.js` 的 `import { renderRoleHierarchy } from '../components/role-hierarchy.js'` 无版本参数，入口 `?v=` bump 对子组件不生效，浏览器命中旧缓存。
+
+**纠正（可执行清单）**：
+1. 子组件导入一律带版本参数：`import { x } from '../components/x.js?v=<版本号>'`
+2. 每次入口脚本版本 bump 时，同步检查该入口的所有组件导入是否已带同一版本参数
+3. 浏览器疑似"旧代码复活"时，先验证磁盘/服务器/提交记录三层再怀疑代码本身——三层无误即锁定缓存因素
+
+**生效条件**：`docs/` 静态部署 + ES module + `?v=` 缓存策略。若改用构建工具 contenthash 输出或 Service Worker 缓存，本条自动失效。与 [insights §6.20 缓存版本链三件套](../insights/工程演进与设计方法论.md)（数据层 localStorage）互补——本条管组件模块层。
