@@ -45,17 +45,31 @@
     /* ── 快速上手：全局导航结构 ── */
     .nav-tree { background:#F8F9FA; border:1px solid #EEEFF2; border-radius:14px; padding:16px 20px; font-family:ui-monospace,'SF Mono',Consolas,monospace; font-size:0.85rem; color:#4B5563; line-height:1.9; margin:12px 0 6px; }
 
-    /* ── 快速上手：功能卡片网格 ── */
-    .quick-group-title { display:flex; align-items:center; gap:10px; font-size:0.82rem; font-weight:600; color:#6B7280; letter-spacing:0.06em; margin:26px 0 12px; }
-    .quick-group-title::before { content:''; width:3px; height:14px; border-radius:2px; background:#CE1126; }
-    .quick-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(236px,1fr)); gap:12px; }
-    .quick-card { background:#FAFAF7; border:1px solid #EEEFF2; border-radius:14px; padding:15px 17px; transition:border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
-    .quick-card:hover { border-color:#F3C7CC; box-shadow:0 4px 14px rgba(206,17,38,0.06); transform:translateY(-1px); }
-    .quick-card-name { font-size:0.92rem; font-weight:700; color:#111827; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
-    .quick-card-name::before { content:''; width:4px; height:14px; border-radius:2px; background:#CE1126; }
-    .quick-card-desc { font-size:0.8rem; color:#6B7280; line-height:1.75; margin-bottom:10px; }
-    .quick-card-tags { display:flex; flex-wrap:wrap; gap:6px; }
-    .chip { display:inline-block; font-size:0.7rem; color:#374151; background:#FFFFFF; border:1px solid #E5E7EB; border-radius:999px; padding:2px 10px; }
+    /* ── 快速上手：角色 × 功能域矩阵 ── */
+    .qn-common { display:flex; align-items:center; gap:8px; flex-wrap:wrap; border:1px solid #EEEFF2; border-radius:14px; background:#FCFCFB; padding:10px 14px; margin:12px 0 2px; }
+    .qn-common-label { font-size:0.72rem; font-weight:700; color:#6B7280; letter-spacing:0.06em; }
+    .qn-chip { display:inline-flex; align-items:center; gap:5px; font-size:0.7rem; color:#374151; background:#FFFFFF; border:1px solid #E5E7EB; border-radius:999px; padding:2px 10px; line-height:1.5; text-decoration:none; transition:border-color 0.2s, background-color 0.2s; }
+    .qn-chip:hover { border-color:#9CA3AF; background:#F8F9FA; }
+    .qn-chip:focus-visible { outline:2px solid #CE1126; outline-offset:2px; }
+    .qn-table-wrap { overflow-x:auto; margin-top:4px; }
+    table.qn-matrix { width:100%; border-collapse:collapse; table-layout:fixed; min-width:640px; }
+    table.qn-matrix th { font-size:0.72rem; font-weight:700; color:#374151; padding:8px; text-align:left; border-bottom:1.5px solid #E5E7EB; }
+    table.qn-matrix td { font-size:0.7rem; color:#6B7280; padding:9px 8px; vertical-align:top; border-bottom:1px solid #F1F2F4; }
+    table.qn-matrix tr:last-child td { border-bottom:none; }
+    td.qn-domain { font-weight:700; color:#111827; font-size:0.78rem; width:88px; white-space:nowrap; }
+    td.qn-empty { background:#FAFAF9; }
+    .qn-role { display:flex; align-items:center; gap:5px; }
+    .qn-role-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+    .qn-cell { display:flex; flex-direction:column; gap:4px; }
+    a.qn-fn { font-size:0.66rem; color:#374151; background:#fff; border:1px solid; border-radius:999px; padding:1px 8px; line-height:1.6; text-decoration:none; width:fit-content; transition:background-color 0.2s, border-color 0.2s; }
+    a.qn-fn:hover { background:#F8F9FA; }
+    a.qn-fn:focus-visible { outline:2px solid #CE1126; outline-offset:2px; }
+    a.qn-fn-leader { border-color:#86EFAC; color:#15803D; }
+    a.qn-fn-org    { border-color:#BAE6FD; color:#0369A1; }
+    a.qn-fn-prop   { border-color:#93C5FD; color:#1D4ED8; }
+    a.qn-fn-disc   { border-color:#FDBA74; color:#9A3412; }
+    a.qn-fn-member { border-color:#E5E7EB; color:#4B5563; }
+    a.qn-fn-sec    { border-color:#FCA5A5; color:#991B1B; }
 
     /* ── 表格（权限 / 技术架构） ── */
     .doc-table { width:100%; border-collapse:collapse; font-size:0.88rem; margin:10px 0 6px; }
@@ -73,7 +87,6 @@
 
     @media (max-width:640px) {
       .doc-card { padding:26px 20px; }
-      .quick-grid { grid-template-columns:1fr; }
     }
 
     /* ═══════════ Role Hierarchy 组件样式 ═══════════ */
@@ -175,177 +188,65 @@
           └── 帮助 · 关于（页脚）
         </div>
 
-        <div class="quick-group-title">公共页面</div>
-        <div class="quick-grid">
-          <div class="quick-card">
-            <div class="quick-card-name">首页</div>
-            <div class="quick-card-desc">通知公告、人员招募与活动日历全景；点击条目直达对应工作台。</div>
-            <div class="quick-card-tags"><span class="chip">通知</span><span class="chip">招募</span><span class="chip">日历</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">资料查询</div>
-            <div class="quick-card-desc">制度文件、操作指南、SOP 文档与外部链接的统一检索入口。</div>
-            <div class="quick-card-tags"><span class="chip">制度</span><span class="chip">指南</span><span class="chip">SOP</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">意见反馈</div>
-            <div class="quick-card-desc">SOP 优化提案与开源讨论，意见建议直达支部决策。</div>
-            <div class="quick-card-tags"><span class="chip">提案</span><span class="chip">讨论</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">归档库</div>
-            <div class="quick-card-desc">已完成工作归档与回溯，支持搜索与类别过滤。</div>
-            <div class="quick-card-tags"><span class="chip">归档</span><span class="chip">搜索</span></div>
-          </div>
+        <div class="qn-common">
+          <span class="qn-common-label">公共页面</span>
+          <a class="qn-chip" href="./index.html">首页</a>
+          <a class="qn-chip" href="./search.html">资料查询</a>
+          <a class="qn-chip" href="./feedback.html">意见反馈</a>
+          <a class="qn-chip" href="./archive.html">归档库</a>
         </div>
-
-        <div class="quick-group-title">党支书工作台</div>
-        <div class="quick-grid">
-          <div class="quick-card">
-            <div class="quick-card-name">全局概况</div>
-            <div class="quick-card-desc">考勤纪律、发展考察、活动专班、宣传档案四维度进度总览，异常自动派生为待办。</div>
-            <div class="quick-card-tags"><span class="chip">进度总览</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">工作台</div>
-            <div class="quick-card-desc">本月活动日历、活动写入与查询，待办列表集中处理。</div>
-            <div class="quick-card-tags"><span class="chip">日历</span><span class="chip">写入</span><span class="chip">待办</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">赋权管理</div>
-            <div class="quick-card-desc">常设赋权与项目赋权授权，可只读查看被赋权者的工作视图。</div>
-            <div class="quick-card-tags"><span class="chip">赋权</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">反馈管理</div>
-            <div class="quick-card-desc">意见反馈的分派、跟进与闭环。</div>
-            <div class="quick-card-tags"><span class="chip">分派</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">通知发布</div>
-            <div class="quick-card-desc">面向全员的通知发布，自动派生待办提醒。</div>
-            <div class="quick-card-tags"><span class="chip">发布</span></div>
-          </div>
-        </div>
-
-        <div class="quick-group-title">党小组组长工作台</div>
-        <div class="quick-grid">
-          <div class="quick-card">
-            <div class="quick-card-name">活动写入</div>
-            <div class="quick-card-desc">创建活动、向组织者赋权，活动的天然写入者。</div>
-            <div class="quick-card-tags"><span class="chip">创建</span><span class="chip">赋权</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">考勤上传</div>
-            <div class="quick-card-desc">党小组活动考勤记录上传。</div>
-            <div class="quick-card-tags"><span class="chip">考勤</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">考察上传</div>
-            <div class="quick-card-desc">组员考察材料上传。</div>
-            <div class="quick-card-tags"><span class="chip">考察</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">复盘提交</div>
-            <div class="quick-card-desc">活动复盘提交，经验沉淀入口。</div>
-            <div class="quick-card-tags"><span class="chip">复盘</span></div>
-          </div>
-        </div>
-
-        <div class="quick-group-title">组织委员工作台</div>
-        <div class="quick-grid">
-          <div class="quick-card">
-            <div class="quick-card-name">考察上传</div>
-            <div class="quick-card-desc">发展对象考察材料上传与追踪。</div>
-            <div class="quick-card-tags"><span class="chip">考察</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">专班管理</div>
-            <div class="quick-card-desc">专班唯一招募统筹节点，覆盖组建、招募到解散全生命周期。</div>
-            <div class="quick-card-tags"><span class="chip">专班</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">人才库</div>
-            <div class="quick-card-desc">支部人才库维护，考察成果沉淀。</div>
-            <div class="quick-card-tags"><span class="chip">人才库</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">发展党员</div>
-            <div class="quick-card-desc">发展党员流程追踪与材料管理。</div>
-            <div class="quick-card-tags"><span class="chip">发展</span></div>
-          </div>
-        </div>
-
-        <div class="quick-group-title">宣传委员工作台</div>
-        <div class="quick-grid">
-          <div class="quick-card">
-            <div class="quick-card-name">宣传任务</div>
-            <div class="quick-card-desc">宣传任务分派与跟进。</div>
-            <div class="quick-card-tags"><span class="chip">任务</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">项目看板</div>
-            <div class="quick-card-desc">项目进度看板，统筹推进情况。</div>
-            <div class="quick-card-tags"><span class="chip">看板</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">档案归档</div>
-            <div class="quick-card-desc">支部档案的整理与归档。</div>
-            <div class="quick-card-tags"><span class="chip">档案</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">周报报送</div>
-            <div class="quick-card-desc">每周工作报送。</div>
-            <div class="quick-card-tags"><span class="chip">周报</span></div>
-          </div>
-        </div>
-
-        <div class="quick-group-title">纪检委员工作台</div>
-        <div class="quick-grid">
-          <div class="quick-card">
-            <div class="quick-card-name">考勤管理</div>
-            <div class="quick-card-desc">活动考勤登记与出勤核对。</div>
-            <div class="quick-card-tags"><span class="chip">考勤</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">活动监督复盘</div>
-            <div class="quick-card-desc">活动监督与复盘记录。</div>
-            <div class="quick-card-tags"><span class="chip">监督</span><span class="chip">复盘</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">考察管理</div>
-            <div class="quick-card-desc">考察记录管理。</div>
-            <div class="quick-card-tags"><span class="chip">考察</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">补课制度</div>
-            <div class="quick-card-desc">缺勤补课执行与登记。</div>
-            <div class="quick-card-tags"><span class="chip">补课</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">公邮管理</div>
-            <div class="quick-card-desc">支部公共邮箱管理。</div>
-            <div class="quick-card-tags"><span class="chip">公邮</span></div>
-          </div>
-        </div>
-
-        <div class="quick-group-title">普通成员视图</div>
-        <div class="quick-grid">
-          <div class="quick-card">
-            <div class="quick-card-name">活动动态</div>
-            <div class="quick-card-desc">活动日历与列表切换查看。</div>
-            <div class="quick-card-tags"><span class="chip">日历</span><span class="chip">列表</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">专班进展</div>
-            <div class="quick-card-desc">专班进度跟踪。</div>
-            <div class="quick-card-tags"><span class="chip">进展</span></div>
-          </div>
-          <div class="quick-card">
-            <div class="quick-card-name">考勤概况</div>
-            <div class="quick-card-desc">个人考勤概况。</div>
-            <div class="quick-card-tags"><span class="chip">考勤</span></div>
-          </div>
+        <div class="qn-table-wrap">
+          <table class="qn-matrix">
+            <thead>
+              <tr>
+                <th>功能域</th>
+                <th><span class="qn-role"><span class="qn-role-dot" style="background:#22C55E"></span>党小组组长</span></th>
+                <th><span class="qn-role"><span class="qn-role-dot" style="background:#0EA5E9"></span>组织委员</span></th>
+                <th><span class="qn-role"><span class="qn-role-dot" style="background:#2563EB"></span>宣传委员</span></th>
+                <th><span class="qn-role"><span class="qn-role-dot" style="background:#C2410C"></span>纪检委员</span></th>
+                <th><span class="qn-role"><span class="qn-role-dot" style="background:#6B7280"></span>普通成员</span></th>
+                <th><span class="qn-role"><span class="qn-role-dot" style="background:#B91C1C"></span>党支书</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="qn-domain">活动专班</td>
+                <td><div class="qn-cell"><a class="qn-fn qn-fn-leader" href="./workspace/leader.html">活动写入</a><a class="qn-fn qn-fn-leader" href="./workspace/leader.html">复盘提交</a></div></td>
+                <td><div class="qn-cell"><a class="qn-fn qn-fn-org" href="./workspace/org.html">专班管理</a></div></td>
+                <td class="qn-empty"></td>
+                <td><div class="qn-cell"><a class="qn-fn qn-fn-disc" href="./workspace/disc.html">活动监督复盘</a></div></td>
+                <td><div class="qn-cell"><a class="qn-fn qn-fn-member" href="./index.html">活动动态</a><a class="qn-fn qn-fn-member" href="./index.html">专班进展</a></div></td>
+                <td><div class="qn-cell"><a class="qn-fn qn-fn-sec" href="./workspace/secretary.html">工作台</a></div></td>
+              </tr>
+              <tr>
+                <td class="qn-domain">考勤考察</td>
+                <td><div class="qn-cell"><a class="qn-fn qn-fn-leader" href="./workspace/leader.html">考勤上传</a><a class="qn-fn qn-fn-leader" href="./workspace/leader.html">考察上传</a></div></td>
+                <td><div class="qn-cell"><a class="qn-fn qn-fn-org" href="./workspace/org.html">考察上传</a><a class="qn-fn qn-fn-org" href="./workspace/org.html">人才库</a><a class="qn-fn qn-fn-org" href="./workspace/org.html">发展党员</a></div></td>
+                <td class="qn-empty"></td>
+                <td><div class="qn-cell"><a class="qn-fn qn-fn-disc" href="./workspace/disc.html">考勤管理</a><a class="qn-fn qn-fn-disc" href="./workspace/disc.html">补课制度</a><a class="qn-fn qn-fn-disc" href="./workspace/disc.html">考察管理</a></div></td>
+                <td><div class="qn-cell"><a class="qn-fn qn-fn-member" href="./index.html">考勤概况</a></div></td>
+                <td class="qn-empty"></td>
+              </tr>
+              <tr>
+                <td class="qn-domain">宣传与档案</td>
+                <td class="qn-empty"></td>
+                <td class="qn-empty"></td>
+                <td><div class="qn-cell"><a class="qn-fn qn-fn-prop" href="./workspace/prop.html">宣传任务</a><a class="qn-fn qn-fn-prop" href="./workspace/prop.html">项目看板</a><a class="qn-fn qn-fn-prop" href="./workspace/prop.html">周报报送</a><a class="qn-fn qn-fn-prop" href="./workspace/prop.html">档案归档</a></div></td>
+                <td><div class="qn-cell"><a class="qn-fn qn-fn-disc" href="./workspace/disc.html">公邮管理</a></div></td>
+                <td class="qn-empty"></td>
+                <td class="qn-empty"></td>
+              </tr>
+              <tr>
+                <td class="qn-domain">统筹</td>
+                <td class="qn-empty"></td>
+                <td class="qn-empty"></td>
+                <td class="qn-empty"></td>
+                <td class="qn-empty"></td>
+                <td class="qn-empty"></td>
+                <td><div class="qn-cell"><a class="qn-fn qn-fn-sec" href="./workspace/secretary.html">全局概况</a><a class="qn-fn qn-fn-sec" href="./workspace/secretary.html">赋权管理</a><a class="qn-fn qn-fn-sec" href="./workspace/secretary.html">通知发布</a><a class="qn-fn qn-fn-sec" href="./workspace/secretary.html">反馈管理</a></div></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <!-- 1.2 权限体系 -->
