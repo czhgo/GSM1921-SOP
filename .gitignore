@@ -4,6 +4,7 @@ node_modules/
 # IDE / tool artifacts
 .trae/
 .vscode/
+.superpowers/
 *.swp
 *.swo
 
