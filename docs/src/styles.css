@@ -2274,43 +2274,6 @@ textarea.input-flat {
   vertical-align: super;
 }
 
-/* ── Publicity Task Force（宣传专班） ── */
-.publicity-taskforce-card {
-  background: linear-gradient(135deg, rgba(16,185,129,0.04) 0%, rgba(16,185,129,0.01) 100%);
-  border: 1px solid rgba(16,185,129,0.2);
-  border-radius: var(--radius-md);
-  padding: 16px;
-  margin-bottom: 12px;
-}
-
-.publicity-taskforce-card h4 {
-  font-family: 'STZhongsong', '华文中宋', 'Noto Serif SC', serif;
-  font-weight: 700;
-  font-size: 0.8125rem;
-  color: var(--neutral-700);
-  margin-bottom: 8px;
-}
-
-.taskforce-member-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: var(--radius-xl);
-  background: var(--neutral-0);
-  border: 1px solid var(--neutral-200);
-  font-size: 0.75rem;
-  color: var(--neutral-600);
-  margin: 0 6px 6px 0;
-}
-
-.taskforce-empty {
-  font-size: 0.75rem;
-  color: var(--neutral-400);
-  padding: 8px 0;
-  text-align: center;
-}
-
 /* ── Party Stat Card（四宫格概览） ── */
 .party-stat-card {
   background: var(--surface-card);
@@ -4657,7 +4620,7 @@ label .text-red-500 {
   color: rgba(255,255,255,0.7);
 }
 
-/* 专班对比提示 */
+/* 关系网络 callouts 提示 */
 .help-callout-list {
   list-style: none;
   padding: 0;

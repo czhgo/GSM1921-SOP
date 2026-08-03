@@ -3,13 +3,11 @@
 
 import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';
-import { renderCommissionerMatrix } from '../components/commissioner-matrix.js?v=20260803h';
 import { renderRoleHierarchy } from '../components/role-hierarchy.js?v=20260803h';
 
 renderSidebar('help');
 renderHeader('help');
 renderRoleHierarchy('role-hierarchy-container');
-renderCommissionerMatrix('commissioner-matrix-container');
 
 // ── 右侧圆点目录（参考关于页 .help-toc-nav）──
 const TOC_ITEMS = [

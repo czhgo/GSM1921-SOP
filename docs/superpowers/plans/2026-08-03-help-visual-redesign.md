@@ -4,7 +4,7 @@
 
 **Goal:** 将 help.html 快速导航改为「角色×功能域矩阵 v4」（4 行 × 6 列，书记置后平级），正文升级为「风格 A 纯化」版式（章眉导语 + 小节编号徽章 + 要点卡/对比卡/查找卡/金色引语），配色克制（红=关键、金=引语、灰=正文）。
 
-**Architecture:** 纯静态 HTML/CSS 改造，仅动 `docs/help.html` 一个文件（内联 `<style>` + 正文结构）。`help-entry.js` 的 TOC 与两个组件（role-hierarchy / commissioner-matrix）原样保留；`styles.css` 不动。版本号 `?v=20260803g` → `?v=20260803h` 防缓存。
+**Architecture:** 纯静态 HTML/CSS 改造，仅动 `docs/help.html` 一个文件（内联 `<style>` + 正文结构）。`help-entry.js` 的 TOC 与组件 role-hierarchy 原样保留（commissioner-matrix 组件在 T-202 中删除）；`styles.css` 不动。版本号 `?v=20260803g` → `?v=20260803h` 防缓存。
 
 **Tech Stack:** HTML5 语义化 + 原生 CSS（Tailwind CDN 已在页面）。无新依赖。
 
@@ -252,9 +252,9 @@ git commit -m "docs(help): T-201 快速导航改矩阵 v4（4 行功能域 × 6 
 | L408 | `<h3 class="doc-h3">3.1 角色总览</h3>` | `<h3 class="doc-h3"><span class="doc-h3-badge">3.1</span>角色总览</h3>` |
 | L415 | `<h3 class="doc-h3">3.2 条块双线</h3>` | `<h3 class="doc-h3"><span class="doc-h3-badge">3.2</span>条块双线</h3>` |
 | L428 | `<h3 class="doc-h3">3.3 两个执行角色：组织者与深度参与者</h3>` | `<h3 class="doc-h3"><span class="doc-h3-badge">3.3</span>两个执行角色：组织者与深度参与者</h3>` |
-| L437 | `<h3 class="doc-h3">3.4 活动走谁的门</h3>` | `<h3 class="doc-h3"><span class="doc-h3-badge">3.4</span>活动走谁的门</h3>` |
-| L446 | `<h3 class="doc-h3">3.5 专班走谁的门</h3>` | `<h3 class="doc-h3"><span class="doc-h3-badge">3.5</span>专班走谁的门</h3>` |
-| L455 | `<h3 class="doc-h3">3.6 普通成员</h3>` | `<h3 class="doc-h3"><span class="doc-h3-badge">3.6</span>普通成员</h3>` |
+| L437 | `<h3 class="doc-h3">3.4 活动走谁的门</h3>` | `<h3 class="doc-h3"><span class="doc-h3-badge">3.4</span>活动的组织与专班的统筹</h3>`（T-202 合并 3.4/3.5） |
+| L446 | `<h3 class="doc-h3">3.5 专班走谁的门</h3>` | T-202 已并入 3.4（原 3.6 顺延为 3.5，见下行） |
+| L455 | `<h3 class="doc-h3">3.6 普通成员</h3>` | `<h3 class="doc-h3"><span class="doc-h3-badge">3.5</span>普通成员</h3>`（T-202 顺延） |
 | L467 | `<h3 class="doc-h3">4.1 这个组织靠什么运作</h3>` | `<h3 class="doc-h3"><span class="doc-h3-badge">4.1</span>这个组织靠什么运作</h3>` |
 | L479 | `<h3 class="doc-h3">4.2 活动与专班：两种工作，两种节奏</h3>` | `<h3 class="doc-h3"><span class="doc-h3-badge">4.2</span>活动与专班：两种工作，两种节奏</h3>` |
 | L494 | `<h3 class="doc-h3">4.3 扁平化：不靠级别，靠协商</h3>` | `<h3 class="doc-h3"><span class="doc-h3-badge">4.3</span>扁平化：不靠级别，靠协商</h3>` |
@@ -416,38 +416,21 @@ git commit -m "docs(help): T-201 章眉导语（二三五四章）+ 第二章三
         <div class="doc-key">两者之间<strong>没有上下级关系，只是分工不同</strong>：组织者是项目的脑子，负责分工记录与协调；深度参与者是项目的手，负责执行具体工作、提交交付物。</div>
 ```
 
-- [ ] **Step 4: 3.4 / 3.5 改对比卡**
+- [ ] **Step 4: 3.4 / 3.5 合并为「活动的组织与专班的统筹」**
 
-将 L438-452（3.4 两段 + 3.5 两段）：
-```html
-        <p class="doc-p">
-          党小组组长是活动的天然写入者——创建活动、向组织者赋权；组织者做好分工记录，深度参与者执行分工。
-        </p>
-        <p class="doc-p">
-          活动的考勤归纪检委员、宣传归宣传委员——一件事从创建到归档，门门有对。
-        </p>
+> **T-202 修订**：3.4/3.5 合并为「活动的组织与专班的统筹」（删除"走谁的门"表述，改为"怎么组织"）；原 3.6 普通成员顺延为 3.5。
 
-        <!-- 3.5 专班走谁的门 -->
-        <h3 class="doc-h3"><span class="doc-h3-badge">3.5</span>专班走谁的门</h3>
-        <p class="doc-p">
-          发起人（书记/党小组组长/支委）提出需求，由组织委员统一招募统筹——<strong>唯一专班管理节点</strong>；招募赋权组织者与深度参与者，任务完成即解散。
-        </p>
-        <p class="doc-p">
-          活动与专班走不同的门：活动的门在党小组组长，专班的门在组织委员。
-        </p>
-```
-替换为：
+将 L438-452（3.4 两段 + 3.5 两段）替换为：
 ```html
+        <h3 class="doc-h3"><span class="doc-h3-badge">3.4</span>活动的组织与专班的统筹</h3>
         <div class="doc-duo">
-          <div class="doc-duo-item"><h4><span class="dv">活动</span>走党小组组长</h4><p>党小组组长是活动的天然写入者——创建活动、向组织者赋权；组织者做好分工记录，深度参与者执行分工。活动的考勤归纪检委员、宣传归宣传委员——一件事从创建到归档，门门有对。</p></div>
-          <div class="doc-duo-item"><h4><span class="dv">专班</span>走组织委员</h4><p>发起人（书记/党小组组长/支委）提出需求，由组织委员统一招募统筹——<strong>唯一专班管理节点</strong>；招募赋权组织者与深度参与者，任务完成即解散。</p></div>
+          <div class="doc-duo-item"><h4><span class="dv">活动</span>的组织</h4><p>党小组组长沿小组线组织活动——创建活动、向组织者赋权；组织者做好分工记录，深度参与者执行分工。活动的考勤归纪检委员、宣传归档归宣传委员，一件事从创建到归档各归其位。</p></div>
+          <div class="doc-duo-item"><h4><span class="dv">专班</span>的统筹</h4><p>发起人（书记/党小组组长/支委）提出需求，组织委员沿职能线统一招募统筹——<strong>唯一专班管理节点</strong>；专班不限时间、不限地点，推动支部的长期建设。</p></div>
         </div>
-        <p class="doc-p">
-          活动与专班走不同的门：活动的门在党小组组长，专班的门在组织委员。
-        </p>
+        <p class="doc-p">谁组织、谁统筹，由岗位职责定义而不靠临时协调——组织的分工由此贯穿活动与专班。</p>
 ```
 
-- [ ] **Step 5: 3.6 改要点卡**
+- [ ] **Step 5: 3.5 改要点卡**
 
 将 L456-458：
 ```html
@@ -462,7 +445,7 @@ git commit -m "docs(help): T-201 章眉导语（二三五四章）+ 第二章三
 
 - [ ] **Step 6: 验证**
 
-浏览器刷新，Expected: 3.1 注记变红条要点卡；3.2 两条线双列卡；3.3/3.6 要点卡；3.4/3.5 双列对比卡（活动 vs 专班），3.4 与 3.5 标题仍为独立小节。
+浏览器刷新，Expected: 3.1 注记变红条要点卡；3.2 两条线双列卡；3.3/3.5 要点卡；3.4 活动的组织与专班的统筹对比卡（T-202 合并 3.4/3.5，单小节）。
 Run: `grep -c "doc-key" docs/help.html` → 人工核对：样式 1 + HTML（3.1/3.3/3.6）= 4
 Run: `grep -c "doc-duo" docs/help.html` → 人工核对：样式 1 + HTML（3.2 与 3.4 两个 `.doc-duo` 容器 + 4 个 `.doc-duo-item`）= 7
 
@@ -507,32 +490,19 @@ git commit -m "docs(help): T-201 第三章版式（3.1/3.3/3.6 要点卡·3.2/3.
 
 - [ ] **Step 2: 4.2 改对比卡**
 
-将 L480-491（4.2 四段）：
-```html
-        <p class="doc-p">
-          活动是支部的<strong>常规节奏</strong>：固定时间地点、面向全体、重在参与与规范，党小组是基本单元。
-        </p>
-        <p class="doc-p">
-          专班是支部的<strong>攻坚方式</strong>：临时组建、小范围抽调、重产出，任务完成即解散；同时是考察积极分子的载体。
-        </p>
-        <p class="doc-p">
-          两种工作分开管理、走不同的赋权流程——常规的组织生活需要稳定节奏，而时效紧、跨角色、不可拆分的任务需要集中攻坚。
-        </p>
-        <p class="doc-p">
-          你在其中：活动的组织者做好分工记录；专班参与者是经组织委员统筹、从小组抽调的攻坚成员。
-        </p>
-```
-替换为：
+> **T-202 修订**：4.2 改为「活动/专班」名字对比卡（删除对比徽章与旧定义表述）；专班定义以书记定稿为准：**不限时间、不限地点，推动支部的长期建设**。
+
+将 L480-491（4.2 四段）替换为：
 ```html
         <div class="doc-duo">
-          <div class="doc-duo-item"><h4><span class="dv">常规</span>活动</h4><p>支部的常规节奏：固定时间地点、面向全体、重在参与与规范，党小组是基本单元。</p></div>
-          <div class="doc-duo-item"><h4><span class="dv">攻坚</span>专班</h4><p>支部的攻坚方式：临时组建、小范围抽调、重产出，任务完成即解散；同时是考察积极分子的载体。</p></div>
+          <div class="doc-duo-item"><h4>活动</h4><p>支部的常规工作：固定时间地点、面向全体、重在参与与规范，党小组是基本单元。</p></div>
+          <div class="doc-duo-item"><h4>专班</h4><p>不限时间、不限地点，推动支部的长期建设；也是考察积极分子的载体。</p></div>
         </div>
         <p class="doc-p">
-          两种工作分开管理、走不同的赋权流程——常规的组织生活需要稳定节奏，而时效紧、跨角色、不可拆分的任务需要集中攻坚。
+          两种工作分开管理、流程不同——活动由党小组组长组织，专班由组织委员统筹。
         </p>
         <p class="doc-p">
-          你在其中：活动的组织者做好分工记录；专班参与者是经组织委员统筹、从小组抽调的攻坚成员。
+          你在其中：活动的组织者做好分工记录；专班参与者是经组织委员统筹、从小组抽调的工作人员。
         </p>
 ```
 
@@ -626,7 +596,7 @@ git commit -m "docs(help): T-201 第三章版式（3.1/3.3/3.6 要点卡·3.2/3.
 
 - [ ] **Step 6: 验证**
 
-浏览器刷新，Expected: 4.1/4.3/4.5 要点卡；4.2 常规 vs 攻坚对比卡；4.4 纵/横对比卡 + 「遇到具体事务找谁」chips 卡 + 金色引语；收尾 doc-note 保留。
+浏览器刷新，Expected: 4.1/4.3/4.5 要点卡；4.2 活动 vs 专班对比卡（T-202 修订：仅名字，无徽章对比）；4.4 纵/横对比卡 + 「遇到具体事务找谁」chips 卡 + 金色引语；收尾 doc-note 保留。
 Run: `grep -c "doc-quote" docs/help.html` → Expected: 2（1 处 HTML + 1 处样式定义）
 Run: `grep -c "doc-finder" docs/help.html` → Expected: 2
 

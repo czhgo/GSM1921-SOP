@@ -868,3 +868,42 @@ related_files:
 - ✅ grep 计数：quick-card 零残留；doc-h3-badge=16（15 HTML+1 样式）；doc-lead=7（2 样式+5 HTML）；qn-matrix=5
 
 **沉淀标签**：`[已沉淀: content/insights/工程演进与设计方法论.md §4.16]` — 扁平化矩阵形态（角色列等宽平级、书记置后、行标签保留"与"字）可作为各角色页导航参考；`[已沉淀: content/insights/工程演进与设计方法论.md §4.14]` — 正文 6 档字号梯队（1rem 导语引语致谢/0.95 正文/0.9 要点卡列表表格/0.85 卡标题/0.82 卡正文/0.78 小标签）；`[已沉淀: content/05_ai_coding/KNOWN_PITFALLS.md §13]` — 子组件 JS 导入需带 `?v=` 版本参数，否则旧版缓存长期残留（本次"专班盒复活"即缓存所致）
+
+## T202 T-202 全仓"专班攻坚"余毒清零 + help 3.4/3.5 合并 + 三委员矩阵组件删除（2026-08-04）
+
+**任务**：书记对 T-201 归档后发起新一轮整改——①全仓清查"专班是攻坚的"余毒（书记强调从未说过）；②help 页 3.4/3.5「活动走谁的门/专班走谁的门」合并为「活动的组织与专班的统筹」；③组织性叙事贯穿其中；④删除「三委员工作台职责矩阵」h3 组件（qn-matrix 表格已可表现，且表格致字号差异大）；⑤`td.qn-empty` 狗皮膏药色改白。
+
+**引用流程**：web-design-guidelines Skill + brainstorming Skill（三轮 AskUserQuestion 逐条确认）+ verification-before-completion Skill（browser_use 三页实测）
+
+**来源**：书记指令（2026-08-04）——"我从未说过，专班是攻坚的！全仓库清除余毒！！！""请不要用 活动走谁的门这种说法……应该说怎么组织？""我们的 组织性的 叙事 是贯穿其中的？这非常重要""td 我不喜欢这些颜色像狗皮膏药一样！请务必修正为白色！！"；"你完全在过拟合，我说的是content中的02_和03_"（纠错：清查范围实指 content/02_institution 与 content/03_doc_system 目录）
+
+**书记决策（AskUserQuestion 三轮）**：
+- 专班唯一特点：**不限时间、不限地点，推动支部的长期建设**——替代一切"攻坚/临时性"表述，并彻查全仓专班硬编码
+- 3.4/3.5 合并标题=「活动的组织与专班的统筹」，表述改为"怎么组织"，组织性叙事贯穿
+- 三委员职责矩阵组件=**整个组件删除**（含 js 文件）
+- 日志处置=实时文件全清、.ctx/logs 历史保留；CHECKLIST 专班数据段保留（讲的是数据在哪些页面显示）
+- 反论段处置=删除一切"为什么需要/为什么不是"反论段，直接陈述规则
+- 4.2 对比卡=**不要对比！就是名字！**（删除常规/攻坚徽章，仅"活动/专班"名称）
+- 母本同步更新：FLAT_DESIGN §三 三重启动判据→两项适用条件（删时效性判据）
+
+**实施内容**：
+- ① **攻坚余毒清零**：全仓「攻坚」按实时/历史分类清除——help 4.2、about-entry（3 处）、mock/taskforces+review、FLAT_DESIGN、组织委员指南、insights §3、spec/plan 全量同步为"不限时间不限地点、推动支部长期建设"；仅 .ctx/logs 归档保留
+- ② **母本判据更新**：FLAT_DESIGN.md §三 三重启动判据（时效性/跨角色/不可拆分）→ 两项适用条件（跨角色/不可拆分），删除反论段；insights §3.1/§3.3/L74、组织委员指南引用同步
+- ③ **help 3.4/3.5 合并**：「活动走谁的门/专班走谁的门」→「活动的组织与专班的统筹」（双卡：活动的组织/专班的统筹 + 组织性贯穿句）；原 3.6 普通成员顺延 3.5
+- ④ **三委员矩阵组件删除**：commissioner-matrix.js 文件删除 + help-entry.js 导入/调用移除 + help.html 容器移除
+- ⑤ **qn-empty 改白**：`td.qn-empty` #FAFAF9 → #FFFFFF
+- ⑥ **死代码清理**：styles.css 宣传专班（publicity-taskforce-card/taskforce-member-chip/taskforce-empty）样式块删除；「专班对比提示」误标注释更正
+- ⑦ **类型矩阵删除**：COMMISSIONER_FRAMEWORK.md §A.5 专班类型矩阵整节删除（保留编号不动，避免牵连 §A.6~A.7 引用）
+- ⑧ **临时性表述同步**（书记确认两处都同步）：SECRETARY_PRONOUNCEMENTS P-014/L443、COMMISSIONER_FRAMEWORK §A.3、README/根目录 plan 专班条目——"临时性"→"不限时间、不限地点"
+- ⑨ **spec/plan 同步 + 版本 bump**：spec/plan 攻坚/走门/组件引用全量同步 T-202 结果；help.html/about.html 入口 `?v=20260803h/e` → `?v=20260804a`
+
+**变更文件**：`docs/help.html`、`docs/about.html`、`docs/src/entries/help-entry.js`、`docs/src/entries/about-entry.js`、`docs/src/components/commissioner-matrix.js`（删除）、`docs/src/mock/taskforces.js`、`docs/src/mock/review.js`、`docs/src/styles.css`、`content/02_institution/FLAT_DESIGN.md`、`content/02_institution/COMMISSIONER_FRAMEWORK.md`、`content/02_institution/sop/组织委员工作流程指南.md`、`content/insights/党支部管理与实务经验沉淀.md`、`content/01_strategy/SECRETARY_PRONOUNCEMENTS.md`、`README.md`、`docs/superpowers/specs/2026-08-03-help-visual-redesign-design.md`、`docs/superpowers/plans/2026-08-03-help-visual-redesign.md`、`docs/superpowers/plans/2026-08-03-根目录文档更新.md`
+
+**验证结果（browser_use 三页实测 + GetDiagnostics + grep 复扫）**：
+- ✅ GetDiagnostics：help-entry.js 零错误
+- ✅ help.html：3.4「活动的组织与专班的统筹」+ 3.5「普通成员」渲染正确；3.3~3.5 间无任何职责矩阵容器/组件残留；qn-matrix 28 单元格正常渲染；4.2 仅「活动/专班」两卡无徽章；console 无 404/模块加载错误
+- ✅ about.html：全部区块渲染成功（含"专班：组织委员统筹，不限时间地点"场景）；无 404
+- ✅ index.html：书记账号登录后首页正常（统计/通知/专班进展/日历）；无 404
+- ✅ grep 复扫：`攻坚` 实时文件零残留（仅 .ctx/logs 历史）；`临时性` 实时文件零残留；`三重启动判据|走谁的门|commissioner-matrix` 仅日志/归档保留
+
+**沉淀标签**：`[已沉淀: SECRETARY_PRONOUNCEMENTS.md P-014（2026-08-04 复核）]` — 专班唯一特点为"不限时间、不限地点，推动支部长期建设"，一切"攻坚/临时性/时效窗口"表述均需同步母本；`[已沉淀: CLAUDE.md H2.4 例外]` — 反论段清除原则：修改文本时删除"为什么需要/为什么不是"类解释段，直接陈述规则

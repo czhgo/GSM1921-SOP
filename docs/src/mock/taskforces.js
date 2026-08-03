@@ -2,7 +2,7 @@ export const MOCK_TASKFORCES = [
   {
     id: 'tf-001',
     name: '宣传专班（第二期）',
-    task: '深度报道与专题视频制作 — 五月大型活动宣传攻坚',
+    task: '深度报道与专题视频制作 — 五月大型活动宣传任务',
     status: 'active',
     manager: 'p11',
     initiator: 'p12',

@@ -2,7 +2,7 @@
 title: "书记重要论断汇编"
 type: governance
 role: "[用户]+[AI]"
-last_updated: "2026-07-22"
+last_updated: "2026-08-04"
 status: active
 related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH.md, content/04_web_design/DATA_ARCHITECTURE.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/FLAT_DESIGN.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/SOP_WEB.md, content/03_doc_system/USAGE_POLICY.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/党支部管理与实务经验沉淀.md, content/insights/工程演进与设计方法论.md]
 ---
@@ -440,7 +440,7 @@ P-043 讲的是"适应能力"，P-044 讲的是"探索机会"。作为AI时代�
 
 ---
 
-> **第五章过渡**：前一章讲清了专班的运作——赋权与考察各自独立、发起与招募分离。但专班是"临时性"的组织形式，支部里还有"常态化"的组织结构：委员（条）和党小组组长（块）。这两者的权责关系是第六章的主题。
+> **第五章过渡**：前一章讲清了专班的运作——赋权与考察各自独立、发起与招募分离。但专班不限时间、不限地点，是推动支部长期建设的组织形式；支部里还有"常态化"的组织结构：委员（条）和党小组组长（块）。这两者的权责关系是第六章的主题。
 
 ---
 
@@ -452,9 +452,9 @@ P-043 讲的是"适应能力"，P-044 讲的是"探索机会"。作为AI时代�
 
 条块之间没有上下级关系，只是两种理解视角。条的边界是垂直穿透，块的边界是横向覆盖。**谁做什么，由岗位职责定义决定，不由条块推出**——组织委员管发展党员与专班统筹、宣传委员管宣传档案、纪检委员管考勤考察、党小组组长组织党小组活动，这些职责本身就是制度。
 
-专班打破了条块格局——跨职能又跨小组，是临时性、目标导向的横向切口。
+专班打破了条块格局——跨职能又跨小组，不限时间、不限地点，是目标导向的横向切口。
 
-（2026-08-03 书记复核重写）
+（2026-08-04 书记复核重写）
 
 常规模式（接力）下，支委决策→党小组组长中转→触达党员；专班模式下，支委直接从各小组抽调党员。~~党小组组长仅确认可用性，不介入执行协调~~（⚠️ 2026-07-18 反论评议第一轮确认：此"常规vs专班"并列对比及"中转站→确认者"角色变化为AI推导，非书记原话，已从 insights 党支部管理与实务经验沉淀.md §2.3 和 FLAT_DESIGN.md §四删除。此处保留标注供溯源。）
 

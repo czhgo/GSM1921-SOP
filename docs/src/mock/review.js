@@ -167,7 +167,7 @@ export const TASKFORCE_REVIEW_RECORDS = [
     progress: '进行中',
     overdue: false,
     reviewStatus: ReviewStatus.UPLOADED,
-    reviewContent: '宣传专班（第二期）5月宣传攻坚任务完成情况：深度报道 2 篇、专题视频 1 部。视频制作周期略长于预期，建议下期专班预留更多后期时间。',
+    reviewContent: '宣传专班（第二期）5月宣传任务完成情况：深度报道 2 篇、专题视频 1 部。视频制作周期略长于预期，建议下期专班预留更多后期时间。',
     submittedAt: '2026-05-21T14:00:00',
   },
   {

@@ -105,7 +105,7 @@
 **正文变体类**：
 
 - `.doc-key`：要点卡 `background:#FEF2F2; border-left:3px solid #CE1126; color:#7A0010; border-radius:12px;`
-- `.doc-duo`（grid 2 列）+ `.doc-duo-item`（浅灰底 `#FAFAF9` 圆角）+ `.dv` 徽章（Times 纵/横/常规/攻坚）
+- `.doc-duo`（grid 2 列）+ `.doc-duo-item`（浅灰底 `#FAFAF9` 圆角）+ `.dv` 徽章（Times 纵/横）
 - `.doc-finder` + `.doc-fmap` + `.doc-fpair`：查找卡
 - `.doc-quote`：金色引语 `border-left:2px solid #FFD700; font-family:serif; color:#92400E;`
 
@@ -116,7 +116,7 @@
 | 致谢            | doc-p 长段保留，不动                                                                                                                                      |
 | 一、快速上手        | 章眉+导语；1.1 nav-tree 保留 + 矩阵 v4 替换 quick-card 网格；1.2 两表格+doc-list 保留                                                                                 |
 | 二、这个系统在干什么    | 章眉+导语；三大设计理念「制度即代码/角色即视图/经验可传承」→ 三个并列浅灰 mini 卡；其余正文保留                                                                                              |
-| 三、分工中的制度设计    | 章眉+导语；3.1 role-hierarchy 保留+注记改要点卡；3.2 条块双线→对比卡（纵/横）+ commissioner-matrix 保留；3.3 两个执行角色→要点卡（没有上下级关系）+ 正文；3.4/3.5 活动专班走谁的门→对比卡；3.6 普通成员→要点卡（知情权监督权） |
+| 三、分工中的制度设计    | 章眉+导语；3.1 role-hierarchy 保留+注记改要点卡；3.2 条块双线→对比卡（纵/横）；3.3 两个执行角色→要点卡（没有上下级关系）+ 正文；3.4 活动的组织与专班的统筹→对比卡（活动/专班）；3.5 普通成员→要点卡（知情权监督权） |
 | 四、怎么理解具体的这个组织 | 章眉+导语；4.1 分工协商记录→要点卡；4.2 活动与专班两种节奏→对比卡；4.3 扁平化→要点卡（组织者不是领导）；4.4 职能线与小组线→对比卡+查找卡+金色引语（条块两把尺子）；4.5 普通成员→要点卡；收尾 doc-note（管理事服务人）保留                    |
 | 五、技术架构        | 章眉+简短导语；5.1 表格、5.2 列表保留                                                                                                                            |
 | 免责声明          | 保持现有金色卡样式，不动                                                                                                                                       |
@@ -124,7 +124,7 @@
 ### 3.4 不动项
 
 - 右侧圆点 TOC（help-entry.js + styles.css L4892+ 的 .help-toc-nav）：**不改**。
-- role-hierarchy.js / commissioner-matrix.js 组件本身：**不改**（仅保留在页面原位置）。
+- role-hierarchy.js 组件本身：**不改**（保留在页面原位置）；commissioner-matrix.js 组件在 T-202 中删除。
 - 侧边栏、页眉、页脚：不改。
 - 不引入新依赖（矩阵为静态 HTML + CSS；正文变体为纯 CSS）。
 
@@ -142,7 +142,7 @@
 | 文件                             | 改动                                                                                   |
 | ------------------------------ | ------------------------------------------------------------------------------------ |
 | docs/help.html                 | 替换 quick-card 网格为矩阵 v4；正文版式改造（章眉导语/小节徽章/变体卡）；样式新增；入口 `?v=20260803g` → `?v=20260803h` |
-| docs/src/entries/help-entry.js | 两个组件导入（commissioner-matrix / role-hierarchy）补 `?v=20260803h` 版本参数（防子组件旧缓存，修正"专班盒复活"）；TOC 锚点未失效 |
+| docs/src/entries/help-entry.js | 组件导入（role-hierarchy）补 `?v=20260803h` 版本参数（防子组件旧缓存，修正"专班盒复活"）；T-202 移除 commissioner-matrix 导入与调用；TOC 锚点未失效 |
 | docs/src/styles.css            | 不改                                                                                   |
 
 ## 6. 验证清单

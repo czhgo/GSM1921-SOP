@@ -38,7 +38,7 @@ const REVIEW_DIMENSIONS = [
     id: 'contribution',
     name: '党建贡献',
     tag: '特别突出原创性的贡献',
-    desc: '在活动策划、专班攻坚中发挥创造力，做出可被识别的原创性工作——这是考察的核心维度。',
+    desc: '在活动策划、专班任务中发挥创造力，做出可被识别的原创性工作——这是考察的核心维度。',
     highlight: true,
   },
   {
@@ -66,7 +66,7 @@ const TWO_WORKS = [
     label: '探索工作',
     tag: '试错创造',
     desc: '需要发挥创造力、探索新可能——人人皆可贡献，包括积极分子',
-    examples: ['活动策划', '专班攻坚'],
+    examples: ['活动策划', '专班任务'],
     features: ['有边界', '要对话', '要改进', '人人参与'],
     tone: 'explore',
   },
@@ -884,7 +884,7 @@ function renderExploration() {
     {
       id: 'taskforce',
       no: '02',
-      title: '专班：组织委员招募，定向攻坚',
+      title: '专班：组织委员统筹，不限时间地点',
       network: TASKFORCE_NETWORK,
       stages: EXPLORATION_STAGES.taskforce,
       note: '与活动不同——专班由组织委员统一招募赋权，发起人做业务赋权；组织者是项目的脑子，深度参与者是项目的手。',
