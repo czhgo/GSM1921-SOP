@@ -2,7 +2,7 @@
 title: "单一权威源索引"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-07-21"
+last_updated: "2026-08-03"
 version: "3.7"
 status: active
 related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web_design/, content/03_doc_system/, content/02_institution/sop/, content/insights/]
@@ -17,7 +17,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 **与相关文件的关系**（参见 [CLAUDE.md H2.2](CLAUDE.md#h22-设计母本与子本)）：
 - **CLAUDE.md H2.2**：提炼5条核心原则（制度→代码 / 理论→工程 / 路线图→执行 / 经验→沉淀 / 术语→全仓）
 - **本文件（SSOT_INDEX.md）**：注册全部约25条级联关系，是母本子本关系的唯一权威注册表
-- **OPERATIONS_GUIDE.md §7.1**：定义文档权威层级（L0-L4）与冲突裁决规则
+- **OPERATIONS_GUIDE.md §7.1**：定义文档权威层级（5 类知识类型）与冲突裁决规则
 - **DOC_MAP.md**：按目录结构组织的导航图，标注每个文件的权威层级
 
 三者关系：H2.2 提炼核心原则 → SSOT_INDEX 注册全部关系 → OPERATIONS_GUIDE §7.1 定义层级 → DOC_MAP 标注层级。
@@ -26,7 +26,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 
 ## 注册表映射
 
-> 按 5 类知识类型（见 [OPERATIONS_GUIDE.md §7.1](content/03_doc_system/OPERATIONS_GUIDE.md)）组织。每条关系标注母本→子本及同步规则。
+> 按 5 类知识类型（见 [OPERATIONS_GUIDE.md §7.1](./OPERATIONS_GUIDE.md)）组织。每条关系标注母本→子本及同步规则。
 
 ### 根目录 → content/ 各知识类型
 
@@ -75,7 +75,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
-| `content/references/合规文件/` | `content/02_institution/sop/` | 官方文件→SOP。官方文件与党章是所有 SOP 文本的母本。任何 SOP 文本调整，必须先回查 content/references/ |
+| `content/01_strategy/references/合规文件/` | `content/02_institution/sop/` | 官方文件→SOP。官方文件与党章是所有 SOP 文本的母本。任何 SOP 文本调整，必须先回查 content/01_strategy/references/ |
 
 ### 审计参考层 → content/ 理论
 
@@ -165,7 +165,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | .vibe_context/* | → .ctx/（迁移）或删除 | 2026-05-02 |
 | knowledge/SOP/ | → content/sop/ | 2026-05-02 |
 | docs/ | → content/guides/ + content/insights/ | 2026-05-02 |
-| 参考资料/ | → content/references/ | 2026-05-02 |
+| 参考资料/ | → content/01_strategy/references/ | 2026-05-02 |
 | AI_ENTRYPOINT.md | → 已合并至 ARCHITECTURE.md | 2026-05-01 |
 | SYSTEM_CLAUDE.md | → CLAUDE.md | 2026-05-02 |
 | .github/SSOT_INDEX.md | → SSOT_INDEX.md（移至根目录） | 2026-05-18 |

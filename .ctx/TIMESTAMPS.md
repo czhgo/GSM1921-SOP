@@ -76,28 +76,28 @@ last_updated: "2026-08-03"
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/02_institution/COMMISSIONER_FRAMEWORK.md | 2026-07-31 | [用户]+[AI] | 支委框架与赋权（含§D赋权入口设计） |
+| content/02_institution/COMMISSIONER_FRAMEWORK.md | 2026-08-03 | [用户]+[AI] | 支委框架与赋权（含§D赋权入口设计） |
 | content/02_institution/FLAT_DESIGN.md | 2026-07-31 | [工程师]+[AI] | 扁平化设计 |
-| content/02_institution/ROLE_CLASSIFICATION.md | 2026-07-31 | [工程师]+[AI] | 角色分类 |
+| content/02_institution/ROLE_CLASSIFICATION.md | 2026-08-03 | [工程师]+[AI] | 角色分类 |
 | content/02_institution/README.md | 2026-07-31 | [用户]+[AI] | 02_institution 目录索引 |
 | content/02_institution/sop/INDEX.md | 2026-07-31 | [用户]+[AI] | SOP 导航 |
-| content/02_institution/sop/常见工作场景快速指南.md | 2026-04-01 | [用户]+[AI] | |
+| content/02_institution/sop/常见工作场景快速指南.md | 2026-08-03 | [用户]+[AI] | |
 | content/02_institution/sop/支委与党小组定人定责定岗说明.md | 2026-04-01 | [用户]+[AI] | |
 | content/02_institution/sop/宣传委员工作流程指南.md | 2026-07-31 | [用户]+[AI] | |
 | content/02_institution/sop/纪检委员工作流程指南.md | 2026-07-31 | [用户]+[AI] | |
-| content/02_institution/sop/组织委员工作流程指南.md | 2026-07-31 | [用户]+[AI] | |
-| content/02_institution/sop/党小组组长工作手册.md | 2026-07-31 | [用户]+[AI] | |
+| content/02_institution/sop/组织委员工作流程指南.md | 2026-08-03 | [用户]+[AI] | |
+| content/02_institution/sop/党小组组长工作手册.md | 2026-08-03 | [用户]+[AI] | |
 
 ## content/03_doc_system/ (系统治理层)
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-07-31 | [工程师]+[AI] | 运行标准（含 §7.3 分层体系索引 + §7.4 一致性检查规范 + §9 文件命名规范 + §10 反论表述审核标准 + §14 吸收外部输入流程 + §15 周期性任务与自动唤醒机制） |
-| content/03_doc_system/USAGE_POLICY.md | 2026-07-31 | [工程师]+[AI] | 使用规范（术语 §一 + Emoji §二） |
-| content/03_doc_system/ARCHITECTURE.md | 2026-07-31 | [工程师]+[AI] | 核心架构说明（迁移自根目录 ARCHITECTURE.md） |
+| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-08-03 | [工程师]+[AI] | 运行标准（含 §7.3 分层体系索引 + §7.4 一致性检查规范 + §9 文件命名规范 + §10 反论表述审核标准 + §14 吸收外部输入流程 + §15 周期性任务与自动唤醒机制） |
+| content/03_doc_system/USAGE_POLICY.md | 2026-08-03 | [工程师]+[AI] | 使用规范（术语 §一 + Emoji §二） |
+| content/03_doc_system/ARCHITECTURE.md | 2026-08-03 | [工程师]+[AI] | 核心架构说明（迁移自根目录 ARCHITECTURE.md） |
 | content/03_doc_system/DOC_MAP.md | 2026-07-31 | [工程师]+[AI] | 全局文档导航 |
-| content/03_doc_system/SSOT_INDEX.md | 2026-07-31 | [工程师]+[AI] | 母本子本注册表 |
-| content/03_doc_system/SERVICE_CATALOG.md | 2026-07-31 | [工程师]+[AI] | 服务目录 |
+| content/03_doc_system/SSOT_INDEX.md | 2026-08-03 | [工程师]+[AI] | 母本子本注册表 |
+| content/03_doc_system/SERVICE_CATALOG.md | 2026-08-03 | [工程师]+[AI] | 服务目录 |
 | content/03_doc_system/README.md | 2026-07-31 | [工程师]+[AI] | 03_doc_system 目录索引 |
 | content/03_doc_system/工作模板/经验沉淀辅助提示词.md | 2026-07-31 | [工程师]+[AI] | 沉淀辅助 |
 
@@ -107,8 +107,8 @@ last_updated: "2026-08-03"
 |---------|-------------|------|------|
 | content/04_web_design/DESIGN_SYSTEM.md | 2026-07-31 | [工程师]+[AI] | 前端设计系统（含§一第2条"最小三成本"原则） |
 | content/04_web_design/DATA_ARCHITECTURE.md | 2026-07-31 | [工程师]+[AI] | 数据架构设计（含§2.18-§2.20 待办任务数据模型） |
-| content/04_web_design/MODULE_UI_DESIGN.md | 2026-07-31 | [工程师]+[AI] | 模块界面设计 |
-| content/04_web_design/SOP_WEB.md | 2026-07-31 | [工程师]+[AI] | SOP-系统联动方法 |
+| content/04_web_design/MODULE_UI_DESIGN.md | 2026-08-03 | [工程师]+[AI] | 模块界面设计 |
+| content/04_web_design/SOP_WEB.md | 2026-08-03 | [工程师]+[AI] | SOP-系统联动方法 |
 | content/04_web_design/SCHOOL_IT_DEPLOYMENT.md | 2026-07-31 | [工程师]+[AI] | 部署方案 |
 | content/04_web_design/README.md | 2026-07-31 | [工程师]+[AI] | 04_web_design 目录索引 |
 
@@ -124,7 +124,7 @@ last_updated: "2026-08-03"
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
 | content/insights/党支部管理与实务经验沉淀.md | 2026-07-31 | [用户]+[AI] | 党建与党务工作理论贡献 |
-| content/insights/工程演进与设计方法论.md | 2026-07-31 | [用户]+[AI] | 工程演进与设计方法论（文档逻辑顺序重组后拆分为独立文件） |
+| content/insights/工程演进与设计方法论.md | 2026-08-03 | [用户]+[AI] | 工程演进与设计方法论（文档逻辑顺序重组后拆分为独立文件） |
 
 ## content/README.md
 

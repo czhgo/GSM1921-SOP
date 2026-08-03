@@ -280,7 +280,7 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 
 ## 11. 补课数据
 
-**存储**：`docs/src/mock/party.js` → `PARTY_MOCKS.makeupTasks`（5 条种子数据，mk1~mk5）
+**存储**：`mockDB.makeupTasks`（`core/domain.js` 初始化 `[]`，经 `core/data-adapter.js` 持久化；服务端模式路由 `/api/v1/makeupTasks`）
 **运行时**：`mockDB.makeupTasks`
 **Service**：`docs/src/services/makeup.js`
 
@@ -330,7 +330,7 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 
 **存储**：`docs/src/mock/seed.js` → `SEED_ASSIGNMENTS`（5 条种子数据）
 **运行时**：`mockDB.assignments`
-**Service**：`docs/src/services/assignment.js`
+**Service**：无独立 Service——分工数据经 `core/data-adapter.js`（adapter.assignments）读写，权限联动 `services/auth.js`（syncProjectRoles）
 
 **展示页面**：
 
@@ -342,7 +342,7 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 
 - [ ] 分工记录的 assigneeId 在 PEOPLE 中存在
 - [ ] 分工记录的 activityId 在 ACTIVITIES 中存在
-- [ ] 分工状态（pending/in_progress/completed）与 assignment.js 的状态流转一致
+- [ ] 分工状态（pending/in_progress/completed）与 data-adapter.js 的状态流转一致
 
 ---
 

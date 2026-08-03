@@ -2,7 +2,7 @@
 title: "运行标准与操作规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-07-31"
+last_updated: "2026-08-03"
 version: "3.0"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/USAGE_POLICY.md, content/02_institution/ROLE_CLASSIFICATION.md, content/03_doc_system/DOC_MAP.md, content/05_ai_coding/KNOWN_PITFALLS.md, content/03_doc_system/SSOT_INDEX.md]
@@ -37,8 +37,8 @@ related_files: [...]
 | `governance`     | 治理规范           | content/03_doc_system/          |
 | `design`         | 功能设计方案         | content/04_web_design/              |
 | `experience_doc` | 经验沉淀           | content/insights/            |
-| `reference`      | 参考模板           | content/references/          |
-| `template`       | 可复用模板          | content/references/工作模板/    |
+| `reference`      | 参考模板           | content/01_strategy/references/          |
+| `template`       | 可复用模板          | content/03_doc_system/工作模板/    |
 | `index`          | 目录索引           | 各目录 README.md                |
 | `log`            | 执行日志           | .ctx/logs/                   |
 | `decision_log`   | 决策日志           | .ctx/logs/                   |
@@ -142,7 +142,7 @@ H1.1.1 ← 三级章节（细则，仅在必要时使用）
 | H6 | 外部权威源索引 | 外部权威源导航表（按需参考层）                              |
 | H7 | 项目产出声明 | 系统最最重要的产出/逻辑缺漏与书记亲补/引用流程                       |
 
-> **理论基石**已外移到 [SECRETARY_PRONOUNCEMENTS.md](../../SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档，27 条路线级论断 + P-045 元命题引子）；**运行标准**即本文件（OPERATIONS_GUIDE.md）；**日志规范**见本文件 §13；**已知陷阱**见 [KNOWN_PITFALLS.md](KNOWN_PITFALLS.md)。
+> **理论基石**已外移到 [SECRETARY_PRONOUNCEMENTS.md](../../01_strategy/SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档，27 条论断，P-045/P-047 为元命题引子）；**运行标准**即本文件（OPERATIONS_GUIDE.md）；**日志规范**见本文件 §13；**已知陷阱**见 [KNOWN_PITFALLS.md](../05_ai_coding/KNOWN_PITFALLS.md)。
 
 ### 6.2 乙部任务编号体系
 
@@ -279,7 +279,7 @@ Guides 文件不使用数字编号，使用**语义化文件名**（大写+下�
 
 ### 7.4 一致性检查规范
 
-> 本节为仓库 7 套分层体系的一致性检查权威源。历史冲突记录见 [KNOWN_PITFALLS.md §7](KNOWN_PITFALLS.md#7-分层体系冲突记录)，定期扫描任务见 [§15.2 Q4](#152-周期性任务清单)。
+> 本节为仓库 7 套分层体系的一致性检查权威源。历史冲突记录见 [KNOWN_PITFALLS.md §7](../05_ai_coding/KNOWN_PITFALLS.md#7-分层体系冲突记录)，定期扫描任务见 [§15.2 Q4](#152-周期性任务清单)。
 
 **命名前缀**：知识类型（1-5）/ T（术语权威层级）/ 热温冷（CLAUDE.md 三层）/ 用户·工程师·AI（文件角色）/ 型（Agent 职能）——每套分层体系有专属前缀，不得混用。注：原"4 层文档层次（战略/制度/方法/实操）"已于 D-262 决策降级为局部维度，不再作为全仓库命名前缀。
 
@@ -346,13 +346,13 @@ Guides 文件不使用数字编号，使用**语义化文件名**（大写+下�
 
 对超长文件名（英文 > 30 字符 / 中文 > 20 字符），按以下优先级选择处理策略：
 
-1. **保留原名+索引简称**（首选，适用于历史档案）：文件保留原始命名，在目录 README 中建立简称映射。适用于 `content/references/历史会议材料/` 下的文件
+1. **保留原名+索引简称**（首选，适用于历史档案）：文件保留原始命名，在目录 README 中建立简称映射。适用于 `content/01_strategy/references/历史会议材料/` 下的文件
 2. **缩写**（适用于内部文档）：在保留核心语义前提下简化命名。如"支委与党小组定人定责定岗说明"在边界 20 字符，语义清晰，可不改
 3. **拆分**（适用于内容可分离）：当文件内容可合理分为多个独立部分时，拆分为若干短文件
 
 ### 9.4 历史档案例外条款
 
-`content/references/历史会议材料/` 下的文件保留原有命名方式，不强制改名。这些文件是历史档案，改名会破坏引用链路且无实际收益。
+`content/01_strategy/references/历史会议材料/` 下的文件保留原有命名方式，不强制改名。这些文件是历史档案，改名会破坏引用链路且无实际收益。
 
 ### 9.5 新建文件命名检查清单
 

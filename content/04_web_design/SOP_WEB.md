@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
 role: "[工程师]+[AI]"
 title: "SOP 系统优化与同步指南"
 type: guide
@@ -31,7 +31,7 @@ milestone: "T29 — 全面架构收束：Mode统一、看板体系、日历限�
 |------|------|---------|--------|------|
 | G-01 | **三份 SOP 均缺少「一句话摘要」** | 全部 | **P0** | 立即补充，这是系统角色卡片 hover 面板的必需要素 |
 | G-02 | **无统一的 Front Matter `summary` 字段** | 全部 | **P0** | 在 YAML front matter 中增加 `summary: "≤30字摘要"`，系统和 AI 均可直接读取 |
-| G-03 | **内嵌模板与 SOP 正文混排** | 纪检/组织/宣传 | **P1** | 所有代码块格式的内嵌模板一律提取至 `content/references/工作模板/`，SOP 中仅保留链接引用 |
+| G-03 | **内嵌模板与 SOP 正文混排** | 纪检/组织/宣传 | **P1** | 所有代码块格式的内嵌模板一律提取至 `content/03_doc_system/工作模板/`，SOP 中仅保留链接引用 |
 | G-04 | **目录锚点不稳定** | 全部 | P2 | 锚点含中文、括号、特殊符号时，GitHub 锚点转换行为不可预测 |
 | G-05 | **文档更新记录全部内嵌于 SOP 末尾** | 全部 | P3 | 版本记录在系统展示中无价值却占据空间；仅保留最近 3 条 |
 | G-06 | **无统一的「关联文档」尾节** | 组织 | P3 | 组织委员 SOP 缺少独立的「关联文档」节，与纪检/宣传委员不一致 |
@@ -42,17 +42,19 @@ milestone: "T29 — 全面架构收束：Mode统一、看板体系、日历限�
 
 ### B.1 MPA 多页面架构
 
-系统采用 **MPA（Multi-Page Application）** 架构，共有 **7 个独立 HTML 页面**：
+系统采用 **MPA（Multi-Page Application）** 架构，共有 **8 个根 HTML 页面 + workspace/ 6 个角色工作台**：
 
-| 页面 | 文件 | 用途 | 共享组件 |
-|------|------|------|---------|
-| **主页** | `docs/index.html` | 通知 + 人员招募 + 活动日历摘要 | header.js, sidebar.js |
-| **党建工作台** | `docs/workspace/index.html` | 活动创建写入、三支委看板、专班管理 | header.js, sidebar.js, workspace-entry.js |
-| **党务管理** | `docs/party/index.html` | 三支委合规面板、发展党员、档案管理 | header.js, sidebar.js, party.js |
-| **归档库** | `docs/archive.html` | 历史活动/专班归档查询 | header.js, sidebar.js |
-| **资料查询** | `docs/search.html` | 参考资料、网站群、规章文件 | header.js, sidebar.js |
-| **意见反馈** | `docs/feedback.html` | GitHub Issue 风格开源讨论、列表/详情/新建三视图 | header.js, sidebar.js, feedback-entry.js, issue-list.js, issue-detail.js, issue-form.js |
-| **关于** | `docs/about.html` | 分章节系统说明书 | header.js, sidebar.js |
+| 页面 | 文件 | 用途 | 入口 |
+|------|------|------|------|
+| **登录页** | `docs/login.html` | 身份验证登录 | login-entry.js |
+| **主页** | `docs/index.html` | 通知 + 人员招募 + 活动日历摘要 | main-entry.js |
+| **通知页** | `docs/notice.html` | 通知独立页 | notice-entry.js |
+| **归档库** | `docs/archive.html` | 历史活动/专班归档查询 | archive-entry.js |
+| **资料查询** | `docs/search.html` | 参考资料、网站群、规章文件 | search-entry.js |
+| **意见反馈** | `docs/feedback.html` | GitHub Issue 风格开源讨论、列表/详情/新建三视图 | feedback-entry.js, issue-list.js, issue-detail.js, issue-form.js |
+| **系统说明书** | `docs/about.html` | 分章节系统说明书 | about-entry.js |
+| **帮助与探索** | `docs/help.html` | 帮助与探索工作页面 | help-entry.js |
+| **角色工作台** | `docs/workspace/{secretary,leader,org,prop,disc,visitor}.html` | 六类角色工作台（书记/党小组组长/三支委/成员只读） | 对应 ws-*-entry.js |
 
 **共享组件架构**：
 - `header.js` — 全局顶栏（含全局角色切换器 + 模式切换器，角色和 mode 的双主控入口）
@@ -142,7 +144,7 @@ ViewModeStore.isReadOnly(module)      → boolean
 | 页面 | 支持 mode 切换 | 说明 |
 |------|:---:|------|
 | 党建工作台 (workspace) | [Y] | 管理模式=职能面板；管理者只读=日历；参与者只读=信息流 |
-| 党务管理 (party) | [Y] | 管理模式=支委编辑面板；管理者只读=只读概览 |
+| 委员工作台 (workspace/{org,prop,disc}.html) | [Y] | 管理模式=支委编辑面板；管理者只读=只读概览 |
 | 主页 (index) | [N] | 始终为概览模式 |
 | 归档库 (archive) | [N] | 始终为只读查询 |
 | 资料查询 (search) | [N] | 始终为只读查询 |
@@ -347,10 +349,9 @@ STEP 4: 同步更新系统渲染
 
 | 页面 | 入口 JS | 数据源 |
 |------|---------|--------|
-| workspace/index.html | `entries/workspace-entry.js` | ActivityRecordStore (localStorage) + ViewModeStore (sessionStorage) + AuthStore (localStorage) |
-| party/index.html | `modules/party.js` | ActivityRecordStore + AuthStore + FeedbackStore |
+| workspace/{secretary,leader,org,prop,disc,visitor}.html | 对应 `entries/ws-*-entry.js` | 统一经 services/ 层 + data-adapter（mockDB，持久化 localStorage: `workflowos_branch_db_v1`） |
 | feedback.html | `entries/feedback-entry.js` | FeedbackStore (localStorage) |
-| index.html | `entries/main-entry.js` | ActivityRecordStore + TaskForceRecordStore + NoticeStore |
+| index.html | `entries/main-entry.js` | 经 services/ 层读 mockDB |
 
 ### E.2 跨页面状态管理
 
@@ -362,7 +363,7 @@ STEP 4: 同步更新系统渲染
 | **PrimaryRole** | sessionStorage | 当前用户的主身份角色 |
 | **ActiveRole** | sessionStorage | 当前查看的角色（per module） |
 | **AuthStore** | localStorage | 赋权记录（跨会话持久化） |
-| **ActivityRecordStore** | localStorage | 活动数据（跨页面共享） |
+| **mockDB（data-adapter）** | localStorage | 业务数据（活动/考勤/考察/专班/分工等，键 `workflowos_branch_db_v1`，跨页面共享） |
 | **CrossPageState** | sessionStorage | 页面间临时传参（如从主页跳到工作台时传递选中活动ID） |
 
 ### E.3 同步安全区（低成本变更）

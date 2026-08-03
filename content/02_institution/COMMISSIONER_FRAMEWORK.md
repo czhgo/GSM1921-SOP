@@ -375,7 +375,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了党务管理模块功能；E2（MAN
 
 **制度文件查询**：不属于任何角色工作台，应链接到外部 search 界面（含党章、党支部工作条例、发展党员工作细则等 12371 子页面）。
 
-> 实现细节见 `docs/src/` 对应文件（`entries/party-entry.js`、`modules/party.js`、`styles.css`）。
+> 实现细节见 `docs/src/` 对应文件（`entries/search-entry.js`、`modules/references.js`、`styles.css`）。
 
 ---
 
@@ -494,7 +494,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了党务管理模块功能；E2（MAN
 
 党支书和党小组组长拥有活动创建权，无需审批，直接创建。
 
-> 依据：[P-006/P-007 党建与党务工作理论](../../SECRETARY_PRONOUNCEMENTS.md)——党建工作是管理组织活动之事（三会一课、主题党日、专班），组织者有权发起活动。
+> 依据：[P-006/P-007 党建与党务工作理论](../../01_strategy/SECRETARY_PRONOUNCEMENTS.md)——党建工作是管理组织活动之事（三会一课、主题党日、专班），组织者有权发起活动。
 
 #### 1.2 自下而上（组织者 / 深度参与者提议）
 
@@ -520,7 +520,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了党务管理模块功能；E2（MAN
 
 ### 二、专班创建审批
 
-> 依据：[SECRETARY_PRONOUNCEMENTS.md](../../SECRETARY_PRONOUNCEMENTS.md) P-012+P-013（专班与赋权考察）→ 本文档 §A.6~A.7
+> 依据：[SECRETARY_PRONOUNCEMENTS.md](../../01_strategy/SECRETARY_PRONOUNCEMENTS.md) P-012+P-013（专班与赋权考察）→ 本文档 §A.6~A.7
 
 **流程**：
 
@@ -546,7 +546,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了党务管理模块功能；E2（MAN
 
 ### 三、赋权审批
 
-> 依据：[P-009~P-013 赋权关系链](../../SECRETARY_PRONOUNCEMENTS.md) → 本文档 §A.7
+> 依据：[P-009~P-013 赋权关系链](../../01_strategy/SECRETARY_PRONOUNCEMENTS.md) → 本文档 §A.7
 
 赋权分为两个类别，均无需额外审批，但赋权范围受限于赋权者自身的权限边界。
 

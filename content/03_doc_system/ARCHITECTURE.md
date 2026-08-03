@@ -1,9 +1,9 @@
-﻿﻿﻿﻿﻿﻿﻿﻿---
-title: "五层架构说明"
+﻿﻿﻿﻿﻿﻿﻿---
+title: "系统架构说明"
 type: architecture
 role: "[工程师]+[AI]"
-last_updated: "2026-07-22"
-version: "7.2"
+last_updated: "2026-08-03"
+version: "7.3"
 status: active
 related_files: [CLAUDE.md, content/04_web_design/]
 ---
@@ -75,39 +75,48 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 
 ## 四、分层架构
 
-> 文档权威层级共 5 层（L0~L4），完整定义见 [OPERATIONS_GUIDE.md §7.1](./OPERATIONS_GUIDE.md)。本节给出各层物理分布。
+> 文档按"5 类知识类型"组织（完整定义见 [OPERATIONS_GUIDE.md §7.1](./OPERATIONS_GUIDE.md#71-文档权威层级5类知识类型)）。本节给出各层物理分布。
 
 ```
-Layer 0: 核心层（最高权威）
-  └─ CLAUDE.md                            [工程师]+[AI] 全局系统指令（核心规则）
-  └─ SSOT_INDEX.md                        [AI] 母本注册表与溯源参考
-  └─ ARCHITECTURE.md                      [工程师]+[AI] 核心架构说明（本文件）
-  └─ SECRETARY_PRONOUNCEMENTS.md          [用户]+[AI] 书记重要论断汇编（项目顶级战略文档）
+Layer 0: 宪章层（最高权威）
+  └─ CLAUDE.md                            [工程师]+[AI] 全局系统指令（Harness，最高层上下文入口）
+  └─ content/03_doc_system/SSOT_INDEX.md  [AI] 母本注册表与溯源参考
 
-Layer 1: 理论层（为什么这样做）
-  └─ content/01_strategy/                    [用户]+[AI] 战略路线与设计理念
-  └─ content/04_web_design/                      [工程师]+[AI] 设计文档（架构+功能）
+Layer 1: 知识类型 1 — 战略（支部为什么存在、根本目标、战略路线）
+  └─ content/01_strategy/                 [用户]+[AI] 战略路线与设计理念
+      ├── DEVELOPMENT_PATH.md             [用户]+[AI] "管理事、服务人"战略
+      ├── SECRETARY_PRONOUNCEMENTS.md     [用户]+[AI] 书记重要论断汇编（项目顶级战略文档）
+      └── references/                     [用户] 参考材料与模板（合规文件/历史会议材料/建设探索）
 
-Layer 2: 治理层（怎么做）
-  └─ content/03_doc_system/                  [工程师]+[AI] 治理规范（USAGE_POLICY/OPERATIONS_GUIDE 等）
-  └─ content/02_institution/sop/                         [用户]+[AI] 制度母本，所有代码逻辑的来源
+Layer 2: 知识类型 2 — 制度（组织架构、分工、SOP）
+  └─ content/02_institution/              [用户]+[AI] 组织制度层
+      ├── sop/                            [用户]+[AI] 制度母本，所有代码逻辑的来源
+      ├── COMMISSIONER_FRAMEWORK.md       [用户]+[AI] 支委系统框架
+      ├── FLAT_DESIGN.md                  [用户]+[AI] 扁平化设计
+      └── ROLE_CLASSIFICATION.md          [用户]+[AI] 文件角色分类体系
 
-Layer 3: 实现层（代码实现与运行时）
-  └─ docs/src/workflow/                   [工程师]+[AI] SOP 数据库与工作流引擎
-  └─ docs/src/core/                       [工程师]+[AI] 静态常量/工具/UUID/状态/领域
-  └─ docs/src/components/                 [工程师]+[AI] 日历/检查器渲染
-  └─ docs/src/entries/                    [工程师]+[AI] 启动入口（唯一 DOM 更新入口）
-  └─ docs/src/services/                   [工程师]+[AI] 服务层
-  └─ docs/src/styles.css                  [工程师]+[AI] 全局样式
-  └─ docs/*.html                          [用户]+[AI] UI 入口与运行时页面（Flat Matte 骨架）
+Layer 3: 知识类型 3 — 文档系统治理（文档怎么治理、术语、运行标准）
+  └─ content/03_doc_system/               [工程师]+[AI] 系统治理层
+      ├── OPERATIONS_GUIDE.md             [工程师]+[AI] 运行标准（含§15 周期性任务）
+      ├── USAGE_POLICY.md                 [工程师]+[AI] 使用规范（术语+Emoji）
+      ├── DOC_MAP.md                      [工程师]+[AI] 文档导航中心
+      ├── CHECKLIST.md                    [工程师]+[AI] 校验清单
+      ├── SERVICE_CATALOG.md              [工程师]+[AI] 统一服务目录
+      └── ARCHITECTURE.md                 [工程师]+[AI] 核心架构说明（本文件）
 
-Layer 4: 审计参考层（审计与参考）
-  └─ .ctx/TIMESTAMPS.md                   [工程师]+[AI] 文件时间戳注册表
-  └─ .ctx/SNAPSHOT.md                     [AI] 当前基线快照
-  └─ .ctx/logs/YYYY-MM-EXECUTION_LOG.md   [工程师]+[AI] 月度执行日志
-  └─ content/references/合规文件/          [用户] 党章、条例、规范（PDF/DOCX，只读）
-  └─ content/references/工作模板/          [用户]+[AI] 工作模板、经验沉淀辅助提示词
-  └─ content/references/历史会议材料/      [用户] 历史会议记录
+Layer 4: 知识类型 4+5 — 网站设计 + AI 编码
+  └─ content/04_web_design/               [工程师]+[AI] 设计理念层（DATA_ARCHITECTURE/DESIGN_SYSTEM/MODULE_UI_DESIGN/SOP_WEB）
+  └─ content/05_ai_coding/                [工程师]+[AI] AI 编码层（KNOWN_PITFALLS）
+
+Layer 5: 经验沉淀（跨多类知识类型）
+  └─ content/insights/                    [用户]+[AI] 经验沉淀（双文件）
+
+Layer 6: 实现层（代码实现与运行时）
+  └─ docs/                                [用户]+[AI] 前端代码层（8 根 HTML + workspace/ 6 工作台 + ESM 模块化源码）
+  └─ server/                              [工程师]+[AI] Node 一体化后端（Express + better-sqlite3）
+
+Layer 7: 审计参考层（审计与参考）
+  └─ .ctx/                                [AI]/[工程师]+[AI] 审计底座（logs/TIMESTAMPS/SNAPSHOT/REVIEW_QUEUE）
 ```
 
 ---
@@ -117,100 +126,95 @@ Layer 4: 审计参考层（审计与参考）
 ```
 /
 ├── README.md                          [用户] 对外门面，最后编辑环节
-├── ARCHITECTURE.md                    [工程师]+[AI] 本文件，核心架构说明
-├── CLAUDE.md                         [工程师]+[AI] 未来执行路线图
-├── SSOT_INDEX.md                     [AI] 母本注册表与溯源参考
-├── docs/                              [工程师]+[AI] 代码实现层与运行时
-│   ├── index.html                     [用户]+[AI] UI 入口（Flat Matte 骨架）
+├── CLAUDE.md                         [工程师]+[AI] 上下文入口（甲部 Harness + 乙部执行 + 丙部待决策）
+├── server/                            [工程师]+[AI] Node 一体化后端（Express + better-sqlite3）
+│   ├── server.js / app.js / db.js / seed.js   [工程师]+[AI] 后端核心
+│   ├── routes/                        [工程师]+[AI] auth / resources / uploads
+│   └── test/                          [工程师]+[AI] 测试
+├── docs/                              [工程师]+[AI] 前端代码层（8 根 HTML + workspace/ 6 工作台 + ESM 模块化源码）
+│   ├── index.html                     [用户]+[AI] 主页（通知/招募/活动日历/待办）
+│   ├── notice.html                    [用户]+[AI] 通知独立页
 │   ├── about.html                     [用户]+[AI] 系统说明书
 │   ├── archive.html                   [用户]+[AI] 归档库
 │   ├── search.html                    [用户]+[AI] 资料查询
 │   ├── feedback.html                  [用户]+[AI] 意见反馈
-│   ├── workspace/                     [用户]+[AI] 党建工作台页面
-│   │   ├── index.html                 [用户]+[AI] 党建工作台入口
-│   │   ├── secretary.html             [用户]+[AI] 党建·党支书工作台
-│   │   ├── leader.html                [用户]+[AI] 党建·党小组组长工作台
-│   │   ├── organizer.html             [用户]+[AI] 党建·组织者工作台
-│   │   ├── deep.html                  [用户]+[AI] 党建·深度参与者工作台
-│   │   ├── org.html                   [用户]+[AI] 党建·组织委员工作台
-│   │   ├── prop.html                  [用户]+[AI] 党建·宣传委员工作台
-│   │   ├── disc.html                  [用户]+[AI] 党建·纪检委员工作台
-│   │   └── visitor.html               [用户]+[AI] 党建·成员只读面板
-│   ├── party/                         [用户]+[AI] 党务管理页面
-│   │   ├── index.html                 [用户]+[AI] 党务管理入口
-│   │   ├── secretary.html             [用户]+[AI] 党务·党支书面板
-│   │   ├── org.html                   [用户]+[AI] 党务·组织委员面板
-│   │   ├── prop.html                  [用户]+[AI] 党务·宣传委员面板
-│   │   └── disc.html                  [用户]+[AI] 党务·纪检委员面板
-│   └── src/                           [工程师]+[AI] 代码实现层
-│       ├── workflow/                  [工程师]+[AI] SOP 核心规则引擎
-│       │   ├── index.js               [工程师]+[AI] 桶文件，统一对外导出
-│       │   ├── sop.js                 [工程师]+[AI] SOP 实例化：日期展开与计算逻辑
-│       │   ├── sopData.js             [工程师]+[AI] SOP 场景任务节点模板原始数据
-│       │   └── activityRecord.js      [工程师]+[AI] 活动记录数据模型
-│       ├── core/                      [工程师]+[AI] 核心模块
-│       │   ├── constants.js           [工程师]+[AI] 静态常量
-│       │   ├── utils.js               [工程师]+[AI] 工具函数
-│       │   ├── id.js                  [工程师]+[AI] UUID 生成
-│       │   ├── state.js               [工程师]+[AI] 全局状态中心
-│       │   └── domain.js              [工程师]+[AI] 领域逻辑
-│       ├── components/                [工程师]+[AI] 渲染组件
-│       │   ├── calendar.js            [工程师]+[AI] 日历渲染
-│       │   └── inspector.js           [工程师]+[AI] 检查器渲染
-│       ├── entries/                   [工程师]+[AI] 入口文件
-│       │   └── main-entry.js          [工程师]+[AI] 启动入口（唯一 DOM 更新入口）
-│       ├── services/                  [工程师]+[AI] 服务层
-│       │   ├── mock.js                [工程师]+[AI] Mock 服务
-│       │   └── runtime.js             [工程师]+[AI] 运行时服务
+│   ├── help.html                      [用户]+[AI] 帮助与探索工作页面
+│   ├── login.html                     [用户]+[AI] 登录页
+│   ├── workspace/                     [用户]+[AI] 角色工作台页面（6 个 HTML）
+│   │   ├── secretary.html             [用户]+[AI] 书记工作台（工作台+赋权管理+issue管理+通知发布+待办）
+│   │   ├── leader.html                [用户]+[AI] 党小组组长工作台（活动写入+考勤上传+考察上传+复盘提交+待办）
+│   │   ├── org.html                   [用户]+[AI] 组织委员工作台（考察上传+专班管理+人才库+发展党员+待办）
+│   │   ├── prop.html                  [用户]+[AI] 宣传委员工作台（宣传任务+项目看板+档案归档+周报报送+待办）
+│   │   ├── disc.html                  [用户]+[AI] 纪检委员工作台（考勤管理+监督复盘+考察管理+补课制度+公邮管理+待办）
+│   │   └── visitor.html               [用户]+[AI] 成员只读面板（含待办）
+│   └── src/                           [工程师]+[AI] ESM 模块化源码
+│       ├── entries/                   [工程师]+[AI] 页面入口（15 个 entry JS）
+│       ├── components/                [工程师]+[AI] 共享组件（18 个，含 todo-list/custom-select/workspace-popover）
+│       ├── core/                      [工程师]+[AI] 核心工具（12 个，含 domain/data-adapter/api-adapter/mock-adapter）
+│       ├── config/                    [工程师]+[AI] 配置（branch.json）
+│       ├── services/                  [工程师]+[AI] 服务层（20 个，含 todo/auth/notice/decision-tree/image）
+│       ├── mock/                      [工程师]+[AI] Mock 数据（10 个，含 accounts）
+│       ├── modules/                   [工程师]+[AI] 业务模块（1 个，references.js）
+│       ├── workflow/                  [工程师]+[AI] 工作流引擎（6 个）
 │       └── styles.css                 [工程师]+[AI] 全局样式
 │
 ├── .markdownlint.json                 [工具] 代码风格规范
 ├── .markdownlintignore                [工具] 代码风格忽略列表
 │
-├── content/                           [用户]+[AI] 内容中心
-│   ├── sop/                           [用户]+[AI] 制度母本层
-│   │   ├── INDEX.md                   [用户]+[AI] SOP 导航目录
-│   │   ├── 常见工作场景快速指南.md       [用户]+[AI] 快速使用指南
-│   │   ├── 支委与党小组定人定责定岗说明.md [用户]+[AI] 职责分工文档
-│   │   ├── 宣传委员工作流程指南.md       [用户]+[AI] 宣传委员 SOP
-│   │   ├── 组织委员工作流程指南.md       [用户]+[AI] 组织委员 SOP
-│   │   ├── 纪检委员工作流程指南.md       [用户]+[AI] 纪检委员 SOP
-│   │   └── 党小组组长工作手册.md         [用户]+[AI] 党小组组长操作指南
-│   ├── strategy/                     [用户]+[AI] 战略路线
-│   │   ├── DEVELOPMENT_PATH.md           [用户]+[AI] "管理事、服务人"战略
+├── content/                           [用户]+[AI] 内容中心（按 5 类知识类型组织，见第四章）
+│   ├── 01_strategy/                  [用户]+[AI] 战略层（支部为什么存在、根本目标、战略路线）
+│   │   ├── DEVELOPMENT_PATH.md       [用户]+[AI] "管理事、服务人"战略
+│   │   ├── SECRETARY_PRONOUNCEMENTS.md [用户]+[AI] 书记重要论断汇编（项目顶级战略文档，27 条论断）
+│   │   ├── README.md                 [用户]+[AI] 战略层目录索引
+│   │   └── references/               [用户] 参考材料与模板（合规文件/历史会议材料/建设探索/党支部工作记录）
+│   ├── 02_institution/               [用户]+[AI] 制度层（组织架构、分工、SOP）
+│   │   ├── sop/                      [用户]+[AI] 制度母本层（所有代码逻辑的来源）
+│   │   │   ├── INDEX.md              [用户]+[AI] SOP 导航目录
+│   │   │   ├── 常见工作场景快速指南.md [用户]+[AI] 快速使用指南
+│   │   │   ├── 支委与党小组定人定责定岗说明.md [用户]+[AI] 职责分工文档
+│   │   │   ├── 宣传委员工作流程指南.md [用户]+[AI] 宣传委员 SOP
+│   │   │   ├── 组织委员工作流程指南.md [用户]+[AI] 组织委员 SOP
+│   │   │   ├── 纪检委员工作流程指南.md [用户]+[AI] 纪检委员 SOP
+│   │   │   └── 党小组组长工作手册.md   [用户]+[AI] 党小组组长操作指南
 │   │   ├── COMMISSIONER_FRAMEWORK.md [用户]+[AI] 支委系统框架
 │   │   ├── FLAT_DESIGN.md            [用户]+[AI] 扁平化设计
-│   │   └── README.md                 [工程师]+[AI] strategy 目录索引
-│   ├── design/                       [工程师]+[AI] 设计文档（架构+功能）
-│   │   ├── DATA_ARCHITECTURE.md      [工程师]+[AI] 数据架构设计（合并原 DATA/PARTICIPANT_DATAFLOW/LOGIN_SYSTEM_DESIGN/BRAND_ACTIVITY）
-│   │   ├── MODULE_UI_DESIGN.md       [工程师]+[AI] 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR）
-│   │   ├── DESIGN_SYSTEM.md          [工程师]+[AI] 设计系统规范
-│   │   └── README.md                 [工程师]+[AI] design 目录索引
-│   ├── governance/                   [工程师]+[AI] 治理规范
-│   │   ├── DOC_MAP.md                [工程师]+[AI] 文档导航中心
-│   │   ├── SERVICE_CATALOG.md        [工程师]+[AI] 统一服务目录
-│   │   ├── ROLE_CLASSIFICATION.md    [工程师]+[AI] 文件角色分类体系
-│   │   ├── USAGE_POLICY.md           [工程师]+[AI] 使用规范（术语+Emoji）
+│   │   ├── ROLE_CLASSIFICATION.md    [用户]+[AI] 文件角色分类体系
+│   │   └── README.md                 [用户]+[AI] 制度层目录索引
+│   ├── 03_doc_system/                [工程师]+[AI] 文档系统治理层（文档怎么治理、术语、运行标准）
+│   │   ├── SSOT_INDEX.md             [AI] 母本注册表与溯源参考
 │   │   ├── OPERATIONS_GUIDE.md       [工程师]+[AI] 运行标准（含§15 周期性任务）
+│   │   ├── USAGE_POLICY.md           [工程师]+[AI] 使用规范（术语+Emoji）
+│   │   ├── DOC_MAP.md                [工程师]+[AI] 文档导航中心
+│   │   ├── CHECKLIST.md              [工程师]+[AI] 校验清单
+│   │   ├── SERVICE_CATALOG.md        [工程师]+[AI] 统一服务目录
+│   │   ├── ARCHITECTURE.md           [工程师]+[AI] 核心架构说明（本文件）
+│   │   ├── 工作模板/                  [用户]+[AI] 经验沉淀辅助提示词
+│   │   └── README.md                 [工程师]+[AI] 文档系统治理层目录索引
+│   ├── 04_web_design/                [工程师]+[AI] 网站设计层（设计理念）
+│   │   ├── DATA_ARCHITECTURE.md      [工程师]+[AI] 数据架构设计
+│   │   ├── MODULE_UI_DESIGN.md       [工程师]+[AI] 模块界面设计
+│   │   ├── DESIGN_SYSTEM.md          [工程师]+[AI] 设计系统规范
 │   │   ├── SOP_WEB.md                [工程师]+[AI] SOP 系统指南
+│   │   ├── SCHOOL_IT_DEPLOYMENT.md   [工程师]+[AI] 学院 IT 部署说明
+│   │   └── README.md                 [工程师]+[AI] 网站设计层目录索引
+│   ├── 05_ai_coding/                 [工程师]+[AI] AI 编码层
 │   │   ├── KNOWN_PITFALLS.md         [工程师]+[AI] 已知陷阱
-│   │   └── README.md                 [工程师]+[AI] governance 目录索引
-│   ├── insights/                      [用户]+[AI] 经验沉淀
-│   │   └── 党支部管理与实务经验沉淀.md   [用户]+[AI] 经验沉淀文档（按 5 类知识类型组织）
-│   └── references/                    [用户]  参考材料与模板
-│       ├── 合规文件/                   [用户] 党章、条例、规范（只读）
-│       ├── 工作模板/                   [用户]+[AI] 经验沉淀辅助提示词
-│       ├── 历史会议材料/               [用户] 历史会议记录
-│       ├── 建设探索/                   [用户] 建设探索材料
-│       ├── 党支部工作记录.docx          [用户] 党支部工作记录
-│       └── README.md                  [用户]
+│   │   └── README.md                 [工程师]+[AI] AI 编码层目录索引
+│   ├── insights/                     [用户]+[AI] 经验沉淀（跨多类知识类型）
+│   │   ├── 党支部管理与实务经验沉淀.md [用户]+[AI] 按 5 类知识类型组织的经验沉淀
+│   │   └── 工程演进与设计方法论.md     [用户]+[AI] 工程方法论沉淀
+│   └── README.md                     [用户]+[AI] 内容中心索引
 │
-├── .ctx/                              [AI] 运行时上下文
+├── .ctx/                              [AI] 运行时上下文（审计底座）
 │   ├── TIMESTAMPS.md                  [工程师]+[AI] 文件时间戳注册表
 │   ├── SNAPSHOT.md                    [AI] 当前基线快照
-│   └── logs/                          [工程师]+[AI] 月度执行日志
+│   ├── REVIEW_QUEUE.md                [工程师]+[AI] 书记评议队列
+│   ├── snapshots/                     [AI] 历史快照归档
+│   └── logs/                          [工程师]+[AI] 月度执行日志与决策日志
+│       ├── archive/                   [工程师]+[AI] 历史日志归档
 │       ├── EXECUTION_LOG_INDEX.md     [工程师]+[AI] 日志导航索引
-│       └── YYYY-MM-EXECUTION_LOG.md   [工程师]+[AI] 月度日志
+│       ├── YYYY-MM-EXECUTION_LOG.md   [工程师]+[AI] 月度执行日志
+│       └── YYYY-MM-DECISION_LOG.md    [工程师]+[AI] 月度决策日志
 │
 ├── .vscode/settings.json              [工具] VS Code 工作区配置
 └── assets/                            [用户] 静态资源目录
@@ -220,43 +224,44 @@ Layer 4: 审计参考层（审计与参考）
 
 ## 六、数据模型
 
-### ActivityRecord（活动记录）
+### Activity（活动记录）
 
-数据结构定义于 `docs/src/workflow/activityRecord.js`。核心12字段模型：
+数据结构定义于 `docs/src/core/domain.js`（领域层 typedef）。核心字段模型：
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | id | string | 唯一标识符（id.js 生成） |
-| name | string | 活动名称 |
-| theme | string | 活动主题 |
-| desc | string | 活动描述 |
-| link | string | 活动链接 |
-| date | string | ISO 格式日期 |
-| type | string | 活动类型（ACTIVITY_TYPES 枚举） |
-| leaders | string[] | 活动负责人列表 |
-| leaderPhotos | string[] | 负责人照片列表 |
-| filledBy | string | 填写人 |
-| createdAt | string | ISO 格式创建时间 |
-| subRecords | object[] | 子记录关联（考勤/材料/宣传） |
+| title | string | 活动标题 |
+| type | string | 活动类型（党小组会/支委会/主题党日/党课/支部党员大会/组织生活会等） |
+| status | string | 活动状态（draft/published/ongoing/completed/cancelled） |
+| visibility | string | 可见范围（branch=全支部 / group=党小组） |
+| date | string | 活动日期 ISO 格式 |
+| domain | string | 领域（activity=党建活动 / organization=组织事务） |
+| scenarioId | string | 关联场景 ID（对应 sopDatabase） |
+| organizer | string | 组织者 personId（由 assignments 主源同步派生，见 services/auth.js） |
+| assignments | object[] | 分工记录（organizer/deep/participant 角色，权限联动主源） |
+| createdBy | string | 创建者用户 ID |
+| createdAt | string | 创建时间 ISO 格式 |
+| isBrand | boolean | 品牌属性标签（书记认定） |
 
-ActivityRecordStore 为唯一数据源，所有视图从 Store 读取。`filterRecordsByRole(role)` 按角色权限矩阵过滤。
+mockDB 为唯一数据源，所有视图经 Service 层读取；按角色过滤经 `services/auth.js`（以 `activity.assignments` 为主源，`syncProjectRoles()` 保证与顶层 organizer 一致）。
 
 ### Task（任务）
 
-数据结构定义于 `docs/src/services/mock.js`。核心字段：
+数据结构定义于 `docs/src/core/domain.js`（typedef + mockDB.tasks）。核心字段：
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | id | string | 唯一标识符 |
 | activityId | string | 所属活动 ID |
 | title | string | 任务标题 |
-| status | string | 任务状态 |
+| status | string | 任务状态（pending/in_progress/completed） |
 | createdAt | string | ISO 格式创建时间（审计字段） |
 
 ### Storage Model
 
-- **键名**: `workflowos_branch_db_v1`（`localStorage`）
-- **根结构**: `{ _schema: SCHEMA_VERSION, users, activities, tasks, attendances }`
+- **键名**: `workflowos_branch_db_v1`（`localStorage`，见 `docs/src/services/mock.js`）
+- **根结构**: `mockDB = { _schema, users, activities, tasks, attendances, inspections, activityReviews, taskforceReviews, assignments, handovers, makeupTasks, notices, todos, imageRecords, ... }`
 - **版本防御**: `loadDB()` 检查 `_schema !== SCHEMA_VERSION` 时拒绝脏数据并 `console.warn`
 
 ---
@@ -343,6 +348,6 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 | 查审查状态 | .ctx/SNAPSHOT.md |
 | 查 SOP 流程 | content/02_institution/sop/INDEX.md |
 | 查执行日志 | .ctx/logs/YYYY-MM-EXECUTION_LOG.md |
-| 取用工作模板 | content/references/工作模板/ |
+| 取用工作模板 | content/03_doc_system/工作模板/ |
 | 提交改进反馈 | docs/feedback.html（在线反馈入口） |
-| 查官方合规文件 | content/references/合规文件/ |
+| 查官方合规文件 | content/01_strategy/references/合规文件/ |

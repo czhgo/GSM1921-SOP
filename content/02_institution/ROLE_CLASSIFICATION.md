@@ -103,8 +103,8 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 | `content/01_strategy/` | `[用户]+[AI]` | 党支部建设思路、书记表述 |
 | `content/02_institution/sop/` | `[用户]+[AI]` | 党员操作指南、AI 溯源 |
 | `content/insights/` | `[用户]+[AI]` | 党支部建设经验沉淀、AI 沉淀 |
-| `content/references/合规文件/` | `[用户]` | 党员查阅党章原文，AI 只读不写入上下文 |
-| `content/references/工作模板/` | `[用户]+[AI]` | 用户填写 + AI 辅助生成 |
+| `content/01_strategy/references/合规文件/` | `[用户]` | 党员查阅党章原文，AI 只读不写入上下文 |
+| `content/03_doc_system/工作模板/` | `[用户]+[AI]` | 用户填写 + AI 辅助生成 |
 | `content/04_web_design/` | `[工程师]+[AI]` | 系统设计、编程落地 |
 | `content/03_doc_system/` | `[工程师]+[AI]` | 系统治理 |
 
@@ -138,7 +138,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 
 子目录默认继承父目录的角色标记，除非子目录内文件显式声明不同角色：
 
-- 父目录 `content/references/` → 其下子目录按内容细分：`合规文件/` = `[用户]`，`工作模板/` = `[用户]+[AI]`
+- 父目录 `content/01_strategy/references/` → 其下子目录继承 `[用户]` 角色（`合规文件/`）；模板类归 `content/03_doc_system/工作模板/` = `[用户]+[AI]`
 - 父目录 `content/02_institution/sop/` = `[用户]+[AI]` → 其下子目录均继承 `[用户]+[AI]` 角色
 - **例外规则**：若子目录中某文件显式在 Front Matter 中声明不同 `role`，则覆盖继承规则
 
@@ -168,7 +168,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 
 当系统功能模块（如党务管理独立模块）需要在界面上展示 `[用户]` 角色文件的内容时：
 
-- AI 可读取 `content/references/合规文件/` 下的文件内容
+- AI 可读取 `content/01_strategy/references/合规文件/` 下的文件内容
 - 将内容渲染到 HTML 界面的只读展示区
 - 源文件保持不可变的 `[用户]` 角色状态
 - 渲染缓存与源文件保持同步（文件变更时自动更新展示）
@@ -193,8 +193,8 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 
 | 角色 | 存储目录 | 访问控制 |
 |------|---------|---------|
-| `[用户]` | `content/references/合规文件/`、`assets/`、`README.md` | AI 只读，用户读写 |
-| `[用户]+[AI]` | `content/01_strategy/`、`content/02_institution/sop/`、`content/insights/`、`content/references/工作模板/`、`SECRETARY_PRONOUNCEMENTS.md` | AI 读取+授权修改，用户读写 |
+| `[用户]` | `content/01_strategy/references/合规文件/`、`assets/`、`README.md` | AI 只读，用户读写 |
+| `[用户]+[AI]` | `content/01_strategy/`、`content/02_institution/sop/`、`content/insights/`、`content/03_doc_system/工作模板/`、`SECRETARY_PRONOUNCEMENTS.md` | AI 读取+授权修改，用户读写 |
 | `[工程师]+[AI]` | `content/04_web_design/`、`content/03_doc_system/`、`docs/src/`、根目录核心文档、`.ctx/TIMESTAMPS.md`、`.ctx/logs/` | AI 读取+授权修改，工程师读写 |
 | `[AI]` | `.ctx/SNAPSHOT.md` | AI 读写（受核心规则约束），人类一般不编辑 |
 
@@ -250,7 +250,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 
 ### 9a. 写入型 vs 支撑型角色分类
 
-> 来源：[USAGE_POLICY.md](USAGE_POLICY.md) §1.2.5 — 术语权威源。
+> 来源：[USAGE_POLICY.md](../03_doc_system/USAGE_POLICY.md) §1.2.5 — 术语权威源。
 
 | 分类 | 定义 | 角色 | 核心特征 |
 |------|------|------|---------|

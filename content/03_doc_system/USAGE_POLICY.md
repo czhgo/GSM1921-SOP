@@ -2,7 +2,7 @@
 title: "使用规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-07-20"
+last_updated: "2026-08-03"
 status: active
 related_files: [CLAUDE.md, content/02_institution/ROLE_CLASSIFICATION.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -229,7 +229,7 @@ related_files: [CLAUDE.md, content/02_institution/ROLE_CLASSIFICATION.md, conten
 ### 1.9 AI 展开原则——"吃透精神后写出，而非标注边界"
 
 > **确立日期**：2026-07-16 | **确立背景**：书记指出"AI 作为秘书，写出的话应该就是 grill 书记后的话——不需要在用户文档中区隔'书记写的'和'AI写的'，因为吃透精神后两者本应一致。问题只在于 AI 没吃透就写了"
-> **同步索引**：[OPERATIONS_GUIDE.md §11.6](OPERATIONS_GUIDE.md) + [SECRETARY_PRONOUNCEMENTS.md P-046](../../SECRETARY_PRONOUNCEMENTS.md)
+> **同步索引**：[OPERATIONS_GUIDE.md §11.6](OPERATIONS_GUIDE.md) + [SECRETARY_PRONOUNCEMENTS.md P-046](../../01_strategy/SECRETARY_PRONOUNCEMENTS.md)
 
 #### 1.9.1 核心原则
 
@@ -328,7 +328,7 @@ AI 对书记原话的展开，目标是**吃透书记精神后用自己的语言
 - 表格中的状态标记
 
 **示例文件**：
-- `content/references/工作模板/经验沉淀辅助提示词.md` — 现已按系统接口标准清理（已整合活动复盘模板），后续新参考文件可保留 Emoji
+- `content/03_doc_system/工作模板/经验沉淀辅助提示词.md` — 现已按系统接口标准清理（已整合活动复盘模板），后续新参考文件可保留 Emoji
 - 新创建的、仅面向人类的参考文档
 
 #### 2.4.2 [工程师]+[AI] 角色文件

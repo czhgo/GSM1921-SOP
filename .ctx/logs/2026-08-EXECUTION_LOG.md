@@ -559,3 +559,37 @@ related_files:
   - ✅ git 工作区干净；6 个文档 commit 全部落地（27ea6a2 / 8d5ec38 / 99721d3 / 4b0a6f2 / 024d902 / f91d192）
 
 - **沉淀标签**：`[经验: README 等对外门面文档的工作区异常格式改动须先书记裁决再处置]` — 文档出现来源不明的未提交格式污染（BOM 残留/加粗丢失）时，语义与已提交版本一致但格式被工具意外改写，不能擅断回滚或保留，须 AskUserQuestion 请书记裁决；`[经验: plan 验证条款与内容自相矛盾时以 spec 为上级 + 书记裁决收口]` — Task 2 内容只到「八、」而验证要求「一~九」，属 plan 内部矛盾，最终以书记「License 无编号」决策收口
+
+## T193 T-117 第2轮理论复用评议（governance 文档间复用）四类修订 + H5.6 抽样校验全接受（2026-08-03）
+
+**任务**：T-117 理论复用评议第2轮——governance 文档间复用链（H5.8.2 ②）。基线对照：`.ctx/SNAPSHOT.md` v15 权威拓扑 + 实际文件系统 glob 双向验证。
+**引用流程**：H5 书记评议（H5.1-H5.6）+ sample-diff-learning Skill + brainstorming Skill + H2.1 一改具改 + H2.2 母本子本
+**来源**：书记指令——"我们开始执行乙部的书记评议"（预审报告已于 2026-08-03 落盘 REVIEW_QUEUE.md）
+
+- **预审发现（四类）**：
+  - A 断裂链接 9 处：markdown 链接指向不存在的相对路径（ROLE_CLASSIFICATION §1.2.5、SSOT_INDEX §7.1、OPERATIONS_GUIDE ×2、USAGE_POLICY 同步索引、党小组组长手册、COMMISSIONER_FRAMEWORK ×4）
+  - B 已删引用 12 处：引用已删除代码文件/页面/模块（assignment.js、permission-manager.js、party-entry.js、modules/party.js、ActivityRecordStore、party/ 体系等；SERVICE_CATALOG 约 28 处 v13 旧架构引用）
+  - C 拓扑错误 20+ 处：目录结构/路径描述与现状不符（ARCHITECTURE 分层 L0-L4 旧模型、仓库结构缺 server/、content/references/ 旧路径等）
+  - D 表述 2 处：SECRETARY_PRONOUNCEMENTS 描述与内容不符（「27 条路线级论断」→「27 条论断，P-045/P-047 为元命题引子」）
+- **书记裁决（2026-08-03 AskUserQuestion）**：① 范围=4 类全部纳入；② 方式=机械性问题批量修 + D 类书记判定（A/B/C 为客观事实错误）；③ SERVICE_CATALOG 整体过时→全面重构服务清单；④ D 类统一改为「27 条论断（P-045/P-047 为元命题引子）」
+- **反馈落实（全仓库扫描范围：content/ 五子目录 governance 文档 + references 路径）**：
+  - **A 类 9 处**：ROLE_CLASSIFICATION §1.2.5、SSOT_INDEX §7.1、OPERATIONS_GUIDE ×2、USAGE_POLICY、党小组组长手册、COMMISSIONER_FRAMEWORK ×4
+  - **B 类**：CHECKLIST ×2（补课存储 mockDB.makeupTasks + 分工 data-adapter.js/auth.js syncProjectRoles）、COMMISSIONER_FRAMEWORK（party-entry.js/modules/party.js → search-entry.js/modules/references.js）、**SERVICE_CATALOG 全面重构**（v13→v3.0：服务清单 18 项映射实际 services/*.js、9 列角色矩阵含副书记同权、模块路由 8 根 HTML + 6 工作台）、SOP_WEB ×3（party 页面 → workspace 工作台 + E.1/E.2 数据映射）
+  - **C 类**：ARCHITECTURE 第四~六章重写（L0-L4 → Layer 0-7 知识类型分层、仓库结构 content/ 五子目录 + server/ + .ctx/、数据模型 activityRecord.js → core/domain.js）；`content/references/` 全仓迁移 10 文件 20+ 处（合规文件 → 01_strategy/references/、工作模板 → 03_doc_system/工作模板/）
+  - **D 类 2 处**：OPERATIONS_GUIDE 理论基石、党小组组长手册
+  - **修订数量**：15 文件（382 insertions / 309 deletions）→ 本轮收尾补漏 3 文件（SSOT_INDEX/USAGE_POLICY/OPERATIONS_GUIDE 的 L0-L4 旧表述）+ CLAUDE.md T-117 状态更新
+- **H5.6 抽样校验（修订后抽样 5 条，逐条 /ask，书记全部「接受」）**：
+  - ① D 类表述（27 条论断 + P-045/P-047 元命题引子）✅
+  - ② A 类路径（content/references/ 全仓迁移）✅
+  - ③ B 类已删引用（CHECKLIST §11 mockDB.makeupTasks）✅
+  - ④ B 类 SERVICE_CATALOG 重构（18 项 + 9 列 + 8+6 路由）✅
+  - ⑤ C 类拓扑（SOP_WEB MPA 表 + ARCHITECTURE Layer 0-7）✅
+- **零残留 Grep 验证结果（全通过）**：
+  - ✅ B 类旧引用（party.js/assignment.js/permission-manager/ActivityRecordStore/party/index.html 等）：content/ 与 docs/src/ 零残留（仅 .ctx 归档日志、TIMESTAMPS 已删记录段、docs/superpowers 历史文档保留）
+  - ✅ A 类旧路径 `content/references/`：仅 OPERATIONS_GUIDE L251 历史迁移记录保留（合理）；目录实体 Test-Path=False
+  - ✅ D 类「27 条路线级论断」：content/ 零残留
+  - ✅ C 类 L0-L4/五层架构：SNAPSHOT/CLAUDE 零残留；KNOWN_PITFALLS §7 历史判例保留；补漏修正 3 处（SSOT_INDEX 定位、USAGE_POLICY §1.7、OPERATIONS_GUIDE §7.3）
+  - ✅ SERVICE_CATALOG 旧引用零残留（含已知风险 `../sop/` 已消除，见 KNOWN_PITFALLS T127 判例 L176）
+- **变更文件**：`content/03_doc_system/SERVICE_CATALOG.md`（重构）、`ARCHITECTURE.md`、`CHECKLIST.md`、`OPERATIONS_GUIDE.md`、`SSOT_INDEX.md`、`USAGE_POLICY.md`、`content/02_institution/ROLE_CLASSIFICATION.md`、`COMMISSIONER_FRAMEWORK.md`、`content/02_institution/sop/党小组组长工作手册.md`、`常见工作场景快速指南.md`、`组织委员工作流程指南.md`、`content/04_web_design/SOP_WEB.md`、`MODULE_UI_DESIGN.md`、`content/insights/工程演进与设计方法论.md`、`CLAUDE.md`（T-117 状态 → 🔄 进行中）、`.ctx/REVIEW_QUEUE.md`（已清空）
+- **衍生任务**：T-117 第3轮（strategy/design → sop 复用链）与第4轮（跨目录复用断链检查）待启动
+- **沉淀标签**：`[经验: 概念改名须全仓引用同步（L0-L4 → 5 类知识类型）]` — 权威源章节改名后，其他文件中对旧概念的引用（SSOT_INDEX「文档权威层级（L0-L4）」/USAGE_POLICY「L0-L4（Layer）」/OPERATIONS_GUIDE「五层架构」）会残留为 C 类拓扑错误；一改具改（H2.1）必须覆盖概念名引用而非仅权威源本体。本轮 H5.6 抽样 5 条书记全部接受（AI 修订与书记意图一致，无预判差异需沉淀）
