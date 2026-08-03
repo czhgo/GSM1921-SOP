@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — 光华管理学院本科生党支部管理引擎</title>
-  <meta name="description" content="帮助 — 任务场景指引 · 数据流与人员分工">
+  <meta name="description" content="帮助 — 系统说明书">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -25,13 +25,62 @@
       }
     };
   </script>
-  <link rel="stylesheet" href="./src/styles.css?v=v11-fix1">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <!-- GSAP CDN（Development 手风琴 + 全页面 ScrollTrigger 动画） -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <link rel="stylesheet" href="./src/styles.css">
+  <style>
+    .about-toc { position:fixed; right:0; top:50%; transform:translateY(-50%); z-index:40; width:170px; padding:24px 14px; background:rgba(255,255,255,0.95); border-left:1px solid #E5E7EB; border-radius:var(--radius-sm) 0 0 var(--radius-sm); box-shadow:-2px 0 8px rgba(0,0,0,0.04); }
+    .about-toc a { display:block; padding:8px 12px; margin:3px 0; font-size:0.8rem; color:#6B7280; text-decoration:none; border-radius:var(--radius-sm); transition:all 0.2s; line-height:1.5; }
+    .about-toc a:hover, .about-toc a.active { color:#CE1126; background:#FEF2F2; }
+    .about-toc .toc-title { font-size:0.75rem; font-weight:600; color:#374151; padding:0 12px 10px; border-bottom:1px solid #E5E7EB; margin-bottom:8px; letter-spacing:0.05em; }
+    @media (max-width:1280px) { .about-toc { display:none; } .about-main { margin-right:0 !important; } }
+    .about-main { margin-right:170px; }
+
+    /* Role Hierarchy 组件样式 */
+    .rh { text-align:center; padding:8px 0; }
+    .rh-intro { font-family:'Noto Sans SC',sans-serif; font-size:0.95rem; color:#374151; line-height:1.8; margin-bottom:6px; text-align:left; }
+    .rh-term { font-family:'Noto Sans SC',sans-serif; font-size:0.85rem; color:#6B7280; margin-bottom:20px; text-align:left; }
+    .rh-term em { font-style:normal; font-weight:600; color:#CE1126; }
+    .rh-tier { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; }
+    .rh-connector { color:#D1D5DB; font-size:1.2rem; line-height:1; margin:6px 0; letter-spacing:8px; }
+    .rh-mid { display:flex; justify-content:center; gap:32px; flex-wrap:wrap; }
+    .rh-line-group { display:flex; flex-direction:column; align-items:center; gap:6px; }
+    .rh-line-label { font-size:0.7rem; font-weight:600; padding:3px 10px; border-radius:var(--radius-sm); letter-spacing:0.05em; }
+    .rh-line-v { color:#7C3AED; background:rgba(124,58,237,0.08); }
+    .rh-line-h { color:#0891B2; background:rgba(8,145,178,0.08); }
+    .rh-cards-row { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+    .rh-card { border-radius:var(--radius-md); padding:14px 18px; text-align:center; min-width:110px; transition:all 0.2s; border:1px solid transparent; }
+    .rh-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.08); }
+    .rh-name { font-family:'Noto Sans SC',sans-serif; font-size:0.85rem; font-weight:700; margin-bottom:4px; }
+    .rh-tag { font-size:0.7rem; opacity:0.8; }
+    .rh-desc { font-size:0.7rem; opacity:0.65; margin-top:4px; }
+    .rh-card.role-secretary { background:rgba(185,28,28,0.06); border-color:rgba(185,28,28,0.15); }
+    .rh-card.role-secretary .rh-name { color:#B91C1C; }
+    .rh-card.role-secretary .rh-tag { color:#991B1B; }
+    .rh-card.role-org { background:rgba(139,92,246,0.05); border-color:rgba(139,92,246,0.12); }
+    .rh-card.role-org .rh-name { color:#8B5CF6; }
+    .rh-card.role-org .rh-tag { color:#7C3AED; }
+    .rh-card.role-prop { background:rgba(59,130,246,0.05); border-color:rgba(59,130,246,0.12); }
+    .rh-card.role-prop .rh-name { color:#3B82F6; }
+    .rh-card.role-prop .rh-tag { color:#2563EB; }
+    .rh-card.role-disc { background:rgba(217,119,6,0.05); border-color:rgba(217,119,6,0.12); }
+    .rh-card.role-disc .rh-name { color:#D97706; }
+    .rh-card.role-disc .rh-tag { color:#B45309; }
+    .rh-card.role-leader { background:rgba(101,163,13,0.05); border-color:rgba(101,163,13,0.12); }
+    .rh-card.role-leader .rh-name { color:#65A30D; }
+    .rh-card.role-leader .rh-tag { color:#4D7C0F; }
+    .rh-card.role-member { background:rgba(107,114,128,0.05); border-color:rgba(107,114,128,0.12); }
+    .rh-card.role-member .rh-name { color:#4B5563; }
+    .rh-card.role-member .rh-tag { color:#6B7280; }
+    .rh-card.role-organizer { background:rgba(6,182,212,0.05); border-color:rgba(6,182,212,0.12); }
+    .rh-card.role-organizer .rh-name { color:#06B6D4; }
+    .rh-card.role-organizer .rh-tag { color:#0891B2; }
+    .rh-card.role-deep { background:rgba(16,185,129,0.05); border-color:rgba(16,185,129,0.12); }
+    .rh-card.role-deep .rh-name { color:#10B981; }
+    .rh-card.role-deep .rh-tag { color:#059669; }
+    .rh-bottom { display:flex; justify-content:center; align-items:flex-start; gap:24px; flex-wrap:wrap; }
+    .rh-taskforce { border:1px dashed rgba(139,92,246,0.3); border-radius:var(--radius-md); padding:12px 16px; background:rgba(139,92,246,0.02); }
+    .rh-taskforce-label { font-size:0.75rem; font-weight:600; color:#7C3AED; margin-bottom:8px; }
+    .rh-taskforce-note { font-size:0.72rem; color:#6B7280; margin-top:8px; line-height:1.6; text-align:left; }
+  </style>
 </head>
 <body>
 
@@ -39,12 +88,313 @@
 <div id="sidebar-overlay"></div>
 <aside id="app-sidebar" class="sidebar-collapsed"></aside>
 
+<nav class="about-toc" id="about-toc">
+  <div class="toc-title font-title">目 录</div>
+  <a href="#sec-ack">致谢</a>
+  <a href="#sec-what">一、这个系统在干什么</a>
+  <a href="#sec-design">二、分工中的制度设计</a>
+  <a href="#sec-why">三、为什么这样设计</a>
+  <a href="#sec-how">四、怎么用</a>
+  <a href="#sec-tech">五、技术架构</a>
+  <a href="#sec-disclaimer">免责声明</a>
+</nav>
+
 <div class="sidebar-main-content pt-16 min-h-screen">
-  <main class="flex-1 px-4 py-6 md:px-8 min-w-0">
-    <div id="help-content" class="max-w-5xl mx-auto"></div>
-  </main>
+  <div class="about-main max-w-4xl mx-auto px-4 py-8">
+
+    <div class="text-center mb-10">
+      <img src="./assets/images/party_emblem.png" alt="党徽" class="mx-auto mb-3" style="width:48px;height:48px;" draggable="false">
+      <h2 class="font-title-cn text-2xl font-bold text-gray-800 mb-1">光华管理学院本科生党支部管理引擎</h2>
+      <p class="text-sm text-gray-400">GSM1921-SOP · 系统说明书</p>
+    </div>
+
+    <!-- ========== 致谢 ========== -->
+    <div class="card rounded-2xl p-8 mb-6" id="sec-ack">
+      <h3 class="font-title-cn text-lg font-bold text-gray-800 mb-5">致谢</h3>
+      <p class="font-title text-base text-gray-700 leading-loose" style="text-indent:2em;">
+        感谢<strong>党委领导马化祥书记、鞠晓副书记</strong>对本支部数字化管理探索的大力支持。
+        感谢支部委员：赵雅萱、代艺、徐瑗依、秦若琳、韩思宁、辛长乐、侯嘉嵘、王峥旭、王溪斌、悦佳荷——正是各位委员在各自岗位上精益求精的实务耕耘，才为本系统的设计提供了丰富的场景素材与实践检验。
+        特别感谢<strong>赵雅萱、闫鑫岳</strong>同志对于宣传档案工作的鼎力指导。
+        特别感谢<strong>韩思宁、辛长乐</strong>同志对于党小组工作组织和考勤考察划分的工作方法创新。
+        特别感谢<strong>白文琦、孙睿</strong>同志对于支部扁平化工作方法 SOP 工作流的理论贡献，为系统决策树模型建构了方法论支撑。
+        特别感谢<strong>朱阳俊峰、杜新宇</strong>同志对于品牌活动打磨和党小组工作范式的创造性贡献。
+        感谢<strong>党建中心</strong>提供的资源平台支持。
+      </p>
+    </div>
+
+    <!-- ========== 一、这个系统在干什么 ========== -->
+    <div class="card rounded-2xl p-8 mb-6" id="sec-what">
+      <h3 class="font-title-cn text-lg font-bold text-gray-800 mb-5">一、这个系统在干什么</h3>
+
+      <p class="font-title text-base text-gray-700 leading-loose" style="text-indent:2em;">
+        这个系统是北京大学光华管理学院本科生党支部的数字化管理工具。它要解决的核心问题是：党支部工作如何从"人治"走向"制度治理"？支委换届频繁，经验随人走、制度随人变；新支委上任后需要数月摸索才能上手；同一种工作在不同人手里做法完全不同——本系统通过<strong>制度即代码、角色即视图、经验可传承</strong>三大设计理念，将党支部制度文本转化为可执行的代码工作流。
+      </p>
+      <p class="font-title text-base text-gray-700 leading-loose mt-4" style="text-indent:2em;">
+        系统现有 14 个页面：首页、资料查询、意见反馈、归档库等公共页面，以及六类角色各自的工作台（党支书、党小组组长、组织委员、宣传委员、纪检委员、普通成员）。每个角色打开自己的工作台，就是该角色的全部工作视图——各项功能按 Tab 分组，无需在页面之间来回跳转；所有角色共享同一套数据，看到的是同一数据的不同视角。
+      </p>
+    </div>
+
+    <!-- ========== 二、分工中的制度设计 ========== -->
+    <div class="card rounded-2xl p-8 mb-6" id="sec-design">
+      <h3 class="font-title-cn text-lg font-bold text-gray-800 mb-5">二、分工中的制度设计</h3>
+
+      <!-- 2.1 角色总览图 -->
+      <h4 class="font-title-cn text-base font-semibold text-gray-700 mb-3">2.1 角色总览</h4>
+      <p class="font-title text-sm text-gray-500 mb-4">系统中的 8 种角色，按管理层级排列。支委是纵线（职能线），党小组组长是横线（小组线）——条块双线管理。其中六类角色有专属工作台（党支书、党小组组长、组织委员、宣传委员、纪检委员、普通成员）；组织者与深度参与者是扁平化执行角色，由党小组组长或组织委员在具体工作中赋权产生。</p>
+      <div id="role-hierarchy-container"></div>
+
+      <!-- 2.2 支委会 -->
+      <h4 class="font-title-cn text-base font-semibold text-gray-700 mt-8 mb-3">2.2 支委会</h4>
+
+      <!-- 党支书卡片 -->
+      <div class="mb-4 p-5 rounded-xl border-l-4" style="border-left-color:#B91C1C; background:rgba(185,28,28,0.03);">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="font-title-cn text-sm font-bold" style="color:#B91C1C;">党支书</span>
+          <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:rgba(185,28,28,0.1); color:#B91C1C;">全局统筹</span>
+        </div>
+        <p class="font-title text-sm text-gray-600 leading-loose">
+          管理所有工作，是唯一的最终决策者。创建活动须经书记知情同意，专班发起和赋权均需书记授权或默认。
+        </p>
+      </div>
+
+      <!-- 三委员矩阵 -->
+      <p class="font-title text-sm text-gray-500 mb-3">各委员的职责集中在各自的角色工作台页面呈现：</p>
+      <div id="commissioner-matrix-container"></div>
+
+      <!-- 2.3 党小组组长 -->
+      <h4 class="font-title-cn text-base font-semibold text-gray-700 mt-8 mb-3">2.3 党小组组长</h4>
+      <div class="mb-4 p-5 rounded-xl border-l-4" style="border-left-color:#65A30D; background:rgba(101,163,13,0.03);">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="font-title-cn text-sm font-bold" style="color:#65A30D;">党小组组长</span>
+          <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:rgba(101,163,13,0.1); color:#65A30D;">横线 · 小组线</span>
+        </div>
+        <p class="font-title text-sm text-gray-600 leading-loose">
+          按就业/学术方向划分，横向统筹党小组活动。负责组织学习、开展活动，是活动的天然写入者。党小组组长可以独立创建活动，但须报书记知情同意。党小组组长有权向组织者和深度参与者赋权。
+        </p>
+      </div>
+
+      <!-- 2.4 专班参与者 -->
+      <h4 class="font-title-cn text-base font-semibold text-gray-700 mt-8 mb-3">2.4 专班参与者</h4>
+      <div class="mb-4 p-5 rounded-xl border-l-4" style="border-left-color:#06B6D4; background:rgba(6,182,212,0.03);">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="font-title-cn text-sm font-bold" style="color:#06B6D4;">组织者</span>
+          <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:rgba(6,182,212,0.1); color:#06B6D4;">牵头策划</span>
+          <span class="font-title-cn text-sm font-bold ml-3" style="color:#10B981;">深度参与者</span>
+          <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:rgba(16,185,129,0.1); color:#10B981;">推进执行</span>
+        </div>
+        <p class="font-title text-sm text-gray-600 leading-loose">
+          组织者和深度参与者是推动支部工作扁平化的两种角色。<strong>两者之间没有上下级关系，只是分工不同。</strong>核心比喻：组织者是项目的脑子，深度参与者是项目的手。
+        </p>
+        <div class="mt-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
+          <p class="font-title text-xs text-gray-500 leading-loose">
+            <strong>注意</strong>：组织者和深度参与者同时服务<strong>活动</strong>和<strong>专班</strong>——两者是党建工作下的并列工作内容，归不同人管理。在活动中，由党小组组长赋权；在专班中，由组织委员赋权。
+          </p>
+        </div>
+      </div>
+
+      <!-- 2.5 普通成员 -->
+      <h4 class="font-title-cn text-base font-semibold text-gray-700 mt-8 mb-3">2.5 普通成员</h4>
+      <div class="mb-4 p-5 rounded-xl border-l-4" style="border-left-color:#6B7280; background:rgba(107,114,128,0.03);">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="font-title-cn text-sm font-bold" style="color:#4B5563;">普通成员</span>
+          <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:rgba(107,114,128,0.1); color:#6B7280;">参与 + 监督</span>
+        </div>
+        <p class="font-title text-sm text-gray-600 leading-loose">
+          普通成员以只读模式查看活动动态、专班进展和考勤概况。成员不参与管理工作，但拥有知情权和监督权。
+        </p>
+      </div>
+    </div>
+
+    <!-- ========== 三、为什么这样设计 ========== -->
+    <div class="card rounded-2xl p-8 mb-6" id="sec-why">
+      <h3 class="font-title-cn text-lg font-bold text-gray-800 mb-5">三、为什么这样设计</h3>
+
+      <!-- 3.1 为什么分纵线和横线 -->
+      <h4 class="font-title-cn text-base font-semibold text-gray-700 mb-3">3.1 为什么分纵线和横线？</h4>
+      <p class="font-title text-base text-gray-700 leading-loose">
+        支委是纵线（职能线），管的是某一类专业事务——组织委员管发展、宣传委员管档案、纪检委员管考勤。党小组组长是横线（小组线），管的是一组人——按就业/学术方向划分的党小组。这两条线不是上下级关系，而是<strong>条块双线管理</strong>：<strong>条管功能决策，块管信息触达</strong>——纵线决定"做什么、怎么做"（功能决策），横线负责"传到谁、怎么传达"（信息触达），两条线交汇于具体工作。书记是条块之间的协调节点，确保功能决策和信息执行不脱节。这样的好处是：专业的事有人把关（委员），人的事有人管（党小组组长），不会出现"谁都管又谁都不管"的真空地带。
+      </p>
+
+      <!-- 3.2 活动和专班为什么并列 -->
+      <h4 class="font-title-cn text-base font-semibold text-gray-700 mt-6 mb-3">3.2 活动和专班为什么是并列的？</h4>
+      <p class="font-title text-base text-gray-700 leading-loose mb-3">
+        活动和专班虽然都属于党建工作，但归不同人管理、走不同的赋权流程——它们不是"活动包含专班"或"专班属于活动"的从属关系，而是两条独立的线。
+      </p>
+      <div class="overflow-x-auto">
+        <table class="w-full font-title text-sm text-gray-700 leading-loose border-collapse">
+          <thead><tr class="bg-gray-50"><th class="p-3 text-left border-b w-1/4">维度</th><th class="p-3 text-left border-b">活动</th><th class="p-3 text-left border-b">专班</th></tr></thead>
+          <tbody>
+            <tr><td class="p-3 border-b font-semibold">管辖</td><td class="p-3 border-b">党小组组长</td><td class="p-3 border-b">组织委员</td></tr>
+            <tr><td class="p-3 border-b font-semibold">赋权范围</td><td class="p-3 border-b">activity</td><td class="p-3 border-b">taskforce</td></tr>
+            <tr><td class="p-3 border-b font-semibold">时间</td><td class="p-3 border-b">固定时间地点</td><td class="p-3 border-b">无严格限制</td></tr>
+            <tr><td class="p-3 border-b font-semibold">组织者来源</td><td class="p-3 border-b">党小组组长赋权</td><td class="p-3 border-b">组织委员招募</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 3.3 权限从哪来 -->
+      <h4 class="font-title-cn text-base font-semibold text-gray-700 mt-6 mb-3">3.3 权限从哪来？</h4>
+      <p class="font-title text-base text-gray-700 leading-loose">
+        这个系统里的权限不是"给你一个账号就什么都能做"，而是<strong>赋权关系链</strong>——谁给你赋的权，你就在谁的赋权范围里干活。党支书天然拥有所有权限；支委和党小组组长的管理权限也是天然的；但组织者和深度参与者的写入权限，必须由党小组组长（活动）或组织委员（专班）显式赋权。赋权者可以查看被赋权者的工作视图（只读），但不可修改。宣传委员和纪检委员<strong>没有赋权能力</strong>——这是内控要求，与职能性质相关。
+      </p>
+
+      <!-- 3.4 专班是什么 -->
+      <h4 class="font-title-cn text-base font-semibold text-gray-700 mt-6 mb-3">3.4 专班是什么？</h4>
+      <p class="font-title text-base text-gray-700 leading-loose">
+        专班是<strong>活动之外考察积极分子的载体</strong>——赋权是专班运行的支撑机制，工作量记录是专班运行的保障机制。组织委员是<strong>唯一专班管理节点</strong>——所有专班的组建与解散必须经由组织委员统一管理，防止专班泛滥。专班有明确的解散条件：任务完成或截止时间到达即解散，不得转为常设机构。
+      </p>
+      <p class="font-title text-base text-gray-700 leading-loose mt-3">
+        专班里的组织者和深度参与者之间<strong>没有上下级关系</strong>——组织者负责分工协调、进度同步、打包提交工作成果，深度参与者负责执行具体工作、提交交付物。核心比喻：组织者是项目的脑子，深度参与者是项目的手。身份不是最重要的，年级和政治面貌不决定是否胜任。
+      </p>
+
+      <!-- 3.5 战略认知 -->
+      <h4 class="font-title-cn text-base font-semibold text-gray-700 mt-6 mb-3">3.5 战略认知是什么？</h4>
+      <p class="font-title text-base text-gray-700 leading-loose mb-3">
+        "管理事，服务人"不是一句口号，背后有一套战略认知：<strong>服务人的核心要义，是理解真实的组织和管理</strong>——不是想象中的等级森严，而是有管理的科学、有既往的经验。从这个认知出发，展开四个维度：
+      </p>
+      <ul class="font-title text-base text-gray-700 leading-loose list-disc pl-6 mb-3 space-y-2">
+        <li><strong>理解真实</strong>——真实的组织靠流程和经验，不是谁坐在哪个位置上。成长在办事中体悟，不在抽象培训中。</li>
+        <li><strong>善用经验</strong>——有先例的工作，先从既有工作流开始，理解流程为什么这样设计，再考虑要不要改。</li>
+        <li><strong>创新沉淀</strong>——创新性的工作没有权威，每个人的意见和实践选择都很重要，组织要充分吸收个体经验，沉淀为新的工作流。</li>
+        <li><strong>框架内对话</strong>——不要怕"说错话"，特别怕大家因为认为是"党支部"而自我审查。框架内表达不是不许批评，而是批评要找准对象、找准时机。</li>
+      </ul>
+      <p class="font-title text-base text-gray-700 leading-loose mt-4 p-4 bg-red-50/40 border-l-4 border-red-700 rounded-r-lg">
+        <strong>延伸·恢复对话能力：</strong>党建和经管学科科研的交叉点在于恢复和马克思主义的对话能力，恢复理论研究和现实治理之间的对话能力。
+      </p>
+    </div>
+
+    <!-- ========== 四、怎么用 ========== -->
+    <div class="card rounded-2xl p-8 mb-6" id="sec-how">
+      <h3 class="font-title-cn text-lg font-bold text-gray-800 mb-5">四、怎么用</h3>
+
+      <!-- 4.1 页面导航 -->
+      <h4 class="font-title-cn text-base font-semibold text-gray-700 mb-3">4.1 页面导航</h4>
+      <p class="font-title text-base text-gray-700 leading-loose mb-4">
+        本页（帮助）是系统的分章节说明书：前两节讲系统在干什么、制度怎么分工，第三节讲为什么这样设计，本节讲具体怎么用，第五节讲技术架构。如果只想快速上手，看本节即可——先认识全局导航结构，再对照各页面功能。
+      </p>
+      <p class="font-title text-base text-gray-700 leading-loose mb-4">
+        系统由 14 个独立页面组成，通过侧边栏全局导航串联。六类角色各自对应一个工作台页面，各项功能通过页内 tab 切换。所有页面共享同一套数据源，不同角色看到的是同一数据的不同视角。
+      </p>
+
+      <div class="mb-5">
+        <p class="font-title text-sm font-semibold text-gray-600 mb-2">全局导航结构</p>
+        <div class="bg-gray-50 rounded-lg p-4 font-mono text-sm text-gray-600 leading-relaxed">
+          首页（通知/招募/日历）<br>
+          ├── 工作台 → 六类角色工作台（角色选择）<br>
+          ├── 资料查询<br>
+          ├── 意见反馈<br>
+          ├── 归档库<br>
+          └── 帮助 · 关于（页脚）
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <p class="font-title text-sm font-semibold text-gray-600 mb-2">各页面功能</p>
+        <div class="space-y-2">
+          <div class="p-3 bg-gray-50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>首页</strong> — 通知公告 + 人员招募 + 活动日历全景；点击条目跳转至对应工作台</div>
+          <div class="p-3 bg-red-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党支书工作台</strong> — 全局概况（进度总览）+ 工作台（日历+写入+查询）+ 赋权管理 + 反馈管理 + 通知发布</div>
+          <div class="p-3 bg-red-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>党小组组长工作台</strong> — 活动写入 + 考勤上传 + 考察上传 + 复盘提交</div>
+          <div class="p-3 bg-blue-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>组织委员工作台</strong> — 考察上传 + 专班管理 + 人才库 + 发展党员</div>
+          <div class="p-3 bg-emerald-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>宣传委员工作台</strong> — 宣传任务 + 项目看板 + 档案归档 + 周报报送</div>
+          <div class="p-3 bg-amber-50/50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>纪检委员工作台</strong> — 考勤管理 + 活动监督复盘 + 考察管理 + 补课制度 + 公邮管理</div>
+          <div class="p-3 bg-gray-50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>普通成员视图</strong> — 活动动态（日历/列表切换）+ 专班进展 + 考勤概况</div>
+          <div class="p-3 bg-gray-50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>归档库</strong> — 已完成工作归档与回溯 + 搜索 + 类别过滤</div>
+          <div class="p-3 bg-gray-50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>资料查询</strong> — 制度文件 · 操作指南 · SOP 文档 · 外部链接</div>
+          <div class="p-3 bg-gray-50 rounded-lg font-title text-sm text-gray-700 leading-loose"><strong>意见反馈</strong> — SOP 优化提案与开源讨论</div>
+        </div>
+      </div>
+
+      <!-- 4.2 权限体系 -->
+      <h4 class="font-title-cn text-base font-semibold text-gray-700 mb-3">4.2 权限体系</h4>
+
+      <div class="mb-5">
+        <p class="font-title text-sm font-semibold text-gray-600 mb-2">视图模式</p>
+        <div class="overflow-x-auto">
+          <table class="w-full font-title text-sm text-gray-700 leading-loose border-collapse">
+            <thead><tr class="bg-gray-50"><th class="p-3 text-left border-b">模式</th><th class="p-3 text-left border-b">谁使用</th><th class="p-3 text-left border-b">能看到什么</th><th class="p-3 text-left border-b">能修改什么</th></tr></thead>
+            <tbody>
+              <tr><td class="p-3 border-b font-semibold">管理模式</td><td class="p-3 border-b">角色对应的管理者</td><td class="p-3 border-b">自己角色的工作台</td><td class="p-3 border-b">自己角色的数据</td></tr>
+              <tr><td class="p-3 border-b font-semibold">管理者只读</td><td class="p-3 border-b">赋权者查看被赋权者</td><td class="p-3 border-b">被赋权者的工作台</td><td class="p-3 border-b">无</td></tr>
+              <tr><td class="p-3 border-b font-semibold">成员只读</td><td class="p-3 border-b">未选择角色的参与者</td><td class="p-3 border-b">统一信息流面板</td><td class="p-3 border-b">无</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mb-5">
+        <p class="font-title text-sm font-semibold text-gray-600 mb-2">写入范围</p>
+        <div class="overflow-x-auto">
+          <table class="w-full font-title text-sm text-gray-700 leading-loose border-collapse">
+            <thead><tr class="bg-gray-50"><th class="p-3 text-left border-b">写入范围</th><th class="p-3 text-left border-b">授权人</th><th class="p-3 text-left border-b">享有角色</th></tr></thead>
+            <tbody>
+              <tr><td class="p-3 border-b">职能写入</td><td class="p-3 border-b">天然权限</td><td class="p-3 border-b">组织委员 / 宣传委员 / 纪检委员（各自板块）</td></tr>
+              <tr><td class="p-3 border-b">活动写入</td><td class="p-3 border-b">天然权限</td><td class="p-3 border-b">党支书 / 党小组组长</td></tr>
+              <tr><td class="p-3 border-b">活动写入（需赋权）</td><td class="p-3 border-b">党小组组长</td><td class="p-3 border-b">组织者 / 深度参与者</td></tr>
+              <tr><td class="p-3 border-b">专班发起</td><td class="p-3 border-b">天然权限</td><td class="p-3 border-b">党支书 / 党小组组长 / 三委员</td></tr>
+              <tr><td class="p-3 border-b">专班招募统筹</td><td class="p-3 border-b">天然权限</td><td class="p-3 border-b">组织委员（唯一节点）</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <p class="font-title text-sm font-semibold text-gray-600 mb-2">关键约束</p>
+        <ul class="list-disc list-inside space-y-2 font-title text-sm text-gray-700 leading-loose">
+          <li>创建活动仅限党支书和党小组组长；党小组组长可独立创建，须报书记知情同意；组织委员协调的是专班（招募统筹），不是活动</li>
+          <li>纪检委员考勤数据与组织委员通用同源</li>
+          <li>宣传委员不可自行招募宣传专班，赋权操作统一归口组织委员</li>
+          <li>三委员之间可相互查看（只读），但不可修改彼此的工作</li>
+          <li>从首页进入管理页面时自动设为只读模式</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ========== 五、技术架构 ========== -->
+    <div class="card rounded-2xl p-8 mb-6" id="sec-tech">
+      <h3 class="font-title-cn text-lg font-bold text-gray-800 mb-5">五、技术架构</h3>
+
+      <div class="mb-5">
+        <h4 class="font-title-cn text-base font-semibold text-gray-700 mb-3">前中后台分层</h4>
+        <div class="overflow-x-auto">
+          <table class="w-full font-title text-sm text-gray-700 leading-loose border-collapse">
+            <thead><tr class="bg-gray-50"><th class="p-3 text-left border-b">层</th><th class="p-3 text-left border-b">位置</th><th class="p-3 text-left border-b">职责</th></tr></thead>
+            <tbody>
+              <tr><td class="p-3 border-b font-semibold">前台（UI）</td><td class="p-3 border-b">docs/*.html（8 根页面 + 6 角色工作台 = 14 页）</td><td class="p-3 border-b">页面骨架，零硬编码逻辑</td></tr>
+              <tr><td class="p-3 border-b font-semibold">中台（路由+渲染）</td><td class="p-3 border-b">docs/src/entries/（15 个 entry JS）</td><td class="p-3 border-b">角色面板路由、视图切换、DOM 渲染</td></tr>
+              <tr><td class="p-3 border-b font-semibold">后台（服务层）</td><td class="p-3 border-b">docs/src/services/（20 个 service JS）</td><td class="p-3 border-b">数据 CRUD、权限计算、持久化</td></tr>
+              <tr><td class="p-3 border-b font-semibold">母本层</td><td class="p-3 border-b">content/02_institution/sop/</td><td class="p-3 border-b">所有代码逻辑的制度来源</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <h4 class="font-title-cn text-base font-semibold text-gray-700 mb-3">技术栈</h4>
+        <ul class="list-disc list-inside space-y-2 font-title text-sm text-gray-700 leading-loose">
+          <li>纯前端静态架构 — 无需后端部署，GitHub Pages 直接托管</li>
+          <li>ES Modules — 无构建工具、零打包依赖</li>
+          <li>Tailwind CSS CDN — 原子化样式引擎</li>
+          <li>sessionStorage / localStorage — 跨页面状态持久化</li>
+          <li>Custom Events — 组件间解耦通信</li>
+          <li>多页面应用（MPA）— 14 个独立 HTML 页面</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ========== 免责声明 ========== -->
+    <div class="card rounded-2xl p-8 mb-6 border-amber-200 bg-amber-50/30" id="sec-disclaimer">
+      <h3 class="font-title-cn text-lg font-bold text-amber-800 mb-5">免责声明</h3>
+      <p class="font-title text-base text-amber-700 leading-loose">
+        本系统为北京大学光华管理学院本科生党支部内部管理工具。<strong>所有功能仅供支部内部使用</strong>，不对任何外部组织或个人承担技术可用性或数据准确性保证。系统中展示的活动日历、人员信息、SOP 文献与制度文件均为内部参考资料，不构成对上级党委或外部机构的正式上报材料。<strong>使用本系统的任何决策后果由使用者自行承担</strong>。系统开发者及维护者不承担因系统功能变更、数据展示不完整或误解系统输出而产生的任何责任。
+      </p>
+    </div>
+
+    <div class="text-center pb-8">
+      <p class="text-xs text-gray-400">光华管理学院本科生党支部 · GSM1921-SOP</p>
+    </div>
+  </div>
 </div>
 
-<script type="module" src="./src/entries/help-entry.js?v=20260801b"></script>
+<script type="module" src="./src/entries/about-entry.js?v=20260803"></script>
 </body>
 </html>

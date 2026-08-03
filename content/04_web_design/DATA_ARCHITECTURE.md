@@ -1,9 +1,9 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
 title: "数据架构设计"
 type: design
 role: "[工程师]+[AI]"
 version: "4.0"
-last_updated: "2026-08-01"
+last_updated: "2026-08-03"
 status: active
 merged_from: [content/design/DATA.md, content/design/PARTICIPANT_DATAFLOW.md, content/design/LOGIN_SYSTEM_DESIGN.md, content/design/BRAND_ACTIVITY.md]
 related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/MODULE_UI_DESIGN.md, content/04_web_design/DESIGN_SYSTEM.md]
@@ -300,7 +300,7 @@ assignedRoles: Array<{
 
 **发展阶段枚举（D-239 统一中文，2026-08-01 收敛为四阶段）：**
 
-> 书记决策（2026-08-01）：从系统简洁性出发，系统身份不考虑【入党申请人】这一档，仅保留 积极分子/发展对象/预备党员/正式党员。原【入党申请人】人员并入积极分子。帮助页仍保留"从入党申请人到正式党员"的完整党章流程叙事（宣传教育用途，非系统身份档位），其中须点明"递交入党申请书须年满十八周岁"这一时间前提。
+> 书记决策（2026-08-01）：从系统简洁性出发，系统身份不考虑【入党申请人】这一档，仅保留 积极分子/发展对象/预备党员/正式党员。原【入党申请人】人员并入积极分子。关于页仍保留"从入党申请人到正式党员"的完整党章流程叙事（宣传教育用途，非系统身份档位），其中须点明"递交入党申请书须年满十八周岁"这一时间前提。
 
 | 值 | 说明 |
 |---|---|

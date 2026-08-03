@@ -2,7 +2,7 @@
 title: "前端设计系统规范"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-08-02"
+last_updated: "2026-08-03"
 status: active
 ---
 
@@ -573,7 +573,7 @@ li + li { margin-top: 0.25em; }
 
 ### 5.4 Exploration Canvas 像素美学原则
 
-> 来源：D-222（已修正）+ Exploration Canvas v2 重构 | 适用场景：帮助页 Exploration 区块的像素人漫步交互
+> 来源：D-222（已修正）+ Exploration Canvas v2 重构 | 适用场景：关于页 Exploration 区块的像素人漫步交互
 
 **核心美学**：像素游戏复古感 + 苹果风现代留白的融合。像素人作为"支部故事"的视觉载体，不是装饰，而是叙事主体。
 
@@ -593,7 +593,7 @@ li + li { margin-top: 0.25em; }
 
 **为什么不是镜头推拉**：镜头推拉是"电影导演"思维，但像素游戏是"游戏世界"思维。固定视角让玩家（观众）看到整个世界，角色在世界中自由活动，而不是被镜头框住。
 
-**生效条件**：帮助页 Exploration 区块及未来扩展的像素游戏场景。
+**生效条件**：关于页 Exploration 区块及未来扩展的像素游戏场景。
 
 ---
 

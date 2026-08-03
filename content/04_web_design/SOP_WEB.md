@@ -2,7 +2,7 @@
 role: "[工程师]+[AI]"
 title: "SOP 系统优化与同步指南"
 type: guide
-last_updated: "2026-07-20"
+last_updated: "2026-08-03"
 version: "4.1"
 milestone: "T29 — 全面架构收束：Mode统一、看板体系、日历限定、系列活动模型"
 ---
@@ -52,8 +52,8 @@ milestone: "T29 — 全面架构收束：Mode统一、看板体系、日历限�
 | **归档库** | `docs/archive.html` | 历史活动/专班归档查询 | archive-entry.js |
 | **资料查询** | `docs/search.html` | 参考资料、网站群、规章文件 | search-entry.js |
 | **意见反馈** | `docs/feedback.html` | GitHub Issue 风格开源讨论、列表/详情/新建三视图 | feedback-entry.js, issue-list.js, issue-detail.js, issue-form.js |
-| **系统说明书** | `docs/about.html` | 分章节系统说明书 | about-entry.js |
-| **帮助与探索** | `docs/help.html` | 帮助与探索工作页面 | help-entry.js |
+| **系统说明书** | `docs/help.html` | 分章节系统说明书 | about-entry.js |
+| **支部的故事** | `docs/about.html` | 支部的故事叙事（角色体系+发展路径可视化） | help-entry.js |
 | **角色工作台** | `docs/workspace/{secretary,leader,org,prop,disc,visitor}.html` | 六类角色工作台（书记/党小组组长/三支委/成员只读） | 对应 ws-*-entry.js |
 
 **共享组件架构**：

@@ -1,13 +1,13 @@
 // role: [工程师]+[AI]
-// about-entry.js — 关于页面入口
+// about-entry.js — 帮助页入口（系统说明书）
 
 import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';
 import { renderCommissionerMatrix } from '../components/commissioner-matrix.js';
 import { renderRoleHierarchy } from '../components/role-hierarchy.js';
 
-renderSidebar('about');
-renderHeader('about');
+renderSidebar('help');
+renderHeader('help');
 renderRoleHierarchy('role-hierarchy-container');
 renderCommissionerMatrix('commissioner-matrix-container');
 

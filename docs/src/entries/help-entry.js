@@ -1,5 +1,5 @@
 // role: [工程师]+[AI]
-// entries/help-entry.js — 帮助页入口 v13（讲我们支部的故事）
+// entries/help-entry.js — 关于页入口 v13（讲我们支部的故事）
 // 核心理念：从"关系网络"到"支部的故事"——以党员成长为主线，讲清考察、工作哲学、探索与对话
 // 设计风格：苹果风（纯白 + 大留白 + 大字体 + 微妙动画）
 // 签名元素：【管理事，服务人】收束点题 + Exploration SVG 关系网络
@@ -18,8 +18,8 @@ import { getBasePath } from '../core/utils.js';
 import { icon } from '../core/icons.js';
 
 // ── 公开访问：不检查登录 ──
-renderSidebar('help');
-renderHeader('help');
+renderSidebar('about');
+renderHeader('about');
 
 // ════════════════════════════════════════════════════════════════
 //  数据定义

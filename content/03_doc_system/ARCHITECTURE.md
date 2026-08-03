@@ -134,11 +134,11 @@ Layer 7: 审计参考层（审计与参考）
 ├── docs/                              [工程师]+[AI] 前端代码层（8 根 HTML + workspace/ 6 工作台 + ESM 模块化源码）
 │   ├── index.html                     [用户]+[AI] 主页（通知/招募/活动日历/待办）
 │   ├── notice.html                    [用户]+[AI] 通知独立页
-│   ├── about.html                     [用户]+[AI] 系统说明书
+│   ├── about.html                     [用户]+[AI] 支部的故事
 │   ├── archive.html                   [用户]+[AI] 归档库
 │   ├── search.html                    [用户]+[AI] 资料查询
 │   ├── feedback.html                  [用户]+[AI] 意见反馈
-│   ├── help.html                      [用户]+[AI] 帮助与探索工作页面
+│   ├── help.html                      [用户]+[AI] 系统说明书
 │   ├── login.html                     [用户]+[AI] 登录页
 │   ├── workspace/                     [用户]+[AI] 角色工作台页面（6 个 HTML）
 │   │   ├── secretary.html             [用户]+[AI] 书记工作台（工作台+赋权管理+issue管理+通知发布+待办）

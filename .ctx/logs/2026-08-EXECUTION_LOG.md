@@ -712,3 +712,28 @@ related_files:
   - ✅ 出处名称字眼全仓清零（书记指令：引用权威来源但不写出处名称；4 处全部替换为「权威来源/官方出处」）
 - **变更文件**：`docs/about.html`、`docs/src/components/commissioner-matrix.js`、`docs/src/entries/ws-{disc-commissioner,org-commissioner,secretary,prop-commissioner,leader,visitor}-entry.js`、`docs/workspace/*.html`、`content/03_doc_system/USAGE_POLICY.md`、`content/01_strategy/DEVELOPMENT_PATH.md`、`content/insights/党支部管理与实务经验沉淀.md`、`content/02_institution/sop/*.md`（7 文件）、`content/02_institution/COMMISSIONER_FRAMEWORK.md`、`content/04_web_design/SOP_WEB.md`、`content/03_doc_system/SERVICE_CATALOG.md`、`.ctx/REVIEW_QUEUE.md`、`CLAUDE.md`（P3 表）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
 - **沉淀标签**：`[经验: 权威定义才是 T1]` — 术语权威层级以权威来源的定义为 T1，书记项目内两分法（P-006）为 T2 约定表达——理论层保留讲解、网页层不体现界面结构；`[经验: 用户文档工作台合一]` — 「党建工作台/党务管理」旧模块名废弃，用户文档统一「工作台」，Tab 分组统一「党建」；`[经验: 理论讲解区块不再进网页]` — 党建/党务两分法作为理论的重要性下降，网页层删除对比表、矩阵改单域职责卡片；`[经验: 权威出处不外显]` — 引用权威来源的定义时正文不写出处名称（书记：确实从那里引的但不写出来），以「权威来源/官方出处」指代
+
+## T196 帮助/关于页互换名称 + 关于页正文系统重写 + T2 P-006 两分法删除（2026-08-03）
+
+**任务**：①帮助页与关于页互换名称（书记判断"现在'关于'的内容更有帮助"）；②关于页正文系统重写（保持致谢不动）；③T2 P-006 两分法删除（网页层统一「工作台」）。brainstorming Skill 已确认三项方向：内容互换（help.html 承载说明书、about.html 承载支部故事，文件名/导航链接不变）、重写深度=骨架保留逐节更新、T2 删除=T1 取代 T2。涉及 3+ 文件，写入乙部 T-196。
+**引用流程**：H1.2 执行 + brainstorming Skill + H2.1 一改具改 + H2.2 母本子本 + H3 修改检查清单
+**来源**：书记指令（2026-08-03）：「我认为 帮助页 和 关于页 需要互换名称——因为 似乎现在'关于'的内容更有帮助！【这两页都是静态页面！】此外，我们已经许久没有更新 关于页。请保持前面的致谢不动，把正文的部分做一次系统地重写！！」「如果有了T1级别的表述，相关下游的T2级别的表述目前来看对于网页设计没有什么增量，也就可以删去了！！」
+
+- **① 内容互换**：
+  - `docs/help.html`（原支部故事壳）整文件重写为「系统说明书」——沿用原 about.html 的 TOC 版壳（about-toc 目录 + Role Hierarchy CSS），七节内容：致谢（未动）→ 一（新增「系统现有 14 个页面」段落）→ 二（2.1 角色总览更新为 8 角色 + 六类专属工作台）→ 三（未动）→ 四（4.1 重写为帮助语义引导 + 导航树 + 工作台命名卡片）→ 五（数字修正：14 页 / 15 entries / 20 services）→ 免责声明（未动）；尾部引用 `about-entry.js?v=20260803`
+  - `docs/about.html`（原说明书正文）整体改写为「支部故事」——沿用原 help.html 的 GSAP 壳（styles.css?v=v11-fix1 + Cache-Control + GSAP CDN + `#help-content` 容器），title「关于 — 光华管理学院本科生党支部管理引擎」、description「关于 — 支部的故事 · 成长路径与工作哲学」；尾部引用 `help-entry.js?v=20260803`
+  - entry JS activeModule 对位：`about-entry.js`（服务 help.html）`renderSidebar/Header('about')→'help'` + 注释改「帮助页入口（系统说明书）」；`help-entry.js`（服务 about.html）`renderSidebar/Header('help')→'about'` + 注释改「关于页入口」；sidebar.js footer 的 `{module:'help',href:help.html}` / `{module:'about',href:about.html}` 天然对位，无需改动
+  - icons.js scrollDown 注释「帮助页装饰图标」→「关于页装饰图标」（该图标服务支部故事页）
+- **② 关于页正文系统重写**（骨架保留逐节更新，致谢段落原文不动）：一、这个系统在干什么（新增 14 页面 + 六类角色工作台段落）；2.1 角色总览（8 角色 + 组织者/深度参与者扁平化执行角色）；4.1 页面导航（帮助语义引导 + 导航树 + 全部改为「XX工作台」命名 + 党支书工作台全局概况/赋权管理）；五、技术架构（前台 14 页 / 中台 15 entries / 后台 20 services 实测数字修正）
+- **③ T2 P-006 两分法删除（T1 取代 T2）**：
+  - USAGE_POLICY §1.1.1 核心定义表格「含义」列改 T1 官方定义（党建=党为保持先进性纯洁性而开展的自我建设，政/思/组/作/纪五建+制度贯穿；党务=党内事务的具体管理工作，党员发展/教育管理/组织生活/党内选举/党费收缴）；网页承载备注「两分法（P-006）已由 T1 官方定义取代，不再作为网页设计依据」；区分要点同步
+  - USAGE_POLICY §1.7 P-006 层级安放条款精简——两分法「保留作理论历史」（书记原话见 SECRETARY_PRONOUNCEMENTS P-006，保留不动），T1 官方定义为准，取代 T2 作为网页设计依据
+  - insights 党支部管理与实务经验沉淀 §1.1 标注「保留作理论讲解…仅作理论历史参考」；§1.3 补注「板块划分属于理论讲解，网页层统一承载于工作台」
+- **一改具改（7+ 处文档引用互换）**：SOP_WEB.md（系统说明书→help.html / 支部的故事→about.html，L56 描述列同步）；ARCHITECTURE.md L137/L141（about=支部的故事 / help=系统说明书）；SERVICE_CATALOG.md L405-406/L427-428（help↔about 互换，含入口 JS）；CHECKLIST.md L71/L81（权限体系说明页 about→help）；KNOWN_PITFALLS.md L195（T147 GSAP 陷阱页 help→about）；DESIGN_SYSTEM.md L576/L596（Exploration 区块页 帮助页→关于页）；DATA_ARCHITECTURE.md L303（入党申请人叙事页 帮助页→关于页）；.ctx/SNAPSHOT.md（文件树 L29/L33 + 页面清单 L108/L116）；.ctx/TIMESTAMPS.md（4 行 last_updated 2026-08-03 + 用途互换）
+- **H3 检查清单**：YAML 更新 ✅（CHECKLIST/KNOWN_PITFALLS/SOP_WEB/DESIGN_SYSTEM/DATA_ARCHITECTURE 5 文件 last_updated→2026-08-03；USAGE_POLICY/ARCHITECTURE/SERVICE_CATALOG/insights 已为 2026-08-03）；GetDiagnostics ✅（仅既有 markdownlint 警告，JS/HTML 零错误）
+- **浏览器验证**（browser_use，http://localhost:3000）：help.html 渲染说明书 ✓（14 页段落 / 8 角色层级图 / 三委员矩阵 / 五章节 / TOC）；about.html 渲染支部故事 ✓（Hero「从入党申请人到正式党员」/ 考察三维度 / 13 步 Development 时间轴 / 管理事服务人收束 / Exploration）；footer 高亮为既有设计（footer 项从未按 activeModule 高亮，非本轮回归，不做改动）；console 两页均无错误；像素截图因环境不可用，以可访问性快照 + 计算样式/几何实测代替
+- **零残留 Grep 验证结果**：
+  - ✅「帮助与探索」「系统说明书」等旧配对引用零残留（content 活文档 + docs 代码层全部互换；.ctx/logs 历史记录按不可变原则保留）
+  - ✅ SERVICE_CATALOG.md L405-406 并行编辑被覆盖丢失一次，已串行补回并复查确认
+- **变更文件**：`docs/help.html`（重写为说明书）、`docs/about.html`（改写为支部故事）、`docs/src/entries/about-entry.js`、`docs/src/entries/help-entry.js`、`docs/src/core/icons.js`、`content/03_doc_system/USAGE_POLICY.md`、`content/03_doc_system/ARCHITECTURE.md`、`content/03_doc_system/SERVICE_CATALOG.md`、`content/03_doc_system/CHECKLIST.md`、`content/05_ai_coding/KNOWN_PITFALLS.md`、`content/04_web_design/SOP_WEB.md`、`content/04_web_design/DESIGN_SYSTEM.md`、`content/04_web_design/DATA_ARCHITECTURE.md`、`content/insights/党支部管理与实务经验沉淀.md`、`.ctx/SNAPSHOT.md`、`.ctx/TIMESTAMPS.md`、`CLAUDE.md`（乙部 T-196 删除）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[待沉淀: 同文件多处编辑须串行执行]` — 对同一文件的两个并行 Edit 中，后写入的编辑可能覆盖先写入的编辑导致变更丢失（SERVICE_CATALOG L405-406 实例），须串行执行或事后复查确认

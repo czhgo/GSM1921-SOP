@@ -2,7 +2,7 @@
 title: "已知陷阱与上下文丢失教训"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-07-31"
+last_updated: "2026-08-03"
 version: "1.7"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/工程演进与设计方法论.md]
@@ -192,7 +192,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 
 **根因**：browser_use subagent 的默认验证行为是检查 DOM 元素是否存在、CSS 类是否正确，而不是截图确认视觉效果。当 CSS 规则冲突或被覆盖时（如 `opacity:0` 的元素仍在 DOM 中），subagent 会报告"元素存在=验证通过"，但用户实际看不到任何内容。
 
-**典型实例（T147）**：help.html 中 6 处元素设置了 `opacity:0` + GSAP `is-revealed` 触发机制，但 GSAP 未执行导致元素始终不可见。browser_use subagent 检查 DOM 结构后报告"验证通过"，实际屏幕上这些元素完全不可见。
+**典型实例（T147）**：about.html 中 6 处元素设置了 `opacity:0` + GSAP `is-revealed` 触发机制，但 GSAP 未执行导致元素始终不可见。browser_use subagent 检查 DOM 结构后报告"验证通过"，实际屏幕上这些元素完全不可见。
 
 **预防机制**：要求 subagent 截图并报告屏幕上实际可见的内容，而非仅检查 DOM 结构。验证声明必须附带截图证据，不接受"DOM 元素存在"作为视觉验证的充分条件。
 

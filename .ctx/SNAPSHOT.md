@@ -26,11 +26,11 @@ GSM1921-SOP/
 ├── docs/                       ← 前端代码层（8 个根 HTML + workspace/ 6 个工作台 + ESM 模块化源码）
 │   ├── index.html              ← 主页入口（通知/招募/日历/待办四组件）
 │   ├── notice.html             ← 通知独立页
-│   ├── about.html              ← 系统说明书
+│   ├── about.html              ← 支部的故事
 │   ├── archive.html            ← 归档库
 │   ├── search.html             ← 资料查询
 │   ├── feedback.html           ← 意见反馈
-│   ├── help.html               ← 帮助与探索工作页面
+│   ├── help.html               ← 系统说明书
 │   ├── login.html              ← 登录页
 │   ├── workspace/              ← 角色工作台页面（6 个 HTML，党建+党务+待办合一）
 │   │   ├── secretary.html      ← 书记工作台（工作台+赋权管理+issue管理+通知发布+待办）
@@ -105,7 +105,7 @@ GSM1921-SOP/
 |------|------|------|
 | `index.html` | 入口 | 主页（通知/招募/日历/待办） |
 | `notice.html` | 独立 | 通知独立页 |
-| `help.html` | 独立 | 帮助与探索工作页面（角色体系+发展路径可视化） |
+| `help.html` | 独立 | 系统说明书 |
 | `login.html` | 独立 | 登录页 |
 | `workspace/secretary.html` | 子页面 | 书记工作台（工作台+赋权管理+issue管理+通知发布+待办） |
 | `workspace/leader.html` | 子页面 | 党小组组长工作台（活动写入+考勤上传+考察上传+复盘提交+待办） |
@@ -113,7 +113,7 @@ GSM1921-SOP/
 | `workspace/prop.html` | 子页面 | 宣传委员工作台（宣传任务+项目看板+档案归档+周报报送+待办） |
 | `workspace/disc.html` | 子页面 | 纪检委员工作台（考勤管理+监督复盘+考察管理+补课制度+公邮管理+待办） |
 | `workspace/visitor.html` | 子页面 | 成员只读（活动动态+专班进展+考勤+日历/列表切换+待办） |
-| `about.html` | 独立 | 系统说明书（含三支委党建与党务工作职责矩阵） |
+| `about.html` | 独立 | 支部的故事（角色体系+发展路径可视化） |
 | `archive.html` | 独立 | 归档库 |
 | `search.html` | 独立 | 资料查询 |
 | `feedback.html` | 独立 | 意见反馈 |

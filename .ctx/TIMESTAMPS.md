@@ -171,10 +171,10 @@ last_updated: "2026-08-03"
 |---------|-------------|------|------|
 | docs/index.html | 2026-07-31 | [用户]+[AI] | 首页入口（含日历） |
 | docs/login.html | 2026-07-31 | [用户]+[AI] | 登录页 |
-| docs/about.html | 2026-07-31 | [用户]+[AI] | 关于页 |
+| docs/about.html | 2026-08-03 | [用户]+[AI] | 关于页（支部的故事） |
 | docs/archive.html | 2026-07-31 | [用户]+[AI] | 归档页 |
 | docs/feedback.html | 2026-07-31 | [用户]+[AI] | 反馈页 |
-| docs/help.html | 2026-07-31 | [用户]+[AI] | 帮助页 |
+| docs/help.html | 2026-08-03 | [用户]+[AI] | 帮助页（系统说明书） |
 | docs/notice.html | 2026-07-31 | [用户]+[AI] | 通知页 |
 | docs/search.html | 2026-07-31 | [用户]+[AI] | 搜索页 |
 | docs/workspace/secretary.html | 2026-07-31 | [用户]+[AI] | 书记工作台 |
@@ -230,10 +230,10 @@ last_updated: "2026-08-03"
 |---------|-------------|------|------|
 | docs/src/entries/main-entry.js | 2026-07-31 | [工程师]+[AI] | 首页入口（含日历+通知待办） |
 | docs/src/entries/login-entry.js | 2026-07-31 | [工程师]+[AI] | 登录页入口 |
-| docs/src/entries/about-entry.js | 2026-07-31 | [工程师]+[AI] | 关于页入口 |
+| docs/src/entries/about-entry.js | 2026-08-03 | [工程师]+[AI] | 帮助页入口（系统说明书） |
 | docs/src/entries/archive-entry.js | 2026-07-31 | [工程师]+[AI] | 归档页入口 |
 | docs/src/entries/feedback-entry.js | 2026-07-31 | [工程师]+[AI] | 反馈页入口 |
-| docs/src/entries/help-entry.js | 2026-07-31 | [工程师]+[AI] | 帮助页入口 |
+| docs/src/entries/help-entry.js | 2026-08-03 | [工程师]+[AI] | 关于页入口（支部的故事） |
 | docs/src/entries/notice-entry.js | 2026-07-31 | [工程师]+[AI] | 通知页入口 |
 | docs/src/entries/search-entry.js | 2026-07-31 | [工程师]+[AI] | 搜索页入口 |
 | docs/src/entries/workspace-entry.js | 2026-07-31 | [工程师]+[AI] | 工作台路由入口 |

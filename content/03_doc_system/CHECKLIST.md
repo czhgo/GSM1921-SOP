@@ -2,7 +2,7 @@
 title: "数据同源一致性校验手册"
 type: checklist
 role: "[用户]+[AI]"
-last_updated: "2026-07-31"
+last_updated: "2026-08-03"
 status: active
 related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ---
@@ -68,7 +68,7 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 | workspace/disc.html | 考勤关联活动 | 纪检委员 |
 | workspace/leader.html | 决策树活动写入+日历 | 党小组组长 |
 | workspace/visitor.html | 只读活动查询 | 访客 |
-| about.html | 权限体系说明（谁可创建活动） | 全部 |
+| help.html | 权限体系说明（谁可创建活动） | 全部 |
 
 **同源校验点**：
 
@@ -78,7 +78,7 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 - [ ] 活动状态在各页面中一致：draft/published/ongoing/completed/cancelled
 - [ ] 品牌活动在日历/看板中标有品牌标记（isBrand=true 的活动）
 - [ ] 活动的 organizer 字段（如 p3=王五）在首页和各工作台中一致
-- [ ] about.html 中"创建活动仅限党支书和党小组组长"= auth.js ROLE_PERMISSIONS 中的 create_activity 权限
+- [ ] help.html 中"创建活动仅限党支书和党小组组长"= auth.js ROLE_PERMISSIONS 中的 create_activity 权限
 
 ---
 
