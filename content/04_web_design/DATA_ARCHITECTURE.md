@@ -78,7 +78,7 @@ summary: "系统数据架构设计的单一权威源——涵盖数据模型设�
 | targetDate | string (ISO) | 否 | -- | 目标日期 T-0（兼容旧字段） |
 | attendanceQROwner | `'leader'\|'disc-commissioner'` | 否 | -- | 考勤二维码发布方 |
 | deliverableIds | string[] | 否 | -- | ~~关联交付物 ID 列表~~（已废弃，交付物由 FileSpaceRecord 覆盖） |
-| isBrand | boolean | 否 | `false` | 品牌属性标签（由书记认定，不影响工作流选择）。品牌是活动的属性标签，不改变数据结构和工作流，通过筛选条件展示。品牌认定是直接认定（不是评分算法），流程为：支委/党小组组长识别潜力 → 支委会讨论 → 书记在系统上标记 `isBrand = true`。典型案例：宣讲团（对外输出型，从零搭建、持续壮大、对外展示、可复制推广）；人生回望录（内容生产型，老教授深度访谈、跨学期滚动播出、形成内容资产库）。详见 [insights §5.2](../insights/党支部管理与实务经验沉淀.md)。 |
+| isBrand | boolean | 否 | `false` | 品牌属性标签（由书记认定，不影响工作流选择，仅作筛选展示）。认定流程：支委/党小组组长识别潜力 → 支委会讨论 → 书记标记 `isBrand = true`。认定依据与案例见 [insights §5.2](../insights/党支部管理与实务经验沉淀.md)。 |
 
 **活动状态枚举：**
 
@@ -97,16 +97,15 @@ summary: "系统数据架构设计的单一权威源——涵盖数据模型设�
 
 ```
 ActivityRecord (主记录)
-├── id, name, theme, desc, link, date, type
-├── leaders[], leaderPhotos[]
-├── filledBy, createdAt
+├── id, title, type, date, location
+├── executor, createdBy, createdAt
 └── subRecords[]
     ├── { type: "attendance", items: [...] }    // 考勤子记录
     ├── { type: "materials", items: [...] }      // 材料子记录
     └── { type: "publicity", items: [...] }      // 宣传子记录
 ```
 
-**字段映射说明**：上表中 `name` 对应实现层 ActivityRecord 的 `title`，`filledBy` 对应 `createdBy`/`executor`。此树形结构为概念模型，实现层字段以 2.1 节字段表为准。
+> 此树形结构为概念模型，仅示意主记录与子记录的关联结构，实现层完整字段以 2.1 节字段表为准。
 
 **子记录类型定义：**
 
@@ -123,13 +122,6 @@ ActivityRecord (主记录)
 | **自增表格** | 每种子记录类型支持动态添加行 | UI 层提供行级增删操作，数据层支持 items 数组动态 push/splice |
 | **统一绑定** | 所有子记录通过 `parentId` 绑定到主记录 `id` | 子记录必须包含 `parentId` 字段（对应实现层 `activityId`），查询时按此字段过滤 |
 | **权限继承** | 子记录的操作权限继承自主记录的当前管理者角色 | 子记录不单独设权限，由主记录的 `can()` 结果决定读写权限（见 §2.2 角色权限数据） |
-
-**子记录与现有数据的关系：**
-
-- `attendance` 子记录 → 对应 `mockDB.attendances` 中 `activityId` 匹配的 AttendanceRecord 集合
-- `materials` 子记录 → 对应 `mockDB.fileSpaceRecords` 中 `activityId` 匹配且 category 非 `publicity` 的 FileSpaceRecord 集合
-- `publicity` 子记录 → 对应 `mockDB.fileSpaceRecords` 中 `activityId` 匹配且 category=`publicity` 的 FileSpaceRecord 集合
-- 主记录的 `deliverableIds` 字段已废弃，子记录通过 `activityId` 直接查询
 
 #### 2.1.2 活动分类体系（2026-07-31 重构）
 
@@ -181,8 +173,6 @@ ActivityRecord (主记录)
   carrierOther: null,       // 其他载体（需书记权限）
 }
 ```
-
-**与 §2.1 的关系**：§2.1 定义活动数据结构，本节定义活动分类体系。两者互补，共同构成活动数据的完整定义。
 
 ### 2.2 角色与权限数据
 
@@ -614,8 +604,6 @@ assignedRoles: Array<{
 | `已确认` | 纪检委员确认完成 | 批注中 → 已确认 |
 | `已打回` | 纪检委员打回要求修改 | 批注中 → 已打回 → 已上传（重新提交） |
 
-**流转图**：未提交 → 已上传 → 批注中 → 已确认 / 已打回（→ 已上传）
-
 ### 2.17 写入数据验证设计
 
 > 每条写入操作须在查看端可验证——写入的数据在任何查看点都看不到，则写入失败。
@@ -893,7 +881,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 > **统一全量键架构**：所有业务数据通过单一全量键 `workflowos_branch_db_v1` 持久化，消除双重存储与同步断裂风险。
 
-#### 6.2.1 业务数据全量键
+#### 4.2.1 业务数据全量键
 
 | 键名 | 存储内容 | 格式 | 读写位置 |
 |---|---|---|---|
@@ -922,7 +910,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | `notices` | Notice[] | 通知记录 |
 | `todos` | Todo[] | 待办任务记录（最小三成本原则落地，见 §2.18） |
 
-#### 6.2.2 UI 状态独立键
+#### 4.2.2 UI 状态独立键
 
 > 以下键存储 UI/会话状态，不属于业务数据，保持独立键存储。
 
@@ -1094,32 +1082,4 @@ UI 层零改动。
 | 写操作 | 通过 `persist()` 路由到当前数据源 | 自动路由到 mock/api 适配器 |
 | 初始化 | `init()` 从当前数据源预加载数据 | 页面加载时调用，填充 mockDB 缓存 |
 
-**代码示例**：
-
-```javascript
-// runtime.js 初始化
-import { init, setDataSource } from '../core/data-adapter.js';
-
-// 启动时预加载数据
-await init();
-
-// 切换数据源（接入后端时）
-setDataSource('api', {
-  apiBaseUrl: 'https://计算中心提供的域名/api/v1',
-  authToken: '<JWT Token>',
-});
-```
-
-**优势**：
-
-1. **前端零改动**：所有读操作保持同步，无需改为 async/await
-2. **平滑接入后端**：只需调用 `setDataSource('api', ...)` 即可切换
-3. **数据一致性**：写操作自动路由到当前数据源，避免数据分裂
-
-**适用场景**：
-
-- 前端数据层需要接入后端数据库
-- 需要保持前端代码零改动
-- 需要支持 mock/api 双模式切换
-
-**与 §4.4 的关系**：§4.4 定义 DataAdapter 接口规范，本节定义写穿透缓存模式的具体实现。
+**适用场景**：需要接入后端数据库、支持 mock/api 双模式切换的前端数据层。切换示例见 §4.4.3，接口规范见 §4.4。

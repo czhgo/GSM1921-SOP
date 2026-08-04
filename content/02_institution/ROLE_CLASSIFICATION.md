@@ -248,16 +248,11 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 
 > 本节为角色权限矩阵的权威源，对齐 `docs/src/services/auth.js` 的 ROLE_PERMISSIONS/PROJECT_PERMISSIONS/AUTHORIZE_CHAIN。数据流设计与界面实现路径见 [DATA_ARCHITECTURE.md](../04_web_design/DATA_ARCHITECTURE.md)。
 
-### 9a. 写入型 vs 支撑型角色分类
+### 9a. 活动写入门禁
 
 > 来源：[USAGE_POLICY.md](../03_doc_system/USAGE_POLICY.md) §1.2.5 — 术语权威源。
 
-| 分类 | 定义 | 角色 | 核心特征 |
-|------|------|------|---------|
-| **写入型角色** | 可直接创建活动/专班、分配任务、写入数据 | 党支部书记、党支部副书记、党小组组长、组织委员（专班管理）、组织者（分工记录） | 拥有 `create_activity` 或 `assign_task` 权限 |
-| **支撑型角色** | 为活动和专班运行提供职能保障，不直接写入活动 | 宣传委员、纪检委员 | 通过审核/确认/备案等流程间接参与 |
-
-**写入门禁原则**：只有写入型角色可直接创建/修改活动数据；支撑型角色通过审核、确认、备案等流程间接参与。
+**写入门禁**：仅党支部书记、党支部副书记、党小组组长持有 `create_activity` 权限，可直接创建/修改活动数据（见 §9b 矩阵）；宣传委员、纪检委员不持有该权限，通过审核、确认、备案等流程间接参与。专班创建走 `initiate_taskforce`/`authorize_taskforce` 通道（组织委员持有，见 §9b）。
 
 ### 9b. 常设角色权限矩阵（6 角色 × 16 操作）
 

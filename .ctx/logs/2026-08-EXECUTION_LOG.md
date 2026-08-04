@@ -964,3 +964,29 @@ related_files:
 - ✅ 剩余路径引用均为历史日志/规则说明/已删记录段（D-233 不可变原则），活跃文件零死引用
 
 **沉淀标签**：`[已沉淀: insights 工程演进与设计方法论.md §7.5 仓库卫生]`（既有规则）— 过程性文件清理闭环：git rm 追踪污染 + 删除工作区残留 + 空目录归零 + .gitignore 防再生 + TIMESTAMPS 已删记录 + 引用同步；docs/superpowers/ 已被证明反复积累（3 次清理），列入 .gitignore 阻断
+
+## T205 全仓减量第二波收尾——书记论断范式改革 + 批 2-5 DESIGN_SYSTEM 瘦身（2026-08-04）
+
+**任务**：完成全仓减量第二波收尾两件工作——(1) 书记论断汇编整份文件范式改革（原话作正文 + AI 扩充入引用块）；(2) 批 2-5 DESIGN_SYSTEM.md 语义瘦身。
+
+**范式改革（书记 2026-08-04 裁决，正文形式已写入文件头部 L16）**：
+- **新范式**：书记原话作正文（正常字号），多条原话用无序列表列示（每条带后缀式日期）；AI 扩充内容放入引用块；去"书记原话："标签（"很出戏"）；日期后缀式且"原话"二字不多此一举（直接呈现原文）
+- **改造范围**：SECRETARY_PRONOUNCEMENTS.md 全部 16 条带原话条目——P-045/P-047（第一章）、P-001~P-005/P-043/P-044（第二章）、P-006/P-007（第三章）、P-009/P-011/P-012/P-013（第四/五章）、P-041（第十二章）；P-010 无原话孤立引用块降级为正文
+- **P-007 两条原话**（修正/补充定义）转无序列表；多条原话条目（P-047 8 条、P-002 2 条）此前已完成列表化
+
+**批 2-5 DESIGN_SYSTEM.md 瘦身（书记三项裁决）**：
+- **历史/执行记录归档**：§2.3.2 关键变更说明（v2→v3 角色色系统化色史）、§2.7 T-144 推广轮执行明细（压缩为三条现行规则：主操作回归角色主题色/visitor 金色按钮/语义红保留清单）、§7.2 Glass→Matte 变量迁移对照表——全部迁出至执行日志，文档只留现行规范
+- **§5.4 像素美学原则 → "滚动驱动的场景切换"大原则**：书记裁决像素方向因工具原因放弃（非审美原因），论证细节归档日志；新 §5.4 记录 Exploration 区块设计大原则 = 滚动驱动的场景切换
+- **功能色不一致修正**（书记裁决以落地值为准）：`--functional-success` #10B981→#16A34A、`--functional-warning` #F59E0B→#D97706（与 §2.7 状态色规则、T-144 全局落地一致；#10B981 仍是深度参与者角色色，避免与成功色撞色）
+
+**变更文件（12 个）**：`content/01_strategy/{DEVELOPMENT_PATH,SECRETARY_PRONOUNCEMENTS}.md`、`content/02_institution/{ROLE_CLASSIFICATION}.md`、`content/02_institution/sop/党小组组长工作手册.md`、`content/03_doc_system/{ARCHITECTURE,OPERATIONS_GUIDE,USAGE_POLICY}.md`、`content/04_web_design/{DATA_ARCHITECTURE,DESIGN_SYSTEM,SOP_WEB}.md`、`content/05_ai_coding/KNOWN_PITFALLS.md`、`content/insights/工程演进与设计方法论.md`
+
+**减量核算**（对照 HEAD a5d85af，12 文件合计 Δ −11,128 字符）：
+- SECRETARY_PRONOUNCEMENTS −3,198（28,618→25,420）、DESIGN_SYSTEM −2,948（24,752→21,804）、工程演进与设计方法论 −2,002、DATA_ARCHITECTURE −1,178、OPERATIONS_GUIDE −1,134、DEVELOPMENT_PATH −290、USAGE_POLICY −269、ROLE_CLASSIFICATION −142、KNOWN_PITFALLS −14；SOP_WEB +47（语义改写微增）；ARCHITECTURE/党小组组长工作手册 ±0（计数修正净零）
+
+**验证结果**：
+- ✅ "书记原话"标签条目体零残留（仅文件头部范式说明 + 元数据标注 + P-014 溯源批注 4 处合理保留）
+- ✅ 跨文件引用核验：像素/§5.4/§7.2 无外部活跃引用（外部仅指向 §一/§4.6/§2.3），删除不破坏引用
+- ✅ 字符重计：content/ .md 全量 417,248 + CLAUDE.md 43,827 = 461,075（含本轮减量后的当前状态）
+
+**沉淀标签**：`[已沉淀: SECRETARY_PRONOUNCEMENTS.md 头部"正文形式"条款]`（2026-08-04 新规则）— 书记原话作正文/多条原话无序列表/AI 扩充入引用块/去标签/后缀式日期；`[已沉淀: DESIGN_SYSTEM.md §5.4]` — Exploration 区块大原则 = 滚动驱动的场景切换；`[待沉淀]` — 功能色/状态色以落地值为准，历史执行记录统一归档日志不留在文档（奥卡姆剃刀）

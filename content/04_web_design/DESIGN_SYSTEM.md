@@ -2,7 +2,7 @@
 title: "前端设计系统规范"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-08-03"
+last_updated: "2026-08-04"
 status: active
 ---
 
@@ -115,12 +115,6 @@ status: active
 | `--accent-deep` | `#10B981` | ██ | 深度参与者 | 绿色系 | 项目之手 |
 | `--accent-participant` | `#6B7280` | ██ | 普通参与者 | 灰色系 | 仅出席 |
 
-**关键变更说明**（v2 → v3 角色色系统化）：
-- 党小组组长：`#CE1126`（红）→ `#EA580C`（橙）→ `#65A30D`（石灰绿），进一步与支委暖色系拉开色相距
-- 组织委员：`#CE1126`（红）→ `#8B5CF6`（紫），与党小组组长橙色区分，标识专班招募独特职能
-- 组织者：`#3B82F6`（蓝）→ `#06B6D4`（青），与宣传委员蓝色区分
-- 新增 6 个 CSS 变量：`--accent-leader`、`--accent-org-commissioner`、`--accent-prop-commissioner`、`--accent-disc-commissioner`、`--accent-organizer`、`--accent-participant`
-
 **使用约束**：
 - 角色色条（左侧 4px）使用对应 accent 色
 - `--accent-gold` 用于党徽相关元素（SVG 着色、装饰线）
@@ -147,8 +141,8 @@ status: active
 
 | Token | 色值 | 色块 | 用途 |
 |-------|------|------|------|
-| `--functional-success` | `#10B981` | ██ | 成功/已完成 |
-| `--functional-warning` | `#F59E0B` | ██ | 警告/待处理 |
+| `--functional-success` | `#16A34A` | ██ | 成功/已完成 |
+| `--functional-warning` | `#D97706` | ██ | 警告/待处理 |
 | `--functional-error` | `#EF4444` | ██ | 错误/已逾期 |
 | `--functional-info` | `#3B82F6` | ██ | 信息/提示 |
 
@@ -201,17 +195,9 @@ status: active
 - **金点描边约定**：亮金 `#FFD700` 圆点单独使用对比度不足（约 1.4:1），必须配套 1px 深色描边 `rgba(180,83,9,0.35)`；金底上的文字/数字一律用深金 `#B45309`（`dotBorder`/`text` 字段已内置在 `_ACTIVITY_TYPE_BASE`）。
 - **待办区去红**：待办卡片左缘色条用党徽金 `var(--party-gold)`，"标记完成"用状态绿 `#16A34A`；红色只保留品牌语义（tab 高亮、主按钮、党务标签），避免红色过多、意义不明确。
 
-**推广轮完成（T-144，2026-08-01，书记决策"本轮 5 页全部纳入"）**：
-
-- **暖白底全局统一**：`--surface-page` 全局改为 `#FAFAF5`（styles.css :root），全角色工作台与主目录页共享；visitor 打样期 `body.visitor-page` 作用域覆写已删除（并入全局）。`--neutral-50` 灰阶保持不动（中性色职责）。
-- **装饰红→角色主题色**（红色只保留语义场景，主操作一律回归角色主题色 X）：
-  - 组织委员：专班看板「启动专班」蓝→天蓝 sky 系（X=#0EA5E9）；「上传考察表单」btn-md-red → 内联 accent 三件套（`background:${accentRgba};color:${accent};border:1px solid ${accentBorder}`）。
-  - 宣传委员：宣传任务看板「待启动」列头 `#CE1126` → X 海蓝 `#2563EB`；「接收/提交」「开始归档/确认归档」灰白边框按钮 → X 海蓝系（bg-blue-50/text-blue-600/border-blue-200）。
-  - 党小组组长：「创建活动」「上传考勤表单」「上传考察表单」三处 btn-md-red → 内联 accent 三件套（X=翠绿 `#22C55E`）。
-  - 纪检委员：交接「催促」按钮 btn-action-blue → btn-action-orange（X=深橙 `#C2410C`）。
-- **visitor 待办行动按钮金色**（书记决策"改金色"）：`todo-list.js` `renderTodoList` 新增 `actionBtnStyle` 可选参数（默认角色 accent 实心不变），visitor 传金色系 `background:var(--party-gold);color:#B45309;`；待办详情「处理」按钮同金系。列表 ✓ 快捷完成按钮保持灰色中性（次要操作）。
-- **语义红保留清单**（不改）：超期/过期/打回/删除/必填星号/「必修」标签/解散专班（破坏性操作）等告警与危险语义。
-- **内联三件套规范**：主操作按钮需角色主题色时，优先用 `bootstrapPage` 解构的 `accentRgba/accentBorder` 拼内联样式，避免新增 Tailwind 类变体。
+**主操作回归角色主题色**：红色只保留语义场景（tab 高亮、主按钮、党务标签），主操作按钮一律用角色主题色 X——需角色主题色时优先用 `bootstrapPage` 解构的 `accentRgba/accentBorder` 拼内联样式，避免新增 Tailwind 类变体。
+**visitor 待办行动按钮金色**：`actionBtnStyle` 参数传金色系 `background:var(--party-gold);color:#B45309;`，待办详情「处理」按钮同金系；列表 ✓ 快捷完成按钮保持灰色中性（次要操作）。
+**语义红保留清单**（不改）：超期/过期/打回/删除/必填星号/「必修」标签/解散专班（破坏性操作）等告警与危险语义。
 
 ---
 
@@ -571,29 +557,9 @@ li + li { margin-top: 0.25em; }
 | `transform: translateY(-Npx)` | 上浮效果违反扁平原则 |
 | `linear-gradient()`（按钮/卡片） | 纯色优于渐变 |
 
-### 5.4 Exploration Canvas 像素美学原则
+### 5.4 Exploration 区块设计方向——滚动驱动的场景切换
 
-> 来源：D-222（已修正）+ Exploration Canvas v2 重构 | 适用场景：关于页 Exploration 区块的像素人漫步交互
-
-**核心美学**：像素游戏复古感 + 苹果风现代留白的融合。像素人作为"支部故事"的视觉载体，不是装饰，而是叙事主体。
-
-**五条原则**：
-
-1. **固定视角原则**：保持像素游戏一贯做法，不使用镜头推拉（zoom）。画布显示整个场景，所有角色在画布内活动。镜头推拉会破坏像素游戏的复古感，且与"角色自由漫步"的设计哲学冲突。
-
-2. **6帧行走循环原则**：角色行走动画采用 6 帧循环（Contact/Passing-dn/Passing-up/Contact-opposite/Passing-dn-opposite/Passing-up-opposite）。3 帧走路像溜冰，4 帧是底线，6 帧才能表现"抬起-落地-推蹬"的完整步伐。禁止使用 pogo stick 式整体弹跳（`bob = Math.abs(Math.sin(phase))`）——这不是走路，是弹跳。
-
-3. **空间叙事原则**：多隔间像素背景（会议室/教室/宿舍/图书馆），每个隔间有自己的时间状态（白天/黑夜），不需要同步。隔间之间通过公交车转场。活动故事用"外出参访"作为实例（家→在外→家），专班故事体现"不限时间不限地点"。
-
-4. **对话气泡原则**：像素风对话框（方角黑边框 + 白底 + 像素字体），专门对话台词（不复用 subtitle）。气泡是叙事载体，不是装饰。气泡用简短角色台词，底部字幕用完整描述，两者互补。
-
-5. **生活动作原则**：非交互角色有生活动作（吃饭/睡觉/玩电脑/上课），不是静止等待。角色有"家位置"，beat 空闲时在家位置执行生活动作，beat 触发时中断生活动作走去交互，交互完返回。这体现"角色有自己的生活，beat 只是其中一部分"。
-
-**为什么不是 SVG 连线动画**：v11 的 SVG 连线（stroke-dashoffset / opacity 渐显）已被完全推翻。连线动画是"关系网络"思维，而像素人漫步是"故事"思维——故事需要角色移动、对话、传递物件，不是静态连线。
-
-**为什么不是镜头推拉**：镜头推拉是"电影导演"思维，但像素游戏是"游戏世界"思维。固定视角让玩家（观众）看到整个世界，角色在世界中自由活动，而不是被镜头框住。
-
-**生效条件**：关于页 Exploration 区块及未来扩展的像素游戏场景。
+> 关于页 Exploration 区块的设计大原则（2026-08-04 书记确立）：**滚动驱动的场景切换**。像素人漫步方向已因工具原因放弃（非审美原因），像素美学五原则及历史论证已归档执行日志，不再保留。
 
 ---
 
@@ -671,23 +637,6 @@ li + li { margin-top: 0.25em; }
 | `index.html` | Tailwind 配置 + HTML 结构 | HTML |
 | `content/04_web_design/DESIGN_SYSTEM.md` | 设计系统规范文档（本文件） | Markdown |
 | `CLAUDE.md` §九 | 设计优化项目规划 | Markdown |
-
-### 7.2 CSS 变量迁移对照
-
-| 旧变量（v10.0 Glass） | 新变量（v11.0 Matte） | 说明 |
-|----------------------|----------------------|------|
-| `--party-red-50` ~ `--party-red-900` | `--primary-50` ~ `--primary-900` | 语义化重命名 |
-| `--party-red-gold` | `--accent-gold` | 升级为辅助色系统 |
-| `--color-gray-50` ~ `--color-gray-900` | `--neutral-0` ~ `--neutral-900` | 扩展至 10 阶 |
-| `--theme-leader` | `--primary-500` | 统一主色系 |
-| `--theme-commissioner` | `--accent-amber` | 归入辅助色 |
-| `--theme-organizer` | `--accent-blue` | 归入辅助色 |
-| `--theme-deep` | `--accent-emerald` | 归入辅助色 |
-| `--theme-secretary` | `--accent-secretary` | 归入辅助色 |
-| `--theme-participant` | `--accent-gold` | 归入辅助色 |
-| `--theme-archived` | `--neutral-500` | 归入中性色 |
-| `--glass-blur / --glass-saturate / --glass-opacity / --glass-border / --glass-inset-*` | **已移除** | 玻璃态全部废弃 |
-| `--glass-selected-*` | **已移除** | 改用 surface-active |
 
 ---
 

@@ -228,4 +228,4 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 2. 每次入口脚本版本 bump 时，同步检查该入口的所有组件导入是否已带同一版本参数
 3. 浏览器疑似"旧代码复活"时，先验证磁盘/服务器/提交记录三层再怀疑代码本身——三层无误即锁定缓存因素
 
-**生效条件**：`docs/` 静态部署 + ES module + `?v=` 缓存策略。若改用构建工具 contenthash 输出或 Service Worker 缓存，本条自动失效。与 [insights §6.20 缓存版本链三件套](../insights/工程演进与设计方法论.md)（数据层 localStorage）互补——本条管组件模块层。
+**生效条件**：`docs/` 静态部署 + ES module + `?v=` 缓存策略。若改用构建工具 contenthash 输出或 Service Worker 缓存，本条自动失效。与 [insights §6.9 缓存版本链三件套](../insights/工程演进与设计方法论.md)（数据层 localStorage）互补——本条管组件模块层。

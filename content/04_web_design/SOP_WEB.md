@@ -186,13 +186,11 @@ ViewModeStore.isReadOnly(module)      → boolean
 
 > 来源：[USAGE_POLICY.md](../03_doc_system/USAGE_POLICY.md) §1.2.5 — 术语权威源；[ROLE_CLASSIFICATION.md §九 角色权限矩阵](../02_institution/ROLE_CLASSIFICATION.md) — 权限矩阵权威源（原 PERMISSION_MATRIX.md §一/§四）
 
-**只有写入型角色可直接创建/修改活动数据；支撑型角色通过审核、确认、备案等流程间接参与，不直接写入活动。**
+**仅党支部书记、党支部副书记、党小组组长可直接创建/修改活动数据；宣传委员、纪检委员通过审核、确认、备案等流程间接参与，不直接写入活动。**
 
-- 写入型角色：党支书、党小组组长、组织委员（专班）、组织者（分工记录）
-- 支撑型角色：宣传委员、纪检委员
-- `canWriteActivity(role)` 是写入门禁原则的代码实现——仅 secretary/leader 返回 true
-- 支撑型角色的参与路径：纪检委员确认考勤 → 备案；宣传委员审核素材 → 备案
-- 注：组织委员是写入型角色（专班），不在支撑型路径中。组织委员的"维护人才库"是基于考察信息的信息流处理，不是"归档"原始材料（依据 [党支部管理与实务经验沉淀.md §4.8](../insights/党支部管理与实务经验沉淀.md) 组织委员职责规则）
+- `create_activity` 仅 secretary/deputy-secretary/leader 持有；`canWriteActivity(role)` 是旧实现（@deprecated，判定范围与之相同）
+- 参与路径：纪检委员确认考勤 → 备案；宣传委员审核素材 → 备案
+- 组织委员不持有 `create_activity`，专班创建/管理走 `initiate_taskforce`/`authorize_taskforce` 通道；其"维护人才库"是基于考察信息的信息流处理，不是"归档"原始材料（依据 [党支部管理与实务经验沉淀.md §4.8](../insights/党支部管理与实务经验沉淀.md) 组织委员职责规则）
 
 #### 组织委员「专班协调视图」
 
