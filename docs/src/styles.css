@@ -5623,9 +5623,6 @@ label .text-red-500 {
   padding: clamp(88px, 12vh, 132px) clamp(28px, 7vw, 104px);
   background: var(--ab-paper-0);
 }
-.ab-page:nth-child(even):not(.ab-page--cover):not(.ab-page--closing) {
-  background: var(--ab-paper-1);
-}
 .ab-page--cover,
 .ab-page--closing {
   min-height: 100vh;
@@ -5692,7 +5689,7 @@ label .text-red-500 {
   font-family: var(--ab-display);
   font-size: clamp(44px, 7vw, 84px);
   line-height: 1.14;
-  color: var(--ab-ink);
+  color: var(--ab-red);
   letter-spacing: 0.03em;
   margin-bottom: 26px;
   text-wrap: balance;
@@ -6795,19 +6792,7 @@ label .text-red-500 {
   will-change: transform, filter, opacity;
 }
 
-/* 终章光圈层：深党建红圆形光晕从底部展开（v5 镜头语言，Phase B 由 JS 驱动 clip-path） */
-.ab-iris {
-  position: absolute;
-  inset: 0;
-  background: #7A0010;
-  clip-path: circle(0% at 50% 100%);
-  pointer-events: none;
-  z-index: 0;
-}
-.ab-iris ~ .ab-conclusion-inner,
-.ab-iris ~ canvas {
-  z-index: 1;
-}
+/* v5.1 已移除终章光圈层（书记裁决去掉突变红色，实现不出效果就别实现） */
 
 /* ── 右侧圆点导航（小目录） ── */
 .ab-toc-nav {
@@ -7067,8 +7052,7 @@ label .text-red-500 {
     animation: none !important;
   }
   .ab-tc,
-  .ab-rail,
-  .ab-iris {
+  .ab-rail {
     display: none;
   }
   .ab-about::before {

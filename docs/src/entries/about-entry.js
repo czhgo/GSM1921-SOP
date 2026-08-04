@@ -3,6 +3,9 @@
 // 核心理念：从"关系网络"到"支部的故事"——以党员成长为主线，讲清考察、工作哲学、探索与对话
 // 设计风格：苹果风（纯白 + 大留白 + 大字体 + 微妙动画）
 // 签名元素：【管理事，服务人】收束点题 + Exploration SVG 关系网络
+// v15.1 变更：v5.1 修订（2026-08-04 书记四条指令）——①卡片入场短区间 + power2.out + stagger 0.08 + scrub 可逆（正倒对称、不再快翻走才清晰）
+//   ②修复卡片"黑色"根因：gsap.to filter from 态被解析为 brightness(0) 压暗整章 → 显式 fromTo brightness(1)→0.92 ③背景全页统一
+//   --ab-paper-0（删除 nth-child(even) 深浅交替）④hero 大标题改党建红 ⑤终章去掉突变红色/光圈层，保持暖白 + 党建红大字 + 温和落位驶入
 // v15 变更：v5 电影镜头流落地（2026-08-04 书记批准）——① bindCameraFlow 统一镜头语言（场景后拉/驶入交接 + 胶片时间码 + 进度线）
 //   替换 v4 叠层拆分 ② 终章光圈 clip-path 全屏扩展（修复 end 越界断头，触发器钉页面底部）③ 背景统一 #FAF8F4 系 + 噪点 0.035
 //   ④ 探索区分镜切换（活动退场 + 专班光圈揭示）+ 边描边生长 1.2s + 过去边弱化保留 + 节点行星呼吸 ⑤ 吸附停靠点重新校准至章节头部
@@ -1013,7 +1016,6 @@ function renderConclusion() {
   return `
     <section id="conclusion" class="ab-page ab-page--closing ab-conclusion-section" data-toc-id="conclusion">
       <canvas class="ab-particle-canvas" aria-hidden="true"></canvas>
-      <div class="ab-iris" aria-hidden="true"></div>
       <div class="ab-conclusion-inner">
         <h2 class="ab-conclusion-title">${titleHTML}</h2>
         <p class="ab-conclusion-lead" data-stagger>
@@ -1305,22 +1307,31 @@ function bindPageAnimations() {
       gsap.from(heroSubtitle, { y: 14, autoAlpha: 0, duration: 0.6, delay: 0.2, ease: 'power2.out' });
     }
 
+    // 卡片/内容入场统一参数（v5.1 重参数化——治"翻过去了才显示清楚"与"处处匀速"）：
+    // 区间缩短：章节进入视口后 ~1/3 行程即完成显示（end 卡在章节顶部 30% 视口，不再拖到章节底部）；
+    // ease power2.out 产生"先快后慢"的落定节奏（improve-animations：enter → ease-out）；
+    // stagger 0.08s（30-80ms 错峰）；scrub:true 严格跟手，正放倒放完全对称可逆。
+    const cardEntrance = (targets, section, startVh, endVh, y = 40, stagger = 0.08) => {
+      if (!targets.length) return;
+      gsap.fromTo(targets, { autoAlpha: 0, y }, {
+        autoAlpha: 1, y: 0, stagger, ease: 'power2.out',
+        scrollTrigger: {
+          trigger: section,
+          start: `top ${startVh}%`,
+          end: `top ${endVh}%`,
+          scrub: true,
+          immediateRender: false,
+        },
+      });
+    };
+
     // Cognition —— 章题 + 三卡随滚动错落升起
     const cognitionSection = document.querySelector('.ab-cognition-section');
     if (cognitionSection) {
-      const cognitionEls = cognitionSection.querySelectorAll('.ab-chapter-eyebrow, .ab-chapter-title, .ab-cognition-lead, .ab-cognition-item, .ab-cognition-dialogue');
-      if (cognitionEls.length) {
-        gsap.fromTo(cognitionEls, { autoAlpha: 0, y: 42 }, {
-          autoAlpha: 1, y: 0, stagger: 0.12, ease: 'none',
-          scrollTrigger: {
-            trigger: cognitionSection,
-            start: 'top 82%',
-            end: 'bottom 42%',
-            scrub: 0.4,
-            immediateRender: false,
-          },
-        });
-      }
+      cardEntrance(
+        cognitionSection.querySelectorAll('.ab-chapter-eyebrow, .ab-chapter-title, .ab-cognition-lead, .ab-cognition-item, .ab-cognition-dialogue'),
+        cognitionSection, 80, 30, 40, 0.08
+      );
     }
 
     // Development
@@ -1329,81 +1340,42 @@ function bindPageAnimations() {
     // Philosophy —— 演示式逐段揭示（书记裁决：两卡非并列，先后各一）：标题区先随滚动升起，两卡随后错落
     const philosophySection = document.querySelector('.ab-philosophy-section');
     if (philosophySection) {
-      const phTitle = philosophySection.querySelector('.ab-chapter-title');
-      const phSub = philosophySection.querySelector('.ab-chapter-sub');
-      const oppCards = philosophySection.querySelectorAll('.ab-philosophy-opp');
-      if (phTitle && phSub) {
-        gsap.fromTo([phTitle, phSub], { autoAlpha: 0, y: 36 }, {
-          autoAlpha: 1, y: 0, stagger: 0.12, ease: 'none',
-          scrollTrigger: { trigger: philosophySection, start: 'top 82%', end: 'top 40%', scrub: 0.4, immediateRender: false },
-        });
-      }
-      if (oppCards.length) {
-        gsap.fromTo(oppCards, { autoAlpha: 0, y: 44 }, {
-          autoAlpha: 1, y: 0, stagger: 0.16, ease: 'none',
-          scrollTrigger: { trigger: philosophySection, start: 'top 58%', end: 'bottom 38%', scrub: 0.4, immediateRender: false },
-        });
-      }
+      cardEntrance(
+        philosophySection.querySelectorAll('.ab-chapter-title, .ab-chapter-sub'),
+        philosophySection, 82, 44, 36, 0.08
+      );
+      cardEntrance(
+        philosophySection.querySelectorAll('.ab-philosophy-opp'),
+        philosophySection, 70, 30, 40, 0.08
+      );
     }
     bindPhilosophyExpand();
 
-    // Review —— 卡片随滚动依次升起落位（scrub 位置驱动，告别一次性淡入）
+    // Review —— 卡片随滚动升起落位（scrub 可逆，杜绝一次性）
     const reviewSection = document.querySelector('.ab-review-section');
     if (reviewSection) {
-      const reviewEls = reviewSection.querySelectorAll('.ab-chapter-title, .ab-chapter-sub, .ab-review-card');
-      if (reviewEls.length) {
-        gsap.fromTo(reviewEls, { autoAlpha: 0, y: 46 }, {
-          autoAlpha: 1, y: 0, stagger: 0.14, ease: 'none',
-          scrollTrigger: {
-            trigger: reviewSection,
-            start: 'top 82%',
-            end: 'bottom 42%',
-            scrub: 0.4,
-            immediateRender: false,
-          },
-        });
-      }
+      cardEntrance(
+        reviewSection.querySelectorAll('.ab-chapter-title, .ab-chapter-sub, .ab-review-card'),
+        reviewSection, 80, 30, 42, 0.08
+      );
     }
 
     // Works —— 双列卡片随滚动升起
     const worksSection = document.querySelector('.ab-works-section');
     if (worksSection) {
-      const worksEls = worksSection.querySelectorAll('.ab-chapter-title, .ab-chapter-sub, .ab-works-col');
-      if (worksEls.length) {
-        gsap.fromTo(worksEls, { autoAlpha: 0, y: 46 }, {
-          autoAlpha: 1, y: 0, stagger: 0.14, ease: 'none',
-          scrollTrigger: {
-            trigger: worksSection,
-            start: 'top 82%',
-            end: 'bottom 45%',
-            scrub: 0.4,
-            immediateRender: false,
-          },
-        });
-      }
+      cardEntrance(
+        worksSection.querySelectorAll('.ab-chapter-title, .ab-chapter-sub, .ab-works-col'),
+        worksSection, 80, 30, 42, 0.08
+      );
     }
 
-    // Dialogue —— 四卡交还滚动点亮（data-state 三态），入场只负责标题区与收尾引言
+    // Dialogue —— 标题区 + 收尾引言入场改为 scrub 可逆（正放倒放对称）；四卡本身由 data-state 三态滚动点亮
     const dialogueSection = document.querySelector('.ab-dialogue-section');
     if (dialogueSection) {
-      const dialogueEls = dialogueSection.querySelectorAll('.ab-chapter-eyebrow, .ab-chapter-title, .ab-chapter-sub, .ab-dialogue-coda');
-      if (dialogueEls.length) {
-        gsap.from(dialogueEls, {
-          autoAlpha: 0,
-          y: 36,
-          rotationX: -8,
-          transformPerspective: 900,
-          transformOrigin: '50% 0%',
-          duration: 0.5,
-          stagger: 0.1,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: dialogueSection,
-            start: 'top 80%',
-            once: true,
-          },
-        });
-      }
+      cardEntrance(
+        dialogueSection.querySelectorAll('.ab-chapter-eyebrow, .ab-chapter-title, .ab-chapter-sub, .ab-dialogue-coda'),
+        dialogueSection, 80, 36, 36, 0.08
+      );
     }
 
     // Conclusion —— 入场与全屏扩展统一由 bindCameraFlow 滚动驱动，此处不再单独绑定
@@ -1501,35 +1473,28 @@ function bindDevelopmentEntranceAnimation() {
         next = next.nextElementSibling;
       }
 
-      gsap.from(divider, {
-        autoAlpha: 0,
-        rotationX: -14,
-        scale: 0.92,
-        transformPerspective: 900,
-        transformOrigin: '50% 0%',
-        duration: 0.4,
+      gsap.fromTo(divider, { autoAlpha: 0, y: 24, scale: 0.96 }, {
+        autoAlpha: 1, y: 0, scale: 1,
         ease: 'power2.out',
         scrollTrigger: {
           trigger: divider,
           start: 'top 85%',
-          once: true,
+          end: 'top 45%',
+          scrub: true,
+          immediateRender: false,
         },
       });
 
       if (stageRows.length) {
-        gsap.from(stageRows, {
-          autoAlpha: 0,
-          y: 40,
-          rotationX: -6,
-          transformPerspective: 900,
-          transformOrigin: '50% 0%',
-          duration: 0.5,
-          stagger: 0.12,
-          ease: 'power3.out',
+        gsap.fromTo(stageRows, { autoAlpha: 0, y: 34 }, {
+          autoAlpha: 1, y: 0, stagger: 0.08,
+          ease: 'power2.out',
           scrollTrigger: {
             trigger: divider,
             start: 'top 80%',
-            once: true,
+            end: 'top 40%',
+            scrub: true,
+            immediateRender: false,
           },
         });
       }
@@ -1842,10 +1807,11 @@ function bindHeroExit() {
   }
 }
 
-/** ③④⑤ v5 电影镜头流统一入口——场景连续交接 + 胶片时间码 + 进度线 + 终章光圈全屏扩展
+/** ③④⑤ v5 电影镜头流统一入口——场景连续交接 + 胶片时间码 + 进度线（v5.1：终章去除全屏变红）
  *  替换 v4 的 bindGentleLayerDepth + bindConclusionExpand 拆分逻辑（治"拼贴/粗糙/触发别扭"）：
- *  镜头语言：旧场景整体后拉（scale 0.97 + yPercent −3.5 + brightness 0.92）→ 新场景从下方驶入覆盖，全程无硬切；
- *  终章光圈（clip-path: circle()）从底部展开 + 大字压满全屏 + 泛金，触发器钉在页面底部保证 100% 扩展（修复 v4 断头）。 */
+ *  镜头语言：旧场景整体后拉（scale 0.97 + yPercent −3.5 + brightness 0.92，fromTo 显式 from 态防止压黑）
+ *  → 新场景从下方驶入覆盖，全程无硬切；
+ *  终章 v5.1：去掉突变红/金化（书记裁决"实现不出效果就别实现"），保持暖白 + 党建红大字 + 温和落位驶入。 */
 function bindCameraFlow() {
   // ── A. 镜头连续性：章节场景交接（治"拼贴"） ──
   const pairs = [
@@ -1861,21 +1827,24 @@ function bindCameraFlow() {
     if (!fromEl || !toEl) return;
 
     // 旧场景整体后拉：轻微上移 + 缩小 + 压暗（幅度克制，内容全程可读）
+    // v5.1 修复"卡片黑色"：gsap.to 的 from 态会把 filter 解析为 brightness(0)，
+    // 滚动区间中段整章被压暗至 0.3~0.9 亮度——显式 fromTo brightness(1)→0.92，最小亮度 0.92 全程不黑
     const fromInner = fromEl.querySelector('.ab-chapter');
     if (fromInner) {
-      gsap.to(fromInner, {
-        yPercent: -3.5,
-        scale: 0.97,
-        filter: 'brightness(0.92)',
-        ease: 'none',
-        scrollTrigger: {
-          trigger: toEl,
-          start: 'top 92%',
-          end: 'top 38%',
-          scrub: true,
-          immediateRender: false,
-        },
-      });
+      gsap.fromTo(fromInner,
+        { yPercent: 0, scale: 1, filter: 'brightness(1)' },
+        {
+          yPercent: -3.5, scale: 0.97, filter: 'brightness(0.92)',
+          ease: 'none',
+          scrollTrigger: {
+            trigger: toEl,
+            start: 'top 92%',
+            end: 'top 38%',
+            scrub: true,
+            immediateRender: false,
+          },
+        }
+      );
     }
 
     // 新场景驶入覆盖：章节从下方滑入落位（镜头交接同步发生，无硬切）
@@ -1923,45 +1892,20 @@ function bindCameraFlow() {
   window.addEventListener('scroll', updateFilmGauge, { passive: true });
   window.addEventListener('resize', updateFilmGauge);
 
-  // ── C. 终章光圈全屏扩展（修复 v4 断头：触发器统一 start:'top bottom' / end:'bottom bottom'） ──
+  // ── C. 终章收束（v5.1：去掉突变红色/金化——书记裁决"实现不出效果就别实现"） ──
+  // 保持暖白背景 + 党建红大字，仅保留温和的"镜头落位"驶入（scale 0.86→1 + autoAlpha，scrub 可逆），
+  // 与全页背景统一、与其余章节镜头语言一致，不再做全屏变红。
   const section = document.querySelector('.ab-conclusion-section');
   const inner = document.querySelector('.ab-conclusion-inner');
-  const title = document.querySelector('.ab-conclusion-title');
-  const lead = document.querySelector('.ab-conclusion-lead');
-  const iris = document.querySelector('.ab-iris');
   if (section && inner) {
-    // Phase A：标题从章心放大落位（字距 0.3em→0.08em 收拢，镜头驶入）
     gsap.fromTo(inner,
-      { scale: 0.72, autoAlpha: 0, filter: 'blur(8px)' },
+      { scale: 0.86, autoAlpha: 0 },
       {
-        scale: 1, autoAlpha: 1, filter: 'blur(0px)',
-        ease: 'none',
+        scale: 1, autoAlpha: 1,
+        ease: 'power2.out',
         scrollTrigger: { trigger: section, start: 'top bottom', end: 'center 60%', scrub: true, immediateRender: false },
       }
     );
-    // 标题自身字距收拢（title 自带 letter-spacing，需直接作用于 title 才生效）
-    if (title) {
-      gsap.fromTo(title,
-        { letterSpacing: '0.3em', paddingLeft: '0.3em' },
-        {
-          letterSpacing: '0.08em', paddingLeft: '0.08em',
-          ease: 'none',
-          scrollTrigger: { trigger: section, start: 'top bottom', end: 'center 60%', scrub: true, immediateRender: false },
-        }
-      );
-    }
-
-    // Phase B：光圈展开 + 标题压满全屏 + 文字泛金（end 钉页面底部，滚到底必达 100%）
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: section, start: 'center 70%', end: 'bottom bottom', scrub: true, immediateRender: false,
-      },
-    });
-    tl.to(section, { backgroundColor: '#7A0010', ease: 'none' }, 0)
-      .to(iris, { clipPath: 'circle(150% at 50% 50%)', ease: 'none' }, 0)
-      .to(inner, { scale: 1.45, ease: 'none' }, 0)
-      .to(title, { color: '#D4AF37', ease: 'none' }, 0);
-    if (lead) tl.to(lead, { color: '#E3D5A0', autoAlpha: 0.92, ease: 'none' }, 0);
   }
 
   // 清理：matchMedia revert 时移除滚动监听与挂载的固定元素
@@ -2074,19 +2018,21 @@ function bindExplorationStoryboardSwitch() {
   if (!actNet || !taskNet) return;
 
   // 活动分镜退场：后拉 + 压暗（与全页镜头交接语言一致）
-  gsap.to(actNet, {
-    autoAlpha: 0.55,
-    scale: 0.97,
-    filter: 'brightness(0.9)',
-    ease: 'none',
-    scrollTrigger: {
-      trigger: taskScene,
-      start: 'top 85%',
-      end: 'top 30%',
-      scrub: true,
-      immediateRender: false,
-    },
-  });
+  // v5.1 同步修复：显式 fromTo brightness(1)→0.9，避免 from 态 brightness(0) 将活动网络压黑
+  gsap.fromTo(actNet,
+    { autoAlpha: 1, scale: 1, filter: 'brightness(1)' },
+    {
+      autoAlpha: 0.55, scale: 0.97, filter: 'brightness(0.9)',
+      ease: 'none',
+      scrollTrigger: {
+        trigger: taskScene,
+        start: 'top 85%',
+        end: 'top 30%',
+        scrub: true,
+        immediateRender: false,
+      },
+    }
+  );
 
   // 专班分镜揭示：光圈从中心展开 + 轻微横移落位
   gsap.fromTo(taskNet,
