@@ -5105,6 +5105,149 @@ label .text-red-500 {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   电影化滚动叙事（about 页，2026-08-04 书记批准）
+   四大滚动效果：场景切换 / 滚动吸附 / 叠层转场 / 全屏扩展
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 生成式微光粒子背景（Hero 开场 + 终章）── */
+.help-particle-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.help-hero-section,
+.help-conclusion-section {
+  overflow: hidden;
+}
+
+.help-hero-inner,
+.help-conclusion-inner {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Dialogue 环形四阶段滚动激活态 ── */
+.help-dialogue-card {
+  transition: opacity 0.5s ease, filter 0.5s ease, transform 0.5s ease,
+    box-shadow 0.5s ease, border-color 0.5s ease;
+  will-change: opacity, transform;
+}
+
+.help-dialogue-card[data-state='future'] {
+  opacity: 0.4;
+  filter: saturate(0.35);
+  transform: scale(0.95);
+}
+
+.help-dialogue-card[data-state='past'] {
+  opacity: 0.72;
+  filter: saturate(0.65);
+  transform: scale(0.985);
+}
+
+.help-dialogue-card[data-state='current'] {
+  opacity: 1;
+  border-color: var(--help-party-red);
+  box-shadow: 0 10px 28px rgba(206, 17, 38, 0.12);
+  transform: scale(1.02);
+}
+
+.help-dialogue-card[data-state='current'] .help-dialogue-no {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.7em;
+  height: 1.7em;
+  padding: 0 0.35em;
+  border-radius: 999px;
+  background: var(--help-party-red);
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(206, 17, 38, 0.28);
+}
+
+/* ── Development 时间轴滚动驱动阶段激活 ── */
+.help-development-progress {
+  position: sticky;
+  top: 64px;
+  height: 3px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.help-development-progress-fill {
+  height: 100%;
+  width: 100%;
+  background: var(--help-party-red);
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+.help-tl-stage {
+  transition: color 0.4s ease;
+}
+
+.help-tl-stage.is-active {
+  color: var(--help-party-red);
+}
+
+/* ── 终章封章全屏扩展转场 ── */
+.help-conclusion-seal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(115vw, 115vh);
+  height: min(115vw, 115vh);
+  transform: translate(-50%, -50%) scale(0.12);
+  border-radius: 50%;
+  border: 2px solid var(--help-party-red);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.help-conclusion-seal::before {
+  content: '';
+  position: absolute;
+  inset: 7%;
+  border-radius: 50%;
+  border: 1px dashed rgba(206, 17, 38, 0.5);
+  animation: help-seal-ring-spin 30s linear infinite;
+}
+
+@keyframes help-seal-ring-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ── 滚动叠层转场：覆盖章节顶部柔影，让层叠关系可读 ── */
+.help-development-section,
+.help-review-section,
+.help-works-section,
+.help-exploration-section {
+  box-shadow: 0 -14px 30px -12px rgba(17, 24, 39, 0.12);
+}
+
+/* ── Exploration 行星运动升级：激活节点光晕 ── */
+.help-exploration-network-sticky .help-node-svg[data-role='star'] .help-node-circle,
+.help-exploration-network-sticky .help-node-svg[data-role='planet'] .help-node-circle {
+  filter: drop-shadow(0 0 6px rgba(206, 17, 38, 0.35));
+  animation: help-node-glow 2.4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes help-node-glow {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(206, 17, 38, 0.25)); }
+  50% { filter: drop-shadow(0 0 12px rgba(206, 17, 38, 0.5)); }
+}
+
 /* ── 减少动画偏好（可访问性）── */
 @media (prefers-reduced-motion: reduce) {
   .help-section,
@@ -5113,10 +5256,41 @@ label .text-red-500 {
   .help-dialogue-card,
   .help-philosophy-opp,
   .help-node-svg,
-  .help-edge {
+  .help-edge,
+  .help-conclusion-seal {
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
+  }
+
+  .help-dialogue-card[data-state='future'],
+  .help-dialogue-card[data-state='past'],
+  .help-dialogue-card[data-state='current'] {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+
+  .help-conclusion-seal {
+    transform: translate(-50%, -50%) scale(1) !important;
+  }
+
+  .help-conclusion-seal::before {
+    animation: none !important;
+  }
+
+  .help-particle-canvas {
+    display: none;
+  }
+
+  .help-node-svg[data-role='star'] .help-node-circle,
+  .help-node-svg[data-role='planet'] .help-node-circle {
+    animation: none !important;
+    filter: none !important;
+  }
+
+  .help-development-progress-fill {
+    transform: scaleX(1) !important;
   }
 
   .help-edge--task .help-edge-path,

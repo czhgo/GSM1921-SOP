@@ -1,8 +1,11 @@
 // role: [工程师]+[AI]
-// entries/about-entry.js — 关于页入口 v13（讲我们支部的故事）
+// entries/about-entry.js — 关于页入口 v14（讲我们支部的故事）
 // 核心理念：从"关系网络"到"支部的故事"——以党员成长为主线，讲清考察、工作哲学、探索与对话
 // 设计风格：苹果风（纯白 + 大留白 + 大字体 + 微妙动画）
 // 签名元素：【管理事，服务人】收束点题 + Exploration SVG 关系网络
+// v14 变更：电影化滚动叙事（2026-08-04 书记批准）——①Hero 滚动退场场景切换 ②章节边界 GSAP snap 滚动吸附
+//   ③信息章节 pin + 覆盖滑入叠层转场 ④终章封章全屏扩展转场 + Hero/终章微光粒子（原生 Canvas，党建红金）
+//   Development 滚动驱动进度条+阶段高亮、Dialogue 环形四阶段滚动点亮、Exploration 节点光晕升级；reduced-motion 全面降级
 // v13 变更：Exploration 从 Canvas 像素人动画切换为 SVG 关系网络脉动动画，保留 13 步 Development 时间轴 + GSAP 动画
 // v12 变更：Exploration Canvas v2 重构——全屏沉浸 + 像素人 + 自由漫步 + 镜头推拉 + 脚印粒子 + 物件传递 + 编排式动画 + 滚动控制 + 底部字幕
 // v10 变更：Exploration SVG 活动关系网络重构为 HTML div 节点 + SVG 连线 + 编排式 GSAP timeline（统一调度）替代 scrub 景深动画
@@ -503,6 +506,7 @@ function selfLoopPath(node) {
 function renderHero() {
   return `
     <section id="hero" class="help-section help-hero-section" data-toc-id="hero">
+      <canvas class="help-particle-canvas" aria-hidden="true"></canvas>
       <div class="help-section-inner help-hero-inner">
         <h1 class="help-hero-title">从入党申请人<br/>到正式党员</h1>
         <p class="help-hero-subtitle">光华管理学院本科生党支部</p>
@@ -945,7 +949,7 @@ function renderDialogue() {
   const stepsHTML = DIALOGUE_STAGES.map((s, i) => {
     const pos = `help-dialogue-card--pos${String(i + 1).padStart(2, '0')}`;
     return `
-      <article class="help-dialogue-card ${pos}" data-stagger>
+      <article class="help-dialogue-card ${pos}" data-state="future" data-stagger>
         <div class="help-dialogue-no">${s.no}</div>
         <div class="help-dialogue-phase">${s.phase}</div>
         <div class="help-dialogue-question">${s.question}</div>
@@ -997,6 +1001,8 @@ function renderDialogue() {
 function renderConclusion() {
   return `
     <section id="conclusion" class="help-section help-conclusion-section" data-toc-id="conclusion">
+      <canvas class="help-particle-canvas" aria-hidden="true"></canvas>
+      <div class="help-conclusion-seal" aria-hidden="true"></div>
       <div class="help-section-inner help-conclusion-inner">
         <h2 class="help-conclusion-title">管理事，<br/>服务人</h2>
         <p class="help-conclusion-lead" data-stagger>
@@ -1073,6 +1079,7 @@ function renderDevelopment() {
   return `
     <section id="development" class="help-section help-development-section" data-toc-id="development">
       <div class="help-section-inner">
+        <div class="help-development-progress" aria-hidden="true"><div class="help-development-progress-fill"></div></div>
         <h2 class="help-section-title">从入党申请人到正式党员</h2>
         <p class="help-section-subtitle">依据《中国共产党发展党员工作细则（2026年）》</p>
         <div class="help-timeline-legend">
@@ -1686,6 +1693,282 @@ function bindExplorationScrollDriven() {
 }
 
 // ════════════════════════════════════════════════════════════════
+//  电影化滚动叙事（2026-08-04 书记批准）
+//  ① 滚动驱动的场景切换（Hero 退场 + Dialogue/Exploration 章节点亮）
+//  ② 滚动吸附（章节边界 GSAP snap）
+//  ③ 滚动叠层转场（信息章节 pin + 下一章自然覆盖滑入）
+//  ④ 滚动驱动的全屏扩展转场（终章封章 scale + opacity）
+//  ════════════════════════════════════════════════════════════════
+
+/**
+ * 生成式微光粒子背景（algorithmic-art 风格）
+ * 党建红 #CE1126 / 党徽金 #FFD700 / 微银过渡色；seeded random 恒重现；
+ * 低密度慢速上升、不抢文字；reduced-motion 下不启动（CSS 亦隐藏画布）
+ */
+function initParticleCanvas(canvas, opts = {}) {
+  if (!canvas) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  // mulberry32 seeded RNG —— 同一 seed 产出同一片粒子场
+  let seed = (opts.seed || 20260804) >>> 0;
+  const rand = () => {
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+
+  const PALETTE = [
+    { r: 206, g: 17, b: 38 },   // 党建红
+    { r: 255, g: 215, b: 0 },   // 党徽金
+    { r: 148, g: 163, b: 184 }, // 微银过渡色
+  ];
+  const DENSITY = 24000; // px²/粒子 —— 低密度
+  const SPEED = 0.1;     // 慢速流动
+
+  let W = 0, H = 0;
+  let particles = [];
+  let raf = null;
+  let running = false;
+
+  const spawn = (anywhere) => {
+    const c = PALETTE[Math.floor(rand() * PALETTE.length)];
+    return {
+      x: anywhere ? rand() * W : rand() * W,
+      y: anywhere ? rand() * H : H + 10,
+      r: 0.6 + rand() * 1.8,
+      vx: (rand() - 0.5) * SPEED * 1.2,
+      vy: -(SPEED * (0.5 + rand() * 1.6)),
+      alpha: 0.1 + rand() * 0.26,
+      pulse: rand() * Math.PI * 2,
+      c,
+    };
+  };
+
+  const resize = () => {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    W = canvas.clientWidth;
+    H = canvas.clientHeight;
+    canvas.width = Math.max(1, Math.round(W * dpr));
+    canvas.height = Math.max(1, Math.round(H * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const count = Math.max(8, Math.round((W * H) / DENSITY));
+    particles = Array.from({ length: count }, () => spawn(true));
+  };
+
+  const tick = () => {
+    if (!running) return;
+    ctx.clearRect(0, 0, W, H);
+    for (const p of particles) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.pulse += 0.012;
+      if (p.y < -12) Object.assign(p, spawn(false));
+      if (p.x < -12) p.x = W + 12;
+      if (p.x > W + 12) p.x = -12;
+      const a = p.alpha * (0.72 + 0.28 * Math.sin(p.pulse));
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${p.c.r}, ${p.c.g}, ${p.c.b}, ${a.toFixed(3)})`;
+      ctx.fill();
+    }
+    raf = requestAnimationFrame(tick);
+  };
+
+  const start = () => { if (!running) { running = true; raf = requestAnimationFrame(tick); } };
+  const stop = () => { running = false; if (raf) { cancelAnimationFrame(raf); raf = null; } };
+
+  resize();
+  start();
+
+  // 离屏/切后台暂停，节约资源
+  const io = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) start(); else stop();
+  }, { threshold: 0.01 });
+  io.observe(canvas);
+  document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+  window.addEventListener('resize', resize);
+}
+
+/** ① Hero 滚动退场——随滚动淡出上移，交棒给下一章（场景切换） */
+function bindHeroExit() {
+  const hero = document.querySelector('.help-hero-section');
+  const heroInner = document.querySelector('.help-hero-inner');
+  const scrollHint = document.querySelector('.help-hero-scroll-hint');
+  if (!hero || !heroInner) return;
+
+  gsap.to(heroInner, {
+    yPercent: -16,
+    scale: 0.96,
+    opacity: 0.15,
+    ease: 'none',
+    scrollTrigger: {
+      trigger: hero,
+      start: 'top top',
+      end: 'bottom 25%',
+      scrub: true,
+    },
+  });
+
+  if (scrollHint) {
+    gsap.to(scrollHint, {
+      opacity: 0,
+      y: 10,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: hero,
+        start: 'top 82%',
+        end: 'bottom 96%',
+        scrub: true,
+      },
+    });
+  }
+}
+
+/** ③ 滚动叠层转场——短章节 pin 住，下一章从底部自然覆盖滑入 */
+function bindCinematicLayerTransitions() {
+  const pairs = [
+    ['.help-cognition-section', '.help-development-section'],
+    ['.help-philosophy-section', '.help-review-section'],
+    ['.help-review-section', '.help-works-section'],
+    ['.help-works-section', '.help-exploration-section'],
+  ];
+  pairs.forEach(([fromSel, toSel]) => {
+    const fromEl = document.querySelector(fromSel);
+    const toEl = document.querySelector(toSel);
+    if (!fromEl || !toEl) return;
+    ScrollTrigger.create({
+      trigger: fromEl,
+      start: 'top top',
+      end: '+=100%',
+      pin: fromEl,
+      pinSpacing: true,
+      anticipatePin: 1,
+    });
+  });
+}
+
+/** ② 章节边界滚动吸附（GSAP snap）——Development 长时间轴不吸附，避免打断阅读 */
+function bindSectionSnap() {
+  const sections = gsap.utils.toArray('.help-section')
+    .filter(s => !s.classList.contains('help-development-section'));
+  if (!sections.length) return;
+
+  const snapTriggers = sections.map(s => ScrollTrigger.create({
+    trigger: s,
+    start: 'top top',
+  }));
+
+  ScrollTrigger.create({
+    trigger: document.body,
+    start: 0,
+    end: 'max',
+    snap: {
+      snapTo: (value) => {
+        const max = ScrollTrigger.maxScroll(window) || 1;
+        const scrollY = value * max;
+        let best = snapTriggers[0].start;
+        let bestDist = Infinity;
+        snapTriggers.forEach(t => {
+          const d = Math.abs(t.start - scrollY);
+          if (d < bestDist) { bestDist = d; best = t.start; }
+        });
+        return gsap.utils.clamp(0, 1, best / max);
+      },
+      duration: { min: 0.18, max: 0.5 },
+      ease: 'power1.inOut',
+    },
+  });
+}
+
+/** Development 时间轴滚动驱动：顶部进度条 + 阶段高亮 */
+function bindDevelopmentScrollProgress() {
+  const section = document.querySelector('.help-development-section');
+  const fill = document.querySelector('.help-development-progress-fill');
+  const timeline = document.querySelector('.help-timeline-alternating');
+  if (!section || !timeline) return;
+
+  if (fill) {
+    gsap.to(fill, {
+      scaleX: 1,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: timeline,
+        start: 'top 72px',
+        end: 'bottom 85%',
+        scrub: 0.3,
+      },
+    });
+  }
+
+  section.querySelectorAll('.help-tl-stage').forEach(div => {
+    ScrollTrigger.create({
+      trigger: div,
+      start: 'top 72%',
+      end: 'bottom 28%',
+      onToggle: (self) => div.classList.toggle('is-active', self.isActive),
+    });
+  });
+}
+
+/** Dialogue 环形四阶段滚动驱动：按滚动进度点亮 data-state 三态 */
+function bindDialogueScrollActivation() {
+  const section = document.querySelector('.help-dialogue-section');
+  const cards = section ? section.querySelectorAll('.help-dialogue-card') : [];
+  if (!section || !cards.length) return;
+
+  ScrollTrigger.create({
+    trigger: section,
+    start: 'top 72%',
+    end: 'bottom 55%',
+    onUpdate: (self) => {
+      const idx = Math.min(cards.length - 1, Math.floor(self.progress * cards.length));
+      cards.forEach((c, i) => {
+        c.dataset.state = i < idx ? 'past' : (i === idx ? 'current' : 'future');
+      });
+    },
+  });
+}
+
+/** ④ 终章封章全屏扩展转场——红金圆环随滚动展开（scale + opacity scrub） */
+function bindConclusionSeal() {
+  const section = document.querySelector('.help-conclusion-section');
+  const seal = document.querySelector('.help-conclusion-seal');
+  if (!section || !seal) return;
+
+  gsap.fromTo(seal, { scale: 0.12, opacity: 0 }, {
+    scale: 1,
+    opacity: 1,
+    ease: 'none',
+    scrollTrigger: {
+      trigger: section,
+      start: 'top 85%',
+      end: 'top 25%',
+      scrub: true,
+    },
+  });
+}
+
+/** 电影化滚动叙事统一入口（reduced-motion 下自动全部降级） */
+function bindCinematicScroll() {
+  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+  gsap.registerPlugin(ScrollTrigger);
+
+  const mm = gsap.matchMedia();
+  mm.add('(prefers-reduced-motion: no-preference)', () => {
+    bindHeroExit();
+    bindCinematicLayerTransitions();
+    bindSectionSnap();
+    bindDevelopmentScrollProgress();
+    bindDialogueScrollActivation();
+    bindConclusionSeal();
+    return () => ScrollTrigger.getAll().forEach(t => t.kill());
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
 //  启动
 // ════════════════════════════════════════════════════════════════
 
@@ -1695,3 +1978,5 @@ bindTOC();
 bindPageAnimations();
 bindNetworkHover();
 bindExplorationScrollDriven();
+bindCinematicScroll();
+document.querySelectorAll('.help-particle-canvas').forEach(c => initParticleCanvas(c));

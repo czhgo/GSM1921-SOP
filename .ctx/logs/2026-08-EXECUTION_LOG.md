@@ -1011,3 +1011,28 @@ related_files:
 **变更文件**：`CLAUDE.md`（乙部 T-206/T-207）、`docs/about.html`、`docs/src/entries/about-entry.js`
 **验证结果**：✅ GetDiagnostics 零错误；✅ 浏览器双页渲染正常；✅ 全仓 grep 零残留
 **沉淀标签**：`[待沉淀]` — 页面内容互换后需同步检查容器 ID/函数名/日志标签等内部命名残留，浏览器实测确认渲染；`[已沉淀: KNOWN_PITFALLS §13]` — 入口脚本 `?v=` 修改后需同步 bump 版本参数强制缓存失效
+
+## T207 关于页电影化滚动叙事：四大滚动效果 + 微光粒子（2026-08-04）
+
+**任务**：书记指令——"滚动驱动的场景切换、滚动吸附、滚动叠层转场、滚动驱动的全屏扩展转场……这么多的效果可以应用在 about界面上！！这个是我们在涉及about的时候一个非常重要的美学考量。这个部分允许你适当的fancy!"（指定使用 web-design-guidelines / algorithmic-art / gsap-core 三个 Skill）
+**引用流程**：H1.2 执行 + web-design-guidelines Skill + algorithmic-art Skill + gsap-core Skill + AskUserQuestion 方案批准 + verification-before-completion Skill
+
+- **设计批准（AskUserQuestion）**：
+  - 方案：「认可，全章节实施」——四大滚动效果全章节落地
+  - 粒子：「Hero + 终章加微光粒子」——生成式粒子背景仅加在开场与终章
+  - 约束（web-design-guidelines）：只动 transform/opacity（compositor-friendly）；不 transition: all；reduced-motion 全内容立即可见；粒子 canvas 无 pointer-events
+
+- **四大滚动效果落地映射**：
+  - ① **滚动驱动的场景切换**：Hero 滚动退场（`bindHeroExit` scrub 上移淡出交棒）+ Dialogue 环形四阶段滚动点亮（`bindDialogueScrollActivation` data-state 三态）+ Exploration 行星节点光晕升级（CSS data-role star/planet 呼吸光晕）
+  - ② **滚动吸附**：章节边界 GSAP snap（`bindSectionSnap`，Development 长时间轴不设吸附点避免打断 13 节点阅读）
+  - ③ **滚动叠层转场**：四个短章节 pin + 下一章自然覆盖滑入（`bindCinematicLayerTransitions`：Cognition→Development / Philosophy→Review / Review→Works / Works→Exploration），覆盖章节顶部柔影作层叠可读线索
+  - ④ **滚动驱动的全屏扩展转场**：终章封章（`bindConclusionSeal`）红金圆环 scale+opacity scrub 全屏展开 + 内环虚线旋转装饰
+  - **生成式微光粒子**：`initParticleCanvas` 原生 Canvas（避免 p5.js 额外依赖）+ mulberry32 seeded RNG（同一 seed 恒重现）+ 党建红 #CE1126 / 党徽金 #FFD700 / 微银三色低密度（24000px²/粒子）慢速上升，离屏/切后台自动暂停
+
+- **Development 滚动驱动增强**：顶部粘性进度条（scaleX scrub，transform-only）+ `.help-tl-stage.is-active` 阶段高亮
+
+- **reduced-motion 降级**：`bindCinematicScroll` 仅 no-preference 分支创建 pin/snap/scrub，reduce 下零实例；CSS `@media (prefers-reduced-motion: reduce)` 强制封章 scale(1)/opacity(1)、进度条 scaleX(1)、Dialogue 卡片全显、粒子画布隐藏、节点光晕动画关闭
+
+**变更文件**：`docs/about.html`（版本 bump `?v=v12` + `?v=20260804c`）、`docs/src/entries/about-entry.js`（v14：粒子/四效果/进度条/Dialogue 激活/封章）、`docs/src/styles.css`（电影化滚动叙事样式块 + reduced-motion 补充）
+**验证结果**：✅ GetDiagnostics 零错误；✅ 浏览器实测全通过——控制台零 JS 错误、9 区块全渲染、Hero 粒子 340 光点（红140/金20/灰146）、4 处叠层转场复现、进度条随滚动增长、Dialogue 四卡片依次点亮、封章 0.12→1 全屏展开、snap 章节边界吸附正常、Footer 正常；reduced-motion 因环境无法浏览器级模拟（Playwright/CDP 均不可用），静态路径已逐项核对
+**沉淀标签**：`[待沉淀]` — 滚动叙事四件套（Hero 退场/章节 snap/叠层 pin 覆盖/封章扩展）+ 原生 Canvas seeded 粒子可作为全站电影化滚动范式复用；`[已沉淀: KNOWN_PITFALLS §13]` — 入口 `?v=` 与 CSS `?v=` 需同步 bump
