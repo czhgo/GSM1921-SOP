@@ -997,14 +997,21 @@ function renderDialogue() {
   `;
 }
 
-/** Section 8: 收束——管理事，服务人（极简点题式） */
+/** Section 8: 收束——管理事，服务人（封章压合，标题逐字点亮） */
 function renderConclusion() {
+  const lines = ['管理事，', '服务人'];
+  const titleHTML = lines.map(line =>
+    `<span class="help-conclusion-line">${[...line].map(ch =>
+      `<span class="help-conclusion-char">${ch}</span>`
+    ).join('')}</span>`
+  ).join('');
   return `
     <section id="conclusion" class="help-section help-conclusion-section" data-toc-id="conclusion">
       <canvas class="help-particle-canvas" aria-hidden="true"></canvas>
       <div class="help-conclusion-seal" aria-hidden="true"></div>
+      <div class="help-conclusion-ring2" aria-hidden="true"></div>
       <div class="help-section-inner help-conclusion-inner">
-        <h2 class="help-conclusion-title">管理事，<br/>服务人</h2>
+        <h2 class="help-conclusion-title">${titleHTML}</h2>
         <p class="help-conclusion-lead" data-stagger>
           党建与党务的统一主语，贯穿从入党申请人到正式党员的全路径。
         </p>
@@ -1309,22 +1316,28 @@ function bindPageAnimations() {
     // Development
     bindDevelopmentEntranceAnimation();
 
-    // Philosophy —— 两卡片纵向递进入场（KeyNote 式平滑：先标题副标题，再卡片依次出现）
+    // Philosophy —— 演示式逐段揭示（书记裁决：两卡非并列，先后各一）：先标题副标题，再卡一、卡二
     const philosophySection = document.querySelector('.help-philosophy-section');
     if (philosophySection) {
-      const philosophyEls = philosophySection.querySelectorAll('.help-section-title, .help-section-subtitle, .help-philosophy-opp');
-      if (philosophyEls.length) {
-        gsap.from(philosophyEls, {
-          autoAlpha: 0,
-          y: 40,
-          duration: 0.8,
-          stagger: 0.18,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: philosophySection,
-            start: 'top 80%',
-            once: true,
-          },
+      const phTitle = philosophySection.querySelector('.help-section-title');
+      const phSub = philosophySection.querySelector('.help-section-subtitle');
+      const oppCards = philosophySection.querySelectorAll('.help-philosophy-opp');
+      if (phTitle && phSub) {
+        gsap.from([phTitle, phSub], {
+          autoAlpha: 0, y: 36, duration: 0.8, stagger: 0.12, ease: 'power3.out',
+          scrollTrigger: { trigger: philosophySection, start: 'top 82%', once: true },
+        });
+      }
+      if (oppCards.length) {
+        gsap.from(oppCards[0], {
+          autoAlpha: 0, y: 44, duration: 0.7, ease: 'power3.out',
+          scrollTrigger: { trigger: philosophySection, start: 'top 70%', once: true },
+        });
+      }
+      if (oppCards.length > 1) {
+        gsap.from(oppCards[1], {
+          autoAlpha: 0, y: 44, duration: 0.7, ease: 'power3.out',
+          scrollTrigger: { trigger: philosophySection, start: 'top 45%', once: true },
         });
       }
     }
@@ -1370,10 +1383,10 @@ function bindPageAnimations() {
       }
     }
 
-    // Dialogue
+    // Dialogue —— 四卡交还给环形滚动点亮（data-state 三态），入场只负责标题区与收尾引言
     const dialogueSection = document.querySelector('.help-dialogue-section');
     if (dialogueSection) {
-      const dialogueEls = dialogueSection.querySelectorAll('.help-dialogue-eyebrow, .help-section-title, .help-section-subtitle, .help-dialogue-card, .help-dialogue-coda');
+      const dialogueEls = dialogueSection.querySelectorAll('.help-dialogue-eyebrow, .help-section-title, .help-section-subtitle, .help-dialogue-coda');
       if (dialogueEls.length) {
         gsap.from(dialogueEls, {
           autoAlpha: 0,
@@ -1390,12 +1403,12 @@ function bindPageAnimations() {
       }
     }
 
-    // Conclusion
-    const conclusionSection = document.querySelector('.help-conclusion-section');
-    if (conclusionSection) {
-      gsap.from(conclusionSection.children, {
-        scale: 0.9, opacity: 0, duration: 0.6, stagger: 0.15, ease: 'back.out(1.2)',
-        scrollTrigger: { trigger: '.help-conclusion-section', start: 'top 80%' }
+    // Conclusion —— 封章压合与逐字点亮由 bindConclusionSeal 滚动驱动，此处仅引言淡入
+    const conclusionLead = document.querySelector('.help-conclusion-lead');
+    if (conclusionLead) {
+      gsap.from(conclusionLead, {
+        y: 24, autoAlpha: 0, duration: 0.7, ease: 'power2.out',
+        scrollTrigger: { trigger: '.help-conclusion-section', start: 'top 78%', once: true },
       });
     }
 
@@ -1693,11 +1706,11 @@ function bindExplorationScrollDriven() {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  电影化滚动叙事（2026-08-04 书记批准）
+//  电影化滚动叙事 v2（2026-08-04 书记三轮裁决后重构）
 //  ① 滚动驱动的场景切换（Hero 退场 + Dialogue/Exploration 章节点亮）
-//  ② 滚动吸附（章节边界 GSAP snap）
-//  ③ 滚动叠层转场（信息章节 pin + 下一章自然覆盖滑入）
-//  ④ 滚动驱动的全屏扩展转场（终章封章 scale + opacity）
+//  ② 滚动吸附（仅限 Exploration 探索区场景内——书记裁决：吸附只属于探索区）
+//  ③ 滚动叠层转场（空间叠层：被覆盖章退后压暗 + 覆盖章 3D 升起，演示式逐步揭示）
+//  ④ 滚动驱动的全屏扩展转场（终章封章压合：旋转落章 + 金环压力波 + 六字逐字点亮）
 //  ════════════════════════════════════════════════════════════════
 
 /**
@@ -1827,7 +1840,7 @@ function bindHeroExit() {
   }
 }
 
-/** ③ 滚动叠层转场——短章节 pin 住，下一章从底部自然覆盖滑入 */
+/** ③ 滚动叠层转场——空间叠层：被覆盖章退后压暗（景深），覆盖章 3D 升起落位 */
 function bindCinematicLayerTransitions() {
   const pairs = [
     ['.help-cognition-section', '.help-development-section'],
@@ -1835,50 +1848,103 @@ function bindCinematicLayerTransitions() {
     ['.help-review-section', '.help-works-section'],
     ['.help-works-section', '.help-exploration-section'],
   ];
+  const DUR = '+=115%';
+
   pairs.forEach(([fromSel, toSel]) => {
     const fromEl = document.querySelector(fromSel);
     const toEl = document.querySelector(toSel);
     if (!fromEl || !toEl) return;
+
+    // 叠层锚点：from 章钉住，让 to 章从下层升起覆盖
     ScrollTrigger.create({
       trigger: fromEl,
       start: 'top top',
-      end: '+=100%',
+      end: DUR,
       pin: fromEl,
       pinSpacing: true,
       anticipatePin: 1,
     });
+
+    // 被覆盖章退后：缩小上移 + 压暗，让"下一层"从景深中升起（非平面叠放）
+    const fromInner = fromEl.querySelector('.help-section-inner');
+    if (fromInner) {
+      gsap.to(fromInner, {
+        yPercent: -7,
+        scale: 0.945,
+        filter: 'brightness(0.78)',
+        ease: 'power2.in',
+        scrollTrigger: {
+          trigger: fromEl,
+          start: 'top top',
+          end: DUR,
+          scrub: true,
+        },
+      });
+    }
+
+    // 覆盖章升起：透视微倾 + 轻微缩放 + 光影归位（拒绝纯垂直平移）
+    // immediateRender:false —— from 态只在进入转场区时生效，避免加载期撑高文档 / 横向溢出
+    gsap.fromTo(toEl,
+      {
+        yPercent: 9,
+        rotationX: 6,
+        scale: 0.97,
+        autoAlpha: 0.9,
+        transformPerspective: 1200,
+        transformOrigin: '50% 0%',
+      },
+      {
+        yPercent: 0,
+        rotationX: 0,
+        scale: 1,
+        autoAlpha: 1,
+        ease: 'power2.out',
+        immediateRender: false,
+        scrollTrigger: {
+          trigger: fromEl,
+          start: 'top top',
+          end: DUR,
+          scrub: true,
+        },
+      }
+    );
   });
 }
 
-/** ② 章节边界滚动吸附（GSAP snap）——Development 长时间轴不吸附，避免打断阅读 */
-function bindSectionSnap() {
-  const sections = gsap.utils.toArray('.help-section')
-    .filter(s => !s.classList.contains('help-development-section'));
-  if (!sections.length) return;
+/** ② 滚动吸附——仅限 Exploration 探索区场景内（书记裁决：吸附只属于探索区，全局 snap 破坏 UI 连续性）
+ *  目标点：每张 stage 顶到视口 40%（与左侧 sticky 关系图同屏）；就近吸附、黄金缓动；
+ *  范围止于最后一张 stage，防止吸附越界拦住后续章节 */
+function bindExplorationSceneSnap() {
+  const section = document.querySelector('.help-exploration-section');
+  const stages = gsap.utils.toArray('.help-exploration-stage');
+  if (!section || !stages.length) return;
 
-  const snapTriggers = sections.map(s => ScrollTrigger.create({
-    trigger: s,
-    start: 'top top',
-  }));
+  const getTargets = () => stages.map(st =>
+    st.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.4
+  );
 
   ScrollTrigger.create({
-    trigger: document.body,
-    start: 0,
-    end: 'max',
+    trigger: section,
+    start: 'top top',
+    end: () => {
+      const targets = getTargets();
+      return targets[targets.length - 1] + 1;
+    },
     snap: {
-      snapTo: (value) => {
-        const max = ScrollTrigger.maxScroll(window) || 1;
-        const scrollY = value * max;
-        let best = snapTriggers[0].start;
+      snapTo: (value, self) => {
+        const range = self.end - self.start || 1;
+        const scrollY = self.start + value * range;
+        const targets = getTargets();
+        let best = targets[0];
         let bestDist = Infinity;
-        snapTriggers.forEach(t => {
-          const d = Math.abs(t.start - scrollY);
-          if (d < bestDist) { bestDist = d; best = t.start; }
+        targets.forEach(t => {
+          const d = Math.abs(t - scrollY);
+          if (d < bestDist) { bestDist = d; best = t; }
         });
-        return gsap.utils.clamp(0, 1, best / max);
+        return gsap.utils.clamp(0, 1, (best - self.start) / range);
       },
-      duration: { min: 0.18, max: 0.5 },
-      ease: 'power1.inOut',
+      duration: { min: 0.2, max: 0.55 },
+      ease: 'power2.inOut',
     },
   });
 }
@@ -1932,23 +1998,35 @@ function bindDialogueScrollActivation() {
   });
 }
 
-/** ④ 终章封章全屏扩展转场——红金圆环随滚动展开（scale + opacity scrub） */
+/** ④ 终章封章压合转场——旋转落章（压合感）+ 金环压力波 + 六字逐字 blur→sharp 点亮 */
 function bindConclusionSeal() {
   const section = document.querySelector('.help-conclusion-section');
   const seal = document.querySelector('.help-conclusion-seal');
+  const ring2 = document.querySelector('.help-conclusion-ring2');
+  const chars = section ? section.querySelectorAll('.help-conclusion-char') : [];
   if (!section || !seal) return;
 
-  gsap.fromTo(seal, { scale: 0.12, opacity: 0 }, {
-    scale: 1,
-    opacity: 1,
-    ease: 'none',
-    scrollTrigger: {
-      trigger: section,
-      start: 'top 85%',
-      end: 'top 25%',
-      scrub: true,
-    },
+  const SNAP = { trigger: section, start: 'top 88%', end: 'top 28%', scrub: true };
+
+  // 落章：旋转 -26° → 0 的同时放大到全屏（压合即定格）
+  gsap.fromTo(seal, { scale: 0.1, rotation: -26, opacity: 0 }, {
+    scale: 1, rotation: 0, opacity: 1, ease: 'power2.out', scrollTrigger: SNAP,
   });
+
+  // 金环压力波：从章心向外扩散并消散
+  if (ring2) {
+    gsap.fromTo(ring2, { scale: 0.5, opacity: 0.85 }, {
+      scale: 1.18, opacity: 0, ease: 'power1.out', scrollTrigger: SNAP,
+    });
+  }
+
+  // 六字逐字点亮：随压合进程依次 blur→sharp
+  if (chars.length) {
+    gsap.fromTo(chars, { autoAlpha: 0, y: 12, filter: 'blur(10px)' }, {
+      autoAlpha: 1, y: 0, filter: 'blur(0px)',
+      stagger: 0.13, ease: 'power2.out', scrollTrigger: SNAP,
+    });
+  }
 }
 
 /** 电影化滚动叙事统一入口（reduced-motion 下自动全部降级） */
@@ -1960,7 +2038,7 @@ function bindCinematicScroll() {
   mm.add('(prefers-reduced-motion: no-preference)', () => {
     bindHeroExit();
     bindCinematicLayerTransitions();
-    bindSectionSnap();
+    bindExplorationSceneSnap();
     bindDevelopmentScrollProgress();
     bindDialogueScrollActivation();
     bindConclusionSeal();

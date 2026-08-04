@@ -4897,7 +4897,7 @@ label .text-red-500 {
     height: 6px;
     border-radius: 50%;
     background: #D1D5DB;
-    transition: all 240ms var(--help-ease);
+    transition: background-color 240ms var(--help-ease), transform 240ms var(--help-ease);
   }
 
   .help-toc-dot-item:hover .help-toc-dot-mark {
@@ -4976,7 +4976,7 @@ label .text-red-500 {
   color: var(--help-sub);
   text-decoration: none;
   font-size: 14px;
-  transition: all 220ms var(--help-ease);
+  transition: border-color 220ms var(--help-ease), color 220ms var(--help-ease), transform 220ms var(--help-ease);
 }
 
 .help-back-link:hover {
@@ -5226,6 +5226,30 @@ label .text-red-500 {
   to { transform: rotate(360deg); }
 }
 
+/* ── 封章压合升级：金环压力波 + 标题逐字点亮 ── */
+.help-conclusion-ring2 {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(100vw, 100vh);
+  height: min(100vw, 100vh);
+  transform: translate(-50%, -50%) scale(0.5);
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 215, 0, 0.6);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.help-conclusion-line {
+  display: block;
+}
+
+.help-conclusion-char {
+  display: inline-block;
+  will-change: transform, filter, opacity;
+}
+
 /* ── 滚动叠层转场：覆盖章节顶部柔影，让层叠关系可读 ── */
 .help-development-section,
 .help-review-section,
@@ -5246,6 +5270,113 @@ label .text-red-500 {
 @keyframes help-node-glow {
   0%, 100% { filter: drop-shadow(0 0 4px rgba(206, 17, 38, 0.25)); }
   50% { filter: drop-shadow(0 0 12px rgba(206, 17, 38, 0.5)); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   高端化升级（2026-08-04 书记三轮裁决）
+   氛围背景光晕 / 章节暖色渐变 / 卡片抛光 / 排版精调
+   ═══════════════════════════════════════════════════════════════ */
+
+/* 章节容器隔离：让氛围光晕限定在各章内部，不干扰层叠覆盖 */
+.help-section {
+  isolation: isolate;
+}
+
+/* 氛围背景光：每章柔和红光 + 党徽金微光，提升暖度与景深感（书记：背景颜色一并调整） */
+.help-cognition-section::before,
+.help-development-section::before,
+.help-philosophy-section::before,
+.help-review-section::before,
+.help-works-section::before,
+.help-dialogue-section::before,
+.help-exploration-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(560px 340px at 10% 12%, rgba(206, 17, 38, 0.05), transparent 70%),
+    radial-gradient(520px 320px at 90% 88%, rgba(255, 215, 0, 0.06), transparent 70%);
+}
+
+/* 章节暖色渐变背景：告别纯白，制造呼吸感（保持明亮底色，党建红不变） */
+.help-cognition-section   { background: linear-gradient(180deg, #FFFFFF 0%, #FFFCFC 100%); }
+.help-philosophy-section   { background: linear-gradient(180deg, #FFFCFC 0%, #FFFFFF 100%); }
+.help-dialogue-section     { background: linear-gradient(180deg, #FFFFFF 0%, #FFF9F8 100%); }
+.help-conclusion-section   { background: radial-gradient(900px 600px at 50% 26%, #FFF6F5 0%, #FFFFFF 58%, #FFFDF9 100%); }
+
+/* 卡片抛光：柔和分层投影 + 细腻顶光（高端审美） */
+.help-review-card,
+.help-philosophy-opp,
+.help-dialogue-card,
+.help-exploration-stage {
+  position: relative;
+  box-shadow:
+    0 1px 2px rgba(17, 24, 39, 0.03),
+    0 10px 28px rgba(17, 24, 39, 0.05);
+}
+
+.help-philosophy-opp::after,
+.help-exploration-stage::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* 交互抛光：悬停阴影加深、按下回落、触控优化 */
+.help-review-card:hover {
+  box-shadow:
+    0 2px 4px rgba(17, 24, 39, 0.04),
+    0 16px 40px rgba(17, 24, 39, 0.09);
+}
+
+.help-philosophy-opp:hover {
+  border-color: rgba(206, 17, 38, 0.22);
+  box-shadow:
+    0 2px 4px rgba(17, 24, 39, 0.04),
+    0 16px 40px rgba(17, 24, 39, 0.08);
+}
+
+.help-review-card:active,
+.help-philosophy-opp:active {
+  transition-duration: 120ms;
+  box-shadow:
+    0 1px 2px rgba(17, 24, 39, 0.04),
+    0 6px 18px rgba(17, 24, 39, 0.07);
+}
+
+.help-review-card,
+.help-philosophy-opp,
+.help-dialogue-card {
+  touch-action: manipulation;
+}
+
+/* 排版精调（web-design-guidelines）：标题平衡换行 / 数字等宽 / 字体平滑 */
+.help-section-title,
+.help-hero-title,
+.help-conclusion-title,
+.help-exploration-block-title,
+.help-tl-title {
+  text-wrap: balance;
+}
+
+.help-exploration-stage-no,
+.help-tl-no,
+.help-dialogue-no,
+.help-cognition-item-num {
+  font-variant-numeric: tabular-nums;
+}
+
+#about-content {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ── 减少动画偏好（可访问性）── */
@@ -5277,6 +5408,16 @@ label .text-red-500 {
 
   .help-conclusion-seal::before {
     animation: none !important;
+  }
+
+  .help-conclusion-char {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+
+  .help-conclusion-ring2 {
+    opacity: 0 !important;
   }
 
   .help-particle-canvas {
