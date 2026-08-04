@@ -1055,3 +1055,23 @@ related_files:
 **变更文件**：`docs/about.html`（v13 / 20260804d）、`docs/src/entries/about-entry.js`、`docs/src/styles.css`
 **验证结果**：✅ GetDiagnostics 零错误；✅ 第一轮浏览器实测：静态结构 9 节/7 字/2 场景全对、全局 snap 确认移除（三处滚动停留原位）、探索区吸附生效（差 0-4px）、叠层 3D 转场生效、Dialogue 三态齐全；发现 2 缺陷——探索区 snap 越界吸附把终章滚动吸回 12262（seal 无法触发）+ 初始 3D transform 撑高文档；✅ 第二轮复测 7/7 全通过：bodyH 全程 14923 稳定（±19px）、无横向溢出、终章可达（scrollY=14281=maxScroll、seal scale(1)/opacity(1)、7 字全亮、金环消散）、探索区吸附仍生效、3D 转场回归正常、无滚动漂移
 **沉淀标签**：`[已沉淀: KNOWN_PITFALLS §13 补]` — ScrollTrigger 的 fromTo scrub 默认 immediateRender 会在加载期把 from 态（含 transform）常驻到元素上，视觉包围盒会撑高文档/横向溢出并引发滚动锚定漂移；空间类叠层转场必须 `immediateRender:false`；`[待沉淀]` — 吸附范围应以最后一个吸附目标为界，防止吸附"越界"拦住后续内容
+
+## T207-3 关于页 v3 暖纸印刷叙事册重构——书记"很丑陋"推翻重来（2026-08-04）
+
+**任务**：书记对 v2 下达"很丑陋！！"强令并授权"从头设计排版、动画！！胆大心细！！"，点名 Use Skill: design-with-taste + web-design-guidelines，提议引入【南西油墨宋】提升画面质感；强调"不要自说自话，要 ask user question，细节是魔鬼"。
+
+**引用流程**：design-with-taste Skill（黄金缓动/渐进揭示/Fluidity）+ web-design-guidelines Skill + WebSearch 验证南西油墨宋（OFL 免费商用，思源宋体二次创作，油墨斑驳肌理，专为大字号）+ fontTools 子集化 + AskUserQuestion 四裁决 + browser_use 两轮实测
+
+- **书记方向裁示（AskUserQuestion 四裁决）**：①暖纸印刷风（米白纸底+噪点肌理+墨色标题+党建红点缀）②油墨宋专用于标题/口号引语（小字号会糊）③叙事册风排版（每章一"页"，巨型页码+章节眉线，演示式逐步揭示）④空间纵深+材质动画（3D 推拉/旋转/视差+墨迹/纸张/印章转场，告别垂直上下）
+- **重构落地（about-entry.js + styles.css + about.html）**：
+  - ① **南西油墨宋部署**：40.8MB TTF → fontTools.subset（about 页全部字符约 870）→ 1.19MB woff2（`docs/assets/fonts/nanxi-youmosong-subset.woff2`），`@font-face` + `--ab-display` 字体栈
+  - ② **册页骨架**：8 节全部升级 `.ab-page`（+ 巨型页码 `.ab-page-no` 01-07 + 章节眉线 `.ab-page-runner`）+ `.ab-chapter` 三件套（eyebrow/title/sub）；封面/封章 `.ab-page--cover/--closing`；章节背景交替用 `:not(.ab-page--cover):not(.ab-page--closing)` 排除封面封章
+  - ③ **废弃环形箭头**（书记 dislike 环形箭头）：Dialogue 环形 2x2 + 椭圆环 + 4 箭头全部删除 → 四阶段横向四列卡（phase/question/answer 补样式），保留 data-state 三态滚动点亮
+  - ④ **细节魔鬼修复**：`.ab-about` 类未挂载（JS 只 add `ab-v3`）导致 tokens/噪点肌理/油墨宋全部静默失效 → 修复后字体真实加载；`.ab-about` 与 `.ab-page` 的 `overflow:hidden` 会杀死 sticky 进度条与 ScrollTrigger pin（overflow hidden 祖先成为 scroll container 破坏两者）→ 移除，封面封章裁剪保留自身 overflow
+  - ⑤ **动画空间纵深化**：Hero 纸页 3D 翻起推入（rotationX -14 + translateZ + 视差）+ 章节标题/卡片 rotationX 翻起（transformPerspective 900）+ Development 阶段分隔线 3D 翻起；保留叠层 3D 升起（immediateRender:false）与终章旋转落印
+- **reduced-motion 复核**：新类统一补降级（ab-page/card 强制可见、seal 归位、char 全亮）
+- **命名空间**：about 独立 `.ab-*`（`.help-*` 为 help/about 历史共用，v3 彻底隔离不污染 help 页）
+
+**变更文件**：`docs/about.html`（v14 / 20260804e）、`docs/src/entries/about-entry.js`、`docs/src/styles.css`、`docs/assets/fonts/nanxi-youmosong-subset.woff2`、`.ctx/tools/subset_font.py`
+**验证结果**：✅ GetDiagnostics 零错误；✅ 第一轮浏览器实测 9 节全渲染、无横向滚动、GSAP 无报错、页码眉线齐全；发现 1 关键缺陷——NanxiYoumosong 0 请求（.ab-about 类未挂载）；✅ 第二轮复测：woff2 请求 200 + 噪点 data URI 实际消费，字体/暖纸/肌理全部生效，首屏与前三章渲染无回归；✅ web-design-guidelines 审查：transition:all / outline:none 均在旧全局代码，about 新区块零违规（focus-visible / tabular-nums / text-wrap:balance / reduced-motion / touch-action 全达标）
+**沉淀标签**：`[已沉淀: KNOWN_PITFALLS §14 补]` — CSS 设计 tokens 若挂载在动态注入容器的作用域类下，必须确保 JS 确实加上该类，否则 @font-face/伪元素肌理静默失效（浏览器 0 请求、无报错）；`[已沉淀: KNOWN_PITFALLS §15 补]` — `overflow:hidden` 祖先会杀死 sticky（成为 scroll container）并破坏 ScrollTrigger pin，空间转场容器勿设；封面封章的溢出裁剪应单独设在该页自身

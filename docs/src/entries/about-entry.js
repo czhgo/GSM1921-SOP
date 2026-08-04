@@ -266,7 +266,7 @@ function identifyActiveNodes(stageIndex, network, stages) {
  * 计算当前滚动位置对应的 stage 索引
  */
 function computeScrollProgress(scrollTop, container, stageCount) {
-  const stagesContainer = container.querySelector('.help-exploration-stages');
+  const stagesContainer = container.querySelector('.ab-exploration-stages');
   if (!stagesContainer || stageCount <= 0) {
     return { stageIndex: 0, stageProgress: 0 };
   }
@@ -296,7 +296,7 @@ function renderNetwork(svg, network, currentStageIndex, stages) {
 
   // 1. 更新所有节点
   network.nodes.forEach(node => {
-    const nodeEl = svg.querySelector(`.help-node-svg[data-id="${node.id}"]`);
+    const nodeEl = svg.querySelector(`.ab-node-svg[data-id="${node.id}"]`);
     if (!nodeEl) return;
 
     const isActive = activeNodeIds.has(node.id);
@@ -310,7 +310,7 @@ function renderNetwork(svg, network, currentStageIndex, stages) {
 
     nodeEl.setAttribute('data-role', isStar ? 'star' : (isActive ? 'planet' : 'inactive'));
 
-    const circle = nodeEl.querySelector('.help-node-circle');
+    const circle = nodeEl.querySelector('.ab-node-circle');
     if (circle) {
       const baseRadius = isStar
         ? PLANETARY_CONFIG.starRadius
@@ -321,10 +321,10 @@ function renderNetwork(svg, network, currentStageIndex, stages) {
 
   // 2. 更新所有边
   network.edges.forEach(edge => {
-    const edgeEl = svg.querySelector(`.help-edge[data-from="${edge.from}"][data-to="${edge.to}"]`);
+    const edgeEl = svg.querySelector(`.ab-edge[data-from="${edge.from}"][data-to="${edge.to}"]`);
     if (!edgeEl) return;
 
-    const pathEl = edgeEl.querySelector('.help-edge-path');
+    const pathEl = edgeEl.querySelector('.ab-edge-path');
     if (!pathEl) return;
 
     const fromNode = network.nodes.find(n => n.id === edge.from);
@@ -356,7 +356,7 @@ function renderNetwork(svg, network, currentStageIndex, stages) {
       pathEl.style.strokeDashoffset = isActive ? '0' : `${totalLength}`;
     }
 
-    const arrowEl = edgeEl.querySelector('.help-edge-arrow');
+    const arrowEl = edgeEl.querySelector('.ab-edge-arrow');
     if (arrowEl) {
       const angle = Math.atan2(toNode.y - fromNode.y, toNode.x - fromNode.x) * 180 / Math.PI;
       arrowEl.setAttribute('transform', `translate(${toNode.x},${toNode.y}) rotate(${angle})`);
@@ -505,15 +505,15 @@ function selfLoopPath(node) {
 /** Section 1: Hero — 从入党申请人到正式党员（成长路径开篇） */
 function renderHero() {
   return `
-    <section id="hero" class="help-section help-hero-section" data-toc-id="hero">
-      <canvas class="help-particle-canvas" aria-hidden="true"></canvas>
-      <div class="help-section-inner help-hero-inner">
-        <h1 class="help-hero-title">从入党申请人<br/>到正式党员</h1>
-        <p class="help-hero-subtitle">光华管理学院本科生党支部</p>
-        <div class="help-hero-accent-line"></div>
-        <div class="help-hero-scroll-hint" aria-hidden="true">
-          <span class="help-scroll-text">向下滚动</span>
-          ${icon('scrollDown', { width: 20, height: 28, viewBox: '0 0 20 28', className: 'help-scroll-arrow' })}
+    <section id="hero" class="ab-page ab-page--cover ab-hero-section" data-toc-id="hero">
+      <canvas class="ab-particle-canvas" aria-hidden="true"></canvas>
+      <div class="ab-hero-inner">
+        <h1 class="ab-hero-title">从入党申请人<br/>到正式党员</h1>
+        <p class="ab-hero-subtitle">光华管理学院本科生党支部</p>
+        <div class="ab-hero-rule"></div>
+        <div class="ab-hero-scroll-hint" aria-hidden="true">
+          <span class="ab-scroll-text">向下滚动</span>
+          ${icon('scrollDown', { width: 20, height: 28, viewBox: '0 0 20 28', className: 'ab-scroll-arrow' })}
         </div>
       </div>
     </section>
@@ -523,23 +523,26 @@ function renderHero() {
 /** Section 2: 考察积极分子（三维度卡片，党建贡献高亮） */
 function renderReview() {
   const cards = REVIEW_DIMENSIONS.map(d => `
-    <div class="help-review-card ${d.highlight ? 'help-review-card--highlight' : ''}" data-stagger tabindex="0" role="button" aria-label="${d.name}：${d.tag}">
-      <div class="help-review-card-head">
-        <span class="help-review-card-name">${d.name}</span>
-        ${d.highlight ? '<span class="help-review-card-badge">核心</span>' : ''}
+    <div class="ab-review-card ${d.highlight ? 'ab-review-card--highlight' : ''}" data-stagger tabindex="0" role="button" aria-label="${d.name}：${d.tag}">
+      <div class="ab-review-card-head">
+        <span class="ab-review-card-name">${d.name}</span>
+        ${d.highlight ? '<span class="ab-review-card-badge">核心</span>' : ''}
       </div>
-      <div class="help-review-card-tag">${d.tag}</div>
-      <div class="help-review-card-desc">${d.desc}</div>
+      <div class="ab-review-card-tag">${d.tag}</div>
+      <div class="ab-review-card-desc">${d.desc}</div>
     </div>
   `).join('');
 
   return `
-    <section id="review" class="help-section help-review-section" data-toc-id="review">
-      <div class="help-section-inner">
-        <h2 class="help-section-title">我们怎么考察积极分子？</h2>
-        <p class="help-section-subtitle">三项考察内容——党课、贡献、评价，其中党建贡献特别看重原创性</p>
-        <div class="help-review-grid">${cards}</div>
-        <div class="help-review-footer">什么是党建贡献？→ 我们支部有一套工作架构</div>
+    <section id="review" class="ab-page ab-review-section" data-toc-id="review">
+      <span class="ab-page-no">04</span>
+      <span class="ab-page-runner">第四章 · 考察积极分子</span>
+      <div class="ab-chapter">
+        <div class="ab-chapter-eyebrow">考察维度</div>
+        <h2 class="ab-chapter-title">我们怎么考察积极分子？</h2>
+        <p class="ab-chapter-sub">三项考察内容——党课、贡献、评价，其中党建贡献特别看重原创性</p>
+        <div class="ab-review-grid">${cards}</div>
+        <div class="ab-review-footer">什么是党建贡献？→ 我们支部有一套工作架构</div>
       </div>
     </section>
   `;
@@ -582,33 +585,36 @@ function renderPhilosophy() {
 
   const cards = opportunities.map(opp => {
     const pointsHTML = opp.points.map(p => `
-      <div class="help-philosophy-opp-point">
-        <span class="help-philosophy-opp-point-label">${p.label}</span>
-        <span class="help-philosophy-opp-point-desc">${p.desc}</span>
+      <div class="ab-philosophy-opp-point">
+        <span class="ab-philosophy-opp-point-label">${p.label}</span>
+        <span class="ab-philosophy-opp-point-desc">${p.desc}</span>
       </div>
     `).join('');
 
     return `
-      <article class="help-philosophy-opp" data-stagger tabindex="0" role="button" aria-expanded="false" aria-label="${opp.no}：点击查看书记原话全文">
-        <div class="help-philosophy-opp-no">${opp.no}</div>
-        <h3 class="help-philosophy-opp-title">${opp.title}</h3>
-        <blockquote class="help-philosophy-opp-quote" data-brief="${encodeURIComponent(opp.quote)}" data-full="${encodeURIComponent(opp.fullQuote)}">
+      <article class="ab-philosophy-opp" data-stagger tabindex="0" role="button" aria-expanded="false" aria-label="${opp.no}：点击查看书记原话全文">
+        <div class="ab-philosophy-opp-no">${opp.no}</div>
+        <h3 class="ab-philosophy-opp-title">${opp.title}</h3>
+        <blockquote class="ab-philosophy-opp-quote" data-brief="${encodeURIComponent(opp.quote)}" data-full="${encodeURIComponent(opp.fullQuote)}">
           ${opp.quote}
         </blockquote>
-        <div class="help-philosophy-opp-points">${pointsHTML}</div>
-        <p class="help-philosophy-opp-insight">${opp.insight}</p>
+        <div class="ab-philosophy-opp-points">${pointsHTML}</div>
+        <p class="ab-philosophy-opp-insight">${opp.insight}</p>
       </article>
     `;
   }).join('');
 
   return `
-    <section id="philosophy" class="help-section help-philosophy-section" data-toc-id="philosophy">
-      <div class="help-section-inner help-philosophy-inner">
-        <h2 class="help-section-title">两条宝贵机会</h2>
-        <p class="help-section-subtitle" data-stagger>
+    <section id="philosophy" class="ab-page ab-philosophy-section" data-toc-id="philosophy">
+      <span class="ab-page-no">03</span>
+      <span class="ab-page-runner">第三章 · 宝贵机会</span>
+      <div class="ab-chapter ab-philosophy-inner">
+        <div class="ab-chapter-eyebrow">宝贵机会</div>
+        <h2 class="ab-chapter-title">两条宝贵机会</h2>
+        <p class="ab-chapter-sub" data-stagger>
           爱具体的组织——光华管理学院本科生党支部提供两条难得的成长机会。
         </p>
-        <div class="help-philosophy-opportunities">${cards}</div>
+        <div class="ab-philosophy-opportunities">${cards}</div>
       </div>
     </section>
   `;
@@ -642,31 +648,33 @@ function renderCognition() {
   ];
 
   const cards = stages.map(s => `
-    <article class="help-cognition-item" data-stagger>
-      <div class="help-cognition-item-num">${s.num}</div>
-      <h3 class="help-cognition-item-title">${s.title}</h3>
-      <p class="help-cognition-item-sub">${s.direction}</p>
-      <div class="help-cognition-item-body">
-        <p class="help-cognition-item-truth">${s.body}</p>
+    <article class="ab-cognition-item" data-stagger>
+      <div class="ab-cognition-item-num">${s.num}</div>
+      <h3 class="ab-cognition-item-title">${s.title}</h3>
+      <p class="ab-cognition-item-sub">${s.direction}</p>
+      <div class="ab-cognition-item-body">
+        <p class="ab-cognition-item-truth">${s.body}</p>
       </div>
     </article>
   `).join('');
 
   return `
-    <section id="cognition" class="help-section help-cognition-section" data-toc-id="cognition">
-      <div class="help-section-inner help-cognition-inner">
-        <div class="help-cognition-eyebrow">"组织性"的展开</div>
-        <h2 class="help-cognition-title">"组织性"的展开</h2>
+    <section id="cognition" class="ab-page ab-cognition-section" data-toc-id="cognition">
+      <span class="ab-page-no">01</span>
+      <span class="ab-page-runner">第一章 · 组织性</span>
+      <div class="ab-chapter ab-cognition-inner">
+        <div class="ab-chapter-eyebrow">"组织性"的展开</div>
+        <h2 class="ab-chapter-title">"组织性"的展开</h2>
 
-        <div class="help-cognition-lead" data-stagger>
+        <div class="ab-cognition-lead" data-stagger>
           <p>从入党申请人到党员，组织性是贯穿始终的成长途径。</p>
         </div>
 
-        <div class="help-cognition-grid">${cards}</div>
+        <div class="ab-cognition-grid">${cards}</div>
 
-        <div class="help-cognition-dialogue" data-stagger>
-          <div class="help-cognition-dialogue-label">核心命题</div>
-          <blockquote class="help-cognition-dialogue-quote">
+        <div class="ab-cognition-dialogue" data-stagger>
+          <div class="ab-cognition-dialogue-label">核心命题</div>
+          <blockquote class="ab-cognition-dialogue-quote">
             爱具体的人而不是爱抽象的人，爱具体的组织而不是爱抽象的组织。
           </blockquote>
         </div>
@@ -681,28 +689,31 @@ function renderTwoWorks() {
     const examples = w.examples.map(e => `<li>${e}</li>`).join('');
     const features = w.features.map(f => `<li>${f}</li>`).join('');
     return `
-      <div class="help-works-col help-works-col--${w.tone}" data-stagger>
-        <span class="help-works-tag help-works-tag--${w.tone}">${w.tag}</span>
-        <h3 class="help-works-col-title">${w.label}</h3>
-        <p class="help-works-col-summary">${w.desc}</p>
-        <div class="help-works-block">
-          <div class="help-works-block-label">例子</div>
-          <ul class="help-works-list">${examples}</ul>
+      <div class="ab-works-col ab-works-col--${w.tone}" data-stagger>
+        <span class="ab-works-tag ab-works-tag--${w.tone}">${w.tag}</span>
+        <h3 class="ab-works-col-title">${w.label}</h3>
+        <p class="ab-works-col-summary">${w.desc}</p>
+        <div class="ab-works-block">
+          <div class="ab-works-block-label">例子</div>
+          <ul class="ab-works-list">${examples}</ul>
         </div>
-        <div class="help-works-block">
-          <div class="help-works-block-label">特点</div>
-          <ul class="help-works-list">${features}</ul>
+        <div class="ab-works-block">
+          <div class="ab-works-block-label">特点</div>
+          <ul class="ab-works-list">${features}</ul>
         </div>
       </div>
     `;
   }).join('');
 
   return `
-    <section id="works" class="help-section help-works-section" data-toc-id="works">
-      <div class="help-section-inner">
-        <h2 class="help-section-title">我们面对两种工作</h2>
-        <p class="help-section-subtitle">一种是接续发力，一种是试错创造——探索工作是人人都参与的场域，包括积极分子</p>
-        <div class="help-works-grid">${cols}</div>
+    <section id="works" class="ab-page ab-works-section" data-toc-id="works">
+      <span class="ab-page-no">05</span>
+      <span class="ab-page-runner">第五章 · 两种工作</span>
+      <div class="ab-chapter">
+        <div class="ab-chapter-eyebrow">两种工作</div>
+        <h2 class="ab-chapter-title">我们面对两种工作</h2>
+        <p class="ab-chapter-sub">一种是接续发力，一种是试错创造——探索工作是人人都参与的场域，包括积极分子</p>
+        <div class="ab-works-grid">${cols}</div>
       </div>
     </section>
   `;
@@ -710,10 +721,10 @@ function renderTwoWorks() {
 
 /** 通用 SVG 关系网络渲染（支持自循环边、domain 标签、callouts、inline 内嵌模式） */
 function renderNetworkSVG(network, opts) {
-  const { sectionId, sectionClass, title, subtitle, modifier = '', callouts = [], domain = '', inline = false } = opts;
+  const { sectionId, sectionClass, title, subtitle, modifier = '', callouts = [], domain = '', inline = false, pageNo = '', runner = '', eyebrow = '' } = opts;
 
   const svg = svgEl('svg', {
-    class: 'help-network-svg',
+    class: 'ab-network-svg',
     viewBox: network.viewBox,
     preserveAspectRatio: 'xMidYMid meet',
     'aria-label': title || sectionClass,
@@ -724,7 +735,7 @@ function renderNetworkSVG(network, opts) {
   network.nodes.forEach(n => { nodeMap[n.id] = n; });
 
   // 连线层（底层）
-  const edgesG = svgEl('g', { class: 'help-edges' });
+  const edgesG = svgEl('g', { class: 'ab-edges' });
   network.edges.forEach((edge, i) => {
     const from = nodeMap[edge.from];
     const to = nodeMap[edge.to];
@@ -737,10 +748,10 @@ function renderNetworkSVG(network, opts) {
     const path = isSelf ? selfLoopPath(from) : edgePath(from, to, 42, labelT, curve);
     const { d, mx, my } = path;
 
-    const g = svgEl('g', { class: `help-edge help-edge--${edge.type}${isSelf ? ' help-edge--self' : ''}`, 'data-from': edge.from, 'data-to': edge.to, 'data-stagger': '', 'data-stagger-delay': (network.nodes.length + i) * 120, ...(edge.stage !== undefined ? { 'data-stage': edge.stage } : {}), ...(inline ? { 'data-role': 'planet' } : {}), ...(edge.detail ? { 'data-detail': edge.detail, 'data-label': edge.label || '' } : {}) });
+    const g = svgEl('g', { class: `ab-edge ab-edge--${edge.type}${isSelf ? ' ab-edge--self' : ''}`, 'data-from': edge.from, 'data-to': edge.to, 'data-stagger': '', 'data-stagger-delay': (network.nodes.length + i) * 120, ...(edge.stage !== undefined ? { 'data-stage': edge.stage } : {}), ...(inline ? { 'data-role': 'planet' } : {}), ...(edge.detail ? { 'data-detail': edge.detail, 'data-label': edge.label || '' } : {}) });
 
     const pathEl = svgEl('path', {
-      class: 'help-edge-path',
+      class: 'ab-edge-path',
       d,
     });
     g.appendChild(pathEl);
@@ -752,7 +763,7 @@ function renderNetworkSVG(network, opts) {
       const arrowEl = svgEl('path', {
         d: 'M -8 -4 L 0 0 L -8 4 z',
         fill: arrowFill,
-        class: 'help-edge-arrow',
+        class: 'ab-edge-arrow',
         transform: `translate(${path.x2},${path.y2}) rotate(${angle})`,
         opacity: '0',
       });
@@ -762,7 +773,7 @@ function renderNetworkSVG(network, opts) {
         const reverseArrowEl = svgEl('path', {
           d: 'M -8 -4 L 0 0 L -8 4 z',
           fill: arrowFill,
-          class: 'help-edge-arrow',
+          class: 'ab-edge-arrow',
           transform: `translate(${path.x1},${path.y1}) rotate(${angle + 180})`,
           opacity: '0',
         });
@@ -773,19 +784,19 @@ function renderNetworkSVG(network, opts) {
     // 协作线两端圆点
     if (edge.type === 'collab' && !isSelf) {
       const dotR = 3;
-      g.appendChild(svgEl('circle', { cx: path.x1, cy: path.y1, r: dotR, fill: '#9CA3AF', class: 'help-edge-dot', opacity: '0' }));
-      g.appendChild(svgEl('circle', { cx: path.x2, cy: path.y2, r: dotR, fill: '#9CA3AF', class: 'help-edge-dot', opacity: '0' }));
+      g.appendChild(svgEl('circle', { cx: path.x1, cy: path.y1, r: dotR, fill: '#9CA3AF', class: 'ab-edge-dot', opacity: '0' }));
+      g.appendChild(svgEl('circle', { cx: path.x2, cy: path.y2, r: dotR, fill: '#9CA3AF', class: 'ab-edge-dot', opacity: '0' }));
     }
 
     // 标签
     if (edge.label) {
       const labelDx = edge.labelDx || 0;
       const labelDy = edge.labelDy || 0;
-      const labelG = svgEl('g', { class: 'help-edge-label', transform: `translate(${mx + labelDx},${my + labelDy})` });
+      const labelG = svgEl('g', { class: 'ab-edge-label', transform: `translate(${mx + labelDx},${my + labelDy})` });
       const labelWidth = Math.max(36, edge.label.length * 13 + 12);
       const labelHeight = 20;
       const labelBg = svgEl('rect', {
-        class: 'help-edge-label-bg',
+        class: 'ab-edge-label-bg',
         x: -labelWidth / 2,
         y: -labelHeight / 2,
         width: labelWidth,
@@ -793,7 +804,7 @@ function renderNetworkSVG(network, opts) {
         rx: 6,
       });
       labelG.appendChild(labelBg);
-      const labelText = svgEl('text', { class: 'help-edge-label-text', 'text-anchor': isSelf ? 'start' : 'middle', 'dominant-baseline': 'middle', x: isSelf ? 4 : 0, y: 1 });
+      const labelText = svgEl('text', { class: 'ab-edge-label-text', 'text-anchor': isSelf ? 'start' : 'middle', 'dominant-baseline': 'middle', x: isSelf ? 4 : 0, y: 1 });
       labelText.textContent = edge.label;
       labelG.appendChild(labelText);
       g.appendChild(labelG);
@@ -804,21 +815,21 @@ function renderNetworkSVG(network, opts) {
   svg.appendChild(edgesG);
 
   // 节点层（顶层）
-  const nodesG = svgEl('g', { class: 'help-nodes' });
+  const nodesG = svgEl('g', { class: 'ab-nodes' });
   network.nodes.forEach((node, i) => {
-    const g = svgEl('g', { class: 'help-node-svg', 'data-id': node.id, 'data-stagger': '', 'data-stagger-delay': i * 120, ...(node.stage !== undefined ? { 'data-stage': node.stage } : {}), ...(inline ? { 'data-role': 'planet' } : {}), transform: `translate(${node.x},${node.y})`, tabindex: '0', role: 'button', 'aria-label': `${node.name}：${node.duty}` });
+    const g = svgEl('g', { class: 'ab-node-svg', 'data-id': node.id, 'data-stagger': '', 'data-stagger-delay': i * 120, ...(node.stage !== undefined ? { 'data-stage': node.stage } : {}), ...(inline ? { 'data-role': 'planet' } : {}), transform: `translate(${node.x},${node.y})`, tabindex: '0', role: 'button', 'aria-label': `${node.name}：${node.duty}` });
 
-    const circle = svgEl('circle', { class: 'help-node-circle', r: '40', fill: node.color });
+    const circle = svgEl('circle', { class: 'ab-node-circle', r: '40', fill: node.color });
     g.appendChild(circle);
 
-    const ring = svgEl('circle', { class: 'help-node-ring', r: '44', fill: 'none', stroke: node.color, 'stroke-width': '1.5', opacity: '0.25' });
+    const ring = svgEl('circle', { class: 'ab-node-ring', r: '44', fill: 'none', stroke: node.color, 'stroke-width': '1.5', opacity: '0.25' });
     g.appendChild(ring);
 
-    const text = svgEl('text', { class: 'help-node-text', 'text-anchor': 'middle', 'dominant-baseline': 'middle', x: 0, y: 0, fill: '#FFFFFF' });
+    const text = svgEl('text', { class: 'ab-node-text', 'text-anchor': 'middle', 'dominant-baseline': 'middle', x: 0, y: 0, fill: '#FFFFFF' });
     text.textContent = node.name;
     g.appendChild(text);
 
-    const duty = svgEl('text', { class: 'help-node-duty', 'text-anchor': 'middle', 'dominant-baseline': 'middle', x: 0, y: 58, fill: '#6B7280' });
+    const duty = svgEl('text', { class: 'ab-node-duty', 'text-anchor': 'middle', 'dominant-baseline': 'middle', x: 0, y: 58, fill: '#6B7280' });
     duty.textContent = node.duty;
     g.appendChild(duty);
 
@@ -828,12 +839,12 @@ function renderNetworkSVG(network, opts) {
 
   // domain 标签
   const domainHTML = domain
-    ? `<span class="help-section-domain help-section-domain--${domain}">${domain === 'building' ? '党建工作' : '党务工作'}</span>`
+    ? `<span class="ab-section-domain ab-section-domain--${domain}">${domain === 'building' ? '党建工作' : '党务工作'}</span>`
     : '';
 
   // callouts 列表
   const calloutsHTML = callouts && callouts.length
-    ? `<ul class="help-callout-list">${callouts.map(c => `<li>${c}</li>`).join('')}</ul>`
+    ? `<ul class="ab-callout-list">${callouts.map(c => `<li>${c}</li>`).join('')}</ul>`
     : '';
 
   // 序列化 SVG
@@ -841,31 +852,34 @@ function renderNetworkSVG(network, opts) {
 
   // wrap 内容
   const wrapContent = `
-    <div class="help-network-legend">
-      <span class="help-legend-item"><span class="help-legend-line help-legend-line--task"></span>派活交付（实线·有方向）</span>
-      <span class="help-legend-item"><span class="help-legend-line help-legend-line--info"></span>报备告知（虚线·有方向）</span>
-      <span class="help-legend-item"><span class="help-legend-line help-legend-line--collab"></span>横向配合（点线·无方向）</span>
+    <div class="ab-network-legend">
+      <span class="ab-legend-item"><span class="ab-legend-line ab-legend-line--task"></span>派活交付（实线·有方向）</span>
+      <span class="ab-legend-item"><span class="ab-legend-line ab-legend-line--info"></span>报备告知（虚线·有方向）</span>
+      <span class="ab-legend-item"><span class="ab-legend-line ab-legend-line--collab"></span>横向配合（点线·无方向）</span>
     </div>
-    <div class="help-network-container">${svgString}</div>
-    <div class="help-network-tooltip" aria-hidden="true"></div>
+    <div class="ab-network-container">${svgString}</div>
+    <div class="ab-network-tooltip" aria-hidden="true"></div>
   `;
 
   // inline 模式
   if (inline) {
     return `
-      <div class="help-network-wrap ${sectionClass}">
+      <div class="ab-network-wrap ${sectionClass}">
         ${wrapContent}
       </div>
     `;
   }
 
   return `
-    <section id="${sectionId}" class="help-section help-network-section ${sectionClass} ${modifier}" data-toc-id="${sectionId}">
-      <div class="help-section-inner">
+    <section id="${sectionId}" class="ab-page ab-network-section ${sectionClass} ${modifier}" data-toc-id="${sectionId}">
+      ${pageNo ? `<span class="ab-page-no">${pageNo}</span>` : ''}
+      ${runner ? `<span class="ab-page-runner">${runner}</span>` : ''}
+      <div class="ab-chapter">
         ${domainHTML}
-        <h2 class="help-section-title">${title}</h2>
-        <p class="help-section-subtitle">${subtitle}</p>
-        <div class="help-network-wrap">
+        <div class="ab-chapter-eyebrow">${eyebrow}</div>
+        <h2 class="ab-chapter-title">${title}</h2>
+        <p class="ab-chapter-sub">${subtitle}</p>
+        <div class="ab-network-wrap">
           ${wrapContent}
         </div>
         ${calloutsHTML}
@@ -897,17 +911,17 @@ function renderExploration() {
 
   const scenesHTML = scenes.map(scene => {
     const networkSVG = renderNetworkSVG(scene.network, {
-      sectionClass: `help-exploration-network--${scene.id}`,
+      sectionClass: `ab-exploration-network--${scene.id}`,
       inline: true,
     });
 
     const stagesHTML = scene.stages.map(s => `
-      <div class="help-exploration-stage" data-stage="${s.stage}">
-        <div class="help-exploration-stage-no">${String(s.stage + 1).padStart(2, '0')}</div>
-        <div class="help-exploration-stage-body">
-          <h4 class="help-exploration-stage-title">${s.title}</h4>
-          <p class="help-exploration-stage-desc">${s.desc}</p>
-          <ul class="help-exploration-stage-flows">
+      <div class="ab-exploration-stage ab-snap-target" data-stage="${s.stage}">
+        <div class="ab-exploration-stage-no">${String(s.stage + 1).padStart(2, '0')}</div>
+        <div class="ab-exploration-stage-body">
+          <h4 class="ab-exploration-stage-title">${s.title}</h4>
+          <p class="ab-exploration-stage-desc">${s.desc}</p>
+          <ul class="ab-exploration-stage-flows">
             ${s.flows.map(f => `<li>${f}</li>`).join('')}
           </ul>
         </div>
@@ -915,81 +929,62 @@ function renderExploration() {
     `).join('');
 
     return `
-      <div class="help-exploration-scene" data-scene="${scene.id}">
-        <div class="help-exploration-scene-head">
-          <span class="help-exploration-block-no">${scene.no}</span>
-          <h3 class="help-exploration-block-title">${scene.title}</h3>
+      <div class="ab-exploration-scene" data-scene="${scene.id}">
+        <div class="ab-exploration-scene-head">
+          <span class="ab-exploration-block-no">${scene.no}</span>
+          <h3 class="ab-exploration-block-title">${scene.title}</h3>
         </div>
-        <div class="help-exploration-scene-body">
-          <div class="help-exploration-network-sticky" data-state="current">
+        <div class="ab-exploration-scene-body">
+          <div class="ab-exploration-network-sticky" data-state="current">
             ${networkSVG}
           </div>
-          <div class="help-exploration-stages">
+          <div class="ab-exploration-stages">
             ${stagesHTML}
           </div>
         </div>
-        <div class="help-exploration-scene-note">${scene.note}</div>
+        <div class="ab-exploration-scene-note">${scene.note}</div>
       </div>
     `;
   }).join('');
 
   return `
-    <section id="exploration" class="help-section help-network-section help-exploration-section" data-toc-id="exploration">
-      <div class="help-section-inner">
-        <h2 class="help-section-title">探索工作——谁在什么时候该去找谁？</h2>
-        <p class="help-section-subtitle">项目——活动与专班两种探索方式，滚动看关系如何展开，每个阶段的信息流逐步点亮</p>
+    <section id="exploration" class="ab-page ab-network-section ab-exploration-section" data-toc-id="exploration">
+      <span class="ab-page-no">06</span>
+      <span class="ab-page-runner">第六章 · 探索工作</span>
+      <div class="ab-chapter">
+        <div class="ab-chapter-eyebrow">探索运作</div>
+        <h2 class="ab-chapter-title">探索工作——谁在什么时候该去找谁？</h2>
+        <p class="ab-chapter-sub">项目——活动与专班两种探索方式，滚动看关系如何展开，每个阶段的信息流逐步点亮</p>
         ${scenesHTML}
       </div>
     </section>
   `;
 }
 
-/** Section 7: 和组织对话——行百里者半九十（环形四阶段：2x2 循环 + 椭圆环 + 箭头） */
+/** Section 7: 和组织对话——行百里者半九十（四阶段横向册页，滚动逐卡点亮） */
 function renderDialogue() {
   const stepsHTML = DIALOGUE_STAGES.map((s, i) => {
-    const pos = `help-dialogue-card--pos${String(i + 1).padStart(2, '0')}`;
     return `
-      <article class="help-dialogue-card ${pos}" data-state="future" data-stagger>
-        <div class="help-dialogue-no">${s.no}</div>
-        <div class="help-dialogue-phase">${s.phase}</div>
-        <div class="help-dialogue-question">${s.question}</div>
-        <div class="help-dialogue-answer">${s.answer}</div>
-        <div class="help-dialogue-desc">${s.desc}</div>
+      <article class="ab-dialogue-card" data-state="future" data-stagger>
+        <div class="ab-dialogue-no">${s.no}</div>
+        <div class="ab-dialogue-phase">${s.phase}</div>
+        <div class="ab-dialogue-question">${s.question}</div>
+        <div class="ab-dialogue-answer">${s.answer}</div>
+        <div class="ab-dialogue-desc">${s.desc}</div>
       </article>
     `;
   }).join('');
 
-  // 4 个箭头：基础路径均为向右，靠 CSS rotate 变换指向（90/180/270 构成循环）
-  const arrowsHTML = [
-    'help-dialogue-arrow--01-02',
-    'help-dialogue-arrow--02-03',
-    'help-dialogue-arrow--03-04',
-    'help-dialogue-arrow--04-01',
-  ].map(cls => `
-    <svg class="help-dialogue-arrow ${cls}" viewBox="0 0 22 14" aria-hidden="true">
-      <path d="M1 7h18M15.5 1.5L21 7l-5.5 5.5" fill="none" stroke="#CE1126" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  `).join('');
-
-  // 椭圆环——循环连线背景层（preserveAspectRatio="none" 拉伸为椭圆）
-  const ringHTML = `
-    <svg class="help-dialogue-ring" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-      <ellipse cx="50" cy="50" rx="49" ry="49" fill="none" stroke="#E5E7EB" stroke-width="1" stroke-dasharray="4 5"/>
-    </svg>
-  `;
-
   return `
-    <section id="dialogue" class="help-section help-dialogue-section" data-toc-id="dialogue">
-      <div class="help-section-inner">
-        <div class="help-dialogue-eyebrow">恢复对话能力</div>
-        <h2 class="help-section-title">行百里者半九十</h2>
-        <p class="help-section-subtitle">活动不是做了就行——必须和组织对话，在实践中持续改进</p>
-        <div class="help-dialogue-cycle">
-          ${ringHTML}
-          <div class="help-dialogue-flow">${stepsHTML}</div>
-          ${arrowsHTML}
-        </div>
-        <blockquote class="help-dialogue-coda" data-stagger>
+    <section id="dialogue" class="ab-page ab-dialogue-section" data-toc-id="dialogue">
+      <span class="ab-page-no">07</span>
+      <span class="ab-page-runner">第七章 · 行百里者半九十</span>
+      <div class="ab-chapter ab-dialogue-inner">
+        <div class="ab-chapter-eyebrow">恢复对话能力</div>
+        <h2 class="ab-chapter-title">行百里者半九十</h2>
+        <p class="ab-chapter-sub">活动不是做了就行——必须和组织对话，在实践中持续改进</p>
+        <div class="ab-dialogue-flow">${stepsHTML}</div>
+        <blockquote class="ab-dialogue-coda" data-stagger>
           党建和经管学科科研的交叉点在于恢复和马克思主义的对话能力，恢复理论研究和现实治理之间的对话能力。
         </blockquote>
       </div>
@@ -1001,18 +996,18 @@ function renderDialogue() {
 function renderConclusion() {
   const lines = ['管理事，', '服务人'];
   const titleHTML = lines.map(line =>
-    `<span class="help-conclusion-line">${[...line].map(ch =>
-      `<span class="help-conclusion-char">${ch}</span>`
+    `<span class="ab-conclusion-line">${[...line].map(ch =>
+      `<span class="ab-conclusion-char">${ch}</span>`
     ).join('')}</span>`
   ).join('');
   return `
-    <section id="conclusion" class="help-section help-conclusion-section" data-toc-id="conclusion">
-      <canvas class="help-particle-canvas" aria-hidden="true"></canvas>
-      <div class="help-conclusion-seal" aria-hidden="true"></div>
-      <div class="help-conclusion-ring2" aria-hidden="true"></div>
-      <div class="help-section-inner help-conclusion-inner">
-        <h2 class="help-conclusion-title">${titleHTML}</h2>
-        <p class="help-conclusion-lead" data-stagger>
+    <section id="conclusion" class="ab-page ab-page--closing ab-conclusion-section" data-toc-id="conclusion">
+      <canvas class="ab-particle-canvas" aria-hidden="true"></canvas>
+      <div class="ab-conclusion-seal" aria-hidden="true"></div>
+      <div class="ab-conclusion-ring2" aria-hidden="true"></div>
+      <div class="ab-conclusion-inner">
+        <h2 class="ab-conclusion-title">${titleHTML}</h2>
+        <p class="ab-conclusion-lead" data-stagger>
           党建与党务的统一主语，贯穿从入党申请人到正式党员的全路径。
         </p>
       </div>
@@ -1036,7 +1031,7 @@ function renderDevelopment() {
   let html = '';
 
   STAGES.forEach(stage => {
-    html += `<div class="help-tl-stage">${stage.label}</div>`;
+    html += `<div class="ab-tl-stage">${stage.label}</div>`;
 
     stage.nos.forEach(no => {
       const node = nodeMap[no];
@@ -1045,55 +1040,58 @@ function renderDevelopment() {
       const isDecision = node.isDecisionNode;
       const isOdd = node.no % 2 === 1;
 
-      const dotClass = isDecision ? 'help-tl-dot--decision' : '';
-      const noClass = isDecision ? 'help-tl-no--decision' : '';
+      const dotClass = isDecision ? 'ab-tl-dot--decision' : '';
+      const noClass = isDecision ? 'ab-tl-no--decision' : '';
 
       const leftContent = isOdd
-        ? `<div class="help-tl-detail" data-step="${node.no}">
-             <span class="help-tl-detail-article">${node.article}</span>
-             <span class="help-tl-detail-decision">${node.decisionMaker}</span>
-             <div class="help-tl-detail-text">${node.decisionDetail}</div>
+        ? `<div class="ab-tl-detail" data-step="${node.no}">
+             <span class="ab-tl-detail-article">${node.article}</span>
+             <span class="ab-tl-detail-decision">${node.decisionMaker}</span>
+             <div class="ab-tl-detail-text">${node.decisionDetail}</div>
            </div>`
         : (node.stickyNote
-            ? `<span class="help-tl-sticky${isDecision ? ' help-tl-sticky--decision' : ''}">${node.stickyNote}</span>`
+            ? `<span class="ab-tl-sticky${isDecision ? ' ab-tl-sticky--decision' : ''}">${node.stickyNote}</span>`
             : '');
 
       const rightContent = isOdd
         ? (node.stickyNote
-            ? `<span class="help-tl-sticky${isDecision ? ' help-tl-sticky--decision' : ''}">${node.stickyNote}</span>`
+            ? `<span class="ab-tl-sticky${isDecision ? ' ab-tl-sticky--decision' : ''}">${node.stickyNote}</span>`
             : '')
-        : `<div class="help-tl-detail" data-step="${node.no}">
-             <span class="help-tl-detail-article">${node.article}</span>
-             <span class="help-tl-detail-decision">${node.decisionMaker}</span>
-             <div class="help-tl-detail-text">${node.decisionDetail}</div>
+        : `<div class="ab-tl-detail" data-step="${node.no}">
+             <span class="ab-tl-detail-article">${node.article}</span>
+             <span class="ab-tl-detail-decision">${node.decisionMaker}</span>
+             <div class="ab-tl-detail-text">${node.decisionDetail}</div>
            </div>`;
 
       html += `
-        <div class="help-tl-row${isDecision ? ' help-tl-row--decision' : ''}" data-step="${node.no}">
-          <div class="help-tl-side help-tl-side--left">${leftContent}</div>
-          <div class="help-tl-center">
-            <span class="help-tl-dot ${dotClass}"></span>
-            <span class="help-tl-no ${noClass}">${node.no}</span>
-            <span class="help-tl-title">${node.title}</span>
-            ${node.time && node.time !== '—' ? `<span class="help-tl-time${node.timeHighlight ? ' help-tl-time--hl' : ''}">${node.time}</span>` : ''}
+        <div class="ab-tl-row${isDecision ? ' ab-tl-row--decision' : ''}" data-step="${node.no}">
+          <div class="ab-tl-side ab-tl-side--left">${leftContent}</div>
+          <div class="ab-tl-center">
+            <span class="ab-tl-dot ${dotClass}"></span>
+            <span class="ab-tl-no ${noClass}">${node.no}</span>
+            <span class="ab-tl-title">${node.title}</span>
+            ${node.time && node.time !== '—' ? `<span class="ab-tl-time${node.timeHighlight ? ' ab-tl-time--hl' : ''}">${node.time}</span>` : ''}
           </div>
-          <div class="help-tl-side help-tl-side--right">${rightContent}</div>
+          <div class="ab-tl-side ab-tl-side--right">${rightContent}</div>
         </div>
       `;
     });
   });
 
   return `
-    <section id="development" class="help-section help-development-section" data-toc-id="development">
-      <div class="help-section-inner">
-        <div class="help-development-progress" aria-hidden="true"><div class="help-development-progress-fill"></div></div>
-        <h2 class="help-section-title">从入党申请人到正式党员</h2>
-        <p class="help-section-subtitle">依据《中国共产党发展党员工作细则（2026年）》</p>
-        <div class="help-timeline-legend">
-          <span class="help-timeline-legend-item"><span class="help-timeline-legend-dot"></span>普通节点</span>
-          <span class="help-timeline-legend-item help-timeline-legend-item--decision"><span class="help-timeline-legend-dot"></span>关键决策节点</span>
+    <section id="development" class="ab-page ab-development-section" data-toc-id="development">
+      <span class="ab-page-no">02</span>
+      <span class="ab-page-runner">第二章 · 发展党员</span>
+      <div class="ab-chapter">
+        <div class="ab-development-progress" aria-hidden="true"><div class="ab-development-progress-fill"></div></div>
+        <div class="ab-chapter-eyebrow">身份阶段</div>
+        <h2 class="ab-chapter-title">从入党申请人到正式党员</h2>
+        <p class="ab-chapter-sub">依据《中国共产党发展党员工作细则（2026年）》</p>
+        <div class="ab-timeline-legend">
+          <span class="ab-timeline-legend-item"><span class="ab-timeline-legend-dot"></span>普通节点</span>
+          <span class="ab-timeline-legend-item ab-timeline-legend-item--decision"><span class="ab-timeline-legend-dot"></span>关键决策节点</span>
         </div>
-        <div class="help-timeline-alternating">${html}</div>
+        <div class="ab-timeline-alternating">${html}</div>
       </div>
     </section>
   `;
@@ -1102,12 +1100,12 @@ function renderDevelopment() {
 /** 固定小目录（桌面端右侧，移动端隐藏） */
 function renderTOC() {
   const items = TOC_ITEMS.map(item => `
-    <a href="#${item.id}" class="help-toc-dot-item" data-toc="${item.id}" aria-label="跳转到${item.label}">
-      <span class="help-toc-dot-mark" aria-hidden="true"></span>
-      <span class="help-toc-dot-tooltip">${item.label}</span>
+    <a href="#${item.id}" class="ab-toc-dot-item" data-toc="${item.id}" aria-label="跳转到${item.label}">
+      <span class="ab-toc-dot-mark" aria-hidden="true"></span>
+      <span class="ab-toc-dot-tooltip">${item.label}</span>
     </a>
   `).join('');
-  return `<nav class="help-toc-nav" aria-label="页面目录"><div class="help-toc-nav-inner">${items}</div></nav>`;
+  return `<nav class="ab-toc-nav" aria-label="页面目录"><div class="ab-toc-nav-inner">${items}</div></nav>`;
 }
 
 /** 主渲染入口 */
@@ -1132,7 +1130,7 @@ function renderAboutContent() {
     }
   };
 
-  content.classList.add('help-v3');
+  content.classList.add('ab-about');
   content.innerHTML = `
     ${safe('TOC', renderTOC)}
     ${safe('Hero', renderHero)}
@@ -1144,8 +1142,8 @@ function renderAboutContent() {
     ${safe('Exploration', renderExploration)}
     ${safe('Dialogue', renderDialogue)}
     ${safe('Conclusion', renderConclusion)}
-    <footer class="help-page-footer">
-      <a href="${base}index.html" class="help-back-link">
+    <footer class="ab-page-footer">
+      <a href="${base}index.html" class="ab-back-link">
         ${icon('arrowLeft', { className: 'w-3.5 h-3.5' })}
         返回主页
       </a>
@@ -1159,19 +1157,19 @@ function renderAboutContent() {
 
 /** 发展党员：时间轴手风琴展开/收起详情（GSAP 动画） */
 function bindTimelineToggle() {
-  const container = document.querySelector('.help-timeline-alternating');
+  const container = document.querySelector('.ab-timeline-alternating');
   if (!container) return;
 
-  const allDetails = container.querySelectorAll('.help-tl-detail');
+  const allDetails = container.querySelectorAll('.ab-tl-detail');
   if (allDetails.length > 0) {
     gsap.set(allDetails, { autoAlpha: 0, height: 0 });
   }
 
   let currentExpanded = null;
 
-  container.querySelectorAll('.help-tl-row').forEach(row => {
-    const center = row.querySelector('.help-tl-center');
-    const detail = row.querySelector('.help-tl-detail');
+  container.querySelectorAll('.ab-tl-row').forEach(row => {
+    const center = row.querySelector('.ab-tl-center');
+    const detail = row.querySelector('.ab-tl-detail');
     if (!center || !detail) return;
 
     center.style.cursor = 'pointer';
@@ -1191,7 +1189,7 @@ function bindTimelineToggle() {
       }
 
       if (currentExpanded) {
-        const prevDetail = currentExpanded.querySelector('.help-tl-detail');
+        const prevDetail = currentExpanded.querySelector('.ab-tl-detail');
         if (prevDetail) {
           gsap.to(prevDetail, {
             autoAlpha: 0,
@@ -1219,9 +1217,9 @@ function bindTimelineToggle() {
 
 /** 固定小目录：点击跳转 + 当前 section 高亮 */
 function bindTOC() {
-  const tocItems = document.querySelectorAll('.help-toc-dot-item');
-  const tocNav = document.querySelector('.help-toc-nav');
-  const sections = document.querySelectorAll('.help-section[data-toc-id]');
+  const tocItems = document.querySelectorAll('.ab-toc-dot-item');
+  const tocNav = document.querySelector('.ab-toc-nav');
+  const sections = document.querySelectorAll('.ab-page[data-toc-id]');
   if (!tocItems.length || !sections.length) return;
 
   tocItems.forEach(item => {
@@ -1268,7 +1266,7 @@ function bindTOC() {
 /** 全页面 GSAP 动画（ScrollTrigger + matchMedia 优雅降级） */
 function bindPageAnimations() {
   if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
-    document.querySelectorAll('.help-section').forEach(s => s.style.opacity = '1');
+    document.querySelectorAll('.ab-page').forEach(s => s.style.opacity = '1');
     return;
   }
 
@@ -1279,28 +1277,36 @@ function bindPageAnimations() {
   // ── 标准动画 ──
   mm.add('(prefers-reduced-motion: no-preference)', () => {
 
-    // Hero — 优雅入场
-    const heroTitle = document.querySelector('.help-hero-title');
-    const heroAccent = document.querySelector('.help-hero-accent-line');
-    const heroSubtitle = document.querySelector('.help-hero-subtitle');
+    // Hero — 空间纵深入场：纸页从桌面翻起推入（rotationX + translateZ + 视差上浮），告别垂直平移
+    const heroTitle = document.querySelector('.ab-hero-title');
+    const heroAccent = document.querySelector('.ab-hero-rule');
+    const heroSubtitle = document.querySelector('.ab-hero-subtitle');
     if (heroTitle) {
-      gsap.from(heroTitle, { y: 60, autoAlpha: 0, duration: 0.8, ease: 'power3.out' });
+      gsap.from(heroTitle, {
+        y: 40, autoAlpha: 0, rotationX: -14, z: -60,
+        transformPerspective: 900, transformOrigin: '50% 100%',
+        duration: 0.9, ease: 'power3.out',
+      });
     }
     if (heroAccent) {
-      gsap.from(heroAccent, { clipPath: 'inset(0 100% 0 0)', duration: 0.6, delay: 0.3, ease: 'power2.inOut' });
+      // 材质转场：墨迹从中心晕开成线
+      gsap.from(heroAccent, { clipPath: 'inset(0 50% 0 50%)', duration: 0.6, delay: 0.35, ease: 'power2.inOut' });
     }
     if (heroSubtitle) {
-      gsap.from(heroSubtitle, { y: 20, autoAlpha: 0, duration: 0.6, delay: 0.15, ease: 'power2.out' });
+      gsap.from(heroSubtitle, { y: 14, autoAlpha: 0, duration: 0.6, delay: 0.2, ease: 'power2.out' });
     }
 
     // Cognition
-    const cognitionSection = document.querySelector('.help-cognition-section');
+    const cognitionSection = document.querySelector('.ab-cognition-section');
     if (cognitionSection) {
-      const cognitionEls = cognitionSection.querySelectorAll('.help-cognition-eyebrow, .help-cognition-title, .help-cognition-lead, .help-cognition-item, .help-cognition-dialogue');
+      const cognitionEls = cognitionSection.querySelectorAll('.ab-chapter-eyebrow, .ab-chapter-title, .ab-cognition-lead, .ab-cognition-item, .ab-cognition-dialogue');
       if (cognitionEls.length) {
         gsap.from(cognitionEls, {
           autoAlpha: 0,
-          y: 30,
+          y: 36,
+          rotationX: -8,
+          transformPerspective: 900,
+          transformOrigin: '50% 0%',
           duration: 0.5,
           stagger: 0.1,
           ease: 'power2.out',
@@ -1317,26 +1323,26 @@ function bindPageAnimations() {
     bindDevelopmentEntranceAnimation();
 
     // Philosophy —— 演示式逐段揭示（书记裁决：两卡非并列，先后各一）：先标题副标题，再卡一、卡二
-    const philosophySection = document.querySelector('.help-philosophy-section');
+    const philosophySection = document.querySelector('.ab-philosophy-section');
     if (philosophySection) {
-      const phTitle = philosophySection.querySelector('.help-section-title');
-      const phSub = philosophySection.querySelector('.help-section-subtitle');
-      const oppCards = philosophySection.querySelectorAll('.help-philosophy-opp');
+      const phTitle = philosophySection.querySelector('.ab-chapter-title');
+      const phSub = philosophySection.querySelector('.ab-chapter-sub');
+      const oppCards = philosophySection.querySelectorAll('.ab-philosophy-opp');
       if (phTitle && phSub) {
         gsap.from([phTitle, phSub], {
-          autoAlpha: 0, y: 36, duration: 0.8, stagger: 0.12, ease: 'power3.out',
+          autoAlpha: 0, y: 36, rotationX: -10, transformPerspective: 900, transformOrigin: '50% 0%', duration: 0.8, stagger: 0.12, ease: 'power3.out',
           scrollTrigger: { trigger: philosophySection, start: 'top 82%', once: true },
         });
       }
       if (oppCards.length) {
         gsap.from(oppCards[0], {
-          autoAlpha: 0, y: 44, duration: 0.7, ease: 'power3.out',
+          autoAlpha: 0, y: 44, rotationX: -12, transformPerspective: 900, transformOrigin: '50% 100%', duration: 0.7, ease: 'power3.out',
           scrollTrigger: { trigger: philosophySection, start: 'top 70%', once: true },
         });
       }
       if (oppCards.length > 1) {
         gsap.from(oppCards[1], {
-          autoAlpha: 0, y: 44, duration: 0.7, ease: 'power3.out',
+          autoAlpha: 0, y: 44, rotationX: -12, transformPerspective: 900, transformOrigin: '50% 100%', duration: 0.7, ease: 'power3.out',
           scrollTrigger: { trigger: philosophySection, start: 'top 45%', once: true },
         });
       }
@@ -1344,13 +1350,16 @@ function bindPageAnimations() {
     bindPhilosophyExpand();
 
     // Review
-    const reviewSection = document.querySelector('.help-review-section');
+    const reviewSection = document.querySelector('.ab-review-section');
     if (reviewSection) {
-      const reviewEls = reviewSection.querySelectorAll('.help-section-title, .help-section-subtitle, .help-review-card');
+      const reviewEls = reviewSection.querySelectorAll('.ab-chapter-title, .ab-chapter-sub, .ab-review-card');
       if (reviewEls.length) {
         gsap.from(reviewEls, {
           autoAlpha: 0,
-          y: 30,
+          y: 36,
+          rotationX: -8,
+          transformPerspective: 900,
+          transformOrigin: '50% 0%',
           duration: 0.5,
           stagger: 0.1,
           ease: 'power2.out',
@@ -1364,13 +1373,16 @@ function bindPageAnimations() {
     }
 
     // Works
-    const worksSection = document.querySelector('.help-works-section');
+    const worksSection = document.querySelector('.ab-works-section');
     if (worksSection) {
-      const worksEls = worksSection.querySelectorAll('.help-section-title, .help-section-subtitle, .help-works-col');
+      const worksEls = worksSection.querySelectorAll('.ab-chapter-title, .ab-chapter-sub, .ab-works-col');
       if (worksEls.length) {
         gsap.from(worksEls, {
           autoAlpha: 0,
-          y: 30,
+          y: 36,
+          rotationX: -8,
+          transformPerspective: 900,
+          transformOrigin: '50% 0%',
           duration: 0.5,
           stagger: 0.1,
           ease: 'power2.out',
@@ -1383,14 +1395,17 @@ function bindPageAnimations() {
       }
     }
 
-    // Dialogue —— 四卡交还给环形滚动点亮（data-state 三态），入场只负责标题区与收尾引言
-    const dialogueSection = document.querySelector('.help-dialogue-section');
+    // Dialogue —— 四卡交还滚动点亮（data-state 三态），入场只负责标题区与收尾引言
+    const dialogueSection = document.querySelector('.ab-dialogue-section');
     if (dialogueSection) {
-      const dialogueEls = dialogueSection.querySelectorAll('.help-dialogue-eyebrow, .help-section-title, .help-section-subtitle, .help-dialogue-coda');
+      const dialogueEls = dialogueSection.querySelectorAll('.ab-chapter-eyebrow, .ab-chapter-title, .ab-chapter-sub, .ab-dialogue-coda');
       if (dialogueEls.length) {
         gsap.from(dialogueEls, {
           autoAlpha: 0,
-          y: 30,
+          y: 36,
+          rotationX: -8,
+          transformPerspective: 900,
+          transformOrigin: '50% 0%',
           duration: 0.5,
           stagger: 0.1,
           ease: 'power2.out',
@@ -1404,11 +1419,11 @@ function bindPageAnimations() {
     }
 
     // Conclusion —— 封章压合与逐字点亮由 bindConclusionSeal 滚动驱动，此处仅引言淡入
-    const conclusionLead = document.querySelector('.help-conclusion-lead');
+    const conclusionLead = document.querySelector('.ab-conclusion-lead');
     if (conclusionLead) {
       gsap.from(conclusionLead, {
         y: 24, autoAlpha: 0, duration: 0.7, ease: 'power2.out',
-        scrollTrigger: { trigger: '.help-conclusion-section', start: 'top 78%', once: true },
+        scrollTrigger: { trigger: '.ab-conclusion-section', start: 'top 78%', once: true },
       });
     }
 
@@ -1417,19 +1432,19 @@ function bindPageAnimations() {
 
   // ── reduced-motion 降级 ──
   mm.add('(prefers-reduced-motion: reduce)', () => {
-    gsap.set('.help-hero-title, .help-hero-subtitle, .help-hero-accent-line, .help-cognition-eyebrow, .help-cognition-title, .help-cognition-lead, .help-cognition-item, .help-cognition-dialogue, .help-philosophy-opp, .help-section-title, .help-section-subtitle, .help-review-card, .help-works-col, .help-dialogue-eyebrow, .help-dialogue-card, .help-dialogue-coda, .help-conclusion-section, .help-tl-row, .help-tl-stage', { autoAlpha: 1, y: 0, x: 0, scale: 1, clipPath: 'inset(0 0% 0 0)' });
+    gsap.set('.ab-hero-title, .ab-hero-subtitle, .ab-hero-rule, .ab-chapter-eyebrow, .ab-chapter-title, .ab-chapter-sub, .ab-cognition-lead, .ab-cognition-item, .ab-cognition-dialogue, .ab-philosophy-opp, .ab-review-card, .ab-works-col, .ab-dialogue-card, .ab-dialogue-coda, .ab-conclusion-section, .ab-tl-row, .ab-tl-stage', { autoAlpha: 1, y: 0, x: 0, scale: 1, clipPath: 'inset(0 0% 0 0)' });
   });
 }
 
 /** 机会区块：点击卡片在提炼版与原话全文间平滑切换（KeyNote 式交叉淡入，无"点击展开"文字按钮） */
 function bindPhilosophyExpand() {
-  const cards = document.querySelectorAll('.help-philosophy-opp');
+  const cards = document.querySelectorAll('.ab-philosophy-opp');
   if (!cards.length) return;
 
   // 无 GSAP 时降级：直接切换内容
   if (typeof gsap === 'undefined') {
     cards.forEach(card => {
-      const quoteEl = card.querySelector('.help-philosophy-opp-quote');
+      const quoteEl = card.querySelector('.ab-philosophy-opp-quote');
       if (!quoteEl) return;
       const brief = decodeURIComponent(quoteEl.dataset.brief || '');
       const full = decodeURIComponent(quoteEl.dataset.full || '');
@@ -1448,7 +1463,7 @@ function bindPhilosophyExpand() {
   }
 
   cards.forEach(card => {
-    const quoteEl = card.querySelector('.help-philosophy-opp-quote');
+    const quoteEl = card.querySelector('.ab-philosophy-opp-quote');
     if (!quoteEl) return;
     const brief = decodeURIComponent(quoteEl.dataset.brief || '');
     const full = decodeURIComponent(quoteEl.dataset.full || '');
@@ -1480,7 +1495,7 @@ function bindPhilosophyExpand() {
 
 /** Development 时间轴入场动画 */
 function bindDevelopmentEntranceAnimation() {
-  const section = document.querySelector('.help-development-section');
+  const section = document.querySelector('.ab-development-section');
   if (!section) return;
   if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
   gsap.registerPlugin(ScrollTrigger);
@@ -1488,18 +1503,18 @@ function bindDevelopmentEntranceAnimation() {
   const mm = gsap.matchMedia();
 
   mm.add('(prefers-reduced-motion: reduce)', () => {
-    gsap.set(section.querySelectorAll('.help-tl-row, .help-tl-stage'), { autoAlpha: 1, y: 0 });
+    gsap.set(section.querySelectorAll('.ab-tl-row, .ab-tl-stage'), { autoAlpha: 1, y: 0 });
     return;
   });
 
   mm.add('(prefers-reduced-motion: no-preference)', () => {
-    const dividers = section.querySelectorAll('.help-tl-stage');
+    const dividers = section.querySelectorAll('.ab-tl-stage');
 
     dividers.forEach((divider, stageIdx) => {
       const stageRows = [];
       let next = divider.nextElementSibling;
-      while (next && !next.classList.contains('help-tl-stage')) {
-        if (next.classList.contains('help-tl-row')) {
+      while (next && !next.classList.contains('ab-tl-stage')) {
+        if (next.classList.contains('ab-tl-row')) {
           stageRows.push(next);
         }
         next = next.nextElementSibling;
@@ -1507,7 +1522,10 @@ function bindDevelopmentEntranceAnimation() {
 
       gsap.from(divider, {
         autoAlpha: 0,
-        scale: 0.9,
+        rotationX: -14,
+        scale: 0.92,
+        transformPerspective: 900,
+        transformOrigin: '50% 0%',
         duration: 0.4,
         ease: 'power2.out',
         scrollTrigger: {
@@ -1521,6 +1539,9 @@ function bindDevelopmentEntranceAnimation() {
         gsap.from(stageRows, {
           autoAlpha: 0,
           y: 40,
+          rotationX: -6,
+          transformPerspective: 900,
+          transformOrigin: '50% 0%',
           duration: 0.5,
           stagger: 0.12,
           ease: 'power3.out',
@@ -1537,20 +1558,20 @@ function bindDevelopmentEntranceAnimation() {
 
 /** SVG 关系网络 hover 交互：悬停节点高亮相关连线 */
 function bindNetworkHover() {
-  document.querySelectorAll('.help-network-container').forEach(container => {
+  document.querySelectorAll('.ab-network-container').forEach(container => {
     const svg = container.querySelector('svg');
     if (!svg) return;
-    const nodes = svg.querySelectorAll('.help-node-svg');
-    const edges = svg.querySelectorAll('.help-edge');
-    const tooltip = container.parentNode.querySelector('.help-network-tooltip');
+    const nodes = svg.querySelectorAll('.ab-node-svg');
+    const edges = svg.querySelectorAll('.ab-edge');
+    const tooltip = container.parentNode.querySelector('.ab-network-tooltip');
     const nodeDataMap = {};
 
-    svg.querySelectorAll('.help-node-svg').forEach(n => {
+    svg.querySelectorAll('.ab-node-svg').forEach(n => {
       const id = n.dataset.id;
-      const circle = n.querySelector('.help-node-circle');
-      const dutyText = n.querySelector('.help-node-duty');
+      const circle = n.querySelector('.ab-node-circle');
+      const dutyText = n.querySelector('.ab-node-duty');
       nodeDataMap[id] = {
-        name: n.querySelector('.help-node-text')?.textContent || id,
+        name: n.querySelector('.ab-node-text')?.textContent || id,
         color: circle?.getAttribute('fill') || '#B91C1C',
         duty: dutyText?.textContent || '',
       };
@@ -1586,8 +1607,8 @@ function bindNetworkHover() {
       if (!tooltip || !nodeDataMap[id]) return;
       const data = nodeDataMap[id];
       tooltip.innerHTML = `
-        <span class="help-tooltip-name" style="color:${data.color}">${data.name}</span>
-        <span class="help-tooltip-duty">${data.duty}</span>
+        <span class="ab-tooltip-name" style="color:${data.color}">${data.name}</span>
+        <span class="ab-tooltip-duty">${data.duty}</span>
       `;
       tooltip.classList.add('is-visible');
       const nodeRect = node.getBoundingClientRect();
@@ -1616,8 +1637,8 @@ function bindNetworkHover() {
         const label = edge.dataset.label;
         if (tooltip && detail) {
           tooltip.innerHTML = `
-            <span class="help-tooltip-name">${label || ''}</span>
-            <span class="help-tooltip-duty">${detail}</span>
+            <span class="ab-tooltip-name">${label || ''}</span>
+            <span class="ab-tooltip-duty">${detail}</span>
           `;
           tooltip.classList.add('is-visible');
           const edgeRect = edge.getBoundingClientRect();
@@ -1639,7 +1660,7 @@ function bindNetworkHover() {
  * stage 驱动：仅在 stage 切换时调用 renderNetwork，CSS transition 负责动画
  */
 function bindExplorationScrollDriven() {
-  const scenes = document.querySelectorAll('.help-exploration-scene');
+  const scenes = document.querySelectorAll('.ab-exploration-scene');
   if (!scenes.length) return;
 
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1650,8 +1671,8 @@ function bindExplorationScrollDriven() {
     const stages = scene.dataset.scene === 'activity'
       ? EXPLORATION_STAGES.activity
       : EXPLORATION_STAGES.taskforce;
-    const svg = scene.querySelector('.help-network-svg');
-    const stagesContainer = scene.querySelector('.help-exploration-stages');
+    const svg = scene.querySelector('.ab-network-svg');
+    const stagesContainer = scene.querySelector('.ab-exploration-stages');
     sceneData.push({
       scene, network, stages, svg, stagesContainer,
       stageCount: stages.length,
@@ -1685,7 +1706,7 @@ function bindExplorationScrollDriven() {
         renderNetwork(data.svg, data.network, progress.stageIndex, data.stages);
       }
 
-      const sceneStages = data.scene.querySelectorAll('.help-exploration-stage');
+      const sceneStages = data.scene.querySelectorAll('.ab-exploration-stage');
       sceneStages.forEach((s, i) => {
         if (i < progress.stageIndex) s.setAttribute('data-state', 'past');
         else if (i === progress.stageIndex) s.setAttribute('data-state', 'current');
@@ -1807,9 +1828,9 @@ function initParticleCanvas(canvas, opts = {}) {
 
 /** ① Hero 滚动退场——随滚动淡出上移，交棒给下一章（场景切换） */
 function bindHeroExit() {
-  const hero = document.querySelector('.help-hero-section');
-  const heroInner = document.querySelector('.help-hero-inner');
-  const scrollHint = document.querySelector('.help-hero-scroll-hint');
+  const hero = document.querySelector('.ab-hero-section');
+  const heroInner = document.querySelector('.ab-hero-inner');
+  const scrollHint = document.querySelector('.ab-hero-scroll-hint');
   if (!hero || !heroInner) return;
 
   gsap.to(heroInner, {
@@ -1843,10 +1864,10 @@ function bindHeroExit() {
 /** ③ 滚动叠层转场——空间叠层：被覆盖章退后压暗（景深），覆盖章 3D 升起落位 */
 function bindCinematicLayerTransitions() {
   const pairs = [
-    ['.help-cognition-section', '.help-development-section'],
-    ['.help-philosophy-section', '.help-review-section'],
-    ['.help-review-section', '.help-works-section'],
-    ['.help-works-section', '.help-exploration-section'],
+    ['.ab-cognition-section', '.ab-development-section'],
+    ['.ab-philosophy-section', '.ab-review-section'],
+    ['.ab-review-section', '.ab-works-section'],
+    ['.ab-works-section', '.ab-exploration-section'],
   ];
   const DUR = '+=115%';
 
@@ -1866,7 +1887,7 @@ function bindCinematicLayerTransitions() {
     });
 
     // 被覆盖章退后：缩小上移 + 压暗，让"下一层"从景深中升起（非平面叠放）
-    const fromInner = fromEl.querySelector('.help-section-inner');
+    const fromInner = fromEl.querySelector('.ab-chapter');
     if (fromInner) {
       gsap.to(fromInner, {
         yPercent: -7,
@@ -1915,8 +1936,8 @@ function bindCinematicLayerTransitions() {
  *  目标点：每张 stage 顶到视口 40%（与左侧 sticky 关系图同屏）；就近吸附、黄金缓动；
  *  范围止于最后一张 stage，防止吸附越界拦住后续章节 */
 function bindExplorationSceneSnap() {
-  const section = document.querySelector('.help-exploration-section');
-  const stages = gsap.utils.toArray('.help-exploration-stage');
+  const section = document.querySelector('.ab-exploration-section');
+  const stages = gsap.utils.toArray('.ab-exploration-stage');
   if (!section || !stages.length) return;
 
   const getTargets = () => stages.map(st =>
@@ -1951,9 +1972,9 @@ function bindExplorationSceneSnap() {
 
 /** Development 时间轴滚动驱动：顶部进度条 + 阶段高亮 */
 function bindDevelopmentScrollProgress() {
-  const section = document.querySelector('.help-development-section');
-  const fill = document.querySelector('.help-development-progress-fill');
-  const timeline = document.querySelector('.help-timeline-alternating');
+  const section = document.querySelector('.ab-development-section');
+  const fill = document.querySelector('.ab-development-progress-fill');
+  const timeline = document.querySelector('.ab-timeline-alternating');
   if (!section || !timeline) return;
 
   if (fill) {
@@ -1969,7 +1990,7 @@ function bindDevelopmentScrollProgress() {
     });
   }
 
-  section.querySelectorAll('.help-tl-stage').forEach(div => {
+  section.querySelectorAll('.ab-tl-stage').forEach(div => {
     ScrollTrigger.create({
       trigger: div,
       start: 'top 72%',
@@ -1979,10 +2000,10 @@ function bindDevelopmentScrollProgress() {
   });
 }
 
-/** Dialogue 环形四阶段滚动驱动：按滚动进度点亮 data-state 三态 */
+/** Dialogue 四阶段横向滚动驱动：按滚动进度点亮 data-state 三态 */
 function bindDialogueScrollActivation() {
-  const section = document.querySelector('.help-dialogue-section');
-  const cards = section ? section.querySelectorAll('.help-dialogue-card') : [];
+  const section = document.querySelector('.ab-dialogue-section');
+  const cards = section ? section.querySelectorAll('.ab-dialogue-card') : [];
   if (!section || !cards.length) return;
 
   ScrollTrigger.create({
@@ -2000,10 +2021,10 @@ function bindDialogueScrollActivation() {
 
 /** ④ 终章封章压合转场——旋转落章（压合感）+ 金环压力波 + 六字逐字 blur→sharp 点亮 */
 function bindConclusionSeal() {
-  const section = document.querySelector('.help-conclusion-section');
-  const seal = document.querySelector('.help-conclusion-seal');
-  const ring2 = document.querySelector('.help-conclusion-ring2');
-  const chars = section ? section.querySelectorAll('.help-conclusion-char') : [];
+  const section = document.querySelector('.ab-conclusion-section');
+  const seal = document.querySelector('.ab-conclusion-seal');
+  const ring2 = document.querySelector('.ab-conclusion-ring2');
+  const chars = section ? section.querySelectorAll('.ab-conclusion-char') : [];
   if (!section || !seal) return;
 
   const SNAP = { trigger: section, start: 'top 88%', end: 'top 28%', scrub: true };
@@ -2057,4 +2078,4 @@ bindPageAnimations();
 bindNetworkHover();
 bindExplorationScrollDriven();
 bindCinematicScroll();
-document.querySelectorAll('.help-particle-canvas').forEach(c => initParticleCanvas(c));
+document.querySelectorAll('.ab-particle-canvas').forEach(c => initParticleCanvas(c));
