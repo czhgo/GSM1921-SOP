@@ -5757,7 +5757,7 @@ label .text-red-500 {
   line-height: 1.2;
   color: var(--ab-red);
   letter-spacing: 0.02em;
-  text-wrap: balance;
+  text-wrap: pretty;
   margin-bottom: 16px;
 }
 .ab-chapter-sub {
@@ -5766,6 +5766,7 @@ label .text-red-500 {
   line-height: 1.75;
   max-width: 640px;
   margin-bottom: clamp(34px, 5vh, 56px);
+  text-wrap: pretty;
 }
 
 /* ── Section: 考察积极分子（三卡，党建贡献高亮） ── */
@@ -5777,7 +5778,7 @@ label .text-red-500 {
 }
 .ab-review-card {
   position: relative;
-  background: linear-gradient(180deg, var(--ab-paper-0), var(--ab-paper-1));
+  background: var(--ab-paper-0);
   border: 1px solid var(--ab-paper-line);
   border-radius: 10px;
   padding: 30px 26px 26px;
@@ -5798,7 +5799,7 @@ label .text-red-500 {
 }
 .ab-review-card--highlight {
   border-color: rgba(206, 17, 38, 0.34);
-  background: linear-gradient(180deg, #FDF1EA, #F9E7DC);
+  background: #FDF1EA;
 }
 .ab-review-card--highlight::before {
   background: var(--ab-red);
@@ -5815,8 +5816,10 @@ label .text-red-500 {
 }
 .ab-review-card-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 6px 10px;
   margin-bottom: 10px;
 }
 .ab-review-card-name {
@@ -5848,6 +5851,7 @@ label .text-red-500 {
   font-size: 14px;
   color: var(--ab-ink-sub);
   line-height: 1.7;
+  text-wrap: pretty;
 }
 .ab-review-footer {
   text-align: center;
@@ -5882,7 +5886,7 @@ label .text-red-500 {
 }
 .ab-philosophy-opp {
   position: relative;
-  background: linear-gradient(180deg, var(--ab-paper-0), var(--ab-paper-1));
+  background: var(--ab-paper-0);
   border: 1px solid var(--ab-paper-line);
   border-left: 3px solid var(--ab-red);
   border-radius: 10px;
@@ -6006,7 +6010,7 @@ label .text-red-500 {
 }
 .ab-cognition-item {
   position: relative;
-  background: linear-gradient(180deg, var(--ab-paper-0), var(--ab-paper-1));
+  background: var(--ab-paper-0);
   border: 1px solid var(--ab-paper-line);
   border-radius: 10px;
   padding: 26px 24px;
@@ -6082,7 +6086,7 @@ label .text-red-500 {
 }
 .ab-works-col {
   position: relative;
-  background: linear-gradient(180deg, var(--ab-paper-0), var(--ab-paper-1));
+  background: var(--ab-paper-0);
   border: 1px solid var(--ab-paper-line);
   border-radius: 10px;
   padding: 30px 28px;
@@ -6128,6 +6132,7 @@ label .text-red-500 {
   color: var(--ab-ink-sub);
   line-height: 1.75;
   margin-bottom: 18px;
+  text-wrap: pretty;
 }
 .ab-works-block {
   margin-bottom: 14px;
@@ -6274,6 +6279,13 @@ label .text-red-500 {
   transition: stroke-dashoffset 1.2s var(--ab-ease-out);
   will-change: stroke-dashoffset;
 }
+/* v15.3 连续渐变驱动：节点/边状态由 JS 逐帧插值（滚动驱动），
+   禁用上面的时间驱动 transition，避免"每帧设样式 + 0.5s transition"打架造成滞后卡点 */
+.ab-network-continuous .ab-node-svg,
+.ab-network-continuous .ab-edge,
+.ab-network-continuous .ab-edge-path {
+  transition: none;
+}
 /* 激活节点行星运动：轻微公转微动 + 呼吸缩放（呼应书记"行星运动"偏好） */
 .ab-node-svg[data-role='star'] .ab-node-circle,
 .ab-node-svg[data-role='planet'] .ab-node-circle {
@@ -6384,7 +6396,7 @@ label .text-red-500 {
   display: flex;
   gap: 16px;
   align-items: flex-start;
-  background: linear-gradient(180deg, var(--ab-paper-0), var(--ab-paper-1));
+  background: var(--ab-paper-0);
   border: 1px solid var(--ab-paper-line);
   border-radius: 10px;
   padding: 18px 22px;
@@ -6440,11 +6452,6 @@ label .text-red-500 {
   color: var(--ab-ink-sub);
 }
 
-/* 探索区吸附目标（仅此区域使用滚动吸附，书记裁决） */
-.ab-snap-target {
-  scroll-snap-align: start;
-}
-
 /* ── Section: 行百里者半九十（四阶段横向滚动点亮） ── */
 .ab-dialogue-inner {
   text-align: center;
@@ -6468,7 +6475,7 @@ label .text-red-500 {
 .ab-dialogue-card {
   position: relative;
   text-align: left;
-  background: linear-gradient(180deg, var(--ab-paper-0), var(--ab-paper-1));
+  background: var(--ab-paper-0);
   border: 1px solid var(--ab-paper-line);
   border-radius: 10px;
   padding: 22px 20px;
@@ -6537,6 +6544,7 @@ label .text-red-500 {
   color: var(--ab-ink);
   line-height: 1.55;
   margin-bottom: 8px;
+  text-wrap: pretty;
 }
 .ab-dialogue-answer {
   display: inline-block;
@@ -6742,6 +6750,7 @@ label .text-red-500 {
   font-size: 13px;
   color: var(--ab-ink-sub);
   line-height: 1.6;
+  text-wrap: pretty;
 }
 .ab-tl-sticky {
   display: inline-block;

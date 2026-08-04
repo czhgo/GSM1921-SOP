@@ -3,6 +3,17 @@
 // 核心理念：从"关系网络"到"支部的故事"——以党员成长为主线，讲清考察、工作哲学、探索与对话
 // 设计风格：苹果风（纯白 + 大留白 + 大字体 + 微妙动画）
 // 签名元素：【管理事，服务人】收束点题 + Exploration SVG 关系网络
+// v15.3 变更（2026-08-04 书记五项修订复议）——动画架构重构，落业界成熟经验：
+//   ①引入 Lenis 平滑滚动（unpkg 1.3.25，gsap.ticker 驱动 + ScrollTrigger.update 同步；reduced-motion 回落原生滚动）
+//   ②全页 scrub:0.8/0.3 → scrub:true（滚动位置已被 Lenis 平滑，1:1 精确映射到每一时刻，杜绝"统一滞后"机械感）
+//   ③阶段跳变改连续渐变：探索网络用 stageProgress 在相邻 stage 目标态间插值（节点 opacity/scale/saturate、边 opacity/dashoffset）
+//     —— 删除二进制重渲染，根治"吸住又跳过"卡点；对话四卡"点亮→渐隐"连续插值；发展阶段高亮二进制改按进度插值
+//   ④句式清理（本页范围）：对话卡 2 处「不是…就/才」改叙述式；书记原话保留
+// v15.2 变更：v5.2 修订（2026-08-04 书记五项指令）——①删除过程性 spec 文档 ②卡片渐变改纯色（扁平化）
+//   ③移除探索区 GSAP 吸附（bindExplorationSceneSnap 删除 + ab-snap-target 死类清理），治"吸住又跳过"卡点
+//   ④全页 scrub:true→scrub:0.8 lerp 惯性平滑（v15.3 复议否决：统一 lerp 造成"机械滞后"，改 Lenis 平滑 + scrub:true）
+//   ⑤叙事顺序重构方案A（认知→价值→路径：组织性→宝贵机会→发展流程→两种工作→考察→探索→对话）+ 章节重编号 + TOC/镜头交接同步
+//   ⑥「不是……而是……」句式改写为叙述式（CLAUDE.md T-199 P-014 判例；书记原话"爱具体的人…"保留）
 // v15.1 变更：v5.1 修订（2026-08-04 书记四条指令）——①卡片入场短区间 + power2.out + stagger 0.08 + scrub 可逆（正倒对称、不再快翻走才清晰）
 //   ②修复卡片"黑色"根因：gsap.to filter from 态被解析为 brightness(0) 压暗整章 → 显式 fromTo brightness(1)→0.92 ③背景全页统一
 //   --ab-paper-0（删除 nth-child(even) 深浅交替）④hero 大标题改党建红 ⑤终章去掉突变红色/光圈层，保持暖白 + 党建红大字 + 温和落位驶入
@@ -376,6 +387,81 @@ function renderNetwork(svg, network, currentStageIndex, stages) {
   });
 }
 
+/** v15.3 预计算每个 stage 的节点目标态（供连续插值取用，避免每帧重复 identifyActiveNodes） */
+function buildStageStates(network, stages) {
+  return stages.map((_, s) => {
+    const { activeNodeIds, starId } = identifyActiveNodes(s, network, stages);
+    const nodeStates = {};
+    network.nodes.forEach(node => {
+      const isActive = activeNodeIds.has(node.id);
+      const isStar = node.id === starId;
+      nodeStates[node.id] = {
+        opacity: isActive ? PLANETARY_CONFIG.activeOpacity : PLANETARY_CONFIG.inactiveOpacity,
+        scale: isActive ? PLANETARY_CONFIG.activeScale : PLANETARY_CONFIG.inactiveScale,
+        saturate: isActive ? PLANETARY_CONFIG.activeSaturate : PLANETARY_CONFIG.inactiveSaturate,
+        radius: isStar ? PLANETARY_CONFIG.starRadius : (isActive ? PLANETARY_CONFIG.planetRadius : PLANETARY_CONFIG.inactiveRadius),
+        role: isStar ? 'star' : (isActive ? 'planet' : 'inactive'),
+      };
+    });
+    return { nodeStates };
+  });
+}
+
+/** v15.3 连续渐变：p（连续 stage 位置 0..stageCount）逐帧驱动节点/边状态
+ *  替代 v5.x 的二进制 stage 重渲染——状态跨 stage 平滑插值，根治"吸住又跳过"卡点。
+ *  节点：opacity/scale/saturate/radius 在「当前 stage 目标态」与「下一 stage 目标态」间 lerp；
+ *  边：进入本 stage 时描边生长（前 40% 行程），本 stage 内保持全亮，下一 stage 渐隐为「过去」，之后保持弱化；
+ *  全程由滚动位置逐帧驱动（Lenis 平滑），CSS transition 已在 .ab-network-continuous 下禁用 → 精确到每一时刻。 */
+function applyNetworkState(svg, network, p, stageCount, stageStates) {
+  const lo = Math.min(stageCount - 1, Math.floor(p));
+  const hi = Math.min(stageCount - 1, lo + 1);
+  const f = p - lo;
+  const stLo = stageStates[lo];
+  const stHi = stageStates[hi];
+  const smooth = (t) => t * t * (3 - 2 * t);
+
+  network.nodes.forEach(node => {
+    const el = svg.querySelector(`.ab-node-svg[data-id="${node.id}"]`);
+    if (!el) return;
+    const a = stLo.nodeStates[node.id];
+    const b = stHi.nodeStates[node.id];
+    el.style.opacity = String(a.opacity + (b.opacity - a.opacity) * f);
+    el.style.transform = `translate(${node.x}px, ${node.y}px) scale(${a.scale + (b.scale - a.scale) * f})`;
+    el.style.filter = `saturate(${a.saturate + (b.saturate - a.saturate) * f})`;
+    const circle = el.querySelector('.ab-node-circle');
+    if (circle) circle.setAttribute('r', String(a.radius + (b.radius - a.radius) * f));
+    el.setAttribute('data-role', f < 0.5 ? a.role : b.role);
+  });
+
+  network.edges.forEach(edge => {
+    const edgeEl = svg.querySelector(`.ab-edge[data-from="${edge.from}"][data-to="${edge.to}"]`);
+    if (!edgeEl) return;
+    const pathEl = edgeEl.querySelector('.ab-edge-path');
+    const arrowEl = edgeEl.querySelector('.ab-edge-arrow');
+    const L = EDGE_LENGTH_CACHE.get(pathEl) || 0;
+
+    const e = edge.stage;
+    let opacity, offset;
+    if (p < e) {
+      opacity = 0; offset = L;
+    } else if (p < e + 0.4) {
+      const t = smooth((p - e) / 0.4);
+      opacity = t; offset = L * (1 - t);
+    } else if (p < e + 1) {
+      opacity = 1; offset = 0;
+    } else if (p < e + 2) {
+      const t = smooth(p - e - 1);
+      opacity = 1 + (0.22 - 1) * t; offset = 0;
+    } else {
+      opacity = 0.22; offset = 0;
+    }
+    edgeEl.style.opacity = String(opacity);
+    if (L > 0) pathEl.style.strokeDashoffset = String(offset);
+    if (arrowEl) arrowEl.style.opacity = String(opacity);
+    edgeEl.querySelectorAll('.ab-edge-dot').forEach(d => { d.style.opacity = String(opacity); });
+  });
+}
+
 // ===== SVG 关系网络（脉动动画） End =====
 
 // 和组织对话——四阶段（行百里者半九十）
@@ -392,14 +478,14 @@ const DIALOGUE_STAGES = [
     phase: '工作之中',
     question: '工作中遇到问题怎么办？',
     answer: '及时和组织沟通',
-    desc: '不是等做完了才反馈——过程中就要对话，遇到偏差及时调整，避免事倍功半。',
+    desc: '反馈要在过程中进行——遇到偏差及时和组织对话、调整，避免事倍功半。',
   },
   {
     no: '03',
     phase: '工作之后',
     question: '如何在实践中改进？',
     answer: '和组织对话',
-    desc: '活动不是做了就行。完成后必须和组织对话，复盘得失——行百里者半九十。',
+    desc: '活动完成后，还要和组织对话、复盘得失——行百里者半九十。',
   },
   {
     no: '04',
@@ -439,10 +525,10 @@ const DEVELOPMENT_TIMELINE = [
 const TOC_ITEMS = [
   { id: 'hero',         label: '开篇' },
   { id: 'cognition',    label: '"组织性"的展开' },
-  { id: 'development',  label: '身份阶段' },
   { id: 'philosophy',   label: '宝贵机会' },
-  { id: 'review',       label: '考察维度' },
+  { id: 'development',  label: '身份阶段' },
   { id: 'works',        label: '两种工作' },
+  { id: 'review',       label: '考察维度' },
   { id: 'exploration',  label: '探索运作' },
   { id: 'dialogue',     label: '行百里者半九十' },
   { id: 'conclusion',   label: '管理事，服务人' },
@@ -547,8 +633,8 @@ function renderReview() {
 
   return `
     <section id="review" class="ab-page ab-review-section" data-toc-id="review">
-      <span class="ab-page-no">04</span>
-      <span class="ab-page-runner">第四章 · 考察积极分子</span>
+      <span class="ab-page-no">05</span>
+      <span class="ab-page-runner">第五章 · 考察积极分子</span>
       <div class="ab-chapter">
         <div class="ab-chapter-eyebrow">考察维度</div>
         <h2 class="ab-chapter-title">我们怎么考察积极分子？</h2>
@@ -588,7 +674,7 @@ function renderPhilosophy() {
       quote: '作为AI时代中一个建设方兴未艾的学生组织，支部提供两条独特的探索机会：①真实地参与组织制度和组织文化的构建；②在"没有经济负担"的背景下探索AI时代组织转型的萌芽和组织产品的生产。',
       fullQuote: '作为AI时代中一个建设方兴未艾的学生组织，①可以真实地参与组织制度和组织文化的构建；②可以在"没有经济负担"的背景下探索AI时代下组织转型的萌芽和组织产品的生产。',
       points: [
-        { label: '参与构建', desc: '不是进入一个成熟组织去适应，而是参与组织制度和组织文化的构建' },
+        { label: '参与构建', desc: '可以真实地参与组织制度和组织文化的构建' },
         { label: '探索自由度', desc: '在"没有经济负担"的背景下探索组织转型的萌芽和组织产品的生产——未来进入职场后难以获得' },
       ],
       insight: '学生党支部的"方兴未艾"恰恰是机会所在：成熟组织没有这种探索空间，而学生组织有。',
@@ -618,8 +704,8 @@ function renderPhilosophy() {
 
   return `
     <section id="philosophy" class="ab-page ab-philosophy-section ab-page--stagger" data-toc-id="philosophy">
-      <span class="ab-page-no">03</span>
-      <span class="ab-page-runner">第三章 · 宝贵机会</span>
+      <span class="ab-page-no">02</span>
+      <span class="ab-page-runner">第二章 · 宝贵机会</span>
       <div class="ab-chapter ab-philosophy-inner">
         <div class="ab-chapter-eyebrow">宝贵机会</div>
         <h2 class="ab-chapter-title">两条宝贵机会</h2>
@@ -643,19 +729,19 @@ function renderCognition() {
       num: '01',
       direction: '个体 → 组织',
       title: '各种发展轨迹都能加入获得成长',
-      body: '组织性是组织化成长途径，不是排他门槛。各种发展导向的同学——想进体制的、想走学术的、想去企业的——都能在组织中获得各自的成长。成长有两条路：个人闷头努力，或借由组织的经验、流程、集体智慧放大努力。后者才是"组织化"。光华管理学院本科生党支部就是你能在学院里接触到的那个具体组织。',
+      body: '各种发展导向的同学——想进体制的、想走学术的、想去企业的——都能在组织中获得各自的成长。先锋模范在具体的工作中就能体现——任何一名党员都有自己的用武之地和成长空间。成长有两条路：个人闷头努力，或借由组织的经验、流程、集体智慧放大努力。光华管理学院本科生党支部就是你能在学院里接触到的那个具体组织。',
     },
     {
       num: '02',
       direction: '组织 → 个体',
       title: '事情运作有管理科学和既往经验',
-      body: '真实组织运作靠流程和经验，不是层级命令。事情的运转有管理科学——分工、流程、记录、复盘有规律；有既往经验——历届支委沉淀的工作流是可复用的资产。成员调取并执行这些工作流，本身就是成长：执行过程让抽象的"管理知识"变成手上会用的"管理能力"。支书主持会议、副书记协助、组织委员统筹专班、宣传委员管档案、纪检委员管考勤——这些是具体的分工，不是抽象的"层级"。',
+      body: '真实组织运作靠流程和经验。事情的运转有管理科学——分工、流程、记录、复盘有规律；有既往经验——历届支委沉淀的工作流是可复用的资产。成员调取并执行这些工作流，本身就是成长：执行过程让抽象的"管理知识"变成手上会用的"管理能力"。支书主持会议、副书记协助、组织委员统筹专班、宣传委员管档案、纪检委员管考勤——这些是具体的分工，依据事情本身划分，不依据层级。',
     },
     {
       num: '03',
       direction: '个体 → 组织',
       title: '发挥主人翁精神在框架内真实表达',
-      body: '组织性的真正功能是让各种发展轨迹的人通过组织获得成长——个人通过组织实现诉求，不是个人服从组织。批评要在框架内提出：找准对象、找准时机。创新沉淀，就是把"没先例"变成"有先例"。你想做学术、想去企业、想走自己的路——支部的创新沉淀机制给你提供"把个人实践变成组织先例"的途径。',
+      body: '组织性的真正功能是让各种发展轨迹的人通过组织获得成长——个人借由组织实现诉求，组织为个体提供成长路径。批评要在框架内提出：找准对象、找准时机。创新沉淀，就是把"没先例"变成"有先例"。你想做学术、想去企业、想走自己的路——支部的创新沉淀机制给你提供"把个人实践变成组织先例"的途径。',
     },
   ];
 
@@ -677,7 +763,7 @@ function renderCognition() {
       <div class="ab-chapter ab-cognition-inner">
         <div class="ab-cognition-head">
           <div class="ab-chapter-eyebrow">"组织性"的展开</div>
-          <h2 class="ab-chapter-title">"组织性"的展开</h2>
+          <h2 class="ab-chapter-title">"组织性"<br/>的展开</h2>
           <div class="ab-cognition-lead" data-stagger>
             <p>从入党申请人到党员，组织性是贯穿始终的成长途径。</p>
           </div>
@@ -720,8 +806,8 @@ function renderTwoWorks() {
 
   return `
     <section id="works" class="ab-page ab-works-section ab-page--offset-head" data-toc-id="works">
-      <span class="ab-page-no">05</span>
-      <span class="ab-page-runner">第五章 · 两种工作</span>
+      <span class="ab-page-no">04</span>
+      <span class="ab-page-runner">第四章 · 两种工作</span>
       <div class="ab-chapter">
         <div class="ab-chapter-eyebrow">两种工作</div>
         <h2 class="ab-chapter-title">我们面对两种工作</h2>
@@ -929,7 +1015,7 @@ function renderExploration() {
     });
 
     const stagesHTML = scene.stages.map(s => `
-      <div class="ab-exploration-stage ab-snap-target" data-stage="${s.stage}">
+      <div class="ab-exploration-stage" data-stage="${s.stage}">
         <div class="ab-exploration-stage-no">${String(s.stage + 1).padStart(2, '0')}</div>
         <div class="ab-exploration-stage-body">
           <h4 class="ab-exploration-stage-title">${s.title}</h4>
@@ -995,7 +1081,7 @@ function renderDialogue() {
       <div class="ab-chapter ab-dialogue-inner">
         <div class="ab-chapter-eyebrow">恢复对话能力</div>
         <h2 class="ab-chapter-title">行百里者半九十</h2>
-        <p class="ab-chapter-sub">活动不是做了就行——必须和组织对话，在实践中持续改进</p>
+        <p class="ab-chapter-sub">活动完成后，对话与复盘仍在继续——在实践中持续改进</p>
         <div class="ab-dialogue-flow">${stepsHTML}</div>
         <blockquote class="ab-dialogue-coda" data-stagger>
           党建和经管学科科研的交叉点在于恢复和马克思主义的对话能力，恢复理论研究和现实治理之间的对话能力。
@@ -1091,8 +1177,8 @@ function renderDevelopment() {
 
   return `
     <section id="development" class="ab-page ab-development-section" data-toc-id="development">
-      <span class="ab-page-no">02</span>
-      <span class="ab-page-runner">第二章 · 发展党员</span>
+      <span class="ab-page-no">03</span>
+      <span class="ab-page-runner">第三章 · 发展党员</span>
       <div class="ab-chapter">
         <div class="ab-development-progress" aria-hidden="true"><div class="ab-development-progress-fill"></div></div>
         <div class="ab-chapter-eyebrow">身份阶段</div>
@@ -1146,10 +1232,10 @@ function renderAboutContent() {
     ${safe('TOC', renderTOC)}
     ${safe('Hero', renderHero)}
     ${safe('Cognition', renderCognition)}
-    ${safe('Development', renderDevelopment)}
     ${safe('Philosophy', renderPhilosophy)}
-    ${safe('Review', renderReview)}
+    ${safe('Development', renderDevelopment)}
     ${safe('TwoWorks', renderTwoWorks)}
+    ${safe('Review', renderReview)}
     ${safe('Exploration', renderExploration)}
     ${safe('Dialogue', renderDialogue)}
     ${safe('Conclusion', renderConclusion)}
@@ -1226,7 +1312,26 @@ function bindTimelineToggle() {
   });
 }
 
-/** 固定小目录：点击跳转 + 当前 section 高亮 */
+/** Lenis 平滑滚动（v15.3 引入——业界成熟经验）
+ * 滚轮输入 → 带惯性的缓动滚动位置：快滑有惯性滑行、慢滑逐帧精确；
+ * 与 ScrollTrigger 集成：平滑后的滚动位置经 ScrollTrigger.update 喂给动画 → scrub:true 即 1:1 精确映射，
+ * 无需再叠加 scrub lerp（替代 v5.2 scrub:0.8 的"统一滞后"机械感）。
+ * reduced-motion 下不启动，回落原生滚动。 */
+let lenis = null;
+function bindLenis() {
+  if (typeof Lenis === 'undefined') return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
+    // GSAP 不可用：Lenis 自带 rAF 循环，仍提供平滑滚动
+    lenis = new Lenis({ autoRaf: true });
+    return;
+  }
+  lenis = new Lenis({ autoRaf: false });
+  lenis.on('scroll', ScrollTrigger.update);
+  gsap.ticker.add((time) => lenis.raf(time * 1000));
+  gsap.ticker.lagSmoothing(0);
+}
+
 function bindTOC() {
   const tocItems = document.querySelectorAll('.ab-toc-dot-item');
   const tocNav = document.querySelector('.ab-toc-nav');
@@ -1240,8 +1345,12 @@ function bindTOC() {
       const target = document.getElementById(id);
       if (target) {
         const headerOffset = 64;
-        const top = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
-        window.scrollTo({ top, behavior: 'smooth' });
+        if (lenis) {
+          lenis.scrollTo(target, { offset: -headerOffset });
+        } else {
+          const top = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
       }
     });
   });
@@ -1310,7 +1419,7 @@ function bindPageAnimations() {
     // 卡片/内容入场统一参数（v5.1 重参数化——治"翻过去了才显示清楚"与"处处匀速"）：
     // 区间缩短：章节进入视口后 ~1/3 行程即完成显示（end 卡在章节顶部 30% 视口，不再拖到章节底部）；
     // ease power2.out 产生"先快后慢"的落定节奏（improve-animations：enter → ease-out）；
-    // stagger 0.08s（30-80ms 错峰）；scrub:true 严格跟手，正放倒放完全对称可逆。
+    // stagger 0.08s（30-80ms 错峰）；scrub:true（v15.3 复议：滚动位置已被 Lenis 平滑，1:1 精确映射到每一时刻）。
     const cardEntrance = (targets, section, startVh, endVh, y = 40, stagger = 0.08) => {
       if (!targets.length) return;
       gsap.fromTo(targets, { autoAlpha: 0, y }, {
@@ -1602,8 +1711,9 @@ function bindNetworkHover() {
 }
 
 /**
- * v5.2 行星大动画协调器
- * stage 驱动：仅在 stage 切换时调用 renderNetwork，CSS transition 负责动画
+ * v15.3 探索网络滚动协调器（连续渐变版）
+ * 滚动位置 → 连续 stage 位置 p = stageIndex + stageProgress → applyNetworkState 逐帧插值；
+ * 替代 v5.2 的二进制 stage 重渲染（stage 切换时才 renderNetwork + CSS transition），根治"吸住又跳过"卡点。
  */
 function bindExplorationScrollDriven() {
   const scenes = document.querySelectorAll('.ab-exploration-scene');
@@ -1622,20 +1732,24 @@ function bindExplorationScrollDriven() {
     sceneData.push({
       scene, network, stages, svg, stagesContainer,
       stageCount: stages.length,
-      currentRenderedStage: -1,
+      stageStates: buildStageStates(network, stages),
+      continuous: false, // 首次滚动后才切入连续模式（保留初始 CSS 入场）
     });
   });
 
-  // 初始渲染：stage 0
+  // 初始渲染：stage 0 结构 + 状态 + stage 标签态
   sceneData.forEach(data => {
     if (!data.svg) return;
     renderNetwork(data.svg, data.network, 0, data.stages);
-    data.currentRenderedStage = 0;
+    const sceneStages = data.scene.querySelectorAll('.ab-exploration-stage');
+    sceneStages.forEach((s, i) => {
+      s.setAttribute('data-state', i === 0 ? 'current' : 'future');
+    });
   });
 
   if (prefersReduced) return;
 
-  // 滚动驱动
+  // 滚动驱动：连续插值（v15.3 替代二进制重渲染）
   let ticking = false;
 
   const update = () => {
@@ -1647,10 +1761,13 @@ function bindExplorationScrollDriven() {
 
       const progress = computeScrollProgress(scrollTop, data.scene, data.stageCount);
 
-      if (progress.stageIndex !== data.currentRenderedStage) {
-        data.currentRenderedStage = progress.stageIndex;
-        renderNetwork(data.svg, data.network, progress.stageIndex, data.stages);
+      // 首次滚动：切入连续模式——禁用 CSS transition（时间驱动），改由逐帧插值（滚动驱动）
+      if (!data.continuous) {
+        data.continuous = true;
+        data.svg.classList.add('ab-network-continuous');
       }
+
+      applyNetworkState(data.svg, data.network, progress.stageIndex + progress.stageProgress, data.stageCount, data.stageStates);
 
       const sceneStages = data.scene.querySelectorAll('.ab-exploration-stage');
       sceneStages.forEach((s, i) => {
@@ -1669,7 +1786,6 @@ function bindExplorationScrollDriven() {
   };
 
   window.addEventListener('scroll', onScroll, { passive: true });
-  update();
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1813,12 +1929,14 @@ function bindHeroExit() {
  *  → 新场景从下方驶入覆盖，全程无硬切；
  *  终章 v5.1：去掉突变红/金化（书记裁决"实现不出效果就别实现"），保持暖白 + 党建红大字 + 温和落位驶入。 */
 function bindCameraFlow() {
-  // ── A. 镜头连续性：章节场景交接（治"拼贴"） ──
+  // ── A. 镜头连续性：章节场景交接（治"拼贴"）——顺序与叙事章节一致（v5.2 方案A）
   const pairs = [
-    ['.ab-cognition-section', '.ab-development-section'],
-    ['.ab-philosophy-section', '.ab-review-section'],
-    ['.ab-review-section', '.ab-works-section'],
-    ['.ab-works-section', '.ab-exploration-section'],
+    ['.ab-cognition-section', '.ab-philosophy-section'],
+    ['.ab-philosophy-section', '.ab-development-section'],
+    ['.ab-development-section', '.ab-works-section'],
+    ['.ab-works-section', '.ab-review-section'],
+    ['.ab-review-section', '.ab-exploration-section'],
+    ['.ab-exploration-section', '.ab-dialogue-section'],
   ];
 
   pairs.forEach(([fromSel, toSel]) => {
@@ -1920,44 +2038,9 @@ function bindCameraFlow() {
 /** ② 滚动吸附——仅限 Exploration 探索区场景内（书记裁决：吸附只属于探索区，全局 snap 破坏 UI 连续性）
  *  v5 重新校准：停靠点 = 每张 stage 标题头部，与左侧 sticky 关系图顶线对齐（替换 v4 的 0.36 生硬值）；
  *  柔和磁性：duration {min:0.35,max:0.7} + power2.out + 轻微 delay，不夺轮；
- *  范围止于最后一张 stage，防止吸附越界拦住后续章节 */
-function bindExplorationSceneSnap() {
-  const section = document.querySelector('.ab-exploration-section');
-  const stages = gsap.utils.toArray('.ab-exploration-stage');
-  if (!section || !stages.length) return;
+ *  范围止于最后一张 stage，防止吸附越界拦住后续章节
+ *  v5.2 移除：书记裁决"移除吸附 + 全局 scrub 平滑"（2026-08-04），快速滚动时吸附造成"吸住又跳过"卡点 */
 
-  // 停靠偏移 = sticky 关系图顶线（clamp(96px,12vh,140px)），stage 头部与之同线
-  const snapOffset = () => Math.max(96, Math.min(140, window.innerHeight * 0.12));
-  const getTargets = () => stages.map(st =>
-    st.getBoundingClientRect().top + window.scrollY - snapOffset()
-  );
-
-  ScrollTrigger.create({
-    trigger: section,
-    start: 'top top',
-    end: () => {
-      const targets = getTargets();
-      return targets[targets.length - 1] + 1;
-    },
-    snap: {
-      snapTo: (value, self) => {
-        const range = self.end - self.start || 1;
-        const scrollY = self.start + value * range;
-        const targets = getTargets();
-        let best = targets[0];
-        let bestDist = Infinity;
-        targets.forEach(t => {
-          const d = Math.abs(t - scrollY);
-          if (d < bestDist) { bestDist = d; best = t; }
-        });
-        return gsap.utils.clamp(0, 1, (best - self.start) / range);
-      },
-      duration: { min: 0.35, max: 0.7 },
-      ease: 'power2.out',
-      delay: 0.1,
-    },
-  });
-}
 
 /** Development 时间轴滚动驱动：顶部进度条 + 阶段高亮 */
 function bindDevelopmentScrollProgress() {
@@ -1974,7 +2057,7 @@ function bindDevelopmentScrollProgress() {
         trigger: timeline,
         start: 'top 72px',
         end: 'bottom 85%',
-        scrub: 0.3,
+        scrub: true,
       },
     });
   }
@@ -1982,30 +2065,80 @@ function bindDevelopmentScrollProgress() {
   section.querySelectorAll('.ab-tl-stage').forEach(div => {
     ScrollTrigger.create({
       trigger: div,
-      start: 'top 72%',
-      end: 'bottom 28%',
-      onToggle: (self) => div.classList.toggle('is-active', self.isActive),
+      start: 'top 78%',
+      end: 'bottom 22%',
+      // v15.3 连续化：阶段高亮颜色按滚动进度插值（灰 #ABA191 → 党建红 #CE1126），替代 is-active 二进制跳变
+      onUpdate: (self) => {
+        const t = self.progress < 0 ? 0 : self.progress > 1 ? 1 : self.progress;
+        const s = t * t * (3 - 2 * t); // smoothstep：进入柔和、离开柔和
+        const r = Math.round(171 + (206 - 171) * s);
+        const g = Math.round(161 + (17 - 161) * s);
+        const b = Math.round(145 + (38 - 145) * s);
+        div.style.color = `rgb(${r}, ${g}, ${b})`;
+      },
     });
   });
 }
 
-/** Dialogue 四阶段横向滚动驱动：按滚动进度点亮 data-state 三态 */
+/** Dialogue 四阶段滚动驱动（v15.3 连续渐变版）
+ *  滚动进度 → 连续位置 t = progress × N，每张卡按"点亮窗 [i, i+0.6)→渐隐窗 [i+1.6, i+2.6)"逐帧插值
+ *  opacity/saturate/scale/border 全部连续，替代二进制 data-state 跳变；data-state 仅驱动编号圆标（CSS transition 平滑） */
 function bindDialogueScrollActivation() {
   const section = document.querySelector('.ab-dialogue-section');
   const cards = section ? section.querySelectorAll('.ab-dialogue-card') : [];
   if (!section || !cards.length) return;
 
+  // 三态目标值（与 CSS data-state 规则保持一致）
+  const FUTURE = { opacity: 0.38, saturate: 0.3, scale: 0.96 };
+  const CURRENT = { opacity: 1, saturate: 1, scale: 1.02 };
+  const PAST = { opacity: 0.72, saturate: 0.6, scale: 0.985 };
+  const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+  const smooth = (t) => t * t * (3 - 2 * t);
+  const lerp = (a, b, t) => a + (b - a) * t;
+
+  const apply = (progress) => {
+    const t = progress * cards.length; // 连续位置 0..N
+    cards.forEach((card, i) => {
+      const d = t - i;
+      // 点亮进度：进入本卡窗口时 future→current（前 60% 行程）
+      const lightFactor = d < 0 ? 0 : d < 0.6 ? smooth(d / 0.6) : 1;
+      // 渐隐进度：下一卡点亮后 current→past（本卡窗口 60% 之后再一卡行程内淡出）
+      const dimFactor = d < 1.6 ? 0 : d < 2.6 ? smooth((d - 1.6) / 1.0) : 1;
+      // 当前度（驱动 data-state 圆标与边框）
+      const currentFactor = lightFactor * (1 - dimFactor);
+
+      let opacity, saturate, scale;
+      if (dimFactor > 0) {
+        opacity = lerp(CURRENT.opacity, PAST.opacity, dimFactor);
+        saturate = lerp(CURRENT.saturate, PAST.saturate, dimFactor);
+        scale = lerp(CURRENT.scale, PAST.scale, dimFactor);
+      } else {
+        opacity = lerp(FUTURE.opacity, CURRENT.opacity, lightFactor);
+        saturate = lerp(FUTURE.saturate, CURRENT.saturate, lightFactor);
+        scale = lerp(FUTURE.scale, CURRENT.scale, lightFactor);
+      }
+
+      card.style.opacity = String(opacity);
+      card.style.filter = `saturate(${saturate})`;
+      card.style.transform = `scale(${scale})`;
+      if (currentFactor > 0.02) {
+        card.style.borderColor = `rgba(206, 17, 38, ${(currentFactor * 0.4).toFixed(3)})`;
+      } else {
+        card.style.borderColor = '';
+      }
+      card.dataset.state = currentFactor > 0.35 ? 'current' : (dimFactor > 0 ? 'past' : 'future');
+    });
+  };
+
   ScrollTrigger.create({
     trigger: section,
     start: 'top 72%',
     end: 'bottom 55%',
-    onUpdate: (self) => {
-      const idx = Math.min(cards.length - 1, Math.floor(self.progress * cards.length));
-      cards.forEach((c, i) => {
-        c.dataset.state = i < idx ? 'past' : (i === idx ? 'current' : 'future');
-      });
-    },
+    onUpdate: (self) => apply(self.progress),
   });
+
+  // 初始态：全部 future
+  apply(0);
 }
 
 /** 探索区分镜切换：活动→专班作为同一镜头的两个分镜（v5 五·乙 ①）
@@ -2061,7 +2194,6 @@ function bindCinematicScroll() {
     bindHeroExit();
     const cleanupCamera = bindCameraFlow() || (() => {});
     bindExplorationStoryboardSwitch();
-    bindExplorationSceneSnap();
     bindDevelopmentScrollProgress();
     bindDialogueScrollActivation();
     return () => {
@@ -2077,6 +2209,7 @@ function bindCinematicScroll() {
 
 renderAboutContent();
 bindTimelineToggle();
+bindLenis();
 bindTOC();
 bindPageAnimations();
 bindNetworkHover();
