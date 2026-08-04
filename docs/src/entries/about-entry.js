@@ -1097,23 +1097,23 @@ function renderTOC() {
 }
 
 /** 主渲染入口 */
-function renderHelpContent() {
-  const content = document.getElementById('help-content');
+function renderAboutContent() {
+  const content = document.getElementById('about-content');
   if (!content) {
-    console.error('[renderHelpContent] #help-content not found');
+    console.error('[renderAboutContent] #about-content not found');
     return;
   }
   const base = getBasePath();
-  console.log('[renderHelpContent] start, base=', base);
+  console.log('[renderAboutContent] start, base=', base);
 
   // 安全渲染：每个 section 用 try-catch 包裹，避免单个 section 报错导致整个页面空白
   const safe = (name, fn) => {
     try {
       const html = fn();
-      console.log(`[renderHelpContent] ${name} OK, html.length=${html.length}`);
+      console.log(`[renderAboutContent] ${name} OK, html.length=${html.length}`);
       return html;
     } catch (e) {
-      console.error(`[renderHelpContent] ${name} ERROR:`, e);
+      console.error(`[renderAboutContent] ${name} ERROR:`, e);
       return `<div style="padding:20px;background:#fee;border:2px solid red;color:#900;">[${name} 渲染失败: ${e.message}]</div>`;
     }
   };
@@ -1689,7 +1689,7 @@ function bindExplorationScrollDriven() {
 //  启动
 // ════════════════════════════════════════════════════════════════
 
-renderHelpContent();
+renderAboutContent();
 bindTimelineToggle();
 bindTOC();
 bindPageAnimations();

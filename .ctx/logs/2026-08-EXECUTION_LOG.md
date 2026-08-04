@@ -990,3 +990,24 @@ related_files:
 - ✅ 字符重计：content/ .md 全量 417,248 + CLAUDE.md 43,827 = 461,075（含本轮减量后的当前状态）
 
 **沉淀标签**：`[已沉淀: SECRETARY_PRONOUNCEMENTS.md 头部"正文形式"条款]`（2026-08-04 新规则）— 书记原话作正文/多条原话无序列表/AI 扩充入引用块/去标签/后缀式日期；`[已沉淀: DESIGN_SYSTEM.md §5.4]` — Exploration 区块大原则 = 滚动驱动的场景切换；`[待沉淀]` — 功能色/状态色以落地值为准，历史执行记录统一归档日志不留在文档（奥卡姆剃刀）
+
+## T206 书记论述范式改革登记乙部 + T207 剩余文件全面过一遍 + help/about 命名扫尾修复（2026-08-04）
+
+**任务**：书记指令——① 范式改革部分"先行放入乙部，我会继续操作" ② "剩下的文件都要全面地过一遍" ③ "请先优先保证，help和about现在所有的命名都已经更新到位！！链接引用也到位" ④ wrap up 本对话等待新命令。
+
+- **乙部登记（CLAUDE.md）**：
+  - T-206 书记论述范式改革·书记继续调整（🔄 书记操作中）：范式改革已落地（16 条带原话条目全部改造），书记裁决部分内容需调整，由书记继续操作，AI 等待逐条指示
+  - T-207 全仓减量第二波续·剩余文件全面过一遍（⏳ 待启动）：书记指令"剩下的文件都要全面地过一遍"，含 SERVICE_CATALOG 18k / MODULE_UI_DESIGN 17k / COMMISSIONER_FRAMEWORK 16.5k / 常见工作场景快速指南 15k 等，按 H5.7 语义瘦身逐批审议
+
+- **help/about 命名与链接扫尾核查**：
+  - ✅ 页面身份：help.html=帮助/系统说明书、about.html=关于/支部故事（title/description 正确）
+  - ✅ 入口绑定：help.html→help-entry.js、about.html→about-entry.js（版本号同步）
+  - ✅ 侧边栏导航：sidebar.js 帮助→help.html、关于→about.html
+  - ✅ 内容文档映射：SERVICE_CATALOG/SOP_WEB/ARCHITECTURE/CHECKLIST/DATA_ARCHITECTURE/DESIGN_SYSTEM 均指向正确身份
+  - ❌→✅ **命名残留修复**：about.html 主容器 `id="help-content"`（互换后残留）→ `id="about-content"`；about-entry.js `renderHelpContent()` 函数名 + `#help-content` 引用 + 日志标签 → `renderAboutContent()`/`#about-content`（6 处）；入口版本号 `?v=20260804a`→`?v=20260804b` 强制缓存失效
+  - ✅ 浏览器双页实测：help.html 标题/内容/控制台零错误；about.html 标题正确、10 个区块全部写入（TOC/Hero/Cognition/Development/Philosophy/Review/TwoWorks/Exploration/Dialogue/Conclusion）、`#about-content` 挂载成功、无 `not found` 报错
+  - ✅ 全仓 grep 零残留：`help-content`/`renderHelpContent` 零匹配；`entries/help.js`/`entries/about.js` 旧名零引用；KNOWN_PITFALLS L195/L224 为历史判例（T147/T-201 时间戳标注），身份互换后仍指向正确页面名
+
+**变更文件**：`CLAUDE.md`（乙部 T-206/T-207）、`docs/about.html`、`docs/src/entries/about-entry.js`
+**验证结果**：✅ GetDiagnostics 零错误；✅ 浏览器双页渲染正常；✅ 全仓 grep 零残留
+**沉淀标签**：`[待沉淀]` — 页面内容互换后需同步检查容器 ID/函数名/日志标签等内部命名残留，浏览器实测确认渲染；`[已沉淀: KNOWN_PITFALLS §13]` — 入口脚本 `?v=` 修改后需同步 bump 版本参数强制缓存失效
