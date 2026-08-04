@@ -1036,3 +1036,22 @@ related_files:
 **变更文件**：`docs/about.html`（版本 bump `?v=v12` + `?v=20260804c`）、`docs/src/entries/about-entry.js`（v14：粒子/四效果/进度条/Dialogue 激活/封章）、`docs/src/styles.css`（电影化滚动叙事样式块 + reduced-motion 补充）
 **验证结果**：✅ GetDiagnostics 零错误；✅ 浏览器实测全通过——控制台零 JS 错误、9 区块全渲染、Hero 粒子 340 光点（红140/金20/灰146）、4 处叠层转场复现、进度条随滚动增长、Dialogue 四卡片依次点亮、封章 0.12→1 全屏展开、snap 章节边界吸附正常、Footer 正常；reduced-motion 因环境无法浏览器级模拟（Playwright/CDP 均不可用），静态路径已逐项核对
 **沉淀标签**：`[待沉淀]` — 滚动叙事四件套（Hero 退场/章节 snap/叠层 pin 覆盖/封章扩展）+ 原生 Canvas seeded 粒子可作为全站电影化滚动范式复用；`[已沉淀: KNOWN_PITFALLS §13]` — 入口 `?v=` 与 CSS `?v=` 需同步 bump
+
+## T207-2 关于页电影化滚动叙事 v2 重构——书记三轮裁决落地（2026-08-04）
+
+**任务**：书记对 T207 首版提出三轮批评并责令重构——①"滚动吸附我认为最重要的使用只是exploration的部分！！其他部分请你不要随意添加，会很破坏UI连续性！"；②"组件风格也要一并调整、背景颜色、字体设置……一定要满足好我们的高端审美需求！！"；③"滚动叠层转场、滚动驱动的全屏扩展转场"仍呈"垂直上下的表现！甚至不如PPT！！"；并要求在 global 部署 taste skill（find-skills 安装 `design-with-taste`）与 web-design-guidelines 配合。
+
+**引用流程**：find-skills Skill（安装 design-with-taste 全局）+ web-design-guidelines Skill（Vercel 最新规范重抓）+ gsap-core Skill + AskUserQuestion 方向裁示 + verification-before-completion Skill（browser_use 两轮实测）
+
+- **书记方向裁示（AskUserQuestion）**：不全局统一——about 起演示作用（"书记在给积极分子介绍组织，他也是一步一步来"）；机会 2 卡片非并列关系，先出现一个再出现一个；终章封章压合升级
+- **重构落地（about-entry.js v15 + styles.css）**：
+  - ① **吸附限缩**：删除全局 `bindSectionSnap`（章节边界吸附），新增 `bindExplorationSceneSnap`——吸附仅限探索区，目标点=每张 stage 顶到视口 40%，就近吸附黄金缓动；范围止于最后一张 stage（防吸附越界拦住后续章节）
+  - ② **叠层转场空间化**：被覆盖章 inner 退后压暗（scale 0.945 + brightness 0.78 + yPercent -7，景深）；覆盖章 3D 升起落位（rotationX 6°→0 + scale 0.97→1 + transformPerspective 1200 + power2.out，拒绝纯垂直平移）；**toEl fromTo 加 `immediateRender:false`**（from 态只在转场区生效，实测发现加载期常驻 transform 会把文档撑高 2231px/横向溢出 298px，并引发滚动锚定漂移——已修）
+  - ③ **终章封章压合**：旋转落章（rotation -26°→0 + scale 0.1→1）+ 金环压力波（`.help-conclusion-ring2` 从章心外扩消散）+ 六字逐字 blur→sharp 点亮（`renderConclusion` 标题改逐字 span，stagger 0.13 scrub）
+  - ④ **演示式逐步揭示**：Philosophy 两张机会卡先后各一（标题副标题 top 82% → 卡一 top 70% → 卡二 top 45%，拆三个 ScrollTrigger）；Dialogue 四卡交还环形点亮（入场仅标题区/引言，卡片 data-state 三态控制）
+  - ⑤ **高端化升级（t5）**：氛围背景光晕（红+金 radial，`isolation:isolate` + z-index:-1 限定章内）+ 章节暖色渐变背景（告别纯白，党建红不变）+ 卡片抛光（分层投影+顶光+悬停加深+按下回落）+ 排版精调（text-wrap:balance / tabular-nums / 字体平滑）+ 修复 about 页 2 处 `transition:all` 反模式 + touch-action:manipulation
+- **reduced-motion 复核**：逐字 span/金环补降级规则（char 强制可见、ring2 隐藏），新 pin/snap/scrub 全部仅在 no-preference 分支创建
+
+**变更文件**：`docs/about.html`（v13 / 20260804d）、`docs/src/entries/about-entry.js`、`docs/src/styles.css`
+**验证结果**：✅ GetDiagnostics 零错误；✅ 第一轮浏览器实测：静态结构 9 节/7 字/2 场景全对、全局 snap 确认移除（三处滚动停留原位）、探索区吸附生效（差 0-4px）、叠层 3D 转场生效、Dialogue 三态齐全；发现 2 缺陷——探索区 snap 越界吸附把终章滚动吸回 12262（seal 无法触发）+ 初始 3D transform 撑高文档；✅ 第二轮复测 7/7 全通过：bodyH 全程 14923 稳定（±19px）、无横向溢出、终章可达（scrollY=14281=maxScroll、seal scale(1)/opacity(1)、7 字全亮、金环消散）、探索区吸附仍生效、3D 转场回归正常、无滚动漂移
+**沉淀标签**：`[已沉淀: KNOWN_PITFALLS §13 补]` — ScrollTrigger 的 fromTo scrub 默认 immediateRender 会在加载期把 from 态（含 transform）常驻到元素上，视觉包围盒会撑高文档/横向溢出并引发滚动锚定漂移；空间类叠层转场必须 `immediateRender:false`；`[待沉淀]` — 吸附范围应以最后一个吸附目标为界，防止吸附"越界"拦住后续内容
