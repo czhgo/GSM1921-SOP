@@ -4,7 +4,7 @@ title: "系统快照"
 type: snapshot
 status: "ACTIVE"
 date: "2026-08-03"
-last_updated: "2026-08-03"
+last_updated: "2026-08-04"
 version: "v15"
 milestone: "根目录文档系统更新（README 读者旅程重构）+ P1 后端基建落地"
 ---
@@ -14,7 +14,7 @@ milestone: "根目录文档系统更新（README 读者旅程重构）+ P1 后�
 > 当前活跃基线。历史快照见 `.ctx/snapshots/`。
 > **生成**: 2026-08-03 — 根目录文档系统更新（README 读者旅程九章重构 + CLAUDE/content README/.ctx 同步）
 > **上版**: v14 (2026-07-31)
-> **变更来源**: 根目录文档更新任务（spec: docs/superpowers/specs/2026-08-03-根目录文档更新-design.md）+ P1 后端基建（plans/2026-08-02-后端基建-P1.md）
+> **变更来源**: 根目录文档更新任务 + P1 后端基建（2026-08-02~03）
 
 ## I. 全局物理拓扑
 
@@ -49,7 +49,6 @@ GSM1921-SOP/
 │       ├── modules/            ← 业务模块（1 个）
 │       ├── workflow/           ← 工作流引擎（6 个）
 │       └── styles.css          ← 全局样式
-│       └── superpowers/          ← 过程文件（specs/ + plans/，见 TIMESTAMPS）
 ├── server/                     ← Node 一体化后端（Express + better-sqlite3，同源静态 + /api/v1 REST）
 │   ├── server.js               ← 启动入口
 │   ├── app.js                  ← createApp 工厂 + JSON 错误中间件

@@ -936,3 +936,31 @@ related_files:
 - ✅ 锚点逐一核验：改动涉及的 4 组 slug 锚点与目标标题等值匹配
 
 **沉淀标签**：`[待沉淀]` — 并行 agent 审计后必须加主线程全量机械复核兜底（本次 agent 遗漏 11/36 处断链，占 31%）；GitHub slug 锚点遵循"空格→连字符、中文保留"规则，宽松匹配仅用于验证不得用于改写
+
+## T204 全仓过程性文件与脚本清理（2026-08-04）
+
+**任务**：书记指令——"我们清理一下过程性文件和脚本！保持我们仓库绝对干净！！"。对全仓过程性文件/脚本/空目录做彻底清理，根目录仅保留正式目录。
+
+**引用流程**：H2.2 母本子本 + D-233 历史记录不可变原则 + 历史清理先例（T61/T66/2026-07-18/2026-07-21 多次清理）
+
+**清理明细**：
+- **git rm 追踪污染（3 项，13 文件）**：
+  - `docs/superpowers/`（specs 6 + plans 4 共 10 文件）——过程文件目录（书记 2026-07-21 已定性，8 月新任务又积累）
+  - `.trae/.ignore`——.trae 目录整体清理
+  - `.vscode/settings.json`——个人 IDE 配置（引用已不存在的 .github/skills 与 .vibe_context，.gitignore 早已忽略却强制添加）
+- **工作区清理（未追踪，5 项）**：
+  - `.superpowers/`——brainstorm 会话过程文件（help 页面设计 6 HTML + 2 state）
+  - `.tools/`——一次性修复脚本（_fix_about/_fix_content_ws/_fix_sopweb/_fix_ws.py ×4）
+  - `.trae/specs/`——已完成任务的 spec 7 目录（help-chapters-rewrite/homepage-activity-card-merge/min-cost-workspace-design/secretary-global-overview/secretary-workspace-enhancement/tiaokuan-jiuzheng，成果均已沉淀）
+  - `.trae/documents/`——一次性修复文档 1 个 + `.trae/skills/` 空目录 4 个
+  - `.ctx/audit/`（含空 screenshots）、`server/uploads/`——空目录（uploads.js 运行时 `mkdirSync` 自动重建）
+- **保留说明**：`references/党支部工作记录.docx` 为宣传委员产出物正式模板（SOP 引用），非过程文件；`.ctx/` 治理上下文、`content/`、`docs/`、`server/` 正式内容均保留
+- **引用同步**：`.gitignore` 补 `docs/superpowers/`（防止再污染）；`.ctx/SNAPSHOT.md` 拓扑删 superpowers 行 + 变更来源简化；`.ctx/TIMESTAMPS.md` 删 docs/superpowers 段 + 已删记录追加 7 条 + last_updated；insights 工程演进与设计方法论.md 删除「与 spec 的关系」死引用句；CLAUDE.md 乙部历史任务记录中的 spec 路径引用按 D-233 保留（时间胶囊）
+
+**验证结果**：
+- ✅ 全仓空目录扫描：NO EMPTY DIRS
+- ✅ 污染残留复查：.trae/.vscode/.superpowers/.tools/docs/superpowers/.ctx/audit/server/uploads 全部 False
+- ✅ git 未追踪残留仅 server 运行时产物（data.db/node_modules，server/.gitignore 正常忽略）
+- ✅ 剩余路径引用均为历史日志/规则说明/已删记录段（D-233 不可变原则），活跃文件零死引用
+
+**沉淀标签**：`[已沉淀: insights 工程演进与设计方法论.md §7.5 仓库卫生]`（既有规则）— 过程性文件清理闭环：git rm 追踪污染 + 删除工作区残留 + 空目录归零 + .gitignore 防再生 + TIMESTAMPS 已删记录 + 引用同步；docs/superpowers/ 已被证明反复积累（3 次清理），列入 .gitignore 阻断

@@ -16,6 +16,7 @@ desktop.ini
 # Temp / process files
 *.py
 *.tmp
+docs/superpowers/
 
 # Build output (project uses ESM directly, no bundler needed)
 docs/dist/

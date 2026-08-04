@@ -3,13 +3,13 @@ role: "[工程师]+[AI]"
 dynamic_role:
   maintenance: "[工程师]+[AI]"
   auto_update: "[AI]"
-last_updated: "2026-08-03"
+last_updated: "2026-08-04"
 ---
 
 # File Timestamp Registry
 
 > 全项目文件最后更新时间注册表
-> last_updated: "2026-08-03" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
+> last_updated: "2026-08-04" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
 
 ---
 
@@ -149,19 +149,6 @@ last_updated: "2026-08-03"
 | server/package-lock.json | 2026-08-03 | [工具] | 依赖锁文件 |
 | server/.gitignore | 2026-08-03 | [工具] | 忽略 data.db/uploads 等运行时产物 |
 | server/data.db | — | — | 🗑️ 运行时产物（不入库，.gitignore 忽略） |
-
-## docs/superpowers/ (过程文件)
-
-| 文件路径 | last_updated | 角色 | 备注 |
-|---------|-------------|------|------|
-| docs/superpowers/specs/2026-08-01-visitor-visual-redesign-design.md | 2026-08-01 | [工程师]+[AI] | spec |
-| docs/superpowers/specs/2026-08-01-homepage-2026-08-design.md | 2026-08-01 | [工程师]+[AI] | spec |
-| docs/superpowers/specs/2026-08-02-真实工作集成-design.md | 2026-08-02 | [工程师]+[AI] | spec（P1 依据） |
-| docs/superpowers/specs/2026-08-02-赋权整合闭环-design.md | 2026-08-02 | [工程师]+[AI] | spec |
-| docs/superpowers/specs/2026-08-03-根目录文档更新-design.md | 2026-08-03 | [工程师]+[AI] | spec（本任务） |
-| docs/superpowers/plans/2026-08-02-后端基建-P1.md | 2026-08-03 | [工程师]+[AI] | plan（P1） |
-| docs/superpowers/plans/2026-08-02-赋权整合闭环.md | 2026-08-02 | [工程师]+[AI] | plan |
-| docs/superpowers/plans/2026-08-03-根目录文档更新.md | 2026-08-03 | [工程师]+[AI] | plan（本任务） |
 
 ## docs/ (前端应用)
 
@@ -409,3 +396,10 @@ last_updated: "2026-08-03"
 | docs/src/workflow/activityRecord.js | 2026-07-29 | v13 角色单页制重构移除 |
 | docs/src/services/assignment.js | 2026-07-29 | v13 数据同源迁移（AuthStore→mockDB.authorizations） |
 | docs/src/services/permission-manager.js | 2026-07-29 | v13 权限体系重构移除 |
+| docs/superpowers/ | 2026-08-04 | 过程文件目录删除（specs 6 + plans 4，共 10 文件） |
+| .trae/ | 2026-08-04 | 过程文件/脚本清理（specs 7 目录 + documents 1 + skills 空目录） |
+| .vscode/settings.json | 2026-08-04 | 个人 IDE 配置删除（引用已不存在的 .github/skills 与 .vibe_context） |
+| .superpowers/ | 2026-08-04 | brainstorm 会话过程文件删除 |
+| .tools/ | 2026-08-04 | 一次性修复脚本删除（_fix_*.py ×4） |
+| .ctx/audit/ | 2026-08-04 | 空目录删除 |
+| server/uploads/ | 2026-08-04 | 空目录删除（uploads.js 运行时自动重建） |
