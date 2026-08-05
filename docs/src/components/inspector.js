@@ -12,6 +12,14 @@ import { icon } from '../core/icons.js';
 import { PEOPLE, getPersonById } from '../mock/index.js';
 import { BranchService } from '../services/runtime.js';
 import { AuthStore } from '../services/auth.js';
+import { statusBadgeHtml, bindStatusBadge } from './status-badge.js';
+
+// T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
+const TASK_STATUSES = {
+  pending:     { label: '待处理', color: '#9CA3AF' },
+  in_progress: { label: '进行中', color: '#D97706' },
+  completed:   { label: '已完成', color: '#16A34A' },
+};
 
 // ════════════════════════════════════════════════════════════════
 //  RBAC 任务过滤核
@@ -19,6 +27,8 @@ import { AuthStore } from '../services/auth.js';
 // ════════════════════════════════════════════════════════════════
 export function filterTasksByManagementRole(tasks, managementRole) {
   if (managementRole === 'participant' || !managementRole) return tasks;
+  // 书记（党支书）为支部总负责人：活动详情展示该活动全部任务节点，便于全面监督（T-217 书记裁决 2026-08-05）
+  if (managementRole === 'secretary') return tasks;
   return tasks.filter(t => {
     const ex  = t.executor  || '';
     const sup = t.supervisor || '';
@@ -294,11 +304,12 @@ function renderInspectorDetail(activity, tasks, managementRole) {
       html += `<div class="${cardClass}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
       html += `<p class=" font-bold text-sm leading-snug flex-1">${t.title}</p>`;
-      html += `<select class="task-status-select input-flat text-xs flex-shrink-0"${isArchived ? ' disabled style="opacity:0.5;cursor:not-allowed;"' : ''} data-task-id="${t.id}" aria-label="任务状态">`;
-      html += `<option value="pending"${t.status === 'pending' ? ' selected' : ''}>待处理</option>`;
-      html += `<option value="in_progress"${t.status === 'in_progress' ? ' selected' : ''}>进行中</option>`;
-      html += `<option value="completed"${t.status === 'completed' ? ' selected' : ''}>已完成</option>`;
-      html += '</select>';
+      // T-217 §2.4：任务状态由行内 select 改为 status-badge（色点+文字+悬浮选择器）
+      html += statusBadgeHtml(t.status, {
+        statuses: TASK_STATUSES,
+        disabled: isArchived,
+        attrs: `data-task-id="${t.id}"`,
+      });
       html += '</div>';
       html += '</div>';
     });
@@ -333,10 +344,14 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   cardsEl.innerHTML = html;
 
   if (!isArchived) {
-    cardsEl.querySelectorAll('.task-status-select').forEach(sel => {
-      sel.addEventListener('change', () => {
-        const newTasks = BranchService.updateTask(sel.dataset.taskId, { status: sel.value });
-        setState({ tasks: newTasks });
+    cardsEl.querySelectorAll('[data-status-badge]').forEach(badge => {
+      bindStatusBadge(badge, {
+        statuses: TASK_STATUSES,
+        onChange: (newStatus) => {
+          const taskId = badge.dataset.taskId;
+          const newTasks = BranchService.updateTask(taskId, { status: newStatus });
+          setState({ tasks: newTasks });
+        },
       });
     });
   }

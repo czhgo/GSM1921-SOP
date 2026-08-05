@@ -10,6 +10,7 @@ import { getPersonById, getPersonName, PEOPLE } from '../mock/index.js';
 import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../core/constants.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { PersonPicker } from '../components/person-picker.js';
+import { openModal, closeModal } from '../components/modal.js';
 import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js';
 import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../services/issues.js';
 import { loadActivities } from '../services/activity.js';
@@ -69,9 +70,15 @@ const SEC_CALENDAR_TAB_HTML = `
         </div>
       </div>
     </div>
-    <div class="card rounded-2xl p-6">
-      <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">活动写入</h3>
-      <div id="write-form-area"></div>
+    <div class="card rounded-2xl p-6 flex items-center justify-between gap-4">
+      <div>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-1">活动写入</h3>
+        <p class="text-xs text-gray-500">按 SOP 模板写入活动，自动生成任务节点</p>
+      </div>
+      <button id="ws-sec-write-btn" type="button" class="shrink-0 text-sm px-4 py-2 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors inline-flex items-center gap-1.5">
+        ${icon('pencil', { className: 'w-3.5 h-3.5' })}
+        写入活动
+      </button>
     </div>
   </div>
   <!-- 活动查询（默认折叠，点击展开） -->
@@ -126,8 +133,9 @@ const SEC_FEEDBACK_TAB_HTML = `
       <div id="issue-drafts-list" class="px-3 pb-3 space-y-2"></div>
     </details>
 
-    <!-- 筛选条 -->
+    <!-- 筛选条（T-217 §2.5 统一顺序：搜索框 → 筛选器们 → 清除） -->
     <div class="flex flex-wrap items-center gap-2 mb-3">
+      <input type="text" id="issue-filter-keyword" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索标题或正文...">
       <select id="issue-filter-status" class="input-flat text-xs w-24">
         <option value="all">全部状态</option>
         <option value="open">开放中</option>
@@ -144,7 +152,7 @@ const SEC_FEEDBACK_TAB_HTML = `
         <option value="disc-commissioner">纪检委员</option>
         <option value="leader">党小组组长</option>
       </select>
-      <input type="text" id="issue-filter-keyword" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索标题或正文...">
+      <button id="issue-filter-clear" type="button" class="text-xs px-2.5 py-1 rounded bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">清除</button>
     </div>
 
     <!-- 全部反馈 -->
@@ -279,11 +287,11 @@ function _renderCalendarTabContent(state) {
   _renderQueryView(displayActivities);
   _bindQueryToggle();
 
-  // 决策树引导式写入面板（panelInit 防重渲染保护，避免全局状态刷新时丢失用户输入）
-  const writeArea = document.getElementById('write-form-area');
-  if (writeArea && !writeArea.dataset.panelInit) {
-    writeArea.dataset.panelInit = '1';
-    renderWritePanel(writeArea);
+  // 写入活动 → 悬浮表单（T-217 §3：原内联 #write-form-area 迁移至 modal，按钮防重绑定）
+  const writeBtn = document.getElementById('ws-sec-write-btn');
+  if (writeBtn && !writeBtn.dataset.bound) {
+    writeBtn.dataset.bound = '1';
+    writeBtn.addEventListener('click', openWriteModal);
   }
 }
 
@@ -333,6 +341,9 @@ function _renderAssignLeaders() {
 }
 
 // ── 项目角色赋权（organizer/deep，2026-08-02 自 members.html 迁入书记工作台） ──
+/** 项目赋权 PersonPicker 实例（选人规范 §2.2：选择具体人一律用 PersonPicker，可搜索） */
+let _projectAuthPicker = null;
+
 /** 渲染项目赋权表单（首次进入 tab 时构建，避免全局刷新丢失输入） */
 function _renderProjectAuthPanel() {
   const container = document.getElementById('project-auth-panel');
@@ -340,16 +351,12 @@ function _renderProjectAuthPanel() {
 
   const projectRoles = ['organizer', 'deep'];
   // 候选被赋权人：排除支委（支委为常设角色，无需被赋权项目角色）
-  const candidatePeople = PEOPLE.filter(p => !AuthStore.isCommissioner(p.role));
 
   container.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div>
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择被赋权人</label>
-        <select id="project-auth-person" class="input-flat text-xs w-full">
-          <option value="">— 请选择 —</option>
-          ${candidatePeople.map(p => `<option value="${p.id}">${p.name}（${p.studentId}）</option>`).join('')}
-        </select>
+        <div id="project-auth-picker-container"></div>
       </div>
       <div>
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择项目类型</label>
@@ -385,6 +392,18 @@ function _renderProjectAuthPanel() {
     </div>
   `;
 
+  // 选人规范 §2.2：被赋权人选择用 PersonPicker（姓名/学号搜索），替换原 select 罗列人名
+  _projectAuthPicker?.destroy();
+  const pickerContainer = document.getElementById('project-auth-picker-container');
+  _projectAuthPicker = new PersonPicker({
+    mode: 'single',
+    placeholder: '搜索姓名或学号选择被赋权人',
+    filter: p => !AuthStore.isCommissioner(p.role),
+    accentColor: accent,
+    onSelect: () => {},
+  });
+  _projectAuthPicker.render(pickerContainer);
+
   _bindProjectTypeSwitch();
   _bindConfirmProjectAuth();
   _renderProjectAuthRecords();
@@ -412,7 +431,7 @@ function _bindConfirmProjectAuth() {
   if (!btn) return;
 
   btn.addEventListener('click', async () => {
-    const personId = document.getElementById('project-auth-person')?.value;
+    const personId = (_projectAuthPicker?.getSelected() || [])[0] || '';
     const projectId = document.getElementById('project-id-select')?.value;
     const role = document.querySelector('input[name="project-role"]:checked')?.value;
 
@@ -1106,6 +1125,28 @@ const WRITE_TEMPLATES = [
 
 // ── 渲染函数 ──────────────────────────────────────────────────
 
+// ── 写入活动悬浮表单（T-217 §3 全悬浮化） ──────────────────
+const WRITE_MODAL_ID = 'write-activity';
+
+/** 定位当前悬浮面板内的写入面板容器（悬浮已关闭时返回 null） */
+function _getWritePanelContainer() {
+  return document.getElementById(`modal-overlay-${WRITE_MODAL_ID}`)?.querySelector('.modal-body') || null;
+}
+
+/** 打开「写入活动」悬浮表单：Step1 选模板 → Step2 填表单（含正交维度），重新打开回到 Step1 */
+function openWriteModal() {
+  openModal({
+    id: WRITE_MODAL_ID,
+    title: '写入活动',
+    width: '720px',
+    accentColor: accent,
+    onMount: (panel) => {
+      wp.step = 1;
+      renderWritePanel(panel.querySelector('.modal-body'));
+    },
+  });
+}
+
 /** 主渲染入口（2 步：模板选择 → 表单填写）*/
 function renderWritePanel(container) {
   let html = '';
@@ -1369,8 +1410,8 @@ function handleWritePanelAction(e) {
       return;
   }
 
-  // 重新渲染面板
-  const container = document.getElementById('write-form-area');
+  // 重新渲染悬浮面板（T-217 §3：容器改为从悬浮内部定位）
+  const container = _getWritePanelContainer();
   if (container) renderWritePanel(container);
 }
 
@@ -1400,7 +1441,7 @@ async function handleSubmitActivity() {
   let dimIsOutdoor = '';
   let dimCarriers = [];
   if (wp.selections.L1 === 'theme-day') {
-    const formArea = document.getElementById('write-form-area');
+    const formArea = _getWritePanelContainer();
     if (formArea) {
       const picked = [...formArea.querySelectorAll('[data-wp-dim].wp-dim-on')];
       dimIsJoint = picked.find(o => o.dataset.wpGroup === 'isJoint')?.dataset.wpDimValue || '';
@@ -1418,7 +1459,7 @@ async function handleSubmitActivity() {
   if (!scenarioId) { showToast('error', '场景信息缺失，请重新选择模板'); return; }
 
   wp.submitting = true;
-  const container = document.getElementById('write-form-area');
+  const container = _getWritePanelContainer();
   if (container) renderWritePanel(container);
 
   try {
@@ -1460,11 +1501,14 @@ async function handleSubmitActivity() {
     // 5. 重置面板状态
     wp.reset();
 
-    // 5. 刷新活动列表
+    // 6. 刷新活动列表
     try {
       const activities = await BranchService.listActivities();
       setState({ activities });
     } catch (_) { /* 列表刷新失败不影响写入结果*/ }
+
+    // 7. 成功后关闭悬浮（T-217 §3 全悬浮化）
+    closeModal(WRITE_MODAL_ID);
 
   } catch (err) {
     console.error('[WritePanel] 写入失败', err);
@@ -1473,12 +1517,9 @@ async function handleSubmitActivity() {
       : '写入失败：' + (err.message || '未知错误');
     showToast('error', msg);
     wp.submitting = false;
-  }
-
-  // 重新渲染面板（无论成功或失败），重置初始化标记以确保渲染
-  if (container) {
-    delete container.dataset.panelInit;
-    renderWritePanel(container);
+    // 失败：保留悬浮并重新渲染，恢复提交按钮
+    const failContainer = _getWritePanelContainer();
+    if (failContainer) renderWritePanel(failContainer);
   }
 }
 
@@ -1811,6 +1852,21 @@ function renderIssueManagement() {
       el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', () => renderIssueManagement());
     }
   });
+
+  // 清除筛选（T-217 §2.5）
+  const filterClear = document.getElementById('issue-filter-clear');
+  if (filterClear && !filterClear.dataset.bound) {
+    filterClear.dataset.bound = '1';
+    filterClear.addEventListener('click', () => {
+      const statusSel = document.getElementById('issue-filter-status');
+      const assigneeSel = document.getElementById('issue-filter-assignee');
+      const keywordInput = document.getElementById('issue-filter-keyword');
+      if (statusSel) statusSel.value = 'all';
+      if (assigneeSel) assigneeSel.value = 'all';
+      if (keywordInput) keywordInput.value = '';
+      renderIssueManagement();
+    });
+  }
 
   // 工具按钮
   document.getElementById('btn-export-issues-json')?.addEventListener('click', () => {
@@ -2369,4 +2425,4 @@ function renderNotificationList() {
 
 registerRenderCallback(renderSecretaryUI);
 
-loadWorkspaceData({ role: 'secretary', storeInits: [() => TaskForceRecordStore.init()], fallbackData: () => loadActivities(), logTag: 'ws-secretary' });
+loadWorkspaceData({ role: 'secretary', storeInits: [() => TaskForceRecordStore.init()], extraLoads: [() => BranchService.listTasks()], fallbackData: () => loadActivities(), logTag: 'ws-secretary' });

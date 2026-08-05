@@ -1297,3 +1297,36 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **变更文件**：`.ctx/TIMESTAMPS.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
 - **验证结果**：✅ 全量比对确认 content/ 35 行 YAML 与 TIMESTAMPS 全部一致（无引号格式差异除外）；✅ 3 处超前类回退正确（YAML 为权威）；✅ GetDiagnostics 无新错误
 - **沉淀标签**：省略（按规执行，未产生新模式）
+
+## T217 交互载体规范 + 悬浮表单扩展（网页 UI 专项·D2）（2026-08-05）
+
+**任务**：书记指令——"请让我们推进 网页UI 专项！！Use Skill: web-design-guidelines Use Skill: brainstorming Use Skill: frontend-design"+ "一个很重要的是，现在我们适用悬浮表单的场景还是有点受限，同时，出现下拉选择和表单出现的位置都值得深究！！包括但不限于这些事项！"
+**引用流程**：H1.2 执行 + web-design-guidelines Skill + brainstorming Skill + frontend-design Skill + H2.4 经验沉淀 + verification-before-completion Skill
+**来源**：书记指令（网页 UI 专项，承接 T-207 剩余 D2）
+
+- **书记裁决链（七轮 AskUserQuestion）**：
+  - ① 产出形式=**规范+改造**；方向=**轻量录悬浮**
+  - ② 书记自定义（关键）："写入活动这个事情可以做成悬浮表单。其余部分，只要涉及到人的，一般都要在选择录入'谁'的时候要在下拉框和表单中有搜索功能！我们人太多了"
+  - ③ 行内状态下拉=**改轻交互**；筛选下拉位置=**统一**；月份下拉=**纳入**（多选三项全选）
+  - ④ 写入活动形态=**全悬浮**；选人落地=**固化规范+全仓审计**；行内状态=**看看效果再决定**（原型先行）
+  - ⑤ 筛选位置=**固定工具栏顺序**；月份=**自定义下拉**；附加=**要考虑不同终端的情形！**
+  - ⑥ 设计草案=**批准执行**
+  - ⑦ 实测数据链路缺口裁决=**书记看全部任务（推荐）**——书记活动详情展示该活动全部任务节点，便于全面监督
+
+- **执行详情（分项）**：
+  - **§3 写入活动全悬浮**：`ws-secretary-entry.js` 日历 tab「写入活动」按钮卡片 + `openModal(720px)` 两步决策树悬浮表单（Step1 选模板 → Step2 填正交维度表单）；`wp` 状态保持，重新打开回 Step1；提交成功 `wp.reset()`+`closeModal`+`listActivities()` 刷新；内联 `#write-form-area` 迁移至 `_getWritePanelContainer()`
+  - **§2 选人审计 + 固化规范**：全仓 Grep `PEOPLE.map/filter`+`<option>${p.name}` 仅 1 处违规（项目赋权选人 select）→ 改 PersonPicker（姓名/学号搜索+党小组 tabs+单选），实例变量管理 destroy/re-create；硬性规则四条（凡选具体人一律 PersonPicker、禁止 select 罗列人名、过滤用 filter 选项）写入 DESIGN_SYSTEM §4.13
+  - **§4 状态徽章原型**：新建 `status-badge.js`（`statusBadgeHtml` 色点+文字+箭头 / `bindStatusBadge` 点击弹选择器，clamp 边界定位、外部/ESC 关闭、触屏可点）；原型应用到 inspector 任务状态行（替换原生 select），书记看效果后再推广考勤/交接；`filterTasksByManagementRole` 补 secretary 分支提前返回全部任务（书记全任务监督）
+  - **§5 筛选顺序统一**：issue-list.js 工具栏固定顺序=搜索框→状态胶囊→分隔线→scope/type 筛选→「清除」按钮（重置全部筛选态）；书记反馈管理 tab 同步；att-*/insp-*/query-view 核验已合规
+  - **§6 月份下拉核验**：month-selector 已被 bootstrap MutationObserver 全局增强为自定义触发式下拉（60ms 防抖扫描 `.input-flat select`），无需逐改，浏览器实测通过
+  - **§7 响应式**：modal 已有 `max-width:calc(100vw-32px)`+`max-height:85vh`；工具栏 flex-wrap；status-badge 触屏可点；375px 模拟 PASS
+  - **§1 规范落位**：DESIGN_SYSTEM.md 新增 §4.12 交互载体决策规范（四载体判定表：悬浮表单/就地展开/内联面板/跳转 + 已落实案例）、§4.13 选人规范（PersonPicker 四条硬性规则）、§4.14 状态徽章（Status Badge）
+
+- **验证结果（浏览器两轮实测通过）**：
+  - ✅ 第一轮 8 步全 PASS：写入活动全悬浮闭环（按钮→Step1 模板→Step2 表单→提交→关闭→列表刷新）、PersonPicker 搜索选人、筛选顺序+清除按钮、month-selector 自定义下拉、375px 响应式
+  - ✅ 实测发现数据链路缺口（书记活动详情永远「暂无关联任务」，根因：`loadWorkspaceData` 未传 `extraLoads` → state.tasks 空数组 + `filterTasksByManagementRole` 按 executor/supervisor 过滤掉全部 50 条任务）→ 书记裁决「书记看全部任务」→ 补 `extraLoads: [() => BranchService.listTasks()]` + secretary 提前返回
+  - ✅ 复测 PASS：act-10 详情 2 张任务卡 + 2 枚徽章弹出选择已完成 → 进度 1/2 → 已还原
+  - ✅ GetDiagnostics 全部修改文件零错误；控制台错误均为环境性（API 404/字体网络/生产警告）
+
+- **变更文件**：`docs/src/entries/ws-secretary-entry.js`、`docs/src/components/inspector.js`、`docs/src/components/status-badge.js`（新建）、`docs/src/components/issue-list.js`、`docs/src/styles.css`、`content/04_web_design/DESIGN_SYSTEM.md`、`CLAUDE.md`（乙部 T-207 更新）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[已沉淀: 交互载体决策规范]` — DESIGN_SYSTEM §4.12：悬浮表单=轻量录入（≤3 字段/上下文锚定主录入）、就地展开=查看为主+快捷操作、内联面板=主流程长表单、跳转=整页级；选人=PersonPicker 硬性规则（§4.13）；`[经验: 实测驱动的数据链路修复]` — 悬浮表单承载主录入时，其数据展示面（任务列表）常被角色过滤逻辑吞掉——`loadWorkspaceData` 未传 `extraLoads` 与 RBAC 过滤双因叠加，须以「书记看全部任务」类监督语义为默认；`[待办: 状态徽章推广范围]` — 考勤确认/交接状态待书记看原型效果后决定推广；`[待办: 网页 UI 专项续]` — D3 系统跟随主题模式（prefers-color-scheme）/ E2 功能层数据联动（待办项标注数据上下游）

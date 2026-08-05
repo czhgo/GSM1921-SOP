@@ -1596,6 +1596,94 @@ textarea.input-flat {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   COMPONENT: Status Badge（T-217 §2.4 行内状态轻交互原型）
+   徽章 = 色点 + 文字 + 下拉箭头；点击弹出悬浮选择器（clamp 边界定位）
+   ═══════════════════════════════════════════════════════════════ */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px 2px 7px;
+  border-radius: var(--radius-md);
+  background-color: color-mix(in srgb, var(--sb-color) 10%, #fff);
+  border: 1px solid color-mix(in srgb, var(--sb-color) 28%, transparent);
+  color: color-mix(in srgb, var(--sb-color) 82%, #000);
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.5;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: background-color 0.15s ease-out, border-color 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+.status-badge:hover {
+  background-color: color-mix(in srgb, var(--sb-color) 15%, #fff);
+  border-color: color-mix(in srgb, var(--sb-color) 45%, transparent);
+}
+.status-badge:focus-visible {
+  outline: 2px solid var(--sb-color);
+  outline-offset: 2px;
+}
+.status-badge[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.status-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background-color: var(--sb-color);
+  flex-shrink: 0;
+}
+.status-badge-chevron {
+  opacity: 0.55;
+}
+
+.status-badge-popover {
+  position: fixed;
+  z-index: 700;
+  min-width: 128px;
+  padding: 4px;
+  background: #fff;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.14s ease-out, transform 0.14s ease-out;
+}
+.status-badge-popover.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.status-badge-option {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  border-radius: calc(var(--radius-md) - 2px);
+  background: none;
+  color: var(--neutral-700);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.12s ease-out;
+}
+.status-badge-option:hover {
+  background-color: var(--neutral-100);
+}
+.status-badge-option.is-active {
+  color: var(--sb-color);
+}
+.status-badge-check {
+  margin-left: auto;
+  color: var(--sb-color);
+}
+
+/* ═══════════════════════════════════════════════════════════════
    COMPONENT: Reference Panel
    ═══════════════════════════════════════════════════════════════ */
 .ref-cat-btn {

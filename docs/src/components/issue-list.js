@@ -46,10 +46,11 @@ export function renderIssueList() {
       </div>
 
       <div class="flex items-center gap-2 mb-3 flex-wrap text-xs">
+        <input type="text" id="filter-keyword" placeholder="搜索标题/正文..." value="${_filterState.keyword}" class="input-flat text-xs px-2 py-1 rounded flex-1 min-w-[140px]">
         <button class="filter-btn px-3 py-1 rounded-full transition-colors ${_filterState.status === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="all">全部 (${counts.total})</button>
         <button class="filter-btn px-3 py-1 rounded-full transition-colors ${_filterState.status === 'open' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" style="${_filterState.status === 'open' ? 'background:#CE1126' : ''}" data-status="open">开放中 (${counts.open})</button>
         <button class="filter-btn px-3 py-1 rounded-full transition-colors ${_filterState.status === 'closed' ? 'bg-gray-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="closed">已关闭 (${counts.closed})</button>
-        <span class="mx-2 text-gray-300">|</span>
+        <span class="mx-1 text-gray-300">|</span>
         <select id="filter-scope" class="input-flat text-xs px-2 py-1 rounded">
           <option value="all" ${_filterState.scope === 'all' ? 'selected' : ''}>所有范围</option>
           ${Object.entries(SCOPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.scope === v ? 'selected' : ''}>${l}</option>`).join('')}
@@ -58,7 +59,7 @@ export function renderIssueList() {
           <option value="all" ${_filterState.type === 'all' ? 'selected' : ''}>所有类型</option>
           ${Object.entries(TYPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.type === v ? 'selected' : ''}>${l}</option>`).join('')}
         </select>
-        <input type="text" id="filter-keyword" placeholder="搜索标题/正文..." value="${_filterState.keyword}" class="input-flat text-xs px-2 py-1 rounded flex-1 min-w-[120px]">
+        <button id="filter-clear" type="button" class="px-2.5 py-1 rounded bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">清除</button>
       </div>
 
       <div id="issue-list" class="space-y-2">
@@ -140,6 +141,12 @@ function bindEvents() {
       _filterState.status = btn.dataset.status;
       renderIssueList();
     });
+  });
+
+  // 清除筛选（搜索框 + 状态 + 范围/类型 全部复位）
+  document.getElementById('filter-clear')?.addEventListener('click', () => {
+    _filterState = { status: 'all', scope: 'all', type: 'all', milestone: 'all', keyword: '' };
+    renderIssueList();
   });
 
   document.getElementById('filter-scope')?.addEventListener('change', (e) => {
