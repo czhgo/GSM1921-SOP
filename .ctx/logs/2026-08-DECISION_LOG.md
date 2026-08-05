@@ -4,9 +4,7 @@ type: decision_log
 role: "[工程师]+[AI]"
 last_updated: "2026-08-02"
 status: active
-related_files:
-  - CLAUDE.md
-  - .ctx/logs/2026-08-EXECUTION_LOG.md
+related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md]
 ---
 
 # 2026年8月决策日志

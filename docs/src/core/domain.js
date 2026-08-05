@@ -54,7 +54,7 @@ export const SCHEMA_VERSION = 1;
  */
 
 /**
- * 参与层级枚举 — Source: content/design/MANAGEMENT_MODE.md §5.3
+ * 参与层级枚举 — Source: content/04_web_design/DATA_ARCHITECTURE.md §3.3
  * organize = 组织者，deep = 深度参与者，attend = 出勤
  */
 export const ParticipationLevel = {
@@ -150,7 +150,7 @@ export const REVIEW_STATUS_LABELS = {
  * @property {string}  activityId    - 关联活动 ID（sourceType='activity'时必填）
  * @property {string}  sourceName    - 来源名称（sourceType='taskforce'时为专班名称）
  * @property {string}  personId      - 人员 ID（引用 people.js）
- * @property {'organize'|'deep'} level - 考察层级（仅组织者和深度参与者有考察记录） - Source: content/design/MANAGEMENT_MODE.md §5.1
+ * @property {'organize'|'deep'} level - 考察层级（仅组织者和深度参与者有考察记录） - Source: content/04_web_design/DATA_ARCHITECTURE.md §3.3
  * @property {string}  role          - 分工角色+描述（如：策划+全流程统筹、视频制作、PPT设计）
  * @property {string}  recordedBy    - 记录人 personId
  * @property {string}  recordedAt    - 记录时间 ISO 字符串
@@ -216,7 +216,7 @@ export const mockDB = {
   // Source: content/02_institution/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
   attendances: [],
   /** @type {InspectionRecord[]} */
-  // 考察记录（仅组织者和深度参与者的工作量记录）— Source: content/design/MANAGEMENT_MODE.md §5.1
+  // 考察记录（仅组织者和深度参与者的工作量记录）— Source: content/04_web_design/DATA_ARCHITECTURE.md §3.3
   inspections: [],
   /** @type {Object[]} 活动复盘记录 */
   activityReviews: [],

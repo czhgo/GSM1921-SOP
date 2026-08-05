@@ -2,8 +2,8 @@
 title: "单一权威源索引"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-08-04"
-version: "3.7"
+last_updated: "2026-08-05"
+version: "3.8"
 status: active
 related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web_design/, content/03_doc_system/, content/02_institution/sop/, content/insights/]
 ---
@@ -85,38 +85,9 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 
 ---
 
-## Agent 注册表（已迁出）
+## Agent/Skill 配置（已迁出）
 
-> **2026-07-21 D-186 终结**：`.github/` 目录已物理迁出至 `D:\GitHub\System-Residual\.github\`，不再属于本仓库。VSCode Agent/Skill 配置外部管理，以下注册表仅作为历史档案保留。
-
-| Agent 文件名 | Agent 名称 (frontmatter) | Agent 类型 | 主要职责 | 工具配置 | 是否支持 Handoff | 关联 Skill |
-|---|---|---|---|---|---|---|
-| mishuchu.agent.md | "协调调度Agent" | 协调型（Coordinator） | 计划、拆解、排序、依赖梳理 | ['read', 'search'] | ✅ (可委派给其他 Agent) | — |
-| zuzhibu.agent.md | "规范执行Agent" | 执行型（Worker） | 文档规范化、术语治理 | ['read', 'agent', 'edit', 'search'] | ✅ (可委派给日志记录Agent) | term-cleaner, anchor-fixer |
-| fagaiwei.agent.md | "文本执行Agent" | 执行型（Worker） | 文本母本与内容层治理 | ['read', 'agent', 'edit', 'search'] | ✅ (可委派给日志记录Agent) | sop-sync, sop-web-sync, yaml-slim |
-| gongxinbu.agent.md | "代码执行Agent" | 执行型（Worker） | 代码内容层与 SOP 映射 | ['read', 'agent', 'edit', 'search'] | ✅ (可委派给日志记录Agent) | sop2code, data-inspector |
-| waijiaobu.agent.md | "UI执行Agent" | 执行型（Worker） | UI 交互与可用性 | ['read', 'agent', 'edit', 'search'] | ✅ (可委派给日志记录Agent) | ui-verifier |
-| sifabu.agent.md | "合规执行Agent" | 执行型（Worker） | 规则审查与合规纠偏 | ['read', 'agent', 'edit', 'search'] | ✅ (可委派给日志记录Agent) | audit-report |
-| jianchayuan.agent.md | "独立审查Agent" | 审查型（Auditor） | 三层合规审查与独立巡视 | ['read', 'search'] | ❌ (纯只读) | audit-report, data-inspector, ui-verifier |
-| jiguandangwei.agent.md | "架构监督Agent" | 监督型（Supervisor） | 全局核心原则与架构监督 | ['read', 'agent', 'edit', 'search'] | ❌ (高权限，不直接委派) | — |
-| shekeyuan.agent.md | "经验分析Agent" | 分析型（Analyst） | 经验提炼与沉淀 | ['read', 'edit', 'search'] | ❌ (历史档案层) | experience-distiller |
-| danganguan.agent.md | "日志记录Agent" | 记录型（Recorder） | 系统变更日志记录 | ['read', 'edit', 'search'] | ❌ (历史档案层) | log-recorder |
-
-## Skill 配置清单
-
-| Skill 名称 | 行数 | 估计 Tokens | context: fork | 主要 Gotchas |
-|---|---|---|---|---|
-| audit-report | 51 | ~1200 | ✅ | 抽样置信度边界、Agent frontmatter 属性检查 |
-| data-inspector | 48 | ~1100 | ✅ | JS 对象字面量非 JSON、sibling 字段一致性 |
-| ui-verifier | 50 | ~1150 | ✅ | DOM 动态绑定、CSS/JS 选择器交叉验证 |
-| term-cleaner | 42 | ~1000 | — | 代码豁免、锚点同步 |
-| anchor-fixer | 42 | ~1000 | — | GitHub 锚点规则、同名标题后缀 |
-| yaml-slim | 40 | ~950 | — | version 强制保留、frontmatter 边界 |
-| sop-sync | 44 | ~1050 | — | 结构优先、锚点重验证 |
-| log-recorder | 52 | ~1200 | — | 来源门禁、append-only、模板复制 |
-| experience-distiller | 43 | ~1050 | ✅ | 两阶段不可跳跃、先写后改标签 |
-| sop2code | 52 | ~1200 | — | SSOT 铁律、场景约束必读 |
-| sop-web-sync | 75 | ~1800 | — | 母本优先、映射表驱动、术语权威源 |
+> **2026-07-21 D-186 终结**：`.github/` 目录已物理迁出至 `D:\GitHub\System-Residual\.github\`，不再属于本仓库。VSCode Agent/Skill 配置外部管理，以下注册表仅作为历史档案保留。本文件不再保留 Agent 注册表与 Skill 配置清单表格。
 
 ## 文档变更同步机制
 
@@ -158,36 +129,36 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 
 ## 已迁移文件索引
 
-| 原路径 | 新路径/处理方式 | 迁移日期 |
+| 原路径 | 新路径/处理方式（现行） | 迁移日期 |
 |--------|----------------|---------|
 | governance/* | → CLAUDE.md §五/§六（整合）或删除 | 2026-05-02 |
 | backlog/* | → CLAUDE.md §五（整合）或删除 | 2026-05-02 |
 | .vibe_context/* | → .ctx/（迁移）或删除 | 2026-05-02 |
-| knowledge/SOP/ | → content/sop/ | 2026-05-02 |
-| docs/ | → content/guides/ + content/insights/ | 2026-05-02 |
+| knowledge/SOP/ | → content/02_institution/sop/（经 content/sop/ 过渡） | 2026-05-02 |
+| docs/ | → content/01_strategy/ + content/04_web_design/ + content/03_doc_system/ + content/insights/（经 content/guides/ 过渡） | 2026-05-02 |
 | 参考资料/ | → content/01_strategy/references/ | 2026-05-02 |
 | AI_ENTRYPOINT.md | → 已合并至 ARCHITECTURE.md | 2026-05-01 |
 | SYSTEM_CLAUDE.md | → CLAUDE.md | 2026-05-02 |
 | .github/SSOT_INDEX.md | → SSOT_INDEX.md（移至根目录） | 2026-05-18 |
-| content/design/PERMISSION_MATRIX.md | → MANAGEMENT_MODE.md §权限矩阵权威源（精简合并） | 2026-07-08 |
-| content/design/LOGIN_STUB.md | → MANAGEMENT_MODE.md §登录态打桩设计（§一~§五）+ DATA_ARCHITECTURE.md §登录系统设计前置（§六~§十一，经 LOGIN_SYSTEM_DESIGN.md 合并） | 2026-07-08 |
-| content/design/APPROVAL_FLOW.md | → COMMISSIONER_FRAMEWORK.md §审批流程规范（全量合并） | 2026-07-08 |
-| content/design/WRITE_VERIFY.md | → DATA_ARCHITECTURE.md §写入数据验证设计（精简合并，§三/§五删除，经 DATA.md 合并） | 2026-07-08 |
-| content/governance/LAYERING_FRAMEWORK.md | → OPERATIONS_GUIDE.md §7.3/§7.4（独有内容合并）+ KNOWN_PITFALLS.md §7（历史冲突记录）+ RECURRING_TASKS.md Q4（5 步流程） | 2026-07-09 |
-| content/design/SERVICE_CATALOG.md | → content/governance/SERVICE_CATALOG.md（迁移至治理层） | 2026-07-11 |
-| content/design/ORG_BUILDING.md | → content/design/MODULE_UI_DESIGN.md（系统设计部分，经 PAFFAIRS_UI.md 合并）+ content/strategy/DEVELOPMENT_PATH.md 第七章（战略分类部分） | 2026-07-11 |
-| content/design/COMMISSIONER_SYSTEM.md | → content/strategy/COMMISSIONER_FRAMEWORK.md（迁移至战略层+重命名，"FRAMEWORK"避免"SYSTEM"歧义） | 2026-07-11 |
-| content/design/DATA.md | → content/design/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
-| content/design/PARTICIPANT_DATAFLOW.md | → content/design/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
-| content/design/LOGIN_SYSTEM_DESIGN.md | → content/design/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
-| content/design/BRAND_ACTIVITY.md | → content/design/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
-| content/design/PAFFAIRS_UI.md | → content/design/MODULE_UI_DESIGN.md（合并至模块界面设计总文件） | 2026-07-12 |
-| content/design/CALENDAR.md | → content/design/MODULE_UI_DESIGN.md（合并至模块界面设计总文件） | 2026-07-12 |
-| content/design/SOP_WEB.md | → content/governance/SOP_WEB.md（迁移至治理层） | 2026-07-12 |
-| content/design/FLAT_DESIGN.md | → content/strategy/FLAT_DESIGN.md（迁移至战略层） | 2026-07-12 |
-| content/governance/TERMINOLOGY.md | → content/governance/USAGE_POLICY.md §一（合并至使用规范） | 2026-07-12 |
-| content/governance/EMOJI_POLICY.md | → content/governance/USAGE_POLICY.md §二（合并至使用规范） | 2026-07-12 |
-| content/governance/RECURRING_TASKS.md | → content/governance/OPERATIONS_GUIDE.md §15（合并为周期性任务章节，删除原 §五附录初始化清单） | 2026-07-12 |
+| content/design/PERMISSION_MATRIX.md | → content/02_institution/ROLE_CLASSIFICATION.md §九 角色权限矩阵（经 MANAGEMENT_MODE.md 过渡） | 2026-07-08 |
+| content/design/LOGIN_STUB.md | → content/04_web_design/DATA_ARCHITECTURE.md §登录态打桩设计（§一~§五）+ §登录系统设计前置（§六~§十一，经 MANAGEMENT_MODE.md/LOGIN_SYSTEM_DESIGN.md 过渡） | 2026-07-08 |
+| content/design/APPROVAL_FLOW.md | → content/02_institution/COMMISSIONER_FRAMEWORK.md §审批流程规范（全量合并） | 2026-07-08 |
+| content/design/WRITE_VERIFY.md | → content/04_web_design/DATA_ARCHITECTURE.md §写入数据验证设计（精简合并，§三/§五删除，经 DATA.md 合并） | 2026-07-08 |
+| content/governance/LAYERING_FRAMEWORK.md | → content/03_doc_system/OPERATIONS_GUIDE.md §7.3/§7.4（独有内容合并）+ content/05_ai_coding/KNOWN_PITFALLS.md §7（历史冲突记录）+ OPERATIONS_GUIDE.md §15（原 RECURRING_TASKS Q4，5 步流程） | 2026-07-09 |
+| content/design/SERVICE_CATALOG.md | → content/03_doc_system/SERVICE_CATALOG.md（迁移至治理层） | 2026-07-11 |
+| content/design/ORG_BUILDING.md | → content/04_web_design/MODULE_UI_DESIGN.md（系统设计部分，经 PAFFAIRS_UI.md 合并）+ content/01_strategy/DEVELOPMENT_PATH.md 附录 B（战略分类部分，原"第七章"） | 2026-07-11 |
+| content/design/COMMISSIONER_SYSTEM.md | → content/02_institution/COMMISSIONER_FRAMEWORK.md（迁移+重命名，"FRAMEWORK"避免"SYSTEM"歧义） | 2026-07-11 |
+| content/design/DATA.md | → content/04_web_design/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
+| content/design/PARTICIPANT_DATAFLOW.md | → content/04_web_design/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
+| content/design/LOGIN_SYSTEM_DESIGN.md | → content/04_web_design/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
+| content/design/BRAND_ACTIVITY.md | → content/04_web_design/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
+| content/design/PAFFAIRS_UI.md | → content/04_web_design/MODULE_UI_DESIGN.md（合并至模块界面设计总文件） | 2026-07-12 |
+| content/design/CALENDAR.md | → content/04_web_design/MODULE_UI_DESIGN.md（合并至模块界面设计总文件） | 2026-07-12 |
+| content/design/SOP_WEB.md | → content/04_web_design/SOP_WEB.md（迁移至 web_design 层） | 2026-07-12 |
+| content/design/FLAT_DESIGN.md | → content/02_institution/FLAT_DESIGN.md（迁移至 institution 层） | 2026-07-12 |
+| content/governance/TERMINOLOGY.md | → content/03_doc_system/USAGE_POLICY.md §一（合并至使用规范） | 2026-07-12 |
+| content/governance/EMOJI_POLICY.md | → content/03_doc_system/USAGE_POLICY.md §三（合并至使用规范） | 2026-07-12 |
+| content/governance/RECURRING_TASKS.md | → content/03_doc_system/OPERATIONS_GUIDE.md §15（合并为周期性任务章节，删除原 §五附录初始化清单） | 2026-07-12 |
 
 ## 使用规则
 

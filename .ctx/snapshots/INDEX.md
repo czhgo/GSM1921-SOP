@@ -1,7 +1,7 @@
 ---
-role: "[工程师]+[AI]"
 title: "Snapshot 历史版本索引"
 type: index
+role: "[工程师]+[AI]"
 last_updated: "2026-07-11"
 ---
 

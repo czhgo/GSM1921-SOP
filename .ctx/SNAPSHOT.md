@@ -1,10 +1,10 @@
 ---
-role: "[AI]"
 title: "系统快照"
 type: snapshot
+role: "[AI]"
+last_updated: "2026-08-04"
 status: "ACTIVE"
 date: "2026-08-03"
-last_updated: "2026-08-04"
 version: "v15"
 milestone: "根目录文档系统更新（README 读者旅程重构）+ P1 后端基建落地"
 ---
@@ -126,7 +126,7 @@ GSM1921-SOP/
 | 差异化视图 | 同一数据源，不同切面展示 | DATA_ARCHITECTURE.md §三 |
 | 赋权关系链 | 党支书→支委/党小组组长；党小组组长→组织者/深度参与者；组织委员→专班成员 | COMMISSIONER_FRAMEWORK.md §C |
 | SOP双向修改 | 文本SOP是母本，系统是实施层 | SOP_WEB.md |
-| 视图模式三分类 | 管理模式(基类) / 管理者只读(继承-写入) / 成员只读(独立视图) | CLAUDE.md H2.5 |
+| 视图模式三分类 | 管理模式(基类) / 管理者只读(继承-写入) / 成员只读(独立视图) | SOP_WEB.md §B.2 |
 | 正交维度模型 | SOP(执行细节) ⊥ guides(理念概括)；CLAUDE.md = 上下文入口 | OPERATIONS_GUIDE.md §7.1 (D-218) |
 | 最小三成本原则 | 最小信息成本+最小操作成本+最小适应学习成本，系统设计应让用户以最低成本完成任务 | DESIGN_SYSTEM.md §一 第2条 |
 | SOP反整合 | 将网页中已实现的工作逻辑反整合到SOP中（用业务语言），使SOP成为规范、结构化、清晰的制度母本 | insights 工程演进与设计方法论.md §4.11 |

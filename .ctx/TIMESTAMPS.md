@@ -1,15 +1,15 @@
 ---
 role: "[工程师]+[AI]"
+last_updated: "2026-08-05"
 dynamic_role:
   maintenance: "[工程师]+[AI]"
   auto_update: "[AI]"
-last_updated: "2026-08-04"
 ---
 
 # File Timestamp Registry
 
 > 全项目文件最后更新时间注册表
-> last_updated: "2026-08-04" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
+> last_updated: "2026-08-05" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
 
 ---
 
@@ -40,12 +40,11 @@ last_updated: "2026-08-04"
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| .ctx/TIMESTAMPS.md | 2026-08-03 | [工程师]+[AI] | 本文件 |
+| .ctx/TIMESTAMPS.md | 2026-08-05 | [工程师]+[AI] | 本文件 |
 | .ctx/SNAPSHOT.md | 2026-08-03 | [AI] | 当前基线 |
 | .ctx/REVIEW_QUEUE.md | 2026-07-31 | [工程师]+[AI] | 书记评议队列 |
 | .ctx/snapshots/INDEX.md | 2026-05-03 | [工程师]+[AI] | 快照历史索引 |
 | .ctx/snapshots/SNAPSHOT_v3_20260502.md | 2026-05-02 | [工程师]+[AI] | v3 快照 |
-| .ctx/snapshots/DATA_AUDIT_REPORT_2026-07-15.md | 2026-07-15 | [工程师]+[AI] | 数据审计报告 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-05-02 | [工程师]+[AI] | 日志索引 |
 | .ctx/logs/DECISION_LOG.md | 2026-07-31 | [工程师]+[AI] | 总决策日志 |
 | .ctx/logs/2026-02-EXECUTION_LOG.md | 2026-02-28 | [工程师]+[AI] | 已归档 |
@@ -64,9 +63,9 @@ last_updated: "2026-08-04"
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/01_strategy/DEVELOPMENT_PATH.md | 2026-07-31 | [用户]+[AI] | 发展路径（原 MANAGE_SERVE.md→strategy/DEVELOPMENT_PATH.md，文档逻辑顺序重组后迁至01_strategy/） |
-| content/01_strategy/SECRETARY_PRONOUNCEMENTS.md | 2026-07-31 | [用户]+[AI] | 书记论断（项目顶级战略文档） |
-| content/01_strategy/README.md | 2026-07-31 | [用户]+[AI] | 01_strategy 目录索引 |
+| content/01_strategy/DEVELOPMENT_PATH.md | 2026-08-05 | [用户]+[AI] | 发展路径（原 MANAGE_SERVE.md→strategy/DEVELOPMENT_PATH.md，文档逻辑顺序重组后迁至01_strategy/） |
+| content/01_strategy/SECRETARY_PRONOUNCEMENTS.md | 2026-08-05 | [用户]+[AI] | 书记论断（项目顶级战略文档） |
+| content/01_strategy/README.md | 2026-08-04 | [用户]+[AI] | 01_strategy 目录索引 |
 | content/01_strategy/references/历史会议材料/ | 2026-02-28 | [用户] | 只读 |
 | content/01_strategy/references/合规文件/ | 2026-02-17 | [用户] | 只读 |
 | content/01_strategy/references/建设探索/ | 2026-02-28 | [用户] | 只读 |
@@ -76,55 +75,55 @@ last_updated: "2026-08-04"
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/02_institution/COMMISSIONER_FRAMEWORK.md | 2026-08-03 | [用户]+[AI] | 支委框架与赋权（含§D赋权入口设计） |
-| content/02_institution/FLAT_DESIGN.md | 2026-07-31 | [工程师]+[AI] | 扁平化设计 |
-| content/02_institution/ROLE_CLASSIFICATION.md | 2026-08-03 | [工程师]+[AI] | 角色分类 |
-| content/02_institution/README.md | 2026-07-31 | [用户]+[AI] | 02_institution 目录索引 |
-| content/02_institution/sop/INDEX.md | 2026-07-31 | [用户]+[AI] | SOP 导航 |
-| content/02_institution/sop/常见工作场景快速指南.md | 2026-08-03 | [用户]+[AI] | |
-| content/02_institution/sop/支委与党小组定人定责定岗说明.md | 2026-04-01 | [用户]+[AI] | |
-| content/02_institution/sop/宣传委员工作流程指南.md | 2026-07-31 | [用户]+[AI] | |
-| content/02_institution/sop/纪检委员工作流程指南.md | 2026-07-31 | [用户]+[AI] | |
-| content/02_institution/sop/组织委员工作流程指南.md | 2026-08-03 | [用户]+[AI] | |
+| content/02_institution/COMMISSIONER_FRAMEWORK.md | 2026-08-05 | [用户]+[AI] | 支委框架与赋权（含§D赋权入口设计） |
+| content/02_institution/FLAT_DESIGN.md | 2026-08-05 | [工程师]+[AI] | 扁平化设计 |
+| content/02_institution/ROLE_CLASSIFICATION.md | 2026-07-21 | [工程师]+[AI] | 角色分类 |
+| content/02_institution/README.md | 2026-08-04 | [用户]+[AI] | 02_institution 目录索引 |
+| content/02_institution/sop/INDEX.md | 2026-08-04 | [用户]+[AI] | SOP 导航 |
+| content/02_institution/sop/常见工作场景快速指南.md | 2026-08-05 | [用户]+[AI] | |
+| content/02_institution/sop/支委与党小组定人定责定岗说明.md | 2026-08-05 | [用户]+[AI] | |
+| content/02_institution/sop/宣传委员工作流程指南.md | 2026-08-05 | [用户]+[AI] | |
+| content/02_institution/sop/纪检委员工作流程指南.md | 2026-08-05 | [用户]+[AI] | |
+| content/02_institution/sop/组织委员工作流程指南.md | 2026-08-05 | [用户]+[AI] | |
 | content/02_institution/sop/党小组组长工作手册.md | 2026-08-03 | [用户]+[AI] | |
 
 ## content/03_doc_system/ (系统治理层)
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-08-03 | [工程师]+[AI] | 运行标准（含 §7.3 分层体系索引 + §7.4 一致性检查规范 + §9 文件命名规范 + §10 反论表述审核标准 + §14 吸收外部输入流程 + §15 周期性任务与自动唤醒机制） |
-| content/03_doc_system/USAGE_POLICY.md | 2026-08-03 | [工程师]+[AI] | 使用规范（术语 §一 + Emoji §二） |
+| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-08-05 | [工程师]+[AI] | 运行标准（含 §7.3 分层体系索引 + §7.4 一致性检查规范 + §9 文件命名规范 + §10 反论表述审核标准 + §14 吸收外部输入流程 + §15 周期性任务与自动唤醒机制） |
+| content/03_doc_system/USAGE_POLICY.md | 2026-08-05 | [工程师]+[AI] | 使用规范（术语 §一 + Emoji §二） |
 | content/03_doc_system/ARCHITECTURE.md | 2026-08-03 | [工程师]+[AI] | 核心架构说明（迁移自根目录 ARCHITECTURE.md） |
-| content/03_doc_system/DOC_MAP.md | 2026-07-31 | [工程师]+[AI] | 全局文档导航 |
-| content/03_doc_system/SSOT_INDEX.md | 2026-08-03 | [工程师]+[AI] | 母本子本注册表 |
-| content/03_doc_system/SERVICE_CATALOG.md | 2026-08-03 | [工程师]+[AI] | 服务目录 |
-| content/03_doc_system/README.md | 2026-07-31 | [工程师]+[AI] | 03_doc_system 目录索引 |
-| content/03_doc_system/工作模板/经验沉淀辅助提示词.md | 2026-07-31 | [工程师]+[AI] | 沉淀辅助 |
+| content/03_doc_system/DOC_MAP.md | 2026-08-05 | [工程师]+[AI] | 全局文档导航 |
+| content/03_doc_system/SSOT_INDEX.md | 2026-08-05 | [工程师]+[AI] | 母本子本注册表 |
+| content/03_doc_system/SERVICE_CATALOG.md | 2026-08-05 | [工程师]+[AI] | 服务目录（v4.0 有机重组：清单总表+权限矩阵+权威源指针） |
+| content/03_doc_system/README.md | 2026-08-04 | [工程师]+[AI] | 03_doc_system 目录索引 |
+| content/03_doc_system/工作模板/经验沉淀辅助提示词.md | 2026-08-05 | [工程师]+[AI] | 沉淀辅助 |
 
 ## content/04_web_design/ (设计理念层)
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/04_web_design/DESIGN_SYSTEM.md | 2026-07-31 | [工程师]+[AI] | 前端设计系统（含§一第2条"最小三成本"原则） |
-| content/04_web_design/DATA_ARCHITECTURE.md | 2026-07-31 | [工程师]+[AI] | 数据架构设计（含§2.18-§2.20 待办任务数据模型） |
-| content/04_web_design/MODULE_UI_DESIGN.md | 2026-08-03 | [工程师]+[AI] | 模块界面设计 |
-| content/04_web_design/SOP_WEB.md | 2026-08-03 | [工程师]+[AI] | SOP-系统联动方法 |
+| content/04_web_design/DESIGN_SYSTEM.md | 2026-08-05 | [工程师]+[AI] | 前端设计系统（含§一第2条"最小三成本"原则） |
+| content/04_web_design/DATA_ARCHITECTURE.md | 2026-08-05 | [工程师]+[AI] | 数据架构设计（含§2.18-§2.20 待办任务数据模型） |
+| content/04_web_design/MODULE_UI_DESIGN.md | 2026-08-04 | [工程师]+[AI] | 模块界面设计 |
+| content/04_web_design/SOP_WEB.md | 2026-08-05 | [工程师]+[AI] | SOP-系统联动方法 |
 | content/04_web_design/SCHOOL_IT_DEPLOYMENT.md | 2026-07-31 | [工程师]+[AI] | 部署方案 |
-| content/04_web_design/README.md | 2026-07-31 | [工程师]+[AI] | 04_web_design 目录索引 |
+| content/04_web_design/README.md | 2026-07-21 | [工程师]+[AI] | 04_web_design 目录索引 |
 
 ## content/05_ai_coding/ (AI 编码层)
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/05_ai_coding/KNOWN_PITFALLS.md | 2026-07-31 | [工程师]+[AI] | 已知陷阱（含 §7 分层体系冲突记录） |
-| content/05_ai_coding/README.md | 2026-07-31 | [工程师]+[AI] | 05_ai_coding 目录索引 |
+| content/05_ai_coding/KNOWN_PITFALLS.md | 2026-08-04 | [工程师]+[AI] | 已知陷阱（含 §7 分层体系冲突记录） |
+| content/05_ai_coding/README.md | 2026-07-21 | [工程师]+[AI] | 05_ai_coding 目录索引 |
 
 ## content/insights/ (经验沉淀)
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/insights/党支部管理与实务经验沉淀.md | 2026-07-31 | [用户]+[AI] | 党建与党务工作理论贡献 |
-| content/insights/工程演进与设计方法论.md | 2026-08-03 | [用户]+[AI] | 工程演进与设计方法论（文档逻辑顺序重组后拆分为独立文件） |
+| content/insights/党支部管理与实务经验沉淀.md | 2026-08-05 | [用户]+[AI] | 党建与党务工作理论贡献 |
+| content/insights/工程演进与设计方法论.md | 2026-08-04 | [用户]+[AI] | 工程演进与设计方法论（文档逻辑顺序重组后拆分为独立文件） |
 
 ## content/README.md
 
@@ -350,7 +349,7 @@ last_updated: "2026-08-04"
 | content/guides/COMMISSIONER_GROUP_INTERACTION.md | 2026-05-03 | 已合并至 COMMISSIONER_SYSTEM_DESIGN.md |
 | content/governance/LAYERING_FRAMEWORK.md | 2026-07-09 | 独有内容合并至 OPERATIONS_GUIDE.md §7.3/§7.4 + KNOWN_PITFALLS.md §7 + RECURRING_TASKS.md Q4 |
 | content/governance/TERMINOLOGY.md | 2026-07-12 | 已合并至 USAGE_POLICY.md §一（术语使用规范） |
-| content/governance/EMOJI_POLICY.md | 2026-07-12 | 已合并至 USAGE_POLICY.md §二（Emoji 使用规范） |
+| content/governance/EMOJI_POLICY.md | 2026-07-12 | 已合并至 USAGE_POLICY.md §三（Emoji 使用规范） |
 | content/governance/RECURRING_TASKS.md | 2026-07-12 | 已合并至 OPERATIONS_GUIDE.md §15（周期性任务与自动唤醒机制） |
 | content/governance/SYNC_EXTERNAL.md | 2026-07-11 | 已合并入 OPERATIONS_GUIDE.md §14 |
 | content/governance/AGENT_HANDBOOK.md | 2026-07-03 | Agent 操作手册（废弃） |

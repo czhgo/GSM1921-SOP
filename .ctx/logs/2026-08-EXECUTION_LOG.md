@@ -2,12 +2,9 @@
 title: "2026年8月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-08-04"
+last_updated: "2026-08-05"
 status: active
-related_files:
-  - CLAUDE.md
-  - .ctx/logs/2026-07-EXECUTION_LOG.md
-  - .ctx/logs/EXECUTION_LOG_INDEX.md
+related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
 
 # 2026年8月执行日志
@@ -1075,3 +1072,228 @@ related_files:
 **变更文件**：`docs/about.html`（v14 / 20260804e）、`docs/src/entries/about-entry.js`、`docs/src/styles.css`、`docs/assets/fonts/nanxi-youmosong-subset.woff2`、`.ctx/tools/subset_font.py`
 **验证结果**：✅ GetDiagnostics 零错误；✅ 第一轮浏览器实测 9 节全渲染、无横向滚动、GSAP 无报错、页码眉线齐全；发现 1 关键缺陷——NanxiYoumosong 0 请求（.ab-about 类未挂载）；✅ 第二轮复测：woff2 请求 200 + 噪点 data URI 实际消费，字体/暖纸/肌理全部生效，首屏与前三章渲染无回归；✅ web-design-guidelines 审查：transition:all / outline:none 均在旧全局代码，about 新区块零违规（focus-visible / tabular-nums / text-wrap:balance / reduced-motion / touch-action 全达标）
 **沉淀标签**：`[已沉淀: KNOWN_PITFALLS §14 补]` — CSS 设计 tokens 若挂载在动态注入容器的作用域类下，必须确保 JS 确实加上该类，否则 @font-face/伪元素肌理静默失效（浏览器 0 请求、无报错）；`[已沉淀: KNOWN_PITFALLS §15 补]` — `overflow:hidden` 祖先会杀死 sticky（成为 scroll container）并破坏 ScrollTrigger pin，空间转场容器勿设；封面封章的溢出裁剪应单独设在该页自身
+
+## T116 T-116 反论评议第4轮（governance + strategy）12 条反论裁决 + 新原话 3 条双收 + 新规则 2 条 + 零残留清零（2026-08-05）
+
+**任务**：T-116 反论评议·系统性第4轮（2026-08-04 书记选定范围）——content/03_doc_system/（governance）+ content/01_strategy/（strategy）。抽样 12 条反论（R37-R48）逐条书记裁决，处置关系按反论三类问题维度分流（保留/融入正论/删除反论+补充正论）。
+**引用流程**：H5 书记评议（H5.1-H5.6）+ OPERATIONS_GUIDE §10.9 反论评议维度体系（含判定细则补充·一/·二）+ §10.7 历史范畴检查 + USAGE_POLICY §二.2.3 五条可复用检查规则 + sample-diff-learning Skill + brainstorming Skill
+**来源**：书记指令——"我们接下来进行乙部的 评议 Use Skill: brainstorming Use Skill: sample-diff-learning !!"
+
+- **预审发现（12 条）**：R37「权力来自位置而非能力」（表述不一致+而非句式）；R38「'有效'而非'圆滑'」（双对立+稻草人风险）；R39「为什么不是等级命令？」（设问式反论，与正论重复）；R40「整合沉淀而非筛选正确答案」（而非句式）；R41「为什么不是服从约束？」（设问式反论）；R42「参与构建而非进入成熟组织适应」（AI 扩充引用块）；R43「发起者不等于管理者」（不等于变体）；R44「经人类决策而非系统自动转换」（工程对比信息量）；R45「吃透精神而非复读原话」（自指冲突）；R46「'而非'警惕」元规则；R47/R48「判定标准是'无增量信息'而非…」「自然段落而非条目罗列」（元规则自指）
+- **书记裁决（逐条 AskUserQuestion，全部落盘）**：
+  - **R37 保留**（叙述张力）+ 书记追加全仓库「权力」字眼核查 + 新原话「赋权的体系会让不曾经历的人误以为只要有了位置就可以指挥掌握组织，这一方面掩盖了真实管理过程中的组织行为学，另一方面并不适用一个需要发挥创造力的组织」（2026-08-04）→ 双收 P-002
+  - **R38 落盘**：书记判「圆滑和宣泄显然不等，是两个极端」→ L51「这要求的是'有效'——说出来的话要有推动力，既非圆滑式的不痛不痒，也非宣泄式的情绪倾泻。支委的角色是协助打磨想法——把个人的实践选择沉淀为组织的工作流」
+  - **R40 改写正面 + 支委责任明确**：书记「要让大家一开始就意识到权力意味着责任！」→ L65「权力意味着责任：被赋权整合大家想法的人，要对每一个想法都认真对待」
+  - **R41 删设问+融入正论** + 新原话「组织高度赞赏创新，不要因为年级、政治面貌而影响想法的交流和反馈」（2026-08-05）→ 双收 DEVELOPMENT_PATH 机会2 + P-044
+  - **R42 删对立句** + 新原话「支部的建设方兴未艾，任何的意见、建议、创新都弥足珍贵」（2026-08-05）→ 双收 P-044
+  - **R43 书记原话句式**：书记纠正「'发起与执行分离'不是书记原话！！！」→ 改用书记原话「发起是提出需求，招募是统筹执行」落盘 P-013
+  - **R44 保留 + 工程宽容新规则**：书记「工程部分，对于反论可以更加宽容！特别是如果有过去技术路线探索和讨论的部分」→ OPERATIONS_GUIDE §10.9 新增判定细则补充·三（工程类文档对反论可更宽容，strategy/insights 维持严格标准）
+  - **R45 保留 + P0 提升**：书记「这句话非常重要！！这句话在USAGE_POLICY中的地位要大大提高！！」→ USAGE_POLICY 原 §1.9「AI 展开原则」升为独立章 §二（P0 优先级），结构重排：一术语→二 AI 展开（2.1 核心原则/2.2 四种没吃透信号/2.3 五条可复用检查规则/2.4 禁止事项）→三 Emoji→四决策记录
+  - **R46/R47 保留**；**R48 保留 + 表述历史锚引**：书记「这里书记应该有表述历史！」→ L502 锚引 USAGE_POLICY §1.8 书记原话（2026-07-15）：结构化内容用列表/表格、非结构化内容用段落化
+- **零残留清零（书记裁决「本轮一并处理」）**：
+  - 「身份由分工决定而非由层级决定」→ 书记原话式「身份由分工决定——组织者和深度参与者之间没有上下级关系，只是分工内容不同」（DEVELOPMENT_PATH L15/L230/L235/L237 共 4 处）
+  - L211「而非机械背诵」→「理解其精神，并把它用到当下的实践中」；L230「而非反之」→「战略是方向，权限是落实」；L321「而不是上级对下级的分派」→「组织者和深度参与者是平等的协作关系，分工需经平等协商」
+  - P-018「决策变成了孤例而非模式」→ 叙述式（2 处）；L25 导读删除「（而非想象中的）」括注
+  - P-027 标题「双向而非单向」→「报备审批是双向关系」（同步附录锚点表 L694）；P-011 标题「协作而非指挥」书记裁决保留
+  - P-029「身份≠权限」及 P-006/P-009/P-013/P-026「≠」标题书记裁决本轮不处理（≠ 与「而非」句式不同，属书记既有表述）
+  - L158「而不是'重新发明轮子'」→「而不是'重复造轮子'」（书记补充指令：不写"发明轮子"）
+  - L67「而非某个抽象的'党组织'在要求你服从」书记裁决保留（叙述张力）
+- **外部引用同步**：CLAUDE.md L149 □9 表达合规引用→USAGE_POLICY §二；SECRETARY_PRONOUNCEMENTS L61/L69 §1.9→§二；DOC_MAP L204 Emoji §二→§三；SSOT_INDEX L189 EMOJI_POLICY 合并 §二→§三；TIMESTAMPS L353 EMOJI_POLICY §二→§三
+- **零残留 Grep 验证**：✅「而非/而不是/不等于/权力」全仓库复扫——strategy/governance 范围内全部落盘或书记裁决保留（书记原话按 T-206 范式完整保留；R37 L49「权力来自位置而非能力」书记裁决保留；P-011 标题/P-029/≠ 标题书记裁决保留；references/ 外部文献排除）；✅ P-044 三条原话（2026-07-14 + 2026-08-05 ×2）与引用块转述一致，anchor 检查通过
+- **变更文件**：`content/01_strategy/DEVELOPMENT_PATH.md`、`content/01_strategy/SECRETARY_PRONOUNCEMENTS.md`、`content/03_doc_system/USAGE_POLICY.md`、`content/03_doc_system/OPERATIONS_GUIDE.md`、`content/03_doc_system/DOC_MAP.md`、`content/03_doc_system/SSOT_INDEX.md`、`content/insights/党支部管理与实务经验沉淀.md`（§2.1 权力边界→职责边界）、`content/04_web_design/DATA_ARCHITECTURE.md`（权力归属→权限归属）、`content/02_institution/COMMISSIONER_FRAMEWORK.md`（审查权力→审查权限）、`CLAUDE.md`（L149 引用同步 + 乙部 T-116 状态）、`.ctx/TIMESTAMPS.md`、`.ctx/REVIEW_QUEUE.md`（已清空）
+- **沉淀标签**：`[已沉淀: OPERATIONS_GUIDE §10.9 判定细则补充·三]` — 工程类文档（OPERATIONS_GUIDE 本身）对反论可更宽容——记录过去技术路线探索与讨论的部分（如 R7/R8 案例、"而非系统自动转换"对比）即使使用"而非"句式也应保留；面向用户的阐述性文档（strategy/insights）维持严格标准；`[已沉淀: USAGE_POLICY §二]` — AI 展开原则升 P0 独立章（原 §1.9），「吃透精神后写出，而非标注边界」为核心原则；`[经验: 选项文字不得自创书记表述]` — R43 反例：AI 提供「发起与执行分离」选项被书记否认为「这不是书记原话！！」，AskUserQuestion 选项必须用书记原话或明确标注 AI 建议；`[经验: 表述历史优先于 AI 自拟判定]` — R48 书记提示「这里书记应该有表述历史！」，判定标准应先锚引书记既有原话（2026-07-15）而非 AI 自拟
+
+## T208 全系统内在一致性评议落盘（u1-u10）：探索过程术语/路径/编号翻转以现行状态为准 + 残留清零（2026-08-05）
+
+**任务**：书记发起全系统「内在不一致」评议——"往往会有探索过程中前面认为A可行，后面又认为A不可行，所以一定要查清楚！！看以那个为准！"。以 SSOT_INDEX.md 为唯一参考入口，母本优先，清理探索过程中发生的术语/路径/编号翻转，以现行状态为准（H2.1 一改具改）。
+**引用流程**：SSOT_INDEX.md（全系统一致性唯一入口）+ sample-diff-learning Skill（AskUserQuestion 逐条评议）+ brainstorming Skill + H2.1 一改具改 + H2.2 母本子本
+**来源**：书记指令（原话）
+
+- **3 批 AskUserQuestion 裁决（全部按 Recommended 落盘）**：
+  - 第一批：MODULE_UI_DESIGN.md 全面改写为现行术语；SSOT_INDEX 迁移表新路径列更新；失效引用改现行权威源（DATA_ARCHITECTURE.md §3.3）；论断条数修正为 26
+  - 第二批：CLAUDE.md §1.9→§二；DOC_MAP/README 补清单去残留；ARCHITECTURE 结构树修正为实际存在文件；SNAPSHOT H2.5→SOP_WEB.md §B.2
+  - 第三批：P-046→P-045 编号修正；P-008/P-021 退役标注；「核心价值」警示词避让；docs 代码失效引用批量修正
+- **u6-u9 落盘明细**：
+  - **u6 MODULE_UI_DESIGN.md 全面改写**：约 30 处旧模块名（「党务管理模块/党建工作台」）归一为「「党建」Tab 分组/工作台」，覆盖线框图/方案 A/C/推荐理由/数据互通/参考指南/模板引用/映射图；新增 L152 决策取代注记说明历史对照；纪检指南引用 1.1→1.4、第四章→党务工作部分、公邮→党务工作·公邮管理
+  - **u7 内容+docs 注释归一**：DESIGN_SYSTEM/DATA_ARCHITECTURE/README/ROLE_CLASSIFICATION/COMMISSIONER_FRAMEWORK/ARCHITECTURE/DOC_MAP + auth.js/icons.js/styles.css/workspace-popover.js/workspace-entry.js 全部改写为现行术语
+  - **u8 domain.js/mock.js 失效引用更新**：MANAGEMENT_MODE.md §5.1/§5.3 → DATA_ARCHITECTURE.md §3.3；mock.js 删除失效来源引用
+  - **u9 边缘残留**：党小组组长手册「核心价值」→「最了解」；insights 党建板块→党建工作/党务板块→党务工作（§1.3）；工程演进 L645 移除「L3」编号前缀残留、L780 补「P-008 已退役」标注、L392 补退役注记；insights milestone 双维度降级说明（「4 层文档层次」经 D-262 降级为局部维度）
+- **u10 残留清零**：
+  - **修复 2 处并行编辑竞态回退**：DESIGN_SYSTEM L520「<span>党建工作台</span>」→「<span>工作台</span>」；domain.js L153「Source: content/design/MANAGEMENT_MODE.md §5.1」→「Source: content/04_web_design/DATA_ARCHITECTURE.md §3.3」
+  - **修复 3 处漏网残留**：DEVELOPMENT_PATH L262「党务管理模块」→「党务管理」；CLAUDE.md T-122 引用「USAGE_POLICY §1.9.3」→「§二.2.3」（§1.9 已升独立章）；CLAUDE.md T-117「27 条论断」→「26 条论断」（与 C-5 先例一致）
+  - **3 处判定保留**：经验沉淀辅助提示词 L114/L117「党务管理工作/党务管理方面」（理论层动词性描述，非废弃模块名）；SECRETARY_PRONOUNCEMENTS L285「党务管理的是人员发展之事」（P-007 叙述性理论描述）
+  - **历史记录核对保留**：sidebar.js L4-L5 历史变更注释、COMMISSIONER_FRAMEWORK L10 YAML merged_from、SSOT_INDEX L172-187 迁移表、.ctx/snapshots 与 .ctx/logs 归档——全部为合法历史记录
+- **验证结果**：
+  - ✅ 全仓复扫「党建工作台|党务管理模块|MANAGEMENT_MODE|content/design/」：仅剩合法历史记录（merged_from 字段/SSOT 迁移表/snapshots/logs 归档/「为已废弃旧模块名」现行表述）
+  - ✅「§1.9」live 文件零残留（仅 .ctx/logs 历史记录）
+  - ✅ P 编号 26 条一致（SECRETARY_PRONOUNCEMENTS 附录表 26 行 = README L134 = CLAUDE.md C-5/T-117）
+  - ✅ 纪检委员工作流程指南章节结构正确（§1.1 党小组活动考勤/§1.4 补课制度/§党务工作·补课制度执行与公邮管理，无「第四章」残留）
+  - ✅ SNAPSHOT H2.5→SOP_WEB.md §B.2 落盘
+- **变更文件**：`content/04_web_design/{MODULE_UI_DESIGN,DESIGN_SYSTEM,DATA_ARCHITECTURE,README}.md`、`content/02_institution/{ROLE_CLASSIFICATION,COMMISSIONER_FRAMEWORK}.md`、`content/02_institution/sop/党小组组长工作手册.md`、`content/03_doc_system/{ARCHITECTURE,DOC_MAP,USAGE_POLICY,SSOT_INDEX}.md`、`content/01_strategy/{DEVELOPMENT_PATH,SECRETARY_PRONOUNCEMENTS}.md`、`content/insights/{工程演进与设计方法论,党支部管理与实务经验沉淀}.md`、`content/03_doc_system/工作模板/经验沉淀辅助提示词.md`（判定保留，未改）、`CLAUDE.md`、`docs/src/{core/domain.js,services/mock.js,services/auth.js,core/icons.js,styles.css,components/workspace-popover.js,entries/workspace-entry.js}`、`.ctx/logs/2026-08-EXECUTION_LOG.md`
+- **沉淀标签**：`[经验: 同一文件并行 Edit 竞态回退]` — 对同一文件的多处 Edit 必须串行执行或分批后立即 Read 复核，否则后写回退覆盖先写（本次 DESIGN_SYSTEM L520/domain.js L153 即因此漏网，靠 u10 复扫发现）；`[经验: 历史记录与现行状态区分]` — 全仓复扫旧术语时，merged_from 字段/迁移表/snapshot/执行日志中的历史记录须逐条核对后保留，不能一刀切删除；「党务管理」为理论层术语保留、「党务管理模块/党建工作台」为废弃模块名改写——两类边界以现行术语体系（T1 官方定义）为准
+
+## T209 全仓标题与 YAML 格式统一（BOM 清除 + 字段顺序 + 内联数组 + 「的」空格归一）（2026-08-05）
+
+**任务**：书记发起——"请系统修复 所有的标题、YAML格式！！ 这对我们仓库的美观 非常重要！ 规则要统一。目前CLAUDE.md的YAML的格式是比较正常的。---前后没有脏东西！！每一个字段单独占一行"。
+**引用流程**：dispatching-parallel-agents Skill（3 代理并行，按文件不相交原则分派）+ H2.1 一改具改 + H2.2 母本子本
+**来源**：书记指令（原话）
+
+- **书记裁决（AskUserQuestion）**：①「5 类知识类型」命名中「的」两侧空格→去空格归一（如「支部发展和管理 的 战略」→「支部发展和管理的战略」）② YAML 字段顺序→统一为 CLAUDE.md 标准顺序（title→type→role→last_updated→status→其余）
+- **根因识别**：多文件第一行被 7~77 个 U+FEFF（BOM）不可见字符污染——「--- 前面的脏东西」；`related_files` 用块状列表而非单行内联数组；字段顺序杂乱（role 开头等）
+- **Agent 1 — 知识类型「的」空格归一（8 文件 30 处）**：`content/README.md`（L17-21 表格 5 行）、`content/01_strategy/README.md`、`content/02_institution/README.md`、`content/03_doc_system/README.md`、`content/04_web_design/README.md`、`content/05_ai_coding/README.md`（各 L2/L9/L11）、`content/03_doc_system/DOC_MAP.md`（L53/L66/L84/L100/L113 小节标题）、`content/03_doc_system/OPERATIONS_GUIDE.md`（§7.1 权威定义表格 5 行）
+- **Agent 2 — .ctx 与根目录修复（8 文件）**：`README.md`（清除 14 FEFF，无 YAML 为公网文档既有设计保留）、`.ctx/logs/2026-07-EXECUTION_LOG.md`（清除 9 FEFF）、`.ctx/logs/2026-08-DECISION_LOG.md` 与 `.ctx/logs/2026-08-EXECUTION_LOG.md`（related_files→单行内联）、`.ctx/SNAPSHOT.md`（字段重排）、`.ctx/TIMESTAMPS.md`（last_updated 提前）、`.ctx/snapshots/INDEX.md`、`.ctx/snapshots/SNAPSHOT_v3_20260502.md`（字段重排）
+- **Agent 3 — content 技术文档修复（6 文件）**：`content/03_doc_system/ARCHITECTURE.md`（清除 7 FEFF）、`content/04_web_design/{DATA_ARCHITECTURE（39 FEFF）,DESIGN_SYSTEM（77 FEFF）,MODULE_UI_DESIGN（11 FEFF）,SOP_WEB（11 FEFF + 字段重排）,SCHOOL_IT_DEPLOYMENT（title 加引号 + 补 type/role + related_files 7 项转单行内联）}.md`
+- **验证结果**：✅ 14 文件 FEFF=0、首行均为 `---` 或合法内容；✅ 旧短语全仓零残留（`支部发展和管理 的|网站系统 的|文档系统管理 的`）、新短语 30 处确认存在；✅ related_files 全内联；✅ README.md/ references/ server/README/ REVIEW_QUEUE 等无 YAML 文件保留（既有设计/外部文献/历史记录）
+- **变更文件**：`README.md`、`content/README.md`、`content/01_strategy/README.md`、`content/02_institution/README.md`、`content/03_doc_system/{README,DOC_MAP,OPERATIONS_GUIDE,ARCHITECTURE}.md`、`content/04_web_design/{README,DATA_ARCHITECTURE,DESIGN_SYSTEM,MODULE_UI_DESIGN,SOP_WEB,SCHOOL_IT_DEPLOYMENT}.md`、`content/05_ai_coding/README.md`、`.ctx/{SNAPSHOT,TIMESTAMPS,REVIEW_QUEUE}.md`、`.ctx/logs/{2026-07-EXECUTION_LOG,2026-08-DECISION_LOG,2026-08-EXECUTION_LOG}.md`、`.ctx/snapshots/{INDEX,SNAPSHOT_v3_20260502}.md`
+- **沉淀标签**：`[经验: YAML BOM 污染清除]` — 「--- 前面有脏东西」根因是文件第一行被多个 U+FEFF 不可见字符污染；清除须用 `TrimStart([char]0xFEFF)` + `UTF8Encoding($false)` 无 BOM UTF-8 保存，勿用 ReadAllText 默认编码重写（会二次污染）；`[经验: 并行代理文件不相交原则]` — 按目录/文件不相交分派代理避免竞态，各代理自包含指令与验证要求；`[经验: YAML 统一规范]` — 首行必须是 `---` 且无任何前缀；每个字段单独占一行；`related_files` 用单行内联数组 `[...]` 而非块状列表；字段顺序按 CLAUDE.md 标准（title→type→role→last_updated→status→其余）；不发明文件原本没有的字段
+
+## T210 仓库瘦身三线批 1：MODULE_UI_DESIGN -51% + SERVICE_CATALOG 过时引用修正 + DATA_ARCHITECTURE location 可选化 + git gc -60%（2026-08-05）
+
+**任务**：仓库瘦身三线并行——线 A 文档内容瘦身（乙部 T-207 分片）、线 B git 体积、线 C 文件数量。批 1 范围 = MODULE_UI_DESIGN + SERVICE_CATALOG 语义瘦身 + DATA_ARCHITECTURE 字段可选化。
+**引用流程**：H5.7 文件瘦身原则（CLAUDE.md L319-353 概念标签法 + 五条判定维度）+ sample-diff-learning Skill（抽样核验）+ brainstorming Skill（逐批判定）+ dispatching-parallel-agents Skill（3 代理并行，文件不相交）+ verification-before-completion Skill + H4.1 乙部任务机制（T-207 🔄 进行中）
+**来源**：书记指令——"我们继续推进 仓库瘦身！！ Use Skill: sample-diff-learning Use Skill: brainstorming Use Skill: dispatching-parallel-agents"
+
+- **书记裁决（AskUserQuestion 系列 13 项）**：
+  - 瘦身方向=三者都做（git 体积 + 文档内容 + 文件数量）；文档瘦身 = 乙部任务
+  - git 清理=保守 gc（不重写历史、不 force push）；references=全部保留
+  - 总体方案=按批次推进；批 1 大删类 4 项全部删；事实修正+C 候选=修正事实（C 候选按 AI 评估推进）；CATALOG 大删类=推迟后期（SERVICE 服务目录工作刚开始）；CATALOG 过时引用=修正
+  - §5.2 视图模式列=删除；批 1 抽样核验=通过
+  - 附加要求（书记原话）："删除的内容一定要考虑——没有严重的信息丢失，特别是Harness信息"
+- **线 B git 体积**：`git reflog expire --expire=now --all` + `git gc --prune=now --aggressive` → .git 26.1MB → 10.4MB（-60%），loose objects 清零
+- **线 C 文件数量**：无缺失文件、无未跟踪非忽略文件、无仓库内空文件夹；DATA_AUDIT_REPORT_2026-07-15.md 删除（书记批准，功能由 DATA_ARCHITECTURE.md 承载）
+- **线 A 批 1 执行（3 代理并行 + 主线程复核）**：
+  - **MODULE_UI_DESIGN.md 524→255 行（-51%）**：删设计原则 5 条 AI 概括标签（正文各节仍展开）、侧边栏方案 A/B/C 对比+废案残留（留一行决策注「2026-08-03 决策：被角色工作台 Tab 分组形态取代」）、引用渲染机制 2 节（留 1 处指针→ROLE_CLASSIFICATION.md）、Schema 压缩为索引（→DATA_ARCHITECTURE §2.1/§2.12）、URL Hash、中/长期持久化方案（留指针→DATA_ARCHITECTURE §4.2）、可选排序、截断细节数值；修「入党申请人→」五阶段→四阶段；「桌面端（>=768px）」→「>=1024px」
+  - **SERVICE_CATALOG.md 过时引用修正（6+3 处）**：权限依据 PermissionManager→AuthStore.canDo+ROLE_PERMISSIONS；系统服务表删 ViewModeStore/PermissionManager；§2.14 删「/ 模式概念」；§2.15 模式推导流程→AuthStore.canDo；§4.4 删「与模式推导」；3 处 deprecated 函数引用删除；§5.2「视图模式」列删除（auth.js L810 确认「权限系统重构后不再有 mode 概念」）
+  - **DATA_ARCHITECTURE.md**：location 字段「必填=是」→「string|null / 必填=否 / 默认 null」（原位更新，不新增重复行）
+- **Harness 信息零丢失复核（书记附加要求）**：MODULE_UI_DESIGN 删除项均为设计细节/AI 概括标签/废案对比/具体数值——关键决策注（2026-08-03 决策、D-241 思想汇报线下流程、D-244 职能动作隐喻）与指针（引用渲染→ROLE_CLASSIFICATION、Schema→DATA_ARCHITECTURE、持久化→DATA_ARCHITECTURE §4.2）全部保留，治理/制度/元规则信息零丢失；SERVICE_CATALOG 修正为现行 API，无制度信息损失
+- **批 1 减量核算**：git diff --stat 对照 HEAD = MODULE_UI_DESIGN 249 行变化 / SERVICE_CATALOG 36 行 / DATA_ARCHITECTURE 10 行（合计 65 insertions / 230 deletions）
+- **验证结果**：✅ 批 1 范围内零残留（SERVICE_CATALOG + MODULE_UI_DESIGN 内 canWriteActivity/canRecruitTaskForce/canManage/canAuthorize/canInitiateTaskForce/PermissionManager/ViewModeStore/模式推导/视图模式/participant-observe 全零命中）；✅ 3 处抽样核验书记全部通过（设计原则块删/方案对比→一行决策注/deprecated→AuthStore.canDo）
+- **发现（批 1 范围外，待批 2 提交书记判定）**：视图模式概念残留于 SOP_WEB.md §B.2（「视图模式三分类架构」权威源声明但 auth.js 已废弃）、DESIGN_SYSTEM.md §4.10、DATA_ARCHITECTURE.md L920（gsm1921-view-mode 键）、insights 党支部管理与实务经验沉淀.md §4.6——均描述已废弃 mode 概念
+- **变更文件**：`content/04_web_design/MODULE_UI_DESIGN.md`、`content/03_doc_system/SERVICE_CATALOG.md`、`content/04_web_design/DATA_ARCHITECTURE.md`、`.ctx/snapshots/DATA_AUDIT_REPORT_2026-07-15.md`（删）、`.ctx/snapshots/INDEX.md`、`.ctx/TIMESTAMPS.md`、`CLAUDE.md`（乙部 T-207 状态）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[待沉淀]` — 视图模式（mode/manage/participant-observe）为已废弃权限概念（auth.js L810），SOP_WEB/DESIGN_SYSTEM/DATA_ARCHITECTURE/经验沉淀中残留的旧概念描述应随批 2 修正；`[经验: 瘦身删除须做 Harness 复核]` — 书记要求删除内容无严重信息丢失（特别是 Harness 治理/制度信息），复核方法=逐项核对删除点是否有决策注/指针/权威源承载，指针化优先于直接删除
+
+## T211 仓库瘦身批 2：COMMISSIONER_FRAMEWORK -23.1% + 常见工作场景快速指南 -12.3% + 视图模式残留修正 4 处 + 悬空引用修正 2 处（2026-08-05）
+
+**任务**：批 2 范围 = COMMISSIONER_FRAMEWORK + 常见工作场景快速指南 语义瘦身 + 视图模式残留修正（SOP_WEB / DESIGN_SYSTEM / DATA_ARCHITECTURE / 经验沉淀）+ 悬空引用修正（SERVICE_CATALOG / SECRETARY_PRONOUNCEMENTS）。
+**引用流程**：H5.7 文件瘦身原则（概念标签法 + 五条判定维度）+ sample-diff-learning Skill（抽样核验）+ brainstorming Skill（逐批判定）+ dispatching-parallel-agents Skill（3 代理并行，文件不相交）+ verification-before-completion Skill
+**来源**：批 1 日志「待批 2 提交书记判定」+ 书记 AskUserQuestion 裁决
+
+- **书记裁决（AskUserQuestion 系列）**：
+  - 批 2 范围=两项都做（COMMISSIONER_FRAMEWORK + 常见工作场景快速指南）+ 视图模式残留修正
+  - 书记附加背景（视图模式）："对于我们网页来说，视图功能目前有点鸡肋，或者说是因为没有服务器支撑，mock数据不是很完整，我们没有办法全要素体验 给一个人赋权后，他出现了多个工作台"
+  - CF 强证据 12 项=批量执行；CF 中等项 12 项（含「视角」列黑话 + 悬空引用修正）=批量执行；常见工作场景快速指南瘦身候选=全量执行
+- **线 A 批 2 执行（3 代理并行 + 主线程复核）**：
+  - **COMMISSIONER_FRAMEWORK.md 631→485 行（-23.1%）**：强证据 12 项——赋权数据结构块→DATA_ARCHITECTURE §2.18 指针；§A.7 赋权流程两子节归并保留生命周期总览+指针；§B 整节归并（B.1 表保留+指针注记，三人名侯嘉嵘/闫鑫岳/韩思宁零丢失，B.2/B.3 删）；C.1a 说明 bullets 删（视图语义压缩一句）；「专班名单同步」行删；「更新反馈状态」空行删；「数据汇总导出」→§E.2 指针；E.1 月度闭环图压缩一句；§审批 §一/§二 删图留句；重复句删。中等项 12 项——A.2 设计目标表删；纪检概括句删；两论证段删；8 个工作台表「视角」列全删（含「人 centered」黑话）；纪检尾注删；F.4 活动策划行→§审批指针；§六 6.1/6.3 状态图删；D.1.1 标题简化「赋权入口设计」；F.2 删「（核心）」；F.1 图压缩+指针。红线保留：§A.3/A.4/A.6/A.7 标题、§C 矩阵与色系、L62 赋权唯一来源、L64 D-240、赋权撤销流程、D.1 两原则、赋权入口表、F.5 冲突表、§审批全节
+  - **常见工作场景快速指南.md 559→490 行（-12.3%）**：强证据 18 项——导语删；文末版本块「使用反馈」保留；4 处「为什么这么做」论述段删（母本引用行全部保留）；「组织生活会是内容非类型」3 处归并保留 L200 首句；D-15 定义块删（L83 指针保留）；三会一课概念行删；四子章节 3 段重复句删（宣传产出物保留、四 `####` 标题保留）；通知发布联系人空转小节删；信息平台注意事项 4 条删；反馈平台维护句并入 L483 渠道表。需判定项——品牌建设指引压缩一句；品牌注意事项节删；「为什么品牌活动由党小组主导」「各党小组品牌方向」删；第 25 项「提名表扬」句删（全仓 grep 无母本依据）；第 26 项副书记行保留并补齐（与书记行一致，含积极分子考察）。红线保留：公共规则表、活动类型判断表、主题党日/组织生活会主体、团支部合办、品牌定位、快速查找表、10 处母本引用指针、全部被引用锚点标题
+  - **视图模式残留修正 4 处**：SOP_WEB §B.2 标题锚点保留正文改写现行架构（角色优先/canDo 判定/只读视角；删视图模式三分类表、模式流转图 deriveMode、ViewModeStore 小节、mode 白名单表；保留 T42 决策注与 AUTHZ_CHAIN 段；AuthStore 方法段按 auth.js 实际导出重写 getEffectiveRole/canDo/getViewableRoles/getRoleForPage/switchView/isCommissioner——未编造不存在的 getPrimaryRole/getActiveRole；L60 header.js 去「模式切换器」；L63 auth.js→ROLE_PERMISSIONS+canDo()+AUTHORIZE_CHAIN；L201→initiate_taskforce；L191 canWriteActivity @deprecated 标注保留）；DESIGN_SYSTEM §4.10 改名「数据展示视图组件」+ 表头「展示视图」+ L405/L407 已删 §B.2 引用→定人定责定岗说明.md §二（CF 代理任务外发现）；DATA_ARCHITECTURE L920 gsm1921-view-mode 废弃键行删；经验沉淀 §4.6 标题后加退役标注行（正文保留为历史经验记录）；SOP_WEB E.2 跨页面状态表废弃键（ViewModeStore/PrimaryRole/ActiveRole）→现行机制键（gsm1921-login-user/gsm1921-session-snap/gsm1921-view-role/sop_org_os_auth_audit）
+  - **悬空引用修正 2 处**：SERVICE_CATALOG L106 `§A.4~A.8`→`§A.4/§A.6/§A.7`（§A.5 已删保留空号、A.8 早年并入 A.7）；SECRETARY_PRONOUNCEMENTS L411-412 `§A.6/§A.9`→`§A.6`（均行内替换，行数不变）
+- **Harness 信息零丢失复核**：CF §B 归并后 B.1 三人名表保留（L92-94 侯嘉嵘/闫鑫岳/韩思宁）；指针链完整（DATA_ARCHITECTURE §2.18 L78/L219、定人定责定岗说明 §二 L84/L363、§E.2 L167/L300、§审批 L60/L343/L384）；红线保留（L62 赋权唯一来源、L64 D-240、L66-74 赋权撤销流程、C 矩阵与色系、F.5 冲突表）；常见指南 10 处母本引用指针全保留
+- **批 2 减量核算**：git diff --stat 对照 HEAD = 8 文件 **158 insertions / 410 deletions**（CF -254 / 常见指南 -89 / SOP_WEB -103 / SECRETARY_PRONOUNCEMENTS -35 / SERVICE_CATALOG -40 / DATA_ARCHITECTURE -11 / DESIGN_SYSTEM -18 / 经验沉淀 -18）
+- **验证结果**：✅ 批 2 范围内零残留——`§A.4~A.8 | §A.6/§A.9 | 提名表扬 | gsm1921-view-mode | participant-observe | deriveMode | 人 centered | 项目 centered` 全零命中；✅ 三人名保留验证（CF L92-94）；⚠️ 收尾 Grep 发现 DESIGN_SYSTEM L413「人 centered」残留（CF 代理修了 L405/L407 引用、漏了 L413 同源黑话）——已修复为「以人为中心/以项目为中心」中文表述；✅ content 目录废弃概念（ViewModeStore/ActiveRole 等）零残留，logs/archive 命中均为历史审计记录保留
+- **书记批 2 补充裁决（抽样核验）**：①CF §B 归并样本——**人名删除要求**：除致谢外其他场景尽量 de-personized（原话「人名请你删去。我认为除了致谢中表现人名，其他场景尽量 de-personized」）→ CF B.1 表删除「人名」列（侯嘉嵘/闫鑫岳/韩思宁，content 内人名清零）；②~⑤样本全部通过；**「管理模式」术语统一**——28 处全部执行（SERVICE_CATALOG ~20 处「管理模式」→「管理权限」、DATA_ARCHITECTURE 3 处「三级管理模式架构/总览」→「三级管理架构」+ L631「进入管理模式」→「管理视图」、MODULE_UI_DESIGN 2 处「三级管理模式数据流」→「三级管理架构数据流」、组织委员指南 1 处「工作台·管理模式」→「工作台·管理视图」、CHECKLIST 2 处「管理模式/只读模式」→「管理视图/只读视角」）；术语统一后 content 内仅剩 11 处「管理模式/只读模式」均为保留白名单（SECRETARY_PRONOUNCEMENTS P-029 书记原话、经验沉淀 §4.6 已退役历史记录、工程演进历史描述）；**新任务指令**：视图设计部分要做系统性全面审视（另立项）
+- **变更文件**：`content/02_institution/COMMISSIONER_FRAMEWORK.md`、`content/02_institution/sop/常见工作场景快速指南.md`、`content/04_web_design/{SOP_WEB,DESIGN_SYSTEM,DATA_ARCHITECTURE,MODULE_UI_DESIGN}.md`、`content/01_strategy/SECRETARY_PRONOUNCEMENTS.md`、`content/03_doc_system/{SERVICE_CATALOG,CHECKLIST}.md`、`content/02_institution/sop/组织委员工作流程指南.md`、`content/insights/党支部管理与实务经验沉淀.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[经验: 并行代理任务内遗漏需主线程收尾 Grep]` — CF 代理修 DESIGN_SYSTEM L405/L407 但漏 L413 同源黑话——代理自验证范围外的同源残留需主线程全量 Grep 收尾；`[经验: 视角列黑话]` — 「人 centered」「项目 centered」为 AI 自创中英混杂黑话，统一改「以人为中心/以项目为中心」中文表述
+
+## T212 视图设计系统性全面审视全闭环（A/B/C/D/E 五类） + E1 端到端数据流交织图落地（2026-08-05）
+
+**任务**：书记指令——"视图设计的部分，我们要做一次系统性地全面审视！"。范围（书记全选）= A 文档一致性 / B 架构合理性 / C 鸡肋识别 / D 体验对齐 + 书记附加 E 类（数据交织 vs 功能搭积木）。报告载体 = REVIEW_QUEUE.md（书记裁决，不新增文档）。
+**引用流程**：H5 书记评议（H5.1-H5.6）+ sample-diff-learning Skill + brainstorming Skill + H2.1 一改具改 + H5.7 文件瘦身原则
+
+- **书记裁决链（AskUserQuestion）**：
+  - 审视范围=A/B/C/D 全选；产出=报告先行、不新增文档（REVIEW_QUEUE 承载）
+  - A 类=全部采纳；B1 视图机制=保留现状；B2 副支书共享书记工作台/B3 项目角色承载成员工作台=保留+文档明示；D 类=AI 验证
+  - 书记关键反馈（E 类）="我们数据之间相互交织；但是网页系统功能并没有相互交织。它更像是做加法、搭积木。在表达上，能更加清晰地一定要更加清晰"
+  - E 类=E1+E2 文档先行（即 E3 两者都做）；书记强调="考勤当然是挂靠在 活动 下的呀！！他是活动的副产物，又会进入我们的考勤考察总数据中——一定要搞清楚数据之间的交织关系和上下文关系"
+- **A 类执行** ✅：A1/A2 MODULE_UI_DESIGN 线框图更新为现行导航（首页/工作台/资料查询/意见反馈/归档库 + 帮助/关于）与 tab 分组结构；A3 SOP_WEB §B.3 删除「commissioner-group」行（代码零存在）；A4 organizer/deep 行改「成员工作台（待办/项目分工/活动动态/考勤概况/我的考察）」
+- **B 类执行** ✅：B1 viewType 保留现状（活跃概念，仅服务日历/检查器渲染）；B2/B3 文档明示「副支书与书记共享书记工作台」「项目角色承载于成员工作台」
+- **C 类验证** ✅：C1 双通道验证通过（mock 分工预设 + 运行时赋权 authRecords）；C2 日历「彩色点+2 字缩写」已实施（calendar.js ACTIVITY_TYPE_SHORT + cal-activity-dot）
+- **D 类验证** ✅/⚠️：D1 考勤卡片分布验证通过（首页已移除考勤概况 main-entry L483；书记只读监督/纪检考勤管理/组长考勤上传/成员考勤概况均落地；宣传委员无独立卡片）；D2 组件一致性待抽查、D3 系统跟随主题模式未实现（styles.css 无 prefers-color-scheme/data-theme）——两项列入网页 UI 专项工作项
+- **E1 文档先行执行** ✅：DATA_ARCHITECTURE.md 新增 §1.3 端到端数据流交织图（L51-95）——设计原则引用书记「挂靠 + 聚合」双语义（同一条数据既挂靠其产生的上下文，又聚合进入跨实体的总数据）；主线一：活动上下文链（活动→任务 §2.12/分工 §2.6/考勤 §2.5/考察 §3.3/交接 §2.7）；主线二：副产物→总数据聚合（考勤→补课→回写「已补」+跨活动聚合→考勤总表；考察→纪检确认→组织委员建档→人才库+专班工作量汇总→个人档案）；主线三：赋权→工作台→入档（AuthRecord §2.18→项目角色工作台→工作量记录→解散报告→个人档案）+ 交织关系要点表（数据/上下文挂靠/聚合去向/关键字段）；§3.3 补「参见 §1.3」交叉引用；§3.1 标题残迹「三级管理架构架构」→「三级管理架构」（批 2 术语替换遗漏复扫发现）
+- **REVIEW_QUEUE 收尾**：审视报告 + 评议结论 + E 类进度全部落盘后清空（H5.3 生命周期闭环）
+- **验证结果**：✅ DATA_ARCHITECTURE §1.3 与 §3.3「考勤与考察的核心区分」一致（考勤=活动副产物 + 聚合考勤总表双语义在两处体现）；✅「三级管理架构架构」残迹零残留；✅ 网页 UI 专项工作项（D2/D3/E2）登记待办
+- **变更文件**：`content/04_web_design/DATA_ARCHITECTURE.md`、`content/04_web_design/MODULE_UI_DESIGN.md`、`content/04_web_design/SOP_WEB.md`、`.ctx/REVIEW_QUEUE.md`（已清空）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[已沉淀: DATA_ARCHITECTURE §1.3]` — 数据交织「挂靠 + 聚合」双语义：同一条数据既挂靠其产生的上下文（考勤是活动的副产物），又聚合进入跨实体的总数据（考勤进入考勤考察总数据）——文档与功能层表达必须体现交织关系，而非孤立的积木堆叠；`[经验: 术语替换遗漏需跨章节复扫]` — 批 2「管理模式」术语统一后，§3.1 标题「三级管理架构架构」重复词残迹在审视复扫中才发现——批量替换后须全文 Grep 替换目标词 + 相邻词确认；`[待办: 网页 UI 专项]` — D2 组件一致性抽查 / D3 系统跟随主题模式（prefers-color-scheme）/ E2 功能层数据联动（待办项标注数据上下游）
+
+## T213 仓库瘦身批 3：经验沉淀归并 + CHECKLIST 事实修正 12 处 + SSOT_INDEX 已迁出表格删除 29 行（2026-08-05）
+
+**任务**：批 3 范围 = 党支部管理与实务经验沉淀 + CHECKLIST + SSOT_INDEX（T-207 四批推进计划：批1 T210 ✅ → 批2 T211 ✅ → 批3 本批 → 批4 定人定责定岗说明+三委员流程指南+FLAT_DESIGN+经验沉淀辅助提示词+DOC_MAP）
+**引用流程**：H5.7 文件瘦身原则 + sample-diff-learning Skill（抽样核验）+ brainstorming Skill（逐项判定）+ dispatching-parallel-agents Skill（文件不相交并行分派）+ H2.4 反论段清除原则
+**来源**：书记指令——"我们继续推进 仓库瘦身！！"
+
+- **书记裁决链（AskUserQuestion，四问）**：
+  - Q1 经验沉淀归并=**批量归并两处**（§1.1/§1.3 党建党务两分法重复展开 + §2.3/§3.1 专班定义重复）
+  - Q2 设问段=**书记自定义裁决**："我觉得更重要的只是表达一种 设计的偏好。视图是由 数据性质和任务性质决定的。" → 确认方案 A「总纲+压缩」（增设设计偏好总纲 + 各设问段压缩为 1-2 行偏好陈述）
+  - Q3 CHECKLIST 计数=**批量事实修正**（数据同源校验手册自身计数必须准确）
+  - Q4 SSOT_INDEX=**删除表格保留头注**（Agent 注册表 + Skill 配置清单已随 .github/ 迁出，D-186 终结，仅历史档案）
+- **经验沉淀执行** ✅（306→299 行，-2.3%；version 34.2→34.3）：
+  - §1.3→§1.2 归并：删除两分法重复定义（表格 vs 正文各一次），仅保留「同源不同视角」独有内容 + 交叉引用 §1.1；同步修复拆分遗留的章节编号跳号（1.1→1.3 缺 1.2）
+  - §2.3 精简：专班定义「跨小组、跨职能抽调人手」改交叉引用 §3.1，保留协作特征要点（桥梁作用/平等协商/自下而上需赋权）
+  - §4.0 设计偏好总纲新增（书记论断 2026-08-05）：「视图是由数据性质和任务性质决定的」——图标/日历/看板/人才库归属等设计取舍的统一命题
+  - 11 处「为什么……」设问段压缩为偏好陈述（§3.2/§4.2/§4.3/§4.4/§4.5/§4.6/§4.7×3/§4.8×2/§5.1），保留设问价值（正反两面论 H2.4）但删除长篇论证
+  - 附录速查表、YAML milestone 字段、§4.6 已退役历史记录保留不动
+- **CHECKLIST 执行** ✅（395 行不变，12 处事实修正）：people 27→50（p1~p50）、accounts 11→17、activities 25→29（act-28 已删）、attendance 43→60、inspection 12→42（insp-17 已删）、notices 10→13（notice-101~110 + 001/005/011）、发展阶段五阶段→四阶段（入党申请人已并入积极分子）；核实后修正 c1~c5 候选人为「由 PEOPLE 动态派生」表述、品牌活动 6→7 条（act-29 新增 isBrand）、mk3/mk5 补课失效引用改通用表述；taskforces 8 条、review 11+2、handovers 2 条、assignments 5 条核实无误保留
+- **SSOT_INDEX 执行** ✅（198→169 行，-14.6%；version 3.7→3.8）：Agent 注册表表格（12 行）+ Skill 配置清单小节（16 行）删除，标题改「Agent/Skill 配置（已迁出）」，头注保留并注明「不再保留注册表与清单表格」；已迁移文件索引表保留
+- **悬空引用修正**：DOC_MAP/README 对 SSOT_INDEX「Agent 注册表」描述更新为「Agent/Skill 配置已迁出」（USAGE_POLICY 引用 ARCHITECTURE.md 摘要不受影响）
+- **竞态教训（3 次复现）**：同消息多 Edit 并行编辑经验沉淀出现部分丢失——§1.3/§3.2/§4.6/§4.7a/§4.7b 共 5 处修改未落盘，Read 复核发现后逐个串行重做。教训强化：**同文件严格一次一个 Edit，完成后必须 Read 全文复核落盘**（批 2 教训的再次验证）
+- **验证结果**：✅ 零残留 Grep 通过（「1.3 党建工作」「为什么不是」「管理模式中也看到日历」零残留）；✅ Harness 复核通过——Agent 注册表详细内容已迁出 System-Residual 外部仓库，ARCHITECTURE.md L48 保留「Agent 注册表（摘要）」，无信息丢失；✅ 减量核算：3 文件合计 899→863 行（-36 行），git diff 66 insertions/100 deletions
+- **变更文件**：`content/insights/党支部管理与实务经验沉淀.md`、`content/03_doc_system/CHECKLIST.md`、`content/03_doc_system/SSOT_INDEX.md`、`content/03_doc_system/DOC_MAP.md`、`content/03_doc_system/README.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[已沉淀: 经验沉淀 §4.0]` — 视图由数据性质和任务性质决定（书记论断 2026-08-05）：视图不由设计者自由选择，而由被展示数据的数据性质（时间点事件/任务状态流/事/人）和用户要完成的任务性质（参会提醒/任务管理/监督确认）决定——图标、日历/看板、人才库归属等设计取舍统一在此命题下表达；`[经验: 同文件 Edit 必须严格串行]` — 同消息多 Edit 并行编辑同文件出现 3 次部分丢失竞态（工具结果片段与落盘状态不一致），必须一次一个 Edit + Read 全文复核；`[待办: 批 4]` — 定人定责定岗说明（15K）+ 三委员流程指南 + FLAT_DESIGN + 经验沉淀辅助提示词 + DOC_MAP（15K）
+
+## T214 仓库瘦身批 4：三委员流程指南 + 定人定责 + DOC_MAP + FLAT_DESIGN + 提示词积木化（2026-08-05）
+
+**任务**：批 4 范围 = 定人定责定岗说明 + 三委员流程指南 + FLAT_DESIGN + 经验沉淀辅助提示词 + DOC_MAP（T-207 四批推进计划收尾）
+**引用流程**：H5.7 文件瘦身原则 + sample-diff-learning Skill（抽样核验）+ brainstorming Skill（逐项判定）+ dispatching-parallel-agents Skill（4 代理并行 + 主线程复核）
+**来源**：书记指令——"我们继续推进 仓库瘦身！！"（延续批 3）
+
+- **书记裁决链（两轮 AskUserQuestion，八问）**：
+  - 第一轮：①事实修正=**批量修正**（定人定责 §3.2 矛盾 + 组织字段矛盾 + CF C.3 色系）②纪检 7 表=**删表改引用**③三文件归并=**归并全量**④DOC_MAP=**整节删+修失效**
+  - **书记补充论断**（§3.2 修正指导原话）："关于支委和党小组组长这件事情——人可以兼任，但是职责是分开的，就是没有『当然』关系。因为在系统里面不过是做一个加法而已。工作台补充一个入口就实现了赋权，所以并不复杂"——兼任 = 工作台加入口的赋权加法，无当然关系，职责始终分开
+  - 第二轮：⑤提示词=**书记自定义**"把提示词变成积木材料也是非常好的做法，要用的时候排列组合即可"⑥「为什么不那样做」必填=**改按需**（与 H2.4 一致）⑦FLAT_DESIGN=**归并+反论压缩**
+- **执行详情（4 代理并行 + 主线程复核）**：
+  - **纪检委员 252→193 行（-59，-23%）**：7 张步骤权限表全删改引用 CF §C.1a + §审批 §七；保留考勤/考察分层论断、锁定机制、「监督者不是执行者」、复盘三态批注、补课流程、检查清单；删半截 AI 笔记句；§2.1 补一句「与考勤同流程」衔接（主线程复核补）
+  - **定人定责 284→245 行（-39，-14%）**：§3.2 标题「三支委（条条支委 + 党小组组长）」→「三支委（条条支委）」，删「块块身份」段，补**书记论断行**（兼任无当然关系、赋权加法）；§5.2 定责列表 ✅ 行去重（❌ 边界行保留 + 引用 §2.1/§2.2）；§4.4 冲突表删改引用 CF §F.5；§4.3 ASCII 图删；§6.1/§6.2 整节删、§6.3 保留简化审批流程；文末版本 v2.4→v2.5 对齐 frontmatter
+  - **组织委员 231→220 行（-11）**：L61 招募表单 5 字段→9 字段与 L71 系统实现一致；数据同源 4 处归 1；工作台信息流 ASCII 图删（母本覆盖）；附录 A 时间轴保留
+  - **宣传委员 165→151 行（-14）**：「宣传不创建活动」双处去重；工作台 ASCII 图删（SOP_WEB §B.3 + CF §D 覆盖）；每周一报送 + 材料标准保留；文末 v3.1→v3.4 对齐 frontmatter
+  - **DOC_MAP 242→163 行（-79，-33%）**：§〇 分类表删（留说明+链接）；§三 引用关系图 47 行整节删；§五 文件状态标记整节删（20 行零信息）；知识类型 blockquote 6 处压缩（与 OPERATIONS_GUIDE §7.1 逐字重复）；§四「了解三类文件角色规范」引用 §〇→ROLE_CLASSIFICATION；v2.2→v2.3
+  - **FLAT_DESIGN 111→99 行（-12）**：§七 并入 §二（P-010 标签零丢失）；§四 并入 §五 Ⅰ；三处「为什么不是？」压缩为偏好陈述；编号统一中文；**§三 判据表一字未动**（insights §3.3 引用）；v2.1→v2.2；**编号跳号修复**（五→四/六→五/八→六/九→七/十→八，主线程重排 + 常见指南 §五→§四 引用同步）
+  - **提示词 261→263 行（积木化重构）**：三套提示词拆分为积木库（A 角色输入 / B 思考过程×3 / C 关注维度×2 / D 输出格式×3 / E 摘要注意），场景→积木组合对照表（如 A+B1+C1+D1+E）；「为什么不那样做」改按需标注「仅当存在真正的对立方案时填写」；输入材料/执行摘要/通用注意事项 3 份→1 份
+  - **CF C.3 色系修正（母本侧）**：宣传委员 翠绿 #10B981→**海蓝 #2563EB**（help.html L144/L231 现行系统实证；纪检琥珀/组织蓝色值正确未动）
+- **验证结果**：✅ 零残留 Grep 通过（「三支委（条条支委 + 党小组组长）」「文件状态标记」「引用关系图」「第三/四部分提示词」全零；纪检「步骤|角色|动作|权限」表格零残留；「为什么不那样做」3 处均已加按需标注）；✅ 主线程复核通过（纪检权限总引用/定人定责书记论断/DOC_MAP §四引用修正/FLAT_DESIGN §三判据表逐一确认）；✅ FLAT_DESIGN 外部引用核验（活跃引用仅 §一/§三/§四，重排后常见指南 §五→§四 已同步，DEVELOPMENT_PATH/SECRETARY_PRONOUNCEMENTS/insights/组织委员引用不受影响）；✅ 减量核算：批 4 净减 **214 行**（不含提示词）+ 提示词积木化重构
+- **变更文件**：`content/02_institution/COMMISSIONER_FRAMEWORK.md`、`content/02_institution/FLAT_DESIGN.md`、`content/02_institution/sop/{支委与党小组定人定责定岗说明,纪检委员工作流程指南,组织委员工作流程指南,宣传委员工作流程指南,常见工作场景快速指南}.md`、`content/03_doc_system/DOC_MAP.md`、`content/03_doc_system/工作模板/经验沉淀辅助提示词.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[已沉淀: 定人定责 §3.2 书记论断]` — 支委可兼任党小组组长但无「当然」关系：兼任通过工作台赋权入口实现（加入口即完成赋权），职责始终分开——组织文件描述兼任场景时须以赋权机制为唯一实现方式；`[已沉淀: 提示词积木化]` — 书记偏好「提示词变成积木材料，用时排列组合」——长模板按 共享/专属 维度拆分为独立积木块 + 场景组合对照表，避免逐套冗长重复；`[经验: 代理跳号保留需主线程裁决]` — 代理删除 FLAT_DESIGN §四/§七 后选择保留编号跳号以不破坏引用，主线程按批 3「编号跳号修复」先例重排并同步引用方（§五→§四）——删除章节后的编号处理应以「连续化 + 引用同步」为默认；`[待办: 批 4 收尾]` — SERVICE_CATALOG 6 项大删类（书记确认推迟后期）+ 网页 UI 专项（D2/D3/E2）
+
+## T215 serve 后端跑通验证 + SERVICE_CATALOG v4.0 有机重组（2026-08-05）
+
+**任务**：① 让 serve 后端跑通（书记指令前置条件）② 基于跑通后的实际情况处置 SERVICE_CATALOG 大删类（T-207 收尾）
+**引用流程**：H5.7 文件瘦身原则 + H2.1 一改具改 + brainstorming Skill + verification-before-completion Skill + fullstack-developer Skill
+**来源**：书记指令——"在做这个之前。我实在认为，我们应当让serve后端跑通再思考！！具体如何处置！！"
+
+- **serve 后端跑通验证（全部通过）**：
+  - `npm install` ✅ 依赖已装；`npm test` ✅ **16/16 全绿**（含 Playwright E2E：登录→token→首页渲染→bootstrap 数据可达）
+  - `npm start` ✅ 真实启动监听 3000，`/api/v1/health`→`{ok:true}`，`login.html`→200，`data.db` 自动建库含种子
+  - 浏览器冒烟（browser_use）✅ 书记账号 2300010001 登录成功 → 首页四板块渲染正常 → token 写入 sessionStorage（36 位 UUID）→ bootstrap API 返回 activities=29、users=50 → 控制台零 JS 错误（仅 Tailwind CDN 生产提示）
+  - 结论：后端真实跑通，E2E 与冒烟均确认「账号密码→token→API 数据源切换→全链路数据可达」
+- **SERVICE_CATALOG 大删类·书记裁决链（AskUserQuestion）**：
+  - ① 处置方式=**整节删+指针化** ② ③ 候选组 1/2 未选择（Empty）→ 补问范围 ④ 书记自定义："**按照你推荐的来。不要分章节删改，全文档有机考虑。可能排列组合之后，可以更加精简**"
+  - ⑤ 设计确认=**批准执行**（清单总表 + 矩阵保留 + 指针折叠）
+- **执行（v4.0 有机重组，442→93 行，-79%）**：
+  - 六章节折叠为有机整体：§〇阅读说明→头部 2 行阅读约定（术语 M/R/Self/— 移入矩阵表下注释）；§一分类框架 3 表→清单总表「分类」列；§二 18 项详情→6 列总表（服务/分类/服务文件/入口页面/核心操作/关联制度），角色权限小节（~140 行）不展开→指针 §二 矩阵；§三 18×9 矩阵**保留**（服务粒度切面，与 ROLE_CLASSIFICATION §9 操作粒度互补）；§四 依赖关系→指针 DATA_ARCHITECTURE §1.3（T212 端到端交织图）+ ROLE_CLASSIFICATION §9e/9f；§五 模块路由→指针 ARCHITECTURE §五；§六 参考文档→并入新 §三
+  - **信息保留核对**：18 服务盘点 + 代码映射 + 矩阵 + 3 注释（*†‡）+ 6 处权威源指针全保留；功能描述/关键实现压缩入「核心操作」「服务文件」列；发展党员采用关键实现版本（core/domain.js developStage，原文首行 mock.js 为不一致旧述）；关联制度列用缩写 CF/DA/FLAT/RC + 表头一次性链接
+- **验证结果**：✅ git diff = 40 insertions / 389 deletions（-349 行）；✅ 零残留 Grep（「服务分类框架」「服务间依赖关系」「模块路由与入口映射」「核心数据流依赖」「跨类别数据共享」全仓仅 archive 历史日志命中）；✅ 无锚点引用（SERVICE_CATALOG.md# 全仓零命中）；✅ 外部引用核验（DOC_MAP L90「服务清单+角色权限矩阵」/L158 双源定位、README「唯一权威——功能盘点和权限设计」、SSOT_INDEX L64 母本描述均仍准确，无需同步）；✅ KNOWN_PITFALLS L176 为 T127 历史判例实例（已修复），不动
+- **变更文件**：`content/03_doc_system/SERVICE_CATALOG.md`（v3.0→v4.0 全量重写）、`.ctx/TIMESTAMPS.md`（SERVICE_CATALOG 行 2026-08-03→08-05）、`CLAUDE.md`（乙部 T-207 更新「五批全部完成」）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[经验: 有机重组优于分章节删改]` — 书记方法论「不要分章节删改，全文档有机考虑，排列组合可以更加精简」：六节各自重复同一批数据的文档，折叠为「清单总表 + 矩阵 + 权威源指针」有机整体（442→93 行 -79%），删除的是派生视图、保留的是独有价值 + 指针；`[待办: 网页 UI 专项]` — D2 组件一致性抽查 / D3 系统跟随主题模式（prefers-color-scheme）/ E2 功能层数据联动（待办项标注数据上下游）
+
+## T216 TIMESTAMPS 漂移专项修复：content/ 时间戳与 YAML 全面对齐（2026-08-05）
+
+**任务**：书记批准（AskUserQuestion）修复 TIMESTAMPS 批 2/3/4 漂移——TIMESTAMPS.md 多行 last_updated 与 content/ 各文件实际 YAML frontmatter 不一致
+**引用流程**：H3 检查清单第 6 条（YAML last_updated）+ TIMESTAMPS.md 更新规则 + H1.2 执行
+
+- **扫描方法**：Grep 全 content/ 目录 frontmatter `^last_updated:`（35 行命中，剔除 OPERATIONS_GUIDE L22 模板占位符），与 TIMESTAMPS.md 逐行比对
+- **修复明细（25 处对齐，以 YAML 为权威）**：
+  - 滞后类（YAML 新于 TIMESTAMPS，22 处）：01_strategy 3 行（07-31→08-05/08-05/08-04）、02_institution 9 行（COMMISSIONER_FRAMEWORK 08-03→08-05、FLAT_DESIGN 07-31→08-05、README 07-31→08-04、sop 5 行至 08-05/08-04）、03_doc_system 6 行（OPERATIONS_GUIDE/USAGE_POLICY/DOC_MAP/SSOT_INDEX 至 08-05、README 08-04、工作模板 08-05）、04_web_design 3 行（DESIGN_SYSTEM 08-05、DATA_ARCHITECTURE 08-05、SOP_WEB 08-05）、05_ai_coding 1 行（KNOWN_PITFALLS 08-04）、insights 2 行（08-05/08-04）
+  - 超前类（TIMESTAMPS 新于 YAML，3 处）：ROLE_CLASSIFICATION 08-03→**07-21**、04_web_design/README 07-31→**07-21**、05_ai_coding/README 07-31→**07-21**（批 4 修改这些文件时未更新 YAML，属 H3 第 6 条执行遗漏，本次仅对齐注册表未擅改 YAML）
+  - 一致未动：党小组组长工作手册 08-03、ARCHITECTURE 08-03、SERVICE_CATALOG 08-05、SCHOOL_IT_DEPLOYMENT 07-31、content/README 08-03
+  - 本文件自身 3 处（frontmatter/注释行/「本文件」行）→ 2026-08-05
+- **变更文件**：`.ctx/TIMESTAMPS.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **验证结果**：✅ 全量比对确认 content/ 35 行 YAML 与 TIMESTAMPS 全部一致（无引号格式差异除外）；✅ 3 处超前类回退正确（YAML 为权威）；✅ GetDiagnostics 无新错误
+- **沉淀标签**：省略（按规执行，未产生新模式）

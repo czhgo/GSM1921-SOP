@@ -428,7 +428,7 @@ export const AuthStore = {
 
   /**
    * 该用户可达的所有 workspace 页面（standing + project）
-   * 用于 sidebar 渲染"党建工作台"链接或子菜单
+   * 用于 sidebar 渲染"工作台"链接或子菜单
    * @param {string} personId
    * @returns {Array<{ role: string, page: string, label: string }>}
    */

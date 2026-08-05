@@ -2,7 +2,7 @@
 title: "数据同源一致性校验手册"
 type: checklist
 role: "[用户]+[AI]"
-last_updated: "2026-08-03"
+last_updated: "2026-08-05"
 status: active
 related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ---
@@ -23,9 +23,9 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 
 ## 1. 人员数据
 
-**存储**：`docs/src/mock/people.js` → `PEOPLE` 常量（27 条记录，p1~p27）
+**存储**：`docs/src/mock/people.js` → `PEOPLE` 常量（50 条记录，p1~p50）
 **运行时**：`mockDB.people`（由 `seed.js` 注入）
-**登录映射**：`docs/src/mock/accounts.js` → `MOCK_ACCOUNTS`（11 条，studentId ↔ personId）
+**登录映射**：`docs/src/mock/accounts.js` → `MOCK_ACCOUNTS`（17 条，studentId ↔ personId）
 
 **展示页面**：
 
@@ -44,16 +44,16 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 
 - [ ] 书记工作台赋权管理 tab 中被赋权人候选列表 = PEOPLE 中非支委成员
 - [ ] 各工作台人员选择器中的列表 = PEOPLE 中 developStage='正式党员' 的成员
-- [ ] 人员发展阶段在各页面中一致（入党申请人/积极分子/发展对象/预备党员/正式党员），与 people.js 定义相同
+- [ ] 人员发展阶段在各页面中一致（正式党员/预备党员/发展对象/积极分子），与 people.js 定义相同
 - [ ] 登录页输入 accounts.js 中的学号+密码 → 成功登录后跳转对应角色工作台
 - [ ] 书记工作台赋权管理 tab 中常设角色标签（书记/支委/组长）= PEOPLE 中 role 字段 + AuthStore 赋权记录
-- [ ] 发展党员追踪候选人（c1~c5）的 personId 在 PEOPLE 中存在，且 stage 与 developStage 一致
+- [ ] 发展党员追踪候选人（由 PEOPLE 中 developStage≠'正式党员' 的成员动态派生）的 stage 与 developStage 一致
 
 ---
 
 ## 2. 活动数据
 
-**存储**：`docs/src/mock/activities.js` → `ACTIVITIES` 常量（25 条记录，act-1~act-25）
+**存储**：`docs/src/mock/activities.js` → `ACTIVITIES` 常量（29 条记录，act-1~act-30（act-28 已删除））
 **运行时**：`mockDB.activities`（由 `seed.js` 注入）
 **Service**：`docs/src/services/activity.js`
 
@@ -74,7 +74,7 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 
 - [ ] 首页日历中的活动数量 = ACTIVITIES 中未取消的记录数（act-20 为 cancelled 不显示）
 - [ ] 书记工作台统计卡片的"活动总数" = ACTIVITIES 中非 cancelled 的记录数
-- [ ] 书记工作台统计卡片的"品牌标签"数 = ACTIVITIES 中 isBrand=true 的记录数（act-3/act-10/act-12/act-16/act-21/act-25，共 6 条）
+- [ ] 书记工作台统计卡片的"品牌标签"数 = ACTIVITIES 中 isBrand=true 的记录数（act-3/act-10/act-12/act-16/act-21/act-25/act-29，共 7 条）
 - [ ] 活动状态在各页面中一致：draft/published/ongoing/completed/cancelled
 - [ ] 品牌活动在日历/看板中标有品牌标记（isBrand=true 的活动）
 - [ ] 活动的 organizer 字段（如 p3=王五）在首页和各工作台中一致
@@ -111,7 +111,7 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 
 ## 4. 考勤数据
 
-**存储**：`docs/src/mock/attendance.js` → `ATTENDANCE_RECORDS` 常量（43 条记录，att1~att43）
+**存储**：`docs/src/mock/attendance.js` → `ATTENDANCE_RECORDS` 常量（60 条记录，att1~att60）
 **运行时**：`mockDB.attendances`（由 `seed.js` 注入）
 **Service**：`docs/src/services/attendance.js`
 
@@ -128,7 +128,7 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 - [ ] 纪检委员考勤总表中某活动的出勤人数 = ATTENDANCE_RECORDS 中该 activityId 且 status=present 的记录数
 - [ ] 考勤记录的 personId 在 PEOPLE 中存在
 - [ ] 考勤记录的 activityId 在 ACTIVITIES 中存在
-- [ ] 已补课考勤记录（status='made_up'）= 补课任务中 status='completed' 的记录对应（att27↔mk3，att14↔mk5）
+- [ ] 已补课考勤记录（status='made_up'）= 补课任务中 status='completed' 的记录对应（att27/att14 已完成补课）
 - [ ] 组织生活会（act-19）考勤记录含 studentId/developStage/partyGroup 字段
 - [ ] 缺勤考勤记录中 overdue=true 的（att10/att33）应在补课任务中有对应 pending 项
 
@@ -136,7 +136,7 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 
 ## 5. 考察数据
 
-**存储**：`docs/src/mock/inspection.js` → `INSPECTION_RECORDS` 常量（12 条记录，insp-1~insp-12）
+**存储**：`docs/src/mock/inspection.js` → `INSPECTION_RECORDS` 常量（42 条记录，insp-1~insp-43（insp-17 已删除））
 **运行时**：`mockDB.inspections`（由 `seed.js` 注入）
 **Service**：`docs/src/services/inspection.js`
 
@@ -161,7 +161,7 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 
 ## 6. 通知数据
 
-**存储**：`docs/src/mock/notices.js` → `MOCK_NOTICES` 常量（10 条记录，notice-001~notice-107）
+**存储**：`docs/src/mock/notices.js` → `MOCK_NOTICES` 常量（13 条记录，notice-101~notice-110 + notice-001/notice-005/notice-011）
 **运行时**：`mockDB.notices`（由 `seed.js` 注入）
 **Service**：`docs/src/services/notice.js` → `NoticeStore`
 
@@ -231,8 +231,8 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 - [ ] 活动/专班项目角色（organizer/deep）主源 = `activity.assignments` / `taskforce.members`，新建数据在主源可查
 - [ ] 赋权记录中 targetPersonId 在 PEOPLE 中存在
 - [ ] 被赋权角色（organizer/deep/leader）在 auth.js AUTHORIZE_CHAIN 中有赋权链定义
-- [ ] 赋权后，被赋权者切换到管理模式时 AuthStore.canDo() 返回 true
-- [ ] 撤销/解散专班回收赋权后：主源角色被移除 + 快照追加 revoke，被赋权者退回只读模式
+- [ ] 赋权后，被赋权者切换到管理视图时 AuthStore.canDo() 返回 true
+- [ ] 撤销/解散专班回收赋权后：主源角色被移除 + 快照追加 revoke，被赋权者退回只读视角
 - [ ] 全仓禁止无主源写入点的字段：授权记录上的 `authorizedBy`/`scope` 必须有主源写入点（巡检 P0-1/P0-3 缺口固化）
 
 ---
@@ -296,7 +296,7 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 - [ ] 补课任务的 personId 在 PEOPLE 中存在
 - [ ] 补课任务的 activityId 在 ACTIVITIES 中存在
 - [ ] 补课任务的 attendanceRecordId 在 ATTENDANCE_RECORDS 中存在且对应记录 status 为 absent 或 leave
-- [ ] 已完成补课（mk3/mk5 status='completed'）对应的考勤记录 status='made_up'（att27/att14）
+- [ ] 已完成补课（status='completed'）对应的考勤记录 status='made_up'（att27/att14）
 - [ ] 刚性考勤活动类型（支部党员大会/党小组会/党课/主题党日）的补课 isMandatory=true
 - [ ] 补课截止日期 = 缺勤日期 +7 天
 

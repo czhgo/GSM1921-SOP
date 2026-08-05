@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿# GSM1921-SOP
+# GSM1921-SOP
 
 > 光华管理学院本科生党支部组织操作系统（Org OS）
 > 将党支部制度文本转化为可执行的代码工作流，让制度从"写在文档里没人看"变成"嵌入系统中必须遵守"。
@@ -131,7 +131,7 @@ npm start
 
 这些理论不是抽象的口号，而是每一条制度设计背后的理由。理解了它们，才能理解为什么系统是这样组织的，也才能在场景变化时判断原则在什么条件下成立。
 
-→ 完整的理论阐述见 [书记重要论断汇编](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档，27 条论断，其中 P-045/P-047 为元命题引子）和 ["管理事、服务人"战略路线](content/01_strategy/DEVELOPMENT_PATH.md)
+→ 完整的理论阐述见 [书记重要论断汇编](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档，26 条论断，其中 P-045/P-047 为元命题引子）和 ["管理事、服务人"战略路线](content/01_strategy/DEVELOPMENT_PATH.md)
 
 ---
 

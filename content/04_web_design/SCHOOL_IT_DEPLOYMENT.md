@@ -1,17 +1,12 @@
 ---
-title: 学校计算中心对接准备文档
+title: "学校计算中心对接准备文档"
+type: design
+role: "[工程师]+[AI]"
 created: 2026-07-28
 last_updated: 2026-07-31
-author: AI起草，书记审定
 status: draft
-related_files:
-  - docs/src/services/runtime.js
-  - docs/src/services/issues.js
-  - docs/src/services/auth.js
-  - docs/src/core/data-loader.js
-  - docs/src/core/data-adapter.js
-  - docs/src/core/mock-adapter.js
-  - docs/src/core/api-adapter.js
+author: AI起草，书记审定
+related_files: [docs/src/services/runtime.js, docs/src/services/issues.js, docs/src/services/auth.js, docs/src/core/data-loader.js, docs/src/core/data-adapter.js, docs/src/core/mock-adapter.js, docs/src/core/api-adapter.js]
 ---
 
 # 学校计算中心对接准备文档

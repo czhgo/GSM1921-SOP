@@ -1,8 +1,8 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
-role: "[工程师]+[AI]"
+---
 title: "SOP 系统优化与同步指南"
 type: guide
-last_updated: "2026-08-04"
+role: "[工程师]+[AI]"
+last_updated: "2026-08-05"
 version: "4.1"
 milestone: "T29 — 全面架构收束：Mode统一、看板体系、日历限定、系列活动模型"
 ---
@@ -57,77 +57,48 @@ milestone: "T29 — 全面架构收束：Mode统一、看板体系、日历限�
 | **角色工作台** | `docs/workspace/{secretary,leader,org,prop,disc,visitor}.html` | 六类角色工作台（书记/党小组组长/三支委/成员只读） | 对应 ws-*-entry.js |
 
 **共享组件架构**：
-- `header.js` — 全局顶栏（含全局角色切换器 + 模式切换器，角色和 mode 的双主控入口）
+- `header.js` — 全局顶栏（含全局角色切换器）
 - `sidebar.js` — 全局侧边栏（角色快捷选择器，与 Header 角色切换器双向同步）
 - `styles.css` — 全局样式（五层色盘系统 + Flat Design System）
-- `services/auth.js` — 权限判定（赋权关系链 AUTHZ_CHAIN + AuthStore + ViewModeStore）
+- `services/auth.js` — 权限判定（ROLE_PERMISSIONS + canDo() + 赋权链 AUTHORIZE_CHAIN）
 
-### B.2 角色优先模式 + 视图模式三分类 架构
+### B.2 角色优先 + 只读视角 架构
 
 > **T42 轮核心架构决策**（决策归档：D-1/D-2/D-3）。
+> **2026-07-12 权限系统重构**：去掉 stance/view/mode 三元组，改为 常设角色 + 项目角色 → canDo() 统一判定（spec: 2026-07-12-permission-system-redesign-design.md）。
 
 #### 设计原则
 
-- **角色优先**：选择角色后自动进入管理模式，无需手动切换
-- **赋权关系约束**：赋权者可查看被赋权者的工作视图（只读），但不可修改
-- **视图模式三分类**：管理模式 / 管理者只读 / 参与者只读
-- **Header 为角色+mode 双主控入口**：全局角色切换器 + 模式切换器
+- **角色优先**：登录后按 `ROLE_PAGE_MAP` 进入角色对应工作台，无手动模式切换
+- **权限判定**：常设角色（secretary/deputy-secretary/org-commissioner/prop-commissioner/disc-commissioner）+ 项目角色（organizer/deep）+ leader → `AuthStore.canDo()` 统一判定（`ROLE_PERMISSIONS` + `PROJECT_PERMISSIONS` 并集）
+- **只读视角**：书记/副书记可切换查看被赋权者（组长/三支委）的工作台，只读（`VIEWABLE_ROLES`，比赋权链范围更宽）
+- **Header 为角色切换入口**：全局角色切换器（含只读视角切换）
 - **Sidebar 为角色快捷选择器**：与 Header 双向同步
 
-#### 视图模式三分类
+#### 权限判定（ROLE_PERMISSIONS + canDo()）
 
-> **权威源**：本文档 §B.2 自身（原 PERMISSION_MATRIX.md §三 链接至本节）。本表为该权威源在系统架构中的切面视图，冲突时以权威源为准。
+- 权限表 `ROLE_PERMISSIONS`：各常设角色持有的权限项（如 `view_all`/`create_activity`/`assign_task`/`modify_assignment`/`mark_complete`/`initiate_taskforce`/`authorize_taskforce`/`manage_taskforce`/`archive` 等）
+- 项目权限表 `PROJECT_PERMISSIONS`：organizer/deep 在项目内持有的权限（如 `view_project`/`assign_task`/`mark_complete`/`fill_review`/`record_inspection`/`assign_project_role` 等）
+- `AuthStore.canDo(personId, action, context)`：常设角色权限与项目角色权限取并集统一判定；`view_all`/`view_project` 分别兜底 `view_*` 前缀权限项
 
-| 分类 | 条件 | 说明 |
-|------|------|------|
-| 管理模式 (manage) | active role = primary role, mode = manage | 操作自己的工作台，可修改 |
-| 管理者只读 (manager-observe) | active role in auth chain of primary | 查看被赋权者的工作台，不可修改 |
-| 参与者只读 (participant-observe) | 无 primary role | 查看统一信息流面板 |
-
-#### 模式流转
-
-```
-用户进入页面
-    |
-    v
-Header 显示模式标签 + 通知
-    |
-    +-- 模式标签：由 deriveMode(stance, view) 自动推导
-    |     → stance 来自登录页（sessionStorage）
-    |     → view 来自 Sidebar 角色选择
-    |
-    +-- Sidebar 角色卡片点击
-         → dispatch permission:role-select (含 role + stance)
-         → Header 同步模式标签
-         → Workspace/Party 根据 role + 视图分类渲染
-```
-
-#### AuthStore 新增方法
+#### AuthStore 现行方法
 
 ```javascript
-AuthStore.getPrimaryRole()           → string (sessionStorage)
-AuthStore.setPrimaryRole(role)
-AuthStore.getActiveRole(module)      → string (sessionStorage)
-AuthStore.setActiveRole(module, role)
-AuthStore.getVisibleRoles(primary)   → string[] (AUTHZ_CHAIN)
-AuthStore.getViewCategory(primary, active) → 'manage' | 'manager-observe' | 'participant-observe'
-AuthStore.getRoleLabel(role)         → string (ROLE_LABELS)
-AuthStore.getModuleRoles(module)     → string[] (MODULE_ROLES)
+AuthStore.getUserRole(personId)              → 常设角色（赋权记录 > mock 数据 > participant）
+AuthStore.getEffectiveRole(personId)         → 有效角色（只读视角优先，回退常设角色）
+AuthStore.getProjectRole(personId, projectId) → 项目角色（'organizer' | 'deep' | null）
+AuthStore.canDo(personId, action, context)   → boolean（常设 + 项目角色权限并集统一判定）
+AuthStore.getViewableRoles(role)             → string[]（VIEWABLE_ROLES 只读视角）
+AuthStore.getRoleLabel(role)                 → string（ROLE_LABELS）
+AuthStore.getPageForRole(module, role)       → string（ROLE_PAGE_MAP 页面映射）
+AuthStore.switchView(targetRole) / clearView() / getViewRole() → 只读视角切换（sessionStorage）
+AuthStore.isCommissioner(role)               → boolean（常设角色集合判定）
 ```
 
-#### ViewModeStore 扩展
-
-```javascript
-ViewModeStore.getMode(module)        → 'manage' | 'observe'
-ViewModeStore.setMode(module, mode)
-ViewModeStore.canManage(role, module) → boolean
-ViewModeStore.getViewCategory(module) → 'manage' | 'manager-observe' | 'participant-observe'
-ViewModeStore.isReadOnly(module)      → boolean
-```
-
-#### 赋权关系链 (AUTHZ_CHAIN)
+#### 赋权关系链 (AUTHORIZE_CHAIN)
 
 > **权威源**：[COMMISSIONER_FRAMEWORK.md §C](../02_institution/COMMISSIONER_FRAMEWORK.md)（赋权关系链，原 PERMISSION_MATRIX.md §二）。本表为该权威源在系统架构中的切面视图，冲突时以权威源为准。
+> 系统内实现为 `AUTHORIZE_CHAIN`（auth.js）：secretary/deputy-secretary → leader/organizer/deep；org-commissioner/leader → organizer/deep；organizer → deep。支委互查只读视角另见 `VIEWABLE_ROLES`。
 
 ```
 党支书 → [组织委员, 宣传委员, 纪检委员, 党小组组长, 组织者, 深度参与者]
@@ -139,32 +110,20 @@ ViewModeStore.isReadOnly(module)      → boolean
 深度参与者 → []
 ```
 
-#### 页面 mode 白名单
-
-| 页面 | 支持 mode 切换 | 说明 |
-|------|:---:|------|
-| 工作台 (workspace) | [Y] | 管理模式=职能面板；管理者只读=日历；参与者只读=信息流 |
-| 委员工作台 (workspace/{org,prop,disc}.html) | [Y] | 管理模式=支委编辑面板；管理者只读=只读概览 |
-| 主页 (index) | [N] | 始终为概览模式 |
-| 归档库 (archive) | [N] | 始终为只读查询 |
-| 资料查询 (search) | [N] | 始终为只读查询 |
-| 意见反馈 (feedback) | [N] | GitHub Issue 风格（列表/详情/新建三视图） |
-| 关于 (about) | [N] | 纯展示页 |
-
 ### B.3 三支委看板视图体系
 
 > **T29 核心创新：支委在管理工作台不需要日历，需要任务看板。**
 
-#### 视图路由（工作台 管理模式）
+#### 视图路由（工作台角色视图）
 
 | 角色 | 路由面板 | 核心组件 |
 |------|---------|---------|
-| **secretary / leader** | 活动写入面板 + 日历 | write panel + calendar |
+| **secretary / deputy-secretary** | 活动写入面板 + 日历 | write panel + calendar（副支书与书记共享书记工作台） |
+| **leader** | 活动写入面板 + 日历 | write panel + calendar |
 | **org-commissioner** | 专班协调看板 | 2列看板（待启动/进行中）+ 发布招募表单 + 专班详情展开 |
 | **prop-commissioner** | 项目看板 | 2列看板 + 卡片展开子任务详情 |
 | **disc-commissioner** | 项目看板 | 2列看板 + 卡片展开子任务详情 |
-| **commissioner-group** | 支委选择重定向 | 3张支委卡片，点击后切换至具体支委 |
-| **organizer / deep** | 日历视图 | 何时何地参会（日历是给参与者用的工具） |
+| **participant / organizer / deep** | 成员工作台 | 待办 / 项目分工 / 活动动态 / 考勤概况 / 我的考察（项目角色承载于成员工作台） |
 
 #### 看板设计原则
 
@@ -198,7 +157,7 @@ ViewModeStore.isReadOnly(module)      → boolean
 - 组织委员不是唯一发起者（党小组组长、支委、书记均可发起专班）
 - 组织委员是**唯一招募统筹者**
 - 含「发布招募」按钮 → 展开招募表单（名称/人数/技能/周期/说明）
-- 「发起专班」按钮 — canInitiateTaskForce()
+- 「发起专班」按钮 — initiate_taskforce 权限
 
 ### B.4 日历视图范围限定
 
@@ -206,12 +165,12 @@ ViewModeStore.isReadOnly(module)      → boolean
 
 | 场景 | 显示日历 | 原因 |
 |------|:---:|------|
-| 只读模式（全员） | ✅ | 信息浏览基线 |
-| 管理模式 · secretary/leader | ✅ | 需要同时管理活动和看日历 |
-| 管理模式 · organizer/deep | ✅ | 需要知道何时何地参会 |
-| 管理模式 · org-commissioner | ❌ | 只看专班协调看板 |
-| 管理模式 · prop-commissioner | ❌ | 只看项目看板 |
-| 管理模式 · disc-commissioner | ❌ | 只看项目看板 |
+| 只读视角（全员） | ✅ | 信息浏览基线 |
+| 工作台 · secretary/leader | ✅ | 需要同时管理活动和看日历 |
+| 工作台 · organizer/deep | ✅ | 需要知道何时何地参会 |
+| 工作台 · org-commissioner | ❌ | 只看专班协调看板 |
+| 工作台 · prop-commissioner | ❌ | 只看项目看板 |
+| 工作台 · disc-commissioner | ❌ | 只看项目看板 |
 
 ### B.5 赋权链 (Authorization Chain)
 
@@ -357,10 +316,10 @@ STEP 4: 同步更新系统渲染
 
 | 机制 | 存储 | 用途 |
 |------|------|------|
-| **ViewModeStore** | sessionStorage | 管理模式/只读模式（跨页面一致） |
-| **PrimaryRole** | sessionStorage | 当前用户的主身份角色 |
-| **ActiveRole** | sessionStorage | 当前查看的角色（per module） |
-| **AuthStore** | localStorage | 赋权记录（跨会话持久化） |
+| **登录会话**（`gsm1921-login-user`） | localStorage | 登录用户 { personId, role, tabId }（A-11 防串扰） |
+| **会话快照**（`gsm1921-session-snap`） | sessionStorage | 本标签页登录会话快照（localStorage 被覆盖时回退，A-11） |
+| **只读视角**（`gsm1921-view-role`） | sessionStorage | 当前只读视角角色（VIEWABLE_ROLES 切换） |
+| **AuthStore** | localStorage | 赋权审计快照（键 `sop_org_os_auth_audit`，grant/revoke 追加语义，跨会话持久化） |
 | **mockDB（data-adapter）** | localStorage | 业务数据（活动/考勤/考察/专班/分工等，键 `workflowos_branch_db_v1`，跨页面共享） |
 | **CrossPageState** | sessionStorage | 页面间临时传参（如从主页跳到工作台时传递选中活动ID） |
 
@@ -410,14 +369,14 @@ STEP 4: 同步更新系统渲染
 2. 后端根据 uid 查询 `user_roles` 表 → 返回角色列表
 3. 支委角色由党委在后台直接指派
 4. 组织者/深度参与者由党小组组长在系统内赋权产生 `auth_records`
-5. 管理模式可进入性由后端鉴权接口实时判定
+5. 工作台可进入性由后端鉴权接口实时判定
 
 ### G.3 不变的设计原则
 
 - **身份 ≠ 权限**：角色选择和模式选择是两个独立决策
 - **支委天然权限**：组织/宣传/纪检委员在自己的职能内无需赋权
 - **赋权仅针对活动角色**：只有 organizer 和 deep 需要被赋权
-- **只读模式永不设限**：任何角色都可以只读浏览全部信息
+- **只读视角永不设限**：任何角色都可以只读浏览全部信息
 
 ---
 

@@ -1,9 +1,9 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
+﻿---
 title: "数据架构设计"
 type: design
 role: "[工程师]+[AI]"
 version: "4.0"
-last_updated: "2026-08-03"
+last_updated: "2026-08-05"
 status: active
 merged_from: [content/design/DATA.md, content/design/PARTICIPANT_DATAFLOW.md, content/design/LOGIN_SYSTEM_DESIGN.md, content/design/BRAND_ACTIVITY.md]
 related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/MODULE_UI_DESIGN.md, content/04_web_design/DESIGN_SYSTEM.md]
@@ -48,6 +48,52 @@ summary: "系统数据架构设计的单一权威源——涵盖数据模型设�
 | 角色常量 (ROLE_LABELS/COLORS) | core/constants.js (静态代码) | 静态，代码级维护 | 9 种角色的中文标签与视觉配色 |
 | 意见反馈 (IssueRecord) | `docs/data/issues.json` + localStorage `gsm1921-issue-drafts` | open->closed->reopened | GitHub Issue 风格开源讨论，双轨数据层，书记维护 issues.json 权威源 |
 
+### 1.3 端到端数据流交织图
+
+> **设计原则（2026-08-05 书记强调）**：数据之间相互交织——同一条数据既**挂靠其产生的上下文**（如考勤是活动的副产物），又**聚合进入跨实体的总数据**（如考勤进入考勤考察总数据）。文档与功能层的表达必须体现这种交织关系，而非孤立的积木堆叠。
+
+**主线一：活动上下文链**（活动是核心实体，一切流程围绕活动展开）
+
+```
+活动 Activity（创建 → 发布 → 进行 → 归档）
+ ├─→ 任务 Task           ：SOP 场景模板生成活动子任务（§2.12）
+ ├─→ 分工 Assignment     ：组织者创建、深度参与者执行（§2.6）
+ ├─→ 考勤 Attendance    ：活动副产物，纪检委员写入（§2.5）
+ ├─→ 考察 Inspection    ：活动执行记录，纪检确认（§3.3）
+ └─→ 交接 Handover       ：组织者发起、纪检确认（§2.7）
+```
+
+**主线二：副产物 → 总数据聚合**（副产物既挂靠来源，又汇入总表）
+
+```
+考勤（挂靠 activityId）
+ ├─ 缺勤/请假 ──→ 补课任务 MakeupTask ──→ 补课完成 ──→ 考勤回写「已补」（§2.8）
+ └─ 跨活动聚合 ──→ 考勤总表（纪检维护）──→ 个人/支部考勤统计
+
+考察（挂靠 activityId / taskforceId）
+ ├─ 纪检确认录入总表 ──→ 组织委员每月建档（考察档案）──→ 人才库/发展党员依据（§3.3）
+ └─ 专班工作量汇总 ──→ 专班解散报告 ──→ 写入个人档案
+```
+
+**主线三：赋权 → 工作台 → 入档**
+
+```
+赋权记录 AuthRecord（书记赋权，§2.18）
+ └─→ 项目角色（organizer/deep）工作台出现对应模块
+      └─→ 工作量记录（专班/活动运行期）
+           └─→ 专班解散 → 工作量汇总报告 → 写入个人档案
+```
+
+**交织关系要点**（挂靠 + 聚合双语义）：
+
+| 数据 | 上下文挂靠（副产物） | 聚合去向（总数据） | 关键字段 |
+|---|---|---|---|
+| 考勤 | 活动 `activityId` | 考勤总表 → 个人考勤统计 | `activityId` |
+| 考察 | 活动/专班 | 考察总表 → 组织委员建档 → 人才库 | `activityId`/`taskforceId` |
+| 分工 | 活动/专班 | 分工汇总 → 工作量统计 | `assignmentId` |
+| 补课 | 考勤（缺勤/请假触发） | 回写考勤「已补」 | `makeupTask`→考勤回写 |
+| 任务 | 活动 | 完成状态汇总 → 活动进度 | `activityId` |
+
 ---
 
 ## 二、数据模型设计
@@ -64,7 +110,7 @@ summary: "系统数据架构设计的单一权威源——涵盖数据模型设�
 | status | `'draft'\|'published'\|'ongoing'\|'completed'` | 是 | `'draft'` | 活动宏观状态 |
 | visibility | `'branch'\|'group'` | 是 | `'group'` | 可见范围：全支部 or 党小组 |
 | date | string (YYYY-MM-DD) | 是 | -- | 活动日期 ISO 字符串 |
-| location | string | 是 | -- | 活动地点 |
+| location | string\|null | 否 | null | 活动地点（线下活动场地/线上会议链接），用于活动详情与日历展示；可选字段，无则不显示地点 |
 | executor | string | 是 | -- | 执行角色标识 |
 | supervisor | string\|null | 是 | `null` | 督办角色（可为 null） |
 | createdBy | string | 是 | `'u_exec'` | 创建者用户 ID |
@@ -206,7 +252,7 @@ ActivityRecord (主记录)
 - 基础 ACL 实现：[domain.js `can()`](../../docs/src/core/domain.js#L78-L91)
 - 特殊资源 `evaluation`（考察档案）: 仅 `secretary` 和 `org-commissioner` 可读写，其他角色绝对隔离
 - 宣传委员不可创建活动（仅党支书和党小组组长可创建），但任何活动创建后应自动出现在宣传委员的视图中
-- 支委身份选择：sidebar "支委" 卡片 → 模态框选择 → `setState({ selectedRole })` → 党务管理面板按角色显示对应支委面板
+- 支委身份选择：sidebar "支委" 卡片 → 模态框选择 → `setState({ selectedRole })` → 「党建」Tab 分组面板按角色显示对应支委面板
 - 书记独占能力：党课布置、主持大会、全局视角切换、赋权管理（详见 ROLE_CLASSIFICATION.md §九）
 
 ### 2.3 专班数据 (TaskForceRecord)
@@ -628,7 +674,7 @@ assignedRoles: Array<{
 | 考察记录写入 | 组织者工作台 | 组织者已有记录表新记录行出现；纪检委员考察档案对应记录出现 |
 | 分工记录写入 | 组织者工作台 | 分工记录列表新记录行出现；分工统计数字更新 |
 | 专班招募写入 | 组织委员工作台 | 组织委员看板新专班卡片出现；主页专班进展新条目出现 |
-| 赋权写入 | 书记工作台 | 书记赋权记录列表新记录出现；被赋权者切换视图可进入管理模式 |
+| 赋权写入 | 书记工作台 | 书记赋权记录列表新记录出现；被赋权者切换视图可进入管理视图 |
 | 考勤上传 | 党小组组长工作台 | 纪检委员考勤总表新考勤记录出现 |
 | 考察上传 | 党小组组长工作台 | 纪检委员考察确认面板新考察记录出现（待确认状态） |
 | 确认考勤 | 纪检委员 | 党小组组长工作台缺勤列表状态更新；补课任务自动生成 |
@@ -740,7 +786,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 自动提醒 | 发布后 `reminderDays` 天仍未读 | 系统 | 每条通知每用户仅触发一次 |
 | 手动催读 | 书记在通知管理中点击"催读" | 书记 | 可多次，记录写入 `reminders` 数组 |
 
-**权力归属**：通知发布权=书记；自动提醒=系统；手动催读=书记。
+**权限归属**：通知发布权=书记；自动提醒=系统；手动催读=书记。
 
 #### 2.19.4 通知分类示例
 
@@ -780,9 +826,9 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 ## 三、参与者数据流设计
 
-### 3.1 三级管理模式架构
+### 3.1 三级管理架构
 
-#### 3.1.1 三级管理模式总览
+#### 3.1.1 三级管理架构总览
 
 | 层级 | 角色 | 核心职责 | 产出 |
 |------|------|---------|------|
@@ -823,7 +869,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 ### 3.3 考勤与考察的核心区分
 
-> 完整的考勤/考察规则、判断逻辑、记录字段定义见 [纪检委员工作流程指南 §1.2](../02_institution/sop/纪检委员工作流程指南.md) + [insights 工程演进与设计方法论.md §6.12](../insights/工程演进与设计方法论.md)。本节仅保留要点索引。
+> 完整的考勤/考察规则、判断逻辑、记录字段定义见 [纪检委员工作流程指南 §1.2](../02_institution/sop/纪检委员工作流程指南.md) + [insights 工程演进与设计方法论.md §6.12](../insights/工程演进与设计方法论.md)。本节仅保留要点索引。考勤/考察在端到端数据流中的「挂靠活动 + 聚合总数据」交织位置见 [§1.3](#13-端到端数据流交织图)。
 
 **要点**：考勤 = 0-1变量（出勤/请假/缺勤），对象为党员+预备党员，适用三会一课；考察 = 工作量记录（组织/深度参与），对象为深度参与者和组织者，适用所有支部工作。系统记录字段：考勤见 §2.5 AttendanceRecord；考察补充字段 `participationLevel`/`deepRole`/`specificWork`/`divisionRecordedBy`/`submittedTo`/`submittedAt`。
 
@@ -917,7 +963,6 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 键名 | 存储内容 | 格式 | 读写位置 |
 |---|---|---|---|
 | `gsm1921-auth-records` | 认证记录 | JSON | [services/auth.js](../../docs/src/services/auth.js) |
-| `gsm1921-view-mode` | 视图模式 | string | [services/auth.js](../../docs/src/services/auth.js) |
 | `gsm1921-primary-role` | 主角色 | string | [services/auth.js](../../docs/src/services/auth.js) |
 | `gsm1921-auth-grants` | 赋权授权记录 | JSON | [services/auth.js](../../docs/src/services/auth.js) |
 | `sop_org_os_assigned_roles` | 赋权角色列表 | JSON: `Array<{name, role, activity}>` | [services/roles.js](../../docs/src/services/roles.js) |

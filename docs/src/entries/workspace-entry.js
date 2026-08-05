@@ -1,5 +1,5 @@
 // role: [工程师]+[AI]
-// workspace-entry.js — 党建工作台入口（重构版）
+// workspace-entry.js — 工作台入口（重构版）
 // 变化: 去掉角色选择面板，改为自动跳转到角色子页面
 // 第3轮 Task 3: 加入 ROUTE_LOCK 防护 + 使用 getEffectiveRole
 

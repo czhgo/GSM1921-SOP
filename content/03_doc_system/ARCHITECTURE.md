@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿---
+---
 title: "系统架构说明"
 type: architecture
 role: "[工程师]+[AI]"
@@ -69,7 +69,7 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 | 架构治理 | 核心规则修改、Agent配置、Skill注册、权限变更、架构重构 | 架构监督Agent → 协调调度Agent → 日志记录Agent |
 | 经验提炼 | 经验沉淀、日志分析、复盘总结、最佳实践 | 经验分析Agent → 日志记录Agent |
 
-**优先级**: 架构治理 > 党务管理 > 党建工作 > 经验提炼
+**优先级**: 架构治理 > 党务工作 > 党建工作 > 经验提炼
 
 ---
 
@@ -215,9 +215,6 @@ Layer 7: 审计参考层（审计与参考）
 │       ├── EXECUTION_LOG_INDEX.md     [工程师]+[AI] 日志导航索引
 │       ├── YYYY-MM-EXECUTION_LOG.md   [工程师]+[AI] 月度执行日志
 │       └── YYYY-MM-DECISION_LOG.md    [工程师]+[AI] 月度决策日志
-│
-├── .vscode/settings.json              [工具] VS Code 工作区配置
-└── assets/                            [用户] 静态资源目录
 ```
 
 ---
