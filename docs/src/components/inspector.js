@@ -5,7 +5,7 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE } from '../core/state.js';
+import { setState, STATE, getAppState } from '../core/state.js';
 import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js';
 import { _fmtChinese, showToast } from '../core/utils.js';
 import { icon } from '../core/icons.js';
@@ -13,6 +13,7 @@ import { PEOPLE, getPersonById } from '../mock/index.js';
 import { BranchService } from '../services/runtime.js';
 import { AuthStore } from '../services/auth.js';
 import { statusBadgeHtml, bindStatusBadge } from './status-badge.js';
+import { persist } from '../core/data-adapter.js';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -20,6 +21,30 @@ const TASK_STATUSES = {
   in_progress: { label: '进行中', color: '#D97706' },
   completed:   { label: '已完成', color: '#16A34A' },
 };
+
+// T-218：活动执行态由任务进度派生（书记裁决 2026-08-05「进度驱动活动状态」）
+// - 有关联任务且全部 completed → 'completed'（已完成）
+// - 有关联任务且未全部完成 → 'ongoing'（进行中）
+// - 无关联任务 → 保持计划态（draft/published）原样
+// 以全活动任务为准（呼应书记「书记看全部任务」裁决）；展示与写联动统一走本函数。
+export function deriveActivityExecutionStatus(activity, allTasks) {
+  const actTasks = allTasks.filter(t => t.activityId === activity.id);
+  if (actTasks.length === 0) return activity.status;
+  const allDone = actTasks.every(t => t.status === 'completed');
+  return allDone ? 'completed' : 'ongoing';
+}
+
+// T-218：活动执行态徽章语义色（替代原中性灰 badge-time，与任务徽章色系一致）
+const ACT_STATUS_STYLE = {
+  draft:     { bg: 'rgba(107,114,128,0.12)', fg: '#6B7280' },  // 草稿
+  published: { bg: 'rgba(37,99,235,0.12)',   fg: '#2563EB' },  // 已发布
+  ongoing:   { bg: 'rgba(217,119,6,0.14)',   fg: '#D97706' },  // 进行中
+  completed: { bg: 'rgba(22,163,74,0.14)',   fg: '#16A34A' },  // 已完成
+};
+function activityBadgeHtml(status, label) {
+  const s = ACT_STATUS_STYLE[status] || ACT_STATUS_STYLE.draft;
+  return `<span class="badge-time flex-shrink-0" style="background:${s.bg};color:${s.fg};">${label}</span>`;
+}
 
 // ════════════════════════════════════════════════════════════════
 //  RBAC 任务过滤核
@@ -149,9 +174,12 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
   const isParticipant = !viewArchived && (viewType === 'participant' || !viewType);
 
   const statusMap = { draft: '草稿', published: '已发布', ongoing: '进行中', completed: '已完成' };
+  const allTasks = (getAppState() || {}).tasks || [];
   let html = '';
   dateActivities.forEach(act => {
-    const label = statusMap[act.status] || act.status;
+    // T-218：列表徽章同样走派生执行态（与详情页一致，进度驱动）
+    const execStatus = deriveActivityExecutionStatus(act, allTasks);
+    const label = statusMap[execStatus] || execStatus;
     const isBrand = !!act.isBrand;
     const brandTag = isBrand
       ? '<span class=" text-xs px-1.5 py-0.5 rounded" style="background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.35);">品牌</span>'
@@ -160,7 +188,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
       html += `<div class="inspector-card" data-act-id="${act.id}" style="${isBrand ? 'border-left:3px solid #EAB308;' : ''}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
       html += `<p class=" font-bold text-sm text-gray-800 leading-snug flex-1">${act.title}</p>`;
-      html += `<span class="badge-time flex-shrink-0">${label}</span>`;
+      html += activityBadgeHtml(execStatus, label);
       html += '</div>';
       html += `<div class="flex items-center gap-1.5">${brandTag}<p class=" text-xs text-gray-400">参与视图 · 仅展示</p></div>`;
       html += '</div>';
@@ -168,7 +196,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
       html += `<div class="inspector-card" style="cursor:pointer;${isBrand ? 'border-left:3px solid #EAB308;' : ''}" data-act-id="${act.id}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
       html += `<div class="flex items-center gap-1.5 flex-1"><p class=" font-bold text-sm text-gray-800 leading-snug">${act.title}</p>${brandTag}</div>`;
-      html += `<span class="badge-time flex-shrink-0">${label}</span>`;
+      html += activityBadgeHtml(execStatus, label);
       html += '</div>';
       html += `<p class=" text-xs text-gray-400">点击查看任务详情 →</p>`;
       html += '</div>';
@@ -246,7 +274,9 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   }
 
   html += '<div class="flex items-center gap-1.5 flex-wrap mb-3">';
-  html += `<span class="badge-time">${statusMap[activity.status] || activity.status}</span>`;
+  // T-218：顶部徽章改派生执行态（进度驱动活动状态，书记裁决 2026-08-05）
+  const actExecStatus = deriveActivityExecutionStatus(activity, tasks);
+  html += activityBadgeHtml(actExecStatus, statusMap[actExecStatus] || actExecStatus);
   if (isArchived) {
     html += '<span class=" text-xs px-1.5 py-0.5 rounded" style="background:rgba(156,163,175,0.2);color:#6B7280;">已归档</span>';
   }
@@ -347,10 +377,20 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     cardsEl.querySelectorAll('[data-status-badge]').forEach(badge => {
       bindStatusBadge(badge, {
         statuses: TASK_STATUSES,
-        onChange: (newStatus) => {
+        onChange: async (newStatus) => {
           const taskId = badge.dataset.taskId;
           const newTasks = BranchService.updateTask(taskId, { status: newStatus });
-          setState({ tasks: newTasks });
+          // T-218：进度驱动活动状态——任务变更后重算活动执行态并落库
+          // （BranchService 直写路径仅 saveDB() 本地，必须显式 persist() 写穿服务器）
+          const newActStatus = deriveActivityExecutionStatus(activity, newTasks);
+          if (newActStatus !== activity.status) {
+            await BranchService.updateActivity(activity.id, { status: newActStatus });
+          }
+          setState({
+            tasks: newTasks,
+            activities: getAppState().activities.map(a => (a.id === activity.id ? { ...a, status: newActStatus } : a)),
+          });
+          persist();
         },
       });
     });

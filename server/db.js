@@ -2,9 +2,11 @@
 import Database from 'better-sqlite3';
 
 // 资源表：每张表 id 主键 + data JSON（保持与前端数据结构完全一致，嵌套字段零损失）
+// T-218：新增 4 张 niche 表（经验沉淀/合规引用/文件空间/图片记录），与前端快照 payload 键名对齐
 const RESOURCE_TABLES = [
   'users', 'activities', 'tasks', 'attendances', 'inspections',
   'taskforces', 'notices', 'todos', 'assignments', 'handovers', 'makeup_tasks',
+  'experience_deposits', 'compliance_references', 'file_space_records', 'image_records',
 ];
 
 const SCHEMA = `

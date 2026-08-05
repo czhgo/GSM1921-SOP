@@ -1330,3 +1330,38 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 
 - **变更文件**：`docs/src/entries/ws-secretary-entry.js`、`docs/src/components/inspector.js`、`docs/src/components/status-badge.js`（新建）、`docs/src/components/issue-list.js`、`docs/src/styles.css`、`content/04_web_design/DESIGN_SYSTEM.md`、`CLAUDE.md`（乙部 T-207 更新）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
 - **沉淀标签**：`[已沉淀: 交互载体决策规范]` — DESIGN_SYSTEM §4.12：悬浮表单=轻量录入（≤3 字段/上下文锚定主录入）、就地展开=查看为主+快捷操作、内联面板=主流程长表单、跳转=整页级；选人=PersonPicker 硬性规则（§4.13）；`[经验: 实测驱动的数据链路修复]` — 悬浮表单承载主录入时，其数据展示面（任务列表）常被角色过滤逻辑吞掉——`loadWorkspaceData` 未传 `extraLoads` 与 RBAC 过滤双因叠加，须以「书记看全部任务」类监督语义为默认；`[待办: 状态徽章推广范围]` — 考勤确认/交接状态待书记看原型效果后决定推广；`[待办: 网页 UI 专项续]` — D3 系统跟随主题模式（prefers-color-scheme）/ E2 功能层数据联动（待办项标注数据上下游）
+
+## T218 server 数据链路完善 + 活动状态进度驱动（书记四问收口）（2026-08-05）
+
+**任务**：书记四问——① 有了 server 后能否像单刀双掷开关一样切换 mock/真实数据？server 真的稳定运作吗？② 现在能否真实操作网页？操作结果存服务器吗？会改 mock 数据本身吗？③ 归档和资料查询 server 是否做到位？④ 活动徽章「0/2 已完成却声称已完成」语义不赞同 + `span` 显示有问题。
+**引用流程**：H1.2 执行 + brainstorming Skill + fullstack-developer Skill + H2.4 经验沉淀 + verification-before-completion Skill
+**来源**：书记指令（承接 T-217；spec：`docs/superpowers/specs/2026-08-05-server-niche-and-activity-status-design.md`，gitignore 不入库）
+
+- **书记裁决链（AskUserQuestion）**：
+  - ① server：**启动 express server（推荐）**——发现 3000 端口曾被 python 静态服务器占用（无 /api/v1 端点），已停并启动真实 express server（health 200 + users 50 验证）
+  - ② 切换开关：书记明确「**不是在 UI 中做！**就是我们目前已经有了登陆页面选择开发模式的部分了，我好奇的是我们回头如何接入」——接入路径已就绪：登录 `AuthStore.login()` → 后端 token → `enableApiMode()` 切 API 数据源，将来接学校后端只需改 `apiBaseUrl`；不做 UI 开关
+  - ③ niche 4 类集合（经验沉淀/合规引用/文件空间/图片记录）：**本轮纳入 server（推荐）**
+  - ④ 活动状态：**进度驱动活动状态（推荐）**——活动"已完成"由任务全部完成自动判定
+  - 设计草案：**批准执行**
+
+- **执行详情（A/B 子任务）**：
+  - **A 子任务（niche 入 server + imageRecords 备份修复）**：
+    - `server/db.js` RESOURCE_TABLES +4：`experience_deposits`/`compliance_references`/`file_space_records`/`image_records`（循环建表/注册路由自动覆盖）
+    - `server/routes/resources.js` RESOURCE_TABLES 映射 +4 键（键名与前端快照 payload 键名完全一致），list/bootstrap/snapshot 自动覆盖
+    - `docs/src/core/api-adapter.js` niche 4 组 list/create 路径统一为 `/api/v1/{name}`（原 `/files`/`/images`/`/experiences`/`/compliance-refs` 均为未实现路由）
+    - `docs/src/core/data-adapter.js` init() API 分支嵌套 `Promise.all` 拉取 niche 4 集合（失败回退 `restoreNicheCollections()` 本地备份）；`_flushSnapshot`/`_flushSnapshotSync` payload +4 键写穿
+    - `docs/src/core/mock-adapter.js` `_saveToStorage()` 序列化补 `imageRecords`、`_loadFromStorage()` 恢复补 `imageRecords`、`restoreNicheCollections()` 补 imageRecords（原无备份恒 undefined，刷新即失——已修复）
+  - **B 子任务（进度驱动活动状态）**：
+    - `inspector.js` 新增导出 `deriveActivityExecutionStatus(activity, allTasks)`：有关联任务且全部 completed → 'completed'；未全部完成 → 'ongoing'；无关联任务 → 保持计划态（draft/published）原样；以全活动任务为准（呼应书记「书记看全部任务」裁决）
+    - 详情页顶部徽章改派生执行态；列表卡片徽章同步派生（`getAppState().tasks`）；`bindStatusBadge` onChange 写联动：任务变更 → 重算活动状态 → `BranchService.updateActivity` 落库 + `setState` 刷新任务与活动 + `persist()` 写穿（**关键：BranchService 直写路径仅 saveDB() 本地，必须显式 persist() 才写穿服务器**）
+    - 徽章语义色：新增 `activityBadgeHtml`（草稿灰/已发布蓝/进行中琥珀/已完成绿，与任务徽章色系一致），替代原中性灰 `badge-time`（书记问题 4「span 显示有问题」落点）
+
+- **验证结果（全部通过）**：
+  - ✅ `npm test` 16/16（server 目录）：**发现并修复 e2e 测试环境性失败**——`page.waitForURL` 超时根因是 headless Chromium 挂起在 Google Fonts/Tailwind CDN 外部请求（readyState 卡 interactive，load 事件不触发）；e2e 增加 `page.route` 阻断外部 CDN 后离线可复现（17.9s 超时 → 4.1s 通过）
+  - ✅ 浏览器实测（API 模式登录书记，工作区 2026-05 日历）：act-10 初始徽章「进行中」+ 进度 0/2（种子 status:'completed' 的语义矛盾已修复）→ 完成 2 任务 → 徽章「已完成」+ 2/2 → 还原 1 任务 → 「进行中」+ 1/2 → 全还原 → 0/2；列表卡片徽章同步「进行中」
+  - ✅ niche 落库闭环：3000 端口 server 重启加载新代码，`/api/v1/fileSpaceRecords` 等 4 端点 200；14 个资源分组 API 全 200
+  - ✅ GetDiagnostics 全部修改文件零错误；验证后已将 server 数据恢复种子态（act-10 status:'completed'、tsk-007 in_progress、tsk-008 pending）
+  - 注：`pageerrors: ReferenceError: tailwind is not defined` 仅出现在阻断 tailwind CDN 的测试脚本环境，真实浏览器无此问题
+
+- **变更文件**：`server/db.js`、`server/routes/resources.js`、`server/test/e2e-login.test.js`（离线可复现加固）、`docs/src/core/api-adapter.js`、`docs/src/core/data-adapter.js`、`docs/src/core/mock-adapter.js`、`docs/src/components/inspector.js`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[已沉淀: 数据源切换接入路径]` — mock/真实数据不是 UI 开关，而是登录页开发模式卡片（devLogin 纯 mock）+ 账号密码登录（token → enableApiMode 切 API）双入口；接真实后端仅改 `apiBaseUrl`；`[已沉淀: 写穿链路契约]` — 服务层 BranchService 直写（updateTask/updateActivity）只调 `saveDB()`（localStorage），API 模式必须显式 `persist()` 才防抖快照写穿服务器（800ms 全量覆盖）；`[已沉淀: 进度驱动活动状态]` — 活动执行态（进行中/已完成）由任务进度派生统一函数 `deriveActivityExecutionStatus`，展示与写联动同一函数防逻辑漂移；计划态（draft/published）仅无任务时展示；`[经验: e2e 离线可复现]` — headless Chromium 挂外部 CDN（Google Fonts）会阻塞 window load（readyState 卡 interactive）致 waitForURL 超时，e2e 须阻断外部资源路由保证离线确定性；`[待办: T-207 剩余]` — D3 系统跟随主题模式（prefers-color-scheme）/ E2 功能层数据联动

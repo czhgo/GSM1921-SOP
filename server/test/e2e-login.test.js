@@ -67,6 +67,12 @@ async function waitForBodyText(page, text, timeout = 10000) {
 
 test('账号密码登录后切换 API 数据源，首页渲染且后端数据可达', async () => {
   const page = await browser.newPage();
+  // 离线可复现：测试环境可能无法访问外部 CDN（Google Fonts / Tailwind CDN），
+  // 这些请求挂起会阻塞 window load 事件（readyState 卡在 interactive），导致
+  // waitForURL 超时。本测试只验证登录→API→持久化链路，外部样式不影响断言。
+  await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
+  await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
+  await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
   try {
     // 0. 捕获 API 读请求（读路径证据）：登录跳转后的页面加载期间，
     //    bootstrap init() 应发起 GET /api/v1/activities 等读请求

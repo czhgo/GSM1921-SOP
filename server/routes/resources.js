@@ -4,6 +4,7 @@ import { requireAuth } from './auth.js';
 import { replaceCollection } from '../db.js';
 
 // 资源名 → 表名映射（与 data-adapter 的分组名对齐）
+// T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
 const RESOURCE_TABLES = {
   activities: 'activities',
   tasks: 'tasks',
@@ -16,6 +17,10 @@ const RESOURCE_TABLES = {
   handovers: 'handovers',
   makeupTasks: 'makeup_tasks',
   users: 'users',
+  experienceDeposits: 'experience_deposits',
+  complianceReferences: 'compliance_references',
+  fileSpaceRecords: 'file_space_records',
+  imageRecords: 'image_records',
 };
 
 function listTable(db, table) {

@@ -214,13 +214,30 @@ export async function init() {
       mockDB.handovers = handovers || [];
       mockDB.makeupTasks = makeupTasks || [];
 
-      // 非服务端集合从本地备份恢复（文件空间/经验沉淀/合规引用等，
-      // P2 才把这些表入后端，避免 API 模式下这些功能空态）
+      // T-218：niche 集合（经验沉淀/合规引用/文件空间/图片记录）从后端拉取填充，
+      // 拉取失败时回退本地备份（不影响主集合；旧行为是纯本地恢复）
       try {
-        const { restoreNicheCollections } = await import('./mock-adapter.js');
-        restoreNicheCollections();
+        const [
+          experienceDeposits, complianceReferences,
+          fileSpaceRecords, imageRecords,
+        ] = await Promise.all([
+          adapter.experienceDeposits.list(),
+          adapter.complianceReferences.list(),
+          adapter.fileSpaceRecords.list(),
+          adapter.imageRecords.list(),
+        ]);
+        mockDB.experienceDeposits    = experienceDeposits || [];
+        mockDB.complianceReferences  = complianceReferences || [];
+        mockDB.fileSpaceRecords      = fileSpaceRecords || [];
+        mockDB.imageRecords          = imageRecords || [];
       } catch (e) {
-        console.warn('[DataAdapter] init: 本地非服务端集合恢复失败：', e);
+        console.warn('[DataAdapter] init: niche 集合拉取失败，回退本地备份：', e);
+        try {
+          const { restoreNicheCollections } = await import('./mock-adapter.js');
+          restoreNicheCollections();
+        } catch (e2) {
+          console.warn('[DataAdapter] init: 本地 niche 备份恢复失败：', e2);
+        }
       }
 
       console.info('[DataAdapter] init: API 模式，已从后端拉取数据到缓存');
@@ -289,6 +306,10 @@ async function _flushSnapshot() {
       assignments: mockDB.assignments,
       handovers:   mockDB.handovers,
       makeupTasks: mockDB.makeupTasks,
+      experienceDeposits:   mockDB.experienceDeposits,
+      complianceReferences: mockDB.complianceReferences,
+      fileSpaceRecords:     mockDB.fileSpaceRecords,
+      imageRecords:         mockDB.imageRecords,
     };
     await getAdapter().snapshot(payload);
   } catch (e) {
@@ -320,6 +341,10 @@ function _flushSnapshotSync() {
     assignments: mockDB.assignments,
     handovers:   mockDB.handovers,
     makeupTasks: mockDB.makeupTasks,
+    experienceDeposits:   mockDB.experienceDeposits,
+    complianceReferences: mockDB.complianceReferences,
+    fileSpaceRecords:     mockDB.fileSpaceRecords,
+    imageRecords:         mockDB.imageRecords,
   };
   try {
     // snapshot() 内部为 async：fetch 在同步调用栈内发出（keepalive），

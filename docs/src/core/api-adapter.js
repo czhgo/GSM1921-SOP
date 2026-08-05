@@ -124,10 +124,10 @@ function _delete(path) {
 //  | 交接        | /api/v1/handovers       | GET/POST  |
 //  | 补课        | /api/v1/makeupTasks    | GET/POST  |
 //  | 补课(单)    | /api/v1/makeupTasks/:id| PATCH     |
-//  | 文件空间    | /api/v1/files           | GET/POST  |
-//  | 图片        | /api/v1/images          | GET/POST  |
-//  | 经验沉淀    | /api/v1/experiences     | GET/POST  |
-//  | 合规引用    | /api/v1/compliance-refs | GET/POST  |
+//  | 文件空间    | /api/v1/fileSpaceRecords | GET/POST |
+//  | 图片        | /api/v1/imageRecords      | GET/POST |
+//  | 经验沉淀    | /api/v1/experienceDeposits | GET/POST |
+//  | 合规引用    | /api/v1/complianceReferences | GET/POST |
 //  | 认证登录    | /api/v1/auth/login      | POST      |
 //  | 认证注销    | /api/v1/auth/logout     | POST      |
 //  ─────────────────────────────────────────────────────────
@@ -331,44 +331,48 @@ export const ApiAdapter = {
   fileSpaceRecords: {
     list(params = {}) {
       const query = new URLSearchParams(params).toString();
-      return _get(`/api/v1/files${query ? '?' + query : ''}`);
+      // T-218：路径统一为 /api/v1/{name}（与 server RESOURCE_TABLES 键名一致，原 /files 未实现）
+      return _get(`/api/v1/fileSpaceRecords${query ? '?' + query : ''}`);
     },
 
     create(data) {
-      return _post('/api/v1/files', data);
+      return _post('/api/v1/fileSpaceRecords', data);
     },
   },
 
   imageRecords: {
     list(params = {}) {
       const query = new URLSearchParams(params).toString();
-      return _get(`/api/v1/images${query ? '?' + query : ''}`);
+      // T-218：路径统一为 /api/v1/{name}（原 /images 未实现）
+      return _get(`/api/v1/imageRecords${query ? '?' + query : ''}`);
     },
 
     create(data) {
-      return _post('/api/v1/images', data);
+      return _post('/api/v1/imageRecords', data);
     },
   },
 
   experienceDeposits: {
     list(params = {}) {
       const query = new URLSearchParams(params).toString();
-      return _get(`/api/v1/experiences${query ? '?' + query : ''}`);
+      // T-218：路径统一为 /api/v1/{name}（原 /experiences 未实现）
+      return _get(`/api/v1/experienceDeposits${query ? '?' + query : ''}`);
     },
 
     create(data) {
-      return _post('/api/v1/experiences', data);
+      return _post('/api/v1/experienceDeposits', data);
     },
   },
 
   complianceReferences: {
     list(params = {}) {
       const query = new URLSearchParams(params).toString();
-      return _get(`/api/v1/compliance-refs${query ? '?' + query : ''}`);
+      // T-218：路径统一为 /api/v1/{name}（原 /compliance-refs 未实现）
+      return _get(`/api/v1/complianceReferences${query ? '?' + query : ''}`);
     },
 
     create(data) {
-      return _post('/api/v1/compliance-refs', data);
+      return _post('/api/v1/complianceReferences', data);
     },
   },
 };
