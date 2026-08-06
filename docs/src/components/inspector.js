@@ -281,7 +281,7 @@ function _buildOutputsSectionHTML(activity) {
 
   const pubItems = [
     ...publicitySubs.map(p => ({ title: p.title || '宣传材料', meta: [p.author, p.channel].filter(Boolean).join(' · '), status: '已提交' })),
-    ...archiveRecs.map(a => ({ title: `${a.category || '材料'}：${a.activityName}`, meta: a.archiveDate || '', status: a.status === 'archived' ? '已归档' : (a.status === 'in_progress' ? '归档中' : '待归档') })),
+    ...archiveRecs.map(a => ({ title: `${a.category || '材料'}：${a.activityName}`, meta: [a.archiveDate, a.fileName].filter(Boolean).join(' · '), status: a.status === 'archived' ? '已归档' : (a.status === 'in_progress' ? '归档中' : '待归档') })),
   ];
   const pubStatus = pubItems.length === 0
     ? badge('未归档', 'bg-gray-100 text-gray-500')

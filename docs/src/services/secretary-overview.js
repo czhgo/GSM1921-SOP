@@ -295,6 +295,8 @@ export const SecretaryTodoDeriver = {
         sourceType: TodoSourceType.ACTIVITY,
         sourceId: act.id,
         actionType: TodoActionType.REVIEW,
+        // E2 数据上下游标注
+        flow: '活动结束 → 纪检录入考勤 → 考勤总表',
       });
       created.push(todo);
     }
@@ -327,6 +329,8 @@ export const SecretaryTodoDeriver = {
         sourceType: TodoSourceType.ACTIVITY,
         sourceId: dedupeId,
         actionType: TodoActionType.REVIEW,
+        // E2 数据上下游标注
+        flow: '纪检录入考察 → 确认 → 组织建档 → 人才库',
       });
       created.push(todo);
     }
@@ -368,6 +372,8 @@ export const SecretaryTodoDeriver = {
         sourceType: TodoSourceType.ACTIVITY,
         sourceId: `review_${act.id}`,
         actionType: TodoActionType.SUBMIT,
+        // E2 数据上下游标注
+        flow: '活动完成 → 组织者提交复盘 → 纪检批注/确认',
       });
       created.push(todo);
     }
@@ -403,6 +409,8 @@ export const SecretaryTodoDeriver = {
         sourceType: TodoSourceType.ACTIVITY,
         sourceId: `archive_prop_${act.id}`,
         actionType: TodoActionType.SUBMIT,
+        // E2 数据上下游标注
+        flow: '宣传材料 → 宣传委员归档 → 产出物区',
       });
       created.push(todo);
     }

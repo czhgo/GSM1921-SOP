@@ -7156,3 +7156,173 @@ label .text-red-500 {
     display: none;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   DARK THEME — 系统跟随深色主题（T-207 D3，2026-08-06 书记决策）
+   实现策略（三层覆盖）：
+   ① CSS 变量反向（neutral / surface / functional）→ var() 自定义类自动适配
+   ② 高频 Tailwind 类 !important 覆盖（Play CDN 运行时注入、样式序靠后，须提权）
+   ③ help / about 独立变量体系 + 硬编码浅色组件逐一覆盖
+   约束：党建红 --party-red 系不变、--surface-header 深红保持、角色识别色不变。
+   ═══════════════════════════════════════════════════════════════ */
+@media (prefers-color-scheme: dark) {
+  /* ── ① 全局变量反向（作用于 var() 自定义类） ── */
+  :root {
+    /* Neutral：深色下近黑文字→近白、浅灰底→深灰底 */
+    --neutral-0:   #0F172A;
+    --neutral-50:  #111827;
+    --neutral-100: #1E293B;
+    --neutral-200: #334155;
+    --neutral-300: #475569;
+    --neutral-400: #94A3B8;
+    --neutral-500: #94A3B8;
+    --neutral-600: #CBD5E1;
+    --neutral-700: #E2E8F0;
+    --neutral-800: #F1F5F9;
+    --neutral-900: #F8FAFC;
+
+    /* Surface：页面/卡片/侧栏/悬停层级反转 */
+    --surface-page:     #0B1220;
+    --surface-card:     #141D2F;
+    --surface-elevated: #1A2438;
+    --surface-sidebar:  #0F172A;
+    --surface-hover:    #1E293B;
+    --surface-active:   #2A1A22;
+
+    /* Functional：深色底上状态色提亮一档 */
+    --functional-success: #34D399;
+    --functional-warning: #FBBF24;
+    --functional-error:   #F87171;
+    --functional-info:    #60A5FA;
+
+    --shadow-dropdown: 0 4px 16px rgba(0, 0, 0, 0.5);
+
+    /* help 页文字变量反向 */
+    --help-text: #E2E8F0;
+    --help-sub:  #94A3B8;
+  }
+
+  /* ── ② 高频 Tailwind 中性类（Play CDN 后加载，须 !important） ── */
+  .bg-white        { background-color: #141D2F !important; }
+  .bg-gray-50      { background-color: #111827 !important; }
+  .bg-gray-100     { background-color: #1E293B !important; }
+  .bg-gray-200     { background-color: #334155 !important; }
+  .bg-gray-400     { background-color: #475569 !important; }
+  .bg-gray-50\/50  { background-color: rgba(15, 23, 42, 0.55) !important; }
+  .bg-neutral-100  { background-color: #1E293B !important; }
+  .text-gray-900   { color: #F8FAFC !important; }
+  .text-gray-800   { color: #F1F5F9 !important; }
+  .text-gray-700   { color: #E2E8F0 !important; }
+  .text-gray-600   { color: #CBD5E1 !important; }
+  .text-gray-500   { color: #94A3B8 !important; }
+  .text-gray-400   { color: #94A3B8 !important; }
+  .text-gray-300   { color: #64748B !important; }
+  .border-gray-50  { border-color: #1E293B !important; }
+  .border-gray-100 { border-color: #243244 !important; }
+  .border-gray-200 { border-color: #334155 !important; }
+  .border-gray-300 { border-color: #475569 !important; }
+
+  /* hover 态（列表/按钮/卡片悬停） */
+  .hover\:bg-gray-50:hover   { background-color: #1E293B !important; }
+  .hover\:bg-gray-100:hover  { background-color: #243244 !important; }
+  .hover\:bg-gray-200:hover  { background-color: #334155 !important; }
+  .hover\:border-gray-200:hover { border-color: #475569 !important; }
+  .hover\:border-gray-300:hover { border-color: #64748B !important; }
+  .hover\:text-gray-600:hover   { color: #CBD5E1 !important; }
+  .hover\:text-gray-700:hover   { color: #E2E8F0 !important; }
+  .hover\:text-gray-800:hover   { color: #F1F5F9 !important; }
+  .hover\:text-gray-900:hover   { color: #F8FAFC !important; }
+
+  /* ── 语义浅底标签：深色半透明底 + 提亮文字（保持语义识别） ── */
+  .bg-red-50      { background-color: rgba(239, 68, 68, 0.10) !important; }
+  .bg-red-100     { background-color: rgba(239, 68, 68, 0.16) !important; }
+  .bg-orange-50   { background-color: rgba(249, 115, 22, 0.10) !important; }
+  .bg-orange-100  { background-color: rgba(249, 115, 22, 0.16) !important; }
+  .bg-green-50    { background-color: rgba(52, 211, 153, 0.10) !important; }
+  .bg-green-100   { background-color: rgba(52, 211, 153, 0.16) !important; }
+  .bg-blue-50     { background-color: rgba(96, 165, 250, 0.10) !important; }
+  .bg-blue-100    { background-color: rgba(96, 165, 250, 0.16) !important; }
+  .bg-yellow-100  { background-color: rgba(251, 191, 36, 0.16) !important; }
+  .bg-amber-100   { background-color: rgba(251, 191, 36, 0.16) !important; }
+  .bg-emerald-100 { background-color: rgba(52, 211, 153, 0.16) !important; }
+  .bg-sky-100     { background-color: rgba(56, 189, 248, 0.16) !important; }
+  .hover\:bg-red-50:hover     { background-color: rgba(239, 68, 68, 0.10) !important; }
+  .hover\:bg-red-100:hover    { background-color: rgba(239, 68, 68, 0.16) !important; }
+  .hover\:bg-orange-50:hover  { background-color: rgba(249, 115, 22, 0.10) !important; }
+  .hover\:bg-orange-100:hover { background-color: rgba(249, 115, 22, 0.16) !important; }
+  .hover\:bg-green-100:hover  { background-color: rgba(52, 211, 153, 0.16) !important; }
+  .hover\:bg-blue-50:hover    { background-color: rgba(96, 165, 250, 0.10) !important; }
+  .hover\:bg-blue-100:hover   { background-color: rgba(96, 165, 250, 0.16) !important; }
+  .hover\:bg-sky-100:hover    { background-color: rgba(56, 189, 248, 0.16) !important; }
+  .text-red-600    { color: #F87171 !important; }
+  .text-orange-600 { color: #FB923C !important; }
+  .text-green-600  { color: #34D399 !important; }
+  .text-blue-600   { color: #60A5FA !important; }
+  .text-amber-600  { color: #FBBF24 !important; }
+  .text-sky-600    { color: #38BDF8 !important; }
+  .hover\:text-red-500:hover   { color: #F87171 !important; }
+  .hover\:text-red-600:hover   { color: #FCA5A5 !important; }
+  .hover\:text-blue-700:hover  { color: #60A5FA !important; }
+  .hover\:text-blue-800:hover  { color: #93C5FD !important; }
+
+  /* ── ③ 硬编码浅色组件 ── */
+  /* 状态徽章弹层 */
+  .status-badge-popover {
+    background: #1A2438 !important;
+    border-color: var(--neutral-200) !important;
+  }
+
+  /* help 全站白底 section/卡片 → 深色卡片底 */
+  .help-section,
+  .help-review-card,
+  .help-philosophy-section,
+  .help-philosophy-opp,
+  .help-cognition-item,
+  .help-cognition-dialogue,
+  .help-works-col,
+  .help-dialogue-card,
+  .help-tl-detail,
+  .help-page-footer {
+    background: #141D2F !important;
+  }
+  .help-philosophy-opp-quote,
+  .help-cognition-section {
+    background: rgba(206, 17, 38, 0.10) !important;
+  }
+  .help-works-col,
+  .help-review-card,
+  .help-philosophy-opp,
+  .help-cognition-item,
+  .help-tl-detail {
+    border-color: #334155 !important;
+  }
+
+  /* about 页（探索叙事·暖纸墨调）变量反向：纸底→墨底、墨字→纸字 */
+  .ab-about {
+    --ab-paper-0:   #14161A;
+    --ab-paper-1:   #1B1E24;
+    --ab-paper-2:   #22262D;
+    --ab-paper-line: #33383F;
+    --ab-ink:       #E8E4DC;
+    --ab-ink-sub:   #A9A398;
+    --ab-ink-faint: #7E7870;
+  }
+  .ab-network-tooltip,
+  .ab-toc-dot-tooltip,
+  .ab-tl-detail {
+    background: #1B1E24 !important;
+    color: var(--ab-ink) !important;
+    border-color: var(--ab-paper-line) !important;
+  }
+  .ab-toc-dot-tooltip::after {
+    border-left-color: #1B1E24 !important;
+  }
+  .ab-toc-dot-item.is-active .ab-toc-dot-tooltip {
+    background: rgba(206, 17, 38, 0.18) !important;
+    color: var(--ab-red) !important;
+    border-color: rgba(206, 17, 38, 0.35) !important;
+  }
+  .ab-toc-dot-item.is-active .ab-toc-dot-tooltip::after {
+    border-left-color: rgba(206, 17, 38, 0.18) !important;
+  }
+}

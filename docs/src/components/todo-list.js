@@ -203,14 +203,22 @@ function _renderTodoItem(prefix, todo, accent, today, selectedTodoId, actionBtnS
     (isExpired ? '<span class="text-xs px-1 py-0.5 rounded bg-red-100 text-red-600 font-medium flex-shrink-0">过期</span>' : '') +
     (isUrgent && !isExpired ? '<span class="text-xs px-1 py-0.5 rounded bg-orange-100 text-orange-600 font-medium flex-shrink-0">紧急</span>' : '');
 
+  // 数据上下游标注（E2：标题下内嵌小字展示，无 flow 不显示）
+  const flowHtml = todo.flow
+    ? `<span class="block text-[11px] text-gray-400 truncate">${todo.flow}</span>`
+    : '';
+
   // T223 卡片统一：移除行内左竖条（选中/紧急改用「紧急」标签 + 选中背景表达，不再画竖线）
 
   return `
     <div class="${prefix}-todo-item flex items-center border-b border-gray-50 last:border-b-0" data-todo-id="${todo.id}">
       <button type="button" class="${prefix}-todo-item-main flex-1 min-w-0 flex items-center gap-2 px-3 py-2.5 text-left bg-transparent border-0 transition-colors hover:bg-gray-50 ${isSelected ? 'bg-gray-50' : ''}" data-todo-id="${todo.id}">
-        <span class="flex items-center gap-1.5 min-w-0 flex-1">
-          ${flagHtml}
-          <span class="text-sm font-medium text-gray-800 truncate">${todo.title}</span>
+        <span class="flex flex-col items-start gap-0.5 min-w-0 flex-1">
+          <span class="flex items-center gap-1.5 min-w-0 w-full">
+            ${flagHtml}
+            <span class="text-sm font-medium text-gray-800 truncate">${todo.title}</span>
+          </span>
+          ${flowHtml}
         </span>
         <span class="flex items-center gap-2 flex-shrink-0">
           ${deadlineHtml}

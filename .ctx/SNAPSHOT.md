@@ -2,7 +2,7 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-08-04"
+last_updated: "2026-08-06"
 status: "ACTIVE"
 date: "2026-08-03"
 version: "v15"
@@ -44,7 +44,7 @@ GSM1921-SOP/
 │       ├── components/         ← 共享组件（18 个：17 js + 1 css，含 todo-list/custom-select/workspace-popover）
 │       ├── core/               ← 核心工具（12 个）
 │       ├── config/             ← 配置（branch.json）
-│       ├── services/           ← 服务层（20 个，含 todo/auth/notice/decision-tree/image）
+│       ├── services/           ← 服务层（19 个，含 todo/auth/notice/decision-tree/image）
 │       ├── mock/               ← Mock 数据（10 个，含 accounts）
 │       ├── modules/            ← 业务模块（1 个）
 │       ├── workflow/           ← 工作流引擎（6 个）
@@ -52,7 +52,7 @@ GSM1921-SOP/
 ├── server/                     ← Node 一体化后端（Express + better-sqlite3，同源静态 + /api/v1 REST）
 │   ├── server.js               ← 启动入口
 │   ├── app.js                  ← createApp 工厂 + JSON 错误中间件
-│   ├── db.js                   ← 11 JSON 资源表 + sessions/attachments
+│   ├── db.js                   ← 14 JSON 资源表 + sessions/attachments
 │   ├── seed.js                 ← 复用前端 mock 导入种子
 │   ├── routes/                 ← auth / resources / uploads
 │   ├── test/                   ← 8 测试文件，16 用例全绿

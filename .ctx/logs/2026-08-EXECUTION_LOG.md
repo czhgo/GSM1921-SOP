@@ -1502,3 +1502,50 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
   - ✅ GetDiagnostics 全部修改文件零错误；`node --check` 语法全过
 
 - **沉淀标签**：`[已沉淀: 扎口检查方法论]` — 「统一模块封装是否完全功能实现」的判据 = 前端暴露接口 ↔ 服务端路由 ↔ 数据持久化三环闭合，任何用户写操作必须走完整闭环（修改数据 → persist()/saveDB() → localStorage 或 API 快照写穿），否则刷新即丢失 = 假操作；`[已沉淀: 防抖快照竞态]` — 全量快照写穿（800ms 防抖）下，初始化/回退路径一旦触发 persist()，会以陈旧 mockDB 覆盖服务器新数据，回退逻辑只填缓存、不得触发 persist；`[经验: ID_PREFIX 兜底]` — 服务端创建路由缺 id 时按资源前缀 + randomUUID 生成，保证离线前端创建也能对齐服务器主键；`[待办]` — 无
+
+## T-223/T-224 通知全链路完善 + 三类活动上下游与数据交接重构（补写，2026-08-06）
+
+> 本条目为过程债务补写：commit 29c6bab / 9871ceb / 6e38b21 / 75542ce 已提交，日志此前未记录。
+
+**任务**：① T-223 通知跳转/卡片去边/排序/考勤批量确认等全链路完善；② T-224 三类活动（三会一课/主题党日/专班）身份-职能上下游梳理 + 数据交接卡片删除 + 分类型关闭条件 + 产出物定向路由 + 附件查看窗口（设计稿 `docs/superpowers/specs/2026-08-06-activity-upstream-downstream-and-data-handover-design.md`）
+**引用流程**：H1.2 执行 + H5 书记评议 + webapp-testing Skill + fullstack-developer Skill
+
+- **T-223（commit 29c6bab）**：通知跳转直达对应 tab、卡片去边线、列表排序、考勤批量确认、表单基建统一等全链路完善
+- **T-224 §5.3/§6.2（commit 9871ceb）**：纪检考勤 tab 改造 + 纪检考察专班名单区
+- **T-224 §5.5/§7/§8（commit 6e38b21）**：书记直达 + 分类型关闭条件（三会一课→书记「纪要+请假确认+缺勤补课」/ 主题党日→书记「考勤+考察+复盘+宣传归档」/ 专班→组织委员解散「考察+工作量报告」）+ 产出物定向路由（OUTPUT_ROUTES 固化 domain.js，deriveOutputRoute 派生 routedTo，组织者只见「提交」不见发送对象）+ 产出物查看区（inspector 同源读取考勤/考察正式库 + actSubRecords + archiveRecords）
+- **T-224 §8 补齐（commit 75542ce，本会话前段）**：宣传归档关联键统一 activityId（书记裁决「统一用 activityId 关联」）——SEED_ARCHIVE_RECORDS 全局化（loadDB 注入，ar1/ar2→act-25，ar5→act-19，无活动关联的 ar3/ar4/ar6 靠 activityName 兜底），mock.js 与 mock-adapter.js 双 loader 同步 `_seedInitialData` 注入 + `_mergeNewSeedRecords` 老用户按 id 覆盖迁移，inspector 产出物区/关闭条件 activityId 优先 + activityName 兜底；修复书记页产出物区为空（归档种子原本只在宣传委员页注入，违反同一套数据）
+
+- **变更文件**：`docs/src/core/domain.js`、`docs/src/mock/seed.js`、`docs/src/services/mock.js`、`docs/src/core/mock-adapter.js`、`docs/src/components/inspector.js`、`docs/src/entries/ws-secretary-entry.js`、`docs/src/entries/ws-disc-commissioner-entry.js`、`docs/src/entries/ws-org-commissioner-entry.js`、`docs/src/entries/ws-prop-commissioner-entry.js`、`docs/src/services/taskforce.js` 等
+
+- **验证结果**：webapp-testing 13/13 通过（act-25/act-19 正确显示已归档、act-16 不误匹配、宣传页回归 6 条、老用户迁移路径）+ server npm test 16/16
+
+## T-207 收尾：D3 系统跟随深色主题 + E2 待办数据上下游标注（2026-08-06）
+
+**任务**：T-207 剩余两项网页 UI 专项——D3 系统跟随主题模式 + E2 功能层数据联动（待办项标注数据上下游）
+**引用流程**：H1.2 执行 + fullstack-developer Skill + verification-before-completion Skill
+**来源**：T-207 乙部剩余项（书记 AskUserQuestion 2026-08-06 选定「全站深色主题（推荐）」+「待办内嵌小字（推荐）」）
+
+- **D3 全站深色主题**：`@media (prefers-color-scheme: dark)` 三层覆盖策略——① CSS 变量反向（neutral/surface/functional 变量）② 高频 Tailwind 类 `!important` 覆盖（Play CDN 运行时注入样式序靠后须提权，`bg-gray-50/50` 类名须转义 `bg-gray-50\/50`）③ help/about 独立变量体系（`--help-*`/`--ab-*`）+ 硬编码浅色组件逐一覆盖。约束：`--party-red` 系不变、`--surface-header` 深红保持、角色识别色不变
+- **E2 待办数据上下游标注**：todo 增加 `flow` 字段——`create()/createBatch()` 支持 data.flow；`_inferFlow()` 按 targetModule 推断（attendance→'考勤上传 → 纪检确认 → 考勤总表'、party→'发展材料 → 组织委员建档 → 人才库'）；LifecycleTodoDeriver 三类派生器手动标注（活动创建/专班创建/活动归档）；SEED_TODOS 6 条加 flow（todo_seed_7 无明确上下游不加）；书记全局概况 4 条派生待办 flow 补齐。列表内嵌小字渲染（`text-[11px] text-gray-400`，仅 todo.flow 存在时显示）
+
+- **变更文件**：`docs/src/styles.css`、`docs/src/components/todo-list.js`、`docs/src/services/todo.js`、`docs/src/services/secretary-overview.js`
+
+- **验证结果**：GetDiagnostics 零错误 + 浏览器深色模式实测通过
+
+## attachments 双模式附件上传（宣传委员档案归档增量，2026-08-06）
+
+**任务**：spec §8 后续增量落地——宣传委员上传照片/简讯/报送（照片≥3张/简讯48h/周一报送/档案7天），产出物区/关闭校验同源读取
+**引用流程**：H1.2 执行 + fullstack-developer Skill + verification-before-completion Skill
+**来源**：书记 AskUserQuestion 2026-08-06 选定「双模式附件上传（推荐）」
+
+- **上传入口**：宣传委员「档案归档」tab 搜索栏行内新增 accent 色「上传材料」按钮（icons.js 新增 upload 图标，lucide 标准风格）+ 上传浮窗（关联活动必选 + 材料类别新闻稿/照片/视频/其他 + 文件多选 + 图片缩略图预览 + 超限过滤 + 移除单文件）
+- **双模式分流**（`isApiMode()` 判断）：
+  - **mock 模式**：FileReader → base64 dataURL → 写入 `mockDB.archiveRecords`（status:'archived'，含 fileName/fileSize/fileData）+ `persist()`；单文件 ≤2MB（localStorage 容量约束）
+  - **server 模式**：文件本体 `POST /api/v1/uploads`（multer 落盘 server/uploads/，返回 {path}）→ 元数据 `POST /api/v1/fileSpaceRecords`（server RESOURCE_TABLES 无 archiveRecords 表，落文件空间宽表）→ 内存同步 push archiveRecords + **push fileSpaceRecords**
+- **实测发现的缺口与修复**：server 模式上传元数据落库后随即被 `persist()` 全量快照写穿以空数组覆盖（快照 payload 取 `mockDB.fileSpaceRecords`，init 时拉取的空服务器表）——修复：元数据 POST 成功后同步 push 到 `mockDB.fileSpaceRecords` 内存（快照 payload 含新记录，不再清表）+ 检查 resp.ok
+- **产出物区联动**：inspector 产出物区 pubItems meta 增加 fileName（书记/纪检"看到材料本身"）；关闭条件宣传归档项（pubItems.length===0）上传后即满足
+- **验证结果**：
+  - ✅ mock 模式 browser 实测 12/12：上传→toast「已归档 1 项宣传材料」→列表刷新→localStorage 持久化→刷新存活→书记页产出物区显示「照片：七一建党105周年活动 2026-08-06 · test-photo.png · 已归档」
+  - ✅ server 模式 browser 实测：真实登录走 API 模式→上传→fileSpaceRecords 落库稳定（GET total=1，刷新后仍在）→文件可下载（200 image/png 70 字节）
+  - ✅ server npm test 16/16 + GetDiagnostics 零错误
+- **沉淀标签**：`[经验: 快照写穿清表缺口]` — server 模式向服务器表写单条记录后，若前端 mockDB 对应集合未同步（persist() 全量快照以 mockDB 状态整表覆盖），刚落库记录会被立即擦除；凡 server 模式单条写（资源级 CRUD）必须同步更新前端 mockDB 对应集合。`[待办]` — server 端无 archiveRecords 表（刷新后归档列表为内存态），后端补表属 P2 后续

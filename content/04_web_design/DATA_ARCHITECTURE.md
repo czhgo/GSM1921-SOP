@@ -1,9 +1,9 @@
-﻿﻿﻿﻿---
+﻿﻿---
 title: "数据架构设计"
 type: design
 role: "[工程师]+[AI]"
 version: "4.0"
-last_updated: "2026-08-05"
+last_updated: "2026-08-06"
 status: active
 merged_from: [content/design/DATA.md, content/design/PARTICIPANT_DATAFLOW.md, content/design/LOGIN_SYSTEM_DESIGN.md, content/design/BRAND_ACTIVITY.md]
 related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/MODULE_UI_DESIGN.md, content/04_web_design/DESIGN_SYSTEM.md]
@@ -33,7 +33,6 @@ summary: "系统数据架构设计的单一权威源——涵盖数据模型设�
 | 活动记录 (Activity) | mockDB.activities + localStorage `workflowos_branch_db_v1` | 创建->活跃->归档(软删除) | 核心业务实体，所有流程围绕活动展开 |
 | 考勤记录 (AttendanceRecord) | mockDB.attendances + localStorage | 随活动创建->随活动归档 | 纪检委员写入，全员可读 |
 | 分工记录 (AssignmentRecord) | mockDB.assignments + localStorage | 随活动创建->待办->进行中->已完成 | 组织者创建分工，深度参与者执行 |
-| 交接记录 (HandoverRecord) | mockDB.handovers + localStorage | 随交接创建->持久化 | 组织者发起交接，纪检委员确认 |
 | 补课任务 (MakeupTask) | mockDB.makeupTasks + localStorage | 缺勤触发->待补课->已完成 | 纪检委员创建，缺勤者执行补课 |
 | 通知 (Notice) | mockDB.notices + localStorage | 创建->持久化 | 系统通知，按类型分级（含行动性通知派生待办机制，见 §2.19） |
 | 待办任务 (Todo) | mockDB.todos + localStorage | 创建->pending->in_progress->completed/expired | 最小三成本原则落地——任务流默认直接展示在工作台（见 §2.18） |
@@ -60,7 +59,7 @@ summary: "系统数据架构设计的单一权威源——涵盖数据模型设�
  ├─→ 分工 Assignment     ：组织者创建、深度参与者执行（§2.6）
  ├─→ 考勤 Attendance    ：活动副产物，纪检委员写入（§2.5）
  ├─→ 考察 Inspection    ：活动执行记录，纪检确认（§3.3）
- └─→ 交接 Handover       ：组织者发起、纪检确认（§2.7）
+ └─→ 产出物 Output       ：按产出类型定向投递，去向由路由表派生（§2.7）
 ```
 
 **主线二：副产物 → 总数据聚合**（副产物既挂靠来源，又汇入总表）
@@ -362,19 +361,33 @@ assignedRoles: Array<{
 | createdAt | string (ISO) | 是 | -- | 创建时间 |
 | completedAt | string\|null (ISO) | 否 | `null` | 完成时间 |
 
-### 2.7 交接数据 (HandoverRecord)
+### 2.7 产出物 (OutputRecord)
 
-> 类型定义位于 [domain.js](../../docs/src/core/domain.js)
+> 类型定义位于 [domain.js](../../docs/src/core/domain.js)（`OutputType` / `OUTPUT_ROUTES` / `deriveOutputRoute`）
+> 来源：T-224 产出物定向路由（spec §5.5/§8）。废除原「数据交接」手动推送模型——投递去向由产出类型派生，系统自动执行，组织者只见「提交」不见「发送对象」。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
-| id | string | 是 | `generateId()` | 唯一标识符 |
-| title | string | 是 | -- | 交接记录标题 |
-| fromPerson | string | 是 | -- | 交接发起人 ID |
-| toPerson | string | 是 | -- | 接收人 ID |
-| activityId | string | 是 | -- | 所属活动 ID |
-| items | {content: string, status: string}[] | 是 | `[]` | 交接事项列表 |
-| createdAt | string (ISO) | 是 | -- | 创建时间 |
+| type | OutputType | 是 | -- | 产出物类型（考勤/考察/宣传材料/复盘/工作量/思想汇报等） |
+| title | string | 是 | -- | 产出物名称 |
+| submittedBy | string | 是 | -- | 提交人 ID |
+| submittedAt | string (ISO) | 是 | -- | 提交时间 |
+| status | `'pending'\|'submitted'` | 是 | `'pending'` | 提交状态 |
+| routedTo | string | 是 | 类型派生 | 系统定向投递去向——由 `deriveOutputRoute(type)` 派生，非人工录入 |
+
+**路由表（OUTPUT_ROUTES，固化在 domain.js）**：
+
+| 产出物 | 上游产出方 | 系统定向投递 | 最终沉淀 |
+|--------|-----------|-------------|---------|
+| 考勤数据 | 组长·组织者上传 / 纪检一体 | 纪检确认 → 考勤总表 | 组织/宣传只读同源 |
+| 工作考察记录 | 组长·组织者上传 | 纪检确认 → 考察总表 | 组织委员建档 |
+| 专班考察 | 专班负责人 / 组织委员 | 纪检确认 → 考察总表 | 组织委员建档 |
+| 宣传材料 | 宣传委员拍摄 / 深度参与者素材 | 宣传委员归档 | 产出物查看区 |
+| 复盘总结 | 组织者 | 纪检批注/确认 | 活动关闭前置 |
+| 专班工作量 | 专班成员 | 系统自动记录 | 解散报告 → 个人档案 |
+| 思想汇报 | 党员本人 | 组织委员归档 | 个人档案（不经纪检/宣传） |
+
+> **同一套数据**：产出物区与各录入入口读取同一份数据（`parent_record[byproduct] == 各入口读取值`），不重复录入。
 
 ### 2.8 补课任务 (MakeupTask)
 
@@ -678,7 +691,6 @@ assignedRoles: Array<{
 | 考勤上传 | 党小组组长工作台 | 纪检委员考勤总表新考勤记录出现 |
 | 考察上传 | 党小组组长工作台 | 纪检委员考察确认面板新考察记录出现（待确认状态） |
 | 确认考勤 | 纪检委员 | 党小组组长工作台缺勤列表状态更新；补课任务自动生成 |
-| 数据交接 | 组织者工作台 | 组织者交接记录列表新记录出现；纪检委员交接面板出现已提交状态记录 |
 | 补课制度 | 纪检委员 | 补课制度Tab新补课任务出现；考勤记录缺勤状态→已补 |
 | 意见反馈 | 全员提交 issue + 评论 + 表态 | 书记处置（status/close/milestone/assignee/drafts）+ 新 issue 或新评论通知 |
 | 制度文件引用 | 组织委员 | 制度文件Tab新引用记录出现 |
@@ -945,7 +957,6 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | `deliverables` | ~~Deliverable[]~~ | ~~交付物记录（已废弃，由 FileSpaceRecord 覆盖）~~ |
 | `inspections` | InspectionRecord[] | 考察记录 |
 | `assignments` | AssignmentRecord[] | 分工记录 |
-| `handovers` | HandoverRecord[] | 交接记录 |
 | `makeupTasks` | MakeupTask[] | 补课任务 |
 | `actSubRecords` | Object | 活动子记录（按活动 ID 索引） |
 | `tfSubRecords` | Object | 专班子记录（按专班 ID 索引） |
@@ -1063,9 +1074,7 @@ UI 层零改动。
 | notices | list/create/update | 通知管理 |
 | todos | list/create/update/delete | 待办管理 |
 | assignments | list/create | 分工管理 |
-| handovers | list/create | 交接管理 |
 | makeupTasks | list/create/update | 补课任务 |
-| authorizations | list/create/delete | 赋权记录 |
 | fileSpaceRecords | list/create | 文件空间 |
 | imageRecords | list/create | 图片记录 |
 | experienceDeposits | list/create | 经验沉淀 |
@@ -1091,15 +1100,12 @@ UI 层零改动。
 | 待办 | `/api/v1/todos` | GET/POST |
 | 待办(单) | `/api/v1/todos/:id` | PATCH/DELETE |
 | 分工 | `/api/v1/assignments` | GET/POST |
-| 交接 | `/api/v1/handovers` | GET/POST |
-| 补课 | `/api/v1/makeup-tasks` | GET/POST |
-| 补课(单) | `/api/v1/makeup-tasks/:id` | PATCH |
-| 赋权 | `/api/v1/authorizations` | GET/POST |
-| 赋权(单) | `/api/v1/authorizations/:id` | DELETE |
-| 文件空间 | `/api/v1/files` | GET/POST |
-| 图片 | `/api/v1/images` | GET/POST |
-| 经验沉淀 | `/api/v1/experiences` | GET/POST |
-| 合规引用 | `/api/v1/compliance-refs` | GET/POST |
+| 补课 | `/api/v1/makeupTasks` | GET/POST |
+| 补课(单) | `/api/v1/makeupTasks/:id` | PATCH |
+| 文件空间 | `/api/v1/fileSpaceRecords` | GET/POST |
+| 图片 | `/api/v1/imageRecords` | GET/POST |
+| 经验沉淀 | `/api/v1/experienceDeposits` | GET/POST |
+| 合规引用 | `/api/v1/complianceReferences` | GET/POST |
 | 认证登录 | `/api/v1/auth/login` | POST |
 | 认证注销 | `/api/v1/auth/logout` | POST |
 

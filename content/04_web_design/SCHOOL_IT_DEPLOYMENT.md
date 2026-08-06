@@ -3,7 +3,7 @@ title: "学校计算中心对接准备文档"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-07-28
-last_updated: 2026-07-31
+last_updated: 2026-08-06
 status: draft
 author: AI起草，书记审定
 related_files: [docs/src/services/runtime.js, docs/src/services/issues.js, docs/src/services/auth.js, docs/src/core/data-loader.js, docs/src/core/data-adapter.js, docs/src/core/mock-adapter.js, docs/src/core/api-adapter.js]
@@ -112,7 +112,7 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 | 文档 | 位置 | 内容 |
 |------|------|------|
 | 数据架构设计 | `content/04_web_design/DATA_ARCHITECTURE.md` | 全部数据模型定义、字段规格、DataAdapter 接口规范、API 路由设计 |
-| API 适配器实现 | `docs/src/core/api-adapter.js` | REST API 完整路由映射（28 个端点），学校计算中心按此实现后端 |
+| API 适配器实现 | `docs/src/core/api-adapter.js` | REST API 完整路由映射（24 个资源路径 / 41 个方法端点，见 api-adapter.js 头部路由表；另含 `/api/v1/health`、`/bootstrap`、`/snapshot`、`/uploads` 等服务端点），学校计算中心按此实现后端 |
 | Mock 适配器实现 | `docs/src/core/mock-adapter.js` | DataAdapter 的 mock 实现，供参考数据结构和业务逻辑 |
 | 数据访问抽象层 | `docs/src/core/data-adapter.js` | 统一切换机制（setDataSource），学校计算中心无需修改 |
 | 运行时插槽 | `docs/src/services/runtime.js` | 初始化入口，注册适配器实例 |

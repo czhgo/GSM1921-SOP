@@ -191,6 +191,8 @@ export const TodoStore = {
       sourceId: data.sourceId || null,
       actionType: data.actionType || null,
       actionData: data.actionData || null,
+      // 数据上下游标注（E2：待办项标注数据流，如「组长上传考勤 → 纪检确认 → 考勤总表」；无则列表不显示）
+      flow: data.flow || null,
     };
 
     const todos = _loadTodos();
@@ -220,6 +222,8 @@ export const TodoStore = {
         sourceId: data.sourceId || null,
         actionType: data.actionType || null,
         actionData: data.actionData || null,
+        // 数据上下游标注（E2，同 create）
+        flow: data.flow || null,
       };
       todos.push(todo);
       created.push(todo);
@@ -356,6 +360,7 @@ export const NoticeTodoDeriver = {
       sourceId: notice.id,
       actionType: this._inferActionType(notice),
       actionData: { noticeId: notice.id },
+      flow: this._inferFlow(notice),
     }));
 
     return TodoStore.createBatch(items);
@@ -370,6 +375,15 @@ export const NoticeTodoDeriver = {
       workspace: TodoActionType.READ,
     };
     return moduleMap[notice.targetModule] || TodoActionType.READ;
+  },
+
+  /** 根据通知 targetModule 推断数据流（E2：无明确上下游的通知不标注） */
+  _inferFlow(notice) {
+    const flowMap = {
+      attendance: '考勤上传 → 纪检确认 → 考勤总表',
+      party: '发展材料 → 组织委员建档 → 人才库',
+    };
+    return flowMap[notice.targetModule] || null;
   },
 
   /** 通知取消/过期时，关联待办标记为 expired */
@@ -412,6 +426,8 @@ export const LifecycleTodoDeriver = {
       sourceId: activity.id,
       actionType: TodoActionType.AUTHORIZE,
       actionData: { scope: 'activity', sourceId: activity.id, sourceName: activity.title },
+      // E2 数据上下游标注
+      flow: '活动创建 → 组长赋权 → 组织者/深度参与者执行',
     }]);
   },
 
@@ -433,6 +449,8 @@ export const LifecycleTodoDeriver = {
       sourceId: taskforce.id,
       actionType: TodoActionType.AUTHORIZE,
       actionData: { scope: 'taskforce', sourceId: taskforce.id, sourceName: taskforce.name },
+      // E2 数据上下游标注
+      flow: '专班创建 → 组织委员赋权 → 成员执行',
     }]);
   },
 
@@ -454,6 +472,8 @@ export const LifecycleTodoDeriver = {
       sourceId: activity.id,
       actionType: TodoActionType.ARCHIVE,
       actionData: { scope: 'activity', sourceId: activity.id, sourceName: activity.title },
+      // E2 数据上下游标注
+      flow: '宣传材料 → 宣传委员归档 → 产出物区',
     }]);
   },
 
@@ -589,6 +609,8 @@ export const SEED_TODOS = [
     sourceId: 'act-25',
     actionType: TodoActionType.AUTHORIZE,
     actionData: { scope: 'activity', sourceId: 'act-25', sourceName: '七一建党105周年活动' },
+    // E2 数据上下游标注
+    flow: '活动创建 → 组长赋权 → 组织者/深度参与者执行',
   },
   {
     id: 'todo_seed_2',
@@ -604,6 +626,8 @@ export const SEED_TODOS = [
     sourceId: null,
     actionType: TodoActionType.SUBMIT,
     actionData: null,
+    // E2 数据上下游标注
+    flow: '考勤上传 → 纪检确认 → 考勤总表',
   },
   // 组织委员待办
   {
@@ -620,6 +644,8 @@ export const SEED_TODOS = [
     sourceId: 'tf-001',
     actionType: TodoActionType.AUTHORIZE,
     actionData: { scope: 'taskforce', sourceId: 'tf-001', sourceName: '宣传专班（第二期）' },
+    // E2 数据上下游标注
+    flow: '专班创建 → 组织委员赋权 → 成员执行',
   },
   {
     id: 'todo_seed_4',
@@ -635,6 +661,8 @@ export const SEED_TODOS = [
     sourceId: 'notice-102',
     actionType: TodoActionType.REVIEW,
     actionData: { noticeId: 'notice-102' },
+    // E2 数据上下游标注
+    flow: '发展材料 → 组织委员建档 → 人才库',
   },
   // 纪检委员待办
   {
@@ -651,6 +679,8 @@ export const SEED_TODOS = [
     sourceId: 'notice-106',
     actionType: TodoActionType.REVIEW,
     actionData: { noticeId: 'notice-106' },
+    // E2 数据上下游标注
+    flow: '考勤上传 → 纪检确认 → 考勤总表',
   },
   // 宣传委员待办
   {
@@ -667,6 +697,8 @@ export const SEED_TODOS = [
     sourceId: null,
     actionType: TodoActionType.SUBMIT,
     actionData: null,
+    // E2 数据上下游标注
+    flow: '宣传材料 → 宣传委员归档 → 产出物区',
   },
   // 书记待办
   {

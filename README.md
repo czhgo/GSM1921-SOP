@@ -143,7 +143,7 @@ npm start
 |----|------|------|
 | **前台（页面）** | `docs/`（14 个页面：8 个根页面 + 6 个 workspace 工作台） | 页面骨架，零硬编码逻辑 |
 | **中台（逻辑）** | `docs/src/entries/`（15 个 entry JS）+ `components/`（18 个：17 js + 1 css）+ `core/`（12 个）+ `modules/`（1 个）+ `workflow/`（6 个） | 角色面板路由、视图切换、DOM 渲染 |
-| **后台（服务）** | `docs/src/services/`（20 个 service JS）+ `docs/src/mock/`（10 个） | 数据 CRUD、权限计算、持久化 |
+| **后台（服务）** | `docs/src/services/`（19 个 service JS）+ `docs/src/mock/`（10 个） | 数据 CRUD、权限计算、持久化 |
 | **后端（server/）** | `server/`（Express + better-sqlite3 单进程） | 同源托管静态页面 + `/api/v1` REST（认证 / 资源读写 / 附件上传 / 快照持久化） |
 | **母本层** | `content/02_institution/sop/` | 所有代码逻辑的制度来源 |
 

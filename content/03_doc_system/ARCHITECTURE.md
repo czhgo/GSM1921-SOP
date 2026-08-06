@@ -2,7 +2,7 @@
 title: "系统架构说明"
 type: architecture
 role: "[工程师]+[AI]"
-last_updated: "2026-08-03"
+last_updated: "2026-08-06"
 version: "7.3"
 status: active
 related_files: [CLAUDE.md, content/04_web_design/]
@@ -11,7 +11,7 @@ related_files: [CLAUDE.md, content/04_web_design/]
 # Architecture
 
 > 光华管理学院本科生党支部组织操作系统 — 核心架构说明
-> last_updated: "2026-07-21" | 目标读者: [工程师]+[AI]
+> last_updated: "2026-08-06" | 目标读者: [工程师]+[AI]
 
 ---
 
@@ -152,14 +152,13 @@ Layer 7: 审计参考层（审计与参考）
 │       ├── components/                [工程师]+[AI] 共享组件（18 个，含 todo-list/custom-select/workspace-popover）
 │       ├── core/                      [工程师]+[AI] 核心工具（12 个，含 domain/data-adapter/api-adapter/mock-adapter）
 │       ├── config/                    [工程师]+[AI] 配置（branch.json）
-│       ├── services/                  [工程师]+[AI] 服务层（20 个，含 todo/auth/notice/decision-tree/image）
+│       ├── services/                  [工程师]+[AI] 服务层（19 个，含 todo/auth/notice/decision-tree/image）
 │       ├── mock/                      [工程师]+[AI] Mock 数据（10 个，含 accounts）
 │       ├── modules/                   [工程师]+[AI] 业务模块（1 个，references.js）
 │       ├── workflow/                  [工程师]+[AI] 工作流引擎（6 个）
 │       └── styles.css                 [工程师]+[AI] 全局样式
 │
 ├── .markdownlint.json                 [工具] 代码风格规范
-├── .markdownlintignore                [工具] 代码风格忽略列表
 │
 ├── content/                           [用户]+[AI] 内容中心（按 5 类知识类型组织，见第四章）
 │   ├── 01_strategy/                  [用户]+[AI] 战略层（支部为什么存在、根本目标、战略路线）
@@ -258,7 +257,7 @@ mockDB 为唯一数据源，所有视图经 Service 层读取；按角色过滤�
 ### Storage Model
 
 - **键名**: `workflowos_branch_db_v1`（`localStorage`，见 `docs/src/services/mock.js`）
-- **根结构**: `mockDB = { _schema, users, activities, tasks, attendances, inspections, activityReviews, taskforceReviews, assignments, handovers, makeupTasks, notices, todos, imageRecords, ... }`
+- **根结构**: `mockDB = { _schema, users, activities, tasks, attendances, inspections, activityReviews, taskforceReviews, assignments, makeupTasks, notices, todos, imageRecords, ... }`
 - **版本防御**: `loadDB()` 检查 `_schema !== SCHEMA_VERSION` 时拒绝脏数据并 `console.warn`
 
 ---

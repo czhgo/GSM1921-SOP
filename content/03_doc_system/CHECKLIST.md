@@ -2,7 +2,7 @@
 title: "数据同源一致性校验手册"
 type: checklist
 role: "[用户]+[AI]"
-last_updated: "2026-08-05"
+last_updated: "2026-08-06"
 status: active
 related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ---
@@ -111,7 +111,7 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 
 ## 4. 考勤数据
 
-**存储**：`docs/src/mock/attendance.js` → `ATTENDANCE_RECORDS` 常量（60 条记录，att1~att60）
+**存储**：`docs/src/mock/attendance.js` → `ATTENDANCE_RECORDS` 常量（151 条记录，att1~att151；att1~att43 为显式种子段，att44 起由 8 月活动生成器追加）
 **运行时**：`mockDB.attendances`（由 `seed.js` 注入）
 **Service**：`docs/src/services/attendance.js`
 
@@ -161,7 +161,7 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 
 ## 6. 通知数据
 
-**存储**：`docs/src/mock/notices.js` → `MOCK_NOTICES` 常量（13 条记录，notice-101~notice-110 + notice-001/notice-005/notice-011）
+**存储**：`docs/src/mock/notices.js` → `MOCK_NOTICES` 常量（12 条记录，notice-101~notice-108 + notice-110 + notice-001/notice-005/notice-011）
 **运行时**：`mockDB.notices`（由 `seed.js` 注入）
 **Service**：`docs/src/services/notice.js` → `NoticeStore`
 
@@ -223,7 +223,7 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 |------|---------|------|
 | workspace/secretary.html | 赋权管理 tab：常设赋权（设为/取消组长）+项目赋权（organizer/deep） | 书记 |
 | workspace/leader.html | 活动详情内联编辑角色（保存走 syncProjectRoles） | 组长 |
-| workspace/org-commissioner.html | 专班详情内联编辑成员角色（保存走 syncProjectRoles） | 组织委员 |
+| workspace/org.html | 专班详情内联编辑成员角色（保存走 syncProjectRoles） | 组织委员 |
 
 **同源校验点**：
 
@@ -255,26 +255,6 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 - [ ] 书记面板的反馈统计 = IssueStore.countByStatus() 的结果
 - [ ] 书记专属权限（关闭 issue/隐藏评论/编辑他人 issue）= auth.js 中的 _ISSUE_PERMS_SECRETARY
 - [ ] 旧 FeedbackStore.getAll() 返回数据 = IssueStore 数据的兼容映射
-
----
-
-## 10. 交接数据
-
-**存储**：`docs/src/mock/seed.js` → `SEED_HANDOVERS`（2 条种子数据）
-**运行时**：`mockDB.handovers`
-**Service**：`docs/src/services/handover.js`
-
-**展示页面**：
-
-| 页面 | 展示方式 | 角色 |
-|------|---------|------|
-| workspace/disc.html | 交接记录汇总 | 纪检委员 |
-
-**同源校验点**：
-
-- [ ] 交接记录的 fromPerson/toPerson 在 PEOPLE 中存在
-- [ ] 交接记录的 activityId 在 ACTIVITIES 中存在
-- [ ] 交接事项完成状态与 handover.js completeHandoverItem() 操作一致
 
 ---
 

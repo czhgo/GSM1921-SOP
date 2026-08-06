@@ -2,7 +2,7 @@
 title: "统一服务目录"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-05"
+last_updated: "2026-08-06"
 version: "4.0"
 status: active
 related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/src/core/data-adapter.js, content/04_web_design/DATA_ARCHITECTURE.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/02_institution/ROLE_CLASSIFICATION.md]
@@ -32,7 +32,6 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 | 专班管理 | 党建 | `services/taskforce.js` | `workspace/org.html` | 创建/招募（赋权）/运行跟踪/解散/工作量汇总 | CF §A.4/§A.6/§A.7 + CF §审批 §二 |
 | 分工记录 | 党建 | `core/data-adapter.js`（assignments 主源）+ `services/auth.js`（syncProjectRoles） | 工作台分工闭环（leader/secretary） | 指派分工/跟踪完成度/标记完成/逾期检测/提交参与角色确认 | DA §1.2 + FLAT |
 | 考察记录 | 党建+党务 | `services/inspection.js` | `workspace/disc.html` | 上传/修改/确认录入总表/类别标签/超期提醒/单一活动或人员查询 | CF §C.1a + DA §五 |
-| 交接管理 | 党建 | `services/handover.js` | `workspace/leader.html` | 创建交接记录/更新/逐项完成确认 | FLAT |
 | 考勤管理 | 党务 | `services/attendance.js` | `workspace/disc.html` | 上传/修改/确认+录入总表/总表修改/超期提醒/单一活动或人员查询 | CF §C.1a + CF §审批 §四 |
 | 补课管理 | 党务 | `services/makeup.js` | `workspace/disc.html` | 自动生成补课任务/标记完成+回写考勤/导出统计 | [纪检委员工作流程指南](../02_institution/sop/纪检委员工作流程指南.md) |
 | 复盘服务 | 党务 | `services/review.js` | `workspace/disc.html` | 提交复盘/批注/打回/确认/超期提醒（未提交 → 已上传 → 批注中 → 确认/打回） | CF §审批 §五 + CF §C.1a |
@@ -60,7 +59,6 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 | 专班管理 | M | M | M | R | R | R | R | R | — |
 | 分工记录 | M | M | R | R | R | M | M | Self | — |
 | 考察记录 | M | M | R | R | M | M† | M† | Self | Self |
-| 交接管理 | M | M | R | R | R | M | M | R | — |
 | 考勤管理 | M | M | R | R | M | M† | M† | R | Self |
 | 补课管理 | M | M | R | — | M | R | R | Self | Self |
 | 复盘 | M | M | — | — | M | R | R | — | — |

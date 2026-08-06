@@ -1,6 +1,6 @@
 ---
 role: "[工程师]+[AI]"
-last_updated: "2026-08-05"
+last_updated: "2026-08-06"
 dynamic_role:
   maintenance: "[工程师]+[AI]"
   auto_update: "[AI]"
@@ -9,7 +9,7 @@ dynamic_role:
 # File Timestamp Registry
 
 > 全项目文件最后更新时间注册表
-> last_updated: "2026-08-05" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
+> last_updated: "2026-08-06" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
 
 ---
 
@@ -28,7 +28,7 @@ dynamic_role:
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
 | README.md | 2026-08-03 | [用户]+[AI] | 对外门面 |
-| CLAUDE.md | 2026-08-03 | [工程师]+[AI] | Harness（甲乙丙三部） |
+| CLAUDE.md | 2026-08-06 | [工程师]+[AI] | Harness（甲乙丙三部） |
 | CHECKLIST.md | — | — | 🗑️ 已删除（迁移至 content/03_doc_system/CHECKLIST.md） |
 | LICENSE | 2026-02-17 | [用户] | 开源许可 |
 | .gitignore | 2026-04-06 | [工具] | Git 忽略 |
@@ -56,6 +56,8 @@ dynamic_role:
 | .ctx/logs/2026-06-DECISION_LOG.md | 2026-06-30 | [工程师]+[AI] | 6月决策日志 |
 | .ctx/logs/2026-07-EXECUTION_LOG.md | 2026-07-31 | [工程师]+[AI] | 7月执行日志（当前活跃） |
 | .ctx/logs/2026-07-DECISION_LOG.md | 2026-07-31 | [工程师]+[AI] | 7月决策日志 |
+| .ctx/logs/2026-08-EXECUTION_LOG.md | 2026-08-06 | [工程师]+[AI] | 8月执行日志（当前活跃） |
+| .ctx/logs/2026-08-DECISION_LOG.md | 2026-08-06 | [工程师]+[AI] | 8月决策日志 |
 | .ctx/logs/archive/2026-05-early-EXECUTION_LOG.md | 2026-05-03 | [工程师]+[AI] | 5月早期条目归档 |
 | .ctx/logs/archive/2026-07-early-entries.md | 2026-07-12 | [工程师]+[AI] | T22-T90 早期条目归档（母本：2026-07-EXECUTION_LOG.md） |
 
@@ -182,7 +184,7 @@ dynamic_role:
 | docs/src/core/api-adapter.js | 2026-08-03 | [工程师]+[AI] | API 模式适配器（10 资源 + snapshot） |
 | docs/src/core/mock-adapter.js | 2026-08-03 | [工程师]+[AI] | Mock 模式适配器（restoreNicheCollections） |
 | docs/src/core/domain.js | 2026-07-31 | [工程师]+[AI] | 领域模型 |
-| docs/src/core/icons.js | 2026-07-31 | [工程师]+[AI] | 图标系统 |
+| docs/src/core/icons.js | 2026-08-06 | [工程师]+[AI] | 图标系统（含 upload 上传图标） |
 | docs/src/core/id.js | 2026-07-31 | [工程师]+[AI] | UUID 发生器 |
 | docs/src/core/state.js | 2026-07-31 | [工程师]+[AI] | 全局状态 |
 | docs/src/core/utils.js | 2026-07-31 | [工程师]+[AI] | 通用工具 |
@@ -194,10 +196,10 @@ dynamic_role:
 | docs/src/components/header.js | 2026-07-31 | [工程师]+[AI] | 页头组件 |
 | docs/src/components/sidebar.js | 2026-07-31 | [工程师]+[AI] | 侧边栏组件 |
 | docs/src/components/calendar.js | 2026-07-31 | [工程师]+[AI] | 日历组件 |
-| docs/src/components/inspector.js | 2026-07-31 | [工程师]+[AI] | 检查器组件 |
+| docs/src/components/inspector.js | 2026-08-06 | [工程师]+[AI] | 检查器组件（产出物区/分类型关闭条件） |
 | docs/src/components/modal.js | 2026-07-31 | [工程师]+[AI] | 模态框组件 |
 | docs/src/components/tab-bar.js | 2026-07-31 | [工程师]+[AI] | 标签栏组件 |
-| docs/src/components/todo-list.js | 2026-07-31 | [工程师]+[AI] | 待办列表组件 |
+| docs/src/components/todo-list.js | 2026-08-06 | [工程师]+[AI] | 待办列表组件（E2 flow 内嵌小字） |
 | docs/src/components/commissioner-matrix.js | 2026-07-31 | [工程师]+[AI] | 支委矩阵组件 |
 | docs/src/components/issue-detail.js | 2026-07-31 | [工程师]+[AI] | 事项详情组件 |
 | docs/src/components/issue-form.js | 2026-07-31 | [工程师]+[AI] | 事项表单组件 |
@@ -225,7 +227,7 @@ dynamic_role:
 | docs/src/entries/workspace-entry.js | 2026-07-31 | [工程师]+[AI] | 工作台路由入口 |
 | docs/src/entries/ws-secretary-entry.js | 2026-07-31 | [工程师]+[AI] | 书记工作台入口 |
 | docs/src/entries/ws-org-commissioner-entry.js | 2026-07-31 | [工程师]+[AI] | 组织委员工作台入口 |
-| docs/src/entries/ws-prop-commissioner-entry.js | 2026-07-31 | [工程师]+[AI] | 宣传委员工作台入口 |
+| docs/src/entries/ws-prop-commissioner-entry.js | 2026-08-06 | [工程师]+[AI] | 宣传委员工作台入口（含附件双模式上传） |
 | docs/src/entries/ws-disc-commissioner-entry.js | 2026-07-31 | [工程师]+[AI] | 纪检委员工作台入口 |
 | docs/src/entries/ws-leader-entry.js | 2026-07-31 | [工程师]+[AI] | 党小组组长工作台入口 |
 | docs/src/entries/ws-visitor-entry.js | 2026-07-31 | [工程师]+[AI] | 访客工作台入口 |
@@ -240,7 +242,6 @@ dynamic_role:
 | docs/src/services/attendance.js | 2026-07-31 | [工程师]+[AI] | 考勤服务 |
 | docs/src/services/decision-tree.js | 2026-07-31 | [工程师]+[AI] | 决策树服务 |
 | docs/src/services/feedback.js | 2026-07-31 | [工程师]+[AI] | 反馈服务 |
-| docs/src/services/handover.js | 2026-07-31 | [工程师]+[AI] | 数据交接服务 |
 | docs/src/services/image.js | 2026-07-31 | [工程师]+[AI] | 图片服务 |
 | docs/src/services/inspection.js | 2026-07-31 | [工程师]+[AI] | 纪检服务 |
 | docs/src/services/issues.js | 2026-07-31 | [工程师]+[AI] | 事项服务 |
@@ -248,12 +249,12 @@ dynamic_role:
 | docs/src/services/milestones.js | 2026-07-31 | [工程师]+[AI] | 里程碑服务 |
 | docs/src/services/notice.js | 2026-07-31 | [工程师]+[AI] | 通知服务（含通知→待办派生） |
 | docs/src/services/person.js | 2026-08-03 | [工程师]+[AI] | 人员数据抽象服务（PersonStore，T-142 阶段2） |
-| docs/src/services/secretary-overview.js | 2026-08-03 | [工程师]+[AI] | 书记全局概况服务（T-143） |
+| docs/src/services/secretary-overview.js | 2026-08-06 | [工程师]+[AI] | 书记全局概况服务（T-143，E2 派生待办 flow） |
 | docs/src/services/review.js | 2026-07-31 | [工程师]+[AI] | 审查服务 |
 | docs/src/services/roles.js | 2026-07-31 | [工程师]+[AI] | 角色服务 |
 | docs/src/services/runtime.js | 2026-07-31 | [工程师]+[AI] | 运行时插槽 |
 | docs/src/services/taskforce.js | 2026-07-31 | [工程师]+[AI] | 专班服务（含专班→待办派生） |
-| docs/src/services/todo.js | 2026-07-31 | [工程师]+[AI] | 待办服务（TodoStore+NoticeTodoDeriver+LifecycleTodoDeriver） |
+| docs/src/services/todo.js | 2026-08-06 | [工程师]+[AI] | 待办服务（TodoStore+NoticeTodoDeriver+LifecycleTodoDeriver，E2 flow 标注） |
 
 ### docs/src/mock/ (Mock 数据层)
 
@@ -291,7 +292,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| docs/src/styles.css | 2026-07-31 | [工程师]+[AI] | 全局样式 |
+| docs/src/styles.css | 2026-08-06 | [工程师]+[AI] | 全局样式（D3 全站深色主题） |
 | docs/src/config/branch.json | 2026-07-31 | [工程师]+[AI] | 分支配置 |
 
 ### docs/ 其他
@@ -402,3 +403,4 @@ dynamic_role:
 | .tools/ | 2026-08-04 | 一次性修复脚本删除（_fix_*.py ×4） |
 | .ctx/audit/ | 2026-08-04 | 空目录删除 |
 | server/uploads/ | 2026-08-04 | 空目录删除（uploads.js 运行时自动重建） |
+| docs/src/services/handover.js | 2026-08-06 | T-224 废除数据交接 |

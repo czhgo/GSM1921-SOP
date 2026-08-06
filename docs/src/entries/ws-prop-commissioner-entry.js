@@ -1,6 +1,6 @@
 import { renderTabBar } from '../components/tab-bar.js';
 import { getAppState, setState, registerRenderCallback } from '../core/state.js';
-import { BranchService } from '../services/runtime.js';
+import { BranchService, isApiMode } from '../services/runtime.js';
 import { showToast } from '../core/utils.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
@@ -8,7 +8,7 @@ import { _personName } from '../mock/index.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { icon } from '../core/icons.js';
 import { mockDB } from '../core/domain.js';
-import { persist } from '../core/data-adapter.js';
+import { persist, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js';
 import { loadActivities } from '../services/activity.js';
 import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js';
 import { renderTodoList } from '../components/todo-list.js';
@@ -510,6 +510,10 @@ function _renderArchiveContent() {
         <option value="in_progress">归档中</option>
         <option value="archived">已归档</option>
       </select>
+      <button id="archive-upload-btn" class="text-xs px-3 py-2 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0 flex items-center justify-center gap-1.5" style="background:${accent}">
+        ${icon('upload', { className: 'w-3.5 h-3.5' })}
+        <span>上传材料</span>
+      </button>
     </div>
 
     <div id="archive-list" class="space-y-2 mb-6">
@@ -589,6 +593,11 @@ function _renderArchiveContent() {
       e.stopPropagation();
       showToast('info', `模板「${btn.dataset.tplName}」下载已开始`);
     });
+  });
+
+  // 上传材料按钮（attachments 双模式：mock base64 / server multipart）
+  container.querySelector('#archive-upload-btn')?.addEventListener('click', () => {
+    _showArchiveUploadModal();
   });
 }
 
@@ -881,6 +890,237 @@ function _parseChecklistFromStandard(standard, category) {
     '其他': ['材料完整性确认', '可追溯性确认'],
   };
   return defaults[category] || ['材料完整性确认', '可追溯性确认'];
+}
+
+// ── 上传宣传材料（attachments 双模式：mock base64 持久化 / server multipart 落盘）──
+// spec §8 增量：宣传委员上传照片/简讯/报送 → 写入 archiveRecords（产出物区/关闭校验同源读取）。
+// mock 模式：FileReader → base64 dataURL 存 mockDB.archiveRecords + persist()；
+// server 模式：文件本体 POST /api/v1/uploads（multer 落盘 server/uploads/），
+// 元数据 POST /api/v1/fileSpaceRecords（server 端无 archiveRecords 表，落文件空间宽表），
+// 同时写入内存 archiveRecords 保证当页产出物区/关闭校验联动。
+const UPLOAD_MAX_MOCK_MB = 2;  // mock 模式 localStorage 容量约束（base64 膨胀 ~33%）
+const UPLOAD_MAX_SERVER_MB = 10; // 与 server/routes/uploads.js 服务端限制一致
+
+function _showArchiveUploadModal() {
+  // 移除已有模态
+  const existing = document.getElementById('archive-upload-modal');
+  if (existing) existing.remove();
+
+  const activities = loadActivities();
+  const apiMode = isApiMode();
+  const maxMB = apiMode ? UPLOAD_MAX_SERVER_MB : UPLOAD_MAX_MOCK_MB;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'archive-upload-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+
+  const card = document.createElement('div');
+  card.style.cssText = 'background:#fff;border-radius:14px;padding:0;max-width:440px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);max-height:86vh;display:flex;flex-direction:column;';
+
+  const activityOptions = activities.length === 0
+    ? '<option value="">（暂无活动，请先创建）</option>'
+    : `<option value="">请选择关联活动</option>` + activities.map(a =>
+        `<option value="${a.id}">${a.title}（${a.date || '未定日期'}）</option>`
+      ).join('');
+
+  card.innerHTML = `
+    <div class="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between">
+      <span class="font-title-cn text-sm font-semibold text-gray-800">上传宣传材料</span>
+      <button id="upload-modal-close" class="text-gray-400 hover:text-gray-600 text-sm leading-none">&times;</button>
+    </div>
+    <div class="px-5 py-4 space-y-3.5 overflow-y-auto">
+      <div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">关联活动 <span class="text-red-500">*</span></label>
+        <select id="upload-activity" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">${activityOptions}</select>
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">材料类别</label>
+        <select id="upload-category" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">
+          ${MATERIAL_STANDARDS.map(s => `<option value="${s.category}">${s.category}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择文件（可多选）</label>
+        <input id="upload-file" type="file" multiple
+          accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.mp4,.mov"
+          class="block w-full text-xs text-gray-600 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" />
+        <div id="upload-preview" class="mt-2 space-y-1.5"></div>
+      </div>
+      <div class="rounded-lg px-3 py-2 text-[11px] leading-relaxed ${apiMode ? 'bg-teal-50 text-teal-700 border border-teal-100' : 'bg-amber-50 text-amber-700 border border-amber-100'}">
+        ${apiMode
+          ? '服务端模式：文件落服务器磁盘（jpg/png/pdf/docx/xlsx，单文件 ≤' + maxMB + 'MB），元数据写入文件空间记录，产出物区同步可见。'
+          : '本地模式：文件以 base64 存入本地存储（单文件 ≤' + maxMB + 'MB），刷新不丢失；产出物区/关闭校验同步可见。'}
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">
+      <button id="upload-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
+      <button id="upload-confirm" class="text-xs px-4 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent}">上传</button>
+    </div>
+  `;
+
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+
+  let selectedFiles = [];
+  let previewUrls = [];
+
+  const closeModal = () => {
+    previewUrls.forEach(u => URL.revokeObjectURL(u));
+    overlay.remove();
+  };
+
+  const renderPreview = () => {
+    const previewEl = card.querySelector('#upload-preview');
+    previewEl.innerHTML = selectedFiles.map((f, i) => {
+      const isImage = f.type && f.type.startsWith('image/');
+      const thumb = isImage
+        ? `<img src="${previewUrls[i]}" class="w-9 h-9 rounded object-cover border border-gray-200 flex-shrink-0" alt="" />`
+        : `<span class="w-9 h-9 rounded flex items-center justify-center flex-shrink-0" style="background:rgba(59,130,246,0.1);color:#3b82f6;">${icon('fileText', { className: 'w-4 h-4' })}</span>`;
+      return `<div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
+        ${thumb}
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-gray-700 truncate">${f.name}</p>
+          <p class="text-[11px] text-gray-400">${(f.size / 1024).toFixed(1)} KB</p>
+        </div>
+        <button class="upload-file-remove text-gray-400 hover:text-red-500 text-sm leading-none" data-idx="${i}">&times;</button>
+      </div>`;
+    }).join('') || '<p class="text-xs text-gray-400 text-center py-3">尚未选择文件</p>';
+  };
+
+  // 文件选择：过滤超限文件并渲染预览
+  card.querySelector('#upload-file').addEventListener('change', (e) => {
+    const files = Array.from(e.target.files || []);
+    const maxBytes = maxMB * 1024 * 1024;
+    const oversized = files.filter(f => f.size > maxBytes);
+    if (oversized.length > 0) {
+      showToast('error', `${oversized.map(f => f.name).join('、')} 超出 ${maxMB}MB 限制，已剔除`);
+    }
+    selectedFiles = files.filter(f => f.size <= maxBytes);
+    previewUrls.forEach(u => URL.revokeObjectURL(u));
+    previewUrls = selectedFiles.map(f => URL.createObjectURL(f));
+    renderPreview();
+  });
+
+  // 移除单个文件
+  card.querySelector('#upload-preview').addEventListener('click', (e) => {
+    const btn = e.target.closest('.upload-file-remove');
+    if (!btn) return;
+    const idx = Number(btn.dataset.idx);
+    selectedFiles.splice(idx, 1);
+    URL.revokeObjectURL(previewUrls[idx]);
+    previewUrls.splice(idx, 1);
+    renderPreview();
+  });
+
+  // 提交上传
+  card.querySelector('#upload-confirm').addEventListener('click', async () => {
+    const activityId = card.querySelector('#upload-activity').value;
+    const category = card.querySelector('#upload-category').value;
+    if (!activityId) {
+      showToast('error', '请先选择关联活动');
+      return;
+    }
+    if (selectedFiles.length === 0) {
+      showToast('error', '请先选择文件');
+      return;
+    }
+    const activity = activities.find(a => a.id === activityId);
+    const confirmBtn = card.querySelector('#upload-confirm');
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = '上传中…';
+    try {
+      const saved = await _handleArchiveUpload(selectedFiles, activityId, activity ? activity.title : '', category);
+      if (saved > 0) {
+        showToast('success', `已归档 ${saved} 项宣传材料`);
+        closeModal();
+        _renderArchiveContent();
+      }
+    } finally {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = '上传';
+    }
+  });
+
+  // 关闭
+  card.querySelector('#upload-modal-close').addEventListener('click', closeModal);
+  card.querySelector('#upload-cancel').addEventListener('click', closeModal);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  card.addEventListener('click', e => e.stopPropagation());
+}
+
+async function _handleArchiveUpload(files, activityId, activityName, category) {
+  const today = new Date().toISOString().slice(0, 10);
+  let saved = 0;
+
+  if (isApiMode()) {
+    // ── server 模式：文件本体落盘 + 元数据入文件空间宽表 ──
+    const token = getAuthToken();
+    const baseUrl = getApiBaseUrl();
+    for (const file of files) {
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+        const resp = await fetch(`${baseUrl}/api/v1/uploads`, {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          body: fd,
+        });
+        if (!resp.ok) throw new Error(`上传失败(${resp.status})`);
+        const { path } = await resp.json();
+        // 元数据 → fileSpaceRecords（server RESOURCE_TABLES 无 archiveRecords 表）
+        const metaResp = await fetch(`${baseUrl}/api/v1/fileSpaceRecords`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+          body: JSON.stringify({
+            activityId, activityName, category,
+            fileName: file.name, fileSize: file.size, filePath: path,
+            status: 'archived', archiveDate: today, uploadedBy: 'p12',
+          }),
+        });
+        if (!metaResp.ok) throw new Error(`元数据写入失败(${metaResp.status})`);
+        const metaRow = await metaResp.json();
+        // 同步写入内存 fileSpaceRecords：persist() 的全量快照会按 mockDB 状态整表覆盖
+        // server 端表（快照写穿清表缺口），不 push 则刚落库的元数据被空数组擦除
+        mockDB.fileSpaceRecords.push(metaRow);
+        // 同步写入内存 archiveRecords → 产出物区/关闭校验同源联动
+        mockDB.archiveRecords.push({
+          id: `ar-u-${Date.now()}-${saved}`, activityId, activityName,
+          archiveDate: today, category, status: 'archived',
+          fileName: file.name, fileSize: file.size, filePath: path,
+        });
+        saved++;
+      } catch (err) {
+        showToast('error', `「${file.name}」${err.message || '上传失败'}`);
+      }
+    }
+  } else {
+    // ── mock 模式：base64 dataURL 持久化 ──
+    for (const file of files) {
+      try {
+        const dataUrl = await _readFileAsDataURL(file);
+        mockDB.archiveRecords.push({
+          id: `ar-u-${Date.now()}-${saved}`, activityId, activityName,
+          archiveDate: today, category, status: 'archived',
+          fileName: file.name, fileSize: file.size, fileData: dataUrl,
+        });
+        saved++;
+      } catch (err) {
+        showToast('error', `「${file.name}」读取失败`);
+      }
+    }
+  }
+
+  if (saved > 0) persist();
+  return saved;
+}
+
+function _readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('读取文件失败'));
+    reader.readAsDataURL(file);
+  });
 }
 
 registerRenderCallback(renderPropUI);
