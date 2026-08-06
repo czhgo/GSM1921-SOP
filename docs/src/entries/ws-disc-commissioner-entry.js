@@ -2,7 +2,7 @@ import { setState, registerRenderCallback } from '../core/state.js';
 import { showToast } from '../core/utils.js';
 import { CrossPageState } from '../core/cross-page-state.js';
 import { bootstrapPage } from '../core/bootstrap.js';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, ReviewStatus } from '../core/domain.js';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, ReviewStatus, SourceType } from '../core/domain.js';
 import { persist } from '../core/data-adapter.js';
 import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, reviewToDisplay, getPersonName } from '../mock/index.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
@@ -10,7 +10,8 @@ import { renderTabBar } from '../components/tab-bar.js';
 import { openFormModal } from '../components/modal.js';
 import { autoGenerateMakeupTask, loadMakeupTasks, saveMakeupTasks } from '../services/makeup.js';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js';
-import { loadInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../services/inspection.js';
+import { loadInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, getRecordsBySource } from '../services/inspection.js';
+import { TaskForceRecordStore } from '../services/taskforce.js';
 import { loadActivities } from '../services/activity.js';
 import { loadActivityReviews, loadTaskforceReviews, updateReviewById } from '../services/review.js';
 import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js';
@@ -598,6 +599,49 @@ function _renderAttendanceContent(filterActivityId) {
   });
 }
 
+// ── 专班名单区（组织→纪检 自动同步，纪检只读同源 + 考察确认进度） ──
+function _buildTaskforceRosterHTML() {
+  const tfs = TaskForceRecordStore.getAll().filter(t => t.status === 'recruiting' || t.status === 'active');
+  if (tfs.length === 0) return '';
+  const allRecords = loadInspectionRecords();
+  const statusMeta = {
+    recruiting: { label: '招募中', cls: 'bg-blue-100 text-blue-700' },
+    active: { label: '进行中', cls: 'bg-green-100 text-green-700' },
+  };
+  const rows = tfs.map(tf => {
+    const meta = statusMeta[tf.status] || statusMeta.active;
+    const tfRecords = allRecords.filter(r => r.sourceType === SourceType.TASKFORCE && r.sourceName === tf.name);
+    const total = tfRecords.length;
+    const confirmed = tfRecords.filter(r => r.status === 'confirmed').length;
+    const pending = total - confirmed;
+    const memberNames = (tf.members || []).map(m => getPersonName(m.personId) || m.name || m.personId).filter(Boolean).join('、') || '—';
+    const progressCls = pending > 0 ? 'text-orange-700' : 'text-green-700';
+    return `
+      <div class="rounded-lg border border-gray-100 p-3">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-sm font-bold text-gray-800">${tf.name}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${meta.cls}">${meta.label}</span>
+        </div>
+        <p class="text-xs text-gray-500 mb-1">${tf.task || ''}</p>
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-gray-600 truncate mr-2">成员：${memberNames}</span>
+          <span class="${progressCls} font-medium whitespace-nowrap">考察确认 ${confirmed}/${total}${pending > 0 ? `（待确认 ${pending}）` : ''}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="card rounded-xl p-4 mb-4">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">专班名单</h4>
+        <span class="text-xs text-gray-500">名单由组织委员管理，纪检只读同步（前置）</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">${rows}</div>
+    </div>
+  `;
+}
+
 function _renderInspectionContent() {
   const container = document.getElementById('disc-tab-content');
   if (!container) return;
@@ -621,6 +665,7 @@ function _renderInspectionContent() {
   ` : '';
 
   container.innerHTML = `
+    ${_buildTaskforceRosterHTML()}
     <div class="card rounded-xl p-5"">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考察总表</h4>
@@ -1139,4 +1184,4 @@ function _renderMailboxContent() {
 
 registerRenderCallback(renderDiscUI);
 
-loadWorkspaceData({ role: 'disc-commissioner', fallbackData: () => loadActivities(), logTag: 'ws-disc' });
+loadWorkspaceData({ role: 'disc-commissioner', storeInits: [() => TaskForceRecordStore.init()], fallbackData: () => loadActivities(), logTag: 'ws-disc' });
