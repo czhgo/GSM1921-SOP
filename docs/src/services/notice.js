@@ -294,7 +294,7 @@ export function renderNoticeList(containerId, limit = 5) {
         <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">${n.content}</p>
       </div>
       <div class="flex items-center gap-1 whitespace-nowrap mt-0.5">
-        ${!n.read ? `<button class="notice-confirm-read text-xs text-blue-600 hover:text-blue-800 px-1.5 py-0.5 rounded hover:bg-blue-50 transition-colors" data-notice-id="${n.id}">确认读取</button>` : ''}
+        ${!n.read ? `<button class="notice-confirm-read text-xs text-blue-600 hover:text-blue-800 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors" data-notice-id="${n.id}">确认读取</button>` : ''}
         <span class="text-xs text-gray-400">${n.publishDate}</span>
       </div>
     </div>

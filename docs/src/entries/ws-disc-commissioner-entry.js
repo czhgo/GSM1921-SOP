@@ -200,8 +200,8 @@ function _renderTodoDetail(todo) {
       <div class="text-xs text-gray-400">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
         ${todo.status !== 'completed' ? `
-          <button class="disc-todo-detail-complete text-xs px-4 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:var(--accent-disc-commissioner);">标记完成</button>
-          ${todo.actionType ? `<button class="disc-todo-detail-action text-xs px-4 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
+          <button class="disc-todo-detail-complete text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">标记完成</button>
+          ${todo.actionType ? `<button class="disc-todo-detail-action text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
         ` : '<span class="text-xs text-green-600">已完成</span>'}
       </div>
     </div>
@@ -359,7 +359,7 @@ function _renderAttendanceContent(filterActivityId) {
   const confirmedCount = filtered.length - pendingCount;
   const bulkConfirmBtn = filterActivityId && pendingCount > 0
     ? `<div class="mb-3">
-        <button id="att-bulk-confirm-btn" class="text-xs px-4 py-2 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">
+        <button id="att-bulk-confirm-btn" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">
           一键确认本活动全部待确认（${pendingCount} 条）
         </button>
       </div>`
@@ -775,7 +775,7 @@ function _renderInspectionContent() {
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-xs ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">${i.sourceType === 'activity' ? '活动' : '专班'}</span></td>
               <td class="py-2 px-3 text-gray-600">${i.content || i.role}</td>
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-500'}">${isOverdue ? '超期' : i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
-              <td class="py-2 px-3">${isPending || isOverdue ? `<button class="text-xs px-2 py-1 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>` : '<span class="text-xs text-green-600">已确认</span>'}</td>
+              <td class="py-2 px-3">${isPending || isOverdue ? `<button class="text-xs px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>` : '<span class="text-xs text-green-600">已确认</span>'}</td>
             </tr>
           `}).join('')}</tbody>
         </table>
@@ -930,7 +930,7 @@ function _renderReviewContent() {
                 <div class="text-sm font-medium text-gray-800">${r.activity}</div>
                 <div class="text-xs text-gray-500 mt-0.5">组织者：${r.organizer}</div>
               </div>
-              <button class="text-xs px-2 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 btn-disc-urge-deposit" style="cursor:pointer;" data-activity-name="${r.sourceName || r.activity}" data-organizer="${r.organizer}">督促沉淀</button>
+              <button class="text-xs px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 btn-disc-urge-deposit" style="cursor:pointer;" data-activity-name="${r.sourceName || r.activity}" data-organizer="${r.organizer}">督促沉淀</button>
             </div>
           `).join('')}
         </div>

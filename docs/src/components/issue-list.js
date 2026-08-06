@@ -59,7 +59,7 @@ export function renderIssueList() {
           <option value="all" ${_filterState.type === 'all' ? 'selected' : ''}>所有类型</option>
           ${Object.entries(TYPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.type === v ? 'selected' : ''}>${l}</option>`).join('')}
         </select>
-        <button id="filter-clear" type="button" class="px-2.5 py-1 rounded bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">清除</button>
+        <button id="filter-clear" type="button" class="px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">清除</button>
       </div>
 
       <div id="issue-list" class="space-y-2">

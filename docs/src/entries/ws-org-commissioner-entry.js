@@ -100,7 +100,7 @@ function renderOrgUI(state) {
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('org-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('org-commissioner', 'u_org'); bindMyDispatchEvents(el, 'org-commissioner', 'u_org'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
-    extraRightHtml: '<button id="btn-publish-tf" style="background:var(--accent-org-commissioner);color:white;border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity=\'0.9\'" onmouseout="this.style.opacity=\'1\'">发布招募</button>',
+    extraRightHtml: '<button id="btn-publish-tf" style="background:' + accent + ';color:white;border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity=\'0.9\'" onmouseout="this.style.opacity=\'1\'">发布招募</button>',
     renderCtx: { pending, recruiting, active, activities },
     storageKey: 'workflowos_tab_org',
     defaultTab: 'todo',
@@ -218,8 +218,8 @@ function _renderTodoDetail(todo) {
       <div class="text-xs text-gray-400">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
         ${todo.status !== 'completed' ? `
-          <button class="org-todo-detail-complete text-xs px-4 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">标记完成</button>
-          ${todo.actionType ? `<button class="org-todo-detail-action text-xs px-4 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
+          <button class="org-todo-detail-complete text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">标记完成</button>
+          ${todo.actionType ? `<button class="org-todo-detail-action text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
         ` : '<span class="text-xs text-green-600">已完成</span>'}
       </div>
     </div>
@@ -458,7 +458,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
           <div class="mt-3">
             <div class="flex items-center justify-between mb-1.5">
               <span class="text-xs font-bold font-title-cn" style="color:${color}">${label} (${items.length})</span>
-              <button class="sub-add-btn text-xs px-2 py-1 rounded border hover:bg-gray-50 transition-colors" style="color:${color};border-color:${color}40" data-type="${type}">+ 添加</button>
+              <button class="sub-add-btn text-xs px-3 py-1.5 rounded-lg border hover:bg-gray-50 transition-colors" style="color:${color};border-color:${color}40" data-type="${type}">+ 添加</button>
             </div>
             ${items.length === 0
               ? '<p class="text-[12px] text-gray-300 pl-2">暂无记录</p>'
@@ -491,7 +491,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
         <div class="mt-4 pt-3 border-t border-gray-100">
           <div class="flex items-center justify-between mb-2">
             <h6 class="font-title-cn text-xs font-bold text-gray-600">成员角色</h6>
-            <button id="btn-save-tf-roles" class="text-xs px-3 py-1 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">保存角色</button>
+            <button id="btn-save-tf-roles" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">保存角色</button>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
@@ -579,8 +579,8 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
                 <textarea class="f-content input-flat text-xs w-full resize-none mb-2" rows="2" placeholder="考察内容描述（必填）"></textarea>
                 <select class="f-result input-flat text-xs w-full mb-2">${resultOpts.map(r => `<option>${r}</option>`).join('')}</select>
                 <div class="flex gap-2 justify-end">
-                  <button type="button" class="sub-cancel-btn text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-                  <button type="button" class="sub-save-btn text-xs px-3 py-1 rounded-lg text-white transition-colors" style="background:${accent};">保存</button>
+                  <button type="button" class="sub-cancel-btn text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
+                  <button type="button" class="sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="background:${accent};">保存</button>
                 </div>
               </div>`;
           } else {
@@ -591,8 +591,8 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
                 <input class="f-author input-flat text-xs w-full mb-2" placeholder="提交人（选填）">
                 <input class="f-note input-flat text-xs w-full mb-2" placeholder="备注（选填）">
                 <div class="flex gap-2 justify-end">
-                  <button type="button" class="sub-cancel-btn text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-                  <button type="button" class="sub-save-btn text-xs px-3 py-1 rounded-lg text-white transition-colors" style="background:${accent};">保存</button>
+                  <button type="button" class="sub-cancel-btn text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
+                  <button type="button" class="sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="background:${accent};">保存</button>
                 </div>
               </div>`;
           }
@@ -684,7 +684,7 @@ function _showDissolveBlockModal(tf, missing) {
         `<li class="text-xs text-red-600 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0"></span>${m}</li>`
       ).join('')
     + '</ul>'
-    + '<button class="text-xs text-white px-4 py-1.5 rounded-lg w-full transition-colors" style="background:#CE1126;">知道了</button>';
+    + '<button class="text-xs text-white px-3 py-1.5 rounded-lg w-full transition-colors" style="background:#CE1126;">知道了</button>';
   card.querySelector('button').addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
   card.addEventListener('click', e => e.stopPropagation());
@@ -744,9 +744,9 @@ function _renderTfCard(t, statusLabel, statusColor) {
   // 招募状态流转按钮：recruiting → active → archived
   let statusBtn = '';
   if (t.status === 'recruiting') {
-    statusBtn = `<button class="tf-start-btn text-xs px-2 py-1 rounded bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">启动专班</button>`;
+    statusBtn = `<button class="tf-start-btn text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">启动专班</button>`;
   } else if (t.status === 'active') {
-    statusBtn = `<button class="tf-archive-btn text-xs px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">归档专班</button>`;
+    statusBtn = `<button class="tf-archive-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">归档专班</button>`;
   }
   return `
     <div class="kanban-card p-4 rounded-xl bg-white cursor-pointer tf-store-card hover:shadow-sm transition-shadow" data-tf-id="${t.id}">
@@ -1014,7 +1014,7 @@ function _renderActivityProgress(activities) {
         ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">已归档</span>'
         : '<span class="text-xs px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">已发布</span>';
       const completeBtn = !isArchived
-        ? `<button class="track-complete-btn text-xs px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors" data-act-id="${a.id}">确认完成</button>`
+        ? `<button class="track-complete-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors" data-act-id="${a.id}">确认完成</button>`
         : '';
       return `
         <div class="flex items-center justify-between p-3 rounded-xl bg-white transition-colors">
@@ -1103,7 +1103,7 @@ function _renderDevelopmentContent() {
           const isLast = stageIdx === STAGE_ORDER.length - 1;
           const nextStage = isLast ? null : STAGE_ORDER[stageIdx + 1];
           const advanceBtn = !isLast
-            ? `<button class="dev-advance-btn text-xs px-2.5 py-1 rounded-md bg-sky-50 text-sky-600 border border-sky-200 hover:bg-sky-100 transition-colors" data-candidate-id="${c.id}" data-next-stage="${nextStage}">推进至${nextStage}</button>`
+            ? `<button class="dev-advance-btn text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-600 border border-sky-200 hover:bg-sky-100 transition-colors" data-candidate-id="${c.id}" data-next-stage="${nextStage}">推进至${nextStage}</button>`
             : `<span class="text-xs px-2.5 py-1 rounded-md bg-green-50 text-green-600 border border-green-200">已转正</span>`;
 
           // 进度条（当前阶段高亮）
@@ -1376,8 +1376,8 @@ function _renderOrgInspectionContent() {
       </div>
       <div id="org-insp-content-rows" class="mb-3"></div>
       <div class="flex items-center gap-3">
-        <button id="org-insp-form-submit" class="text-sm px-5 py-2 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">提交考察</button>
-        <button id="org-insp-form-cancel" class="text-sm px-4 py-2 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+        <button id="org-insp-form-submit" class="text-sm px-6 py-2.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">提交考察</button>
+        <button id="org-insp-form-cancel" class="text-sm px-6 py-2.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
       <p class="text-[11px] text-gray-400 mt-2">提交后自动投递：纪检确认 → 考察总表（组织委员建档），无需手动选择接收方</p>
     </div>

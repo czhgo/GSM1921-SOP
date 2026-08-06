@@ -559,9 +559,53 @@ textarea.input-flat {
   color: var(--neutral-300);
   cursor: not-allowed;
 }
+/* 内嵌搜索（选项数超阈值自动出现，书记指令 2026-08-06） */
+.cs-search {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  margin-bottom: 2px;
+  background: var(--neutral-0);
+  border-bottom: 1px solid var(--neutral-200);
+  border-radius: calc(var(--radius-sm) - 2px);
+}
+.cs-search-icon {
+  flex-shrink: 0;
+  color: var(--neutral-400);
+}
+.cs-search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.75rem;
+  color: var(--neutral-800);
+}
+.cs-search-input::placeholder {
+  color: var(--neutral-400);
+}
+.cs-empty {
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  color: var(--neutral-400);
+  text-align: center;
+}
 
 /* ═══════════════════════════════════════════════════════════════
    COMPONENT: Button
+   ── 按钮尺寸规范（书记指令 2026-08-06：全站一次规范，同一界面按钮高度差距不过大）──
+   四档（高度基准 = padding 上下 ×2 + 字号行高 + 边框 2px）：
+   1. 微操作档  25px — .btn-action              → 表格行内 / 列表项内操作
+   2. 默认档    30px — text-xs px-3 py-1.5      → 卡片内 / 模态内独立按钮
+   3. 行内对齐档 34px — text-xs px-3 py-2       → 与 input-flat text-xs / select 同行
+   4. 主 CTA 档 44px — text-sm px-6 py-2.5      → 表单主提交 / 页面主操作（w-full 大按钮）
+   判断规则：按钮与相邻 input/select 在同一 flex/工具条行 → 行内对齐档；
+   独立出现在卡片/模态/面板内 → 默认档；主提交/显著 CTA → 主 CTA 档。
    ═══════════════════════════════════════════════════════════════ */
 .btn-primary {
   background-color: var(--primary-700);
@@ -1006,6 +1050,91 @@ textarea.input-flat {
   background: var(--primary-50);
   color: var(--primary-700);
   border-color: var(--primary-200);
+}
+
+/* ── 主题色切换（书记指令 2026-08-06：侧边栏设置，全站强调色个性化）── */
+.sidebar-accent-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+}
+
+.accent-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  border: 2px solid var(--neutral-0);
+  box-shadow: 0 0 0 1px var(--neutral-200);
+  cursor: pointer;
+  padding: 0;
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.accent-swatch:hover {
+  box-shadow: 0 0 0 2px var(--party-gold);
+  transform: scale(1.1);
+}
+
+.accent-palette {
+  position: fixed;
+  z-index: 999;
+  background: var(--surface-elevated);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-dropdown);
+  padding: 12px;
+  width: 216px;
+}
+
+.accent-palette-title {
+  font-size: 0.65rem;
+  color: var(--neutral-400);
+  margin-bottom: 10px;
+}
+
+.accent-palette-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.accent-swatch-opt {
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  border: 2px solid var(--neutral-0);
+  box-shadow: 0 0 0 1px var(--neutral-200);
+  cursor: pointer;
+  padding: 0;
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.accent-swatch-opt:hover {
+  box-shadow: 0 0 0 2px var(--party-gold);
+  transform: scale(1.12);
+}
+
+.accent-swatch-opt.active {
+  box-shadow: 0 0 0 2px var(--neutral-700);
+}
+
+.accent-palette-names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 10px;
+}
+
+.accent-palette-names span {
+  font-size: 0.6rem;
+  color: var(--neutral-400);
+}
+
+.accent-palette-names span.active {
+  color: var(--neutral-700);
+  font-weight: 600;
 }
 
 /* ═══════════════════════════════════════════════════════════════

@@ -224,8 +224,8 @@ function _renderWeekView(grid, activeActivities, tasks, month, state) {
   html += `<div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">`;
   html += `<span class=" text-sm font-bold text-gray-700">${weekStart.getFullYear()}年 第${_getWeekNumber(weekStart)}周</span>`;
   html += `<div class="flex gap-1">`;
-  html += `<button id="cal-week-prev" class="text-xs px-2 py-1 rounded border border-gray-200 hover:bg-gray-50">上一周</button>`;
-  html += `<button id="cal-week-next" class="text-xs px-2 py-1 rounded border border-gray-200 hover:bg-gray-50">下一周</button>`;
+  html += `<button id="cal-week-prev" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50">上一周</button>`;
+  html += `<button id="cal-week-next" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50">下一周</button>`;
   html += `</div></div>`;
 
   html += `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">`;
@@ -289,8 +289,8 @@ function _renderDayView(grid, activeActivities, tasks, month, state) {
   html += `<div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">`;
   html += `<span class=" text-sm font-bold text-gray-700">${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 周${WEEKDAY[d.getDay()]}</span>`;
   html += `<div class="flex gap-1">`;
-  html += `<button id="cal-day-prev" class="text-xs px-2 py-1 rounded border border-gray-200 hover:bg-gray-50">前一天</button>`;
-  html += `<button id="cal-day-next" class="text-xs px-2 py-1 rounded border border-gray-200 hover:bg-gray-50">后一天</button>`;
+  html += `<button id="cal-day-prev" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50">前一天</button>`;
+  html += `<button id="cal-day-next" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50">后一天</button>`;
   html += `</div></div>`;
 
   if (dayActivities.length === 0 && allTasks.length === 0) {

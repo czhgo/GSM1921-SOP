@@ -1549,3 +1549,42 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
   - ✅ server 模式 browser 实测：真实登录走 API 模式→上传→fileSpaceRecords 落库稳定（GET total=1，刷新后仍在）→文件可下载（200 image/png 70 字节）
   - ✅ server npm test 16/16 + GetDiagnostics 零错误
 - **沉淀标签**：`[经验: 快照写穿清表缺口]` — server 模式向服务器表写单条记录后，若前端 mockDB 对应集合未同步（persist() 全量快照以 mockDB 状态整表覆盖），刚落库记录会被立即擦除；凡 server 模式单条写（资源级 CRUD）必须同步更新前端 mockDB 对应集合。`[待办]` — server 端无 archiveRecords 表（刷新后归档列表为内存态），后端补表属 P2 后续
+
+## T225 书记 4 项界面专项：未读角标口径 + 下拉内嵌搜索 + 按钮四档规范 + 侧边栏主题色个性化（2026-08-06）
+
+**任务**：书记 4 连问——① 右上角「未读」数字角标的计算规则不明；② 任何随时间增长/查找复杂的选择类下拉（活动/专班/人员）必须内置搜索（Use Skill: web-design-guidelines）；③ 部分 SVG 装饰摆放不合时宜（搜索图标与 input 重叠）+ 同一界面 button 尺寸差距过大要有相对标准；④ mock 各角色主题色 + 字号是否可进侧边栏设置、每个角色可选自己最喜欢的颜色（现有角色颜色集合）（Use Skill: brainstorming）
+**引用流程**：web-design-guidelines Skill + brainstorming Skill + dispatching-parallel-agents Skill（4 代理并行按钮规范化）+ verification-before-completion Skill + browser_use 实测
+**来源**：书记界面评审 4 项（2026-08-06 原话，见用户输入）
+
+### ① 未读角标计算口径（解释完成，未改逻辑）
+- 角标 = 未过期（expireDate ≥ 今日，`NoticeStore.list({ activeOnly: true })`）且未读（`!n.read`）的通知数；`unread > 9` 显示 `9+`；header.js 订阅 `DATA_CHANGED_EVENT`/`DATA_LOADED_EVENT` 即时刷新；与首页通知栏口径一致；保留策略（紧急全展示/重要仅未读）只影响列表展示，不参与角标统计
+
+### ② custom-select 下拉内嵌搜索（实现）
+- `docs/src/components/custom-select.js`：新增 `SEARCH_THRESHOLD = 10`——选项数超阈值时展开自动在菜单顶部插搜索框（sticky 定位 + input 实时过滤 + 无匹配「无匹配项」提示 + Enter 选首个可见项 + Esc 先清空再关闭）；`_closeMenu` 重置搜索状态
+- **关键修复**：上传模态「关联活动」下拉（30 项）此前是原生 select class（不含 `input-flat`），未被 bootstrap.js 全局增强器（只增强 `.input-flat select`）捕获 → 核心场景搜不到。修复：`#weekly-week`/`#upload-activity`/`#upload-category` 三个 select 统一改 `class="input-flat text-xs w-full"`，纳入增强体系
+- browser 实测：搜索框出现 →「主题」过滤 5 项 →「zzzz」无匹配项 → 周报下拉展开正常
+
+### ③a 装饰 SVG 修复
+- `#archive-search` 搜索图标（absolute 左偏移）与 input 文字重叠：`pl-8` 补内边距解决
+
+### ③b 按钮四档尺寸规范（书记 AskUserQuestion「全站一次规范（推荐）」）
+- styles.css L599-609 写入四档权威定义：微操作档 25px（.btn-action）/ 默认档 30px（text-xs px-3 py-1.5）/ 行内对齐档 34px（text-xs px-3 py-2）/ 主 CTA 档 44px（text-sm px-6 py-2.5）
+- **4 个并行 subagent 规范化 21 文件**：ws-prop（17 处，主线程先行）+ ws-secretary（18 处）+ ws-leader（18 处）+ ws-visitor（5 处）+ ws-org（13 处）+ ws-disc（5 处）+ 组件/服务 13 文件（15 处）
+- 豁免规则：纯图标 × 关闭按钮、rounded-full pill/filter、维度选择 chip（dt-l1~l4）、btn-md/btn-action/btn-tab 组件类、内部一致 text-sm px-4 py-2 同组按钮
+- 判例：表单「提交/取消」对升级主 CTA 档保持等高（ws-org 招募表单既有模式 `text-sm px-5 py-2.5`）；`#att-batch-apply` 与 select 同行归行内对齐档
+
+### ④ 侧边栏主题色个性化（书记 AskUserQuestion：所有角色均可选 + 选色自动刷新 + 圆点色板弹层）
+- **适用范围边界（清晰化）**：语义色（ROLE_COLORS：日历任务色点/考察等级/参与者标识/活动类别色）全站固定；强调色（ACCENT_COLORS：按钮/标签/卡片强调）可个性化
+- constants.js 新增 `resolveAccentRole(preferred)`（localStorage `workflowos_accent_role` 优先 + 有效性校验回退）+ `ACCENT_PALETTE`（ACCENT_COLORS 去重 9 色）
+- 消费点改造：bootstrap.js `bootstrapPage({ accentRole })` 与 header.js 角色标签均走 `resolveAccentRole`；login-entry.js 角色色板（语义用途）不改
+- sidebar.js 底部「字号」组旁新增「主题色」组（当前色圆点）+ 固定定位色板弹层（9 色 swatch + 角色名标签 + active 高亮 + 外部点击关闭），选色写 localStorage + reload 全站生效；styles.css 新增 `.sidebar-accent-toggle`/`.accent-swatch`/`.accent-palette` 系列（--neutral-* 变量深色自适应）
+- 两处 `var(--accent-*)` 按钮背景（disc todo 标记完成 / org 发布招募）改 `${accent}` 跟随个性化
+
+- **变更文件**：`docs/src/components/custom-select.js`、`docs/src/components/sidebar.js`、`docs/src/components/header.js`、`docs/src/core/constants.js`、`docs/src/core/bootstrap.js`、`docs/src/styles.css`、`docs/src/entries/{ws-prop,ws-secretary,ws-leader,ws-org,ws-disc,ws-visitor}-commissioner-entry.js`、`docs/src/components/{calendar,inspector,todo-list,query-view,issue-detail,issue-list}.js`、`docs/src/services/{issues,notice}.js`、`docs/src/entries/{login,archive,notice}-entry.js`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+
+- **验证结果**：
+  - ✅ server npm test 16/16 全绿
+  - ✅ browser_use 实测：登录宣传委员 → 上传模态下拉搜索框/过滤/无匹配全通过 → 侧边栏色板弹层（9 色 + active 高亮）→ 选绿色后侧边栏色点 +「上传材料」按钮同步变绿 → 恢复 prop-commissioner 回海蓝
+  - ✅ GetDiagnostics 全部修改文件零 JS 错误（仅存量 markdownlint 警告）
+  - ✅ Grep 复核：`<button[^>]*px-2` 全站无残留（rounded-full pill 豁免）；`px-4` 仅剩豁免项
+- **沉淀标签**：`[已沉淀: 角色颜色适用范围]` — 语义色（身份/类别/状态标识）固定 + 强调色（界面装饰/按钮/标签高亮）可个性化，两者由 ROLE_COLORS/ACCENT_COLORS 双体系隔离，个性化只走 `resolveAccentRole` 覆盖强调色消费点，永不触碰语义色；`[已沉淀: 长列表下拉必搜]` — 任何选项随时间增长/查找复杂的选择控件，选项数超阈值（10）自动内嵌搜索，统一由 custom-select 增强体系承载，新页面 select 必须带 `input-flat` 类才能被增强器捕获；`[已沉淀: 按钮四档规范]` — 微操作/默认/行内对齐/主 CTA 四档，判断规则=与 input 同行→行内对齐档、独立卡片/模态→默认档、主提交/显著 CTA→主 CTA 档、表格行内密集→微操作档；`[待办]` — 共享模块 URL 缓存版本号（防 browser 旧模块缓存）；部署期 ApiAdapter 接线（Z6 遗留）

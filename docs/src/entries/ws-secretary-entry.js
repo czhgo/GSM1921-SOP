@@ -43,7 +43,7 @@ const SEC_CALENDAR_TAB_HTML = `
   <div class="card rounded-2xl p-6 mb-4">
     <div class="flex items-center justify-between mb-4">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">活动日历</h3>
-      <button id="ws-sec-write-btn" type="button" class="shrink-0 text-sm px-4 py-2 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors inline-flex items-center gap-1.5">
+      <button id="ws-sec-write-btn" type="button" class="shrink-0 text-sm px-6 py-2.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors inline-flex items-center gap-1.5">
         ${icon('pencil', { className: 'w-3.5 h-3.5' })}
         写入活动
       </button>
@@ -93,7 +93,7 @@ const SEC_ASSIGN_TAB_HTML = `
   <div class="card rounded-2xl p-6 mb-6">
     <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">常设赋权</h3>
     <p class="text-xs text-gray-500 mb-3">设党小组组长——角色指派靠口头/群聊，系统内设+记录可追溯</p>
-    <button id="ws-sec-assign-btn" class="text-sm px-4 py-2 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors">设党小组组长</button>
+    <button id="ws-sec-assign-btn" class="text-sm px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors">设党小组组长</button>
     <div id="assign-area"></div>
     <div class="border-t border-gray-100 mt-6 pt-4">
       <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">当前党小组组长</h4>
@@ -146,7 +146,7 @@ const SEC_FEEDBACK_TAB_HTML = `
         <option value="disc-commissioner">纪检委员</option>
         <option value="leader">党小组组长</option>
       </select>
-      <button id="issue-filter-clear" type="button" class="text-xs px-2.5 py-1 rounded bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">清除</button>
+      <button id="issue-filter-clear" type="button" class="text-xs px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">清除</button>
     </div>
 
     <!-- 全部反馈 -->
@@ -154,8 +154,8 @@ const SEC_FEEDBACK_TAB_HTML = `
 
     <!-- 工具区 -->
     <div class="pt-3 mt-3 border-t border-gray-100 text-right space-x-2">
-      <button id="btn-export-issues-json" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-600 hover:bg-gray-50">导出反馈数据</button>
-      <button id="btn-clear-issue-cache" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-600 hover:bg-gray-50">清除缓存</button>
+      <button id="btn-export-issues-json" class="text-xs px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50">导出反馈数据</button>
+      <button id="btn-clear-issue-cache" class="text-xs px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50">清除缓存</button>
     </div>
   </div>
 
@@ -377,7 +377,7 @@ function _renderProjectAuthPanel() {
         </div>
       </div>
     </div>
-    <button id="confirm-project-auth-btn" type="button" class="text-sm px-4 py-2 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors">
+    <button id="confirm-project-auth-btn" type="button" class="text-sm px-6 py-2.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors">
       确认赋权
     </button>
     <div class="mt-6">
@@ -1016,8 +1016,8 @@ function _renderTodoDetail(todo) {
       <div class="text-xs text-gray-400">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
         ${todo.status !== 'completed' ? `
-          <button class="secretary-todo-detail-complete text-xs px-4 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">标记完成</button>
-          ${todo.actionType ? `<button class="secretary-todo-detail-action text-xs px-4 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
+          <button class="secretary-todo-detail-complete text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">标记完成</button>
+          ${todo.actionType ? `<button class="secretary-todo-detail-action text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
         ` : '<span class="text-xs text-green-600">已完成</span>'}
       </div>
     </div>
@@ -1786,7 +1786,7 @@ function renderAuthRecords() {
     const personName = person.name || person.targetPersonId;
     const groupName = record ? (record.scopeRef || '未指定') : (person.partyGroup || '未指定');
     const revokeBtn = record
-      ? `<button type="button" data-auth-action="revoke" data-record-id="${record.id}" class="text-xs text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-2 py-1 rounded hover:bg-red-50">撤销</button>`
+      ? `<button type="button" data-auth-action="revoke" data-record-id="${record.id}" class="text-xs text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50">撤销</button>`
       : '<span class="text-xs text-gray-300 ml-2 flex-shrink-0">预设</span>';
 
     return `
@@ -2055,7 +2055,7 @@ function _renderIssueDetail(issueId) {
   html += `<div class="flex items-center justify-between mb-2">`;
   html += `<span class="text-xs font-medium text-gray-700">指派</span>`;
   if (issue.status === 'open') {
-    html += `<button data-detail-action="show-assign" class="text-xs px-2 py-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">指派</button>`;
+    html += `<button data-detail-action="show-assign" class="text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">指派</button>`;
   }
   html += `</div>`;
   // 指派历史时间线
@@ -2078,7 +2078,7 @@ function _renderIssueDetail(issueId) {
   html += `<div class="flex flex-wrap gap-2">`;
   ASSIGNEE_OPTIONS.forEach(opt => {
     const isCurrent = issue.assignee === opt.personId && issue.assigneeRole === opt.role;
-    html += `<button data-detail-action="assign" data-assignee-id="${opt.personId}" data-assignee-role="${opt.role}" class="text-xs px-2.5 py-1 rounded-lg transition-all ${isCurrent ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'}">${opt.label}</button>`;
+    html += `<button data-detail-action="assign" data-assignee-id="${opt.personId}" data-assignee-role="${opt.role}" class="text-xs px-3 py-1.5 rounded-lg transition-all ${isCurrent ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'}">${opt.label}</button>`;
   });
   html += `</div>`;
   html += `<div class="mt-2 flex items-center gap-2">`;
@@ -2100,7 +2100,7 @@ function _renderIssueDetail(issueId) {
     html += `<p class="text-xs text-gray-600 mb-2">选择关闭理由</p>`;
     html += `<div class="flex flex-wrap gap-2 mb-2">`;
     CLOSE_REASONS.forEach(r => {
-      html += `<button data-detail-action="confirm-close" data-reason="${r.value}" class="text-xs px-2.5 py-1 rounded-lg bg-white text-gray-600 border border-gray-200 hover:border-gray-300 transition-all">${r.label}</button>`;
+      html += `<button data-detail-action="confirm-close" data-reason="${r.value}" class="text-xs px-3 py-1.5 rounded-lg bg-white text-gray-600 border border-gray-200 hover:border-gray-300 transition-all">${r.label}</button>`;
     });
     html += `</div>`;
     html += `<input type="text" id="close-note-input" class="input-flat text-xs w-full" placeholder="关闭备注（选填）">`;
@@ -2112,7 +2112,7 @@ function _renderIssueDetail(issueId) {
     if (mergeTargets.length > 0) {
       html += `<div class="space-y-1 max-h-32 overflow-y-auto">`;
       mergeTargets.forEach(t => {
-        html += `<button data-detail-action="confirm-merge" data-target-id="${t.id}" class="w-full text-left text-xs px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">${t.title} <span class="text-gray-400">#${t.number}</span></button>`;
+        html += `<button data-detail-action="confirm-merge" data-target-id="${t.id}" class="w-full text-left text-xs px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">${t.title} <span class="text-gray-400">#${t.number}</span></button>`;
       });
       html += `</div>`;
     } else {
@@ -2159,8 +2159,8 @@ function _renderIssueDetail(issueId) {
     html += `<div class="pt-3 border-t border-gray-100">`;
     html += `<div class="flex gap-2">`;
     html += `<input type="text" id="issue-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论…">`;
-    html += `<button data-detail-action="add-comment" class="text-xs px-3 py-1.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors">评论</button>`;
-    html += `<button data-detail-action="add-verdict" class="text-xs px-3 py-1.5 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition-colors">批复</button>`;
+    html += `<button data-detail-action="add-comment" class="text-xs px-3 py-2 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors">评论</button>`;
+    html += `<button data-detail-action="add-verdict" class="text-xs px-3 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition-colors">批复</button>`;
     html += `</div></div>`;
   }
 
@@ -2271,8 +2271,8 @@ function renderDraftRow(d) {
         <p class="text-sm font-medium text-gray-800">${p.title}</p>
         <p class="text-xs text-gray-600 mt-1 line-clamp-2">${p.body}</p>
         <div class="flex gap-1 mt-2">
-          <button class="btn-approve-draft text-xs px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700" data-draft-id="${d.draftId}">通过</button>
-          <button class="btn-reject-draft text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-600 hover:bg-gray-50" data-draft-id="${d.draftId}">驳回</button>
+          <button class="btn-approve-draft text-xs px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700" data-draft-id="${d.draftId}">通过</button>
+          <button class="btn-reject-draft text-xs px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50" data-draft-id="${d.draftId}">驳回</button>
         </div>
       </div>
     `;
@@ -2286,8 +2286,8 @@ function renderDraftRow(d) {
         </div>
         <p class="text-sm text-gray-700">${d.payload.body}</p>
         <div class="flex gap-1 mt-2">
-          <button class="btn-approve-draft text-xs px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700" data-draft-id="${d.draftId}">通过</button>
-          <button class="btn-reject-draft text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-600 hover:bg-gray-50" data-draft-id="${d.draftId}">驳回</button>
+          <button class="btn-approve-draft text-xs px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700" data-draft-id="${d.draftId}">通过</button>
+          <button class="btn-reject-draft text-xs px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50" data-draft-id="${d.draftId}">驳回</button>
         </div>
       </div>
     `;
@@ -2471,7 +2471,7 @@ function renderNotificationList() {
             <span class="text-sm font-medium text-gray-800">${n.title}</span>
             <span class="text-xs px-1.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200">${audienceLabel}</span>
           </div>
-          <button data-notif-action="delete" data-notif-id="${n.id}" class="text-xs text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-2 py-1 rounded hover:bg-red-50">删除</button>
+          <button data-notif-action="delete" data-notif-id="${n.id}" class="text-xs text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50">删除</button>
         </div>
         <p class="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">${n.content}</p>
         <p class="text-xs text-gray-400 mt-1.5">${n.publishedBy || '书记'} · ${dateStr}</p>

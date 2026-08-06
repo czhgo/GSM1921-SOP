@@ -139,7 +139,7 @@ export function renderIssueDetail(issueId) {
                   <option value="wontfix" ${issue.closedReason === 'wontfix' ? 'selected' : ''}>不修复</option>
                   <option value="not_planned" ${issue.closedReason === 'not_planned' ? 'selected' : ''}>暂不计划</option>
                 </select>
-                <button id="btn-apply-status" class="mt-2 w-full text-sm py-2 rounded bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 font-sans">应用</button>`
+                <button id="btn-apply-status" class="mt-2 w-full text-sm py-2.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 font-sans">应用</button>`
               : `<p class="text-gray-700 font-sans">${ISSUE_STATUS_LABELS[issue.status] || issue.status}${issue.closedReason ? ' · ' + (ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || issue.closedReason) : ''}</p>`
             }
           </div>

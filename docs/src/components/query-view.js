@@ -58,7 +58,7 @@ export function renderQueryView(container, config) {
         <input type="text" id="${uid}-search" class="input-flat text-xs flex-1 min-w-[160px] py-1.5"
                placeholder="${searchPlaceholder}" />
         ${filtersHtml}
-        <button id="${uid}-clear" class="text-xs text-gray-400 hover:text-gray-600 px-2 py-1.5">清除</button>
+        <button id="${uid}-clear" class="text-xs text-gray-400 hover:text-gray-600 px-3 py-2 rounded-lg">清除</button>
       </div>
       <div id="${uid}-results" class="space-y-1"></div>
       <div id="${uid}-count" class="text-xs text-gray-400 mt-2"></div>

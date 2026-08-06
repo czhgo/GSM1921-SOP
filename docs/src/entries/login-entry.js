@@ -37,7 +37,7 @@ function _renderDevCards() {
           <span class="font-medium text-sm text-gray-800">${card.label}</span>
         </div>
         <p class="text-xs text-gray-400 mb-2">${card.desc}</p>
-        <button class="login-btn w-full py-1 rounded-md text-white text-xs font-medium" style="background:${accent};">登录</button>
+        <button class="login-btn w-full py-2.5 rounded-lg text-white text-sm font-medium" style="background:${accent};">登录</button>
       </div>
     `;
   }).join('');

@@ -12,6 +12,12 @@
 const ICON_CHEVRON =
   '<svg class="cs-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
 
+// 内嵌搜索（书记指令 2026-08-06）：选项数量超过阈值时，菜单顶部自动出现搜索框。
+// 适用所有「随时间增长、查找困难」的下拉（活动/专班/人员等），一次改造全站受益。
+const ICON_SEARCH =
+  '<svg class="cs-search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+const SEARCH_THRESHOLD = 10; // 选项数超过此值自动内嵌搜索
+
 function _escapeHtml(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -30,6 +36,16 @@ function _openMenu(wrapper, menu, trigger, sel) {
   // 每次展开从 select.options 重建，保证动态填充即时生效
   menu.innerHTML = '';
   const frag = document.createDocumentFragment();
+
+  // 选项数超阈值 → 菜单顶部内嵌搜索框
+  const needsSearch = sel.options.length > SEARCH_THRESHOLD;
+  if (needsSearch) {
+    const search = document.createElement('div');
+    search.className = 'cs-search';
+    search.innerHTML = `${ICON_SEARCH}<input type="text" class="cs-search-input" placeholder="搜索…" aria-label="搜索选项">`;
+    frag.appendChild(search);
+  }
+
   Array.from(sel.options).forEach((opt) => {
     const item = document.createElement('div');
     item.className = 'cs-option';
@@ -45,12 +61,59 @@ function _openMenu(wrapper, menu, trigger, sel) {
   menu.classList.remove('hidden');
   trigger.setAttribute('aria-expanded', 'true');
   wrapper.classList.add('is-open');
+
+  if (needsSearch) {
+    const searchInput = menu.querySelector('.cs-search-input');
+    searchInput.focus();
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      let visible = 0;
+      menu.querySelectorAll('.cs-option').forEach(opt => {
+        const hit = opt.textContent.toLowerCase().includes(q);
+        opt.style.display = hit ? '' : 'none';
+        if (hit) visible++;
+      });
+      const empty = menu.querySelector('.cs-empty');
+      if (visible === 0) {
+        if (!empty) {
+          const placeholder = document.createElement('div');
+          placeholder.className = 'cs-empty';
+          placeholder.textContent = '无匹配项';
+          menu.appendChild(placeholder);
+        }
+      } else if (empty) {
+        empty.remove();
+      }
+    });
+    // 键盘：Enter 选择首个可见项；Esc 先清空再关闭
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const first = menu.querySelector('.cs-option:not([style*="display: none"])');
+        if (first) first.click();
+      } else if (e.key === 'Escape') {
+        if (searchInput.value) {
+          searchInput.value = '';
+          searchInput.dispatchEvent(new Event('input'));
+        } else {
+          _closeMenu(wrapper, menu, trigger);
+        }
+        e.stopPropagation();
+      }
+    });
+  }
+
   // 滚到选中项
   const active = menu.querySelector('.is-selected');
   if (active) active.scrollIntoView({ block: 'nearest' });
 }
 
 function _closeMenu(wrapper, menu, trigger) {
+  // 重置搜索过滤（下次展开时干净重建）
+  const searchInput = menu.querySelector('.cs-search-input');
+  if (searchInput) searchInput.value = '';
+  menu.querySelectorAll('.cs-option').forEach(opt => { opt.style.display = ''; });
+  menu.querySelector('.cs-empty')?.remove();
   menu.classList.add('hidden');
   trigger.setAttribute('aria-expanded', 'false');
   wrapper.classList.remove('is-open');

@@ -176,8 +176,8 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| docs/src/core/bootstrap.js | 2026-07-31 | [工程师]+[AI] | 引导启动 |
-| docs/src/core/constants.js | 2026-07-31 | [工程师]+[AI] | 静态常量 |
+| docs/src/core/bootstrap.js | 2026-08-06 | [工程师]+[AI] | 引导启动（主题色 resolveAccentRole） |
+| docs/src/core/constants.js | 2026-08-06 | [工程师]+[AI] | 静态常量（ACCENT_PALETTE/resolveAccentRole） |
 | docs/src/core/cross-page-state.js | 2026-07-31 | [工程师]+[AI] | 跨页状态 |
 | docs/src/core/data-loader.js | 2026-07-31 | [工程师]+[AI] | 数据加载 |
 | docs/src/core/data-adapter.js | 2026-08-03 | [工程师]+[AI] | 数据适配器（setDataSource/init/persist） |
@@ -193,21 +193,21 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| docs/src/components/header.js | 2026-07-31 | [工程师]+[AI] | 页头组件 |
-| docs/src/components/sidebar.js | 2026-07-31 | [工程师]+[AI] | 侧边栏组件 |
-| docs/src/components/calendar.js | 2026-07-31 | [工程师]+[AI] | 日历组件 |
+| docs/src/components/header.js | 2026-08-06 | [工程师]+[AI] | 页头组件（未读角标/主题色标签） |
+| docs/src/components/sidebar.js | 2026-08-06 | [工程师]+[AI] | 侧边栏组件（字号+主题色设置） |
+| docs/src/components/calendar.js | 2026-08-06 | [工程师]+[AI] | 日历组件 |
 | docs/src/components/inspector.js | 2026-08-06 | [工程师]+[AI] | 检查器组件（产出物区/分类型关闭条件） |
 | docs/src/components/modal.js | 2026-07-31 | [工程师]+[AI] | 模态框组件 |
 | docs/src/components/tab-bar.js | 2026-07-31 | [工程师]+[AI] | 标签栏组件 |
 | docs/src/components/todo-list.js | 2026-08-06 | [工程师]+[AI] | 待办列表组件（E2 flow 内嵌小字） |
 | docs/src/components/commissioner-matrix.js | 2026-07-31 | [工程师]+[AI] | 支委矩阵组件 |
-| docs/src/components/issue-detail.js | 2026-07-31 | [工程师]+[AI] | 事项详情组件 |
+| docs/src/components/issue-detail.js | 2026-08-06 | [工程师]+[AI] | 事项详情组件 |
 | docs/src/components/issue-form.js | 2026-07-31 | [工程师]+[AI] | 事项表单组件 |
-| docs/src/components/issue-list.js | 2026-07-31 | [工程师]+[AI] | 事项列表组件 |
-| docs/src/components/custom-select.js | 2026-08-03 | [工程师]+[AI] | 自定义下拉组件（T-188 A-12） |
+| docs/src/components/issue-list.js | 2026-08-06 | [工程师]+[AI] | 事项列表组件 |
+| docs/src/components/custom-select.js | 2026-08-06 | [工程师]+[AI] | 自定义下拉组件（阈值内嵌搜索） |
 | docs/src/components/person-picker.js | 2026-07-31 | [工程师]+[AI] | 人员选择器组件 |
 | docs/src/components/person-picker.css | 2026-07-31 | [工程师]+[AI] | 人员选择器样式 |
-| docs/src/components/query-view.js | 2026-07-31 | [工程师]+[AI] | 查询视图组件 |
+| docs/src/components/query-view.js | 2026-08-06 | [工程师]+[AI] | 查询视图组件 |
 | docs/src/components/reactions.js | 2026-07-31 | [工程师]+[AI] | 表态组件 |
 | docs/src/components/role-hierarchy.js | 2026-07-31 | [工程师]+[AI] | 角色层级组件 |
 | docs/src/components/workspace-popover.js | 2026-07-31 | [工程师]+[AI] | 工作台浮窗组件 |
@@ -217,20 +217,20 @@ dynamic_role:
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
 | docs/src/entries/main-entry.js | 2026-07-31 | [工程师]+[AI] | 首页入口（含日历+通知待办） |
-| docs/src/entries/login-entry.js | 2026-07-31 | [工程师]+[AI] | 登录页入口 |
+| docs/src/entries/login-entry.js | 2026-08-06 | [工程师]+[AI] | 登录页入口（按钮主 CTA 档） |
 | docs/src/entries/about-entry.js | 2026-08-03 | [工程师]+[AI] | 关于页入口（支部的故事） |
-| docs/src/entries/archive-entry.js | 2026-07-31 | [工程师]+[AI] | 归档页入口 |
+| docs/src/entries/archive-entry.js | 2026-08-06 | [工程师]+[AI] | 归档页入口 |
 | docs/src/entries/feedback-entry.js | 2026-07-31 | [工程师]+[AI] | 反馈页入口 |
 | docs/src/entries/help-entry.js | 2026-08-03 | [工程师]+[AI] | 帮助页入口（系统说明书） |
-| docs/src/entries/notice-entry.js | 2026-07-31 | [工程师]+[AI] | 通知页入口 |
+| docs/src/entries/notice-entry.js | 2026-08-06 | [工程师]+[AI] | 通知页入口 |
 | docs/src/entries/search-entry.js | 2026-07-31 | [工程师]+[AI] | 搜索页入口 |
 | docs/src/entries/workspace-entry.js | 2026-07-31 | [工程师]+[AI] | 工作台路由入口 |
-| docs/src/entries/ws-secretary-entry.js | 2026-07-31 | [工程师]+[AI] | 书记工作台入口 |
-| docs/src/entries/ws-org-commissioner-entry.js | 2026-07-31 | [工程师]+[AI] | 组织委员工作台入口 |
-| docs/src/entries/ws-prop-commissioner-entry.js | 2026-08-06 | [工程师]+[AI] | 宣传委员工作台入口（含附件双模式上传） |
-| docs/src/entries/ws-disc-commissioner-entry.js | 2026-07-31 | [工程师]+[AI] | 纪检委员工作台入口 |
-| docs/src/entries/ws-leader-entry.js | 2026-07-31 | [工程师]+[AI] | 党小组组长工作台入口 |
-| docs/src/entries/ws-visitor-entry.js | 2026-07-31 | [工程师]+[AI] | 访客工作台入口 |
+| docs/src/entries/ws-secretary-entry.js | 2026-08-06 | [工程师]+[AI] | 书记工作台入口 |
+| docs/src/entries/ws-org-commissioner-entry.js | 2026-08-06 | [工程师]+[AI] | 组织委员工作台入口 |
+| docs/src/entries/ws-prop-commissioner-entry.js | 2026-08-06 | [工程师]+[AI] | 宣传委员工作台入口（附件上传/下拉搜索/按钮规范） |
+| docs/src/entries/ws-disc-commissioner-entry.js | 2026-08-06 | [工程师]+[AI] | 纪检委员工作台入口 |
+| docs/src/entries/ws-leader-entry.js | 2026-08-06 | [工程师]+[AI] | 党小组组长工作台入口 |
+| docs/src/entries/ws-visitor-entry.js | 2026-08-06 | [工程师]+[AI] | 访客工作台入口 |
 
 ### docs/src/services/ (服务层)
 
@@ -244,10 +244,10 @@ dynamic_role:
 | docs/src/services/feedback.js | 2026-07-31 | [工程师]+[AI] | 反馈服务 |
 | docs/src/services/image.js | 2026-07-31 | [工程师]+[AI] | 图片服务 |
 | docs/src/services/inspection.js | 2026-07-31 | [工程师]+[AI] | 纪检服务 |
-| docs/src/services/issues.js | 2026-07-31 | [工程师]+[AI] | 事项服务 |
+| docs/src/services/issues.js | 2026-08-06 | [工程师]+[AI] | 事项服务 |
 | docs/src/services/makeup.js | 2026-07-31 | [工程师]+[AI] | 补课服务 |
 | docs/src/services/milestones.js | 2026-07-31 | [工程师]+[AI] | 里程碑服务 |
-| docs/src/services/notice.js | 2026-07-31 | [工程师]+[AI] | 通知服务（含通知→待办派生） |
+| docs/src/services/notice.js | 2026-08-06 | [工程师]+[AI] | 通知服务（含通知→待办派生） |
 | docs/src/services/person.js | 2026-08-03 | [工程师]+[AI] | 人员数据抽象服务（PersonStore，T-142 阶段2） |
 | docs/src/services/secretary-overview.js | 2026-08-06 | [工程师]+[AI] | 书记全局概况服务（T-143，E2 派生待办 flow） |
 | docs/src/services/review.js | 2026-07-31 | [工程师]+[AI] | 审查服务 |
@@ -292,7 +292,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| docs/src/styles.css | 2026-08-06 | [工程师]+[AI] | 全局样式（D3 全站深色主题） |
+| docs/src/styles.css | 2026-08-06 | [工程师]+[AI] | 全局样式（D3 深色主题/按钮四档/主题色选择器） |
 | docs/src/config/branch.json | 2026-07-31 | [工程师]+[AI] | 分支配置 |
 
 ### docs/ 其他

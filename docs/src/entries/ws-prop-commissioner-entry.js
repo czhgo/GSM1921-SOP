@@ -146,8 +146,8 @@ function _renderTodoDetail(todo) {
       <div class="text-xs text-gray-400">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
         ${todo.status !== 'completed' ? `
-          <button class="prop-todo-detail-complete text-xs px-4 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">标记完成</button>
-          ${todo.actionType ? `<button class="prop-todo-detail-action text-xs px-4 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
+          <button class="prop-todo-detail-complete text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">标记完成</button>
+          ${todo.actionType ? `<button class="prop-todo-detail-action text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
         ` : '<span class="text-xs text-green-600">已完成</span>'}
       </div>
     </div>
@@ -281,7 +281,7 @@ function _renderTaskCard(task) {
   const isFinal = task.status === 'submitted';
   const advanceLabel = task.status === 'pending' ? '接收' : '提交';
   const advanceBtn = !isFinal
-    ? `<button class="task-advance-btn text-xs px-2 py-1 rounded bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors mt-1" data-task-id="${task.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
+    ? `<button class="task-advance-btn text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors mt-1" data-task-id="${task.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
     : '';
   const typeStyle = TASK_TYPE_STYLE[task.type] || 'bg-gray-50 text-gray-700';
   const statusStyle = TASK_STATUS_STYLE[task.status];
@@ -400,8 +400,8 @@ function _renderKanbanItem(item, showCompleteBtn = false) {
     : '';
   const completeBtn = showCompleteBtn
     ? (isTf
-      ? `<button class="tf-complete-btn text-xs px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-tf-id="${item.id}" onclick="event.stopPropagation();">归档专班</button>`
-      : `<button class="activity-complete-btn text-xs px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-act-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`)
+      ? `<button class="tf-complete-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-tf-id="${item.id}" onclick="event.stopPropagation();">归档专班</button>`
+      : `<button class="activity-complete-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-act-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`)
     : '';
   return `
     <div class="p-3 rounded-xl bg-white hover:bg-gray-200 transition-colors cursor-pointer">
@@ -494,7 +494,7 @@ function _renderArchiveContent() {
   container.innerHTML = `
     <div class="mb-4 flex flex-col sm:flex-row gap-3">
       <div class="relative flex-1">
-        <input id="archive-search" type="text" placeholder="搜索活动名称..." class="input-flat text-xs flex-1" />
+        <input id="archive-search" type="text" placeholder="搜索活动名称..." class="input-flat text-xs flex-1 pl-8" />
         ${icon('search', { className: 'absolute left-2.5 top-2.5 w-3.5 h-3.5 text-gray-400' })}
       </div>
       <select id="archive-filter-category" class="input-flat text-xs">
@@ -548,7 +548,7 @@ function _renderArchiveContent() {
                 <span class="text-xs font-medium text-gray-700">${t.name}</span>
                 <span class="text-xs px-1.5 py-0.5 rounded-full ${ARCHIVE_CATEGORY_STYLE[t.category]} ml-1.5">${t.category}</span>
               </div>
-              <button class="archive-tpl-btn text-xs px-2 py-1 rounded bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 transition-colors" data-tpl-name="${t.name}">下载</button>
+              <button class="archive-tpl-btn text-xs px-3 py-1.5 rounded-lg bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 transition-colors" data-tpl-name="${t.name}">下载</button>
             </div>
           `).join('')}
         </div>
@@ -614,7 +614,7 @@ function _renderArchiveList(records) {
     const isInProgress = r.status === 'in_progress';
     const advanceLabel = r.status === 'pending' ? '开始归档' : '确认归档';
     const advanceBtn = !isFinal
-      ? `<button class="archive-advance-btn text-xs px-2 py-1 rounded bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors" data-record-id="${r.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
+      ? `<button class="archive-advance-btn text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors" data-record-id="${r.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
       : '';
     // 归档中状态显示进度
     const progressHtml = isInProgress && r._checklistState
@@ -679,7 +679,7 @@ function _renderWeeklyContent() {
         <div class="space-y-3">
           <div>
             <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择周次</label>
-            <select id="weekly-week" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">
+            <select id="weekly-week" class="input-flat text-xs w-full">
               ${_loadWeeklyReports().map(r => `<option value="${r.id}" ${r.status === 'draft' ? 'selected' : ''}>${r.week}（${r.weekRange}）</option>`).join('')}
             </select>
           </div>
@@ -687,7 +687,7 @@ function _renderWeeklyContent() {
             <label class="text-xs text-gray-500 mb-1.5 block font-medium">周报内容</label>
             <textarea id="weekly-content" rows="6" placeholder="请填写本周工作内容，每条一行..." class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none">${draftReport ? draftReport.content : ''}</textarea>
           </div>
-          <button id="weekly-submit-btn" class="w-full py-2 text-xs font-medium text-white rounded-lg transition-colors" style="background:${accent}">报送</button>
+          <button id="weekly-submit-btn" class="w-full text-sm py-2.5 font-medium text-white rounded-lg transition-colors" style="background:${accent}">报送</button>
         </div>
       </div>
 
@@ -750,7 +750,7 @@ function _renderWeeklyReportItem(report) {
         </div>
         <div class="flex items-center gap-2">
           ${isSubmitted && report.submittedAt ? `<span class="text-xs text-gray-400">报送于 ${report.submittedAt}</span>` : ''}
-          ${report.content ? `<button class="weekly-detail-toggle text-xs px-2 py-0.5 rounded bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors">展开</button>` : ''}
+          ${report.content ? `<button class="weekly-detail-toggle text-xs px-3 py-1.5 rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors">展开</button>` : ''}
         </div>
       </div>
       ${report.content ? `<div class="weekly-detail-content hidden mt-2 p-2.5 rounded-lg bg-gray-50 text-xs text-gray-600 whitespace-pre-line">${report.content}</div>` : '<p class="text-xs text-gray-400 mt-1">暂无内容</p>'}
@@ -931,11 +931,11 @@ function _showArchiveUploadModal() {
     <div class="px-5 py-4 space-y-3.5 overflow-y-auto">
       <div>
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">关联活动 <span class="text-red-500">*</span></label>
-        <select id="upload-activity" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">${activityOptions}</select>
+        <select id="upload-activity" class="input-flat text-xs w-full">${activityOptions}</select>
       </div>
       <div>
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">材料类别</label>
-        <select id="upload-category" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">
+        <select id="upload-category" class="input-flat text-xs w-full">
           ${MATERIAL_STANDARDS.map(s => `<option value="${s.category}">${s.category}</option>`).join('')}
         </select>
       </div>
@@ -954,7 +954,7 @@ function _showArchiveUploadModal() {
     </div>
     <div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">
       <button id="upload-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
-      <button id="upload-confirm" class="text-xs px-4 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent}">上传</button>
+      <button id="upload-confirm" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent}">上传</button>
     </div>
   `;
 

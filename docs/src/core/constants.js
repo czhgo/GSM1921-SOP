@@ -154,6 +154,38 @@ export const ACCENT_COLORS = {
   all:                 { hex: '#0E7490' },  // 深青
 };
 
+// ── 主题色个性化（书记指令 2026-08-06：侧边栏设置，所有角色均可选）──
+// 语义色（ROLE_COLORS：日历任务色点/考察等级/参与者标识/活动类别色）全站固定，不受此设置影响；
+// 强调色（ACCENT_COLORS：按钮/标签/卡片强调）可通过侧边栏「主题色」选择器个性化。
+
+/**
+ * 侧边栏「主题色」选色板的可选色（按 ACCENT_COLORS 去重，保持角色键语义）
+ * key = 角色键（决定衍生色），label = 展示名，hex = 色值
+ */
+export const ACCENT_PALETTE = (() => {
+  const seen = new Set();
+  const list = [];
+  for (const [key, { hex }] of Object.entries(ACCENT_COLORS)) {
+    if (seen.has(hex)) continue;
+    seen.add(hex);
+    list.push({ key, hex, label: ROLE_LABELS[key] || key });
+  }
+  return list;
+})();
+
+/**
+ * 解析当前生效的强调色角色键（主题色个性化覆盖）
+ * 优先读取 localStorage workflowos_accent_role（侧边栏「主题色」写入），
+ * 未设置或键无效时回退到传入的 preferredRole。
+ * @param {string} preferredRole — 页面默认角色键
+ * @returns {string} 生效的角色键
+ */
+export function resolveAccentRole(preferredRole) {
+  const stored = localStorage.getItem('workflowos_accent_role');
+  if (stored && ACCENT_COLORS[stored]) return stored;
+  return preferredRole;
+}
+
 /**
  * 获取角色的 accent 三件套
  * @param {string} role — 角色键名

@@ -184,8 +184,8 @@ function _renderTodoDetail(todo) {
       <div class="text-xs text-gray-400">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
         ${todo.status !== 'completed' ? `
-          <button class="leader-todo-detail-complete text-xs px-4 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">标记完成</button>
-          ${todo.actionType ? `<button class="leader-todo-detail-action text-xs px-4 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
+          <button class="leader-todo-detail-complete text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">标记完成</button>
+          ${todo.actionType ? `<button class="leader-todo-detail-action text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
         ` : '<span class="text-xs text-green-600">已完成</span>'}
       </div>
     </div>
@@ -327,7 +327,7 @@ function _renderWriteContent(activities) {
           <div class="mt-3">
             <div class="flex items-center justify-between mb-1.5">
               <span class="text-xs font-bold font-title-cn" style="color:${cfg.color}">${cfg.label} (${items.length})</span>
-              <button class="act-sub-add-btn text-xs px-2 py-1 rounded border hover:bg-gray-50 transition-colors" style="color:${cfg.color};border-color:${cfg.color}40" data-type="${type}">+ 添加</button>
+              <button class="act-sub-add-btn text-xs px-3 py-1.5 rounded-lg border hover:bg-gray-50 transition-colors" style="color:${cfg.color};border-color:${cfg.color}40" data-type="${type}">+ 添加</button>
             </div>
             ${items.length === 0
               ? '<p class="text-[12px] text-gray-300 pl-2">暂无记录</p>'
@@ -350,7 +350,7 @@ function _renderWriteContent(activities) {
         <div class="mt-3 pt-3 border-t border-gray-100">
           <div class="flex items-center justify-between mb-2">
             <h6 class="font-title-cn text-xs font-bold text-gray-600">活动角色</h6>
-            <button id="btn-save-activity-roles" class="text-xs px-3 py-1 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">保存角色</button>
+            <button id="btn-save-activity-roles" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">保存角色</button>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
@@ -470,8 +470,8 @@ function _renderWriteContent(activities) {
                   <input class="f-note input-flat text-xs flex-1" placeholder="备注（选填）">
                 </div>
                 <div class="flex gap-2 justify-end">
-                  <button type="button" class="act-sub-cancel-btn text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1 rounded-lg text-white transition-colors" style="background:${accent};">提交</button>
+                  <button type="button" class="act-sub-cancel-btn text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
+                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="background:${accent};">提交</button>
                 </div>
               </div>`;
           } else if (type === 'inspection') {
@@ -483,8 +483,8 @@ function _renderWriteContent(activities) {
                 <textarea class="f-content input-flat text-xs w-full resize-none mb-2" rows="2" placeholder="考察内容描述（必填）"></textarea>
                 <select class="f-result input-flat text-xs w-full mb-2">${resultOpts.map(r => `<option>${r}</option>`).join('')}</select>
                 <div class="flex gap-2 justify-end">
-                  <button type="button" class="act-sub-cancel-btn text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1 rounded-lg text-white transition-colors" style="background:${accent};">提交</button>
+                  <button type="button" class="act-sub-cancel-btn text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
+                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="background:${accent};">提交</button>
                 </div>
               </div>`;
           } else {
@@ -495,8 +495,8 @@ function _renderWriteContent(activities) {
                 ${routeHint(type)}
                 ${fields.map(([key, label]) => `<input class="f-${key} input-flat text-xs w-full mb-2" placeholder="${label}${key === 'title' || key === 'name' ? '（必填）' : '（选填）'}">`).join('')}
                 <div class="flex gap-2 justify-end">
-                  <button type="button" class="act-sub-cancel-btn text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1 rounded-lg text-white transition-colors" style="background:${accent};">提交</button>
+                  <button type="button" class="act-sub-cancel-btn text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
+                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="background:${accent};">提交</button>
                 </div>
               </div>`;
           }
@@ -726,8 +726,8 @@ function _renderDecisionTreePanel() {
       </div>
 
       <div class="flex items-center gap-3">
-        <button id="dt-submit" class="text-sm px-5 py-2 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">写入活动</button>
-        <button id="dt-cancel" class="text-sm px-4 py-2 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+        <button id="dt-submit" class="text-sm px-5 py-2.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">写入活动</button>
+        <button id="dt-cancel" class="text-sm px-5 py-2.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
     </div>
   ` : '';
@@ -948,8 +948,8 @@ function _renderAttendanceContent() {
       </div>
       <div id="att-status-rows" class="mb-3"></div>
       <div class="flex items-center gap-3">
-        <button id="att-form-submit" class="text-sm px-5 py-2 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">提交考勤</button>
-        <button id="att-form-cancel" class="text-sm px-4 py-2 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+        <button id="att-form-submit" class="text-sm px-5 py-2.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">提交考勤</button>
+        <button id="att-form-cancel" class="text-sm px-5 py-2.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
     </div>
   ` : '';
@@ -1111,7 +1111,7 @@ function _renderAttStatusRows(selectedIds) {
         <option value="${AttendanceStatus.ABSENT}">全部缺勤</option>
         <option value="${AttendanceStatus.LEAVE}">全部请假</option>
       </select>
-      <button id="att-batch-apply" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">应用到全部</button>
+      <button id="att-batch-apply" type="button" class="text-xs px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">应用到全部</button>
     </div>
     <div class="space-y-2 max-h-48 overflow-y-auto">
       ${selectedIds.map(pid => {
@@ -1188,8 +1188,8 @@ function _renderInspectionContent() {
       </div>
       <div id="insp-content-rows" class="mb-3"></div>
       <div class="flex items-center gap-3">
-        <button id="insp-form-submit" class="text-sm px-5 py-2 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">提交考察</button>
-        <button id="insp-form-cancel" class="text-sm px-4 py-2 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+        <button id="insp-form-submit" class="text-sm px-5 py-2.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">提交考察</button>
+        <button id="insp-form-cancel" class="text-sm px-5 py-2.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
     </div>
   ` : '';
@@ -1528,7 +1528,7 @@ function _renderReviewForm(act, rev) {
       ` : ''}
       <textarea id="review-textarea-${act.id}" class="input-flat w-full text-xs resize-none" rows="4" placeholder="请填写复盘总结（活动成效、经验教训、改进建议等）">${existingContent}</textarea>
       <div class="flex items-center gap-2 mt-2">
-        <button class="btn-review-submit text-xs px-4 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" data-act-id="${act.id}" style="background:${accent};cursor:pointer;">提交复盘</button>
+        <button class="btn-review-submit text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" data-act-id="${act.id}" style="background:${accent};cursor:pointer;">提交复盘</button>
         <span class="text-xs text-gray-400">提交后纪检委员将在监督复盘tab收到通知</span>
       </div>
     </div>

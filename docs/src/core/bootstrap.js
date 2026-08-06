@@ -9,7 +9,7 @@ import { renderHeader } from '../components/header.js';
 import { AuthStore } from '../services/auth.js';
 import { IssueStore } from '../services/issues.js';
 import { MilestoneStore } from '../services/milestones.js';
-import { getAccentColors } from './constants.js';
+import { getAccentColors, resolveAccentRole } from './constants.js';
 import { CrossPageState } from './cross-page-state.js';
 import { getBasePath } from './utils.js';
 import { enhanceSelects } from '../components/custom-select.js';
@@ -121,13 +121,14 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
   renderSidebar(module);
   renderHeader(module);
 
-  // 强调色
+  // 强调色（主题色个性化：resolveAccentRole 优先读侧边栏「主题色」设置）
   let accent, accentRgba, accentBorder;
   if (accentRole) {
+    const effRole = resolveAccentRole(accentRole);
     if (accentAlpha) {
-      ({ accent, accentRgba, accentBorder } = getAccentColors(accentRole, accentAlpha[0], accentAlpha[1]));
+      ({ accent, accentRgba, accentBorder } = getAccentColors(effRole, accentAlpha[0], accentAlpha[1]));
     } else {
-      ({ accent, accentRgba, accentBorder } = getAccentColors(accentRole));
+      ({ accent, accentRgba, accentBorder } = getAccentColors(effRole));
     }
   }
 

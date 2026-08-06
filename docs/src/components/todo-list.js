@@ -227,9 +227,9 @@ function _renderTodoItem(prefix, todo, accent, today, selectedTodoId, actionBtnS
       </button>
       <div class="flex items-center gap-1.5 ml-2 pr-3 flex-shrink-0">
         ${hasAction ? `
-          <button type="button" class="${prefix}-todo-action-btn text-xs px-2 py-1 rounded transition-colors hover:opacity-90" data-todo-id="${todo.id}" style="${actionBtnStyle || `background:${accent};color:#fff;`}">${actionLabel}</button>
+          <button type="button" class="${prefix}-todo-action-btn text-xs px-3 py-1.5 rounded-lg transition-colors hover:opacity-90" data-todo-id="${todo.id}" style="${actionBtnStyle || `background:${accent};color:#fff;`}">${actionLabel}</button>
         ` : ''}
-        <button type="button" class="${prefix}-todo-complete-btn text-xs px-2 py-1 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" data-todo-id="${todo.id}" aria-label="标记完成">✓</button>
+        <button type="button" class="${prefix}-todo-complete-btn text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" data-todo-id="${todo.id}" aria-label="标记完成">✓</button>
       </div>
     </div>
   `;

@@ -303,13 +303,13 @@ function _renderActivities(activities, highlightId) {
     <div class="flex items-center justify-between mb-3">
       <span class="text-xs text-gray-500">${sorted.length} 条活动</span>
       <div class="flex gap-1">
-        <button class="visitor-view-btn px-2.5 py-1 text-xs rounded-lg border transition-colors" data-vview="list" style="background:rgba(206,17,38,0.08);color:var(--primary-700);border:1px solid rgba(206,17,38,0.2);">
+        <button class="visitor-view-btn px-3 py-1.5 text-xs rounded-lg border transition-colors" data-vview="list" style="background:rgba(206,17,38,0.08);color:var(--primary-700);border:1px solid rgba(206,17,38,0.2);">
           ${icon('list', { className: 'w-3.5 h-3.5' })} 列表
         </button>
-        <button class="visitor-view-btn px-2.5 py-1 text-xs rounded-lg border transition-colors" data-vview="calendar" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">
+        <button class="visitor-view-btn px-3 py-1.5 text-xs rounded-lg border transition-colors" data-vview="calendar" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">
           ${icon('calendar', { className: 'w-3.5 h-3.5' })} 日历
         </button>
-        <button class="visitor-view-btn px-2.5 py-1 text-xs rounded-lg border transition-colors" data-vview="query" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">
+        <button class="visitor-view-btn px-3 py-1.5 text-xs rounded-lg border transition-colors" data-vview="query" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">
           ${icon('search', { className: 'w-3.5 h-3.5' })} 查询
         </button>
       </div>
@@ -673,8 +673,8 @@ function _renderTodoDetail(todo) {
       <div class="text-xs text-gray-400">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
         ${todo.status !== 'completed' ? `
-          <button class="visitor-todo-detail-complete text-xs px-4 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:#16A34A;">标记完成</button>
-          ${todo.actionType ? `<button class="visitor-todo-detail-action text-xs px-4 py-1.5 rounded-lg transition-colors" style="background:rgba(255,215,0,0.12);color:#B45309;border:1px solid rgba(255,215,0,0.35);">处理</button>` : ''}
+          <button class="visitor-todo-detail-complete text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:#16A34A;">标记完成</button>
+          ${todo.actionType ? `<button class="visitor-todo-detail-action text-xs px-3 py-1.5 rounded-lg transition-colors" style="background:rgba(255,215,0,0.12);color:#B45309;border:1px solid rgba(255,215,0,0.35);">处理</button>` : ''}
         ` : '<span class="text-xs text-green-600">已完成</span>'}
       </div>
     </div>

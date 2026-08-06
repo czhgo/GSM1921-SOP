@@ -8,6 +8,7 @@
 import { AuthStore } from '../services/auth.js';
 import { getBasePath } from '../core/utils.js';
 import { icon } from '../core/icons.js';
+import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js';
 import { bindWorkspacePopover } from './workspace-popover.js';
 
 // 记录当前 activeModule，供 view-role-change 事件触发 re-render 使用
@@ -74,6 +75,10 @@ export function renderSidebar(activeModule) {
     </a>
   `).join('');
 
+  // 主题色：当前生效强调色（个性化覆盖优先）
+  const effAccentKey = resolveAccentRole(role);
+  const effAccentHex = ACCENT_COLORS[effAccentKey]?.hex || '#B91C1C';
+
   sidebar.innerHTML = `
     <nav class="sidebar-nav">
       <div class="flex flex-col gap-2 mb-2">${navHTML}</div>
@@ -85,6 +90,10 @@ export function renderSidebar(activeModule) {
         <button id="font-size-medium" class="font-size-btn ${_currentFontSize() === 'medium' ? 'active' : ''}" title="中号字体">中</button>
         <button id="font-size-large" class="font-size-btn ${_currentFontSize() === 'large' ? 'active' : ''}" title="大号字体">大</button>
       </div>
+      <div class="sidebar-accent-toggle">
+        <span style="font-size:0.65rem;color:var(--neutral-400);">主题色</span>
+        <button id="sidebar-accent-swatch" class="accent-swatch" style="background:${effAccentHex}" title="主题色（全站强调色）"></button>
+      </div>
       <button id="sidebar-logout" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-400);cursor:pointer;border:none;background:none;">
         ${icon('logout', { stroke: 'var(--neutral-400)' })}
         <span>退出登录</span>
@@ -94,6 +103,7 @@ export function renderSidebar(activeModule) {
 
   _bindLogout(sidebar);
   _bindFontSizeToggle(sidebar);
+  _bindAccentToggle(sidebar);
   bindWorkspacePopover(sidebar);
 }
 
@@ -128,6 +138,71 @@ function _bindFontSizeToggle(sidebar) {
 
   btnMedium.addEventListener('click', () => apply('medium'));
   btnLarge.addEventListener('click', () => apply('large'));
+}
+
+// ── 主题色切换（书记指令 2026-08-06：侧边栏设置，全站强调色个性化）──
+function _currentAccentKey() {
+  const user = AuthStore.getCurrentUser();
+  const role = user ? AuthStore.getUserRole(user.personId) : '';
+  return resolveAccentRole(role);
+}
+
+function _bindAccentToggle(sidebar) {
+  const swatch = sidebar.querySelector('#sidebar-accent-swatch');
+  if (!swatch) return;
+  swatch.addEventListener('click', (e) => {
+    e.stopPropagation();
+    _toggleAccentPalette(swatch);
+  });
+}
+
+function _toggleAccentPalette(swatch) {
+  const existing = document.getElementById('accent-palette-popover');
+  if (existing) { existing.remove(); return; }
+
+  const currentKey = _currentAccentKey();
+  const popover = document.createElement('div');
+  popover.id = 'accent-palette-popover';
+  popover.className = 'accent-palette';
+  popover.innerHTML = `
+    <div class="accent-palette-title">主题色 · 全站强调色</div>
+    <div class="accent-palette-grid">
+      ${ACCENT_PALETTE.map(c => `
+        <button type="button" class="accent-swatch-opt ${c.key === currentKey ? 'active' : ''}" data-key="${c.key}" title="${c.label}" style="background:${c.hex}"></button>
+      `).join('')}
+    </div>
+    <div class="accent-palette-names">
+      ${ACCENT_PALETTE.map(c => `<span class="${c.key === currentKey ? 'active' : ''}" data-name-for="${c.key}">${c.label}</span>`).join('')}
+    </div>
+  `;
+  document.body.appendChild(popover);
+
+  // 定位（fixed，基于 swatch 位置，避免被侧边栏 overflow 裁剪）
+  const rect = swatch.getBoundingClientRect();
+  const w = popover.offsetWidth;
+  let left = rect.left;
+  if (left + w > window.innerWidth - 8) left = window.innerWidth - w - 8;
+  popover.style.top = (rect.bottom + 6) + 'px';
+  popover.style.left = left + 'px';
+
+  // 选择 → 写入 localStorage + 刷新全站生效
+  popover.querySelectorAll('.accent-swatch-opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      localStorage.setItem('workflowos_accent_role', btn.dataset.key);
+      window.location.reload();
+    });
+  });
+
+  // 点击外部关闭
+  setTimeout(() => {
+    const outside = (ev) => {
+      if (!popover.contains(ev.target) && ev.target !== swatch) {
+        popover.remove();
+        document.removeEventListener('click', outside);
+      }
+    };
+    document.addEventListener('click', outside);
+  }, 0);
 }
 
 // ── 订阅 view-role-change 事件，重新渲染链接（不 reload） ───
