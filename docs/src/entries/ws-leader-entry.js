@@ -8,7 +8,7 @@ import { loadWorkspaceData } from '../core/data-loader.js';
 import { attendanceToLong, inspectionToLong, PEOPLE, getPersonById, getPersonName } from '../mock/index.js';
 import { PersonPicker } from '../components/person-picker.js';
 import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, ReviewStatus, REVIEW_STATUS_LABELS } from '../core/domain.js';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, ReviewStatus, REVIEW_STATUS_LABELS, OutputType, deriveOutputRoute } from '../core/domain.js';
 import { persist } from '../core/data-adapter.js';
 import { loadMakeupTasks } from '../services/makeup.js';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js';
@@ -449,10 +449,21 @@ function _renderWriteContent(activities) {
           };
 
           let formHtml = '';
+          // T-224 §5.5：投递去向由产出类型派生（系统内置），组织者只见「提交」不见「发送对象」
+          const routeHint = (type) => {
+            const map = {
+              attendance: OutputType.ATTENDANCE,
+              inspection: OutputType.INSPECTION,
+              publicity: OutputType.PUBLICITY,
+            };
+            const route = deriveOutputRoute(map[type]);
+            return route ? `<div class="text-[11px] text-gray-400 mb-2">提交后自动投递：${route.route} → ${route.sink}</div>` : '';
+          };
           if (type === 'attendance') {
             formHtml = `
               <div class="act-sub-inline-form mt-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
                 <div class="text-[12px] font-bold text-gray-600 mb-2">添加考勤记录（同步正式考勤库）</div>
+                ${routeHint('attendance')}
                 <div class="mb-2 act-sub-picker"></div>
                 <div class="flex gap-2 mb-2">
                   <select class="f-status input-flat text-xs flex-1">${statusOpts.map(s => `<option value="${s.value}">${s.label}</option>`).join('')}</select>
@@ -460,19 +471,20 @@ function _renderWriteContent(activities) {
                 </div>
                 <div class="flex gap-2 justify-end">
                   <button type="button" class="act-sub-cancel-btn text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1 rounded-lg text-white transition-colors" style="background:${accent};">保存</button>
+                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1 rounded-lg text-white transition-colors" style="background:${accent};">提交</button>
                 </div>
               </div>`;
           } else if (type === 'inspection') {
             formHtml = `
               <div class="act-sub-inline-form mt-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
                 <div class="text-[12px] font-bold text-gray-600 mb-2">添加考察记录（同步正式考察库，待纪检委员确认）</div>
+                ${routeHint('inspection')}
                 <div class="mb-2 act-sub-picker"></div>
                 <textarea class="f-content input-flat text-xs w-full resize-none mb-2" rows="2" placeholder="考察内容描述（必填）"></textarea>
                 <select class="f-result input-flat text-xs w-full mb-2">${resultOpts.map(r => `<option>${r}</option>`).join('')}</select>
                 <div class="flex gap-2 justify-end">
                   <button type="button" class="act-sub-cancel-btn text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1 rounded-lg text-white transition-colors" style="background:${accent};">保存</button>
+                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1 rounded-lg text-white transition-colors" style="background:${accent};">提交</button>
                 </div>
               </div>`;
           } else {
@@ -480,10 +492,11 @@ function _renderWriteContent(activities) {
             formHtml = `
               <div class="act-sub-inline-form mt-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
                 <div class="text-[12px] font-bold text-gray-600 mb-2">添加${type === 'publicity' ? '宣传' : '材料'}记录</div>
+                ${routeHint(type)}
                 ${fields.map(([key, label]) => `<input class="f-${key} input-flat text-xs w-full mb-2" placeholder="${label}${key === 'title' || key === 'name' ? '（必填）' : '（选填）'}">`).join('')}
                 <div class="flex gap-2 justify-end">
                   <button type="button" class="act-sub-cancel-btn text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1 rounded-lg text-white transition-colors" style="background:${accent};">保存</button>
+                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1 rounded-lg text-white transition-colors" style="background:${accent};">提交</button>
                 </div>
               </div>`;
           }

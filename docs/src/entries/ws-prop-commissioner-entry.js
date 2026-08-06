@@ -313,7 +313,7 @@ function _renderKanbanContent(activities, propTf) {
   // 专班按状态分桶（宣传相关）
   const pendingTf = propTf.filter(t => t.status === 'draft' || t.status === 'pending_review' || t.status === 'recruiting');
   const activeTf = propTf.filter(t => t.status === 'active');
-  const completedTf = propTf.filter(t => t.status === 'completed');
+  const completedTf = propTf.filter(t => t.status === 'completed' || t.status === 'archived');
 
   // 合并待启动：活动 + 专班（T223 桶内新者在前）
   const pending = [
@@ -380,10 +380,11 @@ function _renderKanbanContent(activities, propTf) {
       const tfId = btn.dataset.tfId;
       const tf = TaskForceRecordStore.getAll().find(r => r.id === tfId);
       if (!tf || tf.status !== 'active') return;
-      const confirmed = window.confirm(`确认完成专班「${tf.name}」？完成后将归入已归档。`);
+      // T-224 §7 关闭权归组织委员：宣传端仅「归档」（active→archived 合法迁移），不置 completed（解散语义）
+      const confirmed = window.confirm(`确认归档专班「${tf.name}」？归档不回收赋权、不生成工作量报告；解散由组织委员执行。`);
       if (!confirmed) return;
-      TaskForceRecordStore.update(tfId, { status: 'completed' });
-      showToast('success', `专班「${tf.name}」已完成并归档`);
+      TaskForceRecordStore.updateStatus(tfId, 'archived');
+      showToast('success', `专班「${tf.name}」已归档`);
       renderPropUI(getAppState());
     });
   });
@@ -399,7 +400,7 @@ function _renderKanbanItem(item, showCompleteBtn = false) {
     : '';
   const completeBtn = showCompleteBtn
     ? (isTf
-      ? `<button class="tf-complete-btn text-xs px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-tf-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`
+      ? `<button class="tf-complete-btn text-xs px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-tf-id="${item.id}" onclick="event.stopPropagation();">归档专班</button>`
       : `<button class="activity-complete-btn text-xs px-2 py-1 rounded bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-act-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`)
     : '';
   return `

@@ -735,7 +735,11 @@ function _renderOverviewContent() {
   const metricChips = (metrics) => metrics.map(m => `
     <span class="inline-flex items-center gap-1.5 text-xs">
       <span class="text-gray-500">${m.label}</span>
-      <span class="font-medium ${m.alert ? 'text-orange-600' : 'text-gray-800'}">${m.value}</span>
+      ${m.direct
+        ? `<button type="button" class="sec-urge-btn font-medium ${m.alert ? 'text-orange-600' : 'text-gray-800'} hover:underline cursor-pointer" data-direct="${m.direct}">${m.value}</button>`
+        : m.urge
+          ? `<button type="button" class="sec-urge-btn font-medium ${m.alert ? 'text-orange-600' : 'text-gray-800'} hover:underline cursor-pointer" data-urge="${m.urge}">${m.value}</button>`
+          : `<span class="font-medium ${m.alert ? 'text-orange-600' : 'text-gray-800'}">${m.value}</span>`}
       ${m.alert && m.urge ? `<button type="button" class="sec-urge-btn text-xs px-1.5 py-0.5 rounded-md border border-orange-200 text-orange-600 hover:bg-orange-50 transition-colors" data-urge="${m.urge}">催办</button>` : ''}
       ${m.alert && m.direct ? `<button type="button" class="sec-urge-btn text-xs px-1.5 py-0.5 rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" data-direct="${m.direct}">直达</button>` : ''}
     </span>
@@ -771,8 +775,8 @@ function _renderOverviewContent() {
       rate: data.activity.reviewRate,
       rateLabel: '复盘完成率',
       metrics: [
-        { label: '进行中活动', value: data.activity.activeActivities },
-        { label: '进行中专班', value: data.activity.activeTaskforces },
+        { label: '进行中活动', value: data.activity.activeActivities, direct: 'calendar' },
+        { label: '进行中专班', value: data.activity.activeTaskforces, direct: 'calendar' },
         { label: '赋权待审批', value: data.activity.pendingAuth, alert: data.activity.pendingAuth > 0, direct: 'assign' },
       ],
     },
@@ -784,7 +788,7 @@ function _renderOverviewContent() {
       rateLabel: '归档完成率',
       metrics: [
         { label: '待归档', value: data.propaganda.pendingArchive, alert: data.propaganda.pendingArchive > 0, urge: 'archive-pending' },
-        { label: '本月通知', value: data.propaganda.noticeCount },
+        { label: '本月通知', value: data.propaganda.noticeCount, direct: 'notification' },
       ],
     },
   ];
@@ -843,7 +847,8 @@ function _renderOverviewContent() {
       const tabId = btn.dataset.direct;
       const tabBtn = document.querySelector(`.secretary-tab-btn[data-secretary-tab="${tabId}"]`);
       if (tabBtn) tabBtn.click();
-      showToast('info', '已直达赋权管理，请处理待审批赋权');
+      const tabLabels = { calendar: '活动管理', assign: '赋权管理', notification: '通知发布' };
+      showToast('info', `已直达${tabLabels[tabId] || '对应功能'}`);
     });
   });
 }

@@ -671,10 +671,45 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
 //  专班解散流程（P1-5）
 // ════════════════════════════════════════════════════════════════
 
+function _showDissolveBlockModal(tf, missing) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+  const card = document.createElement('div');
+  card.style.cssText = 'background:#fff;border-radius:var(--radius-lg);padding:20px 22px;max-width:360px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);';
+  card.innerHTML =
+    `<p class="font-bold text-sm text-gray-800 mb-1">无法解散「${tf.name}」</p>`
+    + '<p class="text-xs text-gray-500 mb-3">以下产出未齐，补齐后方可解散：</p>'
+    + '<ul class="space-y-1.5 mb-4">'
+    + missing.map(m =>
+        `<li class="text-xs text-red-600 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0"></span>${m}</li>`
+      ).join('')
+    + '</ul>'
+    + '<button class="text-xs text-white px-4 py-1.5 rounded-lg w-full transition-colors" style="background:#CE1126;">知道了</button>';
+  card.querySelector('button').addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  card.addEventListener('click', e => e.stopPropagation());
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+}
+
 async function _dissolveTaskforce(tf) {
   if (!tf || tf.status !== 'active') return;
 
-  const confirmed = window.confirm(`确定解散专班「${tf.name}」？解散后将回收所有相关赋权记录。`);
+  // T-224 §7 专班关闭条件：考察确认 + 工作量报告；产出缺失阻塞解散，缺失项明确显示
+  const tfInspections = loadInspectionRecords().filter(r => r.sourceType === SourceType.TASKFORCE && r.sourceName === tf.name);
+  const inspPending = tfInspections.filter(r => r.status !== 'confirmed').length;
+  const hasWorkload = (tf.members || []).some(m => (m.contributions || []).length > 0);
+  const missing = [];
+  if (tfInspections.length === 0) missing.push('专班考察记录（尚未上传考察）');
+  else if (inspPending > 0) missing.push(`考察确认（${inspPending} 条待纪检确认）`);
+  if (!hasWorkload) missing.push('工作量报告（成员无产出记录）');
+
+  if (missing.length > 0) {
+    _showDissolveBlockModal(tf, missing);
+    return;
+  }
+
+  const confirmed = window.confirm(`确定解散专班「${tf.name}」？解散后将自动生成工作量汇总报告并回收所有相关赋权记录。`);
   if (!confirmed) return;
 
   // 1. 主源：清空 members（含角色）并置状态 completed
@@ -1344,6 +1379,7 @@ function _renderOrgInspectionContent() {
         <button id="org-insp-form-submit" class="text-sm px-5 py-2 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">提交考察</button>
         <button id="org-insp-form-cancel" class="text-sm px-4 py-2 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
+      <p class="text-[11px] text-gray-400 mt-2">提交后自动投递：纪检确认 → 考察总表（组织委员建档），无需手动选择接收方</p>
     </div>
   ` : '';
 

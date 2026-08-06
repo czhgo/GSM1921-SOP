@@ -14,6 +14,10 @@ import { BranchService } from '../services/runtime.js';
 import { AuthStore } from '../services/auth.js';
 import { statusBadgeHtml, bindStatusBadge } from './status-badge.js';
 import { persist } from '../core/data-adapter.js';
+import { loadAttendanceRecords } from '../services/attendance.js';
+import { loadInspectionRecords } from '../services/inspection.js';
+import { loadActivityReviews } from '../services/review.js';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -224,6 +228,168 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
 }
 
 // ════════════════════════════════════════════════════════════════
+//  产出物区（T-224 §8 附件查看窗口）
+//  同源读取：考勤/考察正式库 + actSubRecords 子记录 + 档案归档记录，
+//  投递去向由产出类型派生（OUTPUT_ROUTES 路由表，非人工录入）。
+// ════════════════════════════════════════════════════════════════
+function _buildOutputsSectionHTML(activity) {
+  const actId = activity.id;
+
+  // 考勤数据（正式库，同源）
+  const atts = loadAttendanceRecords().filter(r => r.activityId === actId);
+  const attRoute = deriveOutputRoute(OutputType.ATTENDANCE);
+
+  // 工作考察（正式库，同源；专班考察不计入活动详情）
+  const inss = loadInspectionRecords().filter(r => r.activityId === actId);
+  const inspRoute = deriveOutputRoute(OutputType.INSPECTION);
+
+  // 宣传材料（同源：leader actSubRecords.publicity + 宣传委员 archiveRecords）
+  const actSubs = (mockDB.actSubRecords && mockDB.actSubRecords[actId]) || {};
+  const publicitySubs = actSubs.publicity || [];
+  const archiveRecs = (mockDB.archiveRecords || []).filter(r => r.activityName === activity.title);
+  const pubRoute = deriveOutputRoute(OutputType.PUBLICITY);
+
+  // 复盘总结（正式库，同源）
+  const review = loadActivityReviews().find(r => r.activityId === actId) || null;
+  const reviewRoute = deriveOutputRoute(OutputType.REVIEW);
+
+  // 产出物行：色点 + 名称 + 自动投递去向 + 状态徽标
+  const row = (label, route, statusHtml) => `
+    <div class="flex items-center gap-2 text-xs py-1">
+      <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${route && route.color || '#9CA3AF'};"></span>
+      <span class="text-gray-600 flex-shrink-0">${label}</span>
+      <span class="text-gray-400 text-[11px] flex-1 truncate">${route ? route.route : ''}</span>
+      ${statusHtml}
+    </div>`;
+
+  const badge = (text, cls) => `<span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${cls}">${text}</span>`;
+
+  const attStatus = atts.length === 0
+    ? badge('未提交', 'bg-gray-100 text-gray-500')
+    : atts.every(r => r.recordedBy)
+      ? badge(`已确认 ${atts.length}`, 'bg-green-50 text-green-700')
+      : badge(`待确认 ${atts.filter(r => !r.recordedBy).length}`, 'bg-orange-50 text-orange-700');
+
+  const inspStatus = inss.length === 0
+    ? badge('未提交', 'bg-gray-100 text-gray-500')
+    : inss.every(r => r.status === 'confirmed')
+      ? badge(`已确认 ${inss.length}`, 'bg-green-50 text-green-700')
+      : badge(`待确认 ${inss.filter(r => r.status !== 'confirmed').length}`, 'bg-orange-50 text-orange-700');
+
+  const pubItems = [
+    ...publicitySubs.map(p => ({ title: p.title || '宣传材料', meta: [p.author, p.channel].filter(Boolean).join(' · '), status: '已提交' })),
+    ...archiveRecs.map(a => ({ title: `${a.category || '材料'}：${a.activityName}`, meta: a.archiveDate || '', status: a.status === 'archived' ? '已归档' : (a.status === 'in_progress' ? '归档中' : '待归档') })),
+  ];
+  const pubStatus = pubItems.length === 0
+    ? badge('未归档', 'bg-gray-100 text-gray-500')
+    : badge(`${pubItems.length} 项`, 'bg-sky-50 text-sky-700');
+
+  const reviewStatus = !review
+    ? badge('未提交', 'bg-gray-100 text-gray-500')
+    : (review.reviewStatus === ReviewStatus.CONFIRMED
+      ? badge('已确认', 'bg-green-50 text-green-700')
+      : badge(review.reviewStatus || '待处理', 'bg-orange-50 text-orange-700'));
+
+  return `
+    <div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3">
+      <div class="flex items-center justify-between mb-1.5">
+        <p class="text-xs text-gray-400">产出物</p>
+        <span class="text-[11px] text-gray-300">投递去向由类型自动确定</span>
+      </div>
+      ${row('考勤', attRoute, attStatus)}
+      ${row('考察', inspRoute, inspStatus)}
+      ${row('宣传', pubRoute, pubStatus)}
+      ${row('复盘', reviewRoute, reviewStatus)}
+      ${pubItems.length > 0 ? `
+        <div class="mt-1.5 pt-1.5 border-t border-gray-100">
+          <div class="text-[11px] text-gray-400 mb-1">宣传材料预览：</div>
+          ${pubItems.slice(0, 5).map(it => `
+            <div class="flex items-center justify-between text-[11px] text-gray-600 py-0.5">
+              <span class="truncate pr-2">${it.title}</span>
+              <span class="text-gray-400 flex-shrink-0">${it.meta ? it.meta + ' · ' : ''}${it.status}</span>
+            </div>`).join('')}
+          ${pubItems.length > 5 ? `<div class="text-[11px] text-gray-400">…另有 ${pubItems.length - 5} 项</div>` : ''}
+        </div>` : ''}
+    </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  分类型关闭条件（T-224 §7）
+//  三会一课（党小组会/支委会/党课/支部党员大会）→ 书记关闭：
+//    会议纪要 + 请假已确认（缺勤需补课闭环）
+//  主题党日 → 书记关闭：
+//    考勤确认 + 考察确认 + 复盘确认 + 宣传归档
+//  专班 → 组织委员解散（另见 ws-org-commissioner-entry）：
+//    考察确认 + 工作量报告
+//  产出缺失阻塞关闭，缺失项在关闭入口明确显示（最小信息成本）。
+// ════════════════════════════════════════════════════════════════
+const MEETING_TYPES = ['党小组会', '支委会', '党课', '支部党员大会'];
+
+export function checkActivityCloseConditions(activity) {
+  const actId = activity.id;
+  const type = activity.type || '';
+  const missing = [];
+
+  const atts = loadAttendanceRecords().filter(r => r.activityId === actId);
+  const inss = loadInspectionRecords().filter(r => r.activityId === actId);
+  const review = loadActivityReviews().find(r => r.activityId === actId) || null;
+  const actSubs = (mockDB.actSubRecords && mockDB.actSubRecords[actId]) || {};
+  const pubItems = [
+    ...(actSubs.publicity || []),
+    ...(mockDB.archiveRecords || []).filter(r => r.activityName === activity.title),
+  ];
+
+  if (MEETING_TYPES.includes(type)) {
+    // 三会一课：请假已确认 + 缺勤补课闭环 + 会议纪要
+    const leavePending = atts.filter(r => r.status === AttendanceStatus.LEAVE && !r.recordedBy).length;
+    const absentUnclosed = atts.filter(r => r.status === AttendanceStatus.ABSENT).length;
+    if (leavePending > 0) missing.push(`请假确认（${leavePending} 条待确认）`);
+    if (absentUnclosed > 0) missing.push(`缺勤补课闭环（${absentUnclosed} 人缺勤未补）`);
+    if ((actSubs.materials || []).length === 0) missing.push('会议纪要');
+  } else if (type === '主题党日') {
+    // 主题党日：考勤确认 + 考察确认 + 复盘确认 + 宣传归档
+    if (atts.length === 0) {
+      missing.push('考勤');
+    } else {
+      const attPending = atts.filter(r => !r.recordedBy).length;
+      if (attPending > 0) missing.push(`考勤确认（${attPending} 条待确认）`);
+    }
+    if (inss.length === 0) {
+      missing.push('考察');
+    } else {
+      const inspPending = inss.filter(r => r.status !== 'confirmed').length;
+      if (inspPending > 0) missing.push(`考察确认（${inspPending} 条待确认）`);
+    }
+    if (!review || review.reviewStatus !== ReviewStatus.CONFIRMED) missing.push('复盘确认');
+    if (pubItems.length === 0) missing.push('宣传归档');
+  }
+  // 其他活动类型无强制关闭前置
+
+  return { canClose: missing.length === 0, missing };
+}
+
+function _showCloseBlockModal(activity, missing) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+  const card = document.createElement('div');
+  card.style.cssText = 'background:#fff;border-radius:var(--radius-lg);padding:20px 22px;max-width:360px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);';
+  card.innerHTML =
+    `<p class="font-bold text-sm text-gray-800 mb-1">无法关闭「${activity.title}」</p>`
+    + '<p class="text-xs text-gray-500 mb-3">以下产出未齐，补齐后方可关闭：</p>'
+    + '<ul class="space-y-1.5 mb-4">'
+    + missing.map(m =>
+        `<li class="text-xs text-red-600 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0"></span>${m}</li>`
+      ).join('')
+    + '</ul>'
+    + '<button class="text-xs text-white px-4 py-1.5 rounded-lg w-full transition-colors" style="background:#CE1126;">知道了</button>';
+  card.querySelector('button').addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  card.addEventListener('click', e => e.stopPropagation());
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+}
+
+// ════════════════════════════════════════════════════════════════
 //  详情视图：渲染单个活动的任务列表与危险操作按钮
 // ════════════════════════════════════════════════════════════════
 function renderInspectorDetail(activity, tasks, managementRole) {
@@ -322,6 +488,9 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   if (activity.description) {
     html += `<div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3"><p class="text-xs text-gray-400 mb-1">活动详情</p><p class="text-xs text-gray-700 leading-relaxed">${activity.description}</p></div>`;
   }
+
+  // ── 产出物区（T-224 §8 附件查看窗口：同源读取，点击展开预览） ──
+  html += _buildOutputsSectionHTML(activity);
 
   if (visibleTasks.length > 0) {
     const completedCount = visibleTasks.filter(t => t.status === 'completed').length;
@@ -445,6 +614,12 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   const archiveBtn = document.getElementById('inspector-archive-btn');
   if (archiveBtn) {
     archiveBtn.addEventListener('click', async () => {
+      // T-224 §7 分类型关闭条件：产出缺失阻塞归档，缺失项明确显示
+      const { canClose, missing } = checkActivityCloseConditions(activity);
+      if (!canClose) {
+        _showCloseBlockModal(activity, missing);
+        return;
+      }
       if (!window.confirm('确认归档该活动？它将从主视图消失。')) return;
       try {
         setState({ status: STATE.SUBMITTING });

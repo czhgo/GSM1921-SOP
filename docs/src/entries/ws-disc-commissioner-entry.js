@@ -2,7 +2,7 @@ import { setState, registerRenderCallback } from '../core/state.js';
 import { showToast } from '../core/utils.js';
 import { CrossPageState } from '../core/cross-page-state.js';
 import { bootstrapPage } from '../core/bootstrap.js';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, ReviewStatus, SourceType } from '../core/domain.js';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, ReviewStatus, SourceType, OutputType, deriveOutputRoute } from '../core/domain.js';
 import { persist } from '../core/data-adapter.js';
 import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, reviewToDisplay, getPersonName } from '../mock/index.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
@@ -616,6 +616,15 @@ function _buildTaskforceRosterHTML() {
     const pending = total - confirmed;
     const memberNames = (tf.members || []).map(m => getPersonName(m.personId) || m.name || m.personId).filter(Boolean).join('、') || '—';
     const progressCls = pending > 0 ? 'text-orange-700' : 'text-green-700';
+    // T-224 §8 产出物查看区（纪检项目看板卡片展开面板，同源读取）
+    const inspRoute = deriveOutputRoute(OutputType.TASKFORCE_INSPECTION);
+    const workloadRoute = deriveOutputRoute(OutputType.WORKLOAD);
+    const workloadItems = (tf.members || []).flatMap(m =>
+      (m.contributions || []).map(c => ({
+        name: getPersonName(m.personId) || m.name || '成员',
+        item: typeof c === 'string' ? c : (c.description || c.title || ''),
+      }))
+    );
     return `
       <div class="rounded-lg border border-gray-100 p-3">
         <div class="flex items-center justify-between mb-1">
@@ -626,6 +635,26 @@ function _buildTaskforceRosterHTML() {
         <div class="flex items-center justify-between text-xs">
           <span class="text-gray-600 truncate mr-2">成员：${memberNames}</span>
           <span class="${progressCls} font-medium whitespace-nowrap">考察确认 ${confirmed}/${total}${pending > 0 ? `（待确认 ${pending}）` : ''}</span>
+        </div>
+        <div class="mt-2 pt-2 border-t border-gray-100">
+          <button class="text-xs text-gray-500 hover:text-gray-800 flex items-center gap-1" onclick="this.nextElementSibling.classList.toggle('hidden')">
+            产出物 <span>▾</span>
+          </button>
+          <div class="hidden mt-2 space-y-1.5">
+            <div class="flex items-center justify-between text-[11px] text-gray-500">
+              <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${inspRoute.color};"></span>考察记录</span>
+              <span>${total === 0 ? '未提交' : pending > 0 ? `待确认 ${pending}/${total}` : `已确认 ${total}`}</span>
+            </div>
+            <div class="flex items-center justify-between text-[11px] text-gray-500">
+              <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${workloadRoute.color};"></span>工作量报告</span>
+              <span>${workloadItems.length > 0 ? `${workloadItems.length} 项产出` : '未生成'}</span>
+            </div>
+            ${workloadItems.length > 0 ? `
+              <ul class="space-y-0.5 pl-3">
+                ${workloadItems.slice(0, 5).map(w => `<li class="text-[11px] text-gray-500 truncate">${w.name}：${w.item}</li>`).join('')}
+                ${workloadItems.length > 5 ? `<li class="text-[11px] text-gray-400">…另有 ${workloadItems.length - 5} 项</li>` : ''}
+              </ul>` : ''}
+          </div>
         </div>
       </div>
     `;

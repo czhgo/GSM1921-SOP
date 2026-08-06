@@ -29,6 +29,9 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  [targetDate]  - 目标日期 ISO 字符串（T-0，兼容旧字段）
  * @property {'leader'|'disc-commissioner'} [attendanceQROwner] - 考勤二维码发布方（组织生活会专用：现场组织的党小组组长） - Source: content/02_institution/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
  * @property {boolean} [isBrand]  - 品牌属性标签（由书记认定，不影响工作流选择） - Source: content/04_web_design/DATA_ARCHITECTURE.md
+ * @property {OutputRecord[]} [outputs] - 产出物记录（T-224 §5.5/§8 数据结构预留）：
+ *   `{ type: OutputType, title, submittedBy, submittedAt, status: 'pending'|'submitted', routedTo: deriveOutputRoute(type).route }`
+ *   `routedTo` 由类型派生（非人工录入），组织者上传时只见「提交」不见「发送对象」。
  */
 
 /**
@@ -260,3 +263,82 @@ export const mockDB = {
   /** @type {Object[]} 纪检公邮查收历史（disc-commissioner 党建 Tab） */
   mailboxHistory: [],
 };
+
+// ════════════════════════════════════════════════════════════════
+//  产出物定向路由表 — T-224 §5.5（数据模型固化，非人工录入）
+//  投递去向由产出类型决定、系统自动执行；组织者只见「提交」，不见「发送对象」。
+//  术语：端/区（执行端/确认端/归档端/消费端），避免「层」式表达。
+// ════════════════════════════════════════════════════════════════
+
+/** 产出物类型枚举 */
+export const OutputType = {
+  ATTENDANCE: 'attendance',                 // 考勤数据（主题党日/三会一课）
+  INSPECTION: 'inspection',                 // 工作考察记录（主题党日）
+  TASKFORCE_INSPECTION: 'taskforce_inspection', // 专班考察
+  PUBLICITY: 'publicity',                   // 宣传材料（照片/简讯/报送）
+  REVIEW: 'review',                         // 复盘总结（主题党日）
+  WORKLOAD: 'workload',                     // 专班工作量
+  THOUGHT_REPORT: 'thought_report',         // 思想汇报（党务）
+};
+
+/**
+ * 产出物定向路由表 — 来源：docs/superpowers/specs/2026-08-06-activity-upstream-downstream-and-data-handover-design.md §5.5
+ * 每条产出物：上游生产 → 系统定向投递 → 最终沉淀。
+ * @typedef {Object} OutputRoute
+ * @property {string} label     - 产出物名称
+ * @property {string} route     - 系统定向投递说明（自动执行，非人工选择）
+ * @property {string} [owner]   - 接收/确认方角色
+ * @property {string} sink      - 最终沉淀位置
+ */
+export const OUTPUT_ROUTES = {
+  [OutputType.ATTENDANCE]: {
+    label: '考勤数据',
+    route: '纪检确认 → 考勤总表',
+    owner: '纪检委员',
+    sink: '考勤总表（组织/宣传只读同源）',
+  },
+  [OutputType.INSPECTION]: {
+    label: '工作考察记录',
+    route: '纪检确认 → 考察总表',
+    owner: '纪检委员',
+    sink: '考察总表（组织委员建档）',
+  },
+  [OutputType.TASKFORCE_INSPECTION]: {
+    label: '专班考察',
+    route: '纪检确认 → 考察总表',
+    owner: '纪检委员',
+    sink: '考察总表（组织委员建档）',
+  },
+  [OutputType.PUBLICITY]: {
+    label: '宣传材料',
+    route: '宣传委员归档',
+    owner: '宣传委员',
+    sink: '产出物查看区',
+  },
+  [OutputType.REVIEW]: {
+    label: '复盘总结',
+    route: '纪检批注/确认',
+    owner: '纪检委员',
+    sink: '活动关闭前置',
+  },
+  [OutputType.WORKLOAD]: {
+    label: '专班工作量',
+    route: '系统自动记录',
+    sink: '解散报告 → 个人档案',
+  },
+  [OutputType.THOUGHT_REPORT]: {
+    label: '思想汇报',
+    route: '组织委员归档',
+    owner: '组织委员',
+    sink: '个人档案（不经纪检/宣传）',
+  },
+};
+
+/**
+ * 按产出类型取路由（派生，非人工录入）
+ * @param {string} type - OutputType 枚举值
+ * @returns {OutputRoute|null}
+ */
+export function deriveOutputRoute(type) {
+  return OUTPUT_ROUTES[type] || null;
+}
