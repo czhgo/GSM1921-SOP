@@ -177,13 +177,31 @@ function _toggleAccentPalette(swatch) {
   `;
   document.body.appendChild(popover);
 
-  // 定位（fixed，基于 swatch 位置，避免被侧边栏 overflow 裁剪）
+  // 浮层互斥：打开前自动收起其他已打开的浮层（如自定义下拉菜单）；注册本色板的关闭器
+  if (window.__closeOtherPopovers) window.__closeOtherPopovers();
+  let outsideHandler = null;
+  const closer = () => {
+    if (outsideHandler) { document.removeEventListener('click', outsideHandler); outsideHandler = null; }
+    popover.remove();
+    if (window.__popoverClosers) window.__popoverClosers.delete(closer);
+  };
+  if (window.__popoverClosers) window.__popoverClosers.add(closer);
+
+  // 定位（fixed，基于 swatch 位置，避免被侧边栏 overflow 裁剪）：
+  // 默认向下展开；下方空间不足时向上翻转（与下拉菜单同一套智能定位逻辑）
   const rect = swatch.getBoundingClientRect();
   const w = popover.offsetWidth;
-  let left = rect.left;
-  if (left + w > window.innerWidth - 8) left = window.innerWidth - w - 8;
-  popover.style.top = (rect.bottom + 6) + 'px';
-  popover.style.left = left + 'px';
+  const h = popover.offsetHeight;
+  const vh = window.innerHeight;
+  const maxLeft = Math.max(8, window.innerWidth - w - 8);
+  popover.style.left = Math.min(Math.max(8, rect.left), maxLeft) + 'px';
+  if (rect.bottom + 6 + h > vh - 8) {
+    popover.style.top = 'auto';
+    popover.style.bottom = Math.max(8, vh - rect.top + 6) + 'px';
+  } else {
+    popover.style.top = (rect.bottom + 6) + 'px';
+    popover.style.bottom = 'auto';
+  }
 
   // 选择 → 写入 localStorage + 刷新全站生效
   popover.querySelectorAll('.accent-swatch-opt').forEach(btn => {
@@ -195,13 +213,10 @@ function _toggleAccentPalette(swatch) {
 
   // 点击外部关闭
   setTimeout(() => {
-    const outside = (ev) => {
-      if (!popover.contains(ev.target) && ev.target !== swatch) {
-        popover.remove();
-        document.removeEventListener('click', outside);
-      }
+    outsideHandler = (ev) => {
+      if (!popover.contains(ev.target) && ev.target !== swatch) closer();
     };
-    document.addEventListener('click', outside);
+    document.addEventListener('click', outsideHandler);
   }, 0);
 }
 

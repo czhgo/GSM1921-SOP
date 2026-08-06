@@ -726,8 +726,8 @@ function _renderDecisionTreePanel() {
       </div>
 
       <div class="flex items-center gap-3">
-        <button id="dt-submit" class="text-sm px-6 py-2.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">写入活动</button>
-        <button id="dt-cancel" class="text-sm px-6 py-2.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+        <button id="dt-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">写入活动</button>
+        <button id="dt-cancel" class="text-sm px-4 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
     </div>
   ` : '';
@@ -948,8 +948,8 @@ function _renderAttendanceContent() {
       </div>
       <div id="att-status-rows" class="mb-3"></div>
       <div class="flex items-center gap-3">
-        <button id="att-form-submit" class="text-sm px-6 py-2.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">提交考勤</button>
-        <button id="att-form-cancel" class="text-sm px-6 py-2.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+        <button id="att-form-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">提交考勤</button>
+        <button id="att-form-cancel" class="text-sm px-4 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
     </div>
   ` : '';
@@ -1188,8 +1188,8 @@ function _renderInspectionContent() {
       </div>
       <div id="insp-content-rows" class="mb-3"></div>
       <div class="flex items-center gap-3">
-        <button id="insp-form-submit" class="text-sm px-6 py-2.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">提交考察</button>
-        <button id="insp-form-cancel" class="text-sm px-6 py-2.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+        <button id="insp-form-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">提交考察</button>
+        <button id="insp-form-cancel" class="text-sm px-4 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
     </div>
   ` : '';

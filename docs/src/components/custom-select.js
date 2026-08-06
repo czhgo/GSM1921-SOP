@@ -18,6 +18,12 @@ const ICON_SEARCH =
   '<svg class="cs-search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
 const SEARCH_THRESHOLD = 10; // 选项数超过此值自动内嵌搜索
 
+// ── 全局浮层互斥（书记指令 2026-08-06）：任何下拉/色板浮层打开时，先自动收起其他已打开的浮层 ──
+if (!window.__popoverClosers) window.__popoverClosers = new Set();
+window.__closeOtherPopovers = (keep) => {
+  window.__popoverClosers.forEach((fn) => { if (fn !== keep) fn(); });
+};
+
 function _escapeHtml(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -44,6 +50,11 @@ function _positionMenu(wrapper, menu, trigger) {
   const GAP = 4;
   const MAX_H = 240;
 
+  // 宽度测量前先解除 .cs-menu 的 min-width:100% —— position:fixed 下该百分比解析为视口宽，
+  // 会把 .cs-option 撑成视口宽，污染「最宽选项」测量（回归 bug，浏览器验证 2026-08-07 发现）。
+  // 内联 min-width:0 覆盖样式表规则；下方最终将 min-width 与 width 一并显式设为计算值。
+  menu.style.minWidth = '0';
+
   // 菜单实际渲染高度（CSS max-height 240 封顶）
   const menuH = Math.min(menu.offsetHeight || MAX_H, MAX_H);
   const spaceBelow = viewH - rect.bottom;
@@ -60,8 +71,15 @@ function _positionMenu(wrapper, menu, trigger) {
   const avail = (openUp ? spaceAbove : spaceBelow) - GAP;
   menu.style.position = 'fixed';
   menu.style.maxHeight = Math.max(96, Math.min(MAX_H, avail)) + 'px';
-  const width = Math.max(rect.width, 120);
+  // 宽度：取「触发器宽度」与「最宽选项内容」的较大者（选项 white-space:nowrap，
+  // scrollWidth 即真实内容宽；+8 补 .cs-menu 的 4px×2 水平 padding，避免横向滚动条）
+  let widest = rect.width;
+  menu.querySelectorAll('.cs-option, .cs-empty').forEach((el) => {
+    widest = Math.max(widest, el.scrollWidth);
+  });
+  const width = Math.min(Math.max(rect.width, widest + 8), viewW - 8);
   menu.style.width = width + 'px';
+  menu.style.minWidth = width + 'px';
   const maxLeft = Math.max(4, viewW - width - 4);
   menu.style.left = Math.min(Math.max(4, rect.left), maxLeft) + 'px';
   if (openUp) {
@@ -103,6 +121,11 @@ function _openMenu(wrapper, menu, trigger, sel) {
   menu.classList.remove('hidden');
   trigger.setAttribute('aria-expanded', 'true');
   wrapper.classList.add('is-open');
+
+  // 浮层互斥：打开前自动收起其他已打开的下拉/色板
+  if (!wrapper._csCloser) wrapper._csCloser = () => _closeMenu(wrapper, menu, trigger);
+  window.__closeOtherPopovers(wrapper._csCloser);
+  window.__popoverClosers.add(wrapper._csCloser);
 
   // 智能定位 + 打开期间跟随滚动/缩放重定位
   _positionMenu(wrapper, menu, trigger);
@@ -163,6 +186,8 @@ function _openMenu(wrapper, menu, trigger, sel) {
 }
 
 function _closeMenu(wrapper, menu, trigger) {
+  // 从全局浮层互斥注册表中注销
+  if (wrapper._csCloser) window.__popoverClosers.delete(wrapper._csCloser);
   // 移除滚动/缩放重定位监听
   if (wrapper._csReposition) {
     window.removeEventListener('scroll', wrapper._csReposition, true);

@@ -687,7 +687,7 @@ function _renderWeeklyContent() {
             <label class="text-xs text-gray-500 mb-1.5 block font-medium">周报内容</label>
             <textarea id="weekly-content" rows="6" placeholder="请填写本周工作内容，每条一行..." class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none">${draftReport ? draftReport.content : ''}</textarea>
           </div>
-          <button id="weekly-submit-btn" class="w-full text-sm px-6 py-2.5 font-medium text-white rounded-lg transition-colors" style="background:${accent}">报送</button>
+          <button id="weekly-submit-btn" class="w-full text-sm px-4 py-[7px] font-medium text-white rounded-lg transition-colors" style="background:${accent}">报送</button>
         </div>
       </div>
 

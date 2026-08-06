@@ -99,7 +99,7 @@ export function openFormModal({ id, title, fields, onSubmit, submitLabel = '提�
       ${fieldsHtml}
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
         <button type="button" data-modal-cancel="${id}" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
-        <button type="submit" class="text-sm px-6 py-2.5 rounded-lg text-white transition-colors hover:opacity-90 font-medium" style="background:${accentColor};cursor:pointer;">${submitLabel}</button>
+        <button type="submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90 font-medium" style="background:${accentColor};cursor:pointer;">${submitLabel}</button>
       </div>
     </form>
   `;

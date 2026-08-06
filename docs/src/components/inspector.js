@@ -121,7 +121,7 @@ function _showParticipantModal(act) {
     + extraHtml
     + '<p class=" text-xs text-gray-500 border-t border-gray-100 pt-3 mt-2 leading-relaxed">'
     + '如需查看任务详情，请在左侧切换管理视图。</p>'
-    + '<button class=" text-sm text-white px-6 py-2.5 rounded-lg mt-4 w-full transition-colors" '
+    + '<button class=" text-sm text-white px-4 py-[7px] rounded-lg mt-4 w-full transition-colors" '
     + 'style="background:#CE1126;">关闭</button>';
   card.querySelector('button').addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
@@ -386,7 +386,7 @@ function _showCloseBlockModal(activity, missing) {
         `<li class="text-xs text-red-600 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0"></span>${m}</li>`
       ).join('')
     + '</ul>'
-    + '<button class="text-sm text-white px-6 py-2.5 rounded-lg w-full transition-colors" style="background:#CE1126;">知道了</button>';
+    + '<button class="text-sm text-white px-4 py-[7px] rounded-lg w-full transition-colors" style="background:#CE1126;">知道了</button>';
   card.querySelector('button').addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
   card.addEventListener('click', e => e.stopPropagation());

@@ -385,9 +385,11 @@ body {
   color: var(--neutral-400);
 }
 
-/* 34px 行内对齐档：input-flat.text-xs 与 select/cs-trigger 同档收窄（否则 42px 会把同 flex 行按钮撑高） */
+/* 34px 行内对齐档：input-flat.text-xs 与 select/cs-trigger 同档收窄（否则 42px 会把同 flex 行按钮撑高）。
+   注意：只覆盖垂直 padding，不得用 padding 简写——否则会覆盖 pl-8/pr-* 等水平留白工具类（搜索图标与文字重叠） */
 input.input-flat.text-xs {
-  padding: 8px 12px;
+  padding-top: 8px;
+  padding-bottom: 8px;
   font-size: 0.75rem;
 }
 
@@ -609,7 +611,9 @@ textarea.input-flat {
    1. 微操作档  25px — .btn-action              → 表格行内 / 列表项内操作
    2. 默认档    30px — text-xs px-3 py-1.5      → 卡片内 / 模态内独立按钮
    3. 行内对齐档 34px — text-xs px-3 py-2       → 与 input-flat text-xs / select 同行
-   4. 主 CTA 档 44px — text-sm px-6 py-2.5      → 表单主提交 / 页面主操作（w-full 大按钮）
+   4. 主 CTA 档 34px — text-sm px-4 py-1.5（带边框，边框计 2px）/ py-[7px]（无边框，纯填充）
+       → 表单主提交 / 页面主操作（w-full 大按钮；加粗 + 强调色背景与行内档区分）
+       → 实测口径：text-sm 行高 20px，带边框 20+12+2=34px，无边框 20+14=34px
    判断规则：按钮与相邻 input/select 在同一 flex/工具条行 → 行内对齐档；
    独立出现在卡片/模态/面板内 → 默认档；主提交/显著 CTA → 主 CTA 档。
    ═══════════════════════════════════════════════════════════════ */
@@ -974,12 +978,14 @@ textarea.input-flat {
   background-color: rgba(0,0,0,0.35);
   opacity: 0;
   visibility: hidden;
+  pointer-events: none; /* 关闭态不拦截点击：visibility 过渡期间仍保持可命中，必须显式放行（浏览器验证 2026-08-07） */
   transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
 }
 
 #sidebar-overlay.visible {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
 }
 
 .module-tab {
@@ -1101,9 +1107,10 @@ textarea.input-flat {
 }
 
 .accent-palette-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px 6px;
+  justify-items: center;
 }
 
 .accent-swatch-opt {
@@ -1127,10 +1134,11 @@ textarea.input-flat {
 }
 
 .accent-palette-names {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 10px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px 6px;
   margin-top: 10px;
+  justify-items: center;
 }
 
 .accent-palette-names span {
@@ -2638,6 +2646,13 @@ input:focus-visible {
    的边框颜色（primary-500）承担，避免双重反馈和"红色框"审美问题 */
 select.input-flat:focus,
 select.input-flat:focus-visible {
+  outline: none;
+}
+
+/* 普通 input-flat 输入框聚焦（书记指令 2026-08-06）：只保留 .input-flat:focus
+   的金色边框，去掉全局 input:focus-visible 的红色 outline 圈 */
+input.input-flat:focus,
+input.input-flat:focus-visible {
   outline: none;
 }
 

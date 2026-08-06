@@ -1620,3 +1620,31 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
   - ✅ browser_use 复核：`#archive-search`+`#archive-upload-btn` 34px 等高（旧 42px 为浏览器缓存旧 CSS，硬刷新后生效）
   - ✅ 按钮高度分布实测：书记/宣传工作台主要操作按钮集中 28/30/34/42-44 档，无系统性偏差
 - **沉淀标签**：`[已沉淀: 下拉智能定位]` — 下拉不许呆板朝下：展开时按视口可用空间决策（下→上翻转），position:fixed 逐次计算脱离滚动容器裁剪，max-height 按可用空间收缩，打开期间跟随 scroll/resize 重定位；`[已沉淀: 同文件并行编辑写覆盖]` — 同一文件多个 Edit 不得并行提交，必须串行（后写会吞掉先写）；`[已沉淀: input-flat.text-xs 34px]` — `input.input-flat.text-xs` 必须 8px 12px 收窄至 34px 与 select/cs-trigger 同档，否则 42px 会撑高同 flex 行按钮
+
+## T227 书记浏览器选中 6 元素逐项打磨：下拉宽度/色板布局/主 CTA 34px/聚焦金边/浮层互斥（2026-08-07）
+
+**任务**：书记在浏览器选中 6 个元素逐项指出问题——① 侧边栏色板 div 位置不对；② 搜索图标 svg 与文字重叠；③ button 太厚（喜欢 34px 高度）；④ 下拉触发器；⑤ #archive-search 输入框聚焦出现红边+黄边（要求只留黄边）；⑥ 下拉菜单宽度把握不好 + 两个浮层同时打开无自动收起机制
+**引用流程**：web-design-guidelines Skill + fullstack-developer Skill + browser_use 两轮实测
+**来源**：书记浏览器选中元素逐项反馈（2026-08-07 原话）+ AskUserQuestion 决策（主 CTA 统一 34px、色板 2 行×5 列规律排布、恢复紫色、颜色标签不与人挂钩）
+
+### 修复清单（六项）
+1. **下拉宽度回归 bug**（验证失败根因）：`.cs-menu{ min-width:100% }` 在 `position:fixed` 下解析为**视口宽**（1095px）→ `.cs-option` 被撑成视口宽 → 污染「最宽选项」测量 → 菜单变全屏宽。修复：`_positionMenu` 测量前先 `menu.style.minWidth='0'` 解除样式表规则，改用 `el.scrollWidth`（选项 nowrap 下即真实内容宽）测量，`width = max(触发器宽, 最宽项+8)` 显式写 width/minWidth，封顶 `viewW-8`。实测：触发器 96px、菜单 104px、最宽选项 94px ✓
+2. **主 CTA 按钮 34px**：`text-sm px-4 py-1.5` 数学上 = 32px（20px 行高+12px padding，**无边框缺 2px**）。修复：**带边框按钮保持 py-1.5（20+12+2=34px）不动**，**无边框按钮改 py-[7px]（20+14=34px）**；styles.css 四档规范注释补实测口径。共改 18 处无边框主 CTA（login.html/login-entry/inspector×2/issue-form/issue-list/modal/issue-detail 提交评论/ws-leader dt/att/insp 提交×3/ws-org 发布+org-insp 提交/ws-prop 报送/ws-secretary 确认赋权/wp-submit/确认设组长/发布通知），9 处带边框按钮（取消对/notice/issue-detail 应用/ws-sec-write-btn）保持 py-1.5。实测登录按钮 offsetHeight=34px ✓
+3. **聚焦只留金边**：全局 `input:focus-visible{ outline:2px solid var(--primary-500) }` 红圈 + `.input-flat:focus{ border-color:var(--party-gold) }` 金边 → 新增 `input.input-flat:focus-visible{ outline:none }` 白名单，只留金边。实测 outline none + border rgb(255,215,0) ✓
+4. **搜索图标重叠根因**：`input.input-flat.text-xs{ padding:8px 12px }` 用 padding **简写**覆盖了 `pl-8`（padding-left:32px）→ 只改垂直 padding（`padding-top/bottom:8px`）。实测 padding-left=32px、文字起点 63.99 > 图标右缘 55.98 ✓
+5. **色板规律排布 + 恢复紫色 + 颜色名**：ACCENT_PALETTE 改为固定 10 色（补回紫色 #7C3AED，与 ROLE_COLORS.deep 语义色同源——紫色从未删除，只是没进色板），2 行×5 列 grid，标签改颜色名（红/橙/金/绿/青/天蓝/海蓝/紫/灰/亮蓝）不与人挂钩。实测 10 色块 + 紫存在 + title 全颜色名 ✓
+6. **浮层互斥**：新增全局 `window.__popoverClosers`（Set）+ `__closeOtherPopovers(keep)`；custom-select `_openMenu` 打开前互斥关闭其他浮层、注册 `_csCloser`，`_closeMenu` 注销；sidebar 色板同样注册/注销。实测双向互斥 ✓（正向：开色板→点下拉→色板从 DOM 移除；反向：开下拉→点 swatch→下拉全部收起）
+
+### 附带修复
+- `#sidebar-overlay` 关闭态 `visibility:hidden` 但 z-index 60 全屏 fixed，`visibility` 过渡期间仍可命中点击（0.3s 内吞内容区点击）→ 基础态 `pointer-events:none` + `.visible` 态 `pointer-events:auto`。实测关闭态 pointer-events none ✓
+
+- **变更文件**：`docs/src/components/custom-select.js`、`docs/src/styles.css`、`docs/login.html`、`docs/src/entries/{login-entry,notice-entry,ws-leader-entry,ws-org-commissioner-entry,ws-prop-commissioner-entry,ws-secretary-entry}.js`、`docs/src/components/{issue-detail,issue-form,issue-list,modal,inspector}.js`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+
+- **验证结果**（browser_use 实测 DOM 数值，6 项全过）：
+  - ✅ 下拉宽度自适应：触发器 96px / 菜单 104px / 最宽选项 94px，远小于视口 1095px
+  - ✅ 登录按钮 34px（offsetHeight=34，20+14 无边框）
+  - ✅ 浮层互斥双向（色板↔下拉自动收起）
+  - ✅ 色板 10 色 2×5 + 紫 #7C3AED + 颜色名 title + 向上翻转（popover 底 522 < swatch 顶 584）
+  - ✅ 搜索图标不重叠 + 聚焦 outline none + border 金
+  - ✅ #sidebar-overlay 关闭态 pointer-events none
+- **沉淀标签**：`[已沉淀: fixed 下 min-width:100%=视口宽]` — position:fixed 元素 min-width/width 的百分比相对**视口**而非包含块，测量前必须临时清 min-width 再测 scrollWidth/offsetWidth；`[已沉淀: 34px 双口径]` — 34px 按钮两种实现：带边框 text-sm py-1.5（20+12+2）与无边框 py-[7px]（20+14），不得混用 py-2（36px）；`[已沉淀: padding 简写覆盖工具类]` — 组件 CSS 覆盖 Tailwind 工具类时禁用 padding/inset 简写（会吞 pl-*/pr-*），只写单边属性；`[已沉淀: 浮层互斥注册表]` — 全局 `__popoverClosers` Set + `__closeOtherPopovers(keep)`，任何新浮层（下拉/色板/弹层）打开前先关其他浮层，关闭时注销

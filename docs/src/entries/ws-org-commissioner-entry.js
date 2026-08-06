@@ -858,8 +858,8 @@ function _openRecruitForm() {
       </div>
 
       <div style="display:flex;gap:12px;justify-content:flex-end;">
-        <button type="button" id="recruit-form-cancel" class="text-sm px-6 py-2.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
-        <button type="submit" class="text-sm px-6 py-2.5 rounded-lg text-white hover:opacity-90 transition-opacity font-medium" style="background:${accent};">发布</button>
+        <button type="button" id="recruit-form-cancel" class="text-sm px-4 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
+        <button type="submit" class="text-sm px-4 py-[7px] rounded-lg text-white hover:opacity-90 transition-opacity font-medium" style="background:${accent};">发布</button>
       </div>
     </form>
   `;
@@ -1376,8 +1376,8 @@ function _renderOrgInspectionContent() {
       </div>
       <div id="org-insp-content-rows" class="mb-3"></div>
       <div class="flex items-center gap-3">
-        <button id="org-insp-form-submit" class="text-sm px-6 py-2.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">提交考察</button>
-        <button id="org-insp-form-cancel" class="text-sm px-6 py-2.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+        <button id="org-insp-form-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">提交考察</button>
+        <button id="org-insp-form-cancel" class="text-sm px-4 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
       <p class="text-[11px] text-gray-400 mt-2">提交后自动投递：纪检确认 → 考察总表（组织委员建档），无需手动选择接收方</p>
     </div>

@@ -152,6 +152,7 @@ export const ACCENT_COLORS = {
   deep:                { hex: '#94a3b8' },  // 浅灰蓝
   participant:         { hex: '#B45309' },  // 党徽金（访客强调色，与中性灰身份色并存，2026-08-01 改，原党建红#CE1126）
   all:                 { hex: '#0E7490' },  // 深青
+  purple:              { hex: '#7C3AED' },  // 紫罗兰（侧边栏色板可选色，不与角色挂钩，与 deep 语义色同源）
 };
 
 // ── 主题色个性化（书记指令 2026-08-06：侧边栏设置，所有角色均可选）──
@@ -159,19 +160,21 @@ export const ACCENT_COLORS = {
 // 强调色（ACCENT_COLORS：按钮/标签/卡片强调）可通过侧边栏「主题色」选择器个性化。
 
 /**
- * 侧边栏「主题色」选色板的可选色（按 ACCENT_COLORS 去重，保持角色键语义）
- * key = 角色键（决定衍生色），label = 展示名，hex = 色值
+ * 侧边栏「主题色」选色板的可选色（书记指令 2026-08-06：颜色就是颜色，不与人挂钩）
+ * 按色相规律排列，2 行 × 5 个；key = 色板键（映射 ACCENT_COLORS 取衍生色），label = 颜色名
  */
-export const ACCENT_PALETTE = (() => {
-  const seen = new Set();
-  const list = [];
-  for (const [key, { hex }] of Object.entries(ACCENT_COLORS)) {
-    if (seen.has(hex)) continue;
-    seen.add(hex);
-    list.push({ key, hex, label: ROLE_LABELS[key] || key });
-  }
-  return list;
-})();
+export const ACCENT_PALETTE = [
+  { key: 'secretary',          hex: ACCENT_COLORS.secretary.hex,            label: '红' },
+  { key: 'disc-commissioner',  hex: ACCENT_COLORS['disc-commissioner'].hex, label: '橙' },
+  { key: 'participant',        hex: ACCENT_COLORS.participant.hex,          label: '金' },
+  { key: 'leader',             hex: ACCENT_COLORS.leader.hex,               label: '绿' },
+  { key: 'all',                hex: ACCENT_COLORS.all.hex,                  label: '青' },
+  { key: 'org-commissioner',   hex: ACCENT_COLORS['org-commissioner'].hex,  label: '天蓝' },
+  { key: 'prop-commissioner',  hex: ACCENT_COLORS['prop-commissioner'].hex, label: '海蓝' },
+  { key: 'purple',             hex: ACCENT_COLORS.purple.hex,               label: '紫' },
+  { key: 'deep',               hex: ACCENT_COLORS.deep.hex,                 label: '灰' },
+  { key: 'organizer',          hex: ACCENT_COLORS.organizer.hex,            label: '亮蓝' },
+];
 
 /**
  * 解析当前生效的强调色角色键（主题色个性化覆盖）

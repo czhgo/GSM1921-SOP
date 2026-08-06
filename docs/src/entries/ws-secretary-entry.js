@@ -43,7 +43,7 @@ const SEC_CALENDAR_TAB_HTML = `
   <div class="card rounded-2xl p-6 mb-4">
     <div class="flex items-center justify-between mb-4">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">活动日历</h3>
-      <button id="ws-sec-write-btn" type="button" class="shrink-0 text-sm px-6 py-2.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors inline-flex items-center gap-1.5">
+      <button id="ws-sec-write-btn" type="button" class="shrink-0 text-sm px-4 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors inline-flex items-center gap-1.5">
         ${icon('pencil', { className: 'w-3.5 h-3.5' })}
         写入活动
       </button>
@@ -377,7 +377,7 @@ function _renderProjectAuthPanel() {
         </div>
       </div>
     </div>
-    <button id="confirm-project-auth-btn" type="button" class="text-sm px-6 py-2.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors">
+    <button id="confirm-project-auth-btn" type="button" class="text-sm px-4 py-[7px] rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors">
       确认赋权
     </button>
     <div class="mt-6">
@@ -1337,7 +1337,7 @@ function renderFormStep() {
   // 写入按钮
   const btnText = wp.submitting ? '写入中...' : '创建活动';
   const btnDisabled = wp.submitting ? 'opacity-50 cursor-not-allowed' : '';
-  html += `<button data-action="wp-submit" class="text-sm px-6 py-2.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium ${btnDisabled}">${btnText}</button>`;
+  html += `<button data-action="wp-submit" class="text-sm px-4 py-[7px] rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium ${btnDisabled}">${btnText}</button>`;
 
   html += `</div>`;
   return html;
@@ -1657,7 +1657,7 @@ function renderAuthPanel(assignArea) {
   html += `</div>`;
 
   // 3. 确认按钮
-  html += `<button data-auth-action="confirm" class="text-sm px-6 py-2.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium">确认设为党小组组长</button>`;
+  html += `<button data-auth-action="confirm" class="text-sm px-4 py-[7px] rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium">确认设为党小组组长</button>`;
 
   // ── 分隔线 ──
   html += `<div class="border-t border-gray-100 mt-6 pt-4">`;
@@ -2364,7 +2364,7 @@ function renderNotificationForm() {
   html += `</div>`;
 
   // 发布按钮
-  html += `<button data-notif-action="publish" class="text-sm px-6 py-2.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium">发布通知</button>`;
+  html += `<button data-notif-action="publish" class="text-sm px-4 py-[7px] rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium">发布通知</button>`;
 
   formArea.innerHTML = html;
 

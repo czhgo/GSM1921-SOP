@@ -88,7 +88,7 @@ function renderNoticeDetail(n) {
 
   // 确认读取按钮
   const confirmReadBtn = isUnread
-    ? `<button id="notice-confirm-read-btn" class="inline-flex items-center gap-1.5 text-sm px-6 py-2.5 rounded-lg font-medium transition-colors bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100">
+    ? `<button id="notice-confirm-read-btn" class="inline-flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg font-medium transition-colors bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100">
         确认读取
       </button>`
     : '<span class="inline-flex items-center gap-1 text-xs text-gray-400 px-4 py-2">已读</span>';
