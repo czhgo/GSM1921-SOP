@@ -26,4 +26,18 @@ export const SEED_ASSIGNMENTS = [
   { id: 'assign_seed_005', activityId: 'act-10', workName: '准备活动方案', workDescription: '撰写主题党日活动方案，含议程和分工', ddl: '2026-05-08T00:00:00Z', assigneeId: 'p3', status: 'in_progress', createdBy: 'p1', createdAt: '2026-05-01T08:00:00Z', completedAt: null },
 ];
 
+// ── 档案归档种子 ─────────────────────────────────────────────
+// 关联键统一用 activityId（2026-08-06 书记裁决），activityName 仅作展示；
+// 非活动类材料（发展对象公示等）无 activityId，靠 activityName 兜底展示。
+// 种子提升为全局（2026-08-06）：loadDB 时注入，供产出物区/关闭条件同源读取，
+// 不再依赖先访问宣传委员工作台才注入（违反「同一套数据」）。
+export const SEED_ARCHIVE_RECORDS = [
+  { id: 'ar1', activityId: 'act-25', activityName: '七一建党105周年活动', archiveDate: '2026-07-15', category: '新闻稿', status: 'archived' },
+  { id: 'ar2', activityId: 'act-25', activityName: '七一建党105周年活动', archiveDate: '2026-07-15', category: '照片', status: 'archived' },
+  { id: 'ar3', activityName: '发展对象公示', archiveDate: '2026-07-22', category: '新闻稿', status: 'pending' },
+  { id: 'ar4', activityName: '预备党员转正大会', archiveDate: '2026-07-28', category: '视频', status: 'pending' },
+  { id: 'ar5', activityId: 'act-19', activityName: '5月组织生活会', archiveDate: '2026-07-10', category: '其他', status: 'archived' },
+  { id: 'ar6', activityName: '入党积极分子培训', archiveDate: '2026-07-18', category: '照片', status: 'in_progress' },
+];
+
 // ── 专班种子 ──────────────────────────────────────────────

@@ -15,7 +15,7 @@ import { generateId } from './id.js';
 // 绕过 ../mock/index.js 的 re-export 转发（与 services/mock.js 对齐，
 // 消除循环依赖/TDZ 导致的 seed 失败风险）
 import { ACTIVITIES } from '../mock/activities.js';
-import { SEED_TASKS, SEED_ASSIGNMENTS } from '../mock/seed.js';
+import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS } from '../mock/seed.js';
 // Seed 增量合并用（2026-08-05）：attendance.js/notices.js 为纯数据模块，
 // 经 services/person.js（只依赖 domain/people）→ 无指向本文件的循环依赖
 import { ATTENDANCE_RECORDS } from '../mock/attendance.js';
@@ -166,6 +166,7 @@ function _seedInitialData() {
   }
   if (mockDB.tasks.length === 0) mockDB.tasks = [...SEED_TASKS];
   if (mockDB.assignments.length === 0) mockDB.assignments = [...SEED_ASSIGNMENTS];
+  if (mockDB.archiveRecords.length === 0) mockDB.archiveRecords = [...SEED_ARCHIVE_RECORDS];
   console.info('[MockAdapter] 已加载初始 seed 数据');
 }
 
@@ -243,7 +244,23 @@ function _mergeNewSeedRecords() {
   });
   mockDB.notices = noticeOut;
 
-  if (changed) console.info('[MockAdapter] Seed 种子同步：活动/考勤/通知与种子基线对齐（删除已移除种子、覆盖已变更种子、补齐缺失种子）');
+  // ── 档案归档：种子同步（覆盖时以当前种子为准，含 activityId 关联键） ──
+  const archiveSeedById = new Map(SEED_ARCHIVE_RECORDS.map(r => [r.id, r]));
+  const archiveOut = [];
+  for (const r of mockDB.archiveRecords) {
+    if (!/^ar\d+$/.test(r.id)) { archiveOut.push(r); continue; }
+    const seed = archiveSeedById.get(r.id);
+    if (!seed) { changed = true; continue; }
+    if (JSON.stringify(seed) !== JSON.stringify(r)) changed = true;
+    archiveOut.push({ ...seed });
+  }
+  const archiveExist = new Set(archiveOut.map(r => r.id));
+  SEED_ARCHIVE_RECORDS.forEach(s => {
+    if (!archiveExist.has(s.id)) { archiveOut.push({ ...s }); changed = true; }
+  });
+  mockDB.archiveRecords = archiveOut;
+
+  if (changed) console.info('[MockAdapter] Seed 种子同步：活动/考勤/通知/档案归档与种子基线对齐（删除已移除种子、覆盖已变更种子、补齐缺失种子）');
   return changed;
 }
 

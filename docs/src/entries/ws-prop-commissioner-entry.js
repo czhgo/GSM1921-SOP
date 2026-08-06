@@ -452,22 +452,11 @@ function _renderWorkloadBlock(propTf) {
   `;
 }
 
-// ── 档案归档 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
-const ARCHIVE_RECORDS_SEED = [
-  { id: 'ar1', activityName: '七一主题党日活动', archiveDate: '2026-07-15', category: '新闻稿', status: 'archived' },
-  { id: 'ar2', activityName: '七一主题党日活动', archiveDate: '2026-07-15', category: '照片', status: 'archived' },
-  { id: 'ar3', activityName: '发展对象公示', archiveDate: '2026-07-22', category: '新闻稿', status: 'pending' },
-  { id: 'ar4', activityName: '预备党员转正大会', archiveDate: '2026-07-28', category: '视频', status: 'pending' },
-  { id: 'ar5', activityName: '组织生活会', archiveDate: '2026-07-10', category: '其他', status: 'archived' },
-  { id: 'ar6', activityName: '入党积极分子培训', archiveDate: '2026-07-18', category: '照片', status: 'in_progress' },
-];
-
-// 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.archiveRecords 后调用 persist()
+// ── 档案归档 ─────────────────────────────────────────────
+// 种子数据已提升为全局（mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
+// 保证产出物区/关闭条件等跨页同源读取；本页只做纯读。
 function _loadArchiveRecords() {
-  if (mockDB.archiveRecords.length === 0 && ARCHIVE_RECORDS_SEED.length > 0) {
-    mockDB.archiveRecords = ARCHIVE_RECORDS_SEED.map(r => ({ ...r }));
-  }
-  return mockDB.archiveRecords;
+  return mockDB.archiveRecords || [];
 }
 
 const ARCHIVE_CATEGORY_STYLE = {

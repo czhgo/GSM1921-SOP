@@ -244,9 +244,12 @@ function _buildOutputsSectionHTML(activity) {
   const inspRoute = deriveOutputRoute(OutputType.INSPECTION);
 
   // 宣传材料（同源：leader actSubRecords.publicity + 宣传委员 archiveRecords）
+  // 归档记录以 activityId 为主关联键（2026-08-06 书记裁决），无 activityId 的兜底按活动标题匹配
   const actSubs = (mockDB.actSubRecords && mockDB.actSubRecords[actId]) || {};
   const publicitySubs = actSubs.publicity || [];
-  const archiveRecs = (mockDB.archiveRecords || []).filter(r => r.activityName === activity.title);
+  const archiveRecs = (mockDB.archiveRecords || []).filter(r =>
+    (r.activityId && r.activityId === actId) || (!r.activityId && r.activityName === activity.title)
+  );
   const pubRoute = deriveOutputRoute(OutputType.PUBLICITY);
 
   // 复盘总结（正式库，同源）
@@ -336,7 +339,9 @@ export function checkActivityCloseConditions(activity) {
   const actSubs = (mockDB.actSubRecords && mockDB.actSubRecords[actId]) || {};
   const pubItems = [
     ...(actSubs.publicity || []),
-    ...(mockDB.archiveRecords || []).filter(r => r.activityName === activity.title),
+    ...(mockDB.archiveRecords || []).filter(r =>
+      (r.activityId && r.activityId === actId) || (!r.activityId && r.activityName === activity.title)
+    ),
   ];
 
   if (MEETING_TYPES.includes(type)) {
