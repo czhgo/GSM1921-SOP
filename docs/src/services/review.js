@@ -40,6 +40,25 @@ export function updateActivityReview(activityId, patch) {
   return records[idx];
 }
 
+/** 按记录 id 更新复盘记录（活动/专班通用，2026-08-05 纪检复盘真操作修复） */
+export function updateReviewById(id, patch) {
+  let records = loadActivityReviews();
+  let idx = records.findIndex(r => r.id === id);
+  if (idx !== -1) {
+    records[idx] = { ...records[idx], ...patch };
+    mockDB.activityReviews = records;
+    persist();
+    return records[idx];
+  }
+  records = loadTaskforceReviews();
+  idx = records.findIndex(r => r.id === id);
+  if (idx === -1) return null;
+  records[idx] = { ...records[idx], ...patch };
+  mockDB.taskforceReviews = records;
+  persist();
+  return records[idx];
+}
+
 /** 新增活动复盘记录 */
 export function addActivityReview(record) {
   mockDB.activityReviews = [...loadActivityReviews(), record];

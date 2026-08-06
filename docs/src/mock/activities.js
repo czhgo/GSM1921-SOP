@@ -35,8 +35,11 @@ export const ACTIVITIES = [
   { id: 'act-22', title: '7月积极分子座谈会', date: '2026-07-28', type: '座谈', organizer: 'p11', direction: 'top-down', location: '光华1号楼305会议室', status: 'published', scenarioId: 'theme-party', domain: 'party-building', assignments: [{ personId: 'p11', role: 'organizer' }] },
 
   // ── 8 月活动（暑期特色，与 notices.js 保持数据协调）────────────
-  { id: 'act-26', title: '8月党小组会（暑期线上）', date: '2026-08-07', type: '党小组会', organizer: 'p1', direction: 'bottom-up', location: '线上·腾讯会议', status: 'completed', scenarioId: 'party-group-meeting', domain: 'party-building', assignments: [{ personId: 'p1', role: 'organizer' }] },
-  { id: 'act-27', title: '8月支委会：新学期筹备', date: '2026-08-11', type: '支委会', organizer: 'p11', direction: 'top-down', location: '光华1号楼305会议室', status: 'published', scenarioId: 'branch-committee', domain: 'party-building', assignments: [{ personId: 'p11', role: 'organizer' }] },
-  { id: 'act-29', title: '暑期实践总结分享', date: '2026-08-20', type: '主题党日', organizer: 'p1', direction: 'bottom-up', location: '光华1号楼101报告厅', status: 'published', isBrand: true, scenarioId: 'theme-party', domain: 'party-building', assignments: [{ personId: 'p1', role: 'organizer' }, { personId: 'p8', role: 'deep' }, { personId: 'p5', role: 'participant' }] },
+  // 2026-08-05 书记裁决：已生成考勤的活动日期须已发生（≤ 8/5），
+  // act-28「谈话考察」违背「删除考察活动类型」（5b2e4ea）已彻底删除。
+  { id: 'act-26', title: '8月党小组会（暑期线上）', date: '2026-08-01', type: '党小组会', organizer: 'p1', direction: 'bottom-up', location: '线上·腾讯会议', status: 'completed', scenarioId: 'party-group-meeting', domain: 'party-building', assignments: [{ personId: 'p1', role: 'organizer' }] },
+  { id: 'act-27', title: '8月支委会：新学期筹备', date: '2026-08-03', type: '支委会', organizer: 'p11', direction: 'top-down', location: '光华1号楼305会议室', status: 'published', scenarioId: 'branch-committee', domain: 'party-building', assignments: [{ personId: 'p11', role: 'organizer' }] },
+  { id: 'act-29', title: '暑期实践总结分享', date: '2026-08-04', type: '主题党日', organizer: 'p1', direction: 'bottom-up', location: '光华1号楼101报告厅', status: 'published', isBrand: true, scenarioId: 'theme-party', domain: 'party-building', assignments: [{ personId: 'p1', role: 'organizer' }, { personId: 'p8', role: 'deep' }, { personId: 'p5', role: 'participant' }] },
+  // act-30 秋季学期工作部署会为未来活动（draft），无考勤记录——保持日期 8/28
   { id: 'act-30', title: '秋季学期工作部署会', date: '2026-08-28', type: '支部党员大会', organizer: 'p11', direction: 'top-down', location: '光华1号楼101报告厅', status: 'draft', scenarioId: 'branch-party-meeting', domain: 'party-building', assignments: [{ personId: 'p11', role: 'organizer' }] },
 ];

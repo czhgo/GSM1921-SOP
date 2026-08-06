@@ -348,7 +348,14 @@ function _renderDayView(grid, activeActivities, tasks, month, state) {
 function _renderListView(grid, activeActivities, tasks, month, state) {
   const [y, m] = month.split('-').map(Number);
   const monthActivities = activeActivities.filter(a => typeof a.date === 'string' && a.date.startsWith(month));
-  monthActivities.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  // T223 排序统一：跨日按 date 降序（新者在前）；同日内未完成在上、已完成在下
+  monthActivities.sort((a, b) => {
+    if (a.date !== b.date) return (b.date || '').localeCompare(a.date || '');
+    const aDone = a.archived || ['completed', 'cancelled'].includes(a.status);
+    const bDone = b.archived || ['completed', 'cancelled'].includes(b.status);
+    if (aDone !== bDone) return aDone ? 1 : -1;
+    return 0;
+  });
 
   let html = `<div class="mb-6">`;
   html += `<div class=" text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${y}年${m}月 活动列表</div>`;

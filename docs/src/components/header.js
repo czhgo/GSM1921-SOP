@@ -4,9 +4,40 @@
 
 import { AuthStore } from '../services/auth.js';
 import { getAccentColors, ROLE_LABELS } from '../core/constants.js';
-import { NoticeStore } from '../services/notice.js';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js';
 import { getBasePath } from '../core/utils.js';
 import { icon } from '../core/icons.js';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js';
+
+// 数据变更订阅（2026-08-05，消除"确认已读后角标不更新"）：
+// 模块顶层绑定一次；_renderNotificationBadge 在 #notification-bell 未渲染时静默返回。
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+  document.addEventListener(DATA_CHANGED_EVENT, _renderNotificationBadge);
+  document.addEventListener(DATA_LOADED_EVENT, _renderNotificationBadge);
+}
+
+/**
+ * 即时刷新通知角标（只更新角标 DOM，不整页重渲染）
+ * 数据变更（markRead/markAllRead/add/remove）或 loadDB 完成后调用，
+ * 修复角标停留在 seed 快照/点击已读后不更新的问题。
+ */
+function _renderNotificationBadge() {
+  const bell = document.getElementById('notification-bell');
+  if (!bell) return;
+  const old = bell.querySelector('#notif-badge');
+  if (old) old.remove();
+  // 只统计未过期的未读通知，与 index 首页通知栏数据一致
+  const activeNotices = NoticeStore.list({ activeOnly: true });
+  const unread = activeNotices.filter(n => !n.read).length;
+  if (unread > 0) {
+    const badge = document.createElement('span');
+    badge.id = 'notif-badge';
+    badge.textContent = unread > 9 ? '9+' : String(unread);
+    badge.style.cssText = 'position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:9999px;background:var(--party-gold);border:1.5px solid var(--primary-900);font-weight:600;color:#7A0010;display:flex;align-items:center;justify-content:center;padding:0 4px;';
+    badge.classList.add('text-xs');
+    bell.appendChild(badge);
+  }
+}
 
 function _roleLabelHTML(role) {
   if (!role) return '';
@@ -128,7 +159,7 @@ function _notificationBellHTML() {
   const activeNotices = NoticeStore.list({ activeOnly: true });
   const unread = activeNotices.filter(n => !n.read).length;
   const badge = unread > 0
-    ? `<span style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:9999px;background:var(--party-gold);border:1.5px solid var(--primary-900);font-weight:600;color:#7A0010;display:flex;align-items:center;justify-content:center;padding:0 4px;" class="text-xs">${unread > 9 ? '9+' : unread}</span>`
+    ? `<span id="notif-badge" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:9999px;background:var(--party-gold);border:1.5px solid var(--primary-900);font-weight:600;color:#7A0010;display:flex;align-items:center;justify-content:center;padding:0 4px;" class="text-xs">${unread > 9 ? '9+' : unread}</span>`
     : '';
 
   return `
@@ -317,7 +348,8 @@ function _bindNotificationBell(header) {
     e.stopPropagation();
     dropdown.classList.toggle('hidden');
     if (!dropdown.classList.contains('hidden')) {
-      const notices = NoticeStore.list({ activeOnly: true, sortBy: 'date' });
+      // 保留策略（书记 2026-08-05）：紧急通知全部展示，重要通知仅展示未读
+      const notices = NoticeStore.list({ activeOnly: true, sortBy: 'date', retention: 'visible' });
       if (notices.length === 0) {
         dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:#9CA3AF;" class="text-sm">暂无通知</div>';
         return;
@@ -347,6 +379,7 @@ function _bindNotificationBell(header) {
           const id = btn.dataset.noticeId;
           if (id) {
             NoticeStore.markRead(id);
+            _renderNotificationBadge();
             // 视觉反馈：标题变浅 + 移除按钮
             const item = btn.closest('.notif-dropdown-item');
             const titleP = item?.querySelector('p[style*="color:#374151"]');
@@ -356,8 +389,7 @@ function _bindNotificationBell(header) {
         });
       });
 
-      // 绑定点击：标记已读 + 跳转
-      // 优先级：有 targetUrl 时直接跳 targetUrl（赋权通知等），否则跳通知详情页
+      // 绑定点击：标记已读 + 统一跳转（resolveNoticeUrl 业务页直达优先，与全站一致）
       dropdown.querySelectorAll('.notif-dropdown-item').forEach(item => {
         item.addEventListener('mouseenter', () => {
           item.style.background = '#F9FAFB';
@@ -368,20 +400,15 @@ function _bindNotificationBell(header) {
         item.addEventListener('click', (ev) => {
           ev.stopPropagation();
           const id = item.dataset.noticeId;
-          const targetUrl = item.dataset.targetUrl;
+          const notice = NoticeStore._notices.find(n => n.id === id);
           if (id) NoticeStore.markRead(id);
+          _renderNotificationBadge();
           // 视觉反馈：点击后标题颜色变浅
           const titleP = item.querySelector('p[style*="color:#374151"]');
           if (titleP) titleP.style.color = '#9CA3AF';
-          // 跳转（短暂延迟让用户看到视觉反馈）
-          setTimeout(() => {
-            const path = window.location.pathname;
-            const basePath = path.includes('/workspace/') ? '../' : '';
-            const finalUrl = targetUrl
-              ? basePath + targetUrl
-              : `${basePath}notice.html?id=${id}`;
-            window.location.href = finalUrl;
-          }, 150);
+          const dest = resolveNoticeUrl(notice);
+          const finalUrl = dest.direct ? dest.url : `${getBasePath()}notice.html?id=${id}`;
+          window.location.href = finalUrl;
         });
       });
     }

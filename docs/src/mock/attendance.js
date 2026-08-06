@@ -3,6 +3,7 @@
 // 直接依赖 services/person.js + mock/activities.js。
 import { getPersonName } from '../services/person.js';
 import { ACTIVITIES } from './activities.js';
+import { PEOPLE } from './people.js';
 import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js';
 
 const _personName = (id) => getPersonName(id);
@@ -81,33 +82,57 @@ export const ATTENDANCE_RECORDS = [
   { id: 'att41', personId: 'p6',  activityId: 'act-19', status: AttendanceStatus.PRESENT,  recordedBy: 'p10', recordedAt: '2026-05-28T18:00:00Z', overdue: false, studentId: '2400012350', developStage: '发展对象', partyGroup: '第一党小组' },
   { id: 'att42', personId: 'p7',  activityId: 'act-19', status: AttendanceStatus.ABSENT,   recordedBy: 'p10', recordedAt: '2026-05-28T18:00:00Z', overdue: false, studentId: '2400012351', developStage: '积极分子', partyGroup: '第三党小组' },
   { id: 'att43', personId: 'p8',  activityId: 'act-19', status: AttendanceStatus.LEAVE,    recordedBy: 'p10', recordedAt: '2026-05-28T18:00:00Z', overdue: false, studentId: '2400012352', developStage: '正式党员', partyGroup: '第二党小组' },
-
-  // ── act-26 (2026-08-07) 8月党小组会（暑期线上） ─────────────
-  { id: 'att44', personId: 'p1',  activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
-  { id: 'att45', personId: 'p3',  activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
-
-  // ── act-26 考勤扩充（p16~p50 代表，2026-08-01）──────────────
-  // 50 人规模整合：三党小组代表参与 8 月线上党小组会，统一待纪检确认（recordedBy null）
-  // 第一党小组
-  { id: 'att46', personId: 'p16', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
-  { id: 'att47', personId: 'p17', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
-  { id: 'att48', personId: 'p18', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
-  { id: 'att49', personId: 'p28', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
-  // 第二党小组
-  { id: 'att50', personId: 'p19', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
-  { id: 'att51', personId: 'p20', activityId: 'act-26', status: AttendanceStatus.LEAVE,    recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
-  { id: 'att52', personId: 'p22', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
-  { id: 'att53', personId: 'p29', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
-  // 第三党小组
-  { id: 'att54', personId: 'p23', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
-  { id: 'att55', personId: 'p24', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
-  { id: 'att56', personId: 'p26', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
-  { id: 'att57', personId: 'p30', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
-  // 50 人新批次代表
-  { id: 'att58', personId: 'p32', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
-  { id: 'att59', personId: 'p39', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
-  { id: 'att60', personId: 'p44', activityId: 'act-26', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-08-07T20:00:00Z', overdue: false },
 ];
+
+// ── 8 月考勤全覆盖（2026-08-05 书记裁决「补全 5 场全覆盖」；次日修订）────
+// 2026-08-05 修订（书记裁决）：
+//   1. act-28「谈话考察」违背 5b2e4ea「删除考察活动类型」，已彻底删除（活动/考勤/通知）
+//   2. 已生成考勤的活动日期前移至已发生（≤ 8/5）：act-26 8/1、act-27 8/3、act-29 8/4；
+//      未来活动 act-30（8/28 draft）不生成考勤——「8 月底活动不可能已出勤」语义自洽
+//   3. 原 act-26 显式段（att44~60）并入生成器统一覆盖（去重），ID 从 att44 起连续
+// 覆盖规则（确定性生成，非随机——刷新与跨会话结果稳定）：
+//   act-26 8/1  党小组会（暑期线上）          → 全员 50 人
+//   act-27 8/3  支委会：新学期筹备            → 支委班子 8 人（书记/副书记/组织/宣传/纪检 + 三组长）
+//   act-29 8/4  暑期实践总结分享（主题党日）   → 全员 50 人
+// 状态分布：出勤为主；按 (idx + 事件偏移) 确定性抽取请假/缺勤，统一待纪检确认（recordedBy null）。
+
+// 支委班子（书记/副书记/三委员/三组长）
+const _BRANCH_COMMITTEE_IDS = ['p13', 'p14', 'p11', 'p12', 'p10', 'p1', 'p2', 'p4'];
+// 全员（三党小组 17/17/16 共 50 人）
+const _ALL_PERSON_IDS = PEOPLE.map(p => p.id);
+
+const _AUGUST_EVENTS = [
+  { activityId: 'act-26', recordedAt: '2026-08-01T20:00:00Z', people: _ALL_PERSON_IDS },
+  { activityId: 'act-27', recordedAt: '2026-08-03T18:00:00Z', people: _BRANCH_COMMITTEE_IDS },
+  { activityId: 'act-29', recordedAt: '2026-08-04T14:00:00Z', people: _ALL_PERSON_IDS },
+];
+
+function _buildAugustAttendance() {
+  const records = [];
+  let seq = 44;  // 紧接 att43 之后连续编号（原显式段 att44~60 已并入生成器）
+  _AUGUST_EVENTS.forEach((ev, evIdx) => {
+    // 事件级偏移避免同一人每场状态完全相同；新记录统一留空 recordedBy（待纪检确认）
+    ev.people.forEach((pid, idx) => {
+      const n = idx + evIdx * 7;
+      const status = (n % 13 === 0) ? AttendanceStatus.LEAVE
+        : (n % 17 === 0) ? AttendanceStatus.ABSENT
+        : AttendanceStatus.PRESENT;
+      records.push({
+        id: `att${seq++}`,
+        personId: pid,
+        activityId: ev.activityId,
+        status,
+        recordedBy: null,
+        recordedAt: ev.recordedAt,
+        overdue: false,
+      });
+    });
+  });
+  return records;
+}
+
+// 追加到导出数组（生成器 att44 起连续序列，与 att1~att43 显式段衔接）
+ATTENDANCE_RECORDS.push(..._buildAugustAttendance());
 
 export function attendanceToLong(records) {
   return records.map(r => ({

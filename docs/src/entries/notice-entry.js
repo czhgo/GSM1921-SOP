@@ -3,7 +3,7 @@
 // 2026-07-30: 增加邮件要素（通知者/被通知者/时间），但不采用邮箱 UI
 import { renderSidebar } from '../components/sidebar.js';
 import { renderHeader } from '../components/header.js';
-import { NoticeStore } from '../services/notice.js';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js';
 import { getBasePath, showToast } from '../core/utils.js';
 import { AuthStore } from '../services/auth.js';
 import { getPersonById } from '../mock/index.js';
@@ -93,23 +93,11 @@ function renderNoticeDetail(n) {
       </button>`
     : '<span class="inline-flex items-center gap-1 text-xs text-gray-400 px-4 py-2">已读</span>';
 
-  // 目标模块跳转
+  // 目标模块跳转（业务页直达优先，与全站统一 resolveNoticeUrl）
   let targetLink = '';
-  if (n.targetUrl) {
-    const base = getBasePath();
-    targetLink = `<a href="${base}${n.targetUrl}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-red-50 text-red-700 border border-red-200 hover:bg-red-100">
-      前往查看 →
-    </a>`;
-  } else if (n.targetModule) {
-    const moduleUrls = {
-      activity: 'index.html',
-      party: 'workspace/secretary.html',
-      workspace: 'workspace/secretary.html',
-      attendance: 'workspace/disc.html',
-    };
-    const base = getBasePath();
-    const url = moduleUrls[n.targetModule] || 'index.html';
-    targetLink = `<a href="${base}${url}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-red-50 text-red-700 border border-red-200 hover:bg-red-100">
+  const dest = resolveNoticeUrl(n, currentUser?.role || null);
+  if (dest.direct) {
+    targetLink = `<a href="${dest.url}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-red-50 text-red-700 border border-red-200 hover:bg-red-100">
       前往相关页面 →
     </a>`;
   }

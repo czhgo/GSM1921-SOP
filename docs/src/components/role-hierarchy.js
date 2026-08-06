@@ -12,7 +12,7 @@ const ROLE_DATA = {
     desc: '管理所有工作，是唯一的最终决策者',
     cssClass: 'role-secretary',
   },
-  org: { name: '组织委员', tag: '发展党员 + 专班', cssClass: 'role-org' },
+  org: { name: '组织委员', tag: '发展数据 + 专班', cssClass: 'role-org' },
   prop: { name: '宣传委员', tag: '宣传档案', cssClass: 'role-prop' },
   disc: { name: '纪检委员', tag: '考勤 + 补课', cssClass: 'role-disc' },
   leader: { name: '党小组组长', tag: '学术组 / 就业组', cssClass: 'role-leader' },

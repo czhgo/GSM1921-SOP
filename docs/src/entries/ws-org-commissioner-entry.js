@@ -18,6 +18,7 @@ import { icon } from '../core/icons.js';
 import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js';
 import { renderTodoList } from '../components/todo-list.js';
 import { TodoStore, seedTodos } from '../services/todo.js';
+import { NoticeStore } from '../services/notice.js';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'org-commissioner' });
 
@@ -82,9 +83,11 @@ function renderOrgUI(state) {
   if (!container) return;
 
   const taskforces = TaskForceRecordStore.getAll();
-  const pending = taskforces.filter(t => t.status === 'draft' || t.status === 'pending_review');
-  const recruiting = taskforces.filter(t => t.status === 'recruiting');
-  const active = taskforces.filter(t => t.status === 'active');
+  // T223 排序统一：专班各状态栏内按 createdAt 降序（新者在前）
+  const sortTfByNew = (arr) => [...arr].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  const pending = sortTfByNew(taskforces.filter(t => t.status === 'draft' || t.status === 'pending_review'));
+  const recruiting = sortTfByNew(taskforces.filter(t => t.status === 'recruiting'));
+  const active = sortTfByNew(taskforces.filter(t => t.status === 'active'));
 
   const tabBar = renderTabBar({
     prefix: 'org',
@@ -93,7 +96,7 @@ function renderOrgUI(state) {
       { id: 'inspection', label: '考察上传', render: () => _renderOrgInspectionContent(), groupLabel: '党建' },
       { id: 'taskforce', label: '专班管理', render: (ctx) => _renderTaskforceContent(ctx.pending, ctx.recruiting, ctx.active, ctx.activities) },
       { id: 'talent', label: '人才库', render: () => _renderTalentContent() },
-      { id: 'development', label: '发展党员', render: () => _renderDevelopmentContent(), groupLabel: '党建' },
+      { id: 'development', label: '发展数据', render: () => _renderDevelopmentContent(), groupLabel: '党建' },
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('org-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('org-commissioner', 'u_org'); bindMyDispatchEvents(el, 'org-commissioner', 'u_org'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
@@ -166,7 +169,7 @@ function _renderTodoContent() {
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2">
-        <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+        <div class="card rounded-xl p-5"">
           <div class="flex items-center justify-between mb-4">
             <h4 class="font-title-cn text-sm font-bold text-gray-700">我的待办</h4>
           </div>
@@ -239,7 +242,7 @@ function _handleTodoAction(todo) {
       const tfCard = document.querySelector(`.tf-store-card[data-tf-id="${todo.sourceId}"]`);
       if (tfCard) tfCard.click();
     }
-    const tabLabels = { authorize: '专班管理', review: '考察上传', track: '发展党员' };
+    const tabLabels = { authorize: '专班管理', review: '考察上传', track: '发展数据' };
     showToast('info', `已跳转到${tabLabels[todo.actionType] || '对应功能'}，请处理：${todo.title}`);
   } else {
     showToast('info', `请处理：${todo.title}`);
@@ -272,15 +275,17 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
   const statusLabel = { pending_review: '待审核', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', draft: '草稿' };
   const statusColor = { pending_review: '#6366F1', recruiting: '#D97706', active: '#10B981', completed: '#3B82F6', archived: '#6B7280', draft: '#6B7280' };
 
-  // 获取已完结专班（含 completed 解散 / archived 归档）
-  const completed = TaskForceRecordStore.getAll().filter(t => t.status === 'completed' || t.status === 'archived');
+  // 获取已完结专班（含 completed 解散 / archived 归档），T223 新者在前
+  const completed = TaskForceRecordStore.getAll()
+    .filter(t => t.status === 'completed' || t.status === 'archived')
+    .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
   container.innerHTML = `
     <div class="flex flex-wrap gap-2 mb-3">
       <input type="text" id="org-tf-search" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索专班名称或任务...">
     </div>
     <div id="org-tf-kanban"></div>
-    <div id="tf-detail-panel" class="hidden card rounded-xl p-5 border-l-4" style="border-left-color:${accent};"></div>
+    <div id="tf-detail-panel" class="hidden card rounded-xl p-5""></div>
     <div id="org-activity-progress" class="mt-4"></div>
   `;
 
@@ -392,7 +397,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
           const contribCount = (m.contributions || []).length;
           const contribList = (m.contributions || []).length > 0
             ? `<ul class="mt-1 space-y-0.5">${m.contributions.map(c =>
-                `<li class="text-[12px] text-gray-400 pl-2 border-l-2 border-gray-200">${typeof c === 'string' ? c : (c.description || c.title || JSON.stringify(c))}</li>`
+                `<li class="text-[12px] text-gray-400 pl-2">${typeof c === 'string' ? c : (c.description || c.title || JSON.stringify(c))}</li>`
               ).join('')}</ul>`
             : '<span class="text-[12px] text-gray-300 pl-2">暂无贡献记录</span>';
           return `
@@ -745,6 +750,8 @@ function _openRecruitForm() {
   const panel = document.createElement('div');
   panel.className = 'card rounded-xl';
   panel.style.cssText = 'width:560px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto;padding:24px;position:relative;';
+  // 统一表单基建（2026-08-05 书记裁决「统一表单基建」）：与「写入活动」表单对齐
+  // input-flat / text-xs 标签 / 红色必填星号 / 同规格按钮
   panel.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
       <h3 class="font-title-cn" style="font-size:1.125rem;font-weight:700;color:#1F2937;margin:0;">发布专班招募</h3>
@@ -754,56 +761,70 @@ function _openRecruitForm() {
     </div>
 
     <form id="recruit-form" autocomplete="off">
-      <div style="margin-bottom:16px;">
-        <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">专班名称 <span style="color:#CE1126;">*</span></label>
-        <input type="text" id="rf-name" required placeholder="如：宣传专班（第三期）" class="input rounded-lg border px-3 py-2" style="width:100%;font-size:0.8125rem;border:1.5px solid #E5E7EB;outline:none;transition:border-color 0.15s;" />
+      <div class="mb-3">
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">专班名称 <span class="text-red-500">*</span></label>
+        <input type="text" id="rf-name" required placeholder="如：宣传专班（第三期）" class="input-flat w-full">
       </div>
 
-      <div style="margin-bottom:16px;">
-        <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">任务描述 <span style="color:#CE1126;">*</span></label>
-        <textarea id="rf-task" required rows="3" placeholder="描述专班的核心任务与目标" class="input rounded-lg border px-3 py-2" style="width:100%;font-size:0.8125rem;border:1.5px solid #E5E7EB;outline:none;transition:border-color 0.15s;resize:vertical;"></textarea>
+      <div class="mb-3">
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">任务描述 <span class="text-red-500">*</span></label>
+        <textarea id="rf-task" required rows="3" placeholder="描述专班的核心任务与目标" class="input-flat w-full"></textarea>
       </div>
 
-      <div style="display:flex;gap:16px;margin-bottom:16px;">
-        <div style="flex:1;">
-          <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">所需人数 <span style="color:#CE1126;">*</span></label>
-          <input type="number" id="rf-capacity" required min="1" max="50" placeholder="如：5" class="input rounded-lg border px-3 py-2" style="width:100%;font-size:0.8125rem;border:1.5px solid #E5E7EB;outline:none;transition:border-color 0.15s;" />
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">所需人数 <span class="text-red-500">*</span></label>
+          <input type="number" id="rf-capacity" required min="1" max="50" placeholder="如：5" class="input-flat w-full">
         </div>
-        <div style="flex:1;">
-          <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">截止日期 <span style="color:#CE1126;">*</span></label>
-          <input type="date" id="rf-deadline" required class="input rounded-lg border px-3 py-2" style="width:100%;font-size:0.8125rem;border:1.5px solid #E5E7EB;outline:none;transition:border-color 0.15s;" />
-        </div>
-      </div>
-
-      <div style="margin-bottom:16px;">
-        <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">技能要求</label>
-        <input type="text" id="rf-skills" placeholder="如：视频剪辑、文案撰写（选填）" class="input rounded-lg border px-3 py-2" style="width:100%;font-size:0.8125rem;border:1.5px solid #E5E7EB;outline:none;transition:border-color 0.15s;" />
-      </div>
-
-      <div style="display:flex;gap:16px;margin-bottom:16px;">
-        <div style="flex:1;">
-          <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">周期起始</label>
-          <input type="date" id="rf-period-start" class="input rounded-lg border px-3 py-2" style="width:100%;font-size:0.8125rem;border:1.5px solid #E5E7EB;outline:none;transition:border-color 0.15s;" />
-        </div>
-        <div style="flex:1;">
-          <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">周期结束</label>
-          <input type="date" id="rf-period-end" class="input rounded-lg border px-3 py-2" style="width:100%;font-size:0.8125rem;border:1.5px solid #E5E7EB;outline:none;transition:border-color 0.15s;" />
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">截止日期 <span class="text-red-500">*</span></label>
+          <input type="date" id="rf-deadline" required class="input-flat w-full">
         </div>
       </div>
 
-      <div style="margin-bottom:16px;">
-        <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">初始成员</label>
+      <div class="mb-3">
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">技能要求 <span class="text-gray-300">（选填）</span></label>
+        <input type="text" id="rf-skills" placeholder="如：视频剪辑、文案撰写" class="input-flat w-full">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">周期起始 <span class="text-gray-300">（选填）</span></label>
+          <input type="date" id="rf-period-start" class="input-flat w-full">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">周期结束 <span class="text-gray-300">（选填）</span></label>
+          <input type="date" id="rf-period-end" class="input-flat w-full">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">初始成员 <span class="text-gray-300">（选填）</span></label>
         <div id="rf-members-picker"></div>
       </div>
 
-      <div style="margin-bottom:20px;">
-        <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:6px;">说明</label>
-        <textarea id="rf-notes" rows="2" placeholder="补充说明（选填）" class="input rounded-lg border px-3 py-2" style="width:100%;font-size:0.8125rem;border:1.5px solid #E5E7EB;outline:none;transition:border-color 0.15s;resize:vertical;"></textarea>
+      <div class="mb-3">
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">说明 <span class="text-gray-300">（选填）</span></label>
+        <textarea id="rf-notes" rows="2" placeholder="补充说明" class="input-flat w-full"></textarea>
+      </div>
+
+      <div class="mb-4">
+        <div class="wp-collapse-toggle text-xs text-gray-400 cursor-pointer hover:text-gray-600 select-none" onclick="this.nextElementSibling.classList.toggle('hidden')">自动发布通知（选填，发布专班后立即通知全体成员）</div>
+        <div class="mt-2 space-y-3">
+          <div>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知标题</label>
+            <input type="text" id="rf-notice-title" class="input-flat w-full" placeholder="默认使用专班名称">
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知内容</label>
+            <textarea id="rf-notice-content" rows="3" class="input-flat w-full" placeholder="如：宣传专班（第三期）招募中，截止 8月20日，欢迎报名参与。"></textarea>
+          </div>
+        </div>
       </div>
 
       <div style="display:flex;gap:12px;justify-content:flex-end;">
-        <button type="button" id="recruit-form-cancel" style="padding:8px 20px;border-radius:var(--radius-md);border:1.5px solid #E5E7EB;background:white;color:#6B7280;font-size:0.8125rem;font-weight:500;cursor:pointer;transition:all 0.15s;">取消</button>
-        <button type="submit" style="padding:8px 24px;border-radius:var(--radius-md);border:none;background:${accent};color:white;font-size:0.8125rem;font-weight:600;cursor:pointer;transition:background 0.15s;">发布</button>
+        <button type="button" id="recruit-form-cancel" class="text-sm px-5 py-2.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
+        <button type="submit" class="text-sm px-5 py-2.5 rounded-lg text-white hover:opacity-90 transition-opacity font-medium" style="background:${accent};">发布</button>
       </div>
     </form>
   `;
@@ -814,12 +835,6 @@ function _openRecruitForm() {
   // 关闭按钮
   panel.querySelector('#recruit-form-close').addEventListener('click', () => _closeRecruitForm());
   panel.querySelector('#recruit-form-cancel').addEventListener('click', () => _closeRecruitForm());
-
-  // 输入框聚焦样式
-  panel.querySelectorAll('input, textarea, select').forEach(el => {
-    el.addEventListener('focus', function() { this.style.borderColor = accent; });
-    el.addEventListener('blur', function() { this.style.borderColor = '#E5E7EB'; });
-  });
 
   // 初始化 PersonPicker
   const pickerContainer = panel.querySelector('#rf-members-picker');
@@ -856,6 +871,10 @@ function _submitRecruitForm() {
   const periodStart = document.getElementById('rf-period-start')?.value || '';
   const periodEnd = document.getElementById('rf-period-end')?.value || '';
   const notes = document.getElementById('rf-notes')?.value?.trim() || '';
+
+  // 预拟通知（选填，2026-08-05 书记裁决「表单内预拟通知·只跑一次」）
+  const noticeTitle = document.getElementById('rf-notice-title')?.value?.trim();
+  const noticeContent = document.getElementById('rf-notice-content')?.value?.trim();
 
   // 校验必填项
   if (!name) { showToast('error', '请填写专班名称'); return; }
@@ -898,6 +917,22 @@ function _submitRecruitForm() {
       AuthStore.recordProjectGrants(created.id, members, actorId);
     }
     showToast('success', `专班「${name}」发布成功`);
+
+    // 预拟通知「只跑一次」（2026-08-05）：仅在表单填写了标题时发布一条通知，
+    // NoticeStore.add 单次调用，通知→待办仅派生一次，不重复发。
+    if (noticeTitle) {
+      NoticeStore.add({
+        title: noticeTitle,
+        content: noticeContent || `专班「${name}」招募中，截止 ${deadline}，欢迎报名参与。`,
+        priority: 'normal',
+        publishDate: new Date().toISOString().slice(0, 10),
+        expireDate: deadline,
+        targetModule: 'workspace',
+        read: false,
+      });
+      showToast('success', '已自动发布通知');
+    }
+
     _closeRecruitForm();
     // 刷新看板
     renderOrgUI(getAppState());
@@ -916,7 +951,7 @@ function _renderActivityProgress(activities) {
   const queryData = activities.map(a => ({ ...a, archived: String(a.status === 'completed') }));
 
   progressEl.innerHTML = `
-    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+    <div class="card rounded-xl p-5"">
       <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">活动进度</h4>
       <div class="text-xs text-gray-500 mb-3">追踪所有已发布活动的执行状态</div>
       <div id="org-activity-query"></div>
@@ -975,12 +1010,13 @@ function _renderActivityProgress(activities) {
     const confirmed = window.confirm(`确认完成活动「${activity.title || '未命名'}」？完成后将归档。`);
     if (!confirmed) return;
     BranchService.updateActivity(actId, { status: 'completed' });
+    persist(); // 扎口修复（Z1/Z3）：updateActivity 内部不落盘，必须显式 persist 写穿
     showToast('success', `活动「${activity.title || '未命名'}」已完成并归档`);
     renderOrgUI(getAppState());
   });
 }
 
-// ── 发展党员追踪 Tab（党建） ──
+// ── 发展数据 Tab（党建） ──
 
 function _renderDevelopmentContent() {
   const container = document.getElementById('org-tab-content');
@@ -1062,12 +1098,12 @@ function _renderDevelopmentContent() {
         }).join('');
 
     container.innerHTML = `
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+      <div class="card rounded-xl p-5"">
         <div class="flex items-center justify-between mb-3">
-          <h4 class="font-title-cn text-sm font-bold text-gray-700">发展党员追踪</h4>
+          <h4 class="font-title-cn text-sm font-bold text-gray-700">发展数据</h4>
           <span class="text-xs text-gray-400">${candidates.length} 人</span>
         </div>
-        <div class="text-xs text-gray-500 mb-4">从积极分子到正式党员的完整发展路径追踪</div>
+        <div class="text-xs text-gray-500 mb-4">从入党积极分子到正式党员的完整发展路径数据</div>
         <!-- 管线概览 -->
         <div class="flex items-center flex-wrap gap-1 mb-4 p-3 rounded-lg bg-gray-50">
           ${pipelineHtml}
@@ -1130,7 +1166,7 @@ function _renderTalentContent() {
   const groupOptions = [...new Set(people.map(p => p.partyGroup).filter(Boolean))].map(g => ({ value: g, label: g }));
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+    <div class="card rounded-xl p-5"">
       <div class="flex items-center justify-between mb-3">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">人才库</h4>
         <span class="text-xs text-gray-400">${people.length} 人</span>
@@ -1138,7 +1174,7 @@ function _renderTalentContent() {
       <div class="text-xs text-gray-500 mb-4">人员信息汇总提炼，输出人才画像</div>
       <div id="org-talent-query"></div>
     </div>
-    <div id="org-talent-detail" class="hidden card rounded-xl p-5 border-l-4 mt-3" style="border-left-color:${accent};"></div>
+    <div id="org-talent-detail" class="hidden card rounded-xl p-5 mt-3"></div>
   `;
 
   const queryContainer = document.getElementById('org-talent-query');
@@ -1284,7 +1320,10 @@ function _renderOrgInspectionContent() {
   const allRecords = loadInspectionRecords();
   const tfInspection = allRecords.filter(r => r.sourceType === SourceType.TASKFORCE);
 
-  const activeTaskforces = TaskForceRecordStore.getAll().filter(t => t.status === 'active' || t.status === 'recruiting');
+  // T223 专班新者在前（createdAt 降序）
+  const activeTaskforces = TaskForceRecordStore.getAll()
+    .filter(t => t.status === 'active' || t.status === 'recruiting')
+    .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
   const formHtml = _orgInspFormVisible ? `
     <div class="mt-3 p-4 rounded-xl bg-white border border-gray-100 shadow-sm" id="org-insp-form-panel">
@@ -1312,7 +1351,7 @@ function _renderOrgInspectionContent() {
   const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-cyan-100 text-cyan-700' };
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+    <div class="card rounded-xl p-5"">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">专班考察上传</h4>
         <button class="btn-md" id="btn-org-upload-insp" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_orgInspFormVisible ? '收起表单' : '上传考察表单'}</button>

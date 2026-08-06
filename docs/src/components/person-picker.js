@@ -223,10 +223,13 @@ export class PersonPicker {
       if (arrow) arrow.classList.remove('open');
     }
 
-    // 移除面板
+    // 移除遮罩与面板（二者现为 body 同级节点，需分别移除）
     if (this._overlayEl) {
       this._overlayEl.remove();
       this._overlayEl = null;
+    }
+    if (this._panelEl) {
+      this._panelEl.remove();
     }
     this._panelEl = null;
 
@@ -340,9 +343,13 @@ export class PersonPicker {
       panel.appendChild(footer);
     }
 
-    // 组装
-    overlay.appendChild(panel);
+    // 组装：overlay 与 panel 均直接挂 body 且为同级节点。
+    // 修复（2026-08-06）：panel 曾作为 overlay 子节点，其 z-index 601 只在
+    // overlay(600) 的层叠上下文内生效，根层叠下整体仅 600，会被 z-index 更高
+    // 的浮层（如 status-badge-popover）压住。同级挂载后 panel 自身 z-index 801
+    // 在根层叠上下文生效，确保选人浮窗始终浮在最上端。
     document.body.appendChild(overlay);
+    document.body.appendChild(panel);
 
     this._panelEl = panel;
 
@@ -354,7 +361,10 @@ export class PersonPicker {
   }
 
   // ── 面板定位 ────────────────────────────────────────────────
-
+  // 修复（2026-08-06）：重写为「永不溢出视口」的确定性定位。
+  // 规则：优先放触发按钮下方；下方放不下且上方够时翻到上方；
+  // 面板高度按可用空间收敛（下限 160px），宽度收敛到视口内，
+  // 保证「确认选择」等底部操作栏始终可见可点。
   _positionPanel(panel) {
     if (!this._triggerBtn) {
       // 无触发按钮时居中
@@ -365,17 +375,33 @@ export class PersonPicker {
     }
 
     const rect = this._triggerBtn.getBoundingClientRect();
+    const viewportW = window.innerWidth;
     const viewportH = window.innerHeight;
-    const spaceBelow = viewportH - rect.bottom;
-    const spaceAbove = rect.top;
+    const GAP = 6;
+    const MIN_PANEL_H = 160;
+    const MAX_PANEL_H = 520;
+    const PANEL_W = Math.min(380, viewportW - 16);
 
-    // 优先在下方显示，空间不足时在上方
-    if (spaceBelow >= 400 || spaceBelow >= spaceAbove) {
-      panel.style.top = `${rect.bottom + 6}px`;
+    const belowH = viewportH - rect.bottom - GAP;
+    const aboveH = rect.top - GAP;
+    // 下方放得下（>= 下限）优先下方；否则上方放得下才翻到上方
+    const placeBelow = belowH >= MIN_PANEL_H && (aboveH < MIN_PANEL_H || belowH >= aboveH);
+
+    let top, panelH;
+    if (placeBelow) {
+      top = rect.bottom + GAP;
+      panelH = Math.min(MAX_PANEL_H, Math.max(MIN_PANEL_H, belowH));
+      panelH = Math.min(panelH, viewportH - top - 8); // 兜底不溢出视口底
     } else {
-      panel.style.bottom = `${viewportH - rect.top + 6}px`;
+      panelH = Math.min(MAX_PANEL_H, Math.max(MIN_PANEL_H, aboveH));
+      panelH = Math.min(panelH, rect.top - GAP - 8);   // 兜底不遮住触发按钮
+      top = Math.max(8, rect.top - GAP - panelH);
     }
-    panel.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - 396))}px`;
+
+    panel.style.width = `${PANEL_W}px`;
+    panel.style.maxHeight = `${Math.max(120, panelH)}px`;
+    panel.style.top = `${top}px`;
+    panel.style.left = `${Math.max(8, Math.min(rect.left, viewportW - PANEL_W - 8))}px`;
   }
 
   // ── 人员列表渲染 ────────────────────────────────────────────

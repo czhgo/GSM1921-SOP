@@ -15,6 +15,7 @@ import { getActivityTypeColors } from '../core/constants.js';
 import { bootstrapPage } from '../core/bootstrap.js';
 import { AuthStore } from '../services/auth.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
+import { DATA_CHANGED_EVENT } from '../core/data-adapter.js';
 import { icon } from '../core/icons.js';
 import { renderCalendarForDashboard, populateMonthSelector } from '../components/calendar.js';
 
@@ -142,6 +143,9 @@ const ATTENDANCE_STATUS_DOT = {
   made_up:  { text: '已补', cls: 'text-blue-500', dot: '#3B82F6' },
 };
 
+// 弹窗的 document 级关闭监听防重绑定（统计卡即时刷新会反复调用 _bindAttendancePopover）
+let _attDocBound = false;
+
 function _bindAttendancePopover(activities, attendanceRecords, thisMonth) {
   const trigger = document.querySelector('[data-attendance-popover="1"]');
   if (!trigger) return;
@@ -204,15 +208,19 @@ function _bindAttendancePopover(activities, attendanceRecords, thisMonth) {
     }
   });
 
-  document.addEventListener('click', (e) => {
-    if (!popover.contains(e.target) && !trigger.contains(e.target)) {
-      popover.style.display = 'none';
-    }
-  });
+  // document 级关闭监听：仅绑定一次（统计卡即时刷新会反复调用本函数）
+  if (!_attDocBound) {
+    _attDocBound = true;
+    document.addEventListener('click', (e) => {
+      if (!popover.contains(e.target) && !trigger.contains(e.target)) {
+        popover.style.display = 'none';
+      }
+    });
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') popover.style.display = 'none';
-  });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') popover.style.display = 'none';
+    });
+  }
 }
 
 // ── 近期活动卡片：tab 切换 + URL 同步 ──────────────────
@@ -285,13 +293,12 @@ function _renderActivityList(activities) {
   const container = document.getElementById('dashboard-activity-list');
   if (!container) return;
 
-  const now = new Date();
+  // T223 排序统一：未完成在前、已完成在后，组内均按 date 降序（新者在前）
+  const isDone = a => a.archived || ['completed', 'cancelled'].includes(a.status);
   const sorted = [...activities]
     .filter(a => a.date && !a.archived)
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-
-  const upcoming = sorted.filter(a => new Date(a.date) >= new Date(now.getFullYear(), now.getMonth(), 1));
-  const display = upcoming.length > 0 ? upcoming.slice(0, 10) : sorted.slice(-10);
+  const display = [...sorted.filter(a => !isDone(a)), ...sorted.filter(a => isDone(a))].slice(0, 10);
 
   if (display.length === 0) {
     container.innerHTML = '<p class="text-sm text-gray-400 p-4">暂无可展示的活动</p>';
@@ -324,7 +331,10 @@ function _renderTaskforceList(taskforces) {
   const container = document.getElementById('dashboard-taskforce-list');
   if (!container) return;
 
-  const active = taskforces.filter(t => t.status === 'active' || t.status === 'recruiting');
+  // T223 排序统一：专班按 createdAt 降序（新者在前）
+  const active = taskforces
+    .filter(t => t.status === 'active' || t.status === 'recruiting')
+    .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
   const display = active.slice(0, 5);
 
   if (display.length === 0) {
@@ -421,11 +431,11 @@ function _renderGallery(activities) {
   const container = document.getElementById('dashboard-gallery');
   if (!container) return;
 
-  // A-03 修复：最新在前（按日期降序）排序，品牌活动保留标识，最多6个；保留渐变设计效果
+  // T223 排序统一：未完成在前、已完成在后，组内均按 date 降序（新者在前）
+  const isDone = a => a.archived || ['completed', 'cancelled'].includes(a.status);
   const candidates = activities.filter(a => (a.isBrand && !a.archived) || ((a.status === 'completed' || a.archived) && !a.isBrand));
-  const display = candidates
-    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
-    .slice(0, 6);
+  const sortByDate = (arr) => [...arr].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const display = [...sortByDate(candidates.filter(a => !isDone(a))), ...sortByDate(candidates.filter(a => isDone(a)))].slice(0, 6);
 
   if (display.length === 0) {
     container.innerHTML = '<p class="text-sm text-gray-400">暂无风采展示</p>';
@@ -499,12 +509,6 @@ function renderDashboard(state) {
   const dashContainer = document.getElementById('view-dashboard');
   if (!dashContainer || dashContainer.dataset.navBound === 'true') return;
 
-  // 绑定 tab 切换（仅绑定一次）
-  if (!dashContainer.dataset.tabsBound) {
-    dashContainer.dataset.tabsBound = 'true';
-    _bindActivityTabs();
-  }
-
   dashContainer.dataset.navBound = 'true';
 
   dashContainer.addEventListener('click', (e) => {
@@ -560,6 +564,10 @@ function renderDashboard(state) {
   });
 }
 
+// T223 修复：活动 tab 在模块初始化即绑定（tab 按钮为静态 HTML），
+// 避免异步数据加载期间用户点击「列表」时监听器尚未绑定而丢失点击。
+_bindActivityTabs();
+
 loadWorkspaceData({
   role: 'all',
   selectedRole: null,
@@ -568,6 +576,35 @@ loadWorkspaceData({
   storeInits: [() => NoticeStore.init(), () => TaskForceRecordStore.init()],
   extraLoads: [() => typeof BranchService.listTasks === 'function' ? BranchService.listTasks() : Promise.resolve([])],
   logTag: 'initApp'
+});
+
+// ── 数据变更即时刷新（2026-08-05，响应书记"计算需手动刷新"）──────
+// 任何业务写（通知已读、待办完成、考勤确认等）经 persist() 派发 DATA_CHANGED_EVENT，
+// 首页订阅后即时重算统计卡/通知列表/我的考勤，无需手动刷新页面。
+function _refreshDashboardSnapshot() {
+  const state = getAppState();
+  const activities = state.activities || [];
+  const taskforces = TaskForceRecordStore.getAll();
+  const notices = NoticeStore.getAll();
+
+  _renderStats(activities, taskforces, notices, loadAttendanceRecords());
+  if (state.status === STATE.LOADING && activities.length === 0) return;
+
+  renderNoticeList('dashboard-notice-list', 5);
+  const noticeCount = document.getElementById('dashboard-notice-count');
+  if (noticeCount) {
+    const activeUnread = NoticeStore.list({ activeOnly: true }).filter(n => !n.read).length;
+    noticeCount.textContent = activeUnread > 0 ? `${activeUnread} 条未读` : '';
+  }
+
+  _renderTaskforceList(taskforces);
+  _renderActivityList(activities);
+  _renderGallery(activities);
+}
+
+document.addEventListener(DATA_CHANGED_EVENT, () => {
+  if (getAppState().activeModule !== 'dashboard') return;
+  _refreshDashboardSnapshot();
 });
 
 const _lastDataVersion = CrossPageState.getDataVersion();

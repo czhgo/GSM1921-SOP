@@ -72,17 +72,21 @@
 }
 
 /* ── 遮罩层 ────────────────────────────────────────────────────── */
+/* z-index 层级（2026-08-06 修复）：panel 已改为 body 同级节点，二者 z-index
+   在根层叠上下文生效。全站层级：header 50 / sidebar 70 / dropdown 100 /
+   modal 500 / status-badge-popover 600 / picker overlay 800 / panel 801 /
+   toast 9999。选人浮窗始终浮在普通弹层之上，仅低于全局 toast 等阻塞浮层。 */
 .person-picker-overlay {
   position: fixed;
   inset: 0;
-  z-index: 300;
+  z-index: 800;
   background: rgba(0, 0, 0, 0.3);
 }
 
 /* ── 面板主体 ──────────────────────────────────────────────────── */
 .person-picker-panel {
   position: fixed;
-  z-index: 301;
+  z-index: 801;
   background: white;
   border-radius: var(--radius-lg);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);

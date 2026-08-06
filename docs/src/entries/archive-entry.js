@@ -8,7 +8,9 @@ import { getPersonById } from '../mock/index.js';
 import { loadActivities } from '../services/activity.js';
 import { TaskForceRecordStore } from '../services/taskforce.js';
 import { getActivityTypeColors } from '../core/constants.js';
-import { NoticeStore } from '../services/notice.js';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js';
+import { getBasePath } from '../core/utils.js';
+import { AuthStore } from '../services/auth.js';
 
 renderSidebar('archive');
 renderHeader('archive');
@@ -149,12 +151,14 @@ function renderNoticeArchive() {
     </div>
   `;
 
-  // 点击跳转通知详情页
+  // 点击跳转：业务页直达优先（与全站统一 resolveNoticeUrl）
   contentContainer.querySelectorAll('[data-notice-id]').forEach(item => {
     item.addEventListener('click', () => {
       const id = item.dataset.noticeId;
-      const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
-      window.location.href = basePath + 'notice.html?id=' + id;
+      const notice = NoticeStore._notices.find(n => n.id === id);
+      const dest = resolveNoticeUrl(notice, AuthStore.getCurrentUser()?.role || null);
+      const finalUrl = dest.direct ? dest.url : `${getBasePath()}notice.html?id=${id}`;
+      window.location.href = finalUrl;
     });
   });
 }

@@ -203,12 +203,10 @@ function _renderTodoItem(prefix, todo, accent, today, selectedTodoId, actionBtnS
     (isExpired ? '<span class="text-xs px-1 py-0.5 rounded bg-red-100 text-red-600 font-medium flex-shrink-0">过期</span>' : '') +
     (isUrgent && !isExpired ? '<span class="text-xs px-1 py-0.5 rounded bg-orange-100 text-orange-600 font-medium flex-shrink-0">紧急</span>' : '');
 
-  // 行内强调色（S4：过期不再使用红条，避免与组长翠绿主题页红绿相撞；仅紧急保留橙条）
-  const barColor = !isExpired && isUrgent ? '#F97316' : isSelected ? accent : 'transparent';
+  // T223 卡片统一：移除行内左竖条（选中/紧急改用「紧急」标签 + 选中背景表达，不再画竖线）
 
   return `
     <div class="${prefix}-todo-item flex items-center border-b border-gray-50 last:border-b-0" data-todo-id="${todo.id}">
-      <span class="w-1 self-stretch flex-shrink-0" style="background:${barColor};"></span>
       <button type="button" class="${prefix}-todo-item-main flex-1 min-w-0 flex items-center gap-2 px-3 py-2.5 text-left bg-transparent border-0 transition-colors hover:bg-gray-50 ${isSelected ? 'bg-gray-50' : ''}" data-todo-id="${todo.id}">
         <span class="flex items-center gap-1.5 min-w-0 flex-1">
           ${flagHtml}

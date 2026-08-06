@@ -5,6 +5,7 @@
 
 import { BranchService } from '../services/runtime.js';
 import { getAppState, setState, STATE } from './state.js';
+import { notifyDataLoaded } from './data-adapter.js';
 
 /**
  * 将 mock ACTIVITIES 映射为带完整字段的 fallback 数据
@@ -54,6 +55,10 @@ export async function loadWorkspaceData({
   } catch (e) {
     console.warn(`[${logTag}] loadDB error`, e);
   }
+  // 数据加载完成广播（2026-08-05）：loadDB 恢复持久化数据后派发，
+  // 让 header 角标等"加载早期渲染的快照"据实刷新（角标竞态修复），
+  // 所有页面共用 loadWorkspaceData，此单点覆盖全部入口。
+  notifyDataLoaded();
 
   // Step 2: setState LOADING
   setState({

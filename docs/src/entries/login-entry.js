@@ -16,7 +16,7 @@ if (user) {
 const DEV_CARDS = [
   { role: 'secretary',         label: '党支部书记',   desc: '组织统筹决策' },
   { role: 'deputy-secretary',  label: '党支部副书记', desc: '协助书记工作' },
-  { role: 'org-commissioner',  label: '组织委员',     desc: '发展党员' },
+  { role: 'org-commissioner',  label: '组织委员',     desc: '发展数据' },
   { role: 'prop-commissioner', label: '宣传委员',     desc: '宣传档案' },
   { role: 'disc-commissioner', label: '纪检委员',     desc: '考勤考察' },
   { role: 'leader',            label: '党小组组长',   desc: '活动统筹' },

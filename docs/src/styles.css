@@ -342,24 +342,24 @@ body {
    ═══════════════════════════════════════════════════════════════ */
 .card-flat {
   background-color: var(--surface-card);
-  border: 1px solid var(--neutral-200);
   border-radius: var(--radius-md);
-  transition: border-color var(--transition-normal), background-color var(--transition-normal);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  transition: box-shadow var(--transition-normal), background-color var(--transition-normal);
 }
 
 .card-flat:hover {
-  border-color: var(--neutral-300);
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
 }
 
 .card {
   background-color: var(--surface-card);
-  border: 1px solid var(--neutral-200);
   border-radius: var(--radius-md);
-  transition: border-color var(--transition-normal), background-color var(--transition-normal);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  transition: box-shadow var(--transition-normal), background-color var(--transition-normal);
 }
 
 .card:hover {
-  border-color: var(--neutral-300);
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1544,10 +1544,10 @@ textarea.input-flat {
 .inspector-card {
   background-color: var(--surface-card);
   border: 1px solid var(--neutral-200);
-  border-left: 4px solid var(--primary-700);
   border-radius: var(--radius-md);
   padding: 16px;
   margin-bottom: 12px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
   transition: border-color var(--transition-fast);
 }
 
@@ -1641,7 +1641,7 @@ textarea.input-flat {
 
 .status-badge-popover {
   position: fixed;
-  z-index: 700;
+  z-index: 600;
   min-width: 128px;
   padding: 4px;
   background: #fff;

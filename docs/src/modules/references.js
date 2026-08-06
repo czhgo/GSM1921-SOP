@@ -84,7 +84,7 @@ const REF_DOCS = [
     size: '12 KB',
     desc: '当前项目执行路线图与里程碑节点',
     downloadText: '查看完整',
-    url: './CLAUDE.md',
+    url: '../CLAUDE.md',
   },
   {
     id: 'doc-05',
@@ -94,7 +94,7 @@ const REF_DOCS = [
     size: '28 KB',
     desc: '颜色/字体/控件/布局等设计标准',
     downloadText: '查看文档',
-    url: './content/04_web_design/DESIGN_SYSTEM.md',
+    url: '../content/04_web_design/DESIGN_SYSTEM.md',
   },
   {
     id: 'doc-06',
@@ -104,7 +104,7 @@ const REF_DOCS = [
     size: '36 KB',
     desc: '全部设计决策记录，含编号索引',
     downloadText: '查看日志',
-    url: './.ctx/logs/DECISION_LOG.md',
+    url: '../.ctx/logs/DECISION_LOG.md',
   },
   {
     id: 'doc-07',
@@ -166,10 +166,10 @@ const REF_DOCS = [
     title: 'SOP 优化提案反馈卡',
     cat: 'system',
     format: 'md',
-    size: '6 KB',
+    size: '在线',
     desc: '提交对 SOP 引擎的优化建议与反馈',
-    downloadText: '查看',
-    url: './content/references/工作模板/FEEDBACK_FORM.md',
+    downloadText: '在线反馈',
+    url: '../feedback.html',
   },
 ];
 

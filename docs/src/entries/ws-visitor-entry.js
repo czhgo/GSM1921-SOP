@@ -112,6 +112,7 @@ function _renderProjectDivision(activities, taskforces, authRecords) {
         statusColor: _actStatusColor(a.status),
         date: a.date || '',
         personnel,
+        done: a.archived || ['completed', 'cancelled'].includes(a.status),
       };
     });
 
@@ -127,10 +128,15 @@ function _renderProjectDivision(activities, taskforces, authRecords) {
       statusColor: _tfStatusColor(t.status),
       date: t.deadline || t.createdAt || '',
       personnel,
+      done: ['completed', 'archived', 'dissolved'].includes(t.status),
     };
   });
 
-  const allProjects = [...actProjects, ...tfProjects];
+  // T223 排序统一：未完成在前、已完成在后，组内按时间降序（新者在前）
+  const allProjects = [...actProjects, ...tfProjects].sort((a, b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    return (b.date || '').localeCompare(a.date || '');
+  });
 
   // 党小组列表（用于筛选）
   const partyGroups = [...new Set(PEOPLE.map(p => p.partyGroup).filter(Boolean))].sort();
@@ -618,7 +624,7 @@ function _renderTodoContent() {
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2">
-        <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--party-gold);">
+        <div class="card rounded-xl p-5"">
           <div class="flex items-center justify-between mb-4">
             <h4 class="font-title-cn text-sm font-bold text-gray-700">我的待办</h4>
           </div>

@@ -1,6 +1,6 @@
 import { getAppState, setState, registerRenderCallback } from '../core/state.js';
 import { BranchService } from '../services/runtime.js';
-import { _fmtDate, showToast } from '../core/utils.js';
+import { _fmtDate, showToast, getBasePath } from '../core/utils.js';
 import { populateMonthSelector, renderCalendarByActivities } from '../components/calendar.js';
 import { renderInspectorFromState } from '../components/inspector.js';
 import { computeSecretaryStats } from '../services/roles.js';
@@ -39,8 +39,32 @@ let _secCurrentTab = 'todo';
 const SEC_CALENDAR_TAB_HTML = `
   <!-- 统计条（紧凑文本概览） -->
   <div id="secretary-stats" class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500 mb-4 py-2 border-b border-gray-100"></div>
-  <!-- 考勤概况（从首页迁移；t5a 就地方案：删无效跳转，点击就地展开只读明细，书记只读监督不越界） -->
-  <div class="card rounded-xl p-4 mb-4 border-l-4" style="border-left-color:#B91C1C;">
+  <!-- 活动日历（2026-08-05：「写入活动」并入日历卡片头部，删除原独立活动写入卡片） -->
+  <div class="card rounded-2xl p-6 mb-4">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-title-cn text-base font-semibold text-gray-800">活动日历</h3>
+      <button id="ws-sec-write-btn" type="button" class="shrink-0 text-sm px-4 py-2 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors inline-flex items-center gap-1.5">
+        ${icon('pencil', { className: 'w-3.5 h-3.5' })}
+        写入活动
+      </button>
+    </div>
+    <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <div class="lg:col-span-3">
+        <select id="month-selector" class="input-flat text-xs mb-3"></select>
+        <div id="cal-main-grid"></div>
+        <div id="calendar-legend" class="mt-3"></div>
+      </div>
+      <div id="inspector-container" class="lg:col-span-2 rounded-xl bg-gray-50/50 border border-gray-100 p-3">
+        <div id="inspector-default" class="text-sm text-gray-400 text-center py-8">点击日期查看活动详情，或点击活动条目直接进入详情</div>
+        <div id="inspector-content" class="hidden">
+          <h4 id="inspector-date-title" class="text-sm font-bold text-gray-800 mb-3"></h4>
+          <div id="inspector-cards"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 考勤概况（从首页迁移；t5a 就地方案：书记只读监督。2026-08-05：移至日历之后，不再压顶） -->
+  <div class="card rounded-xl p-4 mb-4">
     <div class="flex items-center justify-between mb-3">
       <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤概况</h4>
       <button id="secretary-att-detail-toggle" type="button" class="text-xs text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 transition-colors">
@@ -50,36 +74,6 @@ const SEC_CALENDAR_TAB_HTML = `
     </div>
     <div id="secretary-attendance-summary" class="text-sm text-gray-500"><p>暂无考勤数据</p></div>
     <div id="secretary-attendance-detail" class="hidden mt-3 pt-3 border-t border-gray-100"></div>
-  </div>
-  <!-- 日历（独占整行）+ 活动写入（独立一行） -->
-  <div class="space-y-4 mb-4">
-    <div class="card rounded-2xl p-6">
-      <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">活动日历</h3>
-      <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        <div class="lg:col-span-3">
-          <select id="month-selector" class="input-flat text-xs mb-3"></select>
-          <div id="cal-main-grid"></div>
-          <div id="calendar-legend" class="mt-3"></div>
-        </div>
-        <div id="inspector-container" class="lg:col-span-2 rounded-xl bg-gray-50/50 border border-gray-100 p-3">
-          <div id="inspector-default" class="text-sm text-gray-400 text-center py-8">点击日期查看活动详情，或点击活动条目直接进入详情</div>
-          <div id="inspector-content" class="hidden">
-            <h4 id="inspector-date-title" class="text-sm font-bold text-gray-800 mb-3"></h4>
-            <div id="inspector-cards"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="card rounded-2xl p-6 flex items-center justify-between gap-4">
-      <div>
-        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-1">活动写入</h3>
-        <p class="text-xs text-gray-500">按 SOP 模板写入活动，自动生成任务节点</p>
-      </div>
-      <button id="ws-sec-write-btn" type="button" class="shrink-0 text-sm px-4 py-2 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors inline-flex items-center gap-1.5">
-        ${icon('pencil', { className: 'w-3.5 h-3.5' })}
-        写入活动
-      </button>
-    </div>
   </div>
   <!-- 活动查询（默认折叠，点击展开） -->
   <div class="card rounded-2xl">
@@ -368,7 +362,7 @@ function _renderProjectAuthPanel() {
       <div>
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择项目</label>
         <select id="project-id-select" class="input-flat text-xs w-full">
-          ${loadActivities().map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('')}
+          ${[...loadActivities()].sort((a, b) => (b.date || '').localeCompare(a.date || '')).map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('')}
         </select>
       </div>
       <div>
@@ -418,9 +412,12 @@ function _bindProjectTypeSwitch() {
   typeSelect.addEventListener('change', () => {
     const type = typeSelect.value;
     if (type === 'activity') {
-      idSelect.innerHTML = loadActivities().map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('');
+      idSelect.innerHTML = [...loadActivities()].sort((a, b) => (b.date || '').localeCompare(a.date || '')).map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('');
     } else {
-      idSelect.innerHTML = TaskForceRecordStore.getAll().map(tf => `<option value="${tf.id}" data-type="taskforce">${tf.name}</option>`).join('');
+      // T223 专班新者在前（createdAt 降序）
+      idSelect.innerHTML = TaskForceRecordStore.getAll()
+        .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+        .map(tf => `<option value="${tf.id}" data-type="taskforce">${tf.name}</option>`).join('');
     }
   });
 }
@@ -965,7 +962,7 @@ function _renderTodoContent() {
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2">
-        <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+        <div class="card rounded-xl p-5"">
           <div class="flex items-center justify-between mb-4">
             <h4 class="font-title-cn text-sm font-bold text-gray-700">我的待办</h4>
           </div>
@@ -1141,6 +1138,8 @@ function openWriteModal() {
     width: '720px',
     accentColor: accent,
     onMount: (panel) => {
+      // 清理上次会话遗留的 PersonPicker（防 DOM 泄漏）
+      if (wp.personPicker) { wp.personPicker.destroy(); wp.personPicker = null; }
       wp.step = 1;
       renderWritePanel(panel.querySelector('.modal-body'));
     },
@@ -1283,9 +1282,31 @@ function renderFormStep() {
   html += `<textarea id="wp-desc" rows="2" class="input-flat w-full" placeholder="活动内容/目标等"></textarea>`;
   html += `</div>`;
 
+  // 参与人选择（选填，多选，2026-08-05 与「发布专班招募」表单对齐）
+  html += `<div class="mb-3">`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">参与人 <span class="text-gray-300">（选填，可多选）</span></label>`;
+  html += `<div id="wp-participants-slot"></div>`;
+  html += `</div>`;
+
+  // 自动发布通知（选填，2026-08-05 书记裁决「表单内预拟通知·只跑一次」）
+  // 自定义折叠（不用原生 details：保证跨浏览器折叠行为一致）
+  html += `<div class="mb-4">`;
+  html += `<div class="wp-collapse-toggle text-xs text-gray-400 cursor-pointer hover:text-gray-600 select-none" onclick="this.nextElementSibling.classList.toggle('hidden')">自动发布通知（选填，创建活动后立即通知全体成员）</div>`;
+  html += `<div class="mt-2 space-y-3">`;
+  html += `<div>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">通知标题</label>`;
+  html += `<input type="text" id="wp-notice-title" class="input-flat w-full" placeholder="默认使用活动名称">`;
+  html += `</div>`;
+  html += `<div>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">通知内容</label>`;
+  html += `<textarea id="wp-notice-content" rows="3" class="input-flat w-full" placeholder="如：8月20日 14:00 在光华1号楼101报告厅举行暑期实践总结分享，请全体成员准时参加。"></textarea>`;
+  html += `</div>`;
+  html += `</div>`;
+  html += `</div>`;
+
   // 高级选项（折叠）
-  html += `<details class="mb-4">`;
-  html += `<summary class="text-xs text-gray-400 cursor-pointer hover:text-gray-600">高级选项（发起方向 / 时长）</summary>`;
+  html += `<div class="mb-4">`;
+  html += `<div class="wp-collapse-toggle text-xs text-gray-400 cursor-pointer hover:text-gray-600 select-none" onclick="this.nextElementSibling.classList.toggle('hidden')">高级选项（发起方向 / 时长）</div>`;
   html += `<div class="mt-2 grid grid-cols-2 gap-3">`;
   // 发起方向
   html += `<div>`;
@@ -1306,7 +1327,7 @@ function renderFormStep() {
   html += `</select>`;
   html += `</div>`;
   html += `</div>`;
-  html += `</details>`;
+  html += `</div>`;
 
   // 写入按钮
   const btnText = wp.submitting ? '写入中...' : '创建活动';
@@ -1361,6 +1382,20 @@ function bindWritePanelEvents(container) {
   container.querySelectorAll('[data-action]').forEach(el => {
     el.addEventListener('click', handleWritePanelAction);
   });
+  // 参与人选择（PersonPicker 多选；重渲染时保留已选，销毁旧实例防泄漏）
+  const participantsSlot = container.querySelector('#wp-participants-slot');
+  if (participantsSlot) {
+    const prevSelected = wp.personPicker ? wp.personPicker.getSelected() : [];
+    if (wp.personPicker) wp.personPicker.destroy();
+    wp.personPicker = new PersonPicker({
+      mode: 'multi',
+      placeholder: '选择参与人（选填）',
+      accentColor: '#B91C1C',
+      initialIds: prevSelected,
+      onSelect: () => {},
+    });
+    wp.personPicker.render(participantsSlot);
+  }
   // 主题党日正交维度按钮（单选组互斥 / 载体多选）
   container.querySelectorAll('[data-wp-dim]').forEach(el => {
     el.addEventListener('click', () => {
@@ -1436,6 +1471,13 @@ async function handleSubmitActivity() {
   const direction = directionEl?.value || '';
   const duration = durationEl?.value || '';
 
+  // 参与人（多选；须在 wp.submitting 触发重渲染前读取）
+  const participants = wp.personPicker ? wp.personPicker.getSelected() : [];
+
+  // 预拟通知（选填，2026-08-05 书记裁决「表单内预拟通知·只跑一次」）
+  const noticeTitle = document.getElementById('wp-notice-title')?.value?.trim();
+  const noticeContent = document.getElementById('wp-notice-content')?.value?.trim();
+
   // 主题党日正交维度（共建性质 / 是否外出 / 活动载体多选）
   let dimIsJoint = '';
   let dimIsOutdoor = '';
@@ -1490,6 +1532,8 @@ async function handleSubmitActivity() {
       isJoint: dimIsJoint,
       isOutdoor: dimIsOutdoor,
       carriers: dimCarriers,
+      // 参与人（内联赋权：非空则 createActivity 不再派生组长赋权待办）
+      assignments: participants.map(pid => ({ personId: pid, role: 'participant' })),
     };
     const { taskCount } = await writeActivityWithSOP(activityData, scenarioId, date);
     showToast('success', `活动写入成功，已生成 ${taskCount} 个任务节点`);
@@ -1498,16 +1542,34 @@ async function handleSubmitActivity() {
     const definitionId = wp.mapToDefinitionId();
     renderWorkflowPanel('secretary-workflow', 'secretary-write', definitionId, title);
 
-    // 5. 重置面板状态
+    // 5. 预拟通知「只跑一次」（2026-08-05）：仅在表单填写了标题时发布一条通知，
+    // NoticeStore.add 单次调用，通知→待办仅派生一次，不重复发。
+    if (noticeTitle) {
+      NoticeStore.add({
+        title: noticeTitle,
+        content: noticeContent || `请全体成员关注「${title}」，按时参加。`,
+        priority: 'normal',
+        publishDate: new Date().toISOString().slice(0, 10),
+        expireDate: date,
+        targetModule: 'activity',
+        read: false,
+      });
+      showToast('success', '已自动发布通知');
+    }
+
+    // 6. 重置面板状态
     wp.reset();
 
-    // 6. 刷新活动列表
+    // 7. 清理参与人选择器（防 DOM 泄漏）
+    if (wp.personPicker) { wp.personPicker.destroy(); wp.personPicker = null; }
+
+    // 8. 刷新活动列表
     try {
       const activities = await BranchService.listActivities();
       setState({ activities });
     } catch (_) { /* 列表刷新失败不影响写入结果*/ }
 
-    // 7. 成功后关闭悬浮（T-217 §3 全悬浮化）
+    // 9. 成功后关闭悬浮（T-217 §3 全悬浮化）
     closeModal(WRITE_MODAL_ID);
 
   } catch (err) {
@@ -2398,7 +2460,7 @@ function renderNotificationList() {
       ? (typeof n.publishDate === 'string' ? n.publishDate.slice(0, 10) : _fmtDate(n.publishDate))
       : '';
     return `
-      <div class="py-3 px-4 rounded-xl bg-white transition-colors group" data-notif-id="${n.id}">
+      <div class="py-3 px-4 rounded-xl bg-white transition-colors group cursor-pointer hover:bg-gray-50" data-notif-id="${n.id}" data-notif-row="1" title="查看通知详情">
         <div class="flex items-center justify-between mb-1">
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-gray-800">${n.title}</span>
@@ -2412,13 +2474,22 @@ function renderNotificationList() {
     `;
   }).join('<div class="border-b border-gray-100"></div>');
 
-  // 绑定删除事件（NoticeStore 删除联动清理关联待办）
+  // 绑定删除事件（NoticeStore 删除联动清理关联待办；stopPropagation 防止误触行跳转）
   listArea.querySelectorAll('[data-notif-action="delete"]').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
       const notifId = btn.dataset.notifId;
       NoticeStore.remove(notifId, 'secretary');
       showToast('success', '通知已删除');
       renderNotificationList();
+    });
+  });
+
+  // 绑定行点击：预览已发布通知（跳通知详情页，可回退）
+  listArea.querySelectorAll('[data-notif-row="1"]').forEach(row => {
+    row.addEventListener('click', () => {
+      const notifId = row.dataset.notifId;
+      window.location.href = `${getBasePath()}notice.html?id=${notifId}`;
     });
   });
 }

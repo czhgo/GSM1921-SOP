@@ -2,7 +2,7 @@
 title: "2026年8月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-08-05"
+last_updated: "2026-08-06"
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -1365,3 +1365,140 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 
 - **变更文件**：`server/db.js`、`server/routes/resources.js`、`server/test/e2e-login.test.js`（离线可复现加固）、`docs/src/core/api-adapter.js`、`docs/src/core/data-adapter.js`、`docs/src/core/mock-adapter.js`、`docs/src/components/inspector.js`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
 - **沉淀标签**：`[已沉淀: 数据源切换接入路径]` — mock/真实数据不是 UI 开关，而是登录页开发模式卡片（devLogin 纯 mock）+ 账号密码登录（token → enableApiMode 切 API）双入口；接真实后端仅改 `apiBaseUrl`；`[已沉淀: 写穿链路契约]` — 服务层 BranchService 直写（updateTask/updateActivity）只调 `saveDB()`（localStorage），API 模式必须显式 `persist()` 才防抖快照写穿服务器（800ms 全量覆盖）；`[已沉淀: 进度驱动活动状态]` — 活动执行态（进行中/已完成）由任务进度派生统一函数 `deriveActivityExecutionStatus`，展示与写联动同一函数防逻辑漂移；计划态（draft/published）仅无任务时展示；`[经验: e2e 离线可复现]` — headless Chromium 挂外部 CDN（Google Fonts）会阻塞 window load（readyState 卡 interactive）致 waitForURL 超时，e2e 须阻断外部资源路由保证离线确定性；`[待办: T-207 剩余]` — D3 系统跟随主题模式（prefers-color-scheme）/ E2 功能层数据联动
+
+## T219 书记三问收口：Q1 刷新后数据持久化根因修复（mock 空写守卫 + token 清理）+ Q2 工作台顺序/空间布局统一重排（2026-08-05）
+
+**任务**：书记三问之 Q1——「只要我刷新界面，我操作的结果还是没有办法保留——即使还是同一个 localhost。这是合理的吗？」；Q2——「活动写入如果只有一个入口，为什么不能整入别的卡片。考勤管理为什么在书记工作台上在最上面。诸如此类的顺序、空间布局问题 大范围的还存在在系统中！」
+**引用流程**：H1.2 执行 + fullstack-developer Skill + brainstorming Skill + verification-before-completion Skill（verify-persist.mjs 三场景复现 + browser_use 11 项走查）
+
+**Q1 调查与根因（三场景 Playwright 复现 + 注入 localStorage 写监听 + 15 帧堆栈捕获）**：
+- **场景 B（纯 API 模式）**：写穿 server 成功、刷新保留 ✓——API 模式本身不丢数据
+- **场景 E（纯 mock 模式）**：根因锁定——页面加载早期 `bootstrapPage → renderHeader → _notificationBellHTML → NoticeStore.list() → init() → _saveNotices() → persist() → saveDB() → _saveToStorage() → localStorage.setItem`，此时 mockDB **尚未 loadDB（为空）**，首次空写把用户已保存数据覆盖为「actCount:0」空 payload；随后 `loadWorkspaceData` 读到空数据 → `_seedInitialData()` 回填 seed 再覆盖
+- **场景 A（残留 token + 开发模式）**：`devLogin()`/`logout()` 原均不清除 sessionStorage `gsm1921-api-token` → 残留 token 使开发模式被劫持为 API 模式（复现 28 个 /api/v1 请求）
+
+**Q1 修复（4 文件）**：
+- `core/domain.js`：mockDB 新增 `_loaded: false` 持久化守卫标记
+- `core/mock-adapter.js` `_saveToStorage()` + `services/mock.js` `saveDB()`：`mockDB._loaded` 为 false 时拒绝写入（console.warn 提示，防加载早期空覆盖）
+- 解锁时机：`loadDB()` 全部退出路径（!raw/schema 不匹配/正常恢复/catch/API 分支）+ `data-adapter.js init()` API 成功路径
+- `services/auth.js`：`devLogin()` 与 `logout()` 清除残留 `gsm1921-api-token`
+- 验证：verify-persist.mjs 三场景重跑——场景 E 刷新后 `tsk-007 = completed`、徽章「已完成」、localStorage 写入序列只剩 `workflowos_tab_secretary`（数据写不再被覆盖）；场景 A token 已清无劫持
+
+**Q2 调查与设计（已全部确认并实施）**：
+- **书记裁决（AskUserQuestion 逐项）**：① 活动写入并入活动日历卡片（日历头部「写入活动」按钮 + 删除独立卡片）② 排序按角色职责优先（数据支撑类靠后）③ 书记活动管理 Tab 按设计①重排 ④ 「发展党员」→「发展数据」（内含入党积极分子与发展对象，非组织委员决策职能，是支委会讨论的事）⑤ 登录页/角色架构图同步改名 ⑥ 全局概况保持第 2 位
+- **实施（6 文件）**：
+  - `ws-secretary-entry.js`：`SEC_CALENDAR_TAB_HTML` 重排——统计条 → 活动日历（头部「写入活动」按钮，绑定 `openWriteModal`，防重绑定）→ 考勤概况（从顶部下移）→ 活动查询（折叠收底）；删除原独立「活动写入」卡片
+  - `ws-org-commissioner-entry.js`：Tab label「发展党员」→「发展数据」+ 内容标题 + 待办跳转文案 + 描述「从入党积极分子到正式党员的完整发展路径数据」
+  - `ws-prop-commissioner-entry.js`：`archive`（档案归档）与 `weekly`（周报报送）互换（职责优先）
+  - `login-entry.js`：组织委员卡片 desc → 「发展数据」
+  - `role-hierarchy.js`：组织委员 tag → 「发展数据 + 专班」
+- **浏览器走查（browser_use 11 项全通过）**：书记 Tab 顺序/卡片顺序/写入按钮悬浮表单；组织委员「发展数据」Tab；宣传委员 Tab 顺序；登录页描述；help 页角色架构图 tag——全部符合设计
+
+- **变更文件**：`docs/src/core/domain.js`、`docs/src/core/mock-adapter.js`、`docs/src/core/data-adapter.js`、`docs/src/services/mock.js`、`docs/src/services/auth.js`、`docs/src/entries/ws-secretary-entry.js`、`docs/src/entries/ws-org-commissioner-entry.js`、`docs/src/entries/ws-prop-commissioner-entry.js`、`docs/src/entries/login-entry.js`、`docs/src/components/role-hierarchy.js`、`server/verify-persist.mjs`（临时脚本，用完即删）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[已沉淀: 持久化加载早期空写守卫]` — mockDB 尚未从存储/后端恢复（loadDB/init 完成）前必须拒绝 saveDB/persist 写入，否则 header 渲染等加载早期调用链（bootstrapPage→renderHeader→NoticeStore.init→persist）以空数据覆盖用户已保存数据；守卫标志须在所有退出路径解锁；`[已沉淀: 数据源劫持根因]` — devLogin/logout 必须清除残留 API token（sessionStorage），否则开发模式被劫持为 API 模式（本次 28 个 /api/v1 请求复现）；`[已沉淀: 职责优先排序原则]` — 各角色核心事务靠前、数据支撑类功能靠后（书记：活动统筹前置、考勤监督次位；宣传：周报报送在档案归档前；组织：「发展数据」命名与定位=支委会数据支撑而非组织委员决策职能）
+
+## T220 书记 6 连问：数据变更即时同步事件总线 + 8 月考勤 mock 全覆盖 + 通知保留策略 + 预拟通知"只跑一次" + 表单基建统一（2026-08-05）
+
+**任务**：书记 6 连问——①「计算逻辑没有实现全然同步！我确认读取通知之后，未读通知会减少 1 个，但是右上角的角标却没有变化。这种计算的发生似乎都必须要手动刷新，没有办法即时操作」（附加裁决：角标问题只是管中窥豹，要求更深入查找）②「【我的考勤】的部分目前大部分情况都没有数据显示！！8 月份能否造一个考勤 mock！！」③「重要通知保留什么？自动发送的活动/专班通知是否在创立的时候就可以拟好通知内容？'只跑一次'」④「检查一下成立专班和写入活动的 UI 设计在可比的部分是不是平行的？」（另要求使用 fullstack-developer / web-design-guidelines / brainstorming / webapp-testing Skill）
+**引用流程**：H1.2 执行 + fullstack-developer Skill + web-design-guidelines Skill + brainstorming Skill + webapp-testing Skill（browser_use 四轮走查）+ verification-before-completion Skill
+**来源**：书记指令（2026-08-05 原话，见任务栏）
+
+**书记裁决（AskUserQuestion）**：
+- 8 月考勤=**补全 5 场全覆盖（推荐）**（党小组会全员/支委会支委班子/发展对象谈话考察/暑期实践总结分享全员/秋季学期工作部署全员）
+- 通知机制=**表单内预拟通知（推荐）**——活动/专班创建时即可拟好通知内容，创建成功仅发布一次（"只跑一次"）
+- 重要通知保留=**书记自定义**："我认为是 未读的 重要；无论已读未读的 紧急！！"
+- UI 平行=**统一表单基建（推荐）**
+- 附加信息=「角标的问题只是管中窥豹，我希望你可以更深入地查找！！」→ 全仓「数据变更 → UI 未同步」深度审计
+
+- **① 角标即时更新（含深挖）**：
+  - **根因**：header 在 renderHeader 时一次性渲染角标（此时 mockDB 尚未 loadDB，NoticeStore.init() 回退 seed 4 条）；loadDB 恢复持久化数据（3 条未读）后角标不重渲染 → 刷新后角标仍 4。markRead 只改数据不广播 → 点击已读后角标不更新。深层：全系统无事件总线，数据变更（persist 写路径）与 UI 快照解耦，读时快照 + 双轨存储叠加
+  - **修复（事件总线落地）**：`core/data-adapter.js` persist() 末尾统一派发 `DATA_CHANGED_EVENT='gsm1921:data-changed'`（订阅方 microtask 去重合并）；`core/data-loader.js` loadWorkspaceData Step1 后派发 `DATA_LOADED_EVENT`（修正加载早期渲染的快照）；`components/header.js` 订阅两事件 → `_renderNotificationBadge`（只更新 `#notification-bell` 角标 DOM）；`entries/main-entry.js` 订阅 → `_refreshDashboardSnapshot()`（仅 dashboard activeModule 时）+ `_attDocBound` 全局标志防弹窗监听重复绑定
+  - **Seed 增量合并（服务老用户）**：双轨持久化恢复路径（core/mock-adapter.js `_loadFromStorage()` 与 services/mock.js `loadDB()`）均为全量替换，老用户 localStorage 无新增种子 → 新增 `_mergeNewSeedRecords()` 按 id 幂等补齐缺失的 activities/attendances/notices 种子（保留用户已确认/已读/编辑状态），有新增即落盘，两处实现完全对齐
+- **② 我的考勤 8 月全覆盖**：`mock/attendance.js` 新增确定性生成器 `_buildAugustAttendance()`（att61~att227，5 场活动全覆盖：act-26 8/7 党小组会全员 50 人、act-27 8/11 支委会支委班子 8 人、act-28 8/15 发展对象谈话考察 9 人、act-29 8/20 暑期实践总结分享全员、act-30 8/28 秋季学期工作部署全员）；状态 `(idx + 事件偏移)` 确定性生成（%13 请假 / %17 缺勤 / 其余出勤），新记录留空 recordedBy 待纪检确认；`mock/activities.js` 补 act-28（与 notice-109 协调）
+- **③ 通知保留策略 + 预拟通知**：
+  - 保留策略：`NoticeStore.list({ retention:'visible' })` 过滤 `n.priority==='urgent' || !n.read`（未读的重要；无论已读未读的紧急）；角标未读统计不走过滤（仍统计全部未读）
+  - 预拟通知"只跑一次"：活动/专班创建表单新增「自动发布通知」折叠区（标题+内容），创建成功后 `NoticeStore.add()` 单次调用 → 通知→待办仅派生一次；仅填写标题才发布
+- **④ UI 平行统一**：专班表单内联样式改 `input-flat w-full`、标签统一 `text-xs text-gray-500 mb-1.5 block font-medium` + 红色必填星号、按钮统一 `text-sm px-5 py-2.5 rounded-lg`；写入活动表单补齐「参与人」PersonPicker（multi 模式，创建成功 `assignments: participants.map(...)`）
+- **验证轮修复（browser_use 实测发现）**：PersonPicker z-index 300/301→600/601（modal overlay=500 遮挡导致真实点击被拦截）；`_positionPanel()` 重写——固定 520px 面板在窄视口（661px）底部溢出 214px、「确认选择」按钮不可见 → 按剩余空间自适应 maxHeight（下限 200 上限 520）+ 上方空间不足 top 兜底；原生 `<details>` 折叠跨环境失效（关闭后内容高度仍 197px）→ 两表单改自定义折叠 `onclick=classList.toggle('hidden')`
+- **审计发现（已标注未修复）**：纪检复盘按钮假操作（仅 showToast 不持久化）、宣传委员三块纯内存数据（PROP_TASKS/WEEKLY_REPORTS/ARCHIVE_RECORDS 刷新即丢）、纪检公邮 MAILBOX_CONFIG/MAILBOX_HISTORY 纯内存
+
+- **变更文件**：`docs/src/core/data-adapter.js`、`docs/src/core/data-loader.js`、`docs/src/core/mock-adapter.js`、`docs/src/services/mock.js`、`docs/src/services/notice.js`、`docs/src/components/header.js`、`docs/src/entries/main-entry.js`、`docs/src/mock/activities.js`、`docs/src/mock/attendance.js`、`docs/src/entries/ws-secretary-entry.js`、`docs/src/entries/ws-org-commissioner-entry.js`、`docs/src/components/person-picker.css`、`docs/src/components/person-picker.js`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+
+- **验证结果（browser_use 四轮走查 + 最终回归 8334 新端口无缓存 5/5 全通过）**：
+  - ✅ 角标即时减数：点击已读 → 角标 3 → 2，与未读通知卡片一致；刷新后角标与持久化数据一致（不再回退 seed 4）
+  - ✅ 三账号 8 月考勤完整（书记 4/4、组织委员 4/4、普通成员 3/3）；老用户刷新即得新种子（Seed 增量合并日志确认）
+  - ✅ 通知保留策略正确（已读普通通知消失、紧急保留、未读保留）；预拟通知创建活动后仅发布一次、待办仅派生一次
+  - ✅ PersonPicker 自适应（maxHeight ≤ 视口、确认按钮可点）；表单平行性一致（input-flat/必填星号/按钮规格统一）
+  - ✅ GetDiagnostics 全部修改文件零错误；控制台无功能性 JS 报错
+
+- **沉淀标签**：`[已沉淀: 数据变更事件总线]` — persist() 是全部 mockDB 写路径汇聚点，统一派发 DATA_CHANGED_EVENT（订阅方 microtask 去重合并）+ loadDB 完成后 DATA_LOADED_EVENT，解决「数据变更 → UI 未同步」类全部问题（角标/统计卡/通知列表）；`[已沉淀: 加载早期快照竞态]` — 角标在 loadDB 前渲染拿 seed 值、loadDB 后不重渲染是「刷新后值不对」的通用竞态模式，须以加载完成广播修正快照；`[已沉淀: Seed 增量合并]` — 双轨持久化恢复路径全量替换时，老用户 localStorage 无法获得后续新增种子，须按 id 幂等补齐（保留用户状态）；`[已沉淀: 通知保留策略]` — 书记裁决：未读的重要；无论已读未读的紧急（list({retention:'visible'}) 过滤，角标未读统计不走过滤）；`[经验: 弹层 z-index 层级]` — 弹层组件（PersonPicker）必须高于其父 modal overlay（500），面板高度须按视口剩余空间自适应，固定高度在窄视口底部溢出导致按钮不可见；`[待办]` — 审计发现的 3 处「伪写/纯内存」数据（纪检复盘按钮/宣传三块数据/纪检公邮）待书记裁决处理
+
+## T221 mock 时间语义自洽 + 谈话 mock 彻底删除 + 假操作持久化修正 + PersonPicker 全面审阅（2026-08-06）
+
+**任务**：书记 4 连问——①「mock 不合理，如果活动在 8 月底，怎么可能已经出勤了呢？」②「为什么 mock 又出现了 谈话 这个事情？」③「请继续 修正 假操作！！」④「对于 选择【人】 的浮窗进行审阅！我作为人完全没有办法操作这个功能，往往不浮在 最上端」+「请综合思考，管中窥豹则全面排查相似问题」（另要求使用 brainstorming / webapp-testing / web-design-guidelines Skill）
+**引用流程**：H1.2 执行 + brainstorming Skill + webapp-testing Skill（playwright 多视口实测 + browser_use 真人视角走查）+ web-design-guidelines Skill + verification-before-completion Skill
+**来源**：书记指令（2026-08-06 原话，见任务栏）
+
+**书记裁决（AskUserQuestion）**：
+- 谈话 mock 处置 = **彻底删除（推荐）**——删 act-28 活动 + 对应考勤生成段 + notice-109 通知
+- 8 月考勤时间语义 = **活动日期前移（推荐）**——已生成考勤的活动日期前移至 8/1~8/4（已发生），未来活动 act-30（8/28 draft）保持无考勤
+
+- **① mock 时间语义自洽**：`mock/activities.js` act-26 8/7→**8/1**、act-27 8/11→**8/3**、act-29 8/20→**8/4**（均已发生）；act-30 保持 8/28 draft 且不生成考勤（注释明确「未来活动无考勤」）。`mock/attendance.js` 原 act-26 显式段（att44~60）并入生成器统一覆盖去重，`_AUGUST_EVENTS` 仅 3 事件（act-26/27/29），ID 从 att44 起连续，确定性状态生成保留
+- **② 谈话 mock 彻底删除**：`mock/activities.js` 删 act-28（含注释说明违背 5b2e4ea「删除考察活动类型」）；`mock/attendance.js` 删 act-28 考勤生成段；`mock/notices.js` 删 notice-109、notice-108 改为 8月4日/publishDate 8/1/expireDate 8/4；双轨 `_mergeNewSeedRecords()` 幂等同步清老用户 localStorage 残留
+- **③ 假操作修正（T220 审计遗留 3 处全部收口）**：
+  - **纪检复盘真操作**：`ws-disc-commissioner-entry.js` 复盘按钮改 `data-review-id` 锚点 + `services/review.js` 新增 `updateReviewById(id, patch)`（activityReviews/taskforceReviews 双域查找）+ 批注/打回/确认/提醒全部落库 + persist
+  - **宣传三块持久化**：`ws-prop-commissioner-entry.js` 三块常量改 `XXX_SEED` + `_loadXxx()`（mockDB 空时注入 seed），任务推进/周报报送/归档确认全部写 mockDB + persist
+  - **纪检公邮持久化**：`ws-disc-commissioner-entry.js` MAILBOX_CONFIG/MAILBOX_HISTORY 同 Seed+Loader 模式，「标记已查收」写 history + config.lastCheckAt + persist
+  - **7 域补持久化**：`core/domain.js` mockDB 加 propTasks/weeklyReports/archiveRecords/mailboxConfig/mailboxHistory/activityReviews/taskforceReviews 6 域（此前无）；`core/mock-adapter.js` + `services/mock.js` 双轨 `_saveToStorage()` 补 7 序列化字段 + `_loadFromStorage()` 补恢复
+- **④ 全站 JS 崩溃根因（选人浮窗审阅过程中发现）**：`core/mock-adapter.js` L184 与 `services/mock.js` L220 注释 `act_*/att_*/notice-{13位时间戳}`——`act_*` 后紧跟 `*/` 提前终止块注释，后续代码全被吞成注释且 `{13位时间戳}` 被解析为正则 → 浏览器报 `Invalid regular expression: missing /`，leader 页仅渲染静态标题、全组件失效。修复：`/` 改中文顿号
+- **④ PersonPicker 全面审阅（实测 16+ 场景全通过）**：playwright 脚本化实测秘书页 3 场景 × 8 视口（1440×900 至 800×500 含 Windows 125%/150% 缩放等效视口）+ 组长页 4 场景 + 组织委员页 3 场景 + browser_use 真人视角走查秘书页 3 场景（1095×661），面板均完整在视口、elementFromPoint 命中人员项、点击回显正确、确认按钮可达、0 pageerror。**健壮性修复 3 处**：
+  - **panel 同级化**：panel 原为 overlay 子节点，其 z-index 601 只在 overlay(600) 层叠上下文内生效，根层叠下整体仅 600 → 改为 overlay/panel 均直接挂 body 同级，panel z-index 801 在根层叠生效
+  - **z-index 层级收敛**：picker overlay 600→**800**、panel 601→**801**；status-badge-popover 700→**600**（此前会压住 picker）；全站层级定序 header 50 / sidebar 70 / dropdown 100 / modal 500 / status 600 / picker 800/801 / toast 9999
+  - **`_positionPanel()` 重写**：「永不溢出视口」确定性定位——优先下方、下方不够且上方够则翻上方、高度按可用空间收敛（下限 160 上限 520）、宽度收敛视口内、兜底不遮触发按钮，保证「确认选择」底部操作栏始终可见可点
+
+- **变更文件**：`docs/src/mock/activities.js`、`docs/src/mock/attendance.js`、`docs/src/mock/notices.js`、`docs/src/core/domain.js`、`docs/src/core/mock-adapter.js`、`docs/src/services/mock.js`、`docs/src/services/review.js`、`docs/src/entries/ws-disc-commissioner-entry.js`、`docs/src/entries/ws-prop-commissioner-entry.js`、`docs/src/components/person-picker.js`、`docs/src/components/person-picker.css`、`docs/src/styles.css`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+
+- **验证结果（playwright 实测 + browser_use 走查）**：
+  - ✅ mock 时间语义自洽：act-26/27/29 均已发生（8/1~8/4）有考勤；act-30（8/28 draft）无考勤；全站无「谈话考察」残留
+  - ✅ 假操作 3 处全部真持久化：纪检复盘按钮落库、宣传三块/纪检公邮刷新数据保留（Seed+Loader + persist 双轨对齐）
+  - ✅ 全站 JS 崩溃修复：node --check 通过 + 5 页浏览器加载无 pageerror
+  - ✅ PersonPicker 修复后复验：秘书页 3 场景 z-index 801、elementFromPoint 命中人员项、点击/确认正常；极小视口（800×500）面板完整在视口；组织委员页/组长页回归通过
+  - ✅ GetDiagnostics 全部修改文件零错误；控制台无功能性 JS 报错
+
+- **沉淀标签**：`[经验: 块注释提前终止陷阱]` — 中文注释中含 `*/`（如 `act_*/att_*`）会提前终止 JSDoc 块注释，后续代码被吞并触发正则解析错误，是全站静默崩溃的隐蔽根因；注释中列举形如 `x/y` 的编号应改中文顿号；`[经验: 弹层 z-index 子级失效]` — fixed 子元素 z-index 只在父级层叠上下文内生效，弹层要「永远浮在最上端」必须同级挂 body 并在根层叠定序；`[待办]` — 无
+
+## T222 全系统扎口检查（3 轮）——统一模块封装完全功能实现核查 + 8 项发现 7 项修复（2026-08-06）
+
+**任务**：书记指令——"请全系统做一次 【扎口】检查。 是否需要统一模块封装的部分实现了完全的功能实现！！ 这个检查会进行大于等于3次！！ 请一定要仔细！！ Use Skill: webapp-testing Use Skill: fullstack-developer"；追加指令——"请继续推进！！ 合规文件的部分不要管！！"
+**引用流程**：H1.2 执行 + webapp-testing Skill + fullstack-developer Skill + verification-before-completion Skill
+**来源**：书记扎口检查指令（2026-08-06 原话，见任务栏）
+
+**书记裁决（AskUserQuestion）**：
+- Z1 写穿断裂 + Z3 三处假操作 = **全部立即修复（推荐）**
+- Z2/Z6 ApiAdapter CRUD 取舍 = **补齐服务端 CRUD（推荐）**
+- Z5 服务器种子缺口 = **前端空集合回退本地 seed（推荐）**
+- Z7 参考资料失效链接 = **一并修复（推荐）**——但受追加指令约束，**合规条目不动**
+
+- **第 1 轮（R1，前后端契约审计）**：`docs/src/core/api-adapter.js` 30+ CRUD 方法（activities/tasks/attendances/inspections/taskforces/notices/todos/assignments/handovers/makeupTasks + 4 niche 集合）请求真实服务端全部 404——服务端仅 bootstrap/snapshot/users 路由，ApiAdapter 为**死代码**（接口暴露但无对应路由 = 统一模块封装未完全功能实现）。审查 `docs/src/core/data-adapter.js` 确认 API 模式 `persist()` 有 `_scheduleSnapshot` 防抖全量写穿链
+- **第 2 轮（R2，前端 10 文件全量 handler 扫描）**：50 个写闭环正常（修改 → persist/saveDB → localStorage/API 写穿）；发现 **3 处假操作**（ws-prop-commissioner/ws-org-commissioner/inspector 的 `updateActivity` 内部不落盘，刷新即还原）+ 1 处疑似 + 1 处存疑（交接催促）
+- **第 3 轮（R3，动态实测）**：真实 server（3100 端口）+ API/mock 双模式 + browser_use 复现 + node 内存库最小复现。动态确证 Z1 写透断裂（toggleBrand 服务端 isBrand 保持 False）、e2e-login 回归（防抖快照竞态：init 回退过程触发 persist → 800ms 窗口内以陈旧 mockDB 覆盖服务器新写入）
+
+- **8 项发现与修复（F1-F7）**：
+  - **Z1 写透断裂（F1）**：`docs/src/services/mock.js` `saveDB()` 尾部补 `if (getDataSource() === 'api') persist();`——API 模式下本地备份写完后必须触发全量快照写穿，否则 BranchService 写操作（创建/删除/归档/品牌/任务状态）刷新即还原
+  - **Z2 服务端缺 CRUD（F4）**：`server/routes/resources.js` 用 `RESOURCE_TABLES` 表名映射 15 个资源，逐资源注册 `POST /:resource`（创建，缺 id 用 ID_PREFIX 兜底生成）/`PATCH /:resource/:id`（补丁合并）/`DELETE /:resource/:id`，全部经 `requireAuth(db)` 保护；活动特例 `POST /activities/:id/archive`（级联完成 tasks）、`POST /activities/:id/brand`（isBrand 切换）
+  - **Z3 三处假操作（F2）**：`ws-prop-commissioner-entry.js` / `ws-org-commissioner-entry.js` / `components/inspector.js` 的 `updateActivity` 调用后补显式 `persist()`
+  - **Z4 交接催促不落库（F3）**：`ws-disc-commissioner-entry.js` 催促动作补 `updateHandoverRecord(recordId, { remindedAt })` 后展示成功 toast
+  - **Z5 服务器种子缺口（F5）**：`docs/src/core/data-adapter.js` init() 解锁 `_loaded` 后，`attendances/inspections/todos` 空集合回退本地 mock 种子（ATTENDANCE_RECORDS/INSPECTION_RECORDS/SEED_TODOS）。**关键约束：回退仅填 mockDB 缓存、不触发 persist/快照写穿**——否则页面加载期（800ms 防抖窗口）会以陈旧缓存覆盖服务器其他入口刚写入的数据（e2e-login 回归根因）；makeupTasks 无静态种子（纪检操作生成），空属合理不回退
+  - **Z6 ApiAdapter 死代码（保留）**：30+ CRUD 方法与 server 路由已由 Z2 对齐（全部可工作），前端 ApiAdapter 暂未接线（URL 指向未知端口），保留待部署期接线
+  - **Z7 参考资料失效链接（F6）**：`docs/src/modules/references.js` doc-04/05/06 相对路径修正、doc-13 改在线反馈（FEEDBACK_FORM.md 已删）；**doc-07（党章合规链接）与 doc-08~12 未挂接的合规文件未动**（遵书记追加指令）
+  - **Z8 e2e-login 回归根因（R3 动态确证）**：防抖快照竞态（见 Z5），修复后 e2e-login 由红转绿
+
+- **变更文件**：`docs/src/services/mock.js`、`docs/src/core/data-adapter.js`、`docs/src/core/domain.js`（无）、`server/routes/resources.js`、`docs/src/entries/ws-prop-commissioner-entry.js`、`docs/src/entries/ws-org-commissioner-entry.js`、`docs/src/entries/ws-disc-commissioner-entry.js`、`docs/src/components/inspector.js`、`docs/src/modules/references.js`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+
+- **验证结果（修复后全模式验证通过）**：
+  - ✅ server 测试 16/16 全绿（`npm test`，含修复前失败的 e2e-login）
+  - ✅ CRUD 全链路 curl 验证：create/update/archive/brand/delete/401 六场景服务端行为正确
+  - ✅ Z1 写透动态验证：真实 server API 模式 toggleBrand 后服务器 isBrand False→True（写穿闭环打通）
+  - ✅ mock 模式 updateActivity+persist 落盘验证 + 首页登录态渲染回归（bodyLen/actCount/attCount/hasCal/hasSecHeader 全部正确）
+  - ✅ GetDiagnostics 全部修改文件零错误；`node --check` 语法全过
+
+- **沉淀标签**：`[已沉淀: 扎口检查方法论]` — 「统一模块封装是否完全功能实现」的判据 = 前端暴露接口 ↔ 服务端路由 ↔ 数据持久化三环闭合，任何用户写操作必须走完整闭环（修改数据 → persist()/saveDB() → localStorage 或 API 快照写穿），否则刷新即丢失 = 假操作；`[已沉淀: 防抖快照竞态]` — 全量快照写穿（800ms 防抖）下，初始化/回退路径一旦触发 persist()，会以陈旧 mockDB 覆盖服务器新数据，回退逻辑只填缓存、不得触发 persist；`[经验: ID_PREFIX 兜底]` — 服务端创建路由缺 id 时按资源前缀 + randomUUID 生成，保证离线前端创建也能对齐服务器主键；`[待办]` — 无

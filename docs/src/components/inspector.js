@@ -428,6 +428,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
       try {
         setState({ status: STATE.SUBMITTING });
         await BranchService.updateActivity(activity.id, { archived: false });
+        persist(); // 扎口修复（Z1/Z3）：updateActivity 内部不落盘，必须显式 persist 写穿
         const [activities, tasks2] = await Promise.all([
           BranchService.listActivities(),
           typeof BranchService.listTasks === 'function' ? BranchService.listTasks() : Promise.resolve([]),

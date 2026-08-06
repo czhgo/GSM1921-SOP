@@ -135,7 +135,7 @@ function _renderTodoContent() {
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2">
-        <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+        <div class="card rounded-xl p-5"">
           <div class="flex items-center justify-between mb-4">
             <h4 class="font-title-cn text-sm font-bold text-gray-700">我的待办</h4>
           </div>
@@ -246,7 +246,7 @@ function _renderWriteContent(activities) {
   const panelVisible = dt.showPanel;
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+    <div class="card rounded-xl p-5"">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">活动写入</h4>
         <button class="btn-md" id="btn-leader-create" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${panelVisible ? '收起面板' : '创建活动'}</button>
@@ -942,7 +942,7 @@ function _renderAttendanceContent() {
   ` : '';
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+    <div class="card rounded-xl p-5"">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤上传</h4>
         <button class="btn-md" id="btn-leader-upload-att" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_attFormVisible ? '收起表单' : '上传考勤表单'}</button>
@@ -1146,7 +1146,9 @@ function _renderInspectionContent() {
   const sourceActivities = loadActivities().filter(a =>
     a.type === '党小组会' || a.type === '主题党日' || a.type === '党课' || a.type === '支部党员大会'
   );
-  const sourceTaskforces = TaskForceRecordStore.getAll();
+  // T223 专班新者在前（createdAt 降序）
+  const sourceTaskforces = TaskForceRecordStore.getAll()
+    .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
   const formHtml = _inspFormVisible ? `
     <div class="mt-3 p-4 rounded-xl bg-white border border-gray-100 shadow-sm" id="insp-form-panel">
@@ -1180,7 +1182,7 @@ function _renderInspectionContent() {
   ` : '';
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+    <div class="card rounded-xl p-5"">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考察上传</h4>
         <button class="btn-md" id="btn-leader-upload-insp" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_inspFormVisible ? '收起表单' : '上传考察表单'}</button>
@@ -1419,7 +1421,7 @@ function _renderReviewContent() {
   }
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+    <div class="card rounded-xl p-5"">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">复盘提交</h4>
       </div>

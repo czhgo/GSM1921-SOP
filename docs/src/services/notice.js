@@ -8,7 +8,8 @@
 import { mockDB } from '../core/domain.js';
 import { persist } from '../core/data-adapter.js';
 import { MOCK_NOTICES } from '../mock/index.js';
-import { showToast } from '../core/utils.js';
+import { showToast, getBasePath } from '../core/utils.js';
+import { AuthStore } from './auth.js';
 import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js';
 
 const NOTICE_STORAGE_KEY = 'workflowos_notices_v1';
@@ -87,6 +88,13 @@ export const NoticeStore = {
     if (filter.activeOnly !== false) {
       const now = new Date().toISOString().slice(0, 10);
       result = result.filter(n => !n.expireDate || n.expireDate >= now);
+    }
+
+    // 书记裁决（2026-08-05）：「未读的重要；无论已读未读的紧急」
+    // 展示层保留策略：紧急通知全部保留展示，重要通知仅展示未读的（已读重要通知收起）。
+    // 角标未读统计不走此过滤（仍统计全部未读），仅在列表展示处传 retention:'visible'。
+    if (filter.retention === 'visible') {
+      result = result.filter(n => n.priority === 'urgent' || !n.read);
     }
 
     if (filter.sortBy === 'date') {
@@ -178,12 +186,93 @@ export const NoticeStore = {
   },
 };
 
+// ════════════════════════════════════════════════════════════════
+//  通知跳转统一解析（业务页直达优先，2026-08-06）
+//  全站所有通知跳转入口共用此函数，杜绝多入口逻辑分叉。
+// ════════════════════════════════════════════════════════════════
+
+// targetModule → 业务页（角色感知）：模块语义决定业务落点
+//  - activity（活动/主题党日）→ 首页活动日历（全员统一活动视图）
+//  - attendance（考勤）→ 纪检委员考勤管理 / 书记考勤概况
+//  - party（党建：发展党员/考察）→ 组织委员组织建设 / 纪检委员考察管理 / 书记工作台
+//  - workspace（工作部署/筹备）→ 支委各归其位 / 组长工作台 / 其余首页
+const NOTICE_MODULE_ROLE_PAGES = {
+  activity: {
+    '*': 'index.html',
+  },
+  attendance: {
+    'disc-commissioner': 'workspace/disc.html',
+    'secretary': 'workspace/secretary.html',
+    'deputy-secretary': 'workspace/secretary.html',
+    '*': 'index.html',
+  },
+  party: {
+    'org-commissioner': 'workspace/org.html',
+    'disc-commissioner': 'workspace/disc.html',
+    'secretary': 'workspace/secretary.html',
+    'deputy-secretary': 'workspace/secretary.html',
+    '*': 'index.html',
+  },
+  workspace: {
+    'secretary': 'workspace/secretary.html',
+    'deputy-secretary': 'workspace/secretary.html',
+    'org-commissioner': 'workspace/org.html',
+    'prop-commissioner': 'workspace/prop.html',
+    'disc-commissioner': 'workspace/disc.html',
+    'leader': 'workspace/leader.html',
+    '*': 'index.html',
+  },
+};
+
+/**
+ * 解析通知跳转目标
+ * 规则（业务页直达优先）：
+ *   1. 有 targetUrl → 直达目标业务页（系统通知显式指定，如催办/赋权，含 activityId 定位参数）
+ *   2. 无 targetUrl → 按 targetModule 映射到与当前角色匹配的业务页
+ *   3. 行动性通知（actionRoles）→ 仅目标角色直达业务页，其余仅进详情页
+ *   4. 模块映射结果与当前页相同 → 回退通知详情页（避免原地刷新"循环"；显式 targetUrl 不适用此条）
+ * @param {Object} n 通知对象
+ * @param {string} [currentRole] 当前角色；缺省时读取 AuthStore
+ * @returns {{ url: string|null, direct: boolean }} url 为可直接赋给 location.href 的地址（已含 basePath）
+ */
+export function resolveNoticeUrl(n, currentRole = null) {
+  if (!n) return { url: null, direct: false };
+  if (!currentRole) {
+    try { currentRole = AuthStore.getCurrentUser()?.role || null; } catch (_) { currentRole = null; }
+  }
+  // 3. 行动性通知受众过滤：仅目标角色可直达业务页
+  if (Array.isArray(n.actionRoles) && n.actionRoles.length > 0) {
+    if (!currentRole || !n.actionRoles.includes(currentRole)) {
+      return { url: null, direct: false };
+    }
+  }
+  // 1. targetUrl 直达（显式指定，不做同页回退）
+  if (n.targetUrl) {
+    return { url: getBasePath() + n.targetUrl, direct: true };
+  }
+  // 2. targetModule 角色感知映射
+  let page = null;
+  if (n.targetModule) {
+    const roleMap = NOTICE_MODULE_ROLE_PAGES[n.targetModule] || {};
+    page = roleMap[currentRole] || roleMap['*'] || null;
+  }
+  if (!page) return { url: null, direct: false };
+  // 4. 模块映射结果与当前页相同 → 回退详情页（避免原地刷新"循环"）
+  const currentFile = (window.location.pathname.split('/').pop() || 'index.html').split('?')[0];
+  const targetFile = (page.split('/').pop() || '').split('?')[0];
+  if (currentFile === targetFile) {
+    return { url: null, direct: false };
+  }
+  return { url: getBasePath() + page, direct: true };
+}
+
 export function renderNoticeList(containerId, limit = 5) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
   // 书记规则（2026-08-01）：任何带时间字段的列示一律按时间倒序（最新在前）
-  const notices = NoticeStore.list({ activeOnly: true, limit, sortBy: 'date' });
+  // 书记裁决（2026-08-05）：重要通知仅保留未读，紧急通知无论已读未读均展示
+  const notices = NoticeStore.list({ activeOnly: true, limit, sortBy: 'date', retention: 'visible' });
 
   if (notices.length === 0) {
     container.innerHTML = '<p class="text-sm text-gray-400">暂无通知</p>';
@@ -222,24 +311,16 @@ export function renderNoticeList(containerId, limit = 5) {
     });
   });
 
-  // 绑定点击：标记已读 + 跳转
-  // 优先级：有 targetUrl 时直接跳 targetUrl，否则跳 index.html?notice=id（向后兼容）
+  // 绑定点击：标记已读 + 统一跳转（resolveNoticeUrl 业务页直达优先）
   container.querySelectorAll('.notice-item').forEach(item => {
     item.addEventListener('click', () => {
       const id = item.dataset.noticeId;
-      const targetUrl = item.dataset.targetUrl;  // 来自 notice.targetUrl 字段
+      const notice = NoticeStore._notices.find(n => n.id === id);
       if (id) NoticeStore.markRead(id);
       // 视觉反馈：点击后标题颜色变浅
       item.querySelector('p.text-sm')?.classList.add('text-gray-500');
-
-      // basePath 计算（workspace/ 子目录需要 ../ 前缀）
-      const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
-
-      // 有 targetUrl（如赋权通知）→ 直接跳转
-      // 无 targetUrl（普通通知）→ 跳通知详情页
-      const finalUrl = targetUrl
-        ? basePath + targetUrl
-        : `${basePath}notice.html?id=${id}`;
+      const dest = resolveNoticeUrl(notice);
+      const finalUrl = dest.direct ? dest.url : `${getBasePath()}notice.html?id=${id}`;
       window.location.href = finalUrl;
     });
   });

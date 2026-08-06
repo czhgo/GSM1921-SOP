@@ -88,7 +88,7 @@ export function renderIssueDetail(issueId) {
             <span>${issue.submittedAt}</span>
           </div>
 
-          <div class="border-l-2 border-gray-200 pl-3 mb-4">
+          <div class="pl-3 mb-4">
             <p class="text-xs text-gray-500 mb-1 font-sans">${getPersonName(issue.submittedBy)} · ${issue.submittedAt}</p>
             <p class="text-sm text-gray-700 whitespace-pre-wrap font-sans">${issue.body || '(无正文)'}</p>
           </div>
@@ -199,7 +199,7 @@ function renderComment(comment, canManage, issueId) {
     : '';
 
   return `
-    <div class="border-l-2 border-gray-200 pl-3 py-2 ${hiddenClass}">
+    <div class="py-2 ${hiddenClass}">
       <div class="flex items-center text-xs text-gray-500 mb-1">
         <span class="font-medium text-gray-700 font-sans">${getPersonName(comment.author)}</span>
         <span class="ml-2">${comment.createdAt}</span>

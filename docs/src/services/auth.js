@@ -22,6 +22,7 @@ import { enableApiMode } from './runtime.js';
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
 const TAB_KEY = 'gsm1921-tab-id';         // sessionStorage: 当前标签页唯一 ID（A-11 防串扰）
 const SESSION_KEY = 'gsm1921-session-snap'; // sessionStorage: 本标签页登录会话快照
+const SESSION_TOKEN_KEY = 'gsm1921-api-token'; // sessionStorage: API 认证 token（runtime.js enableApiMode 写入）
 
 // A-11 多标签页登录防串扰：每个标签页生成唯一 tabId。
 // 登录写入 localStorage（带 tabId）+ sessionStorage 快照；
@@ -197,7 +198,15 @@ function _getProjectName(projectId) {
 
 // ── 项目角色赋权通知（organizer / deep 被赋权时推送）──────────────
 function _notifyProjectAuth(projectId, authorizerId, targetPersonId, role) {
-  const targetPage = 'index.html';
+  // 赋权通知直达目标人员业务页（业务页直达优先）：
+  //   - 党小组组长 → 组长工作台
+  //   - 其余 → 参与人工作台，活动项目附带 activityId 高亮定位
+  //   - 专班项目无活动页可高亮 → 仅进入参与人工作台（项目分工页含专班）
+  const person = getPersonById(targetPersonId);
+  const isActivity = !!mockDB.activities.find(x => x.id === projectId);
+  const targetPage = person?.role === 'leader'
+    ? 'workspace/leader.html'
+    : (isActivity ? `workspace/visitor.html?activityId=${projectId}` : 'workspace/visitor.html');
 
   const authorizerName = getPersonName(authorizerId) || authorizerId || '系统';
   const projectName = _getProjectName(projectId) || '未命名项目';
@@ -311,6 +320,10 @@ export const AuthStore = {
     const person = PEOPLE.find(p => p.role === role);
     const personId = person ? person.id : 'p5';
     _writeLogin({ personId, role });
+    // 修复（2026-08-05）：开发模式是纯 mock 路径，必须清除残留 API token，
+    // 否则 bootstrap 检测到 sessionStorage['gsm1921-api-token'] 会把开发模式劫持为 API 模式
+    // （复现：账号登录后切开发模式卡片 → 28 个 /api/v1 请求）。
+    try { sessionStorage.removeItem(SESSION_TOKEN_KEY); } catch (_) {}
     // 开发模式默认显示：清除 Tab 记忆，打开页面显示 defaultTab
     try {
       for (let i = localStorage.length - 1; i >= 0; i--) {
@@ -327,6 +340,9 @@ export const AuthStore = {
       localStorage.removeItem(LOGIN_KEY);
       sessionStorage.removeItem(VIEW_ROLE_KEY);
       sessionStorage.removeItem(SESSION_KEY);
+      // 修复（2026-08-05）：退出登录必须同时清除 API token，否则重新进入开发模式
+      // 仍会因残留 token 被切回 API 数据源（开发模式与真实后端混淆）。
+      sessionStorage.removeItem(SESSION_TOKEN_KEY);
     } catch {}
   },
 

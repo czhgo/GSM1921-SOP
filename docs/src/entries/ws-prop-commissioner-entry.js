@@ -7,6 +7,8 @@ import { TaskForceRecordStore } from '../services/taskforce.js';
 import { _personName } from '../mock/index.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { icon } from '../core/icons.js';
+import { mockDB } from '../core/domain.js';
+import { persist } from '../core/data-adapter.js';
 import { loadActivities } from '../services/activity.js';
 import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js';
 import { renderTodoList } from '../components/todo-list.js';
@@ -35,8 +37,8 @@ function renderPropUI(state) {
       { id: 'todo', label: '待办', render: () => _renderTodoContent(), groupLabel: '工作台' },
       { id: 'tasks', label: '宣传任务', render: (ctx) => _renderTasksContent(), groupLabel: '党建' },
       { id: 'kanban', label: '项目看板', render: (ctx) => _renderKanbanContent(ctx.activities, ctx.propTf) },
-      { id: 'archive', label: '档案归档', render: (ctx) => _renderArchiveContent(), groupLabel: '党建' },
       { id: 'weekly', label: '周报报送', render: (ctx) => _renderWeeklyContent(), groupLabel: '党建' },
+      { id: 'archive', label: '档案归档', render: (ctx) => _renderArchiveContent(), groupLabel: '党建' },
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('prop-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('prop-commissioner', 'u_prop'); bindMyDispatchEvents(el, 'prop-commissioner', 'u_prop'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
@@ -95,7 +97,7 @@ function _renderTodoContent() {
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2">
-        <div class="card rounded-xl p-5 border-l-4" style="border-left-color:${accent};">
+        <div class="card rounded-xl p-5"">
           <div class="flex items-center justify-between mb-4">
             <h4 class="font-title-cn text-sm font-bold text-gray-700">我的待办</h4>
           </div>
@@ -188,8 +190,8 @@ function _bindTodoDetailEvents() {
   });
 }
 
-// ── 宣传任务 mock 数据 ──
-const PROP_TASKS = [
+// ── 宣传任务 mock 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
+const PROP_TASKS_SEED = [
   { id: 'pt1', source: '支部委员会', type: '新闻稿', summary: '七一主题党日活动新闻稿', status: 'pending', createdAt: '2026-07-25' },
   { id: 'pt2', source: '副书记', type: '推送排版', summary: '发展对象公示推送排版', status: 'in_progress', createdAt: '2026-07-24' },
   { id: 'pt3', source: '支部委员会', type: '素材归档', summary: '上半年活动照片归档整理', status: 'in_progress', createdAt: '2026-07-22' },
@@ -199,6 +201,14 @@ const PROP_TASKS = [
   { id: 'pt7', source: '支部委员会', type: '素材归档', summary: '入党积极分子培训资料归档', status: 'submitted', createdAt: '2026-07-18' },
   { id: 'pt8', source: '组织委员', type: '周报报送', summary: '第29周党建工作周报', status: 'submitted', createdAt: '2026-07-14' },
 ];
+
+// 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.propTasks 后调用 persist()
+function _loadPropTasks() {
+  if (mockDB.propTasks.length === 0 && PROP_TASKS_SEED.length > 0) {
+    mockDB.propTasks = PROP_TASKS_SEED.map(t => ({ ...t }));
+  }
+  return mockDB.propTasks;
+}
 
 // 任务状态流转：待接收 → 进行中 → 已提交
 const TASK_STATUS_FLOW = { pending: 'in_progress', in_progress: 'submitted' };
@@ -220,9 +230,9 @@ function _renderTasksContent() {
   if (!container) return;
 
   // 按状态分组
-  const pending = PROP_TASKS.filter(t => t.status === 'pending');
-  const inProgress = PROP_TASKS.filter(t => t.status === 'in_progress');
-  const submitted = PROP_TASKS.filter(t => t.status === 'submitted');
+  const pending = _loadPropTasks().filter(t => t.status === 'pending');
+  const inProgress = _loadPropTasks().filter(t => t.status === 'in_progress');
+  const submitted = _loadPropTasks().filter(t => t.status === 'submitted');
 
   container.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -255,11 +265,12 @@ function _renderTasksContent() {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const taskId = btn.dataset.taskId;
-      const task = PROP_TASKS.find(t => t.id === taskId);
+      const task = _loadPropTasks().find(t => t.id === taskId);
       if (!task) return;
       const nextStatus = TASK_STATUS_FLOW[task.status];
       if (!nextStatus) return;
       task.status = nextStatus;
+      persist();
       showToast('success', `任务「${task.summary}」已${TASK_STATUS_LABEL[nextStatus]}`);
       _renderTasksContent();
     });
@@ -304,21 +315,21 @@ function _renderKanbanContent(activities, propTf) {
   const activeTf = propTf.filter(t => t.status === 'active');
   const completedTf = propTf.filter(t => t.status === 'completed');
 
-  // 合并待启动：活动 + 专班
+  // 合并待启动：活动 + 专班（T223 桶内新者在前）
   const pending = [
     ...pendingActs.map(a => ({ _type: 'activity', ...a })),
     ...pendingTf.map(t => ({ _type: 'taskforce', id: t.id, title: t.name, date: t.deadline || t.createdAt, type: '专班', status: t.status, task: t.task, capacity: t.capacity, filled: t.members.filter(m => m.personId).length })),
-  ];
-  // 合并进行中：活动 + 专班
+  ].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  // 合并进行中：活动 + 专班（T223 桶内新者在前）
   const active = [
     ...activeActs.map(a => ({ _type: 'activity', ...a })),
     ...activeTf.map(t => ({ _type: 'taskforce', id: t.id, title: t.name, date: t.deadline || t.createdAt, type: '专班', status: t.status, task: t.task, capacity: t.capacity, filled: t.members.filter(m => m.personId).length })),
-  ];
-  // 合并已归档：活动 + 专班
+  ].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  // 合并已归档：活动 + 专班（T223 桶内新者在前）
   const completed = [
     ...completedActs.map(a => ({ _type: 'activity', ...a })),
     ...completedTf.map(t => ({ _type: 'taskforce', id: t.id, title: t.name, date: t.deadline || t.createdAt, type: '专班', status: t.status, task: t.task, capacity: t.capacity, filled: t.members.filter(m => m.personId).length })),
-  ];
+  ].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   container.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -358,6 +369,7 @@ function _renderKanbanContent(activities, propTf) {
       if (!confirmed) return;
       activity.status = 'completed';
       BranchService.updateActivity(actId, { status: 'completed' });
+      persist(); // 扎口修复（Z1/Z3）：updateActivity 内部不落盘，必须显式 persist 写穿
       showToast('success', `活动「${activity.title || '未命名'}」已完成并归档`);
       renderPropUI(getAppState());
     });
@@ -417,7 +429,7 @@ function _renderWorkloadBlock(propTf) {
   const members = Object.values(workloadMap);
 
   return `
-    <div class="card rounded-xl p-5 border-l-4 mt-4" style="border-left-color:var(--accent-prop-commissioner-light);">
+    <div class="card rounded-xl p-5 mt-4">
       <div class="flex items-center gap-2 mb-3">
         <span class="text-sm font-semibold text-gray-700">专班工作量</span>
         <span class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">${propTf.length} 个专班</span>
@@ -439,8 +451,8 @@ function _renderWorkloadBlock(propTf) {
   `;
 }
 
-// ── 档案归档 mock 数据 ──
-const ARCHIVE_RECORDS = [
+// ── 档案归档 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
+const ARCHIVE_RECORDS_SEED = [
   { id: 'ar1', activityName: '七一主题党日活动', archiveDate: '2026-07-15', category: '新闻稿', status: 'archived' },
   { id: 'ar2', activityName: '七一主题党日活动', archiveDate: '2026-07-15', category: '照片', status: 'archived' },
   { id: 'ar3', activityName: '发展对象公示', archiveDate: '2026-07-22', category: '新闻稿', status: 'pending' },
@@ -448,6 +460,14 @@ const ARCHIVE_RECORDS = [
   { id: 'ar5', activityName: '组织生活会', archiveDate: '2026-07-10', category: '其他', status: 'archived' },
   { id: 'ar6', activityName: '入党积极分子培训', archiveDate: '2026-07-18', category: '照片', status: 'in_progress' },
 ];
+
+// 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.archiveRecords 后调用 persist()
+function _loadArchiveRecords() {
+  if (mockDB.archiveRecords.length === 0 && ARCHIVE_RECORDS_SEED.length > 0) {
+    mockDB.archiveRecords = ARCHIVE_RECORDS_SEED.map(r => ({ ...r }));
+  }
+  return mockDB.archiveRecords;
+}
 
 const ARCHIVE_CATEGORY_STYLE = {
   '新闻稿': 'bg-rose-50 text-rose-700',
@@ -503,7 +523,7 @@ function _renderArchiveContent() {
     </div>
 
     <div id="archive-list" class="space-y-2 mb-6">
-      ${_renderArchiveList(ARCHIVE_RECORDS)}
+      ${_renderArchiveList(_loadArchiveRecords())}
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -550,7 +570,7 @@ function _renderArchiveContent() {
     const keyword = searchInput.value.trim().toLowerCase();
     const cat = filterCategory.value;
     const status = filterStatus.value;
-    const filtered = ARCHIVE_RECORDS.filter(r => {
+    const filtered = _loadArchiveRecords().filter(r => {
       if (keyword && !r.activityName.toLowerCase().includes(keyword)) return false;
       if (cat && r.category !== cat) return false;
       if (status && r.status !== status) return false;
@@ -567,7 +587,7 @@ function _renderArchiveContent() {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const recordId = btn.dataset.recordId;
-      const record = ARCHIVE_RECORDS.find(r => r.id === recordId);
+      const record = _loadArchiveRecords().find(r => r.id === recordId);
       if (!record || record.status === 'archived') return;
       _showArchiveAdvancePopover(record, btn);
     });
@@ -621,13 +641,21 @@ function _renderArchiveList(records) {
   }).join('');
 }
 
-// ── 周报报送 mock 数据 ──
-const WEEKLY_REPORTS = [
+// ── 周报报送 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
+const WEEKLY_REPORTS_SEED = [
   { id: 'wr1', week: '第30周', weekRange: '2026-07-21 ~ 2026-07-25', content: '1. 七一主题党日活动新闻稿发布\n2. 发展对象公示推送排版完成\n3. 上半年活动照片归档整理进行中', status: 'submitted', submittedAt: '2026-07-25' },
   { id: 'wr2', week: '第29周', weekRange: '2026-07-14 ~ 2026-07-18', content: '1. 入党积极分子培训资料归档完成\n2. 组织生活会预告推送发布\n3. 配合组织委员完成发展对象材料审核', status: 'submitted', submittedAt: '2026-07-18' },
   { id: 'wr3', week: '第28周', weekRange: '2026-07-07 ~ 2026-07-11', content: '1. 预备党员转正大会新闻稿起草\n2. 七一活动素材整理\n3. 宣传专栏内容更新', status: 'submitted', submittedAt: '2026-07-11' },
   { id: 'wr4', week: '第31周', weekRange: '2026-07-28 ~ 2026-08-01', content: '', status: 'draft', submittedAt: null },
 ];
+
+// 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.weeklyReports 后调用 persist()
+function _loadWeeklyReports() {
+  if (mockDB.weeklyReports.length === 0 && WEEKLY_REPORTS_SEED.length > 0) {
+    mockDB.weeklyReports = WEEKLY_REPORTS_SEED.map(r => ({ ...r }));
+  }
+  return mockDB.weeklyReports;
+}
 
 const WEEKLY_STATUS_LABEL = { draft: '草稿', submitted: '已报送' };
 const WEEKLY_STATUS_STYLE = {
@@ -639,7 +667,7 @@ function _renderWeeklyContent() {
   const container = document.getElementById('prop-tab-content');
   if (!container) return;
 
-  const draftReport = WEEKLY_REPORTS.find(r => r.status === 'draft');
+  const draftReport = _loadWeeklyReports().find(r => r.status === 'draft');
 
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
@@ -653,7 +681,7 @@ function _renderWeeklyContent() {
           <div>
             <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择周次</label>
             <select id="weekly-week" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">
-              ${WEEKLY_REPORTS.map(r => `<option value="${r.id}" ${r.status === 'draft' ? 'selected' : ''}>${r.week}（${r.weekRange}）</option>`).join('')}
+              ${_loadWeeklyReports().map(r => `<option value="${r.id}" ${r.status === 'draft' ? 'selected' : ''}>${r.week}（${r.weekRange}）</option>`).join('')}
             </select>
           </div>
           <div>
@@ -670,7 +698,7 @@ function _renderWeeklyContent() {
           <span class="text-sm font-semibold text-gray-700">报送历史</span>
         </div>
         <div class="space-y-2">
-          ${WEEKLY_REPORTS.map(r => _renderWeeklyReportItem(r)).join('')}
+          ${_loadWeeklyReports().map(r => _renderWeeklyReportItem(r)).join('')}
         </div>
       </div>
     </div>
@@ -687,11 +715,12 @@ function _renderWeeklyContent() {
       showToast('error', '请填写周报内容');
       return;
     }
-    const report = WEEKLY_REPORTS.find(r => r.id === reportId);
+    const report = _loadWeeklyReports().find(r => r.id === reportId);
     if (!report) return;
     report.content = content;
     report.status = 'submitted';
     report.submittedAt = new Date().toISOString().slice(0, 10);
+    persist();
     showToast('success', `${report.week}周报已报送`);
     _renderWeeklyContent();
   });
@@ -825,6 +854,7 @@ function _showArchiveAdvancePopover(record, triggerBtn) {
       record._checklistState = { checked: checkedCount, total: totalCount };
     }
     record.status = nextStatus;
+    persist();
     closePopover();
     showToast('success', `「${record.activityName}」${nextLabel}${isStart ? '，请按材料标准准备' : ''}`);
     _renderArchiveContent();
