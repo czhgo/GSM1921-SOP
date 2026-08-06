@@ -202,9 +202,9 @@ dynamic_role:
 | docs/src/components/todo-list.js | 2026-08-06 | [工程师]+[AI] | 待办列表组件（E2 flow 内嵌小字） |
 | docs/src/components/commissioner-matrix.js | 2026-07-31 | [工程师]+[AI] | 支委矩阵组件 |
 | docs/src/components/issue-detail.js | 2026-08-06 | [工程师]+[AI] | 事项详情组件 |
-| docs/src/components/issue-form.js | 2026-07-31 | [工程师]+[AI] | 事项表单组件 |
+| docs/src/components/issue-form.js | 2026-08-06 | [工程师]+[AI] | 事项表单组件（提交按钮主 CTA 档） |
 | docs/src/components/issue-list.js | 2026-08-06 | [工程师]+[AI] | 事项列表组件 |
-| docs/src/components/custom-select.js | 2026-08-06 | [工程师]+[AI] | 自定义下拉组件（阈值内嵌搜索） |
+| docs/src/components/custom-select.js | 2026-08-06 | [工程师]+[AI] | 自定义下拉组件（阈值内嵌搜索+智能定位翻转） |
 | docs/src/components/person-picker.js | 2026-07-31 | [工程师]+[AI] | 人员选择器组件 |
 | docs/src/components/person-picker.css | 2026-07-31 | [工程师]+[AI] | 人员选择器样式 |
 | docs/src/components/query-view.js | 2026-08-06 | [工程师]+[AI] | 查询视图组件 |

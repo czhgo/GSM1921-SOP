@@ -73,7 +73,7 @@ export function renderIssueForm() {
 
         <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
           <a href="./feedback.html" class="px-4 py-2 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 font-sans">取消</a>
-          <button id="btn-submit-issue" class="px-4 py-2 text-sm rounded-lg text-white hover:opacity-90 transition-colors font-sans" style="background:#CE1126;">提交反馈</button>
+          <button id="btn-submit-issue" class="text-sm px-6 py-2.5 rounded-lg text-white hover:opacity-90 transition-colors font-sans" style="background:#CE1126;">提交反馈</button>
         </div>
       </div>
     </div>

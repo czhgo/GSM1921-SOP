@@ -385,6 +385,12 @@ body {
   color: var(--neutral-400);
 }
 
+/* 34px 行内对齐档：input-flat.text-xs 与 select/cs-trigger 同档收窄（否则 42px 会把同 flex 行按钮撑高） */
+input.input-flat.text-xs {
+  padding: 8px 12px;
+  font-size: 0.75rem;
+}
+
 /* 主题党日正交维度选项（共建性质/是否外出/活动载体多选） */
 .wp-dim-chip {
   background-color: var(--neutral-0);

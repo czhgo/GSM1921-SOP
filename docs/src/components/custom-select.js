@@ -32,6 +32,48 @@ function _syncTrigger(trigger, sel) {
   }
 }
 
+/**
+ * 下拉菜单智能定位（书记指令 2026-08-06）：不再一律向下展开，
+ * 按触发器在视口中的实际位置决定向下/向上，并限制高度避免溢出视口。
+ * 采用 position:fixed 逐次计算，可脱离滚动容器裁剪（如模态框内靠底部的下拉）。
+ */
+function _positionMenu(wrapper, menu, trigger) {
+  const rect = trigger.getBoundingClientRect();
+  const viewH = window.innerHeight;
+  const viewW = window.innerWidth;
+  const GAP = 4;
+  const MAX_H = 240;
+
+  // 菜单实际渲染高度（CSS max-height 240 封顶）
+  const menuH = Math.min(menu.offsetHeight || MAX_H, MAX_H);
+  const spaceBelow = viewH - rect.bottom;
+  const spaceAbove = rect.top;
+  let openUp;
+  if (spaceBelow >= menuH + GAP) {
+    openUp = false; // 下方足够 → 正常向下
+  } else if (spaceAbove >= menuH + GAP) {
+    openUp = true; // 下方不足且上方足够 → 向上翻转
+  } else {
+    openUp = spaceAbove > spaceBelow; // 两侧都不足 → 取空间大的一侧
+  }
+
+  const avail = (openUp ? spaceAbove : spaceBelow) - GAP;
+  menu.style.position = 'fixed';
+  menu.style.maxHeight = Math.max(96, Math.min(MAX_H, avail)) + 'px';
+  const width = Math.max(rect.width, 120);
+  menu.style.width = width + 'px';
+  const maxLeft = Math.max(4, viewW - width - 4);
+  menu.style.left = Math.min(Math.max(4, rect.left), maxLeft) + 'px';
+  if (openUp) {
+    menu.style.top = 'auto';
+    menu.style.bottom = (viewH - rect.top + GAP) + 'px';
+  } else {
+    menu.style.bottom = 'auto';
+    menu.style.top = (rect.bottom + GAP) + 'px';
+  }
+  wrapper.classList.toggle('cs-open-up', openUp);
+}
+
 function _openMenu(wrapper, menu, trigger, sel) {
   // 每次展开从 select.options 重建，保证动态填充即时生效
   menu.innerHTML = '';
@@ -61,6 +103,16 @@ function _openMenu(wrapper, menu, trigger, sel) {
   menu.classList.remove('hidden');
   trigger.setAttribute('aria-expanded', 'true');
   wrapper.classList.add('is-open');
+
+  // 智能定位 + 打开期间跟随滚动/缩放重定位
+  _positionMenu(wrapper, menu, trigger);
+  const reposition = () => {
+    if (menu.classList.contains('hidden')) return;
+    _positionMenu(wrapper, menu, trigger);
+  };
+  wrapper._csReposition = reposition;
+  window.addEventListener('scroll', reposition, true);
+  window.addEventListener('resize', reposition);
 
   if (needsSearch) {
     const searchInput = menu.querySelector('.cs-search-input');
@@ -103,12 +155,20 @@ function _openMenu(wrapper, menu, trigger, sel) {
     });
   }
 
-  // 滚到选中项
+  // 菜单内滚到选中项（仅滚动菜单自身，避免带动页面/容器滚动）
   const active = menu.querySelector('.is-selected');
-  if (active) active.scrollIntoView({ block: 'nearest' });
+  if (active) {
+    menu.scrollTop = Math.max(0, active.offsetTop - menu.clientHeight / 2 + active.clientHeight / 2);
+  }
 }
 
 function _closeMenu(wrapper, menu, trigger) {
+  // 移除滚动/缩放重定位监听
+  if (wrapper._csReposition) {
+    window.removeEventListener('scroll', wrapper._csReposition, true);
+    window.removeEventListener('resize', wrapper._csReposition);
+    delete wrapper._csReposition;
+  }
   // 重置搜索过滤（下次展开时干净重建）
   const searchInput = menu.querySelector('.cs-search-input');
   if (searchInput) searchInput.value = '';

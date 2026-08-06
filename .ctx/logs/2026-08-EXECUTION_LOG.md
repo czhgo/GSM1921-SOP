@@ -1588,3 +1588,35 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
   - ✅ GetDiagnostics 全部修改文件零 JS 错误（仅存量 markdownlint 警告）
   - ✅ Grep 复核：`<button[^>]*px-2` 全站无残留（rounded-full pill 豁免）；`px-4` 仅剩豁免项
 - **沉淀标签**：`[已沉淀: 角色颜色适用范围]` — 语义色（身份/类别/状态标识）固定 + 强调色（界面装饰/按钮/标签高亮）可个性化，两者由 ROLE_COLORS/ACCENT_COLORS 双体系隔离，个性化只走 `resolveAccentRole` 覆盖强调色消费点，永不触碰语义色；`[已沉淀: 长列表下拉必搜]` — 任何选项随时间增长/查找复杂的选择控件，选项数超阈值（10）自动内嵌搜索，统一由 custom-select 增强体系承载，新页面 select 必须带 `input-flat` 类才能被增强器捕获；`[已沉淀: 按钮四档规范]` — 微操作/默认/行内对齐/主 CTA 四档，判断规则=与 input 同行→行内对齐档、独立卡片/模态→默认档、主提交/显著 CTA→主 CTA 档、表格行内密集→微操作档；`[待办]` — 共享模块 URL 缓存版本号（防 browser 旧模块缓存）；部署期 ApiAdapter 接线（Z6 遗留）
+
+## T226 书记追问：下拉呆板定位反思 + 按钮未全站同步核查（2026-08-06）
+
+**任务**：书记对 T225 提出两点「反思」——① 每次下拉都呆板地出现在下方，未按实际情况调整位置；② 质疑按钮是否真的全站同步了大小（「我看不见得！！」）
+**引用流程**：verification-before-completion Skill + browser_use 双轮实测 + 全站按钮 Grep 审计
+**来源**：书记 AskUserQuestion 附带意见（2026-08-06 原话）
+
+### ① 下拉智能定位（custom-select.js）
+- `_positionMenu`：展开时按触发器 `getBoundingClientRect()` + 视口可用空间决策——下方空间足够 → 向下；不足且上方足够 → **向上翻转**（`cs-open-up` 类，bottom 对齐触发器上方 4px）；两侧都不足 → 取空间大的一侧
+- 菜单改 `position: fixed` 逐次计算（left/width/top|bottom/maxHeight 全 inline），**可脱离滚动容器裁剪**（如模态框内靠底下拉不再被 `.modal-body` 裁剪）；max-height 按可用空间收缩（min 96px）
+- 打开期间监听 `scroll`（capture）+ `resize` 重定位（`wrapper._csReposition` 挂载，`_closeMenu` 清理）；选中项改为仅滚动菜单自身（`menu.scrollTop` 计算，替代 `scrollIntoView` 避免带动页面滚动）
+- browser_use 实测：场景A 正常向下（GAP=4 ✓ fixed ✓）/ 场景B 页面贴底翻转向上（`menu.bottom ≤ trig.top`，`cs-open-up` ✓，maxHeight=240 封顶）/ 模态内 maxHeight 收缩 153.8px / 滚动容器滚动后面板跟随重定位 ✓
+
+### ② 按钮全站核查与补漏（回应「看不见得」）
+- 全站 `<button` Grep 审计（161+79 行），发现并修复 16 处未归档按钮：
+  - `px-5 py-2.5`（38px 无档）→ 主 CTA `px-6`：ws-secretary wp-submit/发布通知/确认设组长、ws-leader dt/att/insp 三组提交取消（replace_all）、ws-org 招募发布对
+  - `px-4 py-2 text-sm`（36px 无档）→ 主 CTA `px-6`：issue-form 提交反馈、issue-detail 提交评论、issue-list +新反馈、notice-entry 确认读取
+  - `w-full py-2.5` 缺 px → 补 `px-6`：inspector 关闭/知道了、issue-detail 应用、ws-prop 周报报送、login-entry/login.html 登录
+  - modal.js `openFormModal` 取消/提交内联 `padding:8px 16px`（btn-primary/btn-secondary 内联覆盖）→ 默认档 30px + 主 CTA 44px 标准类
+  - ws-secretary 设党小组组长 `text-sm px-3 py-1.5` → 默认档 `text-xs px-3 py-1.5`
+- **根因补漏**：`input.input-flat.text-xs` 普通输入框缺失收窄规则（base padding 12px 16px → 42px），同 flex 行按钮被 stretch 拉高 → styles.css 新增 `input.input-flat.text-xs { padding: 8px 12px }`（34px），与 select/cs-trigger 同档；browser 复核 `#archive-search`+`#archive-upload-btn` 均 34px 等高
+- **教训（工具陷阱）**：同一文件多个 Edit 并行提交发生**写覆盖**（issue-detail L114、inspector L124、ws-leader submit、ws-secretary L1340/L96 的修改被后写吞掉），必须**同文件串行编辑**；已逐个重放并 Grep 复核 `px-4 py-2|px-5 py-2.5` 仅剩豁免项（tab-bar 组件 / dt 维度 chip / 受众选择 chip）
+- 豁免确认：tab-bar 页签、dt-l1~l4/host 维度 chip、通知受众选择 chip、btn-action/btn-md/btn-tab 组件类、纯图标关闭按钮
+
+- **变更文件**：`docs/src/components/custom-select.js`、`docs/src/styles.css`、`docs/src/components/{modal,issue-detail,issue-form,issue-list,inspector}.js`、`docs/src/entries/{ws-leader,ws-org,ws-prop,ws-secretary,notice,login}-*.js`、`docs/login.html`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+
+- **验证结果**：
+  - ✅ node --check 全部 12 个修改 JS 文件语法通过
+  - ✅ browser_use 场景A/B：向下/向上翻转/高度收缩/滚动跟随全部符合预期，无裁剪无溢出
+  - ✅ browser_use 复核：`#archive-search`+`#archive-upload-btn` 34px 等高（旧 42px 为浏览器缓存旧 CSS，硬刷新后生效）
+  - ✅ 按钮高度分布实测：书记/宣传工作台主要操作按钮集中 28/30/34/42-44 档，无系统性偏差
+- **沉淀标签**：`[已沉淀: 下拉智能定位]` — 下拉不许呆板朝下：展开时按视口可用空间决策（下→上翻转），position:fixed 逐次计算脱离滚动容器裁剪，max-height 按可用空间收缩，打开期间跟随 scroll/resize 重定位；`[已沉淀: 同文件并行编辑写覆盖]` — 同一文件多个 Edit 不得并行提交，必须串行（后写会吞掉先写）；`[已沉淀: input-flat.text-xs 34px]` — `input.input-flat.text-xs` 必须 8px 12px 收窄至 34px 与 select/cs-trigger 同档，否则 42px 会撑高同 flex 行按钮

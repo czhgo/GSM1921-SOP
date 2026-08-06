@@ -93,7 +93,7 @@ const SEC_ASSIGN_TAB_HTML = `
   <div class="card rounded-2xl p-6 mb-6">
     <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">常设赋权</h3>
     <p class="text-xs text-gray-500 mb-3">设党小组组长——角色指派靠口头/群聊，系统内设+记录可追溯</p>
-    <button id="ws-sec-assign-btn" class="text-sm px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors">设党小组组长</button>
+    <button id="ws-sec-assign-btn" class="text-xs px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors">设党小组组长</button>
     <div id="assign-area"></div>
     <div class="border-t border-gray-100 mt-6 pt-4">
       <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">当前党小组组长</h4>
@@ -1337,7 +1337,7 @@ function renderFormStep() {
   // 写入按钮
   const btnText = wp.submitting ? '写入中...' : '创建活动';
   const btnDisabled = wp.submitting ? 'opacity-50 cursor-not-allowed' : '';
-  html += `<button data-action="wp-submit" class="text-sm px-5 py-2.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium ${btnDisabled}">${btnText}</button>`;
+  html += `<button data-action="wp-submit" class="text-sm px-6 py-2.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium ${btnDisabled}">${btnText}</button>`;
 
   html += `</div>`;
   return html;
@@ -1657,7 +1657,7 @@ function renderAuthPanel(assignArea) {
   html += `</div>`;
 
   // 3. 确认按钮
-  html += `<button data-auth-action="confirm" class="text-sm px-5 py-2.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium">确认设为党小组组长</button>`;
+  html += `<button data-auth-action="confirm" class="text-sm px-6 py-2.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium">确认设为党小组组长</button>`;
 
   // ── 分隔线 ──
   html += `<div class="border-t border-gray-100 mt-6 pt-4">`;
@@ -2364,7 +2364,7 @@ function renderNotificationForm() {
   html += `</div>`;
 
   // 发布按钮
-  html += `<button data-notif-action="publish" class="text-sm px-5 py-2.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium">发布通知</button>`;
+  html += `<button data-notif-action="publish" class="text-sm px-6 py-2.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium">发布通知</button>`;
 
   formArea.innerHTML = html;
 

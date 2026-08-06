@@ -42,7 +42,7 @@ export function renderIssueList() {
     <div class="card rounded-2xl p-6 mb-4">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-title-cn text-lg font-bold text-gray-700">全部意见 <span class="text-xs font-normal text-gray-400">开放中 ${counts.open} · 已关闭 ${counts.closed}</span></h3>
-        ${canCreate ? `<button id="btn-new-issue" class="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors" style="background:#CE1126;" onmouseover="this.style.background='#991B1B'" onmouseout="this.style.background='#CE1126'">+ 新反馈</button>` : ''}
+        ${canCreate ? `<button id="btn-new-issue" class="text-sm px-6 py-2.5 rounded-lg font-medium text-white transition-colors" style="background:#CE1126;" onmouseover="this.style.background='#991B1B'" onmouseout="this.style.background='#CE1126'">+ 新反馈</button>` : ''}
       </div>
 
       <div class="flex items-center gap-2 mb-3 flex-wrap text-xs">
