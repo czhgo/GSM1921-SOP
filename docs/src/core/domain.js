@@ -194,6 +194,9 @@ export const REVIEW_STATUS_LABELS = {
  */
 export const mockDB = {
   _schema: SCHEMA_VERSION,
+  // 持久化守卫标记：mockDB 尚未从存储/后端恢复（loadDB/init 完成）前，
+  // 禁止 saveDB/persist 写入——防止加载早期以空数据覆盖用户已保存的数据（2026-08-05 修复）
+  _loaded: false,
   users: [
     { id: 'u_sec',  role: 'secretary',         name: '支部书记' },
     { id: 'u_dep',  role: 'deputy-secretary',  name: '支部副书记' },
@@ -225,8 +228,6 @@ export const mockDB = {
   // ── 以下为存储层统一后从独立键归并的业务数据 ──
   /** @type {Object[]} 分工记录 */
   assignments: [],
-  /** @type {Object[]} 交接记录 */
-  handovers: [],
   /** @type {Object[]} 补课任务 */
   makeupTasks: [],
   /** @type {Object} 活动子记录（actId → subRecords） */
@@ -247,4 +248,15 @@ export const mockDB = {
   todos: [],
   /** @type {ImageRecord[]} 图片记录 — Source: content/02_institution/sop/宣传委员工作流程指南.md#图片管理规则 */
   imageRecords: [],
+  // ── 2026-08-05 假操作修复新增持久化域 ──
+  /** @type {Object[]} 宣传任务（prop-commissioner 工作台） */
+  propTasks: [],
+  /** @type {Object[]} 宣传周报记录（prop-commissioner 工作台） */
+  weeklyReports: [],
+  /** @type {Object[]} 档案归档记录（prop-commissioner 工作台） */
+  archiveRecords: [],
+  /** @type {Object} 纪检公邮配置（disc-commissioner 党建 Tab） */
+  mailboxConfig: null,
+  /** @type {Object[]} 纪检公邮查收历史（disc-commissioner 党建 Tab） */
+  mailboxHistory: [],
 };

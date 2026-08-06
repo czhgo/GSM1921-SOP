@@ -26,32 +26,4 @@ export const SEED_ASSIGNMENTS = [
   { id: 'assign_seed_005', activityId: 'act-10', workName: '准备活动方案', workDescription: '撰写主题党日活动方案，含议程和分工', ddl: '2026-05-08T00:00:00Z', assigneeId: 'p3', status: 'in_progress', createdBy: 'p1', createdAt: '2026-05-01T08:00:00Z', completedAt: null },
 ];
 
-// ── 交接种子 ──────────────────────────────────────────────
-export const SEED_HANDOVERS = [
-  {
-    id: 'ho_seed_001',
-    title: '3月主题党日交接',
-    fromPerson: 'p3',
-    toPerson: 'p5',
-    activityId: 'act-3',
-    items: [
-      { content: '学习材料电子版', status: 'completed' },
-      { content: '签到表原件', status: 'completed' },
-      { content: '活动照片归档', status: 'completed' },
-    ],
-    createdAt: '2026-03-16T10:00:00Z',
-  },
-  {
-    id: 'ho_seed_002',
-    title: '参访活动交接',
-    fromPerson: 'p3',
-    toPerson: 'p1',
-    activityId: 'act-5',
-    items: [
-      { content: '共建协议草案', status: 'completed' },
-      { content: '参访总结报告', status: 'completed' },
-      { content: '费用报销单据', status: 'completed' },
-    ],
-    createdAt: '2026-04-12T10:00:00Z',
-  },
-];
+// ── 专班种子 ──────────────────────────────────────────────

@@ -121,7 +121,6 @@ function _delete(path) {
 //  | 待办        | /api/v1/todos           | GET/POST  |
 //  | 待办(单)    | /api/v1/todos/:id       | PATCH/DELETE |
 //  | 分工        | /api/v1/assignments     | GET/POST  |
-//  | 交接        | /api/v1/handovers       | GET/POST  |
 //  | 补课        | /api/v1/makeupTasks    | GET/POST  |
 //  | 补课(单)    | /api/v1/makeupTasks/:id| PATCH     |
 //  | 文件空间    | /api/v1/fileSpaceRecords | GET/POST |
@@ -150,7 +149,7 @@ export const ApiAdapter = {
    * 全量快照写穿：将当前 mockDB 的 10 个服务端集合整体覆盖写入后端（认证保护）。
    * 由 data-adapter 的 persist() 防抖调度调用；P2 资源级 CRUD 落地前，
    * 这是服务层写入穿透到服务器的唯一通道。
-   * @param {Object} payload - { activities, tasks, attendances, inspections, taskforces, notices, todos, assignments, handovers, makeupTasks }
+   * @param {Object} payload - { activities, tasks, attendances, inspections, taskforces, notices, todos, assignments, makeupTasks }
    * @returns {Promise<null>} 204 No Content
    */
   snapshot(payload) {
@@ -298,17 +297,6 @@ export const ApiAdapter = {
 
     create(data) {
       return _post('/api/v1/assignments', data);
-    },
-  },
-
-  handovers: {
-    list(params = {}) {
-      const query = new URLSearchParams(params).toString();
-      return _get(`/api/v1/handovers${query ? '?' + query : ''}`);
-    },
-
-    create(data) {
-      return _post('/api/v1/handovers', data);
     },
   },
 

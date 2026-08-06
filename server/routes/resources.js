@@ -1,5 +1,6 @@
-// server/routes/resources.js — 资源读取 API（list + bootstrap 全量引导）
+// server/routes/resources.js — 资源读写 API（list + bootstrap + 资源级 CRUD + snapshot 快照写穿）
 import { Router } from 'express';
+import { randomUUID } from 'node:crypto';
 import { requireAuth } from './auth.js';
 import { replaceCollection } from '../db.js';
 
@@ -14,7 +15,6 @@ const RESOURCE_TABLES = {
   notices: 'notices',
   todos: 'todos',
   assignments: 'assignments',
-  handovers: 'handovers',
   makeupTasks: 'makeup_tasks',
   users: 'users',
   experienceDeposits: 'experience_deposits',
@@ -27,6 +27,14 @@ function listTable(db, table) {
   return db.prepare(`SELECT data FROM ${table}`).all().map(r => JSON.parse(r.data));
 }
 
+// create 缺 id 时的前缀（与前端 mock 生成风格对齐：act-xxx / tsk-xxx ...）
+const ID_PREFIX = {
+  activities: 'act', tasks: 'tsk', attendances: 'att', inspections: 'ins',
+  taskforces: 'tf', notices: 'ntc', todos: 'td', assignments: 'asg',
+  makeupTasks: 'mk', experienceDeposits: 'xp',
+  complianceReferences: 'cr', fileSpaceRecords: 'fs', imageRecords: 'img',
+};
+
 export function createResourcesRouter(db) {
   const router = Router();
 
@@ -34,6 +42,68 @@ export function createResourcesRouter(db) {
   for (const [name, table] of Object.entries(RESOURCE_TABLES)) {
     router.get(`/${name}`, (req, res) => res.json(listTable(db, table)));
   }
+
+  // 资源级 CRUD（2026-08-06 扎口修复 Z2：此前前端 ApiAdapter 暴露的
+  // create/update/delete/archive/brand 接口在服务端全部 404，属「未扎口的假接口」。
+  // 现补齐 POST/PATCH/DELETE，使 ApiAdapter 接口完整可用）
+  for (const [name, table] of Object.entries(RESOURCE_TABLES)) {
+    // 创建：body 为单条数据对象；缺 id 时服务端生成（与前端 mock 生成风格对齐）
+    router.post(`/${name}`, requireAuth(db), (req, res) => {
+      const row = req.body;
+      if (!row || typeof row !== 'object' || Array.isArray(row)) {
+        return res.status(400).json({ error: 'body 须为单条数据对象' });
+      }
+      const id = row.id || `${ID_PREFIX[name] || 'x'}-${randomUUID().slice(0, 8)}`;
+      const data = { ...row, id };
+      db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify(data));
+      res.status(201).json(data);
+    });
+
+    // 更新：局部合并 patch（与前端 update(id, patch) 语义一致）
+    router.patch(`/${name}/:id`, requireAuth(db), (req, res) => {
+      const id = req.params.id;
+      const existing = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(id);
+      if (!existing) return res.status(404).json({ error: 'not found' });
+      const merged = { ...JSON.parse(existing.data), ...(req.body || {}), id };
+      db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify(merged));
+      res.json(merged);
+    });
+
+    // 删除
+    router.delete(`/${name}/:id`, requireAuth(db), (req, res) => {
+      const info = db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(req.params.id);
+      if (info.changes === 0) return res.status(404).json({ error: 'not found' });
+      res.status(204).end();
+    });
+  }
+
+  // 活动归档/品牌切换特例（与前端 BranchService.archiveActivity/toggleBrand 语义对齐）
+  router.post('/activities/:id/archive', requireAuth(db), (req, res) => {
+    const id = req.params.id;
+    const existing = db.prepare('SELECT data FROM activities WHERE id = ?').get(id);
+    if (!existing) return res.status(404).json({ error: 'not found' });
+    const act = { ...JSON.parse(existing.data), id, archived: true };
+    db.prepare('INSERT OR REPLACE INTO activities (id, data) VALUES (?, ?)').run(id, JSON.stringify(act));
+    // 级联：归档后该活动相关任务全部完成（与前端 archiveActivity 行为一致）
+    const tasks = db.prepare('SELECT data FROM tasks').all().map(r => JSON.parse(r.data));
+    for (const t of tasks) {
+      if (t.activityId === id && t.status !== 'completed') {
+        db.prepare('INSERT OR REPLACE INTO tasks (id, data) VALUES (?, ?)')
+          .run(t.id, JSON.stringify({ ...t, status: 'completed' }));
+      }
+    }
+    res.json(act);
+  });
+
+  router.post('/activities/:id/brand', requireAuth(db), (req, res) => {
+    const id = req.params.id;
+    const existing = db.prepare('SELECT data FROM activities WHERE id = ?').get(id);
+    if (!existing) return res.status(404).json({ error: 'not found' });
+    const current = JSON.parse(existing.data);
+    const act = { ...current, id, isBrand: !current.isBrand };
+    db.prepare('INSERT OR REPLACE INTO activities (id, data) VALUES (?, ?)').run(id, JSON.stringify(act));
+    res.json(act);
+  });
 
   // 全量引导：一次拉取全部资源（data-adapter init() 在 api 模式的填充来源）
   router.get('/bootstrap', (req, res) => {

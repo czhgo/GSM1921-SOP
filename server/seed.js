@@ -16,5 +16,4 @@ export async function seedDatabase(db) {
   replaceCollection(db, 'taskforces', taskforcesMod.MOCK_TASKFORCES);
   replaceCollection(db, 'tasks', seedMod.SEED_TASKS);
   replaceCollection(db, 'assignments', seedMod.SEED_ASSIGNMENTS);
-  replaceCollection(db, 'handovers', seedMod.SEED_HANDOVERS);
 }

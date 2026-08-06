@@ -2,40 +2,55 @@ import { setState, registerRenderCallback } from '../core/state.js';
 import { showToast } from '../core/utils.js';
 import { CrossPageState } from '../core/cross-page-state.js';
 import { bootstrapPage } from '../core/bootstrap.js';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, ReviewStatus } from '../core/domain.js';
 import { persist } from '../core/data-adapter.js';
 import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, reviewToDisplay, getPersonName } from '../mock/index.js';
 import { loadWorkspaceData } from '../core/data-loader.js';
 import { renderTabBar } from '../components/tab-bar.js';
 import { openFormModal } from '../components/modal.js';
-import { loadHandoverRecords, updateHandoverRecord } from '../services/handover.js';
 import { autoGenerateMakeupTask, loadMakeupTasks, saveMakeupTasks } from '../services/makeup.js';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js';
 import { loadInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../services/inspection.js';
 import { loadActivities } from '../services/activity.js';
-import { loadActivityReviews, loadTaskforceReviews } from '../services/review.js';
+import { loadActivityReviews, loadTaskforceReviews, updateReviewById } from '../services/review.js';
 import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js';
 import { renderTodoList } from '../components/todo-list.js';
 import { TodoStore } from '../services/todo.js';
+import { enhanceSelects } from '../components/custom-select.js';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'disc-commissioner' });
 
 const DISC_COMMISSIONER_ID = 'p10'; // 纪检委员 personId
 
-// ── 公邮管理 Mock 数据 ──────────────────────────────────────────
-const MAILBOX_CONFIG = {
+// ── 公邮管理 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
+const MAILBOX_CONFIG_SEED = {
   email: 'gsm1921_branch@edu.cn',
   checkCycleDays: 3,
   lastCheckAt: '2026-07-27T10:00:00Z',
 };
 
-const MAILBOX_HISTORY = [
+const MAILBOX_HISTORY_SEED = [
   { id: 'mh1', checkedAt: '2026-07-27T10:00:00Z', checkedBy: 'p10', summary: '收到学院通知1封，已转发至支委群', hasAction: false },
   { id: 'mh2', checkedAt: '2026-07-24T09:30:00Z', checkedBy: 'p10', summary: '收到组织关系转接确认函，已归档', hasAction: true },
   { id: 'mh3', checkedAt: '2026-07-21T11:00:00Z', checkedBy: 'p10', summary: '无新邮件', hasAction: false },
   { id: 'mh4', checkedAt: '2026-07-18T10:15:00Z', checkedBy: 'p10', summary: '收到主题党日通知，已安排宣传委员跟进', hasAction: true },
   { id: 'mh5', checkedAt: '2026-07-15T09:45:00Z', checkedBy: 'p10', summary: '收到党委文件1份，已存档', hasAction: true },
 ];
+
+// 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.mailboxConfig/mailboxHistory 后调用 persist()
+function _loadMailboxConfig() {
+  if (!mockDB.mailboxConfig) {
+    mockDB.mailboxConfig = { ...MAILBOX_CONFIG_SEED };
+  }
+  return mockDB.mailboxConfig;
+}
+
+function _loadMailboxHistory() {
+  if (mockDB.mailboxHistory.length === 0 && MAILBOX_HISTORY_SEED.length > 0) {
+    mockDB.mailboxHistory = MAILBOX_HISTORY_SEED.map(h => ({ ...h }));
+  }
+  return mockDB.mailboxHistory;
+}
 
 // ── 经验沉淀数据层（mockDB） ────────────────────────────
 
@@ -135,7 +150,7 @@ function _renderTodoContent() {
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2">
-        <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner);">
+        <div class="card rounded-xl p-5"">
           <div class="flex items-center justify-between mb-4">
             <h4 class="font-title-cn text-sm font-bold text-gray-700">我的待办</h4>
           </div>
@@ -229,44 +244,80 @@ function _bindTodoDetailEvents() {
   });
 }
 
-// ── 考勤概况渲染（从首页迁移） ──
-function _buildAttendanceSummaryHTML() {
+// ── 待处理面板（决策仪表盘·异常驱动，替代数字概况） ──
+function _buildDiscDecisionPanelHTML(filterActivityId) {
+  const allRecords = loadAttendanceRecords();
+  const actById = new Map(loadActivities().map(a => [a.id, a]));
   const now = new Date();
-  const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const allActivities = loadActivities();
-  const monthActivities = allActivities.filter(a => (a.date || '').startsWith(thisMonth) && !a.archived);
 
-  if (monthActivities.length === 0) {
-    return '<p class="text-sm text-gray-400">本月暂无考勤数据</p>';
-  }
-
-  const attendanceRecords = loadAttendanceRecords();
-  const rows = monthActivities.map(act => {
-    const records = attendanceRecords.filter(r => r.activityId === act.id);
-    const present = records.filter(r => r.status === 'present').length;
-    const absent = records.filter(r => r.status === 'absent').length;
-    const leave = records.filter(r => r.status === 'leave').length;
-    const total = records.length;
-    const rate = total > 0 ? Math.round((present / total) * 100) : 0;
-    const rateColor = rate >= 90 ? 'text-green-600' : rate >= 70 ? 'text-orange-600' : 'text-red-600';
-
-    return `
-      <div class="flex items-center gap-3 py-2 border-b border-gray-50 last:border-b-0 hover:bg-gray-50 rounded-lg px-2 -mx-2 transition-all duration-200">
-        <div class="flex-1 min-w-0">
-          <p class="text-sm text-gray-800 truncate">${act.title}</p>
-          <p class="text-xs text-gray-400">${act.date || ''}</p>
-        </div>
-        <div class="flex items-center gap-3 text-xs whitespace-nowrap">
-          <span class="text-green-600">出勤 ${present}</span>
-          <span class="text-red-500">缺勤 ${absent}</span>
-          <span class="text-orange-500">请假 ${leave}</span>
-          <span class="font-medium ${rateColor}">${rate}%</span>
-        </div>
-      </div>
-    `;
+  // 待确认事项：请假 + 异常缺勤（确认窗口仅保留给这两类）
+  const pendingItems = allRecords.filter(r => {
+    if (r.recordedBy) return false;
+    if (filterActivityId && r.activityId !== filterActivityId) return false;
+    return r.status === AttendanceStatus.LEAVE || r.status === AttendanceStatus.ABSENT;
   });
 
-  return rows.join('');
+  // 超期未确认：活动日期已过且仍未确认
+  const overdueItems = allRecords.filter(r => {
+    if (r.recordedBy) return false;
+    const act = actById.get(r.activityId);
+    if (!act || !act.date) return false;
+    if (filterActivityId && r.activityId !== filterActivityId) return false;
+    return new Date(act.date) < now;
+  });
+
+  // 合并去重（超期未确认的请假/缺勤不重复列出）
+  const seen = new Set();
+  const items = [];
+  [...pendingItems, ...overdueItems].forEach(r => {
+    if (seen.has(r.id)) return;
+    seen.add(r.id);
+    items.push(r);
+  });
+
+  const leaveCount = pendingItems.filter(r => r.status === AttendanceStatus.LEAVE).length;
+  const absentCount = pendingItems.filter(r => r.status === AttendanceStatus.ABSENT).length;
+  const overdueCount = overdueItems.length;
+
+  const listHtml = items.length === 0
+    ? `
+      <div class="flex items-center gap-2 text-xs text-gray-400 py-2">
+        <span class="w-2 h-2 rounded-full bg-green-500"></span>
+        无待处理事项${filterActivityId ? '（当前筛选活动）' : ''}
+      </div>`
+    : `
+      <div class="space-y-1.5">${items.map(r => {
+        const act = actById.get(r.activityId);
+        const isOverdue = overdueItems.some(o => o.id === r.id);
+        const statusBadge = r.status === AttendanceStatus.ABSENT
+          ? '<span class="px-1.5 py-0.5 rounded-full text-xs bg-red-100 text-red-700">缺勤</span>'
+          : '<span class="px-1.5 py-0.5 rounded-full text-xs bg-orange-100 text-orange-700">请假</span>';
+        return `
+          <div class="flex items-center gap-3 py-1.5 px-2 rounded-lg ${isOverdue ? 'bg-red-50/40' : 'bg-orange-50/20'}">
+            <div class="flex-1 min-w-0">
+              <p class="text-sm text-gray-800 truncate">${getPersonName(r.personId)}</p>
+              <p class="text-xs text-gray-400 truncate">${act ? act.title : ''}${act && act.date ? ' · ' + act.date : ''}</p>
+            </div>
+            ${statusBadge}
+            ${isOverdue ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">超期</span>' : ''}
+            <button class="btn-action btn-action-orange btn-disc-confirm-dash text-xs" data-record-id="${r.id}">确认</button>
+          </div>
+        `;
+      }).join('')}</div>`;
+
+  return `
+    <div class="card rounded-xl p-4 mb-4">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">待处理</h4>
+        <div class="flex gap-3 text-xs">
+          <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500"></span><span class="text-gray-600">待确认请假</span><span class="font-bold text-orange-700">${leaveCount}</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span><span class="text-gray-600">待确认缺勤</span><span class="font-bold text-red-700">${absentCount}</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span><span class="text-gray-600">超期未确认</span><span class="font-bold text-amber-700">${overdueCount}</span></div>
+        </div>
+      </div>
+      ${listHtml}
+    </div>
+  `;
 }
 
 function _renderAttendanceContent(filterActivityId) {
@@ -277,14 +328,10 @@ function _renderAttendanceContent(filterActivityId) {
   const longData = attendanceToLong(allRecords);
   const wideData = attendanceToWide(allRecords);
 
-  // 加载交接数据（已合并入考勤管理 tab）
-  const handoverRecords = loadHandoverRecords();
-  const handoverInProgress = handoverRecords.filter(r => r.status === 'in_progress');
-  const handoverSubmitted = handoverRecords.filter(r => r.status === 'submitted');
-  const handoverConfirmed = handoverRecords.filter(r => r.status === 'confirmed');
-
+  // T223 修复：attendanceToLong 长表行不含 activityId，须先按原始记录过滤再转换，
+  // 否则活动筛选匹配 0 条、待确认计数恒为 0、一键确认按钮永不出现。
   const filtered = filterActivityId
-    ? longData.filter(r => r.activityId === filterActivityId)
+    ? attendanceToLong(allRecords.filter(r => r.activityId === filterActivityId))
     : longData;
   const filteredWide = filterActivityId
     ? attendanceToWide(allRecords.filter(r => r.activityId === filterActivityId))
@@ -297,24 +344,48 @@ function _renderAttendanceContent(filterActivityId) {
       </div>`
     : '';
 
+  // T223 考勤交互升级：活动选择器（仅列有考勤记录的活动，按 date 降序），先选活动再查看
+  const actOptions = (() => {
+    const acts = loadActivities();
+    const withAttendance = new Set(allRecords.map(r => r.activityId));
+    return acts
+      .filter(a => withAttendance.has(a.id))
+      .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+      .map(a => `<option value="${a.id}" ${filterActivityId === a.id ? 'selected' : ''}>${a.title}（${a.date}）</option>`)
+      .join('');
+  })();
+  const pendingCount = filtered.filter(r => r.confirmer === '—').length;
+  const confirmedCount = filtered.length - pendingCount;
+  const bulkConfirmBtn = filterActivityId && pendingCount > 0
+    ? `<div class="mb-3">
+        <button id="att-bulk-confirm-btn" class="text-xs px-4 py-2 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">
+          一键确认本活动全部待确认（${pendingCount} 条）
+        </button>
+      </div>`
+    : '';
+
   container.innerHTML = `
     ${filterBanner}
-    <div class="card rounded-xl p-4 mb-4 border-l-4" style="border-left-color:var(--accent-disc-commissioner);">
-      <div class="flex items-center justify-between mb-3">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤概况</h4>
-      </div>
-      <div id="disc-attendance-summary">${_buildAttendanceSummaryHTML()}</div>
-    </div>
+    ${_buildDiscDecisionPanelHTML(filterActivityId)}
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤总表</h4>
+        <div class="flex items-center gap-3 text-xs">
+          <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500"></span><span class="text-gray-600">待确认</span><span class="font-bold text-orange-700">${pendingCount}</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-green-500"></span><span class="text-gray-600">已确认</span><span class="font-bold text-green-700">${confirmedCount}</span></div>
+        </div>
         <div class="flex gap-2">
           <button class="att-view-btn btn-tab active" data-view="long">活动视图</button>
           <button class="att-view-btn btn-tab" data-view="wide">人视图</button>
         </div>
       </div>
       <div class="text-xs text-gray-500 mb-3">纪检委员维护考勤系统，组织委员的活动出勤数据直接使用本系统</div>
+      ${bulkConfirmBtn}
       <div class="flex flex-wrap gap-2 mb-3">
+        <select id="att-activity-select" class="input-flat text-xs min-w-[180px]">
+          <option value="">全部活动</option>
+          ${actOptions}
+        </select>
         <input type="text" id="att-search-input" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索姓名或活动名称...">
         <select id="att-status-filter" class="input-flat text-xs w-24">
           <option value="">全部状态</option>
@@ -330,18 +401,6 @@ function _renderAttendanceContent(filterActivityId) {
         </select>
       </div>
       <div id="att-table-container"></div>
-    </div>
-    <div class="card rounded-xl p-5 mt-4">
-      <div class="flex items-center justify-between mb-3">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">数据交接</h4>
-        <div class="flex gap-4 text-xs">
-          <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span><span class="text-gray-600">进行中</span><span class="font-bold text-blue-700">${handoverInProgress.length}</span></div>
-          <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500"></span><span class="text-gray-600">已提交</span><span class="font-bold text-orange-700">${handoverSubmitted.length}</span></div>
-          <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-green-500"></span><span class="text-gray-600">已确认</span><span class="font-bold text-green-700">${handoverConfirmed.length}</span></div>
-        </div>
-      </div>
-      <div class="text-xs text-gray-500 mb-3">所有交接数据汇总到纪检委员处，纪检委员有义务催促未完成交接的组织者</div>
-      ${handoverRecords.length === 0 ? '<div class="text-xs text-gray-400 py-4 text-center">暂无交接记录</div>' : `<div class="space-y-2">${handoverRecords.map(r => _renderDiscHandoverRecord(r, r.status)).join('')}</div>`}
     </div>
   `;
 
@@ -396,10 +455,12 @@ function _renderAttendanceContent(filterActivityId) {
       return y.localeCompare(x);
     });
 
+    // T223：选中具体活动后隐藏「活动」列（清爽）；「全部活动」视图保留活动列
+    const showActCol = !filterActivityId;
     const tableHeader = `
       <thead><tr class="border-b border-gray-200">
         <th class="sticky top-0 z-10 bg-white py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
-        <th class="sticky top-0 z-10 bg-white py-2 px-3 text-left text-gray-500 font-medium">活动</th>
+        ${showActCol ? '<th class="sticky top-0 z-10 bg-white py-2 px-3 text-left text-gray-500 font-medium">活动</th>' : ''}
         <th class="sticky top-0 z-10 bg-white py-2 px-3 text-left text-gray-500 font-medium">状态</th>
         <th class="sticky top-0 z-10 bg-white py-2 px-3 text-left text-gray-500 font-medium">确认人</th>
         <th class="sticky top-0 z-10 bg-white py-2 px-3 text-left text-gray-500 font-medium">操作</th>
@@ -422,7 +483,7 @@ function _renderAttendanceContent(filterActivityId) {
                 return `
                 <tr class="border-b border-gray-50 hover:bg-gray-50 ${isPending ? 'bg-orange-50/30' : ''}">
                   <td class="py-2 px-3 font-medium text-gray-800">${a.name}</td>
-                  <td class="py-2 px-3 text-gray-600">${a.activity}</td>
+                  ${showActCol ? `<td class="py-2 px-3 text-gray-600">${a.activity}</td>` : ''}
                   <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${a.status === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.status === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${a.status}</span></td>
                   <td class="py-2 px-3 text-gray-500">${isPending ? '<span class="text-orange-600">待确认</span>' : `<span class="text-green-600">${a.confirmer}</span>`}</td>
                   <td class="py-2 px-3">${isPending ? `<button class="btn-action btn-action-orange btn-disc-confirm-att" data-record-id="${a.id}">确认</button>` : '<span class="text-xs text-green-600">已确认</span>'}</td>
@@ -490,8 +551,51 @@ function _renderAttendanceContent(filterActivityId) {
     });
   });
 
+  // T223：活动选择器切换 → 重新渲染对应活动考勤（filterActivityId 驱动过滤与活动列显隐）
+  const actSelect = document.getElementById('att-activity-select');
+  if (actSelect) {
+    actSelect.addEventListener('change', () => {
+      const v = actSelect.value;
+      _renderAttendanceContent(v || null);
+    });
+  }
+
+  // T223：一键确认本活动全部待确认（统一写 recordedBy + 逐条自动生成补课任务）
+  container.querySelector('#att-bulk-confirm-btn')?.addEventListener('click', () => {
+    if (!filterActivityId) return;
+    const records = loadAttendanceRecords();
+    const targets = records.filter(r => r.activityId === filterActivityId && !r.recordedBy);
+    if (targets.length === 0) {
+      showToast('info', '该活动没有待确认的考勤记录');
+      return;
+    }
+    targets.forEach(r => {
+      r.recordedBy = DISC_COMMISSIONER_ID;
+      autoGenerateMakeupTask(r);
+    });
+    saveAttendanceRecords(records);
+    showToast('success', `已一键确认 ${targets.length} 条考勤记录（确认人：${getPersonName(DISC_COMMISSIONER_ID)}）`);
+    _renderAttendanceContent(filterActivityId);
+  });
+
   renderLong();
-  _bindDiscHandoverEvents();
+  enhanceSelects(container);
+
+  // 待处理面板（决策仪表盘）确认按钮：请假/缺勤/超期未确认 直达确认
+  container.querySelectorAll('.btn-disc-confirm-dash').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const recordId = btn.dataset.recordId;
+      const records = loadAttendanceRecords();
+      const record = records.find(r => r.id === recordId);
+      if (record) {
+        record.recordedBy = DISC_COMMISSIONER_ID;
+        saveAttendanceRecords(records);
+        autoGenerateMakeupTask(record);
+        showToast('success', `考勤记录已确认（确认人：${getPersonName(DISC_COMMISSIONER_ID)}）`);
+        _renderAttendanceContent(filterActivityId);
+      }
+    });
+  });
 }
 
 function _renderInspectionContent() {
@@ -517,7 +621,7 @@ function _renderInspectionContent() {
   ` : '';
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner);">
+    <div class="card rounded-xl p-5"">
       <div class="flex items-center justify-between mb-4">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">考察总表</h4>
         <div class="flex gap-2">
@@ -692,7 +796,7 @@ function _renderReviewContent() {
 
   container.innerHTML = `
     <div class="space-y-4">
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner);">
+      <div class="card rounded-xl p-5"">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">活动流程监督</h4>
         <div class="text-xs text-gray-500 mb-3">阅览党小组活动/专班工作时间流 · 超时确认后邮件提醒</div>
         <div class="space-y-2">
@@ -704,7 +808,7 @@ function _renderReviewContent() {
               </div>
               <div class="flex items-center gap-2 ml-4">
                 <span class="text-xs px-1.5 py-0.5 rounded-full ${progressColor[r.progress] || 'bg-gray-100 text-gray-500'}">${r.progress}</span>
-                ${r.overdue ? '<button class="btn-action btn-action-red btn-disc-remind">邮件提醒</button>' : ''}
+                ${r.overdue ? `<button class="btn-action btn-action-red btn-disc-remind" data-review-id="${r.id}">邮件提醒</button>` : ''}
               </div>
             </div>
           `).join('')}
@@ -726,15 +830,15 @@ function _renderReviewContent() {
               ${r.reviewContent ? `<div class="text-xs text-gray-600 mb-2 p-2 bg-white rounded-lg border border-gray-100">${r.reviewContent}</div>` : ''}
               <div class="flex gap-2">
                 ${r.reviewStatus === '已上传' ? `
-                  <button class="btn-action btn-action-orange btn-disc-annotate">批注</button>
-                  <button class="btn-action btn-action-red btn-disc-reject">打回</button>
-                  <button class="btn-action btn-action-green btn-disc-confirm">确认</button>
+                  <button class="btn-action btn-action-orange btn-disc-annotate" data-review-id="${r.id}">批注</button>
+                  <button class="btn-action btn-action-red btn-disc-reject" data-review-id="${r.id}">打回</button>
+                  <button class="btn-action btn-action-green btn-disc-confirm" data-review-id="${r.id}">确认</button>
                 ` : ''}
                 ${r.reviewStatus === '未提交' ? `
-                  <button class="btn-action btn-action-red btn-disc-remind-review">邮件提醒</button>
+                  <button class="btn-action btn-action-red btn-disc-remind-review" data-review-id="${r.id}">邮件提醒</button>
                 ` : ''}
                 ${r.reviewStatus === '已确认' && !hasDeposit(r) ? `
-                  <button class="btn-action btn-action-amber btn-disc-urge-deposit" data-activity-name="${r.sourceName || r.activity}" data-organizer="${r.organizer}">督促沉淀</button>
+                  <button class="btn-action btn-action-amber btn-disc-urge-deposit" data-review-id="${r.id}" data-activity-name="${r.sourceName || r.activity}" data-organizer="${r.organizer}">督促沉淀</button>
                 ` : ''}
               </div>
             </div>
@@ -761,8 +865,14 @@ function _renderReviewContent() {
     </div>
   `;
 
-  container.querySelectorAll('.btn-disc-remind').forEach(btn => btn.addEventListener('click', () => showToast('success', '超时邮件提醒已发送')));
+  // ── 复盘真操作（2026-08-05 修复：批注/打回/确认/邮件提醒均落库，不再只弹 toast） ──
+  container.querySelectorAll('.btn-disc-remind').forEach(btn => btn.addEventListener('click', () => {
+    const id = btn.dataset.reviewId;
+    if (id) updateReviewById(id, { remindedAt: new Date().toISOString(), reminderType: 'overdue' });
+    showToast('success', '超时邮件提醒已发送');
+  }));
   container.querySelectorAll('.btn-disc-annotate').forEach(btn => btn.addEventListener('click', () => {
+    const reviewId = btn.dataset.reviewId;
     openFormModal({
       id: 'annotation',
       title: '添加批注',
@@ -776,38 +886,53 @@ function _renderReviewContent() {
         { key: 'content', label: '批注内容', type: 'textarea', required: true, placeholder: '请输入批注内容...' }
       ],
       onSubmit: (values) => {
-        showToast('success', '批注已添加');
+        const updated = updateReviewById(reviewId, {
+          reviewStatus: ReviewStatus.ANNOTATING,
+          annotation: values.content,
+          annotationType: values.type,
+          annotatedBy: DISC_COMMISSIONER_ID,
+          annotatedAt: new Date().toISOString(),
+        });
+        if (!updated) { showToast('error', '复盘记录不存在'); return; }
+        showToast('success', '批注已添加，复盘状态更新为批注中');
+        _renderReviewContent();
       },
       accentColor: accent || 'var(--accent-disc-commissioner)'
     });
   }));
-  container.querySelectorAll('.btn-disc-reject').forEach(btn => btn.addEventListener('click', () => showToast('success', '复盘已打回，要求重新提交')));
-  container.querySelectorAll('.btn-disc-confirm').forEach(btn => btn.addEventListener('click', () => showToast('success', '复盘总结已确认，录入后台，活动结束')));
-  container.querySelectorAll('.btn-disc-remind-review').forEach(btn => btn.addEventListener('click', () => showToast('success', '复盘超期邮件提醒已发送至组织者')));
+  container.querySelectorAll('.btn-disc-reject').forEach(btn => btn.addEventListener('click', () => {
+    const id = btn.dataset.reviewId;
+    const updated = updateReviewById(id, {
+      reviewStatus: ReviewStatus.REJECTED,
+      annotatedBy: DISC_COMMISSIONER_ID,
+      annotatedAt: new Date().toISOString(),
+    });
+    if (!updated) { showToast('error', '复盘记录不存在'); return; }
+    showToast('success', '复盘已打回，要求重新提交');
+    _renderReviewContent();
+  }));
+  container.querySelectorAll('.btn-disc-confirm').forEach(btn => btn.addEventListener('click', () => {
+    const id = btn.dataset.reviewId;
+    const updated = updateReviewById(id, {
+      reviewStatus: ReviewStatus.CONFIRMED,
+      confirmedAt: new Date().toISOString(),
+    });
+    if (!updated) { showToast('error', '复盘记录不存在'); return; }
+    showToast('success', '复盘总结已确认，录入后台，活动结束');
+    _renderReviewContent();
+  }));
+  container.querySelectorAll('.btn-disc-remind-review').forEach(btn => btn.addEventListener('click', () => {
+    const id = btn.dataset.reviewId;
+    if (id) updateReviewById(id, { remindedAt: new Date().toISOString(), reminderType: 'resubmit' });
+    showToast('success', '复盘超期邮件提醒已发送至组织者');
+  }));
   // 督促沉淀按钮
   container.querySelectorAll('.btn-disc-urge-deposit').forEach(btn => btn.addEventListener('click', () => {
+    const id = btn.dataset.reviewId;
     const organizer = btn.dataset.organizer;
+    if (id) updateReviewById(id, { remindedAt: new Date().toISOString(), reminderType: 'deposit' });
     showToast('success', `已发送沉淀督促提醒至 ${organizer}`);
   }));
-}
-
-// ── 交接记录状态标签 ──────────────────────────────────────────
-function _discHandoverStatusStyle(status) {
-  switch (status) {
-    case 'in_progress': return 'bg-blue-100 text-blue-700';
-    case 'submitted': return 'bg-orange-100 text-orange-700';
-    case 'confirmed': return 'bg-green-100 text-green-700';
-    default: return 'bg-gray-100 text-gray-600';
-  }
-}
-
-function _discHandoverStatusLabel(status) {
-  switch (status) {
-    case 'in_progress': return '进行中';
-    case 'submitted': return '已提交';
-    case 'confirmed': return '已确认';
-    default: return status;
-  }
 }
 
 /** 格式化时间（月-日 时:分） */
@@ -816,102 +941,6 @@ function _discFormatTime(isoStr) {
   const d = new Date(isoStr);
   const pad = n => String(n).padStart(2, '0');
   return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-/** 渲染单条交接记录（纪检委员视角） */
-function _renderDiscHandoverRecord(r, group) {
-  const recorderName = getPersonName(r.recorderId);
-  const completedItems = r.items.filter(i => i.status === 'completed').length;
-  const totalItems = r.items.length;
-  const typeLabel = r.type === 'activity' ? '活动' : '专班';
-
-  return `
-    <div class="p-3 rounded-xl bg-white" data-disc-handover-id="${r.id}">
-      <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-2">
-          <span class="text-xs px-1.5 py-0.5 rounded ${r.type === 'activity' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'}">${typeLabel}</span>
-          <span class="text-sm font-medium text-gray-800">${r.sourceName}</span>
-          <span class="px-1.5 py-0.5 rounded-full text-xs ${_discHandoverStatusStyle(r.status)}">${_discHandoverStatusLabel(r.status)}</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-gray-500">${completedItems}/${totalItems} 项</span>
-          ${group === 'in_progress' ? `<button class="btn-action btn-action-orange btn-disc-urge-handover" data-record-id="${r.id}">催促</button>` : ''}
-          ${group === 'submitted' ? `<button class="btn-action btn-action-green btn-disc-confirm-handover" data-record-id="${r.id}">确认</button>` : ''}
-        </div>
-      </div>
-      <div class="text-xs text-gray-500 mb-1">记录人：${recorderName} · 创建于 ${_discFormatTime(r.createdAt)}</div>
-      ${r.hasArchiveAssignment ? `<div class="text-xs text-indigo-600 mb-1">归档沉淀维护：${getPersonName(r.archiveAssigneeId)}</div>` : ''}
-      ${r.submittedAt ? `<div class="text-xs text-orange-600 mb-1">提交于 ${_discFormatTime(r.submittedAt)}</div>` : ''}
-      ${r.confirmedAt ? `<div class="text-xs text-green-600 mb-1">确认于 ${_discFormatTime(r.confirmedAt)}</div>` : ''}
-
-      <!-- 交接项详情（可展开） -->
-      <div class="mt-2">
-        <button class="btn-disc-toggle-handover-detail text-xs text-gray-500 hover:text-gray-700 transition-colors" style="cursor:pointer;border:none;background:none;padding:0;" data-record-id="${r.id}">
-          查看交接项详情 ▾
-        </button>
-        <div class="disc-handover-detail hidden mt-2 space-y-1" data-detail-for="${r.id}">
-          ${r.items.map((item, idx) => {
-            const assigneeName = getPersonName(item.assigneeId);
-            return `
-              <div class="flex items-center justify-between p-2 rounded-lg bg-white">
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2">
-                    <span class="text-xs font-medium text-gray-700">${item.name}</span>
-                    <span class="px-1 py-0.5 rounded text-xs ${item.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}">${item.status === 'completed' ? '已完成' : '待完成'}</span>
-                  </div>
-                  <div class="text-xs text-gray-400 mt-0.5">${item.description ? item.description + ' · ' : ''}负责人：${assigneeName}</div>
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-/** 绑定纪检委员数据交接 Tab 事件 */
-function _bindDiscHandoverEvents() {
-  const tabContent = document.getElementById('disc-tab-content');
-  if (!tabContent) return;
-
-  // 催促按钮
-  tabContent.querySelectorAll('.btn-disc-urge-handover').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const recordId = btn.dataset.recordId;
-      const records = loadHandoverRecords();
-      const record = records.find(r => r.id === recordId);
-      if (record) {
-        const recorderName = getPersonName(record.recorderId);
-        showToast('success', `催促邮件已发送至 ${recorderName}，提醒其尽快完成数据交接`);
-      }
-    });
-  });
-
-  // 确认按钮
-  tabContent.querySelectorAll('.btn-disc-confirm-handover').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const recordId = btn.dataset.recordId;
-      updateHandoverRecord(recordId, {
-        status: 'confirmed',
-        confirmedAt: new Date().toISOString(),
-      });
-      showToast('success', '交接记录已确认');
-      _renderAttendanceContent(null);
-    });
-  });
-
-  // 展开/收起交接项详情
-  tabContent.querySelectorAll('.btn-disc-toggle-handover-detail').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const recordId = btn.dataset.recordId;
-      const detailEl = tabContent.querySelector(`.disc-handover-detail[data-detail-for="${recordId}"]`);
-      if (detailEl) {
-        detailEl.classList.toggle('hidden');
-        btn.textContent = detailEl.classList.contains('hidden') ? '查看交接项详情 ▾' : '收起交接项详情 ▴';
-      }
-    });
-  });
 }
 
 // ── 补课制度 Tab（党建） ──────────────────────────────────────────
@@ -933,7 +962,7 @@ function _renderMakeupContent() {
 
   container.innerHTML = `
     <div class="space-y-4">
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner);">
+      <div class="card rounded-xl p-5"">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">补课任务</h4>
           <div class="flex gap-4 text-xs">
@@ -1015,10 +1044,13 @@ function _renderMailboxContent() {
   const container = document.getElementById('disc-tab-content');
   if (!container) return;
 
+  const mailboxConfig = _loadMailboxConfig();
+  const mailboxHistory = _loadMailboxHistory();
+
   // 计算下次查收倒计时
-  const lastCheck = new Date(MAILBOX_CONFIG.lastCheckAt);
+  const lastCheck = new Date(mailboxConfig.lastCheckAt);
   const nextCheck = new Date(lastCheck);
-  nextCheck.setDate(nextCheck.getDate() + MAILBOX_CONFIG.checkCycleDays);
+  nextCheck.setDate(nextCheck.getDate() + mailboxConfig.checkCycleDays);
   const now = new Date();
   const diffMs = nextCheck - now;
   const isOverdue = diffMs < 0;
@@ -1035,16 +1067,16 @@ function _renderMailboxContent() {
   container.innerHTML = `
     <div class="space-y-4">
       <!-- 邮箱信息 + 倒计时 -->
-      <div class="card rounded-xl p-5 border-l-4" style="border-left-color:var(--accent-disc-commissioner);">
+      <div class="card rounded-xl p-5"">
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">支部公邮</h4>
         <div class="flex items-center gap-3 mb-4">
           <div class="flex-1">
             <div class="text-xs text-gray-500 mb-1">邮箱地址</div>
-            <div class="text-sm font-mono font-medium text-gray-800">${MAILBOX_CONFIG.email}</div>
+            <div class="text-sm font-mono font-medium text-gray-800">${mailboxConfig.email}</div>
           </div>
           <div class="flex-1">
             <div class="text-xs text-gray-500 mb-1">查收周期</div>
-            <div class="text-sm font-medium text-gray-800">每 ${MAILBOX_CONFIG.checkCycleDays} 天</div>
+            <div class="text-sm font-medium text-gray-800">每 ${mailboxConfig.checkCycleDays} 天</div>
           </div>
         </div>
         <div class="p-3 rounded-xl border ${countdownBg}">
@@ -1055,7 +1087,7 @@ function _renderMailboxContent() {
             </div>
             <div class="text-right">
               <div class="text-xs text-gray-500">上次查收</div>
-              <div class="text-xs text-gray-600">${_discFormatTime(MAILBOX_CONFIG.lastCheckAt)}</div>
+              <div class="text-xs text-gray-600">${_discFormatTime(mailboxConfig.lastCheckAt)}</div>
             </div>
           </div>
           ${isOverdue ? '<div class="text-xs text-red-500 mt-2">已超期，请尽快查收公邮</div>' : ''}
@@ -1070,7 +1102,7 @@ function _renderMailboxContent() {
         <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">查收历史</h4>
         <div class="text-xs text-gray-500 mb-3">纪检委员定期查收支部公邮，处理来往邮件</div>
         <div class="space-y-2">
-          ${MAILBOX_HISTORY.map(h => `
+          ${mailboxHistory.map(h => `
             <div class="p-3 rounded-xl bg-white">
               <div class="flex items-center justify-between mb-1">
                 <div class="flex items-center gap-2">
@@ -1097,8 +1129,9 @@ function _renderMailboxContent() {
       summary: '已查收，暂无待处理邮件',
       hasAction: false,
     };
-    MAILBOX_HISTORY.unshift(newRecord);
-    MAILBOX_CONFIG.lastCheckAt = now;
+    mailboxHistory.unshift(newRecord);
+    mailboxConfig.lastCheckAt = now;
+    persist();
     showToast('success', '公邮查收已记录');
     _renderMailboxContent();
   });

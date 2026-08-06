@@ -15,7 +15,11 @@ import { generateId } from './id.js';
 // 绕过 ../mock/index.js 的 re-export 转发（与 services/mock.js 对齐，
 // 消除循环依赖/TDZ 导致的 seed 失败风险）
 import { ACTIVITIES } from '../mock/activities.js';
-import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_HANDOVERS } from '../mock/seed.js';
+import { SEED_TASKS, SEED_ASSIGNMENTS } from '../mock/seed.js';
+// Seed 增量合并用（2026-08-05）：attendance.js/notices.js 为纯数据模块，
+// 经 services/person.js（只依赖 domain/people）→ 无指向本文件的循环依赖
+import { ATTENDANCE_RECORDS } from '../mock/attendance.js';
+import { MOCK_NOTICES } from '../mock/notices.js';
 
 const STORAGE_KEY = 'workflowos_branch_db_v1';
 
@@ -29,6 +33,12 @@ const SANDBOX_MODE = false;
 // ── 持久化引擎 ──────────────────────────────────────────────────
 
 function _saveToStorage() {
+  // 持久化守卫（2026-08-05）：loadDB 完成（mockDB._loaded）前拒绝写入，
+  // 防止 header 渲染等加载早期调用链以空数据覆盖 localStorage 中的用户数据。
+  if (!mockDB._loaded) {
+    console.warn('[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖');
+    return;
+  }
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       _schema:     mockDB._schema,
@@ -38,7 +48,6 @@ function _saveToStorage() {
       attendances: mockDB.attendances,
       inspections: mockDB.inspections,
       assignments: mockDB.assignments,
-      handovers:   mockDB.handovers,
       makeupTasks: mockDB.makeupTasks,
       actSubRecords: mockDB.actSubRecords,
       tfSubRecords:  mockDB.tfSubRecords,
@@ -49,6 +58,14 @@ function _saveToStorage() {
       taskforces:  mockDB.taskforces,
       notices:     mockDB.notices,
       todos:       mockDB.todos,
+      // 2026-08-05 假操作修复：复盘/宣传/公邮域补入持久化（刷新不再丢失）
+      activityReviews: mockDB.activityReviews,
+      taskforceReviews: mockDB.taskforceReviews,
+      propTasks:     mockDB.propTasks,
+      weeklyReports: mockDB.weeklyReports,
+      archiveRecords: mockDB.archiveRecords,
+      mailboxConfig:  mockDB.mailboxConfig,
+      mailboxHistory: mockDB.mailboxHistory,
     }));
   } catch (e) {
     console.warn('[MockAdapter] saveDB 失败：', e);
@@ -61,7 +78,7 @@ function _loadFromStorage() {
     localStorage.removeItem('workflowos_notices_v1');
     localStorage.removeItem('workflowos_taskforces_v1');
     const legacyKeys = [
-      'assignment_records', 'handover_records', 'attendance_records',
+      'assignment_records', 'attendance_records',
       'inspection_records', 'makeup_tasks', 'act_sub_records',
       'tf_sub_records', 'compliance_references', 'file_space_records',
       'experience_deposits', 'gsm1921-auth-records',
@@ -79,7 +96,6 @@ function _loadFromStorage() {
     }
     if (mockDB.tasks.length === 0) mockDB.tasks = [...SEED_TASKS];
     if (mockDB.assignments.length === 0) mockDB.assignments = [...SEED_ASSIGNMENTS];
-    if (mockDB.handovers.length === 0) mockDB.handovers = [...SEED_HANDOVERS];
     return;
   }
   /* 持久化恢复逻辑（SANDBOX_MODE=false 时生效） */
@@ -102,7 +118,6 @@ function _loadFromStorage() {
     if (Array.isArray(parsed.attendances))  mockDB.attendances  = parsed.attendances;
     if (Array.isArray(parsed.inspections))  mockDB.inspections  = parsed.inspections;
     if (Array.isArray(parsed.assignments))  mockDB.assignments  = parsed.assignments;
-    if (Array.isArray(parsed.handovers))    mockDB.handovers    = parsed.handovers;
     if (Array.isArray(parsed.makeupTasks))  mockDB.makeupTasks  = parsed.makeupTasks;
     if (parsed.actSubRecords && typeof parsed.actSubRecords === 'object') mockDB.actSubRecords = parsed.actSubRecords;
     if (parsed.tfSubRecords && typeof parsed.tfSubRecords === 'object')   mockDB.tfSubRecords  = parsed.tfSubRecords;
@@ -113,15 +128,27 @@ function _loadFromStorage() {
     if (Array.isArray(parsed.taskforces))  mockDB.taskforces  = parsed.taskforces;
     if (Array.isArray(parsed.notices))     mockDB.notices     = parsed.notices;
     if (Array.isArray(parsed.todos))       mockDB.todos       = parsed.todos;
+    // 2026-08-05 假操作修复：复盘/宣传/公邮域恢复（刷新不再丢失）
+    if (Array.isArray(parsed.activityReviews))  mockDB.activityReviews  = parsed.activityReviews;
+    if (Array.isArray(parsed.taskforceReviews)) mockDB.taskforceReviews = parsed.taskforceReviews;
+    if (Array.isArray(parsed.propTasks))     mockDB.propTasks     = parsed.propTasks;
+    if (Array.isArray(parsed.weeklyReports)) mockDB.weeklyReports = parsed.weeklyReports;
+    if (Array.isArray(parsed.archiveRecords)) mockDB.archiveRecords = parsed.archiveRecords;
+    if (parsed.mailboxConfig && typeof parsed.mailboxConfig === 'object') mockDB.mailboxConfig = parsed.mailboxConfig;
+    if (Array.isArray(parsed.mailboxHistory)) mockDB.mailboxHistory = parsed.mailboxHistory;
 
     // 修复（T174）：恢复后若核心数据仍为空（脏数据保护拒绝 + 数组为空并存），
     // 补齐 seed 数据，防止页面空态。
     if (mockDB.activities.length === 0 && ACTIVITIES.length > 0) {
       _seedInitialData();
     }
+
+    // Seed 增量合并（2026-08-05）：老用户持久化数据全量替换恢复，缺失的新种子记录按 id 补齐
+    return _mergeNewSeedRecords();
   } catch (e) {
     // 修复（T175）：不再静默吞掉 seed/解析错误——透出真实原因（与 services/mock.js 对齐）
     console.error('[MockAdapter] loadDB 失败（JSON 解析或 seed 错误）：', e);
+    return false;
   }
 }
 
@@ -139,8 +166,85 @@ function _seedInitialData() {
   }
   if (mockDB.tasks.length === 0) mockDB.tasks = [...SEED_TASKS];
   if (mockDB.assignments.length === 0) mockDB.assignments = [...SEED_ASSIGNMENTS];
-  if (mockDB.handovers.length === 0) mockDB.handovers = [...SEED_HANDOVERS];
   console.info('[MockAdapter] 已加载初始 seed 数据');
+}
+
+/**
+ * Seed 种子同步（2026-08-05 二次修订）：
+ * 持久化恢复为「全量替换」，老用户 localStorage 中不会出现后续变更的 mock 种子。
+ * 本函数对种子记录（id 匹配种子模式）执行三步同步：
+ *   1. 已移除的种子（如 act-28 / notice-109）→ 删除
+ *   2. 内容已变更的种子（如 act-26 日期 8/7→8/1）→ 以当前种子覆盖
+ *   3. 缺失的新种子（如 8 月考勤全覆盖）→ 补齐
+ * 保留用户字段：notices.read（已读状态）、attendances.recordedBy（纪检确认人）；
+ * 非种子记录（用户创建：act_*、att_*、notice-{13位时间戳}）原样保留。
+ * @returns {boolean} 是否有变更（有则调用方需落盘）
+ */
+function _mergeNewSeedRecords() {
+  let changed = false;
+
+  // ── 活动：种子同步 ──────────────────────────────────────────
+  const actSeedById = new Map(ACTIVITIES.map(a => [a.id, a]));
+  const actOut = [];
+  for (const a of mockDB.activities) {
+    if (!/^act-\d+$/.test(a.id)) { actOut.push(a); continue; }
+    const seed = actSeedById.get(a.id);
+    if (!seed) { changed = true; continue; } // 种子已移除 → 删除
+    const merged = {
+      ...seed,
+      visibility: seed.visibility || 'branch',
+      executor: seed.organizer || 'u_exec',
+      supervisor: null,
+      createdBy: seed.organizer || 'u_exec',
+      createdAt: seed.date || a.createdAt,
+    };
+    if (JSON.stringify(merged) !== JSON.stringify(a)) changed = true;
+    actOut.push(merged);
+  }
+  const actExist = new Set(actOut.map(a => a.id));
+  ACTIVITIES.forEach(a => {
+    if (actExist.has(a.id)) return;
+    actOut.push({ ...a, visibility: a.visibility || 'branch', executor: a.organizer || 'u_exec', supervisor: null, createdBy: a.organizer || 'u_exec', createdAt: a.date || new Date().toISOString() });
+    changed = true;
+  });
+  mockDB.activities = actOut;
+
+  // ── 考勤：种子同步（覆盖时保留 recordedBy 纪检确认人） ────────
+  const attSeedById = new Map(ATTENDANCE_RECORDS.map(r => [r.id, r]));
+  const attOut = [];
+  for (const r of mockDB.attendances) {
+    if (!/^att\d+$/.test(r.id)) { attOut.push(r); continue; }
+    const seed = attSeedById.get(r.id);
+    if (!seed) { changed = true; continue; }
+    const merged = { ...seed, recordedBy: r.recordedBy || seed.recordedBy };
+    if (JSON.stringify(merged) !== JSON.stringify(r)) changed = true;
+    attOut.push(merged);
+  }
+  const attExist = new Set(attOut.map(r => r.id));
+  ATTENDANCE_RECORDS.forEach(s => {
+    if (!attExist.has(s.id)) { attOut.push(s); changed = true; }
+  });
+  mockDB.attendances = attOut;
+
+  // ── 通知：种子同步（覆盖时保留 read 已读状态） ────────────────
+  const noticeSeedById = new Map(MOCK_NOTICES.map(n => [n.id, n]));
+  const noticeOut = [];
+  for (const n of mockDB.notices) {
+    if (!/^notice-\d{3}$/.test(n.id)) { noticeOut.push(n); continue; }
+    const seed = noticeSeedById.get(n.id);
+    if (!seed) { changed = true; continue; }
+    const merged = { ...seed, read: n.read ?? seed.read };
+    if (JSON.stringify(merged) !== JSON.stringify(n)) changed = true;
+    noticeOut.push(merged);
+  }
+  const noticeExist = new Set(noticeOut.map(n => n.id));
+  MOCK_NOTICES.forEach(s => {
+    if (!noticeExist.has(s.id)) { noticeOut.push(s); changed = true; }
+  });
+  mockDB.notices = noticeOut;
+
+  if (changed) console.info('[MockAdapter] Seed 种子同步：活动/考勤/通知与种子基线对齐（删除已移除种子、覆盖已变更种子、补齐缺失种子）');
+  return changed;
 }
 
 /** 包装为带固定延迟的 Promise（模拟网络延迟） */
@@ -161,7 +265,15 @@ export const MockAdapter = {
   // ── 全局操作 ──────────────────────────────────────────────
 
   loadDB() {
-    _loadFromStorage();
+    const merged = _loadFromStorage();
+    // 持久化守卫解锁：无论恢复成功与否，加载流程已结束，后续写入允许
+    mockDB._loaded = true;
+    // Seed 增量合并产生的缺省记录落盘，避免下次加载重复合并
+    if (merged) _saveToStorage();
+    // 数据加载完成广播：通知 header 角标等初始快照据实刷新（与 data-loader 的
+    // notifyDataLoaded 双保险；此处覆盖 data-adapter.init() mock 分支等直连路径）
+    import('./data-adapter.js').then(({ notifyDataLoaded }) => notifyDataLoaded())
+      .catch(() => {});
   },
 
   saveDB() {
@@ -438,18 +550,6 @@ export const MockAdapter = {
       return _withDelay(() => {
         const record = { ...data, id: generateId('asgn'), createdAt: new Date().toISOString() };
         mockDB.assignments = [...mockDB.assignments, record];
-        _saveToStorage();
-        return record;
-      });
-    },
-  },
-
-  handovers: {
-    list() { return _withDelay(() => [...mockDB.handovers]); },
-    create(data) {
-      return _withDelay(() => {
-        const record = { ...data, id: generateId('hnd'), createdAt: new Date().toISOString() };
-        mockDB.handovers = [...mockDB.handovers, record];
         _saveToStorage();
         return record;
       });

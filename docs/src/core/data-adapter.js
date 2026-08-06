@@ -33,7 +33,6 @@
  * - notices: 通知管理
  * - todos: 待办管理
  * - assignments: 分工管理
- * - handovers: 交接管理
  * - makeupTasks: 补课任务
  * - fileSpaceRecords: 文件空间
  * - imageRecords: 图片记录
@@ -184,7 +183,7 @@ export async function init() {
       const [
         activities, tasks, attendances, inspections,
         taskforces, notices, todos, assignments,
-        handovers, makeupTasks,
+        makeupTasks,
       ] = await Promise.all([
         adapter.activities.list(),
         adapter.tasks.list(),
@@ -194,7 +193,6 @@ export async function init() {
         adapter.notices.list(),
         adapter.todos.list(),
         adapter.assignments.list(),
-        adapter.handovers.list(),
         adapter.makeupTasks.list(),
       ]);
 
@@ -211,7 +209,6 @@ export async function init() {
       mockDB.notices = notices || [];
       mockDB.todos = todos || [];
       mockDB.assignments = assignments || [];
-      mockDB.handovers = handovers || [];
       mockDB.makeupTasks = makeupTasks || [];
 
       // T-218：niche 集合（经验沉淀/合规引用/文件空间/图片记录）从后端拉取填充，
@@ -241,6 +238,35 @@ export async function init() {
       }
 
       console.info('[DataAdapter] init: API 模式，已从后端拉取数据到缓存');
+      // 持久化守卫解锁：mockDB 已由服务器数据填充，允许本地备份写（persist → mock-adapter.saveDB）
+      mockDB._loaded = true;
+
+      // 2026-08-06 扎口修复（Z5）：服务端 seed 仅覆盖 7 张表，
+      // attendances/inspections/todos 在 API 模式下为空 → 回退本地 mock 种子，
+      // 避免首屏考勤/考察/待办空白。注意：回退仅填充 mockDB 缓存，【不触发 persist/快照写穿】，
+      // 否则页面加载期（800ms 防抖窗口内）会以落后的本地缓存覆盖服务器上其他入口刚写入的数据
+      // （2026-08-06 e2e-login 回归根因）；服务器数据由用户后续真实操作经快照写穿自然获得。
+      // makeupTasks 无静态种子（由纪检操作生成），空属合理，不回退。
+      if (!mockDB.attendances.length || !mockDB.inspections.length) {
+        try {
+          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js');
+          const { INSPECTION_RECORDS } = await import('../mock/inspection.js');
+          if (!mockDB.attendances.length) mockDB.attendances = ATTENDANCE_RECORDS.map(r => ({ ...r }));
+          if (!mockDB.inspections.length) mockDB.inspections = INSPECTION_RECORDS.map(r => ({ ...r }));
+          console.info('[DataAdapter] init: 考勤/考察空集合已回退本地 seed');
+        } catch (e) {
+          console.warn('[DataAdapter] init: 考勤/考察 seed 回退失败：', e);
+        }
+      }
+      if (!mockDB.todos.length) {
+        try {
+          const { SEED_TODOS } = await import('../services/todo.js');
+          mockDB.todos = SEED_TODOS.map(t => ({ ...t }));
+          console.info('[DataAdapter] init: 待办空集合已回退本地 seed');
+        } catch (e) {
+          console.warn('[DataAdapter] init: 待办 seed 回退失败：', e);
+        }
+      }
     } catch (e) {
       console.error('[DataAdapter] init: API 模式初始化失败：', e);
       throw e;
@@ -264,6 +290,46 @@ export function persist() {
     // 由 init() 从服务器填充，本地备份不参与读）+ 防抖全量快照写穿
     _mockAdapter?.saveDB();
     _scheduleSnapshot();
+  }
+  // 数据变更广播（2026-08-05）：persist() 是全部业务写路径的汇聚点，
+  // 统一派发事件，让 header 角标/统计卡等消费点即时重算，消除"必须手动刷新"。
+  notifyDataChanged();
+}
+
+// ── 数据变更事件总线（2026-08-05，响应书记"计算需手动刷新"）────────
+// persist() 已覆盖 mockDB 系全部写路径；Issues/Milestones/Auth 审计等
+// 独立 localStorage 域不经过 persist，需在其写方法内显式调用 notifyDataChanged()。
+
+/** 数据变更事件名（订阅方：header 角标 / 首页统计卡 / 通知列表等） */
+export const DATA_CHANGED_EVENT = 'gsm1921:data-changed';
+/** 数据加载完成事件名（loadDB/init 恢复持久化数据后派发，用于修正加载早期渲染的快照） */
+export const DATA_LOADED_EVENT = 'gsm1921:data-loaded';
+
+let _pendingCollections = [];
+let _notifyScheduled = false;
+
+/**
+ * 广播数据变更（微任务去重合并：连续多次写只派发一次）
+ * @param {string[]} [collections] - 变更的资源分组名（如 ['notices']），可选
+ */
+export function notifyDataChanged(collections) {
+  if (collections) _pendingCollections.push(...collections);
+  if (_notifyScheduled) return;
+  _notifyScheduled = true;
+  queueMicrotask(() => {
+    _notifyScheduled = false;
+    const detail = { collections: [...new Set(_pendingCollections)] };
+    _pendingCollections = [];
+    if (typeof document !== 'undefined' && typeof document.dispatchEvent === 'function') {
+      document.dispatchEvent(new CustomEvent(DATA_CHANGED_EVENT, { detail }));
+    }
+  });
+}
+
+/** 广播数据加载完成（loadDB/init 完成后调用，订阅方据此刻画刷新初始快照） */
+export function notifyDataLoaded() {
+  if (typeof document !== 'undefined' && typeof document.dispatchEvent === 'function') {
+    document.dispatchEvent(new CustomEvent(DATA_LOADED_EVENT));
   }
 }
 
@@ -304,7 +370,6 @@ async function _flushSnapshot() {
       notices:     mockDB.notices,
       todos:       mockDB.todos,
       assignments: mockDB.assignments,
-      handovers:   mockDB.handovers,
       makeupTasks: mockDB.makeupTasks,
       experienceDeposits:   mockDB.experienceDeposits,
       complianceReferences: mockDB.complianceReferences,
@@ -339,7 +404,6 @@ function _flushSnapshotSync() {
     notices:     mockDB.notices,
     todos:       mockDB.todos,
     assignments: mockDB.assignments,
-    handovers:   mockDB.handovers,
     makeupTasks: mockDB.makeupTasks,
     experienceDeposits:   mockDB.experienceDeposits,
     complianceReferences: mockDB.complianceReferences,
