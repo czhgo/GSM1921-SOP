@@ -321,56 +321,57 @@
 }
 
 /* ── 深色主题适配（系统跟随，T-207 补漏 2026-08-07）── */
-@media (prefers-color-scheme: dark) {
+
   /* trigger 已变量化（--surface-card/--neutral-*），深色下随全局变量自动反转，无需再覆盖 */
-  .person-picker-trigger-placeholder,
-  .person-picker-arrow {
+  html.theme-dark .person-picker-trigger-placeholder,
+  html.theme-dark .person-picker-arrow {
     color: var(--neutral-400);
   }
-  .person-picker-panel {
+  html.theme-dark .person-picker-panel {
     background: var(--surface-elevated);
   }
-  .person-picker-header {
+  html.theme-dark .person-picker-header {
     border-bottom-color: var(--neutral-200);
   }
-  .person-picker-title {
+  html.theme-dark .person-picker-title {
     color: var(--neutral-800);
   }
-  .person-picker-close-btn {
+  html.theme-dark .person-picker-close-btn {
     background: var(--neutral-100);
     color: var(--neutral-500);
   }
-  .person-picker-close-btn:hover {
+  html.theme-dark .person-picker-close-btn:hover {
     background: var(--neutral-200);
   }
-  .person-picker-search {
+  html.theme-dark .person-picker-search {
     background-color: var(--surface-card);
     border-color: var(--neutral-200);
     color: var(--neutral-700);
   }
-  .person-picker-tab {
+  html.theme-dark .person-picker-tab {
     background: var(--neutral-100);
     color: var(--neutral-500);
     border-color: var(--neutral-200);
   }
-  .person-picker-item:not(.selected):hover {
+  html.theme-dark .person-picker-item:not(.selected):hover {
     background: var(--surface-hover);
   }
-  .person-picker-item-avatar {
+  html.theme-dark .person-picker-item-avatar {
     background: var(--neutral-100);
     color: var(--neutral-400);
   }
-  .person-picker-item-name {
+  html.theme-dark .person-picker-item-name {
     color: var(--neutral-800);
   }
-  .person-picker-item-meta-text,
-  .person-picker-item-role {
+  html.theme-dark .person-picker-item-meta-text,
+  html.theme-dark .person-picker-item-role {
     color: var(--neutral-400);
   }
-  .person-picker-footer {
+  html.theme-dark .person-picker-footer {
     border-top-color: var(--neutral-200);
   }
-  .person-picker-count {
+  html.theme-dark .person-picker-count {
     color: var(--neutral-500);
   }
-}
+
+

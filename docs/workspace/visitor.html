@@ -1,7 +1,19 @@
-﻿<!doctype html>
+﻿﻿<!doctype html>
 <html lang="zh-CN">
   <head>
-    <base href="../">
+    
+<script>
+  // T231 防闪烁：CSS 加载前同步应用深色主题 class（默认跟随系统）
+  (function () {
+    try {
+      var t = localStorage.getItem('workflowos_theme');
+      var dark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.classList.toggle('theme-dark', dark);
+      document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+    } catch (e) {}
+  })();
+</script>
+<base href="../">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>工作台 — 成员只读</title>
@@ -104,7 +116,7 @@
         },
       };
     </script>
-    <link rel="stylesheet" href="./src/styles.css?v=20260807f" />
+    <link rel="stylesheet" href="./src/styles.css?v=20260807g" />
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -127,6 +139,6 @@
         </div>
       </main>
     </div>
-    <script type="module" src="./src/entries/ws-visitor-entry.js?v=20260807f"></script>
+    <script type="module" src="./src/entries/ws-visitor-entry.js?v=20260807g"></script>
   </body>
 </html>

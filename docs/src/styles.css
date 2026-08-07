@@ -827,7 +827,9 @@ textarea.input-flat {
   font-family: 'Noto Serif SC', 'STSong', 'SimSun', serif;
   font-weight: 800;
   font-size: 1.375rem;
-  color: var(--neutral-0);
+  /* T231 修复：header 底恒为深红 #7A0010，标题固定白字（勿用 var(--neutral-0)，
+     深色下该变量会反转为深色导致对比度仅 1.56:1） */
+  color: #FFFFFF;
   letter-spacing: 0.05em;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1078,6 +1080,47 @@ textarea.input-flat {
 }
 
 .font-size-btn.active {
+  background: var(--primary-50);
+  color: var(--primary-700);
+  border-color: var(--primary-200);
+}
+
+/* ── 主题三态切换按钮（T231 书记决策 2026-08-07：浅色/跟随系统/深色）── */
+.sidebar-theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+}
+
+.theme-btn {
+  padding: 3px 7px;
+  font-size: 0.65rem;
+  font-weight: 500;
+  line-height: 1;
+  border-radius: 6px;
+  border: 1px solid var(--neutral-200);
+  background: var(--neutral-0);
+  color: var(--neutral-400);
+  cursor: pointer;
+  transition: all 150ms ease-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-btn .icon-base {
+  width: 13px;
+  height: 13px;
+}
+
+.theme-btn:hover {
+  border-color: var(--neutral-300);
+  color: var(--neutral-600);
+}
+
+.theme-btn.active {
   background: var(--primary-50);
   color: var(--primary-700);
   border-color: var(--primary-200);
@@ -1699,6 +1742,23 @@ textarea.input-flat {
   background: var(--tab-accent-bg);
   color: var(--tab-accent);
   border: 1px solid var(--tab-accent-border);
+}
+
+/* ── T231 内联淡色统一：color-mix 变量驱动，深浅两套适配 ──
+   调用方设 --tint 变量 + 内联色字；浅色为透明叠加 8%，深色提为 14% 保证辨识 */
+.stat-icon-tint {
+  background: color-mix(in srgb, var(--tint, #CE1126) 8%, transparent);
+}
+html.theme-dark .stat-icon-tint {
+  background: color-mix(in srgb, var(--tint, #CE1126) 14%, #141D2F);
+}
+.tf-section-head {
+  background: color-mix(in srgb, var(--tint, #6366F1) 6%, transparent);
+  border-bottom: 2px solid color-mix(in srgb, var(--tint, #6366F1) 15%, transparent);
+}
+html.theme-dark .tf-section-head {
+  background: color-mix(in srgb, var(--tint, #6366F1) 12%, #141D2F);
+  border-bottom-color: color-mix(in srgb, var(--tint, #6366F1) 35%, #334155);
 }
 
 @media (min-width: 769px) {
@@ -7383,9 +7443,9 @@ label .text-red-500 {
    ③ help / about 独立变量体系 + 硬编码浅色组件逐一覆盖
    约束：党建红 --party-red 系不变、--surface-header 深红保持、角色识别色不变。
    ═══════════════════════════════════════════════════════════════ */
-@media (prefers-color-scheme: dark) {
+
   /* ── ① 全局变量反向（作用于 var() 自定义类） ── */
-  :root {
+  html.theme-dark {
     /* Neutral：深色下近黑文字→近白、浅灰底→深灰底 */
     --neutral-0:   #0F172A;
     --neutral-50:  #111827;
@@ -7421,102 +7481,102 @@ label .text-red-500 {
   }
 
   /* ── ② 高频 Tailwind 中性类（Play CDN 后加载，须 !important） ── */
-  .bg-white        { background-color: #141D2F !important; }
-  .bg-gray-50      { background-color: #111827 !important; }
-  .bg-gray-100     { background-color: #1E293B !important; }
-  .bg-gray-200     { background-color: #334155 !important; }
-  .bg-gray-400     { background-color: #475569 !important; }
-  .bg-gray-50\/50  { background-color: rgba(15, 23, 42, 0.55) !important; }
-  .bg-neutral-100  { background-color: #1E293B !important; }
-  .text-gray-900   { color: #F8FAFC !important; }
-  .text-gray-800   { color: #F1F5F9 !important; }
-  .text-gray-700   { color: #E2E8F0 !important; }
-  .text-gray-600   { color: #CBD5E1 !important; }
-  .text-gray-500   { color: #94A3B8 !important; }
-  .text-gray-400   { color: #94A3B8 !important; }
-  .text-gray-300   { color: #64748B !important; }
-  .border-gray-50  { border-color: #1E293B !important; }
-  .border-gray-100 { border-color: #243244 !important; }
-  .border-gray-200 { border-color: #334155 !important; }
-  .border-gray-300 { border-color: #475569 !important; }
+  html.theme-dark .bg-white        { background-color: #141D2F !important; }
+  html.theme-dark .bg-gray-50      { background-color: #111827 !important; }
+  html.theme-dark .bg-gray-100     { background-color: #1E293B !important; }
+  html.theme-dark .bg-gray-200     { background-color: #334155 !important; }
+  html.theme-dark .bg-gray-400     { background-color: #475569 !important; }
+  html.theme-dark .bg-gray-50\/50  { background-color: rgba(15, 23, 42, 0.55) !important; }
+  html.theme-dark .bg-neutral-100  { background-color: #1E293B !important; }
+  html.theme-dark .text-gray-900   { color: #F8FAFC !important; }
+  html.theme-dark .text-gray-800   { color: #F1F5F9 !important; }
+  html.theme-dark .text-gray-700   { color: #E2E8F0 !important; }
+  html.theme-dark .text-gray-600   { color: #CBD5E1 !important; }
+  html.theme-dark .text-gray-500   { color: #94A3B8 !important; }
+  html.theme-dark .text-gray-400   { color: #94A3B8 !important; }
+  html.theme-dark .text-gray-300   { color: #64748B !important; }
+  html.theme-dark .border-gray-50  { border-color: #1E293B !important; }
+  html.theme-dark .border-gray-100 { border-color: #243244 !important; }
+  html.theme-dark .border-gray-200 { border-color: #334155 !important; }
+  html.theme-dark .border-gray-300 { border-color: #475569 !important; }
 
   /* hover 态（列表/按钮/卡片悬停） */
-  .hover\:bg-gray-50:hover   { background-color: #1E293B !important; }
-  .hover\:bg-gray-100:hover  { background-color: #243244 !important; }
-  .hover\:bg-gray-200:hover  { background-color: #334155 !important; }
-  .hover\:border-gray-200:hover { border-color: #475569 !important; }
-  .hover\:border-gray-300:hover { border-color: #64748B !important; }
-  .hover\:text-gray-600:hover   { color: #CBD5E1 !important; }
-  .hover\:text-gray-700:hover   { color: #E2E8F0 !important; }
-  .hover\:text-gray-800:hover   { color: #F1F5F9 !important; }
-  .hover\:text-gray-900:hover   { color: #F8FAFC !important; }
+  html.theme-dark .hover\:bg-gray-50:hover   { background-color: #1E293B !important; }
+  html.theme-dark .hover\:bg-gray-100:hover  { background-color: #243244 !important; }
+  html.theme-dark .hover\:bg-gray-200:hover  { background-color: #334155 !important; }
+  html.theme-dark .hover\:border-gray-200:hover { border-color: #475569 !important; }
+  html.theme-dark .hover\:border-gray-300:hover { border-color: #64748B !important; }
+  html.theme-dark .hover\:text-gray-600:hover   { color: #CBD5E1 !important; }
+  html.theme-dark .hover\:text-gray-700:hover   { color: #E2E8F0 !important; }
+  html.theme-dark .hover\:text-gray-800:hover   { color: #F1F5F9 !important; }
+  html.theme-dark .hover\:text-gray-900:hover   { color: #F8FAFC !important; }
 
   /* ── 语义浅底标签：深色半透明底 + 提亮文字（保持语义识别） ── */
-  .bg-red-50      { background-color: rgba(239, 68, 68, 0.10) !important; }
-  .bg-red-100     { background-color: rgba(239, 68, 68, 0.16) !important; }
-  .bg-orange-50   { background-color: rgba(249, 115, 22, 0.10) !important; }
-  .bg-orange-100  { background-color: rgba(249, 115, 22, 0.16) !important; }
-  .bg-green-50    { background-color: rgba(52, 211, 153, 0.10) !important; }
-  .bg-green-100   { background-color: rgba(52, 211, 153, 0.16) !important; }
-  .bg-blue-50     { background-color: rgba(96, 165, 250, 0.10) !important; }
-  .bg-blue-100    { background-color: rgba(96, 165, 250, 0.16) !important; }
-  .bg-yellow-100  { background-color: rgba(251, 191, 36, 0.16) !important; }
-  .bg-amber-100   { background-color: rgba(251, 191, 36, 0.16) !important; }
-  .bg-emerald-100 { background-color: rgba(52, 211, 153, 0.16) !important; }
-  .bg-sky-100     { background-color: rgba(56, 189, 248, 0.16) !important; }
-  .hover\:bg-red-50:hover     { background-color: rgba(239, 68, 68, 0.10) !important; }
-  .hover\:bg-red-100:hover    { background-color: rgba(239, 68, 68, 0.16) !important; }
-  .hover\:bg-orange-50:hover  { background-color: rgba(249, 115, 22, 0.10) !important; }
-  .hover\:bg-orange-100:hover { background-color: rgba(249, 115, 22, 0.16) !important; }
-  .hover\:bg-green-100:hover  { background-color: rgba(52, 211, 153, 0.16) !important; }
-  .hover\:bg-blue-50:hover    { background-color: rgba(96, 165, 250, 0.10) !important; }
-  .hover\:bg-blue-100:hover   { background-color: rgba(96, 165, 250, 0.16) !important; }
-  .hover\:bg-sky-100:hover    { background-color: rgba(56, 189, 248, 0.16) !important; }
-  .text-red-600    { color: #F87171 !important; }
-  .text-orange-600 { color: #FB923C !important; }
-  .text-green-600  { color: #34D399 !important; }
-  .text-blue-600   { color: #60A5FA !important; }
-  .text-amber-600  { color: #FBBF24 !important; }
-  .text-sky-600    { color: #38BDF8 !important; }
-  .hover\:text-red-500:hover   { color: #F87171 !important; }
-  .hover\:text-red-600:hover   { color: #FCA5A5 !important; }
-  .hover\:text-blue-700:hover  { color: #60A5FA !important; }
-  .hover\:text-blue-800:hover  { color: #93C5FD !important; }
+  html.theme-dark .bg-red-50      { background-color: rgba(239, 68, 68, 0.10) !important; }
+  html.theme-dark .bg-red-100     { background-color: rgba(239, 68, 68, 0.16) !important; }
+  html.theme-dark .bg-orange-50   { background-color: rgba(249, 115, 22, 0.10) !important; }
+  html.theme-dark .bg-orange-100  { background-color: rgba(249, 115, 22, 0.16) !important; }
+  html.theme-dark .bg-green-50    { background-color: rgba(52, 211, 153, 0.10) !important; }
+  html.theme-dark .bg-green-100   { background-color: rgba(52, 211, 153, 0.16) !important; }
+  html.theme-dark .bg-blue-50     { background-color: rgba(96, 165, 250, 0.10) !important; }
+  html.theme-dark .bg-blue-100    { background-color: rgba(96, 165, 250, 0.16) !important; }
+  html.theme-dark .bg-yellow-100  { background-color: rgba(251, 191, 36, 0.16) !important; }
+  html.theme-dark .bg-amber-100   { background-color: rgba(251, 191, 36, 0.16) !important; }
+  html.theme-dark .bg-emerald-100 { background-color: rgba(52, 211, 153, 0.16) !important; }
+  html.theme-dark .bg-sky-100     { background-color: rgba(56, 189, 248, 0.16) !important; }
+  html.theme-dark .hover\:bg-red-50:hover     { background-color: rgba(239, 68, 68, 0.10) !important; }
+  html.theme-dark .hover\:bg-red-100:hover    { background-color: rgba(239, 68, 68, 0.16) !important; }
+  html.theme-dark .hover\:bg-orange-50:hover  { background-color: rgba(249, 115, 22, 0.10) !important; }
+  html.theme-dark .hover\:bg-orange-100:hover { background-color: rgba(249, 115, 22, 0.16) !important; }
+  html.theme-dark .hover\:bg-green-100:hover  { background-color: rgba(52, 211, 153, 0.16) !important; }
+  html.theme-dark .hover\:bg-blue-50:hover    { background-color: rgba(96, 165, 250, 0.10) !important; }
+  html.theme-dark .hover\:bg-blue-100:hover   { background-color: rgba(96, 165, 250, 0.16) !important; }
+  html.theme-dark .hover\:bg-sky-100:hover    { background-color: rgba(56, 189, 248, 0.16) !important; }
+  html.theme-dark .text-red-600    { color: #F87171 !important; }
+  html.theme-dark .text-orange-600 { color: #FB923C !important; }
+  html.theme-dark .text-green-600  { color: #34D399 !important; }
+  html.theme-dark .text-blue-600   { color: #60A5FA !important; }
+  html.theme-dark .text-amber-600  { color: #FBBF24 !important; }
+  html.theme-dark .text-sky-600    { color: #38BDF8 !important; }
+  html.theme-dark .hover\:text-red-500:hover   { color: #F87171 !important; }
+  html.theme-dark .hover\:text-red-600:hover   { color: #FCA5A5 !important; }
+  html.theme-dark .hover\:text-blue-700:hover  { color: #60A5FA !important; }
+  html.theme-dark .hover\:text-blue-800:hover  { color: #93C5FD !important; }
 
   /* ── ③ 硬编码浅色组件 ── */
   /* 状态徽章弹层 */
-  .status-badge-popover {
+  html.theme-dark .status-badge-popover {
     background: #1A2438 !important;
     border-color: var(--neutral-200) !important;
   }
 
   /* help 全站白底 section/卡片 → 深色卡片底 */
-  .help-section,
-  .help-review-card,
-  .help-philosophy-section,
-  .help-philosophy-opp,
-  .help-cognition-item,
-  .help-cognition-dialogue,
-  .help-works-col,
-  .help-dialogue-card,
-  .help-tl-detail,
-  .help-page-footer {
+  html.theme-dark .help-section,
+  html.theme-dark .help-review-card,
+  html.theme-dark .help-philosophy-section,
+  html.theme-dark .help-philosophy-opp,
+  html.theme-dark .help-cognition-item,
+  html.theme-dark .help-cognition-dialogue,
+  html.theme-dark .help-works-col,
+  html.theme-dark .help-dialogue-card,
+  html.theme-dark .help-tl-detail,
+  html.theme-dark .help-page-footer {
     background: #141D2F !important;
   }
-  .help-philosophy-opp-quote,
-  .help-cognition-section {
+  html.theme-dark .help-philosophy-opp-quote,
+  html.theme-dark .help-cognition-section {
     background: rgba(206, 17, 38, 0.10) !important;
   }
-  .help-works-col,
-  .help-review-card,
-  .help-philosophy-opp,
-  .help-cognition-item,
-  .help-tl-detail {
+  html.theme-dark .help-works-col,
+  html.theme-dark .help-review-card,
+  html.theme-dark .help-philosophy-opp,
+  html.theme-dark .help-cognition-item,
+  html.theme-dark .help-tl-detail {
     border-color: #334155 !important;
   }
 
   /* about 页（探索叙事·暖纸墨调）变量反向：纸底→墨底、墨字→纸字 */
-  .ab-about {
+  html.theme-dark .ab-about {
     --ab-paper-0:   #14161A;
     --ab-paper-1:   #1B1E24;
     --ab-paper-2:   #22262D;
@@ -7525,25 +7585,32 @@ label .text-red-500 {
     --ab-ink-sub:   #A9A398;
     --ab-ink-faint: #7E7870;
   }
-  .ab-network-tooltip,
-  .ab-toc-dot-tooltip,
-  .ab-tl-detail {
+  html.theme-dark .ab-network-tooltip,
+  html.theme-dark .ab-toc-dot-tooltip,
+  html.theme-dark .ab-tl-detail {
     background: #1B1E24 !important;
     color: var(--ab-ink) !important;
     border-color: var(--ab-paper-line) !important;
   }
-  .ab-toc-dot-tooltip::after {
+  html.theme-dark .ab-toc-dot-tooltip::after {
     border-left-color: #1B1E24 !important;
   }
-  .ab-toc-dot-item.is-active .ab-toc-dot-tooltip {
+  html.theme-dark .ab-toc-dot-item.is-active .ab-toc-dot-tooltip {
     background: rgba(206, 17, 38, 0.18) !important;
     color: var(--ab-red) !important;
     border-color: rgba(206, 17, 38, 0.35) !important;
   }
-  .ab-toc-dot-item.is-active .ab-toc-dot-tooltip::after {
+  html.theme-dark .ab-toc-dot-item.is-active .ab-toc-dot-tooltip::after {
     border-left-color: rgba(206, 17, 38, 0.18) !important;
   }
-}
+
+  /* ── ④ 激活 Tab：内联 --tab-accent-bg 是浅色透明叠加，深色下直接覆盖为 深色底+强调色 ── */
+  html.theme-dark .tab-btn-active {
+    background: color-mix(in srgb, var(--tab-accent) 14%, #141D2F) !important;
+    border-color: color-mix(in srgb, var(--tab-accent) 35%, #334155) !important;
+  }
+
+
 
 /* ═══════════════════════════════════════════════════════════════
    T229 全站统一徽章组件（components/badge.js）
@@ -7573,38 +7640,39 @@ label .text-red-500 {
 .badge--gold    { background: #FDE68A; color: #7A0010; font-weight: 600; }
 
 /* 深色主题：半透明语义底 + 提亮文字（与全站 functional 色对齐） */
-@media (prefers-color-scheme: dark) {
+
   /* 操作按钮浅底变体（btn-action-*）→ 深色半透明底 + 提亮文字 */
-  .btn-action-red,
-  .btn-action-blue,
-  .btn-action-green,
-  .btn-action-amber,
-  .btn-action-orange,
-  .btn-action-gray,
-  .btn-md-red,
-  .btn-md-blue,
-  .btn-md-green,
-  .btn-md-amber,
-  .btn-md-gray {
+  html.theme-dark .btn-action-red,
+  html.theme-dark .btn-action-blue,
+  html.theme-dark .btn-action-green,
+  html.theme-dark .btn-action-amber,
+  html.theme-dark .btn-action-orange,
+  html.theme-dark .btn-action-gray,
+  html.theme-dark .btn-md-red,
+  html.theme-dark .btn-md-blue,
+  html.theme-dark .btn-md-green,
+  html.theme-dark .btn-md-amber,
+  html.theme-dark .btn-md-gray {
     background: rgba(148, 163, 184, 0.10) !important;
     color: #CBD5E1 !important;
     border-color: #334155 !important;
   }
-  .btn-action-red,
-  .btn-md-red     { color: #F87171 !important; }
-  .btn-action-blue,
-  .btn-md-blue    { color: #60A5FA !important; }
-  .btn-action-green,
-  .btn-md-green   { color: #34D399 !important; }
-  .btn-action-amber,
-  .btn-md-amber   { color: #FBBF24 !important; }
-  .btn-action-orange { color: #FB923C !important; }
+  html.theme-dark .btn-action-red,
+  html.theme-dark .btn-md-red     { color: #F87171 !important; }
+  html.theme-dark .btn-action-blue,
+  html.theme-dark .btn-md-blue    { color: #60A5FA !important; }
+  html.theme-dark .btn-action-green,
+  html.theme-dark .btn-md-green   { color: #34D399 !important; }
+  html.theme-dark .btn-action-amber,
+  html.theme-dark .btn-md-amber   { color: #FBBF24 !important; }
+  html.theme-dark .btn-action-orange { color: #FB923C !important; }
 
-  .badge--success { background: rgba(52, 211, 153, 0.16); color: #34D399; }
-  .badge--warning { background: rgba(251, 191, 36, 0.16); color: #FBBF24; }
-  .badge--danger  { background: rgba(248, 113, 113, 0.16); color: #F87171; }
-  .badge--info    { background: rgba(96, 165, 250, 0.16); color: #60A5FA; }
-  .badge--neutral { background: #1E293B; color: #CBD5E1; }
-  .badge--brand   { background: rgba(251, 191, 36, 0.16); color: #FBBF24; border-color: rgba(251, 191, 36, 0.35); }
-  .badge--gold    { background: rgba(251, 191, 36, 0.20); color: #FDE68A; }
-}
+  html.theme-dark .badge--success { background: rgba(52, 211, 153, 0.16); color: #34D399; }
+  html.theme-dark .badge--warning { background: rgba(251, 191, 36, 0.16); color: #FBBF24; }
+  html.theme-dark .badge--danger  { background: rgba(248, 113, 113, 0.16); color: #F87171; }
+  html.theme-dark .badge--info    { background: rgba(96, 165, 250, 0.16); color: #60A5FA; }
+  html.theme-dark .badge--neutral { background: #1E293B; color: #CBD5E1; }
+  html.theme-dark .badge--brand   { background: rgba(251, 191, 36, 0.16); color: #FBBF24; border-color: rgba(251, 191, 36, 0.35); }
+  html.theme-dark .badge--gold    { background: rgba(251, 191, 36, 0.20); color: #FDE68A; }
+
+

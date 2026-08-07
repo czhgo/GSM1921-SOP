@@ -5,11 +5,12 @@
 // - '党建工作台' → '工作台'（角色自适应跳转）
 // - 帮助/关于移入主导航区
 
-import { AuthStore } from '../services/auth.js?v=20260807f';
-import { getBasePath } from '../core/utils.js?v=20260807f';
-import { icon } from '../core/icons.js?v=20260807f';
-import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260807f';
-import { bindWorkspacePopover } from './workspace-popover.js?v=20260807f';
+import { AuthStore } from '../services/auth.js?v=20260807g';
+import { getBasePath } from '../core/utils.js?v=20260807g';
+import { icon } from '../core/icons.js?v=20260807g';
+import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260807g';
+import { bindWorkspacePopover } from './workspace-popover.js?v=20260807g';
+import { getThemePreference, setThemePreference, initTheme } from '../core/theme.js?v=20260807g';
 
 // 记录当前 activeModule，供 view-role-change 事件触发 re-render 使用
 let _lastActiveModule = null;
@@ -91,6 +92,12 @@ export function renderSidebar(activeModule) {
         <button id="font-size-medium" class="font-size-btn ${_currentFontSize() === 'medium' ? 'active' : ''}" title="中号字体">中</button>
         <button id="font-size-large" class="font-size-btn ${_currentFontSize() === 'large' ? 'active' : ''}" title="大号字体">大</button>
       </div>
+      <div class="sidebar-theme-toggle" title="主题模式">
+        <span style="font-size:0.65rem;color:var(--neutral-400);">主题</span>
+        <button id="theme-light" class="theme-btn ${_currentTheme() === 'light' ? 'active' : ''}" title="浅色模式">${icon('sun', { className: 'w-3 h-3' })}</button>
+        <button id="theme-system" class="theme-btn ${_currentTheme() === 'system' ? 'active' : ''}" title="跟随系统">${icon('monitor', { className: 'w-3 h-3' })}</button>
+        <button id="theme-dark" class="theme-btn ${_currentTheme() === 'dark' ? 'active' : ''}" title="深色模式">${icon('moon', { className: 'w-3 h-3' })}</button>
+      </div>
       <div class="sidebar-accent-toggle">
         <button id="sidebar-accent-swatch" class="accent-swatch" style="background:${effAccentHex}" data-label="主题色：${effAccentLabel}" title="主题色：${effAccentLabel}（点击更换）"></button>
       </div>
@@ -103,8 +110,35 @@ export function renderSidebar(activeModule) {
 
   _bindLogout(sidebar);
   _bindFontSizeToggle(sidebar);
+  _bindThemeToggle(sidebar);
   _bindAccentToggle(sidebar);
   bindWorkspacePopover(sidebar);
+}
+
+function _currentTheme() {
+  return getThemePreference();
+}
+
+function _bindThemeToggle(sidebar) {
+  // 初始化一次（含 matchMedia 监听）；渲染 sidebar 时再强制应用，保证当前态一致
+  initTheme();
+  const btns = {
+    light: sidebar.querySelector('#theme-light'),
+    system: sidebar.querySelector('#theme-system'),
+    dark: sidebar.querySelector('#theme-dark'),
+  };
+  if (!btns.light || !btns.system || !btns.dark) return;
+
+  const apply = (mode) => {
+    setThemePreference(mode);
+    Object.entries(btns).forEach(([key, el]) => {
+      el.classList.toggle('active', key === mode);
+    });
+  };
+
+  btns.light.addEventListener('click', () => apply('light'));
+  btns.system.addEventListener('click', () => apply('system'));
+  btns.dark.addEventListener('click', () => apply('dark'));
 }
 
 function _bindLogout(sidebar) {

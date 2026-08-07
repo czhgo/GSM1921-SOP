@@ -1,7 +1,19 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
+  
+<script>
+  // T231 防闪烁：CSS 加载前同步应用深色主题 class（默认跟随系统）
+  (function () {
+    try {
+      var t = localStorage.getItem('workflowos_theme');
+      var dark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.classList.toggle('theme-dark', dark);
+      document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+    } catch (e) {}
+  })();
+</script>
+<meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>归档库 — 光华管理学院本科生党支部管理引擎</title>
   <meta name="description" content="归档库 — 已完成工作归档">
@@ -27,7 +39,7 @@
       }
     };
   </script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260807f">
+  <link rel="stylesheet" href="./src/styles.css?v=20260807g">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -59,6 +71,6 @@
   </div>
 </div>
 
-<script type="module" src="./src/entries/archive-entry.js?v=20260807f"></script>
+<script type="module" src="./src/entries/archive-entry.js?v=20260807g"></script>
 </body>
 </html>

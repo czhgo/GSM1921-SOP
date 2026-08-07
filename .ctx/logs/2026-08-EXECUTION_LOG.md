@@ -2,7 +2,7 @@
 title: "2026年8月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-08-06"
+last_updated: "2026-08-07"
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -1780,3 +1780,48 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
   - ✅ 侧边栏主题色：纯色块 + hover 气泡 + 切换生效持久化
   - ✅ 深色模式：0 白块 + 移动端 375px 全页面 0 溢出 + 标题可见
 - **沉淀标签**：`[已沉淀: 移动端 tab 栏溢出]` — flex 容器无 wrap/overflow 时子元素不收缩，宽内容把整页撑出横向滚动条；tab 导航栏应默认 `flex-wrap:wrap` 或在断点加 `overflow-x:auto`；`[已沉淀: 顶栏 actions 挤压标题]` — flex 下不收缩的 actions 会把 flex:1 标题挤到不可见，移动端断点应隐藏低频信息（身份标签）为标题让位；`[已沉淀: 深色适配三层法]` — 深色模式须三层覆盖：①CSS 变量反向（var() 自动适配）②高频 Tailwind 类 !important 覆盖 ③硬编码组件逐一覆盖；JS 内联白底无法被 @media 覆盖，必须变量化根治
+
+## T231 深色模式手动三态切换 + 全面统一修复（2026-08-07）
+
+**任务**：书记选中首页 4 个统计卡 div + 组织委员"专班管理"激活 tab 按钮 + "待审核 (0)"状态标签元素，提出 3 问——① 四个格子显示颜色逻辑是什么 ② 深色模式如何切换（发现没有开关，只有系统跟随）③ 深色下色块渲染不一致（有的变白底偏主题色、有的完全不变；header 红底字变黑后对比度不高）
+**引用流程**：web-design-guidelines Skill + fullstack-developer Skill + brainstorming Skill + AskUserQuestion 决策链（深色开关=加手动三态开关 浅色/跟随系统/深色 默认跟随系统；修复范围=全面统一修复）+ browser_use 三轮端到端复验 + node --check + 版本号 bump `20260807f→g`（79 文件）
+**来源**：书记选中元素提问 + AskUserQuestion 决策 + "请继续推进！！支持你 Use Skill: fullstack-developer" + "请继续推进！！"
+
+### ① 三问根因定位
+- **统计卡颜色逻辑**（main-entry.js L108-114）：本月活动固定党建红 `#CE1126` / 活跃专班深金 `#B45309` / 未读通知动态红灰 `#DC2626|#9CA3AF` / 我的考勤动态阈值 `myRate>=90 绿 #059669 / >=70 琥珀 #D97706 / else 红 #DC2626 / 无记录灰 #9CA3AF`
+- **深色无开关**：只有 `@media (prefers-color-scheme: dark)` 系统跟随，无手动覆盖入口
+- **渲染不一致根因**：JS 内联 `background:${hex}15`（8 位 hex alpha）优先级高于 media query CSS 规则 → 统计卡图标底/激活 tab/专班标签在深色下"完全不变"；header 标题用 `var(--neutral-0)` 深色下反转为近黑，对深红底仅 1.56:1 对比度
+
+### ② 手动三态切换架构
+- **core/theme.js（新建）**：三态偏好 `localStorage['workflowos_theme']`（light/dark/system，默认 system）+ `getThemePreference()/isDarkTheme()/applyTheme()/setThemePreference()/initTheme()`；`<html>` 上 `.theme-dark` class 驱动全部深色 CSS + `style.colorScheme` 同步表单控件原生深色 + matchMedia change 监听（仅 system 模式实时跟随，兼容 addEventListener/addListener）
+- **icons.js**：新增 lucide 风格 `sun/monitor/moon` 三图标
+- **sidebar.js**：footer 新增 `sidebar-theme-toggle` 三态按钮组（id: theme-light/system/dark），`_bindThemeToggle` 绑定 click → setThemePreference + active class 切换
+- **styles.css**：`.sidebar-theme-toggle`/`.theme-btn`/`.theme-btn.active` 开关样式（与字号切换按钮同族）
+
+### ③ 深色规则前缀化：@media → html.theme-dark
+- **根因**：`@media (prefers-color-scheme: dark)` 无法被手动 class 控制 → 全部深色规则改为 `html.theme-dark` class 前缀
+- **styles.css** 2 个深色块 + person-picker.css 1 个深色块批量转换（`.bg-white/.text-gray-*/.border-*/.hover:*` 高频 Tailwind 类、btn-action/btn-md 系、badge--* 系、help/about 独立变量块等）
+- **踩坑修复**：首版转换脚本 depth 从 0 起算导致第一个 `:root {` 闭合被误判为 media 块闭合，后续规则漏加前缀变成全局规则（会破坏浅色模式）——git checkout 恢复后 depth 从 1 起算重写脚本，花括号配平验证 depth=0/min=0 通过
+
+### ④ 内联淡色统一：color-mix 变量化
+- **统计卡图标底**（main-entry.js L119）：`background:${s.color}15` → `.stat-icon-tint` class + `--tint` 变量；浅色 `color-mix(tint 8%, transparent)`，深色 `color-mix(tint 14%, #141D2F)`
+- **专班状态标签**（ws-org L304-327）：待审核/招募中/运行中/已完结 4 处 `rgba(...,0.06)+border rgba(...,0.15)` 内联 → `.tf-section-head` class + `--tint` 变量；深色 `color-mix(tint 12%, #141D2F)`
+- **激活 Tab**（styles.css 深色块 ④）：内联 `--tab-accent-bg` 是浅色透明叠加 → `html.theme-dark .tab-btn-active` 覆盖为 `color-mix(accent 14%, #141D2F)`
+
+### ⑤ 防闪烁 + 对比度
+- **14 个 HTML `<head>` 顶部内联防闪烁同步脚本**（CSS 加载前即设 `.theme-dark` class + colorScheme），消除深色偏好下首屏白闪
+- **header 标题**（styles.css .header-title h1）：`var(--neutral-0)` → 固定 `#FFFFFF`（header 底恒深红 #7A0010，注释说明勿回退）
+
+### ⑥ 端到端验证（browser_use 三轮）
+- **轮1**：localStorage 三态（dark→html.theme-dark+colorScheme=dark / light→移除 / system→跟随 matchMedia）全通过；登录后侧边栏三态按钮点击切换实时生效并持久化；header 标题白 #FFFFFF；统计卡图标底深色下为 14% 主题色 tint（非白块）
+- **轮2**（org 深色）：激活 tab computed ≈ `rgb(19,48,73)`（深色底+天蓝混合，符合预期）；发现 4 个分区标题仍为"透明叠加 12%"与 tab 策略不一致 → 统一为 `color-mix(tint 12%, #141D2F)` 实色
+- **轮3**：分区标题 4 色全为实色（待审核 rgb(29,38,70)/招募中 rgb(44,40,42)/运行中 rgb(34,37,71)/已完结 rgb(25,41,71)），与数学反推逐一吻合（误差 ≤1）；无 JS 运行时错误
+
+- **变更文件**：`docs/src/core/theme.js`（新建）、`docs/src/core/icons.js`、`docs/src/components/sidebar.js`、`docs/src/styles.css`、`docs/src/entries/main-entry.js`、`docs/src/entries/ws-org-commissioner-entry.js`、`docs/src/components/person-picker.css`、14 个 HTML（index/login/search/notice/feedback/archive/help/about + workspace/*.html，head 内联防闪烁）；版本号 bump `20260807f→g`（79 文件）
+
+- **验证结果**（node --check 全量通过 + 花括号配平 + GetDiagnostics 无错误 + browser_use 三轮端到端）：
+  - ✅ 三态切换（浅色/跟随系统/深色）手动开关可用、持久化、system 实时跟随
+  - ✅ 深色下统计卡图标底/激活 tab/专班标签全部实色深底混合，与激活 tab 策略统一
+  - ✅ header 标题恒白字，对比度正常
+  - ✅ 14 页面 head 防闪烁脚本注入，无 JS 错误
+- **沉淀标签**：`[已沉淀: 手动深色切换三要素]` — ①偏好存 localStorage 三态 ②CSS 深色规则必须 class 前缀（html.theme-dark）而非 @media ③HTML head 内联防闪烁同步脚本防首屏白闪；`[已沉淀: 内联样式优先级硬伤]` — JS 内联 background 优先级高于任何 media/class 规则，深色适配必须变量化（CSS 变量 + color-mix）；`[已沉淀: 批量 CSS 转换脚本配平陷阱]` — 转换含嵌套规则的 media 块时 depth 须从 media 自身 `{` 计起（depth=1），否则首个内层块闭合会被误判为外层闭合，导致后续规则丢失作用域前缀

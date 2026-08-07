@@ -1,25 +1,25 @@
-﻿import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807f';
-import { BranchService } from '../services/runtime.js?v=20260807f';
-import { showToast } from '../core/utils.js?v=20260807f';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260807f';
-import { AuthStore } from '../services/auth.js?v=20260807f';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260807f';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807f';
-import { PersonPicker } from '../components/person-picker.js?v=20260807f';
-import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js?v=20260807f';
-import { mockDB, SourceType, ParticipationLevel } from '../core/domain.js?v=20260807f';
-import { persist } from '../core/data-adapter.js?v=20260807f';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260807f';
-import { renderTabBar } from '../components/tab-bar.js?v=20260807f';
-import { renderQueryView } from '../components/query-view.js?v=20260807f';
-import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260807f';
-import { loadActivities } from '../services/activity.js?v=20260807f';
-import { icon } from '../core/icons.js?v=20260807f';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807f';
-import { renderTodoList } from '../components/todo-list.js?v=20260807f';
-import { TodoStore, seedTodos } from '../services/todo.js?v=20260807f';
-import { NoticeStore } from '../services/notice.js?v=20260807f';
-import { badgeHtml } from '../components/badge.js?v=20260807f';
+﻿﻿import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807g';
+import { BranchService } from '../services/runtime.js?v=20260807g';
+import { showToast } from '../core/utils.js?v=20260807g';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260807g';
+import { AuthStore } from '../services/auth.js?v=20260807g';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260807g';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807g';
+import { PersonPicker } from '../components/person-picker.js?v=20260807g';
+import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js?v=20260807g';
+import { mockDB, SourceType, ParticipationLevel } from '../core/domain.js?v=20260807g';
+import { persist } from '../core/data-adapter.js?v=20260807g';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260807g';
+import { renderTabBar } from '../components/tab-bar.js?v=20260807g';
+import { renderQueryView } from '../components/query-view.js?v=20260807g';
+import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260807g';
+import { loadActivities } from '../services/activity.js?v=20260807g';
+import { icon } from '../core/icons.js?v=20260807g';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807g';
+import { renderTodoList } from '../components/todo-list.js?v=20260807g';
+import { TodoStore, seedTodos } from '../services/todo.js?v=20260807g';
+import { NoticeStore } from '../services/notice.js?v=20260807g';
+import { badgeHtml } from '../components/badge.js?v=20260807g';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'org-commissioner' });
 
@@ -301,21 +301,21 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
     kb.innerHTML = `
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="card rounded-xl p-0 overflow-hidden">
-          <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(99,102,241,0.06);color:var(--accent-indigo);border-bottom:2px solid rgba(99,102,241,0.15);">待审核 (${fp.length})</div>
+          <div class="px-4 py-3 font-title-cn text-sm font-bold tf-section-head" style="--tint:#6366F1;color:var(--accent-indigo);">待审核 (${fp.length})</div>
           <div class="p-3 space-y-3 min-h-[120px]">
             ${fp.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无待审核专班</p>' :
               fp.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
           </div>
         </div>
         <div class="card rounded-xl p-0 overflow-hidden">
-          <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(217,119,6,0.06);color:#D97706;border-bottom:2px solid rgba(217,119,6,0.15);">招募中 (${fr.length})</div>
+          <div class="px-4 py-3 font-title-cn text-sm font-bold tf-section-head" style="--tint:#D97706;color:#D97706;">招募中 (${fr.length})</div>
           <div class="p-3 space-y-3 min-h-[120px]">
             ${fr.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无招募中专班</p>' :
               fr.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
           </div>
         </div>
         <div class="card rounded-xl p-0 overflow-hidden">
-          <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(139,92,246,0.06);color:var(--accent-org-commissioner-light);border-bottom:2px solid rgba(139,92,246,0.15);">运行中 (${fa.length})</div>
+          <div class="px-4 py-3 font-title-cn text-sm font-bold tf-section-head" style="--tint:#8B5CF6;color:var(--accent-org-commissioner-light);">运行中 (${fa.length})</div>
           <div class="p-3 space-y-3 min-h-[120px]">
             ${fa.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无运行中专班</p>' :
               fa.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
@@ -324,7 +324,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
       </div>
       ${fc.length > 0 ? `
       <details class="card rounded-xl p-0 overflow-hidden">
-        <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none" style="background:rgba(59,130,246,0.06);color:var(--accent-blue);border-bottom:2px solid rgba(59,130,246,0.15);">已完结 (${fc.length})</summary>
+        <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none tf-section-head" style="--tint:#3B82F6;color:var(--accent-blue);">已完结 (${fc.length})</summary>
         <div class="p-3 space-y-3">
           ${fc.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
         </div>
