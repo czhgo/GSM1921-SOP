@@ -9,6 +9,7 @@ import { getAppState, setState } from '../core/state.js?v=20260807b';
 import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260807b';
 import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260807b';
 import { filterTasksByManagementRole } from './inspector.js?v=20260807b';
+import { badgeHtml } from './badge.js?v=20260807b';
 
 const VIEW_LABELS = { month: '月', week: '周', day: '日', list: '列表' };
 
@@ -378,7 +379,7 @@ function _renderListView(grid, activeActivities, tasks, month, state) {
       html += `<div class="text-sm font-medium text-gray-800 truncate">${act.title || '未命名'}</div>`;
       html += `<div class="text-xs text-gray-500">${act.type || ''} ${act.location ? '· ' + act.location : ''}</div>`;
       html += `</div>`;
-      html += `<span class="text-xs px-1.5 py-0.5 rounded-full" style="background:${color.bg};color:${color.text};">${act.status === 'published' ? '已发布' : '草稿'}</span>`;
+      html += badgeHtml(act.status === 'published' ? '已发布' : '草稿', act.status === 'published' ? 'info' : 'neutral');
       html += `</div>`;
     });
   }
