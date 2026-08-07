@@ -13,9 +13,9 @@ import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=2026
 import { TaskForceRecordStore } from './taskforce.js?v=20260807g';
 import { loadActivityReviews } from './review.js?v=20260807g';
 import { NoticeStore } from './notice.js?v=20260807g';
-import { TodoStore, TodoCategory, TodoStatus, TodoSourceType, TodoActionType } from './todo.js?v=20260807g';
+import { TodoCategory, TodoActionType } from './todo.js?v=20260807g';
 import { getPersonById, PEOPLE } from '../mock/index.js?v=20260807g';
-import { AttendanceStatus } from '../core/domain.js?v=20260807g';
+import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260807g';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数
@@ -61,9 +61,6 @@ export const SecretaryOverviewStore = {
     const inspection = this._computeInspection();
     const activity   = this._computeActivity();
     const propaganda = this._computePropaganda();
-
-    // 派生书记待办（getOverview 末尾调用）
-    SecretaryTodoDeriver.deriveAll();
 
     return { attendance, inspection, activity, propaganda };
   },
@@ -228,193 +225,128 @@ export const SecretaryOverviewStore = {
 };
 
 // ════════════════════════════════════════════════════════════════
-//  SecretaryTodoDeriver — 书记待办自动派生
-//  扫描各维度异常数据，自动创建 role='secretary' 的待办条目
+//  SecretaryTodoDeriver — 书记待办动态聚合（computeAggregates）
+//  实时计算（不创建实体）：4 条提醒类缺口 + 4 条复核类缺口
+//  复核类：纪检/宣传已完成动作但书记未复核 → 批次汇总 + 一键确认
 // ════════════════════════════════════════════════════════════════
 
 export const SecretaryTodoDeriver = {
 
-  /**
-   * 派生全部书记待办（内部调用4个派生函数）
-   * @returns {Array} 新创建的待办列表
-   */
-  deriveAll() {
-    const created = [];
-    created.push(...this._deriveAttendanceTodo());
-    created.push(...this._deriveOverdueInspectionTodo());
-    created.push(...this._deriveReviewTodo());
-    created.push(...this._deriveArchivePropagandaTodo());
-    return created;
+  /** 计算书记全部待办聚合卡（8 组） */
+  computeAggregates() {
+    return [
+      ...this._aggAttendanceRemind(),
+      ...this._aggInspectionRemind(),
+      ...this._aggReviewRemind(),
+      ...this._aggArchiveRemind(),
+      ...this._aggAttendanceConfirm(),
+      ...this._aggInspectionConfirm(),
+      ...this._aggReviewConfirm(),
+      ...this._aggArchiveConfirm(),
+    ];
   },
 
-  /**
-   * 去重检查：同 sourceType+sourceId 的待办已存在（含已完成）则跳过
-   * 2026-08-01 修复：此前仅排除未完成待办，导致"标记完成"后同源待办立即重生（列表只增不减）
-   * @param {string} sourceType
-   * @param {string} sourceId
-   * @returns {boolean} true=已存在需跳过
-   */
-  _isDuplicate(sourceType, sourceId) {
-    const existing = TodoStore.getByRole('secretary', { includeCompleted: true });
-    return existing.some(t =>
-      t.sourceType === sourceType && t.sourceId === sourceId
-    );
+  /** 组装聚合组（groupKey = secretary:{actionKey}） */
+  _mkGroup(actionKey, title, category, actionType, flow, items, kind) {
+    let deadline = null;
+    for (const it of items) {
+      if (it.deadline && (!deadline || it.deadline < deadline)) deadline = it.deadline;
+    }
+    return [{
+      groupKey: `secretary:${actionKey}`,
+      actionKey,
+      title,
+      category,
+      actionType,
+      flow,
+      kind,
+      deadline,
+      count: items.length,
+      items,
+    }];
   },
 
-  // ── 派生规则1：活动结束>3天且无考勤记录 ──────────────────
-
-  _deriveAttendanceTodo() {
+  // ── 提醒类1：活动结束>3天且无考勤记录 ────────────────────
+  _aggAttendanceRemind() {
     const activities = loadActivities();
     const attendances = loadAttendanceRecords();
     const today = _today();
-    const created = [];
-
-    // 已结束活动（completed 或 archived）
-    const endedActivities = activities.filter(a =>
-      (a.status === 'completed' || a.archived) && a.date
-    );
-
-    for (const act of endedActivities) {
-      const daysSince = _daysBetween(act.date, today);
-      if (daysSince <= 3) continue;
-
-      // 检查是否有该活动的考勤记录
-      const hasAttendance = attendances.some(r => r.activityId === act.id);
-      if (hasAttendance) continue;
-
-      // 去重
-      if (this._isDuplicate(TodoSourceType.ACTIVITY, act.id)) continue;
-
-      const todo = TodoStore.create({
-        title: `「${act.title}」考勤待确认（纪检）`,
-        description: `活动已于 ${act.date} 结束超过3天，尚未录入考勤记录。`,
-        role: 'secretary',
-        category: TodoCategory.REVIEW,
-        priority: 'normal',
-        deadline: _addDays(act.date, 5),
-        sourceType: TodoSourceType.ACTIVITY,
-        sourceId: act.id,
-        actionType: TodoActionType.REVIEW,
-        // E2 数据上下游标注
-        flow: '活动结束 → 纪检录入考勤 → 考勤总表',
-      });
-      created.push(todo);
-    }
-
-    return created;
+    const gaps = activities
+      .filter(a => (a.status === 'completed' || a.archived) && a.date)
+      .filter(a => _daysBetween(a.date, today) > 3)
+      .filter(a => !attendances.some(r => r.activityId === a.id));
+    return this._mkGroup('attendance-remind', '考勤待录入', TodoCategory.REVIEW, TodoActionType.REVIEW,
+      '活动结束>3天未录入考勤 → 纪检确认 → 考勤总表',
+      gaps.map(a => ({ id: a.id, activityId: a.id, name: a.title, date: a.date, deadline: _addDays(a.date, 5) })),
+      'remind');
   },
 
-  // ── 派生规则2：考察记录超期未确认 ──────────────────────────
-
-  _deriveOverdueInspectionTodo() {
-    const overdueRecords = getOverdueRecords();
-    const created = [];
-
-    for (const record of overdueRecords) {
-      // 去重：用 record.id 作为 sourceId（考察记录也是 ACTIVITY 来源的一种）
-      // 使用组合 key 避免 sourceId 冲突
-      const dedupeId = `insp_${record.id}`;
-      if (this._isDuplicate(TodoSourceType.ACTIVITY, dedupeId)) continue;
-
-      const person = getPersonById(record.personId);
-      const personName = person ? person.name : record.personId;
-
-      const todo = TodoStore.create({
-        title: `「${personName}」考察记录超期待确认（纪检）`,
-        description: `考察记录录入于 ${record.recordedAt ? record.recordedAt.slice(0, 10) : '未知'}，已超过7天未确认。`,
-        role: 'secretary',
-        category: TodoCategory.REVIEW,
-        priority: 'urgent',
-        deadline: _addDays(record.recordedAt ? record.recordedAt.slice(0, 10) : _today(), 7),
-        sourceType: TodoSourceType.ACTIVITY,
-        sourceId: dedupeId,
-        actionType: TodoActionType.REVIEW,
-        // E2 数据上下游标注
-        flow: '纪检录入考察 → 确认 → 组织建档 → 人才库',
-      });
-      created.push(todo);
-    }
-
-    return created;
+  // ── 提醒类2：考察记录超期未确认（>7天） ─────────────────
+  _aggInspectionRemind() {
+    const overdue = getOverdueRecords();
+    const items = overdue.map(r => ({
+      id: r.id,
+      inspectionId: r.id,
+      name: (getPersonById(r.personId) || {}).name || r.personId,
+      date: r.recordedAt ? r.recordedAt.slice(0, 10) : null,
+      deadline: _addDays(r.recordedAt ? r.recordedAt.slice(0, 10) : _today(), 7),
+    }));
+    return this._mkGroup('inspection-remind', '考察超期未确认', TodoCategory.REVIEW, TodoActionType.REVIEW,
+      '纪检录入考察 → 确认 → 组织建档 → 人才库', items, 'remind');
   },
 
-  // ── 派生规则3：活动结束>7天且无复盘 ──────────────────────
-
-  _deriveReviewTodo() {
+  // ── 提醒类3：活动结束>7天且无复盘 ──────────────────────
+  _aggReviewRemind() {
     const activities = loadActivities();
     const reviews = loadActivityReviews();
     const today = _today();
-    const created = [];
-
-    const endedActivities = activities.filter(a =>
-      (a.status === 'completed' || a.archived) && a.date
-    );
-
-    const reviewedActivityIds = new Set(reviews.map(r => r.activityId));
-
-    for (const act of endedActivities) {
-      const daysSince = _daysBetween(act.date, today);
-      if (daysSince <= 7) continue;
-
-      // 检查是否有复盘记录
-      if (reviewedActivityIds.has(act.id)) continue;
-
-      // 去重
-      if (this._isDuplicate(TodoSourceType.ACTIVITY, `review_${act.id}`)) continue;
-
-      const todo = TodoStore.create({
-        title: `「${act.title}」待复盘（纪检）`,
-        description: `活动已于 ${act.date} 结束超过7天，尚未提交复盘记录。`,
-        role: 'secretary',
-        category: TodoCategory.SUBMIT,
-        priority: 'normal',
-        deadline: _addDays(act.date, 10),
-        sourceType: TodoSourceType.ACTIVITY,
-        sourceId: `review_${act.id}`,
-        actionType: TodoActionType.SUBMIT,
-        // E2 数据上下游标注
-        flow: '活动完成 → 组织者提交复盘 → 纪检批注/确认',
-      });
-      created.push(todo);
-    }
-
-    return created;
+    const reviewedIds = new Set(reviews.map(r => r.activityId));
+    const gaps = activities
+      .filter(a => (a.status === 'completed' || a.archived) && a.date)
+      .filter(a => _daysBetween(a.date, today) > 7)
+      .filter(a => !reviewedIds.has(a.id));
+    return this._mkGroup('review-remind', '复盘待提交', TodoCategory.SUBMIT, TodoActionType.SUBMIT,
+      '活动完成 → 组织者提交复盘 → 纪检批注/确认',
+      gaps.map(a => ({ id: a.id, activityId: a.id, name: a.title, date: a.date, deadline: _addDays(a.date, 10) })),
+      'remind');
   },
 
-  // ── 派生规则4：活动已归档但宣传材料未提交 ────────────────
-
-  _deriveArchivePropagandaTodo() {
+  // ── 提醒类4：活动已归档但宣传材料未提交 ────────────────
+  _aggArchiveRemind() {
     const activities = loadActivities();
-    const created = [];
+    const archivedIds = new Set((mockDB.archiveRecords || []).map(r => r.activityId));
+    const gaps = activities.filter(a => a.archived && !archivedIds.has(a.id));
+    return this._mkGroup('archive-remind', '宣传材料待归档', TodoCategory.SUBMIT, TodoActionType.SUBMIT,
+      '宣传材料 → 宣传委员归档 → 产出物区',
+      gaps.map(a => ({ id: a.id, activityId: a.id, name: a.title, date: a.archivedAt || a.date || null })),
+      'remind');
+  },
 
-    // 已归档的活动
-    const archivedActivities = activities.filter(a => a.archived);
+  // ── 复核类1：纪检已确认考勤但书记未复核 ────────────────
+  _aggAttendanceConfirm() {
+    const records = loadAttendanceRecords().filter(r => r.recordedBy && !r.secretaryConfirmedAt);
+    return this._mkGroup('attendance-confirm', '考勤待复核', TodoCategory.REVIEW, TodoActionType.REVIEW,
+      '纪检已确认考勤 → 书记复核 → 考勤总表', records, 'confirm');
+  },
 
-    for (const act of archivedActivities) {
-      // 检查是否已有宣传提交待办（去重）
-      if (this._isDuplicate(TodoSourceType.ACTIVITY, `archive_prop_${act.id}`)) continue;
+  // ── 复核类2：纪检已确认考察但书记未复核 ────────────────
+  _aggInspectionConfirm() {
+    const records = loadInspectionRecords().filter(r => r.status === 'confirmed' && !r.secretaryConfirmedAt);
+    return this._mkGroup('inspection-confirm', '考察待复核', TodoCategory.REVIEW, TodoActionType.REVIEW,
+      '纪检已确认考察 → 书记复核 → 组织建档', records, 'confirm');
+  },
 
-      // 检查是否已存在宣传委员的归档待办（如 LifecycleTodoDeriver 创建的）
-      // 此处书记待办与宣传委员待办独立，不跳过
+  // ── 复核类3：纪检已确认复盘但书记未复核 ────────────────
+  _aggReviewConfirm() {
+    const reviews = loadActivityReviews().filter(r => r.reviewStatus === ReviewStatus.CONFIRMED && !r.secretaryConfirmedAt);
+    return this._mkGroup('review-confirm', '复盘待复核', TodoCategory.REVIEW, TodoActionType.REVIEW,
+      '纪检已确认复盘 → 书记复核 → 经验沉淀', reviews, 'confirm');
+  },
 
-      const archiveDate = act.archivedAt || act.date || _today();
-
-      const todo = TodoStore.create({
-        title: `「${act.title}」宣传归档待提交（宣传）`,
-        description: `活动已于 ${typeof archiveDate === 'string' ? archiveDate.slice(0, 10) : archiveDate} 归档，宣传材料尚未提交。`,
-        role: 'secretary',
-        category: TodoCategory.SUBMIT,
-        priority: 'normal',
-        deadline: _addDays(typeof archiveDate === 'string' ? archiveDate.slice(0, 10) : archiveDate, 7),
-        sourceType: TodoSourceType.ACTIVITY,
-        sourceId: `archive_prop_${act.id}`,
-        actionType: TodoActionType.SUBMIT,
-        // E2 数据上下游标注
-        flow: '宣传材料 → 宣传委员归档 → 产出物区',
-      });
-      created.push(todo);
-    }
-
-    return created;
+  // ── 复核类4：宣传已归档材料但书记未复核 ────────────────
+  _aggArchiveConfirm() {
+    const records = (mockDB.archiveRecords || []).filter(r => r.status === 'archived' && !r.secretaryConfirmedAt);
+    return this._mkGroup('archive-confirm', '归档待复核', TodoCategory.ARCHIVE, TodoActionType.ARCHIVE,
+      '宣传已归档材料 → 书记复核 → 产出物区', records, 'confirm');
   },
 };

@@ -1,53 +1,85 @@
 ﻿// role: [工程师]+[AI]
 // entries/tabs/secretary/todo-tab.js — 书记工作台·待办 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：按 tab 代码分割，首屏只加载默认 tab。
+// 2026-08-07 T232：改为「动态聚合 + 复核确认面板」——SecretaryTodoDeriver.computeAggregates()
+//   实时计算 4 提醒 + 4 复核，复核类一键写 secretaryConfirmedAt 销项，不再创建虚假实体待办。
 
 import { showToast } from '../../../core/utils.js?v=20260807g';
 import { renderTodoList } from '../../../components/todo-list.js?v=20260807g';
 import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260807g';
 import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260807g';
 import { badgeHtml } from '../../../components/badge.js?v=20260807g';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260807g';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260807g';
+import { updateActivityReview } from '../../../services/review.js?v=20260807g';
+import { loadActivities } from '../../../services/activity.js?v=20260807g';
+import { mockDB } from '../../../core/domain.js?v=20260807g';
+import { persist } from '../../../core/data-adapter.js?v=20260807g';
+import { getPersonById } from '../../../mock/index.js?v=20260807g';
 
 const accent = '#B91C1C';
 
 let _selectedTodoId = null;
 
-/** 渲染待办 tab（双栏：列表+详情） */
+// ── 聚合数据缓存（渲染与事件绑定共用） ─────────────────────────
+let _allAggregates = [];
+
+/** 渲染待办 tab（双栏：聚合列表 + 详情确认面板） */
 export function renderContent() {
   const container = document.getElementById('secretary-tab-content');
   if (!container) return;
   container.dataset.currentTab = 'todo';
 
-  // 补种子数据 + 派生活动/专班/考勤异常待办（幂等，确保首访即有数据，不依赖先打开全局概况）
+  // 补种子数据（幂等，仅行动类：设党小组组长等）；书记侧缺口/复核均为实时计算
   seedTodos();
-  SecretaryTodoDeriver.deriveAll();
-
-  // 刷新过期状态
   TodoStore.refreshExpiredStatus();
 
-  const groupedTodos = TodoStore.getGroupedByCategory('secretary');
-  const stats = TodoStore.getStatsByRole('secretary');
+  // 动态聚合（实时计算）+ 种子行动类聚合
+  const computedAggs = SecretaryTodoDeriver.computeAggregates();
+  const seedAggs = TodoStore.getGroupedByAction('secretary');
+  _allAggregates = [...computedAggs, ...seedAggs];
 
-  // 未选中任何待办时自动选中第一条（按分类顺序）——避免右卡空占位造成的左右失衡
-  let selectedTodo = _selectedTodoId ? TodoStore.getById(_selectedTodoId) : null;
-  if (!selectedTodo && stats._total > 0) {
-    for (const cat of Object.keys(groupedTodos)) {
-      const first = (groupedTodos[cat] || [])[0];
-      if (first) { selectedTodo = first; _selectedTodoId = first.id; break; }
+  // 统计条（聚合卡总数；过期仅统计提醒类缺口）
+  const aggTotal = _allAggregates.reduce((s, g) => s + g.count, 0);
+  const today = new Date().toISOString().slice(0, 10);
+  let expiredCount = 0;
+  for (const g of computedAggs) {
+    if (g.kind !== 'remind') continue;
+    for (const it of g.items) {
+      if (it.deadline && it.deadline < today) expiredCount++;
     }
+  }
+  const stats = { _total: aggTotal, _expired: expiredCount };
+
+  // 未选中时自动选中第一条（复核类优先展示）
+  let selectedTodo = _selectedTodoId ? _allAggregates.find(g => g.groupKey === _selectedTodoId) : null;
+  if (!selectedTodo && _allAggregates.length > 0) {
+    selectedTodo = _allAggregates[0];
+    _selectedTodoId = selectedTodo.groupKey;
   }
 
   const { html: todoListHtml, bindEvents } = renderTodoList({
     prefix: 'secretary',
-    groupedTodos,
+    groupedAggregates: _allAggregates,
     stats,
     accent,
     selectedTodoId: _selectedTodoId,
     onSelectTodo: (todo) => {
-      _selectedTodoId = todo.id;
+      _selectedTodoId = todo.groupKey || todo.id;
       renderContent();
     },
     onActionTodo: (todo) => {
+      // 计算类聚合卡（提醒/复核）：「处理」→ 打开详情面板确认/查看清单
+      if (todo.groupKey && (todo.actionKey || '').endsWith('-confirm')) {
+        _selectedTodoId = todo.groupKey;
+        renderContent();
+        return;
+      }
+      if (todo.groupKey && (todo.actionKey || '').endsWith('-remind')) {
+        _selectedTodoId = todo.groupKey;
+        renderContent();
+        return;
+      }
       handleTodoAction(todo);
     },
   });
@@ -82,7 +114,68 @@ export function renderContent() {
   bindTodoDetailEvents();
 }
 
+// ── 详情卡：按聚合类型分发（confirm / remind / 种子行动类） ────
 function renderTodoDetail(todo) {
+  const actionKey = todo.actionKey || '';
+  if (todo.kind === 'confirm' || actionKey.endsWith('-confirm')) return renderConfirmDetail(todo);
+  if (todo.kind === 'remind' || actionKey.endsWith('-remind')) return renderRemindDetail(todo);
+  return renderSeedDetail(todo);
+}
+
+/** 复核类详情：批次/来源汇总 + 一键确认 */
+function renderConfirmDetail(group) {
+  const items = group.items || [];
+  const rows = items.slice(0, 8).map(it => `<div class="text-xs text-gray-600 truncate">${_confirmItemLabel(group.actionKey, it)}</div>`).join('');
+  const more = items.length > 8 ? `<div class="text-xs text-gray-400">… 另有 ${items.length - 8} 条</div>` : '';
+  return `
+    <div class="space-y-3">
+      <div class="flex items-center gap-2">
+        <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${group.count} 条待复核</span>
+      </div>
+      <p class="font-title-cn text-sm font-bold text-gray-800">${group.title}</p>
+      ${group.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${group.flow}</p>` : ''}
+      <div class="rounded-lg bg-gray-50 p-2.5 space-y-1.5 max-h-44 overflow-y-auto">
+        ${rows || '<div class="text-xs text-gray-400">无待复核记录</div>'}
+        ${more}
+      </div>
+      <div class="pt-3 border-t border-gray-100 flex gap-2">
+        <button class="secretary-todo-detail-confirm text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">一键确认 ${group.count} 条</button>
+      </div>
+    </div>
+  `;
+}
+
+/** 提醒类详情：缺口清单 + 去活动管理 */
+function renderRemindDetail(group) {
+  const items = group.items || [];
+  const rows = items.slice(0, 8).map(it => `
+    <div class="flex items-center justify-between gap-2">
+      <span class="text-xs text-gray-600 truncate">${it.name || it.title || it.id}</span>
+      <span class="text-[11px] text-gray-400 flex-shrink-0">${it.date || ''}</span>
+    </div>
+  `).join('');
+  const more = items.length > 8 ? `<div class="text-xs text-gray-400">… 另有 ${items.length - 8} 项</div>` : '';
+  return `
+    <div class="space-y-3">
+      <div class="flex items-center gap-2">
+        <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${group.count} 项待跟进</span>
+        ${group.deadline ? `<span class="text-[11px] text-gray-400">最早 ${group.deadline}</span>` : ''}
+      </div>
+      <p class="font-title-cn text-sm font-bold text-gray-800">${group.title}</p>
+      ${group.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${group.flow}</p>` : ''}
+      <div class="rounded-lg bg-gray-50 p-2.5 space-y-1.5 max-h-44 overflow-y-auto">
+        ${rows || '<div class="text-xs text-gray-400">暂无缺口</div>'}
+        ${more}
+      </div>
+      <div class="pt-3 border-t border-gray-100 flex gap-2">
+        <button class="secretary-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">去活动管理</button>
+      </div>
+    </div>
+  `;
+}
+
+/** 种子行动类详情（如：设置党小组组长） */
+function renderSeedDetail(todo) {
   const statusLabel = {
     pending: '待处理',
     in_progress: '进行中',
@@ -116,7 +209,79 @@ function renderTodoDetail(todo) {
   `;
 }
 
+// ── 复核项标签 ────────────────────────────────────────────────
+function _actTitle(activityId) {
+  const a = loadActivities().find(x => x.id === activityId);
+  return a ? a.title : (activityId || '未知活动');
+}
+
+function _personName(personId) {
+  const p = getPersonById(personId);
+  return p ? p.name : (personId || '未知人员');
+}
+
+function _confirmItemLabel(actionKey, it) {
+  switch (actionKey) {
+    case 'attendance-confirm':
+      return `· ${_actTitle(it.activityId)} — ${_personName(it.personId)}`;
+    case 'inspection-confirm':
+      return `· ${_personName(it.personId)} — ${_actTitle(it.activityId) || it.sourceName || '考察'}`;
+    case 'review-confirm':
+      return `· ${_actTitle(it.activityId)} — 复盘已确认`;
+    case 'archive-confirm':
+      return `· ${it.activityName || _actTitle(it.activityId)} — ${it.category || ''}${it.fileName ? ' · ' + it.fileName : ''}`;
+    default:
+      return `· ${it.name || it.title || it.id || ''}`;
+  }
+}
+
+// ── 一键确认（复核类）：写 secretaryConfirmedAt 销项 ────────────
+function confirmGroup(group) {
+  const now = new Date().toISOString();
+  const actionKey = group.actionKey;
+  let n = 0;
+
+  if (actionKey === 'attendance-confirm') {
+    const records = loadAttendanceRecords();
+    const ids = new Set(group.items.map(r => r.id));
+    records.forEach(r => {
+      if (ids.has(r.id) && !r.secretaryConfirmedAt) { r.secretaryConfirmedAt = now; n++; }
+    });
+    saveAttendanceRecords(records);
+  } else if (actionKey === 'inspection-confirm') {
+    const records = loadInspectionRecords();
+    const ids = new Set(group.items.map(r => r.id));
+    records.forEach(r => {
+      if (ids.has(r.id) && !r.secretaryConfirmedAt) { r.secretaryConfirmedAt = now; n++; }
+    });
+    saveInspectionRecords(records);
+  } else if (actionKey === 'review-confirm') {
+    for (const r of group.items) {
+      if (r.activityId && updateActivityReview(r.activityId, { secretaryConfirmedAt: now })) n++;
+    }
+  } else if (actionKey === 'archive-confirm') {
+    const ids = new Set(group.items.map(r => r.id));
+    (mockDB.archiveRecords || []).forEach(r => {
+      if (ids.has(r.id) && !r.secretaryConfirmedAt) { r.secretaryConfirmedAt = now; n++; }
+    });
+    persist();
+  } else {
+    showToast('info', `暂不支持该聚合类型确认：${actionKey}`);
+    return;
+  }
+
+  showToast('success', `已复核 ${n} 条，${group.title}待办已清零`);
+  _selectedTodoId = null;
+  renderContent();
+}
+
+// ── 行动跳转（种子行动类 / 提醒类跳活动管理） ──────────────────
 function handleTodoAction(todo) {
+  // 提醒类聚合卡：「去活动管理」按钮直接切 calendar tab
+  if (todo.groupKey && (todo.actionKey || '').endsWith('-remind')) {
+    jumpToCalendar(todo);
+    return;
+  }
   // 根据 actionType 跳转到对应 tab（renderTabBar 统一按钮类名）
   const tabMap = {
     authorize: 'assign',
@@ -136,6 +301,14 @@ function handleTodoAction(todo) {
   } else {
     showToast('info', `请处理：${todo.title}`);
   }
+}
+
+/** 提醒类 → 切到活动管理 tab */
+function jumpToCalendar(group) {
+  const btn = document.querySelector('.secretary-tab-btn[data-secretary-tab="calendar"]');
+  if (btn) btn.click();
+  const first = (group.items || [])[0];
+  showToast('info', `已跳转到活动管理，请跟进：${group.title}${first && first.name ? `（${first.name}）` : ''}`);
 }
 
 /** t5c：赋权管理 tab 落地后，按待办 scope 自动展开对应赋权面板 */
@@ -163,10 +336,14 @@ function expandAssignPanelForTodo(todo) {
 function bindTodoDetailEvents() {
   const container = document.getElementById('secretary-tab-content');
   if (!container) return;
+  container.querySelector('.secretary-todo-detail-confirm')?.addEventListener('click', () => {
+    const group = _allAggregates.find(g => g.groupKey === _selectedTodoId);
+    if (group) confirmGroup(group);
+  });
   container.querySelector('.secretary-todo-detail-action')?.addEventListener('click', () => {
-    if (_selectedTodoId) {
-      const todo = TodoStore.getById(_selectedTodoId);
-      if (todo) handleTodoAction(todo);
-    }
+    const group = _allAggregates.find(g => g.groupKey === _selectedTodoId);
+    if (group) { handleTodoAction(group); return; }
+    const todo = TodoStore.getById(_selectedTodoId);
+    if (todo) handleTodoAction(todo);
   });
 }
