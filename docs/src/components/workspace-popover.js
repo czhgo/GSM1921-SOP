@@ -3,8 +3,8 @@
 // 设计: sidebar "工作台" <a> 点击拦截 → 居中模态框选择目标工作台
 // 单身份直接跳转，多身份弹模态框
 
-import { AuthStore } from '../services/auth.js?v=20260807i';
-import { getBasePath } from '../core/utils.js?v=20260807i';
+import { AuthStore } from '../services/auth.js?v=20260807j';
+import { getBasePath } from '../core/utils.js?v=20260807j';
 
 /**
  * 绑定工作台模态框事件

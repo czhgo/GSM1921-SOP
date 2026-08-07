@@ -5,13 +5,13 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260807i';
-import { persist } from '../core/data-adapter.js?v=20260807i';
-import { MOCK_NOTICES } from '../mock/index.js?v=20260807i';
-import { showToast, getBasePath } from '../core/utils.js?v=20260807i';
-import { AuthStore } from './auth.js?v=20260807i';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260807i';
-import { badgeHtml } from '../components/badge.js?v=20260807i';
+import { mockDB } from '../core/domain.js?v=20260807j';
+import { persist } from '../core/data-adapter.js?v=20260807j';
+import { MOCK_NOTICES } from '../mock/index.js?v=20260807j';
+import { showToast, getBasePath } from '../core/utils.js?v=20260807j';
+import { AuthStore } from './auth.js?v=20260807j';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260807j';
+import { badgeHtml } from '../components/badge.js?v=20260807j';
 
 const NOTICE_STORAGE_KEY = 'workflowos_notices_v1';
 

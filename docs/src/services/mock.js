@@ -5,18 +5,18 @@
 //  依赖：domain.js, id.js（单向依赖，不依赖 UI 或 runtime）
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SCHEMA_VERSION } from '../core/domain.js?v=20260807i';
-import { generateId } from '../core/id.js?v=20260807i';
-import { getDataSource, persist } from '../core/data-adapter.js?v=20260807i';
+import { mockDB, SCHEMA_VERSION } from '../core/domain.js?v=20260807j';
+import { generateId } from '../core/id.js?v=20260807j';
+import { getDataSource, persist } from '../core/data-adapter.js?v=20260807j';
 // 修复（T175）：直接从 mock/activities.js 导入 ACTIVITIES，
 // 绕过 mock/index.js 的 re-export 转发（纯 re-export + 循环依赖存在 TDZ 风险，
 // 曾导致 loadDB() seed 阶段 ACTIVITIES.length 抛错被静默吞掉）
-import { ACTIVITIES } from '../mock/activities.js?v=20260807i';
-import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS } from '../mock/seed.js?v=20260807i';
+import { ACTIVITIES } from '../mock/activities.js?v=20260807j';
+import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS } from '../mock/seed.js?v=20260807j';
 // Seed 增量合并用（2026-08-05，与 core/mock-adapter.js 对齐）：
 // attendance.js/notices.js 为纯数据模块，无指向本文件的循环依赖
-import { ATTENDANCE_RECORDS } from '../mock/attendance.js?v=20260807i';
-import { MOCK_NOTICES } from '../mock/notices.js?v=20260807i';
+import { ATTENDANCE_RECORDS } from '../mock/attendance.js?v=20260807j';
+import { MOCK_NOTICES } from '../mock/notices.js?v=20260807j';
 
 const MOCK_DELAY_MS = 600;
 
@@ -258,7 +258,8 @@ function _mergeNewSeedRecords() {
     if (!/^att\d+$/.test(r.id)) { attOut.push(r); continue; }
     const seed = attSeedById.get(r.id);
     if (!seed) { changed = true; continue; }
-    const merged = { ...seed, recordedBy: r.recordedBy || seed.recordedBy };
+    // 2026-08-07 T232：保留 recordedBy（纪检确认人）+ secretaryConfirmedAt（书记复核标记）
+    const merged = { ...seed, recordedBy: r.recordedBy || seed.recordedBy, secretaryConfirmedAt: r.secretaryConfirmedAt };
     if (JSON.stringify(merged) !== JSON.stringify(r)) changed = true;
     attOut.push(merged);
   }
@@ -354,7 +355,7 @@ export function createActivity(data) {
     // 派生赋权待办（最小三成本原则·阶段1C-3）
     // T-190：创建时已内联赋权（assignments 非空）则不再派生；未选人保留待办兜底
     if (!newItem.assignments || newItem.assignments.length === 0) {
-      import('./todo.js?v=20260807i').then(({ LifecycleTodoDeriver }) => {
+      import('./todo.js?v=20260807j').then(({ LifecycleTodoDeriver }) => {
         LifecycleTodoDeriver.deriveFromActivityCreate(newItem);
       }).catch(e => console.warn('[MockAdapter] 派生活动赋权待办失败：', e));
     }
@@ -414,7 +415,7 @@ export function deleteActivity(id) {
     saveDB();
     console.info('[MockAdapter] deleteActivity 成功，id=' + id);
     // 联动删除关联待办（避免遗留孤儿待办）
-    import('./todo.js?v=20260807i').then(({ LifecycleTodoDeriver }) => {
+    import('./todo.js?v=20260807j').then(({ LifecycleTodoDeriver }) => {
       LifecycleTodoDeriver.deleteByActivity(id);
     }).catch(e => console.warn('[MockAdapter] 联动删除待办失败：', e));
     return { id };
@@ -449,7 +450,7 @@ export function archiveActivity(id) {
     console.info('[MockAdapter] archiveActivity 成功，id=' + id
       + '，级联完成下属 tasks。');
     // 派生归档待办给宣传委员（最小三成本原则·阶段1C-3）
-    import('./todo.js?v=20260807i').then(({ LifecycleTodoDeriver }) => {
+    import('./todo.js?v=20260807j').then(({ LifecycleTodoDeriver }) => {
       LifecycleTodoDeriver.deriveFromActivityArchive(archived);
     }).catch(e => console.warn('[MockAdapter] 派生活动归档待办失败：', e));
     return archived;
