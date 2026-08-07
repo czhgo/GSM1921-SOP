@@ -1,14 +1,14 @@
-﻿// role: [工程师]+[AI]
+﻿﻿// role: [工程师]+[AI]
 // components/header.js — 共享顶栏组件（重构版）
 // 变化: 去掉 mode 标签，改为当前身份标签 + 只读切换下拉
 
-import { AuthStore } from '../services/auth.js?v=20260807f';
-import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260807f';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260807f';
-import { getBasePath } from '../core/utils.js?v=20260807f';
-import { icon } from '../core/icons.js?v=20260807f';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260807f';
-import { badgeHtml } from './badge.js?v=20260807f';
+import { AuthStore } from '../services/auth.js?v=20260807g';
+import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260807g';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260807g';
+import { getBasePath } from '../core/utils.js?v=20260807g';
+import { icon } from '../core/icons.js?v=20260807g';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260807g';
+import { badgeHtml } from './badge.js?v=20260807g';
 
 // 数据变更订阅（2026-08-05，消除"确认已读后角标不更新"）：
 // 模块顶层绑定一次；_renderNotificationBadge 在 #notification-bell 未渲染时静默返回。

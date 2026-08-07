@@ -1,17 +1,17 @@
-﻿// role: [工程师]+[AI]
+﻿﻿// role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
-import { renderSidebar } from '../components/sidebar.js?v=20260807f';
-import { renderHeader } from '../components/header.js?v=20260807f';
-import { BranchService } from '../services/runtime.js?v=20260807f';
-import { getPersonById } from '../mock/index.js?v=20260807f';
-import { loadActivities } from '../services/activity.js?v=20260807f';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807f';
-import { getActivityTypeColors } from '../core/constants.js?v=20260807f';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260807f';
-import { getBasePath } from '../core/utils.js?v=20260807f';
-import { AuthStore } from '../services/auth.js?v=20260807f';
-import { badgeHtml } from '../components/badge.js?v=20260807f';
+import { renderSidebar } from '../components/sidebar.js?v=20260807g';
+import { renderHeader } from '../components/header.js?v=20260807g';
+import { BranchService } from '../services/runtime.js?v=20260807g';
+import { getPersonById } from '../mock/index.js?v=20260807g';
+import { loadActivities } from '../services/activity.js?v=20260807g';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807g';
+import { getActivityTypeColors } from '../core/constants.js?v=20260807g';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260807g';
+import { getBasePath } from '../core/utils.js?v=20260807g';
+import { AuthStore } from '../services/auth.js?v=20260807g';
+import { badgeHtml } from '../components/badge.js?v=20260807g';
 
 renderSidebar('archive');
 renderHeader('archive');

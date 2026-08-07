@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  secretary-overview.js — 书记全局概况服务层
 //  四维度信息面板：考勤与纪律 / 发展与考察 / 活动与专班进度 / 宣传与档案
@@ -7,15 +7,15 @@
 //         content/04_web_design/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords } from './attendance.js?v=20260807f';
-import { loadActivities } from './activity.js?v=20260807f';
-import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260807f';
-import { TaskForceRecordStore } from './taskforce.js?v=20260807f';
-import { loadActivityReviews } from './review.js?v=20260807f';
-import { NoticeStore } from './notice.js?v=20260807f';
-import { TodoStore, TodoCategory, TodoStatus, TodoSourceType, TodoActionType } from './todo.js?v=20260807f';
-import { getPersonById, PEOPLE } from '../mock/index.js?v=20260807f';
-import { AttendanceStatus } from '../core/domain.js?v=20260807f';
+import { loadAttendanceRecords } from './attendance.js?v=20260807g';
+import { loadActivities } from './activity.js?v=20260807g';
+import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260807g';
+import { TaskForceRecordStore } from './taskforce.js?v=20260807g';
+import { loadActivityReviews } from './review.js?v=20260807g';
+import { NoticeStore } from './notice.js?v=20260807g';
+import { TodoStore, TodoCategory, TodoStatus, TodoSourceType, TodoActionType } from './todo.js?v=20260807g';
+import { getPersonById, PEOPLE } from '../mock/index.js?v=20260807g';
+import { AttendanceStatus } from '../core/domain.js?v=20260807g';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数
