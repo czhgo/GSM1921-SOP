@@ -1,9 +1,9 @@
 ﻿// role: [工程师]+[AI]
 // help-entry.js — 帮助页入口（系统说明书）
 
-import { renderSidebar } from '../components/sidebar.js?v=20260807h';
-import { renderHeader } from '../components/header.js?v=20260807h';
-import { renderRoleHierarchy } from '../components/role-hierarchy.js?v=20260807h';
+import { renderSidebar } from '../components/sidebar.js?v=20260807i';
+import { renderHeader } from '../components/header.js?v=20260807i';
+import { renderRoleHierarchy } from '../components/role-hierarchy.js?v=20260807i';
 
 renderSidebar('help');
 renderHeader('help');

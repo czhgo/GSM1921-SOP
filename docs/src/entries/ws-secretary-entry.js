@@ -5,13 +5,13 @@
 //   首屏只动态加载默认 tab（待办）模块；其余 tab 在首次点击时才 import。
 //   tab-bar.js 支持异步 render（render 返回 Promise 时自动 await/catch）。
 
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807h';
-import { BranchService } from '../services/runtime.js?v=20260807h';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260807h';
-import { renderTabBar } from '../components/tab-bar.js?v=20260807h';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807h';
-import { loadActivities } from '../services/activity.js?v=20260807h';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260807h';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807i';
+import { BranchService } from '../services/runtime.js?v=20260807i';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260807i';
+import { renderTabBar } from '../components/tab-bar.js?v=20260807i';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807i';
+import { loadActivities } from '../services/activity.js?v=20260807i';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260807i';
 
 await bootstrapPage({ module: 'workspace' });
 
@@ -32,12 +32,12 @@ function _ensureSecTabBar() {
   _secTabBar = renderTabBar({
     prefix: 'secretary',
     tabs: [
-      { id: 'todo', label: '待办', groupLabel: '工作台', render: () => import('./tabs/secretary/todo-tab.js?v=20260807h').then(m => m.renderContent()) },
-      { id: 'overview', label: '全局概况', render: () => import('./tabs/secretary/overview-tab.js?v=20260807h').then(m => m.renderContent()) },
-      { id: 'calendar', label: '活动管理', groupLabel: '党建', render: () => import('./tabs/secretary/calendar-tab.js?v=20260807h').then(m => m.renderContent(getAppState())) },
-      { id: 'assign', label: '赋权管理', render: () => import('./tabs/secretary/assign-tab.js?v=20260807h').then(m => m.renderContent()) },
-      { id: 'notification', label: '通知发布', groupLabel: '党建', render: () => import('./tabs/secretary/notification-tab.js?v=20260807h').then(m => m.renderContent()) },
-      { id: 'feedback', label: '反馈管理', groupLabel: '反馈', render: () => import('./tabs/secretary/feedback-tab.js?v=20260807h').then(m => m.renderContent()) },
+      { id: 'todo', label: '待办', groupLabel: '工作台', render: () => import('./tabs/secretary/todo-tab.js?v=20260807i').then(m => m.renderContent()) },
+      { id: 'overview', label: '全局概况', render: () => import('./tabs/secretary/overview-tab.js?v=20260807i').then(m => m.renderContent()) },
+      { id: 'calendar', label: '活动管理', groupLabel: '党建', render: () => import('./tabs/secretary/calendar-tab.js?v=20260807i').then(m => m.renderContent(getAppState())) },
+      { id: 'assign', label: '赋权管理', render: () => import('./tabs/secretary/assign-tab.js?v=20260807i').then(m => m.renderContent()) },
+      { id: 'notification', label: '通知发布', groupLabel: '党建', render: () => import('./tabs/secretary/notification-tab.js?v=20260807i').then(m => m.renderContent()) },
+      { id: 'feedback', label: '反馈管理', groupLabel: '反馈', render: () => import('./tabs/secretary/feedback-tab.js?v=20260807i').then(m => m.renderContent()) },
     ],
     accentColor: { accent, accentRgba: 'rgba(185,28,28,0.10)', accentBorder: 'rgba(185,28,28,0.25)' },
     defaultTab: 'todo',

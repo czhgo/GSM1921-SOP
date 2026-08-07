@@ -3,11 +3,11 @@
 //  makeup.js — 补课任务 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus } from '../core/domain.js?v=20260807h';
-import { persist } from '../core/data-adapter.js?v=20260807h';
-import { PEOPLE, getPersonById } from '../mock/index.js?v=20260807h';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260807h';
-import { findActivityById } from '../services/activity.js?v=20260807h';
+import { mockDB, AttendanceStatus } from '../core/domain.js?v=20260807i';
+import { persist } from '../core/data-adapter.js?v=20260807i';
+import { PEOPLE, getPersonById } from '../mock/index.js?v=20260807i';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260807i';
+import { findActivityById } from '../services/activity.js?v=20260807i';
 
 const MANDATORY_ACTIVITY_TYPES = ['支部党员大会', '党小组会', '党课'];
 

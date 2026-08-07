@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  secretary-overview.js — 书记全局概况服务层
 //  四维度信息面板：考勤与纪律 / 发展与考察 / 活动与专班进度 / 宣传与档案
@@ -7,15 +7,15 @@
 //         content/04_web_design/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords } from './attendance.js?v=20260807h';
-import { loadActivities } from './activity.js?v=20260807h';
-import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260807h';
-import { TaskForceRecordStore } from './taskforce.js?v=20260807h';
-import { loadActivityReviews } from './review.js?v=20260807h';
-import { NoticeStore } from './notice.js?v=20260807h';
-import { TodoCategory, TodoActionType } from './todo.js?v=20260807h';
-import { getPersonById, PEOPLE } from '../mock/index.js?v=20260807h';
-import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260807h';
+import { loadAttendanceRecords } from './attendance.js?v=20260807i';
+import { loadActivities } from './activity.js?v=20260807i';
+import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260807i';
+import { TaskForceRecordStore } from './taskforce.js?v=20260807i';
+import { loadActivityReviews } from './review.js?v=20260807i';
+import { NoticeStore } from './notice.js?v=20260807i';
+import { TodoCategory, TodoActionType } from './todo.js?v=20260807i';
+import { getPersonById, PEOPLE } from '../mock/index.js?v=20260807i';
+import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260807i';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数
@@ -232,7 +232,7 @@ export const SecretaryOverviewStore = {
 
 export const SecretaryTodoDeriver = {
 
-  /** 计算书记全部待办聚合卡（8 组） */
+  /** 计算书记全部待办聚合卡（8 组；空组不展示，避免 0 条占位卡） */
   computeAggregates() {
     return [
       ...this._aggAttendanceRemind(),
@@ -243,7 +243,7 @@ export const SecretaryTodoDeriver = {
       ...this._aggInspectionConfirm(),
       ...this._aggReviewConfirm(),
       ...this._aggArchiveConfirm(),
-    ];
+    ].filter(g => g.count > 0);
   },
 
   /** 组装聚合组（groupKey = secretary:{actionKey}） */
