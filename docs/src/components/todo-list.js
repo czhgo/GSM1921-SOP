@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  todo-list.js — 待办列表组件
 //  最小三成本原则落地：进入工作台第一眼即见待办
@@ -39,6 +39,8 @@ export function renderTodoList(opts) {
     onSelectTodo = () => {},
     onCompleteTodo = () => {},
     onActionTodo = () => {},
+    // 聚合待办（TodoStore.getGroupedByAction 返回值）；传入时列表按聚合卡渲染，替代明细列表
+    groupedAggregates = null,
     // 行动按钮自定义内联样式（默认使用角色 accent 实心；visitor 传金色系，T-144 推广轮 2026-08-01）
     actionBtnStyle = '',
   } = opts;
@@ -74,10 +76,27 @@ export function renderTodoList(opts) {
     TodoCategory.TRACK,
   ];
 
-  const groupsHtml = categoryOrder
-    .filter(cat => groupedTodos[cat] && groupedTodos[cat].length > 0)
-    .map(cat => _renderCategoryGroup(prefix, cat, groupedTodos[cat], accent, today, selectedTodoId, actionBtnStyle))
-    .join('');
+  const isAggregateMode = Array.isArray(groupedAggregates);
+
+  let groupsHtml = '';
+  if (isAggregateMode) {
+    // 聚合模式：按分类分组，组内渲染聚合卡
+    const byCat = {};
+    for (const cat of categoryOrder) byCat[cat] = [];
+    for (const g of groupedAggregates) {
+      if (!byCat[g.category]) byCat[g.category] = [];
+      byCat[g.category].push(g);
+    }
+    groupsHtml = categoryOrder
+      .filter(cat => byCat[cat] && byCat[cat].length > 0)
+      .map(cat => _renderAggregateGroup(prefix, cat, byCat[cat], accent, today, selectedTodoId, actionBtnStyle))
+      .join('');
+  } else {
+    groupsHtml = categoryOrder
+      .filter(cat => groupedTodos[cat] && groupedTodos[cat].length > 0)
+      .map(cat => _renderCategoryGroup(prefix, cat, groupedTodos[cat], accent, today, selectedTodoId, actionBtnStyle))
+      .join('');
+  }
 
   const emptyHtml = (!groupsHtml) ? `
     <div class="text-center py-12 text-gray-400">
@@ -119,17 +138,27 @@ export function renderTodoList(opts) {
       });
     });
 
-    // 完成按钮
-    container.querySelectorAll(`.${prefix}-todo-complete-btn`).forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const todoId = btn.dataset.todoId;
-        onCompleteTodo(todoId);
+    // 聚合卡点击
+    container.querySelectorAll(`.${prefix}-todo-item-main[data-group-key]`).forEach(main => {
+      main.addEventListener('click', () => {
+        const groupKey = main.dataset.groupKey;
+        const g = _findGroupInAggregates(groupedAggregates, groupKey);
+        if (g) onSelectTodo(g);
       });
     });
 
-    // 行动按钮（如"去赋权"）
-    container.querySelectorAll(`.${prefix}-todo-action-btn`).forEach(btn => {
+    // 聚合卡行动按钮（"处理"）
+    container.querySelectorAll(`.${prefix}-todo-action-btn[data-group-key]`).forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const groupKey = btn.dataset.groupKey;
+        const g = _findGroupInAggregates(groupedAggregates, groupKey);
+        if (g) onActionTodo(g);
+      });
+    });
+
+    // 行动按钮（如"去赋权"，data-todo-id 限定普通明细按钮）
+    container.querySelectorAll(`.${prefix}-todo-action-btn[data-todo-id]`).forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const todoId = btn.dataset.todoId;
@@ -230,13 +259,82 @@ function _renderTodoItem(prefix, todo, accent, today, selectedTodoId, actionBtnS
         ${hasAction ? `
           <button type="button" class="${prefix}-todo-action-btn text-xs px-3 py-1.5 rounded-lg transition-colors hover:opacity-90" data-todo-id="${todo.id}" style="${actionBtnStyle || `background:${accent};color:#fff;`}">${actionLabel}</button>
         ` : ''}
-        <button type="button" class="${prefix}-todo-complete-btn text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" data-todo-id="${todo.id}" aria-label="标记完成">✓</button>
+      </div>
+    </div>
+  `;
+}
+
+// ── 渲染聚合分类分组 ────────────────────────────────────────
+function _renderAggregateGroup(prefix, category, groups, accent, today, selectedTodoId, actionBtnStyle) {
+  const label = TODO_CATEGORY_LABELS[category] || category;
+  const isExpanded = DEFAULT_EXPANDED_CATEGORIES.has(category);
+  const hasExpired = groups.some(g => g.items.some(t => _isExpired(t, today)));
+
+  const itemsHtml = groups.map(g => _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle)).join('');
+
+  return `
+    <div class="${prefix}-todo-group mb-3" data-category="${category}">
+      <button type="button" class="${prefix}-todo-group-header w-full text-left flex items-center justify-between px-3 py-2 rounded-t-lg cursor-pointer bg-transparent border-0 hover:bg-gray-50 transition-colors">
+        <div class="flex items-center gap-2">
+          <svg class="${prefix}-todo-arrow w-3 h-3 text-gray-400 transition-transform" style="transform:${isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)'};" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+          </svg>
+          <span class="font-title-cn text-sm font-bold text-gray-700">${label}</span>
+          ${hasExpired ? badgeHtml('含过期', 'danger') : ''}
+        </div>
+        <span class="text-xs text-gray-400 tabular-nums">${groups.reduce((s, g) => s + g.count, 0)}</span>
+      </button>
+      <div class="${prefix}-todo-group-items ${isExpanded ? '' : 'hidden'} rounded-b-lg">
+        ${itemsHtml}
+      </div>
+    </div>
+  `;
+}
+
+// ── 渲染单个聚合卡（同跳转目标合并，数量角标 + 处理按钮）──
+function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle) {
+  const isSelected = g.groupKey === selectedTodoId;
+  const hasExpired = g.items.some(t => _isExpired(t, today));
+
+  const actionLabels = {
+    authorize: '去赋权',
+    archive: '去归档',
+    review: '去审核',
+    read: '去阅读',
+    submit: '去提交',
+    track: '去追踪',
+    participate: '去参与',
+  };
+  const actionLabel = actionLabels[g.actionType] || '处理';
+
+  return `
+    <div class="${prefix}-todo-item flex items-center border-b border-gray-50 last:border-b-0" data-group-key="${g.groupKey}">
+      <button type="button" class="${prefix}-todo-item-main flex-1 min-w-0 flex items-center gap-2 px-3 py-2.5 text-left bg-transparent border-0 transition-colors hover:bg-gray-50 ${isSelected ? 'bg-gray-50' : ''}" data-group-key="${g.groupKey}">
+        <span class="flex flex-col items-start gap-0.5 min-w-0 flex-1">
+          <span class="flex items-center gap-1.5 min-w-0 w-full">
+            ${hasExpired ? badgeHtml('含过期', 'danger') : ''}
+            <span class="text-sm font-medium text-gray-800 truncate">${g.title}</span>
+            <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums flex-shrink-0">${g.count}</span>
+          </span>
+          ${g.flow ? `<span class="block text-[11px] text-gray-400 truncate">${g.flow}</span>` : ''}
+        </span>
+        <span class="flex items-center gap-2 flex-shrink-0">
+          ${g.deadline ? `<span class="text-xs ${_isExpired({ status: 'pending', deadline: g.deadline }, today) ? 'text-red-600' : 'text-gray-400'}">${g.deadline}</span>` : ''}
+        </span>
+      </button>
+      <div class="flex items-center gap-1.5 ml-2 pr-3 flex-shrink-0">
+        <button type="button" class="${prefix}-todo-action-btn text-xs px-3 py-1.5 rounded-lg transition-colors hover:opacity-90" data-group-key="${g.groupKey}" style="${actionBtnStyle || `background:${accent};color:#fff;`}">${actionLabel}</button>
       </div>
     </div>
   `;
 }
 
 // ── 工具函数 ──────────────────────────────────────────────────
+function _findGroupInAggregates(groups, groupKey) {
+  if (!Array.isArray(groups)) return null;
+  return groups.find(g => g.groupKey === groupKey) || null;
+}
+
 function _isExpired(todo, today) {
   if (todo.status === 'expired') return true;
   if (todo.status !== 'pending') return false;

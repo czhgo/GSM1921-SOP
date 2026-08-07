@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  service.todo.js — 待办任务服务层
 //  最小三成本原则落地：任务流默认直接展示在工作台
@@ -102,6 +102,19 @@ function _saveTodos(todos) {
   }
 }
 
+/** 今日 YYYY-MM-DD（聚合排序用） */
+function _todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/** 待办是否过期（pending 且 deadline 早于今日） */
+function _isTodoExpired(todo, today) {
+  if (todo.status === 'expired') return true;
+  if (todo.status !== 'pending') return false;
+  if (!todo.deadline) return false;
+  return todo.deadline < today;
+}
+
 // ════════════════════════════════════════════════════════════════
 //  TodoStore — 待办 CRUD + 派生触发
 // ════════════════════════════════════════════════════════════════
@@ -191,6 +204,8 @@ export const TodoStore = {
       sourceId: data.sourceId || null,
       actionType: data.actionType || null,
       actionData: data.actionData || null,
+      // 业务动作标识（聚合键组成：role+actionKey，区分同 actionType 的不同业务域）
+      actionKey: data.actionKey || null,
       // 数据上下游标注（E2：待办项标注数据流，如「组长上传考勤 → 纪检确认 → 考勤总表」；无则列表不显示）
       flow: data.flow || null,
     };
@@ -222,6 +237,8 @@ export const TodoStore = {
         sourceId: data.sourceId || null,
         actionType: data.actionType || null,
         actionData: data.actionData || null,
+        // 业务动作标识（聚合键组成：role+actionKey，同 create）
+        actionKey: data.actionKey || null,
         // 数据上下游标注（E2，同 create）
         flow: data.flow || null,
       };
@@ -288,6 +305,85 @@ export const TodoStore = {
       t => !(t.sourceType === sourceType && t.sourceId === sourceId)
     );
     _saveTodos(todos);
+  },
+
+  // ── 聚合查询与批量销项（2026-08-07 待办闭环化） ─────────────
+
+  /**
+   * 按「角色+业务动作」聚合（展示层聚合，同跳转目标合并为一条聚合卡）
+   * @param {string} role
+   * @returns {Array<{groupKey, actionKey, title, category, actionType, actionData, deadline, flow, count, items}>}
+   */
+  getGroupedByAction(role) {
+    const todos = this.getByRole(role);
+    const today = _todayStr();
+    const map = new Map();
+    for (const t of todos) {
+      // 聚合键 = role:actionKey，actionKey 缺省时按 actionType 兜底
+      const key = `${role}:${t.actionKey || t.actionType || t.category || 'other'}`;
+      if (!map.has(key)) {
+        map.set(key, {
+          groupKey: key,
+          actionKey: t.actionKey || t.actionType || 'other',
+          title: t.title,
+          category: t.category,
+          actionType: t.actionType,
+          actionData: t.actionData,
+          deadline: t.deadline,
+          flow: t.flow,
+          count: 0,
+          items: [],
+        });
+      }
+      const g = map.get(key);
+      g.count++;
+      g.items.push(t);
+      if (t.deadline && (!g.deadline || t.deadline < g.deadline)) g.deadline = t.deadline;
+    }
+    const groups = [...map.values()];
+    // 组内排序：过期优先、截止升序
+    groups.forEach(g => {
+      g.items.sort((a, b) => {
+        const aExp = _isTodoExpired(a, today);
+        const bExp = _isTodoExpired(b, today);
+        if (aExp !== bExp) return aExp ? -1 : 1;
+        return (a.deadline || '9999').localeCompare(b.deadline || '9999');
+      });
+    });
+    return groups;
+  },
+
+  /** 按来源批量标记完成（业务操作联动：纪检确认考勤→销对应待办等） */
+  completeBySource(sourceType, sourceId) {
+    const todos = _loadTodos();
+    let changed = false;
+    const updated = todos.map(t => {
+      if (t.sourceType === sourceType && t.sourceId === sourceId && t.status !== TodoStatus.COMPLETED) {
+        changed = true;
+        return { ...t, status: TodoStatus.COMPLETED, completedAt: new Date().toISOString() };
+      }
+      return t;
+    });
+    if (changed) _saveTodos(updated);
+    return updated;
+  },
+
+  /** 按聚合键批量标记完成（completeBySource 的补充：同 role+actionKey 全部销项） */
+  completeByGroup(groupKey) {
+    const todos = _loadTodos();
+    let changed = false;
+    const [role, ...rest] = String(groupKey).split(':');
+    const actionKey = rest.join(':');
+    const updated = todos.map(t => {
+      const match = t.role === role && (t.actionKey || t.actionType || t.category || 'other') === actionKey;
+      if (match && t.status !== TodoStatus.COMPLETED) {
+        changed = true;
+        return { ...t, status: TodoStatus.COMPLETED, completedAt: new Date().toISOString() };
+      }
+      return t;
+    });
+    if (changed) _saveTodos(updated);
+    return updated;
   },
 
   // ── 过期检查 ──────────────────────────────────────────────
