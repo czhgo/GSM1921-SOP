@@ -296,7 +296,15 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
   const isSelected = g.groupKey === selectedTodoId;
   const hasExpired = g.items.some(t => _isExpired(t, today));
 
+  // 2026-08-07 闭环化：actionKey 优先决定按钮文案（同 actionType 不同业务域区分），actionType 兜底
   const actionLabels = {
+    'attendance-confirm': '去确认',
+    'inspection-confirm': '去确认',
+    'activity-archive': '去归档',
+    'taskforce-archive': '去归档',
+    'notice-read': '去阅读',
+    'review-submit': '去提交',
+    'review-confirm': '去复核',
     authorize: '去赋权',
     archive: '去归档',
     review: '去审核',
@@ -305,7 +313,7 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
     track: '去追踪',
     participate: '去参与',
   };
-  const actionLabel = actionLabels[g.actionType] || '处理';
+  const actionLabel = actionLabels[g.actionKey] || actionLabels[g.actionType] || '处理';
 
   return `
     <div class="${prefix}-todo-item flex items-center border-b border-gray-50 last:border-b-0" data-group-key="${g.groupKey}">
@@ -343,6 +351,7 @@ function _isExpired(todo, today) {
 }
 
 function _findTodoInGrouped(groupedTodos, todoId) {
+  if (!groupedTodos || typeof groupedTodos !== 'object') return null; // 聚合模式下不传 groupedTodos
   for (const cat of Object.keys(groupedTodos)) {
     const found = groupedTodos[cat].find(t => t.id === todoId);
     if (found) return found;

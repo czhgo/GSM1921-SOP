@@ -690,25 +690,6 @@ export const VisitorTodoDeriver = {
 // ════════════════════════════════════════════════════════════════
 
 export const SEED_TODOS = [
-  // 纪检委员待办
-  {
-    id: 'todo_seed_5',
-    title: '确认6月考勤记录',
-    description: '6月各项活动考勤记录已上传，请于7月20日前完成考勤确认与录入考勤总表工作。',
-    role: 'disc-commissioner',
-    category: TodoCategory.REVIEW,
-    priority: 'normal',
-    status: TodoStatus.PENDING,
-    deadline: '2026-07-20',
-    createdAt: '2026-07-10T08:00:00',
-    sourceType: TodoSourceType.NOTICE,
-    sourceId: 'notice-106',
-    actionKey: 'attendance-confirm',
-    actionType: TodoActionType.REVIEW,
-    actionData: { noticeId: 'notice-106' },
-    // E2 数据上下游标注
-    flow: '考勤上传 → 纪检确认 → 考勤总表',
-  },
   // 宣传委员待办
   {
     id: 'todo_seed_6',
@@ -747,9 +728,18 @@ export const SEED_TODOS = [
   },
 ];
 
-/** 初始化种子数据（幂等：按 id 补齐缺失种子，不依赖"全部为空"条件） */
+/** 已废弃种子（T232 闭环化移除：虚假/过期且来源与销项动作不匹配，改由业务数据动态派生） */
+const OBSOLETE_SEED_IDS = new Set(['todo_seed_1', 'todo_seed_2', 'todo_seed_3', 'todo_seed_4', 'todo_seed_5']);
+
+/** 初始化种子数据（幂等：按 id 补齐缺失种子；同时清理已废弃种子，避免残留叠加） */
 export function seedTodos() {
-  const existing = _loadTodos();
+  let existing = _loadTodos();
+  // 清理已废弃种子（用户 localStorage 可能残留旧版本种子）
+  const purged = existing.filter(t => !OBSOLETE_SEED_IDS.has(t.id));
+  if (purged.length !== existing.length) {
+    _saveTodos(purged);
+    existing = purged;
+  }
   const existingIds = new Set(existing.map(t => t.id));
   const missing = SEED_TODOS.filter(t => !existingIds.has(t.id));
   if (missing.length === 0) return;

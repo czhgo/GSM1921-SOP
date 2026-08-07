@@ -16,7 +16,7 @@ import { loadActivities } from '../services/activity.js?v=20260807h';
 import { loadActivityReviews, loadTaskforceReviews, updateReviewById } from '../services/review.js?v=20260807h';
 import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807h';
 import { renderTodoList } from '../components/todo-list.js?v=20260807h';
-import { TodoStore, TodoSourceType } from '../services/todo.js?v=20260807h';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../services/todo.js?v=20260807h';
 import { enhanceSelects } from '../components/custom-select.js?v=20260807h';
 import { badgeHtml } from '../components/badge.js?v=20260807h';
 
@@ -117,10 +117,12 @@ function _renderTodoContent() {
   const container = document.getElementById('disc-tab-content');
   if (!container) return;
 
+  // 补种子 + 清理废弃种子（T232 闭环化）
+  seedTodos();
   TodoStore.refreshExpiredStatus();
 
-  _todoAggregates = TodoStore.getGroupedByAction('disc-commissioner');
-  const stats = TodoStore.getStatsByRole('disc-commissioner');
+  _todoAggregates = _buildDiscAggregates();
+  const stats = _buildDiscStats(_todoAggregates);
   const selectedTodo = _selectedTodoId ? (
     _todoAggregates.find(g => g.groupKey === _selectedTodoId) || TodoStore.getById(_selectedTodoId)
   ) : null;
@@ -167,6 +169,67 @@ function _renderTodoContent() {
 
   bindEvents(container);
   _bindTodoDetailEvents();
+}
+
+// ── 纪检聚合构建（2026-08-07 闭环化） ────────────────────────
+// 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降，
+// 不再依赖过期种子待办（种子来源与销项动作不匹配，无法闭环）。
+function _buildDiscAggregates() {
+  const todoGroups = TodoStore.getGroupedByAction('disc-commissioner');
+  const dynamic = [];
+  // 动态组1：考勤待确认（recordedBy 为空 = 纪检未确认）
+  const pendingAtt = loadAttendanceRecords().filter(r => !r.recordedBy);
+  if (pendingAtt.length > 0) {
+    dynamic.push({
+      groupKey: 'disc-commissioner:attendance-confirm',
+      actionKey: 'attendance-confirm',
+      title: '考勤待确认',
+      category: TodoCategory.REVIEW,
+      actionType: TodoActionType.REVIEW,
+      flow: '考勤上传 → 纪检确认 → 考勤总表',
+      deadline: null,
+      count: pendingAtt.length,
+      items: pendingAtt.map(r => ({ id: r.id, title: `确认考勤：${getPersonName(r.personId)}`, sourceType: TodoSourceType.ACTIVITY, sourceId: r.activityId })),
+    });
+  }
+  // 动态组2：考察待确认（status 非 confirmed）
+  const pendingInsp = loadInspectionRecords().filter(r => r.status !== 'confirmed');
+  if (pendingInsp.length > 0) {
+    dynamic.push({
+      groupKey: 'disc-commissioner:inspection-confirm',
+      actionKey: 'inspection-confirm',
+      title: '考察待确认',
+      category: TodoCategory.REVIEW,
+      actionType: TodoActionType.REVIEW,
+      flow: '纪检录入考察 → 纪检确认 → 组织建档',
+      deadline: null,
+      count: pendingInsp.length,
+      items: pendingInsp.map(r => ({ id: r.id, title: `确认考察：${getPersonName(r.personId)}`, sourceType: TodoSourceType.ACTIVITY, sourceId: r.activityId ? `insp_${r.id}` : null })),
+    });
+  }
+  // 合并：同 groupKey 时并集（TodoStore 派生组 + 动态组），取最早截止
+  const map = new Map();
+  for (const g of [...todoGroups, ...dynamic]) {
+    if (!map.has(g.groupKey)) { map.set(g.groupKey, g); continue; }
+    const cur = map.get(g.groupKey);
+    cur.items = [...(cur.items || []), ...(g.items || [])];
+    cur.count = cur.items.length;
+    if (g.deadline && (!cur.deadline || g.deadline < cur.deadline)) cur.deadline = g.deadline;
+  }
+  return [...map.values()];
+}
+
+/** 纪检聚合统计（总数 = 聚合卡数量之和；过期 = 明细有截止且已过期的条目） */
+function _buildDiscStats(aggregates) {
+  const today = new Date().toISOString().slice(0, 10);
+  const total = aggregates.reduce((s, g) => s + g.count, 0);
+  let expired = 0;
+  for (const g of aggregates) {
+    for (const it of g.items || []) {
+      if (it.deadline && it.deadline < today && it.status !== 'completed') expired++;
+    }
+  }
+  return { _total: total, _expired: expired };
 }
 
 function _renderTodoDetail(todo) {
@@ -222,18 +285,21 @@ function _renderTodoDetail(todo) {
 }
 
 function _handleTodoAction(todo) {
-  // 根据 actionType 跳转到对应 tab
-  const tabMap = {
-    review: 'review',
-    submit: 'attendance',
-    confirm: 'inspection',
+  // 2026-08-07 闭环化：聚合对象优先按 actionKey 跳转（区分同 actionType 的业务域），普通明细按 actionType 兜底
+  const jump = {
+    'attendance-confirm': { tab: 'attendance', label: '考勤管理' },
+    'inspection-confirm': { tab: 'inspection', label: '考察管理' },
+    'review-submit':      { tab: 'review', label: '活动监督复盘' },
+    'review-confirm':     { tab: 'review', label: '活动监督复盘' },
+    review:   { tab: 'review', label: '活动监督复盘' },
+    submit:   { tab: 'attendance', label: '考勤管理' },
+    confirm:  { tab: 'inspection', label: '考察管理' },
   };
-  const targetTab = tabMap[todo.actionType];
-  if (targetTab) {
-    const btn = document.querySelector(`.disc-tab-btn[data-disc-tab="${targetTab}"]`);
+  const target = jump[todo.actionKey] || jump[todo.actionType];
+  if (target) {
+    const btn = document.querySelector(`.disc-tab-btn[data-disc-tab="${target.tab}"]`);
     if (btn) btn.click();
-    const tabLabel = todo.actionType === 'review' ? '活动监督复盘' : todo.actionType === 'submit' ? '考勤管理' : '考察管理';
-    showToast('info', `已跳转到${tabLabel}，请处理：${todo.title}`);
+    showToast('info', `已跳转到${target.label}，请处理：${todo.title}`);
   } else {
     showToast('info', `请处理：${todo.title}`);
   }
