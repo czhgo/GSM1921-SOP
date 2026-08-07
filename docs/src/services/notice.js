@@ -11,6 +11,7 @@ import { MOCK_NOTICES } from '../mock/index.js?v=20260807b';
 import { showToast, getBasePath } from '../core/utils.js?v=20260807b';
 import { AuthStore } from './auth.js?v=20260807b';
 import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260807b';
+import { badgeHtml } from '../components/badge.js?v=20260807b';
 
 const NOTICE_STORAGE_KEY = 'workflowos_notices_v1';
 
@@ -280,8 +281,8 @@ export function renderNoticeList(containerId, limit = 5) {
   }
 
   const priorityBadge = {
-    urgent: '<span class="px-1.5 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-700">紧急</span>',
-    normal: '<span class="px-1.5 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-700">重要</span>',
+    urgent: badgeHtml('紧急', 'gold'),
+    normal: badgeHtml('重要', 'info'),
   };
 
   container.innerHTML = notices.map(n => `
@@ -336,8 +337,8 @@ function _showNoticePopover(notice, triggerBtn) {
   if (existing) existing.remove();
 
   const priorityBadge = {
-    urgent: '<span class="px-1.5 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-700">紧急</span>',
-    normal: '<span class="px-1.5 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-700">重要</span>',
+    urgent: badgeHtml('紧急', 'gold'),
+    normal: badgeHtml('重要', 'info'),
   };
 
   const popover = document.createElement('div');

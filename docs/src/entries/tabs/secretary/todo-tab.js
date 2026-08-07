@@ -6,6 +6,7 @@ import { showToast } from '../../../core/utils.js?v=20260807b';
 import { renderTodoList } from '../../../components/todo-list.js?v=20260807b';
 import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260807b';
 import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260807b';
+import { badgeHtml } from '../../../components/badge.js?v=20260807b';
 
 const accent = '#B91C1C';
 
@@ -107,7 +108,7 @@ function renderTodoDetail(todo) {
       <div>
         <div class="flex items-center gap-2 mb-2">
           <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-          ${todo.priority === 'urgent' ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
+          ${todo.priority === 'urgent' ? badgeHtml('紧急', 'warning') : ''}
         </div>
         <p class="font-title-cn text-sm font-bold text-gray-800">${todo.title}</p>
       </div>

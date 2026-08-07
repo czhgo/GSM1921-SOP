@@ -17,6 +17,7 @@ import { icon } from '../core/icons.js?v=20260807b';
 import { renderQueryView } from '../components/query-view.js?v=20260807b';
 import { renderTodoList } from '../components/todo-list.js?v=20260807b';
 import { TodoStore, seedTodos, VisitorTodoDeriver } from '../services/todo.js?v=20260807b';
+import { badgeHtml } from '../components/badge.js?v=20260807b';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'participant' });
 
@@ -238,11 +239,12 @@ function _buildPersonnelFromTf(tf, authRecords) {
 }
 
 function _actStatusLabel(status) {
-  const map = { completed: '已完成', ongoing: '进行中', published: '已发布', draft: '草稿', cancelled: '已取消' };
+  // 2026-08-07：活动状态与全站生命周期语义对齐（"已完成"不再是活动字面状态）
+  const map = { completed: '已执行', ongoing: '进行中', published: '已发布', draft: '草稿', cancelled: '已取消' };
   return map[status] || status || '进行中';
 }
 function _actStatusColor(status) {
-  const map = { completed: 'bg-gray-100 text-gray-600', ongoing: 'bg-green-100 text-green-700', published: 'bg-blue-100 text-blue-700', draft: 'bg-yellow-100 text-yellow-700', cancelled: 'bg-red-100 text-red-600' };
+  const map = { completed: 'bg-green-100 text-green-700', ongoing: 'bg-green-100 text-green-700', published: 'bg-blue-100 text-blue-700', draft: 'bg-yellow-100 text-yellow-700', cancelled: 'bg-red-100 text-red-600' };
   return map[status] || 'bg-gray-100 text-gray-500';
 }
 function _tfStatusLabel(status) {
@@ -285,9 +287,9 @@ function _renderProjectCard(project) {
       </div>
       ${project.personnel.length > 0 ? `
         <div class="flex flex-wrap gap-1.5">
-          ${organizers.map(p => `<span class="inline-flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full" style="${_personnelRoleColor(p.role)}">${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
-          ${deepParticipants.map(p => `<span class="inline-flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full" style="${_personnelRoleColor(p.role)}">${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
-          ${others.map(p => `<span class="inline-flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full" style="${_personnelRoleColor(p.role)}">${p.name}</span>`).join('')}
+          ${organizers.map(p => `<span class="badge inline-flex items-center gap-0.5" style="${_personnelRoleColor(p.role)}">${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
+          ${deepParticipants.map(p => `<span class="badge inline-flex items-center gap-0.5" style="${_personnelRoleColor(p.role)}">${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
+          ${others.map(p => `<span class="badge inline-flex items-center gap-0.5" style="${_personnelRoleColor(p.role)}">${p.name}</span>`).join('')}
         </div>
       ` : '<p class="text-xs text-gray-400">暂无人员</p>'}
     </div>
@@ -349,7 +351,7 @@ function _renderActListView(sorted, highlightId) {
                 <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
                 <p class="text-xs text-gray-500 mt-0.5">${a.date || '待定'} · ${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
               </div>
-              ${isHL ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 flex-shrink-0">当前</span>' : ''}
+              ${isHL ? badgeHtml('当前', 'info') : ''}
             </div>
           `;
         }).join('')}
@@ -401,7 +403,7 @@ function _renderActCalendarView(sorted, highlightId) {
                     <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
                     <p class="text-xs text-gray-500 mt-0.5">${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
                   </div>
-                  ${isHL ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 flex-shrink-0 mt-0.5">当前</span>' : ''}
+                  ${isHL ? badgeHtml('当前', 'info') : ''}
                 </div>
               `;
             }).join('')}
@@ -442,7 +444,7 @@ function _renderActQueryView(sorted, highlightId) {
             <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
             <p class="text-xs text-gray-500 mt-0.5">${a.date || '待定'} · ${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
           </div>
-          ${isHL ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 flex-shrink-0">当前</span>' : ''}
+          ${isHL ? badgeHtml('当前', 'info') : ''}
         </div>
       `;
     },
@@ -563,8 +565,8 @@ function _renderMyInspection() {
       <div class="p-3 rounded-lg bg-white hover:shadow-sm transition-shadow">
         <div class="flex items-center justify-between mb-1.5">
           <div class="flex items-center gap-2">
-            <span class="px-1.5 py-0.5 text-xs font-medium rounded bg-amber-50 text-amber-700">${sourceLabel}</span>
-            <span class="px-1.5 py-0.5 text-xs font-medium rounded" style="background:${lc.bg};color:${lc.text};border:1px solid ${lc.border};">${levelLabel}</span>
+            ${badgeHtml(sourceLabel, 'neutral')}
+            <span class="badge" style="background:${lc.bg};color:${lc.text};border:1px solid ${lc.border};">${levelLabel}</span>
           </div>
           <span class="px-1.5 py-0.5 text-xs font-medium rounded-full ${statusCls}">${statusText}</span>
         </div>
@@ -665,7 +667,7 @@ function _renderTodoDetail(todo) {
       <div>
         <div class="flex items-center gap-2 mb-2">
           <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-          ${todo.priority === 'urgent' ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
+          ${todo.priority === 'urgent' ? badgeHtml('紧急', 'warning') : ''}
         </div>
         <p class="font-title-cn text-sm font-bold text-gray-800">${todo.title}</p>
       </div>

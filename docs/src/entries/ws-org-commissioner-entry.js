@@ -19,6 +19,7 @@ import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js
 import { renderTodoList } from '../components/todo-list.js?v=20260807b';
 import { TodoStore, seedTodos } from '../services/todo.js?v=20260807b';
 import { NoticeStore } from '../services/notice.js?v=20260807b';
+import { badgeHtml } from '../components/badge.js?v=20260807b';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'org-commissioner' });
 
@@ -209,7 +210,7 @@ function _renderTodoDetail(todo) {
       <div>
         <div class="flex items-center gap-2 mb-2">
           <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-          ${todo.priority === 'urgent' ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
+          ${todo.priority === 'urgent' ? badgeHtml('紧急', 'warning') : ''}
         </div>
         <p class="font-title-cn text-sm font-bold text-gray-800">${todo.title}</p>
       </div>
@@ -405,7 +406,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
               <div class="flex items-center justify-between">
                 <span class="text-xs font-medium text-gray-700">${_personName(m.personId)}</span>
                 <div class="flex items-center gap-2">
-                  <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">${m.role || '深度参与者'}</span>
+                  ${badgeHtml(m.role || '深度参与者', 'neutral')}
                   <span class="text-xs text-gray-400">贡献 ${contribCount} 项</span>
                 </div>
               </div>
@@ -752,7 +753,7 @@ function _renderTfCard(t, statusLabel, statusColor) {
     <div class="kanban-card p-4 rounded-xl bg-white cursor-pointer tf-store-card hover:shadow-sm transition-shadow" data-tf-id="${t.id}">
       <div class="flex items-start justify-between gap-2 mb-2">
         <span class="text-sm font-semibold text-gray-800 leading-snug">${t.name}</span>
-        <span class="text-xs px-1.5 py-0.5 rounded-full font-medium" style="background:${color}15;color:${color};">${statusLabel[t.status] || t.status}</span>
+        <span class="badge" style="background:${color}15;color:${color};">${statusLabel[t.status] || t.status}</span>
       </div>
       <p class="text-xs text-gray-500 mb-2 line-clamp-2">${t.task}</p>
       <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
@@ -1011,8 +1012,8 @@ function _renderActivityProgress(activities) {
     renderRow: (a) => {
       const isArchived = a.status === 'completed';
       const statusTag = isArchived
-        ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">已归档</span>'
-        : '<span class="text-xs px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">已发布</span>';
+        ? badgeHtml('已归档', 'neutral')
+        : badgeHtml('已发布', 'success');
       const completeBtn = !isArchived
         ? `<button class="track-complete-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors" data-act-id="${a.id}">确认完成</button>`
         : '';
@@ -1122,7 +1123,7 @@ function _renderDevelopmentContent() {
                     <span class="text-xs px-1.5 py-0.5 rounded-full ${sc.bg} ${sc.text} font-medium">${c.stage}</span>
                     ${c.partyGroup ? `<span class="text-xs text-gray-400">${c.partyGroup}</span>` : ''}
                     <span class="text-xs text-gray-400">进入当前阶段：${c.entryDate}</span>
-                    ${c.inspCount > 0 ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600">考察 ${c.inspCount}</span>` : ''}
+                    ${c.inspCount > 0 ? badgeHtml(`考察 ${c.inspCount}`, 'info') : ''}
                   </div>
                 </div>
                 ${advanceBtn}
@@ -1247,7 +1248,7 @@ function _renderTalentContent() {
           </div>
           <div class="flex items-center gap-2">
             <span class="text-xs px-1.5 py-0.5 rounded-full ${colorCls}">${p.developStage || ''}</span>
-            ${p.inspCount > 0 ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600">考察 ${p.inspCount}</span>` : ''}
+            ${p.inspCount > 0 ? badgeHtml(`考察 ${p.inspCount}`, 'info') : ''}
           </div>
         </div>
       `;
@@ -1308,7 +1309,7 @@ function _renderTalentDetail(personId) {
         <div class="flex items-center gap-2 mt-1">
           <span class="text-xs px-1.5 py-0.5 rounded-full ${colorCls}">${person.developStage || ''}</span>
           <span class="text-xs text-gray-500">${person.partyGroup || ''}</span>
-          ${roleLabel[person.role] ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-600">${roleLabel[person.role]}</span>` : ''}
+          ${roleLabel[person.role] ? badgeHtml(roleLabel[person.role], 'info') : ''}
         </div>
       </div>
       <button id="talent-detail-close" class="text-gray-400 hover:text-gray-600 transition-colors" style="cursor:pointer;">${icon('close', { stroke: '#6B7280', className: 'w-3.5 h-3.5' })}</button>

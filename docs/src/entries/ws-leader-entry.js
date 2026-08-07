@@ -19,6 +19,7 @@ import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, add
 import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807b';
 import { TodoStore, seedTodos } from '../services/todo.js?v=20260807b';
 import { AuthStore } from '../services/auth.js?v=20260807b';
+import { badgeHtml } from '../components/badge.js?v=20260807b';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'leader' });
 
@@ -175,7 +176,7 @@ function _renderTodoDetail(todo) {
       <div>
         <div class="flex items-center gap-2 mb-2">
           <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-          ${todo.priority === 'urgent' ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
+          ${todo.priority === 'urgent' ? badgeHtml('紧急', 'warning') : ''}
         </div>
         <p class="font-title-cn text-sm font-bold text-gray-800">${todo.title}</p>
       </div>
@@ -265,7 +266,7 @@ function _renderWriteContent(activities) {
                   <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
                   <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
                 </div>
-                <span class="text-xs px-1.5 py-0.5 rounded-full ${a.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${a.status === 'published' ? '已发布' : '草稿'}</span>
+                ${badgeHtml(a.status === 'published' ? '已发布' : '草稿', a.status === 'published' ? 'success' : 'warning')}
               </div>
             `).join('')}
         </div>
@@ -993,12 +994,12 @@ function _renderAttendanceContent() {
               </div>
               <div class="flex items-center gap-2">
                 ${t.isMandatory
-                  ? '<span class="text-xs px-1.5 py-0.5 rounded bg-red-50 text-red-600">必须</span>'
-                  : '<span class="text-xs px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">建议</span>'
+                  ? badgeHtml('必须', 'danger')
+                  : badgeHtml('建议', 'info')
                 }
                 ${t.status === 'overdue'
-                  ? '<span class="text-xs px-1.5 py-0.5 rounded bg-red-100 text-red-700">超期</span>'
-                  : '<span class="text-xs px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">待补课</span>'
+                  ? badgeHtml('超期', 'danger')
+                  : badgeHtml('待补课', 'warning')
                 }
               </div>
             </div>

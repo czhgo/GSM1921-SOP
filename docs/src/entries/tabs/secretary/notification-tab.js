@@ -5,6 +5,7 @@
 
 import { NoticeStore } from '../../../services/notice.js?v=20260807b';
 import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260807b';
+import { badgeHtml } from '../../../components/badge.js?v=20260807b';
 
 const NOTIFICATION_TAB_HTML = `
   <div class="card rounded-2xl p-6 mb-6">
@@ -176,7 +177,7 @@ function renderNotificationList() {
         <div class="flex items-center justify-between mb-1">
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-gray-800">${n.title}</span>
-            <span class="text-xs px-1.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200">${audienceLabel}</span>
+            ${badgeHtml(audienceLabel, 'warning')}
           </div>
           <button data-notif-action="delete" data-notif-id="${n.id}" class="text-xs text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50">删除</button>
         </div>

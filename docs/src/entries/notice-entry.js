@@ -7,6 +7,7 @@ import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260807b
 import { getBasePath, showToast } from '../core/utils.js?v=20260807b';
 import { AuthStore } from '../services/auth.js?v=20260807b';
 import { getPersonById } from '../mock/index.js?v=20260807b';
+import { badgeHtml } from '../components/badge.js?v=20260807b';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -107,7 +108,7 @@ function renderNoticeDetail(n) {
     <div class="mb-5 pb-4 border-b border-gray-100">
       <div class="flex items-center gap-2.5 mb-3">
         <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full ${pri.bg} ${pri.text}">${pri.label}</span>
-        ${isUnread ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 text-amber-700">未读</span>' : ''}
+        ${isUnread ? badgeHtml('未读', 'warning') : ''}
       </div>
 
       <!-- 通知者 / 被通知者 / 时间 —— 信息条，非邮箱 UI -->

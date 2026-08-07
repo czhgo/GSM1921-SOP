@@ -13,6 +13,7 @@ import {
   TODO_STATUS_LABELS,
   DEFAULT_EXPANDED_CATEGORIES,
 } from '../services/todo.js?v=20260807b';
+import { badgeHtml } from './badge.js?v=20260807b';
 
 /**
  * 渲染待办列表组件
@@ -157,7 +158,7 @@ function _renderCategoryGroup(prefix, category, todos, accent, today, selectedTo
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
           </svg>
           <span class="font-title-cn text-sm font-bold text-gray-700">${label}</span>
-          ${hasExpired ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-red-100 text-red-600">含过期</span>` : ''}
+          ${hasExpired ? badgeHtml('含过期', 'danger') : ''}
         </div>
         <span class="text-xs text-gray-400 tabular-nums">${todos.length}</span>
       </button>
@@ -200,8 +201,8 @@ function _renderTodoItem(prefix, todo, accent, today, selectedTodoId, actionBtnS
   const actionLabel = actionLabels[todo.actionType] || '处理';
 
   const flagHtml =
-    (isExpired ? '<span class="text-xs px-1 py-0.5 rounded bg-red-100 text-red-600 font-medium flex-shrink-0">过期</span>' : '') +
-    (isUrgent && !isExpired ? '<span class="text-xs px-1 py-0.5 rounded bg-orange-100 text-orange-600 font-medium flex-shrink-0">紧急</span>' : '');
+    (isExpired ? badgeHtml('过期', 'danger') : '') +
+    (isUrgent && !isExpired ? badgeHtml('紧急', 'warning') : '');
 
   // 数据上下游标注（E2：标题下内嵌小字展示，无 flow 不显示）
   const flowHtml = todo.flow

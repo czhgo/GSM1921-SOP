@@ -9,6 +9,7 @@ import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260807b
 import { PersonPicker } from '../../../components/person-picker.js?v=20260807b';
 import { ROLE_LABELS } from '../../../core/constants.js?v=20260807b';
 import { loadActivities } from '../../../services/activity.js?v=20260807b';
+import { badgeHtml } from '../../../components/badge.js?v=20260807b';
 
 const accent = '#B91C1C';
 
@@ -79,7 +80,7 @@ function renderAssignLeaders() {
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2 flex-wrap">
             <span class="text-sm font-medium text-gray-700">${personName}</span>
-            <span class="text-xs font-medium px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">党小组组长</span>
+            ${badgeHtml('党小组组长', 'danger')}
             ${preset ? '<span class="text-xs text-gray-400">预设</span>' : ''}
           </div>
           <p class="text-xs text-gray-400 mt-0.5">${groupName}${record ? ' · ' + record.authorizedAt : ''}</p>
@@ -234,7 +235,7 @@ function renderProjectAuthRecords() {
         <div>
           <span class="text-sm font-medium text-gray-700">${personName}</span>
           <span class="text-xs text-gray-500 ml-2">${projectName}</span>
-          <span class="text-xs px-1.5 py-0.5 rounded ml-2" style="background:#FEE2E2;color:#9B0000;">${roleLabel}</span>
+          <span class="badge ml-2" style="background:#FEE2E2;color:#9B0000;">${roleLabel}</span>
           <span class="text-xs text-gray-400 ml-2">${r.authorizedAt || ''}</span>
         </div>
         <button type="button" class="revoke-project-auth text-xs text-gray-400 hover:text-red-600" data-record-id="${r.id}">撤销</button>
@@ -460,7 +461,7 @@ function renderAuthRecords() {
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2 flex-wrap">
               <span class="text-sm font-medium text-gray-700">${personName}</span>
-              <span class="text-xs font-medium px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">党小组组长</span>
+              ${badgeHtml('党小组组长', 'danger')}
             </div>
             <p class="text-xs text-gray-400 mt-0.5">${groupName}${record ? ' · ' + (record.authorizedAt || '') : ''}</p>
           </div>

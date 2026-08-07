@@ -6,6 +6,7 @@ import { AuthStore } from '../services/auth.js?v=20260807b';
 import { icon } from '../core/icons.js?v=20260807b';
 import { getPersonName } from '../mock/index.js?v=20260807b';
 import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260807b';
+import { badgeHtml } from './badge.js?v=20260807b';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -75,12 +76,12 @@ export function renderIssueList() {
 
 function renderIssueRow(issue) {
   const typeBadges = (issue.types || []).map(t =>
-    `<span class="text-xs px-1.5 py-0.5 rounded-full font-medium" style="background:${(TYPE_COLORS[t] || '#6B7280')}15;color:${TYPE_COLORS[t] || '#6B7280'}">${TYPE_LABELS[t] || t}</span>`
+    `<span class="badge" style="background:${(TYPE_COLORS[t] || '#6B7280')}15;color:${TYPE_COLORS[t] || '#6B7280'}">${TYPE_LABELS[t] || t}</span>`
   ).join('');
 
   const statusBadge = issue.status === 'open'
-    ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-green-50 text-green-700 font-medium">开放中</span>'
-    : `<span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">已关闭 · ${ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || '已解决'}</span>`;
+    ? badgeHtml('开放中', 'success')
+    : badgeHtml(`已关闭 · ${ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || '已解决'}`, 'neutral');
 
   const reactions = Object.entries(issue.reactions || {}).filter(([_, list]) => list.length > 0).map(([type, list]) => {
     const iconName = { thumbsUp: 'thumbsUp', thumbsDown: 'thumbsDown', eyes: 'eyes', hooray: 'hooray' }[type];

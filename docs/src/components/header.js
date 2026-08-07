@@ -8,6 +8,7 @@ import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260807b
 import { getBasePath } from '../core/utils.js?v=20260807b';
 import { icon } from '../core/icons.js?v=20260807b';
 import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260807b';
+import { badgeHtml } from './badge.js?v=20260807b';
 
 // 数据变更订阅（2026-08-05，消除"确认已读后角标不更新"）：
 // 模块顶层绑定一次；_renderNotificationBadge 在 #notification-bell 未渲染时静默返回。
@@ -356,8 +357,8 @@ function _bindNotificationBell(header) {
       }
 
       const priorityBadge = {
-        urgent: '<span style="display:inline-block;padding:1px 6px;font-weight:500;border-radius:9999px;background:#FEE2E2;color:#B91C1C;" class="text-xs">紧急</span>',
-        normal: '<span style="display:inline-block;padding:1px 6px;font-weight:500;border-radius:9999px;background:#DBEAFE;color:#1D4ED8;" class="text-xs">重要</span>',
+        urgent: badgeHtml('紧急', 'gold'),
+        normal: badgeHtml('重要', 'info'),
       };
 
       dropdown.innerHTML = notices.slice(0, 10).map(n => `

@@ -9,6 +9,7 @@ import { icon } from '../../../core/icons.js?v=20260807b';
 import { AuthStore } from '../../../services/auth.js?v=20260807b';
 import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260807b';
 import { getPersonName } from '../../../mock/index.js?v=20260807b';
+import { badgeHtml, badgeVariantClass } from '../../../components/badge.js?v=20260807b';
 
 const FEEDBACK_TAB_HTML = `
   <!-- 列表面板 -->
@@ -16,7 +17,7 @@ const FEEDBACK_TAB_HTML = `
     <div class="flex items-center justify-between mb-4">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">反馈管理</h3>
       <div class="flex items-center gap-2 text-xs">
-        <span id="issue-summary-pill" class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">0 条</span>
+        <span id="issue-summary-pill" class="badge ${badgeVariantClass('neutral')}">0 条</span>
       </div>
     </div>
     <p class="text-xs text-gray-500 mb-4">开源讨论集思广益；书记保留处置权（指派/审核/状态/隐藏/合并）</p>
@@ -25,7 +26,7 @@ const FEEDBACK_TAB_HTML = `
     <details class="mb-4 rounded-lg border border-orange-200 bg-orange-50/40" id="issue-drafts-details">
       <summary class="px-3 py-2 cursor-pointer text-sm font-medium text-orange-700 flex items-center justify-between">
         <span>待审核草稿</span>
-        <span id="issue-drafts-count" class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">0</span>
+        <span id="issue-drafts-count" class="badge ${badgeVariantClass('warning')}">0</span>
       </summary>
       <div id="issue-drafts-list" class="px-3 pb-3 space-y-2"></div>
     </details>
@@ -147,9 +148,9 @@ function renderIssueManagement() {
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs text-gray-400 font-mono">#${i.number}</span>
               <div class="flex items-center gap-1.5">
-                ${isReviewUnread ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">待终审</span>' : ''}
+                ${isReviewUnread ? badgeHtml('待终审', 'warning') : ''}
                 <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>
-                ${assigneeLabel ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600">→${assigneeLabel}</span>` : ''}
+                ${assigneeLabel ? badgeHtml(`→${assigneeLabel}`, 'info') : ''}
               </div>
             </div>
             <p class="text-sm text-gray-800 font-medium">${i.title}</p>
@@ -285,7 +286,7 @@ function renderIssueDetail(issueId) {
   html += `<div class="flex items-center gap-2">`;
   html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
   if (issue.assignee) {
-    html += `<span class="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">→${assigneeLabel}</span>`;
+    html += badgeHtml(`→${assigneeLabel}`, 'info');
   }
   html += `</div></div>`;
 

@@ -9,6 +9,7 @@ import { icon } from '../core/icons.js?v=20260807b';
 import { getPersonName } from '../mock/index.js?v=20260807b';
 import { renderReactions, bindReactions } from './reactions.js?v=20260807b';
 import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260807b';
+import { badgeHtml } from './badge.js?v=20260807b';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -71,8 +72,8 @@ export function renderIssueDetail(issueId) {
           <div class="flex items-center gap-2 mb-3">
             <span class="text-xs text-gray-400 font-mono">#${issue.number}</span>
             ${issue.status === 'open'
-              ? '<span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700 font-medium">开放中</span>'
-              : `<span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">已关闭 · ${ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || '已解决'}</span>`
+              ? badgeHtml('开放中', 'success')
+              : badgeHtml(`已关闭 · ${ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || '已解决'}`, 'neutral')
             }
           </div>
 
@@ -80,7 +81,7 @@ export function renderIssueDetail(issueId) {
 
           <div class="flex items-center gap-2 mb-4 text-xs text-gray-500 flex-wrap">
             ${(issue.types || []).map(t =>
-              `<span class="px-1.5 py-0.5 rounded-full font-medium" style="background:${(TYPE_COLORS[t] || '#6B7280')}15;color:${TYPE_COLORS[t] || '#6B7280'}">${TYPE_LABELS[t] || t}</span>`
+              `<span class="badge" style="background:${(TYPE_COLORS[t] || '#6B7280')}15;color:${TYPE_COLORS[t] || '#6B7280'}">${TYPE_LABELS[t] || t}</span>`
             ).join('')}
             <span>·</span>
             <span>${SCOPE_LABELS[issue.scope] || issue.scope}</span>
@@ -147,9 +148,9 @@ export function renderIssueDetail(issueId) {
           <div class="mb-3">
             <p class="text-gray-400 mb-1">标签</p>
             <div class="flex flex-wrap gap-1">
-              <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 font-sans">${SCOPE_LABELS[issue.scope] || issue.scope}</span>
+              ${badgeHtml(SCOPE_LABELS[issue.scope] || issue.scope, 'neutral')}
               ${(issue.types || []).map(t =>
-                `<span class="text-xs px-1.5 py-0.5 rounded-full font-medium" style="background:${(TYPE_COLORS[t] || '#6B7280')}15;color:${TYPE_COLORS[t] || '#6B7280'}">${TYPE_LABELS[t] || t}</span>`
+                `<span class="badge" style="background:${(TYPE_COLORS[t] || '#6B7280')}15;color:${TYPE_COLORS[t] || '#6B7280'}">${TYPE_LABELS[t] || t}</span>`
               ).join('')}
             </div>
           </div>

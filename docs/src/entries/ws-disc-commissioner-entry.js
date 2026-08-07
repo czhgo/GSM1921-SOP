@@ -18,6 +18,7 @@ import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js
 import { renderTodoList } from '../components/todo-list.js?v=20260807b';
 import { TodoStore } from '../services/todo.js?v=20260807b';
 import { enhanceSelects } from '../components/custom-select.js?v=20260807b';
+import { badgeHtml } from '../components/badge.js?v=20260807b';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'disc-commissioner' });
 
@@ -191,7 +192,7 @@ function _renderTodoDetail(todo) {
       <div>
         <div class="flex items-center gap-2 mb-2">
           <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-          ${todo.priority === 'urgent' ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
+          ${todo.priority === 'urgent' ? badgeHtml('紧急', 'warning') : ''}
         </div>
         <p class="font-title-cn text-sm font-bold text-gray-800">${todo.title}</p>
       </div>
@@ -291,8 +292,8 @@ function _buildDiscDecisionPanelHTML(filterActivityId) {
         const act = actById.get(r.activityId);
         const isOverdue = overdueItems.some(o => o.id === r.id);
         const statusBadge = r.status === AttendanceStatus.ABSENT
-          ? '<span class="px-1.5 py-0.5 rounded-full text-xs bg-red-100 text-red-700">缺勤</span>'
-          : '<span class="px-1.5 py-0.5 rounded-full text-xs bg-orange-100 text-orange-700">请假</span>';
+          ? badgeHtml('缺勤', 'danger')
+          : badgeHtml('请假', 'warning');
         return `
           <div class="flex items-center gap-3 py-1.5 px-2 rounded-lg ${isOverdue ? 'bg-red-50/40' : 'bg-orange-50/20'}">
             <div class="flex-1 min-w-0">
@@ -300,7 +301,7 @@ function _buildDiscDecisionPanelHTML(filterActivityId) {
               <p class="text-xs text-gray-400 truncate">${act ? act.title : ''}${act && act.date ? ' · ' + act.date : ''}</p>
             </div>
             ${statusBadge}
-            ${isOverdue ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">超期</span>' : ''}
+            ${isOverdue ? badgeHtml('超期', 'danger') : ''}
             <button class="btn-action btn-action-orange btn-disc-confirm-dash text-xs" data-record-id="${r.id}">确认</button>
           </div>
         `;
@@ -474,7 +475,7 @@ function _renderAttendanceContent(filterActivityId) {
         <div class="mb-4 last:mb-0">
           <div class="flex items-center gap-2 mb-1.5">
             <span class="font-title-cn text-xs font-bold text-gray-700">${monthLabel}</span>
-            <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">${rows.length} 条</span>
+            ${badgeHtml(`${rows.length} 条`, 'neutral')}
           </div>
           <div class="overflow-x-auto max-h-96 overflow-y-auto">
             <table class="w-full text-xs">
@@ -687,7 +688,7 @@ function _renderInspectionContent() {
     <div class="bg-red-50 border border-red-200 rounded-xl p-3 mb-3">
       <div class="flex items-center gap-2 mb-1">
         <span class="text-xs font-bold text-red-700">超期提醒</span>
-        <span class="text-xs px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">${overdueRecords.length}条</span>
+        ${badgeHtml(`${overdueRecords.length}条`, 'danger')}
       </div>
       <div class="text-xs text-red-600">以下考察记录已超过7天未确认，请尽快处理</div>
     </div>
@@ -1029,9 +1030,9 @@ function _renderMakeupContent() {
   const overdueTasks = pendingTasks.filter(t => new Date(t.deadline) < new Date());
 
   const statusBadge = (task) => {
-    if (task.status === 'completed') return '<span class="px-1.5 py-0.5 rounded-full text-xs bg-green-100 text-green-700">已完成</span>';
-    if (new Date(task.deadline) < new Date()) return '<span class="px-1.5 py-0.5 rounded-full text-xs bg-red-100 text-red-700">已超期</span>';
-    return '<span class="px-1.5 py-0.5 rounded-full text-xs bg-orange-100 text-orange-700">待补课</span>';
+    if (task.status === 'completed') return badgeHtml('已完成', 'success');
+    if (new Date(task.deadline) < new Date()) return badgeHtml('已超期', 'danger');
+    return badgeHtml('待补课', 'warning');
   };
 
   container.innerHTML = `
@@ -1064,7 +1065,7 @@ function _renderMakeupContent() {
               <tr class="border-b border-gray-50 hover:bg-gray-50 ${rowBg}">
                 <td class="py-2 px-3 font-medium text-gray-800">${t.personName || getPersonName(t.personId)}</td>
                 <td class="py-2 px-3 text-gray-600">${t.activityName || '—'}</td>
-                <td class="py-2 px-3 text-gray-600">${t.isMandatory ? '<span class="text-xs px-1 py-0.5 rounded bg-red-50 text-red-600">必修</span> 自学+心得' : '<span class="text-xs px-1 py-0.5 rounded bg-blue-50 text-blue-600">选修</span> 自学'}</td>
+                <td class="py-2 px-3 text-gray-600">${t.isMandatory ? badgeHtml('必修', 'danger') + ' 自学+心得' : badgeHtml('选修', 'info') + ' 自学'}</td>
                 <td class="py-2 px-3 text-gray-600">${t.deadline || '—'}</td>
                 <td class="py-2 px-3">${statusBadge(t)}</td>
                 <td class="py-2 px-3">${t.status === 'pending' ? `<button class="btn-action btn-action-green btn-disc-confirm-makeup" data-task-id="${t.id}">确认完成</button>` : '<span class="text-xs text-gray-400">—</span>'}</td>
@@ -1079,7 +1080,7 @@ function _renderMakeupContent() {
       <div class="bg-red-50 border border-red-200 rounded-xl p-3">
         <div class="flex items-center gap-2 mb-1">
           <span class="text-xs font-bold text-red-700">超期提醒</span>
-          <span class="text-xs px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">${overdueTasks.length}条</span>
+          ${badgeHtml(`${overdueTasks.length}条`, 'danger')}
         </div>
         <div class="text-xs text-red-600">以下补课任务已超期，请尽快督促完成</div>
         <div class="mt-2 space-y-1">

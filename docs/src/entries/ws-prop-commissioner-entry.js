@@ -13,6 +13,7 @@ import { loadActivities } from '../services/activity.js?v=20260807b';
 import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807b';
 import { renderTodoList } from '../components/todo-list.js?v=20260807b';
 import { TodoStore, seedTodos } from '../services/todo.js?v=20260807b';
+import { badgeHtml } from '../components/badge.js?v=20260807b';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'prop-commissioner' });
 
@@ -137,7 +138,7 @@ function _renderTodoDetail(todo) {
       <div>
         <div class="flex items-center gap-2 mb-2">
           <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-          ${todo.priority === 'urgent' ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">紧急</span>' : ''}
+          ${todo.priority === 'urgent' ? badgeHtml('紧急', 'warning') : ''}
         </div>
         <p class="font-title-cn text-sm font-bold text-gray-800">${todo.title}</p>
       </div>
@@ -393,8 +394,8 @@ function _renderKanbanContent(activities, propTf) {
 function _renderKanbanItem(item, showCompleteBtn = false) {
   const isTf = item._type === 'taskforce';
   const typeTag = isTf
-    ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">专班</span>'
-    : (item.type ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700">${item.type}</span>` : '');
+    ? badgeHtml('专班', 'success')
+    : (item.type ? badgeHtml(item.type, 'info') : '');
   const subInfo = isTf
     ? `<span class="text-xs text-gray-400">${item.filled}/${item.capacity} 人</span>`
     : '';
@@ -433,7 +434,7 @@ function _renderWorkloadBlock(propTf) {
     <div class="card rounded-xl p-5 mt-4">
       <div class="flex items-center gap-2 mb-3">
         <span class="text-sm font-semibold text-gray-700">专班工作量</span>
-        <span class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">${propTf.length} 个专班</span>
+        ${badgeHtml(`${propTf.length} 个专班`, 'warning')}
       </div>
       ${members.length === 0 ? '<p class="text-xs text-gray-400">暂无宣传专班成员数据</p>' :
         `<div class="space-y-2">${members.map(m => `

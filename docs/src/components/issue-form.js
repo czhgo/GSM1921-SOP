@@ -5,6 +5,7 @@ import { IssueStore } from '../services/issues.js?v=20260807b';
 import { AuthStore } from '../services/auth.js?v=20260807b';
 import { showToast } from '../core/utils.js?v=20260807b';
 import { icon } from '../core/icons.js?v=20260807b';
+import { badgeHtml } from './badge.js?v=20260807b';
 
 const SCOPE_OPTIONS = [
   { value: 'permanent', label: '底层架构' },
@@ -64,7 +65,7 @@ export function renderIssueForm() {
               ${TYPE_OPTIONS.map(t => `
                 <label class="flex items-center gap-2 text-xs cursor-pointer font-sans">
                   <input type="checkbox" name="form-type" value="${t.value}" class="rounded">
-                  <span class="px-1.5 py-0.5 rounded-full font-medium" style="background:${t.color}15;color:${t.color}">${t.label}</span>
+                  <span class="badge" style="background:${t.color}15;color:${t.color}">${t.label}</span>
                 </label>
               `).join('')}
             </div>
