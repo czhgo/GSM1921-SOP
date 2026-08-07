@@ -7478,3 +7478,41 @@ label .text-red-500 {
     border-left-color: rgba(206, 17, 38, 0.18) !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   T229 全站统一徽章组件（components/badge.js）
+   单一来源：仅此处定义 .badge--{variant}，全站禁用内联样式/硬编码 Tailwind 任意值
+   语义色系：success / warning / danger / info / neutral / brand / gold
+   ═══════════════════════════════════════════════════════════════ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 2px 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 500;
+  border-radius: 9999px;
+  white-space: nowrap;
+  vertical-align: middle;
+  background: #F3F4F6;
+  color: #6B7280;
+}
+.badge--success { background: #DCFCE7; color: #15803D; }
+.badge--warning { background: #FEF3C7; color: #B45309; }
+.badge--danger  { background: #FEE2E2; color: #B91C1C; }
+.badge--info    { background: #DBEAFE; color: #1D4ED8; }
+.badge--neutral { background: #F3F4F6; color: #6B7280; }
+.badge--brand   { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+.badge--gold    { background: #FDE68A; color: #7A0010; font-weight: 600; }
+
+/* 深色主题：半透明语义底 + 提亮文字（与全站 functional 色对齐） */
+@media (prefers-color-scheme: dark) {
+  .badge--success { background: rgba(52, 211, 153, 0.16); color: #34D399; }
+  .badge--warning { background: rgba(251, 191, 36, 0.16); color: #FBBF24; }
+  .badge--danger  { background: rgba(248, 113, 113, 0.16); color: #F87171; }
+  .badge--info    { background: rgba(96, 165, 250, 0.16); color: #60A5FA; }
+  .badge--neutral { background: #1E293B; color: #CBD5E1; }
+  .badge--brand   { background: rgba(251, 191, 36, 0.16); color: #FBBF24; border-color: rgba(251, 191, 36, 0.35); }
+  .badge--gold    { background: rgba(251, 191, 36, 0.20); color: #FDE68A; }
+}
