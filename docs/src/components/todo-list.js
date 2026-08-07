@@ -12,7 +12,7 @@ import {
   TodoStatus,
   TODO_STATUS_LABELS,
   DEFAULT_EXPANDED_CATEGORIES,
-} from '../services/todo.js';
+} from '../services/todo.js?v=20260807b';
 
 /**
  * 渲染待办列表组件

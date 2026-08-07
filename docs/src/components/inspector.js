@@ -5,19 +5,19 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../core/state.js';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js';
-import { _fmtChinese, showToast } from '../core/utils.js';
-import { icon } from '../core/icons.js';
-import { PEOPLE, getPersonById } from '../mock/index.js';
-import { BranchService } from '../services/runtime.js';
-import { AuthStore } from '../services/auth.js';
-import { statusBadgeHtml, bindStatusBadge } from './status-badge.js';
-import { persist } from '../core/data-adapter.js';
-import { loadAttendanceRecords } from '../services/attendance.js';
-import { loadInspectionRecords } from '../services/inspection.js';
-import { loadActivityReviews } from '../services/review.js';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js';
+import { setState, STATE, getAppState } from '../core/state.js?v=20260807b';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260807b';
+import { _fmtChinese, showToast } from '../core/utils.js?v=20260807b';
+import { icon } from '../core/icons.js?v=20260807b';
+import { PEOPLE, getPersonById } from '../mock/index.js?v=20260807b';
+import { BranchService } from '../services/runtime.js?v=20260807b';
+import { AuthStore } from '../services/auth.js?v=20260807b';
+import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260807b';
+import { persist } from '../core/data-adapter.js?v=20260807b';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260807b';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260807b';
+import { loadActivityReviews } from '../services/review.js?v=20260807b';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260807b';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {

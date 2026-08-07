@@ -1,22 +1,22 @@
-import { setState, registerRenderCallback } from '../core/state.js';
-import { showToast } from '../core/utils.js';
-import { CrossPageState } from '../core/cross-page-state.js';
-import { bootstrapPage } from '../core/bootstrap.js';
-import { TaskForceRecordStore } from '../services/taskforce.js';
-import { NoticeStore } from '../services/notice.js';
-import { AuthStore } from '../services/auth.js';
-import { PEOPLE } from '../mock/index.js';
-import { loadWorkspaceData } from '../core/data-loader.js';
-import { loadAttendanceRecords } from '../services/attendance.js';
-import { loadInspectionRecords } from '../services/inspection.js';
-import { inspectionToDisplay } from '../mock/index.js';
-import { loadActivities } from '../services/activity.js';
-import { getActivityTypeColors, ROLE_COLORS } from '../core/constants.js';
-import { renderTabBar } from '../components/tab-bar.js';
-import { icon } from '../core/icons.js';
-import { renderQueryView } from '../components/query-view.js';
-import { renderTodoList } from '../components/todo-list.js';
-import { TodoStore, seedTodos, VisitorTodoDeriver } from '../services/todo.js';
+import { setState, registerRenderCallback } from '../core/state.js?v=20260807b';
+import { showToast } from '../core/utils.js?v=20260807b';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260807b';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260807b';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807b';
+import { NoticeStore } from '../services/notice.js?v=20260807b';
+import { AuthStore } from '../services/auth.js?v=20260807b';
+import { PEOPLE } from '../mock/index.js?v=20260807b';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260807b';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260807b';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260807b';
+import { inspectionToDisplay } from '../mock/index.js?v=20260807b';
+import { loadActivities } from '../services/activity.js?v=20260807b';
+import { getActivityTypeColors, ROLE_COLORS } from '../core/constants.js?v=20260807b';
+import { renderTabBar } from '../components/tab-bar.js?v=20260807b';
+import { icon } from '../core/icons.js?v=20260807b';
+import { renderQueryView } from '../components/query-view.js?v=20260807b';
+import { renderTodoList } from '../components/todo-list.js?v=20260807b';
+import { TodoStore, seedTodos, VisitorTodoDeriver } from '../services/todo.js?v=20260807b';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'participant' });
 
@@ -480,10 +480,11 @@ function _renderAttendance(activities) {
         ${filtered.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">无匹配考勤数据</p>' :
           filtered.map(act => {
             const records = loadAttendanceRecords().filter(r => r.activityId === act.id);
-            const present = records.filter(r => r.status === 'present').length;
+            // 出勤口径统一（2026-08-07）：已补（made_up）计入出勤，与书记概况出勤率一致
+            const present = records.filter(r => r.status === 'present' || r.status === 'made_up').length;
             const total = records.length;
             const rate = total > 0 ? Math.round((present / total) * 100) : 0;
-            const rateColor = rate >= 80 ? 'text-green-600' : rate >= 60 ? 'text-amber-600' : 'text-red-600';
+            const rateColor = rate >= 90 ? 'text-green-600' : rate >= 70 ? 'text-amber-600' : 'text-red-600';
             return `
               <div class="flex items-center justify-between p-3 rounded-lg bg-white">
                 <div class="flex-1 min-w-0">

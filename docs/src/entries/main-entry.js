@@ -2,22 +2,22 @@
 // main-entry.js — 主页入口
 // index.html 专属，处理 dashboard 全量数据渲染
 
-import { BranchService } from '../services/runtime.js';
-import { STATE, setState, registerRenderCallback, getAppState } from '../core/state.js';
-import { NoticeStore, renderNoticeList } from '../services/notice.js';
-import { TaskForceRecordStore } from '../services/taskforce.js';
-import { _fmtDate, getBasePath } from '../core/utils.js';
-import { _personName, getPersonName } from '../mock/index.js';
-import { loadAttendanceRecords } from '../services/attendance.js';
-import { loadActivities } from '../services/activity.js';
-import { CrossPageState } from '../core/cross-page-state.js';
-import { getActivityTypeColors } from '../core/constants.js';
-import { bootstrapPage } from '../core/bootstrap.js';
-import { AuthStore } from '../services/auth.js';
-import { loadWorkspaceData } from '../core/data-loader.js';
-import { DATA_CHANGED_EVENT } from '../core/data-adapter.js';
-import { icon } from '../core/icons.js';
-import { renderCalendarForDashboard, populateMonthSelector } from '../components/calendar.js';
+import { BranchService } from '../services/runtime.js?v=20260807b';
+import { STATE, setState, registerRenderCallback, getAppState } from '../core/state.js?v=20260807b';
+import { NoticeStore, renderNoticeList } from '../services/notice.js?v=20260807b';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807b';
+import { _fmtDate, getBasePath } from '../core/utils.js?v=20260807b';
+import { _personName, getPersonName } from '../mock/index.js?v=20260807b';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260807b';
+import { loadActivities } from '../services/activity.js?v=20260807b';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260807b';
+import { getActivityTypeColors } from '../core/constants.js?v=20260807b';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260807b';
+import { AuthStore } from '../services/auth.js?v=20260807b';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260807b';
+import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260807b';
+import { icon } from '../core/icons.js?v=20260807b';
+import { renderCalendarForDashboard, populateMonthSelector } from '../components/calendar.js?v=20260807b';
 
 const { user } = await bootstrapPage({ module: 'dashboard' });
 
@@ -99,12 +99,14 @@ function _renderStats(activities, taskforces, notices, attendanceRecords, isLoad
         return act && act.date && act.date.startsWith(thisMonth);
       })
     : [];
-  const myPresent = myMonthAttendance.filter(r => r.status === 'present').length;
+  // 数字一致性审计（2026-08-07）：出勤率口径与书记概况统一 = (出勤 + 已补) / 总记录；
+  // 补课语义为"最终出勤"，made_up 记录计入出勤数。颜色阈值全站统一 90/70。
+  const myPresent = myMonthAttendance.filter(r => r.status === 'present' || r.status === 'made_up').length;
   const myTotal = myMonthAttendance.length;
   const myRate = myTotal > 0 ? Math.round((myPresent / myTotal) * 100) : 0;
   const myColor = myTotal === 0 ? '#9CA3AF'
-    : myRate >= 80 ? '#059669'
-    : myRate >= 60 ? '#D97706'
+    : myRate >= 90 ? '#059669'
+    : myRate >= 70 ? '#D97706'
     : '#DC2626';
 
   // A-01 修复：color 统一为 hex 常量，图标底色用 8 位 hex（${hex}15），var+hex 拼接无法解析
@@ -387,7 +389,8 @@ function _renderAttendanceSummary(activities, attendanceRecords) {
 
   const rows = monthActivities.map(act => {
     const records = attendanceRecords.filter(r => r.activityId === act.id);
-    const present = records.filter(r => r.status === 'present').length;
+    // 出勤口径统一（2026-08-07）：已补（made_up）计入出勤，与书记概况出勤率一致
+    const present = records.filter(r => r.status === 'present' || r.status === 'made_up').length;
     const absent = records.filter(r => r.status === 'absent').length;
     const leave = records.filter(r => r.status === 'leave').length;
     const total = records.length;

@@ -1764,7 +1764,7 @@ textarea.input-flat {
   border-color: color-mix(in srgb, var(--sb-color) 45%, transparent);
 }
 .status-badge:focus-visible {
-  outline: 2px solid var(--sb-color);
+  outline: 2px solid var(--party-gold);
   outline-offset: 2px;
 }
 .status-badge[data-disabled] {
@@ -2634,11 +2634,13 @@ textarea.input-flat {
 
 /* ═══════════════════════════════════════════════════════════════
    ACCESSIBILITY — Focus Visible
+   （书记 2026-08-07 指令：删去红边，改淡金替代——可点击组件聚焦圈统一为党徽金，
+   避免与党建红主色混淆、视觉刺眼）
    ═══════════════════════════════════════════════════════════════ */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible {
-  outline: 2px solid var(--primary-500);
+  outline: 2px solid var(--party-gold);
   outline-offset: 2px;
 }
 
@@ -3710,7 +3712,7 @@ label .text-red-500 {
 }
 
 .help-philosophy-opp:focus-visible {
-  outline: 2px solid var(--help-party-red);
+  outline: 2px solid var(--party-gold);
   outline-offset: 2px;
 }
 
@@ -6138,7 +6140,7 @@ label .text-red-500 {
   box-shadow: 0 2px 4px rgba(62, 50, 30, 0.06), 0 26px 52px -24px rgba(62, 50, 30, 0.42);
 }
 .ab-philosophy-opp:focus-visible {
-  outline: 2px solid var(--ab-red);
+  outline: 2px solid var(--party-gold);
   outline-offset: 3px;
 }
 .ab-philosophy-opp-no {

@@ -32,10 +32,10 @@
 // v6 变更：Section 重组（8→7）+ 13 节点横向时间轴（7 决策节点金色光晕）+ Exploration GSAP scrub 动画（替代 v5.2）+ T3 编程行话/自造隐喻清除
 // v4 变更：去党建vs党务对比/考勤/思想汇报/角色独立section；新增考察积极分子/核心口号/两种工作/探索工作/行百里者半九十
 
-import { renderSidebar } from '../components/sidebar.js';
-import { renderHeader } from '../components/header.js';
-import { getBasePath } from '../core/utils.js';
-import { icon } from '../core/icons.js';
+import { renderSidebar } from '../components/sidebar.js?v=20260807b';
+import { renderHeader } from '../components/header.js?v=20260807b';
+import { getBasePath } from '../core/utils.js?v=20260807b';
+import { icon } from '../core/icons.js?v=20260807b';
 
 // ── 公开访问：不检查登录 ──
 renderSidebar('about');
@@ -1996,15 +1996,22 @@ function bindCameraFlow() {
   document.body.appendChild(tc);
 
   const FILM_TOTAL = 24 * 60 * 12; // 12:00:00:00 @24fps
+  // rAF 节流：scroll 事件高频触发，scrollHeight 布局读取合并到每帧一次（防 layout thrash）
+  let gaugeTicking = false;
   const updateFilmGauge = () => {
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-    let f = Math.round(p * FILM_TOTAL);
-    const fr = f % 24; f = (f - fr) / 24;
-    const ss = f % 60; f = (f - ss) / 60;
-    const mm = f % 60; const hh = (f - mm) / 60;
-    timeEl.textContent = [hh, mm, ss, fr].map(n => String(n).padStart(2, '0')).join(':');
-    rail.style.transform = `scaleX(${p})`;
+    if (gaugeTicking) return;
+    gaugeTicking = true;
+    requestAnimationFrame(() => {
+      gaugeTicking = false;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      let f = Math.round(p * FILM_TOTAL);
+      const fr = f % 24; f = (f - fr) / 24;
+      const ss = f % 60; f = (f - ss) / 60;
+      const mm = f % 60; const hh = (f - mm) / 60;
+      timeEl.textContent = [hh, mm, ss, fr].map(n => String(n).padStart(2, '0')).join(':');
+      rail.style.transform = `scaleX(${p})`;
+    });
   };
   updateFilmGauge();
   window.addEventListener('scroll', updateFilmGauge, { passive: true });

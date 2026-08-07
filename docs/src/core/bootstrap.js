@@ -4,17 +4,17 @@
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../components/sidebar.js';
-import { renderHeader } from '../components/header.js';
-import { AuthStore } from '../services/auth.js';
-import { IssueStore } from '../services/issues.js';
-import { MilestoneStore } from '../services/milestones.js';
-import { getAccentColors, resolveAccentRole } from './constants.js';
-import { CrossPageState } from './cross-page-state.js';
-import { getBasePath } from './utils.js';
-import { enhanceSelects } from '../components/custom-select.js';
-import { registerApiAdapter, setDataSource, init } from './data-adapter.js';
-import { ApiAdapter } from './api-adapter.js';
+import { renderSidebar } from '../components/sidebar.js?v=20260807b';
+import { renderHeader } from '../components/header.js?v=20260807b';
+import { AuthStore } from '../services/auth.js?v=20260807b';
+import { IssueStore } from '../services/issues.js?v=20260807b';
+import { MilestoneStore } from '../services/milestones.js?v=20260807b';
+import { getAccentColors, resolveAccentRole } from './constants.js?v=20260807b';
+import { CrossPageState } from './cross-page-state.js?v=20260807b';
+import { getBasePath } from './utils.js?v=20260807b';
+import { enhanceSelects } from '../components/custom-select.js?v=20260807b';
+import { registerApiAdapter, setDataSource, init } from './data-adapter.js?v=20260807b';
+import { ApiAdapter } from './api-adapter.js?v=20260807b';
 
 // ════════════════════════════════════════════════════════════════
 // S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）
@@ -115,6 +115,31 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
   const savedFontSize = localStorage.getItem('workflowos_font_size') || 'medium';
   if (savedFontSize === 'large') {
     document.documentElement.classList.add('font-size-large');
+  }
+
+  // 页面身份校验（书记 2026-08-07 指令：右上角"身份"必须与当前工作台页面匹配）
+  // 根因：header 直接读登录快照 user.role，未与当前页面做任何校验；同一服务器下跳转
+  // workspace 时会出现"身份标签与页面错位"。修复：计算该用户"允许访问的工作台页面集合"
+  // （登录快照角色页面 + 内存判定角色页面），当前页面不在集合内时自动跳转到身份对应页面。
+  if (module === 'workspace' && user) {
+    const currentPage = window.location.pathname.split('/').pop();
+    const allowedPages = new Set();
+    // 1. 登录快照身份对应工作台（header 身份标签同源：右上角显示什么身份，就该落在什么工作台）
+    const snapPage = AuthStore.getPageForRole('workspace', user.role);
+    if (snapPage) allowedPages.add(snapPage);
+    // 2. 内存判定角色对应工作台（赋权记录优先于 mock：如登录后被赋权为党小组组长，
+    //    允许其合法访问组长工作台——header 切换工作台下拉的 1b 项同款场景）
+    const memPage = AuthStore.getPageForRole('workspace', AuthStore.getUserRole(user.personId));
+    if (memPage) allowedPages.add(memPage);
+
+    if (!allowedPages.has(currentPage)) {
+      // 跳转目标：以登录快照身份为准（与身份标签一致）；缺失时回退内存判定角色页面
+      const target = snapPage || memPage || 'visitor.html';
+      // 基于当前 pathname 计算目标目录，避免依赖 <base> 的解析差异
+      const dir = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+      window.location.href = dir + target;
+      return { user: null };
+    }
   }
 
   // 渲染侧边栏 + 顶栏

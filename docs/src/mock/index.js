@@ -1,5 +1,5 @@
-import { ACTIVITIES } from './activities.js';
-import { PEOPLE } from './people.js';
+import { ACTIVITIES } from './activities.js?v=20260807b';
+import { PEOPLE } from './people.js?v=20260807b';
 
 // ════════════════════════════════════════════════════════════════
 //  人员数据访问 — 从 person.js 统一导入（T-142 Phase 2C）
@@ -8,7 +8,7 @@ import { PEOPLE } from './people.js';
 // 修复（T174）：re-export 语法不创建当前模块作用域绑定，
 // 导致 _personName 内直接引用 getPersonName 抛 ReferenceError。
 // 改为显式 import + 显式 re-export，确保绑定可用。
-import { getPersonById, getPersonName } from '../services/person.js';
+import { getPersonById, getPersonName } from '../services/person.js?v=20260807b';
 export { getPersonById, getPersonName };
 // PEOPLE 从 mock/people.js 导入并重新导出（向后兼容）
 export { PEOPLE };
@@ -26,9 +26,9 @@ export function _activityType(id) {
   return ACTIVITIES.find(a => a.id === id)?.type || '未知';
 }
 
-export { ACTIVITIES } from './activities.js';
-export { ATTENDANCE_RECORDS, attendanceToLong, attendanceToWide } from './attendance.js';
-export { INSPECTION_RECORDS, inspectionToLong, inspectionToWide, inspectionToDisplay } from './inspection.js';
-export { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS, reviewToDisplay } from './review.js';
-export { MOCK_NOTICES } from './notices.js';
-export { MOCK_TASKFORCES } from './taskforces.js';
+export { ACTIVITIES } from './activities.js?v=20260807b';
+export { ATTENDANCE_RECORDS, attendanceToLong, attendanceToWide } from './attendance.js?v=20260807b';
+export { INSPECTION_RECORDS, inspectionToLong, inspectionToWide, inspectionToDisplay } from './inspection.js?v=20260807b';
+export { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS, reviewToDisplay } from './review.js?v=20260807b';
+export { MOCK_NOTICES } from './notices.js?v=20260807b';
+export { MOCK_TASKFORCES } from './taskforces.js?v=20260807b';

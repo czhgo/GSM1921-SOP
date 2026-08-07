@@ -25,6 +25,7 @@
  *   - html: Tab 栏 + 内容容器的 HTML 字符串
  *   - activate: 手动激活指定 Tab 的方法
  *   - currentTab: 当前激活的 Tab ID（getter）
+ *   - tabs: Tab 定义数组（懒加载场景下供外部按 id 查找并渲染当前 Tab）
  */
 export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRightHtml, renderCtx, storageKey, onTabChange }) {
   const btnClass = `${prefix}-tab-btn`;
@@ -94,7 +95,15 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
         const tab = tabs.find(t => t.id === tabId);
         currentTab = tabId;
         if (typeof onTabChange === 'function') onTabChange(tabId, tab);
-        if (tab) tab.render(renderCtx);
+        // 懒加载支持：render 可能返回 Promise（动态 import），统一兜底捕获
+        if (tab && typeof tab.render === 'function') {
+          try {
+            const r = tab.render(renderCtx);
+            if (r && typeof r.catch === 'function') r.catch(e => console.error(`[tab-bar] tab「${tabId}」渲染失败`, e));
+          } catch (e) {
+            console.error(`[tab-bar] tab「${tabId}」渲染异常`, e);
+          }
+        }
       });
     });
   }
@@ -103,8 +112,15 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
   function activate(tabId, ctx) {
     currentTab = tabId;
     const tab = tabs.find(t => t.id === tabId);
-    if (tab) tab.render(ctx || renderCtx);
+    if (tab && typeof tab.render === 'function') {
+      try {
+        const r = tab.render(ctx || renderCtx);
+        if (r && typeof r.catch === 'function') r.catch(e => console.error(`[tab-bar] tab「${tabId}」渲染失败`, e));
+      } catch (e) {
+        console.error(`[tab-bar] tab「${tabId}」渲染异常`, e);
+      }
+    }
   }
 
-  return { html, bindEvents, activate, contentId, activeTab, get currentTab() { return currentTab; } };
+  return { html, bindEvents, activate, contentId, activeTab, tabs, get currentTab() { return currentTab; } };
 }

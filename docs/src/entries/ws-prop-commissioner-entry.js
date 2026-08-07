@@ -1,18 +1,18 @@
-import { renderTabBar } from '../components/tab-bar.js';
-import { getAppState, setState, registerRenderCallback } from '../core/state.js';
-import { BranchService, isApiMode } from '../services/runtime.js';
-import { showToast } from '../core/utils.js';
-import { bootstrapPage } from '../core/bootstrap.js';
-import { TaskForceRecordStore } from '../services/taskforce.js';
-import { _personName } from '../mock/index.js';
-import { loadWorkspaceData } from '../core/data-loader.js';
-import { icon } from '../core/icons.js';
-import { mockDB } from '../core/domain.js';
-import { persist, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js';
-import { loadActivities } from '../services/activity.js';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js';
-import { renderTodoList } from '../components/todo-list.js';
-import { TodoStore, seedTodos } from '../services/todo.js';
+import { renderTabBar } from '../components/tab-bar.js?v=20260807b';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807b';
+import { BranchService, isApiMode } from '../services/runtime.js?v=20260807b';
+import { showToast } from '../core/utils.js?v=20260807b';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260807b';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807b';
+import { _personName } from '../mock/index.js?v=20260807b';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260807b';
+import { icon } from '../core/icons.js?v=20260807b';
+import { mockDB } from '../core/domain.js?v=20260807b';
+import { persist, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260807b';
+import { loadActivities } from '../services/activity.js?v=20260807b';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807b';
+import { renderTodoList } from '../components/todo-list.js?v=20260807b';
+import { TodoStore, seedTodos } from '../services/todo.js?v=20260807b';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'prop-commissioner' });
 

@@ -1648,3 +1648,48 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
   - ✅ 搜索图标不重叠 + 聚焦 outline none + border 金
   - ✅ #sidebar-overlay 关闭态 pointer-events none
 - **沉淀标签**：`[已沉淀: fixed 下 min-width:100%=视口宽]` — position:fixed 元素 min-width/width 的百分比相对**视口**而非包含块，测量前必须临时清 min-width 再测 scrollWidth/offsetWidth；`[已沉淀: 34px 双口径]` — 34px 按钮两种实现：带边框 text-sm py-1.5（20+12+2）与无边框 py-[7px]（20+14），不得混用 py-2（36px）；`[已沉淀: padding 简写覆盖工具类]` — 组件 CSS 覆盖 Tailwind 工具类时禁用 padding/inset 简写（会吞 pl-*/pr-*），只写单边属性；`[已沉淀: 浮层互斥注册表]` — 全局 `__popoverClosers` Set + `__closeOtherPopovers(keep)`，任何新浮层（下拉/色板/弹层）打开前先关其他浮层，关闭时注销
+
+## T228 书记五连问收口：缓存版本号链 + 身份自动跳转 + 工作台 Tab 懒加载 + 数字口径统一 + 红边淡金（2026-08-07）
+
+**任务**：书记五连问——① 数据一会显示一会不显示（要求清理不合理缓存）；② 右上角「身份」与工作台可错位（同服务器跳转 workspace 出现错位）；③ 部分界面加载慢（about 最重，电脑带不动）+ workspace Tab 单独建页还是合并；④ 检查每个数字的计算逻辑；⑤ 可点击组件检查诡异的红色边框
+**引用流程**：fullstack-developer Skill + web-design-guidelines Skill + brainstorming Skill + AskUserQuestion 五轮决策 + browser_use 三轮端到端实测 + Node 语法检查
+**来源**：书记五连问（2026-08-07 原话）+ AskUserQuestion 决策（Tab 架构=保持合并+懒加载、身份=自动跳转对应工作台、缓存=全站统一版本号、红边=删去改淡金）+ 附加反馈（about 页加载最费力需提速）
+
+### ① 缓存：全站版本号链 + CODE_VERSION 自检
+- **根因**：entry JS 带 `?v=`，但 entry 内部 import 的共享模块（core/services/components）不带版本号 → 浏览器复用旧缓存模块，新旧代码混用 → 「数据一会显示一会不显示」
+- **方案**：`docs/scripts/bump-version.mjs`（正则批量 stamping）将**全部共享模块 import/动态 import** + 14 个 HTML 入口 script + styles.css 统一打 `?v=20260807b`；`CODE_VERSION` 6→7
+- **自检兜底**：`cross-page-state.js` 新增 `isStaleCodeVersion()` — 若检测到旧 tab 的旧模块（版本号不一致）则 `bumpDataVersion()` + `reload()`，从数据层规避混用
+- 已跑 `20260807b`：JS 58 个 + HTML 14 个 + CODE_VERSION+1
+
+### ② 身份与工作台错位：自动跳转对应工作台
+- **根因**：header 身份读 localStorage，页面本身（page）与身份无强绑定 → 以 A 身份打开 B 工作台 URL 即错位
+- **方案**：bootstrap 身份校验 `allowedPages` 取全部角色并集 + 身份与当前页不匹配时**自动重定向到对应身份的工作台**，URL 直达不再产生错位
+
+### ③ 加载慢：Tab 懒加载 + about 提速 + 架构决策
+- **Tab 架构决策**（书记 AskUserQuestion）：**保持合并 + 懒加载**（不单独建网页——单独建页会破坏共享 header/sidebar/状态同步/跨页通信，且每页重复加载全站基础库；合并单页按需加载收益最大）
+- **书记工作台 6 Tab 懒加载**：`tab-bar.js` render 支持异步（返回 Promise + `.catch` 兜底）、暴露 `tabs` 属性；`ws-secretary-entry.js` 薄壳化 2530→78 行，6 个 Tab 拆为独立模块（todo/overview/calendar/assign/notification/feedback），首次进入该 Tab 才 `import()` 加载
+- **about 页提速**（书记附加反馈）：Google Fonts 改 preload+onload 非阻塞 + noscript 兜底（清除渲染阻塞）；GSAP/ScrollTrigger/Lenis 全 defer（模块入口 type=module 天然延迟执行可消费）；胶片时间码 scroll 监听 rAF 节流（layout 读取合并到每帧一次）
+- **Tailwind play CDN 不可 defer（关键经验）**：`defer` 使 CDN 在解析完成后执行，加载时以全新对象**覆盖** `window.tailwind`，把先前设置的 config 重置为空 → 自定义 party 党建红系全失效。最终：Tailwind 保持同步 + `window.tailwind = window.tailwind || {}` 守卫；GSAP/Lenis 保持 defer
+
+### ④ 数字计算逻辑审计（逐项核验）
+- **出勤率口径统一**：`present + made_up`（应到=全部在册成员，实际到场=出席+补课）共修 5 处（attendance card / overview / leader / org / stats）
+- **颜色阈值统一**：90/70 两档（优/合格）共 4 处（>90 绿、70-90 蓝、<70 红）
+- **党小组组长统计**：预设组长 + 运行时授予并集（`_countActiveLeaders` 预设+审计快照）
+- **核验正确项**：待办过期判定、通知角标数、考察进度、活动统计、专班进度、公邮倒计时——全部口径正确无改动
+
+### ⑤ 红边清除：全局 focus-visible 红边改淡金
+- 涉及可点击组件（输入框/下拉/按钮聚焦）的红色 `outline` 全部改**淡金**（`--party-gold-light` 系），浏览器实测无红边残留
+
+### 修 bug（浏览器实测驱动）
+- **`renderQueryView` 局部函数遮蔽导入**：calendar-tab.js 局部同名函数遮蔽 `../../components/query-view.js` 导入 → 活动查询视图永不渲染 → 改名 `renderQueryPanel`
+- **tab 动态 import 404**：tab 模块位于 `src/entries/tabs/secretary/`，导入写成 `../../` 只上跳两级 → 解析到不存在的 `src/entries/core/` → 全部 Failed to fetch → 6 文件统一改 `../../../`
+- **`ReferenceError: tailwind is not defined`**：加 `window.tailwind = window.tailwind || {}` 守卫消除
+
+- **变更文件**：`docs/scripts/bump-version.mjs`（新建）、`docs/src/entries/tabs/secretary/{todo,overview,calendar,assign,notification,feedback}-tab.js`（新建 6 个）、`docs/src/entries/ws-secretary-entry.js`（薄壳化）、`docs/src/components/tab-bar.js`、`docs/src/core/{bootstrap,cross-page-state,data-loader}.js`、`docs/src/services/{secretary-overview,roles}.js`、`docs/src/styles.css`、14 个 HTML（index/help/login/feedback/notice/search/archive + 6 工作台/about）、58 个 JS 版本号 stamping、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+
+- **验证结果**（Node 语法检查 9 文件 OK + GetDiagnostics 零错误 + browser_use 三轮端到端）：
+  - ✅ 书记工作台 6 Tab 全部正常渲染（待办/全局概况/活动管理/赋权管理/通知发布/反馈管理，含活动日历、统计条、赋权面板）
+  - ✅ about.html / index.html 渲染正常，无红边、无 `.js?v=20260807b` 模块 404，CDN（tailwind/gsap/lenis/fonts）全部成功加载
+  - ✅ 自定义主题确认生效：`window.tailwind.config` 含 `theme`；`bg-party-50`=rgb(254,242,242)、`text-party-700`=rgb(206,17,38)、`border-party-200`=rgb(254,202,202)；body fontFamily 首字体 Noto Sans SC
+  - ✅ 无加载后的红色未捕获异常
+- **沉淀标签**：`[已沉淀: play CDN 不可 defer]` — Tailwind CDN 脚本 defer 会在解析后执行并以全新对象覆盖 window.tailwind，把先行设置的 config 重置为空；自定义主题场景必须同步加载；`[已沉淀: ES Module 缓存链]` — 入口 JS 带版本号而共享模块不带，浏览器按模块粒度缓存会新旧混用，须全站统一 bump（bump-version.mjs 自动 stamping）；`[已沉淀: 动态 import 相对路径]` — 懒加载模块位于子目录时导入共享模块需逐级上跳（tabs/secretary/ 下导入 src/ 为 ../../../），且同名函数会遮蔽导入须排查；`[已沉淀: 工作台 Tab 架构]` — 共享 header/sidebar/状态同步的多 Tab 工作台：单页合并+懒加载 > 单独建页（单独建页破坏跨页状态与通信且重复加载基础库）
