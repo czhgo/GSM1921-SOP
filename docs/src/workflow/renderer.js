@@ -1,17 +1,17 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  renderer.js — 工作流可视化渲染器 v1.0
 //  依赖 engine.js + definitions.js
 //  产出：进度条 · 状态标签 · 子状态面板 · 阻塞横幅
 // ════════════════════════════════════════════════════════════════
 
-import { WorkflowEngine } from './engine.js?v=20260807c';
+import { WorkflowEngine } from './engine.js?v=20260807f';
 import {
   THEME_PARTY_DAY_DEFINITION,
   SHORT_TERM_DEFINITION,
   LONG_TERM_DEFINITION,
-} from './definitions.js?v=20260807c';
-import { icon } from '../core/icons.js?v=20260807c';
+} from './definitions.js?v=20260807f';
+import { icon } from '../core/icons.js?v=20260807f';
 
 // ── 可用模板列表（渲染器使用）──────────────────────────────────
 const TEMPLATE_REGISTRY = {

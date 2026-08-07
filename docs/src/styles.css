@@ -1083,7 +1083,8 @@ textarea.input-flat {
   border-color: var(--primary-200);
 }
 
-/* ── 主题色切换（书记指令 2026-08-06：侧边栏设置，全站强调色个性化）── */
+/* ── 主题色切换（书记指令 2026-08-06：侧边栏设置，全站强调色个性化）──
+   2026-08-07 精简：侧边栏少写字——去掉「主题色」文字标签；hover 色块自动显示色名，不再写在下方 */
 .sidebar-accent-toggle {
   display: flex;
   align-items: center;
@@ -1093,6 +1094,7 @@ textarea.input-flat {
 }
 
 .accent-swatch {
+  position: relative;
   width: 20px;
   height: 20px;
   border-radius: 9999px;
@@ -1106,6 +1108,32 @@ textarea.input-flat {
 .accent-swatch:hover {
   box-shadow: 0 0 0 2px var(--party-gold);
   transform: scale(1.1);
+}
+
+/* hover 显示当前主题色名（不再写在侧边栏下方） */
+.accent-swatch::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  margin-left: 8px;
+  padding: 2px 8px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  font-size: 0.65rem;
+  color: var(--neutral-600);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+  z-index: 20;
+}
+
+.accent-swatch:hover::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
 }
 
 .accent-palette {
@@ -1133,6 +1161,7 @@ textarea.input-flat {
 }
 
 .accent-swatch-opt {
+  position: relative;
   width: 22px;
   height: 22px;
   border-radius: 9999px;
@@ -1152,22 +1181,30 @@ textarea.input-flat {
   box-shadow: 0 0 0 2px var(--neutral-700);
 }
 
-.accent-palette-names {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 4px 6px;
-  margin-top: 10px;
-  justify-items: center;
+/* 色板内色块 hover 显示色名（替代原来写在色块下方的色名行） */
+.accent-swatch-opt::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%) translateY(-4px);
+  margin-bottom: 6px;
+  padding: 2px 8px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  font-size: 0.65rem;
+  color: var(--neutral-600);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+  z-index: 20;
 }
 
-.accent-palette-names span {
-  font-size: 0.6rem;
-  color: var(--neutral-400);
-}
-
-.accent-palette-names span.active {
-  color: var(--neutral-700);
-  font-weight: 600;
+.accent-swatch-opt:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2923,6 +2960,16 @@ label .text-red-500 {
 @media (max-width: 640px) {
   .header-content {
     padding: 0 12px;
+  }
+
+  /* T230 移动端实测：375px 下 header-actions 约 230px，会把标题挤压到 2px 不可见；
+     移动端身份信息价值低，隐藏 role-label 为标题让出空间 */
+  .role-label {
+    display: none !important;
+  }
+
+  .header-actions {
+    gap: 6px;
   }
 
   .party-emblem-wrapper {
@@ -7527,6 +7574,32 @@ label .text-red-500 {
 
 /* 深色主题：半透明语义底 + 提亮文字（与全站 functional 色对齐） */
 @media (prefers-color-scheme: dark) {
+  /* 操作按钮浅底变体（btn-action-*）→ 深色半透明底 + 提亮文字 */
+  .btn-action-red,
+  .btn-action-blue,
+  .btn-action-green,
+  .btn-action-amber,
+  .btn-action-orange,
+  .btn-action-gray,
+  .btn-md-red,
+  .btn-md-blue,
+  .btn-md-green,
+  .btn-md-amber,
+  .btn-md-gray {
+    background: rgba(148, 163, 184, 0.10) !important;
+    color: #CBD5E1 !important;
+    border-color: #334155 !important;
+  }
+  .btn-action-red,
+  .btn-md-red     { color: #F87171 !important; }
+  .btn-action-blue,
+  .btn-md-blue    { color: #60A5FA !important; }
+  .btn-action-green,
+  .btn-md-green   { color: #34D399 !important; }
+  .btn-action-amber,
+  .btn-md-amber   { color: #FBBF24 !important; }
+  .btn-action-orange { color: #FB923C !important; }
+
   .badge--success { background: rgba(52, 211, 153, 0.16); color: #34D399; }
   .badge--warning { background: rgba(251, 191, 36, 0.16); color: #FBBF24; }
   .badge--danger  { background: rgba(248, 113, 113, 0.16); color: #F87171; }

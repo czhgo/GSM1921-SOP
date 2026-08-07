@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // services/auth.js — 权限系统（重构版）
 // 设计文档: docs/superpowers/specs/2026-07-12-permission-system-redesign-design.md
 //
@@ -9,14 +9,14 @@
 //   - 链式赋权: AUTHORIZE_CHAIN 定义谁可以赋权什么角色
 //   - party 页面已移除，organizer/deep 内容归入首页"我的角色"区块
 
-import { ROLE_LABELS } from '../core/constants.js?v=20260807c';
-import { PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260807c';
-import { mockDB } from '../core/domain.js?v=20260807c';
-import { NoticeStore } from './notice.js?v=20260807c';
-import { updateActivity } from './mock.js?v=20260807c';
-import { TaskForceRecordStore } from './taskforce.js?v=20260807c';
-import { persist } from '../core/data-adapter.js?v=20260807c';
-import { enableApiMode } from './runtime.js?v=20260807c';
+import { ROLE_LABELS } from '../core/constants.js?v=20260807f';
+import { PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260807f';
+import { mockDB } from '../core/domain.js?v=20260807f';
+import { NoticeStore } from './notice.js?v=20260807f';
+import { updateActivity } from './mock.js?v=20260807f';
+import { TaskForceRecordStore } from './taskforce.js?v=20260807f';
+import { persist } from '../core/data-adapter.js?v=20260807f';
+import { enableApiMode } from './runtime.js?v=20260807f';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }

@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // entries/tabs/secretary/overview-tab.js — 书记工作台·全局概况 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 设计初衷（书记 2026-08-02 确认方向后记录）：
@@ -7,11 +7,11 @@
 //   数据选取原则——同一套底层数据统一自动渲染，异常数据标橙并派生为书记待办。
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 
-import { icon } from '../../../core/icons.js?v=20260807c';
-import { showToast } from '../../../core/utils.js?v=20260807c';
-import { NoticeStore } from '../../../services/notice.js?v=20260807c';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260807c';
-import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260807c';
+import { icon } from '../../../core/icons.js?v=20260807f';
+import { showToast } from '../../../core/utils.js?v=20260807f';
+import { NoticeStore } from '../../../services/notice.js?v=20260807f';
+import { ROLE_LABELS } from '../../../core/constants.js?v=20260807f';
+import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260807f';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>

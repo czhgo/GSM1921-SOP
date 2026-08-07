@@ -1,12 +1,12 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // entries/tabs/secretary/todo-tab.js — 书记工作台·待办 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：按 tab 代码分割，首屏只加载默认 tab。
 
-import { showToast } from '../../../core/utils.js?v=20260807c';
-import { renderTodoList } from '../../../components/todo-list.js?v=20260807c';
-import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260807c';
-import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260807c';
-import { badgeHtml } from '../../../components/badge.js?v=20260807c';
+import { showToast } from '../../../core/utils.js?v=20260807f';
+import { renderTodoList } from '../../../components/todo-list.js?v=20260807f';
+import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260807f';
+import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260807f';
+import { badgeHtml } from '../../../components/badge.js?v=20260807f';
 
 const accent = '#B91C1C';
 
@@ -70,14 +70,14 @@ export function renderContent() {
       <div class="lg:col-span-2">
         <div class="card rounded-xl p-5"">
           <div class="flex items-center justify-between mb-4">
-            <h4 class="font-title-cn text-sm font-bold text-gray-700">我的待办</h4>
+            <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
           </div>
           ${todoListHtml}
         </div>
       </div>
       <div class="lg:col-span-1">
         <div class="card rounded-xl p-5 lg:sticky lg:top-20">
-          <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-4">待办详情</h4>
+          <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">待办详情</h3>
           ${detailHtml}
         </div>
       </div>

@@ -1,17 +1,17 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
-import { renderSidebar } from '../components/sidebar.js?v=20260807c';
-import { renderHeader } from '../components/header.js?v=20260807c';
-import { BranchService } from '../services/runtime.js?v=20260807c';
-import { getPersonById } from '../mock/index.js?v=20260807c';
-import { loadActivities } from '../services/activity.js?v=20260807c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807c';
-import { getActivityTypeColors } from '../core/constants.js?v=20260807c';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260807c';
-import { getBasePath } from '../core/utils.js?v=20260807c';
-import { AuthStore } from '../services/auth.js?v=20260807c';
-import { badgeHtml } from '../components/badge.js?v=20260807c';
+import { renderSidebar } from '../components/sidebar.js?v=20260807f';
+import { renderHeader } from '../components/header.js?v=20260807f';
+import { BranchService } from '../services/runtime.js?v=20260807f';
+import { getPersonById } from '../mock/index.js?v=20260807f';
+import { loadActivities } from '../services/activity.js?v=20260807f';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807f';
+import { getActivityTypeColors } from '../core/constants.js?v=20260807f';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260807f';
+import { getBasePath } from '../core/utils.js?v=20260807f';
+import { AuthStore } from '../services/auth.js?v=20260807f';
+import { badgeHtml } from '../components/badge.js?v=20260807f';
 
 renderSidebar('archive');
 renderHeader('archive');
@@ -248,7 +248,7 @@ function _renderActivityDetail(activity) {
             <span class="text-xs text-gray-500">${color.label}</span>
             ${activity.isBrand ? badgeHtml('品牌', 'brand') : ''}
           </div>
-          <h3 class="font-title-cn text-lg font-bold text-gray-800">${activity.title || '未命名活动'}</h3>
+          <h3 class="font-title-cn text-base font-semibold text-gray-800">${activity.title || '未命名活动'}</h3>
         </div>
         <button data-close class="text-gray-400 hover:text-gray-600 ml-3 flex-shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -320,7 +320,7 @@ function _renderTaskforceDetail(tf) {
             ${badgeHtml('专班', 'info')}
             ${badgeHtml('已归档', 'neutral')}
           </div>
-          <h3 class="font-title-cn text-lg font-bold text-gray-800">${tf.name || '未命名专班'}</h3>
+          <h3 class="font-title-cn text-base font-semibold text-gray-800">${tf.name || '未命名专班'}</h3>
         </div>
         <button data-close class="text-gray-400 hover:text-gray-600 ml-3 flex-shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

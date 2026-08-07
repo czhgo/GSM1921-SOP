@@ -1,24 +1,24 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  inspector.js — 右侧检查器面板渲染逻辑
 //  包含：filterTasksByManagementRole, renderInspectorFromState,
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../core/state.js?v=20260807c';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260807c';
-import { _fmtChinese, showToast } from '../core/utils.js?v=20260807c';
-import { icon } from '../core/icons.js?v=20260807c';
-import { PEOPLE, getPersonById } from '../mock/index.js?v=20260807c';
-import { BranchService } from '../services/runtime.js?v=20260807c';
-import { AuthStore } from '../services/auth.js?v=20260807c';
-import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260807c';
-import { badgeHtml } from './badge.js?v=20260807c';
-import { persist } from '../core/data-adapter.js?v=20260807c';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260807c';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260807c';
-import { loadActivityReviews } from '../services/review.js?v=20260807c';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260807c';
+import { setState, STATE, getAppState } from '../core/state.js?v=20260807f';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260807f';
+import { _fmtChinese, showToast } from '../core/utils.js?v=20260807f';
+import { icon } from '../core/icons.js?v=20260807f';
+import { PEOPLE, getPersonById } from '../mock/index.js?v=20260807f';
+import { BranchService } from '../services/runtime.js?v=20260807f';
+import { AuthStore } from '../services/auth.js?v=20260807f';
+import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260807f';
+import { badgeHtml } from './badge.js?v=20260807f';
+import { persist } from '../core/data-adapter.js?v=20260807f';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260807f';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260807f';
+import { loadActivityReviews } from '../services/review.js?v=20260807f';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260807f';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -120,7 +120,7 @@ function _showParticipantModal(act) {
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
   const card = document.createElement('div');
-  card.style.cssText = 'background:#fff;border-radius:var(--radius-lg);padding:20px 22px;max-width:320px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);';
+  card.style.cssText = 'background:var(--surface-card);border-radius:var(--radius-lg);padding:20px 22px;max-width:320px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);';
 
   let extraHtml = '';
   const orgPerson = getPersonById(act.organizer);
@@ -393,7 +393,7 @@ function _showCloseBlockModal(activity, missing) {
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
   const card = document.createElement('div');
-  card.style.cssText = 'background:#fff;border-radius:var(--radius-lg);padding:20px 22px;max-width:360px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);';
+  card.style.cssText = 'background:var(--surface-card);border-radius:var(--radius-lg);padding:20px 22px;max-width:360px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);';
   card.innerHTML =
     `<p class="font-bold text-sm text-gray-800 mb-1">无法关闭「${activity.title}」</p>`
     + '<p class="text-xs text-gray-500 mb-3">以下产出未齐，补齐后方可关闭：</p>'

@@ -72,7 +72,8 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
   const extraHtml = extraRightHtml ? `<div class="ml-auto">${extraRightHtml}</div>` : '';
 
-  const html = `<div class="flex gap-2 mb-4">${btnsHtml}${extraHtml}</div><div id="${contentId}"></div>`;
+  // flex-wrap:wrap — 移动端窄屏自动换行，杜绝 tab 栏横向溢出撑破页面（T230 移动端实测 2026-08-07）
+  const html = `<div class="flex flex-wrap gap-2 mb-4">${btnsHtml}${extraHtml}</div><div id="${contentId}"></div>`;
 
   // 延迟绑定事件（调用方在 innerHTML 后调用 bindTabEvents）
   function bindEvents(container) {

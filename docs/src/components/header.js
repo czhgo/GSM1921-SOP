@@ -1,14 +1,14 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // components/header.js — 共享顶栏组件（重构版）
 // 变化: 去掉 mode 标签，改为当前身份标签 + 只读切换下拉
 
-import { AuthStore } from '../services/auth.js?v=20260807c';
-import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260807c';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260807c';
-import { getBasePath } from '../core/utils.js?v=20260807c';
-import { icon } from '../core/icons.js?v=20260807c';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260807c';
-import { badgeHtml } from './badge.js?v=20260807c';
+import { AuthStore } from '../services/auth.js?v=20260807f';
+import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260807f';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260807f';
+import { getBasePath } from '../core/utils.js?v=20260807f';
+import { icon } from '../core/icons.js?v=20260807f';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260807f';
+import { badgeHtml } from './badge.js?v=20260807f';
 
 // 数据变更订阅（2026-08-05，消除"确认已读后角标不更新"）：
 // 模块顶层绑定一次；_renderNotificationBadge 在 #notification-bell 未渲染时静默返回。
@@ -169,7 +169,7 @@ function _notificationBellHTML() {
         ${icon('bell', { stroke: '#FFFFFF', className: 'w-4 h-4' })}
         ${badge}
       </button>
-      <div id="notif-dropdown" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;width:320px;background:white;border-radius:var(--radius-sm);box-shadow:var(--shadow-dropdown);z-index:100;overflow:hidden;border:1px solid #E5E7EB;"></div>
+      <div id="notif-dropdown" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;width:320px;background:var(--surface-card);border-radius:var(--radius-sm);box-shadow:var(--shadow-dropdown);z-index:100;overflow:hidden;border:1px solid var(--neutral-200);"></div>
     </div>
   `;
 }
@@ -352,7 +352,7 @@ function _bindNotificationBell(header) {
       // 保留策略（书记 2026-08-05）：紧急通知全部展示，重要通知仅展示未读
       const notices = NoticeStore.list({ activeOnly: true, sortBy: 'date', retention: 'visible' });
       if (notices.length === 0) {
-        dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:#9CA3AF;" class="text-sm">暂无通知</div>';
+        dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:var(--neutral-400);" class="text-sm">暂无通知</div>';
         return;
       }
 
@@ -363,13 +363,13 @@ function _bindNotificationBell(header) {
 
       dropdown.innerHTML = notices.slice(0, 10).map(n => `
         <div class="notif-dropdown-item" data-notice-id="${n.id}" data-target="${n.targetModule || ''}" data-target-url="${n.targetUrl || ''}"
-             style="padding:12px;border-bottom:1px solid #F3F4F6;cursor:pointer;transition:background 0.15s;">
+             style="padding:12px;border-bottom:1px solid var(--neutral-200);cursor:pointer;transition:background 0.15s;">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
             ${priorityBadge[n.priority] || ''}
-            <p style="color:#374151;margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" class="text-body-sm">${n.title || n.content}</p>
-            ${!n.read ? `<button class="notif-mark-read text-xs" data-notice-id="${n.id}" style="color:#2563EB;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;transition:background 0.15s;flex-shrink:0;" onmouseenter="this.style.background='#EFF6FF'" onmouseleave="this.style.background='none'">已读</button>` : ''}
+            <p style="color:var(--neutral-700);margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" class="text-body-sm">${n.title || n.content}</p>
+            ${!n.read ? `<button class="notif-mark-read text-xs" data-notice-id="${n.id}" style="color:var(--functional-info);background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;transition:background 0.15s;flex-shrink:0;" onmouseenter="this.style.background='var(--surface-hover)'" onmouseleave="this.style.background='none'">已读</button>` : ''}
           </div>
-          <p style="color:#9CA3AF;margin:0;" class="text-[12px]">${n.publishDate || n.date || ''}</p>
+          <p style="color:var(--neutral-400);margin:0;" class="text-[12px]">${n.publishDate || n.date || ''}</p>
         </div>
       `).join('');
 
@@ -393,7 +393,7 @@ function _bindNotificationBell(header) {
       // 绑定点击：标记已读 + 统一跳转（resolveNoticeUrl 业务页直达优先，与全站一致）
       dropdown.querySelectorAll('.notif-dropdown-item').forEach(item => {
         item.addEventListener('mouseenter', () => {
-          item.style.background = '#F9FAFB';
+          item.style.background = 'var(--surface-hover)';
         });
         item.addEventListener('mouseleave', () => {
           item.style.background = 'transparent';

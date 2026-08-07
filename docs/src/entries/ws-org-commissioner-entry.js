@@ -1,25 +1,25 @@
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807c';
-import { BranchService } from '../services/runtime.js?v=20260807c';
-import { showToast } from '../core/utils.js?v=20260807c';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260807c';
-import { AuthStore } from '../services/auth.js?v=20260807c';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260807c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807c';
-import { PersonPicker } from '../components/person-picker.js?v=20260807c';
-import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js?v=20260807c';
-import { mockDB, SourceType, ParticipationLevel } from '../core/domain.js?v=20260807c';
-import { persist } from '../core/data-adapter.js?v=20260807c';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260807c';
-import { renderTabBar } from '../components/tab-bar.js?v=20260807c';
-import { renderQueryView } from '../components/query-view.js?v=20260807c';
-import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260807c';
-import { loadActivities } from '../services/activity.js?v=20260807c';
-import { icon } from '../core/icons.js?v=20260807c';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807c';
-import { renderTodoList } from '../components/todo-list.js?v=20260807c';
-import { TodoStore, seedTodos } from '../services/todo.js?v=20260807c';
-import { NoticeStore } from '../services/notice.js?v=20260807c';
-import { badgeHtml } from '../components/badge.js?v=20260807c';
+﻿import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807f';
+import { BranchService } from '../services/runtime.js?v=20260807f';
+import { showToast } from '../core/utils.js?v=20260807f';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260807f';
+import { AuthStore } from '../services/auth.js?v=20260807f';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260807f';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807f';
+import { PersonPicker } from '../components/person-picker.js?v=20260807f';
+import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js?v=20260807f';
+import { mockDB, SourceType, ParticipationLevel } from '../core/domain.js?v=20260807f';
+import { persist } from '../core/data-adapter.js?v=20260807f';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260807f';
+import { renderTabBar } from '../components/tab-bar.js?v=20260807f';
+import { renderQueryView } from '../components/query-view.js?v=20260807f';
+import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260807f';
+import { loadActivities } from '../services/activity.js?v=20260807f';
+import { icon } from '../core/icons.js?v=20260807f';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807f';
+import { renderTodoList } from '../components/todo-list.js?v=20260807f';
+import { TodoStore, seedTodos } from '../services/todo.js?v=20260807f';
+import { NoticeStore } from '../services/notice.js?v=20260807f';
+import { badgeHtml } from '../components/badge.js?v=20260807f';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'org-commissioner' });
 
@@ -172,14 +172,14 @@ function _renderTodoContent() {
       <div class="lg:col-span-2">
         <div class="card rounded-xl p-5"">
           <div class="flex items-center justify-between mb-4">
-            <h4 class="font-title-cn text-sm font-bold text-gray-700">我的待办</h4>
+            <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
           </div>
           ${todoListHtml}
         </div>
       </div>
       <div class="lg:col-span-1">
         <div class="card rounded-xl p-5 sticky top-20">
-          <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-4">详情</h4>
+          <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">详情</h3>
           ${detailHtml}
         </div>
       </div>
@@ -458,7 +458,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
         return `
           <div class="mt-3">
             <div class="flex items-center justify-between mb-1.5">
-              <span class="text-xs font-bold font-title-cn" style="color:${color}">${label} (${items.length})</span>
+              <h5 class="text-xs font-bold font-title-cn" style="color:${color}">${label} (${items.length})</h5>
               <button class="sub-add-btn text-xs px-3 py-1.5 rounded-lg border hover:bg-gray-50 transition-colors" style="color:${color};border-color:${color}40" data-type="${type}">+ 添加</button>
             </div>
             ${items.length === 0
@@ -479,7 +479,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
         </div>`;
 
       panel.innerHTML = `
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">${tf.name}</h4>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">${tf.name}</h3>
         <p class="text-xs text-gray-500 mb-2">${tf.task}</p>
         <div class="flex gap-4 text-xs text-gray-400 mb-3">
           <span>${filled}/${tf.capacity}</span>
@@ -676,7 +676,7 @@ function _showDissolveBlockModal(tf, missing) {
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
   const card = document.createElement('div');
-  card.style.cssText = 'background:#fff;border-radius:var(--radius-lg);padding:20px 22px;max-width:360px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);';
+  card.style.cssText = 'background:var(--surface-card);border-radius:var(--radius-lg);padding:20px 22px;max-width:360px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);';
   card.innerHTML =
     `<p class="font-bold text-sm text-gray-800 mb-1">无法解散「${tf.name}」</p>`
     + '<p class="text-xs text-gray-500 mb-3">以下产出未齐，补齐后方可解散：</p>'
@@ -790,9 +790,9 @@ function _openRecruitForm() {
   // input-flat / text-xs 标签 / 红色必填星号 / 同规格按钮
   panel.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-      <h3 class="font-title-cn" style="font-size:1.125rem;font-weight:700;color:#1F2937;margin:0;">发布专班招募</h3>
-      <button id="recruit-form-close" type="button" style="width:32px;height:32px;border-radius:var(--radius-sm);border:none;background:#F3F4F6;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;">
-        ${icon('close', { stroke: '#6B7280', className: 'w-3.5 h-3.5' })}
+      <h3 class="font-title-cn text-sm font-semibold text-gray-800">发布专班招募</h3>
+      <button id="recruit-form-close" type="button" style="width:32px;height:32px;border-radius:var(--radius-sm);border:none;background:var(--neutral-100);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;">
+        ${icon('close', { stroke: 'var(--neutral-500)', className: 'w-3.5 h-3.5' })}
       </button>
     </div>
 
@@ -988,7 +988,7 @@ function _renderActivityProgress(activities) {
 
   progressEl.innerHTML = `
     <div class="card rounded-xl p-5"">
-      <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">活动进度</h4>
+      <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">活动进度</h3>
       <div class="text-xs text-gray-500 mb-3">追踪所有已发布活动的执行状态</div>
       <div id="org-activity-query"></div>
     </div>
@@ -1136,7 +1136,7 @@ function _renderDevelopmentContent() {
     container.innerHTML = `
       <div class="card rounded-xl p-5"">
         <div class="flex items-center justify-between mb-3">
-          <h4 class="font-title-cn text-sm font-bold text-gray-700">发展数据</h4>
+          <h3 class="font-title-cn text-base font-semibold text-gray-800">发展数据</h3>
           <span class="text-xs text-gray-400">${candidates.length} 人</span>
         </div>
         <div class="text-xs text-gray-500 mb-4">从入党积极分子到正式党员的完整发展路径数据</div>
@@ -1204,7 +1204,7 @@ function _renderTalentContent() {
   container.innerHTML = `
     <div class="card rounded-xl p-5"">
       <div class="flex items-center justify-between mb-3">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">人才库</h4>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">人才库</h3>
         <span class="text-xs text-gray-400">${people.length} 人</span>
       </div>
       <div class="text-xs text-gray-500 mb-4">人员信息汇总提炼，输出人才画像</div>
@@ -1305,7 +1305,7 @@ function _renderTalentDetail(personId) {
   panel.innerHTML = `
     <div class="flex items-start justify-between mb-3">
       <div>
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">${person.name}</h4>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">${person.name}</h3>
         <div class="flex items-center gap-2 mt-1">
           <span class="text-xs px-1.5 py-0.5 rounded-full ${colorCls}">${person.developStage || ''}</span>
           <span class="text-xs text-gray-500">${person.partyGroup || ''}</span>
@@ -1390,7 +1390,7 @@ function _renderOrgInspectionContent() {
   container.innerHTML = `
     <div class="card rounded-xl p-5"">
       <div class="flex items-center justify-between mb-4">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">专班考察上传</h4>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">专班考察上传</h3>
         <button class="btn-md" id="btn-org-upload-insp" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_orgInspFormVisible ? '收起表单' : '上传考察表单'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表</div>

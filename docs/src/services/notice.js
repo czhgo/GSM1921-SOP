@@ -1,17 +1,17 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  service.notice.js — 通知数据模型
 //  提供 NoticeStore：通知的 CRUD + mockDB 持久化
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260807c';
-import { persist } from '../core/data-adapter.js?v=20260807c';
-import { MOCK_NOTICES } from '../mock/index.js?v=20260807c';
-import { showToast, getBasePath } from '../core/utils.js?v=20260807c';
-import { AuthStore } from './auth.js?v=20260807c';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260807c';
-import { badgeHtml } from '../components/badge.js?v=20260807c';
+import { mockDB } from '../core/domain.js?v=20260807f';
+import { persist } from '../core/data-adapter.js?v=20260807f';
+import { MOCK_NOTICES } from '../mock/index.js?v=20260807f';
+import { showToast, getBasePath } from '../core/utils.js?v=20260807f';
+import { AuthStore } from './auth.js?v=20260807f';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260807f';
+import { badgeHtml } from '../components/badge.js?v=20260807f';
 
 const NOTICE_STORAGE_KEY = 'workflowos_notices_v1';
 
@@ -343,13 +343,13 @@ function _showNoticePopover(notice, triggerBtn) {
 
   const popover = document.createElement('div');
   popover.id = 'notice-read-popover';
-  popover.style.cssText = 'position:fixed;z-index:100;background:white;border-radius:12px;box-shadow:0 12px 36px rgba(0,0,0,0.15);border:1px solid #E5E7EB;padding:16px;width:360px;max-height:80vh;overflow-y:auto;';
+  popover.style.cssText = 'position:fixed;z-index:100;background:var(--surface-card);border-radius:12px;box-shadow:0 12px 36px rgba(0,0,0,0.15);border:1px solid var(--neutral-200);padding:16px;width:360px;max-height:80vh;overflow-y:auto;';
 
   popover.innerHTML = `
     <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
       <div class="flex items-center gap-2">
         ${priorityBadge[notice.priority] || ''}
-        <span class="font-title-cn text-sm font-semibold text-gray-800">${notice.title}</span>
+        <h3 class="font-title-cn text-sm font-semibold text-gray-800">${notice.title}</h3>
       </div>
       <button id="notice-popover-close" class="text-gray-400 hover:text-gray-600 text-sm leading-none">&times;</button>
     </div>

@@ -25,12 +25,12 @@ export function openModal({ id, title, bodyHtml, onMount, width = '480px', accen
   overlay.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;animation:fadeIn 0.15s ease;';
 
   const panel = document.createElement('div');
-  panel.style.cssText = `width:${width};max-width:calc(100vw - 32px);max-height:85vh;background:white;border-radius:var(--radius-md);box-shadow:0 20px 60px rgba(0,0,0,0.2);display:flex;flex-direction:column;animation:slideUp 0.2s ease;overflow:hidden;`;
+  panel.style.cssText = `width:${width};max-width:calc(100vw - 32px);max-height:85vh;background:var(--surface-card);border-radius:var(--radius-md);box-shadow:0 20px 60px rgba(0,0,0,0.2);display:flex;flex-direction:column;animation:slideUp 0.2s ease;overflow:hidden;`;
 
   panel.innerHTML = `
-    <div style="padding:16px 20px;border-bottom:1px solid #E5E7EB;display:flex;align-items:center;justify-content:space-between;">
-      <h3 style="margin:0;font-weight:600;color:#1F2937;" class="text-body-sm">${title}</h3>
-      <button data-modal-close="${id}" style="background:none;border:none;cursor:pointer;color:#9CA3AF;line-height:1;padding:4px 8px;border-radius:var(--radius-sm);transition:all 0.15s;" class="text-xl" onmouseover="this.style.background='#F3F4F6';this.style.color='#374151'" onmouseout="this.style.background='none';this.style.color='#9CA3AF'">&times;</button>
+    <div style="padding:16px 20px;border-bottom:1px solid var(--neutral-200);display:flex;align-items:center;justify-content:space-between;">
+      <h3 class="font-title-cn text-sm font-semibold text-gray-800">${title}</h3>
+      <button data-modal-close="${id}" style="background:none;border:none;cursor:pointer;color:var(--neutral-400);line-height:1;padding:4px 8px;border-radius:var(--radius-sm);transition:all 0.15s;" class="text-xl" onmouseover="this.style.background='var(--neutral-100)';this.style.color='var(--neutral-600)'" onmouseout="this.style.background='none';this.style.color='var(--neutral-400)'">&times;</button>
     </div>
     <div class="modal-body" style="padding:20px;overflow-y:auto;flex:1;">
       ${bodyHtml}

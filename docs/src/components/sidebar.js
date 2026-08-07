@@ -1,15 +1,15 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // components/sidebar.js — 共享侧边栏（角色单页制 v2）
 // 2026-07-29: 角色单页制重构——合并党建/党务为"工作台"单入口
 // - 移除 '党务管理' / '人员管理' 独立入口
 // - '党建工作台' → '工作台'（角色自适应跳转）
 // - 帮助/关于移入主导航区
 
-import { AuthStore } from '../services/auth.js?v=20260807c';
-import { getBasePath } from '../core/utils.js?v=20260807c';
-import { icon } from '../core/icons.js?v=20260807c';
-import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260807c';
-import { bindWorkspacePopover } from './workspace-popover.js?v=20260807c';
+import { AuthStore } from '../services/auth.js?v=20260807f';
+import { getBasePath } from '../core/utils.js?v=20260807f';
+import { icon } from '../core/icons.js?v=20260807f';
+import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260807f';
+import { bindWorkspacePopover } from './workspace-popover.js?v=20260807f';
 
 // 记录当前 activeModule，供 view-role-change 事件触发 re-render 使用
 let _lastActiveModule = null;
@@ -78,6 +78,7 @@ export function renderSidebar(activeModule) {
   // 主题色：当前生效强调色（个性化覆盖优先）
   const effAccentKey = resolveAccentRole(role);
   const effAccentHex = ACCENT_COLORS[effAccentKey]?.hex || '#B91C1C';
+  const effAccentLabel = ACCENT_PALETTE.find(c => c.key === effAccentKey)?.label || '红';
 
   sidebar.innerHTML = `
     <nav class="sidebar-nav">
@@ -91,8 +92,7 @@ export function renderSidebar(activeModule) {
         <button id="font-size-large" class="font-size-btn ${_currentFontSize() === 'large' ? 'active' : ''}" title="大号字体">大</button>
       </div>
       <div class="sidebar-accent-toggle">
-        <span style="font-size:0.65rem;color:var(--neutral-400);">主题色</span>
-        <button id="sidebar-accent-swatch" class="accent-swatch" style="background:${effAccentHex}" title="主题色（全站强调色）"></button>
+        <button id="sidebar-accent-swatch" class="accent-swatch" style="background:${effAccentHex}" data-label="主题色：${effAccentLabel}" title="主题色：${effAccentLabel}（点击更换）"></button>
       </div>
       <button id="sidebar-logout" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-400);cursor:pointer;border:none;background:none;">
         ${icon('logout', { stroke: 'var(--neutral-400)' })}
@@ -165,14 +165,11 @@ function _toggleAccentPalette(swatch) {
   popover.id = 'accent-palette-popover';
   popover.className = 'accent-palette';
   popover.innerHTML = `
-    <div class="accent-palette-title">主题色 · 全站强调色</div>
+    <div class="accent-palette-title">点击色块更换主题色</div>
     <div class="accent-palette-grid">
       ${ACCENT_PALETTE.map(c => `
-        <button type="button" class="accent-swatch-opt ${c.key === currentKey ? 'active' : ''}" data-key="${c.key}" title="${c.label}" style="background:${c.hex}"></button>
+        <button type="button" class="accent-swatch-opt ${c.key === currentKey ? 'active' : ''}" data-key="${c.key}" data-label="主题色：${c.label}" title="主题色：${c.label}" style="background:${c.hex}"></button>
       `).join('')}
-    </div>
-    <div class="accent-palette-names">
-      ${ACCENT_PALETTE.map(c => `<span class="${c.key === currentKey ? 'active' : ''}" data-name-for="${c.key}">${c.label}</span>`).join('')}
     </div>
   `;
   document.body.appendChild(popover);

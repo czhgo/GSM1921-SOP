@@ -1,25 +1,25 @@
-import { renderTabBar } from '../components/tab-bar.js?v=20260807c';
-import { renderTodoList } from '../components/todo-list.js?v=20260807c';
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807c';
-import { BranchService } from '../services/runtime.js?v=20260807c';
-import { showToast } from '../core/utils.js?v=20260807c';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260807c';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260807c';
-import { attendanceToLong, inspectionToLong, PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260807c';
-import { PersonPicker } from '../components/person-picker.js?v=20260807c';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js?v=20260807c';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, ReviewStatus, REVIEW_STATUS_LABELS, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260807c';
-import { persist } from '../core/data-adapter.js?v=20260807c';
-import { loadMakeupTasks } from '../services/makeup.js?v=20260807c';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260807c';
-import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260807c';
-import { loadActivities } from '../services/activity.js?v=20260807c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807c';
-import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../services/review.js?v=20260807c';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807c';
-import { TodoStore, seedTodos } from '../services/todo.js?v=20260807c';
-import { AuthStore } from '../services/auth.js?v=20260807c';
-import { badgeHtml } from '../components/badge.js?v=20260807c';
+﻿import { renderTabBar } from '../components/tab-bar.js?v=20260807f';
+import { renderTodoList } from '../components/todo-list.js?v=20260807f';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807f';
+import { BranchService } from '../services/runtime.js?v=20260807f';
+import { showToast } from '../core/utils.js?v=20260807f';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260807f';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260807f';
+import { attendanceToLong, inspectionToLong, PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260807f';
+import { PersonPicker } from '../components/person-picker.js?v=20260807f';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js?v=20260807f';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, ReviewStatus, REVIEW_STATUS_LABELS, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260807f';
+import { persist } from '../core/data-adapter.js?v=20260807f';
+import { loadMakeupTasks } from '../services/makeup.js?v=20260807f';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260807f';
+import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260807f';
+import { loadActivities } from '../services/activity.js?v=20260807f';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807f';
+import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../services/review.js?v=20260807f';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807f';
+import { TodoStore, seedTodos } from '../services/todo.js?v=20260807f';
+import { AuthStore } from '../services/auth.js?v=20260807f';
+import { badgeHtml } from '../components/badge.js?v=20260807f';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'leader' });
 
@@ -138,14 +138,14 @@ function _renderTodoContent() {
       <div class="lg:col-span-2">
         <div class="card rounded-xl p-5"">
           <div class="flex items-center justify-between mb-4">
-            <h4 class="font-title-cn text-sm font-bold text-gray-700">我的待办</h4>
+            <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
           </div>
           ${todoListHtml}
         </div>
       </div>
       <div class="lg:col-span-1">
         <div class="card rounded-xl p-5 sticky top-20">
-          <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-4">详情</h4>
+          <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">详情</h3>
           ${detailHtml}
         </div>
       </div>
@@ -249,7 +249,7 @@ function _renderWriteContent(activities) {
   container.innerHTML = `
     <div class="card rounded-xl p-5"">
       <div class="flex items-center justify-between mb-4">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">活动写入</h4>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">活动写入</h3>
         <button class="btn-md" id="btn-leader-create" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${panelVisible ? '收起面板' : '创建活动'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点</div>
@@ -327,7 +327,7 @@ function _renderWriteContent(activities) {
         return `
           <div class="mt-3">
             <div class="flex items-center justify-between mb-1.5">
-              <span class="text-xs font-bold font-title-cn" style="color:${cfg.color}">${cfg.label} (${items.length})</span>
+              <h5 class="text-xs font-bold font-title-cn" style="color:${cfg.color}">${cfg.label} (${items.length})</h5>
               <button class="act-sub-add-btn text-xs px-3 py-1.5 rounded-lg border hover:bg-gray-50 transition-colors" style="color:${cfg.color};border-color:${cfg.color}40" data-type="${type}">+ 添加</button>
             </div>
             ${items.length === 0
@@ -958,7 +958,7 @@ function _renderAttendanceContent() {
   container.innerHTML = `
     <div class="card rounded-xl p-5"">
       <div class="flex items-center justify-between mb-4">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤上传</h4>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤上传</h3>
         <button class="btn-md" id="btn-leader-upload-att" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_attFormVisible ? '收起表单' : '上传考勤表单'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表</div>
@@ -1198,7 +1198,7 @@ function _renderInspectionContent() {
   container.innerHTML = `
     <div class="card rounded-xl p-5"">
       <div class="flex items-center justify-between mb-4">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">考察上传</h4>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">考察上传</h3>
         <button class="btn-md" id="btn-leader-upload-insp" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_inspFormVisible ? '收起表单' : '上传考察表单'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">党小组活动考察：党小组组长上传 → 纪检委员确认 → 录入考察总表</div>
@@ -1375,7 +1375,7 @@ function _renderReviewContent() {
   const currentLeaderId = 'p4';
   const myGroup = LEADER_GROUP_MAP[currentLeaderId] || '';
 
-  // 筛选本组活动（党小组会/组织生活会/主题党日等由本组组长组织的活动）
+  // 筛选本组活动（三会一课/主题党日等由本组组长组织的活动）
   const myGroupActivities = loadActivities().filter(a => {
     // 按组织者属于本组 或 按 hostGroup 匹配
     const organizer = PEOPLE.find(p => p.id === a.organizer);
@@ -1437,7 +1437,7 @@ function _renderReviewContent() {
   container.innerHTML = `
     <div class="card rounded-xl p-5"">
       <div class="flex items-center justify-between mb-4">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">复盘提交</h4>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">复盘提交</h3>
       </div>
       <div class="text-xs text-gray-500 mb-4">党小组组长提交活动复盘总结 → 纪检委员批注/确认</div>
 

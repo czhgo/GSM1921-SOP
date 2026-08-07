@@ -16,12 +16,12 @@
   gap: 8px;
   padding: 8px 14px;
   border-radius: var(--radius-md);
-  border: 1.5px solid #E5E7EB;
-  background: white;
+  border: 1.5px solid var(--neutral-200);
+  background: var(--surface-card);
   cursor: pointer;
   transition: all 0.15s;
   font-size: 0.8125rem;
-  color: #374151;
+  color: var(--neutral-700);
   min-width: 120px;
   max-width: 320px;
 }
@@ -139,12 +139,12 @@
   width: 100%;
   padding: 8px 12px 8px 34px;
   border-radius: var(--radius-md);
-  border: 1.5px solid #E5E7EB;
+  border: 1.5px solid var(--neutral-200);
   font-size: 0.8125rem;
   outline: none;
   transition: border-color 0.15s;
   background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%239CA3AF" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>') no-repeat 10px center;
-  background-color: white;
+  background-color: var(--surface-card);
   box-sizing: border-box;
 }
 
@@ -318,4 +318,59 @@
 
 .person-picker-confirm:hover {
   background: var(--pp-accent-darker);
+}
+
+/* ── 深色主题适配（系统跟随，T-207 补漏 2026-08-07）── */
+@media (prefers-color-scheme: dark) {
+  /* trigger 已变量化（--surface-card/--neutral-*），深色下随全局变量自动反转，无需再覆盖 */
+  .person-picker-trigger-placeholder,
+  .person-picker-arrow {
+    color: var(--neutral-400);
+  }
+  .person-picker-panel {
+    background: var(--surface-elevated);
+  }
+  .person-picker-header {
+    border-bottom-color: var(--neutral-200);
+  }
+  .person-picker-title {
+    color: var(--neutral-800);
+  }
+  .person-picker-close-btn {
+    background: var(--neutral-100);
+    color: var(--neutral-500);
+  }
+  .person-picker-close-btn:hover {
+    background: var(--neutral-200);
+  }
+  .person-picker-search {
+    background-color: var(--surface-card);
+    border-color: var(--neutral-200);
+    color: var(--neutral-700);
+  }
+  .person-picker-tab {
+    background: var(--neutral-100);
+    color: var(--neutral-500);
+    border-color: var(--neutral-200);
+  }
+  .person-picker-item:not(.selected):hover {
+    background: var(--surface-hover);
+  }
+  .person-picker-item-avatar {
+    background: var(--neutral-100);
+    color: var(--neutral-400);
+  }
+  .person-picker-item-name {
+    color: var(--neutral-800);
+  }
+  .person-picker-item-meta-text,
+  .person-picker-item-role {
+    color: var(--neutral-400);
+  }
+  .person-picker-footer {
+    border-top-color: var(--neutral-200);
+  }
+  .person-picker-count {
+    color: var(--neutral-500);
+  }
 }

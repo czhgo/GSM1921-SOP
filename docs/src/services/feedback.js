@@ -1,9 +1,9 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // feedback.js — 旧意见反馈服务（已弃用，保留 shim 兼容）
 // 实际功能已迁移至 issues.js IssueStore
 // 旧数据在 issues.js migrateFromFeedbackStore() 中自动迁移
 
-import { IssueStore } from './issues.js?v=20260807c';
+import { IssueStore } from './issues.js?v=20260807f';
 
 export const FeedbackStore = {
   /** @deprecated 使用 IssueStore.getAll() */

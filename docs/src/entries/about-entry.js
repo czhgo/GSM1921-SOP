@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // entries/about-entry.js — 关于页入口 v15（讲我们支部的故事）
 // 核心理念：从"关系网络"到"支部的故事"——以党员成长为主线，讲清考察、工作哲学、探索与对话
 // 设计风格：苹果风（纯白 + 大留白 + 大字体 + 微妙动画）
@@ -32,10 +32,10 @@
 // v6 变更：Section 重组（8→7）+ 13 节点横向时间轴（7 决策节点金色光晕）+ Exploration GSAP scrub 动画（替代 v5.2）+ T3 编程行话/自造隐喻清除
 // v4 变更：去党建vs党务对比/考勤/思想汇报/角色独立section；新增考察积极分子/核心口号/两种工作/探索工作/行百里者半九十
 
-import { renderSidebar } from '../components/sidebar.js?v=20260807c';
-import { renderHeader } from '../components/header.js?v=20260807c';
-import { getBasePath } from '../core/utils.js?v=20260807c';
-import { icon } from '../core/icons.js?v=20260807c';
+import { renderSidebar } from '../components/sidebar.js?v=20260807f';
+import { renderHeader } from '../components/header.js?v=20260807f';
+import { getBasePath } from '../core/utils.js?v=20260807f';
+import { icon } from '../core/icons.js?v=20260807f';
 
 // ── 公开访问：不检查登录 ──
 renderSidebar('about');

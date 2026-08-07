@@ -1,13 +1,13 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  makeup.js — 补课任务 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus } from '../core/domain.js?v=20260807c';
-import { persist } from '../core/data-adapter.js?v=20260807c';
-import { PEOPLE, getPersonById } from '../mock/index.js?v=20260807c';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260807c';
-import { findActivityById } from '../services/activity.js?v=20260807c';
+import { mockDB, AttendanceStatus } from '../core/domain.js?v=20260807f';
+import { persist } from '../core/data-adapter.js?v=20260807f';
+import { PEOPLE, getPersonById } from '../mock/index.js?v=20260807f';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260807f';
+import { findActivityById } from '../services/activity.js?v=20260807f';
 
 const MANDATORY_ACTIVITY_TYPES = ['支部党员大会', '党小组会', '党课'];
 

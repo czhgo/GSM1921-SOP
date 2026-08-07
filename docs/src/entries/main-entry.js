@@ -1,25 +1,25 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // main-entry.js — 主页入口
 // index.html 专属，处理 dashboard 全量数据渲染
 
-import { BranchService } from '../services/runtime.js?v=20260807c';
-import { STATE, setState, registerRenderCallback, getAppState } from '../core/state.js?v=20260807c';
-import { NoticeStore, renderNoticeList } from '../services/notice.js?v=20260807c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807c';
-import { _fmtDate, getBasePath } from '../core/utils.js?v=20260807c';
-import { _personName, getPersonName } from '../mock/index.js?v=20260807c';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260807c';
-import { loadActivities } from '../services/activity.js?v=20260807c';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260807c';
-import { getActivityTypeColors } from '../core/constants.js?v=20260807c';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260807c';
-import { AuthStore } from '../services/auth.js?v=20260807c';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260807c';
-import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260807c';
-import { icon } from '../core/icons.js?v=20260807c';
-import { badgeHtml } from '../components/badge.js?v=20260807c';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../components/inspector.js?v=20260807c';
-import { renderCalendarForDashboard, populateMonthSelector } from '../components/calendar.js?v=20260807c';
+import { BranchService } from '../services/runtime.js?v=20260807f';
+import { STATE, setState, registerRenderCallback, getAppState } from '../core/state.js?v=20260807f';
+import { NoticeStore, renderNoticeList } from '../services/notice.js?v=20260807f';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807f';
+import { _fmtDate, getBasePath } from '../core/utils.js?v=20260807f';
+import { _personName, getPersonName } from '../mock/index.js?v=20260807f';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260807f';
+import { loadActivities } from '../services/activity.js?v=20260807f';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260807f';
+import { getActivityTypeColors } from '../core/constants.js?v=20260807f';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260807f';
+import { AuthStore } from '../services/auth.js?v=20260807f';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260807f';
+import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260807f';
+import { icon } from '../core/icons.js?v=20260807f';
+import { badgeHtml } from '../components/badge.js?v=20260807f';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../components/inspector.js?v=20260807f';
+import { renderCalendarForDashboard, populateMonthSelector } from '../components/calendar.js?v=20260807f';
 
 const { user } = await bootstrapPage({ module: 'dashboard' });
 
@@ -151,7 +151,7 @@ function _bindAttendancePopover(activities, attendanceRecords, thisMonth) {
   if (!popover) {
     popover = document.createElement('div');
     popover.id = 'attendance-popover';
-    popover.style.cssText = 'position:absolute;z-index:50;background:white;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.12);border:1px solid #E5E7EB;padding:12px;width:300px;display:none;';
+    popover.style.cssText = 'position:absolute;z-index:50;background:var(--surface-card);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.12);border:1px solid var(--neutral-200);padding:12px;width:300px;display:none;';
     document.body.appendChild(popover);
   }
 
@@ -186,7 +186,7 @@ function _bindAttendancePopover(activities, attendanceRecords, thisMonth) {
 
       popover.innerHTML = `
         <div class="flex items-center justify-between mb-2 pb-2 border-b border-gray-100">
-          <span class="font-title-cn text-sm font-semibold text-gray-800">我的本月考勤</span>
+          <h3 class="font-title-cn text-sm font-semibold text-gray-800">我的本月考勤</h3>
           <span class="text-xs text-gray-400">${myRecords.length} 条记录</span>
         </div>
         <div class="max-h-64 overflow-y-auto">${listHTML}</div>
@@ -458,7 +458,7 @@ function _renderGallery(activities) {
               <div class="w-2.5 h-2.5 rounded-full" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''};"></div>
               <span class="text-xs font-medium text-gray-500">${color.label}</span>
             </div>
-            <h4 class="text-sm font-bold text-gray-800 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2">${a.title || '未命名活动'}</h4>
+            <h4 class="font-title-cn text-sm font-bold text-gray-800 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2">${a.title || '未命名活动'}</h4>
           </div>
           <div class="p-3 bg-white">
             <p class="text-xs text-gray-500">${a.date ? _fmtDate(new Date(a.date)) : ''}${organizerName ? ' · ' + organizerName : ''}</p>

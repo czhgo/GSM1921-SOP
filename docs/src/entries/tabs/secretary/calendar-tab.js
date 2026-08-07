@@ -1,24 +1,24 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // entries/tabs/secretary/calendar-tab.js — 书记工作台·活动管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 考勤概况 + 活动查询。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260807c';
-import { _fmtDate, showToast } from '../../../core/utils.js?v=20260807c';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260807c';
-import { renderInspectorFromState } from '../../../components/inspector.js?v=20260807c';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260807c';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260807c';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260807c';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260807c';
-import { loadActivities } from '../../../services/activity.js?v=20260807c';
-import { renderQueryView } from '../../../components/query-view.js?v=20260807c';
-import { icon } from '../../../core/icons.js?v=20260807c';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260807c';
-import { getPersonName } from '../../../mock/index.js?v=20260807c';
-import { NoticeStore } from '../../../services/notice.js?v=20260807c';
-import { BranchService } from '../../../services/runtime.js?v=20260807c';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType } from '../../../core/constants.js?v=20260807c';
-import { badgeHtml } from '../../../components/badge.js?v=20260807c';
+import { getAppState, setState } from '../../../core/state.js?v=20260807f';
+import { _fmtDate, showToast } from '../../../core/utils.js?v=20260807f';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260807f';
+import { renderInspectorFromState } from '../../../components/inspector.js?v=20260807f';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260807f';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260807f';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260807f';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260807f';
+import { loadActivities } from '../../../services/activity.js?v=20260807f';
+import { renderQueryView } from '../../../components/query-view.js?v=20260807f';
+import { icon } from '../../../core/icons.js?v=20260807f';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260807f';
+import { getPersonName } from '../../../mock/index.js?v=20260807f';
+import { NoticeStore } from '../../../services/notice.js?v=20260807f';
+import { BranchService } from '../../../services/runtime.js?v=20260807f';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType } from '../../../core/constants.js?v=20260807f';
+import { badgeHtml } from '../../../components/badge.js?v=20260807f';
 
 const accent = '#B91C1C';
 
@@ -44,7 +44,7 @@ const CALENDAR_TAB_HTML = `
       <div id="inspector-container" class="lg:col-span-2 rounded-xl bg-gray-50/50 border border-gray-100 p-3">
         <div id="inspector-default" class="text-sm text-gray-400 text-center py-8">点击日期查看活动详情，或点击活动条目直接进入详情</div>
         <div id="inspector-content" class="hidden">
-          <h4 id="inspector-date-title" class="text-sm font-bold text-gray-800 mb-3"></h4>
+          <h4 id="inspector-date-title" class="font-title-cn text-sm font-bold text-gray-800 mb-3"></h4>
           <div id="inspector-cards"></div>
         </div>
       </div>
@@ -53,7 +53,7 @@ const CALENDAR_TAB_HTML = `
   <!-- 考勤概况（从首页迁移；t5a 就地方案：书记只读监督。2026-08-05：移至日历之后，不再压顶） -->
   <div class="card rounded-xl p-4 mb-4">
     <div class="flex items-center justify-between mb-3">
-      <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤概况</h4>
+      <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤概况</h3>
       <button id="secretary-att-detail-toggle" type="button" class="text-xs text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 transition-colors">
         <span id="secretary-att-detail-toggle-text">查看明细</span>
         <svg id="secretary-att-detail-toggle-icon" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -65,7 +65,7 @@ const CALENDAR_TAB_HTML = `
   <!-- 活动查询（默认折叠，点击展开） -->
   <div class="card rounded-2xl">
     <button id="query-toggle" type="button" class="w-full px-6 py-3 text-left flex items-center justify-between hover:bg-gray-50 transition-colors rounded-2xl">
-      <span class="font-title-cn text-base font-semibold text-gray-800">活动查询</span>
+      <h3 class="font-title-cn text-base font-semibold text-gray-800">活动查询</h3>
       <svg id="query-toggle-icon" class="w-4 h-4 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
       </svg>
@@ -150,7 +150,7 @@ function renderQueryPanel(displayActivities) {
           if (catValue === '主题党日') {
             return (item.carriers || []).includes(subValue);
           }
-          return item.type === subValue; // 三会一课子类（含组织生活会）
+          return item.type === subValue; // 三会一课子类（组织生活会是内容，不单独成子类）
         }
         return classifyActivityType(item.type) === (catValue === '三会一课' ? 'three-meetings' : 'theme-party');
       },

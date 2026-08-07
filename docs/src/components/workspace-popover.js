@@ -1,10 +1,10 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // components/workspace-popover.js — 工作台多身份模态框组件
 // 设计: sidebar "工作台" <a> 点击拦截 → 居中模态框选择目标工作台
 // 单身份直接跳转，多身份弹模态框
 
-import { AuthStore } from '../services/auth.js?v=20260807c';
-import { getBasePath } from '../core/utils.js?v=20260807c';
+import { AuthStore } from '../services/auth.js?v=20260807f';
+import { getBasePath } from '../core/utils.js?v=20260807f';
 
 /**
  * 绑定工作台模态框事件
@@ -40,7 +40,7 @@ export function bindWorkspacePopover(sidebar) {
     const modal = document.createElement('div');
     modal.className = 'workspace-modal-card';
     modal.style.cssText = `
-      background:#FFFFFF; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,0.15);
+      background:var(--surface-card); border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,0.15);
       min-width:280px; max-width:360px; padding:24px;
       animation:ws-scale-in 0.25s cubic-bezier(0.34,1.56,0.64,1);
     `;
@@ -48,7 +48,7 @@ export function bindWorkspacePopover(sidebar) {
     // 标题
     const title = document.createElement('div');
     title.style.cssText = `
-      font-weight:600; color:#1F2937;
+      font-weight:600; color:var(--neutral-800);
       margin-bottom:16px; text-align:center;
     `;
     title.className = 'text-body-sm';
@@ -66,24 +66,24 @@ export function bindWorkspacePopover(sidebar) {
         padding:12px 16px; border-radius:10px; margin-bottom:8px;
         font-weight:500; text-decoration:none;
         transition:background 0.15s, color 0.15s;
-        background:${isActive ? '#FEF2F2' : '#F8F9FA'};
-        color:${isActive ? '#CE1126' : '#374151'};
-        border:1px solid ${isActive ? '#FECACA' : 'transparent'};
+        background:${isActive ? 'rgba(206,17,38,0.08)' : 'var(--neutral-100)'};
+        color:${isActive ? '#CE1126' : 'var(--neutral-700)'};
+        border:1px solid ${isActive ? 'rgba(206,17,38,0.25)' : 'transparent'};
       `;
       item.className = 'text-sm';
       item.innerHTML = `<span>${p.label}</span>`;
       if (isActive) {
-        item.innerHTML = `<span>${p.label}</span><span style="margin-left:8px;color:#9CA3AF;" class="text-xs">当前</span>`;
+        item.innerHTML = `<span>${p.label}</span><span style="margin-left:8px;color:var(--neutral-400);" class="text-xs">当前</span>`;
       }
 
       item.addEventListener('mouseenter', () => {
         if (!isActive) {
-          item.style.background = '#F3F4F6';
+          item.style.background = 'var(--surface-hover)';
         }
       });
       item.addEventListener('mouseleave', () => {
         if (!isActive) {
-          item.style.background = '#F8F9FA';
+          item.style.background = 'var(--neutral-100)';
         }
       });
 

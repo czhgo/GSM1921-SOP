@@ -1,24 +1,24 @@
-import { setState, registerRenderCallback } from '../core/state.js?v=20260807c';
-import { showToast } from '../core/utils.js?v=20260807c';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260807c';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260807c';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, ReviewStatus, SourceType, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260807c';
-import { persist } from '../core/data-adapter.js?v=20260807c';
-import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, reviewToDisplay, getPersonName } from '../mock/index.js?v=20260807c';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260807c';
-import { renderTabBar } from '../components/tab-bar.js?v=20260807c';
-import { openFormModal } from '../components/modal.js?v=20260807c';
-import { autoGenerateMakeupTask, loadMakeupTasks, saveMakeupTasks } from '../services/makeup.js?v=20260807c';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260807c';
-import { loadInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, getRecordsBySource } from '../services/inspection.js?v=20260807c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807c';
-import { loadActivities } from '../services/activity.js?v=20260807c';
-import { loadActivityReviews, loadTaskforceReviews, updateReviewById } from '../services/review.js?v=20260807c';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807c';
-import { renderTodoList } from '../components/todo-list.js?v=20260807c';
-import { TodoStore } from '../services/todo.js?v=20260807c';
-import { enhanceSelects } from '../components/custom-select.js?v=20260807c';
-import { badgeHtml } from '../components/badge.js?v=20260807c';
+﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260807f';
+import { showToast } from '../core/utils.js?v=20260807f';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260807f';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260807f';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, ReviewStatus, SourceType, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260807f';
+import { persist } from '../core/data-adapter.js?v=20260807f';
+import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, reviewToDisplay, getPersonName } from '../mock/index.js?v=20260807f';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260807f';
+import { renderTabBar } from '../components/tab-bar.js?v=20260807f';
+import { openFormModal } from '../components/modal.js?v=20260807f';
+import { autoGenerateMakeupTask, loadMakeupTasks, saveMakeupTasks } from '../services/makeup.js?v=20260807f';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260807f';
+import { loadInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, getRecordsBySource } from '../services/inspection.js?v=20260807f';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807f';
+import { loadActivities } from '../services/activity.js?v=20260807f';
+import { loadActivityReviews, loadTaskforceReviews, updateReviewById } from '../services/review.js?v=20260807f';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807f';
+import { renderTodoList } from '../components/todo-list.js?v=20260807f';
+import { TodoStore } from '../services/todo.js?v=20260807f';
+import { enhanceSelects } from '../components/custom-select.js?v=20260807f';
+import { badgeHtml } from '../components/badge.js?v=20260807f';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'disc-commissioner' });
 
@@ -154,14 +154,14 @@ function _renderTodoContent() {
       <div class="lg:col-span-2">
         <div class="card rounded-xl p-5"">
           <div class="flex items-center justify-between mb-4">
-            <h4 class="font-title-cn text-sm font-bold text-gray-700">我的待办</h4>
+            <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
           </div>
           ${todoListHtml}
         </div>
       </div>
       <div class="lg:col-span-1">
         <div class="card rounded-xl p-5 sticky top-20">
-          <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-4">详情</h4>
+          <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">详情</h3>
           ${detailHtml}
         </div>
       </div>
@@ -310,7 +310,7 @@ function _buildDiscDecisionPanelHTML(filterActivityId) {
   return `
     <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">待处理</h4>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">待处理</h3>
         <div class="flex gap-3 text-xs">
           <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500"></span><span class="text-gray-600">待确认请假</span><span class="font-bold text-orange-700">${leaveCount}</span></div>
           <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span><span class="text-gray-600">待确认缺勤</span><span class="font-bold text-red-700">${absentCount}</span></div>
@@ -371,7 +371,7 @@ function _renderAttendanceContent(filterActivityId) {
     ${_buildDiscDecisionPanelHTML(filterActivityId)}
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">考勤总表</h4>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤总表</h3>
         <div class="flex items-center gap-3 text-xs">
           <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500"></span><span class="text-gray-600">待确认</span><span class="font-bold text-orange-700">${pendingCount}</span></div>
           <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-green-500"></span><span class="text-gray-600">已确认</span><span class="font-bold text-green-700">${confirmedCount}</span></div>
@@ -474,7 +474,7 @@ function _renderAttendanceContent(filterActivityId) {
       return `
         <div class="mb-4 last:mb-0">
           <div class="flex items-center gap-2 mb-1.5">
-            <span class="font-title-cn text-xs font-bold text-gray-700">${monthLabel}</span>
+            <h4 class="font-title-cn text-sm font-bold text-gray-700">${monthLabel}</h4>
             ${badgeHtml(`${rows.length} 条`, 'neutral')}
           </div>
           <div class="overflow-x-auto max-h-96 overflow-y-auto">
@@ -546,7 +546,7 @@ function _renderAttendanceContent(filterActivityId) {
   container.querySelectorAll('.att-view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       container.querySelectorAll('.att-view-btn').forEach(b => {
-        b.style.background = 'white'; b.style.color = '#6B7280'; b.style.border = '1px solid #E5E7EB';
+        b.style.background = 'var(--surface-card)'; b.style.color = 'var(--neutral-500)'; b.style.border = '1px solid var(--neutral-200)';
       });
       btn.style.background = accentRgba; btn.style.color = accent; btn.style.border = `1px solid ${accentBorder}`;
       if (btn.dataset.view === 'long') renderLong(); else renderWide();
@@ -664,7 +664,7 @@ function _buildTaskforceRosterHTML() {
   return `
     <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">专班名单</h4>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">专班名单</h3>
         <span class="text-xs text-gray-500">名单由组织委员管理，纪检只读同步（前置）</span>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">${rows}</div>
@@ -698,7 +698,7 @@ function _renderInspectionContent() {
     ${_buildTaskforceRosterHTML()}
     <div class="card rounded-xl p-5"">
       <div class="flex items-center justify-between mb-4">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">考察总表</h4>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">考察总表</h3>
         <div class="flex gap-2">
           <button class="insp-view-btn btn-tab active" data-view="long">活动视图</button>
           <button class="insp-view-btn btn-tab" data-view="wide">人视图</button>
@@ -840,7 +840,7 @@ function _renderInspectionContent() {
   container.querySelectorAll('.insp-view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       container.querySelectorAll('.insp-view-btn').forEach(b => {
-        b.style.background = 'white'; b.style.color = '#6B7280'; b.style.border = '1px solid #E5E7EB';
+        b.style.background = 'var(--surface-card)'; b.style.color = 'var(--neutral-500)'; b.style.border = '1px solid var(--neutral-200)';
       });
       btn.style.background = accentRgba; btn.style.color = accent; btn.style.border = `1px solid ${accentBorder}`;
       if (btn.dataset.view === 'long') renderLong(); else renderWide();
@@ -872,7 +872,7 @@ function _renderReviewContent() {
   container.innerHTML = `
     <div class="space-y-4">
       <div class="card rounded-xl p-5"">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">活动流程监督</h4>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">活动流程监督</h3>
         <div class="text-xs text-gray-500 mb-3">阅览党小组活动/专班工作时间流 · 超时确认后邮件提醒</div>
         <div class="space-y-2">
           ${reviewData.map(r => `
@@ -890,7 +890,7 @@ function _renderReviewContent() {
         </div>
       </div>
       <div class="card rounded-xl p-5">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">活动复盘监督</h4>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">活动复盘监督</h3>
         <div class="text-xs text-gray-500 mb-3">复盘状态流转：已上传 → 批注中 → 确认/打回</div>
         <div class="space-y-2">
           ${reviewData.filter(r => r.reviewStatus !== '—').map(r => `
@@ -922,7 +922,7 @@ function _renderReviewContent() {
       </div>
       ${unDepositedReviews.length > 0 ? `
       <div class="card rounded-xl p-5">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">经验沉淀督促清单</h4>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">经验沉淀督促清单</h3>
         <div class="text-xs text-gray-500 mb-3">以下活动复盘已确认但尚未沉淀经验，请督促深度参与者提交</div>
         <div class="space-y-2">
           ${unDepositedReviews.map(r => `
@@ -1039,7 +1039,7 @@ function _renderMakeupContent() {
     <div class="space-y-4">
       <div class="card rounded-xl p-5"">
         <div class="flex items-center justify-between mb-3">
-          <h4 class="font-title-cn text-sm font-bold text-gray-700">补课任务</h4>
+          <h3 class="font-title-cn text-base font-semibold text-gray-800">补课任务</h3>
           <div class="flex gap-4 text-xs">
             <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500"></span><span class="text-gray-600">待补课</span><span class="font-bold text-orange-700">${pendingTasks.length}</span></div>
             <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span><span class="text-gray-600">已超期</span><span class="font-bold text-red-700">${overdueTasks.length}</span></div>
@@ -1143,7 +1143,7 @@ function _renderMailboxContent() {
     <div class="space-y-4">
       <!-- 邮箱信息 + 倒计时 -->
       <div class="card rounded-xl p-5"">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">支部公邮</h4>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">支部公邮</h3>
         <div class="flex items-center gap-3 mb-4">
           <div class="flex-1">
             <div class="text-xs text-gray-500 mb-1">邮箱地址</div>
@@ -1174,7 +1174,7 @@ function _renderMailboxContent() {
 
       <!-- 查收历史 -->
       <div class="card rounded-xl p-5">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">查收历史</h4>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">查收历史</h3>
         <div class="text-xs text-gray-500 mb-3">纪检委员定期查收支部公邮，处理来往邮件</div>
         <div class="space-y-2">
           ${mailboxHistory.map(h => `

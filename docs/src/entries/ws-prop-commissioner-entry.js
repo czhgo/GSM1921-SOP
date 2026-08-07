@@ -1,19 +1,19 @@
-import { renderTabBar } from '../components/tab-bar.js?v=20260807c';
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807c';
-import { BranchService, isApiMode } from '../services/runtime.js?v=20260807c';
-import { showToast } from '../core/utils.js?v=20260807c';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260807c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807c';
-import { _personName } from '../mock/index.js?v=20260807c';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260807c';
-import { icon } from '../core/icons.js?v=20260807c';
-import { mockDB } from '../core/domain.js?v=20260807c';
-import { persist, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260807c';
-import { loadActivities } from '../services/activity.js?v=20260807c';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807c';
-import { renderTodoList } from '../components/todo-list.js?v=20260807c';
-import { TodoStore, seedTodos } from '../services/todo.js?v=20260807c';
-import { badgeHtml } from '../components/badge.js?v=20260807c';
+﻿import { renderTabBar } from '../components/tab-bar.js?v=20260807f';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807f';
+import { BranchService, isApiMode } from '../services/runtime.js?v=20260807f';
+import { showToast } from '../core/utils.js?v=20260807f';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260807f';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807f';
+import { _personName } from '../mock/index.js?v=20260807f';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260807f';
+import { icon } from '../core/icons.js?v=20260807f';
+import { mockDB } from '../core/domain.js?v=20260807f';
+import { persist, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260807f';
+import { loadActivities } from '../services/activity.js?v=20260807f';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807f';
+import { renderTodoList } from '../components/todo-list.js?v=20260807f';
+import { TodoStore, seedTodos } from '../services/todo.js?v=20260807f';
+import { badgeHtml } from '../components/badge.js?v=20260807f';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'prop-commissioner' });
 
@@ -100,14 +100,14 @@ function _renderTodoContent() {
       <div class="lg:col-span-2">
         <div class="card rounded-xl p-5"">
           <div class="flex items-center justify-between mb-4">
-            <h4 class="font-title-cn text-sm font-bold text-gray-700">我的待办</h4>
+            <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
           </div>
           ${todoListHtml}
         </div>
       </div>
       <div class="lg:col-span-1">
         <div class="card rounded-xl p-5 sticky top-20">
-          <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-4">详情</h4>
+          <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">详情</h3>
           ${detailHtml}
         </div>
       </div>
@@ -433,7 +433,7 @@ function _renderWorkloadBlock(propTf) {
   return `
     <div class="card rounded-xl p-5 mt-4">
       <div class="flex items-center gap-2 mb-3">
-        <span class="text-sm font-semibold text-gray-700">专班工作量</span>
+        <h4 class="text-sm font-bold text-gray-700">专班工作量</h4>
         ${badgeHtml(`${propTf.length} 个专班`, 'warning')}
       </div>
       ${members.length === 0 ? '<p class="text-xs text-gray-400">暂无宣传专班成员数据</p>' :
@@ -540,7 +540,7 @@ function _renderArchiveContent() {
       <div class="card rounded-xl p-5">
         <div class="flex items-center gap-2 mb-3">
           ${icon('download', { className: 'w-4 h-4 text-purple-600' })}
-          <span class="text-sm font-semibold text-gray-700">模板下载</span>
+          <h4 class="text-sm font-bold text-gray-700">模板下载</h4>
         </div>
         <div class="space-y-2">
           ${ARCHIVE_TEMPLATES.map(t => `
@@ -674,7 +674,7 @@ function _renderWeeklyContent() {
       <div class="lg:col-span-2 card rounded-xl p-5">
         <div class="flex items-center gap-2 mb-4">
           ${icon('pencil', { className: 'w-4 h-4 text-blue-600' })}
-          <span class="text-sm font-semibold text-gray-700">填写周报</span>
+          <h4 class="text-sm font-bold text-gray-700">填写周报</h4>
           ${draftReport ? `<span class="text-xs px-1.5 py-0.5 rounded-full border ${WEEKLY_STATUS_STYLE.draft}">${draftReport.week}</span>` : ''}
         </div>
         <div class="space-y-3">
@@ -695,7 +695,7 @@ function _renderWeeklyContent() {
       <div class="lg:col-span-3 card rounded-xl p-5">
         <div class="flex items-center gap-2 mb-3">
           ${icon('clock', { className: 'w-4 h-4 text-gray-500' })}
-          <span class="text-sm font-semibold text-gray-700">报送历史</span>
+          <h4 class="text-sm font-bold text-gray-700">报送历史</h4>
         </div>
         <div class="space-y-2">
           ${_loadWeeklyReports().map(r => _renderWeeklyReportItem(r)).join('')}
@@ -777,14 +777,14 @@ function _showArchiveAdvancePopover(record, triggerBtn) {
 
   const popover = document.createElement('div');
   popover.id = 'archive-advance-popover';
-  popover.style.cssText = 'position:fixed;z-index:100;background:white;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,0.15);border:1px solid #E5E7EB;padding:0;width:380px;max-height:80vh;overflow-y:auto;';
+  popover.style.cssText = 'position:fixed;z-index:100;background:var(--surface-card);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,0.15);border:1px solid var(--neutral-200);padding:0;width:380px;max-height:80vh;overflow-y:auto;';
 
   // ── 浮窗内容 ──
   let html = '';
   // 标题栏
   html += `<div class="px-5 pt-4 pb-3 border-b border-gray-100">`;
   html += `<div class="flex items-center justify-between mb-1">`;
-  html += `<span class="font-title-cn text-sm font-semibold text-gray-800">${isStart ? '开始归档' : '确认归档'}</span>`;
+  html += `<h3 class="font-title-cn text-sm font-semibold text-gray-800">${isStart ? '开始归档' : '确认归档'}</h3>`;
   html += `<button id="archive-popover-close" class="text-gray-400 hover:text-gray-600 text-sm leading-none">&times;</button>`;
   html += `</div>`;
   html += `<div class="text-xs text-gray-500">${record.activityName} · <span class="px-1 py-0.5 rounded ${ARCHIVE_CATEGORY_STYLE[record.category] || ''}">${record.category}</span></div>`;
@@ -916,7 +916,7 @@ function _showArchiveUploadModal() {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
 
   const card = document.createElement('div');
-  card.style.cssText = 'background:#fff;border-radius:14px;padding:0;max-width:440px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);max-height:86vh;display:flex;flex-direction:column;';
+  card.style.cssText = 'background:var(--surface-card);border-radius:14px;padding:0;max-width:440px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);max-height:86vh;display:flex;flex-direction:column;';
 
   const activityOptions = activities.length === 0
     ? '<option value="">（暂无活动，请先创建）</option>'
@@ -926,7 +926,7 @@ function _showArchiveUploadModal() {
 
   card.innerHTML = `
     <div class="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between">
-      <span class="font-title-cn text-sm font-semibold text-gray-800">上传宣传材料</span>
+      <h3 class="font-title-cn text-sm font-semibold text-gray-800">上传宣传材料</h3>
       <button id="upload-modal-close" class="text-gray-400 hover:text-gray-600 text-sm leading-none">&times;</button>
     </div>
     <div class="px-5 py-4 space-y-3.5 overflow-y-auto">

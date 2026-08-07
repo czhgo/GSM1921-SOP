@@ -1732,3 +1732,51 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
   - ✅ 书记工作台 6 Tab + 其余 5 角色工作台全部 Tab + 首页/归档库零 console error
   - ✅ 待归档悬停显示缺项 title（"待归档：考勤确认（2 条待确认）、考察确认（1 条待确认）、宣传归档"）、全站无"已完成"状态字面值
 - **沉淀标签**：`[已沉淀: 内联样式优先级 > CSS]` — 内联 style 属性优先级最高，CSS 类/选择器无法覆盖（除非 !important），"怎么改都没用"先查是否内联样式；`[已沉淀: 新拆分文件漏导入]` — 从 entry 薄壳拆分出 tab 模块时，全站组件（badgeHtml 等）易漏 import，运行期才抛 ReferenceError——拆文件后须对新增模块做"使用但未导入"静态扫描 + 浏览器逐 Tab 点击验证；`[已沉淀: 生命周期态优于状态字面值]` — "已完成"与归档条件矛盾源于页面直读 status 字面值；展示态应由状态机/派生函数统一产出，字面值仅作存储
+
+## T230 书记四问：组织生活会归内容维度 + 标题语义层级规则全站检查 + 侧边栏主题色精简 + 深色模式补漏上线/移动端适配修复/小程序方案评估（2026-08-07）
+
+**任务**：书记四问——① "组织生活会不是三会一课的一部分，是内容维度，可以是支部党员大会开、党小组会开"；② "有的 title 是标题格式有的是 span，选择上有规则吗？全系统检查"；③ "主题色渲染不到位，侧边栏少写字，颜色 hover 自动出现不要写在下面"；④ "深色模式是否考虑上线 + 移动端显示是否有问题 + 如果要成为微信小程序现在需要做什么"
+**引用流程**：fullstack-developer Skill + web-design-guidelines Skill + AskUserQuestion 决策链（组织生活会=迁移为党小组会/标题规则=语义+样式全统一/主题色范围=聚焦侧边栏/问题4=深色补漏上线+移动端适配检查修复+小程序方案规划）+ browser_use 四轮端到端复验 + node --check + 版本号 bump 两轮
+**来源**：书记四问（2026-08-07 原话）+ AskUserQuestion 决策链 + "请继续推进未完成工作！！没有什么不适宜内容！" + "请继续推进！！"
+
+### ① 组织生活会归内容维度
+- **归属纠正**：`ACTIVITY_CLASSIFICATION['three-meetings'].subtypes` = `['支部党员大会', '支委会', '党小组会', '党课']`（移除"组织生活会"）；`classifyActivityType(type)` 兜底 `if (type === '组织生活会') return 'three-meetings'` 兼容旧历史数据；SCENARIO_TO_CATEGORY 注释更新
+- **数据迁移**：`mock/activities.js` act-19 "5月组织生活会" type 改为 `党小组会`（标题保留"组织生活会"字样，scenarioId 仍 org-life）
+- **端到端验证**：三会一课子类 chips = 支部党员大会/支委会/党小组会/党课；"5月组织生活会"分类标注=党小组会；首页日历标签"党会"红系配色一致
+
+### ② 标题语义层级规则 + 全站统一
+- **规则落盘** `content/04_web_design/DESIGN_SYSTEM.md §3.3.1`：h2 页面主标题 / h3 卡片面板（text-base font-semibold）与弹窗浮层（text-sm font-semibold）/ h4 卡片内分组（text-sm font-bold）/ h5-h6 更小分组（活动角色/子记录）/ **例外：`<button>` 折叠组头内文字保持 span、行内强调文本 span**
+- **全站收敛**：notice.js 通知 popover 标题 span→h3；ws-disc L477 月份分组→h4、L793 modal→h3；ws-leader L330 子记录分组→h5；ws-org L461 子记录分组→h5、L793 modal 标题去内联样式→h3；main-entry L189 "我的本月考勤"→h3、活动风采 h4 补 `font-title-cn`；ws-prop 4 处卡片分组→h4 + 2 处 modal→h3；issue-list L45 统一；archive-entry 弹窗标题统一；modal.js 通用标题→h3
+- **判例确认**：待办分组标题在 button 折叠组头内 → span 合规（例外规则）；通知下拉为列表型浮层无面板标题 → 合理
+
+### ③ 侧边栏主题色精简
+- **sidebar.js**：swatch 去文字行（`data-label="主题色：${label}"` + title 保留），色板 10 色块无色名行
+- **styles.css**：`.accent-swatch::after`（左侧气泡）+ `.accent-swatch-opt::after`（上方气泡）`content: attr(data-label)`，hover opacity 显现
+- **端到端验证**：swatch 纯色块无文字；hover 自动显示色名；色板 hover 每个色块显示色名；切换"天蓝"即时生效并持久化（localStorage workflowos_accent_role）
+
+### ④a 深色模式补漏上线
+- **JS 内联白底全量变量化**（根因：内联 background:white 无法被 @media 覆盖）：calendar.js/modal.js/header.js/main-entry.js/notice.js/inspector.js/workspace-popover.js/ws-org/ws-prop/ws-disc/ws-visitor 共 20+ 处 `var(--surface-card)/var(--neutral-*)` 化
+- **btn 系按钮深色适配**：styles.css 深色块 10 个 btn-action/btn-md 类统一半透明底 + 语义色提亮
+- **person-picker.css**：trigger/搜索框硬编码 white→`var(--surface-card)/var(--neutral-*)`；深色 media query 冗余覆盖删除
+- **最终复验**：完整深色模拟（变量+类覆盖）扫描书记工作台全部 tab + person-picker + 通知下拉 = **0 白块**
+
+### ④b 移动端适配检查修复
+- **移动端 375px 实测发现 3 类问题**（browser_use iframe 模拟）
+- **修复① tab 栏横向溢出**（最严重 org/disc 差 120px）：`tab-bar.js` 容器加 `flex-wrap:wrap` → 5 个工作台 tab 自动换行，0 溢出
+- **修复② 顶栏标题被挤压不可见**（375px 下 title 仅 2-14px）：≤640px 隐藏 `.role-label` + header-actions gap 收窄 → 标题恢复 92-102px 可见
+- **复测通过**：org/disc/secretary/index 375px 下 sw=cw、0 溢出、tab 3 行换行、标题可见
+
+### ④c 小程序方案评估（书记裁决：暂缓，仅保留方案）
+- **现状评估**：DataAdapter 抽象 mock/api 双模式可切换、后端 Node Express+better-sqlite3 已规划未部署、前端纯静态+Tailwind CDN 无构建链、375px 移动端适配已验证
+- **三条路径**：A WebView 套壳（改动极小、需企业主体+域名备案）/ B Taro 跨端重写（原生体验最佳、20+ 页面全重写）/ C 原生小程序（不推荐）
+- **前置条件**：企业主体注册+类目、后端上线 HTTPS+ICP 备案、数据层切 api 模式
+- **裁决**：暂缓立项，方案保留，待后端部署与账号注册等外部条件成熟
+
+- **变更文件**：`docs/src/components/{tab-bar,sidebar,header,modal,calendar,inspector,workspace-popover,issue-list}.js`、`docs/src/entries/main-entry.js`、`docs/src/entries/{archive,notice}-entry.js`、`docs/src/entries/ws-{leader,disc-commissioner,org-commissioner,prop-commissioner,visitor}-entry.js`、`docs/src/entries/tabs/secretary/{calendar,todo,assign,overview}-tab.js`、`docs/src/components/person-picker.css`、`docs/src/services/notice.js`、`docs/src/styles.css`、`docs/src/core/constants.js`、`docs/src/mock/activities.js`、`content/04_web_design/DESIGN_SYSTEM.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）；版本号 bump `20260807d→e→f`（三轮各 79 文件）
+
+- **验证结果**（node --check 全量通过 + browser_use 四轮端到端）：
+  - ✅ 组织生活会归属：三会一课子类 4 项、5月组织生活会=党小组会、首页展示一致
+  - ✅ 标题规则：弹窗 h3/分组 h4/子记录 h5 全站统一，button 内 span 例外合规
+  - ✅ 侧边栏主题色：纯色块 + hover 气泡 + 切换生效持久化
+  - ✅ 深色模式：0 白块 + 移动端 375px 全页面 0 溢出 + 标题可见
+- **沉淀标签**：`[已沉淀: 移动端 tab 栏溢出]` — flex 容器无 wrap/overflow 时子元素不收缩，宽内容把整页撑出横向滚动条；tab 导航栏应默认 `flex-wrap:wrap` 或在断点加 `overflow-x:auto`；`[已沉淀: 顶栏 actions 挤压标题]` — flex 下不收缩的 actions 会把 flex:1 标题挤到不可见，移动端断点应隐藏低频信息（身份标签）为标题让位；`[已沉淀: 深色适配三层法]` — 深色模式须三层覆盖：①CSS 变量反向（var() 自动适配）②高频 Tailwind 类 !important 覆盖 ③硬编码组件逐一覆盖；JS 内联白底无法被 @media 覆盖，必须变量化根治

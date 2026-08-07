@@ -1,12 +1,12 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../services/issues.js?v=20260807c';
-import { AuthStore } from '../services/auth.js?v=20260807c';
-import { icon } from '../core/icons.js?v=20260807c';
-import { getPersonName } from '../mock/index.js?v=20260807c';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260807c';
-import { badgeHtml } from './badge.js?v=20260807c';
+import { IssueStore } from '../services/issues.js?v=20260807f';
+import { AuthStore } from '../services/auth.js?v=20260807f';
+import { icon } from '../core/icons.js?v=20260807f';
+import { getPersonName } from '../mock/index.js?v=20260807f';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260807f';
+import { badgeHtml } from './badge.js?v=20260807f';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -42,7 +42,7 @@ export function renderIssueList() {
   container.innerHTML = `
     <div class="card rounded-2xl p-6 mb-4">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="font-title-cn text-lg font-bold text-gray-700">全部意见 <span class="text-xs font-normal text-gray-400">开放中 ${counts.open} · 已关闭 ${counts.closed}</span></h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">全部意见 <span class="text-xs font-normal text-gray-400">开放中 ${counts.open} · 已关闭 ${counts.closed}</span></h3>
         ${canCreate ? `<button id="btn-new-issue" class="text-sm px-4 py-[7px] rounded-lg font-medium text-white transition-colors" style="background:#CE1126;" onmouseover="this.style.background='#991B1B'" onmouseout="this.style.background='#CE1126'">+ 新反馈</button>` : ''}
       </div>
 

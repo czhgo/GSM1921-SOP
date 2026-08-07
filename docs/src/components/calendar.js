@@ -1,15 +1,15 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  calendar.js — 日历渲染引擎（P2-7 多视图升级）
 //  包含：renderCalendarByActivities, populateMonthSelector
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../core/state.js?v=20260807c';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260807c';
-import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260807c';
-import { filterTasksByManagementRole } from './inspector.js?v=20260807c';
-import { badgeHtml } from './badge.js?v=20260807c';
+import { getAppState, setState } from '../core/state.js?v=20260807f';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260807f';
+import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260807f';
+import { filterTasksByManagementRole } from './inspector.js?v=20260807f';
+import { badgeHtml } from './badge.js?v=20260807f';
 
 const VIEW_LABELS = { month: '月', week: '周', day: '日', list: '列表' };
 
@@ -792,8 +792,8 @@ function _showHoverPopover(anchor, dateKey, dayActs) {
   }
 
   _hoverPopover.style.cssText = `
-    position:absolute;z-index:50;background:white;border-radius:12px;
-    box-shadow:0 8px 24px rgba(0,0,0,0.12);border:1px solid #E5E7EB;
+    position:absolute;z-index:50;background:var(--surface-card);border-radius:12px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.12);border:1px solid var(--neutral-200);
     width:${popoverWidth}px;display:block;
     left:${left}px;top:${top}px;
   `;

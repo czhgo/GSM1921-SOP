@@ -1,11 +1,11 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  inspection.js — 考察记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType } from '../core/domain.js?v=20260807c';
-import { persist } from '../core/data-adapter.js?v=20260807c';
-import { INSPECTION_RECORDS } from '../mock/index.js?v=20260807c';
+import { mockDB, SourceType } from '../core/domain.js?v=20260807f';
+import { persist } from '../core/data-adapter.js?v=20260807f';
+import { INSPECTION_RECORDS } from '../mock/index.js?v=20260807f';
 
 export function loadInspectionRecords() {
   return mockDB.inspections.length > 0 ? [...mockDB.inspections] : [...INSPECTION_RECORDS];

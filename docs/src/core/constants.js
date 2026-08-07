@@ -43,7 +43,7 @@ const SCENARIO_TO_CATEGORY = {
   'branch-committee':     'branch-committee',
   'party-group-meeting':  'party-group-meeting',
   'party-lecture':        'party-lecture',
-  // 组织生活会：会议内容（批评与自我批评），形式上归入三会一课系（书记 2026-08-01 决策）
+  // 组织生活会：会议内容（批评与自我批评），由党小组会等三会形式召开（书记 2026-08-01/2026-08-07 决策）
   'org-life':             'party-group-meeting',
   'theme-party':          'theme-party',
 };
@@ -223,12 +223,14 @@ const _ACTIVITY_TYPE_BASE = {
 };
 
 // ── 活动权威分类（2026-08-07 类型体系归一：两大顶层，非并列关系用层级表达）──
-// 三会一课：固定子类；主题党日：正交维度（载体）。组织生活会归入三会一课系（不进写入表单）。
+// 三会一课：固定子类（支部党员大会/支委会/党小组会/党课）。
+// 组织生活会：是内容（批评与自我批评），不是三会子类——由三会之一召开（书记 2026-08-07 纠正），
+// 不进查询子类 chips、不进写入表单，活动名称写"XX组织生活会"即可表达。
 export const ACTIVITY_CLASSIFICATION = {
   'three-meetings': {
     label: '三会一课',
     color: '#CE1126',
-    subtypes: ['支部党员大会', '支委会', '党小组会', '党课', '组织生活会'],
+    subtypes: ['支部党员大会', '支委会', '党小组会', '党课'],
   },
   'theme-party': {
     label: '主题党日',
@@ -243,6 +245,7 @@ const _THREE_MEETINGS_SUBTYPES = ACTIVITY_CLASSIFICATION['three-meetings'].subty
 export function classifyActivityType(type) {
   if (!type) return null;
   if (_THREE_MEETINGS_SUBTYPES.includes(type)) return 'three-meetings';
+  if (type === '组织生活会') return 'three-meetings'; // 内容维度：以三会形式召开，大类仍属三会一课
   return 'theme-party'; // 主题党日 及未知类型兜底归主题党日系
 }
 

@@ -1,23 +1,23 @@
-import { setState, registerRenderCallback } from '../core/state.js?v=20260807c';
-import { showToast } from '../core/utils.js?v=20260807c';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260807c';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260807c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807c';
-import { NoticeStore } from '../services/notice.js?v=20260807c';
-import { AuthStore } from '../services/auth.js?v=20260807c';
-import { PEOPLE } from '../mock/index.js?v=20260807c';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260807c';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260807c';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260807c';
-import { inspectionToDisplay } from '../mock/index.js?v=20260807c';
-import { loadActivities } from '../services/activity.js?v=20260807c';
-import { getActivityTypeColors, ROLE_COLORS } from '../core/constants.js?v=20260807c';
-import { renderTabBar } from '../components/tab-bar.js?v=20260807c';
-import { icon } from '../core/icons.js?v=20260807c';
-import { renderQueryView } from '../components/query-view.js?v=20260807c';
-import { renderTodoList } from '../components/todo-list.js?v=20260807c';
-import { TodoStore, seedTodos, VisitorTodoDeriver } from '../services/todo.js?v=20260807c';
-import { badgeHtml } from '../components/badge.js?v=20260807c';
+﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260807f';
+import { showToast } from '../core/utils.js?v=20260807f';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260807f';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260807f';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807f';
+import { NoticeStore } from '../services/notice.js?v=20260807f';
+import { AuthStore } from '../services/auth.js?v=20260807f';
+import { PEOPLE } from '../mock/index.js?v=20260807f';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260807f';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260807f';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260807f';
+import { inspectionToDisplay } from '../mock/index.js?v=20260807f';
+import { loadActivities } from '../services/activity.js?v=20260807f';
+import { getActivityTypeColors, ROLE_COLORS } from '../core/constants.js?v=20260807f';
+import { renderTabBar } from '../components/tab-bar.js?v=20260807f';
+import { icon } from '../core/icons.js?v=20260807f';
+import { renderQueryView } from '../components/query-view.js?v=20260807f';
+import { renderTodoList } from '../components/todo-list.js?v=20260807f';
+import { TodoStore, seedTodos, VisitorTodoDeriver } from '../services/todo.js?v=20260807f';
+import { badgeHtml } from '../components/badge.js?v=20260807f';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'participant' });
 
@@ -308,10 +308,10 @@ function _renderActivities(activities, highlightId) {
         <button class="visitor-view-btn px-3 py-1.5 text-xs rounded-lg border transition-colors" data-vview="list" style="background:rgba(206,17,38,0.08);color:var(--primary-700);border:1px solid rgba(206,17,38,0.2);">
           ${icon('list', { className: 'w-3.5 h-3.5' })} 列表
         </button>
-        <button class="visitor-view-btn px-3 py-1.5 text-xs rounded-lg border transition-colors" data-vview="calendar" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">
+        <button class="visitor-view-btn px-3 py-1.5 text-xs rounded-lg border transition-colors" data-vview="calendar" style="background:var(--surface-card);color:var(--neutral-500);border:1px solid var(--neutral-200);">
           ${icon('calendar', { className: 'w-3.5 h-3.5' })} 日历
         </button>
-        <button class="visitor-view-btn px-3 py-1.5 text-xs rounded-lg border transition-colors" data-vview="query" style="background:white;color:#6B7280;border:1px solid #E5E7EB;">
+        <button class="visitor-view-btn px-3 py-1.5 text-xs rounded-lg border transition-colors" data-vview="query" style="background:var(--surface-card);color:var(--neutral-500);border:1px solid var(--neutral-200);">
           ${icon('search', { className: 'w-3.5 h-3.5' })} 查询
         </button>
       </div>
@@ -322,7 +322,7 @@ function _renderActivities(activities, highlightId) {
   tc.querySelectorAll('.visitor-view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       tc.querySelectorAll('.visitor-view-btn').forEach(b => {
-        b.style.background = 'white'; b.style.color = '#6B7280'; b.style.border = '1px solid #E5E7EB';
+        b.style.background = 'var(--surface-card)'; b.style.color = 'var(--neutral-500)'; b.style.border = '1px solid var(--neutral-200)';
       });
       btn.style.background = 'rgba(206,17,38,0.08)'; btn.style.color = 'var(--primary-700)'; btn.style.border = '1px solid rgba(206,17,38,0.2)';
       const view = btn.dataset.vview;
@@ -629,14 +629,14 @@ function _renderTodoContent() {
       <div class="lg:col-span-2">
         <div class="card rounded-xl p-5"">
           <div class="flex items-center justify-between mb-4">
-            <h4 class="font-title-cn text-sm font-bold text-gray-700">我的待办</h4>
+            <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
           </div>
           ${todoListHtml}
         </div>
       </div>
       <div class="lg:col-span-1">
         <div class="card rounded-xl p-5 sticky top-20">
-          <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-4">详情</h4>
+          <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">详情</h3>
           ${detailHtml}
         </div>
       </div>
