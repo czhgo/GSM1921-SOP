@@ -1,19 +1,19 @@
-import { renderTabBar } from '../components/tab-bar.js?v=20260807b';
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807b';
-import { BranchService, isApiMode } from '../services/runtime.js?v=20260807b';
-import { showToast } from '../core/utils.js?v=20260807b';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260807b';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807b';
-import { _personName } from '../mock/index.js?v=20260807b';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260807b';
-import { icon } from '../core/icons.js?v=20260807b';
-import { mockDB } from '../core/domain.js?v=20260807b';
-import { persist, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260807b';
-import { loadActivities } from '../services/activity.js?v=20260807b';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807b';
-import { renderTodoList } from '../components/todo-list.js?v=20260807b';
-import { TodoStore, seedTodos } from '../services/todo.js?v=20260807b';
-import { badgeHtml } from '../components/badge.js?v=20260807b';
+import { renderTabBar } from '../components/tab-bar.js?v=20260807c';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807c';
+import { BranchService, isApiMode } from '../services/runtime.js?v=20260807c';
+import { showToast } from '../core/utils.js?v=20260807c';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260807c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807c';
+import { _personName } from '../mock/index.js?v=20260807c';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260807c';
+import { icon } from '../core/icons.js?v=20260807c';
+import { mockDB } from '../core/domain.js?v=20260807c';
+import { persist, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260807c';
+import { loadActivities } from '../services/activity.js?v=20260807c';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807c';
+import { renderTodoList } from '../components/todo-list.js?v=20260807c';
+import { TodoStore, seedTodos } from '../services/todo.js?v=20260807c';
+import { badgeHtml } from '../components/badge.js?v=20260807c';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'prop-commissioner' });
 

@@ -5,8 +5,8 @@
 //  assignedRoles 遗留键（sop_org_os_assigned_roles）已删除，启动时清一次存储残留
 // ================================================================
 
-import { PEOPLE } from '../mock/index.js?v=20260807b';
-import { AuthStore } from './auth.js?v=20260807b';
+import { PEOPLE } from '../mock/index.js?v=20260807c';
+import { AuthStore } from './auth.js?v=20260807c';
 
 // 遗留键清理（P2-6）：sop_org_os_assigned_roles 已无调用方，此处清一次存储残留
 try { localStorage.removeItem('sop_org_os_assigned_roles'); } catch (_) {}

@@ -3,9 +3,9 @@
 //  inspection.js — 考察记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType } from '../core/domain.js?v=20260807b';
-import { persist } from '../core/data-adapter.js?v=20260807b';
-import { INSPECTION_RECORDS } from '../mock/index.js?v=20260807b';
+import { mockDB, SourceType } from '../core/domain.js?v=20260807c';
+import { persist } from '../core/data-adapter.js?v=20260807c';
+import { INSPECTION_RECORDS } from '../mock/index.js?v=20260807c';
 
 export function loadInspectionRecords() {
   return mockDB.inspections.length > 0 ? [...mockDB.inspections] : [...INSPECTION_RECORDS];

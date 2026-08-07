@@ -2,13 +2,13 @@
 // components/header.js — 共享顶栏组件（重构版）
 // 变化: 去掉 mode 标签，改为当前身份标签 + 只读切换下拉
 
-import { AuthStore } from '../services/auth.js?v=20260807b';
-import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260807b';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260807b';
-import { getBasePath } from '../core/utils.js?v=20260807b';
-import { icon } from '../core/icons.js?v=20260807b';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260807b';
-import { badgeHtml } from './badge.js?v=20260807b';
+import { AuthStore } from '../services/auth.js?v=20260807c';
+import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260807c';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260807c';
+import { getBasePath } from '../core/utils.js?v=20260807c';
+import { icon } from '../core/icons.js?v=20260807c';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260807c';
+import { badgeHtml } from './badge.js?v=20260807c';
 
 // 数据变更订阅（2026-08-05，消除"确认已读后角标不更新"）：
 // 模块顶层绑定一次；_renderNotificationBadge 在 #notification-bell 未渲染时静默返回。

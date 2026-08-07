@@ -1693,3 +1693,42 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
   - ✅ 自定义主题确认生效：`window.tailwind.config` 含 `theme`；`bg-party-50`=rgb(254,242,242)、`text-party-700`=rgb(206,17,38)、`border-party-200`=rgb(254,202,202)；body fontFamily 首字体 Noto Sans SC
   - ✅ 无加载后的红色未捕获异常
 - **沉淀标签**：`[已沉淀: play CDN 不可 defer]` — Tailwind CDN 脚本 defer 会在解析后执行并以全新对象覆盖 window.tailwind，把先行设置的 config 重置为空；自定义主题场景必须同步加载；`[已沉淀: ES Module 缓存链]` — 入口 JS 带版本号而共享模块不带，浏览器按模块粒度缓存会新旧混用，须全站统一 bump（bump-version.mjs 自动 stamping）；`[已沉淀: 动态 import 相对路径]` — 懒加载模块位于子目录时导入共享模块需逐级上跳（tabs/secretary/ 下导入 src/ 为 ../../../），且同名函数会遮蔽导入须排查；`[已沉淀: 工作台 Tab 架构]` — 共享 header/sidebar/状态同步的多 Tab 工作台：单页合并+懒加载 > 单独建页（单独建页破坏跨页状态与通信且重复加载基础库）
+
+## T229 书记 UI 打磨批次：全站徽章统一 + 活动生命周期态 + 类型体系归一 + 级联筛选 + 品牌字段 + 查询面板修复（2026-08-07）
+
+**任务**：书记五连问第二批——① 徽章"字体/方框丑陋且怎么改都没用"（内联样式优先级 > CSS 类的根因）；② "未归档未提交为何说已完成"（判定逻辑矛盾）；③ "仅看品牌活动为何单独悬浮，应并入活动查询"；④ "活动类型划分粗糙，筛选应与活动划分方式对齐且表现非并列层级关系"；⑤ "写入表单『主题党日（…）』括号多此一举"
+**引用流程**：brainstorming Skill + web-design-guidelines Skill + fullstack-developer Skill + sample-diff-learning Skill + AskUserQuestion 决策链（状态判定=生命周期态/类型体系=彻底归一/筛选形态=级联大类+子类chips/徽章=统一胶囊组件/品牌=整理现有品牌名+延续/新建三态/组织生活会=不进写入表单）+ browser_use 两轮端到端复验 + Node 语法检查 + 全量缺失导入静态扫描
+**来源**：书记五连问（2026-08-07 原话）+"我认为这是非常好的！直接brainstorm提问我 相似的问题要一并解决！！特别是你提到的 优先级最高导致怎么改都没有用的问题，你能否也为我全系统检查一下"+"批准，开始实施"+"一定要对系统每一个可能出现相关问题的地方都做好彻查！！"+AskUserQuestion 六轮决策
+
+### ① 徽章"改不动"根治：统一胶囊组件
+- **根因**：徽章 3 种各写各的实现——内联样式（CSS 无法覆盖，优先级最高导致怎么改都没用）、硬编码 Tailwind 任意值（text-[11px] px-1.5 py-0.5）、动态类映射（合法保留）
+- **方案**：新增 `docs/src/components/badge.js` 全站统一组件 `badgeHtml(text, variant, opts)` + `badgeVariantClass(variant)`，变体 ∈ success/warning/danger/info/neutral/brand/gold；`styles.css` 追加 `.badge` + `.badge--{variant}` CSS + 深色主题适配；全站 16 文件收敛
+- **合法保留项**：issue 动态色徽章显式 `class="badge"` + 动态内联色；statusColor/cls/tagColor 等动态类映射 44 处残留为合法
+
+### ② "已完成 vs 未归档"矛盾消除：活动生命周期展示态
+- **方案**：`inspector.js` 新增 `deriveActivityLifecycleStatus(activity, allTasks)`（取消/归档/草稿短路 + 执行态 + 分类型关闭条件）+ `ACTIVITY_LIFECYCLE` 七态：草稿/已发布/进行中/待归档/已执行/已归档/已取消
+- "已完成"仅产出齐备并归档后出现（改「已执行」）；待归档悬停显示缺项 title；DATA_ARCHITECTURE.md 补生命周期展示态表格
+
+### ③ 品牌活动并入活动查询：悬浮按钮删除
+- 日历"只看品牌"悬浮按钮删除，日历恢复全量展示；品牌筛选以 chip 并入活动查询面板（`brandChip` 开关）
+- **品牌字段结构化**：`brandName` 可选字段（品牌族名，命名风格参考"人生回望录"），写入表单三态（非品牌/延续已有品牌/创建新品牌）；mock 6 条活动补录品牌名
+
+### ④ 类型体系归一 + 级联筛选
+- **权威分类** `ACTIVITY_CLASSIFICATION`（constants.js）：两大顶层非并列——三会一课（subtypes: 支部党员大会/支委会/党小组会/党课/组织生活会）vs 主题党日（carriers: 理论学习/实践参访/交流座谈/其他）；`classifyActivityType(type)` 映射
+- **数据迁移**：mock 6 条座谈/参访/共建实为 theme-party 变体统一迁移为 `type:'主题党日'` + carriers + isJoint
+- **级联筛选**：query-view.js 保留扁平 filters 兼容 + 新增 `category` 级联（groups 对象 + match 约定）+ `brandChip`；查询面板大类下拉 → 子类 chips 联动
+- **写入表单修复**：三会一课写具体子类 label（支部党员大会/支委会/党小组会/党课，组织生活会不进表单——书记裁决：写活动名称即可）；主题党日文案删括号
+
+### 修 bug（浏览器端到端驱动）
+- **calendar-tab.js 缺 `ACTIVITY_CLASSIFICATION` 导入**（ReferenceError → 查询面板无法展开 + 写入按钮未绑定）：T229 级联筛选 config 引用常量但文件未 import → 补 `import { ACTIVITY_CLASSIFICATION, classifyActivityType } from '../../../core/constants.js'`
+- **calendar-tab.js 缺 `badgeHtml` 导入**（ReferenceError → 活动管理 tab 渲染中断）：T9 全站徽章统一时漏改该新拆分文件 → 补 `import { badgeHtml } from '../../../components/badge.js'`
+- 同类问题全量彻查：node 脚本全 src 扫描 8 个 T229 新增 API（badgeHtml/badgeVariantClass/ACTIVITY_CLASSIFICATION/classifyActivityType/ACTIVITY_LIFECYCLE/deriveActivityLifecycleStatus/activityLifecycleBadgeHtml/checkActivityCloseConditions）缺失导入 → **零遗漏**
+
+- **变更文件**：`docs/src/components/badge.js`（新建）、`docs/src/core/constants.js`、`docs/src/components/{calendar,inspector,query-view}.js`、`docs/src/mock/activities.js`、`docs/src/entries/main-entry.js`、`docs/src/entries/archive-entry.js`、`docs/src/entries/ws-{leader,disc-commissioner,org-commissioner,prop-commissioner,visitor}-entry.js`、`docs/src/components/{issue-detail,issue-form,issue-list,header,status-badge,todo-list,workspace-popover,person-picker,role-hierarchy,sidebar,reactions}.js`、`docs/src/services/notice.js`、`docs/src/entries/{notice,feedback}-entry.js`、`docs/src/entries/tabs/secretary/{calendar,assign,notification,feedback,todo}-tab.js`、`content/04_web_design/DATA_ARCHITECTURE.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）；版本号 bump `20260807c`（JS 65 + HTML 14，CODE_VERSION=8）
+
+- **验证结果**（node --check 全量通过 + 缺失导入静态扫描零遗漏 + browser_use 两轮端到端）：
+  - ✅ 活动查询面板级联筛选：大类「三会一课/主题党日」→ 子类 chips（5/4）联动过滤 + 「只看品牌」chip
+  - ✅ 写入活动表单：主题党日无括号、党小组会 type 正确、品牌三态（非品牌/延续已有/创建新品牌）
+  - ✅ 书记工作台 6 Tab + 其余 5 角色工作台全部 Tab + 首页/归档库零 console error
+  - ✅ 待归档悬停显示缺项 title（"待归档：考勤确认（2 条待确认）、考察确认（1 条待确认）、宣传归档"）、全站无"已完成"状态字面值
+- **沉淀标签**：`[已沉淀: 内联样式优先级 > CSS]` — 内联 style 属性优先级最高，CSS 类/选择器无法覆盖（除非 !important），"怎么改都没用"先查是否内联样式；`[已沉淀: 新拆分文件漏导入]` — 从 entry 薄壳拆分出 tab 模块时，全站组件（badgeHtml 等）易漏 import，运行期才抛 ReferenceError——拆文件后须对新增模块做"使用但未导入"静态扫描 + 浏览器逐 Tab 点击验证；`[已沉淀: 生命周期态优于状态字面值]` — "已完成"与归档条件矛盾源于页面直读 status 字面值；展示态应由状态机/派生函数统一产出，字面值仅作存储

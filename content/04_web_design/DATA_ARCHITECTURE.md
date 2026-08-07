@@ -1,4 +1,4 @@
-﻿﻿---
+﻿﻿﻿﻿﻿---
 title: "数据架构设计"
 type: design
 role: "[工程师]+[AI]"
@@ -105,8 +105,8 @@ summary: "系统数据架构设计的单一权威源——涵盖数据模型设�
 |---|---|---|---|---|
 | id | string | 是 | `generateId('act')` | 唯一标识符，前缀 `act_` |
 | title | string | 是 | -- | 活动标题 |
-| type | string | 是 | -- | 活动类型，如 "组织生活会"、"主题党日" |
-| status | `'draft'\|'published'\|'ongoing'\|'completed'` | 是 | `'draft'` | 活动宏观状态 |
+| type | string | 是 | -- | 活动类型。类型体系（2026-08-07 归一，两大顶层非并列）：三会一课系 = 支部党员大会/支委会/党小组会/党课/组织生活会；主题党日系 = `type='主题党日'` + 载体见 `carriers`。查询筛选按 `classifyActivityType` 级联展示 |
+| status | `'draft'\|'published'\|'ongoing'\|'completed'` | 是 | `'draft'` | 活动存储状态；页面展示态由生命周期派生（见下方"活动生命周期展示态"） |
 | visibility | `'branch'\|'group'` | 是 | `'group'` | 可见范围：全支部 or 党小组 |
 | date | string (YYYY-MM-DD) | 是 | -- | 活动日期 ISO 字符串 |
 | location | string\|null | 否 | null | 活动地点（线下活动场地/线上会议链接），用于活动详情与日历展示；可选字段，无则不显示地点 |
@@ -124,15 +124,34 @@ summary: "系统数据架构设计的单一权威源——涵盖数据模型设�
 | attendanceQROwner | `'leader'\|'disc-commissioner'` | 否 | -- | 考勤二维码发布方 |
 | deliverableIds | string[] | 否 | -- | ~~关联交付物 ID 列表~~（已废弃，交付物由 FileSpaceRecord 覆盖） |
 | isBrand | boolean | 否 | `false` | 品牌属性标签（由书记认定，不影响工作流选择，仅作筛选展示）。认定流程：支委/党小组组长识别潜力 → 支委会讨论 → 书记标记 `isBrand = true`。认定依据与案例见 [insights §5.2](../insights/党支部管理与实务经验沉淀.md)。 |
+| carriers | string[] | 否 | -- | 主题党日活动载体（理论学习/实践参访/交流座谈/其他），与写入表单正交维度对齐（2026-08-07） |
+| isJoint | boolean | 否 | `false` | 共建性质（共建开展为 true，2026-08-07） |
+| brandName | string | 否 | -- | 品牌族名称（如"五四精神传承"/"人生回望录"），书记认定 isBrand 后由写入表单"延续已有品牌/创建新品牌"补录（2026-08-07） |
 
-**活动状态枚举：**
+**活动存储状态：**
 
 | 状态值 | 含义 | 说明 |
 |---|---|---|
 | `draft` | 草稿 | 可编辑，尚未发布 |
 | `published` | 已发布 | 已通知相关人员 |
 | `ongoing` | 进行中 | 活动正在执行 |
-| `completed` | 已完成 | 活动结束，待复核/归档 |
+| `completed` | 已结束 | 执行完毕（字面值仅用于存储，展示一律用下方生命周期派生态） |
+
+**活动生命周期展示态（2026-08-07 书记裁决：消除"已完成 vs 未归档"矛盾）：**
+
+> 页面展示态由 `deriveActivityLifecycleStatus(activity, allTasks)` 派生（复用执行态判定 + `checkActivityCloseConditions` 关闭条件），不直接读 status 字面值。全站活动徽章统一按此展示。
+
+| 生命周期态 | 判定条件 | 徽章语义 |
+|---|---|---|
+| `draft` | `status='draft'` | 草稿 |
+| `published` | 已发布未开始 | 已发布 |
+| `ongoing` | 执行中（含关联任务执行中） | 进行中 |
+| `pending_archive` | 执行完毕但产出（考勤/材料/宣传）缺失 | 待归档（悬停显示缺项清单） |
+| `executed` | 执行完毕且产出齐备 | 已执行 |
+| `archived` | `archived=true` | 已归档 |
+| `cancelled` | `status='cancelled'` | 已取消 |
+
+> "已完成"不再作为活动状态字面值出现（2026-08-07）。
 
 #### 2.1.1 子记录关联结构 (SubRecord)
 

@@ -7,15 +7,15 @@
 //         content/04_web_design/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords } from './attendance.js?v=20260807b';
-import { loadActivities } from './activity.js?v=20260807b';
-import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260807b';
-import { TaskForceRecordStore } from './taskforce.js?v=20260807b';
-import { loadActivityReviews } from './review.js?v=20260807b';
-import { NoticeStore } from './notice.js?v=20260807b';
-import { TodoStore, TodoCategory, TodoStatus, TodoSourceType, TodoActionType } from './todo.js?v=20260807b';
-import { getPersonById, PEOPLE } from '../mock/index.js?v=20260807b';
-import { AttendanceStatus } from '../core/domain.js?v=20260807b';
+import { loadAttendanceRecords } from './attendance.js?v=20260807c';
+import { loadActivities } from './activity.js?v=20260807c';
+import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260807c';
+import { TaskForceRecordStore } from './taskforce.js?v=20260807c';
+import { loadActivityReviews } from './review.js?v=20260807c';
+import { NoticeStore } from './notice.js?v=20260807c';
+import { TodoStore, TodoCategory, TodoStatus, TodoSourceType, TodoActionType } from './todo.js?v=20260807c';
+import { getPersonById, PEOPLE } from '../mock/index.js?v=20260807c';
+import { AttendanceStatus } from '../core/domain.js?v=20260807c';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数
