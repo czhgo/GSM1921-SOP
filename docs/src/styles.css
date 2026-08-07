@@ -412,6 +412,25 @@ input.input-flat.text-xs {
   font-weight: 500;
 }
 
+/* 写入表单品牌选择（T229：非品牌 / 延续已有品牌 / 创建新品牌） */
+.wp-brand-chip {
+  background-color: var(--neutral-0);
+  border-color: var(--neutral-200);
+  color: var(--neutral-600);
+  cursor: pointer;
+  user-select: none;
+}
+.wp-brand-chip:hover {
+  border-color: var(--party-gold);
+  color: #854D0E;
+}
+.wp-brand-chip.wp-brand-on {
+  background-color: rgba(212, 175, 55, 0.10);
+  border-color: var(--party-gold);
+  color: #854D0E;
+  font-weight: 500;
+}
+
 select.input-flat {
   appearance: none;
   -webkit-appearance: none;

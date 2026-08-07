@@ -84,12 +84,11 @@ export function renderContent(state) {
   }
 
   const activities = state.activities || [];
-  ensureBrandFilterBtn(state.filterBrand || false);
   renderSecretaryStats(activities);
   renderAttendanceSummary(activities);
 
-  const filterBrand = state.filterBrand || false;
-  const displayActivities = filterBrand ? activities.filter(a => a.isBrand) : activities;
+  // T229：品牌筛选并入活动查询（品牌 chip 开关），日历恢复全量
+  const displayActivities = activities;
   const filteredState = { ...state, activities: displayActivities };
   // 月份一致性：以月份选择器为准（含"默认跟随当前月"规则），避免与 state.displayMonth 分叉
   const displayMonth = populateMonthSelector(displayActivities);
@@ -129,43 +128,40 @@ function renderSecretaryStats(activities) {
   `).join('');
 }
 
-/** 品牌筛选按钮（Tab 工具栏）——语义：动作按钮表达"切换筛选" */
-function ensureBrandFilterBtn(filterBrand) {
-  const toolbar = document.getElementById('sec-toolbar');
-  if (!toolbar) return;
-  let filterBtn = document.getElementById('brand-filter-btn');
-  if (!filterBtn) {
-    filterBtn = document.createElement('button');
-    filterBtn.id = 'brand-filter-btn';
-    filterBtn.className = ' text-sm px-3 py-1.5 rounded-lg transition-colors';
-    filterBtn.addEventListener('click', () => {
-      setState({ filterBrand: !getAppState().filterBrand });
-    });
-    toolbar.appendChild(filterBtn);
-  }
-  filterBtn.style.cssText = filterBrand
-    ? 'background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);'
-    : 'background:rgba(156,163,175,0.10);color:#6B7280;border:1px solid rgba(156,163,175,0.30);';
-  filterBtn.textContent = filterBrand ? '显示全部活动' : '只看品牌活动';
-}
-
-/** 活动查询视图（包装组件 renderQueryView，组装筛选配置） */
+/** 活动查询视图（包装组件 renderQueryView，组装级联大类 + 品牌 chip 配置） */
 function renderQueryPanel(displayActivities) {
   const queryContainer = document.getElementById('secretary-query-container');
   if (!queryContainer) return;
-  const typeOptions = [...new Set(displayActivities.map(a => a.type).filter(Boolean))].map(t => ({ value: t, label: t }));
   renderQueryView(queryContainer, {
     searchPlaceholder: '搜索活动名称...',
     searchKey: 'title',
-    filters: [{ key: 'type', label: '活动类型', options: typeOptions }],
+    // T229：类型体系层级化筛选——大类下拉 → 子类 chips 联动（三会一课固定子类 / 主题党日载体）
+    category: {
+      key: 'category',
+      label: '活动类别',
+      groups: {
+        '三会一课': ACTIVITY_CLASSIFICATION['three-meetings'].subtypes,
+        '主题党日': ACTIVITY_CLASSIFICATION['theme-party'].carriers,
+      },
+      match(item, subValue, catValue) {
+        if (subValue) {
+          if (catValue === '主题党日') {
+            return (item.carriers || []).includes(subValue);
+          }
+          return item.type === subValue; // 三会一课子类（含组织生活会）
+        }
+        return classifyActivityType(item.type) === (catValue === '三会一课' ? 'three-meetings' : 'theme-party');
+      },
+    },
+    brandChip: { key: 'brand', label: '只看品牌' },
     data: displayActivities,
     renderRow: (a) => `
       <div class="flex items-center justify-between p-3 rounded-xl bg-white transition-colors">
         <div class="flex-1 min-w-0">
           <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
-          <div class="text-xs text-gray-500 mt-0.5">${a.date || ''}${a.type ? ' · ' + a.type : ''}</div>
+          <div class="text-xs text-gray-500 mt-0.5">${a.date || ''}${a.type ? ' · ' + a.type : ''}${a.carriers?.length ? ' · ' + a.carriers.join('/') : ''}</div>
         </div>
-        ${a.type ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-red-50 text-red-600">${a.type}</span>` : ''}
+        ${badgeHtml(a.type || '活动', 'neutral')}
       </div>
     `,
     emptyMessage: '暂无匹配活动',
@@ -347,6 +343,11 @@ function _getWritePanelContainer() {
   return document.getElementById(`modal-overlay-${WRITE_MODAL_ID}`)?.querySelector('.modal-body') || null;
 }
 
+/** 品牌名下拉数据源：当前 state 内全部活动（写入面板仅在 tab 渲染后打开，state 已就绪） */
+function _getBrandList() {
+  return getAppState()?.activities || [];
+}
+
 /** 打开「写入活动」悬浮表单：Step1 选模板 → Step2 填表单（含正交维度），重新打开回到 Step1 */
 function openWriteModal() {
   openModal({
@@ -411,7 +412,7 @@ function renderTemplateStep() {
       // 主题党日无固定子类型，直接选择模板（正交维度在 Step 2 表单中填写）
       const isSelected = wp.selections.L1 === tpl.category;
       html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="" data-scenario-id="${tpl.scenarioId || 'theme-party'}" data-activity-type="" data-color="${tpl.color}" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'bg-red-50 text-red-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}">`;
-      html += `选择${tpl.categoryLabel}（正交维度在下一步填写）`;
+      html += `选择${tpl.categoryLabel}`;
       html += `</button>`;
     } else {
       tpl.subtypes.forEach(sub => {
@@ -491,6 +492,23 @@ function renderFormStep() {
   html += `<div class="mb-3">`;
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">主持人 <span class="text-gray-300">（选填）</span></label>`;
   html += `<input type="text" id="wp-host" class="input-flat w-full" placeholder="默认为当前用户">`;
+  html += `</div>`;
+
+  // 品牌（2026-08-07 书记原始意图：看是否延续旧品牌 / 创建新品牌）
+  const brandNames = [...new Set((_getBrandList() || []).map(a => a.brandName).filter(Boolean))];
+  html += `<div class="mb-3">`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">品牌 <span class="text-gray-300">（选填）</span></label>`;
+  html += `<div class="flex gap-2">`;
+  html += `<button type="button" data-wp-brand="none" class="wp-brand-chip wp-brand-on text-xs px-3 py-1.5 rounded-lg border transition-colors">非品牌</button>`;
+  html += `<button type="button" data-wp-brand="inherit" class="wp-brand-chip text-xs px-3 py-1.5 rounded-lg border transition-colors">延续已有品牌</button>`;
+  html += `<button type="button" data-wp-brand="create" class="wp-brand-chip text-xs px-3 py-1.5 rounded-lg border transition-colors">创建新品牌</button>`;
+  html += `</div>`;
+  html += `<div id="wp-brand-inherit" class="hidden mt-2">`;
+  html += `<select id="wp-brand-select" class="input-flat text-xs w-full">${brandNames.map(n => `<option value="${n}">${n}</option>`).join('')}</select>`;
+  html += `</div>`;
+  html += `<div id="wp-brand-create" class="hidden mt-2">`;
+  html += `<input type="text" id="wp-brand-input" class="input-flat w-full" placeholder="品牌名称，如：人生回望录">`;
+  html += `</div>`;
   html += `</div>`;
 
   // 备注
@@ -626,6 +644,16 @@ function bindWritePanelEvents(container) {
       }
     });
   });
+  // 品牌选择（T229：非品牌 / 延续已有品牌 / 创建新品牌）
+  container.querySelectorAll('[data-wp-brand]').forEach(el => {
+    el.addEventListener('click', () => {
+      container.querySelectorAll('[data-wp-brand]').forEach(o => o.classList.remove('wp-brand-on'));
+      el.classList.add('wp-brand-on');
+      const mode = el.dataset.wpBrand;
+      container.querySelector('#wp-brand-inherit')?.classList.toggle('hidden', mode !== 'inherit');
+      container.querySelector('#wp-brand-create')?.classList.toggle('hidden', mode !== 'create');
+    });
+  });
 }
 
 function handleWritePanelAction(e) {
@@ -709,6 +737,19 @@ async function handleSubmitActivity() {
     }
   }
 
+  // 品牌（T229：非品牌 / 延续已有品牌 / 创建新品牌）
+  let brandMode = 'none';
+  let brandName = '';
+  {
+    const formArea = _getWritePanelContainer();
+    const on = formArea?.querySelector('[data-wp-brand].wp-brand-on');
+    if (on) {
+      brandMode = on.dataset.wpBrand;
+      if (brandMode === 'inherit') brandName = document.getElementById('wp-brand-select')?.value || '';
+      if (brandMode === 'create') brandName = document.getElementById('wp-brand-input')?.value?.trim() || '';
+    }
+  }
+
   // 校验必填项
   if (!title) { showToast('error', '请填写活动名称'); titleEl?.focus(); return; }
   if (!date) { showToast('error', '请选择日期'); dateEl?.focus(); return; }
@@ -724,7 +765,9 @@ async function handleSubmitActivity() {
   try {
     const activityData = {
       title,
-      type: wp.selections.L1 === 'three-meetings' ? '三会一课' : '主题党日',
+      type: wp.selections.L1 === 'three-meetings'
+        ? (wp.config?.L1Sub?.['three-meetings']?.find(o => o.value === wp.selections.L1Sub)?.label || '三会一课')
+        : '主题党日',
       subtype: wp.selections.L1Sub || '',
       status: 'draft',
       visibility: 'branch',
@@ -749,6 +792,9 @@ async function handleSubmitActivity() {
       isJoint: dimIsJoint,
       isOutdoor: dimIsOutdoor,
       carriers: dimCarriers,
+      // 品牌（延续旧品牌 / 创建新品牌）
+      isBrand: brandMode !== 'none' && !!brandName,
+      brandName: brandMode !== 'none' ? brandName : '',
       // 参与人（内联赋权：非空则 createActivity 不再派生组长赋权待办）
       assignments: participants.map(pid => ({ personId: pid, role: 'participant' })),
     };
