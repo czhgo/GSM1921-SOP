@@ -1,4 +1,4 @@
-﻿﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260807g';
+﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260807g';
 import { showToast } from '../core/utils.js?v=20260807g';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260807g';
 import { bootstrapPage } from '../core/bootstrap.js?v=20260807g';
@@ -451,6 +451,8 @@ function _renderActQueryView(sorted, highlightId) {
     emptyMessage: '无匹配活动',
     sortKey: 'date',
     sortDir: 'desc',
+    pageSize: 10,      // 活动无上限增长 → 分页（2026-08-07）
+    pageParam: 'vpage',
   });
 
   if (highlightId) {

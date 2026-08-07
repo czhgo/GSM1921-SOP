@@ -1045,6 +1045,8 @@ function _renderActivityProgress(activities) {
     accentColor: accent,
     sortKey: 'date',
     sortDir: 'desc',
+    pageSize: 10,      // 活动无上限增长 → 分页（2026-08-07）
+    pageParam: 'opage',
   });
 
   // 绑定确认完成按钮

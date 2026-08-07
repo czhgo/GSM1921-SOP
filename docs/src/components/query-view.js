@@ -39,6 +39,8 @@ export function renderQueryView(container, config) {
     accentColor = '#3B82F6',
     sortKey = 'date',
     sortDir = 'desc',
+    pageSize = 10,      // 默认每页条数；传 0/Infinity 表示不分页（2026-08-07）
+    pageParam = 'page', // URL query 参数名（多视图共存时传入区分）
     category = null,     // { label, groups: { 父值: [子值...] }, match(item, subValue, catValue) }
     brandChip = null,    // { label } → 布尔开关「只看品牌」
   } = config;
@@ -78,12 +80,14 @@ export function renderQueryView(container, config) {
       </div>
       <div id="${uid}-results" class="space-y-1"></div>
       <div id="${uid}-count" class="text-xs text-gray-400 mt-2"></div>
+      <div id="${uid}-pager"></div>
     </div>
   `;
 
   const searchEl = document.getElementById(`${uid}-search`);
   const resultsEl = document.getElementById(`${uid}-results`);
   const countEl = document.getElementById(`${uid}-count`);
+  const pagerEl = document.getElementById(`${uid}-pager`);
   const clearEl = document.getElementById(`${uid}-clear`);
 
   function applyFilters() {
@@ -126,19 +130,63 @@ export function renderQueryView(container, config) {
       return sortDir === 'desc' ? vb.localeCompare(va) : va.localeCompare(vb);
     });
 
-    if (filtered.length === 0) {
+    // ── 分页（2026-08-07）──
+    const total = filtered.length;
+    const pages = pageSize > 0 ? Math.max(1, Math.ceil(total / pageSize)) : 1;
+    let page = pageSize > 0 ? (Number(new URLSearchParams(window.location.search).get(pageParam)) || 1) : 1;
+    page = Math.min(Math.max(1, page), pages);
+    const paged = pageSize > 0 ? filtered.slice((page - 1) * pageSize, page * pageSize) : filtered;
+
+    if (paged.length === 0) {
       resultsEl.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">${emptyMessage}</p>`;
     } else {
-      resultsEl.innerHTML = filtered.map(renderRow).join('');
+      resultsEl.innerHTML = paged.map(renderRow).join('');
     }
-    countEl.textContent = `${filtered.length} / ${data.length} 条`;
+    countEl.textContent = pageSize > 0 && pages > 1
+      ? `第 ${page}/${pages} 页 · ${total} / ${data.length} 条`
+      : `${total} / ${data.length} 条`;
+
+    // 分页控件（>1 页时渲染；数值用 tabular-nums，按钮带 aria-label）
+    if (pages > 1) {
+      pagerEl.innerHTML = `
+        <div class="flex items-center justify-between mt-3 text-xs text-gray-500">
+          <span class="tabular-nums">${total} 条</span>
+          <div class="flex items-center gap-1">
+            <button type="button" class="qv-page-btn px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-page="${page - 1}" ${page <= 1 ? 'disabled' : ''} aria-label="上一页">上一页</button>
+            <span class="px-2 tabular-nums">${page} / ${pages}</span>
+            <button type="button" class="qv-page-btn px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-page="${page + 1}" ${page >= pages ? 'disabled' : ''} aria-label="下一页">下一页</button>
+          </div>
+        </div>`;
+      pagerEl.querySelectorAll('.qv-page-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const p = Number(btn.dataset.page);
+          if (p < 1 || p > pages) return;
+          const u = new URL(window.location.href);
+          u.searchParams.set(pageParam, String(p));
+          window.history.replaceState(null, '', u);
+          applyFilters();
+        });
+      });
+    } else {
+      pagerEl.innerHTML = '';
+    }
+  }
+
+  // 筛选/搜索变化 → 页码重置 1（删除 URL page 参数后重渲染）
+  function resetPageAndApply() {
+    const u = new URL(window.location.href);
+    if (u.searchParams.has(pageParam)) {
+      u.searchParams.delete(pageParam);
+      window.history.replaceState(null, '', u);
+    }
+    applyFilters();
   }
 
   // 绑定事件
-  searchEl?.addEventListener('input', applyFilters);
+  searchEl?.addEventListener('input', resetPageAndApply);
   filters.forEach(f => {
     const el = document.getElementById(`${uid}-filter-${f.key}`);
-    el?.addEventListener('change', applyFilters);
+    el?.addEventListener('change', resetPageAndApply);
   });
 
   // ── T229：级联大类 + 子类 chips + 品牌 chip 事件 ──
@@ -159,7 +207,7 @@ export function renderQueryView(container, config) {
       btn.addEventListener('click', () => {
         activeSub = btn.dataset.sub === activeSub ? '' : btn.dataset.sub;
         renderSubChips();
-        applyFilters();
+        resetPageAndApply();
       });
     });
   }
@@ -168,7 +216,7 @@ export function renderQueryView(container, config) {
     activeCategory = catEl.value;
     activeSub = '';
     renderSubChips();
-    applyFilters();
+    resetPageAndApply();
   });
   const brandEl = document.getElementById(`${uid}-brand`);
   let brandOn = false;
@@ -177,7 +225,7 @@ export function renderQueryView(container, config) {
     brandEl.className = brandOn
       ? 'text-xs px-3 py-1.5 rounded-full border transition-colors bg-amber-50 text-amber-700 border-amber-200'
       : 'text-xs px-3 py-1.5 rounded-full border transition-colors bg-gray-100 text-gray-600 border-gray-200';
-    applyFilters();
+    resetPageAndApply();
   });
 
   clearEl?.addEventListener('click', () => {
@@ -191,7 +239,7 @@ export function renderQueryView(container, config) {
     if (catEl) catEl.value = '';
     renderSubChips();
     if (brandEl) { brandOn = false; brandEl.className = 'text-xs px-3 py-1.5 rounded-full border transition-colors bg-gray-100 text-gray-600 border-gray-200'; }
-    applyFilters();
+    resetPageAndApply();
   });
 
   // 初始渲染

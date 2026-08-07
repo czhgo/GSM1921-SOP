@@ -170,6 +170,8 @@ function renderQueryPanel(displayActivities) {
     accentColor: '#B91C1C',
     sortKey: 'date',
     sortDir: 'desc',
+    pageSize: 10,      // 活动无上限增长 → 分页（2026-08-07）
+    pageParam: 'apage',
   });
 }
 
