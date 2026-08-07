@@ -13,6 +13,7 @@ import { PEOPLE, getPersonById } from '../mock/index.js?v=20260807b';
 import { BranchService } from '../services/runtime.js?v=20260807b';
 import { AuthStore } from '../services/auth.js?v=20260807b';
 import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260807b';
+import { badgeHtml } from './badge.js?v=20260807b';
 import { persist } from '../core/data-adapter.js?v=20260807b';
 import { loadAttendanceRecords } from '../services/attendance.js?v=20260807b';
 import { loadInspectionRecords } from '../services/inspection.js?v=20260807b';
@@ -38,16 +39,38 @@ export function deriveActivityExecutionStatus(activity, allTasks) {
   return allDone ? 'completed' : 'ongoing';
 }
 
-// T-218：活动执行态徽章语义色（替代原中性灰 badge-time，与任务徽章色系一致）
-const ACT_STATUS_STYLE = {
-  draft:     { bg: 'rgba(107,114,128,0.12)', fg: '#6B7280' },  // 草稿
-  published: { bg: 'rgba(37,99,235,0.12)',   fg: '#2563EB' },  // 已发布
-  ongoing:   { bg: 'rgba(217,119,6,0.14)',   fg: '#D97706' },  // 进行中
-  completed: { bg: 'rgba(22,163,74,0.14)',   fg: '#16A34A' },  // 已完成
+// ── 活动生命周期态（2026-08-07 书记裁决：消除"已完成 vs 未归档"矛盾）──
+// 草稿→已发布→进行中→已执行→待归档→已归档（+已取消）
+// "已完成"字样全站移除：执行完毕且产出齐备才为"已执行"，产出缺失为"待归档"。
+export const ACTIVITY_LIFECYCLE = {
+  draft:          { label: '草稿',   variant: 'neutral' },
+  published:      { label: '已发布', variant: 'info' },
+  ongoing:        { label: '进行中', variant: 'warning' },
+  pending_archive:{ label: '待归档', variant: 'warning' },
+  executed:       { label: '已执行', variant: 'success' },
+  archived:       { label: '已归档', variant: 'neutral' },
+  cancelled:      { label: '已取消', variant: 'neutral' },
 };
-function activityBadgeHtml(status, label) {
-  const s = ACT_STATUS_STYLE[status] || ACT_STATUS_STYLE.draft;
-  return `<span class="badge-time flex-shrink-0" style="background:${s.bg};color:${s.fg};">${label}</span>`;
+
+export function deriveActivityLifecycleStatus(activity, allTasks) {
+  if (activity.status === 'cancelled') return 'cancelled';
+  if (activity.archived) return 'archived';
+  if (activity.status === 'draft') return 'draft';
+  const exec = deriveActivityExecutionStatus(activity, allTasks || []);
+  if (exec === 'completed') {
+    const { canClose, missing } = checkActivityCloseConditions(activity);
+    return canClose ? 'executed' : 'pending_archive';
+  }
+  return exec; // published | ongoing
+}
+
+export function activityLifecycleBadgeHtml(activity, allTasks) {
+  const st = deriveActivityLifecycleStatus(activity, allTasks || []);
+  const meta = ACTIVITY_LIFECYCLE[st] || ACTIVITY_LIFECYCLE.draft;
+  const title = st === 'pending_archive'
+    ? `待归档：${checkActivityCloseConditions(activity).missing.join('、')}`
+    : undefined;
+  return badgeHtml(meta.label, meta.variant, { title });
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -177,22 +200,17 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
 
   const isParticipant = !viewArchived && (viewType === 'participant' || !viewType);
 
-  const statusMap = { draft: '草稿', published: '已发布', ongoing: '进行中', completed: '已完成' };
   const allTasks = (getAppState() || {}).tasks || [];
   let html = '';
   dateActivities.forEach(act => {
-    // T-218：列表徽章同样走派生执行态（与详情页一致，进度驱动）
-    const execStatus = deriveActivityExecutionStatus(act, allTasks);
-    const label = statusMap[execStatus] || execStatus;
+    // T229：生命周期徽章（草稿→已发布→进行中→待归档→已执行→已归档），进度+产出共同驱动
     const isBrand = !!act.isBrand;
-    const brandTag = isBrand
-      ? '<span class=" text-xs px-1.5 py-0.5 rounded" style="background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.35);">品牌</span>'
-      : '';
+    const brandTag = isBrand ? badgeHtml('品牌', 'brand') : '';
     if (isParticipant) {
       html += `<div class="inspector-card" data-act-id="${act.id}" style="${isBrand ? 'border-left:3px solid #EAB308;' : ''}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
       html += `<p class=" font-bold text-sm text-gray-800 leading-snug flex-1">${act.title}</p>`;
-      html += activityBadgeHtml(execStatus, label);
+      html += activityLifecycleBadgeHtml(act, allTasks);
       html += '</div>';
       html += `<div class="flex items-center gap-1.5">${brandTag}<p class=" text-xs text-gray-400">参与视图 · 仅展示</p></div>`;
       html += '</div>';
@@ -200,7 +218,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
       html += `<div class="inspector-card" style="cursor:pointer;${isBrand ? 'border-left:3px solid #EAB308;' : ''}" data-act-id="${act.id}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
       html += `<div class="flex items-center gap-1.5 flex-1"><p class=" font-bold text-sm text-gray-800 leading-snug">${act.title}</p>${brandTag}</div>`;
-      html += activityBadgeHtml(execStatus, label);
+      html += activityLifecycleBadgeHtml(act, allTasks);
       html += '</div>';
       html += `<p class=" text-xs text-gray-400">点击查看任务详情 →</p>`;
       html += '</div>';
@@ -265,33 +283,31 @@ function _buildOutputsSectionHTML(activity) {
       ${statusHtml}
     </div>`;
 
-  const badge = (text, cls) => `<span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${cls}">${text}</span>`;
-
   const attStatus = atts.length === 0
-    ? badge('未提交', 'bg-gray-100 text-gray-500')
+    ? badgeHtml('未提交', 'neutral')
     : atts.every(r => r.recordedBy)
-      ? badge(`已确认 ${atts.length}`, 'bg-green-50 text-green-700')
-      : badge(`待确认 ${atts.filter(r => !r.recordedBy).length}`, 'bg-orange-50 text-orange-700');
+      ? badgeHtml(`已确认 ${atts.length}`, 'success')
+      : badgeHtml(`待确认 ${atts.filter(r => !r.recordedBy).length}`, 'warning');
 
   const inspStatus = inss.length === 0
-    ? badge('未提交', 'bg-gray-100 text-gray-500')
+    ? badgeHtml('未提交', 'neutral')
     : inss.every(r => r.status === 'confirmed')
-      ? badge(`已确认 ${inss.length}`, 'bg-green-50 text-green-700')
-      : badge(`待确认 ${inss.filter(r => r.status !== 'confirmed').length}`, 'bg-orange-50 text-orange-700');
+      ? badgeHtml(`已确认 ${inss.length}`, 'success')
+      : badgeHtml(`待确认 ${inss.filter(r => r.status !== 'confirmed').length}`, 'warning');
 
   const pubItems = [
     ...publicitySubs.map(p => ({ title: p.title || '宣传材料', meta: [p.author, p.channel].filter(Boolean).join(' · '), status: '已提交' })),
     ...archiveRecs.map(a => ({ title: `${a.category || '材料'}：${a.activityName}`, meta: [a.archiveDate, a.fileName].filter(Boolean).join(' · '), status: a.status === 'archived' ? '已归档' : (a.status === 'in_progress' ? '归档中' : '待归档') })),
   ];
   const pubStatus = pubItems.length === 0
-    ? badge('未归档', 'bg-gray-100 text-gray-500')
-    : badge(`${pubItems.length} 项`, 'bg-sky-50 text-sky-700');
+    ? badgeHtml('未归档', 'neutral')
+    : badgeHtml(`${pubItems.length} 项`, 'info');
 
   const reviewStatus = !review
-    ? badge('未提交', 'bg-gray-100 text-gray-500')
+    ? badgeHtml('未提交', 'neutral')
     : (review.reviewStatus === ReviewStatus.CONFIRMED
-      ? badge('已确认', 'bg-green-50 text-green-700')
-      : badge(review.reviewStatus || '待处理', 'bg-orange-50 text-orange-700'));
+      ? badgeHtml('已确认', 'success')
+      : badgeHtml(review.reviewStatus || '待处理', 'warning'));
 
   return `
     <div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3">
@@ -412,8 +428,6 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   // 确保 inspector 可见：滚动到视图中
   contentEl.closest('#inspector-container')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-  const statusMap = { draft: '草稿', published: '已发布', ongoing: '进行中', completed: '已完成' };
-
   const visibleTasks = filterTasksByManagementRole(tasks, managementRole);
   const themeClass   = ROLE_THEME_CLASS[managementRole] || '';
   const isArchived   = activity.archived === true;
@@ -445,12 +459,8 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   }
 
   html += '<div class="flex items-center gap-1.5 flex-wrap mb-3">';
-  // T-218：顶部徽章改派生执行态（进度驱动活动状态，书记裁决 2026-08-05）
-  const actExecStatus = deriveActivityExecutionStatus(activity, tasks);
-  html += activityBadgeHtml(actExecStatus, statusMap[actExecStatus] || actExecStatus);
-  if (isArchived) {
-    html += '<span class=" text-xs px-1.5 py-0.5 rounded" style="background:rgba(156,163,175,0.2);color:#6B7280;">已归档</span>';
-  }
+  // T229：顶部徽章走生命周期态（进度+产出共同驱动；已归档由生命周期态覆盖，不再单独渲染）
+  html += activityLifecycleBadgeHtml(activity, tasks);
   if (activity.date) {
     html += `<span class=" text-xs text-gray-400">${activity.date}</span>`;
   }
