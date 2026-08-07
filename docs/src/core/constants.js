@@ -222,6 +222,30 @@ const _ACTIVITY_TYPE_BASE = {
   '座谈':         { bg: '#FEFCE8', dot: '#FFD700', text: '#B45309', dotBorder: 'rgba(180, 83, 9, 0.35)' },
 };
 
+// ── 活动权威分类（2026-08-07 类型体系归一：两大顶层，非并列关系用层级表达）──
+// 三会一课：固定子类；主题党日：正交维度（载体）。组织生活会归入三会一课系（不进写入表单）。
+export const ACTIVITY_CLASSIFICATION = {
+  'three-meetings': {
+    label: '三会一课',
+    color: '#CE1126',
+    subtypes: ['支部党员大会', '支委会', '党小组会', '党课', '组织生活会'],
+  },
+  'theme-party': {
+    label: '主题党日',
+    color: '#FFD700',
+    carriers: ['理论学习', '实践参访', '交流座谈', '其他'], // 与写入表单 THEME_PARTY_DIMENSIONS.carriers 对齐
+  },
+};
+
+const _THREE_MEETINGS_SUBTYPES = ACTIVITY_CLASSIFICATION['three-meetings'].subtypes;
+
+/** type → 大类（three-meetings | theme-party） */
+export function classifyActivityType(type) {
+  if (!type) return null;
+  if (_THREE_MEETINGS_SUBTYPES.includes(type)) return 'three-meetings';
+  return 'theme-party'; // 主题党日 及未知类型兜底归主题党日系
+}
+
 /**
  * 获取活动类型颜色映射
  * @param {Object} [opts]
