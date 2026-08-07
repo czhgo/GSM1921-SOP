@@ -17,6 +17,8 @@ import { AuthStore } from '../services/auth.js?v=20260807b';
 import { loadWorkspaceData } from '../core/data-loader.js?v=20260807b';
 import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260807b';
 import { icon } from '../core/icons.js?v=20260807b';
+import { badgeHtml } from '../components/badge.js?v=20260807b';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../components/inspector.js?v=20260807b';
 import { renderCalendarForDashboard, populateMonthSelector } from '../components/calendar.js?v=20260807b';
 
 const { user } = await bootstrapPage({ module: 'dashboard' });
@@ -43,13 +45,6 @@ function renderUI(state) {
 registerRenderCallback(renderUI);
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
-
-const STATUS_LABELS = {
-  draft: { text: '草稿', cls: 'bg-gray-100 text-gray-600' },
-  published: { text: '已发布', cls: 'bg-blue-100 text-blue-700' },
-  ongoing: { text: '进行中', cls: 'bg-green-100 text-green-700' },
-  completed: { text: '已完成', cls: 'bg-gray-100 text-gray-500' },
-};
 
 const TF_STATUS_BADGE = {
   recruiting: { text: '招募中', cls: 'bg-orange-100 text-orange-700' },
@@ -310,7 +305,8 @@ function _renderActivityList(activities) {
   container.innerHTML = '<div class="space-y-2">' + display.map(a => {
     const rawCat = a.type || a.category || '会议';
     const color = ACTIVITY_TYPE_COLORS[rawCat] || { bg: '#F9FAFB', dot: '#6B7280', label: rawCat };
-    const statusInfo = STATUS_LABELS[a.status] || STATUS_LABELS.draft;
+    // T229：生命周期态徽章（草稿→已发布→进行中→待归档→已执行→已归档）
+    const lifecycle = ACTIVITY_LIFECYCLE[deriveActivityLifecycleStatus(a, getAppState()?.tasks || [])] || ACTIVITY_LIFECYCLE.draft;
     const dateLabel = a.date ? _fmtDate(new Date(a.date)) : '待定';
     const organizerName = getPersonName(a.organizer);
 
@@ -323,7 +319,7 @@ function _renderActivityList(activities) {
           <p class="text-sm font-medium text-gray-800 truncate group-hover:text-blue-700 transition-colors">${a.title || '未命名活动'}</p>
           <p class="text-xs text-gray-500 mt-0.5">${dateLabel} · ${color.label}${organizerName ? ' · ' + organizerName : ''}${a.location ? ' · ' + a.location : ''}</p>
         </div>
-        <span class="px-1.5 py-0.5 text-xs font-medium rounded-full ${statusInfo.cls} flex-shrink-0">${statusInfo.text}</span>
+        ${badgeHtml(lifecycle.label, lifecycle.variant)}
       </div>
     `;
   }).join('') + '</div>';
@@ -450,13 +446,14 @@ function _renderGallery(activities) {
       const gradient = GALLERY_TYPE_GRADIENTS[a.type] || 'linear-gradient(135deg, #F9FAFB, #E5E7EB)';
       const color = ACTIVITY_TYPE_COLORS[a.type] || { dot: '#6B7280', label: a.type || '活动' };
       const organizerName = getPersonName(a.organizer);
-      const statusInfo = STATUS_LABELS[a.status] || STATUS_LABELS.draft;
+      // T229：生命周期态徽章
+      const lifecycle = ACTIVITY_LIFECYCLE[deriveActivityLifecycleStatus(a, getAppState()?.tasks || [])] || ACTIVITY_LIFECYCLE.draft;
 
       return `
         <div class="rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
              data-gallery-activity-id="${a.id}">
           <div class="p-4 relative" style="background:${gradient};">
-            ${a.isBrand ? '<span class="absolute top-2 right-2 px-1.5 py-0.5 text-xs font-bold rounded-full bg-orange-100 text-orange-700 border border-orange-200">品牌</span>' : ''}
+            ${a.isBrand ? badgeHtml('品牌', 'brand') : ''}
             <div class="flex items-center gap-1.5 mb-1.5">
               <div class="w-2.5 h-2.5 rounded-full" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''};"></div>
               <span class="text-xs font-medium text-gray-500">${color.label}</span>
@@ -465,7 +462,7 @@ function _renderGallery(activities) {
           </div>
           <div class="p-3 bg-white">
             <p class="text-xs text-gray-500">${a.date ? _fmtDate(new Date(a.date)) : ''}${organizerName ? ' · ' + organizerName : ''}</p>
-            <span class="inline-block mt-1 px-1.5 py-0.5 text-xs font-medium rounded-full ${statusInfo.cls}">${statusInfo.text}</span>
+            ${badgeHtml(lifecycle.label, lifecycle.variant)}
           </div>
         </div>
       `;

@@ -11,6 +11,7 @@ import { getActivityTypeColors } from '../core/constants.js?v=20260807b';
 import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260807b';
 import { getBasePath } from '../core/utils.js?v=20260807b';
 import { AuthStore } from '../services/auth.js?v=20260807b';
+import { badgeHtml } from '../components/badge.js?v=20260807b';
 
 renderSidebar('archive');
 renderHeader('archive');
@@ -79,9 +80,9 @@ function renderActivityArchive() {
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center gap-2">
                 <span class="text-sm font-medium text-gray-800">${a.title || '未命名活动'}</span>
-                ${isBrand ? '<span class="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 border border-amber-200">品牌</span>' : ''}
+                ${isBrand ? badgeHtml('品牌', 'brand') : ''}
               </div>
-              <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">已归档</span>
+              ${badgeHtml('已归档', 'neutral')}
             </div>
             <p class="text-xs text-gray-500">${a.date || ''} · ${a.type || '活动'}${organizer ? ' · ' + organizer.name : ''}</p>
           </div>
@@ -110,7 +111,7 @@ function renderTaskforceArchive() {
           <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:shadow-sm hover:border-gray-200 transition-all cursor-pointer" data-archive-item data-archive-type="taskforce" data-archive-id="${tf.id}">
             <div class="flex items-center justify-between mb-2">
               <span class="text-sm font-medium text-gray-800">${tf.name || '未命名专班'}</span>
-              <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">已归档</span>
+              ${badgeHtml('已归档', 'neutral')}
             </div>
             <p class="text-xs text-gray-500">${tf.createdAt || ''} ~ ${tf.deadline || ''} · 专班${initiator ? ' · ' + initiator.name : ''}</p>
           </div>
@@ -130,8 +131,8 @@ function renderNoticeArchive() {
   }
 
   const priorityBadge = {
-    urgent: '<span class="px-1.5 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-700">紧急</span>',
-    normal: '<span class="px-1.5 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-700">重要</span>',
+    urgent: badgeHtml('紧急', 'danger'),
+    normal: badgeHtml('重要', 'info'),
   };
 
   contentContainer.innerHTML = `
@@ -245,7 +246,7 @@ function _renderActivityDetail(activity) {
           <div class="flex items-center gap-2 mb-2">
             <span class="w-2 h-2 rounded-full" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''};"></span>
             <span class="text-xs text-gray-500">${color.label}</span>
-            ${activity.isBrand ? '<span class="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 border border-amber-200">品牌</span>' : ''}
+            ${activity.isBrand ? badgeHtml('品牌', 'brand') : ''}
           </div>
           <h3 class="font-title-cn text-lg font-bold text-gray-800">${activity.title || '未命名活动'}</h3>
         </div>
@@ -271,7 +272,7 @@ function _renderActivityDetail(activity) {
         </div>
         <div class="bg-gray-50 rounded-lg p-3">
           <p class="text-gray-400 mb-1">活动状态</p>
-          <p class="text-gray-800 font-medium">已归档</p>
+          <p class="text-gray-800 font-medium">${badgeHtml('已归档', 'neutral')}</p>
         </div>
       </div>
 
@@ -316,8 +317,8 @@ function _renderTaskforceDetail(tf) {
       <div class="flex items-start justify-between mb-4">
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-2">
-            <span class="text-xs px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">专班</span>
-            <span class="text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-700">已归档</span>
+            ${badgeHtml('专班', 'info')}
+            ${badgeHtml('已归档', 'neutral')}
           </div>
           <h3 class="font-title-cn text-lg font-bold text-gray-800">${tf.name || '未命名专班'}</h3>
         </div>
