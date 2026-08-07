@@ -94,6 +94,7 @@ function renderLeaderUI(state) {
 
 // ── 待办列表+详情面板（最小三成本原则落地） ───────────────────
 let _selectedTodoId = null;
+let _todoAggregates = null;
 
 function _renderTodoContent() {
   const container = document.getElementById('leader-tab-content');
@@ -102,23 +103,19 @@ function _renderTodoContent() {
   // 刷新过期状态
   TodoStore.refreshExpiredStatus();
 
-  const groupedTodos = TodoStore.getGroupedByCategory('leader');
+  _todoAggregates = TodoStore.getGroupedByAction('leader');
   const stats = TodoStore.getStatsByRole('leader');
-  const selectedTodo = _selectedTodoId ? TodoStore.getById(_selectedTodoId) : null;
+  const selectedTodo = _selectedTodoId ? (
+    _todoAggregates.find(g => g.groupKey === _selectedTodoId) || TodoStore.getById(_selectedTodoId)
+  ) : null;
 
   const { html: todoListHtml, bindEvents } = renderTodoList({
     prefix: 'leader',
-    groupedTodos,
+    groupedAggregates: _todoAggregates,
     stats,
     accent,
     onSelectTodo: (todo) => {
-      _selectedTodoId = todo.id;
-      _renderTodoContent();
-    },
-    onCompleteTodo: (todoId) => {
-      TodoStore.complete(todoId);
-      if (_selectedTodoId === todoId) _selectedTodoId = null;
-      showToast('success', '待办已完成');
+      _selectedTodoId = todo.groupKey || todo.id;
       _renderTodoContent();
     },
     onActionTodo: (todo) => {
@@ -157,6 +154,24 @@ function _renderTodoContent() {
 }
 
 function _renderTodoDetail(todo) {
+  // 聚合对象：概要 + 处理入口（明细在业务界面逐条处理）
+  if (todo.groupKey) {
+    return `
+      <div class="space-y-3">
+        <div class="flex items-center gap-2">
+          <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${todo.count} 条待处理</span>
+          ${todo.priority === 'urgent' ? badgeHtml('紧急', 'warning') : ''}
+        </div>
+        <p class="font-title-cn text-sm font-bold text-gray-800">${todo.title}</p>
+        ${todo.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.flow}</p>` : ''}
+        ${todo.deadline ? `<div class="text-xs text-gray-500">最早截止：${todo.deadline}</div>` : ''}
+        <div class="pt-3 border-t border-gray-100 flex gap-2">
+          <button class="leader-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">去处理</button>
+        </div>
+      </div>
+    `;
+  }
+
   const statusLabel = {
     pending: '待处理',
     in_progress: '进行中',
@@ -184,10 +199,7 @@ function _renderTodoDetail(todo) {
       ${todo.deadline ? `<div class="text-xs text-gray-500">截止：${todo.deadline}</div>` : ''}
       <div class="text-xs text-gray-400">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
-        ${todo.status !== 'completed' ? `
-          <button class="leader-todo-detail-complete text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">标记完成</button>
-          ${todo.actionType ? `<button class="leader-todo-detail-action text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
-        ` : '<span class="text-xs text-green-600">已完成</span>'}
+        ${todo.actionType ? `<button class="leader-todo-detail-action text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
       </div>
     </div>
   `;
@@ -220,19 +232,12 @@ function _handleTodoAction(todo) {
 function _bindTodoDetailEvents() {
   const container = document.getElementById('leader-tab-content');
   if (!container) return;
-  container.querySelector('.leader-todo-detail-complete')?.addEventListener('click', () => {
-    if (_selectedTodoId) {
-      TodoStore.complete(_selectedTodoId);
-      _selectedTodoId = null;
-      showToast('success', '待办已完成');
-      _renderTodoContent();
-    }
-  });
   container.querySelector('.leader-todo-detail-action')?.addEventListener('click', () => {
-    if (_selectedTodoId) {
-      const todo = TodoStore.getById(_selectedTodoId);
-      if (todo) _handleTodoAction(todo);
-    }
+    if (!_selectedTodoId) return;
+    const group = _todoAggregates?.find(g => g.groupKey === _selectedTodoId);
+    if (group) { _handleTodoAction(group); return; }
+    const todo = TodoStore.getById(_selectedTodoId);
+    if (todo) _handleTodoAction(todo);
   });
 }
 

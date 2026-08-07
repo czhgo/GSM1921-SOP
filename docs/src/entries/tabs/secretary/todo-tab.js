@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // entries/tabs/secretary/todo-tab.js — 书记工作台·待办 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：按 tab 代码分割，首屏只加载默认 tab。
 
@@ -45,12 +45,6 @@ export function renderContent() {
     selectedTodoId: _selectedTodoId,
     onSelectTodo: (todo) => {
       _selectedTodoId = todo.id;
-      renderContent();
-    },
-    onCompleteTodo: (todoId) => {
-      TodoStore.complete(todoId);
-      if (_selectedTodoId === todoId) _selectedTodoId = null;
-      showToast('success', '待办已完成');
       renderContent();
     },
     onActionTodo: (todo) => {
@@ -116,10 +110,7 @@ function renderTodoDetail(todo) {
       ${todo.deadline ? `<div class="text-xs text-gray-500">截止：${todo.deadline}</div>` : ''}
       <div class="text-xs text-gray-400">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
-        ${todo.status !== 'completed' ? `
-          <button class="secretary-todo-detail-complete text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">标记完成</button>
-          ${todo.actionType ? `<button class="secretary-todo-detail-action text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
-        ` : '<span class="text-xs text-green-600">已完成</span>'}
+        ${todo.actionType ? `<button class="secretary-todo-detail-action text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
       </div>
     </div>
   `;
@@ -172,14 +163,6 @@ function expandAssignPanelForTodo(todo) {
 function bindTodoDetailEvents() {
   const container = document.getElementById('secretary-tab-content');
   if (!container) return;
-  container.querySelector('.secretary-todo-detail-complete')?.addEventListener('click', () => {
-    if (_selectedTodoId) {
-      TodoStore.complete(_selectedTodoId);
-      _selectedTodoId = null;
-      showToast('success', '待办已完成');
-      renderContent();
-    }
-  });
   container.querySelector('.secretary-todo-detail-action')?.addEventListener('click', () => {
     if (_selectedTodoId) {
       const todo = TodoStore.getById(_selectedTodoId);
