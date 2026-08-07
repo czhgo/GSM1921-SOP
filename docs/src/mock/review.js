@@ -1,4 +1,4 @@
-﻿// review.js — 复盘记录 Mock 数据
+// review.js — 复盘记录 Mock 数据
 // 数据模型对齐 domain.js ReviewRecord + ReviewStatus 枚举（D-242）
 // 复盘状态流转：未提交→已上传→批注中→确认/打回
 // 组织者提交复盘报告，纪检委员批注/打回/确认
@@ -52,10 +52,9 @@ export const REVIEW_RECORDS = [
     organizerId: 'p3',
     progress: '已完成',
     overdue: false,
-    reviewStatus: ReviewStatus.CONFIRMED,
+    reviewStatus: ReviewStatus.UPLOADED,
     reviewContent: '3月主题党日"学习两会精神"为品牌活动首场，参与度高，深度参与者郑十一、冯十二的视频和新闻稿反响良好。建议下月品牌活动延续此类深度参与机制。',
     submittedAt: '2026-03-23T10:00:00',
-    confirmedAt: '2026-03-24T15:30:00',
   },
 
   // ── 4 月活动复盘（覆盖已上传/批注中/已打回 三态） ──────
@@ -88,10 +87,9 @@ export const REVIEW_RECORDS = [
     organizerId: 'p13',
     progress: '已完成',
     overdue: false,
-    reviewStatus: ReviewStatus.CONFIRMED,
+    reviewStatus: ReviewStatus.UPLOADED,
     reviewContent: '4月党课"新时代青年担当"由书记主讲，参与度高，深度参与者林十五完成宣传稿。课后讨论环节延长至 40 分钟，建议后续党课预留更多讨论时间。',
     submittedAt: '2026-04-26T10:00:00',
-    confirmedAt: '2026-04-27T16:00:00',
   },
   {
     id: 'rev7',
@@ -114,10 +112,9 @@ export const REVIEW_RECORDS = [
     organizerId: 'p11',
     progress: '已完成',
     overdue: false,
-    reviewStatus: ReviewStatus.CONFIRMED,
+    reviewStatus: ReviewStatus.UPLOADED,
     reviewContent: '5月支部党员大会完成本月各项决议审议，重点讨论预备党员接收工作。会议议定6月启动支部大会讨论接收预备党员程序。',
     submittedAt: '2026-05-11T15:00:00',
-    confirmedAt: '2026-05-12T10:00:00',
   },
   {
     id: 'rev9',
@@ -138,10 +135,9 @@ export const REVIEW_RECORDS = [
     organizerId: 'p11',
     progress: '已完成',
     overdue: false,
-    reviewStatus: ReviewStatus.CONFIRMED,
+    reviewStatus: ReviewStatus.UPLOADED,
     reviewContent: '校企共建座谈"光华 x 中信证券"为品牌活动第三场，深度参与者陈十三完成现场记录与考勤统计。座谈形成 3 项后续合作意向，已转共建对接专班跟进。',
     submittedAt: '2026-05-23T10:00:00',
-    confirmedAt: '2026-05-24T15:00:00',
   },
   {
     id: 'rev11',

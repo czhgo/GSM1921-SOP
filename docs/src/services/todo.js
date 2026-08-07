@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  service.todo.js — 待办任务服务层
 //  最小三成本原则落地：任务流默认直接展示在工作台
@@ -690,76 +690,6 @@ export const VisitorTodoDeriver = {
 // ════════════════════════════════════════════════════════════════
 
 export const SEED_TODOS = [
-  // 党小组组长待办
-  {
-    id: 'todo_seed_1',
-    title: '为活动「七一建党105周年活动」赋权组织者',
-    description: '活动日期：2026-07-01。请选择人员授予组织者或深度参与者角色。',
-    role: 'leader',
-    category: TodoCategory.AUTH,
-    priority: 'urgent',
-    status: TodoStatus.PENDING,
-    deadline: '2026-07-25',
-    createdAt: '2026-07-15T08:00:00',
-    sourceType: TodoSourceType.ACTIVITY,
-    sourceId: 'act-25',
-    actionType: TodoActionType.AUTHORIZE,
-    actionData: { scope: 'activity', sourceId: 'act-25', sourceName: '七一建党105周年活动' },
-    // E2 数据上下游标注
-    flow: '活动创建 → 组长赋权 → 组织者/深度参与者执行',
-  },
-  {
-    id: 'todo_seed_2',
-    title: '上传7月党小组会考勤',
-    description: '请上传本月党小组会考勤记录，等待纪检委员确认。',
-    role: 'leader',
-    category: TodoCategory.SUBMIT,
-    priority: 'normal',
-    status: TodoStatus.PENDING,
-    deadline: '2026-08-05',
-    createdAt: '2026-07-20T08:00:00',
-    sourceType: TodoSourceType.MANUAL,
-    sourceId: null,
-    actionType: TodoActionType.SUBMIT,
-    actionData: null,
-    // E2 数据上下游标注
-    flow: '考勤上传 → 纪检确认 → 考勤总表',
-  },
-  // 组织委员待办
-  {
-    id: 'todo_seed_3',
-    title: '为专班「宣传专班（第二期）」赋权组织者',
-    description: '专班周期：2026-05-02 ~ 2026-05-20。请选择人员授予组织者或深度参与者角色。',
-    role: 'org-commissioner',
-    category: TodoCategory.AUTH,
-    priority: 'urgent',
-    status: TodoStatus.PENDING,
-    deadline: '2026-05-20',
-    createdAt: '2026-05-02T08:00:00',
-    sourceType: TodoSourceType.TASKFORCE,
-    sourceId: 'tf-001',
-    actionType: TodoActionType.AUTHORIZE,
-    actionData: { scope: 'taskforce', sourceId: 'tf-001', sourceName: '宣传专班（第二期）' },
-    // E2 数据上下游标注
-    flow: '专班创建 → 组织委员赋权 → 成员执行',
-  },
-  {
-    id: 'todo_seed_4',
-    title: '发展对象材料审核',
-    description: '本月发展党员材料审核截止日期为7月30日，请完成积极分子材料审核。',
-    role: 'org-commissioner',
-    category: TodoCategory.REVIEW,
-    priority: 'urgent',
-    status: TodoStatus.PENDING,
-    deadline: '2026-07-30',
-    createdAt: '2026-07-14T08:00:00',
-    sourceType: TodoSourceType.NOTICE,
-    sourceId: 'notice-102',
-    actionType: TodoActionType.REVIEW,
-    actionData: { noticeId: 'notice-102' },
-    // E2 数据上下游标注
-    flow: '发展材料 → 组织委员建档 → 人才库',
-  },
   // 纪检委员待办
   {
     id: 'todo_seed_5',
@@ -773,6 +703,7 @@ export const SEED_TODOS = [
     createdAt: '2026-07-10T08:00:00',
     sourceType: TodoSourceType.NOTICE,
     sourceId: 'notice-106',
+    actionKey: 'attendance-confirm',
     actionType: TodoActionType.REVIEW,
     actionData: { noticeId: 'notice-106' },
     // E2 数据上下游标注
@@ -791,6 +722,7 @@ export const SEED_TODOS = [
     createdAt: '2026-07-05T08:00:00',
     sourceType: TodoSourceType.MANUAL,
     sourceId: null,
+    actionKey: 'activity-archive',
     actionType: TodoActionType.SUBMIT,
     actionData: null,
     // E2 数据上下游标注
@@ -809,6 +741,7 @@ export const SEED_TODOS = [
     createdAt: '2026-07-01T08:00:00',
     sourceType: TodoSourceType.MANUAL,
     sourceId: null,
+    actionKey: 'authorize',
     actionType: TodoActionType.AUTHORIZE,
     actionData: { scope: 'leader', sourceId: null, sourceName: '第三党小组组长' },
   },
