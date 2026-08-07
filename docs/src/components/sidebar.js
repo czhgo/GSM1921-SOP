@@ -5,12 +5,12 @@
 // - '党建工作台' → '工作台'（角色自适应跳转）
 // - 帮助/关于移入主导航区
 
-import { AuthStore } from '../services/auth.js?v=20260807g';
-import { getBasePath } from '../core/utils.js?v=20260807g';
-import { icon } from '../core/icons.js?v=20260807g';
-import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260807g';
-import { bindWorkspacePopover } from './workspace-popover.js?v=20260807g';
-import { getThemePreference, setThemePreference, initTheme } from '../core/theme.js?v=20260807g';
+import { AuthStore } from '../services/auth.js?v=20260807h';
+import { getBasePath } from '../core/utils.js?v=20260807h';
+import { icon } from '../core/icons.js?v=20260807h';
+import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260807h';
+import { bindWorkspacePopover } from './workspace-popover.js?v=20260807h';
+import { getThemePreference, setThemePreference, initTheme } from '../core/theme.js?v=20260807h';
 
 // 记录当前 activeModule，供 view-role-change 事件触发 re-render 使用
 let _lastActiveModule = null;
