@@ -1,4 +1,4 @@
-﻿﻿import { renderTabBar } from '../components/tab-bar.js?v=20260807g';
+import { renderTabBar } from '../components/tab-bar.js?v=20260807g';
 import { renderTodoList } from '../components/todo-list.js?v=20260807g';
 import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807g';
 import { BranchService } from '../services/runtime.js?v=20260807g';
@@ -17,7 +17,7 @@ import { loadActivities } from '../services/activity.js?v=20260807g';
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807g';
 import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../services/review.js?v=20260807g';
 import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807g';
-import { TodoStore, seedTodos } from '../services/todo.js?v=20260807g';
+import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260807g';
 import { AuthStore } from '../services/auth.js?v=20260807g';
 import { badgeHtml } from '../components/badge.js?v=20260807g';
 
@@ -417,6 +417,8 @@ function _renderWriteContent(activities) {
         ];
         const actorId = AuthStore.getCurrentUser()?.personId;
         const { added, removed } = await AuthStore.syncProjectRoles({ scopeRef: actId, assignments: newAssignments, actorId });
+        // 做事即销待办：保存角色 → 销组长「赋权」待办
+        TodoStore.completeBySource(TodoSourceType.ACTIVITY, actId);
         if (added > 0 || removed > 0) {
           showToast('success', `活动角色已更新：新增 ${added} 人，移除 ${removed} 人`);
         } else {
@@ -881,6 +883,9 @@ function _bindDecisionTreeEvents(container) {
       activityData.assignments = assignments;
 
       const { activity, taskCount } = await writeActivityWithSOP(activityData, scenarioId, targetDate);
+
+      // 做事即销待办：创建活动即完成赋权 → 销组长「赋权」待办
+      TodoStore.completeBySource(TodoSourceType.ACTIVITY, activity.id);
 
       // 同步赋权：追加审计快照 + 通知被赋权人（主源已由创建写入，原则7 不重复填写）
       // 组长本人作为默认组织者属发起人，不重复计入赋权统计/快照/通知

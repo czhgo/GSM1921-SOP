@@ -1,4 +1,4 @@
-﻿import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807g';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807g';
 import { BranchService } from '../services/runtime.js?v=20260807g';
 import { showToast } from '../core/utils.js?v=20260807g';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260807g';
@@ -17,7 +17,7 @@ import { loadActivities } from '../services/activity.js?v=20260807g';
 import { icon } from '../core/icons.js?v=20260807g';
 import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807g';
 import { renderTodoList } from '../components/todo-list.js?v=20260807g';
-import { TodoStore, seedTodos } from '../services/todo.js?v=20260807g';
+import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260807g';
 import { NoticeStore } from '../services/notice.js?v=20260807g';
 import { badgeHtml } from '../components/badge.js?v=20260807g';
 
@@ -376,6 +376,8 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
         if (!confirmed) return;
         const updated = TaskForceRecordStore.updateStatus(tf.id, 'archived');
         if (updated) {
+          // 做事即销待办：归档专班 → 销「专班归档」待办
+          TodoStore.completeBySource(TodoSourceType.TASKFORCE, tf.id);
           showToast('success', `专班「${tf.name}」已归档`);
           renderOrgUI(getAppState());
         } else {
@@ -553,6 +555,8 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
         ];
         const actorId = AuthStore.getCurrentUser()?.personId;
         const { added, removed } = await AuthStore.syncProjectRoles({ scopeRef: tf.id, assignments: newAssignments, actorId });
+        // 做事即销待办：保存成员角色 → 销组织委员「专班赋权」待办
+        TodoStore.completeBySource(TodoSourceType.TASKFORCE, tf.id);
         if (added > 0 || removed > 0) {
           showToast('success', `专班成员角色已更新：新增 ${added} 人，移除 ${removed} 人`);
         } else {
@@ -952,6 +956,8 @@ function _submitRecruitForm() {
 
   try {
     const created = TaskForceRecordStore.add(record);
+    // 做事即销待办：专班创建即完成赋权 → 销组织委员「专班赋权」待办
+    if (created) TodoStore.completeBySource(TodoSourceType.TASKFORCE, created.id);
     // T-190 同步赋权：追加审计快照 + 通知初始成员（主源已由招募写入，原则7 不重复填写）
     if (created && members.length > 0) {
       const actorId = AuthStore.getCurrentUser()?.personId;

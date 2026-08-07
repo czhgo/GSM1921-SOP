@@ -10,6 +10,7 @@ import { PersonPicker } from '../../../components/person-picker.js?v=20260807g';
 import { ROLE_LABELS } from '../../../core/constants.js?v=20260807g';
 import { loadActivities } from '../../../services/activity.js?v=20260807g';
 import { badgeHtml } from '../../../components/badge.js?v=20260807g';
+import { TodoStore } from '../../../services/todo.js?v=20260807g';
 
 const accent = '#B91C1C';
 
@@ -402,6 +403,11 @@ async function handleConfirmLeader() {
     const person = getPersonById(authPanel.selectedPersonId);
     const personName = person ? person.name : authPanel.selectedPersonId;
     showToast('success', `已将 ${personName} 设为 ${authPanel.selectedGroup} 组长`);
+
+    // 做事即销待办：常设赋权完成 → 销书记「设置党小组组长」待办（按 scope=leader 匹配）
+    TodoStore.getAll()
+      .filter(t => t.role === 'secretary' && t.actionData?.scope === 'leader' && t.status !== 'completed')
+      .forEach(t => TodoStore.complete(t.id));
 
     authPanel.selectedPersonId = null;
     authPanel.selectedGroup = null;

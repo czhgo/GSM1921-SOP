@@ -178,6 +178,8 @@ export const NoticeStore = {
     if (notice) {
       notice.read = true;
       _saveNotices(this._notices);
+      // 做事即销待办：已读自动完成「通知阅读」待办
+      try { TodoStore.completeBySource(TodoSourceType.NOTICE, id); } catch (e) { console.warn('[notice] 销待办失败', e); }
     }
   },
 

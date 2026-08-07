@@ -1,4 +1,4 @@
-﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260807g';
+import { setState, registerRenderCallback } from '../core/state.js?v=20260807g';
 import { showToast } from '../core/utils.js?v=20260807g';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260807g';
 import { bootstrapPage } from '../core/bootstrap.js?v=20260807g';
@@ -16,7 +16,7 @@ import { loadActivities } from '../services/activity.js?v=20260807g';
 import { loadActivityReviews, loadTaskforceReviews, updateReviewById } from '../services/review.js?v=20260807g';
 import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807g';
 import { renderTodoList } from '../components/todo-list.js?v=20260807g';
-import { TodoStore } from '../services/todo.js?v=20260807g';
+import { TodoStore, TodoSourceType } from '../services/todo.js?v=20260807g';
 import { enhanceSelects } from '../components/custom-select.js?v=20260807g';
 import { badgeHtml } from '../components/badge.js?v=20260807g';
 
@@ -510,6 +510,9 @@ function _renderAttendanceContent(filterActivityId) {
         if (record) {
           record.recordedBy = DISC_COMMISSIONER_ID;
           saveAttendanceRecords(records);
+          // 做事即销待办：确认考勤 → 销书记「考勤待确认」/纪检提醒
+          TodoStore.completeBySource(TodoSourceType.ACTIVITY, record.activityId);
+          TodoStore.completeBySource(TodoSourceType.ACTIVITY, `review_${record.activityId}`);
           // 考勤确认后自动生成补课任务
           autoGenerateMakeupTask(record);
           showToast('success', `考勤记录已确认（确认人：${getPersonName(DISC_COMMISSIONER_ID)}）`);
@@ -579,6 +582,9 @@ function _renderAttendanceContent(filterActivityId) {
     targets.forEach(r => {
       r.recordedBy = DISC_COMMISSIONER_ID;
       autoGenerateMakeupTask(r);
+      // 做事即销待办：确认考勤 → 销书记「考勤待确认」/纪检提醒
+      TodoStore.completeBySource(TodoSourceType.ACTIVITY, r.activityId);
+      TodoStore.completeBySource(TodoSourceType.ACTIVITY, `review_${r.activityId}`);
     });
     saveAttendanceRecords(records);
     showToast('success', `已一键确认 ${targets.length} 条考勤记录（确认人：${getPersonName(DISC_COMMISSIONER_ID)}）`);
@@ -597,6 +603,9 @@ function _renderAttendanceContent(filterActivityId) {
       if (record) {
         record.recordedBy = DISC_COMMISSIONER_ID;
         saveAttendanceRecords(records);
+        // 做事即销待办：确认考勤 → 销书记「考勤待确认」/纪检提醒
+        TodoStore.completeBySource(TodoSourceType.ACTIVITY, record.activityId);
+        TodoStore.completeBySource(TodoSourceType.ACTIVITY, `review_${record.activityId}`);
         autoGenerateMakeupTask(record);
         showToast('success', `考勤记录已确认（确认人：${getPersonName(DISC_COMMISSIONER_ID)}）`);
         _renderAttendanceContent(filterActivityId);

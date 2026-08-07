@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  inspection.js — 考察记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
@@ -6,6 +6,7 @@
 import { mockDB, SourceType } from '../core/domain.js?v=20260807g';
 import { persist } from '../core/data-adapter.js?v=20260807g';
 import { INSPECTION_RECORDS } from '../mock/index.js?v=20260807g';
+import { TodoStore, TodoSourceType } from './todo.js?v=20260807g';
 
 export function loadInspectionRecords() {
   return mockDB.inspections.length > 0 ? [...mockDB.inspections] : [...INSPECTION_RECORDS];
@@ -40,7 +41,10 @@ export function deleteInspectionRecord(id) {
 
 /** 确认考察记录（纪检委员操作） */
 export function confirmInspectionRecord(id) {
-  return updateInspectionRecord(id, { status: 'confirmed' });
+  const res = updateInspectionRecord(id, { status: 'confirmed' });
+  // 做事即销待办：确认考察 → 销「考察超期/待确认」待办
+  try { TodoStore.completeBySource(TodoSourceType.ACTIVITY, `insp_${id}`); } catch (e) { console.warn('[inspection] 销待办失败', e); }
+  return res;
 }
 
 /**

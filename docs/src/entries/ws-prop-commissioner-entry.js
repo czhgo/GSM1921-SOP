@@ -1,4 +1,4 @@
-﻿import { renderTabBar } from '../components/tab-bar.js?v=20260807g';
+import { renderTabBar } from '../components/tab-bar.js?v=20260807g';
 import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807g';
 import { BranchService, isApiMode } from '../services/runtime.js?v=20260807g';
 import { showToast } from '../core/utils.js?v=20260807g';
@@ -12,7 +12,7 @@ import { persist, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=
 import { loadActivities } from '../services/activity.js?v=20260807g';
 import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807g';
 import { renderTodoList } from '../components/todo-list.js?v=20260807g';
-import { TodoStore, seedTodos } from '../services/todo.js?v=20260807g';
+import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260807g';
 import { badgeHtml } from '../components/badge.js?v=20260807g';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'prop-commissioner' });
@@ -376,6 +376,9 @@ function _renderKanbanContent(activities, propTf) {
       activity.status = 'completed';
       BranchService.updateActivity(actId, { status: 'completed' });
       persist(); // 扎口修复（Z1/Z3）：updateActivity 内部不落盘，必须显式 persist 写穿
+      // 做事即销待办：活动完成 → 销宣传侧「活动归档」/书记「待复盘」
+      TodoStore.completeBySource(TodoSourceType.ACTIVITY, actId);
+      TodoStore.completeBySource(TodoSourceType.ACTIVITY, `review_${actId}`);
       showToast('success', `活动「${activity.title || '未命名'}」已完成并归档`);
       renderPropUI(getAppState());
     });
@@ -390,6 +393,8 @@ function _renderKanbanContent(activities, propTf) {
       const confirmed = window.confirm(`确认归档专班「${tf.name}」？归档不回收赋权、不生成工作量报告；解散由组织委员执行。`);
       if (!confirmed) return;
       TaskForceRecordStore.updateStatus(tfId, 'archived');
+      // 做事即销待办：专班归档 → 销「专班归档」待办
+      TodoStore.completeBySource(TodoSourceType.TASKFORCE, tfId);
       showToast('success', `专班「${tf.name}」已归档`);
       renderPropUI(getAppState());
     });
