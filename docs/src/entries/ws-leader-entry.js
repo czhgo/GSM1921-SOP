@@ -1,25 +1,25 @@
-import { renderTabBar } from '../components/tab-bar.js?v=20260807j';
-import { renderTodoList } from '../components/todo-list.js?v=20260807j';
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807j';
-import { BranchService } from '../services/runtime.js?v=20260807j';
-import { showToast } from '../core/utils.js?v=20260807j';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260807j';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260807j';
-import { attendanceToLong, inspectionToLong, PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260807j';
-import { PersonPicker } from '../components/person-picker.js?v=20260807j';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js?v=20260807j';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, ReviewStatus, REVIEW_STATUS_LABELS, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260807j';
-import { persist } from '../core/data-adapter.js?v=20260807j';
-import { loadMakeupTasks } from '../services/makeup.js?v=20260807j';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260807j';
-import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260807j';
-import { loadActivities } from '../services/activity.js?v=20260807j';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807j';
-import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../services/review.js?v=20260807j';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807j';
-import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260807j';
-import { AuthStore } from '../services/auth.js?v=20260807j';
-import { badgeHtml } from '../components/badge.js?v=20260807j';
+﻿import { renderTabBar } from '../components/tab-bar.js?v=20260808e';
+import { renderTodoList } from '../components/todo-list.js?v=20260808e';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260808e';
+import { BranchService } from '../services/runtime.js?v=20260808e';
+import { showToast } from '../core/utils.js?v=20260808e';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260808e';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260808e';
+import { attendanceToLong, inspectionToLong, PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260808e';
+import { PersonPicker } from '../components/person-picker.js?v=20260808e';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js?v=20260808e';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, ReviewStatus, REVIEW_STATUS_LABELS, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260808e';
+import { persist } from '../core/data-adapter.js?v=20260808e';
+import { loadMakeupTasks } from '../services/makeup.js?v=20260808e';
+import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260808e';
+import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260808e';
+import { loadActivities } from '../services/activity.js?v=20260808e';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808e';
+import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../services/review.js?v=20260808e';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260808e';
+import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260808e';
+import { AuthStore } from '../services/auth.js?v=20260808e';
+import { badgeHtml } from '../components/badge.js?v=20260808e';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'leader' });
 
@@ -206,6 +206,16 @@ function _renderTodoDetail(todo) {
 }
 
 function _handleTodoAction(todo) {
+  // 报名审核待办（T233）：直达活动/专班详情页（多源聚合时取首条 sourceId）
+  if (todo.actionKey === 'signup-review' || (todo.actionType === 'review' && ((todo.actionData && todo.actionData.signupId) || (todo.items || []).some(i => i.actionData && i.actionData.signupId)))) {
+    const first = (todo.items && todo.items[0]) || todo;
+    const srcId = first.sourceId || (first.actionData && first.actionData.sourceId);
+    if (srcId) {
+      const base = window.location.pathname.includes('/workspace/') ? '../' : '';
+      window.location.href = `${base}activity.html?id=${srcId}`;
+      return;
+    }
+  }
   // 根据 actionType 跳转到对应 tab
   const tabMap = {
     authorize: 'write',
@@ -923,7 +933,7 @@ function _renderAttendanceContent() {
   // 清理旧的 PersonPicker 实例
   if (_attPickerInstance) { _attPickerInstance.destroy(); _attPickerInstance = null; }
 
-  const allRecords = loadAttendanceRecords();
+  const allRecords = loadActiveAttendanceRecords();
   const myAttendance = allRecords.filter(r => r.activityId && loadActivities().find(a => a.id === r.activityId)?.type === '党小组会');
 
   // 筛选三会一课和主题党日活动
@@ -1385,11 +1395,11 @@ function _renderReviewContent() {
   const currentLeaderId = 'p4';
   const myGroup = LEADER_GROUP_MAP[currentLeaderId] || '';
 
-  // 筛选本组活动（三会一课/主题党日等由本组组长组织的活动）
+  // 筛选本组活动（三会一课/主题党日等由本组组长组织的活动；已归档活动退出工作区）
   const myGroupActivities = loadActivities().filter(a => {
     // 按组织者属于本组 或 按 hostGroup 匹配
     const organizer = PEOPLE.find(p => p.id === a.organizer);
-    return organizer && organizer.partyGroup === myGroup && a.status !== 'cancelled';
+    return organizer && organizer.partyGroup === myGroup && a.status !== 'cancelled' && !a.archived;
   });
 
   // 获取已有复盘记录
@@ -1567,4 +1577,4 @@ registerRenderCallback(renderLeaderUI);
 // 初始化待办种子数据
 seedTodos();
 
-loadWorkspaceData({ role: 'leader', fallbackData: () => loadActivities(), logTag: 'ws-leader' });
+loadWorkspaceData({ role: 'leader', storeInits: [() => SignupStore.init()], fallbackData: () => loadActivities(), logTag: 'ws-leader' });

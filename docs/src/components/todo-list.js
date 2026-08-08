@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  todo-list.js — 待办列表组件
 //  最小三成本原则落地：进入工作台第一眼即见待办
@@ -12,8 +12,8 @@ import {
   TodoStatus,
   TODO_STATUS_LABELS,
   DEFAULT_EXPANDED_CATEGORIES,
-} from '../services/todo.js?v=20260807j';
-import { badgeHtml } from './badge.js?v=20260807j';
+} from '../services/todo.js?v=20260808e';
+import { badgeHtml } from './badge.js?v=20260808e';
 
 /**
  * 渲染待办列表组件
@@ -305,6 +305,7 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
     'notice-read': '去阅读',
     'review-submit': '去提交',
     'review-confirm': '去复核',
+    'signup-review': '去审核',
     authorize: '去赋权',
     archive: '去归档',
     review: '去审核',

@@ -41,24 +41,28 @@ function _syncTrigger(trigger, sel) {
 /**
  * 下拉菜单智能定位（书记指令 2026-08-06）：不再一律向下展开，
  * 按触发器在视口中的实际位置决定向下/向上，并限制高度避免溢出视口。
- * 采用 position:fixed 逐次计算，可脱离滚动容器裁剪（如模态框内靠底部的下拉）。
+ * 定位策略（2026-08-08 修复）：改用 position:absolute 相对 .cs-select 容器定位。
+ *   根因：.view-section 的恒等 transform:translateY(0) 会创建 containing block，
+ *   使 position:fixed 相对 section 而非视口，菜单被定位到视口外（浏览器实测：菜单 top=1186 > 视口 900）。
+ *   而 .cs-select 自身是 position:relative，absolute 菜单天然相对它定位，不受 transform 祖先影响。
  */
 function _positionMenu(wrapper, menu, trigger) {
-  const rect = trigger.getBoundingClientRect();
+  const wrapRect = wrapper.getBoundingClientRect(); // 相对视口（含滚动偏移）
+  const trigRect = trigger.getBoundingClientRect();
   const viewH = window.innerHeight;
   const viewW = window.innerWidth;
   const GAP = 4;
   const MAX_H = 240;
 
-  // 宽度测量前先解除 .cs-menu 的 min-width:100% —— position:fixed 下该百分比解析为视口宽，
-  // 会把 .cs-option 撑成视口宽，污染「最宽选项」测量（回归 bug，浏览器验证 2026-08-07 发现）。
+  // 宽度测量前先解除 .cs-menu 的 min-width:100% —— 该百分比相对 wrapper 解析时也可能
+  // 影响「最宽选项」测量（回归 bug，浏览器验证 2026-08-07 发现）。
   // 内联 min-width:0 覆盖样式表规则；下方最终将 min-width 与 width 一并显式设为计算值。
   menu.style.minWidth = '0';
 
   // 菜单实际渲染高度（CSS max-height 240 封顶）
   const menuH = Math.min(menu.offsetHeight || MAX_H, MAX_H);
-  const spaceBelow = viewH - rect.bottom;
-  const spaceAbove = rect.top;
+  const spaceBelow = viewH - trigRect.bottom;
+  const spaceAbove = trigRect.top;
   let openUp;
   if (spaceBelow >= menuH + GAP) {
     openUp = false; // 下方足够 → 正常向下
@@ -69,25 +73,29 @@ function _positionMenu(wrapper, menu, trigger) {
   }
 
   const avail = (openUp ? spaceAbove : spaceBelow) - GAP;
-  menu.style.position = 'fixed';
+  // 保持 absolute（相对 .cs-select 定位祖先），不再改 fixed
+  menu.style.position = 'absolute';
   menu.style.maxHeight = Math.max(96, Math.min(MAX_H, avail)) + 'px';
   // 宽度：取「触发器宽度」与「最宽选项内容」的较大者（选项 white-space:nowrap，
   // scrollWidth 即真实内容宽；+8 补 .cs-menu 的 4px×2 水平 padding，避免横向滚动条）
-  let widest = rect.width;
+  let widest = trigRect.width;
   menu.querySelectorAll('.cs-option, .cs-empty').forEach((el) => {
     widest = Math.max(widest, el.scrollWidth);
   });
-  const width = Math.min(Math.max(rect.width, widest + 8), viewW - 8);
+  const width = Math.min(Math.max(trigRect.width, widest + 8), viewW - 8);
   menu.style.width = width + 'px';
   menu.style.minWidth = width + 'px';
-  const maxLeft = Math.max(4, viewW - width - 4);
-  menu.style.left = Math.min(Math.max(4, rect.left), maxLeft) + 'px';
+  // 水平对齐触发器（相对 wrapper 的偏移）
+  const maxLeft = Math.max(0, wrapRect.width - width);
+  menu.style.left = Math.min(Math.max(0, trigRect.left - wrapRect.left), maxLeft) + 'px';
   if (openUp) {
     menu.style.top = 'auto';
-    menu.style.bottom = (viewH - rect.top + GAP) + 'px';
+    // 菜单底缘 = 触发器上缘上方 GAP（相对 wrapper）
+    menu.style.bottom = (wrapRect.bottom - trigRect.top + GAP) + 'px';
   } else {
     menu.style.bottom = 'auto';
-    menu.style.top = (rect.bottom + GAP) + 'px';
+    // 菜单顶缘 = 触发器下缘下方 GAP（相对 wrapper）
+    menu.style.top = (trigRect.bottom - wrapRect.top + GAP) + 'px';
   }
   wrapper.classList.toggle('cs-open-up', openUp);
 }

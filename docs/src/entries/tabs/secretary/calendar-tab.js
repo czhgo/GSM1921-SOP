@@ -2,25 +2,25 @@
 // entries/tabs/secretary/calendar-tab.js — 书记工作台·活动管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 考勤概况 + 活动查询。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260807j';
-import { _fmtDate, showToast } from '../../../core/utils.js?v=20260807j';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260807j';
-import { renderInspectorFromState } from '../../../components/inspector.js?v=20260807j';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260807j';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260807j';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260807j';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260807j';
-import { loadActivities } from '../../../services/activity.js?v=20260807j';
-import { renderQueryView } from '../../../components/query-view.js?v=20260807j';
-import { icon } from '../../../core/icons.js?v=20260807j';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260807j';
-import { getPersonName } from '../../../mock/index.js?v=20260807j';
-import { NoticeStore } from '../../../services/notice.js?v=20260807j';
-import { BranchService } from '../../../services/runtime.js?v=20260807j';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType } from '../../../core/constants.js?v=20260807j';
-import { badgeHtml } from '../../../components/badge.js?v=20260807j';
+import { getAppState, setState } from '../../../core/state.js?v=20260808e';
+import { _fmtDate, showToast } from '../../../core/utils.js?v=20260808e';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260808e';
+import { renderInspectorFromState } from '../../../components/inspector.js?v=20260808e';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260808e';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260808e';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260808e';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260808e';
+import { loadActivities } from '../../../services/activity.js?v=20260808e';
+import { renderQueryView } from '../../../components/query-view.js?v=20260808e';
+import { icon } from '../../../core/icons.js?v=20260808e';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260808e';
+import { getPersonName } from '../../../mock/index.js?v=20260808e';
+import { NoticeStore } from '../../../services/notice.js?v=20260808e';
+import { BranchService } from '../../../services/runtime.js?v=20260808e';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260808e';
+import { badgeHtml } from '../../../components/badge.js?v=20260808e';
 
-const accent = '#B91C1C';
+const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 
 // 各 Tab 内容骨架模板（复用原 HTML 静态容器结构，由 render 函数按需注入）
 const CALENDAR_TAB_HTML = `
@@ -167,7 +167,7 @@ function renderQueryPanel(displayActivities) {
       </div>
     `,
     emptyMessage: '暂无匹配活动',
-    accentColor: '#B91C1C',
+    accentColor: accent,
     sortKey: 'date',
     sortDir: 'desc',
     pageSize: 10,      // 活动无上限增长 → 分页（2026-08-07）
@@ -629,7 +629,7 @@ function bindWritePanelEvents(container) {
     wp.personPicker = new PersonPicker({
       mode: 'multi',
       placeholder: '选择参与人（选填）',
-      accentColor: '#B91C1C',
+      accentColor: accent,
       initialIds: prevSelected,
       onSelect: () => {},
     });

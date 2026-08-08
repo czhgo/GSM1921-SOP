@@ -2,24 +2,24 @@
 // main-entry.js — 主页入口
 // index.html 专属，处理 dashboard 全量数据渲染
 
-import { BranchService } from '../services/runtime.js?v=20260807j';
-import { STATE, setState, registerRenderCallback, getAppState } from '../core/state.js?v=20260807j';
-import { NoticeStore, renderNoticeList } from '../services/notice.js?v=20260807j';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807j';
-import { _fmtDate, getBasePath } from '../core/utils.js?v=20260807j';
-import { _personName, getPersonName } from '../mock/index.js?v=20260807j';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260807j';
-import { loadActivities } from '../services/activity.js?v=20260807j';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260807j';
-import { getActivityTypeColors } from '../core/constants.js?v=20260807j';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260807j';
-import { AuthStore } from '../services/auth.js?v=20260807j';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260807j';
-import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260807j';
-import { icon } from '../core/icons.js?v=20260807j';
-import { badgeHtml } from '../components/badge.js?v=20260807j';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../components/inspector.js?v=20260807j';
-import { renderCalendarForDashboard, populateMonthSelector } from '../components/calendar.js?v=20260807j';
+import { BranchService } from '../services/runtime.js?v=20260808e';
+import { STATE, setState, registerRenderCallback, getAppState } from '../core/state.js?v=20260808e';
+import { NoticeStore, renderNoticeList } from '../services/notice.js?v=20260808e';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808e';
+import { _fmtDate, getBasePath } from '../core/utils.js?v=20260808e';
+import { _personName, getPersonName } from '../mock/index.js?v=20260808e';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../services/attendance.js?v=20260808e';
+import { loadActivities } from '../services/activity.js?v=20260808e';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260808e';
+import { getActivityTypeColors } from '../core/constants.js?v=20260808e';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260808e';
+import { AuthStore } from '../services/auth.js?v=20260808e';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260808e';
+import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260808e';
+import { icon } from '../core/icons.js?v=20260808e';
+import { badgeHtml } from '../components/badge.js?v=20260808e';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../components/inspector.js?v=20260808e';
+import { renderCalendarForDashboard, populateMonthSelector } from '../components/calendar.js?v=20260808e';
 
 const { user } = await bootstrapPage({ module: 'dashboard' });
 
@@ -81,7 +81,7 @@ function _renderStats(activities, taskforces, notices, attendanceRecords, isLoad
 
   const now = new Date();
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const monthActivities = activities.filter(a => (a.date || '').startsWith(thisMonth));
+  const monthActivities = activities.filter(a => (a.date || '').startsWith(thisMonth) && !a.archived);
   const activeTFs = taskforces.filter(t => t.status === 'active' || t.status === 'recruiting');
   const unreadNotices = NoticeStore.list({ activeOnly: true }).filter(n => !n.read).length;
 
@@ -302,6 +302,14 @@ function _renderActivityList(activities) {
     return;
   }
 
+  // 首页只展示前 10 条；「查看更多」跳转活动动态 tab（书记 2026-08-08 决策：首页截断 + 活动页分页）
+  const wsPage = AuthStore.getPageForRole('workspace', user?.role) || 'visitor.html';
+  const wsBase = getBasePath() + 'workspace/' + wsPage;
+  const moreUrl = CrossPageState.buildURL(wsBase, { view: 'activities' });
+  const moreHtml = sorted.length > display.length
+    ? `<a href="${moreUrl}" class="mt-2 flex items-center justify-center gap-1 py-2 text-xs font-medium rounded-lg transition-colors hover:bg-gray-50" style="color:var(--accent-blue,#3B82F6);">查看更多活动（共 ${sorted.length} 条）→</a>`
+    : '';
+
   container.innerHTML = '<div class="space-y-2">' + display.map(a => {
     const rawCat = a.type || a.category || '会议';
     const color = ACTIVITY_TYPE_COLORS[rawCat] || { bg: '#F9FAFB', dot: '#6B7280', label: rawCat };
@@ -322,7 +330,7 @@ function _renderActivityList(activities) {
         ${badgeHtml(lifecycle.label, lifecycle.variant)}
       </div>
     `;
-  }).join('') + '</div>';
+  }).join('') + '</div>' + moreHtml;
 }
 
 function _renderTaskforceList(taskforces) {
@@ -587,7 +595,7 @@ function _refreshDashboardSnapshot() {
   const taskforces = TaskForceRecordStore.getAll();
   const notices = NoticeStore.getAll();
 
-  _renderStats(activities, taskforces, notices, loadAttendanceRecords());
+  _renderStats(activities, taskforces, notices, loadActiveAttendanceRecords());
   if (state.status === STATE.LOADING && activities.length === 0) return;
 
   renderNoticeList('dashboard-notice-list', 5);

@@ -8,6 +8,8 @@ export const MOCK_NOTICES = [
     publishDate: '2026-07-15',
     expireDate: '2026-07-25',
     targetModule: 'activity',
+    targetType: 'activity',
+    targetId: 'act-21',
     read: false,
   },
   {
@@ -79,6 +81,8 @@ export const MOCK_NOTICES = [
     publishDate: '2026-08-01',
     expireDate: '2026-08-04',
     targetModule: 'activity',
+    targetType: 'activity',
+    targetId: 'act-29',
     read: false,
   },
   {
@@ -110,6 +114,8 @@ export const MOCK_NOTICES = [
     publishDate: '2026-05-12',
     expireDate: '2026-06-20',
     targetModule: 'workspace',
+    targetType: 'taskforce',
+    targetId: 'tf-005',
     read: true,
   },
   {

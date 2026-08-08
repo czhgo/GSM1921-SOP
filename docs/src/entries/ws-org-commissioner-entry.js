@@ -1,25 +1,26 @@
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807j';
-import { BranchService } from '../services/runtime.js?v=20260807j';
-import { showToast } from '../core/utils.js?v=20260807j';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260807j';
-import { AuthStore } from '../services/auth.js?v=20260807j';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260807j';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807j';
-import { PersonPicker } from '../components/person-picker.js?v=20260807j';
-import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js?v=20260807j';
-import { mockDB, SourceType, ParticipationLevel } from '../core/domain.js?v=20260807j';
-import { persist } from '../core/data-adapter.js?v=20260807j';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260807j';
-import { renderTabBar } from '../components/tab-bar.js?v=20260807j';
-import { renderQueryView } from '../components/query-view.js?v=20260807j';
-import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260807j';
-import { loadActivities } from '../services/activity.js?v=20260807j';
-import { icon } from '../core/icons.js?v=20260807j';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807j';
-import { renderTodoList } from '../components/todo-list.js?v=20260807j';
-import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260807j';
-import { NoticeStore } from '../services/notice.js?v=20260807j';
-import { badgeHtml } from '../components/badge.js?v=20260807j';
+﻿import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260808e';
+import { BranchService } from '../services/runtime.js?v=20260808e';
+import { showToast } from '../core/utils.js?v=20260808e';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260808e';
+import { AuthStore } from '../services/auth.js?v=20260808e';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260808e';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808e';
+import { PersonPicker } from '../components/person-picker.js?v=20260808e';
+import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js?v=20260808e';
+import { mockDB, SourceType, ParticipationLevel } from '../core/domain.js?v=20260808e';
+import { persist } from '../core/data-adapter.js?v=20260808e';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260808e';
+import { renderTabBar } from '../components/tab-bar.js?v=20260808e';
+import { renderQueryView } from '../components/query-view.js?v=20260808e';
+import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260808e';
+import { loadActivities } from '../services/activity.js?v=20260808e';
+import { icon } from '../core/icons.js?v=20260808e';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260808e';
+import { renderTodoList } from '../components/todo-list.js?v=20260808e';
+import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260808e';
+import { NoticeStore } from '../services/notice.js?v=20260808e';
+import { SignupStore, resolveSignupReviewer, SignupStatus } from '../services/signup.js?v=20260808e';
+import { badgeHtml } from '../components/badge.js?v=20260808e';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'org-commissioner' });
 
@@ -240,6 +241,16 @@ function _renderTodoDetail(todo) {
 }
 
 function _handleTodoAction(todo) {
+  // 报名审核待办（T233）：直达活动/专班详情页（多源聚合时取首条 sourceId）
+  if (todo.actionKey === 'signup-review' || (todo.actionType === 'review' && ((todo.actionData && todo.actionData.signupId) || (todo.items || []).some(i => i.actionData && i.actionData.signupId)))) {
+    const first = (todo.items && todo.items[0]) || todo;
+    const srcId = first.sourceId || (first.actionData && first.actionData.sourceId);
+    if (srcId) {
+      const base = window.location.pathname.includes('/workspace/') ? '../' : '';
+      window.location.href = `${base}activity.html?id=${srcId}`;
+      return;
+    }
+  }
   // 根据 actionType 跳转到对应 tab
   const tabMap = {
     authorize: 'taskforce',
@@ -378,6 +389,8 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
         if (updated) {
           // 做事即销待办：归档专班 → 销「专班归档」待办
           TodoStore.completeBySource(TodoSourceType.TASKFORCE, tf.id);
+          // 2026-08-08 归档闭环：专班归档 → 配套通知随之一并归档，退出工作区
+          NoticeStore.archiveBySource('taskforce', tf.id);
           showToast('success', `专班「${tf.name}」已归档`);
           renderOrgUI(getAppState());
         } else {
@@ -485,6 +498,60 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
           ${renderSubTable('materials', tfSubs.materials)}
         </div>`;
 
+      // ── T233 报名区（招募中专班：名额 x/y + 名单 + 审核 + 报名入口） ──
+      const currentUserId = AuthStore.getCurrentUser()?.personId || '';
+      const tfSignups = SignupStore.getAll().filter(s => s.sourceType === 'taskforce' && s.sourceId === tfId);
+      const tfReviewerId = resolveSignupReviewer('taskforce', tfId);
+      const isTfReviewer = !!currentUserId && tfReviewerId === currentUserId;
+      const approvedSignups = tfSignups.filter(s => s.status === SignupStatus.APPROVED);
+      const pendingSignups = tfSignups.filter(s => s.status === SignupStatus.PENDING);
+      const rejectedSignups = tfSignups.filter(s => s.status === SignupStatus.REJECTED);
+      const cancelledSignups = tfSignups.filter(s => s.status === SignupStatus.CANCELLED);
+      const tfToday = new Date().toISOString().slice(0, 10);
+      const tfOpen = tf.status === 'recruiting' &&
+        (!tf.deadline || tf.deadline >= tfToday) &&
+        (!tf.capacity || filled < tf.capacity);
+      const myApplied = tfSignups.some(s => s.personId === currentUserId &&
+        (s.status === SignupStatus.APPROVED || s.status === SignupStatus.PENDING));
+      const otherSignupTxt = [
+        ...rejectedSignups.map(s => `${_personName(s.personId)}（已拒绝）`),
+        ...cancelledSignups.map(s => `${_personName(s.personId)}（已取消）`),
+      ].join('、');
+      let signupSectionHtml = '';
+      if (tf.status === 'recruiting' || tf.status === 'active') {
+        const signupRows = approvedSignups.map(s => `
+          <div class="flex items-center gap-2 py-1.5">
+            <span class="text-xs font-medium text-gray-700">${_personName(s.personId)}</span>
+            <span class="text-[11px] text-gray-400">${s.role === 'participant' ? '普通参与' : s.role === 'organizer' ? '组织者' : '深度参与'}</span>
+            ${s.note ? `<span class="text-[11px] text-gray-400 truncate max-w-[120px]">${s.note}</span>` : ''}
+            ${badgeHtml('已通过', 'success')}
+          </div>`).join('');
+        const pendingRows = isTfReviewer && pendingSignups.length > 0 ? pendingSignups.map(s => `
+          <div class="flex items-center gap-2 py-1.5">
+            <span class="text-xs font-medium text-gray-700">${_personName(s.personId)}</span>
+            <span class="text-[11px] text-gray-400">${s.role === 'participant' ? '普通参与' : s.role === 'organizer' ? '组织者' : '深度参与'}</span>
+            ${s.note ? `<span class="text-[11px] text-gray-400 truncate max-w-[120px]">${s.note}</span>` : ''}
+            <span class="ml-auto flex items-center gap-1.5">
+              <button class="tf-signup-review-btn text-[11px] px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors" data-signup-id="${s.id}" data-approve="1" style="background:#10B981;">通过</button>
+              <button class="tf-signup-review-btn text-[11px] px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors" data-signup-id="${s.id}" data-approve="0">拒绝</button>
+            </span>
+          </div>`).join('') : '';
+        const applyBtn = tfOpen && currentUserId && !myApplied
+          ? `<button id="tf-signup-apply-btn" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">报名加入</button>`
+          : '';
+        signupSectionHtml = `
+          <div class="mt-4 pt-3 border-t border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+              <h6 class="font-title-cn text-xs font-bold text-gray-600">报名名单（${approvedSignups.length}）<span class="text-gray-300 font-normal">· 名额 ${filled}/${tf.capacity}</span></h6>
+              ${applyBtn}
+            </div>
+            ${approvedSignups.length === 0 && !pendingRows
+              ? '<p class="text-[12px] text-gray-300 pl-2">暂无报名</p>'
+              : `<div>${signupRows}${pendingRows}</div>`}
+            ${otherSignupTxt ? `<p class="text-[11px] text-gray-300 mt-1">${otherSignupTxt}</p>` : ''}
+          </div>`;
+      }
+
       panel.innerHTML = `
         <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">${tf.name}</h3>
         <p class="text-xs text-gray-500 mb-2">${tf.task}</p>
@@ -515,6 +582,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
         </div>
 
         ${workSummaryHtml}
+        ${signupSectionHtml}
         ${subRecordsHtml}
       `;
 
@@ -570,6 +638,22 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
       if (dissolveBtn) {
         dissolveBtn.addEventListener('click', () => _dissolveTaskforce(tf));
       }
+
+      // ── T233 报名区事件：报名加入 + 审核（通过/拒绝） ──
+      panel.querySelector('#tf-signup-apply-btn')?.addEventListener('click', () => {
+        const res = SignupStore.apply({ sourceType: 'taskforce', sourceId: tfId, personId: currentUserId, role: 'participant', note: '' });
+        if (!res.ok) { showToast('error', res.reason || '报名失败'); return; }
+        showToast('success', '报名成功，已加入专班名单');
+        renderOrgUI(getAppState());
+      });
+      panel.querySelectorAll('.tf-signup-review-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const res = await SignupStore.review(btn.dataset.signupId, { approve: btn.dataset.approve === '1', reviewer: currentUserId });
+          if (!res.ok) { showToast('error', res.reason || '操作失败'); return; }
+          showToast('success', btn.dataset.approve === '1' ? '已通过该报名' : '已拒绝该报名');
+          renderOrgUI(getAppState());
+        });
+      });
 
       // ── 子记录添加/删除事件（P3-4）— 内联表单替代 prompt，考察同步正式考察库 ──
       panel.querySelectorAll('.sub-add-btn').forEach(btn => {
@@ -975,6 +1059,8 @@ function _submitRecruitForm() {
         publishDate: new Date().toISOString().slice(0, 10),
         expireDate: deadline,
         targetModule: 'workspace',
+        targetType: 'taskforce',
+        targetId: created.id,
         read: false,
       });
       showToast('success', '已自动发布通知');
@@ -1291,6 +1377,8 @@ function _renderTalentDetail(personId) {
 
   const allInspections = loadInspectionRecords();
   const personInspections = allInspections.filter(r => r.personId === personId);
+  // 2026-08-08 人才库展示增强：活动来源考察记录显示活动名（专班来源用 sourceName）
+  const actTitleById = new Map(loadActivities().map(a => [a.id, a.title]));
 
   // 发展阶段颜色映射
   const stageColor = {
@@ -1335,7 +1423,7 @@ function _renderTalentDetail(personId) {
           ${personInspections.map(r => `
             <div class="p-2.5 rounded-lg bg-white border border-gray-50">
               <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-medium text-gray-700">${r.sourceName || r.role || '-'}</span>
+                <span class="text-xs font-medium text-gray-700">${r.sourceName || (r.activityId ? actTitleById.get(r.activityId) : null) || r.role || '-'}</span>
                 <div class="flex items-center gap-1.5">
                   ${r.sourceType ? `<span class="text-xs px-1.5 py-0.5 rounded-full ${sourceTagColor[r.sourceType] || 'bg-gray-50 text-gray-500'}">${sourceTagLabel[r.sourceType] || r.sourceType}</span>` : ''}
                   <span class="text-xs px-1.5 py-0.5 rounded-full ${inspStatusColor[r.status] || 'bg-gray-100 text-gray-500'}">${r.status === 'confirmed' ? '已确认' : '待确认'}</span>
@@ -1538,4 +1626,4 @@ registerRenderCallback(renderOrgUI);
 // 初始化待办种子数据
 seedTodos();
 
-loadWorkspaceData({ role: 'org-commissioner', storeInits: [() => TaskForceRecordStore.init()], fallbackData: () => loadActivities(), logTag: 'ws-org' });
+loadWorkspaceData({ role: 'org-commissioner', storeInits: [() => TaskForceRecordStore.init(), () => SignupStore.init()], fallbackData: () => loadActivities(), logTag: 'ws-org' });

@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  service.todo.js — 待办任务服务层
 //  最小三成本原则落地：任务流默认直接展示在工作台
@@ -6,9 +6,9 @@
 //         content/04_web_design/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260807j';
-import { persist } from '../core/data-adapter.js?v=20260807j';
-import { generateId } from '../core/id.js?v=20260807j';
+import { mockDB } from '../core/domain.js?v=20260808e';
+import { persist } from '../core/data-adapter.js?v=20260808e';
+import { generateId } from '../core/id.js?v=20260808e';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -442,6 +442,7 @@ export const NoticeTodoDeriver = {
    * @param {Object} notice - 通知对象（含 actionable/actionRoles/actionTask/actionDeadline 等扩展字段）
    */
   deriveFromNotice(notice) {
+    if (!notice || notice.archived) return []; // 2026-08-08 归档闭环：已归档通知不派生待办
     if (!notice.actionable) return [];
     if (!Array.isArray(notice.actionRoles) || notice.actionRoles.length === 0) return [];
 
@@ -599,10 +600,10 @@ export const VisitorTodoDeriver = {
    * @param {Array}  opts.notices  — NoticeStore.getAll() 结果
    * @param {Array}  opts.activities — 已映射的活动列表（含 assignments/organizer）
    */
-  deriveAll({ personId, person, notices, activities }) {
+  deriveAll({ personId, person, notices, activities, signups }) {
     const created = [];
     created.push(...this.deriveFromNotices({ personId, person, notices }));
-    created.push(...this.deriveFromActivities({ personId, activities }));
+    created.push(...this.deriveFromActivities({ personId, activities, signups }));
     return created;
   },
 
@@ -615,6 +616,7 @@ export const VisitorTodoDeriver = {
     const today = new Date().toISOString().slice(0, 10);
     const items = [];
     for (const n of notices || []) {
+      if (n.archived) continue; // 2026-08-08 归档闭环：已归档通知不派生阅读待办
       if (n.read) continue;
       if (n.expireDate && n.expireDate < today) continue;
       const module = n.targetModule;
@@ -642,7 +644,7 @@ export const VisitorTodoDeriver = {
    * 活动待参与：未来、未归档/未取消/非草稿、本人参与的活动
    * 同时清理已取消/已过期的残留待办，避免孤儿项
    */
-  deriveFromActivities({ personId, activities }) {
+  deriveFromActivities({ personId, activities, signups = [] }) {
     if (!personId) return [];
     const today = new Date().toISOString().slice(0, 10);
     const applicableIds = new Set();
@@ -651,11 +653,19 @@ export const VisitorTodoDeriver = {
       if (!a || !a.id) continue;
       if (a.archived || a.status === 'cancelled' || a.status === 'draft') continue;
       if (!a.date || a.date < today) continue;
+      // T233：approved 报名也是参与事实（报名即加入/审核通过后）
+      const approvedMine = (signups || []).some(s =>
+        s.sourceType === 'activity' && s.sourceId === a.id &&
+        s.personId === personId && s.status === 'approved'
+      );
       const mine = a.organizer === personId ||
-        (Array.isArray(a.assignments) && a.assignments.some(x => x.personId === personId));
+        (Array.isArray(a.assignments) && a.assignments.some(x => x.personId === personId)) ||
+        approvedMine;
       if (!mine) continue;
       applicableIds.add(a.id);
-      const dup = TodoStore.getBySource(TodoSourceType.ACTIVITY, a.id).some(t => t.status !== TodoStatus.COMPLETED);
+      // dup 仅限「参与」类待办：signup-review 等其它同源待办不得阻止参与待办生成
+      const dup = TodoStore.getBySource(TodoSourceType.ACTIVITY, a.id)
+        .some(t => t.actionType === TodoActionType.PARTICIPATE && t.status !== TodoStatus.COMPLETED);
       if (dup) continue;
       items.push({
         title: `参与活动「${a.title || '未命名'}」`,
@@ -674,6 +684,57 @@ export const VisitorTodoDeriver = {
     const stale = _loadTodos().filter(t =>
       t.role === 'visitor' &&
       t.sourceType === TodoSourceType.ACTIVITY &&
+      t.status !== TodoStatus.COMPLETED &&
+      !applicableIds.has(t.sourceId)
+    );
+    if (stale.length > 0) {
+      const remaining = _loadTodos().filter(t => !stale.some(s => s.id === t.id));
+      _saveTodos(remaining);
+    }
+    return TodoStore.createBatch(items);
+  },
+
+  /**
+   * 专班参与待办：approved 报名或已是成员的未来招募专班（T233 报名渠道）
+   * 与 deriveFromActivities 同模式：未来/未截止、本人参与、去重、清理过期残留
+   */
+  deriveFromTaskforceSignups({ personId, taskforces, signups = [] }) {
+    if (!personId) return [];
+    const today = new Date().toISOString().slice(0, 10);
+    const applicableIds = new Set();
+    const items = [];
+    for (const tf of taskforces || []) {
+      if (!tf || !tf.id) continue;
+      if (tf.status !== 'recruiting' && tf.status !== 'active') continue;
+      if (tf.deadline && tf.deadline < today) continue;
+      const isMember = (tf.members || []).some(m => m.personId === personId);
+      const approved = (signups || []).some(s =>
+        s.sourceType === 'taskforce' && s.sourceId === tf.id &&
+        s.personId === personId && s.status === 'approved'
+      );
+      if (!isMember && !approved) continue;
+      applicableIds.add(tf.id);
+      // dup 仅限「参与」类待办：signup-review 等其它同源待办不得阻止参与待办生成
+      const dup = TodoStore.getBySource(TodoSourceType.TASKFORCE, tf.id)
+        .some(t => t.actionType === TodoActionType.PARTICIPATE && t.status !== TodoStatus.COMPLETED);
+      if (dup) continue;
+      items.push({
+        title: `参与专班「${tf.name || '未命名'}」`,
+        description: tf.task || '',
+        role: 'visitor',
+        category: TodoCategory.TRACK,
+        priority: 'normal',
+        deadline: tf.deadline || null,
+        sourceType: TodoSourceType.TASKFORCE,
+        sourceId: tf.id,
+        actionType: TodoActionType.PARTICIPATE,
+        actionData: { taskforceId: tf.id },
+      });
+    }
+    // 清理：本人已不适用（取消/过期/归档）的专班待办 → 移除
+    const stale = _loadTodos().filter(t =>
+      t.role === 'visitor' &&
+      t.sourceType === TodoSourceType.TASKFORCE &&
       t.status !== TodoStatus.COMPLETED &&
       !applicableIds.has(t.sourceId)
     );

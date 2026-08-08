@@ -1,17 +1,18 @@
 ﻿﻿// role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
-import { renderSidebar } from '../components/sidebar.js?v=20260807j';
-import { renderHeader } from '../components/header.js?v=20260807j';
-import { BranchService } from '../services/runtime.js?v=20260807j';
-import { getPersonById } from '../mock/index.js?v=20260807j';
-import { loadActivities } from '../services/activity.js?v=20260807j';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807j';
-import { getActivityTypeColors } from '../core/constants.js?v=20260807j';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260807j';
-import { getBasePath } from '../core/utils.js?v=20260807j';
-import { AuthStore } from '../services/auth.js?v=20260807j';
-import { badgeHtml } from '../components/badge.js?v=20260807j';
+import { renderSidebar } from '../components/sidebar.js?v=20260808e';
+import { renderHeader } from '../components/header.js?v=20260808e';
+import { BranchService } from '../services/runtime.js?v=20260808e';
+import { mockDB } from '../core/domain.js?v=20260808e';
+import { getPersonById } from '../mock/index.js?v=20260808e';
+import { loadActivities } from '../services/activity.js?v=20260808e';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808e';
+import { getActivityTypeColors } from '../core/constants.js?v=20260808e';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260808e';
+import { getBasePath } from '../core/utils.js?v=20260808e';
+import { AuthStore } from '../services/auth.js?v=20260808e';
+import { badgeHtml } from '../components/badge.js?v=20260808e';
 
 renderSidebar('archive');
 renderHeader('archive');
@@ -123,10 +124,16 @@ function renderTaskforceArchive() {
 
 // ── 通知归档 ──
 function renderNoticeArchive() {
-  const allNotices = NoticeStore.list({ activeOnly: false, sortBy: 'date' });
+  // 2026-08-08 归档闭环：归档库只承载「已退出工作区」的通知——
+  //   ① 随活动/专班归档的通知（archived=true）
+  //   ② 自然过期（expireDate < 今天）的历史通知
+  // 工作区（首页/书记通知发布/全局概况）仅保留未归档的有效通知，杜绝列表爆炸。
+  const today = new Date().toISOString().slice(0, 10);
+  const allNotices = NoticeStore.getAll({ includeArchived: true })
+    .filter(n => n.archived === true || (n.expireDate && n.expireDate < today));
 
   if (allNotices.length === 0) {
-    contentContainer.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">暂无通知记录</p>';
+    contentContainer.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">暂无归档通知</p>';
     return;
   }
 
@@ -143,6 +150,7 @@ function renderNoticeArchive() {
             <div class="flex items-center gap-2">
               ${priorityBadge[n.priority] || ''}
               <span class="text-sm font-medium text-gray-800">${n.title}</span>
+              ${n.archived === true ? badgeHtml('已归档', 'neutral') : badgeHtml('已过期', 'neutral')}
             </div>
             <span class="text-xs text-gray-400">${n.publishDate || ''}</span>
           </div>
@@ -286,26 +294,44 @@ function _renderActivityDetail(activity) {
       <div class="border-t border-gray-100 pt-4">
         <div class="flex items-center justify-between mb-3">
           <p class="text-xs font-medium text-gray-600">归档材料清单</p>
-          <span class="text-xs text-gray-400">阶段2支持文件查看</span>
         </div>
-        ${(activity.materials && activity.materials.length > 0) ? `
-          <div class="space-y-2">
-            ${activity.materials.map(m => `
-              <div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                </svg>
-                <span class="text-sm text-gray-700 flex-1 truncate">${m.name || '未命名文件'}</span>
-                <span class="text-xs text-gray-400">${m.type || 'file'}</span>
-              </div>
-            `).join('')}
-          </div>
-        ` : `
-          <p class="text-xs text-gray-400 text-center py-4">暂无归档材料（mock 阶段未预设）</p>
-        `}
+        ${_renderArchiveMaterials(activity)}
       </div>
     </div>
   `;
+}
+
+/** 归档材料补真（2026-08-07）：优先读取 mockDB.archiveRecords 中同 activityId 的真实材料 */
+function _renderArchiveMaterials(activity) {
+  const records = (mockDB.archiveRecords || [])
+    .filter(r => r.activityId === activity.id || r.activityName === activity.title)
+    .sort((a, b) => (b.archiveDate || '').localeCompare(a.archiveDate || ''));
+  if (records.length > 0) {
+    const catBadge = {
+      新闻稿: ['info', '新闻稿'],
+      照片: ['success', '照片'],
+      视频: ['brand', '视频'],
+      其他: ['neutral', '其他'],
+    };
+    return `
+      <div class="space-y-2">
+        ${records.map(r => {
+          const cb = catBadge[r.category] || catBadge.其他;
+          return `
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+              <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+              </svg>
+              <span class="text-sm text-gray-700 flex-1 truncate">${r.activityName || activity.title}${r.status === 'pending' ? '（待归档）' : ''}</span>
+              ${badgeHtml(cb[1], cb[0])}
+              <span class="text-xs text-gray-400">${r.archiveDate || ''}</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+  return '<p class="text-xs text-gray-400 text-center py-4">暂无归档材料</p>';
 }
 
 function _renderTaskforceDetail(tf) {

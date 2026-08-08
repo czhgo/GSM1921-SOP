@@ -1,11 +1,11 @@
-﻿﻿// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // entries/tabs/secretary/notification-tab.js — 书记工作台·通知发布 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore } from '../../../services/notice.js?v=20260807j';
-import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260807j';
-import { badgeHtml } from '../../../components/badge.js?v=20260807j';
+import { NoticeStore } from '../../../services/notice.js?v=20260808e';
+import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260808e';
+import { badgeHtml } from '../../../components/badge.js?v=20260808e';
 
 const NOTIFICATION_TAB_HTML = `
   <div class="card rounded-2xl p-6 mb-6">
@@ -82,8 +82,8 @@ function renderNotificationForm() {
   });
 }
 
-/** 通知表单状态 */
-let _selectedAudience = null;
+/** 通知表单状态（2026-08-08 多选改造：受众支持同时选择多个群体） */
+let _selectedAudience = [];
 
 /** 处理通知面板操作 */
 function handleNotifAction(e) {
@@ -92,16 +92,19 @@ function handleNotifAction(e) {
 
   switch (action) {
     case 'select-audience': {
-      _selectedAudience = btn.dataset.value;
-      // 更新按钮视觉状态
+      // 多选切换：已选则移除，未选则加入
+      const value = btn.dataset.value;
+      _selectedAudience = _selectedAudience.includes(value)
+        ? _selectedAudience.filter(v => v !== value)
+        : [..._selectedAudience, value];
+      // 更新按钮视觉状态（选中项红色高亮）
       const formArea = document.getElementById('notification-form-area');
       if (formArea) {
         formArea.querySelectorAll('[data-notif-action="select-audience"]').forEach(b => {
-          if (b.dataset.value === _selectedAudience) {
-            b.className = 'text-sm px-4 py-2 rounded-lg font-medium border border-red-200 text-red-700 bg-red-50 transition-all';
-          } else {
-            b.className = 'text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-700 transition-all';
-          }
+          const isSelected = _selectedAudience.includes(b.dataset.value);
+          b.className = isSelected
+            ? 'text-sm px-4 py-2 rounded-lg font-medium border border-red-200 text-red-700 bg-red-50 transition-all'
+            : 'text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-700 transition-all';
         });
       }
       break;
@@ -117,6 +120,14 @@ function handleNotifAction(e) {
   }
 }
 
+/** 按受众值数组取标签列表 */
+function _audienceLabels(values) {
+  return values.map(v => {
+    const found = NOTIFICATION_AUDIENCES.find(a => a.value === v);
+    return found ? found.label : v;
+  });
+}
+
 /** 发布通知（写入 NoticeStore，与首页/全局概况/visitor 同源） */
 function handlePublishNotification() {
   const titleEl = document.getElementById('notif-title');
@@ -127,9 +138,9 @@ function handlePublishNotification() {
 
   if (!title) { showToast('error', '请填写通知标题'); titleEl?.focus(); return; }
   if (!content) { showToast('error', '请填写通知内容'); contentEl?.focus(); return; }
-  if (!_selectedAudience) { showToast('error', '请选择目标受众'); return; }
+  if (_selectedAudience.length === 0) { showToast('error', '请选择目标受众'); return; }
 
-  const audience = NOTIFICATION_AUDIENCES.find(a => a.value === _selectedAudience);
+  const audienceLabels = _audienceLabels(_selectedAudience);
   const notification = {
     title,
     content,
@@ -138,17 +149,17 @@ function handlePublishNotification() {
     expireDate: null,
     targetModule: 'workspace',
     read: false,
-    audience: _selectedAudience,
-    audienceLabel: audience ? audience.label : _selectedAudience,
+    audience: [..._selectedAudience],
+    audienceLabel: audienceLabels.join('、'),
     publishedBy: '书记',
   };
 
   NoticeStore.add(notification, 'secretary');
 
-  showToast('success', `通知「${title}」已发布至${notification.audienceLabel}`);
+  showToast('success', `通知「${title}」已发布至${audienceLabels.join('、')}`);
 
   // 重置表单
-  _selectedAudience = null;
+  _selectedAudience = [];
   renderNotificationForm();
   renderNotificationList();
 }
@@ -167,7 +178,11 @@ function renderNotificationList() {
   }
 
   listArea.innerHTML = notifications.map(n => {
-    const audienceLabel = n.audienceLabel || '全体党员';
+    // 受众徽章：兼容旧数据（audience 为字符串）与新数据（audience 为数组），按受众各渲染一枚徽章
+    const audienceValues = Array.isArray(n.audience) ? n.audience : (n.audience ? [n.audience] : []);
+    const audienceBadges = audienceValues.length > 0
+      ? _audienceLabels(audienceValues).map(l => badgeHtml(l, 'warning')).join('')
+      : badgeHtml(n.audienceLabel || '全体党员', 'warning');
     // publishDate 为字符串（'2026-07-15'）时直接切片，兼容 Date 对象走 _fmtDate
     const dateStr = n.publishDate
       ? (typeof n.publishDate === 'string' ? n.publishDate.slice(0, 10) : _fmtDate(n.publishDate))
@@ -177,7 +192,7 @@ function renderNotificationList() {
         <div class="flex items-center justify-between mb-1">
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-gray-800">${n.title}</span>
-            ${badgeHtml(audienceLabel, 'warning')}
+            ${audienceBadges}
           </div>
           <button data-notif-action="delete" data-notif-id="${n.id}" class="text-xs text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50">删除</button>
         </div>

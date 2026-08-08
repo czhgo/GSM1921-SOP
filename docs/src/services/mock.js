@@ -1,22 +1,22 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  service.mock.js — Mock 服务层
 //  光华管理学院本科生党支部 SOP 引擎 v10.0
 //  依赖：domain.js, id.js（单向依赖，不依赖 UI 或 runtime）
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SCHEMA_VERSION } from '../core/domain.js?v=20260807j';
-import { generateId } from '../core/id.js?v=20260807j';
-import { getDataSource, persist } from '../core/data-adapter.js?v=20260807j';
+import { mockDB, SCHEMA_VERSION } from '../core/domain.js?v=20260808e';
+import { generateId } from '../core/id.js?v=20260808e';
+import { getDataSource, persist } from '../core/data-adapter.js?v=20260808e';
 // 修复（T175）：直接从 mock/activities.js 导入 ACTIVITIES，
 // 绕过 mock/index.js 的 re-export 转发（纯 re-export + 循环依赖存在 TDZ 风险，
 // 曾导致 loadDB() seed 阶段 ACTIVITIES.length 抛错被静默吞掉）
-import { ACTIVITIES } from '../mock/activities.js?v=20260807j';
-import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS } from '../mock/seed.js?v=20260807j';
+import { ACTIVITIES } from '../mock/activities.js?v=20260808e';
+import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS } from '../mock/seed.js?v=20260808e';
 // Seed 增量合并用（2026-08-05，与 core/mock-adapter.js 对齐）：
 // attendance.js/notices.js 为纯数据模块，无指向本文件的循环依赖
-import { ATTENDANCE_RECORDS } from '../mock/attendance.js?v=20260807j';
-import { MOCK_NOTICES } from '../mock/notices.js?v=20260807j';
+import { ATTENDANCE_RECORDS } from '../mock/attendance.js?v=20260808e';
+import { MOCK_NOTICES } from '../mock/notices.js?v=20260808e';
 
 const MOCK_DELAY_MS = 600;
 
@@ -63,6 +63,8 @@ export function saveDB() {
       taskforces:  mockDB.taskforces,
       notices:     mockDB.notices,
       todos:       mockDB.todos,
+      // T233 报名渠道：报名记录持久化（2026-08-08 修复：此前漏写导致刷新即丢）
+      signups:     mockDB.signups,
       // 2026-08-05 假操作修复：复盘/宣传/公邮域补入持久化（刷新不再丢失）
       activityReviews: mockDB.activityReviews,
       taskforceReviews: mockDB.taskforceReviews,
@@ -157,6 +159,7 @@ export function loadDB() {
     if (Array.isArray(parsed.taskforces))  mockDB.taskforces  = parsed.taskforces;
     if (Array.isArray(parsed.notices))     mockDB.notices     = parsed.notices;
     if (Array.isArray(parsed.todos))       mockDB.todos       = parsed.todos;
+    if (Array.isArray(parsed.signups))     mockDB.signups     = parsed.signups;
     // 2026-08-05 假操作修复：复盘/宣传/公邮域恢复（刷新不再丢失）
     if (Array.isArray(parsed.activityReviews))  mockDB.activityReviews  = parsed.activityReviews;
     if (Array.isArray(parsed.taskforceReviews)) mockDB.taskforceReviews = parsed.taskforceReviews;
@@ -209,6 +212,7 @@ function _seedInitialData() {
   if (mockDB.tasks.length === 0) mockDB.tasks = [...SEED_TASKS];
   if (mockDB.assignments.length === 0) mockDB.assignments = [...SEED_ASSIGNMENTS];
   if (mockDB.archiveRecords.length === 0) mockDB.archiveRecords = [...SEED_ARCHIVE_RECORDS];
+  if (mockDB.signups.length === 0) mockDB.signups = [...SEED_SIGNUPS];
 }
 
 /**
@@ -234,6 +238,8 @@ function _mergeNewSeedRecords() {
     if (!seed) { changed = true; continue; } // 种子已移除 → 删除
     const merged = {
       ...seed,
+      // 2026-08-08 归档闭环：保留用户运行时归档状态（seed 无 archived，直接覆盖会丢归档）
+      archived: a.archived ?? seed.archived,
       visibility: seed.visibility || 'branch',
       executor: seed.organizer || 'u_exec',
       supervisor: null,
@@ -276,7 +282,8 @@ function _mergeNewSeedRecords() {
     if (!/^notice-\d{3}$/.test(n.id)) { noticeOut.push(n); continue; }
     const seed = noticeSeedById.get(n.id);
     if (!seed) { changed = true; continue; }
-    const merged = { ...seed, read: n.read ?? seed.read };
+    // 2026-08-08 归档闭环：保留 read（已读）+ archived（归档标记），seed 仅兜底缺失值
+    const merged = { ...seed, read: n.read ?? seed.read, archived: n.archived ?? seed.archived };
     if (JSON.stringify(merged) !== JSON.stringify(n)) changed = true;
     noticeOut.push(merged);
   }
@@ -303,7 +310,24 @@ function _mergeNewSeedRecords() {
   });
   mockDB.archiveRecords = archiveOut;
 
-  if (changed) console.info('[MockAdapter] Seed 种子同步：活动/考勤/通知/档案归档与种子基线对齐（删除已移除种子、覆盖已变更种子、补齐缺失种子）');
+  // ── 报名：种子同步（覆盖时保留审核字段） ─────────────────────
+  const signupSeedById = new Map(SEED_SIGNUPS.map(s => [s.id, s]));
+  const signupOut = [];
+  for (const s of mockDB.signups) {
+    if (!/^su-\d{3}$/.test(s.id)) { signupOut.push(s); continue; }
+    const seed = signupSeedById.get(s.id);
+    if (!seed) { changed = true; continue; }
+    const merged = { ...seed, reviewedBy: s.reviewedBy ?? seed.reviewedBy, reviewedAt: s.reviewedAt ?? seed.reviewedAt };
+    if (JSON.stringify(merged) !== JSON.stringify(s)) changed = true;
+    signupOut.push(merged);
+  }
+  const signupExist = new Set(signupOut.map(s => s.id));
+  SEED_SIGNUPS.forEach(seed => {
+    if (!signupExist.has(seed.id)) { signupOut.push({ ...seed }); changed = true; }
+  });
+  mockDB.signups = signupOut;
+
+  if (changed) console.info('[MockAdapter] Seed 种子同步：活动/考勤/通知/档案归档/报名与种子基线对齐（删除已移除种子、覆盖已变更种子、补齐缺失种子）');
   return changed;
 }
 
@@ -355,7 +379,7 @@ export function createActivity(data) {
     // 派生赋权待办（最小三成本原则·阶段1C-3）
     // T-190：创建时已内联赋权（assignments 非空）则不再派生；未选人保留待办兜底
     if (!newItem.assignments || newItem.assignments.length === 0) {
-      import('./todo.js?v=20260807j').then(({ LifecycleTodoDeriver }) => {
+      import('./todo.js?v=20260808e').then(({ LifecycleTodoDeriver }) => {
         LifecycleTodoDeriver.deriveFromActivityCreate(newItem);
       }).catch(e => console.warn('[MockAdapter] 派生活动赋权待办失败：', e));
     }
@@ -415,7 +439,7 @@ export function deleteActivity(id) {
     saveDB();
     console.info('[MockAdapter] deleteActivity 成功，id=' + id);
     // 联动删除关联待办（避免遗留孤儿待办）
-    import('./todo.js?v=20260807j').then(({ LifecycleTodoDeriver }) => {
+    import('./todo.js?v=20260808e').then(({ LifecycleTodoDeriver }) => {
       LifecycleTodoDeriver.deleteByActivity(id);
     }).catch(e => console.warn('[MockAdapter] 联动删除待办失败：', e));
     return { id };
@@ -450,7 +474,7 @@ export function archiveActivity(id) {
     console.info('[MockAdapter] archiveActivity 成功，id=' + id
       + '，级联完成下属 tasks。');
     // 派生归档待办给宣传委员（最小三成本原则·阶段1C-3）
-    import('./todo.js?v=20260807j').then(({ LifecycleTodoDeriver }) => {
+    import('./todo.js?v=20260808e').then(({ LifecycleTodoDeriver }) => {
       LifecycleTodoDeriver.deriveFromActivityArchive(archived);
     }).catch(e => console.warn('[MockAdapter] 派生活动归档待办失败：', e));
     return archived;

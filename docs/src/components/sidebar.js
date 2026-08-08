@@ -5,15 +5,12 @@
 // - '党建工作台' → '工作台'（角色自适应跳转）
 // - 帮助/关于移入主导航区
 
-import { AuthStore } from '../services/auth.js?v=20260807j';
-import { getBasePath } from '../core/utils.js?v=20260807j';
-import { icon } from '../core/icons.js?v=20260807j';
-import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260807j';
-import { bindWorkspacePopover } from './workspace-popover.js?v=20260807j';
-import { getThemePreference, setThemePreference, initTheme } from '../core/theme.js?v=20260807j';
-
-// 记录当前 activeModule，供 view-role-change 事件触发 re-render 使用
-let _lastActiveModule = null;
+import { AuthStore } from '../services/auth.js?v=20260808e';
+import { getBasePath } from '../core/utils.js?v=20260808e';
+import { icon } from '../core/icons.js?v=20260808e';
+import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260808e';
+import { bindWorkspacePopover } from './workspace-popover.js?v=20260808e';
+import { getThemePreference, setThemePreference, initTheme } from '../core/theme.js?v=20260808e';
 
 function getNavItems() {
   const base = getBasePath();
@@ -35,7 +32,6 @@ function getFooterItems() {
 }
 
 export function renderSidebar(activeModule) {
-  _lastActiveModule = activeModule;
   const sidebar = document.getElementById('app-sidebar');
   if (!sidebar) return;
 
@@ -92,14 +88,12 @@ export function renderSidebar(activeModule) {
         <button id="font-size-medium" class="font-size-btn ${_currentFontSize() === 'medium' ? 'active' : ''}" title="中号字体">中</button>
         <button id="font-size-large" class="font-size-btn ${_currentFontSize() === 'large' ? 'active' : ''}" title="大号字体">大</button>
       </div>
-      <div class="sidebar-theme-toggle" title="主题模式">
-        <span style="font-size:0.65rem;color:var(--neutral-400);">主题</span>
+      <div class="sidebar-theme-toggle" title="工作台颜色设置">
+        <span style="font-size:0.65rem;color:var(--neutral-400);">工作台颜色</span>
         <button id="theme-light" class="theme-btn ${_currentTheme() === 'light' ? 'active' : ''}" title="浅色模式">${icon('sun', { className: 'w-3 h-3' })}</button>
         <button id="theme-system" class="theme-btn ${_currentTheme() === 'system' ? 'active' : ''}" title="跟随系统">${icon('monitor', { className: 'w-3 h-3' })}</button>
         <button id="theme-dark" class="theme-btn ${_currentTheme() === 'dark' ? 'active' : ''}" title="深色模式">${icon('moon', { className: 'w-3 h-3' })}</button>
-      </div>
-      <div class="sidebar-accent-toggle">
-        <button id="sidebar-accent-swatch" class="accent-swatch" style="background:${effAccentHex}" data-label="主题色：${effAccentLabel}" title="主题色：${effAccentLabel}（点击更换）"></button>
+        <button id="sidebar-accent-swatch" class="accent-swatch ml-auto" style="background:${effAccentHex}" data-label="工作台颜色：${effAccentLabel}" title="工作台颜色：${effAccentLabel}（点击更换）"></button>
       </div>
       <button id="sidebar-logout" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-400);cursor:pointer;border:none;background:none;">
         ${icon('logout', { stroke: 'var(--neutral-400)' })}
@@ -199,10 +193,10 @@ function _toggleAccentPalette(swatch) {
   popover.id = 'accent-palette-popover';
   popover.className = 'accent-palette';
   popover.innerHTML = `
-    <div class="accent-palette-title">点击色块更换主题色</div>
+    <div class="accent-palette-title">点击色块更换工作台颜色</div>
     <div class="accent-palette-grid">
       ${ACCENT_PALETTE.map(c => `
-        <button type="button" class="accent-swatch-opt ${c.key === currentKey ? 'active' : ''}" data-key="${c.key}" data-label="主题色：${c.label}" title="主题色：${c.label}" style="background:${c.hex}"></button>
+        <button type="button" class="accent-swatch-opt ${c.key === currentKey ? 'active' : ''}" data-key="${c.key}" data-label="工作台颜色：${c.label}" title="工作台颜色：${c.label}" style="background:${c.hex}"></button>
       `).join('')}
     </div>
   `;
@@ -250,10 +244,3 @@ function _toggleAccentPalette(swatch) {
     document.addEventListener('click', outsideHandler);
   }, 0);
 }
-
-// ── 订阅 view-role-change 事件，重新渲染链接（不 reload） ───
-document.addEventListener('view-role-change', () => {
-  if (_lastActiveModule !== null) {
-    renderSidebar(_lastActiveModule);
-  }
-});

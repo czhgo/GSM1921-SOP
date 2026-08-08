@@ -7,11 +7,11 @@
 //   数据选取原则——同一套底层数据统一自动渲染，异常数据标橙并派生为书记待办。
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 
-import { icon } from '../../../core/icons.js?v=20260807j';
-import { showToast } from '../../../core/utils.js?v=20260807j';
-import { NoticeStore } from '../../../services/notice.js?v=20260807j';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260807j';
-import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260807j';
+import { icon } from '../../../core/icons.js?v=20260808e';
+import { showToast } from '../../../core/utils.js?v=20260808e';
+import { NoticeStore } from '../../../services/notice.js?v=20260808e';
+import { ROLE_LABELS } from '../../../core/constants.js?v=20260808e';
+import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260808e';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>

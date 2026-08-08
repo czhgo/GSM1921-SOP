@@ -5,13 +5,24 @@
 //  P1-4 修复（2026-08-02）：复盘记录接入 mockDB 持久化层，刷新不再丢失
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260807j';
-import { persist } from '../core/data-adapter.js?v=20260807j';
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../mock/index.js?v=20260807j';
+import { mockDB } from '../core/domain.js?v=20260808e';
+import { persist } from '../core/data-adapter.js?v=20260808e';
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../mock/index.js?v=20260808e';
+import { loadActivities } from './activity.js?v=20260808e';
 
 /** 读取活动复盘记录（mock 常量兜底，写入后以 mockDB 为准） */
 export function loadActivityReviews() {
   return mockDB.activityReviews.length > 0 ? [...mockDB.activityReviews] : [...REVIEW_RECORDS];
+}
+
+/**
+ * 读取活跃活动的复盘记录（2026-08-08 归档闭环）
+ * 已归档活动的复盘随活动退出工作区展示（归档库仍可查阅）。
+ * ⚠️ 写流程（批注/打回/确认）必须使用 loadActivityReviews 原始版，避免整表写回丢失归档记录。
+ */
+export function loadActiveActivityReviews() {
+  const activeIds = new Set(loadActivities().filter(a => !a.archived).map(a => a.id));
+  return loadActivityReviews().filter(r => activeIds.has(r.activityId));
 }
 
 /** 读取专班复盘记录 */

@@ -4,20 +4,21 @@
 // 2026-08-07 T232：改为「动态聚合 + 复核确认面板」——SecretaryTodoDeriver.computeAggregates()
 //   实时计算 4 提醒 + 4 复核，复核类一键写 secretaryConfirmedAt 销项，不再创建虚假实体待办。
 
-import { showToast } from '../../../core/utils.js?v=20260807j';
-import { renderTodoList } from '../../../components/todo-list.js?v=20260807j';
-import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260807j';
-import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260807j';
-import { badgeHtml } from '../../../components/badge.js?v=20260807j';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260807j';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260807j';
-import { updateActivityReview } from '../../../services/review.js?v=20260807j';
-import { loadActivities } from '../../../services/activity.js?v=20260807j';
-import { mockDB } from '../../../core/domain.js?v=20260807j';
-import { persist } from '../../../core/data-adapter.js?v=20260807j';
-import { getPersonById } from '../../../mock/index.js?v=20260807j';
+import { showToast } from '../../../core/utils.js?v=20260808e';
+import { renderTodoList } from '../../../components/todo-list.js?v=20260808e';
+import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260808e';
+import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260808e';
+import { badgeHtml } from '../../../components/badge.js?v=20260808e';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260808e';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260808e';
+import { updateActivityReview } from '../../../services/review.js?v=20260808e';
+import { loadActivities } from '../../../services/activity.js?v=20260808e';
+import { mockDB } from '../../../core/domain.js?v=20260808e';
+import { persist } from '../../../core/data-adapter.js?v=20260808e';
+import { getPersonById } from '../../../mock/index.js?v=20260808e';
+import { getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260808e';
 
-const accent = '#B91C1C';
+const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 
 let _selectedTodoId = null;
 
@@ -277,6 +278,16 @@ function confirmGroup(group) {
 
 // ── 行动跳转（种子行动类 / 提醒类跳活动管理） ──────────────────
 function handleTodoAction(todo) {
+  // 报名审核待办（T233）：直达活动/专班详情页（多源聚合时取首条 sourceId）
+  if (todo.actionKey === 'signup-review' || (todo.actionType === 'review' && ((todo.actionData && todo.actionData.signupId) || (todo.items || []).some(i => i.actionData && i.actionData.signupId)))) {
+    const first = (todo.items && todo.items[0]) || todo;
+    const srcId = first.sourceId || (first.actionData && first.actionData.sourceId);
+    if (srcId) {
+      const base = window.location.pathname.includes('/workspace/') ? '../' : '';
+      window.location.href = `${base}activity.html?id=${srcId}`;
+      return;
+    }
+  }
   // 提醒类聚合卡：「去活动管理」按钮直接切 calendar tab
   if (todo.groupKey && (todo.actionKey || '').endsWith('-remind')) {
     jumpToCalendar(todo);

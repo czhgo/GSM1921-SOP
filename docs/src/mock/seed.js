@@ -40,4 +40,18 @@ export const SEED_ARCHIVE_RECORDS = [
   { id: 'ar6', activityName: '入党积极分子培训', archiveDate: '2026-07-18', category: '照片', status: 'in_progress' },
 ];
 
+// ── 报名种子（T233 报名渠道演示：含 approved 与 pending 两种流程） ──
+export const SEED_SIGNUPS = [
+  // tf-005 建党105周年筹备专班（招募中，截止 8/20，2/8 已满编 2 名组织者）
+  { id: 'su-001', sourceType: 'taskforce', sourceId: 'tf-005', personId: 'p7',  role: 'participant', status: 'approved', createdAt: '2026-08-10T09:00:00', reviewedBy: null, reviewedAt: null, note: '想参与活动筹备' },
+  { id: 'su-002', sourceType: 'taskforce', sourceId: 'tf-005', personId: 'p22', role: 'deep',        status: 'pending',   createdAt: '2026-08-10T10:30:00', reviewedBy: null, reviewedAt: null, note: '可负责宣传物料' },
+  { id: 'su-003', sourceType: 'taskforce', sourceId: 'tf-005', personId: 'p27', role: 'organizer',   status: 'pending',   createdAt: '2026-08-11T08:00:00', reviewedBy: null, reviewedAt: null, note: '有活动统筹经验' },
+  // tf-006 参访活动保障专班（招募中，截止 8/15，0/4）
+  { id: 'su-004', sourceType: 'taskforce', sourceId: 'tf-006', personId: 'p6',  role: 'participant', status: 'approved', createdAt: '2026-08-09T14:00:00', reviewedBy: null, reviewedAt: null, note: null },
+  { id: 'su-005', sourceType: 'taskforce', sourceId: 'tf-006', personId: 'p9',  role: 'deep',        status: 'pending',   createdAt: '2026-08-10T16:00:00', reviewedBy: null, reviewedAt: null, note: '负责后勤协调' },
+  // act-30 秋季学期工作部署会（published，8/28）
+  { id: 'su-006', sourceType: 'activity', sourceId: 'act-30', personId: 'p8',  role: 'participant', status: 'approved', createdAt: '2026-08-11T11:00:00', reviewedBy: null, reviewedAt: null, note: null },
+  { id: 'su-007', sourceType: 'activity', sourceId: 'act-30', personId: 'p15', role: 'participant', status: 'approved', createdAt: '2026-08-11T11:30:00', reviewedBy: null, reviewedAt: null, note: '反馈#4 提出者' },
+];
+
 // ── 专班种子 ──────────────────────────────────────────────

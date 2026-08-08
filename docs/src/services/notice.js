@@ -1,23 +1,24 @@
-﻿﻿// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  service.notice.js — 通知数据模型
 //  提供 NoticeStore：通知的 CRUD + mockDB 持久化
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260807j';
-import { persist } from '../core/data-adapter.js?v=20260807j';
-import { MOCK_NOTICES } from '../mock/index.js?v=20260807j';
-import { showToast, getBasePath } from '../core/utils.js?v=20260807j';
-import { AuthStore } from './auth.js?v=20260807j';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260807j';
-import { badgeHtml } from '../components/badge.js?v=20260807j';
+import { mockDB } from '../core/domain.js?v=20260808e';
+import { persist } from '../core/data-adapter.js?v=20260808e';
+import { MOCK_NOTICES } from '../mock/index.js?v=20260808e';
+import { showToast, getBasePath } from '../core/utils.js?v=20260808e';
+import { AuthStore } from './auth.js?v=20260808e';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260808e';
+import { badgeHtml } from '../components/badge.js?v=20260808e';
 
 const NOTICE_STORAGE_KEY = 'workflowos_notices_v1';
 
 function _loadNotices() {
   try {
-    return [...mockDB.notices];
+    // 2026-08-08 归档闭环：统一归一化 archived 字段（旧数据缺省视为未归档）
+    return (mockDB.notices || []).map(n => ({ ...n, archived: n.archived === true }));
   } catch (e) {
     console.warn('[NoticeStore] 加载失败：', e);
     return [];
@@ -75,8 +76,32 @@ export const NoticeStore = {
       this._notices = persisted;
     } else {
       this._notices = [...MOCK_NOTICES];
-      _saveNotices(this._notices);
+      // 2026-08-08 归档闭环修复：mockDB 未加载（_loaded=false）时不得落库，
+      // 否则会用 seed 原版覆盖 localStorage 中的运行时字段（如 archived），
+      // 且过早落库可能写入不完整数据。loadDB 完成后读取统一走 _current()。
+      if (mockDB._loaded) {
+        _saveNotices(this._notices);
+      }
     }
+  },
+
+  /**
+   * 当前数据源（2026-08-08 归档闭环修复）：
+   * 优先取 mockDB.notices（loadDB / seed 增量合并后的权威数据），
+   * 兜底 _notices（mockDB 未加载或全空时的内存态）。
+   * 修复早期 init（header 渲染先于 loadDB）导致 _notices 滞留 seed 原版、
+   * archived 等运行时字段丢失的问题。
+   */
+  _current() {
+    if (mockDB.notices && mockDB.notices.length > 0) {
+      return mockDB.notices;
+    }
+    return this._notices;
+  },
+
+  /** 写操作前置对齐：以 mockDB.notices 为准刷新 _notices，避免基于旧内存态写回覆盖运行时字段 */
+  _syncWithStore() {
+    this._notices = [...this._current()];
   },
 
   list(filter = {}) {
@@ -84,7 +109,12 @@ export const NoticeStore = {
     if (this._notices.length === 0) {
       this.init();
     }
-    let result = [...this._notices];
+    let result = [...this._current()];
+
+    // 2026-08-08 归档闭环：默认排除已归档通知（随活动/专班归档退出工作区）
+    if (filter.includeArchived !== true) {
+      result = result.filter(n => !n.archived);
+    }
 
     if (filter.activeOnly !== false) {
       const now = new Date().toISOString().slice(0, 10);
@@ -122,6 +152,7 @@ export const NoticeStore = {
       id: notice.id || 'notice-' + Date.now(),
       publishDate: notice.publishDate || new Date().toISOString().slice(0, 10),
     };
+    this._syncWithStore();
     this._notices = [...this._notices, newNotice];
     _saveNotices(this._notices);
     // 行动性通知自动派生对应角色待办（最小三成本原则·阶段1C-2）
@@ -155,6 +186,7 @@ export const NoticeStore = {
       console.warn(`[NoticeStore] 权限不足：角色 ${actorRole} 无权删除通知`);
       return false;
     }
+    this._syncWithStore();
     const prev = this._notices.length;
     this._notices = this._notices.filter(n => n.id !== id);
     if (this._notices.length === prev) return false;
@@ -168,12 +200,37 @@ export const NoticeStore = {
     return true;
   },
 
-  getAll() {
+  getAll({ includeArchived = false } = {}) {
     if (this._notices.length === 0) this.init();
-    return [...this._notices];
+    const src = this._current();
+    return includeArchived ? [...src] : [...src].filter(n => !n.archived);
+  },
+
+  /**
+   * 归档与来源（活动/专班）绑定的通知（2026-08-08 归档闭环）
+   * 活动/专班归档后，其配套通知随之一并归档，退出工作区。
+   * @param {'activity'|'taskforce'} targetType
+   * @param {string} targetId — activity.id 或 taskforce.id
+   * @returns {number} 归档的通知条数
+   */
+  archiveBySource(targetType, targetId) {
+    if (!targetType || !targetId) return 0;
+    this._syncWithStore();
+    let count = 0;
+    this._notices = this._notices.map(n => {
+      if (n.archived) return n;
+      if (n.targetType === targetType && n.targetId === targetId) {
+        count++;
+        return { ...n, archived: true, archivedAt: new Date().toISOString().slice(0, 10) };
+      }
+      return n;
+    });
+    if (count > 0) _saveNotices(this._notices);
+    return count;
   },
 
   markRead(id) {
+    this._syncWithStore();
     const notice = this._notices.find(n => n.id === id);
     if (notice) {
       notice.read = true;
@@ -184,6 +241,7 @@ export const NoticeStore = {
   },
 
   markAllRead() {
+    this._syncWithStore();
     this._notices.forEach(n => { n.read = true; });
     _saveNotices(this._notices);
   },
@@ -247,6 +305,13 @@ export function resolveNoticeUrl(n, currentRole = null) {
   if (Array.isArray(n.actionRoles) && n.actionRoles.length > 0) {
     if (!currentRole || !n.actionRoles.includes(currentRole)) {
       return { url: null, direct: false };
+    }
+  }
+  // 0. T233 targetType/targetId 显式定位 → 直达统一详情页（招募/报名类通知）
+  if (n.targetType && n.targetId) {
+    const detailFile = n.targetType === 'activity' || n.targetType === 'taskforce' ? 'activity.html' : null;
+    if (detailFile) {
+      return { url: getBasePath() + `${detailFile}?id=${n.targetId}`, direct: true };
     }
   }
   // 1. targetUrl 直达（显式指定，不做同页回退）

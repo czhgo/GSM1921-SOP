@@ -1,19 +1,20 @@
-import { renderTabBar } from '../components/tab-bar.js?v=20260807j';
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260807j';
-import { BranchService, isApiMode } from '../services/runtime.js?v=20260807j';
-import { showToast } from '../core/utils.js?v=20260807j';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260807j';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807j';
-import { _personName } from '../mock/index.js?v=20260807j';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260807j';
-import { icon } from '../core/icons.js?v=20260807j';
-import { mockDB } from '../core/domain.js?v=20260807j';
-import { persist, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260807j';
-import { loadActivities } from '../services/activity.js?v=20260807j';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807j';
-import { renderTodoList } from '../components/todo-list.js?v=20260807j';
-import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260807j';
-import { badgeHtml } from '../components/badge.js?v=20260807j';
+﻿import { renderTabBar } from '../components/tab-bar.js?v=20260808e';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260808e';
+import { BranchService, isApiMode } from '../services/runtime.js?v=20260808e';
+import { showToast } from '../core/utils.js?v=20260808e';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260808e';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808e';
+import { _personName } from '../mock/index.js?v=20260808e';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260808e';
+import { icon } from '../core/icons.js?v=20260808e';
+import { mockDB } from '../core/domain.js?v=20260808e';
+import { persist, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260808e';
+import { loadActivities } from '../services/activity.js?v=20260808e';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260808e';
+import { renderTodoList } from '../components/todo-list.js?v=20260808e';
+import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260808e';
+import { NoticeStore } from '../services/notice.js?v=20260808e';
+import { badgeHtml } from '../components/badge.js?v=20260808e';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'prop-commissioner' });
 
@@ -395,6 +396,8 @@ function _renderKanbanContent(activities, propTf) {
       TaskForceRecordStore.updateStatus(tfId, 'archived');
       // 做事即销待办：专班归档 → 销「专班归档」待办
       TodoStore.completeBySource(TodoSourceType.TASKFORCE, tfId);
+      // 2026-08-08 归档闭环：专班归档 → 配套通知随之一并归档，退出工作区
+      NoticeStore.archiveBySource('taskforce', tfId);
       showToast('success', `专班「${tf.name}」已归档`);
       renderPropUI(getAppState());
     });

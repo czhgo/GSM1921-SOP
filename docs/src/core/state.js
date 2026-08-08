@@ -4,7 +4,7 @@
 //  使用 registerRenderCallback 模式避免循环依赖
 // ════════════════════════════════════════════════════════════════
 
-import { _currentYearMonth } from './utils.js?v=20260807j';
+import { _currentYearMonth } from './utils.js?v=20260808e';
 
 export const STATE = {
   IDLE:       0,
@@ -16,18 +16,18 @@ export const STATE = {
 
 // ── 角色类型定义 ─────────────────────────────────────────────────
 const ROLE_TYPES = {
-  PARTICIPANT:       'participant',       // 参与视图 - 默认参与者
-  LEADER:            'leader',            // 管理视图 - 党小组组长
-  ORG_COMMISSIONER:  'org-commissioner',  // 管理视图 - 组织委员
-  PROP_COMMISSIONER: 'prop-commissioner', // 管理视图 - 宣传委员
-  DISC_COMMISSIONER: 'disc-commissioner', // 管理视图 - 纪检委员
-  ORGANIZER:         'organizer',         // 分工记录视图 - 组织者
-  DEEP:              'deep',              // 管理视图 - 深度参与者
-  SECRETARY:         'secretary',         // 管理视图 - 党支书
-  GLOBAL:            'global',            // 全局视图 - 参考指南专用
+  PARTICIPANT:       'participant',       // 普通参与者（默认首页）
+  LEADER:            'leader',            // 党小组组长
+  ORG_COMMISSIONER:  'org-commissioner',  // 组织委员
+  PROP_COMMISSIONER: 'prop-commissioner', // 宣传委员
+  DISC_COMMISSIONER: 'disc-commissioner', // 纪检委员
+  ORGANIZER:         'organizer',         // 组织者（项目分工记录）
+  DEEP:              'deep',              // 深度参与者
+  SECRETARY:         'secretary',         // 党支书
+  GLOBAL:            'global',            // 参考指南专用
 };
 
-// ── 管理角色列表（用于判断是否为管理视图）───────────────────────
+// ── 项目/管理角色列表（用于首页日历展示角色配色与详情可点击）──────
 const MANAGEMENT_ROLES = [
   ROLE_TYPES.LEADER,
   ROLE_TYPES.ORG_COMMISSIONER,
@@ -84,8 +84,8 @@ let appState = {
   selectedDate:        null,
   displayMonth:        _currentYearMonth(),
   // ── 统一角色状态（核心）────────────────────────────────────────
-  selectedRole:        null,             // 当前选择的角色（null表示未选择，默认参与者视图）
-  viewType:            'participant',    // 'participant' | 'manager'（由selectedRole推导）
+  selectedRole:        null,             // 当前选择的角色（null表示未选择，默认普通参与者）
+  viewType:            'participant',    // 'participant' | 'manager'（由selectedRole推导，控制日历详情可点击性）
   // 归档库独立视图标志
   viewArchived:        false,
   // 日历视图模式（P2-7）

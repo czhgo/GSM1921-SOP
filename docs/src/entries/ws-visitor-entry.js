@@ -1,27 +1,32 @@
-﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260807j';
-import { showToast } from '../core/utils.js?v=20260807j';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260807j';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260807j';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807j';
-import { NoticeStore } from '../services/notice.js?v=20260807j';
-import { AuthStore } from '../services/auth.js?v=20260807j';
-import { PEOPLE } from '../mock/index.js?v=20260807j';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260807j';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260807j';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260807j';
-import { inspectionToDisplay } from '../mock/index.js?v=20260807j';
-import { loadActivities } from '../services/activity.js?v=20260807j';
-import { getActivityTypeColors, ROLE_COLORS } from '../core/constants.js?v=20260807j';
-import { renderTabBar } from '../components/tab-bar.js?v=20260807j';
-import { icon } from '../core/icons.js?v=20260807j';
-import { renderQueryView } from '../components/query-view.js?v=20260807j';
-import { renderTodoList } from '../components/todo-list.js?v=20260807j';
-import { TodoStore, seedTodos, VisitorTodoDeriver } from '../services/todo.js?v=20260807j';
-import { badgeHtml } from '../components/badge.js?v=20260807j';
+﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260808e';
+import { showToast } from '../core/utils.js?v=20260808e';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260808e';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260808e';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808e';
+import { NoticeStore } from '../services/notice.js?v=20260808e';
+import { SignupStore } from '../services/signup.js?v=20260808e';
+import { AuthStore } from '../services/auth.js?v=20260808e';
+import { PEOPLE } from '../mock/index.js?v=20260808e';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260808e';
+import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260808e';
+import { loadActiveInspectionRecords } from '../services/inspection.js?v=20260808e';
+import { inspectionToDisplay } from '../mock/index.js?v=20260808e';
+import { loadActivities } from '../services/activity.js?v=20260808e';
+import { getActivityTypeColors, ROLE_COLORS } from '../core/constants.js?v=20260808e';
+import { renderTabBar } from '../components/tab-bar.js?v=20260808e';
+import { icon } from '../core/icons.js?v=20260808e';
+import { renderQueryView } from '../components/query-view.js?v=20260808e';
+import { renderTodoList } from '../components/todo-list.js?v=20260808e';
+import { TodoStore, seedTodos, VisitorTodoDeriver } from '../services/todo.js?v=20260808e';
+import { badgeHtml } from '../components/badge.js?v=20260808e';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'participant' });
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
+
+// 活动动态列表分页（书记 2026-08-08 决策：活动页分页，每页 10 条）
+const ACTIVITY_PAGE_SIZE = 10;
+let _visitorActPage = 1; // 当前页（模块级，切换 列表/日历/查询 视图后保留）
 
 function renderVisitorUI(state) {
   let activities = state.activities || [];
@@ -50,14 +55,17 @@ function renderVisitorUI(state) {
   const taskforces = TaskForceRecordStore.getAll();
   const notices = NoticeStore.getAll();
 
-  // visitor 待办派生：通知待阅读 + 活动待参与（幂等去重，可随渲染重复调用）
+  // visitor 待办派生：通知待阅读 + 活动/专班待参与（幂等去重，可随渲染重复调用）
+  const signups = SignupStore.getAll();
   if (currentUser?.personId) {
     VisitorTodoDeriver.deriveAll({
       personId: currentUser.personId,
       person: PEOPLE.find(p => p.id === currentUser.personId) || null,
       notices,
       activities,
+      signups,
     });
+    VisitorTodoDeriver.deriveFromTaskforceSignups({ personId: currentUser.personId, taskforces, signups });
   }
 
   const urlParams = CrossPageState.getURLParams();
@@ -84,7 +92,8 @@ function renderVisitorUI(state) {
   `;
 
   tabBar.bindEvents(container);
-  if (highlightId) {
+  // 首页「查看更多活动」跳转（?view=activities）或指定活动（?activityId=）→ 落在活动动态 tab
+  if (highlightId || urlParams.view === 'activities') {
     tabBar.activate('activities');
   } else {
     tabBar.activate(tabBar.activeTab);
@@ -338,25 +347,53 @@ function _renderActivities(activities, highlightId) {
 function _renderActListView(sorted, highlightId) {
   const vc = document.getElementById('visitor-act-view');
   if (!vc) return;
+
+  // 分页：每页 10 条；存在高亮活动时优先定位到其所在页
+  let page = _visitorActPage;
+  if (highlightId) {
+    const idx = sorted.findIndex(a => a.id === highlightId);
+    if (idx >= 0) page = Math.floor(idx / ACTIVITY_PAGE_SIZE) + 1;
+  }
+  const totalPages = Math.max(1, Math.ceil(sorted.length / ACTIVITY_PAGE_SIZE));
+  page = Math.min(Math.max(1, page), totalPages);
+  _visitorActPage = page;
+
+  const start = (page - 1) * ACTIVITY_PAGE_SIZE;
+  const pageItems = sorted.slice(start, start + ACTIVITY_PAGE_SIZE);
+
   vc.innerHTML = `
     <div class="space-y-2">
       ${sorted.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无活动</p>' :
-        sorted.map(a => {
+        pageItems.map(a => {
           const color = ACTIVITY_TYPE_COLORS[a.type || a.category] || { bg: '#F9FAFB', dot: '#6B7280' };
           const isHL = highlightId && a.id === highlightId;
           return `
-            <div class="flex items-center gap-3 p-3 rounded-lg bg-white ${isHL ? 'border border-blue-400 ring-2 ring-blue-100' : ''}" data-visitor-act-id="${a.id || ''}">
+            <a href="../activity.html?id=${a.id || ''}" class="flex items-center gap-3 p-3 rounded-lg bg-white ${isHL ? 'border border-blue-400 ring-2 ring-blue-100' : ''} hover:bg-gray-50 hover:shadow-sm transition-all cursor-pointer" data-visitor-act-id="${a.id || ''}">
               <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''}"></div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
                 <p class="text-xs text-gray-500 mt-0.5">${a.date || '待定'} · ${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
               </div>
               ${isHL ? badgeHtml('当前', 'info') : ''}
-            </div>
+            </a>
           `;
         }).join('')}
     </div>
+    ${totalPages > 1 ? `
+      <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
+        <button type="button" class="visitor-act-page-btn text-xs px-3 py-1.5 rounded-lg border transition-colors ${page <= 1 ? 'opacity-40 pointer-events-none' : ''}" data-act-page="${page - 1}" style="border-color:var(--neutral-200);color:var(--neutral-600);">‹ 上一页</button>
+        <span class="text-xs text-gray-500">第 ${page} / ${totalPages} 页</span>
+        <button type="button" class="visitor-act-page-btn text-xs px-3 py-1.5 rounded-lg border transition-colors ${page >= totalPages ? 'opacity-40 pointer-events-none' : ''}" data-act-page="${page + 1}" style="border-color:var(--neutral-200);color:var(--neutral-600);">下一页 ›</button>
+      </div>` : ''}
   `;
+
+  vc.querySelectorAll('.visitor-act-page-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _visitorActPage = parseInt(btn.dataset.actPage, 10) || 1;
+      _renderActListView(sorted, highlightId);
+    });
+  });
+
   if (highlightId) {
     const el = vc.querySelector(`[data-visitor-act-id="${highlightId}"]`);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -394,7 +431,7 @@ function _renderActCalendarView(sorted, highlightId) {
               const isHL = highlightId && a.id === highlightId;
               const day = (a.date || '').substring(8, 10);
               return `
-                <div class="flex items-start gap-3 p-3 rounded-lg bg-white ${isHL ? 'border border-blue-400 ring-2 ring-blue-100' : ''}" data-visitor-act-id="${a.id || ''}">
+                <a href="../activity.html?id=${a.id || ''}" class="flex items-start gap-3 p-3 rounded-lg bg-white ${isHL ? 'border border-blue-400 ring-2 ring-blue-100' : ''} hover:bg-gray-50 hover:shadow-sm transition-all cursor-pointer" data-visitor-act-id="${a.id || ''}">
                   <div class="text-center flex-shrink-0 w-10">
                     <div class="text-lg font-bold" style="color:${color.text || color.dot};line-height:1;">${day || '?'}</div>
                     <div class="text-xs text-gray-400">日</div>
@@ -404,7 +441,7 @@ function _renderActCalendarView(sorted, highlightId) {
                     <p class="text-xs text-gray-500 mt-0.5">${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
                   </div>
                   ${isHL ? badgeHtml('当前', 'info') : ''}
-                </div>
+                </a>
               `;
             }).join('')}
           </div>
@@ -438,14 +475,14 @@ function _renderActQueryView(sorted, highlightId) {
       const color = ACTIVITY_TYPE_COLORS[a.type || a.category] || { bg: '#F9FAFB', dot: '#6B7280' };
       const isHL = highlightId && a.id === highlightId;
       return `
-        <div class="flex items-center gap-3 p-3 rounded-lg bg-white ${isHL ? 'border border-blue-400 ring-2 ring-blue-100' : ''}" data-visitor-act-id="${a.id || ''}">
+        <a href="../activity.html?id=${a.id || ''}" class="flex items-center gap-3 p-3 rounded-lg bg-white ${isHL ? 'border border-blue-400 ring-2 ring-blue-100' : ''} hover:bg-gray-50 hover:shadow-sm transition-all cursor-pointer" data-visitor-act-id="${a.id || ''}">
           <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''}"></div>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
             <p class="text-xs text-gray-500 mt-0.5">${a.date || '待定'} · ${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
           </div>
           ${isHL ? badgeHtml('当前', 'info') : ''}
-        </div>
+        </a>
       `;
     },
     emptyMessage: '无匹配活动',
@@ -483,7 +520,7 @@ function _renderAttendance(activities) {
       <div class="space-y-2">
         ${filtered.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">无匹配考勤数据</p>' :
           filtered.map(act => {
-            const records = loadAttendanceRecords().filter(r => r.activityId === act.id);
+            const records = loadActiveAttendanceRecords().filter(r => r.activityId === act.id);
             // 出勤口径统一（2026-08-07）：已补（made_up）计入出勤，与书记概况出勤率一致
             const present = records.filter(r => r.status === 'present' || r.status === 'made_up').length;
             const total = records.length;
@@ -520,7 +557,7 @@ function _renderMyInspection() {
   }
 
   const personId = user.personId;
-  const allRecords = loadInspectionRecords();
+  const allRecords = loadActiveInspectionRecords();
   const myRecords = allRecords.filter(r => r.personId === personId);
   const display = inspectionToDisplay(myRecords);
   const total = display.length;
@@ -705,6 +742,15 @@ function _handleTodoAction(todo) {
     window.location.href = `${basePath}notice.html?id=${todo.actionData.noticeId}`;
     return;
   }
+  // 报名审核待办：活动/专班 → 统一详情页（T233）
+  if (todo.actionKey === 'signup-review' || (todo.actionType === 'review' && todo.actionData?.signupId)) {
+    const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
+    const srcId = todo.sourceId || todo.actionData?.sourceId;
+    if (srcId) {
+      window.location.href = `${basePath}activity.html?id=${srcId}`;
+      return;
+    }
+  }
   // 根据 actionType 跳转到对应 tab
   const tabMap = {
     read: 'activities',
@@ -737,4 +783,4 @@ function _bindTodoDetailEvents() {
 registerRenderCallback(renderVisitorUI);
 
 seedTodos();
-loadWorkspaceData({ role: 'all', selectedRole: null, storeInits: [() => NoticeStore.init(), () => TaskForceRecordStore.init()], fallbackData: () => loadActivities(), logTag: 'ws-visitor' });
+loadWorkspaceData({ role: 'all', selectedRole: null, storeInits: [() => NoticeStore.init(), () => TaskForceRecordStore.init(), () => SignupStore.init()], fallbackData: () => loadActivities(), logTag: 'ws-visitor' });

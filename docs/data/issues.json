@@ -245,10 +245,22 @@
           "hiddenBy": null,
           "hiddenReason": null,
           "hiddenAt": null
+        },
+        {
+          "id": "cmt-010",
+          "author": "p12",
+          "authorRole": "prop-commissioner",
+          "body": "报名功能已随「活动/专班报名渠道」正式落地（2026-08-07）：活动与专班均支持自下而上报名，普通参与报名即加入、组织者/深度参与报名后由发起人审核，报名记录全链路可查。",
+          "createdAt": "2026-08-07",
+          "kind": "result",
+          "hidden": false,
+          "hiddenBy": null,
+          "hiddenReason": null,
+          "hiddenAt": null
         }
       ],
-      "participants": ["p15", "u_sec", "u_prop"],
-      "commentCount": 3
+      "participants": ["p15", "u_sec", "u_prop", "p12"],
+      "commentCount": 4
     }
   ]
 }

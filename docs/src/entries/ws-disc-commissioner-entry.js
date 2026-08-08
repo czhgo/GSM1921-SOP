@@ -1,24 +1,24 @@
-import { setState, registerRenderCallback } from '../core/state.js?v=20260807j';
-import { showToast } from '../core/utils.js?v=20260807j';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260807j';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260807j';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, ReviewStatus, SourceType, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260807j';
-import { persist } from '../core/data-adapter.js?v=20260807j';
-import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, reviewToDisplay, getPersonName } from '../mock/index.js?v=20260807j';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260807j';
-import { renderTabBar } from '../components/tab-bar.js?v=20260807j';
-import { openFormModal } from '../components/modal.js?v=20260807j';
-import { autoGenerateMakeupTask, loadMakeupTasks, saveMakeupTasks } from '../services/makeup.js?v=20260807j';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260807j';
-import { loadInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, getRecordsBySource } from '../services/inspection.js?v=20260807j';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260807j';
-import { loadActivities } from '../services/activity.js?v=20260807j';
-import { loadActivityReviews, loadTaskforceReviews, updateReviewById } from '../services/review.js?v=20260807j';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260807j';
-import { renderTodoList } from '../components/todo-list.js?v=20260807j';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType, seedTodos } from '../services/todo.js?v=20260807j';
-import { enhanceSelects } from '../components/custom-select.js?v=20260807j';
-import { badgeHtml } from '../components/badge.js?v=20260807j';
+﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260808e';
+import { showToast } from '../core/utils.js?v=20260808e';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260808e';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260808e';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, ReviewStatus, SourceType, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260808e';
+import { persist } from '../core/data-adapter.js?v=20260808e';
+import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, reviewToDisplay, getPersonName } from '../mock/index.js?v=20260808e';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260808e';
+import { renderTabBar } from '../components/tab-bar.js?v=20260808e';
+import { openFormModal } from '../components/modal.js?v=20260808e';
+import { autoGenerateMakeupTask, loadMakeupTasks, saveMakeupTasks } from '../services/makeup.js?v=20260808e';
+import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260808e';
+import { loadInspectionRecords, loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, getRecordsBySource } from '../services/inspection.js?v=20260808e';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808e';
+import { loadActivities } from '../services/activity.js?v=20260808e';
+import { loadActivityReviews, loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../services/review.js?v=20260808e';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260808e';
+import { renderTodoList } from '../components/todo-list.js?v=20260808e';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType, seedTodos } from '../services/todo.js?v=20260808e';
+import { enhanceSelects } from '../components/custom-select.js?v=20260808e';
+import { badgeHtml } from '../components/badge.js?v=20260808e';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'disc-commissioner' });
 
@@ -177,8 +177,8 @@ function _renderTodoContent() {
 function _buildDiscAggregates() {
   const todoGroups = TodoStore.getGroupedByAction('disc-commissioner');
   const dynamic = [];
-  // 动态组1：考勤待确认（recordedBy 为空 = 纪检未确认）
-  const pendingAtt = loadAttendanceRecords().filter(r => !r.recordedBy);
+  // 动态组1：考勤待确认（recordedBy 为空 = 纪检未确认；仅活跃活动，归档活动退出工作区）
+  const pendingAtt = loadActiveAttendanceRecords().filter(r => !r.recordedBy);
   if (pendingAtt.length > 0) {
     dynamic.push({
       groupKey: 'disc-commissioner:attendance-confirm',
@@ -192,8 +192,8 @@ function _buildDiscAggregates() {
       items: pendingAtt.map(r => ({ id: r.id, title: `确认考勤：${getPersonName(r.personId)}`, sourceType: TodoSourceType.ACTIVITY, sourceId: r.activityId })),
     });
   }
-  // 动态组2：考察待确认（status 非 confirmed）
-  const pendingInsp = loadInspectionRecords().filter(r => r.status !== 'confirmed');
+  // 动态组2：考察待确认（status 非 confirmed；仅活跃活动，专班类保留）
+  const pendingInsp = loadActiveInspectionRecords().filter(r => r.status !== 'confirmed');
   if (pendingInsp.length > 0) {
     dynamic.push({
       groupKey: 'disc-commissioner:inspection-confirm',
@@ -319,7 +319,7 @@ function _bindTodoDetailEvents() {
 
 // ── 待处理面板（决策仪表盘·异常驱动，替代数字概况） ──
 function _buildDiscDecisionPanelHTML(filterActivityId) {
-  const allRecords = loadAttendanceRecords();
+  const allRecords = loadActiveAttendanceRecords();
   const actById = new Map(loadActivities().map(a => [a.id, a]));
   const now = new Date();
 
@@ -397,7 +397,7 @@ function _renderAttendanceContent(filterActivityId) {
   const container = document.getElementById('disc-tab-content');
   if (!container) return;
 
-  const allRecords = loadAttendanceRecords();
+  const allRecords = loadActiveAttendanceRecords();
   const longData = attendanceToLong(allRecords);
   const wideData = attendanceToWide(allRecords);
 
@@ -684,7 +684,7 @@ function _renderAttendanceContent(filterActivityId) {
 function _buildTaskforceRosterHTML() {
   const tfs = TaskForceRecordStore.getAll().filter(t => t.status === 'recruiting' || t.status === 'active');
   if (tfs.length === 0) return '';
-  const allRecords = loadInspectionRecords();
+  const allRecords = loadActiveInspectionRecords();
   const statusMeta = {
     recruiting: { label: '招募中', cls: 'bg-blue-100 text-blue-700' },
     active: { label: '进行中', cls: 'bg-green-100 text-green-700' },
@@ -756,7 +756,7 @@ function _renderInspectionContent() {
   const container = document.getElementById('disc-tab-content');
   if (!container) return;
 
-  const allRecords = loadInspectionRecords();
+  const allRecords = loadActiveInspectionRecords();
   const longData = inspectionToLong(allRecords);
   const wideData = inspectionToWide(allRecords);
   const overdueRecords = getOverdueRecords(7);
@@ -936,7 +936,7 @@ function _renderReviewContent() {
 
   const progressColor = { '已完成':'bg-green-100 text-green-700', '超时':'bg-red-100 text-red-700', '进行中':'bg-blue-100 text-blue-700' };
   const reviewColor = { '已上传':'bg-orange-100 text-orange-700', '未提交':'bg-red-100 text-red-700', '—':'bg-gray-100 text-gray-500' };
-  const reviewData = reviewToDisplay(loadActivityReviews(), loadTaskforceReviews());
+  const reviewData = reviewToDisplay(loadActiveActivityReviews(), loadTaskforceReviews());
 
   // 经验沉淀交叉引用：判断已完成复盘的活动是否已有沉淀
   const deposits = _loadDeposits();

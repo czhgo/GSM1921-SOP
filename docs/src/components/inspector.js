@@ -5,20 +5,20 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../core/state.js?v=20260807j';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260807j';
-import { _fmtChinese, showToast } from '../core/utils.js?v=20260807j';
-import { icon } from '../core/icons.js?v=20260807j';
-import { PEOPLE, getPersonById } from '../mock/index.js?v=20260807j';
-import { BranchService } from '../services/runtime.js?v=20260807j';
-import { AuthStore } from '../services/auth.js?v=20260807j';
-import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260807j';
-import { badgeHtml } from './badge.js?v=20260807j';
-import { persist } from '../core/data-adapter.js?v=20260807j';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260807j';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260807j';
-import { loadActivityReviews } from '../services/review.js?v=20260807j';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260807j';
+import { setState, STATE, getAppState } from '../core/state.js?v=20260808e';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260808e';
+import { _fmtChinese, showToast } from '../core/utils.js?v=20260808e';
+import { icon } from '../core/icons.js?v=20260808e';
+import { PEOPLE, getPersonById } from '../mock/index.js?v=20260808e';
+import { BranchService } from '../services/runtime.js?v=20260808e';
+import { AuthStore } from '../services/auth.js?v=20260808e';
+import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260808e';
+import { badgeHtml } from './badge.js?v=20260808e';
+import { persist } from '../core/data-adapter.js?v=20260808e';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260808e';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260808e';
+import { loadActivityReviews } from '../services/review.js?v=20260808e';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260808e';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -143,7 +143,7 @@ function _showParticipantModal(act) {
     + `<p class=" text-sm text-gray-700 mb-2">日期：${act.date || '未设定'}</p>`
     + extraHtml
     + '<p class=" text-xs text-gray-500 border-t border-gray-100 pt-3 mt-2 leading-relaxed">'
-    + '如需查看任务详情，请在左侧切换管理视图。</p>'
+    + '如需查看任务详情，请前往对应的工作台页面。</p>'
     + '<button class=" text-sm text-white px-4 py-[7px] rounded-lg mt-4 w-full transition-colors" '
     + 'style="background:#CE1126;">关闭</button>';
   card.querySelector('button').addEventListener('click', () => overlay.remove());
@@ -212,7 +212,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
       html += `<p class=" font-bold text-sm text-gray-800 leading-snug flex-1">${act.title}</p>`;
       html += activityLifecycleBadgeHtml(act, allTasks);
       html += '</div>';
-      html += `<div class="flex items-center gap-1.5">${brandTag}<p class=" text-xs text-gray-400">参与视图 · 仅展示</p></div>`;
+      html += `<div class="flex items-center gap-1.5">${brandTag}<p class=" text-xs text-gray-400">活动信息 · 点击查看</p></div>`;
       html += '</div>';
     } else {
       html += `<div class="inspector-card" style="cursor:pointer;${isBrand ? 'border-left:3px solid #EAB308;' : ''}" data-act-id="${act.id}">`;
@@ -455,7 +455,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   const mgrLabel = mgrLabels[managementRole] || managementRole;
   const mgrTheme = ROLE_THEME_CLASS[managementRole] || '';
   if (managementRole && managementRole !== 'participant') {
-    html += `<div class="inspector-role-banner ${mgrTheme}"><span class="font-semibold">${mgrLabel}</span> 管理视图</div>`;
+    html += `<div class="inspector-role-banner ${mgrTheme}"><span class="font-semibold">${mgrLabel}</span></div>`;
   }
 
   html += '<div class="flex items-center gap-1.5 flex-wrap mb-3">';

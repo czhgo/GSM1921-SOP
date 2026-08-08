@@ -231,8 +231,8 @@ related_files: [content/04_web_design/DATA_ARCHITECTURE.md, content/03_doc_syste
 - [ ] 活动/专班项目角色（organizer/deep）主源 = `activity.assignments` / `taskforce.members`，新建数据在主源可查
 - [ ] 赋权记录中 targetPersonId 在 PEOPLE 中存在
 - [ ] 被赋权角色（organizer/deep/leader）在 auth.js AUTHORIZE_CHAIN 中有赋权链定义
-- [ ] 赋权后，被赋权者切换到管理视图时 AuthStore.canDo() 返回 true
-- [ ] 撤销/解散专班回收赋权后：主源角色被移除 + 快照追加 revoke，被赋权者退回只读视角
+- [ ] 赋权后，被赋权者工作台出现对应角色页面，AuthStore.canDo() 返回 true
+- [ ] 撤销/解散专班回收赋权后：主源角色被移除 + 快照追加 revoke，被赋权者恢复为普通参与者
 - [ ] 全仓禁止无主源写入点的字段：授权记录上的 `authorizedBy`/`scope` 必须有主源写入点（巡检 P0-1/P0-3 缺口固化）
 
 ---

@@ -9,14 +9,14 @@
 //   - 链式赋权: AUTHORIZE_CHAIN 定义谁可以赋权什么角色
 //   - party 页面已移除，organizer/deep 内容归入首页"我的角色"区块
 
-import { ROLE_LABELS } from '../core/constants.js?v=20260807j';
-import { PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260807j';
-import { mockDB } from '../core/domain.js?v=20260807j';
-import { NoticeStore } from './notice.js?v=20260807j';
-import { updateActivity } from './mock.js?v=20260807j';
-import { TaskForceRecordStore } from './taskforce.js?v=20260807j';
-import { persist } from '../core/data-adapter.js?v=20260807j';
-import { enableApiMode } from './runtime.js?v=20260807j';
+import { ROLE_LABELS } from '../core/constants.js?v=20260808e';
+import { PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260808e';
+import { mockDB } from '../core/domain.js?v=20260808e';
+import { NoticeStore } from './notice.js?v=20260808e';
+import { updateActivity } from './mock.js?v=20260808e';
+import { TaskForceRecordStore } from './taskforce.js?v=20260808e';
+import { persist } from '../core/data-adapter.js?v=20260808e';
+import { enableApiMode } from './runtime.js?v=20260808e';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
@@ -53,9 +53,6 @@ if (typeof window !== 'undefined') {
     document.dispatchEvent(new CustomEvent('gsm1921:auth-changed', { detail: { storageEvent: e } }));
   });
 }
-
-// ── 只读视角 ─────────────────────────────────────
-const VIEW_ROLE_KEY = 'gsm1921-view-role';  // sessionStorage
 
 // ── 权限表 ──────────────────────────────────────
 // issue.* 权限项遵循 GitHub Issue 风格权限矩阵（spec §五）
@@ -96,18 +93,6 @@ const AUTHORIZE_CHAIN = {
   'org-commissioner':  ['organizer', 'deep'],
   'leader':            ['organizer', 'deep'],
   'organizer':         ['deep'],
-};
-
-// ── 只读可查看视角（比赋权链范围更宽） ────────────
-// 2026-07-30: 移除 organizer/deep 死代码（无对应 workspace 页面，T-141 角色单页制重构后遗留）
-// 仅保留 leader 视角——支委/书记可切换到组长只读视角
-const VIEWABLE_ROLES = {
-  'secretary':         ['leader', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'],
-  'deputy-secretary':  ['leader', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'],
-  'org-commissioner':  [],
-  'prop-commissioner': [],
-  'disc-commissioner': [],
-  'leader':            [],
 };
 
 // ── 角色到页面映射 ──────────────────────────────
@@ -338,7 +323,6 @@ export const AuthStore = {
   logout() {
     try {
       localStorage.removeItem(LOGIN_KEY);
-      sessionStorage.removeItem(VIEW_ROLE_KEY);
       sessionStorage.removeItem(SESSION_KEY);
       // 修复（2026-08-05）：退出登录必须同时清除 API token，否则重新进入开发模式
       // 仍会因残留 token 被切回 API 数据源（开发模式与真实后端混淆）。
@@ -380,14 +364,13 @@ export const AuthStore = {
   },
 
   /**
-   * 获取用户的有效角色（只读视角优先，回退常设角色）
+   * 获取用户的有效角色（回退常设角色）
    * 用途：sidebar/header 等组件根据有效角色决定跳转目标
    * @param {string} personId
    * @returns {string} 角色 ID
    */
   getEffectiveRole(personId) {
-    const viewRole = this.getViewRole();
-    return viewRole || this.getUserRole(personId);
+    return this.getUserRole(personId);
   },
 
   /**
@@ -744,20 +727,6 @@ export const AuthStore = {
     return _appendAuditEntries(scopeRef, actorId, entries || [], 'revoke');
   },
 
-  // ── 只读视角切换 ──────────────────────────────
-
-  switchView(targetRole) {
-    try { sessionStorage.setItem(VIEW_ROLE_KEY, targetRole); } catch {}
-  },
-
-  clearView() {
-    try { sessionStorage.removeItem(VIEW_ROLE_KEY); } catch {}
-  },
-
-  getViewRole() {
-    try { return sessionStorage.getItem(VIEW_ROLE_KEY) || ''; } catch { return ''; }
-  },
-
   // ── 辅助方法 ────────────────────────────────
 
   getRoleLabel(role) {
@@ -766,10 +735,6 @@ export const AuthStore = {
 
   getPageForRole(module, role) {
     return (ROLE_PAGE_MAP[module] || {})[role] || null;
-  },
-
-  getViewableRoles(role) {
-    return VIEWABLE_ROLES[role] || [];
   },
 
   isCommissioner(role) {
@@ -781,21 +746,6 @@ export const AuthStore = {
 // PermissionManager（兼容层）
 // ════════════════════════════════════════════════
 export const PermissionManager = {
-  /**
-   * 获取可切换的只读视角列表
-   */
-  getSwitchableViews(personId) {
-    const role = _getUserRoleFromMemory(personId);
-    return VIEWABLE_ROLES[role] || [];
-  },
-
-  /**
-   * 当前是否处于只读视角
-   */
-  isReadOnly() {
-    return !!AuthStore.getViewRole();
-  },
-
   // ── 兼容旧 API（过渡期保留，后续删除）──────────
   /** @deprecated 使用 AuthStore.canDo() 替代 */
   canManage(role) {

@@ -1085,13 +1085,16 @@ textarea.input-flat {
   border-color: var(--primary-200);
 }
 
-/* ── 主题三态切换按钮（T231 书记决策 2026-08-07：浅色/跟随系统/深色）── */
+/* ── 主题三态切换按钮（T231 书记决策 2026-08-07：浅色/跟随系统/深色）──
+   2026-08-08 改造：与「工作台颜色」色块合并为同一排（书记指令），
+   侧边栏选择器统一命名「工作台颜色选择」 */
 .sidebar-theme-toggle {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   padding: 4px 8px;
   margin-bottom: 8px;
+  flex-wrap: nowrap;
 }
 
 .theme-btn {

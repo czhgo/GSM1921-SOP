@@ -1,15 +1,29 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  inspection.js — 考察记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType } from '../core/domain.js?v=20260807j';
-import { persist } from '../core/data-adapter.js?v=20260807j';
-import { INSPECTION_RECORDS } from '../mock/index.js?v=20260807j';
-import { TodoStore, TodoSourceType } from './todo.js?v=20260807j';
+import { mockDB, SourceType } from '../core/domain.js?v=20260808e';
+import { persist } from '../core/data-adapter.js?v=20260808e';
+import { INSPECTION_RECORDS } from '../mock/index.js?v=20260808e';
+import { TodoStore, TodoSourceType } from './todo.js?v=20260808e';
+import { loadActivities } from './activity.js?v=20260808e';
 
 export function loadInspectionRecords() {
   return mockDB.inspections.length > 0 ? [...mockDB.inspections] : [...INSPECTION_RECORDS];
+}
+
+/**
+ * 读取活跃活动的考察记录（2026-08-08 归档闭环）
+ * 活动类考察随活动归档退出工作区展示；专班类考察（sourceType=taskforce）保留
+ * （组织/宣传工作台按专班呈现已完结记录，属既有设计）。
+ * ⚠️ 写流程必须使用 loadInspectionRecords 原始版，避免整表写回丢失归档记录。
+ */
+export function loadActiveInspectionRecords() {
+  const activeIds = new Set(loadActivities().filter(a => !a.archived).map(a => a.id));
+  return loadInspectionRecords().filter(r =>
+    r.sourceType === SourceType.TASKFORCE || activeIds.has(r.activityId)
+  );
 }
 
 export function saveInspectionRecords(records) {

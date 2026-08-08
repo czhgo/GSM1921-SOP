@@ -7,15 +7,15 @@
 //         content/04_web_design/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords } from './attendance.js?v=20260807j';
-import { loadActivities } from './activity.js?v=20260807j';
-import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260807j';
-import { TaskForceRecordStore } from './taskforce.js?v=20260807j';
-import { loadActivityReviews } from './review.js?v=20260807j';
-import { NoticeStore } from './notice.js?v=20260807j';
-import { TodoCategory, TodoActionType } from './todo.js?v=20260807j';
-import { getPersonById, PEOPLE } from '../mock/index.js?v=20260807j';
-import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260807j';
+import { loadAttendanceRecords } from './attendance.js?v=20260808e';
+import { loadActivities } from './activity.js?v=20260808e';
+import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260808e';
+import { TaskForceRecordStore } from './taskforce.js?v=20260808e';
+import { loadActivityReviews } from './review.js?v=20260808e';
+import { NoticeStore } from './notice.js?v=20260808e';
+import { TodoCategory, TodoActionType } from './todo.js?v=20260808e';
+import { getPersonById, PEOPLE } from '../mock/index.js?v=20260808e';
+import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260808e';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数
@@ -68,7 +68,7 @@ export const SecretaryOverviewStore = {
   // ── 维度1：考勤与纪律 ──────────────────────────────────────
 
   _computeAttendance() {
-    const records  = loadAttendanceRecords();
+    const records  = loadActiveAttendanceRecords();
     const activities = loadActivities();
     const thisMonth = _thisMonth();
 
@@ -324,7 +324,7 @@ export const SecretaryTodoDeriver = {
 
   // ── 复核类1：纪检已确认考勤但书记未复核 ────────────────
   _aggAttendanceConfirm() {
-    const records = loadAttendanceRecords().filter(r => r.recordedBy && !r.secretaryConfirmedAt);
+    const records = loadActiveAttendanceRecords().filter(r => r.recordedBy && !r.secretaryConfirmedAt);
     return this._mkGroup('attendance-confirm', '考勤待复核', TodoCategory.REVIEW, TodoActionType.REVIEW,
       '纪检已确认考勤 → 书记复核 → 考勤总表', records, 'confirm');
   },
@@ -338,7 +338,7 @@ export const SecretaryTodoDeriver = {
 
   // ── 复核类3：纪检已确认复盘但书记未复核 ────────────────
   _aggReviewConfirm() {
-    const reviews = loadActivityReviews().filter(r => r.reviewStatus === ReviewStatus.CONFIRMED && !r.secretaryConfirmedAt);
+    const reviews = loadActiveActivityReviews().filter(r => r.reviewStatus === ReviewStatus.CONFIRMED && !r.secretaryConfirmedAt);
     return this._mkGroup('review-confirm', '复盘待复核', TodoCategory.REVIEW, TodoActionType.REVIEW,
       '纪检已确认复盘 → 书记复核 → 经验沉淀', reviews, 'confirm');
   },

@@ -3,6 +3,15 @@
 //  tab-bar.js — 通用 Tab 切换组件
 // ════════════════════════════════════════════════════════════════
 
+// 品牌统一层：tab 激活态统一金色（书记 2026-08-08 决策「tab+边框全金」）。
+// 金色 = 党建合规色（--party-gold 系），不经角色派生链路，不受各角色主题色制约。
+// accentColor 参数保留（兼容调用方签名），但激活态颜色一律取金色三件套。
+const GOLD_ACTIVE = {
+  accent: '#B45309',                  // 深金文字（金色浅底上保证对比度）
+  accentRgba: 'rgba(255, 215, 0, 0.14)', // 金色浅底
+  accentBorder: 'rgba(255, 215, 0, 0.45)', // 金色边框
+};
+
 /**
  * 渲染 Tab 栏并绑定切换事件
  *
@@ -44,7 +53,8 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
   }
   let currentTab = activeTab;
 
-  const { accent, accentRgba, accentBorder } = accentColor;
+  // 激活态颜色统一取金色（品牌统一层），不再使用调用方 accentColor
+  const { accent, accentRgba, accentBorder } = GOLD_ACTIVE;
 
   // 生成 Tab 按钮 HTML（active 状态由 CSS 类 + CSS 变量驱动）
   // groupLabel 去重：同组只在首项前渲染标签（独立元素，不嵌在 button 内）
@@ -76,7 +86,9 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
   const html = `<div class="flex flex-wrap gap-2 mb-4">${btnsHtml}${extraHtml}</div><div id="${contentId}"></div>`;
 
   // 延迟绑定事件（调用方在 innerHTML 后调用 bindTabEvents）
+  let boundContainer = null; // 记录绑定容器，供 activate 同步按钮高亮
   function bindEvents(container) {
+    boundContainer = container;
     container.querySelectorAll(`.${btnClass}`).forEach(btn => {
       btn.addEventListener('click', () => {
         // 重置所有 Tab 样式（移除 active 类 + 清空 inline style）
@@ -110,8 +122,21 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
   }
 
   // 激活指定 Tab
+  // 2026-08-08 修复：同步按钮高亮（原实现只渲染内容不换高亮，
+  // 导致首页跳转 ?activityId= 后内容已切 tab 而按钮高亮仍停留在记忆的默认 tab）
   function activate(tabId, ctx) {
     currentTab = tabId;
+    if (boundContainer) {
+      boundContainer.querySelectorAll(`.${btnClass}`).forEach(b => {
+        b.classList.remove('tab-btn-active');
+        b.removeAttribute('style');
+      });
+      const btn = boundContainer.querySelector(`.${btnClass}[${dataAttr}="${tabId}"]`);
+      if (btn) {
+        btn.classList.add('tab-btn-active');
+        btn.setAttribute('style', `--tab-accent:${accent};--tab-accent-bg:${accentRgba};--tab-accent-border:${accentBorder}`);
+      }
+    }
     const tab = tabs.find(t => t.id === tabId);
     if (tab && typeof tab.render === 'function') {
       try {

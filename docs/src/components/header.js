@@ -1,14 +1,14 @@
 ﻿﻿// role: [工程师]+[AI]
 // components/header.js — 共享顶栏组件（重构版）
-// 变化: 去掉 mode 标签，改为当前身份标签 + 只读切换下拉
+// 变化: 去掉 mode 标签与只读视角切换，仅保留身份标签 + 工作台切换下拉
 
-import { AuthStore } from '../services/auth.js?v=20260807j';
-import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260807j';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260807j';
-import { getBasePath } from '../core/utils.js?v=20260807j';
-import { icon } from '../core/icons.js?v=20260807j';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260807j';
-import { badgeHtml } from './badge.js?v=20260807j';
+import { AuthStore } from '../services/auth.js?v=20260808e';
+import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260808e';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260808e';
+import { getBasePath } from '../core/utils.js?v=20260808e';
+import { icon } from '../core/icons.js?v=20260808e';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260808e';
+import { badgeHtml } from './badge.js?v=20260808e';
 
 // 数据变更订阅（2026-08-05，消除"确认已读后角标不更新"）：
 // 模块顶层绑定一次；_renderNotificationBadge 在 #notification-bell 未渲染时静默返回。
@@ -46,17 +46,10 @@ function _roleLabelHTML(role) {
   if (role === 'participant') return '';
   const { accent } = getAccentColors(resolveAccentRole(role));
   const label = ROLE_LABELS[role] || role;
-  const viewRole = AuthStore.getViewRole();
-
-  let text = label;
-  if (viewRole) {
-    const viewLabel = ROLE_LABELS[viewRole] || viewRole;
-    text = `${label} · 查看 ${viewLabel}`;
-  }
 
   return `
     <div class="role-label" id="role-label" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:var(--radius-sm);background:${accent};border:none;">
-      <span class="text-xs font-medium" style="color:#FFFFFF;">${text}</span>
+      <span class="text-xs font-medium" style="color:#FFFFFF;">${label}</span>
     </div>
   `;
 }
@@ -64,7 +57,7 @@ function _roleLabelHTML(role) {
 function _viewSwitcherHTML(role, user) {
   if (!user) return '';
 
-  // ── 组1：切换工作台身份（有独立页面的身份） ──
+  // ── 切换工作台身份（有独立页面的身份） ──
   const workspaces = [];
   // 1a. 常设角色对应工作台（排除 participant，因为 participant 默认就是首页）
   const standingPage = AuthStore.getPageForRole('workspace', role);
@@ -90,27 +83,8 @@ function _viewSwitcherHTML(role, user) {
     });
   }
 
-  // ── 组2：查看视角（仅支委可见，移除 organizer/deep 死代码后只剩 leader） ──
-  const viewableRoles = (AuthStore.getViewableRoles(role) || []).filter(r => r === 'leader');
-  const currentView = AuthStore.getViewRole();
-  const views = viewableRoles.map(r => ({
-    type: 'view',
-    role: r,
-    label: `${ROLE_LABELS[r] || r} 视角`,
-    isCurrent: r === currentView,
-  }));
-  // 增加"取消视角"项（当前处于视角时显示）
-  if (currentView) {
-    views.push({
-      type: 'view',
-      role: '',
-      label: '取消视角',
-      isCurrent: false,
-    });
-  }
-
-  // 两组都为空时隐藏按钮（单一身份的普通参与者）
-  if (workspaces.length === 0 && views.length === 0) return '';
+  // 全部为空时隐藏按钮（单一身份的普通参与者）
+  if (workspaces.length === 0) return '';
 
   // 渲染分组
   let groupsHTML = '';
@@ -126,26 +100,11 @@ function _viewSwitcherHTML(role, user) {
       `).join('')}
     `;
   }
-  if (views.length > 0) {
-    if (workspaces.length > 0) {
-      groupsHTML += '<div style="height:1px;background:#F3F4F6;margin:4px 0;"></div>';
-    }
-    groupsHTML += `
-      <div style="padding:6px 12px;color:var(--neutral-400);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;" class="text-xs">查看视角</div>
-      ${views.map(v => `
-        <div class="view-option text-body-sm" data-type="view" data-role="${v.role}" style="position:relative;padding:8px 12px;cursor:pointer;color:var(--neutral-800);transition:background 0.15s;">
-          ${v.isCurrent ? '<span style="position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--party-gold);border-radius:1px;"></span>' : ''}
-          <span>${v.label}</span>
-          ${v.isCurrent ? '<span style="margin-left:auto;color:var(--neutral-400);" class="text-xs">当前</span>' : ''}
-        </div>
-      `).join('')}
-    `;
-  }
 
   return `
     <div id="view-switcher" style="position:relative;">
       <button id="view-switcher-btn" style="display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:8px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.25);color:#FFFFFF;cursor:pointer;transition:background 0.15s;white-space:nowrap;" class="text-body-sm">
-        <span>我的视角</span>
+        <span>切换工作台</span>
         <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style="flex-shrink:0;"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <div id="view-switcher-panel" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;min-width:200px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);background:var(--surface-card);color:var(--neutral-800);overflow:hidden;z-index:100;border:1px solid #E5E7EB;">
@@ -249,39 +208,17 @@ function _bindViewSwitcher(header) {
     btn.style.background = 'rgba(255,255,255,0.1)';
   });
 
-  // 点击选项项（区分 workspace 跳转 和 view 视角切换）
+  // 点击选项项（工作台跳转：<a> 标签自动跳转，这里只需关闭面板）
   panel.querySelectorAll('.view-option').forEach(opt => {
     opt.addEventListener('mouseenter', () => {
       opt.style.background = 'var(--surface-hover)';
     });
     opt.addEventListener('mouseleave', () => {
-      const isSelected = opt.dataset.type === 'view' && opt.dataset.role === AuthStore.getViewRole();
-      opt.style.background = isSelected ? 'var(--surface-hover)' : 'transparent';
+      opt.style.background = 'transparent';
     });
     opt.addEventListener('click', (e) => {
-      const type = opt.dataset.type;
-      if (type === 'workspace') {
-        // workspace 类型：<a> 标签会自动跳转，这里只需关闭面板
-        e.stopPropagation();
-        panel.classList.add('hidden');
-        return;
-      }
-      // view 类型：切换只读视角
       e.stopPropagation();
-      e.preventDefault();
-      const targetRole = opt.dataset.role;
-      const prevRole = AuthStore.getViewRole();
-      if (targetRole) {
-        AuthStore.switchView(targetRole);
-      } else {
-        AuthStore.clearView();
-      }
-      document.dispatchEvent(new CustomEvent('view-role-change', {
-        detail: { viewRole: targetRole || '', prevRole }
-      }));
-      _rerenderRoleLabel();
       panel.classList.add('hidden');
-      _refreshViewSwitcherSelection(panel);
     });
   });
 
@@ -298,46 +235,6 @@ function _bindViewSwitcher(header) {
       panel.classList.add('hidden');
     }
   });
-}
-
-// 刷新自定义下拉的选中态（仅 view 类型有选中态；workspace 类型选中态在渲染时固定）
-function _refreshViewSwitcherSelection(panel) {
-  const currentView = AuthStore.getViewRole();
-  panel.querySelectorAll('.view-option[data-type="view"]').forEach(opt => {
-    const r = opt.dataset.role;
-    const isSelected = r === currentView && r !== '';
-    // "取消视角"项在已有视角时高亮
-    const isCancelActive = r === '' && currentView !== '';
-    const highlight = isSelected || isCancelActive;
-    // 更新左侧竖条
-    const existingBar = opt.querySelector('span[style*="party-gold"]');
-    if (highlight && !existingBar) {
-      const bar = document.createElement('span');
-      bar.style.cssText = 'position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--party-gold);border-radius:1px;';
-      opt.prepend(bar);
-    } else if (!highlight && existingBar) {
-      existingBar.remove();
-    }
-    opt.style.background = highlight ? 'var(--surface-hover)' : 'transparent';
-  });
-}
-
-// 重新渲染顶栏角色标签（不重载整个 header）
-function _rerenderRoleLabel() {
-  const user = AuthStore.getCurrentUser();
-  const role = user?.role || '';
-  const labelEl = document.getElementById('role-label');
-  if (!labelEl) return;
-  // 复用 _roleLabelHTML 逻辑，仅更新 text
-  const label = ROLE_LABELS[role] || role;
-  const viewRole = AuthStore.getViewRole();
-  let text = label;
-  if (viewRole) {
-    const viewLabel = ROLE_LABELS[viewRole] || viewRole;
-    text = `${label} · 查看 ${viewLabel}`;
-  }
-  const span = labelEl.querySelector('span');
-  if (span) span.textContent = text;
 }
 
 function _bindNotificationBell(header) {

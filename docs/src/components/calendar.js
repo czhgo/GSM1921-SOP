@@ -1,15 +1,15 @@
-﻿﻿// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  calendar.js — 日历渲染引擎（P2-7 多视图升级）
 //  包含：renderCalendarByActivities, populateMonthSelector
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../core/state.js?v=20260807j';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260807j';
-import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260807j';
-import { filterTasksByManagementRole } from './inspector.js?v=20260807j';
-import { badgeHtml } from './badge.js?v=20260807j';
+import { getAppState, setState } from '../core/state.js?v=20260808e';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260808e';
+import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260808e';
+import { filterTasksByManagementRole } from './inspector.js?v=20260808e';
+import { badgeHtml } from './badge.js?v=20260808e';
 
 const VIEW_LABELS = { month: '月', week: '周', day: '日', list: '列表' };
 
@@ -412,7 +412,7 @@ function _renderCellContent(dateKey, activeActivities, ct, hasActivity, tasks, s
     });
     if (dayActs.length > maxItems) html += `<div class=" text-[11px] text-gray-400 text-center mt-0.5">+${dayActs.length - maxItems} 项活动</div>`;
   } else {
-    // 管理视图：先渲染活动条目（可点击进入详情）
+    // 非参与者模式：先渲染活动条目（可点击进入详情）
     const dayActs = activeActivities.filter(a => a.date === dateKey);
     if (dayActs.length > 0) {
       dayActs.slice(0, maxItems).forEach(act => {
@@ -505,7 +505,7 @@ function _renderMobileDots(dateKey, activeActivities, ct, hasActivity, tasks, st
       html += '</div>';
     }
   } else {
-    // 管理视图：收集所有颜色点
+    // 非参与者模式：收集所有颜色点
     const dots = [];
     if (hasActivity) {
       const dateActRoles = activeActivities.filter(a => a.date === dateKey).map(a => a.executor || 'all');

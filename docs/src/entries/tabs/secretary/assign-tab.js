@@ -1,18 +1,18 @@
-﻿﻿// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // entries/tabs/secretary/assign-tab.js — 书记工作台·赋权管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：常设赋权（设党小组组长）+ 项目赋权（organizer/deep）。
 
-import { showToast } from '../../../core/utils.js?v=20260807j';
-import { AuthStore } from '../../../services/auth.js?v=20260807j';
-import { getPersonById, PEOPLE } from '../../../mock/index.js?v=20260807j';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260807j';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260807j';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260807j';
-import { loadActivities } from '../../../services/activity.js?v=20260807j';
-import { badgeHtml } from '../../../components/badge.js?v=20260807j';
-import { TodoStore } from '../../../services/todo.js?v=20260807j';
+import { showToast } from '../../../core/utils.js?v=20260808e';
+import { AuthStore } from '../../../services/auth.js?v=20260808e';
+import { getPersonById, PEOPLE } from '../../../mock/index.js?v=20260808e';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260808e';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260808e';
+import { ROLE_LABELS, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260808e';
+import { loadActivities } from '../../../services/activity.js?v=20260808e';
+import { badgeHtml } from '../../../components/badge.js?v=20260808e';
+import { TodoStore } from '../../../services/todo.js?v=20260808e';
 
-const accent = '#B91C1C';
+const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 
 const ASSIGN_TAB_HTML = `
   <div class="card rounded-2xl p-6 mb-6">
@@ -339,7 +339,7 @@ function renderAuthPanel(assignArea) {
     authPanel.personPicker = new PersonPicker({
       mode: 'single',
       placeholder: '选择同志',
-      accentColor: '#B91C1C',
+      accentColor: accent,
       onSelect: (ids) => {
         authPanel.selectedPersonId = ids[0] || null;
       },
