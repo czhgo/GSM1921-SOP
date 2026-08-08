@@ -13,7 +13,7 @@ const CPS_PREFIX = 'cps-';  // 单值参数前缀，与 SESSION_KEY 区隔
  * 每次更新 docs/src 下的 mock/服务代码时，将本常量 +1，所有页面首次打开会自动刷新一次加载新模块。
  * 自检逻辑见 bootstrapPage()。
  */
-const CODE_VERSION = 16;
+const CODE_VERSION = 17;
 
 export const CrossPageState = {
   save(session) {

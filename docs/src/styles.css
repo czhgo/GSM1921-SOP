@@ -1156,14 +1156,17 @@ textarea.input-flat {
   transform: scale(1.1);
 }
 
-/* hover 显示当前主题色名（不再写在侧边栏下方） */
+/* hover 显示当前主题色名（不再写在侧边栏下方）
+   2026-08-08 修复：tooltip 由 left:100%（向右展开）改为 right:100%（向左展开）。
+   侧边栏 overflow-y:auto 会隐式触发 overflow-x:auto，向右的 tooltip 会被侧边栏
+   右边缘裁剪（书记反馈「面板往右看不见」）。色块在侧边栏右侧，向左弹出在容器内。 */
 .accent-swatch::after {
   content: attr(data-label);
   position: absolute;
-  left: 100%;
+  right: 100%;
   top: 50%;
-  transform: translateY(-50%) translateX(-4px);
-  margin-left: 8px;
+  transform: translateY(-50%) translateX(4px);
+  margin-right: 8px;
   padding: 2px 8px;
   background: var(--surface-elevated);
   border: 1px solid var(--neutral-200);

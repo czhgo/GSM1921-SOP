@@ -1,15 +1,15 @@
 ﻿﻿// role: [工程师]+[AI]
 // issue-detail.js — 反馈详情渲染
 
-import { IssueStore } from '../services/issues.js?v=20260808e';
-import { MilestoneStore } from '../services/milestones.js?v=20260808e';
-import { AuthStore } from '../services/auth.js?v=20260808e';
-import { showToast } from '../core/utils.js?v=20260808e';
-import { icon } from '../core/icons.js?v=20260808e';
-import { getPersonName } from '../mock/index.js?v=20260808e';
-import { renderReactions, bindReactions } from './reactions.js?v=20260808e';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260808e';
-import { badgeHtml } from './badge.js?v=20260808e';
+import { IssueStore } from '../services/issues.js?v=20260808f';
+import { MilestoneStore } from '../services/milestones.js?v=20260808f';
+import { AuthStore } from '../services/auth.js?v=20260808f';
+import { showToast } from '../core/utils.js?v=20260808f';
+import { icon } from '../core/icons.js?v=20260808f';
+import { getPersonName } from '../mock/index.js?v=20260808f';
+import { renderReactions, bindReactions } from './reactions.js?v=20260808f';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260808f';
+import { badgeHtml } from './badge.js?v=20260808f';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
