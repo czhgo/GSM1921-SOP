@@ -1,16 +1,16 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // entries/tabs/secretary/feedback-tab.js — 书记工作台·反馈管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260808l';
-import { showToast } from '../../../core/utils.js?v=20260808l';
-import { icon } from '../../../core/icons.js?v=20260808l';
-import { AuthStore } from '../../../services/auth.js?v=20260808l';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260808l';
-import { getPersonName } from '../../../mock/index.js?v=20260808l';
-import { PersonStore } from '../../../services/person.js?v=20260808l';
-import { badgeHtml, badgeVariantClass } from '../../../components/badge.js?v=20260808l';
+import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260808m';
+import { showToast } from '../../../core/utils.js?v=20260808m';
+import { icon } from '../../../core/icons.js?v=20260808m';
+import { AuthStore } from '../../../services/auth.js?v=20260808m';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260808m';
+import { getPersonName } from '../../../mock/index.js?v=20260808m';
+import { PersonStore } from '../../../services/person.js?v=20260808m';
+import { badgeHtml, badgeVariantClass } from '../../../components/badge.js?v=20260808m';
 
 const FEEDBACK_TAB_HTML = `
   <!-- 列表面板 -->
@@ -92,6 +92,31 @@ function _submitterTip(personId) {
   return [p.name, p.studentId, p.developStage, p.partyGroup].filter(Boolean).join(' · ');
 }
 
+// ── 分页（T-234 F2 分页铁律：反馈无上限增长，每页 10 条 + 页码窗口，搜索/筛选归 1）──
+const ISSUE_PAGE_SIZE = 10;
+let _issuePageState = 1;
+
+/** 分页控件（复用公开 issue-list / 归档库模式） */
+function _renderFeedbackPager(total) {
+  const pages = Math.max(1, Math.ceil(total / ISSUE_PAGE_SIZE));
+  const cur = Math.min(_issuePageState, pages);
+  if (pages <= 1) return '';
+  const nums = [];
+  const end = Math.min(pages, Math.max(cur, 3) + 2);
+  for (let i = Math.max(1, end - 4); i <= end; i++) nums.push(i);
+  return `
+    <div class="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
+      <span class="text-xs text-gray-400">共 ${total} 条 · 第 ${cur} / ${pages} 页</span>
+      <div class="flex items-center gap-1">
+        <button type="button" class="feedback-page-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-feedback-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
+        ${nums.map(n => `
+          <button type="button" class="feedback-page-btn text-xs px-2.5 py-1 rounded-lg border ${n === cur ? 'chip-accent-on' : 'border-gray-200 hover:bg-gray-50'}" data-feedback-page="${n}">${n}</button>
+        `).join('')}
+        <button type="button" class="feedback-page-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-feedback-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
+      </div>
+    </div>`;
+}
+
 function renderIssueManagement() {
   // ── 草稿审核 ──
   const draftsEl = document.getElementById('issue-drafts-list');
@@ -148,7 +173,12 @@ function renderIssueManagement() {
     if (filtered.length === 0) {
       listEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">无匹配反馈</p>';
     } else {
-      listEl.innerHTML = filtered.map(i => {
+      // 分页切片（T-234 F2：筛选变化后页码自动收敛）
+      const fbPages = Math.max(1, Math.ceil(filtered.length / ISSUE_PAGE_SIZE));
+      _issuePageState = Math.min(_issuePageState, fbPages);
+      const pageItems = filtered.slice((_issuePageState - 1) * ISSUE_PAGE_SIZE, _issuePageState * ISSUE_PAGE_SIZE);
+
+      listEl.innerHTML = pageItems.map(i => {
         const ds = deriveIssueDisplayState(i);
         const assigneeLabel = i.assigneeRole ? ROLE_LABELS[i.assigneeRole] || i.assigneeRole : null;
         const isReviewUnread = IssueNotify.getSecretaryReviewUnread().includes(i.id);
@@ -168,8 +198,9 @@ function renderIssueManagement() {
               ? `<span class="tip-trigger" data-tip="${submitterTip}">${getPersonName(i.submittedBy)}</span>`
               : (getPersonName(i.submittedBy) || '匿名')} · ${i.commentCount || 0} 评论 · ${i.submittedAt}</div>
           </div>
-        `;
+      `;
       }).join('');
+      listEl.insertAdjacentHTML('beforeend', _renderFeedbackPager(filtered.length));
 
       // 绑定点击事件 → 打开详情面板
       listEl.querySelectorAll('[data-issue-action="open-detail"]').forEach(el => {
@@ -177,15 +208,26 @@ function renderIssueManagement() {
           openIssueDetail(el.dataset.issueId);
         });
       });
+
+      // 绑定分页按钮（T-234 F2）
+      listEl.querySelectorAll('.feedback-page-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          _issuePageState = parseInt(btn.dataset.feedbackPage, 10) || 1;
+          renderIssueManagement();
+        });
+      });
     }
   }
 
-  // 筛选联动
+  // 筛选联动（T-234 F2 铁律：搜索/筛选变化页码归 1）
   ['issue-filter-status', 'issue-filter-assignee', 'issue-filter-keyword'].forEach(id => {
     const el = document.getElementById(id);
     if (el && !el.dataset.bound) {
       el.dataset.bound = '1';
-      el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', () => renderIssueManagement());
+      el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', () => {
+        _issuePageState = 1;
+        renderIssueManagement();
+      });
     }
   });
 
@@ -200,6 +242,7 @@ function renderIssueManagement() {
       if (statusSel) statusSel.value = 'all';
       if (assigneeSel) assigneeSel.value = 'all';
       if (keywordInput) keywordInput.value = '';
+      _issuePageState = 1;
       renderIssueManagement();
     });
   }

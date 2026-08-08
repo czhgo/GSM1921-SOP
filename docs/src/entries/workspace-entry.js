@@ -3,8 +3,8 @@
 // 变化: 去掉角色选择面板，改为自动跳转到角色子页面
 // 第3轮 Task 3: 加入 ROUTE_LOCK 防护 + 使用 getEffectiveRole
 
-import { AuthStore } from '../services/auth.js?v=20260808l';
-import { getBasePath } from '../core/utils.js?v=20260808l';
+import { AuthStore } from '../services/auth.js?v=20260808m';
+import { getBasePath } from '../core/utils.js?v=20260808m';
 
 // ── 跳转循环防护 ──────────────────────────────────
 // 500ms 内同角色不重复跳转，防止快速点击导致反复跳转

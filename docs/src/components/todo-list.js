@@ -12,8 +12,8 @@ import {
   TodoStatus,
   TODO_STATUS_LABELS,
   DEFAULT_EXPANDED_CATEGORIES,
-} from '../services/todo.js?v=20260808l';
-import { badgeHtml } from './badge.js?v=20260808l';
+} from '../services/todo.js?v=20260808m';
+import { badgeHtml } from './badge.js?v=20260808m';
 
 /**
  * 渲染待办列表组件
@@ -43,6 +43,8 @@ export function renderTodoList(opts) {
     groupedAggregates = null,
     // 行动按钮自定义内联样式（默认使用角色 accent 实心；visitor 传金色系，T-144 推广轮 2026-08-01）
     actionBtnStyle = '',
+    // 空态引导文案（T-234 W1：默认通用引导；各工作台可 per-role 覆盖）
+    emptyHint = '当前暂无待办。有新的活动、通知或待审事项时，会第一时间出现在这里。',
   } = opts;
 
   const today = new Date().toISOString().slice(0, 10);
@@ -100,8 +102,7 @@ export function renderTodoList(opts) {
 
   const emptyHtml = (!groupsHtml) ? `
     <div class="text-center py-12 text-gray-400">
-      <p class="text-sm">暂无待办</p>
-      <p class="text-xs mt-1">所有任务已完成</p>
+      <p class="text-sm">${emptyHint}</p>
     </div>
   ` : '';
 

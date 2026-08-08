@@ -1,20 +1,20 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../components/sidebar.js?v=20260808l';
-import { renderHeader } from '../components/header.js?v=20260808l';
-import { BranchService } from '../services/runtime.js?v=20260808l';
-import { mockDB } from '../core/domain.js?v=20260808l';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808l';
-import { NoticeStore } from '../services/notice.js?v=20260808l';
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_STATUS_LABELS, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260808l';
-import { AuthStore } from '../services/auth.js?v=20260808l';
-import { getPersonById } from '../mock/index.js?v=20260808l';
-import { getBasePath, showToast } from '../core/utils.js?v=20260808l';
-import { getActivityTypeColors } from '../core/constants.js?v=20260808l';
-import { badgeHtml } from '../components/badge.js?v=20260808l';
-import { enhanceSelects } from '../components/custom-select.js?v=20260808l';
+import { renderSidebar } from '../components/sidebar.js?v=20260808m';
+import { renderHeader } from '../components/header.js?v=20260808m';
+import { BranchService } from '../services/runtime.js?v=20260808m';
+import { mockDB } from '../core/domain.js?v=20260808m';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808m';
+import { NoticeStore } from '../services/notice.js?v=20260808m';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_STATUS_LABELS, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260808m';
+import { AuthStore } from '../services/auth.js?v=20260808m';
+import { getPersonById } from '../mock/index.js?v=20260808m';
+import { getBasePath, showToast } from '../core/utils.js?v=20260808m';
+import { getActivityTypeColors } from '../core/constants.js?v=20260808m';
+import { badgeHtml } from '../components/badge.js?v=20260808m';
+import { enhanceSelects } from '../components/custom-select.js?v=20260808m';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

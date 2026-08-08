@@ -1,12 +1,12 @@
 ﻿﻿// role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../services/issues.js?v=20260808l';
-import { AuthStore } from '../services/auth.js?v=20260808l';
-import { icon } from '../core/icons.js?v=20260808l';
-import { getPersonName } from '../mock/index.js?v=20260808l';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260808l';
-import { badgeHtml } from './badge.js?v=20260808l';
+import { IssueStore } from '../services/issues.js?v=20260808m';
+import { AuthStore } from '../services/auth.js?v=20260808m';
+import { icon } from '../core/icons.js?v=20260808m';
+import { getPersonName } from '../mock/index.js?v=20260808m';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260808m';
+import { badgeHtml } from './badge.js?v=20260808m';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -31,6 +31,31 @@ const TYPE_COLORS = {
 
 let _filterState = { status: 'all', scope: 'all', type: 'all', milestone: 'all', keyword: '' };
 
+// ── 分页（T-234 F2 分页铁律：反馈无上限增长，每页 10 条 + 页码窗口，搜索/筛选归 1）──
+const PAGE_SIZE = 10;
+let _pageState = 1;
+
+/** 分页控件（复用归档库模式） */
+function _renderIssuePager(total) {
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const cur = Math.min(_pageState, pages);
+  if (pages <= 1) return '';
+  const nums = [];
+  const end = Math.min(pages, Math.max(cur, 3) + 2);
+  for (let i = Math.max(1, end - 4); i <= end; i++) nums.push(i);
+  return `
+    <div class="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
+      <span class="text-xs text-gray-400">共 ${total} 条 · 第 ${cur} / ${pages} 页</span>
+      <div class="flex items-center gap-1">
+        <button type="button" class="issue-page-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-issue-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
+        ${nums.map(n => `
+          <button type="button" class="issue-page-btn text-xs px-2.5 py-1 rounded-lg border ${n === cur ? 'chip-accent-on' : 'border-gray-200 hover:bg-gray-50'}" data-issue-page="${n}">${n}</button>
+        `).join('')}
+        <button type="button" class="issue-page-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-issue-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
+      </div>
+    </div>`;
+}
+
 export function renderIssueList() {
   const container = document.getElementById('issue-list-container');
   if (!container) return;
@@ -38,6 +63,11 @@ export function renderIssueList() {
   const filtered = IssueStore.filter(_filterState);
   const counts = IssueStore.countByStatus();
   const canCreate = true; // 全支部成员可创建
+
+  // 分页切片（筛选变化后页码自动收敛）
+  const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  _pageState = Math.min(_pageState, pages);
+  const pageItems = filtered.slice((_pageState - 1) * PAGE_SIZE, _pageState * PAGE_SIZE);
 
   container.innerHTML = `
     <div class="card rounded-2xl p-6 mb-4">
@@ -66,8 +96,9 @@ export function renderIssueList() {
       <div id="issue-list" class="space-y-2">
         ${filtered.length === 0
           ? '<p class="text-sm text-gray-400 text-center py-8">暂无匹配反馈。欢迎提交第一条！</p>'
-          : filtered.map(renderIssueRow).join('')}
+          : pageItems.map(renderIssueRow).join('')}
       </div>
+      ${_renderIssuePager(filtered.length)}
     </div>
   `;
 
@@ -136,10 +167,19 @@ function bindEvents() {
     });
   });
 
-  // 筛选器
+  // 分页按钮（T-234 F2：翻页重渲染；数据变化后页码自动收敛于 _renderIssuePager）
+  document.querySelectorAll('.issue-page-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _pageState = parseInt(btn.dataset.issuePage, 10) || 1;
+      renderIssueList();
+    });
+  });
+
+  // 筛选器（T-234 F2 铁律：搜索/筛选变化页码归 1）
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       _filterState.status = btn.dataset.status;
+      _pageState = 1;
       renderIssueList();
     });
   });
@@ -147,21 +187,25 @@ function bindEvents() {
   // 清除筛选（搜索框 + 状态 + 范围/类型 全部复位）
   document.getElementById('filter-clear')?.addEventListener('click', () => {
     _filterState = { status: 'all', scope: 'all', type: 'all', milestone: 'all', keyword: '' };
+    _pageState = 1;
     renderIssueList();
   });
 
   document.getElementById('filter-scope')?.addEventListener('change', (e) => {
     _filterState.scope = e.target.value;
+    _pageState = 1;
     renderIssueList();
   });
 
   document.getElementById('filter-type')?.addEventListener('change', (e) => {
     _filterState.type = e.target.value;
+    _pageState = 1;
     renderIssueList();
   });
 
   document.getElementById('filter-keyword')?.addEventListener('input', (e) => {
     _filterState.keyword = e.target.value;
+    _pageState = 1;
     renderIssueList();
   });
 }

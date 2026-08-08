@@ -1,26 +1,26 @@
-﻿import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260808l';
-import { BranchService } from '../services/runtime.js?v=20260808l';
-import { showToast } from '../core/utils.js?v=20260808l';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260808l';
-import { AuthStore } from '../services/auth.js?v=20260808l';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260808l';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808l';
-import { PersonPicker } from '../components/person-picker.js?v=20260808l';
-import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js?v=20260808l';
-import { mockDB, SourceType, ParticipationLevel } from '../core/domain.js?v=20260808l';
-import { persist } from '../core/data-adapter.js?v=20260808l';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260808l';
-import { renderTabBar } from '../components/tab-bar.js?v=20260808l';
-import { renderQueryView } from '../components/query-view.js?v=20260808l';
-import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260808l';
-import { loadActivities } from '../services/activity.js?v=20260808l';
-import { icon } from '../core/icons.js?v=20260808l';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260808l';
-import { renderTodoList } from '../components/todo-list.js?v=20260808l';
-import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260808l';
-import { NoticeStore } from '../services/notice.js?v=20260808l';
-import { SignupStore, resolveSignupReviewer, SignupStatus } from '../services/signup.js?v=20260808l';
-import { badgeHtml } from '../components/badge.js?v=20260808l';
+﻿import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260808m';
+import { BranchService } from '../services/runtime.js?v=20260808m';
+import { showToast } from '../core/utils.js?v=20260808m';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260808m';
+import { AuthStore } from '../services/auth.js?v=20260808m';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260808m';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808m';
+import { PersonPicker } from '../components/person-picker.js?v=20260808m';
+import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js?v=20260808m';
+import { mockDB, SourceType, ParticipationLevel } from '../core/domain.js?v=20260808m';
+import { persist } from '../core/data-adapter.js?v=20260808m';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260808m';
+import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
+import { renderQueryView } from '../components/query-view.js?v=20260808m';
+import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260808m';
+import { loadActivities } from '../services/activity.js?v=20260808m';
+import { icon } from '../core/icons.js?v=20260808m';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260808m';
+import { renderTodoList } from '../components/todo-list.js?v=20260808m';
+import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260808m';
+import { NoticeStore } from '../services/notice.js?v=20260808m';
+import { SignupStore, resolveSignupReviewer, SignupStatus } from '../services/signup.js?v=20260808m';
+import { badgeHtml } from '../components/badge.js?v=20260808m';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'org-commissioner' });
 
@@ -241,6 +241,14 @@ function _renderTodoDetail(todo) {
 }
 
 function _handleTodoAction(todo) {
+  // 通知阅读待办（T-234 F1）：直达通知详情页（聚合时取首条 noticeId）
+  const firstNotice = (todo.items && todo.items[0]) || todo;
+  if (firstNotice.sourceType === 'notice' && (firstNotice.actionData?.noticeId || todo.actionData?.noticeId)) {
+    const noticeId = firstNotice.actionData?.noticeId || todo.actionData?.noticeId;
+    const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
+    window.location.href = `${basePath}notice.html?id=${noticeId}`;
+    return;
+  }
   // 报名审核待办（T233）：直达活动/专班详情页（多源聚合时取首条 sourceId）
   if (todo.actionKey === 'signup-review' || (todo.actionType === 'review' && ((todo.actionData && todo.actionData.signupId) || (todo.items || []).some(i => i.actionData && i.actionData.signupId)))) {
     const first = (todo.items && todo.items[0]) || todo;

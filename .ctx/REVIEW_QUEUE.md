@@ -5,69 +5,50 @@
 
 ---
 
-## 当前轮次：T-117 理论复用评议·第4轮——跨目录复用断链检查（2026-08-06）
+## 当前轮次：T-234 最小三成本原则评议·第1轮——五场景工作流通顺性检查（2026-08-08）
 
-> 沿用 H5.8.2 四类问题维度（A 断裂链接 / B 已删引用 / C 拓扑错误 / D 表述）。
+> 评议准则：DESIGN_SYSTEM §一 第2条 最小三成本（信息成本/操作成本/适应学习成本）+ §一 第8条 降低填写负担 + §一 第7条 同一套数据 + 2026-08-08 分页铁律（无上限增长数据必须分页）。
+> 方法：设定 5 个具体角色场景，从代码层面逐环节核查工作流是否通顺。
 
 ### 预审报告（AI 产出，等待书记裁决）
 
-**范围**：content/ 全部 5 子目录 + insights/ 的 25 个 .md（168 处链接逐条验证）+ docs/ 14 个 HTML（script src 31 处 + href 42 处）+ docs/src/ import 路径 + server/（db.js 资源表 / routes / seed）+ 权威基线 .ctx/SNAPSHOT.md 双向核对。
+**场景 1 · 信息成本：党员进入工作台第一眼能否看到"我需要做什么"？**
+- ✅ 六工作台默认 tab=待办，聚合卡（同跳转合并+数量角标）+ flow 数据上下游标注 + 紧急/过期徽章，进入即见
+- ✅ 书记待办为实时计算（`SecretaryTodoDeriver.computeAggregates` 4提醒+4复核）+ 种子行动类，无需手工维护
+- ⚠️ **W1 空态误导**：组长/组织/纪检/参与者待办全部依赖业务数据派生（活动创建→组长赋权、专班创建→组织赋权、书记催办→纪检/宣传），无种子兜底。无业务数据时显示"暂无待办/所有任务已完成"——新用户可能误以为无需任何工作（适应学习成本）。是否接受？
 
-**汇总**：A 断裂链接 0 条 ｜ B 已删引用 12 条 ｜ C 拓扑错误 12 条 ｜ D 表述存疑 3 条
+**场景 2 · 操作成本：待办行动按钮能否 1 次直达可操作状态？**
+- ✅ 书记：`authorize→assign` 自动展开对应赋权面板（t5c 最佳实践）、`signup-review→活动详情页`、提醒类→活动管理
+- ✅ 组长/组织：`authorize→对应 tab`+自动展开项目卡（≤2跳）、`signup-review→详情页`；纪检：confirm 四类全映射；参与者：通知直达 `notice.html`（模板）
+- ❌ **F1 通知阅读待办无跳转（确凿缺陷）**：组长/组织/宣传/书记 4 工作台 `_handleTodoAction` 无 `read` 分支——通知类待办（actionType=read）点击"去阅读"仅 toast「请处理」，不跳转。实测链路：书记全局概况「归档催办」→ `NoticeStore.add(actionable, actionRoles:[prop])` → 派生宣传委员 read 待办 → 宣传点按钮**无效**（其 tabMap 仅 submit/archive）。与参与者直达 `notice.html` 行为不一致。建议：4 工作台统一补 `notice-read → notice.html?id=` 直达（仿 visitor）。
 
-### A 断裂链接：0 条（全部 168 处链接目标均存在）
+**场景 3 · 反馈闭环：匿名提交→书记审核→正式答复→关闭是否通顺？**
+- ✅ 匿名开关（checkbox）→ `submittedBy='匿名'` + `_realPersonId` 仅书记可追溯（详情面板主题色标注）
+- ✅ 正式答复栏（kind='reply'）+ 时间线主题色徽标；公开列表不泄露（提交人显示"匿名"）
+- ⚠️ **W2 草稿无感知**：参与者提交反馈 → 进草稿（书记审核）→ 通过前参与者无任何"已收到/处理中"反馈（降低填写负担原则：`action_completed` 必须有正向反馈——目前仅提交瞬间 toast）。是否增设提交后状态提示？
+- ⚠️ **W3 数据同源疑点（原则7）**：活动参与人 = 创建时内联 `activity.assignments`；项目赋权 = `AuthStore.authorize(organizer/deep)` 独立授权记录。两套入口是否应整合进活动数据流（同一套数据）？请裁定。
 
-### B 已删引用（12 条）——核心为「数据交接」功能整体移除后的残留（T-224 §6 废除数据交接，由产出物定向路由替代）
+**场景 4 · 活动全生命周期：创建→赋权→执行→考勤→复盘→归档**
+- ✅ 创建：书记/组长双入口 `writeActivityWithSOP` → `mock-adapter.createActivity` → 内联赋权非空则跳过、否则派生组长赋权待办
+- ✅ 归档：`deriveFromActivityArchive` 派生宣传归档待办；纪检考勤/考察确认闭环均有对应派生与销项
+- ⚠️ 已确认无断链（赋权/归档/考勤/复盘全环节有数据流标注与联动销项）
 
-| # | 位置 | 引用已删对象 | 建议 |
-|---|------|------------|------|
-| B1 | SERVICE_CATALOG.md L35 | `services/handover.js`（文件已删）交接管理服务行 | 删除该行 |
-| B2 | SERVICE_CATALOG.md L63 | 权限矩阵「交接管理」行（服务不存在） | 删除该行 |
-| B3 | CHECKLIST.md §10 L261-277 | 交接数据整节（`SEED_HANDOVERS`/`mockDB.handovers`/`handover.js`/disc.html 交接汇总） | 删除整节 |
-| B4 | DATA_ARCHITECTURE.md L36 | §1.2「交接记录」行（`mockDB.handovers`） | 删除该行 |
-| B5 | DATA_ARCHITECTURE.md L63 | §1.3 数据流图「交接 Handover」支线（组织者发起、纪检确认） | 删除该支线 |
-| B6 | DATA_ARCHITECTURE.md §2.7 L365-377 | 交接数据 (HandoverRecord) 整节数据模型 | 删除整节 |
-| B7 | DATA_ARCHITECTURE.md L681 | 「数据交接｜组织者工作台」联动行 | 删除该行 |
-| B8 | DATA_ARCHITECTURE.md L948 | mockDB 字段表 `handovers` 行 | 删除该行 |
-| B9 | DATA_ARCHITECTURE.md L1066 | §4.4.4 DataAdapter 接口表 handovers 行 | 删除该行 |
-| B10 | DATA_ARCHITECTURE.md L1094 | §4.4.5 API 路由表 `/api/v1/handovers` | 删除该行 |
-| B11 | ARCHITECTURE.md L261 | mockDB 结构行中的 `handovers` 字段 | 删除该字段 |
-| B12 | CHECKLIST.md L226 | `workspace/org-commissioner.html`（已删除，现为 `org.html`） | 修正路径 |
+**场景 5 · 查找成本：无上限增长数据是否均分页？（书记 2026-08-08 #3 铁律）**
+- ✅ 归档库三分页（活动/专班/通知，每页10条+页码窗口+搜索归1）；首页通知限 5 条
+- ❌ **F2 反馈列表未分页（确凿缺陷）**：书记工作台反馈管理（`feedback-tab.js` L151 `filtered.map` 全量渲染）+ 公开反馈列表（`issue-list.js` L69 `filtered.map` 全量渲染）。反馈数据无上限增长，违反分页铁律。建议复用归档分页模式。
 
-> 注：制度层「交接」概念（P-010 组织者退出交接、FLAT_DESIGN、COMMISSIONER_FRAMEWORK §E.2 将修订）为**真实制度**，不在清理范围；仅清理代码层 mockDB.handovers / handover.js / 交接卡片 / API 端点的残留引用。
+### 书记反馈区（2026-08-08 已裁决）
 
-### C 拓扑错误（12 条）
+> 书记经两轮 AskUserQuestion 逐项裁定，全部采纳推荐方案。裁决与实施状态如下：
 
-| # | 位置 | 声称 | 实际 |
-|---|------|------|------|
-| C1 | SNAPSHOT.md L48 | services 服务层 20 个 | 19 个（handover.js 已删） |
-| C2 | SNAPSHOT.md L55 | db.js 11 JSON 资源表 + sessions/attachments | 14 张资源表（T-218 新增 4 张 niche 表） |
-| C3 | README.md L146 | docs/src/services 20 个 | 19 个 |
-| C4 | ARCHITECTURE.md L155 | 服务层 20 个 | 19 个 |
-| C5 | ARCHITECTURE.md L162 | 根目录存在 `.markdownlintignore` | 不存在（仅 `.markdownlint.json`） |
-| C6 | TIMESTAMPS.md L243 | handover.js 登记为活跃服务 | 文件已删，未标删除（对照 members.html 有删除标注） |
-| C7 | DATA_ARCHITECTURE.md L1095 | `/api/v1/makeup-tasks` | 实际 `/api/v1/makeupTasks`（驼峰） |
-| C8 | DATA_ARCHITECTURE.md L1097 | `/api/v1/authorizations` 端点 | server 无此路由、api-adapter 无此方法（赋权仅存前端 localStorage） |
-| C9 | DATA_ARCHITECTURE.md L1099 | `/api/v1/files` | 实际 `/api/v1/fileSpaceRecords` |
-| C10 | DATA_ARCHITECTURE.md L1100 | `/api/v1/images` | 实际 `/api/v1/imageRecords` |
-| C11 | DATA_ARCHITECTURE.md L1101 | `/api/v1/experiences` | 实际 `/api/v1/experienceDeposits` |
-| C12 | DATA_ARCHITECTURE.md L1102 | `/api/v1/compliance-refs` | 实际 `/api/v1/complianceReferences` |
+| 编号 | 书记裁定 | 实施状态 |
+|---|---|---|
+| **F1** | 4 工作台统一补直达（仿 visitor `notice-read → notice.html?id=`） | ✅ 已实施：组长/组织/宣传/书记 4 工作台 `_handleTodoAction` 均新增 notice-read 直达分支 |
+| **F2** | 两处都分页（每页 10 条 + 页码窗口 + 搜索/筛选归 1） | ✅ 已实施：书记反馈管理（feedback-tab.js）+ 公开反馈列表（issue-list.js）均复用归档分页模式 |
+| **W1** | 改为引导文案（可 per-role 覆盖） | ✅ 已实施：todo-list.js 空态改引导文案 + `emptyHint` 选项；书记详情面板同步 |
+| **W2** | 增设状态提示 | ✅ 已实施：issue-form.js 提交成功提示改「已提交为草稿，待书记审核通过后公开」 |
+| **W3** | 保持双入口 + 文档声明 | ✅ 已实施：DATA_ARCHITECTURE.md 新增 §2.1.3 参与人双入口边界声明 |
 
-### D 表述存疑（3 条，请书记判定）
-
-| # | 位置 | 文档声称 | 文件实际 |
-|---|------|---------|---------|
-| D1 | CHECKLIST.md L114 | 考勤 `ATTENDANCE_RECORDS` 60 条 att1~att60 | 43 条 att1~att43（ID 重排为连续序列） |
-| D2 | CHECKLIST.md L164 | 通知 `MOCK_NOTICES` 13 条 | 12 条（缺 notice-109） |
-| D3 | SCHOOL_IT_DEPLOYMENT.md L115 | api-adapter "28 个端点" | 注释路由表 24 条（含未注释的 bootstrap/snapshot/uploads×2/health 可达 28，口径存疑） |
-
-### 附加观察（不归类）
-
-- `docs/src/entries/workspace-entry.js` 为孤儿文件（无任何 HTML script src 引用、无 import 引用，T-141 角色单页制合并后遗留）
-- CLAUDE.md 乙部 T-142 描述引用的 `docs/superpowers/plans/2026-08-02-后端基建-P1.md` 不存在（历史任务描述文本，非可点击链接）
-
-### 书记反馈区（待书记填写）
-
-> A/B/C 类是否授权机械性批量修？D 类 3 条如何判定？附加观察是否纳入处置？
+> 版本 bump `20260808l→m`（CODE_VERSION 23→24）；冒烟验证 + 归档 T-234 见月度执行日志。
 
 ---

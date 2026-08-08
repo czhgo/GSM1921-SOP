@@ -1,11 +1,11 @@
 ﻿﻿// role: [工程师]+[AI]
 // issue-form.js — 反馈新建表单
 
-import { IssueStore } from '../services/issues.js?v=20260808l';
-import { AuthStore } from '../services/auth.js?v=20260808l';
-import { showToast } from '../core/utils.js?v=20260808l';
-import { icon } from '../core/icons.js?v=20260808l';
-import { badgeHtml } from './badge.js?v=20260808l';
+import { IssueStore } from '../services/issues.js?v=20260808m';
+import { AuthStore } from '../services/auth.js?v=20260808m';
+import { showToast } from '../core/utils.js?v=20260808m';
+import { icon } from '../core/icons.js?v=20260808m';
+import { badgeHtml } from './badge.js?v=20260808m';
 
 const SCOPE_OPTIONS = [
   { value: 'permanent', label: '底层架构' },
@@ -112,7 +112,7 @@ export function renderIssueForm() {
       },
     });
 
-    showToast('success', '反馈已提交，等待书记审核后公开');
+    showToast('success', '反馈已提交为草稿，待书记审核通过后公开');
     window.location.href = './feedback.html';
   });
 }

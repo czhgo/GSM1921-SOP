@@ -1825,3 +1825,32 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
   - ✅ header 标题恒白字，对比度正常
   - ✅ 14 页面 head 防闪烁脚本注入，无 JS 错误
 - **沉淀标签**：`[已沉淀: 手动深色切换三要素]` — ①偏好存 localStorage 三态 ②CSS 深色规则必须 class 前缀（html.theme-dark）而非 @media ③HTML head 内联防闪烁同步脚本防首屏白闪；`[已沉淀: 内联样式优先级硬伤]` — JS 内联 background 优先级高于任何 media/class 规则，深色适配必须变量化（CSS 变量 + color-mix）；`[已沉淀: 批量 CSS 转换脚本配平陷阱]` — 转换含嵌套规则的 media 块时 depth 须从 media 自身 `{` 计起（depth=1），否则首个内层块闭合会被误判为外层闭合，导致后续规则丢失作用域前缀
+
+## T-234 最小三成本原则评议·第1轮——五场景工作流通顺性检查（2026-08-08）
+
+**任务**：书记指令"再做一次完整的最小三成本原则评议！设定3-5个具体场景，从代码层面检查清楚目前工作流是否通顺？输出到REVIEW_QUEUE，然后逐个询问书记，书记进行评议！！"——按 DESIGN_SYSTEM §一 第2条 最小三成本（信息成本/操作成本/适应学习成本）+ 第7/8条 + 分页铁律设定 5 场景，代码层面逐环节核查 → REVIEW_QUEUE 预审报告 → 两轮 AskUserQuestion 逐项询问 → 书记五项裁定全部采纳推荐 → 实施 → 冒烟 → 归档。
+**引用流程**：brainstorming Skill（场景命题与评审流程设计）+ fullstack-developer Skill（代码核查/实施）+ AskUserQuestion 决策链（5 项裁定）+ playwright 冒烟（38 项检查）+ node --check + 版本号 bump `20260808l→m`（82 文件）+ CODE_VERSION 23→24
+**来源**：书记指令原话 + AskUserQuestion 两轮五答（F1 4 工作台统一补直达 / F2 两处都分页 / W1 改为引导文案 / W2 增设状态提示 / W3 保持双入口+文档声明，均选推荐）
+
+### ① 五场景预审结论
+- **场景1 信息成本**（党员进入工作台第一眼看到什么）：六工作台默认 tab=待办 + 聚合卡 + flow 标注 + 紧急/过期徽章，进入即见 ✅；发现 ⚠️ W1：无业务数据时空态"暂无待办/所有任务已完成"误导新用户
+- **场景2 操作成本**（待办行动按钮 1 次直达）：书记 authorize/signup-review 均有跳转 ✅；发现 ❌ F1（确凿缺陷）：组长/组织/宣传/书记 4 工作台 `_handleTodoAction` 无 read 分支——通知类待办点击仅 toast 不跳转；实测链路（书记催办宣传 → NoticeStore.add(actionable) → 派生 read 待办 → 宣传按钮无效），与参与者模板 `notice-read → notice.html?id=` 行为不一致
+- **场景3 反馈闭环**（匿名提交→审核→答复→关闭）：匿名开关 + _realPersonId 仅书记可追溯 + 正式答复栏 ✅；发现 ⚠️ W2（草稿无感知）+ ⚠️ W3（参与人双入口同源疑点）
+- **场景4 活动全生命周期**（创建→赋权→执行→考勤→复盘→归档）：`writeActivityWithSOP→createActivity` 内联赋权非空跳过派生 + 归档/考勤/复盘全环节联动销项，已确认无断链 ✅
+- **场景5 查找成本**（无上限增长数据分页铁律）：归档库三分页 ✅；发现 ❌ F2（确凿缺陷）：书记反馈管理 + 公开反馈列表全量渲染未分页
+
+### ② 书记五项裁定实施
+- **F1 通知直达**：组长（ws-leader-entry.js L208）/组织（ws-org-commissioner-entry.js L243）/宣传（ws-prop-commissioner-entry.js L171）/书记（todo-tab.js L280）4 工作台 `_handleTodoAction` 开头统一插入通知直达分支（聚合取首条 noticeId → `basePath + notice.html?id=`，basePath 依路径含 /workspace/ 判定）
+- **F2 反馈分页**：issue-list.js（公开列表）+ feedback-tab.js（书记管理）复用归档分页模式——`PAGE_SIZE=10`、页码窗口（5 页窗口+上一页/下一页）、"共 N 条 · 第 x / y 页"摘要、搜索/筛选/清除页码归 1、分页按钮事件绑定
+- **W1 空态引导**：todo-list.js 空态改引导文案 + 新增 `emptyHint` 选项支持 per-role 覆盖；书记 todo-tab 详情面板空态同步
+- **W2 草稿感知**：issue-form.js 提交成功提示改「反馈已提交为草稿，待书记审核通过后公开」
+- **W3 文档声明**：DATA_ARCHITECTURE.md 新增 §2.1.3「参与人双入口边界」——activity.assignments（活动参与人，创建时内联，非空则不再派生组长赋权待办）vs AuthStore.authorize（项目级授权，独立记录）边界规则 3 条
+
+- **变更文件**：`docs/src/entries/ws-leader-entry.js`、`docs/src/entries/ws-org-commissioner-entry.js`、`docs/src/entries/ws-prop-commissioner-entry.js`、`docs/src/entries/tabs/secretary/todo-tab.js`、`docs/src/entries/tabs/secretary/feedback-tab.js`、`docs/src/components/issue-list.js`、`docs/src/components/todo-list.js`、`docs/src/components/issue-form.js`、`docs/src/core/cross-page-state.js`（CODE_VERSION 24）、`content/04_web_design/DATA_ARCHITECTURE.md`（§2.1.3）、`.ctx/REVIEW_QUEUE.md`（预审报告+书记裁决回写）；版本号 bump `20260808l→m`（82 文件）
+
+- **验证结果**（node --check 全量通过 + GetDiagnostics 无 JS 错误 + playwright 冒烟 11 页 38 项全过）：
+  - ✅ F1 通知待办点击后直达 `notice.html?id=notice-smoke-f1`（注入待办 + 展开通知类分组后点击实测）
+  - ✅ F2 公开反馈列表分页控件（4 按钮 + 每页 10 条 + 翻第2页）
+  - ✅ F2 书记反馈管理分页控件（同上）
+  - ✅ 原有 33 项回归全过（书记工作台/反馈/归档/五工作台无 JS 错误）
+- **沉淀标签**：`[已沉淀: 待办聚合卡与折叠分组]` — 聚合卡按钮默认折叠在分类分组内，playwright 点击前须先展开分组 header；`[已沉淀: 通知待办直达分支]` — 通知类待办 actionType=read 的聚合对象无 sourceType 字段，直达分支须取 `(todo.items && todo.items[0]) || todo` 首条再判 sourceType/actionData.noticeId，4 工作台须与 visitor 模板对齐

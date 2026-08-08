@@ -5,10 +5,10 @@
 //  P1-4 修复（2026-08-02）：复盘记录接入 mockDB 持久化层，刷新不再丢失
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260808l';
-import { persist } from '../core/data-adapter.js?v=20260808l';
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../mock/index.js?v=20260808l';
-import { loadActivities } from './activity.js?v=20260808l';
+import { mockDB } from '../core/domain.js?v=20260808m';
+import { persist } from '../core/data-adapter.js?v=20260808m';
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../mock/index.js?v=20260808m';
+import { loadActivities } from './activity.js?v=20260808m';
 
 /** 读取活动复盘记录（mock 常量兜底，写入后以 mockDB 为准） */
 export function loadActivityReviews() {
