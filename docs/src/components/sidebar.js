@@ -5,12 +5,12 @@
 // - '党建工作台' → '工作台'（角色自适应跳转）
 // - 帮助/关于移入主导航区
 
-import { AuthStore } from '../services/auth.js?v=20260808j';
-import { getBasePath } from '../core/utils.js?v=20260808j';
-import { icon } from '../core/icons.js?v=20260808j';
-import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260808j';
-import { bindWorkspacePopover } from './workspace-popover.js?v=20260808j';
-import { getThemePreference, setThemePreference, initTheme } from '../core/theme.js?v=20260808j';
+import { AuthStore } from '../services/auth.js?v=20260808k';
+import { getBasePath } from '../core/utils.js?v=20260808k';
+import { icon } from '../core/icons.js?v=20260808k';
+import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260808k';
+import { bindWorkspacePopover } from './workspace-popover.js?v=20260808k';
+import { getThemePreference, setThemePreference, initTheme } from '../core/theme.js?v=20260808k';
 
 function getNavItems() {
   const base = getBasePath();
@@ -72,9 +72,9 @@ export function renderSidebar(activeModule) {
     </a>
   `).join('');
 
-  // 主题色：当前生效强调色（个性化覆盖优先）
+  // 主题色：当前生效强调色（个性化覆盖优先；色板 hex 优先——金主题色色块显示亮金 #FFD700）
   const effAccentKey = resolveAccentRole(role);
-  const effAccentHex = ACCENT_COLORS[effAccentKey]?.hex || '#B91C1C';
+  const effAccentHex = ACCENT_PALETTE.find(c => c.key === effAccentKey)?.hex || ACCENT_COLORS[effAccentKey]?.hex || '#B91C1C';
   const effAccentLabel = ACCENT_PALETTE.find(c => c.key === effAccentKey)?.label || '红';
 
   sidebar.innerHTML = `

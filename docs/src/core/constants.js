@@ -150,7 +150,7 @@ export const ACCENT_COLORS = {
   commissioner:        { hex: '#C2410C' },  // 同纪检
   organizer:           { hex: '#7DD3FC' },  // 亮天蓝
   deep:                { hex: '#94a3b8' },  // 浅灰蓝
-  participant:         { hex: '#B45309' },  // 党徽金（访客强调色，与中性灰身份色并存，2026-08-01 改，原党建红#CE1126）
+  participant:         { hex: '#B45309', bg: 'rgba(255,215,0,0.12)', border: 'rgba(255,215,0,0.35)' },  // 金（主题党日胶囊三件套：亮金底+深金字+亮金边框，2026-08-08 四审改，与主题活动色同源）
   all:                 { hex: '#0E7490' },  // 深青
   purple:              { hex: '#7C3AED' },  // 紫罗兰（侧边栏色板可选色，不与角色挂钩，与 deep 语义色同源）
 };
@@ -166,7 +166,7 @@ export const ACCENT_COLORS = {
 export const ACCENT_PALETTE = [
   { key: 'secretary',          hex: ACCENT_COLORS.secretary.hex,            label: '红' },
   { key: 'disc-commissioner',  hex: ACCENT_COLORS['disc-commissioner'].hex, label: '橙' },
-  { key: 'participant',        hex: ACCENT_COLORS.participant.hex,          label: '金' },
+  { key: 'participant',        hex: '#FFD700',            label: '金' },
   { key: 'leader',             hex: ACCENT_COLORS.leader.hex,               label: '绿' },
   { key: 'all',                hex: ACCENT_COLORS.all.hex,                  label: '青' },
   { key: 'org-commissioner',   hex: ACCENT_COLORS['org-commissioner'].hex,  label: '天蓝' },
@@ -192,16 +192,18 @@ export function resolveAccentRole(preferredRole) {
 /**
  * 获取角色的 accent 三件套
  * @param {string} role — 角色键名
- * @param {number} [bgAlpha=0.1] — 背景色透明度
- * @param {number} [borderAlpha=0.3] — 边框色透明度
+ * @param {number} [bgAlpha=0.1] — 背景色透明度（entry 自带 bg 覆盖时忽略）
+ * @param {number} [borderAlpha=0.3] — 边框色透明度（entry 自带 border 覆盖时忽略）
  * @returns {{ accent: string, accentRgba: string, accentBorder: string }}
  */
 export function getAccentColors(role, bgAlpha = 0.1, borderAlpha = 0.3) {
   const entry = ACCENT_COLORS[role] || ACCENT_COLORS.all;
   return {
     accent: entry.hex,
-    accentRgba: hexToRgba(entry.hex, bgAlpha),
-    accentBorder: hexToRgba(entry.hex, borderAlpha),
+    // 覆盖字段优先：participant「金」主题色 = 主题党日胶囊（亮金底 + 深金字 + 亮金边框，
+    // 书记 2026-08-08 四审定稿——金色就该和主题党日胶囊一致）
+    accentRgba: entry.bg || hexToRgba(entry.hex, bgAlpha),
+    accentBorder: entry.border || hexToRgba(entry.hex, borderAlpha),
   };
 }
 

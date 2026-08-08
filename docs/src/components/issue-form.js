@@ -1,11 +1,11 @@
 ﻿﻿// role: [工程师]+[AI]
 // issue-form.js — 反馈新建表单
 
-import { IssueStore } from '../services/issues.js?v=20260808j';
-import { AuthStore } from '../services/auth.js?v=20260808j';
-import { showToast } from '../core/utils.js?v=20260808j';
-import { icon } from '../core/icons.js?v=20260808j';
-import { badgeHtml } from './badge.js?v=20260808j';
+import { IssueStore } from '../services/issues.js?v=20260808k';
+import { AuthStore } from '../services/auth.js?v=20260808k';
+import { showToast } from '../core/utils.js?v=20260808k';
+import { icon } from '../core/icons.js?v=20260808k';
+import { badgeHtml } from './badge.js?v=20260808k';
 
 const SCOPE_OPTIONS = [
   { value: 'permanent', label: '底层架构' },
