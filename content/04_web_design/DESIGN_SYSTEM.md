@@ -436,6 +436,13 @@ li + li { margin-top: 0.25em; }
 
 > CSS 实现见 `docs/src/styles.css` 的 `.input` 和 `select.input-flat` 选择器。
 
+**交互增强**：`select.input-flat` 由 `custom-select.js`（S2）自动增强为自定义圆角下拉（`.cs-select` + `.cs-trigger` + `.cs-menu`），原生 select 作为值载体保留（`data-cs-enhanced` 防重；bootstrap 全局 MutationObserver 覆盖动态渲染）。增强后：
+- 触发器外观与 `input-flat` 完全一致（圆角 `--radius-sm`、边框 `--neutral-200`、聚焦金框）
+- 菜单选中项 = 党徽金（背景 `rgba(255,215,0,0.14)`，文字 `#B45309`，2026-08-08 起统一）
+- 智能定位（向上/向下翻转、视口 clamp）；选项超 10 条自动内嵌搜索
+
+**弹层统一基准（2026-08-08）**：所有"选择类弹层"（`.cs-menu`、`.status-badge-popover`）统一：圆角 `--radius-sm`、阴影 `--shadow-dropdown`、选中色=党徽金；禁止各自另设圆角/阴影/选中色。
+
 #### 输入组件统一原则
 
 所有 `<input>`/`<select>`/`<textarea>` 使用 `input-flat` 体系，禁用内联 Tailwind input 样式（如 `border border-gray-200 rounded-lg px-3 py-2 focus:border-red-300` 等）。紧凑场景使用 `input-flat-sm`，多行文本使用 `textarea.input-flat`。

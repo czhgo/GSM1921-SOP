@@ -403,12 +403,12 @@ input.input-flat.text-xs {
 }
 .wp-dim-chip:hover {
   border-color: var(--party-gold);
-  color: #854D0E;
+  color: #B45309;
 }
 .wp-dim-chip.wp-dim-on {
-  background-color: rgba(212, 175, 55, 0.10);
+  background-color: rgba(255, 215, 0, 0.12);
   border-color: var(--party-gold);
-  color: #854D0E;
+  color: #B45309;
   font-weight: 500;
 }
 
@@ -422,12 +422,12 @@ input.input-flat.text-xs {
 }
 .wp-brand-chip:hover {
   border-color: var(--party-gold);
-  color: #854D0E;
+  color: #B45309;
 }
 .wp-brand-chip.wp-brand-on {
-  background-color: rgba(212, 175, 55, 0.10);
+  background-color: rgba(255, 215, 0, 0.12);
   border-color: var(--party-gold);
-  color: #854D0E;
+  color: #B45309;
   font-weight: 500;
 }
 
@@ -578,8 +578,8 @@ textarea.input-flat {
   background: var(--neutral-100);
 }
 .cs-option.is-selected {
-  background: rgba(212, 175, 55, 0.10);
-  color: #854D0E;
+  background: rgba(255, 215, 0, 0.14);
+  color: #B45309;
   font-weight: 500;
 }
 .cs-option.is-disabled {
@@ -1911,8 +1911,8 @@ html.theme-dark .tf-section-head {
   padding: 4px;
   background: #fff;
   border: 1px solid var(--neutral-200);
-  border-radius: var(--radius-md);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-dropdown);
   opacity: 0;
   transform: translateY(-4px);
   transition: opacity 0.14s ease-out, transform 0.14s ease-out;
@@ -1928,7 +1928,7 @@ html.theme-dark .tf-section-head {
   width: 100%;
   padding: 6px 10px;
   border: none;
-  border-radius: calc(var(--radius-md) - 2px);
+  border-radius: calc(var(--radius-sm) - 2px);
   background: none;
   color: var(--neutral-700);
   font-size: 0.75rem;

@@ -11,10 +11,10 @@
 //  Source: content/04_web_design/DATA_ARCHITECTURE.md
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260808f';
+import { mockDB } from '../core/domain.js?v=20260808g';
 // 修复（T175）：直接从 mock/people.js 导入 PEOPLE，
 // 断开 person.js ↔ mock/index.js 双向循环依赖（person.js 不再依赖 mock/index.js）
-import { PEOPLE } from '../mock/people.js?v=20260808f';
+import { PEOPLE } from '../mock/people.js?v=20260808g';
 
 // ════════════════════════════════════════════════════════════════
 //  PersonStore — 人员数据统一服务接口

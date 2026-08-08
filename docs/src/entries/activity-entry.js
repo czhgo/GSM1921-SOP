@@ -1,19 +1,20 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../components/sidebar.js?v=20260808f';
-import { renderHeader } from '../components/header.js?v=20260808f';
-import { BranchService } from '../services/runtime.js?v=20260808f';
-import { mockDB } from '../core/domain.js?v=20260808f';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808f';
-import { NoticeStore } from '../services/notice.js?v=20260808f';
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_STATUS_LABELS, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260808f';
-import { AuthStore } from '../services/auth.js?v=20260808f';
-import { getPersonById } from '../mock/index.js?v=20260808f';
-import { getBasePath, showToast } from '../core/utils.js?v=20260808f';
-import { getActivityTypeColors } from '../core/constants.js?v=20260808f';
-import { badgeHtml } from '../components/badge.js?v=20260808f';
+import { renderSidebar } from '../components/sidebar.js?v=20260808g';
+import { renderHeader } from '../components/header.js?v=20260808g';
+import { BranchService } from '../services/runtime.js?v=20260808g';
+import { mockDB } from '../core/domain.js?v=20260808g';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808g';
+import { NoticeStore } from '../services/notice.js?v=20260808g';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_STATUS_LABELS, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260808g';
+import { AuthStore } from '../services/auth.js?v=20260808g';
+import { getPersonById } from '../mock/index.js?v=20260808g';
+import { getBasePath, showToast } from '../core/utils.js?v=20260808g';
+import { getActivityTypeColors } from '../core/constants.js?v=20260808g';
+import { badgeHtml } from '../components/badge.js?v=20260808g';
+import { enhanceSelects } from '../components/custom-select.js?v=20260808g';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -152,6 +153,8 @@ function renderActivity(id) {
     </div>
   `;
 
+  // 报名区 select 增强为统一自定义下拉（本页无 bootstrap 全局 MutationObserver）
+  enhanceSelects(cardEl);
   bindSignupEvents('activity', act.id, act.title);
 }
 
@@ -218,6 +221,8 @@ function renderTaskforce(tf) {
     </div>
   `;
 
+  // 报名区 select 增强为统一自定义下拉（本页无 bootstrap 全局 MutationObserver）
+  enhanceSelects(cardEl);
   bindSignupEvents('taskforce', tf.id, tf.name);
 }
 
@@ -239,11 +244,11 @@ function renderSignupSection(sourceType, sourceId, title, signups) {
   } else if (!mySignup) {
     body = `
       <div class="flex items-start gap-3 flex-wrap">
-        <select id="signup-role-select" class="text-sm rounded-lg border border-gray-200 px-3 py-2 bg-white focus:outline-none focus:border-blue-400">
+        <select id="signup-role-select" class="input-flat text-sm min-w-[180px]">
           ${roleOptions.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
         </select>
         <input id="signup-note-input" type="text" placeholder="附加说明（选填，如可承担的角色）"
-          class="text-sm flex-1 min-w-[200px] rounded-lg border border-gray-200 px-3 py-2 bg-white focus:outline-none focus:border-blue-400">
+          class="input-flat text-sm flex-1 min-w-[200px]">
         <button id="signup-submit-btn" class="inline-flex items-center gap-1 text-sm px-4 py-2 rounded-lg font-medium text-white transition-colors hover:opacity-90" style="background:#CE1126;">
           报名
         </button>
@@ -264,11 +269,11 @@ function renderSignupSection(sourceType, sourceId, title, signups) {
     body = `
       <div class="flex items-start gap-3 flex-wrap">
         ${badgeHtml('已拒绝 · ' + roleLabel(mySignup.role), 'danger')}
-        <select id="signup-role-select" class="text-sm rounded-lg border border-gray-200 px-3 py-2 bg-white focus:outline-none focus:border-blue-400">
+        <select id="signup-role-select" class="input-flat text-sm min-w-[180px]">
           ${roleOptions.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
         </select>
         <input id="signup-note-input" type="text" placeholder="附加说明（选填）"
-          class="text-sm flex-1 min-w-[200px] rounded-lg border border-gray-200 px-3 py-2 bg-white focus:outline-none focus:border-blue-400">
+          class="input-flat text-sm flex-1 min-w-[200px]">
         <button id="signup-submit-btn" class="inline-flex items-center gap-1 text-sm px-4 py-2 rounded-lg font-medium text-white transition-colors hover:opacity-90" style="background:#CE1126;">
           重新申请
         </button>
