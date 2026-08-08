@@ -12,8 +12,8 @@ import {
   TodoStatus,
   TODO_STATUS_LABELS,
   DEFAULT_EXPANDED_CATEGORIES,
-} from '../services/todo.js?v=20260808h';
-import { badgeHtml } from './badge.js?v=20260808h';
+} from '../services/todo.js?v=20260808i';
+import { badgeHtml } from './badge.js?v=20260808i';
 
 /**
  * 渲染待办列表组件
