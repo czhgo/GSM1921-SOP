@@ -1,7 +1,7 @@
 ﻿// role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 资料下载 + 分类检索
 
-import { icon } from '../core/icons.js?v=20260808k';
+import { icon } from '../core/icons.js?v=20260808l';
 
 const SITE_GROUPS = [
   {

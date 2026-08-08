@@ -1,11 +1,11 @@
 ﻿﻿// role: [工程师]+[AI]
 // issue-form.js — 反馈新建表单
 
-import { IssueStore } from '../services/issues.js?v=20260808k';
-import { AuthStore } from '../services/auth.js?v=20260808k';
-import { showToast } from '../core/utils.js?v=20260808k';
-import { icon } from '../core/icons.js?v=20260808k';
-import { badgeHtml } from './badge.js?v=20260808k';
+import { IssueStore } from '../services/issues.js?v=20260808l';
+import { AuthStore } from '../services/auth.js?v=20260808l';
+import { showToast } from '../core/utils.js?v=20260808l';
+import { icon } from '../core/icons.js?v=20260808l';
+import { badgeHtml } from './badge.js?v=20260808l';
 
 const SCOPE_OPTIONS = [
   { value: 'permanent', label: '底层架构' },
@@ -72,9 +72,15 @@ export function renderIssueForm() {
           </div>
         </div>
 
-        <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
-          <a href="./feedback.html" class="px-4 py-2 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 font-sans">取消</a>
-          <button id="btn-submit-issue" class="text-sm px-4 py-[7px] rounded-lg text-white hover:opacity-90 transition-colors font-sans" style="background:#CE1126;">提交反馈</button>
+        <div class="flex items-center justify-between gap-2 pt-3 border-t border-gray-100">
+          <label class="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer font-sans select-none" title="勾选后对外显示「匿名」，书记内部仍可追溯真实提交人">
+            <input type="checkbox" id="form-anon" class="checkbox-accent">
+            匿名提交
+          </label>
+          <div class="flex gap-2">
+            <a href="./feedback.html" class="px-4 py-2 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 font-sans">取消</a>
+            <button id="btn-submit-issue" class="btn-accent text-sm px-4 py-[7px] font-sans">提交反馈</button>
+          </div>
         </div>
       </div>
     </div>
@@ -91,7 +97,8 @@ export function renderIssueForm() {
     if (!scope) { showToast('error', '请选择范围'); return; }
     if (types.length === 0) { showToast('error', '请至少选择一个类型'); return; }
 
-    const author = _currentPersonId();
+    const anon = document.getElementById('form-anon')?.checked;
+    const author = anon ? '匿名' : _currentPersonId();
 
     // 添加草稿（书记审核后真正合并）
     IssueStore.addDraft({
@@ -99,6 +106,8 @@ export function renderIssueForm() {
       payload: {
         title, body, scope, types,
         submittedBy: author,
+        // 匿名提交时保留真实 personId，仅书记内部可追溯
+        _realPersonId: anon ? _currentPersonId() : null,
         submittedAt: new Date().toISOString().slice(0, 10),
       },
     });

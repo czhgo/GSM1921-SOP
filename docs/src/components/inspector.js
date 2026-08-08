@@ -5,20 +5,20 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../core/state.js?v=20260808k';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260808k';
-import { _fmtChinese, showToast } from '../core/utils.js?v=20260808k';
-import { icon } from '../core/icons.js?v=20260808k';
-import { PEOPLE, getPersonById } from '../mock/index.js?v=20260808k';
-import { BranchService } from '../services/runtime.js?v=20260808k';
-import { AuthStore } from '../services/auth.js?v=20260808k';
-import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260808k';
-import { badgeHtml } from './badge.js?v=20260808k';
-import { persist } from '../core/data-adapter.js?v=20260808k';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260808k';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260808k';
-import { loadActivityReviews } from '../services/review.js?v=20260808k';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260808k';
+import { setState, STATE, getAppState } from '../core/state.js?v=20260808l';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260808l';
+import { _fmtChinese, showToast } from '../core/utils.js?v=20260808l';
+import { icon } from '../core/icons.js?v=20260808l';
+import { PEOPLE, getPersonById } from '../mock/index.js?v=20260808l';
+import { BranchService } from '../services/runtime.js?v=20260808l';
+import { AuthStore } from '../services/auth.js?v=20260808l';
+import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260808l';
+import { badgeHtml } from './badge.js?v=20260808l';
+import { persist } from '../core/data-adapter.js?v=20260808l';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260808l';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260808l';
+import { loadActivityReviews } from '../services/review.js?v=20260808l';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260808l';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {

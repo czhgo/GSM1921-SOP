@@ -484,6 +484,9 @@ textarea.input-flat {
   width: auto;
   margin: 0;
 }
+/* w-full 布局继承（2026-08-08 指令 #6）：原 select 带 w-full 时包装器必须 100% 宽，
+   否则 inline-block + width:auto 会收缩成内容宽（70px），与同卡片 PersonPicker/输入框（544px）严重不齐 */
+.cs-select.w-full { width: 100%; }
 /* 触发器继承原 select 的 input-flat 类时，校正 padding 档位以与原 select 外观一致 */
 .cs-trigger.input-flat {
   padding: 10px 12px;
@@ -586,6 +589,121 @@ textarea.input-flat {
   color: var(--neutral-300);
   cursor: not-allowed;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   L2 角色识别层 — 语义动作类（书记 2026-08-08 颜色对应法则）
+   替代硬编码 bg-red-700 / bg-orange-* / border-red-*：
+   · 主操作（确认赋权/发布/提交） → .btn-accent（主题色深化保对比度，白字）
+   · 次级主操作（打开面板/写活动） → .btn-accent-soft（主题色浅底描边）
+   · 选中态 chip（党小组/受众/模板/维度） → .chip-accent-on
+   · 原生 radio 微调（自定义圆点 + 主题色选中态） → .radio-accent
+   ═══════════════════════════════════════════════════════════════ */
+.btn-accent {
+  background: color-mix(in srgb, var(--app-accent, #B91C1C) 80%, #1F2937);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  transition: filter var(--transition-fast), opacity var(--transition-fast);
+}
+.btn-accent:hover { filter: brightness(0.92); }
+.btn-accent:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-accent-soft {
+  background: var(--app-accent-bg, rgba(185, 28, 28, 0.1));
+  color: var(--app-accent, #B91C1C);
+  border: 1px solid var(--app-accent-border, rgba(185, 28, 28, 0.3));
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast), filter var(--transition-fast);
+}
+.btn-accent-soft:hover { filter: brightness(0.96); }
+
+.chip-option {
+  border: 1px solid var(--neutral-200);
+  color: var(--neutral-600);
+  background: var(--neutral-0);
+  transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast);
+}
+.chip-option:hover {
+  border-color: var(--app-accent-border, rgba(185, 28, 28, 0.3));
+  color: var(--app-accent, #B91C1C);
+}
+.chip-accent-on {
+  border-color: var(--app-accent-border, rgba(185, 28, 28, 0.3)) !important;
+  background: var(--app-accent-bg, rgba(185, 28, 28, 0.1)) !important;
+  color: var(--app-accent, #B91C1C) !important;
+}
+/* 主题色文字（步骤指示/强调文字） */
+.text-accent { color: var(--app-accent, #B91C1C) !important; }
+/* 列表行选中态（无边框，用于模板/子项选中） */
+.sel-accent-on {
+  background: var(--app-accent-bg, rgba(185, 28, 28, 0.1)) !important;
+  color: var(--app-accent, #B91C1C) !important;
+  font-weight: 500;
+}
+
+.radio-accent {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid var(--neutral-300);
+  border-radius: 9999px;
+  margin: 0;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  vertical-align: middle;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.radio-accent:hover { border-color: var(--app-accent, #B91C1C); }
+.radio-accent:checked { border-color: var(--app-accent, #B91C1C); }
+.radio-accent:checked::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 9999px;
+  background: var(--app-accent, #B91C1C);
+}
+.radio-accent:focus-visible {
+  outline: 2px solid var(--app-accent-border, rgba(185, 28, 28, 0.4));
+  outline-offset: 1px;
+}
+/* 复选框：accent-color 原生定制（勾选色随主题色，保留原生选中语义） */
+.checkbox-accent {
+  accent-color: var(--app-accent, #B91C1C);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+/* 轻量 hover 卡片（data-tip 文本，CSS 实现零 JS） */
+.tip-trigger {
+  position: relative;
+  cursor: help;
+  border-bottom: 1px dashed var(--neutral-300);
+}
+.tip-trigger::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--neutral-700);
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: 8px;
+  padding: 6px 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+  z-index: 50;
+}
+.tip-trigger:hover::after { opacity: 1; }
 /* 内嵌搜索（选项数超阈值自动出现，书记指令 2026-08-06） */
 .cs-search {
   position: sticky;

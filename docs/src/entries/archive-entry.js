@@ -1,18 +1,18 @@
 ﻿﻿// role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
-import { renderSidebar } from '../components/sidebar.js?v=20260808k';
-import { renderHeader } from '../components/header.js?v=20260808k';
-import { BranchService } from '../services/runtime.js?v=20260808k';
-import { mockDB } from '../core/domain.js?v=20260808k';
-import { getPersonById } from '../mock/index.js?v=20260808k';
-import { loadActivities } from '../services/activity.js?v=20260808k';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808k';
-import { getActivityTypeColors } from '../core/constants.js?v=20260808k';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260808k';
-import { getBasePath } from '../core/utils.js?v=20260808k';
-import { AuthStore } from '../services/auth.js?v=20260808k';
-import { badgeHtml } from '../components/badge.js?v=20260808k';
+import { renderSidebar } from '../components/sidebar.js?v=20260808l';
+import { renderHeader } from '../components/header.js?v=20260808l';
+import { BranchService } from '../services/runtime.js?v=20260808l';
+import { mockDB } from '../core/domain.js?v=20260808l';
+import { getPersonById } from '../mock/index.js?v=20260808l';
+import { loadActivities } from '../services/activity.js?v=20260808l';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808l';
+import { getActivityTypeColors } from '../core/constants.js?v=20260808l';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260808l';
+import { getBasePath } from '../core/utils.js?v=20260808l';
+import { AuthStore } from '../services/auth.js?v=20260808l';
+import { badgeHtml } from '../components/badge.js?v=20260808l';
 
 renderSidebar('archive');
 renderHeader('archive');
@@ -55,25 +55,61 @@ function renderContent() {
   if (_activeTab === 'activity') renderActivityArchive();
   else if (_activeTab === 'taskforce') renderTaskforceArchive();
   else if (_activeTab === 'notice') renderNoticeArchive();
+}
 
-  // Tab 切换后重新应用搜索
-  applySearch();
+// ── 分页（书记 2026-08-08：归档数据无上限增长 → 前端分页，复用 query-view 分页模式）──
+const PAGE_SIZE = 10;
+const _pageState = { activity: 1, taskforce: 1, notice: 1 };
+
+/** 搜索匹配（任一字段命中即显示） */
+function _matchesQuery(...fields) {
+  if (!_searchQuery) return true;
+  const q = _searchQuery.toLowerCase();
+  return fields.some(f => (f || '').toLowerCase().includes(q));
+}
+
+/** 分页控件（共 N 条 · 第 x/y 页 + 上一页/页码/下一页） */
+function _renderPager(total, key) {
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const cur = Math.min(_pageState[key], pages);
+  if (pages <= 1) return '';
+  const nums = [];
+  const end = Math.min(pages, Math.max(cur, 3) + 2);
+  for (let i = Math.max(1, end - 4); i <= end; i++) nums.push(i);
+  return `
+    <div class="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
+      <span class="text-xs text-gray-400">共 ${total} 条 · 第 ${cur} / ${pages} 页</span>
+      <div class="flex items-center gap-1">
+        <button type="button" class="archive-page-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-archive-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
+        ${nums.map(n => `
+          <button type="button" class="archive-page-btn text-xs px-2.5 py-1 rounded-lg border ${n === cur ? 'chip-accent-on' : 'border-gray-200 hover:bg-gray-50'}" data-archive-page="${n}">${n}</button>
+        `).join('')}
+        <button type="button" class="archive-page-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-archive-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
+      </div>
+    </div>`;
 }
 
 // ── 活动归档 ──
 function renderActivityArchive() {
-  const completedActivities = loadActivities()
+  const all = loadActivities()
     .filter(a => a.status === 'completed' || a.archived)
     .sort((a, b) => (b.date || '').localeCompare(a.date || '')); // 新日期在前
 
-  if (completedActivities.length === 0) {
+  if (all.length === 0) {
     contentContainer.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">暂无已归档活动</p>';
     return;
   }
+  const filtered = all.filter(a => _matchesQuery(a.title, a.date, a.type, (getPersonById(a.organizer) || {}).name));
+  if (filtered.length === 0) {
+    contentContainer.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">无匹配归档活动</p>';
+    return;
+  }
+  const cur = Math.min(_pageState.activity, Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)));
+  const items = filtered.slice((cur - 1) * PAGE_SIZE, cur * PAGE_SIZE);
 
   contentContainer.innerHTML = `
     <div class="space-y-3">
-      ${completedActivities.map(a => {
+      ${items.map(a => {
         const organizer = getPersonById(a.organizer);
         const isBrand = !!a.isBrand;
         return `
@@ -90,23 +126,31 @@ function renderActivityArchive() {
         `;
       }).join('')}
     </div>
+    ${_renderPager(filtered.length, 'activity')}
   `;
 }
 
 // ── 专班归档 ──
 function renderTaskforceArchive() {
-  const completedTaskforces = TaskForceRecordStore.getAll()
+  const all = TaskForceRecordStore.getAll()
     .filter(tf => tf.status === 'completed' || tf.status === 'archived')
     .sort((a, b) => (b.deadline || b.createdAt || '').localeCompare(a.deadline || a.createdAt || '')); // 新日期在前
 
-  if (completedTaskforces.length === 0) {
+  if (all.length === 0) {
     contentContainer.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">暂无已归档专班</p>';
     return;
   }
+  const filtered = all.filter(tf => _matchesQuery(tf.name, tf.createdAt, tf.deadline, (getPersonById(tf.initiator) || {}).name));
+  if (filtered.length === 0) {
+    contentContainer.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">无匹配归档专班</p>';
+    return;
+  }
+  const cur = Math.min(_pageState.taskforce, Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)));
+  const items = filtered.slice((cur - 1) * PAGE_SIZE, cur * PAGE_SIZE);
 
   contentContainer.innerHTML = `
     <div class="space-y-3">
-      ${completedTaskforces.map(tf => {
+      ${items.map(tf => {
         const initiator = getPersonById(tf.initiator);
         return `
           <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:shadow-sm hover:border-gray-200 transition-all cursor-pointer" data-archive-item data-archive-type="taskforce" data-archive-id="${tf.id}">
@@ -119,6 +163,7 @@ function renderTaskforceArchive() {
         `;
       }).join('')}
     </div>
+    ${_renderPager(filtered.length, 'taskforce')}
   `;
 }
 
@@ -129,13 +174,20 @@ function renderNoticeArchive() {
   //   ② 自然过期（expireDate < 今天）的历史通知
   // 工作区（首页/书记通知发布/全局概况）仅保留未归档的有效通知，杜绝列表爆炸。
   const today = new Date().toISOString().slice(0, 10);
-  const allNotices = NoticeStore.getAll({ includeArchived: true })
+  const all = NoticeStore.getAll({ includeArchived: true })
     .filter(n => n.archived === true || (n.expireDate && n.expireDate < today));
 
-  if (allNotices.length === 0) {
+  if (all.length === 0) {
     contentContainer.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">暂无归档通知</p>';
     return;
   }
+  const filtered = all.filter(n => _matchesQuery(n.title, n.content, n.publishDate));
+  if (filtered.length === 0) {
+    contentContainer.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">无匹配归档通知</p>';
+    return;
+  }
+  const cur = Math.min(_pageState.notice, Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)));
+  const items = filtered.slice((cur - 1) * PAGE_SIZE, cur * PAGE_SIZE);
 
   const priorityBadge = {
     urgent: badgeHtml('紧急', 'danger'),
@@ -144,7 +196,7 @@ function renderNoticeArchive() {
 
   contentContainer.innerHTML = `
     <div class="space-y-3">
-      ${allNotices.map(n => `
+      ${items.map(n => `
         <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:shadow-sm transition-all cursor-pointer" data-notice-id="${n.id}">
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
@@ -158,6 +210,7 @@ function renderNoticeArchive() {
         </div>
       `).join('')}
     </div>
+    ${_renderPager(filtered.length, 'notice')}
   `;
 
   // 点击跳转：业务页直达优先（与全站统一 resolveNoticeUrl）
@@ -172,22 +225,14 @@ function renderNoticeArchive() {
   });
 }
 
-// ── 搜索 ──
+// ── 搜索（重渲染 + 页码归 1）──
 const archiveSearch = document.getElementById('archive-search');
 let _searchQuery = '';
 
-function applySearch() {
-  if (!contentContainer) return;
-  const q = _searchQuery.toLowerCase();
-  contentContainer.querySelectorAll('[data-archive-item], [data-notice-id]').forEach(item => {
-    const text = item.textContent.toLowerCase();
-    item.style.display = (!q || text.includes(q)) ? '' : 'none';
-  });
-}
-
 archiveSearch?.addEventListener('input', (e) => {
   _searchQuery = e.target.value.trim();
-  applySearch();
+  _pageState[_activeTab] = 1;
+  renderContent();
 });
 
 // ── 初始渲染 ──
@@ -404,8 +449,17 @@ function _renderTaskforceDetail(tf) {
   `;
 }
 
-// 事件委托：点击归档条目弹出详情浮窗
+// 事件委托：分页按钮 / 点击归档条目弹出详情浮窗
 contentContainer?.addEventListener('click', (e) => {
+  // 分页翻页（每页 10 条，2026-08-08）
+  const pageBtn = e.target.closest('[data-archive-page]');
+  if (pageBtn) {
+    if (pageBtn.disabled) return;
+    _pageState[_activeTab] = Number(pageBtn.dataset.archivePage) || 1;
+    renderContent();
+    return;
+  }
+
   const item = e.target.closest('[data-archive-item]');
   if (!item) return;
 

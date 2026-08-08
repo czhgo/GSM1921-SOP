@@ -14,16 +14,29 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
-  border-radius: var(--radius-md);
-  border: 1.5px solid var(--neutral-200);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--neutral-200);
   background: var(--surface-card);
   cursor: pointer;
   transition: all 0.15s;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--neutral-700);
   min-width: 120px;
   max-width: 320px;
+}
+
+/* 表单容器内与 input-flat/cs-select 等宽对齐（书记 2026-08-08：选人/选项目框体统一） */
+.person-picker-wrapper.inline-full,
+#project-auth-picker-container .person-picker-wrapper,
+#auth-person-picker-slot .person-picker-wrapper {
+  display: block;
+  width: 100%;
+}
+#project-auth-picker-container .person-picker-trigger,
+#auth-person-picker-slot .person-picker-trigger {
+  width: 100%;
+  max-width: none;
 }
 
 .person-picker-trigger:hover,

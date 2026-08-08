@@ -4,19 +4,19 @@
 // 2026-08-07 T232：改为「动态聚合 + 复核确认面板」——SecretaryTodoDeriver.computeAggregates()
 //   实时计算 4 提醒 + 4 复核，复核类一键写 secretaryConfirmedAt 销项，不再创建虚假实体待办。
 
-import { showToast } from '../../../core/utils.js?v=20260808k';
-import { renderTodoList } from '../../../components/todo-list.js?v=20260808k';
-import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260808k';
-import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260808k';
-import { badgeHtml } from '../../../components/badge.js?v=20260808k';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260808k';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260808k';
-import { updateActivityReview } from '../../../services/review.js?v=20260808k';
-import { loadActivities } from '../../../services/activity.js?v=20260808k';
-import { mockDB } from '../../../core/domain.js?v=20260808k';
-import { persist } from '../../../core/data-adapter.js?v=20260808k';
-import { getPersonById } from '../../../mock/index.js?v=20260808k';
-import { getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260808k';
+import { showToast } from '../../../core/utils.js?v=20260808l';
+import { renderTodoList } from '../../../components/todo-list.js?v=20260808l';
+import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260808l';
+import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260808l';
+import { badgeHtml } from '../../../components/badge.js?v=20260808l';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260808l';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260808l';
+import { updateActivityReview } from '../../../services/review.js?v=20260808l';
+import { loadActivities } from '../../../services/activity.js?v=20260808l';
+import { mockDB } from '../../../core/domain.js?v=20260808l';
+import { persist } from '../../../core/data-adapter.js?v=20260808l';
+import { getPersonById } from '../../../mock/index.js?v=20260808l';
+import { getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260808l';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 

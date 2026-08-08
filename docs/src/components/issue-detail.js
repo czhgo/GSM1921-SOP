@@ -1,15 +1,15 @@
 ﻿﻿// role: [工程师]+[AI]
 // issue-detail.js — 反馈详情渲染
 
-import { IssueStore } from '../services/issues.js?v=20260808k';
-import { MilestoneStore } from '../services/milestones.js?v=20260808k';
-import { AuthStore } from '../services/auth.js?v=20260808k';
-import { showToast } from '../core/utils.js?v=20260808k';
-import { icon } from '../core/icons.js?v=20260808k';
-import { getPersonName } from '../mock/index.js?v=20260808k';
-import { renderReactions, bindReactions } from './reactions.js?v=20260808k';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260808k';
-import { badgeHtml } from './badge.js?v=20260808k';
+import { IssueStore } from '../services/issues.js?v=20260808l';
+import { MilestoneStore } from '../services/milestones.js?v=20260808l';
+import { AuthStore } from '../services/auth.js?v=20260808l';
+import { showToast } from '../core/utils.js?v=20260808l';
+import { icon } from '../core/icons.js?v=20260808l';
+import { getPersonName } from '../mock/index.js?v=20260808l';
+import { renderReactions, bindReactions } from './reactions.js?v=20260808l';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260808l';
+import { badgeHtml } from './badge.js?v=20260808l';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -140,7 +140,7 @@ export function renderIssueDetail(issueId) {
                   <option value="wontfix" ${issue.closedReason === 'wontfix' ? 'selected' : ''}>不修复</option>
                   <option value="not_planned" ${issue.closedReason === 'not_planned' ? 'selected' : ''}>暂不计划</option>
                 </select>
-                <button id="btn-apply-status" class="mt-2 w-full text-sm px-4 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 font-sans">应用</button>`
+                <button id="btn-apply-status" class="btn-accent-soft mt-2 w-full text-sm px-4 py-1.5 font-sans">应用</button>`
               : `<p class="text-gray-700 font-sans">${ISSUE_STATUS_LABELS[issue.status] || issue.status}${issue.closedReason ? ' · ' + (ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || issue.closedReason) : ''}</p>`
             }
           </div>

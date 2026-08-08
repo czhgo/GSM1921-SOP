@@ -2,15 +2,15 @@
 // entries/tabs/secretary/assign-tab.js — 书记工作台·赋权管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：常设赋权（设党小组组长）+ 项目赋权（organizer/deep）。
 
-import { showToast } from '../../../core/utils.js?v=20260808k';
-import { AuthStore } from '../../../services/auth.js?v=20260808k';
-import { getPersonById, PEOPLE } from '../../../mock/index.js?v=20260808k';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260808k';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260808k';
-import { ROLE_LABELS, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260808k';
-import { loadActivities } from '../../../services/activity.js?v=20260808k';
-import { badgeHtml } from '../../../components/badge.js?v=20260808k';
-import { TodoStore } from '../../../services/todo.js?v=20260808k';
+import { showToast } from '../../../core/utils.js?v=20260808l';
+import { AuthStore } from '../../../services/auth.js?v=20260808l';
+import { getPersonById, PEOPLE } from '../../../mock/index.js?v=20260808l';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260808l';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260808l';
+import { ROLE_LABELS, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260808l';
+import { loadActivities } from '../../../services/activity.js?v=20260808l';
+import { badgeHtml } from '../../../components/badge.js?v=20260808l';
+import { TodoStore } from '../../../services/todo.js?v=20260808l';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 
@@ -18,7 +18,7 @@ const ASSIGN_TAB_HTML = `
   <div class="card rounded-2xl p-6 mb-6">
     <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">常设赋权</h3>
     <p class="text-xs text-gray-500 mb-3">设党小组组长——角色指派靠口头/群聊，系统内设+记录可追溯</p>
-    <button id="ws-sec-assign-btn" class="text-xs px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors">设党小组组长</button>
+    <button id="ws-sec-assign-btn" class="btn-accent-soft text-xs px-3 py-1.5">设党小组组长</button>
     <div id="assign-area"></div>
     <div class="border-t border-gray-100 mt-6 pt-4">
       <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">当前党小组组长</h4>
@@ -77,7 +77,7 @@ function renderAssignLeaders() {
     const groupName = record ? (record.scopeRef || '未指定') : (person.partyGroup || '未指定');
     return `
       <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-white transition-colors group" data-record-id="${record ? record.id : ''}">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-red-50 text-red-700 text-xs font-bold">${personName.charAt(0)}</div>
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold" style="background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">${personName.charAt(0)}</div>
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2 flex-wrap">
             <span class="text-sm font-medium text-gray-700">${personName}</span>
@@ -126,15 +126,15 @@ function renderProjectAuthPanel() {
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择角色</label>
         <div class="flex gap-3 pt-1">
           ${projectRoles.map(r => `
-            <label class="flex items-center gap-2 text-sm">
-              <input type="radio" name="project-role" value="${r}" class="project-role-radio">
+            <label class="flex items-center gap-2 text-xs">
+              <input type="radio" name="project-role" value="${r}" class="radio-accent">
               <span>${ROLE_LABELS[r] || r}</span>
             </label>
           `).join('')}
         </div>
       </div>
     </div>
-    <button id="confirm-project-auth-btn" type="button" class="text-sm px-4 py-[7px] rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors">
+    <button id="confirm-project-auth-btn" type="button" class="btn-accent text-sm px-4 py-[7px]">
       确认赋权
     </button>
     <div class="mt-6">
@@ -312,16 +312,14 @@ function renderAuthPanel(assignArea) {
   html += `<div class="flex gap-2">`;
   PARTY_GROUPS.forEach(group => {
     const isSelected = authPanel.selectedGroup === group;
-    const cls = isSelected
-      ? 'text-sm px-4 py-2 rounded-lg font-medium border border-red-200 text-red-700 bg-red-50'
-      : 'text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-red-200 hover:text-red-500';
+    const cls = `chip-option text-sm px-4 py-2 rounded-lg ${isSelected ? 'chip-accent-on font-medium' : ''}`;
     html += `<button data-auth-action="select-group" data-value="${group}" class="${cls}">${group}</button>`;
   });
   html += `</div>`;
   html += `</div>`;
 
   // 3. 确认按钮
-  html += `<button data-auth-action="confirm" class="text-sm px-4 py-[7px] rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium">确认设为党小组组长</button>`;
+  html += `<button data-auth-action="confirm" class="btn-accent text-sm px-4 py-[7px] font-medium">确认设为党小组组长</button>`;
 
   // ── 分隔线 ──
   html += `<div class="border-t border-gray-100 mt-6 pt-4">`;
@@ -461,7 +459,7 @@ function renderAuthRecords() {
     return `
       <div class="flex items-center justify-between py-2.5 px-3 rounded-lg bg-white transition-colors group">
         <div class="flex items-center gap-3 min-w-0 flex-1">
-          <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-red-50 text-red-700 text-xs font-bold">
+          <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold" style="background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">
             ${personName.charAt(0)}
           </div>
           <div class="min-w-0 flex-1">

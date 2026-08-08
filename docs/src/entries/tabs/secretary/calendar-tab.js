@@ -2,23 +2,23 @@
 // entries/tabs/secretary/calendar-tab.js — 书记工作台·活动管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 考勤概况 + 活动查询。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260808k';
-import { _fmtDate, showToast } from '../../../core/utils.js?v=20260808k';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260808k';
-import { renderInspectorFromState } from '../../../components/inspector.js?v=20260808k';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260808k';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260808k';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260808k';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260808k';
-import { loadActivities } from '../../../services/activity.js?v=20260808k';
-import { renderQueryView } from '../../../components/query-view.js?v=20260808k';
-import { icon } from '../../../core/icons.js?v=20260808k';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260808k';
-import { getPersonName } from '../../../mock/index.js?v=20260808k';
-import { NoticeStore } from '../../../services/notice.js?v=20260808k';
-import { BranchService } from '../../../services/runtime.js?v=20260808k';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260808k';
-import { badgeHtml } from '../../../components/badge.js?v=20260808k';
+import { getAppState, setState } from '../../../core/state.js?v=20260808l';
+import { _fmtDate, showToast } from '../../../core/utils.js?v=20260808l';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260808l';
+import { renderInspectorFromState } from '../../../components/inspector.js?v=20260808l';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260808l';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260808l';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260808l';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260808l';
+import { loadActivities } from '../../../services/activity.js?v=20260808l';
+import { renderQueryView } from '../../../components/query-view.js?v=20260808l';
+import { icon } from '../../../core/icons.js?v=20260808l';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260808l';
+import { getPersonName } from '../../../mock/index.js?v=20260808l';
+import { NoticeStore } from '../../../services/notice.js?v=20260808l';
+import { BranchService } from '../../../services/runtime.js?v=20260808l';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260808l';
+import { badgeHtml } from '../../../components/badge.js?v=20260808l';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 
@@ -30,7 +30,7 @@ const CALENDAR_TAB_HTML = `
   <div class="card rounded-2xl p-6 mb-4">
     <div class="flex items-center justify-between mb-4">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">活动日历</h3>
-      <button id="ws-sec-write-btn" type="button" class="shrink-0 text-sm px-4 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors inline-flex items-center gap-1.5">
+      <button id="ws-sec-write-btn" type="button" class="btn-accent-soft shrink-0 text-sm px-4 py-1.5 inline-flex items-center gap-1.5">
         ${icon('pencil', { className: 'w-3.5 h-3.5' })}
         写入活动
       </button>
@@ -375,9 +375,9 @@ function renderWritePanel(container) {
   // 面包屑（替代原 5 步指示器）
   const step1Active = wp.step === 1;
   html += `<div class="flex items-center gap-2 mb-5 text-xs">`;
-  html += `<span class="${step1Active ? 'text-red-700 font-semibold' : 'text-gray-400'}">① 选模板</span>`;
+  html += `<span class="${step1Active ? 'text-accent font-semibold' : 'text-gray-400'}">① 选模板</span>`;
   html += `<span class="text-gray-300">›</span>`;
-  html += `<span class="${!step1Active ? 'text-red-700 font-semibold' : 'text-gray-400'}">② 填表单</span>`;
+  html += `<span class="${!step1Active ? 'text-accent font-semibold' : 'text-gray-400'}">② 填表单</span>`;
   html += `</div>`;
 
   // 当前步骤内容
@@ -415,13 +415,13 @@ function renderTemplateStep() {
     if (tpl.subtypes.length === 0) {
       // 主题党日无固定子类型，直接选择模板（正交维度在 Step 2 表单中填写）
       const isSelected = wp.selections.L1 === tpl.category;
-      html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="" data-scenario-id="${tpl.scenarioId || 'theme-party'}" data-activity-type="" data-color="${tpl.color}" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'bg-red-50 text-red-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}">`;
+      html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="" data-scenario-id="${tpl.scenarioId || 'theme-party'}" data-activity-type="" data-color="${tpl.color}" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'sel-accent-on' : 'text-gray-700 hover:bg-gray-50'}">`;
       html += `选择${tpl.categoryLabel}`;
       html += `</button>`;
     } else {
       tpl.subtypes.forEach(sub => {
         const isSelected = wp.selections.L1 === tpl.category && wp.selections.L1Sub === sub.value;
-        html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="${sub.value}" data-scenario-id="${sub.scenarioId}" data-activity-type="${sub.activityType || ''}" data-color="${tpl.color}" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'bg-red-50 text-red-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}">`;
+        html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="${sub.value}" data-scenario-id="${sub.scenarioId}" data-activity-type="${sub.activityType || ''}" data-color="${tpl.color}" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'sel-accent-on' : 'text-gray-700 hover:bg-gray-50'}">`;
         html += sub.label;
         html += `</button>`;
       });
@@ -571,7 +571,7 @@ function renderFormStep() {
   // 写入按钮
   const btnText = wp.submitting ? '写入中...' : '创建活动';
   const btnDisabled = wp.submitting ? 'opacity-50 cursor-not-allowed' : '';
-  html += `<button data-action="wp-submit" class="text-sm px-4 py-[7px] rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium ${btnDisabled}">${btnText}</button>`;
+  html += `<button data-action="wp-submit" class="btn-accent text-sm px-4 py-[7px] font-medium ${btnDisabled}">${btnText}</button>`;
 
   html += `</div>`;
   return html;

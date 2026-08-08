@@ -1,15 +1,16 @@
-﻿﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // entries/tabs/secretary/feedback-tab.js — 书记工作台·反馈管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260808k';
-import { showToast } from '../../../core/utils.js?v=20260808k';
-import { icon } from '../../../core/icons.js?v=20260808k';
-import { AuthStore } from '../../../services/auth.js?v=20260808k';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260808k';
-import { getPersonName } from '../../../mock/index.js?v=20260808k';
-import { badgeHtml, badgeVariantClass } from '../../../components/badge.js?v=20260808k';
+import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260808l';
+import { showToast } from '../../../core/utils.js?v=20260808l';
+import { icon } from '../../../core/icons.js?v=20260808l';
+import { AuthStore } from '../../../services/auth.js?v=20260808l';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260808l';
+import { getPersonName } from '../../../mock/index.js?v=20260808l';
+import { PersonStore } from '../../../services/person.js?v=20260808l';
+import { badgeHtml, badgeVariantClass } from '../../../components/badge.js?v=20260808l';
 
 const FEEDBACK_TAB_HTML = `
   <!-- 列表面板 -->
@@ -83,6 +84,14 @@ export function renderContent() {
 //  功能：草稿审核（通过/驳回） 全部反馈列表 + 导出/清除
 // ════════════════════════════════════════════════════════════════
 
+/** 提交人 hover 卡片文本（姓名 · 学号 · 发展阶段 · 党小组；匿名/无记录返回 null） */
+function _submitterTip(personId) {
+  if (!personId || personId === '匿名') return null;
+  const p = PersonStore.getById(personId);
+  if (!p) return null;
+  return [p.name, p.studentId, p.developStage, p.partyGroup].filter(Boolean).join(' · ');
+}
+
 function renderIssueManagement() {
   // ── 草稿审核 ──
   const draftsEl = document.getElementById('issue-drafts-list');
@@ -143,6 +152,7 @@ function renderIssueManagement() {
         const ds = deriveIssueDisplayState(i);
         const assigneeLabel = i.assigneeRole ? ROLE_LABELS[i.assigneeRole] || i.assigneeRole : null;
         const isReviewUnread = IssueNotify.getSecretaryReviewUnread().includes(i.id);
+        const submitterTip = _submitterTip(i.submittedBy);
         return `
           <div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 cursor-pointer transition-all" data-issue-action="open-detail" data-issue-id="${i.id}">
             <div class="flex items-center justify-between mb-1">
@@ -154,7 +164,9 @@ function renderIssueManagement() {
               </div>
             </div>
             <p class="text-sm text-gray-800 font-medium">${i.title}</p>
-            <div class="text-xs text-gray-400 mt-1">${getPersonName(i.submittedBy)} · ${i.commentCount || 0} 评论 · ${i.submittedAt}</div>
+            <div class="text-xs text-gray-400 mt-1">${submitterTip
+              ? `<span class="tip-trigger" data-tip="${submitterTip}">${getPersonName(i.submittedBy)}</span>`
+              : (getPersonName(i.submittedBy) || '匿名')} · ${i.commentCount || 0} 评论 · ${i.submittedAt}</div>
           </div>
         `;
       }).join('');
@@ -303,6 +315,9 @@ function renderIssueDetail(issueId) {
   html += `<span>范围：${issue.scope || '—'}</span>`;
   html += `<span>类型：${(issue.types || []).join(', ') || '—'}</span>`;
   html += `<span>提交人：${getPersonName(issue.submittedBy) || '匿名'}</span>`;
+  if (issue._realPersonId && issue._realPersonId !== issue.submittedBy) {
+    html += `<span style="color:var(--app-accent,#B91C1C);" title="该反馈为匿名提交，此为书记内部追溯信息">真实提交人（仅书记可见）：${getPersonName(issue._realPersonId)}</span>`;
+  }
   html += `<span>提交时间：${issue.submittedAt || '—'}</span>`;
   if (issue.closedAt) html += `<span>关闭时间：${issue.closedAt}</span>`;
   html += `</div>`;
@@ -396,12 +411,16 @@ function renderIssueDetail(issueId) {
     html += `<div class="space-y-3">`;
     comments.forEach(c => {
       if (c.hidden) return; // 书记可看隐藏评论，但默认不显示
+      const isReply = c.kind === 'reply';
       const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'verdict' ? '★' : '';
-      const kindBg = c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'result' ? 'bg-green-50' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
-      const authorName = ROLE_LABELS[c.authorRole] || c.author;
+      const kindBg = c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'result' ? 'bg-green-50' : isReply ? 'bg-red-50/70' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
+      const authorName = getPersonName(c.author) || '匿名';
       html += `<div class="rounded-lg p-2.5 ${kindBg}">`;
       html += `<div class="flex items-center gap-1.5 mb-1">`;
       html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${authorName}</span>`;
+      if (isReply) {
+        html += `<span class="text-xs px-1.5 py-0.5 rounded font-medium" style="background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">正式答复</span>`;
+      }
       html += `<span class="text-xs text-gray-400">${c.createdAt}</span>`;
       html += `</div>`;
       html += `<p class="text-xs text-gray-600">${c.body}</p>`;
@@ -411,14 +430,21 @@ function renderIssueDetail(issueId) {
   }
   html += `</div>`;
 
-  // ── 评论输入框 ──
+  // ── 评论/批复/正式答复 输入区 ──
+  // 颜色层级（书记 2026-08-08 指令 #4）：评论=次级操作(btn-accent-soft)，批复=主操作(btn-accent)，
+  // 正式答复=以组织名义的公开回应，独立一行 + 时间线「正式答复」徽标区分。
   if (issue.status === 'open') {
-    html += `<div class="pt-3 border-t border-gray-100">`;
+    html += `<div class="pt-3 border-t border-gray-100 space-y-2">`;
     html += `<div class="flex gap-2">`;
     html += `<input type="text" id="issue-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论…">`;
-    html += `<button data-detail-action="add-comment" class="text-xs px-3 py-2 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors">评论</button>`;
-    html += `<button data-detail-action="add-verdict" class="text-xs px-3 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition-colors">批复</button>`;
-    html += `</div></div>`;
+    html += `<button data-detail-action="add-comment" class="btn-accent-soft text-xs px-3 py-2">评论</button>`;
+    html += `<button data-detail-action="add-verdict" class="btn-accent text-xs px-3 py-2">批复</button>`;
+    html += `</div>`;
+    html += `<div class="flex gap-2">`;
+    html += `<input type="text" id="issue-reply-input" class="input-flat text-xs flex-1" placeholder="正式答复（以组织名义回应反馈人）…">`;
+    html += `<button data-detail-action="add-reply" class="btn-accent text-xs px-3 py-2 whitespace-nowrap">正式答复</button>`;
+    html += `</div>`;
+    html += `</div>`;
   }
 
   html += `</div>`;
@@ -494,6 +520,15 @@ function bindIssueDetailActions(issueId) {
           const user = AuthStore.getCurrentUser();
           IssueStore.addComment(issueId, user?.personId || 'u_sec', 'secretary', body, 'verdict');
           showToast('success', '批复已添加');
+          renderIssueDetail(issueId);
+          break;
+        }
+        case 'add-reply': {
+          const body = document.getElementById('issue-reply-input')?.value?.trim();
+          if (!body) { showToast('error', '请输入正式答复内容'); return; }
+          const user = AuthStore.getCurrentUser();
+          IssueStore.addComment(issueId, user?.personId || 'u_sec', 'secretary', body, 'reply');
+          showToast('success', '正式答复已发布');
           renderIssueDetail(issueId);
           break;
         }

@@ -1,11 +1,11 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // entries/tabs/secretary/notification-tab.js — 书记工作台·通知发布 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore } from '../../../services/notice.js?v=20260808k';
-import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260808k';
-import { badgeHtml } from '../../../components/badge.js?v=20260808k';
+import { NoticeStore } from '../../../services/notice.js?v=20260808l';
+import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260808l';
+import { badgeHtml } from '../../../components/badge.js?v=20260808l';
 
 const NOTIFICATION_TAB_HTML = `
   <div class="card rounded-2xl p-6 mb-6">
@@ -66,13 +66,13 @@ function renderNotificationForm() {
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">目标受众 <span class="text-red-500">*</span></label>`;
   html += `<div class="flex flex-wrap gap-2">`;
   NOTIFICATION_AUDIENCES.forEach(a => {
-    html += `<button data-notif-action="select-audience" data-value="${a.value}" class="text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-700 transition-all">${a.label}</button>`;
+    html += `<button data-notif-action="select-audience" data-value="${a.value}" class="chip-option text-sm px-4 py-2 rounded-lg">${a.label}</button>`;
   });
   html += `</div>`;
   html += `</div>`;
 
   // 发布按钮
-  html += `<button data-notif-action="publish" class="text-sm px-4 py-[7px] rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors font-medium">发布通知</button>`;
+  html += `<button data-notif-action="publish" class="btn-accent text-sm px-4 py-[7px] font-medium">发布通知</button>`;
 
   formArea.innerHTML = html;
 
@@ -103,8 +103,8 @@ function handleNotifAction(e) {
         formArea.querySelectorAll('[data-notif-action="select-audience"]').forEach(b => {
           const isSelected = _selectedAudience.includes(b.dataset.value);
           b.className = isSelected
-            ? 'text-sm px-4 py-2 rounded-lg font-medium border border-red-200 text-red-700 bg-red-50 transition-all'
-            : 'text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-700 transition-all';
+            ? 'chip-accent-on chip-option text-sm px-4 py-2 rounded-lg font-medium'
+            : 'chip-option text-sm px-4 py-2 rounded-lg';
         });
       }
       break;
