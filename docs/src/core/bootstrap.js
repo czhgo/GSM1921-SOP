@@ -4,17 +4,17 @@
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../components/sidebar.js?v=20260808i';
-import { renderHeader } from '../components/header.js?v=20260808i';
-import { AuthStore } from '../services/auth.js?v=20260808i';
-import { IssueStore } from '../services/issues.js?v=20260808i';
-import { MilestoneStore } from '../services/milestones.js?v=20260808i';
-import { getAccentColors, resolveAccentRole } from './constants.js?v=20260808i';
-import { CrossPageState } from './cross-page-state.js?v=20260808i';
-import { getBasePath } from './utils.js?v=20260808i';
-import { enhanceSelects } from '../components/custom-select.js?v=20260808i';
-import { registerApiAdapter, setDataSource, init } from './data-adapter.js?v=20260808i';
-import { ApiAdapter } from './api-adapter.js?v=20260808i';
+import { renderSidebar } from '../components/sidebar.js?v=20260808j';
+import { renderHeader } from '../components/header.js?v=20260808j';
+import { AuthStore } from '../services/auth.js?v=20260808j';
+import { IssueStore } from '../services/issues.js?v=20260808j';
+import { MilestoneStore } from '../services/milestones.js?v=20260808j';
+import { getAccentColors, resolveAccentRole } from './constants.js?v=20260808j';
+import { CrossPageState } from './cross-page-state.js?v=20260808j';
+import { getBasePath } from './utils.js?v=20260808j';
+import { enhanceSelects } from '../components/custom-select.js?v=20260808j';
+import { registerApiAdapter, setDataSource, init } from './data-adapter.js?v=20260808j';
+import { ApiAdapter } from './api-adapter.js?v=20260808j';
 
 // ════════════════════════════════════════════════════════════════
 // S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）
@@ -155,6 +155,12 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
     } else {
       ({ accent, accentRgba, accentBorder } = getAccentColors(effRole));
     }
+    // 全局主题色变量（--app-accent 三件套）：cs-menu 选中项 / chips 选中态等
+    // 「统一主题色渲染」跟随当前用户主题色（书记 2026-08-08 三审定稿，弃用金实底）
+    const root = document.documentElement;
+    root.style.setProperty('--app-accent', accent);
+    root.style.setProperty('--app-accent-bg', accentRgba);
+    root.style.setProperty('--app-accent-border', accentBorder);
   }
 
   // 统一预加载所有 Service（并行，不阻塞渲染但保证后续同步调用有数据）

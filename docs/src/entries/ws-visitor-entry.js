@@ -1,24 +1,24 @@
-﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260808i';
-import { showToast } from '../core/utils.js?v=20260808i';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260808i';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260808i';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808i';
-import { NoticeStore } from '../services/notice.js?v=20260808i';
-import { SignupStore } from '../services/signup.js?v=20260808i';
-import { AuthStore } from '../services/auth.js?v=20260808i';
-import { PEOPLE } from '../mock/index.js?v=20260808i';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260808i';
-import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260808i';
-import { loadActiveInspectionRecords } from '../services/inspection.js?v=20260808i';
-import { inspectionToDisplay } from '../mock/index.js?v=20260808i';
-import { loadActivities } from '../services/activity.js?v=20260808i';
-import { getActivityTypeColors, ROLE_COLORS } from '../core/constants.js?v=20260808i';
-import { renderTabBar } from '../components/tab-bar.js?v=20260808i';
-import { icon } from '../core/icons.js?v=20260808i';
-import { renderQueryView } from '../components/query-view.js?v=20260808i';
-import { renderTodoList } from '../components/todo-list.js?v=20260808i';
-import { TodoStore, seedTodos, VisitorTodoDeriver } from '../services/todo.js?v=20260808i';
-import { badgeHtml } from '../components/badge.js?v=20260808i';
+﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260808j';
+import { showToast } from '../core/utils.js?v=20260808j';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260808j';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260808j';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808j';
+import { NoticeStore } from '../services/notice.js?v=20260808j';
+import { SignupStore } from '../services/signup.js?v=20260808j';
+import { AuthStore } from '../services/auth.js?v=20260808j';
+import { PEOPLE } from '../mock/index.js?v=20260808j';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260808j';
+import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260808j';
+import { loadActiveInspectionRecords } from '../services/inspection.js?v=20260808j';
+import { inspectionToDisplay } from '../mock/index.js?v=20260808j';
+import { loadActivities } from '../services/activity.js?v=20260808j';
+import { getActivityTypeColors, ROLE_COLORS } from '../core/constants.js?v=20260808j';
+import { renderTabBar } from '../components/tab-bar.js?v=20260808j';
+import { icon } from '../core/icons.js?v=20260808j';
+import { renderQueryView } from '../components/query-view.js?v=20260808j';
+import { renderTodoList } from '../components/todo-list.js?v=20260808j';
+import { TodoStore, seedTodos, VisitorTodoDeriver } from '../services/todo.js?v=20260808j';
+import { badgeHtml } from '../components/badge.js?v=20260808j';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'participant' });
 
@@ -696,7 +696,7 @@ function _renderTodoDetail(todo) {
         ${todo.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.flow}</p>` : ''}
         ${todo.deadline ? `<div class="text-xs text-gray-500">最早截止：${todo.deadline}</div>` : ''}
         <div class="pt-3 border-t border-gray-100 flex gap-2">
-          <button class="visitor-todo-detail-action text-xs px-3 py-1.5 rounded-lg transition-colors" style="background:var(--party-gold);color:#854D0E;border:1px solid #EAB308;">去处理</button>
+          <button class="visitor-todo-detail-action text-xs px-3 py-1.5 rounded-lg transition-colors" style="background:var(--party-gold);color:#B45309;border:1px solid rgba(255,215,0,0.35);">去处理</button>
         </div>
       </div>
     `;
@@ -729,7 +729,7 @@ function _renderTodoDetail(todo) {
       ${todo.deadline ? `<div class="text-xs text-gray-500">截止：${todo.deadline}</div>` : ''}
       <div class="text-xs text-gray-400">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
-        ${todo.actionType ? `<button class="visitor-todo-detail-action text-xs px-3 py-1.5 rounded-lg transition-colors" style="background:#FFD700;color:#854D0E;border:1px solid #EAB308;">处理</button>` : ''}
+        ${todo.actionType ? `<button class="visitor-todo-detail-action text-xs px-3 py-1.5 rounded-lg transition-colors" style="background:rgba(255,215,0,0.12);color:#B45309;border:1px solid rgba(255,215,0,0.35);">处理</button>` : ''}
       </div>
     </div>
   `;

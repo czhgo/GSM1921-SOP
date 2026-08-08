@@ -406,9 +406,9 @@ input.input-flat.text-xs {
   color: #B45309;
 }
 .wp-dim-chip.wp-dim-on {
-  background-color: #FFD700;
-  border-color: var(--party-gold);
-  color: #854D0E;
+  background-color: var(--app-accent-bg, rgba(185, 28, 28, 0.1));
+  border-color: var(--app-accent, #B91C1C);
+  color: var(--app-accent, #B91C1C);
   font-weight: 500;
 }
 
@@ -425,9 +425,9 @@ input.input-flat.text-xs {
   color: #B45309;
 }
 .wp-brand-chip.wp-brand-on {
-  background-color: #FFD700;
-  border-color: var(--party-gold);
-  color: #854D0E;
+  background-color: var(--app-accent-bg, rgba(185, 28, 28, 0.1));
+  border-color: var(--app-accent, #B91C1C);
+  color: var(--app-accent, #B91C1C);
   font-weight: 500;
 }
 
@@ -578,8 +578,8 @@ textarea.input-flat {
   background: var(--neutral-100);
 }
 .cs-option.is-selected {
-  background: #FFD700;
-  color: #854D0E;
+  background: var(--app-accent-bg, rgba(185, 28, 28, 0.1));
+  color: var(--app-accent, #B91C1C);
   font-weight: 500;
 }
 .cs-option.is-disabled {
@@ -7612,9 +7612,9 @@ label .text-red-500 {
 
   /* ── ④ 激活 Tab：内联 --tab-accent-bg 是浅色透明叠加，深色下直接覆盖为 深色底+强调色 ── */
   html.theme-dark .tab-btn-active {
-    background: #EAB308 !important;
-    border-color: #FFD700 !important;
-    color: #141D2F !important;
+    background: color-mix(in srgb, var(--tab-accent) 18%, #141D2F) !important;
+    border-color: color-mix(in srgb, var(--tab-accent) 60%, #334155) !important;
+    color: color-mix(in srgb, var(--tab-accent) 72%, white) !important;
   }
 
 

@@ -5,12 +5,12 @@
 // - '党建工作台' → '工作台'（角色自适应跳转）
 // - 帮助/关于移入主导航区
 
-import { AuthStore } from '../services/auth.js?v=20260808i';
-import { getBasePath } from '../core/utils.js?v=20260808i';
-import { icon } from '../core/icons.js?v=20260808i';
-import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260808i';
-import { bindWorkspacePopover } from './workspace-popover.js?v=20260808i';
-import { getThemePreference, setThemePreference, initTheme } from '../core/theme.js?v=20260808i';
+import { AuthStore } from '../services/auth.js?v=20260808j';
+import { getBasePath } from '../core/utils.js?v=20260808j';
+import { icon } from '../core/icons.js?v=20260808j';
+import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260808j';
+import { bindWorkspacePopover } from './workspace-popover.js?v=20260808j';
+import { getThemePreference, setThemePreference, initTheme } from '../core/theme.js?v=20260808j';
 
 function getNavItems() {
   const base = getBasePath();

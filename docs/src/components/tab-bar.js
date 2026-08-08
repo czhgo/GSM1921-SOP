@@ -3,13 +3,15 @@
 //  tab-bar.js — 通用 Tab 切换组件
 // ════════════════════════════════════════════════════════════════
 
-// 品牌统一层：tab 激活态统一金色（书记 2026-08-08 决策「tab+边框全金」）。
-// 金色 = 党建合规色（--party-gold 系），不经角色派生链路，不受各角色主题色制约。
-// accentColor 参数保留（兼容调用方签名），但激活态颜色一律取金色三件套。
-const GOLD_ACTIVE = {
-  accent: '#854D0E',                  // 深金文字（实色金底上对比度 4.85:1 达标，比 #B45309 更金不偏橙）
-  accentRgba: '#FFD700',              // 实色党徽金底（2026-08-08 二轮：半透明 0.14/0.30 叠白均偏淡偏橙，改实色）
-  accentBorder: '#EAB308',            // 深一档金黄边框（在实金底上凸显 tab 形状）
+// 角色识别层：tab 激活态 = 主题色三件套渲染（书记 2026-08-08 三审定稿）。
+// 背景：前三轮把 tab 强行为品牌金（半透明 0.14/0.30 → 实色 #FFD700），书记全部否决——
+// 金是品牌合规色，含义多、受对比度牵制反复变色。回归「每个人各自的主题色」：
+// 各工作台 bootstrapPage 传入 accentColor（resolveAccentRole 支持侧边栏主题色个性化），
+// 统一渲染 = 浅底 rgba(X,0.1) + 边框 rgba(X,0.3) + X 文字。
+const FALLBACK_ACCENT = {
+  accent: '#B91C1C',                  // 党建红（默认兜底，与书记主题色同源）
+  accentRgba: 'rgba(185, 28, 28, 0.1)',
+  accentBorder: 'rgba(185, 28, 28, 0.3)',
 };
 
 /**
@@ -53,8 +55,8 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
   }
   let currentTab = activeTab;
 
-  // 激活态颜色统一取金色（品牌统一层），不再使用调用方 accentColor
-  const { accent, accentRgba, accentBorder } = GOLD_ACTIVE;
+  // 激活态颜色 = 主题色三件套（调用方 accentColor，来自 bootstrapPage 的 accentRole/自选主题色）
+  const { accent, accentRgba, accentBorder } = accentColor || FALLBACK_ACCENT;
 
   // 生成 Tab 按钮 HTML（active 状态由 CSS 类 + CSS 变量驱动）
   // groupLabel 去重：同组只在首项前渲染标签（独立元素，不嵌在 button 内）

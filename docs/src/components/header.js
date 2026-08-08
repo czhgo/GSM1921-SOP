@@ -1,14 +1,14 @@
-﻿﻿// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // components/header.js — 共享顶栏组件（重构版）
 // 变化: 去掉 mode 标签与只读视角切换，仅保留身份标签 + 工作台切换下拉
 
-import { AuthStore } from '../services/auth.js?v=20260808i';
-import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260808i';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260808i';
-import { getBasePath } from '../core/utils.js?v=20260808i';
-import { icon } from '../core/icons.js?v=20260808i';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260808i';
-import { badgeHtml } from './badge.js?v=20260808i';
+import { AuthStore } from '../services/auth.js?v=20260808j';
+import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260808j';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260808j';
+import { getBasePath } from '../core/utils.js?v=20260808j';
+import { icon } from '../core/icons.js?v=20260808j';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260808j';
+import { badgeHtml } from './badge.js?v=20260808j';
 
 // 数据变更订阅（2026-08-05，消除"确认已读后角标不更新"）：
 // 模块顶层绑定一次；_renderNotificationBadge 在 #notification-bell 未渲染时静默返回。
@@ -93,7 +93,7 @@ function _viewSwitcherHTML(role, user) {
       <div style="padding:6px 12px;color:var(--neutral-400);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;" class="text-xs">切换工作台</div>
       ${workspaces.map(w => `
         <a href="${w.href}" data-ws-role="${w.role}" class="view-option text-body-sm" data-type="workspace" style="position:relative;display:flex;align-items:center;gap:6px;padding:8px 12px;cursor:pointer;color:var(--neutral-800);transition:background 0.15s;text-decoration:none;">
-          ${w.isCurrent ? '<span style="position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--party-gold);border-radius:1px;"></span>' : ''}
+          ${w.isCurrent ? '<span style="position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--app-accent, var(--party-gold));border-radius:1px;"></span>' : ''}
           <span>${w.label}</span>
           ${w.isCurrent ? '<span style="margin-left:auto;color:var(--neutral-400);" class="text-xs">当前</span>' : ''}
         </a>
