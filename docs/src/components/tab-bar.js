@@ -8,8 +8,8 @@
 // accentColor 参数保留（兼容调用方签名），但激活态颜色一律取金色三件套。
 const GOLD_ACTIVE = {
   accent: '#B45309',                  // 深金文字（金色浅底上保证对比度）
-  accentRgba: 'rgba(255, 215, 0, 0.14)', // 金色浅底
-  accentBorder: 'rgba(255, 215, 0, 0.45)', // 金色边框
+  accentRgba: 'rgba(255, 215, 0, 0.30)', // 金色浅底（2026-08-08 提浓：0.14 叠白后呈奶油色/偏橙，不够金）
+  accentBorder: 'rgba(255, 215, 0, 0.9)', // 金色边框（2026-08-08 提浓：0.45 过淡 → 近实金）
 };
 
 /**
@@ -74,7 +74,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
       const divider = isFirstGroup
         ? ''
         : `<span style="width:1px;height:14px;background:#E5E7EB;display:inline-block;margin-right:4px;vertical-align:middle;"></span>`;
-      groupHtml = `<span class="tab-group-label inline-flex items-center gap-1.5" style="pointer-events:none;user-select:none;">${divider}<span style="padding:1px 5px;border-radius:3px;background:${accent}12;color:${accent};font-weight:600;letter-spacing:0.5px;vertical-align:middle;" class="text-[11px]">${groupLabel}</span></span>`;
+      groupHtml = `<span class="tab-group-label inline-flex items-center gap-1.5" style="pointer-events:none;user-select:none;">${divider}<span style="padding:1px 5px;border-radius:3px;background:${accentRgba};color:${accent};font-weight:600;letter-spacing:0.5px;vertical-align:middle;" class="text-[11px]">${groupLabel}</span></span>`;
       isFirstGroup = false;
     }
     return `${groupHtml}<button class="${btnClass}${activeClass} px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}"${activeStyle}>${label}</button>`;

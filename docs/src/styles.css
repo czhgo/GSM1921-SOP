@@ -7612,8 +7612,9 @@ label .text-red-500 {
 
   /* ── ④ 激活 Tab：内联 --tab-accent-bg 是浅色透明叠加，深色下直接覆盖为 深色底+强调色 ── */
   html.theme-dark .tab-btn-active {
-    background: color-mix(in srgb, var(--tab-accent) 14%, #141D2F) !important;
-    border-color: color-mix(in srgb, var(--tab-accent) 35%, #334155) !important;
+    background: color-mix(in srgb, #FFD700 24%, #141D2F) !important;
+    border-color: color-mix(in srgb, #FFD700 62%, #334155) !important;
+    color: #FDE68A !important;
   }
 
 
