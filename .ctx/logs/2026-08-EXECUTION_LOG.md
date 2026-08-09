@@ -2066,3 +2066,19 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 
 - **变更文件**：`content/01_strategy/SECRETARY_PRONOUNCEMENTS.md`、`content/02_institution/FLAT_DESIGN.md`、`README.md`、`content/04_web_design/SOP_WEB.md`、`content/02_institution/sop/支委与党小组定人定责定岗说明.md`、`docs/help.html`、`docs/src/entries/about-entry.js`、`content/insights/工程演进与设计方法论.md`、`CLAUDE.md`
 - **沉淀标签**：`[已沉淀: 书记原话 vs AI 自造的边界]` — "分工记录而非管理闭环"这类 A 而非 B 句式若无书记背书即为 AI 自造，书记裁决"分工记录就是管理闭环的重要部分"反向纠正，误将正确正论写成反论；`[已沉淀: 比喻弃用须全仓联动]` — 书记弃用的比喻（脑子/手）须沿母本/README/网页/代码层/判例全仓清理，含代码层 duty 标签与 T195 判例回滚（曾定为 T1 的论断也会被书记弃用——判例须随书记最新裁决更新）
+
+## T236 历史过程性文件二次清理（subset 工具移除）+ 第四批评议启动（2026-08-09）
+
+**任务**：书记指令三连——① 历史过程性文件清理，保证仓库干净整洁；② 进行一次 commit（只 commit 不 push）；③ 继续推进乙部书记原话逐条评议（T-200 第四批：P-012/P-013）。附注方法论：书记原话会随时间和实践深入而更精确——①可能和原来的表达不同（要反复确认，取其精华去其糟粕）；②大部分情况是对既有论述的扩充（书记强调表达不清楚会导致误解）。另受命：将元原则写入 CLAUDE.md 等最重要上下文文件——"书记所有的原话都是一个 big picture 下的不同侧面，一定要去体悟这种统一性和一致性，对书记的原话融会贯通！"
+**引用流程**：brainstorming Skill（方案确认）+ sample-diff-learning Skill（抽样评议 + 差异泛化）+ H5 书记评议 + T-200 + H2.1 一改具改
+
+### 任务一：历史过程性文件二次清理
+- **删除字体子集化工具**：`.ctx/tools/subset_font.py`（磁盘残留，`*.py` 已被 .gitignore 忽略故 git 不可见）+ `.ctx/tools/subset_chars.txt`（git 追踪）。T233 曾裁定"保留正式工具"，本次书记要求二次清理——字体产物 `nanxi-youmosong-subset.woff2` 已作为静态资产入库（styles.css/about.html 正常引用），脚本完成使命属一次性过程文件，书记 AskUserQuestion 确认"一并删除"。删除后 `.ctx/tools/` 空目录一并移除
+- **删除残留空目录**：`.superpowers/`（20260804 视觉 brainstorming 会话遗留，gitignored）+ `Temp/`
+- **保留**：`server/uploads/`、`server/data.db*`（运行时功能文件）、`docs/scripts/bump-version.mjs`（正式版本号工具）
+- **教训**：`*.py` 在 .gitignore 中被忽略 → git status 不可见但残留在磁盘，清理须用 Glob 扫描 `**/*.py` 与 `git status --ignored` 而非仅看 git status（T233 已沉淀，本次再次确认；subset_font.py 属于 T233 误判为"正式工具"而遗留）
+
+### 任务二：commit（只 commit 不 push）
+- 清理提交后执行
+
+### 任务三：T-200 第四批评议（P-012/P-013 + 新增原话）——方案已在书记确认后落地，详见后续段落
