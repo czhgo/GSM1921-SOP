@@ -95,3 +95,25 @@ export function getBasePath() {
   // JS动态内容同样受 <base> 影响，因此始终返回 './'
   return './';
 }
+
+/**
+ * 跳转定位高亮（书记 2026-08-08 裁定：高亮须自动褪去，不得一直亮着）
+ * 首页跳转携带 activityId/taskforceId 等参数时，工作台定位元素后应用本高亮：
+ *  - 定时自动褪去（默认 2.8s）
+ *  - 用户点击该元素即提前褪去
+ *  - 褪去时通过 transition 平滑淡出（非硬切）
+ * @param {HTMLElement} el — 目标元素
+ * @param {Object} [opts]
+ * @param {number} [opts.duration=2800] — 自动褪去毫秒数
+ * @param {string} [opts.className='nav-flash-highlight'] — 高亮 CSS 类
+ */
+export function flashHighlight(el, { duration = 2800, className = 'nav-flash-highlight' } = {}) {
+  if (!el || !el.classList || typeof el.classList.add !== 'function') return;
+  el.classList.add(className);
+  const off = () => {
+    el.style.transition = 'box-shadow .6s ease, border-color .6s ease, background .6s ease';
+    el.classList.remove(className);
+  };
+  el.addEventListener('click', off, { once: true });
+  setTimeout(off, duration);
+}

@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿// role: [工程师]+[AI]
 // entries/tabs/secretary/overview-tab.js — 书记工作台·全局概况 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 设计初衷（书记 2026-08-02 确认方向后记录）：

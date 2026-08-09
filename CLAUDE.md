@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: "2026-08-06"
+last_updated: "2026-08-09"
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSOT_INDEX.md, content/01_strategy/SECRETARY_PRONOUNCEMENTS.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
 ---
@@ -54,7 +54,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 > 🔴 **歧义消解铁律**：人类表达可能有歧义。当任务复杂、庞大、或用户表述不清晰时，**必须**：
 >
-> - 在乙部中拆分为可独立完成的子任务（OPERATIONS\_GUIDE.md §13.5 分片规则）
+> - 在乙部中拆分为可独立完成的子任务（OPERATIONS\_GUIDE.md §10.5 分片规则）
 > - 在丙部中提问确认意图（H4.2 丙部待决策机制）
 > - 宁可多问一句，不可误判意图。**不知为不知，是知也。**
 > - 🔴 **有疑问必须主动 /ask 书记确认，不得自行假设或基于猜测执行**——这是防止误判意图的最后一道防线。宁可多问一句，不可自行其是。
@@ -77,6 +77,23 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 **⚠️ 丙部待决策事项**：若丙部有未决事项，必须在 next\_prompt 中列出，交由书记决策。
 
+### H1.4 反思触发流（🔴 书记说"反思/值得思考"时强制触发）
+
+> **书记指令（2026-08-09）**："每次在书记提到反思的时候……这个值得好好思考！""反思的时候，所有链接'指向'的 content/docs 文件也要有选择地读！"
+>
+> 反思不是口头表态，是**有产出动作的学习闭环**。沉淀机制的价值在于：书记纠正过一次的问题，系统应永久记住，不再让书记反复提起。触发反思流 = 把书记的反思指令转化为实际的排查与修正。
+
+当书记表达"反思""值得思考""为什么还在"等反思信号时，AI **必须**按以下流程执行，不得只口头反思：
+
+1. **定位权威源最近变更**：读 [USAGE_POLICY.md](content/03_doc_system/USAGE_POLICY.md) §1 术语表 + [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) 最新 P 编号，确认最近一次定义/术语/层级变更是什么（如 2026-08-03 党建/党务 T1 官方定义取代两分法）
+2. **沿链接传播排查**：从权威源出发，**追踪所有链接"指向"的 content/docs 文件**，有选择地读取被引用文件，确认定义是否已同步（🔴 书记补充要求：不能只看权威源本身，必须顺链接读下游）
+3. **全仓 Grep 旧表述**：搜索被降级/替换的旧术语、旧定义、旧层级表述，列出全部残留位置
+4. **一改具改**：按 H2.1 全仓同步修正；区分「定义残留」（必须改）与「合法功能分区标题/UI 标签」（保留，如 `## 党建工作` 章节标题、`【党建工作】` 场景前缀）
+5. **机制补缺**：若残留根因是审计项缺覆盖（如 C-5 未包含"已降级定义残留"），同步补强审计项，防止复发
+6. **沉淀验证**：将本次"变更未传播"教训按 H2.4 沉淀进 insights，标注生效条件；反思闭环才算完成
+
+**为什么必须顺链接读下游**：权威源更新 ≠ 下游同步。书记原话、USAGE_POLICY、insights、SOP 母本、架构文档分层散落，任何一层未同步都会造成"旧定义赫然在重要文件"（2026-08-09 党建/党务两分法残留 5 处即此病）。只改权威源不查下游，等于没反思。
+
 ***
 
 ## H2. 一改具改原则与母本子本关系
@@ -95,12 +112,12 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 **吸收外部输入原则**：当书记或外部来源提供新的评议/文档/制度更新时，必须识别变更范围，归位到权威源，并触发一改具改。具体操作流程见 guides。
 
-→ 详细操作流程见 [OPERATIONS\_GUIDE.md §14](content/03_doc_system/OPERATIONS_GUIDE.md)
+→ 详细操作流程见 [OPERATIONS\_GUIDE.md §16](content/03_doc_system/OPERATIONS_GUIDE.md)
 
 ### H2.2 设计母本与子本
 
-> **本表为5条核心原则**。完整的母本子本注册表（约25条级联关系）见 [SSOT\_INDEX.md](content/03_doc_system/SSOT_INDEX.md)，文档权威层级定义见 [OPERATIONS\_GUIDE.md §7.1](content/03_doc_system/OPERATIONS_GUIDE.md)，文档导航图见 [DOC\_MAP.md](content/03_doc_system/DOC_MAP.md)。
-> 三者关系：H2.2 提炼核心原则 → SSOT\_INDEX 注册全部关系 → OPERATIONS\_GUIDE §7.1 定义层级 → DOC\_MAP 标注层级。
+> **本表为5条核心原则**。完整的母本子本注册表（约25条级联关系）见 [SSOT\_INDEX.md](content/03_doc_system/SSOT_INDEX.md)，文档权威层级定义见 [OPERATIONS\_GUIDE.md §1.1](content/03_doc_system/OPERATIONS_GUIDE.md)，文档导航图见 [DOC\_MAP.md](content/03_doc_system/DOC_MAP.md)。
+> 三者关系：H2.2 提炼核心原则 → SSOT\_INDEX 注册全部关系 → OPERATIONS\_GUIDE §1.1 定义层级 → DOC\_MAP 标注层级。
 
 | 关系类型   | 母本                                                                                   | 子本                             | 同步规则                                                         |
 | ------ | ------------------------------------------------------------------------------------ | ------------------------------ | ------------------------------------------------------------ |
@@ -121,7 +138,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 > 🔴 **每次向 insights/ 写入内容时必须遵守以下规则。**
 
 1. **结构兼容性**：写入前与既有结构逐节比对，兼容则追加，不兼容则写入丙部
-2. **按需正反两面论**：只有当命题存在真正的对立方案（读者可能真正会想到的替代选择）时，才需要反论。判定依据见 [OPERATIONS\_GUIDE.md §10.2/§10.3/§10.7/§10.9](content/03_doc_system/OPERATIONS_GUIDE.md)
+2. **按需正反两面论**：只有当命题存在真正的对立方案（读者可能真正会想到的替代选择）时，才需要反论。判定依据见 [OPERATIONS\_GUIDE.md §11.2/§11.3/§11.7/§11.9](content/03_doc_system/OPERATIONS_GUIDE.md)
 3. **禁止冗余标记**：正文中不标注版本号/批次/时间戳，这些归YAML
 4. **沉淀标签闭环**：沉淀完成后，将日志中 `[待沉淀]` 改为 `[已沉淀: 沉淀位置]`
 5. **后推翻前规则**：时间靠后的决策可能推翻先前的决策，时间靠后的执行可能推翻先前的执行。经验沉淀必须标注**生效条件**——在什么前提下成立。当新经验与旧经验矛盾时，不得删除旧经验，而是在旧经验条目下追加"已被XX条件下的新经验修正"标注，在新经验条目中注明"修正了XX条件下的旧经验"。经验不打架，而是条件化。
@@ -147,7 +164,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 □ 7. 记录日志：写入 .ctx/logs/YYYY-MM-EXECUTION_LOG.md
 □ 8. 乙部更新：若涉及执行事项，更新 CLAUDE.md 乙部
 □ 9. 表达合规：若本次修改涉及书记原话展开，必须调用 USAGE_POLICY.md §二（AI 展开原则，含 2.3 五条可复用检查规则）自查（"而非"警惕/"所以"因果链/反面假设/私加强调/元叙事标签）
-□ 10. 反论合规：若本次修改涉及反论（"为什么不是..."），必须按 OPERATIONS_GUIDE.md §10.6 自检清单逐项验证，含§10.7历史范畴检查（被否定项是否仍在使用）和§10.8 AI治理技术特殊性（涉及AI工具使用时需联网补充）
+□ 10. 反论合规：若本次修改涉及反论（"为什么不是..."），必须按 OPERATIONS_GUIDE.md §11.6 自检清单逐项验证，含§11.7历史范畴检查（被否定项是否仍在使用）和§11.8 AI治理技术特殊性（涉及AI工具使用时需联网补充）
 □ 11. 概念命名合规：若本次修改涉及概念命名或标签创建，必须按 H3.1 概念命名守则自检
 ```
 
@@ -190,7 +207,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 ```
 用户明确要求写入？ ──是──→ 必须写入乙部
         │否
-能否一次完成？ ──否──→ 必须写入乙部（按 OPERATIONS_GUIDE.md §13.5 分片）
+能否一次完成？ ──否──→ 必须写入乙部（按 OPERATIONS_GUIDE.md §10.5 分片）
         │是
 涉及 3+ 文件或制度变更？ ──是──→ 写入乙部
         │否
@@ -242,7 +259,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 ### H5.1 触发条件
 
 - **按需启动**：书记说"做一次评议"时启动
-- **周期触发**：每周一次，作为 OPERATIONS\_GUIDE.md §15 周期任务
+- **周期触发**：每周一次，作为 OPERATIONS\_GUIDE.md §17 周期任务
 
 ### H5.2 抽样规则
 
@@ -266,7 +283,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
    **维度选择原则**：AI 默认参考上述常规维度，但根据命题特性灵活选择——纯术语违规的命题可只审"表述"一维度，涉及制度设计的命题可增审"合规溯源"维度。若某命题只审部分维度，预审报告中注明"本次仅审 XX 维度，理由：……"。四维度为常规参考，非强制锁定。
 3. AI 将完整预审报告写入 `.ctx/REVIEW_QUEUE.md`，通知书记可随时评议
 
-> **预判差异记录**：当书记判断与AI预审结果不同时，差异本身是学习信号——须在评议记录中分析差异原因（如AI未检查历史范畴、AI错误组合概念、AI未识别重点偏移等），并评估是否需要沉淀为新的评议维度或检查规则。反论评议专用维度见 OPERATIONS\_GUIDE.md §10.9。
+> **预判差异记录**：当书记判断与AI预审结果不同时，差异本身是学习信号——须在评议记录中分析差异原因（如AI未检查历史范畴、AI错误组合概念、AI未识别重点偏移等），并评估是否需要沉淀为新的评议维度或检查规则。反论评议专用维度见 OPERATIONS\_GUIDE.md §11.9。
 
 1. 书记在 REVIEW\_QUEUE.md 中填写反馈
 2. AI 读取反馈，按 H5.4 三层分流归档，按 H5.6 校验后将完整记录写入执行日志 T 编号，然后清空 REVIEW\_QUEUE.md 当前轮次（REVIEW\_QUEUE.md 是上下文文件不是日志文件，历史记录不在此留存）
@@ -282,6 +299,8 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | 即时小修订 | typo/格式错误/链接断裂等无连锁影响的小问题     | 当场修复                       | 月度执行日志                     |
 
 **关键区分**：机械性问题与设计性问题的边界——若反馈涉及"该规则是否适用于此场景"的判定，归设计性问题；若反馈确认违规且需扫描同类模式，归机械性问题。
+
+**新原则整合收口（3.1 机制，2026-08-09 补）**：书记评议/决策中确立的新原则、新原话，决策后 AI 必须检查是否需要整合进长期文档——涉及 AI 行为约束/工作流的原则→CLAUDE.md 甲部（或对应 governance 文档）；涉及书记原话→content 权威源（SECRETARY_PRONOUNCEMENTS 等）；涉及设计与经验→对应设计文档 / insights。整合动作必须写入 H5.5 评议记录。原则只有落到长期文档，后续工作才能持续遵守——"决策归档即遗忘"等同未落地。
 
 ### H5.5 评议记录
 
@@ -366,10 +385,10 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 - 三种处置关系：保留 / 融入正论 / 删除反论+补充正论
 - 反论用例例子选择约束：避免军事术语/历史典故，优先工程实践或日常管理场景
 - 预判差异记录：书记判断与AI预审不同时，差异须在评议记录中分析原因
-- AI推导识别与级联修改（§14.4）
-- 历史范畴检查：被否定项是否仍在使用（§10.7）
-- AI治理技术特殊性：涉及AI工具使用时需联网补充（§10.8）
-  **详细维度体系**：[OPERATIONS\_GUIDE.md §10.9](content/03_doc_system/OPERATIONS_GUIDE.md)
+- AI推导识别与级联修改（§16.4）
+- 历史范畴检查：被否定项是否仍在使用（§11.7）
+- AI治理技术特殊性：涉及AI工具使用时需联网补充（§11.8）
+  **详细维度体系**：[OPERATIONS\_GUIDE.md §11.9](content/03_doc_system/OPERATIONS_GUIDE.md)
 
 #### H5.8.2 理论复用评议
 
@@ -379,7 +398,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 - 复用评议指标：复用是否准确、是否过时、是否遗漏、是否过度引用
 - 母本子本关系：下游命题对上游命题的复用，母本优先（H2.2）
-- 散落即漂移原则：信息重复散落视为漂移风险（OPERATIONS\_GUIDE §7.4）
+- 散落即漂移原则：信息重复散落视为漂移风险（OPERATIONS\_GUIDE §1.4）
 - 分轮规划：① insights内部复用链 ② governance文档间复用 ③ strategy/design→sop复用链 ④ 跨目录复用断链检查
 
 **四类问题维度**（2026-08-03 第2轮 T193 沉淀，经书记裁决 + H5.6 抽样全接受验证）：
@@ -439,9 +458,9 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | 看检查清单      | 本文件 H3                                                                                    |
 | 看乙部/丙部规则   | 本文件 H4                                                                                    |
 | 看书记评议工作流   | 本文件 H5                                                                                    |
-| 看甲部修改流程    | [OPERATIONS\_GUIDE.md §12](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
-| 看日志规范      | [OPERATIONS\_GUIDE.md §13](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
-| 看面向用户表述规范  | [OPERATIONS\_GUIDE.md §11](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
+| 看甲部修改流程    | [OPERATIONS\_GUIDE.md §15](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
+| 看日志规范      | [OPERATIONS\_GUIDE.md §10](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
+| 看面向用户表述规范  | [OPERATIONS\_GUIDE.md §13](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
 | 看理论基石      | [SECRETARY\_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档） |
 | 看经验沉淀      | [content/insights/](content/insights/)                                                    |
 | 看已知陷阱      | [KNOWN\_PITFALLS.md](content/05_ai_coding/KNOWN_PITFALLS.md)                              |
@@ -451,7 +470,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | 查决策历史      | `.ctx/logs/DECISION_LOG.md`                                                               |
 | 查执行日志      | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`                                                      |
 | 查母本链路      | [SSOT\_INDEX.md](content/03_doc_system/SSOT_INDEX.md)                                     |
-| 查数据一致性     | [CHECKLIST.md](content/03_doc_system/CHECKLIST.md)                                        |
+| 查数据一致性     | [CHECKLIST.md](content/04_web_design/CHECKLIST.md)                                        |
 | 取用模板       | `content/03_doc_system/工作模板/`                                                             |
 | 查可用 Skills | `npx skills find <keyword>`                                                               |
 | 看项目产出声明    | 本文件 H7                                                                                    |
@@ -506,7 +525,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 > 2. 条目完成后，在确认已写入【执行日志】的前提下，**直接删去**
 > 3. 补充新的执行事项时，必须标注引用流程
 > 4. 已完成事项的详细信息归档于 `.ctx/logs/DECISION_LOG.md` 和月度执行日志
-> 5. 大任务必须按 OPERATIONS\_GUIDE.md §13.5 分片规则提前拆分
+> 5. 大任务必须按 OPERATIONS\_GUIDE.md §10.5 分片规则提前拆分
 
 ***
 
@@ -517,10 +536,10 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | ID  | 事项                                                                                                                                                | 引用流程                                                                                    | 修改对象                               | 状态    |
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ---------------------------------- | ----- |
 | C-1 | **JS 组件化**：完善 `docs/src/` 下的 JS 组件（renderHeader/renderSidebar/renderFooter/renderCalendar 等），使 HTML 仅需引用/调用特定 JS 组件即可实现功能，消除 HTML 中的硬编码逻辑         | H2.4 规则 2（方向指引）→ [SOP\_WEB.md](content/04_web_design/SOP_WEB.md)                        | `docs/src/*.js` + `docs/*.html`    | 🔄 持续 |
-| C-2 | **一改具改巡检**：定期检查仓库中是否存在信息重复散落，发现后归并至权威源                                                                                                            | H2.1 + OPERATIONS\_GUIDE.md §7                                                          | 全仓库                                | 🔄 持续 |
-| C-3 | **经验沉淀**：从执行日志和决策日志中提炼可复用模式，写入 insights                                                                                                           | H2.4 + OPERATIONS\_GUIDE.md §13.1 → [党支部管理与实务经验沉淀.md](content/insights/党支部管理与实务经验沉淀.md) | `content/insights/`                | 🔄 持续 |
+| C-2 | **一改具改巡检**：定期检查仓库中是否存在信息重复散落，发现后归并至权威源                                                                                                            | H2.1 + OPERATIONS\_GUIDE.md §1                                                          | 全仓库                                | 🔄 持续 |
+| C-3 | **经验沉淀**：从执行日志和决策日志中提炼可复用模式，写入 insights                                                                                                           | H2.4 + OPERATIONS\_GUIDE.md §10.1 → [党支部管理与实务经验沉淀.md](content/insights/党支部管理与实务经验沉淀.md) | `content/insights/`                | 🔄 持续 |
 | C-4 | **视觉体验持续优化**：颜色方案调优 + 卡片设计（嵌套/并列/顺序排布）审校修订                                                                                                        | DATA\_ARCHITECTURE.md §三 差异化视图 + DESIGN\_SYSTEM.md                                      | `docs/src/styles.css` + 各 entry JS | 🔄 持续 |
-| C-5 | **术语与表达审计**：定期扫描全仓库过时术语（活动建设/组织建设残留、之上/之下、归档→人才库混用等），并调用 USAGE\_POLICY §二.2.3 五条可复用检查规则扫描 AI 没吃透精神的表达模式（"而非"对立/"所以"因果链/反面假设/私加强调/元叙事标签），发现后归并至权威源 | H2.1 一改具改 + OPERATIONS\_GUIDE.md §7 + USAGE\_POLICY.md §二.2.3                           | 全仓库                                | 🔄 持续 |
+| C-5 | **术语与表达审计**：定期扫描全仓库过时术语（活动建设/组织建设残留、之上/之下、归档→人才库混用等）与**已降级定义残留**（术语权威层级降级后，旧定义须同步全仓为 T1 官方定义，如党建/党务两分法→USAGE\_POLICY §1.1.1），并调用 USAGE\_POLICY §二.2.3 五条可复用检查规则扫描 AI 没吃透精神的表达模式（"而非"对立/"所以"因果链/反面假设/私加强调/元叙事标签），发现后归并至权威源 | H2.1 一改具改 + OPERATIONS\_GUIDE.md §1 + USAGE\_POLICY.md §二.2.3                           | 全仓库                                | 🔄 持续 |
 
 ***
 
@@ -542,11 +561,11 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 | ID    | 事项                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | 引用流程                                                                                                | 修改对象                                                                                                              | 状态              |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | --------------- |
-| T-116 | **反论评议·系统性**（4-5轮）：全仓库100处反论的书记评议。分轮规划：① insights §1-§4（理论）② insights §5-§8（方法）③ insights §9-§11（实操）④ governance+strategy ⑤ sop+design+根目录。每轮按H5工作流抽样→预审→书记反馈→三层分流。**第一轮**（insights§1-§6前部12条）已完成，8条即时修订+1条AI推导删除+2条入丙部（P.7已决策归档）。**第二轮**（insights §5-§8，12条）已完成，7条即时修订（R13/R15/R16/R17/R18/R20/R22）+5条保留+2条预判差异沉淀到§10.9判定细则补充。**第三轮**（insights §9-§11，12条）已完成，4条即时修订（R30融入正论/R31修正重点/R32融入正论/R34删除反论+补充正论·去除"三大纪律"例子）+8条保留+3条预判差异沉淀到§10.9判定细则补充·二（保留vs融入正论边界/删除反论+补充正论判定/反论用例例子选择约束）。**第四轮**（governance+strategy，12条）已完成（2026-08-05），R37保留（叙述张力）/R38·R40·R43落盘（含书记纠正「发起是提出需求，招募是统筹执行」为原话句式）/R39·R41删设问融入正论/R42删对立句/R44保留+工程宽容新规则（§10.9判定细则补充·三）/R45保留+AI展开原则升P0独立章（USAGE_POLICY §二）/R46·R47保留/R48锚引书记表述历史（2026-07-15 结构化vs段落化）；新原话3条双收（赋权体系之辨·组织高度赞赏创新·支部方兴未艾意见弥足珍贵）；零残留清零（「身份由分工决定」改书记原话式、P-018/L25/P-027/P-003重复造轮子等改写，P-011标题/P-029及≠标题书记裁决保留）。评审标准已沉淀：§10.9评议维度体系（含判定细则补充·一+·二+·三）+§14.4 AI推导识别与级联修改+H5.3预判差异记录+§10.7历史范畴检查+§10.8 AI治理技术特殊性                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | H5 书记评议 + USAGE\_POLICY §二.2.3 + OPERATIONS\_GUIDE §10                                              | 全仓库                                                                                                               | 🔄 进行中          |
-| T-117 | **理论复用评议**（多轮持续机制，书记裁决 2026-08-06：「理论复用评议绝不是最后一轮」——不设轮数封顶，按需求持续开展）：全仓库跨节/跨文件引用（下游命题对上游命题的复用）的书记评议——关注复用准确性、适用性及效果。分轮规划：① insights内部复用链（§1\~§11 内部复用链）② governance文档间复用（USAGE\_POLICY/OPERATIONS\_GUIDE/ROLE\_CLASSIFICATION等）③ strategy/design→sop复用链 ④ 跨目录复用断链检查（此后各轮按需延续）。每轮建立明确评议指标：复用是否准确、是否过时、是否遗漏、是否过度引用。**第一轮**（insights 内部复用链）已完成（T134，14 条复用点预审）。**第二轮**（governance 文档间复用）已完成（T193）：预审四类=A 断裂链接 9 处 + B 已删引用 12 处（SERVICE_CATALOG 全面重构 v13→v3.0）+ C 拓扑错误 20+ 处 + D 表述 2 处；书记裁决 4 类全部纳入 + 机械性批量修 + D 类统一改法（26 条论断，P-045/P-047 为元命题引子）；**第三轮**（strategy/design → sop 复用链）已完成（T194）：预审四类=A 断裂链接 4 处 + B 已删引用 9 处 + C 拓扑错误 9 处 + D 表述逐条核查通过 + 格式观察点 26 处；书记裁决 4 类全部纳入 + 机械性批量修 + 母本引用统一加链接（26 处）；H5.6 抽样 6 条书记全部接受；零残留 Grep 验证通过。**第四轮**（跨目录复用断链检查）已完成（2026-08-06）：书记授权批量修（A/B/C 机械性修 + D 类逐条判定后修订），断链/已删引用/拓扑错误批量修复 + 表述逐条判定；理论复用评议为多轮持续机制，不设轮数封顶。维度体系已固化至 H5.8.2 四类问题维度表（书记指令："这些评议维度，请长期保留在CLAUDE.md，我们要更多次！"）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | H5 书记评议 + H2.2 母本子本 + OPERATIONS\_GUIDE §7.4 散落即漂移                                                  | 全仓库                                                                                                               | 🔄 进行中          |
+| T-116 | **反论评议·系统性**（4-5轮）：全仓库100处反论的书记评议。分轮规划：① insights §1-§4（理论）② insights §5-§8（方法）③ insights §9-§11（实操）④ governance+strategy ⑤ sop+design+根目录。每轮按H5工作流抽样→预审→书记反馈→三层分流。**第一轮**（insights§1-§6前部12条）已完成，8条即时修订+1条AI推导删除+2条入丙部（P.7已决策归档）。**第二轮**（insights §5-§8，12条）已完成，7条即时修订（R13/R15/R16/R17/R18/R20/R22）+5条保留+2条预判差异沉淀到§11.9判定细则补充。**第三轮**（insights §9-§11，12条）已完成，4条即时修订（R30融入正论/R31修正重点/R32融入正论/R34删除反论+补充正论·去除"三大纪律"例子）+8条保留+3条预判差异沉淀到§11.9判定细则补充·二（保留vs融入正论边界/删除反论+补充正论判定/反论用例例子选择约束）。**第四轮**（governance+strategy，12条）已完成（2026-08-05），R37保留（叙述张力）/R38·R40·R43落盘（含书记纠正「发起是提出需求，招募是统筹执行」为原话句式）/R39·R41删设问融入正论/R42删对立句/R44保留+工程宽容新规则（§11.9判定细则补充·三）/R45保留+AI展开原则升P0独立章（USAGE_POLICY §二）/R46·R47保留/R48锚引书记表述历史（2026-07-15 结构化vs段落化）；新原话3条双收（赋权体系之辨·组织高度赞赏创新·支部方兴未艾意见弥足珍贵）；零残留清零（「身份由分工决定」改书记原话式、P-018/L25/P-027/P-003重复造轮子等改写，P-011标题/P-029及≠标题书记裁决保留）。评审标准已沉淀：§11.9评议维度体系（含判定细则补充·一+·二+·三）+§16.4 AI推导识别与级联修改+H5.3预判差异记录+§11.7历史范畴检查+§11.8 AI治理技术特殊性                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | H5 书记评议 + USAGE\_POLICY §二.2.3 + OPERATIONS\_GUIDE §11                                              | 全仓库                                                                                                               | 🔄 进行中          |
+| T-117 | **理论复用评议**（多轮持续机制，书记裁决 2026-08-06：「理论复用评议绝不是最后一轮」——不设轮数封顶，按需求持续开展）：全仓库跨节/跨文件引用（下游命题对上游命题的复用）的书记评议——关注复用准确性、适用性及效果。分轮规划：① insights内部复用链（§1\~§11 内部复用链）② governance文档间复用（USAGE\_POLICY/OPERATIONS\_GUIDE/ROLE\_CLASSIFICATION等）③ strategy/design→sop复用链 ④ 跨目录复用断链检查（此后各轮按需延续）。每轮建立明确评议指标：复用是否准确、是否过时、是否遗漏、是否过度引用。**第一轮**（insights 内部复用链）已完成（T134，14 条复用点预审）。**第二轮**（governance 文档间复用）已完成（T193）：预审四类=A 断裂链接 9 处 + B 已删引用 12 处（SERVICE_CATALOG 全面重构 v13→v3.0）+ C 拓扑错误 20+ 处 + D 表述 2 处；书记裁决 4 类全部纳入 + 机械性批量修 + D 类统一改法（26 条论断，P-045/P-047 为元命题引子）；**第三轮**（strategy/design → sop 复用链）已完成（T194）：预审四类=A 断裂链接 4 处 + B 已删引用 9 处 + C 拓扑错误 9 处 + D 表述逐条核查通过 + 格式观察点 26 处；书记裁决 4 类全部纳入 + 机械性批量修 + 母本引用统一加链接（26 处）；H5.6 抽样 6 条书记全部接受；零残留 Grep 验证通过。**第四轮**（跨目录复用断链检查）已完成（2026-08-06）：书记授权批量修（A/B/C 机械性修 + D 类逐条判定后修订），断链/已删引用/拓扑错误批量修复 + 表述逐条判定；理论复用评议为多轮持续机制，不设轮数封顶。维度体系已固化至 H5.8.2 四类问题维度表（书记指令："这些评议维度，请长期保留在CLAUDE.md，我们要更多次！"）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | H5 书记评议 + H2.2 母本子本 + OPERATIONS\_GUIDE §1.4 散落即漂移                                                  | 全仓库                                                                                                               | 🔄 进行中          |
 | T-118 | **治理文档完善+用户文档体系梳理**：基于Harness框架同步推进治理文档完善，梳理现有用户文档体系，识别缺失/冗余/过时（2026-08-03 根目录文档更新已部分推进）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | H2.2 母本子本 + H7 项目产出声明                                                                               | content/ + docs/                                                                                                  | ⏳ 待启动           |
 | T-122 | **零补丁识别评议**（4轮）：全仓库用户文档"零补丁 detected"评议。书记元洞察（2026-07-20）："会出现新增的内容单独成段落，即使和前面的段落/章节也是相关的，乃至应该属于前面的段落/章节。"分轮规划：① SECRETARY\_PRONOUNCEMENTS.md（理论基石）② insights（B1 重组后）③ README+ARCHITECTURE ④ sop/strategy/design/governance \[用户]部分。每轮按"多层过滤"方法（问题脉络→主题相关→时间维度）识别补丁，提交书记决策（融入原命题/调整新命题/保留独立），按决策执行修订。**四轮均已完成**：第一轮 P-046 融入 P-045；第二轮 §2.1 乘积关系修正融入+§11.6 跨主题段落移至§7.1；第三轮 README+ARCHITECTURE 9 处修复；第四轮 sop/strategy/design/governance 7 处强补丁修订（含 FLAT\_DESIGN 破例）+附录 B 移至乙部 T-123                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | H5 书记评议 + H2.4 经验沉淀 + USAGE\_POLICY §二.2.3 + H2.2 母本子本                                              | 全仓库用户文档                                                                                                           | ✅ 完成            |
-| T-127 | **文档【逻辑顺序】重组**：基于 spec `.trae/specs/document-logical-order-restructure-continuation/` 执行阶段 1 续（机械性修复：30 个 .md + 7 个代码文件路径替换 + §5.2/§5.3 编号修复）+ 阶段 2（设计性重组：DEVELOPMENT\_PATH.md 5 章→3 章+附录 A/B、SECRETARY\_PRONOUNCEMENTS.md P-045/P-047 移到第一章 + P-008/P-021 移出至 insights 文件 2、insights 拆分为双文件、CLAUDE.md H2.4 规则 2 "正反两面论"→"按需正反两面论"）。46/46 验证项全部通过                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | H2.1 一改具改 + H2.2 母本子本 + H2.4 经验沉淀 + OPERATIONS\_GUIDE §11.7 文档【逻辑顺序】                                | 全仓库                                                                                                               | ✅ 完成            |
+| T-127 | **文档【逻辑顺序】重组**：基于 spec `.trae/specs/document-logical-order-restructure-continuation/` 执行阶段 1 续（机械性修复：30 个 .md + 7 个代码文件路径替换 + §5.2/§5.3 编号修复）+ 阶段 2（设计性重组：DEVELOPMENT\_PATH.md 5 章→3 章+附录 A/B、SECRETARY\_PRONOUNCEMENTS.md P-045/P-047 移到第一章 + P-008/P-021 移出至 insights 文件 2、insights 拆分为双文件、CLAUDE.md H2.4 规则 2 "正反两面论"→"按需正反两面论"）。46/46 验证项全部通过                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | H2.1 一改具改 + H2.2 母本子本 + H2.4 经验沉淀 + OPERATIONS\_GUIDE §13.7 文档【逻辑顺序】                                | 全仓库                                                                                                               | ✅ 完成            |
 | T-140 | **Exploration Canvas 像素部分·阶段1 素材制作**：设计文稿已完成（`.trae/specs/pixel-design-spec/`，28 ADR+术语表+主文稿）。2026-07-27 书记三项决策：①素材制作方式→SD/AI 生图（ADR-026）②美学方向→星露谷物语画风（ADR-027）③ADR-025坐标→保持不变。提示词归总完成（prompts/ 10 个分文件）。**2026-07-28 书记决定放弃像素素材制作**，设计过程作为探索尝试留存于 `.trae/specs/pixel-design-spec/`，不再推进                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | H2.4 经验沉淀 + DESIGN\_SYSTEM.md §5.4                                                                  | .trae/specs/pixel-design-spec/                                                                                    | ✅ 完成（放弃，设计文档留存） |
 | T-141 | **功能定位修正+缺失补全+角色单页制+架构简化**：基于"谁用/怎么用/为什么集成"拷问，重新定位人员管理→人全景（只读）、书记赋权管理→常设赋权、纪检经验沉淀→融入监督复盘；补全4个缺失（首页"我的角色"区块、发展党员追踪、党小组长复盘提交、宣传委员宣传任务）；移除制度文件/多维表格/专班工作量/追踪看板独立tab；合并workspace/+party/为6个角色单页面；侧边栏简化为"工作台"单入口；术语"项目"替代"活动+专班"统称；AuthStore数据同源迁移至mockDB.authorizations。4阶段全部完成：①tab重组 ②页面级功能补全 ③数据同源 ④术语一改具改                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | H2.2 母本子本 + COMMISSIONER\_FRAMEWORK §D + DESIGN\_SYSTEM §4.6                                        | docs/src/entries/\* + main-entry.js + auth.js + mock.js + domain.js                                               | ✅ 完成            |
 | T-142 | **最小三成本原则·工作台重构+通知待办体系+后台数据模型**：基于 spec `.trae/specs/min-cost-workspace-design/` 分4阶段实施。书记原话（2026-07-31）："任务流应当按照最小的信息成本和操作成本直接体现在网页的工作台中了！"+"还有最小的适应学习成本，通过系统设计，快速掌握工作分工和工作任务、信息流的运作方式！"已决策：通知自动提醒触发天数可配置（P.9，默认3天）；待办列表时间范围=全部未完成含过期（P.10，通过分类+折叠展示避免信息爆炸）。**阶段1A已完成**：①DESIGN\_SYSTEM.md §一 新增第2条核心原则"最小三成本"（已从第6条提升至第2条）②DATA\_ARCHITECTURE.md §2.18-§2.20 新增待办任务数据模型+通知→待办派生机制+归档记录扩展字段+§1.2/§6.2.1 数据分类总览更新 ③COMMISSIONER\_FRAMEWORK.md §D.1.1 新增赋权入口设计（待办列表中体现）④insights 工程演进与设计方法论.md §4.10 新增方法论沉淀。**阶段1B已完成**：todo.js 服务层（TodoStore+NoticeTodoDeriver+LifecycleTodoDeriver）+ todo-list.js 组件 + ws-leader-entry.js 待办tab+双栏布局。**阶段1C已完成**：①1C-1 日历迁移至首页（index.html+main-entry.js）②1C-2 通知→待办派生（notice.js）③1C-3 活动/专班→待办派生（mock.js+taskforce.js）④1C-4 归档详情浮窗（archive-entry.js）⑤1C-5 inspector.js 移除"请选择"提示 ⑥1C-6 待办 tab 全角色覆盖（6个角色工作台均已完成：书记/组织/宣传/纪检/党小组组长/访客，其中纪检委员工作台补全了缺失的 \_renderTodoContent 等函数）。**阶段2已完成**：数据层迁移——写穿透缓存模式（data-adapter.js 新增 init()/persist()，服务层+entry 文件 saveDB→persist 迁移，浏览器验证通过）+ 人员数据抽象（PersonStore 服务，44 处引用零成本迁移，浏览器验证通过）。**阶段3已完成**：后台数据库+文件存储+认证API（P1 后端基建，2026-08-02~03，见 docs/superpowers/plans/2026-08-02-后端基建-P1.md） | H2.4 经验沉淀 + DESIGN\_SYSTEM §一 第2条 + COMMISSIONER\_FRAMEWORK §D.1.1 + DATA\_ARCHITECTURE §2.18-§2.20 | content/04\_web\_design/\* + content/02\_institution/\* + content/insights/\* + docs/src/\*                       | ✅ 完成            |

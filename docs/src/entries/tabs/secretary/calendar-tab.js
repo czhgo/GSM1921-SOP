@@ -93,7 +93,12 @@ export function renderContent(state) {
   const displayActivities = activities;
   const filteredState = { ...state, activities: displayActivities };
   // 月份一致性：以月份选择器为准（含"默认跟随当前月"规则），避免与 state.displayMonth 分叉
-  const displayMonth = populateMonthSelector(displayActivities);
+  // URL 直达（首页跳转落点 2026-08-08）：携带 selectedActivityId 时优先定位该活动所在月
+  const targetAct = state.selectedActivityId
+    ? activities.find(a => a.id === state.selectedActivityId)
+    : null;
+  const targetMonth = targetAct?.date?.slice(0, 7) || state.displayMonth || undefined;
+  const displayMonth = populateMonthSelector(displayActivities, targetMonth);
   renderCalendarByActivities(filteredState, displayMonth);
   renderInspectorFromState(filteredState);
   bindMonthSelector();

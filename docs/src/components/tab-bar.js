@@ -126,8 +126,16 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
   // 激活指定 Tab
   // 2026-08-08 修复：同步按钮高亮（原实现只渲染内容不换高亮，
   // 导致首页跳转 ?activityId= 后内容已切 tab 而按钮高亮仍停留在记忆的默认 tab）
+  // 2026-08-08 二次修复：与 click 处理器副作用对齐——写 localStorage 记忆 + 触发 onTabChange。
+  // 根因：loadWorkspaceData 连续两次 setState（LOADING→IDLE）触发 entry 重渲染，
+  // 重渲染时 renderTabBar 从 localStorage 读取记忆并回退默认 tab，覆盖 URL 直达的目标 tab。
   function activate(tabId, ctx) {
     currentTab = tabId;
+    // 记忆到 localStorage（与点击切换一致，重渲染时保持目标 tab）
+    if (storageKey) {
+      try { localStorage.setItem(storageKey, tabId); } catch (_) { /* 静默降级 */ }
+    }
+    if (typeof onTabChange === 'function') onTabChange(tabId, tabs.find(t => t.id === tabId));
     if (boundContainer) {
       boundContainer.querySelectorAll(`.${btnClass}`).forEach(b => {
         b.classList.remove('tab-btn-active');

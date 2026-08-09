@@ -1,19 +1,18 @@
-﻿﻿﻿﻿﻿﻿---
+---
 title: "数据架构设计"
 type: design
 role: "[工程师]+[AI]"
 version: "4.0"
-last_updated: "2026-08-06"
+last_updated: "2026-08-09"
 status: active
 merged_from: [content/design/DATA.md, content/design/PARTICIPANT_DATAFLOW.md, content/design/LOGIN_SYSTEM_DESIGN.md, content/design/BRAND_ACTIVITY.md]
 related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/MODULE_UI_DESIGN.md, content/04_web_design/DESIGN_SYSTEM.md]
-summary: "系统数据架构设计的单一权威源——涵盖数据模型设计、参与者数据流、品牌属性标签、写入数据验证。合并自 DATA.md + PARTICIPANT_DATAFLOW.md + LOGIN_SYSTEM_DESIGN.md + BRAND_ACTIVITY.md（登录系统设计已于 2026-07-20 删除，未来接入北大 IAAA 时再设计）。"
 ---
 
 # 数据架构设计
 
-> **定位**：本文档是系统数据架构设计的单一权威源，涵盖静态数据模型、动态数据流、品牌属性标签设计。所有数据结构变更以本文档为准。
-> **受众**：[工程师]+[AI] —— 供开发决策参考，确保数据结构变更时全栈一致。
+> **定位：** 本文档是系统数据架构设计的单一权威源，涵盖静态数据模型、动态数据流、品牌属性标签设计。所有数据结构变更以本文档为准。
+> **受众：** [工程师]+[AI] —— 供开发决策参考，确保数据结构变更时全栈一致。
 > **权限矩阵**：本文档含权限简表，完整定义见 [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) §九 角色权限矩阵。
 
 ---
@@ -397,7 +396,7 @@ assignedRoles: Array<{
 ### 2.7 产出物 (OutputRecord)
 
 > 类型定义位于 [domain.js](../../docs/src/core/domain.js)（`OutputType` / `OUTPUT_ROUTES` / `deriveOutputRoute`）
-> 来源：T-224 产出物定向路由（spec §5.5/§8）。废除原「数据交接」手动推送模型——投递去向由产出类型派生，系统自动执行，组织者只见「提交」不见「发送对象」。
+> **来源：**T-224 产出物定向路由（spec §5.5/§8）。废除原「数据交接」手动推送模型——投递去向由产出类型派生，系统自动执行，组织者只见「提交」不见「发送对象」。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|

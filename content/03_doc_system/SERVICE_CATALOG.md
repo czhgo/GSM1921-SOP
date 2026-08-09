@@ -2,7 +2,7 @@
 title: "统一服务目录"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-06"
+last_updated: "2026-08-09"
 version: "4.0"
 status: active
 related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/src/core/data-adapter.js, content/04_web_design/DATA_ARCHITECTURE.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/02_institution/ROLE_CLASSIFICATION.md]
@@ -10,9 +10,9 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 
 # 统一服务目录（Service Catalog）
 
-> 本文件汇总系统所有服务功能及其角色权限映射，作为功能盘点和权限设计的统一参考。
+> **定位：** 本文件汇总系统所有服务功能及其角色权限映射，作为功能盘点和权限设计的统一参考。
 >
-> 定位：[工程师]+[AI] — 工程师决策参考 + AI 自主读取作为实施上下文。
+> **受众：** [工程师]+[AI] — 工程师决策参考 + AI 自主读取作为实施上下文。
 >
 > 引用流程：[SECRETARY_PRONOUNCEMENTS.md P-006+P-007](../01_strategy/SECRETARY_PRONOUNCEMENTS.md)（党建与党务工作理论）→ [DATA_ARCHITECTURE.md](../04_web_design/DATA_ARCHITECTURE.md)（数据架构）→ [COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md)（支委系统）→ [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md)（角色权限矩阵）
 >
@@ -22,7 +22,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 
 ## 一、服务清单
 
-> 服务按党建 / 党务 / 系统服务三大类组织（分类依据：[P-006+P-007](../01_strategy/SECRETARY_PRONOUNCEMENTS.md) 党建与党务工作理论）。文件路径均相对于 `docs/src/`。
+> 服务按党建 / 党务 / 系统服务三大类组织（分类依据：[USAGE_POLICY.md §1.1.1](./USAGE_POLICY.md) T1 官方定义——党建工作是党为保持先进性纯洁性而开展的自我建设，党务工作是党内事务的具体管理工作；旧两分法 P-006 已降级为 T2 约定表达）。文件路径均相对于 `docs/src/`。
 >
 > 关联制度缩写：CF=[COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md)、DA=[DATA_ARCHITECTURE.md](../04_web_design/DATA_ARCHITECTURE.md)、FLAT=[FLAT_DESIGN.md](../02_institution/FLAT_DESIGN.md)、RC=[ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md)；其余为 [sop/](../02_institution/sop/) 制度指南。
 

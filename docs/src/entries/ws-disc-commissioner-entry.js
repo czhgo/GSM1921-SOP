@@ -1,8 +1,9 @@
-﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260808m';
+﻿﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260808m';
 import { showToast } from '../core/utils.js?v=20260808m';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260808m';
 import { bootstrapPage } from '../core/bootstrap.js?v=20260808m';
 import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, ReviewStatus, SourceType, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260808m';
+import { solidAccentStyle } from '../core/constants.js?v=20260808m';
 import { persist } from '../core/data-adapter.js?v=20260808m';
 import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, reviewToDisplay, getPersonName } from '../mock/index.js?v=20260808m';
 import { loadWorkspaceData } from '../core/data-loader.js?v=20260808m';
@@ -23,6 +24,7 @@ import { badgeHtml } from '../components/badge.js?v=20260808m';
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'disc-commissioner' });
 
 const DISC_COMMISSIONER_ID = 'p10'; // 纪检委员 personId
+let _discNavTarget = null; // { tfId, actId } URL 导航目标（跨重渲染保持，定位完成后清除）
 
 // ── 公邮管理 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 const MAILBOX_CONFIG_SEED = {
@@ -86,6 +88,8 @@ function renderDiscUI(state) {
       { id: 'inspection', label: '考察管理', render: () => _renderInspectionContent() },
       { id: 'makeup', label: '补课制度', render: () => _renderMakeupContent(), groupLabel: '党建' },
       { id: 'mailbox', label: '公邮管理', render: () => _renderMailboxContent(), groupLabel: '党建' },
+      // 专班查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增）
+      { id: 'tf-view', label: '专班查看', render: () => { const el = document.getElementById('disc-tab-content'); if (el) return import('../components/taskforce-view.js?v=20260808m').then(m => m.renderTaskforceView(el, { highlightId: _discNavTarget?.tfId || null, onLocated: () => { _discNavTarget = null; } })); }, groupLabel: '党建' },
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('disc-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('disc-commissioner', 'u_disc'); bindMyDispatchEvents(el, 'disc-commissioner', 'u_disc'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
@@ -100,10 +104,29 @@ function renderDiscUI(state) {
 
   tabBar.bindEvents(container);
 
-  const urlParams = CrossPageState.getURLParams();
-  if (urlParams.activityId) {
-    tabBar.activate('attendance');
-    _renderAttendanceContent(urlParams.activityId);
+  // ── 首页跳转落点（书记 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
+  // 目标保持到定位完成（loadWorkspaceData 双 setState 会重渲染），提取后立即清除 URL 参数。
+  if (!_discNavTarget) {
+    const urlParams = CrossPageState.getURLParams();
+    const tfId = urlParams.taskforceId;
+    const actId = urlParams.activityId;
+    if (tfId || actId || urlParams.view === 'activities') {
+      _discNavTarget = { tfId, actId };
+      CrossPageState.clearParam('activityId');
+      CrossPageState.clearParam('taskforceId');
+      CrossPageState.clearParam('view');
+    }
+  }
+  if (_discNavTarget) {
+    if (_discNavTarget.tfId) {
+      // 专班查看（纪检无专班职责≠无知情权）
+      tabBar.activate('tf-view');
+    } else {
+      // 活动：落考勤管理（纪检活动相关承载，现状即权限；activityId 直达该活动考勤）
+      tabBar.activate('attendance');
+      _renderAttendanceContent(_discNavTarget.actId || null);
+      _discNavTarget = null; // 考勤落点由 _renderAttendanceContent 消费完成
+    }
   } else {
     tabBar.activate(tabBar.activeTab);
   }
@@ -245,7 +268,7 @@ function _renderTodoDetail(todo) {
         ${todo.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.flow}</p>` : ''}
         ${todo.deadline ? `<div class="text-xs text-gray-500">最早截止：${todo.deadline}</div>` : ''}
         <div class="pt-3 border-t border-gray-100 flex gap-2">
-          <button class="disc-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">去处理</button>
+          <button class="disc-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)}">去处理</button>
         </div>
       </div>
     `;
@@ -431,7 +454,7 @@ function _renderAttendanceContent(filterActivityId) {
   const confirmedCount = filtered.length - pendingCount;
   const bulkConfirmBtn = filterActivityId && pendingCount > 0
     ? `<div class="mb-3">
-        <button id="att-bulk-confirm-btn" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">
+        <button id="att-bulk-confirm-btn" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">
           一键确认本活动全部待确认（${pendingCount} 条）
         </button>
       </div>`

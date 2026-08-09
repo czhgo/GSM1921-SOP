@@ -7762,7 +7762,46 @@ label .text-red-500 {
 .badge--info    { background: #DBEAFE; color: #1D4ED8; }
 .badge--neutral { background: #F3F4F6; color: #6B7280; }
 .badge--brand   { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
-.badge--gold    { background: #FDE68A; color: #7A0010; font-weight: 600; }
+.badge--gold    { background: #FDE68A; color: #B45309; font-weight: 600; }
+
+/* ── 内联色块统一基础类（T231 第二轮）：内联样式只带 --tint，深浅两套由 CSS 计算 ──
+   浅色：色值 10% 叠加透明 + 色字 + 28% 边框（与原 ROLE_COLORS rgba 底同构）；
+   深色覆盖见 html.theme-dark .tint-pill（色值 16% 叠加卡片底 + 提亮字）。 */
+.tint-pill {
+  background: color-mix(in srgb, var(--tint, #6B7280) 10%, transparent);
+  color: var(--tint, #6B7280);
+  border: 1px solid color-mix(in srgb, var(--tint, #6B7280) 28%, transparent);
+  border-radius: 9999px;
+  padding: 2px 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 500;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 金色主题强调按钮/胶囊深色平行：--gold-btn-bg/--gold-btn-text 由主题变量驱动
+   （浅色：亮金浅底+深金字；深色：提亮金底+亮金字，与其他主题色"实底白字"平行可读） */
+:root {
+  --gold-btn-bg: rgba(255, 215, 0, 0.12);
+  --gold-btn-text: #B45309;
+  --gold-btn-border: rgba(255, 215, 0, 0.35);
+}
+html.theme-dark {
+  --gold-btn-bg: rgba(251, 191, 36, 0.22);
+  --gold-btn-text: #FDE68A;
+  --gold-btn-border: rgba(251, 191, 36, 0.45);
+}
+
+/* 语义圆点（task-dot / 活动色点等）浅色基础：色值本色，深色下由 html.theme-dark .tint-dot 提亮 */
+.tint-dot {
+  display: inline-block;
+  border-radius: 50%;
+  background-color: var(--tint, #6B7280);
+  flex-shrink: 0;
+}
 
 /* 深色主题：半透明语义底 + 提亮文字（与全站 functional 色对齐） */
 
@@ -7800,6 +7839,68 @@ label .text-red-500 {
   html.theme-dark .badge--brand   { background: rgba(251, 191, 36, 0.16); color: #FBBF24; border-color: rgba(251, 191, 36, 0.35); }
   html.theme-dark .badge--gold    { background: rgba(251, 191, 36, 0.20); color: #FDE68A; }
 
+  /* ── Tailwind 语义色补齐（T231 第二轮：700/500 级文字、50 级浅底、200 级边框）──
+     深色下统一「深色半透明底 + 提亮文字」，与 badge--* 深色语义完全平行。 */
+  html.theme-dark .bg-amber-50     { background-color: rgba(251, 191, 36, 0.10) !important; }
+  html.theme-dark .bg-blue-50      { background-color: rgba(96, 165, 250, 0.10) !important; }
+  html.theme-dark .bg-green-50     { background-color: rgba(52, 211, 153, 0.10) !important; }
+  html.theme-dark .bg-purple-50    { background-color: rgba(192, 132, 252, 0.10) !important; }
+  html.theme-dark .bg-rose-50      { background-color: rgba(244, 114, 182, 0.10) !important; }
+  html.theme-dark .bg-sky-50       { background-color: rgba(56, 189, 248, 0.10) !important; }
+  html.theme-dark .bg-teal-50      { background-color: rgba(45, 212, 191, 0.10) !important; }
+  html.theme-dark .bg-violet-50    { background-color: rgba(167, 139, 250, 0.10) !important; }
+  html.theme-dark .bg-yellow-50    { background-color: rgba(250, 204, 21, 0.10) !important; }
+  html.theme-dark .bg-emerald-50   { background-color: rgba(52, 211, 153, 0.10) !important; }
+  html.theme-dark .bg-red-50\/40   { background-color: rgba(239, 68, 68, 0.06) !important; }
+  html.theme-dark .text-red-500    { color: #F87171 !important; }
+  html.theme-dark .text-orange-500 { color: #FB923C !important; }
+  html.theme-dark .text-blue-500   { color: #60A5FA !important; }
+  html.theme-dark .text-yellow-500 { color: #FACC15 !important; }
+  html.theme-dark .text-red-700    { color: #FCA5A5 !important; }
+  html.theme-dark .text-orange-700 { color: #FDBA74 !important; }
+  html.theme-dark .text-green-700  { color: #86EFAC !important; }
+  html.theme-dark .text-blue-700   { color: #93C5FD !important; }
+  html.theme-dark .text-amber-700  { color: #FCD34D !important; }
+  html.theme-dark .text-yellow-700 { color: #FDE047 !important; }
+  html.theme-dark .text-purple-700 { color: #D8B4FE !important; }
+  html.theme-dark .text-rose-700   { color: #FDA4AF !important; }
+  html.theme-dark .text-sky-700    { color: #7DD3FC !important; }
+  html.theme-dark .text-teal-700   { color: #5EEAD4 !important; }
+  html.theme-dark .text-violet-700 { color: #C4B5FD !important; }
+  html.theme-dark .text-emerald-700{ color: #6EE7B7 !important; }
+  html.theme-dark .border-amber-200 { border-color: rgba(251, 191, 36, 0.35) !important; }
+  html.theme-dark .border-blue-200  { border-color: rgba(96, 165, 250, 0.35) !important; }
+  html.theme-dark .border-green-200 { border-color: rgba(52, 211, 153, 0.35) !important; }
+  html.theme-dark .border-red-200   { border-color: rgba(248, 113, 113, 0.35) !important; }
+  html.theme-dark .hover\:text-red-700:hover   { color: #FCA5A5 !important; }
+  html.theme-dark .hover\:text-green-700:hover { color: #86EFAC !important; }
+  html.theme-dark .hover\:text-orange-700:hover{ color: #FDBA74 !important; }
+  html.theme-dark .hover\:text-blue-700:hover  { color: #93C5FD !important; }
+  html.theme-dark .hover\:text-amber-700:hover { color: #FCD34D !important; }
+  html.theme-dark .hover\:text-red-900:hover   { color: #FCA5A5 !important; }
+  html.theme-dark .hover\:text-green-900:hover { color: #86EFAC !important; }
+  html.theme-dark .hover\:text-orange-900:hover{ color: #FDBA74 !important; }
+  html.theme-dark .hover\:bg-green-50:hover    { background-color: rgba(52, 211, 153, 0.10) !important; }
+  html.theme-dark .hover\:bg-blue-50:hover     { background-color: rgba(96, 165, 250, 0.10) !important; }
+  html.theme-dark .hover\:bg-amber-50:hover    { background-color: rgba(251, 191, 36, 0.10) !important; }
+  html.theme-dark .hover\:border-green-200:hover { border-color: rgba(52, 211, 153, 0.35) !important; }
+  html.theme-dark .hover\:border-blue-200:hover  { border-color: rgba(96, 165, 250, 0.35) !important; }
+  html.theme-dark .hover\:border-amber-200:hover { border-color: rgba(251, 191, 36, 0.35) !important; }
+
+  /* ── 内联色块统一（tint-pill）：内联样式只带 --tint 色值，深浅两套由 CSS 计算 ──
+     浅色：色值 10% 叠加透明 + 色字 + 28% 边框（与原 ROLE_COLORS rgba 底同构）；
+     深色：色值 16% 叠加卡片底 + 提亮字 + 40% 边框，与 badge--* 深色平行。 */
+  html.theme-dark .tint-pill {
+    background: color-mix(in srgb, var(--tint, #6B7280) 16%, #141D2F) !important;
+    color: color-mix(in srgb, var(--tint, #6B7280) 62%, #F8FAFC) !important;
+    border-color: color-mix(in srgb, var(--tint, #6B7280) 40%, #334155) !important;
+  }
+
+  /* 语义圆点深色提亮（与 tint-pill 平行：同色值提亮 70% 混合近白） */
+  html.theme-dark .tint-dot {
+    background-color: color-mix(in srgb, var(--tint, #6B7280) 70%, #F8FAFC) !important;
+  }
+
 /* ═══════════════════════════════════════════════════════════════
    待办聚合卡角标 + 查询视图分页控件（2026-08-07）
    聚合角标沿 badge--danger 语义（红底红字，警示待处理数量）
@@ -7824,5 +7925,14 @@ html.theme-dark .qv-page-btn {
 html.theme-dark .qv-page-btn:hover:not(:disabled) {
   background: #334155 !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   跳转定位高亮（书记 2026-08-08 裁定：高亮须定时自动褪去）
+   首页携带 activityId/taskforceId 跳转后，工作台定位元素短暂高亮提示位置
+   ═══════════════════════════════════════════════════════════════ */
+.nav-flash-highlight {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4) !important;
+}
+
 
 

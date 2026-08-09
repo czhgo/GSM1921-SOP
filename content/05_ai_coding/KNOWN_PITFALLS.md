@@ -2,7 +2,7 @@
 title: "已知陷阱与上下文丢失教训"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-04"
+last_updated: "2026-08-09"
 version: "1.8"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/工程演进与设计方法论.md]
@@ -10,9 +10,9 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 
 # 已知陷阱与上下文丢失教训
 
-> **本文件聚焦 AI 工具使用陷阱**——记录 AI 在上下文丢失后反复犯过的工具使用错误及其纠正，供 Agent 集群按需读取。
+> **定位：** 本文件聚焦 AI 工具使用陷阱——记录 AI 在上下文丢失后反复犯过的工具使用错误及其纠正，供 Agent 集群按需读取。
 > **分工边界**：本文件 = AI 工具使用陷阱；[insights 工程演进与设计方法论.md §6](../insights/工程演进与设计方法论.md) = 业务/制度教训判例。
-> OPERATIONS_GUIDE.md §7 保留原则级提醒，本文件提供判例级细节。
+> OPERATIONS_GUIDE.md §1 保留原则级提醒，本文件提供判例级细节。
 
 ## 1. 文件修改持久化陷阱（Edit 虚假成功 → Write 整体覆写）
 
@@ -91,7 +91,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 
 ## 7. 分层体系冲突记录
 
-> **本节聚焦仓库 7 套分层体系（5 类知识类型 / T1-T3 术语层级 / 热温冷三层 / content/ 目录结构层级 / 文件角色分类 / insights 5 类知识类型结构 / ARCHITECTURE.md 五层架构）的命名、引用、混淆判例**。一致性检查规范见 [OPERATIONS_GUIDE.md §7.4](../03_doc_system/OPERATIONS_GUIDE.md#74-一致性检查规范)，定期扫描任务见 [OPERATIONS_GUIDE.md §15.2 Q4](../03_doc_system/OPERATIONS_GUIDE.md#152-周期性任务清单)。
+> **本节聚焦仓库 7 套分层体系（5 类知识类型 / T1-T3 术语层级 / 热温冷三层 / content/ 目录结构层级 / 文件角色分类 / insights 5 类知识类型结构 / ARCHITECTURE.md 五层架构）的命名、引用、混淆判例**。一致性检查规范见 [OPERATIONS_GUIDE.md §1.4](../03_doc_system/OPERATIONS_GUIDE.md#14-一致性检查规范)，定期扫描任务见 [OPERATIONS_GUIDE.md §17.2 Q4](../03_doc_system/OPERATIONS_GUIDE.md#172-周期性任务清单)。
 
 ### 7.1 L1/L2/L3 与 T1/T2/T3 混淆事件（已解决）
 
@@ -112,7 +112,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 
 ### 7.3 待监测的潜在冲突
 
-- **insights 知识类型标注**：insights 按 5 类知识类型标注（如 [3]，见 OPERATIONS_GUIDE §7.1），引用时标明"§X.Y"+知识类型编号
+- **insights 知识类型标注**：insights 按 5 类知识类型标注（如 [3]，见 OPERATIONS_GUIDE §1.1），引用时标明"§X.Y"+知识类型编号
 - **Agent 职能分类与文件角色分类**：Agent 协调型/执行型等是职能分类，[用户]/[工程师]/[AI] 是文件角色分类——需在 ARCHITECTURE.md 中明确区分
 
 ## 8. 上下文丢失教训

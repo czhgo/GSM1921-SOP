@@ -2,14 +2,14 @@
 title: "文件角色分类体系"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-07-21"
+last_updated: "2026-08-09"
 status: active
 related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
 
 # 文件角色分类体系
 
-> 本文档定义 Org OS 仓库中所有文件的角色分类标准，确保人机协作边界清晰、权限可控。
+> **定位：** 本文档定义 Org OS 仓库中所有文件的角色分类标准，确保人机协作边界清晰、权限可控。
 
 ---
 
@@ -215,7 +215,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 | content/03_doc_system/DOC_MAP.md | 三类受众定义与本文件一致（合并为单维度） | ✅ 2026-07-11 |
 | CLAUDE.md | 写盘权限 + can-modify 白名单 + 动态角色判定与本文件一致 | ✅ 2026-07-11 |
 | .ctx/SNAPSHOT.md §3 文件访问权限 | Route ID 权限表与本文件协作方式一致 | ✅ 2026-07-11 |
-| OPERATIONS_GUIDE.md §8 | 文件角色分类操作指南（受众定义指向本文件 §一） | ✅ 2026-07-11 |
+| OPERATIONS_GUIDE.md §14 | 文件角色分类操作指南（受众定义指向本文件 §一） | ✅ 2026-07-11 |
 
 ---
 
@@ -250,7 +250,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 
 ### 9a. 活动写入门禁
 
-> 来源：[USAGE_POLICY.md](../03_doc_system/USAGE_POLICY.md) §1.2.5 — 术语权威源。
+> **来源：**[USAGE_POLICY.md](../03_doc_system/USAGE_POLICY.md) §1.2.5 — 术语权威源。
 
 **写入门禁**：仅党支部书记、党支部副书记、党小组组长持有 `create_activity` 权限，可直接创建/修改活动数据（见 §9b 矩阵）；宣传委员、纪检委员不持有该权限，通过审核、确认、备案等流程间接参与。专班创建走 `initiate_taskforce`/`authorize_taskforce` 通道（组织委员持有，见 §9b）。
 

@@ -2,7 +2,7 @@
 title: "内容中心"
 type: index
 role: "[用户]+[AI]"
-last_updated: "2026-08-03"
+last_updated: "2026-08-09"
 status: active
 ---
 
@@ -10,7 +10,7 @@ status: active
 
 # 内容中心
 
-本目录存放项目的制度知识与设计理念，按 **5 类知识类型** 组织（每类对应一个子目录）。
+> **定位：** 本目录存放项目的制度知识与设计理念，按 **5 类知识类型** 组织（每类对应一个子目录）。
 
 | 子目录 | 知识类型 | 回答的问题 | 受众 |
 |--------|---------|-----------|------|
@@ -23,4 +23,4 @@ status: active
 
 所有系统逻辑、数据模型和 UI 行为必须从 SOP 文档推导而来（CLAUDE.md H2.2 制度→代码母本子本关系）。
 
-> 知识类型权威层级定义见 [OPERATIONS_GUIDE.md §7.1](03_doc_system/OPERATIONS_GUIDE.md)，母本子本关系注册表见 [SSOT_INDEX.md](03_doc_system/SSOT_INDEX.md)。
+> 知识类型权威层级定义见 [OPERATIONS_GUIDE.md §1.1](03_doc_system/OPERATIONS_GUIDE.md)，母本子本关系注册表见 [SSOT_INDEX.md](03_doc_system/SSOT_INDEX.md)。

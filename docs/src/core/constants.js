@@ -207,6 +207,24 @@ export function getAccentColors(role, bgAlpha = 0.1, borderAlpha = 0.3) {
   };
 }
 
+/**
+ * 强调色「实底白字」按钮/标签统一样式（G1/G3 修复，书记 2026-08-08 裁定）
+ * 金色主题（accent=#B45309 深棕金）时改为「金浅底 rgba(255,215,0,0.12)+深金字 #B45309」，
+ * 不用纯亮金 #FFD700 实底（书记实测「过于艳丽，饱和度太高」）；
+ * 金浅底与 tab 激活态同源（书记「tab 因为有透明度，黄色非常舒服」）；
+ * 普通按钮不加边框，与其他主题色按钮结构完全一致（书记「别的有他也有，别的没有他也必须没有」）。
+ * 非金色主题维持原 accent 实底白字不变。
+ * @param {string} accent — 当前生效强调色 hex
+ * @returns {string} 内联样式串（background / color）
+ */
+export function solidAccentStyle(accent, border) {
+  if (accent === '#B45309') {
+    // 金浅底+深金字（浅色）/ 提亮金底+亮金字（深色）：CSS 变量驱动，深浅两套自动适配
+    return 'background:var(--gold-btn-bg, rgba(255,215,0,0.12));color:var(--gold-btn-text, #B45309);';
+  }
+  return `background:${accent};color:#fff;`;
+}
+
 // ── 活动类型颜色（中文标签版，用于卡片/列表视图）──────────────────
 // 统一来源，消除 main-entry / ws-visitor-entry / archive-entry 中的重复定义
 

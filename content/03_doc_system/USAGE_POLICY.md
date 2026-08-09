@@ -2,14 +2,14 @@
 title: "使用规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-05"
+last_updated: "2026-08-09"
 status: active
 related_files: [CLAUDE.md, content/02_institution/ROLE_CLASSIFICATION.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
 
 # 使用规范
 
-> **audience**: [工程师] | **优先级**: P0（强制执行）
+> **受众：** [工程师] | **优先级**：P0（强制执行）
 > **合并来源**: TERMINOLOGY.md + EMOJI_POLICY.md（2026-07-12 合并）
 
 ---
@@ -192,7 +192,7 @@ T1 官方定义界定"党建/党务是什么"，取代 T2 两分法作为网页�
 ### 1.8 表达方式分类原则
 
 > **确立日期**：2026-07-15 | **确立背景**：书记指出"涉及结构化的内容（比如程序、制度），用列表式、表格等结构化方式展示的方式是重要的。涉及非结构化的内容（比如书记论断、故事叙述），段落化的表达式最重要的"
-> **同步索引**：[OPERATIONS_GUIDE.md §11.5](OPERATIONS_GUIDE.md)
+> **同步索引**：[OPERATIONS_GUIDE.md §13.5](OPERATIONS_GUIDE.md)
 
 #### 1.8.1 核心原则
 
@@ -227,7 +227,7 @@ T1 官方定义界定"党建/党务是什么"，取代 T2 两分法作为网页�
 
 > **确立日期**：2026-07-16 | **确立背景**：书记指出"AI 作为秘书，写出的话应该就是 grill 书记后的话——不需要在用户文档中区隔'书记写的'和'AI写的'，因为吃透精神后两者本应一致。问题只在于 AI 没吃透就写了"
 > **优先级**：P0（强制执行）——本条是 AI 展开书记原话的最高准则（2026-08-05 第4轮评议升为独立章）
-> **同步索引**：[OPERATIONS_GUIDE.md §11.6](OPERATIONS_GUIDE.md) + [SECRETARY_PRONOUNCEMENTS.md P-045](../01_strategy/SECRETARY_PRONOUNCEMENTS.md)
+> **同步索引**：[OPERATIONS_GUIDE.md §13.6](OPERATIONS_GUIDE.md) + [SECRETARY_PRONOUNCEMENTS.md P-045](../01_strategy/SECRETARY_PRONOUNCEMENTS.md)
 
 ### 2.1 核心原则
 
@@ -262,7 +262,7 @@ AI 对书记原话的展开，目标是**吃透书记精神后用自己的语言
 
 ## 三、Emoji 使用规范
 
-> **enforcement**: 强制
+> **优先级**：强制
 
 ### 3.1 总则
 

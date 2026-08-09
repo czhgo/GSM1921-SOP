@@ -2,14 +2,14 @@
 title: "书记重要论断汇编"
 type: governance
 role: "[用户]+[AI]"
-last_updated: "2026-08-05"
+last_updated: "2026-08-09"
 status: active
 related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH.md, content/04_web_design/DATA_ARCHITECTURE.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/FLAT_DESIGN.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/SOP_WEB.md, content/03_doc_system/USAGE_POLICY.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/党支部管理与实务经验沉淀.md, content/insights/工程演进与设计方法论.md]
 ---
 
 # 书记重要论断汇编
 
-> 本文件收录书记在项目推进过程中阐述的 26 条"路线"级判断（P-046 AI 展开原则已于 2026-07-20 融入 P-045；P-047 元命题深化于 2026-07-20 新增；P-008/P-021 已迁出至 insights、P-022 已删除，详见附录）——讲清楚"为什么采取这个制度"、"为什么这件事比那件事在现在更重要"。
+> **定位：** 本文件收录书记在项目推进过程中阐述的 26 条"路线"级判断（P-046 AI 展开原则已于 2026-07-20 融入 P-045；P-047 元命题深化于 2026-07-20 新增；P-008/P-021 已迁出至 insights、P-022 已删除，详见附录）——讲清楚"为什么采取这个制度"、"为什么这件事比那件事在现在更重要"。
 >
 > 这些论断按问题脉络分作十二组，每一组回答一个同志们可能产生的疑问：系统产出是什么（P-045/P-047 元命题引子）？支部到底为谁存在、组织性为什么宝贵（P-001~P-005 + P-043/P-044）？党建和党务怎么分（P-006~P-007）？分工怎么避免变成上下级（P-009~P-011）？专班到底怎么运作（P-012~P-013）？条块二元怎么理解权责关系（P-014~P-015）？制度怎么维护才不偏离（P-016~P-018）？身份和模式怎么选（P-029）？文档之间什么关系（P-024）？人才库装什么（P-026）？报备审批为什么是双向的（P-027）？最后落到党建的根本目标——恢复对话能力（P-041）。
 >
@@ -58,7 +58,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > 书记特别标注了一个"逻辑缺漏"——"在这里获得的组织性和生涯发展的关系是什么，为什么这是一个很宝贵的机会"——这部分由书记亲自补充完整（见 P-043/P-044）。这是整个发展路径叙事中需要书记亲自判定的关键环节，AI 不得自行假设或基于猜测补全。
 >
-> **AI 展开原则（原 P-046，2026-07-16 融入）**：AI 作为书记的秘书，写出的话应该就是"grill 书记后的话"——经过与书记的思想交互、反复锤炼，秘书的展开与书记的原话在精神上应无张力。读者无需看到"这段是书记的，那是 AI 的"区隔标注，因为吃透精神后两者本应一致。问题只在于 AI 没吃透就写了——用自己概括的术语替代书记会用人话（如"核心价值"替代"宝贵机会"），或者方向对但措辞走形，或者精神重心偏移，或者私加书记没说的逻辑链。排查的目标是找到没吃透的地方，修正到吃透。吃透后的重写，读者分不出是书记说的还是秘书写的——这才是正确的状态。规范落地：[USAGE_POLICY.md §二](../03_doc_system/USAGE_POLICY.md) + [OPERATIONS_GUIDE.md §11.6](../03_doc_system/OPERATIONS_GUIDE.md)。
+> **AI 展开原则（原 P-046，2026-07-16 融入）**：AI 作为书记的秘书，写出的话应该就是"grill 书记后的话"——经过与书记的思想交互、反复锤炼，秘书的展开与书记的原话在精神上应无张力。读者无需看到"这段是书记的，那是 AI 的"区隔标注，因为吃透精神后两者本应一致。问题只在于 AI 没吃透就写了——用自己概括的术语替代书记会用人话（如"核心价值"替代"宝贵机会"），或者方向对但措辞走形，或者精神重心偏移，或者私加书记没说的逻辑链。排查的目标是找到没吃透的地方，修正到吃透。吃透后的重写，读者分不出是书记说的还是秘书写的——这才是正确的状态。规范落地：[USAGE_POLICY.md §二](../03_doc_system/USAGE_POLICY.md) + [OPERATIONS_GUIDE.md §13.6](../03_doc_system/OPERATIONS_GUIDE.md)。
 >
 > **与 CLAUDE.md H7 的关系**：本条是元命题记录，CLAUDE.md 甲部 H7"项目产出声明"承载该元命题的治理层锚点。详细叙事见 [DEVELOPMENT_PATH.md](DEVELOPMENT_PATH.md) 第一章。
 
@@ -66,7 +66,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 <summary>元数据</summary>
 
 - 出处：2026-07-14 书记关于系统产出的元命题阐述 + 2026-07-16 书记关于 AI 展开原则的阐述（原 P-046 融入）
-- 母本位置：`content/01_strategy/DEVELOPMENT_PATH.md` 第一章 + CLAUDE.md H7（系统产出）；`USAGE_POLICY.md §二` + `OPERATIONS_GUIDE.md §11.6`（AI 展开原则）
+- 母本位置：`content/01_strategy/DEVELOPMENT_PATH.md` 第一章 + CLAUDE.md H7（系统产出）；`USAGE_POLICY.md §二` + `OPERATIONS_GUIDE.md §13.6`（AI 展开原则）
 - 反论位置：本文件（元命题）
 - 索引位置：✅ CLAUDE.md H7（项目产出声明）+ ✅ CLAUDE.md H6（外部权威源索引，AI 展开原则）
 - 层次：**元命题**
@@ -579,10 +579,10 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 <details>
 <summary>元数据</summary>
 
-- 出处：D-218 + OPERATIONS_GUIDE.md §7.1
-- 母本位置：`content/03_doc_system/OPERATIONS_GUIDE.md` §7.1
+- 出处：D-218 + OPERATIONS_GUIDE.md §1.1
+- 母本位置：`content/03_doc_system/OPERATIONS_GUIDE.md` §1.1
 - 反论位置：`content/insights/工程演进与设计方法论.md` §1.2
-- 索引位置：⚠️ 运行标准范畴（见 OPERATIONS_GUIDE.md §7.1，非理论基石）
+- 索引位置：⚠️ 运行标准范畴（见 OPERATIONS_GUIDE.md §1.1，非理论基石）
 - 层次：**制度设计级**
 </details>
 

@@ -1,8 +1,10 @@
-﻿import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
+import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
 import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260808m';
 import { BranchService, isApiMode } from '../services/runtime.js?v=20260808m';
-import { showToast } from '../core/utils.js?v=20260808m';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260808m';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260808m';
 import { bootstrapPage } from '../core/bootstrap.js?v=20260808m';
+import { solidAccentStyle } from '../core/constants.js?v=20260808m';
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808m';
 import { _personName } from '../mock/index.js?v=20260808m';
 import { loadWorkspaceData } from '../core/data-loader.js?v=20260808m';
@@ -17,6 +19,8 @@ import { NoticeStore } from '../services/notice.js?v=20260808m';
 import { badgeHtml } from '../components/badge.js?v=20260808m';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'prop-commissioner' });
+
+let _propNavTarget = null; // { tfId, actId } URL 导航目标（跨重渲染保持，定位完成后清除）
 
 function renderPropUI(state) {
   let activities = state.activities || [];
@@ -53,6 +57,38 @@ function renderPropUI(state) {
 
   tabBar.bindEvents(container);
   tabBar.activate(tabBar.activeTab);
+
+  // ── 首页跳转落点（书记 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
+  // 目标保持到定位完成（loadWorkspaceData 双 setState 会重渲染），提取后立即清除 URL 参数。
+  // 宣传无活动/专班专属 tab，由「项目看板」承载（现状即权限，只做定位），定位高亮目标卡片。
+  if (!_propNavTarget) {
+    const urlParams = CrossPageState.getURLParams();
+    const tfId = urlParams.taskforceId;
+    const actId = urlParams.activityId;
+    if (tfId || actId || urlParams.view === 'activities') {
+      _propNavTarget = { tfId, actId };
+      CrossPageState.clearParam('activityId');
+      CrossPageState.clearParam('taskforceId');
+      CrossPageState.clearParam('view');
+    }
+  }
+  if (_propNavTarget) {
+    tabBar.activate('kanban');
+    if (_propNavTarget.tfId || _propNavTarget.actId) {
+      setTimeout(() => {
+        const target = _propNavTarget.tfId
+          ? container.querySelector(`.kanban-card[data-kt="taskforce"][data-ki="${_propNavTarget.tfId}"]`)
+          : container.querySelector(`.kanban-card[data-kt="activity"][data-ki="${_propNavTarget.actId}"]`);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          flashHighlight(target);
+        }
+        _propNavTarget = null; // 无论成败：最终 DOM 已稳定，清除导航目标
+      }, 150);
+    } else {
+      _propNavTarget = null; // 纯 view=activities：无定位目标，立即清除
+    }
+  }
 }
 
 // ── 待办列表+详情面板（最小三成本原则落地） ───────────────────
@@ -129,7 +165,7 @@ function _renderTodoDetail(todo) {
         ${todo.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.flow}</p>` : ''}
         ${todo.deadline ? `<div class="text-xs text-gray-500">最早截止：${todo.deadline}</div>` : ''}
         <div class="pt-3 border-t border-gray-100 flex gap-2">
-          <button class="prop-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">去处理</button>
+          <button class="prop-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)}">去处理</button>
         </div>
       </div>
     `;
@@ -426,7 +462,7 @@ function _renderKanbanItem(item, showCompleteBtn = false) {
       : `<button class="activity-complete-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-act-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`)
     : '';
   return `
-    <div class="p-3 rounded-xl bg-white hover:bg-gray-200 transition-colors cursor-pointer">
+    <div class="kanban-card p-3 rounded-xl bg-white hover:bg-gray-200 transition-colors cursor-pointer" data-kt="${item._type}" data-ki="${item.id}">
       <div class="flex items-center gap-2 mb-0.5">
         <span class="text-sm font-medium text-gray-800">${item.title || '未命名'}</span>
         ${typeTag}
@@ -532,7 +568,7 @@ function _renderArchiveContent() {
         <option value="in_progress">归档中</option>
         <option value="archived">已归档</option>
       </select>
-      <button id="archive-upload-btn" class="text-xs px-3 py-2 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0 flex items-center justify-center gap-1.5" style="background:${accent}">
+      <button id="archive-upload-btn" class="text-xs px-3 py-2 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0 flex items-center justify-center gap-1.5" style="${solidAccentStyle(accent, accentBorder)}">
         ${icon('upload', { className: 'w-3.5 h-3.5' })}
         <span>上传材料</span>
       </button>
@@ -709,7 +745,7 @@ function _renderWeeklyContent() {
             <label class="text-xs text-gray-500 mb-1.5 block font-medium">周报内容</label>
             <textarea id="weekly-content" rows="6" placeholder="请填写本周工作内容，每条一行..." class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none">${draftReport ? draftReport.content : ''}</textarea>
           </div>
-          <button id="weekly-submit-btn" class="w-full text-sm px-4 py-[7px] font-medium text-white rounded-lg transition-colors" style="background:${accent}">报送</button>
+          <button id="weekly-submit-btn" class="w-full text-sm px-4 py-[7px] font-medium text-white rounded-lg transition-colors" style="${solidAccentStyle(accent, accentBorder)}">报送</button>
         </div>
       </div>
 
@@ -845,7 +881,7 @@ function _showArchiveAdvancePopover(record, triggerBtn) {
   // 操作按钮
   html += `<div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">`;
   html += `<button id="archive-popover-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">取消</button>`;
-  html += `<button id="archive-popover-confirm" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="background:${accent}">${nextLabel}</button>`;
+  html += `<button id="archive-popover-confirm" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="${solidAccentStyle(accent, accentBorder)}">${nextLabel}</button>`;
   html += `</div>`;
 
   popover.innerHTML = html;
@@ -939,9 +975,11 @@ function _showArchiveUploadModal() {
   const card = document.createElement('div');
   card.style.cssText = 'background:var(--surface-card);border-radius:14px;padding:0;max-width:440px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);max-height:86vh;display:flex;flex-direction:column;';
 
-  const activityOptions = activities.length === 0
+  // T223 排序统一：关联活动下拉按 date 降序（新者在前），与全站一致
+  const sortedActivities = [...activities].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const activityOptions = sortedActivities.length === 0
     ? '<option value="">（暂无活动，请先创建）</option>'
-    : `<option value="">请选择关联活动</option>` + activities.map(a =>
+    : `<option value="">请选择关联活动</option>` + sortedActivities.map(a =>
         `<option value="${a.id}">${a.title}（${a.date || '未定日期'}）</option>`
       ).join('');
 
@@ -976,7 +1014,7 @@ function _showArchiveUploadModal() {
     </div>
     <div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">
       <button id="upload-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
-      <button id="upload-confirm" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent}">上传</button>
+      <button id="upload-confirm" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)}">上传</button>
     </div>
   `;
 

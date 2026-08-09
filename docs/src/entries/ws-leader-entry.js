@@ -1,9 +1,11 @@
-﻿import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
+import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
 import { renderTodoList } from '../components/todo-list.js?v=20260808m';
 import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260808m';
 import { BranchService } from '../services/runtime.js?v=20260808m';
-import { showToast } from '../core/utils.js?v=20260808m';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260808m';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260808m';
 import { bootstrapPage } from '../core/bootstrap.js?v=20260808m';
+import { solidAccentStyle } from '../core/constants.js?v=20260808m';
 import { loadWorkspaceData } from '../core/data-loader.js?v=20260808m';
 import { attendanceToLong, inspectionToLong, PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260808m';
 import { PersonPicker } from '../components/person-picker.js?v=20260808m';
@@ -15,6 +17,7 @@ import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecor
 import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260808m';
 import { loadActivities } from '../services/activity.js?v=20260808m';
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808m';
+import { SignupStore } from '../services/signup.js?v=20260808m';
 import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../services/review.js?v=20260808m';
 import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260808m';
 import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260808m';
@@ -32,6 +35,7 @@ let _dtOrgPicker = null;      // 决策树表单：组织者多选
 let _dtDeepPicker = null;     // 决策树表单：深度参与者多选
 let _detailOrgPicker = null;   // 活动详情：组织者多选（预填现有 assignments）
 let _detailDeepPicker = null;  // 活动详情：深度参与者多选
+let _leaderNavTarget = null; // { tfId, actId } URL 导航目标（跨重渲染保持，定位完成后清除）
 
 // ── 党小组组长→党小组映射 ──────────────────────────────────────────
 const LEADER_GROUP_MAP = {
@@ -78,6 +82,8 @@ function renderLeaderUI(state) {
       { id: 'attendance', label: '考勤上传', render: () => _renderAttendanceContent() },
       { id: 'inspection', label: '考察上传', render: () => _renderInspectionContent() },
       { id: 'review', label: '复盘提交', render: () => _renderReviewContent() },
+      // 专班查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增）
+      { id: 'tf-view', label: '专班查看', render: () => { const el = document.getElementById('leader-tab-content'); if (el) return import('../components/taskforce-view.js?v=20260808m').then(m => m.renderTaskforceView(el, { highlightId: _leaderNavTarget?.tfId || null, onLocated: () => { _leaderNavTarget = null; } })); }, groupLabel: '党建' },
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('leader-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('leader', 'u_leader_1'); bindMyDispatchEvents(el, 'leader', 'u_leader_1'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
@@ -90,6 +96,42 @@ function renderLeaderUI(state) {
 
   tabBar.bindEvents(container);
   tabBar.activate(tabBar.activeTab);
+
+  // ── 首页跳转落点（书记 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
+  // 目标保持到定位完成（loadWorkspaceData 双 setState 会重渲染），提取后立即清除 URL 参数。
+  if (!_leaderNavTarget) {
+    const urlParams = CrossPageState.getURLParams();
+    const tfId = urlParams.taskforceId;
+    const actId = urlParams.activityId;
+    if (tfId || actId || urlParams.view === 'activities') {
+      _leaderNavTarget = { tfId, actId };
+      CrossPageState.clearParam('activityId');
+      CrossPageState.clearParam('taskforceId');
+      CrossPageState.clearParam('view');
+    }
+  }
+  if (_leaderNavTarget) {
+    if (_leaderNavTarget.tfId) {
+      // 专班查看（组长无专班职责≠无知情权）
+      tabBar.activate('tf-view');
+    } else {
+      // 活动：定位活动管理 + 直达该活动详情
+      tabBar.activate('write');
+      if (_leaderNavTarget.actId) {
+        setTimeout(() => {
+          const item = document.querySelector(`.leader-act-item[data-act-id="${_leaderNavTarget.actId}"]`);
+          if (item) {
+            item.click(); // 展开详情
+            item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            flashHighlight(item);
+          }
+          _leaderNavTarget = null; // 无论成败：最终 DOM 已稳定，清除导航目标
+        }, 150);
+      } else {
+        _leaderNavTarget = null;
+      }
+    }
+  }
 }
 
 // ── 待办列表+详情面板（最小三成本原则落地） ───────────────────
@@ -166,7 +208,7 @@ function _renderTodoDetail(todo) {
         ${todo.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.flow}</p>` : ''}
         ${todo.deadline ? `<div class="text-xs text-gray-500">最早截止：${todo.deadline}</div>` : ''}
         <div class="pt-3 border-t border-gray-100 flex gap-2">
-          <button class="leader-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">去处理</button>
+          <button class="leader-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};">去处理</button>
         </div>
       </div>
     `;
@@ -267,6 +309,11 @@ function _renderWriteContent(activities) {
   const container = document.getElementById('leader-tab-content');
   if (!container) return;
 
+  // T223 排序统一：未完成在前、已完成在后，组内按 date 降序（新者在前）
+  const isDone = a => a.archived || ['completed', 'cancelled'].includes(a.status);
+  const sorted = [...activities].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const display = [...sorted.filter(a => !isDone(a)), ...sorted.filter(a => isDone(a))];
+
   const panelVisible = dt.showPanel;
 
   container.innerHTML = `
@@ -282,8 +329,8 @@ function _renderWriteContent(activities) {
       <div class="mt-4 pt-3 border-t border-gray-100">
         <div class="text-xs text-gray-400 mb-2">已有关联活动</div>
         <div class="space-y-2" id="leader-activity-list">
-          ${activities.length === 0 ? '<p class="text-xs text-gray-400 text-center py-4">暂无关联活动</p>' :
-            activities.map(a => `
+          ${display.length === 0 ? '<p class="text-xs text-gray-400 text-center py-4">暂无关联活动</p>' :
+            display.map(a => `
               <div class="leader-act-item flex items-center justify-between p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors cursor-pointer" data-act-id="${a.id}">
                 <div class="flex-1 min-w-0">
                   <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
@@ -374,7 +421,7 @@ function _renderWriteContent(activities) {
         <div class="mt-3 pt-3 border-t border-gray-100">
           <div class="flex items-center justify-between mb-2">
             <h6 class="font-title-cn text-xs font-bold text-gray-600">活动角色</h6>
-            <button id="btn-save-activity-roles" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">保存角色</button>
+            <button id="btn-save-activity-roles" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};">保存角色</button>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
@@ -497,7 +544,7 @@ function _renderWriteContent(activities) {
                 </div>
                 <div class="flex gap-2 justify-end">
                   <button type="button" class="act-sub-cancel-btn text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="background:${accent};">提交</button>
+                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="${solidAccentStyle(accent, accentBorder)};">提交</button>
                 </div>
               </div>`;
           } else if (type === 'inspection') {
@@ -510,7 +557,7 @@ function _renderWriteContent(activities) {
                 <select class="f-result input-flat text-xs w-full mb-2">${resultOpts.map(r => `<option>${r}</option>`).join('')}</select>
                 <div class="flex gap-2 justify-end">
                   <button type="button" class="act-sub-cancel-btn text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="background:${accent};">提交</button>
+                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="${solidAccentStyle(accent, accentBorder)};">提交</button>
                 </div>
               </div>`;
           } else {
@@ -522,7 +569,7 @@ function _renderWriteContent(activities) {
                 ${fields.map(([key, label]) => `<input class="f-${key} input-flat text-xs w-full mb-2" placeholder="${label}${key === 'title' || key === 'name' ? '（必填）' : '（选填）'}">`).join('')}
                 <div class="flex gap-2 justify-end">
                   <button type="button" class="act-sub-cancel-btn text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="background:${accent};">提交</button>
+                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="${solidAccentStyle(accent, accentBorder)};">提交</button>
                 </div>
               </div>`;
           }
@@ -752,7 +799,7 @@ function _renderDecisionTreePanel() {
       </div>
 
       <div class="flex items-center gap-3">
-        <button id="dt-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">写入活动</button>
+        <button id="dt-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">写入活动</button>
         <button id="dt-cancel" class="text-sm px-4 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
     </div>
@@ -944,10 +991,12 @@ function _renderAttendanceContent() {
   const allRecords = loadActiveAttendanceRecords();
   const myAttendance = allRecords.filter(r => r.activityId && loadActivities().find(a => a.id === r.activityId)?.type === '党小组会');
 
-  // 筛选三会一课和主题党日活动
-  const eligibleActivities = loadActivities().filter(a =>
-    a.type === '党小组会' || a.type === '主题党日' || a.type === '党课' || a.type === '支部党员大会'
-  );
+  // 筛选三会一课和主题党日活动；T223 排序统一：date 降序（新者在前）
+  const eligibleActivities = loadActivities()
+    .filter(a =>
+      a.type === '党小组会' || a.type === '主题党日' || a.type === '党课' || a.type === '支部党员大会'
+    )
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   // 获取本组待补课人员
   const currentLeaderId = 'p4'; // 当前党小组组长（根据实际登录角色调整）
@@ -977,7 +1026,7 @@ function _renderAttendanceContent() {
       </div>
       <div id="att-status-rows" class="mb-3"></div>
       <div class="flex items-center gap-3">
-        <button id="att-form-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">提交考勤</button>
+        <button id="att-form-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">提交考勤</button>
         <button id="att-form-cancel" class="text-sm px-4 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
     </div>
@@ -1185,10 +1234,12 @@ function _renderInspectionContent() {
   const myInspection = allRecords.filter(r => r.sourceType === SourceType.ACTIVITY);
 
   // 来源类型选项
-  const sourceActivities = loadActivities().filter(a =>
-    a.type === '党小组会' || a.type === '主题党日' || a.type === '党课' || a.type === '支部党员大会'
-  );
-  // T223 专班新者在前（createdAt 降序）
+  // T223 排序统一：来源活动 date 降序（新者在前），专班 createdAt 降序
+  const sourceActivities = loadActivities()
+    .filter(a =>
+      a.type === '党小组会' || a.type === '主题党日' || a.type === '党课' || a.type === '支部党员大会'
+    )
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const sourceTaskforces = TaskForceRecordStore.getAll()
     .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
@@ -1217,7 +1268,7 @@ function _renderInspectionContent() {
       </div>
       <div id="insp-content-rows" class="mb-3"></div>
       <div class="flex items-center gap-3">
-        <button id="insp-form-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">提交考察</button>
+        <button id="insp-form-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">提交考察</button>
         <button id="insp-form-cancel" class="text-sm px-4 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
     </div>
@@ -1404,11 +1455,14 @@ function _renderReviewContent() {
   const myGroup = LEADER_GROUP_MAP[currentLeaderId] || '';
 
   // 筛选本组活动（三会一课/主题党日等由本组组长组织的活动；已归档活动退出工作区）
-  const myGroupActivities = loadActivities().filter(a => {
-    // 按组织者属于本组 或 按 hostGroup 匹配
-    const organizer = PEOPLE.find(p => p.id === a.organizer);
-    return organizer && organizer.partyGroup === myGroup && a.status !== 'cancelled' && !a.archived;
-  });
+  // T223 排序统一：date 降序（新者在前）
+  const myGroupActivities = loadActivities()
+    .filter(a => {
+      // 按组织者属于本组 或 按 hostGroup 匹配
+      const organizer = PEOPLE.find(p => p.id === a.organizer);
+      return organizer && organizer.partyGroup === myGroup && a.status !== 'cancelled' && !a.archived;
+    })
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   // 获取已有复盘记录
   const reviewMap = {};
@@ -1557,7 +1611,7 @@ function _renderReviewForm(act, rev) {
       ` : ''}
       <textarea id="review-textarea-${act.id}" class="input-flat w-full text-xs resize-none" rows="4" placeholder="请填写复盘总结（活动成效、经验教训、改进建议等）">${existingContent}</textarea>
       <div class="flex items-center gap-2 mt-2">
-        <button class="btn-review-submit text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" data-act-id="${act.id}" style="background:${accent};cursor:pointer;">提交复盘</button>
+        <button class="btn-review-submit text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" data-act-id="${act.id}" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">提交复盘</button>
         <span class="text-xs text-gray-400">提交后纪检委员将在监督复盘tab收到通知</span>
       </div>
     </div>

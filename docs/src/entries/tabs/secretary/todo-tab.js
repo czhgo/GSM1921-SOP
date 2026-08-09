@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+﻿﻿// role: [工程师]+[AI]
 // entries/tabs/secretary/todo-tab.js — 书记工作台·待办 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：按 tab 代码分割，首屏只加载默认 tab。
 // 2026-08-07 T232：改为「动态聚合 + 复核确认面板」——SecretaryTodoDeriver.computeAggregates()
@@ -16,9 +16,9 @@ import { loadActivities } from '../../../services/activity.js?v=20260808m';
 import { mockDB } from '../../../core/domain.js?v=20260808m';
 import { persist } from '../../../core/data-adapter.js?v=20260808m';
 import { getPersonById } from '../../../mock/index.js?v=20260808m';
-import { getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260808m';
+import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260808m';
 
-const accent = getAccentColors(resolveAccentRole('secretary')).accent;
+const { accent, accentBorder } = getAccentColors(resolveAccentRole('secretary'));
 
 let _selectedTodoId = null;
 
@@ -139,7 +139,7 @@ function renderConfirmDetail(group) {
         ${more}
       </div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
-        <button class="secretary-todo-detail-confirm text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">一键确认 ${group.count} 条</button>
+        <button class="secretary-todo-detail-confirm text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)}">一键确认 ${group.count} 条</button>
       </div>
     </div>
   `;
@@ -168,7 +168,7 @@ function renderRemindDetail(group) {
         ${more}
       </div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
-        <button class="secretary-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">去活动管理</button>
+        <button class="secretary-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)}">去活动管理</button>
       </div>
     </div>
   `;

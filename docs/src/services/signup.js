@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  service.signup.js — 报名记录（活动/专班统一报名渠道）
 //  SignupRecord { id, sourceType: 'activity'|'taskforce', sourceId,

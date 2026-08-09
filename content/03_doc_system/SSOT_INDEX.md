@@ -2,8 +2,8 @@
 title: "单一权威源索引"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-08-05"
-version: "3.8"
+last_updated: "2026-08-09"
+version: "3.9"
 status: active
 related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web_design/, content/03_doc_system/, content/02_institution/sop/, content/insights/]
 ---
@@ -17,16 +17,16 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 **与相关文件的关系**（参见 [CLAUDE.md H2.2](../../CLAUDE.md#h22-设计母本与子本)）：
 - **CLAUDE.md H2.2**：提炼5条核心原则（制度→代码 / 理论→工程 / 路线图→执行 / 经验→沉淀 / 术语→全仓）
 - **本文件（SSOT_INDEX.md）**：注册全部约25条级联关系，是母本子本关系的唯一权威注册表
-- **OPERATIONS_GUIDE.md §7.1**：定义文档权威层级（5 类知识类型）与冲突裁决规则
+- **OPERATIONS_GUIDE.md §1.1**：定义文档权威层级（5 类知识类型）与冲突裁决规则
 - **DOC_MAP.md**：按目录结构组织的导航图，标注每个文件的权威层级
 
-三者关系：H2.2 提炼核心原则 → SSOT_INDEX 注册全部关系 → OPERATIONS_GUIDE §7.1 定义层级 → DOC_MAP 标注层级。
+三者关系：H2.2 提炼核心原则 → SSOT_INDEX 注册全部关系 → OPERATIONS_GUIDE §1.1 定义层级 → DOC_MAP 标注层级。
 
 ---
 
 ## 注册表映射
 
-> 按 5 类知识类型（见 [OPERATIONS_GUIDE.md §7.1](./OPERATIONS_GUIDE.md)）组织。每条关系标注母本→子本及同步规则。
+> 按 5 类知识类型（见 [OPERATIONS_GUIDE.md §1.1](./OPERATIONS_GUIDE.md)）组织。每条关系标注母本→子本及同步规则。
 
 ### 根目录 → content/ 各知识类型
 
@@ -144,7 +144,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | content/design/LOGIN_STUB.md | → content/04_web_design/DATA_ARCHITECTURE.md §登录态打桩设计（§一~§五）+ §登录系统设计前置（§六~§十一，经 MANAGEMENT_MODE.md/LOGIN_SYSTEM_DESIGN.md 过渡） | 2026-07-08 |
 | content/design/APPROVAL_FLOW.md | → content/02_institution/COMMISSIONER_FRAMEWORK.md §审批流程规范（全量合并） | 2026-07-08 |
 | content/design/WRITE_VERIFY.md | → content/04_web_design/DATA_ARCHITECTURE.md §写入数据验证设计（精简合并，§三/§五删除，经 DATA.md 合并） | 2026-07-08 |
-| content/governance/LAYERING_FRAMEWORK.md | → content/03_doc_system/OPERATIONS_GUIDE.md §7.3/§7.4（独有内容合并）+ content/05_ai_coding/KNOWN_PITFALLS.md §7（历史冲突记录）+ OPERATIONS_GUIDE.md §15（原 RECURRING_TASKS Q4，5 步流程） | 2026-07-09 |
+| content/governance/LAYERING_FRAMEWORK.md | → content/03_doc_system/OPERATIONS_GUIDE.md §1.3/§1.4（独有内容合并）+ content/05_ai_coding/KNOWN_PITFALLS.md §7（历史冲突记录）+ OPERATIONS_GUIDE.md §17（原 RECURRING_TASKS Q4，5 步流程） | 2026-07-09 |
 | content/design/SERVICE_CATALOG.md | → content/03_doc_system/SERVICE_CATALOG.md（迁移至治理层） | 2026-07-11 |
 | content/design/ORG_BUILDING.md | → content/04_web_design/MODULE_UI_DESIGN.md（系统设计部分，经 PAFFAIRS_UI.md 合并）+ content/01_strategy/DEVELOPMENT_PATH.md 附录 B（战略分类部分，原"第七章"） | 2026-07-11 |
 | content/design/COMMISSIONER_SYSTEM.md | → content/02_institution/COMMISSIONER_FRAMEWORK.md（迁移+重命名，"FRAMEWORK"避免"SYSTEM"歧义） | 2026-07-11 |
@@ -158,7 +158,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | content/design/FLAT_DESIGN.md | → content/02_institution/FLAT_DESIGN.md（迁移至 institution 层） | 2026-07-12 |
 | content/governance/TERMINOLOGY.md | → content/03_doc_system/USAGE_POLICY.md §一（合并至使用规范） | 2026-07-12 |
 | content/governance/EMOJI_POLICY.md | → content/03_doc_system/USAGE_POLICY.md §三（合并至使用规范） | 2026-07-12 |
-| content/governance/RECURRING_TASKS.md | → content/03_doc_system/OPERATIONS_GUIDE.md §15（合并为周期性任务章节，删除原 §五附录初始化清单） | 2026-07-12 |
+| content/governance/RECURRING_TASKS.md | → content/03_doc_system/OPERATIONS_GUIDE.md §17（合并为周期性任务章节，删除原 §五附录初始化清单） | 2026-07-12 |
 
 ## 使用规则
 

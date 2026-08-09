@@ -1,4 +1,4 @@
-﻿// review.js — 复盘记录 Mock 数据
+﻿﻿// review.js — 复盘记录 Mock 数据
 // 数据模型对齐 domain.js ReviewRecord + ReviewStatus 枚举（D-242）
 // 复盘状态流转：未提交→已上传→批注中→确认/打回
 // 组织者提交复盘报告，纪检委员批注/打回/确认

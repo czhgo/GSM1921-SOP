@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿// role: [工程师]+[AI]
 // issue-detail.js — 反馈详情渲染
 
 import { IssueStore } from '../services/issues.js?v=20260808m';

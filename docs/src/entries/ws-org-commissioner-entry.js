@@ -1,9 +1,10 @@
-﻿import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260808m';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260808m';
 import { BranchService } from '../services/runtime.js?v=20260808m';
-import { showToast } from '../core/utils.js?v=20260808m';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260808m';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260808m';
 import { AuthStore } from '../services/auth.js?v=20260808m';
 import { bootstrapPage } from '../core/bootstrap.js?v=20260808m';
+import { solidAccentStyle } from '../core/constants.js?v=20260808m';
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808m';
 import { PersonPicker } from '../components/person-picker.js?v=20260808m';
 import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js?v=20260808m';
@@ -23,6 +24,9 @@ import { SignupStore, resolveSignupReviewer, SignupStatus } from '../services/si
 import { badgeHtml } from '../components/badge.js?v=20260808m';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'org-commissioner' });
+
+let _orgNavTarget = null; // { tfId, actId, view } URL 导航目标（跨重渲染保持，定位完成后清除）
+let _orgHighlightActId = null; // 活动查看高亮目标（快照变量：导航目标清除后仍供懒加载渲染读取）
 
 // ════════════════════════════════════════════════════════════════
 //  发展党员追踪 — Mock 数据
@@ -97,6 +101,8 @@ function renderOrgUI(state) {
       { id: 'todo', label: '待办', render: () => _renderTodoContent(), groupLabel: '工作台' },
       { id: 'inspection', label: '考察上传', render: () => _renderOrgInspectionContent(), groupLabel: '党建' },
       { id: 'taskforce', label: '专班管理', render: (ctx) => _renderTaskforceContent(ctx.pending, ctx.recruiting, ctx.active, ctx.activities) },
+      // 活动查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增；组织无活动 tab 由本组件承载）
+      { id: 'activity-view', label: '活动查看', render: () => { const el = document.getElementById('org-tab-content'); if (el) return import('../components/activity-view.js?v=20260808m').then(m => m.renderActivityView(el, { highlightId: _orgNavTarget?.actId || null, onLocated: () => { _orgNavTarget = null; } })); }, groupLabel: '党建' },
       { id: 'talent', label: '人才库', render: () => _renderTalentContent() },
       { id: 'development', label: '发展数据', render: () => _renderDevelopmentContent(), groupLabel: '党建' },
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('org-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('org-commissioner', 'u_org'); bindMyDispatchEvents(el, 'org-commissioner', 'u_org'); } }, groupLabel: '反馈' },
@@ -112,16 +118,45 @@ function renderOrgUI(state) {
 
   tabBar.bindEvents(container);
   container.querySelector('#btn-publish-tf')?.addEventListener('click', () => _openRecruitForm());
-  const urlParams = CrossPageState.getURLParams();
-  if (urlParams.taskforceId) {
-    tabBar.activate('taskforce');
-    setTimeout(() => {
-      const card = container.querySelector(`.tf-store-card[data-tf-id="${urlParams.taskforceId}"]`);
-      if (card) {
-        card.click();
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  // ── 首页跳转落点（书记 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
+  // 目标保持到定位完成（loadWorkspaceData 双 setState 会重渲染），提取后立即清除 URL 参数。
+  if (!_orgNavTarget) {
+    const urlParams = CrossPageState.getURLParams();
+    const tfId = urlParams.taskforceId;
+    const actId = urlParams.activityId;
+    if (tfId || actId || urlParams.view === 'activities') {
+      _orgNavTarget = { tfId, actId, view: urlParams.view === 'activities' };
+      CrossPageState.clearParam('activityId');
+      CrossPageState.clearParam('taskforceId');
+      CrossPageState.clearParam('view');
+    }
+  }
+  if (_orgNavTarget) {
+    if (_orgNavTarget.actId || _orgNavTarget.view) {
+      // 活动查看（组织无活动 tab，知情权组件承载）
+      // 快照高亮目标后立即清除导航目标（防 setState 重渲染重复消费）；高亮改读 _orgHighlightActId。
+      _orgHighlightActId = _orgNavTarget.actId;
+      _orgNavTarget = null;
+      tabBar.activate('activity-view');
+      if (_orgHighlightActId) {
+        // 2026-08-08 修复：activity-view 组件默认渲染当前月，URL 活动在旧月时日历无该条目 → 高亮无目标。
+        // 消费 URL 活动时同步切到活动所在月份并打开详情。
+        const act = (state.activities || []).find(a => a.id === _orgHighlightActId);
+        setState({ displayMonth: act?.date?.slice(0, 7) || undefined, selectedActivityId: _orgHighlightActId });
       }
-    }, 100);
+    } else if (_orgNavTarget.tfId) {
+      tabBar.activate('taskforce');
+      setTimeout(() => {
+        const card = container.querySelector(`.tf-store-card[data-tf-id="${_orgNavTarget.tfId}"]`);
+        if (card) {
+          card.click(); // 展开详情
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          flashHighlight(card);
+        }
+        _orgNavTarget = null; // 无论成败：最终 DOM 已稳定，清除导航目标
+      }, 150);
+    }
   } else {
     tabBar.activate(tabBar.activeTab);
   }
@@ -201,7 +236,7 @@ function _renderTodoDetail(todo) {
         ${todo.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.flow}</p>` : ''}
         ${todo.deadline ? `<div class="text-xs text-gray-500">最早截止：${todo.deadline}</div>` : ''}
         <div class="pt-3 border-t border-gray-100 flex gap-2">
-          <button class="org-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">去处理</button>
+          <button class="org-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};">去处理</button>
         </div>
       </div>
     `;
@@ -545,7 +580,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
             </span>
           </div>`).join('') : '';
         const applyBtn = tfOpen && currentUserId && !myApplied
-          ? `<button id="tf-signup-apply-btn" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">报名加入</button>`
+          ? `<button id="tf-signup-apply-btn" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};">报名加入</button>`
           : '';
         signupSectionHtml = `
           <div class="mt-4 pt-3 border-t border-gray-100">
@@ -574,7 +609,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
         <div class="mt-4 pt-3 border-t border-gray-100">
           <div class="flex items-center justify-between mb-2">
             <h6 class="font-title-cn text-xs font-bold text-gray-600">成员角色</h6>
-            <button id="btn-save-tf-roles" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};">保存角色</button>
+            <button id="btn-save-tf-roles" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};">保存角色</button>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
@@ -682,7 +717,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
                 <select class="f-result input-flat text-xs w-full mb-2">${resultOpts.map(r => `<option>${r}</option>`).join('')}</select>
                 <div class="flex gap-2 justify-end">
                   <button type="button" class="sub-cancel-btn text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-                  <button type="button" class="sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="background:${accent};">保存</button>
+                  <button type="button" class="sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="${solidAccentStyle(accent, accentBorder)};">保存</button>
                 </div>
               </div>`;
           } else {
@@ -694,7 +729,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
                 <input class="f-note input-flat text-xs w-full mb-2" placeholder="备注（选填）">
                 <div class="flex gap-2 justify-end">
                   <button type="button" class="sub-cancel-btn text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-                  <button type="button" class="sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="background:${accent};">保存</button>
+                  <button type="button" class="sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="${solidAccentStyle(accent, accentBorder)};">保存</button>
                 </div>
               </div>`;
           }
@@ -961,7 +996,7 @@ function _openRecruitForm() {
 
       <div style="display:flex;gap:12px;justify-content:flex-end;">
         <button type="button" id="recruit-form-cancel" class="text-sm px-4 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
-        <button type="submit" class="text-sm px-4 py-[7px] rounded-lg text-white hover:opacity-90 transition-opacity font-medium" style="background:${accent};">发布</button>
+        <button type="submit" class="text-sm px-4 py-[7px] rounded-lg text-white hover:opacity-90 transition-opacity font-medium" style="${solidAccentStyle(accent, accentBorder)};">发布</button>
       </div>
     </form>
   `;
@@ -1486,7 +1521,7 @@ function _renderOrgInspectionContent() {
       </div>
       <div id="org-insp-content-rows" class="mb-3"></div>
       <div class="flex items-center gap-3">
-        <button id="org-insp-form-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="background:${accent};cursor:pointer;">提交考察</button>
+        <button id="org-insp-form-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">提交考察</button>
         <button id="org-insp-form-cancel" class="text-sm px-4 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
       <p class="text-[11px] text-gray-400 mt-2">提交后自动投递：纪检确认 → 考察总表（组织委员建档），无需手动选择接收方</p>

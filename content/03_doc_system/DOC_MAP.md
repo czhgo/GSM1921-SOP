@@ -2,7 +2,7 @@
 title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-05"
+last_updated: "2026-08-09"
 version: "2.3"
 status: active
 related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
@@ -11,10 +11,10 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 # 文档导航映射
 
 > **本文档为导航图**：按 5 类知识类型组织，标注每个文件的受众。
-> **权威层级定义**（5 类知识类型、裁决规则）见 [OPERATIONS_GUIDE.md §7.1](OPERATIONS_GUIDE.md#71-文档权威层级5类知识类型)。
+> **权威层级定义**（5 类知识类型、裁决规则）见 [OPERATIONS_GUIDE.md §1.1](OPERATIONS_GUIDE.md#11-文档权威层级5类知识类型)。
 > **母本子本关系注册表**见 [SSOT_INDEX.md](SSOT_INDEX.md)。
-> 三者关系：§7.1 定义层级 → DOC_MAP 标注层级 → SSOT_INDEX 注册关系。
-> 受众: [工程师]+[AI]
+> 三者关系：§1.1 定义层级 → DOC_MAP 标注层级 → SSOT_INDEX 注册关系。
+> **受众：** [工程师]+[AI]
 
 ---
 
@@ -41,7 +41,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 
 ## 二、文件总览（按 5 类知识类型）
 
-> **层级定义见 [OPERATIONS_GUIDE.md §7.1](OPERATIONS_GUIDE.md#71-文档权威层级5类知识类型)**：5 类知识类型（战略/制度/文档系统/网站设计/AI coding）。
+> **层级定义见 [OPERATIONS_GUIDE.md §1.1](OPERATIONS_GUIDE.md#11-文档权威层级5类知识类型)**：5 类知识类型（战略/制度/文档系统/网站设计/AI coding）。
 > 知识类型之间互补，互不覆盖；冲突裁决以母本优先于衍生为原则。
 
 ### 知识类型 1：支部发展和管理的战略（content/01_strategy/）
@@ -81,9 +81,8 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `content/03_doc_system/OPERATIONS_GUIDE.md` | [工程师]+[AI] | 运行标准（含权威层级 §7、三类文件角色 §8、一致性检查规范 §7.4、§14 吸收外部输入、§15 周期性任务） | CLAUDE.md H6 |
+| `content/03_doc_system/OPERATIONS_GUIDE.md` | [工程师]+[AI] | 运行标准（含权威层级 §1、三类文件角色 §14、一致性检查规范 §1.4、§16 吸收外部输入、§17 周期性任务） | CLAUDE.md H6 |
 | `content/03_doc_system/USAGE_POLICY.md` | [工程师]+[AI] | 使用规范（术语标准 §一 + AI 展开原则 §二 + Emoji 边界 §三，合并自 TERMINOLOGY.md + EMOJI_POLICY.md） | 全仓库 |
-| `content/03_doc_system/CHECKLIST.md` | [用户]+[AI] | 数据同源一致性校验手册（工程质检流程，按数据类别逐步检查） | DATA_ARCHITECTURE.md、ARCHITECTURE.md |
 | `content/03_doc_system/DOC_MAP.md` | [工程师]+[AI] | 本文档：全局导航中心 | 所有文件 |
 | `content/03_doc_system/SSOT_INDEX.md` | [工程师]+[AI] | 母本注册表、溯源参考（Agent/Skill 配置已迁出，见 ARCHITECTURE.md） | ARCHITECTURE.md |
 | `content/03_doc_system/ARCHITECTURE.md` | [工程师]+[AI] | 核心架构说明、分层架构、数据模型、变更流水线 | README.md（架构图引用） |
@@ -99,6 +98,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 |------|------|------|---------|
 | `content/04_web_design/DATA_ARCHITECTURE.md` | [工程师]+[AI] | 数据架构设计（合并原 DATA/PARTICIPANT_DATAFLOW/LOGIN_SYSTEM_DESIGN/BRAND_ACTIVITY：系统数据流+界面布局+登录态打桩设计+用户身份模型/认证机制+品牌属性标签+§写入数据验证设计） | SECRETARY_PRONOUNCEMENTS.md、ARCHITECTURE.md、CLAUDE.md |
 | `content/04_web_design/DESIGN_SYSTEM.md` | [工程师]+[AI] | 设计系统规范 | docs/src/styles.css |
+| `content/04_web_design/CHECKLIST.md` | [用户]+[AI] | 数据同源一致性校验手册（工程质检流程，按数据类别逐步检查；机器检查+人工检查分工） | DATA_ARCHITECTURE.md、ARCHITECTURE.md |
 | `content/04_web_design/MODULE_UI_DESIGN.md` | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能） | docs/src/components/calendar.js |
 | `content/04_web_design/SOP_WEB.md` | [工程师]+[AI] | SOP 系统优化与同步指南 | CLAUDE.md H2.2 |
 | `content/04_web_design/SCHOOL_IT_DEPLOYMENT.md` | [工程师] | 学校计算中心对接准备文档（对接准备与提交清单） | docs/src/services/runtime.js 等 |
@@ -157,7 +157,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | 了解登录系统设计前置 | content/04_web_design/DATA_ARCHITECTURE.md | DATA_ARCHITECTURE.md §登录态打桩设计 |
 | 查看服务清单与权限矩阵 | content/03_doc_system/SERVICE_CATALOG.md | content/02_institution/ROLE_CLASSIFICATION.md §九 |
 | 理解架构变更 | content/03_doc_system/ARCHITECTURE.md §八 | content/03_doc_system/SSOT_INDEX.md |
-| 了解三类文件角色规范 | content/03_doc_system/OPERATIONS_GUIDE.md §8 | content/02_institution/ROLE_CLASSIFICATION.md |
-| 查看文档权威层级 | content/03_doc_system/OPERATIONS_GUIDE.md §7.1 | 本文档 §二 |
-| 查看母本子本关系 | content/03_doc_system/SSOT_INDEX.md | content/03_doc_system/OPERATIONS_GUIDE.md §7.1 |
+| 了解三类文件角色规范 | content/03_doc_system/OPERATIONS_GUIDE.md §14 | content/02_institution/ROLE_CLASSIFICATION.md |
+| 查看文档权威层级 | content/03_doc_system/OPERATIONS_GUIDE.md §1.1 | 本文档 §二 |
+| 查看母本子本关系 | content/03_doc_system/SSOT_INDEX.md | content/03_doc_system/OPERATIONS_GUIDE.md §1.1 |
 | 查看书记重要论断 | content/01_strategy/SECRETARY_PRONOUNCEMENTS.md | CLAUDE.md H6 |

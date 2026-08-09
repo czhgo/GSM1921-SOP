@@ -2,7 +2,7 @@
 title: "2026年8月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-08-07"
+last_updated: "2026-08-09"
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -1854,3 +1854,132 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
   - ✅ F2 书记反馈管理分页控件（同上）
   - ✅ 原有 33 项回归全过（书记工作台/反馈/归档/五工作台无 JS 错误）
 - **沉淀标签**：`[已沉淀: 待办聚合卡与折叠分组]` — 聚合卡按钮默认折叠在分类分组内，playwright 点击前须先展开分组 header；`[已沉淀: 通知待办直达分支]` — 通知类待办 actionType=read 的聚合对象无 sourceType 字段，直达分支须取 `(todo.items && todo.items[0]) || todo` 首条再判 sourceType/actionData.noticeId，4 工作台须与 visitor 模板对齐
+
+## T223 活动排序彻查补充 + CHECKLIST 新增手动检查章节（2026-08-09）
+
+**任务**：书记指令"党小组组长的活动写入中，活动的排序还是按照时间顺序在排，这个必须彻查！！"——全仓库彻查所有活动/专班列表排序是否符合 T223 基准；同时将"电脑难以检查"的三项内容（仓库可持续发展评估 / 文件更新+经验沉淀+系统迭代机制 / 深色模式色块设计评估）写入 CHECKLIST 单独一章，由书记手动检查。
+**引用流程**：T223 排序统一基准 + fullstack-developer Skill（排序语义核查）+ web-design-guidelines Skill（深色模式评估项设计）+ sample-diff-learning Skill（检查项落地）+ webapp-testing Skill（浏览器实测）+ H3 文件修改检查清单
+**来源**：书记指令原话（排序必须彻查 + 三项搁置手动检查）
+
+### ① 排序彻查（问题4）
+- **排查范围**：全仓 53 处 `.sort(`/`localeCompare` 调用 + 6 处活动 `<option>` 下拉生成点逐一核对
+- **已合规**（T223 双段/单段排序）：组长「活动写入」已有关联活动（L314-315）、宣传委员「上传宣传材料」关联活动下拉（L978）、纪检委员考勤活动选择器（L449）、书记 assign-tab 两处下拉（L122/172）、组织委员专班下拉（L1504-1505）、首页活动列表/日历（main-entry L297 / calendar.js L352）、访客活动动态（ws-visitor L324）、宣传/组织看板桶内（ws-prop L373-383 / ws-org L93）、书记专班总览（taskforce.js L65）、归档/通知/复盘等
+- **修复 4 处违规**（均为"无排序"即保持 mock 时间正序）：
+  - `ws-leader-entry.js` 考勤上传「选择活动」下拉（L994-999）：补 `date 降序`
+  - `ws-leader-entry.js` 考察上传「选择具体来源」活动下拉（L1238-1242）：补 `date 降序`
+  - `ws-leader-entry.js` 复盘提交本组活动分桶（L1459-1465）：补 `date 降序`
+  - `taskforce-view.js` 专班查看组件 4 状态桶内：补 `createdAt 降序`（与组织委员看板一致）
+- **验证**：GetDiagnostics 无错误 + 浏览器实测确认（详见下文实测记录）
+
+### ② CHECKLIST 新增章节（问题1/2/3 搁置手动检查）
+- CHECKLIST.md 新增「手动检查清单（仓库可持续发展·文件更新·深色模式）」章：
+  - **§1 仓库可持续发展评估**：链接/快照过期、文档代码同步、日志对账、经验沉淀跟上、废弃文件清理 5 项
+  - **§2 文件更新·经验沉淀·系统迭代机制**：2.1 文件更新（链接/快照/YAML 元数据）、2.2 经验沉淀（决策/教训/模式三层）、2.3 系统迭代机制（3.1 CLAUDE 整合 / 3.2 content 原话整合 / 3.3 长效机制）
+  - **§3 深色模式色块设计评估**：3.1 主题色平行性（逐色块明暗关系一致、党建红系、角色识别色、党徽金）、3.2 功能色可见度与可分辨率（状态色/状态点/文字对比度/边框/交互态）
+- CHECKLIST.md T223 章节补入 4 处新修复检查项
+
+- **变更文件**：`docs/src/entries/ws-leader-entry.js`（3 处排序）、`docs/src/components/taskforce-view.js`（1 处排序）、`content/03_doc_system/CHECKLIST.md`（新增章节 + T223 补项）
+- **沉淀标签**：`[已沉淀: 下拉选项也要排序]` — 排序统一不只看列表渲染，所有 `<option>` 下拉生成点（考勤选活动/考察选来源/赋权选活动等）同样须按 T223 基准排序，彻查须覆盖 `.map(a => <option` 全部生成点
+
+## T223-2 CHECKLIST 纠偏：人工检查项归属分流 + 文档归位（2026-08-09）
+
+**任务**：书记纠偏上一轮过拟合——CHECKLIST 的本意是"机器检查+人工检查分工"，人工部分只收录"机器因截图原因无法检查、需人眼判断"的内容，且写法必须是「人在哪里→做什么→看到什么」完整叙述；我上一轮把"仓库可持续发展/文件更新/深色模式"整章塞进 CHECKLIST 属过拟合。同时 CHECKLIST 归位 04_web_design，错误内容分流到对应文档。
+**引用流程**：H2.4 经验沉淀 + H3 文件修改检查清单 + H5.4 反馈分流归档 + sample-diff-learning Skill（提炼纠偏模式）+ brainstorming Skill（先确认方案再执行）+ DESIGN_SYSTEM §2 色彩系统
+**来源**：书记指令（过拟合纠偏 + 归属调整 + HARNESS 机制核查）
+**方案确认**：AskUserQuestion 四项全部采纳（CHECKLIST 移 04_web_design / 整章移除+内容分流 / 深色模式落 DESIGN_SYSTEM 新章 / HARNESS 核查+补缺口）
+
+### ① DESIGN_SYSTEM.md 新增「七、深色模式设计规范」章
+- 7.1 色块平行性总则（主题色）：统一明暗关系（"淡底深字"或"深底浅字"二选一，禁止单独反转）；党建红系不变 / 角色识别色不变 / 党徽金不反白 / 主题色三件套随主题反转
+- 7.2 功能色可见度与可分辨率：状态色/状态点徽章/文字/边框/交互态深色下单独评估
+- 7.3 人工自查清单（深色模式验收）：9 条「人在哪里→做什么→应该看到什么」（主题选择三态/登录页角色色点/首页红金语义/各工作台 tab/状态徽章/列表文字/交互态/帮助页）
+- 原「七、设计资产清单」→「八」，「八、快速参考」→「九」
+
+### ② CHECKLIST.md 纠偏 + 归位
+- 整体移除上一轮写入的「手动检查清单（仓库可持续发展·文件更新·深色模式）」章（L427-481）——非"网页人工检查"性质
+- CHECKLIST.md 从 `content/03_doc_system/` 移入 `content/04_web_design/`（数据同源校验属网站设计层，书记判定）
+- 保留：数据同源校验（机器检查）+ 浏览器实测（T-235/T223，人工检查，格式合格）
+- 一改具改：CLAUDE.md H7 链接、ARCHITECTURE.md 目录树×2、DOC_MAP.md 登记、03_doc_system/README.md 移除、04_web_design/README.md 新增、CHECKLIST YAML related_files
+
+### ③ HARNESS 系统迭代机制核查（3.1/3.2/3.3）
+- **3.2 content 原话整合** ✅ 已落地（SECRETARY_PRONOUNCEMENTS 权威源 + T-200 逐条复核 + W3 书记评议）
+- **3.3 长效机制** ✅ 已落地（H5 书记评议 + T-117 理论复用评议多轮机制 + H2.4 经验沉淀闭环 + C-3 + OPERATIONS_GUIDE §15 周期任务 M2/M3/M4/Q4/Y1）
+- **3.1 CLAUDE 原则整合** ⚠️ 原缺口，本次补：H5.4 新增「新原则整合收口」——书记评议/决策确立的新原则、新原话，决策后必须检查整合进长期文档（AI 行为约束/工作流→CLAUDE 甲部；书记原话→content 权威源；设计/经验→对应文档/insights），并写入 H5.5 评议记录
+- **仓库可持续/文件更新治理项**：确认已被既有机制覆盖（OPERATIONS_GUIDE §15.2 M2 快照/M3 断链/M4 沉淀/Q4 分层/Y1 年度审计），无需新造
+
+### ④ 经验沉淀
+- insights/工程演进与设计方法论.md 新增 §5.9「内容归属分流」：校验进校验清单/设计进设计文档/经验进经验文档/机制进 HARNESS；人工检查项写法=「人在哪里→做什么→看到什么」三要素（"深色模式下对比度是否达标"是伪检查项，"登录页开发模式卡片→切深色→查看7个角色色点应可区分不撞色"才是合格写法）
+
+- **变更文件**：`content/04_web_design/DESIGN_SYSTEM.md`（新增七章+顺延八/九）、`content/04_web_design/CHECKLIST.md`（移入+related_files）、`content/03_doc_system/CHECKLIST.md`（已删除）、`content/03_doc_system/ARCHITECTURE.md`、`content/03_doc_system/DOC_MAP.md`、`content/03_doc_system/README.md`、`content/04_web_design/README.md`、`CLAUDE.md`（H5.4 收口+链接+YAML）、`content/insights/工程演进与设计方法论.md`（§5.9）
+- **沉淀标签**：`[已沉淀: 人工检查项归属分流]` — 新增清单/章节前先判定内容性质（校验/设计/经验/机制）再选目标文档；人工清单条目按「人在哪里→做什么→看到什么」三要素写作（insights §5.9）；`[已沉淀: 新原则整合收口]` — 书记评议决策确立的新原则必须落长期文档（H5.4），"决策归档即遗忘"等同未落地
+
+## T223-3 沉淀断链修复 + project memory 结构化（2026-08-09）
+
+**任务**：(1) 书记同步请求"仓库可持续/文件更新机制最近实际沉淀了什么"——核查发现多条 `[已沉淀]` 标签未落点（断链），本次补齐；(2) project_memory.md 结构化更新（书记批准 8 分组方案）。
+**引用流程**：H2.4 经验沉淀规则（沉淀标签闭环）+ H2.1 一改具改 + H3 文件修改检查清单 + sample-diff-learning（用户指定）+ brainstorming（方案确认）
+
+### ① 沉淀断链核查 + 修复（3 条）
+- **断链 A（T204 §7.5 仓库卫生）**：日志 L963 标注 `[已沉淀: insights §7.5 仓库卫生]`，实际文件无该节 → 按主题归位补入 insights §5.10「仓库卫生：过程性文件清理闭环」（清理闭环六步 + 为什么不是"删掉就行" + 过程/正式/历史判断口径）
+- **断链 B（T223 下拉选项排序）**：日志 L1882 标注 `[已沉淀: 下拉选项也要排序]` 未落点 → 补入 insights §6.25「排序统一必须覆盖 `<option>` 下拉生成点」
+- **断链 C（L1856 聚合卡/通知直达）**：日志标注两条 `[已沉淀]` 未落点 → 补入 insights §6.26「待办聚合卡的折叠分组与通知直达分支」
+- 附录速查表新增 3 条（#31 仓库卫生 / #32 下拉选项也要排序 / #33 聚合卡先展开）
+
+### ② project memory 结构化
+- `c:\Users\储子禾\.trae-cn\memory\projects\-d-GitHub-GSM1921-SOP\project_memory.md` 按书记批准方案重组为 8 分组（书记原则/文档治理/术语/前端工程/后端工程/设计UI/Skill资产/进行中状态），移除已完成任务状态条目，重复内容压缩为指针引用，书记原话标 P 编号
+
+- **变更文件**：`content/insights/工程演进与设计方法论.md`（§5.10 + §6.25 + §6.26 + 附录 3 条）、`c:\Users\储子禾\.trae-cn\memory\projects\-d-GitHub-GSM1921-SOP\project_memory.md`（结构化）
+- **沉淀标签**：`[已沉淀: 沉淀断链修复]` — `[已沉淀]` 标签写入时须确认目标节实际存在，跨会话复核时 Grep 落点；insights 编号按主题归位可偏离日志原标注（§7.5→§5.10 因 §7 已被 T127 占用）
+
+## T223-4 书记反思触发：党建/党务降级未传播全仓修复（2026-08-09）
+
+**任务**：书记三连问——①沉淀机制的理想状态（纠正一次不再重复提起）②党建/党务关系早已更新降级为何仍赫然在重要文件 ③书记说"反思"时 AI 会读什么改什么。方案经 AskUserQuestion 确认（全仓修复+补机制 / 新增反思触发流 / 沉淀 insights），书记补充：反思时所有链接"指向"的 content/docs 文件也要有选择地读。
+**引用流程**：brainstorming + H1.4 反思触发流（本次新增）+ H2.1 一改具改 + H3 文件修改检查清单 + H2.4 经验沉淀
+
+### ① 全仓修复 5 处旧两分法定义残留
+- **sop/INDEX.md（母本）**：党建/党务定义由"管理组织活动之事/管理人员发展之事"改为 T1 官方定义（自我建设五大建设 / 党内事务具体管理），标注旧两分法降级
+- **ARCHITECTURE.md**：§二 分类表新增官方定义列 + 降级标注
+- **DEVELOPMENT_PATH.md**：附录 B 表格改为官方定义
+- **COMMISSIONER_FRAMEWORK.md**：L396 依据由 P-006/P-007 旧两分法改为 USAGE_POLICY §1.1.1
+- **SERVICE_CATALOG.md**：L25 分类依据改为 USAGE_POLICY §1.1.1
+- **保留（合法）**：功能分区标题（`## 党建工作` 章节）、UI 标签（sopData `【党建工作】` 前缀、about-entry domain 标签）、insights §1.1 理论讲解（已标注降级，符合后推翻前规则）、SECRETARY_PRONOUNCEMENTS P-006/P-007（权威论断本体）
+- 零残留验证：全仓 Grep 旧定义仅剩降级标注/理论历史/执行日志（历史不可变）
+
+### ② 机制补缺（防复发）
+- **CLAUDE.md H1.4 反思触发流（新增）**：书记说"反思/值得思考"时强制六步——①定位权威源最近变更 ②沿链接传播排查（🔴 书记补充要求：追踪所有链接指向的 content/docs 文件）③全仓 Grep 旧表述 ④一改具改 ⑤机制补缺 ⑥沉淀验证
+- **C-5 术语审计**：纳入「已降级定义残留」扫描项（旧定义须同步全仓为 T1 官方定义）
+
+### ③ 经验沉淀
+- **insights §5.11「降级未传播：沉淀≠学习」**：权威源更新≠下游同步；区分定义残留（必改）与合法功能分区（保留）；Boolean 条件 = 全仓旧定义零残留 + 链接下游已同步；附录 #34
+- **沉淀标签**：`[已沉淀: 降级未传播]` — 权威源定义/术语/层级更新后，必须沿链接全仓同步，防"沉淀了但没学习"
+
+- **变更文件**：CLAUDE.md（H1.4 + C-5）、content/02_institution/sop/INDEX.md、content/03_doc_system/ARCHITECTURE.md、content/01_strategy/DEVELOPMENT_PATH.md、content/02_institution/COMMISSIONER_FRAMEWORK.md、content/03_doc_system/SERVICE_CATALOG.md、content/insights/工程演进与设计方法论.md（§5.11 + 附录 #34）
+
+## T232 运行标准重构与全 content 修复（2026-08-09）
+
+**任务**：书记指令——① 继续推进全 content 文件夹修复；② OPERATIONS_GUIDE 按"原则性在前、使用频率高在前"重排；③ 写入标准突出"有机性"（内容浑然天成，而非悬吊补丁）。方案经 AskUserQuestion 六项确认（Part 分组+重排+引用同步 / 全面修复+历史豁免 / 新增独立章节 / 移除非标字段 / 同类同写统一 / 单 spec 两阶段）。
+**引用流程**：brainstorming Skill（方案设计）+ writing-plans Skill（实施计划）+ H2.1 一改具改 + OPERATIONS_GUIDE §8 有机性标准（本次新增）+ H3 文件修改检查清单
+
+### 阶段一：OPERATIONS_GUIDE 重构
+- **Part 三层分组**：Part I 核心原则（§1 文档权威层级/§2 术语/§3 文档关系/§4 文件角色）+ Part II 通用规范（§5 YAML/§6 编码/§7 排版/§8 内容写入有机性/§9 编号/§10 日志/§11 反论/§12 文件命名/§13 面向用户表述）+ Part III 操作流程（§14 角色分类操作/§15 甲部修改/§16 吸收外部输入/§17 周期性任务）——旧 §1-§16 按映射表重排为 §1-§17
+- **新增 §8「内容写入与有机性标准」**：有机性定义（补丁=可无损摘除 vs 有机=删除留结构性空缺）+ 五条检查（归属/衔接/根系/冗余/生长）+ 写入前自检清单 + 与 §9.1/§11/§7 的关系
+- **引用同步**：OPERATIONS_GUIDE 内部交叉引用逐处更新 + 全仓 14 个活跃文件旧编号引用清零（CLAUDE.md/content/README/DOC_MAP/SSOT_INDEX/ARCHITECTURE/USAGE_POLICY/KNOWN_PITFALLS/insights×2/.ctx TIMESTAMPS+SNAPSHOT 等；`.ctx/logs/` 历史按 §3.6 豁免）
+
+### 阶段二：全 content 格式修复（按 OPERATIONS_GUIDE §7 规范）
+- **YAML 标准化**：移除 `summary`/`milestone` 非标字段（内容降级为正文 `> **一句话：**`），字段顺序对齐 `title/type/role/last_updated/version/status/related_files`
+- **分隔符**：`***` → `---` 全清零
+- **引用块同类同写**：统一 `> **定位：**` / `> **一句话：**` / `> **受众：**` / `> **来源：**`（冒号在粗体内）；节首定位块补齐（ARCHITECTURE §八、CHECKLIST 等）；`audience`/`enforcement` 英文标签改中文；无粗体 `> 定位：`/`> 来源：` 5 处补粗体
+- **last_updated 全量 08-09**（35 个文件；OPERATIONS_GUIDE L170 YAML 模板 `"YYYY-MM-DD"` 豁免）
+- **insights 核验**：边界块统一 `> **与§X的边界**：`、来源块统一 `> **来源：**`、移除 milestone 残留
+
+### 断链修复
+- DESIGN_SYSTEM.md L812 `[theme.js](../docs/src/core/theme.js)` → `../../docs/src/core/theme.js`（`../` 解析到不存在的 content/docs/，向上两级到仓库根）；全 content 链接扫描仅剩 3 处模板占位符（`YYYY-MM-early-entries`/`路径`/`链接`）豁免
+
+- **变更文件**：content/03_doc_system/{OPERATIONS_GUIDE,USAGE_POLICY,README,DOC_MAP,SSOT_INDEX,SERVICE_CATALOG,ARCHITECTURE}.md、content/03_doc_system/工作模板/经验沉淀辅助提示词.md、content/01_strategy/{README,DEVELOPMENT_PATH,SECRETARY_PRONOUNCEMENTS}.md、content/02_institution/{README,ROLE_CLASSIFICATION,FLAT_DESIGN,COMMISSIONER_FRAMEWORK}.md、content/02_institution/sop/*.md（6 个）、content/04_web_design/{README,CHECKLIST,DATA_ARCHITECTURE,DESIGN_SYSTEM,MODULE_UI_DESIGN,SCHOOL_IT_DEPLOYMENT,SOP_WEB}.md、content/05_ai_coding/{README,KNOWN_PITFALLS}.md、content/insights/*.md、content/README.md、CLAUDE.md、.ctx/{TIMESTAMPS,SNAPSHOT}.md
+
+- **验证结果**（设计文档 §6 全部通过）：
+  - ✅ OPERATIONS_GUIDE §1-§17 编号连续、Part I/II/III 标题齐全；§8 五检查+自检清单完整
+  - ✅ content/ 下 `***` 0 残留；YAML `summary:`/`milestone:` 0 残留
+  - ✅ 引用块同类同写：`> **定位：**`/`> **一句话：**`/`> **受众：**`/`> **来源：**` 66 处命中，旧变体（`> 一句话`/`> **audience**`/无粗体标签）0 残留（模板代码块豁免）
+  - ✅ last_updated 全 content 统一 08-09
+  - ✅ 旧编号引用（排除 logs）0 残留（命中均为新编号正引用：§11.6/§13.5/§13.6/§14/§16）
+  - ✅ 内部链接断链扫描：真实断链 1 处已修复，仅剩模板占位符 3 处豁免
+- **沉淀标签**：`[已沉淀: 模板代码块豁免]` — 模板示例（`"YYYY-MM-DD"`/`archive/YYYY-MM-early-entries.md`/`[文档A](链接)`）处于代码块内属教学占位，不被格式统一/链接扫描波及；`[已沉淀: 同文件并行编辑写覆盖]` — 同文件多处修改必须脚本或串行 Edit，并行会静默丢修改（T226 已沉淀，本次再次确认）

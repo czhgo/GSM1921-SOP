@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  state.js — 全局状态管理 (STATE 枚举 / appState / setState)
 //  使用 registerRenderCallback 模式避免循环依赖

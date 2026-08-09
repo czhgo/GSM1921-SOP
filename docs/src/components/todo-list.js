@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  todo-list.js — 待办列表组件
 //  最小三成本原则落地：进入工作台第一眼即见待办
@@ -14,6 +14,7 @@ import {
   DEFAULT_EXPANDED_CATEGORIES,
 } from '../services/todo.js?v=20260808m';
 import { badgeHtml } from './badge.js?v=20260808m';
+import { solidAccentStyle } from '../core/constants.js?v=20260808m';
 
 /**
  * 渲染待办列表组件
@@ -258,7 +259,7 @@ function _renderTodoItem(prefix, todo, accent, today, selectedTodoId, actionBtnS
       </button>
       <div class="flex items-center gap-1.5 ml-2 pr-3 flex-shrink-0">
         ${hasAction ? `
-          <button type="button" class="${prefix}-todo-action-btn text-xs px-3 py-1.5 rounded-lg transition-colors hover:opacity-90" data-todo-id="${todo.id}" style="${actionBtnStyle || `background:${accent};color:#fff;`}">${actionLabel}</button>
+          <button type="button" class="${prefix}-todo-action-btn text-xs px-3 py-1.5 rounded-lg transition-colors hover:opacity-90" data-todo-id="${todo.id}" style="${actionBtnStyle || solidAccentStyle(accent)}">${actionLabel}</button>
         ` : ''}
       </div>
     </div>
@@ -333,7 +334,7 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
         </span>
       </button>
       <div class="flex items-center gap-1.5 ml-2 pr-3 flex-shrink-0">
-        <button type="button" class="${prefix}-todo-action-btn text-xs px-3 py-1.5 rounded-lg transition-colors hover:opacity-90" data-group-key="${g.groupKey}" style="${actionBtnStyle || `background:${accent};color:#fff;`}">${actionLabel}</button>
+        <button type="button" class="${prefix}-todo-action-btn text-xs px-3 py-1.5 rounded-lg transition-colors hover:opacity-90" data-group-key="${g.groupKey}" style="${actionBtnStyle || solidAccentStyle(accent)}">${actionLabel}</button>
       </div>
     </div>
   `;

@@ -93,7 +93,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-08-05 | [工程师]+[AI] | 运行标准（含 §7.3 分层体系索引 + §7.4 一致性检查规范 + §9 文件命名规范 + §10 反论表述审核标准 + §14 吸收外部输入流程 + §15 周期性任务与自动唤醒机制） |
+| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-08-05 | [工程师]+[AI] | 运行标准（含 §1.3 分层体系索引 + §1.4 一致性检查规范 + §12 文件命名规范 + §11 反论表述审核标准 + §16 吸收外部输入流程 + §17 周期性任务与自动唤醒机制） |
 | content/03_doc_system/USAGE_POLICY.md | 2026-08-05 | [工程师]+[AI] | 使用规范（术语 §一 + Emoji §二） |
 | content/03_doc_system/ARCHITECTURE.md | 2026-08-03 | [工程师]+[AI] | 核心架构说明（迁移自根目录 ARCHITECTURE.md） |
 | content/03_doc_system/DOC_MAP.md | 2026-08-05 | [工程师]+[AI] | 全局文档导航 |
@@ -348,11 +348,11 @@ dynamic_role:
 | content/guides/SOP数据映射与同步指南.md | 2026-05-02 | 已合并至 SOP_WEB_GUIDE.md |
 | content/guides/COMMISSIONER_ORGANIZATION_ROLE.md | 2026-05-03 | 已合并至 COMMISSIONER_SYSTEM_DESIGN.md |
 | content/guides/COMMISSIONER_GROUP_INTERACTION.md | 2026-05-03 | 已合并至 COMMISSIONER_SYSTEM_DESIGN.md |
-| content/governance/LAYERING_FRAMEWORK.md | 2026-07-09 | 独有内容合并至 OPERATIONS_GUIDE.md §7.3/§7.4 + KNOWN_PITFALLS.md §7 + RECURRING_TASKS.md Q4 |
+| content/governance/LAYERING_FRAMEWORK.md | 2026-07-09 | 独有内容合并至 OPERATIONS_GUIDE.md §1.3/§1.4 + KNOWN_PITFALLS.md §7 + RECURRING_TASKS.md Q4 |
 | content/governance/TERMINOLOGY.md | 2026-07-12 | 已合并至 USAGE_POLICY.md §一（术语使用规范） |
 | content/governance/EMOJI_POLICY.md | 2026-07-12 | 已合并至 USAGE_POLICY.md §三（Emoji 使用规范） |
-| content/governance/RECURRING_TASKS.md | 2026-07-12 | 已合并至 OPERATIONS_GUIDE.md §15（周期性任务与自动唤醒机制） |
-| content/governance/SYNC_EXTERNAL.md | 2026-07-11 | 已合并入 OPERATIONS_GUIDE.md §14 |
+| content/governance/RECURRING_TASKS.md | 2026-07-12 | 已合并至 OPERATIONS_GUIDE.md §17（周期性任务与自动唤醒机制） |
+| content/governance/SYNC_EXTERNAL.md | 2026-07-11 | 已合并入 OPERATIONS_GUIDE.md §16 |
 | content/governance/AGENT_HANDBOOK.md | 2026-07-03 | Agent 操作手册（废弃） |
 | content/governance/AGENT_USAGE.md | 2026-07-03 | Agent 使用指南（废弃） |
 | content/strategy/MANAGE_SERVE.md | 2026-07-14 | 改名为 DEVELOPMENT_PATH.md |

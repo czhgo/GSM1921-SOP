@@ -2,14 +2,13 @@
 title: "SOP 系统优化与同步指南"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-08-05"
+last_updated: "2026-08-09"
 version: "4.1"
-milestone: "T29 — 全面架构收束：Mode统一、看板体系、日历限定、系列活动模型"
 ---
 
 # SOP 系统优化与同步指南
 
-> 本指南是党支部管理引擎（GSM1921-SOP）设计思路的系统呈现，整合了 SOP 文档优化方法论、系统架构设计方案、数据映射规则、优化提案机制与 Mock/真实鉴权辨析，供 SOP-系统联动维护参考。
+> **定位：** 本指南是党支部管理引擎（GSM1921-SOP）设计思路的系统呈现，整合了 SOP 文档优化方法论、系统架构设计方案、数据映射规则、优化提案机制与 Mock/真实鉴权辨析，供 SOP-系统联动维护参考。
 
 ---
 
@@ -143,7 +142,7 @@ AuthStore.isCommissioner(role)               → boolean（常设角色集合判
 
 #### 写入门禁原则
 
-> 来源：[USAGE_POLICY.md](../03_doc_system/USAGE_POLICY.md) §1.2.5 — 术语权威源；[ROLE_CLASSIFICATION.md §九 角色权限矩阵](../02_institution/ROLE_CLASSIFICATION.md) — 权限矩阵权威源（原 PERMISSION_MATRIX.md §一/§四）
+> **来源：**[USAGE_POLICY.md](../03_doc_system/USAGE_POLICY.md) §1.2.5 — 术语权威源；[ROLE_CLASSIFICATION.md §九 角色权限矩阵](../02_institution/ROLE_CLASSIFICATION.md) — 权限矩阵权威源（原 PERMISSION_MATRIX.md §一/§四）
 
 **仅党支部书记、党支部副书记、党小组组长可直接创建/修改活动数据；宣传委员、纪检委员通过审核、确认、备案等流程间接参与，不直接写入活动。**
 

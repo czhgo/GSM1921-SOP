@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  calendar.js — 日历渲染引擎（P2-7 多视图升级）
 //  包含：renderCalendarByActivities, populateMonthSelector
@@ -455,7 +455,7 @@ function _renderCellContent(dateKey, activeActivities, ct, hasActivity, tasks, s
   return html;
 }
 
-function _bindCellClicks(grid) {
+function _bindCellClicks(grid, mode) {
   // 单元格空白处点击（保留原"选中日期"行为，显示该日列表）
   grid.querySelectorAll('.cal-cell-large.has-tasks').forEach(cell => {
     cell.addEventListener('click', (e) => {
@@ -467,6 +467,9 @@ function _bindCellClicks(grid) {
     });
   });
   // 活动条目独立 click：直接进入该活动详情（取消"先选日、再选活动"两步）
+  // J3（2026-08-08）：首页（dashboard 模式）不绑定独立 handler——
+  // 事件冒泡到 main-entry.js 首页委托跳转对应工作台直达活动；工作台场景保持 setState 详情。
+  if (mode === 'dashboard') return;
   grid.querySelectorAll('.cal-activity-item').forEach(item => {
     item.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -625,7 +628,7 @@ function _getWeekNumber(date) {
 // ════════════════════════════════════════════════════════════════
 let _monthSelectorBound = false;
 
-export function populateMonthSelector(activities) {
+export function populateMonthSelector(activities, targetMonth) {
   const sel = document.getElementById('month-selector');
   const currentMonth = _currentYearMonth();
   const appState = getAppState();
@@ -648,7 +651,9 @@ export function populateMonthSelector(activities) {
       opt.textContent = m;
       sel.appendChild(opt);
     });
-    if (months.includes(prev)) {
+    if (targetMonth && months.includes(targetMonth)) {
+      sel.value = targetMonth; // URL 直达月份优先（2026-08-08：首页跳转落点）
+    } else if (months.includes(prev)) {
       sel.value = prev;
     } else if (months.includes(currentMonth)) {
       sel.value = currentMonth; // 默认跟随当前月份（书记 2026-08-01：已进入8月，不得停留在旧月）
@@ -657,6 +662,9 @@ export function populateMonthSelector(activities) {
     } else if (months.length > 0) {
       sel.value = months[0];
     }
+  } else if (targetMonth && months.includes(targetMonth)) {
+    // 选项未变但需切到目标月份（如 URL 直达指定月）
+    sel.value = targetMonth;
   }
 
   if (!_monthSelectorBound) {
@@ -803,7 +811,7 @@ function _hideHoverPopover() {
   if (_hoverPopover) _hoverPopover.style.display = 'none';
 }
 
-function _renderMonthViewCompact(grid, activeActivities, month, state) {
+function _renderMonthViewCompact(grid, activeActivities, month, state, mode) {
   const now = new Date();
   const [y, m] = month.split('-').map(Number);
   const todayKey = _fmtDate(now);
@@ -850,7 +858,7 @@ function _renderMonthViewCompact(grid, activeActivities, month, state) {
   html += '</div></div>';
   grid.innerHTML = html;
 
-  _bindCellClicks(grid);
+  _bindCellClicks(grid, mode);
   _bindHoverPreview(grid, activeActivities);
 }
 
@@ -877,5 +885,7 @@ export function renderCalendarForDashboard(state, targetMonth) {
   grid.classList.remove('hidden');
 
   const month = targetMonth || _currentYearMonth();
-  _renderMonthViewCompact(grid, activeActivities, month, state);
+  // J3（2026-08-08）：首页模式传入 'dashboard'，日历条目点击不再 setState 详情，
+  // 而是冒泡到 main-entry.js 首页委托 → 跳转对应工作台直达该活动。
+  _renderMonthViewCompact(grid, activeActivities, month, state, 'dashboard');
 }

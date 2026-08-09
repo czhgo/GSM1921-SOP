@@ -1,5 +1,5 @@
-﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260808m';
-import { showToast } from '../core/utils.js?v=20260808m';
+import { setState, registerRenderCallback } from '../core/state.js?v=20260808m';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260808m';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260808m';
 import { bootstrapPage } from '../core/bootstrap.js?v=20260808m';
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808m';
@@ -21,6 +21,8 @@ import { TodoStore, seedTodos, VisitorTodoDeriver } from '../services/todo.js?v=
 import { badgeHtml } from '../components/badge.js?v=20260808m';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'participant' });
+
+let _visitorNavConsumed = false; // URL 跳转参数一次性消费标志
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -92,9 +94,20 @@ function renderVisitorUI(state) {
   `;
 
   tabBar.bindEvents(container);
-  // 首页「查看更多活动」跳转（?view=activities）或指定活动（?activityId=）→ 落在活动动态 tab
-  if (highlightId || urlParams.view === 'activities') {
-    tabBar.activate('activities');
+  // 首页跳转落点（书记 2026-08-08 裁定：activityId / view=activities 必须消费）
+  // 「查看更多活动」跳转（?view=activities）或指定活动（?activityId=）→ 落在活动动态 tab；
+  // 一次性消费：消费后清除 URL 参数，避免后续 setState 重复触发切 tab / 高亮。
+  if (!_visitorNavConsumed) {
+    if (highlightId || urlParams.view === 'activities') {
+      tabBar.activate('activities');
+    } else {
+      tabBar.activate(tabBar.activeTab);
+    }
+    if (highlightId || urlParams.view === 'activities') {
+      CrossPageState.clearParam('activityId');
+      CrossPageState.clearParam('view');
+    }
+    _visitorNavConsumed = true;
   } else {
     tabBar.activate(tabBar.activeTab);
   }
@@ -366,15 +379,13 @@ function _renderActListView(sorted, highlightId) {
       ${sorted.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无活动</p>' :
         pageItems.map(a => {
           const color = ACTIVITY_TYPE_COLORS[a.type || a.category] || { bg: '#F9FAFB', dot: '#6B7280' };
-          const isHL = highlightId && a.id === highlightId;
           return `
-            <a href="../activity.html?id=${a.id || ''}" class="flex items-center gap-3 p-3 rounded-lg bg-white ${isHL ? 'border border-blue-400 ring-2 ring-blue-100' : ''} hover:bg-gray-50 hover:shadow-sm transition-all cursor-pointer" data-visitor-act-id="${a.id || ''}">
+            <a href="../activity.html?id=${a.id || ''}" class="flex items-center gap-3 p-3 rounded-lg bg-white hover:bg-gray-50 hover:shadow-sm transition-all cursor-pointer" data-visitor-act-id="${a.id || ''}">
               <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''}"></div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
                 <p class="text-xs text-gray-500 mt-0.5">${a.date || '待定'} · ${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
               </div>
-              ${isHL ? badgeHtml('当前', 'info') : ''}
             </a>
           `;
         }).join('')}
@@ -396,7 +407,11 @@ function _renderActListView(sorted, highlightId) {
 
   if (highlightId) {
     const el = vc.querySelector(`[data-visitor-act-id="${highlightId}"]`);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // 高亮定时自动褪去（书记 2026-08-08 裁定：2.5~3s CSS 过渡）
+      flashHighlight(el);
+    }
   }
 }
 
@@ -428,10 +443,9 @@ function _renderActCalendarView(sorted, highlightId) {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
             ${acts.map(a => {
               const color = ACTIVITY_TYPE_COLORS[a.type || a.category] || { bg: '#F9FAFB', dot: '#6B7280' };
-              const isHL = highlightId && a.id === highlightId;
               const day = (a.date || '').substring(8, 10);
               return `
-                <a href="../activity.html?id=${a.id || ''}" class="flex items-start gap-3 p-3 rounded-lg bg-white ${isHL ? 'border border-blue-400 ring-2 ring-blue-100' : ''} hover:bg-gray-50 hover:shadow-sm transition-all cursor-pointer" data-visitor-act-id="${a.id || ''}">
+                <a href="../activity.html?id=${a.id || ''}" class="flex items-start gap-3 p-3 rounded-lg bg-white hover:bg-gray-50 hover:shadow-sm transition-all cursor-pointer" data-visitor-act-id="${a.id || ''}">
                   <div class="text-center flex-shrink-0 w-10">
                     <div class="text-lg font-bold" style="color:${color.text || color.dot};line-height:1;">${day || '?'}</div>
                     <div class="text-xs text-gray-400">日</div>
@@ -440,7 +454,6 @@ function _renderActCalendarView(sorted, highlightId) {
                     <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
                     <p class="text-xs text-gray-500 mt-0.5">${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
                   </div>
-                  ${isHL ? badgeHtml('当前', 'info') : ''}
                 </a>
               `;
             }).join('')}
@@ -451,7 +464,11 @@ function _renderActCalendarView(sorted, highlightId) {
 
   if (highlightId) {
     const el = vc.querySelector(`[data-visitor-act-id="${highlightId}"]`);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // 高亮定时自动褪去（书记 2026-08-08 裁定：2.5~3s CSS 过渡）
+      flashHighlight(el);
+    }
   }
 }
 
@@ -473,15 +490,13 @@ function _renderActQueryView(sorted, highlightId) {
     data: sorted,
     renderRow: (a) => {
       const color = ACTIVITY_TYPE_COLORS[a.type || a.category] || { bg: '#F9FAFB', dot: '#6B7280' };
-      const isHL = highlightId && a.id === highlightId;
       return `
-        <a href="../activity.html?id=${a.id || ''}" class="flex items-center gap-3 p-3 rounded-lg bg-white ${isHL ? 'border border-blue-400 ring-2 ring-blue-100' : ''} hover:bg-gray-50 hover:shadow-sm transition-all cursor-pointer" data-visitor-act-id="${a.id || ''}">
+        <a href="../activity.html?id=${a.id || ''}" class="flex items-center gap-3 p-3 rounded-lg bg-white hover:bg-gray-50 hover:shadow-sm transition-all cursor-pointer" data-visitor-act-id="${a.id || ''}">
           <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''}"></div>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
             <p class="text-xs text-gray-500 mt-0.5">${a.date || '待定'} · ${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
           </div>
-          ${isHL ? badgeHtml('当前', 'info') : ''}
         </a>
       `;
     },
@@ -494,7 +509,11 @@ function _renderActQueryView(sorted, highlightId) {
 
   if (highlightId) {
     const el = vc.querySelector(`[data-visitor-act-id="${highlightId}"]`);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // 高亮定时自动褪去（书记 2026-08-08 裁定：2.5~3s CSS 过渡）
+      flashHighlight(el);
+    }
   }
 }
 
@@ -650,7 +669,9 @@ function _renderTodoContent() {
       _handleTodoAction(todo);
     },
     // 待办行动按钮金色系（书记 2026-08-01 决策：改金色，与完成绿呼应，红色收敛到品牌语义）
-    actionBtnStyle: 'background:var(--party-gold);color:#B45309;',
+    // G3 修正（2026-08-08）：纯亮金 #FFD700 实底过艳 → 金浅底 rgba(255,215,0,0.12)+深金字；
+    // 补金边框与详情按钮一致（G2-c 裁定「同页两按钮金感不一致」）
+    actionBtnStyle: 'background:rgba(255,215,0,0.12);color:#B45309;border:1px solid rgba(255,215,0,0.35);',
   });
 
   const detailHtml = selectedTodo ? _renderTodoDetail(selectedTodo) : `
@@ -696,7 +717,7 @@ function _renderTodoDetail(todo) {
         ${todo.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.flow}</p>` : ''}
         ${todo.deadline ? `<div class="text-xs text-gray-500">最早截止：${todo.deadline}</div>` : ''}
         <div class="pt-3 border-t border-gray-100 flex gap-2">
-          <button class="visitor-todo-detail-action text-xs px-3 py-1.5 rounded-lg transition-colors" style="background:var(--party-gold);color:#B45309;border:1px solid rgba(255,215,0,0.35);">去处理</button>
+          <button class="visitor-todo-detail-action text-xs px-3 py-1.5 rounded-lg transition-colors" style="background:rgba(255,215,0,0.12);color:#B45309;border:1px solid rgba(255,215,0,0.35);">去处理</button>
         </div>
       </div>
     `;

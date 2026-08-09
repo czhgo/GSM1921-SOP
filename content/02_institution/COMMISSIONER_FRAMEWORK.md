@@ -2,7 +2,7 @@
 title: "委员体系框架"
 type: design
 role: "[用户]+[AI]"
-last_updated: "2026-08-05"
+last_updated: "2026-08-09"
 status: active
 merged_from:
   - content/guides/COMMISSIONER_ORGANIZATION_ROLE.md (已删除)
@@ -19,7 +19,7 @@ input:
 
 # 支委系统设计
 
-> 定位：[用户]+[AI] — 用户决策参考 + AI 自主读取作为实施上下文。
+> **定位：**[用户]+[AI] — 用户决策参考 + AI 自主读取作为实施上下文。
 
 ---
 
@@ -393,7 +393,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组（原党务�
 
 党支书和党小组组长拥有活动创建权，无需审批，直接创建。
 
-> 依据：[P-006/P-007 党建与党务工作理论](../01_strategy/SECRETARY_PRONOUNCEMENTS.md)——党建工作是管理组织活动之事（三会一课、主题党日、专班），组织者有权发起活动。
+> 依据：[USAGE_POLICY.md §1.1.1](../03_doc_system/USAGE_POLICY.md)（T1 官方定义：党建工作是党为保持先进性纯洁性而开展的自我建设，党务工作是党内事务的具体管理工作）——组织活动（三会一课、主题党日、专班）归党建工作，组织者有权发起活动。
 
 #### 1.2 自下而上（组织者 / 深度参与者提议）
 

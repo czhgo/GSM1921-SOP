@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿// role: [工程师]+[AI]
 // main-entry.js — 主页入口
 // index.html 专属，处理 dashboard 全量数据渲染
 

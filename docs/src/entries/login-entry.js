@@ -1,10 +1,10 @@
-﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿// role: [工程师]+[AI]
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
 import { AuthStore } from '../services/auth.js?v=20260808m';
 import { mockLogin } from '../mock/accounts.js?v=20260808m';
-import { getAccentColors } from '../core/constants.js?v=20260808m';
+import { getAccentColors, solidAccentStyle } from '../core/constants.js?v=20260808m';
 
 // 已登录则直接跳转
 const user = AuthStore.getCurrentUser();
@@ -29,7 +29,7 @@ function _renderDevCards() {
   if (!container) return;
 
   container.innerHTML = DEV_CARDS.map(card => {
-    const { accent } = getAccentColors(card.role);
+    const { accent, accentBorder } = getAccentColors(card.role);
     return `
       <div class="login-card bg-white rounded-xl p-3 border border-gray-200 cursor-pointer" data-role="${card.role}">
         <div class="flex items-center gap-2 mb-2">
@@ -37,7 +37,7 @@ function _renderDevCards() {
           <span class="font-medium text-sm text-gray-800">${card.label}</span>
         </div>
         <p class="text-xs text-gray-400 mb-2">${card.desc}</p>
-        <button class="login-btn w-full text-sm px-4 py-[7px] rounded-lg text-white font-medium" style="background:${accent};">登录</button>
+        <button class="login-btn w-full text-sm px-4 py-[7px] rounded-lg text-white font-medium" style="${solidAccentStyle(accent, accentBorder)};">登录</button>
       </div>
     `;
   }).join('');

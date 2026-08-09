@@ -3,17 +3,16 @@ title: "模块界面设计"
 type: design
 role: "[工程师]+[AI]"
 version: "2.0"
-last_updated: "2026-08-04"
+last_updated: "2026-08-09"
 status: active
 merged_from: [content/design/PAFFAIRS_UI.md, content/design/CALENDAR.md]
 related_files: [content/04_web_design/DESIGN_SYSTEM.md, content/04_web_design/DATA_ARCHITECTURE.md, content/02_institution/COMMISSIONER_FRAMEWORK.md]
-summary: "系统功能模块的界面设计规范——涵盖「党建」Tab 分组和日历功能模块的界面布局、交互逻辑、视图切换。合并自 PAFFAIRS_UI.md + CALENDAR.md。"
 ---
 
 # 模块界面设计
 
-> **定位**：本文档是系统功能模块界面设计的单一权威源，涵盖「党建」Tab 分组和日历功能模块的界面布局、交互逻辑、视图切换设计。
-> **受众**：[工程师]+[AI] —— 供前端开发决策参考。
+> **定位：** 本文档是系统功能模块界面设计的单一权威源，涵盖「党建」Tab 分组和日历功能模块的界面布局、交互逻辑、视图切换设计。
+> **受众：** [工程师]+[AI] —— 供前端开发决策参考。
 > **视觉规范**：色彩、字体、间距等视觉规范见 [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)，本文档不重复。
 
 ---

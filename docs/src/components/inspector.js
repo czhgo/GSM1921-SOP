@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  inspector.js — 右侧检查器面板渲染逻辑
 //  包含：filterTasksByManagementRole, renderInspectorFromState,

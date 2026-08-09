@@ -2,14 +2,14 @@
 title: "AI coding 技术层索引——网站系统的 AI coding 技术方法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-07-21"
+last_updated: "2026-08-09"
 status: active
 ---
 
 # AI coding 技术层索引——网站系统的 AI coding 技术方法
 
-> 本目录存放**知识类型 5：网站系统的 AI coding 技术方法**——回答"AI coding 的具体技术方法与常见错误教训"。
-> 受众：[工程师]（系统维护者、开发者）
+> **定位：** 本目录存放**知识类型 5：网站系统的 AI coding 技术方法**——回答"AI coding 的具体技术方法与常见错误教训"。
+> **受众：** [工程师]（系统维护者、开发者）
 
 ---
 

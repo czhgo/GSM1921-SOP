@@ -2,7 +2,7 @@
 title: "系统架构说明"
 type: architecture
 role: "[工程师]+[AI]"
-last_updated: "2026-08-06"
+last_updated: "2026-08-09"
 version: "7.3"
 status: active
 related_files: [CLAUDE.md, content/04_web_design/]
@@ -10,8 +10,8 @@ related_files: [CLAUDE.md, content/04_web_design/]
 
 # Architecture
 
-> 光华管理学院本科生党支部组织操作系统 — 核心架构说明
-> last_updated: "2026-08-06" | 目标读者: [工程师]+[AI]
+> **定位：** 光华管理学院本科生党支部组织操作系统 — 核心架构说明
+> **受众：** [工程师]+[AI]
 
 ---
 
@@ -19,9 +19,9 @@ related_files: [CLAUDE.md, content/04_web_design/]
 
 Org OS 是光华管理学院本科生党支部的组织运行操作系统。它将党支部制度文本（SOP）转化为可执行的代码工作流，并由 10 个 AI Agent 协作维护与迭代。
 
-**核心命题**: 如何让一套制度文本持续驱动一个可运行的软件系统？
+**核心命题**： 如何让一套制度文本持续驱动一个可运行的软件系统？
 
-**答案**: SSOT（单一信息源）溯源治理 + Agent 协作链路 + 版本日志追踪。
+**答案**： SSOT（单一信息源）溯源治理 + Agent 协作链路 + 版本日志追踪。
 
 ---
 
@@ -29,15 +29,17 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 
 ### 党建工作与党务工作分类
 
-| 域 | 涵盖内容 |
-|----|---------|
-| **党建工作** | 主题党日、三会一课（支部党员大会/支委会/党小组会/党课）、专班管理 |
-| **党务工作** | 发展党员、民主评议党员、换届选举、考勤考察、制度修订、职责分工、意见反馈、合规审查、文档规范 |
+> 定义依据 [USAGE_POLICY.md §1.1.1](./USAGE_POLICY.md)（T1 官方定义）；旧两分法（党建=管理组织活动之事、党务=管理人员发展之事）已降级为 T2 约定表达，仅作理论讲解。
+
+| 分类 | 官方定义 | 涵盖内容 |
+|----|---------|---------|
+| **党建工作** | 党为保持先进性纯洁性而开展的自我建设（五大建设+制度建设贯穿） | 主题党日、三会一课（支部党员大会/支委会/党小组会/党课）、专班管理 |
+| **党务工作** | 党内事务的具体管理工作（党员发展、党员教育管理、组织生活、党内选举、党费收缴管理） | 发展党员、民主评议党员、换届选举、考勤考察、制度修订、职责分工、意见反馈、合规审查、文档规范 |
 
 ### 条块概念 [工作表达]
 
-- **条条**: 功能委员线（组织委员 / 宣传委员 / 纪检委员）
-- **块块**: 党小组组长线（group1 / group2 / group3）
+- **条条**： 功能委员线（组织委员 / 宣传委员 / 纪检委员）
+- **块块**： 党小组组长线（group1 / group2 / group3）
 
 ---
 
@@ -69,13 +71,13 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 | 架构治理 | 核心规则修改、Agent配置、Skill注册、权限变更、架构重构 | 架构监督Agent → 协调调度Agent → 日志记录Agent |
 | 经验提炼 | 经验沉淀、日志分析、复盘总结、最佳实践 | 经验分析Agent → 日志记录Agent |
 
-**优先级**: 架构治理 > 党务工作 > 党建工作 > 经验提炼
+**优先级**： 架构治理 > 党务工作 > 党建工作 > 经验提炼
 
 ---
 
 ## 四、分层架构
 
-> 文档按"5 类知识类型"组织（完整定义见 [OPERATIONS_GUIDE.md §7.1](./OPERATIONS_GUIDE.md#71-文档权威层级5类知识类型)）。本节给出各层物理分布。
+> 文档按"5 类知识类型"组织（完整定义见 [OPERATIONS_GUIDE.md §1.1](./OPERATIONS_GUIDE.md#11-文档权威层级5类知识类型)）。本节给出各层物理分布。
 
 ```
 Layer 0: 核心层（最高权威）
@@ -97,7 +99,7 @@ Layer 2: 知识类型 2 — 制度（组织架构、分工、SOP）
 
 Layer 3: 知识类型 3 — 文档系统治理（文档怎么治理、术语、运行标准）
   └─ content/03_doc_system/               [工程师]+[AI] 系统治理层
-      ├── OPERATIONS_GUIDE.md             [工程师]+[AI] 运行标准（含§15 周期性任务）
+      ├── OPERATIONS_GUIDE.md             [工程师]+[AI] 运行标准（含§17 周期性任务）
       ├── USAGE_POLICY.md                 [工程师]+[AI] 使用规范（术语+Emoji）
       ├── DOC_MAP.md                      [工程师]+[AI] 文档导航中心
       ├── CHECKLIST.md                    [工程师]+[AI] 校验清单
@@ -105,7 +107,7 @@ Layer 3: 知识类型 3 — 文档系统治理（文档怎么治理、术语、�
       └── ARCHITECTURE.md                 [工程师]+[AI] 核心架构说明（本文件）
 
 Layer 4: 知识类型 4+5 — 网站设计 + AI 编码
-  └─ content/04_web_design/               [工程师]+[AI] 设计理念层（DATA_ARCHITECTURE/DESIGN_SYSTEM/MODULE_UI_DESIGN/SOP_WEB）
+  └─ content/04_web_design/               [工程师]+[AI] 设计理念层（DATA_ARCHITECTURE/DESIGN_SYSTEM/MODULE_UI_DESIGN/SOP_WEB/CHECKLIST）
   └─ content/05_ai_coding/                [工程师]+[AI] AI 编码层（KNOWN_PITFALLS）
 
 Layer 5: 经验沉淀（跨多类知识类型）
@@ -181,10 +183,9 @@ Layer 7: 审计参考层（审计与参考）
 │   │   └── README.md                 [用户]+[AI] 制度层目录索引
 │   ├── 03_doc_system/                [工程师]+[AI] 文档系统治理层（文档怎么治理、术语、运行标准）
 │   │   ├── SSOT_INDEX.md             [AI] 母本注册表与溯源参考
-│   │   ├── OPERATIONS_GUIDE.md       [工程师]+[AI] 运行标准（含§15 周期性任务）
+│   │   ├── OPERATIONS_GUIDE.md       [工程师]+[AI] 运行标准（含§17 周期性任务）
 │   │   ├── USAGE_POLICY.md           [工程师]+[AI] 使用规范（术语+Emoji）
 │   │   ├── DOC_MAP.md                [工程师]+[AI] 文档导航中心
-│   │   ├── CHECKLIST.md              [工程师]+[AI] 校验清单
 │   │   ├── SERVICE_CATALOG.md        [工程师]+[AI] 统一服务目录
 │   │   ├── ARCHITECTURE.md           [工程师]+[AI] 核心架构说明（本文件）
 │   │   ├── 工作模板/                  [用户]+[AI] 经验沉淀辅助提示词
@@ -194,6 +195,7 @@ Layer 7: 审计参考层（审计与参考）
 │   │   ├── MODULE_UI_DESIGN.md       [工程师]+[AI] 模块界面设计
 │   │   ├── DESIGN_SYSTEM.md          [工程师]+[AI] 设计系统规范
 │   │   ├── SOP_WEB.md                [工程师]+[AI] SOP 系统指南
+│   │   ├── CHECKLIST.md              [工程师]+[AI] 数据同源一致性校验清单
 │   │   ├── SCHOOL_IT_DEPLOYMENT.md   [工程师]+[AI] 学院 IT 部署说明
 │   │   └── README.md                 [工程师]+[AI] 网站设计层目录索引
 │   ├── 05_ai_coding/                 [工程师]+[AI] AI 编码层
@@ -256,9 +258,9 @@ mockDB 为唯一数据源，所有视图经 Service 层读取；按角色过滤�
 
 ### Storage Model
 
-- **键名**: `workflowos_branch_db_v1`（`localStorage`，见 `docs/src/services/mock.js`）
-- **根结构**: `mockDB = { _schema, users, activities, tasks, attendances, inspections, activityReviews, taskforceReviews, assignments, makeupTasks, notices, todos, imageRecords, ... }`
-- **版本防御**: `loadDB()` 检查 `_schema !== SCHEMA_VERSION` 时拒绝脏数据并 `console.warn`
+- **键名**： `workflowos_branch_db_v1`（`localStorage`，见 `docs/src/services/mock.js`）
+- **根结构**： `mockDB = { _schema, users, activities, tasks, attendances, inspections, activityReviews, taskforceReviews, assignments, makeupTasks, notices, todos, imageRecords, ... }`
+- **版本防御**： `loadDB()` 检查 `_schema !== SCHEMA_VERSION` 时拒绝脏数据并 `console.warn`
 
 ---
 
@@ -276,22 +278,24 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 
 **所有数据变更必须经过 Service 层。**
 
-**禁止操作（Service 层之外）**:
+**禁止操作（Service 层之外）**：
 - `mockDB` 直接变更（例如 `.push()`、直接赋值）
 - `localStorage` 直接写入（`localStorage.setItem`）
 
-**允许写入操作（通过 API）**:
+**允许写入操作（通过 API）**：
 - `BranchService.createActivity()`
 - `BranchService.updateActivity()`
 - `BranchService.archiveActivity()`
 - `BranchService.createTask()`
 - `BranchService.toggleTaskStatus()`
 
-**读取操作例外**: 为避免过度限制并确保渲染性能，读取操作（list、get）可直接从 `mockDB` 读取，但优先使用 Service 层访问以确保严格一致性。
+**读取操作例外**： 为避免过度限制并确保渲染性能，读取操作（list、get）可直接从 `mockDB` 读取，但优先使用 Service 层访问以确保严格一致性。
 
 ---
 
 ## 八、SSOT 双向变更流水线
+
+> **定位：** 定义"制度文本（SSOT 母本）→ 代码（docs/src/）"的双向变更传播链路与溯源铁律——上游改制度如何落到代码、代码改如何回流登记，以及每次修改必须输出的溯源要素。
 
 ```
                     ┌─────────────────────────────────┐
