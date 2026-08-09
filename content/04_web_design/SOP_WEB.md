@@ -173,7 +173,7 @@ AuthStore.isCommissioner(role)               → boolean（常设角色集合判
 
 ### B.5 赋权链 (Authorization Chain)
 
-> **2026-05-18 修正，对齐 SECRETARY_PRONOUNCEMENTS.md（P-029 身份≠权限 + P-009~P-011 扁平化设计，D-15）**
+> **2026-05-18 修正，对齐 SECRETARY_PRONOUNCEMENTS.md（P-029 身份≠权限 + P-009~P-010 扁平化设计，D-15）**
 
 ```
 党支书（secretary）

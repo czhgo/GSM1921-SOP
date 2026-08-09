@@ -24,7 +24,7 @@ status: active
 
 **党务工作** = 党内事务的具体管理工作（包括党员发展、党员教育管理、组织生活、党内选举、党费收缴管理等）；发展党员、民主评议党员、换届选举、考勤考察归此 → 工作台
 
-> 两者都是"管理事，服务人"的工作。定义依据 [USAGE_POLICY.md §1.1.1](../../03_doc_system/USAGE_POLICY.md)（T1 官方定义）；旧两分法（党建工作=管理组织活动之事、党务工作=管理人员发展之事，P-006）已降级为 T2 约定表达，仅作理论讲解，不再作为网页设计依据。详见 [DATA_ARCHITECTURE.md](../../04_web_design/DATA_ARCHITECTURE.md)。
+> 两者都是"管理事，服务人"的工作。定义依据 [USAGE_POLICY.md §1.1.1](../../03_doc_system/USAGE_POLICY.md)（T1 官方定义）；旧两分法（党建工作=管理组织活动之事、党务工作=管理人员发展之事，原 P-006）已从论断汇编迁出，仅作理论讲解保留于 [insights §1.1](../../insights/党支部管理与实务经验沉淀.md)，不再作为网页设计依据。详见 [DATA_ARCHITECTURE.md](../../04_web_design/DATA_ARCHITECTURE.md)。
 
 ---
 

@@ -14,7 +14,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 >
 > **受众：** [工程师]+[AI] — 工程师决策参考 + AI 自主读取作为实施上下文。
 >
-> 引用流程：[SECRETARY_PRONOUNCEMENTS.md P-006+P-007](../01_strategy/SECRETARY_PRONOUNCEMENTS.md)（党建与党务工作理论）→ [DATA_ARCHITECTURE.md](../04_web_design/DATA_ARCHITECTURE.md)（数据架构）→ [COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md)（支委系统）→ [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md)（角色权限矩阵）
+> 引用流程：[USAGE_POLICY.md §1.1.1](./USAGE_POLICY.md)（党建/党务 T1 官方定义）→ [DATA_ARCHITECTURE.md](../04_web_design/DATA_ARCHITECTURE.md)（数据架构）→ [COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md)（支委系统）→ [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md)（角色权限矩阵）
 >
 > **阅读约定**：本目录只盘点「有哪些服务、由哪些代码实现、谁有权限」。服务间数据流与依赖见 [DATA_ARCHITECTURE.md §1.3](../04_web_design/DATA_ARCHITECTURE.md)；页面路由与入口映射见 [ARCHITECTURE.md §五](./ARCHITECTURE.md)；权限矩阵权威源为 [ROLE_CLASSIFICATION.md §9](../02_institution/ROLE_CLASSIFICATION.md)。
 
@@ -22,7 +22,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 
 ## 一、服务清单
 
-> 服务按党建 / 党务 / 系统服务三大类组织（分类依据：[USAGE_POLICY.md §1.1.1](./USAGE_POLICY.md) T1 官方定义——党建工作是党为保持先进性纯洁性而开展的自我建设，党务工作是党内事务的具体管理工作；旧两分法 P-006 已降级为 T2 约定表达）。文件路径均相对于 `docs/src/`。
+> 服务按党建 / 党务 / 系统服务三大类组织（分类依据：[USAGE_POLICY.md §1.1.1](./USAGE_POLICY.md) T1 官方定义——党建工作是党为保持先进性纯洁性而开展的自我建设，党务工作是党内事务的具体管理工作；旧两分法（P-006/P-007）已从论断汇编迁出，知识保留于 USAGE_POLICY §1.1.1 与 insights §1.1/§1.2，不再作为网页设计依据）。文件路径均相对于 `docs/src/`。
 >
 > 关联制度缩写：CF=[COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md)、DA=[DATA_ARCHITECTURE.md](../04_web_design/DATA_ARCHITECTURE.md)、FLAT=[FLAT_DESIGN.md](../02_institution/FLAT_DESIGN.md)、RC=[ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md)；其余为 [sop/](../02_institution/sop/) 制度指南。
 
@@ -84,7 +84,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 ## 三、权威源与配套文档
 
 - **服务间数据流与依赖**：[DATA_ARCHITECTURE.md §1.3](../04_web_design/DATA_ARCHITECTURE.md) — 端到端数据流交织图（活动上下文链 + 副产物聚合 + 赋权 → 工作台 → 入档），含挂靠 / 聚合双语义
-- **同源不同视角原则**：[SECRETARY_PRONOUNCEMENTS.md P-007](../01_strategy/SECRETARY_PRONOUNCEMENTS.md) — 党建与党务板块同源数据的展示切面差异（非区分标准）
+- **同源不同视角原则**：[insights §1.2](../insights/党支部管理与实务经验沉淀.md) — 党建与党务板块同源数据的展示切面差异（非区分标准；原 P-007 已从论断汇编迁出）
 - **权限矩阵权威源**：[ROLE_CLASSIFICATION.md §9](../02_institution/ROLE_CLASSIFICATION.md) — 角色 × 操作矩阵 + 赋权链 §9e + 权限名语义 §9f
 - **页面路由与入口映射**：[ARCHITECTURE.md §五](./ARCHITECTURE.md) — 仓库结构（8 根 HTML + 6 工作台 + 入口 JS）
 - **支委系统设计**：[COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md) — 专班生命周期 + §C 权限矩阵 + §审批流程规范
