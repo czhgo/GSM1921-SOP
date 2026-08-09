@@ -53,7 +53,7 @@ version: "4.1"
 | **意见反馈** | `docs/feedback.html` | GitHub Issue 风格开源讨论、列表/详情/新建三视图 | feedback-entry.js, issue-list.js, issue-detail.js, issue-form.js |
 | **系统说明书** | `docs/help.html` | 分章节系统说明书 | help-entry.js |
 | **支部的故事** | `docs/about.html` | 支部的故事叙事（角色体系+发展路径可视化） | about-entry.js |
-| **角色工作台** | `docs/workspace/{secretary,leader,org,prop,disc,visitor}.html` | 六类角色工作台（书记/党小组组长/三支委/成员只读） | 对应 ws-*-entry.js |
+| **角色工作台** | `docs/workspace/{secretary,leader,org,prop,disc,visitor}.html` | 六类角色工作台（书记/党小组组长/三支委/成员） | 对应 ws-*-entry.js |
 
 **共享组件架构**：
 - `header.js` — 全局顶栏（含全局角色切换器）
@@ -61,7 +61,7 @@ version: "4.1"
 - `styles.css` — 全局样式（五层色盘系统 + Flat Design System）
 - `services/auth.js` — 权限判定（ROLE_PERMISSIONS + canDo() + 赋权链 AUTHORIZE_CHAIN）
 
-### B.2 角色优先 + 只读视角 架构
+### B.2 角色优先 + canDo() 统一判定 架构
 
 > **T42 轮核心架构决策**（决策归档：D-1/D-2/D-3）。
 > **2026-07-12 权限系统重构**：去掉 stance/view/mode 三元组，改为 常设角色 + 项目角色 → canDo() 统一判定（spec: 2026-07-12-permission-system-redesign-design.md）。
@@ -70,8 +70,8 @@ version: "4.1"
 
 - **角色优先**：登录后按 `ROLE_PAGE_MAP` 进入角色对应工作台，无手动模式切换
 - **权限判定**：常设角色（secretary/deputy-secretary/org-commissioner/prop-commissioner/disc-commissioner）+ 项目角色（organizer/deep）+ leader → `AuthStore.canDo()` 统一判定（`ROLE_PERMISSIONS` + `PROJECT_PERMISSIONS` 并集）
-- **只读视角**：书记/副书记可切换查看被赋权者（组长/三支委）的工作台，只读（`VIEWABLE_ROLES`，比赋权链范围更宽）
-- **Header 为角色切换入口**：全局角色切换器（含只读视角切换）
+- **按人视图**：书记/副书记在全局概况以"按维度/按人"子切换查看各角色在办任务（L1 条线视角，[DESIGN_SYSTEM §一 原则9](DESIGN_SYSTEM.md)）——只读视角切换机制已随 2026-08-08 权限重构删除，不再切他人身份进他人工作台，按人视图按知情边界（P-015 第四道防线）替代
+- **Header 为工作台切换入口**：全局角色切换器（仅工作台切换，无只读视角切换）
 - **Sidebar 为角色快捷选择器**：与 Header 双向同步
 
 #### 权限判定（ROLE_PERMISSIONS + canDo()）
@@ -84,20 +84,18 @@ version: "4.1"
 
 ```javascript
 AuthStore.getUserRole(personId)              → 常设角色（赋权记录 > mock 数据 > participant）
-AuthStore.getEffectiveRole(personId)         → 有效角色（只读视角优先，回退常设角色）
+AuthStore.getEffectiveRole(personId)         → 有效角色（回退常设角色）
 AuthStore.getProjectRole(personId, projectId) → 项目角色（'organizer' | 'deep' | null）
 AuthStore.canDo(personId, action, context)   → boolean（常设 + 项目角色权限并集统一判定）
-AuthStore.getViewableRoles(role)             → string[]（VIEWABLE_ROLES 只读视角）
 AuthStore.getRoleLabel(role)                 → string（ROLE_LABELS）
 AuthStore.getPageForRole(module, role)       → string（ROLE_PAGE_MAP 页面映射）
-AuthStore.switchView(targetRole) / clearView() / getViewRole() → 只读视角切换（sessionStorage）
 AuthStore.isCommissioner(role)               → boolean（常设角色集合判定）
 ```
 
 #### 赋权关系链 (AUTHORIZE_CHAIN)
 
 > **权威源**：[COMMISSIONER_FRAMEWORK.md §C](../02_institution/COMMISSIONER_FRAMEWORK.md)（赋权关系链，原 PERMISSION_MATRIX.md §二）。本表为该权威源在系统架构中的切面视图，冲突时以权威源为准。
-> 系统内实现为 `AUTHORIZE_CHAIN`（auth.js）：secretary/deputy-secretary → leader/organizer/deep；org-commissioner/leader → organizer/deep；organizer → deep。支委互查只读视角另见 `VIEWABLE_ROLES`。
+> 系统内实现为 `AUTHORIZE_CHAIN`（auth.js）：secretary/deputy-secretary → leader/organizer/deep；org-commissioner/leader → organizer/deep；organizer → deep。
 
 ```
 党支书 → [组织委员, 宣传委员, 纪检委员, 党小组组长, 组织者, 深度参与者]
@@ -164,7 +162,7 @@ AuthStore.isCommissioner(role)               → boolean（常设角色集合判
 
 | 场景 | 显示日历 | 原因 |
 |------|:---:|------|
-| 只读视角（全员） | ✅ | 信息浏览基线 |
+| 默认浏览（全员） | ✅ | 信息浏览基线 |
 | 工作台 · secretary/leader | ✅ | 需要同时管理活动和看日历 |
 | 工作台 · organizer/deep | ✅ | 需要知道何时何地参会 |
 | 工作台 · org-commissioner | ❌ | 只看专班协调看板 |
@@ -317,7 +315,6 @@ STEP 4: 同步更新系统渲染
 |------|------|------|
 | **登录会话**（`gsm1921-login-user`） | localStorage | 登录用户 { personId, role, tabId }（A-11 防串扰） |
 | **会话快照**（`gsm1921-session-snap`） | sessionStorage | 本标签页登录会话快照（localStorage 被覆盖时回退，A-11） |
-| **只读视角**（`gsm1921-view-role`） | sessionStorage | 当前只读视角角色（VIEWABLE_ROLES 切换） |
 | **AuthStore** | localStorage | 赋权审计快照（键 `sop_org_os_auth_audit`，grant/revoke 追加语义，跨会话持久化） |
 | **mockDB（data-adapter）** | localStorage | 业务数据（活动/考勤/考察/专班/分工等，键 `workflowos_branch_db_v1`，跨页面共享） |
 | **CrossPageState** | sessionStorage | 页面间临时传参（如从主页跳到工作台时传递选中活动ID） |
@@ -372,10 +369,10 @@ STEP 4: 同步更新系统渲染
 
 ### G.3 不变的设计原则
 
-- **身份 ≠ 权限**：角色选择和模式选择是两个独立决策
+- **身份 ≠ 权限**：身份决定角色，权限由 `canDo()` 统一判定
 - **支委天然权限**：组织/宣传/纪检委员在自己的职能内无需赋权
 - **赋权仅针对活动角色**：只有 organizer 和 deep 需要被赋权
-- **只读视角永不设限**：任何角色都可以只读浏览全部信息
+- **知情边界**：任何角色的信息可见范围精确等于其职责空间所需的最小充分信息（[P-015 第四道防线](../01_strategy/SECRETARY_PRONOUNCEMENTS.md#p-015-组织内控总论职责分离主动回避书记仲裁与知情边界)）——按人视图按赋权链投影（L1 条线视角），不暴露他人操作细节；"看 ≠ 做"，监督停留方向把握（P-027②）
 
 > **（书记论断 P-029 退役说明，2026-08-09 自书记论断汇编迁出至 04）**：原论断「管理模式 / 管理者只读 / 参与者只读」视图模式三分类已随 2026-08-08 权限系统重构移除（现行判定为常设角色 + 项目角色 → canDo()，顶栏仅保留工作台切换）；"身份≠权限"作为一般原则仍然成立，本条在此保留为历史决策记录。
 

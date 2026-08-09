@@ -63,7 +63,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 
 **原则**：上下文丢失后，不得自行推断制度安排，必须读取 CLAUDE.md 和对应 guides 确认。
 
-**判例**：赋权关系链修正了三轮——第一轮遗漏了组织委员的专班赋权，第二轮混淆了管理者只读和成员只读的区别，第三轮才与 COMMISSIONER_FRAMEWORK.md 对齐。
+**判例**：赋权关系链修正了三轮——第一轮遗漏了组织委员的专班赋权，第二轮混淆了只读视图的继承关系（历史设计：管理者只读继承管理模式/成员只读独立视图，2026-08-05 权限重构后已废弃），第三轮才与 COMMISSIONER_FRAMEWORK.md 对齐。
 
 **纠正**：遇到权限/角色/制度相关问题时，先读取对应 guides 文件确认，再动手修改代码。
 

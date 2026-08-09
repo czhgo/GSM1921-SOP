@@ -13,8 +13,9 @@ import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=2026
 import { TaskForceRecordStore } from './taskforce.js?v=20260808m';
 import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260808m';
 import { NoticeStore } from './notice.js?v=20260808m';
-import { TodoCategory, TodoActionType } from './todo.js?v=20260808m';
+import { TodoStore, seedTodos, TodoCategory, TodoActionType } from './todo.js?v=20260808m';
 import { getPersonById, PEOPLE } from '../mock/index.js?v=20260808m';
+import { ROLE_LABELS } from '../core/constants.js?v=20260808m';
 import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260808m';
 
 // ════════════════════════════════════════════════════════════════
@@ -63,6 +64,79 @@ export const SecretaryOverviewStore = {
     const propaganda = this._computePropaganda();
 
     return { attendance, inspection, activity, propaganda };
+  },
+
+  // ── 按人视图：各角色在办概览（P-015 知情边界 / L1 条线视角） ──────
+  //  书记看各角色"在办什么、有无异常"，不暴露操作细节（看 ≠ 做）。
+  //  聚合口径：未完成待办（TodoStore）+ 未归档在办活动 + 进行中/招募中专班。
+  //  Source: DESIGN_SYSTEM.md §一 原则9（信息密度精确原则）
+
+  /** 按人视图的 5 个角色（副书记+三支委+党小组组长），含工作台直达入口 */
+  PERSON_ROLES: [
+    { role: 'deputy-secretary',  url: 'secretary.html' },
+    { role: 'org-commissioner',  url: 'org.html' },
+    { role: 'prop-commissioner', url: 'prop.html' },
+    { role: 'disc-commissioner', url: 'disc.html' },
+    { role: 'leader',            url: 'leader.html' },
+  ],
+
+  /**
+   * 按人视图数据聚合（L1 条线视角：上级看下级的条线在办）
+   * @returns {Array<{
+   *   role:string, label:string, personIds:string[], names:string,
+   *   todoCount:number, overdueCount:number, todoGroups:Array,
+   *   activities:Array<{id,title,date,status}>, taskforces:Array<{id,name,status,deadline}>,
+   *   url:string
+   * }>}
+   */
+  getPersonOverview() {
+    seedTodos(); // 补齐种子待办（幂等），保证各角色在办口径与工作台一致
+    TodoStore.refreshExpiredStatus();
+    const today = _today();
+    const activities = loadActivities();
+    const taskforces = TaskForceRecordStore.list();
+
+    return this.PERSON_ROLES.map(cfg => {
+      const role = cfg.role;
+      const people = PEOPLE.filter(p => p.role === role);
+      const personIds = people.map(p => p.id);
+
+      // ① 未完成待办（按业务动作聚合，同跳转目标合并为一条）
+      const todoGroups = TodoStore.getGroupedByAction(role);
+      const todoCount = todoGroups.reduce((s, g) => s + g.count, 0);
+      const overdueCount = todoGroups.reduce((s, g) => s + g.items.filter(it =>
+        it.deadline && it.deadline < today
+      ).length, 0);
+
+      // ② 在办活动：未归档、非完结态，且本人为组织者或项目成员
+      const personIdSet = new Set(personIds);
+      const relatedActivities = activities.filter(a =>
+        !a.archived &&
+        a.status !== 'completed' && a.status !== 'cancelled' && a.status !== 'draft' &&
+        (personIdSet.has(a.organizer) ||
+          (Array.isArray(a.assignments) && a.assignments.some(x => personIdSet.has(x.personId))))
+      );
+
+      // ③ 在办专班：进行中/招募中，且本人为 manager/initiator/成员
+      const relatedTaskforces = taskforces.filter(tf =>
+        (tf.status === 'active' || tf.status === 'recruiting') &&
+        (personIdSet.has(tf.manager) || personIdSet.has(tf.initiator) ||
+          (Array.isArray(tf.members) && tf.members.some(m => personIdSet.has(m.personId))))
+      );
+
+      return {
+        role,
+        label: ROLE_LABELS[role] || role,
+        personIds,
+        names: people.map(p => p.name).join('、'),
+        todoCount,
+        overdueCount,
+        todoGroups,
+        activities: relatedActivities.map(a => ({ id: a.id, title: a.title, date: a.date, status: a.status })),
+        taskforces: relatedTaskforces.map(tf => ({ id: tf.id, name: tf.name, status: tf.status, deadline: tf.deadline })),
+        url: cfg.url,
+      };
+    });
   },
 
   // ── 维度1：考勤与纪律 ──────────────────────────────────────

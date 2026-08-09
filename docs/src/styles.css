@@ -976,45 +976,6 @@ textarea.input-flat {
   color: var(--neutral-0);
 }
 
-.view-mode-switcher {
-  border-radius: var(--radius-sm);
-  transition: background-color var(--transition-fast);
-  user-select: none;
-}
-.view-mode-switcher:hover {
-  opacity: 0.9;
-}
-
-.view-mode-picker-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.3);
-  z-index: 9998;
-  animation: fadeIn 0.15s ease-out;
-}
-.view-mode-picker-card {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%,-50%);
-  z-index: 9999;
-  background: var(--neutral-0);
-  border-radius: var(--radius-xl);
-  padding: 24px;
-  min-width: 320px;
-  max-width: 420px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-  animation: slideUp 0.25s ease-out;
-}
-.mode-btn:hover:not([disabled]) {
-  border-color: var(--primary-400) !important;
-  background-color: var(--primary-50) !important;
-}
-.mode-btn-observe:hover:not([disabled]) {
-  border-color: var(--neutral-400) !important;
-  background-color: var(--neutral-50) !important;
-}
-
 .status-pill {
   display: flex;
   align-items: center;
@@ -1866,6 +1827,17 @@ textarea.input-flat {
   background: var(--tab-accent-bg);
   color: var(--tab-accent);
   border: 1px solid var(--tab-accent-border);
+}
+
+/* ── 子视图切换（按维度/按人）active 状态（overview-tab.js） ── */
+.ov-sub-tab-active {
+  background: var(--app-accent-bg, rgba(185, 28, 28, 0.10));
+  color: var(--app-accent, #B91C1C);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+}
+html.theme-dark .ov-sub-tab-active {
+  background: color-mix(in srgb, var(--app-accent, #B91C1C) 18%, #141D2F);
+  color: color-mix(in srgb, var(--app-accent, #B91C1C) 72%, white);
 }
 
 /* ── T231 内联淡色统一：color-mix 变量驱动，深浅两套适配 ──
@@ -3002,11 +2974,6 @@ label .text-red-500 {
     display: none;
   }
 
-  .view-mode-switcher {
-    font-size: 0.65rem;
-    padding: 3px 8px;
-  }
-
   .status-pill {
     display: none;
   }
@@ -3060,13 +3027,6 @@ label .text-red-500 {
   }
 
   /* ── D-211: 768px 断点补全 ── */
-
-  .view-mode-picker-card {
-    min-width: unset;
-    max-width: calc(100vw - 32px);
-    width: 90vw;
-    padding: 18px;
-  }
 
   .role-card {
     gap: 10px;
@@ -3188,11 +3148,6 @@ label .text-red-500 {
   }
 
   /* ── D-211: 640px 断点补全 ── */
-
-  .view-mode-picker-card {
-    padding: 14px;
-    width: 95vw;
-  }
 
   .role-card {
     gap: 8px;

@@ -10,7 +10,7 @@
 import { icon } from '../../../core/icons.js?v=20260808m';
 import { showToast } from '../../../core/utils.js?v=20260808m';
 import { NoticeStore } from '../../../services/notice.js?v=20260808m';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260808m';
+import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260808m';
 import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260808m';
 import { badgeHtml } from '../../../components/badge.js?v=20260808m';
 import { loadActivities } from '../../../services/activity.js?v=20260808m';
@@ -20,6 +20,9 @@ import { AttendanceStatus } from '../../../core/domain.js?v=20260808m';
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
 `;
+
+// 子视图切换状态（按维度 / 按人），同一会话内保持选择
+let _overviewSubView = 'dimension';
 
 /** 渲染全局概况 tab */
 export function renderContent() {
@@ -36,6 +39,143 @@ function renderOverviewContent() {
   const container = document.getElementById('secretary-overview-content');
   if (!container) return;
 
+  // 子视图切换条（按维度 / 按人）——信息密度精确原则（P-015 第四道防线·知情边界）：
+  // 按维度 = 态势总览；按人 = L1 条线视角，看各角色在办概览（不含操作细节）
+  const subTabs = [
+    { key: 'dimension', label: '按维度' },
+    { key: 'person', label: '按人' },
+  ];
+  const subTabsHtml = `
+    <div class="inline-flex items-center gap-1 p-1 rounded-xl bg-neutral-100">
+      ${subTabs.map(t => `
+        <button type="button"
+          class="ov-sub-tab px-4 py-1.5 rounded-lg text-xs font-medium transition-colors ${_overviewSubView === t.key ? 'ov-sub-tab-active' : 'text-gray-500 hover:bg-white'} "
+          data-subview="${t.key}">${t.label}</button>
+      `).join('')}
+    </div>
+  `;
+
+  container.innerHTML = `<div class="space-y-4"><div>${subTabsHtml}</div><div id="ov-subview-body"></div></div>`;
+
+  // 绑定子切换
+  container.querySelectorAll('.ov-sub-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _overviewSubView = btn.dataset.subview;
+      renderOverviewContent();
+    });
+  });
+
+  const body = document.getElementById('ov-subview-body');
+  if (_overviewSubView === 'person') {
+    renderPersonView(body);
+  } else {
+    renderDimensionView(body);
+  }
+}
+
+/** 按人视图：各角色在办概览卡片（L1 条线视角，书记看下级条线在办，异常高亮） */
+function renderPersonView(container) {
+  const people = SecretaryOverviewStore.getPersonOverview();
+  const today = new Date().toISOString().slice(0, 10);
+  const roleIcon = {
+    'deputy-secretary': 'users',
+    'org-commissioner': 'cog',
+    'prop-commissioner': 'megaphone',
+    'disc-commissioner': 'scale',
+    'leader': 'users',
+  };
+  const statusLabel = s => ({
+    active: '进行中', recruiting: '招募中',
+  }[s] || s);
+
+  const cards = people.map(p => {
+    const color = ROLE_COLORS[p.role] || ROLE_COLORS.all;
+
+    // 在办清单行（待办聚合 → 活动 → 专班）
+    const rows = [];
+    for (const g of p.todoGroups.slice(0, 4)) {
+      rows.push({
+        icon: 'list',
+        text: `${g.title} · ${g.count} 项`,
+        deadline: g.deadline,
+        danger: !!g.deadline && g.deadline < today,
+      });
+    }
+    for (const a of p.activities.slice(0, 3)) {
+      rows.push({ icon: 'calendar', text: `活动「${a.title}」`, deadline: a.date, danger: false });
+    }
+    for (const tf of p.taskforces.slice(0, 2)) {
+      rows.push({ icon: 'usersGroup', text: `专班「${tf.name}」(${statusLabel(tf.status)})`, deadline: tf.deadline, danger: !!tf.deadline && tf.deadline < today });
+    }
+    const shown = rows.slice(0, 6);
+    const more = rows.length - shown.length;
+
+    const rowHtml = shown.length
+      ? shown.map(r => `
+          <div class="flex items-center gap-2 py-1.5">
+            <span class="icon-base w-3.5 h-3.5 flex-shrink-0" style="color:${color.text};">${icon(r.icon, { className: 'w-3.5 h-3.5' })}</span>
+            <span class="text-xs text-gray-600 flex-1 truncate">${r.text}</span>
+            ${r.deadline ? `<span class="text-[11px] ${r.danger ? 'text-red-600 font-medium' : 'text-gray-400'} flex-shrink-0">${r.deadline}</span>` : ''}
+            ${r.danger ? badgeHtml('超期', 'danger') : ''}
+          </div>`).join('')
+      : `<div class="py-3 text-center text-xs text-gray-400">当前无在办事项</div>`;
+
+    const statBadge = p.todoCount + p.activities.length + p.taskforces.length > 0
+      ? badgeHtml(`${p.todoCount + p.activities.length + p.taskforces.length} 项在办`, p.overdueCount ? 'danger' : 'neutral')
+      : badgeHtml('无在办', 'neutral');
+
+    return `
+      <div class="card rounded-xl p-4">
+        <!-- 卡头：角色识别色 + 姓名 -->
+        <div class="flex items-center gap-2.5 mb-2.5">
+          <span class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:${color.bg};color:${color.text};">
+            ${icon(roleIcon[p.role] || 'users', 'w-4 h-4')}
+          </span>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-semibold text-gray-800 flex items-center gap-2">
+              ${p.label}
+              ${p.role === 'deputy-secretary' ? '<span class="text-[11px] font-normal text-gray-400">（同书记工作台）</span>' : ''}
+            </div>
+            <div class="text-xs text-gray-500 truncate">${p.names}</div>
+          </div>
+          ${statBadge}
+        </div>
+        <!-- 态势行 -->
+        <div class="flex items-center gap-3 mb-2 text-[11px] text-gray-500">
+          <span>待办 <b class="tabular-nums">${p.todoCount}</b></span>
+          <span class="text-gray-200">|</span>
+          <span>在办活动 <b class="tabular-nums">${p.activities.length}</b></span>
+          <span class="text-gray-200">|</span>
+          <span>在办专班 <b class="tabular-nums">${p.taskforces.length}</b></span>
+          ${p.overdueCount ? badgeHtml(`${p.overdueCount} 项超期`, 'danger') : ''}
+        </div>
+        <!-- 在办清单 -->
+        <div class="rounded-lg bg-neutral-50 px-2.5 py-1 max-h-44 overflow-y-auto">
+          ${rowHtml}
+          ${more > 0 ? `<div class="py-1 text-center text-[11px] text-gray-400">… 另有 ${more} 项</div>` : ''}
+        </div>
+        <!-- 直达入口 -->
+        <div class="mt-3 pt-2.5 border-t border-gray-100 flex justify-end">
+          <a href="./${p.url}" class="inline-flex items-center gap-1 text-xs font-medium transition-colors hover:opacity-80" style="color:${color.text};">
+            ${p.url === 'secretary.html' ? '查看副书记工作台' : '查看工作台'} ${icon('arrowRight', { className: 'w-3 h-3' })}
+          </a>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      ${cards}
+    </div>
+    <p class="text-[11px] text-gray-400 mt-3">
+      按人视图 = L1 条线视角：书记看各角色在办概览（知情边界，看 ≠ 做），异常（超期）标红可直达。
+    </p>
+  `;
+}
+
+/** 按维度视图：四维度态势总览（原内容） */
+function renderDimensionView(container) {
   const data = SecretaryOverviewStore.getOverview();
   const { attendance, inspection, activity, propaganda } = data;
 

@@ -2,7 +2,7 @@
 title: "2026年8月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-08-09"
+last_updated: "2026-08-10"
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -2171,3 +2171,31 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
   - ✅ 定人定责 §3.2 回避防线母本确认（"涉及本人审核事项时主动回避""回避原则防止'自己审核自己'导致内控失效"）与 P-015 讲解块一致
 - **变更文件**：`content/01_strategy/SECRETARY_PRONOUNCEMENTS.md`、`content/02_institution/COMMISSIONER_FRAMEWORK.md`、`content/02_institution/FLAT_DESIGN.md`、`README.md`、`content/02_institution/sop/支委与党小组定人定责定岗说明.md`、`content/04_web_design/DATA_ARCHITECTURE.md`、`content/04_web_design/SOP_WEB.md`、`docs/help.html`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
 - **沉淀标签**：`[已沉淀: 内控三道防线]` — 组织内控=职责分离（提出需求与招募统筹分离）+主动回避（涉及本人审核主动回避）+书记仲裁（矛盾任务优先级组织>纪检>宣传）三道防线，P-013 并入 P-015 作为职责分离防线，原话保留于 P-015 正文；`[已沉淀: 工程选择与论断分层]` — "书记作为条块间的协调节点——党课和意见反馈不可委托"中协调节点定位/决策不可委托为系统设计的工程选择（书记工作台功能需求），不作为路线级论断保留，仅组织内控内容提取入论断——系统设计事实（README/insights 可描述）与书记论断（汇编）须分层；`[已沉淀: 网页实现倒写入文档]` — 意见反馈已由网页实现（issues.js）超越旧文档模型（FeedbackRecord pending/processing/done），倒写 04 文档采用真实 IssueRecord 模型+书记十项处置权表，文档与实现同源；`[待办]` — 讲解稿专项收尾后 commit（push 需书记批准）
+
+## T-201 书记 2026-08-10 两条战略原话收录 P-015（知情边界第四道防线）+ 信息密度精确原则 + §F.6 四道防线 + 全仓"只读模式"残留清理 + 书记工作台"按人视图"实施（2026-08-10）
+
+**任务**：书记确认两条"书记原话级别"论断——①"执行委托与知情监督是对应的，统一的。统筹是最大的管理！"；②"一个尽可能降低管理摩擦的方向是任何角色的信息可见范围，应精确等于其职责空间所需的最小充分信息。"——①入 P-015 第四道防线"知情边界"，②入 DESIGN_SYSTEM 原则9；随后全仓残留清理 + 书记工作台按人视图代码实施 + 浏览器验证。
+**引用流程**：H5 书记评议（书记 2026-08-10 确认两条原话为原话级别）+ 知情边界讲解块 + H1.2 执行 + verification-before-completion Skill
+
+- **论断收录（t1-t3）**：
+  - SECRETARY_PRONOUNCEMENTS.md P-015：正文新增两条原话（2026-08-10），讲解块新增第四道防线"知情边界"——执行委托（操作边界）与知情监督（信息边界）是一枚硬币的两面，能赋权的人才能看对应条线在办（L1 条线视角）；**看 ≠ 做**（知情过载会架空职责分离，"全知"是内控失效入口）；信息可见范围=职责空间所需最小充分信息；"统筹是最大的管理"——书记是统筹者而非执行者，统筹依赖精确的知情密度而非全知；信息密度分层 L0 个人/L1 条线/L2 全局，向上越层需职责依据（赋权链），向下缩层是职责空间保护；出处行补"书记 2026-08-10 战略级论断"，层次提升为**战略路线级**
+  - DESIGN_SYSTEM.md §一 新增原则9"信息密度精确原则"（书记原话引用，信息可见性=职责空间的投影）
+  - COMMISSIONER_FRAMEWORK.md §F.6 升级为"组织内控体系（P-015 四道防线）"：四道防线表（职责分离/主动回避/书记仲裁/知情边界）落地点完整，知情边界行落点=书记工作台"按维度/按人"双视图 + 原则9
+- **t4 全仓残留清理**（"成员只读/管理模式/只读模式"废弃设计）：
+  - docs/help.html：成员只读面板→成员工作台
+  - .ctx/SNAPSHOT.md："视图模式三分类"行→"信息密度精确原则"行；L41/L114/L144 成员只读→成员工作台
+  - README.md L45/L55/L70、ARCHITECTURE.md L151：成员只读面板/视角→成员工作台
+  - DATA_ARCHITECTURE.md L811：成员只读→普通成员
+  - KNOWN_PITFALLS.md L66：判例补"历史设计：管理者只读继承管理模式/成员只读独立视图，2026-08-05 权限重构后已废弃"
+  - insights 党支部管理 L292：速查表条目8更新为"身份选择与信息可见范围分离；知情边界下按人视图只投影职责空间的在办概览，不含操作细节（已替代旧的'只读模式'设计）"
+  - insights 工程演进 §1.3：旧的"管理模式/只读模式"→"角色切换机制"
+  - styles.css：删除 .view-mode-switcher/.view-mode-picker-overlay/.view-mode-picker-card/.mode-btn-observe 等废弃只读模式样式
+  - 零残留验证：剩余命中均为"退役/历史/已废弃"标注的合理保留记录（insights §4.6 历史经验、SOP_WEB P-029 退役说明、KNOWN_PITFALLS 判例），非活性残留
+- **t5 按人视图代码实施**：
+  - `docs/src/services/secretary-overview.js`：新增 `PERSON_ROLES`（5 角色+工作台 URL：副书记/组织/宣传/纪检/组长）+ `getPersonOverview()`——按 role 聚合①未完成待办（TodoStore.getGroupedByAction 业务动作分组）②在办活动（未归档非完结态，organizer/assignments 成员）③在办专班（active/recruiting，manager/initiator/members）；返回 { role, label, personIds, names, todoCount, overdueCount, todoGroups, activities, taskforces, url }
+  - `docs/src/entries/tabs/secretary/overview-tab.js`：`renderOverviewContent()` 重构——顶部新增"按维度/按人"子切换条（会话内保持选择）；新增 `renderPersonView()`：5 张角色卡片（卡头=角色识别色图标+角色名+姓名+在办徽章；态势行=待办|在办活动|在办专班+超期徽章；在办清单最多 6 行；空态"当前无在办事项"；直达入口跳对应工作台）；原内容更名 `renderDimensionView()`
+  - `docs/src/styles.css`：新增 `.ov-sub-tab-active`（深浅两套适配 theme-dark，CSS 变量驱动）
+  - 数据口径严格遵循"看 ≠ 做"——只投影职责空间在办概览，不含操作细节
+- **t6 浏览器验证（browser_use 实测通过）**：登录（2300010001/123456）→"按维度/按人"子切换可见可点击、激活态正确→5 张角色卡片全部渲染（党支部书记/副书记、组织、宣传、纪检、组长），卡片四要素齐全→无 JS 运行时错误→截图 `secretary-overview-person-view.png`
+- **变更文件**：`content/01_strategy/SECRETARY_PRONOUNCEMENTS.md`、`content/04_web_design/DESIGN_SYSTEM.md`、`content/02_institution/COMMISSIONER_FRAMEWORK.md`、`content/04_web_design/SOP_WEB.md`、`.ctx/SNAPSHOT.md`、`README.md`、`content/03_doc_system/ARCHITECTURE.md`、`content/04_web_design/DATA_ARCHITECTURE.md`、`content/05_ai_coding/KNOWN_PITFALLS.md`、`content/insights/党支部管理与实务经验沉淀.md`、`content/insights/工程演进与设计方法论.md`、`docs/help.html`、`docs/workspace/visitor.html`、`docs/src/services/secretary-overview.js`、`docs/src/entries/tabs/secretary/overview-tab.js`、`docs/src/styles.css`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[已沉淀: 知情边界·看≠做]` — 执行委托与知情监督对应统一：赋权链决定信息边界（能赋权才能看条线在办），"全知"架空职责分离是内控失效入口；信息可见范围=职责空间所需最小充分信息（L0 个人/L1 条线/L2 全局），"统筹是最大的管理"靠精确知情密度而非全知；`[已沉淀: 按人视图数据口径]` — 按人视图只投影职责空间的在办概览（未完成待办/在办活动/在办专班），不含操作细节，与"看≠做"一一对应；`[已沉淀: 只读模式退役]` — 2026-08-05 权限重构后"成员只读/管理模式/只读模式"废弃，遗留文档/样式全仓清零

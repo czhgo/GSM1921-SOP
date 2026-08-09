@@ -148,7 +148,7 @@ Layer 7: 审计参考层（审计与参考）
 │   │   ├── org.html                   [用户]+[AI] 组织委员工作台（考察上传+专班管理+人才库+发展党员+待办）
 │   │   ├── prop.html                  [用户]+[AI] 宣传委员工作台（宣传任务+项目看板+档案归档+周报报送+待办）
 │   │   ├── disc.html                  [用户]+[AI] 纪检委员工作台（考勤管理+监督复盘+考察管理+补课制度+公邮管理+待办）
-│   │   └── visitor.html               [用户]+[AI] 成员只读面板（含待办）
+│   │   └── visitor.html               [用户]+[AI] 成员工作台（含待办）
 │   └── src/                           [工程师]+[AI] ESM 模块化源码
 │       ├── entries/                   [工程师]+[AI] 页面入口（15 个 entry JS）
 │       ├── components/                [工程师]+[AI] 共享组件（18 个，含 todo-list/custom-select/workspace-popover）
