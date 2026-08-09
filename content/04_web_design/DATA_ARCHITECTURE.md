@@ -3,7 +3,7 @@ title: "数据架构设计"
 type: design
 role: "[工程师]+[AI]"
 version: "4.0"
-last_updated: "2026-08-09"
+last_updated: "2026-08-10"
 status: active
 merged_from: [content/design/DATA.md, content/design/PARTICIPANT_DATAFLOW.md, content/design/LOGIN_SYSTEM_DESIGN.md, content/design/BRAND_ACTIVITY.md]
 related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/MODULE_UI_DESIGN.md, content/04_web_design/DESIGN_SYSTEM.md]
@@ -640,25 +640,48 @@ assignedRoles: Array<{
 
 ### 2.16 意见反馈数据 (IssueRecord)
 
-> **D-244/T105 变更**：意见反馈已升级为 GitHub Issue 风格意见反馈系统。数据从 localStorage 单轨（FeedbackStore）升级为双轨（issues.json 权威源 + localStorage 草稿）。旧 FeedbackRecord 类型已弃用，保留向后兼容 shim（feedback.js）。
+> **D-244/T105 变更**：意见反馈已升级为 GitHub Issue 风格意见反馈系统。数据从 localStorage 单轨（FeedbackStore）升级为双轨（issues.json 权威源 + localStorage 草稿/缓存）。旧 FeedbackRecord 类型已弃用，保留向后兼容 shim（feedback.js）。
 
-> 类型定义位于 [feedback.js](../../docs/src/services/feedback.js)
+> 类型定义与权威实现位于 [issues.js](../../docs/src/services/issues.js)（IssueStore），权威源 `docs/data/issues.json`
 
-| 字段名 | 类型 | 必填 | 默认值 | 说明 |
-|---|---|---|---|---|
-| id | string | 是 | `'fb-' + Date.now()` | 唯一标识符，前缀 `fb-` |
-| scope | `'permanent'\|'global'\|'role'\|'scenario'` | 是 | -- | 影响范围：底层架构/全局规则/支委分工/特定场景 |
-| scenarioName | string | 否 | `''` | 场景名称/编号（scope=scenario 时有意义） |
-| painPointFile | string | 否 | `''` | 痛点所在文件 |
-| painPointDetail | string | 否 | `''` | 痛点详细描述 |
-| painPoint | string | 否 | `''` | 痛点概述 |
-| proposedFix | string | 否 | `''` | 建议修改方向 |
-| submittedBy | string | 是 | `'匿名'` | 提交人（可匿名） |
-| submittedAt | string (YYYY-MM-DD) | 是 | `new Date().toISOString().slice(0, 10)` | 提交日期 |
-| status | `'pending'\|'processing'\|'done'` | 是 | `'pending'` | 处理状态：待处理/处理中/已完成 |
-| comments | {text: string, author: string, date: string}[] | 是 | `[]` | 书记/支委回复评论列表 |
+| 字段名 | 类型 | 说明 |
+|---|---|---|
+| id / number | string / number | 唯一标识符（前缀 `issue-`）/ 自增序号（GitHub Issue 风格 `#N` 展示） |
+| title / body | string | 标题 / 正文（痛点与建议详细描述） |
+| scope | `'permanent'\|'global'\|'role'\|'scenario'` | 影响范围：底层架构/全局规则/支委分工/特定场景 |
+| types | string[] | 类型标签（如 `bug`） |
+| status | `'open'\|'closed'` | 开放 / 关闭 |
+| closedReason / closedAt | `'completed'\|'duplicate'\|'wontfix'\|'not_planned'` / string\|null | 关闭原因 / 关闭时间 |
+| submittedBy / submittedAt | string | 提交人（短 ID，可匿名）/ 提交日期 |
+| assignee / assigneeRole | string \| null | 书记指派对象（personId / 角色键，如 `u_org` / `'org-commissioner'`） |
+| dispatchHistory | {from, to, by, at, note}[] | 指派历史时间线（from→to 变更记录） |
+| milestone | string \| null | 里程碑 |
+| reactions | {thumbsUp[], thumbsDown[], eyes[], hooray[]} | 表态反应（按人列表） |
+| mentions / references | string[] | 提及 / 引用 |
+| participants / commentCount | string[] / number | 参与人 / 评论数 |
+| hidden / mergedInto | boolean / string\|null | 书记隐藏（不在公开列表显示）/ 合并去向（被合并的 source 置位） |
+| comments | {id, author, authorRole, body, createdAt, kind, hidden, hiddenBy, hiddenReason, hiddenAt}[] | 评论时间线；kind：`comment` / `dispatch`（指派事件）/ `result`（处置结果）/ `verdict`（书记终审/合并事件） |
+| resultPending / resultSubmittedAt | boolean / string\|null | 待终审标记（处置结果提交后置位） |
 
-**处理流程**：提交(pending) → 书记审阅(processing) → 回复/采纳(done)
+**处理流程（GitHub Issue 风格）**：提交(open) → 书记审阅并指派（assignee + dispatchHistory，通知被指派人）→ 公开讨论（评论+表态，全员可参与）→ 被指派人提交处置结果（kind=`result`）→ 待终审（resultPending=true，书记工作台高亮）→ 书记终审：关闭(closed) / 重新开放(reopen)。
+
+**派生显示状态**（UI 层派生，数据层不存储，实现 `deriveIssueDisplayState`）：`开放中` → `已指派`（有 assignee）→ `待终审`（resultPending 或已有 result 评论）→ `已关闭`。
+
+> **书记处置权设计**（2026-08-09 P-015 重写联动，倒写自 issues.js）——意见反馈处置权归书记独有：全员可参与开源讨论（issue.create / comment.add / reaction.toggle / mention / reference），但处置动作仅书记可执行，类比 GitHub maintainer 唯一拥有 merge/close 权（详见 [insights §2.2](../../insights/党支部管理与实务经验沉淀.md) D-244/T105 与 [COMMISSIONER_FRAMEWORK §C.1b](../02_institution/COMMISSIONER_FRAMEWORK.md) 党课/意见反馈规则）。这是 P-015 组织内控总论"书记仲裁"防线的落点。
+
+| 处置动作 | 接口 | 说明 |
+|---|---|---|
+| 改状态/关闭 | `changeStatus` / `closeIssue` | 关闭原因 completed/duplicate/wontfix/not_planned；关闭备注记 verdict 评论；清除待终审未读 |
+| 重新开放 | `reopenIssue` | 清除 closedReason/closedAt/resultPending |
+| 指派 | `assignIssue` | 写 assignee/assigneeRole + dispatchHistory + kind=`dispatch` 评论 + 被指派人未读角标 +1 |
+| 设置里程碑 | `setMilestone` | milestone 归书记管理 |
+| 隐藏/取消隐藏 | `hideIssue` / `unhideIssue` | hidden 置位，公开列表不显示 |
+| 合并 | `mergeIssue` | source 标记 mergedInto + hidden + closed(duplicate)；target 追加 merge verdict 事件 |
+| 软隐藏评论 | `hideComment` | 评论 hidden=true，记录 hiddenBy/hiddenReason/hiddenAt |
+| 编辑 | `editIssue` | 书记可编辑任意 issue |
+| 草稿终审 | `approveDraft` / `rejectDraft` | new-issue/comment/reaction 三类型草稿：pending → approved（合并入 issues.json）/ rejected（含理由） |
+
+**通知机制**：指派 → 被指派人工作台「我的处置」Tab 角标 +1（personId 维度未读）；处置结果提交 → 书记工作台「待终审」高亮；书记终审关闭/重开 → 清除对应未读。
 
 > **人员 ID 规范（2026-08-01 T187）**：`submittedBy`/`participants`/`assignee`/评论 `author`/`dispatchHistory` 等一律存短 ID（`p*` 或 `u_sec`/`u_org`/`u_prop`/`u_disc`/`u_leader_*`），渲染层统一经 `PersonStore.getName()` 转中文姓名，禁止出现 `u_org_commissioner` 类长 ID 或直接展示原始 ID。issues.js 缓存版本已升 v3（`gsm1921-issue-cache-v3`）强制清除用户浏览器残留旧长 ID 缓存。
 
@@ -916,6 +939,8 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 > 完整的考勤/考察规则、判断逻辑、记录字段定义见 [纪检委员工作流程指南 §1.2](../02_institution/sop/纪检委员工作流程指南.md) + [insights 工程演进与设计方法论.md §6.12](../insights/工程演进与设计方法论.md)。本节仅保留要点索引。考勤/考察在端到端数据流中的「挂靠活动 + 聚合总数据」交织位置见 [§1.3](#13-端到端数据流交织图)。
 
 **要点**：考勤 = 0-1变量（出勤/请假/缺勤），对象为党员+预备党员，适用三会一课；考察 = 工作量记录（组织/深度参与），对象为深度参与者和组织者，适用所有支部工作。系统记录字段：考勤见 §2.5 AttendanceRecord；考察补充字段 `participationLevel`/`deepRole`/`specificWork`/`divisionRecordedBy`/`submittedTo`/`submittedAt`。
+
+> **（书记论断 P-026，2026-08-09 自书记论断汇编迁出）：人才库（组织委员维护）是画像数据库，基于考察信息更新——装的是"画像"（某同志擅长什么、表现如何、有何特长），不是原始材料本身；原始材料库（纪检委员持有）是考勤总表、考察总表等原始记录。纪检委员把考察信息给组织委员，原始材料留在纪检委员处——不是副本关系。**
 
 ### 3.4 登录态说明
 

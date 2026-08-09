@@ -2139,3 +2139,35 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **变更文件**：`content/01_strategy/SECRETARY_PRONOUNCEMENTS.md`、`README.md`、`content/02_institution/COMMISSIONER_FRAMEWORK.md`、`content/insights/党支部管理与实务经验沉淀.md`、`docs/help.html`、`.ctx/logs/2026-08-EXECUTION_LOG.md`
 - **零残留验证**：全仓 grep"两把尺子/垂直穿透/横向覆盖/穿透方向"（排除 .ctx 历史日志）仅剩修正记录表 L498 反例保留
 - **沉淀标签**：`[已沉淀: 母子本链审慎对待 help 网页]` — 书记原话概念（条块）跨 SECRETARY_PRONOUNCEMENTS→COMMISSIONER_FRAMEWORK §A.3+insights §2.1→help.html 的母子本链，修改须沿链逐级同步（权威源→母本→子本），help.html 为用户向页面不得残留已被否决的 AI 对仗表述
+
+## T-200 第五批：P-015 重写为组织内控总论（P-013 并入）+ 意见反馈处置权倒写 DATA_ARCHITECTURE §2.16 + 全仓下游联动（2026-08-10）
+
+**任务**：讲解稿专项收尾——① P-012 讲解稿定稿（一条主线自然叙述，清除溯源括号与"（司法解释）"字样）；② 历史问题三项：组织者"核心职能"全仓改"分工记录职责"、P-011"脑子/手比喻已弃用"段删除、**P-015 重写为"组织内控总论"**（书记裁决：原"书记作为条块间的协调节点——党课和意见反馈不可委托"中协调节点定位/决策不可委托为系统设计的工程选择，不作为论断保留；唯一可用点是组织内控——提取回避+仲裁，与 P-013 职责分离合并）；③ 党课归 02 制度层、意见反馈处置权倒写 04（学习 issues.js 网页做法）；④ "既然叫内控总论，研究散落各处的书记原话"——正文收录书记 2026-05-06"发起是提出需求，招募是统筹执行" + 2026-08-05 兼任无「当然」关系两条原话。
+**引用流程**：H5 书记评议 + T-200 + H2.1 一改具改（书记提醒原话修改须查下游）+ H3 文件修改检查清单
+
+- **书记裁决链（四轮 AskUserQuestion）**：
+  - ① P-012 讲解稿形态=一条主线自然叙述（书记："很机械地把提到的三点排布"）；清除范围=讲解稿+修正记录表都清除
+  - ② P-015 提取=回避+仲裁（唯一可用点）；组织者"核心职能"→"分工记录职责"；P-011 弃用段=删正文+简化索引
+  - ③ P-015 合并形态=重写为内控总论；附加指令：意见反馈已有更好的网页实现（issues.js），**倒过来写入 04 文档**；党课去处思考（02 or 04 or both）
+  - ④ P-012 定稿附加反馈=（书记 2026-08-09 特别指出：…）溯源括号读者会莫名其妙→改自然叙述；P-013 处置=并入内控总论；内控形态=原话+讲解块三块；党课去处=**归 02 制度层**；意见反馈=**补 DATA_ARCHITECTURE §2.16**
+- **核心文件执行（SECRETARY_PRONOUNCEMENTS.md）**：
+  - P-015 重写为"组织内控总论——职责分离、主动回避与书记仲裁"：正文两条书记原话（2026-05-06 提出需求与招募统筹分离 + 2026-08-05 兼任无当然关系）；讲解块三道防线（职责分离=提出需求与招募统筹分离+组织委员唯一专班管理节点+人才库论据+最小成本原则关联；主动回避=涉及本人审核主动回避防"自己审核自己"；书记仲裁=多条条矛盾任务优先级组织>纪检>宣传+主身份优先）
+  - P-013 独立条目删除并入 P-015（职责分离防线），附录索引移除 P-013 行、已迁出区追加并入说明、修正记录表 P-013 行补"并入 P-015"
+  - P-012 讲解稿定稿：一条主线自然叙述（活动要时间场地→专班互斥根据→活动之外考察载体无"继续"关系→考勤落地→考察靠工作量记录与 P-010 一脉相承→完整图景），**删除溯源括号**（书记："读者会莫名其妙"）；引用块 P-013 锚点改 [P-015](#p-015-组织内控总论职责分离主动回避与书记仲裁)
+  - P-010 标题"组织者核心职能是分工记录"→"组织者的分工记录职责"（书记明确反对"核心职能"表达），设计初衷段同步
+  - P-011"脑子/手比喻已弃用"段从正文删除（书记："弃用为什么还要写出来呢？此地无银三百两"）
+  - 头部/目录/章节说明/论断层次/读后要点同步（"组织内控靠三道防线——职责分离、主动回避、书记仲裁"）；修正记录表清除"（司法解释）"字样改"显性标签化注解"
+- **下游联动（一改具改）**：
+  - COMMISSIONER_FRAMEWORK.md：§C.1b 意见反馈管理区新增党课规则（书记不可委托的合规依据，引用 DATA_ARCHITECTURE §2.16）；文档关联表"P-012~P-013 专班论断"→P-012；专班创建审批依据"P-012+P-013"→P-012；赋权审批依据"P-009~P-013 赋权关系链"→"P-009~P-010 + P-012 + P-015 赋权与内控关系链"
+  - FLAT_DESIGN.md / README.md / 定人定责说明 / help.html：P-010"组织者核心职能"→"分工记录职责"四联
+  - 定人定责说明 L56"（P-014~P-015 条块二元）"→"（P-014 条块二元）"（P-015 已不再属条块二元）
+  - SOP_WEB.md §G.4："书记是条块间的协调节点（P-015）"→"书记的审批反馈是活动执行方向把握的关键环节（P-027②）"（P-015 重写后不再是协调节点来源，审批反馈依据 P-027②）
+  - DATA_ARCHITECTURE.md §2.16 意见反馈数据倒写（学习 issues.js 网页做法）：IssueRecord 真实字段表（id/number/title/body/scope/types/status/closedReason/closedAt/assignee/assigneeRole/dispatchHistory/milestone/reactions/mentions/references/participants/commentCount/hidden/mergedInto/comments/resultPending）+ GitHub Issue 风格处理流程（open→指派→公开讨论→处置结果→待终审→终审关闭/重开）+ 派生显示状态 + **书记处置权设计表**（changeStatus/closeIssue/reopenIssue/assignIssue/setMilestone/hideIssue/mergeIssue/hideComment/editIssue/approveDraft/rejectDraft 十项，类比 GitHub maintainer 唯一拥有 merge/close 权，标注 P-015 书记仲裁防线落点）+ 通知机制
+- **零残留验证**（全仓 grep）：
+  - ✅ P-013 活跃文档零残留（仅 CLAUDE.md T-200 历史任务记录 + 汇编已迁出区/修正记录表有意保留 + 历史日志）
+  - ✅ #p-013 锚点零残留；#p-015 锚点 2 处均为新锚点（P-012 讲解块引用 + 附录索引），无旧"协调节点"锚点引用
+  - ✅ "组织者核心职能"在 SECRETARY_PRONOUNCEMENTS 零残留（insights 图标隐喻/组织委员职能"核心职能"属不同语境保留）；"（司法解释）"content 零残留
+  - ✅ 脑子/手比喻弃用段从正文删除（SECRETARY_PRONOUNCEMENTS grep"脑子/比喻已弃用"零命中）
+  - ✅ 定人定责 §3.2 回避防线母本确认（"涉及本人审核事项时主动回避""回避原则防止'自己审核自己'导致内控失效"）与 P-015 讲解块一致
+- **变更文件**：`content/01_strategy/SECRETARY_PRONOUNCEMENTS.md`、`content/02_institution/COMMISSIONER_FRAMEWORK.md`、`content/02_institution/FLAT_DESIGN.md`、`README.md`、`content/02_institution/sop/支委与党小组定人定责定岗说明.md`、`content/04_web_design/DATA_ARCHITECTURE.md`、`content/04_web_design/SOP_WEB.md`、`docs/help.html`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[已沉淀: 内控三道防线]` — 组织内控=职责分离（提出需求与招募统筹分离）+主动回避（涉及本人审核主动回避）+书记仲裁（矛盾任务优先级组织>纪检>宣传）三道防线，P-013 并入 P-015 作为职责分离防线，原话保留于 P-015 正文；`[已沉淀: 工程选择与论断分层]` — "书记作为条块间的协调节点——党课和意见反馈不可委托"中协调节点定位/决策不可委托为系统设计的工程选择（书记工作台功能需求），不作为路线级论断保留，仅组织内控内容提取入论断——系统设计事实（README/insights 可描述）与书记论断（汇编）须分层；`[已沉淀: 网页实现倒写入文档]` — 意见反馈已由网页实现（issues.js）超越旧文档模型（FeedbackRecord pending/processing/done），倒写 04 文档采用真实 IssueRecord 模型+书记十项处置权表，文档与实现同源；`[待办]` — 讲解稿专项收尾后 commit（push 需书记批准）

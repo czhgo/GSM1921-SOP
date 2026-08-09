@@ -2,7 +2,7 @@
 title: "委员体系框架"
 type: design
 role: "[用户]+[AI]"
-last_updated: "2026-08-09"
+last_updated: "2026-08-10"
 status: active
 merged_from:
   - content/guides/COMMISSIONER_ORGANIZATION_ROLE.md (已删除)
@@ -170,6 +170,8 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组（原党务�
 
 > 支部书记拥有上述全部权限（Y(全局)），不重复列出。
 > 意见反馈由支部书记全权处理，任何支委不干预反馈流转。
+>
+> **党课（书记不可委托事项）**：书记是党课的法定主讲或审定人——非书记主讲的党课不被上级承认为规范党课。即使其他成员有能力讲党课，也不可替代书记的法定地位。这不是能力问题，是合规/制度问题：制度规定必须书记亲自决策的事项，决策权不能移交。意见反馈的公开讨论可全员参与，但处置权始终归书记（详见 [DATA_ARCHITECTURE.md §2.16](../04_web_design/DATA_ARCHITECTURE.md) 意见反馈数据模型）。
 
 ### C.2 条块交互权限矩阵
 
@@ -359,7 +361,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组（原党务�
 
 | 本文档章节 | 关联文件 |
 |-----------|---------|
-| §A.3~A.7 专班 | SECRETARY_PRONOUNCEMENTS.md（P-012~P-013 专班论断，权威源） |
+| §A.3~A.7 专班 | SECRETARY_PRONOUNCEMENTS.md（P-012 专班论断，权威源） |
 | §B 职责体系 | 支委与党小组定人定责定岗说明.md §二 |
 | §C 权限矩阵 | ROLE_CLASSIFICATION.md §九 |
 | §D UI 体系 | MODULE_UI_DESIGN.md §2.3 + §5 |
@@ -384,6 +386,8 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组（原党务�
 ## §审批流程规范（原 APPROVAL_FLOW.md）
 
 > **权威源声明**：本节是审批流程的唯一权威源（原 APPROVAL_FLOW.md 全量合并），定义 Org OS 中所有审批场景的统一流程、状态机与权限矩阵。冲突时以本节为准。
+>
+> **（书记论断 P-027③，2026-08-09 自书记论断汇编拆解迁入）：报备/审批是双向关系，不是单向报备——组织者把方案报上去（信息上行），书记要给出审批反馈（信息下行）把握执行方向。书记的审批反馈是活动执行方向的确认：不是"活动是否可以创建"（事前准入），而是"已创建活动在执行过程中的方向确认"（事中把控）。两者是不同场景，不可混淆。**
 
 ### 一、活动创建审批
 
@@ -403,13 +407,13 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组（原党务�
 
 ### 二、专班创建审批
 
-> 依据：[SECRETARY_PRONOUNCEMENTS.md](../01_strategy/SECRETARY_PRONOUNCEMENTS.md) P-012+P-013（专班与赋权考察）→ 本文档 §A.6~A.7
+> 依据：[SECRETARY_PRONOUNCEMENTS.md](../01_strategy/SECRETARY_PRONOUNCEMENTS.md) P-012（专班与赋权考察）→ 本文档 §A.6~A.7
 
 **详细步骤**：宣传委员/党支书提出专班需求 → 组织委员评估可行性并制定招募方案 → 书记审批方案 → 通过则组织委员开始招募赋权成员，驳回则调整方案重新提交。状态机与权限矩阵见 §六、§七。
 
 ### 三、赋权审批
 
-> 依据：[P-009~P-013 赋权关系链](../01_strategy/SECRETARY_PRONOUNCEMENTS.md) → 本文档 §A.7
+> 依据：[P-009~P-010 + P-012 + P-015 赋权与内控关系链](../01_strategy/SECRETARY_PRONOUNCEMENTS.md) → 本文档 §A.7
 
 #### 3.1 专班赋权（组织委员发起）
 
