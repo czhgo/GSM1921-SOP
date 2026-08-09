@@ -13,7 +13,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > 这些论断按问题脉络分作十一组，每一组回答一个同志们可能产生的疑问：系统产出是什么（P-045/P-047 元命题引子）？支部到底为谁存在、组织性为什么宝贵（P-001~P-005 + P-043/P-044）？分工怎么避免变成上下级（P-009~P-010）？专班到底怎么运作（P-012~P-013）？条块二元怎么理解权责关系（P-014~P-015）？制度怎么维护才不偏离（P-016~P-018）？身份和模式怎么选（P-029）？文档之间什么关系（P-024）？人才库装什么（P-026）？报备审批为什么是双向的（P-027）？最后落到党建的根本目标——恢复对话能力（P-041）。
 >
-> **每条论断以书记原话为起点**——原话是权威校准源，读者第一眼看到的不是 AI 提炼的命题，而是书记本人的判断。原话完整保留不删改，正文若与原话出现张力，以原话为准。**正文形式**（2026-08-04 确立）：书记原话作正文，多条原话用无序列表列示；AI 扩充内容放入引用块。
+> **每条论断以书记原话为起点**——原话是权威校准源，读者第一眼看到的不是 AI 提炼的命题，而是书记本人的判断。原话完整保留不删改，正文若与原话出现张力，以原话为准。**正文形式**（2026-08-04 确立，2026-08-09 补充）：书记原话作正文，多条原话用无序列表列示；AI 扩充内容放入引用块；技术性元数据收敛为单行引用块小字（`> 出处：… · 母本：… · 层次：…`），长修正记录统一归档于[附录·修正记录表](#附录修正记录表)。
 >
 > **元原则**（书记 2026-08-09）：**书记所有的原话都是一个 big picture 下的不同侧面，一定要去体悟这种统一性和一致性，对书记的原话融会贯通！**——AI 讲解的职责是把每条原话放进这个 big picture：先讲清原话之间、论断之间的关系，再解读原话的含义（不新增内容），最后才作扩充；扩充不得私加书记没给定的内容（如"人人可提""高年级课业重"皆为 AI 私加，须杜绝）。讲解按每条论断的实际情况自然写作，不机械套模板。
 >
@@ -63,15 +63,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > **与 CLAUDE.md H7 的关系**：本条是元命题记录，CLAUDE.md 甲部 H7"项目产出声明"承载该元命题的治理层锚点。详细叙事见 [DEVELOPMENT_PATH.md](DEVELOPMENT_PATH.md) 第一章。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：2026-07-14 书记关于系统产出的元命题阐述 + 2026-07-16 书记关于 AI 展开原则的阐述（原 P-046 融入）
-- 母本位置：`content/01_strategy/DEVELOPMENT_PATH.md` 第一章 + CLAUDE.md H7（系统产出）；`USAGE_POLICY.md §二` + `OPERATIONS_GUIDE.md §13.6`（AI 展开原则）
-- 反论位置：本文件（元命题）
-- 索引位置：✅ CLAUDE.md H7（项目产出声明）+ ✅ CLAUDE.md H6（外部权威源索引，AI 展开原则）
-- 层次：**元命题**
-</details>
+> 出处：2026-07-14 元命题阐述 + 2026-07-16 AI 展开原则（原 P-046 融入） · 母本：DEVELOPMENT_PATH.md 第一章 + CLAUDE.md H7（系统产出）；USAGE_POLICY.md §二 + OPERATIONS_GUIDE.md §13.6（AI 展开原则） · 层次：元命题
 
 ---
 
@@ -96,15 +88,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > **母本位置**：本条详细叙事见 [DEVELOPMENT_PATH.md](DEVELOPMENT_PATH.md) 第一章 + 第二章。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：2026-07-20 书记关于"管理事，服务人"叙事整合的元洞察
-- 母本位置：`content/01_strategy/DEVELOPMENT_PATH.md` 第一章 + 新增第二章
-- 反论位置：本文件（元命题）
-- 索引位置：✅ CLAUDE.md H7（项目产出声明）
-- 层次：**元命题**
-</details>
+> 出处：2026-07-20 "管理事，服务人"叙事整合元洞察 · 母本：DEVELOPMENT_PATH.md 第一章 + 第二章 · 层次：元命题
 
 ---
 
@@ -122,15 +106,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > 完整叙事见 [DEVELOPMENT_PATH.md 第一章](DEVELOPMENT_PATH.md)。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：D-227 + DEVELOPMENT_PATH.md 第一章 + 附录 B + CLAUDE.md H6（外部权威源索引）
-- 母本位置：`content/01_strategy/DEVELOPMENT_PATH.md` 第一章 + 附录 B
-- 反论位置：`content/insights/党支部管理与实务经验沉淀.md`（战略路线锚点）
-- 索引位置：✅ CLAUDE.md H6（外部权威源索引）
-- 层次：**战略路线级**
-</details>
+> 出处：D-227 + DEVELOPMENT_PATH.md 第一章 + 附录 B · 母本：DEVELOPMENT_PATH.md 第一章 + 附录 B · 层次：战略路线级
 
 ---
 
@@ -144,15 +120,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > 观察点 3 与"想象等级森严"同根：赋权的体系会让不曾经历的人误以为"只要有了位置就可以指挥组织"——这一方面掩盖了真实管理过程中的组织行为学，另一方面并不适用一个需要发挥创造力的组织。这与 P-009"扁平化不能与没有'程序'等同"一脉相承——组织者与深度参与者之间没有上下级关系，只是分工内容不同。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：D-227 + DEVELOPMENT_PATH.md 第一章第二阶段·事情运作有管理科学和既往经验 + CLAUDE.md H6（外部权威源索引）
-- 母本位置：`content/01_strategy/DEVELOPMENT_PATH.md` 第一章第二阶段·事情运作有管理科学和既往经验
-- 反论位置：`content/insights/党支部管理与实务经验沉淀.md`
-- 索引位置：✅ CLAUDE.md H6（外部权威源索引）
-- 层次：**制度设计级**
-</details>
+> 出处：D-227 + DEVELOPMENT_PATH.md 第一章第二阶段 + CLAUDE.md H6 · 母本：DEVELOPMENT_PATH.md 第一章第二阶段 · 层次：制度设计级
 
 ---
 
@@ -162,15 +130,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 > 支部里大多数工作是有先例的——发展党员、党费缴纳、办党课、做宣传报道，历届支委都沉淀了工作流。对于这些有先例的工作，先从既有工作流开始，不要从零起步。这是与组织进行真实对话的方式：站在累积的经验上，而不是"重复造轮子"。善用经验也是新成员融入组织的最短路径——新成员不必"摸石头过河"，按工作流走一遍就能进入状态，再在执行中提出改进。工作流沉淀的价值在于持续被使用和改进，让每一届的经验累积都能为下一届所用。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：D-227 + DEVELOPMENT_PATH.md 第一章第二阶段·事情运作有管理科学和既往经验 + CLAUDE.md H6（外部权威源索引）
-- 母本位置：`content/01_strategy/DEVELOPMENT_PATH.md` 第一章第二阶段·事情运作有管理科学和既往经验
-- 反论位置：`content/insights/党支部管理与实务经验沉淀.md`
-- 索引位置：✅ CLAUDE.md H6（外部权威源索引）
-- 层次：**制度设计级**
-</details>
+> 出处：D-227 + DEVELOPMENT_PATH.md 第一章第二阶段 + CLAUDE.md H6 · 母本：DEVELOPMENT_PATH.md 第一章第二阶段 · 层次：制度设计级
 
 ---
 
@@ -182,16 +142,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > **与 P-044 的关联**：书记 2026-08-05 强调"支部的建设方兴未艾，任何的意见、建议、创新都弥足珍贵"（见 [P-044](#p-044-ai时代中学生党支部的探索机会参与构建与组织转型)）——"方兴未艾"正是创新沉淀的土壤：正因支部建设仍在起步，每个成员的意见与创新才弥足珍贵。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：DEVELOPMENT_PATH.md 第一章第三阶段·发挥主人翁精神在框架内真实表达 + CLAUDE.md H6（外部权威源索引）
-- 母本位置：`content/01_strategy/DEVELOPMENT_PATH.md` 第一章第三阶段·发挥主人翁精神在框架内真实表达
-- 反论位置：`content/insights/党支部管理与实务经验沉淀.md`
-- 索引位置：✅ CLAUDE.md H6（外部权威源索引）
-- 层次：**制度设计级**
-- 修正记录：2026-08-09 书记复核，原话"支部的工作方兴未艾"随书记 2026-08-05 最新表述统一为"支部的建设方兴未艾"，并加注与 P-044 的关联
-</details>
+> 出处：DEVELOPMENT_PATH.md 第一章第三阶段 + CLAUDE.md H6 · 母本：DEVELOPMENT_PATH.md 第一章第三阶段 · 层次：制度设计级
 
 ---
 
@@ -206,16 +157,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > **补充（书记 2026-08-09）**："最大的礼貌是'负责'"是框架内对话的延伸——在本科生党支部里，最高的礼貌不是措辞周全，而是知之为知之、不知为不知的负责态度。不要过分推敲措辞（特别是"称呼"），非正式的表达中更能迸发创新的火花——这与"不要怕说错话"一脉相承：怕说错话的根源之一，正是对措辞的过度推敲。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：DEVELOPMENT_PATH.md 第一章第三阶段·发挥主人翁精神在框架内真实表达 + CLAUDE.md H6（外部权威源索引）
-- 母本位置：`content/01_strategy/DEVELOPMENT_PATH.md` 第一章第三阶段·发挥主人翁精神在框架内真实表达
-- 反论位置：`content/insights/党支部管理与实务经验沉淀.md`
-- 索引位置：✅ CLAUDE.md H6（外部权威源索引）
-- 修正记录：2026-08-09 书记补充原话"最大的礼貌是'负责'。知之为知之，不知为不知。不要去过分推敲措辞，特别是'称呼'，非正式的表达中更能迸发创新的火花。"（与"框架内对话"相关，作补充；按正文形式条款转无序列表双条原话）
-- 层次：**制度设计级**
-</details>
+> 出处：DEVELOPMENT_PATH.md 第一章第三阶段 + CLAUDE.md H6 · 母本：DEVELOPMENT_PATH.md 第一章第三阶段 · 层次：制度设计级
 
 ---
 
@@ -227,16 +169,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > **母本位置**：本条详细叙事见 [DEVELOPMENT_PATH.md](DEVELOPMENT_PATH.md) 第一章收束·为什么是宝贵机会·机会1。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：2026-07-14 书记关于组织性与生涯发展关系的阐述
-- 母本位置：`content/01_strategy/DEVELOPMENT_PATH.md` 第一章收束·为什么是宝贵机会·机会1
-- 反论位置：本文件
-- 索引位置：✅ CLAUDE.md H6（外部权威源索引）
-- 层次：**战略路线级**
-- 标注说明：原话中"这也就意味着真实的组织，不能只靠程序性令人凝聚在一起，也不能只靠'扁平化'而不去形成共识、带来效率"是书记原话的一部分（非 AI 衍生），2026-07-20 书记确认保留
-</details>
+> 出处：2026-07-14 组织性与生涯发展关系阐述 · 母本：DEVELOPMENT_PATH.md 第一章收束·机会1 · 层次：战略路线级 · 注：原话中"这也就意味着真实的组织，不能只靠程序性令人凝聚在一起，也不能只靠'扁平化'而不去形成共识、带来效率"是书记原话的一部分（非 AI 衍生），2026-07-20 书记确认保留
 
 ---
 
@@ -252,15 +185,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > **母本位置**：本条详细叙事见 [DEVELOPMENT_PATH.md](DEVELOPMENT_PATH.md) 第一章收束·为什么是宝贵机会·机会2。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：2026-07-14 书记关于AI时代学生党支部探索机会的阐述
-- 母本位置：`content/01_strategy/DEVELOPMENT_PATH.md` 第一章收束·为什么是宝贵机会·机会2
-- 反论位置：本文件
-- 索引位置：✅ CLAUDE.md H6（外部权威源索引）
-- 层次：**战略路线级**
-</details>
+> 出处：2026-07-14 AI时代学生党支部探索机会阐述 · 母本：DEVELOPMENT_PATH.md 第一章收束·机会2 · 层次：战略路线级
 
 ---
 
@@ -289,16 +214,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > 组织者有两种情况（2026-05-17 书记原话）：自上而下布置的——从支委或党小组组长处承包任务，发挥桥梁作用，对深度参与者进行分工（分派任务），分工需经平等协商；自下而上创建的——必须联系本组党小组组长或组织委员，由党小组组长或组织委员赋权后方可进行任务分派。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：D-15 + FLAT_DESIGN.md + insights 党支部管理与实务经验沉淀.md §4.6 + CLAUDE.md H6（外部权威源索引）
-- 母本位置：`content/02_institution/FLAT_DESIGN.md`
-- 反论位置：`content/insights/党支部管理与实务经验沉淀.md` §4.6
-- 索引位置：✅ CLAUDE.md H6（外部权威源索引）
-- 修正记录：2026-08-09 书记复核——标题"扁平化≠无分工，而是无上下级"为错误反论，改"扁平化不能与没有'程序'等同"；原话补全"身份不是最重要的，年级和政治面貌不决定是否胜任"（2026-05-17 完整原话）；新增书记 2026-08-09 两句原话（推广到整个组织链条 + 可持续的管理）；删除 AI 提炼句"分工依据事情本身，不依据层级命令"；新增书记 2026-08-09 原话"谈心谈话时的默认认知①②"（"可持续的管理"的推论），引用块补"谈心谈话的默认认知"段
-- 层次：**制度设计级**
-</details>
+> 出处：D-15 + FLAT_DESIGN.md + insights §4.6 · 母本：FLAT_DESIGN.md · 层次：制度设计级
 
 ---
 
@@ -319,16 +235,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > 考勤要求（活动：深度参与者必须出席、组织者最好出席；专班：无严格时间地点限制）见 [P-012](#p-012-专班不限时间不限地点活动之外考察积极分子的载体)。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：D-15 ④⑤⑥ + 书记 2026-08-09 复核确认
-- 母本位置：`content/02_institution/FLAT_DESIGN.md`
-- 反论位置：`content/insights/党支部管理与实务经验沉淀.md` §4
-- 索引位置：✅ CLAUDE.md H6（外部权威源索引）
-- 修正记录：2026-08-09 书记复核——正文 6 句确认为书记原话（D-15 ④⑤⑥，含"深度参与者可更频繁调整，但组织者最好保持留在岗位""必须由支委会确定好接手的组织者并负责地完成工作交接后方可退出"）；旧表述"分工记录而非管理闭环"为 AI 自造、书记裁决完全错误（"分工记录就是管理闭环的重要部分"）；考勤要求已在 P-012 双录不重复
-- 层次：**制度设计级**
-</details>
+> 出处：D-15 ④⑤⑥ + 书记 2026-08-09 复核确认 · 母本：FLAT_DESIGN.md · 层次：制度设计级
 
 ---
 
@@ -386,15 +293,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 常规模式（接力）下，支委决策→党小组组长中转→触达党员；专班模式下，支委直接从各小组抽调党员。~~党小组组长仅确认可用性，不介入执行协调~~（⚠️ 2026-07-18 反论评议第一轮确认：此"常规vs专班"并列对比及"中转站→确认者"角色变化为AI推导，非书记原话，已从 insights 党支部管理与实务经验沉淀.md §2.3 和 FLAT_DESIGN.md §四删除。此处保留标注供溯源。）
 
-<details>
-<summary>元数据</summary>
-
-- 出处：insights 党支部管理与实务经验沉淀.md §2.1 + COMMISSIONER_FRAMEWORK.md §A.3
-- 母本位置：`content/02_institution/COMMISSIONER_FRAMEWORK.md` §A.3
-- 反论位置：`content/insights/党支部管理与实务经验沉淀.md` §2.1
-- 索引位置：✅ CLAUDE.md H6（外部权威源索引）
-- 层次：**制度设计级**
-</details>
+> 出处：insights §2.1 + COMMISSIONER_FRAMEWORK.md §A.3 · 母本：COMMISSIONER_FRAMEWORK.md §A.3 · 层次：制度设计级
 
 ---
 
@@ -406,15 +305,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 支委兼任党小组组长时冲突解决：主身份优先，涉及本人审核主动回避。多条条对同一块块下达矛盾任务时优先级：组织>纪检>宣传，书记仲裁。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：D-226 + insights 党支部管理与实务经验沉淀.md §2.2
-- 母本位置：`content/insights/党支部管理与实务经验沉淀.md` §2.2
-- 反论位置：`content/insights/党支部管理与实务经验沉淀.md` §2.2
-- 索引位置：✅ CLAUDE.md H6（外部权威源索引）
-- 层次：**制度设计级**
-</details>
+> 出处：D-226 + insights §2.2 · 母本：insights §2.2 · 层次：制度设计级
 
 ---
 
@@ -432,15 +323,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 修改前要全仓库搜索所有引用位置（Grep + SearchCodebase）；修改中逐一替换，每处替换记录到执行日志；修改后再次全仓库搜索确认零残留。必须定期进行交叉审查，以最高权威源为基准逐项比对。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：CLAUDE.md H2.1 + insights 工程演进与设计方法论.md §1.4/§3.2
-- 母本位置：CLAUDE.md H2.1
-- 反论位置：`content/insights/工程演进与设计方法论.md` §1.4/§3.2
-- 索引位置：✅ CLAUDE.md H2.1
-- 层次：**制度设计级**
-</details>
+> 出处：CLAUDE.md H2.1 + insights 工程演进 §1.4/§3.2 · 母本：CLAUDE.md H2.1 · 层次：制度设计级
 
 ---
 
@@ -450,15 +333,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 制度的设计目标就是让执行者无需额外判断即可正确执行。规则写清楚了执行者仍然犯错，那是执行问题；规则本身模糊、遗漏或标准不够具体，再强的执行力也无法弥补。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：CLAUDE.md H2.1 + insights 工程演进与设计方法论.md §3.5
-- 母本位置：CLAUDE.md H2.1（甲部自省原则）
-- 反论位置：`content/insights/工程演进与设计方法论.md` §3.5
-- 索引位置：✅ CLAUDE.md H2.1
-- 层次：**制度设计级**
-</details>
+> 出处：CLAUDE.md H2.1 + insights 工程演进 §3.5 · 母本：CLAUDE.md H2.1（甲部自省原则） · 层次：制度设计级
 
 ---
 
@@ -472,15 +347,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 每次书记做出非显而易见的决策时，都要检查该决策是否包含超越本次决策的原则。如果是，按原则的影响范围写入对应层级的文档（guides/Harness）。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：CLAUDE.md H6 外部权威源索引
-- 母本位置：CLAUDE.md H6 外部权威源索引
-- 反论位置：`content/insights/党支部管理与实务经验沉淀.md`
-- 索引位置：✅ CLAUDE.md H6（外部权威源索引）
-- 层次：**制度设计级**
-</details>
+> 出处：CLAUDE.md H6 外部权威源索引 · 母本：CLAUDE.md H6 外部权威源索引 · 层次：制度设计级
 
 ---
 
@@ -500,15 +367,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 身份切换器的核心目的是明确"只读"是哪种只读。支委之间切换 → 管理者只读（管理模式-写入）；支部成员查看 → 参与者只读（独立视图）。只读模式永不设限：任何角色都可以只读浏览全部信息。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：D-051 + insights 党支部管理与实务经验沉淀.md §4.6 + SOP_WEB.md §G.3
-- 母本位置：`content/04_web_design/SOP_WEB.md` §G.3
-- 反论位置：`content/insights/党支部管理与实务经验沉淀.md` §4.6
-- 索引位置：✅ CLAUDE.md H6（外部权威源索引）
-- 层次：**制度设计级**
-</details>
+> 出处：D-051 + insights §4.6 + SOP_WEB.md §G.3 · 母本：SOP_WEB.md §G.3 · 层次：制度设计级
 
 ---
 
@@ -526,15 +385,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 冲突裁决规则是：CLAUDE.md > guides/SOP（各自独立，互不覆盖）> 代码实现。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：D-218 + OPERATIONS_GUIDE.md §1.1
-- 母本位置：`content/03_doc_system/OPERATIONS_GUIDE.md` §1.1
-- 反论位置：`content/insights/工程演进与设计方法论.md` §1.2
-- 索引位置：⚠️ 运行标准范畴（见 OPERATIONS_GUIDE.md §1.1，非理论基石）
-- 层次：**制度设计级**
-</details>
+> 出处：D-218 + OPERATIONS_GUIDE.md §1.1 · 母本：OPERATIONS_GUIDE.md §1.1 · 层次：制度设计级 · 索引：⚠️ 运行标准范畴（见 OPERATIONS_GUIDE.md §1.1，非理论基石）
 
 ---
 
@@ -554,15 +405,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 应用场景：专班招募参考、发展党员考察、积极分子培养。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：insights 党支部管理与实务经验沉淀.md §4.7
-- 母本位置：`content/insights/党支部管理与实务经验沉淀.md` §4.7
-- 反论位置：`content/insights/党支部管理与实务经验沉淀.md` §4.7
-- 索引位置：✅ CLAUDE.md H6（外部权威源索引）
-- 层次：**制度设计级**
-</details>
+> 出处：insights §4.7 · 母本：insights §4.7 · 层次：制度设计级
 
 ---
 
@@ -580,15 +423,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 组织者获得党小组组长赋权后，向党支书报备活动方案；党支书审批反馈，确保活动执行方向符合支部整体部署。在视觉上，organizer↔secretary 的报备边应为双向边，label 为"报备/审批"。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：D-223
-- 母本位置：本文件（书记论断 D-223）
-- 反论位置：`content/insights/党支部管理与实务经验沉淀.md`
-- 索引位置：✅ CLAUDE.md H6（外部权威源索引）
-- 层次：**制度设计级**
-</details>
+> 出处：D-223 · 母本：本文件（书记论断 D-223） · 层次：制度设计级
 
 ---
 
@@ -606,15 +441,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > 母本已归位到 `content/01_strategy/DEVELOPMENT_PATH.md` 第三章。后续在第三批定人定责定岗说明重组、党建活动设计、发展党员考察等场景中，应检验"是否有助于恢复成员的对话能力"——若某项工作无助于恢复对话能力，需反思其战略价值。生效条件：书记已确认原话表述并删除 AI 推导反论，本战略表达视为完整 meta 级论断。
 
-<details>
-<summary>元数据</summary>
-
-- 出处：书记 2026-07-02 战略阐述 + DEVELOPMENT_PATH.md 第三章
-- 母本位置：`content/01_strategy/DEVELOPMENT_PATH.md` 第三章
-- 反论位置：已删除（书记已确认删除 AI 推导反论，见 DEVELOPMENT_PATH.md 第三章 3.4 生效条件）
-- 索引位置：✅ CLAUDE.md H6（外部权威源索引） 延伸引用
-- 层次：**战略路线级**
-</details>
+> 出处：2026-07-02 战略阐述 + DEVELOPMENT_PATH.md 第三章 · 母本：DEVELOPMENT_PATH.md 第三章 · 层次：战略路线级
 
 ---
 
@@ -660,9 +487,14 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 ## 附录·修正记录表
 
-按 P 编号顺序记录历次书记复核后的修正（正文只保留出处/母本/层次单行元数据，长修正记录统一在此归档）：
+按 P 编号顺序记录历次书记复核后的修正与重要标注（正文只保留出处/母本/层次单行元数据，长修正记录统一在此归档）：
 
 | 论断 | 日期 | 修正记录 |
 |------|------|---------|
+| P-004 | 2026-08-09 | 书记复核，原话"支部的工作方兴未艾"随书记 2026-08-05 最新表述统一为"支部的建设方兴未艾"，并加注与 P-044 的关联 |
+| P-005 | 2026-08-09 | 书记补充原话"最大的礼貌是'负责'。知之为知之，不知为不知。不要去过分推敲措辞，特别是'称呼'，非正式的表达中更能迸发创新的火花。"（与"框架内对话"相关，作补充；按正文形式条款转无序列表双条原话） |
+| P-009 | 2026-08-09 | 书记复核——标题"扁平化≠无分工，而是无上下级"为错误反论，改"扁平化不能与没有'程序'等同"；原话补全"身份不是最重要的，年级和政治面貌不决定是否胜任"（2026-05-17 完整原话）；新增书记 2026-08-09 两句原话（推广到整个组织链条 + 可持续的管理）；删除 AI 提炼句"分工依据事情本身，不依据层级命令"；新增书记 2026-08-09 原话"谈心谈话时的默认认知①②"（"可持续的管理"的推论），引用块补"谈心谈话的默认认知"段 |
+| P-010 | 2026-08-09 | 书记复核——正文 6 句确认为书记原话（D-15 ④⑤⑥，含"深度参与者可更频繁调整，但组织者最好保持留在岗位""必须由支委会确定好接手的组织者并负责地完成工作交接后方可退出"）；旧表述"分工记录而非管理闭环"为 AI 自造、书记裁决完全错误（"分工记录就是管理闭环的重要部分"）；考勤要求已在 P-012 双录不重复 |
 | P-012 | 2026-08-09 | 书记复核——重构为专班总论（"我认为更重要的是介绍'为什么要设立专班'。把这些条目都可以统合进去"）；"活动之外**继续**考察积极分子的载体"删"继续"（书记："不是'继续'，是活动之外考察积极分子的载体。这两者没有'继续'关系。要务必谨慎"），该句升为正文原话；正文新增 2026-07-12 专班互斥原话 |
 | P-013 | 2026-08-09 | 书记复核——标题"发起≠招募"中"提出需求"被概括为"发起"不妥（书记："提出需求 为什么概括成了 发起。我觉得有点怪。所以你可以换一个表达"），标题改为"提出需求与招募统筹分离——发起是提出需求，招募是统筹执行"；引用块删 AI 因果推导"确保权责分离"；补"组织委员能承担这一全局评估与其人才库维护职能分不开"（书记 2026-08-09 补充）+ 最小成本原则关联（书记 2026-07-31 原话）；删引用块末尾与正文重复句；讲解稿按书记"实事求是"要求自然化重写——删除 AI 私加的"人人可提""高年级课业重"等不成立推断 |
+| P-043 | 2026-07-20 | 标注：原话中"这也就意味着真实的组织，不能只靠程序性令人凝聚在一起，也不能只靠'扁平化'而不去形成共识、带来效率"是书记原话的一部分（非 AI 衍生），2026-07-20 书记确认保留 |

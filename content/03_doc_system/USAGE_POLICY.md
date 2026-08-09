@@ -208,7 +208,7 @@ T1 官方定义界定"党建/党务是什么"，取代 T2 两分法作为网页�
 | 文档 | 受众 | 内容性质 | 主表达方式 |
 |------|------|---------|-----------|
 | `content/01_strategy/DEVELOPMENT_PATH.md` | [用户] | 故事叙述 | **段落化**（全仓库唯一需要"故事完整"的文档） |
-| `SECRETARY_PRONOUNCEMENTS.md` | [用户] | 书记论断 | 段落化为主，元数据用 `<details>` 折叠 |
+| `SECRETARY_PRONOUNCEMENTS.md` | [用户] | 书记论断 | 段落化为主，元数据单行化（引用块小字） |
 | `content/02_institution/sop/*.md` | [用户] | 制度流程 | 结构化为主（表格/列表），why 讲解用段落化 |
 | `content/03_doc_system/*.md` | [工程师]+[AI] | 治理规范 | 结构化为主 |
 | `content/insights/*.md` | [用户]+[AI] | 经验沉淀 | 混合——理论/共识类段落化，技术/判例类结构化 |
