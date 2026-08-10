@@ -109,7 +109,8 @@ function _renderStats(activities, taskforces, notices, attendanceRecords, isLoad
     { label: '本月活动', value: monthActivities.length, unit: '场', color: '#CE1126', icon: 'calendarHero', interactive: false },
     // A-09 修复：活跃专班亮金 #FFD700 白卡辨识度低 → 金黄 #A16207（与访客金色系一致）
     { label: '活跃专班', value: activeTFs.length, unit: '个', color: '#A16207', icon: 'usersGroup', interactive: false },
-    { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? '#DC2626' : '#9CA3AF', icon: 'bellHero', interactive: false },
+    // 2026-08-10 书记裁定·四层语义色平衡：未读通知=蓝 #3B82F6（信息/待处理语义，告别告警红→首页红金暖色偏重）
+    { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? '#3B82F6' : '#9CA3AF', icon: 'bellHero', interactive: false },
     { label: '我的考勤', value: myTotal > 0 ? `${myPresent}/${myTotal}` : '—', unit: '', color: myColor, icon: 'clipboard', interactive: true },
   ];
 

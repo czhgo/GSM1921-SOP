@@ -681,13 +681,15 @@ export const MockAdapter = {
 };
 
 /**
- * 仅恢复「非服务端集合」到 mockDB（P1 写穿后调用）
+ * 仅恢复「非主服务端集合」到 mockDB（P1 写穿后调用）
  *
- * API 模式下 10 个服务端集合以服务器为准（由 init() 拉取覆盖），但
- * 文件空间/经验沉淀/合规引用/子记录等集合 P2 才入后端 —— 本函数从
- * localStorage 备份恢复它们，避免 API 模式下这些功能空态。
+ * API 模式下 10 个主服务端集合（activities/tasks/attendances/inspections/
+ * taskforces/notices/todos/assignments/makeupTasks + users）以服务器为准
+ * （由 init() 拉取覆盖），但 niche 集合与 T-209 新域（文件空间/经验沉淀/
+ * 合规引用/子记录/报名/复盘/宣传/档案/公邮/外发确认等）在服务器瞬时不可达或
+ * 旧版服务器缺表时，从 localStorage 备份恢复它们，避免 API 模式下这些功能空态。
  *
- * 注意：绝不动 10 个服务端集合（activities/tasks/.../makeupTasks）。
+ * 注意：绝不动 10 个主服务端集合。
  * 无数据或解析失败静默跳过（仅 warn）。
  */
 export function restoreNicheCollections() {
@@ -703,6 +705,16 @@ export function restoreNicheCollections() {
     if (Array.isArray(parsed.experienceDeposits))   mockDB.experienceDeposits   = parsed.experienceDeposits;
     // T-218：imageRecords 已补入 _saveToStorage 序列化字段，此处恢复补全（刷新不再丢图）
     if (Array.isArray(parsed.imageRecords))         mockDB.imageRecords         = parsed.imageRecords;
+    // T-209 全栈同步：新域回退恢复（与 _saveToStorage 序列化字段一一对应）
+    if (Array.isArray(parsed.signups))         mockDB.signups         = parsed.signups;
+    if (Array.isArray(parsed.activityReviews))  mockDB.activityReviews  = parsed.activityReviews;
+    if (Array.isArray(parsed.taskforceReviews)) mockDB.taskforceReviews = parsed.taskforceReviews;
+    if (Array.isArray(parsed.propTasks))       mockDB.propTasks       = parsed.propTasks;
+    if (Array.isArray(parsed.weeklyReports))   mockDB.weeklyReports   = parsed.weeklyReports;
+    if (Array.isArray(parsed.archiveRecords))  mockDB.archiveRecords  = parsed.archiveRecords;
+    if (parsed.mailboxConfig && typeof parsed.mailboxConfig === 'object') mockDB.mailboxConfig = parsed.mailboxConfig;
+    if (Array.isArray(parsed.mailboxHistory))  mockDB.mailboxHistory  = parsed.mailboxHistory;
+    if (Array.isArray(parsed.externalDispatches)) mockDB.externalDispatches = parsed.externalDispatches;
   } catch (e) {
     console.warn('[MockAdapter] restoreNicheCollections 失败（本地备份解析错误，已跳过）：', e);
   }

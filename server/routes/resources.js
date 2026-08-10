@@ -6,6 +6,7 @@ import { replaceCollection } from '../db.js';
 
 // 资源名 → 表名映射（与 data-adapter 的分组名对齐）
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
+// T-209 全栈同步：补齐前端 mockDB 全部持久化域，使 API 模式全链路可用
 const RESOURCE_TABLES = {
   activities: 'activities',
   tasks: 'tasks',
@@ -21,6 +22,17 @@ const RESOURCE_TABLES = {
   complianceReferences: 'compliance_references',
   fileSpaceRecords: 'file_space_records',
   imageRecords: 'image_records',
+  signups: 'signups',
+  activityReviews: 'activity_reviews',
+  taskforceReviews: 'taskforce_reviews',
+  propTasks: 'prop_tasks',
+  weeklyReports: 'weekly_reports',
+  archiveRecords: 'archive_records',
+  mailboxConfig: 'mailbox_config',
+  mailboxHistory: 'mailbox_history',
+  externalDispatches: 'external_dispatches',
+  actSubRecords: 'act_sub_records',
+  tfSubRecords: 'tf_sub_records',
 };
 
 function listTable(db, table) {
@@ -33,6 +45,10 @@ const ID_PREFIX = {
   taskforces: 'tf', notices: 'ntc', todos: 'td', assignments: 'asg',
   makeupTasks: 'mk', experienceDeposits: 'xp',
   complianceReferences: 'cr', fileSpaceRecords: 'fs', imageRecords: 'img',
+  signups: 'su', activityReviews: 'arw', taskforceReviews: 'tfr',
+  propTasks: 'ppt', weeklyReports: 'wr', archiveRecords: 'ar',
+  mailboxConfig: 'mbx', mailboxHistory: 'mbh', externalDispatches: 'ed',
+  actSubRecords: 'asr', tfSubRecords: 'tfs',
 };
 
 export function createResourcesRouter(db) {

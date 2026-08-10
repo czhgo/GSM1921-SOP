@@ -350,8 +350,9 @@ function renderDimensionView(container) {
     { label: '本月出勤率', value: attendance.attendanceRate, unit: '%', target: '目标 ≥90%', status: kpiStatusOf(attendance.attendanceRate >= 90, attendance.attendanceRate >= 80), bar: true },
     { label: '复盘问题', value: activity.reviewIssues, unit: '条', target: '真问题导向', status: activity.reviewIssues > 0 ? 'ok' : 'warn', bar: false },
     { label: '归档完成率', value: propaganda.archiveRate, unit: '%', target: '目标 100%', status: kpiStatusOf(propaganda.archiveRate >= 100, propaganda.archiveRate >= 80), bar: true },
-    { label: '考察积压', value: inspection.pendingInspections + inspection.overdueInspections, unit: '条', target: '目标 0 条', status: inspection.overdueInspections ? 'danger' : inspection.pendingInspections ? 'warn' : 'ok', bar: false },
-    { label: '待办异常', value: anomalyTotal, unit: '项', target: '目标 0 项', status: anomalyTotal ? 'danger' : 'ok', bar: false },
+    // 2026-08-10 书记裁定：考察积压/待办异常无既定目标值，不设虚假目标（状态由达标/欠佳/风险徽章表达）
+    { label: '考察积压', value: inspection.pendingInspections + inspection.overdueInspections, unit: '条', target: null, status: inspection.overdueInspections ? 'danger' : inspection.pendingInspections ? 'warn' : 'ok', bar: false },
+    { label: '待办异常', value: anomalyTotal, unit: '项', target: null, status: anomalyTotal ? 'danger' : 'ok', bar: false },
   ];
 
   // 出勤趋势（近 6 场有考勤记录的活动）
@@ -418,7 +419,7 @@ function renderDimensionView(container) {
               ${statusBadge(k.status)}
             </div>
             <div class="text-2xl font-bold text-gray-800 leading-none">${k.value}<span class="text-xs text-gray-400 font-normal ml-1">${k.unit}</span></div>
-            <div class="text-xs text-gray-400 mt-1.5">${k.target}</div>
+            ${k.target ? `<div class="text-xs text-gray-400 mt-1.5">${k.target}</div>` : ''}
             ${k.bar ? `
               <div class="mt-2 h-1.5 rounded-full bg-neutral-100 overflow-hidden">
                 <div class="h-1.5 rounded-full transition-all duration-500" style="width:${Math.min(k.value, 100)}%;background:${barColor(k.status)};"></div>

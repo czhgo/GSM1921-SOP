@@ -3,10 +3,16 @@ import Database from 'better-sqlite3';
 
 // 资源表：每张表 id 主键 + data JSON（保持与前端数据结构完全一致，嵌套字段零损失）
 // T-218：新增 4 张 niche 表（经验沉淀/合规引用/文件空间/图片记录），与前端快照 payload 键名对齐
+// T-209 全栈同步：补齐前端 mockDB 全部持久化域（报名/复盘/宣传/档案/公邮/外发确认 + 子记录聚合域），
+// 使 API 模式下 25 个持久化域全部有后端表支撑。act_sub_records/tf_sub_records/mailbox_config
+// 为对象/单对象聚合域，以「__root__ 单行」模式存储（见 data-adapter.js 封装）。
 const RESOURCE_TABLES = [
   'users', 'activities', 'tasks', 'attendances', 'inspections',
   'taskforces', 'notices', 'todos', 'assignments', 'makeup_tasks',
   'experience_deposits', 'compliance_references', 'file_space_records', 'image_records',
+  'signups', 'activity_reviews', 'taskforce_reviews', 'prop_tasks', 'weekly_reports',
+  'archive_records', 'mailbox_config', 'mailbox_history', 'external_dispatches',
+  'act_sub_records', 'tf_sub_records',
 ];
 
 const SCHEMA = `

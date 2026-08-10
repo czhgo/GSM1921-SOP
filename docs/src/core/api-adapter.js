@@ -1,11 +1,12 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  api-adapter.js — REST API 数据适配器
 //  T-142 阶段2：DataAdapter 接口的 REST API 实现（P1：读列表 + snapshot 写穿已就绪；
 //  资源级 CRUD 为 P2）
 //
 //  P1 已实现能力：
-//  1. 10 个服务端资源分组的 list()（供 data-adapter init() 拉取全量数据填充 mockDB）
+//  1. 25 个服务端资源分组的 list()（供 data-adapter init() 拉取全量数据填充 mockDB）
+//     —— 10 主集合 + 8 niche + 7 新域（报名/复盘/宣传/档案/公邮/外发确认/子记录聚合域，T-209 全栈同步）
 //  2. snapshot()：全量快照写穿（POST /api/v1/snapshot，认证保护，供 persist() 防抖调度）
 //  3. _request()：统一 fetch + Bearer token 认证（token 由 getAuthToken() 提供）
 //
@@ -146,10 +147,10 @@ export const ApiAdapter = {
   },
 
   /**
-   * 全量快照写穿：将当前 mockDB 的 10 个服务端集合整体覆盖写入后端（认证保护）。
+   * 全量快照写穿：将当前 mockDB 的 25 个持久化域整体覆盖写入后端（认证保护）。
    * 由 data-adapter 的 persist() 防抖调度调用；P2 资源级 CRUD 落地前，
    * 这是服务层写入穿透到服务器的唯一通道。
-   * @param {Object} payload - { activities, tasks, attendances, inspections, taskforces, notices, todos, assignments, makeupTasks }
+   * @param {Object} payload - 快照 payload（不含 users，含聚合域 __root__ 单行）
    * @returns {Promise<null>} 204 No Content
    */
   snapshot(payload) {
@@ -361,6 +362,163 @@ export const ApiAdapter = {
 
     create(data) {
       return _post('/api/v1/complianceReferences', data);
+    },
+  },
+
+  // ════════════════════════════════════════════════════════════════
+  //  T-209 全栈同步：新增 8 个数组域 + 3 个聚合域接口
+  //  写路径以服务层 → mockDB → persist() 快照写穿为主（这些域在 MockAdapter
+  //  同样不暴露独立 CRUD），list() 供 init() 拉取；create/update 提供接口对称性。
+  // ════════════════════════════════════════════════════════════════
+
+  signups: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/signups${query ? '?' + query : ''}`);
+    },
+
+    create(data) {
+      return _post('/api/v1/signups', data);
+    },
+
+    update(id, patch) {
+      return _patch(`/api/v1/signups/${id}`, patch);
+    },
+  },
+
+  activityReviews: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/activityReviews${query ? '?' + query : ''}`);
+    },
+
+    create(data) {
+      return _post('/api/v1/activityReviews', data);
+    },
+
+    update(id, patch) {
+      return _patch(`/api/v1/activityReviews/${id}`, patch);
+    },
+  },
+
+  taskforceReviews: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/taskforceReviews${query ? '?' + query : ''}`);
+    },
+
+    create(data) {
+      return _post('/api/v1/taskforceReviews', data);
+    },
+
+    update(id, patch) {
+      return _patch(`/api/v1/taskforceReviews/${id}`, patch);
+    },
+  },
+
+  propTasks: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/propTasks${query ? '?' + query : ''}`);
+    },
+
+    create(data) {
+      return _post('/api/v1/propTasks', data);
+    },
+
+    update(id, patch) {
+      return _patch(`/api/v1/propTasks/${id}`, patch);
+    },
+  },
+
+  weeklyReports: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/weeklyReports${query ? '?' + query : ''}`);
+    },
+
+    create(data) {
+      return _post('/api/v1/weeklyReports', data);
+    },
+
+    update(id, patch) {
+      return _patch(`/api/v1/weeklyReports/${id}`, patch);
+    },
+  },
+
+  archiveRecords: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/archiveRecords${query ? '?' + query : ''}`);
+    },
+
+    create(data) {
+      return _post('/api/v1/archiveRecords', data);
+    },
+
+    update(id, patch) {
+      return _patch(`/api/v1/archiveRecords/${id}`, patch);
+    },
+  },
+
+  mailboxConfig: {
+    // 单对象聚合域（null 或配置对象）：list 返回 [ { id:'__root__', body } ] 或 []
+    list() {
+      return _get('/api/v1/mailboxConfig');
+    },
+
+    // 整体替换配置对象
+    update(body) {
+      return _patch(`/api/v1/mailboxConfig/__root__`, { body });
+    },
+  },
+
+  mailboxHistory: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/mailboxHistory${query ? '?' + query : ''}`);
+    },
+
+    create(data) {
+      return _post('/api/v1/mailboxHistory', data);
+    },
+  },
+
+  externalDispatches: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      // T-208 文件流外发确认：服务端与前端共用 /externalDispatches
+      return _get(`/api/v1/externalDispatches${query ? '?' + query : ''}`);
+    },
+
+    create(data) {
+      return _post('/api/v1/externalDispatches', data);
+    },
+
+    update(id, patch) {
+      return _patch(`/api/v1/externalDispatches/${id}`, patch);
+    },
+  },
+
+  actSubRecords: {
+    // 对象聚合域（actId → subRecords）：list 返回 [ { id:'__root__', body } ] 或 []
+    list() {
+      return _get('/api/v1/actSubRecords');
+    },
+
+    // 整体替换聚合对象
+    update(body) {
+      return _patch('/api/v1/actSubRecords/__root__', { body });
+    },
+  },
+
+  tfSubRecords: {
+    list() {
+      return _get('/api/v1/tfSubRecords');
+    },
+
+    update(body) {
+      return _patch('/api/v1/tfSubRecords/__root__', { body });
     },
   },
 };

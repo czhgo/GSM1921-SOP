@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  data-adapter.js — 数据访问抽象层 (Data Access Abstraction)
 //  T-142 阶段2：写穿透缓存模式（Write-Through Cache）
@@ -38,6 +38,17 @@
  * - imageRecords: 图片记录
  * - experienceDeposits: 经验沉淀
  * - complianceReferences: 合规引用
+ * - signups: 报名记录（T-209）
+ * - activityReviews: 活动复盘
+ * - taskforceReviews: 专班复盘
+ * - propTasks: 宣传任务
+ * - weeklyReports: 宣传周报
+ * - archiveRecords: 档案归档
+ * - mailboxConfig: 公邮配置（单对象聚合域，__root__ 单行）
+ * - mailboxHistory: 公邮查收历史
+ * - externalDispatches: 文件流外发确认（T-208）
+ * - actSubRecords: 活动子记录（聚合域，__root__ 单行）
+ * - tfSubRecords: 专班子记录（聚合域，__root__ 单行）
  *
  * 每个方法返回 Promise，统一异步接口（即使是同步的 mock 操作也包装为 Promise）。
  *
@@ -213,22 +224,50 @@ export async function init() {
 
       // T-218：niche 集合（经验沉淀/合规引用/文件空间/图片记录）从后端拉取填充，
       // 拉取失败时回退本地备份（不影响主集合；旧行为是纯本地恢复）
+      // T-209 全栈同步：再补拉 8 个数组域（报名/活动复盘/专班复盘/宣传任务/周报/档案/公邮历史/外发确认）
+      // + 3 个聚合域（活动子记录/专班子记录/公邮配置，以 __root__ 单行存储，拉取后解包）。
       try {
         const [
           experienceDeposits, complianceReferences,
           fileSpaceRecords, imageRecords,
+          signups, activityReviews, taskforceReviews,
+          propTasks, weeklyReports, archiveRecords,
+          mailboxHistory, externalDispatches,
+          actSubRecordsRows, tfSubRecordsRows, mailboxConfigRows,
         ] = await Promise.all([
           adapter.experienceDeposits.list(),
           adapter.complianceReferences.list(),
           adapter.fileSpaceRecords.list(),
           adapter.imageRecords.list(),
+          adapter.signups.list(),
+          adapter.activityReviews.list(),
+          adapter.taskforceReviews.list(),
+          adapter.propTasks.list(),
+          adapter.weeklyReports.list(),
+          adapter.archiveRecords.list(),
+          adapter.mailboxHistory.list(),
+          adapter.externalDispatches.list(),
+          adapter.actSubRecords.list(),
+          adapter.tfSubRecords.list(),
+          adapter.mailboxConfig.list(),
         ]);
         mockDB.experienceDeposits    = experienceDeposits || [];
         mockDB.complianceReferences  = complianceReferences || [];
         mockDB.fileSpaceRecords      = fileSpaceRecords || [];
         mockDB.imageRecords          = imageRecords || [];
+        mockDB.signups               = signups || [];
+        mockDB.activityReviews       = activityReviews || [];
+        mockDB.taskforceReviews      = taskforceReviews || [];
+        mockDB.propTasks             = propTasks || [];
+        mockDB.weeklyReports         = weeklyReports || [];
+        mockDB.archiveRecords        = archiveRecords || [];
+        mockDB.mailboxHistory        = mailboxHistory || [];
+        mockDB.externalDispatches    = externalDispatches || [];
+        mockDB.actSubRecords         = _unwrapRootRows(actSubRecordsRows, {});
+        mockDB.tfSubRecords          = _unwrapRootRows(tfSubRecordsRows, {});
+        mockDB.mailboxConfig         = _unwrapRootRows(mailboxConfigRows, null);
       } catch (e) {
-        console.warn('[DataAdapter] init: niche 集合拉取失败，回退本地备份：', e);
+        console.warn('[DataAdapter] init: niche/新域集合拉取失败，回退本地备份：', e);
         try {
           const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260810a');
           restoreNicheCollections();
@@ -344,6 +383,19 @@ const SNAPSHOT_DEBOUNCE_MS = 800;
  *  供 pagehide 同步冲刷使用——卸载期间动态 import 的 await 会挂起，无法异步取数 */
 let _cachedMockDB = null;
 
+/**
+ * 聚合域解包（T-209 全栈同步）：actSubRecords/tfSubRecords/mailboxConfig 在服务端
+ * 以「__root__ 单行」模式存储（{ id:'__root__', body:<原对象> }），init() 拉取时
+ * 解包回原对象/单对象；空表回退默认值。
+ * @param {Array} rows - list() 返回的行数组
+ * @param {*} fallback - 空表时的默认值
+ */
+function _unwrapRootRows(rows, fallback) {
+  if (!Array.isArray(rows) || rows.length === 0) return fallback;
+  const row = rows.find((r) => r && r.id === '__root__');
+  return row && row.body !== undefined ? row.body : fallback;
+}
+
 /** 调度一次防抖快照写穿（已有排程则合并） */
 function _scheduleSnapshot() {
   if (_snapshotTimer) return;
@@ -351,7 +403,41 @@ function _scheduleSnapshot() {
 }
 
 /**
- * 执行全量快照写穿：读取 mockDB 的 10 个服务端集合（不含 users），
+ * 构造全量快照 payload（T-209 全栈同步：覆盖 mockDB 全部 25 个持久化域，不含 users）
+ * 聚合域（actSubRecords/tfSubRecords/mailboxConfig）包装为「__root__ 单行」，
+ * 与 init() 的 _unwrapRootRows 解包对称。
+ */
+function _buildSnapshotPayload(mockDB) {
+  return {
+    activities:  mockDB.activities,
+    tasks:       mockDB.tasks,
+    attendances: mockDB.attendances,
+    inspections: mockDB.inspections,
+    taskforces:  mockDB.taskforces,
+    notices:     mockDB.notices,
+    todos:       mockDB.todos,
+    assignments: mockDB.assignments,
+    makeupTasks: mockDB.makeupTasks,
+    experienceDeposits:   mockDB.experienceDeposits,
+    complianceReferences: mockDB.complianceReferences,
+    fileSpaceRecords:     mockDB.fileSpaceRecords,
+    imageRecords:         mockDB.imageRecords,
+    signups:        mockDB.signups,
+    activityReviews: mockDB.activityReviews,
+    taskforceReviews: mockDB.taskforceReviews,
+    propTasks:      mockDB.propTasks,
+    weeklyReports:  mockDB.weeklyReports,
+    archiveRecords: mockDB.archiveRecords,
+    mailboxHistory: mockDB.mailboxHistory,
+    externalDispatches: mockDB.externalDispatches,
+    actSubRecords:  [{ id: '__root__', body: mockDB.actSubRecords || {} }],
+    tfSubRecords:   [{ id: '__root__', body: mockDB.tfSubRecords || {} }],
+    mailboxConfig:  [{ id: '__root__', body: mockDB.mailboxConfig ?? null }],
+  };
+}
+
+/**
+ * 执行全量快照写穿：读取 mockDB 的全部持久化域（不含 users），
  * 整体 POST /api/v1/snapshot 覆盖写服务器。失败仅告警不抛出（不阻断 UI）。
  */
 async function _flushSnapshot() {
@@ -361,22 +447,7 @@ async function _flushSnapshot() {
   try {
     const { mockDB } = await import('./domain.js?v=20260810a');
     _cachedMockDB = mockDB;
-    const payload = {
-      activities:  mockDB.activities,
-      tasks:       mockDB.tasks,
-      attendances: mockDB.attendances,
-      inspections: mockDB.inspections,
-      taskforces:  mockDB.taskforces,
-      notices:     mockDB.notices,
-      todos:       mockDB.todos,
-      assignments: mockDB.assignments,
-      makeupTasks: mockDB.makeupTasks,
-      experienceDeposits:   mockDB.experienceDeposits,
-      complianceReferences: mockDB.complianceReferences,
-      fileSpaceRecords:     mockDB.fileSpaceRecords,
-      imageRecords:         mockDB.imageRecords,
-    };
-    await getAdapter().snapshot(payload);
+    await getAdapter().snapshot(_buildSnapshotPayload(mockDB));
   } catch (e) {
     console.warn('[DataAdapter] 全量快照写穿失败（已保留本地备份）：', e);
   }
@@ -394,26 +465,10 @@ function _flushSnapshotSync() {
     _flushSnapshot();
     return;
   }
-  const mockDB = _cachedMockDB;
-  const payload = {
-    activities:  mockDB.activities,
-    tasks:       mockDB.tasks,
-    attendances: mockDB.attendances,
-    inspections: mockDB.inspections,
-    taskforces:  mockDB.taskforces,
-    notices:     mockDB.notices,
-    todos:       mockDB.todos,
-    assignments: mockDB.assignments,
-    makeupTasks: mockDB.makeupTasks,
-    experienceDeposits:   mockDB.experienceDeposits,
-    complianceReferences: mockDB.complianceReferences,
-    fileSpaceRecords:     mockDB.fileSpaceRecords,
-    imageRecords:         mockDB.imageRecords,
-  };
   try {
     // snapshot() 内部为 async：fetch 在同步调用栈内发出（keepalive），
     // 卸载后剩余 await 可忽略；rejection 兜底避免 unhandledrejection
-    getAdapter().snapshot(payload).catch((e) => {
+    getAdapter().snapshot(_buildSnapshotPayload(_cachedMockDB)).catch((e) => {
       console.warn('[DataAdapter] 全量快照写穿失败（pagehide，已保留本地备份）：', e);
     });
   } catch (e) {
