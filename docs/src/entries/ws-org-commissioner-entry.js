@@ -13,6 +13,7 @@ import { persist } from '../core/data-adapter.js?v=20260808m';
 import { loadWorkspaceData } from '../core/data-loader.js?v=20260808m';
 import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
 import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260808m';
+import { renderWorkOverview } from '../components/work-overview.js?v=20260808m';
 import { renderQueryView } from '../components/query-view.js?v=20260808m';
 import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260808m';
 import { loadActivities } from '../services/activity.js?v=20260808m';
@@ -109,6 +110,8 @@ function renderOrgUI(state) {
     prefix: 'org',
     tabs: [
       { id: 'todo', label: '待办', render: () => _renderTodoContent(), groupLabel: '工作台' },
+      // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
+      { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('org-tab-content'); if (el) return renderWorkOverview(el, { role: 'org-commissioner', personId: AuthStore.getCurrentUser()?.personId || 'p11', accent }); }, groupLabel: '工作台' },
       { id: 'inspection', label: '考察上传', render: () => _renderOrgInspectionContent(), groupLabel: '党建' },
       { id: 'taskforce', label: '专班管理', render: (ctx) => _renderTaskforceContent(ctx.pending, ctx.recruiting, ctx.active, ctx.activities) },
       // 活动查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增；组织无活动 tab 由本组件承载）

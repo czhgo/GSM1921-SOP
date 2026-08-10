@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // entries/tabs/secretary/todo-tab.js — 书记工作台·待办 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：按 tab 代码分割，首屏只加载默认 tab。
 // 2026-08-07 T232：改为「动态聚合 + 复核确认面板」——SecretaryTodoDeriver.computeAggregates()
@@ -17,6 +17,8 @@ import { mockDB } from '../../../core/domain.js?v=20260808m';
 import { persist } from '../../../core/data-adapter.js?v=20260808m';
 import { getPersonById } from '../../../mock/index.js?v=20260808m';
 import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260808m';
+import { IssueStore } from '../../../services/issues.js?v=20260808m';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/report-inbox.js?v=20260808m';
 
 const { accent, accentBorder } = getAccentColors(resolveAccentRole('secretary'));
 
@@ -25,8 +27,8 @@ let _selectedTodoId = null;
 // ── 聚合数据缓存（渲染与事件绑定共用） ─────────────────────────
 let _allAggregates = [];
 
-/** 渲染待办 tab（双栏：聚合列表 + 详情确认面板） */
-export function renderContent() {
+/** 渲染待办 tab（双栏：聚合列表 + 详情确认面板；顶部内建「待答复」收件箱） */
+export async function renderContent() {
   const container = document.getElementById('secretary-tab-content');
   if (!container) return;
   container.dataset.currentTab = 'todo';
@@ -34,6 +36,9 @@ export function renderContent() {
   // 补种子数据（幂等，仅行动类：设党小组组长等）；书记侧缺口/复核均为实时计算
   seedTodos();
   TodoStore.refreshExpiredStatus();
+  // 待答复汇报（书记 2026-08-10 裁定：答复类置顶待办）——预加载 issues 权威源
+  await IssueStore.loadAll();
+  const pendingReports = IssueStore.getSecretaryPendingReports();
 
   // 动态聚合（实时计算）+ 种子行动类聚合
   const computedAggs = SecretaryTodoDeriver.computeAggregates();
@@ -91,14 +96,26 @@ export function renderContent() {
     </div>
   `;
 
+  // 待答复收件箱（书记 2026-08-10 裁定：答复类置顶待办）——独立卡片置于待办列表上方
+  const inboxHtml = renderReportInboxHtml({
+    reports: pendingReports,
+    title: '待答复',
+    role: 'secretary',
+    accent,
+    emptyMsg: '暂无待答复汇报',
+  });
+
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2">
-        <div class="card rounded-xl p-5"">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
+        <div class="space-y-4">
+          ${inboxHtml}
+          <div class="card rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
+            </div>
+            ${todoListHtml}
           </div>
-          ${todoListHtml}
         </div>
       </div>
       <div class="lg:col-span-1">
@@ -112,6 +129,7 @@ export function renderContent() {
 
   bindEvents(container);
   bindTodoDetailEvents();
+  bindReportInbox(container, { role: 'secretary', onAnswered: () => renderContent() });
 }
 
 // ── 详情卡：按聚合类型分发（confirm / remind / 种子行动类） ────

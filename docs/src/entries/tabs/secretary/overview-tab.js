@@ -367,18 +367,6 @@ function renderDimensionView(container) {
   if (propaganda.pendingArchive) pushEx(1, '待归档', `${propaganda.pendingArchive} 个活动`, '宣传委员', { urge: 'archive-pending' });
   exceptions.sort((a, b) => b.level - a.level);
 
-  // 叙事（what changed and why）
-  const narr = [];
-  if (attendance.attendanceRate >= 90) narr.push(`出勤率 ${attendance.attendanceRate}% 达标`);
-  else narr.push(`出勤率 ${attendance.attendanceRate}% 低于目标 90%`);
-  if (activity.reviewRate < 100) narr.push(`复盘 ${activity.reviewRate}% 未满`);
-  if (inspection.overdueInspections) narr.push(`${inspection.overdueInspections} 项考察超期`);
-  if (activity.pendingAuth) narr.push(`${activity.pendingAuth} 个活动待赋权`);
-  if (propaganda.pendingArchive) narr.push(`${propaganda.pendingArchive} 个活动待归档`);
-  const narrative = narr.length
-    ? `全局概况：${narr.join('；')}。异常 ${exceptions.length} 项，按紧急度优先处理。`
-    : '全局概况：整体态势正常，无待处理异常。';
-
   // 党员发展阶段分布
   const stages = [
     { label: '积极分子', value: inspection.stageCounts.activist,     color: '#94A3B8' },
@@ -409,9 +397,6 @@ function renderDimensionView(container) {
 
   container.innerHTML = `
     <div class="space-y-4">
-      <!-- 叙事行 -->
-      <div class="text-xs text-gray-500">${narrative}</div>
-
       <!-- KPI 顶栏 -->
       <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
         ${kpis.map(k => `

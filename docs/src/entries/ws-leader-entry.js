@@ -1,5 +1,7 @@
 import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
 import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260808m';
+import { renderReportInboxHtml, bindReportInbox } from '../components/report-inbox.js?v=20260808m';
+import { renderWorkOverview } from '../components/work-overview.js?v=20260808m';
 import { renderTodoList } from '../components/todo-list.js?v=20260808m';
 import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260808m';
 import { BranchService } from '../services/runtime.js?v=20260808m';
@@ -94,6 +96,8 @@ function renderLeaderUI(state) {
     prefix: 'leader',
     tabs: [
       { id: 'todo', label: '待办', render: () => _renderTodoContent(), groupLabel: '工作台' },
+      // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览，个人视角）
+      { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('leader-tab-content'); if (el) return renderWorkOverview(el, { role: 'leader', personId: AuthStore.getCurrentUser()?.personId || 'p4', accent }); }, groupLabel: '工作台' },
       // 组员进展（书记 2026-08-10 裁定：全员可见性矩阵落地——组长看本组组员，P-015 知情边界看≠做）
       { id: 'members', label: '组员进展', render: () => _renderMembersContent(), groupLabel: '工作台' },
       { id: 'write', label: '活动管理', render: (ctx) => _renderWriteContent(ctx.filteredActivities), groupLabel: '党建' },
@@ -251,8 +255,25 @@ async function _renderMembersContent() {
       <span class="text-xs ${r.reportClass} w-20 text-right flex-shrink-0">${r.reportState}</span>
     </div>`).join('');
 
+  // 汇报区（书记 2026-08-10 裁定：组长可答复本组组员汇报，块块内闭环；书记仍全局可见）
+  // 本组组员发起的 open 汇报 → 行内正式答复；问题优先置顶
+  const memberIds = new Set(targets.map(t => t.personId));
+  const memberReports = allIssues.filter(i =>
+    i.kind === 'report' && i.status === 'open' && !i.hidden && !i.mergedInto &&
+    memberIds.has(i.submittedBy)
+  );
+  const reportInboxHtml = renderReportInboxHtml({
+    reports: memberReports,
+    title: '组员汇报',
+    subtitle: '本组待答复 · 行内答复',
+    role: 'leader',
+    accent,
+    emptyMsg: '暂无本组组员汇报',
+  });
+
   container.innerHTML = `
     <div class="space-y-4">
+      ${reportInboxHtml}
       <div class="card rounded-xl p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">卡点</h4>
@@ -267,7 +288,7 @@ async function _renderMembersContent() {
         </div>
         <div class="space-y-1">${progressRows}</div>
       </div>
-      <p class="text-[11px] text-gray-400">组员进展 = 块块知情视角（P-015 知情边界，看 ≠ 做）。「了解进展」发往本组组员，正式答复由书记完成，不跳转他人工作台。</p>
+      <p class="text-[11px] text-gray-400">组员进展 = 块块知情视角（P-015 知情边界，看 ≠ 做）。本组组员汇报可行内「正式答复」，书记仍全局可见；「了解进展」发往本组组员，不跳转他人工作台。</p>
     </div>`;
 
   _bindMembersEvents(container);
@@ -284,6 +305,8 @@ function _bindMembersEvents(container) {
       _renderMembersContent();
     });
   });
+  // 组员汇报行内正式答复（书记 2026-08-10 裁定：组长可答复本组组员，块块闭环）
+  bindReportInbox(container, { role: 'leader', onAnswered: () => _renderMembersContent() });
 }
 
 // ── 待办列表+详情面板（最小三成本原则落地） ───────────────────

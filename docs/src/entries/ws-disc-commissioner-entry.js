@@ -9,6 +9,8 @@ import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide,
 import { loadWorkspaceData } from '../core/data-loader.js?v=20260808m';
 import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
 import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260808m';
+import { renderWorkOverview } from '../components/work-overview.js?v=20260808m';
+import { AuthStore } from '../services/auth.js?v=20260808m';
 import { openFormModal } from '../components/modal.js?v=20260808m';
 import { autoGenerateMakeupTask, loadMakeupTasks, saveMakeupTasks } from '../services/makeup.js?v=20260808m';
 import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260808m';
@@ -93,6 +95,8 @@ function renderDiscUI(state) {
     prefix: 'disc',
     tabs: [
       { id: 'todo', label: '待办', render: () => _renderTodoContent(), groupLabel: '工作台' },
+      // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
+      { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('disc-tab-content'); if (el) return renderWorkOverview(el, { role: 'disc-commissioner', personId: AuthStore.getCurrentUser()?.personId || DISC_COMMISSIONER_ID, accent }); }, groupLabel: '工作台' },
       { id: 'attendance', label: '考勤管理', render: () => _renderAttendanceContent(null), groupLabel: '党建' },
       { id: 'review', label: '活动监督复盘', render: () => _renderReviewContent() },
       { id: 'inspection', label: '考察管理', render: () => _renderInspectionContent() },

@@ -15,6 +15,7 @@ import { loadActivities } from '../services/activity.js?v=20260808m';
 import { getActivityTypeColors, ROLE_COLORS } from '../core/constants.js?v=20260808m';
 import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
 import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260808m';
+import { renderWorkOverview } from '../components/work-overview.js?v=20260808m';
 import { icon } from '../core/icons.js?v=20260808m';
 import { renderQueryView } from '../components/query-view.js?v=20260808m';
 import { renderTodoList } from '../components/todo-list.js?v=20260808m';
@@ -87,6 +88,8 @@ function renderVisitorUI(state) {
     prefix: 'visitor',
     tabs: [
       { id: 'todo', label: '待办', render: () => _renderTodoContent(), groupLabel: '工作台' },
+      // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览，参与者仅自我聚合）
+      { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('visitor-tab-content'); if (el) return renderWorkOverview(el, { role: 'visitor', personId: AuthStore.getCurrentUser()?.personId || 'p5', accent }); }, groupLabel: '工作台' },
       { id: 'projects', label: '项目分工', render: (ctx) => _renderProjectDivision(ctx.activities, ctx.allTf, ctx.authRecords), groupLabel: '党建' },
       { id: 'activities', label: '活动动态', render: (ctx) => _renderActivities(ctx.activities, ctx.highlightId), groupLabel: '党建' },
       { id: 'attendance', label: '考勤概况', render: (ctx) => _renderAttendance(ctx.activities), groupLabel: '党建' },

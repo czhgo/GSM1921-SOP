@@ -2262,3 +2262,23 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **验证结果**：✅ GetDiagnostics `[]` 无错误；✅ `git diff --stat` 9 modified + 2 new；✅ visibility.js/report-entry.js/issues.js/overview-tab.js 关键导出与三区结构核对通过
 - **变更文件**：`docs/src/components/tab-bar.js`、`docs/src/components/report-entry.js`（新）、`docs/src/services/visibility.js`（新）、`docs/src/services/issues.js`、`docs/src/entries/tabs/secretary/overview-tab.js`、`docs/src/entries/ws-{secretary,leader,org-commissioner,prop-commissioner,disc-commissioner,visitor}-entry.js`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
 - **沉淀标签**：`[已沉淀: 有待办必见待办]` — priorityTab 语义="有未完成待办时默认落待办 tab"，优先级 高于 localStorage 记忆，仅首次渲染一次性消费避免反复覆盖用户正在看的 tab；`[已沉淀: 看≠做]` — P-015 知情边界落地：可见性只决定"能看到什么维度"，不授予任何操作权；上级对下级仅「了解进展」与答复，无编辑入口；`[已沉淀: 谁应该看谁]` — 全员可见性矩阵=AUTHORIZE_CHAIN 赋权链投影（L2 all/L1 条线/块块 own-group），数据驱动 ROLE_VISIBILITY 配置表，前端零人判断；`[已沉淀: 根据数据定UI]` — 进度/卡点/汇报三区数据结构截然不同，按数据分区（汇报收件箱/卡点队列/进度聚合表），三区上下排布问题优先；`[已沉淀: 一键汇报闭环]` — 复用 Issue 体系 kind='report'，成员发起→上级答复→发回→确认收到，零新建存储，行内填写即发零跳转
+
+## T-205 书记工作台三问反馈全量落地：孤零零字段删除 + 待办「答复类」置顶 + 全角色答复机制 + 全角色「工作概况」tab + 设计原则10「高频零跳转」（2026-08-10）
+
+**任务**：书记对书记工作台整体满意后提出三点美中不足——①选中一个孤零零 `div`（全局概况叙事行）为反例，要求"孤零零的字段整合到卡片或删除"；②待办排序仍未按使用频率，"放在代办最上面的就是'答复'类"；③其他角色要有类似答复机制（"信息流畅是最重要的"）并单独设「工作概况」tab；④提出新的检查标准："完成一个高频工作需要操作多少次？信息的展示是否和操作在同一个地方，便于参考？"。强制要求使用 sample-diff-learning + web-design-guidelines + fullstack-developer 三个 Skill，批判性检查、耐心建设。
+**引用流程**：H1.2 执行 + sample-diff-learning Skill（差异泛化）+ web-design-guidelines Skill（最新指南审查）+ fullstack-developer Skill + AskUserQuestion（书记 4 项裁定）+ verification-before-completion Skill
+
+- **AskUserQuestion 书记裁定（关键）**：
+  - ①孤零零叙事行→**直接删除**（数值与 KPI 卡/异常队列完全冗余，非整合）
+  - ②答复类置顶→**待办内建置顶**（独立收件箱卡置于待办上方，非 TodoCategory 新枚举聚合卡）
+  - ③全角色答复机制→**组长可答复本组组员**（块块闭环，书记仍全局可见，P-015 不破坏）
+  - ④工作概况 tab→**全部角色加**（无下级的宣传/参与者也可加，按角色注入条线数据）
+- **t1 删除孤零零叙事行**：`overview-tab.js` 删除「全局概况：出勤率…复盘…考察超期…」裸 div 构建与模板（2 处），KPI 顶栏直接从 `grid grid-cols-2 lg:grid-cols-5` 开始
+- **t2 待办「答复类」置顶**：新组件 `components/report-inbox.js`（复用型待答复收件箱）——问题优先排序（blocked→ask→progress，待答复 resultPending 优先于待处理，submittedAt 倒序）、行点击展开对话时间线、行内输入+「正式答复」（kind='reply' 发回汇报人，通知未读）、色点+文字标签区分（本组件禁用 SVG）；`todo-tab.js` 左栏改为「待答复收件箱（置顶）+ 我的待办列表」双卡结构，顺带修复原模板 `class="card rounded-xl p-5""`（多余引号）bug
+- **t3 组长答复本组组员**：`ws-leader-entry.js` 组员进展 tab 三区改四段（汇报区新增），复用 renderReportInboxHtml 渲染本组组员 open 汇报，bindReportInbox（role='leader'）行内正式答复；底部说明「本组组员汇报可行内正式答复，书记仍全局可见」
+- **t4 全角色「工作概况」tab**：新组件 `components/work-overview.js`（全角色通用）——三区上下排布问题优先：①汇报区（请我汇报行内填写即发 + 我发起的开放汇报）②卡点区（我的超期 + 条线缺口按角色注入：纪检=补课未完成/考察超期、宣传=待归档活动、组织=专班招募中/待赋权活动）③在办区（我的待办/活动/专班聚合 + 条线态势按角色注入）；接入 5 个工作台入口（leader/org/prop/disc/visitor），tab 置于待办之后、defaultTab/priorityTab 保持不动，参与者仅自我聚合（无条线行）
+- **web-design-guidelines 审查落地**：按最新指南对两新组件审查——✓ tabular-nums（数字列）、placeholder 以 … 结尾、`<button>` 承载交互、空态齐全、min-w-0/truncate 防溢出；修正 2 处：新输入框补 `aria-label`（汇报内容/答复内容）
+- **设计原则沉淀（sample-diff-learning 差异泛化 → Layer 2）**：DESIGN_SYSTEM.md §一 新增**原则10「高频零跳转（High-Frequency Zero-Jump）」**（书记原话 2026-08-10）——最小三成本最终验收标准="完成一个高频工作需要操作多少次？信息展示与操作是否同地"；答复类置顶待办 / 答复回路全角色化 / 工作概况三区总览 + 4 条可验证布尔条件 + 孤零零数据行须整合或删除
+- **验证结果（browser_use 5 页实测通过）**：leader/org/prop/disc/visitor 五工作台「工作概况」三卡（汇报/卡点/在办）全部渲染，条线数据注入正确（组织=专班招募中 2 个、宣传=待归档活动 21 个+新闻稿超期、纪检=补课未完成 7 人+考察超期 24 条+考勤 151 条出勤率 85%）；参与者纯个人聚合无条线行；无 JS 运行时错误（仅字体资源 ERR_ABORTED 与 Tailwind CDN 提示，与渲染无关）；修复验证期发现的 ws-visitor-entry.js import 丢失（并行编辑同文件互相覆盖）→ 补回后重验通过
+- **变更文件**：`docs/src/components/report-inbox.js`（新）、`docs/src/components/work-overview.js`（新）、`docs/src/entries/tabs/secretary/overview-tab.js`、`docs/src/entries/tabs/secretary/todo-tab.js`、`docs/src/entries/ws-{leader,org-commissioner,prop-commissioner,disc-commissioner,visitor}-entry.js`、`content/04_web_design/DESIGN_SYSTEM.md`（原则10）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[已沉淀: 孤零零字段]` — 不属于任何卡片的裸 div 数据行（数值与既有卡片冗余）是信息成本冗余，须整合进最近卡片或直接删除，不允许游离叙事行；`[已沉淀: 答复类置顶]` — 待办排序依据=使用频率而非类别固定顺序，最高频动作（汇报答复）内建独立收件箱置顶待办，行内填写即发零跳转；`[已沉淀: 答复回路全角色化]` — 信息流畅是双向的，每个角色都应有答复机制（组长答复本组组员、书记全局可见），块块闭环不破坏 P-015 知情边界；`[已沉淀: 高频零跳转检查]` — 最小三成本验收标准="完成高频工作需操作几次？信息展示与操作是否同地"，同屏同区为通过，>2 跳为违反（设计原则10）；`[已沉淀: 并行编辑同文件覆盖]` — 同一消息内对同一文件的两个 Edit 存在互相覆盖风险，同文件多处修改应串行执行，完成后必 grep 校验导入完整；`[待办]` — commit（push 需书记批准）

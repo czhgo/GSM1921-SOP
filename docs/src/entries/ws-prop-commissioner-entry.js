@@ -1,5 +1,7 @@
 import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
 import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260808m';
+import { renderWorkOverview } from '../components/work-overview.js?v=20260808m';
+import { AuthStore } from '../services/auth.js?v=20260808m';
 import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260808m';
 import { BranchService, isApiMode } from '../services/runtime.js?v=20260808m';
 import { showToast, flashHighlight } from '../core/utils.js?v=20260808m';
@@ -51,6 +53,8 @@ function renderPropUI(state) {
     prefix: 'prop',
     tabs: [
       { id: 'todo', label: '待办', render: () => _renderTodoContent(), groupLabel: '工作台' },
+      // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
+      { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('prop-tab-content'); if (el) return renderWorkOverview(el, { role: 'prop-commissioner', personId: AuthStore.getCurrentUser()?.personId || 'p12', accent }); }, groupLabel: '工作台' },
       { id: 'tasks', label: '宣传任务', render: (ctx) => _renderTasksContent(), groupLabel: '党建' },
       { id: 'kanban', label: '项目看板', render: (ctx) => _renderKanbanContent(ctx.activities, ctx.propTf) },
       { id: 'weekly', label: '周报报送', render: (ctx) => _renderWeeklyContent(), groupLabel: '党建' },
