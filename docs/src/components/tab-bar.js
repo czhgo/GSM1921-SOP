@@ -31,6 +31,10 @@ const FALLBACK_ACCENT = {
  * @param {string} [opts.extraRightHtml] — Tab 栏右侧额外 HTML（如"发布招募"按钮）
  * @param {Object} [opts.renderCtx]      — 传递给 render 函数的上下文对象
  * @param {Function} [opts.onTabChange]  — Tab 切换回调 (tabId: string, tab: Object) => void
+ * @param {string} [opts.priorityTab]    — 优先激活的 Tab ID（覆盖 localStorage 记忆）。
+ *                                        语义 = "有待办必见待办"（书记 2026-08-10 裁定）：
+ *                                        调用方仅在首次渲染时传入（一次性消费），
+ *                                        避免 setState 重渲染反复覆盖用户正在看的 Tab。
  *
  * @returns {{ html: string, activate: (tabId: string, ctx?: Object) => void }}
  *   - html: Tab 栏 + 内容容器的 HTML 字符串
@@ -38,14 +42,16 @@ const FALLBACK_ACCENT = {
  *   - currentTab: 当前激活的 Tab ID（getter）
  *   - tabs: Tab 定义数组（懒加载场景下供外部按 id 查找并渲染当前 Tab）
  */
-export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRightHtml, renderCtx, storageKey, onTabChange }) {
+export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRightHtml, renderCtx, storageKey, onTabChange, priorityTab }) {
   const btnClass = `${prefix}-tab-btn`;
   const dataAttr = `data-${prefix}-tab`;
   const contentId = `${prefix}-tab-content`;
 
-  // 优先级：localStorage 记忆 > defaultTab > tabs[0]
+  // 优先级：priorityTab（"有待办必见待办"，一次性）> localStorage 记忆 > defaultTab > tabs[0]
   let activeTab = defaultTab || tabs[0]?.id;
-  if (storageKey) {
+  if (priorityTab && tabs.some(t => t.id === priorityTab)) {
+    activeTab = priorityTab;
+  } else if (storageKey) {
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved && tabs.some(t => t.id === saved)) {

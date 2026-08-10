@@ -16,6 +16,9 @@ import { badgeHtml } from '../../../components/badge.js?v=20260808m';
 import { loadActivities } from '../../../services/activity.js?v=20260808m';
 import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260808m';
 import { AttendanceStatus } from '../../../core/domain.js?v=20260808m';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260808m';
+import { AuthStore } from '../../../services/auth.js?v=20260808m';
+import { getPersonName } from '../../../mock/index.js?v=20260808m';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -74,101 +77,249 @@ function renderOverviewContent() {
   }
 }
 
-/** 按人视图：各角色在办概览卡片（L1 条线视角，书记看下级条线在办）
- *  2026-08-10 书记裁定重设计：
- *  ① 卡片不平行——每角色只投影职责空间的在办类型（数据驱动，见 getPersonOverview 注释）
- *  ② 专班归组织委员统筹，其他角色仅以「发起/成员」参与时标注（P-012 招募统筹分离）
- *  ③ 本页禁用 SVG 图标——类别用色点+文字标签区分，避免图标选取丑
- *  ④ 平行排布——取消「卡头大标题」层级，身份为紧凑一行，在办清单为主体
+/** 按人视图 v2：三区上下排布（问题优先）——2026-08-10 书记裁定重设计
+ *  ① 汇报区（最上）：待答复收件箱——成员汇报（进度/卡点/请示）+ 书记"了解进展"请求，行内答复零跳转
+ *  ② 卡点区（次上）：各角色超期/缺口告警，行内"了解进展"（温和请求，措辞不用"要求"）
+ *  ③ 进度区（最下）：角色×状态紧凑聚合表（一行一人，数据驱动，非卡片平铺）
+ *  监管不插手：书记只答复/了解进展，无任何编辑他人待办入口（看 ≠ 做）
+ *  本页禁用 SVG 图标（书记裁定），类别用色点+文字标签区分
  */
-function renderPersonView(container) {
-  const people = SecretaryOverviewStore.getPersonOverview();
+async function renderPersonView(container) {
+  await IssueStore.loadAll();
   const today = new Date().toISOString().slice(0, 10);
-  const statusLabel = s => ({ active: '进行中', recruiting: '招募中' }[s] || s);
-  const relationLabel = r => ({ manager: '统筹', initiator: '发起', member: '成员' }[r] || '');
-
-  // 在办类别 → 色点/文字标签（无 SVG，数据驱动）
-  const kindMeta = {
-    todo:      { label: '待办', dot: '#9CA3AF' },
-    activity:  { label: '活动', dot: '#0EA5E9' },
-    taskforce: { label: '专班', dot: '#4F46E5' },
-  };
-
-  const cards = people.map(p => {
-    const color = ROLE_COLORS[p.role] || ROLE_COLORS.all;
-
-    // 在办清单行（数据驱动，不同角色天然呈现不同在办类型）
-    const rows = [];
-    for (const g of p.todoGroups.slice(0, 4)) {
-      rows.push({
-        kind: 'todo',
-        text: `${g.title} · ${g.count} 项`,
-        deadline: g.deadline,
-        danger: !!g.deadline && g.deadline < today,
-      });
-    }
-    for (const a of p.activities.slice(0, 3)) {
-      rows.push({ kind: 'activity', text: a.title, deadline: a.date, danger: false });
-    }
-    for (const tf of p.taskforces.slice(0, 3)) {
-      const rel = relationLabel(tf.relation);
-      rows.push({
-        kind: 'taskforce',
-        text: rel ? `${tf.name}（${rel}）` : tf.name,
-        deadline: tf.deadline,
-        danger: !!tf.deadline && tf.deadline < today,
-      });
-    }
-    const shown = rows.slice(0, 6);
-    const more = rows.length - shown.length;
-    const totalActive = p.todoCount + p.activities.length + p.taskforces.length;
-
-    const rowHtml = shown.length
-      ? shown.map(r => {
-          const km = kindMeta[r.kind];
-          return `
-            <div class="flex items-center gap-2 py-1.5">
-              <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${km.dot};"></span>
-              <span class="text-[10px] font-medium flex-shrink-0" style="color:${km.dot};">${km.label}</span>
-              <span class="text-xs ${r.danger ? 'text-red-600 font-medium' : 'text-gray-600'} flex-1 min-w-0 truncate">${r.text}</span>
-              ${r.deadline ? `<span class="text-[11px] tabular-nums ${r.danger ? 'text-red-500 font-medium' : 'text-gray-400'} flex-shrink-0">${r.deadline}</span>` : ''}
-              ${r.danger ? badgeHtml('超期', 'danger') : ''}
-            </div>`;
-        }).join('')
-      : `<div class="py-3 text-center text-xs text-gray-400">当前无在办事项</div>`;
-
-    return `
-      <div class="card rounded-xl p-4 flex flex-col">
-        <!-- 身份行：紧凑一行，不做大标题（平行排布，不暗示上下层级） -->
-        <div class="flex items-center gap-2 pb-2.5 border-b border-gray-100">
-          <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${color.text};"></span>
-          <span class="text-sm font-semibold text-gray-800">${p.label}</span>
-          <span class="text-xs text-gray-500 truncate">${p.names}</span>
-          <span class="ml-auto">${badgeHtml(totalActive > 0 ? `${totalActive} 项在办` : '无在办', p.overdueCount ? 'danger' : 'neutral')}</span>
-        </div>
-        <!-- 在办清单（主体，卡片内等高占满） -->
-        <div class="flex-1 pt-1.5">
-          ${rowHtml}
-          ${more > 0 ? `<div class="py-1 text-center text-[11px] text-gray-400">… 另有 ${more} 项</div>` : ''}
-        </div>
-        <!-- 直达入口 -->
-        <div class="pt-2 mt-2 border-t border-gray-100 flex justify-end">
-          <a href="./${p.url}" class="inline-flex items-center gap-1 text-xs font-medium transition-all duration-200 hover:gap-1.5" style="color:${color.text};">
-            查看工作台 ›
-          </a>
-        </div>
-      </div>
-    `;
-  }).join('');
+  const people = SecretaryOverviewStore.getPersonOverview();
+  const reports = IssueStore.getSecretaryPendingReports();
 
   container.innerHTML = `
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
-      ${cards}
+    <div class="space-y-4">
+      ${renderReportSection(reports, today)}
+      ${renderBlockerSection(people, today)}
+      ${renderProgressSection(people)}
     </div>
     <p class="text-[11px] text-gray-400 mt-3">
-      按人视图 = L1 条线视角：书记看各角色在办概览（知情边界，看 ≠ 做），异常（超期）标红可直达。
+      按人视图 = L1 条线视角：书记看各角色在办与汇报（知情边界，看 ≠ 做）。汇报/卡点行内答复与了解进展，不跳转他人工作台。
     </p>
   `;
+  bindReportSection(container);
+  bindBlockerSection(container);
+}
+
+/** 汇报区：待答复收件箱（卡点优先 → 请示 → 进度；待答复优先于待汇报） */
+function renderReportSection(reports, today) {
+  const emptyBox = (msg) => `
+    <div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
+      <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> ${msg}
+    </div>`;
+
+  if (!reports.length) {
+    return `
+      <div class="card rounded-xl p-4">
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="font-title-cn text-sm font-bold text-gray-700">汇报</h4>
+          <span class="text-xs text-gray-400">待答复收件箱</span>
+        </div>
+        ${emptyBox('暂无待答复汇报')}
+      </div>`;
+  }
+
+  const catOrder = { blocked: 0, ask: 1, progress: 2 };
+  const sorted = [...reports].sort((a, b) => {
+    const ca = catOrder[a.reportCategory] ?? 3;
+    const cb = catOrder[b.reportCategory] ?? 3;
+    if (ca !== cb) return ca - cb;
+    const pa = a.resultPending ? 0 : 1;
+    const pb = b.resultPending ? 0 : 1;
+    if (pa !== pb) return pa - pb;
+    return (b.submittedAt || '').localeCompare(a.submittedAt || '');
+  });
+
+  const rows = sorted.map(r => {
+    const cat = REPORT_CATEGORIES[r.reportCategory] || '进度';
+    const catColor = r.reportCategory === 'blocked' ? '#EF4444'
+      : r.reportCategory === 'ask' ? '#F59E0B' : '#16A34A';
+    const ds = deriveIssueDisplayState(r);
+    const requester = r.requestedBy
+      ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 flex-shrink-0">了解进展</span>'
+      : '';
+    return `
+      <div class="rounded-lg border ${r.reportCategory === 'blocked' ? 'border-red-200' : 'border-gray-100'} overflow-hidden">
+        <button type="button" class="sec-report-toggle w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left" data-report-id="${r.id}">
+          <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${catColor};"></span>
+          <span class="text-xs font-medium flex-shrink-0" style="color:${catColor};">${cat}</span>
+          <span class="text-sm text-gray-800 font-medium flex-1 min-w-0 truncate">${r.title}</span>
+          <span class="text-xs text-gray-400 flex-shrink-0">${getPersonName(r.submittedBy) || '匿名'}</span>
+          <span class="text-xs text-gray-400 flex-shrink-0">${r.submittedAt}</span>
+          ${requester}
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass} flex-shrink-0">${ds.label}</span>
+        </button>
+        <div id="report-detail-${r.id}" class="hidden px-3 pb-3 border-t border-gray-100">
+          ${renderReportDetail(r)}
+        </div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="card rounded-xl p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">汇报</h4>
+        <span class="text-xs text-gray-400">${reports.length} 条待答复 · 行内答复</span>
+      </div>
+      <div class="space-y-2">${rows}</div>
+    </div>`;
+}
+
+/** 汇报详情：正文 + 了解进展说明 + 对话时间线 + 答复输入区 */
+function renderReportDetail(r) {
+  const requesterNote = r.requestedBy && r.requestedNote
+    ? `<div class="rounded-lg p-2 bg-blue-50 mt-2"><p class="text-xs text-blue-700">书记了解进展：${r.requestedNote}</p></div>`
+    : '';
+  const comments = (r.comments || []).filter(c => !c.hidden).map(c => {
+    const icon = c.kind === 'dispatch' ? '→' : c.kind === 'reply' ? '答'
+      : c.kind === 'result' ? '✓' : c.kind === 'verdict' ? '★' : '';
+    const bg = c.kind === 'reply' ? 'bg-red-50/70' : c.kind === 'result' ? 'bg-green-50'
+      : c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
+    return `
+      <div class="rounded-lg p-2 ${bg}">
+        <div class="flex items-center gap-1.5 mb-1">
+          <span class="text-xs font-medium text-gray-700">${icon} ${getPersonName(c.author) || '匿名'}</span>
+          ${c.kind === 'reply' ? `<span class="text-xs px-1 py-0.5 rounded font-medium" style="background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">正式答复</span>` : ''}
+          <span class="text-xs text-gray-400">${c.createdAt}</span>
+        </div>
+        <p class="text-xs text-gray-600 whitespace-pre-wrap">${c.body}</p>
+      </div>`;
+  }).join('');
+  const timeline = comments || '<p class="text-xs text-gray-400 py-2">暂无对话</p>';
+
+  return `
+    ${r.body ? `<p class="text-xs text-gray-600 whitespace-pre-wrap mt-2">${r.body}</p>` : ''}
+    ${requesterNote}
+    <div class="space-y-2 mt-2">${timeline}</div>
+    ${r.status === 'open' ? `
+      <div class="flex gap-2 mt-2">
+        <input type="text" id="report-comment-${r.id}" class="input-flat text-xs flex-1" placeholder="添加评论…">
+        <button type="button" class="sec-report-comment btn-accent-soft text-xs px-3 py-2" data-report-id="${r.id}">评论</button>
+        <button type="button" class="sec-report-reply btn-accent text-xs px-3 py-2 whitespace-nowrap" data-report-id="${r.id}">正式答复</button>
+      </div>` : ''}
+  `;
+}
+
+function bindReportSection(container) {
+  container.querySelectorAll('.sec-report-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const detail = document.getElementById('report-detail-' + btn.dataset.reportId);
+      if (detail) detail.classList.toggle('hidden');
+    });
+  });
+  container.querySelectorAll('.sec-report-comment').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.reportId;
+      const body = document.getElementById('report-comment-' + id)?.value?.trim();
+      if (!body) { showToast('error', '请输入评论内容'); return; }
+      const user = AuthStore.getCurrentUser();
+      IssueStore.addComment(id, user?.personId || 'u_sec', 'secretary', body, 'comment');
+      showToast('success', '评论已添加');
+      renderOverviewContent();
+    });
+  });
+  container.querySelectorAll('.sec-report-reply').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.reportId;
+      const body = document.getElementById('report-comment-' + id)?.value?.trim();
+      if (!body) { showToast('error', '请输入答复内容'); return; }
+      const user = AuthStore.getCurrentUser();
+      IssueStore.addComment(id, user?.personId || 'u_sec', 'secretary', body, 'reply');
+      showToast('success', '正式答复已发回');
+      renderOverviewContent();
+    });
+  });
+}
+
+/** 卡点区：各角色超期/缺口告警（按 deadline 升序），行内"了解进展" */
+function renderBlockerSection(people, today) {
+  const rows = [];
+  people.forEach(p => {
+    (p.todoGroups || []).forEach(g => {
+      const overdueItems = (g.items || []).filter(it => it.deadline && it.deadline < today);
+      if (overdueItems.length) {
+        rows.push({
+          role: p,
+          title: g.title,
+          count: overdueItems.length,
+          deadline: overdueItems.reduce((m, it) => (it.deadline < m ? it.deadline : m), overdueItems[0].deadline),
+        });
+      }
+    });
+  });
+  rows.sort((a, b) => (a.deadline || '').localeCompare(b.deadline || ''));
+
+  if (!rows.length) {
+    return `
+      <div class="card rounded-xl p-4">
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="font-title-cn text-sm font-bold text-gray-700">卡点</h4>
+          <span class="text-xs text-gray-400">超期/缺口告警</span>
+        </div>
+        <div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
+          <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 无超期卡点
+        </div>
+      </div>`;
+  }
+
+  const html = rows.map(r => `
+    <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
+      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#EF4444;"></span>
+      <span class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">${r.role.label}</span>
+      <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${r.title} 超期 ${r.count} 项</span>
+      <span class="text-[11px] tabular-nums text-red-500 font-medium flex-shrink-0">${r.deadline}</span>
+      <button type="button" class="sec-ask-report btn-accent-soft text-xs px-2.5 py-1 flex-shrink-0"
+        data-person-id="${r.role.personIds[0]}" data-role="${r.role.role}" data-note="${r.title} 已超期">了解进展</button>
+    </div>`).join('');
+
+  return `
+    <div class="card rounded-xl p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">卡点</h4>
+        <span class="text-xs text-gray-400">超期/缺口告警 · ${rows.length} 项</span>
+      </div>
+      <div class="space-y-1">${html}</div>
+    </div>`;
+}
+
+function bindBlockerSection(container) {
+  container.querySelectorAll('.sec-ask-report').forEach(btn => {
+    btn.addEventListener('click', () => {
+      IssueStore.requestReport(btn.dataset.personId, btn.dataset.role, btn.dataset.note || '');
+      showToast('success', `已请${getPersonName(btn.dataset.personId)}汇报进展`);
+      renderOverviewContent();
+    });
+  });
+}
+
+/** 进度区：角色×状态紧凑聚合表（一行一人，取消卡片平铺） */
+function renderProgressSection(people) {
+  const rows = people.map(p => {
+    const color = ROLE_COLORS[p.role] || ROLE_COLORS.all;
+    const totalActive = p.todoCount + p.activities.length + p.taskforces.length;
+    return `
+      <div class="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors">
+        <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${color.text};"></span>
+        <span class="text-sm font-semibold text-gray-800 w-24 flex-shrink-0">${p.label}</span>
+        <span class="text-xs text-gray-500 flex-1 min-w-0 truncate">${p.names}</span>
+        <span class="text-xs tabular-nums text-gray-600 flex-shrink-0">在办 ${totalActive}</span>
+        <span class="text-xs tabular-nums ${p.overdueCount ? 'text-red-500 font-medium' : 'text-gray-400'} w-16 text-right flex-shrink-0">超期 ${p.overdueCount}</span>
+        <span class="text-xs tabular-nums text-gray-400 w-16 text-right flex-shrink-0">活动 ${p.activities.length}</span>
+        <span class="text-xs tabular-nums text-gray-400 w-16 text-right flex-shrink-0">专班 ${p.taskforces.length}</span>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="card rounded-xl p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">进度</h4>
+        <span class="text-xs text-gray-400">各角色在办聚合</span>
+      </div>
+      <div class="space-y-1">${rows}</div>
+    </div>`;
 }
 
 /** 按维度视图：四维度态势总览（原内容） */

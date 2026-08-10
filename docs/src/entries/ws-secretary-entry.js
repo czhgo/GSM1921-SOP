@@ -15,6 +15,7 @@ import { loadActivities } from '../services/activity.js?v=20260808m';
 import { loadWorkspaceData } from '../core/data-loader.js?v=20260808m';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260808m';
 import { _currentYearMonth } from '../core/utils.js?v=20260808m';
+import { TodoStore } from '../services/todo.js?v=20260808m';
 
 // accentRole 走 resolveAccentRole：侧边栏「主题色」个性化对书记工作台同样生效
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'secretary' });
@@ -32,6 +33,9 @@ function _ensureSecTabBar() {
   const container = document.getElementById('secretary-content');
   if (!container || _secTabBarInited) return;
 
+  // 有待办必见待办（书记 2026-08-10 裁定）：_ensureSecTabBar 仅执行一次，天然一次性消费
+  const priorityTab = TodoStore.getGroupedByAction('secretary').length > 0 ? 'todo' : undefined;
+
   _secTabBar = renderTabBar({
     prefix: 'secretary',
     tabs: [
@@ -48,6 +52,7 @@ function _ensureSecTabBar() {
     defaultTab: 'todo',
     extraRightHtml: `<div class="flex items-center gap-2" id="sec-toolbar"></div>`,
     storageKey: SEC_TAB_STORAGE_KEY,
+    priorityTab,
     onTabChange: (tabId) => { _secCurrentTab = tabId; },
   });
 

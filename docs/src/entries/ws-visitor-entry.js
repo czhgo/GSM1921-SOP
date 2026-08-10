@@ -14,6 +14,7 @@ import { inspectionToDisplay } from '../mock/index.js?v=20260808m';
 import { loadActivities } from '../services/activity.js?v=20260808m';
 import { getActivityTypeColors, ROLE_COLORS } from '../core/constants.js?v=20260808m';
 import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260808m';
 import { icon } from '../core/icons.js?v=20260808m';
 import { renderQueryView } from '../components/query-view.js?v=20260808m';
 import { renderTodoList } from '../components/todo-list.js?v=20260808m';
@@ -23,6 +24,8 @@ import { badgeHtml } from '../components/badge.js?v=20260808m';
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'participant' });
 
 let _visitorNavConsumed = false; // URL 跳转参数一次性消费标志
+// "有待办必见待办"一次性消费标志（书记 2026-08-10 裁定）
+let _todoPriorityConsumed = false;
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -73,6 +76,13 @@ function renderVisitorUI(state) {
   const urlParams = CrossPageState.getURLParams();
   const highlightId = urlParams.activityId || null;
 
+  // 有待办必见待办（书记 2026-08-10 裁定）：仅首次渲染生效
+  let priorityTab;
+  if (!_todoPriorityConsumed) {
+    _todoPriorityConsumed = true;
+    priorityTab = TodoStore.getGroupedByAction('visitor').length > 0 ? 'todo' : undefined;
+  }
+
   const tabBar = renderTabBar({
     prefix: 'visitor',
     tabs: [
@@ -86,6 +96,8 @@ function renderVisitorUI(state) {
     defaultTab: 'todo',
     renderCtx: { activities, allTf: taskforces, authRecords: AuthStore.getAuthorizations(), highlightId },
     storageKey: 'workflowos_tab_visitor',
+    priorityTab,
+    extraRightHtml: renderReportEntryHtml({ accent, accentRgba }),
   });
 
   container.innerHTML = `
@@ -94,6 +106,7 @@ function renderVisitorUI(state) {
   `;
 
   tabBar.bindEvents(container);
+  bindReportEntry(container); // 一键汇报入口（书记 2026-08-10 裁定：复用 Issue 体系）
   // 首页跳转落点（书记 2026-08-08 裁定：activityId / view=activities 必须消费）
   // 「查看更多活动」跳转（?view=activities）或指定活动（?activityId=）→ 落在活动动态 tab；
   // 一次性消费：消费后清除 URL 参数，避免后续 setState 重复触发切 tab / 高亮。
@@ -652,6 +665,10 @@ function _renderTodoContent() {
 
   _todoAggregates = TodoStore.getGroupedByAction('visitor');
   const stats = TodoStore.getStatsByRole('visitor');
+  // 自动选中首条（书记 2026-08-10 裁定推广）：进入待办即见第一条详情，减一次点击
+  if (!_selectedTodoId && _todoAggregates.length > 0) {
+    _selectedTodoId = _todoAggregates[0].groupKey;
+  }
   const selectedTodo = _selectedTodoId ? (
     _todoAggregates.find(g => g.groupKey === _selectedTodoId) || TodoStore.getById(_selectedTodoId)
   ) : null;

@@ -1,4 +1,5 @@
 import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260808m';
 import { renderTodoList } from '../components/todo-list.js?v=20260808m';
 import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260808m';
 import { BranchService } from '../services/runtime.js?v=20260808m';
@@ -14,14 +15,15 @@ import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, Partici
 import { persist } from '../core/data-adapter.js?v=20260808m';
 import { loadMakeupTasks } from '../services/makeup.js?v=20260808m';
 import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260808m';
-import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260808m';
+import { loadInspectionRecords, loadActiveInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260808m';
 import { loadActivities } from '../services/activity.js?v=20260808m';
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808m';
 import { SignupStore } from '../services/signup.js?v=20260808m';
 import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../services/review.js?v=20260808m';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260808m';
-import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260808m';
+import { renderMyDispatchTab, bindMyDispatchEvents, IssueStore } from '../services/issues.js?v=20260808m';
+import { TodoStore, TodoSourceType, TodoStatus, seedTodos } from '../services/todo.js?v=20260808m';
 import { AuthStore } from '../services/auth.js?v=20260808m';
+import { resolveVisibleTargets } from '../services/visibility.js?v=20260808m';
 import { badgeHtml } from '../components/badge.js?v=20260808m';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'leader' });
@@ -37,11 +39,18 @@ let _detailOrgPicker = null;   // 活动详情：组织者多选（预填现有 
 let _detailDeepPicker = null;  // 活动详情：深度参与者多选
 let _leaderNavTarget = null; // { tfId, actId } URL 导航目标（跨重渲染保持，定位完成后清除）
 
-// ── 党小组组长→党小组映射 ──────────────────────────────────────────
-const LEADER_GROUP_MAP = {
-  'p4': '第三党小组',  // 赵六（第三党小组组长）
-  'p6': '第一党小组',  // 孙八（第一党小组组长）
-};
+// "有待办必见待办"一次性消费标志（书记 2026-08-10 裁定）：
+// 首次渲染若存在未完成待办则默认落待办 tab；置位后 setState 重渲染不再强制，
+// 避免反复覆盖用户手动切换的 tab。
+let _todoPriorityConsumed = false;
+
+// ── 当前组长身份（数据驱动：AuthStore 当前用户 + partyGroup，不硬编码人）──
+function _currentLeaderGroup() {
+  const me = AuthStore.getCurrentUser();
+  const leaderId = me?.personId || 'p4';
+  const group = PEOPLE.find(p => p.id === leaderId)?.partyGroup || '';
+  return { leaderId, group };
+}
 
 function _filterByRole(state, role) {
   const currentLeaderId = AuthStore.getCurrentUser()?.personId || 'p4';
@@ -74,10 +83,19 @@ function renderLeaderUI(state) {
   const filteredState = _filterByRole(state, 'leader');
   const filteredActivities = filteredState.activities || [];
 
+  // 有待办必见待办（书记 2026-08-10 裁定）：仅首次渲染生效
+  let priorityTab;
+  if (!_todoPriorityConsumed) {
+    _todoPriorityConsumed = true;
+    priorityTab = TodoStore.getGroupedByAction('leader').length > 0 ? 'todo' : undefined;
+  }
+
   const tabBar = renderTabBar({
     prefix: 'leader',
     tabs: [
       { id: 'todo', label: '待办', render: () => _renderTodoContent(), groupLabel: '工作台' },
+      // 组员进展（书记 2026-08-10 裁定：全员可见性矩阵落地——组长看本组组员，P-015 知情边界看≠做）
+      { id: 'members', label: '组员进展', render: () => _renderMembersContent(), groupLabel: '工作台' },
       { id: 'write', label: '活动管理', render: (ctx) => _renderWriteContent(ctx.filteredActivities), groupLabel: '党建' },
       { id: 'attendance', label: '考勤上传', render: () => _renderAttendanceContent() },
       { id: 'inspection', label: '考察上传', render: () => _renderInspectionContent() },
@@ -90,11 +108,14 @@ function renderLeaderUI(state) {
     renderCtx: { filteredActivities },
     storageKey: 'workflowos_tab_leader',
     defaultTab: 'todo',
+    priorityTab,
+    extraRightHtml: renderReportEntryHtml({ accent, accentRgba }),
   });
 
   container.innerHTML = tabBar.html;
 
   tabBar.bindEvents(container);
+  bindReportEntry(container); // 一键汇报入口（书记 2026-08-10 裁定：复用 Issue 体系）
   tabBar.activate(tabBar.activeTab);
 
   // ── 首页跳转落点（书记 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
@@ -134,6 +155,137 @@ function renderLeaderUI(state) {
   }
 }
 
+// ── 组员进展（块块知情视角）──────────────────────────────
+//  书记 2026-08-10 裁定：全员可见性矩阵落地（visibility.js own-group）。
+//  三区思路从书记按人视图收敛：卡点区（问题优先）→ 进度区（每人一行聚合）。
+//  P-015 知情边界：看 ≠ 做——组长只知情与温和「了解进展」，答复由书记完成，不跳转他人工作台。
+//  本视图禁用 SVG 图标，类别用色点+文字区分。
+async function _renderMembersContent() {
+  const container = document.getElementById('leader-tab-content');
+  if (!container) return;
+
+  const me = AuthStore.getCurrentUser();
+  const myPersonId = me?.personId || 'p4';
+  await IssueStore.loadAll();
+  const today = new Date().toISOString().slice(0, 10);
+
+  const targets = resolveVisibleTargets('leader', myPersonId);
+  if (!targets.length) {
+    container.innerHTML = `
+      <div class="card rounded-xl p-6 text-center">
+        <p class="text-xs text-gray-400">本党小组暂无其他组员可查看</p>
+      </div>`;
+    return;
+  }
+
+  const allTodos = TodoStore.getAll();
+  const attRecords = loadAttendanceRecords();
+  const inspRecords = loadActiveInspectionRecords();
+  const allIssues = IssueStore.getAll();
+
+  // 每人聚合（progress/blocker/report/attendance/inspection 五维）
+  const rows = targets.map(t => {
+    const personTodos = allTodos.filter(td => td.personId === t.personId && td.status !== TodoStatus.COMPLETED);
+    const overdueTodos = personTodos.filter(td =>
+      td.status === TodoStatus.EXPIRED ||
+      (td.status === TodoStatus.PENDING && td.deadline && td.deadline < today)
+    );
+    const absentCount = attRecords.filter(r => r.personId === t.personId && r.status === AttendanceStatus.ABSENT).length;
+    const inspPending = inspRecords.filter(r => r.personId === t.personId && r.status === 'pending').length;
+    const reports = allIssues.filter(i => i.kind === 'report' && i.submittedBy === t.personId && !i.hidden && !i.mergedInto);
+    const openReport = reports.find(r => r.status === 'open');
+    const openRequest = allIssues.find(i => i.kind === 'report' && i.requestedBy && i.assignee === t.personId && i.status === 'open' && !i.hidden && !i.mergedInto);
+
+    let reportState = '—';
+    let reportClass = 'text-gray-300';
+    if (openReport) {
+      if (openReport.resultPending) { reportState = '待答复'; reportClass = 'text-amber-600 font-medium'; }
+      else if (openReport.reportCategory === 'blocked') { reportState = '卡点上报中'; reportClass = 'text-red-500 font-medium'; }
+      else { reportState = '汇报中'; reportClass = 'text-blue-600'; }
+    } else if (openRequest) {
+      reportState = '待汇报'; reportClass = 'text-blue-500';
+    }
+
+    return {
+      person: t,
+      active: personTodos.length,
+      overdue: overdueTodos.length,
+      absent: absentCount,
+      inspPending,
+      reportState,
+      reportClass,
+      openReport,
+    };
+  });
+
+  // 卡点区（问题优先）：超期待办 + 上报卡点 + 缺勤 + 考察待确认
+  const blockers = [];
+  rows.forEach(r => {
+    if (r.overdue > 0) blockers.push({ personId: r.person.personId, name: r.person.name, title: `${r.overdue} 项待办超期`, role: r.person.role });
+    if (r.openReport && r.openReport.reportCategory === 'blocked') blockers.push({ personId: r.person.personId, name: r.person.name, title: `上报卡点：${r.openReport.title}`, role: r.person.role });
+    if (r.absent > 0) blockers.push({ personId: r.person.personId, name: r.person.name, title: `缺勤未补 ${r.absent} 次`, role: r.person.role });
+    if (r.inspPending > 0) blockers.push({ personId: r.person.personId, name: r.person.name, title: `考察待确认 ${r.inspPending} 条`, role: r.person.role });
+  });
+
+  const blockerHtml = blockers.length === 0
+    ? `<div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
+         <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 本组无卡点，全部正常
+       </div>`
+    : blockers.map(b => `
+        <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
+          <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#EF4444;"></span>
+          <span class="text-sm font-medium text-gray-700 w-16 flex-shrink-0">${b.name}</span>
+          <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b.title}</span>
+          <button type="button" class="leader-ask-report btn-accent-soft text-xs px-2.5 py-1 flex-shrink-0"
+            data-person-id="${b.personId}" data-role="${b.role}" data-note="${b.title}">了解进展</button>
+        </div>`).join('');
+
+  const progressRows = rows.map(r => `
+    <div class="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors">
+      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#60A5FA;"></span>
+      <span class="text-sm font-semibold text-gray-800 w-16 flex-shrink-0">${r.person.name}</span>
+      <span class="text-xs tabular-nums text-gray-600 w-14 flex-shrink-0 text-right">在办 ${r.active}</span>
+      <span class="text-xs tabular-nums ${r.overdue ? 'text-red-500 font-medium' : 'text-gray-400'} w-14 flex-shrink-0 text-right">超期 ${r.overdue}</span>
+      <span class="text-xs tabular-nums ${r.absent ? 'text-red-500 font-medium' : 'text-gray-400'} w-14 flex-shrink-0 text-right">缺勤 ${r.absent}</span>
+      <span class="text-xs tabular-nums ${r.inspPending ? 'text-amber-600 font-medium' : 'text-gray-400'} w-16 flex-shrink-0 text-right">考察待 ${r.inspPending}</span>
+      <span class="text-xs ${r.reportClass} w-20 text-right flex-shrink-0">${r.reportState}</span>
+    </div>`).join('');
+
+  container.innerHTML = `
+    <div class="space-y-4">
+      <div class="card rounded-xl p-4">
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="font-title-cn text-sm font-bold text-gray-700">卡点</h4>
+          <span class="text-xs text-gray-400">本组超期/上报/缺勤 · ${blockers.length} 项</span>
+        </div>
+        <div class="space-y-1">${blockerHtml}</div>
+      </div>
+      <div class="card rounded-xl p-4">
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="font-title-cn text-sm font-bold text-gray-700">进度</h4>
+          <span class="text-xs text-gray-400">本组组员在办聚合</span>
+        </div>
+        <div class="space-y-1">${progressRows}</div>
+      </div>
+      <p class="text-[11px] text-gray-400">组员进展 = 块块知情视角（P-015 知情边界，看 ≠ 做）。「了解进展」发往本组组员，正式答复由书记完成，不跳转他人工作台。</p>
+    </div>`;
+
+  _bindMembersEvents(container);
+}
+
+function _bindMembersEvents(container) {
+  container.querySelectorAll('.leader-ask-report').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const personId = btn.dataset.personId;
+      const role = btn.dataset.role || 'participant';
+      const note = btn.dataset.note || '';
+      IssueStore.requestReport(personId, role, note);
+      showToast('success', `已请${getPersonName(personId)}同步进展`);
+      _renderMembersContent();
+    });
+  });
+}
+
 // ── 待办列表+详情面板（最小三成本原则落地） ───────────────────
 let _selectedTodoId = null;
 let _todoAggregates = null;
@@ -147,6 +299,10 @@ function _renderTodoContent() {
 
   _todoAggregates = TodoStore.getGroupedByAction('leader');
   const stats = TodoStore.getStatsByRole('leader');
+  // 自动选中首条（书记 2026-08-10 裁定推广）：进入待办即见第一条详情，减一次点击
+  if (!_selectedTodoId && _todoAggregates.length > 0) {
+    _selectedTodoId = _todoAggregates[0].groupKey;
+  }
   const selectedTodo = _selectedTodoId ? (
     _todoAggregates.find(g => g.groupKey === _selectedTodoId) || TodoStore.getById(_selectedTodoId)
   ) : null;
@@ -999,8 +1155,7 @@ function _renderAttendanceContent() {
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   // 获取本组待补课人员
-  const currentLeaderId = 'p4'; // 当前党小组组长（根据实际登录角色调整）
-  const myGroup = LEADER_GROUP_MAP[currentLeaderId] || '';
+  const { group: myGroup } = _currentLeaderGroup();
   const myGroupMembers = PEOPLE.filter(p => p.partyGroup === myGroup);
   const myGroupMemberIds = myGroupMembers.map(p => p.id);
   const makeupTasks = loadMakeupTasks();
@@ -1450,9 +1605,8 @@ function _renderReviewContent() {
   const container = document.getElementById('leader-tab-content');
   if (!container) return;
 
-  // 当前组长身份（默认 p4 赵六·第三党小组）
-  const currentLeaderId = 'p4';
-  const myGroup = LEADER_GROUP_MAP[currentLeaderId] || '';
+  // 当前组长所属党小组（数据驱动：AuthStore 当前用户 → partyGroup）
+  const { group: myGroup } = _currentLeaderGroup();
 
   // 筛选本组活动（三会一课/主题党日等由本组组长组织的活动；已归档活动退出工作区）
   // T223 排序统一：date 降序（新者在前）

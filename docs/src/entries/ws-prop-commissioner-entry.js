@@ -1,4 +1,5 @@
 import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260808m';
 import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260808m';
 import { BranchService, isApiMode } from '../services/runtime.js?v=20260808m';
 import { showToast, flashHighlight } from '../core/utils.js?v=20260808m';
@@ -21,6 +22,8 @@ import { badgeHtml } from '../components/badge.js?v=20260808m';
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'prop-commissioner' });
 
 let _propNavTarget = null; // { tfId, actId } URL 导航目标（跨重渲染保持，定位完成后清除）
+// "有待办必见待办"一次性消费标志（书记 2026-08-10 裁定）
+let _todoPriorityConsumed = false;
 
 function renderPropUI(state) {
   let activities = state.activities || [];
@@ -37,6 +40,13 @@ function renderPropUI(state) {
   const taskforces = TaskForceRecordStore.getAll();
   const propTf = taskforces.filter(t => t.name.includes('宣传') || t.initiator === 'p12');
 
+  // 有待办必见待办（书记 2026-08-10 裁定）：仅首次渲染生效
+  let priorityTab;
+  if (!_todoPriorityConsumed) {
+    _todoPriorityConsumed = true;
+    priorityTab = TodoStore.getGroupedByAction('prop-commissioner').length > 0 ? 'todo' : undefined;
+  }
+
   const tabBar = renderTabBar({
     prefix: 'prop',
     tabs: [
@@ -48,14 +58,17 @@ function renderPropUI(state) {
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('prop-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('prop-commissioner', 'u_prop'); bindMyDispatchEvents(el, 'prop-commissioner', 'u_prop'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
+    extraRightHtml: renderReportEntryHtml({ accent, accentRgba }),
     renderCtx: { activities, propTf },
     storageKey: 'workflowos_tab_prop',
     defaultTab: 'todo',
+    priorityTab,
   });
 
   container.innerHTML = tabBar.html;
 
   tabBar.bindEvents(container);
+  bindReportEntry(container);
   tabBar.activate(tabBar.activeTab);
 
   // ── 首页跳转落点（书记 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
@@ -104,6 +117,10 @@ function _renderTodoContent() {
 
   _todoAggregates = TodoStore.getGroupedByAction('prop-commissioner');
   const stats = TodoStore.getStatsByRole('prop-commissioner');
+  // 自动选中首条（书记 2026-08-10 裁定推广）：进入待办即见第一条详情，减一次点击
+  if (!_selectedTodoId && _todoAggregates.length > 0) {
+    _selectedTodoId = _todoAggregates[0].groupKey;
+  }
   const selectedTodo = _selectedTodoId ? (
     _todoAggregates.find(g => g.groupKey === _selectedTodoId) || TodoStore.getById(_selectedTodoId)
   ) : null;

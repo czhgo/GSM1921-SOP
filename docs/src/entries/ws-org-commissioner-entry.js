@@ -12,6 +12,7 @@ import { mockDB, SourceType, ParticipationLevel } from '../core/domain.js?v=2026
 import { persist } from '../core/data-adapter.js?v=20260808m';
 import { loadWorkspaceData } from '../core/data-loader.js?v=20260808m';
 import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260808m';
 import { renderQueryView } from '../components/query-view.js?v=20260808m';
 import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260808m';
 import { loadActivities } from '../services/activity.js?v=20260808m';
@@ -26,6 +27,8 @@ import { badgeHtml } from '../components/badge.js?v=20260808m';
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'org-commissioner' });
 
 let _orgNavTarget = null; // { tfId, actId, view } URL 导航目标（跨重渲染保持，定位完成后清除）
+// "有待办必见待办"一次性消费标志（书记 2026-08-10 裁定）
+let _todoPriorityConsumed = false;
 let _orgHighlightActId = null; // 活动查看高亮目标（快照变量：导航目标清除后仍供懒加载渲染读取）
 
 // ════════════════════════════════════════════════════════════════
@@ -95,6 +98,13 @@ function renderOrgUI(state) {
   const recruiting = sortTfByNew(taskforces.filter(t => t.status === 'recruiting'));
   const active = sortTfByNew(taskforces.filter(t => t.status === 'active'));
 
+  // 有待办必见待办（书记 2026-08-10 裁定）：仅首次渲染生效
+  let priorityTab;
+  if (!_todoPriorityConsumed) {
+    _todoPriorityConsumed = true;
+    priorityTab = TodoStore.getGroupedByAction('org-commissioner').length > 0 ? 'todo' : undefined;
+  }
+
   const tabBar = renderTabBar({
     prefix: 'org',
     tabs: [
@@ -108,15 +118,17 @@ function renderOrgUI(state) {
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('org-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('org-commissioner', 'u_org'); bindMyDispatchEvents(el, 'org-commissioner', 'u_org'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
-    extraRightHtml: '<button id="btn-publish-tf" style="background:' + accent + ';color:white;border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity=\'0.9\'" onmouseout="this.style.opacity=\'1\'">发布招募</button>',
+    extraRightHtml: '<button id="btn-publish-tf" style="background:' + accent + ';color:white;border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity=\'0.9\'" onmouseout="this.style.opacity=\'1\'">发布招募</button>' + renderReportEntryHtml({ accent, accentRgba }),
     renderCtx: { pending, recruiting, active, activities },
     storageKey: 'workflowos_tab_org',
     defaultTab: 'todo',
+    priorityTab,
   });
 
   container.innerHTML = tabBar.html;
 
   tabBar.bindEvents(container);
+  bindReportEntry(container);
   container.querySelector('#btn-publish-tf')?.addEventListener('click', () => _openRecruitForm());
 
   // ── 首页跳转落点（书记 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
@@ -175,6 +187,10 @@ function _renderTodoContent() {
 
   _todoAggregates = TodoStore.getGroupedByAction('org-commissioner');
   const stats = TodoStore.getStatsByRole('org-commissioner');
+  // 自动选中首条（书记 2026-08-10 裁定推广）：进入待办即见第一条详情，减一次点击
+  if (!_selectedTodoId && _todoAggregates.length > 0) {
+    _selectedTodoId = _todoAggregates[0].groupKey;
+  }
   const selectedTodo = _selectedTodoId ? (
     _todoAggregates.find(g => g.groupKey === _selectedTodoId) || TodoStore.getById(_selectedTodoId)
   ) : null;

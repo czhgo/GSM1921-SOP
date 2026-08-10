@@ -8,6 +8,7 @@ import { persist } from '../core/data-adapter.js?v=20260808m';
 import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, reviewToDisplay, getPersonName } from '../mock/index.js?v=20260808m';
 import { loadWorkspaceData } from '../core/data-loader.js?v=20260808m';
 import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260808m';
 import { openFormModal } from '../components/modal.js?v=20260808m';
 import { autoGenerateMakeupTask, loadMakeupTasks, saveMakeupTasks } from '../services/makeup.js?v=20260808m';
 import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260808m';
@@ -25,6 +26,8 @@ const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'work
 
 const DISC_COMMISSIONER_ID = 'p10'; // 纪检委员 personId
 let _discNavTarget = null; // { tfId, actId } URL 导航目标（跨重渲染保持，定位完成后清除）
+// "有待办必见待办"一次性消费标志（书记 2026-08-10 裁定）
+let _todoPriorityConsumed = false;
 
 // ── 公邮管理 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 const MAILBOX_CONFIG_SEED = {
@@ -79,6 +82,13 @@ function renderDiscUI(state) {
   const container = document.getElementById('disc-content');
   if (!container) return;
 
+  // 有待办必见待办（书记 2026-08-10 裁定）：仅首次渲染生效
+  let priorityTab;
+  if (!_todoPriorityConsumed) {
+    _todoPriorityConsumed = true;
+    priorityTab = TodoStore.getGroupedByAction('disc-commissioner').length > 0 ? 'todo' : undefined;
+  }
+
   const tabBar = renderTabBar({
     prefix: 'disc',
     tabs: [
@@ -96,6 +106,8 @@ function renderDiscUI(state) {
     defaultTab: 'todo',
     renderCtx: {},
     storageKey: 'workflowos_tab_disc',
+    priorityTab,
+    extraRightHtml: renderReportEntryHtml({ accent, accentRgba }),
   });
 
   container.innerHTML = `
@@ -103,6 +115,7 @@ function renderDiscUI(state) {
   `;
 
   tabBar.bindEvents(container);
+  bindReportEntry(container); // 一键汇报入口（书记 2026-08-10 裁定：复用 Issue 体系）
 
   // ── 首页跳转落点（书记 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
   // 目标保持到定位完成（loadWorkspaceData 双 setState 会重渲染），提取后立即清除 URL 参数。

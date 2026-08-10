@@ -2236,3 +2236,29 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **浏览器实测（browser_use 通过）**：4 卡到位且全页无「副书记」文本；`#ov-subview-body` 内 svg=0；各卡首行标签与色点颜色经 getComputedStyle 逐一确认（三色正确）；专班关系标注「统筹/发起/成员」正确；组长卡溢出提示「… 另有 1 项」；无 JS 运行时错误；截图 `overview-person-v3.png`
 - **变更文件**：`docs/src/services/secretary-overview.js`、`docs/src/entries/tabs/secretary/overview-tab.js`、`docs/src/core/icons.js`（删 grid）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
 - **沉淀标签**：`[已沉淀: 按人视图角色集]` — 副书记不入按人视图：非所有支部都有副书记，实现上与书记无职责差异；按人视图=四支委条线（组织/宣传/纪检）+块块（组长），数据驱动 PERSON_ROLES 常量；`[已沉淀: 本页禁用 SVG]` — 类别区分用色点+文字标签（待办灰/活动蓝/专班靛），避免图标选取丑；`[已沉淀: 平行排布]` — 卡片取消「卡头大标题+态势数字」上下层级，身份为紧凑一行、在办清单为主体、数量并入徽章，符合最小三成本
+
+## T-204 最小三成本原则评议·第2轮（六工作台逐台审查 G1-G8）+ 按人视图重新设计全量落地 t1-t6（2026-08-10）
+
+**任务**：①对全部 6 个工作台逐台按「最小三成本原则」（信息成本/操作成本/适应学习成本）再评议一轮；②书记不满书记工作台全局概况"按人视图"→ 从头设计：监管同时【不插手】、进度同时反映读点难点卡点、一键报告/汇报闭环、"谁应该看谁"可计算化、"根据数据定UI"。
+**引用流程**：H1.2 执行 + fullstack-developer Skill + web-design-guidelines Skill + sample-diff-learning Skill + AskUserQuestion（书记多轮裁定）+ verification-before-completion Skill
+
+- **阶段一：逐台审查产出**：
+  - 全局问题 **G1-G8**：三区数据结构混排 / 角色视图缺位 / 硬编码组映射 / decorative SVG / 待办不可见性 / 首条需二次点击 / 汇报无入口 / 可见性无数据源
+  - sample-diff 泛化差异 **4 项**：按人视图「数据 ≠ 人」、组长应看组员（块块）、全员全矩阵可见性、一键汇报需双向闭环
+  - **书记裁定（AskUserQuestion）**：①有待办必见待办（priorityTab 一次性消费）②全站推广范本（自动选中首条+自动展开）③全部改为数据驱动（清除 LEADER_GROUP_MAP 硬编码）④全站统一禁用 decorative 图标（功能性图标保留）
+- **阶段二：按人视图重新设计（书记多轮裁定）**：
+  - **监管不插手**：书记对他人仅「了解进展」（温和请求，措辞不用"要求"）+ 答复汇报，无任何编辑他人待办入口；P-015「看 ≠ 做」「执行委托与知情监督是对应的，统一的」
+  - **谁应该看谁 = P-015 赋权链投影**：AUTHORIZE_CHAIN（secretary/deputy→all；org→organizer/deep 专班条线；leader→own-group 块块；disc→all×[attendance,inspection]；prop/participant→仅 L0 自我），落地为 `visibility.js` 数据驱动矩阵，非新发明
+  - **根据数据定UI**：三区上下排布、问题优先——汇报区（最上，待答复收件箱+行内答复零跳转）→ 卡点区（次上，超期/缺口告警+行内"了解进展"）→ 进度区（最下，角色×状态紧凑聚合表一行一人）
+  - **一键汇报闭环（复用 Issue 体系，零新建存储）**：kind='report' + 分类 progress/blocked/ask；成员发起→书记答复→发回→确认收到闭环；`report-entry.js` 常驻按钮进各工作台
+  - **组长组员进展 tab**：块块知情视角（P-015），五维聚合（progress/blocker/report/attendance/inspection），底部注明"正式答复由书记完成，不跳转他人工作台"
+- **实施落地 t1-t6（全量顺序）**：
+  - t1 `services/visibility.js`（新）全员可见性矩阵（P-015 数据驱动配置）
+  - t2 `services/issues.js` 汇报数据层：requestReport / getReportRequestsFor / getReportsBySubmitter + REPORT_CATEGORIES
+  - t3 `overview-tab.js` 三区视图（问题优先）+ 行内答复/了解进展
+  - t4 `components/report-entry.js`（新）成员端一键汇报入口，接入 visitor/disc/leader 等全部工作台
+  - t5 组长「组员进展」tab（own-group 推导，`_currentLeaderGroup()` 替代硬编码）
+  - t6 跨站点裁定落地：`tab-bar.js` 新增 priorityTab（待办必见，一次性消费）；自动选中首条推广至 leader/org/prop/disc/visitor/secretary 六个工作台；LEADER_GROUP_MAP 硬编码清零；decorative SVG 检查（工作台 icon 均功能性，无需处理）
+- **验证结果**：✅ GetDiagnostics `[]` 无错误；✅ `git diff --stat` 9 modified + 2 new；✅ visibility.js/report-entry.js/issues.js/overview-tab.js 关键导出与三区结构核对通过
+- **变更文件**：`docs/src/components/tab-bar.js`、`docs/src/components/report-entry.js`（新）、`docs/src/services/visibility.js`（新）、`docs/src/services/issues.js`、`docs/src/entries/tabs/secretary/overview-tab.js`、`docs/src/entries/ws-{secretary,leader,org-commissioner,prop-commissioner,disc-commissioner,visitor}-entry.js`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[已沉淀: 有待办必见待办]` — priorityTab 语义="有未完成待办时默认落待办 tab"，优先级 高于 localStorage 记忆，仅首次渲染一次性消费避免反复覆盖用户正在看的 tab；`[已沉淀: 看≠做]` — P-015 知情边界落地：可见性只决定"能看到什么维度"，不授予任何操作权；上级对下级仅「了解进展」与答复，无编辑入口；`[已沉淀: 谁应该看谁]` — 全员可见性矩阵=AUTHORIZE_CHAIN 赋权链投影（L2 all/L1 条线/块块 own-group），数据驱动 ROLE_VISIBILITY 配置表，前端零人判断；`[已沉淀: 根据数据定UI]` — 进度/卡点/汇报三区数据结构截然不同，按数据分区（汇报收件箱/卡点队列/进度聚合表），三区上下排布问题优先；`[已沉淀: 一键汇报闭环]` — 复用 Issue 体系 kind='report'，成员发起→上级答复→发回→确认收到，零新建存储，行内填写即发零跳转
