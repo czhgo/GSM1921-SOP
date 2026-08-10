@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: "2026-08-10"
+last_updated: "2026-08-11"
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSOT_INDEX.md, content/01_strategy/SECRETARY_PRONOUNCEMENTS.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
 ---
@@ -536,6 +536,10 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 - 任何涉及"发展路径"的具体叙事，引用 [DEVELOPMENT\_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)
 - 任何涉及"书记论断"的具体论断，引用 [SECRETARY\_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)
 - 本节为治理层锚点，不承载叙事全文——叙事全文在 DEVELOPMENT\_PATH.md，论断全文在 SECRETARY\_PRONOUNCEMENTS.md
+
+### H7.4 门面文档避讳原则
+
+门面文档（根 README、宣传材料、开源介绍等以公开读者为对象的文本）正文不出现「书记/书记思想」等来源标签——思想融于叙述：讲透"为什么这样设计"的理由与内在逻辑，让读者读完自能体会一以贯之的理念，而非贴标签声明思想的来源。认知形成靠的是内容本身的说服力，不是署名。内部治理文档（CLAUDE.md、执行日志、SECRETARY\_PRONOUNCEMENTS.md 等以归因精确为先的文档）不受此限——内部恰恰需要明确归因，两者是不同场景，不构成矛盾。
 
 ***
 
