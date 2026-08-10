@@ -4,12 +4,12 @@
 // 日历视图（复用 calendar.js 渲染引擎）+ 只读活动详情（点击日历条目）。
 // 形态依据书记第四轮裁定：「书记的日历视图只要删去写入活动等功能，就可以提供很好的活动详情」。
 
-import { getAppState, setState } from '../core/state.js?v=20260808m';
-import { renderCalendarByActivities } from './calendar.js?v=20260808m';
-import { _fmtDate, _currentYearMonth, flashHighlight } from '../core/utils.js?v=20260808m';
-import { badgeHtml } from './badge.js?v=20260808m';
-import { ROLE_COLORS } from '../core/constants.js?v=20260808m';
-import { activityLifecycleBadgeHtml } from './inspector.js?v=20260808m';
+import { getAppState, setState } from '../core/state.js?v=20260810a';
+import { renderCalendarByActivities } from './calendar.js?v=20260810a';
+import { _fmtDate, _currentYearMonth, flashHighlight } from '../core/utils.js?v=20260810a';
+import { badgeHtml } from './badge.js?v=20260810a';
+import { ROLE_COLORS } from '../core/constants.js?v=20260810a';
+import { activityLifecycleBadgeHtml } from './inspector.js?v=20260810a';
 
 // 任务状态元数据（状态点 + 文案，轻量自包含，避免依赖 status-badge 全家桶）
 const _TASK_STATUS_META = {

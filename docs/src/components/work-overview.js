@@ -9,17 +9,18 @@
 //  职责空间最小充分信息（P-015 知情边界）；本页禁用 SVG 图标（书记裁定）
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight } from '../core/utils.js?v=20260808m';
-import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260808m';
-import { IssueStore, REPORT_CATEGORIES } from '../services/issues.js?v=20260808m';
-import { AuthStore } from '../services/auth.js?v=20260808m';
-import { loadActivities } from '../services/activity.js?v=20260808m';
-import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260808m';
-import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260808m';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808m';
-import { PEOPLE } from '../mock/people.js?v=20260808m';
-import { getPersonName } from '../mock/index.js?v=20260808m';
-import { AttendanceStatus } from '../core/domain.js?v=20260808m';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260810a';
+import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260810a';
+import { IssueStore, REPORT_CATEGORIES } from '../services/issues.js?v=20260810a';
+import { AuthStore } from '../services/auth.js?v=20260810a';
+import { loadActivities } from '../services/activity.js?v=20260810a';
+import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260810a';
+import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260810a';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260810a';
+import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260810a';
+import { PEOPLE } from '../mock/people.js?v=20260810a';
+import { getPersonName } from '../mock/index.js?v=20260810a';
+import { AttendanceStatus } from '../core/domain.js?v=20260810a';
 
 // 在办下钻详情目标（书记 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -94,7 +95,18 @@ export async function renderWorkOverview(container, { role, personId, accent = '
   }));
   const lineBlockers = _lineBlockers(role);
 
+  // 文件流外发确认（书记 2026-08-10 裁定）：微信外发的文件到达后，接收方在此确认，形成闭环
+  const pendingDispatches = listPendingByReceiver(role);
+  const dispatchRows = pendingDispatches.map(d => `
+    <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
+      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#F59E0B;"></span>
+      <span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">文件待确认</span>
+      <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${d.refLabel} · ${d.senderName} 已微信外发</span>
+      <button type="button" class="ed-confirm-btn text-[11px] px-2.5 py-1 rounded-lg text-white flex-shrink-0" data-ed-id="${d.id}" style="background:#16A34A;">确认收到</button>
+    </div>`);
+
   const blockerRows = [];
+  dispatchRows.forEach(r => blockerRows.push(r));
   myBlockers.forEach(b => blockerRows.push(`<div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#EF4444;"></span><span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">我的待办</span><span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b.title} 超期</span><span class="text-[11px] tabular-nums text-red-500 font-medium flex-shrink-0">${b.deadline}</span></div>`));
   lineBlockers.forEach(b => blockerRows.push(`<div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#F59E0B;"></span><span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">条线缺口</span><span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b}</span></div>`));
 
@@ -268,6 +280,15 @@ function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
     });
   });
 
+  // 文件流外发确认（书记 2026-08-10 裁定）：接收方确认收到 → 闭环记录
+  container.querySelectorAll('.ed-confirm-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      confirmExternalDispatch(btn.dataset.edId);
+      showToast('success', '已确认收到，文件流转闭环完成');
+      rerender();
+    });
+  });
+
   // 在办下钻（设计原则 11：进度指标可下钻——待办→待办 tab 定位；活动/专班→只读详情）
   container.querySelectorAll('[data-wo-jump]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -317,10 +338,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('./activity-view.js?v=20260808m');
+    const { renderActivityView } = await import('./activity-view.js?v=20260810a');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260808m');
+    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260810a');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

@@ -1,4 +1,4 @@
-﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿// role: [工程师]+[AI]
 // entries/tabs/secretary/overview-tab.js — 书记工作台·全局概况 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 设计初衷（书记 2026-08-02 确认方向后记录）：
@@ -8,17 +8,18 @@
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 // 2026-08-10 书记裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { showToast } from '../../../core/utils.js?v=20260808m';
-import { NoticeStore } from '../../../services/notice.js?v=20260808m';
-import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260808m';
-import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260808m';
-import { badgeHtml } from '../../../components/badge.js?v=20260808m';
-import { loadActivities } from '../../../services/activity.js?v=20260808m';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260808m';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260808m';
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260808m';
-import { AuthStore } from '../../../services/auth.js?v=20260808m';
-import { getPersonName } from '../../../mock/index.js?v=20260808m';
+import { showToast } from '../../../core/utils.js?v=20260810a';
+import { NoticeStore } from '../../../services/notice.js?v=20260810a';
+import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260810a';
+import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260810a';
+import { badgeHtml } from '../../../components/badge.js?v=20260810a';
+import { loadActivities } from '../../../services/activity.js?v=20260810a';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260810a';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260810a';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260810a';
+import { AuthStore } from '../../../services/auth.js?v=20260810a';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260810a';
+import { getPersonName } from '../../../mock/index.js?v=20260810a';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -347,7 +348,7 @@ function renderDimensionView(container) {
 
   const kpis = [
     { label: '本月出勤率', value: attendance.attendanceRate, unit: '%', target: '目标 ≥90%', status: kpiStatusOf(attendance.attendanceRate >= 90, attendance.attendanceRate >= 80), bar: true },
-    { label: '复盘完成率', value: activity.reviewRate, unit: '%', target: '目标 100%', status: kpiStatusOf(activity.reviewRate >= 100, activity.reviewRate >= 80), bar: true },
+    { label: '复盘问题', value: activity.reviewIssues, unit: '条', target: '真问题导向', status: activity.reviewIssues > 0 ? 'ok' : 'warn', bar: false },
     { label: '归档完成率', value: propaganda.archiveRate, unit: '%', target: '目标 100%', status: kpiStatusOf(propaganda.archiveRate >= 100, propaganda.archiveRate >= 80), bar: true },
     { label: '考察积压', value: inspection.pendingInspections + inspection.overdueInspections, unit: '条', target: '目标 0 条', status: inspection.overdueInspections ? 'danger' : inspection.pendingInspections ? 'warn' : 'ok', bar: false },
     { label: '待办异常', value: anomalyTotal, unit: '项', target: '目标 0 项', status: anomalyTotal ? 'danger' : 'ok', bar: false },
@@ -376,11 +377,22 @@ function renderDimensionView(container) {
   ];
   const stageTotal = stages.reduce((s, x) => s + x.value, 0) || 1;
 
-  const exceptionsHtml = exceptions.length === 0
+  // 文件流外发确认（书记 2026-08-10 裁定）：微信外发文件到达书记后在此确认，形成闭环
+  const pendingDispatches = listPendingByReceiver('secretary');
+  const dispatchRows = pendingDispatches.map(d => `
+    <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
+      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#F59E0B;"></span>
+      <span class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">文件待确认</span>
+      <span class="text-xs text-gray-500 flex-1 truncate">${d.refLabel} · ${d.senderName} 已微信外发</span>
+      <span class="text-xs text-gray-400 w-16 flex-shrink-0">${d.senderName}</span>
+      <button type="button" class="sec-ed-confirm btn-accent-soft text-xs px-2.5 py-1" data-ed-id="${d.id}">确认收到</button>
+    </div>`);
+
+  const exceptionsHtml = (exceptions.length === 0 && dispatchRows.length === 0)
     ? `<div class="flex items-center gap-2 py-3 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
          <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 全部正常，无待处理异常
        </div>`
-    : exceptions.map(e => {
+    : dispatchRows.join('') + exceptions.map(e => {
         const dot = e.level === 3 ? '#EF4444' : e.level === 2 ? '#F59E0B' : '#3B82F6';
         const actionHtml = e.action.urge
           ? `<button type="button" class="sec-urge-btn btn-accent-soft text-xs px-2.5 py-1" data-urge="${e.action.urge}">催办</button>`
@@ -428,7 +440,7 @@ function renderDimensionView(container) {
       <div class="card rounded-xl p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">异常优先队列</h4>
-          <span class="text-xs text-gray-400">按紧急度排序 · ${exceptions.length} 项</span>
+          <span class="text-xs text-gray-400">按紧急度排序 · ${exceptions.length + pendingDispatches.length} 项</span>
         </div>
         <div class="space-y-1">${exceptionsHtml}</div>
       </div>
@@ -453,6 +465,13 @@ function renderDimensionView(container) {
   `;
 
   // 催办/直达绑定（t5b：催办通知对应委员 / 直达本人工作台）
+  container.querySelectorAll('.sec-ed-confirm').forEach(btn => {
+    btn.addEventListener('click', () => {
+      confirmExternalDispatch(btn.dataset.edId);
+      showToast('success', '已确认收到，文件流转闭环完成');
+      renderDimensionView(container);
+    });
+  });
   container.querySelectorAll('.sec-urge-btn[data-urge]').forEach(btn => {
     btn.addEventListener('click', () => handleUrge(btn.dataset.urge));
   });

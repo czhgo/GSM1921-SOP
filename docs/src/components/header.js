@@ -1,14 +1,15 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // components/header.js — 共享顶栏组件（重构版）
-// 变化: 去掉 mode 标签与只读视角切换，仅保留身份标签 + 工作台切换下拉
+// 变化: 去掉 mode 标签与只读视角切换；2026-08-10 书记裁定（原则12 工作台集成制）：
+// 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { AuthStore } from '../services/auth.js?v=20260808m';
-import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260808m';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260808m';
-import { getBasePath } from '../core/utils.js?v=20260808m';
-import { icon } from '../core/icons.js?v=20260808m';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260808m';
-import { badgeHtml } from './badge.js?v=20260808m';
+import { AuthStore } from '../services/auth.js?v=20260810a';
+import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260810a';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260810a';
+import { getBasePath } from '../core/utils.js?v=20260810a';
+import { icon } from '../core/icons.js?v=20260810a';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260810a';
+import { badgeHtml } from './badge.js?v=20260810a';
 
 // 数据变更订阅（2026-08-05，消除"确认已读后角标不更新"）：
 // 模块顶层绑定一次；_renderNotificationBadge 在 #notification-bell 未渲染时静默返回。
@@ -56,66 +57,6 @@ function _roleLabelHTML(role) {
   `;
 }
 
-function _viewSwitcherHTML(role, user) {
-  if (!user) return '';
-
-  // ── 切换工作台身份（有独立页面的身份） ──
-  const workspaces = [];
-  // 1a. 常设角色对应工作台（排除 participant，因为 participant 默认就是首页）
-  const standingPage = AuthStore.getPageForRole('workspace', role);
-  if (standingPage && role !== 'participant') {
-    workspaces.push({
-      type: 'workspace',
-      role,
-      label: ROLE_LABELS[role] || role,
-      href: getBasePath() + 'workspace/' + standingPage,
-      isCurrent: true,
-    });
-  }
-  // 1b. 党小组组长（如有赋权且非当前常设角色）
-  const authRecords = AuthStore.getAuthorizations();
-  const hasLeaderAuth = authRecords.some(r => r.targetPersonId === user.personId && r.role === 'leader');
-  if (hasLeaderAuth && role !== 'leader') {
-    workspaces.push({
-      type: 'workspace',
-      role: 'leader',
-      label: '党小组组长工作台',
-      href: getBasePath() + 'workspace/leader.html',
-      isCurrent: false,
-    });
-  }
-
-  // 全部为空时隐藏按钮（单一身份的普通参与者）
-  if (workspaces.length === 0) return '';
-
-  // 渲染分组
-  let groupsHTML = '';
-  if (workspaces.length > 0) {
-    groupsHTML += `
-      <div style="padding:6px 12px;color:var(--neutral-400);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;" class="text-xs">切换工作台</div>
-      ${workspaces.map(w => `
-        <a href="${w.href}" data-ws-role="${w.role}" class="view-option text-body-sm" data-type="workspace" style="position:relative;display:flex;align-items:center;gap:6px;padding:8px 12px;cursor:pointer;color:var(--neutral-800);transition:background 0.15s;text-decoration:none;">
-          ${w.isCurrent ? '<span style="position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--app-accent, var(--party-gold));border-radius:1px;"></span>' : ''}
-          <span>${w.label}</span>
-          ${w.isCurrent ? '<span style="margin-left:auto;color:var(--neutral-400);" class="text-xs">当前</span>' : ''}
-        </a>
-      `).join('')}
-    `;
-  }
-
-  return `
-    <div id="view-switcher" style="position:relative;">
-      <button id="view-switcher-btn" style="display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:8px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.25);color:#FFFFFF;cursor:pointer;transition:background 0.15s;white-space:nowrap;" class="text-body-sm">
-        <span>切换工作台</span>
-        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style="flex-shrink:0;"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <div id="view-switcher-panel" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;min-width:200px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);background:var(--surface-card);color:var(--neutral-800);overflow:hidden;z-index:100;border:1px solid #E5E7EB;">
-        ${groupsHTML}
-      </div>
-    </div>
-  `;
-}
-
 function _notificationBellHTML() {
   // 只统计未过期的未读通知，与 index 首页通知栏数据一致
   const activeNotices = NoticeStore.list({ activeOnly: true });
@@ -155,7 +96,6 @@ export function renderHeader(activeModule) {
       </div>
       <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
         ${_roleLabelHTML(role)}
-        ${_viewSwitcherHTML(role, user)}
         ${_notificationBellHTML()}
       </div>
     </div>
@@ -163,7 +103,6 @@ export function renderHeader(activeModule) {
 
   _bindHamburger(header);
   _bindNotificationBell(header);
-  _bindViewSwitcher(header);
 }
 
 function _bindHamburger(header) {
@@ -189,54 +128,6 @@ function _bindHamburger(header) {
       sidebar.classList.add('sidebar-collapsed');
     });
   }
-}
-
-function _bindViewSwitcher(header) {
-  const btn = header.querySelector('#view-switcher-btn');
-  const panel = header.querySelector('#view-switcher-panel');
-  if (!btn || !panel) return;
-
-  // 点击触发按钮展开/收起
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    panel.classList.toggle('hidden');
-  });
-
-  // hover 效果
-  btn.addEventListener('mouseenter', () => {
-    btn.style.background = 'rgba(255,255,255,0.2)';
-  });
-  btn.addEventListener('mouseleave', () => {
-    btn.style.background = 'rgba(255,255,255,0.1)';
-  });
-
-  // 点击选项项（工作台跳转：<a> 标签自动跳转，这里只需关闭面板）
-  panel.querySelectorAll('.view-option').forEach(opt => {
-    opt.addEventListener('mouseenter', () => {
-      opt.style.background = 'var(--surface-hover)';
-    });
-    opt.addEventListener('mouseleave', () => {
-      opt.style.background = 'transparent';
-    });
-    opt.addEventListener('click', (e) => {
-      e.stopPropagation();
-      panel.classList.add('hidden');
-    });
-  });
-
-  // 点击外部关闭
-  document.addEventListener('click', (e) => {
-    if (!panel.contains(e.target) && !btn.contains(e.target)) {
-      panel.classList.add('hidden');
-    }
-  });
-
-  // ESC 关闭
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !panel.classList.contains('hidden')) {
-      panel.classList.add('hidden');
-    }
-  });
 }
 
 function _bindNotificationBell(header) {

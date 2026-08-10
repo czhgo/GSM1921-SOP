@@ -1,28 +1,28 @@
-﻿﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260808m';
-import { showToast } from '../core/utils.js?v=20260808m';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260808m';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260808m';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, ReviewStatus, SourceType, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260808m';
-import { solidAccentStyle } from '../core/constants.js?v=20260808m';
-import { persist } from '../core/data-adapter.js?v=20260808m';
-import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, reviewToDisplay, getPersonName } from '../mock/index.js?v=20260808m';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260808m';
-import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260808m';
-import { renderWorkOverview } from '../components/work-overview.js?v=20260808m';
-import { AuthStore } from '../services/auth.js?v=20260808m';
-import { openFormModal } from '../components/modal.js?v=20260808m';
-import { autoGenerateMakeupTask, loadMakeupTasks, saveMakeupTasks } from '../services/makeup.js?v=20260808m';
-import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260808m';
-import { loadInspectionRecords, loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, getRecordsBySource } from '../services/inspection.js?v=20260808m';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808m';
-import { loadActivities } from '../services/activity.js?v=20260808m';
-import { loadActivityReviews, loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../services/review.js?v=20260808m';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260808m';
-import { renderTodoList } from '../components/todo-list.js?v=20260808m';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType, seedTodos } from '../services/todo.js?v=20260808m';
-import { enhanceSelects } from '../components/custom-select.js?v=20260808m';
-import { badgeHtml } from '../components/badge.js?v=20260808m';
+﻿﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260810a';
+import { showToast } from '../core/utils.js?v=20260810a';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260810a';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260810a';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, ReviewStatus, SourceType, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260810a';
+import { solidAccentStyle } from '../core/constants.js?v=20260810a';
+import { persist } from '../core/data-adapter.js?v=20260810a';
+import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, reviewToDisplay, getPersonName } from '../mock/index.js?v=20260810a';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260810a';
+import { renderTabBar } from '../components/tab-bar.js?v=20260810a';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260810a';
+import { renderWorkOverview } from '../components/work-overview.js?v=20260810a';
+import { AuthStore } from '../services/auth.js?v=20260810a';
+import { openFormModal } from '../components/modal.js?v=20260810a';
+import { autoGenerateMakeupTask, loadMakeupTasks, saveMakeupTasks } from '../services/makeup.js?v=20260810a';
+import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260810a';
+import { loadInspectionRecords, loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, getRecordsBySource } from '../services/inspection.js?v=20260810a';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260810a';
+import { loadActivities } from '../services/activity.js?v=20260810a';
+import { loadActivityReviews, loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../services/review.js?v=20260810a';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260810a';
+import { renderTodoList } from '../components/todo-list.js?v=20260810a';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType, seedTodos } from '../services/todo.js?v=20260810a';
+import { enhanceSelects } from '../components/custom-select.js?v=20260810a';
+import { badgeHtml } from '../components/badge.js?v=20260810a';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'disc-commissioner' });
 
@@ -103,7 +103,7 @@ function renderDiscUI(state) {
       { id: 'makeup', label: '补课制度', render: () => _renderMakeupContent(), groupLabel: '党建' },
       { id: 'mailbox', label: '公邮管理', render: () => _renderMailboxContent(), groupLabel: '党建' },
       // 专班查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增）
-      { id: 'tf-view', label: '专班查看', render: () => { const el = document.getElementById('disc-tab-content'); if (el) return import('../components/taskforce-view.js?v=20260808m').then(m => m.renderTaskforceView(el, { highlightId: _discNavTarget?.tfId || null, onLocated: () => { _discNavTarget = null; } })); }, groupLabel: '党建' },
+      { id: 'tf-view', label: '专班查看', render: () => { const el = document.getElementById('disc-tab-content'); if (el) return import('../components/taskforce-view.js?v=20260810a').then(m => m.renderTaskforceView(el, { highlightId: _discNavTarget?.tfId || null, onLocated: () => { _discNavTarget = null; } })); }, groupLabel: '党建' },
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('disc-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('disc-commissioner', 'u_disc'); bindMyDispatchEvents(el, 'disc-commissioner', 'u_disc'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
@@ -1023,6 +1023,10 @@ function _renderReviewContent() {
                 </div>
               </div>
               ${r.reviewContent ? `<div class="text-xs text-gray-600 mb-2 p-2 bg-white rounded-lg border border-gray-100">${r.reviewContent}</div>` : ''}
+              ${(r.issues && r.issues.length) ? `<div class="mb-2 p-2 rounded-lg border border-amber-100 bg-amber-50">
+                <div class="text-[11px] text-amber-700 font-bold mb-0.5">提出的真问题（${r.issues.length}）</div>
+                <ul class="space-y-0.5">${r.issues.map(i => `<li class="text-xs text-amber-800">· ${i}</li>`).join('')}</ul>
+              </div>` : ''}
               <div class="flex gap-2">
                 ${r.reviewStatus === '已上传' ? `
                   <button class="btn-action btn-action-orange btn-disc-annotate" data-review-id="${r.id}">批注</button>

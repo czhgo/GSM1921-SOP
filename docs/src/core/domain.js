@@ -264,6 +264,9 @@ export const mockDB = {
   mailboxConfig: null,
   /** @type {Object[]} 纪检公邮查收历史（disc-commissioner 党建 Tab） */
   mailboxHistory: [],
+  // ── 2026-08-10 文件流内控新增持久化域 ──
+  /** @type {Object[]} 文件流外发确认记录（ExternalDispatch，书记 2026-08-10 裁定） */
+  externalDispatches: [],
 };
 
 // ════════════════════════════════════════════════════════════════

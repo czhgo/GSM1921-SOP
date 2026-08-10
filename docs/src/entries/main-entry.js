@@ -2,24 +2,24 @@
 // main-entry.js — 主页入口
 // index.html 专属，处理 dashboard 全量数据渲染
 
-import { BranchService } from '../services/runtime.js?v=20260808m';
-import { STATE, setState, registerRenderCallback, getAppState } from '../core/state.js?v=20260808m';
-import { NoticeStore, renderNoticeList } from '../services/notice.js?v=20260808m';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808m';
-import { _fmtDate, getBasePath } from '../core/utils.js?v=20260808m';
-import { _personName, getPersonName } from '../mock/index.js?v=20260808m';
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../services/attendance.js?v=20260808m';
-import { loadActivities } from '../services/activity.js?v=20260808m';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260808m';
-import { getActivityTypeColors } from '../core/constants.js?v=20260808m';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260808m';
-import { AuthStore } from '../services/auth.js?v=20260808m';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260808m';
-import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260808m';
-import { icon } from '../core/icons.js?v=20260808m';
-import { badgeHtml } from '../components/badge.js?v=20260808m';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../components/inspector.js?v=20260808m';
-import { renderCalendarForDashboard, populateMonthSelector } from '../components/calendar.js?v=20260808m';
+import { BranchService } from '../services/runtime.js?v=20260810a';
+import { STATE, setState, registerRenderCallback, getAppState } from '../core/state.js?v=20260810a';
+import { NoticeStore, renderNoticeList } from '../services/notice.js?v=20260810a';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260810a';
+import { _fmtDate, getBasePath } from '../core/utils.js?v=20260810a';
+import { _personName, getPersonName } from '../mock/index.js?v=20260810a';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../services/attendance.js?v=20260810a';
+import { loadActivities } from '../services/activity.js?v=20260810a';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260810a';
+import { getActivityTypeColors } from '../core/constants.js?v=20260810a';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260810a';
+import { AuthStore } from '../services/auth.js?v=20260810a';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260810a';
+import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260810a';
+import { icon } from '../core/icons.js?v=20260810a';
+import { badgeHtml } from '../components/badge.js?v=20260810a';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../components/inspector.js?v=20260810a';
+import { renderCalendarForDashboard, populateMonthSelector } from '../components/calendar.js?v=20260810a';
 
 const { user } = await bootstrapPage({ module: 'dashboard' });
 
@@ -107,8 +107,8 @@ function _renderStats(activities, taskforces, notices, attendanceRecords, isLoad
   // A-01 修复：color 统一为 hex 常量，图标底色用 8 位 hex（${hex}15），var+hex 拼接无法解析
   const stats = [
     { label: '本月活动', value: monthActivities.length, unit: '场', color: '#CE1126', icon: 'calendarHero', interactive: false },
-    // A-09 修复：活跃专班亮金 #FFD700 白卡辨识度低 → 深金 #B45309（与访客金色系一致）
-    { label: '活跃专班', value: activeTFs.length, unit: '个', color: '#B45309', icon: 'usersGroup', interactive: false },
+    // A-09 修复：活跃专班亮金 #FFD700 白卡辨识度低 → 金黄 #A16207（与访客金色系一致）
+    { label: '活跃专班', value: activeTFs.length, unit: '个', color: '#A16207', icon: 'usersGroup', interactive: false },
     { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? '#DC2626' : '#9CA3AF', icon: 'bellHero', interactive: false },
     { label: '我的考勤', value: myTotal > 0 ? `${myPresent}/${myTotal}` : '—', unit: '', color: myColor, icon: 'clipboard', interactive: true },
   ];

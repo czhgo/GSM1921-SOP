@@ -1,4 +1,4 @@
-﻿﻿// review.js — 复盘记录 Mock 数据
+﻿// review.js — 复盘记录 Mock 数据
 // 数据模型对齐 domain.js ReviewRecord + ReviewStatus 枚举（D-242）
 // 复盘状态流转：未提交→已上传→批注中→确认/打回
 // 组织者提交复盘报告，纪检委员批注/打回/确认
@@ -6,9 +6,9 @@
 // 修复（T175）：不再从 ./index.js 导入 _personName/_activityTitle，
 // 消除 mock/index.js ↔ mock/review.js 循环依赖。
 // 直接依赖 services/person.js + mock/activities.js。
-import { getPersonName } from '../services/person.js?v=20260808m';
-import { ACTIVITIES } from './activities.js?v=20260808m';
-import { ReviewStatus } from '../core/domain.js?v=20260808m';
+import { getPersonName } from '../services/person.js?v=20260810a';
+import { ACTIVITIES } from './activities.js?v=20260810a';
+import { ReviewStatus } from '../core/domain.js?v=20260810a';
 
 const _personName = (id) => getPersonName(id);
 const _activityTitle = (id) => ACTIVITIES.find(a => a.id === id)?.title || id;
@@ -54,6 +54,7 @@ export const REVIEW_RECORDS = [
     overdue: false,
     reviewStatus: ReviewStatus.UPLOADED,
     reviewContent: '3月主题党日"学习两会精神"为品牌活动首场，参与度高，深度参与者郑十一、冯十二的视频和新闻稿反响良好。建议下月品牌活动延续此类深度参与机制。',
+    issues: ['品牌活动深度参与机制需固化延续'],
     submittedAt: '2026-03-23T10:00:00',
   },
 
@@ -79,6 +80,7 @@ export const REVIEW_RECORDS = [
     annotation: '请补充积极分子 p7 周九的考察材料清单，明确材料缺失项。',
     annotatedBy: 'p10',
     annotatedAt: '2026-04-17T10:00:00',
+    issues: ['积极分子 p7 考察材料清单缺失'],
     submittedAt: '2026-04-16T14:00:00',
   },
   {
@@ -89,6 +91,7 @@ export const REVIEW_RECORDS = [
     overdue: false,
     reviewStatus: ReviewStatus.UPLOADED,
     reviewContent: '4月党课"新时代青年担当"由书记主讲，参与度高，深度参与者林十五完成宣传稿。课后讨论环节延长至 40 分钟，建议后续党课预留更多讨论时间。',
+    issues: ['党课课后讨论时间不足，需预留更多'],
     submittedAt: '2026-04-26T10:00:00',
   },
   {
@@ -102,6 +105,7 @@ export const REVIEW_RECORDS = [
     annotation: '复盘材料缺失：① 参访人员名单与签到表 ② 现场影像记录 ③ 深度参与者 p9 冯十二的工作量记录。请补充完整后重新提交。',
     annotatedBy: 'p10',
     annotatedAt: '2026-04-22T11:00:00',
+    issues: ['参访材料缺失：人员名单与签到表、现场影像、深度参与者工作量记录'],
     submittedAt: '2026-04-21T10:00:00',
   },
 
@@ -127,6 +131,7 @@ export const REVIEW_RECORDS = [
     annotation: '建议补充品牌活动培育路径说明，体现"培育→成熟→标杆"四阶段中的当前阶段。',
     annotatedBy: 'p10',
     annotatedAt: '2026-05-20T09:00:00',
+    issues: ['品牌活动培育路径说明缺失'],
     submittedAt: '2026-05-19T16:00:00',
   },
   {
@@ -164,6 +169,7 @@ export const TASKFORCE_REVIEW_RECORDS = [
     overdue: false,
     reviewStatus: ReviewStatus.UPLOADED,
     reviewContent: '宣传专班（第二期）5月宣传任务完成情况：深度报道 2 篇、专题视频 1 部。视频制作周期略长于预期，建议下期专班预留更多后期时间。',
+    issues: ['视频制作周期长于预期，需预留更多后期时间'],
     submittedAt: '2026-05-21T14:00:00',
   },
   {
@@ -199,6 +205,7 @@ export function reviewToDisplay(records, tfRecords) {
     overdue: r.overdue,
     reviewStatus: r.reviewStatus,
     reviewContent: r.reviewContent,
+    issues: Array.isArray(r.issues) ? r.issues : [],
     annotation: r.annotation || '',
     annotatedBy: r.annotatedBy ? _personName(r.annotatedBy) : null,
     annotatedById: r.annotatedBy || null,

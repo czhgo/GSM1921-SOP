@@ -58,7 +58,7 @@
   --accent-violet:      #7C3AED;
   --accent-violet-light:#8B5CF6;
   --status-live:        #22c55e;
-  --brand-amber-dark:   #B45309;
+  --brand-amber-dark:   #A16207;
   --blue-hover:         #2563EB;
   --sky-hover:          #0284C7;
   --error-dark:         #991B1B;
@@ -403,7 +403,7 @@ input.input-flat.text-xs {
 }
 .wp-dim-chip:hover {
   border-color: var(--party-gold);
-  color: #B45309;
+  color: #A16207;
 }
 .wp-dim-chip.wp-dim-on {
   background-color: var(--app-accent-bg, rgba(185, 28, 28, 0.1));
@@ -422,7 +422,7 @@ input.input-flat.text-xs {
 }
 .wp-brand-chip:hover {
   border-color: var(--party-gold);
-  color: #B45309;
+  color: #A16207;
 }
 .wp-brand-chip.wp-brand-on {
   background-color: var(--app-accent-bg, rgba(185, 28, 28, 0.1));
@@ -830,7 +830,7 @@ textarea.input-flat {
 .btn-action-red   { background: #FEF2F2; color: #B91C1C; border-color: #FECACA; }
 .btn-action-blue  { background: #EFF6FF; color: #1D4ED8; border-color: #BFDBFE; }
 .btn-action-green { background: #F0FDF4; color: #15803D; border-color: #BBF7D0; }
-.btn-action-amber { background: #FFFBEB; color: #B45309; border-color: #FDE68A; }
+.btn-action-amber { background: #FFFBEB; color: #A16207; border-color: #FDE68A; }
 .btn-action-orange{ background: #FFF7ED; color: #C2410C; border-color: #FED7AA; }
 .btn-action-gray  { background: #F9FAFB; color: #4B5563; border-color: #E5E7EB; }
 
@@ -876,7 +876,7 @@ textarea.input-flat {
 .btn-md-red   { background: #FEF2F2; color: #B91C1C; border-color: #FECACA; }
 .btn-md-blue  { background: #EFF6FF; color: #1D4ED8; border-color: #BFDBFE; }
 .btn-md-green { background: #F0FDF4; color: #15803D; border-color: #BBF7D0; }
-.btn-md-amber { background: #FFFBEB; color: #B45309; border-color: #FDE68A; }
+.btn-md-amber { background: #FFFBEB; color: #A16207; border-color: #FDE68A; }
 .btn-md-gray  { background: #F9FAFB; color: #4B5563; border-color: #E5E7EB; }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -7720,12 +7720,12 @@ label .text-red-500 {
   color: #6B7280;
 }
 .badge--success { background: #DCFCE7; color: #15803D; }
-.badge--warning { background: #FEF3C7; color: #B45309; }
+.badge--warning { background: #FEF3C7; color: #A16207; }
 .badge--danger  { background: #FEE2E2; color: #B91C1C; }
 .badge--info    { background: #DBEAFE; color: #1D4ED8; }
 .badge--neutral { background: #F3F4F6; color: #6B7280; }
-.badge--brand   { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
-.badge--gold    { background: #FDE68A; color: #B45309; font-weight: 600; }
+.badge--brand   { background: #FEF3C7; color: #A16207; border: 1px solid #FDE68A; }
+.badge--gold    { background: #FDE68A; color: #A16207; font-weight: 600; }
 
 /* ── 内联色块统一基础类（T231 第二轮）：内联样式只带 --tint，深浅两套由 CSS 计算 ──
    浅色：色值 10% 叠加透明 + 色字 + 28% 边框（与原 ROLE_COLORS rgba 底同构）；
@@ -7749,7 +7749,7 @@ label .text-red-500 {
    （浅色：亮金浅底+深金字；深色：提亮金底+亮金字，与其他主题色"实底白字"平行可读） */
 :root {
   --gold-btn-bg: rgba(255, 215, 0, 0.12);
-  --gold-btn-text: #B45309;
+  --gold-btn-text: #A16207;
   --gold-btn-border: rgba(255, 215, 0, 0.35);
 }
 html.theme-dark {

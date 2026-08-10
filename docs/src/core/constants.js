@@ -30,7 +30,7 @@ const ACTIVITY_CAT_COLOR = {
   'party-group-meeting':   { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 党小组会
   'party-lecture':         { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 党课
   // ── 主题党日系（党徽金 #FFD700，2026-08-01 书记要求"再亮一些"，原 #D4AF37 偏灰/脏）──
-  'theme-party':           { bg: 'rgba(255, 215, 0, 0.12)', text: '#B45309', border: 'rgba(255, 215, 0, 0.35)' },  // 主题党日
+  'theme-party':           { bg: 'rgba(255, 215, 0, 0.12)', text: '#A16207', border: 'rgba(255, 215, 0, 0.35)' },  // 主题党日
   // ── 默认 ──
   'default':               { bg: 'rgba(107, 114, 128, 0.08)', text: '#4B5563', border: 'rgba(107, 114, 128, 0.25)' },
 };
@@ -150,7 +150,7 @@ export const ACCENT_COLORS = {
   commissioner:        { hex: '#C2410C' },  // 同纪检
   organizer:           { hex: '#7DD3FC' },  // 亮天蓝
   deep:                { hex: '#94a3b8' },  // 浅灰蓝
-  participant:         { hex: '#B45309', bg: 'rgba(255,215,0,0.12)', border: 'rgba(255,215,0,0.35)' },  // 金（主题党日胶囊三件套：亮金底+深金字+亮金边框，2026-08-08 四审改，与主题活动色同源）
+  participant:         { hex: '#A16207', bg: 'rgba(255,215,0,0.12)', border: 'rgba(255,215,0,0.35)' },  // 金（主题党日胶囊三件套：亮金底+深金字+亮金边框，2026-08-08 四审改，与主题活动色同源）
   all:                 { hex: '#0E7490' },  // 深青
   purple:              { hex: '#7C3AED' },  // 紫罗兰（侧边栏色板可选色，不与角色挂钩，与 deep 语义色同源）
 };
@@ -209,7 +209,7 @@ export function getAccentColors(role, bgAlpha = 0.1, borderAlpha = 0.3) {
 
 /**
  * 强调色「实底白字」按钮/标签统一样式（G1/G3 修复，书记 2026-08-08 裁定）
- * 金色主题（accent=#B45309 深棕金）时改为「金浅底 rgba(255,215,0,0.12)+深金字 #B45309」，
+ * 金色主题（accent=#A16207 金黄）时改为「金浅底 rgba(255,215,0,0.12)+金黄字 #A16207」，
  * 不用纯亮金 #FFD700 实底（书记实测「过于艳丽，饱和度太高」）；
  * 金浅底与 tab 激活态同源（书记「tab 因为有透明度，黄色非常舒服」）；
  * 普通按钮不加边框，与其他主题色按钮结构完全一致（书记「别的有他也有，别的没有他也必须没有」）。
@@ -218,9 +218,9 @@ export function getAccentColors(role, bgAlpha = 0.1, borderAlpha = 0.3) {
  * @returns {string} 内联样式串（background / color）
  */
 export function solidAccentStyle(accent, border) {
-  if (accent === '#B45309') {
+  if (accent === '#A16207') {
     // 金浅底+深金字（浅色）/ 提亮金底+亮金字（深色）：CSS 变量驱动，深浅两套自动适配
-    return 'background:var(--gold-btn-bg, rgba(255,215,0,0.12));color:var(--gold-btn-text, #B45309);';
+    return 'background:var(--gold-btn-bg, rgba(255,215,0,0.12));color:var(--gold-btn-text, #A16207);';
   }
   return `background:${accent};color:#fff;`;
 }
@@ -236,10 +236,10 @@ const _ACTIVITY_TYPE_BASE = {
   '支部党员大会': { bg: '#FEF2F2', dot: '#CE1126' },
   '组织生活会':   { bg: '#FEF2F2', dot: '#CE1126' },
   // 主题党日系（党徽金 #FFD700，2026-08-01 亮金化；text=深金文字供日期数字、dotBorder=金点描边恢复暖底可辨性）
-  '主题党日':     { bg: '#FEFCE8', dot: '#FFD700', text: '#B45309', dotBorder: 'rgba(180, 83, 9, 0.35)' },
-  '共建':         { bg: '#FEFCE8', dot: '#FFD700', text: '#B45309', dotBorder: 'rgba(180, 83, 9, 0.35)' },
-  '参访':         { bg: '#FEFCE8', dot: '#FFD700', text: '#B45309', dotBorder: 'rgba(180, 83, 9, 0.35)' },
-  '座谈':         { bg: '#FEFCE8', dot: '#FFD700', text: '#B45309', dotBorder: 'rgba(180, 83, 9, 0.35)' },
+  '主题党日':     { bg: '#FEFCE8', dot: '#FFD700', text: '#A16207', dotBorder: 'rgba(161, 98, 7, 0.35)' },
+  '共建':         { bg: '#FEFCE8', dot: '#FFD700', text: '#A16207', dotBorder: 'rgba(161, 98, 7, 0.35)' },
+  '参访':         { bg: '#FEFCE8', dot: '#FFD700', text: '#A16207', dotBorder: 'rgba(161, 98, 7, 0.35)' },
+  '座谈':         { bg: '#FEFCE8', dot: '#FFD700', text: '#A16207', dotBorder: 'rgba(161, 98, 7, 0.35)' },
 };
 
 // ── 活动权威分类（2026-08-07 类型体系归一：两大顶层，非并列关系用层级表达）──

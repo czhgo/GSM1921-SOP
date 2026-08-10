@@ -7,16 +7,16 @@
 //         content/04_web_design/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260808m';
-import { loadActivities } from './activity.js?v=20260808m';
-import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260808m';
-import { TaskForceRecordStore } from './taskforce.js?v=20260808m';
-import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260808m';
-import { NoticeStore } from './notice.js?v=20260808m';
-import { TodoStore, seedTodos, TodoCategory, TodoActionType } from './todo.js?v=20260808m';
-import { getPersonById, PEOPLE } from '../mock/index.js?v=20260808m';
-import { ROLE_LABELS } from '../core/constants.js?v=20260808m';
-import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260808m';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260810a';
+import { loadActivities } from './activity.js?v=20260810a';
+import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260810a';
+import { TaskForceRecordStore } from './taskforce.js?v=20260810a';
+import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260810a';
+import { NoticeStore } from './notice.js?v=20260810a';
+import { TodoStore, seedTodos, TodoCategory, TodoActionType } from './todo.js?v=20260810a';
+import { getPersonById, PEOPLE } from '../mock/index.js?v=20260810a';
+import { ROLE_LABELS } from '../core/constants.js?v=20260810a';
+import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260810a';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数
@@ -253,23 +253,18 @@ export const SecretaryOverviewStore = {
       !(a.assignments || []).some(x => x.role === 'organizer')
     ).length;
 
-    // 复盘完成率
-    const completedActivities = activities.filter(a =>
-      a.status === 'completed' || a.archived
-    );
-    const reviewedActivityIds = new Set(reviews.map(r => r.activityId));
-    const reviewedCount = completedActivities.filter(a =>
-      reviewedActivityIds.has(a.id)
-    ).length;
-    const reviewRate = completedActivities.length > 0
-      ? Math.round((reviewedCount / completedActivities.length) * 100)
-      : 0;
+    // 复盘问题数（书记 2026-08-10 裁定：复盘率 100% 目标会诱导"随意提交凑数"→ 目标异化；
+    // 从最初设定就只希望大家提交真问题——改问题导向，计量活跃活动复盘中提出的真问题数量）
+    const activeReviewIds = new Set(activities.filter(a => !a.archived).map(a => a.id));
+    const reviewIssues = reviews
+      .filter(r => activeReviewIds.has(r.activityId))
+      .reduce((sum, r) => sum + (Array.isArray(r.issues) ? r.issues.length : 0), 0);
 
     return {
       activeActivities,
       activeTaskforces,
       pendingAuth,
-      reviewRate,
+      reviewIssues,
     };
   },
 

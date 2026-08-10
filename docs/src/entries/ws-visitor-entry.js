@@ -1,26 +1,26 @@
-import { setState, registerRenderCallback } from '../core/state.js?v=20260808m';
-import { showToast, flashHighlight } from '../core/utils.js?v=20260808m';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260808m';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260808m';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808m';
-import { NoticeStore } from '../services/notice.js?v=20260808m';
-import { SignupStore } from '../services/signup.js?v=20260808m';
-import { AuthStore } from '../services/auth.js?v=20260808m';
-import { PEOPLE } from '../mock/index.js?v=20260808m';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260808m';
-import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260808m';
-import { loadActiveInspectionRecords } from '../services/inspection.js?v=20260808m';
-import { inspectionToDisplay } from '../mock/index.js?v=20260808m';
-import { loadActivities } from '../services/activity.js?v=20260808m';
-import { getActivityTypeColors, ROLE_COLORS } from '../core/constants.js?v=20260808m';
-import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260808m';
-import { renderWorkOverview } from '../components/work-overview.js?v=20260808m';
-import { icon } from '../core/icons.js?v=20260808m';
-import { renderQueryView } from '../components/query-view.js?v=20260808m';
-import { renderTodoList } from '../components/todo-list.js?v=20260808m';
-import { TodoStore, seedTodos, VisitorTodoDeriver } from '../services/todo.js?v=20260808m';
-import { badgeHtml } from '../components/badge.js?v=20260808m';
+import { setState, registerRenderCallback } from '../core/state.js?v=20260810a';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260810a';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260810a';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260810a';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260810a';
+import { NoticeStore } from '../services/notice.js?v=20260810a';
+import { SignupStore } from '../services/signup.js?v=20260810a';
+import { AuthStore } from '../services/auth.js?v=20260810a';
+import { PEOPLE } from '../mock/index.js?v=20260810a';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260810a';
+import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260810a';
+import { loadActiveInspectionRecords } from '../services/inspection.js?v=20260810a';
+import { inspectionToDisplay } from '../mock/index.js?v=20260810a';
+import { loadActivities } from '../services/activity.js?v=20260810a';
+import { getActivityTypeColors, ROLE_COLORS } from '../core/constants.js?v=20260810a';
+import { renderTabBar } from '../components/tab-bar.js?v=20260810a';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260810a';
+import { renderWorkOverview } from '../components/work-overview.js?v=20260810a';
+import { icon } from '../core/icons.js?v=20260810a';
+import { renderQueryView } from '../components/query-view.js?v=20260810a';
+import { renderTodoList } from '../components/todo-list.js?v=20260810a';
+import { TodoStore, seedTodos, VisitorTodoDeriver } from '../services/todo.js?v=20260810a';
+import { badgeHtml } from '../components/badge.js?v=20260810a';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'participant' });
 
@@ -759,7 +759,7 @@ function _renderTodoContent() {
     // 待办行动按钮金色系（书记 2026-08-01 决策：改金色，与完成绿呼应，红色收敛到品牌语义）
     // G3 修正（2026-08-08）：纯亮金 #FFD700 实底过艳 → 金浅底 rgba(255,215,0,0.12)+深金字；
     // 补金边框与详情按钮一致（G2-c 裁定「同页两按钮金感不一致」）
-    actionBtnStyle: 'background:rgba(255,215,0,0.12);color:#B45309;border:1px solid rgba(255,215,0,0.35);',
+    actionBtnStyle: 'background:rgba(255,215,0,0.12);color:#A16207;border:1px solid rgba(255,215,0,0.35);',
   });
 
   const detailHtml = selectedTodo ? _renderTodoDetail(selectedTodo) : `
@@ -805,7 +805,7 @@ function _renderTodoDetail(todo) {
         ${todo.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.flow}</p>` : ''}
         ${todo.deadline ? `<div class="text-xs text-gray-500">最早截止：${todo.deadline}</div>` : ''}
         <div class="pt-3 border-t border-gray-100 flex gap-2">
-          <button class="visitor-todo-detail-action text-xs px-3 py-1.5 rounded-lg transition-colors" style="background:rgba(255,215,0,0.12);color:#B45309;border:1px solid rgba(255,215,0,0.35);">去处理</button>
+          <button class="visitor-todo-detail-action text-xs px-3 py-1.5 rounded-lg transition-colors" style="background:rgba(255,215,0,0.12);color:#A16207;border:1px solid rgba(255,215,0,0.35);">去处理</button>
         </div>
       </div>
     `;
@@ -838,7 +838,7 @@ function _renderTodoDetail(todo) {
       ${todo.deadline ? `<div class="text-xs text-gray-500">截止：${todo.deadline}</div>` : ''}
       <div class="text-xs text-gray-400">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
-        ${todo.actionType ? `<button class="visitor-todo-detail-action text-xs px-3 py-1.5 rounded-lg transition-colors" style="background:rgba(255,215,0,0.12);color:#B45309;border:1px solid rgba(255,215,0,0.35);">处理</button>` : ''}
+        ${todo.actionType ? `<button class="visitor-todo-detail-action text-xs px-3 py-1.5 rounded-lg transition-colors" style="background:rgba(255,215,0,0.12);color:#A16207;border:1px solid rgba(255,215,0,0.35);">处理</button>` : ''}
       </div>
     </div>
   `;

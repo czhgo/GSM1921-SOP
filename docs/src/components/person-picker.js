@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  person-picker.js — 通用人员选择组件
 //  功能：点击触发按钮弹出选择面板，支持搜索/筛选/单选/多选
@@ -7,9 +7,9 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE, getPersonById } from '../mock/index.js?v=20260808m';
-import { icon } from '../core/icons.js?v=20260808m';
-import { ROLE_LABELS, ACCENT_COLORS } from '../core/constants.js?v=20260808m';
+import { PEOPLE, getPersonById } from '../mock/index.js?v=20260810a';
+import { icon } from '../core/icons.js?v=20260810a';
+import { ROLE_LABELS, ACCENT_COLORS } from '../core/constants.js?v=20260810a';
 
 // ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
 function hexToRgba(hex, alpha) {
@@ -41,7 +41,7 @@ const STAGE_LABELS = {
 const STAGE_COLORS = {
   '正式党员': { bg: 'rgba(206,17,38,0.08)', text: '#991B1B', border: 'rgba(206,17,38,0.20)' },
   '预备党员': { bg: 'rgba(59,130,246,0.08)', text: '#1D4ED8', border: 'rgba(59,130,246,0.20)' },
-  '发展对象': { bg: 'rgba(245,158,11,0.08)', text: '#B45309', border: 'rgba(245,158,11,0.20)' },
+  '发展对象': { bg: 'rgba(245,158,11,0.08)', text: '#A16207', border: 'rgba(245,158,11,0.20)' },
   '积极分子': { bg: 'rgba(16,185,129,0.08)', text: '#047857', border: 'rgba(16,185,129,0.20)' },
 };
 

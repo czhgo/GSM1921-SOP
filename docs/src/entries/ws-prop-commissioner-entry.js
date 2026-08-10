@@ -1,25 +1,26 @@
-import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260808m';
-import { renderWorkOverview } from '../components/work-overview.js?v=20260808m';
-import { AuthStore } from '../services/auth.js?v=20260808m';
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260808m';
-import { BranchService, isApiMode } from '../services/runtime.js?v=20260808m';
-import { showToast, flashHighlight } from '../core/utils.js?v=20260808m';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260808m';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260808m';
-import { solidAccentStyle } from '../core/constants.js?v=20260808m';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808m';
-import { _personName } from '../mock/index.js?v=20260808m';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260808m';
-import { icon } from '../core/icons.js?v=20260808m';
-import { mockDB } from '../core/domain.js?v=20260808m';
-import { persist, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260808m';
-import { loadActivities } from '../services/activity.js?v=20260808m';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260808m';
-import { renderTodoList } from '../components/todo-list.js?v=20260808m';
-import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260808m';
-import { NoticeStore } from '../services/notice.js?v=20260808m';
-import { badgeHtml } from '../components/badge.js?v=20260808m';
+import { renderTabBar } from '../components/tab-bar.js?v=20260810a';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260810a';
+import { renderWorkOverview } from '../components/work-overview.js?v=20260810a';
+import { AuthStore } from '../services/auth.js?v=20260810a';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260810a';
+import { BranchService, isApiMode } from '../services/runtime.js?v=20260810a';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260810a';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260810a';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260810a';
+import { solidAccentStyle } from '../core/constants.js?v=20260810a';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260810a';
+import { _personName } from '../mock/index.js?v=20260810a';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260810a';
+import { icon } from '../core/icons.js?v=20260810a';
+import { mockDB } from '../core/domain.js?v=20260810a';
+import { persist, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260810a';
+import { loadActivities } from '../services/activity.js?v=20260810a';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260810a';
+import { renderTodoList } from '../components/todo-list.js?v=20260810a';
+import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260810a';
+import { NoticeStore } from '../services/notice.js?v=20260810a';
+import { badgeHtml } from '../components/badge.js?v=20260810a';
+import { addExternalDispatch } from '../services/external-dispatch.js?v=20260810a';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'prop-commissioner' });
 
@@ -1113,6 +1114,8 @@ function _showArchiveUploadModal() {
       const saved = await _handleArchiveUpload(selectedFiles, activityId, activity ? activity.title : '', category);
       if (saved > 0) {
         showToast('success', `已归档 ${saved} 项宣传材料`);
+        // 文件流外发确认（书记 2026-08-10 裁定）：材料如需微信外发给对方确认，系统内标记闭环
+        _promptExternalDispatch(activityId, activity ? activity.title : '');
         closeModal();
         _renderArchiveContent();
       }
@@ -1127,6 +1130,66 @@ function _showArchiveUploadModal() {
   card.querySelector('#upload-cancel').addEventListener('click', closeModal);
   overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
   card.addEventListener('click', e => e.stopPropagation());
+}
+
+/** 文件流外发确认（书记 2026-08-10 裁定）：材料已归档，如需微信外发则系统内标记闭环 */
+function _promptExternalDispatch(activityId, activityName) {
+  const user = AuthStore.getCurrentUser();
+  if (!user) return;
+  const receiverOptions = [
+    { value: 'secretary', label: '党支部书记（审核）' },
+    { value: 'disc-commissioner', label: '纪检委员（留档）' },
+    { value: 'org-commissioner', label: '组织委员' },
+  ];
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.4);display:flex;align-items:center;justify-content:center;z-index:200;';
+  overlay.innerHTML = `
+    <div class="card rounded-xl w-full max-w-md" style="max-height:80vh;overflow-y:auto;">
+      <div class="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="font-title-cn text-sm font-semibold text-gray-800">文件外发确认</h3>
+        <button id="ed-modal-close" class="text-gray-400 hover:text-gray-600 text-sm leading-none">&times;</button>
+      </div>
+      <div class="px-5 py-4 space-y-3.5">
+        <div class="rounded-lg px-3 py-2 text-[11px] leading-relaxed bg-amber-50 text-amber-700 border border-amber-100">
+          宣传材料已归档到系统。若还需通过<b>微信</b>把文件发给对方确认（如新闻稿送书记审核），
+          请在此标记「已外发」——对方收到后会在其工作台确认，形成可审计闭环（谁 / 何时 / 发给谁 / 何时确认）。
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">接收方</label>
+          <select id="ed-receiver" class="input-flat text-xs w-full">
+            ${receiverOptions.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">备注（可选）</label>
+          <input id="ed-note" type="text" class="input-flat text-xs w-full" placeholder="如：新闻稿终稿，请审核…" />
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">
+        <button id="ed-skip" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">暂不外发</button>
+        <button id="ed-confirm" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">标记已通过微信发送</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('#ed-modal-close').addEventListener('click', close);
+  overlay.querySelector('#ed-skip').addEventListener('click', close);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  overlay.querySelector('#ed-confirm').addEventListener('click', () => {
+    const receiverRole = overlay.querySelector('#ed-receiver').value;
+    const note = overlay.querySelector('#ed-note').value.trim();
+    addExternalDispatch({
+      refType: 'publicity',
+      refLabel: `宣传材料：${activityName || '未命名活动'}`,
+      senderId: user.personId,
+      senderName: _personName(user.personId) || '宣传委员',
+      receiverRole,
+      note,
+    });
+    showToast('success', '已标记外发，对方确认后将闭环');
+    close();
+  });
 }
 
 async function _handleArchiveUpload(files, activityId, activityName, category) {

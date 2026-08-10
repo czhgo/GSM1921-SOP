@@ -5,18 +5,18 @@
 //  依赖：domain.js, id.js（单向依赖，不依赖 UI 或 runtime）
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SCHEMA_VERSION } from '../core/domain.js?v=20260808m';
-import { generateId } from '../core/id.js?v=20260808m';
-import { getDataSource, persist } from '../core/data-adapter.js?v=20260808m';
+import { mockDB, SCHEMA_VERSION } from '../core/domain.js?v=20260810a';
+import { generateId } from '../core/id.js?v=20260810a';
+import { getDataSource, persist } from '../core/data-adapter.js?v=20260810a';
 // 修复（T175）：直接从 mock/activities.js 导入 ACTIVITIES，
 // 绕过 mock/index.js 的 re-export 转发（纯 re-export + 循环依赖存在 TDZ 风险，
 // 曾导致 loadDB() seed 阶段 ACTIVITIES.length 抛错被静默吞掉）
-import { ACTIVITIES } from '../mock/activities.js?v=20260808m';
-import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS } from '../mock/seed.js?v=20260808m';
+import { ACTIVITIES } from '../mock/activities.js?v=20260810a';
+import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS } from '../mock/seed.js?v=20260810a';
 // Seed 增量合并用（2026-08-05，与 core/mock-adapter.js 对齐）：
 // attendance.js/notices.js 为纯数据模块，无指向本文件的循环依赖
-import { ATTENDANCE_RECORDS } from '../mock/attendance.js?v=20260808m';
-import { MOCK_NOTICES } from '../mock/notices.js?v=20260808m';
+import { ATTENDANCE_RECORDS } from '../mock/attendance.js?v=20260810a';
+import { MOCK_NOTICES } from '../mock/notices.js?v=20260810a';
 
 const MOCK_DELAY_MS = 600;
 
@@ -73,6 +73,8 @@ export function saveDB() {
       archiveRecords: mockDB.archiveRecords,
       mailboxConfig:  mockDB.mailboxConfig,
       mailboxHistory: mockDB.mailboxHistory,
+      // 2026-08-10 文件流外发确认闭环：外发标记/确认记录持久化（刷新不丢，接收方方可确认）
+      externalDispatches: mockDB.externalDispatches,
     }));
     // 2026-08-06 扎口修复（Z1）：API 模式下本地备份已写，仍需触发全量快照写穿，
     // 否则 BranchService 写操作（创建/删除/归档/品牌/任务状态）不会同步服务器，刷新即还原。
@@ -168,6 +170,8 @@ export function loadDB() {
     if (Array.isArray(parsed.archiveRecords)) mockDB.archiveRecords = parsed.archiveRecords;
     if (parsed.mailboxConfig && typeof parsed.mailboxConfig === 'object') mockDB.mailboxConfig = parsed.mailboxConfig;
     if (Array.isArray(parsed.mailboxHistory)) mockDB.mailboxHistory = parsed.mailboxHistory;
+    // 2026-08-10 文件流外发确认闭环：恢复外发标记/确认记录
+    if (Array.isArray(parsed.externalDispatches)) mockDB.externalDispatches = parsed.externalDispatches;
     // 注：users 为静态预设数据，不从持久化存储恢复，以避免运行时数据污染
     console.info('[MockAdapter] loadDB 成功，已恢复持久化数据。');
     // 持久化守卫解锁：恢复完成，允许后续写入（须在下方 seed 回填 saveDB 之前）
@@ -379,7 +383,7 @@ export function createActivity(data) {
     // 派生赋权待办（最小三成本原则·阶段1C-3）
     // T-190：创建时已内联赋权（assignments 非空）则不再派生；未选人保留待办兜底
     if (!newItem.assignments || newItem.assignments.length === 0) {
-      import('./todo.js?v=20260808m').then(({ LifecycleTodoDeriver }) => {
+      import('./todo.js?v=20260810a').then(({ LifecycleTodoDeriver }) => {
         LifecycleTodoDeriver.deriveFromActivityCreate(newItem);
       }).catch(e => console.warn('[MockAdapter] 派生活动赋权待办失败：', e));
     }
@@ -439,7 +443,7 @@ export function deleteActivity(id) {
     saveDB();
     console.info('[MockAdapter] deleteActivity 成功，id=' + id);
     // 联动删除关联待办（避免遗留孤儿待办）
-    import('./todo.js?v=20260808m').then(({ LifecycleTodoDeriver }) => {
+    import('./todo.js?v=20260810a').then(({ LifecycleTodoDeriver }) => {
       LifecycleTodoDeriver.deleteByActivity(id);
     }).catch(e => console.warn('[MockAdapter] 联动删除待办失败：', e));
     return { id };
@@ -474,7 +478,7 @@ export function archiveActivity(id) {
     console.info('[MockAdapter] archiveActivity 成功，id=' + id
       + '，级联完成下属 tasks。');
     // 派生归档待办给宣传委员（最小三成本原则·阶段1C-3）
-    import('./todo.js?v=20260808m').then(({ LifecycleTodoDeriver }) => {
+    import('./todo.js?v=20260810a').then(({ LifecycleTodoDeriver }) => {
       LifecycleTodoDeriver.deriveFromActivityArchive(archived);
     }).catch(e => console.warn('[MockAdapter] 派生活动归档待办失败：', e));
     return archived;

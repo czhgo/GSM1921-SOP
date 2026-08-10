@@ -3,10 +3,10 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260808m';
-import { persist } from '../core/data-adapter.js?v=20260808m';
-import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260808m';
-import { loadActivities } from './activity.js?v=20260808m';
+import { mockDB } from '../core/domain.js?v=20260810a';
+import { persist } from '../core/data-adapter.js?v=20260810a';
+import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260810a';
+import { loadActivities } from './activity.js?v=20260810a';
 
 export function loadAttendanceRecords() {
   return mockDB.attendances.length > 0 ? [...mockDB.attendances] : [...ATTENDANCE_RECORDS];

@@ -1,32 +1,32 @@
-import { renderTabBar } from '../components/tab-bar.js?v=20260808m';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260808m';
-import { renderReportInboxHtml, bindReportInbox } from '../components/report-inbox.js?v=20260808m';
-import { renderWorkOverview } from '../components/work-overview.js?v=20260808m';
-import { renderTodoList } from '../components/todo-list.js?v=20260808m';
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260808m';
-import { BranchService } from '../services/runtime.js?v=20260808m';
-import { showToast, flashHighlight } from '../core/utils.js?v=20260808m';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260808m';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260808m';
-import { solidAccentStyle } from '../core/constants.js?v=20260808m';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260808m';
-import { attendanceToLong, inspectionToLong, PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260808m';
-import { PersonPicker } from '../components/person-picker.js?v=20260808m';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js?v=20260808m';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, ReviewStatus, REVIEW_STATUS_LABELS, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260808m';
-import { persist } from '../core/data-adapter.js?v=20260808m';
-import { loadMakeupTasks } from '../services/makeup.js?v=20260808m';
-import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260808m';
-import { loadInspectionRecords, loadActiveInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260808m';
-import { loadActivities } from '../services/activity.js?v=20260808m';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260808m';
-import { SignupStore } from '../services/signup.js?v=20260808m';
-import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../services/review.js?v=20260808m';
-import { renderMyDispatchTab, bindMyDispatchEvents, IssueStore } from '../services/issues.js?v=20260808m';
-import { TodoStore, TodoSourceType, TodoStatus, seedTodos } from '../services/todo.js?v=20260808m';
-import { AuthStore } from '../services/auth.js?v=20260808m';
-import { resolveVisibleTargets } from '../services/visibility.js?v=20260808m';
-import { badgeHtml } from '../components/badge.js?v=20260808m';
+import { renderTabBar } from '../components/tab-bar.js?v=20260810a';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260810a';
+import { renderReportInboxHtml, bindReportInbox } from '../components/report-inbox.js?v=20260810a';
+import { renderWorkOverview } from '../components/work-overview.js?v=20260810a';
+import { renderTodoList } from '../components/todo-list.js?v=20260810a';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260810a';
+import { BranchService } from '../services/runtime.js?v=20260810a';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260810a';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260810a';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260810a';
+import { solidAccentStyle } from '../core/constants.js?v=20260810a';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260810a';
+import { attendanceToLong, inspectionToLong, PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260810a';
+import { PersonPicker } from '../components/person-picker.js?v=20260810a';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js?v=20260810a';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, ReviewStatus, REVIEW_STATUS_LABELS, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260810a';
+import { persist } from '../core/data-adapter.js?v=20260810a';
+import { loadMakeupTasks } from '../services/makeup.js?v=20260810a';
+import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260810a';
+import { loadInspectionRecords, loadActiveInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260810a';
+import { loadActivities } from '../services/activity.js?v=20260810a';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260810a';
+import { SignupStore } from '../services/signup.js?v=20260810a';
+import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../services/review.js?v=20260810a';
+import { renderMyDispatchTab, bindMyDispatchEvents, IssueStore } from '../services/issues.js?v=20260810a';
+import { TodoStore, TodoSourceType, TodoStatus, seedTodos } from '../services/todo.js?v=20260810a';
+import { AuthStore } from '../services/auth.js?v=20260810a';
+import { resolveVisibleTargets } from '../services/visibility.js?v=20260810a';
+import { badgeHtml } from '../components/badge.js?v=20260810a';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'leader' });
 
@@ -105,7 +105,7 @@ function renderLeaderUI(state) {
       { id: 'inspection', label: '考察上传', render: () => _renderInspectionContent() },
       { id: 'review', label: '复盘提交', render: () => _renderReviewContent() },
       // 专班查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增）
-      { id: 'tf-view', label: '专班查看', render: () => { const el = document.getElementById('leader-tab-content'); if (el) return import('../components/taskforce-view.js?v=20260808m').then(m => m.renderTaskforceView(el, { highlightId: _leaderNavTarget?.tfId || null, onLocated: () => { _leaderNavTarget = null; } })); }, groupLabel: '党建' },
+      { id: 'tf-view', label: '专班查看', render: () => { const el = document.getElementById('leader-tab-content'); if (el) return import('../components/taskforce-view.js?v=20260810a').then(m => m.renderTaskforceView(el, { highlightId: _leaderNavTarget?.tfId || null, onLocated: () => { _leaderNavTarget = null; } })); }, groupLabel: '党建' },
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('leader-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('leader', 'u_leader_1'); bindMyDispatchEvents(el, 'leader', 'u_leader_1'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
@@ -1740,6 +1740,9 @@ function _renderReviewContent() {
         showToast('error', '请填写复盘总结');
         return;
       }
+      // 真问题（每行一条）：书记 KPI「复盘问题」以此计量（书记 2026-08-10 裁定：复盘率 100% 会诱导随意提交，改问题导向）
+      const issuesEl = container.querySelector(`#review-issues-${actId}`);
+      const issues = (issuesEl?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
 
       // 在复盘记录中查找或创建
       const existIdx = findActivityReviewIndex(actId);
@@ -1749,6 +1752,7 @@ function _renderReviewContent() {
         const isResubmit = existing.reviewStatus === ReviewStatus.REJECTED;
         updateActivityReview(actId, {
           reviewContent: content,
+          issues,
           reviewStatus: ReviewStatus.UPLOADED,
           submittedAt: new Date().toISOString(),
           ...(isResubmit ? { annotation: '' } : {}),
@@ -1763,6 +1767,7 @@ function _renderReviewContent() {
           overdue: false,
           reviewStatus: ReviewStatus.UPLOADED,
           reviewContent: content,
+          issues,
           submittedAt: new Date().toISOString(),
         });
       }
@@ -1777,6 +1782,7 @@ function _renderReviewContent() {
 /** 渲染复盘表单（待复盘活动展开时） */
 function _renderReviewForm(act, rev) {
   const existingContent = rev?.reviewContent || '';
+  const existingIssues = Array.isArray(rev?.issues) ? rev.issues : [];
   const isRejected = rev?.reviewStatus === ReviewStatus.REJECTED;
   return `
     <div class="mt-3 pt-3 border-t border-gray-100">
@@ -1787,6 +1793,10 @@ function _renderReviewForm(act, rev) {
         </div>
       ` : ''}
       <textarea id="review-textarea-${act.id}" class="input-flat w-full text-xs resize-none" rows="4" placeholder="请填写复盘总结（活动成效、经验教训、改进建议等）">${existingContent}</textarea>
+      <div class="mt-2">
+        <label class="text-xs text-gray-500 block mb-1">提出的真问题（每行一条，书记 KPI 以此计量）</label>
+        <textarea id="review-issues-${act.id}" class="input-flat w-full text-xs resize-none" rows="2" placeholder="如：讨论时间不足，需预留更多…">${existingIssues.join('\n')}</textarea>
+      </div>
       <div class="flex items-center gap-2 mt-2">
         <button class="btn-review-submit text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" data-act-id="${act.id}" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">提交复盘</button>
         <span class="text-xs text-gray-400">提交后纪检委员将在监督复盘tab收到通知</span>
@@ -1797,9 +1807,14 @@ function _renderReviewForm(act, rev) {
 
 /** 渲染复盘详情（已复盘活动展开时） */
 function _renderReviewDetail(rev) {
+  const issues = Array.isArray(rev.issues) ? rev.issues : [];
   return `
     <div class="mt-3 pt-3 border-t border-gray-100">
       <div class="text-xs text-gray-600 p-2 bg-gray-50 rounded-lg border border-gray-100">${rev.reviewContent || ''}</div>
+      ${issues.length ? `<div class="mt-2 p-2 rounded-lg border border-amber-100 bg-amber-50">
+        <div class="text-[11px] text-amber-700 font-bold mb-1">提出的真问题（${issues.length}）</div>
+        <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-800">· ${i}</li>`).join('')}</ul>
+      </div>` : ''}
       ${rev.submittedAt ? `<div class="text-xs text-gray-400 mt-1">提交时间：${rev.submittedAt.slice(0, 16).replace('T', ' ')}</div>` : ''}
       ${rev.annotation ? `
         <div class="mt-2 p-2 rounded-lg bg-blue-50 border border-blue-100">

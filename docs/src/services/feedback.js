@@ -3,7 +3,7 @@
 // 实际功能已迁移至 issues.js IssueStore
 // 旧数据在 issues.js migrateFromFeedbackStore() 中自动迁移
 
-import { IssueStore } from './issues.js?v=20260808m';
+import { IssueStore } from './issues.js?v=20260810a';
 
 export const FeedbackStore = {
   /** @deprecated 使用 IssueStore.getAll() */
