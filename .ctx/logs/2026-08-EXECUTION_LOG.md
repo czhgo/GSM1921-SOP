@@ -2199,3 +2199,22 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **t6 浏览器验证（browser_use 实测通过）**：登录（2300010001/123456）→"按维度/按人"子切换可见可点击、激活态正确→5 张角色卡片全部渲染（党支部书记/副书记、组织、宣传、纪检、组长），卡片四要素齐全→无 JS 运行时错误→截图 `secretary-overview-person-view.png`
 - **变更文件**：`content/01_strategy/SECRETARY_PRONOUNCEMENTS.md`、`content/04_web_design/DESIGN_SYSTEM.md`、`content/02_institution/COMMISSIONER_FRAMEWORK.md`、`content/04_web_design/SOP_WEB.md`、`.ctx/SNAPSHOT.md`、`README.md`、`content/03_doc_system/ARCHITECTURE.md`、`content/04_web_design/DATA_ARCHITECTURE.md`、`content/05_ai_coding/KNOWN_PITFALLS.md`、`content/insights/党支部管理与实务经验沉淀.md`、`content/insights/工程演进与设计方法论.md`、`docs/help.html`、`docs/workspace/visitor.html`、`docs/src/services/secretary-overview.js`、`docs/src/entries/tabs/secretary/overview-tab.js`、`docs/src/styles.css`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
 - **沉淀标签**：`[已沉淀: 知情边界·看≠做]` — 执行委托与知情监督对应统一：赋权链决定信息边界（能赋权才能看条线在办），"全知"架空职责分离是内控失效入口；信息可见范围=职责空间所需最小充分信息（L0 个人/L1 条线/L2 全局），"统筹是最大的管理"靠精确知情密度而非全知；`[已沉淀: 按人视图数据口径]` — 按人视图只投影职责空间的在办概览（未完成待办/在办活动/在办专班），不含操作细节，与"看≠做"一一对应；`[已沉淀: 只读模式退役]` — 2026-08-05 权限重构后"成员只读/管理模式/只读模式"废弃，遗留文档/样式全仓清零
+
+## T-202 书记工作台全局概况 UI 重设计——视图切换器 iOS 风格白滑块 + 按人视图卡片重构（圆形角色头像/三格态势/分隔线清单/组长横跨卡）+ 修复 icon() 字符串参数 Bug（2026-08-10）
+
+**任务**：书记反馈"全局概况的视图切换器和人视图板块 UI 设计得很丑，SVG 的选取、排布、显示方式等等等等"——使用 web-design-guidelines Skill + fullstack-developer Skill 重新设计，并检查计算/传输逻辑。
+**引用流程**：H1.2 执行 + web-design-guidelines Skill + fullstack-developer Skill + verification-before-completion Skill
+
+- **诊断出的根因（计算/传输逻辑核查）**：
+  - **Bug 修复**：`renderPersonView` 卡头图标调用 `icon(roleIcon[p.role] || 'users', 'w-4 h-4')` 第二参数为**字符串**，而 `icon(name, opts = {})` 签名为对象——导致 opts 解构失败、图标退化为默认 `icon-base` 1em 渲染且无尺寸类，卡头图标显示异常。已改 `{ className: 'w-5 h-5' }`
+  - **SVG 选取**：副书记与组长同用 `users` 图标重复无区分；新增 `grid`（四宫格）图标用于"按维度"切换，组长改 `usersGroup`（一组人，块块隐喻）——5 角色图标隐喻齐全且互不重复
+  - **排布**：态势行 `待办 N | 在办活动 N | 在办专班 N` 竖线分隔生硬 → 三格统计块；灰底清单块 → 分隔线列表
+  - **显示方式**：方形小图标块 → 圆形角色头像（w-10 h-10 rounded-full + w-5 h-5 图标）；激活态淡色底 → iOS 风格白色滑块+阴影
+  - **计算逻辑确认**：`getPersonOverview()` 聚合口径（未完成待办按 action 分组 + 未归档在办活动 + active/recruiting 专班）与 `TodoStore.getGroupedByAction` 一致；日期口径全局统一 `toISOString().slice(0,10)`；组长卡 `xl:col-span-2` 跨列
+- **重新设计要点**：
+  - 视图切换器：圆角胶囊容器 + 图标（grid/users）+ iOS 风格激活态（`--surface-card` 白底滑块 + 双阴影 + 主题色，深浅两套 theme-dark 适配）
+  - 按人卡片：①卡头=圆形角色色头像+角色名+姓名+在办徽章 ②态势行=三格统计块（待办/在办活动/在办专班，角色色大数字，超期待办数字标红）③在办清单=`border-t` 分隔线列表（小图标灰/超期红 + 文本 + 日期，超期徽章）④直达入口 hover 箭头间距拉大
+  - 组长卡（唯一多人"块块"角色）`xl:col-span-2` 横跨两列，网格 `grid-cols-1 xl:grid-cols-2`
+- **浏览器实测（browser_use 通过）**：切换条带图标、激活态白色滑块；5 卡片四要素齐全；组长卡跨列类与媒体查询确认；无 JS 运行时错误；截图 `overview-dimension-v2.png` / `overview-person-v2.png`
+- **变更文件**：`docs/src/entries/tabs/secretary/overview-tab.js`、`docs/src/core/icons.js`（新增 grid）、`docs/src/styles.css`（ov-sub-tab 激活态重写）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[已沉淀: icon() 参数签名]` — `icon(name, opts={})` 第二参数必须为对象 `{ className }`，传字符串会导致 opts 解构静默失败、图标退化为 1em 默认渲染——全仓 icon() 调用禁用字符串第二参数

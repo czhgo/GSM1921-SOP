@@ -1829,15 +1829,23 @@ textarea.input-flat {
   border: 1px solid var(--tab-accent-border);
 }
 
-/* ── 子视图切换（按维度/按人）active 状态（overview-tab.js） ── */
+/* ── 子视图切换（按维度/按人）active 状态（overview-tab.js）
+   iOS 风格 segmented control：激活态白色滑块 + 阴影 + 主题色，非激活透明灰字 ── */
+.ov-sub-tab {
+  user-select: none;
+}
+.ov-sub-tab svg {
+  transition: opacity 0.2s ease;
+}
 .ov-sub-tab-active {
-  background: var(--app-accent-bg, rgba(185, 28, 28, 0.10));
+  background: var(--surface-card, #FFFFFF);
   color: var(--app-accent, #B91C1C);
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.12), 0 0 0 0.5px rgba(16, 24, 40, 0.04);
 }
 html.theme-dark .ov-sub-tab-active {
   background: color-mix(in srgb, var(--app-accent, #B91C1C) 18%, #141D2F);
   color: color-mix(in srgb, var(--app-accent, #B91C1C) 72%, white);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
 /* ── T231 内联淡色统一：color-mix 变量驱动，深浅两套适配 ──
