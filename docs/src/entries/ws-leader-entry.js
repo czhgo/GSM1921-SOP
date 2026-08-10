@@ -560,15 +560,19 @@ function _renderWriteContent(activities) {
 
       function renderActSubTable(type, items) {
         const configs = {
-          attendance: { label: '考勤记录', color: '#10B981', fields: [{ key: 'person', label: '姓名' }, { key: 'status', label: '出勤状态' }, { key: 'note', label: '备注' }] },
-          inspection: { label: '考察记录', color: '#D97706', fields: [{ key: 'person', label: '被考察人' }, { key: 'content', label: '考察内容' }, { key: 'result', label: '考察结论' }] },
-          publicity: { label: '宣传记录', color: '#0E7490', fields: [{ key: 'title', label: '宣传标题' }, { key: 'author', label: '撰写人' }, { key: 'channel', label: '发布渠道' }] },
-          materials: { label: '材料记录', color: '#3B82F6', fields: [{ key: 'name', label: '材料名称' }, { key: 'author', label: '提交人' }, { key: 'note', label: '备注' }] },
+          attendance: { label: '考勤记录', color: '#10B981', fields: [{ key: 'person', label: '姓名' }, { key: 'status', label: '出勤状态' }, { key: 'note', label: '备注' }, { key: 'time', label: '时间' }] },
+          inspection: { label: '考察记录', color: '#D97706', fields: [{ key: 'person', label: '被考察人' }, { key: 'content', label: '考察内容' }, { key: 'result', label: '考察结论' }, { key: 'time', label: '时间' }] },
+          publicity: { label: '宣传记录', color: '#0E7490', fields: [{ key: 'title', label: '宣传标题' }, { key: 'author', label: '撰写人' }, { key: 'channel', label: '发布渠道' }, { key: 'time', label: '时间' }] },
+          materials: { label: '材料记录', color: '#3B82F6', fields: [{ key: 'name', label: '材料名称' }, { key: 'author', label: '提交人' }, { key: 'note', label: '备注' }, { key: 'time', label: '时间' }] },
         };
         const cfg = configs[type];
+        const cellOf = (item, key) => {
+          if (key === 'time') return (item.recordedAt || '').slice(0, 16).replace('T', ' ') || '-';
+          return item[key] || '-';
+        };
         const rows = items.map((item, idx) => `
           <tr class="border-b border-gray-50">
-            ${cfg.fields.map(f => `<td class="px-2 py-1.5 text-xs text-gray-700">${item[f.key] || '-'}</td>`).join('')}
+            ${cfg.fields.map(f => `<td class="px-2 py-1.5 text-xs text-gray-700">${cellOf(item, f.key)}</td>`).join('')}
             <td class="px-2 py-1.5 text-center"><button class="act-sub-del-btn text-xs text-red-400 hover:text-red-600" data-type="${type}" data-idx="${idx}">删除</button></td>
           </tr>
         `).join('');
@@ -776,7 +780,7 @@ function _renderWriteContent(activities) {
               const note = form.querySelector('.f-note').value.trim();
               const newAtts = [];
               ids.forEach(pid => {
-                actSubs[type].push({ person: getPersonName(pid), personId: pid, status: ATTENDANCE_STATUS_LABELS[statusEnum], note });
+                actSubs[type].push({ person: getPersonName(pid), personId: pid, status: ATTENDANCE_STATUS_LABELS[statusEnum], note, recordedBy: AuthStore.getCurrentUser()?.personId || 'u_exec', recordedAt: new Date().toISOString() });
                 newAtts.push({ id: 'att_' + Date.now() + '_' + pid, personId: pid, activityId: actId, status: statusEnum, recordedBy: 'u_exec', recordedAt: new Date().toISOString(), overdue: false });
               });
               const all = loadAttendanceRecords();
@@ -790,7 +794,7 @@ function _renderWriteContent(activities) {
               const result = form.querySelector('.f-result').value;
               const newRecords = [];
               ids.forEach(pid => {
-                actSubs[type].push({ person: getPersonName(pid), personId: pid, content, result });
+                actSubs[type].push({ person: getPersonName(pid), personId: pid, content, result, recordedBy: AuthStore.getCurrentUser()?.personId || 'u_exec', recordedAt: new Date().toISOString() });
                 // P1-5 语义修复：考察内容入 content，role 存角色职责标签
                 newRecords.push({
                   id: 'insp_' + Date.now() + '_' + pid,
@@ -810,6 +814,8 @@ function _renderWriteContent(activities) {
               if (!requiredVal) { showToast('error', `请填写${type === 'publicity' ? '宣传标题' : '材料名称'}`); return; }
               const entry = {};
               fields.forEach(([key]) => { entry[key] = form.querySelector(`.f-${key}`).value.trim(); });
+              entry.recordedBy = AuthStore.getCurrentUser()?.personId || 'u_exec';
+              entry.recordedAt = new Date().toISOString();
               actSubs[type].push(entry);
               showToast('success', '已添加');
             }

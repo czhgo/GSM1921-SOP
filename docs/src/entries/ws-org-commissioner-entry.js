@@ -8,7 +8,7 @@ import { solidAccentStyle } from '../core/constants.js?v=20260810a';
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260810a';
 import { PersonPicker } from '../components/person-picker.js?v=20260810a';
 import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js?v=20260810a';
-import { mockDB, SourceType, ParticipationLevel } from '../core/domain.js?v=20260810a';
+import { mockDB, SourceType, ParticipationLevel, ReviewStatus } from '../core/domain.js?v=20260810a';
 import { persist } from '../core/data-adapter.js?v=20260810a';
 import { loadWorkspaceData } from '../core/data-loader.js?v=20260810a';
 import { renderTabBar } from '../components/tab-bar.js?v=20260810a';
@@ -16,6 +16,7 @@ import { renderReportEntryHtml, bindReportEntry } from '../components/report-ent
 import { renderWorkOverview } from '../components/work-overview.js?v=20260810a';
 import { renderQueryView } from '../components/query-view.js?v=20260810a';
 import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260810a';
+import { loadTaskforceReviews, addTaskforceReview } from '../services/review.js?v=20260810a';
 import { loadActivities } from '../services/activity.js?v=20260810a';
 import { icon } from '../core/icons.js?v=20260810a';
 import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260810a';
@@ -527,12 +528,16 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
         const label = type === 'inspection' ? '考察记录' : '材料记录';
         const color = type === 'inspection' ? '#D97706' : '#3B82F6';
         const fields = type === 'inspection'
-          ? [{ key: 'person', label: '被考察人' }, { key: 'content', label: '考察内容' }, { key: 'result', label: '考察结论' }]
-          : [{ key: 'name', label: '材料名称' }, { key: 'author', label: '提交人' }, { key: 'note', label: '备注' }];
+          ? [{ key: 'person', label: '被考察人' }, { key: 'content', label: '考察内容' }, { key: 'result', label: '考察结论' }, { key: 'time', label: '时间' }]
+          : [{ key: 'name', label: '材料名称' }, { key: 'author', label: '提交人' }, { key: 'note', label: '备注' }, { key: 'time', label: '时间' }];
 
+        const cellOf = (item, key) => {
+          if (key === 'time') return (item.recordedAt || '').slice(0, 16).replace('T', ' ') || '-';
+          return item[key] || '-';
+        };
         const rows = items.map((item, idx) => `
           <tr class="border-b border-gray-50">
-            ${fields.map(f => `<td class="px-2 py-1.5 text-xs text-gray-700">${item[f.key] || '-'}</td>`).join('')}
+            ${fields.map(f => `<td class="px-2 py-1.5 text-xs text-gray-700">${cellOf(item, f.key)}</td>`).join('')}
             <td class="px-2 py-1.5 text-center"><button class="sub-del-btn text-xs text-red-400 hover:text-red-600" data-type="${type}" data-idx="${idx}">删除</button></td>
           </tr>
         `).join('');
@@ -614,6 +619,37 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
           </div>`;
       }
 
+      // ── 专班复盘提交（T-209 改进项①：组织委员提交专班复盘 → 纪检委员批注全栈闭环） ──
+      const tfReviewRecord = loadTaskforceReviews().find(r => r.sourceType === 'taskforce' && r.sourceName === tf.name) || null;
+      const tfHasReview = !!tfReviewRecord && (tfReviewRecord.reviewContent || tfReviewRecord.reviewStatus !== ReviewStatus.NOT_SUBMITTED);
+      let reviewSectionHtml = '';
+      if (tf.status === 'active') {
+        if (tfHasReview) {
+          reviewSectionHtml = `
+            <div class="mt-4 pt-3 border-t border-gray-100">
+              <div class="flex items-center justify-between mb-2">
+                <h6 class="font-title-cn text-xs font-bold text-gray-600">专班复盘</h6>
+                <span class="text-xs px-1.5 py-0.5 rounded-full bg-green-50 text-green-600">已提交</span>
+              </div>
+              <p class="text-xs text-gray-600 leading-relaxed">${tfReviewRecord.reviewContent || '（已提交，待纪检委员批注）'}</p>
+              ${tfReviewRecord.issues?.length ? `<p class="text-[11px] text-amber-600 mt-1">问题：${tfReviewRecord.issues.join('；')}</p>` : ''}
+            </div>`;
+        } else {
+          reviewSectionHtml = `
+            <div class="mt-4 pt-3 border-t border-gray-100">
+              <div class="flex items-center justify-between mb-2">
+                <h6 class="font-title-cn text-xs font-bold text-gray-600">专班复盘</h6>
+                <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600">未提交</span>
+              </div>
+              <textarea id="tf-review-content" rows="3" placeholder="专班任务完成情况、工作成果与不足..." class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 resize-none"></textarea>
+              <div class="flex items-center gap-2 mt-2">
+                <input id="tf-review-issues" type="text" placeholder="待改进问题（选填，多条用；分隔）" class="flex-1 px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-amber-200" />
+                <button id="btn-submit-tf-review" class="text-xs px-3 py-2 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0" style="${solidAccentStyle(accent, accentBorder)};">提交复盘</button>
+              </div>
+            </div>`;
+        }
+      }
+
       panel.innerHTML = `
         <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">${tf.name}</h3>
         <p class="text-xs text-gray-500 mb-2">${tf.task}</p>
@@ -646,6 +682,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
         ${workSummaryHtml}
         ${signupSectionHtml}
         ${subRecordsHtml}
+        ${reviewSectionHtml}
       `;
 
       // 初始化成员角色 PersonPicker（预填主源 members）
@@ -693,6 +730,29 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
           showToast('info', '专班成员角色未发生变化');
         }
         renderOrgUI(getAppState());
+      });
+
+      // ── 专班复盘提交事件（T-209 改进项①） ──
+      panel.querySelector('#btn-submit-tf-review')?.addEventListener('click', () => {
+        const contentEl = panel.querySelector('#tf-review-content');
+        const content = (contentEl?.value || '').trim();
+        if (!content) { showToast('error', '请填写专班复盘内容'); return; }
+        const issues = (panel.querySelector('#tf-review-issues')?.value || '').split(/[；;]/).map(s => s.trim()).filter(Boolean);
+        addTaskforceReview({
+          id: 'tfrev_' + Date.now(),
+          sourceType: 'taskforce',
+          sourceName: tf.name,
+          taskforceId: tf.id,
+          organizerId: currentUserId || 'u_org',
+          progress: '进行中',
+          overdue: false,
+          reviewStatus: ReviewStatus.UPLOADED,
+          reviewContent: content,
+          issues,
+          submittedAt: new Date().toISOString(),
+        });
+        showToast('success', '专班复盘已提交，待纪检委员批注');
+        card.click();
       });
 
       // ── 解散专班按钮事件 ──
@@ -776,7 +836,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
               const result = form.querySelector('.f-result').value;
               const newRecords = [];
               ids.forEach(pid => {
-                tfSubs.inspection.push({ person: getPersonName(pid), personId: pid, content, result });
+                tfSubs.inspection.push({ person: getPersonName(pid), personId: pid, content, result, recordedBy: currentUserId || 'u_org', recordedAt: new Date().toISOString() });
                 // P1-5 语义修复：考察内容入 content，role 存角色职责标签
                 newRecords.push({
                   id: 'insp_' + Date.now() + '_' + pid,
@@ -796,6 +856,8 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
                 name,
                 author: form.querySelector('.f-author').value.trim(),
                 note: form.querySelector('.f-note').value.trim(),
+                recordedBy: currentUserId || 'u_org',
+                recordedAt: new Date().toISOString(),
               });
               showToast('success', '已添加');
             }

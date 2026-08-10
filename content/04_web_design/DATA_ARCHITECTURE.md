@@ -185,6 +185,7 @@ ActivityRecord (主记录)
 | **自增表格** | 每种子记录类型支持动态添加行 | UI 层提供行级增删操作，数据层支持 items 数组动态 push/splice |
 | **统一绑定** | 所有子记录通过 `parentId` 绑定到主记录 `id` | 子记录必须包含 `parentId` 字段（对应实现层 `activityId`），查询时按此字段过滤 |
 | **权限继承** | 子记录的操作权限继承自主记录的当前管理者角色 | 子记录不单独设权限，由主记录的 `can()` 结果决定读写权限（见 §2.2 角色权限数据） |
+| **写入留痕** | 子记录项须含 `recordedAt`(ISO) + `recordedBy`(短 ID) | T-209 改进项③：push 时写入当前时间与操作人；详情面板字段表追加「时间」列展示（时间戳全由表单写入，非系统派生） |
 
 #### 2.1.2 活动分类体系（2026-07-31 重构）
 
@@ -697,16 +698,20 @@ assignedRoles: Array<{
 | activityId | string | 否 | -- | 关联活动 ID（活动复盘时必填） |
 | sourceType | `'activity'\|'taskforce'` | 否 | `'activity'` | 来源类型（专班复盘时为 'taskforce'） |
 | sourceName | string | 否 | -- | 来源名称（专班复盘时为专班名称） |
+| taskforceId | string | 否 | -- | 关联专班 ID（专班复盘时填写，T-209 新增，与 sourceName 双保险定位） |
 | organizerId | string | 是 | -- | 组织者人员 ID（须为活动/专班的实际 organizer） |
 | progress | string | 是 | -- | 进度状态（如 '已完成'/'进行中'/'超时'） |
 | overdue | boolean | 是 | `false` | 是否超时 |
 | reviewStatus | `ReviewStatus` | 是 | `'未提交'` | 复盘状态（见下方枚举） |
 | reviewContent | string | 否 | `''` | 复盘内容 |
+| issues | string[] | 否 | `[]` | 待改进问题清单 |
 | annotation | string | 否 | `''` | 批注内容（reviewStatus='批注中'/'已打回'时填写） |
 | annotatedBy | string | 否 | -- | 批注人 personId（纪检委员） |
 | annotatedAt | string (ISO) | 否 | -- | 批注时间 |
 | submittedAt | string (ISO) | 否 | -- | 提交时间（reviewStatus 非'未提交'时填写） |
 | confirmedAt | string (ISO) | 否 | -- | 确认时间（reviewStatus='已确认'时填写） |
+
+> **专班复盘写入入口（T-209 改进项①）**：组织委员工作台·专班详情面板内联表单（专班状态 active 且未提交时显示）→ `addTaskforceReview()` 写入 `mockDB.taskforceReviews` + `persist()`，纪检委员工作台活动监督复盘 tab 经 `reviewToDisplay()` 合并展示与批注。写入型标签：organizerId/submittedAt/reviewContent/issues 均为用户表单写入，非系统派生。
 
 **复盘状态枚举（D-242）：**
 
@@ -717,6 +722,24 @@ assignedRoles: Array<{
 | `批注中` | 纪检委员正在批注 | 已上传 → 批注中 |
 | `已确认` | 纪检委员确认完成 | 批注中 → 已确认 |
 | `已打回` | 纪检委员打回要求修改 | 批注中 → 已打回 → 已上传（重新提交） |
+
+### 2.16.2 周报数据 (WeeklyReport) — T-209 本轮补建
+
+> 宣传委员按周报送工作内容，报送历史供书记/宣传条线查阅。
+> **写入入口**：宣传委员工作台·周报报送 tab（T-209 改进项②：支持「+ 新增周次」内联表单新建草稿周次）。
+
+| 字段名 | 类型 | 必填 | 默认值 | 说明 |
+|---|---|---|---|---|
+| id | string | 是 | -- | 唯一标识符（seed 为 wrN，新建为 wr_时间戳） |
+| week | string | 是 | -- | 周次标签（如 '第32周'，同标签唯一性校验） |
+| weekRange | string | 是 | -- | 日期范围（如 '2026-08-04 ~ 2026-08-08'） |
+| content | string | 否 | `''` | 周报内容（每条一行） |
+| status | `'draft'\|'submitted'` | 是 | `'draft'` | 报送状态 |
+| submittedAt | string (date) | 否 | `null` | 报送日期（status='submitted' 时填写） |
+| createdAt | string (ISO) | 否 | -- | 新建时间（新建周次时写入） |
+| createdBy | string | 否 | -- | 创建人短 ID（宣传委员 personId） |
+
+> **标签属性**：seed 预置（wr1-wr4）+ 用户表单写入型——week/weekRange/createdAt/createdBy 由「新增周次」表单写入，content/submittedAt 由「报送」表单写入。
 
 ### 2.17 写入数据验证设计
 

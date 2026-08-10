@@ -76,3 +76,10 @@ export function addActivityReview(record) {
   persist();
   return record;
 }
+
+/** 新增专班复盘记录（T-209 改进项①：组织委员提交专班复盘） */
+export function addTaskforceReview(record) {
+  mockDB.taskforceReviews = [...loadTaskforceReviews(), record];
+  persist();
+  return record;
+}

@@ -105,12 +105,13 @@ function _renderStats(activities, taskforces, notices, attendanceRecords, isLoad
     : '#DC2626';
 
   // A-01 修复：color 统一为 hex 常量，图标底色用 8 位 hex（${hex}15），var+hex 拼接无法解析
+  // 2026-08-10 书记两次裁定·首页统计卡最终配色：活动=蓝 #3B82F6 / 专班=亮金 #F59E0B（参考工作台 tab 亮色呈现：浅金底+亮金字）/ 未读通知=红 #DC2626（待处理/告警）/ 考勤=状态三色
   const stats = [
-    { label: '本月活动', value: monthActivities.length, unit: '场', color: '#CE1126', icon: 'calendarHero', interactive: false },
-    // A-09 修复：活跃专班亮金 #FFD700 白卡辨识度低 → 金黄 #A16207（与访客金色系一致）
-    { label: '活跃专班', value: activeTFs.length, unit: '个', color: '#A16207', icon: 'usersGroup', interactive: false },
-    // 2026-08-10 书记裁定·四层语义色平衡：未读通知=蓝 #3B82F6（信息/待处理语义，告别告警红→首页红金暖色偏重）
-    { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? '#3B82F6' : '#9CA3AF', icon: 'bellHero', interactive: false },
+    { label: '本月活动', value: monthActivities.length, unit: '场', color: '#3B82F6', icon: 'calendarHero', interactive: false },
+    // 书记 2026-08-10：专班亮金（原深金 #A16207 太暗，参考工作台 tab 配色——底色必须是亮的，浅金底+亮金字）
+    { label: '活跃专班', value: activeTFs.length, unit: '个', color: '#F59E0B', icon: 'usersGroup', interactive: false },
+    // 书记 2026-08-10：未读通知=红 #DC2626（待处理/告警语义）
+    { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? '#DC2626' : '#9CA3AF', icon: 'bellHero', interactive: false },
     { label: '我的考勤', value: myTotal > 0 ? `${myPresent}/${myTotal}` : '—', unit: '', color: myColor, icon: 'clipboard', interactive: true },
   ];
 

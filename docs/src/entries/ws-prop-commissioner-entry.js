@@ -746,21 +746,36 @@ function _renderWeeklyContent() {
   const container = document.getElementById('prop-tab-content');
   if (!container) return;
 
-  const draftReport = _loadWeeklyReports().find(r => r.status === 'draft');
+  const draftReport = _loadWeeklyReports().filter(r => r.status === 'draft').sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))[0] || null;
 
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
       <div class="lg:col-span-2 card rounded-xl p-5">
-        <div class="flex items-center gap-2 mb-4">
-          ${icon('pencil', { className: 'w-4 h-4 text-blue-600' })}
-          <h4 class="text-sm font-bold text-gray-700">填写周报</h4>
-          ${draftReport ? `<span class="text-xs px-1.5 py-0.5 rounded-full border ${WEEKLY_STATUS_STYLE.draft}">${draftReport.week}</span>` : ''}
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            ${icon('pencil', { className: 'w-4 h-4 text-blue-600' })}
+            <h4 class="text-sm font-bold text-gray-700">填写周报</h4>
+            ${draftReport ? `<span class="text-xs px-1.5 py-0.5 rounded-full border ${WEEKLY_STATUS_STYLE.draft}">${draftReport.week}</span>` : ''}
+          </div>
+          <button id="weekly-add-btn" class="text-xs px-3 py-1.5 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">+ 新增周次</button>
+        </div>
+        <!-- T-209 改进项②：新建周次内联表单（周次标签 + 日期范围） -->
+        <div id="weekly-add-form" class="hidden mb-3 p-3 rounded-lg bg-blue-50/50 border border-blue-100">
+          <div class="text-[12px] font-bold text-gray-600 mb-2">新建周次</div>
+          <div class="flex flex-col gap-2 mb-2">
+            <input id="weekly-add-week" type="text" placeholder="周次标签，如：第32周" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200" />
+            <input id="weekly-add-range" type="text" placeholder="日期范围，如：2026-08-04 ~ 2026-08-08" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200" />
+          </div>
+          <div class="flex gap-2 justify-end">
+            <button id="weekly-add-cancel" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
+            <button id="weekly-add-save" type="button" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="${solidAccentStyle(accent, accentBorder)}">保存</button>
+          </div>
         </div>
         <div class="space-y-3">
           <div>
             <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择周次</label>
             <select id="weekly-week" class="input-flat text-xs w-full">
-              ${_loadWeeklyReports().map(r => `<option value="${r.id}" ${r.status === 'draft' ? 'selected' : ''}>${r.week}（${r.weekRange}）</option>`).join('')}
+              ${_loadWeeklyReports().map(r => `<option value="${r.id}" ${draftReport && r.id === draftReport.id ? 'selected' : ''}>${r.week}（${r.weekRange}）</option>`).join('')}
             </select>
           </div>
           <div>
@@ -782,6 +797,36 @@ function _renderWeeklyContent() {
       </div>
     </div>
   `;
+
+  // T-209 改进项②：新增周次表单（展开/取消/保存）
+  container.querySelector('#weekly-add-btn').addEventListener('click', () => {
+    container.querySelector('#weekly-add-form').classList.toggle('hidden');
+  });
+  container.querySelector('#weekly-add-cancel')?.addEventListener('click', () => {
+    container.querySelector('#weekly-add-form').classList.add('hidden');
+  });
+  container.querySelector('#weekly-add-save')?.addEventListener('click', () => {
+    const week = container.querySelector('#weekly-add-week').value.trim();
+    const weekRange = container.querySelector('#weekly-add-range').value.trim();
+    if (!week) { showToast('error', '请填写周次标签'); return; }
+    if (!weekRange) { showToast('error', '请填写日期范围'); return; }
+    const reports = _loadWeeklyReports();
+    if (reports.some(r => r.week === week)) { showToast('error', '该周次已存在'); return; }
+    reports.push({
+      id: 'wr_' + Date.now(),
+      week,
+      weekRange,
+      content: '',
+      status: 'draft',
+      submittedAt: null,
+      createdAt: new Date().toISOString(),
+      createdBy: AuthStore.getCurrentUser()?.personId || 'u_prop',
+    });
+    mockDB.weeklyReports = reports;
+    persist();
+    showToast('success', '已新建周次，自动选中待填写');
+    _renderWeeklyContent();
+  });
 
   // 报送按钮
   const submitBtn = container.querySelector('#weekly-submit-btn');
