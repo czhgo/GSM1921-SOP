@@ -2369,3 +2369,47 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **变更文件**：`server/{db,seed}.js`、`server/routes/resources.js`、`server/test/e2e-login.test.js`、`docs/src/core/{api-adapter,data-adapter,mock-adapter}.js`、`docs/src/entries/main-entry.js`、`docs/src/entries/tabs/secretary/overview-tab.js`、`CLAUDE.md`、`.ctx/REVIEW_QUEUE.md`、`.ctx/TIMESTAMPS.md`、`content/03_doc_system/OPERATIONS_GUIDE.md`（W4）、`content/04_web_design/DESIGN_SYSTEM.md`（四相语义色）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
 - **改进项全部启动补齐（书记裁定后追加，同一 commit）**：① 专班复盘表单——`docs/src/services/review.js` 新增 `addTaskforceReview()`；组织委员专班详情面板新增「专班复盘」区块（active 且未提交时内联表单：复盘内容 textarea + 待改进问题 + 提交复盘按钮；提交后 status=已上传、区块翻转"已提交"并展示内容/问题）；② 周报新建周次——宣传委员周报报送 tab 左卡「+ 新增周次」内联表单（周次标签+日期范围，重复校验，保存后自动选中新草稿周），周报记录补 createdAt/createdBy 字段；③ 子记录时间戳/创建人——党小组组长/组织委员两入口全部子记录（考勤/考察/宣传/材料）push 对象补 `recordedAt`(ISO)+`recordedBy`(短 ID)，详情字段表统一追加「时间」列（cellOf 渲染，无时间戳历史数据显 "-"）；数据架构文档 `DATA_ARCHITECTURE.md` §2.16.1 补 taskforceId/issues 字段表行 + §2.16.2 周报数据表 + 子记录「写入留痕」规则；CODE_VERSION 28→29。**验证**：npm test 16/16 通过 + GetDiagnostics 无 JS 错误 + browser_use 三路并行实测全部通过（组长考勤子记录「时间」列显示 2026-08-10 14:16 时间戳；宣传委员第32周新建成功自动选中；组织委员 SOP 系统维护专班复盘提交成功 toast「已提交，待纪检委员批注」+ 徽章翻转 + 持久化含 tfrev 新记录）
 - **沉淀标签**：`[已沉淀: 四层语义色平衡]` — 首页统计卡告别暖色单调：红（党建红品牌）/金（金黄品牌）/蓝（信息待处理，非告警红）/绿（状态语义）四相平衡；`[已沉淀: 不设虚假目标]` — 无既定目标值的指标不设「目标 0」，状态由达标/欠佳/风险徽章表达；`[已沉淀: 乙部任务名留驻、细节迁 REVIEW_QUEUE]` — 一次性完成条目直接删除（详情已归档执行日志），多轮/长期评议条目瘦身为「名称 + W4 承接 + REVIEW_QUEUE 附录指针」；`[已沉淀: W4 专项评议循环]` — 常态化评议检查提高到周期性工作位置，开放机制（"评议绝不仅仅只有这些！"），进行中轮次细节以附录形式挂载 REVIEW_QUEUE，不影响主队列"评议完成后清空"；`[待办]` — commit（push 需书记批准）
+
+## T-210 最小三成本评议落点核查 + 根目录 README 门面重构（设计理念章）+ 全仓 README/SNAPSHOT/TIMESTAMPS 同步更新（2026-08-10）
+
+**任务**：书记两项指令——①核查「最小三成本原则的审议评议」是否出现在 CLAUDE 与 REVIEW_QUEUE；②按照最新情况更新所有 README、SNAPSHOT 等文件；根目录 README 作为整个项目的门面、书记思想的展现窗口，**正文不出现「书记/书记思想」字样，但融会贯通、自然融入、无声胜有声**。
+**引用流程**：H1.2 执行 + brainstorming Skill（8 轮 AskUserQuestion 设计收敛）+ H2.1 一改具改 + H3 检查清单 + verification-before-completion Skill
+
+- **①落点核查结论**：最小三成本原则的审议评议**不在** CLAUDE.md（grep「成本/三成本」零匹配，乙部/丙部均无）与 REVIEW_QUEUE.md（W4 附录仅四专项：反论/理论复用/黑话审查/原话复核）中；实际审议记录在执行日志——**T-234**（2026-08-08 第1轮·五场景工作流通顺性检查）+ **T-204**（2026-08-10 第2轮·六工作台逐台 G1-G8）；原则权威源为 `content/04_web_design/DESIGN_SYSTEM.md` §一 第2条（2026-07-31 提级）
+- **②根 README 门面重写（t1）**：8 章骨架保留（这是什么/怎么开始/能做什么/该看什么/出问题/设计理念/架构部署/路线图）；**第六章升级「设计理念」章**（不新增章），理念按书记裁断排序「更管总的原则性在前 + 频率更高在前」：总纲·管理事服务人 → 元原则·最小三成本 → 验收标准·高频零跳转 → 按人视图·知情边界 → 党建与党务（T1 官方定义）→ 专班 → 扁平化设计 → 条块二元；**正文避讳书记称谓**（第五章「由书记确认后执行全局修复」→「由支部负责人确认后执行全局修复」），链接/称谓保留（书记裁断）；数据校正：论断数「23 条」→「16 条路线级论断（P-045/P-047 为元命题引子）」、第七章文件数（entries 22 含 tabs/、components 23js+1css、core 13、services 22、server 25 资源表）、角色工作台表格按按人视图更新（书记工作台「全局概况（按维度/按人）」、宣传委员补「文件外发确认」）；差异化视图表述改为「同一数据源，不同角色看到不同视角」（T-195 已裁决「切面→视角」）；第八章路线图新增 **Phase 2.5 减负空间**（分批进行）
+- **③SNAPSHOT v15→v16（t2）**：YAML（version v16、milestone 追加「最小三成本评议两轮闭环 + 按人视图落地 + 设计原则10-14 + 减负空间第一批 + 全栈25表对称 + W4专项评议循环」）；物理拓扑（README 标注「对外门面」、entries 22 含 tabs/、components 24 含 report-inbox/work-overview、core 13 含 theme.js、services 22 含 visibility/external-dispatch、db.js 25 资源表）；核心理论表（党建党务行改 T1 官方定义、差异化视图标注「已被按人视图深化取代」、新增「高频零跳转」「按人视图·知情边界」两行）；版本里程碑追加 v16
+- **④TIMESTAMPS 批量刷新（t3）**：README.md（2026-08-10，对外门面设计理念章重构）、SNAPSHOT.md（v16）、REVIEW_QUEUE.md（W4 附录承接区）、M2 SNAPSHOT 更新（v16 升版）、M6 README 审查（门面重构）；并修正 server 段与 v16 矛盾描述（db.js「11 JSON 资源表」→「25 资源表」、resources.js「10 资源」→「25 资源」）；本次修改文件时间戳补录（02_institution/03_doc_system/server 三 README → 2026-08-10）
+- **⑤content 子目录 README 校验（t4）**：content/README + 01_strategy/02_institution/04_web_design/05_ai_coding 逐行核对——目录实际内容与索引一致，无需内容修改；仅两处落地：02_institution/README L24「三支委党务管理职能」→「**三支委党务工作职能**」（与 COMMISSIONER_FRAMEWORK 现行术语一改具改，「党务管理」仅存历史说明）、03_doc_system/README OPERATIONS_GUIDE 行补「§17 周期性任务含 W4 专项评议循环」
+- **⑥server/README（t5）**：种子描述补 T-209 全栈同步新增的 archive_records/signups（users/activities/notices/taskforces/tasks/assignments/**archive_records/signups**，与 seed.js 实际代码一致）
+- **⑦验收（t6）**：降格残留全仓 grep（23 条|两分法|管理组织活动|管理人员发展|活动建设|组织建设域|党建工作台|党务管理）——用户可读文档层零新增残留，命中均为合法保留（insights/DEVELOPMENT_PATH 旧两分法含「已降级/仅作理论讲解」标注、CLAUDE C-5 审计范围描述、logs/snapshots 历史归档、sidebar.js 代码注释）；根 README 全部 18 个相对链接经 Glob 核验全部有效（断链零）；docs/src 用户可见层「党建工作台/党务管理」零残留
+- **变更文件**：`README.md`（门面重写）、`.ctx/SNAPSHOT.md`（v16）、`.ctx/TIMESTAMPS.md`、`content/02_institution/README.md`、`content/03_doc_system/README.md`、`content/insights/工程演进与设计方法论.md`（沉淀 §4.17）、`server/README.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[已沉淀: 对外门面文档避讳原则]` — 项目门面类文档正文不出现「书记/书记思想」字样，融会贯通、自然融入（书记原话「无声胜有声」），但链接/称谓保留（书记裁断 2026-08-10）；适用未来一切对外展示材料；已沉淀至 insights §4.17
+
+## T-211 常态化专项评议制度化（CLAUDE 热层总纲声明 + H5.9 机制 + W4 专项⑤最小三成本）+ 乙部 relieve（2026-08-10）
+
+**任务**：书记指令——①把一些常态化的评议检查提高到经常性、周期性工作的位置，放在 CLAUDE.md 中，并指向 REVIEW_QUEUE（保存书记在特定评议过程中的侧重维度，便于多次复用），使乙部 relieve、评议不因乙部清理而消失；②最小三成本原则是最最重要的评议，尚未整合。brainstorming Skill 设计收敛（AskUserQuestion 两项裁定：最小三成本规格=W4 专项⑤+甲部总纲级声明；CLAUDE.md 位置=热层一句声明+温层 H5 机制），书记批准后实施。
+**引用流程**：brainstorming Skill + H2.1 一改具改 + H3 文件修改检查清单 + H5 书记评议（H5.1/H5.9）+ OPERATIONS_GUIDE §17 + H2.4 经验沉淀
+
+- **①CLAUDE.md 热层总纲声明（t1）**：热层「每次工作必读」区新增最高原则锚点——「最小三成本（信息成本/操作成本/适应学习成本）是系统设计的最高验收标准，纳入常态化专项评议（W4 专项⑤，机制见 H5.9），不因乙部清理而中断——工作台改动与设计决策均以其验收」
+- **②CLAUDE.md H5.1 扩充 + 新增 H5.9（t1）**：H5.1 触发条件新增「常态化专项触发」条（W4 每周轮转承接，清单/侧重维度/进度见 H5.9 + REVIEW_QUEUE 附录）；**H5.9 常态化专项评议机制**（工作表达）——五专项表（①反论 T-116 ②理论复用 T-117 ③黑话审查 T-195 ④原话复核 T-200 ⑤最小三成本总纲级）+ 四机制要点（轮转承接 / 侧重维度复用：书记侧重维度记入 REVIEW_QUEUE 附录「书记特别要求」字段，后续轮次先读继承 / 开放机制「评议绝不仅仅只有这些！」 / 与乙部关系：专项不驻留乙部，一次性轮次入执行日志、长期专项挂附录）
+- **③REVIEW_QUEUE 附录⑤最小三成本专项（t2）**：性质（总纲级·系统设计最高验收标准）、引用流程（热层声明+H5+DESIGN_SYSTEM 第2条/原则10）、轮次进度（T-234/T-204 已完成，下一轮待书记发起）、**书记侧重维度复用基线**（从两轮日志提炼 8 条：五场景检查法 / 六工作台逐台 G1-G8 / 操作次数≤2跳 / 信息展示与操作同地+孤零零数据行 / 待办必见 / 数据驱动 / 无虚假目标 / KPI 异化防御）；头部附录语义「四专项」→「五专项」
+- **④OPERATIONS_GUIDE §17.2.1 W4 行（t3）**：专项清单追加 ⑤ 最小三成本（总纲级，热层声明 + H5.9，已执行两轮）
+- **⑤乙部 P3 relieve（t4）**：移除 T-116/T-117/T-195/T-200 四行（信息已完整承载于 H5.9 + REVIEW_QUEUE 附录 + 执行日志），保留 T-118（待启动）/T-206（书记操作中）；P3 表下新增注释行说明「常态化专项评议已制度化由 W4 承接，不再驻留乙部」
+- **⑥验收（t5）**：CLAUDE.md YAML last_updated → 2026-08-10；TIMESTAMPS 三行刷新（CLAUDE.md/REVIEW_QUEUE.md/OPERATIONS_GUIDE.md，备注更新）；grep 验证乙部 T-116/T-117/T-195/T-200 零残留（合法保留：REVIEW_QUEUE 附录来源标注 + OPERATIONS_GUIDE W4 行 + H5.9 表）
+- **变更文件**：`CLAUDE.md`（热层声明 + H5.1 + H5.9 + 乙部 P3 + YAML）、`.ctx/REVIEW_QUEUE.md`（附录⑤ + 头部语义）、`content/03_doc_system/OPERATIONS_GUIDE.md`（W4 行）、`content/insights/工程演进与设计方法论.md`（沉淀 §3.8）、`.ctx/TIMESTAMPS.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[已沉淀: 常态化专项评议制度化]` — 常态化评议检查提高到经常性周期性工作位置（CLAUDE 甲部制度化 + REVIEW_QUEUE 附录承载侧重维度），乙部仅保留一次性执行事项；「侧重维度复用」=书记在评议中指示的检查侧重记录于附录，后续轮次先读继承、避免重复摸索——制度存续与任务清理解耦；已沉淀至 insights §3.8
+
+## T-212 T-118 推进：C-6 持续任务五行 + Agent 残留清理 + 主题色色盘表述（2026-08-10）
+
+**任务**：书记指令——继续推动 T-118；①将 W4 专项评议写入持续任务 C-6（C-6-1~C-6-5）；②抽样观察：Agent 残留（什么任务派发给什么 Agent 已不再重要）+ 角色主题色已非硬编码、而是一套可选择的色盘；③书记曾表达「开发的不同阶段确实会有不同的方法和观念」类似话，须找寻其意思，做好文档治理。brainstorming Skill 设计收敛（AskUserQuestion 三项裁定：C-6 形态=五行独立条目 / Agent 范围=角色表+insights 排查 / 原话理解=阶段适应性治理，理解正确）。
+**引用流程**：T-118 + H1.2 执行 + H2.1 一改具改 + H3 检查清单 + brainstorming Skill + 书记 2026-08-10 指令
+
+- **①C-6 持续任务五行（t1）**：CLAUDE.md 乙部持续任务表新增 **C-6-1 反论评议 / C-6-2 理论复用评议 / C-6-3 黑话审查 / C-6-4 书记原话逐条复核 / C-6-5 最小三成本**（总纲级）——每行一专项、状态「🔄 持续」、引用 H5.9 + OPERATIONS_GUIDE §17.2.1（W4）、细节指向 REVIEW_QUEUE 附录①~⑤；W4 评议工作自此在乙部有持续可见锚点（与 T-211 的 H5.9 机制 + REVIEW_QUEUE 附录构成三层承载：C-6 锚点 → H5.9 机制 → 附录细节）
+- **②Agent 残留清理（t2/t3）**：全仓排查——docs 用户可见层与 content/01_strategy **零残留**（命中均为代码注释/同志致谢）；content/02_institution/ROLE_CLASSIFICATION.md `[AI]` 角色条目为唯一用户层残留，已简化：标题「AI Agent 专用」→「系统运行助手」、职责「AI Agent 专用指令、配置、运行时上下文」→「系统运行所需的指令、配置与上下文」、读取规则「always-on/relevance-triggered」→「常驻加载/按需检索」（去英文技术细节）、典型场景「Agent 执行日志记录/Skill 工作流触发/核心规则校验」→「记录运行日志/维护治理文档/执行核心规则校验」、判定标准「AI Agent 指令」→「AI 运行指令」、根目录表「Agent 配置参考」→「AI 配置参考」；**insights 排查结论**：§4.8 内容治理 spec 全流程的「子代理审查」是 AI 工作方法论核心（独立视角审查，受众 [AI]），无「任务→具体 Agent 派发规则」残留，合法保留
+- **③主题色色盘表述（t4）**：代码层已确认——`docs/src/core/constants.js` L158-163「主题色个性化（书记指令 2026-08-06：侧边栏设置，所有角色均可选）」`resolveAccentRole` 优先读 localStorage 自选色盘；DESIGN_SYSTEM §2.3.2 表易被误读为「每角色固定色=主题色硬编码」，已补充演进说明（⚠️ 本表是身份标识场景的默认识别色，非主题色硬编码——主题色已演进为侧边栏「主题选择」可选色盘，本表仅约束关系网络节点/角色卡片/日历图例辨识色，主题色场景由个人自选决定）
+- **④书记原话定位**：逐字原话未寻得，最接近表述为 `.ctx/logs/archive/2026-07-early-entries.md` L1403 书记原话「系统要面向【上线】来做部署了，有很多当时开发阶段的设计和规则可能需要进一步调整」——经 AskUserQuestion 书记确认理解正确：系统已从开发期进入上线/稳定期，早期开发阶段的方法与观念（Agent 派发、mock 数据、硬编码）需按新阶段更新，文档治理体现**阶段适应性**
+- **⑤T-118 状态**：⏳ 待启动 → 🔄 进行中（引用流程补书记「开发的不同阶段会有不同的方法和观念」）
+- **⑥H1.2 简化（书记批准）**：CLAUDE.md H1.2「实施：调用对应工具/Agent 集群」→「实施：调用对应工具执行任务」——书记裁断：「完全没有什么文档治理 Agent 这样的表达了！可以留存的是思路，但是这些过时的工具可以删除！」（思路可持续留存的探讨另行推进）
+- **⑦验收**：grep「Agent 派发/子代理」全仓——用户可见层零残留（剩余命中均为 .ctx 日志历史/KNOWN_PITFALLS AI 编码层/insights AI 方法论，合法）；YAML last_updated 同步（ROLE_CLASSIFICATION → 2026-08-10，DESIGN_SYSTEM/CLAUDE.md 已为 2026-08-10）；TIMESTAMPS ROLE_CLASSIFICATION 行刷新
+- **变更文件**：`CLAUDE.md`（C-6 五行 + T-118 状态 + H1.2 简化）、`content/02_institution/ROLE_CLASSIFICATION.md`（[AI] 条目简化）、`content/04_web_design/DESIGN_SYSTEM.md`（§2.3.2 演进说明）、`content/insights/工程演进与设计方法论.md`（沉淀 §4.18）、`.ctx/TIMESTAMPS.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[已沉淀: 阶段适应性治理]` — 开发不同阶段有不同的方法与观念（书记 2026-08-10）：系统进入上线/稳定期后，文档治理须识别「开发期表述」（Agent 派发细节/硬编码机制/mock 数据等）并更新为当前阶段现状，理解表述的阶段背景而非机械删除；已沉淀至 insights §4.18

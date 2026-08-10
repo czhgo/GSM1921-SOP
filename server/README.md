@@ -11,7 +11,7 @@ npm start          # 启动服务，默认端口 3000（可用 PORT 环境变量
 npm test           # 运行全部测试（裸 node --test 自动发现 test/ 下的 *.test.js）
 ```
 
-- 启动入口 `server/server.js`：数据库为空时自动从 `docs/src/mock/*.js` 导入种子数据（users/activities/notices/taskforces/tasks/assignments）。
+- 启动入口 `server/server.js`：数据库为空时自动从 `docs/src/mock/*.js` 导入种子数据（users/activities/notices/taskforces/tasks/assignments/archive_records/signups）。
 - 可通过 `DB_PATH` 环境变量指定数据库文件路径（默认 `server/data.db`），`PORT` 指定监听端口。
 
 ## 数据与文件

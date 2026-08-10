@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿// role: [工程师]+[AI]
 // issues.js — GitHub Issue 风格意见反馈数据服务
 // 权威源 docs/data/issues.json + localStorage 个人草稿
 

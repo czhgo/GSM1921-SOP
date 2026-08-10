@@ -1,4 +1,4 @@
-﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // bootstrap.js — 页面初始化统一入口（重构版）
 // 变化: 去掉 ViewModeStore/CrossPageState/setActiveRole，改为基于 getCurrentUser() 的登录检查
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）

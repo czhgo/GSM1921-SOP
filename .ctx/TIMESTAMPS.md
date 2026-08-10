@@ -1,6 +1,6 @@
 ---
 role: "[工程师]+[AI]"
-last_updated: "2026-08-06"
+last_updated: "2026-08-10"
 dynamic_role:
   maintenance: "[工程师]+[AI]"
   auto_update: "[AI]"
@@ -9,7 +9,7 @@ dynamic_role:
 # File Timestamp Registry
 
 > 全项目文件最后更新时间注册表
-> last_updated: "2026-08-06" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
+> last_updated: "2026-08-10" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
 
 ---
 
@@ -27,7 +27,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| README.md | 2026-08-03 | [用户]+[AI] | 对外门面 |
+| README.md | 2026-08-10 | [用户]+[AI] | 对外门面（设计理念章重构） |
 | CLAUDE.md | 2026-08-06 | [工程师]+[AI] | Harness（甲乙丙三部） |
 | CHECKLIST.md | — | — | 🗑️ 已删除（迁移至 content/03_doc_system/CHECKLIST.md） |
 | LICENSE | 2026-02-17 | [用户] | 开源许可 |
@@ -40,9 +40,9 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| .ctx/TIMESTAMPS.md | 2026-08-05 | [工程师]+[AI] | 本文件 |
-| .ctx/SNAPSHOT.md | 2026-08-03 | [AI] | 当前基线 |
-| .ctx/REVIEW_QUEUE.md | 2026-07-31 | [工程师]+[AI] | 书记评议队列 |
+| .ctx/TIMESTAMPS.md | 2026-08-10 | [工程师]+[AI] | 本文件 |
+| .ctx/SNAPSHOT.md | 2026-08-10 | [AI] | 当前基线（v16） |
+| .ctx/REVIEW_QUEUE.md | 2026-08-10 | [工程师]+[AI] | 书记评议队列（W4 五专项附录承接区，含最小三成本侧重维度基线） |
 | .ctx/snapshots/INDEX.md | 2026-05-03 | [工程师]+[AI] | 快照历史索引 |
 | .ctx/snapshots/SNAPSHOT_v3_20260502.md | 2026-05-02 | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-05-02 | [工程师]+[AI] | 日志索引 |
@@ -79,8 +79,8 @@ dynamic_role:
 |---------|-------------|------|------|
 | content/02_institution/COMMISSIONER_FRAMEWORK.md | 2026-08-05 | [用户]+[AI] | 支委框架与赋权（含§D赋权入口设计） |
 | content/02_institution/FLAT_DESIGN.md | 2026-08-05 | [工程师]+[AI] | 扁平化设计 |
-| content/02_institution/ROLE_CLASSIFICATION.md | 2026-07-21 | [工程师]+[AI] | 角色分类 |
-| content/02_institution/README.md | 2026-08-04 | [用户]+[AI] | 02_institution 目录索引 |
+| content/02_institution/ROLE_CLASSIFICATION.md | 2026-08-10 | [工程师]+[AI] | 角色分类（[AI] 角色描述去开发期 Agent 术语） |
+| content/02_institution/README.md | 2026-08-10 | [用户]+[AI] | 02_institution 目录索引 |
 | content/02_institution/sop/INDEX.md | 2026-08-04 | [用户]+[AI] | SOP 导航 |
 | content/02_institution/sop/常见工作场景快速指南.md | 2026-08-05 | [用户]+[AI] | |
 | content/02_institution/sop/支委与党小组定人定责定岗说明.md | 2026-08-05 | [用户]+[AI] | |
@@ -93,13 +93,13 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-08-05 | [工程师]+[AI] | 运行标准（含 §1.3 分层体系索引 + §1.4 一致性检查规范 + §12 文件命名规范 + §11 反论表述审核标准 + §16 吸收外部输入流程 + §17 周期性任务与自动唤醒机制） |
+| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-08-10 | [工程师]+[AI] | 运行标准（含 §1.3 分层体系索引 + §1.4 一致性检查规范 + §12 文件命名规范 + §11 反论表述审核标准 + §16 吸收外部输入流程 + §17 周期性任务与自动唤醒机制，W4 含五专项） |
 | content/03_doc_system/USAGE_POLICY.md | 2026-08-05 | [工程师]+[AI] | 使用规范（术语 §一 + Emoji §二） |
 | content/03_doc_system/ARCHITECTURE.md | 2026-08-03 | [工程师]+[AI] | 核心架构说明（迁移自根目录 ARCHITECTURE.md） |
 | content/03_doc_system/DOC_MAP.md | 2026-08-05 | [工程师]+[AI] | 全局文档导航 |
 | content/03_doc_system/SSOT_INDEX.md | 2026-08-05 | [工程师]+[AI] | 母本子本注册表 |
 | content/03_doc_system/SERVICE_CATALOG.md | 2026-08-05 | [工程师]+[AI] | 服务目录（v4.0 有机重组：清单总表+权限矩阵+权威源指针） |
-| content/03_doc_system/README.md | 2026-08-04 | [工程师]+[AI] | 03_doc_system 目录索引 |
+| content/03_doc_system/README.md | 2026-08-10 | [工程师]+[AI] | 03_doc_system 目录索引 |
 | content/03_doc_system/工作模板/经验沉淀辅助提示词.md | 2026-08-05 | [工程师]+[AI] | 沉淀辅助 |
 
 ## content/04_web_design/ (设计理念层)
@@ -125,7 +125,7 @@ dynamic_role:
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
 | content/insights/党支部管理与实务经验沉淀.md | 2026-08-05 | [用户]+[AI] | 党建与党务工作理论贡献 |
-| content/insights/工程演进与设计方法论.md | 2026-08-04 | [用户]+[AI] | 工程演进与设计方法论（文档逻辑顺序重组后拆分为独立文件） |
+| content/insights/工程演进与设计方法论.md | 2026-08-10 | [用户]+[AI] | 工程演进与设计方法论（文档逻辑顺序重组后拆分为独立文件） |
 
 ## content/README.md
 
@@ -139,13 +139,13 @@ dynamic_role:
 |---------|-------------|------|------|
 | server/server.js | 2026-08-03 | [工程师]+[AI] | 启动入口（node server.js，默认端口 3000） |
 | server/app.js | 2026-08-03 | [工程师]+[AI] | createApp 工厂 + JSON 错误中间件 |
-| server/db.js | 2026-08-03 | [工程师]+[AI] | 11 JSON 资源表 + sessions/attachments |
+| server/db.js | 2026-08-03 | [工程师]+[AI] | 25 资源表 + sessions/attachments |
 | server/seed.js | 2026-08-03 | [工程师]+[AI] | 复用前端 mock 导入种子 |
 | server/routes/auth.js | 2026-08-03 | [工程师]+[AI] | 登录/token/me |
-| server/routes/resources.js | 2026-08-03 | [工程师]+[AI] | 10 资源 list/create/update + bootstrap + snapshot |
+| server/routes/resources.js | 2026-08-03 | [工程师]+[AI] | 25 资源 list/create/update + bootstrap + snapshot |
 | server/routes/uploads.js | 2026-08-03 | [工程师]+[AI] | 附件上传（jpg/png/pdf/docx/xlsx，≤10MB） |
 | server/test/*.test.js | 2026-08-03 | [工程师]+[AI] | 8 测试文件 16 用例（含 Playwright E2E） |
-| server/README.md | 2026-08-03 | [工程师]+[AI] | 安装/启动/测试/部署对接说明 |
+| server/README.md | 2026-08-10 | [工程师]+[AI] | 安装/启动/测试/部署对接说明 |
 | server/package.json | 2026-08-03 | [工程师]+[AI] | better-sqlite3 ^12.0.0、playwright 1.60.0 |
 | server/package-lock.json | 2026-08-03 | [工具] | 依赖锁文件 |
 | server/.gitignore | 2026-08-03 | [工具] | 忽略 data.db/uploads 等运行时产物 |
@@ -314,11 +314,11 @@ dynamic_role:
 | W3 | 书记内容评议 | 2026-07-31 | 2026-08-07 | 待书记触发 |
 | W4 | 专项评议循环 | 2026-08-10 | 2026-08-17 | OK（T-209 建立；反论 T-116/理论复用 T-117/黑话审查 T-195/原话复核 T-200 四专项承接） |
 | M1 | CLAUDE.md 清理 | 2026-07-31 | 2026-08-31 | OK |
-| M2 | SNAPSHOT 更新 | 2026-07-31 | 2026-08-31 | OK |
+| M2 | SNAPSHOT 更新 | 2026-08-10 | 2026-08-31 | OK（v16 升版） |
 | M3 | 全仓断链扫描 | 2026-07-31 | 2026-08-31 | OK |
 | M4 | Insights 经验蒸馏 | 2026-07-31 | 2026-08-31 | OK |
 | M5 | DOCUMENTATION_MAP 审查 | 2026-07-31 | 2026-08-31 | OK |
-| M6 | README 审查 | 2026-08-03 | 2026-08-31 | OK |
+| M6 | README 审查 | 2026-08-10 | 2026-08-31 | OK（门面重构） |
 | Q1 | ARCHITECTURE 审查 | — | — | 待初始化 |
 | Q2 | 角色体系健康度 | — | — | 待初始化 |
 | Q3 | SOP 文本审查 | — | — | 待初始化 |

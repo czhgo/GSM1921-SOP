@@ -2,7 +2,7 @@
 title: "文档系统管理层索引——全仓库文档系统管理的技术方法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-08-09"
+last_updated: "2026-08-10"
 status: active
 ---
 
@@ -19,7 +19,7 @@ status: active
 
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
-| [OPERATIONS_GUIDE.md](OPERATIONS_GUIDE.md) | 运行标准（YAML规范/术语/角色/编码/文档关系/编号/文档层级/三类文件角色/一致性检查规范/§17 周期性任务） | **唯一权威**——CLAUDE.md 冷层外移内容 |
+| [OPERATIONS_GUIDE.md](OPERATIONS_GUIDE.md) | 运行标准（YAML规范/术语/角色/编码/文档关系/编号/文档层级/三类文件角色/一致性检查规范/§17 周期性任务含 W4 专项评议循环） | **唯一权威**——CLAUDE.md 冷层外移内容 |
 | [USAGE_POLICY.md](USAGE_POLICY.md) | P0 强制执行的使用规范，含术语标准（§一）+ AI 展开原则（§二）+ Emoji 边界（§三） | **唯一权威**——术语/Emoji 变更触发一改具改 |
 | [DOC_MAP.md](DOC_MAP.md) | 按 5 类知识类型组织的全局文档导航 | **唯一权威**——文档导航图 |
 | [SERVICE_CATALOG.md](SERVICE_CATALOG.md) | 统一服务目录：系统所有服务功能及其角色权限映射 | **唯一权威**——功能盘点和权限设计 |

@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿// role: [工程师]+[AI]
 // entries/tabs/secretary/calendar-tab.js — 书记工作台·活动管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 考勤概况 + 活动查询。
 

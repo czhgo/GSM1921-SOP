@@ -1,4 +1,4 @@
-﻿﻿// inspection.js — 考察记录 Mock 数据（统一数据源）
+﻿﻿﻿﻿// inspection.js — 考察记录 Mock 数据（统一数据源）
 // 数据模型对齐 domain.js InspectionRecord
 // 考察来源: activity(活动) / taskforce(专班) — Source: D-198
 // 考察层级: organize(组织) / deep(深度参与)

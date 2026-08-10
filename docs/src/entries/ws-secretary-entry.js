@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿// role: [工程师]+[AI]
 // ws-secretary-entry.js — 书记工作台入口（薄壳版）
 // 2026-08-07 懒加载重构：6 个 tab 全部拆分为独立模块（entries/tabs/secretary/），
 //   入口只保留：bootstrap + Tab 栏定义 + 状态变更驱动的当前 tab 重渲染。

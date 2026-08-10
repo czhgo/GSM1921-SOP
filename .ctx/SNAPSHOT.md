@@ -2,19 +2,19 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-08-06"
+last_updated: "2026-08-10"
 status: "ACTIVE"
-date: "2026-08-03"
-version: "v15"
-milestone: "根目录文档系统更新（README 读者旅程重构）+ P1 后端基建落地"
+date: "2026-08-10"
+version: "v16"
+milestone: "最小三成本原则评议两轮闭环 + 按人视图/知情边界落地 + 设计原则10-14 + 减负空间第一批 + 全栈25表对称 + W4专项评议循环"
 ---
 
-# System Snapshot — v15
+# System Snapshot — v16
 
 > 当前活跃基线。历史快照见 `.ctx/snapshots/`。
-> **生成**: 2026-08-03 — 根目录文档系统更新（README 读者旅程九章重构 + CLAUDE/content README/.ctx 同步）
-> **上版**: v14 (2026-07-31)
-> **变更来源**: 根目录文档更新任务 + P1 后端基建（2026-08-02~03）
+> **生成**: 2026-08-10 — 最小三成本评议两轮（T-234/T-204）+ 按人视图重构（T-201~T-205）+ 设计原则10-14 + 减负空间第一批（T-207/T-208）+ 全栈25表对称（T-209）+ W4专项评议循环 + 根目录 README 门面重构（设计理念章）
+> **上版**: v15 (2026-08-03)
+> **变更来源**: 最小三成本原则评议轮（2026-08-08~10）+ 书记工作台按人视图重构 + 减负空间 + 全栈同步（2026-08-10）+ 根目录文档更新（2026-08-10）
 
 ## I. 全局物理拓扑
 
@@ -40,11 +40,11 @@ GSM1921-SOP/
 │   │   ├── disc.html           ← 纪检委员工作台（考勤管理+监督复盘+考察管理+补课制度+公邮管理+待办）
 │   │   └── visitor.html        ← 成员工作台（含待办）
 │   └── src/                    ← ESM 模块化源码
-│       ├── entries/            ← 页面入口（15 个 entry JS）
-│       ├── components/         ← 共享组件（18 个：17 js + 1 css，含 todo-list/custom-select/workspace-popover）
-│       ├── core/               ← 核心工具（12 个）
+│       ├── entries/            ← 页面入口（22 个 entry JS，含 tabs/ 子目录）
+│       ├── components/         ← 共享组件（24 个：23 js + 1 css，含 todo-list/custom-select/workspace-popover/report-inbox/work-overview）
+│       ├── core/               ← 核心工具（13 个，含 theme.js）
 │       ├── config/             ← 配置（branch.json）
-│       ├── services/           ← 服务层（19 个，含 todo/auth/notice/decision-tree/image）
+│       ├── services/           ← 服务层（22 个，含 todo/auth/notice/decision-tree/image/visibility/external-dispatch）
 │       ├── mock/               ← Mock 数据（10 个，含 accounts）
 │       ├── modules/            ← 业务模块（1 个）
 │       ├── workflow/           ← 工作流引擎（6 个）
@@ -52,7 +52,7 @@ GSM1921-SOP/
 ├── server/                     ← Node 一体化后端（Express + better-sqlite3，同源静态 + /api/v1 REST）
 │   ├── server.js               ← 启动入口
 │   ├── app.js                  ← createApp 工厂 + JSON 错误中间件
-│   ├── db.js                   ← 14 JSON 资源表 + sessions/attachments
+│   ├── db.js                   ← 25 资源表 + sessions/attachments
 │   ├── seed.js                 ← 复用前端 mock 导入种子
 │   ├── routes/                 ← auth / resources / uploads
 │   ├── test/                   ← 8 测试文件，16 用例全绿
@@ -121,14 +121,16 @@ GSM1921-SOP/
 
 | 理论 | 核心公式 | 详细文档 |
 |------|---------|---------|
-| 党建与党务工作 | 党建工作(管理组织活动) x 党务工作(管理人员发展)，两者都是"管理事，服务人" | DATA_ARCHITECTURE.md + USAGE_POLICY.md §1.1 |
+| 党建与党务工作 | 党建工作=党的自我建设（政/思/组/作/纪五建）；党务工作=党内事务的具体管理（党员发展/组织生活等）；两者都是"管理事，服务人" | USAGE_POLICY.md §1.1.1 + DATA_ARCHITECTURE.md |
 | 专班 | 活动之外考察积极分子的载体；赋权是运行支撑机制，工作量记录是运行保障机制 | COMMISSIONER_FRAMEWORK.md §A.3~A.8 |
-| 差异化视图 | 同一数据源，不同切面展示 | DATA_ARCHITECTURE.md §三 |
+| 差异化视图 | 同一数据源，不同切面展示（已被按人视图深化取代） | DATA_ARCHITECTURE.md §三 |
 | 赋权关系链 | 党支书→支委/党小组组长；党小组组长→组织者/深度参与者；组织委员→专班成员 | COMMISSIONER_FRAMEWORK.md §C |
 | SOP双向修改 | 文本SOP是母本，系统是实施层 | SOP_WEB.md |
 | 信息密度精确原则 | 信息可见性 = 职责空间的投影；按人视图按赋权链投影（L0 个人 / L1 条线 / L2 全局） | DESIGN_SYSTEM.md §一 原则9 (P-015 第四道防线) |
 | 正交维度模型 | SOP(执行细节) ⊥ guides(理念概括)；CLAUDE.md = 上下文入口 | OPERATIONS_GUIDE.md §1.1 (D-218) |
 | 最小三成本原则 | 最小信息成本+最小操作成本+最小适应学习成本，系统设计应让用户以最低成本完成任务 | DESIGN_SYSTEM.md §一 第2条 |
+| 高频零跳转 | 最小三成本的最终验收标准——完成一个高频工作需要操作多少次？信息展示与操作是否同地 | DESIGN_SYSTEM.md §一 原则10 |
+| 按人视图·知情边界 | 谁能看到谁由赋权链（执行委托）计算得出；看≠做，可见性不授予操作权 | DESIGN_SYSTEM.md §一 原则9 + visibility.js (P-015) |
 | SOP反整合 | 将网页中已实现的工作逻辑反整合到SOP中（用业务语言），使SOP成为规范、结构化、清晰的制度母本 | insights 工程演进与设计方法论.md §4.11 |
 | 打卡化判定 | 完成必须对应真实产物——`complete(task)` 的副作用集合仅含状态翻转即为打卡化设计缺陷 | insights 工程演进与设计方法论.md §6.23 |
 
@@ -162,3 +164,4 @@ GSM1921-SOP/
 | **v13** | **2026-07-29** | **角色单页制重构：党建/党务合并为单页面(tab切换)+organizer/deep移除(归入首页"我的角色")+party/目录移除+members视图(人全景只读)+14页面** |
 | **v14** | **2026-07-31** | **最小三成本原则工作台重构：TodoStore+NoticeTodoDeriver+LifecycleTodoDeriver服务层+todo-list组件+6角色待办tab全覆盖+notice独立页+日历迁移首页+通知→待办派生+活动/专班→待办派生+归档详情浮窗+字体二档调节+P.9决策落实(4处模板待创建处理+SOP反整合)+JS组件内联font-size修复+content目录编号化重组(01~05)+治理文件归位(ARCHITECTURE/SSOT_INDEX→03_doc_system)+15页面** |
 | **v15** | **2026-08-03** | **根目录文档系统更新（README 读者旅程九章重构 + CLAUDE.md/content README/.ctx SNAPSHOT+TIMESTAMPS 同步）+ P1 后端基建落地（Node 一体化服务：Express + better-sqlite3 + auth/resources/uploads API + 16 测试全绿）** |
+| **v16** | **2026-08-10** | **最小三成本原则评议两轮闭环（T-234/T-204）+ 书记工作台按人视图重构（T-201~T-205）+ 设计原则10-14（高频零跳转/进度指标/工作台集成/文件流闭环/KPI异化防御）+ 减负空间第一批（T-207/T-208）+ 全栈25表对称（T-209）+ W4专项评议循环 + 根目录 README 门面重构（设计理念章）** |

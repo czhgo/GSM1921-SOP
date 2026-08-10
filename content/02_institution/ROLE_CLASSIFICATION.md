@@ -2,7 +2,7 @@
 title: "文件角色分类体系"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-09"
+last_updated: "2026-08-10"
 status: active
 related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -37,15 +37,15 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 | **AI 读取规则** | AI 按需检索，Layer 1/2 自动加载 |
 | **典型场景** | 开发者查看架构说明、AI 读取系统设计、维护代码 |
 
-### [AI] — AI Agent 专用
+### [AI] — 系统运行助手
 
 | 维度 | 定义 |
 |------|------|
 | **标记** | `[AI]` |
-| **职责** | AI Agent 专用指令、配置、运行时上下文 |
+| **职责** | 系统运行所需的指令、配置与上下文（由 AI 维护） |
 | **权限边界** | AI 可读写（受核心规则约束），人类一般不直接编辑 |
-| **AI 读取规则** | always-on（CLAUDE.md）或 relevance-triggered |
-| **典型场景** | Agent 执行日志记录、Skill 工作流触发、核心规则校验 |
+| **AI 读取规则** | 常驻加载（CLAUDE.md）或按需检索 |
+| **典型场景** | 记录运行日志、维护治理文档、执行核心规则校验 |
 
 ### 判定标准（核心）
 
@@ -53,7 +53,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 |---------|------|
 | 党支部具体建设的解释、思路、书记的具体表述 | `[用户]` |
 | 编程、系统设计、需求落地 | `[工程师]` |
-| AI Agent 指令、配置、运行时上下文 | `[AI]` |
+| AI 运行指令、配置、上下文 | `[AI]` |
 
 ### 废弃概念
 
@@ -92,7 +92,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 | `README.md` | `[用户]` | 对外门面，用户第一接触点 |
 | `ARCHITECTURE.md` | `[工程师]+[AI]` | 核心架构，工程师维护 + AI 上下文 |
 | `CLAUDE.md` | `[工程师]+[AI]` | 核心规则、执行路线图，工程师维护 + AI 执行依据 |
-| `SSOT_INDEX.md` | `[工程师]+[AI]` | 注册表，工程师溯源 + Agent 配置参考 |
+| `SSOT_INDEX.md` | `[工程师]+[AI]` | 注册表，工程师溯源 + AI 配置参考 |
 | `SECRETARY_PRONOUNCEMENTS.md` | `[用户]+[AI]` | 书记论断汇编，用户查阅 + AI 引用 |
 | `index.html` | `[用户]+[AI]` | 用户界面 + AI 修改目标 |
 
