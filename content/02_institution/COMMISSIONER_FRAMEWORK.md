@@ -27,7 +27,7 @@ input:
 
 ### A.1 问题缘起
 
-E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组（原党务管理模块）功能；E2（MANAGEMENT_MODE_ARCHITECTURE）定义了三级管理权限。**缺口**：三位支委在「党建」Tab 分组中的权限、入口、协作模式以及与党小组的交互关系尚未系统化。
+E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组功能；E2（MANAGEMENT_MODE_ARCHITECTURE）定义了三级管理权限。**缺口**：三位支委在「党建」Tab 分组中的权限、入口、协作模式以及与党小组的交互关系尚未系统化。
 
 ### A.3 条块二元结构与专班定位
 
