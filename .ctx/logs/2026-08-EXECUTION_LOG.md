@@ -2282,3 +2282,18 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **验证结果（browser_use 5 页实测通过）**：leader/org/prop/disc/visitor 五工作台「工作概况」三卡（汇报/卡点/在办）全部渲染，条线数据注入正确（组织=专班招募中 2 个、宣传=待归档活动 21 个+新闻稿超期、纪检=补课未完成 7 人+考察超期 24 条+考勤 151 条出勤率 85%）；参与者纯个人聚合无条线行；无 JS 运行时错误（仅字体资源 ERR_ABORTED 与 Tailwind CDN 提示，与渲染无关）；修复验证期发现的 ws-visitor-entry.js import 丢失（并行编辑同文件互相覆盖）→ 补回后重验通过
 - **变更文件**：`docs/src/components/report-inbox.js`（新）、`docs/src/components/work-overview.js`（新）、`docs/src/entries/tabs/secretary/overview-tab.js`、`docs/src/entries/tabs/secretary/todo-tab.js`、`docs/src/entries/ws-{leader,org-commissioner,prop-commissioner,disc-commissioner,visitor}-entry.js`、`content/04_web_design/DESIGN_SYSTEM.md`（原则10）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
 - **沉淀标签**：`[已沉淀: 孤零零字段]` — 不属于任何卡片的裸 div 数据行（数值与既有卡片冗余）是信息成本冗余，须整合进最近卡片或直接删除，不允许游离叙事行；`[已沉淀: 答复类置顶]` — 待办排序依据=使用频率而非类别固定顺序，最高频动作（汇报答复）内建独立收件箱置顶待办，行内填写即发零跳转；`[已沉淀: 答复回路全角色化]` — 信息流畅是双向的，每个角色都应有答复机制（组长答复本组组员、书记全局可见），块块闭环不破坏 P-015 知情边界；`[已沉淀: 高频零跳转检查]` — 最小三成本验收标准="完成高频工作需操作几次？信息展示与操作是否同地"，同屏同区为通过，>2 跳为违反（设计原则10）；`[已沉淀: 并行编辑同文件覆盖]` — 同一消息内对同一文件的两个 Edit 存在互相覆盖风险，同文件多处修改应串行执行，完成后必 grep 校验导入完整；`[待办]` — commit（push 需书记批准）
+
+## T-206 REVIEW_QUEUE（T-235）实施状态回填 + visitor taskforceId 落点补齐 + 队列清空归档（2026-08-10）
+
+**任务**：T-205 commit（b6a6a79）后核实执行日志 `[待办]` 与 REVIEW_QUEUE.md 状态。发现 REVIEW_QUEUE（T-235 五场景工作流通顺性检查，2026-08-08 书记七轮裁定）中 J1-J4 仍标「待实施」，但代码核查绝大多数已落地——唯一缺口：**visitor 未消费 `taskforceId`**（J2 裁定要求 visitor→项目分工定位，首页专班卡片 `?taskforceId=` 跳转后落在默认待办 tab，专班信息丢失）。
+**引用流程**：H1.2 执行 + fullstack-developer Skill + verification-before-completion Skill + browser_use 实测
+
+- **缺口补齐（ws-visitor-entry.js）**：
+  - URL 消费逻辑扩展：`taskforceId` → 激活「项目分工」tab（一次性消费，消费后 clearParam）；activityId / view=activities 分支保持原样
+  - `_renderProjectDivision` 渲染后定位：`.visitor-proj-card[data-tf-id=...]` scrollIntoView + flashHighlight（2.8s 自动褪去），目标清除（一次性）
+  - 项目卡片 div 加 `visitor-proj-card` 类 + `data-tf-id` 属性（专班项目 id；活动项目留空）
+- **REVIEW_QUEUE 回填**：J1（activityId 差异化落点）/J2（taskforceId：secretary/leader/disc→tf-view、org→专班管理、prop→kanban、visitor→项目分工）/J3（日历冒泡跳转）/J4（view=activities）/活动查看组件（activity-view.js）/专班查看组件（taskforce-view.js）/落点方式（现状即权限只做定位）/高亮褪去（flashHighlight 2.8s）全部回填 ✅ 已完成
+- **队列清空**：按 H5.3「评议完成后即清空」，REVIEW_QUEUE.md 清空归档（保留模板头，注释标注 T-235 归档信息）
+- **验证结果（browser_use 实测通过）**：`http://localhost:8080/workspace/visitor.html?taskforceId=tf-001`（登录态 p5/participant）→ 激活 tab=「项目分工」✅；专班卡片「宣传专班（第二期）」存在且 `data-tf-id="tf-001"` ✅；scrollIntoView 执行（滚动位置 0→703）✅；高亮类 `nav-flash-highlight` 蓝 3px 描边出现、2.8s 后自动褪去（受控演示验证 CSS 过渡）✅；Console 无功能性错误
+- **变更文件**：`docs/src/entries/ws-visitor-entry.js`、`.ctx/REVIEW_QUEUE.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[已沉淀: 队列状态同步]` — REVIEW_QUEUE 实施项在后续轮次逐项落袋后，须定期回填状态并 H5.3 清空，防止「代码已实施、队列仍标待实施」的僵尸状态；`[待办]` — commit（push 需书记批准）

@@ -27,6 +27,8 @@ const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'work
 let _visitorNavConsumed = false; // URL 跳转参数一次性消费标志
 // "有待办必见待办"一次性消费标志（书记 2026-08-10 裁定）
 let _todoPriorityConsumed = false;
+// 首页专班跳转定位目标（REVIEW_QUEUE J2 裁定 2026-08-08：visitor→项目分工 tab 定位高亮专班卡片）
+let _visitorHighlightTfId = null;
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -110,11 +112,17 @@ function renderVisitorUI(state) {
 
   tabBar.bindEvents(container);
   bindReportEntry(container); // 一键汇报入口（书记 2026-08-10 裁定：复用 Issue 体系）
-  // 首页跳转落点（书记 2026-08-08 裁定：activityId / view=activities 必须消费）
+  // 首页跳转落点（书记 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）
   // 「查看更多活动」跳转（?view=activities）或指定活动（?activityId=）→ 落在活动动态 tab；
+  // 指定专班（?taskforceId=）→ 落在项目分工 tab（REVIEW_QUEUE J2 裁定，定位高亮专班卡片）；
   // 一次性消费：消费后清除 URL 参数，避免后续 setState 重复触发切 tab / 高亮。
   if (!_visitorNavConsumed) {
-    if (highlightId || urlParams.view === 'activities') {
+    const tfId = urlParams.taskforceId || null;
+    if (tfId) {
+      _visitorHighlightTfId = tfId;
+      CrossPageState.clearParam('taskforceId');
+      tabBar.activate('projects');
+    } else if (highlightId || urlParams.view === 'activities') {
       tabBar.activate('activities');
     } else {
       tabBar.activate(tabBar.activeTab);
@@ -221,6 +229,16 @@ function _renderProjectDivision(activities, taskforces, authRecords) {
     listEl.innerHTML = filtered.length === 0
       ? '<p class="text-xs text-gray-400 text-center py-6">无匹配项目</p>'
       : `<div class="space-y-2">${filtered.map(p => _renderProjectCard(p)).join('')}</div>`;
+
+    // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片
+    if (_visitorHighlightTfId) {
+      const target = listEl.querySelector(`.visitor-proj-card[data-tf-id="${_visitorHighlightTfId}"]`);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        flashHighlight(target);
+      }
+      _visitorHighlightTfId = null; // 一次性消费
+    }
   }
 
   document.getElementById('visitor-proj-type')?.addEventListener('change', renderList);
@@ -311,7 +329,7 @@ function _renderProjectCard(project) {
   const others = project.personnel.filter(p => p.role === 'participant');
 
   return `
-    <div class="p-3 rounded-lg bg-white">
+    <div class="visitor-proj-card p-3 rounded-lg bg-white" data-tf-id="${project.type === '专班' ? project.id : ''}">
       <div class="flex items-center justify-between mb-1.5">
         <div class="flex items-center gap-2 min-w-0">
           <span class="text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${project.type === '活动' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}">${project.typeBadge}</span>
