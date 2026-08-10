@@ -2218,3 +2218,21 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **浏览器实测（browser_use 通过）**：切换条带图标、激活态白色滑块；5 卡片四要素齐全；组长卡跨列类与媒体查询确认；无 JS 运行时错误；截图 `overview-dimension-v2.png` / `overview-person-v2.png`
 - **变更文件**：`docs/src/entries/tabs/secretary/overview-tab.js`、`docs/src/core/icons.js`（新增 grid）、`docs/src/styles.css`（ov-sub-tab 激活态重写）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
 - **沉淀标签**：`[已沉淀: icon() 参数签名]` — `icon(name, opts={})` 第二参数必须为对象 `{ className }`，传字符串会导致 opts 解构静默失败、图标退化为 1em 默认渲染——全仓 icon() 调用禁用字符串第二参数
+
+## T-203 书记工作台按人视图重构——按职责差异化卡片（副书记移除/专班归组织委员/本页禁用 SVG/平行排布无上下层级）（2026-08-10）
+
+**任务**：书记四条反馈——①每一人卡片内容不应一致/平行 ②专班和党小组组长什么关系 ③SVG 图像选取异常丑陋，本页禁用 ④排布始终暗示上面的比下面的重要，不符合最小三成本原则。经 AskUserQuestion 确认方向后重构。
+**引用流程**：H1.2 执行 + web-design-guidelines Skill + fullstack-developer Skill + AskUserQuestion（书记裁定）+ verification-before-completion Skill
+
+- **AskUserQuestion 书记裁定（关键）**：
+  - ①卡片差异化→按职责定制在办类型（Recommended）
+  - ②专班归属→专班归组织委员统筹，参与者标注（Recommended）
+  - 补充：党支部副书记不入按人视图（非所有支部都有副书记；实现上除 title 外与书记无差异）；任何新网页避免硬编码，用模块/函数/数据驱动
+- **四条反馈落地**：
+  - **①卡片不平行**：`PERSON_ROLES` 由 5 角色改为 4（删除 deputy-secretary）；每角色只投影职责空间在办类型——组织委员=专班（统筹）+活动、宣传委员=归档待办+专班（发起）、纪检委员=考勤考察待办、组长=本组活动+组内事务；数据驱动（getPersonOverview 按 role 聚合，前端零角色判断）
+  - **②专班归属**：服务层 `relatedTaskforces` 新增 `relation` 字段（manager=统筹/initiator=发起/member=成员）；渲染层专班行标注关系「（统筹）（发起）（成员）」——专班 manager 全为组织委员 p11，组长仅以发起/成员参与时标注
+  - **③本页禁用 SVG**：`renderPersonView` 移除全部 icon() 调用（卡头圆形头像、清单行图标、直达箭头）；子切换条改纯文字；类别区分改用「色点+文字标签」（待办灰#9CA3AF/活动天蓝#0EA5E9/专班靛蓝#4F46E5）；移除未使用 import icon；删除 icons.js 中新增的 grid 图标（无引用）
+  - **④平行排布**：取消「卡头大标题+圆形头像+三格态势数字」的上下层级结构→紧凑身份行（色点+角色名+姓名+徽章）+在办清单主体（flex-1 等高）+底部「查看工作台 ›」入口；数字信息并入右上徽章
+- **浏览器实测（browser_use 通过）**：4 卡到位且全页无「副书记」文本；`#ov-subview-body` 内 svg=0；各卡首行标签与色点颜色经 getComputedStyle 逐一确认（三色正确）；专班关系标注「统筹/发起/成员」正确；组长卡溢出提示「… 另有 1 项」；无 JS 运行时错误；截图 `overview-person-v3.png`
+- **变更文件**：`docs/src/services/secretary-overview.js`、`docs/src/entries/tabs/secretary/overview-tab.js`、`docs/src/core/icons.js`（删 grid）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[已沉淀: 按人视图角色集]` — 副书记不入按人视图：非所有支部都有副书记，实现上与书记无职责差异；按人视图=四支委条线（组织/宣传/纪检）+块块（组长），数据驱动 PERSON_ROLES 常量；`[已沉淀: 本页禁用 SVG]` — 类别区分用色点+文字标签（待办灰/活动蓝/专班靛），避免图标选取丑；`[已沉淀: 平行排布]` — 卡片取消「卡头大标题+态势数字」上下层级，身份为紧凑一行、在办清单为主体、数量并入徽章，符合最小三成本

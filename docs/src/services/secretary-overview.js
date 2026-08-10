@@ -70,10 +70,13 @@ export const SecretaryOverviewStore = {
   //  书记看各角色"在办什么、有无异常"，不暴露操作细节（看 ≠ 做）。
   //  聚合口径：未完成待办（TodoStore）+ 未归档在办活动 + 进行中/招募中专班。
   //  Source: DESIGN_SYSTEM.md §一 原则9（信息密度精确原则）
+  //  2026-08-10 书记裁定：
+  //  ① 副书记不入按人视图——非所有支部都有副书记，且实现上与书记无职责差异；
+  //  ② 卡片按职责差异化（每角色只投影职责空间在办类型，不平行）；
+  //  ③ 专班归组织委员统筹（P-012 招募统筹分离），其他角色仅以发起/成员参与时标注。
 
-  /** 按人视图的 5 个角色（副书记+三支委+党小组组长），含工作台直达入口 */
+  /** 按人视图的角色（4 个，数据驱动：副书记除外），含工作台直达入口 */
   PERSON_ROLES: [
-    { role: 'deputy-secretary',  url: 'secretary.html' },
     { role: 'org-commissioner',  url: 'org.html' },
     { role: 'prop-commissioner', url: 'prop.html' },
     { role: 'disc-commissioner', url: 'disc.html' },
@@ -85,7 +88,8 @@ export const SecretaryOverviewStore = {
    * @returns {Array<{
    *   role:string, label:string, personIds:string[], names:string,
    *   todoCount:number, overdueCount:number, todoGroups:Array,
-   *   activities:Array<{id,title,date,status}>, taskforces:Array<{id,name,status,deadline}>,
+   *   activities:Array<{id,title,date,status}>,
+   *   taskforces:Array<{id,name,status,deadline,relation}>,
    *   url:string
    * }>}
    */
@@ -100,6 +104,7 @@ export const SecretaryOverviewStore = {
       const role = cfg.role;
       const people = PEOPLE.filter(p => p.role === role);
       const personIds = people.map(p => p.id);
+      const personIdSet = new Set(personIds);
 
       // ① 未完成待办（按业务动作聚合，同跳转目标合并为一条）
       const todoGroups = TodoStore.getGroupedByAction(role);
@@ -109,7 +114,6 @@ export const SecretaryOverviewStore = {
       ).length, 0);
 
       // ② 在办活动：未归档、非完结态，且本人为组织者或项目成员
-      const personIdSet = new Set(personIds);
       const relatedActivities = activities.filter(a =>
         !a.archived &&
         a.status !== 'completed' && a.status !== 'cancelled' && a.status !== 'draft' &&
@@ -118,11 +122,16 @@ export const SecretaryOverviewStore = {
       );
 
       // ③ 在办专班：进行中/招募中，且本人为 manager/initiator/成员
+      //     关系标注：manager=统筹（组织委员职责）/ initiator=发起 / member=成员
       const relatedTaskforces = taskforces.filter(tf =>
         (tf.status === 'active' || tf.status === 'recruiting') &&
         (personIdSet.has(tf.manager) || personIdSet.has(tf.initiator) ||
           (Array.isArray(tf.members) && tf.members.some(m => personIdSet.has(m.personId))))
-      );
+      ).map(tf => {
+        const relation = personIdSet.has(tf.manager) ? 'manager'
+          : personIdSet.has(tf.initiator) ? 'initiator' : 'member';
+        return { id: tf.id, name: tf.name, status: tf.status, deadline: tf.deadline, relation };
+      });
 
       return {
         role,
@@ -133,7 +142,7 @@ export const SecretaryOverviewStore = {
         overdueCount,
         todoGroups,
         activities: relatedActivities.map(a => ({ id: a.id, title: a.title, date: a.date, status: a.status })),
-        taskforces: relatedTaskforces.map(tf => ({ id: tf.id, name: tf.name, status: tf.status, deadline: tf.deadline })),
+        taskforces: relatedTaskforces,
         url: cfg.url,
       };
     });

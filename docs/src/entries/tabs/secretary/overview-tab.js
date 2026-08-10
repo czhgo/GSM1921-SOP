@@ -6,8 +6,8 @@
 //   解决什么问题——书记只看"进行时和未完成"的工作，快速掌握各维度进度与人员参与总体情况；
 //   数据选取原则——同一套底层数据统一自动渲染，异常数据标橙并派生为书记待办。
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
+// 2026-08-10 书记裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { icon } from '../../../core/icons.js?v=20260808m';
 import { showToast } from '../../../core/utils.js?v=20260808m';
 import { NoticeStore } from '../../../services/notice.js?v=20260808m';
 import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260808m';
@@ -40,17 +40,18 @@ function renderOverviewContent() {
   if (!container) return;
 
   // 子视图切换条（按维度 / 按人）——信息密度精确原则（P-015 第四道防线·知情边界）：
-  // 按维度 = 态势总览（grid 四宫格隐喻）；按人 = L1 条线视角（users 人像隐喻），看各角色在办概览（不含操作细节）
+  // 按维度 = 态势总览；按人 = L1 条线视角，看各角色在办概览（不含操作细节）
+  // 2026-08-10 书记裁定：本页禁用 SVG 图标，切换条为纯文字（避免图标选取丑）
   const subTabs = [
-    { key: 'dimension', label: '按维度', icon: 'grid' },
-    { key: 'person', label: '按人', icon: 'users' },
+    { key: 'dimension', label: '按维度' },
+    { key: 'person', label: '按人' },
   ];
   const subTabsHtml = `
     <div class="inline-flex items-center gap-1 p-1 rounded-full bg-neutral-100">
       ${subTabs.map(t => `
         <button type="button"
-          class="ov-sub-tab inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${_overviewSubView === t.key ? 'ov-sub-tab-active' : 'text-gray-500 hover:text-gray-700'} "
-          data-subview="${t.key}">${icon(t.icon, { className: 'w-3.5 h-3.5' })}${t.label}</button>
+          class="ov-sub-tab px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${_overviewSubView === t.key ? 'ov-sub-tab-active' : 'text-gray-500 hover:text-gray-700'} "
+          data-subview="${t.key}">${t.label}</button>
       `).join('')}
     </div>
   `;
@@ -73,106 +74,89 @@ function renderOverviewContent() {
   }
 }
 
-/** 按人视图：各角色在办概览卡片（L1 条线视角，书记看下级条线在办，异常高亮） */
+/** 按人视图：各角色在办概览卡片（L1 条线视角，书记看下级条线在办）
+ *  2026-08-10 书记裁定重设计：
+ *  ① 卡片不平行——每角色只投影职责空间的在办类型（数据驱动，见 getPersonOverview 注释）
+ *  ② 专班归组织委员统筹，其他角色仅以「发起/成员」参与时标注（P-012 招募统筹分离）
+ *  ③ 本页禁用 SVG 图标——类别用色点+文字标签区分，避免图标选取丑
+ *  ④ 平行排布——取消「卡头大标题」层级，身份为紧凑一行，在办清单为主体
+ */
 function renderPersonView(container) {
   const people = SecretaryOverviewStore.getPersonOverview();
   const today = new Date().toISOString().slice(0, 10);
-  // 角色图标隐喻（D-244 职能动作隐喻 + 分工角色隐喻）：
-  //  副书记=统筹人（users） / 组织=齿轮（cog） / 宣传=喇叭（megaphone） / 纪检=天平（scale） / 组长=一组人（usersGroup）
-  const roleIcon = {
-    'deputy-secretary': 'users',
-    'org-commissioner': 'cog',
-    'prop-commissioner': 'megaphone',
-    'disc-commissioner': 'scale',
-    'leader': 'usersGroup',
+  const statusLabel = s => ({ active: '进行中', recruiting: '招募中' }[s] || s);
+  const relationLabel = r => ({ manager: '统筹', initiator: '发起', member: '成员' }[r] || '');
+
+  // 在办类别 → 色点/文字标签（无 SVG，数据驱动）
+  const kindMeta = {
+    todo:      { label: '待办', dot: '#9CA3AF' },
+    activity:  { label: '活动', dot: '#0EA5E9' },
+    taskforce: { label: '专班', dot: '#4F46E5' },
   };
-  const statusLabel = s => ({
-    active: '进行中', recruiting: '招募中',
-  }[s] || s);
 
   const cards = people.map(p => {
     const color = ROLE_COLORS[p.role] || ROLE_COLORS.all;
-    const isLeader = p.role === 'leader'; // 组长为唯一多人的"块块"角色，横跨两列
 
-    // 在办清单行（待办聚合 → 活动 → 专班）
+    // 在办清单行（数据驱动，不同角色天然呈现不同在办类型）
     const rows = [];
     for (const g of p.todoGroups.slice(0, 4)) {
       rows.push({
-        icon: 'list',
+        kind: 'todo',
         text: `${g.title} · ${g.count} 项`,
         deadline: g.deadline,
         danger: !!g.deadline && g.deadline < today,
       });
     }
     for (const a of p.activities.slice(0, 3)) {
-      rows.push({ icon: 'calendar', text: `活动「${a.title}」`, deadline: a.date, danger: false });
+      rows.push({ kind: 'activity', text: a.title, deadline: a.date, danger: false });
     }
-    for (const tf of p.taskforces.slice(0, 2)) {
-      rows.push({ icon: 'usersGroup', text: `专班「${tf.name}」(${statusLabel(tf.status)})`, deadline: tf.deadline, danger: !!tf.deadline && tf.deadline < today });
+    for (const tf of p.taskforces.slice(0, 3)) {
+      const rel = relationLabel(tf.relation);
+      rows.push({
+        kind: 'taskforce',
+        text: rel ? `${tf.name}（${rel}）` : tf.name,
+        deadline: tf.deadline,
+        danger: !!tf.deadline && tf.deadline < today,
+      });
     }
     const shown = rows.slice(0, 6);
     const more = rows.length - shown.length;
+    const totalActive = p.todoCount + p.activities.length + p.taskforces.length;
 
     const rowHtml = shown.length
-      ? shown.map(r => `
-          <div class="flex items-center gap-2 py-2">
-            <span class="icon-base w-3.5 h-3.5 flex-shrink-0 ${r.danger ? 'text-red-500' : 'text-gray-400'}">${icon(r.icon, { className: 'w-3.5 h-3.5' })}</span>
-            <span class="text-xs ${r.danger ? 'text-red-600 font-medium' : 'text-gray-600'} flex-1 min-w-0 truncate">${r.text}</span>
-            ${r.deadline ? `<span class="text-[11px] tabular-nums ${r.danger ? 'text-red-500 font-medium' : 'text-gray-400'} flex-shrink-0">${r.deadline}</span>` : ''}
-            ${r.danger ? badgeHtml('超期', 'danger') : ''}
-          </div>`).join('')
+      ? shown.map(r => {
+          const km = kindMeta[r.kind];
+          return `
+            <div class="flex items-center gap-2 py-1.5">
+              <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${km.dot};"></span>
+              <span class="text-[10px] font-medium flex-shrink-0" style="color:${km.dot};">${km.label}</span>
+              <span class="text-xs ${r.danger ? 'text-red-600 font-medium' : 'text-gray-600'} flex-1 min-w-0 truncate">${r.text}</span>
+              ${r.deadline ? `<span class="text-[11px] tabular-nums ${r.danger ? 'text-red-500 font-medium' : 'text-gray-400'} flex-shrink-0">${r.deadline}</span>` : ''}
+              ${r.danger ? badgeHtml('超期', 'danger') : ''}
+            </div>`;
+        }).join('')
       : `<div class="py-3 text-center text-xs text-gray-400">当前无在办事项</div>`;
 
-    // 态势行：三格统计（待办 / 在办活动 / 在办专班），角色色数字
-    const statBlock = (label, value, danger) => `
-      <div class="flex-1 rounded-xl py-2 text-center" style="background:${color.bg};">
-        <div class="text-lg font-bold leading-none tabular-nums ${danger ? 'text-red-600' : ''}" style="${danger ? '' : `color:${color.text};`}">${value}</div>
-        <div class="text-[10px] text-gray-500 mt-1">${label}</div>
-      </div>`;
-    const statsHtml = `
-      <div class="flex gap-2">
-        ${statBlock('待办', p.todoCount, p.overdueCount > 0)}
-        ${statBlock('在办活动', p.activities.length, false)}
-        ${statBlock('在办专班', p.taskforces.length, false)}
-      </div>
-    `;
-
-    const totalActive = p.todoCount + p.activities.length + p.taskforces.length;
-    const statBadge = totalActive > 0
-      ? badgeHtml(`${totalActive} 项在办`, p.overdueCount ? 'danger' : 'neutral')
-      : badgeHtml('无在办', 'neutral');
-
-    const headHtml = `
-      <div class="flex items-center gap-3">
-        <span class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:${color.bg};color:${color.text};">
-          ${icon(roleIcon[p.role] || 'users', { className: 'w-5 h-5' })}
-        </span>
-        <div class="flex-1 min-w-0">
-          <div class="text-sm font-semibold text-gray-800 flex items-center gap-2">
-            ${p.label}
-            ${p.role === 'deputy-secretary' ? '<span class="text-[11px] font-normal text-gray-400">（同书记工作台）</span>' : ''}
-          </div>
-          <div class="text-xs text-gray-500 truncate">${p.names}</div>
-        </div>
-        ${statBadge}
-      </div>
-    `;
-
-    const footerHtml = `
-      <a href="./${p.url}" class="inline-flex items-center gap-1 text-xs font-medium transition-all duration-200 hover:gap-2" style="color:${color.text};">
-        ${p.url === 'secretary.html' ? '查看副书记工作台' : '查看工作台'} ${icon('arrowRight', { className: 'w-3 h-3' })}
-      </a>
-    `;
-
     return `
-      <div class="card rounded-xl p-4 hover:shadow-md transition-shadow ${isLeader ? 'xl:col-span-2' : ''}">
-        ${headHtml}
-        <div class="mt-3">${statsHtml}</div>
-        <div class="mt-2.5 border-t border-gray-100 pt-1">
+      <div class="card rounded-xl p-4 flex flex-col">
+        <!-- 身份行：紧凑一行，不做大标题（平行排布，不暗示上下层级） -->
+        <div class="flex items-center gap-2 pb-2.5 border-b border-gray-100">
+          <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${color.text};"></span>
+          <span class="text-sm font-semibold text-gray-800">${p.label}</span>
+          <span class="text-xs text-gray-500 truncate">${p.names}</span>
+          <span class="ml-auto">${badgeHtml(totalActive > 0 ? `${totalActive} 项在办` : '无在办', p.overdueCount ? 'danger' : 'neutral')}</span>
+        </div>
+        <!-- 在办清单（主体，卡片内等高占满） -->
+        <div class="flex-1 pt-1.5">
           ${rowHtml}
           ${more > 0 ? `<div class="py-1 text-center text-[11px] text-gray-400">… 另有 ${more} 项</div>` : ''}
         </div>
-        <div class="mt-2 pt-2.5 border-t border-gray-100 flex justify-end">${footerHtml}</div>
+        <!-- 直达入口 -->
+        <div class="pt-2 mt-2 border-t border-gray-100 flex justify-end">
+          <a href="./${p.url}" class="inline-flex items-center gap-1 text-xs font-medium transition-all duration-200 hover:gap-1.5" style="color:${color.text};">
+            查看工作台 ›
+          </a>
+        </div>
       </div>
     `;
   }).join('');
