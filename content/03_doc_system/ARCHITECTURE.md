@@ -17,11 +17,11 @@ related_files: [CLAUDE.md, content/04_web_design/]
 
 ## 一、项目概述
 
-Org OS 是光华管理学院本科生党支部的组织运行操作系统。它将党支部制度文本（SOP）转化为可执行的代码工作流，并由 10 个 AI Agent 协作维护与迭代。
+Org OS 是光华管理学院本科生党支部的组织运行操作系统。它将党支部制度文本（SOP）转化为可执行的代码工作流，并通过 Vibe Coding 模式由 AI 协作维护与迭代。
 
 **核心命题**： 如何让一套制度文本持续驱动一个可运行的软件系统？
 
-**答案**： SSOT（单一信息源）溯源治理 + Agent 协作链路 + 版本日志追踪。
+**答案**： SSOT（单一信息源）溯源治理 + AI 工具协作 + 版本日志追踪。
 
 ---
 
@@ -43,35 +43,22 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 
 ---
 
-## 三、Agent 协作体系
+## 三、Vibe Coding 协作模式
 
-系统由 10 个 VS Code 自定义 Agent 组成，通过 handoffs 按钮形成协作链路。
+系统通过 Vibe Coding 模式由 AI 协作维护与迭代——不依赖固定 Agent 群，而是由 AI 按需调用工具与 Skill 完成开发与治理任务。工具形态随开发阶段演进（当前：Trae IDE + Skill 工作流 + 周期任务机制），AI 工具的使用规律与使用建议见 [KNOWN_PITFALLS.md](../05_ai_coding/KNOWN_PITFALLS.md)（AI 工具使用陷阱）与各 Skill 定义。
 
-### Agent 注册表（摘要）
+### 协作机制
 
-| Agent | 类型 | 职责 | 工具权限 | Handoffs | 关联 Skill |
-|-------|------|------|---------|----------|-----------|
-| 协调调度Agent | 协调型 | 计划拆解、排序、依赖梳理 | read, search | ✅ | — |
-| 规范执行Agent | 执行型 | 文档规范化、术语治理 | read, agent, edit, search | ✅ (→日志记录Agent) | term-cleaner, anchor-fixer |
-| 文本执行Agent | 执行型 | 文本母本与内容层治理 | read, agent, edit, search | ✅ (→日志记录Agent) | sop-sync, yaml-slim |
-| 代码执行Agent | 执行型 | 代码内容层与 SOP 映射 | read, agent, edit, search | ✅ (→日志记录Agent) | sop2code, data-inspector |
-| UI执行Agent | 执行型 | UI 交互与可用性 | read, agent, edit, search | ✅ (→日志记录Agent) | ui-verifier |
-| 合规执行Agent | 执行型 | 规则审查与合规纠偏 | read, agent, edit, search | ✅ (→日志记录Agent) | audit-report |
-| 独立审查Agent | 审查型 | 三层合规审查与独立巡视 | read, search | ❌ | audit-report, data-inspector, ui-verifier |
-| 架构监督Agent | 监督型 | 全局核心规则与架构监督 | read, agent, edit, search | ❌ | — |
-| 经验分析Agent | 分析型 | 经验提炼与沉淀 | read, edit, search | ❌ | experience-distiller |
-| 日志记录Agent | 记录型 | 系统变更日志记录 | read, edit, search | ❌ | log-recorder |
+| 机制 | 说明 | 权威源 |
+|------|------|--------|
+| Harness 工作流 | CLAUDE.md 甲乙丙三部：工作流、执行事项、待决策 | CLAUDE.md |
+| 周期任务机制 | 周/月/季/年级自动唤醒任务（含 W4 专项评议循环） | [OPERATIONS_GUIDE.md §17](./OPERATIONS_GUIDE.md) |
+| Skill 工作流 | 专项任务按 Skill 规范执行（SOP→代码、经验提炼、日志归档等） | [KNOWN_PITFALLS.md](../05_ai_coding/KNOWN_PITFALLS.md) |
+| 文件角色分类 | `[用户]/[工程师]/[AI]` 三类受众 + 复合标记，AI 权限边界 | [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) |
 
-### 任务类别 → Agent 委派链路
+### 任务优先级
 
-| 任务类别 | 触发关键词 | Agent 委派链路 |
-|--------|-----------|---------------|
-| 党建工作 | 主题党日、三会一课、专班管理 | 协调调度Agent → 文本执行Agent → 代码执行Agent → UI执行Agent → 日志记录Agent |
-| 党务工作 | 发展党员、民主评议党员、换届选举、考勤考察、制度修订、职责分工、意见反馈、合规审查、文档规范 | 协调调度Agent → 规范执行Agent → 合规执行Agent → 独立审查Agent → 日志记录Agent |
-| 架构治理 | 核心规则修改、Agent配置、Skill注册、权限变更、架构重构 | 架构监督Agent → 协调调度Agent → 日志记录Agent |
-| 经验提炼 | 经验沉淀、日志分析、复盘总结、最佳实践 | 经验分析Agent → 日志记录Agent |
-
-**优先级**： 架构治理 > 党务工作 > 党建工作 > 经验提炼
+架构治理 > 党务工作 > 党建工作 > 经验提炼
 
 ---
 
@@ -325,7 +312,7 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 ### 适用规则（Gate Check）
 
 - 修改 `docs/src/workflow/` 或更下层前，必须确认母本 `content/02_institution/sop/` 已更新
-- 修改 Agent 配置或 Skill 定义前，必须确认 `SSOT_INDEX.md` 注册表已同步
+- 修改 Skill 定义前，必须确认 `SSOT_INDEX.md` 注册表已同步
 - 跨层修改须先完成上层确认方可推进下层
 
 ### Change Trace 四要素（修改 docs/src/ 或 docs/index.html 前必须输出）

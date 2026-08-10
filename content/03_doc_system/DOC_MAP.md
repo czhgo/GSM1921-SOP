@@ -119,14 +119,14 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `content/insights/党支部管理与实务经验沉淀.md` | [用户]+[AI] | 经验沉淀（党建与党务工作理论、条块二元结构、专班、三支委角色设计、活动分类决策） | 经验分析Agent |
-| `content/insights/工程演进与设计方法论.md` | [工程师]+[AI] | 经验沉淀（工程演进技术原则、减负与删除哲学、上下文治理、系统工程方法论、架构迁移、实操教训） | 经验分析Agent |
+| `content/insights/党支部管理与实务经验沉淀.md` | [用户]+[AI] | 经验沉淀（党建与党务工作理论、条块二元结构、专班、三支委角色设计、活动分类决策） | AI（经验提炼） |
+| `content/insights/工程演进与设计方法论.md` | [工程师]+[AI] | 经验沉淀（工程演进技术原则、减负与删除哲学、上下文治理、系统工程方法论、架构迁移、实操教训） | AI（经验提炼） |
 
 ### 跨多类：根目录 + 审计底座 + 实现层
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `CLAUDE.md`（根目录） | [工程师]+[AI] | Harness（甲乙丙三部）、执行路线图、Agent 协作规则、授权机制 | 所有 Agent 文件、SSOT_INDEX、README |
+| `CLAUDE.md`（根目录） | [工程师]+[AI] | Harness（甲乙丙三部）、执行路线图、AI 协作规则、授权机制 | SSOT_INDEX、README |
 | `README.md`（根目录） | [用户] | 项目门面，一句话说清是什么 | — |
 | `.ctx/TIMESTAMPS.md` | [工程师] | 文件时间戳注册表（含周期性任务追踪表） | CLAUDE.md |
 | `.ctx/SNAPSHOT.md` | [AI] | 系统快照、AI 快速同步入口（审计追溯层） | ARCHITECTURE.md、CLAUDE.md |
@@ -143,7 +143,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | 了解项目全貌 | README.md | content/03_doc_system/ARCHITECTURE.md |
 | 查看待办任务 | CLAUDE.md §C | .ctx/logs/DECISION_LOG.md |
 | 查 SOP 流程 | content/02_institution/sop/INDEX.md | 对应功能委员 SOP |
-| 使用 Agent | （已迁出至 `D:\GitHub\System-Residual\.github\`，VSCode 中使用） | — |
+| 使用 Skill 工作流 | content/05_ai_coding/KNOWN_PITFALLS.md | 对应 Skill 定义 |
 | 提交改进反馈 | content/04_web_design/SOP_WEB.md §E | content/02_institution/sop/对应文件 |
 | 了解角色分类体系 | content/02_institution/ROLE_CLASSIFICATION.md | （含可扩展性评估 §六） |
 | 查看设计系统规范 | content/04_web_design/DESIGN_SYSTEM.md | docs/src/styles.css |
