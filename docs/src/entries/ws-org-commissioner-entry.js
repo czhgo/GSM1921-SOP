@@ -111,7 +111,7 @@ function renderOrgUI(state) {
     tabs: [
       { id: 'todo', label: '待办', render: () => _renderTodoContent(), groupLabel: '工作台' },
       // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
-      { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('org-tab-content'); if (el) return renderWorkOverview(el, { role: 'org-commissioner', personId: AuthStore.getCurrentUser()?.personId || 'p11', accent }); }, groupLabel: '工作台' },
+      { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('org-tab-content'); if (el) return renderWorkOverview(el, { role: 'org-commissioner', personId: AuthStore.getCurrentUser()?.personId || 'p11', accent, prefix: 'org' }); }, groupLabel: '工作台' },
       { id: 'inspection', label: '考察上传', render: () => _renderOrgInspectionContent(), groupLabel: '党建' },
       { id: 'taskforce', label: '专班管理', render: (ctx) => _renderTaskforceContent(ctx.pending, ctx.recruiting, ctx.active, ctx.activities) },
       // 活动查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增；组织无活动 tab 由本组件承载）
@@ -222,7 +222,7 @@ function _renderTodoContent() {
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2">
-        <div class="card rounded-xl p-5"">
+        <div class="card rounded-xl p-5">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
           </div>
@@ -364,7 +364,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
       <input type="text" id="org-tf-search" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索专班名称或任务...">
     </div>
     <div id="org-tf-kanban"></div>
-    <div id="tf-detail-panel" class="hidden card rounded-xl p-5""></div>
+    <div id="tf-detail-panel" class="hidden card rounded-xl p-5"></div>
     <div id="org-activity-progress" class="mt-4"></div>
   `;
 
@@ -1146,7 +1146,7 @@ function _renderActivityProgress(activities) {
   const queryData = activities.map(a => ({ ...a, archived: String(a.status === 'completed') }));
 
   progressEl.innerHTML = `
-    <div class="card rounded-xl p-5"">
+    <div class="card rounded-xl p-5">
       <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">活动进度</h3>
       <div class="text-xs text-gray-500 mb-3">追踪所有已发布活动的执行状态</div>
       <div id="org-activity-query"></div>
@@ -1295,7 +1295,7 @@ function _renderDevelopmentContent() {
         }).join('');
 
     container.innerHTML = `
-      <div class="card rounded-xl p-5"">
+      <div class="card rounded-xl p-5">
         <div class="flex items-center justify-between mb-3">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">发展数据</h3>
           <span class="text-xs text-gray-400">${candidates.length} 人</span>
@@ -1363,7 +1363,7 @@ function _renderTalentContent() {
   const groupOptions = [...new Set(people.map(p => p.partyGroup).filter(Boolean))].map(g => ({ value: g, label: g }));
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5"">
+    <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">人才库</h3>
         <span class="text-xs text-gray-400">${people.length} 人</span>
@@ -1551,7 +1551,7 @@ function _renderOrgInspectionContent() {
   const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-cyan-100 text-cyan-700' };
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5"">
+    <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">专班考察上传</h3>
         <button class="btn-md" id="btn-org-upload-insp" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_orgInspFormVisible ? '收起表单' : '上传考察表单'}</button>

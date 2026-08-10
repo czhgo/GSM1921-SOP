@@ -2297,3 +2297,31 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **验证结果（browser_use 实测通过）**：`http://localhost:8080/workspace/visitor.html?taskforceId=tf-001`（登录态 p5/participant）→ 激活 tab=「项目分工」✅；专班卡片「宣传专班（第二期）」存在且 `data-tf-id="tf-001"` ✅；scrollIntoView 执行（滚动位置 0→703）✅；高亮类 `nav-flash-highlight` 蓝 3px 描边出现、2.8s 后自动褪去（受控演示验证 CSS 过渡）✅；Console 无功能性错误
 - **变更文件**：`docs/src/entries/ws-visitor-entry.js`、`.ctx/REVIEW_QUEUE.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
 - **沉淀标签**：`[已沉淀: 队列状态同步]` — REVIEW_QUEUE 实施项在后续轮次逐项落袋后，须定期回填状态并 H5.3 清空，防止「代码已实施、队列仍标待实施」的僵尸状态；`[待办]` — commit（push 需书记批准）
+
+## T-207 书记 6 点反馈落地：进度指标去无信息量 + 概况可下钻 + 项目分工双视图 + role-label 金色统一（2026-08-10）
+
+**任务**：书记选中 header 的 role-label div 后提出 6 点设计要求——①工作进度指标设计与显示必须谨慎（要写入设计文档）；②「已完成 N」无信息增量，只可作归档统计信息，面向"要完成的工作"应指向未完成/超期/缺口；③视图切换（header/sidebar）已完全失去作用——每个人就是每个人，组织者与深度参与者的所有信息集成在工作台，任务来了都在工作台完成；④工作概况是否仅为可读界面？需设置跳转便于工作执行；⑤项目分工需区分个人分工与全局分工（以人为中心的直观表现视图 + 全局包含查询的视图）；⑥金色情况下 header 的 role-label 显示与其他颜色不一致。强制要求使用 sample-diff-learning + web-design-guidelines + fullstack-developer 三个 Skill。
+**引用流程**：H1.2 执行 + sample-diff-learning Skill（差异泛化）+ web-design-guidelines Skill + fullstack-developer Skill + AskUserQuestion（书记 4 项裁定）+ verification-before-completion Skill + browser_use 实测
+
+- **AskUserQuestion 书记裁定（关键）**：
+  - ①工作概况跳转→**行内执行 + 在办可下钻**（待办→定位工作台待办 tab；活动/专班→只读详情视图，返回回概况）
+  - ②项目分工→**双视图子切换**（「我的分工」以人为中心 +「全局分工」全局查询，复用 ov-sub-tab-active 样式）
+  - ③进度指标→**只显未完成类、可下钻**（工作界面不得出现"已完成 N/总数"存量统计，仅归档库保留）
+  - ④role-label 金色→**金色实底白字**（与其他主题结构完全一致，取消原金浅底深金字分支，杜绝 `;;`）
+- **设计文档写入（DESIGN_SYSTEM.md §一）**：
+  - 原则11「工作进度指标设计（Progress Indicator Design）」：**"已完成 N"是无信息量的存量统计**，只可作归档统计信息；面向"要完成的工作"，进度指标必须指向"进行时与未完成"（待办/待完成/超期/缺口/进行中）并提供信息增量与操作入口——①只显未完成类（工作界面不得出现"已完成 N/总数"，已完成仅归档库出现）②可下钻（进度数字/聚合须可点击进入具体清单或详情）③从"看"到"做"（概况在办区列出可点击条目）；3 条可验证布尔条件
+  - 原则12「工作台集成制（Workspace Integration）」：角色单页制后**视图切换（header 工作台切换/sidebar 切换）已失去作用——每个人就是每个人**；组织者与深度参与者的所有信息均集成在工作台，任务来了就都在工作台内完成；可验证条件=出现需"切换到某角色/视角"才能完成的操作路径 → 违反
+- **代码实施（6 点全量落地）**：
+  - **第2/4点·进度指标 + 概况可下钻**：`work-overview.js`——在办区由聚合数字改为可点击条目列表（待办聚合卡 `data-wo-jump="todo"` 含超期红点提示、活动/专班条目 `data-wo-jump="activity"/"taskforce"`），点击待办→切待办 tab 按 `data-group-key` 定位 flashHighlight，点击活动/专班→`_renderOverviewDetail` 动态 import activity-view/taskforce-view 只读知情视图 + 返回按钮；宣传条线态势"已归档 N"→"待归档 N"（仅 >0 渲染）；`inspector.js` 进度行"已完成 N/总数"→"待完成 N 项"（仅 >0 渲染）；`ws-disc-commissioner-entry.js` 补课统计删「已完成」块只显「待补课+已超期」
+  - **第5点·项目分工双视图**：`ws-visitor-entry.js`——`_projSubView` 双视图子切换（我的分工=我参与的项目/全局分工=全部项目），本人徽章红色描边 box-shadow + 红色「·我」标记（以人为中心直观表现），首页专班跳转强制落全局分工；`_buildPersonnel` 补 personId 字段
+  - **第6点·role-label 金色统一**：`header.js`——金色与其他主题结构完全一致（accent 实底 + 白字），直接内联 `background:${accent};color:#FFFFFF;`，移除 solidAccentStyle 拼接杜绝 `;;` 双分号
+  - **顺带修复**：全站 `class="card rounded-xl p-5""` 双引号 bug 共 17 处清零（org/disc/leader/prop/visitor 各 entry）
+  - 各工作台概况 tab 调用传 `prefix`（'org'/'disc'/'leader'/'prop'/'visitor'）供待办定位
+- **验证结果（browser_use 实测通过，4 链路）**：
+  - 链路1 在办区下钻：参与者工作概况「在办」3 条目（1 待办聚合+2 活动）可点击；待办聚合点击→切待办 tab+目标聚合卡 `nav-flash-highlight` 添加并 2.8s 自动褪去（MutationObserver 实测）；活动点击→只读详情+「← 返回工作概况」→返回正常；在办无专班条目（mock 数据有限，已如实报告）
+  - 链路2 项目分工双视图：「我的分工」10 项全含王五+本人徽章红描边+「·我」红标记；「全局分工」36 项含未参与项目；切换正常
+  - 链路3 首页专班跳转：点击首页专班卡（tf-006）→ visitor 项目分工 tab+全局分工子视图+滚动定位+高亮（URL 参数一次性消费后清除属设计行为）
+  - 链路4 role-label 金色：组织委员默认天蓝 #0EA5E9 实底白字；主题选金色→#B45309 深金实底白字（A-09 对比度修复，亮金 #FFD700 白字辨识度低），结构与天蓝完全一致，style 无 `;;`
+  - GetDiagnostics 无 JS 错误；全站「已完成 N」残留仅剩状态标签/归档库/书记 KPI 专项（符合原则11 边界）
+- **变更文件**：`content/04_web_design/DESIGN_SYSTEM.md`（原则11/12）、`docs/src/components/header.js`、`docs/src/components/inspector.js`、`docs/src/components/work-overview.js`、`docs/src/entries/ws-{visitor,disc-commissioner,leader,org-commissioner,prop-commissioner}-entry.js`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[已沉淀: 进度指标信息增量]` — "已完成 N"是无信息量的存量统计，只可作归档统计；面向要完成的工作须指向待办/待完成/超期/缺口等进行时与未完成状态并提供信息增量与操作入口（设计原则11）；`[已沉淀: 工作台集成制]` — 角色单页制后视图切换失去作用，每个人就是每个人，所有信息集成工作台、任务在工作台内完成，不依赖"切换到某角色视角"的入口（设计原则12）；`[已沉淀: 概况可下钻]` — 工作概况从只读界面升级为可执行：在办区列出可点击条目（待办→待办 tab 定位、活动/专班→只读详情），从"看"到"做"同屏直达；`[已沉淀: 个人分工与全局分工]` — 项目分工区分「我的分工」（以人为中心，本人徽章红描边+·我高亮）与「全局分工」（全局查询），双视图子切换；`[已沉淀: 主题色结构一致性]` — role-label 各主题（含金色）统一 accent 实底白字结构，金色取深金 #B45309（A-09 对比度修复，亮金白字辨识度低）；`[待办]` — commit（push 需书记批准）

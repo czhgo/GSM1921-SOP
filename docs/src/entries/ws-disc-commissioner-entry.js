@@ -96,7 +96,7 @@ function renderDiscUI(state) {
     tabs: [
       { id: 'todo', label: '待办', render: () => _renderTodoContent(), groupLabel: '工作台' },
       // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
-      { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('disc-tab-content'); if (el) return renderWorkOverview(el, { role: 'disc-commissioner', personId: AuthStore.getCurrentUser()?.personId || DISC_COMMISSIONER_ID, accent }); }, groupLabel: '工作台' },
+      { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('disc-tab-content'); if (el) return renderWorkOverview(el, { role: 'disc-commissioner', personId: AuthStore.getCurrentUser()?.personId || DISC_COMMISSIONER_ID, accent, prefix: 'disc' }); }, groupLabel: '工作台' },
       { id: 'attendance', label: '考勤管理', render: () => _renderAttendanceContent(null), groupLabel: '党建' },
       { id: 'review', label: '活动监督复盘', render: () => _renderReviewContent() },
       { id: 'inspection', label: '考察管理', render: () => _renderInspectionContent() },
@@ -191,7 +191,7 @@ function _renderTodoContent() {
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2">
-        <div class="card rounded-xl p-5"">
+        <div class="card rounded-xl p-5">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
           </div>
@@ -816,7 +816,7 @@ function _renderInspectionContent() {
 
   container.innerHTML = `
     ${_buildTaskforceRosterHTML()}
-    <div class="card rounded-xl p-5"">
+    <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考察总表</h3>
         <div class="flex gap-2">
@@ -991,7 +991,7 @@ function _renderReviewContent() {
 
   container.innerHTML = `
     <div class="space-y-4">
-      <div class="card rounded-xl p-5"">
+      <div class="card rounded-xl p-5">
         <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">活动流程监督</h3>
         <div class="text-xs text-gray-500 mb-3">阅览党小组活动/专班工作时间流 · 超时确认后邮件提醒</div>
         <div class="space-y-2">
@@ -1146,7 +1146,6 @@ function _renderMakeupContent() {
 
   const tasks = loadMakeupTasks();
   const pendingTasks = tasks.filter(t => t.status === 'pending');
-  const completedTasks = tasks.filter(t => t.status === 'completed');
   const overdueTasks = pendingTasks.filter(t => new Date(t.deadline) < new Date());
 
   const statusBadge = (task) => {
@@ -1157,13 +1156,12 @@ function _renderMakeupContent() {
 
   container.innerHTML = `
     <div class="space-y-4">
-      <div class="card rounded-xl p-5"">
+      <div class="card rounded-xl p-5">
         <div class="flex items-center justify-between mb-3">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">补课任务</h3>
           <div class="flex gap-4 text-xs">
             <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500"></span><span class="text-gray-600">待补课</span><span class="font-bold text-orange-700">${pendingTasks.length}</span></div>
             <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span><span class="text-gray-600">已超期</span><span class="font-bold text-red-700">${overdueTasks.length}</span></div>
-            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-green-500"></span><span class="text-gray-600">已完成</span><span class="font-bold text-green-700">${completedTasks.length}</span></div>
           </div>
         </div>
         <div class="text-xs text-gray-500 mb-3">缺勤/请假的三会一课、主题党日须在7日内补课，纪检委员确认完成</div>
@@ -1262,7 +1260,7 @@ function _renderMailboxContent() {
   container.innerHTML = `
     <div class="space-y-4">
       <!-- 邮箱信息 + 倒计时 -->
-      <div class="card rounded-xl p-5"">
+      <div class="card rounded-xl p-5">
         <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">支部公邮</h3>
         <div class="flex items-center gap-3 mb-4">
           <div class="flex-1">

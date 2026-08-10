@@ -54,7 +54,7 @@ function renderPropUI(state) {
     tabs: [
       { id: 'todo', label: '待办', render: () => _renderTodoContent(), groupLabel: '工作台' },
       // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
-      { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('prop-tab-content'); if (el) return renderWorkOverview(el, { role: 'prop-commissioner', personId: AuthStore.getCurrentUser()?.personId || 'p12', accent }); }, groupLabel: '工作台' },
+      { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('prop-tab-content'); if (el) return renderWorkOverview(el, { role: 'prop-commissioner', personId: AuthStore.getCurrentUser()?.personId || 'p12', accent, prefix: 'prop' }); }, groupLabel: '工作台' },
       { id: 'tasks', label: '宣传任务', render: (ctx) => _renderTasksContent(), groupLabel: '党建' },
       { id: 'kanban', label: '项目看板', render: (ctx) => _renderKanbanContent(ctx.activities, ctx.propTf) },
       { id: 'weekly', label: '周报报送', render: (ctx) => _renderWeeklyContent(), groupLabel: '党建' },
@@ -153,7 +153,7 @@ function _renderTodoContent() {
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2">
-        <div class="card rounded-xl p-5"">
+        <div class="card rounded-xl p-5">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
           </div>

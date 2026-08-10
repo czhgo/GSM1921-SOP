@@ -9,7 +9,7 @@
 //  职责空间最小充分信息（P-015 知情边界）；本页禁用 SVG 图标（书记裁定）
 // ════════════════════════════════════════════════════════════════
 
-import { showToast } from '../core/utils.js?v=20260808m';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260808m';
 import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260808m';
 import { IssueStore, REPORT_CATEGORIES } from '../services/issues.js?v=20260808m';
 import { AuthStore } from '../services/auth.js?v=20260808m';
@@ -21,6 +21,9 @@ import { PEOPLE } from '../mock/people.js?v=20260808m';
 import { getPersonName } from '../mock/index.js?v=20260808m';
 import { AttendanceStatus } from '../core/domain.js?v=20260808m';
 
+// 在办下钻详情目标（书记 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
+let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
+
 /**
  * 渲染「工作概况」tab 内容
  * @param {HTMLElement} container — tab 内容容器
@@ -29,15 +32,20 @@ import { AttendanceStatus } from '../core/domain.js?v=20260808m';
  * @param {string} opts.personId  — 当前用户 personId
  * @param {string} [opts.accent]  — 强调色
  */
-export async function renderWorkOverview(container, { role, personId, accent = '#B91C1C' }) {
+export async function renderWorkOverview(container, { role, personId, accent = '#B91C1C', prefix = '' }) {
   if (!container) return;
   await IssueStore.loadAll();
   seedTodos();
   TodoStore.refreshExpiredStatus();
   const today = new Date().toISOString().slice(0, 10);
 
+  // 在办下钻模式（书记 2026-08-10 裁定）：活动/专班只读详情，返回按钮回概况
+  if (_woDetail) {
+    await _renderOverviewDetail(container, _woDetail, accent, () => renderWorkOverview(container, { role, personId, accent, prefix }));
+    return;
+  }
+
   const grouped = TodoStore.getGroupedByAction(role);
-  const stats = TodoStore.getStatsByRole(role);
 
   // ── ① 汇报区：待我行动 ────────────────────────────────
   const requests = IssueStore.getReportRequestsFor(personId);
@@ -96,7 +104,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
          <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 无超期与缺口，一切正常
        </div>`;
 
-  // ── ③ 进度区：我的在办 + 条线态势 ─────────────────────
+  // ── ③ 进度区：我的在办（可下钻，设计原则 11）+ 条线态势 ─────
   const myActs = loadActivities().filter(a =>
     !a.archived && a.status !== 'completed' && a.status !== 'cancelled' && a.status !== 'draft' &&
     (a.organizer === personId || (Array.isArray(a.assignments) && a.assignments.some(x => x.personId === personId)))
@@ -105,6 +113,53 @@ export async function renderWorkOverview(container, { role, personId, accent = '
     (tf.status === 'active' || tf.status === 'recruiting') &&
     (tf.manager === personId || tf.initiator === personId || (Array.isArray(tf.members) && tf.members.some(m => m.personId === personId)))
   );
+
+  // 在办条目（可点击，点击直达详情/待办 tab 定位；每类至多展示 5 条，超出给总量提示）
+  const _MAX_INLINE = 5;
+  const myTodoItems = grouped || [];
+  const todoRows = myTodoItems.slice(0, _MAX_INLINE).map(g => {
+    const hasOverdue = (g.items || []).some(it =>
+      it.status === TodoStatus.EXPIRED || (it.status === TodoStatus.PENDING && it.deadline && it.deadline < today)
+    );
+    return `
+      <button type="button" class="wo-inline-item flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-left w-full" data-wo-jump="todo" data-todo-key="${g.groupKey}">
+        <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${hasOverdue ? '#EF4444' : accent};"></span>
+        <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${g.title}</span>
+        ${g.count > 1 ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 tabular-nums flex-shrink-0">${g.count}</span>` : ''}
+        ${hasOverdue ? `<span class="text-[11px] text-red-500 font-medium flex-shrink-0">含超期</span>` : ''}
+      </button>`;
+  }).join('');
+  const todoMore = myTodoItems.length > _MAX_INLINE
+    ? `<button type="button" class="wo-inline-item flex items-center gap-2 py-1.5 px-3 text-xs text-gray-400 hover:text-gray-600 transition-colors w-full text-left" data-wo-jump="todo-all">共 ${myTodoItems.length} 项 · 前往待办 tab 查看全部 →</button>`
+    : '';
+
+  const actRows = myActs.slice(0, _MAX_INLINE).map(a => `
+    <button type="button" class="wo-inline-item flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-left w-full" data-wo-jump="activity" data-act-id="${a.id}">
+      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#3B82F6;"></span>
+      <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${a.title}</span>
+      <span class="text-[11px] text-gray-400 flex-shrink-0">活动</span>
+    </button>`).join('');
+  const actMore = myActs.length > _MAX_INLINE
+    ? `<div class="py-1 px-3 text-xs text-gray-400">等共 ${myActs.length} 个活动</div>` : '';
+
+  const tfRows = myTfs.slice(0, _MAX_INLINE).map(tf => `
+    <button type="button" class="wo-inline-item flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-left w-full" data-wo-jump="taskforce" data-tf-id="${tf.id}">
+      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#4F46E5;"></span>
+      <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${tf.name}</span>
+      <span class="text-[11px] text-gray-400 flex-shrink-0">专班</span>
+    </button>`).join('');
+  const tfMore = myTfs.length > _MAX_INLINE
+    ? `<div class="py-1 px-3 text-xs text-gray-400">等共 ${myTfs.length} 个专班</div>` : '';
+
+  const inProgressBody = (todoRows || actRows || tfRows)
+    ? `<div class="space-y-1">
+        ${todoRows}${todoMore}
+        ${actRows}${actMore}
+        ${tfRows}${tfMore}
+      </div>`
+    : `<div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
+         <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 暂无在办事项
+       </div>`;
 
   const lineRows = _lineProgress(role);
 
@@ -127,20 +182,14 @@ export async function renderWorkOverview(container, { role, personId, accent = '
       <div class="card rounded-xl p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">在办</h4>
-          <span class="text-xs text-gray-400">我的在办聚合</span>
+          <span class="text-xs text-gray-400">我的在办 · 点击条目直达详情</span>
         </div>
-        <div class="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors">
-          <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#3B82F6;"></span>
-          <span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">我的在办</span>
-          <span class="text-xs tabular-nums text-gray-600 flex-shrink-0">待办 ${stats._total}</span>
-          <span class="text-xs tabular-nums text-gray-600 flex-shrink-0">活动 ${myActs.length}</span>
-          <span class="text-xs tabular-nums text-gray-600 flex-shrink-0">专班 ${myTfs.length}</span>
-        </div>
-        ${lineRows.length ? `<div class="space-y-1 mt-1">${lineRows.join('')}</div>` : ''}
+        ${inProgressBody}
+        ${lineRows.length ? `<div class="space-y-1 mt-2 pt-2 border-t border-gray-100">${lineRows.join('')}</div>` : ''}
       </div>
     </div>`;
 
-  _bindWorkOverviewEvents(container, role, personId, () => renderWorkOverview(container, { role, personId, accent }));
+  _bindWorkOverviewEvents(container, role, personId, prefix, () => renderWorkOverview(container, { role, personId, accent, prefix }));
 }
 
 /** 条线卡点（按角色注入职责空间的缺口） */
@@ -187,9 +236,12 @@ function _lineProgress(role) {
     const acts = loadActivities().filter(a => !a.archived && a.status !== 'completed' && a.status !== 'cancelled');
     rows.push(_lineRow('#0EA5E9', '活动', `${acts.length} 个在办`));
   } else if (role === 'prop-commissioner') {
+    // 设计原则 11：进度指标只显未完成类——「已归档 N」是存量统计（无信息增量），
+    // 只显「待归档缺口」（与卡点区一致，0 时该行不渲染）。
     const activities = loadActivities();
-    const archived = activities.filter(a => a.archived).length;
-    rows.push(_lineRow('#F59E0B', '档案', `已归档 ${archived} 个`));
+    const ended = activities.filter(a => a.status === 'completed' || a.archived);
+    const pendingArchive = ended.filter(a => !a.archived).length;
+    if (pendingArchive > 0) rows.push(_lineRow('#F59E0B', '档案', `待归档 ${pendingArchive} 个`));
   }
   return rows;
 }
@@ -203,8 +255,8 @@ function _lineRow(color, label, text) {
     </div>`;
 }
 
-/** 绑定事件：请我汇报 → 行内填写即发（复用 issues 的 result 提交模式） */
-function _bindWorkOverviewEvents(container, role, personId, rerender) {
+/** 绑定事件：请我汇报 → 行内填写即发（复用 issues 的 result 提交模式）；在办条目 → 下钻/跳转定位 */
+function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
   container.querySelectorAll('.wo-req-submit').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.issueId;
@@ -215,4 +267,60 @@ function _bindWorkOverviewEvents(container, role, personId, rerender) {
       rerender();
     });
   });
+
+  // 在办下钻（设计原则 11：进度指标可下钻——待办→待办 tab 定位；活动/专班→只读详情）
+  container.querySelectorAll('[data-wo-jump]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const kind = btn.dataset.woJump;
+      if (kind === 'todo' || kind === 'todo-all') {
+        _jumpToTodoTab(container, prefix, kind === 'todo' ? btn.dataset.todoKey : null);
+      } else if (kind === 'activity') {
+        _woDetail = { kind: 'activity', id: btn.dataset.actId };
+        rerender();
+      } else if (kind === 'taskforce') {
+        _woDetail = { kind: 'taskforce', id: btn.dataset.tfId };
+        rerender();
+      }
+    });
+  });
+}
+
+/** 跳转工作台「待办」tab 并定位高亮目标聚合卡（按 groupKey） */
+function _jumpToTodoTab(container, prefix, groupKey) {
+  const parent = container.parentElement;
+  const btn = parent?.querySelector(`button[data-${prefix}-tab="todo"]`);
+  if (btn) btn.click();
+  if (!groupKey) return;
+  setTimeout(() => {
+    const target = document.querySelector(`[data-group-key="${groupKey}"]`);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      flashHighlight(target);
+    }
+  }, 150);
+}
+
+/** 在办下钻详情（活动/专班只读知情视图，返回按钮回概况） */
+async function _renderOverviewDetail(container, detail, accent, onBack) {
+  container.innerHTML = `
+    <div class="card rounded-xl p-4">
+      <div class="flex items-center justify-between mb-3">
+        <button type="button" class="wo-detail-back text-xs px-3 py-1.5 rounded-lg transition-colors hover:bg-gray-100" style="background:var(--neutral-100);color:var(--neutral-700);">← 返回工作概况</button>
+        <span class="text-xs text-gray-400">${detail.kind === 'activity' ? '活动详情 · 只读知情' : '专班详情 · 只读知情'}</span>
+      </div>
+      <div id="wo-detail-host"></div>
+    </div>`;
+  container.querySelector('.wo-detail-back')?.addEventListener('click', () => {
+    _woDetail = null;
+    if (typeof onBack === 'function') onBack();
+  });
+  const host = container.querySelector('#wo-detail-host');
+  if (!host) return;
+  if (detail.kind === 'activity') {
+    const { renderActivityView } = await import('./activity-view.js?v=20260808m');
+    renderActivityView(host, { highlightId: detail.id, accent });
+  } else {
+    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260808m');
+    renderTaskforceView(host, { highlightId: detail.id });
+  }
 }

@@ -97,7 +97,7 @@ function renderLeaderUI(state) {
     tabs: [
       { id: 'todo', label: '待办', render: () => _renderTodoContent(), groupLabel: '工作台' },
       // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览，个人视角）
-      { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('leader-tab-content'); if (el) return renderWorkOverview(el, { role: 'leader', personId: AuthStore.getCurrentUser()?.personId || 'p4', accent }); }, groupLabel: '工作台' },
+      { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('leader-tab-content'); if (el) return renderWorkOverview(el, { role: 'leader', personId: AuthStore.getCurrentUser()?.personId || 'p4', accent, prefix: 'leader' }); }, groupLabel: '工作台' },
       // 组员进展（书记 2026-08-10 裁定：全员可见性矩阵落地——组长看本组组员，P-015 知情边界看≠做）
       { id: 'members', label: '组员进展', render: () => _renderMembersContent(), groupLabel: '工作台' },
       { id: 'write', label: '活动管理', render: (ctx) => _renderWriteContent(ctx.filteredActivities), groupLabel: '党建' },
@@ -354,7 +354,7 @@ function _renderTodoContent() {
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2">
-        <div class="card rounded-xl p-5"">
+        <div class="card rounded-xl p-5">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
           </div>
@@ -496,7 +496,7 @@ function _renderWriteContent(activities) {
   const panelVisible = dt.showPanel;
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5"">
+    <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">活动写入</h3>
         <button class="btn-md" id="btn-leader-create" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${panelVisible ? '收起面板' : '创建活动'}</button>
@@ -1211,7 +1211,7 @@ function _renderAttendanceContent() {
   ` : '';
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5"">
+    <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤上传</h3>
         <button class="btn-md" id="btn-leader-upload-att" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_attFormVisible ? '收起表单' : '上传考勤表单'}</button>
@@ -1453,7 +1453,7 @@ function _renderInspectionContent() {
   ` : '';
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5"">
+    <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考察上传</h3>
         <button class="btn-md" id="btn-leader-upload-insp" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_inspFormVisible ? '收起表单' : '上传考察表单'}</button>
@@ -1694,7 +1694,7 @@ function _renderReviewContent() {
   }
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5"">
+    <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">复盘提交</h3>
       </div>

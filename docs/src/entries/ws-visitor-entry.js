@@ -29,6 +29,8 @@ let _visitorNavConsumed = false; // URL 跳转参数一次性消费标志
 let _todoPriorityConsumed = false;
 // 首页专班跳转定位目标（REVIEW_QUEUE J2 裁定 2026-08-08：visitor→项目分工 tab 定位高亮专班卡片）
 let _visitorHighlightTfId = null;
+// 项目分工子视图（书记 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询））
+let _projSubView = 'mine'; // 'mine' | 'all'
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -91,7 +93,7 @@ function renderVisitorUI(state) {
     tabs: [
       { id: 'todo', label: '待办', render: () => _renderTodoContent(), groupLabel: '工作台' },
       // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览，参与者仅自我聚合）
-      { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('visitor-tab-content'); if (el) return renderWorkOverview(el, { role: 'visitor', personId: AuthStore.getCurrentUser()?.personId || 'p5', accent }); }, groupLabel: '工作台' },
+      { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('visitor-tab-content'); if (el) return renderWorkOverview(el, { role: 'visitor', personId: AuthStore.getCurrentUser()?.personId || 'p5', accent, prefix: 'visitor' }); }, groupLabel: '工作台' },
       { id: 'projects', label: '项目分工', render: (ctx) => _renderProjectDivision(ctx.activities, ctx.allTf, ctx.authRecords), groupLabel: '党建' },
       { id: 'activities', label: '活动动态', render: (ctx) => _renderActivities(ctx.activities, ctx.highlightId), groupLabel: '党建' },
       { id: 'attendance', label: '考勤概况', render: (ctx) => _renderAttendance(ctx.activities), groupLabel: '党建' },
@@ -188,7 +190,27 @@ function _renderProjectDivision(activities, taskforces, authRecords) {
   // 党小组列表（用于筛选）
   const partyGroups = [...new Set(PEOPLE.map(p => p.partyGroup).filter(Boolean))].sort();
 
+  const currentUserId = AuthStore.getCurrentUser()?.personId || '';
+  // 首页专班跳转定位：目标专班可能不在「我的分工」中 → 强制切全局分工视图后再定位
+  if (_visitorHighlightTfId) _projSubView = 'all';
+
+  // 子视图切换（书记 2026-08-10 裁定第5点）：我的分工（以人为中心）/ 全局分工（全局查询）
+  const subTabs = [
+    { key: 'mine', label: '我的分工' },
+    { key: 'all', label: '全局分工' },
+  ];
+  const subTabsHtml = `
+    <div class="inline-flex items-center gap-1 p-1 rounded-full bg-neutral-100 mb-3">
+      ${subTabs.map(t => `
+        <button type="button"
+          class="visitor-proj-sub px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${_projSubView === t.key ? 'ov-sub-tab-active' : 'text-gray-500 hover:text-gray-700'} "
+          data-proj-subview="${t.key}">${t.label}</button>
+      `).join('')}
+    </div>
+  `;
+
   tc.innerHTML = `
+    ${subTabsHtml}
     <div class="flex flex-wrap gap-2 mb-3 items-center">
       <select id="visitor-proj-type" class="input-flat text-xs w-20">
         <option value="">全部</option>
@@ -213,7 +235,12 @@ function _renderProjectDivision(activities, taskforces, authRecords) {
     const groupFilter = document.getElementById('visitor-proj-group')?.value || '';
     const q = (document.getElementById('visitor-proj-search')?.value || '').trim().toLowerCase();
 
-    const filtered = allProjects.filter(p => {
+    // 子视图基准：我的分工 = 我参与的项目（以人为中心）；全局分工 = 全部项目
+    const base = _projSubView === 'mine'
+      ? allProjects.filter(p => p.personnel.some(pm => pm.personId === currentUserId))
+      : allProjects;
+
+    const filtered = base.filter(p => {
       if (typeFilter && p.type !== typeFilter) return false;
       if (groupFilter && p.group !== groupFilter) return false;
       if (q) {
@@ -226,9 +253,12 @@ function _renderProjectDivision(activities, taskforces, authRecords) {
 
     if (countEl) countEl.textContent = `${filtered.length} 个项目`;
 
+    const emptyText = _projSubView === 'mine' && !filtered.length
+      ? '你暂未参与任何项目'
+      : '无匹配项目';
     listEl.innerHTML = filtered.length === 0
-      ? '<p class="text-xs text-gray-400 text-center py-6">无匹配项目</p>'
-      : `<div class="space-y-2">${filtered.map(p => _renderProjectCard(p)).join('')}</div>`;
+      ? `<p class="text-xs text-gray-400 text-center py-6">${emptyText}</p>`
+      : `<div class="space-y-2">${filtered.map(p => _renderProjectCard(p, currentUserId)).join('')}</div>`;
 
     // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片
     if (_visitorHighlightTfId) {
@@ -241,6 +271,19 @@ function _renderProjectDivision(activities, taskforces, authRecords) {
     }
   }
 
+  tc.querySelectorAll('.visitor-proj-sub').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _projSubView = btn.dataset.projSubview;
+      tc.querySelectorAll('.visitor-proj-sub').forEach(b => {
+        const active = b === btn;
+        b.classList.toggle('ov-sub-tab-active', active);
+        b.classList.toggle('text-gray-500', !active);
+        b.classList.toggle('hover:text-gray-700', !active);
+      });
+      renderList();
+    });
+  });
+
   document.getElementById('visitor-proj-type')?.addEventListener('change', renderList);
   document.getElementById('visitor-proj-group')?.addEventListener('change', renderList);
   document.getElementById('visitor-proj-search')?.addEventListener('input', renderList);
@@ -249,16 +292,16 @@ function _renderProjectDivision(activities, taskforces, authRecords) {
 
 function _buildPersonnel(projectId, assignments, authRecords) {
   // 合并 assignments（mock）+ authRecords（运行时赋权）
-  const map = new Map(); // personId → { name, role }
+  const map = new Map(); // personId → { name, role, personId }
   for (const a of assignments) {
     const person = PEOPLE.find(p => p.id === a.personId);
-    if (person) map.set(a.personId, { name: person.name, role: a.role });
+    if (person) map.set(a.personId, { name: person.name, role: a.role, personId: a.personId });
   }
   for (const r of authRecords) {
     if (r.scopeRef === projectId && ['organizer', 'deep'].includes(r.role)) {
       const person = PEOPLE.find(p => p.id === r.targetPersonId);
       if (person && !map.has(r.targetPersonId)) {
-        map.set(r.targetPersonId, { name: person.name, role: r.role });
+        map.set(r.targetPersonId, { name: person.name, role: r.role, personId: r.targetPersonId });
       }
     }
   }
@@ -272,14 +315,14 @@ function _buildPersonnelFromTf(tf, authRecords) {
     for (const m of tf.members) {
       if (!m.personId) continue;
       const person = PEOPLE.find(p => p.id === m.personId);
-      if (person) map.set(m.personId, { name: person.name, role: m.role });
+      if (person) map.set(m.personId, { name: person.name, role: m.role, personId: m.personId });
     }
   }
   // initiator
   if (tf.initiator) {
     const person = PEOPLE.find(p => p.id === tf.initiator);
     if (person && !map.has(tf.initiator)) {
-      map.set(tf.initiator, { name: person.name, role: 'initiator' });
+      map.set(tf.initiator, { name: person.name, role: 'initiator', personId: tf.initiator });
     }
   }
   // authRecords 补充
@@ -287,7 +330,7 @@ function _buildPersonnelFromTf(tf, authRecords) {
     if (r.scopeRef === tf.id && ['organizer', 'deep'].includes(r.role)) {
       const person = PEOPLE.find(p => p.id === r.targetPersonId);
       if (person && !map.has(r.targetPersonId)) {
-        map.set(r.targetPersonId, { name: person.name, role: r.role });
+        map.set(r.targetPersonId, { name: person.name, role: r.role, personId: r.targetPersonId });
       }
     }
   }
@@ -323,10 +366,17 @@ function _personnelRoleColor(role) {
   return `background:${c.bg};color:${c.text};border:1px solid ${c.border};`;
 }
 
-function _renderProjectCard(project) {
+function _renderProjectCard(project, currentUserId) {
   const organizers = project.personnel.filter(p => p.role === 'organizer' || p.role === 'initiator');
   const deepParticipants = project.personnel.filter(p => p.role === 'deep');
   const others = project.personnel.filter(p => p.role === 'participant');
+
+  // 人员徽章：「我」参与的项目中，本人徽章加红色描边 + 「·我」标记（以人为中心的直观表现）
+  const badge = (p, withRole) => {
+    const isMe = !!(currentUserId && p.personId && p.personId === currentUserId);
+    return `
+      <span class="badge inline-flex items-center gap-0.5" style="${_personnelRoleColor(p.role)}${isMe ? 'box-shadow:0 0 0 1.5px rgba(206,17,38,0.45);' : ''}">${p.name}${withRole ? '·' + _personnelRoleLabel(p.role) : ''}${isMe ? '<span class="text-[10px] font-bold" style="color:#CE1126;">·我</span>' : ''}</span>`;
+  };
 
   return `
     <div class="visitor-proj-card p-3 rounded-lg bg-white" data-tf-id="${project.type === '专班' ? project.id : ''}">
@@ -343,9 +393,9 @@ function _renderProjectCard(project) {
       </div>
       ${project.personnel.length > 0 ? `
         <div class="flex flex-wrap gap-1.5">
-          ${organizers.map(p => `<span class="badge inline-flex items-center gap-0.5" style="${_personnelRoleColor(p.role)}">${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
-          ${deepParticipants.map(p => `<span class="badge inline-flex items-center gap-0.5" style="${_personnelRoleColor(p.role)}">${p.name}·${_personnelRoleLabel(p.role)}</span>`).join('')}
-          ${others.map(p => `<span class="badge inline-flex items-center gap-0.5" style="${_personnelRoleColor(p.role)}">${p.name}</span>`).join('')}
+          ${organizers.map(p => badge(p, true)).join('')}
+          ${deepParticipants.map(p => badge(p, true)).join('')}
+          ${others.map(p => badge(p, false)).join('')}
         </div>
       ` : '<p class="text-xs text-gray-400">暂无人员</p>'}
     </div>
@@ -722,7 +772,7 @@ function _renderTodoContent() {
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2">
-        <div class="card rounded-xl p-5"">
+        <div class="card rounded-xl p-5">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
           </div>

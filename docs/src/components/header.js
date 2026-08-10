@@ -1,9 +1,9 @@
-﻿﻿// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // components/header.js — 共享顶栏组件（重构版）
 // 变化: 去掉 mode 标签与只读视角切换，仅保留身份标签 + 工作台切换下拉
 
 import { AuthStore } from '../services/auth.js?v=20260808m';
-import { getAccentColors, resolveAccentRole, solidAccentStyle, ROLE_LABELS } from '../core/constants.js?v=20260808m';
+import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260808m';
 import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260808m';
 import { getBasePath } from '../core/utils.js?v=20260808m';
 import { icon } from '../core/icons.js?v=20260808m';
@@ -44,16 +44,14 @@ function _roleLabelHTML(role) {
   if (!role) return '';
   // 普通参与者默认无标记：没有标记就是普通参与者的标记（书记 2026-08-01 决策）
   if (role === 'participant') return '';
-  const { accent, accentBorder } = getAccentColors(resolveAccentRole(role));
+  const { accent } = getAccentColors(resolveAccentRole(role));
   const label = ROLE_LABELS[role] || role;
-  // 金色主题（accent=#B45309）→ 金浅底+深金字三件套；非金色主题 → accent 实底白字
-  // G3 修正（2026-08-08）：与其他主题色结构一致——普通按钮/标签一律不加边框（书记「别的没有，他也必须没有」）
-  const isGold = accent === '#B45309';
-  const labelTextColor = isGold ? '#B45309' : '#FFFFFF';
-
+  // 2026-08-10 书记裁定（第6点）：金色主题与其他主题显示结构完全一致——accent 实底 + 白字，
+  // 取消原金浅底深金字分支（金浅底导致金色下 header 标签与别色不一致）；
+  // 直接内联写背景/文字，不再拼接 solidAccentStyle，杜绝 `;;` 双分号。
   return `
-    <div class="role-label" id="role-label" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:var(--radius-sm);${solidAccentStyle(accent, accentBorder)};">
-      <span class="text-xs font-medium" style="color:${labelTextColor};">${label}</span>
+    <div class="role-label" id="role-label" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:var(--radius-sm);background:${accent};color:#FFFFFF;">
+      <span class="text-xs font-medium" style="color:#FFFFFF;">${label}</span>
     </div>
   `;
 }

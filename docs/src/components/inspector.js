@@ -508,8 +508,12 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   html += _buildOutputsSectionHTML(activity);
 
   if (visibleTasks.length > 0) {
-    const completedCount = visibleTasks.filter(t => t.status === 'completed').length;
-    html += `<p class=" text-xs text-gray-500 mb-3">进度：${completedCount}/${visibleTasks.length} 已完成</p>`;
+    // 2026-08-10 书记裁定（设计原则 11）：进度指标只显未完成类——「已完成 N/总数」无信息增量，
+    // 仅保留待完成数（>0 时有提示价值；全部完成时无未完成=无需提示，不渲染）。
+    const pendingCount = visibleTasks.filter(t => t.status !== 'completed').length;
+    if (pendingCount > 0) {
+      html += `<p class=" text-xs text-gray-500 mb-3">待完成 ${pendingCount} 项</p>`;
+    }
   }
 
   if (visibleTasks.length > 0) {
