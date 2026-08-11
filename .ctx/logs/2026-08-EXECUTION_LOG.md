@@ -2548,7 +2548,8 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **④web-design-guidelines Skill 审查（a3，书记指定）**：浅色 accent 深字对比度数值验证——天蓝 `#096690` on 近白底（#B2E4FA@12% 叠白）≈ **5.97:1** 达标 WCAG AA；styles.css 夜间 `html.theme-dark [style*="--acc-bg-dark"]` 用 `!important` 覆盖内联为必要手段（内联样式无 id/class）；考勤弹窗 div+click 为恢复的既有实现（含 Escape 关闭），非本次新增；focus-visible/hover 既有实现不受影响——均通过
 - **⑤浏览器四象限复验（a3，browser_use 两轮）**：第一轮发现 `_darken` 重复声明 SyntaxError 阻断全站渲染（见③）；修复 + 版本号 bump 后第二轮全部通过——天蓝日 `rgba(178,228,250,0.12)`+`rgb(9,102,144)` ✅ 非白字（旧实底白字已废除）、金日 `rgba(255,215,0,0.12)`+`rgb(161,98,7)` ✅、天蓝夜 `rgba(63,187,243,0.22)`+`rgb(168,225,250)` ✅、金夜 `rgba(251,191,36,0.22)`+`rgb(253,230,138)` ✅、首页 4 卡齐全「个人考勤 2/2」点击弹窗/空白关闭/Escape 关闭 ✅、console 无 TypeError/SyntaxError
 - **⑥版本号 bump（a4）**：全仓 `?v=20260811a` → `?v=20260811b`（91 文件 593 处，字节级替换保 BOM/编码不变）使浏览器缓存失效（修复前缓存旧模块会复现 SyntaxError）
-- **变更文件**：`docs/src/core/constants.js`（统一 tab 规则 + `_darken` 新增 + 旧渐变函数改名 `_shadeDarker`）、`docs/src/entries/main-entry.js`（考勤卡恢复）、`docs/src/styles.css`（夜间规则注释同步）、全仓 91 文件（版本号 bump）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **⑦4 卡一行布局（书记即时反馈）**：书记「考勤的小卡片和剩余的3个应该在同一个水平呀！而不是变成2行！！」→ `index.html` `#dashboard-stats` 容器 `md:grid-cols-3` → `md:grid-cols-4`；browser_use 实测桌面 4 卡 top 相等（237.6）+ 等宽（255.2≈25% 列宽）同一水平线 ✅、移动端 2×2 降级不破版 ✅、内容无截断 ✅
+- **变更文件**：`docs/src/core/constants.js`（统一 tab 规则 + `_darken` 新增 + 旧渐变函数改名 `_shadeDarker`）、`docs/src/entries/main-entry.js`（考勤卡恢复）、`docs/src/styles.css`（夜间规则注释同步）、`docs/index.html`（统计卡一行 4 列）、全仓 91 文件（版本号 bump）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
 - **一改具改检查**：全仓 Grep `function _darken` 仅剩单一 HSL 版（L279）+ `_shadeDarker`（L388），无残留重复声明；Grep 实底白字模式零残留（toast 状态色书记裁定豁免除外）
 - **验证结果**：✅ GetDiagnostics 修改文件零错误；✅ Node 数值验证浅色 accent 深字分支全对（天蓝 #096690/翠绿 #17823E/亮蓝 #036696/灰 #3D4A5C）；✅ browser_use 两轮四象限 computedStyle 逐值通过
 - **待办**：commit（push 需书记批准）
