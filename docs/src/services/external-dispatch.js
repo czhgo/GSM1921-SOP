@@ -58,8 +58,3 @@ export function confirmExternalDispatch(id) {
 export function listPendingByReceiver(receiverRole) {
   return loadExternalDispatches().filter(r => r.receiverRole === receiverRole && !r.confirmedAt);
 }
-
-/** 发送方已外发未确认的记录 */
-export function listPendingBySender(senderId) {
-  return loadExternalDispatches().filter(r => r.senderId === senderId && !r.confirmedAt);
-}

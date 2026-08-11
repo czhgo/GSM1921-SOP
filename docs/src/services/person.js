@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  person.js — 人员数据服务层
 //  T-142 Phase 2C：人员数据抽象，遵循写穿透缓存模式
@@ -55,94 +55,6 @@ export const PersonStore = {
       if (p && p.id) map.set(p.id, p);
     });
     return Array.from(map.values());
-  },
-
-  /**
-   * 按角色查询人员
-   * @param {string} role - 角色标识（如 'leader', 'secretary'）
-   * @returns {Array} 该角色的人员数组
-   */
-  getByRole(role) {
-    return this.getAll().filter(p => p.role === role);
-  },
-
-  /**
-   * 按党小组查询人员
-   * @param {string} partyGroup - 党小组名称（如 '第一党小组'）
-   * @returns {Array} 该党小组的人员数组
-   */
-  getByPartyGroup(partyGroup) {
-    return this.getAll().filter(p => p.partyGroup === partyGroup);
-  },
-
-  /**
-   * 按发展阶段查询人员
-   * @param {string} developStage - 发展阶段（如 '正式党员', '积极分子'）
-   * @returns {Array} 该发展阶段的人员数组
-   */
-  getByDevelopStage(developStage) {
-    return this.getAll().filter(p => p.developStage === developStage);
-  },
-
-  /**
-   * 批量获取人员姓名（用于列表渲染）
-   * @param {string[]} ids - 人员 ID 数组
-   * @returns {string[]} 人员姓名数组
-   */
-  getNames(ids) {
-    if (!Array.isArray(ids)) return [];
-    return ids.map(id => this.getName(id));
-  },
-
-  /**
-   * 批量获取人员对象（用于列表渲染）
-   * @param {string[]} ids - 人员 ID 数组
-   * @returns {Object[]} 人员对象数组（过滤掉 null）
-   */
-  getByIds(ids) {
-    if (!Array.isArray(ids)) return [];
-    return ids.map(id => this.getById(id)).filter(Boolean);
-  },
-
-  /**
-   * 检查人员是否存在
-   * @param {string} id - 人员 ID
-   * @returns {boolean}
-   */
-  exists(id) {
-    return this.getById(id) !== null;
-  },
-
-  /**
-   * 获取人员总数
-   * @returns {number}
-   */
-  count() {
-    return this.getAll().length;
-  },
-
-  /**
-   * 获取所有党小组列表（去重）
-   * @returns {string[]}
-   */
-  getPartyGroups() {
-    const groups = new Set();
-    this.getAll().forEach(p => {
-      if (p.partyGroup) groups.add(p.partyGroup);
-    });
-    return Array.from(groups).sort();
-  },
-
-  /**
-   * 获取所有角色列表（去重）
-   * @returns {string[]}
-   */
-  getRoles() {
-    const roles = new Set();
-    this.getAll().forEach(p => {
-      if (p.role) roles.add(p.role);
-    });
-    return Array.from(roles);
   },
 };
 

@@ -1,4 +1,4 @@
-﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  service.signup.js — 报名记录（活动/专班统一报名渠道）
 //  SignupRecord { id, sourceType: 'activity'|'taskforce', sourceId,
@@ -19,7 +19,7 @@ import { AuthStore } from './auth.js?v=20260810a';
 import { TaskForceRecordStore } from './taskforce.js?v=20260810a';
 
 // ── 枚举 ────────────────────────────────────────────────────────
-export const SignupRole = {
+const SignupRole = {
   PARTICIPANT: 'participant', // 普通参与
   ORGANIZER: 'organizer',     // 组织者
   DEEP: 'deep',               // 深度参与

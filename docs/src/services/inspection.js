@@ -1,4 +1,4 @@
-﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  inspection.js — 考察记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
@@ -88,9 +88,4 @@ export function getRecordsBySource(sourceType, sourceId) {
     if (sourceType === SourceType.ACTIVITY) return r.activityId === sourceId;
     return r.sourceName === sourceId;
   });
-}
-
-/** 按人员查询考察记录 */
-export function getRecordsByPerson(personId) {
-  return loadInspectionRecords().filter(r => r.personId === personId);
 }

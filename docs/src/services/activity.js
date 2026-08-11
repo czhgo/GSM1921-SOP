@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  activity.js — 活动数据 CRUD 同步服务
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
@@ -18,15 +18,4 @@ export function findActivityById(id) {
   if (!id) return null;
   const list = loadActivities();
   return list.find(a => a.id === id) || null;
-}
-
-/** 按条件过滤活动 */
-export function filterActivities(predicate) {
-  return loadActivities().filter(predicate);
-}
-
-/** 保存活动列表（全量替换） */
-export function saveActivities(records) {
-  mockDB.activities = [...records];
-  persist();
 }

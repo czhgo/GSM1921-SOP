@@ -112,14 +112,6 @@ export function getAuthToken() {
   return _authToken;
 }
 
-/**
- * 设置认证 Token（登录后调用）
- * @param {string} token - JWT Token
- */
-export function setAuthToken(token) {
-  _authToken = token;
-}
-
 // ── 适配器实例缓存 ──────────────────────────────────────────
 
 let _mockAdapter = null;
@@ -490,66 +482,4 @@ if (typeof window !== 'undefined' && typeof window.addEventListener === 'functio
       _flushSnapshotSync();
     }
   });
-}
-
-// ── 便捷方法（代理到当前适配器）──────────────────────────────
-
-/**
- * 以下方法直接代理到 getAdapter()，提供与旧 runtime.js 兼容的调用方式。
- * 新代码建议直接使用 getAdapter() 获取适配器实例后调用。
- */
-
-/** 加载数据库 */
-export function loadDB() {
-  return getAdapter().loadDB();
-}
-
-/** 保存数据库（兼容旧代码，新代码请用 persist()） */
-export function saveDB() {
-  return persist();
-}
-
-/** 列出所有活动 */
-export function listActivities() {
-  return getAdapter().activities.list();
-}
-
-/** 创建活动 */
-export function createActivity(data) {
-  return getAdapter().activities.create(data);
-}
-
-/** 更新活动 */
-export function updateActivity(id, patch) {
-  return getAdapter().activities.update(id, patch);
-}
-
-/** 删除活动 */
-export function deleteActivity(id) {
-  return getAdapter().activities.delete(id);
-}
-
-/** 归档活动 */
-export function archiveActivity(id) {
-  return getAdapter().activities.archive(id);
-}
-
-/** 切换品牌标记 */
-export function toggleBrand(id) {
-  return getAdapter().activities.toggleBrand(id);
-}
-
-/** 列出所有任务 */
-export function listTasks() {
-  return getAdapter().tasks.list();
-}
-
-/** 创建任务 */
-export function createTask(data) {
-  return getAdapter().tasks.create(data);
-}
-
-/** 更新任务 */
-export function updateTask(taskId, patch) {
-  return getAdapter().tasks.update(taskId, patch);
 }

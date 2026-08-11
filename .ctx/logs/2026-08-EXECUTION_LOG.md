@@ -2462,3 +2462,29 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **变更文件**：`CLAUDE.md`（甲部 H10-H100 重组）、`content/03_doc_system/OPERATIONS_GUIDE.md`（§9.1 + §18 + 内部引用）、`content/README.md`、`content/03_doc_system/SSOT_INDEX.md`、`content/03_doc_system/USAGE_POLICY.md`、`content/03_doc_system/DOC_MAP.md`、`content/03_doc_system/工作模板/经验沉淀辅助提示词.md`、`content/04_web_design/DATA_ARCHITECTURE.md`、`content/01_strategy/SECRETARY_PRONOUNCEMENTS.md`、`content/05_ai_coding/KNOWN_PITFALLS.md`、`content/insights/工程演进与设计方法论.md`、`docs/src/styles.css`、`.ctx/REVIEW_QUEUE.md`、`.ctx/TIMESTAMPS.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
 - **沉淀标签**：`[已沉淀: 工程演进与设计方法论 §5.9 约束力三层]` — 「写全 vs 指针」判断标准（全局约束力分：热层写全/温层机制+指针/冷层纯指针）+ 编号位值对应（10 递增预留）可复用为文档体系治理方法论，已沉淀至 §5.9
 - **待办**：commit（push 需书记批准）
+
+## T-216 网页使用体验优化五项：冗余代码清理（P0+P1）+ 死功能移除 + 深色模式系统性评议与修复 + 微信集成方案讨论与小程序方案落档（2026-08-11）
+
+**任务**：书记五项并行检查——①冗余代码检查与处理 ②死循环（无实际工作的界面/卡片）检查 ③最小三成本·第一视角页面自动计算渲染 ④深色模式卡片系统性评议 ⑤微信小程序设计想法；以代码检查为主
+**引用流程**：H1.2 执行 + sample-diff-learning Skill + fullstack-developer Skill + AskUserQuestion 决策链（两轮 6 项裁定）+ verification-before-completion Skill
+**来源**：书记 2026-08-11 指令 + 书记两轮 AskUserQuestion 决策
+
+- **①冗余代码清理（P0 死模块 + P1 死 export）**：
+  - **P0 死模块 4 处删除**：`workspace-entry.js`（52 行整文件死）、`feedback.js`（FeedbackStore 死 shim，反馈功能已由 issues.js IssueStore 承接）、`image.js`（ImageRecordStore 整文件死）、`auth.js` 内 PermissionManager + ViewModeStore 及悬空调用 `isReadOnly()`（该方法不存在）
+  - **P1 死 export 清理覆盖 16 文件约 25 处**：activity（filterActivities/saveActivities）、inspection（getRecordsByPerson）、review（findActivityReviewById）、external-dispatch（listPendingBySender）、taskforce（getActiveRecruiting/addContribution/getMigrationReport）、todo（TODO_CATEGORY_ICONS）、signup（SignupRole 改内部）、milestones（getAll/create/close）、notice（NOTICE_STORAGE_KEY）、person（9 个方法）、data-adapter（11 兼容代理 + setAuthToken）、data-loader（loadPartyData）、domain（OUTPUT_ROUTES 改内部）、definitions（DEFINITION_INDEX）、theme（isDarkTheme/applyTheme 改内部）、state（getViewTypeByRole 改内部）、mock/index（_activityTitle/_activityType）、makeup（addMakeupTask 改内部）、icons.js 重写删 7 死图标键（party/users/megaphone/scale/cog/file/arrowRight）
+  - 全仓 Grep 零残留验证通过
+- **②死功能移除（首页考勤卡）**：首页第 4 格「我的考勤」统计卡 + 弹窗辅助代码（ATTENDANCE_STATUS_DOT/_attDocBound/_bindAttendancePopover）+ `_renderAttendanceSummary` 死函数 + 死点击分支完全移除（书记裁决：完全移除；考勤统计由书记+纪检工作区承载），stats 4→3 卡，骨架屏同步，`md:grid-cols-4`→`md:grid-cols-3`
+- **③最小三成本·第一视角（核心难题确认）**：现有机制是「有数据就展示/没数据就隐藏」单点判定——priorityTab 数据驱动默认 tab、自动选中首条、纪检聚合全动态 `_buildDiscAggregates`、书记待办 8 组实时计算+空组过滤、按人视图 P-015、做事即销待办 `completeBySource()`、Visitor 待办实时派生、URL 跨页导航消费、可见性矩阵 `ROLE_VISIBILITY`、骨架屏防闪烁（10 项已实现）；**缺「按数据决定怎么展示」的统一自动计算层**（布局选择/容量分配/截断阈值/空态形态为各入口手写局部决策）——已立项后续大工作
+- **④深色模式系统性评议与修复**：
+  - 严重 2 项 + 一般 8 项全部修复：`.dashboard-cal-item` 未定义变量 `var(--surface)` 修正为 `var(--surface-card)`；help 页深色覆盖 ③ 块从死 `.help-*` 类替换为活类覆盖（status-badge + help-toc-dot-tooltip + help 正文 doc/qn/nav-tree 全量 ~21 条 + #sec-disclaimer）；about 页活类深色覆盖（ab-review-card--highlight / ab-tl-sticky--decision）+ 亮色对比度修复（#8A6D1F→#7C5C14）
+  - **死类清理 2123 行**：styles.css 7977→5854 行——HELP PAGE v4 死规则（~1630 行）+ 页脚死类 + 响应式死规则 + 电影化滚动叙事死规则 + prefers-reduced-motion 死块 + `.help-node-svg:focus` 孤立死规则；精确保留活规则（`:root --help-*` 变量精简为 3 个仅留 TOC 消费、TOC 活块、`#about-content` 字体平滑、`@media print`、`ws-fade-in`/`ws-scale-in` keyframes）；修复 TOC `@media` 缺失闭合括号
+  - **新发现缺口补齐**：`.rh-*` 角色层级组件（help.html 内联硬编码浅色，role-hierarchy.js 活消费）深色适配 33 条覆盖（深底 + 角色色提亮一档）
+  - 验证：大括号配平 depth=0 + GetDiagnostics 零错误
+- **⑤微信集成方式讨论（书记两轮决策收敛）**：
+  - **文件流分类**：过程性文件→微信流转（系统留痕）；审查文件（word/pdf）与辅助照片→系统内浏览（与宣传墙初衷一致：照片证明覆盖面、正式文件支撑成效）
+  - **浏览功能形态**：宣传墙 + 档案分层（宣传墙=展示层、档案=沉淀层、入口互通）；权限=内部全员 + 迎检外链（临时链接/导出归档包）
+  - **过程性汇报致命问题**：任何「登记」都有操作成本（网页读不到微信消息是技术硬约束；「一键」只是压低成本不是消除）——**终极形态=小程序原生承接**（订阅消息→微信内点开批复→数据自动回流，零操作成本）；书记裁决「小程序有，网页也有」两端均有；**短期过渡=发送方登记制**（登记成本由受益方承担：发送方因留底在系统发起、更新自己汇报状态，动机=台账完整；而非批复方替他人留痕）
+- **⑥小程序方案落档**：新建 `content/04_web_design/WECHAT_INTEGRATION.md`（书记决策链 5 项 + 文件流分类原则 + 宣传墙/档案分层浏览设计 + 过程性汇报集成方案 + 小程序三路径评估 A WebView 套壳/B Taro 跨端重写/C 原生不推荐 + 原生承接机制（订阅消息/共享数据层）+ 前置条件 3 项 + 短中长路线图 + 与 DESIGN_SYSTEM 原则 10 答复回路/原则 13 外发确认闭环衔接）；同步注册 `content/04_web_design/README.md`（新增五节）+ `content/03_doc_system/DOC_MAP.md`（知识类型 4 表新增行）
+- **变更文件**：`docs/src/entries/workspace-entry.js`（删）、`docs/src/services/feedback.js`（删）、`docs/src/services/image.js`（删）、`docs/src/services/auth.js`、`docs/src/entries/main-entry.js`、`docs/index.html`、`docs/src/core/icons.js`（重写）、`docs/src/styles.css`（-2123 行死类 + 深色覆盖 + rh 组件适配）、16 文件死 export 清理、`content/04_web_design/WECHAT_INTEGRATION.md`（新）、`content/04_web_design/README.md`、`content/03_doc_system/DOC_MAP.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[待沉淀: 受益者登记（成本翻转）——网页读不到微信消息→任何登记都有操作成本；登记应交给受益方（发送方/管理者）而非负担方（批复人）；零成本只在微信原生协同（小程序/服务号）实现]`
+- **待办**：commit（push 需书记批准）

@@ -102,6 +102,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | `content/04_web_design/MODULE_UI_DESIGN.md` | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能） | docs/src/components/calendar.js |
 | `content/04_web_design/SOP_WEB.md` | [工程师]+[AI] | SOP 系统优化与同步指南 | CLAUDE.md H30.2 |
 | `content/04_web_design/SCHOOL_IT_DEPLOYMENT.md` | [工程师] | 学校计算中心对接准备文档（对接准备与提交清单） | docs/src/services/runtime.js 等 |
+| `content/04_web_design/WECHAT_INTEGRATION.md` | [工程师]+[AI] | 微信协同与小程序设计方案（文件流分类+宣传墙/档案分层浏览+过程性汇报集成+小程序路径评估） | DESIGN_SYSTEM.md（原则 10/13）、T-230 |
 | `content/04_web_design/README.md` | [工程师]+[AI] | 网站设计层目录索引 | — |
 
 ### 知识类型 5：网站系统的 AI coding 技术方法（content/05_ai_coding/）

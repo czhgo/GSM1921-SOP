@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  makeup.js — 补课任务 CRUD 服务
 // ════════════════════════════════════════════════════════════════
@@ -21,7 +21,7 @@ export function saveMakeupTasks(tasks) {
   persist();
 }
 
-export function addMakeupTask(task) {
+function addMakeupTask(task) {
   const tasks = loadMakeupTasks();
   tasks.push(task);
   saveMakeupTasks(tasks);

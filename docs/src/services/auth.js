@@ -1,4 +1,4 @@
-﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿// role: [工程师]+[AI]
 // services/auth.js — 权限系统（重构版）
 // 设计文档: docs/superpowers/specs/2026-07-12-permission-system-redesign-design.md
 //
@@ -740,43 +740,4 @@ export const AuthStore = {
   isCommissioner(role) {
     return COMMISSIONER_ROLES.has(role);
   },
-};
-
-// ════════════════════════════════════════════════
-// PermissionManager（兼容层）
-// ════════════════════════════════════════════════
-export const PermissionManager = {
-  // ── 兼容旧 API（过渡期保留，后续删除）──────────
-  /** @deprecated 使用 AuthStore.canDo() 替代 */
-  canManage(role) {
-    return AuthStore.isCommissioner(role) || role === 'leader';
-  },
-  /** @deprecated 使用 AuthStore.canDo() 替代 */
-  canWriteActivity(role) {
-    return role === 'secretary' || role === 'deputy-secretary' || role === 'leader';
-  },
-  /** @deprecated 使用 AuthStore.canDo() 替代 */
-  canRecruitTaskForce(role) {
-    return role === 'secretary' || role === 'deputy-secretary' || role === 'org-commissioner';
-  },
-  /** @deprecated 使用 AuthStore.canDo() 替代 */
-  canAuthorize(role) {
-    return role === 'secretary' || role === 'deputy-secretary' || role === 'leader' || role === 'org-commissioner';
-  },
-  /** @deprecated 使用 AuthStore.canDo() 替代 */
-  canInitiateTaskForce(role) {
-    return AuthStore.isCommissioner(role);
-  },
-};
-
-// ════════════════════════════════════════════════
-// ViewModeStore — 已废弃，保留空壳避免 import 报错
-// ════════════════════════════════════════════════
-export const ViewModeStore = {
-  /** @deprecated 权限系统重构后不再有 mode 概念 */
-  getMode() { return 'manage'; },
-  /** @deprecated */
-  setMode() {},
-  /** @deprecated 使用 PermissionManager.isReadOnly() 替代 */
-  isReadOnly() { return PermissionManager.isReadOnly(); },
 };

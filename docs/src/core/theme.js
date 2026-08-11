@@ -25,13 +25,13 @@ export function getThemePreference() {
 }
 
 /** 计算最终是否深色（结合偏好 + 系统状态） */
-export function isDarkTheme() {
+function isDarkTheme() {
   const pref = getThemePreference();
   return pref === 'dark' || (pref === 'system' && _systemPrefersDark());
 }
 
 /** 应用当前主题：给 <html> 加/去 .theme-dark，并同步 color-scheme（表单控件原生深色） */
-export function applyTheme() {
+function applyTheme() {
   if (typeof document === 'undefined') return;
   const dark = isDarkTheme();
   document.documentElement.classList.toggle('theme-dark', dark);

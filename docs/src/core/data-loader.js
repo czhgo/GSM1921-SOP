@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  data-loader.js — 数据加载统一入口
 // ════════════════════════════════════════════════════════════════
@@ -89,26 +89,4 @@ export async function loadWorkspaceData({
       setState({ status: STATE.ERROR, error: err });
     }
   }
-}
-
-/**
- * Party 角色页的标准数据加载流程
- *
- * Party 页面使用 PartyModule.loadAll() 同步加载，无需 fallback
- *
- * @param {Object} opts
- * @param {string} opts.role           — 角色键名
- * @param {Function} opts.partyModule  — PartyModule 引用
- * @param {Function} opts.renderFn     — 渲染函数
- */
-export function loadPartyData({ role, partyModule, renderFn }) {
-  partyModule.loadAll();
-  setState({
-    domain: 'party',
-    role,
-    activeModule: 'party',
-    status: STATE.IDLE,
-    selectedRole: role,
-  });
-  renderFn();
 }

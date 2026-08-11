@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ================================================================
 //  service.roles.js — 角色赋权共享服务
 //  消除 party.js 之间的重复统计逻辑
@@ -57,19 +57,4 @@ export function computeSecretaryStats(activities, nowOverride) {
     authGranted: _countActiveLeaders(),
     archivedEvents,
   };
-}
-
-export function filterForViewProxy(activities, proxyRole) {
-  const filters = {
-    organizer:            a => a.organizer ? true : false,
-    'prop-commissioner':  a => a.activityType ? true : false,
-    'disc-commissioner':  a => true,
-    'group1-leader': a => a.hostGroup === 'group1',
-    'group2-leader': a => a.hostGroup === 'group2',
-    'group3-leader': a => a.hostGroup === 'group3',
-    deep:           a => true,
-    regular:        a => true,
-  };
-  const fn = filters[proxyRole] || (() => true);
-  return (activities || []).filter(fn);
 }

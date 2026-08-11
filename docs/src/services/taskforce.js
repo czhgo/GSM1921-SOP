@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  service.taskforce.js — 专班数据模型
 //  提供 TaskForceRecordStore：专班的 CRUD + mockDB 持久化
@@ -67,10 +67,6 @@ export const TaskForceRecordStore = {
     return result;
   },
 
-  getActiveRecruiting() {
-    return this.list({ status: 'recruiting' });
-  },
-
   add(record) {
     const newRecord = {
       ...record,
@@ -133,18 +129,6 @@ export const TaskForceRecordStore = {
     if (!tf) return null;
     const newMember = { ...member, contributions: member.contributions || [] };
     return this.update(tfId, { members: [...tf.members, newMember] });
-  },
-
-  addContribution(tfId, memberPersonId, contribution) {
-    const tf = this._records.find(r => r.id === tfId);
-    if (!tf) return null;
-    const updatedMembers = tf.members.map(m => {
-      if (m.personId === memberPersonId) {
-        return { ...m, contributions: [...m.contributions, contribution] };
-      }
-      return m;
-    });
-    return this.update(tfId, { members: updatedMembers });
   },
 
   getAll() {
@@ -243,9 +227,5 @@ export const TaskForceRecordStore = {
 
     this._migrationReport = report;
     return { migrated: report.filter(r => r.status === 'migrated').length, report };
-  },
-
-  getMigrationReport() {
-    return [...this._migrationReport];
   },
 };

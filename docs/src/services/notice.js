@@ -1,4 +1,4 @@
-﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  service.notice.js — 通知数据模型
 //  提供 NoticeStore：通知的 CRUD + mockDB 持久化
@@ -12,8 +12,6 @@ import { showToast, getBasePath } from '../core/utils.js?v=20260810a';
 import { AuthStore } from './auth.js?v=20260810a';
 import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260810a';
 import { badgeHtml } from '../components/badge.js?v=20260810a';
-
-const NOTICE_STORAGE_KEY = 'workflowos_notices_v1';
 
 function _loadNotices() {
   try {

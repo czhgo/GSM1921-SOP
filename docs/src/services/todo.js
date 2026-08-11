@@ -1,4 +1,4 @@
-﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  service.todo.js — 待办任务服务层
 //  最小三成本原则落地：任务流默认直接展示在工作台
@@ -28,16 +28,6 @@ export const TODO_CATEGORY_LABELS = {
   [TodoCategory.NOTICE]: '通知类',
   [TodoCategory.SUBMIT]: '提交类',
   [TodoCategory.TRACK]: '追踪类',
-};
-
-/** 待办分类图标（SVG path 简化标识，由 todo-list.js 渲染） */
-export const TODO_CATEGORY_ICONS = {
-  [TodoCategory.AUTH]: 'person-gear',
-  [TodoCategory.ARCHIVE]: 'folder',
-  [TodoCategory.REVIEW]: 'check-square',
-  [TodoCategory.NOTICE]: 'bell',
-  [TodoCategory.SUBMIT]: 'upload',
-  [TodoCategory.TRACK]: 'route',
 };
 
 // ── 待办状态枚举 ──────────────────────────────────────────────

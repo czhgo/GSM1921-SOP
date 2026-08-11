@@ -1,4 +1,4 @@
-﻿import { ACTIVITIES } from './activities.js?v=20260810a';
+import { ACTIVITIES } from './activities.js?v=20260810a';
 import { PEOPLE } from './people.js?v=20260810a';
 
 // ════════════════════════════════════════════════════════════════
@@ -16,14 +16,6 @@ export { PEOPLE };
 /** @deprecated 请使用 getPersonName() */
 export function _personName(id) {
   return getPersonName(id);
-}
-
-export function _activityTitle(id) {
-  return ACTIVITIES.find(a => a.id === id)?.title || id;
-}
-
-export function _activityType(id) {
-  return ACTIVITIES.find(a => a.id === id)?.type || '未知';
 }
 
 export { ACTIVITIES } from './activities.js?v=20260810a';

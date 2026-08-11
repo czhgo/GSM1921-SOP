@@ -1,4 +1,4 @@
-﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  review.js — 复盘记录 CRUD 同步服务
 //  与 attendance.js / inspection.js 同构：mock 常量为初始数据源，写入 mockDB + persist()
@@ -28,11 +28,6 @@ export function loadActiveActivityReviews() {
 /** 读取专班复盘记录 */
 export function loadTaskforceReviews() {
   return mockDB.taskforceReviews.length > 0 ? [...mockDB.taskforceReviews] : [...TASKFORCE_REVIEW_RECORDS];
-}
-
-/** 按活动 ID 查找活动复盘记录 */
-export function findActivityReviewById(activityId) {
-  return loadActivityReviews().find(r => r.activityId === activityId) || null;
 }
 
 /** 查找活动复盘记录索引 */

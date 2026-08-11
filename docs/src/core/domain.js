@@ -295,7 +295,7 @@ export const OutputType = {
  * @property {string} [owner]   - 接收/确认方角色
  * @property {string} sink      - 最终沉淀位置
  */
-export const OUTPUT_ROUTES = {
+const OUTPUT_ROUTES = {
   [OutputType.ATTENDANCE]: {
     label: '考勤数据',
     route: '纪检确认 → 考勤总表',

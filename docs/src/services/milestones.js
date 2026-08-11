@@ -22,28 +22,5 @@ export const MilestoneStore = {
     } catch { _cache = []; return _cache; }
   },
 
-  getAll() { return _cache || []; },
-
   getById(id) { return (_cache || []).find(m => m.id === id); },
-
-  create(data) {
-    _cache = _cache || [];
-    const ms = {
-      id: 'ms-' + Date.now(),
-      title: data.title,
-      description: data.description || '',
-      dueDate: data.dueDate || null,
-      issueIds: [],
-      status: 'active',
-    };
-    _cache.push(ms);
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_cache)); } catch {}
-    return ms;
-  },
-
-  close(id) {
-    const ms = this.getById(id);
-    if (ms) { ms.status = 'closed'; try { localStorage.setItem(CACHE_KEY, JSON.stringify(_cache)); } catch {} }
-    return ms;
-  },
 };
