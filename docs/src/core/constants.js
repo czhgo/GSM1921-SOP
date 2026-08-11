@@ -207,16 +207,18 @@ export function getAccentColors(role, bgAlpha = 0.1, borderAlpha = 0.3) {
   };
 }
 
-// ── 功能色「深浅 × 日/夜」2×2 统一规则（书记 2026-08-11 裁定）────────────────
-// 功能色必须所有颜色平行：不按颜色特判，而按 accent 感知亮度判「深浅」，再 × 主题模式：
-//   · 深色 accent（感知亮度 < 0.25，如金/红/深橙/海蓝/深青/紫）：日间 = 高亮同色系浅底 + 深 accent 字；
-//     夜间 = 提亮底 + 提亮字。日/夜两套由元素内联 CSS 变量驱动：
-//     --acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark（夜），
-//     由 styles.css `html.theme-dark [style*="--acc-bg-dark"]` 规则切换。
-//   · 浅色 accent（感知亮度 ≥ 0.25，如天蓝/翠绿/亮蓝/灰）：实底 accent + 白字（日/夜一致）
-// 背景：书记 2026-08-08 曾裁定金色浅底深字；2026-08-10 曾改为「与其他主题完全一致（实底白字）」；
-// 2026-08-11 重判「金色的深色部分还是有点丑，button 好棕好脏」→ 认可金浅底深字，
-// 但「对于功能色一定要所有颜色平行，本质上是 2*2 深/浅×白天/夜间」→ 特判升格为通用规则。
+// ── 功能色「统一 tab 风格」规则（书记 2026-08-11 二审裁定）────────────────
+// 书记：亮色和暗色的处理逻辑我不太理解——因为金色和亮蓝我认为都很亮。
+// 更新审美偏好：统一都变成 tab 风格的「浅底深字」+ 夜间提亮；浅色才应该浅底深字，之前想反了。
+// 即：所有 accent（不分深浅）一律「同色系高亮浅底 + 深色字」，夜间提亮底/字。
+// 与 tab 激活态（wp-dim-on）同源：浅底 + accent 色字；深字由 accent 亮度自适应——
+//   · 深色 accent（感知亮度 < 0.25，如金/红/橙/海蓝/深青/紫）：深字 = accent 本身（已够深）
+//   · 浅色 accent（感知亮度 ≥ 0.25，如天蓝/翠绿/亮蓝/灰）：深字 = accent 调暗至 30% 明度（保证可读对比度）
+// 日/夜两套由元素内联 CSS 变量驱动：--acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark（夜），
+// 夜间切换由 styles.css `html.theme-dark [style*="--acc-bg-dark"]` 规则完成（!important 覆盖内联）。
+// 背景：2026-08-08 书记裁定金色浅底深字；2026-08-10 曾改为实底白字；
+// 2026-08-11 上午 T-218 二审为「深浅分流（深色浅底深字/浅色实底白字）」；
+// 2026-08-11 下午书记再判「想反了——浅色才应该浅底深字」→ 统一浅底深字，废除实底白字分支。
 
 // 品牌亮色映射：金色精确保留现有表现（亮金底 #FFD700 + 夜间提亮金底/字，主题党日胶囊同源）
 const DEEP_ACCENT_RULES = {
@@ -273,6 +275,12 @@ function _lighten(hex, targetL) {
   return _hslToHex(h, s, targetL / 100);
 }
 
+/** 调暗：HSL 明度压到 targetL（0-100，饱和度不变） */
+function _darken(hex, targetL) {
+  const [h, s] = _hexToHsl(hex);
+  return _hslToHex(h, s, targetL / 100);
+}
+
 /** hex → rgba(…, alpha) */
 function _rgba(hex, alpha) {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -282,11 +290,12 @@ function _rgba(hex, alpha) {
 }
 
 /**
- * 功能色「实底白字 / 浅底深字」2×2 统一规则（书记 2026-08-11 裁定）
- * 平行 = 同一规则下按深浅分流，而非颜色特判：
- *   · 深色 accent：日间「高亮同色系浅底 + 深 accent 字」、夜间「提亮底 + 提亮字」
- *   · 浅色 accent：日/夜一致「accent 实底 + 白字」
- * 深色分支内联 --acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark（夜），
+ * 功能色「统一 tab 风格」规则（书记 2026-08-11 二审裁定）
+ * 所有 accent（不分深浅）一律「同色系高亮浅底 + 深色字」+ 夜间提亮：
+ *   · 底（日）：accent 调亮至 84% 明度 @12% 透明
+ *   · 字（日）：深色 accent 用 accent 本身；浅色 accent 调暗至 30% 明度（保证可读）
+ *   · 底（夜）：accent 调亮至 60% 明度 @22% 透明；字（夜）：accent 调亮至 82% 明度
+ * 日/夜两套内联 --acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark（夜），
  * 夜间切换由 styles.css `html.theme-dark [style*="--acc-bg-dark"]` 规则完成（!important 覆盖内联）。
  * @param {string} accent — 当前生效强调色 hex
  * @returns {string} 内联样式串（background / color，含深浅两套变量）
@@ -298,14 +307,13 @@ export function solidAccentStyle(accent, border) {
     return 'background:#B91C1C;color:#fff';
   }
   const branded = DEEP_ACCENT_RULES[accent];
-  if (branded || _relativeLuminance(accent) < 0.25) {
-    const rule = branded || {
-      darkBg: _rgba(_lighten(accent, 60), 0.22),
-      darkText: _lighten(accent, 82),
-    };
-    return `--acc-bg:${_rgba(branded ? branded.light : _lighten(accent, 84), 0.12)};--acc-text:${accent};--acc-bg-dark:${rule.darkBg};--acc-text-dark:${rule.darkText};background:var(--acc-bg);color:var(--acc-text,#fff)`;
-  }
-  return `background:${accent};color:#fff`;
+  const rule = branded || {
+    // 浅色 accent（感知亮度 ≥ 0.25）调暗至 30% 明度做深字，保证浅底上的可读对比度
+    text: _relativeLuminance(accent) < 0.25 ? accent : _darken(accent, 30),
+    darkBg: _rgba(_lighten(accent, 60), 0.22),
+    darkText: _lighten(accent, 82),
+  };
+  return `--acc-bg:${_rgba(branded ? branded.light : _lighten(accent, 84), 0.12)};--acc-text:${branded ? accent : rule.text};--acc-bg-dark:${rule.darkBg};--acc-text-dark:${rule.darkText};background:var(--acc-bg);color:var(--acc-text,#fff)`;
 }
 
 // ── 活动类型颜色（中文标签版，用于卡片/列表视图）──────────────────
@@ -366,7 +374,7 @@ export function getActivityTypeColors({ withLabel = false, useGradient = false }
     if (useGradient) {
       // 将 #FEF2F2 转为 linear-gradient(135deg, #FEF2F2, #FEE2E2) 形式
       entry._flatBg = entry.bg;
-      entry.bg = `linear-gradient(135deg, ${entry.bg}, ${_darken(entry.bg)})`;
+      entry.bg = `linear-gradient(135deg, ${entry.bg}, ${_shadeDarker(entry.bg)})`;
     }
     if (withLabel) {
       entry.label = key;
@@ -376,8 +384,8 @@ export function getActivityTypeColors({ withLabel = false, useGradient = false }
   return result;
 }
 
-/** 将 #FEF2F2 这种浅色再加深一档，用于渐变终点 */
-function _darken(hex) {
+/** 将 #FEF2F2 这种浅色再加深一档，用于渐变终点（RGB 各通道 -16，与 HSL 版 _darken 区分） */
+function _shadeDarker(hex) {
   const r = Math.max(0, parseInt(hex.slice(1, 3), 16) - 16);
   const g = Math.max(0, parseInt(hex.slice(3, 5), 16) - 16);
   const b = Math.max(0, parseInt(hex.slice(5, 7), 16) - 16);

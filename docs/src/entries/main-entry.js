@@ -1,24 +1,25 @@
-﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿// role: [工程师]+[AI]
 // main-entry.js — 主页入口
 // index.html 专属，处理 dashboard 全量数据渲染
 
-import { BranchService } from '../services/runtime.js?v=20260811a';
-import { STATE, setState, registerRenderCallback, getAppState } from '../core/state.js?v=20260811a';
-import { NoticeStore, renderNoticeList } from '../services/notice.js?v=20260811a';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260811a';
-import { _fmtDate, getBasePath } from '../core/utils.js?v=20260811a';
-import { _personName, getPersonName } from '../mock/index.js?v=20260811a';
-import { loadActivities } from '../services/activity.js?v=20260811a';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260811a';
-import { getActivityTypeColors } from '../core/constants.js?v=20260811a';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260811a';
-import { AuthStore } from '../services/auth.js?v=20260811a';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260811a';
-import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260811a';
-import { icon } from '../core/icons.js?v=20260811a';
-import { badgeHtml } from '../components/badge.js?v=20260811a';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../components/inspector.js?v=20260811a';
-import { renderCalendarForDashboard, populateMonthSelector } from '../components/calendar.js?v=20260811a';
+import { BranchService } from '../services/runtime.js?v=20260811b';
+import { STATE, setState, registerRenderCallback, getAppState } from '../core/state.js?v=20260811b';
+import { NoticeStore, renderNoticeList } from '../services/notice.js?v=20260811b';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260811b';
+import { _fmtDate, getBasePath } from '../core/utils.js?v=20260811b';
+import { _personName, getPersonName } from '../mock/index.js?v=20260811b';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../services/attendance.js?v=20260811b';
+import { loadActivities } from '../services/activity.js?v=20260811b';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260811b';
+import { getActivityTypeColors } from '../core/constants.js?v=20260811b';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260811b';
+import { AuthStore } from '../services/auth.js?v=20260811b';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260811b';
+import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260811b';
+import { icon } from '../core/icons.js?v=20260811b';
+import { badgeHtml } from '../components/badge.js?v=20260811b';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../components/inspector.js?v=20260811b';
+import { renderCalendarForDashboard, populateMonthSelector } from '../components/calendar.js?v=20260811b';
 
 const { user } = await bootstrapPage({ module: 'dashboard' });
 
@@ -52,7 +53,7 @@ const TF_STATUS_BADGE = {
   draft:      { text: '草稿', cls: 'bg-gray-100 text-gray-500' },
 };
 
-function _renderStats(activities, taskforces, notices, isLoading = false) {
+function _renderStats(activities, taskforces, notices, attendanceRecords, isLoading = false) {
   const container = document.getElementById('dashboard-stats');
   if (!container) return;
 
@@ -62,6 +63,7 @@ function _renderStats(activities, taskforces, notices, isLoading = false) {
       { label: '本月活动', icon: 'calendarHero' },
       { label: '活跃专班', icon: 'usersGroup' },
       { label: '未读通知', icon: 'bellHero' },
+      { label: '个人考勤', icon: 'clipboard' },
     ];
     container.innerHTML = skeletonItems.map(s => `
       <div class="card rounded-xl p-4 flex items-center gap-3">
@@ -83,18 +85,40 @@ function _renderStats(activities, taskforces, notices, isLoading = false) {
   const activeTFs = taskforces.filter(t => t.status === 'active' || t.status === 'recruiting');
   const unreadNotices = NoticeStore.list({ activeOnly: true }).filter(n => !n.read).length;
 
+  // 我的考勤（本月）
+  const userPersonId = user?.personId;
+  const myMonthAttendance = userPersonId
+    ? attendanceRecords.filter(r => {
+        if (r.personId !== userPersonId) return false;
+        const act = activities.find(a => a.id === r.activityId);
+        return act && act.date && act.date.startsWith(thisMonth);
+      })
+    : [];
+  // 数字一致性审计（2026-08-07）：出勤率口径与书记概况统一 = (出勤 + 已补) / 总记录；
+  // 补课语义为"最终出勤"，made_up 记录计入出勤数。颜色阈值全站统一 90/70。
+  const myPresent = myMonthAttendance.filter(r => r.status === 'present' || r.status === 'made_up').length;
+  const myTotal = myMonthAttendance.length;
+  const myRate = myTotal > 0 ? Math.round((myPresent / myTotal) * 100) : 0;
+  const myColor = myTotal === 0 ? '#9CA3AF'
+    : myRate >= 90 ? '#059669'
+    : myRate >= 70 ? '#D97706'
+    : '#DC2626';
+
   // A-01 修复：color 统一为 hex 常量，图标底色用 8 位 hex（${hex}15），var+hex 拼接无法解析
-  // 2026-08-10 书记两次裁定·首页统计卡最终配色：活动=蓝 #3B82F6 / 专班=亮金 #F59E0B（参考工作台 tab 亮色呈现：浅金底+亮金字）/ 未读通知=红 #DC2626（待处理/告警）
+  // 2026-08-10 书记两次裁定·首页统计卡最终配色：活动=蓝 #3B82F6 / 专班=亮金 #F59E0B（参考工作台 tab 亮色呈现：浅金底+亮金字）/ 未读通知=红 #DC2626（待处理/告警）/ 考勤=状态三色
   const stats = [
-    { label: '本月活动', value: monthActivities.length, unit: '场', color: '#3B82F6', icon: 'calendarHero' },
+    { label: '本月活动', value: monthActivities.length, unit: '场', color: '#3B82F6', icon: 'calendarHero', interactive: false },
     // 书记 2026-08-10：专班亮金（原深金 #A16207 太暗，参考工作台 tab 配色——底色必须是亮的，浅金底+亮金字）
-    { label: '活跃专班', value: activeTFs.length, unit: '个', color: '#F59E0B', icon: 'usersGroup' },
+    { label: '活跃专班', value: activeTFs.length, unit: '个', color: '#F59E0B', icon: 'usersGroup', interactive: false },
     // 书记 2026-08-10：未读通知=红 #DC2626（待处理/告警语义）
-    { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? '#DC2626' : '#9CA3AF', icon: 'bellHero' },
+    { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? '#DC2626' : '#9CA3AF', icon: 'bellHero', interactive: false },
+    // 个人考勤（T-218 恢复，2026-08-11 书记指令）：出勤数/总数 + 状态三色 + 点击弹窗本月明细
+    { label: '个人考勤', value: myTotal > 0 ? `${myPresent}/${myTotal}` : '—', unit: '', color: myColor, icon: 'clipboard', interactive: true },
   ];
 
   container.innerHTML = stats.map(s => `
-    <div class="card rounded-xl p-4 flex items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default">
+    <div class="card rounded-xl p-4 flex items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${s.interactive ? 'cursor-pointer' : 'cursor-default'}"
+         ${s.interactive ? 'data-attendance-popover="1"' : ''}>
       <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 stat-icon-tint" style="--tint:${s.color};">
         ${icon(s.icon, { strokeWidth: 1.8, stroke: s.color, className: 'w-5 h-5' })}
       </div>
@@ -104,6 +128,99 @@ function _renderStats(activities, taskforces, notices, isLoading = false) {
       </div>
     </div>
   `).join('');
+
+  // 绑定我的考勤弹窗
+  if (userPersonId) {
+    _bindAttendancePopover(activities, attendanceRecords, thisMonth);
+  }
+}
+
+// ── 个人考勤弹窗 ──────────────────────────────────────
+const ATTENDANCE_STATUS_DOT = {
+  present:  { text: '出勤', cls: 'text-green-600', dot: '#10B981' },
+  absent:   { text: '缺勤', cls: 'text-red-500',  dot: '#EF4444' },
+  leave:    { text: '请假', cls: 'text-orange-500', dot: '#F97316' },
+  made_up:  { text: '已补', cls: 'text-blue-500', dot: '#3B82F6' },
+};
+
+// 弹窗的 document 级关闭监听防重绑定（统计卡即时刷新会反复调用 _bindAttendancePopover）
+let _attDocBound = false;
+
+function _bindAttendancePopover(activities, attendanceRecords, thisMonth) {
+  const trigger = document.querySelector('[data-attendance-popover="1"]');
+  if (!trigger) return;
+
+  let popover = document.getElementById('attendance-popover');
+  if (!popover) {
+    popover = document.createElement('div');
+    popover.id = 'attendance-popover';
+    popover.style.cssText = 'position:absolute;z-index:50;background:var(--surface-card);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.12);border:1px solid var(--neutral-200);padding:12px;width:300px;display:none;';
+    document.body.appendChild(popover);
+  }
+
+  trigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (popover.style.display === 'none' || popover.style.display === '') {
+      const userPersonId = user.personId;
+      const myRecords = attendanceRecords.filter(r => {
+        if (r.personId !== userPersonId) return false;
+        const act = activities.find(a => a.id === r.activityId);
+        return act && act.date && act.date.startsWith(thisMonth);
+      }).sort((a, b) => {
+        const actA = activities.find(x => x.id === a.activityId);
+        const actB = activities.find(x => x.id === b.activityId);
+        return (actB?.date || '').localeCompare(actA?.date || '');
+      });
+
+      const listHTML = myRecords.length === 0
+        ? '<p class="text-xs text-gray-400 text-center py-4">本月暂无考勤记录</p>'
+        : myRecords.map(r => {
+            const act = activities.find(a => a.id === r.activityId);
+            const s = ATTENDANCE_STATUS_DOT[r.status] || { text: r.status, cls: 'text-gray-400', dot: '#9CA3AF' };
+            return `
+              <div class="flex items-center gap-2 py-1.5 border-b border-gray-50 last:border-b-0">
+                <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${s.dot};"></span>
+                <span class="text-sm text-gray-700 truncate flex-1">${act?.title || r.activityId}</span>
+                <span class="text-xs text-gray-400 flex-shrink-0">${act?.date ? _fmtDate(new Date(act.date)) : ''}</span>
+                <span class="text-xs font-medium ${s.cls} flex-shrink-0 w-8 text-right">${s.text}</span>
+              </div>
+            `;
+          }).join('');
+
+      popover.innerHTML = `
+        <div class="flex items-center justify-between mb-2 pb-2 border-b border-gray-100">
+          <h3 class="font-title-cn text-sm font-semibold text-gray-800">我的本月考勤</h3>
+          <span class="text-xs text-gray-400">${myRecords.length} 条记录</span>
+        </div>
+        <div class="max-h-64 overflow-y-auto">${listHTML}</div>
+      `;
+
+      // A-02 修复：clamp 定位，防止第 4 列统计卡触发时右缘溢出视口
+      const rect = trigger.getBoundingClientRect();
+      const POPOVER_WIDTH = 300;
+      const POPOVER_MARGIN = 8;
+      const popoverLeft = Math.min(rect.left + window.scrollX, window.innerWidth - POPOVER_WIDTH - POPOVER_MARGIN);
+      popover.style.top = `${rect.bottom + window.scrollY + 8}px`;
+      popover.style.left = `${Math.max(POPOVER_MARGIN, popoverLeft)}px`;
+      popover.style.display = 'block';
+    } else {
+      popover.style.display = 'none';
+    }
+  });
+
+  // document 级关闭监听：仅绑定一次（统计卡即时刷新会反复调用本函数）
+  if (!_attDocBound) {
+    _attDocBound = true;
+    document.addEventListener('click', (e) => {
+      if (!popover.contains(e.target) && !trigger.contains(e.target)) {
+        popover.style.display = 'none';
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') popover.style.display = 'none';
+    });
+  }
 }
 
 // ── 近期活动卡片：tab 切换 + URL 同步 ──────────────────
@@ -327,7 +444,7 @@ function renderDashboard(state) {
   const notices = NoticeStore.getAll();
   const isLoading = state.status === STATE.LOADING && activities.length === 0;
 
-  _renderStats(activities, taskforces, notices, isLoading);
+  _renderStats(activities, taskforces, notices, loadAttendanceRecords(), isLoading);
 
   if (isLoading) return; // 等数据就绪再渲染其余区域，避免"暂无"→实际数据闪烁
 
@@ -428,7 +545,7 @@ function _refreshDashboardSnapshot() {
   const taskforces = TaskForceRecordStore.getAll();
   const notices = NoticeStore.getAll();
 
-  _renderStats(activities, taskforces, notices);
+  _renderStats(activities, taskforces, notices, loadActiveAttendanceRecords());
   if (state.status === STATE.LOADING && activities.length === 0) return;
 
   renderNoticeList('dashboard-notice-list', 5);

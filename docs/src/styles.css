@@ -5732,9 +5732,9 @@ label .text-red-500 {
   gap: 4px;
 }
 
-/* 功能色 2×2 规则（书记 2026-08-11 裁定）：深色 accent 按钮/标签「浅底深字」，
+/* 功能色「统一 tab 风格」规则（书记 2026-08-11 二审裁定）：所有 accent 一律「浅底深字」，
    日/夜两套由元素内联 --acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark（夜）驱动，
-   !important 覆盖内联 background/color 完成夜间切换；浅色 accent 走实底白字无需本规则。 */
+   !important 覆盖内联 background/color 完成夜间提亮（浅底深字 + 夜间提亮底/字）。 */
 html.theme-dark [style*="--acc-bg-dark"] {
   background: var(--acc-bg-dark) !important;
   color: var(--acc-text-dark) !important;

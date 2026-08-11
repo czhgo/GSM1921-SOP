@@ -4,21 +4,21 @@
 // 2026-08-07 T232：改为「动态聚合 + 复核确认面板」——SecretaryTodoDeriver.computeAggregates()
 //   实时计算 4 提醒 + 4 复核，复核类一键写 secretaryConfirmedAt 销项，不再创建虚假实体待办。
 
-import { showToast } from '../../../core/utils.js?v=20260811a';
-import { renderTodoList } from '../../../components/todo-list.js?v=20260811a';
-import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260811a';
-import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260811a';
-import { badgeHtml } from '../../../components/badge.js?v=20260811a';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260811a';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260811a';
-import { updateActivityReview } from '../../../services/review.js?v=20260811a';
-import { loadActivities } from '../../../services/activity.js?v=20260811a';
-import { mockDB } from '../../../core/domain.js?v=20260811a';
-import { persist } from '../../../core/data-adapter.js?v=20260811a';
-import { getPersonById } from '../../../mock/index.js?v=20260811a';
-import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260811a';
-import { IssueStore } from '../../../services/issues.js?v=20260811a';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/report-inbox.js?v=20260811a';
+import { showToast } from '../../../core/utils.js?v=20260811b';
+import { renderTodoList } from '../../../components/todo-list.js?v=20260811b';
+import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260811b';
+import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260811b';
+import { badgeHtml } from '../../../components/badge.js?v=20260811b';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260811b';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260811b';
+import { updateActivityReview } from '../../../services/review.js?v=20260811b';
+import { loadActivities } from '../../../services/activity.js?v=20260811b';
+import { mockDB } from '../../../core/domain.js?v=20260811b';
+import { persist } from '../../../core/data-adapter.js?v=20260811b';
+import { getPersonById } from '../../../mock/index.js?v=20260811b';
+import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260811b';
+import { IssueStore } from '../../../services/issues.js?v=20260811b';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/report-inbox.js?v=20260811b';
 
 const { accent, accentBorder } = getAccentColors(resolveAccentRole('secretary'));
 

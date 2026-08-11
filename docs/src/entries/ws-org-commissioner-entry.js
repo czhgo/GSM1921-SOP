@@ -1,30 +1,30 @@
-﻿import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260811a';
-import { BranchService } from '../services/runtime.js?v=20260811a';
-import { showToast, flashHighlight } from '../core/utils.js?v=20260811a';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260811a';
-import { AuthStore } from '../services/auth.js?v=20260811a';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260811a';
-import { solidAccentStyle } from '../core/constants.js?v=20260811a';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260811a';
-import { PersonPicker } from '../components/person-picker.js?v=20260811a';
-import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js?v=20260811a';
-import { mockDB, SourceType, ParticipationLevel, ReviewStatus } from '../core/domain.js?v=20260811a';
-import { persist } from '../core/data-adapter.js?v=20260811a';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260811a';
-import { renderTabBar } from '../components/tab-bar.js?v=20260811a';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260811a';
-import { renderWorkOverview } from '../components/work-overview.js?v=20260811a';
-import { renderQueryView } from '../components/query-view.js?v=20260811a';
-import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260811a';
-import { loadTaskforceReviews, addTaskforceReview } from '../services/review.js?v=20260811a';
-import { loadActivities } from '../services/activity.js?v=20260811a';
-import { icon } from '../core/icons.js?v=20260811a';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260811a';
-import { renderTodoList } from '../components/todo-list.js?v=20260811a';
-import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260811a';
-import { NoticeStore } from '../services/notice.js?v=20260811a';
-import { SignupStore, resolveSignupReviewer, SignupStatus } from '../services/signup.js?v=20260811a';
-import { badgeHtml } from '../components/badge.js?v=20260811a';
+﻿import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260811b';
+import { BranchService } from '../services/runtime.js?v=20260811b';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260811b';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260811b';
+import { AuthStore } from '../services/auth.js?v=20260811b';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260811b';
+import { solidAccentStyle } from '../core/constants.js?v=20260811b';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260811b';
+import { PersonPicker } from '../components/person-picker.js?v=20260811b';
+import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js?v=20260811b';
+import { mockDB, SourceType, ParticipationLevel, ReviewStatus } from '../core/domain.js?v=20260811b';
+import { persist } from '../core/data-adapter.js?v=20260811b';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260811b';
+import { renderTabBar } from '../components/tab-bar.js?v=20260811b';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260811b';
+import { renderWorkOverview } from '../components/work-overview.js?v=20260811b';
+import { renderQueryView } from '../components/query-view.js?v=20260811b';
+import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260811b';
+import { loadTaskforceReviews, addTaskforceReview } from '../services/review.js?v=20260811b';
+import { loadActivities } from '../services/activity.js?v=20260811b';
+import { icon } from '../core/icons.js?v=20260811b';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260811b';
+import { renderTodoList } from '../components/todo-list.js?v=20260811b';
+import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260811b';
+import { NoticeStore } from '../services/notice.js?v=20260811b';
+import { SignupStore, resolveSignupReviewer, SignupStatus } from '../services/signup.js?v=20260811b';
+import { badgeHtml } from '../components/badge.js?v=20260811b';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'org-commissioner' });
 
@@ -119,7 +119,7 @@ function renderOrgUI(state) {
       { id: 'development', label: '发展数据', render: () => _renderDevelopmentContent(), groupLabel: '党建' },
       // 活动查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增；组织无活动 tab 由本组件承载）
       // 排序：按工作流节奏「看→做→查→收」，知情查看置于职责操作后、反馈前（书记 2026-08-11 裁定）
-      { id: 'activity-view', label: '活动查看', render: () => { const el = document.getElementById('org-tab-content'); if (el) return import('../components/activity-view.js?v=20260811a').then(m => m.renderActivityView(el, { highlightId: _orgNavTarget?.actId || null, onLocated: () => { _orgNavTarget = null; } })); }, groupLabel: '党建' },
+      { id: 'activity-view', label: '活动查看', render: () => { const el = document.getElementById('org-tab-content'); if (el) return import('../components/activity-view.js?v=20260811b').then(m => m.renderActivityView(el, { highlightId: _orgNavTarget?.actId || null, onLocated: () => { _orgNavTarget = null; } })); }, groupLabel: '党建' },
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('org-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('org-commissioner', 'u_org'); bindMyDispatchEvents(el, 'org-commissioner', 'u_org'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },

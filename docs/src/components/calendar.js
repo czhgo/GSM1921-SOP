@@ -5,11 +5,11 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../core/state.js?v=20260811a';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260811a';
-import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260811a';
-import { filterTasksByManagementRole } from './inspector.js?v=20260811a';
-import { badgeHtml } from './badge.js?v=20260811a';
+import { getAppState, setState } from '../core/state.js?v=20260811b';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260811b';
+import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260811b';
+import { filterTasksByManagementRole } from './inspector.js?v=20260811b';
+import { badgeHtml } from './badge.js?v=20260811b';
 
 const VIEW_LABELS = { month: '月', week: '周', day: '日', list: '列表' };
 

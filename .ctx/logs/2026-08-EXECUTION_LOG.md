@@ -2535,3 +2535,20 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **一改具改检查**：全仓 Grep `--gold-btn` 零残留；全仓实底功能色渲染点全部经 `solidAccentStyle`（除 toast 状态色——书记裁定豁免）
 - **验证结果**：✅ GetDiagnostics 修改文件零错误；✅ Node 数值验证 10 色分支全对；✅ browser_use 四象限 computedStyle 逐值通过
 - **待办**：commit（push 需书记批准）
+
+## T-219 首页个人考勤卡恢复 + 功能色统一 tab 风格翻转（2×2 分流 → 全 accent 浅底深字）（2026-08-11）
+
+**任务**：书记两条指令——①「首页的卡片请你恢复 个人考勤 数据小卡片」；②「我不太理解亮色和暗色的处理逻辑是什么？因为金色和亮蓝我认为都很亮……统一都变成 tab 风格的浅底深字夜间提亮。浅色才应该浅底深字，我认为你一定是想反了！」并指定 Use Skill: web-design-guidelines
+**引用流程**：H20.2 歧义消解铁律（书记明确指令，无歧义）+ C-2 一改具改巡检 + web-design-guidelines Skill + browser_use 四象限复验
+**来源**：书记 2026-08-11 下午指令（推翻 T-218 上午 2×2 分流裁定——「想反了」）
+
+- **①考勤卡恢复（a1）**：T-216 移除的首页「个人考勤」统计卡按原样恢复并改标签为「个人考勤」——`main-entry.js` import 恢复 `loadAttendanceRecords/loadActiveAttendanceRecords`、`_renderStats` 第 4 卡（出勤数/总数 + 状态三色阈值 90/70 全站统一）、`_bindAttendancePopover` 完整弹窗（`ATTENDANCE_STATUS_DOT` 四色 + `_attDocBound` 防重绑定 + A-02 clamp 定位）、`renderDashboard`/`_refreshDashboardSnapshot` 两处调用点
+- **②规则翻转（a2）**：推翻 T-218 的 2×2 分流（深色浅底深字/浅色实底白字），统一「浅底深字 + 夜间提亮」（tab 风格，与 wp-dim-on 同源）——`solidAccentStyle` 重写：底（日）= accent 调亮至 84% 明度 @12% 透明；字（日）= 深色 accent（感知亮度<0.25）用 accent 本身 / 浅色 accent 调暗至 30% 明度（新增 `_darken(hex,targetL)` 与 `_lighten` 配对，保证浅底可读）；底（夜）= 调亮至 60% @22%；字（夜）= 调亮至 82%；金色品牌特例 `DEEP_ACCENT_RULES` 保留（浅金底 #FFD700 + 夜间提亮金底/字，主题党日胶囊同源）
+- **③SyntaxError 修复（a2.1，浏览器首轮复验发现）**：constants.js 顶层出现两个 `_darken` 函数声明（新增 HSL 调暗版 L279 + 既有渐变终点版 L388），ES module 顶层重复 function 声明直接抛 SyntaxError 中断全部入口链（31 文件依赖 constants.js）→ 旧渐变辅助函数重命名为 `_shadeDarker`（RGB 各通道 -16 语义区分），全仓引用 L377 同步更新
+- **④web-design-guidelines Skill 审查（a3，书记指定）**：浅色 accent 深字对比度数值验证——天蓝 `#096690` on 近白底（#B2E4FA@12% 叠白）≈ **5.97:1** 达标 WCAG AA；styles.css 夜间 `html.theme-dark [style*="--acc-bg-dark"]` 用 `!important` 覆盖内联为必要手段（内联样式无 id/class）；考勤弹窗 div+click 为恢复的既有实现（含 Escape 关闭），非本次新增；focus-visible/hover 既有实现不受影响——均通过
+- **⑤浏览器四象限复验（a3，browser_use 两轮）**：第一轮发现 `_darken` 重复声明 SyntaxError 阻断全站渲染（见③）；修复 + 版本号 bump 后第二轮全部通过——天蓝日 `rgba(178,228,250,0.12)`+`rgb(9,102,144)` ✅ 非白字（旧实底白字已废除）、金日 `rgba(255,215,0,0.12)`+`rgb(161,98,7)` ✅、天蓝夜 `rgba(63,187,243,0.22)`+`rgb(168,225,250)` ✅、金夜 `rgba(251,191,36,0.22)`+`rgb(253,230,138)` ✅、首页 4 卡齐全「个人考勤 2/2」点击弹窗/空白关闭/Escape 关闭 ✅、console 无 TypeError/SyntaxError
+- **⑥版本号 bump（a4）**：全仓 `?v=20260811a` → `?v=20260811b`（91 文件 593 处，字节级替换保 BOM/编码不变）使浏览器缓存失效（修复前缓存旧模块会复现 SyntaxError）
+- **变更文件**：`docs/src/core/constants.js`（统一 tab 规则 + `_darken` 新增 + 旧渐变函数改名 `_shadeDarker`）、`docs/src/entries/main-entry.js`（考勤卡恢复）、`docs/src/styles.css`（夜间规则注释同步）、全仓 91 文件（版本号 bump）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **一改具改检查**：全仓 Grep `function _darken` 仅剩单一 HSL 版（L279）+ `_shadeDarker`（L388），无残留重复声明；Grep 实底白字模式零残留（toast 状态色书记裁定豁免除外）
+- **验证结果**：✅ GetDiagnostics 修改文件零错误；✅ Node 数值验证浅色 accent 深字分支全对（天蓝 #096690/翠绿 #17823E/亮蓝 #036696/灰 #3D4A5C）；✅ browser_use 两轮四象限 computedStyle 逐值通过
+- **待办**：commit（push 需书记批准）
