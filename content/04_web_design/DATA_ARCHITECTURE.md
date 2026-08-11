@@ -3,7 +3,7 @@ title: "数据架构设计"
 type: design
 role: "[工程师]+[AI]"
 version: "4.0"
-last_updated: "2026-08-10"
+last_updated: "2026-08-12"
 status: active
 merged_from: [content/design/DATA.md, content/design/PARTICIPANT_DATAFLOW.md, content/design/LOGIN_SYSTEM_DESIGN.md, content/design/BRAND_ACTIVITY.md]
 related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/MODULE_UI_DESIGN.md, content/04_web_design/DESIGN_SYSTEM.md]
@@ -1057,7 +1057,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | `gsm1921-primary-role` | 主角色 | string | [services/auth.js](../../docs/src/services/auth.js) |
 | `gsm1921-auth-grants` | 赋权授权记录 | JSON | [services/auth.js](../../docs/src/services/auth.js) |
 | `sop_org_os_assigned_roles` | 赋权角色列表 | JSON: `Array<{name, role, activity}>` | [services/roles.js](../../docs/src/services/roles.js) |
-| `gsm1921-feedback-submissions` | 反馈提交记录 | JSON | [services/feedback.js](../../docs/src/services/feedback.js) |
+| `gsm1921-feedback-submissions` | 反馈提交记录 | JSON | [services/issues.js](../../docs/src/services/issues.js) |
 | `sop_org_os_session` | 跨页面会话状态 | JSON | [core/cross-page-state.js](../../docs/src/core/cross-page-state.js) |
 | `sop_org_os_data_version` | 数据版本号（跨页面同步） | number | [core/cross-page-state.js](../../docs/src/core/cross-page-state.js) |
 

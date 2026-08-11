@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: "2026-08-11"
+last_updated: "2026-08-12"
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSOT_INDEX.md, content/01_strategy/SECRETARY_PRONOUNCEMENTS.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
 ---
@@ -463,7 +463,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | C-1 | **JS 组件化**：完善 `docs/src/` 下的 JS 组件（renderHeader/renderSidebar/renderFooter/renderCalendar 等），使 HTML 仅需引用/调用特定 JS 组件即可实现功能，消除 HTML 中的硬编码逻辑         | H30.4 规则 2（方向指引）→ [SOP\_WEB.md](content/04_web_design/SOP_WEB.md)                      | `docs/src/*.js` + `docs/*.html`    | 🔄 持续 |
 | C-2 | **一改具改巡检**：定期检查仓库中是否存在信息重复散落，发现后归并至权威源                                                                                                            | H30.1 + OPERATIONS\_GUIDE.md §1                                                         | 全仓库                                | 🔄 持续 |
 | C-3 | **经验沉淀**：从执行日志和决策日志中提炼可复用模式，写入 insights                                                                                                           | H30.4 + OPERATIONS\_GUIDE.md §10.1 → [党支部管理与实务经验沉淀.md](content/insights/党支部管理与实务经验沉淀.md) | `content/insights/`                | 🔄 持续 |
-| C-4 | **视觉体验持续优化**：颜色方案调优 + 卡片设计（嵌套/并列/顺序排布）审校修订                                                                                                        | DATA\_ARCHITECTURE.md §三 差异化视图 + DESIGN\_SYSTEM.md                                      | `docs/src/styles.css` + 各 entry JS | 🔄 持续 |
+| C-4 | **视觉体验持续优化**：颜色方案调优 + 卡片设计（嵌套/并列/顺序排布）审校修订                                                                                                        | DATA\_ARCHITECTURE.md §三 参与者数据流设计 + DESIGN\_SYSTEM.md                                | `docs/src/styles.css` + 各 entry JS | 🔄 持续 |
 | C-5 | **术语与表达审计**：定期扫描全仓库过时术语（活动建设/组织建设残留、之上/之下、归档→人才库混用等）与**已降级定义残留**（术语权威层级变更后，旧定义须同步全仓为 T1 官方定义，如党建/党务定义以 USAGE_POLICY §1.1.1 为准），并调用 USAGE\_POLICY §二.2.3 五条可复用检查规则扫描 AI 没吃透精神的表达模式（"而非"对立/"所以"因果链/反面假设/私加强调/元叙事标签），发现后归并至权威源 | H30.1 一改具改 + OPERATIONS\_GUIDE.md §1 + USAGE\_POLICY.md §二.2.3                        | 全仓库                                | 🔄 持续 |
 | C-6-1 | **常态化专项评议 · 反论评议**：全仓库反论的书记评议（速查见 OPERATIONS\_GUIDE §18.5），每周轮转，轮次进度/侧重维度见 `.ctx/REVIEW_QUEUE.md` 附录① | H60.5 + OPERATIONS\_GUIDE.md §17.2.1（W4） | 全仓库 | 🔄 持续 |
 | C-6-2 | **常态化专项评议 · 理论复用评议**：跨节/跨文件引用复用的书记评议（速查见 OPERATIONS\_GUIDE §18.5），每周轮转，轮次进度/侧重维度见 `.ctx/REVIEW_QUEUE.md` 附录② | H60.5 + OPERATIONS\_GUIDE.md §17.2.1（W4） | 全仓库 | 🔄 持续 |

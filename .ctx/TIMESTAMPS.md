@@ -1,6 +1,6 @@
 ---
 role: "[工程师]+[AI]"
-last_updated: "2026-08-11"
+last_updated: "2026-08-12"
 dynamic_role:
   maintenance: "[工程师]+[AI]"
   auto_update: "[AI]"
@@ -9,7 +9,7 @@ dynamic_role:
 # File Timestamp Registry
 
 > 全项目文件最后更新时间注册表
-> last_updated: "2026-08-11" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
+> last_updated: "2026-08-12" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
 
 ---
 
@@ -28,8 +28,8 @@ dynamic_role:
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
 | README.md | 2026-08-10 | [用户]+[AI] | 对外门面（设计理念章重构） |
-| CLAUDE.md | 2026-08-11 | [工程师]+[AI] | Harness（甲部 H10-H100 约束力三层 + 乙部执行 + 丙部待决策） |
-| CHECKLIST.md | — | — | 🗑️ 已删除（迁移至 content/03_doc_system/CHECKLIST.md） |
+| CLAUDE.md | 2026-08-12 | [工程师]+[AI] | Harness（甲部 H10-H100 约束力三层 + 乙部执行 + 丙部待决策） |
+| CHECKLIST.md | — | — | 🗑️ 已删除（迁移至 content/04_web_design/CHECKLIST.md） |
 | LICENSE | 2026-02-17 | [用户] | 开源许可 |
 | .gitignore | 2026-04-06 | [工具] | Git 忽略 |
 | .markdownlint.json | 2026-04-06 | [工具] | Markdown 规范 |
@@ -94,11 +94,11 @@ dynamic_role:
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
 | content/03_doc_system/OPERATIONS_GUIDE.md | 2026-08-11 | [工程师]+[AI] | 运行标准（含 §1.3 分层体系索引 + §1.4 一致性检查规范 + §12 文件命名规范 + §11 反论表述审核标准 + §16 吸收外部输入流程 + §17 周期性任务与自动唤醒机制，W4 含五专项 + §18 书记评议工作流细节，承接甲部 H60 指针化细节） |
-| content/03_doc_system/USAGE_POLICY.md | 2026-08-05 | [工程师]+[AI] | 使用规范（术语 §一 + Emoji §二） |
+| content/03_doc_system/USAGE_POLICY.md | 2026-08-12 | [工程师]+[AI] | 使用规范（术语 §一 + Emoji §二） |
 | content/03_doc_system/ARCHITECTURE.md | 2026-08-03 | [工程师]+[AI] | 核心架构说明（迁移自根目录 ARCHITECTURE.md） |
-| content/03_doc_system/DOC_MAP.md | 2026-08-11 | [工程师]+[AI] | 全局文档导航 |
+| content/03_doc_system/DOC_MAP.md | 2026-08-12 | [工程师]+[AI] | 全局文档导航 |
 | content/03_doc_system/SSOT_INDEX.md | 2026-08-05 | [工程师]+[AI] | 母本子本注册表 |
-| content/03_doc_system/SERVICE_CATALOG.md | 2026-08-05 | [工程师]+[AI] | 服务目录（v4.0 有机重组：清单总表+权限矩阵+权威源指针） |
+| content/03_doc_system/SERVICE_CATALOG.md | 2026-08-12 | [工程师]+[AI] | 服务目录（v4.0 有机重组：清单总表+权限矩阵+权威源指针） |
 | content/03_doc_system/README.md | 2026-08-10 | [工程师]+[AI] | 03_doc_system 目录索引 |
 | content/03_doc_system/工作模板/经验沉淀辅助提示词.md | 2026-08-05 | [工程师]+[AI] | 沉淀辅助 |
 
@@ -107,7 +107,8 @@ dynamic_role:
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
 | content/04_web_design/DESIGN_SYSTEM.md | 2026-08-11 | [工程师]+[AI] | 前端设计系统（含§一第2条"最小三成本"原则） |
-| content/04_web_design/DATA_ARCHITECTURE.md | 2026-08-05 | [工程师]+[AI] | 数据架构设计（含§2.18-§2.20 待办任务数据模型） |
+| content/04_web_design/CHECKLIST.md | 2026-08-12 | [用户]+[AI] | 数据同源一致性校验手册 |
+| content/04_web_design/DATA_ARCHITECTURE.md | 2026-08-12 | [工程师]+[AI] | 数据架构设计（含§2.18-§2.20 待办任务数据模型） |
 | content/04_web_design/MODULE_UI_DESIGN.md | 2026-08-04 | [工程师]+[AI] | 模块界面设计 |
 | content/04_web_design/SOP_WEB.md | 2026-08-05 | [工程师]+[AI] | SOP-系统联动方法 |
 | content/04_web_design/SCHOOL_IT_DEPLOYMENT.md | 2026-07-31 | [工程师]+[AI] | 部署方案 |
@@ -224,7 +225,7 @@ dynamic_role:
 | docs/src/entries/help-entry.js | 2026-08-03 | [工程师]+[AI] | 帮助页入口（系统说明书） |
 | docs/src/entries/notice-entry.js | 2026-08-06 | [工程师]+[AI] | 通知页入口 |
 | docs/src/entries/search-entry.js | 2026-07-31 | [工程师]+[AI] | 搜索页入口 |
-| docs/src/entries/workspace-entry.js | 2026-07-31 | [工程师]+[AI] | 工作台路由入口 |
+| docs/src/entries/workspace-entry.js | 2026-07-31 | [工程师]+[AI] | 🗑️ 已删除（2026-08 P0 死模块清理） |
 | docs/src/entries/ws-secretary-entry.js | 2026-08-06 | [工程师]+[AI] | 书记工作台入口 |
 | docs/src/entries/ws-org-commissioner-entry.js | 2026-08-06 | [工程师]+[AI] | 组织委员工作台入口 |
 | docs/src/entries/ws-prop-commissioner-entry.js | 2026-08-06 | [工程师]+[AI] | 宣传委员工作台入口（附件上传/下拉搜索/按钮规范） |
@@ -241,13 +242,13 @@ dynamic_role:
 | docs/src/services/activity.js | 2026-07-31 | [工程师]+[AI] | 活动服务 |
 | docs/src/services/attendance.js | 2026-07-31 | [工程师]+[AI] | 考勤服务 |
 | docs/src/services/decision-tree.js | 2026-07-31 | [工程师]+[AI] | 决策树服务 |
-| docs/src/services/feedback.js | 2026-07-31 | [工程师]+[AI] | 反馈服务 |
-| docs/src/services/image.js | 2026-07-31 | [工程师]+[AI] | 图片服务 |
+| docs/src/services/feedback.js | 2026-07-31 | [工程师]+[AI] | 🗑️ 已删除（2026-08 P0 死模块清理，反馈功能由 issues.js IssueStore 承接） |
+| docs/src/services/image.js | 2026-07-31 | [工程师]+[AI] | 🗑️ 已删除（2026-08 P0 死模块清理，图片记录由 core/data-adapter.js imageRecords 承接） |
 | docs/src/services/inspection.js | 2026-07-31 | [工程师]+[AI] | 纪检服务 |
 | docs/src/services/issues.js | 2026-08-06 | [工程师]+[AI] | 事项服务 |
 | docs/src/services/makeup.js | 2026-07-31 | [工程师]+[AI] | 补课服务 |
 | docs/src/services/milestones.js | 2026-07-31 | [工程师]+[AI] | 里程碑服务 |
-| docs/src/services/notice.js | 2026-08-06 | [工程师]+[AI] | 通知服务（含通知→待办派生） |
+| docs/src/services/notice.js | 2026-08-12 | [工程师]+[AI] | 通知服务（含通知→待办派生） |
 | docs/src/services/person.js | 2026-08-03 | [工程师]+[AI] | 人员数据抽象服务（PersonStore，T-142 阶段2） |
 | docs/src/services/secretary-overview.js | 2026-08-06 | [工程师]+[AI] | 书记全局概况服务（T-143，E2 派生待办 flow） |
 | docs/src/services/review.js | 2026-07-31 | [工程师]+[AI] | 审查服务 |

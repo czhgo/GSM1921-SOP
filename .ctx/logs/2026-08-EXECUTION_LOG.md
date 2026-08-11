@@ -2,7 +2,7 @@
 title: "2026年8月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-08-11"
+last_updated: "2026-08-12"
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -2585,4 +2585,37 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **⑥版本号 bump**：全仓 `?v=20260811c` → `?v=20260811d`（91 文件，字节级替换保 BOM），Grep 零残留
 - **⑦验证结果**：✅ GetDiagnostics 三 JS + CSS 零错误（markdown 警告为历史遗留）；✅ Node 数值验证 8 色夜间派生值全对（天蓝 text #096690 + bgDark #bce7fb、金 #FFD700、红/橙/海蓝/翠绿/亮蓝/灰均符合）；✅ browser_use 四项 computedStyle 逐值通过
 - **⑧变更文件**：`docs/src/components/header.js`（role-label 实底白字）、`docs/src/core/constants.js`（solidAccentStyle 四审去边框）、`docs/src/styles.css`（夜间规则删边框）、`docs/src/entries/ws-org-commissioner-entry.js`（考察卡跟随模式）、全仓 91 文件（版本号 bump）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
-- **待办**：commit（push 需书记批准，延续「暂不 push」裁决）
+- **commit**：b87a484（T-220 三审）/ 69cff8b（T-220 四审）已提交（push 需书记批准，延续「暂不 push」裁决）
+
+## T-117 理论复用评议第 4 轮执行（W4 专项② · 首轮）+ T-220 深色模式抽样审查（2026-08-12）
+
+**任务**：①【重点工作】理论复用评议一轮——跨目录断链 + v11 后新增引用一致性 + 死概念识别（奥卡姆剃刀），书记要求执行前先汇报对工作要点的理解；②深色模式抽样审查（书记：「现实上还是有点不太清楚，和字体颜色和组件颜色的选取有很大的关系」）
+**引用流程**：H60 书记评议 + OPERATIONS_GUIDE §18.5.2 理论复用评议 + sample-diff-learning Skill + web-design-guidelines Skill + H30.1 一改具改
+**来源**：书记指令（2026-08-12，见任务栏）+ 书记 2026-08-11/12 逐条裁决
+
+- **预审发现**（SNAPSHOT v17 权威拓扑基线 + 47 核心概念频率统计）：断链 5 处（R1-R5）+ 死概念/死命名 4 个（R6-R9）+ 疑似死概念 2 组（R10/R11）+ 废弃术语残留 1 处（R12）
+- **书记逐条裁决**（R1-R12 + 3 项新增）：
+  - R1-R5 断链：全部按建议修订
+  - R6 差异化视图：除名 + 更新 CLAUDE.md C-4 引用
+  - R7+R8 死命名：统一为「正交维度」「SOP 回写」
+  - R9 SOP双向修改：改名「SOP 母本·系统实施」（书记补充：SOP 与网页双向修改要有边界，否则逻辑死循环出错）
+  - R10 高频零跳转：**撤案**——重要理论（书记原话命名 + README 门面章节 + 验收标准），AI 误判教训
+  - R11 速查表标签：按识别结果归并（散落同一概念），非删除
+  - R12 组织建设残留：修订
+  - 新增① SERVICE_CATALOG 分类列：移除（党建/党务不再作为工作分工标准）
+  - 新增② USAGE_POLICY §1.1.1 区分要点：删除（「根本不需要区分！这个命题下游没有谁承接，为什么要保留！」）
+  - 新增③ 纪检委员口径：三板块（考勤/考察/活动监督复盘）+ 补课公邮全集
+- **书记元层指示**（已沉淀 REVIEW_QUEUE 附录②）：①AI 要建立「什么是重要的理论、概念、表述」的判断力——频率不是重要性判据（教训：高频零跳转因字面低频被误判）②奥卡姆剃刀第二方向：识别「散落着的同一个概念」→ 归并非删除 ③「命题下游有没有谁承接」是理论复用评议的重要关注点——无下游承接的命题不保留
+- **执行动作**：
+  - 断链修复：DATA_ARCHITECTURE:1060（feedback.js→issues.js）、CHECKLIST:331（image.js→core/data-adapter.js imageRecords 聚合）、SERVICE_CATALOG:39/46（image.js→data-adapter.js、feedback.js→issues.js）、TIMESTAMPS 3 条已删除标记（workspace-entry/feedback/image）
+  - SNAPSHOT §IV 理论表：差异化视图除名；正交维度模型→正交维度；SOP反整合→SOP 回写；SOP双向修改→SOP 母本·系统实施（补「同步有边界：母本优先，先改 SOP 再同步系统，避免死循环」）
+  - CLAUDE.md C-4 引用更新（§三 差异化视图→参与者数据流设计）
+  - USAGE_POLICY：§1.1.1 区分要点删除；§1.1.3 三支委定位表去「党建/党务侧重」两分法→职责全集
+  - SERVICE_CATALOG：移除分类列（17 行）
+  - insights 党支部：§4.2「双轴定义」→「职责全集定义」（两分法余毒）；§4.4 纪检委员补课公邮补充；§5「活动分类决策」→「活动分类体系」；§5.4「活动类型体系」→「活动类型划分」；速查表 5 标签归并（条块分工→条块、支委双职能+纪检工作内容→三支委定位、活动分类决策+活动类型体系→活动分类体系，11 行→9 行）
+  - notice.js:256 注释修订（组织委员组织建设→组织委员党务工作，去「党建：」前缀）
+  - DOC_MAP 描述同步（活动分类体系）
+  - 全部 YAML last_updated 更新（USAGE_POLICY/SERVICE_CATALOG/CLAUDE/DATA_ARCHITECTURE/CHECKLIST/insights/DOC_MAP + TIMESTAMPS/SNAPSHOT 注册）
+- **验证结果**：✅ 全仓 Grep「党建侧重/党务侧重/党建职能/党务职责/双轴定义/在党建与党务工作中的定位」零残留；✅ SERVICE_CATALOG 无 image.js/feedback.js 残留；✅ GetDiagnostics 修改 JS 文件零错误
+- **T-220 深色模式抽样审查**（书记指令①，web-design-guidelines + browser_use 7 页抽样）：发现 login 页 bg-surface-page 深色遗漏、侧边栏激活导航 2.94:1、徽章系统未适配、about 页独立米色变量体系、金色主题按钮 1.28:1 —— **待修复**（下一轮执行）
+- **沉淀标签**：`[已沉淀: 重要性判断力]` — 频率不是重要性判据（奥卡姆剃刀是手段，识别重要性才是目的）；`[已沉淀: 奥卡姆剃刀第二方向·归并]` — 识别「散落着的同一个概念」→ 归并统一到权威源而非仅删除；`[已沉淀: 下游承接判据]` — 命题无下游承接不保留（即使本身不是错）—— 三条元层指示落地 REVIEW_QUEUE 附录② + 归并实例落地 USAGE_POLICY/SERVICE_CATALOG/insights

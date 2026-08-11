@@ -2,7 +2,7 @@
 title: "数据同源一致性校验手册"
 type: checklist
 role: "[用户]+[AI]"
-last_updated: "2026-08-09"
+last_updated: "2026-08-12"
 status: active
 related_files: [DATA_ARCHITECTURE.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ---
@@ -329,7 +329,7 @@ related_files: [DATA_ARCHITECTURE.md, content/03_doc_system/ARCHITECTURE.md, CLA
 ## 14. 图片数据
 
 **存储**：`mockDB.imageRecords`（运行时动态创建）
-**Service**：`docs/src/services/image.js`
+**Service**：`docs/src/core/data-adapter.js`（imageRecords 聚合）
 
 **展示页面**：
 

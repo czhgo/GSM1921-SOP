@@ -2,7 +2,7 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-08-11"
+last_updated: "2026-08-12"
 status: "ACTIVE"
 date: "2026-08-11"
 version: "v17"
@@ -41,10 +41,10 @@ GSM1921-SOP/
 │   │   └── visitor.html        ← 成员工作台（含待办）
 │   └── src/                    ← ESM 模块化源码
 │       ├── entries/            ← 页面入口（22 个 entry JS，含 tabs/ 子目录）
-│       ├── components/         ← 共享组件（24 个：23 js + 1 css，含 todo-list/custom-select/workspace-popover/report-inbox/work-overview）
+│       ├── components/         ← 共享组件（26 个：25 js + 1 css，含 todo-list/custom-select/workspace-popover/report-inbox/work-overview）
 │       ├── core/               ← 核心工具（13 个，含 theme.js）
 │       ├── config/             ← 配置（branch.json）
-│       ├── services/           ← 服务层（22 个，含 todo/auth/notice/decision-tree/image/visibility/external-dispatch）
+│       ├── services/           ← 服务层（20 个，含 todo/auth/notice/decision-tree/visibility/external-dispatch）
 │       ├── mock/               ← Mock 数据（10 个，含 accounts）
 │       ├── modules/            ← 业务模块（1 个）
 │       ├── workflow/           ← 工作流引擎（6 个）
@@ -123,15 +123,14 @@ GSM1921-SOP/
 |------|---------|---------|
 | 党建与党务工作 | 党建工作=党的自我建设（政/思/组/作/纪五建）；党务工作=党内事务的具体管理（党员发展/组织生活等）；两者都是"管理事，服务人" | USAGE_POLICY.md §1.1.1 + DATA_ARCHITECTURE.md |
 | 专班 | 活动之外考察积极分子的载体；赋权是运行支撑机制，工作量记录是运行保障机制 | COMMISSIONER_FRAMEWORK.md §A.3~A.8 |
-| 差异化视图 | 同一数据源，不同切面展示（已被按人视图深化取代） | DATA_ARCHITECTURE.md §三 |
 | 赋权关系链 | 党支书→支委/党小组组长；党小组组长→组织者/深度参与者；组织委员→专班成员 | COMMISSIONER_FRAMEWORK.md §C |
-| SOP双向修改 | 文本SOP是母本，系统是实施层 | SOP_WEB.md |
+| SOP 母本·系统实施 | 文本SOP是母本，系统是实施层；同步有边界（母本优先，先改 SOP 再同步系统，避免死循环） | SOP_WEB.md §C.2 |
 | 信息密度精确原则 | 信息可见性 = 职责空间的投影；按人视图按赋权链投影（L0 个人 / L1 条线 / L2 全局） | DESIGN_SYSTEM.md §一 原则9 (P-015 第四道防线) |
-| 正交维度模型 | SOP(执行细节) ⊥ guides(理念概括)；CLAUDE.md = 上下文入口 | OPERATIONS_GUIDE.md §1.1 (D-218) |
+| 正交维度 | SOP(执行细节) ⊥ guides(理念概括)；CLAUDE.md = 上下文入口 | OPERATIONS_GUIDE.md §1.1 (D-218) |
 | 最小三成本原则 | 最小信息成本+最小操作成本+最小适应学习成本，系统设计应让用户以最低成本完成任务 | DESIGN_SYSTEM.md §一 第2条 |
 | 高频零跳转 | 最小三成本的最终验收标准——完成一个高频工作需要操作多少次？信息展示与操作是否同地 | DESIGN_SYSTEM.md §一 原则10 |
 | 按人视图·知情边界 | 谁能看到谁由赋权链（执行委托）计算得出；看≠做，可见性不授予操作权 | DESIGN_SYSTEM.md §一 原则9 + visibility.js (P-015) |
-| SOP反整合 | 将网页中已实现的工作逻辑反整合到SOP中（用业务语言），使SOP成为规范、结构化、清晰的制度母本 | insights 工程演进与设计方法论.md §4.11 |
+| SOP 回写 | 将网页中已实现的工作逻辑反整合到SOP中（用业务语言），使SOP成为规范、结构化、清晰的制度母本 | insights 工程演进与设计方法论.md §4.11 |
 | 打卡化判定 | 完成必须对应真实产物——`complete(task)` 的副作用集合仅含状态翻转即为打卡化设计缺陷 | insights 工程演进与设计方法论.md §6.23 |
 
 ## V. 权限矩阵摘要
