@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  person-picker.js — 通用人员选择组件
 //  功能：点击触发按钮弹出选择面板，支持搜索/筛选/单选/多选
@@ -7,9 +7,9 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE, getPersonById } from '../mock/index.js?v=20260811c';
-import { icon } from '../core/icons.js?v=20260811c';
-import { ROLE_LABELS, ACCENT_COLORS } from '../core/constants.js?v=20260811c';
+import { PEOPLE, getPersonById } from '../mock/index.js?v=20260811d';
+import { icon } from '../core/icons.js?v=20260811d';
+import { ROLE_LABELS, ACCENT_COLORS } from '../core/constants.js?v=20260811d';
 
 // ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
 function hexToRgba(hex, alpha) {

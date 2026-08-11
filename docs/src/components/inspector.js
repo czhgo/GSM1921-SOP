@@ -1,24 +1,24 @@
-﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  inspector.js — 右侧检查器面板渲染逻辑
 //  包含：filterTasksByManagementRole, renderInspectorFromState,
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../core/state.js?v=20260811c';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260811c';
-import { _fmtChinese, showToast } from '../core/utils.js?v=20260811c';
-import { icon } from '../core/icons.js?v=20260811c';
-import { PEOPLE, getPersonById } from '../mock/index.js?v=20260811c';
-import { BranchService } from '../services/runtime.js?v=20260811c';
-import { AuthStore } from '../services/auth.js?v=20260811c';
-import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260811c';
-import { badgeHtml } from './badge.js?v=20260811c';
-import { persist } from '../core/data-adapter.js?v=20260811c';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260811c';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260811c';
-import { loadActivityReviews } from '../services/review.js?v=20260811c';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260811c';
+import { setState, STATE, getAppState } from '../core/state.js?v=20260811d';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260811d';
+import { _fmtChinese, showToast } from '../core/utils.js?v=20260811d';
+import { icon } from '../core/icons.js?v=20260811d';
+import { PEOPLE, getPersonById } from '../mock/index.js?v=20260811d';
+import { BranchService } from '../services/runtime.js?v=20260811d';
+import { AuthStore } from '../services/auth.js?v=20260811d';
+import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260811d';
+import { badgeHtml } from './badge.js?v=20260811d';
+import { persist } from '../core/data-adapter.js?v=20260811d';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260811d';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260811d';
+import { loadActivityReviews } from '../services/review.js?v=20260811d';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260811d';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {

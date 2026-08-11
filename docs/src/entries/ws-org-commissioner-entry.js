@@ -1,30 +1,30 @@
-﻿import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260811c';
-import { BranchService } from '../services/runtime.js?v=20260811c';
-import { showToast, flashHighlight } from '../core/utils.js?v=20260811c';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260811c';
-import { AuthStore } from '../services/auth.js?v=20260811c';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260811c';
-import { solidAccentStyle } from '../core/constants.js?v=20260811c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260811c';
-import { PersonPicker } from '../components/person-picker.js?v=20260811c';
-import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js?v=20260811c';
-import { mockDB, SourceType, ParticipationLevel, ReviewStatus } from '../core/domain.js?v=20260811c';
-import { persist } from '../core/data-adapter.js?v=20260811c';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260811c';
-import { renderTabBar } from '../components/tab-bar.js?v=20260811c';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260811c';
-import { renderWorkOverview } from '../components/work-overview.js?v=20260811c';
-import { renderQueryView } from '../components/query-view.js?v=20260811c';
-import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260811c';
-import { loadTaskforceReviews, addTaskforceReview } from '../services/review.js?v=20260811c';
-import { loadActivities } from '../services/activity.js?v=20260811c';
-import { icon } from '../core/icons.js?v=20260811c';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260811c';
-import { renderTodoList } from '../components/todo-list.js?v=20260811c';
-import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260811c';
-import { NoticeStore } from '../services/notice.js?v=20260811c';
-import { SignupStore, resolveSignupReviewer, SignupStatus } from '../services/signup.js?v=20260811c';
-import { badgeHtml } from '../components/badge.js?v=20260811c';
+﻿﻿import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260811d';
+import { BranchService } from '../services/runtime.js?v=20260811d';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260811d';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260811d';
+import { AuthStore } from '../services/auth.js?v=20260811d';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260811d';
+import { solidAccentStyle } from '../core/constants.js?v=20260811d';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260811d';
+import { PersonPicker } from '../components/person-picker.js?v=20260811d';
+import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js?v=20260811d';
+import { mockDB, SourceType, ParticipationLevel, ReviewStatus } from '../core/domain.js?v=20260811d';
+import { persist } from '../core/data-adapter.js?v=20260811d';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260811d';
+import { renderTabBar } from '../components/tab-bar.js?v=20260811d';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260811d';
+import { renderWorkOverview } from '../components/work-overview.js?v=20260811d';
+import { renderQueryView } from '../components/query-view.js?v=20260811d';
+import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260811d';
+import { loadTaskforceReviews, addTaskforceReview } from '../services/review.js?v=20260811d';
+import { loadActivities } from '../services/activity.js?v=20260811d';
+import { icon } from '../core/icons.js?v=20260811d';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260811d';
+import { renderTodoList } from '../components/todo-list.js?v=20260811d';
+import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260811d';
+import { NoticeStore } from '../services/notice.js?v=20260811d';
+import { SignupStore, resolveSignupReviewer, SignupStatus } from '../services/signup.js?v=20260811d';
+import { badgeHtml } from '../components/badge.js?v=20260811d';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'org-commissioner' });
 
@@ -119,7 +119,7 @@ function renderOrgUI(state) {
       { id: 'development', label: '发展数据', render: () => _renderDevelopmentContent(), groupLabel: '党建' },
       // 活动查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增；组织无活动 tab 由本组件承载）
       // 排序：按工作流节奏「看→做→查→收」，知情查看置于职责操作后、反馈前（书记 2026-08-11 裁定）
-      { id: 'activity-view', label: '活动查看', render: () => { const el = document.getElementById('org-tab-content'); if (el) return import('../components/activity-view.js?v=20260811c').then(m => m.renderActivityView(el, { highlightId: _orgNavTarget?.actId || null, onLocated: () => { _orgNavTarget = null; } })); }, groupLabel: '党建' },
+      { id: 'activity-view', label: '活动查看', render: () => { const el = document.getElementById('org-tab-content'); if (el) return import('../components/activity-view.js?v=20260811d').then(m => m.renderActivityView(el, { highlightId: _orgNavTarget?.actId || null, onLocated: () => { _orgNavTarget = null; } })); }, groupLabel: '党建' },
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('org-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('org-commissioner', 'u_org'); bindMyDispatchEvents(el, 'org-commissioner', 'u_org'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
@@ -1667,22 +1667,32 @@ function _renderOrgInspectionContent() {
         return;
       }
       const long = inspectionToLong([rec])[0];
-      // 考察记录详情（书记 2026-08-11 三审裁定：无论亮暗一律「高饱和度+白字」——
-      // 原 bg-gray-50/60 深色模式下无覆盖 → 浅灰底+被提亮浅字看不清，改高饱和天蓝实底 #0369A1 + 白字，日/夜一致）
+      // 考察记录详情（书记 2026-08-11 四审纠正：深色=黑底白字 / 浅色=白底黑字，
+      // 用 CSS 变量跟随主题——原 bg-gray-50/60 深色模式下无覆盖看不清；
+      // 行列分隔线提升可读性，不再用高饱和实底+白字）
+      const statusBadge = rec.status === 'confirmed'
+        ? '<span class="px-1.5 py-0.5 rounded-full bg-green-100 text-green-600 font-medium">已确认</span>'
+        : '<span class="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600 font-medium">待确认</span>';
       detailEl.innerHTML = `
-        <div class="rounded-lg p-3" style="background:#0369A1;">
-          <div class="flex items-center justify-between mb-2">
-            <p class="text-xs font-medium text-white">考察记录详情</p>
-            <span class="text-[11px] text-white/80">上传人 ${getPersonName(rec.recordedBy) || '—'} · ${rec.recordedAt || '—'}</span>
+        <div class="rounded-lg p-3" style="background:var(--neutral-50);border:1px solid var(--neutral-200);">
+          <div class="flex items-center justify-between mb-2 pb-2" style="border-bottom:1px solid var(--neutral-200);">
+            <p class="text-xs font-medium" style="color:var(--neutral-800);">考察记录详情</p>
+            <span class="text-[11px]" style="color:var(--neutral-500);">上传人 ${getPersonName(rec.recordedBy) || '—'} · ${rec.recordedAt || '—'}</span>
           </div>
-          <div class="grid grid-cols-2 gap-x-6 gap-y-1.5 text-xs">
-            <p class="text-white/85">姓名 <span class="text-white font-medium">${long.name}</span></p>
-            <p class="text-white/85">专班 <span class="text-white font-medium">${long.source}</span></p>
-            <p class="text-white/85">参与层级 <span class="text-white font-medium">${long.level}</span></p>
-            <p class="text-white/85">状态 <span class="px-1.5 py-0.5 rounded-full bg-white/20 text-white font-medium">${rec.status === 'confirmed' ? '已确认' : '待确认'}</span></p>
-            <p class="col-span-2 text-white/85">考察内容 <span class="text-white font-medium">${rec.role || '—'}</span></p>
+          <div class="text-xs">
+            <div class="grid grid-cols-2 gap-x-6 py-1.5" style="border-bottom:1px solid var(--neutral-200);">
+              <p style="color:var(--neutral-700);">姓名 <span style="color:var(--neutral-800);font-weight:500;">${long.name}</span></p>
+              <p style="color:var(--neutral-700);">专班 <span style="color:var(--neutral-800);font-weight:500;">${long.source}</span></p>
+            </div>
+            <div class="grid grid-cols-2 gap-x-6 py-1.5" style="border-bottom:1px solid var(--neutral-200);">
+              <p style="color:var(--neutral-700);">参与层级 <span style="color:var(--neutral-800);font-weight:500;">${long.level}</span></p>
+              <p style="color:var(--neutral-700);">状态 ${statusBadge}</p>
+            </div>
+            <div class="grid grid-cols-1 gap-x-6 py-1.5">
+              <p style="color:var(--neutral-700);">考察内容 <span style="color:var(--neutral-800);font-weight:500;">${rec.role || '—'}</span></p>
+            </div>
           </div>
-          <p class="text-[11px] mt-2 text-white/75">流程：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表</p>
+          <p class="text-[11px] mt-2 pt-2" style="color:var(--neutral-500);border-top:1px solid var(--neutral-200);">流程：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表</p>
         </div>`;
       detailEl.classList.remove('hidden');
       detailEl.dataset.openId = rec.id;

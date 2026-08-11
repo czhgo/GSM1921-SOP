@@ -1,15 +1,15 @@
-﻿// role: [工程师]+[AI]
+﻿﻿// role: [工程师]+[AI]
 // components/header.js — 共享顶栏组件（重构版）
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 书记裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { AuthStore } from '../services/auth.js?v=20260811c';
-import { getAccentColors, resolveAccentRole, ROLE_LABELS, solidAccentStyle } from '../core/constants.js?v=20260811c';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260811c';
-import { getBasePath } from '../core/utils.js?v=20260811c';
-import { icon } from '../core/icons.js?v=20260811c';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260811c';
-import { badgeHtml } from './badge.js?v=20260811c';
+import { AuthStore } from '../services/auth.js?v=20260811d';
+import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260811d';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260811d';
+import { getBasePath } from '../core/utils.js?v=20260811d';
+import { icon } from '../core/icons.js?v=20260811d';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260811d';
+import { badgeHtml } from './badge.js?v=20260811d';
 
 // 数据变更订阅（2026-08-05，消除"确认已读后角标不更新"）：
 // 模块顶层绑定一次；_renderNotificationBadge 在 #notification-bell 未渲染时静默返回。
@@ -47,11 +47,10 @@ function _roleLabelHTML(role) {
   if (role === 'participant') return '';
   const { accent } = getAccentColors(resolveAccentRole(role));
   const label = ROLE_LABELS[role] || role;
-  // 2026-08-11 书记裁定：role-label 与按钮同走功能色 2×2 规则（深浅×日/夜），
-  // 深色 accent（含金）浅底深字、浅色 accent 实底白字；span 不写死白色、继承容器色，
-  // 夜间由 html.theme-dark [style*="--acc-bg-dark"] 规则自动切换提亮。
+  // 2026-08-11 四审纠正：header 身份显示 = 主题色实底（正常饱和度）+ 白字，
+  // 与整个 header（深红底白字）一致；淡底深字/边框在 header 上突兀臃肿，日/夜一致。
   return `
-    <div class="role-label" id="role-label" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:var(--radius-sm);${solidAccentStyle(accent)}">
+    <div class="role-label" id="role-label" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:var(--radius-sm);background:${accent};color:#fff;">
       <span class="text-xs font-medium">${label}</span>
     </div>
   `;

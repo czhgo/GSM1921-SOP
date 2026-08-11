@@ -1,13 +1,13 @@
-﻿// role: [工程师]+[AI]
+﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  component.signup-panel.js — 报名面板组件（T233 报名渠道）
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，书记 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260811c';
-import { getPersonById } from '../mock/index.js?v=20260811c';
-import { showToast } from '../core/utils.js?v=20260811c';
-import { badgeHtml } from './badge.js?v=20260811c';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260811d';
+import { getPersonById } from '../mock/index.js?v=20260811d';
+import { showToast } from '../core/utils.js?v=20260811d';
+import { badgeHtml } from './badge.js?v=20260811d';
 
 /** 角色标签（报名/专班/活动 assignments 共用） */
 export function roleLabel(role) {

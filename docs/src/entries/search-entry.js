@@ -1,8 +1,8 @@
-﻿// role: [工程师]+[AI]
+﻿﻿// role: [工程师]+[AI]
 // search-entry.js — 资料查询独立入口
-import { ReferencesModule } from '../modules/references.js?v=20260811c';
-import { renderSidebar } from '../components/sidebar.js?v=20260811c';
-import { renderHeader } from '../components/header.js?v=20260811c';
+import { ReferencesModule } from '../modules/references.js?v=20260811d';
+import { renderSidebar } from '../components/sidebar.js?v=20260811d';
+import { renderHeader } from '../components/header.js?v=20260811d';
 
 renderSidebar('search');
 renderHeader('search');

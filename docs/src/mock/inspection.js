@@ -1,4 +1,4 @@
-﻿﻿﻿﻿// inspection.js — 考察记录 Mock 数据（统一数据源）
+﻿﻿﻿﻿﻿// inspection.js — 考察记录 Mock 数据（统一数据源）
 // 数据模型对齐 domain.js InspectionRecord
 // 考察来源: activity(活动) / taskforce(专班) — Source: D-198
 // 考察层级: organize(组织) / deep(深度参与)
@@ -8,9 +8,9 @@
 // 修复（T175）：不再从 ./index.js 导入 _personName 等辅助函数，
 // 消除 mock/index.js ↔ mock/inspection.js 循环依赖。
 // 直接依赖 services/person.js + mock/activities.js。
-import { getPersonName } from '../services/person.js?v=20260811c';
-import { ACTIVITIES } from './activities.js?v=20260811c';
-import { ParticipationLevel, PARTICIPATION_LEVEL_LABELS, SourceType, SOURCE_TYPE_LABELS } from '../core/domain.js?v=20260811c';
+import { getPersonName } from '../services/person.js?v=20260811d';
+import { ACTIVITIES } from './activities.js?v=20260811d';
+import { ParticipationLevel, PARTICIPATION_LEVEL_LABELS, SourceType, SOURCE_TYPE_LABELS } from '../core/domain.js?v=20260811d';
 
 const _personName = (id) => getPersonName(id);
 const _activityTitle = (id) => ACTIVITIES.find(a => a.id === id)?.title || id;

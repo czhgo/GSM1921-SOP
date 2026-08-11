@@ -1,10 +1,10 @@
-﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  state.js — 全局状态管理 (STATE 枚举 / appState / setState)
 //  使用 registerRenderCallback 模式避免循环依赖
 // ════════════════════════════════════════════════════════════════
 
-import { _currentYearMonth } from './utils.js?v=20260811c';
+import { _currentYearMonth } from './utils.js?v=20260811d';
 
 export const STATE = {
   IDLE:       0,

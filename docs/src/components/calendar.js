@@ -1,15 +1,15 @@
-﻿// role: [工程师]+[AI]
+﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  calendar.js — 日历渲染引擎（P2-7 多视图升级）
 //  包含：renderCalendarByActivities, populateMonthSelector
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../core/state.js?v=20260811c';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260811c';
-import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260811c';
-import { filterTasksByManagementRole } from './inspector.js?v=20260811c';
-import { badgeHtml } from './badge.js?v=20260811c';
+import { getAppState, setState } from '../core/state.js?v=20260811d';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260811d';
+import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260811d';
+import { filterTasksByManagementRole } from './inspector.js?v=20260811d';
+import { badgeHtml } from './badge.js?v=20260811d';
 
 const VIEW_LABELS = { month: '月', week: '周', day: '日', list: '列表' };
 

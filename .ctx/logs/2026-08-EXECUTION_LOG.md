@@ -2571,3 +2571,18 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **一改具改检查**：全仓 Grep `bg-gray-50\/60` 仅剩考察详情卡一处已改（无其他残留）；`solidAccentStyle` 37 处调用点无需逐一改（单点规则）；Grep 旧夜间提亮注释零残留
 - **验证结果**：✅ GetDiagnostics 三修改文件零错误；✅ Node 数值验证 6 色夜间派生值全对（天蓝/翠绿/亮蓝/金/红/灰）；✅ browser_use 五项 computedStyle 逐值通过
 - **待办**：commit（push 需书记批准，延续「暂不 push」裁决）
+
+### T-220 四审纠正：三审方案整体推翻——header 实底白字 + 夜间完全不透明浅底去边框 + 考察卡跟随模式（2026-08-11 深夜）
+
+**书记反馈**：①「我的目标都是为了看得清，但是你的做法让视觉非常臃肿」——三审「近不透明淡底+边框」整体否决；②「header的身份显示，我要求要 主题色为底（正常的饱和度），白色的字——这个和整个header的要求是一致的！字都是白色」；③「考察详情卡代码检查 更是一塌糊涂！深色的话就就要用黑底白字；浅色的话就白底黑字！（但是作为审美要求，是否需要增加一些 行列标识，这是你的事情）」
+**理解**：书记目标始终是「看得清」；三审方案的教训是「近不透明淡底(0.9)+边框」双管齐下→臃肿。书记最终裁定分两轨：**header 身份显示走实底白字（与深红 header 白字体系一致）**；**页面内功能按钮夜间回归 span 徽章本义 = 完全不透明浅底深字（无边框）**；**考察详情卡中性跟随（深=黑底白字/浅=白底黑字）+ 行列分隔线**
+
+- **①header 身份显示实底白字（header.js `_roleLabelHTML`）**：弃用 solidAccentStyle（淡底深字在深红 header 上突兀），改内联 `background:${accent};color:#fff`——主题色实底（正常饱和度）+ 白字，日/夜一致；从 import 移除 solidAccentStyle。底色随「主题色」个性化切换（金主题 = #A16207 深金实底白字，对比 5.5:1 达标）
+- **②solidAccentStyle 四审（constants.js）**：夜间 `@0.9` 近不透明 → **完全不透明浅底**（accent 调亮至 86% 明度无 alpha，span 徽章风格如 bg-cyan-100）；**删除 `--acc-border-dark` 与边框逻辑**——不透明底不再需要边框补边界，解决「臃肿」；日间 12% 淡底深字不变
+- **③styles.css**：夜间规则 `box-shadow: inset … var(--acc-border-dark)` 整行删除，只保留 background/color !important 覆盖
+- **④考察详情卡跟随模式（ws-org-commissioner-entry.js）**：废弃内联 `#0369A1` 高饱和实底，改 **CSS 变量跟随主题**——外层 `background:var(--neutral-50)`（浅=#F8F9FA 白 / 深=#111827 黑）+ `border:1px solid var(--neutral-200)`；主文字 `var(--neutral-800)`（浅=#1F2937 黑 / 深=#F1F5F9 白）、label `var(--neutral-700)`、辅助 `var(--neutral-500)`；**行列分隔线**：表头下 border-bottom + 每行 border-bottom + 流程行 border-top；状态徽章改语义色（已确认 `bg-green-100 text-green-600` / 待确认 `bg-amber-100 text-amber-600`，深色下被覆盖为半透明提亮）
+- **⑤浏览器复验（browser_use 四项）**：role-label 天蓝实底 `rgb(14,165,233)`+白字（深浅一致，金主题 #A16207 实底白字亦达标）✅ / 发布招募按钮夜间 `rgb(188,231,251)` 完全不透明浅底+`rgb(9,102,144)` 深字+`box-shadow:none` ✅ / 考察卡深色 `#111827` 底白字、浅色 `#F8F9FA` 底黑字+分隔线 `#334155`/`#E5E7EB` ✅ / console 深浅两模式无 TypeError/SyntaxError ✅
+- **⑥版本号 bump**：全仓 `?v=20260811c` → `?v=20260811d`（91 文件，字节级替换保 BOM），Grep 零残留
+- **⑦验证结果**：✅ GetDiagnostics 三 JS + CSS 零错误（markdown 警告为历史遗留）；✅ Node 数值验证 8 色夜间派生值全对（天蓝 text #096690 + bgDark #bce7fb、金 #FFD700、红/橙/海蓝/翠绿/亮蓝/灰均符合）；✅ browser_use 四项 computedStyle 逐值通过
+- **⑧变更文件**：`docs/src/components/header.js`（role-label 实底白字）、`docs/src/core/constants.js`（solidAccentStyle 四审去边框）、`docs/src/styles.css`（夜间规则删边框）、`docs/src/entries/ws-org-commissioner-entry.js`（考察卡跟随模式）、全仓 91 文件（版本号 bump）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **待办**：commit（push 需书记批准，延续「暂不 push」裁决）
