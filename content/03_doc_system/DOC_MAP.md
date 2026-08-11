@@ -2,7 +2,7 @@
 title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-09"
+last_updated: "2026-08-11"
 version: "2.3"
 status: active
 related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
@@ -120,7 +120,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
 | `content/insights/党支部管理与实务经验沉淀.md` | [用户]+[AI] | 经验沉淀（党建与党务工作理论、条块二元结构、专班、三支委角色设计、活动分类决策） | AI（经验提炼） |
-| `content/insights/工程演进与设计方法论.md` | [工程师]+[AI] | 经验沉淀（工程演进技术原则、减负与删除哲学、上下文治理、系统工程方法论、架构迁移、实操教训） | AI（经验提炼） |
+| `content/insights/工程演进与设计方法论.md` | [工程师]+[AI] | 经验沉淀（信息组织、减负与取舍、上下文治理、系统与工作台设计、架构迁移、实操判例、表达与沉淀纪律） | AI（经验提炼） |
 
 ### 跨多类：根目录 + 审计底座 + 实现层
 

@@ -2,7 +2,7 @@
 title: "运行标准与操作规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-09"
+last_updated: "2026-08-11"
 version: "3.0"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/USAGE_POLICY.md, content/02_institution/ROLE_CLASSIFICATION.md, content/03_doc_system/DOC_MAP.md, content/05_ai_coding/KNOWN_PITFALLS.md, content/03_doc_system/SSOT_INDEX.md]
@@ -244,7 +244,7 @@ related_files: [...]
 - 无来源故事的条目不写元数据块（避免伪造来源）
 - "有元数据"与"无元数据"是**内容性质不同**（有迁移故事 vs 原生经验），不是批次差异
 
-### 7.4 判例类条目（§6 实操教训录等）
+### 7.4 判例类条目（§6 实操判例等）
 
 统一三段式：`> **事件**：<判例描述>` + **根因** + **教训**。
 

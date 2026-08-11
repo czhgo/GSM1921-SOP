@@ -2,7 +2,7 @@
 title: "前端设计系统规范"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-08-10"
+last_updated: "2026-08-11"
 status: active
 ---
 
@@ -894,4 +894,4 @@ li + li { margin-top: 0.25em; }
 | 查 CSS 变量名 | → `docs/src/styles.css:root` |
 | 查实施进度 | → CLAUDE.md §九 DESIGN-OPT-4 |
 | 提交设计反馈 | → docs/feedback.html（在线反馈入口） |
-| 查工程方法论 | → insights 工程演进与设计方法论.md §4 系统工程与设计方法论 |
+| 查工程方法论 | → insights 工程演进与设计方法论.md §4 系统与工作台设计 |
