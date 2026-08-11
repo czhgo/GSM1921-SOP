@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  data-adapter.js — 数据访问抽象层 (Data Access Abstraction)
 //  T-142 阶段2：写穿透缓存模式（Write-Through Cache）
@@ -200,7 +200,7 @@ export async function init() {
       ]);
 
       // 填充 mockDB 缓存（供服务层同步读取）
-      const { mockDB } = await import('./domain.js?v=20260811d');
+      const { mockDB } = await import('./domain.js?v=20260812b');
       // 缓存引用：pagehide 同步冲刷时不能再 await 动态 import（文档卸载中挂起），
       // 必须直接同步读取（见 _flushSnapshotSync）
       _cachedMockDB = mockDB;
@@ -261,7 +261,7 @@ export async function init() {
       } catch (e) {
         console.warn('[DataAdapter] init: niche/新域集合拉取失败，回退本地备份：', e);
         try {
-          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260811d');
+          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260812b');
           restoreNicheCollections();
         } catch (e2) {
           console.warn('[DataAdapter] init: 本地 niche 备份恢复失败：', e2);
@@ -280,8 +280,8 @@ export async function init() {
       // makeupTasks 无静态种子（由纪检操作生成），空属合理，不回退。
       if (!mockDB.attendances.length || !mockDB.inspections.length) {
         try {
-          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260811d');
-          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260811d');
+          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260812b');
+          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260812b');
           if (!mockDB.attendances.length) mockDB.attendances = ATTENDANCE_RECORDS.map(r => ({ ...r }));
           if (!mockDB.inspections.length) mockDB.inspections = INSPECTION_RECORDS.map(r => ({ ...r }));
           console.info('[DataAdapter] init: 考勤/考察空集合已回退本地 seed');
@@ -291,7 +291,7 @@ export async function init() {
       }
       if (!mockDB.todos.length) {
         try {
-          const { SEED_TODOS } = await import('../services/todo.js?v=20260811d');
+          const { SEED_TODOS } = await import('../services/todo.js?v=20260812b');
           mockDB.todos = SEED_TODOS.map(t => ({ ...t }));
           console.info('[DataAdapter] init: 待办空集合已回退本地 seed');
         } catch (e) {
@@ -437,7 +437,7 @@ async function _flushSnapshot() {
   // flush 时若数据源已切回 mock（如服务器不可达回退），跳过写穿
   if (DATA_SOURCE !== 'api') return;
   try {
-    const { mockDB } = await import('./domain.js?v=20260811d');
+    const { mockDB } = await import('./domain.js?v=20260812b');
     _cachedMockDB = mockDB;
     await getAdapter().snapshot(_buildSnapshotPayload(mockDB));
   } catch (e) {

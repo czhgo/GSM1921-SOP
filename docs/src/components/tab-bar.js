@@ -1,7 +1,9 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  tab-bar.js — 通用 Tab 切换组件
 // ════════════════════════════════════════════════════════════════
+
+import { accDarkParts } from '../core/constants.js?v=20260812b';
 
 // 角色识别层：tab 激活态 = 主题色三件套渲染（书记 2026-08-08 三审定稿）。
 // 背景：前三轮把 tab 强行为品牌金（半透明 0.14/0.30 → 实色 #FFD700），书记全部否决——
@@ -63,6 +65,8 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
   // 激活态颜色 = 主题色三件套（调用方 accentColor，来自 bootstrapPage 的 accentRole/自选主题色）
   const { accent, accentRgba, accentBorder } = accentColor || FALLBACK_ACCENT;
+  // 分组标签深色三件套（浅底深字 → 夜间提亮底+亮字+亮边框，配合 styles.css --acc-*-dark 覆盖规则）
+  const _grpDark = accDarkParts(accent);
 
   // 生成 Tab 按钮 HTML（active 状态由 CSS 类 + CSS 变量驱动）
   // groupLabel 去重：同组只在首项前渲染标签（独立元素，不嵌在 button 内）
@@ -81,8 +85,8 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
       seenGroups.add(groupLabel);
       const divider = isFirstGroup
         ? ''
-        : `<span style="width:1px;height:14px;background:#E5E7EB;display:inline-block;margin-right:4px;vertical-align:middle;"></span>`;
-      groupHtml = `<span class="tab-group-label inline-flex items-center gap-1.5" style="pointer-events:none;user-select:none;">${divider}<span style="padding:1px 5px;border-radius:3px;background:${accentRgba};color:${accent};font-weight:600;letter-spacing:0.5px;vertical-align:middle;" class="text-[11px]">${groupLabel}</span></span>`;
+        : `<span style="--acc-bg-dark:#334155;width:1px;height:14px;background:#E5E7EB;display:inline-block;margin-right:4px;vertical-align:middle;"></span>`;
+      groupHtml = `<span class="tab-group-label inline-flex items-center gap-1.5" style="pointer-events:none;user-select:none;">${divider}<span style="padding:1px 5px;border-radius:3px;--acc-bg-dark:${_grpDark.bg};--acc-text-dark:${_grpDark.text};--acc-border-dark:${_grpDark.border};background:${accentRgba};color:${accent};font-weight:600;letter-spacing:0.5px;vertical-align:middle;" class="text-[11px]">${groupLabel}</span></span>`;
       isFirstGroup = false;
     }
     return `${groupHtml}<button class="${btnClass}${activeClass} px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}"${activeStyle}>${label}</button>`;

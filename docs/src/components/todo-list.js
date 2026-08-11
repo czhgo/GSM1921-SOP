@@ -12,9 +12,9 @@ import {
   TodoStatus,
   TODO_STATUS_LABELS,
   DEFAULT_EXPANDED_CATEGORIES,
-} from '../services/todo.js?v=20260811d';
-import { badgeHtml } from './badge.js?v=20260811d';
-import { solidAccentStyle } from '../core/constants.js?v=20260811d';
+} from '../services/todo.js?v=20260812b';
+import { badgeHtml } from './badge.js?v=20260812b';
+import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260812b';
 
 /**
  * 渲染待办列表组件
@@ -55,7 +55,7 @@ export function renderTodoList(opts) {
   const statsHtml = `
     <div class="flex items-center gap-4 mb-4 text-xs text-gray-500">
       <span class="inline-flex items-center gap-1.5">
-        <span class="inline-block w-1.5 h-1.5 rounded-full" style="background:${accent};"></span>
+        <span class="inline-block w-1.5 h-1.5 rounded-full" style="${dotDarkVars(accent)}background:${accent};"></span>
         <span class="font-semibold text-gray-700 tabular-nums">${stats._total}</span>
         <span>待办</span>
       </span>

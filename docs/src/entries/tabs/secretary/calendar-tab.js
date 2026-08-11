@@ -2,23 +2,23 @@
 // entries/tabs/secretary/calendar-tab.js — 书记工作台·活动管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 考勤概况 + 活动查询。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260811d';
-import { _fmtDate, showToast } from '../../../core/utils.js?v=20260811d';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260811d';
-import { renderInspectorFromState } from '../../../components/inspector.js?v=20260811d';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260811d';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260811d';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260811d';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260811d';
-import { loadActivities } from '../../../services/activity.js?v=20260811d';
-import { renderQueryView } from '../../../components/query-view.js?v=20260811d';
-import { icon } from '../../../core/icons.js?v=20260811d';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260811d';
-import { getPersonName } from '../../../mock/index.js?v=20260811d';
-import { NoticeStore } from '../../../services/notice.js?v=20260811d';
-import { BranchService } from '../../../services/runtime.js?v=20260811d';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260811d';
-import { badgeHtml } from '../../../components/badge.js?v=20260811d';
+import { getAppState, setState } from '../../../core/state.js?v=20260812b';
+import { _fmtDate, showToast } from '../../../core/utils.js?v=20260812b';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260812b';
+import { renderInspectorFromState } from '../../../components/inspector.js?v=20260812b';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260812b';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260812b';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260812b';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260812b';
+import { loadActivities } from '../../../services/activity.js?v=20260812b';
+import { renderQueryView } from '../../../components/query-view.js?v=20260812b';
+import { icon } from '../../../core/icons.js?v=20260812b';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260812b';
+import { getPersonName } from '../../../mock/index.js?v=20260812b';
+import { NoticeStore } from '../../../services/notice.js?v=20260812b';
+import { BranchService } from '../../../services/runtime.js?v=20260812b';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars } from '../../../core/constants.js?v=20260812b';
+import { badgeHtml } from '../../../components/badge.js?v=20260812b';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 
@@ -128,7 +128,7 @@ function renderSecretaryStats(activities) {
   ];
   statsEl.innerHTML = items.map(s => `
     <span class="inline-flex items-center gap-1.5">
-      <span class="inline-block w-1.5 h-1.5 rounded-full" style="background:${s.color};"></span>
+      <span class="inline-block w-1.5 h-1.5 rounded-full" style="${dotDarkVars(s.color)}background:${s.color};"></span>
       <span class="font-semibold text-gray-700">${s.value}</span>
       <span>${s.label}</span>
     </span>

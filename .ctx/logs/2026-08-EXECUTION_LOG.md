@@ -2619,3 +2619,24 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **验证结果**：✅ 全仓 Grep「党建侧重/党务侧重/党建职能/党务职责/双轴定义/在党建与党务工作中的定位」零残留；✅ SERVICE_CATALOG 无 image.js/feedback.js 残留；✅ GetDiagnostics 修改 JS 文件零错误
 - **T-220 深色模式抽样审查**（书记指令①，web-design-guidelines + browser_use 7 页抽样）：发现 login 页 bg-surface-page 深色遗漏、侧边栏激活导航 2.94:1、徽章系统未适配、about 页独立米色变量体系、金色主题按钮 1.28:1 —— **待修复**（下一轮执行）
 - **沉淀标签**：`[已沉淀: 重要性判断力]` — 频率不是重要性判据（奥卡姆剃刀是手段，识别重要性才是目的）；`[已沉淀: 奥卡姆剃刀第二方向·归并]` — 识别「散落着的同一个概念」→ 归并统一到权威源而非仅删除；`[已沉淀: 下游承接判据]` — 命题无下游承接不保留（即使本身不是错）—— 三条元层指示落地 REVIEW_QUEUE 附录② + 归并实例落地 USAGE_POLICY/SERVICE_CATALOG/insights
+
+## T-220 深色模式修复执行轮：抽样发现 5 处 + 书记手动定位扩展全局扫尾（2026-08-12）
+
+**任务**：承接 8-12 抽样审查发现 + 书记手动定位（浏览器选中 3 个日历活动标签 div，指示「这是我自己手动找出来需要做 深色模式 设计的部分。全局还有很多！也请继续推进剩余未完成的工作！」）——系统性适配全局内联硬编码浅色（浅底深字）元素
+**引用流程**：H20.2 执行 + web-design-guidelines Skill（WCAG AA 正文 ≥4.5:1 / 大文本 ≥3:1）+ H30.1 一改具改 + T-220 四审标准
+**来源**：书记指令（2026-08-12）+ browser_use 抽样审查报告
+
+- **双套色基础设施（constants.js）**：`_TEXT_DARK_MAP`（日间文字色→深色提亮色映射表，含大小写归一化）+ `_applyDark()`（颜色条目自动生成 bgDark/textDark/borderDark）+ 导出 `applyDark`/`accDarkVars`/`accDarkParts`/`dotDarkVars` 四工具；CSS 侧三套独立覆盖规则（styles.css L5765-5777）：`--acc-bg-dark`（背景+文字+边框三件套）/`--acc-text-dark`（纯文字）/`--acc-dot-dark`（实色圆点）
+- **d1 抽样 5 处修复**：login 页 bg-surface-page 深色遗漏 / 侧边栏激活导航对比度 / 徽章系统深色语义（16% 透明底+亮字+35% 亮边框）/ about 页独立米色变量体系 / 金色主题按钮 1.28:1 → 版本号 bump `?v=20260812a`
+- **d7 书记手动定位**（calendar.js）：日历活动标签/任务标签/详情面板全部 21 处内联色改三件套（`_accDark`/`_accText`/`_accDot` 辅助函数 + mobile dots 对象化）
+- **d8 同类内联浅底标签扩展**：person-picker 阶段徽章（STAGE_COLORS=applyDark）/ ws-visitor 等级徽章+金色按钮 / assign-tab 角色徽章 / prop 看板头 6 处 / modal 表单文字+必填星号 / leader 决策树按钮 5 处+step 圆点 / inspector 操作按钮 / tab-bar 分组标签 / org 上传考察按钮+看板头 4 处 / visitor 角色徽章三件套
+- **d9 内联实色圆点提亮**：constants.js 新增 `dotDarkVars`（含映射表大小写归一化，防 #d97706/#9B0000 漏配）；overview/calendar 角色点 + activity-view 任务+角色点 + todo-list 统计点 + work-overview 在办点 + calendar-tab + login 开发卡 + taskforce 分组点
+- **d10 全局扫尾（本轮）**：全仓 Grep 扫描内联硬编码浅色（background:#/color:#/rgba 浅底）—— 修复 8 类：①constants.js 补映射 `#059669→#34D399`/`#DC2626→#F87171`；②reactions.js 表态按钮（未选中=深灰底#1E293B+亮灰字#CBD5E1，选中=提亮色底+亮字，import accDarkParts）；③tab-bar.js 分组分隔线 `--acc-bg-dark:#334155`；④org 发展数据进度条（未达阶段点 #334155 融入背景+分隔线深灰）；⑤report-inbox「正式答复」徽章提亮红底+亮红字；⑥prop 附件文件图标块提亮；⑦about 渲染失败 fallback 三件套；⑧utils.js toast 深色（深灰底 #1E293B + 近白字 #E2E8F0 + border-dark=状态色保留左边条语义）
+- **扫描判定为不需改**（四审标准「高饱和+白字」/已亮色/类方案已覆盖）：固体按钮白字（#CE1126/#10B981/#8B5CF6 等）、圆点已亮色（#EF4444/#60A5FA/#F59E0B/#3B82F6 等）、CSS 变量背景（var(--neutral-100) 等自动适配）、Tailwind 类（bg-gray-100/text-gray-700 等已有 styles.css 深色覆盖块）、header 通知条目（已用 var(--neutral-700)）
+- **版本号 bump**：`?v=20260812a` → `?v=20260812b`（PowerShell 92 文件）
+- **browser_use 首轮复验**（6 页 A-F，18 验证点）：16 通过，2 项存疑——①bg-cyan-100 无深色覆盖（「积极分子」徽章残留浅青底）→ 修复：styles.css 补 `html.theme-dark .bg-cyan-100`（rgba(6,182,212,0.16)）+ `text-cyan-700`（#67E8F9），并更新 L5760 注释（原注释把 cyan 当「夜间保持浅底深字」样板引用，与运行行为矛盾）；②org 看板头文字色未提亮（待审核 indigo-500/招募中 amber-600 约 3:1 边界）→ 修复：看板头 4 处加 `--acc-text-dark`（#A5B4FC/#FBBF24/#C4B5FD/#60A5FA）
+- **browser_use 二轮复验**（org）：看板头 4 处 contrast 6.5:1~12.5:1 ✅、cyan 徽章 11.5:1 ✅，「org 深色修复复验通过」
+- **browser_use 三轮复验（d10 五验证点）**：A 分组分隔线 #334155 ✅ / B 表态按钮未选中 #1E293B+#CBD5E1、选中提亮翠绿底+亮字 ✅ / C toast 深灰底+近白字+状态色左边条保留 ✅ / D 发展数据进度条（152 圆点未达=#334155、114 分隔线全深灰）✅ / E 收件箱「正式答复」徽章提亮红底+亮红字 ✅（通过真实汇报链路产生 reply 数据复验）
+- **验证结果**：✅ GetDiagnostics 全部修改 JS 零错误；✅ 三轮 browser_use computedStyle 逐值通过；✅ 全仓 Grep 浅底深字内联残留清理完毕
+- **变更文件**：constants.js / styles.css / calendar.js / person-picker.js / ws-visitor-entry.js / assign-tab.js / modal.js / inspector.js / ws-prop-commissioner-entry.js / ws-leader-entry.js / ws-org-commissioner-entry.js / tab-bar.js / activity-view.js / todo-list.js / work-overview.js / taskforce-view.js / overview-tab.js / calendar-tab.js / login-entry.js / reactions.js / report-inbox.js / about-entry.js / utils.js + 全仓 92 文件版本号 bump + 本条日志
+- **commit**：待提交（push 需书记批准）

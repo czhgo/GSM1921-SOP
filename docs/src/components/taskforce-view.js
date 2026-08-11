@@ -1,16 +1,25 @@
-﻿﻿// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // taskforce-view.js — 只读专班查看组件（知情权组件，书记 2026-08-08 裁定）
 // 供无专班 tab 的工作台（党支书/党小组组长/纪检委员等）承载 taskforceId 跳转落点：
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据书记第五轮裁定「新建专班查看组件（列表+详情）」。
 // 书记设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260811d';
-import { _personName } from '../mock/index.js?v=20260811d';
-import { badgeHtml } from './badge.js?v=20260811d';
-import { flashHighlight } from '../core/utils.js?v=20260811d';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260812b';
+import { _personName } from '../mock/index.js?v=20260812b';
+import { badgeHtml } from './badge.js?v=20260812b';
+import { dotDarkVars } from '../core/constants.js?v=20260812b';
+import { flashHighlight } from '../core/utils.js?v=20260812b';
 
 const STATUS_LABEL = { draft: '草稿', pending_review: '待审核', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档' };
 const STATUS_COLOR = { pending_review: '#6366F1', recruiting: '#D97706', active: '#10B981', completed: '#3B82F6', archived: '#6B7280', draft: '#6B7280' };
+// 内联徽章深色亮色映射（深色下提亮一档，由 html.theme-dark [style*="--acc-bg-dark"] 规则应用）
+const STATUS_COLOR_DARK = { pending_review: '#A5B4FC', recruiting: '#FBBF24', active: '#34D399', completed: '#60A5FA', archived: '#94A3B8', draft: '#94A3B8' };
+// 内联徽章双套色：日 = 原色 15% 透明底 + 原色字；夜 = 亮色 24% 透明底 + 亮色字
+function statusBadgeStyle(status) {
+  const c = STATUS_COLOR[status] || '#6B7280';
+  const dc = STATUS_COLOR_DARK[status] || '#94A3B8';
+  return `background:${c}15;color:${c};--acc-bg-dark:${dc}24;--acc-text-dark:${dc}`;
+}
 
 /**
  * 渲染只读专班查看视图
@@ -67,7 +76,7 @@ export function renderTaskforceView(container, opts = {}) {
       : groups.filter(g => g.list.length > 0).map(g => `
           <div class="mb-4">
             <div class="flex items-center gap-2 mb-2">
-              <span class="inline-block w-2 h-2 rounded-full" style="background:${g.color};"></span>
+              <span class="inline-block w-2 h-2 rounded-full" style="${dotDarkVars(g.color)}background:${g.color};"></span>
               <span class="font-title-cn text-sm font-bold text-gray-700">${g.label}</span>
               <span class="text-xs text-gray-400">${g.list.length}</span>
             </div>
@@ -116,7 +125,7 @@ function _renderTfCard(t) {
     <div class="tfv-card p-4 rounded-xl bg-white border border-gray-100 cursor-pointer hover:border-gray-200 hover:shadow-sm transition-all" data-tf-id="${t.id}">
       <div class="flex items-start justify-between gap-2 mb-2">
         <span class="text-sm font-semibold text-gray-800 leading-snug">${t.name}</span>
-        <span class="badge" style="background:${color}15;color:${color};">${STATUS_LABEL[t.status] || t.status}</span>
+        <span class="badge" style="${statusBadgeStyle(t.status)}">${STATUS_LABEL[t.status] || t.status}</span>
       </div>
       ${t.task ? `<p class="text-xs text-gray-500 mb-2 line-clamp-2">${t.task}</p>` : ''}
       <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
@@ -132,7 +141,6 @@ function _renderTfDetail(container, tf, highlightId) {
   if (!panel) return;
   panel.classList.remove('hidden');
   const filled = (tf.members || []).filter(m => m.personId);
-  const color = STATUS_COLOR[tf.status] || '#6B7280';
 
   const memberRows = filled.length === 0
     ? '<p class="text-xs text-gray-400">暂无成员</p>'
@@ -159,7 +167,7 @@ function _renderTfDetail(container, tf, highlightId) {
   panel.innerHTML = `
     <div class="flex items-start justify-between gap-2 mb-3">
       <h4 class="font-title-cn text-sm font-bold text-gray-800">${tf.name}</h4>
-      <span class="badge" style="background:${color}15;color:${color};">${STATUS_LABEL[tf.status] || tf.status}</span>
+      <span class="badge" style="${statusBadgeStyle(tf.status)}">${STATUS_LABEL[tf.status] || tf.status}</span>
     </div>
     <div class="space-y-1.5 text-xs text-gray-600 mb-4">
       ${tf.task ? `<p><span class="text-gray-400">任务：</span>${tf.task}</p>` : ''}

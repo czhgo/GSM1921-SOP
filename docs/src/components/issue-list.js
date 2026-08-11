@@ -1,12 +1,12 @@
 ﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../services/issues.js?v=20260811d';
-import { AuthStore } from '../services/auth.js?v=20260811d';
-import { icon } from '../core/icons.js?v=20260811d';
-import { getPersonName } from '../mock/index.js?v=20260811d';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260811d';
-import { badgeHtml } from './badge.js?v=20260811d';
+import { IssueStore } from '../services/issues.js?v=20260812b';
+import { AuthStore } from '../services/auth.js?v=20260812b';
+import { icon } from '../core/icons.js?v=20260812b';
+import { getPersonName } from '../mock/index.js?v=20260812b';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260812b';
+import { badgeHtml } from './badge.js?v=20260812b';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -28,6 +28,21 @@ const TYPE_COLORS = {
   proposal: '#2563EB',
   question: '#6B7280',
 };
+
+// 内联徽章深色亮色映射（深色下提亮一档，由 html.theme-dark [style*="--acc-bg-dark"] 规则应用）
+const TYPE_COLORS_DARK = {
+  bug: '#F87171',
+  enhancement: '#FBBF24',
+  proposal: '#60A5FA',
+  question: '#94A3B8',
+};
+
+// 内联徽章双套色：日 = 原色 15% 透明底 + 原色字；夜 = 亮色 24% 透明底 + 亮色字
+function typeBadgeStyle(t) {
+  const c = TYPE_COLORS[t] || '#6B7280';
+  const dc = TYPE_COLORS_DARK[t] || '#94A3B8';
+  return `background:${c}15;color:${c};--acc-bg-dark:${dc}24;--acc-text-dark:${dc}`;
+}
 
 let _filterState = { status: 'all', scope: 'all', type: 'all', milestone: 'all', keyword: '' };
 
@@ -107,7 +122,7 @@ export function renderIssueList() {
 
 function renderIssueRow(issue) {
   const typeBadges = (issue.types || []).map(t =>
-    `<span class="badge" style="background:${(TYPE_COLORS[t] || '#6B7280')}15;color:${TYPE_COLORS[t] || '#6B7280'}">${TYPE_LABELS[t] || t}</span>`
+    `<span class="badge" style="${typeBadgeStyle(t)}">${TYPE_LABELS[t] || t}</span>`
   ).join('');
 
   const statusBadge = issue.status === 'open'

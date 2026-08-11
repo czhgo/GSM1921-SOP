@@ -3,9 +3,88 @@
 //  constants.js — 纯静态常量（角色颜色 / 活动类别颜色 / 标签）
 // ════════════════════════════════════════════════════════════════
 
+// ── 内联标签深色适配：深色三件套自动生成 ──────────────────────────
+// 深色模式下内联样式（background/color/border 浅底深字）不随主题反转，
+// 此处按「同色系提亮一档」为每个颜色条目补 bgDark/textDark/borderDark，
+// 由 JS 模板写入 --acc-bg-dark/--acc-text-dark/--acc-border-dark 变量，
+// CSS html.theme-dark [style*="--acc-bg-dark"] 规则完成深色覆盖（与 badge--* 深色语义平行）。
+const _TEXT_DARK_MAP = {
+  '#991B1B': '#F87171', '#A16207': '#FBBF24', '#4B5563': '#94A3B8',
+  '#B91C1C': '#F87171', '#C2410C': '#FB923C', '#0369A1': '#38BDF8',
+  '#7C3AED': '#A78BFA', '#6B7280': '#94A3B8', '#0E7490': '#22D3EE',
+  '#4F46E5': '#818CF8', '#22C55E': '#4ADE80', '#0EA5E9': '#38BDF8',
+  '#2563EB': '#60A5FA',
+  // 各组件内联标签补充映射（d8 深色适配：阶段徽章/看板头/操作按钮等）
+  '#1D4ED8': '#60A5FA', '#047857': '#34D399', '#92400E': '#FBBF24',
+  '#d97706': '#FBBF24', '#3b82f6': '#60A5FA', '#10b981': '#34D399',
+  '#9B0000': '#F87171', '#16A34A': '#4ADE80',
+  // 表态组件/状态图标补充（d10 全局扫尾：reactions 选中态 / toast 状态色等）
+  '#059669': '#34D399', '#DC2626': '#F87171',
+  // 强调色补充（主题色个性化可选色中的亮色，本身已亮，深色下保持自身）
+  '#7DD3FC': '#7DD3FC', '#94a3b8': '#94a3b8',
+};
+function _hexToRgbStr(hex) {
+  const h = hex.replace('#', '');
+  return `${parseInt(h.slice(0, 2), 16)}, ${parseInt(h.slice(2, 4), 16)}, ${parseInt(h.slice(4, 6), 16)}`;
+}
+function _applyDark(map) {
+  const out = {};
+  for (const [k, v] of Object.entries(map)) {
+    const d = _TEXT_DARK_MAP[v.text] || '#CBD5E1';
+    out[k] = { ...v, bgDark: `rgba(${_hexToRgbStr(d)}, 0.16)`, textDark: d, borderDark: `rgba(${_hexToRgbStr(d)}, 0.35)` };
+  }
+  return out;
+}
+
+/**
+ * 为颜色对象映射表补深色三件套（bgDark/textDark/borderDark）——供组件内联标签使用，
+ * 与 CSS `html.theme-dark [style*="--acc-bg-dark"]` 覆盖规则配套。
+ * @param {Object<string,{bg:string,text:string,border:string}>} map
+ * @returns 深色三件套增强版映射表
+ */
+export function applyDark(map) {
+  return _applyDark(map);
+}
+
+/**
+ * accent hex → 深色三件套内联变量串（标签/按钮统一深色方案：16% 透明提亮底 + 提亮字 + 35% 提亮边框）。
+ * @param {string} hex — 日间文字色（如 '#B91C1C'）
+ * @returns {string} — '--acc-bg-dark:...;--acc-text-dark:...;--acc-border-dark:...;'
+ */
+export function accDarkVars(hex) {
+  const p = accDarkParts(hex);
+  return `--acc-bg-dark:${p.bg};--acc-text-dark:${p.text};--acc-border-dark:${p.border};`;
+}
+
+/**
+ * accent hex → 深色三件套分量（供模板按需取用 bg/text/border）。
+ * @param {string} hex — 日间文字色
+ * @returns {{ bg:string, text:string, border:string }}
+ */
+export function accDarkParts(hex) {
+  const d = _TEXT_DARK_MAP[hex] || '#CBD5E1';
+  return {
+    bg: `rgba(${_hexToRgbStr(d)}, 0.16)`,
+    text: d,
+    border: `rgba(${_hexToRgbStr(d)}, 0.35)`,
+  };
+}
+
+/**
+ * 内联实色圆点深色提亮（d9）：深色系 hex → 同色系提亮色；本身已亮的色（500 色阶等）保持原色，
+ * 深色下无需提亮。配合 styles.css `html.theme-dark [style*="--acc-dot-dark"]` 覆盖规则。
+ * @param {string} hex — 日间圆点背景色（深色文字色或亮色均可）
+ * @returns {string} — '--acc-dot-dark:<提亮色>;'
+ */
+export function dotDarkVars(hex) {
+  // 映射表 key 大小写混用（#d97706 小写 / #9B0000 混合），归一化后查询避免漏配
+  const d = _TEXT_DARK_MAP[hex] || _TEXT_DARK_MAP[hex.toUpperCase()] || _TEXT_DARK_MAP[hex.toLowerCase()] || hex;
+  return `--acc-dot-dark:${d};`;
+}
+
 // ── 角色颜色 ────────────────────────────────────────────────────
 
-export const ROLE_COLORS = {
+export const ROLE_COLORS = _applyDark({
   'deputy-secretary':  { bg: 'rgba(185, 28, 28, 0.10)',   text: '#B91C1C',  border: 'rgba(185, 28, 28, 0.30)' },  // 党建红（同书记）
   leader:              { bg: 'rgba(34, 197, 94, 0.15)',  text: '#22C55E',  border: 'rgba(34, 197, 94, 0.40)' },  // 翠绿#22C55E
   commissioner:        { bg: 'rgba(194, 65, 12, 0.15)',  text: '#C2410C',  border: 'rgba(194, 65, 12, 0.30)' },  // 同纪检#C2410C
@@ -18,12 +97,12 @@ export const ROLE_COLORS = {
   initiator:           { bg: 'rgba(79, 70, 229, 0.10)', text: '#4F46E5',  border: 'rgba(79, 70, 229, 0.30)' },  // 靛蓝#4F46E5（indigo-600，发起人）
   all:                 { bg: 'rgba(14, 116, 144, 0.08)',  text: '#0E7490',  border: 'rgba(14, 116, 144, 0.20)' },
   secretary:           { bg: 'rgba(185, 28, 28, 0.10)',   text: '#B91C1C',  border: 'rgba(185, 28, 28, 0.30)' },  // 党建红（不动）
-};
+});
 
 // ── 活动类别颜色（两大类：三会一课=党建红 / 主题党日=党建金）──
 // 书记 2026-07-31 指示：活动顶层分类为两大类，三会一课固定分类，主题党日使用正交维度
 
-const ACTIVITY_CAT_COLOR = {
+const ACTIVITY_CAT_COLOR = _applyDark({
   // ── 三会一课系（党建红 #CE1126）──
   'branch-party-meeting': { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 支部党员大会
   'branch-committee':      { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 支委会
@@ -33,7 +112,7 @@ const ACTIVITY_CAT_COLOR = {
   'theme-party':           { bg: 'rgba(255, 215, 0, 0.12)', text: '#A16207', border: 'rgba(255, 215, 0, 0.35)' },  // 主题党日
   // ── 默认 ──
   'default':               { bg: 'rgba(107, 114, 128, 0.08)', text: '#4B5563', border: 'rgba(107, 114, 128, 0.25)' },
-};
+});
 
 /**
  * scenarioId → 活动类别键 映射

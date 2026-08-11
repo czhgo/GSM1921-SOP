@@ -5,20 +5,20 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../core/state.js?v=20260811d';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260811d';
-import { _fmtChinese, showToast } from '../core/utils.js?v=20260811d';
-import { icon } from '../core/icons.js?v=20260811d';
-import { PEOPLE, getPersonById } from '../mock/index.js?v=20260811d';
-import { BranchService } from '../services/runtime.js?v=20260811d';
-import { AuthStore } from '../services/auth.js?v=20260811d';
-import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260811d';
-import { badgeHtml } from './badge.js?v=20260811d';
-import { persist } from '../core/data-adapter.js?v=20260811d';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260811d';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260811d';
-import { loadActivityReviews } from '../services/review.js?v=20260811d';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260811d';
+import { setState, STATE, getAppState } from '../core/state.js?v=20260812b';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260812b';
+import { _fmtChinese, showToast } from '../core/utils.js?v=20260812b';
+import { icon } from '../core/icons.js?v=20260812b';
+import { PEOPLE, getPersonById } from '../mock/index.js?v=20260812b';
+import { BranchService } from '../services/runtime.js?v=20260812b';
+import { AuthStore } from '../services/auth.js?v=20260812b';
+import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260812b';
+import { badgeHtml } from './badge.js?v=20260812b';
+import { persist } from '../core/data-adapter.js?v=20260812b';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260812b';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260812b';
+import { loadActivityReviews } from '../services/review.js?v=20260812b';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260812b';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -539,7 +539,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
 
   if (isSecretary && !isArchived) {
     html += '<div class="mt-3">';
-    html += `<button id="inspector-brand-toggle-btn" class=" text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="${isBrandActive ? 'background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);' : 'background:rgba(234,179,8,0.06);color:#92400E;border:1px solid rgba(234,179,8,0.25);'}">${isBrandActive ? icon('starFilled', { className: 'w-3 h-3' }) + ' 取消品牌认定' : icon('starOutline', { className: 'w-3 h-3' }) + ' 标记为品牌活动'}</button>`;
+    html += `<button id="inspector-brand-toggle-btn" class=" text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="${isBrandActive ? '--acc-bg-dark:rgba(251,191,36,0.16);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.35);background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);' : '--acc-bg-dark:rgba(251,191,36,0.10);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.25);background:rgba(234,179,8,0.06);color:#92400E;border:1px solid rgba(234,179,8,0.25);'}">${isBrandActive ? icon('starFilled', { className: 'w-3 h-3' }) + ' 取消品牌认定' : icon('starOutline', { className: 'w-3 h-3' }) + ' 标记为品牌活动'}</button>`;
     html += '</div>';
   }
 
@@ -547,15 +547,15 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   if (isArchived) {
     html += '<button id="inspector-restore-btn"'
       + ' class=" text-xs text-green-700 hover:text-green-900 px-3 py-1.5 rounded-lg transition-colors"'
-      + ' style="background:rgba(16,185,129,0.10);border:1px solid rgba(16,185,129,0.40);">恢复活动</button>';
+      + ' style="--acc-bg-dark:rgba(52,211,153,0.16);--acc-text-dark:#34D399;--acc-border-dark:rgba(52,211,153,0.35);background:rgba(16,185,129,0.10);border:1px solid rgba(16,185,129,0.40);">恢复活动</button>';
   } else {
     html += '<button id="inspector-archive-btn"'
       + ' class=" text-xs text-orange-700 hover:text-orange-900 px-3 py-1.5 rounded-lg transition-colors"'
-      + ' style="background:rgba(251,191,36,0.10);border:1px solid rgba(251,191,36,0.40);">归档活动</button>';
+      + ' style="--acc-bg-dark:rgba(251,191,36,0.16);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.35);background:rgba(251,191,36,0.10);border:1px solid rgba(251,191,36,0.40);">归档活动</button>';
   }
   html += '<button id="inspector-delete-btn"'
     + ' class=" text-xs text-red-700 hover:text-red-900 px-3 py-1.5 rounded-lg transition-colors"'
-    + ' style="background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.40);">删除活动</button>';
+    + ' style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;--acc-border-dark:rgba(248,113,113,0.35);background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.40);">删除活动</button>';
   html += '</div>';
 
   if (!cardsEl) return;

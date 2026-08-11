@@ -1227,6 +1227,9 @@ textarea.input-flat {
   box-shadow: 0 0 0 1px var(--neutral-200);
   cursor: pointer;
   padding: 0;
+  /* 色块前景色后备：金底 (#FFD700) 上深红字 8.16:1（原继承 currentColor 白字仅 1.28:1）；
+     色块当前无文字内容，此值防未来渲染图标/文字时对比不足；hover 色名 tooltip 已独立取色不受影响 */
+  color: #7A0010;
   transition: box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 
@@ -1297,6 +1300,8 @@ textarea.input-flat {
   box-shadow: 0 0 0 1px var(--neutral-200);
   cursor: pointer;
   padding: 0;
+  /* 同 .accent-swatch：色块前景色深红后备（金底可读），hover 色名 tooltip 独立取色 */
+  color: #7A0010;
   transition: box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 
@@ -5488,6 +5493,7 @@ label .text-red-500 {
   html.theme-dark .bg-amber-100   { background-color: rgba(251, 191, 36, 0.16) !important; }
   html.theme-dark .bg-emerald-100 { background-color: rgba(52, 211, 153, 0.16) !important; }
   html.theme-dark .bg-sky-100     { background-color: rgba(56, 189, 248, 0.16) !important; }
+  html.theme-dark .bg-cyan-100    { background-color: rgba(6, 182, 212, 0.16) !important; }
   html.theme-dark .hover\:bg-red-50:hover     { background-color: rgba(239, 68, 68, 0.10) !important; }
   html.theme-dark .hover\:bg-red-100:hover    { background-color: rgba(239, 68, 68, 0.16) !important; }
   html.theme-dark .hover\:bg-orange-50:hover  { background-color: rgba(249, 115, 22, 0.10) !important; }
@@ -5677,12 +5683,31 @@ label .text-red-500 {
     background: rgba(201, 162, 39, 0.16) !important;
     color: #E3C24F !important;
   }
+  /* about 页 FILM 时间码：米白半透明底 → 深色半透明底（残留 #FAF8F4 系） */
+  html.theme-dark .ab-tc {
+    background: rgba(20, 22, 26, 0.82);
+    border-color: var(--ab-paper-line);
+  }
 
   /* ── ④ 激活 Tab：内联 --tab-accent-bg 是浅色透明叠加，深色下直接覆盖为 深色底+强调色 ── */
   html.theme-dark .tab-btn-active {
     background: color-mix(in srgb, var(--tab-accent) 18%, #141D2F) !important;
     border-color: color-mix(in srgb, var(--tab-accent) 60%, #334155) !important;
     color: color-mix(in srgb, var(--tab-accent) 72%, white) !important;
+  }
+
+  /* 侧边栏激活导航（module-tab.active）：深色底 --surface-active #2A1A22 + 原红字 #CE1126 对比仅 2.94:1，
+     提亮为功能红 #F87171（与 badge--danger 深色语义一致） */
+  html.theme-dark .module-tab.active { color: #F87171 !important; }
+  html.theme-dark .module-tab.active svg { color: #F87171 !important; }
+
+  /* 侧边栏字号/主题三态按钮激活态：--primary-50 浅红未在深色反转（残留 #FEE2E2），
+     与 tab-btn-active 同构改为 深色底+提亮红字 */
+  html.theme-dark .font-size-btn.active,
+  html.theme-dark .theme-btn.active {
+    background: color-mix(in srgb, var(--primary-700) 18%, #141D2F) !important;
+    border-color: color-mix(in srgb, var(--primary-700) 60%, #334155) !important;
+    color: color-mix(in srgb, var(--primary-700) 72%, white) !important;
   }
 
 
@@ -5733,13 +5758,22 @@ label .text-red-500 {
 }
 
 /* 功能色「统一 tab 风格」规则（书记 2026-08-11 二审裁定 + 四审纠正）：所有 accent 一律「淡底深字」，
-   日间 = 12% 透明浅底深字（tab 风格）；夜间 = 完全不透明浅底深字（span 状态徽章风格，
-   如 bg-cyan-100+text-cyan-700，深色页面清晰可见），无边框不臃肿。
+   日间 = 12% 透明浅底深字（tab 风格）；夜间 = 完全不透明浅底深字（span 状态徽章风格，深色页面清晰可见），
+   无边框不臃肿。状态徽章色族（bg-*-100/text-*-700 等）由上方 html.theme-dark 色族规则覆盖为提亮底+亮字。
    日/夜两套由元素内联 --acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark（夜）驱动，
    !important 覆盖内联 background/color 完成夜间切换。 */
 html.theme-dark [style*="--acc-bg-dark"] {
   background: var(--acc-bg-dark) !important;
   color: var(--acc-text-dark) !important;
+  border-color: var(--acc-border-dark, #334155) !important;
+}
+/* 纯文字内联色：仅覆盖 color（不带背景元素，避免 --acc-bg-dark 规则误加背景） */
+html.theme-dark [style*="--acc-text-dark"] {
+  color: var(--acc-text-dark) !important;
+}
+/* 内联实色圆点（cal-activity-dot / task-dot / cal-mobile-dot / 图例点）：深色下实色提亮 */
+html.theme-dark [style*="--acc-dot-dark"] {
+  background: var(--acc-dot-dark) !important;
 }
 
 /* 语义圆点（task-dot / 活动色点等）浅色基础：色值本色，深色下由 html.theme-dark .tint-dot 提亮 */
@@ -5785,6 +5819,9 @@ html.theme-dark [style*="--acc-bg-dark"] {
   html.theme-dark .badge--neutral { background: #1E293B; color: #CBD5E1; }
   html.theme-dark .badge--brand   { background: rgba(251, 191, 36, 0.16); color: #FBBF24; border-color: rgba(251, 191, 36, 0.35); }
   html.theme-dark .badge--gold    { background: rgba(251, 191, 36, 0.20); color: #FDE68A; }
+  /* 裸 .badge（无变体类）：基础类硬编码浅灰底 #F3F4F6 + 深灰字 #6B7280 未反转（深色下残留浅块），
+     与 badge--neutral 同构覆盖 */
+  html.theme-dark .badge { background: #1E293B; color: #CBD5E1; }
 
   /* ── Tailwind 语义色补齐（T231 第二轮：700/500 级文字、50 级浅底、200 级边框）──
      深色下统一「深色半透明底 + 提亮文字」，与 badge--* 深色语义完全平行。 */
@@ -5815,6 +5852,7 @@ html.theme-dark [style*="--acc-bg-dark"] {
   html.theme-dark .text-teal-700   { color: #5EEAD4 !important; }
   html.theme-dark .text-violet-700 { color: #C4B5FD !important; }
   html.theme-dark .text-emerald-700{ color: #6EE7B7 !important; }
+  html.theme-dark .text-cyan-700   { color: #67E8F9 !important; }
   html.theme-dark .border-amber-200 { border-color: rgba(251, 191, 36, 0.35) !important; }
   html.theme-dark .border-blue-200  { border-color: rgba(96, 165, 250, 0.35) !important; }
   html.theme-dark .border-green-200 { border-color: rgba(52, 211, 153, 0.35) !important; }

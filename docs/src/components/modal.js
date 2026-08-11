@@ -83,15 +83,15 @@ export function closeModal(id) {
 export function openFormModal({ id, title, fields, onSubmit, submitLabel = '提交', accentColor = '#3B82F6', initialValues = {} }) {
   const fieldsHtml = fields.map(f => {
     const val = initialValues[f.key] || '';
-    const req = f.required ? '<span style="color:#EF4444;">*</span>' : '';
+    const req = f.required ? '<span style="--acc-text-dark:#F87171;color:#EF4444;">*</span>' : '';
     if (f.type === 'select') {
       const opts = (f.options || []).map(o => `<option value="${o.value}" ${val === o.value ? 'selected' : ''}>${o.label}</option>`).join('');
-      return `<div style="margin-bottom:14px;"><label style="display:block;font-weight:500;color:#374151;margin-bottom:4px;" class="text-body-sm">${f.label}${req}</label><select data-field="${f.key}" class="input-flat text-xs w-full">${opts}</select></div>`;
+      return `<div style="margin-bottom:14px;"><label style="--acc-text-dark:#CBD5E1;display:block;font-weight:500;color:#374151;margin-bottom:4px;" class="text-body-sm">${f.label}${req}</label><select data-field="${f.key}" class="input-flat text-xs w-full">${opts}</select></div>`;
     }
     if (f.type === 'textarea') {
-      return `<div style="margin-bottom:14px;"><label style="display:block;font-weight:500;color:#374151;margin-bottom:4px;" class="text-body-sm">${f.label}${req}</label><textarea data-field="${f.key}" rows="3" placeholder="${f.placeholder || ''}" class="input-flat-sm w-full" style="color:#374151;resize:vertical;">${val}</textarea></div>`;
+      return `<div style="margin-bottom:14px;"><label style="--acc-text-dark:#CBD5E1;display:block;font-weight:500;color:#374151;margin-bottom:4px;" class="text-body-sm">${f.label}${req}</label><textarea data-field="${f.key}" rows="3" placeholder="${f.placeholder || ''}" class="input-flat-sm w-full" style="--acc-text-dark:#CBD5E1;color:#374151;resize:vertical;">${val}</textarea></div>`;
     }
-    return `<div style="margin-bottom:14px;"><label style="display:block;font-weight:500;color:#374151;margin-bottom:4px;" class="text-body-sm">${f.label}${req}</label><input data-field="${f.key}" type="${f.type || 'text'}" value="${val}" placeholder="${f.placeholder || ''}" class="input-flat-sm w-full" style="color:#374151;" /></div>`;
+    return `<div style="margin-bottom:14px;"><label style="--acc-text-dark:#CBD5E1;display:block;font-weight:500;color:#374151;margin-bottom:4px;" class="text-body-sm">${f.label}${req}</label><input data-field="${f.key}" type="${f.type || 'text'}" value="${val}" placeholder="${f.placeholder || ''}" class="input-flat-sm w-full" style="--acc-text-dark:#CBD5E1;color:#374151;" /></div>`;
   }).join('');
 
   const bodyHtml = `

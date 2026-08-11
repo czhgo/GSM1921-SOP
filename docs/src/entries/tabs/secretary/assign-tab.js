@@ -2,15 +2,15 @@
 // entries/tabs/secretary/assign-tab.js — 书记工作台·赋权管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：常设赋权（设党小组组长）+ 项目赋权（organizer/deep）。
 
-import { showToast } from '../../../core/utils.js?v=20260811d';
-import { AuthStore } from '../../../services/auth.js?v=20260811d';
-import { getPersonById, PEOPLE } from '../../../mock/index.js?v=20260811d';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260811d';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260811d';
-import { ROLE_LABELS, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260811d';
-import { loadActivities } from '../../../services/activity.js?v=20260811d';
-import { badgeHtml } from '../../../components/badge.js?v=20260811d';
-import { TodoStore } from '../../../services/todo.js?v=20260811d';
+import { showToast } from '../../../core/utils.js?v=20260812b';
+import { AuthStore } from '../../../services/auth.js?v=20260812b';
+import { getPersonById, PEOPLE } from '../../../mock/index.js?v=20260812b';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260812b';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260812b';
+import { ROLE_LABELS, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260812b';
+import { loadActivities } from '../../../services/activity.js?v=20260812b';
+import { badgeHtml } from '../../../components/badge.js?v=20260812b';
+import { TodoStore } from '../../../services/todo.js?v=20260812b';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 
@@ -236,7 +236,7 @@ function renderProjectAuthRecords() {
         <div>
           <span class="text-sm font-medium text-gray-700">${personName}</span>
           <span class="text-xs text-gray-500 ml-2">${projectName}</span>
-          <span class="badge ml-2" style="background:#FEE2E2;color:#9B0000;">${roleLabel}</span>
+          <span class="badge ml-2" style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;--acc-border-dark:rgba(248,113,113,0.35);background:#FEE2E2;color:#9B0000;">${roleLabel}</span>
           <span class="text-xs text-gray-400 ml-2">${r.authorizedAt || ''}</span>
         </div>
         <button type="button" class="revoke-project-auth text-xs text-gray-400 hover:text-red-600" data-record-id="${r.id}">撤销</button>

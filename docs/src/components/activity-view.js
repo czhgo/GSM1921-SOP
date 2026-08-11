@@ -4,12 +4,12 @@
 // 日历视图（复用 calendar.js 渲染引擎）+ 只读活动详情（点击日历条目）。
 // 形态依据书记第四轮裁定：「书记的日历视图只要删去写入活动等功能，就可以提供很好的活动详情」。
 
-import { getAppState, setState } from '../core/state.js?v=20260811d';
-import { renderCalendarByActivities } from './calendar.js?v=20260811d';
-import { _fmtDate, _currentYearMonth, flashHighlight } from '../core/utils.js?v=20260811d';
-import { badgeHtml } from './badge.js?v=20260811d';
-import { ROLE_COLORS } from '../core/constants.js?v=20260811d';
-import { activityLifecycleBadgeHtml } from './inspector.js?v=20260811d';
+import { getAppState, setState } from '../core/state.js?v=20260812b';
+import { renderCalendarByActivities } from './calendar.js?v=20260812b';
+import { _fmtDate, _currentYearMonth, flashHighlight } from '../core/utils.js?v=20260812b';
+import { badgeHtml } from './badge.js?v=20260812b';
+import { ROLE_COLORS, dotDarkVars } from '../core/constants.js?v=20260812b';
+import { activityLifecycleBadgeHtml } from './inspector.js?v=20260812b';
 
 // 任务状态元数据（状态点 + 文案，轻量自包含，避免依赖 status-badge 全家桶）
 const _TASK_STATUS_META = {
@@ -131,9 +131,9 @@ function _renderDetail(state, activities, tasks, highlightId) {
             const st = _TASK_STATUS_META[t.status] || { label: t.status || '待处理', color: '#9CA3AF' };
             const rc = ROLE_COLORS[t.executor] || {};
             return `<li class="flex items-center gap-2 text-xs">
-              <span class="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${st.color};"></span>
+              <span class="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0" style="${dotDarkVars(st.color)}background:${st.color};"></span>
               <span class="flex-1 min-w-0 truncate text-gray-700">${t.title}</span>
-              ${rc.text ? `<span class="inline-block w-2 h-2 rounded-full flex-shrink-0" style="background:${rc.text};"></span>` : ''}
+              ${rc.text ? `<span class="inline-block w-2 h-2 rounded-full flex-shrink-0" style="--acc-dot-dark:${rc.textDark};background:${rc.text};"></span>` : ''}
             </li>`;
           }).join('')}
         </ul>

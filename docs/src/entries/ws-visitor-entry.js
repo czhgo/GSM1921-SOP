@@ -1,26 +1,26 @@
-﻿﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260811d';
-import { showToast, flashHighlight } from '../core/utils.js?v=20260811d';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260811d';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260811d';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260811d';
-import { NoticeStore } from '../services/notice.js?v=20260811d';
-import { SignupStore } from '../services/signup.js?v=20260811d';
-import { AuthStore } from '../services/auth.js?v=20260811d';
-import { PEOPLE } from '../mock/index.js?v=20260811d';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260811d';
-import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260811d';
-import { loadActiveInspectionRecords } from '../services/inspection.js?v=20260811d';
-import { inspectionToDisplay } from '../mock/index.js?v=20260811d';
-import { loadActivities } from '../services/activity.js?v=20260811d';
-import { getActivityTypeColors, ROLE_COLORS } from '../core/constants.js?v=20260811d';
-import { renderTabBar } from '../components/tab-bar.js?v=20260811d';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260811d';
-import { renderWorkOverview } from '../components/work-overview.js?v=20260811d';
-import { icon } from '../core/icons.js?v=20260811d';
-import { renderQueryView } from '../components/query-view.js?v=20260811d';
-import { renderTodoList } from '../components/todo-list.js?v=20260811d';
-import { TodoStore, seedTodos, VisitorTodoDeriver } from '../services/todo.js?v=20260811d';
-import { badgeHtml } from '../components/badge.js?v=20260811d';
+﻿﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260812b';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260812b';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260812b';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260812b';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260812b';
+import { NoticeStore } from '../services/notice.js?v=20260812b';
+import { SignupStore } from '../services/signup.js?v=20260812b';
+import { AuthStore } from '../services/auth.js?v=20260812b';
+import { PEOPLE } from '../mock/index.js?v=20260812b';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260812b';
+import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260812b';
+import { loadActiveInspectionRecords } from '../services/inspection.js?v=20260812b';
+import { inspectionToDisplay } from '../mock/index.js?v=20260812b';
+import { loadActivities } from '../services/activity.js?v=20260812b';
+import { getActivityTypeColors, ROLE_COLORS } from '../core/constants.js?v=20260812b';
+import { renderTabBar } from '../components/tab-bar.js?v=20260812b';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260812b';
+import { renderWorkOverview } from '../components/work-overview.js?v=20260812b';
+import { icon } from '../core/icons.js?v=20260812b';
+import { renderQueryView } from '../components/query-view.js?v=20260812b';
+import { renderTodoList } from '../components/todo-list.js?v=20260812b';
+import { TodoStore, seedTodos, VisitorTodoDeriver } from '../services/todo.js?v=20260812b';
+import { badgeHtml } from '../components/badge.js?v=20260812b';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'participant' });
 
@@ -362,8 +362,9 @@ function _personnelRoleLabel(role) {
 function _personnelRoleColor(role) {
   // 角色色统一来自 ROLE_COLORS（organizer=天蓝 / deep=紫 / participant=灰 / initiator=靛蓝），
   // 与活动类型暖色系（红/金）彻底区分，避免"红色太多、意义不明确"（书记 2026-08-01 决策）
+  // ROLE_COLORS 经 _applyDark 生成 bgDark/textDark/borderDark，一并输出做深色适配
   const c = ROLE_COLORS[role] || ROLE_COLORS.participant;
-  return `background:${c.bg};color:${c.text};border:1px solid ${c.border};`;
+  return `--acc-bg-dark:${c.bgDark};--acc-text-dark:${c.textDark};--acc-border-dark:${c.borderDark};background:${c.bg};color:${c.text};border:1px solid ${c.border};`;
 }
 
 function _renderProjectCard(project, currentUserId) {
@@ -708,7 +709,7 @@ function _renderMyInspection() {
         <div class="flex items-center justify-between mb-1.5">
           <div class="flex items-center gap-2">
             ${badgeHtml(sourceLabel, 'neutral')}
-            <span class="badge" style="background:${lc.bg};color:${lc.text};border:1px solid ${lc.border};">${levelLabel}</span>
+            <span class="badge" style="--acc-bg-dark:${lc.bgDark};--acc-text-dark:${lc.textDark};--acc-border-dark:${lc.borderDark};background:${lc.bg};color:${lc.text};border:1px solid ${lc.border};">${levelLabel}</span>
           </div>
           <span class="px-1.5 py-0.5 text-xs font-medium rounded-full ${statusCls}">${statusText}</span>
         </div>
@@ -759,7 +760,7 @@ function _renderTodoContent() {
     // 待办行动按钮金色系（书记 2026-08-01 决策：改金色，与完成绿呼应，红色收敛到品牌语义）
     // G3 修正（2026-08-08）：纯亮金 #FFD700 实底过艳 → 金浅底 rgba(255,215,0,0.12)+深金字；
     // 补金边框与详情按钮一致（G2-c 裁定「同页两按钮金感不一致」）
-    actionBtnStyle: 'background:rgba(255,215,0,0.12);color:#A16207;border:1px solid rgba(255,215,0,0.35);',
+    actionBtnStyle: '--acc-bg-dark:rgba(251,191,36,0.16);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.35);background:rgba(255,215,0,0.12);color:#A16207;border:1px solid rgba(255,215,0,0.35);',
   });
 
   const detailHtml = selectedTodo ? _renderTodoDetail(selectedTodo) : `
@@ -805,7 +806,7 @@ function _renderTodoDetail(todo) {
         ${todo.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.flow}</p>` : ''}
         ${todo.deadline ? `<div class="text-xs text-gray-500">最早截止：${todo.deadline}</div>` : ''}
         <div class="pt-3 border-t border-gray-100 flex gap-2">
-          <button class="visitor-todo-detail-action text-xs px-3 py-1.5 rounded-lg transition-colors" style="background:rgba(255,215,0,0.12);color:#A16207;border:1px solid rgba(255,215,0,0.35);">去处理</button>
+          <button class="visitor-todo-detail-action text-xs px-3 py-1.5 rounded-lg transition-colors" style="--acc-bg-dark:rgba(251,191,36,0.16);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.35);background:rgba(255,215,0,0.12);color:#A16207;border:1px solid rgba(255,215,0,0.35);">去处理</button>
         </div>
       </div>
     `;
@@ -838,7 +839,7 @@ function _renderTodoDetail(todo) {
       ${todo.deadline ? `<div class="text-xs text-gray-500">截止：${todo.deadline}</div>` : ''}
       <div class="text-xs text-gray-400">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
-        ${todo.actionType ? `<button class="visitor-todo-detail-action text-xs px-3 py-1.5 rounded-lg transition-colors" style="background:rgba(255,215,0,0.12);color:#A16207;border:1px solid rgba(255,215,0,0.35);">处理</button>` : ''}
+        ${todo.actionType ? `<button class="visitor-todo-detail-action text-xs px-3 py-1.5 rounded-lg transition-colors" style="--acc-bg-dark:rgba(251,191,36,0.16);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.35);background:rgba(255,215,0,0.12);color:#A16207;border:1px solid rgba(255,215,0,0.35);">处理</button>` : ''}
       </div>
     </div>
   `;

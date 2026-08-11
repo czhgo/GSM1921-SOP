@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  components/work-overview.js — 各角色「工作概况」tab
 //  书记 2026-08-10 裁定：全部角色新增工作概况 tab（组长走组员进展升级版）
@@ -9,19 +9,19 @@
 //  职责空间最小充分信息（P-015 知情边界）；本页禁用 SVG 图标（书记裁定）
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight } from '../core/utils.js?v=20260811d';
-import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260811d';
-import { IssueStore, REPORT_CATEGORIES } from '../services/issues.js?v=20260811d';
-import { AuthStore } from '../services/auth.js?v=20260811d';
-import { solidAccentStyle } from '../core/constants.js?v=20260811d';
-import { loadActivities } from '../services/activity.js?v=20260811d';
-import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260811d';
-import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260811d';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260811d';
-import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260811d';
-import { PEOPLE } from '../mock/people.js?v=20260811d';
-import { getPersonName } from '../mock/index.js?v=20260811d';
-import { AttendanceStatus } from '../core/domain.js?v=20260811d';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260812b';
+import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260812b';
+import { IssueStore, REPORT_CATEGORIES } from '../services/issues.js?v=20260812b';
+import { AuthStore } from '../services/auth.js?v=20260812b';
+import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260812b';
+import { loadActivities } from '../services/activity.js?v=20260812b';
+import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260812b';
+import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260812b';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260812b';
+import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260812b';
+import { PEOPLE } from '../mock/people.js?v=20260812b';
+import { getPersonName } from '../mock/index.js?v=20260812b';
+import { AttendanceStatus } from '../core/domain.js?v=20260812b';
 
 // 在办下钻详情目标（书记 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -147,7 +147,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
       deadline: g.deadline || '',
       html: `
         <button type="button" class="wo-inline-item flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-left w-full" data-wo-jump="todo" data-todo-key="${g.groupKey}">
-          <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${hasOverdue ? '#EF4444' : accent};"></span>
+          <span class="w-2 h-2 rounded-full flex-shrink-0" style="${dotDarkVars(hasOverdue ? '#EF4444' : accent)}background:${hasOverdue ? '#EF4444' : accent};"></span>
           <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${g.title}</span>
           ${g.count > 1 ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 tabular-nums flex-shrink-0">${g.count}</span>` : ''}
           ${hasOverdue ? `<span class="text-[11px] text-red-500 font-medium flex-shrink-0">含超期</span>` : ''}
@@ -388,10 +388,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('./activity-view.js?v=20260811d');
+    const { renderActivityView } = await import('./activity-view.js?v=20260812b');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260811d');
+    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260812b');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

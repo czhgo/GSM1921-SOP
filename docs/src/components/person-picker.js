@@ -7,9 +7,9 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE, getPersonById } from '../mock/index.js?v=20260811d';
-import { icon } from '../core/icons.js?v=20260811d';
-import { ROLE_LABELS, ACCENT_COLORS } from '../core/constants.js?v=20260811d';
+import { PEOPLE, getPersonById } from '../mock/index.js?v=20260812b';
+import { icon } from '../core/icons.js?v=20260812b';
+import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../core/constants.js?v=20260812b';
 
 // ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
 function hexToRgba(hex, alpha) {
@@ -37,13 +37,13 @@ const STAGE_LABELS = {
   '积极分子': '积极',
 };
 
-// ── 发展阶段颜色映射 ───────────────────────────────────────────
-const STAGE_COLORS = {
+// ── 发展阶段颜色映射（applyDark 补深色三件套，深色下由 --acc-*-dark 变量提亮）──
+const STAGE_COLORS = applyDark({
   '正式党员': { bg: 'rgba(206,17,38,0.08)', text: '#991B1B', border: 'rgba(206,17,38,0.20)' },
   '预备党员': { bg: 'rgba(59,130,246,0.08)', text: '#1D4ED8', border: 'rgba(59,130,246,0.20)' },
   '发展对象': { bg: 'rgba(245,158,11,0.08)', text: '#A16207', border: 'rgba(245,158,11,0.20)' },
   '积极分子': { bg: 'rgba(16,185,129,0.08)', text: '#047857', border: 'rgba(16,185,129,0.20)' },
-};
+});
 
 // ════════════════════════════════════════════════════════════════
 //  PersonPicker 类
@@ -437,7 +437,7 @@ export class PersonPicker {
           <span class="person-picker-item-info">
             <span class="person-picker-item-name-row">
               <span class="person-picker-item-name">${person.name}</span>
-              <span class="person-picker-item-stage" style="background:${stageColor.bg};color:${stageColor.text};border:1px solid ${stageColor.border};">${stageLabel}</span>
+              <span class="person-picker-item-stage" style="--acc-bg-dark:${stageColor.bgDark};--acc-text-dark:${stageColor.textDark};--acc-border-dark:${stageColor.borderDark};background:${stageColor.bg};color:${stageColor.text};border:1px solid ${stageColor.border};">${stageLabel}</span>
             </span>
             <span class="person-picker-item-meta">
               <span class="person-picker-item-meta-text">${person.studentId}</span>

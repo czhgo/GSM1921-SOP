@@ -51,6 +51,7 @@ export function showToast(type, message) {
 
   const toast = document.createElement('div');
   toast.style.cssText = [
+    `--acc-bg-dark:#1E293B`, `--acc-text-dark:#E2E8F0`, `--acc-border-dark:${accent}`,
     `background:${bg}`,
     `border:1px solid ${accent}`, `border-left:4px solid ${accent}`,
     'border-radius:var(--radius-md)',
@@ -73,7 +74,7 @@ export function showToast(type, message) {
   ].join(';');
   iconEl.textContent = icon;
   const msgEl = document.createElement('span');
-  msgEl.style.cssText = 'color:#1F2937;';
+  msgEl.style.cssText = 'color:#1F2937;--acc-text-dark:#E2E8F0;';
   msgEl.textContent = message;
   toast.appendChild(iconEl);
   toast.appendChild(msgEl);

@@ -8,18 +8,18 @@
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 // 2026-08-10 书记裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { showToast } from '../../../core/utils.js?v=20260811d';
-import { NoticeStore } from '../../../services/notice.js?v=20260811d';
-import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260811d';
-import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260811d';
-import { badgeHtml } from '../../../components/badge.js?v=20260811d';
-import { loadActivities } from '../../../services/activity.js?v=20260811d';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260811d';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260811d';
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260811d';
-import { AuthStore } from '../../../services/auth.js?v=20260811d';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260811d';
-import { getPersonName } from '../../../mock/index.js?v=20260811d';
+import { showToast } from '../../../core/utils.js?v=20260812b';
+import { NoticeStore } from '../../../services/notice.js?v=20260812b';
+import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260812b';
+import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260812b';
+import { badgeHtml } from '../../../components/badge.js?v=20260812b';
+import { loadActivities } from '../../../services/activity.js?v=20260812b';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260812b';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260812b';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260812b';
+import { AuthStore } from '../../../services/auth.js?v=20260812b';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260812b';
+import { getPersonName } from '../../../mock/index.js?v=20260812b';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -303,7 +303,7 @@ function renderProgressSection(people) {
     const totalActive = p.todoCount + p.activities.length + p.taskforces.length;
     return `
       <div class="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors">
-        <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${color.text};"></span>
+        <span class="w-2 h-2 rounded-full flex-shrink-0" style="--acc-dot-dark:${color.textDark};background:${color.text};"></span>
         <span class="text-sm font-semibold text-gray-800 w-24 flex-shrink-0">${p.label}</span>
         <span class="text-xs text-gray-500 flex-1 min-w-0 truncate">${p.names}</span>
         <span class="text-xs tabular-nums text-gray-600 flex-shrink-0">在办 ${totalActive}</span>

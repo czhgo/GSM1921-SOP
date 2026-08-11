@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  components/report-inbox.js — 待答复汇报收件箱（行内答复零跳转）
 //  书记 2026-08-10 裁定：待办内建「答复类」置顶（汇报答复为书记最高频动作）
@@ -8,11 +8,11 @@
 //  本组件禁用 SVG 图标（书记裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260811d';
-import { AuthStore } from '../services/auth.js?v=20260811d';
-import { showToast } from '../core/utils.js?v=20260811d';
-import { getPersonName } from '../mock/index.js?v=20260811d';
-import { solidAccentStyle } from '../core/constants.js?v=20260811d';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260812b';
+import { AuthStore } from '../services/auth.js?v=20260812b';
+import { showToast } from '../core/utils.js?v=20260812b';
+import { getPersonName } from '../mock/index.js?v=20260812b';
+import { solidAccentStyle } from '../core/constants.js?v=20260812b';
 
 /**
  * 待答复收件箱 HTML
@@ -110,7 +110,7 @@ function _renderInboxDetail(r, accent) {
       <div class="rounded-lg p-2 ${bg}">
         <div class="flex items-center gap-1.5 mb-1">
           <span class="text-xs font-medium text-gray-700">${icon} ${getPersonName(c.author) || '匿名'}</span>
-          ${c.kind === 'reply' ? '<span class="text-xs px-1 py-0.5 rounded font-medium" style="background:rgba(185,28,28,0.1);color:#B91C1C;">正式答复</span>' : ''}
+          ${c.kind === 'reply' ? '<span class="text-xs px-1 py-0.5 rounded font-medium" style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;background:rgba(185,28,28,0.1);color:#B91C1C;">正式答复</span>' : ''}
           <span class="text-xs text-gray-400">${c.createdAt}</span>
         </div>
         <p class="text-xs text-gray-600 whitespace-pre-wrap">${c.body}</p>

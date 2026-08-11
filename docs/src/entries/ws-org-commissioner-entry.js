@@ -1,32 +1,35 @@
-﻿﻿import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260811d';
-import { BranchService } from '../services/runtime.js?v=20260811d';
-import { showToast, flashHighlight } from '../core/utils.js?v=20260811d';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260811d';
-import { AuthStore } from '../services/auth.js?v=20260811d';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260811d';
-import { solidAccentStyle } from '../core/constants.js?v=20260811d';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260811d';
-import { PersonPicker } from '../components/person-picker.js?v=20260811d';
-import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js?v=20260811d';
-import { mockDB, SourceType, ParticipationLevel, ReviewStatus } from '../core/domain.js?v=20260811d';
-import { persist } from '../core/data-adapter.js?v=20260811d';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260811d';
-import { renderTabBar } from '../components/tab-bar.js?v=20260811d';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260811d';
-import { renderWorkOverview } from '../components/work-overview.js?v=20260811d';
-import { renderQueryView } from '../components/query-view.js?v=20260811d';
-import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260811d';
-import { loadTaskforceReviews, addTaskforceReview } from '../services/review.js?v=20260811d';
-import { loadActivities } from '../services/activity.js?v=20260811d';
-import { icon } from '../core/icons.js?v=20260811d';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260811d';
-import { renderTodoList } from '../components/todo-list.js?v=20260811d';
-import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260811d';
-import { NoticeStore } from '../services/notice.js?v=20260811d';
-import { SignupStore, resolveSignupReviewer, SignupStatus } from '../services/signup.js?v=20260811d';
-import { badgeHtml } from '../components/badge.js?v=20260811d';
+﻿﻿import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260812b';
+import { BranchService } from '../services/runtime.js?v=20260812b';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260812b';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260812b';
+import { AuthStore } from '../services/auth.js?v=20260812b';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260812b';
+import { solidAccentStyle, accDarkVars } from '../core/constants.js?v=20260812b';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260812b';
+import { PersonPicker } from '../components/person-picker.js?v=20260812b';
+import { _personName, PEOPLE, inspectionToLong, getPersonById, getPersonName } from '../mock/index.js?v=20260812b';
+import { mockDB, SourceType, ParticipationLevel, ReviewStatus } from '../core/domain.js?v=20260812b';
+import { persist } from '../core/data-adapter.js?v=20260812b';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260812b';
+import { renderTabBar } from '../components/tab-bar.js?v=20260812b';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260812b';
+import { renderWorkOverview } from '../components/work-overview.js?v=20260812b';
+import { renderQueryView } from '../components/query-view.js?v=20260812b';
+import { loadInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260812b';
+import { loadTaskforceReviews, addTaskforceReview } from '../services/review.js?v=20260812b';
+import { loadActivities } from '../services/activity.js?v=20260812b';
+import { icon } from '../core/icons.js?v=20260812b';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260812b';
+import { renderTodoList } from '../components/todo-list.js?v=20260812b';
+import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260812b';
+import { NoticeStore } from '../services/notice.js?v=20260812b';
+import { SignupStore, resolveSignupReviewer, SignupStatus } from '../services/signup.js?v=20260812b';
+import { badgeHtml } from '../components/badge.js?v=20260812b';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'org-commissioner' });
+
+// 内联 accent 浅底深字按钮的深色三件套（配合 styles.css --acc-*-dark 覆盖规则）
+const _accVars = accDarkVars(accent);
 
 let _orgNavTarget = null; // { tfId, actId, view } URL 导航目标（跨重渲染保持，定位完成后清除）
 // "有待办必见待办"一次性消费标志（书记 2026-08-10 裁定）
@@ -119,7 +122,7 @@ function renderOrgUI(state) {
       { id: 'development', label: '发展数据', render: () => _renderDevelopmentContent(), groupLabel: '党建' },
       // 活动查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增；组织无活动 tab 由本组件承载）
       // 排序：按工作流节奏「看→做→查→收」，知情查看置于职责操作后、反馈前（书记 2026-08-11 裁定）
-      { id: 'activity-view', label: '活动查看', render: () => { const el = document.getElementById('org-tab-content'); if (el) return import('../components/activity-view.js?v=20260811d').then(m => m.renderActivityView(el, { highlightId: _orgNavTarget?.actId || null, onLocated: () => { _orgNavTarget = null; } })); }, groupLabel: '党建' },
+      { id: 'activity-view', label: '活动查看', render: () => { const el = document.getElementById('org-tab-content'); if (el) return import('../components/activity-view.js?v=20260812b').then(m => m.renderActivityView(el, { highlightId: _orgNavTarget?.actId || null, onLocated: () => { _orgNavTarget = null; } })); }, groupLabel: '党建' },
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('org-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('org-commissioner', 'u_org'); bindMyDispatchEvents(el, 'org-commissioner', 'u_org'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
@@ -382,14 +385,14 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
     kb.innerHTML = `
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="card rounded-xl p-0 overflow-hidden">
-          <div class="px-4 py-3 font-title-cn text-sm font-bold tf-section-head" style="--tint:#6366F1;color:var(--accent-indigo);">待审核 (${fp.length})</div>
+          <div class="px-4 py-3 font-title-cn text-sm font-bold tf-section-head" style="--tint:#6366F1;--acc-text-dark:#A5B4FC;color:var(--accent-indigo);">待审核 (${fp.length})</div>
           <div class="p-3 space-y-3 min-h-[120px]">
             ${fp.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无待审核专班</p>' :
               fp.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
           </div>
         </div>
         <div class="card rounded-xl p-0 overflow-hidden">
-          <div class="px-4 py-3 font-title-cn text-sm font-bold tf-section-head" style="--tint:#D97706;color:#D97706;">招募中 (${fr.length})</div>
+          <div class="px-4 py-3 font-title-cn text-sm font-bold tf-section-head" style="--tint:#D97706;--acc-text-dark:#FBBF24;color:#D97706;">招募中 (${fr.length})</div>
           <div class="p-3 space-y-3 min-h-[120px]">
             ${fr.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无招募中专班</p>' :
               fr.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
@@ -405,7 +408,7 @@ function _renderTaskforceContent(pending, recruiting, active, activities) {
       </div>
       ${fc.length > 0 ? `
       <details class="card rounded-xl p-0 overflow-hidden">
-        <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none tf-section-head" style="--tint:#3B82F6;color:var(--accent-blue);">已完结 (${fc.length})</summary>
+        <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none tf-section-head" style="--tint:#3B82F6;--acc-text-dark:#60A5FA;color:var(--accent-blue);">已完结 (${fc.length})</summary>
         <div class="p-3 space-y-3">
           ${fc.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
         </div>
@@ -961,6 +964,8 @@ async function _dissolveTaskforce(tf) {
 function _renderTfCard(t, statusLabel, statusColor) {
   const filled = t.members.filter(m => m.personId).length;
   const color = statusColor[t.status] || '#6B7280';
+  // 内联徽章深色亮色映射（深色下提亮一档，由 html.theme-dark [style*="--acc-bg-dark"] 规则应用）
+  const darkColor = { pending_review: '#A5B4FC', recruiting: '#FBBF24', active: '#34D399', completed: '#60A5FA', archived: '#94A3B8', draft: '#94A3B8' }[t.status] || '#94A3B8';
   // 招募状态流转按钮：recruiting → active → archived
   let statusBtn = '';
   if (t.status === 'recruiting') {
@@ -972,7 +977,7 @@ function _renderTfCard(t, statusLabel, statusColor) {
     <div class="kanban-card p-4 rounded-xl bg-white cursor-pointer tf-store-card hover:shadow-sm transition-shadow" data-tf-id="${t.id}">
       <div class="flex items-start justify-between gap-2 mb-2">
         <span class="text-sm font-semibold text-gray-800 leading-snug">${t.name}</span>
-        <span class="badge" style="background:${color}15;color:${color};">${statusLabel[t.status] || t.status}</span>
+        <span class="badge" style="background:${color}15;color:${color};--acc-bg-dark:${darkColor}24;--acc-text-dark:${darkColor};">${statusLabel[t.status] || t.status}</span>
       </div>
       <p class="text-xs text-gray-500 mb-2 line-clamp-2">${t.task}</p>
       <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
@@ -1336,8 +1341,8 @@ function _renderDevelopmentContent() {
           const progressDots = STAGE_ORDER.map((s, i) => {
             const dotColor = i <= stageIdx ? sc.dot : '#E5E7EB';
             const isCurrent = i === stageIdx;
-            return `<span style="width:${isCurrent ? '10px' : '6px'};height:${isCurrent ? '10px' : '6px'};border-radius:50%;background:${dotColor};display:inline-block;transition:all 0.2s;"></span>`;
-          }).join('<span style="width:12px;height:1.5px;background:#E5E7EB;display:inline-block;vertical-align:middle;"></span>');
+            return `<span style="--acc-dot-dark:${i <= stageIdx ? sc.dot : '#334155'};width:${isCurrent ? '10px' : '6px'};height:${isCurrent ? '10px' : '6px'};border-radius:50%;background:${dotColor};display:inline-block;transition:all 0.2s;"></span>`;
+          }).join('<span style="--acc-bg-dark:#334155;width:12px;height:1.5px;background:#E5E7EB;display:inline-block;vertical-align:middle;"></span>');
 
           return `
             <div class="p-4 rounded-xl bg-white border border-gray-50 hover:shadow-sm transition-shadow">
@@ -1618,7 +1623,7 @@ function _renderOrgInspectionContent() {
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">专班考察上传</h3>
-        <button class="btn-md" id="btn-org-upload-insp" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_orgInspFormVisible ? '收起表单' : '上传考察表单'}</button>
+        <button class="btn-md" id="btn-org-upload-insp" style="${_accVars}background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_orgInspFormVisible ? '收起表单' : '上传考察表单'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表</div>
       ${formHtml}

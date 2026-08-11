@@ -1,9 +1,9 @@
-﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿// role: [工程师]+[AI]
 // role-hierarchy.js — 8角色层级可视化组件
 // 渲染：党支书(顶) → 纵线三委员+横线三党小组组长(中) → 成员+组织者+深度参与者平级(底)
 
-import { ROLE_LABELS } from '../core/constants.js?v=20260811d';
-import { getBasePath } from '../core/utils.js?v=20260811d';
+import { ROLE_LABELS } from '../core/constants.js?v=20260812b';
+import { getBasePath } from '../core/utils.js?v=20260812b';
 
 const ROLE_DATA = {
   secretary: {

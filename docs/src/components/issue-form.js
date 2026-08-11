@@ -1,11 +1,11 @@
 ﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // issue-form.js — 反馈新建表单
 
-import { IssueStore } from '../services/issues.js?v=20260811d';
-import { AuthStore } from '../services/auth.js?v=20260811d';
-import { showToast } from '../core/utils.js?v=20260811d';
-import { icon } from '../core/icons.js?v=20260811d';
-import { badgeHtml } from './badge.js?v=20260811d';
+import { IssueStore } from '../services/issues.js?v=20260812b';
+import { AuthStore } from '../services/auth.js?v=20260812b';
+import { showToast } from '../core/utils.js?v=20260812b';
+import { icon } from '../core/icons.js?v=20260812b';
+import { badgeHtml } from './badge.js?v=20260812b';
 
 const SCOPE_OPTIONS = [
   { value: 'permanent', label: '底层架构' },
@@ -15,10 +15,10 @@ const SCOPE_OPTIONS = [
 ];
 
 const TYPE_OPTIONS = [
-  { value: 'bug', label: '缺陷', color: '#CE1126' },
-  { value: 'enhancement', label: '增强', color: '#A16207' },
-  { value: 'proposal', label: '提案', color: '#2563EB' },
-  { value: 'question', label: '疑问', color: '#6B7280' },
+  { value: 'bug', label: '缺陷', color: '#CE1126', darkColor: '#F87171' },
+  { value: 'enhancement', label: '增强', color: '#A16207', darkColor: '#FBBF24' },
+  { value: 'proposal', label: '提案', color: '#2563EB', darkColor: '#60A5FA' },
+  { value: 'question', label: '疑问', color: '#6B7280', darkColor: '#94A3B8' },
 ];
 
 /** 获取当前登录用户 personId（plan 中为 AuthStore.getCurrentPersonId，修正为实际 API） */
@@ -65,7 +65,7 @@ export function renderIssueForm() {
               ${TYPE_OPTIONS.map(t => `
                 <label class="flex items-center gap-2 text-xs cursor-pointer font-sans">
                   <input type="checkbox" name="form-type" value="${t.value}" class="rounded">
-                  <span class="badge" style="background:${t.color}15;color:${t.color}">${t.label}</span>
+                  <span class="badge" style="background:${t.color}15;color:${t.color};--acc-bg-dark:${t.darkColor}24;--acc-text-dark:${t.darkColor}">${t.label}</span>
                 </label>
               `).join('')}
             </div>

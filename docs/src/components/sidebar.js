@@ -1,16 +1,16 @@
-﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // components/sidebar.js — 共享侧边栏（角色单页制 v2）
 // 2026-07-29: 角色单页制重构——合并党建/党务为"工作台"单入口
 // - 移除 '党务管理' / '人员管理' 独立入口
 // - '党建工作台' → '工作台'（角色自适应跳转）
 // - 帮助/关于移入主导航区
 
-import { AuthStore } from '../services/auth.js?v=20260811d';
-import { getBasePath } from '../core/utils.js?v=20260811d';
-import { icon } from '../core/icons.js?v=20260811d';
-import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260811d';
-import { bindWorkspacePopover } from './workspace-popover.js?v=20260811d';
-import { getThemePreference, setThemePreference, initTheme } from '../core/theme.js?v=20260811d';
+import { AuthStore } from '../services/auth.js?v=20260812b';
+import { getBasePath } from '../core/utils.js?v=20260812b';
+import { icon } from '../core/icons.js?v=20260812b';
+import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260812b';
+import { bindWorkspacePopover } from './workspace-popover.js?v=20260812b';
+import { getThemePreference, setThemePreference, initTheme } from '../core/theme.js?v=20260812b';
 
 function getNavItems() {
   const base = getBasePath();

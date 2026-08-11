@@ -1,22 +1,22 @@
-﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿// role: [工程师]+[AI]
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../components/sidebar.js?v=20260811d';
-import { renderHeader } from '../components/header.js?v=20260811d';
-import { BranchService } from '../services/runtime.js?v=20260811d';
-import { mockDB } from '../core/domain.js?v=20260811d';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260811d';
-import { NoticeStore } from '../services/notice.js?v=20260811d';
-import { SignupStore } from '../services/signup.js?v=20260811d';
-import { AuthStore } from '../services/auth.js?v=20260811d';
-import { getPersonById } from '../mock/index.js?v=20260811d';
-import { getBasePath } from '../core/utils.js?v=20260811d';
-import { getActivityTypeColors } from '../core/constants.js?v=20260811d';
-import { badgeHtml } from '../components/badge.js?v=20260811d';
-import { enhanceSelects } from '../components/custom-select.js?v=20260811d';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260811d';
-import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260811d';
+import { renderSidebar } from '../components/sidebar.js?v=20260812b';
+import { renderHeader } from '../components/header.js?v=20260812b';
+import { BranchService } from '../services/runtime.js?v=20260812b';
+import { mockDB } from '../core/domain.js?v=20260812b';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260812b';
+import { NoticeStore } from '../services/notice.js?v=20260812b';
+import { SignupStore } from '../services/signup.js?v=20260812b';
+import { AuthStore } from '../services/auth.js?v=20260812b';
+import { getPersonById } from '../mock/index.js?v=20260812b';
+import { getBasePath } from '../core/utils.js?v=20260812b';
+import { getActivityTypeColors } from '../core/constants.js?v=20260812b';
+import { badgeHtml } from '../components/badge.js?v=20260812b';
+import { enhanceSelects } from '../components/custom-select.js?v=20260812b';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260812b';
+import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260812b';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -87,6 +87,9 @@ function renderActivity(id) {
   }
 
   const typeColor = ACTIVITY_TYPE_COLORS[act.type] || { color: '#6B7280' };
+  // 活动类型标签色：金系用深金 text（浅底可读），红系回退 dot（_ACTIVITY_TYPE_BASE 无 color 字段）
+  const tagColor = typeColor.text || typeColor.dot || '#6B7280';
+  const tagColorDark = { '#CE1126': '#F87171', '#A16207': '#FBBF24', '#FFD700': '#FDE68A' }[tagColor] || '#94A3B8';
   const organizerName = act.organizer ? (getPersonById(act.organizer)?.name || act.organizer) : '—';
   const signups = SignupStore.getAll().filter(s => s.sourceType === 'activity' && s.sourceId === act.id);
   const assignments = Array.isArray(act.assignments) ? act.assignments : [];
@@ -97,7 +100,7 @@ function renderActivity(id) {
     <div class="mb-5 pb-5 border-b border-gray-100">
       <div class="flex items-center gap-2.5 mb-2 flex-wrap">
         ${statusBadge(act.status)}
-        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium" style="background:${typeColor.color}14;color:${typeColor.color};">${act.type || '活动'}</span>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium" style="background:${tagColor}14;color:${tagColor};--acc-bg-dark:${tagColorDark}24;--acc-text-dark:${tagColorDark};">${act.type || '活动'}</span>
         <span class="text-xs text-gray-400">${act.id}</span>
         <span class="ml-auto">${renderShareButtonHtml()}</span>
       </div>

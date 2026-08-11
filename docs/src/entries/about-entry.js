@@ -32,10 +32,10 @@
 // v6 变更：Section 重组（8→7）+ 13 节点横向时间轴（7 决策节点金色光晕）+ Exploration GSAP scrub 动画（替代 v5.2）+ T3 编程行话/自造隐喻清除
 // v4 变更：去党建vs党务对比/考勤/思想汇报/角色独立section；新增考察积极分子/核心口号/两种工作/探索工作/行百里者半九十
 
-import { renderSidebar } from '../components/sidebar.js?v=20260811d';
-import { renderHeader } from '../components/header.js?v=20260811d';
-import { getBasePath } from '../core/utils.js?v=20260811d';
-import { icon } from '../core/icons.js?v=20260811d';
+import { renderSidebar } from '../components/sidebar.js?v=20260812b';
+import { renderHeader } from '../components/header.js?v=20260812b';
+import { getBasePath } from '../core/utils.js?v=20260812b';
+import { icon } from '../core/icons.js?v=20260812b';
 
 // ── 公开访问：不检查登录 ──
 renderSidebar('about');
@@ -1223,7 +1223,7 @@ function renderAboutContent() {
       return html;
     } catch (e) {
       console.error(`[renderAboutContent] ${name} ERROR:`, e);
-      return `<div style="padding:20px;background:#fee;border:2px solid red;color:#900;">[${name} 渲染失败: ${e.message}]</div>`;
+      return `<div style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;--acc-border-dark:#F87171;padding:20px;background:#fee;border:2px solid red;color:#900;">[${name} 渲染失败: ${e.message}]</div>`;
     }
   };
 

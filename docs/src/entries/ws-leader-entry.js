@@ -1,34 +1,42 @@
-﻿﻿import { renderTabBar } from '../components/tab-bar.js?v=20260811d';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260811d';
-import { renderReportInboxHtml, bindReportInbox } from '../components/report-inbox.js?v=20260811d';
-import { renderWorkOverview } from '../components/work-overview.js?v=20260811d';
-import { renderTodoList } from '../components/todo-list.js?v=20260811d';
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260811d';
-import { BranchService } from '../services/runtime.js?v=20260811d';
-import { showToast, flashHighlight } from '../core/utils.js?v=20260811d';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260811d';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260811d';
-import { solidAccentStyle } from '../core/constants.js?v=20260811d';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260811d';
-import { attendanceToLong, inspectionToLong, PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260811d';
-import { PersonPicker } from '../components/person-picker.js?v=20260811d';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js?v=20260811d';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, ReviewStatus, REVIEW_STATUS_LABELS, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260811d';
-import { persist } from '../core/data-adapter.js?v=20260811d';
-import { loadMakeupTasks } from '../services/makeup.js?v=20260811d';
-import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260811d';
-import { loadInspectionRecords, loadActiveInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260811d';
-import { loadActivities } from '../services/activity.js?v=20260811d';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260811d';
-import { SignupStore } from '../services/signup.js?v=20260811d';
-import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../services/review.js?v=20260811d';
-import { renderMyDispatchTab, bindMyDispatchEvents, IssueStore } from '../services/issues.js?v=20260811d';
-import { TodoStore, TodoSourceType, TodoStatus, seedTodos } from '../services/todo.js?v=20260811d';
-import { AuthStore } from '../services/auth.js?v=20260811d';
-import { resolveVisibleTargets } from '../services/visibility.js?v=20260811d';
-import { badgeHtml } from '../components/badge.js?v=20260811d';
+﻿﻿import { renderTabBar } from '../components/tab-bar.js?v=20260812b';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260812b';
+import { renderReportInboxHtml, bindReportInbox } from '../components/report-inbox.js?v=20260812b';
+import { renderWorkOverview } from '../components/work-overview.js?v=20260812b';
+import { renderTodoList } from '../components/todo-list.js?v=20260812b';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260812b';
+import { BranchService } from '../services/runtime.js?v=20260812b';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260812b';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260812b';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260812b';
+import { solidAccentStyle, accDarkVars, accDarkParts } from '../core/constants.js?v=20260812b';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260812b';
+import { attendanceToLong, inspectionToLong, PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260812b';
+import { PersonPicker } from '../components/person-picker.js?v=20260812b';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js?v=20260812b';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, ReviewStatus, REVIEW_STATUS_LABELS, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260812b';
+import { persist } from '../core/data-adapter.js?v=20260812b';
+import { loadMakeupTasks } from '../services/makeup.js?v=20260812b';
+import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260812b';
+import { loadInspectionRecords, loadActiveInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260812b';
+import { loadActivities } from '../services/activity.js?v=20260812b';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260812b';
+import { SignupStore } from '../services/signup.js?v=20260812b';
+import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../services/review.js?v=20260812b';
+import { renderMyDispatchTab, bindMyDispatchEvents, IssueStore } from '../services/issues.js?v=20260812b';
+import { TodoStore, TodoSourceType, TodoStatus, seedTodos } from '../services/todo.js?v=20260812b';
+import { AuthStore } from '../services/auth.js?v=20260812b';
+import { resolveVisibleTargets } from '../services/visibility.js?v=20260812b';
+import { badgeHtml } from '../components/badge.js?v=20260812b';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'leader' });
+
+// ── 内联 accent 深色变量（浅底深字按钮的深色适配，配合 styles.css --acc-*-dark 覆盖规则）──
+const _accVars = accDarkVars(accent);
+const _dtSelDark = accDarkParts(accent);
+// 决策树选项按钮样式（日/夜两套）：选中 accent 浅底深字；未选中白底灰字（深色下深底浅字）
+const _dtBtnStyle = (selected) => selected
+  ? `--acc-bg-dark:${_dtSelDark.bg};--acc-text-dark:${_dtSelDark.text};--acc-border-dark:${_dtSelDark.border};background:${accentRgba};color:${accent};border:1.5px solid ${accentBorder};`
+  : `--acc-bg-dark:#1E293B;--acc-text-dark:#CBD5E1;--acc-border-dark:#334155;background:white;color:#6B7280;border:1.5px solid #E5E7EB;`;
 
 // ── 表单状态 ──────────────────────────────────────────────────
 let _attFormVisible = false;
@@ -106,7 +114,7 @@ function renderLeaderUI(state) {
       // 排序：按工作流节奏「做→查→收→知情」，知情视角置于职责操作后、专班查看前（书记 2026-08-11 裁定）
       { id: 'members', label: '组员进展', render: () => _renderMembersContent(), groupLabel: '党建' },
       // 专班查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增）
-      { id: 'tf-view', label: '专班查看', render: () => { const el = document.getElementById('leader-tab-content'); if (el) return import('../components/taskforce-view.js?v=20260811d').then(m => m.renderTaskforceView(el, { highlightId: _leaderNavTarget?.tfId || null, onLocated: () => { _leaderNavTarget = null; } })); }, groupLabel: '党建' },
+      { id: 'tf-view', label: '专班查看', render: () => { const el = document.getElementById('leader-tab-content'); if (el) return import('../components/taskforce-view.js?v=20260812b').then(m => m.renderTaskforceView(el, { highlightId: _leaderNavTarget?.tfId || null, onLocated: () => { _leaderNavTarget = null; } })); }, groupLabel: '党建' },
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('leader-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('leader', 'u_leader_1'); bindMyDispatchEvents(el, 'leader', 'u_leader_1'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
@@ -501,7 +509,7 @@ function _renderWriteContent(activities) {
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">活动写入</h3>
-        <button class="btn-md" id="btn-leader-create" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${panelVisible ? '收起面板' : '创建活动'}</button>
+        <button class="btn-md" id="btn-leader-create" style="${_accVars}background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${panelVisible ? '收起面板' : '创建活动'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点</div>
 
@@ -862,10 +870,10 @@ function _renderDecisionTreePanel() {
         const dotColor = isDone ? accent : isActive ? accent : '#D1D5DB';
         const lineColor = isDone ? accent : '#E5E7EB';
         return `
-          ${i > 0 ? `<div class="flex-1 h-0.5 rounded" style="background:${lineColor};"></div>` : ''}
+          ${i > 0 ? `<div class="flex-1 h-0.5 rounded" style="--acc-dot-dark:${lineColor === accent ? _dtSelDark.text : '#475569'};background:${lineColor};"></div>` : ''}
           <div class="flex items-center gap-1.5 flex-shrink-0">
-            <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold" style="background:${isDone || isActive ? accentRgba : '#F3F4F6'};color:${dotColor};border:1.5px solid ${dotColor};">${isDone ? '&#10003;' : i + 1}</div>
-            <span class="text-xs ${isActive ? 'font-bold' : ''}" style="color:${dotColor};">${s}</span>
+            <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold" style="--acc-bg-dark:${isDone || isActive ? _dtSelDark.bg : '#1E293B'};--acc-text-dark:${isDone || isActive ? _dtSelDark.text : '#94A3B8'};--acc-border-dark:${isDone || isActive ? _dtSelDark.border : '#475569'};background:${isDone || isActive ? accentRgba : '#F3F4F6'};color:${dotColor};border:1.5px solid ${dotColor};">${isDone ? '&#10003;' : i + 1}</div>
+            <span class="text-xs ${isActive ? 'font-bold' : ''}" style="--acc-text-dark:${dotColor === accent ? _dtSelDark.text : '#CBD5E1'};color:${dotColor};">${s}</span>
           </div>
         `;
       }).join('')}
@@ -879,7 +887,7 @@ function _renderDecisionTreePanel() {
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L1.map(opt => {
           const selected = L1 === opt.value;
-          return `<button class="dt-l1-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="background:${selected ? accentRgba : 'white'};color:${selected ? accent : '#6B7280'};border:1.5px solid ${selected ? accentBorder : '#E5E7EB'};cursor:pointer;">${opt.label}</button>`;
+          return `<button class="dt-l1-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
         }).join('')}
       </div>
     </div>
@@ -892,7 +900,7 @@ function _renderDecisionTreePanel() {
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.HOST_GROUPS.map(g => {
           const selected = hostGroup === g;
-          return `<button class="dt-host-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${g}" style="background:${selected ? accentRgba : 'white'};color:${selected ? accent : '#6B7280'};border:1.5px solid ${selected ? accentBorder : '#E5E7EB'};cursor:pointer;">${g}</button>`;
+          return `<button class="dt-host-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${g}" style="${_dtBtnStyle(selected)}cursor:pointer;">${g}</button>`;
         }).join('')}
       </div>
     </div>
@@ -906,7 +914,7 @@ function _renderDecisionTreePanel() {
       <div class="flex flex-wrap gap-2">
         ${l2Options.map(opt => {
           const selected = L2 === opt.value;
-          return `<button class="dt-l2-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="background:${selected ? accentRgba : 'white'};color:${selected ? accent : '#6B7280'};border:1.5px solid ${selected ? accentBorder : '#E5E7EB'};cursor:pointer;">${opt.label}</button>`;
+          return `<button class="dt-l2-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
         }).join('')}
       </div>
     </div>
@@ -919,7 +927,7 @@ function _renderDecisionTreePanel() {
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L3.map(opt => {
           const selected = L3 === opt.value;
-          return `<button class="dt-l3-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="background:${selected ? accentRgba : 'white'};color:${selected ? accent : '#6B7280'};border:1.5px solid ${selected ? accentBorder : '#E5E7EB'};cursor:pointer;">${opt.label}</button>`;
+          return `<button class="dt-l3-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
         }).join('')}
       </div>
     </div>
@@ -932,7 +940,7 @@ function _renderDecisionTreePanel() {
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L4.map(opt => {
           const selected = L4 === opt.value;
-          return `<button class="dt-l4-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="background:${selected ? accentRgba : 'white'};color:${selected ? accent : '#6B7280'};border:1.5px solid ${selected ? accentBorder : '#E5E7EB'};cursor:pointer;">${opt.label}</button>`;
+          return `<button class="dt-l4-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
         }).join('')}
       </div>
     </div>
@@ -1222,7 +1230,7 @@ function _renderAttendanceContent() {
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤上传</h3>
-        <button class="btn-md" id="btn-leader-upload-att" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_attFormVisible ? '收起表单' : '上传考勤表单'}</button>
+        <button class="btn-md" id="btn-leader-upload-att" style="${_accVars}background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_attFormVisible ? '收起表单' : '上传考勤表单'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表</div>
       ${formHtml}
@@ -1464,7 +1472,7 @@ function _renderInspectionContent() {
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考察上传</h3>
-        <button class="btn-md" id="btn-leader-upload-insp" style="background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_inspFormVisible ? '收起表单' : '上传考察表单'}</button>
+        <button class="btn-md" id="btn-leader-upload-insp" style="${_accVars}background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_inspFormVisible ? '收起表单' : '上传考察表单'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">党小组活动考察：党小组组长上传 → 纪检委员确认 → 录入考察总表</div>
       ${formHtml}

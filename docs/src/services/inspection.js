@@ -1,13 +1,13 @@
-﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  inspection.js — 考察记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType } from '../core/domain.js?v=20260811d';
-import { persist } from '../core/data-adapter.js?v=20260811d';
-import { INSPECTION_RECORDS } from '../mock/index.js?v=20260811d';
-import { TodoStore, TodoSourceType } from './todo.js?v=20260811d';
-import { loadActivities } from './activity.js?v=20260811d';
+import { mockDB, SourceType } from '../core/domain.js?v=20260812b';
+import { persist } from '../core/data-adapter.js?v=20260812b';
+import { INSPECTION_RECORDS } from '../mock/index.js?v=20260812b';
+import { TodoStore, TodoSourceType } from './todo.js?v=20260812b';
+import { loadActivities } from './activity.js?v=20260812b';
 
 export function loadInspectionRecords() {
   return mockDB.inspections.length > 0 ? [...mockDB.inspections] : [...INSPECTION_RECORDS];

@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  components/report-entry.js — 一键汇报入口（各工作台顶部常驻按钮）
 //  书记 2026-08-10 裁定：
@@ -9,11 +9,11 @@
 //  最小三成本：按钮常驻顶部（零搜寻），弹窗两步完成（选分类+填正文）
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../services/issues.js?v=20260811d';
-import { AuthStore } from '../services/auth.js?v=20260811d';
-import { showToast } from '../core/utils.js?v=20260811d';
-import { getPersonName } from '../mock/index.js?v=20260811d';
-import { solidAccentStyle } from '../core/constants.js?v=20260811d';
+import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../services/issues.js?v=20260812b';
+import { AuthStore } from '../services/auth.js?v=20260812b';
+import { showToast } from '../core/utils.js?v=20260812b';
+import { getPersonName } from '../mock/index.js?v=20260812b';
+import { solidAccentStyle } from '../core/constants.js?v=20260812b';
 
 /**
  * 一键汇报按钮 HTML（挂在 tab-bar extraRightHtml 右侧）

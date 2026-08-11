@@ -1,26 +1,26 @@
-﻿﻿import { renderTabBar } from '../components/tab-bar.js?v=20260811d';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260811d';
-import { renderWorkOverview } from '../components/work-overview.js?v=20260811d';
-import { AuthStore } from '../services/auth.js?v=20260811d';
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260811d';
-import { BranchService, isApiMode } from '../services/runtime.js?v=20260811d';
-import { showToast, flashHighlight } from '../core/utils.js?v=20260811d';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260811d';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260811d';
-import { solidAccentStyle } from '../core/constants.js?v=20260811d';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260811d';
-import { _personName } from '../mock/index.js?v=20260811d';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260811d';
-import { icon } from '../core/icons.js?v=20260811d';
-import { mockDB } from '../core/domain.js?v=20260811d';
-import { persist, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260811d';
-import { loadActivities } from '../services/activity.js?v=20260811d';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260811d';
-import { renderTodoList } from '../components/todo-list.js?v=20260811d';
-import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260811d';
-import { NoticeStore } from '../services/notice.js?v=20260811d';
-import { badgeHtml } from '../components/badge.js?v=20260811d';
-import { addExternalDispatch } from '../services/external-dispatch.js?v=20260811d';
+﻿﻿﻿import { renderTabBar } from '../components/tab-bar.js?v=20260812b';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260812b';
+import { renderWorkOverview } from '../components/work-overview.js?v=20260812b';
+import { AuthStore } from '../services/auth.js?v=20260812b';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260812b';
+import { BranchService, isApiMode } from '../services/runtime.js?v=20260812b';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260812b';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260812b';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260812b';
+import { solidAccentStyle } from '../core/constants.js?v=20260812b';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260812b';
+import { _personName } from '../mock/index.js?v=20260812b';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260812b';
+import { icon } from '../core/icons.js?v=20260812b';
+import { mockDB } from '../core/domain.js?v=20260812b';
+import { persist, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260812b';
+import { loadActivities } from '../services/activity.js?v=20260812b';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260812b';
+import { renderTodoList } from '../components/todo-list.js?v=20260812b';
+import { TodoStore, TodoSourceType, seedTodos } from '../services/todo.js?v=20260812b';
+import { NoticeStore } from '../services/notice.js?v=20260812b';
+import { badgeHtml } from '../components/badge.js?v=20260812b';
+import { addExternalDispatch } from '../services/external-dispatch.js?v=20260812b';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'prop-commissioner' });
 
@@ -310,21 +310,21 @@ function _renderTasksContent() {
   container.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(245,158,11,0.06);color:#d97706;border-bottom:2px solid rgba(245,158,11,0.15);">待接收 (${pending.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(251,191,36,0.10);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.25);background:rgba(245,158,11,0.06);color:#d97706;border-bottom:2px solid rgba(245,158,11,0.15);">待接收 (${pending.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
           ${pending.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无待接收任务</p>' :
             pending.map(t => _renderTaskCard(t)).join('')}
         </div>
       </div>
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(59,130,246,0.06);color:#3b82f6;border-bottom:2px solid rgba(59,130,246,0.15);">进行中 (${inProgress.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(96,165,250,0.10);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.25);background:rgba(59,130,246,0.06);color:#3b82f6;border-bottom:2px solid rgba(59,130,246,0.15);">进行中 (${inProgress.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
           ${inProgress.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无进行中任务</p>' :
             inProgress.map(t => _renderTaskCard(t)).join('')}
         </div>
       </div>
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(16,185,129,0.06);color:#10b981;border-bottom:2px solid rgba(16,185,129,0.15);">已提交 (${submitted.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(52,211,153,0.10);--acc-text-dark:#34D399;--acc-border-dark:rgba(52,211,153,0.25);background:rgba(16,185,129,0.06);color:#10b981;border-bottom:2px solid rgba(16,185,129,0.15);">已提交 (${submitted.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
           ${submitted.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无已提交任务</p>' :
             submitted.map(t => _renderTaskCard(t)).join('')}
@@ -407,14 +407,14 @@ function _renderKanbanContent(activities, propTf) {
   container.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(37,99,235,0.06);color:#2563eb;border-bottom:2px solid rgba(37,99,235,0.15);">待启动 (${pending.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(96,165,250,0.10);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.25);background:rgba(37,99,235,0.06);color:#2563eb;border-bottom:2px solid rgba(37,99,235,0.15);">待启动 (${pending.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
           ${pending.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无待启动项目</p>' :
             pending.map(item => _renderKanbanItem(item)).join('')}
         </div>
       </div>
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="background:rgba(59,130,246,0.06);color:#3b82f6;border-bottom:2px solid rgba(59,130,246,0.15);">进行中 (${active.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(96,165,250,0.10);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.25);background:rgba(59,130,246,0.06);color:#3b82f6;border-bottom:2px solid rgba(59,130,246,0.15);">进行中 (${active.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
           ${active.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无进行中项目</p>' :
             active.map(item => _renderKanbanItem(item, true)).join('')}
@@ -423,7 +423,7 @@ function _renderKanbanContent(activities, propTf) {
     </div>
     ${completed.length > 0 ? `
     <details class="card rounded-xl p-0 overflow-hidden">
-      <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none" style="background:rgba(107,114,128,0.06);color:#6B7280;border-bottom:2px solid rgba(107,114,128,0.15);">已归档 (${completed.length})</summary>
+      <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none" style="--acc-bg-dark:rgba(148,163,184,0.10);--acc-text-dark:#94A3B8;--acc-border-dark:rgba(148,163,184,0.25);background:rgba(107,114,128,0.06);color:#6B7280;border-bottom:2px solid rgba(107,114,128,0.15);">已归档 (${completed.length})</summary>
       <div class="p-3 space-y-2">
         ${completed.map(item => _renderKanbanItem(item)).join('')}
       </div>
@@ -1102,7 +1102,7 @@ function _showArchiveUploadModal() {
       const isImage = f.type && f.type.startsWith('image/');
       const thumb = isImage
         ? `<img src="${previewUrls[i]}" class="w-9 h-9 rounded object-cover border border-gray-200 flex-shrink-0" alt="" />`
-        : `<span class="w-9 h-9 rounded flex items-center justify-center flex-shrink-0" style="background:rgba(59,130,246,0.1);color:#3b82f6;">${icon('fileText', { className: 'w-4 h-4' })}</span>`;
+        : `<span class="w-9 h-9 rounded flex items-center justify-center flex-shrink-0" style="--acc-bg-dark:rgba(96,165,250,0.16);--acc-text-dark:#60A5FA;background:rgba(59,130,246,0.1);color:#3b82f6;">${icon('fileText', { className: 'w-4 h-4' })}</span>`;
       return `<div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
         ${thumb}
         <div class="flex-1 min-w-0">

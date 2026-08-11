@@ -1,10 +1,11 @@
 ﻿﻿// role: [工程师]+[AI]
 // reactions.js — Issue 表态聚合组件
 
-import { IssueStore } from '../services/issues.js?v=20260811d';
-import { AuthStore } from '../services/auth.js?v=20260811d';
-import { showToast } from '../core/utils.js?v=20260811d';
-import { icon } from '../core/icons.js?v=20260811d';
+import { IssueStore } from '../services/issues.js?v=20260812b';
+import { AuthStore } from '../services/auth.js?v=20260812b';
+import { showToast } from '../core/utils.js?v=20260812b';
+import { icon } from '../core/icons.js?v=20260812b';
+import { accDarkParts } from '../core/constants.js?v=20260812b';
 
 const REACTIONS = [
   { key: 'thumbsUp', icon: 'thumbsUp', label: '赞同', activeColor: '#059669' },
@@ -26,9 +27,11 @@ export function renderReactions(issue) {
       ${REACTIONS.map(r => {
         const list = issue.reactions?.[r.key] || [];
         const isActive = list.includes(currentUserId);
+        // 深色双套色：选中 = 提亮底/亮字；未选中 = 深灰底/亮灰字（配合 styles.css --acc-*-dark 规则）
+        const dk = isActive ? accDarkParts(r.activeColor) : null;
         const style = isActive
-          ? `background:${r.activeColor}20;color:${r.activeColor};border:1px solid ${r.activeColor}40;`
-          : `background:#F3F4F6;color:#6B7280;border:1px solid transparent;`;
+          ? `--acc-bg-dark:${dk.bg};--acc-text-dark:${dk.text};--acc-border-dark:${dk.border};background:${r.activeColor}20;color:${r.activeColor};border:1px solid ${r.activeColor}40;`
+          : `--acc-bg-dark:#1E293B;--acc-text-dark:#CBD5E1;--acc-border-dark:#334155;background:#F3F4F6;color:#6B7280;border:1px solid transparent;`;
         return `
           <button class="reaction-btn px-2 py-0.5 rounded-full text-xs flex items-center gap-1 transition-colors hover:bg-gray-100"
                   style="${style}"
