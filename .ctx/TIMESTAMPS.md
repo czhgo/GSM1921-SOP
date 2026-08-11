@@ -28,7 +28,7 @@ dynamic_role:
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
 | README.md | 2026-08-10 | [用户]+[AI] | 对外门面（设计理念章重构） |
-| CLAUDE.md | 2026-08-06 | [工程师]+[AI] | Harness（甲乙丙三部） |
+| CLAUDE.md | 2026-08-11 | [工程师]+[AI] | Harness（甲乙丙三部 + H8 反馈学习闭环） |
 | CHECKLIST.md | — | — | 🗑️ 已删除（迁移至 content/03_doc_system/CHECKLIST.md） |
 | LICENSE | 2026-02-17 | [用户] | 开源许可 |
 | .gitignore | 2026-04-06 | [工具] | Git 忽略 |
@@ -93,10 +93,10 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-08-10 | [工程师]+[AI] | 运行标准（含 §1.3 分层体系索引 + §1.4 一致性检查规范 + §12 文件命名规范 + §11 反论表述审核标准 + §16 吸收外部输入流程 + §17 周期性任务与自动唤醒机制，W4 含五专项） |
+| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-08-11 | [工程师]+[AI] | 运行标准（含 §1.3 分层体系索引 + §1.4 一致性检查规范 + §12 文件命名规范 + §11 反论表述审核标准 + §16 吸收外部输入流程 + §17 周期性任务与自动唤醒机制，W4 含五专项） |
 | content/03_doc_system/USAGE_POLICY.md | 2026-08-05 | [工程师]+[AI] | 使用规范（术语 §一 + Emoji §二） |
 | content/03_doc_system/ARCHITECTURE.md | 2026-08-03 | [工程师]+[AI] | 核心架构说明（迁移自根目录 ARCHITECTURE.md） |
-| content/03_doc_system/DOC_MAP.md | 2026-08-05 | [工程师]+[AI] | 全局文档导航 |
+| content/03_doc_system/DOC_MAP.md | 2026-08-11 | [工程师]+[AI] | 全局文档导航 |
 | content/03_doc_system/SSOT_INDEX.md | 2026-08-05 | [工程师]+[AI] | 母本子本注册表 |
 | content/03_doc_system/SERVICE_CATALOG.md | 2026-08-05 | [工程师]+[AI] | 服务目录（v4.0 有机重组：清单总表+权限矩阵+权威源指针） |
 | content/03_doc_system/README.md | 2026-08-10 | [工程师]+[AI] | 03_doc_system 目录索引 |
@@ -106,7 +106,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/04_web_design/DESIGN_SYSTEM.md | 2026-08-05 | [工程师]+[AI] | 前端设计系统（含§一第2条"最小三成本"原则） |
+| content/04_web_design/DESIGN_SYSTEM.md | 2026-08-11 | [工程师]+[AI] | 前端设计系统（含§一第2条"最小三成本"原则） |
 | content/04_web_design/DATA_ARCHITECTURE.md | 2026-08-05 | [工程师]+[AI] | 数据架构设计（含§2.18-§2.20 待办任务数据模型） |
 | content/04_web_design/MODULE_UI_DESIGN.md | 2026-08-04 | [工程师]+[AI] | 模块界面设计 |
 | content/04_web_design/SOP_WEB.md | 2026-08-05 | [工程师]+[AI] | SOP-系统联动方法 |
@@ -117,7 +117,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/05_ai_coding/KNOWN_PITFALLS.md | 2026-08-04 | [工程师]+[AI] | 已知陷阱（含 §7 分层体系冲突记录） |
+| content/05_ai_coding/KNOWN_PITFALLS.md | 2026-08-11 | [工程师]+[AI] | 已知陷阱（含 §7 分层体系冲突记录 + §14 同区域连续编辑陷阱） |
 | content/05_ai_coding/README.md | 2026-07-21 | [工程师]+[AI] | 05_ai_coding 目录索引 |
 
 ## content/insights/ (经验沉淀)

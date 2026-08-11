@@ -2,7 +2,7 @@
 title: "2026年8月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-08-10"
+last_updated: "2026-08-11"
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -2431,3 +2431,17 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **⑩ 编辑经验固化（书记指令 2026-08-11）**：书记指出「§6.12 区域两次连续 Edit 时，编辑引擎曾将前次改写还原为原文——对同一区域多次编辑后须 Read 复核实际状态」是重要经验须固化。已沉淀至 KNOWN_PITFALLS §14「同区域连续编辑相互覆盖陷阱」（原则+判例+根因+纠正清单+与 §1/§9 区别+生效条件），并在 §8 原则级清单补充第 11 条；KNOWN_PITFALLS YAML last_updated → 2026-08-11、version 1.8→1.9
 - **变更文件**：`content/insights/工程演进与设计方法论.md`（本次 + commit 9cffeb8）、`CLAUDE.md`（9cffeb8：H7.4 门面避讳 + H1.2 简化）、`content/insights/党支部管理与实务经验沉淀.md`（9cffeb8：经验写法重构）、`content/05_ai_coding/KNOWN_PITFALLS.md`（§14 编辑经验固化 + §8 第11条 + YAML 1.9）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条，补记 9cffeb8）
 - **沉淀标签**：`[已沉淀: 工程演进与设计方法论 §7.1]` — 大规模经验沉淀文件（80+ 小节）的简并四分类（原则-判例重复/同命题双小节/项目特性规则归 Harness/细枝末节归日志）可作为「insights 简并」的可复用操作模式；已沉淀至 §7.1 Skill 检验旁（书记验收通过：简并空间执行完毕 + 好坏尺度改写样例确认后，2026-08-11）
+
+## T-214 insights 自我揭示重构 + 反馈学习闭环（spec 落地）（2026-08-11）
+
+**任务**：书记指令——「请根据 spec 执行！Use Skill: writing-plans」，按设计文档 `.trae/specs/2026-08-11-insights-self-revealing-and-feedback-loop-design.md` 执行：①文件2 自我揭示（去语境化/能力地图/章节功能化/删书记原话）；②反馈学习闭环机制三处落位（CLAUDE H8 / insights §7.1 / project-memory）；③一改具改。执行方式：Inline 会话内执行（书记选定）。本会话已按 writing-plans 生成的实现计划（`.trae/specs/2026-08-11-insights-self-revealing-implementation-plan.md`，13 Task 5 阶段）推进，Task 1-7 已于此前会话完成并各自 commit。
+**引用流程**：spec + writing-plans Skill + H2.1 一改具改 + H3 文件修改检查清单 + H8 反馈学习闭环（本次新增）+ KNOWN_PITFALLS §14（同区域连续编辑陷阱，全程串行编辑遵守）
+
+- **①Task 8 §6 实操判例去语境化（本会话完成）**：三处书记原话改客观命题——§6.25「确立依据（T223）：'党小组组长的活动写入中…必须彻查！！'」→「确立于排序统一彻查任务（T223，2026-08-09）」；§6.23「事件」原话块→客观事件描述（打卡化缺陷：完成仅状态翻转、系统沦为线上打卡软件，正确方向是集成线下/微信真实工作）；§6.19「对内自洽」原话→客观事件描述（notices/activities mock 跨文件信息不协调），出处保留为元数据。commit 0404f6b
+- **②Task 9 §7 表达与沉淀纪律（本会话完成）**：§7.4 T122 原话→「确立于零补丁识别评议任务（T122，2026-07-20）」；§7.5 T237 原话→「确立于讲解范式与元数据形态改造任务（T237，2026-08-09）」；§7.1 两处「泛化」→「可复用性/通用原则」（与新增规范禁词自洽）；**即时沉淀「去语境化写作规范」至 §7.1 末尾**（5 条：人类阅读定位/不留改写痕迹/判断路由或关系/判例支撑/生效条件）。commit 71d74c8
+- **③Task 10 一改具改（本会话完成）**：活跃文件旧标题引用同步——OPERATIONS_GUIDE §7.4 标题「§6 实操教训录」→「§6 实操判例」、DOC_MAP 文件2 内容描述→新功能化章节（信息组织/减负与取舍/上下文治理/系统与工作台设计/架构迁移/实操判例/表达与沉淀纪律）、DESIGN_SYSTEM「§4 系统工程与设计方法论」→「§4 系统与工作台设计」；三文件 YAML last_updated → 2026-08-11。日志类旧标题引用按 §3.6 历史不可变保留。commit 0670497
+- **④Task 11 CLAUDE H8（本会话完成）**：甲部温层新增 **H8 反馈学习闭环**（H5 之后、冷层之前，L469）：三环节（捕获=标记性质/沉淀=优先级/复用=元层索引+H3+project-memory）+ 沉淀优先级条款（01-05 → CLAUDE.md → insights）+ 优先级理由。commit 5d4e79c
+- **⑤Task 12 project-memory 优化（本会话完成，仓库外文件）**：校正过时指针——内容归属分流 §5.9→§5.10、仓库卫生闭环 §5.10→§5.11、同文件并行编辑条目追加 KNOWN_PITFALLS §14 指针；新增三条——反馈学习闭环 H8（含沉淀优先级）、insights 定位（人类阅读知识资产非 AI 活跃上下文）、去语境化写作规范（→ insights §7.1）
+- **⑥一改具改零残留验证**：全仓 Grep「系统工程与设计方法论/实操教训录/减负与删除的哲学/上下文治理的制度机制/架构迁移方法论/工程演进的技术原则」——活跃文件零残留（命中仅日志历史 + 文件2 自身内容描述，合法）；文件2「确立依据/书记原话」零残留；「泛化」仅存于 §7.1 禁词示例（规范正文）
+- **⑦变更文件**：`content/insights/工程演进与设计方法论.md`（本会话 + 此前 Task1-7 共 9 commit）、`CLAUDE.md`（H8）、`content/03_doc_system/OPERATIONS_GUIDE.md`（§7.4 标题 + YAML）、`content/03_doc_system/DOC_MAP.md`（内容描述 + YAML）、`content/04_web_design/DESIGN_SYSTEM.md`（§4 引用 + YAML）、`c:\Users\储子禾\.trae-cn\memory\projects\-d-GitHub-GSM1921-SOP\project_memory.md`（指针校正 + 3 新条目，仓库外）、`.ctx/TIMESTAMPS.md`（本会话同步）
+- **沉淀标签**：`[已沉淀: 工程演进与设计方法论 §7.1 去语境化写作规范]` — insights 内容标准（人类阅读知识资产/去语境化直接写通用表述不留痕迹/判断路由或关系/判例支撑），配合沉淀优先级（01-05 → CLAUDE → insights）构成反馈学习闭环的「沉淀」环节；已沉淀至 §7.1 + CLAUDE H8 + project-memory 三处落位
