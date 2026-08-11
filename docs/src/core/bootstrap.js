@@ -4,17 +4,17 @@
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../components/sidebar.js?v=20260811b';
-import { renderHeader } from '../components/header.js?v=20260811b';
-import { AuthStore } from '../services/auth.js?v=20260811b';
-import { IssueStore } from '../services/issues.js?v=20260811b';
-import { MilestoneStore } from '../services/milestones.js?v=20260811b';
-import { getAccentColors, resolveAccentRole } from './constants.js?v=20260811b';
-import { CrossPageState } from './cross-page-state.js?v=20260811b';
-import { getBasePath } from './utils.js?v=20260811b';
-import { enhanceSelects } from '../components/custom-select.js?v=20260811b';
-import { registerApiAdapter, setDataSource, init } from './data-adapter.js?v=20260811b';
-import { ApiAdapter } from './api-adapter.js?v=20260811b';
+import { renderSidebar } from '../components/sidebar.js?v=20260811c';
+import { renderHeader } from '../components/header.js?v=20260811c';
+import { AuthStore } from '../services/auth.js?v=20260811c';
+import { IssueStore } from '../services/issues.js?v=20260811c';
+import { MilestoneStore } from '../services/milestones.js?v=20260811c';
+import { getAccentColors, resolveAccentRole } from './constants.js?v=20260811c';
+import { CrossPageState } from './cross-page-state.js?v=20260811c';
+import { getBasePath } from './utils.js?v=20260811c';
+import { enhanceSelects } from '../components/custom-select.js?v=20260811c';
+import { registerApiAdapter, setDataSource, init } from './data-adapter.js?v=20260811c';
+import { ApiAdapter } from './api-adapter.js?v=20260811c';
 
 // ════════════════════════════════════════════════════════════════
 // S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）

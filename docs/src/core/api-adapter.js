@@ -14,7 +14,7 @@
 //         content/04_web_design/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260811b';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260811c';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 

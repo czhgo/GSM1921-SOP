@@ -5,17 +5,17 @@
 //   首屏只动态加载默认 tab（待办）模块；其余 tab 在首次点击时才 import。
 //   tab-bar.js 支持异步 render（render 返回 Promise 时自动 await/catch）。
 
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260811b';
-import { BranchService } from '../services/runtime.js?v=20260811b';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260811b';
-import { renderTabBar } from '../components/tab-bar.js?v=20260811b';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260811b';
-import { SignupStore } from '../services/signup.js?v=20260811b';
-import { loadActivities } from '../services/activity.js?v=20260811b';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260811b';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260811b';
-import { _currentYearMonth } from '../core/utils.js?v=20260811b';
-import { TodoStore } from '../services/todo.js?v=20260811b';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260811c';
+import { BranchService } from '../services/runtime.js?v=20260811c';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260811c';
+import { renderTabBar } from '../components/tab-bar.js?v=20260811c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260811c';
+import { SignupStore } from '../services/signup.js?v=20260811c';
+import { loadActivities } from '../services/activity.js?v=20260811c';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260811c';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260811c';
+import { _currentYearMonth } from '../core/utils.js?v=20260811c';
+import { TodoStore } from '../services/todo.js?v=20260811c';
 
 // accentRole 走 resolveAccentRole：侧边栏「主题色」个性化对书记工作台同样生效
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'secretary' });
@@ -39,14 +39,14 @@ function _ensureSecTabBar() {
   _secTabBar = renderTabBar({
     prefix: 'secretary',
     tabs: [
-      { id: 'todo', label: '待办', groupLabel: '工作台', render: () => import('./tabs/secretary/todo-tab.js?v=20260811b').then(m => m.renderContent()) },
-      { id: 'overview', label: '全局概况', groupLabel: '工作台', render: () => import('./tabs/secretary/overview-tab.js?v=20260811b').then(m => m.renderContent()) },
-      { id: 'calendar', label: '活动管理', groupLabel: '党建', render: () => import('./tabs/secretary/calendar-tab.js?v=20260811b').then(m => m.renderContent(getAppState())) },
-      { id: 'assign', label: '赋权管理', groupLabel: '党建', render: () => import('./tabs/secretary/assign-tab.js?v=20260811b').then(m => m.renderContent()) },
-      { id: 'notification', label: '通知发布', groupLabel: '党建', render: () => import('./tabs/secretary/notification-tab.js?v=20260811b').then(m => m.renderContent()) },
+      { id: 'todo', label: '待办', groupLabel: '工作台', render: () => import('./tabs/secretary/todo-tab.js?v=20260811c').then(m => m.renderContent()) },
+      { id: 'overview', label: '全局概况', groupLabel: '工作台', render: () => import('./tabs/secretary/overview-tab.js?v=20260811c').then(m => m.renderContent()) },
+      { id: 'calendar', label: '活动管理', groupLabel: '党建', render: () => import('./tabs/secretary/calendar-tab.js?v=20260811c').then(m => m.renderContent(getAppState())) },
+      { id: 'assign', label: '赋权管理', groupLabel: '党建', render: () => import('./tabs/secretary/assign-tab.js?v=20260811c').then(m => m.renderContent()) },
+      { id: 'notification', label: '通知发布', groupLabel: '党建', render: () => import('./tabs/secretary/notification-tab.js?v=20260811c').then(m => m.renderContent()) },
       // 专班查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增）
-      { id: 'tf-view', label: '专班查看', render: () => import('../components/taskforce-view.js?v=20260811b').then(m => { const el = document.getElementById('secretary-tab-content'); if (el) m.renderTaskforceView(el, { highlightId: _secHighlightTfId || null, onLocated: () => { _secHighlightTfId = null; } }); }), groupLabel: '党建' },
-      { id: 'feedback', label: '反馈管理', groupLabel: '反馈', render: () => import('./tabs/secretary/feedback-tab.js?v=20260811b').then(m => m.renderContent()) },
+      { id: 'tf-view', label: '专班查看', render: () => import('../components/taskforce-view.js?v=20260811c').then(m => { const el = document.getElementById('secretary-tab-content'); if (el) m.renderTaskforceView(el, { highlightId: _secHighlightTfId || null, onLocated: () => { _secHighlightTfId = null; } }); }), groupLabel: '党建' },
+      { id: 'feedback', label: '反馈管理', groupLabel: '反馈', render: () => import('./tabs/secretary/feedback-tab.js?v=20260811c').then(m => m.renderContent()) },
     ],
     accentColor: { accent, accentRgba, accentBorder },
     defaultTab: 'todo',

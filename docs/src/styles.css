@@ -5732,12 +5732,14 @@ label .text-red-500 {
   gap: 4px;
 }
 
-/* 功能色「统一 tab 风格」规则（书记 2026-08-11 二审裁定）：所有 accent 一律「浅底深字」，
-   日/夜两套由元素内联 --acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark（夜）驱动，
-   !important 覆盖内联 background/color 完成夜间提亮（浅底深字 + 夜间提亮底/字）。 */
+/* 功能色「统一 tab 风格」规则（书记 2026-08-11 二审裁定 + 当晚三审补丁）：所有 accent 一律「淡底深字」，
+   日/夜两套由元素内联 --acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark/--acc-border-dark（夜）驱动，
+   !important 覆盖内联 background/color 完成夜间「淡底+深字」（近不透明淡底），
+   box-shadow inset 施加淡色边框强化边界——深色模式下淡底深字像 span 状态徽章一样清晰可见。 */
 html.theme-dark [style*="--acc-bg-dark"] {
   background: var(--acc-bg-dark) !important;
   color: var(--acc-text-dark) !important;
+  box-shadow: inset 0 0 0 1px var(--acc-border-dark) !important;
 }
 
 /* 语义圆点（task-dot / 活动色点等）浅色基础：色值本色，深色下由 html.theme-dark .tint-dot 提亮 */

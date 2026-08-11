@@ -2553,3 +2553,21 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **一改具改检查**：全仓 Grep `function _darken` 仅剩单一 HSL 版（L279）+ `_shadeDarker`（L388），无残留重复声明；Grep 实底白字模式零残留（toast 状态色书记裁定豁免除外）
 - **验证结果**：✅ GetDiagnostics 修改文件零错误；✅ Node 数值验证浅色 accent 深字分支全对（天蓝 #096690/翠绿 #17823E/亮蓝 #036696/灰 #3D4A5C）；✅ browser_use 两轮四象限 computedStyle 逐值通过
 - **待办**：commit（push 需书记批准）
+
+## T-220 深色模式可读性三审修复：功能色夜间「淡底深字+边框」+ 考察详情卡「高饱和白字」（2026-08-11）
+
+**任务**：书记浏览器选中 span「待确认」（淡底深字）+ div 考察记录详情 + div role-label 后三条指令——①「改成深色模式后，我认为淡底深字应该变成 span 类似这样的淡底深字，或者添加边框！必须做这样一个安排，否则看不见」②「div 深色模式这个部分完全看不清，请一定要优先检查代码！是否写得清楚了！！」③「div 这个部分请你无论是深色还是浅色，无论亮暗，都要是 高饱和度+白字！！」并指定 Use Skill: web-design-guidelines
+**引用流程**：H20.2 歧义消解铁律 + C-2 一改具改巡检 + web-design-guidelines Skill + browser_use 复验
+**来源**：书记 2026-08-11 深色模式浏览器选元素指令（T-219 同晚三审）
+
+- **①根因定位（指令②）**：考察详情卡用 `bg-gray-50/60`——styles.css 深色覆盖块（L5448 起）只覆盖 `bg-gray-50`/`bg-gray-50\/50`，**缺 `bg-gray-50\/60`** → 深色模式下底保持浅灰、文字被提亮为浅色（text-gray-700/800→E2E8F0/F1F5F9）→「浅底+浅字」完全看不清。此即书记「代码是否写清楚了」所指——深色覆盖矩阵有缺口
+- **②功能色夜间规则三审（指令①，constants.js `solidAccentStyle`）**：废弃「提亮底(22%)+提亮字(82%)」方案（提亮字=浅字，深色页面上浅字+暗底对比不足），改为**夜间 = 近不透明淡底（accent 调亮至 86% @0.9）+ 同款深字（深 accent 用本身/浅 accent 调暗 30%）+ 淡色边框（调亮至 72% @0.55）**——与 span「待确认」（bg-cyan-100+text-cyan-700）同构：任何背景下都是「淡底深字 chip」+ 边框强化边界；`DEEP_ACCENT_RULES` 精简为仅保留 `light` 特例（金色日/夜统一亮金底 #FFD700）
+- **③夜间边框施加（styles.css）**：`html.theme-dark [style*="--acc-bg-dark"]` 规则新增 `box-shadow: inset 0 0 0 1px var(--acc-border-dark) !important`（内联样式无法用 id/class 命中，!important + 属性选择器为既有必要手段）
+- **④考察详情卡高饱和白字（指令③，ws-org-commissioner-entry.js）**：脱离 Tailwind gray 类（深色无覆盖），改**内联高饱和天蓝实底 `#0369A1`（sky-700，白字对比 5.92:1 达标 AA）+ 白字**——标题/值 `text-white`、label `text-white/85`、辅助 `text-white/75`、状态徽章 `bg-white/20 + text-white`；日/夜完全一致（内联 style 权重最高，深色规则无法覆盖）
+- **⑤web-design-guidelines Skill 审查（书记指定）**：对比度数值验证——功能色夜间「#096690 on 近不透明淡蓝底」≈ 5.45:1 达标 AA；考察卡「白字 on #0369A1」≈ 5.92:1 达标 AA；box-shadow inset 边框不干扰原 border；white 系列透明度类（text-white/80 等）类名含转义斜杠，不与 `.text-white`/`.bg-white` 深色覆盖冲突——均通过
+- **⑥浏览器复验（browser_use 五项）**：role-label 夜间 `rgba(188,231,251,0.9)`+`rgb(9,102,144)`+inset 边框 ✅ 深字非浅字 / 日间不变 `rgba(178,228,250,0.12)` 无边框 ✅ / 金色夜间 `rgba(255,215,0,0.9)`+`rgb(161,98,7)`+边框 ✅ / 考察卡日·夜均为 `rgb(3,105,161)`+白字+白透徽章 ✅ / console 深浅两模式均无 TypeError/SyntaxError ✅
+- **⑦版本号 bump**：全仓 `?v=20260811b` → `?v=20260811c`（91 文件 593 处，字节级替换保 BOM）使浏览器缓存失效
+- **变更文件**：`docs/src/core/constants.js`（solidAccentStyle 三审 + DEEP_ACCENT_RULES 精简）、`docs/src/styles.css`（夜间规则加边框）、`docs/src/entries/ws-org-commissioner-entry.js`（考察详情卡高饱和白字）、全仓 91 文件（版本号 bump）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **一改具改检查**：全仓 Grep `bg-gray-50\/60` 仅剩考察详情卡一处已改（无其他残留）；`solidAccentStyle` 37 处调用点无需逐一改（单点规则）；Grep 旧夜间提亮注释零残留
+- **验证结果**：✅ GetDiagnostics 三修改文件零错误；✅ Node 数值验证 6 色夜间派生值全对（天蓝/翠绿/亮蓝/金/红/灰）；✅ browser_use 五项 computedStyle 逐值通过
+- **待办**：commit（push 需书记批准，延续「暂不 push」裁决）

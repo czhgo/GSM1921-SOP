@@ -207,22 +207,25 @@ export function getAccentColors(role, bgAlpha = 0.1, borderAlpha = 0.3) {
   };
 }
 
-// ── 功能色「统一 tab 风格」规则（书记 2026-08-11 二审裁定）────────────────
+// ── 功能色「统一 tab 风格」规则（书记 2026-08-11 二审裁定 + 当晚三审补丁）────────────────
 // 书记：亮色和暗色的处理逻辑我不太理解——因为金色和亮蓝我认为都很亮。
-// 更新审美偏好：统一都变成 tab 风格的「浅底深字」+ 夜间提亮；浅色才应该浅底深字，之前想反了。
-// 即：所有 accent（不分深浅）一律「同色系高亮浅底 + 深色字」，夜间提亮底/字。
+// 二审：统一都变成 tab 风格的「浅底深字」+ 夜间提亮；浅色才应该浅底深字，之前想反了。
+// 当晚三审（深色模式反馈）：夜间「提亮字」在深色页面上看不清——淡底深字应像 span 状态徽章
+// （bg-cyan-100+text-cyan-700）一样保持「淡底 + 深字」，或添加边框，否则看不见。
+// 即：所有 accent（不分深浅）一律「同色系高亮浅底 + 深色字」；夜间 = 更实的淡底 + 同款深字 + 淡色边框。
 // 与 tab 激活态（wp-dim-on）同源：浅底 + accent 色字；深字由 accent 亮度自适应——
 //   · 深色 accent（感知亮度 < 0.25，如金/红/橙/海蓝/深青/紫）：深字 = accent 本身（已够深）
 //   · 浅色 accent（感知亮度 ≥ 0.25，如天蓝/翠绿/亮蓝/灰）：深字 = accent 调暗至 30% 明度（保证可读对比度）
-// 日/夜两套由元素内联 CSS 变量驱动：--acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark（夜），
-// 夜间切换由 styles.css `html.theme-dark [style*="--acc-bg-dark"]` 规则完成（!important 覆盖内联）。
+// 日/夜两套由元素内联 CSS 变量驱动：--acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark/--acc-border-dark（夜），
+// 夜间切换由 styles.css `html.theme-dark [style*="--acc-bg-dark"]` 规则完成（!important 覆盖内联 + box-shadow 边框）。
 // 背景：2026-08-08 书记裁定金色浅底深字；2026-08-10 曾改为实底白字；
 // 2026-08-11 上午 T-218 二审为「深浅分流（深色浅底深字/浅色实底白字）」；
-// 2026-08-11 下午书记再判「想反了——浅色才应该浅底深字」→ 统一浅底深字，废除实底白字分支。
+// 2026-08-11 下午书记再判「想反了——浅色才应该浅底深字」→ 统一浅底深字，废除实底白字分支；
+// 2026-08-11 当晚三审「夜间提亮字看不清」→ 夜间改淡底+深字+边框。
 
-// 品牌亮色映射：金色精确保留现有表现（亮金底 #FFD700 + 夜间提亮金底/字，主题党日胶囊同源）
+// 品牌亮色映射：金色日/夜淡底统一用亮金底 #FFD700（主题党日胶囊同源，书记 2026-08-08 四审定稿）
 const DEEP_ACCENT_RULES = {
-  '#A16207': { light: '#FFD700', darkBg: 'rgba(251, 191, 36, 0.22)', darkText: '#FDE68A' },
+  '#A16207': { light: '#FFD700' },
 };
 
 /** hex → [h, s, l]（h:0-360, s:0-1, l:0-1） */
@@ -290,12 +293,15 @@ function _rgba(hex, alpha) {
 }
 
 /**
- * 功能色「统一 tab 风格」规则（书记 2026-08-11 二审裁定）
- * 所有 accent（不分深浅）一律「同色系高亮浅底 + 深色字」+ 夜间提亮：
+ * 功能色「统一 tab 风格」规则（书记 2026-08-11 二审裁定 + 当晚三审补丁）
+ * 所有 accent（不分深浅）一律「同色系高亮浅底 + 深色字」；夜间不再「提亮字」——
+ * 深色模式下淡底深字必须保持「淡底 + 深字」（如 span 状态徽章 bg-cyan-100+text-cyan-700），
+ * 或加边框，否则在深色页面上看不见（书记：「淡底深字应该变成 span 类似这样的淡底深字，或者添加边框」）：
  *   · 底（日）：accent 调亮至 84% 明度 @12% 透明
- *   · 字（日）：深色 accent 用 accent 本身；浅色 accent 调暗至 30% 明度（保证可读）
- *   · 底（夜）：accent 调亮至 60% 明度 @22% 透明；字（夜）：accent 调亮至 82% 明度
- * 日/夜两套内联 --acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark（夜），
+ *   · 字（日/夜一致）：深色 accent 用 accent 本身；浅色 accent 调暗至 30% 明度（保证可读）
+ *   · 底（夜）：accent 调亮至 86% 明度 @90%（近不透明淡底，叠深背景仍为淡底 chip）
+ *   · 边框（夜）：accent 调亮至 72% @55% 淡色描边（由 styles.css 夜间规则 box-shadow inset 施加）
+ * 日/夜两套内联 --acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark/--acc-border-dark（夜），
  * 夜间切换由 styles.css `html.theme-dark [style*="--acc-bg-dark"]` 规则完成（!important 覆盖内联）。
  * @param {string} accent — 当前生效强调色 hex
  * @returns {string} 内联样式串（background / color，含深浅两套变量）
@@ -307,13 +313,15 @@ export function solidAccentStyle(accent, border) {
     return 'background:#B91C1C;color:#fff';
   }
   const branded = DEEP_ACCENT_RULES[accent];
-  const rule = branded || {
-    // 浅色 accent（感知亮度 ≥ 0.25）调暗至 30% 明度做深字，保证浅底上的可读对比度
-    text: _relativeLuminance(accent) < 0.25 ? accent : _darken(accent, 30),
-    darkBg: _rgba(_lighten(accent, 60), 0.22),
-    darkText: _lighten(accent, 82),
-  };
-  return `--acc-bg:${_rgba(branded ? branded.light : _lighten(accent, 84), 0.12)};--acc-text:${branded ? accent : rule.text};--acc-bg-dark:${rule.darkBg};--acc-text-dark:${rule.darkText};background:var(--acc-bg);color:var(--acc-text,#fff)`;
+  // 深字（日/夜一致）：深色 accent（感知亮度 < 0.25）用本身；浅色 accent 调暗至 30% 明度（淡底可读）
+  const text = branded ? accent : (_relativeLuminance(accent) < 0.25 ? accent : _darken(accent, 30));
+  // 淡底（日）：accent 调亮至 84% 明度 @12% 透明
+  const bg = _rgba(branded ? branded.light : _lighten(accent, 84), 0.12);
+  // 淡底（夜）：近不透明（@0.9）高亮底，叠深背景仍为淡底 chip——如 span 状态徽章在深色页面上的表现
+  const bgDark = _rgba(branded ? branded.light : _lighten(accent, 86), 0.9);
+  // 夜间淡色边框（强化边界，styles.css 夜间规则 box-shadow inset 施加）
+  const borderDark = _rgba(branded ? '#FDE68A' : _lighten(accent, 72), 0.55);
+  return `--acc-bg:${bg};--acc-text:${text};--acc-bg-dark:${bgDark};--acc-text-dark:${text};--acc-border-dark:${borderDark};background:var(--acc-bg);color:var(--acc-text,#fff)`;
 }
 
 // ── 活动类型颜色（中文标签版，用于卡片/列表视图）──────────────────

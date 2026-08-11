@@ -1,28 +1,28 @@
-﻿﻿﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260811b';
-import { showToast } from '../core/utils.js?v=20260811b';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260811b';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260811b';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, ReviewStatus, SourceType, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260811b';
-import { solidAccentStyle } from '../core/constants.js?v=20260811b';
-import { persist } from '../core/data-adapter.js?v=20260811b';
-import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, reviewToDisplay, getPersonName } from '../mock/index.js?v=20260811b';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260811b';
-import { renderTabBar } from '../components/tab-bar.js?v=20260811b';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260811b';
-import { renderWorkOverview } from '../components/work-overview.js?v=20260811b';
-import { AuthStore } from '../services/auth.js?v=20260811b';
-import { openFormModal } from '../components/modal.js?v=20260811b';
-import { autoGenerateMakeupTask, loadMakeupTasks, saveMakeupTasks } from '../services/makeup.js?v=20260811b';
-import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260811b';
-import { loadInspectionRecords, loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, getRecordsBySource } from '../services/inspection.js?v=20260811b';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260811b';
-import { loadActivities } from '../services/activity.js?v=20260811b';
-import { loadActivityReviews, loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../services/review.js?v=20260811b';
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260811b';
-import { renderTodoList } from '../components/todo-list.js?v=20260811b';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType, seedTodos } from '../services/todo.js?v=20260811b';
-import { enhanceSelects } from '../components/custom-select.js?v=20260811b';
-import { badgeHtml } from '../components/badge.js?v=20260811b';
+﻿﻿﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260811c';
+import { showToast } from '../core/utils.js?v=20260811c';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260811c';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260811c';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, ReviewStatus, SourceType, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260811c';
+import { solidAccentStyle } from '../core/constants.js?v=20260811c';
+import { persist } from '../core/data-adapter.js?v=20260811c';
+import { attendanceToLong, attendanceToWide, inspectionToLong, inspectionToWide, reviewToDisplay, getPersonName } from '../mock/index.js?v=20260811c';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260811c';
+import { renderTabBar } from '../components/tab-bar.js?v=20260811c';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260811c';
+import { renderWorkOverview } from '../components/work-overview.js?v=20260811c';
+import { AuthStore } from '../services/auth.js?v=20260811c';
+import { openFormModal } from '../components/modal.js?v=20260811c';
+import { autoGenerateMakeupTask, loadMakeupTasks, saveMakeupTasks } from '../services/makeup.js?v=20260811c';
+import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260811c';
+import { loadInspectionRecords, loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, getRecordsBySource } from '../services/inspection.js?v=20260811c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260811c';
+import { loadActivities } from '../services/activity.js?v=20260811c';
+import { loadActivityReviews, loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../services/review.js?v=20260811c';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../services/issues.js?v=20260811c';
+import { renderTodoList } from '../components/todo-list.js?v=20260811c';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType, seedTodos } from '../services/todo.js?v=20260811c';
+import { enhanceSelects } from '../components/custom-select.js?v=20260811c';
+import { badgeHtml } from '../components/badge.js?v=20260811c';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'disc-commissioner' });
 
@@ -103,7 +103,7 @@ function renderDiscUI(state) {
       { id: 'makeup', label: '补课制度', render: () => _renderMakeupContent(), groupLabel: '党建' },
       { id: 'mailbox', label: '公邮管理', render: () => _renderMailboxContent(), groupLabel: '党建' },
       // 专班查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增）
-      { id: 'tf-view', label: '专班查看', render: () => { const el = document.getElementById('disc-tab-content'); if (el) return import('../components/taskforce-view.js?v=20260811b').then(m => m.renderTaskforceView(el, { highlightId: _discNavTarget?.tfId || null, onLocated: () => { _discNavTarget = null; } })); }, groupLabel: '党建' },
+      { id: 'tf-view', label: '专班查看', render: () => { const el = document.getElementById('disc-tab-content'); if (el) return import('../components/taskforce-view.js?v=20260811c').then(m => m.renderTaskforceView(el, { highlightId: _discNavTarget?.tfId || null, onLocated: () => { _discNavTarget = null; } })); }, groupLabel: '党建' },
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('disc-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('disc-commissioner', 'u_disc'); bindMyDispatchEvents(el, 'disc-commissioner', 'u_disc'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },

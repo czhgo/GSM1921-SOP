@@ -3,13 +3,13 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 书记裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { AuthStore } from '../services/auth.js?v=20260811b';
-import { getAccentColors, resolveAccentRole, ROLE_LABELS, solidAccentStyle } from '../core/constants.js?v=20260811b';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260811b';
-import { getBasePath } from '../core/utils.js?v=20260811b';
-import { icon } from '../core/icons.js?v=20260811b';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260811b';
-import { badgeHtml } from './badge.js?v=20260811b';
+import { AuthStore } from '../services/auth.js?v=20260811c';
+import { getAccentColors, resolveAccentRole, ROLE_LABELS, solidAccentStyle } from '../core/constants.js?v=20260811c';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260811c';
+import { getBasePath } from '../core/utils.js?v=20260811c';
+import { icon } from '../core/icons.js?v=20260811c';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260811c';
+import { badgeHtml } from './badge.js?v=20260811c';
 
 // 数据变更订阅（2026-08-05，消除"确认已读后角标不更新"）：
 // 模块顶层绑定一次；_renderNotificationBadge 在 #notification-bell 未渲染时静默返回。
