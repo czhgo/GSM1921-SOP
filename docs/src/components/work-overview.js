@@ -70,7 +70,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
       : r.requestedBy ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 flex-shrink-0">待汇报</span>'
       : '<span class="text-xs px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 flex-shrink-0">进行中</span>';
     return `
-      <div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+      <div class="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors" data-wo-open-report="${r.id}">
         <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${catColor};"></span>
         <span class="text-xs font-medium flex-shrink-0" style="color:${catColor};">${cat}</span>
         <span class="text-sm text-gray-800 font-medium flex-1 min-w-0 truncate">${r.title}</span>
@@ -126,49 +126,82 @@ export async function renderWorkOverview(container, { role, personId, accent = '
     (tf.manager === personId || tf.initiator === personId || (Array.isArray(tf.members) && tf.members.some(m => m.personId === personId)))
   );
 
-  // 在办条目（可点击，点击直达详情/待办 tab 定位；每类至多展示 5 条，超出给总量提示）
+  // 在办条目（可点击，点击直达详情/待办 tab 定位）
+  // 书记 2026-08-11 裁定：在办统一业务优先级排序——待办聚合组/活动/专班合并为一条流，
+  // 组间与组内统一按「过期优先 → 截止升序 → 无截止排后」排序，跨类对齐时间紧迫度。
   const _MAX_INLINE = 5;
+  const inProgressItems = [];
   const myTodoItems = grouped || [];
-  const todoRows = myTodoItems.slice(0, _MAX_INLINE).map(g => {
+
+  // 待办聚合组（过期判定沿用组内是否存在过期/超期条目）
+  (myTodoItems || []).forEach(g => {
     const hasOverdue = (g.items || []).some(it =>
       it.status === TodoStatus.EXPIRED || (it.status === TodoStatus.PENDING && it.deadline && it.deadline < today)
     );
-    return `
-      <button type="button" class="wo-inline-item flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-left w-full" data-wo-jump="todo" data-todo-key="${g.groupKey}">
-        <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${hasOverdue ? '#EF4444' : accent};"></span>
-        <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${g.title}</span>
-        ${g.count > 1 ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 tabular-nums flex-shrink-0">${g.count}</span>` : ''}
-        ${hasOverdue ? `<span class="text-[11px] text-red-500 font-medium flex-shrink-0">含超期</span>` : ''}
-      </button>`;
-  }).join('');
-  const todoMore = myTodoItems.length > _MAX_INLINE
-    ? `<button type="button" class="wo-inline-item flex items-center gap-2 py-1.5 px-3 text-xs text-gray-400 hover:text-gray-600 transition-colors w-full text-left" data-wo-jump="todo-all">共 ${myTodoItems.length} 项 · 前往待办 tab 查看全部 →</button>`
+    inProgressItems.push({
+      kind: 'todo',
+      title: g.title,
+      count: g.count,
+      overdue: hasOverdue,
+      deadline: g.deadline || '',
+      html: `
+        <button type="button" class="wo-inline-item flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-left w-full" data-wo-jump="todo" data-todo-key="${g.groupKey}">
+          <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${hasOverdue ? '#EF4444' : accent};"></span>
+          <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${g.title}</span>
+          ${g.count > 1 ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 tabular-nums flex-shrink-0">${g.count}</span>` : ''}
+          ${hasOverdue ? `<span class="text-[11px] text-red-500 font-medium flex-shrink-0">含超期</span>` : ''}
+        </button>`,
+    });
+  });
+
+  // 在办活动（deadline = 活动日期）
+  myActs.forEach(a => {
+    inProgressItems.push({
+      kind: 'activity',
+      title: a.title,
+      overdue: false,
+      deadline: a.date || '',
+      html: `
+        <button type="button" class="wo-inline-item flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-left w-full" data-wo-jump="activity" data-act-id="${a.id}">
+          <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#3B82F6;"></span>
+          <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${a.title}</span>
+          <span class="text-[11px] text-gray-400 flex-shrink-0">活动</span>
+        </button>`,
+    });
+  });
+
+  // 在办专班（deadline = 专班截止）
+  myTfs.forEach(tf => {
+    inProgressItems.push({
+      kind: 'taskforce',
+      title: tf.name,
+      overdue: false,
+      deadline: tf.deadline || '',
+      html: `
+        <button type="button" class="wo-inline-item flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-left w-full" data-wo-jump="taskforce" data-tf-id="${tf.id}">
+          <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#4F46E5;"></span>
+          <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${tf.name}</span>
+          <span class="text-[11px] text-gray-400 flex-shrink-0">专班</span>
+        </button>`,
+    });
+  });
+
+  // 统一业务优先级排序：过期优先 → 截止升序 → 无截止排后（stable：同截止保持数据序）
+  inProgressItems.sort((a, b) => {
+    if (a.overdue !== b.overdue) return a.overdue ? -1 : 1;
+    const ad = a.deadline || '9999-12-31';
+    const bd = b.deadline || '9999-12-31';
+    return ad.localeCompare(bd);
+  });
+
+  const shownItems = inProgressItems.slice(0, _MAX_INLINE);
+  const inProgressRows = shownItems.map(it => it.html).join('');
+  const inProgressMore = inProgressItems.length > _MAX_INLINE
+    ? `<button type="button" class="wo-inline-item flex items-center gap-2 py-1.5 px-3 text-xs text-gray-400 hover:text-gray-600 transition-colors w-full text-left" data-wo-jump="todo-all">共 ${inProgressItems.length} 项 · 前往待办 tab 查看全部 →</button>`
     : '';
 
-  const actRows = myActs.slice(0, _MAX_INLINE).map(a => `
-    <button type="button" class="wo-inline-item flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-left w-full" data-wo-jump="activity" data-act-id="${a.id}">
-      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#3B82F6;"></span>
-      <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${a.title}</span>
-      <span class="text-[11px] text-gray-400 flex-shrink-0">活动</span>
-    </button>`).join('');
-  const actMore = myActs.length > _MAX_INLINE
-    ? `<div class="py-1 px-3 text-xs text-gray-400">等共 ${myActs.length} 个活动</div>` : '';
-
-  const tfRows = myTfs.slice(0, _MAX_INLINE).map(tf => `
-    <button type="button" class="wo-inline-item flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-left w-full" data-wo-jump="taskforce" data-tf-id="${tf.id}">
-      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#4F46E5;"></span>
-      <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${tf.name}</span>
-      <span class="text-[11px] text-gray-400 flex-shrink-0">专班</span>
-    </button>`).join('');
-  const tfMore = myTfs.length > _MAX_INLINE
-    ? `<div class="py-1 px-3 text-xs text-gray-400">等共 ${myTfs.length} 个专班</div>` : '';
-
-  const inProgressBody = (todoRows || actRows || tfRows)
-    ? `<div class="space-y-1">
-        ${todoRows}${todoMore}
-        ${actRows}${actMore}
-        ${tfRows}${tfMore}
-      </div>`
+  const inProgressBody = inProgressRows
+    ? `<div class="space-y-1">${inProgressRows}${inProgressMore}</div>`
     : `<div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
          <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 暂无在办事项
        </div>`;
@@ -302,6 +335,22 @@ function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
         _woDetail = { kind: 'taskforce', id: btn.dataset.tfId };
         rerender();
       }
+    });
+  });
+
+  // 我发起的开放汇报行 → 跳转「我的处置」tab 并打开对应汇报详情
+  // （书记 2026-08-11 裁定：与 issues.js 我的处置汇报行行为一致，两处统一为可点击）
+  container.querySelectorAll('[data-wo-open-report]').forEach(row => {
+    row.addEventListener('click', () => {
+      const issueId = row.dataset.woOpenReport;
+      const tabBtn = container.parentElement?.querySelector(`[data-${prefix}-tab="my-dispatch"]`);
+      if (!tabBtn) { showToast('info', '当前角色无「我的处置」tab'); return; }
+      tabBtn.click();
+      // my-dispatch 渲染可能异步（render 返回 Promise），延迟后定位并打开对应汇报行
+      setTimeout(() => {
+        const target = document.querySelector(`[data-mydispatch-action="open-report"][data-issue-id="${issueId}"]`);
+        if (target) target.click();
+      }, 180);
     });
   });
 }

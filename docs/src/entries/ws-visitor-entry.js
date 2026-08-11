@@ -856,7 +856,8 @@ function _handleTodoAction(todo) {
     const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
     const srcId = todo.sourceId || todo.actionData?.sourceId;
     if (srcId) {
-      window.location.href = `${basePath}activity.html?id=${srcId}`;
+      const page = srcId.startsWith('tf-') ? 'taskforce.html' : 'activity.html';
+      window.location.href = `${basePath}${page}?id=${srcId}`;
       return;
     }
   }

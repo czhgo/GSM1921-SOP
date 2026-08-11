@@ -2486,6 +2486,33 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
   - **过程性汇报致命问题**：任何「登记」都有操作成本（网页读不到微信消息是技术硬约束；「一键」只是压低成本不是消除）——**终极形态=小程序原生承接**（订阅消息→微信内点开批复→数据自动回流，零操作成本）；书记裁决「小程序有，网页也有」两端均有；**短期过渡=发送方登记制**（登记成本由受益方承担：发送方因留底在系统发起、更新自己汇报状态，动机=台账完整；而非批复方替他人留痕）
 - **⑥小程序方案落档**：新建 `content/04_web_design/WECHAT_INTEGRATION.md`（书记决策链 5 项 + 文件流分类原则 + 宣传墙/档案分层浏览设计 + 过程性汇报集成方案 + 小程序三路径评估 A WebView 套壳/B Taro 跨端重写/C 原生不推荐 + 原生承接机制（订阅消息/共享数据层）+ 前置条件 3 项 + 短中长路线图 + 与 DESIGN_SYSTEM 原则 10 答复回路/原则 13 外发确认闭环衔接）；同步注册 `content/04_web_design/README.md`（新增五节）+ `content/03_doc_system/DOC_MAP.md`（知识类型 4 表新增行）
 - **变更文件**：`docs/src/entries/workspace-entry.js`（删）、`docs/src/services/feedback.js`（删）、`docs/src/services/image.js`（删）、`docs/src/services/auth.js`、`docs/src/entries/main-entry.js`、`docs/index.html`、`docs/src/core/icons.js`（重写）、`docs/src/styles.css`（-2123 行死类 + 深色覆盖 + rh 组件适配）、16 文件死 export 清理、`content/04_web_design/WECHAT_INTEGRATION.md`（新）、`content/04_web_design/README.md`、`content/03_doc_system/DOC_MAP.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
-- **沉淀标签**：`[待沉淀: 受益者登记（成本翻转）——网页读不到微信消息→任何登记都有操作成本；登记应交给受益方（发送方/管理者）而非负担方（批复人）；零成本只在微信原生协同（小程序/服务号）实现]`
+- **沉淀标签**：`[待沉淀: 受益者登记（成本翻转）——网页读不到微信消息→任何登记都有操作成本；登记应交给受益方（发送方/管理者）而非负担方（批复人）；零成本只在微信原生协同（小程序/服务号）实现]` + `[待沉淀: 迁移复杂度——微信群聊→网页是行为范式转变（即时通讯范式 vs 结构化工作台范式），是适应学习成本最高门槛；离开微信做额外动作的设计以「使用者是否有动机」为第一验收标准]`（2026-08-11 按书记指示沉淀至 `content/insights/工程演进与设计方法论.md` §4.19，标注 `[待沉淀]` 待书记验证后改 `[已沉淀]`）
 - **补记（书记 2026-08-11 追问后）**：书记观察「从微信群聊到网页的转变，是一个很复杂的事情！！」——比登记成本更根本的是**行为范式迁移成本**（微信群聊=即时通讯范式 vs 网页=结构化工作台范式，对应最小三成本中适应学习成本最高门槛）。已写入 WECHAT_INTEGRATION.md §4.1 迁移复杂度 + §4.2 致命问题末尾补「离开微信做额外动作的设计以『使用者是否有动机』为第一验收标准」；原 §4.2-4.5 顺延为 §4.3-4.6
+- **待办**：commit（push 需书记批准，书记 2026-08-11 裁决暂不 push）
+
+## T-217 界面结构体检五问 + 角色 tab 排序重思 + 专班独立页面 + 共享报名组件 + 在办统一排序 + 金色深色修复（2026-08-11）
+
+**任务**：书记浏览器选中 3 个真实元素后五问体检——①活动和专班有无自己的界面 ②span「6月共建」是否应有点击功能 ③div「专班考察上传」点击应期待什么 ④在办和待办之间是什么关系、在办排列顺序是否符合预期 ⑤每一角色 tab 排序再思考研究；并行沉淀两个洞察 + 修金色深色部分
+**引用流程**：H20.2 歧义消解铁律（三轮 AskUserQuestion 11 项裁定）+ C-2 一改具改巡检（signup-panel 共享组件）+ sample-diff-learning Skill + fullstack-developer Skill
+**来源**：书记 2026-08-11 指令 + 三轮 AskUserQuestion 决策
+
+- **①五问体检结论（t1 调研）**：
+  - 活动有独立界面（`activity.html`，`id=act-*`）；专班原本无独立页面、由 activity.html 兼载（`id=tf-*`）——**已新建独立 `taskforce.html`**
+  - span「6月共建」在 issues.js「我发起的汇报」行有点击（`data-mydispatch-action="open-report"` 跳我的处置详情）；work-overview 开放汇报行原本无点击——**已统一为可点击**（书记裁决：统一）
+  - div「专班考察上传」卡片原本仅头部按钮可互动——**已补行点击展开详情预览**（`data-insp-detail` 在表下方渲染 `#org-insp-detail`）
+  - 在办 = 待办聚合 + 在办活动 + 在办专班的并集；原组间无业务排序——**已重构为统一业务优先级排序**（work-overview.js：过期优先→截止升序→无截止兜底 '9999-12-31'，`_MAX_INLINE=5` 截断，多余跳转待办 tab 查看全部）
+- **②tab 排序重思（t2/t2b，书记三轮裁决）**：
+  - 确立全角色统一排序原则：**「工作台→职责操作→知情查看→反馈」**（按工作流节奏「做→查→收→知情」；知识查看无职责≠无知情权，置于职责操作后、反馈前）
+  - 组长 tab 重排：「组员进展」后移至「专班查看」之前；全角色补齐 `groupLabel`（组织委员 taskforce/talent/development 补「党建」、宣传 kanban 补「党建」、书记 overview 补「工作台」assign 补「党建」、纪检 review/inspection 补「党建」、组长 members 改「党建」），三组可视化一致
+- **③专班独立页面 + 数据集（t7，书记附加裁决「专班是否要有自己的界面？和数据集？便于长期共享，活动也要思考这个问题」）**：
+  - 新建 `docs/taskforce.html` + `docs/src/entries/taskforce-entry.js`（仅接受 `tf-*` id，渲染标题区/基本信息/报名区/报名名单/成员列表）
+  - 专班数据确认已独立持久化 `workflowos_taskforces_v1`（TaskForceRecordStore 独立 store + init 自动迁移旧白名单）
+  - **共享报名组件抽取**：`signup-panel.js`（canSignup/renderSignupSection/renderSignupList/bindSignupEvents/roleLabel）活动/专班两页共用，activity-entry.js 本地重复定义全部删除（~393→~220 行）；C-2 一改具改巡检落地
+  - **跳转前缀分流规则**：`srcId.startsWith('tf-') ? 'taskforce.html' : 'activity.html'`——应用 5 处（ws-leader-entry.js L445、ws-org-commissioner-entry.js L314、ws-visitor-entry.js L859、tabs/secretary/todo-tab.js L312、notice.js L310 resolveNoticeUrl）
+- **④活动增强共享形态（t8，最小增量）**：两个详情页加入「复制链接」分享按钮（`share-button.js`，一键复制直达链接）；宣传墙+档案分层完整形态已落档 WECHAT_INTEGRATION.md §三，待后续
+- **⑤金色深色修复（t4）**：选中 button「发布招募」实底 #A16207+白字过棕过脏——改为 `solidAccentStyle(accent, accentBorder)`（金浅底+深金字：`background:var(--gold-btn-bg,rgba(255,215,0,0.12));color:var(--gold-btn-text,#A16207)`），非金色维持实底 accent 白字；深色模式经 `html.theme-dark` 自动提亮
+- **⑥洞察沉淀（t3）**：「受益者登记（成本翻转）+ 迁移复杂度」两条已沉淀至 `content/insights/工程演进与设计方法论.md` §4.19，标注 `[待沉淀]`（书记 2026-08-11 指示，待书记验证后改 `[已沉淀]`）
+- **变更文件**：`docs/taskforce.html`（新）、`docs/src/entries/taskforce-entry.js`（新）、`docs/src/components/signup-panel.js`（新）、`docs/src/components/share-button.js`（新）、`docs/src/entries/activity-entry.js`（重构抽组件）、`docs/src/components/work-overview.js`（在办统一排序+汇报行可点击）、`docs/src/entries/ws-leader-entry.js`、`docs/src/entries/ws-org-commissioner-entry.js`、`docs/src/entries/ws-prop-commissioner-entry.js`、`docs/src/entries/ws-secretary-entry.js`、`docs/src/entries/ws-disc-commissioner-entry.js`、`docs/src/entries/ws-visitor-entry.js`、`docs/src/entries/tabs/secretary/todo-tab.js`、`docs/src/services/notice.js`、`content/insights/工程演进与设计方法论.md`（§4.19）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **一改具改检查**：全仓 Grep `activity.html`/`taskforce.html`——5 处跳转分流全部正确；访客活动列表链接 `activity.html?id=...` 为活动页正确引用；零残留
+- **验证结果**：✅ GetDiagnostics 9 文件批量检查全部零错误
 - **待办**：commit（push 需书记批准，书记 2026-08-11 裁决暂不 push）

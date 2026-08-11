@@ -57,7 +57,7 @@ function renderPropUI(state) {
       // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
       { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('prop-tab-content'); if (el) return renderWorkOverview(el, { role: 'prop-commissioner', personId: AuthStore.getCurrentUser()?.personId || 'p12', accent, prefix: 'prop' }); }, groupLabel: '工作台' },
       { id: 'tasks', label: '宣传任务', render: (ctx) => _renderTasksContent(), groupLabel: '党建' },
-      { id: 'kanban', label: '项目看板', render: (ctx) => _renderKanbanContent(ctx.activities, ctx.propTf) },
+      { id: 'kanban', label: '项目看板', render: (ctx) => _renderKanbanContent(ctx.activities, ctx.propTf), groupLabel: '党建' },
       { id: 'weekly', label: '周报报送', render: (ctx) => _renderWeeklyContent(), groupLabel: '党建' },
       { id: 'archive', label: '档案归档', render: (ctx) => _renderArchiveContent(), groupLabel: '党建' },
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('prop-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('prop-commissioner', 'u_prop'); bindMyDispatchEvents(el, 'prop-commissioner', 'u_prop'); } }, groupLabel: '反馈' },

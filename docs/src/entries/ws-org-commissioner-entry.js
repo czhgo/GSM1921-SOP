@@ -114,15 +114,16 @@ function renderOrgUI(state) {
       // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
       { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('org-tab-content'); if (el) return renderWorkOverview(el, { role: 'org-commissioner', personId: AuthStore.getCurrentUser()?.personId || 'p11', accent, prefix: 'org' }); }, groupLabel: '工作台' },
       { id: 'inspection', label: '考察上传', render: () => _renderOrgInspectionContent(), groupLabel: '党建' },
-      { id: 'taskforce', label: '专班管理', render: (ctx) => _renderTaskforceContent(ctx.pending, ctx.recruiting, ctx.active, ctx.activities) },
-      // 活动查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增；组织无活动 tab 由本组件承载）
-      { id: 'activity-view', label: '活动查看', render: () => { const el = document.getElementById('org-tab-content'); if (el) return import('../components/activity-view.js?v=20260810a').then(m => m.renderActivityView(el, { highlightId: _orgNavTarget?.actId || null, onLocated: () => { _orgNavTarget = null; } })); }, groupLabel: '党建' },
-      { id: 'talent', label: '人才库', render: () => _renderTalentContent() },
+      { id: 'taskforce', label: '专班管理', render: (ctx) => _renderTaskforceContent(ctx.pending, ctx.recruiting, ctx.active, ctx.activities), groupLabel: '党建' },
+      { id: 'talent', label: '人才库', render: () => _renderTalentContent(), groupLabel: '党建' },
       { id: 'development', label: '发展数据', render: () => _renderDevelopmentContent(), groupLabel: '党建' },
+      // 活动查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增；组织无活动 tab 由本组件承载）
+      // 排序：按工作流节奏「看→做→查→收」，知情查看置于职责操作后、反馈前（书记 2026-08-11 裁定）
+      { id: 'activity-view', label: '活动查看', render: () => { const el = document.getElementById('org-tab-content'); if (el) return import('../components/activity-view.js?v=20260810a').then(m => m.renderActivityView(el, { highlightId: _orgNavTarget?.actId || null, onLocated: () => { _orgNavTarget = null; } })); }, groupLabel: '党建' },
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('org-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('org-commissioner', 'u_org'); bindMyDispatchEvents(el, 'org-commissioner', 'u_org'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },
-    extraRightHtml: '<button id="btn-publish-tf" style="background:' + accent + ';color:white;border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity=\'0.9\'" onmouseout="this.style.opacity=\'1\'">发布招募</button>' + renderReportEntryHtml({ accent, accentRgba }),
+    extraRightHtml: '<button id="btn-publish-tf" style="' + solidAccentStyle(accent, accentBorder) + ';border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity=\'0.9\'" onmouseout="this.style.opacity=\'1\'">发布招募</button>' + renderReportEntryHtml({ accent, accentRgba }),
     renderCtx: { pending, recruiting, active, activities },
     storageKey: 'workflowos_tab_org',
     defaultTab: 'todo',
@@ -310,7 +311,8 @@ function _handleTodoAction(todo) {
     const srcId = first.sourceId || (first.actionData && first.actionData.sourceId);
     if (srcId) {
       const base = window.location.pathname.includes('/workspace/') ? '../' : '';
-      window.location.href = `${base}activity.html?id=${srcId}`;
+      const page = srcId.startsWith('tf-') ? 'taskforce.html' : 'activity.html';
+      window.location.href = `${base}${page}?id=${srcId}`;
       return;
     }
   }
@@ -1630,7 +1632,7 @@ function _renderOrgInspectionContent() {
             <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
           </tr></thead>
           <tbody>${inspectionToLong(tfInspection).map(i => `
-            <tr class="border-b border-gray-50 hover:bg-gray-50">
+            <tr class="border-b border-gray-50 hover:bg-gray-50 cursor-pointer" data-insp-detail="${i.id}" title="点击查看考察详情">
               <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
               <td class="py-2 px-3 text-gray-600">${i.source}</td>
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-xs ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">专班</span></td>
@@ -1640,6 +1642,7 @@ function _renderOrgInspectionContent() {
           `).join('')}</tbody>
         </table>
         ${tfInspection.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无专班考察记录</p>' : ''}
+        <div id="org-insp-detail" class="hidden mt-3"></div>
       </div>
     </div>
   `;
@@ -1649,6 +1652,39 @@ function _renderOrgInspectionContent() {
     _orgInspFormVisible = !_orgInspFormVisible;
     if (!_orgInspFormVisible && _orgInspPickerInstance) { _orgInspPickerInstance.destroy(); _orgInspPickerInstance = null; }
     _renderOrgInspectionContent();
+  });
+
+  // 考察记录行 → 行下展开详情预览（书记 2026-08-11 裁定：卡片主体可点，展示该条考察记录详情）
+  container.querySelectorAll('[data-insp-detail]').forEach(row => {
+    row.addEventListener('click', () => {
+      const rec = tfInspection.find(r => r.id === row.dataset.inspDetail);
+      const detailEl = container.querySelector('#org-insp-detail');
+      if (!rec || !detailEl) return;
+      const isOpen = detailEl.dataset.openId === rec.id;
+      if (isOpen) {
+        detailEl.classList.add('hidden');
+        delete detailEl.dataset.openId;
+        return;
+      }
+      const long = inspectionToLong([rec])[0];
+      detailEl.innerHTML = `
+        <div class="rounded-lg border border-gray-100 bg-gray-50/60 p-3">
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-xs font-medium text-gray-700">考察记录详情</p>
+            <span class="text-[11px] text-gray-400">上传人 ${getPersonName(rec.recordedBy) || '—'} · ${rec.recordedAt || '—'}</span>
+          </div>
+          <div class="grid grid-cols-2 gap-x-6 gap-y-1.5 text-xs">
+            <p class="text-gray-500">姓名 <span class="text-gray-800 font-medium">${long.name}</span></p>
+            <p class="text-gray-500">专班 <span class="text-gray-800 font-medium">${long.source}</span></p>
+            <p class="text-gray-500">参与层级 <span class="text-gray-800 font-medium">${long.level}</span></p>
+            <p class="text-gray-500">状态 <span class="text-gray-800 font-medium">${rec.status === 'confirmed' ? '已确认' : '待确认'}</span></p>
+            <p class="col-span-2 text-gray-500">考察内容 <span class="text-gray-800 font-medium">${rec.role || '—'}</span></p>
+          </div>
+          <p class="text-[11px] text-gray-400 mt-2">流程：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表</p>
+        </div>`;
+      detailEl.classList.remove('hidden');
+      detailEl.dataset.openId = rec.id;
+    });
   });
 
   if (_orgInspFormVisible) {

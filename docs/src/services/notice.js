@@ -305,9 +305,9 @@ export function resolveNoticeUrl(n, currentRole = null) {
       return { url: null, direct: false };
     }
   }
-  // 0. T233 targetType/targetId 显式定位 → 直达统一详情页（招募/报名类通知）
+  // 0. T233 targetType/targetId 显式定位 → 直达详情页（招募/报名类通知，活动/专班分页）
   if (n.targetType && n.targetId) {
-    const detailFile = n.targetType === 'activity' || n.targetType === 'taskforce' ? 'activity.html' : null;
+    const detailFile = n.targetType === 'taskforce' ? 'taskforce.html' : n.targetType === 'activity' ? 'activity.html' : null;
     if (detailFile) {
       return { url: getBasePath() + `${detailFile}?id=${n.targetId}`, direct: true };
     }

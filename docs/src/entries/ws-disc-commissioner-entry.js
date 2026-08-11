@@ -1,4 +1,4 @@
-﻿﻿﻿﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260810a';
+﻿﻿﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260810a';
 import { showToast } from '../core/utils.js?v=20260810a';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260810a';
 import { bootstrapPage } from '../core/bootstrap.js?v=20260810a';
@@ -98,8 +98,8 @@ function renderDiscUI(state) {
       // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
       { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('disc-tab-content'); if (el) return renderWorkOverview(el, { role: 'disc-commissioner', personId: AuthStore.getCurrentUser()?.personId || DISC_COMMISSIONER_ID, accent, prefix: 'disc' }); }, groupLabel: '工作台' },
       { id: 'attendance', label: '考勤管理', render: () => _renderAttendanceContent(null), groupLabel: '党建' },
-      { id: 'review', label: '活动监督复盘', render: () => _renderReviewContent() },
-      { id: 'inspection', label: '考察管理', render: () => _renderInspectionContent() },
+      { id: 'review', label: '活动监督复盘', render: () => _renderReviewContent(), groupLabel: '党建' },
+      { id: 'inspection', label: '考察管理', render: () => _renderInspectionContent(), groupLabel: '党建' },
       { id: 'makeup', label: '补课制度', render: () => _renderMakeupContent(), groupLabel: '党建' },
       { id: 'mailbox', label: '公邮管理', render: () => _renderMailboxContent(), groupLabel: '党建' },
       // 专班查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增）

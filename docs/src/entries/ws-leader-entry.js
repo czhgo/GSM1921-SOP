@@ -98,12 +98,13 @@ function renderLeaderUI(state) {
       { id: 'todo', label: '待办', render: () => _renderTodoContent(), groupLabel: '工作台' },
       // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览，个人视角）
       { id: 'overview', label: '工作概况', render: () => { const el = document.getElementById('leader-tab-content'); if (el) return renderWorkOverview(el, { role: 'leader', personId: AuthStore.getCurrentUser()?.personId || 'p4', accent, prefix: 'leader' }); }, groupLabel: '工作台' },
-      // 组员进展（书记 2026-08-10 裁定：全员可见性矩阵落地——组长看本组组员，P-015 知情边界看≠做）
-      { id: 'members', label: '组员进展', render: () => _renderMembersContent(), groupLabel: '工作台' },
       { id: 'write', label: '活动管理', render: (ctx) => _renderWriteContent(ctx.filteredActivities), groupLabel: '党建' },
-      { id: 'attendance', label: '考勤上传', render: () => _renderAttendanceContent() },
-      { id: 'inspection', label: '考察上传', render: () => _renderInspectionContent() },
-      { id: 'review', label: '复盘提交', render: () => _renderReviewContent() },
+      { id: 'attendance', label: '考勤上传', render: () => _renderAttendanceContent(), groupLabel: '党建' },
+      { id: 'inspection', label: '考察上传', render: () => _renderInspectionContent(), groupLabel: '党建' },
+      { id: 'review', label: '复盘提交', render: () => _renderReviewContent(), groupLabel: '党建' },
+      // 组员进展（书记 2026-08-10 裁定：全员可见性矩阵落地——组长看本组组员，P-015 知情边界看≠做）
+      // 排序：按工作流节奏「做→查→收→知情」，知情视角置于职责操作后、专班查看前（书记 2026-08-11 裁定）
+      { id: 'members', label: '组员进展', render: () => _renderMembersContent(), groupLabel: '党建' },
       // 专班查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增）
       { id: 'tf-view', label: '专班查看', render: () => { const el = document.getElementById('leader-tab-content'); if (el) return import('../components/taskforce-view.js?v=20260810a').then(m => m.renderTaskforceView(el, { highlightId: _leaderNavTarget?.tfId || null, onLocated: () => { _leaderNavTarget = null; } })); }, groupLabel: '党建' },
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('leader-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('leader', 'u_leader_1'); bindMyDispatchEvents(el, 'leader', 'u_leader_1'); } }, groupLabel: '反馈' },
@@ -441,7 +442,8 @@ function _handleTodoAction(todo) {
     const srcId = first.sourceId || (first.actionData && first.actionData.sourceId);
     if (srcId) {
       const base = window.location.pathname.includes('/workspace/') ? '../' : '';
-      window.location.href = `${base}activity.html?id=${srcId}`;
+      const page = srcId.startsWith('tf-') ? 'taskforce.html' : 'activity.html';
+      window.location.href = `${base}${page}?id=${srcId}`;
       return;
     }
   }
