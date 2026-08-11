@@ -1,6 +1,6 @@
 ---
 role: "[工程师]+[AI]"
-last_updated: "2026-08-10"
+last_updated: "2026-08-11"
 dynamic_role:
   maintenance: "[工程师]+[AI]"
   auto_update: "[AI]"
@@ -9,7 +9,7 @@ dynamic_role:
 # File Timestamp Registry
 
 > 全项目文件最后更新时间注册表
-> last_updated: "2026-08-10" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
+> last_updated: "2026-08-11" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
 
 ---
 
@@ -28,7 +28,7 @@ dynamic_role:
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
 | README.md | 2026-08-10 | [用户]+[AI] | 对外门面（设计理念章重构） |
-| CLAUDE.md | 2026-08-11 | [工程师]+[AI] | Harness（甲乙丙三部 + H8 反馈学习闭环） |
+| CLAUDE.md | 2026-08-11 | [工程师]+[AI] | Harness（甲部 H10-H100 约束力三层 + 乙部执行 + 丙部待决策） |
 | CHECKLIST.md | — | — | 🗑️ 已删除（迁移至 content/03_doc_system/CHECKLIST.md） |
 | LICENSE | 2026-02-17 | [用户] | 开源许可 |
 | .gitignore | 2026-04-06 | [工具] | Git 忽略 |
@@ -40,9 +40,9 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| .ctx/TIMESTAMPS.md | 2026-08-10 | [工程师]+[AI] | 本文件 |
-| .ctx/SNAPSHOT.md | 2026-08-10 | [AI] | 当前基线（v16） |
-| .ctx/REVIEW_QUEUE.md | 2026-08-10 | [工程师]+[AI] | 书记评议队列（W4 五专项附录承接区，含最小三成本侧重维度基线） |
+| .ctx/TIMESTAMPS.md | 2026-08-11 | [工程师]+[AI] | 本文件 |
+| .ctx/SNAPSHOT.md | 2026-08-11 | [AI] | 当前基线（v17） |
+| .ctx/REVIEW_QUEUE.md | 2026-08-11 | [工程师]+[AI] | 书记评议队列（W4 五专项附录承接区，含最小三成本侧重维度基线，H60 评议细节已指针化至 OPERATIONS_GUIDE §18） |
 | .ctx/snapshots/INDEX.md | 2026-05-03 | [工程师]+[AI] | 快照历史索引 |
 | .ctx/snapshots/SNAPSHOT_v3_20260502.md | 2026-05-02 | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-05-02 | [工程师]+[AI] | 日志索引 |
@@ -56,7 +56,7 @@ dynamic_role:
 | .ctx/logs/2026-06-DECISION_LOG.md | 2026-06-30 | [工程师]+[AI] | 6月决策日志 |
 | .ctx/logs/2026-07-EXECUTION_LOG.md | 2026-07-31 | [工程师]+[AI] | 7月执行日志（当前活跃） |
 | .ctx/logs/2026-07-DECISION_LOG.md | 2026-07-31 | [工程师]+[AI] | 7月决策日志 |
-| .ctx/logs/2026-08-EXECUTION_LOG.md | 2026-08-06 | [工程师]+[AI] | 8月执行日志（当前活跃） |
+| .ctx/logs/2026-08-EXECUTION_LOG.md | 2026-08-11 | [工程师]+[AI] | 8月执行日志（当前活跃） |
 | .ctx/logs/2026-08-DECISION_LOG.md | 2026-08-06 | [工程师]+[AI] | 8月决策日志 |
 | .ctx/logs/archive/2026-05-early-EXECUTION_LOG.md | 2026-05-03 | [工程师]+[AI] | 5月早期条目归档 |
 | .ctx/logs/archive/2026-07-early-entries.md | 2026-07-12 | [工程师]+[AI] | T22-T90 早期条目归档（母本：2026-07-EXECUTION_LOG.md） |
@@ -93,7 +93,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-08-11 | [工程师]+[AI] | 运行标准（含 §1.3 分层体系索引 + §1.4 一致性检查规范 + §12 文件命名规范 + §11 反论表述审核标准 + §16 吸收外部输入流程 + §17 周期性任务与自动唤醒机制，W4 含五专项） |
+| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-08-11 | [工程师]+[AI] | 运行标准（含 §1.3 分层体系索引 + §1.4 一致性检查规范 + §12 文件命名规范 + §11 反论表述审核标准 + §16 吸收外部输入流程 + §17 周期性任务与自动唤醒机制，W4 含五专项 + §18 书记评议工作流细节，承接甲部 H60 指针化细节） |
 | content/03_doc_system/USAGE_POLICY.md | 2026-08-05 | [工程师]+[AI] | 使用规范（术语 §一 + Emoji §二） |
 | content/03_doc_system/ARCHITECTURE.md | 2026-08-03 | [工程师]+[AI] | 核心架构说明（迁移自根目录 ARCHITECTURE.md） |
 | content/03_doc_system/DOC_MAP.md | 2026-08-11 | [工程师]+[AI] | 全局文档导航 |

@@ -4275,7 +4275,7 @@ label .text-red-500 {
 }
 
 /* ── Section 5: 探索工作——scroll-driven animation（进度绑定滚动 + 三态层级） ──
-   术语统一（CLAUDE.md H2.1）：
+   术语统一（CLAUDE.md H30.1）：
    - scroll-driven animation = 滚动驱动动画（进度连续绑定滚动位置，可倒退）
    - sticky scroll = 粘性滚动（SVG 悬停在视口）
    - state hierarchy = 状态层级（past 已过 / current 当前 / future 未来）

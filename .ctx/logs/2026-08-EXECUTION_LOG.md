@@ -2446,3 +2446,19 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **⑦变更文件**：`content/insights/工程演进与设计方法论.md`（本会话 + 此前 Task1-7 共 9 commit）、`CLAUDE.md`（H8）、`content/03_doc_system/OPERATIONS_GUIDE.md`（§7.4 标题 + YAML）、`content/03_doc_system/DOC_MAP.md`（内容描述 + YAML）、`content/04_web_design/DESIGN_SYSTEM.md`（§4 引用 + YAML）、`c:\Users\储子禾\.trae-cn\memory\projects\-d-GitHub-GSM1921-SOP\project_memory.md`（指针校正 + 3 新条目，仓库外）、`.ctx/TIMESTAMPS.md`（本会话同步）
 - **⑧ §1.1/§1.2 去语境化补改（书记审查后确认）**：书记指出 §1.1 命名表与 §1.2 Layer 分层未完全去语境化。经 AskUserQuestion 书记确认后改写——§1.1：通用命题（命名即认知框架/官方术语与内部约定）前置、表格降为「判例」后置、补判断路由（什么条件下该改名：技术隐喻→日常用语/冗余层级→合并/命名与结构不一致→中立，纯审美不改），原注「当前一律以新名为准」并入判例尾；§1.2：四层层名通用化（党章层→最高规范层/文本SOP层→制度母本层/代码层→实施层/核心层→核心规则层）+ 补判断路由（适用于四层结构文档体系的级联同步场景）+ 项目对应保留于路由句尾（判例合法）。全仓 Grep 旧层名零残留（仅新写的项目对应行）
 - **沉淀标签**：`[已沉淀: 工程演进与设计方法论 §7.1 去语境化写作规范]` — insights 内容标准（人类阅读知识资产/去语境化直接写通用表述不留痕迹/判断路由或关系/判例支撑），配合沉淀优先级（01-05 → CLAUDE → insights）构成反馈学习闭环的「沉淀」环节；已沉淀至 §7.1 + CLAUDE H8 + project-memory 三处落位
+
+## T-215 甲部重组·约束力三层 + 编号重编（H10 递增制）（2026-08-11）
+
+**任务**：书记指令——「现在我们对于我们既有的 CLAUDE和01-05的content系统做一次 甲部的更新！有哪些重要规则需要贯彻！哪些需要写全在甲部、哪些需要用指针指向对应文件 需要判断清楚。请务必做到 吃透书记的精神！这对我们的系统可持续性发展非常重要！！ Use Skill: sample-diff-learning Use Skill: brainstorming」。brainstorming + sample-diff-learning Skill 设计收敛，按 spec（`.trae/specs/2026-08-11-harness-restructure-constraint-3-layers-design.md`）实施：CLAUDE.md 甲部按「约束力三层」重组为 H10-H100，编号体系 10 递增重编，B 类评议细节指针化下沉 OPERATIONS_GUIDE 新增 §18，全仓旧编号引用一改具改。
+**引用流程**：spec + brainstorming Skill + sample-diff-learning Skill + H2.1 一改具改（→ H30.1）+ H3 文件修改检查清单（→ H40）+ OPERATIONS_GUIDE §15 甲部修改流程 + KNOWN_PITFALLS §14（同区域连续编辑陷阱，全程串行编辑遵守）
+
+- **①书记决策链（AskUserQuestion 十项裁定）**：更新性质=先盘点现状再定；写全 vs 指针判断标准=**按全局约束力分**（全局约束力强→写全；场景化/按需→指针）；更新方案=系统再分配 +「顺序排布上也要做好规划」；B 类评议=B 类全部指针化；E 类顺序=层内聚优先 +「编号可以再调整的！本质上还是打散了之后我们重新组装！」；重组方案=方案一·约束力三层；编号体系=方案甲·10 递增预留
+- **②CLAUDE.md 单次 Write 完整重写（t1）**：甲部由 H1-H8 重组为 **H10 总纲 / H20 标准化工作流 / H30 一改具改（含 H30.2 母本子本）/ H40 检查清单 / H50 乙丙部生命周期 / H60 书记评议 / H70 反思触发流 / H80 反馈学习闭环 / H90 外部权威源 / H100 项目产出声明**——热层（H10-H40）全局约束力强写全，温层（H50-H80）机制骨架写全 + 细节指针，冷层（H90-H100）纯指针；编号位值与层对应（热层 10-40 / 温层 50-80 / 冷层 90-100）
+- **③OPERATIONS_GUIDE §9.1 编号体系重写 + 新增 §18（t2）**：§9.1 对照表重写为 H10-H100 十行（10 递增预留，与甲部一致）；**新增 §18 书记评议工作流细节**（L990-1133）：H60 指针化的 B 类评议细节全部落位——§18.1 抽样规则（原 H5.2）/§18.2 评议流程（原 H5.3）/§18.5 三类评议类型（反论/理论复用/补丁审查）等
+- **④C 类新增 2 项**：①H30.4 沉淀优先级联动声明（沉淀优先级 01-05 → CLAUDE → insights 显式落位）；②H70/H60/H80 三机制边界显式声明表（反思触发流/书记评议/反馈学习闭环三者职责边界）
+- **⑤一改具改全仓同步（t3-t6）**：README.md、SSOT_INDEX.md、USAGE_POLICY.md、DOC_MAP.md、工作模板/经验沉淀辅助提示词.md、DATA_ARCHITECTURE.md、SECRETARY_PRONOUNCEMENTS.md、KNOWN_PITFALLS.md、OPERATIONS_GUIDE 内部 17 处 + §18 新增、工程演进与设计方法论 30+ 处、styles.css（L4278）、REVIEW_QUEUE.md（全量重写 9 处）、TIMESTAMPS.md——全部按映射表（H1→H20、H2→H30、H3→H40、H4→H50、H5→H60、H1.4→H70、H8→H80、H6→H90、H7→H100 等）逐一同步
+- **⑥验收（t6）**：三路 Grep 零残留验证——`.ctx/` 仅历史日志命中（合法豁免）、`content/` 仅 OPERATIONS_GUIDE L398/L776「原 H6/H4 外移归位」历史注记 + DESIGN_SYSTEM L338-340 字体层级表（合法豁免）、CLAUDE.md/README.md/docs/ 零命中
+- **⑦并行编辑竞态教训再确认**：本次发现 3 处此前并行 Edit 未生效残留（DOC_MAP L103、OPERATIONS_GUIDE L428/L605、styles.css L4278），已全部串行修复——同文件多处修改必须串行（KNOWN_PITFALLS §14）
+- **变更文件**：`CLAUDE.md`（甲部 H10-H100 重组）、`content/03_doc_system/OPERATIONS_GUIDE.md`（§9.1 + §18 + 内部引用）、`content/README.md`、`content/03_doc_system/SSOT_INDEX.md`、`content/03_doc_system/USAGE_POLICY.md`、`content/03_doc_system/DOC_MAP.md`、`content/03_doc_system/工作模板/经验沉淀辅助提示词.md`、`content/04_web_design/DATA_ARCHITECTURE.md`、`content/01_strategy/SECRETARY_PRONOUNCEMENTS.md`、`content/05_ai_coding/KNOWN_PITFALLS.md`、`content/insights/工程演进与设计方法论.md`、`docs/src/styles.css`、`.ctx/REVIEW_QUEUE.md`、`.ctx/TIMESTAMPS.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **沉淀标签**：`[已沉淀: 工程演进与设计方法论 §5.9 约束力三层]` — 「写全 vs 指针」判断标准（全局约束力分：热层写全/温层机制+指针/冷层纯指针）+ 编号位值对应（10 递增预留）可复用为文档体系治理方法论，已沉淀至 §5.9
+- **待办**：commit（push 需书记批准）

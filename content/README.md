@@ -21,6 +21,6 @@ status: active
 | [`05_ai_coding/`](05_ai_coding/) | 网站系统的 AI coding 技术方法 | AI 编码的经验教训与陷阱 | [工程师] |
 | [`insights/`](insights/) | 跨多类经验沉淀 | 历届支委集体萃取的组织智慧 | [用户]+[工程师] |
 
-所有系统逻辑、数据模型和 UI 行为必须从 SOP 文档推导而来（CLAUDE.md H2.2 制度→代码母本子本关系）。
+所有系统逻辑、数据模型和 UI 行为必须从 SOP 文档推导而来（CLAUDE.md H30.2 制度→代码母本子本关系）。
 
 > 知识类型权威层级定义见 [OPERATIONS_GUIDE.md §1.1](03_doc_system/OPERATIONS_GUIDE.md)，母本子本关系注册表见 [SSOT_INDEX.md](03_doc_system/SSOT_INDEX.md)。

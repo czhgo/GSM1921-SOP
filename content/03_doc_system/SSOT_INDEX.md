@@ -14,13 +14,13 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 
 本文件是全工作区母本子本关系的**完整注册表**——所有"哪个文件是哪个文件的母本"的级联关系都在此注册。
 
-**与相关文件的关系**（参见 [CLAUDE.md H2.2](../../CLAUDE.md#h22-设计母本与子本)）：
-- **CLAUDE.md H2.2**：提炼5条核心原则（制度→代码 / 理论→工程 / 路线图→执行 / 经验→沉淀 / 术语→全仓）
+**与相关文件的关系**（参见 [CLAUDE.md H30.2](../../CLAUDE.md#h302-设计母本与子本)）：
+- **CLAUDE.md H30.2**：提炼5条核心原则（制度→代码 / 理论→工程 / 路线图→执行 / 经验→沉淀 / 术语→全仓）
 - **本文件（SSOT_INDEX.md）**：注册全部约25条级联关系，是母本子本关系的唯一权威注册表
 - **OPERATIONS_GUIDE.md §1.1**：定义文档权威层级（5 类知识类型）与冲突裁决规则
 - **DOC_MAP.md**：按目录结构组织的导航图，标注每个文件的权威层级
 
-三者关系：H2.2 提炼核心原则 → SSOT_INDEX 注册全部关系 → OPERATIONS_GUIDE §1.1 定义层级 → DOC_MAP 标注层级。
+三者关系：H30.2 提炼核心原则 → SSOT_INDEX 注册全部关系 → OPERATIONS_GUIDE §1.1 定义层级 → DOC_MAP 标注层级。
 
 ---
 
@@ -32,9 +32,9 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
-| `CLAUDE.md` 甲部 H2.2 | `content/01_strategy/`、`content/04_web_design/`、`content/03_doc_system/` | Harness 是 guides 的摘要和索引（非副本）。甲部保留核心原则+判例，详细设计归 guides。甲部引用的原则变更必须同步更新 guides |
+| `CLAUDE.md` 甲部 H30.2 | `content/01_strategy/`、`content/04_web_design/`、`content/03_doc_system/` | Harness 是 guides 的摘要和索引（非副本）。甲部保留核心原则+判例，详细设计归 guides。甲部引用的原则变更必须同步更新 guides |
 | `CLAUDE.md` 乙部 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` | 路线图→执行。完成事项从乙部删除，写入执行日志 |
-| `SECRETARY_PRONOUNCEMENTS.md` | `CLAUDE.md` H6（外部权威源索引） | 书记论断汇编是理论基石的母本。新增论断时同步更新 CLAUDE.md H6 索引表 |
+| `SECRETARY_PRONOUNCEMENTS.md` | `CLAUDE.md` H90（外部权威源索引） | 书记论断汇编是理论基石的母本。新增论断时同步更新 CLAUDE.md H90 索引表 |
 | `SSOT_INDEX.md` | `ARCHITECTURE.md` | 注册表是架构说明的溯源参考 |
 
 ### content/ 内部及交叉（strategy ↔ institution ↔ doc_system ↔ web_design ↔ insights）
@@ -44,14 +44,14 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | `content/01_strategy/DEVELOPMENT_PATH.md` | `content/04_web_design/DATA_ARCHITECTURE.md` | 战略→设计。DEVELOPMENT_PATH 是上游战略依据，DATA_ARCHITECTURE 是数据流设计的落地（原 PARTICIPANT_DATAFLOW.md） |
 | `content/01_strategy/DEVELOPMENT_PATH.md` | `content/02_institution/FLAT_DESIGN.md` | 战略→设计。FLAT_DESIGN 的扁平化是"理解真实"认知的具体实现。冲突时以 DEVELOPMENT_PATH 为准 |
 | `content/04_web_design/DATA_ARCHITECTURE.md` | `content/02_institution/COMMISSIONER_FRAMEWORK.md` | 数据流→支委系统。DATA_ARCHITECTURE 定义三级参与者数据流，COMMISSIONER_FRAMEWORK 细化支委系统设计 |
-| `content/04_web_design/SOP_WEB.md` | `content/02_institution/sop/*.md`（双向） | 双向修改规则（CLAUDE.md H2.2 制度→代码）。规则0：文本SOP是母本；规则2：先改SOP母本→再改系统代码→验证 |
+| `content/04_web_design/SOP_WEB.md` | `content/02_institution/sop/*.md`（双向） | 双向修改规则（CLAUDE.md H30.2 制度→代码）。规则0：文本SOP是母本；规则2：先改SOP母本→再改系统代码→验证 |
 | `content/insights/党支部管理与实务经验沉淀.md` | `content/01_strategy/`、`content/04_web_design/` | 经验→设计反馈。insights 是经验沉淀，可反哺战略和设计校准。当经验与战略冲突时提交书记决策 |
 
 ### content/ → docs/src/（设计/制度 → 代码）
 
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
-| `content/02_institution/sop/*.md` | `docs/src/workflow/`、`docs/src/` | 制度→代码（H2.2 规则1）。SOP 制度文本是系统代码的母本。凡涉及流程步骤、术语、权限规则，必须先检查 content/02_institution/sop/ |
+| `content/02_institution/sop/*.md` | `docs/src/workflow/`、`docs/src/` | 制度→代码（H30.2 规则1）。SOP 制度文本是系统代码的母本。凡涉及流程步骤、术语、权限规则，必须先检查 content/02_institution/sop/ |
 | `content/04_web_design/DATA_ARCHITECTURE.md` | `docs/src/`（角色权限引擎） | 设计→代码。数据流架构定义角色数据流、§登录态打桩设计，代码实现设计（原 PARTICIPANT_DATAFLOW.md） |
 | `content/02_institution/COMMISSIONER_FRAMEWORK.md` | `docs/src/`（专班管理 + 审批流程） | 设计→代码。支委系统设计定义专班管理逻辑和§审批流程规范，代码实现 |
 | `content/04_web_design/DESIGN_SYSTEM.md` | `docs/src/styles.css` | 设计→样式。设计系统规范是全局样式的母本 |
@@ -67,7 +67,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
-| `content/03_doc_system/USAGE_POLICY.md` | 全仓库 + `docs/src/core/constants.js` | 术语→全仓。术语变更触发一改具改（H2.1）。代码中的术语必须与 USAGE_POLICY.md §一 一致（2026-07-12 合并自 TERMINOLOGY.md + EMOJI_POLICY.md） |
+| `content/03_doc_system/USAGE_POLICY.md` | 全仓库 + `docs/src/core/constants.js` | 术语→全仓。术语变更触发一改具改（H30.1）。代码中的术语必须与 USAGE_POLICY.md §一 一致（2026-07-12 合并自 TERMINOLOGY.md + EMOJI_POLICY.md） |
 | `content/03_doc_system/OPERATIONS_GUIDE.md` | 全仓库 | 运行标准→全仓。YAML/编码/编号/文档关系/权威层级/三类文件角色规范/§15 周期性任务，全仓库必须遵守（2026-07-12 合并原 RECURRING_TASKS.md 为 §15） |
 | `content/02_institution/ROLE_CLASSIFICATION.md` | `docs/src/core/state.js` | 角色分类→代码。文件角色分类体系是 state.js 角色常量的母本 |
 
@@ -81,7 +81,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
-| `.ctx/logs/DECISION_LOG.md` | `content/insights/*.md` | 经验→沉淀。决策日志定期沉淀为经验沉淀（H2.4 经验沉淀规则） |
+| `.ctx/logs/DECISION_LOG.md` | `content/insights/*.md` | 经验→沉淀。决策日志定期沉淀为经验沉淀（H30.4 经验沉淀规则） |
 
 ---
 

@@ -50,7 +50,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `content/01_strategy/SECRETARY_PRONOUNCEMENTS.md` | [用户]+[AI] | 书记重要论断汇编（项目顶级战略文档，元命题 + 战略路线级 + 制度设计级论断） | CLAUDE.md H6/H7 |
+| `content/01_strategy/SECRETARY_PRONOUNCEMENTS.md` | [用户]+[AI] | 书记重要论断汇编（项目顶级战略文档，元命题 + 战略路线级 + 制度设计级论断） | CLAUDE.md H90/H100 |
 | `content/01_strategy/DEVELOPMENT_PATH.md` | [用户]+[AI] | 发展路径（从入党申请人到正式党员的完整叙事） | SECRETARY_PRONOUNCEMENTS.md |
 | `content/01_strategy/README.md` | [工程师]+[AI] | 战略层目录索引 | — |
 | `content/01_strategy/references/合规文件/` | [用户] | 党章、党支部工作规范、党员教育管理条例等（T1 制度原文） | content/02_institution/sop/（母本溯源） |
@@ -81,7 +81,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `content/03_doc_system/OPERATIONS_GUIDE.md` | [工程师]+[AI] | 运行标准（含权威层级 §1、三类文件角色 §14、一致性检查规范 §1.4、§16 吸收外部输入、§17 周期性任务） | CLAUDE.md H6 |
+| `content/03_doc_system/OPERATIONS_GUIDE.md` | [工程师]+[AI] | 运行标准（含权威层级 §1、三类文件角色 §14、一致性检查规范 §1.4、§16 吸收外部输入、§17 周期性任务、§18 书记评议细节承接） | CLAUDE.md H60 |
 | `content/03_doc_system/USAGE_POLICY.md` | [工程师]+[AI] | 使用规范（术语标准 §一 + AI 展开原则 §二 + Emoji 边界 §三，合并自 TERMINOLOGY.md + EMOJI_POLICY.md） | 全仓库 |
 | `content/03_doc_system/DOC_MAP.md` | [工程师]+[AI] | 本文档：全局导航中心 | 所有文件 |
 | `content/03_doc_system/SSOT_INDEX.md` | [工程师]+[AI] | 母本注册表、溯源参考（Agent/Skill 配置已迁出，见 ARCHITECTURE.md） | ARCHITECTURE.md |
@@ -100,7 +100,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | `content/04_web_design/DESIGN_SYSTEM.md` | [工程师]+[AI] | 设计系统规范 | docs/src/styles.css |
 | `content/04_web_design/CHECKLIST.md` | [用户]+[AI] | 数据同源一致性校验手册（工程质检流程，按数据类别逐步检查；机器检查+人工检查分工） | DATA_ARCHITECTURE.md、ARCHITECTURE.md |
 | `content/04_web_design/MODULE_UI_DESIGN.md` | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能） | docs/src/components/calendar.js |
-| `content/04_web_design/SOP_WEB.md` | [工程师]+[AI] | SOP 系统优化与同步指南 | CLAUDE.md H2.2 |
+| `content/04_web_design/SOP_WEB.md` | [工程师]+[AI] | SOP 系统优化与同步指南 | CLAUDE.md H30.2 |
 | `content/04_web_design/SCHOOL_IT_DEPLOYMENT.md` | [工程师] | 学校计算中心对接准备文档（对接准备与提交清单） | docs/src/services/runtime.js 等 |
 | `content/04_web_design/README.md` | [工程师]+[AI] | 网站设计层目录索引 | — |
 
@@ -110,7 +110,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `content/05_ai_coding/KNOWN_PITFALLS.md` | [工程师]+[AI] | 已知陷阱判例（AI工具使用陷阱） | CLAUDE.md H6 |
+| `content/05_ai_coding/KNOWN_PITFALLS.md` | [工程师]+[AI] | 已知陷阱判例（AI工具使用陷阱） | CLAUDE.md H90 |
 | `content/05_ai_coding/README.md` | [工程师]+[AI] | AI coding 技术层目录索引 | — |
 
 ### 跨多类：经验沉淀（content/insights/）
@@ -160,4 +160,4 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | 了解三类文件角色规范 | content/03_doc_system/OPERATIONS_GUIDE.md §14 | content/02_institution/ROLE_CLASSIFICATION.md |
 | 查看文档权威层级 | content/03_doc_system/OPERATIONS_GUIDE.md §1.1 | 本文档 §二 |
 | 查看母本子本关系 | content/03_doc_system/SSOT_INDEX.md | content/03_doc_system/OPERATIONS_GUIDE.md §1.1 |
-| 查看书记重要论断 | content/01_strategy/SECRETARY_PRONOUNCEMENTS.md | CLAUDE.md H6 |
+| 查看书记重要论断 | content/01_strategy/SECRETARY_PRONOUNCEMENTS.md | CLAUDE.md H90 |

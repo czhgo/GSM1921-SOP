@@ -29,7 +29,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > 读完之后，读者将理解以下要点："管理事、服务人"是党建与党务的统一主语——两者都是"管理事，服务人"的工作，不按"服务同学还是供支委决策"区分；理解真实的组织和管理的重要性；有先例的工作应先从既有工作流开始、创新性的工作应发挥主人翁意识；在组织框架内表达批评是成长的关键；扁平化不能与没有"程序"等同、组织者与深度参与者之间没有上下级、只是分工内容不同；条块是理解权责关系的方式；组织内控靠四道防线——职责分离、主动回避、书记仲裁、知情边界（执行委托与知情监督对应统一，任何角色的信息可见范围精确等于其职责空间所需的最小充分信息）；专班为什么设立——不限时间、不限地点，是活动之外考察积极分子的载体，需求提出与招募统筹分离；以及党建的根本目标——恢复成员与思想、与现实世界的对话能力。
 >
-> **与 CLAUDE.md 的关系**：本文件是项目顶级战略文档，独立承担论断汇编职责。CLAUDE.md H6 外部权威源索引提供链接入口。
+> **与 CLAUDE.md 的关系**：本文件是项目顶级战略文档，独立承担论断汇编职责。CLAUDE.md H90 外部权威源索引提供链接入口。
 > **与 insights 的关系**：insights 是"经验沉淀"（怎么做更好），本文件是"路线级论断"（为什么这样做）——两者层级不同。非 meta 级判断（具体设计方法论、工程经验、操作规则、术语辨析）已归位到 insights 对应章节，本文件不再重复。
 
 ***
@@ -57,9 +57,9 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > **AI 展开原则（原 P-046，2026-07-16 融入）**：AI 作为书记的秘书，写出的话应该就是"grill 书记后的话"——经过与书记的思想交互、反复锤炼，秘书的展开与书记的原话在精神上应无张力。读者无需看到"这段是书记的，那是 AI 的"区隔标注，因为吃透精神后两者本应一致。问题只在于 AI 没吃透就写了——用自己概括的术语替代书记会用人话（如"核心价值"替代"宝贵机会"），或者方向对但措辞走形，或者精神重心偏移，或者私加书记没说的逻辑链。排查的目标是找到没吃透的地方，修正到吃透。吃透后的重写，读者分不出是书记说的还是秘书写的——这才是正确的状态。规范落地：[USAGE\_POLICY.md §二](../03_doc_system/USAGE_POLICY.md) + [OPERATIONS\_GUIDE.md §13.6](../03_doc_system/OPERATIONS_GUIDE.md)。
 >
-> **与 CLAUDE.md H7 的关系**：本条是元命题记录，CLAUDE.md 甲部 H7"项目产出声明"承载该元命题的治理层锚点。详细叙事见 [DEVELOPMENT\_PATH.md](DEVELOPMENT_PATH.md) 第一章。
+> **与 CLAUDE.md H100 的关系**：本条是元命题记录，CLAUDE.md 甲部 H100"项目产出声明"承载该元命题的治理层锚点。详细叙事见 [DEVELOPMENT\_PATH.md](DEVELOPMENT_PATH.md) 第一章。
 
-> 出处：2026-07-14 元命题阐述 + 2026-07-16 AI 展开原则（原 P-046 融入） · 母本：DEVELOPMENT\_PATH.md 第一章 + CLAUDE.md H7（系统产出）；USAGE\_POLICY.md §二 + OPERATIONS\_GUIDE.md §13.6（AI 展开原则） · 层次：元命题
+> 出处：2026-07-14 元命题阐述 + 2026-07-16 AI 展开原则（原 P-046 融入） · 母本：DEVELOPMENT\_PATH.md 第一章 + CLAUDE.md H100（系统产出）；USAGE\_POLICY.md §二 + OPERATIONS\_GUIDE.md §13.6（AI 展开原则） · 层次：元命题
 
 ***
 
@@ -116,7 +116,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > 观察点 3 与"想象等级森严"同根：赋权的体系会让不曾经历的人误以为"只要有了位置就可以指挥组织"——这一方面掩盖了真实管理过程中的组织行为学，另一方面并不适用一个需要发挥创造力的组织。这与 P-009"扁平化不能与没有'程序'等同"一脉相承——组织者与深度参与者之间没有上下级关系，只是分工内容不同。
 
-> 出处：D-227 + DEVELOPMENT\_PATH.md 第一章第二阶段 + CLAUDE.md H6 · 母本：DEVELOPMENT\_PATH.md 第一章第二阶段 · 层次：制度设计级
+> 出处：D-227 + DEVELOPMENT\_PATH.md 第一章第二阶段 + CLAUDE.md H90 · 母本：DEVELOPMENT\_PATH.md 第一章第二阶段 · 层次：制度设计级
 
 ***
 
@@ -126,7 +126,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 > 支部里大多数工作是有先例的——发展党员、党费缴纳、办党课、做宣传报道，历届支委都沉淀了工作流。对于这些有先例的工作，先从既有工作流开始，不要从零起步。这是与组织进行真实对话的方式：站在累积的经验上，而不是"重复造轮子"。善用经验也是新成员融入组织的最短路径——新成员不必"摸石头过河"，按工作流走一遍就能进入状态，再在执行中提出改进。工作流沉淀的价值在于持续被使用和改进，让每一届的经验累积都能为下一届所用。
 
-> 出处：D-227 + DEVELOPMENT\_PATH.md 第一章第二阶段 + CLAUDE.md H6 · 母本：DEVELOPMENT\_PATH.md 第一章第二阶段 · 层次：制度设计级
+> 出处：D-227 + DEVELOPMENT\_PATH.md 第一章第二阶段 + CLAUDE.md H90 · 母本：DEVELOPMENT\_PATH.md 第一章第二阶段 · 层次：制度设计级
 
 ***
 
@@ -138,7 +138,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > **与 P-044 的关联**：书记 2026-08-05 强调"支部的建设方兴未艾，任何的意见、建议、创新都弥足珍贵"（见 [P-044](#p-044-ai时代中学生党支部的探索机会参与构建与组织转型)）——"方兴未艾"正是创新沉淀的土壤：正因支部建设仍在起步，每个成员的意见与创新才弥足珍贵。
 
-> 出处：DEVELOPMENT\_PATH.md 第一章第三阶段 + CLAUDE.md H6 · 母本：DEVELOPMENT\_PATH.md 第一章第三阶段 · 层次：制度设计级
+> 出处：DEVELOPMENT\_PATH.md 第一章第三阶段 + CLAUDE.md H90 · 母本：DEVELOPMENT\_PATH.md 第一章第三阶段 · 层次：制度设计级
 
 ***
 
@@ -155,7 +155,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > **补充（书记 2026-08-09）**："最大的礼貌是'负责'"是框架内对话的延伸——在本科生党支部里，最高的礼貌不是措辞周全，而是知之为知之、不知为不知的负责态度。不要过分推敲措辞（特别是"称呼"），非正式的表达中更能迸发创新的火花——这与"不要怕说错话"一脉相承：怕说错话的根源之一，正是对措辞的过度推敲。
 
-> 出处：DEVELOPMENT\_PATH.md 第一章第三阶段 + CLAUDE.md H6 · 母本：DEVELOPMENT\_PATH.md 第一章第三阶段 · 层次：制度设计级
+> 出处：DEVELOPMENT\_PATH.md 第一章第三阶段 + CLAUDE.md H90 · 母本：DEVELOPMENT\_PATH.md 第一章第三阶段 · 层次：制度设计级
 
 ***
 
@@ -343,10 +343,10 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 - P-011：2026-08-09 并入 P-010 并弃用比喻
 - P-013（提出需求与招募统筹分离——发起是提出需求，招募是统筹执行）：2026-08-09 并入 P-015 组织内控总论（职责分离防线，原话"发起是提出需求，招募是统筹执行"保留在 P-015 正文）
 - P-008（视图按需取用原则）：2026-07-20 迁出至 `content/insights/工程演进与设计方法论.md` §4.9（母本：`content/04_web_design/DATA_ARCHITECTURE.md` §三）
-- P-021（经验沉淀按需正反两面论）：2026-07-20 迁出至 `content/insights/工程演进与设计方法论.md` §3.7（母本：CLAUDE.md H2.4 规则 2）
+- P-021（经验沉淀按需正反两面论）：2026-07-20 迁出至 `content/insights/工程演进与设计方法论.md` §3.7（母本：CLAUDE.md H30.4 规则 2）
 - P-022（写入型 vs 支撑型角色分类）：2026-08-04 删除——写入门禁机制真实存在，但该分类的角色清单与 auth.js 权限表不符、系统未使用此命名，书记奥卡姆剃刀裁决清除
-- P-016（一改具改原则——修改一处必须全仓同步）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（一改具改操作流程母本，权威源在 CLAUDE.md H2.1）；本文件不再展开
-- P-017（甲部自省原则——执行失败时先反思制度）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（甲部自省原则，权威源在 CLAUDE.md H2.1）
+- P-016（一改具改原则——修改一处必须全仓同步）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（一改具改操作流程母本，权威源在 CLAUDE.md H30.1）；本文件不再展开
+- P-017（甲部自省原则——执行失败时先反思制度）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（甲部自省原则，权威源在 CLAUDE.md H30.1）
 - P-018（书记讲出的重要道理必须检查是否写入 guides/Harness——不得只记决策不沉淀原则）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（原则沉淀机制）+ `content/05_ai_coding/KNOWN_PITFALLS.md`（已收录）
 - P-024（SOP 与 guides 各自独立——理念与执行互不替代）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md` §1.1（文档权威层级定义母本）
 - P-026（人才库 ≠ 原始材料库——画像数据库与原始记录的关系）：2026-08-09 迁出至 `content/04_web_design/DATA_ARCHITECTURE.md` §3.3（人才库数据流）
