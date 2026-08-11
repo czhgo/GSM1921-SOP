@@ -2487,4 +2487,5 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **⑥小程序方案落档**：新建 `content/04_web_design/WECHAT_INTEGRATION.md`（书记决策链 5 项 + 文件流分类原则 + 宣传墙/档案分层浏览设计 + 过程性汇报集成方案 + 小程序三路径评估 A WebView 套壳/B Taro 跨端重写/C 原生不推荐 + 原生承接机制（订阅消息/共享数据层）+ 前置条件 3 项 + 短中长路线图 + 与 DESIGN_SYSTEM 原则 10 答复回路/原则 13 外发确认闭环衔接）；同步注册 `content/04_web_design/README.md`（新增五节）+ `content/03_doc_system/DOC_MAP.md`（知识类型 4 表新增行）
 - **变更文件**：`docs/src/entries/workspace-entry.js`（删）、`docs/src/services/feedback.js`（删）、`docs/src/services/image.js`（删）、`docs/src/services/auth.js`、`docs/src/entries/main-entry.js`、`docs/index.html`、`docs/src/core/icons.js`（重写）、`docs/src/styles.css`（-2123 行死类 + 深色覆盖 + rh 组件适配）、16 文件死 export 清理、`content/04_web_design/WECHAT_INTEGRATION.md`（新）、`content/04_web_design/README.md`、`content/03_doc_system/DOC_MAP.md`、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
 - **沉淀标签**：`[待沉淀: 受益者登记（成本翻转）——网页读不到微信消息→任何登记都有操作成本；登记应交给受益方（发送方/管理者）而非负担方（批复人）；零成本只在微信原生协同（小程序/服务号）实现]`
-- **待办**：commit（push 需书记批准）
+- **补记（书记 2026-08-11 追问后）**：书记观察「从微信群聊到网页的转变，是一个很复杂的事情！！」——比登记成本更根本的是**行为范式迁移成本**（微信群聊=即时通讯范式 vs 网页=结构化工作台范式，对应最小三成本中适应学习成本最高门槛）。已写入 WECHAT_INTEGRATION.md §4.1 迁移复杂度 + §4.2 致命问题末尾补「离开微信做额外动作的设计以『使用者是否有动机』为第一验收标准」；原 §4.2-4.5 顺延为 §4.3-4.6
+- **待办**：commit（push 需书记批准，书记 2026-08-11 裁决暂不 push）
