@@ -62,7 +62,8 @@ export function showToast(type, message) {
     'pointer-events:none', 'max-width:22rem', 'word-break:break-word',
   ].join(';');
 
-  // 状态色圆形图标（白字 glyph）+ 深色正文（textContent 防注入）
+  // 状态色圆形图标：状态色实底白字（书记 2026-08-11 裁定——toast 状态色本就三色平行，
+  // 不属于角色功能色 2×2 规则范围，保持实底白字醒目状态指示）+ 深色正文（textContent 防注入）
   const iconEl = document.createElement('span');
   iconEl.style.cssText = [
     'display:inline-flex', 'align-items:center', 'justify-content:center',

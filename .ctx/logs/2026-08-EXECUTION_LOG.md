@@ -2516,3 +2516,22 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **一改具改检查**：全仓 Grep `activity.html`/`taskforce.html`——5 处跳转分流全部正确；访客活动列表链接 `activity.html?id=...` 为活动页正确引用；零残留
 - **验证结果**：✅ GetDiagnostics 9 文件批量检查全部零错误
 - **待办**：commit（push 需书记批准，书记 2026-08-11 裁决暂不 push）
+
+## T-218 功能色「深浅 × 日/夜」2×2 平行规则：金色特判升格为 rule-based 通用规则（2026-08-11）
+
+**任务**：书记浏览器选中 button「发布招募」+ div role-label「组织委员」+ button「一键汇报」后裁定——「对于功能色，一定要所有颜色平行！现在这不是金色独树一帜了吗？你要 rule-based!! 本质上是 2*2 深/浅 × 白天模式/夜间模式」「div button 这些都要一改具改！」并指定 Use Skill: web-design-guidelines
+**引用流程**：H20.2 歧义消解铁律（AskUserQuestion 1 项裁定）+ C-2 一改具改巡检 + web-design-guidelines Skill + browser_use 四象限实测
+**来源**：书记 2026-08-11 浏览器选元素指令
+
+- **①规则设计（t1）**：不按颜色特判，而按 accent 感知亮度（WCAG relative luminance，阈值 0.25）判「深浅」再 × 日/夜：
+  - 深色 accent（亮度<0.25：金 #A16207(0.163)/红 #B91C1C(0.112)/橙 #C2410C(0.153)/海蓝 #2563EB(0.153)/深青 #0E7490(0.146)/紫 #7C3AED(0.134)）：日间=高亮同色系浅底（accent 调亮至 84% 明度 @12% 透明）+ 深 accent 字；夜间=提亮底（调亮至 60% @22% 透明）+ 提亮字（调亮至 82% 明度）
+  - 浅色 accent（亮度≥0.25：天蓝 #0EA5E9(0.329)/翠绿 #22C55E(0.411)/亮蓝 #7DD3FC(0.580)/灰 #94a3b8(0.360)）：日/夜一致「accent 实底 + 白字」（原行为不变）
+- **②实现机制（t2）**：`solidAccentStyle(accent)` 单一权威样式函数（constants.js）——深色分支内联 CSS 变量 `--acc-bg/--acc-text`（日）+ `--acc-bg-dark/--acc-text-dark`（夜）；styles.css 全局规则 `html.theme-dark [style*="--acc-bg-dark"]` 用 `!important` 覆盖内联 background/color 完成夜间切换；品牌亮色映射 `DEEP_ACCENT_RULES` 仅保留金色精确保留现有表现（light:#FFD700 / darkBg:rgba(251,191,36,0.22) / darkText:#FDE68A，主题党日胶囊同源），其余深色 accent 算法自动派生
+- **③一改具改（t3）**：全仓所有实底功能色渲染点统一改经 `solidAccentStyle`——header.js role-label（div）、report-entry.js 一键汇报、report-inbox.js 正式答复、work-overview.js 汇报、utils.js toast 状态图标
+- **④web-design-guidelines Skill 审查（t4，书记指定）**：focus-visible 全站已有（styles.css L2860）、hover 反馈保留、role-label 纯展示无 div 交互、夜间属性选择器实测生效——均通过；唯一发现：**toast 状态色图标（error #EF4444/info #3B82F6 为深色分支）改浅底深字后与 toast 浅色底（#FEF2F2/#EFF6FF）同色会 18px 小图标视觉隐形**，且状态色本就三色平行不属于「金色独树一帜」范畴 → AskUserQuestion 书记裁决：**回退实底白字**（utils.js 恢复 `background:${accent};color:#fff`，移除 solidAccentStyle import）
+- **⑤浏览器四象限实测（t5，browser_use）**：金日 rgba(255,215,0,0.12)+rgb(161,98,7) ✅ / 金夜 rgba(251,191,36,0.22)+rgb(253,230,138) ✅ / 红日 rgba(244,184,184,0.12)+rgb(185,28,28) ✅ / 红夜 rgba(228,78,78,0.22)+rgb(243,175,175) ✅ / 天蓝（浅色）日/夜恒为 rgb(14,165,233) 实底+白字 ✅；**TypeError 彻底消除**（此前 `?v=20260810a` 缓存旧模块所致，bump 后三页面 console 均无报错）
+- **⑥版本号 bump（t6）**：全仓 `?v=20260810a` → `?v=20260811a`（92 文件 593 处，PowerShell 批量，git diff 逐文件确认仅版本号行变化）使浏览器缓存失效
+- **变更文件**：`docs/src/core/constants.js`（2×2 规则+DEEP_ACCENT_RULES+守卫兜底）、`docs/src/styles.css`（金色专用变量→通用夜间规则）、`docs/src/components/header.js`（role-label）、`docs/src/components/report-entry.js`、`docs/src/components/report-inbox.js`、`docs/src/components/work-overview.js`、`docs/src/core/utils.js`（toast 回退实底白字）、全仓 92 文件（版本号 bump）、`.ctx/logs/2026-08-EXECUTION_LOG.md`（本条）
+- **一改具改检查**：全仓 Grep `--gold-btn` 零残留；全仓实底功能色渲染点全部经 `solidAccentStyle`（除 toast 状态色——书记裁定豁免）
+- **验证结果**：✅ GetDiagnostics 修改文件零错误；✅ Node 数值验证 10 色分支全对；✅ browser_use 四象限 computedStyle 逐值通过
+- **待办**：commit（push 需书记批准）

@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  api-adapter.js — REST API 数据适配器
 //  T-142 阶段2：DataAdapter 接口的 REST API 实现（P1：读列表 + snapshot 写穿已就绪；
@@ -14,7 +14,7 @@
 //         content/04_web_design/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260810a';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260811a';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 

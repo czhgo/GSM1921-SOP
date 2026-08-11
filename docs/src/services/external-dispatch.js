@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  services/external-dispatch.js — 文件流「外发确认」闭环服务
 //  书记 2026-08-10 裁定（文件流内控）：任务/材料需通过微信外发给对方确认时，
@@ -8,8 +8,8 @@
 //  （"标记已发送" 演进为 "发送到对方微信"，"确认收到" 保持同构）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260810a';
-import { persist } from '../core/data-adapter.js?v=20260810a';
+import { mockDB } from '../core/domain.js?v=20260811a';
+import { persist } from '../core/data-adapter.js?v=20260811a';
 
 /** 读取外发确认记录（mockDB 持久化） */
 export function loadExternalDispatches() {

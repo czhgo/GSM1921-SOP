@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  components/report-inbox.js — 待答复汇报收件箱（行内答复零跳转）
 //  书记 2026-08-10 裁定：待办内建「答复类」置顶（汇报答复为书记最高频动作）
@@ -8,10 +8,11 @@
 //  本组件禁用 SVG 图标（书记裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260810a';
-import { AuthStore } from '../services/auth.js?v=20260810a';
-import { showToast } from '../core/utils.js?v=20260810a';
-import { getPersonName } from '../mock/index.js?v=20260810a';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260811a';
+import { AuthStore } from '../services/auth.js?v=20260811a';
+import { showToast } from '../core/utils.js?v=20260811a';
+import { getPersonName } from '../mock/index.js?v=20260811a';
+import { solidAccentStyle } from '../core/constants.js?v=20260811a';
 
 /**
  * 待答复收件箱 HTML
@@ -124,7 +125,7 @@ function _renderInboxDetail(r, accent) {
     ${r.status === 'open' ? `
       <div class="flex gap-2 mt-2">
         <input type="text" id="rep-inbox-input-${r.id}" class="input-flat text-xs flex-1" placeholder="添加答复…" aria-label="答复内容">
-        <button type="button" class="rep-inbox-reply text-xs px-3 py-2 rounded-lg text-white hover:opacity-90 transition-opacity flex-shrink-0" data-report-id="${r.id}" style="background:${accent};">正式答复</button>
+        <button type="button" class="rep-inbox-reply text-xs px-3 py-2 rounded-lg text-white hover:opacity-90 transition-opacity flex-shrink-0" data-report-id="${r.id}" style="${solidAccentStyle(accent)};">正式答复</button>
       </div>` : ''}
   `;
 }

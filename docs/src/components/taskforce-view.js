@@ -1,13 +1,13 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // taskforce-view.js — 只读专班查看组件（知情权组件，书记 2026-08-08 裁定）
 // 供无专班 tab 的工作台（党支书/党小组组长/纪检委员等）承载 taskforceId 跳转落点：
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据书记第五轮裁定「新建专班查看组件（列表+详情）」。
 // 书记设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260810a';
-import { _personName } from '../mock/index.js?v=20260810a';
-import { badgeHtml } from './badge.js?v=20260810a';
-import { flashHighlight } from '../core/utils.js?v=20260810a';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260811a';
+import { _personName } from '../mock/index.js?v=20260811a';
+import { badgeHtml } from './badge.js?v=20260811a';
+import { flashHighlight } from '../core/utils.js?v=20260811a';
 
 const STATUS_LABEL = { draft: '草稿', pending_review: '待审核', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档' };
 const STATUS_COLOR = { pending_review: '#6366F1', recruiting: '#D97706', active: '#10B981', completed: '#3B82F6', archived: '#6B7280', draft: '#6B7280' };

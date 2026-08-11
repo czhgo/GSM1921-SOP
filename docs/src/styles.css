@@ -5732,17 +5732,12 @@ label .text-red-500 {
   gap: 4px;
 }
 
-/* 金色主题强调按钮/胶囊深色平行：--gold-btn-bg/--gold-btn-text 由主题变量驱动
-   （浅色：亮金浅底+深金字；深色：提亮金底+亮金字，与其他主题色"实底白字"平行可读） */
-:root {
-  --gold-btn-bg: rgba(255, 215, 0, 0.12);
-  --gold-btn-text: #A16207;
-  --gold-btn-border: rgba(255, 215, 0, 0.35);
-}
-html.theme-dark {
-  --gold-btn-bg: rgba(251, 191, 36, 0.22);
-  --gold-btn-text: #FDE68A;
-  --gold-btn-border: rgba(251, 191, 36, 0.45);
+/* 功能色 2×2 规则（书记 2026-08-11 裁定）：深色 accent 按钮/标签「浅底深字」，
+   日/夜两套由元素内联 --acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark（夜）驱动，
+   !important 覆盖内联 background/color 完成夜间切换；浅色 accent 走实底白字无需本规则。 */
+html.theme-dark [style*="--acc-bg-dark"] {
+  background: var(--acc-bg-dark) !important;
+  color: var(--acc-text-dark) !important;
 }
 
 /* 语义圆点（task-dot / 活动色点等）浅色基础：色值本色，深色下由 html.theme-dark .tint-dot 提亮 */

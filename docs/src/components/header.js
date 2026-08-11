@@ -1,15 +1,15 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // components/header.js — 共享顶栏组件（重构版）
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 书记裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { AuthStore } from '../services/auth.js?v=20260810a';
-import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260810a';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260810a';
-import { getBasePath } from '../core/utils.js?v=20260810a';
-import { icon } from '../core/icons.js?v=20260810a';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260810a';
-import { badgeHtml } from './badge.js?v=20260810a';
+import { AuthStore } from '../services/auth.js?v=20260811a';
+import { getAccentColors, resolveAccentRole, ROLE_LABELS, solidAccentStyle } from '../core/constants.js?v=20260811a';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260811a';
+import { getBasePath } from '../core/utils.js?v=20260811a';
+import { icon } from '../core/icons.js?v=20260811a';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260811a';
+import { badgeHtml } from './badge.js?v=20260811a';
 
 // 数据变更订阅（2026-08-05，消除"确认已读后角标不更新"）：
 // 模块顶层绑定一次；_renderNotificationBadge 在 #notification-bell 未渲染时静默返回。
@@ -47,12 +47,12 @@ function _roleLabelHTML(role) {
   if (role === 'participant') return '';
   const { accent } = getAccentColors(resolveAccentRole(role));
   const label = ROLE_LABELS[role] || role;
-  // 2026-08-10 书记裁定（第6点）：金色主题与其他主题显示结构完全一致——accent 实底 + 白字，
-  // 取消原金浅底深金字分支（金浅底导致金色下 header 标签与别色不一致）；
-  // 直接内联写背景/文字，不再拼接 solidAccentStyle，杜绝 `;;` 双分号。
+  // 2026-08-11 书记裁定：role-label 与按钮同走功能色 2×2 规则（深浅×日/夜），
+  // 深色 accent（含金）浅底深字、浅色 accent 实底白字；span 不写死白色、继承容器色，
+  // 夜间由 html.theme-dark [style*="--acc-bg-dark"] 规则自动切换提亮。
   return `
-    <div class="role-label" id="role-label" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:var(--radius-sm);background:${accent};color:#FFFFFF;">
-      <span class="text-xs font-medium" style="color:#FFFFFF;">${label}</span>
+    <div class="role-label" id="role-label" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:var(--radius-sm);${solidAccentStyle(accent)}">
+      <span class="text-xs font-medium">${label}</span>
     </div>
   `;
 }

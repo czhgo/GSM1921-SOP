@@ -2,8 +2,8 @@
 // issues.js — GitHub Issue 风格意见反馈数据服务
 // 权威源 docs/data/issues.json + localStorage 个人草稿
 
-import { AuthStore } from './auth.js?v=20260810a';
-import { PersonStore } from './person.js?v=20260810a';
+import { AuthStore } from './auth.js?v=20260811a';
+import { PersonStore } from './person.js?v=20260811a';
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
 function _displayName(id) {

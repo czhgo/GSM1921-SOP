@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  components/report-entry.js — 一键汇报入口（各工作台顶部常驻按钮）
 //  书记 2026-08-10 裁定：
@@ -9,10 +9,11 @@
 //  最小三成本：按钮常驻顶部（零搜寻），弹窗两步完成（选分类+填正文）
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../services/issues.js?v=20260810a';
-import { AuthStore } from '../services/auth.js?v=20260810a';
-import { showToast } from '../core/utils.js?v=20260810a';
-import { getPersonName } from '../mock/index.js?v=20260810a';
+import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../services/issues.js?v=20260811a';
+import { AuthStore } from '../services/auth.js?v=20260811a';
+import { showToast } from '../core/utils.js?v=20260811a';
+import { getPersonName } from '../mock/index.js?v=20260811a';
+import { solidAccentStyle } from '../core/constants.js?v=20260811a';
 
 /**
  * 一键汇报按钮 HTML（挂在 tab-bar extraRightHtml 右侧）
@@ -30,7 +31,7 @@ export function renderReportEntryHtml({ accent = '#B91C1C', accentRgba = 'rgba(1
     : '';
   return `
     <button id="btn-report-entry" type="button"
-      style="position:relative;display:inline-flex;align-items:center;gap:4px;background:${accent};color:#fff;border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:pointer;transition:opacity 0.15s;"
+      style="position:relative;display:inline-flex;align-items:center;gap:4px;${solidAccentStyle(accent)};border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:pointer;transition:opacity 0.15s;"
       onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
       一键汇报${badge}
     </button>`;

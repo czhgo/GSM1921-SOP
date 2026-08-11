@@ -207,22 +207,105 @@ export function getAccentColors(role, bgAlpha = 0.1, borderAlpha = 0.3) {
   };
 }
 
+// ── 功能色「深浅 × 日/夜」2×2 统一规则（书记 2026-08-11 裁定）────────────────
+// 功能色必须所有颜色平行：不按颜色特判，而按 accent 感知亮度判「深浅」，再 × 主题模式：
+//   · 深色 accent（感知亮度 < 0.25，如金/红/深橙/海蓝/深青/紫）：日间 = 高亮同色系浅底 + 深 accent 字；
+//     夜间 = 提亮底 + 提亮字。日/夜两套由元素内联 CSS 变量驱动：
+//     --acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark（夜），
+//     由 styles.css `html.theme-dark [style*="--acc-bg-dark"]` 规则切换。
+//   · 浅色 accent（感知亮度 ≥ 0.25，如天蓝/翠绿/亮蓝/灰）：实底 accent + 白字（日/夜一致）
+// 背景：书记 2026-08-08 曾裁定金色浅底深字；2026-08-10 曾改为「与其他主题完全一致（实底白字）」；
+// 2026-08-11 重判「金色的深色部分还是有点丑，button 好棕好脏」→ 认可金浅底深字，
+// 但「对于功能色一定要所有颜色平行，本质上是 2*2 深/浅×白天/夜间」→ 特判升格为通用规则。
+
+// 品牌亮色映射：金色精确保留现有表现（亮金底 #FFD700 + 夜间提亮金底/字，主题党日胶囊同源）
+const DEEP_ACCENT_RULES = {
+  '#A16207': { light: '#FFD700', darkBg: 'rgba(251, 191, 36, 0.22)', darkText: '#FDE68A' },
+};
+
+/** hex → [h, s, l]（h:0-360, s:0-1, l:0-1） */
+function _hexToHsl(hex) {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  let h = 0, s = 0;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+    else if (max === g) h = ((b - r) / d + 2) * 60;
+    else h = ((r - g) / d + 4) * 60;
+  }
+  return [h, s, l];
+}
+
+/** [h, s, l] → hex（#RRGGBB） */
+function _hslToHex(h, s, l) {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const hp = h / 60;
+  const x = c * (1 - Math.abs((hp % 2) - 1));
+  let r = 0, g = 0, b = 0;
+  if (hp < 1) { r = c; g = x; }
+  else if (hp < 2) { r = x; g = c; }
+  else if (hp < 3) { g = c; b = x; }
+  else if (hp < 4) { g = x; b = c; }
+  else if (hp < 5) { r = x; b = c; }
+  else { r = c; b = x; }
+  const m = l - c / 2;
+  const toHex = (v) => Math.round((v + m) * 255).toString(16).padStart(2, '0');
+  return '#' + toHex(r) + toHex(g) + toHex(b);
+}
+
+/** 感知亮度（WCAG relative luminance 近似），用于「深浅」判定 */
+function _relativeLuminance(hex) {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const lin = (c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+
+/** 调亮：HSL 明度提到 targetL（0-100，饱和度不变） */
+function _lighten(hex, targetL) {
+  const [h, s] = _hexToHsl(hex);
+  return _hslToHex(h, s, targetL / 100);
+}
+
+/** hex → rgba(…, alpha) */
+function _rgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
 /**
- * 强调色「实底白字」按钮/标签统一样式（G1/G3 修复，书记 2026-08-08 裁定）
- * 金色主题（accent=#A16207 金黄）时改为「金浅底 rgba(255,215,0,0.12)+金黄字 #A16207」，
- * 不用纯亮金 #FFD700 实底（书记实测「过于艳丽，饱和度太高」）；
- * 金浅底与 tab 激活态同源（书记「tab 因为有透明度，黄色非常舒服」）；
- * 普通按钮不加边框，与其他主题色按钮结构完全一致（书记「别的有他也有，别的没有他也必须没有」）。
- * 非金色主题维持原 accent 实底白字不变。
+ * 功能色「实底白字 / 浅底深字」2×2 统一规则（书记 2026-08-11 裁定）
+ * 平行 = 同一规则下按深浅分流，而非颜色特判：
+ *   · 深色 accent：日间「高亮同色系浅底 + 深 accent 字」、夜间「提亮底 + 提亮字」
+ *   · 浅色 accent：日/夜一致「accent 实底 + 白字」
+ * 深色分支内联 --acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark（夜），
+ * 夜间切换由 styles.css `html.theme-dark [style*="--acc-bg-dark"]` 规则完成（!important 覆盖内联）。
  * @param {string} accent — 当前生效强调色 hex
- * @returns {string} 内联样式串（background / color）
+ * @returns {string} 内联样式串（background / color，含深浅两套变量）
  */
 export function solidAccentStyle(accent, border) {
-  if (accent === '#A16207') {
-    // 金浅底+深金字（浅色）/ 提亮金底+亮金字（深色）：CSS 变量驱动，深浅两套自动适配
-    return 'background:var(--gold-btn-bg, rgba(255,215,0,0.12));color:var(--gold-btn-text, #A16207);';
+  // 兜底：bootstrap 首帧渲染时 accent 可能为 undefined（瞬态，随后 setState 重渲染），
+  // 此时返回党建红实底白字（系统默认色），避免 _relativeLuminance 对非 hex 输入崩溃。
+  if (!accent || typeof accent !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(accent)) {
+    return 'background:#B91C1C;color:#fff';
   }
-  return `background:${accent};color:#fff;`;
+  const branded = DEEP_ACCENT_RULES[accent];
+  if (branded || _relativeLuminance(accent) < 0.25) {
+    const rule = branded || {
+      darkBg: _rgba(_lighten(accent, 60), 0.22),
+      darkText: _lighten(accent, 82),
+    };
+    return `--acc-bg:${_rgba(branded ? branded.light : _lighten(accent, 84), 0.12)};--acc-text:${accent};--acc-bg-dark:${rule.darkBg};--acc-text-dark:${rule.darkText};background:var(--acc-bg);color:var(--acc-text,#fff)`;
+  }
+  return `background:${accent};color:#fff`;
 }
 
 // ── 活动类型颜色（中文标签版，用于卡片/列表视图）──────────────────
