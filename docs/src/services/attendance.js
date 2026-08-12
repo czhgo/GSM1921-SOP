@@ -1,12 +1,12 @@
-﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260812c';
-import { persist } from '../core/data-adapter.js?v=20260812c';
-import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260812c';
-import { loadActivities } from './activity.js?v=20260812c';
+import { mockDB } from '../core/domain.js?v=20260812d';
+import { persist } from '../core/data-adapter.js?v=20260812d';
+import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260812d';
+import { loadActivities } from './activity.js?v=20260812d';
 
 export function loadAttendanceRecords() {
   return mockDB.attendances.length > 0 ? [...mockDB.attendances] : [...ATTENDANCE_RECORDS];

@@ -1,4 +1,4 @@
-﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  service.runtime.js — 运行时插槽 (Runtime Slot)
 //  光华管理学院本科生党支部 SOP 引擎 v11.0
@@ -11,10 +11,10 @@
 //  确保现有调用方无需修改。
 // ════════════════════════════════════════════════════════════════
 
-import * as mockService from './mock.js?v=20260812c';
-import { registerMockAdapter, registerApiAdapter, setDataSource, getDataSource } from '../core/data-adapter.js?v=20260812c';
-import { MockAdapter } from '../core/mock-adapter.js?v=20260812c';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260812c';
+import * as mockService from './mock.js?v=20260812d';
+import { registerMockAdapter, registerApiAdapter, setDataSource, getDataSource } from '../core/data-adapter.js?v=20260812d';
+import { MockAdapter } from '../core/mock-adapter.js?v=20260812d';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260812d';
 
 // ── 初始化 DataAdapter ──────────────────────────────────────────
 

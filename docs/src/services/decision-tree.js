@@ -1,11 +1,11 @@
-﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // services/decision-tree.js — 统一决策树服务
 // 从 ws-leader-entry.js 和 ws-secretary-entry.js 中提取的共享逻辑
 // 包含：配置管理、状态管理、场景映射、工作流面板渲染、活动写入
-import { BranchService } from './runtime.js?v=20260812c';
-import { showToast } from '../core/utils.js?v=20260812c';
-import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260812c';
-import { icon } from '../core/icons.js?v=20260812c';
+import { BranchService } from './runtime.js?v=20260812d';
+import { showToast } from '../core/utils.js?v=20260812d';
+import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260812d';
+import { icon } from '../core/icons.js?v=20260812d';
 
 // ════════════════════════════════════════════════════════════════
 //  决策树配置预设

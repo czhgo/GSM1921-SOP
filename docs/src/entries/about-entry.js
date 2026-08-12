@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // entries/about-entry.js — 关于页入口 v15（讲我们支部的故事）
 // 核心理念：从"关系网络"到"支部的故事"——以党员成长为主线，讲清考察、工作哲学、探索与对话
 // 设计风格：苹果风（纯白 + 大留白 + 大字体 + 微妙动画）
@@ -32,10 +32,10 @@
 // v6 变更：Section 重组（8→7）+ 13 节点横向时间轴（7 决策节点金色光晕）+ Exploration GSAP scrub 动画（替代 v5.2）+ T3 编程行话/自造隐喻清除
 // v4 变更：去党建vs党务对比/考勤/思想汇报/角色独立section；新增考察积极分子/核心口号/两种工作/探索工作/行百里者半九十
 
-import { renderSidebar } from '../components/sidebar.js?v=20260812c';
-import { renderHeader } from '../components/header.js?v=20260812c';
-import { getBasePath } from '../core/utils.js?v=20260812c';
-import { icon } from '../core/icons.js?v=20260812c';
+import { renderSidebar } from '../components/sidebar.js?v=20260812d';
+import { renderHeader } from '../components/header.js?v=20260812d';
+import { getBasePath } from '../core/utils.js?v=20260812d';
+import { icon } from '../core/icons.js?v=20260812d';
 
 // ── 公开访问：不检查登录 ──
 renderSidebar('about');
@@ -1193,6 +1193,19 @@ function renderDevelopment() {
   `;
 }
 
+/** 安全渲染（模块级，供 renderAboutContent 与探索区懒加载共用）：
+ *  每个 section 用 try-catch 包裹，避免单个 section 报错导致整个页面空白 */
+function safe(name, fn) {
+  try {
+    const html = fn();
+    console.log(`[renderAboutContent] ${name} OK, html.length=${html.length}`);
+    return html;
+  } catch (e) {
+    console.error(`[renderAboutContent] ${name} ERROR:`, e);
+    return `<div style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;--acc-border-dark:#F87171;padding:20px;background:#fee;border:2px solid red;color:#900;">[${name} 渲染失败: ${e.message}]</div>`;
+  }
+}
+
 /** 固定小目录（桌面端右侧，移动端隐藏） */
 function renderTOC() {
   const items = TOC_ITEMS.map(item => `
@@ -1214,18 +1227,6 @@ function renderAboutContent() {
   const base = getBasePath();
   console.log('[renderAboutContent] start, base=', base);
 
-  // 安全渲染：每个 section 用 try-catch 包裹，避免单个 section 报错导致整个页面空白
-  const safe = (name, fn) => {
-    try {
-      const html = fn();
-      console.log(`[renderAboutContent] ${name} OK, html.length=${html.length}`);
-      return html;
-    } catch (e) {
-      console.error(`[renderAboutContent] ${name} ERROR:`, e);
-      return `<div style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;--acc-border-dark:#F87171;padding:20px;background:#fee;border:2px solid red;color:#900;">[${name} 渲染失败: ${e.message}]</div>`;
-    }
-  };
-
   content.classList.add('ab-about');
   content.innerHTML = `
     ${safe('TOC', renderTOC)}
@@ -1235,7 +1236,7 @@ function renderAboutContent() {
     ${safe('Development', renderDevelopment)}
     ${safe('TwoWorks', renderTwoWorks)}
     ${safe('Review', renderReview)}
-    ${safe('Exploration', renderExploration)}
+    <div class="ab-lazy-slot" id="ab-lazy-exploration" data-lazy="exploration" aria-label="探索工作（滚动加载）"></div>
     ${safe('Dialogue', renderDialogue)}
     ${safe('Conclusion', renderConclusion)}
     <footer class="ab-page-footer">
@@ -1368,18 +1369,29 @@ function bindTOC() {
     });
   };
 
-  const observer = new IntersectionObserver((entries) => {
+  let _tocObserver = null;
+  // threshold:0 修复（2026-08-12 懒渲染复验发现）：原 threshold [0.15,0.4,0.6] 对高章节失效——
+  // 探索章节高 2518px，观察带（15%~45% 视口）最大相交比 0.079 < 0.15，永不回调、TOC 不点亮。
+  // 改为任意相交即回调，由 sort+setActive 取「观察带内最靠上章节」，语义等价且全章节通用。
+  _tocObserver = new IntersectionObserver((entries) => {
     const visible = entries
       .filter(e => e.isIntersecting)
       .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
     if (visible.length > 0) {
       setActive(visible[0].target.dataset.tocId);
     }
-  }, { threshold: [0.15, 0.4, 0.6], rootMargin: '-15% 0px -55% 0px' });
+  }, { threshold: 0, rootMargin: '-15% 0px -55% 0px' });
 
-  sections.forEach(s => observer.observe(s));
+  sections.forEach(s => _tocObserver.observe(s));
 
   setActive('hero');
+
+  // 探索区懒渲染后补观察新 section（探索章节滚动高亮）
+  window._tocObserveExploration = () => {
+    if (!_tocObserver) return;
+    const ex = document.querySelector('.ab-exploration-section');
+    if (ex) _tocObserver.observe(ex);
+  };
 }
 
 /** 全页面 GSAP 动画（ScrollTrigger + matchMedia 优雅降级） */
@@ -1931,26 +1943,26 @@ function bindHeroExit() {
   }
 }
 
-/** ③④⑤ v5 电影镜头流统一入口——场景连续交接 + 胶片时间码 + 进度线（v5.1：终章去除全屏变红）
- *  替换 v4 的 bindGentleLayerDepth + bindConclusionExpand 拆分逻辑（治"拼贴/粗糙/触发别扭"）：
- *  镜头语言：旧场景整体后拉（scale 0.97 + yPercent −3.5 + brightness 0.92，fromTo 显式 from 态防止压黑）
- *  → 新场景从下方驶入覆盖，全程无硬切；
- *  终章 v5.1：去掉突变红/金化（书记裁决"实现不出效果就别实现"），保持暖白 + 党建红大字 + 温和落位驶入。 */
-function bindCameraFlow() {
-  // ── A. 镜头连续性：章节场景交接（治"拼贴"）——顺序与叙事章节一致（v5.2 方案A）
-  const pairs = [
-    ['.ab-cognition-section', '.ab-philosophy-section'],
-    ['.ab-philosophy-section', '.ab-development-section'],
-    ['.ab-development-section', '.ab-works-section'],
-    ['.ab-works-section', '.ab-review-section'],
-    ['.ab-review-section', '.ab-exploration-section'],
-    ['.ab-exploration-section', '.ab-dialogue-section'],
-  ];
+/** 镜头交接 pair（章节场景连续交接）——全局常量供懒渲染后补建复用 */
+const CAMERA_PAIRS = [
+  ['.ab-cognition-section', '.ab-philosophy-section'],
+  ['.ab-philosophy-section', '.ab-development-section'],
+  ['.ab-development-section', '.ab-works-section'],
+  ['.ab-works-section', '.ab-review-section'],
+  ['.ab-review-section', '.ab-exploration-section'],
+  ['.ab-exploration-section', '.ab-dialogue-section'],
+];
 
+/** 已绑定镜头交接的 from 元素守卫（探索区懒渲染补建时防止重复创建 ScrollTrigger） */
+const _cameraPairBound = new WeakSet();
+
+function bindCameraPairs(pairs) {
   pairs.forEach(([fromSel, toSel]) => {
     const fromEl = document.querySelector(fromSel);
     const toEl = document.querySelector(toSel);
     if (!fromEl || !toEl) return;
+    if (_cameraPairBound.has(fromEl)) return;
+    _cameraPairBound.add(fromEl);
 
     // 旧场景整体后拉：轻微上移 + 缩小 + 压暗（幅度克制，内容全程可读）
     // v5.1 修复"卡片黑色"：gsap.to 的 from 态会把 filter 解析为 brightness(0)，
@@ -1992,6 +2004,15 @@ function bindCameraFlow() {
       );
     }
   });
+}
+
+/** ③④⑤ v5 电影镜头流统一入口——场景连续交接（v5.1：终章去除全屏变红）
+ *  镜头语言：旧场景整体后拉（scale 0.97 + yPercent −3.5 + brightness 0.92，fromTo 显式 from 态防止压黑）
+ *  → 新场景从下方驶入覆盖，全程无硬切；
+ *  终章 v5.1：去掉突变红/金化（书记裁决"实现不出效果就别实现"），保持暖白 + 党建红大字 + 温和落位驶入。 */
+function bindCameraFlow() {
+  // ── A. 镜头连续性：章节场景交接（治"拼贴"）——顺序与叙事章节一致（v5.2 方案A）──
+  bindCameraPairs(CAMERA_PAIRS);
 
   // ── C. 终章收束（v5.1：去掉突变红色/金化——书记裁决"实现不出效果就别实现"） ──
   // 保持暖白背景 + 党建红大字，仅保留温和的"镜头落位"驶入（scale 0.86→1 + autoAlpha，scrub 可逆），
@@ -2186,6 +2207,40 @@ function bindCinematicScroll() {
 //  启动
 // ════════════════════════════════════════════════════════════════
 
+// 探索区懒渲染（减负：最大单章 28KB HTML + 2 个 SVG 网络 DOM 延迟到滚动接近时渲染，
+// 首屏主线程只渲染 hero→review 六章；探索动画绑定函数天然可重入——首次无元素时无害返回）
+function initLazySlots() {
+  const slots = document.querySelectorAll('.ab-lazy-slot');
+  if (!slots.length) return;
+
+  const mountExploration = (slot) => {
+    slot.innerHTML = safe('Exploration', renderExploration);
+    // 探索区动画绑定（启动时元素缺失已无害返回，此处真实生效）
+    bindNetworkHover();
+    bindExplorationScrollDriven();
+    bindExplorationStoryboardSwitch();
+    // 补建 review↔exploration、exploration↔dialogue 镜头交接（WeakSet 守卫防重复）
+    bindCameraPairs(CAMERA_PAIRS);
+    // TOC 补观察探索章节（滚动高亮）
+    if (window._tocObserveExploration) window._tocObserveExploration();
+  };
+
+  if (!('IntersectionObserver' in window)) {
+    // 降级：直接渲染
+    slots.forEach(mountExploration);
+    return;
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      io.unobserve(entry.target);
+      mountExploration(entry.target);
+    });
+  }, { rootMargin: '600px 0px' }); // 提前 600px 触发，滚动到探索区前已渲染
+  slots.forEach(slot => io.observe(slot));
+}
+
 renderAboutContent();
 bindTimelineToggle();
 bindLenis();
@@ -2193,6 +2248,7 @@ bindTOC();
 bindPageAnimations();
 bindNetworkHover();
 bindExplorationScrollDriven();
+initLazySlots();
 bindCinematicScroll();
 // 粒子背景仅保留 hero（终章粒子已移除——减负：粒子 rAF 循环 2→1，终章以大字收束为主）
 const heroCanvas = document.querySelector('.ab-hero-section .ab-particle-canvas');

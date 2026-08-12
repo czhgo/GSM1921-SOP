@@ -2664,3 +2664,33 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **验证结果**：✅ GetDiagnostics about-entry.js 零错误；✅ browser_use 8 项复验全通过
 - **变更文件**：`.ctx/REVIEW_QUEUE.md`（清空轮次）/ `content/03_doc_system/OPERATIONS_GUIDE.md`（§18.6+M1）/ `docs/about.html`（vendor 本地化）/ `docs/help.html`（H1/H3/H4）/ `docs/src/entries/about-entry.js`（A1/A2/A3 + 粒子/胶片码/可见性过滤）/ `docs/src/styles.css`（胶片码死规则清理）/ `docs/assets/vendor/`（新增 4 文件）+ 47 文件版本号 bump + 本条日志
 - **commit**：待提交（push 需书记批准）
+
+## T-220 about 加载深水区减负 + 上边框修复 + 检查方法反思（exploitation/exploration 平衡）（2026-08-12）
+
+**任务**：书记反馈——「about 动画我还是觉得加载过于缓慢！请一定要对整个文件和 entry 进行学习和理解！！」+「这个组建的上边框让我也非常 mad！你在检查过程中为什么没有检查出来呢？」+「你应该先规划需要检查哪些东西，以及平衡一下检查过程中 exploitation 和 exploration 的关系！」
+**引用流程**：sample-diff-learning Skill + H70 反思触发流 + H40 检查清单 + C-2 一改具改巡检
+**来源**：书记指令（2026-08-12）
+
+- **检查规划（exploitation × exploration 平衡）**：
+  - exploitation（按已知清单系统扫）：ab-* 样式/组件/动画/深色覆盖重扫 + 加载链路逐层分析（HTML→CSS→vendor→entry import 链→渲染→动画绑定）
+  - exploration（探索未知维度）：真实性能实测（Performance API 瀑布 + DCL/LCP）+ 未检查区域（探索区动态渲染、TOC 高亮阈值、字体子集化、Tailwind 依赖判定）+ 书记手动定位的「上边框」
+- **加载慢根因实测**（browser_use 冷/热缓存双测）：DCL 5.3s~10.5s、LCP 5.6~9s——**主线程阻塞**非网络带宽（资源传输 400ms 内完成）。三根因：①Tailwind Play CDN（head 同步无 defer + 运行时编译 ~93KB + 官方 not-for-production 警告 + 偶发 ERR_FAILED）；②一次性渲染 9 章（探索区单章 28KB + 2 个 SVG 网络 DOM）；③Google Fonts 24 个 CJK 子集请求
+- **上边框根因**：`.ab-development-progress`（第三章进度条）`position:sticky; top:56px`——恰贴 fixed header 下缘，轨道 `--ab-paper-line` 米色全程空心显示，第三章内阅读时表现为内容区顶部一条完整横线（fill=0 无进度语义）。**检查遗漏自省**：此前检查聚焦深色/内联色清单（exploitation），未对 sticky 轨道做视觉走查（exploration 缺失）
+- **实施修复**：
+  - ①移除 Tailwind Play CDN（about.html）：内容区全为自定义 ab-* 类，仅骨架+header/sidebar 用 20 处工具类 → styles.css 新增「TAILWIND 最小兜底」块（flex/flex-col/flex-1/gap/mb/mx-auto/min-w-0/min-h-screen/pt-16/px-4/py-6/max-w-5xl/w-3/h-3/text-xs/text-sm/font-medium/text-[12px]/md:px-8）
+  - ②字体瘦身：Google Fonts 11 字重 → 6 字重（Sans 400;500;700 + Serif 500;600;700），未使用字重永不下载
+  - ③上边框修复：进度条 sticky → relative + 轨道透明（fill 随滚动增长时才显示进度线，无进度不显示任何线）
+  - ④探索区懒渲染（首屏最大减负）：renderAboutContent 探索章节改占位 `.ab-lazy-slot`；IntersectionObserver（rootMargin 600px）滚动接近时挂载 `renderExploration` + 重绑 bindNetworkHover/bindExplorationScrollDriven/bindExplorationStoryboardSwitch；`safe()` 提升模块级（供懒加载复用）；CAMERA_PAIRS 抽取为全局 + `_cameraPairBound` WeakSet 守卫防重复建 ScrollTrigger；bindTOC 观察器全局化 + `_tocObserveExploration` 补观察
+  - ⑤TOC 高亮缺陷修复（懒渲染复验发现的真实缺陷，exploration 价值）：threshold [0.15,0.4,0.6] → 0——探索章节高 2518px，观察带最大相交比 0.079 < 0.15 永不回调，「探索运作」圆点永不点亮（第一章 1364px 同有隐患 0.145 < 0.15）
+- **复验（browser_use 三轮）**：
+  - 首轮（Tailwind 移除+字体+上边框）：Tailwind CDN 零请求 ✓ / 字体 6 字重声明生效 ✓ / 上边框 relative+透明 ✓（进度线随滚动 0→35.9%→100% 正常）/ 布局无塌陷 ✓ / console 无错误 ✓
+  - 二轮（懒渲染）：首屏 `.ab-exploration-section`=0 ✓ / 滚动至 scrollY≈4528 自动挂载（html.length=28647，SVG 双分镜 + 41 stage）✓ / 逐 stage 点亮 + 专班分镜转场（clipPath circle 14%→135%）✓ / 终章正常 ✓ / 首屏主线程移除最大单章 ✓
+  - 三轮（TOC 修复）：9 章全部正确点亮（hero→组织性→宝贵机会→身份阶段→两种工作→考察维度→**探索运作**→行百里者半九十→管理事服务人）✓ / 探索章节停留 is-active=true ✓ / console 无错误 ✓
+- **版本号 bump**：`?v=20260812c` → `?v=20260812d`（47 文件，字节级替换保 BOM），递归验证 20260812c 零残留
+- **验证结果**：✅ GetDiagnostics about-entry.js 零错误；✅ browser_use 三轮复验全通过
+- **检查教训（sample-diff-learning 提炼）**：
+  - divergence_type：`exploration_gap`——AI 检查默认走「已知清单 exploitation」，漏检「清单外未知问题」（上边框 sticky 轨道、TOC threshold 高章节失效、Tailwind CDN 同步阻塞）——书记原话「检查过程中 exploition 和 exploration 的关系」要求两者平衡
+  - generalized_rule：检查任务必须①先规划 exploitation 清单（已知模式逐项扫）与 exploration 方向（性能实测/视觉走查/边界条件/依赖审计）②exploration 优先做「真实环境实测」（Performance API、computedStyle、滚动走查）而非仅静态读码③对书记手动定位的元素追根因（上边框→sticky 语义缺陷）并全仓排查同类（sticky 顶部元素是否都有轨道常驻问题）
+  - boolean condition：`检查范围 = 已知清单(exploitation) ∪ 实测/走查/依赖审计(exploration)`，两者缺一即检查不完整
+- **变更文件**：`docs/about.html`（Tailwind CDN 移除 + 字体瘦身）/ `docs/src/styles.css`（Tailwind 最小兜底 + 进度条上边框修复）/ `docs/src/entries/about-entry.js`（safe 模块级 + CAMERA_PAIRS 抽取 + WeakSet 守卫 + 懒渲染 + TOC threshold 修复 + 探索绑定重入）/ 47 文件版本号 bump + 本条日志
+- **commit**：待提交（push 需书记批准）

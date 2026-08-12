@@ -1,10 +1,10 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // components/workspace-popover.js — 工作台多身份模态框组件
 // 设计: sidebar "工作台" <a> 点击拦截 → 居中模态框选择目标工作台
 // 单身份直接跳转，多身份弹模态框
 
-import { AuthStore } from '../services/auth.js?v=20260812c';
-import { getBasePath } from '../core/utils.js?v=20260812c';
+import { AuthStore } from '../services/auth.js?v=20260812d';
+import { getBasePath } from '../core/utils.js?v=20260812d';
 
 /**
  * 绑定工作台模态框事件

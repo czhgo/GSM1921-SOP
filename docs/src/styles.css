@@ -4844,13 +4844,15 @@ label .text-red-500 {
 }
 
 /* ── Section: 从入党申请人到正式党员（13 步时间轴） ── */
+/* 上边框修复（书记 2026-08-12）：原 sticky top:56px 恰贴 fixed header 下缘，
+   轨道全程空心显示为内容区顶部一条横线（fill=0 无进度语义）。改为 relative +
+   轨道透明——进度条只在 fill 随滚动增长时出现，无进度时不显示任何线。 */
 .ab-development-progress {
-  position: sticky;
-  top: 56px;
+  position: relative;
   height: 3px;
   z-index: 20;
   pointer-events: none;
-  background: var(--ab-paper-line);
+  background: transparent;
   border-radius: 2px;
 }
 .ab-development-progress-fill {
@@ -5858,6 +5860,36 @@ html.theme-dark .qv-page-btn:hover:not(:disabled) {
    ═══════════════════════════════════════════════════════════════ */
 .nav-flash-highlight {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TAILWIND 最小兜底（about 页去 Tailwind Play CDN 后所需，2026-08-12）
+   about 页内容区为自定义 ab-* 类，仅页面骨架 + header/sidebar 使用少量
+   Tailwind 工具类——此处补齐；其他页面保留 Tailwind 时同值重复无害。
+   注意：置于文件末尾保证优先级；字体档位覆盖（html.font-size-large .text-xs）
+   特异性更高不受影响。
+   ═══════════════════════════════════════════════════════════════ */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-1 { flex: 1 1 0%; }
+.gap-2 { gap: 0.5rem; }
+.gap-0\.5 { gap: 0.125rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.min-w-0 { min-width: 0; }
+.min-h-screen { min-height: 100vh; }
+.pt-16 { padding-top: 4rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+.max-w-5xl { max-width: 64rem; }
+.w-3 { width: 0.75rem; }
+.h-3 { height: 0.75rem; }
+.text-xs { font-size: 0.75rem; line-height: 1rem; }
+.text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+.font-medium { font-weight: 500; }
+.text-\[12px\] { font-size: 12px; }
+@media (min-width: 768px) {
+  .md\:px-8 { padding-left: 2rem; padding-right: 2rem; }
 }
 
 

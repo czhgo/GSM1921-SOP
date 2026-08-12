@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  components/report-inbox.js — 待答复汇报收件箱（行内答复零跳转）
 //  书记 2026-08-10 裁定：待办内建「答复类」置顶（汇报答复为书记最高频动作）
@@ -8,11 +8,11 @@
 //  本组件禁用 SVG 图标（书记裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260812c';
-import { AuthStore } from '../services/auth.js?v=20260812c';
-import { showToast } from '../core/utils.js?v=20260812c';
-import { getPersonName } from '../mock/index.js?v=20260812c';
-import { solidAccentStyle } from '../core/constants.js?v=20260812c';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260812d';
+import { AuthStore } from '../services/auth.js?v=20260812d';
+import { showToast } from '../core/utils.js?v=20260812d';
+import { getPersonName } from '../mock/index.js?v=20260812d';
+import { solidAccentStyle } from '../core/constants.js?v=20260812d';
 
 /**
  * 待答复收件箱 HTML
