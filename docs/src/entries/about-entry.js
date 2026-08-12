@@ -496,7 +496,7 @@ const DIALOGUE_STAGES = [
   },
 ];
 
-// 发展党员 13 关键时间节点（依据《中国共产党发展党员工作细则（2026年）》T1 原文）
+// 发展党员 13 关键时间节点
 // isDecisionNode: 关键决策节点（含党支部委员会/党支部党员大会/上级党委），用金色光晕环标记
 // article: 条号（T1 原文出处）
 const DEVELOPMENT_TIMELINE = [
@@ -512,7 +512,7 @@ const DEVELOPMENT_TIMELINE = [
   { no: 7,  title: '政治审查',           time: '—',              decisionMaker: '党组织对发展对象进行政治审查',     decisionDetail: '深入了解入党动机、政治素质和现实表现',     article: '§16', isDecisionNode: false, stage: 'prospect', stickyNote: null },
   { no: 8,  title: '短期集中培训',       time: '一般不少于三天或者不少于二十四个学时', decisionMaker: '基层党委或县级党委组织部门', decisionDetail: '培训合格方可发展入党', article: '§17', isDecisionNode: false, stage: 'prospect', stickyNote: null },
   // 阶段 3：发展对象 → 预备党员
-  { no: 9,  title: '党支部委员会审查 + 上级党委预审', time: '—', decisionMaker: '党支部委员会集体讨论 + 基层党委预审', decisionDetail: '审查合格后发放《中国共产党入党志愿书》', article: '§18', isDecisionNode: true, stage: 'probationary', stickyNote: null },
+  { no: 9,  title: '党支部委员会审查 + 上级党委预审', time: '—', decisionMaker: '党支部委员会集体讨论 + 基层党委预审', decisionDetail: '审查合格后发放《入党志愿书》', article: '§18', isDecisionNode: true, stage: 'probationary', stickyNote: null },
   { no: 10, title: '党支部党员大会讨论表决', time: '预审合格后一个月内', decisionMaker: '党支部党员大会（无记名投票，赞成人数超过应到会有表决权的党员人数的半数）', decisionDetail: '通过接收预备党员的决议', article: '§19/§20', isDecisionNode: true, stage: 'probationary', stickyNote: '支部大会无记名投票表决' },
   { no: 11, title: '上级党委审批',       time: '三个月内',       decisionMaker: '党委集体讨论和表决', decisionDetail: '批准预备党员，报上级党委组织部门备案',     article: '§25', isDecisionNode: true,  stage: 'probationary', stickyNote: null },
   // 阶段 4：预备党员 → 正式党员
@@ -1182,7 +1182,7 @@ function renderDevelopment() {
         <div class="ab-development-progress" aria-hidden="true"><div class="ab-development-progress-fill"></div></div>
         <div class="ab-chapter-eyebrow">身份阶段</div>
         <h2 class="ab-chapter-title">从入党申请人到正式党员</h2>
-        <p class="ab-chapter-sub">依据《中国共产党发展党员工作细则（2026年）》</p>
+        <p class="ab-chapter-sub">依据《发展党员工作细则（2026年）》</p>
         <div class="ab-timeline-legend">
           <span class="ab-timeline-legend-item"><span class="ab-timeline-legend-dot"></span>普通节点</span>
           <span class="ab-timeline-legend-item ab-timeline-legend-item--decision"><span class="ab-timeline-legend-dot"></span>关键决策节点</span>
