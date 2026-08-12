@@ -39,7 +39,7 @@
       }
     };
   </script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260812b">
+  <link rel="stylesheet" href="./src/styles.css?v=20260812c">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -319,7 +319,7 @@
         <p class="doc-p" style="margin-top:18px;">关键约束：</p>
         <ul class="doc-list">
           <li>创建活动仅限党支书和党小组组长；党小组组长可独立创建，须报书记知情同意；组织委员协调的是专班（招募统筹），不是活动</li>
-          <li>纪检委员考勤数据与组织委员通用同源</li>
+          <li>纪检委员考勤数据与组织委员同源共享</li>
           <li>宣传委员不可自行招募宣传专班，赋权操作统一归口组织委员</li>
           <li>看 ≠ 做：能看他人条线在办（按人视图），不等于能代劳其操作——知情边界是组织内控的第四道防线</li>
         </ul>
@@ -480,7 +480,7 @@
             <thead><tr><th style="width:16%;">层</th><th style="width:42%;">位置</th><th>职责</th></tr></thead>
             <tbody>
               <tr><td>前台（UI）</td><td>docs/*.html（8 根页面 + 6 角色工作台 = 14 页）</td><td>页面骨架，零硬编码逻辑</td></tr>
-              <tr><td>中台（路由+渲染）</td><td>docs/src/entries/（15 个 entry JS）</td><td>角色面板路由、视图切换、DOM 渲染</td></tr>
+              <tr><td>中台（路由+渲染）</td><td>docs/src/entries/（16 个 entry JS）</td><td>角色面板路由、视图切换、DOM 渲染</td></tr>
               <tr><td>后台（服务层）</td><td>docs/src/services/（20 个 service JS）</td><td>数据 CRUD、权限计算、持久化</td></tr>
               <tr><td>母本层</td><td>content/02_institution/sop/</td><td>所有代码逻辑的制度来源</td></tr>
             </tbody>
@@ -490,7 +490,7 @@
         <!-- 5.2 技术栈 -->
         <h3 class="doc-h3"><span class="doc-h3-badge">5.2</span>技术栈</h3>
         <ul class="doc-list">
-          <li>纯前端静态架构 — 无需后端部署，GitHub Pages 直接托管</li>
+          <li>纯前端静态架构 — 默认本地 mock 数据（localStorage 持久化），GitHub Pages 直接托管；可选 Node 后端（server/）提供 REST API</li>
           <li>ES Modules — 无构建工具、零打包依赖</li>
           <li>Tailwind CSS CDN — 原子化样式引擎</li>
           <li>sessionStorage / localStorage — 跨页面状态持久化</li>
@@ -515,6 +515,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/help-entry.js?v=20260812b"></script>
+<script type="module" src="./src/entries/help-entry.js?v=20260812c"></script>
 </body>
 </html>

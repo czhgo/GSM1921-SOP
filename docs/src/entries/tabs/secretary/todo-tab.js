@@ -1,24 +1,24 @@
-﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // entries/tabs/secretary/todo-tab.js — 书记工作台·待办 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：按 tab 代码分割，首屏只加载默认 tab。
 // 2026-08-07 T232：改为「动态聚合 + 复核确认面板」——SecretaryTodoDeriver.computeAggregates()
 //   实时计算 4 提醒 + 4 复核，复核类一键写 secretaryConfirmedAt 销项，不再创建虚假实体待办。
 
-import { showToast } from '../../../core/utils.js?v=20260812b';
-import { renderTodoList } from '../../../components/todo-list.js?v=20260812b';
-import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260812b';
-import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260812b';
-import { badgeHtml } from '../../../components/badge.js?v=20260812b';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260812b';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260812b';
-import { updateActivityReview } from '../../../services/review.js?v=20260812b';
-import { loadActivities } from '../../../services/activity.js?v=20260812b';
-import { mockDB } from '../../../core/domain.js?v=20260812b';
-import { persist } from '../../../core/data-adapter.js?v=20260812b';
-import { getPersonById } from '../../../mock/index.js?v=20260812b';
-import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260812b';
-import { IssueStore } from '../../../services/issues.js?v=20260812b';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/report-inbox.js?v=20260812b';
+import { showToast } from '../../../core/utils.js?v=20260812a';
+import { renderTodoList } from '../../../components/todo-list.js?v=20260812a';
+import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260812a';
+import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260812a';
+import { badgeHtml } from '../../../components/badge.js?v=20260812a';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260812a';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260812a';
+import { updateActivityReview } from '../../../services/review.js?v=20260812a';
+import { loadActivities } from '../../../services/activity.js?v=20260812a';
+import { mockDB } from '../../../core/domain.js?v=20260812a';
+import { persist } from '../../../core/data-adapter.js?v=20260812a';
+import { getPersonById } from '../../../mock/index.js?v=20260812a';
+import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260812a';
+import { IssueStore } from '../../../services/issues.js?v=20260812a';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/report-inbox.js?v=20260812a';
 
 const { accent, accentBorder } = getAccentColors(resolveAccentRole('secretary'));
 

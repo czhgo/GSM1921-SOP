@@ -1,25 +1,25 @@
-﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // main-entry.js — 主页入口
 // index.html 专属，处理 dashboard 全量数据渲染
 
-import { BranchService } from '../services/runtime.js?v=20260812b';
-import { STATE, setState, registerRenderCallback, getAppState } from '../core/state.js?v=20260812b';
-import { NoticeStore, renderNoticeList } from '../services/notice.js?v=20260812b';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260812b';
-import { _fmtDate, getBasePath } from '../core/utils.js?v=20260812b';
-import { _personName, getPersonName } from '../mock/index.js?v=20260812b';
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../services/attendance.js?v=20260812b';
-import { loadActivities } from '../services/activity.js?v=20260812b';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260812b';
-import { getActivityTypeColors } from '../core/constants.js?v=20260812b';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260812b';
-import { AuthStore } from '../services/auth.js?v=20260812b';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260812b';
-import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260812b';
-import { icon } from '../core/icons.js?v=20260812b';
-import { badgeHtml } from '../components/badge.js?v=20260812b';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../components/inspector.js?v=20260812b';
-import { renderCalendarForDashboard, populateMonthSelector } from '../components/calendar.js?v=20260812b';
+import { BranchService } from '../services/runtime.js?v=20260812a';
+import { STATE, setState, registerRenderCallback, getAppState } from '../core/state.js?v=20260812a';
+import { NoticeStore, renderNoticeList } from '../services/notice.js?v=20260812a';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260812a';
+import { _fmtDate, getBasePath } from '../core/utils.js?v=20260812a';
+import { _personName, getPersonName } from '../mock/index.js?v=20260812a';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../services/attendance.js?v=20260812a';
+import { loadActivities } from '../services/activity.js?v=20260812a';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260812a';
+import { getActivityTypeColors } from '../core/constants.js?v=20260812a';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260812a';
+import { AuthStore } from '../services/auth.js?v=20260812a';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260812a';
+import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260812a';
+import { icon } from '../core/icons.js?v=20260812a';
+import { badgeHtml } from '../components/badge.js?v=20260812a';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../components/inspector.js?v=20260812a';
+import { renderCalendarForDashboard, populateMonthSelector } from '../components/calendar.js?v=20260812a';
 
 const { user } = await bootstrapPage({ module: 'dashboard' });
 

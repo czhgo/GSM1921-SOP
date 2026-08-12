@@ -1,17 +1,17 @@
-﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  service.notice.js — 通知数据模型
 //  提供 NoticeStore：通知的 CRUD + mockDB 持久化
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260812b';
-import { persist } from '../core/data-adapter.js?v=20260812b';
-import { MOCK_NOTICES } from '../mock/index.js?v=20260812b';
-import { showToast, getBasePath } from '../core/utils.js?v=20260812b';
-import { AuthStore } from './auth.js?v=20260812b';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260812b';
-import { badgeHtml } from '../components/badge.js?v=20260812b';
+import { mockDB } from '../core/domain.js?v=20260812a';
+import { persist } from '../core/data-adapter.js?v=20260812a';
+import { MOCK_NOTICES } from '../mock/index.js?v=20260812a';
+import { showToast, getBasePath } from '../core/utils.js?v=20260812a';
+import { AuthStore } from './auth.js?v=20260812a';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260812a';
+import { badgeHtml } from '../components/badge.js?v=20260812a';
 
 function _loadNotices() {
   try {

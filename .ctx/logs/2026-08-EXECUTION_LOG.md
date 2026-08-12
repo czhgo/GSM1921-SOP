@@ -2640,3 +2640,27 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **验证结果**：✅ GetDiagnostics 全部修改 JS 零错误；✅ 三轮 browser_use computedStyle 逐值通过；✅ 全仓 Grep 浅底深字内联残留清理完毕
 - **变更文件**：constants.js / styles.css / calendar.js / person-picker.js / ws-visitor-entry.js / assign-tab.js / modal.js / inspector.js / ws-prop-commissioner-entry.js / ws-leader-entry.js / ws-org-commissioner-entry.js / tab-bar.js / activity-view.js / todo-list.js / work-overview.js / taskforce-view.js / overview-tab.js / calendar-tab.js / login-entry.js / reactions.js / report-inbox.js / about-entry.js / utils.js + 全仓 92 文件版本号 bump + 本条日志
 - **commit**：待提交（push 需书记批准）
+
+## T-220 深色修复轮收尾 + 书记双任务：REVIEW_QUEUE 残存反思 + about/help 表述更新 + about 动画减负 A+B（2026-08-12）
+
+**任务**：①书记反思——「REVIEW_QUEUE 中的已完成工作应该是要清理的。为什么还有残存？是 harness 的问题吗？」；②「更新 about、help 中的【表述】（实质内容可能没变，但表述不精确就是错误，顺序排列不合理就是错误）」+「从【代码】角度给 about 动画提出减负方案（加载太慢、UI 和动画不完美要自省）」
+**引用流程**：H70 反思触发流 + H60 评议收尾 + web-design-guidelines Skill + sample-diff-learning Skill + brainstorming Skill + H30.1 一改具改 + H40 检查清单
+**来源**：书记指令（2026-08-12）
+
+- **任务1 · REVIEW_QUEUE 残存反思（根因双层）**：
+  - 现象：理论复用评议第 4 轮（R1-R12 已裁决执行、commit ffc69c6）完成后，「进行中」段仍残留在 REVIEW_QUEUE 主队列
+  - 执行层根因：H60.2 明文要求「清空当前轮次」+ REVIEW_QUEUE 头部写明「评议完成后即清空」——规定存在，归档执行日志后漏清空
+  - 制度层根因（harness 缺陷）：①「归档执行日志」与「清空 REVIEW_QUEUE」非原子动作，缺强制核验点；②无收尾验收标准（主队列只允许进行中/无轮次两种状态）；③M1 月度清理只查 CLAUDE.md 乙部，未覆盖 REVIEW_QUEUE——无周期兜底
+  - 修复：REVIEW_QUEUE 主队列已清空（裁决结果以执行日志为唯一归档）；OPERATIONS_GUIDE §18.6 新增「轮次收尾核验」（归档+清空强制两动作+验收标准+M1 兜底联动）；§17.2.2 M1 说明扩展；OPERATIONS_GUIDE YAML last_updated 更新
+- **任务2a · about/help 表述更新**（机械性直接改 + 内容性书记逐条定夺）：
+  - 机械性修正：A1 组织性 stage01「用武之地和成长空间」补全「（包括支委会在内）在管理事和服务人方面」限定（回归书记 H100.1 原话语境）；H1 help §1.2「通用同源」→「同源共享」（笔误）；H3 help §五「纯前端静态架构，无需后端部署」→ 双轨表述（默认本地 mock + 可选 Node 后端，与 server/ 实际一致）；H4 help §5.1「15 个 entry JS」→「16 个」（实际 16 个）
+  - 内容性确认（书记逐条定夺）：A2 终章「党建与党务的统一主语」→「管理事，服务人——贯穿从入党申请人到正式党员的全路径」（书记裁定去掉统一主语，与 P-007 弱化两分法一致）；A3 考察维度「党建贡献」保留 + desc 澄清为「在活动和专班中做出的工作成绩」（书记强调活动和专班并列！）；H2 help 矩阵不补副书记列（书记裁定）；H5 四入口保留（书记裁定）
+- **任务2b · about 动画减负（方案 A+B，书记选定）**：
+  - 性能根因：4 个外部 CDN（Tailwind+GSAP×2+Lenis×2）网络往返；多 rAF 并行（Lenis ticker + 粒子 Canvas×2 + 探索逐帧插值 + 胶片时间码）；20+ ScrollTrigger scrub；探索区 2 个 SVG scene 每帧全量属性写入
+  - A 滚动动画减负：①粒子 Canvas 2→1（终章移除，仅 hero 保留）；②胶片时间码+进度线完全移除（JS bindCameraFlow B 段删除 + styles.css .ab-rail/.ab-tc/.ab-tc-tag/.ab-tc-time 死规则清理 + 移动端隐藏 + 深色覆盖）；③探索区可见性过滤（sceneData 缓存 sceneTop/sceneHeight，离屏超 1 屏跳过逐帧插值，避免每帧 getBoundingClientRect layout）
+  - B 加载加速：GSAP 3.12.5/ScrollTrigger/Lenis 1.3.25 下载至 docs/assets/vendor/（4 文件，共 134KB），about.html 引用 CDN→本地（消除网络往返）；首屏懒渲染暂缓（改动风险大，后续按需）
+  - 复验（browser_use 8 项）：本地 vendor 4 资源 200 ✓ / cdnjs+unpkg 零请求 ✓ / .ab-tc+.ab-rail=0 ✓ / 粒子仅 hero（canvas 总数=1，toDataURL 34KB 有内容）✓ / 探索区双分镜边随滚动逐条点亮无卡死 ✓ / 三处表述更新全部生效 ✓ / console 0 error ✓
+- **版本号 bump**：`?v=20260812b` → `?v=20260812c`（47 文件，字节级替换保 BOM），递归验证 20260812b 零残留
+- **验证结果**：✅ GetDiagnostics about-entry.js 零错误；✅ browser_use 8 项复验全通过
+- **变更文件**：`.ctx/REVIEW_QUEUE.md`（清空轮次）/ `content/03_doc_system/OPERATIONS_GUIDE.md`（§18.6+M1）/ `docs/about.html`（vendor 本地化）/ `docs/help.html`（H1/H3/H4）/ `docs/src/entries/about-entry.js`（A1/A2/A3 + 粒子/胶片码/可见性过滤）/ `docs/src/styles.css`（胶片码死规则清理）/ `docs/assets/vendor/`（新增 4 文件）+ 47 文件版本号 bump + 本条日志
+- **commit**：待提交（push 需书记批准）

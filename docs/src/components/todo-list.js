@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  todo-list.js — 待办列表组件
 //  最小三成本原则落地：进入工作台第一眼即见待办
@@ -12,9 +12,9 @@ import {
   TodoStatus,
   TODO_STATUS_LABELS,
   DEFAULT_EXPANDED_CATEGORIES,
-} from '../services/todo.js?v=20260812b';
-import { badgeHtml } from './badge.js?v=20260812b';
-import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260812b';
+} from '../services/todo.js?v=20260812a';
+import { badgeHtml } from './badge.js?v=20260812a';
+import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260812a';
 
 /**
  * 渲染待办列表组件

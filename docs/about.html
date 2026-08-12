@@ -41,16 +41,16 @@
       }
     };
   </script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260812b">
+  <link rel="stylesheet" href="./src/styles.css?v=20260812c">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- GSAP CDN（Development 手风琴 + 全页面 ScrollTrigger 动画）——defer：仅被延迟执行的模块入口使用 -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+  <!-- GSAP 本地化（减负：消除 CDN 网络往返，about 页动画依赖本地 vendor） -->
+  <script src="./assets/vendor/gsap.min.js" defer></script>
+  <script src="./assets/vendor/ScrollTrigger.min.js" defer></script>
   <!-- Lenis 平滑滚动（业界成熟经验：滚轮输入→带惯性缓动的滚动位置；快滑有惯性、慢滑精确，scroll 事件每帧触发） -->
-  <link rel="stylesheet" href="https://unpkg.com/lenis@1.3.25/dist/lenis.css">
-  <script src="https://unpkg.com/lenis@1.3.25/dist/lenis.min.js" defer></script>
+  <link rel="stylesheet" href="./assets/vendor/lenis.css">
+  <script src="./assets/vendor/lenis.min.js" defer></script>
 </head>
 <body>
 
@@ -64,6 +64,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/about-entry.js?v=20260812b"></script>
+<script type="module" src="./src/entries/about-entry.js?v=20260812c"></script>
 </body>
 </html>

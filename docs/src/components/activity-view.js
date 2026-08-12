@@ -1,15 +1,15 @@
-﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿// role: [工程师]+[AI]
 // activity-view.js — 只读活动查看组件（知情权组件，书记 2026-08-08 裁定）
 // 供无活动 tab 的工作台（组织委员/宣传委员等）承载 activityId / view=activities 跳转落点：
 // 日历视图（复用 calendar.js 渲染引擎）+ 只读活动详情（点击日历条目）。
 // 形态依据书记第四轮裁定：「书记的日历视图只要删去写入活动等功能，就可以提供很好的活动详情」。
 
-import { getAppState, setState } from '../core/state.js?v=20260812b';
-import { renderCalendarByActivities } from './calendar.js?v=20260812b';
-import { _fmtDate, _currentYearMonth, flashHighlight } from '../core/utils.js?v=20260812b';
-import { badgeHtml } from './badge.js?v=20260812b';
-import { ROLE_COLORS, dotDarkVars } from '../core/constants.js?v=20260812b';
-import { activityLifecycleBadgeHtml } from './inspector.js?v=20260812b';
+import { getAppState, setState } from '../core/state.js?v=20260812a';
+import { renderCalendarByActivities } from './calendar.js?v=20260812a';
+import { _fmtDate, _currentYearMonth, flashHighlight } from '../core/utils.js?v=20260812a';
+import { badgeHtml } from './badge.js?v=20260812a';
+import { ROLE_COLORS, dotDarkVars } from '../core/constants.js?v=20260812a';
+import { activityLifecycleBadgeHtml } from './inspector.js?v=20260812a';
 
 // 任务状态元数据（状态点 + 文案，轻量自包含，避免依赖 status-badge 全家桶）
 const _TASK_STATUS_META = {

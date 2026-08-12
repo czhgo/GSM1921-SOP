@@ -1,14 +1,14 @@
-﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // feedback-entry.js — 意见反馈入口（GitHub Issue 风格）
 
-import { renderSidebar } from '../components/sidebar.js?v=20260812b';
-import { renderHeader } from '../components/header.js?v=20260812b';
-import { IssueStore } from '../services/issues.js?v=20260812b';
-import { MilestoneStore } from '../services/milestones.js?v=20260812b';
-import { showToast } from '../core/utils.js?v=20260812b';
-import { renderIssueList } from '../components/issue-list.js?v=20260812b';
-import { renderIssueDetail } from '../components/issue-detail.js?v=20260812b';
-import { renderIssueForm } from '../components/issue-form.js?v=20260812b';
+import { renderSidebar } from '../components/sidebar.js?v=20260812c';
+import { renderHeader } from '../components/header.js?v=20260812c';
+import { IssueStore } from '../services/issues.js?v=20260812c';
+import { MilestoneStore } from '../services/milestones.js?v=20260812c';
+import { showToast } from '../core/utils.js?v=20260812c';
+import { renderIssueList } from '../components/issue-list.js?v=20260812c';
+import { renderIssueDetail } from '../components/issue-detail.js?v=20260812c';
+import { renderIssueForm } from '../components/issue-form.js?v=20260812c';
 
 renderSidebar('feedback');
 renderHeader('feedback');

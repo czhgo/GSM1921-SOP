@@ -3900,55 +3900,6 @@ label .text-red-500 {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='paper'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23paper)' opacity='0.55'/%3E%3C/svg%3E");
 }
 
-/* ── 电影镜头流：胶片时间码 + 进度线（v5 新增） ── */
-.ab-rail {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  z-index: 60;
-  pointer-events: none;
-  transform-origin: left center;
-  transform: scaleX(0);
-  background: linear-gradient(90deg, var(--ab-gold), #F3D97C);
-  opacity: 0.85;
-}
-.ab-tc {
-  position: fixed;
-  top: 78px;
-  right: clamp(14px, 2vw, 26px);
-  z-index: 60;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  background: rgba(250, 248, 244, 0.82);
-  border: 1px solid var(--ab-paper-line);
-  box-shadow: 0 2px 10px rgba(62, 50, 30, 0.1);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-.ab-tc-tag {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  color: #FFFDF6;
-  background: var(--ab-red);
-  padding: 2px 6px;
-  border-radius: 3px;
-}
-.ab-tc-time {
-  font-family: 'SF Mono', 'Cascadia Mono', Consolas, 'Noto Sans SC', monospace;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: var(--ab-ink);
-  font-variant-numeric: tabular-nums;
-}
-
 /* ── 册页骨架：每章一页 ── */
 .ab-page {
   position: relative;
@@ -5395,10 +5346,6 @@ label .text-red-500 {
   .ab-node-svg[data-role='planet'] .ab-node-ring {
     animation: none !important;
   }
-  .ab-tc,
-  .ab-rail {
-    display: none;
-  }
   .ab-about::before {
     display: none;
   }
@@ -5683,12 +5630,6 @@ label .text-red-500 {
     background: rgba(201, 162, 39, 0.16) !important;
     color: #E3C24F !important;
   }
-  /* about 页 FILM 时间码：米白半透明底 → 深色半透明底（残留 #FAF8F4 系） */
-  html.theme-dark .ab-tc {
-    background: rgba(20, 22, 26, 0.82);
-    border-color: var(--ab-paper-line);
-  }
-
   /* ── ④ 激活 Tab：内联 --tab-accent-bg 是浅色透明叠加，深色下直接覆盖为 深色底+强调色 ── */
   html.theme-dark .tab-btn-active {
     background: color-mix(in srgb, var(--tab-accent) 18%, #141D2F) !important;

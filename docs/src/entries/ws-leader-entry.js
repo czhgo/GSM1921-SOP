@@ -1,32 +1,32 @@
-﻿﻿import { renderTabBar } from '../components/tab-bar.js?v=20260812b';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260812b';
-import { renderReportInboxHtml, bindReportInbox } from '../components/report-inbox.js?v=20260812b';
-import { renderWorkOverview } from '../components/work-overview.js?v=20260812b';
-import { renderTodoList } from '../components/todo-list.js?v=20260812b';
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260812b';
-import { BranchService } from '../services/runtime.js?v=20260812b';
-import { showToast, flashHighlight } from '../core/utils.js?v=20260812b';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260812b';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260812b';
-import { solidAccentStyle, accDarkVars, accDarkParts } from '../core/constants.js?v=20260812b';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260812b';
-import { attendanceToLong, inspectionToLong, PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260812b';
-import { PersonPicker } from '../components/person-picker.js?v=20260812b';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js?v=20260812b';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, ReviewStatus, REVIEW_STATUS_LABELS, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260812b';
-import { persist } from '../core/data-adapter.js?v=20260812b';
-import { loadMakeupTasks } from '../services/makeup.js?v=20260812b';
-import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260812b';
-import { loadInspectionRecords, loadActiveInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260812b';
-import { loadActivities } from '../services/activity.js?v=20260812b';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260812b';
-import { SignupStore } from '../services/signup.js?v=20260812b';
-import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../services/review.js?v=20260812b';
-import { renderMyDispatchTab, bindMyDispatchEvents, IssueStore } from '../services/issues.js?v=20260812b';
-import { TodoStore, TodoSourceType, TodoStatus, seedTodos } from '../services/todo.js?v=20260812b';
-import { AuthStore } from '../services/auth.js?v=20260812b';
-import { resolveVisibleTargets } from '../services/visibility.js?v=20260812b';
-import { badgeHtml } from '../components/badge.js?v=20260812b';
+﻿﻿﻿﻿import { renderTabBar } from '../components/tab-bar.js?v=20260812a';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260812a';
+import { renderReportInboxHtml, bindReportInbox } from '../components/report-inbox.js?v=20260812a';
+import { renderWorkOverview } from '../components/work-overview.js?v=20260812a';
+import { renderTodoList } from '../components/todo-list.js?v=20260812a';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260812a';
+import { BranchService } from '../services/runtime.js?v=20260812a';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260812a';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260812a';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260812a';
+import { solidAccentStyle, accDarkVars, accDarkParts } from '../core/constants.js?v=20260812a';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260812a';
+import { attendanceToLong, inspectionToLong, PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260812a';
+import { PersonPicker } from '../components/person-picker.js?v=20260812a';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../services/decision-tree.js?v=20260812a';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, ReviewStatus, REVIEW_STATUS_LABELS, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260812a';
+import { persist } from '../core/data-adapter.js?v=20260812a';
+import { loadMakeupTasks } from '../services/makeup.js?v=20260812a';
+import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260812a';
+import { loadInspectionRecords, loadActiveInspectionRecords, saveInspectionRecords } from '../services/inspection.js?v=20260812a';
+import { loadActivities } from '../services/activity.js?v=20260812a';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260812a';
+import { SignupStore } from '../services/signup.js?v=20260812a';
+import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../services/review.js?v=20260812a';
+import { renderMyDispatchTab, bindMyDispatchEvents, IssueStore } from '../services/issues.js?v=20260812a';
+import { TodoStore, TodoSourceType, TodoStatus, seedTodos } from '../services/todo.js?v=20260812a';
+import { AuthStore } from '../services/auth.js?v=20260812a';
+import { resolveVisibleTargets } from '../services/visibility.js?v=20260812a';
+import { badgeHtml } from '../components/badge.js?v=20260812a';
 
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'leader' });
 
@@ -114,7 +114,7 @@ function renderLeaderUI(state) {
       // 排序：按工作流节奏「做→查→收→知情」，知情视角置于职责操作后、专班查看前（书记 2026-08-11 裁定）
       { id: 'members', label: '组员进展', render: () => _renderMembersContent(), groupLabel: '党建' },
       // 专班查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增）
-      { id: 'tf-view', label: '专班查看', render: () => { const el = document.getElementById('leader-tab-content'); if (el) return import('../components/taskforce-view.js?v=20260812b').then(m => m.renderTaskforceView(el, { highlightId: _leaderNavTarget?.tfId || null, onLocated: () => { _leaderNavTarget = null; } })); }, groupLabel: '党建' },
+      { id: 'tf-view', label: '专班查看', render: () => { const el = document.getElementById('leader-tab-content'); if (el) return import('../components/taskforce-view.js?v=20260812a').then(m => m.renderTaskforceView(el, { highlightId: _leaderNavTarget?.tfId || null, onLocated: () => { _leaderNavTarget = null; } })); }, groupLabel: '党建' },
       { id: 'my-dispatch', label: '我的处置', render: () => { const el = document.getElementById('leader-tab-content'); if (el) { el.innerHTML = renderMyDispatchTab('leader', 'u_leader_1'); bindMyDispatchEvents(el, 'leader', 'u_leader_1'); } }, groupLabel: '反馈' },
     ],
     accentColor: { accent, accentRgba, accentBorder },

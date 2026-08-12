@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  service.todo.js — 待办任务服务层
 //  最小三成本原则落地：任务流默认直接展示在工作台
@@ -6,9 +6,9 @@
 //         content/04_web_design/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260812b';
-import { persist } from '../core/data-adapter.js?v=20260812b';
-import { generateId } from '../core/id.js?v=20260812b';
+import { mockDB } from '../core/domain.js?v=20260812a';
+import { persist } from '../core/data-adapter.js?v=20260812a';
+import { generateId } from '../core/id.js?v=20260812a';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {

@@ -1,23 +1,23 @@
-﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  taskforce-entry.js — 专班详情独立入口
 //  书记 2026-08-11 裁定：专班拥有自己的界面与数据集（便于长期共享）。
 //  数据源 TaskForceRecordStore（独立持久化 workflowos_taskforces_v1），
 //  报名面板复用 signup-panel.js 组件（与活动详情页共用，避免重复散落）。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../components/sidebar.js?v=20260812b';
-import { renderHeader } from '../components/header.js?v=20260812b';
-import { BranchService } from '../services/runtime.js?v=20260812b';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260812b';
-import { NoticeStore } from '../services/notice.js?v=20260812b';
-import { SignupStore } from '../services/signup.js?v=20260812b';
-import { AuthStore } from '../services/auth.js?v=20260812b';
-import { getPersonById } from '../mock/index.js?v=20260812b';
-import { getBasePath } from '../core/utils.js?v=20260812b';
-import { badgeHtml } from '../components/badge.js?v=20260812b';
-import { enhanceSelects } from '../components/custom-select.js?v=20260812b';
-import { canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260812b';
-import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260812b';
+import { renderSidebar } from '../components/sidebar.js?v=20260812a';
+import { renderHeader } from '../components/header.js?v=20260812a';
+import { BranchService } from '../services/runtime.js?v=20260812a';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260812a';
+import { NoticeStore } from '../services/notice.js?v=20260812a';
+import { SignupStore } from '../services/signup.js?v=20260812a';
+import { AuthStore } from '../services/auth.js?v=20260812a';
+import { getPersonById } from '../mock/index.js?v=20260812a';
+import { getBasePath } from '../core/utils.js?v=20260812a';
+import { badgeHtml } from '../components/badge.js?v=20260812a';
+import { enhanceSelects } from '../components/custom-select.js?v=20260812a';
+import { canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260812a';
+import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260812a';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

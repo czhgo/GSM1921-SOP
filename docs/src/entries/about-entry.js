@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // entries/about-entry.js — 关于页入口 v15（讲我们支部的故事）
 // 核心理念：从"关系网络"到"支部的故事"——以党员成长为主线，讲清考察、工作哲学、探索与对话
 // 设计风格：苹果风（纯白 + 大留白 + 大字体 + 微妙动画）
@@ -32,10 +32,10 @@
 // v6 变更：Section 重组（8→7）+ 13 节点横向时间轴（7 决策节点金色光晕）+ Exploration GSAP scrub 动画（替代 v5.2）+ T3 编程行话/自造隐喻清除
 // v4 变更：去党建vs党务对比/考勤/思想汇报/角色独立section；新增考察积极分子/核心口号/两种工作/探索工作/行百里者半九十
 
-import { renderSidebar } from '../components/sidebar.js?v=20260812b';
-import { renderHeader } from '../components/header.js?v=20260812b';
-import { getBasePath } from '../core/utils.js?v=20260812b';
-import { icon } from '../core/icons.js?v=20260812b';
+import { renderSidebar } from '../components/sidebar.js?v=20260812c';
+import { renderHeader } from '../components/header.js?v=20260812c';
+import { getBasePath } from '../core/utils.js?v=20260812c';
+import { icon } from '../core/icons.js?v=20260812c';
 
 // ── 公开访问：不检查登录 ──
 renderSidebar('about');
@@ -58,7 +58,7 @@ const REVIEW_DIMENSIONS = [
     id: 'contribution',
     name: '党建贡献',
     tag: '特别突出原创性的贡献',
-    desc: '在活动策划、专班任务中发挥创造力，做出可被识别的原创性工作——这是考察的核心维度。',
+    desc: '在活动和专班中做出的工作成绩——特别看重原创性：在活动策划、专班任务中发挥创造力，做出可被识别的原创性贡献，这是考察的核心维度。',
     highlight: true,
   },
   {
@@ -729,7 +729,7 @@ function renderCognition() {
       num: '01',
       direction: '个体 → 组织',
       title: '各种发展轨迹都能加入获得成长',
-      body: '各种发展导向的同学——想进体制的、想走学术的、想去企业的——都能在组织中获得各自的成长。先锋模范在具体的工作中就能体现——任何一名党员都有自己的用武之地和成长空间。成长有两条路：个人闷头努力，或借由组织的经验、流程、集体智慧放大努力。光华管理学院本科生党支部就是你能在学院里接触到的那个具体组织。',
+      body: '各种发展导向的同学——想进体制的、想走学术的、想去企业的——都能在组织中获得各自的成长。先锋模范在具体的工作中就能体现——任何一名党员（包括支委会在内）在管理事和服务人方面都有自己的用武之地和成长空间。成长有两条路：个人闷头努力，或借由组织的经验、流程、集体智慧放大努力。光华管理学院本科生党支部就是你能在学院里接触到的那个具体组织。',
     },
     {
       num: '02',
@@ -1101,11 +1101,10 @@ function renderConclusion() {
   ).join('');
   return `
     <section id="conclusion" class="ab-page ab-page--closing ab-conclusion-section" data-toc-id="conclusion">
-      <canvas class="ab-particle-canvas" aria-hidden="true"></canvas>
       <div class="ab-conclusion-inner">
         <h2 class="ab-conclusion-title">${titleHTML}</h2>
         <p class="ab-conclusion-lead" data-stagger>
-          党建与党务的统一主语，贯穿从入党申请人到正式党员的全路径。
+          管理事，服务人——贯穿从入党申请人到正式党员的全路径。
         </p>
       </div>
     </section>
@@ -1729,8 +1728,12 @@ function bindExplorationScrollDriven() {
       : EXPLORATION_STAGES.taskforce;
     const svg = scene.querySelector('.ab-network-svg');
     const stagesContainer = scene.querySelector('.ab-exploration-stages');
+    const rect = scene.getBoundingClientRect();
     sceneData.push({
       scene, network, stages, svg, stagesContainer,
+      // 可见性过滤缓存（减负：构建时读一次，滚动时用 scrollTop 比较，避免每帧 getBoundingClientRect 触发 layout）
+      sceneTop: rect.top + window.scrollY,
+      sceneHeight: scene.offsetHeight,
       stageCount: stages.length,
       stageStates: buildStageStates(network, stages),
       continuous: false, // 首次滚动后才切入连续模式（保留初始 CSS 入场）
@@ -1755,9 +1758,14 @@ function bindExplorationScrollDriven() {
   const update = () => {
     ticking = false;
     const scrollTop = window.scrollY;
+    const vh = window.innerHeight;
 
     sceneData.forEach(data => {
       if (!data.svg || !data.stagesContainer) return;
+
+      // 可见性过滤（减负）：scene 完全在视口上方 1 屏之外或下方 1 屏之外时跳过逐帧插值——
+      // 离屏 scene 不参与 SVG 属性写入，滚动性能只开销在可见 scene 上
+      if (scrollTop > data.sceneTop + data.sceneHeight + vh || scrollTop + vh < data.sceneTop - vh) return;
 
       const progress = computeScrollProgress(scrollTop, data.scene, data.stageCount);
 
@@ -1985,38 +1993,6 @@ function bindCameraFlow() {
     }
   });
 
-  // ── B. 胶片时间码 + 进度线（叙事锚点：滚动即胶片推进，右上角 24fps 帧计数） ──
-  const rail = document.createElement('div');
-  rail.className = 'ab-rail';
-  const tc = document.createElement('div');
-  tc.className = 'ab-tc';
-  tc.innerHTML = '<span class="ab-tc-tag">FILM</span><span class="ab-tc-time">00:00:00:00</span>';
-  const timeEl = tc.querySelector('.ab-tc-time');
-  document.body.appendChild(rail);
-  document.body.appendChild(tc);
-
-  const FILM_TOTAL = 24 * 60 * 12; // 12:00:00:00 @24fps
-  // rAF 节流：scroll 事件高频触发，scrollHeight 布局读取合并到每帧一次（防 layout thrash）
-  let gaugeTicking = false;
-  const updateFilmGauge = () => {
-    if (gaugeTicking) return;
-    gaugeTicking = true;
-    requestAnimationFrame(() => {
-      gaugeTicking = false;
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-      let f = Math.round(p * FILM_TOTAL);
-      const fr = f % 24; f = (f - fr) / 24;
-      const ss = f % 60; f = (f - ss) / 60;
-      const mm = f % 60; const hh = (f - mm) / 60;
-      timeEl.textContent = [hh, mm, ss, fr].map(n => String(n).padStart(2, '0')).join(':');
-      rail.style.transform = `scaleX(${p})`;
-    });
-  };
-  updateFilmGauge();
-  window.addEventListener('scroll', updateFilmGauge, { passive: true });
-  window.addEventListener('resize', updateFilmGauge);
-
   // ── C. 终章收束（v5.1：去掉突变红色/金化——书记裁决"实现不出效果就别实现"） ──
   // 保持暖白背景 + 党建红大字，仅保留温和的"镜头落位"驶入（scale 0.86→1 + autoAlpha，scrub 可逆），
   // 与全页背景统一、与其余章节镜头语言一致，不再做全屏变红。
@@ -2033,13 +2009,9 @@ function bindCameraFlow() {
     );
   }
 
-  // 清理：matchMedia revert 时移除滚动监听与挂载的固定元素
-  return () => {
-    window.removeEventListener('scroll', updateFilmGauge);
-    window.removeEventListener('resize', updateFilmGauge);
-    rail.remove();
-    tc.remove();
-  };
+  // 胶片时间码 + 进度线已移除（减负：独立 rAF 循环 + scrollHeight 布局读取每帧一次，收益低、成本高）
+  // 场景交接与终章收束的 ScrollTrigger 由 bindCinematicScroll 统一 kill
+  return () => {};
 }
 
 /** ② 滚动吸附——仅限 Exploration 探索区场景内（书记裁决：吸附只属于探索区，全局 snap 破坏 UI 连续性）
@@ -2222,4 +2194,6 @@ bindPageAnimations();
 bindNetworkHover();
 bindExplorationScrollDriven();
 bindCinematicScroll();
-document.querySelectorAll('.ab-particle-canvas').forEach(c => initParticleCanvas(c));
+// 粒子背景仅保留 hero（终章粒子已移除——减负：粒子 rAF 循环 2→1，终章以大字收束为主）
+const heroCanvas = document.querySelector('.ab-hero-section .ab-particle-canvas');
+if (heroCanvas) initParticleCanvas(heroCanvas);

@@ -1,12 +1,12 @@
-﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ================================================================
 //  service.roles.js — 角色赋权共享服务
 //  消除 party.js 之间的重复统计逻辑
 //  assignedRoles 遗留键（sop_org_os_assigned_roles）已删除，启动时清一次存储残留
 // ================================================================
 
-import { PEOPLE } from '../mock/index.js?v=20260812b';
-import { AuthStore } from './auth.js?v=20260812b';
+import { PEOPLE } from '../mock/index.js?v=20260812a';
+import { AuthStore } from './auth.js?v=20260812a';
 
 // 遗留键清理（P2-6）：sop_org_os_assigned_roles 已无调用方，此处清一次存储残留
 try { localStorage.removeItem('sop_org_os_assigned_roles'); } catch (_) {}

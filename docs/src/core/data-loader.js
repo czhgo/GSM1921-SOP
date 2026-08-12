@@ -1,11 +1,11 @@
-﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  data-loader.js — 数据加载统一入口
 // ════════════════════════════════════════════════════════════════
 
-import { BranchService } from '../services/runtime.js?v=20260812b';
-import { getAppState, setState, STATE } from './state.js?v=20260812b';
-import { notifyDataLoaded } from './data-adapter.js?v=20260812b';
+import { BranchService } from '../services/runtime.js?v=20260812a';
+import { getAppState, setState, STATE } from './state.js?v=20260812a';
+import { notifyDataLoaded } from './data-adapter.js?v=20260812a';
 
 /**
  * 将 mock ACTIVITIES 映射为带完整字段的 fallback 数据

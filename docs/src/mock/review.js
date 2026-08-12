@@ -1,4 +1,4 @@
-﻿﻿﻿﻿// review.js — 复盘记录 Mock 数据
+﻿﻿﻿﻿﻿// review.js — 复盘记录 Mock 数据
 // 数据模型对齐 domain.js ReviewRecord + ReviewStatus 枚举（D-242）
 // 复盘状态流转：未提交→已上传→批注中→确认/打回
 // 组织者提交复盘报告，纪检委员批注/打回/确认
@@ -6,9 +6,9 @@
 // 修复（T175）：不再从 ./index.js 导入 _personName/_activityTitle，
 // 消除 mock/index.js ↔ mock/review.js 循环依赖。
 // 直接依赖 services/person.js + mock/activities.js。
-import { getPersonName } from '../services/person.js?v=20260812b';
-import { ACTIVITIES } from './activities.js?v=20260812b';
-import { ReviewStatus } from '../core/domain.js?v=20260812b';
+import { getPersonName } from '../services/person.js?v=20260812c';
+import { ACTIVITIES } from './activities.js?v=20260812c';
+import { ReviewStatus } from '../core/domain.js?v=20260812c';
 
 const _personName = (id) => getPersonName(id);
 const _activityTitle = (id) => ACTIVITIES.find(a => a.id === id)?.title || id;
