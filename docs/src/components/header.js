@@ -1,15 +1,29 @@
-﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // components/header.js — 共享顶栏组件（重构版）
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 书记裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { AuthStore } from '../services/auth.js?v=20260812a';
 import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260812a';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260812a';
 import { getBasePath } from '../core/utils.js?v=20260812a';
 import { icon } from '../core/icons.js?v=20260812a';
 import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260812a';
 import { badgeHtml } from './badge.js?v=20260812a';
+import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260812f';
+
+// ── 数据层按需加载（静态页隔离，2026-08-12）──
+// about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
+// （auth→runtime→mock→domain 全量约 50 模块），通知铃首次点击或 app 模式渲染后按需加载。
+// 动态 import 沿用与原静态 import 相同的版本号 → 与全站其他引用共享同一模块实例，行为不变。
+let _authModule = null;
+let _noticeModule = null;
+function loadAuth() {
+  if (!_authModule) _authModule = import('../services/auth.js?v=20260812a');
+  return _authModule;
+}
+function loadNotice() {
+  if (!_noticeModule) _noticeModule = import('../services/notice.js?v=20260812a');
+  return _noticeModule;
+}
 
 // 数据变更订阅（2026-08-05，消除"确认已读后角标不更新"）：
 // 模块顶层绑定一次；_renderNotificationBadge 在 #notification-bell 未渲染时静默返回。
@@ -23,9 +37,15 @@ if (typeof document !== 'undefined' && typeof document.addEventListener === 'fun
  * 数据变更（markRead/markAllRead/add/remove）或 loadDB 完成后调用，
  * 修复角标停留在 seed 快照/点击已读后不更新的问题。
  */
-function _renderNotificationBadge() {
+async function _renderNotificationBadge() {
   const bell = document.getElementById('notification-bell');
   if (!bell) return;
+  let NoticeStore;
+  try {
+    ({ NoticeStore } = await loadNotice());
+  } catch (e) {
+    return; // 静态页未加载数据链时静默（无角标可渲染）
+  }
   const old = bell.querySelector('#notif-badge');
   if (old) old.remove();
   // 只统计未过期的未读通知，与 index 首页通知栏数据一致
@@ -57,30 +77,36 @@ function _roleLabelHTML(role) {
 }
 
 function _notificationBellHTML() {
-  // 只统计未过期的未读通知，与 index 首页通知栏数据一致
-  const activeNotices = NoticeStore.list({ activeOnly: true });
-  const unread = activeNotices.filter(n => !n.read).length;
-  const badge = unread > 0
-    ? `<span id="notif-badge" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:9999px;background:var(--party-gold);border:1.5px solid var(--primary-900);font-weight:600;color:#7A0010;display:flex;align-items:center;justify-content:center;padding:0 4px;" class="text-xs">${unread > 9 ? '9+' : unread}</span>`
-    : '';
-
+  // 角标由 _renderNotificationBadge() 在数据层加载后异步补充
+  // （静态壳页不加载数据链 → 无角标；app 页渲染后即时补上，无感知延迟）
   return `
     <div id="notification-bell" style="position:relative;">
       <button id="notif-btn" style="width:40px;height:40px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;cursor:pointer;">
         ${icon('bell', { stroke: '#FFFFFF', className: 'w-4 h-4' })}
-        ${badge}
       </button>
       <div id="notif-dropdown" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;width:320px;background:var(--surface-card);border-radius:var(--radius-sm);box-shadow:var(--shadow-dropdown);z-index:100;overflow:hidden;border:1px solid var(--neutral-200);"></div>
     </div>
   `;
 }
 
-export function renderHeader(activeModule) {
+export async function renderHeader(activeModule, opts = {}) {
   const header = document.getElementById('app-header');
   if (!header) return;
 
-  const user = AuthStore.getCurrentUser();
-  const role = user?.role || '';
+  const staticShell = !!opts.staticShell;
+
+  // 登录态感知壳：静态页轻量读快照（零依赖）——已登录才动态加载 auth 渲染身份标签；
+  // 未登录访客 → 无身份标签；app 模式按需加载后渲染身份
+  let role = '';
+  if (staticShell ? readLoginSnapshot() : true) {
+    try {
+      const { AuthStore } = await loadAuth();
+      const user = AuthStore.getCurrentUser();
+      role = user?.role || '';
+    } catch (e) {
+      console.warn('[header] auth 加载失败，降级为静态壳', e);
+    }
+  }
 
   header.innerHTML = `
     <div class="header-content">
@@ -102,6 +128,11 @@ export function renderHeader(activeModule) {
 
   _bindHamburger(header);
   _bindNotificationBell(header);
+
+  // app 模式：渲染后立即按需加载通知模块 → 计算未读角标（模块缓存后即时、无感知）
+  if (!staticShell) {
+    loadNotice().then(() => _renderNotificationBadge()).catch(() => {});
+  }
 }
 
 function _bindHamburger(header) {
@@ -134,10 +165,18 @@ function _bindNotificationBell(header) {
   const dropdown = header.querySelector('#notif-dropdown');
   if (!btn || !dropdown) return;
 
-  btn.addEventListener('click', (e) => {
+  btn.addEventListener('click', async (e) => {
     e.stopPropagation();
     dropdown.classList.toggle('hidden');
     if (!dropdown.classList.contains('hidden')) {
+      // 首次点击时按需加载通知数据链（静态壳页点开铃铛才会加载，平时零依赖）
+      let NoticeStore, resolveNoticeUrl;
+      try {
+        ({ NoticeStore, resolveNoticeUrl } = await loadNotice());
+      } catch (err) {
+        dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:var(--neutral-400);" class="text-sm">通知数据不可用</div>';
+        return;
+      }
       // 保留策略（书记 2026-08-05）：紧急通知全部展示，重要通知仅展示未读
       const notices = NoticeStore.list({ activeOnly: true, sortBy: 'date', retention: 'visible' });
       if (notices.length === 0) {

@@ -1,4 +1,4 @@
-﻿﻿﻿﻿import { renderTabBar } from '../components/tab-bar.js?v=20260812a';
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿import { renderTabBar } from '../components/tab-bar.js?v=20260812a';
 import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260812a';
 import { renderReportInboxHtml, bindReportInbox } from '../components/report-inbox.js?v=20260812a';
 import { renderWorkOverview } from '../components/work-overview.js?v=20260812a';
@@ -7,7 +7,7 @@ import { getAppState, setState, registerRenderCallback } from '../core/state.js?
 import { BranchService } from '../services/runtime.js?v=20260812a';
 import { showToast, flashHighlight } from '../core/utils.js?v=20260812a';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260812a';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260812a';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260812f';
 import { solidAccentStyle, accDarkVars, accDarkParts } from '../core/constants.js?v=20260812a';
 import { loadWorkspaceData } from '../core/data-loader.js?v=20260812a';
 import { attendanceToLong, inspectionToLong, PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260812a';
@@ -110,7 +110,7 @@ function renderLeaderUI(state) {
       { id: 'attendance', label: '考勤上传', render: () => _renderAttendanceContent(), groupLabel: '党建' },
       { id: 'inspection', label: '考察上传', render: () => _renderInspectionContent(), groupLabel: '党建' },
       { id: 'review', label: '复盘提交', render: () => _renderReviewContent(), groupLabel: '党建' },
-      // 组员进展（书记 2026-08-10 裁定：全员可见性矩阵落地——组长看本组组员，P-015 知情边界看≠做）
+      // 组员进展（书记 2026-08-10 裁定：全员可见性矩阵落地——组长看本组组员，P-011 知情边界看≠做）
       // 排序：按工作流节奏「做→查→收→知情」，知情视角置于职责操作后、专班查看前（书记 2026-08-11 裁定）
       { id: 'members', label: '组员进展', render: () => _renderMembersContent(), groupLabel: '党建' },
       // 专班查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增）
@@ -171,7 +171,7 @@ function renderLeaderUI(state) {
 // ── 组员进展（块块知情视角）──────────────────────────────
 //  书记 2026-08-10 裁定：全员可见性矩阵落地（visibility.js own-group）。
 //  三区思路从书记按人视图收敛：卡点区（问题优先）→ 进度区（每人一行聚合）。
-//  P-015 知情边界：看 ≠ 做——组长只知情与温和「了解进展」，答复由书记完成，不跳转他人工作台。
+//  P-011 知情边界：看 ≠ 做——组长只知情与温和「了解进展」，答复由书记完成，不跳转他人工作台。
 //  本视图禁用 SVG 图标，类别用色点+文字区分。
 async function _renderMembersContent() {
   const container = document.getElementById('leader-tab-content');
@@ -297,7 +297,7 @@ async function _renderMembersContent() {
         </div>
         <div class="space-y-1">${progressRows}</div>
       </div>
-      <p class="text-[11px] text-gray-400">组员进展 = 块块知情视角（P-015 知情边界，看 ≠ 做）。本组组员汇报可行内「正式答复」，书记仍全局可见；「了解进展」发往本组组员，不跳转他人工作台。</p>
+      <p class="text-[11px] text-gray-400">组员进展 = 块块知情视角（P-011 知情边界，看 ≠ 做）。本组组员汇报可行内「正式答复」，书记仍全局可见；「了解进展」发往本组组员，不跳转他人工作台。</p>
     </div>`;
 
   _bindMembersEvents(container);

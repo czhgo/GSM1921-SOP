@@ -2,7 +2,7 @@
 title: "使用规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-12"
+last_updated: "2026-08-16"
 status: active
 related_files: [CLAUDE.md, content/02_institution/ROLE_CLASSIFICATION.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -212,7 +212,7 @@ related_files: [CLAUDE.md, content/02_institution/ROLE_CLASSIFICATION.md, conten
 
 > **确立日期**：2026-07-16 | **确立背景**：书记指出"AI 作为秘书，写出的话应该就是 grill 书记后的话——不需要在用户文档中区隔'书记写的'和'AI写的'，因为吃透精神后两者本应一致。问题只在于 AI 没吃透就写了"
 > **优先级**：P0（强制执行）——本条是 AI 展开书记原话的最高准则（2026-08-05 第4轮评议升为独立章）
-> **同步索引**：[OPERATIONS_GUIDE.md §13.6](OPERATIONS_GUIDE.md) + [SECRETARY_PRONOUNCEMENTS.md P-045](../01_strategy/SECRETARY_PRONOUNCEMENTS.md)
+> **同步索引**：[OPERATIONS_GUIDE.md §13.6](OPERATIONS_GUIDE.md) + [SECRETARY_PRONOUNCEMENTS.md P-002](../01_strategy/SECRETARY_PRONOUNCEMENTS.md)
 
 ### 2.1 核心原则
 

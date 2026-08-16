@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // main-entry.js — 主页入口
 // index.html 专属，处理 dashboard 全量数据渲染
 
@@ -12,7 +12,7 @@ import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../services/
 import { loadActivities } from '../services/activity.js?v=20260812a';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260812a';
 import { getActivityTypeColors } from '../core/constants.js?v=20260812a';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260812a';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260812f';
 import { AuthStore } from '../services/auth.js?v=20260812a';
 import { loadWorkspaceData } from '../core/data-loader.js?v=20260812a';
 import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260812a';

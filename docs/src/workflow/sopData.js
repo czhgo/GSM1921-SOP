@@ -33,9 +33,9 @@ export const sopDatabase = {
       domain: 'activity', description: '弹性考勤 · 全体支部成员可参与',
       tasks: [
         { taskId: '1b-1', title: '活动发起',              executor: 'organizer',        supervisor: 'leader',     timeOffset: -7, desc: '策划活动方案，确定路径 a（有现成活动方向，党小组组长主导招募）或路径 b（无现成活动，策划参与成本低且有组织效应的活动）。' },
-        { taskId: '1b-2', title: '党小组组长审批',              executor: 'leader',           supervisor: null,         timeOffset: -7, desc: '必须报党小组组长审批同意后方可推进。党小组组长评估活动是否符合党支部组织意图，以及资源与时间是否可行。' },
+        { taskId: '1b-2', title: '支委扩大会讨论',              executor: 'expanded-committee', supervisor: null,         timeOffset: -7, desc: '党小组组长汇集活动信息，交支委扩大会讨论研究（线上或线下）；讨论通过后方可推进。支委扩大会评估活动是否符合党支部组织意图，以及资源与时间是否可行。' },
         { taskId: '1b-3', title: '联系条条委员',          executor: 'organizer',        supervisor: 'leader',     timeOffset: -7, desc: '按需联系组织委员（通知）、宣传委员（宣传指导）、纪检委员（考勤督办），说明活动计划与需求。' },
-        { taskId: '1b-4', title: '发布活动通知',          executor: 'leader',           supervisor: null,         timeOffset: -2, desc: '党小组组长通过党小组群发布本组活动通知；外出活动提前2天完成建群并确保所有人员到位。' },
+        { taskId: '1b-4', title: '发布活动通知',          executor: 'organizer',        supervisor: null,         timeOffset: -2, desc: '组织者通过党小组群/活动群发布本组活动通知；外出活动提前2天完成建群并确保所有人员到位。党小组组长兼任组织者时，以组织者身份发布（工作跟职务走）。' },
         { taskId: '1b-5', title: '对接考勤要求与复盘底线',   executor: 'disc-commissioner',supervisor: 'leader',     timeOffset: -2, desc: '纪检委员与组织者直接对接，说明考勤要求与复盘底线（截止T+7），无需微信备忘录。考勤确认后录入考勤总表，考察确认后录入考察总表。' },
         { taskId: '1b-6', title: '活动实施',              executor: 'organizer',        supervisor: 'leader',     timeOffset:  0, desc: '组织者全程负责。核查清单：签到 · 现场拍照（全景/互动/细节各至少1张）· 关键发言记录 · 活动结束前确认材料收齐。' },
         { taskId: '1b-6a', title: '考勤确认',            executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  0, desc: '活动结束后，党小组活动考勤由党小组组长上传，纪检委员确认后录入考勤总表。会议考勤由纪检委员直接上传并录入。 - Source: 纪检委员工作流程指南 §一「考勤管理」' },
@@ -113,7 +113,7 @@ export const sopDatabase = {
       domain: 'activity', description: '党小组主导 · 团班配合执行',
       tasks: [
         { taskId: '4-1', title: '评估契合度',           executor: 'leader',           supervisor: null,         timeOffset: null },
-        { taskId: '4-1b', title: '书记审批立项',        executor: 'secretary',        supervisor: null,         timeOffset: null, desc: '党小组组长向支部书记报告活动方案；书记审批同意后方可推进，参考主题党日流程。' },
+        { taskId: '4-1b', title: '支委扩大会讨论',        executor: 'expanded-committee', supervisor: null,         timeOffset: null, desc: '党小组组长汇集活动方案，交支委扩大会讨论研究（线上或线下）；讨论通过后方可推进，参考主题党日流程。' },
         { taskId: '4-2', title: '共同策划活动方案',     executor: 'leader',           supervisor: null,         timeOffset: null },
         { taskId: '4-3', title: '块块职能支持',         executor: 'org-commissioner', supervisor: 'leader',     timeOffset: null },
         { taskId: '4-4', title: '活动实施',             executor: 'organizer',        supervisor: 'leader',     timeOffset: null },

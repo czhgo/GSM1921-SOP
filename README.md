@@ -126,7 +126,7 @@ npm start
 
 系统最重要产出不是某个功能模块，而是"从入党申请人到正式党员"的完整叙事。各种发展轨迹的同学都能加入支部，通过组织获得各自的成长；党建工作与党务工作都是"管理事，服务人"的工作，任何一名党员（包括支委会在内）在管理事和服务人两方面都各有职责与成长空间。
 
-→ [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)（完整叙事）+ [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（P-045/P-047 元命题）
+→ [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)（完整叙事）+ [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（P-002/P-003 元命题）
 
 ### 元原则 · 最小三成本
 
@@ -144,7 +144,7 @@ npm start
 
 谁能看到谁，由赋权链（执行委托）计算得出，不靠人工判断——**信息可见性 = 职责空间的投影**。看 ≠ 做：可见性只决定"能看到什么维度"，不授予任何操作权；上级对下级仅"了解进展"与答复，无编辑他人待办入口。这是组织内控的第四道防线（知情边界）。
 
-→ [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（P-015）+ [DESIGN_SYSTEM.md](content/04_web_design/DESIGN_SYSTEM.md) §一 原则 9
+→ [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（P-011）+ [DESIGN_SYSTEM.md](content/04_web_design/DESIGN_SYSTEM.md) §一 原则 9
 
 ### 党建工作与党务工作
 
@@ -168,11 +168,11 @@ npm start
 
 "条"与"块"是理解权责关系的方式：从职能视角看，三委员按专业职能分工（条）；从单元视角看，党小组组长按小组划分（块）。谁做什么，由岗位职责定义决定，不由条块推出；书记是条块间的协调节点。
 
-→ [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（P-014）
+→ [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（P-010）
 
 这些理念不是抽象的口号，而是每一条制度设计背后的理由。理解了它们，才能理解为什么系统是这样组织的，也才能在场景变化时判断原则在什么条件下成立。
 
-→ 完整的理论阐述见 [书记重要论断汇编](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（16 条路线级论断，其中 P-045/P-047 为元命题引子）和 [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)
+→ 完整的理论阐述见 [书记重要论断汇编](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（17 条论断，其中 P-002/P-003 为元命题）和 [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)
 
 ---
 

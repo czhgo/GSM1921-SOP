@@ -1,57 +1,32 @@
-﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
-// entries/about-entry.js — 关于页入口 v15（讲我们支部的故事）
-// 核心理念：从"关系网络"到"支部的故事"——以党员成长为主线，讲清考察、工作哲学、探索与对话
-// 设计风格：苹果风（纯白 + 大留白 + 大字体 + 微妙动画）
-// 签名元素：【管理事，服务人】收束点题 + Exploration SVG 关系网络
-// v15.3 变更（2026-08-04 书记五项修订复议）——动画架构重构，落业界成熟经验：
-//   ①引入 Lenis 平滑滚动（unpkg 1.3.25，gsap.ticker 驱动 + ScrollTrigger.update 同步；reduced-motion 回落原生滚动）
-//   ②全页 scrub:0.8/0.3 → scrub:true（滚动位置已被 Lenis 平滑，1:1 精确映射到每一时刻，杜绝"统一滞后"机械感）
-//   ③阶段跳变改连续渐变：探索网络用 stageProgress 在相邻 stage 目标态间插值（节点 opacity/scale/saturate、边 opacity/dashoffset）
-//     —— 删除二进制重渲染，根治"吸住又跳过"卡点；对话四卡"点亮→渐隐"连续插值；发展阶段高亮二进制改按进度插值
-//   ④句式清理（本页范围）：对话卡 2 处「不是…就/才」改叙述式；书记原话保留
-// v15.2 变更：v5.2 修订（2026-08-04 书记五项指令）——①删除过程性 spec 文档 ②卡片渐变改纯色（扁平化）
-//   ③移除探索区 GSAP 吸附（bindExplorationSceneSnap 删除 + ab-snap-target 死类清理），治"吸住又跳过"卡点
-//   ④全页 scrub:true→scrub:0.8 lerp 惯性平滑（v15.3 复议否决：统一 lerp 造成"机械滞后"，改 Lenis 平滑 + scrub:true）
-//   ⑤叙事顺序重构方案A（认知→价值→路径：组织性→宝贵机会→发展流程→两种工作→考察→探索→对话）+ 章节重编号 + TOC/镜头交接同步
-//   ⑥「不是……而是……」句式改写为叙述式（CLAUDE.md T-199 P-014 判例；书记原话"爱具体的人…"保留）
-// v15.1 变更：v5.1 修订（2026-08-04 书记四条指令）——①卡片入场短区间 + power2.out + stagger 0.08 + scrub 可逆（正倒对称、不再快翻走才清晰）
-//   ②修复卡片"黑色"根因：gsap.to filter from 态被解析为 brightness(0) 压暗整章 → 显式 fromTo brightness(1)→0.92 ③背景全页统一
-//   --ab-paper-0（删除 nth-child(even) 深浅交替）④hero 大标题改党建红 ⑤终章去掉突变红色/光圈层，保持暖白 + 党建红大字 + 温和落位驶入
-// v15 变更：v5 电影镜头流落地（2026-08-04 书记批准）——① bindCameraFlow 统一镜头语言（场景后拉/驶入交接 + 胶片时间码 + 进度线）
-//   替换 v4 叠层拆分 ② 终章光圈 clip-path 全屏扩展（修复 end 越界断头，触发器钉页面底部）③ 背景统一 #FAF8F4 系 + 噪点 0.035
-//   ④ 探索区分镜切换（活动退场 + 专班光圈揭示）+ 边描边生长 1.2s + 过去边弱化保留 + 节点行星呼吸 ⑤ 吸附停靠点重新校准至章节头部
-// v14 变更：电影化滚动叙事（2026-08-04 书记批准）——①Hero 滚动退场场景切换 ②章节边界 GSAP snap 滚动吸附
-//   ③信息章节 pin + 覆盖滑入叠层转场 ④终章封章全屏扩展转场 + Hero/终章微光粒子（原生 Canvas，党建红金）
-//   Development 滚动驱动进度条+阶段高亮、Dialogue 环形四阶段滚动点亮、Exploration 节点光晕升级；reduced-motion 全面降级
-// v13 变更：Exploration 从 Canvas 像素人动画切换为 SVG 关系网络脉动动画，保留 13 步 Development 时间轴 + GSAP 动画
-// v12 变更：Exploration Canvas v2 重构——全屏沉浸 + 像素人 + 自由漫步 + 镜头推拉 + 脚印粒子 + 物件传递 + 编排式动画 + 滚动控制 + 底部字幕
-// v10 变更：Exploration SVG 活动关系网络重构为 HTML div 节点 + SVG 连线 + 编排式 GSAP timeline（统一调度）替代 scrub 景深动画
-// v9 变更：Development 时间轴重构为居中单列卡片布局（typography-first）+ 删除三列 grid/辅助线/交替布局 + GSAP 入场动画替代 scrub + 卡片点击展开详情（GSAP 动画）+ 决策节点用左侧色条区分（非金色光晕）
-// v8 变更：GSAP ScrollTrigger 全接管（移除 IntersectionObserver + is-revealed）+ Hero 金色装饰线 + TOC 始终可见 label + Development 阶段交替双列布局 + Dialogue 竖向四步 + bindPageAnimations 统一动画入口 + Exploration 景深参数调优（0.6/0.92/0.7 + filter）
-// v7 变更：Hero 标题改为成长路径 + Cognition 重构为组织性辩证法（个体→组织/组织→个体/个体→组织）+ Development 副标题精简 + 移除"三会决策节点"T3 表达 + 新增 Conclusion 收束 section（管理事，服务人）
-// v6 变更：Section 重组（8→7）+ 13 节点横向时间轴（7 决策节点金色光晕）+ Exploration GSAP scrub 动画（替代 v5.2）+ T3 编程行话/自造隐喻清除
-// v4 变更：去党建vs党务对比/考勤/思想汇报/角色独立section；新增考察积极分子/核心口号/两种工作/探索工作/行百里者半九十
+// role: [工程师]+[AI]
+// entries/about-entry.js — 关于页入口（讲我们支部的故事）
+// 核心理念：以党员成长为主线，讲清考察、工作哲学、探索与对话
+// 设计风格：暖纸印刷叙事册（南西油墨宋 + 暖纸底 + 墨色标题 + 党建红印章 + 硬刷油墨质感）
+// 动画：Lenis 平滑滚动 + CSS 滚动驱动（animation-timeline: view()）+ 原生 JS 驱动
+// 签名元素：【管理事，服务人】收束 + 探索区 SVG 关系网络 + 对话卡日出日落公转（文字正立）
 
-import { renderSidebar } from '../components/sidebar.js?v=20260812d';
-import { renderHeader } from '../components/header.js?v=20260812d';
-import { getBasePath } from '../core/utils.js?v=20260812d';
-import { icon } from '../core/icons.js?v=20260812d';
+import { renderSidebar } from '../components/sidebar.js?v=20260814j';
+import { renderHeader } from '../components/header.js?v=20260814j';
+import { getBasePath } from '../core/utils.js?v=20260814j';
+import { icon } from '../core/icons.js?v=20260814j';
 
 // ── 公开访问：不检查登录 ──
-renderSidebar('about');
-renderHeader('about');
+// 静态壳模式（2026-08-12）：about 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
+// 仅渲染共享侧边栏/顶栏壳；通知铃首次点击时才按需加载通知模块。
+renderSidebar('about', { staticShell: true });
+renderHeader('about', { staticShell: true });
 
 // ════════════════════════════════════════════════════════════════
 //  数据定义
 // ════════════════════════════════════════════════════════════════
 
-// 考察积极分子三维度（党建贡献高亮——特别突出原创性贡献）
+// 我们如何考察（全员三维度，党建贡献高亮——特别突出原创性贡献；2026-08-12 书记指令：不强调积极分子，所有人都受到这样的考察）
 const REVIEW_DIMENSIONS = [
   {
     id: 'party-class',
     name: '党课学习',
     tag: '理论修养的根基',
-    desc: '系统学习党的理论、路线、方针、政策，是积极分子成长的思想基础。',
+    desc: '系统学习党的理论、路线、方针、政策，是支部成员成长的思想基础。',
     highlight: false,
   },
   {
@@ -65,404 +40,211 @@ const REVIEW_DIMENSIONS = [
     id: 'evaluation',
     name: '综合评价',
     tag: '群众基础与日常表现',
-    desc: '群众口碑、日常表现、责任担当，构成对积极分子的全面画像。',
+    desc: '群众口碑、日常表现、责任担当，构成对支部成员的全面画像。',
     highlight: false,
   },
 ];
 
-// 两种工作（成熟 vs 探索）——侧重探索工作（发挥所有人智慧含积极分子）
-const TWO_WORKS = [
-  {
-    id: 'mature',
-    label: '成熟工作',
-    tag: '接续发力',
-    desc: '在前人基础上可以继续推进的工作——有规范的常规事务',
-    examples: ['组织生活', '材料流转', '会务保障'],
-    features: ['有规范', '有模板', '有前例'],
-    tone: 'mature',
-  },
-  {
-    id: 'explore',
-    label: '探索工作',
-    tag: '试错创造',
-    desc: '需要发挥创造力、探索新可能——人人皆可贡献，包括积极分子',
-    examples: ['活动策划', '专班任务'],
-    features: ['有边界', '要对话', '要改进', '人人参与'],
-    tone: 'explore',
-  },
-];
+// ===== 工作流关系动画：镜组驱动·分镜式（2026-08-13 批判性重构） =====
+// 废弃旧「stage 驱动连续插值 + viewBox 推近 + 四层硬编码」；改为「flow 底账 + 镜组滚动稳态」。
+// 每个镜组独立构图（扁平化、无分层无中心包围），滚动切换时节点移入/移出视野，viewBox 固定。
+// 线三类：实线=任务/赋权流，虚线=信息流，点线=文件流；颜色只分「当前/非当前」两态。
+// 信息集中：核心高频节点（党小组组长/组织者/组织委员/纪检委员）权重更高、视觉更重。
 
-// 活动关系网络（签名元素）：8 个角色节点 + 三类流（派活交付/报备告知/横向配合）
-// 逻辑校准（D-207 衍生）：组织者是活动执行核心，党小组组长是发起者（创建活动+赋权组织者）
-//   党小组组长可以是组织者，也可以不是——这是两个不同角色，有时由同一人担任
-// v4.3.6 校准：4 层节点布局消除线交叠（书记顶/党小组组长+宣传上层/组织者+纪检中层/组织委员+参与者底层）；
-//   报备改双向边（organizer↔secretary，label"报备/审批"）显性化书记审批反馈；
-//   删除 secretary↔organizer collab 边（与报备边物理重合，由双向报备边替代）；
-//   动画区分对待：task 用 dashoffset 绘制（有方向），info/collab 用 opacity 渐显（保留 CSS 虚线/点线）；
-//   组织委员不归档宣传素材，只收集考察记录+维护人才库（duty 维持 v4.3.5）
-// 节点布局：4 层结构——L1 书记(顶) / L2 党小组组长+宣传(上) / L3 组织者+纪检(中) / L4 组织委员+深度+普通(底)
-// stage 字段：scroll-driven animation 的"信息出现顺序"分组（0=起点, 5=人才库更新终点）
-// detail 字段：连线 tooltip 详情（回答"汇报什么？提交什么？"）
-const ACTIVITY_NETWORK = {
-  viewBox: '0 0 800 600',
-  nodes: [
-    // L1 顶部——书记居中（屋顶，视觉核心）：审批报备+横向配合
-    { id: 'secretary',  name: '党支书',     x: 400, y: 60,  color: '#B91C1C', duty: '审批报备', stage: 1 },
-    // L2 上层左——党小组组长（发起者：创建活动+赋权组织者）
-    { id: 'leader',     name: '党小组组长', x: 140, y: 200, color: '#22C55E', duty: '发起者', stage: 0 },
-    // L3 中层——组织者居中（执行核心），承接党小组组长赋权，负责分工/协调/报备
-    { id: 'organizer',  name: '组织者',     x: 400, y: 320, color: '#7DD3FC', duty: '执行核心', stage: 0 },
-    // L4 底层——深度参与者（承担分工）
-    { id: 'deep',       name: '深度参与者', x: 300, y: 500, color: '#94a3b8', duty: '承担分工', stage: 2 },
-    // L4 底层——普通参与者（按通知出席）
-    { id: 'normal',     name: '普通参与者', x: 500, y: 500, color: '#6B7280', duty: '按通知出席', stage: 3 },
-    // L2 上层右——宣传委员（宣传报道）
-    { id: 'prop-commissioner', name: '宣传委员', x: 660, y: 200, color: '#2563EB', duty: '宣传报道', stage: 4 },
-    // L3 中层右——纪检委员（考勤考察，原始材料留存处）
-    { id: 'disc-commissioner', name: '纪检委员', x: 660, y: 320, color: '#C2410C', duty: '考勤考察', stage: 4 },
-    // L4 底层左——组织委员（考察建档/人才库维护，只收集考察记录不归档宣传素材）
-    { id: 'org-commissioner',  name: '组织委员', x: 140, y: 460, color: '#0EA5E9', duty: '考察建档/人才库维护', stage: 5 },
-  ],
-  edges: [
-    // 派活交付（深红实线）——有交付物的转移流
-    { from: 'leader',    to: 'organizer',         label: '赋权',       type: 'task', stage: 0, detail: '党小组组长创建活动后赋权组织者，组织者获得活动执行权' },
-    { from: 'organizer', to: 'deep',              label: '分工',       type: 'task', stage: 2, detail: '组织者向深度参与者分派具体任务清单（内容/形式/截止时间）' },
-    { from: 'organizer', to: 'prop-commissioner', label: '宣传需求',   type: 'task', labelT: 0.4, stage: 4, detail: '组织者向宣传委员提出宣传需求（活动亮点/报道角度/素材要求）' },
-    { from: 'organizer', to: 'org-commissioner',  label: '考察建档',   type: 'task', labelT: 0.45, stage: 5, detail: '组织者向组织委员提交活动考察材料，组织委员据此更新人才库' },
-    { from: 'organizer', to: 'disc-commissioner', label: '提交考勤',   type: 'task', labelT: 0.55, stage: 4, detail: '组织者向纪检委员提交出勤记录（应到/实到/缺席名单）' },
-    { from: 'disc-commissioner', to: 'org-commissioner', label: '考察记录', type: 'task', labelDx: -38, labelDy: -14, stage: 5, detail: '纪检委员向组织委员提交考察记录（表现/贡献/问题），组织委员据此更新人才库；原始材料留纪检委员处' },
-    // 报备告知（蓝虚线）——仅信息传递无交付物
-    // 报备改双向：organizer↔secretary，显性化书记审批反馈（v4.3.6）
-    { from: 'organizer', to: 'secretary',         label: '报备/审批',  type: 'info', bidirectional: true, stage: 1, detail: '组织者向党支书报备活动方案、时间、地点、参与人员名单；党支书审批反馈，把握活动执行方向' },
-    { from: 'organizer', to: 'normal',            label: '通知',       type: 'info', stage: 3, detail: '组织者通知普通参与者活动时间、地点、着装要求' },
-    { from: 'deep',      to: 'normal',            label: '带动参与',   type: 'info', labelDy: -18, stage: 3, detail: '深度参与者带动普通参与者积极参与活动' },
-    // 横向配合（灰点线）——无方向的平等协作（书记↔支委；书记↔组织者已由双向报备边替代，不再单独画）
-    { from: 'secretary', to: 'org-commissioner',  type: 'collab', label: '', stage: 5, detail: '书记与组织委员横向配合（把握人才库建设方向）' },
-    { from: 'secretary', to: 'disc-commissioner', type: 'collab', label: '', stage: 4, detail: '书记与纪检委员横向配合（把握考察标准）' },
-    { from: 'secretary', to: 'prop-commissioner', type: 'collab', label: '', stage: 4, detail: '书记与宣传委员横向配合（把握宣传方向）' },
+// 角色元数据：name（完整 T1 名，圆下方）+ short（圆内名，5 字内用完整名）+ color（工作流图节点辨识色）
+// 颜色规则（书记 2026-08-13「先用还没被清理掉的硬编码颜色」；2026-08-14 §C.3 已迁移）：
+//   工作流图节点辨识色对齐 DESIGN_SYSTEM §2.3.2 角色识别色系（organizer=天蓝系 / disc-commissioner=深橙 / org-commissioner=天蓝 / prop-commissioner=海蓝）；
+//   职能色——发起方党建红 / 审批方深绿 / 执行核心深青 / 参与层灰 / 动作节点紫。
+//   注：此处为「身份标识场景」默认辨识色；工作台内强调一律走主题色（可自选），见 DESIGN_SYSTEM §2.7/§2.8。
+const WORKFLOW_ROLES = {
+  leader:    { name: '党小组组长',   short: '党小组组长', color: '#15803D' }, // 深绿·审批/赋权
+  organizer: { name: '组织者',       short: '组织者',     color: '#0E7490' }, // 深青·执行核心
+  deep:      { name: '深度参与者',   short: '深度参与者', color: '#64748B' }, // 灰蓝·参与
+  normal:    { name: '普通参与者',   short: '普通参与者', color: '#6B7280' }, // 灰·参与
+  orgComm:   { name: '组织委员',     short: '组织委员',   color: '#0EA5E9' }, // 天蓝·组织协调（DESIGN_SYSTEM §2.3.2）
+  discComm:  { name: '纪检委员',     short: '纪检委员',   color: '#C2410C' }, // 深橙·监督警示（DESIGN_SYSTEM §2.3.2）
+  propComm:  { name: '宣传委员',     short: '宣传委员',   color: '#2563EB' }, // 海蓝·宣传传播（DESIGN_SYSTEM §2.3.2）
+  initiator: { name: '发起人',       short: '发起人',     color: '#B91C1C' }, // 党建红·发起
+  committee: { name: '支委会',       short: '支委会',     color: '#B91C1C' }, // 党建红·专班审议立项（集体决策）
+  expanded:  { name: '支委扩大会',   short: '支委扩大会', color: '#B91C1C' }, // 党建红·活动讨论研究（集体决策）
+};
+
+// 活动场景：5 镜组（flow 底账对齐 SOP 主题党日详细步骤 + 组织者两种情况）
+const ACTIVITY_SCENE = {
+  id: 'activity',
+  no: '01',
+  title: '活动：党小组组长发起，同志们参与',
+  note: '探索的边界由党小组组长划定，信息流与任务流并行——从策划、通知、执行到考勤、归档，每个环节都有明确的"谁找谁"。',
+  viewBox: '0 0 800 720',
+  shots: [
+    {
+      id: 0,
+      title: '发起 + 支委扩大会讨论',
+      desc: '党小组组长汇集活动信息，交支委扩大会讨论研究（线上或线下），讨论通过后组织者推进执行。',
+      flows: [
+        { text: '党小组组长 → 支委扩大会（汇集信息）', type: 'info' },
+        { text: '支委扩大会 → 组织者（讨论通过·推进）', type: 'task' },
+      ],
+      nodes: [
+        { id: 'leader',    x: 170, y: 204 },
+        { id: 'expanded',  x: 400, y: 480 },
+        { id: 'organizer', x: 630, y: 204 },
+      ],
+      edges: [
+        { from: 'leader',    to: 'expanded',  type: 'info' },
+        { from: 'expanded',  to: 'organizer', type: 'task' },
+      ],
+    },
+    {
+      id: 1,
+      title: '分工',
+      desc: '组织者向深度参与者分派任务，分工需经平等协商。',
+      flows: [
+        { text: '组织者 → 深度参与者（分工·平等协商）', type: 'task' },
+      ],
+      nodes: [
+        { id: 'organizer', x: 320, y: 348 },
+        { id: 'deep',      x: 540, y: 348 },
+      ],
+      edges: [
+        { from: 'organizer', to: 'deep', type: 'task' },
+      ],
+    },
+    {
+      id: 2,
+      title: '联系条条 + 通知 + 准备',
+      desc: '组织者向条条委员说明活动计划，向普通参与者发布通知；宣传委员指导深度参与者准备宣传——多线程并行推进。',
+      flows: [
+        { text: '组织者 → 组织/宣传/纪检委员（说明活动计划）', type: 'info' },
+        { text: '组织者 → 普通参与者（通知）', type: 'info' },
+        { text: '宣传委员 → 深度参与者（宣传指导）', type: 'info' },
+        { text: '纪检委员 ↔ 组织者（考勤对接）', type: 'info' },
+      ],
+      nodes: [
+        { id: 'organizer', x: 300, y: 360 },
+        { id: 'normal',    x: 210, y: 180 },
+        { id: 'orgComm',   x: 600, y: 180 },
+        { id: 'discComm',  x: 630, y: 360 },
+        { id: 'propComm',  x: 600, y: 540 },
+        { id: 'deep',      x: 250, y: 540 },
+      ],
+      edges: [
+        { from: 'organizer', to: 'normal',   type: 'info' },
+        { from: 'organizer', to: 'orgComm',  type: 'info' },
+        { from: 'organizer', to: 'discComm', type: 'info' },
+        { from: 'organizer', to: 'propComm', type: 'info' },
+        { from: 'propComm',  to: 'deep',     type: 'info' },
+      ],
+    },
+    {
+      id: 3,
+      title: '复盘 + 宣传产出 + 材料归档',
+      desc: '组织者提交复盘给纪检委员批注确认；深度参与者将宣传产出与材料交组织者，组织者打包后统一提交宣传委员归档——多线程并行。',
+      flows: [
+        { text: '组织者 → 纪检委员（提交复盘·批注确认）', type: 'info' },
+        { text: '深度参与者 → 组织者（交付宣传产出+材料）', type: 'file' },
+        { text: '组织者 → 宣传委员（打包提交归档）', type: 'file' },
+      ],
+      nodes: [
+        { id: 'organizer', x: 400, y: 348 },
+        { id: 'discComm',  x: 640, y: 180 },
+        { id: 'deep',      x: 200, y: 516 },
+        { id: 'propComm',  x: 620, y: 516 },
+      ],
+      edges: [
+        { from: 'organizer', to: 'discComm', type: 'info' },
+        { from: 'deep',      to: 'organizer', type: 'file' },
+        { from: 'organizer', to: 'propComm', type: 'file' },
+      ],
+    },
+    {
+      id: 4,
+      title: '考察建档',
+      desc: '纪检委员将考察记录提交组织委员，组织委员据此更新支部人才库——活动闭环的落点。',
+      flows: [
+        { text: '纪检委员 → 组织委员（考察记录·更新人才库）', type: 'file' },
+      ],
+      nodes: [
+        { id: 'discComm', x: 260, y: 348 },
+        { id: 'orgComm',  x: 540, y: 348 },
+      ],
+      edges: [
+        { from: 'discComm', to: 'orgComm', type: 'file' },
+      ],
+    },
   ],
 };
 
-// 专班关系网络：4 个节点 + 7 条流
-// 节点重新布局：组织委员从中间挪到右侧，避免与 initiator↔organizer 长斜线 label 重叠
-// 反向边 organizer→initiator 用 labelT 偏移，与 initiator→organizer 的 label 分开
-// stage 字段：scroll-driven animation 的"信息出现顺序"分组（0=起点, 3=交付成果）
-const TASKFORCE_NETWORK = {
-  viewBox: '0 0 800 440',
-  nodes: [
-    { id: 'initiator',        name: '发起人',     x: 400, y: 80,  color: '#B91C1C', duty: '书记/党小组组长/支委', stage: 0 },
-    { id: 'org-commissioner', name: '组织委员',   x: 660, y: 220, color: '#0EA5E9', duty: '唯一招募节点', stage: 1 },
-    { id: 'organizer',        name: '组织者',     x: 200, y: 380, color: '#7DD3FC', duty: '执行核心', stage: 2 },
-    { id: 'deep',             name: '深度参与者', x: 600, y: 380, color: '#94a3b8', duty: '承担分工', stage: 2 },
-  ],
-  edges: [
-    { from: 'initiator',        to: 'org-commissioner', label: '请求招募', type: 'task', stage: 1, detail: '发起人向组织委员提出专班需求（专班名称/人数/周期/考核标准）' },
-    { from: 'org-commissioner', to: 'organizer',        label: '招募赋权', type: 'task', labelT: 0.55, stage: 2, detail: '组织委员招募并赋权组织者，组织者获得专班执行权' },
-    { from: 'org-commissioner', to: 'deep',             label: '招募赋权', type: 'task', labelDx: 55, stage: 2, detail: '组织委员招募并赋权深度参与者，深度参与者获得专班参与权' },
-    { from: 'initiator',        to: 'organizer',        label: '业务赋权', type: 'task', labelT: 0.3, curve: 32, stage: 2, detail: '发起人向组织者赋权业务方向（专班目标/工作内容/预期成果）' },
-    { from: 'initiator',        to: 'deep',             label: '业务赋权', type: 'task', labelT: 0.3, stage: 2, detail: '发起人向深度参与者赋权业务方向（具体分工/技术要求）' },
-    { from: 'organizer',        to: 'deep',             label: '协调执行', type: 'task', stage: 3, detail: '组织者协调深度参与者的执行，确保任务按计划推进' },
-    { from: 'organizer',        to: 'initiator',        label: '交付成果', type: 'info', labelT: 0.3, curve: 32, stage: 3, detail: '组织者向发起人交付专班成果（工作记录/考察记录/创新提案）' },
+// 专班场景：3 镜组（flow 底账对齐 SOP 组织委员工作流程指南 + 党小组组长工作手册 §4）
+const TASKFORCE_SCENE = {
+  id: 'taskforce',
+  no: '02',
+  title: '专班：组织委员统筹，不限时间地点',
+  note: '与活动不同——专班由发起人提出需求，支委会审议立项后交组织委员统一招募；组织者负责分工记录与协调，深度参与者承担具体分工。',
+  viewBox: '0 0 800 720',
+  shots: [
+    {
+      id: 0,
+      title: '发起 + 支委会审议',
+      desc: '发起人（书记/党小组组长/支委等，可多人）提出专班需求；支委会审议立项（线上或线下），通过后交组织委员招募。',
+      flows: [
+        { text: '发起人 → 支委会（提出需求）', type: 'info' },
+        { text: '支委会 → 组织委员（审议通过·交招募）', type: 'task' },
+      ],
+      nodes: [
+        { id: 'initiator', x: 180, y: 348 },
+        { id: 'committee', x: 400, y: 348 },
+        { id: 'orgComm',   x: 620, y: 348 },
+      ],
+      edges: [
+        { from: 'initiator', to: 'committee', type: 'info' },
+        { from: 'committee', to: 'orgComm',   type: 'task' },
+      ],
+    },
+    {
+      id: 1,
+      title: '招募赋权 + 名单同步',
+      desc: '组织委员统一招募赋权给组织者和深度参与者；同时将名单同步给纪检委员——多线程并行。',
+      flows: [
+        { text: '组织委员 → 组织者（招募赋权）', type: 'task' },
+        { text: '组织委员 → 深度参与者（招募赋权）', type: 'task' },
+        { text: '组织委员 → 纪检委员（名单同步）', type: 'info' },
+      ],
+      nodes: [
+        { id: 'orgComm',   x: 400, y: 180 },
+        { id: 'organizer', x: 200, y: 516 },
+        { id: 'deep',      x: 600, y: 516 },
+        { id: 'discComm',  x: 640, y: 180 },
+      ],
+      edges: [
+        { from: 'orgComm', to: 'organizer', type: 'task' },
+        { from: 'orgComm', to: 'deep',      type: 'task' },
+        { from: 'orgComm', to: 'discComm',  type: 'info' },
+      ],
+    },
+    {
+      id: 2,
+      title: '分工协调 + 归档',
+      desc: '组织者分工记录、协调推进；提交工作考察记录给纪检委员、工作量归档给组织委员——专班闭环。',
+      flows: [
+        { text: '组织者 → 深度参与者（分工记录·协调推进）', type: 'task' },
+        { text: '组织者 → 纪检委员（工作考察记录）', type: 'file' },
+        { text: '组织者 → 组织委员（工作量归档）', type: 'file' },
+      ],
+      nodes: [
+        { id: 'organizer', x: 400, y: 180 },
+        { id: 'deep',      x: 180, y: 516 },
+        { id: 'discComm',  x: 620, y: 348 },
+        { id: 'orgComm',   x: 620, y: 540 },
+      ],
+      edges: [
+        { from: 'organizer', to: 'deep',     type: 'task' },
+        { from: 'organizer', to: 'discComm', type: 'file' },
+        { from: 'organizer', to: 'orgComm',  type: 'file' },
+      ],
+    },
   ],
 };
-
-// 探索工作——阶段说明（scroll-driven animation 的 scroll range 提供者）
-// 每个 stage 对应 SVG 中 data-stage 相同的节点和连线
-// 阶段说明卡片高度 35vh × N 个 = 紧凑 scroll range，JS 监听 scroll 计算 progress
-// 角色信息融入 stage 说明的 flow 标签（弱化视觉，让 SVG 的"流"成为主角）
-const EXPLORATION_STAGES = {
-  activity: [
-    { stage: 0, title: '党小组组长赋权组织者', desc: '党小组组长创建活动后赋权组织者——组织者获得活动执行权，成为活动执行核心。', flows: ['党小组组长 → 组织者（赋权）'] },
-    { stage: 1, title: '组织者向支书报备·支书审批', desc: '组织者向党支书报备活动方案、时间、地点——党支书审批反馈，把握活动执行方向。', flows: ['组织者 ↔ 支书（报备/审批）'] },
-    { stage: 2, title: '组织者分工', desc: '组织者作为执行核心，向深度参与者分派具体任务清单——分工并行的起点。', flows: ['组织者 → 深度参与者（分工）'] },
-    { stage: 3, title: '通知出席 + 带动参与', desc: '组织者通知普通参与者，深度参与者带动普通参与者参与——执行与扩散并行。', flows: ['组织者 → 普通参与者（通知）', '深度参与者 → 普通参与者（带动参与）'] },
-    { stage: 4, title: '考勤考察 + 宣传报道', desc: '组织者提交考勤给纪检委员，向宣传委员提出宣传需求——监督与传播并行。', flows: ['组织者 → 纪检委员（提交考勤）', '组织者 → 宣传委员（宣传需求）', '支书 ↔ 纪检委员（横向配合）', '支书 ↔ 宣传委员（横向配合）'] },
-    { stage: 5, title: '考察建档 + 人才库更新', desc: '组织者提交考察材料，纪检委员提交考察记录——组织委员据此更新支部人才库。原始材料留在纪检委员处。', flows: ['组织者 → 组织委员（考察建档）', '纪检委员 → 组织委员（考察记录）', '支书 ↔ 组织委员（横向配合）'] },
-  ],
-  taskforce: [
-    { stage: 0, title: '发起人请求招募', desc: '发起人（书记/党小组组长/支委）请求组织委员招募——专班的起点。', flows: ['发起人'] },
-    { stage: 1, title: '组织委员招募', desc: '组织委员作为唯一招募节点，接收招募请求。', flows: ['发起人 → 组织委员（请求招募）'] },
-    { stage: 2, title: '招募赋权 + 业务赋权', desc: '组织委员招募赋权 + 发起人业务赋权——同时给组织者和深度参与者赋权。', flows: ['组织委员 → 组织者（招募赋权）', '组织委员 → 深度参与者（招募赋权）', '发起人 → 组织者（业务赋权）', '发起人 → 深度参与者（业务赋权）'] },
-    { stage: 3, title: '协调执行 + 交付成果', desc: '组织者协调执行，交付成果给发起人——专班的工作闭环。', flows: ['组织者 → 深度参与者（协调执行）', '组织者 → 发起人（交付成果）'] },
-  ],
-};
-
-// ===== SVG 关系网络（脉动动画） =====
-// 核心理念：stage 驱动（非 scroll 驱动）+ CSS transition（非每帧 JS 重算）
-// 所有节点始终可见（dim 处理非活跃），边绘制效果通过 CSS transition 可见
-// 设计原则：参数化配置，模块化组件
-
-/**
- * v5.2 行星动画配置参数
- * 集中管理所有可调参数，便于未来微调
- */
-const PLANETARY_CONFIG = {
-  // 滚动映射
-  scrollStartVh: 0.3,
-  scrollEndVhOffset: 0.4,
-
-  // 节点尺寸
-  starRadius: 52,
-  planetRadius: 40,
-  inactiveRadius: 36,
-
-  // 节点视觉状态
-  activeOpacity: 1.0,
-  inactiveOpacity: 0.25,
-  activeScale: 1.15,
-  inactiveScale: 1.0,
-  activeSaturate: 1.0,
-  inactiveSaturate: 0.4,
-
-  // 边视觉状态
-  edgeActiveOpacity: 1.0,
-  edgeInactiveOpacity: 0,
-  edgeLiftFactor: 0.15,
-
-  // SVG 中心（保留用于潜在的位置计算）
-  activityCenter: { x: 400, y: 300 },
-  taskforceCenter: { x: 400, y: 220 },
-};
-
-/**
- * 边长度缓存：避免每次 renderNetwork 调用 getTotalLength()
- */
-const EDGE_LENGTH_CACHE = new WeakMap();
-
-/**
- * 识别指定 stage 的活跃节点 ID 集合 + star 节点 ID
- */
-function identifyActiveNodes(stageIndex, network, stages) {
-  const stage = stages[stageIndex];
-  if (!stage) return { activeNodeIds: new Set(), starId: null };
-
-  const activeNodeIds = new Set();
-  const activeEdges = network.edges.filter(e => e.stage === stageIndex);
-  activeEdges.forEach(e => {
-    activeNodeIds.add(e.from);
-    activeNodeIds.add(e.to);
-  });
-
-  // Fallback: 从 stage.flows 解析节点名
-  if (activeNodeIds.size === 0 && stage.flows) {
-    const nodeNameMap = new Map();
-    network.nodes.forEach(n => {
-      if (n.name) nodeNameMap.set(n.name, n.id);
-    });
-    stage.flows.forEach(flow => {
-      const cleaned = flow.replace(/（[^）]*）/g, '').trim();
-      const parts = cleaned.split(/[→↔]/).map(s => s.trim()).filter(s => s);
-      parts.forEach(part => {
-        const nodeId = nodeNameMap.get(part);
-        if (nodeId) activeNodeIds.add(nodeId);
-      });
-    });
-  }
-
-  // 识别 star 节点
-  const fromCount = new Map();
-  activeEdges.forEach(e => {
-    fromCount.set(e.from, (fromCount.get(e.from) || 0) + 1);
-  });
-  let starId = null;
-  let maxCount = 0;
-  for (const [id, count] of fromCount) {
-    if (count > maxCount) {
-      maxCount = count;
-      starId = id;
-    }
-  }
-  if (!starId && activeNodeIds.size > 0) {
-    starId = Array.from(activeNodeIds)[0];
-  }
-
-  return { activeNodeIds, starId };
-}
-
-/**
- * 计算当前滚动位置对应的 stage 索引
- */
-function computeScrollProgress(scrollTop, container, stageCount) {
-  const stagesContainer = container.querySelector('.ab-exploration-stages');
-  if (!stagesContainer || stageCount <= 0) {
-    return { stageIndex: 0, stageProgress: 0 };
-  }
-  const stagesRect = stagesContainer.getBoundingClientRect();
-  const vh = window.innerHeight;
-  const totalScrollRange = stagesRect.height;
-  const startScroll = stagesRect.top + scrollTop - vh * PLANETARY_CONFIG.scrollStartVh;
-  const endScroll = startScroll + totalScrollRange - vh * PLANETARY_CONFIG.scrollEndVhOffset;
-  const scrollRange = endScroll - startScroll;
-  if (scrollRange <= 0) {
-    return { stageIndex: 0, stageProgress: 0 };
-  }
-  const scrollProgress = Math.max(0, Math.min(1, (scrollTop - startScroll) / scrollRange));
-  const stageFloat = scrollProgress * stageCount;
-  const stageIndex = Math.min(stageCount - 1, Math.floor(stageFloat));
-  const stageProgress = stageFloat - stageIndex;
-  return { stageIndex, stageProgress };
-}
-
-/**
- * v5.2 渲染网络图——设置目标状态，CSS transition 负责动画
- */
-function renderNetwork(svg, network, currentStageIndex, stages) {
-  if (!svg || !network) return;
-
-  const { activeNodeIds, starId } = identifyActiveNodes(currentStageIndex, network, stages);
-
-  // 1. 更新所有节点
-  network.nodes.forEach(node => {
-    const nodeEl = svg.querySelector(`.ab-node-svg[data-id="${node.id}"]`);
-    if (!nodeEl) return;
-
-    const isActive = activeNodeIds.has(node.id);
-    const isStar = node.id === starId;
-
-    const scale = isActive ? PLANETARY_CONFIG.activeScale : PLANETARY_CONFIG.inactiveScale;
-    nodeEl.style.transform = `translate(${node.x}px, ${node.y}px) scale(${scale})`;
-
-    nodeEl.style.opacity = isActive ? PLANETARY_CONFIG.activeOpacity : PLANETARY_CONFIG.inactiveOpacity;
-    nodeEl.style.filter = `saturate(${isActive ? PLANETARY_CONFIG.activeSaturate : PLANETARY_CONFIG.inactiveSaturate})`;
-
-    nodeEl.setAttribute('data-role', isStar ? 'star' : (isActive ? 'planet' : 'inactive'));
-
-    const circle = nodeEl.querySelector('.ab-node-circle');
-    if (circle) {
-      const baseRadius = isStar
-        ? PLANETARY_CONFIG.starRadius
-        : (isActive ? PLANETARY_CONFIG.planetRadius : PLANETARY_CONFIG.inactiveRadius);
-      circle.setAttribute('r', baseRadius);
-    }
-  });
-
-  // 2. 更新所有边
-  network.edges.forEach(edge => {
-    const edgeEl = svg.querySelector(`.ab-edge[data-from="${edge.from}"][data-to="${edge.to}"]`);
-    if (!edgeEl) return;
-
-    const pathEl = edgeEl.querySelector('.ab-edge-path');
-    if (!pathEl) return;
-
-    const fromNode = network.nodes.find(n => n.id === edge.from);
-    const toNode = network.nodes.find(n => n.id === edge.to);
-    if (!fromNode || !toNode) return;
-
-    const midX = (fromNode.x + toNode.x) / 2;
-    const midY = (fromNode.y + toNode.y) / 2;
-    const lift = Math.sqrt((toNode.x - fromNode.x) ** 2 + (toNode.y - fromNode.y) ** 2) * PLANETARY_CONFIG.edgeLiftFactor;
-    const d = `M ${fromNode.x} ${fromNode.y} Q ${midX} ${midY - lift} ${toNode.x} ${toNode.y}`;
-    pathEl.setAttribute('d', d);
-
-    if (!EDGE_LENGTH_CACHE.has(pathEl)) {
-      try {
-        EDGE_LENGTH_CACHE.set(pathEl, pathEl.getTotalLength());
-      } catch (e) {
-        EDGE_LENGTH_CACHE.set(pathEl, 0);
-      }
-    }
-    const totalLength = EDGE_LENGTH_CACHE.get(pathEl);
-
-    if (totalLength > 0 && !pathEl.style.strokeDasharray) {
-      pathEl.style.strokeDasharray = `${totalLength}`;
-    }
-
-    // v5 分镜原则：当前 stage 边亮起、过去弱化保留、未来不提前出现
-    const edgeStage = edge.stage;
-    const edgeOpacity = edgeStage === currentStageIndex
-      ? PLANETARY_CONFIG.edgeActiveOpacity
-      : (edgeStage < currentStageIndex ? 0.22 : PLANETARY_CONFIG.edgeInactiveOpacity);
-    edgeEl.style.opacity = edgeOpacity;
-    if (totalLength > 0) {
-      // 未来边未绘制（dashoffset=全长），当前/过去边已绘制；CSS transition 1.2s 描边生长
-      pathEl.style.strokeDashoffset = edgeStage > currentStageIndex ? `${totalLength}` : '0';
-    }
-
-    const arrowEl = edgeEl.querySelector('.ab-edge-arrow');
-    if (arrowEl) {
-      const angle = Math.atan2(toNode.y - fromNode.y, toNode.x - fromNode.x) * 180 / Math.PI;
-      arrowEl.setAttribute('transform', `translate(${toNode.x},${toNode.y}) rotate(${angle})`);
-      arrowEl.style.opacity = edgeOpacity;
-    }
-  });
-}
-
-/** v15.3 预计算每个 stage 的节点目标态（供连续插值取用，避免每帧重复 identifyActiveNodes） */
-function buildStageStates(network, stages) {
-  return stages.map((_, s) => {
-    const { activeNodeIds, starId } = identifyActiveNodes(s, network, stages);
-    const nodeStates = {};
-    network.nodes.forEach(node => {
-      const isActive = activeNodeIds.has(node.id);
-      const isStar = node.id === starId;
-      nodeStates[node.id] = {
-        opacity: isActive ? PLANETARY_CONFIG.activeOpacity : PLANETARY_CONFIG.inactiveOpacity,
-        scale: isActive ? PLANETARY_CONFIG.activeScale : PLANETARY_CONFIG.inactiveScale,
-        saturate: isActive ? PLANETARY_CONFIG.activeSaturate : PLANETARY_CONFIG.inactiveSaturate,
-        radius: isStar ? PLANETARY_CONFIG.starRadius : (isActive ? PLANETARY_CONFIG.planetRadius : PLANETARY_CONFIG.inactiveRadius),
-        role: isStar ? 'star' : (isActive ? 'planet' : 'inactive'),
-      };
-    });
-    return { nodeStates };
-  });
-}
-
-/** v15.3 连续渐变：p（连续 stage 位置 0..stageCount）逐帧驱动节点/边状态
- *  替代 v5.x 的二进制 stage 重渲染——状态跨 stage 平滑插值，根治"吸住又跳过"卡点。
- *  节点：opacity/scale/saturate/radius 在「当前 stage 目标态」与「下一 stage 目标态」间 lerp；
- *  边：进入本 stage 时描边生长（前 40% 行程），本 stage 内保持全亮，下一 stage 渐隐为「过去」，之后保持弱化；
- *  全程由滚动位置逐帧驱动（Lenis 平滑），CSS transition 已在 .ab-network-continuous 下禁用 → 精确到每一时刻。 */
-function applyNetworkState(svg, network, p, stageCount, stageStates) {
-  const lo = Math.min(stageCount - 1, Math.floor(p));
-  const hi = Math.min(stageCount - 1, lo + 1);
-  const f = p - lo;
-  const stLo = stageStates[lo];
-  const stHi = stageStates[hi];
-  const smooth = (t) => t * t * (3 - 2 * t);
-
-  network.nodes.forEach(node => {
-    const el = svg.querySelector(`.ab-node-svg[data-id="${node.id}"]`);
-    if (!el) return;
-    const a = stLo.nodeStates[node.id];
-    const b = stHi.nodeStates[node.id];
-    el.style.opacity = String(a.opacity + (b.opacity - a.opacity) * f);
-    el.style.transform = `translate(${node.x}px, ${node.y}px) scale(${a.scale + (b.scale - a.scale) * f})`;
-    el.style.filter = `saturate(${a.saturate + (b.saturate - a.saturate) * f})`;
-    const circle = el.querySelector('.ab-node-circle');
-    if (circle) circle.setAttribute('r', String(a.radius + (b.radius - a.radius) * f));
-    el.setAttribute('data-role', f < 0.5 ? a.role : b.role);
-  });
-
-  network.edges.forEach(edge => {
-    const edgeEl = svg.querySelector(`.ab-edge[data-from="${edge.from}"][data-to="${edge.to}"]`);
-    if (!edgeEl) return;
-    const pathEl = edgeEl.querySelector('.ab-edge-path');
-    const arrowEl = edgeEl.querySelector('.ab-edge-arrow');
-    const L = EDGE_LENGTH_CACHE.get(pathEl) || 0;
-
-    const e = edge.stage;
-    let opacity, offset;
-    if (p < e) {
-      opacity = 0; offset = L;
-    } else if (p < e + 0.4) {
-      const t = smooth((p - e) / 0.4);
-      opacity = t; offset = L * (1 - t);
-    } else if (p < e + 1) {
-      opacity = 1; offset = 0;
-    } else if (p < e + 2) {
-      const t = smooth(p - e - 1);
-      opacity = 1 + (0.22 - 1) * t; offset = 0;
-    } else {
-      opacity = 0.22; offset = 0;
-    }
-    edgeEl.style.opacity = String(opacity);
-    if (L > 0) pathEl.style.strokeDashoffset = String(offset);
-    if (arrowEl) arrowEl.style.opacity = String(opacity);
-    edgeEl.querySelectorAll('.ab-edge-dot').forEach(d => { d.style.opacity = String(opacity); });
-  });
-}
-
-// ===== SVG 关系网络（脉动动画） End =====
 
 // 和组织对话——四阶段（行百里者半九十）
 const DIALOGUE_STAGES = [
@@ -521,17 +303,18 @@ const DEVELOPMENT_TIMELINE = [
 ];
 
 // 小目录条目（9 个 section 对应 9 个圆点）
-// 主线：开篇 → 组织性 → 流程怎么走 → 为什么是宝贵机会 → 考察维度 → 工作分类 → 探索运作 → 行百里者半九十 → 管理事服务人
+// 主线（书记 2026-08-12 定序）：开篇 → 组织性（暗线：进入支部要了解什么）→ 宝贵机会 →
+// 发展党员（明线：积极分子怎么发展）→ 考察维度 → 工作流 → 行百里者半九十 → 管理事服务人 → 党建+科研
 const TOC_ITEMS = [
   { id: 'hero',         label: '开篇' },
   { id: 'cognition',    label: '"组织性"的展开' },
   { id: 'philosophy',   label: '宝贵机会' },
   { id: 'development',  label: '身份阶段' },
-  { id: 'works',        label: '两种工作' },
-  { id: 'review',       label: '考察维度' },
-  { id: 'exploration',  label: '探索运作' },
+  { id: 'review',       label: '如何考察' },
+  { id: 'exploration',  label: '工作流' },
   { id: 'dialogue',     label: '行百里者半九十' },
   { id: 'conclusion',   label: '管理事，服务人' },
+  { id: 'research',     label: '党建+科研' },
 ];
 
 // ════════════════════════════════════════════════════════════════
@@ -581,20 +364,6 @@ function edgePath(from, to, radius = 42, labelT = 0.5, curve = 0) {
   return { d: `M ${x1},${y1} Q ${cx},${cy} ${x2},${y2}`, mx, my, x1, y1, x2, y2 };
 }
 
-/** 计算自循环路径（从节点右侧绕一圈回到右侧，标签置于环右侧） */
-function selfLoopPath(node) {
-  const x = node.x, y = node.y;
-  const startX = x + 30, startY = y - 22;
-  const endX = x + 30, endY = y + 22;
-  const ctrlX1 = x + 100, ctrlY1 = y - 60;
-  const ctrlX2 = x + 100, ctrlY2 = y + 60;
-  return {
-    d: `M ${startX},${startY} C ${ctrlX1},${ctrlY1} ${ctrlX2},${ctrlY2} ${endX},${endY}`,
-    mx: x + 110,
-    my: y,
-  };
-}
-
 // ════════════════════════════════════════════════════════════════
 //  渲染函数
 // ════════════════════════════════════════════════════════════════
@@ -617,14 +386,14 @@ function renderHero() {
   `;
 }
 
-/** Section 2: 考察积极分子（三维度卡片，党建贡献高亮） */
+/** Section 2: 我们如何考察（全员三维度卡片，党建贡献高亮） */
 function renderReview() {
   const cards = REVIEW_DIMENSIONS.map((d, i) => `
     <div class="ab-review-card ${d.highlight ? 'ab-review-card--highlight' : ''}" data-stagger tabindex="0" role="button" aria-label="${d.name}：${d.tag}">
       <span class="ab-review-card-no">${String(i + 1).padStart(2, '0')}</span>
       <div class="ab-review-card-head">
         <span class="ab-review-card-name">${d.name}</span>
-        ${d.highlight ? '<span class="ab-review-card-badge">核心</span>' : ''}
+        ${d.highlight ? '<span class="ab-review-card-badge">重点</span>' : ''}
       </div>
       <div class="ab-review-card-tag">${d.tag}</div>
       <div class="ab-review-card-desc">${d.desc}</div>
@@ -633,11 +402,11 @@ function renderReview() {
 
   return `
     <section id="review" class="ab-page ab-review-section" data-toc-id="review">
-      <span class="ab-page-no">05</span>
-      <span class="ab-page-runner">第五章 · 考察积极分子</span>
-      <div class="ab-chapter">
-        <div class="ab-chapter-eyebrow">考察维度</div>
-        <h2 class="ab-chapter-title">我们怎么考察积极分子？</h2>
+      <span class="ab-page-no">04</span>
+      <span class="ab-page-runner">第四章 · 全员考察</span>
+      <div class="ab-chapter ab-chapter--right">
+        <div class="ab-chapter-eyebrow">全员考察</div>
+        <h2 class="ab-chapter-title">我们如何考察</h2>
         <p class="ab-chapter-sub">三项考察内容——党课、贡献、评价，其中党建贡献特别看重原创性</p>
         <div class="ab-review-grid">${cards}</div>
         <div class="ab-review-footer">什么是党建贡献？→ 我们支部有一套工作架构</div>
@@ -647,21 +416,24 @@ function renderReview() {
 }
 
 /**
- * Section 4: 两条宝贵机会
+ * Section 4: 两个宝贵机会
  *
- * 母本：content/01_strategy/DEVELOPMENT_PATH.md 第一章·两条宝贵机会
- * T-195 第3轮重构：提炼版 quote 默认展示（梳理逻辑一目了然），点击卡片平滑切换为书记原话全文
- *   机会1（辩证递进结构）：quote 提炼=辩证句，points=两个向度定义，insight=在册意义句
- *   机会2（总起并列结构）：quote 提炼=总起+两条机会，points=要点解释，insight=在册论断句
- *   基线：SECRETARY_PRONOUNCEMENTS.md P-043 / P-044 书记原话与在册正文
+ * 母本：content/01_strategy/DEVELOPMENT_PATH.md 第一章·两个宝贵机会
+ * T-195 第3轮重构（2026-08-12 书记复议）：两卡无顺序关系、无逻辑并列关系——
+ *   blockquote 直接展示书记原话全文（不再提炼版/点击翻开展开）；
+ *   卡片动画取消点击翻转（无必要的卡片动画），仅保留滚动驱动的分开出现（适配书记讲述过程）。
+ *   基线：SECRETARY_PRONOUNCEMENTS.md P-014 / P-015 书记原话与在册正文
  */
 function renderPhilosophy() {
   const opportunities = [
     {
-      no: '机会 1',
       title: '民主集中制下感受真实组织的两个向度',
-      quote: '真实的组织不能只靠程序性，也不能只靠扁平化——两个向度的平衡，是支部生活中宝贵的成长机会。',
-      fullQuote: '"民主集中制"下 感受真实的组织的两个向度："赋权"背景下的程序性 和 "探索"背景下的扁平化。这也就意味着真实的组织，不能只靠程序性令人凝聚在一起，也不能只靠"扁平化"而不去形成共识、带来效率。——提高生涯发展中对于所处组织的适应能力和开放心态。',
+      quoteLines: [
+        '"民主集中制"下感受真实的组织的两个向度：',
+        '"赋权"背景下的程序性 和 "探索"背景下的扁平化。',
+        '这也就意味着真实的组织，不能只靠程序性令人凝聚在一起，也不能只靠"扁平化"而不去形成共识、带来效率。',
+        '提高生涯发展中对于所处组织的适应能力和开放心态。',
+      ],
       points: [
         { label: '程序性', desc: '"赋权"背景下——组织通过分工、流程、记录、复盘让人凝聚' },
         { label: '扁平化', desc: '"探索"背景下——组织通过平等协商、无上下级分工让人创新' },
@@ -669,10 +441,12 @@ function renderPhilosophy() {
       insight: '体悟这种平衡，能提高生涯发展中对于所处组织的适应能力和开放心态——未来无论进入什么组织，都能理解真实组织既有程序性的一面，也有扁平化的一面。',
     },
     {
-      no: '机会 2',
       title: 'AI时代中学生党支部的探索机会',
-      quote: '作为AI时代中一个建设方兴未艾的学生组织，支部提供两条独特的探索机会：①真实地参与组织制度和组织文化的构建；②在"没有经济负担"的背景下探索AI时代组织转型的萌芽和组织产品的生产。',
-      fullQuote: '作为AI时代中一个建设方兴未艾的学生组织，①可以真实地参与组织制度和组织文化的构建；②可以在"没有经济负担"的背景下探索AI时代下组织转型的萌芽和组织产品的生产。',
+      quoteLines: [
+        '作为AI时代中一个建设方兴未艾的学生组织，',
+        '①可以真实地参与组织制度和组织文化的构建；',
+        '②可以在"没有经济负担"的背景下探索AI时代下组织转型的萌芽和组织产品的生产。',
+      ],
       points: [
         { label: '参与构建', desc: '可以真实地参与组织制度和组织文化的构建' },
         { label: '探索自由度', desc: '在"没有经济负担"的背景下探索组织转型的萌芽和组织产品的生产——未来进入职场后难以获得' },
@@ -690,12 +464,9 @@ function renderPhilosophy() {
     `).join('');
 
     return `
-      <article class="ab-philosophy-opp" data-stagger tabindex="0" role="button" aria-expanded="false" aria-label="${opp.no}：点击查看书记原话全文">
-        <div class="ab-philosophy-opp-no">${opp.no}</div>
+      <article class="ab-philosophy-opp" data-stagger>
         <h3 class="ab-philosophy-opp-title">${opp.title}</h3>
-        <blockquote class="ab-philosophy-opp-quote" data-brief="${encodeURIComponent(opp.quote)}" data-full="${encodeURIComponent(opp.fullQuote)}">
-          ${opp.quote}
-        </blockquote>
+        <blockquote class="ab-philosophy-opp-quote">${opp.quoteLines.map(l => `<span class="ab-philosophy-opp-quote-line">${l}</span>`).join('')}</blockquote>
         <div class="ab-philosophy-opp-points">${pointsHTML}</div>
         <p class="ab-philosophy-opp-insight">${opp.insight}</p>
       </article>
@@ -703,12 +474,12 @@ function renderPhilosophy() {
   }).join('');
 
   return `
-    <section id="philosophy" class="ab-page ab-philosophy-section ab-page--stagger" data-toc-id="philosophy">
+    <section id="philosophy" class="ab-page ab-philosophy-section" data-toc-id="philosophy">
       <span class="ab-page-no">02</span>
       <span class="ab-page-runner">第二章 · 宝贵机会</span>
-      <div class="ab-chapter ab-philosophy-inner">
+      <div class="ab-chapter ab-philosophy-inner ab-chapter--center">
         <div class="ab-chapter-eyebrow">宝贵机会</div>
-        <h2 class="ab-chapter-title">两条宝贵机会</h2>
+        <h2 class="ab-chapter-title">两个宝贵机会</h2>
         <p class="ab-chapter-sub" data-stagger>
           爱具体的组织——光华管理学院本科生党支部提供两条难得的成长机会。
         </p>
@@ -771,9 +542,9 @@ function renderCognition() {
         <div class="ab-cognition-main">
           <div class="ab-cognition-grid">${cards}</div>
           <div class="ab-cognition-dialogue" data-stagger>
-            <div class="ab-cognition-dialogue-label">核心命题</div>
             <blockquote class="ab-cognition-dialogue-quote">
-              爱具体的人而不是爱抽象的人，爱具体的组织而不是爱抽象的组织。
+              爱具体的人而不是爱抽象的人，<br/>
+              爱具体的组织而不是爱抽象的组织。
             </blockquote>
           </div>
         </div>
@@ -782,289 +553,169 @@ function renderCognition() {
   `;
 }
 
-/** Section 6: 两种工作（仅卡片，探索运作独立为 Exploration section） */
-function renderTwoWorks() {
-  const cols = TWO_WORKS.map(w => {
-    const examples = w.examples.map(e => `<li>${e}</li>`).join('');
-    const features = w.features.map(f => `<li>${f}</li>`).join('');
-    return `
-      <div class="ab-works-col ab-works-col--${w.tone}" data-stagger>
-        <span class="ab-works-tag ab-works-tag--${w.tone}">${w.tag}</span>
-        <h3 class="ab-works-col-title">${w.label}</h3>
-        <p class="ab-works-col-summary">${w.desc}</p>
-        <div class="ab-works-block">
-          <div class="ab-works-block-label">例子</div>
-          <ul class="ab-works-list">${examples}</ul>
-        </div>
-        <div class="ab-works-block">
-          <div class="ab-works-block-label">特点</div>
-          <ul class="ab-works-list">${features}</ul>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  return `
-    <section id="works" class="ab-page ab-works-section ab-page--offset-head" data-toc-id="works">
-      <span class="ab-page-no">04</span>
-      <span class="ab-page-runner">第四章 · 两种工作</span>
-      <div class="ab-chapter">
-        <div class="ab-chapter-eyebrow">两种工作</div>
-        <h2 class="ab-chapter-title">我们面对两种工作</h2>
-        <p class="ab-chapter-sub">一种是接续发力，一种是试错创造——探索工作是人人都参与的场域，包括积极分子</p>
-        <div class="ab-works-grid">${cols}</div>
-      </div>
-    </section>
-  `;
-}
-
-/** 通用 SVG 关系网络渲染（支持自循环边、domain 标签、callouts、inline 内嵌模式） */
-function renderNetworkSVG(network, opts) {
-  const { sectionId, sectionClass, title, subtitle, modifier = '', callouts = [], domain = '', inline = false, pageNo = '', runner = '', eyebrow = '' } = opts;
-
+/** 渲染单个场景的单一 SVG（镜组驱动·连续运动）
+ *  单一画布 + viewBox 固定；所有节点/边去重渲染，滚动时 JS 连续驱动——
+ *  节点位置在镜组间 lerp（走进/走出视野），边描边生长 + 起终点渐变（颜色补箭头方向）。 */
+function renderSceneSVG(scene) {
   const svg = svgEl('svg', {
-    class: 'ab-network-svg',
-    viewBox: network.viewBox,
+    class: 'ab-scene-svg',
+    viewBox: scene.viewBox,
     preserveAspectRatio: 'xMidYMid meet',
-    'aria-label': title || sectionClass,
+    'aria-label': scene.title,
   });
 
-  // 节点查找表
-  const nodeMap = {};
-  network.nodes.forEach(n => { nodeMap[n.id] = n; });
-
-  // 连线层（底层）
-  const edgesG = svgEl('g', { class: 'ab-edges' });
-  network.edges.forEach((edge, i) => {
-    const from = nodeMap[edge.from];
-    const to = nodeMap[edge.to];
-    if (!from || !to) return;
-
-    // 自循环 vs 普通连线
-    const isSelf = edge.self === true || edge.from === edge.to;
-    const labelT = edge.labelT !== undefined ? edge.labelT : 0.5;
-    const curve = edge.curve || 0;
-    const path = isSelf ? selfLoopPath(from) : edgePath(from, to, 42, labelT, curve);
-    const { d, mx, my } = path;
-
-    const g = svgEl('g', { class: `ab-edge ab-edge--${edge.type}${isSelf ? ' ab-edge--self' : ''}`, 'data-from': edge.from, 'data-to': edge.to, 'data-stagger': '', 'data-stagger-delay': (network.nodes.length + i) * 120, ...(edge.stage !== undefined ? { 'data-stage': edge.stage } : {}), ...(inline ? { 'data-role': 'planet' } : {}), ...(edge.detail ? { 'data-detail': edge.detail, 'data-label': edge.label || '' } : {}) });
-
-    const pathEl = svgEl('path', {
-      class: 'ab-edge-path',
-      d,
+  // 收集去重节点（首现坐标作初始位置）
+  const nodeMap = new Map();
+  scene.shots.forEach(shot => {
+    shot.nodes.forEach(n => {
+      if (!nodeMap.has(n.id)) nodeMap.set(n.id, { x: n.x, y: n.y });
     });
-    g.appendChild(pathEl);
+  });
 
-    // 箭头：独立 path 元素
-    if (edge.type !== 'collab' && !isSelf) {
-      const angle = Math.atan2(path.y2 - path.y1, path.x2 - path.x1) * 180 / Math.PI;
-      const arrowFill = edge.type === 'task' ? '#B91C1C' : '#3B82F6';
-      const arrowEl = svgEl('path', {
-        d: 'M -8 -4 L 0 0 L -8 4 z',
-        fill: arrowFill,
-        class: 'ab-edge-arrow',
-        transform: `translate(${path.x2},${path.y2}) rotate(${angle})`,
-        opacity: '0',
-      });
-      g.appendChild(arrowEl);
-      // 双向边：起点添加反向箭头
-      if (edge.bidirectional) {
-        const reverseArrowEl = svgEl('path', {
-          d: 'M -8 -4 L 0 0 L -8 4 z',
-          fill: arrowFill,
-          class: 'ab-edge-arrow',
-          transform: `translate(${path.x1},${path.y1}) rotate(${angle + 180})`,
-          opacity: '0',
-        });
-        g.appendChild(reverseArrowEl);
+  // 收集去重边（带 shot 归属）
+  const edgeList = [];
+  const edgeIndex = new Map();
+  scene.shots.forEach((shot, si) => {
+    shot.edges.forEach(e => {
+      const key = `${e.from}|${e.to}|${e.type}|${e.curve || 0}`;
+      if (!edgeIndex.has(key)) {
+        edgeIndex.set(key, edgeList.length);
+        edgeList.push({ from: e.from, to: e.to, type: e.type, curve: e.curve || 0, shots: [si] });
+      } else {
+        edgeList[edgeIndex.get(key)].shots.push(si);
       }
-    }
+    });
+  });
 
-    // 协作线两端圆点
-    if (edge.type === 'collab' && !isSelf) {
-      const dotR = 3;
-      g.appendChild(svgEl('circle', { cx: path.x1, cy: path.y1, r: dotR, fill: '#9CA3AF', class: 'ab-edge-dot', opacity: '0' }));
-      g.appendChild(svgEl('circle', { cx: path.x2, cy: path.y2, r: dotR, fill: '#9CA3AF', class: 'ab-edge-dot', opacity: '0' }));
-    }
+  // defs：每条边一个起终点渐变（from 色 → to 色，补箭头方向语义）
+  const defs = svgEl('defs');
+  edgeList.forEach((e, i) => {
+    const grad = svgEl('linearGradient', { id: `ab-grad-${i}`, gradientUnits: 'userSpaceOnUse' });
+    grad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': (WORKFLOW_ROLES[e.from] || {}).color || '#64748B' }));
+    grad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': (WORKFLOW_ROLES[e.to] || {}).color || '#64748B' }));
+    defs.appendChild(grad);
+  });
+  svg.appendChild(defs);
 
-    // 标签
-    if (edge.label) {
-      const labelDx = edge.labelDx || 0;
-      const labelDy = edge.labelDy || 0;
-      const labelG = svgEl('g', { class: 'ab-edge-label', transform: `translate(${mx + labelDx},${my + labelDy})` });
-      const labelWidth = Math.max(36, edge.label.length * 13 + 12);
-      const labelHeight = 20;
-      const labelBg = svgEl('rect', {
-        class: 'ab-edge-label-bg',
-        x: -labelWidth / 2,
-        y: -labelHeight / 2,
-        width: labelWidth,
-        height: labelHeight,
-        rx: 6,
-      });
-      labelG.appendChild(labelBg);
-      const labelText = svgEl('text', { class: 'ab-edge-label-text', 'text-anchor': isSelf ? 'start' : 'middle', 'dominant-baseline': 'middle', x: isSelf ? 4 : 0, y: 1 });
-      labelText.textContent = edge.label;
-      labelG.appendChild(labelText);
-      g.appendChild(labelG);
-    }
+  // 边层（底层）
+  const edgesG = svgEl('g', { class: 'ab-scene-edges' });
+  edgeList.forEach((e, i) => {
+    const fromPos = nodeMap.get(e.from);
+    const toPos = nodeMap.get(e.to);
+    if (!fromPos || !toPos) return;
+    const path = edgePath(fromPos, toPos, 52, 0.5, e.curve);
+    const toColor = (WORKFLOW_ROLES[e.to] || {}).color || '#64748B';
+
+    const g = svgEl('g', {
+      class: `ab-edge ab-edge--${e.type}`,
+      'data-edge': String(i),
+      'data-from': e.from,
+      'data-to': e.to,
+      'data-shots': e.shots.join(','),
+    });
+    g.appendChild(svgEl('path', { class: 'ab-edge-path', stroke: `url(#ab-grad-${i})`, d: path.d }));
+
+    const angle = Math.atan2(path.y2 - path.y1, path.x2 - path.x1) * 180 / Math.PI;
+    g.appendChild(svgEl('path', {
+      d: 'M -8 -4 L 0 0 L -8 4 z',
+      class: 'ab-edge-arrow',
+      fill: toColor,
+      transform: `translate(${path.x2},${path.y2}) rotate(${angle})`,
+    }));
 
     edgesG.appendChild(g);
   });
   svg.appendChild(edgesG);
 
-  // 节点层（顶层）
-  const nodesG = svgEl('g', { class: 'ab-nodes' });
-  network.nodes.forEach((node, i) => {
-    const g = svgEl('g', { class: 'ab-node-svg', 'data-id': node.id, 'data-stagger': '', 'data-stagger-delay': i * 120, ...(node.stage !== undefined ? { 'data-stage': node.stage } : {}), ...(inline ? { 'data-role': 'planet' } : {}), transform: `translate(${node.x},${node.y})`, tabindex: '0', role: 'button', 'aria-label': `${node.name}：${node.duty}` });
+  // 节点层（顶层）：统一圆大小（至少容纳 5 字）+ 圆内短名 + 圆下完整名
+  const nodesG = svgEl('g', { class: 'ab-scene-nodes' });
+  nodeMap.forEach((pos, id) => {
+    const role = WORKFLOW_ROLES[id] || { name: id, short: id, color: '#64748B' };
+    const r = 52;
 
-    const circle = svgEl('circle', { class: 'ab-node-circle', r: '40', fill: node.color });
-    g.appendChild(circle);
+    const g = svgEl('g', {
+      class: 'ab-node-svg',
+      'data-id': id,
+      transform: `translate(${pos.x},${pos.y})`,
+      'aria-label': role.name,
+    });
+    g.appendChild(svgEl('circle', { class: 'ab-node-circle', r: String(r), fill: role.color }));
 
-    const ring = svgEl('circle', { class: 'ab-node-ring', r: '44', fill: 'none', stroke: node.color, 'stroke-width': '1.5', opacity: '0.25' });
-    g.appendChild(ring);
-
-    const text = svgEl('text', { class: 'ab-node-text', 'text-anchor': 'middle', 'dominant-baseline': 'middle', x: 0, y: 0, fill: '#FFFFFF' });
-    text.textContent = node.name;
+    const text = svgEl('text', { class: 'ab-node-text', 'text-anchor': 'middle', 'dominant-baseline': 'middle', x: 0, y: 0 });
+    text.textContent = role.short;
     g.appendChild(text);
 
-    const duty = svgEl('text', { class: 'ab-node-duty', 'text-anchor': 'middle', 'dominant-baseline': 'middle', x: 0, y: 58, fill: '#6B7280' });
-    duty.textContent = node.duty;
-    g.appendChild(duty);
+    if (role.name !== role.short) {
+      const name = svgEl('text', { class: 'ab-node-name', 'text-anchor': 'middle', x: 0, y: r + 18 });
+      name.textContent = role.name;
+      g.appendChild(name);
+    }
 
     nodesG.appendChild(g);
   });
   svg.appendChild(nodesG);
 
-  // domain 标签
-  const domainHTML = domain
-    ? `<span class="ab-section-domain ab-section-domain--${domain}">${domain === 'building' ? '党建工作' : '党务工作'}</span>`
-    : '';
-
-  // callouts 列表
-  const calloutsHTML = callouts && callouts.length
-    ? `<ul class="ab-callout-list">${callouts.map(c => `<li>${c}</li>`).join('')}</ul>`
-    : '';
-
-  // 序列化 SVG
-  const svgString = new XMLSerializer().serializeToString(svg);
-
-  // wrap 内容
-  const wrapContent = `
-    <div class="ab-network-legend">
-      <span class="ab-legend-item"><span class="ab-legend-line ab-legend-line--task"></span>派活交付（实线·有方向）</span>
-      <span class="ab-legend-item"><span class="ab-legend-line ab-legend-line--info"></span>报备告知（虚线·有方向）</span>
-      <span class="ab-legend-item"><span class="ab-legend-line ab-legend-line--collab"></span>横向配合（点线·无方向）</span>
-    </div>
-    <div class="ab-network-container">${svgString}</div>
-    <div class="ab-network-tooltip" aria-hidden="true"></div>
-  `;
-
-  // inline 模式
-  if (inline) {
-    return `
-      <div class="ab-network-wrap ${sectionClass}">
-        ${wrapContent}
-      </div>
-    `;
-  }
-
-  return `
-    <section id="${sectionId}" class="ab-page ab-network-section ${sectionClass} ${modifier}" data-toc-id="${sectionId}">
-      ${pageNo ? `<span class="ab-page-no">${pageNo}</span>` : ''}
-      ${runner ? `<span class="ab-page-runner">${runner}</span>` : ''}
-      <div class="ab-chapter">
-        ${domainHTML}
-        <div class="ab-chapter-eyebrow">${eyebrow}</div>
-        <h2 class="ab-chapter-title">${title}</h2>
-        <p class="ab-chapter-sub">${subtitle}</p>
-        <div class="ab-network-wrap">
-          ${wrapContent}
-        </div>
-        ${calloutsHTML}
-      </div>
-    </section>
-  `;
+  return new XMLSerializer().serializeToString(svg);
 }
 
-/** Section 5: 探索工作——SVG 关系网络脉动动画 */
-function renderExploration() {
-  const scenes = [
-    {
-      id: 'activity',
-      no: '01',
-      title: '活动：党小组组长发起，同志们参与',
-      network: ACTIVITY_NETWORK,
-      stages: EXPLORATION_STAGES.activity,
-      note: '探索的边界由党小组组长划定，信息流与任务流并行——从策划、通知、执行到考勤、归档，每个环节都有明确的"谁找谁"。',
-    },
-    {
-      id: 'taskforce',
-      no: '02',
-      title: '专班：组织委员统筹，不限时间地点',
-      network: TASKFORCE_NETWORK,
-      stages: EXPLORATION_STAGES.taskforce,
-      note: '与活动不同——专班由组织委员统一招募赋权，发起人做业务赋权；组织者负责分工记录与协调，深度参与者承担具体分工。',
-    },
-  ];
-
-  const scenesHTML = scenes.map(scene => {
-    const networkSVG = renderNetworkSVG(scene.network, {
-      sectionClass: `ab-exploration-network--${scene.id}`,
-      inline: true,
-    });
-
-    const stagesHTML = scene.stages.map(s => `
-      <div class="ab-exploration-stage" data-stage="${s.stage}">
-        <div class="ab-exploration-stage-no">${String(s.stage + 1).padStart(2, '0')}</div>
+/** Section 5: 工作流——镜组驱动连续运动（谁在什么时候该去找谁） */
+/** 渲染单个探索场景片段（2026-08-14 T-248 性能：从 renderExploration 拆出，供懒渲染分片挂载） */
+function renderSceneFragment(scene) {
+  const svg = renderSceneSVG(scene);
+  const stagesHTML = scene.shots.map(shot => `
+      <div class="ab-exploration-stage" data-shot="${shot.id}">
+        <div class="ab-exploration-stage-no">${String(shot.id + 1).padStart(2, '0')}</div>
         <div class="ab-exploration-stage-body">
-          <h4 class="ab-exploration-stage-title">${s.title}</h4>
-          <p class="ab-exploration-stage-desc">${s.desc}</p>
+          <h4 class="ab-exploration-stage-title">${shot.title}</h4>
+          <p class="ab-exploration-stage-desc">${shot.desc}</p>
           <ul class="ab-exploration-stage-flows">
-            ${s.flows.map(f => `<li>${f}</li>`).join('')}
+            ${shot.flows.map(f => `<li><span class="ab-flow-line ab-flow-line--${f.type}"></span>${f.text}</li>`).join('')}
           </ul>
         </div>
       </div>
     `).join('');
-
-    return `
+  return `
       <div class="ab-exploration-scene" data-scene="${scene.id}">
         <div class="ab-exploration-scene-head">
           <span class="ab-exploration-block-no">${scene.no}</span>
           <h3 class="ab-exploration-block-title">${scene.title}</h3>
         </div>
         <div class="ab-exploration-scene-body">
-          <div class="ab-exploration-network-sticky" data-state="current">
-            ${networkSVG}
+          <div class="ab-exploration-network-sticky">
+            ${svg}
           </div>
-          <div class="ab-exploration-stages">
-            ${stagesHTML}
-          </div>
+          <div class="ab-exploration-stages">${stagesHTML}</div>
         </div>
         <div class="ab-exploration-scene-note">${scene.note}</div>
-      </div>
-    `;
-  }).join('');
+      </div>`;
+}
+
+/** 完整渲染探索章（保留：整章一次性渲染路径；懒渲染分片路径经 renderSceneFragment 复用同一模板） */
+function renderExploration() {
+  const scenesHTML = [ACTIVITY_SCENE, TASKFORCE_SCENE].map(scene => renderSceneFragment(scene)).join('');
 
   return `
     <section id="exploration" class="ab-page ab-network-section ab-exploration-section" data-toc-id="exploration">
-      <span class="ab-page-no">06</span>
-      <span class="ab-page-runner">第六章 · 探索工作</span>
+      <span class="ab-page-no">05</span>
+      <span class="ab-page-runner">第五章 · 工作流</span>
       <div class="ab-chapter">
-        <div class="ab-chapter-eyebrow">探索运作</div>
-        <h2 class="ab-chapter-title">探索工作——谁在什么时候该去找谁？</h2>
-        <p class="ab-chapter-sub">项目——活动与专班两种探索方式，滚动看关系如何展开，每个阶段的信息流逐步点亮</p>
+        <div class="ab-chapter-eyebrow">工作流</div>
+        <h2 class="ab-chapter-title">工作流——谁在什么时候该去找谁？</h2>
+        <p class="ab-chapter-sub">有先例的，按工作流走<br/>没先例的，靠探索沉淀</p>
         ${scenesHTML}
+        <p class="ab-exploration-coda">
+          程序在所有人之上，所以扁平；书记因更大的责任嵌入更深，所以集中——扁平与集中，统一于程序。
+        </p>
       </div>
     </section>
   `;
 }
 
-/** Section 7: 和组织对话——行百里者半九十（四阶段横向册页，滚动逐卡点亮） */
+/** Section 7: 和组织对话——行百里者半九十（四阶段日出日落，滚动驱动公转，文字始终正立，闭环表达） */
 function renderDialogue() {
-  const stepsHTML = DIALOGUE_STAGES.map((s, i) => {
+  const stepsHTML = DIALOGUE_STAGES.map((s) => {
     return `
-      <article class="ab-dialogue-card" data-state="future" data-stagger>
+      <article class="ab-dialogue-card" data-state="future">
         <div class="ab-dialogue-no">${s.no}</div>
         <div class="ab-dialogue-phase">${s.phase}</div>
         <div class="ab-dialogue-question">${s.question}</div>
@@ -1076,22 +727,29 @@ function renderDialogue() {
 
   return `
     <section id="dialogue" class="ab-page ab-dialogue-section" data-toc-id="dialogue">
-      <span class="ab-page-no">07</span>
-      <span class="ab-page-runner">第七章 · 行百里者半九十</span>
+      <span class="ab-page-no">06</span>
+      <span class="ab-page-runner">第六章 · 行百里者半九十</span>
       <div class="ab-chapter ab-dialogue-inner">
-        <div class="ab-chapter-eyebrow">恢复对话能力</div>
-        <h2 class="ab-chapter-title">行百里者半九十</h2>
-        <p class="ab-chapter-sub">活动完成后，对话与复盘仍在继续——在实践中持续改进</p>
-        <div class="ab-dialogue-flow">${stepsHTML}</div>
-        <blockquote class="ab-dialogue-coda" data-stagger>
-          党建和经管学科科研的交叉点在于恢复和马克思主义的对话能力，恢复理论研究和现实治理之间的对话能力。
-        </blockquote>
+        <!-- 2026-08-14 书记指令「标题和动画视窗可以同时出现，而不是只有几个卡片在空转」：
+             章头（eyebrow/title/sub）移入 sticky flow 内——滚动旋转期间标题始终在场，与视窗同屏 -->
+        <div class="ab-dialogue-flow">
+          <div class="ab-dialogue-head">
+            <div class="ab-chapter-eyebrow">善始善终</div>
+            <h2 class="ab-chapter-title">行百里者半九十</h2>
+            <p class="ab-chapter-sub">活动完成后，对话与复盘仍在继续——在实践中持续改进</p>
+          </div>
+          <div class="ab-dialogue-stage">
+            ${stepsHTML}
+          </div>
+        </div>
+        <!-- 垫片必须紧邻 flow 之后（2026-08-14 修正）。垫片提供滚动行程 -->
+        <div class="ab-dialogue-spacer" aria-hidden="true"></div>
       </div>
     </section>
   `;
 }
 
-/** Section 8: 收束——管理事，服务人（大字宣言：滚动驱动放大落位 + 背景转深党建红全屏收束，无印章隐喻） */
+/** Section 8: 收束——管理事，服务人（2026-08-12 综合排布：大字 + 管理事/服务人定义 + P-013 集中面 + 全页呼应，不再孤零零） */
 function renderConclusion() {
   const lines = ['管理事，', '服务人'];
   const titleHTML = lines.map(line =>
@@ -1104,8 +762,43 @@ function renderConclusion() {
       <div class="ab-conclusion-inner">
         <h2 class="ab-conclusion-title">${titleHTML}</h2>
         <p class="ab-conclusion-lead" data-stagger>
-          管理事，服务人——贯穿从入党申请人到正式党员的全路径。
+          管理事——按工作流和组织性的要求做事；<br/>服务人——帮每一位成员在具体工作中获得成长。
         </p>
+        <p class="ab-conclusion-coda" data-stagger>
+          从入党申请人到正式党员——爱具体的组织，因为具体的组织在帮你整合诉求。
+        </p>
+      </div>
+    </section>
+  `;
+}
+
+/** Section 9: 党建+科研——恢复对话能力（2026-08-14 T-251 书记裁决独立成章）
+ *  P-016「恢复对话能力」是「党建+科研的重要战略选择」，不是党建全局根本目标；
+ *  作为成长历程中「党建+科研」这一方面的成长，终章后收束。
+ *  内容：P-016 原话（正确不删改）+ reference 提炼 6 观点。 */
+function renderResearch() {
+  const points = [
+    '经管学科研究对象本身是历史生成、社会建构的——「研究对象本身不是自明的」，这是理工科不遇到的问题。',
+    '现代经济学训练擅长「给定对象之后如何分析」，但「研究对象如何从现实中生成（从现实到理论的抽象）」这一前置过程缺乏系统方法论训练。',
+    '经管研究中「精确」与「真实」是权衡取舍（非自然科学同义反复）；从现实识别问题、提炼范畴、校准研究对象的能力，处于系统性训练覆盖之外。',
+    '马克思主义经典理论提供「现实关系如何形成、理论范畴如何产生、抽象如何把握变化中的现实」的方法论反思——与经济学「分析既定对象」的工具互补，服务不同认识功能。',
+    '党建不提供专业知识、不替代学术训练，而是通过组织化机制（跨培养环节、方法论训练渠道、连接现实实践），把「从现实到理论的抽象能力」变成青年培养的稳定环节。',
+    '党建+科研建设的是「促进高质量问题生成的组织环境」。',
+  ];
+  const pointsHTML = points.map((p, i) => `
+      <li class="ab-research-point">
+        <span class="ab-research-point-no">${String(i + 1).padStart(2, '0')}</span>
+        <span class="ab-research-point-text">${p}</span>
+      </li>`).join('');
+  return `
+    <section id="research" class="ab-page ab-research-section" data-toc-id="research">
+      <span class="ab-page-no">07</span>
+      <span class="ab-page-runner">第七章 · 党建+科研</span>
+      <div class="ab-chapter">
+        <div class="ab-chapter-eyebrow">党建+科研</div>
+        <h2 class="ab-chapter-title">恢复对话能力</h2>
+        <blockquote class="ab-research-quote">党建和经管学科科研的交叉点在于恢复和马克思主义的对话能力，恢复理论研究和现实治理之间的对话能力。</blockquote>
+        <ul class="ab-research-points">${pointsHTML}</ul>
       </div>
     </section>
   `;
@@ -1179,7 +872,6 @@ function renderDevelopment() {
       <span class="ab-page-no">03</span>
       <span class="ab-page-runner">第三章 · 发展党员</span>
       <div class="ab-chapter">
-        <div class="ab-development-progress" aria-hidden="true"><div class="ab-development-progress-fill"></div></div>
         <div class="ab-chapter-eyebrow">身份阶段</div>
         <h2 class="ab-chapter-title">从入党申请人到正式党员</h2>
         <p class="ab-chapter-sub">依据《发展党员工作细则（2026年）》</p>
@@ -1197,9 +889,7 @@ function renderDevelopment() {
  *  每个 section 用 try-catch 包裹，避免单个 section 报错导致整个页面空白 */
 function safe(name, fn) {
   try {
-    const html = fn();
-    console.log(`[renderAboutContent] ${name} OK, html.length=${html.length}`);
-    return html;
+    return fn();
   } catch (e) {
     console.error(`[renderAboutContent] ${name} ERROR:`, e);
     return `<div style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;--acc-border-dark:#F87171;padding:20px;background:#fee;border:2px solid red;color:#900;">[${name} 渲染失败: ${e.message}]</div>`;
@@ -1234,11 +924,11 @@ function renderAboutContent() {
     ${safe('Cognition', renderCognition)}
     ${safe('Philosophy', renderPhilosophy)}
     ${safe('Development', renderDevelopment)}
-    ${safe('TwoWorks', renderTwoWorks)}
     ${safe('Review', renderReview)}
-    <div class="ab-lazy-slot" id="ab-lazy-exploration" data-lazy="exploration" aria-label="探索工作（滚动加载）"></div>
+    <div class="ab-lazy-slot" id="ab-lazy-exploration" data-lazy="exploration" aria-label="工作流（滚动加载）"></div>
     ${safe('Dialogue', renderDialogue)}
     ${safe('Conclusion', renderConclusion)}
+    ${safe('Research', renderResearch)}
     <footer class="ab-page-footer">
       <a href="${base}index.html" class="ab-back-link">
         ${icon('arrowLeft', { className: 'w-3.5 h-3.5' })}
@@ -1252,84 +942,34 @@ function renderAboutContent() {
 //  交互逻辑
 // ════════════════════════════════════════════════════════════════
 
-/** 发展党员：时间轴手风琴展开/收起详情（GSAP 动画） */
+/** 时间轴展开（2026-08-14 T-249 规避 GSAP：CSS transition + class 切换，展开态样式在 about.css .ab-tl-row.is-expanded .ab-tl-detail） */
 function bindTimelineToggle() {
   const container = document.querySelector('.ab-timeline-alternating');
   if (!container) return;
-
-  const allDetails = container.querySelectorAll('.ab-tl-detail');
-  if (allDetails.length > 0) {
-    gsap.set(allDetails, { autoAlpha: 0, height: 0 });
-  }
-
   let currentExpanded = null;
-
   container.querySelectorAll('.ab-tl-row').forEach(row => {
     const center = row.querySelector('.ab-tl-center');
-    const detail = row.querySelector('.ab-tl-detail');
-    if (!center || !detail) return;
-
+    if (!center) return;
     center.style.cursor = 'pointer';
-
     center.addEventListener('click', () => {
       if (currentExpanded === row) {
-        gsap.to(detail, {
-          autoAlpha: 0,
-          height: 0,
-          duration: 0.3,
-          ease: 'power2.in',
-          overwrite: true,
-        });
         row.classList.remove('is-expanded');
         currentExpanded = null;
         return;
       }
-
-      if (currentExpanded) {
-        const prevDetail = currentExpanded.querySelector('.ab-tl-detail');
-        if (prevDetail) {
-          gsap.to(prevDetail, {
-            autoAlpha: 0,
-            height: 0,
-            duration: 0.25,
-            ease: 'power2.in',
-            overwrite: true,
-          });
-        }
-        currentExpanded.classList.remove('is-expanded');
-      }
-
+      if (currentExpanded) currentExpanded.classList.remove('is-expanded');
       row.classList.add('is-expanded');
-      gsap.to(detail, {
-        autoAlpha: 1,
-        height: 'auto',
-        duration: 0.4,
-        ease: 'power2.out',
-        overwrite: true,
-      });
       currentExpanded = row;
     });
   });
 }
 
-/** Lenis 平滑滚动（v15.3 引入——业界成熟经验）
- * 滚轮输入 → 带惯性的缓动滚动位置：快滑有惯性滑行、慢滑逐帧精确；
- * 与 ScrollTrigger 集成：平滑后的滚动位置经 ScrollTrigger.update 喂给动画 → scrub:true 即 1:1 精确映射，
- * 无需再叠加 scrub lerp（替代 v5.2 scrub:0.8 的"统一滞后"机械感）。
- * reduced-motion 下不启动，回落原生滚动。 */
 let lenis = null;
+/** Lenis 平滑滚动（2026-08-14 T-249 规避 GSAP：autoRaf 自驱，不再挂 gsap.ticker/ScrollTrigger） */
 function bindLenis() {
   if (typeof Lenis === 'undefined') return;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
-    // GSAP 不可用：Lenis 自带 rAF 循环，仍提供平滑滚动
-    lenis = new Lenis({ autoRaf: true });
-    return;
-  }
-  lenis = new Lenis({ autoRaf: false });
-  lenis.on('scroll', ScrollTrigger.update);
-  gsap.ticker.add((time) => lenis.raf(time * 1000));
-  gsap.ticker.lagSmoothing(0);
+  lenis = new Lenis({ autoRaf: true });
 }
 
 function bindTOC() {
@@ -1342,16 +982,44 @@ function bindTOC() {
     item.addEventListener('click', (e) => {
       e.preventDefault();
       const id = item.dataset.toc;
-      const target = document.getElementById(id);
-      if (target) {
-        const headerOffset = 64;
+      const headerOffset = 64;
+      const goTo = (target) => {
         if (lenis) {
           lenis.scrollTo(target, { offset: -headerOffset });
         } else {
           const top = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
           window.scrollTo({ top, behavior: 'smooth' });
         }
+      };
+      let target = document.getElementById(id);
+      // 探索区懒渲染未完成时 #exploration 不存在：降级滚动到懒加载槽（槽顶即探索章节顶，渲染后位置不变）
+      if (!target && id === 'exploration') {
+        target = document.querySelector('#ab-lazy-exploration');
       }
+      // 探索区未渲染且目标位于懒加载槽之后（dialogue/conclusion）：其位置按短布局计算会偏移约 4000px，
+      // 先滚动到懒加载槽触发渲染，渲染完成后二次校准到真实位置（2026-08-12 修复；2026-08-14 T-249 无 ScrollTrigger.refresh，
+      // 懒渲染插入后页面高度即更新，二次校准仍按 Lenis ResizeObserver 就绪后执行）
+      const slotEl = document.querySelector('.ab-lazy-slot');
+      const explorationRendered = !!document.querySelector('.ab-exploration-section');
+      if (!explorationRendered && target && slotEl &&
+          (slotEl.compareDocumentPosition(target) & Node.DOCUMENT_POSITION_FOLLOWING)) {
+        lenis.scrollTo(slotEl, { offset: -headerOffset });
+        const waitRender = () => {
+          if (document.querySelector('.ab-exploration-section')) {
+            // 等 Lenis 内部 ResizeObserver（250ms 防抖）更新 limit 后再二次跳转——
+            // 渲染后立即 scrollTo 会被旧 limit（短布局 maxScroll）钳制，停在探索区中下部（2026-08-13 修复）
+            setTimeout(() => {
+              const t2 = document.getElementById(id);
+              if (t2) goTo(t2);
+            }, 280);
+            return;
+          }
+          setTimeout(waitRender, 120);
+        };
+        setTimeout(waitRender, 160);
+        return;
+      }
+      if (target) goTo(target);
     });
   });
 
@@ -1394,407 +1062,223 @@ function bindTOC() {
   };
 }
 
-/** 全页面 GSAP 动画（ScrollTrigger + matchMedia 优雅降级） */
-function bindPageAnimations() {
-  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
-    document.querySelectorAll('.ab-page').forEach(s => s.style.opacity = '1');
-    return;
-  }
-
-  gsap.registerPlugin(ScrollTrigger);
-
-  const mm = gsap.matchMedia();
-
-  // ── 标准动画 ──
-  mm.add('(prefers-reduced-motion: no-preference)', () => {
-
-    // Hero — 空间纵深入场：纸页从桌面翻起推入（rotationX + translateZ + 视差上浮），告别垂直平移
-    const heroTitle = document.querySelector('.ab-hero-title');
-    const heroAccent = document.querySelector('.ab-hero-rule');
-    const heroSubtitle = document.querySelector('.ab-hero-subtitle');
-    if (heroTitle) {
-      gsap.from(heroTitle, {
-        y: 40, autoAlpha: 0, rotationX: -14, z: -60,
-        transformPerspective: 900, transformOrigin: '50% 100%',
-        duration: 0.9, ease: 'power3.out',
-      });
-    }
-    if (heroAccent) {
-      // 材质转场：墨迹从中心晕开成线
-      gsap.from(heroAccent, { clipPath: 'inset(0 50% 0 50%)', duration: 0.6, delay: 0.35, ease: 'power2.inOut' });
-    }
-    if (heroSubtitle) {
-      gsap.from(heroSubtitle, { y: 14, autoAlpha: 0, duration: 0.6, delay: 0.2, ease: 'power2.out' });
-    }
-
-    // 卡片/内容入场统一参数（v5.1 重参数化——治"翻过去了才显示清楚"与"处处匀速"）：
-    // 区间缩短：章节进入视口后 ~1/3 行程即完成显示（end 卡在章节顶部 30% 视口，不再拖到章节底部）；
-    // ease power2.out 产生"先快后慢"的落定节奏（improve-animations：enter → ease-out）；
-    // stagger 0.08s（30-80ms 错峰）；scrub:true（v15.3 复议：滚动位置已被 Lenis 平滑，1:1 精确映射到每一时刻）。
-    const cardEntrance = (targets, section, startVh, endVh, y = 40, stagger = 0.08) => {
-      if (!targets.length) return;
-      gsap.fromTo(targets, { autoAlpha: 0, y }, {
-        autoAlpha: 1, y: 0, stagger, ease: 'power2.out',
-        scrollTrigger: {
-          trigger: section,
-          start: `top ${startVh}%`,
-          end: `top ${endVh}%`,
-          scrub: true,
-          immediateRender: false,
-        },
-      });
-    };
-
-    // Cognition —— 章题 + 三卡随滚动错落升起
-    const cognitionSection = document.querySelector('.ab-cognition-section');
-    if (cognitionSection) {
-      cardEntrance(
-        cognitionSection.querySelectorAll('.ab-chapter-eyebrow, .ab-chapter-title, .ab-cognition-lead, .ab-cognition-item, .ab-cognition-dialogue'),
-        cognitionSection, 80, 30, 40, 0.08
-      );
-    }
-
-    // Development
-    bindDevelopmentEntranceAnimation();
-
-    // Philosophy —— 演示式逐段揭示（书记裁决：两卡非并列，先后各一）：标题区先随滚动升起，两卡随后错落
-    const philosophySection = document.querySelector('.ab-philosophy-section');
-    if (philosophySection) {
-      cardEntrance(
-        philosophySection.querySelectorAll('.ab-chapter-title, .ab-chapter-sub'),
-        philosophySection, 82, 44, 36, 0.08
-      );
-      cardEntrance(
-        philosophySection.querySelectorAll('.ab-philosophy-opp'),
-        philosophySection, 70, 30, 40, 0.08
-      );
-    }
-    bindPhilosophyExpand();
-
-    // Review —— 卡片随滚动升起落位（scrub 可逆，杜绝一次性）
-    const reviewSection = document.querySelector('.ab-review-section');
-    if (reviewSection) {
-      cardEntrance(
-        reviewSection.querySelectorAll('.ab-chapter-title, .ab-chapter-sub, .ab-review-card'),
-        reviewSection, 80, 30, 42, 0.08
-      );
-    }
-
-    // Works —— 双列卡片随滚动升起
-    const worksSection = document.querySelector('.ab-works-section');
-    if (worksSection) {
-      cardEntrance(
-        worksSection.querySelectorAll('.ab-chapter-title, .ab-chapter-sub, .ab-works-col'),
-        worksSection, 80, 30, 42, 0.08
-      );
-    }
-
-    // Dialogue —— 标题区 + 收尾引言入场改为 scrub 可逆（正放倒放对称）；四卡本身由 data-state 三态滚动点亮
-    const dialogueSection = document.querySelector('.ab-dialogue-section');
-    if (dialogueSection) {
-      cardEntrance(
-        dialogueSection.querySelectorAll('.ab-chapter-eyebrow, .ab-chapter-title, .ab-chapter-sub, .ab-dialogue-coda'),
-        dialogueSection, 80, 36, 36, 0.08
-      );
-    }
-
-    // Conclusion —— 入场与全屏扩展统一由 bindCameraFlow 滚动驱动，此处不再单独绑定
-
-    return () => ScrollTrigger.getAll().forEach(t => t.kill());
-  });
-
-  // ── reduced-motion 降级 ──
-  mm.add('(prefers-reduced-motion: reduce)', () => {
-    gsap.set('.ab-hero-title, .ab-hero-subtitle, .ab-hero-rule, .ab-chapter-eyebrow, .ab-chapter-title, .ab-chapter-sub, .ab-cognition-lead, .ab-cognition-item, .ab-cognition-dialogue, .ab-philosophy-opp, .ab-review-card, .ab-works-col, .ab-dialogue-card, .ab-dialogue-coda, .ab-conclusion-section, .ab-tl-row, .ab-tl-stage', { autoAlpha: 1, y: 0, x: 0, scale: 1, clipPath: 'inset(0 0% 0 0)' });
-  });
-}
-
-/** 机会区块：点击卡片在提炼版与原话全文间平滑切换（KeyNote 式交叉淡入，无"点击展开"文字按钮） */
-function bindPhilosophyExpand() {
-  const cards = document.querySelectorAll('.ab-philosophy-opp');
-  if (!cards.length) return;
-
-  // 无 GSAP 时降级：直接切换内容
-  if (typeof gsap === 'undefined') {
-    cards.forEach(card => {
-      const quoteEl = card.querySelector('.ab-philosophy-opp-quote');
-      if (!quoteEl) return;
-      const brief = decodeURIComponent(quoteEl.dataset.brief || '');
-      const full = decodeURIComponent(quoteEl.dataset.full || '');
-      let expanded = false;
-      const toggle = () => {
-        expanded = !expanded;
-        card.setAttribute('aria-expanded', String(expanded));
-        quoteEl.innerHTML = expanded ? full : brief;
-      };
-      card.addEventListener('click', toggle);
-      card.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
-      });
-    });
-    return;
-  }
-
-  cards.forEach(card => {
-    const quoteEl = card.querySelector('.ab-philosophy-opp-quote');
-    if (!quoteEl) return;
-    const brief = decodeURIComponent(quoteEl.dataset.brief || '');
-    const full = decodeURIComponent(quoteEl.dataset.full || '');
-    let expanded = false;
-
-    const toggle = () => {
-      expanded = !expanded;
-      card.setAttribute('aria-expanded', String(expanded));
-      const target = expanded ? full : brief;
-      // KeyNote 式平滑：内容淡出上移 → 替换 → 淡入归位
-      gsap.to(quoteEl, {
-        autoAlpha: 0,
-        y: -8,
-        duration: 0.22,
-        ease: 'power2.in',
-        onComplete: () => {
-          quoteEl.innerHTML = target;
-          gsap.fromTo(quoteEl, { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out' });
-        },
-      });
-    };
-
-    card.addEventListener('click', toggle);
-    card.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
-    });
-  });
-}
-
-/** Development 时间轴入场动画 */
-function bindDevelopmentEntranceAnimation() {
-  const section = document.querySelector('.ab-development-section');
-  if (!section) return;
-  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
-  gsap.registerPlugin(ScrollTrigger);
-
-  const mm = gsap.matchMedia();
-
-  mm.add('(prefers-reduced-motion: reduce)', () => {
-    gsap.set(section.querySelectorAll('.ab-tl-row, .ab-tl-stage'), { autoAlpha: 1, y: 0 });
-    return;
-  });
-
-  mm.add('(prefers-reduced-motion: no-preference)', () => {
-    const dividers = section.querySelectorAll('.ab-tl-stage');
-
-    dividers.forEach((divider, stageIdx) => {
-      const stageRows = [];
-      let next = divider.nextElementSibling;
-      while (next && !next.classList.contains('ab-tl-stage')) {
-        if (next.classList.contains('ab-tl-row')) {
-          stageRows.push(next);
-        }
-        next = next.nextElementSibling;
-      }
-
-      gsap.fromTo(divider, { autoAlpha: 0, y: 24, scale: 0.96 }, {
-        autoAlpha: 1, y: 0, scale: 1,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: divider,
-          start: 'top 85%',
-          end: 'top 45%',
-          scrub: true,
-          immediateRender: false,
-        },
-      });
-
-      if (stageRows.length) {
-        gsap.fromTo(stageRows, { autoAlpha: 0, y: 34 }, {
-          autoAlpha: 1, y: 0, stagger: 0.08,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: divider,
-            start: 'top 80%',
-            end: 'top 40%',
-            scrub: true,
-            immediateRender: false,
-          },
-        });
-      }
-    });
-  });
-}
-
-/** SVG 关系网络 hover 交互：悬停节点高亮相关连线 */
-function bindNetworkHover() {
-  document.querySelectorAll('.ab-network-container').forEach(container => {
-    const svg = container.querySelector('svg');
-    if (!svg) return;
-    const nodes = svg.querySelectorAll('.ab-node-svg');
-    const edges = svg.querySelectorAll('.ab-edge');
-    const tooltip = container.parentNode.querySelector('.ab-network-tooltip');
-    const nodeDataMap = {};
-
-    svg.querySelectorAll('.ab-node-svg').forEach(n => {
-      const id = n.dataset.id;
-      const circle = n.querySelector('.ab-node-circle');
-      const dutyText = n.querySelector('.ab-node-duty');
-      nodeDataMap[id] = {
-        name: n.querySelector('.ab-node-text')?.textContent || id,
-        color: circle?.getAttribute('fill') || '#B91C1C',
-        duty: dutyText?.textContent || '',
-      };
-    });
-
-    const highlight = (id) => {
-      svg.classList.add('has-hover');
-      edges.forEach(e => {
-        const related = e.dataset.from === id || e.dataset.to === id;
-        e.classList.toggle('highlighted', related);
-        e.classList.toggle('dimmed', !related);
-      });
-      nodes.forEach(n => {
-        const nid = n.dataset.id;
-        const isConnected = id === nid ||
-          Array.from(edges).some(e =>
-            (e.dataset.from === id && e.dataset.to === nid) ||
-            (e.dataset.to === id && e.dataset.from === nid)
-          );
-        n.classList.toggle('highlighted', isConnected);
-        n.classList.toggle('dimmed', !isConnected);
-      });
-    };
-
-    const reset = () => {
-      svg.classList.remove('has-hover');
-      edges.forEach(e => { e.classList.remove('highlighted', 'dimmed'); });
-      nodes.forEach(n => { n.classList.remove('highlighted', 'dimmed'); });
-      if (tooltip) { tooltip.classList.remove('is-visible'); tooltip.innerHTML = ''; }
-    };
-
-    const showTooltip = (node, id) => {
-      if (!tooltip || !nodeDataMap[id]) return;
-      const data = nodeDataMap[id];
-      tooltip.innerHTML = `
-        <span class="ab-tooltip-name" style="color:${data.color}">${data.name}</span>
-        <span class="ab-tooltip-duty">${data.duty}</span>
-      `;
-      tooltip.classList.add('is-visible');
-      const nodeRect = node.getBoundingClientRect();
-      const wrapRect = container.parentNode.getBoundingClientRect();
-      tooltip.style.left = (nodeRect.left - wrapRect.left + nodeRect.width / 2) + 'px';
-      tooltip.style.top = (nodeRect.top - wrapRect.top - 8) + 'px';
-    };
-
-    nodes.forEach(node => {
-      node.addEventListener('mouseenter', () => {
-        highlight(node.dataset.id);
-        showTooltip(node, node.dataset.id);
-      });
-      node.addEventListener('mouseleave', reset);
-      node.addEventListener('focus', () => { highlight(node.dataset.id); showTooltip(node, node.dataset.id); });
-      node.addEventListener('blur', reset);
-    });
-
-    // 连线 hover
-    edges.forEach(edge => {
-      edge.addEventListener('mouseenter', (e) => {
-        if (!svg.classList.contains('has-hover')) {
-          edge.classList.add('hovered');
-        }
-        const detail = edge.dataset.detail;
-        const label = edge.dataset.label;
-        if (tooltip && detail) {
-          tooltip.innerHTML = `
-            <span class="ab-tooltip-name">${label || ''}</span>
-            <span class="ab-tooltip-duty">${detail}</span>
-          `;
-          tooltip.classList.add('is-visible');
-          const edgeRect = edge.getBoundingClientRect();
-          const wrapRect = container.parentNode.getBoundingClientRect();
-          tooltip.style.left = (edgeRect.left - wrapRect.left + edgeRect.width / 2) + 'px';
-          tooltip.style.top = (edgeRect.top - wrapRect.top - 8) + 'px';
-        }
-      });
-      edge.addEventListener('mouseleave', () => {
-        edge.classList.remove('hovered');
-        if (tooltip) { tooltip.classList.remove('is-visible'); tooltip.innerHTML = ''; }
-      });
-    });
-  });
-}
-
-/**
- * v15.3 探索网络滚动协调器（连续渐变版）
- * 滚动位置 → 连续 stage 位置 p = stageIndex + stageProgress → applyNetworkState 逐帧插值；
- * 替代 v5.2 的二进制 stage 重渲染（stage 切换时才 renderNetwork + CSS transition），根治"吸住又跳过"卡点。
- */
+/** 工作流滚动协调器：镜组驱动·连续运动（2026-08-13 二轮重构）
+ *  废弃「镜组层叠淡入淡出（幻灯片轮播）」；改为单一画布 + 连续插值——
+ *  viewBox 固定（停留稳态），节点位置在镜组间 lerp（走进/走出视野），
+ *  边连续淡入 + 起终点渐变（颜色补箭头方向）。滚动 scrub 连续驱动，可逆。
+ *  【动/静自觉清单】（书记 2026-08-13 强调）
+ *   静：视窗（viewBox 固定，不推近）
+ *   静：卡片三态（data-state past/current/future，离散切换非连续）
+ *   动：节点（位置镜组间 lerp + 入场/离场 opacity）
+ *   动：边（path 重算 + 渐变方向跟随 + opacity 连续淡入淡出）
+ *  【停顿节奏】阶梯映射：每镜组停留 75% 滚动行程（稳态停顿），25% 丝滑过渡 */
 function bindExplorationScrollDriven() {
   const scenes = document.querySelectorAll('.ab-exploration-scene');
   if (!scenes.length) return;
 
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const clamp01 = (t) => Math.max(0, Math.min(1, t));
+  const smooth = (t) => { const c = clamp01(t); return c * c * (3 - 2 * c); };
+
+  // 节点在镜组间的位置插值 + 入场/离场淡入淡出
+  const nodeStateAt = (traj, p) => {
+    if (!traj || !traj.length) return { x: -100, y: -100, o: 0 };
+    const first = traj[0].shot, last = traj[traj.length - 1].shot;
+    const o = smooth((p - (first - 0.6)) / 0.8) * (1 - smooth((p - (last - 0.2)) / 0.8));
+    let x = traj[0].x, y = traj[0].y;
+    if (p > first && p < last) {
+      for (let i = 0; i < traj.length - 1; i++) {
+        if (p >= traj[i].shot && p <= traj[i + 1].shot) {
+          const f = (p - traj[i].shot) / (traj[i + 1].shot - traj[i].shot);
+          x = traj[i].x + (traj[i + 1].x - traj[i].x) * f;
+          y = traj[i].y + (traj[i + 1].y - traj[i].y) * f;
+          break;
+        }
+      }
+    } else if (p >= last) {
+      x = traj[traj.length - 1].x; y = traj[traj.length - 1].y;
+    }
+    return { x, y, o };
+  };
+
+  // 边在所属镜组附近描边生长 + 远离淡出
+  const edgeStateAt = (def, p) => {
+    let o = 0, grow = 0;
+    for (const s of def.shots) {
+      const g = smooth((p - (s - 0.7)) / 0.6);
+      const f = 1 - smooth((p - (s + 0.3)) / 0.7);
+      grow = Math.max(grow, g);
+      o = Math.max(o, Math.min(g, f));
+    }
+    return { o, grow };
+  };
+
+  // 连续镜组位置：卡片顶部越过视口 60% 线，线性映射到 0..shotCount-1
+  // 2026-08-14 性能：改用缓存文档坐标（stageTops），滚动帧零 getBoundingClientRect（layout thrash 主嫌疑）
+  const continuousProgress = (stageTops, vh, scrollTop) => {
+    if (!stageTops.length) return 0;
+    const firstTop = stageTops[0];
+    const lastTop = stageTops[stageTops.length - 1];
+    const span = lastTop - firstTop || 1;
+    return clamp01((vh * 0.6 - (firstTop - scrollTop)) / span) * (stageTops.length - 1);
+  };
+
+  // 阶梯映射：每个镜组停留 75% 滚动行程（稳态停顿，让观看者感知「这是一步阶段」），
+  // 25% 丝滑过渡到下一个镜组（带缓动）——「丝滑动画 + 适当停顿」
+  const PLATEAU = 0.75;
+  const stepwise = (p) => {
+    const step = Math.floor(p);
+    const frac = p - step;
+    if (frac <= PLATEAU) return step;
+    const t = (frac - PLATEAU) / (1 - PLATEAU);
+    return step + smooth(t);
+  };
 
   const sceneData = [];
   scenes.forEach(scene => {
-    const network = scene.dataset.scene === 'activity' ? ACTIVITY_NETWORK : TASKFORCE_NETWORK;
-    const stages = scene.dataset.scene === 'activity'
-      ? EXPLORATION_STAGES.activity
-      : EXPLORATION_STAGES.taskforce;
-    const svg = scene.querySelector('.ab-network-svg');
-    const stagesContainer = scene.querySelector('.ab-exploration-stages');
-    const rect = scene.getBoundingClientRect();
-    sceneData.push({
-      scene, network, stages, svg, stagesContainer,
-      // 可见性过滤缓存（减负：构建时读一次，滚动时用 scrollTop 比较，避免每帧 getBoundingClientRect 触发 layout）
-      sceneTop: rect.top + window.scrollY,
-      sceneHeight: scene.offsetHeight,
-      stageCount: stages.length,
-      stageStates: buildStageStates(network, stages),
-      continuous: false, // 首次滚动后才切入连续模式（保留初始 CSS 入场）
+    const sceneDef = scene.dataset.scene === 'activity' ? ACTIVITY_SCENE : TASKFORCE_SCENE;
+    const svg = scene.querySelector('.ab-scene-svg');
+    const stages = scene.querySelectorAll('.ab-exploration-stage');
+    if (!svg || !stages.length) return;
+
+    // 节点轨迹：id -> [{shot, x, y}]
+    const nodeTraj = new Map();
+    sceneDef.shots.forEach((shot, si) => {
+      shot.nodes.forEach(n => {
+        if (!nodeTraj.has(n.id)) nodeTraj.set(n.id, []);
+        nodeTraj.get(n.id).push({ shot: si, x: n.x, y: n.y });
+      });
     });
+
+    // 边（去重 + shot 归属）
+    const edges = [];
+    const edgeIdx = new Map();
+    sceneDef.shots.forEach((shot, si) => {
+      shot.edges.forEach(e => {
+        const key = `${e.from}|${e.to}|${e.type}|${e.curve || 0}`;
+        if (!edgeIdx.has(key)) {
+          edgeIdx.set(key, edges.length);
+          edges.push({ from: e.from, to: e.to, type: e.type, curve: e.curve || 0, shots: [si] });
+        } else {
+          edges[edgeIdx.get(key)].shots.push(si);
+        }
+      });
+    });
+
+    // DOM 引用
+    const nodeEls = {};
+    svg.querySelectorAll('.ab-node-svg').forEach(el => { nodeEls[el.dataset.id] = el; });
+    const edgeEls = [];
+    svg.querySelectorAll('.ab-edge').forEach(el => {
+      const idx = parseInt(el.dataset.edge, 10);
+      edgeEls.push({
+        el,
+        path: el.querySelector('.ab-edge-path'),
+        arrow: el.querySelector('.ab-edge-arrow'),
+        grad: svg.querySelector(`#ab-grad-${idx}`),
+        def: edges[idx],
+      });
+    });
+
+    sceneData.push({ scene, svg, stages, nodeTraj, nodeEls, edgeEls });
   });
 
-  // 初始渲染：stage 0 结构 + 状态 + stage 标签态
-  sceneData.forEach(data => {
-    if (!data.svg) return;
-    renderNetwork(data.svg, data.network, 0, data.stages);
-    const sceneStages = data.scene.querySelectorAll('.ab-exploration-stage');
-    sceneStages.forEach((s, i) => {
-      s.setAttribute('data-state', i === 0 ? 'current' : 'future');
+  const renderFrame = (data, p) => {
+    // 2026-08-14 T-248 性能：阈值跳过 + 缓存——位置移动 <0.5px 不写 transform；opacity 值未变不写 style；
+    // 不可见边（opacity<0.02）跳过几何重算（只同步 opacity）
+    data.nodeTraj.forEach((traj, id) => {
+      const el = data.nodeEls[id];
+      if (!el) return;
+      const st = nodeStateAt(traj, p);
+      const dx = Math.abs(st.x - (el._nx || -999));
+      const dy = Math.abs(st.y - (el._ny || -999));
+      if (dx > 0.5 || dy > 0.5) {
+        el._nx = st.x; el._ny = st.y;
+        el.setAttribute('transform', `translate(${st.x.toFixed(1)},${st.y.toFixed(1)})`);
+      }
+      const o = st.o < 0.02 ? '0' : st.o > 0.98 ? '1' : st.o.toFixed(2);
+      if (el._no !== o) { el._no = o; el.style.opacity = o; }
     });
-  });
 
-  if (prefersReduced) return;
+    // 边：path 重算 + 渐变方向跟随 + 透明度（阈值跳过 + 不可见边跳过几何重算）
+    data.edgeEls.forEach(({ el, path, arrow, grad, def }) => {
+      if (!def) return;
+      const st = edgeStateAt(def, p);
+      const o = st.o < 0.02 ? '0' : st.o > 0.98 ? '1' : st.o.toFixed(2);
+      if (el._eo !== o) { el._eo = o; el.style.opacity = o; arrow.style.opacity = o; }
+      if (st.o < 0.02) return; // 不可见边：只同步 opacity，跳过几何重算
+      const fromPos = nodeStateAt(data.nodeTraj.get(def.from), p);
+      const toPos = nodeStateAt(data.nodeTraj.get(def.to), p);
+      const moved = Math.hypot(fromPos.x - (el._fx || -999), fromPos.y - (el._fy || -999),
+                               toPos.x - (el._tx || -999), toPos.y - (el._ty || -999));
+      if (moved > 0.5) {
+        el._fx = fromPos.x; el._fy = fromPos.y; el._tx = toPos.x; el._ty = toPos.y;
+        const ep = edgePath(fromPos, toPos, 52, 0.5, def.curve);
+        path.setAttribute('d', ep.d);
+        if (grad) {
+          grad.setAttribute('x1', fromPos.x.toFixed(1));
+          grad.setAttribute('y1', fromPos.y.toFixed(1));
+          grad.setAttribute('x2', toPos.x.toFixed(1));
+          grad.setAttribute('y2', toPos.y.toFixed(1));
+        }
+        const angle = Math.atan2(ep.y2 - ep.y1, ep.x2 - ep.x1) * 180 / Math.PI;
+        arrow.setAttribute('transform', `translate(${ep.x2},${ep.y2}) rotate(${angle})`);
+      }
+    });
 
-  // 滚动驱动：连续插值（v15.3 替代二进制重渲染）
+    // 卡片三态
+    const currentShot = Math.round(p);
+    data.stages.forEach((s, i) => {
+      if (i < currentShot) s.setAttribute('data-state', 'past');
+      else if (i === currentShot) s.setAttribute('data-state', 'current');
+      else s.setAttribute('data-state', 'future');
+    });
+  };
+
+  // 初始渲染（p=0）
+  sceneData.forEach(data => renderFrame(data, 0));
+
+  if (prefersReduced) {
+    // reduced-motion：静态全显，不监听滚动
+    sceneData.forEach(data => {
+      data.nodeTraj.forEach((traj, id) => { const el = data.nodeEls[id]; if (el) el.style.opacity = '1'; });
+      data.edgeEls.forEach(({ el, path }) => { el.style.opacity = '1'; path.style.strokeDashoffset = '0'; });
+    });
+    return;
+  }
+
+  // 几何缓存（2026-08-14 性能：滚动帧零 getBoundingClientRect——layout thrash 主嫌疑；
+  // 布局稳定后一次性读文档坐标，resize 时刷新。懒渲染场景 bind 时元素已就绪）
+  let geomCache = [];
+  const cacheGeom = () => {
+    geomCache = sceneData.map(data => {
+      const r = data.scene.getBoundingClientRect();
+      return {
+        top: r.top + window.scrollY,
+        height: data.scene.offsetHeight,
+        stageTops: Array.from(data.stages).map(s => s.getBoundingClientRect().top + window.scrollY),
+      };
+    });
+  };
+  cacheGeom();
+
   let ticking = false;
-
   const update = () => {
     ticking = false;
     const scrollTop = window.scrollY;
     const vh = window.innerHeight;
 
-    sceneData.forEach(data => {
-      if (!data.svg || !data.stagesContainer) return;
+    sceneData.forEach((data, i) => {
+      const g = geomCache[i];
+      if (!g) return;
+      if (scrollTop > g.top + g.height + vh || scrollTop + vh < g.top - vh) return;
 
-      // 可见性过滤（减负）：scene 完全在视口上方 1 屏之外或下方 1 屏之外时跳过逐帧插值——
-      // 离屏 scene 不参与 SVG 属性写入，滚动性能只开销在可见 scene 上
-      if (scrollTop > data.sceneTop + data.sceneHeight + vh || scrollTop + vh < data.sceneTop - vh) return;
-
-      const progress = computeScrollProgress(scrollTop, data.scene, data.stageCount);
-
-      // 首次滚动：切入连续模式——禁用 CSS transition（时间驱动），改由逐帧插值（滚动驱动）
-      if (!data.continuous) {
-        data.continuous = true;
-        data.svg.classList.add('ab-network-continuous');
+      const p = stepwise(continuousProgress(g.stageTops, vh, scrollTop));
+      // p 不变跳过全量重算（plateau 75% 停留期间零写入，2026-08-14 性能）
+      if (p !== data.lastP) {
+        data.lastP = p;
+        renderFrame(data, p);
       }
-
-      applyNetworkState(data.svg, data.network, progress.stageIndex + progress.stageProgress, data.stageCount, data.stageStates);
-
-      const sceneStages = data.scene.querySelectorAll('.ab-exploration-stage');
-      sceneStages.forEach((s, i) => {
-        if (i < progress.stageIndex) s.setAttribute('data-state', 'past');
-        else if (i === progress.stageIndex) s.setAttribute('data-state', 'current');
-        else s.setAttribute('data-state', 'future');
-      });
     });
   };
 
@@ -1806,14 +1290,14 @@ function bindExplorationScrollDriven() {
   };
 
   window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', () => { cacheGeom(); if (!ticking) update(); });
 }
 
 // ════════════════════════════════════════════════════════════════
-//  电影化滚动叙事 v2（2026-08-04 书记三轮裁决后重构）
+//  电影化滚动叙事（2026-08-04 书记三轮裁决后重构）
 //  ① 滚动驱动的场景切换（Hero 退场 + Dialogue/Exploration 章节点亮）
-//  ② 滚动吸附（仅限 Exploration 探索区场景内——书记裁决：吸附只属于探索区）
-//  ③ 滚动叠层转场（空间叠层：被覆盖章退后压暗 + 覆盖章 3D 升起，演示式逐步揭示）
-//  ④ 滚动驱动的全屏扩展转场（终章封章压合：旋转落章 + 金环压力波 + 六字逐字点亮）
+//  ② 章节镜头交接 + 叠层转场（旧场景后拉 → 新场景驶入，演示式逐步揭示）
+//  ③ 终章温和落位（大字收束）
 //  ════════════════════════════════════════════════════════════════
 
 /**
@@ -1908,299 +1392,167 @@ function initParticleCanvas(canvas, opts = {}) {
   window.addEventListener('resize', resize);
 }
 
-/** ① Hero 滚动退场——随滚动淡出上移，交棒给下一章（场景切换） */
-function bindHeroExit() {
-  const hero = document.querySelector('.ab-hero-section');
-  const heroInner = document.querySelector('.ab-hero-inner');
-  const scrollHint = document.querySelector('.ab-hero-scroll-hint');
-  if (!hero || !heroInner) return;
-
-  gsap.to(heroInner, {
-    yPercent: -16,
-    scale: 0.96,
-    opacity: 0.15,
-    ease: 'none',
-    scrollTrigger: {
-      trigger: hero,
-      start: 'top top',
-      end: 'bottom 25%',
-      scrub: true,
-    },
-  });
-
-  if (scrollHint) {
-    gsap.to(scrollHint, {
-      opacity: 0,
-      y: 10,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: hero,
-        start: 'top 82%',
-        end: 'bottom 96%',
-        scrub: true,
-      },
-    });
-  }
-}
-
-/** 镜头交接 pair（章节场景连续交接）——全局常量供懒渲染后补建复用 */
-const CAMERA_PAIRS = [
-  ['.ab-cognition-section', '.ab-philosophy-section'],
-  ['.ab-philosophy-section', '.ab-development-section'],
-  ['.ab-development-section', '.ab-works-section'],
-  ['.ab-works-section', '.ab-review-section'],
-  ['.ab-review-section', '.ab-exploration-section'],
-  ['.ab-exploration-section', '.ab-dialogue-section'],
-];
-
-/** 已绑定镜头交接的 from 元素守卫（探索区懒渲染补建时防止重复创建 ScrollTrigger） */
-const _cameraPairBound = new WeakSet();
-
-function bindCameraPairs(pairs) {
-  pairs.forEach(([fromSel, toSel]) => {
-    const fromEl = document.querySelector(fromSel);
-    const toEl = document.querySelector(toSel);
-    if (!fromEl || !toEl) return;
-    if (_cameraPairBound.has(fromEl)) return;
-    _cameraPairBound.add(fromEl);
-
-    // 旧场景整体后拉：轻微上移 + 缩小 + 压暗（幅度克制，内容全程可读）
-    // v5.1 修复"卡片黑色"：gsap.to 的 from 态会把 filter 解析为 brightness(0)，
-    // 滚动区间中段整章被压暗至 0.3~0.9 亮度——显式 fromTo brightness(1)→0.92，最小亮度 0.92 全程不黑
-    const fromInner = fromEl.querySelector('.ab-chapter');
-    if (fromInner) {
-      gsap.fromTo(fromInner,
-        { yPercent: 0, scale: 1, filter: 'brightness(1)' },
-        {
-          yPercent: -3.5, scale: 0.97, filter: 'brightness(0.92)',
-          ease: 'none',
-          scrollTrigger: {
-            trigger: toEl,
-            start: 'top 92%',
-            end: 'top 38%',
-            scrub: true,
-            immediateRender: false,
-          },
-        }
-      );
-    }
-
-    // 新场景驶入覆盖：章节从下方滑入落位（镜头交接同步发生，无硬切）
-    const toInner = toEl.querySelector('.ab-chapter');
-    if (toInner) {
-      gsap.fromTo(toInner,
-        { yPercent: 6, autoAlpha: 0.88, scale: 0.985 },
-        {
-          yPercent: 0, autoAlpha: 1, scale: 1,
-          ease: 'none',
-          immediateRender: false,
-          scrollTrigger: {
-            trigger: toEl,
-            start: 'top 96%',
-            end: 'top 56%',
-            scrub: true,
-          },
-        }
-      );
-    }
-  });
-}
-
-/** ③④⑤ v5 电影镜头流统一入口——场景连续交接（v5.1：终章去除全屏变红）
- *  镜头语言：旧场景整体后拉（scale 0.97 + yPercent −3.5 + brightness 0.92，fromTo 显式 from 态防止压黑）
- *  → 新场景从下方驶入覆盖，全程无硬切；
- *  终章 v5.1：去掉突变红/金化（书记裁决"实现不出效果就别实现"），保持暖白 + 党建红大字 + 温和落位驶入。 */
-function bindCameraFlow() {
-  // ── A. 镜头连续性：章节场景交接（治"拼贴"）——顺序与叙事章节一致（v5.2 方案A）──
-  bindCameraPairs(CAMERA_PAIRS);
-
-  // ── C. 终章收束（v5.1：去掉突变红色/金化——书记裁决"实现不出效果就别实现"） ──
-  // 保持暖白背景 + 党建红大字，仅保留温和的"镜头落位"驶入（scale 0.86→1 + autoAlpha，scrub 可逆），
-  // 与全页背景统一、与其余章节镜头语言一致，不再做全屏变红。
-  const section = document.querySelector('.ab-conclusion-section');
-  const inner = document.querySelector('.ab-conclusion-inner');
-  if (section && inner) {
-    gsap.fromTo(inner,
-      { scale: 0.86, autoAlpha: 0 },
-      {
-        scale: 1, autoAlpha: 1,
-        ease: 'power2.out',
-        scrollTrigger: { trigger: section, start: 'top bottom', end: 'center 60%', scrub: true, immediateRender: false },
-      }
-    );
-  }
-
-  // 胶片时间码 + 进度线已移除（减负：独立 rAF 循环 + scrollHeight 布局读取每帧一次，收益低、成本高）
-  // 场景交接与终章收束的 ScrollTrigger 由 bindCinematicScroll 统一 kill
-  return () => {};
-}
-
-/** ② 滚动吸附——仅限 Exploration 探索区场景内（书记裁决：吸附只属于探索区，全局 snap 破坏 UI 连续性）
- *  v5 重新校准：停靠点 = 每张 stage 标题头部，与左侧 sticky 关系图顶线对齐（替换 v4 的 0.36 生硬值）；
- *  柔和磁性：duration {min:0.35,max:0.7} + power2.out + 轻微 delay，不夺轮；
- *  范围止于最后一张 stage，防止吸附越界拦住后续章节
- *  v5.2 移除：书记裁决"移除吸附 + 全局 scrub 平滑"（2026-08-04），快速滚动时吸附造成"吸住又跳过"卡点 */
-
-
-/** Development 时间轴滚动驱动：顶部进度条 + 阶段高亮 */
-function bindDevelopmentScrollProgress() {
-  const section = document.querySelector('.ab-development-section');
-  const fill = document.querySelector('.ab-development-progress-fill');
-  const timeline = document.querySelector('.ab-timeline-alternating');
-  if (!section || !timeline) return;
-
-  if (fill) {
-    gsap.to(fill, {
-      scaleX: 1,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: timeline,
-        start: 'top 72px',
-        end: 'bottom 85%',
-        scrub: true,
-      },
-    });
-  }
-
-  section.querySelectorAll('.ab-tl-stage').forEach(div => {
-    ScrollTrigger.create({
-      trigger: div,
-      start: 'top 78%',
-      end: 'bottom 22%',
-      // v15.3 连续化：阶段高亮颜色按滚动进度插值（灰 #ABA191 → 党建红 #CE1126），替代 is-active 二进制跳变
-      onUpdate: (self) => {
-        const t = self.progress < 0 ? 0 : self.progress > 1 ? 1 : self.progress;
-        const s = t * t * (3 - 2 * t); // smoothstep：进入柔和、离开柔和
-        const r = Math.round(171 + (206 - 171) * s);
-        const g = Math.round(161 + (17 - 161) * s);
-        const b = Math.round(145 + (38 - 145) * s);
-        div.style.color = `rgb(${r}, ${g}, ${b})`;
-      },
-    });
-  });
-}
-
-/** Dialogue 四阶段滚动驱动（v15.3 连续渐变版）
- *  滚动进度 → 连续位置 t = progress × N，每张卡按"点亮窗 [i, i+0.6)→渐隐窗 [i+1.6, i+2.6)"逐帧插值
- *  opacity/saturate/scale/border 全部连续，替代二进制 data-state 跳变；data-state 仅驱动编号圆标（CSS transition 平滑） */
+/** Dialogue 四阶段滚动驱动（2026-08-13 批判性重构：去轮毂 + 公转文字正立 + 非 90° 四相位）
+ *  滚动 progress → 转盘角 θ（顺时针一圈，四卡各经历一次日出日落，首尾闭合）
+ *  2026-08-14 书记设计指导落地：
+ *    - 地平线 = sticky 视窗最下端（不渲染视觉元素，卡片落到视窗底边即 opacity→0 消失）
+ *    - 进入/退出旋转：滚动进入章节时卡片线性旋转着进入（θ -45°→0°），sticky 固定瞬间卡①恰在正午；
+ *      退出时旋转着离开（θ 0°→+45°）
+ *    - 覆盖关系/数量/透明度：同时可见 3 张——正午 1 张 opacity 1 z 最高、左右侧卡 ≈0.5 半透明、地下 opacity 0
+ *  每张卡：位置沿环公转（translate x,y），卡片本身不旋转 → 文字始终正立；
+ *  亮度由「角度高度 angleH」决定（b = angleH^1.5——正午 1 全亮、侧卡 ≈0.35 半透明、地下 0 完全隐去），
+ *  地下判定 angleH<0.35；「3 太阳」模型——视窗内恒 3 张可见（正午+左右）+ 1 张地下隐去
+ *  亮度渲染 = opacity + scale + border-color + zIndex（filter 为最贵属性已移除）
+ *  【动/静自觉清单】（书记 2026-08-13 强调）
+ *   静：视窗（.ab-dialogue-flow/stage 容器尺寸，固定不缩放不平移；sticky 期间位置固定在 stickyTop）
+ *   静：卡片文字（不 rotate，文字始终正立）
+ *   静：地平线（= 视窗底边，无视觉元素，界定卡片消失线）
+ *   动：卡片（公转 θ + elevation 驱动 opacity/scale/border/zIndex）
+ *   动：滚动行程（.ab-dialogue-spacer 垫片——仅提供行程，无视觉元素，随页面滚动）
+ *  【稳态清单】
+ *   稳态：每阶段正午停留（PLATEAU 0.7，观看者感知「这是一步阶段」）+ 卡①正午锚点（sticky 固定瞬间）
+ *   非稳态：进入段/退出段线性旋转（流畅过渡，无阶梯停顿） */
 function bindDialogueScrollActivation() {
   const section = document.querySelector('.ab-dialogue-section');
   const cards = section ? section.querySelectorAll('.ab-dialogue-card') : [];
   if (!section || !cards.length) return;
 
-  // 三态目标值（与 CSS data-state 规则保持一致）
-  const FUTURE = { opacity: 0.38, saturate: 0.3, scale: 0.96 };
-  const CURRENT = { opacity: 1, saturate: 1, scale: 1.02 };
-  const PAST = { opacity: 0.72, saturate: 0.6, scale: 0.985 };
   const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
   const smooth = (t) => t * t * (3 - 2 * t);
   const lerp = (a, b, t) => a + (b - a) * t;
+  const DEG = Math.PI / 180;
+  // 阶梯停顿（书记 2026-08-13「静 + 卡片正午停留」）：每张卡转到正午（progress=i/4）停留，其余平滑过渡
+  // 2026-08-14 书记「动画不丝滑」：PLATEAU 0.75→0.70——停留仍可感知、过渡更长更柔（丝滑）
+  const stepwise = (p) => {
+    const x = p * 4;
+    const step = Math.floor(x);
+    const frac = x - step;
+    const PLATEAU = 0.7;
+    if (frac <= PLATEAU) return step / 4;
+    const t = (frac - PLATEAU) / (1 - PLATEAU);
+    return (step + smooth(t)) / 4;
+  };
 
   const apply = (progress) => {
-    const t = progress * cards.length; // 连续位置 0..N
+    const flow = section.querySelector('.ab-dialogue-flow');
+    // 2026-08-14 章头入视窗重构：环形舞台从 flow 分离为 .ab-dialogue-stage（方形），S 取舞台宽
+    const stage = flow ? flow.querySelector('.ab-dialogue-stage') : null;
+    const S = stage ? stage.clientWidth : 600;
+    // ⚠️ querySelectorAll 返回 NodeList（无 .map），须 Array.from 转数组（2026-08-14 复验抓到的致命 bug）
+    const maxCardH = cards.length ? Math.max(...Array.from(cards, c => c.offsetHeight)) : 240;
+    // 2026-08-14 T-247 环半径放宽（书记「半径非常充裕，不要有压力」）：
+    //   正午停留四卡 90° 间隔、相邻中心距 = 1.414R ≥ 卡宽 → 互不重叠；
+    //   R 允许正午卡超出 stage 顶进入 head 与 stage 间留白区（flow gap 56px 容纳「升起」感）
+    const cardW = 192; // 与 CSS .ab-dialogue-card width 一致（T-248 卡略窄）
+    // 2026-08-14 T-249 环内切舞台 + 空间给足：R 上限 0.5S、不溢出余量 121（gap 同步 121，正午卡升起恰到 head 底不遮副标题 p）
+    const R = Math.min(S * 0.5, Math.max(S / 2 - maxCardH / 2 + 121, cardW / 1.414));
+    // 四相位（间隔 90°，第 1 张卡初始在正午 -90°）：正午(顶)·日出(左)·地下(底)·日落(右)
+    // 屏幕坐标 y 向下，正角 = 顺时针；θ 递增即顺时针公转
+    const baseAngle = [-90, 180, 90, 0];
+    // 2026-08-14 进入/退出旋转（书记：旋转着进出 + sticky 固定瞬间卡①正午）：
+    //   progress<0 → 进入段线性旋转（θ -45°→0°）；sticky 固定瞬间 progress=0 → θ=0 → 卡①正午
+    //   0≤progress≤1 → 阶梯公转（每阶段正午停留）
+    //   progress>1 → 退出段线性旋转（θ 0°→+45°）
+    const theta = progress <= 0 ? progress * 360
+      : progress >= 1 ? 360 + (progress - 1) * 360
+      : stepwise(progress) * 360;
+
     cards.forEach((card, i) => {
-      const d = t - i;
-      // 点亮进度：进入本卡窗口时 future→current（前 60% 行程）
-      const lightFactor = d < 0 ? 0 : d < 0.6 ? smooth(d / 0.6) : 1;
-      // 渐隐进度：下一卡点亮后 current→past（本卡窗口 60% 之后再一卡行程内淡出）
-      const dimFactor = d < 1.6 ? 0 : d < 2.6 ? smooth((d - 1.6) / 1.0) : 1;
-      // 当前度（驱动 data-state 圆标与边框）
-      const currentFactor = lightFactor * (1 - dimFactor);
+      const rad = (baseAngle[i] + theta) * DEG;
+      const x = R * Math.cos(rad);
+      const y = R * Math.sin(rad);
+      const angleH = (1 - Math.sin(rad)) / 2;   // 角度高度：正午=1、侧卡=0.5、底部=0（与 R/S 无关，矮视口 R 压缩时鲁棒）
 
-      let opacity, saturate, scale;
-      if (dimFactor > 0) {
-        opacity = lerp(CURRENT.opacity, PAST.opacity, dimFactor);
-        saturate = lerp(CURRENT.saturate, PAST.saturate, dimFactor);
-        scale = lerp(CURRENT.scale, PAST.scale, dimFactor);
-      } else {
-        opacity = lerp(FUTURE.opacity, CURRENT.opacity, lightFactor);
-        saturate = lerp(FUTURE.saturate, CURRENT.saturate, lightFactor);
-        scale = lerp(FUTURE.scale, CURRENT.scale, lightFactor);
-      }
-
-      card.style.opacity = String(opacity);
-      card.style.filter = `saturate(${saturate})`;
-      card.style.transform = `scale(${scale})`;
-      if (currentFactor > 0.02) {
-        card.style.borderColor = `rgba(206, 17, 38, ${(currentFactor * 0.4).toFixed(3)})`;
-      } else {
+      // 定位：卡片中心对齐圆心（translate -50% -50%）+ 偏移到环上 (x,y)；不 rotate → 文字正立
+      if (angleH < 0.35) {
+        // 地下（环底部扇区）：彻底消失（书记裁决「消失的卡片也就消失了」）
+        card.style.transform = `translate(-50%, -50%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(0.92)`;
+        card.style.opacity = '0';
+        card.style.zIndex = '0';
         card.style.borderColor = '';
+        card.dataset.state = 'future';
+      } else {
+        // 2026-08-14 T-247 透明度 b = angleH^1.5（3 太阳模型，与 R/S 无关）：
+        //   正午 1 全亮、侧卡 0.5^1.5≈0.354 半透明、地下角度 <0.35 → 0 完全隐去；
+        //   zIndex 随亮度分层（正午卡最上、侧卡次之——正确的层级覆盖）
+        const b = Math.pow(angleH, 1.5);
+        const scale = lerp(0.92, 1.05, b);
+        card.style.transform = `translate(-50%, -50%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${scale.toFixed(3)})`;
+        card.style.opacity = String(b);
+        card.style.zIndex = String(Math.round(b * 10));
+        if (b > 0.6) {
+          card.style.borderColor = `rgba(206, 17, 38, ${(((b - 0.6) / 0.4) * 0.4).toFixed(3)})`;
+          card.dataset.state = 'current';
+        } else {
+          card.style.borderColor = '';
+          card.dataset.state = 'future';
+        }
       }
-      card.dataset.state = currentFactor > 0.35 ? 'current' : (dimFactor > 0 ? 'past' : 'future');
     });
   };
 
-  ScrollTrigger.create({
-    trigger: section,
-    start: 'top 72%',
-    end: 'bottom 55%',
-    onUpdate: (self) => apply(self.progress),
-  });
-
-  // 初始态：全部 future
-  apply(0);
-}
-
-/** 探索区分镜切换：活动→专班作为同一镜头的两个分镜（v5 五·乙 ①）
- *  专班场景进入时：活动网络退场（后拉压暗），专班网络以"光圈 + 横移"揭示（clip-path circle + scale）
- *  共享节点（组织者/深度参与者/组织委员）在两分镜各自呈现，形成"同镜换景"的转场锚点 */
-function bindExplorationStoryboardSwitch() {
-  const actNet = document.querySelector('.ab-exploration-scene[data-scene="activity"] .ab-exploration-network-sticky');
-  const taskScene = document.querySelector('.ab-exploration-scene[data-scene="taskforce"]');
-  const taskNet = taskScene && taskScene.querySelector('.ab-exploration-network-sticky');
-  if (!actNet || !taskNet) return;
-
-  // 活动分镜退场：后拉 + 压暗（与全页镜头交接语言一致）
-  // v5.1 同步修复：显式 fromTo brightness(1)→0.9，避免 from 态 brightness(0) 将活动网络压黑
-  gsap.fromTo(actNet,
-    { autoAlpha: 1, scale: 1, filter: 'brightness(1)' },
-    {
-      autoAlpha: 0.55, scale: 0.97, filter: 'brightness(0.9)',
-      ease: 'none',
-      scrollTrigger: {
-        trigger: taskScene,
-        start: 'top 85%',
-        end: 'top 30%',
-        scrub: true,
-        immediateRender: false,
-      },
+  // 2026-08-13 sticky 固定视窗（书记裁决）：flow 变 sticky——滚动时视窗固定，卡片在内公转 + 正午停留。
+  // progress 计算（2026-08-14 二轮根治「完全不转 + 起点跳变」，浏览器实测定位根因）：
+  //   不能用 flow 顶相对视口（sticky 期间它恒 = stickyTop，分子恒 0 → progress 恒 0）。
+  //   改为基于 parent 底相对视口 + 静态章头高度：
+  //     - headerH：静态章头高度（eyebrow/title/sub）。⚠️ Chrome 中 sticky 卡住期间 flow.offsetTop
+  //       返回的是视觉偏移（随滚动增长 559→1102），逐帧重读会让 startBottom ≡ parentRect.bottom、
+  //       traveled ≡ 0 → progress 恒 0 → 卡片完全不转（2026-08-14 真机验证实锤）。
+  //       修复：仅当 flow 未被卡住（顶 > stickyTop）或 resize 时才刷新 headerH（此时 offsetTop=静态布局值）。
+  //     - travelTotal = parentH - headerH - flowH：flow 顶从 stickyTop 滚到 parent 底推出的真实行程
+  //     - startBottom = stickyTop - headerH + parentH：sticky 刚卡住瞬间的 parent 底
+  //     - traveled = startBottom - parentRect.bottom；progress = clamp01(traveled / travelTotal)
+  //   全程线性，滚动任意路径（lenis/原生/跳转）都按真实几何计算，可逆。
+  let headerH = 0;
+  const refreshHeaderH = () => {
+    const flow = section.querySelector('.ab-dialogue-flow');
+    if (flow) headerH = flow.offsetTop;
+  };
+  refreshHeaderH();
+  const updateDialogue = () => {
+    const flow = section.querySelector('.ab-dialogue-flow');
+    if (!flow) return;
+    const parent = flow.parentElement;
+    const vh = window.innerHeight || 1;
+    const stickyTop = Math.max(96, Math.min(140, vh * 0.12)); // 与 CSS top 一致
+    const flowTop = flow.getBoundingClientRect().top;
+    // flow 未被 sticky 卡住时 offsetTop = 静态布局位置 → 顺带刷新 headerH（字体加载等布局变化自愈）
+    if (flowTop > stickyTop + 1) refreshHeaderH();
+    const parentRect = parent.getBoundingClientRect();
+    const flowH = flow.offsetHeight;
+    const parentH = parent.offsetHeight;
+    const travelTotal = parentH - headerH - flowH; // sticky 真实行程
+    if (travelTotal <= 0) return;
+    const startBottom = stickyTop - headerH + parentH; // sticky 开始时 parent 底
+    const traveled = startBottom - parentRect.bottom;
+    let progress;
+    if (flowTop > stickyTop) {
+      // 2026-08-14 进入段（书记「旋转着进入」）：flow 顶从视口底部滚到 stickyTop → progress -0.125→0，
+      // 卡片线性旋转进入；sticky 固定瞬间 progress=0 → θ=0 → 卡①恰在正午（锚定）
+      progress = clamp01((flowTop - stickyTop) / Math.max(1, vh - stickyTop)) * -0.125;
+    } else {
+      progress = clamp01(traveled / travelTotal);
+      if (progress >= 1) {
+        // 2026-08-14 退出段（书记「旋转着离开」）：flow 被推出后继续线性旋转 45°（progress 1→1.125）
+        const over = stickyTop + flowH - parentRect.bottom;
+        progress = 1 + (over > 0 ? clamp01(over / Math.max(1, vh)) * 0.125 : 0);
+      }
     }
-  );
+    apply(progress);
+  };
+  // 双保险 + rAF 节流（2026-08-14 性能：lenis.on 与 window scroll 同帧触发两次 → 每帧仅执行一次 apply）
+  let rafPending = false;
+  const scheduleUpdate = () => {
+    if (rafPending) return;
+    rafPending = true;
+    requestAnimationFrame(() => { rafPending = false; updateDialogue(); });
+  };
+  if (lenis) lenis.on('scroll', scheduleUpdate);
+  window.addEventListener('scroll', scheduleUpdate, { passive: true });
+  window.addEventListener('resize', () => { refreshHeaderH(); updateDialogue(); });
 
-  // 专班分镜揭示：光圈从中心展开 + 轻微横移落位
-  gsap.fromTo(taskNet,
-    { clipPath: 'circle(14% at 50% 40%)', scale: 0.94, autoAlpha: 0.35 },
-    {
-      clipPath: 'circle(135% at 50% 40%)', scale: 1, autoAlpha: 1,
-      ease: 'none',
-      immediateRender: false,
-      scrollTrigger: {
-        trigger: taskScene,
-        start: 'top 92%',
-        end: 'top 35%',
-        scrub: true,
-      },
-    }
-  );
-}
-
-/** 电影化滚动叙事统一入口（reduced-motion 下自动全部降级） */
-function bindCinematicScroll() {
-  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
-  gsap.registerPlugin(ScrollTrigger);
-
-  const mm = gsap.matchMedia();
-  mm.add('(prefers-reduced-motion: no-preference)', () => {
-    bindHeroExit();
-    const cleanupCamera = bindCameraFlow() || (() => {});
-    bindExplorationStoryboardSwitch();
-    bindDevelopmentScrollProgress();
-    bindDialogueScrollActivation();
-    return () => {
-      cleanupCamera();
-      ScrollTrigger.getAll().forEach(t => t.kill());
-    };
-  });
+  // 初始态：按当前位置计算（页面顶部时 = 0，θ=0 时日出在右上、日中在顶、日落在左上、地下在正下）
+  updateDialogue();
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -2214,19 +1566,52 @@ function initLazySlots() {
   if (!slots.length) return;
 
   const mountExploration = (slot) => {
-    slot.innerHTML = safe('Exploration', renderExploration);
-    // 探索区动画绑定（启动时元素缺失已无害返回，此处真实生效）
-    bindNetworkHover();
-    bindExplorationScrollDriven();
-    bindExplorationStoryboardSwitch();
-    // 补建 review↔exploration、exploration↔dialogue 镜头交接（WeakSet 守卫防重复）
-    bindCameraPairs(CAMERA_PAIRS);
-    // TOC 补观察探索章节（滚动高亮）
-    if (window._tocObserveExploration) window._tocObserveExploration();
+    // 2026-08-14 T-248 性能：两场景分片插入，长任务拆半；绑定与 refresh 移到全部就绪后
+    const scenesEl = document.createElement('div');
+    scenesEl.className = 'ab-exploration-scenes';
+    // 章节框架（页码/章头/sub 等，HTML 量小非长任务源）一次插入并承载场景容器，
+    // 保持原 renderExploration 的 section 结构等价（data-toc-id 高亮/页码/章节头不能丢）
+    slot.insertAdjacentHTML('beforeend', `
+      <section id="exploration" class="ab-page ab-network-section ab-exploration-section" data-toc-id="exploration">
+        <span class="ab-page-no">05</span>
+        <span class="ab-page-runner">第五章 · 工作流</span>
+        <div class="ab-chapter">
+          <div class="ab-chapter-eyebrow">工作流</div>
+          <h2 class="ab-chapter-title">工作流——谁在什么时候该去找谁？</h2>
+          <p class="ab-chapter-sub">有先例的，按工作流走<br/>没先例的，靠探索沉淀</p>
+        </div>
+      </section>
+    `);
+    slot.querySelector('.ab-chapter').appendChild(scenesEl);
+    slot.querySelector('.ab-chapter').insertAdjacentHTML('beforeend', `
+      <p class="ab-exploration-coda">
+        程序在所有人之上，所以扁平；书记因更大的责任嵌入更深，所以集中——扁平与集中，统一于程序。
+      </p>
+    `);
+    scenesEl.insertAdjacentHTML('beforeend', safe('Exploration1', () => renderSceneFragment(ACTIVITY_SCENE)));
+    requestAnimationFrame(() => {
+      scenesEl.insertAdjacentHTML('beforeend', safe('Exploration2', () => renderSceneFragment(TASKFORCE_SCENE)));
+      // 探索区动画绑定（启动时元素缺失已无害返回，此处真实生效）
+      bindExplorationScrollDriven();
+      // TOC 补观察探索章节（滚动高亮）
+      if (window._tocObserveExploration) window._tocObserveExploration();
+    });
   };
 
-  if (!('IntersectionObserver' in window)) {
-    // 降级：直接渲染
+  // 2026-08-14 修复「章节切换卡壳」：懒渲染由「滚动接近时触发」改为「空闲预渲染」优先——
+  // 原实现滚动到探索区边界才插入约 4000px HTML + ScrollTrigger.refresh（实测一次性 3.3s 长任务，
+  // 章节切换明显卡壳）。requestIdleCallback 在页面加载后主线程空闲时后台渲染，滚动到探索区时已就绪；
+  // IntersectionObserver 降级为兜底（idle 未执行且用户已滚动接近时触发）
+  let mounted = false;
+  const mountAll = () => {
+    if (mounted) return;
+    mounted = true;
+    slots.forEach(mountExploration);
+  };
+
+  if (typeof requestIdleCallback === 'function') {
+    requestIdleCallback(mountAll, { timeout: 3000 });
+  } else {
     slots.forEach(mountExploration);
     return;
   }
@@ -2234,10 +1619,10 @@ function initLazySlots() {
   const io = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) return;
-      io.unobserve(entry.target);
-      mountExploration(entry.target);
+      io.disconnect();
+      mountAll();
     });
-  }, { rootMargin: '600px 0px' }); // 提前 600px 触发，滚动到探索区前已渲染
+  }, { rootMargin: '600px 0px' }); // 兜底：idle 未执行但用户已滚动接近
   slots.forEach(slot => io.observe(slot));
 }
 
@@ -2245,11 +1630,9 @@ renderAboutContent();
 bindTimelineToggle();
 bindLenis();
 bindTOC();
-bindPageAnimations();
-bindNetworkHover();
 bindExplorationScrollDriven();
+bindDialogueScrollActivation();
 initLazySlots();
-bindCinematicScroll();
-// 粒子背景仅保留 hero（终章粒子已移除——减负：粒子 rAF 循环 2→1，终章以大字收束为主）
+// 粒子背景仅保留 hero（终章以大字收束为主，减负单 rAF 循环）
 const heroCanvas = document.querySelector('.ab-hero-section .ab-particle-canvas');
 if (heroCanvas) initParticleCanvas(heroCanvas);

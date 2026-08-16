@@ -415,7 +415,7 @@ assignedRoles: Array<{
 | 考勤数据 | 组长·组织者上传 / 纪检一体 | 纪检确认 → 考勤总表 | 组织/宣传只读同源 |
 | 工作考察记录 | 组长·组织者上传 | 纪检确认 → 考察总表 | 组织委员建档 |
 | 专班考察 | 专班负责人 / 组织委员 | 纪检确认 → 考察总表 | 组织委员建档 |
-| 宣传材料 | 宣传委员拍摄 / 深度参与者素材 | 宣传委员归档 | 产出物查看区 |
+| 宣传材料 | 宣传委员拍摄 / 组织者打包提交（深度参与者素材） | 宣传委员归档 | 产出物查看区 |
 | 复盘总结 | 组织者 | 纪检批注/确认 | 活动关闭前置 |
 | 专班工作量 | 专班成员 | 系统自动记录 | 解散报告 → 个人档案 |
 | 思想汇报 | 党员本人 | 组织委员归档 | 个人档案（不经纪检/宣传） |
@@ -599,7 +599,7 @@ assignedRoles: Array<{
 | 状态名 | 中文标签 | 所属阶段 | 可编辑 | 超时(h) |
 |---|---|---|---|---|
 | DRAFT | 草稿 | 策划 | 是 | 168 (短期) / 336 (长期) |
-| PENDING_LEADER | 待党小组组长审批 | 审批 | 否 | 48 (短期) / 96 (长期) |
+| PENDING_EXPANDED | 待支委扩大会讨论 | 审批 | 否 | 48 (短期) / 96 (长期) |
 | APPROVED | 已审批 | 审批 | 是 | 72 (短期) / 168 (长期) |
 | PREPARING | 筹备中 | 筹备 | 是 | 72 |
 | IN_PROGRESS | 进行中 | 实施 | 是 | 36 |
@@ -668,7 +668,7 @@ assignedRoles: Array<{
 
 **派生显示状态**（UI 层派生，数据层不存储，实现 `deriveIssueDisplayState`）：`开放中` → `已指派`（有 assignee）→ `待终审`（resultPending 或已有 result 评论）→ `已关闭`。
 
-> **书记处置权设计**（2026-08-09 P-015 重写联动，倒写自 issues.js）——意见反馈处置权归书记独有：全员可参与开源讨论（issue.create / comment.add / reaction.toggle / mention / reference），但处置动作仅书记可执行，类比 GitHub maintainer 唯一拥有 merge/close 权（详见 [insights §2.2](../../insights/党支部管理与实务经验沉淀.md) D-244/T105 与 [COMMISSIONER_FRAMEWORK §C.1b](../02_institution/COMMISSIONER_FRAMEWORK.md) 党课/意见反馈规则）。这是 P-015 组织内控总论"书记仲裁"防线的落点。
+> **书记处置权设计**（2026-08-09 P-011 重写联动，倒写自 issues.js）——意见反馈处置权归书记独有：全员可参与开源讨论（issue.create / comment.add / reaction.toggle / mention / reference），但处置动作仅书记可执行，类比 GitHub maintainer 唯一拥有 merge/close 权（详见 [insights §2.2](../../insights/党支部管理与实务经验沉淀.md) D-244/T105 与 [COMMISSIONER_FRAMEWORK §C.1b](../02_institution/COMMISSIONER_FRAMEWORK.md) 党课/意见反馈规则）。这是 P-011 组织内控总论"书记仲裁"防线的落点。
 
 | 处置动作 | 接口 | 说明 |
 |---|---|---|

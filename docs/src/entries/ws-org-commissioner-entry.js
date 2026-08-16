@@ -1,9 +1,9 @@
-﻿﻿﻿﻿﻿import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260812d';
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260812d';
 import { BranchService } from '../services/runtime.js?v=20260812d';
 import { showToast, flashHighlight } from '../core/utils.js?v=20260812d';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260812d';
 import { AuthStore } from '../services/auth.js?v=20260812d';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260812d';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260812f';
 import { solidAccentStyle, accDarkVars } from '../core/constants.js?v=20260812d';
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260812d';
 import { PersonPicker } from '../components/person-picker.js?v=20260812d';

@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  renderer.js — 工作流可视化渲染器 v1.0
 //  依赖 engine.js + definitions.js
@@ -265,6 +265,8 @@ class WorkflowRenderer {
       'leader':           '党小组组长',
       'organizer':        '组织者',
       'secretary':        '书记',
+      'committee':        '支委会',
+      'expanded-committee': '支委扩大会',
       'global':           '全局管理员',
     };
     return map[roleKey] || roleKey;
@@ -318,14 +320,14 @@ const MOCK_OPERATORS = ['韩思宁', '侯嘉嵘', '闫鑫岳', '王奕铭', '系
 const MOCK_EVENT_CHAINS = {
   'theme-party-day': [
     { type: 'INIT', target: 'DRAFT' },
-    { type: 'SUBMIT', target: 'PENDING_LEADER' },
+    { type: 'SUBMIT', target: 'PENDING_EXPANDED' },
     { type: 'APPROVE', target: 'APPROVED' },
     { type: 'SUBMIT', target: 'PREPARING' },
     { type: 'SUBMIT', target: 'IN_PROGRESS' },
   ],
   'short-term': [
     { type: 'INIT', target: 'DRAFT' },
-    { type: 'SUBMIT', target: 'PENDING_LEADER' },
+    { type: 'SUBMIT', target: 'PENDING_EXPANDED' },
     { type: 'APPROVE', target: 'APPROVED' },
     { type: 'SUBMIT', target: 'PREPARING' },
     { type: 'SUBMIT', target: 'IN_PROGRESS' },
@@ -334,7 +336,7 @@ const MOCK_EVENT_CHAINS = {
   ],
   'long-term': [
     { type: 'INIT', target: 'DRAFT' },
-    { type: 'SUBMIT', target: 'PENDING_LEADER' },
+    { type: 'SUBMIT', target: 'PENDING_EXPANDED' },
     { type: 'APPROVE', target: 'APPROVED' },
     { type: 'SUBMIT', target: 'GROUP_FORMING' },
     { type: 'SUBMIT', target: 'IN_PROGRESS' },

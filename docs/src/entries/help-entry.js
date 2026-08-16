@@ -1,12 +1,14 @@
-﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // help-entry.js — 帮助页入口（系统说明书）
 
-import { renderSidebar } from '../components/sidebar.js?v=20260812d';
-import { renderHeader } from '../components/header.js?v=20260812d';
+import { renderSidebar } from '../components/sidebar.js?v=20260812f';
+import { renderHeader } from '../components/header.js?v=20260812f';
 import { renderRoleHierarchy } from '../components/role-hierarchy.js?v=20260812d';
 
-renderSidebar('help');
-renderHeader('help');
+// 静态壳模式（2026-08-12）：help 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
+// 仅渲染共享侧边栏/顶栏壳；通知铃首次点击时才按需加载通知模块。
+renderSidebar('help', { staticShell: true });
+renderHeader('help', { staticShell: true });
 renderRoleHierarchy('role-hierarchy-container');
 
 // ── 右侧圆点目录（参考关于页 .help-toc-nav）──

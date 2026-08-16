@@ -160,10 +160,10 @@ dynamic_role:
 |---------|-------------|------|------|
 | docs/index.html | 2026-07-31 | [用户]+[AI] | 首页入口（含日历） |
 | docs/login.html | 2026-07-31 | [用户]+[AI] | 登录页 |
-| docs/about.html | 2026-08-03 | [用户]+[AI] | 关于页（支部的故事） |
+| docs/about.html | 2026-08-12 | [用户]+[AI] | 关于页（支部的故事；静态壳模式 + about.css 独立引用） |
 | docs/archive.html | 2026-07-31 | [用户]+[AI] | 归档页 |
 | docs/feedback.html | 2026-07-31 | [用户]+[AI] | 反馈页 |
-| docs/help.html | 2026-08-03 | [用户]+[AI] | 帮助页（系统说明书） |
+| docs/help.html | 2026-08-12 | [用户]+[AI] | 帮助页（系统说明书；静态壳模式） |
 | docs/notice.html | 2026-07-31 | [用户]+[AI] | 通知页 |
 | docs/search.html | 2026-07-31 | [用户]+[AI] | 搜索页 |
 | docs/workspace/secretary.html | 2026-07-31 | [用户]+[AI] | 书记工作台 |
@@ -177,11 +177,12 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| docs/src/core/bootstrap.js | 2026-08-06 | [工程师]+[AI] | 引导启动（主题色 resolveAccentRole） |
+| docs/src/core/bootstrap.js | 2026-08-12 | [工程师]+[AI] | 引导启动（主题色 resolveAccentRole；header/sidebar 版本引用） |
 | docs/src/core/constants.js | 2026-08-06 | [工程师]+[AI] | 静态常量（ACCENT_PALETTE/resolveAccentRole） |
 | docs/src/core/cross-page-state.js | 2026-07-31 | [工程师]+[AI] | 跨页状态 |
 | docs/src/core/data-loader.js | 2026-07-31 | [工程师]+[AI] | 数据加载 |
 | docs/src/core/data-adapter.js | 2026-08-03 | [工程师]+[AI] | 数据适配器（setDataSource/init/persist） |
+| docs/src/core/login-snapshot.js | 2026-08-12 | [工程师]+[AI] | 登录快照轻量读取（零依赖，静态页登录态感知壳用） |
 | docs/src/core/api-adapter.js | 2026-08-03 | [工程师]+[AI] | API 模式适配器（10 资源 + snapshot） |
 | docs/src/core/mock-adapter.js | 2026-08-03 | [工程师]+[AI] | Mock 模式适配器（restoreNicheCollections） |
 | docs/src/core/domain.js | 2026-07-31 | [工程师]+[AI] | 领域模型 |
@@ -194,8 +195,8 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| docs/src/components/header.js | 2026-08-06 | [工程师]+[AI] | 页头组件（未读角标/主题色标签） |
-| docs/src/components/sidebar.js | 2026-08-06 | [工程师]+[AI] | 侧边栏组件（字号+主题色设置） |
+| docs/src/components/header.js | 2026-08-12 | [工程师]+[AI] | 页头组件（未读角标/主题色标签；数据层按需加载 + staticShell） |
+| docs/src/components/sidebar.js | 2026-08-12 | [工程师]+[AI] | 侧边栏组件（字号+主题色设置；AuthStore 按需加载 + staticShell） |
 | docs/src/components/calendar.js | 2026-08-06 | [工程师]+[AI] | 日历组件 |
 | docs/src/components/inspector.js | 2026-08-06 | [工程师]+[AI] | 检查器组件（产出物区/分类型关闭条件） |
 | docs/src/components/modal.js | 2026-07-31 | [工程师]+[AI] | 模态框组件 |
@@ -219,10 +220,10 @@ dynamic_role:
 |---------|-------------|------|------|
 | docs/src/entries/main-entry.js | 2026-07-31 | [工程师]+[AI] | 首页入口（含日历+通知待办） |
 | docs/src/entries/login-entry.js | 2026-08-06 | [工程师]+[AI] | 登录页入口（按钮主 CTA 档） |
-| docs/src/entries/about-entry.js | 2026-08-03 | [工程师]+[AI] | 关于页入口（支部的故事） |
+| docs/src/entries/about-entry.js | 2026-08-12 | [工程师]+[AI] | 关于页入口（支部的故事；静态壳 + 死代码清理） |
 | docs/src/entries/archive-entry.js | 2026-08-06 | [工程师]+[AI] | 归档页入口 |
 | docs/src/entries/feedback-entry.js | 2026-07-31 | [工程师]+[AI] | 反馈页入口 |
-| docs/src/entries/help-entry.js | 2026-08-03 | [工程师]+[AI] | 帮助页入口（系统说明书） |
+| docs/src/entries/help-entry.js | 2026-08-12 | [工程师]+[AI] | 帮助页入口（系统说明书；静态壳模式） |
 | docs/src/entries/notice-entry.js | 2026-08-06 | [工程师]+[AI] | 通知页入口 |
 | docs/src/entries/search-entry.js | 2026-07-31 | [工程师]+[AI] | 搜索页入口 |
 | docs/src/entries/workspace-entry.js | 2026-07-31 | [工程师]+[AI] | 🗑️ 已删除（2026-08 P0 死模块清理） |
@@ -293,7 +294,8 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| docs/src/styles.css | 2026-08-06 | [工程师]+[AI] | 全局样式（D3 深色主题/按钮四档/主题色选择器） |
+| docs/src/styles.css | 2026-08-12 | [工程师]+[AI] | 全局样式（D3 深色主题/按钮四档/主题色选择器；ab-* 拆出至 about.css） |
+| docs/src/about.css | 2026-08-12 | [工程师]+[AI] | 关于页独立样式表（ab-* 内容区 + 南西油墨宋 @font-face + Tailwind 最小兜底，about.html 独占引用） |
 | docs/src/config/branch.json | 2026-07-31 | [工程师]+[AI] | 分支配置 |
 
 ### docs/ 其他

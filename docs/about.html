@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   
@@ -21,16 +21,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet"></noscript>
-  <!-- 南西油墨宋 woff2 preload（关键展示字体：hero/章节/终章大字，避免换字闪动） -->
-  <link rel="preload" href="./assets/fonts/nanxi-youmosong-subset.woff2" as="font" type="font/woff2" crossorigin>
-  <!-- Tailwind Play CDN 已移除（减负：运行时编译 ~93KB 同步阻塞 + 官方 not-for-production 警告；about 页内容区为自定义 ab-* 类，仅 header/sidebar 少量工具类由 styles.css「Tailwind 最小兜底」承接） -->
-  <link rel="stylesheet" href="./src/styles.css?v=20260812d">
+  <!-- 2026-08-14 去 Tailwind Play CDN（约 380KB 同步 JS + CDN 往返，阻塞解析）：
+       about 页骨架/header/sidebar 所用少量工具类已由 about.css「Tailwind 最小兜底」+ styles.css 兜底覆盖 -->
+  <!-- 南西油墨宋：@font-face 加载子集包（字体源见 about.css 头部注释）。
+       2026-08-14 书记裁决「允许字体缓慢加载」：不 preload（避免 900KB 抢首屏带宽/阻塞首屏），
+       font-display:swap 保证文本先用回退字体渲染、字体就绪即换——字体不是加载慢的原因 -->
+  <link rel="stylesheet" href="./src/styles.css?v=20260814n">
+  <link rel="stylesheet" href="./src/about.css?v=20260814s">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- GSAP 本地化（减负：消除 CDN 网络往返，about 页动画依赖本地 vendor） -->
-  <script src="./assets/vendor/gsap.min.js" defer></script>
-  <script src="./assets/vendor/ScrollTrigger.min.js" defer></script>
+  <!-- 2026-08-14 T-249 规避 GSAP：动画全部改 CSS animation-timeline: view() + 原生 JS 驱动，
+       已删除 gsap.min.js/ScrollTrigger.min.js vendor 引用（书记裁决「gsap 是最大的害群之马」） -->
   <!-- Lenis 平滑滚动（业界成熟经验：滚轮输入→带惯性缓动的滚动位置；快滑有惯性、慢滑精确，scroll 事件每帧触发） -->
   <link rel="stylesheet" href="./assets/vendor/lenis.css">
   <script src="./assets/vendor/lenis.min.js" defer></script>
@@ -47,6 +49,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/about-entry.js?v=20260812d"></script>
+<script type="module" src="./src/entries/about-entry.js?v=20260814s"></script>
 </body>
 </html>

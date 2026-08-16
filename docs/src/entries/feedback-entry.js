@@ -1,8 +1,8 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // feedback-entry.js — 意见反馈入口（GitHub Issue 风格）
 
-import { renderSidebar } from '../components/sidebar.js?v=20260812d';
-import { renderHeader } from '../components/header.js?v=20260812d';
+import { renderSidebar } from '../components/sidebar.js?v=20260812f';
+import { renderHeader } from '../components/header.js?v=20260812f';
 import { IssueStore } from '../services/issues.js?v=20260812d';
 import { MilestoneStore } from '../services/milestones.js?v=20260812d';
 import { showToast } from '../core/utils.js?v=20260812d';

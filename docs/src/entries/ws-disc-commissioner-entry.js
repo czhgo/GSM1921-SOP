@@ -1,7 +1,7 @@
-﻿﻿﻿﻿﻿﻿﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260812a';
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿import { setState, registerRenderCallback } from '../core/state.js?v=20260812a';
 import { showToast } from '../core/utils.js?v=20260812a';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260812a';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260812a';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260812f';
 import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, ReviewStatus, SourceType, OutputType, deriveOutputRoute } from '../core/domain.js?v=20260812a';
 import { solidAccentStyle } from '../core/constants.js?v=20260812a';
 import { persist } from '../core/data-adapter.js?v=20260812a';

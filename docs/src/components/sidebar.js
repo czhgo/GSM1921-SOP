@@ -1,16 +1,33 @@
-﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // components/sidebar.js — 共享侧边栏（角色单页制 v2）
 // 2026-07-29: 角色单页制重构——合并党建/党务为"工作台"单入口
 // - 移除 '党务管理' / '人员管理' 独立入口
 // - '党建工作台' → '工作台'（角色自适应跳转）
 // - 帮助/关于移入主导航区
 
-import { AuthStore } from '../services/auth.js?v=20260812d';
-import { getBasePath } from '../core/utils.js?v=20260812d';
-import { icon } from '../core/icons.js?v=20260812d';
-import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260812d';
-import { bindWorkspacePopover } from './workspace-popover.js?v=20260812d';
-import { getThemePreference, setThemePreference, initTheme } from '../core/theme.js?v=20260812d';
+import { getBasePath } from '../core/utils.js?v=20260812f';
+import { icon } from '../core/icons.js?v=20260812f';
+import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260812f';
+import { getThemePreference, setThemePreference, initTheme } from '../core/theme.js?v=20260812f';
+import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260812f';
+
+// ── 数据层按需加载（静态页隔离，2026-08-12）──
+// about/help 等纯静态文档页以 staticShell 渲染侧边栏：不预加载 auth 数据链
+// （auth→runtime→mock→domain 全量约 50 模块）。但登录态感知——已登录用户
+// （从 app 页跳转过来）需看到完整壳（工作台入口/退出登录/身份主题色），
+// 通过 readLoginSnapshot() 轻量读快照判断，确已登录才动态加载 auth 完善壳。
+// 动态 import 沿用与原静态 import 相同的版本号 → 与全站其他引用共享同一模块实例。
+let AuthStore = null;
+let _authModule = null;
+let _popoverModule = null;
+function loadAuth() {
+  if (!_authModule) _authModule = import('../services/auth.js?v=20260812d');
+  return _authModule;
+}
+function loadPopover() {
+  if (!_popoverModule) _popoverModule = import('./workspace-popover.js?v=20260812d');
+  return _popoverModule;
+}
 
 function getNavItems() {
   const base = getBasePath();
@@ -31,11 +48,30 @@ function getFooterItems() {
   ];
 }
 
-export function renderSidebar(activeModule) {
+export async function renderSidebar(activeModule, opts = {}) {
   const sidebar = document.getElementById('app-sidebar');
   if (!sidebar) return;
 
-  const user = AuthStore.getCurrentUser();
+  const staticShell = !!opts.staticShell;
+
+  // 登录态感知壳：静态页轻量读快照（零依赖）——已登录才动态加载 auth 完善壳；
+  // app 模式按需加载 auth 后按当前用户渲染（模块缓存后即时）
+  if (staticShell) {
+    if (readLoginSnapshot()) {
+      try {
+        ({ AuthStore } = await loadAuth());
+      } catch (e) {
+        console.warn('[sidebar] auth 加载失败，降级为访客壳', e);
+      }
+    }
+  } else {
+    try {
+      ({ AuthStore } = await loadAuth());
+    } catch (e) {
+      console.warn('[sidebar] auth 加载失败，降级为访客壳', e);
+    }
+  }
+  const user = AuthStore ? AuthStore.getCurrentUser() : null;
   // 使用常设角色（非 effective role）决定导航结构
   const role = user ? AuthStore.getUserRole(user.personId) : '';
 
@@ -77,6 +113,13 @@ export function renderSidebar(activeModule) {
   const effAccentHex = ACCENT_PALETTE.find(c => c.key === effAccentKey)?.hex || ACCENT_COLORS[effAccentKey]?.hex || '#B91C1C';
   const effAccentLabel = ACCENT_PALETTE.find(c => c.key === effAccentKey)?.label || '红';
 
+  // 访客壳（静态页/未登录）不显示退出登录按钮
+  const logoutHTML = user ? `
+      <button id="sidebar-logout" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-400);cursor:pointer;border:none;background:none;">
+        ${icon('logout', { stroke: 'var(--neutral-400)' })}
+        <span>退出登录</span>
+      </button>` : '';
+
   sidebar.innerHTML = `
     <nav class="sidebar-nav">
       <div class="flex flex-col gap-2 mb-2">${navHTML}</div>
@@ -95,18 +138,19 @@ export function renderSidebar(activeModule) {
         <button id="theme-dark" class="theme-btn ${_currentTheme() === 'dark' ? 'active' : ''}" title="深色模式">${icon('moon', { className: 'w-3 h-3' })}</button>
         <button id="sidebar-accent-swatch" class="accent-swatch ml-auto" style="background:${effAccentHex}" data-label="主题：${effAccentLabel}" title="主题：${effAccentLabel}（点击更换）"></button>
       </div>
-      <button id="sidebar-logout" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-400);cursor:pointer;border:none;background:none;">
-        ${icon('logout', { stroke: 'var(--neutral-400)' })}
-        <span>退出登录</span>
-      </button>
+      ${logoutHTML}
     </div>
   `;
 
-  _bindLogout(sidebar);
+  if (user) _bindLogout(sidebar);
   _bindFontSizeToggle(sidebar);
   _bindThemeToggle(sidebar);
   _bindAccentToggle(sidebar);
-  bindWorkspacePopover(sidebar);
+
+  // 工作台多身份浮窗：仅 app 模式按需加载绑定（静态壳无 data-workspace-popover 元素，无需绑定）
+  if (!staticShell && user) {
+    loadPopover().then(({ bindWorkspacePopover }) => bindWorkspacePopover(sidebar)).catch(() => {});
+  }
 }
 
 function _currentTheme() {
@@ -170,6 +214,8 @@ function _bindFontSizeToggle(sidebar) {
 
 // ── 主题色切换（书记指令 2026-08-06：侧边栏设置，全站强调色个性化）──
 function _currentAccentKey() {
+  // 访客壳/静态页：AuthStore 未加载 → 默认角色强调色
+  if (!AuthStore) return resolveAccentRole('');
   const user = AuthStore.getCurrentUser();
   const role = user ? AuthStore.getUserRole(user.personId) : '';
   return resolveAccentRole(role);

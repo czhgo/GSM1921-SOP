@@ -1,11 +1,11 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // bootstrap.js — 页面初始化统一入口（重构版）
 // 变化: 去掉 ViewModeStore/CrossPageState/setActiveRole，改为基于 getCurrentUser() 的登录检查
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../components/sidebar.js?v=20260812d';
-import { renderHeader } from '../components/header.js?v=20260812d';
+import { renderSidebar } from '../components/sidebar.js?v=20260812f';
+import { renderHeader } from '../components/header.js?v=20260812f';
 import { AuthStore } from '../services/auth.js?v=20260812d';
 import { IssueStore } from '../services/issues.js?v=20260812d';
 import { MilestoneStore } from '../services/milestones.js?v=20260812d';

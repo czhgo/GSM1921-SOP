@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿import { renderTabBar } from '../components/tab-bar.js?v=20260812d';
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿import { renderTabBar } from '../components/tab-bar.js?v=20260812d';
 import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260812d';
 import { renderWorkOverview } from '../components/work-overview.js?v=20260812d';
 import { AuthStore } from '../services/auth.js?v=20260812d';
@@ -6,7 +6,7 @@ import { getAppState, setState, registerRenderCallback } from '../core/state.js?
 import { BranchService, isApiMode } from '../services/runtime.js?v=20260812d';
 import { showToast, flashHighlight } from '../core/utils.js?v=20260812d';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260812d';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260812d';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260812f';
 import { solidAccentStyle } from '../core/constants.js?v=20260812d';
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260812d';
 import { _personName } from '../mock/index.js?v=20260812d';

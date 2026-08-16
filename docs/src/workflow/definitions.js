@@ -12,14 +12,14 @@
 const DRAFT = (timeoutHours = 168) => ({
   name: 'DRAFT',
   label: '草稿',
-  allowedTransitions: ['PENDING_LEADER'],
+  allowedTransitions: ['PENDING_EXPANDED'],
   timeoutHours,
   metadata: { phase: '策划', editable: true },
 });
 
-const PENDING_LEADER = (timeoutHours = 48) => ({
-  name: 'PENDING_LEADER',
-  label: '待党小组组长审批',
+const PENDING_EXPANDED = (timeoutHours = 48) => ({
+  name: 'PENDING_EXPANDED',
+  label: '待支委扩大会讨论',
   allowedTransitions: ['APPROVED', 'DRAFT'],
   timeoutHours,
   metadata: { phase: '审批', editable: false },
@@ -201,13 +201,13 @@ export const THEME_PARTY_DAY_DEFINITION = {
       },
     },
     {
-      ...PENDING_LEADER(48),
+      ...PENDING_EXPANDED(48),
       metadata: {
         phase: '审批',
         sopTaskId: '1b-2',
-        sopTaskTitle: '党小组组长审批',
-        sopExecutor: 'leader',
-        sopDesc: '必须报党小组组长审批同意后方可推进。',
+        sopTaskTitle: '支委扩大会讨论',
+        sopExecutor: 'expanded-committee',
+        sopDesc: '党小组组长汇集活动信息，交支委扩大会讨论研究（线上或线下），讨论通过后方可推进。',
       },
     },
     {
@@ -287,7 +287,7 @@ export const SHORT_TERM_DEFINITION = {
   initialState: 'DRAFT',
   states: [
     DRAFT(168),
-    PENDING_LEADER(48),
+    PENDING_EXPANDED(48),
     APPROVED(72),
     PREPARING(72),
     IN_PROGRESS(),
@@ -314,7 +314,7 @@ export const LONG_TERM_DEFINITION = {
       metadata: { note: '长期活动策划周期更长，需考虑活动小组拆分方案和组织者人选' },
     },
     {
-      ...PENDING_LEADER(96),
+      ...PENDING_EXPANDED(96),
       metadata: { note: '长期活动审批需评估资源投入和持续性' },
     },
     {

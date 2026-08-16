@@ -1,7 +1,7 @@
-﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  visibility.js — 谁应该看谁（全员可见性矩阵）
-//  依据 P-015 知情边界（content/01_strategy/SECRETARY_PRONOUNCEMENTS.md）：
+//  依据 P-011 知情边界（content/01_strategy/SECRETARY_PRONOUNCEMENTS.md）：
 //    "能赋权的人，才能看对应条线的在办（L1 条线视角）"
 //    "任何角色的信息可见范围，应精确等于其职责空间所需的最小充分信息"
 //    L0 个人视角（自己）/ L1 条线视角（上级看下级的条线在办）/ L2 全局视角（书记看全部）
@@ -50,7 +50,7 @@ export const DIMENSION_LABELS = {
 //    []                  — 无下级条线（仅 L0 自我）
 //  说明：
 //    - 纪检委员 view_all 的数据权限（看所有活动含考勤考察）→ 人的视图投影为
-//      全员 × [attendance, inspection]，不含在办/汇报（防止知情过载，P-015）。
+//      全员 × [attendance, inspection]，不含在办/汇报（防止知情过载，P-011）。
 //    - 组织委员通过 AUTHORIZE_CHAIN（organizer/deep）看专班条线，维度仅 taskforce。
 //    - 宣传委员无赋权链、无考勤考察职责 → 仅 L0 自我。
 //    - organizer/deep 为项目角色，见 PROJECT_VISIBILITY（项目作用域内）。
