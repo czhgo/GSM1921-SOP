@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // entries/tabs/secretary/feedback-tab.js — 书记工作台·反馈管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。

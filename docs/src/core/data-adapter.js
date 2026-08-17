@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  data-adapter.js — 数据访问抽象层 (Data Access Abstraction)
 //  T-142 阶段2：写穿透缓存模式（Write-Through Cache）

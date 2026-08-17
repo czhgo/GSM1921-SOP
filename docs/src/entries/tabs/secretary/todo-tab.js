@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // entries/tabs/secretary/todo-tab.js — 书记工作台·待办 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：按 tab 代码分割，首屏只加载默认 tab。
 // 2026-08-07 T232：改为「动态聚合 + 复核确认面板」——SecretaryTodoDeriver.computeAggregates()

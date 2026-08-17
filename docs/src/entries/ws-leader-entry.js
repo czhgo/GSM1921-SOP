@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿import { renderTabBar } from '../components/tab-bar.js?v=20260812a';
+import { renderTabBar } from '../components/tab-bar.js?v=20260812a';
 import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260812a';
 import { renderReportInboxHtml, bindReportInbox } from '../components/report-inbox.js?v=20260812a';
 import { renderWorkOverview } from '../components/work-overview.js?v=20260812a';

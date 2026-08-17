@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  visibility.js — 谁应该看谁（全员可见性矩阵）
 //  依据 P-011 知情边界（content/01_strategy/SECRETARY_PRONOUNCEMENTS.md）：

@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿import { renderTabBar } from '../components/tab-bar.js?v=20260812d';
+import { renderTabBar } from '../components/tab-bar.js?v=20260812d';
 import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260812d';
 import { renderWorkOverview } from '../components/work-overview.js?v=20260812d';
 import { AuthStore } from '../services/auth.js?v=20260812d';

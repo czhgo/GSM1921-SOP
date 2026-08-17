@@ -1,4 +1,4 @@
-﻿﻿﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // activity-view.js — 只读活动查看组件（知情权组件，书记 2026-08-08 裁定）
 // 供无活动 tab 的工作台（组织委员/宣传委员等）承载 activityId / view=activities 跳转落点：
 // 日历视图（复用 calendar.js 渲染引擎）+ 只读活动详情（点击日历条目）。

@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿import { ACTIVITIES } from './activities.js?v=20260812a';
+import { ACTIVITIES } from './activities.js?v=20260812a';
 import { PEOPLE } from './people.js?v=20260812a';
 
 // ════════════════════════════════════════════════════════════════

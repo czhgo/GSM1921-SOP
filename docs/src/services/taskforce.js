@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  service.taskforce.js — 专班数据模型
 //  提供 TaskForceRecordStore：专班的 CRUD + mockDB 持久化

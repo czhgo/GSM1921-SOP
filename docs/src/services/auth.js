@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // services/auth.js — 权限系统（重构版）
 // 设计文档: docs/superpowers/specs/2026-07-12-permission-system-redesign-design.md
 //

@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  activity.js — 活动数据 CRUD 同步服务
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback

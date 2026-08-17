@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // reactions.js — Issue 表态聚合组件
 
 import { IssueStore } from '../services/issues.js?v=20260812d';

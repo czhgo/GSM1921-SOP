@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  component.share-button.js — 详情页复制链接组件
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，

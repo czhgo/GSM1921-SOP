@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  component.signup-panel.js — 报名面板组件（T233 报名渠道）
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
