@@ -132,8 +132,8 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 
 子目录默认继承父目录的角色标记，除非子目录内文件显式声明不同角色：
 
-- 父目录 `content/01_strategy/references/` → 其下子目录继承 `[用户]` 角色（`合规文件/`）；模板类归 `content/03_doc_system/工作模板/` = `[用户]+[AI]`
-- 父目录 `content/02_institution/sop/` = `[用户]+[AI]` → 其下子目录均继承 `[用户]+[AI]` 角色
+- 父目录 `content/01_strategy/references/` → 其下子目录继承 `[用户]` 角色（`合规文件/`）；模板类归 `content/03_doc_system/工作模板/` 即 `[用户]+[AI]`
+- 父目录 `content/02_institution/sop/` 即 `[用户]+[AI]` → 其下子目录均继承 `[用户]+[AI]` 角色
 - **例外规则**：若子目录中某文件显式在 Front Matter 中声明不同 `role`，则覆盖继承规则
 
 ---
@@ -250,7 +250,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 
 ### 9b. 常设角色权限矩阵（6 角色 × 16 操作）
 
-> 本矩阵对齐 `auth.js` 的 ROLE_PERMISSIONS。`Y` = 有此权限；`--` = 无此权限；`Y(限定语)` = 有此权限但限定于特定语义。
+> 本矩阵对齐 `auth.js` 的 ROLE_PERMISSIONS。`Y` 表示有此权限；`--` 表示无此权限；`Y(限定语)` 表示有此权限但限定于特定语义。
 
 | 角色 | view_all | create_activity | assign_task | modify_assignment | mark_complete | fill_review | record_attendance | summarize_inspection | record_inspection | manage_taskforce | initiate_taskforce | authorize_taskforce | authorize | assign_project_role | archive | manage_members |
 |------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -314,14 +314,14 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 
 ### 9g. 权限矩阵标记说明
 
-- **Y** = 有此权限（完整权限）
-- **--** = 无此权限
-- **Y(审阅)** = 仅能查看（不能编辑/记录）
-- **Y(建档)** = 仅限建立档案（基于已有记录建档，不能记录原始数据）
-- **Y(汇总)** = 仅限汇总分析（基于已有记录汇总，不能记录原始数据）
-- **Y(导入)** = 仅限从其他来源导入（不能直接记录原始数据）
-- **Y(自己的)** = 仅限记录自己的（只能记录自己的考察记录）
-- **Y\*** = 原则上有此权限，但业务上一般不使用
+- **Y** 表示有此权限（完整权限）
+- **--** 表示无此权限
+- **Y(审阅)** 表示仅能查看（不能编辑/记录）
+- **Y(建档)** 表示仅限建立档案（基于已有记录建档，不能记录原始数据）
+- **Y(汇总)** 表示仅限汇总分析（基于已有记录汇总，不能记录原始数据）
+- **Y(导入)** 表示仅限从其他来源导入（不能直接记录原始数据）
+- **Y(自己的)** 表示仅限记录自己的（只能记录自己的考察记录）
+- **Y\*** 表示原则上有此权限，但业务上一般不使用
 
 ---
 
