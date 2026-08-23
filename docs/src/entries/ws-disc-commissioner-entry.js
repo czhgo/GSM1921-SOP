@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+﻿﻿﻿// role: [工程师]+[AI]
 // ws-disc-commissioner-entry.js — 纪检委员工作台入口（薄壳版）
 // T-279 M3 拆分：1339 行单体 → 薄壳入口 + 9 个独立 tab 模块（entries/tabs/disc/）。
 // 入口职责：bootstrap + tab 清单读取（能力注册表）+ URL 导航落点 + 状态变更驱动的当前 tab 重渲染。

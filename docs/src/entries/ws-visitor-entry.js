@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+﻿﻿﻿// role: [工程师]+[AI]
 // ws-visitor-entry.js — 参与者工作台入口（薄壳版）
 // T-279 M3 拆分：897 行单体 → 薄壳入口 + 6 个独立 tab 模块（entries/tabs/visitor/）。
 // 入口职责：bootstrap + tab 清单读取（能力注册表，M2e 同款）+ URL 导航落点 + 状态变更驱动的当前 tab 重渲染。
