@@ -2,7 +2,7 @@
 title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-12"
+last_updated: "2026-08-19"
 version: "2.3"
 status: active
 related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
@@ -98,10 +98,15 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 |------|------|------|---------|
 | `content/04_web_design/DATA_ARCHITECTURE.md` | [工程师]+[AI] | 数据架构设计（合并原 DATA/PARTICIPANT_DATAFLOW/LOGIN_SYSTEM_DESIGN/BRAND_ACTIVITY：系统数据流+界面布局+登录态打桩设计+用户身份模型/认证机制+品牌属性标签+§写入数据验证设计） | SECRETARY_PRONOUNCEMENTS.md、ARCHITECTURE.md、CLAUDE.md |
 | `content/04_web_design/DESIGN_SYSTEM.md` | [工程师]+[AI] | 设计系统规范 | docs/src/styles.css |
+| `content/04_web_design/ABOUT_DESIGN_SYSTEM.md` | [工程师]+[AI] | About 页面设计系统（超参数设定原则/防风格疲劳/无竖线红线） | docs/src/about.css、docs/src/entries/about-entry.js |
 | `content/04_web_design/CHECKLIST.md` | [用户]+[AI] | 数据同源一致性校验手册（工程质检流程，按数据类别逐步检查；机器检查+人工检查分工） | DATA_ARCHITECTURE.md、ARCHITECTURE.md |
 | `content/04_web_design/MODULE_UI_DESIGN.md` | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能） | docs/src/components/calendar.js |
 | `content/04_web_design/SOP_WEB.md` | [工程师]+[AI] | SOP 系统优化与同步指南 | CLAUDE.md H30.2 |
+| `content/04_web_design/DEPLOYMENT_ROADMAP.md` | [工程师]+[AI] | 部署落地总览（四条落地路径 + 代码就绪度 + 决策矩阵） | DEPLOYMENT_AUTH_MODEL.md、SCHOOL_IT_DEPLOYMENT.md、WECHAT_INTEGRATION.md |
+| `content/04_web_design/PKU_PARTY_INTEGRATION.md` | [工程师]+[AI] | 北大党校与智慧党建系统对接设计（党校单向爬取 + 智慧党建双向同步 + 数据映射 + 小程序归位说明 + 待确认清单） | DEPLOYMENT_ROADMAP.md、SCHOOL_IT_DEPLOYMENT.md、WECHAT_INTEGRATION.md、DATA_ARCHITECTURE.md |
+| `content/04_web_design/ARCHITECTURE_EVOLUTION.md` | [工程师]+[AI] | 架构演进（组件化落地评估 + 轻量插件化「能力注册表」设计 + 迭代机制 + 实施路径） | DATA_ARCHITECTURE.md、SOP_WEB.md、DEPLOYMENT_ROADMAP.md、ARCHITECTURE.md、KNOWN_PITFALLS.md |
 | `content/04_web_design/SCHOOL_IT_DEPLOYMENT.md` | [工程师] | 学校计算中心对接准备文档（对接准备与提交清单） | docs/src/services/runtime.js 等 |
+| `content/04_web_design/DEPLOYMENT_AUTH_MODEL.md` | [工程师]+[AI] | 部署与认证场景模型（5 场景两轴正交 + 侧边栏统一 + 登录门控四层 + 构建注入配置） | docs/src/config/deploy.js、docs/src/components/sidebar.js、docs/src/core/bootstrap.js |
 | `content/04_web_design/WECHAT_INTEGRATION.md` | [工程师]+[AI] | 微信协同与小程序设计方案（文件流分类+宣传墙/档案分层浏览+过程性汇报集成+小程序路径评估） | DESIGN_SYSTEM.md（原则 10/13）、T-230 |
 | `content/04_web_design/README.md` | [工程师]+[AI] | 网站设计层目录索引 | — |
 

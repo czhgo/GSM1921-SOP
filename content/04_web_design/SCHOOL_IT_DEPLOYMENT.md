@@ -3,15 +3,16 @@ title: "学校计算中心对接准备文档"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-07-28
-last_updated: "2026-08-09"
+last_updated: "2026-08-22"
 status: draft
-author: AI起草，书记审定
-related_files: [docs/src/services/runtime.js, docs/src/services/issues.js, docs/src/services/auth.js, docs/src/core/data-loader.js, docs/src/core/data-adapter.js, docs/src/core/mock-adapter.js, docs/src/core/api-adapter.js]
+author: AI 起草，审定
+related_files: [docs/src/services/runtime.js, docs/src/services/issues.js, docs/src/services/auth.js, docs/src/core/data-loader.js, docs/src/core/data-adapter.js, docs/src/core/mock-adapter.js, docs/src/core/api-adapter.js, server/db.js, server/routes/resources.js, DEPLOYMENT_ROADMAP.md]
 ---
 
 # 学校计算中心对接准备文档
 
 > 本文档详述系统对接学校计算中心所需的准备工作，以及需要提供给学校计算中心的文档清单。
+> 落地总览（四条部署路径）见 [DEPLOYMENT_ROADMAP.md](DEPLOYMENT_ROADMAP.md) §三。
 
 ## 一、系统概述
 
@@ -23,7 +24,7 @@ related_files: [docs/src/services/runtime.js, docs/src/services/issues.js, docs/
 - **意见反馈**：GitHub Issue 风格的反馈追踪（提交→审核→合并）
 - **数据可视化**：关系网络图、时间轴、日历、归档库
 
-**当前状态**：前端功能完整，数据层为纯 mock（localStorage + 内存缓存），刷新后丢失。
+**当前状态**（2026-08-19 更新）：前端功能完整 + `server/` 后端全栈已实现（Express + better-sqlite3，26 资源表 + 认证 + 附件上传，16 测试全绿）。数据层为 mock/api 双模式——本地默认 mock，对接计算中心时切 api 即可，UI 零改动。整体处于**对接准备阶段**。
 
 ## 二、系统对接需求
 
@@ -112,22 +113,23 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 | 文档 | 位置 | 内容 |
 |------|------|------|
 | 数据架构设计 | `content/04_web_design/DATA_ARCHITECTURE.md` | 全部数据模型定义、字段规格、DataAdapter 接口规范、API 路由设计 |
-| API 适配器实现 | `docs/src/core/api-adapter.js` | REST API 完整路由映射（24 个资源路径 / 41 个方法端点，见 api-adapter.js 头部路由表；另含 `/api/v1/health`、`/bootstrap`、`/snapshot`、`/uploads` 等服务端点），学校计算中心按此实现后端 |
+| API 适配器实现 | `docs/src/core/api-adapter.js` | REST API 完整路由映射（25 资源分组 + 服务端点 auth/login/logout、snapshot、uploads、health、bootstrap，见 api-adapter.js 头部路由表），学校计算中心按此实现后端 |
+| 后端参考实现 | `server/` | Express + better-sqlite3 全栈：db.js 26 资源表结构、routes/resources.js CRUD 语义、auth.js 认证、uploads.js 附件上传——计算中心可对照实现或直接迁移 |
 | Mock 适配器实现 | `docs/src/core/mock-adapter.js` | DataAdapter 的 mock 实现，供参考数据结构和业务逻辑 |
 | 数据访问抽象层 | `docs/src/core/data-adapter.js` | 统一切换机制（setDataSource），学校计算中心无需修改 |
 | 运行时插槽 | `docs/src/services/runtime.js` | 初始化入口，注册适配器实例 |
-| 认证流程说明 | `docs/src/services/auth.js` | 登录/注销/会话管理逻辑 |
+| 认证流程说明 | `docs/src/services/auth.js` + `content/04_web_design/DEPLOYMENT_AUTH_MODEL.md` | 登录/注销/会话管理逻辑 + 5 场景部署认证模型 + 登录门控四层 |
 | 可见性规则说明 | 本文档 §2.4 | 多级可见性的过滤逻辑 |
 | AI 接入需求 | 本文档 §3 | AI 本地部署的场景和模型要求 |
 | 前端页面清单 | `docs/` 目录 | 所有 HTML 页面及其功能说明 |
 
 ## 五、对接步骤建议
 
-1. **第一步**：学校计算中心提供后端 API 环境（数据库 + API 服务器）
-2. **第二步**：认证模块对接（用户表 + 登录 API）
+1. **第一步**：学校计算中心提供后端 API 环境（数据库 + API 服务器 + HTTPS 域名）
+2. **第二步**：认证模块对接（用户表 + 登录 API）——前端本地 `login.html` 已实现完整登录链路（账号密码 → `POST /api/v1/auth/login` → JWT token → 切换 api 数据源，含 E2E 验证），对接时把账号校验替换为计算中心用户体系，最终目标为北大 IAAA 单点登录（门控触发条件已预留，见 DEPLOYMENT_AUTH_MODEL.md §四）
 3. **第三步**：核心数据模块对接（活动 + 考勤 + 考察）
 4. **第四步**：通知 + 反馈模块对接
 5. **第五步**：AI 本地部署环境搭建
-6. **第六步**：全功能联调测试
+6. **第六步**：全功能联调测试（`server/test/` 16 用例作为回归基线）
 
-> **注意**：每一步对接前，需要书记与学校计算中心确认技术规范和数据安全协议。
+> **注意**：每一步对接前，需要与学校计算中心确认技术规范和数据安全协议。

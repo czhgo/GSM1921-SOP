@@ -14,7 +14,7 @@
 //         content/04_web_design/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260812d';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260823b';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -519,6 +519,25 @@ export const ApiAdapter = {
 
     update(body) {
       return _patch('/api/v1/tfSubRecords/__root__', { body });
+    },
+  },
+
+  branchDocs: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/branchDocs${query ? '?' + query : ''}`);
+    },
+
+    create(data) {
+      return _post('/api/v1/branchDocs', data);
+    },
+
+    update(id, patch) {
+      return _patch(`/api/v1/branchDocs/${id}`, patch);
+    },
+
+    delete(id) {
+      return _delete(`/api/v1/branchDocs/${id}`);
     },
   },
 };

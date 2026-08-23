@@ -17,7 +17,7 @@ GSM1921-SOP 是光华管理学院本科生党支部的组织运行操作系统�
 2. **角色即视图** — 同一数据源，不同角色看到不同的工作视角。每个角色只看到自己该看的事，但所有角色的数据来自同一个真相源
 3. **经验可传承** — 每一次决策、每一次执行、每一次从错误中长出的教训，都被记录和沉淀。换届不是"从零开始"，而是"站在前人的肩膀上"
 
-整套系统由单页制工作台承载日常使用，由 AI 通过 Vibe Coding 模式协作维护与迭代，让制度从文本变成可交互的工具。系统已接入一体化后端（2026-08），账号登录、数据持久化与前端 25 个持久化域全量对称，全链路开发保持同步。
+整套系统由单页制工作台承载日常使用，由 AI 通过 Vibe Coding 模式协作维护与迭代，让制度从文本变成可交互的工具。系统已接入一体化后端（2026-08），账号登录、数据持久化与前端 26 个持久化域全量对称，全链路开发保持同步。
 
 ---
 
@@ -172,7 +172,7 @@ npm start
 
 这些理念不是抽象的口号，而是每一条制度设计背后的理由。理解了它们，才能理解为什么系统是这样组织的，也才能在场景变化时判断原则在什么条件下成立。
 
-→ 完整的理论阐述见 [书记重要论断汇编](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（17 条论断，其中 P-002/P-003 为元命题）和 [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)
+→ 完整的理论阐述见 [书记重要论断汇编](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（17 条论断，按「价值目标 → 组织机制 → 人的成长 → 组织再生产」四层组织，其中 P-002/P-003/P-017 为元命题）和 [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)
 
 ---
 
@@ -185,7 +185,7 @@ npm start
 | **前台（页面）** | `docs/`（14 个页面：8 个根页面 + 6 个 workspace 工作台） | 页面骨架，零硬编码逻辑 |
 | **中台（逻辑）** | `docs/src/entries/`（22 个 entry JS，含 tabs）+ `components/`（23 js + 1 css）+ `core/`（13 个）+ `modules/`（1 个）+ `workflow/`（6 个） | 角色面板路由、视图切换、DOM 渲染 |
 | **后台（服务）** | `docs/src/services/`（22 个 service JS）+ `docs/src/mock/`（10 个） | 数据 CRUD、权限计算、持久化 |
-| **后端（server/）** | `server/`（Express + better-sqlite3 单进程） | 同源托管静态页面 + `/api/v1` REST（认证 / 25 资源表 / 附件上传 / 快照持久化） |
+| **后端（server/）** | `server/`（Express + better-sqlite3 单进程） | 同源托管静态页面 + `/api/v1` REST（认证 / 26 资源表 / 附件上传 / 快照持久化） |
 | **母本层** | `content/02_institution/sop/` | 所有代码逻辑的制度来源 |
 
 数据变更遵循铁律：`content/02_institution/sop/ → docs/src/services/ → docs/src/entries/ → docs/`，所有数据变更必须经过服务层，UI 层禁止直接操作数据源。修改代码前必须确认 SOP 母本已更新。详细架构约束见 [ARCHITECTURE.md](content/03_doc_system/ARCHITECTURE.md)。

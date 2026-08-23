@@ -2,7 +2,7 @@
 title: "使用规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-16"
+last_updated: "2026-08-18"
 status: active
 related_files: [CLAUDE.md, content/02_institution/ROLE_CLASSIFICATION.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---

@@ -3,7 +3,7 @@
 //  tab-bar.js — 通用 Tab 切换组件
 // ════════════════════════════════════════════════════════════════
 
-import { accDarkParts } from '../core/constants.js?v=20260812d';
+import { accDarkParts } from '../core/constants.js?v=20260823b';
 
 // 角色识别层：tab 激活态 = 主题色三件套渲染（书记 2026-08-08 三审定稿）。
 // 背景：前三轮把 tab 强行为品牌金（半透明 0.14/0.30 → 实色 #FFD700），书记全部否决——
@@ -44,6 +44,26 @@ const FALLBACK_ACCENT = {
  *   - currentTab: 当前激活的 Tab ID（getter）
  *   - tabs: Tab 定义数组（懒加载场景下供外部按 id 查找并渲染当前 Tab）
  */
+// 单行滚动提示（2026-08-23 书记裁定）：溢出时两侧渐隐遮罩，滚动到边缘自动消失。
+// 元素级标记防重复绑定（单体式入口每次 setState 重建 tabBar 会多次调用 bindEvents）。
+// ResizeObserver：Tailwind CDN 异步注入 shrink-0/flex-nowrap 后布局才稳定，须监听尺寸变化补算溢出。
+function _bindScrollHints(scroller) {
+  if (!scroller || scroller.dataset.wsScrollHint === '1') return;
+  scroller.dataset.wsScrollHint = '1';
+  const update = () => {
+    const canL = scroller.scrollLeft > 2;
+    const canR = scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 2;
+    scroller.dataset.overflow = canR ? (canL ? 'both' : 'right') : (canL ? 'left' : 'none');
+  };
+  scroller.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  if (typeof ResizeObserver !== 'undefined') {
+    const ro = new ResizeObserver(update);
+    ro.observe(scroller);
+  }
+  update();
+}
+
 export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRightHtml, renderCtx, storageKey, onTabChange, priorityTab }) {
   const btnClass = `${prefix}-tab-btn`;
   const dataAttr = `data-${prefix}-tab`;
@@ -86,21 +106,24 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
       const divider = isFirstGroup
         ? ''
         : `<span style="--acc-bg-dark:#334155;width:1px;height:14px;background:#E5E7EB;display:inline-block;margin-right:4px;vertical-align:middle;"></span>`;
-      groupHtml = `<span class="tab-group-label inline-flex items-center gap-1.5" style="pointer-events:none;user-select:none;">${divider}<span style="padding:1px 5px;border-radius:3px;--acc-bg-dark:${_grpDark.bg};--acc-text-dark:${_grpDark.text};--acc-border-dark:${_grpDark.border};background:${accentRgba};color:${accent};font-weight:600;letter-spacing:0.5px;vertical-align:middle;" class="text-[11px]">${groupLabel}</span></span>`;
+      groupHtml = `<span class="tab-group-label shrink-0 inline-flex items-center gap-1.5" style="pointer-events:none;user-select:none;">${divider}<span style="padding:1px 5px;border-radius:3px;--acc-bg-dark:${_grpDark.bg};--acc-text-dark:${_grpDark.text};--acc-border-dark:${_grpDark.border};background:${accentRgba};color:${accent};font-weight:600;letter-spacing:0.5px;vertical-align:middle;" class="text-[11px]">${groupLabel}</span></span>`;
       isFirstGroup = false;
     }
-    return `${groupHtml}<button class="${btnClass}${activeClass} px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}"${activeStyle}>${label}</button>`;
+    return `${groupHtml}<button class="${btnClass}${activeClass} shrink-0 px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}"${activeStyle}>${label}</button>`;
   }).join('\n');
 
-  const extraHtml = extraRightHtml ? `<div class="ml-auto">${extraRightHtml}</div>` : '';
+  const extraHtml = extraRightHtml ? `<div class="ml-auto shrink-0">${extraRightHtml}</div>` : '';
 
-  // flex-wrap:wrap — 移动端窄屏自动换行，杜绝 tab 栏横向溢出撑破页面（T230 移动端实测 2026-08-07）
-  const html = `<div class="flex flex-wrap gap-2 mb-4">${btnsHtml}${extraHtml}</div><div id="${contentId}"></div>`;
+  // 单行 + 横向平滑滚动（2026-08-23 书记裁定：tab 数量增加禁止随机换行成 2 行）——
+  // flex-nowrap 永不换行，overflow-x-auto 超宽时横向滑动；ws-tab-scroll 样式在 styles.css 统一维护
+  // （隐藏滚动条 + scroll-behavior:smooth + 溢出时两侧渐隐遮罩）。
+  const html = `<div class="ws-tab-scroll flex flex-nowrap gap-2 mb-4 overflow-x-auto">${btnsHtml}${extraHtml}</div><div id="${contentId}"></div>`;
 
   // 延迟绑定事件（调用方在 innerHTML 后调用 bindTabEvents）
   let boundContainer = null; // 记录绑定容器，供 activate 同步按钮高亮
   function bindEvents(container) {
     boundContainer = container;
+    _bindScrollHints(container.querySelector('.ws-tab-scroll'));
     container.querySelectorAll(`.${btnClass}`).forEach(btn => {
       btn.addEventListener('click', () => {
         // 重置所有 Tab 样式（移除 active 类 + 清空 inline style）

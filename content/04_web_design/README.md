@@ -2,7 +2,7 @@
 title: "网站设计层索引——网站系统的设计想法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-08-11"
+last_updated: "2026-08-22"
 status: active
 ---
 
@@ -28,6 +28,7 @@ status: active
 |------|-----------|--------|
 | [MODULE_UI_DESIGN.md](MODULE_UI_DESIGN.md) | 模块界面设计：「党建」Tab 分组界面+日历功能模块 | **唯一权威**——「党建」Tab 分组与日历功能界面设计 |
 | [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) | 哑光扁平化前端设计语言，核心设计原则 | **唯一权威**——前端视觉规范 |
+| [ABOUT_DESIGN_SYSTEM.md](ABOUT_DESIGN_SYSTEM.md) | About 页面设计系统（叙事册风：色板/字体/各章超参数设定原则/防风格疲劳/无竖线红线） | **唯一权威**——about 页设计的超参数设定原则 |
 
 ### 三、SOP-系统联动
 
@@ -35,11 +36,15 @@ status: active
 |------|-----------|--------|
 | [SOP_WEB.md](SOP_WEB.md) | SOP-系统联动方法论（系统架构设计、SOP-系统映射） | **唯一权威**——SOP 与系统的双向修改指南 |
 
-### 四、部署对接
+### 四、部署与认证
 
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
+| [DEPLOYMENT_ROADMAP.md](DEPLOYMENT_ROADMAP.md) | 部署落地总览：四条落地路径（静态托管/自托管/计算中心/小程序）+ 代码就绪度 + 决策矩阵 | **唯一权威**——部署落地视图与路径决策 |
+| [DEPLOYMENT_AUTH_MODEL.md](DEPLOYMENT_AUTH_MODEL.md) | 部署与认证场景模型（5 场景两轴正交 + 侧边栏统一 + 登录门控四层 + 构建注入配置） | **唯一权威**——部署形态 / 登录态 / 门控的统一模型 |
 | [SCHOOL_IT_DEPLOYMENT.md](SCHOOL_IT_DEPLOYMENT.md) | 学校计算中心对接准备文档（对接准备与提交清单） | 对接准备与学校提交清单 |
+| [PKU_PARTY_INTEGRATION.md](PKU_PARTY_INTEGRATION.md) | 北大党校与智慧党建系统对接设计（党校单向爬取 + 智慧党建双向同步 + 数据映射 + 小程序归位说明 + 待确认清单） | **唯一权威**——北大党建系统对接总体设计 |
+| [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) | 架构演进（组件化落地评估 + 轻量插件化「能力注册表」设计 + 迭代机制 + 实施路径） | **唯一权威**——组件化落地评估与插件化演进方向 |
 
 ---
 

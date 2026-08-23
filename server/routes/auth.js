@@ -43,3 +43,23 @@ export function requireAuth(db) {
     next();
   };
 }
+
+// 支委角色集合（与前端 AuthStore.isCommissioner 口径一致）：
+// 书记 / 副书记 / 组织委员 / 宣传委员 / 纪检委员
+const COMMISSIONER_ROLES = new Set([
+  'secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
+]);
+
+// 支委写权限中间件（requireAuth + 角色校验，保护支部文件等需支委写入的资源）
+export function requireCommissioner(db) {
+  return (req, res, next) => {
+    const token = (req.headers.authorization || '').replace('Bearer ', '');
+    const session = token ? db.prepare('SELECT * FROM sessions WHERE token = ?').get(token) : null;
+    if (!session) return res.status(401).json({ error: '未登录' });
+    const userRow = db.prepare('SELECT data FROM users WHERE id = ?').get(session.person_id);
+    const role = userRow ? JSON.parse(userRow.data).role : null;
+    if (!COMMISSIONER_ROLES.has(role)) return res.status(403).json({ error: '无权限：仅支委可操作' });
+    req.session = session;
+    next();
+  };
+}

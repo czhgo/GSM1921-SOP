@@ -8,8 +8,21 @@ import { fileURLToPath } from 'node:url';
 import { requireAuth } from './auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const UPLOAD_DIR = path.resolve(__dirname, '../uploads');
+export const UPLOAD_DIR = path.resolve(__dirname, '../uploads');
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+
+// 按下载路径（如 /api/v1/uploads/xxx.pdf）删除物理文件；仅删 basename，杜绝路径穿越
+export function deleteUploadedFile(filePath) {
+  if (!filePath || typeof filePath !== 'string') return;
+  const name = path.basename(filePath);
+  if (!name || name === '.' || name === '..') return;
+  const full = path.join(UPLOAD_DIR, name);
+  try {
+    if (fs.existsSync(full)) fs.unlinkSync(full);
+  } catch (e) {
+    console.warn('[uploads] 物理文件删除失败：', e);
+  }
+}
 
 const ALLOWED = { 'image/jpeg': '.jpg', 'image/png': '.png', 'application/pdf': '.pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',

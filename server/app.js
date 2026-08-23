@@ -23,6 +23,12 @@ export function createApp({ dbPath = ':memory:' } = {}) {
 
   app.use('/api/v1', createUploadsRouter(app.locals.db));
 
+  // 部署形态注入：server 模式下前端 deploy.js 应标记为 'server'（有后端，无「关于」门面）
+  // 依据 content/04_web_design/DEPLOYMENT_AUTH_MODEL.md §六（构建时注入，非运行时探测）
+  app.get('/src/config/deploy.js', (req, res) => {
+    res.type('application/javascript').send('export const DEPLOY_MODE = "server";\n');
+  });
+
   app.use(express.static(DOCS_DIR));
 
   // 统一 JSON 错误响应：multer 大小超限 → 413，其余 → 500（避免默认 HTML 错误页破坏 API 契约）

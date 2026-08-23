@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   
@@ -39,7 +39,7 @@
       }
     };
   </script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260812d">
+  <link rel="stylesheet" href="./src/styles.css?v=20260823b">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -76,17 +76,25 @@
       <div id="ref-sites-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"></div>
 
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">文档列表</h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">官方文件</h3>
         <span id="ref-result-count" class="text-xs text-gray-400"></span>
       </div>
       <div id="ref-docs-list" class="space-y-3"></div>
       <div id="ref-docs-empty" class="hidden text-center py-12 text-gray-400 text-sm">未找到匹配的资料</div>
+
+      <div class="flex items-center justify-between mb-4 mt-8">
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">支部文件</h3>
+        <button id="ref-branch-doc-add-btn" class="ref-add-btn hidden">写入文件</button>
+      </div>
+      <div id="ref-branch-docs-list" class="space-y-3"></div>
+      <div id="ref-branch-docs-empty" class="hidden text-center py-12 text-gray-400 text-sm">暂无支部文件</div>
+      <div id="ref-branch-docs-login-hint" class="hidden text-center py-12 text-gray-400 text-sm">登录后查看支部文件</div>
 
     </div>
   </main>
 </div>
 
 
-<script type="module" src="./src/entries/search-entry.js?v=20260812f"></script>
+<script type="module" src="./src/entries/search-entry.js?v=20260823b"></script>
 </body>
 </html>

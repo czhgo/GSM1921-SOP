@@ -1,8 +1,8 @@
----
+﻿---
 title: "2026年8月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-08-14"
+last_updated: "2026-08-23"
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -4180,3 +4180,597 @@ development_path 及下游文档的文字修改传播（一改具改：把母本
 
 ### 沉淀标签
 无新模式——按 H5.8.2 禁用「不是…而是」句式 + H40.1「=」式命名禁令已有原则执行。
+
+---
+
+## T-264 资料查询「文档列表」重构：官方文件 + 支部文件（支委写入/全员下载）+ 全栈 branchDocs 资源（2026-08-18）
+
+**任务**：书记指令——资料查询界面「文档列表」①只保留官方文件（「查看官方原文」）并按党内法规位阶排序、删去尺寸等冗余 span；②h3「文档列表」改「官方文件」；③删非官方条目，新增「支部文件」板块（写入后允许下载，设计写入/删除/修改，配套后端 service）；④文档与顶部 tab 挂钩，写入功能同步考虑。
+**来源**：书记 2026-08-18 四点指令 + brainstorming + verification-before-completion + web-design-guidelines + 书记四问裁决（排序=党内法规位阶 / 权限=书记+支委 / 形态=上传实际文件 / tab=归入「党支部文档」/ 匿名可访 / 删除连物理文件一起删）
+
+### 设计决策（书记裁决）
+- 官方文件 5 条按党内法规位阶：党章 → 支部工作条例（试行）→ 高校基层组织工作条例 → 党员教育管理工作条例 → 发展党员工作细则
+- 支部文件写入/删除/修改权限 = 支委（书记/副书记/组织/宣传/纪检，复用 `isCommissioner`）；下载 = 全体登录成员
+- 文件形态 = 上传实际文件（API 模式落盘 `/api/v1/uploads`；mock 模式 base64 dataURL 兜底）
+- 保持匿名可访：官方文件外链匿名可见；支部文件需登录后可见/下载
+- 删除支部文件时联动删除物理文件（`deleteUploadedFile` 仅删 basename，防路径穿越）
+
+### 后端变更
+- `server/db.js`：RESOURCE_TABLES 加 `branch_docs`
+- `server/routes/auth.js`：新增 `requireCommissioner` 中间件（requireAuth + 支委角色校验，COMMISSIONER_ROLES 与前端 isCommissioner 口径一致）
+- `server/routes/resources.js`：RESOURCE_TABLES 映射加 `branchDocs`，ID 前缀 `bd`；`COMMISSIONER_WRITE` 集合使 branchDocs 的 POST/PATCH/DELETE 走支委校验；DELETE 联动 `deleteUploadedFile` 删物理文件
+- `server/routes/uploads.js`：导出 `UPLOAD_DIR` + `deleteUploadedFile(filePath)`（basename 白名单）
+
+### 前端变更
+- `docs/src/core/domain.js`：mockDB 加 `branchDocs: []`
+- `docs/src/core/mock-adapter.js`：branchDocs 持久化（save/load/restoreNicheCollections）+ CRUD
+- `docs/src/core/api-adapter.js`：branchDocs list/create/update/delete
+- `docs/src/core/data-adapter.js`：init() niche 拉取加 branchDocs（snapshot 有意**不**纳入——避免经 requireAuth 快照绕过支委写权限）
+- `docs/src/core/cross-page-state.js`：CODE_VERSION 29→30
+- `docs/search.html`：h3「文档列表」→「官方文件」+ 新增「支部文件」板块（写入按钮/列表/空态/登录提示）+ 入口版本号
+- `docs/src/modules/references.js`：官方文件静态数组（位阶排序）+ 支部文件动态渲染（uploadedAt 倒序）+ 写入/修改模态框 + 删除确认 + 权限显隐 + 上传（API multipart / mock base64）
+- `docs/src/entries/search-entry.js`：数据层初始化（保持匿名可访，不强制登录；token 存在切 API 否则 mock）
+- `docs/src/styles.css`：`.ref-add-btn` / `.ref-doc-action-btn` / `.ref-doc-action-danger`
+
+### 关键修复（实现期发现）
+- ESM `?v=` 查询串决定模块身份：data-adapter.js 持有模块级状态（`_mockAdapter`/`DATA_SOURCE`），API 模式实例由 `runtime.js`/`bootstrap.js` 以 `?v=20260812d` 注册适配器。初版 references.js/search-entry.js 误用 `?v=20260818a` 会创建第三实例（无注册适配器→`getAdapter()` 抛错），已改回 `?v=20260812d` 对齐既有实例。
+
+### 验证结果（verification-before-completion）
+- ✅ GetDiagnostics 返回 []
+- ✅ `server` 后端测试 15/16 通过（auth/resources/snapshot/uploads/bootstrap/seed 全覆盖）
+- ⚠️ 1 项 E2E 浏览器测试（`e2e-login.test.js` 首页写穿闭环）超时失败——判定为**既有环境/未提交改动所致**，非本次改动引起：工作树含大量与本次无关的未提交改动（index.html/main-entry.js/work-overview.js 等首页文件）+ 沙箱「Not allow operate files」限制 Playwright 文件操作；本次 data-adapter 改动为 additive 且包裹 try/catch，不影响 activities 拉取路径
+
+### 待办（下一轮）
+1. 支部文件写入/删除/修改的浏览器手动验证（匿名可访/支委显隐/上传下载/删除连物理文件）
+2. 删除确认当前用原生 `confirm()`，如需可替换为自定义模态（书记定夺）
+3. commit 待书记指示（push 需书记批准）
+
+### 沉淀标签
+无新模式——权限中间件复用 requireAuth 模式、全栈资源同步复用 T-209/T-218 既有路径。ESM `?v=` 模块身份陷阱符合 KNOWN_PITFALLS 既有约束（新增引用须对齐既有版本串）。
+
+---
+
+## T-265 部署与认证场景模型 SPEC 落地（Part 1 · 侧边栏统一，2026-08-18）
+
+**任务**：书记指令——①侧边栏所有界面统一，下端「退出登录、帮助」都要有，区分 5 种场景（GitHub 静态托管有 about / 有后端无 about / 开发模式 / 正常模式 / 未登录态）；②按 01-02 最新表述系统更新下游文件（README 全家 + about/help SPEC）。本次先做 Part 1（先侧边栏、后下游）。
+**来源**：书记 2026-08-18 指令 + brainstorming + 多轮 AskUserQuestion 裁决（5 场景两轴正交 / 关于仅静态托管 / 退出仅登录后显示 / 登录门控四层 / 下载两类 / 构建时注入配置 / 先侧边栏后下游）
+
+### 设计决策（书记裁决，见 SPEC）
+- 5 场景 = 部署形态（静态托管/有后端）× 登录态（未登录/已登录·演示/已登录·正常）两轴正交，约去不可能项
+- 侧边栏 footer 统一：帮助/字号/主题恒有 + 关于（仅静态托管）+ 退出登录（仅已登录，未登录无登录引导，跳转由门控层触发）
+- 登录门控四层：L1 页面（工作台强制跳登录）/ L2 功能（写入需登录）/ L3 组件（身份逻辑隐藏或引导）/ L4 下载（公开外链 vs 内部附件）
+- 后端检测 = 构建时注入配置（不做运行时探测）
+
+### 已落地变更（Part 1 核心）
+- 新增 `content/04_web_design/DEPLOYMENT_AUTH_MODEL.md`（长期保留设计 SPEC）
+- 新增 `docs/src/config/deploy.js`：`DEPLOY_MODE = 'static'`（构建时注入标记）
+- `docs/src/components/sidebar.js`：footer「关于」按 `DEPLOY_MODE==='static'` 显隐
+- `server/app.js`：`GET /src/config/deploy.js` 路由覆盖，server 模式注入 `DEPLOY_MODE='server'`
+
+### 待续（Part 1 剩余 + Part 2）
+1. L1 首页 index 当前仍强制跳登录（bootstrapPage dashboard）——模型说「仅工作台强制」，首页是否改匿名可访待书记裁决
+2. L2/L3/L4 登录门控逐处实施（写入功能 / 身份组件 / 下载的登录引导）
+3. Part 2：about/help 现状 + 01-02 最新 → 形成 about/help SPEC
+4. Part 2：README 全家 + 治理文档按 01-02 更新
+
+### 验证结果
+✅ GetDiagnostics 仅报既有 markdownlint 警告（.ctx 两 md 文件），本次改动文件无错误。
+
+### 沉淀标签
+无新模式——部署配置沿用 config 目录既有模式；场景模型为首次立规，SPEC 已固化于 04_web_design。
+
+---
+
+## T-266 部署认证场景模型落地续（L1 首页匿名 + about/help SPEC，2026-08-18）
+
+**任务**：T-265 续——完成 L1 页面门控 + Part 2 about/help SPEC。
+**来源**：书记 2026-08-18 多轮裁决（首页匿名可访但点击组件触发登录，IAAA 为登录落点最终目标 / help 删重叠叙事 / about 是 keynote 式组织说明非论断展示 / SPEC 落 .trae/specs）
+
+### 已落地
+- `docs/src/core/bootstrap.js`：L1 门控改为「仅工作台强制跳登录」；首页匿名渲染，组件点击跳工作台由工作台门控触发登录
+- `content/04_web_design/DEPLOYMENT_AUTH_MODEL.md`：§四补首页匿名 + IAAA 目标注记
+- 新增 `content/04_web_design/ABOUT_HELP_SPEC.md` → 经书记纠正后迁移至 `.trae/specs/ABOUT_HELP_SPEC.md`（SPEC 为过程性，非长期设计）
+
+### 关键纠正（书记 2026-08-18）
+1. SPEC 位置应在 `.trae/specs`（过程性），非 04_web_design（长期设计）
+2. about 不是书记论断的「展示」，论断只是「信息源」；about 是面向想加入者的组织说明，名「从入党申请人到正式党员」，讲「一个人在组织里如何成长」，是书记给新生讲解的 keynote
+3. 不可机械套「四层结构」，发展党员流程是成长叙事的主干非附录
+
+### 待续
+1. about 逐章按「成长主线」提出调整建议（请书记过目，不擅自改）
+2. help 删重叠叙事（三、四章）实现
+3. README 全家 + 治理文档按 01-02 更新
+4. L2/L3/L4 登录门控逐处复核（多数已由 L1 工作台强制 + 既有 requireAuth/isCommissioner 承载）
+
+### 验证结果
+✅ GetDiagnostics 仅报既有 markdownlint 警告（.ctx 两 md 文件），本次改动文件无错误。
+
+### 沉淀标签
+无新模式。
+
+---
+
+## T-268 README 全家 + 治理注册完成（2026-08-18）
+
+**任务**：T-267 续——完成剩余 README 核对 + 新设计文档注册治理。
+
+### 已落地
+- `content/01_strategy/README.md`：论断汇编描述由旧「元命题 + 战略路线级 + 制度设计级」改为「17 条论断按四层组织，含 3 元命题」
+- `content/04_web_design/README.md`：新增「四、部署与认证」节，登 DEPLOYMENT_AUTH_MODEL.md
+- `content/03_doc_system/DOC_MAP.md`：登 DEPLOYMENT_AUTH_MODEL.md（知识类型 4 清单）
+- `content/03_doc_system/ARCHITECTURE.md`：目录树登 DEPLOYMENT_AUTH_MODEL.md
+- 其余 5 个 README（content / 02_institution / 03_doc_system / 05_ai_coding / server）核对无漂移
+
+### 验证结果
+✅ GetDiagnostics 仅报既有 markdownlint 警告（.ctx 两 md 文件），本次改动文件无错误。
+
+### 沉淀标签
+无新模式。
+
+---
+
+## T-267 下游文档同步（help 删重叠叙事 + 根 README 修正，2026-08-18）
+
+**任务**：T-266 续——Part 2 下游落地：help 删重叠叙事 + 根 README 按 01-02 最新修正。
+**来源**：书记 2026-08-18 裁决（help 删重叠叙事 / about 是 keynote 式组织说明 / 论断四层逻辑）
+
+### 已落地
+- `docs/src/entries/help-entry.js`：删「分工中的制度设计」「怎么理解具体的这个组织」两章 TOC 项 + 移除 renderRoleHierarchy 引用
+- `docs/help.html`：删第三章（分工制度）、第四章（怎么理解组织），技术架构由「五」重编号为「三」（5.1/5.2 → 3.1/3.2）
+- `README.md`（根）：① 元命题 P-002/P-003 → P-002/P-003/P-017（补主客统一元命题）；② 补论断汇编「价值目标→组织机制→人的成长→组织再生产」四层组织注记；③ 持久化域/资源表 25 → 26（branchDocs 新增后）
+
+### 待续
+1. 其余 README（content/*/README、server/README 等）按 01-02 最新核对
+2. about 逐章按「成长主线」提出调整建议（请书记过目）
+3. L2/L3/L4 门控逐处复核
+
+### 验证结果
+✅ GetDiagnostics 仅报既有 markdownlint 警告；grep 确认无 sec-design/sec-why/role-hierarchy-container 残留引用。
+
+### 沉淀标签
+无新模式。
+
+---
+
+## T-270 about 叙事重构：设计 SPEC + 实现（2026-08-18）
+
+**任务**：书记 6 点问题（偏左/SVG 太小/简单话标签/组织性展开/新生疲劳/身份阶段主语）→ brainstorming 逐项裁决 → SPEC（.trae/specs/ABOUT_REDESIGN_SPEC.md）→ 计划（.trae/plans/2026-08-18-about-redesign.md）→ 全部执行后验收。
+
+### 书记关键裁决（记录）
+1. **不以贬损任何人、任何其他讲述的方式立论**（🔴 表达纪律，我的开场白草案含「党课是抽象的」被书记纠正）
+2. **主客统一是贯穿 about 的暗线**，页面不显性出现阶段简称；第一章=组织向大家讲述（应然）
+3. **相向而行**：「你可以期待的XX」而非「你的XX」；第一章三卡按成长主线重写，数量不锁定
+4. **所有工作都在方兴未艾**；第一章用三个关键词开头（具体/方兴未艾/提供成长），文案由书记在网页呈现上自由发挥（AI 不代写开场白）
+5. **党建+科研是「人的成长」第三种机会**（P-016 恢复对话能力，与 P-014 适应学习/P-015 探索创新并列）——从独立章并入第二章「三个成长机会」，收束后不再拖尾巴（我此前把 P-016「独立成章」做成「收束后尾巴」，违背「子命题」整合关系，书记批评后修正）
+6. **身份阶段压缩为 7 节点**（成员视角，去「党组织谈话」、补「转正支部大会表决」；政审/预审/报上级等支部执行环节弱化至展开；思想汇报等材料在节点展开体现）
+7. **「爱具体的人/组织」移至收束章**做首尾呼应（读者进入组织后才需要「爱」）
+8. 工作流 SVG：左列加宽 3fr/2fr + 节点半径 52→70 + 文字放大（大屏投影可读）
+9. 偏左修复：`.ab-chapter` 右 padding 不对称（页码避让）改对称
+
+### 已落地
+- `.trae/specs/ABOUT_REDESIGN_SPEC.md`（设计 SPEC，书记批准）
+- `.trae/plans/2026-08-18-about-redesign.md`（实现计划，7 Task）
+- `docs/src/entries/about-entry.js`：renderCognition 重写（三关键词+三条期待落点，去 direction 小标签）、renderPhilosophy 重写（三机会，党建+科研并入「对话」机会）、DEVELOPMENT_TIMELINE 13→7 节点、renderDevelopment STAGES 调整、renderConclusion 重构（首尾呼应+组织塑造人人再造组织）、renderResearch 删除（函数/TOC/调用）、TOC_ITEMS 8 项、SVG 半径 52→70（三处）
+- `docs/src/about.css`：`.ab-chapter` padding 对称化、SVG 列宽 3fr/2fr + 节点字号 22/17、第一章 ab-keywords/ab-expect-grid 新样式、第二章三卡 nth-of-type(3) 错落 + min-height 58vh、收束 ab-conclusion-echo/ab-conclusion-regenerate、清理 ab-cognition-item/grid/dialogue + ab-research 残留（含 media/reduced-motion 引用）
+
+### 验证结果
+✅ GetDiagnostics 返回空数组（无任何错误）
+✅ grep 零残留：renderResearch/ab-research/个体→组织/组织→个体/ab-cognition-item-sub/ab-cognition-grid/ab-cognition-dialogue 全部清除
+✅ 「爱具体的人/组织」仅在收束章 renderConclusion；「党建+科研」仅在第二章 renderPhilosophy
+✅ 一改具改：about.css 两处功能注释同步新章名（成长机会）；历史日志/权威源书记原话「宝贵机会」保留不改
+
+### 待书记验收（浏览器实测）
+第一章三关键词视觉、第二章三机会、第三章 7 节点、第五章 SVG 大屏可读、收束首尾呼应、无偏左。
+
+### 沉淀标签
+`[已沉淀: USAGE_POLICY §2.4 禁止事项·禁止以贬损他人他物立论]` — 表达纪律：不以「对方是X、我们是Y」的对比贬损任何他人/其他讲述来立论（书记 2026-08-18 纠正开场白草案）。
+
+**任务**：T-268 续——L2/L3/L4 复核收尾 + about 逐章文本对齐。
+
+### 已落地
+- `docs/src/entries/feedback-entry.js`：新建反馈路由加 L2 门控（未登录跳 login.html，书记 2026-08-18 裁决「提交反馈需登录」）
+- about 逐章文本核对：无漂移（P-016 已标注非全局目标 / 不强调积极分子已落地 / 术语一致）；章节顺序确认为书记 2026-08-12 定序，未动
+- L3/L4 复核：均由既有架构承载（header 身份标签匿名隐藏 / 个人考勤 user?.personId 兜底 / 支部文件列表匿名隐藏 / 下载 requireAuth + 外链公开）
+
+### 验证结果
+✅ GetDiagnostics 仅报既有 markdownlint 警告，本次改动无错误。
+
+### 沉淀标签
+无新模式。
+
+## T-271 about 网页 UI/UX 修缮第 2 轮（2026-08-18）
+
+**任务**：书记 6 点修缮意见（① 第一章「组织性」太逼仄 vs 第二章铺展 ② 上下无限制、左右宽度需研究 ③ 行百里者半九十转动半径太小 ④ 收束「管理事，服务人」矫情 ⑤ 落点 AI 扩写不认可 ⑥ 未充分运用书记原话）→ brainstorming + web-design-guidelines → SPEC2（.trae/specs/ABOUT_REDESIGN_SPEC2.md，书记批准）→ 全部实现并浏览器实测。
+
+### 书记关键裁决（记录）
+1. **关键词只单独展示**：「把下面的活给刨了不好」「三个关键词的原话选取的都不好！不如只单独展示关键词！」——大字关键词 + 书记提供的完整短语（一个具体的组织/一个方兴未艾的组织/一个提供成长的组织），无 AI desc、无引文
+2. **三落点充分运用书记原话**：blockquote 引书记原话（成长路径=2026-07-01 / 做事方式=P-005 / 表达空间=P-007），**不写原话编号、不写日期、不出现「书记」字样**（SPEC 批准批注）；禁止 AI 扩写，承接仅作极简连接
+3. **分章宽度策略**：叙事章 1120px（原 1020px）、视觉章（工作流 SVG）1320px 全宽；上下高度保持无限制
+4. **收束去口号**：「管理事，服务人」大字已内化、结尾喊出来矫情 → 删除大字与「爱具体的人/组织」echo；改为三层小字：感谢你读到这里 / **期待我们的共同成长**（书记定稿，呼应「从入党申请人到正式党员」）/ 实践是检验真理的唯一标准（最下方小字，不用「爱具体的人」表述）
+
+### 已落地
+- `.trae/specs/ABOUT_REDESIGN_SPEC2.md`（设计 SPEC，书记批准）
+- `docs/src/entries/about-entry.js`：renderCognition 纵向布局重写（三关键词纯展示 + 三落点 blockquote）、renderConclusion 重构（三层小字）、TOC_ITEMS conclusion 标签「管理事，服务人」→「收束」、dialogue R 上限 `S*0.5` → `S*0.56`、头部签名注释同步
+- `docs/src/about.css`：第一章纵向铺展（`.ab-keywords`/`.ab-expect-list` flex column、关键词大字 clamp(36,4.8vw,58)、落点卡错落散落 --scatter + ab-rise-scatter 与第二章语言统一、blockquote 原话样式）、分章宽度（`.ab-chapter` 1120px + `.ab-exploration-section .ab-chapter` 1320px）、dialogue 舞台减数 243→200、收束三层小字样式、清理 `.ab-keyword-desc`/`.ab-expect-grid`/`.ab-expect-card-body`/`.ab-conclusion-title/lead/sub/echo/regenerate/line/char/seal/ring2` 及 media/reduced-motion 引用、`data-stagger` 卡动画与 reduced-motion 列表补充、过时注释（cognition sticky head）更新
+
+### 验证结果
+✅ GetDiagnostics：JS/CSS 零错误
+✅ grep 零残留：ab-keyword-desc/ab-expect-grid/ab-expect-card-body/ab-page--split/ab-conclusion-*/ab-cognition-grid/ab-research 全部清除；「爱具体的人」仅剩 JS 注释说明，正文零残留
+✅ 浏览器实测（localhost:8123，视口 1142x661）：
+- 关键词 3 条「具体/方兴未艾/提供成长 + 完整短语」，落点 3 卡标题 + 书记原话 blockquote（无编号/日期/「书记」字样）
+- `.ab-keywords`/`.ab-expect-list` flex column 纵向铺展；关键词大字 54.8px；落点卡错落 rotate ±0.6deg 生效（ab-rise-scatter 动画 + --scatter 变量，静态 transform 不冲突）
+- `.ab-chapter` max-width 1120px / `.ab-exploration-section .ab-chapter` 1320px 生效
+- 收束三层小字居中：36px 墨色感谢 / 26px 党建红期待 / 16px 淡灰小字
+- 对话章舞台 365px（视口 661px 高时），console 0 错误 0 警告
+
+### 实测发现（书记决策落地）
+对话章 R 的实际钳制是**内切钳制项** `max(S/2 - maxCardH/2 + 121, cardW/1.414)`（maxCardH=274 时主导），`S*0.56` 上限不达上限。书记 2026-08-18 决策：**轨迹改椭圆，长轴稍长**——已落地：长轴水平 `rx = 1.2R`（页面宽度充裕，横向扫过范围 +20%，实测 ±199.8px vs 圆形 ±166.35px），短轴垂直 `ry = R`（正午升起逻辑不变、不遮章头）；相邻 90° 卡中心距 = R*1.562 ≥ 卡宽不重叠；卡右缘 295.8px < 章宽余量 377px 不溢出页面。另经书记确认：落点卡**保持现状不加极简承接**（「莫名其妙的扩充我不认可」精神）。
+
+### 沉淀标签
+`[已沉淀: USAGE_POLICY §2.4 禁止事项·书记原话表达纪律]` — ① 充分运用书记原话：禁止用 AI 扩写替代书记原话，引原话时不写编号/日期/「书记」字样；② 关键词类展示只留书记提供的短语，AI desc 属「把下面的话刨了」（与第 1 轮「AI 扩充不尊重书记原话」同源，T-270 已有 §2.4 沉淀，本轮补充引文呈现规范）。
+
+## T-272 about 界面 UI 设计调整——乙部登记（2026-08-19）
+
+**任务**：书记 2026-08-19 判定 about 页面整体设计「非常诡异」，指示「把 UI 设计写入乙部，待书记启动调整」。
+**已落地**：CLAUDE.md 乙部 P3 表格新增 T-272 条目（状态：🔄 待书记启动——仅登记，未启动）。
+**验证**：无代码改动。
+**沉淀标签**：无新模式。
+
+## T-273 部署落地总览撰写 + 计算中心文档修正（2026-08-19）
+
+**任务**：书记询问「微信小程序部署、北大计算中心 API 对接是否都有明确的落地文档，能否基于目前代码更新与撰写」。核查结论：**无明确落地文档**——WECHAT_INTEGRATION.md（小程序设计方案+路线图，2026-08-11）、SCHOOL_IT_DEPLOYMENT.md（计算中心对接准备，draft 且**过时**——「数据层为纯 mock」不实）、DEPLOYMENT_AUTH_MODEL.md（部署认证场景模型，2026-08-18）。
+
+### 书记裁决（AskUserQuestion 4 问）
+1. 形态：新建《部署落地总览》+ 修正过时的计算中心文档
+2. 对接阶段：**准备阶段**（文档定位「准备 + 待对接清单」）
+3. 小程序范围：**落地规划**（路径决策/前置条件/部署框架/数据层共用，不含代码）
+4. 读者：**技术对接为主**
+大纲经书记确认后撰写。
+
+### 已落地
+- 新建 `content/04_web_design/DEPLOYMENT_ROADMAP.md`：① 四条落地路径总览（A 静态托管 / B Node 自托管 / C 计算中心 / D 微信小程序）+ 路径关系；② 代码就绪度盘点（26 资源表全栈、data-adapter 双模式、api-adapter P1 25 资源+snapshot、DEPLOY_MODE、门控四层；待做：P2 资源级 CRUD、IAAA、AI 本地部署）；③ 路径 C 计算中心对接（前置条件 / 当前代码版文档清单 / 对接六步 / IAAA）；④ 路径 D 小程序落地规划（WebView 套壳短期 / Taro 中期 / 数据层共用方案 / 里程碑）；⑤ 部署决策矩阵；⑥ 风险与依赖；⑦ 关联文档索引
+- 修正 `content/04_web_design/SCHOOL_IT_DEPLOYMENT.md`：①「当前状态纯 mock」→ server 全栈已实现（Express + better-sqlite3，26 资源表 + 认证 + 附件上传，16 测试全绿，对接准备阶段）；② §四文档清单补「后端参考实现 server/」「api-adapter 25 资源路由表」「认证模型 DEPLOYMENT_AUTH_MODEL」；③ §五对接六步标注认证现状（本地 login 完整链路已实现，替换为计算中心体系，目标 IAAA）；④ YAML last_updated 2026-08-19 + 关联 DEPLOYMENT_ROADMAP
+- 同步索引：04_web_design/README.md「四、部署与认证」新增 DEPLOYMENT_ROADMAP（首位）；DOC_MAP.md 04 列表新增；TIMESTAMPS.md 登记新文档 + 更新 5 处时间戳（含补齐漏登的 DEPLOYMENT_AUTH_MODEL.md）
+
+### 代码事实核对（文档数据来源）
+server/db.js 26 资源表（id + data JSON 通用结构，含 branch_docs）+ sessions/attachments；api-adapter.js 头部路由表（25 资源 + auth/login/logout + snapshot + uploads + health/bootstrap）；data-adapter.js `setDataSource` 双模式；bootstrap.js token 检测自动切 api + 服务器不可达静默回退 mock；config/deploy.js `DEPLOY_MODE`。
+
+### 验证结果
+✅ GetDiagnostics 零错误
+✅ 「纯 mock」残留仅 insights/工程演进与设计方法论.md L326（历史经验记录，生效条件=纯前端阶段，按 H30.4 条件化保留不改）
+✅ SSOT_INDEX 核查：部署文档不驱动代码母本，无需登记
+
+### 沉淀标签
+无新模式（部署文档撰写按既有权威源引用，无新教训）。
+
+## T-274 丙部议题生命周期处理：P.8 退出 / P.9 检查退出 / P.10 逐项审视清理（2026-08-19）
+
+**任务**：书记三项指令——① P.8 实际已完成应退出；② P.9 检查 SECRETARY_PRONOUNCEMENTS 完成后是否还是问题并退出；③ P.10 大概率清理但需逐个审视。
+
+### 书记裁决
+- **P.8**：确认完成退出（D-270）。常驻注释保持 4 条（节点2/5/6/7 stickyNote），详情 decisionDetail 随 T-270 定稿，无需再调。
+- **P.9**：确认退出（D-271）。书记定调：「剩余还在研究的课题，书记个人认为都已经得到了落地——如果表达了那就按照书记的原话，如果没有表达，那就是书记可以的模糊。」未决点转为书记个人研究课题，AI 不得擅自立论填补。
+- **P.10**：**「我认为只保留 F 即可。我认为这里面的表达，AI 的扩充简直是灾难！不尊重书记原文」**——8 处严格对举中仅保留 F（L128「在真实工作中认识一个人，而不是在抽象表态中认识一个人」）；A/B/C/D/E/G/H 全部清理；断裂式 L137/L245 一并处理；同类「而不是」L27 同精神清理；书记原话引用（L235）一字不动。
+
+### 已落地
+- **丙部清空**：CLAUDE.md 丙部 P.8/P.9/P.10 全部删除，标注「当前丙部为空」（D-270/D-271/D-272）
+- **DECISION_LOG**：2026-08-DECISION_LOG.md 追加 D-270（P.8 退出）/D-271（P.9 退出）/D-272（P.10 清理），索引更新 7→9 条
+- **DEVELOPMENT_PATH.md**：10 处「不是…而是/而不是」正面化改写（A 张力定位 / B 组织化含义 / C 组织经验 / D 两能力 / E 主人翁意识 / G 党建+科研边界 / H 发展路径定义 / L27 叙事视角 / L137 能力升级 / L245 党员角色），保留 F + 书记原话 L235；YAML last_updated 2026-08-19
+- **TIMESTAMPS**：CLAUDE.md / DEVELOPMENT_PATH.md / DECISION_LOG ×2 时间戳同步
+
+### 验证结果
+✅ grep：DEVELOPMENT_PATH.md「不是…而是/而不是」仅剩 L128（F 保留）+ L235（书记原话引用）；about-entry.js 零同类残留（T-270/T-271 已清理）
+✅ 丙部清空：CLAUDE.md 无 P.8/P.9/P.10 残留
+✅ GetDiagnostics 无错误
+
+### 沉淀标签
+`[已沉淀: USAGE_POLICY §2.4 禁止事项·书记原话表达纪律（强化）]` — 「不是…而是」反论须经书记过目（H10 总纲），适用范围从「书记原话扩充」扩展到**叙事正文**：AI 不得以「叙事澄清/误读排除」为由自造排他对立式（书记 2026-08-19：「AI 的扩充简直是灾难！不尊重书记原文」）；书记明确保留者除外（F）。
+
+## T-272 about 页面 UI 设计调整（2026-08-19，书记启动）
+
+**任务**：书记启动乙部 T-272——about 页面设计「非常诡异」，核心批评为**设计缺乏自觉**：「所有的动画、布局以及他们与所呈现文字的逻辑关系 没有足够的自觉。不是具体地进行设计（考虑观者的体验），而是随意地复制其他的模块！这个自觉是书记反复强调的！尤其是布局、字体、滚动驱动的显示逻辑，配色与字体」。
+
+### 书记关键裁决（brainstorming 逐项确认）
+1. **装饰要保留**：「我要求要有页面装饰，因为一个好看的界面对于观者很重要，起到很重要的推广宣传的作用。」——AI 初诊「删除装饰」被纠正。防的是**风格疲劳**（都莫名其妙地错落 / 都统一居左或居右 / 都左右或上下排布）
+2. **超参数自觉**：「对于每一个超参数，设定的原则是什么？要有自觉」——落成 about 设计规范文档
+3. **第一章（组织性）**：书记判定「现在风格设计最诡异的！内容不动，请设计清楚！」——方案 B 语义性错落（呼应方兴未艾）+ **全章禁止竖线**（「不要有【竖线】！掉价」）+ 落点竖排宽度思考（720px 舒适行宽）
+4. **第二章**：回归文字优先——满宽正常卡（去 58vh 空洞、去 ±1.2° 倾斜、去左/右/中错落）
+5. **第六章速度**：「从下滑到视窗停留以及从视窗停留接着往后走的速度 和 正常转动比较不一样。此外 正常转动 转动太快！」——PLATEAU 0.7→0.55（转速降约 1/3）+ 三段角速度统一（ROT_RATE 算法）
+6. **配色字体**：微调维持
+
+### 已落地
+- `.trae/specs/ABOUT_UI_REFINE_SPEC.md`（设计 SPEC，书记批准；批准版补红线「每一章内容不动」）
+- `docs/src/about.css`：第一章重构（关键词油墨宋 clamp(32,4vw,44) 语义性错落 -1.5°/1.2°/-1°+逐级下沉、无 border-left；落点 list max-width min(720px,100%)、quote 改 `--ab-paper-1` 淡底圆角 8px 无竖线）；第二章满宽正常卡（min-height auto / 0° 无倾斜 / max-width 100% / align-self stretch / ab-rise-in 纯升起）；第二章原话 quote 去 border-left 改淡底（全章无竖线红线）
+- `docs/src/entries/about-entry.js`：第六章 PLATEAU 0.7→0.55 + ROT_RATE = 90/((1-PLATEAU)/4) 三段角速度统一（进入/退出段 θ = progress×ROT_RATE，progress 范围 -45/ROT_RATE 与 +45/ROT_RATE）
+- `content/04_web_design/ABOUT_DESIGN_SYSTEM.md`（新建）：超参数设定原则文档——设计哲学（叙事册风/超参数自觉/防风格疲劳/叙事章文字优先/无竖线红线）、色板 tokens 使用边界、字体分工、各章超参数登记表（值+原则）、防风格疲劳规则、动/静自觉清单、维护约定
+- 索引同步：04 README「二、模块界面设计」+ DOC_MAP + TIMESTAMPS（about.css/about-entry.js/新文档）
+
+### 验证结果
+✅ GetDiagnostics：JS/CSS 零错误（仅既有 markdownlint 警告）
+✅ 浏览器实测（localhost:8123）：关键词错落生效（rotate ±1.5°/1.2°/-1° + 左移 0/34/69px + border-left 全 0）；落点卡 720px×3 竖排 + quote 淡底无竖线；第二章三卡 matrix 无旋转/min-height auto/满宽；第六章对话章正常公转无 JS 错误
+✅ grep：第一章 `.ab-keyword`/`.ab-expect-card-quote` 与第二章 `.ab-philosophy-opp-quote` 零 border-left
+
+### 沉淀标签
+`[已沉淀: USAGE_POLICY §2.4 + ABOUT_DESIGN_SYSTEM.md]` — ① 设计「自觉」纪律：每个超参数须有设定原则，禁止无原则复制其他模块（书记 2026-08-19：「随意地复制其他的模块」）；② 装饰性元素保留原则：界面好看=推广宣传，防的是风格疲劳不是装饰；③ 无竖线红线（左侧红边线/blockquote 竖线掉价），层级区分改底色。
+
+## T-275 北大党校与智慧党建系统对接设计（2026-08-19）
+
+**任务**：书记战略要求——① 明确嫁接什么 API（尤其北大党校系统 + 智慧党建系统）、随时爬取什么数据、系统内部数据类型字段、小程序初步设计；② 对接方式提前想清楚（如何爬取、用什么工具、双向协同）；③ 全面性优先，避免实际对接时被动（「等到我们实际对接的时候，已经是太晚了」）。
+
+### 书记裁决（brainstorming 确认）
+- **对接授权**：**学校党委组织部支持技术对接、实现系统协同**（书记与党委组织部老师交流确认，2026-08-19）——对接是组织部门认可的协同工作；支部无「管理权限」，实施口径按组织部流程确认
+- **同步方向**：党校系统**单向爬取即可**；智慧党建平台**要双向实时同步**（读+写）
+- **运行环境**：爬取/同步任务跑在**校园网内**（如计算中心服务器）
+
+### 预研发现（公开信息核查）
+- 党校系统 = `dangxiao.pku.edu.cn` 北京大学党员教育培训平台：主办党校办公室、技术艾唯博瑞（联合北大研发「党校综合信息管理平台」）、登录=北大统一身份认证（IAAA）；功能含入党教育四阶段培训/考试/学时/结业评议
+- 智慧党建平台 = 高校智慧党建生态（同源厂商方案）：三会一课/民主评议/工作手册导出/党费/党员发展管理/上级链通
+
+### 已落地
+- **新建 `content/04_web_design/PKU_PARTY_INTEGRATION.md`**（对接总体设计，status: draft）：
+  1. 背景与已确认事实（系统形态/权限/方向/环境）
+  2. 对接对象全景（党校单向爬取 / 智慧党建双向 / 一图总览）
+  3. 我们系统数据类型字段（26 资源表 + 主键锚 personId/状态锚 partyStatus/时间锚 updatedAt）
+  4. 数据映射设计（培训/结业评议/组织生活/党员发展/党费/支部手册）
+  5. 党校爬取方案（Playwright + IAAA storageState + node-cron + sync_logs；每日/事件/周频 + 风险缓解）
+  6. 智慧党建双向同步（方案 A API/Webhook 理想版 vs 方案 B 定时增量+导出导入现实版；**自动写默认关闭**——宁可导出人工导入，不做脆弱自动填）
+  7. 一致性模型（北大平台为权威端 + updatedAt 仲裁 + partyStatus 状态机 + 幂等键 + 人工复核队列）
+  8. **微信小程序——归位说明**（独立问题，设计权威源 = WECHAT_INTEGRATION.md §八；本文件只保留数据接口约定）
+  9. **待确认清单 7 项**（厂商 API 能力/批量导入/校园网部署/实施口径/IAAA 风控/上级链通口径——对象为党委组织部/厂商/信息中心）
+  10. 里程碑 M0-M5 与风险表
+- 索引同步：04 README「四、部署与认证」+ DOC_MAP + TIMESTAMPS
+
+### 验证结果
+✅ 文档结构完整（11 节，含 7 项待确认清单与 M0-M5 里程碑）
+✅ 引用关系闭合（DEPLOYMENT_ROADMAP/SCHOOL_IT_DEPLOYMENT/WECHAT_INTEGRATION/DATA_ARCHITECTURE/DEPLOYMENT_AUTH_MODEL 均已互链）
+✅ 事实 vs 假设分离（已确认事实表 + 待确认清单分开，不混淆）
+✅ GetDiagnostics 无错误
+
+### 沉淀标签
+`[待沉淀: 外部系统对接设计模式]` — 对接「厂商闭源系统」的三条经验：① 先做公开信息预研（系统名/厂商/登录方式/功能），再问内部关键事实（权限/方向/环境）——避免空泛提问；② 双向实时同步须先确认 API 能力，无 API 时给出「理想 A / 现实 B」双方案，自动写默认关闭（脆弱自动填的操作成本 > 人工导入）；③ 对接设计文档必须含「待确认清单」——把要问对方的事显式列出，是「提前想全面」的落点。
+
+### 书记纠正（2026-08-19 追加）
+1. **「支部管理权限」表述不成立**：书记纠正——信息来自与**党委组织部老师**的交流，党委组织部支持**技术对接、实现系统协同**；对接授权主体 = 党委组织部，支部无「管理权限」。已全仓修正：PKU_PARTY_INTEGRATION §一 授权行/§2.1 对接方式/§5.1 凭证/§5.4 风险/§6.2-6.3/§九 待确认项（对象改党委组织部/厂商/信息中心）。
+2. **微信小程序为独立问题**：书记纠正——「请一定要让对应的内容进入对应的文档，以防长期污染仓库！」已执行：对接文档 §八 改为「归位说明」（只保留数据接口约定）；小程序展示设计迁移至 WECHAT_INTEGRATION.md §八「北大对接数据的展示（叠加）」（数据来源/展示板块/同步差异推送/落地路径）。
+
+## T-276 架构演进评估+设计文档（2026-08-22）
+
+**任务**：①评估「高度组件化、高度可复用」目标落地程度；②对照「一切皆插件」分析灵活性；③设计上线后迭代机制；④新建文档采用无人称文体。
+
+**书记方向（brainstorming 确认）**：主文档归 04_web_design；只出文档不入代码，但规划未执行项入乙部提醒；无人称修缮「新建+05 先修」。
+
+**已落地**：
+- **新建 `content/04_web_design/ARCHITECTURE_EVOLUTION.md`**（status: draft，无人称文体）：
+  1. 出发点（目标 + 需要外部帮助的方向）
+  2. 组件化/可复用落地评估（7 项已落地机制 + 5 项差距 + 结论：结构分层✅ / 运行时可组合❌）
+  3. 迭代能力现状评估（功能增减/角色权限/技术栈演进三类）
+  4. 轻量插件化设计——「能力注册表 + 声明式清单」（增量/收敛既有准插件机制/权限随能力走；register/get/mount 三原语；UI 块/数据源/工作流场景三类插件单元）
+  5. 迭代机制（功能开关=按环境角色过滤、版本化承接 KNOWN_PITFALLS §13、灰度回滚=注销声明）
+  6. 实施路径 M1-M4（已规划未执行）
+  7. 与既有文档关系（C-1 深化方向）
+- **索引同步**：04 README + DOC_MAP + TIMESTAMPS（ARCHITECTURE_EVOLUTION 条目）
+
+### 沉淀标签
+`[待沉淀: 架构演进评估模式]` — ① 组件化评估用「结构分层 vs 运行时可组合」两分法（系统已有准插件机制但缺统一注册表收敛）；② 插件化设计取「增量注册表」而非「全面重构」——收敛既有 tab 声明/数据源接口/场景数据为统一能力清单，消费点自动发现；③ 迭代机制设计把「功能开关/版本化/灰度」统一为注册表能力（按环境角色过滤 = 天然开关）。
+
+## T-277 05 KNOWN_PITFALLS 书记表述无人称修缮（2026-08-22）
+
+**任务**：04/05 文档不要强调书记或书记说了什么，采用无人称形式（只表达探索和选择）。
+
+**已落地**：
+- `content/05_ai_coding/KNOWN_PITFALLS.md`：14 处「书记批评/书记决策/书记质问/书记 2026-08-14 明确」等表述全部改为无人称（「该做法被指出」「连续两轮指出」「2026-08-14 明确」等）；YAML version 1.11→1.12、last_updated→2026-08-22
+- 全仓 grep「书记」：05_ai_coding 目录零残留
+- **修缮纪律**：只改人称表述，不删判例事实（日期/编号/T 编号保留）；04 既有 11 文件约 209 处入乙部 T-278 分批修缮
+
+### 验证结果
+✅ GetDiagnostics（见 T-276 主文档）
+✅ grep「书记」05_ai_coding 零残留
+✅ T-278（04 分批）/T-279（插件化实施）已写入乙部 ⏸️ 已规划未执行
+
+## T-278 04 既有文件书记表述无人称修缮（2026-08-22 执行完成）
+
+**任务**：04_web_design 既有文件「书记」来源人称表述改为无人称——只表达探索和选择，不强调来源人称（书记 2026-08-22：「不要强调我是书记或者书记说了什么，采用无人称的形式是最好的」）。
+
+**修缮纪律**（区分三类）：
+1. **来源人称强调**（书记裁决/裁定/实测/指令/反馈/原话/批准/决策/确认/更名/确立/指定/提出/2026-08-XX 书记…）→ 改无人称（「裁决」「裁定」「2026-08-08 指令」「2026-08-02 确立」等），保留日期/编号/引语内容
+2. **角色功能名**（书记工作台/书记「全局概况」/书记「写入活动」/书记专属权限/副书记同色/支委（书记）等 T1 职务术语）→ 保留
+3. **判例事实**（日期/T 编号/D 编号/引语）→ 保留，只去人称标签
+
+**已修缮 9 个文件**（来源人称清零）：
+
+| 文件 | 处理 |
+|------|------|
+| DESIGN_SYSTEM.md | 原则 7-14「书记原话」→「2026-08-XX 确立」；「书记裁决/裁定/实测/指令/反馈/批准/决策/确认/更名/确立/指定」等全部无人称化（约 30 处） |
+| DATA_ARCHITECTURE.md | 「书记强调/指示/裁决/决策/论断」→「确立/指示/裁决/决策/论断」（约 7 处） |
+| CHECKLIST.md | 「书记原话/按 URL 实测/发现/指令」→「原话/实测/曾发现/指令」（5 处） |
+| ABOUT_DESIGN_SYSTEM.md | 「书记 2026-08-19/原话/设计/红线」→「确立/引述原话/设计选择/红线」（10 处） |
+| WECHAT_INTEGRATION.md | 「书记 2026-08-10 战略目标/决策链/裁决/2026-08-11/2026-08-19」→ 无人称（5 处） |
+| PKU_PARTY_INTEGRATION.md | 「书记 2026-08-19/书记需求/书记确认/书记须知情」→「提出/需求/确认/决策者须知情」（7 处） |
+| SOP_WEB.md | 「书记论断/书记提出/书记原话精神」→「论断/提出/原话精神」（4 处） |
+| DEPLOYMENT_ROADMAP.md | 「书记决策路线/书记与计算中心确认」→「决策路线/与计算中心确认」（2 处） |
+| SCHOOL_IT_DEPLOYMENT.md | author「AI 起草，书记审定」→「AI 起草，审定」+「书记确认」→「确认」（2 处） |
+| DEPLOYMENT_AUTH_MODEL.md | author「AI 起草，书记审定」→「AI 起草，审定」（1 处） |
+
+**保留的角色功能名**（grep 验证 6 处）：书记工作台「全局概况」「专班总览」「写入活动」/ 书记「复盘完成率」统计卡 / 支委（书记）——均为 T1 职务术语，非来源人称。
+
+**同步**：各文件 YAML last_updated → 2026-08-22；TIMESTAMPS 更新；乙部 T-278 完成退出（删除），T-279 保留 ⏸️
+
+### 验证结果
+✅ grep「书记原话|书记裁决|书记裁定|书记实测|书记指令|书记反馈|书记批准|书记决策|书记确认|书记更名|书记确立|书记指定|书记提出|书记 2026」04_web_design 零残留（仅剩角色功能名 6 处）
+✅ 全仓 04/05 用户文档无人称达成（05 KNOWN_PITFALLS 上轮已修）
+
+## T-279 M1 能力注册表骨架 + 首页活动日历迁移（2026-08-22 执行完成）
+
+**任务**：乙部 T-279 轻量插件化实施的 M1 阶段——「注册表骨架 + 首个示例能力迁移」，验证「注册→发现→挂载」链路（实施路径见 ARCHITECTURE_EVOLUTION.md §六 M1）。
+
+**决策链（brainstorming 澄清）**：示例能力 = 首页活动日历（对应 M1 验收标准原话）；注册表 API = 完整三原语（register/get/mount）。
+
+**已落地**：
+- **新建 `docs/src/core/registry.js`**：四导出 `registerCapability`（重复注册 console.warn 覆盖）/ `getCapabilities({scope, role})`（范围+角色过滤，requiredRoles=null 表示无限制）/ `getCapability(id)` / `mountCapability(id, container, ctx)`（未注册抛错）；能力声明形态 `{id, name, scope, requiredRoles, deps, mount}`——deps 仅登记不解析、requiredRoles 仅存不应用（M4 落地）
+- **新建 `docs/src/modules/capabilities/activity-calendar.js`**：自注册模式（import 副作用触发），scope=['dashboard']，mount 包装 `renderCalendarForDashboard(ctx.state, ctx.targetMonth)`
+- **改造 `docs/src/entries/main-entry.js`**：import 改经注册表（L22-24）；渲染段（L469-479）改 `getCapabilities({scope:'dashboard'}).find(id==='activity-calendar')` → `mountCapability('activity-calendar', null, {state, targetMonth})`——同一函数同一参数，行为零变化
+- **bump 版本**：index.html main-entry `?v=20260812f` → `?v=20260822a`；registry/activity-calendar 带 `?v=20260822a`
+- **Spec**：`.trae/specs/CAPABILITY_REGISTRY_M1_SPEC.md`（含验收标准与回滚方案）
+
+**验证结果**：
+✅ GetDiagnostics 三文件（registry.js / activity-calendar.js / main-entry.js）零错误
+✅ 浏览器实测（browser_use）：首页 `?view=calendar` 月历渲染成功（36 格、活动圆点/标记/图例齐全）；月/列表切换正常；月份选择器正常；**无 registry/模块加载错误**——注册-发现-挂载链路验证通过
+✅ git diff 确认 main-entry.js 仅 import + 渲染段两处变更
+
+**说明（非本次引入的既有问题）**：
+- main-entry.js 文件头 12 个 BOM：ws-secretary-entry.js 等未编辑文件同样存在（EF BB BF × 12），git diff 显示全仓 .js 文件普遍有 BOM/行尾差异——**历史遗留未提交状态**，非 M1 引入
+- 首页事件委托 L487 `user.role` 空指针（匿名访问点击 dashboard 区域触发）：既有代码，不在本次 diff 范围，非 M1 回归
+
+### 沉淀标签
+`[待沉淀: 插件化落地模式]` — ① 收敛既有准插件机制（tab 声明/数据源接口）为统一注册表 = 新增收敛层而非重构；② 自注册副作用导入模式（import 即注册）使消费点无感；③ M1 最小验证法：先迁一个能力验证注册-发现-挂载链路，行为零变化（同一函数同一参数）再铺开
+
+
+## tab 栏单行横向平滑滚动（2026-08-23 执行完成，C-4 视觉体验持续优化子项）
+
+**问题**：tab 数量增加（组长 9 个）后，`flex flex-wrap` 在窄页宽（侧边栏展开态内容区 ~960px）下随机换行成 2 行，视觉割裂。
+
+**方案（书记 2026-08-23 裁定：单行 + 横向平滑滚动）**：
+- **tab-bar.js**：外层容器 `flex-wrap` → `flex-nowrap + overflow-x-auto`（永不换行、超宽横向滑动）；按钮/组标签/右侧汇报按钮全部加 `shrink-0`（防 flex 压缩）；新增 `_bindScrollHints`（元素级标记防重复绑定，scroll/resize/ResizeObserver 三路更新 `data-overflow`，溢出时两侧渐隐遮罩提示可滚动）
+- **styles.css**：新增 `.ws-tab-scroll` 样式——隐藏滚动条（scrollbar-width:none + ::-webkit-scrollbar display:none）+ scroll-behavior:smooth + -webkit-overflow-scrolling:touch + `::before/::after` 渐隐遮罩（pointer-events:none 不挡点击，`data-overflow` 驱动显隐）
+- **版本链（KNOWN_PITFALLS §13）**：`tab-bar.js?v=20260812a/d` → `?v=20260823a`（6 个 entry）；`styles.css?v=20260812d` → `?v=20260823a`（14 个 HTML：index/login/feedback/archive/search/activity/help/notice/about + 6 工作台）
+
+**关键实现细节**：Tailwind CDN 异步注入 `shrink-0/flex-nowrap` 后布局才稳定，初始 `data-overflow` 计算会滞后 → 必须用 ResizeObserver 监听尺寸变化补算，否则遮罩不出现（首轮验证 FAIL 后补修）。
+
+**验证结果（Playwright 无头，纯代码断言 9/9）**：
+✅ 组长窄视口 1024：9 按钮单行（offsetTop 全 0）+ 溢出 scrollWidth 1007>960 + 右侧遮罩激活
+✅ 组长宽视口 1440：单行 + 无溢出 + 无遮罩
+✅ 书记窄视口 1024：单行 + 溢出 + 遮罩激活
+✅ GetDiagnostics tab-bar.js 零错误；pageerror 仅外网 404（沙箱无外网，非项目问题）
+
+### 沉淀标签
+`[待沉淀: CDN 工具类异步注入导致布局计算滞后]` — Tailwind CDN（运行时 JIT）注入的布局类（flex-nowrap/shrink-0）在模块执行后才生效，首帧 `scrollWidth/clientWidth` 计算会得到"无溢出"假象；凡依赖此类布局尺寸的 JS 逻辑（溢出遮罩/滚动提示/截断判断）须以 ResizeObserver 补算，不能只在初始化时计算一次
+
+
+## tab 栏单行横向平滑滚动（2026-08-23 执行完成，C-4 视觉体验持续优化子项）
+
+**问题**：tab 数量增加（组长 9 个）后，`flex flex-wrap` 在窄页宽（侧边栏展开态内容区 ~960px）下随机换行成 2 行，视觉割裂。
+
+**方案（书记 2026-08-23 裁定：单行 + 横向平滑滚动）**：
+- **tab-bar.js**：外层容器 `flex-wrap` → `flex-nowrap + overflow-x-auto`（永不换行、超宽横向滑动）；按钮/组标签/右侧汇报按钮全部加 `shrink-0`（防 flex 压缩）；新增 `_bindScrollHints`（元素级标记防重复绑定，scroll/resize/ResizeObserver 三路更新 `data-overflow`，溢出时两侧渐隐遮罩提示可滚动）
+- **styles.css**：新增 `.ws-tab-scroll` 样式——隐藏滚动条（scrollbar-width:none + ::-webkit-scrollbar display:none）+ scroll-behavior:smooth + -webkit-overflow-scrolling:touch + `::before/::after` 渐隐遮罩（pointer-events:none 不挡点击，`data-overflow` 驱动显隐）
+- **版本链（KNOWN_PITFALLS §13）**：`tab-bar.js?v=20260812a/d` → `?v=20260823a`（6 个 entry）；`styles.css?v=20260812d` → `?v=20260823a`（14 个 HTML：index/login/feedback/archive/search/activity/help/notice/about + 6 工作台）
+
+**关键实现细节**：Tailwind CDN 异步注入 `shrink-0/flex-nowrap` 后布局才稳定，初始 `data-overflow` 计算会滞后 → 必须用 ResizeObserver 监听尺寸变化补算，否则遮罩不出现（首轮验证 FAIL 后补修）。
+
+**验证结果（Playwright 无头，纯代码断言 9/9）**：
+✅ 组长窄视口 1024：9 按钮单行（offsetTop 全 0）+ 溢出 scrollWidth 1007>960 + 右侧遮罩激活
+✅ 组长宽视口 1440：单行 + 无溢出 + 无遮罩
+✅ 书记窄视口 1024：单行 + 溢出 + 遮罩激活
+✅ GetDiagnostics tab-bar.js 零错误；pageerror 仅外网 404（沙箱无外网，非项目问题）
+
+### 沉淀标签
+`[待沉淀: CDN 工具类异步注入导致布局计算滞后]` — Tailwind CDN（运行时 JIT）注入的布局类（flex-nowrap/shrink-0）在模块执行后才生效，首帧 `scrollWidth/clientWidth` 计算会得到"无溢出"假象；凡依赖此类布局尺寸的 JS 逻辑（溢出遮罩/滚动提示/截断判断）须以 ResizeObserver 补算，不能只在初始化时计算一次
+
+
+## T-279 M3 组织委员工作台拆分（2026-08-23 执行完成，4 工作台中第 1 个）
+
+**任务**：按 M2 样板拆分组织委员工作台——1806 行单体 → 薄壳入口（161 行）+ 8 独立 tab 模块（entries/tabs/org/）+ 注册表能力（org-workspace，scope='workspace:org'）。子代理执行主体 + AI 独立验证修复。
+
+**已落地**：
+- **薄壳入口** ws-org-commissioner-entry.js（161 行）：bootstrap + 注册表 tab 清单 + URL 落点（taskforceId/activityId/view）+ _renderCurrentTab 数据刷新
+- **8 tab 模块**：todo/overview/inspection/taskforce（含发布招募 openRecruitForm）/talent/development/activity-view/my-dispatch，私有状态随模块自持
+- **org-workspace.js**：能力注册（8 tab 清单自注册），入口经 getCapabilities 读取
+- **org.html**：入口版本 bump 20260812f → 20260823d
+
+**AI 独立验证修复 3 个问题（子代理自报"GetDiagnostics 零错误"未覆盖）**：
+1. **版本链分裂（核心）**：子代理把入口/tab 模块所有 import 统一改 20260823a，与依赖链（data-loader 等内部 20260812a）分裂 → state.js 同页面双实例 → data-loader setState 与入口 registerRenderCallback 分属两实例 → renderOrgUI 永不触发、页面空白无报错。修复：入口 state.js → 20260812a，org-workspace registry → 20260812a，tab 模块依赖 → 20260812d，仅 tab-bar 保留 20260823a
+2. **diag 日志残留**：子代理在入口留了 before/after bootstrap 调试日志，已清理
+3. **并行 Edit 覆盖**（KNOWN_PITFALLS §14 强化）：org-workspace.js 的 registry 版本被同消息并行 Edit 覆盖回旧值，串行修复
+
+**验证结果（纯代码，14/14）**：GetDiagnostics 零错误；Node import 图校验 10 文件/68 条相对导入/78 命名导入全通过；Playwright 无头：8 tab 按钮、单行、8 tab 渲染非空、URL 直达 tf-001（专班管理）与 act-1（活动查看）正常、无 JS 错误。
+
+**说明**：M3 剩余 3 个工作台（宣传 1320 行/纪检 1339 行/成员 897 行）按同一模式推进（含版本链分裂预防 + 子代理交付三查）。
+
+### 沉淀标签
+`[已沉淀: KNOWN_PITFALLS §17]` — 共享状态模块版本分裂→同页面双实例；子代理交付三查；并行 Edit 覆盖（M2 的 [待沉淀: 巨型单体拆分回归三类模式] 中 ①import 图校验/③行为回归已落地为 §16 验证三件套，本次补充版本链维度）
+
+
+## T-279 M3 组织委员工作台拆分（2026-08-23 执行完成，4 工作台中第 1 个）
+
+**任务**：按 M2 样板拆分组织委员工作台——1806 行单体 → 薄壳入口（161 行）+ 8 独立 tab 模块（entries/tabs/org/）+ 注册表能力（org-workspace，scope='workspace:org'）。子代理执行主体 + AI 独立验证修复。
+
+**已落地**：
+- **薄壳入口** ws-org-commissioner-entry.js（161 行）：bootstrap + 注册表 tab 清单 + URL 落点（taskforceId/activityId/view）+ _renderCurrentTab 数据刷新
+- **8 tab 模块**：todo/overview/inspection/taskforce（含发布招募 openRecruitForm）/talent/development/activity-view/my-dispatch，私有状态随模块自持
+- **org-workspace.js**：能力注册（8 tab 清单自注册），入口经 getCapabilities 读取
+- **org.html**：入口版本 bump 20260812f → 20260823d
+
+**AI 独立验证修复 3 个问题（子代理自报"GetDiagnostics 零错误"未覆盖）**：
+1. **版本链分裂（核心）**：子代理把入口/tab 模块所有 import 统一改 20260823a，与依赖链（data-loader 等内部 20260812a）分裂 → state.js 同页面双实例 → data-loader setState 与入口 registerRenderCallback 分属两实例 → renderOrgUI 永不触发、页面空白无报错。修复：入口 state.js → 20260812a，org-workspace registry → 20260812a，tab 模块依赖 → 20260812d，仅 tab-bar 保留 20260823a
+2. **diag 日志残留**：子代理在入口留了 before/after bootstrap 调试日志，已清理
+3. **并行 Edit 覆盖**（KNOWN_PITFALLS §14 强化）：org-workspace.js 的 registry 版本被同消息并行 Edit 覆盖回旧值，串行修复
+
+**验证结果（纯代码，14/14）**：GetDiagnostics 零错误；Node import 图校验 10 文件/68 条相对导入/78 命名导入全通过；Playwright 无头：8 tab 按钮、单行、8 tab 渲染非空、URL 直达 tf-001（专班管理）与 act-1（活动查看）正常、无 JS 错误。
+
+**说明**：M3 剩余 3 个工作台（宣传 1320 行/纪检 1339 行/成员 897 行）按同一模式推进（含版本链分裂预防 + 子代理交付三查）。
+
+### 沉淀标签
+`[已沉淀: KNOWN_PITFALLS §17]` — 共享状态模块版本分裂→同页面双实例；子代理交付三查；并行 Edit 覆盖（M2 的 [待沉淀: 巨型单体拆分回归三类模式] 中 ①import 图校验/③行为回归已落地为 §16 验证三件套，本次补充版本链维度）
+
+
+## T-279 M3 剩余三工作台拆分：宣传/纪检/成员（2026-08-23 执行完成，M3 全部完成）
+
+**任务**：按 M2/M3 样板拆分剩余 3 个工作台（子代理主体 + AI 独立验证修复）。
+
+**已落地**：
+- **宣传委员** ws-prop-commissioner-entry.js：1320→139 行薄壳 + 7 tab 模块（entries/tabs/prop/：todo/overview/tasks/kanban/weekly/archive/my-dispatch）+ prop-workspace 能力（scope='workspace:prop'）；prop.html 入口 `20260812f-20260823b`
+- **纪检委员** ws-disc-commissioner-entry.js：1339→139 行薄壳 + 9 tab 模块（entries/tabs/disc/：todo/overview/attendance/review/inspection/makeup/mailbox/tf-view/my-dispatch）+ disc-workspace 能力（scope='workspace:disc'）；disc.html 入口 `20260812f-20260823`
+- **成员** ws-visitor-entry.js：897→172 行薄壳 + 6 tab 模块（entries/tabs/visitor/：todo/overview/projects/activities/attendance/inspection）+ visitor-workspace 能力（scope='workspace:visitor'）；visitor.html 入口 `20260812f-20260823`；storeInits 保留 role:'all' 原样
+
+**AI 独立验证修复（1 个，prop）**：prop 入口沿用原单体 `state.js?v=20260812d`，但 data-loader 内部固定 `20260812a`——原单体靠顶层直接渲染掩盖双实例分裂，薄壳版靠 setState 驱动即暴露空白。修复：prop 入口 state → 20260812a。**教训已补 KNOWN_PITFALLS §17**：「照抄原单体版本」也是陷阱，须与依赖链内部版本一致。
+
+**验证结果（纯代码，30/30）**：Node 静态 import 图 + 共享状态版本唯一性校验三工作台全过（prop 9 文件 56 导入 / disc 12 文件 67 导入 / visitor 8 文件 42 导入，无版本分裂）；Playwright 无头 30/30——三工作台 tab 按钮数（7/9/6）、单行、全部 tab 渲染非空、disc/visitor URL 直达 tf-001 落点正确、无 JS 错误。
+
+**说明**：T-279 M3 至此全部完成（组织/宣传/纪检/成员 4 工作台 + 组长 M2 样板 + 书记已薄壳 = 6 工作台全薄壳化）。剩余 M4：数据源/场景注册化 + 迭代机制（版本化/灰度）。
+
+### 沉淀标签
+`[已沉淀: KNOWN_PITFALLS §17 补充判例]` — prop「照抄原单体版本」陷阱；三工作台拆分验证方法论固化（静态版本唯一性校验先行 + Playwright 30 项断言）
+
+
+## T-279 M3 剩余三工作台拆分：宣传/纪检/成员（2026-08-23 执行完成，M3 全部完成）
+
+**任务**：按 M2/M3 样板拆分剩余 3 个工作台（子代理主体 + AI 独立验证修复）。
+
+**已落地**：
+- **宣传委员** ws-prop-commissioner-entry.js：1320→139 行薄壳 + 7 tab 模块（entries/tabs/prop/：todo/overview/tasks/kanban/weekly/archive/my-dispatch）+ prop-workspace 能力（scope='workspace:prop'）；prop.html 入口 `20260812f-20260823b`
+- **纪检委员** ws-disc-commissioner-entry.js：1339→139 行薄壳 + 9 tab 模块（entries/tabs/disc/：todo/overview/attendance/review/inspection/makeup/mailbox/tf-view/my-dispatch）+ disc-workspace 能力（scope='workspace:disc'）；disc.html 入口 `20260812f-20260823`
+- **成员** ws-visitor-entry.js：897→172 行薄壳 + 6 tab 模块（entries/tabs/visitor/：todo/overview/projects/activities/attendance/inspection）+ visitor-workspace 能力（scope='workspace:visitor'）；visitor.html 入口 `20260812f-20260823`；storeInits 保留 role:'all' 原样
+
+**AI 独立验证修复（1 个，prop）**：prop 入口沿用原单体 `state.js?v=20260812d`，但 data-loader 内部固定 `20260812a`——原单体靠顶层直接渲染掩盖双实例分裂，薄壳版靠 setState 驱动即暴露空白。修复：prop 入口 state → 20260812a。**教训已补 KNOWN_PITFALLS §17**：「照抄原单体版本」也是陷阱，须与依赖链内部版本一致。
+
+**验证结果（纯代码，30/30）**：Node 静态 import 图 + 共享状态版本唯一性校验三工作台全过（prop 9 文件 56 导入 / disc 12 文件 67 导入 / visitor 8 文件 42 导入，无版本分裂）；Playwright 无头 30/30——三工作台 tab 按钮数（7/9/6）、单行、全部 tab 渲染非空、disc/visitor URL 直达 tf-001 落点正确、无 JS 错误。
+
+**说明**：T-279 M3 至此全部完成（组织/宣传/纪检/成员 4 工作台 + 组长 M2 样板 + 书记已薄壳 = 6 工作台全薄壳化）。剩余 M4：数据源/场景注册化 + 迭代机制（版本化/灰度）。
+
+### 沉淀标签
+`[已沉淀: KNOWN_PITFALLS §17 补充判例]` — prop「照抄原单体版本」陷阱；三工作台拆分验证方法论固化（静态版本唯一性校验先行 + Playwright 30 项断言）
+
+## T-279 M4 迭代机制落地：数据源/场景注册化 + 版本化/灰度（2026-08-23 执行完成，M4 全部完成）
+
+**任务**：乙部 T-279 M4 阶段——「数据源/场景注册化 + 迭代机制（版本化/灰度）」，验收标准：新功能可按 scope 灰度，回滚=注销声明（实施路径见 ARCHITECTURE_EVOLUTION.md §六 M4）。
+
+**决策链（AskUserQuestion 书记确认）**：①落地深度=「声明+消费点演示」——数据源（mock/api）与 SOP 场景清单注册为能力并接入现有消费点（bootstrap 数据源选择、决策树场景读取），行为零变化；②验收形式=「Node 断言 + 浏览器回归」——不新增 UI。
+
+**已落地**：
+- **registry.js 补全迭代机制原语**：新增 unregisterCapability(id)（回滚=注销声明，注销未注册返回 false + warn）与 resolveDeps(id)（deps 依赖查询：返回声明了但未注册的依赖列表，仅提示不阻断——activity-calendar 的 deps:['data-adapter'] 是核心模块非注册能力，属正常缺失提示）
+- **数据源注册化** modules/capabilities/data-source.js：注册 mock-data-source（env:null 全环境可用/apply→setDataSource('mock')）与 api-data-source（env:['prod']/apply→setDataSource('api')）两个能力，scope='data-source'
+- **场景注册化** modules/capabilities/sop-scenarios.js：注册 sop-scenarios 能力（scope='scenario'，list/get 直读 sopDatabase.scenarios——纯数据驱动，新增场景=追加 sopData.js 即可）
+- **消费点接入（行为零变化）**：
+  - bootstrap.js：数据源选择改经注册表——getCapabilities({scope:'data-source'}) 查 api/mock 能力，有 token apply api、失败回退 apply mock（替代原先直接 setDataSource('api')/setDataSource('mock')）
+  - decision-tree.js：新增 getScenario(scenarioId) 经注册表读取场景（sop-scenarios 能力 get() 优先，未注册/未命中回退 sopDatabase），替换 getScenarioTitle/renderSopPreview 两处直接 find
+- **版本链全站统一**（KNOWN_PITFALLS §13「发布=bump 一次」）：运行 bump-version.mjs 20260823b 全站统一（100 JS 文件 644 处 import + 16 HTML + styles.css + CODE_VERSION 31→32）——registry 是共享状态模块，M4 新增 bootstrap/decision-tree 引用后必须统一版本防同页双实例分裂（§17 教训）
+
+**验证结果（Node + 浏览器，41/41）**：
+- Node 断言 10/10：register/getCapabilities 按 scope/role/env 过滤、unregister 注销（回滚）、getRegistryVersion 版本聚合、resolveDeps 依赖查询、listCapabilities 一次取齐、mountCapability 未注册抛错、data-source/sop-scenarios 能力声明形态、decision-tree/bootstrap 消费点静态断言
+- Playwright 无头 31/31：首页 main 渲染 + 统计卡 + 日历容器 + 注册表版本聚合(20260823b) + 数据源/场景/dashboard 能力注册 + 无 JS 错误；6 工作台（组长9/组织8/宣传7/纪检9/成员6/书记7 tab）渲染非空 + 各自能力注册 + 无 JS 错误（书记工作台为早期薄壳样板 tab 内联，未注册表化——既有状态非 M4 缺陷）
+
+**说明**：M4 完成后 T-279 轻量插件化实施 M1-M4 全部完成——注册表机制（注册→发现→挂载→注销）、数据源/场景注册化、迭代机制（版本化/灰度/回滚）均已落地并有 Node 断言 + 浏览器回归双保险。
+
+### 沉淀标签
+`[已沉淀: KNOWN_PITFALLS §17 补充判例（T-279 M4）]` — M4 迭代机制版本化落地验证「发布=bump 一次」（KNOWN_PITFALLS §13 机制化）：registry 等共享状态模块变更后，新增引用方（bootstrap/decision-tree）与原引用方必须全站统一版本，否则同页双实例分裂（§17）；bump-version.mjs 一次性统一 100 JS + 16 HTML 是版本化机制的标准动作，回归靠 Node 断言 + Playwright 双保险
+

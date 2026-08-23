@@ -3,12 +3,12 @@
 // 核心理念：以党员成长为主线，讲清考察、工作哲学、探索与对话
 // 设计风格：暖纸印刷叙事册（南西油墨宋 + 暖纸底 + 墨色标题 + 党建红印章 + 硬刷油墨质感）
 // 动画：Lenis 平滑滚动 + CSS 滚动驱动（animation-timeline: view()）+ 原生 JS 驱动
-// 签名元素：【管理事，服务人】收束 + 探索区 SVG 关系网络 + 对话卡日出日落公转（文字正立）
+// 签名元素：收束致谢（三层小字）+ 探索区 SVG 关系网络 + 对话卡日出日落公转（文字正立）
 
-import { renderSidebar } from '../components/sidebar.js?v=20260814j';
-import { renderHeader } from '../components/header.js?v=20260814j';
-import { getBasePath } from '../core/utils.js?v=20260814j';
-import { icon } from '../core/icons.js?v=20260814j';
+import { renderSidebar } from '../components/sidebar.js?v=20260823b';
+import { renderHeader } from '../components/header.js?v=20260823b';
+import { getBasePath } from '../core/utils.js?v=20260823b';
+import { icon } from '../core/icons.js?v=20260823b';
 
 // ── 公开访问：不检查登录 ──
 // 静态壳模式（2026-08-12）：about 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
@@ -278,43 +278,37 @@ const DIALOGUE_STAGES = [
   },
 ];
 
-// 发展党员 13 关键时间节点
+// 发展党员 7 关键节点（2026-08-18 T-270 压缩，成员视角，主语统一）
+// 支部为主要执行者、成员自身不需突出工作的环节（政审/预审/报上级等）不单列主轴，仅出现在展开细节。
+// 材料（思想汇报等）在具体节点展开中体现。
 // isDecisionNode: 关键决策节点（含党支部委员会/党支部党员大会/上级党委），用金色光晕环标记
 // article: 条号（T1 原文出处）
 const DEVELOPMENT_TIMELINE = [
   // 阶段 1：入党申请人 → 入党积极分子
-  // timeHighlight：递交入党申请书须年满十八周岁（书记决策，2026-08-01 重点标注）
-  { no: 1,  title: '递交入党申请书',     time: '年满十八岁',     decisionMaker: '本人自愿',            decisionDetail: '入党申请人表达意愿',                       article: '§5',  isDecisionNode: false, stage: 'applicant', stickyNote: null, timeHighlight: true },
-  { no: 2,  title: '党组织派人谈话',     time: '一个月内',       decisionMaker: '党组织派人',           decisionDetail: '了解基本情况，介绍党的基本知识',           article: '§7',  isDecisionNode: false, stage: 'applicant', stickyNote: null },
-  { no: 3,  title: '确定入党积极分子',   time: '—',              decisionMaker: '党支部委员会会议研究决定', decisionDetail: '在党员推荐、群团组织推优人选中确定',   article: '§8',  isDecisionNode: true,  stage: 'activist', stickyNote: null },
-  { no: 4,  title: '报上级党委备案',     time: '—',              decisionMaker: '上级党委备案',   decisionDetail: '备案入党积极分子名单',                     article: '§8',  isDecisionNode: true,  stage: 'activist', stickyNote: null },
-  { no: 5,  title: '指定培养联系人 + 培养考察', time: '一年以上', decisionMaker: '党支部每半年考察一次', decisionDetail: '培养联系人指导培养；党支部持续考察',     article: '§9/§11', isDecisionNode: false, stage: 'activist', stickyNote: '一年以上培养考察期' },
+  { no: 1,  title: '递交入党申请书',     time: '年满十八岁', decisionMaker: '本人自愿',            decisionDetail: '入党申请人表达意愿；党组织一个月内派人谈话（支部执行，弱化）', article: '§5/§7', isDecisionNode: false, stage: 'applicant', stickyNote: null, timeHighlight: true },
+  { no: 2,  title: '培养考察期',         time: '一年以上',   decisionMaker: '培养联系人 + 党支部',  decisionDetail: '定期撰写思想汇报；培养联系人指导培养；党支部每半年考察一次', article: '§9/§11', isDecisionNode: false, stage: 'applicant', stickyNote: '一年以上培养考察期' },
   // 阶段 2：入党积极分子 → 发展对象
-  { no: 6,  title: '确定发展对象（公示）', time: '公示五个工作日', decisionMaker: '党支部委员会会议研究讨论并报上级党委同意', decisionDetail: '在听取党小组、培养联系人、党员和群众意见基础上确定', article: '§13', isDecisionNode: true, stage: 'prospect', stickyNote: null },
-  { no: 7,  title: '政治审查',           time: '—',              decisionMaker: '党组织对发展对象进行政治审查',     decisionDetail: '深入了解入党动机、政治素质和现实表现',     article: '§16', isDecisionNode: false, stage: 'prospect', stickyNote: null },
-  { no: 8,  title: '短期集中培训',       time: '一般不少于三天或者不少于二十四个学时', decisionMaker: '基层党委或县级党委组织部门', decisionDetail: '培训合格方可发展入党', article: '§17', isDecisionNode: false, stage: 'prospect', stickyNote: null },
+  { no: 3,  title: '确定发展对象（公示）', time: '公示五个工作日', decisionMaker: '党支部委员会会议研究', decisionDetail: '在听取党小组、培养联系人、党员和群众意见基础上确定，报上级党委同意（支部执行）', article: '§13', isDecisionNode: true, stage: 'activist', stickyNote: null },
+  { no: 4,  title: '短期集中培训',       time: '不少于三天或24学时', decisionMaker: '本人参加',    decisionDetail: '培训合格方可发展入党；政审由党组织开展（支部执行，弱化）', article: '§16/§17', isDecisionNode: false, stage: 'activist', stickyNote: null },
   // 阶段 3：发展对象 → 预备党员
-  { no: 9,  title: '党支部委员会审查 + 上级党委预审', time: '—', decisionMaker: '党支部委员会集体讨论 + 基层党委预审', decisionDetail: '审查合格后发放《入党志愿书》', article: '§18', isDecisionNode: true, stage: 'probationary', stickyNote: null },
-  { no: 10, title: '党支部党员大会讨论表决', time: '预审合格后一个月内', decisionMaker: '党支部党员大会（无记名投票，赞成人数超过应到会有表决权的党员人数的半数）', decisionDetail: '通过接收预备党员的决议', article: '§19/§20', isDecisionNode: true, stage: 'probationary', stickyNote: '支部大会无记名投票表决' },
-  { no: 11, title: '上级党委审批',       time: '三个月内',       decisionMaker: '党委集体讨论和表决', decisionDetail: '批准预备党员，报上级党委组织部门备案',     article: '§25', isDecisionNode: true,  stage: 'probationary', stickyNote: null },
+  { no: 5,  title: '支部党员大会表决',    time: '预审合格后一个月内', decisionMaker: '党支部党员大会', decisionDetail: '本人在大会汇报；无记名投票表决，赞成人数超过应到会有表决权党员半数；支委会审查+基层党委预审（支部执行，弱化）', article: '§18/§19/§20', isDecisionNode: true, stage: 'prospect', stickyNote: '支部大会无记名投票表决' },
   // 阶段 4：预备党员 → 正式党员
-  { no: 12, title: '预备期',             time: '一年',           decisionMaker: '党组织继续教育和考察', decisionDetail: '预备期从党支部党员大会通过其为预备党员之日算起', article: '§28/§31', isDecisionNode: false, stage: 'full', stickyNote: '预备期一年' },
-  { no: 13, title: '转正手续',           time: '预备期满',       decisionMaker: '党支部委员会审查 + 党支部党员大会讨论表决通过 + 报上级党委审批', decisionDetail: '本人书面申请 → 征求党小组、党员、群众意见 → 党支部委员会审查 → 党支部党员大会讨论表决通过 → 报上级党委审批', article: '§32/§33', isDecisionNode: true, stage: 'full', stickyNote: '书面申请→征求意见→支部大会→上级审批' },
+  { no: 6,  title: '预备期',             time: '一年',       decisionMaker: '党组织继续教育和考察', decisionDetail: '定期撰写思想汇报；预备期从支部大会通过之日算起；党委审批（支部执行，弱化）', article: '§25/§28/§31', isDecisionNode: false, stage: 'full', stickyNote: '预备期一年' },
+  { no: 7,  title: '转正支部大会表决',    time: '预备期满',   decisionMaker: '党支部党员大会',      decisionDetail: '本人书面申请 → 征求党小组、党员、群众意见 → 支部委员会审查 → 支部党员大会讨论表决 → 报上级审批', article: '§32/§33', isDecisionNode: true, stage: 'full', stickyNote: '书面申请→征求意见→支部大会→上级审批' },
 ];
 
-// 小目录条目（9 个 section 对应 9 个圆点）
-// 主线（书记 2026-08-12 定序）：开篇 → 组织性（暗线：进入支部要了解什么）→ 宝贵机会 →
-// 发展党员（明线：积极分子怎么发展）→ 考察维度 → 工作流 → 行百里者半九十 → 管理事服务人 → 党建+科研
+// 小目录条目（8 个 section 对应 8 个圆点，2026-08-18 T-270 删「党建+科研」独立项）
+// 主线（书记 2026-08-12 定序 + 2026-08-18 重构）：开篇 → 组织性（组织向大家讲述）→
+// 三个成长机会 → 身份阶段（明线：积极分子怎么发展）→ 考察维度 → 工作流 → 行百里者半九十 → 收束（致谢与期待）
 const TOC_ITEMS = [
   { id: 'hero',         label: '开篇' },
   { id: 'cognition',    label: '"组织性"的展开' },
-  { id: 'philosophy',   label: '宝贵机会' },
+  { id: 'philosophy',   label: '成长机会' },
   { id: 'development',  label: '身份阶段' },
   { id: 'review',       label: '如何考察' },
   { id: 'exploration',  label: '工作流' },
   { id: 'dialogue',     label: '行百里者半九十' },
-  { id: 'conclusion',   label: '管理事，服务人' },
-  { id: 'research',     label: '党建+科研' },
+  { id: 'conclusion',   label: '收束' },
 ];
 
 // ════════════════════════════════════════════════════════════════
@@ -416,18 +410,16 @@ function renderReview() {
 }
 
 /**
- * Section 4: 两个宝贵机会
+ * Section 4: 三个成长机会（2026-08-18 T-270 重构）
  *
- * 母本：content/01_strategy/DEVELOPMENT_PATH.md 第一章·两个宝贵机会
- * T-195 第3轮重构（2026-08-12 书记复议）：两卡无顺序关系、无逻辑并列关系——
- *   blockquote 直接展示书记原话全文（不再提炼版/点击翻开展开）；
- *   卡片动画取消点击翻转（无必要的卡片动画），仅保留滚动驱动的分开出现（适配书记讲述过程）。
- *   基线：SECRETARY_PRONOUNCEMENTS.md P-014 / P-015 书记原话与在册正文
+ * 母本：SECRETARY_PRONOUNCEMENTS.md「三、人的成长」P-014/P-015/P-016——
+ * 适应学习 / 探索创新 / 对话 三个并列成长机会。党建+科研（P-016 对话）从独立章并入此处。
+ * blockquote 直接展示书记原话全文（延续既有风格）。
  */
 function renderPhilosophy() {
   const opportunities = [
     {
-      title: '民主集中制下感受真实组织的两个向度',
+      title: '适应、学习的机会',
       quoteLines: [
         '"民主集中制"下感受真实的组织的两个向度：',
         '"赋权"背景下的程序性 和 "探索"背景下的扁平化。',
@@ -441,7 +433,7 @@ function renderPhilosophy() {
       insight: '体悟这种平衡，能提高生涯发展中对于所处组织的适应能力和开放心态——未来无论进入什么组织，都能理解真实组织既有程序性的一面，也有扁平化的一面。',
     },
     {
-      title: 'AI时代中学生党支部的探索机会',
+      title: '探索、创新的机会',
       quoteLines: [
         '作为AI时代中一个建设方兴未艾的学生组织，',
         '①可以真实地参与组织制度和组织文化的构建；',
@@ -452,6 +444,18 @@ function renderPhilosophy() {
         { label: '探索自由度', desc: '在"没有经济负担"的背景下探索组织转型的萌芽和组织产品的生产——未来进入职场后难以获得' },
       ],
       insight: '学生党支部的"方兴未艾"恰恰是机会所在：成熟组织没有这种探索空间，而学生组织有。',
+    },
+    {
+      title: '对话的机会——党建+科研',
+      quoteLines: [
+        '党建和经管学科科研的交叉点在于恢复和马克思主义的对话能力，恢复理论研究和现实治理之间的对话能力。',
+      ],
+      points: [
+        { label: '研究对象', desc: '经管学科研究对象本身是历史生成、社会建构的，不是自明的——这是理工科不遇到的问题' },
+        { label: '抽象能力', desc: '从现实到理论的抽象缺乏系统训练；马克思主义方法论与经济学工具互补，党建以组织化机制补足' },
+        { label: '组织环境', desc: '党建+科研建设的是「促进高质量问题生成的组织环境」' },
+      ],
+      insight: '对经管学生而言，"服务人"有一个特别值得做的方向——帮助你恢复与思想、与现实世界的对话能力。',
     },
   ];
 
@@ -476,12 +480,12 @@ function renderPhilosophy() {
   return `
     <section id="philosophy" class="ab-page ab-philosophy-section" data-toc-id="philosophy">
       <span class="ab-page-no">02</span>
-      <span class="ab-page-runner">第二章 · 宝贵机会</span>
+      <span class="ab-page-runner">第二章 · 成长机会</span>
       <div class="ab-chapter ab-philosophy-inner ab-chapter--center">
-        <div class="ab-chapter-eyebrow">宝贵机会</div>
-        <h2 class="ab-chapter-title">两个宝贵机会</h2>
+        <div class="ab-chapter-eyebrow">成长机会</div>
+        <h2 class="ab-chapter-title">三个成长机会</h2>
         <p class="ab-chapter-sub" data-stagger>
-          爱具体的组织——光华管理学院本科生党支部提供两条难得的成长机会。
+          爱具体的组织——光华管理学院本科生党支部提供三个并列的成长机会。
         </p>
         <div class="ab-philosophy-opportunities">${cards}</div>
       </div>
@@ -490,64 +494,60 @@ function renderPhilosophy() {
 }
 
 /**
- * Section 2: 组织性——贯穿成长路径的辩证法
+ * Section 2: 组织性——组织向大家讲述（2026-08-18 T-271 第 2 轮修缮）
  *
- * 母本：content/01_strategy/DEVELOPMENT_PATH.md 第一章
+ * 布局：纵向铺展（章头在上，内容纵向展开，与第二章错落语言统一）。
+ * 三个关键词：只单独展示关键词（大字 + 书记提供的完整短语），不配 AI desc、不配引文。
+ * 三条期待落点：标题 + 书记原话 blockquote（不写编号/日期/「书记」字样）。
  */
 function renderCognition() {
-  const stages = [
+  const keywords = [
+    { word: '具体',     full: '一个具体的组织' },
+    { word: '方兴未艾', full: '一个方兴未艾的组织' },
+    { word: '提供成长', full: '一个提供成长的组织' },
+  ];
+
+  const expects = [
     {
-      num: '01',
-      direction: '个体 → 组织',
-      title: '各种发展轨迹都能加入获得成长',
-      body: '各种发展导向的同学——想进体制的、想走学术的、想去企业的——都能在组织中获得各自的成长。先锋模范在具体的工作中就能体现——任何一名党员（包括支委会在内）在管理事和服务人方面都有自己的用武之地和成长空间。成长有两条路：个人闷头努力，或借由组织的经验、流程、集体智慧放大努力。光华管理学院本科生党支部就是你能在学院里接触到的那个具体组织。',
+      title: '你可以期待的成长路径',
+      quote: '各种发展轨迹，都可以加入其中，获得他想要的成长，并且是通过组织获得他想要的成长。',
     },
     {
-      num: '02',
-      direction: '组织 → 个体',
-      title: '事情运作有管理科学和既往经验',
-      body: '真实组织运作靠流程和经验。事情的运转有管理科学——分工、流程、记录、复盘有规律；有既往经验——历届支委沉淀的工作流是可复用的资产。成员调取并执行这些工作流，本身就是成长：执行过程让抽象的"管理知识"变成手上会用的"管理能力"。支书主持会议、副书记协助、组织委员统筹专班、宣传委员管档案、纪检委员管考勤——这些是具体的分工，依据事情本身划分，不依据层级。',
+      title: '你可以期待的做事方式',
+      quote: '事情的运作固然有管理的科学和既往的经验。作为支部成员，在执行已沉淀的工作流的基础上，本身便可以得到成长和锻炼。',
     },
     {
-      num: '03',
-      direction: '个体 → 组织',
-      title: '发挥主人翁精神在框架内真实表达',
-      body: '组织性的真正功能是让各种发展轨迹的人通过组织获得成长——个人借由组织实现诉求，组织为个体提供成长路径。批评要在框架内提出：找准对象、找准时机。创新沉淀，就是把"没先例"变成"有先例"。你想做学术、想去企业、想走自己的路——支部的创新沉淀机制给你提供"把个人实践变成组织先例"的途径。',
+      title: '你可以期待的表达空间',
+      quote: '我们不反对批评意见，但要求要在组织的框架内提出批评意见……我特别怕大家因为认为是\u201c党支部\u201d，所以怕说错话，而选择不\u201c真实表达\u201d！因为这样自己既没有真实的交互体验，组织也没办法持续进步。',
     },
   ];
 
-  const cards = stages.map(s => `
-    <article class="ab-cognition-item" data-stagger>
-      <div class="ab-cognition-item-num">${s.num}</div>
-      <h3 class="ab-cognition-item-title">${s.title}</h3>
-      <p class="ab-cognition-item-sub">${s.direction}</p>
-      <div class="ab-cognition-item-body">
-        <p class="ab-cognition-item-truth">${s.body}</p>
-      </div>
+  const keywordsHTML = keywords.map(k => `
+    <article class="ab-keyword" data-stagger>
+      <h3 class="ab-keyword-word">${k.word}</h3>
+      <p class="ab-keyword-full">${k.full}</p>
+    </article>
+  `).join('');
+
+  const expectsHTML = expects.map((e, i) => `
+    <article class="ab-expect-card" data-stagger data-i="${i}">
+      <h4 class="ab-expect-card-title">${e.title}</h4>
+      <blockquote class="ab-expect-card-quote">${e.quote}</blockquote>
     </article>
   `).join('');
 
   return `
-    <section id="cognition" class="ab-page ab-cognition-section ab-page--split" data-toc-id="cognition">
+    <section id="cognition" class="ab-page ab-cognition-section" data-toc-id="cognition">
       <span class="ab-page-no">01</span>
       <span class="ab-page-runner">第一章 · 组织性</span>
       <div class="ab-chapter ab-cognition-inner">
-        <div class="ab-cognition-head">
-          <div class="ab-chapter-eyebrow">"组织性"的展开</div>
-          <h2 class="ab-chapter-title">"组织性"<br/>的展开</h2>
-          <div class="ab-cognition-lead" data-stagger>
-            <p>从入党申请人到党员，组织性是贯穿始终的成长途径。</p>
-          </div>
+        <div class="ab-chapter-eyebrow">"组织性"的展开</div>
+        <h2 class="ab-chapter-title">"组织性"<br/>的展开</h2>
+        <div class="ab-cognition-lead" data-stagger>
+          <p>一个正在建设中的组织，先向你打开自己的处境。</p>
         </div>
-        <div class="ab-cognition-main">
-          <div class="ab-cognition-grid">${cards}</div>
-          <div class="ab-cognition-dialogue" data-stagger>
-            <blockquote class="ab-cognition-dialogue-quote">
-              爱具体的人而不是爱抽象的人，<br/>
-              爱具体的组织而不是爱抽象的组织。
-            </blockquote>
-          </div>
-        </div>
+        <div class="ab-keywords">${keywordsHTML}</div>
+        <div class="ab-expect-list">${expectsHTML}</div>
       </div>
     </section>
   `;
@@ -631,7 +631,7 @@ function renderSceneSVG(scene) {
   const nodesG = svgEl('g', { class: 'ab-scene-nodes' });
   nodeMap.forEach((pos, id) => {
     const role = WORKFLOW_ROLES[id] || { name: id, short: id, color: '#64748B' };
-    const r = 52;
+    const r = 70; // 2026-08-18 T-270 半径 52→70（大屏投影可读）
 
     const g = svgEl('g', {
       class: 'ab-node-svg',
@@ -749,69 +749,29 @@ function renderDialogue() {
   `;
 }
 
-/** Section 8: 收束——管理事，服务人（2026-08-12 综合排布：大字 + 管理事/服务人定义 + P-013 集中面 + 全页呼应，不再孤零零） */
+/** Section 8: 收束——小字自然收尾（2026-08-18 T-271 重构）
+ *  三层小字由大到小居中：感谢你读到这里 → 期待我们的共同成长 → 实践是检验真理的唯一标准
+ *  去口号：删除「管理事，服务人」大字与「爱具体的人/组织」echo（书记裁决：已内化、矫情） */
 function renderConclusion() {
-  const lines = ['管理事，', '服务人'];
-  const titleHTML = lines.map(line =>
-    `<span class="ab-conclusion-line">${[...line].map(ch =>
-      `<span class="ab-conclusion-char">${ch}</span>`
-    ).join('')}</span>`
-  ).join('');
   return `
     <section id="conclusion" class="ab-page ab-page--closing ab-conclusion-section" data-toc-id="conclusion">
       <div class="ab-conclusion-inner">
-        <h2 class="ab-conclusion-title">${titleHTML}</h2>
-        <p class="ab-conclusion-lead" data-stagger>
-          管理事——按工作流和组织性的要求做事；<br/>服务人——帮每一位成员在具体工作中获得成长。
-        </p>
-        <p class="ab-conclusion-coda" data-stagger>
-          从入党申请人到正式党员——爱具体的组织，因为具体的组织在帮你整合诉求。
-        </p>
+        <p class="ab-conclusion-thanks" data-stagger>感谢你读到这里。</p>
+        <p class="ab-conclusion-hope" data-stagger>期待我们的共同成长。</p>
+        <p class="ab-conclusion-coda" data-stagger>实践是检验真理的唯一标准。</p>
       </div>
     </section>
   `;
 }
 
-/** Section 9: 党建+科研——恢复对话能力（2026-08-14 T-251 书记裁决独立成章）
- *  P-016「恢复对话能力」是「党建+科研的重要战略选择」，不是党建全局根本目标；
- *  作为成长历程中「党建+科研」这一方面的成长，终章后收束。
- *  内容：P-016 原话（正确不删改）+ reference 提炼 6 观点。 */
-function renderResearch() {
-  const points = [
-    '经管学科研究对象本身是历史生成、社会建构的——「研究对象本身不是自明的」，这是理工科不遇到的问题。',
-    '现代经济学训练擅长「给定对象之后如何分析」，但「研究对象如何从现实中生成（从现实到理论的抽象）」这一前置过程缺乏系统方法论训练。',
-    '经管研究中「精确」与「真实」是权衡取舍（非自然科学同义反复）；从现实识别问题、提炼范畴、校准研究对象的能力，处于系统性训练覆盖之外。',
-    '马克思主义经典理论提供「现实关系如何形成、理论范畴如何产生、抽象如何把握变化中的现实」的方法论反思——与经济学「分析既定对象」的工具互补，服务不同认识功能。',
-    '党建不提供专业知识、不替代学术训练，而是通过组织化机制（跨培养环节、方法论训练渠道、连接现实实践），把「从现实到理论的抽象能力」变成青年培养的稳定环节。',
-    '党建+科研建设的是「促进高质量问题生成的组织环境」。',
-  ];
-  const pointsHTML = points.map((p, i) => `
-      <li class="ab-research-point">
-        <span class="ab-research-point-no">${String(i + 1).padStart(2, '0')}</span>
-        <span class="ab-research-point-text">${p}</span>
-      </li>`).join('');
-  return `
-    <section id="research" class="ab-page ab-research-section" data-toc-id="research">
-      <span class="ab-page-no">07</span>
-      <span class="ab-page-runner">第七章 · 党建+科研</span>
-      <div class="ab-chapter">
-        <div class="ab-chapter-eyebrow">党建+科研</div>
-        <h2 class="ab-chapter-title">恢复对话能力</h2>
-        <blockquote class="ab-research-quote">党建和经管学科科研的交叉点在于恢复和马克思主义的对话能力，恢复理论研究和现实治理之间的对话能力。</blockquote>
-        <ul class="ab-research-points">${pointsHTML}</ul>
-      </div>
-    </section>
-  `;
-}
-
-/** Section 3: 发展党员交替时间轴（13 关键节点，居中列 + 左右交替侧面板） */
+/** Section 3: 发展党员交替时间轴（7 关键节点，居中列 + 左右交替侧面板，2026-08-18 T-270 压缩） */
 function renderDevelopment() {
-  // 阶段定义（4 阶段）
+  // 阶段定义（4 阶段，2026-08-18 T-270 节点数随 7 节点压缩调整）
   const STAGES = [
-    { key: 'applicant',    label: '入党申请人 → 入党积极分子', nos: [1,2,3,4,5] },
-    { key: 'activist',     label: '入党积极分子 → 发展对象',   nos: [6,7,8] },
-    { key: 'prospect',     label: '发展对象 → 预备党员',       nos: [9,10,11] },
-    { key: 'probationary', label: '预备党员 → 正式党员',       nos: [12,13] },
+    { key: 'applicant',    label: '入党申请人 → 入党积极分子', nos: [1,2] },
+    { key: 'activist',     label: '入党积极分子 → 发展对象',   nos: [3,4] },
+    { key: 'prospect',     label: '发展对象 → 预备党员',       nos: [5] },
+    { key: 'full',         label: '预备党员 → 正式党员',       nos: [6,7] },
   ];
 
   const nodeMap = {};
@@ -928,7 +888,6 @@ function renderAboutContent() {
     <div class="ab-lazy-slot" id="ab-lazy-exploration" data-lazy="exploration" aria-label="工作流（滚动加载）"></div>
     ${safe('Dialogue', renderDialogue)}
     ${safe('Conclusion', renderConclusion)}
-    ${safe('Research', renderResearch)}
     <footer class="ab-page-footer">
       <a href="${base}index.html" class="ab-back-link">
         ${icon('arrowLeft', { className: 'w-3.5 h-3.5' })}
@@ -1213,7 +1172,7 @@ function bindExplorationScrollDriven() {
                                toPos.x - (el._tx || -999), toPos.y - (el._ty || -999));
       if (moved > 0.5) {
         el._fx = fromPos.x; el._fy = fromPos.y; el._tx = toPos.x; el._ty = toPos.y;
-        const ep = edgePath(fromPos, toPos, 52, 0.5, def.curve);
+        const ep = edgePath(fromPos, toPos, 70, 0.5, def.curve); // 2026-08-18 T-270 半径 52→70
         path.setAttribute('d', ep.d);
         if (grad) {
           grad.setAttribute('x1', fromPos.x.toFixed(1));
@@ -1423,11 +1382,15 @@ function bindDialogueScrollActivation() {
   const DEG = Math.PI / 180;
   // 阶梯停顿（书记 2026-08-13「静 + 卡片正午停留」）：每张卡转到正午（progress=i/4）停留，其余平滑过渡
   // 2026-08-14 书记「动画不丝滑」：PLATEAU 0.75→0.70——停留仍可感知、过渡更长更柔（丝滑）
+  // 2026-08-19 T-272 书记「正常转动太快」：PLATEAU 0.70→0.55——转动段 30%→45%，90° 分摊更多行程，转速约降 1/3
+  const PLATEAU = 0.55;
+  // 2026-08-19 T-272 三段角速度统一基准：正常转动段每 90° 分摊 (1-PLATEAU)/4 单位 progress，
+  //   进入/退出段按同一速率（ROT_RATE = 90°/((1-PLATEAU)/4) ≈ 800°/progress 单位）旋转，观感连续不突兀
+  const ROT_RATE = 90 / ((1 - PLATEAU) / 4);
   const stepwise = (p) => {
     const x = p * 4;
     const step = Math.floor(x);
     const frac = x - step;
-    const PLATEAU = 0.7;
     if (frac <= PLATEAU) return step / 4;
     const t = (frac - PLATEAU) / (1 - PLATEAU);
     return (step + smooth(t)) / 4;
@@ -1445,7 +1408,12 @@ function bindDialogueScrollActivation() {
     //   R 允许正午卡超出 stage 顶进入 head 与 stage 间留白区（flow gap 56px 容纳「升起」感）
     const cardW = 192; // 与 CSS .ab-dialogue-card width 一致（T-248 卡略窄）
     // 2026-08-14 T-249 环内切舞台 + 空间给足：R 上限 0.5S、不溢出余量 121（gap 同步 121，正午卡升起恰到 head 底不遮副标题 p）
-    const R = Math.min(S * 0.5, Math.max(S / 2 - maxCardH / 2 + 121, cardW / 1.414));
+    // 2026-08-18 T-271 行百里者半九十转动半径加大：R 上限 0.5S → 0.56S（环更贴近舞台边缘，公转幅度更大）
+    const R = Math.min(S * 0.56, Math.max(S / 2 - maxCardH / 2 + 121, cardW / 1.414));
+    // 2026-08-18 T-271 椭圆轨迹（书记「长轴稍微长一点」）：长轴水平 rx = 1.2R（页面宽度充裕，横向扫过范围更舒展），
+    //   短轴垂直 ry = R（正午升起逻辑不变、不遮章头）；相邻 90° 卡中心距 = R*√(1.2²+1²) = R*1.562 ≥ 卡宽 → 互不重叠
+    const rx = R * 1.2;
+    const ry = R;
     // 四相位（间隔 90°，第 1 张卡初始在正午 -90°）：正午(顶)·日出(左)·地下(底)·日落(右)
     // 屏幕坐标 y 向下，正角 = 顺时针；θ 递增即顺时针公转
     const baseAngle = [-90, 180, 90, 0];
@@ -1453,14 +1421,15 @@ function bindDialogueScrollActivation() {
     //   progress<0 → 进入段线性旋转（θ -45°→0°）；sticky 固定瞬间 progress=0 → θ=0 → 卡①正午
     //   0≤progress≤1 → 阶梯公转（每阶段正午停留）
     //   progress>1 → 退出段线性旋转（θ 0°→+45°）
-    const theta = progress <= 0 ? progress * 360
-      : progress >= 1 ? 360 + (progress - 1) * 360
+    // 2026-08-19 T-272 三段角速度统一：进入/退出段 θ 按 ROT_RATE（与正常转动同速率），滚动观感连续
+    const theta = progress <= 0 ? progress * ROT_RATE
+      : progress >= 1 ? 360 + (progress - 1) * ROT_RATE
       : stepwise(progress) * 360;
 
     cards.forEach((card, i) => {
       const rad = (baseAngle[i] + theta) * DEG;
-      const x = R * Math.cos(rad);
-      const y = R * Math.sin(rad);
+      const x = rx * Math.cos(rad);
+      const y = ry * Math.sin(rad);
       const angleH = (1 - Math.sin(rad)) / 2;   // 角度高度：正午=1、侧卡=0.5、底部=0（与 R/S 无关，矮视口 R 压缩时鲁棒）
 
       // 定位：卡片中心对齐圆心（translate -50% -50%）+ 偏移到环上 (x,y)；不 rotate → 文字正立
@@ -1527,15 +1496,16 @@ function bindDialogueScrollActivation() {
     const traveled = startBottom - parentRect.bottom;
     let progress;
     if (flowTop > stickyTop) {
-      // 2026-08-14 进入段（书记「旋转着进入」）：flow 顶从视口底部滚到 stickyTop → progress -0.125→0，
+      // 2026-08-14 进入段（书记「旋转着进入」）：flow 顶从视口底部滚到 stickyTop → progress →0，
       // 卡片线性旋转进入；sticky 固定瞬间 progress=0 → θ=0 → 卡①恰在正午（锚定）
-      progress = clamp01((flowTop - stickyTop) / Math.max(1, vh - stickyTop)) * -0.125;
+      // 2026-08-19 T-272 角速度统一：45° 旋转对应 (45/ROT_RATE) 单位 progress（原 -0.125 过慢）
+      progress = clamp01((flowTop - stickyTop) / Math.max(1, vh - stickyTop)) * -(45 / ROT_RATE);
     } else {
       progress = clamp01(traveled / travelTotal);
       if (progress >= 1) {
-        // 2026-08-14 退出段（书记「旋转着离开」）：flow 被推出后继续线性旋转 45°（progress 1→1.125）
+        // 2026-08-14 退出段（书记「旋转着离开」）：flow 被推出后继续线性旋转 45°（progress 1→1+45/ROT_RATE）
         const over = stickyTop + flowH - parentRect.bottom;
-        progress = 1 + (over > 0 ? clamp01(over / Math.max(1, vh)) * 0.125 : 0);
+        progress = 1 + (over > 0 ? clamp01(over / Math.max(1, vh)) * (45 / ROT_RATE) : 0);
       }
     }
     apply(progress);

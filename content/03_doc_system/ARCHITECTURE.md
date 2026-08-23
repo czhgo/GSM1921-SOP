@@ -2,7 +2,7 @@
 title: "系统架构说明"
 type: architecture
 role: "[工程师]+[AI]"
-last_updated: "2026-08-16"
+last_updated: "2026-08-18"
 version: "7.3"
 status: active
 related_files: [CLAUDE.md, content/04_web_design/]
@@ -184,6 +184,7 @@ Layer 7: 审计参考层（审计与参考）
 │   │   ├── SOP_WEB.md                [工程师]+[AI] SOP 系统指南
 │   │   ├── CHECKLIST.md              [工程师]+[AI] 数据同源一致性校验清单
 │   │   ├── SCHOOL_IT_DEPLOYMENT.md   [工程师]+[AI] 学院 IT 部署说明
+│   │   ├── DEPLOYMENT_AUTH_MODEL.md  [工程师]+[AI] 部署与认证场景模型
 │   │   └── README.md                 [工程师]+[AI] 网站设计层目录索引
 │   ├── 05_ai_coding/                 [工程师]+[AI] AI 编码层
 │   │   ├── KNOWN_PITFALLS.md         [工程师]+[AI] 已知陷阱

@@ -1,14 +1,15 @@
-// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // feedback-entry.js — 意见反馈入口（GitHub Issue 风格）
 
-import { renderSidebar } from '../components/sidebar.js?v=20260812f';
-import { renderHeader } from '../components/header.js?v=20260812f';
-import { IssueStore } from '../services/issues.js?v=20260812d';
-import { MilestoneStore } from '../services/milestones.js?v=20260812d';
-import { showToast } from '../core/utils.js?v=20260812d';
-import { renderIssueList } from '../components/issue-list.js?v=20260812d';
-import { renderIssueDetail } from '../components/issue-detail.js?v=20260812d';
-import { renderIssueForm } from '../components/issue-form.js?v=20260812d';
+import { renderSidebar } from '../components/sidebar.js?v=20260823b';
+import { renderHeader } from '../components/header.js?v=20260823b';
+import { IssueStore } from '../services/issues.js?v=20260823b';
+import { MilestoneStore } from '../services/milestones.js?v=20260823b';
+import { showToast, getBasePath } from '../core/utils.js?v=20260823b';
+import { AuthStore } from '../services/auth.js?v=20260823b';
+import { renderIssueList } from '../components/issue-list.js?v=20260823b';
+import { renderIssueDetail } from '../components/issue-detail.js?v=20260823b';
+import { renderIssueForm } from '../components/issue-form.js?v=20260823b';
 
 renderSidebar('feedback');
 renderHeader('feedback');
@@ -36,6 +37,11 @@ async function initRoute() {
   if (id) {
     showDetailView(id);
   } else if (isNew) {
+    // L2 功能门控：提交反馈需登录（书记 2026-08-18 裁决），未登录跳登录页
+    if (!AuthStore.getCurrentUser()) {
+      window.location.href = getBasePath() + 'login.html';
+      return;
+    }
     showNewView();
   } else {
     showListView();

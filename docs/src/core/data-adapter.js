@@ -200,7 +200,7 @@ export async function init() {
       ]);
 
       // 填充 mockDB 缓存（供服务层同步读取）
-      const { mockDB } = await import('./domain.js?v=20260812a');
+      const { mockDB } = await import('./domain.js?v=20260823b');
       // 缓存引用：pagehide 同步冲刷时不能再 await 动态 import（文档卸载中挂起），
       // 必须直接同步读取（见 _flushSnapshotSync）
       _cachedMockDB = mockDB;
@@ -225,6 +225,7 @@ export async function init() {
           signups, activityReviews, taskforceReviews,
           propTasks, weeklyReports, archiveRecords,
           mailboxHistory, externalDispatches,
+          branchDocs,
           actSubRecordsRows, tfSubRecordsRows, mailboxConfigRows,
         ] = await Promise.all([
           adapter.experienceDeposits.list(),
@@ -239,6 +240,7 @@ export async function init() {
           adapter.archiveRecords.list(),
           adapter.mailboxHistory.list(),
           adapter.externalDispatches.list(),
+          adapter.branchDocs.list(),
           adapter.actSubRecords.list(),
           adapter.tfSubRecords.list(),
           adapter.mailboxConfig.list(),
@@ -255,13 +257,14 @@ export async function init() {
         mockDB.archiveRecords        = archiveRecords || [];
         mockDB.mailboxHistory        = mailboxHistory || [];
         mockDB.externalDispatches    = externalDispatches || [];
+        mockDB.branchDocs            = branchDocs || [];
         mockDB.actSubRecords         = _unwrapRootRows(actSubRecordsRows, {});
         mockDB.tfSubRecords          = _unwrapRootRows(tfSubRecordsRows, {});
         mockDB.mailboxConfig         = _unwrapRootRows(mailboxConfigRows, null);
       } catch (e) {
         console.warn('[DataAdapter] init: niche/新域集合拉取失败，回退本地备份：', e);
         try {
-          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260812a');
+          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260823b');
           restoreNicheCollections();
         } catch (e2) {
           console.warn('[DataAdapter] init: 本地 niche 备份恢复失败：', e2);
@@ -280,8 +283,8 @@ export async function init() {
       // makeupTasks 无静态种子（由纪检操作生成），空属合理，不回退。
       if (!mockDB.attendances.length || !mockDB.inspections.length) {
         try {
-          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260812a');
-          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260812a');
+          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260823b');
+          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260823b');
           if (!mockDB.attendances.length) mockDB.attendances = ATTENDANCE_RECORDS.map(r => ({ ...r }));
           if (!mockDB.inspections.length) mockDB.inspections = INSPECTION_RECORDS.map(r => ({ ...r }));
           console.info('[DataAdapter] init: 考勤/考察空集合已回退本地 seed');
@@ -291,7 +294,7 @@ export async function init() {
       }
       if (!mockDB.todos.length) {
         try {
-          const { SEED_TODOS } = await import('../services/todo.js?v=20260812a');
+          const { SEED_TODOS } = await import('../services/todo.js?v=20260823b');
           mockDB.todos = SEED_TODOS.map(t => ({ ...t }));
           console.info('[DataAdapter] init: 待办空集合已回退本地 seed');
         } catch (e) {
@@ -437,7 +440,7 @@ async function _flushSnapshot() {
   // flush 时若数据源已切回 mock（如服务器不可达回退），跳过写穿
   if (DATA_SOURCE !== 'api') return;
   try {
-    const { mockDB } = await import('./domain.js?v=20260812a');
+    const { mockDB } = await import('./domain.js?v=20260823b');
     _cachedMockDB = mockDB;
     await getAdapter().snapshot(_buildSnapshotPayload(mockDB));
   } catch (e) {

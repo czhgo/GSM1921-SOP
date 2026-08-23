@@ -2,10 +2,28 @@
 // services/decision-tree.js — 统一决策树服务
 // 从 ws-leader-entry.js 和 ws-secretary-entry.js 中提取的共享逻辑
 // 包含：配置管理、状态管理、场景映射、工作流面板渲染、活动写入
-import { BranchService } from './runtime.js?v=20260812d';
-import { showToast } from '../core/utils.js?v=20260812d';
-import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260812d';
-import { icon } from '../core/icons.js?v=20260812d';
+import { BranchService } from './runtime.js?v=20260823b';
+import { showToast } from '../core/utils.js?v=20260823b';
+import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260823b';
+import { icon } from '../core/icons.js?v=20260823b';
+// M4 场景注册化：经注册表读取 SOP 场景能力（sop-scenarios），行为零变化——能力缺省时回退直接读 sopDatabase
+import { getCapabilities } from '../core/registry.js?v=20260823b';
+import '../modules/capabilities/sop-scenarios.js?v=20260823a';
+
+/**
+ * 经注册表读取场景（M4 场景注册化消费点）
+ * 优先使用 sop-scenarios 能力的 get()，未注册/未命中时回退 sopDatabase（与既有行为一致）。
+ * @param {string} scenarioId
+ * @returns {Object|undefined}
+ */
+function getScenario(scenarioId) {
+  const cap = getCapabilities({ scope: 'scenario' }).find(c => c.id === 'sop-scenarios');
+  if (cap && typeof cap.get === 'function') {
+    const sc = cap.get(scenarioId);
+    if (sc) return sc;
+  }
+  return sopDatabase.scenarios.find(s => s.scenarioId === scenarioId);
+}
 
 // ════════════════════════════════════════════════════════════════
 //  决策树配置预设
@@ -162,7 +180,7 @@ export class DecisionTreeState {
   getScenarioTitle() {
     const sid = this.getScenarioId();
     if (!sid) return '';
-    const sc = sopDatabase.scenarios.find(s => s.scenarioId === sid);
+    const sc = getScenario(sid);
     return sc ? sc.title : '';
   }
 
@@ -201,7 +219,7 @@ export class DecisionTreeState {
     if (!L1) return '<p class="text-gray-400">请先选择组织场景</p>';
 
     const scenarioId = this.getScenarioId();
-    const scenario = sopDatabase.scenarios.find(s => s.scenarioId === scenarioId);
+    const scenario = getScenario(scenarioId);
     if (!scenario) return '<p class="text-gray-400">未找到对应SOP模板</p>';
 
     const tasks = scenario.tasks.filter(t => t.timeOffset !== null);

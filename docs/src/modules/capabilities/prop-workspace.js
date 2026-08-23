@@ -1,0 +1,26 @@
+// role: [工程师]+[AI]
+// 宣传委员工作台能力：tab 清单注册（T-279 M3，照 M2 样板 leader-workspace）
+// 自注册模式（M1 同款）：副作用导入即注册。消费点（薄壳入口）经 getCapabilities({scope:'workspace:prop'})
+// 读取本能力，tab 声明（含懒加载 render）不再硬编码在入口。
+// 设计权威源：content/04_web_design/ARCHITECTURE_EVOLUTION.md §四/§六
+
+import { registerCapability } from '../../core/registry.js?v=20260823b';
+
+// 7 个 tab 清单：render 为懒加载动态 import（相对本模块解析到 entries/tabs/prop/）
+// tab 私有状态随模块自持；共享只读配置（accent/activities/propTf）经 ctx 传入。
+registerCapability({
+  id: 'prop-workspace',
+  name: '宣传委员工作台',
+  version: '20260823b',
+  scope: ['workspace:prop'],
+  tabs: () => [
+    { id: 'todo', label: '待办', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/prop/todo-tab.js?v=20260823b').then(m => m.renderContent(ctx)) },
+    // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
+    { id: 'overview', label: '工作概况', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/prop/overview-tab.js?v=20260823b').then(m => m.renderContent(ctx)) },
+    { id: 'tasks', label: '宣传任务', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/prop/tasks-tab.js?v=20260823b').then(m => m.renderContent(ctx)) },
+    { id: 'kanban', label: '项目看板', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/prop/kanban-tab.js?v=20260823b').then(m => m.renderContent(ctx)) },
+    { id: 'weekly', label: '周报报送', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/prop/weekly-tab.js?v=20260823b').then(m => m.renderContent(ctx)) },
+    { id: 'archive', label: '档案归档', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/prop/archive-tab.js?v=20260823b').then(m => m.renderContent(ctx)) },
+    { id: 'my-dispatch', label: '我的处置', groupLabel: '反馈', render: (ctx) => import('../../entries/tabs/prop/my-dispatch-tab.js?v=20260823b').then(m => m.renderContent(ctx)) },
+  ],
+});

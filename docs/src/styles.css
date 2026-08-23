@@ -1844,6 +1844,46 @@ textarea.input-flat {
   border: 1px solid var(--tab-accent-border);
 }
 
+/* ── Tab 栏单行横向平滑滚动（2026-08-23 书记裁定：tab 数量增加禁止随机换行成 2 行） ──
+   由 tab-bar.js 的 ws-tab-scroll 容器承载：flex-nowrap 永不换行 + overflow-x 横向滑动。
+   隐藏滚动条（视觉干净）；溢出时两侧渐隐遮罩（data-overflow 由 JS 在 scroll/resize 时更新）。 */
+.ws-tab-scroll {
+  position: relative;
+  scroll-behavior: smooth;
+  scrollbar-width: none;            /* Firefox */
+  -ms-overflow-style: none;         /* IE/旧 Edge */
+  -webkit-overflow-scrolling: touch;/* iOS 惯性滚动 */
+}
+.ws-tab-scroll::-webkit-scrollbar {
+  display: none;                    /* Chrome/Safari */
+}
+.ws-tab-scroll::before,
+.ws-tab-scroll::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  pointer-events: none;             /* 不挡按钮点击 */
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 1;
+}
+.ws-tab-scroll::before {
+  left: 0;
+  background: linear-gradient(to left, rgba(250, 250, 245, 0), var(--surface-page));
+}
+.ws-tab-scroll::after {
+  right: 0;
+  background: linear-gradient(to right, rgba(250, 250, 245, 0), var(--surface-page));
+}
+.ws-tab-scroll[data-overflow='right']::after,
+.ws-tab-scroll[data-overflow='both']::after,
+.ws-tab-scroll[data-overflow='left']::before,
+.ws-tab-scroll[data-overflow='both']::before {
+  opacity: 1;
+}
+
 /* ── 子视图切换（按维度/按人）active 状态（overview-tab.js）
    iOS 风格 segmented control：激活态白色滑块 + 阴影 + 主题色，非激活透明灰字 ── */
 .ov-sub-tab {
@@ -2223,6 +2263,55 @@ html.theme-dark .tf-section-head {
 
 .ref-download-btn:hover {
   background-color: var(--primary-100);
+}
+
+/* 支部文件：写入按钮（支委） */
+.ref-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  background-color: var(--primary-700);
+  color: var(--neutral-0);
+  font-size: 0.7rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease-out;
+}
+
+.ref-add-btn:hover {
+  opacity: 0.9;
+}
+
+/* 支部文件：修改/删除操作按钮（支委） */
+.ref-doc-action-btn {
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--neutral-200);
+  background-color: var(--neutral-0);
+  color: var(--neutral-600);
+  font-size: 0.7rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out;
+}
+
+.ref-doc-action-btn:hover {
+  background-color: var(--surface-hover);
+  border-color: var(--neutral-300);
+}
+
+.ref-doc-action-danger {
+  color: var(--primary-700);
+  border-color: var(--primary-200);
+  background-color: var(--primary-50);
+}
+
+.ref-doc-action-danger:hover {
+  background-color: var(--primary-100);
+  border-color: var(--primary-300);
 }
 
 /* ═══════════════════════════════════════════════════════════════

@@ -1,8 +1,9 @@
 // server/routes/resources.js — 资源读写 API（list + bootstrap + 资源级 CRUD + snapshot 快照写穿）
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
-import { requireAuth } from './auth.js';
+import { requireAuth, requireCommissioner } from './auth.js';
 import { replaceCollection } from '../db.js';
+import { deleteUploadedFile } from './uploads.js';
 
 // 资源名 → 表名映射（与 data-adapter 的分组名对齐）
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
@@ -33,6 +34,7 @@ const RESOURCE_TABLES = {
   externalDispatches: 'external_dispatches',
   actSubRecords: 'act_sub_records',
   tfSubRecords: 'tf_sub_records',
+  branchDocs: 'branch_docs',
 };
 
 function listTable(db, table) {
@@ -49,6 +51,7 @@ const ID_PREFIX = {
   propTasks: 'ppt', weeklyReports: 'wr', archiveRecords: 'ar',
   mailboxConfig: 'mbx', mailboxHistory: 'mbh', externalDispatches: 'ed',
   actSubRecords: 'asr', tfSubRecords: 'tfs',
+  branchDocs: 'bd',
 };
 
 export function createResourcesRouter(db) {
@@ -62,9 +65,13 @@ export function createResourcesRouter(db) {
   // 资源级 CRUD（2026-08-06 扎口修复 Z2：此前前端 ApiAdapter 暴露的
   // create/update/delete/archive/brand 接口在服务端全部 404，属「未扎口的假接口」。
   // 现补齐 POST/PATCH/DELETE，使 ApiAdapter 接口完整可用）
+  // 需支委写权限的资源（写入/删除均需支委身份，如支部文件）
+  const COMMISSIONER_WRITE = new Set(['branchDocs']);
   for (const [name, table] of Object.entries(RESOURCE_TABLES)) {
+    const writeAuth = COMMISSIONER_WRITE.has(name) ? requireCommissioner(db) : requireAuth(db);
+
     // 创建：body 为单条数据对象；缺 id 时服务端生成（与前端 mock 生成风格对齐）
-    router.post(`/${name}`, requireAuth(db), (req, res) => {
+    router.post(`/${name}`, writeAuth, (req, res) => {
       const row = req.body;
       if (!row || typeof row !== 'object' || Array.isArray(row)) {
         return res.status(400).json({ error: 'body 须为单条数据对象' });
@@ -76,7 +83,7 @@ export function createResourcesRouter(db) {
     });
 
     // 更新：局部合并 patch（与前端 update(id, patch) 语义一致）
-    router.patch(`/${name}/:id`, requireAuth(db), (req, res) => {
+    router.patch(`/${name}/:id`, writeAuth, (req, res) => {
       const id = req.params.id;
       const existing = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(id);
       if (!existing) return res.status(404).json({ error: 'not found' });
@@ -86,7 +93,15 @@ export function createResourcesRouter(db) {
     });
 
     // 删除
-    router.delete(`/${name}/:id`, requireAuth(db), (req, res) => {
+    router.delete(`/${name}/:id`, writeAuth, (req, res) => {
+      // 支部文件：删除记录前联动删除已上传的物理文件（书记 2026-08-18 裁决「连物理文件一起删」）
+      if (name === 'branchDocs') {
+        const existing = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(req.params.id);
+        if (existing) {
+          const doc = JSON.parse(existing.data);
+          if (doc.filePath) deleteUploadedFile(doc.filePath);
+        }
+      }
       const info = db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(req.params.id);
       if (info.changes === 0) return res.status(404).json({ error: 'not found' });
       res.status(204).end();

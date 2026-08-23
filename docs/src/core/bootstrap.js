@@ -1,20 +1,23 @@
-// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // bootstrap.js — 页面初始化统一入口（重构版）
 // 变化: 去掉 ViewModeStore/CrossPageState/setActiveRole，改为基于 getCurrentUser() 的登录检查
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../components/sidebar.js?v=20260812f';
-import { renderHeader } from '../components/header.js?v=20260812f';
-import { AuthStore } from '../services/auth.js?v=20260812d';
-import { IssueStore } from '../services/issues.js?v=20260812d';
-import { MilestoneStore } from '../services/milestones.js?v=20260812d';
-import { getAccentColors, resolveAccentRole } from './constants.js?v=20260812d';
-import { CrossPageState } from './cross-page-state.js?v=20260812d';
-import { getBasePath } from './utils.js?v=20260812d';
-import { enhanceSelects } from '../components/custom-select.js?v=20260812d';
-import { registerApiAdapter, setDataSource, init } from './data-adapter.js?v=20260812d';
-import { ApiAdapter } from './api-adapter.js?v=20260812d';
+import { renderSidebar } from '../components/sidebar.js?v=20260823b';
+import { renderHeader } from '../components/header.js?v=20260823b';
+import { AuthStore } from '../services/auth.js?v=20260823b';
+import { IssueStore } from '../services/issues.js?v=20260823b';
+import { MilestoneStore } from '../services/milestones.js?v=20260823b';
+import { getAccentColors, resolveAccentRole } from './constants.js?v=20260823b';
+import { CrossPageState } from './cross-page-state.js?v=20260823b';
+import { getBasePath } from './utils.js?v=20260823b';
+import { enhanceSelects } from '../components/custom-select.js?v=20260823b';
+import { registerApiAdapter, init } from './data-adapter.js?v=20260823b';
+import { ApiAdapter } from './api-adapter.js?v=20260823b';
+import { getCapabilities } from './registry.js?v=20260823b';
+// M4 数据源注册化：副作用导入触发 mock/api 数据源能力注册，bootstrap 经注册表选择数据源
+import '../modules/capabilities/data-source.js?v=20260823a';
 
 // ════════════════════════════════════════════════════════════════
 // S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）
@@ -81,16 +84,21 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
   }
 
   // 恢复 API 数据源：已登录且存在 token 时切换到后端（认证由 api-adapter 读取 authToken）
+  // M4 数据源注册化：经注册表读取数据源能力（getCapabilities 按 scope='data-source' 过滤），
+  // 行为零变化——有 token 时 apply api 数据源，服务器不可达回退 apply mock 数据源。
   // registerApiAdapter 幂等（重复注册仅覆盖同一实例），与 runtime.js 的注册不冲突
   registerApiAdapter(ApiAdapter);
   const savedToken = sessionStorage.getItem('gsm1921-api-token');
-  if (savedToken) {
-    setDataSource('api', { apiBaseUrl: '', authToken: savedToken });
+  const dataSourceCaps = getCapabilities({ scope: 'data-source' });
+  const apiCap = dataSourceCaps.find(c => c.id === 'api-data-source');
+  const mockCap = dataSourceCaps.find(c => c.id === 'mock-data-source');
+  if (savedToken && apiCap && typeof apiCap.apply === 'function') {
+    apiCap.apply({ apiBaseUrl: '', authToken: savedToken });
     try {
       await init(); // 从后端拉取全量数据填充 mockDB（读路径）
     } catch (e) {
       console.warn('[bootstrap] API 数据加载失败，回退本地 mock 模式', e);
-      setDataSource('mock'); // 服务器不可达→完整回退本地模式，后续流程照常走 loadDB
+      if (mockCap && typeof mockCap.apply === 'function') mockCap.apply(); // 服务器不可达→完整回退本地模式
     }
   }
 
@@ -105,10 +113,14 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
       window.location.reload();
       return { user: null };
     }
-    const base = window.location.pathname.includes('/workspace/')
-      ? '../' : './';
-    window.location.href = base + 'login.html';
-    return { user: null };
+    // L1 页面门控：仅工作台强制跳登录；首页等公开页匿名可访（DEPLOYMENT_AUTH_MODEL.md §四）
+    // 首页组件（活动/专班/日历）点击跳工作台，再由工作台门控触发登录（当前跳 login.html，IAAA 为后续目标）
+    if (module === 'workspace') {
+      const base = window.location.pathname.includes('/workspace/')
+        ? '../' : './';
+      window.location.href = base + 'login.html';
+      return { user: null };
+    }
   }
 
   // 字体二档调节：读取 localStorage 偏好并应用

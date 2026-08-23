@@ -1,23 +1,21 @@
-// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // help-entry.js — 帮助页入口（系统说明书）
 
-import { renderSidebar } from '../components/sidebar.js?v=20260812f';
-import { renderHeader } from '../components/header.js?v=20260812f';
-import { renderRoleHierarchy } from '../components/role-hierarchy.js?v=20260812d';
+import { renderSidebar } from '../components/sidebar.js?v=20260823b';
+import { renderHeader } from '../components/header.js?v=20260823b';
 
 // 静态壳模式（2026-08-12）：help 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
 // 仅渲染共享侧边栏/顶栏壳；通知铃首次点击时才按需加载通知模块。
 renderSidebar('help', { staticShell: true });
 renderHeader('help', { staticShell: true });
-renderRoleHierarchy('role-hierarchy-container');
 
 // ── 右侧圆点目录（参考关于页 .help-toc-nav）──
+// 2026-08-18：删重叠叙事（原「分工中的制度设计」「怎么理解具体的这个组织」两章），
+// help 回归「系统说明书」定位——叙事归 about / DEVELOPMENT_PATH。
 const TOC_ITEMS = [
   { id: 'sec-ack',        label: '致谢' },
   { id: 'sec-quickstart', label: '快速上手' },
   { id: 'sec-what',       label: '这个系统在干什么' },
-  { id: 'sec-design',     label: '分工中的制度设计' },
-  { id: 'sec-why',        label: '怎么理解具体的这个组织' },
   { id: 'sec-tech',       label: '技术架构' },
   { id: 'sec-disclaimer', label: '免责声明' },
 ];
