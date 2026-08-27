@@ -1,6 +1,6 @@
 ---
 role: "[工程师]+[AI]"
-last_updated: "2026-08-19"
+last_updated: "2026-08-27"
 dynamic_role:
   maintenance: "[工程师]+[AI]"
   auto_update: "[AI]"
@@ -9,7 +9,7 @@ dynamic_role:
 # File Timestamp Registry
 
 > 全项目文件最后更新时间注册表
-> last_updated: "2026-08-19" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
+> last_updated: "2026-08-24" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
 
 ---
 
@@ -28,7 +28,7 @@ dynamic_role:
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
 | README.md | 2026-08-10 | [用户]+[AI] | 对外门面（设计理念章重构） |
-| CLAUDE.md | 2026-08-19 | [工程师]+[AI] | Harness（甲部 H10-H100 约束力三层 + 乙部执行 + 丙部待决策；T-272 乙部登记 + P.8/P.9/P.10 丙部退出清空） |
+| CLAUDE.md | 2026-08-27 | [工程师]+[AI] | Harness（甲部 H10-H100 约束力三层 + 乙部执行 + 丙部待决策；T-272 乙部登记 + P.8/P.9/P.10 丙部退出清空 + T-280 网页逻辑梳理乙部注册 + T-283 最小三成本第4轮 + T-284 链接审查） |
 | CHECKLIST.md | — | — | 🗑️ 已删除（迁移至 content/04_web_design/CHECKLIST.md） |
 | LICENSE | 2026-02-17 | [用户] | 开源许可 |
 | .gitignore | 2026-04-06 | [工具] | Git 忽略 |
@@ -42,7 +42,7 @@ dynamic_role:
 |---------|-------------|------|------|
 | .ctx/TIMESTAMPS.md | 2026-08-22 | [工程师]+[AI] | 本文件（T-279 M2 时间戳批量刷新） |
 | .ctx/SNAPSHOT.md | 2026-08-11 | [AI] | 当前基线（v17） |
-| .ctx/REVIEW_QUEUE.md | 2026-08-11 | [工程师]+[AI] | 书记评议队列（W4 五专项附录承接区，含最小三成本侧重维度基线，H60 评议细节已指针化至 OPERATIONS_GUIDE §18） |
+| .ctx/REVIEW_QUEUE.md | 2026-08-11 | [工程师]+[AI] | 书记评议队列（W4 五专项附录承接区，含最小三成本侧重维度基线，H60 评议细节已指针化至 PROCESS_GUIDE §18） |
 | .ctx/snapshots/INDEX.md | 2026-05-03 | [工程师]+[AI] | 快照历史索引 |
 | .ctx/snapshots/SNAPSHOT_v3_20260502.md | 2026-05-02 | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-05-02 | [工程师]+[AI] | 日志索引 |
@@ -56,7 +56,8 @@ dynamic_role:
 | .ctx/logs/2026-06-DECISION_LOG.md | 2026-06-30 | [工程师]+[AI] | 6月决策日志 |
 | .ctx/logs/2026-07-EXECUTION_LOG.md | 2026-07-31 | [工程师]+[AI] | 7月执行日志（当前活跃） |
 | .ctx/logs/2026-07-DECISION_LOG.md | 2026-07-31 | [工程师]+[AI] | 7月决策日志 |
-| .ctx/logs/2026-08-EXECUTION_LOG.md | 2026-08-23 | [工程师]+[AI] | 8月执行日志（当前活跃；T-279 M1/M2 + tab 单行滚动追加） |
+| .ctx/logs/2026-08-EXECUTION_LOG.md | 2026-08-24 | [工程师]+[AI] | 8月执行日志（当前活跃；T-279 + T-280 B1~B6 实测 + T-281 论断 refinement 讨论 + T-282 content 体系优化归档，L4777~5208） |
+| .ctx/PLAN_网页逻辑梳理.md | — | [工程师]+[AI] | 已删除（2026-08-24 T-280 B1~B6 全部完成，规划已归档至 8月执行日志） |
 | .ctx/logs/2026-08-DECISION_LOG.md | 2026-08-19 | [工程师]+[AI] | 8月决策日志（D-270~D-272 丙部退出归档） |
 | .ctx/logs/archive/2026-05-early-EXECUTION_LOG.md | 2026-05-03 | [工程师]+[AI] | 5月早期条目归档 |
 | .ctx/logs/archive/2026-07-early-entries.md | 2026-07-12 | [工程师]+[AI] | T22-T90 早期条目归档（母本：2026-07-EXECUTION_LOG.md） |
@@ -67,11 +68,10 @@ dynamic_role:
 |---------|-------------|------|------|
 | content/01_strategy/DEVELOPMENT_PATH.md | 2026-08-19 | [用户]+[AI] | 发展路径（原 MANAGE_SERVE.md→strategy/DEVELOPMENT_PATH.md，文档逻辑顺序重组后迁至01_strategy/；P.10 清理「不是…而是」句式 10 处） |
 | content/01_strategy/SECRETARY_PRONOUNCEMENTS.md | 2026-08-05 | [用户]+[AI] | 书记论断（项目顶级战略文档） |
-| content/01_strategy/README.md | 2026-08-04 | [用户]+[AI] | 01_strategy 目录索引 |
-| content/01_strategy/references/历史会议材料/ | 2026-02-28 | [用户] | 只读 |
+| content/01_strategy/README.md | 2026-08-24 | [用户]+[AI] | 01_strategy 目录索引（2026-08-24 补充 references 子目录性质划分） |
+| content/01_strategy/references/历史会议材料/ | 2026-08-24 | [用户] | 只读（2026-08-24 党支部工作记录.docx 归位于此） |
 | content/01_strategy/references/合规文件/ | 2026-02-17 | [用户] | 只读 |
 | content/01_strategy/references/建设探索/ | 2026-02-28 | [用户] | 只读 |
-| content/01_strategy/references/党支部工作记录.docx | 2026-02-28 | [用户] | 只读 |
 
 ## content/02_institution/ (制度层)
 
@@ -93,7 +93,8 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-08-11 | [工程师]+[AI] | 运行标准（含 §1.3 分层体系索引 + §1.4 一致性检查规范 + §12 文件命名规范 + §11 反论表述审核标准 + §16 吸收外部输入流程 + §17 周期性任务与自动唤醒机制，W4 含五专项 + §18 书记评议工作流细节，承接甲部 H60 指针化细节） |
+| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-08-24 | [工程师]+[AI] | 运行标准·文档规范（§1-14：权威层级/术语/关系/角色/YAML/编码/排版/有机性/编号/日志/反论/命名/面向用户/角色操作；2026-08-24 T-282 拆分 §15-18 至 PROCESS_GUIDE） |
+| content/03_doc_system/PROCESS_GUIDE.md | 2026-08-24 | [工程师]+[AI] | 运行标准·流程机制（§15 甲部修改/§16 吸收外部输入/§17 周期性任务含 W4 五专项/§18 书记评议细节；T-282 自 OPERATIONS_GUIDE 拆分） |
 | content/03_doc_system/USAGE_POLICY.md | 2026-08-12 | [工程师]+[AI] | 使用规范（术语 §一 + Emoji §二） |
 | content/03_doc_system/ARCHITECTURE.md | 2026-08-03 | [工程师]+[AI] | 核心架构说明（迁移自根目录 ARCHITECTURE.md） |
 | content/03_doc_system/DOC_MAP.md | 2026-08-19 | [工程师]+[AI] | 全局文档导航 |
@@ -106,19 +107,23 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/04_web_design/DESIGN_SYSTEM.md | 2026-08-22 | [工程师]+[AI] | 前端设计系统（含§一第2条"最小三成本"原则；T-278 书记表述无人称修缮） |
+| content/04_web_design/DESIGN_SYSTEM.md | 2026-08-24 | [工程师]+[AI] | 设计系统规范（含§一第2条"最小三成本"原则；T-282 拆分 §二→COLOR_SYSTEM、§四→COMPONENT_SPEC） |
+| content/04_web_design/COLOR_SYSTEM.md | 2026-08-24 | [工程师]+[AI] | 色彩系统规范（T-282 自 DESIGN_SYSTEM 拆分 §二：色盘/主色/辅助色/中性色/功能色/表面色/配色规则） |
+| content/04_web_design/COMPONENT_SPEC.md | 2026-08-24 | [工程师]+[AI] | 组件规范（T-282 自 DESIGN_SYSTEM 拆分 §四：按钮/卡片/输入/侧边栏/导航/日历图例/数据展示/图标/选人/状态徽章） |
 | content/04_web_design/ABOUT_DESIGN_SYSTEM.md | 2026-08-22 | [工程师]+[AI] | About 页面设计系统（超参数设定原则/防风格疲劳/无竖线红线，新建 T-272；T-278 无人称修缮） |
 | content/04_web_design/PKU_PARTY_INTEGRATION.md | 2026-08-22 | [工程师]+[AI] | 北大党校与智慧党建系统对接设计（党校单向爬取+智慧党建双向同步+数据映射+小程序归位说明+待确认清单，新建；对接授权=党委组织部支持；T-278 无人称修缮） |
 | content/04_web_design/ARCHITECTURE_EVOLUTION.md | 2026-08-22 | [工程师]+[AI] | 架构演进（组件化落地评估+轻量插件化「能力注册表」设计+迭代机制+实施路径，新建 T-276；无人称文体） |
 | content/04_web_design/WECHAT_INTEGRATION.md | 2026-08-22 | [工程师]+[AI] | 微信协同与小程序设计方案（§八 新增北大对接数据展示；小程序独立问题归位本文档；T-278 无人称修缮） |
-| content/04_web_design/CHECKLIST.md | 2026-08-22 | [用户]+[AI] | 数据同源一致性校验手册（T-278 无人称修缮） |
-| content/04_web_design/DATA_ARCHITECTURE.md | 2026-08-22 | [工程师]+[AI] | 数据架构设计（含§2.18-§2.20 待办任务数据模型；T-278 无人称修缮） |
+| content/04_web_design/CHECKLIST.md | 2026-08-24 | [用户]+[AI] | 数据同源一致性校验手册（T-278 无人称修缮；T-280 B1-1 登录跳转表述修正 + §16 登录门控 + 待办直达检查项 + T-235 第3轮实测回填） |
+| content/04_web_design/DATA_MODEL.md | 2026-08-24 | [工程师]+[AI] | 数据模型设计（T-282 自 DATA_ARCHITECTURE 拆分 §二：20 类模型 + 写入验证 + 待办/通知派生 + 归档字段） |
+| content/04_web_design/DATA_FLOW.md | 2026-08-24 | [工程师]+[AI] | 数据流设计（T-282 自 DATA_ARCHITECTURE 拆分 §一/§三/§四：总览 + 参与者数据流 + 前端数据流） |
+| content/04_web_design/DATA_ARCHITECTURE.md | 2026-08-24 | [工程师]+[AI] | 数据架构设计（T-282 拆分后转为路由薄壳，正文已迁至 DATA_MODEL/DATA_FLOW） |
 | content/04_web_design/MODULE_UI_DESIGN.md | 2026-08-09 | [工程师]+[AI] | 模块界面设计 |
 | content/04_web_design/SOP_WEB.md | 2026-08-22 | [工程师]+[AI] | SOP-系统联动方法（T-278 无人称修缮） |
-| content/04_web_design/DEPLOYMENT_ROADMAP.md | 2026-08-22 | [工程师]+[AI] | 部署落地总览（四条路径 + 代码就绪度 + 决策矩阵，新建 T-273；T-278 无人称修缮） |
+| content/04_web_design/DEPLOYMENT_ROADMAP.md | 2026-08-24 | [工程师]+[AI] | 部署落地总览（四条路径 + 决策矩阵；2026-08-24 并入 SCHOOL_IT_DEPLOYMENT 全部内容为 §三 计算中心对接全案） |
 | content/04_web_design/DEPLOYMENT_AUTH_MODEL.md | 2026-08-22 | [工程师]+[AI] | 部署与认证场景模型（5 场景两轴正交 + 侧边栏统一 + 登录门控四层；T-278 无人称修缮） |
-| content/04_web_design/SCHOOL_IT_DEPLOYMENT.md | 2026-08-22 | [工程师]+[AI] | 学校计算中心对接准备文档（2026-08-19 修正纯 mock 过时表述；T-278 无人称修缮） |
-| content/04_web_design/README.md | 2026-08-22 | [工程师]+[AI] | 04_web_design 目录索引（T-276/T-278 更新） |
+| content/04_web_design/SCHOOL_IT_DEPLOYMENT.md | 2026-08-24 | [工程师]+[AI] | 已并入 DEPLOYMENT_ROADMAP.md §三（计算中心对接全案），2026-08-24 合并删除 |
+| content/04_web_design/README.md | 2026-08-24 | [工程师]+[AI] | 04_web_design 目录索引（2026-08-24 部署类重组更新） |
 
 ## content/05_ai_coding/ (AI 编码层)
 
@@ -138,6 +143,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
+| content/insights/README.md | 2026-08-24 | [用户]+[工程师] | 经验沉淀层目录索引（2026-08-24 新增，与其他目录对齐） |
 | content/insights/党支部管理与实务经验沉淀.md | 2026-08-11 | [用户]+[AI] | 党建与党务工作理论贡献 |
 | content/insights/工程演进与设计方法论.md | 2026-08-11 | [用户]+[AI] | 工程演进与设计方法论（文档逻辑顺序重组后拆分为独立文件） |
 
@@ -159,6 +165,10 @@ dynamic_role:
 | server/routes/resources.js | 2026-08-03 | [工程师]+[AI] | 25 资源 list/create/update + bootstrap + snapshot |
 | server/routes/uploads.js | 2026-08-03 | [工程师]+[AI] | 附件上传（jpg/png/pdf/docx/xlsx，≤10MB） |
 | server/test/*.test.js | 2026-08-03 | [工程师]+[AI] | 8 测试文件 16 用例（含 Playwright E2E） |
+| server/test/t235-browser-regression.mjs | 2026-08-24 | [工程师]+[AI] | T-235 首页跳转直达回归脚本（T-280 B1-2 新建，34 项 Playwright 断言） |
+| server/test/m4-browser-regression.mjs | 2026-08-24 | [工程师]+[AI] | T-279 M4 浏览器回归（T-280 B1-5 版本戳同步 20260824b） |
+| server/test/b3-1-makeup-writeback.test.mjs | 2026-08-24 | [工程师]+[AI] | B3-1 补课完成→考勤回写验证（T-280 新建，5 项断言） |
+| server/test/probe*.mjs | — | — | 🗑️ 已删除（T-280 B1 临时探针，定位完成清理） |
 | server/README.md | 2026-08-10 | [工程师]+[AI] | 安装/启动/测试/部署对接说明 |
 | server/package.json | 2026-08-03 | [工程师]+[AI] | better-sqlite3 ^12.0.0、playwright 1.60.0 |
 | server/package-lock.json | 2026-08-03 | [工具] | 依赖锁文件 |
@@ -192,7 +202,7 @@ dynamic_role:
 |---------|-------------|------|------|
 | docs/src/core/bootstrap.js | 2026-08-12 | [工程师]+[AI] | 引导启动（主题色 resolveAccentRole；header/sidebar 版本引用） |
 | docs/src/core/constants.js | 2026-08-06 | [工程师]+[AI] | 静态常量（ACCENT_PALETTE/resolveAccentRole） |
-| docs/src/core/cross-page-state.js | 2026-07-31 | [工程师]+[AI] | 跨页状态 |
+| docs/src/core/cross-page-state.js | 2026-08-24 | [工程师]+[AI] | 跨页状态（T-280 B1-5 版本化 bump CODE_VERSION 32→40；20260824d 全站 bump 后为 40） |
 | docs/src/core/data-loader.js | 2026-07-31 | [工程师]+[AI] | 数据加载 |
 | docs/src/core/data-adapter.js | 2026-08-03 | [工程师]+[AI] | 数据适配器（setDataSource/init/persist） |
 | docs/src/core/login-snapshot.js | 2026-08-12 | [工程师]+[AI] | 登录快照轻量读取（零依赖，静态页登录态感知壳用） |
@@ -240,12 +250,12 @@ dynamic_role:
 | docs/src/entries/notice-entry.js | 2026-08-06 | [工程师]+[AI] | 通知页入口 |
 | docs/src/entries/search-entry.js | 2026-07-31 | [工程师]+[AI] | 搜索页入口 |
 | docs/src/entries/workspace-entry.js | 2026-07-31 | [工程师]+[AI] | 🗑️ 已删除（2026-08 P0 死模块清理） |
-| docs/src/entries/ws-secretary-entry.js | 2026-08-06 | [工程师]+[AI] | 书记工作台入口 |
-| docs/src/entries/ws-org-commissioner-entry.js | 2026-08-23 | [工程师]+[AI] | 组织委员工作台入口（T-279 M3 薄壳化：1806→161 行 + 注册表读取 tab 清单） |
-| docs/src/entries/ws-prop-commissioner-entry.js | 2026-08-23 | [工程师]+[AI] | 宣传委员工作台入口（T-279 M3 薄壳化：1320→139 行 + 注册表读取 tab 清单） |
-| docs/src/entries/ws-disc-commissioner-entry.js | 2026-08-23 | [工程师]+[AI] | 纪检委员工作台入口（T-279 M3 薄壳化：1339→139 行 + 注册表读取 tab 清单） |
-| docs/src/entries/ws-leader-entry.js | 2026-08-22 | [工程师]+[AI] | 党小组组长工作台入口（T-279 M2 薄壳化：1850→161 行 + 注册表读取 tab 清单） |
-| docs/src/entries/ws-visitor-entry.js | 2026-08-23 | [工程师]+[AI] | 访客/成员工作台入口（T-279 M3 薄壳化：897→172 行 + 注册表读取 tab 清单） |
+| docs/src/entries/ws-secretary-entry.js | 2026-08-24 | [工程师]+[AI] | 书记工作台入口（T-280 B1-5 条件抑制重渲染+高亮存活） |
+| docs/src/entries/ws-org-commissioner-entry.js | 2026-08-24 | [工程师]+[AI] | 组织委员工作台入口（T-279 M3 薄壳化 + T-280 B1-5 条件抑制+轮询定位） |
+| docs/src/entries/ws-prop-commissioner-entry.js | 2026-08-24 | [工程师]+[AI] | 宣传委员工作台入口（T-279 M3 薄壳化 + T-280 B1-5 条件抑制+轮询定位） |
+| docs/src/entries/ws-disc-commissioner-entry.js | 2026-08-24 | [工程师]+[AI] | 纪检委员工作台入口（T-279 M3 薄壳化 + T-280 B1-5 条件抑制+高亮存活） |
+| docs/src/entries/ws-leader-entry.js | 2026-08-24 | [工程师]+[AI] | 党小组组长工作台入口（T-279 M2 薄壳化 + T-280 B1-5 条件抑制+轮询定位） |
+| docs/src/entries/ws-visitor-entry.js | 2026-08-24 | [工程师]+[AI] | 访客/成员工作台入口（T-279 M3 薄壳化 + T-280 B1-5 条件抑制+高亮存活） |
 
 ### docs/src/entries/tabs/ (工作台 Tab 模块层)
 
@@ -297,7 +307,7 @@ dynamic_role:
 | docs/src/entries/tabs/disc/attendance-tab.js | 2026-08-23 | [工程师]+[AI] | 考勤管理 tab（T-279 M3 新建） |
 | docs/src/entries/tabs/disc/review-tab.js | 2026-08-23 | [工程师]+[AI] | 活动监督复盘 tab（T-279 M3 新建） |
 | docs/src/entries/tabs/disc/inspection-tab.js | 2026-08-23 | [工程师]+[AI] | 考察管理 tab（T-279 M3 新建） |
-| docs/src/entries/tabs/disc/makeup-tab.js | 2026-08-23 | [工程师]+[AI] | 补课制度 tab（T-279 M3 新建） |
+| docs/src/entries/tabs/disc/makeup-tab.js | 2026-08-24 | [工程师]+[AI] | 补课制度 tab（T-279 M3 新建 + T-280 B3-1 确认完成回写考勤 made_up） |
 | docs/src/entries/tabs/disc/mailbox-tab.js | 2026-08-23 | [工程师]+[AI] | 公邮管理 tab（T-279 M3 新建） |
 | docs/src/entries/tabs/disc/tf-view-tab.js | 2026-08-23 | [工程师]+[AI] | 纪检委员专班查看 tab（T-279 M3 新建） |
 | docs/src/entries/tabs/disc/my-dispatch-tab.js | 2026-08-23 | [工程师]+[AI] | 纪检委员我的处置 tab（T-279 M3 新建） |

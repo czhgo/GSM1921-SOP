@@ -1,11 +1,14 @@
 // role: [工程师]+[AI]
 // 纪检委员工作台 Tab：补课制度（T-279 M3 拆分）
 // 缺勤/请假的三会一课、主题党日须在7日内补课，纪检委员确认完成。
+// B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260823b';
-import { getPersonName } from '../../../mock/index.js?v=20260823b';
-import { badgeHtml } from '../../../components/badge.js?v=20260823b';
-import { showToast } from '../../../core/utils.js?v=20260823b';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260827c';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260827c';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260827c';
+import { getPersonName } from '../../../mock/index.js?v=20260827c';
+import { badgeHtml } from '../../../components/badge.js?v=20260827c';
+import { showToast } from '../../../core/utils.js?v=20260827c';
 
 export function renderContent() {
   const container = document.getElementById('disc-tab-content');
@@ -91,7 +94,19 @@ export function renderContent() {
         task.status = 'completed';
         task.completedAt = new Date().toISOString();
         saveMakeupTasks(tasks);
-        showToast('success', `${task.personName || getPersonName(task.personId)} 的补课任务已确认完成`);
+        // B3-1 修复：补课完成 → 考勤回写 made_up（打卡化判定：完成必须对应真实产物）。
+        // 用 loadAttendanceRecords（原始全表）避免 loadActiveAttendanceRecords 的归档过滤丢已归档考勤。
+        if (task.attendanceRecordId) {
+          const records = loadAttendanceRecords();
+          const rec = records.find(r => r.id === task.attendanceRecordId);
+          if (rec && (rec.status === AttendanceStatus.ABSENT || rec.status === AttendanceStatus.LEAVE)) {
+            rec.status = AttendanceStatus.MADE_UP;
+            rec.overdue = false; // 补课完成 = 缺勤闭环，不再逾期
+            rec.madeUpAt = new Date().toISOString();
+            saveAttendanceRecords(records);
+          }
+        }
+        showToast('success', `${task.personName || getPersonName(task.personId)} 的补课任务已确认完成，考勤已回写「已补」`);
         renderContent();
       }
     });

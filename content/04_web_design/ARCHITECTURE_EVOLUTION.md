@@ -5,14 +5,14 @@ role: "[工程师]+[AI]"
 created: 2026-08-22
 last_updated: "2026-08-23"
 status: active
-related_files: [DATA_ARCHITECTURE.md, SOP_WEB.md, DEPLOYMENT_ROADMAP.md, ../03_doc_system/ARCHITECTURE.md, ../05_ai_coding/KNOWN_PITFALLS.md]
+related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEB.md, DEPLOYMENT_ROADMAP.md, ../03_doc_system/ARCHITECTURE.md, ../05_ai_coding/KNOWN_PITFALLS.md]
 ---
 
 # 架构演进——组件化落地评估与轻量插件化设计
 
 > **定位**：一次关于系统架构的探索——「高度组件化、高度可复用」的目标落地到什么程度？距离「一切皆插件」的灵活性还有多远？上线后的多轮迭代靠什么机制承载？本文档只表达探索与选择，不代表最终结论，更不代表方案完备。
 > **受众**：[工程师]+[AI]（架构维护者、开发者）+ 愿意给出架构反馈的外部评审者
-> **关联**：[DATA_ARCHITECTURE.md](DATA_ARCHITECTURE.md)（数据模型权威源）、[SOP_WEB.md](SOP_WEB.md)（SOP-系统联动方法论）、[DEPLOYMENT_ROADMAP.md](DEPLOYMENT_ROADMAP.md)（部署落地路径）、[ARCHITECTURE.md](../03_doc_system/ARCHITECTURE.md)（核心架构说明）。
+> **关联**：[DATA_MODEL.md](DATA_MODEL.md)（数据模型权威源）+ [DATA_FLOW.md](DATA_FLOW.md)（数据流权威源）、[SOP_WEB.md](SOP_WEB.md)（SOP-系统联动方法论）、[DEPLOYMENT_ROADMAP.md](DEPLOYMENT_ROADMAP.md)（部署落地路径）、[ARCHITECTURE.md](../03_doc_system/ARCHITECTURE.md)（核心架构说明）。
 
 ---
 
@@ -179,7 +179,7 @@ export const activityCalendar = {
 
 | 文档 | 关系 |
 |------|------|
-| [DATA_ARCHITECTURE.md](DATA_ARCHITECTURE.md) | 数据模型权威源不变；注册化不动数据模型 |
+| [DATA_MODEL.md](DATA_MODEL.md) + [DATA_FLOW.md](DATA_FLOW.md) | 数据模型/数据流权威源不变；注册化不动数据模型 |
 | [SOP_WEB.md](SOP_WEB.md) | SOP-系统联动方法论不变；工作流场景注册化是其延伸（场景清单可查可灰度） |
 | [DEPLOYMENT_ROADMAP.md](DEPLOYMENT_ROADMAP.md) | 部署四路径不变；M3/M4 依赖后端/小程序路径的环境配置 |
 | [ARCHITECTURE.md](../03_doc_system/ARCHITECTURE.md) | 核心架构说明；注册表落地后回写为其中一节 |

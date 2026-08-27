@@ -52,7 +52,7 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 | 机制 | 说明 | 权威源 |
 |------|------|--------|
 | Harness 工作流 | CLAUDE.md 甲乙丙三部：工作流、执行事项、待决策 | CLAUDE.md |
-| 周期任务机制 | 周/月/季/年级自动唤醒任务（含 W4 专项评议循环） | [OPERATIONS_GUIDE.md §17](./OPERATIONS_GUIDE.md) |
+| 周期任务机制 | 周/月/季/年级自动唤醒任务（含 W4 专项评议循环） | [PROCESS_GUIDE.md §17](./PROCESS_GUIDE.md) |
 | Skill 工作流 | 专项任务按 Skill 规范执行（SOP→代码、经验提炼、日志归档等） | [KNOWN_PITFALLS.md](../05_ai_coding/KNOWN_PITFALLS.md) |
 | 文件角色分类 | `[用户]/[工程师]/[AI]` 三类受众 + 复合标记，AI 权限边界 | [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) |
 
@@ -86,7 +86,8 @@ Layer 2: 知识类型 2 — 制度（组织架构、分工、SOP）
 
 Layer 3: 知识类型 3 — 文档系统治理（文档怎么治理、术语、运行标准）
   └─ content/03_doc_system/               [工程师]+[AI] 系统治理层
-      ├── OPERATIONS_GUIDE.md             [工程师]+[AI] 运行标准（含§17 周期性任务）
+      ├── OPERATIONS_GUIDE.md             [工程师]+[AI] 运行标准·文档规范（§1-14）
+      ├── PROCESS_GUIDE.md                [工程师]+[AI] 运行标准·流程机制（§15-18）
       ├── USAGE_POLICY.md                 [工程师]+[AI] 使用规范（术语+Emoji）
       ├── DOC_MAP.md                      [工程师]+[AI] 文档导航中心
       ├── CHECKLIST.md                    [工程师]+[AI] 校验清单
@@ -94,7 +95,7 @@ Layer 3: 知识类型 3 — 文档系统治理（文档怎么治理、术语、�
       └── ARCHITECTURE.md                 [工程师]+[AI] 核心架构说明（本文件）
 
 Layer 4: 知识类型 4+5 — 网站设计 + AI 编码
-  └─ content/04_web_design/               [工程师]+[AI] 设计理念层（DATA_ARCHITECTURE/DESIGN_SYSTEM/MODULE_UI_DESIGN/SOP_WEB/CHECKLIST）
+  └─ content/04_web_design/               [工程师]+[AI] 设计理念层（DATA_MODEL/DATA_FLOW/DESIGN_SYSTEM/MODULE_UI_DESIGN/SOP_WEB/CHECKLIST）
   └─ content/05_ai_coding/                [工程师]+[AI] AI 编码层（KNOWN_PITFALLS）
 
 Layer 5: 经验沉淀（跨多类知识类型）
@@ -154,7 +155,7 @@ Layer 7: 审计参考层（审计与参考）
 │   │   ├── DEVELOPMENT_PATH.md       [用户]+[AI] "管理事、服务人"战略
 │   │   ├── SECRETARY_PRONOUNCEMENTS.md [用户]+[AI] 书记重要论断汇编（项目顶级战略文档，17 条论断）
 │   │   ├── README.md                 [用户]+[AI] 战略层目录索引
-│   │   └── references/               [用户] 参考材料与模板（合规文件/历史会议材料/建设探索/党支部工作记录）
+│   │   └── references/               [用户] 参考材料与模板（合规文件/历史会议材料/建设探索）
 │   ├── 02_institution/               [用户]+[AI] 制度层（组织架构、分工、SOP）
 │   │   ├── sop/                      [用户]+[AI] 制度母本层（所有代码逻辑的来源）
 │   │   │   ├── INDEX.md              [用户]+[AI] SOP 导航目录
@@ -170,7 +171,8 @@ Layer 7: 审计参考层（审计与参考）
 │   │   └── README.md                 [用户]+[AI] 制度层目录索引
 │   ├── 03_doc_system/                [工程师]+[AI] 文档系统治理层（文档怎么治理、术语、运行标准）
 │   │   ├── SSOT_INDEX.md             [AI] 母本注册表与溯源参考
-│   │   ├── OPERATIONS_GUIDE.md       [工程师]+[AI] 运行标准（含§17 周期性任务）
+│   │   ├── OPERATIONS_GUIDE.md       [工程师]+[AI] 运行标准·文档规范（§1-14）
+│   │   ├── PROCESS_GUIDE.md          [工程师]+[AI] 运行标准·流程机制（§15-18）
 │   │   ├── USAGE_POLICY.md           [工程师]+[AI] 使用规范（术语+Emoji）
 │   │   ├── DOC_MAP.md                [工程师]+[AI] 文档导航中心
 │   │   ├── SERVICE_CATALOG.md        [工程师]+[AI] 统一服务目录
@@ -178,12 +180,15 @@ Layer 7: 审计参考层（审计与参考）
 │   │   ├── 工作模板/                  [用户]+[AI] 经验沉淀辅助提示词
 │   │   └── README.md                 [工程师]+[AI] 文档系统治理层目录索引
 │   ├── 04_web_design/                [工程师]+[AI] 网站设计层（设计理念）
-│   │   ├── DATA_ARCHITECTURE.md      [工程师]+[AI] 数据架构设计
+│   │   ├── DATA_MODEL.md              [工程师]+[AI] 数据模型设计（静态模型权威）
+│   │   ├── DATA_FLOW.md               [工程师]+[AI] 数据流设计（动态数据流权威）
 │   │   ├── MODULE_UI_DESIGN.md       [工程师]+[AI] 模块界面设计
-│   │   ├── DESIGN_SYSTEM.md          [工程师]+[AI] 设计系统规范
+│   │   ├── DESIGN_SYSTEM.md          [工程师]+[AI] 设计系统规范（哲学/排版/交互/响应式/深色）
+│   │   ├── COLOR_SYSTEM.md           [工程师]+[AI] 色彩系统规范（§二 拆分）
+│   │   ├── COMPONENT_SPEC.md         [工程师]+[AI] 组件规范（§四 拆分）
 │   │   ├── SOP_WEB.md                [工程师]+[AI] SOP 系统指南
 │   │   ├── CHECKLIST.md              [工程师]+[AI] 数据同源一致性校验清单
-│   │   ├── SCHOOL_IT_DEPLOYMENT.md   [工程师]+[AI] 学院 IT 部署说明
+│   │   ├── DEPLOYMENT_ROADMAP.md     [工程师]+[AI] 部署落地总览 + 计算中心对接全案
 │   │   ├── DEPLOYMENT_AUTH_MODEL.md  [工程师]+[AI] 部署与认证场景模型
 │   │   └── README.md                 [工程师]+[AI] 网站设计层目录索引
 │   ├── 05_ai_coding/                 [工程师]+[AI] AI 编码层

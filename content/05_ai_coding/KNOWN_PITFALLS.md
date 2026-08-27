@@ -2,8 +2,8 @@
 title: "已知陷阱与上下文丢失教训"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-23"
-version: "1.15"
+last_updated: "2026-08-27"
+version: "1.17"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/工程演进与设计方法论.md]
 ---
@@ -91,7 +91,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 
 ## 7. 分层体系冲突记录
 
-> **本节聚焦仓库 7 套分层体系（5 类知识类型 / T1-T3 术语层级 / 热温冷三层 / content/ 目录结构层级 / 文件角色分类 / insights 5 类知识类型结构 / ARCHITECTURE.md 五层架构）的命名、引用、混淆判例**。一致性检查规范见 [OPERATIONS_GUIDE.md §1.4](../03_doc_system/OPERATIONS_GUIDE.md#14-一致性检查规范)，定期扫描任务见 [OPERATIONS_GUIDE.md §17.2 Q4](../03_doc_system/OPERATIONS_GUIDE.md#172-周期性任务清单)。
+> **本节聚焦仓库 7 套分层体系（5 类知识类型 / T1-T3 术语层级 / 热温冷三层 / content/ 目录结构层级 / 文件角色分类 / insights 5 类知识类型结构 / ARCHITECTURE.md 五层架构）的命名、引用、混淆判例**。一致性检查规范见 [OPERATIONS_GUIDE.md §1.4](../03_doc_system/OPERATIONS_GUIDE.md#14-一致性检查规范)，定期扫描任务见 [PROCESS_GUIDE.md §17.2 Q4](../03_doc_system/PROCESS_GUIDE.md#172-周期性任务清单)。
 
 ### 7.1 L1/L2/L3 与 T1/T2/T3 混淆事件（已解决）
 
@@ -250,6 +250,20 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 
 **生效条件**：对同一文件同一区域进行连续/并行的多次 Edit 时适用。单一 Edit、或不同文件/不同区域的编辑不受此陷阱影响。
 
+### 14.1 同家族判例：连续编辑的「误删/重复插入」形态（T-283，2026-08-27）
+
+**判例**：T-283 多轮功能开发中，对 `calendar-tab.js` / `inspector.js` 连续多次 Edit 后出现四种真实损坏——①同函数内 `agendaList` 重复声明（SyntaxError，页面 tab 直接不渲染）；②`_addAgendaRow` 函数被误删但 `agenda-add` 仍调用（ReferenceError）；③`inspector` 议程编辑按钮的 addEventListener 绑定被误删（页面无报错，点击静默失效——最隐蔽）；④`handleSubmitActivity` 中 `agenda` 变量的声明被误删但 activityData 仍引用（ReferenceError）。
+
+**与 T-213 形态的异同**：T-213 是"后一次编辑把前次改写还原为原文"；T-283 是"删除某块时 old_string 匹配到更大/错误区域，把邻近的独立代码一并删掉"或"插入块后旧块未删净导致重复"。两者共同点：**连续多次 Edit 的 diff 上下文可能与预期不符**，且 Edit 返回输出无法暴露。
+
+**新增可执行清单（在 14 主清单基础上追加）**：
+5. **多步功能开发改为"短 Edit 批次 + 立即回归"循环**：每完成一个模块的编辑批次（3-5 次 Edit 内），立即跑一次浏览器回归或模块加载检查，把"误删/重复"暴露在最近批次内，而非全部改完后集中调试
+6. **跨文件功能开发结束后，必跑模块加载完整性审计**：`node --test server/test/edit-integrity-audit.mjs`（浏览器 import 全部 docs/src 模块，任何语法/重复声明/未定义顶层引用都会在 import 时抛错）——该用例已入 `npm test` 回归
+7. **GetDiagnostics 全仓**作为每次多文件修改后的最低检查（捕获语法错误、未定义引用、重复声明），先于浏览器回归
+8. 删除性 Edit 的 old_string 尽量带上下边界锚点（如函数签名行 + 尾行），避免匹配到过大区域连带误删
+
+**生效条件**：同一文件连续 3+ 次 Edit 的功能开发场景；删除某段代码的 Edit 场景。
+
 ## 15. 代码复杂度标准（2026-08-14 立规）
 
 **原则**：**效果是第一评判标准，在保证效果的前提下追求时间复杂度和空间复杂度尽可能低**——顺序不可混淆（2026-08-14 明确：复杂度最小化不得以牺牲效果为代价，反之效果优先）。判断标准：能一次遍历（O(n)）解决的不用多次遍历；能用 set/Map 去重的不重复计算；滚动驱动的逐帧代码不得出现高成本操作（见下）；但任何复杂度优化都须先验证效果不受损。
@@ -300,4 +314,32 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 
 **相关强化**：KNOWN_PITFALLS §14 的「同区域连续编辑相互覆盖」在并行 Edit 场景同样成立——同文件多个 Edit 在同一消息并行发起会基于旧快照互相覆盖（本次 org-workspace.js 的 registry 版本被后续 replace_all 覆盖回旧值）。
 
+**⚠️ 补充判例（T-280 B6 收口，2026-08-24）：「bump 全站后 server/test 测试脚本版本失配」是同一模式的测试侧表现**——Playwright evaluate 内动态 `import('/src/...?v=...')` 若落后于 src 内部 import（bump 只覆盖 docs/src 与 docs/*.html，未覆盖 server/test），浏览器按 URL 分裂出第二个 registry/共享状态实例 → 测试读到空注册表，回归误报（m4 回归 22/31 实为 9 项能力注册误报，功能本身正常）。**已机制化修复**：`docs/scripts/bump-version.mjs` 新增 server/test/*.mjs 的 `/src/...?v=` 同步逻辑（bump 一次即连带更新测试戳）；若手工改测试版本，必须与 src 当前戳一致，并跑一次 m4 回归验证。
+
 **生效条件**：任何批量修改 import 版本、子代理交付大文件拆分、或同文件连续/并行编辑时。
+
+## 18. 批量脚本沙箱重复执行 → 破坏被拆分文件（T-282 判例，2026-08-24 立规）
+
+**背景（判例 T-282）**：用 RunCommand 执行 node 拆分脚本（tmp-split-ops.mjs：OPERATIONS_GUIDE.md → §1-14 + §15-18 两个文件）。**沙箱对同一命令重复执行**——首次执行成功拆分（源文件被截为 §1-14），重试执行读到已被截断的源文件（§15 已不在），`findIndex` 返回 -1 → `slice(0, -1)` 误覆盖源文件、目标文件被写入错误内容（PROCESS_GUIDE 仅剩最后一行），**§15-18 完整内容工作区丢失**。
+
+**根因机制**：非幂等脚本 + 沙箱重复执行。脚本基于"源文件处于完整预期状态"假设，未校验前置条件；`slice(0, -1)` 在边界异常时不是报错而是静默产生错误写入。
+
+**规则（批量文件操作脚本必守）**：
+1. **幂等保护**：执行前校验源文件处于预期状态（如章节边界存在），不满足则 `process.exit(1)` 中止，绝不覆写
+2. **覆写前可恢复**：确认目标可从 `git show HEAD:<path>` 恢复（`git checkout` 在沙箱可能被阻止，`git show` 输出重定向 + 文件写入更可靠）
+3. **执行后验证产物**：章节标题齐全、行数合理，不依赖脚本自身输出（输出可能被沙箱吞掉）
+4. **临时脚本用完即删**（本次 tmp-split-*.mjs 均已在收尾删除）
+
+## 19. 浏览器 e2e 写穿断言绕过前端数据层 → 被 pagehide 防抖冲刷覆盖（最小三成本第 3 轮判例，2026-08-27 立规）
+
+**背景（判例 2026-08-27 e2e-login 回归）**：e2e 测试断言"登录 → 写穿一条活动 → 首页渲染"。最初用页面原生 `fetch` 直接 POST `/api/v1/snapshot` 写库，实测写穿立即成功（服务端 29→30 条），但 **goto 首页后服务端数据回退 29 条**——新写入被抹掉。
+
+**根因机制**：前端在 API 模式下有防抖全量快照（`data-adapter.js` 800ms）+ `pagehide` 同步冲刷兜底（切页时把未发出的快照补发）。测试用原生 fetch 直写服务器时**绕过前端 mockDB 缓存**——前端缓存仍是写穿前的旧数据，页面卸载时 pagehide 冲刷以过期缓存整表覆盖服务器，恰好抹掉直写的数据。真实用户操作都经 `persist()`（改 mockDB 缓存 → 防抖快照），缓存与服务器始终一致，不会触发此问题。
+
+**规则（浏览器 e2e 写穿断言必守）**：
+1. **写穿必须走前端数据层真实路径**：在页面上下文 `import('/src/core/domain.js?v=…')` 取 mockDB → 改数据 → `import('/src/core/data-adapter.js?v=…').persist()`——与产品写路径同构，测试才有意义
+2. **写穿后显式等服务端落库**：防抖 800ms，需 `waitForFunction` 轮询 API 确认数据出现，再继续后续断言
+3. **禁止用原生 fetch 直写服务器代替 UI 写路径**（除非测试对象本身就是 API 端点）
+4. 动态 import 的版本戳须用全路径 `/src/…js?v=` 形式，随 bump-version.mjs 自动同步（防模块实例分裂，见 §17）
+
+**生效条件**：API 模式 + 防抖快照 + pagehide 冲刷架构下的浏览器 e2e；断言"数据写穿后跨页面/刷新保持"的场景。

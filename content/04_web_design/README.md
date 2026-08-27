@@ -19,7 +19,8 @@ status: active
 
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
-| [DATA_ARCHITECTURE.md](DATA_ARCHITECTURE.md) | 数据架构设计：数据模型+数据流+登录系统+品牌属性+§写入数据验证设计 | **唯一权威**——数据模型、数据流、登录系统与品牌属性定义 |
+| [DATA_MODEL.md](DATA_MODEL.md) | 数据模型设计：20 类数据模型字段定义 + 写入验证 + 待办/通知派生 + 归档扩展字段 | **唯一权威**——静态数据模型定义（2026-08-24 自 DATA_ARCHITECTURE 拆分） |
+| [DATA_FLOW.md](DATA_FLOW.md) | 数据流设计：数据架构总览 + 参与者数据流 + 前端数据流（状态管理/持久化/数据源边界/DataAdapter） | **唯一权威**——动态数据流设计（2026-08-24 自 DATA_ARCHITECTURE 拆分） |
 | [CHECKLIST.md](CHECKLIST.md) | 数据同源一致性校验手册（工程质检流程：机器检查 + 人工检查分工，按数据类别逐步检查） | 校验流程执行依据 |
 
 ### 二、模块界面设计
@@ -27,7 +28,9 @@ status: active
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
 | [MODULE_UI_DESIGN.md](MODULE_UI_DESIGN.md) | 模块界面设计：「党建」Tab 分组界面+日历功能模块 | **唯一权威**——「党建」Tab 分组与日历功能界面设计 |
-| [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) | 哑光扁平化前端设计语言，核心设计原则 | **唯一权威**——前端视觉规范 |
+| [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) | 设计系统规范（设计哲学/排版/交互/响应式/深色模式/设计资产/快速参考） | **唯一权威**——前端视觉规范（2026-08-24 拆分 §二→COLOR_SYSTEM、§四→COMPONENT_SPEC） |
+| [COLOR_SYSTEM.md](COLOR_SYSTEM.md) | 色彩系统规范（色盘/主色/辅助色/中性色/功能色/表面色/配色规则） | **唯一权威**——查色值优先（2026-08-24 拆分） |
+| [COMPONENT_SPEC.md](COMPONENT_SPEC.md) | 组件规范（按钮/卡片/输入/侧边栏/导航/日历图例/数据展示/图标/选人/状态徽章等） | **唯一权威**——写组件优先（2026-08-24 拆分） |
 | [ABOUT_DESIGN_SYSTEM.md](ABOUT_DESIGN_SYSTEM.md) | About 页面设计系统（叙事册风：色板/字体/各章超参数设定原则/防风格疲劳/无竖线红线） | **唯一权威**——about 页设计的超参数设定原则 |
 
 ### 三、SOP-系统联动
@@ -40,9 +43,8 @@ status: active
 
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
-| [DEPLOYMENT_ROADMAP.md](DEPLOYMENT_ROADMAP.md) | 部署落地总览：四条落地路径（静态托管/自托管/计算中心/小程序）+ 代码就绪度 + 决策矩阵 | **唯一权威**——部署落地视图与路径决策 |
+| [DEPLOYMENT_ROADMAP.md](DEPLOYMENT_ROADMAP.md) | 部署落地总览（四条落地路径 + 计算中心对接全案 + 决策矩阵） | **唯一权威**——部署落地视图与路径决策（2026-08-24 并入原 SCHOOL_IT_DEPLOYMENT 内容） |
 | [DEPLOYMENT_AUTH_MODEL.md](DEPLOYMENT_AUTH_MODEL.md) | 部署与认证场景模型（5 场景两轴正交 + 侧边栏统一 + 登录门控四层 + 构建注入配置） | **唯一权威**——部署形态 / 登录态 / 门控的统一模型 |
-| [SCHOOL_IT_DEPLOYMENT.md](SCHOOL_IT_DEPLOYMENT.md) | 学校计算中心对接准备文档（对接准备与提交清单） | 对接准备与学校提交清单 |
 | [PKU_PARTY_INTEGRATION.md](PKU_PARTY_INTEGRATION.md) | 北大党校与智慧党建系统对接设计（党校单向爬取 + 智慧党建双向同步 + 数据映射 + 小程序归位说明 + 待确认清单） | **唯一权威**——北大党建系统对接总体设计 |
 | [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) | 架构演进（组件化落地评估 + 轻量插件化「能力注册表」设计 + 迭代机制 + 实施路径） | **唯一权威**——组件化落地评估与插件化演进方向 |
 

@@ -5,20 +5,20 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../core/state.js?v=20260823b';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260823b';
-import { _fmtChinese, showToast } from '../core/utils.js?v=20260823b';
-import { icon } from '../core/icons.js?v=20260823b';
-import { PEOPLE, getPersonById } from '../mock/index.js?v=20260823b';
-import { BranchService } from '../services/runtime.js?v=20260823b';
-import { AuthStore } from '../services/auth.js?v=20260823b';
-import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260823b';
-import { badgeHtml } from './badge.js?v=20260823b';
-import { persist } from '../core/data-adapter.js?v=20260823b';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260823b';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260823b';
-import { loadActivityReviews } from '../services/review.js?v=20260823b';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260823b';
+import { setState, STATE, getAppState } from '../core/state.js?v=20260827c';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260827c';
+import { _fmtChinese, showToast } from '../core/utils.js?v=20260827c';
+import { icon } from '../core/icons.js?v=20260827c';
+import { PEOPLE, getPersonById } from '../mock/index.js?v=20260827c';
+import { BranchService } from '../services/runtime.js?v=20260827c';
+import { AuthStore } from '../services/auth.js?v=20260827c';
+import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260827c';
+import { badgeHtml } from './badge.js?v=20260827c';
+import { persist } from '../core/data-adapter.js?v=20260827c';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260827c';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260827c';
+import { loadActivityReviews } from '../services/review.js?v=20260827c';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260827c';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -504,6 +504,23 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     html += `<div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3"><p class="text-xs text-gray-400 mb-1">活动详情</p><p class="text-xs text-gray-700 leading-relaxed">${activity.description}</p></div>`;
   }
 
+  // ── 会议议程（T-283：三会一课；显示 + 书记行内编辑）──
+  if (Array.isArray(activity.agenda) && activity.agenda.length > 0) {
+    html += '<div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3" id="agenda-block">';
+    html += '<div class="flex items-center justify-between mb-1.5">';
+    html += '<p class="text-xs text-gray-400">会议议程</p>';
+    if (isSecretary && !isArchived) {
+      html += '<button id="inspector-agenda-edit-btn" class="text-xs text-blue-600 hover:text-blue-800 transition-colors" style="background:none;border:none;cursor:pointer;padding:0;">编辑议程</button>';
+    }
+    html += '</div>';
+    html += '<ol class="space-y-1">';
+    activity.agenda.forEach((a, i) => {
+      html += `<li class="flex items-start gap-2 text-xs"><span class="text-gray-400 flex-shrink-0 w-4">${i + 1}.</span><span class="text-gray-700">${a.item}${a.host ? ` <span class="text-gray-400">（主持人：${a.host}）</span>` : ''}</span></li>`;
+    });
+    html += '</ol>';
+    html += '</div>';
+  }
+
   // ── 产出物区（T-224 §8 附件查看窗口：同源读取，点击展开预览） ──
   html += _buildOutputsSectionHTML(activity);
 
@@ -560,6 +577,14 @@ function renderInspectorDetail(activity, tasks, managementRole) {
 
   if (!cardsEl) return;
   cardsEl.innerHTML = html;
+
+  // 会议议程编辑入口（T-283：书记行内编辑，保存→persist→重渲染）
+  const agendaEditBtn = document.getElementById('inspector-agenda-edit-btn');
+  if (agendaEditBtn) {
+    agendaEditBtn.addEventListener('click', () => {
+      _startAgendaEdit(activity, cardsEl, tasks, managementRole);
+    });
+  }
 
   if (!isArchived) {
     cardsEl.querySelectorAll('[data-status-badge]').forEach(badge => {
@@ -675,4 +700,85 @@ function renderInspectorDetail(activity, tasks, managementRole) {
       }
     });
   }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  会议议程行内编辑（T-283：三会一课；书记修改议程，保存→persist→重渲染）
+// ════════════════════════════════════════════════════════════════
+function _startAgendaEdit(activity, cardsEl, tasks, managementRole) {
+  const block = cardsEl.querySelector('#agenda-block');
+  if (!block) return;
+  const current = (Array.isArray(activity.agenda) ? activity.agenda : [])
+    .map(a => ({ item: a.item || '', host: a.host || '' }));
+
+  const renderEditor = () => {
+    let html = '<div class="flex items-center justify-between mb-1.5"><p class="text-xs text-gray-400">编辑会议议程</p></div>';
+    html += '<div id="agenda-edit-list" class="space-y-1.5"></div>';
+    html += '<div class="flex items-center gap-2 mt-2">';
+    html += '<button id="agenda-edit-add" class="text-xs px-2.5 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors" style="cursor:pointer;">+ 添加议程</button>';
+    html += '<button id="agenda-edit-save" class="text-xs px-3 py-1 rounded-lg text-white font-medium" style="background:var(--acc, #CE1126);cursor:pointer;">保存</button>';
+    html += '<button id="agenda-edit-cancel" class="text-xs px-2.5 py-1 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors" style="cursor:pointer;">取消</button>';
+    html += '</div>';
+    block.innerHTML = html;
+
+    const list = block.querySelector('#agenda-edit-list');
+    const refreshRows = () => {
+      // 同步：重建前从当前 DOM 读回已输入值（T-283 判例：添加/删除重建曾丢失 fill 的输入）
+      const existingRows = [...list.children].filter(c => c.classList.contains('agenda-edit-row'));
+      if (existingRows.length > 0) {
+        existingRows.forEach((row, i) => {
+          if (current[i]) {
+            current[i].item = row.querySelector('.agenda-edit-item')?.value || '';
+            current[i].host = row.querySelector('.agenda-edit-host')?.value || '';
+          }
+        });
+      }
+      if (current.length === 0) {
+        list.innerHTML = '<p class="text-xs text-gray-400 py-1">暂无议程，点击「添加议程」填写</p>';
+        return;
+      }
+      list.innerHTML = current.map((a) => `
+        <div class="agenda-edit-row flex items-center gap-1.5">
+          <input type="text" class="agenda-edit-item input-flat w-full text-xs" value="${a.item}" placeholder="议题">
+          <input type="text" class="agenda-edit-host input-flat w-24 text-xs" value="${a.host}" placeholder="主持人">
+          <button type="button" class="agenda-edit-del text-gray-300 hover:text-red-500 text-sm px-1 shrink-0" style="cursor:pointer;">✕</button>
+        </div>`).join('');
+      list.querySelectorAll('.agenda-edit-del').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const row = btn.closest('.agenda-edit-row');
+          const idx = [...list.children].indexOf(row);
+          if (idx > -1) current.splice(idx, 1);
+          refreshRows();
+        });
+      });
+    };
+    refreshRows();
+
+    block.querySelector('#agenda-edit-add').addEventListener('click', () => {
+      current.push({ item: '', host: '' });
+      refreshRows();
+      list.lastElementChild?.querySelector('.agenda-edit-item')?.focus();
+    });
+    block.querySelector('#agenda-edit-cancel').addEventListener('click', () => {
+      renderInspectorDetail(activity, tasks, managementRole);
+    });
+    block.querySelector('#agenda-edit-save').addEventListener('click', async () => {
+      const rows = [...block.querySelectorAll('.agenda-edit-row')];
+      const next = rows
+        .map((row) => ({
+          item: row.querySelector('.agenda-edit-item')?.value?.trim() || '',
+          host: row.querySelector('.agenda-edit-host')?.value?.trim() || '',
+        }))
+        .filter((a) => a.item);
+      try {
+        const updated = await BranchService.updateActivity(activity.id, { agenda: next });
+        persist();
+        showToast('success', '会议议程已更新');
+        renderInspectorDetail(updated, tasks, managementRole);
+      } catch (e) {
+        showToast('error', '议程保存失败：' + ((e && e.message) || '未知错误'));
+      }
+    });
+  };
+  renderEditor();
 }

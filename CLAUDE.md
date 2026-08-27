@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: "2026-08-12"
+last_updated: "2026-08-27"
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSOT_INDEX.md, content/01_strategy/SECRETARY_PRONOUNCEMENTS.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
 ---
@@ -108,7 +108,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 **吸收外部输入原则**：当书记或外部来源提供新的评议/文档/制度更新时，必须识别变更范围，归位到权威源，并触发一改具改。具体操作流程见 guides。
 
-→ 详细操作流程见 [OPERATIONS\_GUIDE.md §16](content/03_doc_system/OPERATIONS_GUIDE.md)
+→ 详细操作流程见 [PROCESS\_GUIDE.md §16](content/03_doc_system/PROCESS_GUIDE.md)
 
 ### H30.2 设计母本与子本
 
@@ -256,7 +256,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 >
 > **元原则**（书记 2026-08-09）：**书记所有的原话都是一个 big picture 下的不同侧面，一定要去体悟这种统一性和一致性，对书记的原话融会贯通！**——评议书记原话时，须把每条原话放回整个论述体系，理解它与其他原话的统一性和关联（区分"论述的扩充"与"表达的修正"），而非孤立地逐条审视。书记原话会随时间和实践深入而更精确：①可能和原来的表达不同（要反复确认，取其精华、去其糟粕）；②大部分情况是对既有论述的扩充（书记在阅读 AI 扩充后意识到表达不清楚连 AI 都会误解，何况于人，故会强调这些问题）。
 >
-> **细节指针**：抽样规则、预审维度体系、评议记录格式、概念复用性扫描流程、三类评议类型速查（反论/理论复用/补丁审查）的完整规定见 [OPERATIONS\_GUIDE.md §18](content/03_doc_system/OPERATIONS_GUIDE.md)。
+> **细节指针**：抽样规则、预审维度体系、评议记录格式、概念复用性扫描流程、三类评议类型速查（反论/理论复用/补丁审查）的完整规定见 [PROCESS\_GUIDE.md §18](content/03_doc_system/PROCESS_GUIDE.md)。
 
 ### H60.1 触发条件
 
@@ -388,7 +388,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | 看检查清单      | 本文件 H40                                                                                   |
 | 看乙部/丙部规则   | 本文件 H50                                                                                   |
 | 看书记评议工作流   | 本文件 H60                                                                                   |
-| 看甲部修改流程    | [OPERATIONS\_GUIDE.md §15](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
+| 看甲部修改流程    | [PROCESS\_GUIDE.md §15](content/03_doc_system/PROCESS_GUIDE.md)                     |
 | 看日志规范      | [OPERATIONS\_GUIDE.md §10](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
 | 看面向用户表述规范  | [OPERATIONS\_GUIDE.md §13](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
 | 看理论基石      | [SECRETARY\_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档） |
@@ -502,7 +502,14 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------- |
 | T-118 | **治理文档完善+用户文档体系梳理**：基于Harness框架同步推进治理文档完善，梳理现有用户文档体系，识别缺失/冗余/过时（2026-08-03 根目录文档更新 + 2026-08-10 Agent 残留清理/主题色色盘表述/常态化评议制度化已推进）                                                                       | H30.2 母本子本 + H100 项目产出声明 + 书记 2026-08-10「开发的不同阶段会有不同的方法和观念」 | content/ + docs/                                                                               | 🔄 进行中   |
 | T-206 | **书记论述范式改革·书记继续调整**：SECRETARY\_PRONOUNCEMENTS.md 范式改革已落地（2026-08-04：书记原话作正文/多条原话无序列表/AI 扩充入引用块/去"书记原话："标签/后缀式日期，文件头部 L16 已写入"正文形式"条款，16 条带原话条目全部改造完成）。AI 自查（2026-08-14）已产出 14 项疑似待调整点清单（计数/日期矛盾、引号标点规则、AI 标注残留等）——**待书记逐条确认后 AI 修订** | H60 书记评议 + SECRETARY\_PRONOUNCEMENTS.md 头部"正文形式"条款          | content/01\_strategy/SECRETARY\_PRONOUNCEMENTS.md                                              | 🔄 待书记确认  |
+| T-281 | **扁平化与集中论断 refinement（2026-08-24 书记发起，明天继续）**：书记提出——支部面对的不是"听了方向就知道如何行动"的人：表达对有社会阅历者有方向价值，但无社会阅历的学生党员听到"集中"等高远表达会产生强烈想法/期待，若组织达不到宣称高度（尤其集中部分）期待落空即反噬，影响参与之后的工作。担忧的不是情绪反弹而是"讨论虚幻→主人翁精神瓦解"。推论：扁平化表述可能太绝对（学生形成"书记不能决定"认知风险）；现有原话下"集中"缺效率合法性。**目标**：对既有论断条目做增删精炼（refinement，非新增条目）——候选对象 P-008 扁平化≠无程序 / P-013 民主与集中的统一 / P-014 两个向度，联动 P-011 知情边界；**必须严格区分"应作为原话写入的"与"作为修改提示词（context/prompt）存在的"（如"我很担心……"是给 AI 的 context 不收入原话）**。已达成：①逻辑链 7 条获认可——讨论有效≠结果按讨论来（=意见真实进入+按层级透明+理由可理解）、集中正当=决策有归属+责任有人担、主人翁在知情层级内参与；②透明度分层——不是每项工作讨论对所有人透明，三会即透明分层，角色划分更细→更细透明度划分（原则说清即可，不落地机制）；③书记认可一段 AI 扩充（对象差异→冲击→反噬）达"可写入文件水平"。**待续（明天）**：候选原话范围确认、修改对象确认、偏差定位（书记指出"区分有偏差"但未明示） | H60 书记评议 + T-206 范式改革 + SECRETARY\_PRONOUNCEMENTS.md | content/01\_strategy/SECRETARY\_PRONOUNCEMENTS.md（P-008/P-013/P-014 等）+ DEVELOPMENT\_PATH.md | 🔄 进行中（明天继续） |
 | T-237 | **制度层色值硬编码清理**：COMMISSIONER\_FRAMEWORK.md §C.3 旧固定角色色表已删（2026-08-14 书记裁决：身份不再保留既有固定颜色设定，引入自定义主题色色板），DESIGN\_SYSTEM.md 已补「主题色/功能色/品牌色三色区别」定义 + 读本文件指南（外包可读）；代码层 WORKFLOW\_ROLES 节点辨识色已对齐 §2.3.2 | H60 书记评议 + DESIGN\_SYSTEM.md 统一色板                    | content/02\_institution/COMMISSIONER\_FRAMEWORK.md + content/04\_web\_design/DESIGN\_SYSTEM.md | ✅ 已完成（2026-08-14） |
+
+> **注**：T-283 最小三成本第 4 轮（Mock 数据完整性 + 数据结构生命周期 + 点击成本 + 三会一课议程功能 + 编辑完整性共性问题全局化）已全部完成（2026-08-27 归档执行日志），乙部删除——三会一课【议程】写入/修改功能落地（DATA_MODEL agenda 字段 + 写入表单 + 详情行内编辑）；删除活动联动清理子记录三处同步；点击成本实测（创建 4 次/详情 2 次/待办 0 次）；新增 4 个审计文件入回归（mock-integrity/click-cost/agenda-flow/edit-integrity）；KNOWN_PITFALLS §14.1 + CHECKLIST「编辑完整性校验」章节。
+
+> **注**：T-280 网页逻辑全量梳理已全部完成（B1-B6，2026-08-24 归档执行日志），乙部删除——完整对账报告与收口记录见 `.ctx/logs/2026-08-EXECUTION_LOG.md`（L4777~5080），检查依据见 [CHECKLIST.md](content/04_web_design/CHECKLIST.md)（含 T-280-B1/T-280-B5 手动检查小节与各批新理念校验点）。
+
+> **注**：T-282 content 体系优化升级已全部完成（2026-08-24 归档执行日志 L5168~5208），乙部删除——三方向：①巨型文件拆分（DATA_ARCHITECTURE→DATA_MODEL+DATA_FLOW、OPERATIONS_GUIDE→+PROCESS_GUIDE、DESIGN_SYSTEM→+COLOR_SYSTEM+COMPONENT_SPEC）；②04 部署类重组（SCHOOL_IT 并入 DEPLOYMENT_ROADMAP）；③目录规范补缺（insights README、references 归位）。导航更新见 [DOC_MAP.md](content/03_doc_system/DOC_MAP.md) 与 [SSOT_INDEX.md](content/03_doc_system/SSOT_INDEX.md)。
 
 > **注**：T-279 轻量插件化实施已全部完成（M1-M4，2026-08-23 归档执行日志），乙部删除——完整记录见 `.ctx/logs/2026-08-EXECUTION_LOG.md`，设计权威源见 [ARCHITECTURE\_EVOLUTION.md §六](content/04_web_design/ARCHITECTURE_EVOLUTION.md)。
 

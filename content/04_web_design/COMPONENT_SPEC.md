@@ -1,0 +1,351 @@
+---
+title: "组件规范"
+type: design
+role: "[工程师]+[AI]"
+version: "1.0"
+last_updated: "2026-08-24"
+status: active
+split_from: "DESIGN_SYSTEM.md（2026-08-24 T-282 拆分）"
+related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
+---
+
+# 组件规范
+
+> **定位：** 本文件是系统**组件规范**的唯一权威源（原 DESIGN_SYSTEM.md §四 组件规范：按钮/卡片/输入框/侧边栏/导航/模块标签/角色/嵌套/日历图例/数据展示/图标/交互载体/选人/状态徽章/反馈管理）。写组件优先查本文件。
+> **受众：** [工程师]+[AI]
+> **拆分说明**：2026-08-24 自 DESIGN_SYSTEM.md 拆分（T-282 content 体系优化）——组件规范在此，色彩定义见 [COLOR_SYSTEM.md](COLOR_SYSTEM.md)，设计系统主文件见 [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)。
+
+---
+
+## 四、组件规范
+
+### 4.1 按钮（Button）
+
+#### 变体定义
+
+| 变体 | Class | 背景 | 文字色 | 边框 | 悬停背景 |
+|------|-------|------|--------|------|---------|
+| Primary | `.btn` `.btn--primary` | `--primary-700` | `#FFFFFF` | 无 | `--primary-800` |
+| Secondary | `.btn` `.btn--secondary` | `--neutral-100` | `--neutral-700` | `1px solid --neutral-200` | `--neutral-200` |
+| Ghost | `.btn` `.btn--ghost` | 透明 | `--primary-700` | 无 | `--primary-50` |
+| Danger | `.btn` `.btn--danger` | `--functional-error` | `#FFFFFF` | 无 | `#DC2626` |
+
+#### 尺寸
+
+| Size | Class | 高度 | 内边距 | 字号 |
+|------|-------|------|--------|------|
+| Normal | `.btn` | `40px` | `10px 20px` | `0.875rem` |
+| Compact | `.btn--sm` | `36px` | `8px 14px` | `0.8125rem` |
+
+> CSS 实现见 `docs/src/styles.css`。**装饰性禁令**：禁止 `linear-gradient`（纯色优于渐变）、`box-shadow`（扁平化不需要）、`transform: translateY(-Npx)`（上浮效果违反扁平原则）、`transform: scale()` 过大值（缩放反馈过于花哨）。**功能性允许**：`transform: scale(1.02)` 等微交互反馈、`transform` 用于 SVG 动画绘制（如 stroke-dashoffset 渐进绘制）。区分标准：transform 不得用于"装饰性动画"（如装饰性弹跳、缩放重影），但允许用于"功能性反馈"（如按钮点击微缩、SVG 动画绘制方向）。
+
+### 4.2 卡片（Card）
+
+#### 规范
+
+| 属性 | 值 |
+|------|-----|
+| 背景 | `background-color: var(--surface-card)` (纯白 `#FFFFFF`) |
+| 边框 | `border: 1px solid var(--neutral-200)` |
+| 圆角 | `border-radius: 12px` |
+| 阴影 | 无（扁平化，边框分隔） |
+| 悬停 | `border-color: var(--primary-300)`，不移位 |
+| 内边距 | `padding: 20px`（标准），`padding: 16px`（紧凑） |
+
+> CSS 实现见 `docs/src/styles.css`。禁止：`backdrop-filter`、`box-shadow`、`transform`。
+
+#### 列表项白底原则
+
+列表项/卡片一律白底，不设背景色，不加边线。类型区分仅靠圆点颜色，背景色是重复表达。灰色背景容器一并清除，改为透明底，卡片间分隔靠间距（gap）。
+
+**豁免**（保留背景色）：通知 badge 未读标记、侧边栏选中项高亮、日历当日格子标记、登录页品牌色区域、header 品牌色区域。
+
+#### 边线语义（Border-Left Semantics）
+
+> 沉淀：2026-08-02，反馈"纯白卡片 vs 左侧边线是否有逻辑"。经全仓抽样（styles.css + 6 个工作台 + help/about 页）确认：**边线不是随机出现，而是"强调/可交互/角色归属"的视觉编码，纯白是中性内容**。本规范为成文依据，防止未来加边线时语义漂移。
+
+**适用范围**：卡片/区块级元素（容器）。**列表项（行级元素）仍遵循"列表项白底原则"不加边线**——行内区分靠圆点，容器级区分靠边线，两层不混用。
+
+**五档语义表**：
+
+| 档位 | 样式 | 语义 | 典型场景 |
+|------|------|------|---------|
+| 0. 中性 | 纯白卡，无边线 | 常规内容容器 | `card rounded-2xl p-6` 默认态 |
+| 1. 可交互高亮主卡 | 白卡 + `border-left: 4px` **品牌金**（2026-08-08 起由主题色改金色） | 可点击进详情/当前聚焦项，**必须有 hover 反馈** | `.inspector-card`（inspector.js 活动卡，品牌活动 `#EAB308`） |
+| 2. 角色职责核心卡 | 白卡 + `border-l-4` 角色主题色 | 该角色职责范围内的核心卡/详情面板（角色识别，保留主题色） | 考勤概况（书记红）、专班详情（组织委员）、纪检面板（橙）、访客金色 |
+| 3. 引述/要点块 | 浅底色 + `border-left: 3px` 主题色 | 引述、对立观点、要点提示 | help 页 `--help-party-red` 引述块、about 模块说明卡 |
+| 4. 嵌套/时间线 | `border-left: 1-2px` 灰色（`--neutral-200`） | 层级嵌套、时间线、子项缩进 | issue-detail 嵌套、专班列表子项 |
+
+**用色来源**：
+- 可交互强调卡（档位 1）：**品牌金** `#EAB308` / `var(--party-gold)`（品牌统一层，见 §2.3.1）
+- 角色职责核心卡（档位 2）：`--accent-<role>`（主色）或 `--accent-<role>-light`（低饱和 border-left / 浅底，styles.css :root L46 已声明）——属角色识别层，保留主题色
+- 品牌/活动色：主题党日金 `#EAB308`（inspector 品牌卡）、党徽金 `var(--party-gold)`
+- 嵌套灰色：`--neutral-200`
+
+**硬性规则**：
+1. **每条边线必须有语义**：可交互/强调/角色归属/引述/嵌套，五者之外不得加边线
+2. **可交互必 hover**：档位 1 的卡片必须有 hover 加深反馈（`border-color` 加深或背景偏移），符合 web-design-guidelines "Interactive states increase contrast"
+3. **宽度层级**：强调 4px > 引述 3px > 嵌套 1-2px，不可倒挂
+4. **纯展示卡不加 hover 伪装**：档位 2/3 的卡不可点击，也不要加"看似可点"的 hover 效果
+
+### 4.3 输入框（Input / Select）
+
+#### 规范
+
+| 属性 | 值 |
+|------|-----|
+| 背景 | `var(--neutral-0)` |
+| 边框 | `1px solid var(--neutral-200)` |
+| 圆角 | `8px` |
+| 高度 | `40px`（标准）/ `36px`（紧凑） |
+| 内边距 | `10px 14px` |
+| 字号 | `0.875rem` |
+| 聚焦边框 | `var(--primary-500)`（无外发光） |
+| 占位符 | `color: var(--neutral-400)` |
+| 禁用态 | 背景 `var(--neutral-100)`，文字 `var(--neutral-400)` |
+
+#### Select 统一规则
+
+**废弃**：select 默认方框样式（浏览器原生下拉箭头外观）。
+
+**统一采用**：`select.input-flat` 样式，与 input 输入框完全一致：
+- 移除原生下拉箭头（`appearance: none`）
+- 添加自定义 SVG 下拉箭头（12px，灰色，右侧 14px 偏移）
+- 聚焦时箭头变为主色（红色）
+- 右侧内边距 `36px`（为箭头留空间）
+
+> CSS 实现见 `docs/src/styles.css` 的 `.input` 和 `select.input-flat` 选择器。
+
+**交互增强**：`select.input-flat` 由 `custom-select.js`（S2）自动增强为自定义圆角下拉（`.cs-select` + `.cs-trigger` + `.cs-menu`），原生 select 作为值载体保留（`data-cs-enhanced` 防重；bootstrap 全局 MutationObserver 覆盖动态渲染）。增强后：
+- 触发器外观与 `input-flat` 完全一致（圆角 `--radius-sm`、边框 `--neutral-200`、聚焦金框）
+- 菜单选中项 = 主题色（背景 `var(--app-accent-bg)`、文字 `var(--app-accent)`，跟随当前用户主题色，2026-08-08 三审定稿，与 tab 激活态同档同源）
+- 智能定位（向上/向下翻转、视口 clamp）；选项超 10 条自动内嵌搜索
+
+**弹层统一基准（2026-08-08）**：所有"选择类弹层"（`.cs-menu`、`.status-badge-popover`）统一：圆角 `--radius-sm`、阴影 `--shadow-dropdown`、选中色=主题色（`var(--app-accent-*)` 三件套，bootstrap 按 accentRole 注入）；禁止各自另设圆角/阴影/选中色。
+
+#### 输入组件统一原则
+
+所有 `<input>`/`<select>`/`<textarea>` 使用 `input-flat` 体系，禁用内联 Tailwind input 样式（如 `border border-gray-200 rounded-lg px-3 py-2 focus:border-red-300` 等）。紧凑场景使用 `input-flat-sm`，多行文本使用 `textarea.input-flat`。
+
+### 4.4 侧边栏（Sidebar）
+
+#### 规范
+
+| 属性 | 值 |
+|------|-----|
+| 背景 | `var(--surface-sidebar)` (纯白 `#FFFFFF`) |
+| 边框 | 右侧 `1px solid var(--neutral-200)` |
+| 宽度 | `260px`（≥768px）/ `280px`（<768px） |
+| 阴影 | 无 |
+| 遮罩背景 | `rgba(0, 0, 0, 0.3)` 无反光 |
+| 过渡 | `transform 200ms ease-out` |
+
+### 4.5 顶部导航（Header）
+
+#### 规范
+
+| 属性 | 值 |
+|------|-----|
+| 背景 | `var(--primary-900)` (`#7A0010`) 纯色，无渐变 |
+| 高度 | `56px` |
+| 阴影 | `0 1px 3px rgba(0, 0, 0, 0.12)` |
+| 滚动态阴影 | `0 2px 8px rgba(0, 0, 0, 0.15)` |
+| 位置 | `position: fixed; top: 0; z-index: 50` |
+| 页面留白 | body `padding-top: 56px` |
+
+### 4.6 模块标签（Module Tab）
+
+#### 排序原则
+
+标签按**增量 > 存量**排列：增量（产生新数据的操作）排在存量（查看已有数据）之前。增量内部和存量内部的具体顺序需具体分析。日历与写入同属增量（均涉及带时间戳的待办数据），应合并在同一标签。
+
+#### 功能融入优于独立
+
+辅助性功能融入主功能 tab，不独立成 tab。判定标准：该功能是否依赖主功能的数据上下文？若是，则融入主功能 tab 作为子区块；仅当功能完全独立、不依赖主 tab 上下文时才独立成 tab。
+
+已落实案例：经验沉淀融入监督复盘（督促清单）、追踪看板融入专班管理（活动进度）、专班工作量融入项目看板。
+
+#### 职责有入口
+
+角色有职责就必须有系统入口。如果制度文件（如支委与党小组定人定责定岗说明.md §二 党小组组长职责表）定义了某项职责，但系统中无对应操作入口，则视为功能缺失，需补全。
+
+已落实案例：党小组组长复盘反馈职责→新增复盘提交 tab。
+
+#### 视角正交
+
+同一数据可从不同视角查看，不重复操作入口。视角不同不等于功能重叠——操作入口按赋权范围约束分布，只读视图可全局共享。
+
+已落实案例：人全景（以人为中心）只读 vs 常设赋权（以项目为中心）写入，两入口互补不重叠。
+
+#### 规范
+
+| 状态 | 背景 | 文字色 |
+|------|------|--------|
+| 默认 | `transparent` | `--neutral-700` |
+| 悬停 | `--surface-hover` | `--neutral-800` |
+| 激活 | `--surface-active` | `--primary-700` |
+| 激活（强调）| `--primary-700` | `#FFFFFF` |
+
+> CSS 实现见 `docs/src/styles.css` 的 `.module-tab` 选择器。
+
+### 4.7 角色按钮/卡片（Role Button / Card）
+
+保留左侧 4px 色条作为角色识别元素。
+
+> CSS 实现见 `docs/src/styles.css` 的 `.role-card` 和 `.role-card::before` 选择器。
+
+### 4.8 支委嵌套子视图（Commissioner Nested View）
+
+「支委」采用统一入口 + 嵌套子视图的层级结构，避免3个独立按钮导致的视图层级混乱。
+
+**交互流程**：
+1. 点击「支委」→ 展开子视图（3个支委角色选项）
+2. 再次点击「支委」→ 收起子视图
+3. 点击子视图中的具体支委角色 → 设置对应角色 + 保持子视图展开
+4. 点击其他角色 → 自动收起支委子视图
+
+**视觉规范**：
+
+| 属性 | 值 |
+|------|-----|
+| 子视图容器 | `padding-left: 20px; margin-left: 20px; border-left: 2px solid --neutral-200` |
+| 子视图展开 | `max-height: 300px; opacity: 1; transition: 0.3s ease-out` |
+| 子视图收起 | `max-height: 0; opacity: 0; overflow: hidden` |
+| 子项卡片 | `padding: 10px 14px; border: 1px solid transparent; background: transparent` |
+| 子项图标 | `32px × 32px`（比主卡片图标小 8px） |
+| 展开指示器 | 向下箭头 SVG，展开时旋转 180° |
+| 组织委员图标色 | `--accent-org-commissioner` (紫) |
+| 宣传委员图标色 | `--accent-prop-commissioner` (蓝) |
+| 纪检委员图标色 | `--accent-disc-commissioner` (琥珀) |
+
+### 4.9 日历图例系统（Calendar Legend）
+
+日历视图必须配套图例系统，确保无角色知识的成员也能通过颜色快速区分活动类型。
+
+**显示规则**：仅当存在至少一种非默认色彩的活动时展示图例。无活动或仅有默认色活动时自动隐藏。
+
+**交互**：图例默认展开，可通过「收起/展开」按钮折叠。折叠后仅保留标题栏。
+
+| 属性 | 值 |
+|------|-----|
+| 容器 | `card rounded-2xl p-5` |
+| 标题 | `font-title-cn text-sm font-bold` |
+| 布局 | `grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2` |
+| 色块尺寸 | `12px × 12px, border-radius: 3px` |
+| 标签字号 | `0.75rem`，颜色 `--neutral-600` |
+| 空状态 | 图例整体 `hidden` |
+
+**数据来源**：`constants.js` 的 `ACTIVITY_CAT_COLOR` + `ACTIVITY_TYPE_LABELS`，与日历着色使用同一色系索引。
+
+### 4.10 数据展示视图组件
+
+系统所有视图基于同一数据源（`BranchService.listActivities()`），各角色按需使用不同展示模式。
+
+| 展示视图 | 适用场景 | 组件形态 | 当前状态 |
+|---------|---------|---------|---------|
+| 日历视图 | 全量活动时间分布（参与者/书记/党小组组长） | 月历网格 + 图例系统 | ✅ 已实现 |
+| 表格视图 | 任务总览/档案清单（组织者/宣传/纪检） | 列式表格（状态+截止日期+负责人） | ✅ 已实现（inspector.js） |
+| 查询视图 | 按条件筛选（纪检/书记） | 筛选表单 + 结果列表 | 🔜 规划中 |
+| 看板视图 | 候选人阶段流转（组织委员） | 泳道列（待办→进行中→完成） | 🔜 规划中 |
+| 甘特视图 | 活动执行时间线（组织者） | 横向时间轴 + 任务条 | 🔜 规划中 |
+| 画册视图 | 宣传物料预览（宣传委员） | 卡片网格 + 缩略图 | 🔜 规划中 |
+| 表单视图 | 活动详情填写/编辑 | 表单组（标签+输入框+按钮） | ✅ 已实现（#calendar-create-panel） |
+| 执行层仪表盘 | 书记「全局概况」 | KPI 顶栏 + 异常优先队列 + 叙事行 + 趋势 sparkline | ✅ 已实现（overview-tab.js） |
+| 归档分页列表 | 归档库（活动/专班/通知） | 每页 10 条 + 页码窗口 + 搜索重渲染 | ✅ 已实现（archive-entry.js） |
+
+**无上限数据分页铁律（2026-08-08 指令 #3）**：凡数据量随使用无限增长的列表一律分页。模式：每页 10 条 + 上一页/下一页 + 页码窗口（5 页）+ 「共 N 条 · 第 x/y 页」摘要；搜索/筛选/翻页触发整段重渲染，搜索时页码归 1。已落地：归档库三分页（党建活动/专班/通知）、查询视图（query-view.js）；后续新增无限增长列表必须自带分页。
+
+**执行层仪表盘（2026-08-08 指令 #2，管理科学视角重设计书记「全局概况」）**：弃用"各模块数字罗列"，改为执行层决策视图：
+- **KPI 顶栏**（5 项）：本月出勤率 / 复盘完成率 / 归档完成率 / 考察积压 / 待办异常——各带「目标 vs 实际」对比、达标徽章、进度条；
+- **异常优先队列**：超期 > 待处理 > 常规，按紧急度排序（红=紧急/橙=提醒/蓝=常规），支持一键催办与直达处置；
+- **叙事行**：一句话说明"发生了什么、为什么"（e.g. 复盘率较上周 +8%，源于党小组组长回填提速）；
+- **趋势 sparkline**：近 6 场有考勤记录活动的出勤率折线，全部消费 `var(--app-accent)`。
+
+### 4.11 图标规范
+
+图标是组件的一种特殊形态，本节规定其格式与标准。
+
+#### 4.11.1 格式要求
+
+- **必须使用 SVG**（内联或 `<img>`）
+- **禁止使用**：Emoji（如 🔍 → `<svg>...</svg>`）、PNG 图标、Icon Font
+
+#### 4.11.2 SVG 图标标准
+
+| 属性 | 值 |
+|------|-----|
+| 尺寸 | `18px × 18px`（标准）/ `24px × 24px`（大图标） |
+| 描边 | `stroke="currentColor" stroke-width="2"` |
+| 填充 | `fill="none"`（线性图标）/ `fill="currentColor"`（实心图标） |
+| 圆角 | `stroke-linecap="round" stroke-linejoin="round"` |
+
+#### 4.11.3 图标使用示例
+
+```html
+<!-- 内联 SVG（推荐） -->
+<button class="module-tab">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+    <line x1="16" y1="2" x2="16" y2="6"/>
+    <line x1="8" y1="2" x2="8" y2="6"/>
+    <line x1="3" y1="10" x2="21" y2="10"/>
+  </svg>
+  <span>工作台</span>
+</button>
+```
+
+### 4.12 交互载体决策规范（T-217）
+
+> 沉淀：2026-08-05，指令"适用悬浮表单的场景有点受限，下拉选择和表单出现的位置值得深究"。系统录入/操作按场景判定载体，防止"所有表单都内联在页面"或"所有操作都弹窗"两极化。
+
+四种载体按场景判定：
+
+| 载体 | 适用场景 | 判定要点 |
+|------|---------|---------|
+| 悬浮表单 | 轻量录入（≤3 字段）；需要上下文锚定的主录入（如写入活动） | 录入动作，字段少或主流程 |
+| 就地展开 | 以「查看」为主 + 快捷操作 | 读为主，不破坏页面常驻结构 |
+| 内联面板 | 页面主流程长表单（多字段、多步骤） | 常驻、需要持续可见 |
+| 跳转 | 整页级操作 | 独立页面 |
+
+**已落实案例**：
+- 书记「写入活动」→ 悬浮表单（`openModal` 720px，Step1 选模板 → Step2 填表单），提交成功关闭悬浮 + 列表刷新（2026-08-05）
+- 组长工作台「添加记录」→ 就地展开（查看为主 + 快捷录入，2026-08-05 起按本表判定保持）
+- 纪检批注 → 悬浮表单（`openFormModal`）
+
+### 4.13 选人规范（PersonPicker）
+
+> 沉淀：2026-08-05，"我们人太多了"——全支部约 50 人，select 罗列人名不可搜索、不可分组，选择成本高。
+
+**硬性规则**：
+1. 凡选择「具体人」，一律使用 `PersonPicker`（自带姓名/学号搜索 + 党小组分组 tabs + 单选/多选）
+2. **禁止用 select 下拉罗列人名**
+3. 表单内选人同样走 PersonPicker（嵌入表单渲染）
+4. 候选范围过滤用 PersonPicker 的 `filter` 选项（如排除支委），不得预生成 select option
+
+**已落实案例**：项目赋权选人（原 select 罗列人名 → PersonPicker 搜索选择，2026-08-05）。
+
+### 4.14 状态徽章（Status Badge）
+
+> 沉淀：2026-08-05，行内状态下拉（原生 select）→ 轻交互徽章原型。行内状态展示优先用徽章而非下拉框。
+
+- 通用组件 `status-badge`：渲染「色点 + 文字」徽章，点击弹出小悬浮选择器（clamp 边界定位），选中即改
+- 用途：任务状态 / 考勤状态 / 交接状态等行内状态，替代原生 select 下拉
+- 交互：触屏可点（click 触发，非 hover）；点击外部 / ESC 关闭；已归档等只读场景禁用
+- 已落实：任务状态（inspector.js）原型先行；考勤/交接视效果决定推广（2026-08-05）
+
+### 4.15 反馈管理规范（2026-08-08 指令 #7 增强）
+
+> 反馈采用 GitHub Issue 风格：草稿审核（书记通过/驳回）→ 公开 → 指派 → 处置 → 待终审 → 关闭。2026-08-08 按指令三项增强定稿。
+
+**提交侧（issue-form.js）**：
+- **人名化**：提交人/评论人/指派人一律经 `PersonStore` 解析为姓名，禁止显示 mock 字段/角色键；
+- **匿名提交开关**：checkbox（`.checkbox-accent`）勾选后对外显示「匿名」，payload 保留 `_realPersonId` 仅书记内部可追溯（详情面板以主题色标注「真实提交人（仅书记可见）」）。
+
+**处置侧（feedback-tab.js 书记工作台）**：
+- **正式答复栏**：独立输入行 + `btn-accent` 按钮，以 `kind='reply'` 写入时间线；时间线以主题色浅底 + 「正式答复」徽标显著区分，作者经 `getPersonName` 解析为书记姓名；
+- **操作层次**：评论=次级（`.btn-accent-soft`）、批复=主操作（`.btn-accent`）、正式答复=主操作 + 徽标（三者视觉可区分，回应"什么时候用什么颜色"）；
+- **提交人悬停卡片**：列表提交人行 hover 展示「姓名 · 学号 · 发展阶段 · 党小组」（`.tip-trigger[data-tip]`，零 JS）。
+
+---

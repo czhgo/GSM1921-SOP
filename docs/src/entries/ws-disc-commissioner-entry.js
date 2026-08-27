@@ -1,19 +1,19 @@
-﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ws-disc-commissioner-entry.js — 纪检委员工作台入口（薄壳版）
 // T-279 M3 拆分：1339 行单体 → 薄壳入口 + 9 个独立 tab 模块（entries/tabs/disc/）。
 // 入口职责：bootstrap + tab 清单读取（能力注册表）+ URL 导航落点 + 状态变更驱动的当前 tab 重渲染。
 // tab.render 为懒加载动态 import（点击时才加载对应模块），各 tab 私有状态随模块自持。
 
-import { setState, registerRenderCallback } from '../core/state.js?v=20260823b';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260823b';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260823b';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260823b';
-import { renderTabBar } from '../components/tab-bar.js?v=20260823b';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260823b';
-import { TodoStore, seedTodos } from '../services/todo.js?v=20260823b';
-import { loadActivities } from '../services/activity.js?v=20260823b';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260823b';
-import { getCapabilities } from '../core/registry.js?v=20260823b';
+import { setState, registerRenderCallback } from '../core/state.js?v=20260827c';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260827c';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260827c';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260827c';
+import { renderTabBar } from '../components/tab-bar.js?v=20260827c';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260827c';
+import { TodoStore, seedTodos } from '../services/todo.js?v=20260827c';
+import { loadActivities } from '../services/activity.js?v=20260827c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260827c';
+import { getCapabilities } from '../core/registry.js?v=20260827c';
 // 副作用导入触发纪检工作台能力注册（tab 清单）
 import '../modules/capabilities/disc-workspace.js?v=20260823a';
 
@@ -27,13 +27,18 @@ let _tabBarInited = false;
 let _currentTab = 'todo';
 let _discNavTarget = null; // { tfId, actId } URL 导航目标（跨重渲染保持，定位完成后清除）
 let _highlightTfId = null; // 专班查看高亮目标（快照变量：导航目标清除后仍供懒加载渲染读取）
+// B1-5 修复：URL 导航落点后抑制当前 tab 重渲染，防止二次 setState 重建 DOM 冲掉直达高亮。
+// 条件抑制：仅当导航目标元素已在 DOM 中（高亮已展示）才抑制；目标缺失（延迟数据）放行补渲染。
+const NAV_SUPPRESS_MS = 3000;
+let _navSuppressUntil = 0;
+let _discNavTargetSel = null; // 导航目标元素选择器（用于条件抑制判断）
 
-/** 渲染上下文（供各 tab 模块使用；onNavLocated 供专班查看定位完成后清除高亮目标） */
+/** 渲染上下文（供各 tab 模块使用；高亮目标由导航路径 3s 定时器清除，B1-5） */
 function _renderCtx(activities) {
   return {
     accent, accentRgba, accentBorder, activities,
     highlightTfId: _highlightTfId,
-    onNavLocated: () => { _highlightTfId = null; },
+    onNavLocated: () => { /* 高亮目标存活至抑制窗口结束（B1-5） */ },
   };
 }
 
@@ -110,15 +115,20 @@ function renderDiscUI(state) {
     }
   }
   if (_discNavTarget) {
+    _navSuppressUntil = Date.now() + NAV_SUPPRESS_MS; // B1-5：抑制后续 setState 重渲染冲掉直达高亮
     if (_discNavTarget.tfId) {
       // 专班查看（纪检无专班职责≠无知情权）：快照高亮目标后立即清除导航目标
       _highlightTfId = _discNavTarget.tfId;
+      _discNavTargetSel = `.tfv-card[data-tf-id="${_highlightTfId}"]`;
+      // 高亮目标存活至抑制窗口结束（B1-5：延迟数据到达后的补渲染可重新应用高亮）
+      setTimeout(() => { _highlightTfId = null; _discNavTargetSel = null; }, NAV_SUPPRESS_MS);
       _discNavTarget = null;
       _currentTab = 'tf-view';
       _tabBar.activate('tf-view', _renderCtx(activities));
     } else {
       // 活动：落考勤管理（纪检活动相关承载，现状即权限；activityId 直达该活动考勤）
       const actId = _discNavTarget.actId || null;
+      _discNavTargetSel = null; // 考勤列表无高亮目标，无条件抑制
       _discNavTarget = null; // 考勤落点由 attendance tab 经 ctx.attendanceFilterActId 消费完成
       _currentTab = 'attendance';
       const ctx = _renderCtx(activities);
@@ -126,6 +136,8 @@ function renderDiscUI(state) {
       _tabBar.activate('attendance', ctx);
     }
   } else {
+    // B1-5 条件抑制：仅当导航目标已在 DOM（高亮已展示）时跳过重渲染；目标缺失放行补渲染
+    if (Date.now() < _navSuppressUntil && (!_discNavTargetSel || document.querySelector(_discNavTargetSel))) return;
     // 非落点路径：用最新数据刷新当前 tab（对齐单体版每次 setState 重渲染当前 tab 的行为）
     _renderCurrentTab(state);
   }

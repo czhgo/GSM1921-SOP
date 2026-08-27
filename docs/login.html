@@ -40,7 +40,7 @@
       }
     };
   </script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260823b">
+  <link rel="stylesheet" href="./src/styles.css?v=20260827c">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -159,8 +159,12 @@
         开发模式
       </label>
     </div>
+    <!-- 返回主页（T-284：登录页跳转闭环，避免误入后无出口） -->
+    <div class="text-center mt-3">
+      <a href="./index.html" class="text-xs text-gray-400 hover:text-gray-600 transition-colors">← 返回主页</a>
+    </div>
   </div>
 
-  <script type="module" src="./src/entries/login-entry.js?v=20260823b"></script>
+  <script type="module" src="./src/entries/login-entry.js?v=20260827c"></script>
 </body>
 </html>

@@ -1,20 +1,20 @@
-﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ws-prop-commissioner-entry.js — 宣传委员工作台入口（薄壳版）
 // T-279 M3 拆分：1320 行单体 → 薄壳入口（~150 行）+ 7 个独立 tab 模块（entries/tabs/prop/）。
 // 入口职责：bootstrap + tab 清单读取（能力注册表，M2e 同款）+ URL 导航落点 + 状态变更驱动的当前 tab 重渲染。
 // tab.render 为懒加载动态 import（点击时才加载对应模块），各 tab 私有状态随模块自持。
 
-import { setState, registerRenderCallback } from '../core/state.js?v=20260823b';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260823b';
-import { renderTabBar } from '../components/tab-bar.js?v=20260823b';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260823b';
-import { flashHighlight } from '../core/utils.js?v=20260823b';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260823b';
-import { getCapabilities } from '../core/registry.js?v=20260823b';
-import { loadActivities } from '../services/activity.js?v=20260823b';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260823b';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260823b';
-import { TodoStore, seedTodos } from '../services/todo.js?v=20260823b';
+import { setState, registerRenderCallback } from '../core/state.js?v=20260827c';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260827c';
+import { renderTabBar } from '../components/tab-bar.js?v=20260827c';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260827c';
+import { flashHighlight } from '../core/utils.js?v=20260827c';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260827c';
+import { getCapabilities } from '../core/registry.js?v=20260827c';
+import { loadActivities } from '../services/activity.js?v=20260827c';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260827c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260827c';
+import { TodoStore, seedTodos } from '../services/todo.js?v=20260827c';
 // 副作用导入触发宣传委员工作台能力注册（tab 清单）
 import '../modules/capabilities/prop-workspace.js?v=20260812d';
 
@@ -27,6 +27,11 @@ let _tabBar = null;
 let _tabBarInited = false;
 let _currentTab = 'todo';
 let _propNavTarget = null; // { tfId, actId } URL 导航目标（跨重渲染保持，定位完成后清除）
+// B1-5 修复：URL 导航落点后抑制当前 tab 重渲染，防止二次 setState 重建 DOM 冲掉直达高亮。
+// 条件抑制：仅当导航目标元素已在 DOM 中（高亮已展示）才抑制；目标缺失（延迟数据）放行补渲染。
+const NAV_SUPPRESS_MS = 3000;
+let _navSuppressUntil = 0;
+let _propNavTargetSel = null; // 导航目标元素选择器（用于条件抑制判断）
 
 /** 渲染上下文（供各 tab 模块使用；activities/propTf 由入口聚合后传入） */
 function _renderCtx(state) {
@@ -110,22 +115,36 @@ function renderPropUI(state) {
     }
   }
   if (_propNavTarget) {
+    _navSuppressUntil = Date.now() + NAV_SUPPRESS_MS; // B1-5：抑制后续 setState 重渲染冲掉直达高亮
     _tabBar.activate('kanban', _renderCtx(state));
     if (_propNavTarget.tfId || _propNavTarget.actId) {
-      setTimeout(() => {
-        const target = _propNavTarget.tfId
-          ? container.querySelector(`.kanban-card[data-kt="taskforce"][data-ki="${_propNavTarget.tfId}"]`)
-          : container.querySelector(`.kanban-card[data-kt="activity"][data-ki="${_propNavTarget.actId}"]`);
+      _propNavTargetSel = _propNavTarget.tfId
+        ? `.kanban-card[data-kt="taskforce"][data-ki="${_propNavTarget.tfId}"]`
+        : `.kanban-card[data-kt="activity"][data-ki="${_propNavTarget.actId}"]`;
+      // B1-5 轮询定位：看板数据可能延迟到达，轮询直至卡片出现再定位高亮
+      let attempts = 0;
+      const tryLocate = () => {
+        const target = container.querySelector(_propNavTargetSel);
         if (target) {
           target.scrollIntoView({ behavior: 'smooth', block: 'center' });
           flashHighlight(target);
+          _propNavTargetSel = null;
+          _propNavTarget = null;
+        } else if (attempts < 20 && Date.now() < _navSuppressUntil) {
+          attempts++;
+          setTimeout(tryLocate, 300);
+        } else {
+          _propNavTargetSel = null;
+          _propNavTarget = null;
         }
-        _propNavTarget = null; // 无论成败：最终 DOM 已稳定，清除导航目标
-      }, 150);
+      };
+      setTimeout(tryLocate, 150);
     } else {
       _propNavTarget = null; // 纯 view=activities：无定位目标，立即清除
     }
   } else {
+    // B1-5 条件抑制：仅当导航目标已在 DOM（高亮已展示）时跳过重渲染；目标缺失放行补渲染
+    if (Date.now() < _navSuppressUntil && (!_propNavTargetSel || document.querySelector(_propNavTargetSel))) return;
     // 非落点路径：用最新数据刷新当前 tab（对齐单体版每次 setState 重渲染当前 tab 的行为）
     _renderCurrentTab(state);
   }

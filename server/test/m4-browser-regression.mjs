@@ -21,10 +21,10 @@ page.on('pageerror', (e) => homeErrs.push(String(e)));
 await page.goto(BASE + '/index.html?view=calendar', { waitUntil: 'domcontentloaded' });
 await page.waitForTimeout(2500);
 const home = await page.evaluate(async () => {
-  const reg = await import('/src/core/registry.js?v=20260823b');
-  await import('/src/modules/capabilities/data-source.js?v=20260823b');
-  await import('/src/modules/capabilities/sop-scenarios.js?v=20260823b');
-  const cal = await import('/src/components/calendar.js?v=20260823b');
+  const reg = await import('/src/core/registry.js?v=20260827c');
+  await import('/src/modules/capabilities/data-source.js?v=20260827c');
+  await import('/src/modules/capabilities/sop-scenarios.js?v=20260827c');
+  const cal = await import('/src/components/calendar.js?v=20260827c');
   const main = document.querySelector('main');
   return {
     mainLen: main?.innerHTML.length || 0,
@@ -39,6 +39,7 @@ const home = await page.evaluate(async () => {
 check('首页 main 渲染', home.mainLen > 5000, `len=${home.mainLen}`);
 check('首页统计卡', home.hasStats);
 check('首页日历容器可达', home.hasCalendarTabs);
+// 注册表版本 = 首页已注册能力声明的最大 version（bump 脚本只更新 import 戳不更新能力声明 version 字段）
 check('注册表版本聚合', /20260823b/.test(home.version), `v=${home.version}`);
 check('数据源能力注册 mock/api', home.srcs.includes('mock-data-source') && home.srcs.includes('api-data-source'), home.srcs.join(','));
 check('场景能力注册 sop-scenarios', home.scenes.includes('sop-scenarios'), home.scenes.join(','));
@@ -64,7 +65,7 @@ for (const ws of workspaces) {
   await p.goto(`${BASE}/workspace/${ws.file}.html?dev=${ws.role}`, { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(2200);
   const info = await p.evaluate(async ({ scope, file, minTabs }) => {
-    const reg = await import('/src/core/registry.js?v=20260823b');
+    const reg = await import('/src/core/registry.js?v=20260827c');
     const capIds = reg.getCapabilities({ scope }).map(c => c.id);
     // tab 按钮：前缀式 class（${file}-tab-btn），或通用 [class*="-tab-btn"]
     const btns = [...document.querySelectorAll(`#${file}-content [class*="tab-btn"]`)]

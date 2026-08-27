@@ -1,23 +1,23 @@
-﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ws-org-commissioner-entry.js — 组织委员工作台入口（薄壳版）
 // T-279 M3 拆分：1806 行单体 → 薄壳入口（~150 行）+ 8 个独立 tab 模块（entries/tabs/org/）。
 // 入口职责：bootstrap + tab 清单读取（能力注册表，M2e 同款）+ URL 导航落点 + 状态变更驱动的当前 tab 重渲染。
 // tab.render 为懒加载动态 import（点击时才加载对应模块），各 tab 私有状态随模块自持。
 
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260823b';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260823b';
-import { renderTabBar } from '../components/tab-bar.js?v=20260823b';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260823b';
-import { flashHighlight } from '../core/utils.js?v=20260823b';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260823b';
-import { getCapabilities } from '../core/registry.js?v=20260823b';
-import { loadActivities } from '../services/activity.js?v=20260823b';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260823b';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260823b';
-import { TodoStore, seedTodos } from '../services/todo.js?v=20260823b';
-import { SignupStore } from '../services/signup.js?v=20260823b';
-import { solidAccentStyle } from '../core/constants.js?v=20260823b';
-import { openRecruitForm } from './tabs/org/taskforce-tab.js?v=20260823b';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260827c';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260827c';
+import { renderTabBar } from '../components/tab-bar.js?v=20260827c';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260827c';
+import { flashHighlight } from '../core/utils.js?v=20260827c';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260827c';
+import { getCapabilities } from '../core/registry.js?v=20260827c';
+import { loadActivities } from '../services/activity.js?v=20260827c';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260827c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260827c';
+import { TodoStore, seedTodos } from '../services/todo.js?v=20260827c';
+import { SignupStore } from '../services/signup.js?v=20260827c';
+import { solidAccentStyle } from '../core/constants.js?v=20260827c';
+import { openRecruitForm } from './tabs/org/taskforce-tab.js?v=20260827c';
 // 副作用导入触发组织委员工作台能力注册（tab 清单）
 import '../modules/capabilities/org-workspace.js?v=20260812d';
 
@@ -31,8 +31,13 @@ let _tabBarInited = false;
 let _currentTab = 'todo';
 let _orgNavTarget = null; // { tfId, actId, view } URL 导航目标（跨重渲染保持，定位完成后清除）
 let _orgHighlightActId = null; // 活动查看高亮目标（快照变量：导航目标清除后仍供懒加载渲染读取）
+// B1-5 修复：URL 导航落点后抑制当前 tab 重渲染，防止二次 setState 重建 DOM 冲掉直达高亮。
+// 条件抑制：仅当导航目标元素已在 DOM 中（高亮已展示）才抑制；目标缺失（延迟数据）放行补渲染。
+const NAV_SUPPRESS_MS = 3000;
+let _navSuppressUntil = 0;
+let _orgNavTargetSel = null; // 导航目标元素选择器（用于条件抑制判断）
 
-/** 渲染上下文（供各 tab 模块使用；onNavLocated 供活动查看定位完成后清除高亮目标） */
+/** 渲染上下文（供各 tab 模块使用；高亮目标由导航路径 3s 定时器清除，B1-5） */
 function _renderCtx(state) {
   const activities = state.activities || [];
   const taskforces = TaskForceRecordStore.getAll();
@@ -45,7 +50,7 @@ function _renderCtx(state) {
     recruiting: sortTfByNew(taskforces.filter(t => t.status === 'recruiting')),
     active: sortTfByNew(taskforces.filter(t => t.status === 'active')),
     highlightActId: _orgHighlightActId,
-    onNavLocated: () => { _orgHighlightActId = null; },
+    onNavLocated: () => { /* 高亮目标存活至抑制窗口结束（B1-5） */ },
   };
 }
 
@@ -123,10 +128,14 @@ function renderOrgUI(state) {
     }
   }
   if (_orgNavTarget) {
+    _navSuppressUntil = Date.now() + NAV_SUPPRESS_MS; // B1-5：抑制后续 setState 重渲染冲掉直达高亮
     if (_orgNavTarget.actId || _orgNavTarget.view) {
       // 活动查看（组织无活动 tab，知情权组件承载）
       // 快照高亮目标后立即清除导航目标（防 setState 重渲染重复消费）；高亮改读 _orgHighlightActId。
       _orgHighlightActId = _orgNavTarget.actId;
+      _orgNavTargetSel = _orgHighlightActId ? `[data-act-id="${_orgHighlightActId}"], [data-activity-id="${_orgHighlightActId}"]` : null;
+      // 高亮目标存活至抑制窗口结束（B1-5：延迟数据到达后的补渲染可重新应用高亮）
+      if (_orgHighlightActId) setTimeout(() => { _orgHighlightActId = null; _orgNavTargetSel = null; }, NAV_SUPPRESS_MS);
       _orgNavTarget = null;
       _tabBar.activate('activity-view', _renderCtx(state));
       if (_orgHighlightActId) {
@@ -136,18 +145,32 @@ function renderOrgUI(state) {
         setState({ displayMonth: act?.date?.slice(0, 7) || undefined, selectedActivityId: _orgHighlightActId });
       }
     } else if (_orgNavTarget.tfId) {
+      const tfId = _orgNavTarget.tfId;
+      _orgNavTargetSel = `.tf-store-card[data-tf-id="${tfId}"]`;
       _tabBar.activate('taskforce', _renderCtx(state));
-      setTimeout(() => {
-        const card = container.querySelector(`.tf-store-card[data-tf-id="${_orgNavTarget.tfId}"]`);
+      // B1-5 轮询定位：专班数据可能延迟到达，轮询直至卡片出现再展开详情+高亮
+      let attempts = 0;
+      const tryLocate = () => {
+        const card = container.querySelector(_orgNavTargetSel);
         if (card) {
           card.click(); // 展开详情
           card.scrollIntoView({ behavior: 'smooth', block: 'center' });
           flashHighlight(card);
+          _orgNavTargetSel = null;
+          _orgNavTarget = null;
+        } else if (attempts < 20 && Date.now() < _navSuppressUntil) {
+          attempts++;
+          setTimeout(tryLocate, 300);
+        } else {
+          _orgNavTargetSel = null;
+          _orgNavTarget = null;
         }
-        _orgNavTarget = null; // 无论成败：最终 DOM 已稳定，清除导航目标
-      }, 150);
+      };
+      setTimeout(tryLocate, 150);
     }
   } else {
+    // B1-5 条件抑制：仅当导航目标已在 DOM（高亮已展示）时跳过重渲染；目标缺失放行补渲染
+    if (Date.now() < _navSuppressUntil && (!_orgNavTargetSel || document.querySelector(_orgNavTargetSel))) return;
     // 非落点路径：用最新数据刷新当前 tab（对齐单体版每次 setState 重渲染当前 tab 的行为）
     _renderCurrentTab(state);
   }

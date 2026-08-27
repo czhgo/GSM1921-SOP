@@ -6,7 +6,7 @@ version: "2.0"
 last_updated: "2026-08-09"
 status: active
 merged_from: [content/design/PAFFAIRS_UI.md, content/design/CALENDAR.md]
-related_files: [content/04_web_design/DESIGN_SYSTEM.md, content/04_web_design/DATA_ARCHITECTURE.md, content/02_institution/COMMISSIONER_FRAMEWORK.md]
+related_files: [content/04_web_design/DESIGN_SYSTEM.md, content/04_web_design/DATA_MODEL.md, content/04_web_design/DATA_FLOW.md, content/02_institution/COMMISSIONER_FRAMEWORK.md]
 ---
 
 # 模块界面设计
@@ -30,7 +30,7 @@ related_files: [content/04_web_design/DESIGN_SYSTEM.md, content/04_web_design/DA
 - **「党建」Tab 分组**：角色工作台内的功能板块，涵盖发展党员全流程追踪、补课制度跟踪、意见反馈、公邮查收提醒等子功能。
 - **日历功能模块**：工作台的核心视图组件，涵盖月/周/日/列表多视图展示、文本溢出处理、活动数据存储、快速聚焦视图等设计。
 
-角色权限与逻辑层面请参阅 [DATA_ARCHITECTURE.md](./DATA_ARCHITECTURE.md)（三级管理架构数据流）和 [COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md)（支委系统设计）。日历视图范围限定（仅对参与者/组织者/书记/党小组组长展示，支委不展示日历）的已落地规则见 [SOP_WEB.md §B.4](./SOP_WEB.md)。
+角色权限与逻辑层面请参阅 [DATA_FLOW.md](./DATA_FLOW.md)（三级管理架构数据流）和 [COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md)（支委系统设计）。日历视图范围限定（仅对参与者/组织者/书记/党小组组长展示，支委不展示日历）的已落地规则见 [SOP_WEB.md §B.4](./SOP_WEB.md)。
 
 ---
 
@@ -261,11 +261,11 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 
 #### 数据结构 Schema 设计
 
-日历展示相关的 Activity/Task 字段索引见 [DATA_ARCHITECTURE.md](./DATA_ARCHITECTURE.md) §2.1/§2.12，本文件不维护并行 Schema。
+日历展示相关的 Activity/Task 字段索引见 [DATA_MODEL.md](./DATA_MODEL.md) §2.1/§2.12，本文件不维护并行 Schema。
 
 #### 数据持久化与备份策略
 
-**当前过渡方案**：将 `SANDBOX_MODE` 改为 `false` 启用 localStorage 持久化，并在设置面板提供"导出数据"按钮，将全部数据序列化为 JSON 文件下载。备份与同步策略详见 [DATA_ARCHITECTURE.md](./DATA_ARCHITECTURE.md) §4.2。
+**当前过渡方案**：将 `SANDBOX_MODE` 改为 `false` 启用 localStorage 持久化，并在设置面板提供"导出数据"按钮，将全部数据序列化为 JSON 文件下载。备份与同步策略详见 [DATA_FLOW.md](./DATA_FLOW.md) §4.2。
 
 ### 快速聚焦视图设计
 
@@ -339,7 +339,7 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 | 文件 | 关系 |
 |------|------|
 | [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) | 视觉规范权威源（色彩/字体/间距/卡片样式） |
-| [DATA_ARCHITECTURE.md](./DATA_ARCHITECTURE.md) | 三级管理架构数据流 |
+| [DATA_FLOW.md](./DATA_FLOW.md) | 三级管理架构数据流 |
 | [COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md) | 支委系统设计 |
 | [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) | 制度文件渲染、角色关系矩阵 |
 | [SOP_WEB.md](./SOP_WEB.md) | 日历视图范围限定（§B.4） |

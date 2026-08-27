@@ -14,7 +14,7 @@
 //   node docs/scripts/bump-version.mjs 20260807b  # 显式指定版本号
 // ════════════════════════════════════════════════════════════════
 
-import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -126,7 +126,30 @@ if (codeVersionChanged) {
   writeFileSync(cpsFile, cpsNext, 'utf8');
 }
 
+// ── 同步 server/test/*.mjs 内的页面模块版本戳（防模块实例分裂）──
+// 判例 KNOWN_PITFALLS §17：Playwright evaluate 内动态 import('/src/...?v=') 若版本
+// 落后于 src 内部 import，浏览器会按 URL 分裂出第二个模块实例（注册表/共享状态读空），
+// 导致回归误报（m4 回归 22/31 即为 20260824b 未随 bump 至 20260824c 的误报）。
+let testCount = 0;
+const testDir = join(ROOT, '..', 'server', 'test');
+if (existsSync(testDir)) {
+  for (const name of readdirSync(testDir)) {
+    if (!name.endsWith('.mjs')) continue;
+    const file = join(testDir, name);
+    let content = readFileSync(file, 'utf8');
+    const next = content.replace(
+      /(\/src\/[^'"?]*\.js)(\?[^'"]*)?(['"])/g,
+      (m, pre, _q, end) => `${pre}?v=${VERSION}${end}`
+    );
+    if (next !== content) {
+      writeFileSync(file, next, 'utf8');
+      testCount++;
+    }
+  }
+}
+
 console.log(`[bump-version] 版本号：${VERSION}`);
 console.log(`[bump-version] 更新 JS 文件：${jsCount} 个`);
 console.log(`[bump-version] 更新 HTML 文件：${htmlCount} 个`);
 if (codeVersionChanged) console.log(`[bump-version] CODE_VERSION +1（cross-page-state.js）`);
+if (testCount > 0) console.log(`[bump-version] 同步 server/test 版本戳：${testCount} 个`);

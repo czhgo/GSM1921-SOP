@@ -5,13 +5,13 @@
 //  产出：进度条 · 状态标签 · 子状态面板 · 阻塞横幅
 // ════════════════════════════════════════════════════════════════
 
-import { WorkflowEngine } from './engine.js?v=20260823b';
+import { WorkflowEngine } from './engine.js?v=20260827c';
 import {
   THEME_PARTY_DAY_DEFINITION,
   SHORT_TERM_DEFINITION,
   LONG_TERM_DEFINITION,
-} from './definitions.js?v=20260823b';
-import { icon } from '../core/icons.js?v=20260823b';
+} from './definitions.js?v=20260827c';
+import { icon } from '../core/icons.js?v=20260827c';
 
 // ── 可用模板列表（渲染器使用）──────────────────────────────────
 const TEMPLATE_REGISTRY = {

@@ -2,23 +2,23 @@
 // entries/tabs/secretary/calendar-tab.js — 书记工作台·活动管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 考勤概况 + 活动查询。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260823b';
-import { _fmtDate, showToast } from '../../../core/utils.js?v=20260823b';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260823b';
-import { renderInspectorFromState } from '../../../components/inspector.js?v=20260823b';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260823b';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260823b';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260823b';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260823b';
-import { loadActivities } from '../../../services/activity.js?v=20260823b';
-import { renderQueryView } from '../../../components/query-view.js?v=20260823b';
-import { icon } from '../../../core/icons.js?v=20260823b';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260823b';
-import { getPersonName } from '../../../mock/index.js?v=20260823b';
-import { NoticeStore } from '../../../services/notice.js?v=20260823b';
-import { BranchService } from '../../../services/runtime.js?v=20260823b';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars } from '../../../core/constants.js?v=20260823b';
-import { badgeHtml } from '../../../components/badge.js?v=20260823b';
+import { getAppState, setState } from '../../../core/state.js?v=20260827c';
+import { _fmtDate, showToast } from '../../../core/utils.js?v=20260827c';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260827c';
+import { renderInspectorFromState } from '../../../components/inspector.js?v=20260827c';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260827c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260827c';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260827c';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260827c';
+import { loadActivities } from '../../../services/activity.js?v=20260827c';
+import { renderQueryView } from '../../../components/query-view.js?v=20260827c';
+import { icon } from '../../../core/icons.js?v=20260827c';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260827c';
+import { getPersonName } from '../../../mock/index.js?v=20260827c';
+import { NoticeStore } from '../../../services/notice.js?v=20260827c';
+import { BranchService } from '../../../services/runtime.js?v=20260827c';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars } from '../../../core/constants.js?v=20260827c';
+import { badgeHtml } from '../../../components/badge.js?v=20260827c';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 
@@ -503,6 +503,22 @@ function renderFormStep() {
   html += `<input type="text" id="wp-host" class="input-flat w-full" placeholder="默认为当前用户">`;
   html += `</div>`;
 
+  // 会议议程（T-283：三会一课专用；逐条议题 + 可选主持人，行内编辑最少点击）
+  if (tpl.category === 'three-meetings') {
+    html += `<div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3">`;
+    html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">会议议程 <span class="text-gray-300">（选填）</span></label>`;
+    html += `<div id="wp-agenda-list" class="space-y-2">`;
+    // 初始 1 行空议程（HTML 内嵌，减少首条输入点击；添加/删除由 bindWritePanelEvents 事件处理）
+    html += `<div class="flex items-center gap-2">`;
+    html += `<input type="text" class="wp-agenda-item input-flat w-full text-xs" placeholder="议题，如：学习《…》">`;
+    html += `<input type="text" class="wp-agenda-host input-flat w-24 text-xs" placeholder="主持人">`;
+    html += `<button type="button" data-action="agenda-remove" class="text-gray-300 hover:text-red-500 text-sm px-1 shrink-0" title="删除该条">✕</button>`;
+    html += `</div>`;
+    html += `</div>`;
+    html += `<button type="button" data-action="agenda-add" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors">+ 添加议程</button>`;
+    html += `</div>`;
+  }
+
   // 品牌（2026-08-07 书记原始意图：看是否延续旧品牌 / 创建新品牌）
   const brandNames = [...new Set((_getBrandList() || []).map(a => a.brandName).filter(Boolean))];
   html += `<div class="mb-3">`;
@@ -622,10 +638,28 @@ function renderThemeDayDimensions() {
   return html;
 }
 
+/** 添加一条议程输入行（T-283：议题 + 可选主持人） */
+function _addAgendaRow(container, item = '', host = '') {
+  const list = container.querySelector('#wp-agenda-list');
+  if (!list) return;
+  const row = document.createElement('div');
+  row.className = 'flex items-center gap-2';
+  row.innerHTML = `
+    <input type="text" class="wp-agenda-item input-flat w-full text-xs" placeholder="议题，如：学习《…》" value="${item}">
+    <input type="text" class="wp-agenda-host input-flat w-24 text-xs" placeholder="主持人" value="${host}">
+    <button type="button" data-action="agenda-remove" class="text-gray-300 hover:text-red-500 text-sm px-1 shrink-0" title="删除该条">✕</button>
+  `;
+  list.appendChild(row);
+}
+
 function bindWritePanelEvents(container) {
   container.querySelectorAll('[data-action]').forEach(el => {
     el.addEventListener('click', handleWritePanelAction);
   });
+  // 会议议程初始行（T-283：三会一课模板默认 1 行空议程，减少首条输入点击）
+  // 置于最前：避免后续参与人选择器（PersonPicker）初始化异常导致议程行被跳过
+  const agendaList = container.querySelector('#wp-agenda-list');
+  if (agendaList && agendaList.children.length === 0) _addAgendaRow(container);
   // 参与人选择（PersonPicker 多选；重渲染时保留已选，销毁旧实例防泄漏）
   const participantsSlot = container.querySelector('#wp-participants-slot');
   if (participantsSlot) {
@@ -690,6 +724,21 @@ function handleWritePanelAction(e) {
       break;
     }
 
+    case 'agenda-add': {
+      _addAgendaRow(_getWritePanelContainer());
+      return; // 不重渲染面板
+    }
+
+    case 'agenda-remove': {
+      const list = btn.closest('#wp-agenda-list');
+      const row = btn.closest('.flex');
+      if (row) {
+        if (list && list.children.length > 1) row.remove();
+        else row.querySelectorAll('input').forEach(i => { i.value = ''; });
+      }
+      return;
+    }
+
     case 'wp-submit': {
       handleSubmitActivity();
       return; // 不重新渲染面板
@@ -727,6 +776,20 @@ async function handleSubmitActivity() {
 
   // 参与人（多选；须在 wp.submitting 触发重渲染前读取）
   const participants = wp.personPicker ? wp.personPicker.getSelected() : [];
+
+  // 会议议程（T-283：三会一课逐条议题 + 主持人；空行忽略）
+  const agenda = [];
+  {
+    const formArea = _getWritePanelContainer();
+    if (formArea) {
+      const items = [...formArea.querySelectorAll('.wp-agenda-item')];
+      const hosts = [...formArea.querySelectorAll('.wp-agenda-host')];
+      items.forEach((inp, i) => {
+        const text = inp.value?.trim();
+        if (text) agenda.push({ item: text, host: hosts[i]?.value?.trim() || '' });
+      });
+    }
+  }
 
   // 预拟通知（选填，2026-08-05 书记裁决「表单内预拟通知·只跑一次」）
   const noticeTitle = document.getElementById('wp-notice-title')?.value?.trim();
@@ -806,6 +869,8 @@ async function handleSubmitActivity() {
       brandName: brandMode !== 'none' ? brandName : '',
       // 参与人（内联赋权：非空则 createActivity 不再派生组长赋权待办）
       assignments: participants.map(pid => ({ personId: pid, role: 'participant' })),
+      // 会议议程（T-283：三会一课）
+      agenda,
     };
     const { taskCount } = await writeActivityWithSOP(activityData, scenarioId, date);
     showToast('success', `活动写入成功，已生成 ${taskCount} 个任务节点`);
@@ -835,11 +900,16 @@ async function handleSubmitActivity() {
     // 7. 清理参与人选择器（防 DOM 泄漏）
     if (wp.personPicker) { wp.personPicker.destroy(); wp.personPicker = null; }
 
-    // 8. 刷新活动列表
+    // 8. 刷新活动列表（反馈闭环：创建后立即可见）
+    // 2026-08-27 T-283 修复：setState 触发链在本场景偶发不刷新日历（实测需手动切 tab 才可见），
+    // 加 renderContent 直接兜底重渲染——创建成功即见成果，无需用户二次操作。
     try {
       const activities = await BranchService.listActivities();
       setState({ activities });
     } catch (_) { /* 列表刷新失败不影响写入结果*/ }
+    try {
+      renderContent(getAppState());
+    } catch (e) { console.warn('[T283] 创建后兜底渲染失败', e); }
 
     // 9. 成功后关闭悬浮（T-217 §3 全悬浮化）
     closeModal(WRITE_MODAL_ID);

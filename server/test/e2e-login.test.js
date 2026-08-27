@@ -18,6 +18,11 @@
 // - 读路径断言：页面加载期间捕获 GET /api/v1/activities —— 证明 bootstrap init() 确实从服务器拉数；
 // - 写穿闭环断言：page.evaluate fetch POST /api/v1/snapshot 写入唯一活动 → reload →
 //   首页「近期活动」渲染出该标题 + 服务端 GET 读回该标题（双保险）。
+//
+// 2026-08-27 适配（最小三成本专项评议 P2 修复）：
+// - 登录后不再固定跳首页，而是直达角色工作台（登录→工作台 ≤2 跳）；
+//   故登录后的导航断言从 `**/index.html` 改为 `**/workspace/secretary.html`，
+//   title 断言同步改为工作台标题。
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -65,7 +70,7 @@ async function waitForBodyText(page, text, timeout = 10000) {
   throw new Error(`超时：页面 body 文本未包含 "${text}"`);
 }
 
-test('账号密码登录后切换 API 数据源，首页渲染且后端数据可达', async () => {
+test('账号密码登录后直达工作台，切换 API 数据源且后端数据可达', async () => {
   const page = await browser.newPage();
   // 离线可复现：测试环境可能无法访问外部 CDN（Google Fonts / Tailwind CDN），
   // 这些请求挂起会阻塞 window load 事件（readyState 卡在 interactive），导致
@@ -87,10 +92,11 @@ test('账号密码登录后切换 API 数据源，首页渲染且后端数据可
     await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
 
     // 2. 通过账号密码表单登录（2300010001/123456 → p13 书记）
+    //    P2 修复（最小三成本）：登录后直达角色工作台 secretary.html，不再跳首页
     await page.fill('#student-id', '2300010001');
     await page.fill('#password', '123456');
     await Promise.all([
-      page.waitForURL('**/index.html', { timeout: 10000 }),
+      page.waitForURL('**/workspace/secretary.html', { timeout: 10000 }),
       page.click('button[type="submit"]'),
     ]);
 
@@ -98,12 +104,12 @@ test('账号密码登录后切换 API 数据源，首页渲染且后端数据可
     const token = await page.evaluate(() => sessionStorage.getItem('gsm1921-api-token'));
     assert.ok(token, '登录成功后 sessionStorage 应存在 gsm1921-api-token');
 
-    // 4. 首页正常渲染：等待 header 渲染出书记身份标签（“党支部书记”）
+    // 4. 工作台正常渲染：等待 header 渲染出书记身份标签（“党支部书记”）
     await page.waitForFunction(() => {
       const header = document.getElementById('app-header');
       return header && header.textContent.includes('党支部书记');
     }, { timeout: 10000 });
-    assert.match(await page.title(), /管理引擎/);
+    assert.match(await page.title(), /工作台/);
 
     // 5. 读路径断言（C1）：bootstrap init() 确实从服务器拉数
     //    说明：捕获的是登录跳转后整个页面加载过程（含 CODE_VERSION 自检 reload）
@@ -126,14 +132,17 @@ test('账号密码登录后切换 API 数据源，首页渲染且后端数据可
       'bootstrap 应返回非空 users 数组'
     );
 
-    // 7. 写穿闭环（C2）：经页面上下文 POST /api/v1/snapshot 写入一条唯一活动
+    // 7. 写穿闭环（C2）：走前端数据层真实写路径（服务层改 mockDB → persist() → 防抖快照写穿）。
+    //    2026-08-27 适配说明：不能再用原生 fetch 直接 POST /api/v1/snapshot——
+    //    那会绕过前端 mockDB，页面加载期间的 pagehide 防抖冲刷（data-adapter.js）
+    //    会以过期的前端缓存覆盖服务器，恰好覆盖掉刚写入的数据。
     const uniqueTitle = `E2E写穿验证-${Date.now()}`;
     const today = new Date();
     const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    const snap = await page.evaluate(async ({ uniqueTitle, dateStr }) => {
-      const tok = sessionStorage.getItem('gsm1921-api-token');
-      const list = await (await fetch('/api/v1/activities')).json();
-      list.push({
+    await page.evaluate(async ({ uniqueTitle, dateStr }) => {
+      const { mockDB } = await import('/src/core/domain.js?v=20260827c');
+      const { persist } = await import('/src/core/data-adapter.js?v=20260827c');
+      mockDB.activities.push({
         id: 'act-e2e-' + Date.now(),
         title: uniqueTitle,
         date: dateStr,
@@ -142,23 +151,24 @@ test('账号密码登录后切换 API 数据源，首页渲染且后端数据可
         visibility: 'branch',
         createdAt: new Date().toISOString(),
       });
-      const res = await fetch('/api/v1/snapshot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tok}` },
-        body: JSON.stringify({ activities: list }),
-      });
-      return { status: res.status };
+      persist();
+      return true;
     }, { uniqueTitle, dateStr });
-    assert.equal(snap.status, 204, 'snapshot 写穿应返回 204');
+    // 7.5 等待防抖快照（800ms）真正落库：服务端 activities 应出现该唯一标题
+    await page.waitForFunction(async (t) => {
+      const list = await (await fetch('/api/v1/activities')).json();
+      return Array.isArray(list) && list.some((a) => a.title === t);
+    }, uniqueTitle, { timeout: 10000 });
 
     // 8. reload 后数据闭环验证：
     //    a) 服务端读回：GET /api/v1/activities 应包含该唯一标题；
-    //    b) UI 渲染：首页「近期活动」板块（列表视图容器默认隐藏，但已渲染进 DOM）
+    //    b) UI 渲染：回到首页「近期活动」板块（列表视图容器默认隐藏，但已渲染进 DOM）
     //       的 body 文本应包含该标题 —— 证明 init() 从服务器拉回并渲染。
+    //    说明：登录直达的是角色工作台（P2 修复），首页近期活动列表需显式回到首页断言。
     //    选择说明：首页日历视图只渲染活动类型短标签（title 只在 title 属性中），
     //    故 UI 断言用 body.textContent（hidden 容器的文本同样计入），主闭环以
     //    服务端读回 + 首页渲染双断言锁定，避免单一渲染路径的偶发不确定性。
-    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.goto(`${base}/index.html`, { waitUntil: 'domcontentloaded' });
     await waitForBodyText(page, uniqueTitle);
 
     const readback = await page.evaluate(async (t) => {

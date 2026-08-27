@@ -5,7 +5,7 @@ role: "[工程师]+[AI]"
 last_updated: "2026-08-16"
 version: "2.2"
 status: active
-related_files: [CLAUDE.md, content/04_web_design/DATA_ARCHITECTURE.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/insights/党支部管理与实务经验沉淀.md, content/01_strategy/SECRETARY_PRONOUNCEMENTS.md]
+related_files: [CLAUDE.md, content/04_web_design/DATA_FLOW.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/insights/党支部管理与实务经验沉淀.md, content/01_strategy/SECRETARY_PRONOUNCEMENTS.md]
 ---
 
 # 组织者与深度参与者的扁平化设计
@@ -83,4 +83,4 @@ related_files: [CLAUDE.md, content/04_web_design/DATA_ARCHITECTURE.md, content/0
 
 ---
 
-> 详细设计见 [DATA_ARCHITECTURE.md](../04_web_design/DATA_ARCHITECTURE.md) §三
+> 详细设计见 [DATA_FLOW.md](../04_web_design/DATA_FLOW.md) §三

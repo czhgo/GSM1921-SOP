@@ -6,9 +6,9 @@
 // 修复（T175）：不再从 ./index.js 导入 _personName/_activityTitle，
 // 消除 mock/index.js ↔ mock/review.js 循环依赖。
 // 直接依赖 services/person.js + mock/activities.js。
-import { getPersonName } from '../services/person.js?v=20260823b';
-import { ACTIVITIES } from './activities.js?v=20260823b';
-import { ReviewStatus } from '../core/domain.js?v=20260823b';
+import { getPersonName } from '../services/person.js?v=20260827c';
+import { ACTIVITIES } from './activities.js?v=20260827c';
+import { ReviewStatus } from '../core/domain.js?v=20260827c';
 
 const _personName = (id) => getPersonName(id);
 const _activityTitle = (id) => ACTIVITIES.find(a => a.id === id)?.title || id;

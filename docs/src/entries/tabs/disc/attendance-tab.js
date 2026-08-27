@@ -3,17 +3,17 @@
 // 纪检委员维护考勤系统：待确认（请假/缺勤/超期）→ 确认 → 自动生成补课任务。
 // filterActivityId 经 ctx.attendanceFilterActId 传入（URL activityId 落点直达该活动考勤）。
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260823b';
-import { attendanceToLong, attendanceToWide, getPersonName } from '../../../mock/index.js?v=20260823b';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260823b';
-import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260823b';
-import { loadActivities } from '../../../services/activity.js?v=20260823b';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260823b';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260823b';
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260823b';
-import { badgeHtml } from '../../../components/badge.js?v=20260823b';
-import { showToast } from '../../../core/utils.js?v=20260823b';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260823b';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260827c';
+import { attendanceToLong, attendanceToWide, getPersonName } from '../../../mock/index.js?v=20260827c';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260827c';
+import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260827c';
+import { loadActivities } from '../../../services/activity.js?v=20260827c';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260827c';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260827c';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260827c';
+import { badgeHtml } from '../../../components/badge.js?v=20260827c';
+import { showToast } from '../../../core/utils.js?v=20260827c';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260827c';
 
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');

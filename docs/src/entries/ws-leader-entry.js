@@ -4,19 +4,19 @@
 // 入口职责：bootstrap + tab 清单读取（能力注册表 M2e）+ URL 导航落点 + 状态变更驱动的当前 tab 重渲染。
 // tab.render 为懒加载动态 import（点击时才加载对应模块），各 tab 私有状态随模块自持。
 
-import { setState, registerRenderCallback } from '../core/state.js?v=20260823b';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260823b';
-import { renderTabBar } from '../components/tab-bar.js?v=20260823b';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260823b';
-import { flashHighlight } from '../core/utils.js?v=20260823b';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260823b';
-import { getCapabilities } from '../core/registry.js?v=20260823b';
-import { loadActivities } from '../services/activity.js?v=20260823b';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260823b';
-import { SignupStore } from '../services/signup.js?v=20260823b';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260823b';
-import { TodoStore, seedTodos } from '../services/todo.js?v=20260823b';
-import { filterByRole } from './tabs/leader/_shared.js?v=20260823b';
+import { setState, registerRenderCallback } from '../core/state.js?v=20260827c';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260827c';
+import { renderTabBar } from '../components/tab-bar.js?v=20260827c';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260827c';
+import { flashHighlight } from '../core/utils.js?v=20260827c';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260827c';
+import { getCapabilities } from '../core/registry.js?v=20260827c';
+import { loadActivities } from '../services/activity.js?v=20260827c';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260827c';
+import { SignupStore } from '../services/signup.js?v=20260827c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260827c';
+import { TodoStore, seedTodos } from '../services/todo.js?v=20260827c';
+import { filterByRole } from './tabs/leader/_shared.js?v=20260827c';
 // 副作用导入触发组长工作台能力注册（tab 清单，M2e）
 import '../modules/capabilities/leader-workspace.js?v=20260822e';
 
@@ -31,14 +31,19 @@ let _currentTab = 'todo';
 let _todoPriorityConsumed = false; // "有待办必见待办"一次性消费标志（书记 2026-08-10 裁定）
 let _navTarget = null; // { tfId, actId } URL 导航目标（跨重渲染保持，定位完成后清除）
 let _highlightTfId = null; // 专班查看高亮目标（快照变量：导航目标清除后仍供懒加载渲染读取）
+// B1-5 修复：URL 导航落点后抑制当前 tab 重渲染，防止二次 setState 重建 DOM 冲掉直达高亮。
+// 条件抑制：仅当导航目标元素已在 DOM 中（高亮已展示）才抑制；目标缺失（延迟数据）放行补渲染。
+const NAV_SUPPRESS_MS = 3000;
+let _navSuppressUntil = 0;
+let _navTargetSel = null; // 导航目标元素选择器（用于条件抑制判断）
 
-/** 渲染上下文（供各 tab 模块使用；onNavLocated 供专班查看定位完成后清除高亮目标） */
+/** 渲染上下文（供各 tab 模块使用；高亮目标由导航路径 3s 定时器清除，B1-5） */
 function _renderCtx(filteredActivities) {
   return {
     accent, accentRgba, accentBorder, filteredActivities,
     navTarget: _navTarget,
     highlightTfId: _highlightTfId,
-    onNavLocated: () => { _highlightTfId = null; },
+    onNavLocated: () => { /* 高亮目标存活至抑制窗口结束（B1-5） */ },
   };
 }
 
@@ -118,9 +123,13 @@ function renderLeaderUI(state) {
     }
   }
   if (_navTarget) {
+    _navSuppressUntil = Date.now() + NAV_SUPPRESS_MS; // B1-5：抑制后续 setState 重渲染冲掉直达高亮
     if (_navTarget.tfId) {
       // 专班查看（组长无专班职责≠无知情权）：快照高亮目标后立即清除导航目标
       _highlightTfId = _navTarget.tfId;
+      _navTargetSel = `.tfv-card[data-tf-id="${_highlightTfId}"]`;
+      // 高亮目标存活至抑制窗口结束（B1-5：延迟数据到达后的补渲染可重新应用高亮）
+      setTimeout(() => { _highlightTfId = null; _navTargetSel = null; }, NAV_SUPPRESS_MS);
       _navTarget = null;
       _currentTab = 'tf-view';
       _tabBar.activate('tf-view', _renderCtx(activities));
@@ -129,20 +138,34 @@ function renderLeaderUI(state) {
       _tabBar.activate('write', _renderCtx(activities));
       if (_navTarget.actId) {
         const targetActId = _navTarget.actId;
-        setTimeout(() => {
-          const item = document.querySelector(`.leader-act-item[data-act-id="${targetActId}"]`);
+        _navTargetSel = `.leader-act-item[data-act-id="${targetActId}"]`;
+        // B1-5 轮询定位：活动数据可能延迟到达，轮询直至条目出现再展开详情+高亮
+        let attempts = 0;
+        const tryLocate = () => {
+          const item = document.querySelector(_navTargetSel);
           if (item) {
             item.click(); // 展开详情
             item.scrollIntoView({ behavior: 'smooth', block: 'center' });
             flashHighlight(item);
+            _navTargetSel = null;
+            _navTarget = null;
+          } else if (attempts < 20 && Date.now() < _navSuppressUntil) {
+            attempts++;
+            setTimeout(tryLocate, 300);
+          } else {
+            _navTargetSel = null;
+            _navTarget = null;
           }
-          _navTarget = null; // 无论成败：最终 DOM 已稳定，清除导航目标
-        }, 150);
+        };
+        setTimeout(tryLocate, 150);
       } else {
+        _navTargetSel = null;
         _navTarget = null;
       }
     }
   } else {
+    // B1-5 条件抑制：仅当导航目标已在 DOM（高亮已展示）时跳过重渲染；目标缺失放行补渲染
+    if (Date.now() < _navSuppressUntil && (!_navTargetSel || document.querySelector(_navTargetSel))) return;
     // 非落点路径：用最新数据刷新当前 tab（对齐单体版每次 setState 重渲染当前 tab 的行为）
     _renderCurrentTab(state);
   }

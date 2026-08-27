@@ -1,4 +1,4 @@
-﻿﻿---
+﻿﻿﻿﻿﻿﻿﻿---
 title: "2026年8月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
@@ -4774,3 +4774,614 @@ server/db.js 26 资源表（id + data JSON 通用结构，含 branch_docs）+ se
 ### 沉淀标签
 `[已沉淀: KNOWN_PITFALLS §17 补充判例（T-279 M4）]` — M4 迭代机制版本化落地验证「发布=bump 一次」（KNOWN_PITFALLS §13 机制化）：registry 等共享状态模块变更后，新增引用方（bootstrap/decision-tree）与原引用方必须全站统一版本，否则同页双实例分裂（§17）；bump-version.mjs 一次性统一 100 JS + 16 HTML 是版本化机制的标准动作，回归靠 Node 断言 + Playwright 双保险
 
+## T-280 B1 跳转逻辑梳理 · 对账报告（2026-08-24）
+
+**任务**：网页逻辑全量梳理第 1 批（B1 跳转逻辑）——URL 参数直达 / tab 切换 / 跨页状态 / 登录跳转，与 CHECKLIST「手动检查清单 T-235」双向对账。
+**引用流程**：H50.1 大任务分片 + CHECKLIST.md（数据同源一致性校验手册）+ DESIGN_SYSTEM 高频零跳转
+**来源**：书记要求——基于既有 mock 数据对网页逻辑（跳转/计算/写入/读取）全量梳理，CHECKLIST 文档与网页双向修改。
+
+### 一、已核实跳转链路（10 条）
+
+| # | 链路 | 实现位置 | 核实结果 |
+|---|------|---------|---------|
+| 1 | 首页 4 类点击跳转（活动列表/专班/画廊/日历条目）→ buildURL 造参 → 工作台 | main-entry.js dashContainer click 委托（L487-528） | ✅ |
+| 2 | 「查看更多活动」→ ?view=activities | main-entry.js L313 | ✅ |
+| 3 | 跨页状态枢纽：CODE_VERSION=32、buildURL/getURLParams/setParam/getParam/clearParam（URL+sessionStorage 双轨）、会话状态 save/load/navigateTo | core/cross-page-state.js | ✅ |
+| 4 | 登录门控：dev 绕过白名单（本地 hostname+白名单角色）、workspace 强制跳 login、页面身份校验（登录快照+内存判定角色页面集合） | core/bootstrap.js L76-155 | ✅ |
+| 5 | 角色→页面映射 ROLE_PAGE_MAP（7 角色） | services/auth.js L101-111 | ✅ |
+| 6 | Tab 切换：priorityTab > localStorage 记忆 > defaultTab > tabs[0]；activate 同步按钮高亮+写记忆+onTabChange | components/tab-bar.js L72-192 | ✅ |
+| 7 | 6 工作台 URL 消费统一模式：getURLParams → navTarget 快照 → clearParam 三参 → 落点 activate | ws-secretary/leader/org/prop/disc/visitor-entry.js | ✅ |
+| 8 | 待办跳转：通知待办→notice.html?id=；报名审核→activity/taskforce.html?id=；actionType→工作台 tab（组长 authorize→write/submit→attendance/review→review） | 各角色 tabs/*/todo-tab.js | ✅ |
+| 9 | 通知直达：notice.html?id= 消费 | notice-entry.js L17/L36 | ✅ |
+| 10 | 登录跳转：login-entry.js 成功登录→index.html（首页）；高亮褪去 flashHighlight 2800ms | login-entry.js + core/utils.js L112-121 | ✅ |
+
+### 二、与 CHECKLIST T-235 对账结果（8 用例 + 5 附加项全部一致）
+
+| CHECKLIST 用例 | 代码落点核实 |
+|---|---|
+| #1 书记 activityId→活动管理+月份2026-06+详情+高亮褪去 | secretary: activate('calendar')+setState displayMonth=act.date 前 7 位（L124-131）✅ |
+| #2 书记 taskforceId→专班查看+高亮褪去 | secretary: _secHighlightTfId 快照+activate('tf-view')（L111-116）✅ |
+| #3 组织 activityId→活动查看+月份跟随+详情 | org: _orgHighlightActId+activate('activity-view')+displayMonth 跟随（L126-137）✅ |
+| #4 组织 taskforceId→专班管理+卡片高亮+详情展开 | org: activate('taskforce')+.tf-store-card[data-tf-id]+card.click()（L138-148）✅ |
+| #5 宣传 activityId→项目看板+卡片高亮 | prop: activate('kanban')+`.kanban-card[data-kt="activity"][data-ki]`（L111-123）✅ |
+| #6 纪检 taskforceId→专班查看+高亮 | disc: _highlightTfId+activate('tf-view')（L112-117）✅ |
+| #7 组长 activityId→活动管理+详情展开+高亮 | leader: activate('write')+.leader-act-item[data-act-id]+item.click()（L128-140）✅ |
+| #8 访客 activityId→活动动态+高亮自动褪去 | visitor: _visitorHighlightActId+activate('activities')（L150-152）✅ |
+| 附加 view=activities | 书记→calendar/组织→activity-view/其余同落点表 ✅ |
+| 附加 首页日历条目点击/专班卡片/活动卡片/高亮褪去一致性 | main-entry.js L487-528 + flashHighlight 2800ms ✅ |
+
+### 三、发现的不一致/缺口（4 项，待书记确认处理方向）
+
+1. **【网页→文档】CHECKLIST §1 人员数据校验点「登录成功→跳转对应角色工作台」与实现不符**：实际 login-entry.js 登录成功后跳转 `./index.html`（首页），首页顶栏/侧边栏展示对应角色工作台入口（main-entry.js L29-35 改写 workspace 链接），并非直接跳角色工作台。→ 建议 CHECKLIST 表述修正为「登录成功→跳转首页，首页顶栏展示对应角色工作台入口」。
+2. **【检查依据】CHECKLIST「手动检查清单 T-235」第 2 轮冒烟结果列仍为 2026-08-09 历史状态（4 个 ❌ 待人工复核）**：代码层面已确认 4 项修复逻辑存在（死循环/懒加载竞态/月份未跟随/SignupStore 未导入），但浏览器实测状态未更新，「检查有依据」闭环未完成。→ 建议 4 项重新浏览器实测后更新结果列。
+3. **【文档→网页】CHECKLIST 未覆盖登录门控四层链路校验点**：登录跳首页→首页按角色改写 workspace 链接、页面身份校验自动跳转（bootstrap L136-155）、dev 绕过白名单（仅本地 hostname）、已登录访问 login.html 直接跳首页、CODE_VERSION 代码版本自检。这些是 DEPLOYMENT_AUTH_MODEL.md §四登录门控设计的具体表现，校验手册缺覆盖。→ 建议 CHECKLIST 新增「登录与身份门控」校验点。
+4. **【文档→网页】CHECKLIST 未覆盖待办/通知直达跳转链路校验点**：通知阅读待办→notice.html?id=、报名审核待办→activity/taskforce.html?id=、待办 actionType→工作台 tab（最小三成本/高频零跳转理念落地）。→ 建议 CHECKLIST 手动检查清单新增「待办直达跳转」检查项。
+
+### 四、备注
+
+- 书记工作台 tab 清单硬编码于 ws-secretary-entry.js L39-57，未走能力注册表（T-279 M3 已知状态，README 已注明，非本次缺陷）。
+- 首页 ?view=&month=（列表/日历切换）与工作台 ?view=activities（直达活动 tab）参数语义并存、互不冲突（消费点隔离）。
+
+### 待书记确认
+→ 见对话 AskUserQuestion：4 项不一致项处理方向（B1-1 表述修正 / B1-2 实测回填 / B1-3 新增校验点 / B1-4 新增校验点）。
+
+## T-280 B1 执行收口（B1-1~B1-5 落地，2026-08-24）
+
+**书记确认**（AskUserQuestion）：B1-1 修正为跳首页 / B1-2 浏览器实测回填 / B1-3+B1-4 两批新增 / B1-5 按方案 A 修复。
+
+### 文档侧落地（B1-1/B1-3/B1-4）
+- B1-1：CHECKLIST §1 登录跳转校验点修正为「登录成功→跳转首页，首页顶栏展示对应角色工作台入口」（login-entry.js 登录后跳 index.html；main-entry.js 按角色改写 workspace 链接）
+- B1-3：CHECKLIST 新增 §16「登录与身份门控」校验点 6 条（已登录跳首页/账号密码登录→首页+顶栏入口/工作台身份校验自动跳转/dev 白名单/多标签页防串扰/CODE_VERSION 自检）
+- B1-4：CHECKLIST 手动检查清单新增「T-280-B1 待办/通知直达跳转」检查项 7 条（通知→notice.html/报名审核→activity-taskforce.html/组长赋权→活动详情≤2跳/考勤/复盘/书记通知直达/聚合卡一致性）
+
+### 浏览器实测（B1-2）：T-235 全量 34/34 PASS
+- 新增回归脚本 `server/test/t235-browser-regression.mjs`（8 用例 + view=activities ×2 + 首页三类点击 J1/J2/J3 + 高亮褪去一致性，Playwright）
+- 8 用例落点/参数消费/月份跟随/详情打开全部 PASS；首页三类点击跳转真实链路 PASS（framenavigated 证实：点击→`?activityId=act-30`→参数消费清空）
+- CHECKLIST T-235 表格新增「第 3 轮实测（2026-08-24）」列，4 个原 ❌ 待人工复核项全部转 ✅
+
+### B1-5 缺陷修复（代码侧，方案 A 条件抑制版）
+- **缺陷**：URL 直达高亮被 `loadWorkspaceData` 二次 setState 重渲染冲掉，实际可见仅 ~300ms（probe 证实 300ms 有/600ms 无），设计应 3 秒
+- **修复**（6 工作台入口统一）：
+  - 导航落点后 3 秒条件抑制当前 tab 重渲染：仅当导航目标元素已在 DOM（`_*NavTargetSel` 命中）时抑制，目标缺失放行延迟数据补渲染
+  - 高亮目标（`_*HighlightTfId/_*HighlightActId`）存活至抑制窗口结束（onLocated 改 no-op + 3s 定时器清除），补渲染可重新应用高亮
+  - 一次性 setTimeout(150) 定位改为轮询定位（组长 write/宣传 kanban/组织 taskforce，300ms×20 次）
+  - 修正访客活动条目选择器认知：实际为 `data-visitor-act-id`（非 data-act-id）
+- **回归验证**：T-235 34/34 + M4 31/31（m4 测试版本戳同步至 20260824b，注册表版本检查保持能力声明实际值）+ server 19/19 + capability 全绿
+- **版本化**：bump-version.mjs 20260824b 全站统一（CODE_VERSION 32→36），符合 KNOWN_PITFALLS §13「发布=bump 一次」
+
+### 变更文件清单
+`docs/src/entries/ws-secretary-entry.js` / `ws-leader-entry.js` / `ws-org-commissioner-entry.js` / `ws-prop-commissioner-entry.js` / `ws-disc-commissioner-entry.js` / `ws-visitor-entry.js`（条件抑制+轮询定位+高亮存活）、`docs/src/core/cross-page-state.js`（CODE_VERSION）、全站 JS/HTML（版本戳）、`content/04_web_design/CHECKLIST.md`（B1-1/3/4+T-235 第3轮）、`server/test/t235-browser-regression.mjs`（新建）、`server/test/m4-browser-regression.mjs`（版本戳同步）
+
+### 沉淀标签
+`[待沉淀: B1-5 条件抑制模式]` — URL 直达高亮与延迟数据补渲染的冲突解法：条件抑制（仅当导航目标已在 DOM 时抑制重渲染）+ 高亮目标存活窗口 + 轮询定位，三件套组合可复用（web 端导航落地通用模式）。
+
+## T-280 B2 计算逻辑梳理 · 对账报告（2026-08-24）
+
+**任务**：网页逻辑全量梳理第 2 批（B2 计算逻辑）——统计口径全量化，与 CHECKLIST 计数/统计校验点双向对账。
+**引用流程**：H50.1 大任务分片 + CHECKLIST.md + DESIGN_SYSTEM 最小三成本/打卡化判定/复盘问题导向
+
+### 一、已核实计算口径（全部量化）
+
+| # | 计算点 | 口径公式 | 位置 | 结果 |
+|---|--------|---------|------|------|
+| 1 | 书记概况·考勤率 | 本月活动记录 `(present+made_up)/total×100`，无记录 0，alert<80 | secretary-overview.js `_computeAttendance` | ✅ |
+| 2 | 书记概况·阶段人数 | PEOPLE 全量按 developStage 四档累加（非"有考察记录者"） | `_computeInspection` | ✅ |
+| 3 | 书记概况·活动/专班 | activeActivities=未归档；activeTaskforces=active+recruiting；pendingAuth=bottom-up 且无 organizer；reviewIssues=活跃活动复盘 issues 总条数（2026-08-10 问题导向） | `_computeActivity` | ✅ |
+| 4 | 书记概况·宣传档案 | noticeCount=本月发布；pendingArchive=已结束未归档；archiveRate=archived/ended | `_computePropaganda` | ✅ |
+| 5 | 按人视图 | 4 角色（org/prop/disc/leader，副书记除外）；todoCount=聚合卡 count 求和；overdueCount=deadline<today；在办活动/专班按职责关系投影 | `getPersonOverview` | ✅ |
+| 6 | SecretaryTodoDeriver | 8 组实时聚合：4 提醒类（考勤>3天/考察超期/复盘>7天/归档缺失）+ 4 复核类（考勤/考察/复盘/归档 secretaryConfirmedAt 为空） | `computeAggregates` | ✅ |
+| 7 | 首页统计卡 | 本月活动=未归档且 date 前缀本月；活跃专班=active+recruiting；未读通知=activeOnly 且未读；个人考勤率=`(present+made_up)/myTotal`（90/70 阈值） | main-entry.js `_renderStats` | ✅ |
+| 8 | 活动生命周期展示态 | deriveActivityLifecycleStatus：draft/archived/cancelled 直接判，exec 由任务进度派生，completed 走 checkActivityCloseConditions（executed/pending_archive） | inspector.js | ✅ |
+| 9 | 分类型关闭条件 | 三会一课（请假确认+缺勤补课+会议纪要）/主题党日（考勤+考察+复盘+宣传归档） | `checkActivityCloseConditions` | ✅ |
+| 10 | 待办派生 | NoticeTodoDeriver（actionable+actionRoles 字段驱动）/LifecycleTodoDeriver（活动创建→组长赋权/专班创建→组织赋权/活动归档→宣传归档）/VisitorTodoDeriver（通知阅读+活动/专班参与，幂等去重+stale 清理） | todo.js | ✅ |
+| 11 | 通知未读/过期 | list({activeOnly})：排除 archived + expireDate<today；紧急全部保留、重要仅未读 | notice.js | ✅ |
+| 12 | T223 排序 | 未完成在前、已完成在后，组内 date 降序；专班 createdAt 降序（B1 已核实） | 全站 | ✅ |
+
+### 二、与 CHECKLIST 对账发现（6 项，待书记确认处理方向）
+
+1. **B2-1【网页→文档】CHECKLIST §2 L76/L77 统计卡片校验点过时**：写"书记工作台统计卡片的『活动总数』= 非 cancelled 记录数""『品牌标签』数 = isBrand 7 条"——实际书记概况已重构为四维度（T-203），无「活动总数」「品牌标签数」统计（isBrand 仅为属性标签用于筛选/徽章）。→ 建议修正为实际维度口径（activeActivities/pendingAuth 等）或删除。
+2. **B2-2【网页→文档】CHECKLIST §2 L75 首页日历 cancelled 过滤与实现不符**：实现仅过滤 archived（calendar.js L878 `filter(a=>!a.archived)`），cancelled（act-20「3月理论学习小组（已取消）」）会显示在日历/列表（带"已取消"徽章）；CHECKLIST 称"act-20 为 cancelled 不显示"。→ 需书记决策：改代码（过滤 cancelled）或改文档（标注显示已取消）。
+3. **B2-3【文档→网页】首页统计卡口径无校验点**：本月活动/活跃专班/未读通知/个人考勤率四个口径无 CHECKLIST 校验点。→ 建议新增。
+4. **B2-6【网页→文档】CHECKLIST §7 L204 + 跨类别 L388「行动性关键词」表述过时**：写"未读通知中含行动性关键词的记录派生"，实际为 actionable 字段 + actionRoles 驱动（非关键词判断）。→ 建议修正。
+5. **B2-8【网页→文档】CHECKLIST §12 L305「复盘完成率」残留**：2026-08-10 书记裁定复盘改问题导向（reviewIssues 真问题计数），复盘完成率已废弃。→ 建议修正 L305 表述。
+6. **B2-10【文档→网页】缺失新计算逻辑校验点**：复盘问题数（reviewIssues）/按人视图 getPersonOverview/活动生命周期展示态/SecretaryTodoDeriver 8 组动态聚合无校验点。→ 建议新增。
+
+### 三、一致性确认（✅ 无问题）
+- 考勤率口径全站统一：(present+made_up)/total（书记概况/首页个人考勤/纪检待确认）
+- 生命周期展示态 deriveActivityLifecycleStatus 全站统一（首页列表/日历/画廊/详情）
+- 通知未读/过期/紧急保留与 CHECKLIST §6 一致
+- 待办聚合（role:actionKey）与 DATA_ARCHITECTURE §2.18-2.20 一致
+- 补课联动（缺勤→补课→made_up 回写）与 CHECKLIST §11/跨类别一致
+
+### 待书记确认
+→ 见对话 AskUserQuestion：B2-1 修正/删除校验点、B2-2 决策 cancelled 显示、B2-3/B2-10 新增校验点、B2-6/B2-8 表述修正。
+
+## T-280 B2 执行收口（B1-6 项落地，2026-08-24）
+
+**书记确认**（AskUserQuestion 采纳推荐）：B2-1 改写为实际维度 / B2-2 保留显示改文档 / B2-3+B2-10 新增校验点 + B2-6+B2-8 表述修正。
+
+### CHECKLIST 侧落地
+- **B2-1**：§2「活动总数/品牌标签数」过时统计卡校验点改写为书记概况实际维度（activeActivities/activeTaskforces/pendingAuth/reviewIssues）+ 首页统计卡「本月活动」口径；isBrand 标注为属性标签无独立计数
+- **B2-2**：§2 首页日历/列表校验点修正为「未归档活动（含已取消 act-20，带『已取消』徽章），仅过滤 archived」——保留显示策略（成员可感知取消事实），不改代码
+- **B2-3**：跨类别新增「首页统计卡四口径」校验点（本月活动/活跃专班/未读通知/个人考勤率 90/70 阈值）
+- **B2-6**：§7 通知类待办校验点 + 跨类别「行动性通知含关键词」修正为「actionable 字段 + actionRoles 驱动」
+- **B2-8**：§12 复盘校验点修正——复盘完成率废弃，改「复盘问题数（reviewIssues）」问题导向
+- **B2-10**：新增校验点——§7 书记待办 8 组动态聚合（SecretaryTodoDeriver）+ 跨类别活动生命周期展示态（deriveActivityLifecycleStatus）/按人视图（getPersonOverview 4 角色职责投影）
+
+### 一致性确认（✅ 无代码改动）
+考勤率口径全站统一 / 生命周期态全站统一 / 通知过滤一致 / 待办聚合一致 / 补课联动一致（详见 B2 对账报告第三节）
+
+### 变更文件清单
+`content/04_web_design/CHECKLIST.md`（§2 活动校验点重构 + §7 待办 + §12 复盘 + 跨类别新增 3 条）
+
+### 沉淀标签
+无新模式（B2 为既有口径的文档对账修正，无新增方法论）。
+
+## T-280 B3 写逻辑梳理 · 对账报告（2026-08-24）
+
+**任务**：网页逻辑全量梳理第 3 批（B3 写逻辑）——全部写入点 + 持久化链路，对账 CHECKLIST「写入后可见/联动」校验点。
+**引用流程**：H50.1 大任务分片 + CHECKLIST.md + insights「打卡化判定」（完成必须对应真实产物）
+
+### 一、已核实写入链路（8 条）
+
+| # | 写入链 | 实现位置 | 结果 |
+|---|--------|---------|------|
+| 1 | 持久化单点汇聚：persist() → mock=localStorage saveDB / api=本地备份+800ms 防抖快照写穿+pagehide 同步冲刷；末尾 notifyDataChanged 广播 | data-adapter.js persist/_scheduleSnapshot/_flushSnapshotSync | ✅ |
+| 2 | 活动写入链：writeActivityWithSOP（决策树）+ saveActSubs + 考勤/考察子记录 + syncProjectRoles + 销待办，全部持久化 | leader/write-tab.js | ✅ |
+| 3 | 专班写入链：24 写点（创建/启动/归档/解散/报名审核/赋权/通知发布/子记录）+ persist 扎口 | org/taskforce-tab.js | ✅ |
+| 4 | 考勤确认链：纪检 saveAttendanceRecords（写 recordedBy）+ autoGenerateMakeupTask（缺勤/请假→补课任务） | disc/attendance-tab.js + makeup.js | ✅ |
+| 5 | 赋权写入链：authorize/revokeAuthorization/syncProjectRoles → 写主源（activities.assignments/taskforces.members）+ _appendAuditEntries 审计快照（只增不改）+ persist | auth.js | ✅ |
+| 6 | 通知写入→待办派生：NoticeStore.add → NoticeTodoDeriver（actionable+actionRoles）| notice.js + todo.js | ✅ |
+| 7 | 独立 localStorage 域写路径：Issues/Milestones/Auth 审计不经 persist，写方法内显式 notifyDataChanged | data-adapter L334-335 注释 + issues.js | ✅ |
+| 8 | 档案/周报/宣传任务/邮箱/外发/经验沉淀等 niche 域写入：mockDB.X = ... + persist | prop/archive-tab.js、weekly-tab.js、tasks-tab.js、disc/mailbox-tab.js 等 | ✅ |
+
+### 二、发现的不一致/缺陷（1 项，待书记确认）
+
+**B3-1【网页实现缺陷 · 打卡化判定】补课完成未回写考勤 made_up（高优先级）**：
+- 纪检「确认完成」补课任务仅标记 `makeupTask.status='completed'`（makeup-tab.js L85-97），**未更新 attendanceRecordId 对应考勤记录为 made_up**
+- `attendanceRecordId` 仅在 autoGenerateMakeupTask 创建补课任务时写入（makeup.js L58），全仓无任何读取回写点（Grep 证实仅 1 处出现）
+- 现有 made_up 记录（att27/att14）仅为静态种子，运行时补课完成链路无回写
+- **违反**：CHECKLIST §11「已完成补课对应的考勤记录 status='made_up'（att27/att14）」+ 跨类别「补课完成后考勤状态变 made_up」+ insights「打卡化判定」（完成必须对应真实产物，仅状态翻转即打卡化设计缺陷）
+- → 建议修复：makeup-tab 确认完成时，按 task.attendanceRecordId 将对应考勤记录 status 改为 made_up + persist
+
+### 三、一致性确认（✅ 无问题）
+缺勤→补课生成链完整 / 活动写入链完整 / 专班写入链完整 / 赋权写主源+快照完整 / 通知→待办派生完整 / persist 单点汇聚完整
+
+### 待书记确认
+→ 见对话 AskUserQuestion：B3-1 补课回写缺失的修复方向。
+
+## T-280 B3 执行收口（B3-1 修复 + 验证，2026-08-24）
+
+**书记确认**（AskUserQuestion）：B3-1 修复回写闭环。
+
+### B3-1 修复落地（代码侧）
+- **缺陷**：纪检「确认完成」补课任务仅标记 makeupTask completed，未回写考勤 made_up（打卡化判定缺陷——完成仅状态翻转无真实产物）
+- **修复**（`docs/src/entries/tabs/disc/makeup-tab.js`）：确认完成时按 `task.attendanceRecordId` 找到对应考勤记录，若为 absent/leave 则改为 `made_up` + `overdue=false` + `madeUpAt` 时间戳，`saveAttendanceRecords` 持久化；用 `loadAttendanceRecords`（原始全表）避免归档过滤丢已归档考勤
+- **验证**（`server/test/b3-1-makeup-writeback.test.mjs`，新建）：注入合成补课任务→点击确认完成→考勤 att38 回写 made_up + overdue 清除，**5/5 PASS**（无 JS 错误）
+- **版本化**：bump 20260824c（CODE_VERSION 36→37）
+- **CHECKLIST**：§11 补课数据新增校验点「确认完成→回写考勤 made_up + overdue 清除（B3-1 修复）」
+
+### 变更文件清单
+`docs/src/entries/tabs/disc/makeup-tab.js`（B3-1 回写）、全站 JS/HTML（版本戳）、`content/04_web_design/CHECKLIST.md`（§11 新增校验点）、`server/test/b3-1-makeup-writeback.test.mjs`（新建）
+
+### 沉淀标签
+`[待沉淀: B3-1 补课回写打卡化闭环]` — 补课完成必须回写考勤 made_up（完成=真实产物）；attendanceRecordId 建立补课→考勤的引用链，回写点缺失即为打卡化缺陷。同类模式：任何"完成"操作须检查是否只翻状态未落真实产物。
+
+## T-280 B4 读逻辑梳理 · 对账报告（2026-08-24）
+
+**任务**：网页逻辑全量梳理第 4 批（B4 读逻辑）——全部读取点 + 数据源路由 + 只读视图 + 知情边界，对账 CHECKLIST 读一致性校验点。
+**引用流程**：H50.1 大任务分片 + CHECKLIST.md + DESIGN_SYSTEM 按人视图·知情边界（P-011）
+
+### 一、已核实读取机制（6 条）
+
+| # | 读取机制 | 实现位置 | 结果 |
+|---|---------|---------|------|
+| 1 | 数据源路由：bootstrap 经能力注册表选择 mock/api，api 拉取失败完整回退 mock；登录态感知 | core/bootstrap.js（B1 已核实）+ modules/capabilities/data-source.js | ✅ |
+| 2 | 空表回退种子：activity/attendance/inspection/review 四服务统一 `mockDB.X.length>0 ? [...mockDB.X] : [...SEED]` | services/activity.js、attendance.js、inspection.js、review.js | ✅ |
+| 3 | 知情边界（P-011）：L0 个人 / L1 条线（AUTHORIZE_CHAIN 赋权链投影）/ L2 全局（书记/副书记 all）；ROLE_VISIBILITY 配置表 + PROJECT_VISIBILITY（organizer→deep 项目内）+ resolveVisibleTargets/canViewPerson/dimensionsFor | services/visibility.js | ✅ |
+| 4 | 只读视图（visitor 6 tab）：读 mockDB/localStorage 无写，派生写在入口层（VisitorTodoDeriver 幂等） | ws-visitor-entry.js + visitor/*-tab.js（B1/搜索代理核实） | ✅ |
+| 5 | 静态页登录态感知壳：login-snapshot.js 零依赖纯读（键名与 auth.js 硬同步） | core/login-snapshot.js（B1 已核实） | ✅ |
+| 6 | 数据变更即时刷新：persist → notifyDataChanged 事件总线 → 首页统计卡/header 角标即时重算 | data-adapter.js（B3 已核实） | ✅ |
+
+### 二、与 CHECKLIST 对账发现（2 项，待书记确认）
+
+1. **B4-1【网页→文档】CHECKLIST §1 L46「各工作台人员选择器中的列表 = PEOPLE 中 developStage='正式党员' 的成员」与实现不符**：PersonPicker 默认可注入 filter，未传 filter 时显示**全部 PEOPLE**（已验证 leader 考勤上传选择器 `new PersonPicker({mode:'multi'...})` 未传 filter）。→ 建议修正为「各工作台人员选择器显示全部 PEOPLE（部分场景由调用方传 filter 过滤，如发展党员候选=非正式党员）」，或若设计意图是仅正式党员可被选为组织者/深度参与者，则需补过滤（书记决策）。
+2. **B4-2【网页→文档】CHECKLIST §5 L156「某人的考察记录数量 = 该人作为 organize/deep 参与的活动/专班数」措辞不准确**：考察记录由组长/组织委员**手工上传**（inspection-tab saveInspectionRecords），无自动从 assignments 派生逻辑；数量依赖录入行为，不自动等于参与数。跨类别 L391「assignments 中 organizer/deep 应有对应考察记录」是业务期望非代码保证。→ 建议修正为「参与过活动/专班（assignments organizer/deep）的人员**应有**对应考察记录（业务期望，依赖人工录入）」——从"自动同源"改为"业务期望"语义。
+
+### 三、一致性确认（✅ 无问题）
+数据源路由（mock/api 双模式+回退）/ 空表回退四服务一致 / 知情边界三层投影完整 / 只读视图无写 / 静态页登录态感知 / 数据变更即时刷新（B2/B3 已确认的读一致性）
+
+### 待书记确认
+→ 见对话 AskUserQuestion：B4-1 人员选择器过滤、B4-2 考察数量措辞。
+
+## T-280 B4 执行收口（B4-1/B4-2 落地，2026-08-24）
+
+**书记确认**（AskUserQuestion）：B4-1 改文档默认全部 / B4-2 修正为业务期望。
+
+### CHECKLIST 侧落地
+- **B4-1**：§1 人员选择器校验点修正为「= PEOPLE 全部成员（PersonPicker 默认可注入 filter；特定场景由调用方传过滤，如发展党员候选=非正式党员、书记赋权被赋权人=非支委）」
+- **B4-2**：§5 考察数量校验点修正为「参与过活动/专班（assignments organizer/deep）的人员**应有**对应考察记录——业务期望，考察为组长/组织委员手工上传，数量依赖录入行为，非自动派生」；跨类别 L392 同步标注「业务期望，手工录入；非自动派生」
+
+### 一致性确认（✅ 无代码改动）
+数据源路由 / 空表回退四服务一致 / 知情边界三层投影 / 只读视图无写 / 静态页登录态感知 / 数据变更即时刷新
+
+### 变更文件清单
+`content/04_web_design/CHECKLIST.md`（§1 选择器 + §5 考察 + 跨类别）
+
+### 沉淀标签
+无新模式（B4 为读取机制对账修正，无新增方法论）。
+
+## T-280 B5 前后端对账 · 对账报告（2026-08-24）
+
+**任务**：网页逻辑全量梳理第 5 批（B5 前后端对账）——server 数据模型与前端 mockDB 一致性。
+**引用流程**：H50.1 大任务分片 + CHECKLIST.md + ARCHITECTURE.md + T-209 全栈同步
+
+### 一、已核实（前后端一致，8 条）
+
+| # | 对账点 | 核实结果 |
+|---|--------|---------|
+| 1 | server 26 表（users + 25 业务）vs 前端 mockDB 持久化域 | ✅ 对齐（RESOURCE_TABLES 完整覆盖） |
+| 2 | 资源名→表名映射 vs snapshot payload 键名 | ✅ 对齐（resources.js RESOURCE_TABLES，含 makeupTasks→makeup_tasks 等映射） |
+| 3 | seed.js 复用前端 mock | ✅ 8 集合（PEOPLE/ACTIVITIES/MOCK_NOTICES/MOCK_TASKFORCES/SEED_TASKS/SEED_ASSIGNMENTS/SEED_ARCHIVE_RECORDS/SEED_SIGNUPS），与 mock-adapter._seedInitialData 对齐 |
+| 4 | attendances/inspections/todos API 模式空表回退本地种子（Z5） | ✅ 与 data-adapter init 注释一致（服务端 seed 仅 7 表，防加载期本地覆盖服务器） |
+| 5 | snapshot 写穿链路（_buildSnapshotPayload 24 域 → POST /api/v1/snapshot → replaceCollection） | ✅ 单点汇聚 + pagehide 同步冲刷 |
+| 6 | 聚合域 __root__ 单行模式（actSubRecords/tfSubRecords/mailboxConfig） | ✅ 写穿包装与 init 解包对称 |
+| 7 | branchDocs 独立资源组（per-item REST create/update/delete） | ✅ mock 模式 _saveToStorage 持久化；API 模式直写 /api/v1/branchDocs |
+| 8 | auth 链路（requireAuth/requireCommissioner + token）+ server 测试 19/19 | ✅ 测试覆盖 auth/resources/seed/snapshot/uploads |
+
+### 二、发现（2 项文档缺口 + 1 项低优先级观察，待书记确认）
+
+1. **B5-1【设计说明】branchDocs 是唯一不走 snapshot 写穿的域**（per-item REST 直写，其余 24 域走防抖快照）。设计选择（T-264 资料查询支部文件用独立资源组），但 CHECKLIST 未说明，易被误判为写穿缺口。→ 建议 CHECKLIST 明确标注。
+2. **B5-2【文档→网页】CHECKLIST 无 server/API 模式对账校验点**：CHECKLIST 存储源标注均为前端 mock（docs/src/mock/...），未覆盖 API 模式（/api/v1/ 路由读写、snapshot 写穿、server 表）。书记明确要求梳理涉及 server。→ 建议新增「前后端数据模型对账」校验点（server 26 表 / snapshot 写穿 / seed 复用 / branchDocs per-item）。
+3. **B5-3【低优先级观察】API 模式下 branchDocs per-item 写后 mockDB.branchDocs 不同步**：references.js 经 getAdapter().branchDocs.update 直写服务器后，仅更新自持 `_branchDocs` 缓存，未回写 mockDB.branchDocs（mock 模式则直改 mockDB）。当前无其他消费点读 mockDB.branchDocs，无实际影响，但属潜在 stale 风险。→ 建议后续优化时回写 mockDB 或标注已知限制。
+
+### 三、一致性确认（✅ 无问题）
+seed 集合对齐 / 资源路由 26 名全覆盖 / snapshot 单点写穿 / 聚合域对称 / auth 链路 / 测试 19/19
+
+### 待书记确认
+→ 见对话 AskUserQuestion：B5-1 标注说明、B5-2 新增 server 对账校验点、B5-3 观察项处置。
+
+## T-280 B5 执行收口（B5-1/B5-2/B5-3 落地，2026-08-24）
+
+> 处置说明：书记对 B5 三问 AskUserQuestion 跳过选择并指示 Continue——鉴于三项处置均为 CHECKLIST 文档性对账修正（无代码逻辑改动，可逆性强），且 B5-3 经深度核实为「巧合安全」，按推荐方向落地。
+
+- **B5-1 标注 branchDocs 写穿例外**：CHECKLIST「跨类别同源校验」新增「快照写穿边界」条目——全量快照覆盖 25 个持久化域，不含 users 与 branchDocs；branchDocs 走 per-item CRUD 且仅支委可写（COMMISSIONER_WRITE）。
+- **B5-2 新增 server/API 对账校验点**：① 跨类别新增「前端持久化域 ↔ server 表对账」+「聚合域存储模式（`__root__` 单行 round-trip）」2 条；② 手动检查清单新增「T-280-B5 前后端数据模型对账」小节 6 条（表↔域映射/seed 复用/空表回退/branchDocs 写权限/聚合域 round-trip/auth 测试）。
+- **B5-3 观察项处置（核实为"巧合安全"）**：深度核实结论——API 模式下 references.js 经 ApiAdapter per-item CRUD 直写 server 并维护自持 `_branchDocs`，不回写 mockDB.branchDocs；但 (a) `_buildSnapshotPayload` 不含 branchDocs（全量快照不覆盖）、(b) API 模式本地备份不参与读、(c) 无其他消费点读 mockDB.branchDocs → 无用户可见危害。**不做代码改动**（避免无收益防御），在 CHECKLIST 写穿边界条目中标注「严禁将 branchDocs 加入快照 payload」防回归。
+
+## T-280 B6 CHECKLIST 收口（2026-08-24）
+
+**任务**：网页逻辑全量梳理第 6 批（B6 收口）——各批「文档→网页」新理念校验点落实确认 + 「网页→文档」过时描述全量修正 + 一改具改。
+**引用流程**：H30.1 一改具改 + H40 文件修改检查清单 + H50.1 乙部生命周期
+
+### 一、各批新理念校验点落实确认（✅ 全部已写入 CHECKLIST）
+
+| 批次 | 理念 → CHECKLIST 承载位置 |
+|---|---|
+| B1 跳转 | T-235 首页跳转直达 8 条+附加 4 条（第 3 轮实测 34/34）+ T-280-B1 待办/通知直达跳转 7 条 + §16 登录与身份门控 6 条 |
+| B2 计算 | §2 全局概况口径（activeActivities/activeTaskforces/pendingAuth/reviewIssues）+ 首页统计卡口径 + 活动生命周期展示态 + 按人视图口径 + §12 复盘问题数（完成率废弃）+ §7 书记待办 8 组动态聚合 |
+| B3 写 | §11 确认完成→回写考勤 made_up+overdue 清除（B3-1）+ §12 复盘提交持久化（P1-4） |
+| B4 读 | §5 B4-2 考察手工录入业务期望修正 + 空表回退种子 + §16 CODE_VERSION 自检 |
+| B5 对账 | 跨类别「前端持久化域↔server 表」「快照写穿边界」「聚合域 `__root__`」3 条 + T-280-B5 手动检查 6 条 |
+
+### 二、网页→文档过时描述修正
+
+- CHECKLIST §1 人员数据：运行时 `mockDB.people`（旧描述）→ `mockDB.users`（domain.js 实际集合名，people.js PEOPLE 经 seed.js 注入）
+
+### 三、一改具改检查
+
+- CHECKLIST.md `last_updated` 已为 2026-08-24，本次无其他 YAML 变更
+- 乙部 T-280：B1-B6 全部完成，本收口写入执行日志后从乙部删除（H50.1 规则 3）
+- `.ctx/PLAN_网页逻辑梳理.md`：B1-B6 全部勾选完成，按规划归档（后续删除本文件）
+- CODE_VERSION 核对：`docs/src/core/cross-page-state.js` L16 = **38**（bump 序列 32→34→36→37→38，最终值确认）
+
+### 四、验证
+
+- 无代码改动（B4/B5 为纯文档对账），server 测试维持 19/19（此前已跑通）；B3-1 代码改动已浏览器验证 5/5
+
+## T-280 B6 补充：m4 回归版本戳失配修复（2026-08-24）
+
+> 完成审计触发：B6 收口后跑 `npm test` 全量回归，发现 m4 浏览器回归 22/31（此前记录"已修正"未复核）。
+
+**现象**：9 项能力注册断言失败——注册表版本 `v=1.0.0`、数据源/场景/dashboard 能力清单全空、6 个工作台能力注册全空。
+
+**根因（KNOWN_PITFALLS §17 测试侧复现）**：bump-version.mjs 只覆盖 `docs/src/**/*.js` 与 `docs/*.html`；server/test/m4-browser-regression.mjs 内 Playwright evaluate 硬编码 `import('/src/...?v=20260824b')` 未随 bump 至 `20260824c`。capabilities 各模块内部 `import registry?v=20260824c` 注册到 C 实例，测试读取 B 实例 → 空注册表误报。功能本身正常（t235 34/34 + 页面渲染全部 PASS 佐证）。
+
+**修复**：
+1. `server/test/m4-browser-regression.mjs`：版本戳 `20260824b` → `20260824c`（4 处）
+2. `docs/scripts/bump-version.mjs`：新增 server/test/*.mjs 的 `/src/...?v=` 版本戳同步逻辑（bump 一次即连带更新测试戳，机制化防复发）
+3. `content/05_ai_coding/KNOWN_PITFALLS.md` §17：追加测试侧补充判例（T-280 B6 收口）
+
+**验证**：m4 回归 **31/31 PASS**（此前 22/31）；bump 脚本 `node --check` 通过；单元测试 19/19 与 t235 34/34 不受影响。
+
+**影响面**：仅测试脚本 + bump 工具链 + KNOWN_PITFALLS，无业务代码改动。
+
+## T-280-B1 待办/通知直达跳转 · 浏览器实测（2026-08-24，29/29 全过）
+
+**任务**：书记要求浏览器实测 CHECKLIST「T-280-B1 待办/通知直达跳转」7 条——因模型无视觉能力，全部采用**代码化断言**（URL / tab 激活态 / 详情面板 DOM），从运行时代码状态出发（TodoStore 派生数据 + DOM 行动按钮），构造待办与真实派生逻辑同源。
+**引用流程**：H50.1 + CHECKLIST T-280-B1 + DESIGN_SYSTEM 原则10（高频零跳转）
+
+### 一、7 条实测结果（`server/test/t280-b1-browser-regression.mjs`）
+
+| # | 检查项 | 实测方式 | 结果 |
+|---|--------|---------|------|
+| 1 | 通知阅读待办 | 构造 actionable 通知（NoticeTodoDeriver）→ 点「去阅读」 | ✅ notice.html?id=ntc-b1test |
+| 2 | 报名审核待办 | 书记真实数据 signup-review→tf-005；组织构造→act-15 | ✅ taskforce.html / activity.html |
+| 3 | 组长赋权待办 | 构造活动创建赋权 → 聚合卡「处理」 | ✅ write tab + act-2 详情自动打开 |
+| 4 | 组长考勤上传 | 构造 submit 待办 → 点「去提交」 | ✅ attendance tab 激活 |
+| 5 | 组长复盘提交 | 构造 review-submit 待办 → 点「去提交」 | ✅ review tab 激活（修复①后） |
+| 6 | 书记通知发布 tab | notification tab 点行 | ✅ notice.html?id=notice-110 |
+| 7 | 聚合卡一致性 | 聚合卡与明细同一 onActionTodo 处理函数 | ✅ 行为一致 |
+
+### 二、实测修复 2 个真实缺陷（`docs/src/entries/tabs/leader/todo-tab.js`）
+
+1. **缺陷①：actionKey 级 tabMap 缺失**——`review-submit`（复盘提交）待办点「去提交」误跳考勤上传（tabMap 仅 actionType 级 submit→attendance）。修复：新增 actionKeyMap（attendance-upload→attendance / review-submit→review），对齐 disc todo-tab 既有模式。
+2. **缺陷②：赋权直达详情失效**——聚合对象（getGroupedByAction）无 sourceId 字段 + 目标 tab 懒加载动态 import 渲染异步，同步 querySelector 在渲染前执行、找不到活动条目。修复：`sourceId || items[0].sourceId` 取源 + 以「详情面板打开」为完成条件的 100ms 轮询重试点击（4s 超时）。
+
+### 三、版本 bump（20260824d，让修复生效）
+
+- 全站 import 戳 20260824c → 20260824d（HTML 16 + JS 全部），CODE_VERSION 40（跨页自检）
+- **bump-version.mjs 新增 server/test 版本戳同步逻辑生效验证**：t235/m4/t280-b1/b3-1 内 `/src/...?v=` 全部自动同步为 20260824d（m4 版 31/31 验证无分裂）
+- ⚠️ 实测发现：bump 脚本输出「JS 文件 0 个」异常（实际 JS 已更新）——首次执行输出被沙箱吞、二次执行时 JS 已是新版本，属执行环境噪音，无实质影响
+
+### 四、测试基础设施稳定化
+
+- **npm test 改串行**（`--test-concurrency=1`）：并行时浏览器回归（t235/m4/t280-b1）争抢 server/浏览器资源致失败项漂移（m4 或 t235 用例4 偶发），串行稳定
+- **t235 waitElAndHighlight 超时 4s→8s**：串行环境下前序测试压力致卡片渲染慢于 4s（用例4 组织 tf-002 稳定复现 2 次），放宽后通过
+
+### 五、验证
+
+- **全量测试 21/21 全绿**：b3-1 5/5 + t235 34/34 + m4 31/31 + t280-b1 29/29 + probe3 单元测试
+- CHECKLIST T-280-B1 7 条全部勾选 ✅ + 实测说明；T-280-B5 测试计数更新为 21/21
+- 无 JS 错误（每用例 pageerror 监听为空）
+- 探针文件（probe-*.mjs）已删除，不留过程文件
+
+## T-280-B5 前后端数据模型对账 · API 实测（2026-08-24，6/6 全过）
+
+**任务**：书记要求浏览器实测 CHECKLIST「T-280-B5 前后端对账」6 条。因对账为 API/代码级，采用**API 级代码断言**（node fetch 直调 server，无浏览器依赖），写入 `server/test/t280-b5-api-regression.mjs`（node --test，自动纳入 npm test）。
+**引用流程**：H50.1 + CHECKLIST T-280-B5 + B5 对账报告（执行日志 L5014~5050）
+
+### 一、6 条实测结果
+
+| # | 检查项 | 实测 | 结果 |
+|---|--------|------|------|
+| V1 | 表↔域映射 | 26 资源 list 全通（200+数组） | ✅ |
+| V2 | seed 复用 | 运行时 users 50/taskforces 8/activities 29+ + 代码级种子常量 | ✅ |
+| V3 | 空表回退必要性 | 代码级：seed.js 不覆盖 attendances/inspections/todos | ✅ |
+| V4 | branchDocs 写权限 | 未登录 401 / 非支委(p1 leader) 403 / 支委(p13 secretary) 201+删204 | ✅ |
+| V5 | 聚合域 round-trip | 快照写穿 __root__ 单行 → 读回 body 深比较一致 → 清理 | ✅ |
+| V6 | auth 测试状态 | 全量 21/21 串行回归 | ✅ |
+
+### 二、实测中发现/修正
+
+1. **login 路由在 `/api/v1/auth/login`**（非 `/api/v1/login`）——V4 首版 404，修正路径后通过
+2. **server seed 仅在空库执行**（`server.js` L11：users 表空才 seedDatabase）——持久化 db（data.db）下 archiveRecords 无种子、attendances 等非空，导致 V2/V3「初始态」断言不可复现 → 改为代码级断言（读 server/seed.js 与 mock/seed.js 源码印证），运行时行为由既有测试覆盖
+3. **branchDocs DELETE 返回 204**（非 200）——V4 清理断言修正
+4. V5 聚合域 round-trip 采用「从无到有」写穿（当前 server 无 __root__，因聚合域由前端 API 模式 init 写穿产生）→ 快照写穿创建 → 读回验证 → 清理恢复空
+
+### 三、验证
+
+- `node --test test/t280-b5-api-regression.mjs`：6/6 全绿
+- CHECKLIST T-280-B5 6 条全部勾选 ✅ + 实测说明
+- 测试写穿数据已清理（branchDocs 测试记录删除、actSubRecords 写回空），server db 无残留
+
+## T-282 content 体系优化升级 · 执行归档（2026-08-24）
+
+**任务**：书记发起 content 体系全局审视（文件夹/文件划分、最小三成本），批准三方向后执行优化升级。
+**引用流程**：H30.1 一改具改 + 最小三成本 + OPERATIONS_GUIDE §1.1 + brainstorming（三方向经书记逐节确认）
+
+### 一、审视结论（写入前诊断）
+
+- 文件夹划分：顶层 5 类知识类型 + insights 清晰；insights 无 README、references 子目录不统一、04 部署类文件偏多
+- 文件划分：职能与关系声明充分（DOC_MAP 被引用方列 + SSOT 母本注册 + related_files）；4 个 900+ 行巨型文件信息成本高
+- 最小三成本：机制已建立，成本集中在巨型文件与治理层学习曲线
+
+### 二、三方向执行（书记批准）
+
+**方向三 目录规范补缺**：
+1. `content/insights/README.md` 新增（与其他目录索引对齐，双文件定位说明）
+2. `references/党支部工作记录.docx` 归位 `历史会议材料/`
+3. `01_strategy/README.md` 补充 references 子目录性质划分（合规=官方原文/历史=档案/建设探索=研究）
+4. ARCHITECTURE.md/DOC_MAP.md/TIMESTAMPS 同步
+
+**方向二 04 部署类重组**：
+1. `SCHOOL_IT_DEPLOYMENT.md` 全部内容并入 `DEPLOYMENT_ROADMAP.md` §三（计算中心对接全案：系统概述/对接需求/前置条件/文档清单 10 项/对接步骤/AI 本地部署/IAAA），消除 §3.2 文档清单重复
+2. SCHOOL_IT_DEPLOYMENT.md 删除；引用方全量更新（AUTH_MODEL/ABOUT/ARCHITECTURE/DOC_MAP/PKU/04 README/根 README/api-adapter/data-adapter/TIMESTAMPS）
+
+**方向一 巨型文件拆分**：
+1. `DATA_ARCHITECTURE.md`(1216行) → `DATA_MODEL.md`(§二 数据模型 820 行) + `DATA_FLOW.md`(§一/§三/§四 数据流)；原文件转 24 行路由薄壳
+2. `OPERATIONS_GUIDE.md`(1147行) → 规范类 §1-14 留在原文件(772 行) + 流程类 §15-18 迁 `PROCESS_GUIDE.md`(391 行)；CLAUDE.md H60/H30.1/H90 三处锚点 + ARCHITECTURE/KNOWN_PITFALLS/REVIEW_QUEUE 引用更新
+3. `DESIGN_SYSTEM.md`(928行) → `COLOR_SYSTEM.md`(§二 色彩) + `COMPONENT_SPEC.md`(§四 组件)；主文件保留哲学/排版/交互/响应式/深色/资产/参考；COMMISSIONER_FRAMEWORK §C.3 颜色引用更新至 COLOR_SYSTEM
+
+### 三、实施要点与教训
+
+1. **引用策略**：核心治理文档（DOC_MAP/SSOT/README/ARCHITECTURE）全量更新为新文件；零散引用（sop/insights/代码注释）保留指向原文件——DATA_ARCHITECTURE 转薄壳路由兜底（链接不断 + 路由指引），避免 30+ 文件机械更新的操作成本。OPERATIONS_GUIDE 拆分后 §15-18 编号不变（仅文件路径变化），CLAUDE.md 锚点只改路径。
+2. **⚠️ 教训：沙箱会重复执行 RunCommand 中的脚本**——tmp-split-ops.mjs 首次执行成功（OPERATIONS_GUIDE→§1-14 + PROCESS_GUIDE→§15-18），重试执行读到已截断文件导致 PROCESS_GUIDE 被覆盖为空壳、§15-18 工作区丢失。已从 `git show HEAD:` 恢复原文件后重跑，并给脚本加防二次执行保护（章节不存在则中止）。**后续批量脚本必须加幂等保护**（见 KNOWN_PITFALLS 待补）。
+3. GetDiagnostics 全绿（新文件无 markdown 错误）。
+
+### 四、验证
+
+- content 结构：04 新增 4 文件 + 删 1（SCHOOL_IT）；03 新增 PROCESS_GUIDE；insights 新增 README；references 归位
+- 引用检查：核心导航（DOC_MAP/SSOT/README/ARCHITECTURE/CLAUDE.md）全部同步；失效锚点（COMMISSIONER_FRAMEWORK §2.3.2 颜色引用）已更新
+- 执行日志/乙部 T-282 同步（乙部标注完成）
+- 遗留：零散引用（代码注释/sop 指向 DATA_ARCHITECTURE 薄壳）由薄壳路由兜底，可随迭代逐步迁移至 DATA_MODEL/DATA_FLOW
+
+## T-281 扁平化与集中论断 refinement · 讨论记录（2026-08-24，明天继续）
+
+**任务**：书记发起 T206 相关讨论——对既有论断条目（扁平化/集中相关）做增删精炼（refinement）。按书记指示，本次修改目标与重要背景已写入乙部 T-281，本段落记录讨论过程供明天接手。
+**引用流程**：H60 书记评议 + H20 歧义消解 + 书记原话表达纪律（区分原话与 AI 扩充）
+
+### 一、讨论历程（书记逐步澄清）
+
+1. **冲击面向**：书记确认担心的是"名实不符的失望"（学生按社会常识理解"集中"→ 发现实际不是 → 信任受损），非词面排斥或支委心虚
+2. **落差形态**：书记纠正"集中对成员不可感知"的猜测——强调"达不到所宣称的工作高度，特别是在集中的部分"
+3. **理解校准**：书记点出另一面——**扁平化表述本身可能太绝对**（学生形成"书记不能决定"认知）；且"拍板"是忌讳词
+4. **核心澄清**：担心的不是情绪反弹，而是"学生意识到讨论只是虚幻的 → 无法发挥主人翁精神"（更深层的参与动力瓦解）；**如果一次讨论不完，就要做成乙部工作来推进！这太重要了**
+5. **方向确认**：讨论有效 ≠ 结果按讨论来（意见真实进入+过程透明+理由可理解）；集中正当 = 决策有归属+责任有人担
+6. **透明度分层修正**：不是每项工作的讨论对所有人透明——**三会即透明分层空间**（党员大会全局/支委会核心/党小组会条线），角色划分更细→更细透明度划分（P-011 知情边界 L0/L1/L2）；**原则说清即可，不落地机制**（书记明确"我们没有相关的机制，但是原则上把这个事情说清楚就行！"）
+7. **范式纪律**：书记明确——不是补充新条目，而是**对既有条目增删 refinement**；**严格区分"应作为原话写入的"与"作为修改提示词（context/prompt）存在的"**（如"我很担心"是给 AI 的 context/prompt，不收入原话）
+
+### 二、已获书记认可的成果
+
+- **逻辑链 7 条**（书记"逻辑链的若干点我认为都非常好！！"）：
+  ①为什么扁平化（人口结构/创新目标→方法选择）②扁平化承诺（讨论在知情层级内真实发生、程序按边界分层透明）③不承诺（结果不由讨论决定、讨论不对所有人透明）④为什么集中（工作推进/责任承担/信息汇聚）⑤集中边界（集中信息与责任非权力）⑥统一关键（讨论有效=知情空间内意见真实进入+按层级透明+理由可理解；集中正当=决策有归属+责任有人担）⑦主人翁安放（在知情层级内真实参与，非全局参与一切）
+- **透明度分层**（三会即分层；原则说清，不落地机制）
+- **一段 AI 扩充**（对象差异→冲击→反噬的完整论述）——书记评价"非常好的AI扩充表达！！可以写入文件的水平"
+
+### 三、待续事项（明天继续）
+
+1. **偏差定位**：书记指出我"原话区分有偏差"但未明示偏差所在——需先确认"应作为原话写入的"vs"修改提示词"的正确划分（我当前把"对象差异论""透明度分层论"列为候选原话，把"我很担心""扁平化表述太绝对"列为修改提示——此划分未获书记认可）
+2. **候选原话范围**确认
+3. **修改对象确认**（P-008 / P-013 / P-014 为主？联动 P-011？）
+4. 逐条 refinement 内容设计 + 书记确认
+5. 一改具改（涉及 SECRETARY_PRONOUNCEMENTS + DEVELOPMENT_PATH 第一章收束）
+
+### 四、本次落盘
+
+- 乙部新增 T-281（含目标 + 完整背景），状态"🔄 进行中（明天继续）"
+- 未修改任何论断文件（等待书记确认后再动）
+
+## 最小三成本专项评议 · 第 3 轮（2026-08-27，静态 + server 双形态实测）
+
+**任务**：书记发起——对网页系统功能做一次最小三成本原则的评议和改进（静态与部署服务器后端两种形态都评）。
+**引用流程**：H10 总纲（最小三成本 = 系统设计最高验收标准）+ H60.5 W4 专项⑤ + REVIEW_QUEUE 附录⑤ + webapp-testing / fullstack-developer
+
+### 一、实测方法与覆盖
+
+- 新增 `server/test/min3-review-regression.mjs` 8 用例（S1-S5 + L1-L4），覆盖两形态关键路径：
+  - 静态模式：S1 首页进入即见（统计/通知/活动）、S2 首页→工作台 1 跳可达、S3 visitor 工作台
+  - server 模式：L1 未登录门控、L2 登录直达工作台（≤2 跳）、L3 登录后待办可见、L4 登录后首页身份标签、S5 API 链路（health 可达 / 账号登录 me 认证 / 刷新会话保持）
+- 环境：server localhost:3000 + Playwright chromium headless；等待策略 domcontentloaded + 显式轮询（networkidle 在长连接下卡死 30s 的坑已避开）
+
+### 二、发现与处置
+
+- **P1 首页通知空态误导（信息成本缺陷）**：实测 t+0.5s 显示"暂无通知"、t+1s 才有真实内容——空态误导（用户以为无通知），违反「进入即见，空态不得误导」（T-234 维度①）。**书记批准"改加载占位"** → index.html 通知列表占位 `<p>暂无通知</p>` → `<p>加载中…</p>` ✅ 已落地
+- **P2 登录后跳首页而非角色工作台（操作成本缺陷）**：实测登录成功 → index.html（3 跳才到工作台），违反「进入工作台→看到可执行事项 ≤2 跳」。**书记批准"直达角色工作台"** → login-entry.js 三处统一 `_goToWorkspace(role)`：①已登录跳转 ②开发模式卡片点击 ③账号密码登录成功回调 ✅ 已落地
+- **P2 调试插曲（一改未具改的隐蔽形态）**：首次修改只改了①③两处，②开发卡片 handler 仍固定跳 index.html（实测点击后直跳首页）。定位方式：Route 注入 DEBUG + 对照实验系统排除（devLogin 副作用/点击位置/门控踢回/getPageForRole 返回值均排除），最终读文件发现 handler 仍是旧代码。**教训：同文件内三处相同跳转逻辑，改两处漏一处——修改同名逻辑前须先全仓 grep 同类模式（H30.1）**
+- **P3 观察项（不处置，设计合理）**：visitor 工作台未登录跳登录页（工作台需登录的门控设计）；server 写穿依赖防抖 800ms + pagehide 冲刷（既有架构，见 data-adapter.js）
+
+### 三、回归验证（verification-before-completion）
+
+- min3 专项 8/8 通过；`npm test` 全量回归 **34/34 通过**（auth/b3-1/db/e2e-login/m4/min3/resources/seed/skeleton/snapshot/t235/t280-b1/t280-b5/uploads）
+- `e2e-login.test.js` 两处适配（P2 设计变更的连锁影响）：
+  1. 登录导航断言 `**/index.html` → `**/workspace/secretary.html`（登录直达工作台新语义）+ title 断言改 /工作台/
+  2. **写穿改走前端数据层真实路径**：原生 fetch 直写 POST /api/v1/snapshot 会绕过前端 mockDB，页面加载期间 pagehide 防抖冲刷（data-adapter.js `_flushSnapshotSync`）以过期前端缓存覆盖服务器，恰好抹掉刚写入的数据（实测 before:29→after:30→回退 29）。改为 mockDB + persist()（产品真实写路径：服务层改缓存 → 防抖快照落库）后闭环稳定
+- 版本戳 bump 20260826a → 20260827a（docs 全站 + server/test 同步，防模块实例分裂 KNOWN_PITFALLS §17）
+- 删除临时探针 probe-login.mjs、probe3-focused.mjs（目录污染清理）
+- GetDiagnostics 零错误
+
+### 四、变更文件
+
+`docs/index.html`（P1 占位）/ `docs/src/entries/login-entry.js`（P2 三处 `_goToWorkspace`）/ `server/test/min3-review-regression.mjs`（新增 8 用例）/ `server/test/e2e-login.test.js`（P2 适配 + 写穿路径重构）/ 全站版本戳 bump / 删除探针 2 个
+
+### 五、沉淀标签
+
+`[已沉淀: content/05_ai_coding/KNOWN_PITFALLS.md §19]` — API 模式 + 防抖快照 + pagehide 冲刷架构下，e2e 测试若绕过前端 mockDB 用原生 fetch 直写服务器，页面加载期的 pagehide 防抖冲刷会以过期前端缓存覆盖服务器、抹掉直写数据（2026-08-27 e2e-login 回归实证）。e2e 写穿断言必须经 mockDB + persist()（产品真实写路径），与用户操作同构，测试才有意义。
+
+### 六、REVIEW_QUEUE 附录⑤ 轮次进度
+
+第 3 轮已完成（2026-08-27），REVIEW_QUEUE 附录⑤ 轮次进度已更新（下一轮待书记发起）。
+
+## T-283 最小三成本第 4 轮：Mock 数据完整性 + 数据结构生命周期 + 点击成本 + 三会一课议程 + 编辑完整性全局化（2026-08-27）
+
+**任务**：书记发起——①Mock 数据完整性系统审计 ②数据结构生命周期审计 ③点击成本实测（"点击是最重要的"）④三会一课补充【议程】写入/修改功能；并指示"上述问题绝不是偶然，要有全局观点，把共性做成 checklist 重要部分，做完整代码检查并改进"。
+
+### 一、方向 1：Mock 数据完整性审计（M1）
+
+- 新增 `server/test/mock-integrity-audit.mjs`：浏览器内收集全部 mock 集合（12 个：PEOPLE 50/ACTIVITIES 29/ATTENDANCE 151/INSPECTION 42/REVIEW 11/NOTICES 12/TASKFORCES 8/SEED_TASKS 8/SEED_ASSIGNMENTS 5/ARCHIVE 6/SIGNUPS 7/ACCOUNTS 17），审计引用完整性（外键→PEOPLE/activities）、必填字段、id 唯一、类型/状态合法
+- **结果：零问题**——Mock 数据基础健康（审计规则修正 2 处误报：accounts 以 studentId 为键、taskforces.members 为对象数组）
+
+### 二、方向 2：数据结构生命周期审计（M2 + 修复 2 项真实缺陷）
+
+- 新增 M2 用例：活动状态 × 子记录/任务/考勤一致性（cancelled 无考勤/无未完成任务、completed 任务全完成、未来活动无考勤、signups/archive 引用源）
+- **修复①（数据）**：act-10 存储 status 'completed' 与派生态矛盾（关联任务 tsk-007/tsk-008 未完成，执行态派生 ongoing）——改 'ongoing'，且符合 DATA_MODEL「已完成不作文面值」决策
+- **修复②（代码）**：**活动删除后子记录孤儿**——UI 确认文案承诺"彻底删除该活动及关联数据"但实现只删活动+待办。三处同步联动清理（services/mock.js deleteActivity + core/mock-adapter.js activities.delete + server/routes/resources.js DELETE /activities/:id）：tasks/attendances/inspections/assignments/activityReviews/makeupTasks + signups(sourceType)/notices(targetType)
+
+### 三、方向 3：点击成本实测（C1-C3，书记强调"点击是最重要的"）
+
+- 新增 `server/test/click-cost-audit.mjs`：实测点击次数
+  - **C1 创建三会一课活动：4 次点击**（登录后 Tab→写入活动→选模板→创建，≤5 达标）；创建后日历自动出现新活动（反馈闭环）
+  - **C2 查看活动详情：2 次点击**（Tab→日历条目，≤2 达标）
+  - **C3 待办必见：0 次额外点击**（默认 tab）
+- 附：创建后日历刷新曾疑似失效，实为 mock 600ms×多任务节点延迟 + 测试等待不足；同时加 renderContent 兜底重渲染（防御性，创建成功即见成果）
+
+### 四、方向 4：三会一课【议程】功能（A1-A3 全通过）
+
+- **数据模型**：DATA_MODEL.md §2.1 ActivityRecord 新增 `agenda: Array<{item, host?}>`（三会一课专用，创建/详情可写可改）
+- **写入表单**（calendar-tab.js）：三会一课模板 Step2 表单新增"会议议程"区块（HTML 内嵌初始行 + 添加/删除按钮，行内编辑最少点击）；handleSubmitActivity 收集议程入 activityData
+- **详情编辑**（inspector.js）：活动详情新增"会议议程"区块（显示序号+议题+主持人）；书记可点"编辑议程"行内编辑（添加/删除/保存→updateActivity+persist→重渲染）
+- **mock 样例**：act-6（党课）/act-8（支部党员大会 3 条）/act-27（支委会 3 条）补 agenda
+- 新增 `server/test/agenda-flow-audit.mjs`：A1 详情显示 ✓ / A2 创建带议程→详情显示 ✓ / A3 行内编辑→保存→localStorage 持久化 ✓
+- **修复**：详情编辑 refreshRows 重建曾丢失 fill 输入（重建前从 DOM 同步 current）
+
+### 五、书记指令：编辑完整性共性问题全局化
+
+**判例实证**（多轮 Edit 反复增删同一文件，暴露 4+ 种系统性损坏）：①`agendaList` 重复声明（SyntaxError，tab 不渲染）②`_addAgendaRow` 函数被误删仍被调用（ReferenceError）③inspector 议程按钮 addEventListener 绑定被误删（点击静默失效——最隐蔽）④`agenda` 声明被误删仍被引用（ReferenceError）⑤Write 前 Edit import 未落盘（fileURLToPath）。
+
+**全局化产出**：
+1. **KNOWN_PITFALLS §14.1**：新增同家族判例（T-213 覆盖还原 → T-283 误删/重复插入形态）+ 4 条新检查清单（短 Edit 批次立即回归 / 模块加载审计 / GetDiagnostics 最低检查 / 删除性 Edit 带边界锚点）
+2. **CHECKLIST.md 新增「编辑完整性校验」章节**（T-283）：GetDiagnostics 全仓零错误 / 模块加载完整性审计 / 新增功能浏览器回归 / 点击成本回归 / 数据完整性回归 / 删除性 Edit 复核
+3. **新增 `server/test/edit-integrity-audit.mjs`（E1）**：浏览器 import 全部 docs/src 模块（86/86），任何语法/重复声明/未定义顶层引用/误删调用在 import 时抛错——已入 npm test 回归
+4. **完整代码检查**：GetDiagnostics 全仓零错误 + E1 86/86 + 全量浏览器回归 43/43
+
+### 六、回归验证（verification-before-completion）
+
+- `npm test` 全量回归 **43/43 通过**（新增 4 个审计文件：mock-integrity/click-cost/agenda-flow/edit-integrity）
+- GetDiagnostics 全仓零错误
+- 测试基建修正：agenda-flow/edit-integrity 改为自包含 server（createApp+listen(0)），规避外部 3000 连续测试卡顿
+
+### 七、变更文件
+
+`docs/src/mock/activities.js`（act-10 状态修复 + act-6/8/27 议程样例）/ `docs/src/services/mock.js` + `docs/src/core/mock-adapter.js` + `server/routes/resources.js`（删除活动联动清理子记录）/ `docs/src/entries/tabs/secretary/calendar-tab.js`（议程表单+收集+创建后兜底渲染）/ `docs/src/components/inspector.js`（议程显示+行内编辑）/ `content/04_web_design/DATA_MODEL.md`（agenda 字段）/ `content/04_web_design/CHECKLIST.md`（编辑完整性章节）/ `content/05_ai_coding/KNOWN_PITFALLS.md`（§14.1 判例）/ `server/test/`（新增 mock-integrity/click-cost/agenda-flow/edit-integrity 4 个审计文件）
+
+### 八、沉淀标签
+
+`[已沉淀: content/05_ai_coding/KNOWN_PITFALLS.md §14.1]` — 连续多次 Edit 同一文件是系统性风险源：①删除性编辑 old_string 匹配过大区域连带误删邻近代码 ②插入块未删净导致重复声明 ③Edit 返回输出与磁盘状态可能不符（Write 覆写最稳）。防御三件套：GetDiagnostics 全仓 → 模块加载完整性审计（edit-integrity-audit）→ 短 Edit 批次立即浏览器回归。
+
+### 九、REVIEW_QUEUE 附录⑤ 轮次进度
+
+第 4 轮（T-283）已完成（2026-08-27），REVIEW_QUEUE 附录⑤ 轮次进度已更新。
+
+## T-284 全量链接审查：静态死链 + JS 导航 + HTTP 可达 + 跳转逻辑（2026-08-27）
+
+**任务**：书记指令「做一次所有链接的审查！确保跳转逻辑合理！每一个都要查！！」
+
+### 一、审查范围与方法（新增 `server/test/link-audit.mjs`，4 层全量）
+
+- **L1 静态链接**：docs/ 全部 HTML（16+ 页）的 href/src（含 workspace `<base href>` 解析 + `?v=` 版本戳剥离）→ 目标文件存在性 + `#锚点` 存在性——**85 个本地链接 + 79 个外部 URL（Google Fonts 等，仅记录）全部通过**
+- **L2 JS 导航**：docs/src 全部 JS 的 `location.href` / `location.replace` / `location.assign` 目标——**4 个静态跳转 + 22 个动态跳转（`${basePath}notice.html` 等模板插值，抽取 `.html` 字面量片段校验）全部通过**
+- **L3 HTTP 层**：自包含 server 下每个链接 fetch → 200——**91/91 通过**（含 6 个工作台未登录可达性：静态 200，门控在前端 JS 跳 login）
+- **L4 浏览器实测**：登录态跳转逻辑（未登录直达登录页 / 已登录直达角色工作台 / 登录页返回闭环）——**通过**
+
+### 二、发现并修复 3 处跳转逻辑缺陷（存在≠合理）
+
+1. **首页「工作台→」「查看全部→」未登录绕路**：原静态 href 指向 workspace/*.html，未登录点击会先进工作台 → 被门控踢 → login（绕 2 跳）。修复：`main-entry.js` `_updateWorkspaceLinks` 未登录分支把 workspace 链接**统一直达 login.html**（已登录仍按角色直达工作台）
+2. **首页「查看更多活动（共 N 条）」未登录绕路**：原指向 visitor.html?view=activities。修复：`main-entry.js` 未登录时 `moreUrl` 直达 login.html
+3. **login.html 缺「返回主页」入口**：误入登录页后无出口。修复：登录页加「← 返回主页」链接（跳转闭环）
+
+### 三、审查确认合理的跳转（抽样）
+
+- 工作台未登录门控 → login.html（bootstrap L117-122，workspace/ 目录用 `../` 正确）✓
+- 已登录身份校验踢回（bootstrap L135-153）：角色不符自动跳转身份对应工作台 ✓
+- 首页专班卡点击：已登录 → 角色工作台带 taskforceId（专班直达）；未登录 → taskforce.html?id=（公开详情）✓
+- help 宣传页功能表 → 角色工作台（宣传引导 + 门控登录，语义合理，保留）✓
+- workspace 各页「返回主页」`./index.html`（base href 正确解析）✓
+
+### 四、回归验证
+
+- `npm test` 全量回归 **47/47 通过**（新增 link-audit 4 用例后）
+- 回归适配 2 项：min3 S2 对齐新设计（未登录首页不再有工作台直达链接，改验证登录入口 1 跳）；e2e-login 写穿用例版本戳同步（bump 未同步 evaluate 内嵌 import 戳，手动 20260827a→c）
+- GetDiagnostics 全仓零错误
+- 版本戳 bump 20260827c
+
+### 五、变更文件
+
+`server/test/link-audit.mjs`（新增 4 层审计）/ `docs/src/entries/main-entry.js`（未登录 workspace 链接 + 查看更多活动直达登录页）/ `docs/login.html`（返回主页链接）/ `server/test/min3-review-regression.mjs`（S2 对齐 T-284 新设计）/ `server/test/e2e-login.test.js`（写穿用例版本戳同步）
+
+### 六、沉淀标签
+
+`[已沉淀: content/04_web_design/CHECKLIST.md]` — 链接审查四层法（静态存在 → JS 动态目标字面量 → HTTP 200 → 登录态逻辑）：静态存在不等于跳转合理，未登录/角色不符/宣传页入口是三类高频绕路点；首页链接须登录态感知（已登录直达角色工作台 / 未登录直达登录页）；测试内嵌 `?v=` import 戳 bump 脚本不覆盖，需手动同步。
+
+### 七、REVIEW_QUEUE 附录⑤ 轮次进度
+
+T-284 全量链接审查已完成（2026-08-27），已归档。

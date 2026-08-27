@@ -104,6 +104,25 @@ export function createResourcesRouter(db) {
       }
       const info = db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(req.params.id);
       if (info.changes === 0) return res.status(404).json({ error: 'not found' });
+      // 2026-08-27 T-283 生命周期修复：彻底删除活动须联动清理全部子记录
+      // （与前端 mock.js/mock-adapter.js deleteActivity 同构，防 API 直连路径产生孤儿数据）
+      if (name === 'activities') {
+        const id = req.params.id;
+        const CHILD_TABLES = ['tasks', 'attendances', 'inspections', 'assignments', 'activity_reviews', 'makeup_tasks'];
+        for (const t of CHILD_TABLES) {
+          for (const r of db.prepare(`SELECT id, data FROM ${t}`).all()) {
+            if (JSON.parse(r.data).activityId === id) db.prepare(`DELETE FROM ${t} WHERE id = ?`).run(r.id);
+          }
+        }
+        for (const r of db.prepare('SELECT id, data FROM signups').all()) {
+          const row = JSON.parse(r.data);
+          if (row.sourceType === 'activity' && row.sourceId === id) db.prepare('DELETE FROM signups WHERE id = ?').run(r.id);
+        }
+        for (const r of db.prepare('SELECT id, data FROM notices').all()) {
+          const row = JSON.parse(r.data);
+          if (row.targetType === 'activity' && row.targetId === id) db.prepare('DELETE FROM notices WHERE id = ?').run(r.id);
+        }
+      }
       res.status(204).end();
     });
   }

@@ -5,14 +5,14 @@ role: "[工程师]+[AI]"
 created: 2026-08-19
 last_updated: "2026-08-22"
 status: draft
-related_files: [DEPLOYMENT_ROADMAP.md, SCHOOL_IT_DEPLOYMENT.md, WECHAT_INTEGRATION.md, DATA_ARCHITECTURE.md, ../../server/db.js, ../../docs/src/core/api-adapter.js]
+related_files: [DEPLOYMENT_ROADMAP.md, WECHAT_INTEGRATION.md, DATA_MODEL.md, ../../server/db.js, ../../docs/src/core/api-adapter.js]
 ---
 
 # 北大党校与智慧党建系统对接设计——爬取、双向同步与数据协同
 
 > **定位**：北大党校系统与智慧党建平台的对接总体设计——「嫁接什么 API / 爬取什么数据 / 系统内部数据类型字段 / 双向同步机制」的一张全图（微信小程序为独立问题，见 [WECHAT_INTEGRATION.md](WECHAT_INTEGRATION.md)）。**提前想全面**，避免实际对接时被动（2026-08-19 提出：「等到我们实际对接的时候，已经是太晚了」）。
 > **受众**：书记（决策）+ [工程师]+[AI]（对接实施）+ 北大党校办公室/信息中心（待确认清单 §九 的沟通对象）
-> **关联**：[DEPLOYMENT_ROADMAP.md](DEPLOYMENT_ROADMAP.md)（部署四路径，本文件是其「数据对接」细目）、[SCHOOL_IT_DEPLOYMENT.md](SCHOOL_IT_DEPLOYMENT.md)（计算中心对接，本文件 §六 依赖其环境）、[WECHAT_INTEGRATION.md](WECHAT_INTEGRATION.md)（小程序方案权威源，对接数据在小程序端的展示归位其 §八）、[DATA_ARCHITECTURE.md](DATA_ARCHITECTURE.md)（我们系统数据模型权威源）。
+> **关联**：[DEPLOYMENT_ROADMAP.md](DEPLOYMENT_ROADMAP.md)（部署四路径，本文件是其「数据对接」细目，计算中心对接全案在其 §三）、[WECHAT_INTEGRATION.md](WECHAT_INTEGRATION.md)（小程序方案权威源，对接数据在小程序端的展示归位其 §八）、[DATA_MODEL.md](DATA_MODEL.md)（我们系统数据模型权威源）。
 
 ---
 
@@ -265,8 +265,7 @@ related_files: [DEPLOYMENT_ROADMAP.md, SCHOOL_IT_DEPLOYMENT.md, WECHAT_INTEGRATI
 
 | 文档 | 角色 |
 |------|------|
-| [DEPLOYMENT_ROADMAP.md](DEPLOYMENT_ROADMAP.md) | 部署四路径（本文件的上游；对接数据运行于路径 B/C 之上） |
-| [SCHOOL_IT_DEPLOYMENT.md](SCHOOL_IT_DEPLOYMENT.md) | 计算中心对接（校园网环境/服务器前置） |
+| [DEPLOYMENT_ROADMAP.md](DEPLOYMENT_ROADMAP.md) | 部署四路径 + 计算中心对接全案（本文件的上游；对接数据运行于路径 B/C 之上，校园网环境/服务器前置见其 §三） |
 | [WECHAT_INTEGRATION.md](WECHAT_INTEGRATION.md) | 小程序方案权威源（对接数据在小程序端的展示归位其 §八） |
-| [DATA_ARCHITECTURE.md](DATA_ARCHITECTURE.md) | 我们系统数据模型权威源（§三 字段规格） |
+| [DATA_MODEL.md](DATA_MODEL.md) | 我们系统数据模型权威源（§二 字段规格） |
 | [DEPLOYMENT_AUTH_MODEL.md](DEPLOYMENT_AUTH_MODEL.md) | IAAA 登录模型（党校爬取凭证依赖） |

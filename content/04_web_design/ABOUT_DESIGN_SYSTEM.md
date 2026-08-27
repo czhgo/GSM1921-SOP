@@ -5,7 +5,7 @@ role: "[工程师]+[AI]"
 created: 2026-08-19
 last_updated: "2026-08-22"
 status: active
-related_files: [docs/src/about.css, docs/src/entries/about-entry.js, DESIGN_SYSTEM.md, SCHOOL_IT_DEPLOYMENT.md]
+related_files: [docs/src/about.css, docs/src/entries/about-entry.js, DESIGN_SYSTEM.md, DEPLOYMENT_ROADMAP.md]
 ---
 
 # About 页面设计系统——超参数设定原则

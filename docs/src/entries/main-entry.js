@@ -1,37 +1,39 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // main-entry.js — 主页入口
 // index.html 专属，处理 dashboard 全量数据渲染
 
-import { BranchService } from '../services/runtime.js?v=20260823b';
-import { STATE, setState, registerRenderCallback, getAppState } from '../core/state.js?v=20260823b';
-import { NoticeStore, renderNoticeList } from '../services/notice.js?v=20260823b';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260823b';
-import { _fmtDate, getBasePath } from '../core/utils.js?v=20260823b';
-import { _personName, getPersonName } from '../mock/index.js?v=20260823b';
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../services/attendance.js?v=20260823b';
-import { loadActivities } from '../services/activity.js?v=20260823b';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260823b';
-import { getActivityTypeColors } from '../core/constants.js?v=20260823b';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260823b';
-import { AuthStore } from '../services/auth.js?v=20260823b';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260823b';
-import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260823b';
-import { icon } from '../core/icons.js?v=20260823b';
-import { badgeHtml } from '../components/badge.js?v=20260823b';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../components/inspector.js?v=20260823b';
-import { populateMonthSelector } from '../components/calendar.js?v=20260823b';
-import { getCapabilities, mountCapability } from '../core/registry.js?v=20260823b';
+import { BranchService } from '../services/runtime.js?v=20260827c';
+import { STATE, setState, registerRenderCallback, getAppState } from '../core/state.js?v=20260827c';
+import { NoticeStore, renderNoticeList } from '../services/notice.js?v=20260827c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260827c';
+import { _fmtDate, getBasePath } from '../core/utils.js?v=20260827c';
+import { _personName, getPersonName } from '../mock/index.js?v=20260827c';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../services/attendance.js?v=20260827c';
+import { loadActivities } from '../services/activity.js?v=20260827c';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260827c';
+import { getActivityTypeColors } from '../core/constants.js?v=20260827c';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260827c';
+import { AuthStore } from '../services/auth.js?v=20260827c';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260827c';
+import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260827c';
+import { icon } from '../core/icons.js?v=20260827c';
+import { badgeHtml } from '../components/badge.js?v=20260827c';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../components/inspector.js?v=20260827c';
+import { populateMonthSelector } from '../components/calendar.js?v=20260827c';
+import { getCapabilities, mountCapability } from '../core/registry.js?v=20260827c';
 import '../modules/capabilities/activity-calendar.js?v=20260822a'; // 副作用导入：注册首页活动日历能力
 
 const { user } = await bootstrapPage({ module: 'dashboard' });
 
 // 根据用户角色更新 dashboard 中的 workspace 链接
+// T-284：未登录统一直达登录页，消除「公开页→工作台→门控踢→login」的绕路跳转
+const wsLinks = document.querySelectorAll('a[href*="workspace/"]');
 if (user) {
   const wsPage = AuthStore.getPageForRole('workspace', user.role) || 'visitor.html';
   const wsBase = getBasePath() + 'workspace/' + wsPage;
-  document.querySelectorAll('a[href*="workspace/"]').forEach(a => {
-    a.href = wsBase;
-  });
+  wsLinks.forEach(a => { a.href = wsBase; });
+} else {
+  wsLinks.forEach(a => { a.href = getBasePath() + 'login.html'; });
 }
 
 function renderUI(state) {
@@ -308,9 +310,10 @@ function _renderActivityList(activities) {
   }
 
   // 首页只展示前 10 条；「查看更多」跳转活动动态 tab（书记 2026-08-08 决策：首页截断 + 活动页分页）
-  const wsPage = AuthStore.getPageForRole('workspace', user?.role) || 'visitor.html';
-  const wsBase = getBasePath() + 'workspace/' + wsPage;
-  const moreUrl = CrossPageState.buildURL(wsBase, { view: 'activities' });
+  // T-284：未登录时「查看更多」直达登录页（登录后进工作台活动 tab），消除「visitor→门控踢→login」绕路
+  const moreUrl = user
+    ? CrossPageState.buildURL(getBasePath() + 'workspace/' + (AuthStore.getPageForRole('workspace', user.role) || 'visitor.html'), { view: 'activities' })
+    : getBasePath() + 'login.html';
   const moreHtml = sorted.length > display.length
     ? `<a href="${moreUrl}" class="mt-2 flex items-center justify-center gap-1 py-2 text-xs font-medium rounded-lg transition-colors hover:bg-gray-50" style="color:var(--accent-blue,#3B82F6);">查看更多活动（共 ${sorted.length} 条）→</a>`
     : '';

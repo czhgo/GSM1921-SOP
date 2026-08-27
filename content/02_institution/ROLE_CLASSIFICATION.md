@@ -240,7 +240,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 
 ## 九、角色权限矩阵
 
-> 本节为角色权限矩阵的权威源，对齐 `docs/src/services/auth.js` 的 ROLE_PERMISSIONS/PROJECT_PERMISSIONS/AUTHORIZE_CHAIN。数据流设计与界面实现路径见 [DATA_ARCHITECTURE.md](../04_web_design/DATA_ARCHITECTURE.md)。
+> 本节为角色权限矩阵的权威源，对齐 `docs/src/services/auth.js` 的 ROLE_PERMISSIONS/PROJECT_PERMISSIONS/AUTHORIZE_CHAIN。数据流设计与界面实现路径见 [DATA_FLOW.md](../04_web_design/DATA_FLOW.md)。
 
 ### 9a. 活动写入门禁
 

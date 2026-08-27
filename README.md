@@ -194,7 +194,7 @@ npm start
 
 - **公网演示**：GitHub Pages 静态托管 `docs/`（开发演示账号模式，无需后端）
 - **本地完整运行**：`cd server && npm start`，访问 `http://127.0.0.1:3000/login.html`，浏览器全链路工作（登录 → API → 数据持久化）
-- **北大计算中心对接**：`docs/` 与 `server/` 部署到同一 Web 根目录，统一反向代理转发 `/api/v1/`，见 [server/README.md](server/README.md) 与 [SCHOOL_IT_DEPLOYMENT.md](content/04_web_design/SCHOOL_IT_DEPLOYMENT.md)
+- **北大计算中心对接**：`docs/` 与 `server/` 部署到同一 Web 根目录，统一反向代理转发 `/api/v1/`，见 [server/README.md](server/README.md) 与 [DEPLOYMENT_ROADMAP.md](content/04_web_design/DEPLOYMENT_ROADMAP.md) §三（计算中心对接全案）
 
 ---
 
