@@ -47,7 +47,7 @@ function getFooterItems() {
     { module: 'help', label: '帮助', href: base + 'help.html', icon: icon('book') },
   ];
   // 「关于」仅在静态托管（GitHub Pages）显示——有后端（内部工具）无公开门面
-  // 依据 content/04_web_design/DEPLOYMENT_AUTH_MODEL.md §三
+  // 依据 content/04_web_design/deploy/DEPLOYMENT_AUTH_MODEL.md §三
   if (DEPLOY_MODE === 'static') {
     items.push({ module: 'about', label: '关于', href: base + 'about.html', icon: icon('info') });
   }

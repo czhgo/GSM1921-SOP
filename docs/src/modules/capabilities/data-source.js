@@ -3,7 +3,7 @@
 // 自注册模式：import 本模块即触发注册（副作用导入），消费点（bootstrap 等）经注册表
 // getCapabilities({scope:'data-source', env: getRuntimeEnv()}) 发现可用数据源后按需 apply。
 // 行为零变化：apply 内部仍调用 data-adapter.setDataSource（与 bootstrap 既有切换逻辑一致）。
-// 设计权威源：content/04_web_design/ARCHITECTURE_EVOLUTION.md §四.3（数据源注册为能力，按部署环境启用）
+// 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §四.3（数据源注册为能力，按部署环境启用）
 
 import { registerCapability } from '../../core/registry.js?v=20260827c';
 import { setDataSource } from '../../core/data-adapter.js?v=20260827c';

@@ -3,8 +3,8 @@
 //  secretary-overview.js — 书记全局概况服务层
 //  四维度信息面板：考勤与纪律 / 发展与考察 / 活动与专班进度 / 宣传与档案
 //  SecretaryTodoDeriver：异常数据自动派生书记待办
-//  Source: content/04_web_design/DATA_ARCHITECTURE.md §2.18-§2.20
-//         content/04_web_design/DESIGN_SYSTEM.md §一 第2条 最小三成本
+//  Source: content/04_web_design/data/DATA_ARCHITECTURE.md §2.18-§2.20
+//         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
 import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260827c';

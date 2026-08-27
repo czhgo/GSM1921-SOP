@@ -509,7 +509,7 @@ export function archiveActivity(id) {
 
 /**
  * 切换活动的品牌标记（书记认定操作）
- * Source: content/04_web_design/DATA_ARCHITECTURE.md §1.3
+ * Source: content/04_web_design/data/DATA_ARCHITECTURE.md §1.3
  * @param {string} id - 活动 ID
  * @returns {Promise<import('../core/domain.js').Activity>}
  */
@@ -591,6 +591,6 @@ export function updateTask(taskId, patch) {
   console.info('[MockAdapter] updateTask 成功，id=' + taskId + '，status=' + updated.status);
   return [...mockDB.tasks];
 }
-// Deliverable CRUD + Milestone Query 已删除（需求上下文保留在 content/04_web_design/DATA_ARCHITECTURE.md §2.5）
+// Deliverable CRUD + Milestone Query 已删除（需求上下文保留在 content/04_web_design/data/DATA_ARCHITECTURE.md §2.5）
 // 删除的 API：createDeliverable, listDeliverables, updateDeliverable, seedOrgLifeDeliverables, getScenarioMilestones
 // 删除原因：无任何代码消费，奥卡姆剃刀原则；设计文档已完整保留需求上下文

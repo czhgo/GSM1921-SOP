@@ -4,7 +4,7 @@ type: governance
 role: "[用户]+[AI]"
 last_updated: "2026-08-16"
 status: active
-related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH.md, content/04_web_design/DATA_FLOW.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/FLAT_DESIGN.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/SOP_WEB.md, content/03_doc_system/USAGE_POLICY.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/党支部管理与实务经验沉淀.md, content/insights/工程演进与设计方法论.md]
+related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/FLAT_DESIGN.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/module/SOP_WEB.md, content/03_doc_system/USAGE_POLICY.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/党支部管理与实务经验沉淀.md, content/insights/工程演进与设计方法论.md]
 ---
 
 # 书记重要论断汇编
@@ -244,11 +244,11 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > **书记仲裁**（第三道防线）：多条条对同一块块下达矛盾任务时，按优先级组织>纪检>宣传处理，由书记仲裁；支委兼任党小组组长时冲突，主身份优先、涉及本人审核主动回避。
 >
-> **知情边界**（第四道防线，书记 2026-08-10 战略级论断）："执行委托与知情监督是对应的，统一的"——赋权链（执行委托的操作边界）与按人视图（知情监督的信息边界）是一枚硬币的两面：能赋权的人，才能看对应条线的在办（L1 条线视角）；被赋权者接受监督者的条线投影。知情边界规定"谁能看"，与职责分离规定"谁能做"相对——**看与做分离**：内控失效的常见入口是"知情过载"——看到他人操作细节，就容易越过职责边界干预/代劳，操作上的职责分离会被信息上的"全知"架空。因此"任何角色的信息可见范围，应精确等于其职责空间所需的最小充分信息"——监督停留在"方向把握"（原 P-027② 书记审批反馈，见 [SOP\_WEB §G.4](../04_web_design/SOP_WEB.md)），不沉入"细节干预"。这也解释了"统筹是最大的管理"：书记承担统筹，统筹依赖精确的知情密度。
+> **知情边界**（第四道防线，书记 2026-08-10 战略级论断）："执行委托与知情监督是对应的，统一的"——赋权链（执行委托的操作边界）与按人视图（知情监督的信息边界）是一枚硬币的两面：能赋权的人，才能看对应条线的在办（L1 条线视角）；被赋权者接受监督者的条线投影。知情边界规定"谁能看"，与职责分离规定"谁能做"相对——**看与做分离**：内控失效的常见入口是"知情过载"——看到他人操作细节，就容易越过职责边界干预/代劳，操作上的职责分离会被信息上的"全知"架空。因此"任何角色的信息可见范围，应精确等于其职责空间所需的最小充分信息"——监督停留在"方向把握"（原 P-027② 书记审批反馈，见 [SOP\_WEB §G.4](../04_web_design/module/SOP_WEB.md)），不沉入"细节干预"。这也解释了"统筹是最大的管理"：书记承担统筹，统筹依赖精确的知情密度。
 >
 > **考察信息评价边界**（服务—考察张力的裁决，2026-08-16 书记裁决）：考察信息进入正式评价时，必须有独立的制度边界——党小组活动和专班"不承担直接发展考核党员的职能"，支委会要做好培养发展党员的实质性、全流程把关。同一实践、双重产出：服务是面向成员的价值功能（这项实践给成员带来了什么），考察是面向组织的认识功能（这项实践让组织认识到了什么）——功能并列、评价分离，实践产生的观察信息不自动等于正式考核结论。
 >
-> 信息密度分层（工作台的工程实现层，非制度论断本身）：L0 个人视角（自己）/ L1 条线视角（上级看下级的条线在办）/ L2 全局视角（书记看全部条线+块块）。向上越层需职责依据（赋权链），向下缩层是对他人职责空间的保护。设计落点：[DESIGN\_SYSTEM.md §一 原则9](../04_web_design/DESIGN_SYSTEM.md)（信息密度精确原则）+ 书记工作台全局概况"按维度/按人"双视图。四道防线与 P-009（分工记录）、P-012（专班）的制度互为支撑。
+> 信息密度分层（工作台的工程实现层，非制度论断本身）：L0 个人视角（自己）/ L1 条线视角（上级看下级的条线在办）/ L2 全局视角（书记看全部条线+块块）。向上越层需职责依据（赋权链），向下缩层是对他人职责空间的保护。设计落点：[DESIGN\_SYSTEM.md §一 原则9](../04_web_design/design-system/DESIGN_SYSTEM.md)（信息密度精确原则）+ 书记工作台全局概况"按维度/按人"双视图。四道防线与 P-009（分工记录）、P-012（专班）的制度互为支撑。
 
 > 出处：D-068 + 书记 2026-08-05 论断 + 书记 2026-08-10 战略级论断 + 定人定责 §3.2 + COMMISSIONER\_FRAMEWORK §F.5 · 子本：定人定责 §3.2 + COMMISSIONER\_FRAMEWORK §F.5 + DESIGN\_SYSTEM.md §一 原则9（展开叙事） · 层次：战略路线级
 
@@ -394,16 +394,16 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 - 原 P-007（党建与党务——都是"管理事，服务人"的工作）：2026-08-09 迁出至 `content/insights/党支部管理与实务经验沉淀.md` §1.2（同源不同视角）；作为 meta 级论断从汇编删除——区分两分法给成员带来理解压力，全部文档统一使用 T1 官方定义叙述
 - 原 P-011：2026-08-09 并入 P-009 并弃用比喻
 - 原 P-013（提出需求与招募统筹分离——发起是提出需求，招募是统筹执行）：2026-08-09 并入 P-011 组织内控总论（职责分离防线，原话"发起是提出需求，招募是统筹执行"保留在 P-011 正文）
-- 原 P-008（视图按需取用原则）：2026-07-20 迁出至 `content/insights/工程演进与设计方法论.md` §4.9（母本：`content/04_web_design/DATA_FLOW.md` §三）
+- 原 P-008（视图按需取用原则）：2026-07-20 迁出至 `content/insights/工程演进与设计方法论.md` §4.9（母本：`content/04_web_design/data/DATA_FLOW.md` §三）
 - 原 P-021（经验沉淀按需正反两面论）：2026-07-20 迁出至 `content/insights/工程演进与设计方法论.md` §3.7（母本：CLAUDE.md H30.4 规则 2）
 - 原 P-022（写入型 vs 支撑型角色分类）：2026-08-04 删除——写入门禁机制真实存在，但该分类的角色清单与 auth.js 权限表不符、系统未使用此命名，书记奥卡姆剃刀裁决清除
 - 原 P-016（一改具改原则——修改一处必须全仓同步）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（一改具改操作流程母本，权威源在 CLAUDE.md H30.1）；本文件不再展开
 - 原 P-017（甲部自省原则——执行失败时先反思制度）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（甲部自省原则，权威源在 CLAUDE.md H30.1）
 - 原 P-018（书记讲出的重要道理必须检查是否写入 guides/Harness——不得只记决策不沉淀原则）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（原则沉淀机制）+ `content/05_ai_coding/KNOWN_PITFALLS.md`（已收录）
 - 原 P-024（SOP 与 guides 各自独立——理念与执行互不替代）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md` §1.1（文档权威层级定义母本）
-- 原 P-026（人才库 ≠ 原始材料库——画像数据库与原始记录的关系）：2026-08-09 迁出至 `content/04_web_design/DATA_FLOW.md` §3.3（人才库数据流）
-- 原 P-029（身份≠权限——身份选择和模式选择是两个独立决策）：2026-08-09 迁出至 `content/04_web_design/SOP_WEB.md` §G.3（身份权限）；原论断已退役（2026-08-08），保留为历史决策记录
-- 原 P-027（书记的审批反馈是活动执行方向把握的关键环节——报备审批是双向关系）：2026-08-09 拆解迁出——①组织性框架内表达例证 → 本文件 P-007 讲解块（报备审批作为"在框架内说真话"的具体例子）；②书记对已开展活动可否补充意见的 UI 设计 → `content/04_web_design/SOP_WEB.md`（书记全局概览设计任务）；③报备/审批程序规范化 → `content/02_institution/COMMISSIONER_FRAMEWORK.md` §审批流程规范
+- 原 P-026（人才库 ≠ 原始材料库——画像数据库与原始记录的关系）：2026-08-09 迁出至 `content/04_web_design/data/DATA_FLOW.md` §3.3（人才库数据流）
+- 原 P-029（身份≠权限——身份选择和模式选择是两个独立决策）：2026-08-09 迁出至 `content/04_web_design/module/SOP_WEB.md` §G.3（身份权限）；原论断已退役（2026-08-08），保留为历史决策记录
+- 原 P-027（书记的审批反馈是活动执行方向把握的关键环节——报备审批是双向关系）：2026-08-09 拆解迁出——①组织性框架内表达例证 → 本文件 P-007 讲解块（报备审批作为"在框架内说真话"的具体例子）；②书记对已开展活动可否补充意见的 UI 设计 → `content/04_web_design/module/SOP_WEB.md`（书记全局概览设计任务）；③报备/审批程序规范化 → `content/02_institution/COMMISSIONER_FRAMEWORK.md` §审批流程规范
 
 > 历史重构操作记录（D-230 二次重构、T24 索引补齐、首轮 12 条 + 二轮 4 条非 meta 级论断删除清单、原 P-008/原 P-021 迁出至 insights 文件 2、P-015/P-016 移至目录后作为第一章元命题引子、论断层次标注、附录索引建立、2026-08-16 四层结构重组：价值目标 → 组织机制 → 人的成长 → 组织再生产，编号重排为 P-001\~P-017）已归档至执行日志，本文件不再保留历史变更说明。
 

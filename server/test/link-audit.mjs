@@ -32,6 +32,16 @@ after(async () => {
 });
 
 const DOCS = fileURLToPath(new URL('../../docs/', import.meta.url));
+const CONTENT = fileURLToPath(new URL('../../content/', import.meta.url));
+
+// GitHub 标题锚点 slug（小写/去标点/空格→-/合并连续-）
+function ghSlug(text) {
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s-]/gu, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
 
 function walk(dir, ext, out = []) {
   for (const e of readdirSync(dir, { withFileTypes: true })) {
@@ -212,6 +222,59 @@ test('L3 HTTP 层：全部链接 200 + 工作台门控跳转合理性（server �
     console.log('[L3] ✅ 全部链接 HTTP 200 + 门控目标可达');
   }
   assert.equal(issues.length, 0, `HTTP 链接问题 ${issues.length} 项:\n${issues.join('\n')}`);
+});
+
+test('L5 content 文档链接：全部 md 相对链接目标存在 + 锚点有效（守护 content 结构变更）', async () => {
+  const mds = walk(CONTENT, '.md');
+  assert.ok(mds.length >= 40, `应收集 40+ md，实际 ${mds.length}`);
+  const issues = [];
+  const warnings = [];
+  let checked = 0;
+  for (const page of mds) {
+    const relPage = relative(CONTENT, page).replace(/\\/g, '/');
+    const src = readFileSync(page, 'utf8');
+    const pattern = /\]\(([^)]+)\)/g; // markdown 链接（含图片）
+    let m;
+    while ((m = pattern.exec(src)) !== null) {
+      const raw = m[1];
+      if (!raw || raw.startsWith('http') || raw.startsWith('#') || raw.startsWith('mailto') || raw.includes('{') || raw.startsWith('/')) continue;
+      if (!raw.includes('.md') && !raw.includes('.png') && !raw.includes('.pdf') && !raw.includes('.docx') && !raw.includes('.jpg')) continue;
+      const r = resolveUrl(page, null, raw);
+      if (r.external) continue;
+      checked++;
+      if (!existsSync(r.path)) {
+        issues.push(`${relPage} → ${raw}（目标不存在：${relative(CONTENT, r.path).replace(/\\/g, '/')}）`);
+        continue;
+      }
+      if (r.hash && r.path.endsWith('.md')) {
+        // GitHub 标题锚点 slug 校验：r.hash 已不含 #，直接使用（勿再 slice——首字符是锚内容）
+        const tSrc = readFileSync(r.path, 'utf8');
+        const anchorId = r.hash;
+        const slugs = new Set();
+        const titleRe = /^#{1,6}\s+(.+)$/gm;
+        let tm;
+        while ((tm = titleRe.exec(tSrc)) !== null) {
+          slugs.add(ghSlug(tm[1]));
+        }
+        if (!slugs.has(anchorId) && !new RegExp(`id=["']${anchorId}["']|name=["']${anchorId}["']`).test(tSrc)) {
+          warnings.push(`${relPage} → ${raw}（锚点 #${anchorId} 与标题 slug 不匹配）`);
+        }
+      }
+    }
+  }
+  console.log(`[L5] content 文档链接检查: ${checked} 个链接`);
+  if (warnings.length > 0) {
+    console.log(`[L5] ⚠️ 锚点降级警告 ${warnings.length} 项（目标存在但锚点不跳转，不影响文件打开）：`);
+    warnings.slice(0, 8).forEach((i, idx) => console.log(`  ${idx + 1}. ${i}`));
+    if (warnings.length > 8) console.log(`  … 其余 ${warnings.length - 8} 项略`);
+  }
+  if (issues.length > 0) {
+    console.log('[L5] ⚠️ 目标不存在 ' + issues.length + ' 项：');
+    issues.forEach((i, idx) => console.log(`  ${idx + 1}. ${i}`));
+  } else {
+    console.log('[L5] ✅ 全部 content 链接目标存在' + (warnings.length ? `（${warnings.length} 项锚点降级警告见上）` : ''));
+  }
+  assert.equal(issues.length, 0, `content 链接问题 ${issues.length} 项:\n${issues.join('\n')}`);
 });
 
 test('L4 浏览器实测：登录态跳转逻辑（未登录直达登录页 / 已登录直达角色工作台 / 登录页返回闭环）', async () => {

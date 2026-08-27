@@ -6,7 +6,7 @@
 //  本文件是 DataAdapter 接口的 mock 实现，操作 mockDB + localStorage。
 //  当数据源切换为 'api' 时，本适配器不再被使用。
 //
-//  Source: content/04_web_design/DATA_ARCHITECTURE.md
+//  Source: content/04_web_design/data/DATA_ARCHITECTURE.md
 // ════════════════════════════════════════════════════════════════
 
 import { mockDB, SCHEMA_VERSION } from './domain.js?v=20260827c';

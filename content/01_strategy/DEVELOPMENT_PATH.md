@@ -4,14 +4,14 @@ type: guide
 role: "[用户]+[AI]"
 last_updated: "2026-08-19"
 status: active
-related_files: [ARCHITECTURE.md, CLAUDE.md, content/04_web_design/DATA_FLOW.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/FLAT_DESIGN.md, content/insights/党支部管理与实务经验沉淀.md, content/02_institution/sop/支委与党小组定人定责定岗说明.md, SECRETARY_PRONOUNCEMENTS.md]
+related_files: [ARCHITECTURE.md, CLAUDE.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/FLAT_DESIGN.md, content/insights/党支部管理与实务经验沉淀.md, content/02_institution/sop/支委与党小组定人定责定岗说明.md, SECRETARY_PRONOUNCEMENTS.md]
 ---
 
 > **受众：** [用户]（党支书、支委、党员，以及刚加入、尚不了解本支部的积极分子和发展对象）
 
 > **分工声明**：本文档是 [SECRETARY_PRONOUNCEMENTS.md](SECRETARY_PRONOUNCEMENTS.md)（书记论断汇编）的**子本**——书记原话的母本在论断汇编，本文档是那些论断面向支部成员的叙事展开。冲突时以论断汇编为准。本文档回答"党支部为什么存在""通过组织获得成长"的根本命题，确立"管理事、服务人"作为从入党申请人到正式党员完整叙事的总路径（不是"党建与党务的统一主语"——该表述为错误概括，2026-08-15 书记裁决清理）。
 >
-> - 与 [DATA_FLOW.md](../04_web_design/DATA_FLOW.md)（数据流，含三级参与者数据流）、[ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) §九、[FLAT_DESIGN.md](../02_institution/FLAT_DESIGN.md) 的关系见附录 A。
+> - 与 [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md)（数据流，含三级参与者数据流）、[ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) §九、[FLAT_DESIGN.md](../02_institution/FLAT_DESIGN.md) 的关系见附录 A。
 > - 第三章 P-016 "恢复对话能力"是"党建+科研"这一方面的重要战略选择——恢复对话能力是"党建+科研"的目标，不是党建全局的根本目标。
 
 # 发展路径

@@ -137,13 +137,13 @@ API 需满足以下规范：
 
 | 文档 | 位置 | 内容 |
 |------|------|------|
-| 数据架构设计 | `content/04_web_design/DATA_MODEL.md` + `content/04_web_design/DATA_FLOW.md` | 全部数据模型定义、字段规格、DataAdapter 接口规范、API 路由设计 |
+| 数据架构设计 | `content/04_web_design/data/DATA_MODEL.md` + `content/04_web_design/data/DATA_FLOW.md` | 全部数据模型定义、字段规格、DataAdapter 接口规范、API 路由设计 |
 | API 适配器实现 | `docs/src/core/api-adapter.js` | REST API 完整路由映射（25 资源分组 + 服务端点 auth/login/logout、snapshot、uploads、health、bootstrap，见 api-adapter.js 头部路由表），学校计算中心按此实现后端 |
 | 后端参考实现 | `server/` | Express + better-sqlite3 全栈：db.js 26 资源表结构、routes/resources.js CRUD 语义、auth.js 认证、uploads.js 附件上传——计算中心可对照实现或直接迁移 |
 | Mock 适配器实现 | `docs/src/core/mock-adapter.js` | DataAdapter 的 mock 实现，供参考数据结构和业务逻辑 |
 | 数据访问抽象层 | `docs/src/core/data-adapter.js` | 统一切换机制（setDataSource），学校计算中心无需修改 |
 | 运行时插槽 | `docs/src/services/runtime.js` | 初始化入口，注册适配器实例 |
-| 认证流程说明 | `docs/src/services/auth.js` + `content/04_web_design/DEPLOYMENT_AUTH_MODEL.md` | 登录/注销/会话管理逻辑 + 5 场景部署认证模型 + 登录门控四层 |
+| 认证流程说明 | `docs/src/services/auth.js` + `content/04_web_design/deploy/DEPLOYMENT_AUTH_MODEL.md` | 登录/注销/会话管理逻辑 + 5 场景部署认证模型 + 登录门控四层 |
 | 可见性规则说明 | 本文件 §3.2.4 | 多级可见性的过滤逻辑 |
 | AI 接入需求 | 本文件 §3.6 | AI 本地部署的场景和模型要求 |
 | 前端页面清单 | `docs/` 目录 | 所有 HTML 页面及其功能说明 |
@@ -249,7 +249,7 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 
 | 文档 | 角色 |
 |------|------|
-| [DATA_FLOW.md](DATA_FLOW.md) §4.4 | DataAdapter 数据抽象（mock/api）权威源 |
+| [DATA_FLOW.md](../data/DATA_FLOW.md) §4.4 | DataAdapter 数据抽象（mock/api）权威源 |
 | [DEPLOYMENT_AUTH_MODEL.md](DEPLOYMENT_AUTH_MODEL.md) | 部署形态 / 登录态 / 门控统一模型 |
 | [WECHAT_INTEGRATION.md](WECHAT_INTEGRATION.md) | 小程序设计方案（本文件 §四 细目） |
-| [server/README.md](../../server/README.md) | 后端安装 / 启动 / 测试 / 部署对接说明 |
+| [server/README.md](../../../server/README.md) | 后端安装 / 启动 / 测试 / 部署对接说明 |

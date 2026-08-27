@@ -29,7 +29,7 @@ dynamic_role:
 |---------|-------------|------|------|
 | README.md | 2026-08-10 | [用户]+[AI] | 对外门面（设计理念章重构） |
 | CLAUDE.md | 2026-08-27 | [工程师]+[AI] | Harness（甲部 H10-H100 约束力三层 + 乙部执行 + 丙部待决策；T-272 乙部登记 + P.8/P.9/P.10 丙部退出清空 + T-280 网页逻辑梳理乙部注册 + T-283 最小三成本第4轮 + T-284 链接审查） |
-| CHECKLIST.md | — | — | 🗑️ 已删除（迁移至 content/04_web_design/CHECKLIST.md） |
+| CHECKLIST.md | — | — | 🗑️ 已删除（迁移至 content/04_web_design/evolution/CHECKLIST.md） |
 | LICENSE | 2026-02-17 | [用户] | 开源许可 |
 | .gitignore | 2026-04-06 | [工具] | Git 忽略 |
 | .markdownlint.json | 2026-04-06 | [工具] | Markdown 规范 |
@@ -107,21 +107,21 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/04_web_design/DESIGN_SYSTEM.md | 2026-08-24 | [工程师]+[AI] | 设计系统规范（含§一第2条"最小三成本"原则；T-282 拆分 §二→COLOR_SYSTEM、§四→COMPONENT_SPEC） |
-| content/04_web_design/COLOR_SYSTEM.md | 2026-08-24 | [工程师]+[AI] | 色彩系统规范（T-282 自 DESIGN_SYSTEM 拆分 §二：色盘/主色/辅助色/中性色/功能色/表面色/配色规则） |
-| content/04_web_design/COMPONENT_SPEC.md | 2026-08-24 | [工程师]+[AI] | 组件规范（T-282 自 DESIGN_SYSTEM 拆分 §四：按钮/卡片/输入/侧边栏/导航/日历图例/数据展示/图标/选人/状态徽章） |
-| content/04_web_design/ABOUT_DESIGN_SYSTEM.md | 2026-08-22 | [工程师]+[AI] | About 页面设计系统（超参数设定原则/防风格疲劳/无竖线红线，新建 T-272；T-278 无人称修缮） |
-| content/04_web_design/PKU_PARTY_INTEGRATION.md | 2026-08-22 | [工程师]+[AI] | 北大党校与智慧党建系统对接设计（党校单向爬取+智慧党建双向同步+数据映射+小程序归位说明+待确认清单，新建；对接授权=党委组织部支持；T-278 无人称修缮） |
-| content/04_web_design/ARCHITECTURE_EVOLUTION.md | 2026-08-22 | [工程师]+[AI] | 架构演进（组件化落地评估+轻量插件化「能力注册表」设计+迭代机制+实施路径，新建 T-276；无人称文体） |
-| content/04_web_design/WECHAT_INTEGRATION.md | 2026-08-22 | [工程师]+[AI] | 微信协同与小程序设计方案（§八 新增北大对接数据展示；小程序独立问题归位本文档；T-278 无人称修缮） |
-| content/04_web_design/CHECKLIST.md | 2026-08-24 | [用户]+[AI] | 数据同源一致性校验手册（T-278 无人称修缮；T-280 B1-1 登录跳转表述修正 + §16 登录门控 + 待办直达检查项 + T-235 第3轮实测回填） |
-| content/04_web_design/DATA_MODEL.md | 2026-08-24 | [工程师]+[AI] | 数据模型设计（T-282 自 DATA_ARCHITECTURE 拆分 §二：20 类模型 + 写入验证 + 待办/通知派生 + 归档字段） |
-| content/04_web_design/DATA_FLOW.md | 2026-08-24 | [工程师]+[AI] | 数据流设计（T-282 自 DATA_ARCHITECTURE 拆分 §一/§三/§四：总览 + 参与者数据流 + 前端数据流） |
-| content/04_web_design/DATA_ARCHITECTURE.md | 2026-08-24 | [工程师]+[AI] | 数据架构设计（T-282 拆分后转为路由薄壳，正文已迁至 DATA_MODEL/DATA_FLOW） |
-| content/04_web_design/MODULE_UI_DESIGN.md | 2026-08-09 | [工程师]+[AI] | 模块界面设计 |
-| content/04_web_design/SOP_WEB.md | 2026-08-22 | [工程师]+[AI] | SOP-系统联动方法（T-278 无人称修缮） |
-| content/04_web_design/DEPLOYMENT_ROADMAP.md | 2026-08-24 | [工程师]+[AI] | 部署落地总览（四条路径 + 决策矩阵；2026-08-24 并入 SCHOOL_IT_DEPLOYMENT 全部内容为 §三 计算中心对接全案） |
-| content/04_web_design/DEPLOYMENT_AUTH_MODEL.md | 2026-08-22 | [工程师]+[AI] | 部署与认证场景模型（5 场景两轴正交 + 侧边栏统一 + 登录门控四层；T-278 无人称修缮） |
+| content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-08-24 | [工程师]+[AI] | 设计系统规范（含§一第2条"最小三成本"原则；T-282 拆分 §二→COLOR_SYSTEM、§四→COMPONENT_SPEC） |
+| content/04_web_design/design-system/COLOR_SYSTEM.md | 2026-08-24 | [工程师]+[AI] | 色彩系统规范（T-282 自 DESIGN_SYSTEM 拆分 §二：色盘/主色/辅助色/中性色/功能色/表面色/配色规则） |
+| content/04_web_design/design-system/COMPONENT_SPEC.md | 2026-08-24 | [工程师]+[AI] | 组件规范（T-282 自 DESIGN_SYSTEM 拆分 §四：按钮/卡片/输入/侧边栏/导航/日历图例/数据展示/图标/选人/状态徽章） |
+| content/04_web_design/module/ABOUT_DESIGN_SYSTEM.md | 2026-08-22 | [工程师]+[AI] | About 页面设计系统（超参数设定原则/防风格疲劳/无竖线红线，新建 T-272；T-278 无人称修缮） |
+| content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md | 2026-08-22 | [工程师]+[AI] | 北大党校与智慧党建系统对接设计（党校单向爬取+智慧党建双向同步+数据映射+小程序归位说明+待确认清单，新建；对接授权=党委组织部支持；T-278 无人称修缮） |
+| content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md | 2026-08-22 | [工程师]+[AI] | 架构演进（组件化落地评估+轻量插件化「能力注册表」设计+迭代机制+实施路径，新建 T-276；无人称文体） |
+| content/04_web_design/deploy/WECHAT_INTEGRATION.md | 2026-08-22 | [工程师]+[AI] | 微信协同与小程序设计方案（§八 新增北大对接数据展示；小程序独立问题归位本文档；T-278 无人称修缮） |
+| content/04_web_design/evolution/CHECKLIST.md | 2026-08-24 | [用户]+[AI] | 数据同源一致性校验手册（T-278 无人称修缮；T-280 B1-1 登录跳转表述修正 + §16 登录门控 + 待办直达检查项 + T-235 第3轮实测回填） |
+| content/04_web_design/data/DATA_MODEL.md | 2026-08-24 | [工程师]+[AI] | 数据模型设计（T-282 自 DATA_ARCHITECTURE 拆分 §二：20 类模型 + 写入验证 + 待办/通知派生 + 归档字段） |
+| content/04_web_design/data/DATA_FLOW.md | 2026-08-24 | [工程师]+[AI] | 数据流设计（T-282 自 DATA_ARCHITECTURE 拆分 §一/§三/§四：总览 + 参与者数据流 + 前端数据流） |
+| content/04_web_design/data/DATA_ARCHITECTURE.md | 2026-08-24 | [工程师]+[AI] | 数据架构设计（T-282 拆分后转为路由薄壳，正文已迁至 DATA_MODEL/DATA_FLOW） |
+| content/04_web_design/module/MODULE_UI_DESIGN.md | 2026-08-09 | [工程师]+[AI] | 模块界面设计 |
+| content/04_web_design/module/SOP_WEB.md | 2026-08-22 | [工程师]+[AI] | SOP-系统联动方法（T-278 无人称修缮） |
+| content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md | 2026-08-24 | [工程师]+[AI] | 部署落地总览（四条路径 + 决策矩阵；2026-08-24 并入 SCHOOL_IT_DEPLOYMENT 全部内容为 §三 计算中心对接全案） |
+| content/04_web_design/deploy/DEPLOYMENT_AUTH_MODEL.md | 2026-08-22 | [工程师]+[AI] | 部署与认证场景模型（5 场景两轴正交 + 侧边栏统一 + 登录门控四层；T-278 无人称修缮） |
 | content/04_web_design/SCHOOL_IT_DEPLOYMENT.md | 2026-08-24 | [工程师]+[AI] | 已并入 DEPLOYMENT_ROADMAP.md §三（计算中心对接全案），2026-08-24 合并删除 |
 | content/04_web_design/README.md | 2026-08-24 | [工程师]+[AI] | 04_web_design 目录索引（2026-08-24 部署类重组更新） |
 

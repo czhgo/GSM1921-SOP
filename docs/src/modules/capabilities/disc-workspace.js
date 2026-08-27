@@ -2,7 +2,7 @@
 // 纪检委员工作台能力：tab 清单注册（T-279 M3，照 M2 样板 leader-workspace）
 // 自注册模式（M1 同款）：副作用导入即注册。消费点（薄壳入口）经 getCapabilities({scope:'workspace:disc'})
 // 读取本能力，tab 声明（含懒加载 render）不再硬编码在入口。
-// 设计权威源：content/04_web_design/ARCHITECTURE_EVOLUTION.md §四/§六
+// 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §四/§六
 
 import { registerCapability } from '../../core/registry.js?v=20260827c';
 

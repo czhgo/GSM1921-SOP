@@ -12,7 +12,7 @@ related_files: [docs/src/about.css, docs/src/entries/about-entry.js, DESIGN_SYST
 
 > **定位**：about 页设计的权威依据（保留「叙事册」风格）。**每个超参数的设定原则显式化**——任何一个数值（字号/倾斜/字距/高度/间距/透明度/停留时长）都必须能回答「为什么这样设定」。后续改动有据可依、可审（2026-08-19 T-272 确立：「对于每一个超参数，设定的原则是什么？要有自觉」）。
 > **受众**：[工程师]+[AI]（任何修改 about 页的开发者）
-> **关联**：[DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)（全站设计系统）→ 本文档为 about 页专项细则。
+> **关联**：[DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md)（全站设计系统）→ 本文档为 about 页专项细则。
 
 ---
 

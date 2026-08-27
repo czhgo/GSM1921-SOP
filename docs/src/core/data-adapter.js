@@ -14,8 +14,8 @@
 //  - 写操作：通过 persist() 路由到当前数据源
 //  - 初始化：init() 从当前数据源预加载到 mockDB
 //
-//  Source: content/04_web_design/DATA_ARCHITECTURE.md
-//  Source: content/04_web_design/DEPLOYMENT_ROADMAP.md §3.4（计算中心对接全案）
+//  Source: content/04_web_design/data/DATA_ARCHITECTURE.md
+//  Source: content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md §3.4（计算中心对接全案）
 // ════════════════════════════════════════════════════════════════
 
 /**

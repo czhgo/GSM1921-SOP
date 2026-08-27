@@ -12,7 +12,7 @@ related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEB.md, DEPLOYMENT_ROADMAP.md, 
 
 > **定位**：一次关于系统架构的探索——「高度组件化、高度可复用」的目标落地到什么程度？距离「一切皆插件」的灵活性还有多远？上线后的多轮迭代靠什么机制承载？本文档只表达探索与选择，不代表最终结论，更不代表方案完备。
 > **受众**：[工程师]+[AI]（架构维护者、开发者）+ 愿意给出架构反馈的外部评审者
-> **关联**：[DATA_MODEL.md](DATA_MODEL.md)（数据模型权威源）+ [DATA_FLOW.md](DATA_FLOW.md)（数据流权威源）、[SOP_WEB.md](SOP_WEB.md)（SOP-系统联动方法论）、[DEPLOYMENT_ROADMAP.md](DEPLOYMENT_ROADMAP.md)（部署落地路径）、[ARCHITECTURE.md](../03_doc_system/ARCHITECTURE.md)（核心架构说明）。
+> **关联**：[DATA_MODEL.md](../data/DATA_MODEL.md)（数据模型权威源）+ [DATA_FLOW.md](../data/DATA_FLOW.md)（数据流权威源）、[SOP_WEB.md](../module/SOP_WEB.md)（SOP-系统联动方法论）、[DEPLOYMENT_ROADMAP.md](../deploy/DEPLOYMENT_ROADMAP.md)（部署落地路径）、[ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)（核心架构说明）。
 
 ---
 
@@ -84,8 +84,8 @@ related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEB.md, DEPLOYMENT_ROADMAP.md, 
 
 ### 3.3 技术栈演进（切后端、上小程序、接外部系统）
 
-- **现状**：`DataAdapter` 已把数据源隔离——mock/api 切换、北大对接数据接入（[PKU_PARTY_INTEGRATION.md](PKU_PARTY_INTEGRATION.md)）都在数据层做，UI 不感知。
-- **瓶颈**：小程序端（[WECHAT_INTEGRATION.md](WECHAT_INTEGRATION.md) §八）复用网页组件时，只能复制或重写，没有「能力级复用」——同一能力在小程序端直接挂载。
+- **现状**：`DataAdapter` 已把数据源隔离——mock/api 切换、北大对接数据接入（[PKU_PARTY_INTEGRATION.md](../deploy/PKU_PARTY_INTEGRATION.md)）都在数据层做，UI 不感知。
+- **瓶颈**：小程序端（[WECHAT_INTEGRATION.md](../deploy/WECHAT_INTEGRATION.md) §八）复用网页组件时，只能复制或重写，没有「能力级复用」——同一能力在小程序端直接挂载。
 
 **小结**：数据层已经走对了（接口隔离），UI 层还停在「静态组装」。迭代机制的设计重点在 UI 层的能力注册化。
 
@@ -179,12 +179,12 @@ export const activityCalendar = {
 
 | 文档 | 关系 |
 |------|------|
-| [DATA_MODEL.md](DATA_MODEL.md) + [DATA_FLOW.md](DATA_FLOW.md) | 数据模型/数据流权威源不变；注册化不动数据模型 |
-| [SOP_WEB.md](SOP_WEB.md) | SOP-系统联动方法论不变；工作流场景注册化是其延伸（场景清单可查可灰度） |
-| [DEPLOYMENT_ROADMAP.md](DEPLOYMENT_ROADMAP.md) | 部署四路径不变；M3/M4 依赖后端/小程序路径的环境配置 |
-| [ARCHITECTURE.md](../03_doc_system/ARCHITECTURE.md) | 核心架构说明；注册表落地后回写为其中一节 |
+| [DATA_MODEL.md](../data/DATA_MODEL.md) + [DATA_FLOW.md](../data/DATA_FLOW.md) | 数据模型/数据流权威源不变；注册化不动数据模型 |
+| [SOP_WEB.md](../module/SOP_WEB.md) | SOP-系统联动方法论不变；工作流场景注册化是其延伸（场景清单可查可灰度） |
+| [DEPLOYMENT_ROADMAP.md](../deploy/DEPLOYMENT_ROADMAP.md) | 部署四路径不变；M3/M4 依赖后端/小程序路径的环境配置 |
+| [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) | 核心架构说明；注册表落地后回写为其中一节 |
 | 乙部 C-1「JS 组件化」 | 本文档是 C-1 的深化方向——C-1 消除 HTML 硬编码，注册表消除「静态引用」 |
-| [KNOWN_PITFALLS.md](../05_ai_coding/KNOWN_PITFALLS.md) | §13 缓存版本教训为 M2 版本化提供依据 |
+| [KNOWN_PITFALLS.md](../../05_ai_coding/KNOWN_PITFALLS.md) | §13 缓存版本教训为 M2 版本化提供依据 |
 
 ---
 

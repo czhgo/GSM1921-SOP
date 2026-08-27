@@ -2,8 +2,8 @@
 // ════════════════════════════════════════════════════════════════
 //  todo-list.js — 待办列表组件
 //  最小三成本原则落地：进入工作台第一眼即见待办
-//  Source: content/04_web_design/DATA_ARCHITECTURE.md §2.18.2
-//         content/04_web_design/DESIGN_SYSTEM.md §一 第6条
+//  Source: content/04_web_design/data/DATA_ARCHITECTURE.md §2.18.2
+//         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
 import {

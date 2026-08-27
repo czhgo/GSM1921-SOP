@@ -18,5 +18,9 @@ desktop.ini
 *.tmp
 docs/superpowers/
 
+# Server runtime artifacts
+server/data.db
+server/uploads/
+
 # Build output (project uses ESM directly, no bundler needed)
 docs/dist/

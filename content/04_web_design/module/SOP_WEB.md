@@ -70,7 +70,7 @@ version: "4.1"
 
 - **角色优先**：登录后按 `ROLE_PAGE_MAP` 进入角色对应工作台，无手动模式切换
 - **权限判定**：常设角色（secretary/deputy-secretary/org-commissioner/prop-commissioner/disc-commissioner）+ 项目角色（organizer/deep）+ leader → `AuthStore.canDo()` 统一判定（`ROLE_PERMISSIONS` + `PROJECT_PERMISSIONS` 并集）
-- **按人视图**：书记/副书记在全局概况以"按维度/按人"子切换查看各角色在办任务（L1 条线视角，[DESIGN_SYSTEM §一 原则9](DESIGN_SYSTEM.md)）——只读视角切换机制已随 2026-08-08 权限重构删除，不再切他人身份进他人工作台，按人视图按知情边界（P-011 第四道防线）替代
+- **按人视图**：书记/副书记在全局概况以"按维度/按人"子切换查看各角色在办任务（L1 条线视角，[DESIGN_SYSTEM §一 原则9](../design-system/DESIGN_SYSTEM.md)）——只读视角切换机制已随 2026-08-08 权限重构删除，不再切他人身份进他人工作台，按人视图按知情边界（P-011 第四道防线）替代
 - **Header 为工作台切换入口**：全局角色切换器（仅工作台切换，无只读视角切换）
 - **Sidebar 为角色快捷选择器**：与 Header 双向同步
 
@@ -94,7 +94,7 @@ AuthStore.isCommissioner(role)               → boolean（常设角色集合判
 
 #### 赋权关系链 (AUTHORIZE_CHAIN)
 
-> **权威源**：[COMMISSIONER_FRAMEWORK.md §C](../02_institution/COMMISSIONER_FRAMEWORK.md)（赋权关系链，原 PERMISSION_MATRIX.md §二）。本表为该权威源在系统架构中的切面视图，冲突时以权威源为准。
+> **权威源**：[COMMISSIONER_FRAMEWORK.md §C](../../02_institution/COMMISSIONER_FRAMEWORK.md)（赋权关系链，原 PERMISSION_MATRIX.md §二）。本表为该权威源在系统架构中的切面视图，冲突时以权威源为准。
 > 系统内实现为 `AUTHORIZE_CHAIN`（auth.js）：secretary/deputy-secretary → leader/organizer/deep；org-commissioner/leader → organizer/deep；organizer → deep。
 
 ```
@@ -140,13 +140,13 @@ AuthStore.isCommissioner(role)               → boolean（常设角色集合判
 
 #### 写入门禁原则
 
-> **来源：**[USAGE_POLICY.md](../03_doc_system/USAGE_POLICY.md) §1.2.5 — 术语权威源；[ROLE_CLASSIFICATION.md §九 角色权限矩阵](../02_institution/ROLE_CLASSIFICATION.md) — 权限矩阵权威源（原 PERMISSION_MATRIX.md §一/§四）
+> **来源：**[USAGE_POLICY.md](../../03_doc_system/USAGE_POLICY.md) §1.2.5 — 术语权威源；[ROLE_CLASSIFICATION.md §九 角色权限矩阵](../../02_institution/ROLE_CLASSIFICATION.md) — 权限矩阵权威源（原 PERMISSION_MATRIX.md §一/§四）
 
 **仅党支部书记、党支部副书记、党小组组长可直接创建/修改活动数据；宣传委员、纪检委员通过审核、确认、备案等流程间接参与，不直接写入活动。**
 
 - `create_activity` 仅 secretary/deputy-secretary/leader 持有；`canWriteActivity(role)` 是旧实现（@deprecated，判定范围与之相同）
 - 参与路径：纪检委员确认考勤 → 备案；宣传委员审核素材 → 备案
-- 组织委员不持有 `create_activity`，专班创建/管理走 `initiate_taskforce`/`authorize_taskforce` 通道；其"维护人才库"是基于考察信息的信息流处理，不是"归档"原始材料（依据 [党支部管理与实务经验沉淀.md §4.8](../insights/党支部管理与实务经验沉淀.md) 组织委员职责规则）
+- 组织委员不持有 `create_activity`，专班创建/管理走 `initiate_taskforce`/`authorize_taskforce` 通道；其"维护人才库"是基于考察信息的信息流处理，不是"归档"原始材料（依据 [党支部管理与实务经验沉淀.md §4.8](../../insights/党支部管理与实务经验沉淀.md) 组织委员职责规则）
 
 #### 组织委员「专班协调视图」
 
@@ -372,7 +372,7 @@ STEP 4: 同步更新系统渲染
 - **身份 ≠ 权限**：身份决定角色，权限由 `canDo()` 统一判定
 - **支委天然权限**：组织/宣传/纪检委员在自己的职能内无需赋权
 - **赋权仅针对活动角色**：只有 organizer 和 deep 需要被赋权
-- **知情边界**：任何角色的信息可见范围精确等于其职责空间所需的最小充分信息（[P-011 第四道防线](../01_strategy/SECRETARY_PRONOUNCEMENTS.md#p-011-组织内控总论职责分离主动回避书记仲裁与知情边界)）——按人视图按赋权链投影（L1 条线视角），不暴露他人操作细节；"看 ≠ 做"，监督停留方向把握（原 P-027②）
+- **知情边界**：任何角色的信息可见范围精确等于其职责空间所需的最小充分信息（[P-011 第四道防线](../../01_strategy/SECRETARY_PRONOUNCEMENTS.md#p-011-组织内控总论职责分离主动回避书记仲裁与知情边界)）——按人视图按赋权链投影（L1 条线视角），不暴露他人操作细节；"看 ≠ 做"，监督停留方向把握（原 P-027②）
 
 > **（论断 原 P-029 退役说明，2026-08-09 自论断汇编迁出至 04）**：原论断「管理模式 / 管理者只读 / 参与者只读」视图模式三分类已随 2026-08-08 权限系统重构移除（现行判定为常设角色 + 项目角色 → canDo()，顶栏仅保留工作台切换）；"身份≠权限"作为一般原则仍然成立，本条在此保留为历史决策记录。
 
@@ -380,7 +380,7 @@ STEP 4: 同步更新系统渲染
 
 **设计任务**（原话精神，UI 怎么设计值得仔细思考）：全局概览中，书记【默认】不介入已经进行的活动，但书记可以看到是否可以对于特定活动或者专班补充意见——即书记能否把握已有活动的审批信息，并提供方向性意见。
 
-> 论断 原 P-027 已拆解（2026-08-09）：报备/审批的"程序规范化"归 [COMMISSIONER_FRAMEWORK.md §审批流程规范](../02_institution/COMMISSIONER_FRAMEWORK.md)；本条记录"书记对已开展活动/专班补充意见"的 UI 设计需求——书记的审批反馈是活动执行方向把握的关键环节（原 P-027②）。
+> 论断 原 P-027 已拆解（2026-08-09）：报备/审批的"程序规范化"归 [COMMISSIONER_FRAMEWORK.md §审批流程规范](../../02_institution/COMMISSIONER_FRAMEWORK.md)；本条记录"书记对已开展活动/专班补充意见"的 UI 设计需求——书记的审批反馈是活动执行方向把握的关键环节（原 P-027②）。
 
 ---
 

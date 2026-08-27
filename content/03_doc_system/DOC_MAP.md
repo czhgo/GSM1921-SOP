@@ -11,7 +11,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 # 文档导航映射
 
 > **本文档为导航图**：按 5 类知识类型组织，标注每个文件的受众。
-> **权威层级定义**（5 类知识类型、裁决规则）见 [OPERATIONS_GUIDE.md §1.1](OPERATIONS_GUIDE.md#11-文档权威层级5类知识类型)。
+> **权威层级定义**（5 类知识类型、裁决规则）见 [OPERATIONS_GUIDE.md §1.1](OPERATIONS_GUIDE.md#11-文档权威层级5-类知识类型)。
 > **母本子本关系注册表**见 [SSOT_INDEX.md](SSOT_INDEX.md)。
 > 三者关系：§1.1 定义层级 → DOC_MAP 标注层级 → SSOT_INDEX 注册关系。
 > **受众：** [工程师]+[AI]
@@ -41,7 +41,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 
 ## 二、文件总览（按 5 类知识类型）
 
-> **层级定义见 [OPERATIONS_GUIDE.md §1.1](OPERATIONS_GUIDE.md#11-文档权威层级5类知识类型)**：5 类知识类型（战略/制度/文档系统/网站设计/AI coding）。
+> **层级定义见 [OPERATIONS_GUIDE.md §1.1](OPERATIONS_GUIDE.md#11-文档权威层级5-类知识类型)**：5 类知识类型（战略/制度/文档系统/网站设计/AI coding）。
 > 知识类型之间互补，互不覆盖；冲突裁决以母本优先于衍生为原则。
 
 ### 知识类型 1：支部发展和管理的战略（content/01_strategy/）
@@ -88,7 +88,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | `content/03_doc_system/SSOT_INDEX.md` | [工程师]+[AI] | 母本注册表、溯源参考（Agent/Skill 配置已迁出，见 ARCHITECTURE.md） | ARCHITECTURE.md |
 | `content/03_doc_system/ARCHITECTURE.md` | [工程师]+[AI] | 核心架构说明、分层架构、数据模型、变更流水线 | README.md（架构图引用） |
 | `content/03_doc_system/SERVICE_CATALOG.md` | [工程师]+[AI] | 统一服务目录（服务清单+角色权限矩阵） | DATA_MODEL.md / ROLE_CLASSIFICATION.md / COMMISSIONER_FRAMEWORK.md |
-| `content/03_doc_system/工作模板/经验沉淀辅助提示词.md` | [用户] | 经验沉淀辅助提示词模板 | content/04_web_design/SOP_WEB.md |
+| `content/03_doc_system/工作模板/经验沉淀辅助提示词.md` | [用户] | 经验沉淀辅助提示词模板 | content/04_web_design/module/SOP_WEB.md |
 | `content/03_doc_system/README.md` | [工程师]+[AI] | 文档系统管理层目录索引 | — |
 
 ### 知识类型 4：网站系统的设计想法（content/04_web_design/）
@@ -97,20 +97,20 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `content/04_web_design/DATA_MODEL.md` | [工程师]+[AI] | 数据模型设计（原 DATA_ARCHITECTURE §二：20 类数据模型字段定义 + §写入数据验证 + 待办/通知派生 + 归档扩展字段） | SECRETARY_PRONOUNCEMENTS.md、ARCHITECTURE.md、CLAUDE.md |
-| `content/04_web_design/DATA_FLOW.md` | [工程师]+[AI] | 数据流设计（原 DATA_ARCHITECTURE §一总览 + §三参与者数据流 + §四前端数据流：状态管理/持久化/数据源边界/DataAdapter/写穿透） | DATA_MODEL.md、ROLE_CLASSIFICATION.md |
-| `content/04_web_design/DESIGN_SYSTEM.md` | [工程师]+[AI] | 设计系统规范（设计哲学/排版/交互反馈/响应式/深色模式/设计资产/快速参考；2026-08-24 §二→COLOR_SYSTEM、§四→COMPONENT_SPEC） | docs/src/styles.css |
-| `content/04_web_design/COLOR_SYSTEM.md` | [工程师]+[AI] | 色彩系统规范（色盘/主色/辅助色/中性色/功能色/表面色/配色规则；2026-08-24 自 DESIGN_SYSTEM 拆分） | docs/src/styles.css |
-| `content/04_web_design/COMPONENT_SPEC.md` | [工程师]+[AI] | 组件规范（按钮/卡片/输入/侧边栏/导航/日历图例/数据展示/图标/选人/状态徽章；2026-08-24 自 DESIGN_SYSTEM 拆分） | docs/src/components/* |
-| `content/04_web_design/ABOUT_DESIGN_SYSTEM.md` | [工程师]+[AI] | About 页面设计系统（超参数设定原则/防风格疲劳/无竖线红线） | docs/src/about.css、docs/src/entries/about-entry.js |
-| `content/04_web_design/CHECKLIST.md` | [用户]+[AI] | 数据同源一致性校验手册（工程质检流程，按数据类别逐步检查；机器检查+人工检查分工） | DATA_MODEL.md、ARCHITECTURE.md |
-| `content/04_web_design/MODULE_UI_DESIGN.md` | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能） | docs/src/components/calendar.js |
-| `content/04_web_design/SOP_WEB.md` | [工程师]+[AI] | SOP 系统优化与同步指南 | CLAUDE.md H30.2 |
-| `content/04_web_design/DEPLOYMENT_ROADMAP.md` | [工程师]+[AI] | 部署落地总览（四条落地路径 + 计算中心对接全案 + 决策矩阵） | DEPLOYMENT_AUTH_MODEL.md、WECHAT_INTEGRATION.md |
-| `content/04_web_design/PKU_PARTY_INTEGRATION.md` | [工程师]+[AI] | 北大党校与智慧党建系统对接设计（党校单向爬取 + 智慧党建双向同步 + 数据映射 + 小程序归位说明 + 待确认清单） | DEPLOYMENT_ROADMAP.md、WECHAT_INTEGRATION.md、DATA_MODEL.md |
-| `content/04_web_design/ARCHITECTURE_EVOLUTION.md` | [工程师]+[AI] | 架构演进（组件化落地评估 + 轻量插件化「能力注册表」设计 + 迭代机制 + 实施路径） | DATA_MODEL.md、DATA_FLOW.md、SOP_WEB.md、DEPLOYMENT_ROADMAP.md、ARCHITECTURE.md、KNOWN_PITFALLS.md |
-| `content/04_web_design/DEPLOYMENT_AUTH_MODEL.md` | [工程师]+[AI] | 部署与认证场景模型（5 场景两轴正交 + 侧边栏统一 + 登录门控四层 + 构建注入配置） | docs/src/config/deploy.js、docs/src/components/sidebar.js、docs/src/core/bootstrap.js |
-| `content/04_web_design/WECHAT_INTEGRATION.md` | [工程师]+[AI] | 微信协同与小程序设计方案（文件流分类+宣传墙/档案分层浏览+过程性汇报集成+小程序路径评估） | DESIGN_SYSTEM.md（原则 10/13）、T-230 |
+| `content/04_web_design/data/DATA_MODEL.md` | [工程师]+[AI] | 数据模型设计（原 DATA_ARCHITECTURE §二：20 类数据模型字段定义 + §写入数据验证 + 待办/通知派生 + 归档扩展字段） | SECRETARY_PRONOUNCEMENTS.md、ARCHITECTURE.md、CLAUDE.md |
+| `content/04_web_design/data/DATA_FLOW.md` | [工程师]+[AI] | 数据流设计（原 DATA_ARCHITECTURE §一总览 + §三参与者数据流 + §四前端数据流：状态管理/持久化/数据源边界/DataAdapter/写穿透） | DATA_MODEL.md、ROLE_CLASSIFICATION.md |
+| `content/04_web_design/design-system/DESIGN_SYSTEM.md` | [工程师]+[AI] | 设计系统规范（设计哲学/排版/交互反馈/响应式/深色模式/设计资产/快速参考；2026-08-24 §二→COLOR_SYSTEM、§四→COMPONENT_SPEC） | docs/src/styles.css |
+| `content/04_web_design/design-system/COLOR_SYSTEM.md` | [工程师]+[AI] | 色彩系统规范（色盘/主色/辅助色/中性色/功能色/表面色/配色规则；2026-08-24 自 DESIGN_SYSTEM 拆分） | docs/src/styles.css |
+| `content/04_web_design/design-system/COMPONENT_SPEC.md` | [工程师]+[AI] | 组件规范（按钮/卡片/输入/侧边栏/导航/日历图例/数据展示/图标/选人/状态徽章；2026-08-24 自 DESIGN_SYSTEM 拆分） | docs/src/components/* |
+| `content/04_web_design/module/ABOUT_DESIGN_SYSTEM.md` | [工程师]+[AI] | About 页面设计系统（超参数设定原则/防风格疲劳/无竖线红线） | docs/src/about.css、docs/src/entries/about-entry.js |
+| `content/04_web_design/evolution/CHECKLIST.md` | [用户]+[AI] | 数据同源一致性校验手册（工程质检流程，按数据类别逐步检查；机器检查+人工检查分工） | DATA_MODEL.md、ARCHITECTURE.md |
+| `content/04_web_design/module/MODULE_UI_DESIGN.md` | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能） | docs/src/components/calendar.js |
+| `content/04_web_design/module/SOP_WEB.md` | [工程师]+[AI] | SOP 系统优化与同步指南 | CLAUDE.md H30.2 |
+| `content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md` | [工程师]+[AI] | 部署落地总览（四条落地路径 + 计算中心对接全案 + 决策矩阵） | DEPLOYMENT_AUTH_MODEL.md、WECHAT_INTEGRATION.md |
+| `content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md` | [工程师]+[AI] | 北大党校与智慧党建系统对接设计（党校单向爬取 + 智慧党建双向同步 + 数据映射 + 小程序归位说明 + 待确认清单） | DEPLOYMENT_ROADMAP.md、WECHAT_INTEGRATION.md、DATA_MODEL.md |
+| `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md` | [工程师]+[AI] | 架构演进（组件化落地评估 + 轻量插件化「能力注册表」设计 + 迭代机制 + 实施路径） | DATA_MODEL.md、DATA_FLOW.md、SOP_WEB.md、DEPLOYMENT_ROADMAP.md、ARCHITECTURE.md、KNOWN_PITFALLS.md |
+| `content/04_web_design/deploy/DEPLOYMENT_AUTH_MODEL.md` | [工程师]+[AI] | 部署与认证场景模型（5 场景两轴正交 + 侧边栏统一 + 登录门控四层 + 构建注入配置） | docs/src/config/deploy.js、docs/src/components/sidebar.js、docs/src/core/bootstrap.js |
+| `content/04_web_design/deploy/WECHAT_INTEGRATION.md` | [工程师]+[AI] | 微信协同与小程序设计方案（文件流分类+宣传墙/档案分层浏览+过程性汇报集成+小程序路径评估） | DESIGN_SYSTEM.md（原则 10/13）、T-230 |
 | `content/04_web_design/README.md` | [工程师]+[AI] | 网站设计层目录索引 | — |
 
 ### 知识类型 5：网站系统的 AI coding 技术方法（content/05_ai_coding/）
@@ -154,17 +154,17 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | 查看待办任务 | CLAUDE.md §C | .ctx/logs/DECISION_LOG.md |
 | 查 SOP 流程 | content/02_institution/sop/INDEX.md | 对应功能委员 SOP |
 | 使用 Skill 工作流 | content/05_ai_coding/KNOWN_PITFALLS.md | 对应 Skill 定义 |
-| 提交改进反馈 | content/04_web_design/SOP_WEB.md §E | content/02_institution/sop/对应文件 |
+| 提交改进反馈 | content/04_web_design/module/SOP_WEB.md §E | content/02_institution/sop/对应文件 |
 | 了解角色分类体系 | content/02_institution/ROLE_CLASSIFICATION.md | （含可扩展性评估 §六） |
-| 查看设计系统规范 | content/04_web_design/DESIGN_SYSTEM.md | docs/src/styles.css |
+| 查看设计系统规范 | content/04_web_design/design-system/DESIGN_SYSTEM.md | docs/src/styles.css |
 | 了解 Emoji 使用规范 | content/03_doc_system/USAGE_POLICY.md §三 | CLAUDE.md 钩稽矩阵 |
-| 查看日历功能规划 | content/04_web_design/MODULE_UI_DESIGN.md | docs/src/components/calendar.js |
-| 查看品牌标签设计 | content/04_web_design/DATA_MODEL.md | CLAUDE.md |
+| 查看日历功能规划 | content/04_web_design/module/MODULE_UI_DESIGN.md | docs/src/components/calendar.js |
+| 查看品牌标签设计 | content/04_web_design/data/DATA_MODEL.md | CLAUDE.md |
 | 查官方合规 | content/01_strategy/references/合规文件/ | content/02_institution/sop/溯源 |
 | 查看执行日志 | .ctx/logs/EXECUTION_LOG_INDEX.md | 对应月份日志 |
-| 查看 SOP 系统优化 | content/04_web_design/SOP_WEB.md | content/02_institution/sop/对应 SOP |
-| 了解支委系统设计 | content/02_institution/COMMISSIONER_FRAMEWORK.md | content/04_web_design/MODULE_UI_DESIGN.md |
-| 了解登录系统设计前置 | content/04_web_design/DATA_FLOW.md | DATA_MODEL.md §登录态打桩设计 |
+| 查看 SOP 系统优化 | content/04_web_design/module/SOP_WEB.md | content/02_institution/sop/对应 SOP |
+| 了解支委系统设计 | content/02_institution/COMMISSIONER_FRAMEWORK.md | content/04_web_design/module/MODULE_UI_DESIGN.md |
+| 了解登录系统设计前置 | content/04_web_design/data/DATA_FLOW.md | DATA_MODEL.md §登录态打桩设计 |
 | 查看服务清单与权限矩阵 | content/03_doc_system/SERVICE_CATALOG.md | content/02_institution/ROLE_CLASSIFICATION.md §九 |
 | 理解架构变更 | content/03_doc_system/ARCHITECTURE.md §八 | content/03_doc_system/SSOT_INDEX.md |
 | 了解三类文件角色规范 | content/03_doc_system/OPERATIONS_GUIDE.md §14 | content/02_institution/ROLE_CLASSIFICATION.md |

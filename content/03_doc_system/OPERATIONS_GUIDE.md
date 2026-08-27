@@ -2,8 +2,8 @@
 title: "运行标准与操作规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-24"
-version: "3.1"
+last_updated: "2026-08-27"
+version: "3.2"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/USAGE_POLICY.md, content/02_institution/ROLE_CLASSIFICATION.md, content/03_doc_system/DOC_MAP.md, content/05_ai_coding/KNOWN_PITFALLS.md, content/03_doc_system/SSOT_INDEX.md, content/03_doc_system/PROCESS_GUIDE.md]
 ---
@@ -464,7 +464,7 @@ Guides 文件不使用数字编号，使用**语义化文件名**（大写+下�
 ```markdown
 ## TXX-TYY 早期/中段条目摘要
 
-> 详细内容见 [archive/YYYY-MM-early-entries.md](archive/YYYY-MM-early-entries.md)
+> 详细内容见 `archive/YYYY-MM-early-entries.md`（模板：实际归档文件位于 `.ctx/logs/archive/`，如 `2026-07-mid-entries.md`）
 
 | T编号 | 日期 | 标题 | 关键变更文件 | 沉淀 |
 |-------|------|------|-------------|------|
@@ -604,7 +604,7 @@ Guides 文件不使用数字编号，使用**语义化文件名**（大写+下�
 ### 11.9 反论评议维度体系
 
 > **确立日期**：2026-07-18 | **确立背景**：反论评议第一轮中，书记对12条反论的反馈揭示了三类系统性的反论问题维度，每类有不同的处理方式
-> **定位：** 反论的事后质量评议（区别于 §11.2/§11.3 的事前存在标准），是 H60 书记评议的反论专用补充，速查见 [本文件 §18.5.1](#1851-反论评议)（反论评议类型速查）。
+> **定位：** 反论的事后质量评议（区别于 §11.2/§11.3 的事前存在标准），是 H60 书记评议的反论专用补充，速查见 [PROCESS_GUIDE §18.5.1](PROCESS_GUIDE.md)（反论评议类型速查）。
 
 反论评议中发现的三类问题维度：
 

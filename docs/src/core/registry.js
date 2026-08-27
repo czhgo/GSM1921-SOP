@@ -9,7 +9,7 @@
 //     apply: (ctx) => void         // M4：数据源等"动作型"能力的选择方法（调用方显式执行）}
 // deps 仅登记 + resolveDeps 查询（M4 落地，不做自动解析）；requiredRoles 在 getCapabilities 中已应用。
 // 回滚=unregisterCapability(id)（M4 验收：注销声明即从能力清单消失）。
-// 设计权威源：content/04_web_design/ARCHITECTURE_EVOLUTION.md §四/§五
+// 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §四/§五
 
 const _capabilities = new Map();
 const DEFAULT_VERSION = '1.0.0';

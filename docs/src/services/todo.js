@@ -2,8 +2,8 @@
 // ════════════════════════════════════════════════════════════════
 //  service.todo.js — 待办任务服务层
 //  最小三成本原则落地：任务流默认直接展示在工作台
-//  Source: content/04_web_design/DATA_ARCHITECTURE.md §2.18-§2.20
-//         content/04_web_design/DESIGN_SYSTEM.md §一 第6条
+//  Source: content/04_web_design/data/DATA_ARCHITECTURE.md §2.18-§2.20
+//         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
 import { mockDB } from '../core/domain.js?v=20260827c';
@@ -423,7 +423,7 @@ export const TodoStore = {
 
 // ════════════════════════════════════════════════════════════════
 //  通知→待办派生机制
-//  Source: content/04_web_design/DATA_ARCHITECTURE.md §2.19
+//  Source: content/04_web_design/data/DATA_ARCHITECTURE.md §2.19
 // ════════════════════════════════════════════════════════════════
 
 export const NoticeTodoDeriver = {
@@ -491,7 +491,7 @@ export const NoticeTodoDeriver = {
 
 // ════════════════════════════════════════════════════════════════
 //  活动/专班生命周期→待办派生
-//  Source: content/04_web_design/DATA_ARCHITECTURE.md §2.18.3
+//  Source: content/04_web_design/data/DATA_ARCHITECTURE.md §2.18.3
 // ════════════════════════════════════════════════════════════════
 
 export const LifecycleTodoDeriver = {

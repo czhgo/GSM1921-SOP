@@ -6,7 +6,7 @@ version: "1.0"
 last_updated: "2026-08-24"
 status: active
 split_from: "DATA_ARCHITECTURE.md（2026-08-24 T-282 拆分）"
-related_files: [content/04_web_design/DATA_MODEL.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/sop/纪检委员工作流程指南.md]
+related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/sop/纪检委员工作流程指南.md]
 ---
 
 # 数据流设计
@@ -109,7 +109,7 @@ related_files: [content/04_web_design/DATA_MODEL.md, content/02_institution/ROLE
 | **普通参与者**（考勤记录层） | 参加但无具体分工 | 出席 | 考勤记录：出勤 |
 | **归档层** | 纪检委员（执行人） | 汇总考勤/考察记录 | 考勤（对象：党员+预备党员；适用：三会一课；状态：出勤/请假/缺勤；提交：宣传委员备案）+ 考察（对象：深度参与者和组织者；适用：所有支部工作；层级：组织/深度参与；提交：组织委员建档每月） |
 
-> 完整的分工记录、桥梁作用、考勤/考察规则详见 [FLAT_DESIGN.md](../02_institution/FLAT_DESIGN.md) + [纪检委员工作流程指南 §1.2](../02_institution/sop/纪检委员工作流程指南.md)。
+> 完整的分工记录、桥梁作用、考勤/考察规则详见 [FLAT_DESIGN.md](../../02_institution/FLAT_DESIGN.md) + [纪检委员工作流程指南 §1.2](../../02_institution/sop/纪检委员工作流程指南.md)。
 
 #### 3.1.2 数据流
 
@@ -136,11 +136,11 @@ related_files: [content/04_web_design/DATA_MODEL.md, content/02_institution/ROLE
 
 ### 3.2 角色权限矩阵
 
-> 权限矩阵的完整定义见 [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) §九 角色权限矩阵。本节数据层切面视图已合并至权威源，冲突时以权威源为准。
+> 权限矩阵的完整定义见 [ROLE_CLASSIFICATION.md](../../02_institution/ROLE_CLASSIFICATION.md) §九 角色权限矩阵。本节数据层切面视图已合并至权威源，冲突时以权威源为准。
 
 ### 3.3 考勤与考察的核心区分
 
-> 完整的考勤/考察规则、判断逻辑、记录字段定义见 [纪检委员工作流程指南 §1.2](../02_institution/sop/纪检委员工作流程指南.md) + [insights 工程演进与设计方法论.md §6.12](../insights/工程演进与设计方法论.md)。本节仅保留要点索引。考勤/考察在端到端数据流中的「挂靠活动 + 聚合总数据」交织位置见 [§1.3](#13-端到端数据流交织图)。
+> 完整的考勤/考察规则、判断逻辑、记录字段定义见 [纪检委员工作流程指南 §1.2](../../02_institution/sop/纪检委员工作流程指南.md) + [insights 工程演进与设计方法论.md §6.12](../../insights/工程演进与设计方法论.md)。本节仅保留要点索引。考勤/考察在端到端数据流中的「挂靠活动 + 聚合总数据」交织位置见 [§1.3](#13-端到端数据流交织图)。
 
 **要点**：考勤 = 0-1变量（出勤/请假/缺勤），对象为党员+预备党员，适用三会一课；考察 = 工作量记录（组织/深度参与），对象为深度参与者和组织者，适用所有支部工作。系统记录字段：考勤见 §2.5 AttendanceRecord；考察补充字段 `participationLevel`/`deepRole`/`specificWork`/`divisionRecordedBy`/`submittedTo`/`submittedAt`。
 

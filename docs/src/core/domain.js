@@ -28,7 +28,7 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  [description] - 活动描述
  * @property {string}  [targetDate]  - 目标日期 ISO 字符串（T-0，兼容旧字段）
  * @property {'leader'|'disc-commissioner'} [attendanceQROwner] - 考勤二维码发布方（组织生活会专用：现场组织的党小组组长） - Source: content/02_institution/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
- * @property {boolean} [isBrand]  - 品牌属性标签（由书记认定，不影响工作流选择） - Source: content/04_web_design/DATA_ARCHITECTURE.md
+ * @property {boolean} [isBrand]  - 品牌属性标签（由书记认定，不影响工作流选择） - Source: content/04_web_design/data/DATA_ARCHITECTURE.md
  * @property {OutputRecord[]} [outputs] - 产出物记录（T-224 §5.5/§8 数据结构预留）：
  *   `{ type: OutputType, title, submittedBy, submittedAt, status: 'pending'|'submitted', routedTo: deriveOutputRoute(type).route }`
  *   `routedTo` 由类型派生（非人工录入），组织者上传时只见「提交」不见「发送对象」。
@@ -43,7 +43,7 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  recordedBy  - 记录人用户 ID（纪检委员）
  * @property {string}  recordedAt  - 记录时间 ISO 字符串
  * @property {string}  [studentId] - 学号 - Source: content/02_institution/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
- * @property {'积极分子'|'发展对象'|'预备党员'|'正式党员'} [developStage] - 发展阶段（四阶段，2026-08-01 书记决策移除【入党申请人】） - Source: content/02_institution/sop/纪检委员工作流程指南.md#二考勤管理三会一课 + content/04_web_design/DATA_ARCHITECTURE.md §2.5
+ * @property {'积极分子'|'发展对象'|'预备党员'|'正式党员'} [developStage] - 发展阶段（四阶段，2026-08-01 书记决策移除【入党申请人】） - Source: content/02_institution/sop/纪检委员工作流程指南.md#二考勤管理三会一课 + content/04_web_design/data/DATA_ARCHITECTURE.md §2.5
  * @property {string}  [partyGroup] - 所属党小组 - Source: content/02_institution/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
  */
 
@@ -57,7 +57,7 @@ export const SCHEMA_VERSION = 1;
  */
 
 /**
- * 参与层级枚举 — Source: content/04_web_design/DATA_ARCHITECTURE.md §3.3
+ * 参与层级枚举 — Source: content/04_web_design/data/DATA_ARCHITECTURE.md §3.3
  * organize = 组织者，deep = 深度参与者，attend = 出勤
  */
 export const ParticipationLevel = {
@@ -127,7 +127,7 @@ export const REVIEW_STATUS_LABELS = {
 };
 
 /**
- * 复盘记录 — Source: content/04_web_design/DATA_ARCHITECTURE.md §3.1.2 数据流第⑧步 + D-242
+ * 复盘记录 — Source: content/04_web_design/data/DATA_ARCHITECTURE.md §3.1.2 数据流第⑧步 + D-242
  * 活动或专班完成后，组织者提交复盘报告，纪检委员批注/打回/确认
  * @typedef {Object} ReviewRecord
  * @property {string}  id            - 唯一标识符
@@ -153,7 +153,7 @@ export const REVIEW_STATUS_LABELS = {
  * @property {string}  activityId    - 关联活动 ID（sourceType='activity'时必填）
  * @property {string}  sourceName    - 来源名称（sourceType='taskforce'时为专班名称）
  * @property {string}  personId      - 人员 ID（引用 people.js）
- * @property {'organize'|'deep'} level - 考察层级（仅组织者和深度参与者有考察记录） - Source: content/04_web_design/DATA_ARCHITECTURE.md §3.3
+ * @property {'organize'|'deep'} level - 考察层级（仅组织者和深度参与者有考察记录） - Source: content/04_web_design/data/DATA_ARCHITECTURE.md §3.3
  * @property {string}  role          - 分工角色+描述（如：策划+全流程统筹、视频制作、PPT设计）
  * @property {string}  recordedBy    - 记录人 personId
  * @property {string}  recordedAt    - 记录时间 ISO 字符串
@@ -222,7 +222,7 @@ export const mockDB = {
   // Source: content/02_institution/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
   attendances: [],
   /** @type {InspectionRecord[]} */
-  // 考察记录（仅组织者和深度参与者的工作量记录）— Source: content/04_web_design/DATA_ARCHITECTURE.md §3.3
+  // 考察记录（仅组织者和深度参与者的工作量记录）— Source: content/04_web_design/data/DATA_ARCHITECTURE.md §3.3
   inspections: [],
   /** @type {Object[]} 活动复盘记录 */
   activityReviews: [],
@@ -247,7 +247,7 @@ export const mockDB = {
   taskforces: [],
   /** @type {Object[]} 通知数据 */
   notices: [],
-  /** @type {Object[]} 待办任务数据 — Source: content/04_web_design/DATA_ARCHITECTURE.md §2.18 */
+  /** @type {Object[]} 待办任务数据 — Source: content/04_web_design/data/DATA_ARCHITECTURE.md §2.18 */
   todos: [],
   /** @type {Object[]} 报名记录（活动/专班统一报名渠道） */
   signups: [],

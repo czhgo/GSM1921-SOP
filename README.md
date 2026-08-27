@@ -132,19 +132,19 @@ npm start
 
 任务流默认直接展示在工作台，不要求用户额外操作才能看到"我需要做什么"。包含三个维度：**信息成本**（获取"我需要做什么"所需的信息搜寻成本）、**操作成本**（从进入工作台到看到可执行事项的点击次数）、**适应学习成本**（新用户理解分工、任务与信息流的学习成本）——系统设计让用户以最低成本完成任务。
 
-→ [DESIGN_SYSTEM.md](content/04_web_design/DESIGN_SYSTEM.md) §一 原则 2
+→ [DESIGN_SYSTEM.md](content/04_web_design/design-system/DESIGN_SYSTEM.md) §一 原则 2
 
 ### 验收标准 · 高频零跳转
 
 最小三成本的最终验收标准：**完成一个高频工作需要操作多少次？信息展示与操作是否同地？** 答复类置顶待办、工作概况三区总览、行内填写即发——让"看到"与"操作"在同一可视区域，而不是藏在多层之下。
 
-→ [DESIGN_SYSTEM.md](content/04_web_design/DESIGN_SYSTEM.md) §一 原则 10
+→ [DESIGN_SYSTEM.md](content/04_web_design/design-system/DESIGN_SYSTEM.md) §一 原则 10
 
 ### 按人视图 · 知情边界
 
 谁能看到谁，由赋权链（执行委托）计算得出，不靠人工判断——**信息可见性 = 职责空间的投影**。看 ≠ 做：可见性只决定"能看到什么维度"，不授予任何操作权；上级对下级仅"了解进展"与答复，无编辑他人待办入口。这是组织内控的第四道防线（知情边界）。
 
-→ [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（P-011）+ [DESIGN_SYSTEM.md](content/04_web_design/DESIGN_SYSTEM.md) §一 原则 9
+→ [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（P-011）+ [DESIGN_SYSTEM.md](content/04_web_design/design-system/DESIGN_SYSTEM.md) §一 原则 9
 
 ### 党建工作与党务工作
 
@@ -194,7 +194,7 @@ npm start
 
 - **公网演示**：GitHub Pages 静态托管 `docs/`（开发演示账号模式，无需后端）
 - **本地完整运行**：`cd server && npm start`，访问 `http://127.0.0.1:3000/login.html`，浏览器全链路工作（登录 → API → 数据持久化）
-- **北大计算中心对接**：`docs/` 与 `server/` 部署到同一 Web 根目录，统一反向代理转发 `/api/v1/`，见 [server/README.md](server/README.md) 与 [DEPLOYMENT_ROADMAP.md](content/04_web_design/DEPLOYMENT_ROADMAP.md) §三（计算中心对接全案）
+- **北大计算中心对接**：`docs/` 与 `server/` 部署到同一 Web 根目录，统一反向代理转发 `/api/v1/`，见 [server/README.md](server/README.md) 与 [DEPLOYMENT_ROADMAP.md](content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md) §三（计算中心对接全案）
 
 ---
 

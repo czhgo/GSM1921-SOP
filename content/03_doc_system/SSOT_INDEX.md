@@ -43,10 +43,10 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
-| `content/01_strategy/DEVELOPMENT_PATH.md` | `content/04_web_design/DATA_FLOW.md` | 战略→设计。DEVELOPMENT_PATH 是上游战略依据，DATA_FLOW 是数据流设计的落地（原 PARTICIPANT_DATAFLOW.md，2026-08-24 拆分） |
+| `content/01_strategy/DEVELOPMENT_PATH.md` | `content/04_web_design/data/DATA_FLOW.md` | 战略→设计。DEVELOPMENT_PATH 是上游战略依据，DATA_FLOW 是数据流设计的落地（原 PARTICIPANT_DATAFLOW.md，2026-08-24 拆分） |
 | `content/01_strategy/DEVELOPMENT_PATH.md` | `content/02_institution/FLAT_DESIGN.md` | 战略→设计。FLAT_DESIGN 的扁平化是"理解真实"认知的具体实现。冲突时以 DEVELOPMENT_PATH 为准 |
-| `content/04_web_design/DATA_FLOW.md` | `content/02_institution/COMMISSIONER_FRAMEWORK.md` | 数据流→支委系统。DATA_FLOW 定义三级参与者数据流，COMMISSIONER_FRAMEWORK 细化支委系统设计 |
-| `content/04_web_design/SOP_WEB.md` | `content/02_institution/sop/*.md`（双向） | 双向修改规则（CLAUDE.md H30.2 制度→代码）。规则0：文本SOP是母本；规则2：先改SOP母本→再改系统代码→验证 |
+| `content/04_web_design/data/DATA_FLOW.md` | `content/02_institution/COMMISSIONER_FRAMEWORK.md` | 数据流→支委系统。DATA_FLOW 定义三级参与者数据流，COMMISSIONER_FRAMEWORK 细化支委系统设计 |
+| `content/04_web_design/module/SOP_WEB.md` | `content/02_institution/sop/*.md`（双向） | 双向修改规则（CLAUDE.md H30.2 制度→代码）。规则0：文本SOP是母本；规则2：先改SOP母本→再改系统代码→验证 |
 | `content/insights/党支部管理与实务经验沉淀.md` | `content/01_strategy/`、`content/04_web_design/` | 经验→设计反馈。insights 是经验沉淀，可反哺战略和设计校准。当经验与战略冲突时提交书记决策 |
 
 ### content/ → docs/src/（设计/制度 → 代码）
@@ -54,17 +54,17 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
 | `content/02_institution/sop/*.md` | `docs/src/workflow/`、`docs/src/` | 制度→代码（H30.2 规则1）。SOP 制度文本是系统代码的母本。凡涉及流程步骤、术语、权限规则，必须先检查 content/02_institution/sop/ |
-| `content/04_web_design/DATA_FLOW.md` | `docs/src/`（角色权限引擎） | 设计→代码。数据流架构定义角色数据流、§登录态打桩设计，代码实现设计（原 PARTICIPANT_DATAFLOW.md） |
+| `content/04_web_design/data/DATA_FLOW.md` | `docs/src/`（角色权限引擎） | 设计→代码。数据流架构定义角色数据流、§登录态打桩设计，代码实现设计（原 PARTICIPANT_DATAFLOW.md） |
 | `content/02_institution/COMMISSIONER_FRAMEWORK.md` | `docs/src/`（专班管理 + 审批流程） | 设计→代码。支委系统设计定义专班管理逻辑和§审批流程规范，代码实现 |
-| `content/04_web_design/DESIGN_SYSTEM.md` | `docs/src/styles.css` | 设计→样式。设计系统规范是全局样式的母本（2026-08-24 拆分：色彩→COLOR_SYSTEM，组件→COMPONENT_SPEC） |
-| `content/04_web_design/COLOR_SYSTEM.md` | `docs/src/styles.css`（色彩变量） | 设计→样式。色彩系统规范是色值定义的母本（查色值优先） |
-| `content/04_web_design/COMPONENT_SPEC.md` | `docs/src/components/*` | 设计→代码。组件规范是各组件实现的母本（写组件优先） |
-| `content/04_web_design/MODULE_UI_DESIGN.md` | `docs/src/components/calendar.js` | 设计→代码。日历功能规划（原 CALENDAR.md）是日历渲染引擎的母本 |
-| `content/04_web_design/DATA_MODEL.md` | `docs/src/core/domain.js` | 数据→代码。数据字段定义权威源（含§写入数据验证设计，原 DATA.md），代码中的数据结构必须与 DATA_MODEL.md 一致 |
-| `content/04_web_design/DATA_FLOW.md` | `docs/src/core/state.js` | 设计→代码。DATA_FLOW §登录态打桩设计是状态中心登录逻辑的母本（原 LOGIN_STUB.md §一~§五，原 PARTICIPANT_DATAFLOW.md） |
-| `content/04_web_design/DATA_FLOW.md` | `docs/src/services/auth.js`（未来） | 设计→代码（预留）。登录系统设计前置规范定义未来登录系统的用户身份模型和认证机制（原 LOGIN_STUB.md §六~§十一，原 LOGIN_SYSTEM_DESIGN.md） |
-| `content/04_web_design/DATA_FLOW.md` | `docs/src/services/auth.js`（T110 新增 API） | 设计→代码。DATA_FLOW 定义角色数据流模型，auth.js 实现 `getUserProjectRoles` / `hasProjectRole` / `getAccessibleWorkspacePages` 三个公开 API（T110 新增，含 `getPageForRole` 内部映射） |
-| `content/04_web_design/MODULE_UI_DESIGN.md` | `docs/index.html`（Module 4） | 设计→代码。模块界面设计（原 PAFFAIRS_UI.md，原 ORG_BUILDING.md 拆分后的系统设计部分）是党务模块UI的母本 |
+| `content/04_web_design/design-system/DESIGN_SYSTEM.md` | `docs/src/styles.css` | 设计→样式。设计系统规范是全局样式的母本（2026-08-24 拆分：色彩→COLOR_SYSTEM，组件→COMPONENT_SPEC） |
+| `content/04_web_design/design-system/COLOR_SYSTEM.md` | `docs/src/styles.css`（色彩变量） | 设计→样式。色彩系统规范是色值定义的母本（查色值优先） |
+| `content/04_web_design/design-system/COMPONENT_SPEC.md` | `docs/src/components/*` | 设计→代码。组件规范是各组件实现的母本（写组件优先） |
+| `content/04_web_design/module/MODULE_UI_DESIGN.md` | `docs/src/components/calendar.js` | 设计→代码。日历功能规划（原 CALENDAR.md）是日历渲染引擎的母本 |
+| `content/04_web_design/data/DATA_MODEL.md` | `docs/src/core/domain.js` | 数据→代码。数据字段定义权威源（含§写入数据验证设计，原 DATA.md），代码中的数据结构必须与 DATA_MODEL.md 一致 |
+| `content/04_web_design/data/DATA_FLOW.md` | `docs/src/core/state.js` | 设计→代码。DATA_FLOW §登录态打桩设计是状态中心登录逻辑的母本（原 LOGIN_STUB.md §一~§五，原 PARTICIPANT_DATAFLOW.md） |
+| `content/04_web_design/data/DATA_FLOW.md` | `docs/src/services/auth.js`（未来） | 设计→代码（预留）。登录系统设计前置规范定义未来登录系统的用户身份模型和认证机制（原 LOGIN_STUB.md §六~§十一，原 LOGIN_SYSTEM_DESIGN.md） |
+| `content/04_web_design/data/DATA_FLOW.md` | `docs/src/services/auth.js`（T110 新增 API） | 设计→代码。DATA_FLOW 定义角色数据流模型，auth.js 实现 `getUserProjectRoles` / `hasProjectRole` / `getAccessibleWorkspacePages` 三个公开 API（T110 新增，含 `getPageForRole` 内部映射） |
+| `content/04_web_design/module/MODULE_UI_DESIGN.md` | `docs/index.html`（Module 4） | 设计→代码。模块界面设计（原 PAFFAIRS_UI.md，原 ORG_BUILDING.md 拆分后的系统设计部分）是党务模块UI的母本 |
 | `content/03_doc_system/SERVICE_CATALOG.md` | `docs/src/entries/*.js` | 治理→代码。服务清单是各入口文件服务实现的母本（原 design/ 迁移至 governance/） |
 
 ### doc_system/ → 全仓库
@@ -103,7 +103,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | SSOT_INDEX.md | 映射关系增删改 | 受影响的子本文件 |
 | content/02_institution/sop/*.md | 制度条款/流程步骤/术语变更 | docs/src/ 对应代码文件（见 sop-web-sync 映射表） |
 | content/03_doc_system/USAGE_POLICY.md | 术语增删改 | docs/src/core/constants.js + 全仓库引用 |
-| content/04_web_design/DATA_MODEL.md | 数据字段定义变更 | docs/src/ 对应数据结构代码 |
+| content/04_web_design/data/DATA_MODEL.md | 数据字段定义变更 | docs/src/ 对应数据结构代码 |
 
 ### 同步执行步骤
 
@@ -145,20 +145,20 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | SYSTEM_CLAUDE.md | → CLAUDE.md | 2026-05-02 |
 | .github/SSOT_INDEX.md | → SSOT_INDEX.md（移至根目录） | 2026-05-18 |
 | content/design/PERMISSION_MATRIX.md | → content/02_institution/ROLE_CLASSIFICATION.md §九 角色权限矩阵（经 MANAGEMENT_MODE.md 过渡） | 2026-07-08 |
-| content/design/LOGIN_STUB.md | → content/04_web_design/DATA_ARCHITECTURE.md §登录态打桩设计（§一~§五）+ §登录系统设计前置（§六~§十一，经 MANAGEMENT_MODE.md/LOGIN_SYSTEM_DESIGN.md 过渡） | 2026-07-08 |
+| content/design/LOGIN_STUB.md | → content/04_web_design/data/DATA_ARCHITECTURE.md §登录态打桩设计（§一~§五）+ §登录系统设计前置（§六~§十一，经 MANAGEMENT_MODE.md/LOGIN_SYSTEM_DESIGN.md 过渡） | 2026-07-08 |
 | content/design/APPROVAL_FLOW.md | → content/02_institution/COMMISSIONER_FRAMEWORK.md §审批流程规范（全量合并） | 2026-07-08 |
-| content/design/WRITE_VERIFY.md | → content/04_web_design/DATA_ARCHITECTURE.md §写入数据验证设计（精简合并，§三/§五删除，经 DATA.md 合并） | 2026-07-08 |
+| content/design/WRITE_VERIFY.md | → content/04_web_design/data/DATA_ARCHITECTURE.md §写入数据验证设计（精简合并，§三/§五删除，经 DATA.md 合并） | 2026-07-08 |
 | content/governance/LAYERING_FRAMEWORK.md | → content/03_doc_system/OPERATIONS_GUIDE.md §1.3/§1.4（独有内容合并）+ content/05_ai_coding/KNOWN_PITFALLS.md §7（历史冲突记录）+ OPERATIONS_GUIDE.md §17（原 RECURRING_TASKS Q4，5 步流程） | 2026-07-09 |
 | content/design/SERVICE_CATALOG.md | → content/03_doc_system/SERVICE_CATALOG.md（迁移至治理层） | 2026-07-11 |
-| content/design/ORG_BUILDING.md | → content/04_web_design/MODULE_UI_DESIGN.md（系统设计部分，经 PAFFAIRS_UI.md 合并）+ content/01_strategy/DEVELOPMENT_PATH.md 附录 B（战略分类部分，原"第七章"） | 2026-07-11 |
+| content/design/ORG_BUILDING.md | → content/04_web_design/module/MODULE_UI_DESIGN.md（系统设计部分，经 PAFFAIRS_UI.md 合并）+ content/01_strategy/DEVELOPMENT_PATH.md 附录 B（战略分类部分，原"第七章"） | 2026-07-11 |
 | content/design/COMMISSIONER_SYSTEM.md | → content/02_institution/COMMISSIONER_FRAMEWORK.md（迁移+重命名，"FRAMEWORK"避免"SYSTEM"歧义） | 2026-07-11 |
-| content/design/DATA.md | → content/04_web_design/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
-| content/design/PARTICIPANT_DATAFLOW.md | → content/04_web_design/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
-| content/design/LOGIN_SYSTEM_DESIGN.md | → content/04_web_design/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
-| content/design/BRAND_ACTIVITY.md | → content/04_web_design/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
-| content/design/PAFFAIRS_UI.md | → content/04_web_design/MODULE_UI_DESIGN.md（合并至模块界面设计总文件） | 2026-07-12 |
-| content/design/CALENDAR.md | → content/04_web_design/MODULE_UI_DESIGN.md（合并至模块界面设计总文件） | 2026-07-12 |
-| content/design/SOP_WEB.md | → content/04_web_design/SOP_WEB.md（迁移至 web_design 层） | 2026-07-12 |
+| content/design/DATA.md | → content/04_web_design/data/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
+| content/design/PARTICIPANT_DATAFLOW.md | → content/04_web_design/data/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
+| content/design/LOGIN_SYSTEM_DESIGN.md | → content/04_web_design/data/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
+| content/design/BRAND_ACTIVITY.md | → content/04_web_design/data/DATA_ARCHITECTURE.md（合并至数据架构总文件） | 2026-07-12 |
+| content/design/PAFFAIRS_UI.md | → content/04_web_design/module/MODULE_UI_DESIGN.md（合并至模块界面设计总文件） | 2026-07-12 |
+| content/design/CALENDAR.md | → content/04_web_design/module/MODULE_UI_DESIGN.md（合并至模块界面设计总文件） | 2026-07-12 |
+| content/design/SOP_WEB.md | → content/04_web_design/module/SOP_WEB.md（迁移至 web_design 层） | 2026-07-12 |
 | content/design/FLAT_DESIGN.md | → content/02_institution/FLAT_DESIGN.md（迁移至 institution 层） | 2026-07-12 |
 | content/governance/TERMINOLOGY.md | → content/03_doc_system/USAGE_POLICY.md §一（合并至使用规范） | 2026-07-12 |
 | content/governance/EMOJI_POLICY.md | → content/03_doc_system/USAGE_POLICY.md §三（合并至使用规范） | 2026-07-12 |

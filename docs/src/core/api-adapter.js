@@ -10,8 +10,8 @@
 //  2. snapshot()：全量快照写穿（POST /api/v1/snapshot，认证保护，供 persist() 防抖调度）
 //  3. _request()：统一 fetch + Bearer token 认证（token 由 getAuthToken() 提供）
 //
-//  Source: content/04_web_design/DEPLOYMENT_ROADMAP.md §3.4（计算中心对接全案）
-//         content/04_web_design/DATA_ARCHITECTURE.md §8.4
+//  Source: content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md §3.4（计算中心对接全案）
+//         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
 import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260827c';

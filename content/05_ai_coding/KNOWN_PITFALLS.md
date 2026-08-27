@@ -172,7 +172,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 3. 同一文件中多处旧路径分散在不同位置（YAML、JSDoc、字符串字面量、UI 显示文本），子代理可能只修复前几处
 
 **典型实例（T127）**：
-- `content/04_web_design/SOP_WEB.md` L128 `../strategy/COMMISSIONER_FRAMEWORK.md` 未在替换表
+- `content/04_web_design/module/SOP_WEB.md` L128 `../strategy/COMMISSIONER_FRAMEWORK.md` 未在替换表
 - `content/03_doc_system/SERVICE_CATALOG.md` L183/L198/L213 `../sop/` 相对路径未在替换表
 - `content/02_institution/COMMISSIONER_FRAMEWORK.md` L378-L381 `../sop/` 4 处遗漏
 - `content/insights/党支部管理与实务经验沉淀.md` 任务描述说 2 处旧路径，实际 4 处

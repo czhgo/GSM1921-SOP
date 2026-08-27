@@ -5,7 +5,7 @@ role: "[工程师]+[AI]"
 last_updated: "2026-08-12"
 version: "4.0"
 status: active
-related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/src/core/data-adapter.js, content/04_web_design/DATA_MODEL.md, content/04_web_design/DATA_FLOW.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/02_institution/ROLE_CLASSIFICATION.md]
+related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/src/core/data-adapter.js, content/04_web_design/data/DATA_MODEL.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/02_institution/ROLE_CLASSIFICATION.md]
 ---
 
 # 统一服务目录（Service Catalog）
@@ -14,9 +14,9 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 >
 > **受众：** [工程师]+[AI] — 工程师决策参考 + AI 自主读取作为实施上下文。
 >
-> 引用流程：[USAGE_POLICY.md §1.1.1](./USAGE_POLICY.md)（党建/党务 T1 官方定义）→ [DATA_MODEL.md](../04_web_design/DATA_MODEL.md)（数据模型）→ [COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md)（支委系统）→ [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md)（角色权限矩阵）
+> 引用流程：[USAGE_POLICY.md §1.1.1](./USAGE_POLICY.md)（党建/党务 T1 官方定义）→ [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)（数据模型）→ [COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md)（支委系统）→ [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md)（角色权限矩阵）
 >
-> **阅读约定**：本目录只盘点「有哪些服务、由哪些代码实现、谁有权限」。服务间数据流与依赖见 [DATA_FLOW.md §1.3](../04_web_design/DATA_FLOW.md)；页面路由与入口映射见 [ARCHITECTURE.md §五](./ARCHITECTURE.md)；权限矩阵权威源为 [ROLE_CLASSIFICATION.md §9](../02_institution/ROLE_CLASSIFICATION.md)。
+> **阅读约定**：本目录只盘点「有哪些服务、由哪些代码实现、谁有权限」。服务间数据流与依赖见 [DATA_FLOW.md §1.3](../04_web_design/data/DATA_FLOW.md)；页面路由与入口映射见 [ARCHITECTURE.md §五](./ARCHITECTURE.md)；权限矩阵权威源为 [ROLE_CLASSIFICATION.md §9](../02_institution/ROLE_CLASSIFICATION.md)。
 
 ---
 
@@ -24,7 +24,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 
 > 文件路径均相对于 `docs/src/`。
 >
-> 关联制度缩写：CF=[COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md)、DA=[DATA_MODEL.md](../04_web_design/DATA_MODEL.md)（数据模型；数据流见 DATA_FLOW.md）、FLAT=[FLAT_DESIGN.md](../02_institution/FLAT_DESIGN.md)、RC=[ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md)；其余为 [sop/](../02_institution/sop/) 制度指南。
+> 关联制度缩写：CF=[COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md)、DA=[DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)（数据模型；数据流见 DATA_FLOW.md）、FLAT=[FLAT_DESIGN.md](../02_institution/FLAT_DESIGN.md)、RC=[ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md)；其余为 [sop/](../02_institution/sop/) 制度指南。
 
 | 服务 | 服务文件 | 入口页面 | 核心操作 | 关联制度 |
 |------|---------|---------|---------|---------|
@@ -83,8 +83,8 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 
 ## 三、权威源与配套文档
 
-- **服务间数据流与依赖**：[DATA_FLOW.md §1.3](../04_web_design/DATA_FLOW.md) — 端到端数据流交织图（活动上下文链 + 副产物聚合 + 赋权 → 工作台 → 入档），含挂靠 / 聚合双语义
+- **服务间数据流与依赖**：[DATA_FLOW.md §1.3](../04_web_design/data/DATA_FLOW.md) — 端到端数据流交织图（活动上下文链 + 副产物聚合 + 赋权 → 工作台 → 入档），含挂靠 / 聚合双语义
 - **权限矩阵权威源**：[ROLE_CLASSIFICATION.md §9](../02_institution/ROLE_CLASSIFICATION.md) — 角色 × 操作矩阵 + 赋权链 §9e + 权限名语义 §9f
 - **页面路由与入口映射**：[ARCHITECTURE.md §五](./ARCHITECTURE.md) — 仓库结构（8 根 HTML + 6 工作台 + 入口 JS）
 - **支委系统设计**：[COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md) — 专班生命周期 + §C 权限矩阵 + §审批流程规范
-- **数据模型与数据流**：[DATA_MODEL.md](../04_web_design/DATA_MODEL.md)（静态模型）+ [DATA_FLOW.md](../04_web_design/DATA_FLOW.md)（动态数据流）
+- **数据模型与数据流**：[DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)（静态模型）+ [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md)（动态数据流）

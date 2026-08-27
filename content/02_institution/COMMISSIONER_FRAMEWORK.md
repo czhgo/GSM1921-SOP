@@ -13,8 +13,8 @@ input:
   - content/02_institution/sop/纪检委员工作流程指南.md
   - content/02_institution/sop/组织委员工作流程指南.md
   - content/02_institution/sop/宣传委员工作流程指南.md
-  - content/04_web_design/DATA_MODEL.md
-  - content/04_web_design/DATA_FLOW.md
+  - content/04_web_design/data/DATA_MODEL.md
+  - content/04_web_design/data/DATA_FLOW.md
   - content/02_institution/ROLE_CLASSIFICATION.md
 ---
 
@@ -76,7 +76,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组功能；E2�
 
 #### 赋权记录数据结构
 
-> 赋权记录数据结构见 [DATA_MODEL.md](../04_web_design/DATA_MODEL.md) §2.18
+> 赋权记录数据结构见 [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md) §2.18
 
 ---
 
@@ -172,7 +172,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组功能；E2�
 > 支部书记拥有上述全部权限（Y(全局)），不重复列出。
 > 意见反馈由支部书记全权处理，任何支委不干预反馈流转。
 >
-> **党课（书记不可委托事项）**：书记是党课的法定主讲或审定人——非书记主讲的党课不被上级承认为规范党课。即使其他成员有能力讲党课，也不可替代书记的法定地位。这属于合规/制度问题：制度规定必须书记亲自决策的事项，决策权不能移交。意见反馈的公开讨论可全员参与，但处置权始终归书记（详见 [DATA_MODEL.md §2.16](../04_web_design/DATA_MODEL.md) 意见反馈数据模型）。
+> **党课（书记不可委托事项）**：书记是党课的法定主讲或审定人——非书记主讲的党课不被上级承认为规范党课。即使其他成员有能力讲党课，也不可替代书记的法定地位。这属于合规/制度问题：制度规定必须书记亲自决策的事项，决策权不能移交。意见反馈的公开讨论可全员参与，但处置权始终归书记（详见 [DATA_MODEL.md §2.16](../04_web_design/data/DATA_MODEL.md) 意见反馈数据模型）。
 
 ### C.2 条块交互权限矩阵
 
@@ -188,7 +188,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组功能；E2�
 
 ### C.3 权限色系编码（已迁移至设计系统色板）
 
-> 2026-08-14 书记裁决：**身份不再保留既有固定颜色设定**——引入自定义主题色色板，角色识别色统一由 [COLOR_SYSTEM.md §2.3 角色识别色系](../04_web_design/COLOR_SYSTEM.md) 管理；工作台内强调色（tab 激活/主按钮/标签/chips）由各角色**主题色（可自选）** 决定，见 [COLOR_SYSTEM.md §2.7 主题色配色规则](../04_web_design/COLOR_SYSTEM.md#27-主体色配色规则给定主体主题色-x--打样样板)。本表不再维护固定角色色值。
+> 2026-08-14 书记裁决：**身份不再保留既有固定颜色设定**——引入自定义主题色色板，角色识别色统一由 [COLOR_SYSTEM.md §2.3 角色识别色系](../04_web_design/design-system/COLOR_SYSTEM.md) 管理；工作台内强调色（tab 激活/主按钮/标签/chips）由各角色**主题色（可自选）** 决定，见 [COLOR_SYSTEM.md §2.7 主题色配色规则](../04_web_design/design-system/COLOR_SYSTEM.md#27-主体色配色规则给定主体主题色-x-打样样板)。本表不再维护固定角色色值。
 
 ---
 
@@ -203,7 +203,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组功能；E2�
 
 #### D.1.1 赋权入口设计
 
-> **设计依据**：最小三成本原则（见 [DESIGN_SYSTEM.md §一 第2条](../04_web_design/DESIGN_SYSTEM.md)）——赋权入口直接体现在对应角色工作台的待办列表中，不要求用户进入独立赋权页面才能完成操作。
+> **设计依据**：最小三成本原则（见 [DESIGN_SYSTEM.md §一 第2条](../04_web_design/design-system/DESIGN_SYSTEM.md)）——赋权入口直接体现在对应角色工作台的待办列表中，不要求用户进入独立赋权页面才能完成操作。
 
 赋权入口不再集中在一个独立的"赋权管理"页面，而是按"谁赋权、谁的工作台出现待办"分散到对应角色工作台的待办列表中：
 
@@ -215,7 +215,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组功能；E2�
 
 **操作交互**：点击待办中的赋权项 → 弹出人员选择浮窗（复用 PersonPicker 组件）→ 选择人员 → 选择授予角色（组织者/深度参与者）→ 确认赋权 → 待办标记完成 → 被赋权者收到通知。
 
-> 赋权待办的数据结构、状态流转见 [DATA_MODEL.md §2.18](../04_web_design/DATA_MODEL.md)。
+> 赋权待办的数据结构、状态流转见 [DATA_MODEL.md §2.18](../04_web_design/data/DATA_MODEL.md)。
 
 **书记工作台**
 
@@ -361,7 +361,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组功能；E2�
 | ① 职责分离 | 提出需求与招募统筹分离，组织委员是唯一专班管理节点 | §A.7 专班生命周期 + §C.1a 组织委员矩阵 |
 | ② 主动回避 | 涉及本人审核事项主动回避，防止"自己审核自己" | §F.5 支委兼任冲突 + 定人定责 §3.2 |
 | ③ 书记仲裁 | 多条条矛盾任务优先级组织>纪检>宣传，书记仲裁；主身份优先 | §F.5 冲突解决 |
-| ④ 知情边界 | 执行委托与知情监督对应统一；信息可见范围为职责空间所需最小充分信息；**看与做分离** | 书记工作台全局概况"按维度/按人"双视图 + [DESIGN_SYSTEM §一 原则9](../04_web_design/DESIGN_SYSTEM.md) |
+| ④ 知情边界 | 执行委托与知情监督对应统一；信息可见范围为职责空间所需最小充分信息；**看与做分离** | 书记工作台全局概况"按维度/按人"双视图 + [DESIGN_SYSTEM §一 原则9](../04_web_design/design-system/DESIGN_SYSTEM.md) |
 
 > **知情边界**（书记原话 2026-08-10）："执行委托与知情监督是对应的，统一的。统筹是最大的管理！""一个尽可能降低管理摩擦的方向是任何角色的信息可见范围，应精确等于其职责空间所需的最小充分信息。"——赋权链（执行委托）决定"谁能做"，知情边界决定"谁能看"；能赋权的人才能看对应条线的在办（L1 条线视角），向下缩层是对他人职责空间的保护。监督停留在"方向把握"（P-027②），不沉入"细节干预"。意见反馈处置权归书记独有（§C.1b）即知情边界在处置链上的体现——全员可参与开源讨论（L0/L1 信息），处置动作仅书记可执行（L2 决策权，不可委托）。
 
@@ -383,8 +383,8 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组功能；E2�
 
 ## 附录：参考文档
 
-- [MODULE_UI_DESIGN.md](../04_web_design/MODULE_UI_DESIGN.md)
-- [DATA_MODEL.md](../04_web_design/DATA_MODEL.md) + [DATA_FLOW.md](../04_web_design/DATA_FLOW.md)
+- [MODULE_UI_DESIGN.md](../04_web_design/module/MODULE_UI_DESIGN.md)
+- [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md) + [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md)
 - [ROLE_CLASSIFICATION.md](./ROLE_CLASSIFICATION.md)
 - [支委与党小组定人定责定岗说明](./sop/支委与党小组定人定责定岗说明.md)
 - [纪检委员工作流程指南](./sop/纪检委员工作流程指南.md)

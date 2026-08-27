@@ -8,7 +8,7 @@
 //  2. 写操作：通过 DataAdapter 路由（未来接入后端）
 //  3. 接口兼容：提供 getById/getName/getAll 等同步方法
 //
-//  Source: content/04_web_design/DATA_ARCHITECTURE.md
+//  Source: content/04_web_design/data/DATA_ARCHITECTURE.md
 // ════════════════════════════════════════════════════════════════
 
 import { mockDB } from '../core/domain.js?v=20260827c';

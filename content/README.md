@@ -2,7 +2,7 @@
 title: "内容中心"
 type: index
 role: "[用户]+[AI]"
-last_updated: "2026-08-09"
+last_updated: "2026-08-27"
 status: active
 ---
 

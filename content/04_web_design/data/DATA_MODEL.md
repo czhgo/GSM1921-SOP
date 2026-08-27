@@ -6,14 +6,14 @@ version: "1.0"
 last_updated: "2026-08-24"
 status: active
 split_from: "DATA_ARCHITECTURE.md（2026-08-24 T-282 拆分）"
-related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/DATA_FLOW.md]
+related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/data/DATA_FLOW.md]
 ---
 
 # 数据模型设计
 
 > **定位：** 本文件是系统**静态数据模型**的唯一权威源（原 DATA_ARCHITECTURE.md §二）。动态数据流见 [DATA_FLOW.md](DATA_FLOW.md)。
 > **受众：** [工程师]+[AI] —— 供开发决策参考，确保数据结构变更时全栈一致。
-> **权限矩阵**：本文档含权限简表，完整定义见 [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) §九 角色权限矩阵。
+> **权限矩阵**：本文档含权限简表，完整定义见 [ROLE_CLASSIFICATION.md](../../02_institution/ROLE_CLASSIFICATION.md) §九 角色权限矩阵。
 > **拆分说明**：2026-08-24 自 DATA_ARCHITECTURE.md 拆分（T-282 content 体系优化）——数据模型定义在此，数据流定义移至 DATA_FLOW.md。
 
 ---
@@ -46,7 +46,7 @@ related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_instit
 | targetDate | string (ISO) | 否 | -- | 目标日期 T-0（兼容旧字段） |
 | attendanceQROwner | `'leader'\|'disc-commissioner'` | 否 | -- | 考勤二维码发布方 |
 | deliverableIds | string[] | 否 | -- | ~~关联交付物 ID 列表~~（已废弃，交付物由 FileSpaceRecord 覆盖） |
-| isBrand | boolean | 否 | `false` | 品牌属性标签（由书记认定，不影响工作流选择，仅作筛选展示）。认定流程：支委/党小组组长识别潜力 → 支委会讨论 → 书记标记 `isBrand = true`。认定依据与案例见 [insights §5.2](../insights/党支部管理与实务经验沉淀.md)。 |
+| isBrand | boolean | 否 | `false` | 品牌属性标签（由书记认定，不影响工作流选择，仅作筛选展示）。认定流程：支委/党小组组长识别潜力 → 支委会讨论 → 书记标记 `isBrand = true`。认定依据与案例见 [insights §5.2](../../insights/党支部管理与实务经验沉淀.md)。 |
 | carriers | string[] | 否 | -- | 主题党日活动载体（理论学习/实践参访/交流座谈/其他），与写入表单正交维度对齐（2026-08-07） |
 | isJoint | boolean | 否 | `false` | 共建性质（共建开展为 true，2026-08-07） |
 | brandName | string | 否 | -- | 品牌族名称（如"五四精神传承"/"人生回望录"），书记认定 isBrand 后由写入表单"延续已有品牌/创建新品牌"补录（2026-08-07） |
@@ -180,7 +180,7 @@ ActivityRecord (主记录)
 ### 2.2 角色与权限数据
 
 > 角色类型定义位于 [core/state.js](../../docs/src/core/state.js#L18-L28)，标签/颜色位于 [core/constants.js](../../docs/src/core/constants.js)
-> 权限的详细解释见 [ROLE_CLASSIFICATION.md §九 角色权限矩阵](../02_institution/ROLE_CLASSIFICATION.md)。本节为该权威源在数据层 ACL 中的切面视图，冲突时以权威源为准。
+> 权限的详细解释见 [ROLE_CLASSIFICATION.md §九 角色权限矩阵](../../02_institution/ROLE_CLASSIFICATION.md)。本节为该权威源在数据层 ACL 中的切面视图，冲突时以权威源为准。
 
 #### 2.2.1 角色常量定义
 
@@ -203,7 +203,7 @@ ActivityRecord (主记录)
 
 #### 2.2.2 ACL 基础规则与模块权限
 
-> 权限矩阵、模块可见性、数据共享规则的完整定义见 [ROLE_CLASSIFICATION.md §九](../02_institution/ROLE_CLASSIFICATION.md) + [MODULE_UI_DESIGN.md](MODULE_UI_DESIGN.md)。本节不重复展开，仅指向权威源。
+> 权限矩阵、模块可见性、数据共享规则的完整定义见 [ROLE_CLASSIFICATION.md §九](../../02_institution/ROLE_CLASSIFICATION.md) + [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md)。本节不重复展开，仅指向权威源。
 
 **关键规则要点**（详细规则见权威源）：
 - 基础 ACL 实现：[domain.js `can()`](../../docs/src/core/domain.js#L78-L91)
@@ -593,7 +593,7 @@ assignedRoles: Array<{
 
 **派生显示状态**（UI 层派生，数据层不存储，实现 `deriveIssueDisplayState`）：`开放中` → `已指派`（有 assignee）→ `待终审`（resultPending 或已有 result 评论）→ `已关闭`。
 
-> **书记处置权设计**（2026-08-09 P-011 重写联动，倒写自 issues.js）——意见反馈处置权归书记独有：全员可参与开源讨论（issue.create / comment.add / reaction.toggle / mention / reference），但处置动作仅书记可执行，类比 GitHub maintainer 唯一拥有 merge/close 权（详见 [insights §2.2](../../insights/党支部管理与实务经验沉淀.md) D-244/T105 与 [COMMISSIONER_FRAMEWORK §C.1b](../02_institution/COMMISSIONER_FRAMEWORK.md) 党课/意见反馈规则）。这是 P-011 组织内控总论"书记仲裁"防线的落点。
+> **书记处置权设计**（2026-08-09 P-011 重写联动，倒写自 issues.js）——意见反馈处置权归书记独有：全员可参与开源讨论（issue.create / comment.add / reaction.toggle / mention / reference），但处置动作仅书记可执行，类比 GitHub maintainer 唯一拥有 merge/close 权（详见 [insights §2.2](../../insights/党支部管理与实务经验沉淀.md) D-244/T105 与 [COMMISSIONER_FRAMEWORK §C.1b](../../02_institution/COMMISSIONER_FRAMEWORK.md) 党课/意见反馈规则）。这是 P-011 组织内控总论"书记仲裁"防线的落点。
 
 | 处置动作 | 接口 | 说明 |
 |---|---|---|
@@ -708,7 +708,7 @@ assignedRoles: Array<{
 
 ### 2.18 待办任务数据 (Todo) — 最小三成本原则落地
 
-> **设计依据**：最小三成本原则（见 [DESIGN_SYSTEM.md §一 第2条](DESIGN_SYSTEM.md)）——任务流默认直接展示在工作台，不要求用户额外操作才能看到"我需要做什么"。
+> **设计依据**：最小三成本原则（见 [DESIGN_SYSTEM.md §一 第2条](../design-system/DESIGN_SYSTEM.md)）——任务流默认直接展示在工作台，不要求用户额外操作才能看到"我需要做什么"。
 > **派生来源**：通知派生（§2.19）+ 活动生命周期事件派生 + 专班生命周期事件派生 + 手动创建。
 > **类型定义将位于** [domain.js](../../docs/src/core/domain.js)（待新增）。
 
