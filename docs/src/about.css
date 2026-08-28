@@ -18,7 +18,7 @@
    ⚠️ 改 about 页文案新增汉字后，重跑该工具再 bump 版本号；禁止用其他字体文件冒充本字体 */
 @font-face {
   font-family: 'NanxiYoumosong';
-  src: url('../assets/fonts/nanxi-youmosong-subset.woff2?v=20260828c') format('woff2');
+  src: url('../assets/fonts/nanxi-youmosong-subset.woff2?v=20260828d') format('woff2');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -491,6 +491,7 @@ html.lenis, html.lenis body { height: auto; }
   text-align: left;
 }
 .ab-chapter--center .ab-chapter-lead { text-align: center; margin-left: auto; margin-right: auto; }
+.ab-chapter--right .ab-chapter-lead { text-align: right; margin-left: auto; }
 
 /* ── 第一章：左右分栏——左侧定格词区（sticky）+ 右侧期待卡滚动驱动 （2026-08-28 书记重排） ── */
 .ab-cognition-layout {
@@ -780,6 +781,9 @@ html.lenis, html.lenis body { height: auto; }
   margin-left: auto;
   margin-right: auto;
   text-align: center;
+}
+.ab-dialogue-head .ab-chapter-lead + .ab-chapter-lead {
+  margin-top: clamp(10px, 1.5vh, 16px); /* 2026-08-28 双 lead 连排：覆盖通用负上边距 */
 }
 /* 汇报交互提示（2026-08-28 书记：行百里者半九十补汇报提示 + 交互手段，details 原生展开） */
 .ab-dialogue-report {

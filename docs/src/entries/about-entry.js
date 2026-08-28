@@ -402,6 +402,7 @@ function renderReview() {
         <div class="ab-chapter-eyebrow">全员考察</div>
         <h2 class="ab-chapter-title">我们如何考察</h2>
         <p class="ab-chapter-sub">三项考察内容——党课、贡献、评价，其中党建贡献特别看重原创性</p>
+        <p class="ab-chapter-lead">先锋模范的作用必须在具体的工作中体现。</p>
         <div class="ab-review-grid">${cards}</div>
         <div class="ab-review-footer">党建贡献如何产生？→ 见第五章「工作流」中的活动与专班</div>
       </div>
@@ -731,6 +732,7 @@ function renderDialogue() {
             <h2 class="ab-chapter-title">行百里者半九十</h2>
             <p class="ab-chapter-sub">活动完成后，对话与复盘仍在继续——在实践中持续改进</p>
             <p class="ab-chapter-lead">交流解决方案，而不是交流问题——遇到问题，及时向组织汇报，说清思路与需要的支持。</p>
+            <p class="ab-chapter-lead">支部的建设永远以人为本，我们坚持高要求，不是坚持高压力——感到力不从心时，工作可以交接，但务必对交接本身负责。</p>
             <!-- 汇报交互提示（2026-08-28 书记：行百里者半九十补充汇报提示 + 交互手段） -->
             <details class="ab-dialogue-report">
               <summary>关于汇报</summary>
