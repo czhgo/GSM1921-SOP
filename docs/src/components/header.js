@@ -117,7 +117,7 @@ export async function renderHeader(activeModule, opts = {}) {
         <img src="${getBasePath()}assets/images/party_emblem.png" alt="党徽" class="party-emblem" draggable="false" onerror="this.style.display='none';">
       </div>
       <div class="header-title">
-        <h1 class="font-title-cn">光华管理学院本科生党支部管理引擎</h1>
+        <h1 class="font-title-cn">光华管理学院本科生党支部</h1>
       </div>
       <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
         ${_roleLabelHTML(role)}

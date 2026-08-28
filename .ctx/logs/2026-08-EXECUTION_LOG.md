@@ -5713,3 +5713,32 @@ P-001~P-004、P-014~P-017 不变。物理顺序与编号一致。
 ### 验证
 - link-audit **5/5 通过（fail 0）**，L5 content 343 链接 0 锚点警告
 - GetDiagnostics 零错误
+
+## T-293 全站删「管理引擎」+ About 第一章重排（两标签/右侧滚动/等大散落）+ 全清歪斜（2026-08-28）
+
+**任务**：书记四点指令——①所有 header 删「管理引擎」保留支部名 ②HTML 先有 PPT 思维再谈排版（大字小字/横竖排/附注/歪斜/滚动/动画各有逻辑）③开篇补「一个学生组织」「一个政治组织」两标签 ④全局清理歪斜，用字体/加粗/颜色/排列/运动做逻辑区分。
+
+**引用流程**：web-design-guidelines + brainstorming + AskUserQuestion 三裁 + ABOUT_DESIGN_SYSTEM（书记排版论述权威源）
+
+### 一、全站删「管理引擎」（书记：务必删去，保留支部名）
+- 14 处「光华管理学院本科生党支部管理引擎」→「光华管理学院本科生党支部」：header.js（共享 header h1）+ index/help（页面标题 h2）+ 全部 10 个 html title + index meta description
+- login.html 独立「管理引擎」小字 p 删除
+
+### 二、第一章重排（书记 AskUserQuestion 三裁 + 方向指示）
+- **两标签**：lead 后加「一个学生组织 / 一个政治组织」双属性标签（14px 红字淡红底，介绍组织前置定性）
+- **三卡右侧滚动驱动**：三个期待落点卡 `.ab-cognition-split` 右对齐，滚动浮现
+- **关键词错落下方**：三个关键词（具体/方兴未艾/提供成长）移至期待卡下方，**等大** + 0° 位移散落（词2 左移+上浮 -14px、词3 左移+下沉 +14px）
+- **删黑体小字**：`.ab-keyword-full`（一个具体的组织等附注）删除——关键词只留大字
+
+### 三、全清歪斜（书记：错落=高低左右散落，不是歪斜！）
+- 第一章关键词原「语义性错落」-1.5°/1.2°/-1° 旋转 → 全部 0°，改位移散落
+- 删除 `ab-rise-scatter` keyframes 与 `--scatter` 残留（第二章已 0°）
+- 动画统一 `ab-rise-in` 纯升起（0°）
+
+### 四、同步
+- ABOUT_DESIGN_SYSTEM：§四 第一章登记表重写 + §五 规则3 改为「错落=位移散落，禁止旋转歪斜」+ §三 字体 692→1063 字
+- 字体子集重跑（确认「政治」等新字在位）+ 版本 bump 20260828b（about.html entry/about.css/字体 URL）
+
+### 验证
+- link-audit **5/5 通过（fail 0）**，L5 content 343 链接 0 锚点警告
+- GetDiagnostics 零错误；grep 零残留（ab-keyword-full / --scatter / ab-rise-scatter / 管理引擎）

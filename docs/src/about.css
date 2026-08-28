@@ -18,7 +18,7 @@
    ⚠️ 改 about 页文案新增汉字后，重跑该工具再 bump 版本号；禁止用其他字体文件冒充本字体 */
 @font-face {
   font-family: 'NanxiYoumosong';
-  src: url('../assets/fonts/nanxi-youmosong-subset.woff2?v=20260828') format('woff2');
+  src: url('../assets/fonts/nanxi-youmosong-subset.woff2?v=20260828b') format('woff2');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -385,11 +385,11 @@ html.lenis, html.lenis body { height: auto; }
   width: 100%;
   max-width: 760px;
 }
-/* 2026-08-14 T-250 书记「2 个点非并列 2 条」：去红框/阴影/底卡，错落歪斜散落（现代艺术留白）
+/* 2026-08-14 T-250 书记「2 个点非并列 2 条」：去红框/阴影/底卡，错落散落（现代艺术留白）
    2026-08-19 T-272 回归文字优先：满宽正常卡——去 58vh 空洞留白、去 ±1.2° 倾斜、去左/右/中错落，
-   长文本正文左对齐直排（倾斜是海报语言，不适用于长文本；变化靠内容与结构，不靠装饰性倾斜） */
+   长文本正文左对齐直排（倾斜是海报语言，不适用于长文本；变化靠内容与结构，不靠装饰性倾斜）
+   2026-08-28 全清歪斜：错落=高低左右散落（scatter），非旋转倾斜 */
 .ab-philosophy-opp {
-  --scatter: 0deg;
   position: relative;
   min-height: auto; /* T-272 内容决定高度 */
   display: flex;
@@ -402,7 +402,7 @@ html.lenis, html.lenis body { height: auto; }
   border-radius: 4px;
   padding: clamp(28px, 4.5vh, 48px) clamp(24px, 3.5vw, 40px);
   align-self: stretch;
-  /* T-272 无倾斜纯升起（ab-rise-in，去 ab-rise-scatter 的旋转） */
+  /* T-272 无倾斜纯升起 */
   animation: ab-rise-in 1s var(--ab-ease) both;
   animation-timeline: view();
   animation-range: entry 0% entry 100%;
@@ -410,13 +410,8 @@ html.lenis, html.lenis body { height: auto; }
 /* T-272 三卡垂直对齐：不再左/右/中错落，仅纵向间距 */
 .ab-philosophy-opp:nth-of-type(2),
 .ab-philosophy-opp:nth-of-type(3) {
-  --scatter: 0deg;
   align-self: stretch;
   margin-top: clamp(16px, 3vh, 40px);
-}
-@keyframes ab-rise-scatter {
-  from { opacity: 0.5; transform: translateY(40px) rotate(var(--scatter, 0deg)); }
-  to   { opacity: 1; transform: translateY(0) rotate(var(--scatter, 0deg)); }
 }
 .ab-philosophy-opp-title {
   font-family: var(--ab-display);
@@ -506,51 +501,65 @@ html.lenis, html.lenis body { height: auto; }
 }
 .ab-chapter--center .ab-chapter-lead { text-align: center; margin-left: auto; margin-right: auto; }
 
-/* ── 第一章：三个关键词（语义性错落散放）+ 三条期待落点（竖排宽适无竖线） （2026-08-19 T-272 重构） ── */
+/* ── 第一章：组织双属性标签 + 期待落点（右侧滚动驱动）+ 关键词（等大·高低左右散落） （2026-08-28 书记重排） ── */
+/* 组织双属性标签（书记 2026-08-28 补充：一个学生组织 / 一个政治组织） */
+.ab-cognition-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: clamp(28px, 4.5vh, 44px);
+}
+.ab-cognition-tag {
+  font-family: 'Noto Serif SC', 'STZhongsong', serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--ab-red-deep);
+  background: rgba(206, 17, 38, 0.08);
+  padding: 4px 14px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+}
+/* 期待落点：右侧滚动驱动（书记：三个卡片放右侧滚动驱动） */
+.ab-cognition-split {
+  display: flex;
+  justify-content: flex-end;
+}
+/* 关键词：等大 + 排列散放（2026-08-28 全清歪斜——错落是高低左右散落，不是歪斜旋转）
+   三词横向递增间距 + 上下错落（词2 上浮、词3 下沉），0° 旋转 */
 .ab-keywords {
   display: flex;
-  flex-direction: column;
-  gap: clamp(40px, 6vh, 72px);
+  flex-wrap: wrap;
+  align-items: flex-start;
+  margin-top: clamp(48px, 7vh, 80px);
   margin-bottom: clamp(64px, 10vh, 108px);
 }
-/* 语义性错落：呼应「方兴未艾」的不定感；三词逐级下沉形成「成长轨迹」暗示（非装饰性错落）
-   T-272 无竖线：删除原 border-left，错落靠位移与角度表达 */
 .ab-keyword {
-  --scatter: -1.5deg; /* 词1 左倾 */
-  animation: ab-rise-scatter 1s var(--ab-ease) both;
+  animation: ab-rise-in 1s var(--ab-ease) both;
   animation-timeline: view();
   animation-range: entry 0% entry 100%;
 }
 .ab-keyword:nth-of-type(2) {
-  --scatter: 1.2deg; /* 词2 右倾 + 左移 + 下沉 */
-  margin-left: clamp(16px, 3vw, 40px);
-  margin-top: clamp(8px, 1.5vh, 16px);
+  margin-left: clamp(24px, 4vw, 56px);
+  margin-top: -14px; /* 词2 上浮——高低错落 */
 }
 .ab-keyword:nth-of-type(3) {
-  --scatter: -1deg; /* 词3 左倾 + 更左移 + 再下沉 */
-  margin-left: clamp(32px, 6vw, 80px);
-  margin-top: clamp(8px, 1.5vh, 16px);
+  margin-left: clamp(48px, 7vw, 96px);
+  margin-top: 14px; /* 词3 下沉——高低错落 */
 }
 .ab-keyword-word {
   font-family: var(--ab-display);
   font-weight: 400;
-  /* T-272 收敛原 58px 巨字：大字保留「题眼」感，但与叙事协调 */
+  /* T-272 收敛原 58px 巨字：大字保留「题眼」感，但与叙事协调；三词等大（2026-08-28） */
   font-size: clamp(32px, 4vw, 44px);
   color: var(--ab-red);
   line-height: 1.15;
-  margin-bottom: 8px;
 }
-.ab-keyword-full {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ab-ink);
-  letter-spacing: 0.05em;
-}
-/* 落点：竖排 + 宽度思考（720px 中文舒适行宽，非满宽）+ 无竖线（原话改淡底区分） */
-.ab-expect-list {
+/* 落点：右侧滚动驱动（2026-08-28 书记：三个卡片放右侧）+ 竖排 + 宽度思考（720px 中文舒适行宽，非满宽）+ 无竖线（原话改淡底区分） */
+.ab-cognition-split .ab-expect-list {
   display: flex;
   flex-direction: column;
   gap: clamp(18px, 3vh, 28px);
+  width: 100%;
   max-width: min(720px, 100%);
 }
 .ab-expect-card {

@@ -494,17 +494,21 @@ function renderPhilosophy() {
 }
 
 /**
- * Section 2: 组织性——组织向大家讲述（2026-08-18 T-271 第 2 轮修缮，第一章）
+ * Section 2: 组织性——组织向大家讲述（2026-08-18 T-271 第 2 轮修缮 + 2026-08-28 书记重排，第一章）
  *
- * 布局：纵向铺展（章头在上，内容纵向展开，与第二章错落语言统一）。
- * 三个关键词：只单独展示关键词（大字 + 书记提供的完整短语），不配 AI desc、不配引文。
+ * 布局（2026-08-28 书记裁定）：章头（eyebrow/title/lead）在上 →
+ * 组织双属性标签（一个学生组织 / 一个政治组织）→ 三条期待落点（右侧滚动驱动）→
+ * 三个关键词（等大，0° 位移散落——错落=高低左右散落，非歪斜旋转；删黑体小字附注）。
  * 三条期待落点：标题 + 书记原话 blockquote（不写编号/日期/「书记」字样）。
  */
 function renderCognition() {
+  // 组织双属性标签（书记 2026-08-28 补充）：学生组织 + 政治组织
+  const tags = ['一个学生组织', '一个政治组织'];
+  // 三个关键词：等大 + 排列散放（0° 位移错落，2026-08-28 全清歪斜）——不再配小字附注（书记：下面黑体的小字都删去）
   const keywords = [
-    { word: '具体',     full: '一个具体的组织' },
-    { word: '方兴未艾', full: '一个方兴未艾的组织' },
-    { word: '提供成长', full: '一个提供成长的组织' },
+    { word: '具体' },
+    { word: '方兴未艾' },
+    { word: '提供成长' },
   ];
 
   const expects = [
@@ -522,10 +526,11 @@ function renderCognition() {
     },
   ];
 
-  const keywordsHTML = keywords.map(k => `
-    <article class="ab-keyword" data-stagger>
+  const tagsHTML = `<div class="ab-cognition-tags" data-stagger>${tags.map(t => `<span class="ab-cognition-tag">${t}</span>`).join('')}</div>`;
+
+  const keywordsHTML = keywords.map((k, i) => `
+    <article class="ab-keyword" data-stagger data-i="${i}">
       <h3 class="ab-keyword-word">${k.word}</h3>
-      <p class="ab-keyword-full">${k.full}</p>
     </article>
   `).join('');
 
@@ -546,8 +551,11 @@ function renderCognition() {
         <div class="ab-cognition-lead" data-stagger>
           <p>一个正在建设中的组织，先向你介绍自己。</p>
         </div>
+        ${tagsHTML}
+        <div class="ab-cognition-split">
+          <div class="ab-expect-list">${expectsHTML}</div>
+        </div>
         <div class="ab-keywords">${keywordsHTML}</div>
-        <div class="ab-expect-list">${expectsHTML}</div>
       </div>
     </section>
   `;
