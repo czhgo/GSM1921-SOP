@@ -739,19 +739,16 @@ function renderExploration() {
 
 /** Section 7: 和组织对话——行百里者半九十（第六章，四阶段日出日落，滚动驱动公转，文字始终正立，闭环表达） */
 function renderDialogue() {
-  const stepsHTML = DIALOGUE_STAGES.map((s) => {
-    // 2026-08-28 T-301 书记：文字太多，quote 点击卡片弹出（支持多条），不自动展开
-    const quoteHTML = s.quote
-      ? s.quote.map(q => `<p class="ab-dialogue-card-quote">${q}</p>`).join('')
-      : '';
+  const stepsHTML = DIALOGUE_STAGES.map((s, i) => {
+    // 2026-08-28 T-302 书记：双向交流原话点击卡片后淡入淡出于页面其他位置（卡内不留内容）
+    const hasQuote = Array.isArray(s.quote) && s.quote.length;
     return `
-      <article class="ab-dialogue-card" data-state="future" data-open="false">
+      <article class="ab-dialogue-card" data-state="future" data-open="false" data-index="${i}" data-has-quote="${hasQuote}">
         <div class="ab-dialogue-no">${s.no}</div>
         <div class="ab-dialogue-phase">${s.phase}</div>
         <div class="ab-dialogue-question">${s.question}</div>
         <div class="ab-dialogue-answer">${s.answer}</div>
         <div class="ab-dialogue-desc">${s.desc}</div>
-        ${quoteHTML}
       </article>
     `;
   }).join('');
@@ -768,10 +765,11 @@ function renderDialogue() {
             <div class="ab-chapter-eyebrow">善始善终</div>
             <h2 class="ab-chapter-title">行百里者半九十</h2>
             <p class="ab-chapter-sub">活动完成后，对话与复盘仍在继续——在实践中持续改进</p>
-            <!-- 2026-08-28 T-299 书记：删 head 滚动联动原话区（位置不对），原话整合进各卡内、正午时显示 -->
+            <!-- 2026-08-28 T-299 书记：删 head 滚动联动原话区；T-302 双向交流原话点击卡片后淡入淡出于此（页面其他位置，卡内不留） -->
           </div>
           <div class="ab-dialogue-stage">
             ${stepsHTML}
+            <div class="ab-dialogue-pop" data-show="false" aria-live="polite"></div>
           </div>
         </div>
         <!-- 垫片必须紧邻 flow 之后（2026-08-14 修正）。垫片提供滚动行程 -->
@@ -1596,6 +1594,32 @@ function bindDialogueScrollActivation() {
   if (lenis) lenis.on('scroll', scheduleUpdate);
   window.addEventListener('scroll', scheduleUpdate, { passive: true });
   window.addEventListener('resize', () => { refreshHeaderH(); updateDialogue(); });
+
+  // 2026-08-28 T-302 双向交流原话：点击卡片 → stage 内 .ab-dialogue-pop 淡入淡出（页面其他位置，卡内不留内容）
+  // 支部成员对支委 / 支委对支部成员 = 往复交流（02 卡双向、03 组织对成员、04 组织态度）
+  const pop = section.querySelector('.ab-dialogue-pop');
+  cards.forEach((card) => {
+    card.addEventListener('click', () => {
+      const si = Number(card.dataset.index);
+      const stage = Number.isInteger(si) ? DIALOGUE_STAGES[si] : null;
+      if (!stage || !Array.isArray(stage.quote) || !stage.quote.length) return;
+      const willOpen = card.dataset.open !== 'true';
+      cards.forEach((c) => { c.dataset.open = 'false'; });
+      if (willOpen) {
+        card.dataset.open = 'true';
+        if (pop) {
+          pop.innerHTML = stage.quote.map(q => `<p class="ab-dialogue-pop-quote">${q}</p>`).join('');
+          pop.dataset.show = 'true';
+          // 内容切换重触发淡入动画
+          pop.style.animation = 'none';
+          void pop.offsetWidth;
+          pop.style.animation = '';
+        }
+      } else if (pop) {
+        pop.dataset.show = 'false';
+      }
+    });
+  });
 
   // 初始态：按当前位置计算（页面顶部时 = 0，θ=0 时日出在右上、日中在顶、日落在左上、地下在正下）
   updateDialogue();

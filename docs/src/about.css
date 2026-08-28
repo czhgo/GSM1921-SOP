@@ -18,7 +18,7 @@
    ⚠️ 改 about 页文案新增汉字后，重跑该工具再 bump 版本号；禁止用其他字体文件冒充本字体 */
 @font-face {
   font-family: 'NanxiYoumosong';
-  src: url('../assets/fonts/nanxi-youmosong-subset.woff2?v=20260828j') format('woff2');
+  src: url('../assets/fonts/nanxi-youmosong-subset.woff2?v=20260828k') format('woff2');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -798,22 +798,54 @@ html.lenis, html.lenis body { height: auto; }
 .ab-dialogue-head .ab-chapter-sub {
   margin: 0 auto;
 }
-/* 卡内原话（2026-08-28 T-299 书记：原话整合进卡内，正午时展开显示；删 head 滚动联动区） */
-.ab-dialogue-card-quote {
-  margin: 10px 0 0;
+/* 点击可展开提示（仅 has-quote 卡，右下一枚小 +；2026-08-28 T-302 卡内不留内容，原话淡入淡出于 pop） */
+.ab-dialogue-card[data-has-quote="true"]::after {
+  content: '+';
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ab-red);
+  opacity: 0.35;
+  transition: opacity 240ms var(--ab-ease), transform 240ms var(--ab-ease);
+}
+.ab-dialogue-card[data-open="true"]::after {
+  content: '−';
+  opacity: 0.8;
+  transform: rotate(180deg);
+}
+/* 双向交流原话浮层（2026-08-28 T-302 书记：点击卡片后淡入淡出于页面其他位置——舞台底部） */
+.ab-dialogue-pop {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 2%;
+  width: min(560px, 86%);
+  text-align: center;
+  opacity: 0;
+  transition: opacity 500ms var(--ab-ease);
+  pointer-events: none;
+}
+.ab-dialogue-pop[data-show="true"] {
+  opacity: 1;
+  animation: ab-pop-in 500ms var(--ab-ease);
+}
+.ab-dialogue-pop-quote {
+  margin: 0;
   font-family: 'Noto Serif SC', 'STZhongsong', serif;
   font-weight: 500;
-  font-size: 12px;
-  color: var(--ab-ink-sub);
-  line-height: 1.6;
-  opacity: 0;
-  max-height: 0;
-  overflow: hidden;
-  transition: opacity 400ms var(--ab-ease) 120ms, max-height 500ms var(--ab-ease);
+  font-size: 14px;
+  color: var(--ab-ink);
+  line-height: 1.75;
 }
-.ab-dialogue-card[data-state="current"] .ab-dialogue-card-quote {
-  opacity: 1;
-  max-height: 22em;
+.ab-dialogue-pop-quote + .ab-dialogue-pop-quote {
+  margin-top: 10px;
+}
+@keyframes ab-pop-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 /* 2026-08-14 T-249 舞台视口驱动贴底：底部贴浏览器视窗最下端（243 = 紧凑 head≈122 + gap 121），大视口可超 640px
    2026-08-18 T-271 行百里者半九十转动半径加大：减数 243 → 200（舞台更高更大，环公转更舒展） */
