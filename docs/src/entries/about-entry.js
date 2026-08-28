@@ -262,7 +262,10 @@ const DIALOGUE_STAGES = [
     question: '工作中遇到问题怎么办？',
     answer: '及时和组织沟通',
     desc: '反馈要在过程中进行——遇到偏差及时和组织对话、调整，避免事倍功半。',
-    quote: '交流解决方案，而不是交流问题——我们不期待听到“这里有一个问题”，我们期待听到的是“我认为解决问题的思路是这样，为什么是这样，支委会能否提供支持……”',
+    quote: [
+      '交流解决方案，而不是交流问题——我们不期待听到“这里有一个问题”，我们期待听到的是“我认为解决问题的思路是这样，为什么是这样，支委会能否提供支持……”',
+      '支部成员也要多多体谅支委同样作为学生参与工作的压力，要给予同理心——特别体现在时间紧、任务重的工作中，实践中的尊重是困难的，也恰恰是我们最需要的！',
+    ],
   },
   {
     no: '03',
@@ -270,7 +273,9 @@ const DIALOGUE_STAGES = [
     question: '如何在实践中改进？',
     answer: '和组织对话',
     desc: '活动完成后，还要和组织对话、复盘得失——行百里者半九十。',
-    quote: '支部成员也要多多体谅支委同样作为学生参与工作的压力，要给予同理心——特别体现在时间紧、任务重的工作中，实践中的尊重是困难的，也恰恰是我们最需要的！',
+    quote: [
+      '支部的建设永远以人为本，我们坚持高要求，不是坚持高压力——感到力不从心时，工作可以交接，但务必对交接本身负责。',
+    ],
   },
   {
     no: '04',
@@ -278,7 +283,9 @@ const DIALOGUE_STAGES = [
     question: '经验如何传承？',
     answer: '从这次到下一次',
     desc: '从一次活动/专班到下一次，同志与组织形成持续的对话关系——上次的经验成为下次的起点，在实践中不断改进工作内容与模式。',
-    quote: '支部的建设方兴未艾，任何的意见、建议、创新都弥足珍贵。',
+    quote: [
+      '支部的建设方兴未艾，任何的意见、建议、创新都弥足珍贵。',
+    ],
   },
 ];
 
@@ -558,10 +565,15 @@ function renderCognition() {
       <span class="ab-page-no">01</span>
       <span class="ab-page-runner">第一章 · 组织性</span>
       <div class="ab-chapter ab-cognition-inner">
-        <div class="ab-chapter-eyebrow">「组织性」的展开</div>
-        <h2 class="ab-chapter-title">「组织性」<br/>的展开</h2>
         <div class="ab-cognition-layout">
-          <div class="ab-cognition-sticky">${wordsHTML}</div>
+          <!-- 2026-08-28 书记：章头只占左半（eyebrow/title 并入左列 sticky，右侧内容上移）
+               ⚠️ 曾因并行编辑竞态回滚为旧结构导致 sticky 失效（左列 .ab-cognition-sticky 无 position:sticky），
+               2026-08-28 T-301b 浏览器实测确认后恢复此结构 -->
+          <div class="ab-cognition-left">
+            <div class="ab-chapter-eyebrow">「组织性」的展开</div>
+            <h2 class="ab-chapter-title">「组织性」<br/>的展开</h2>
+            <div class="ab-cognition-sticky">${wordsHTML}</div>
+          </div>
           <div class="ab-expect-list">${expectsHTML}</div>
         </div>
       </div>
@@ -728,15 +740,18 @@ function renderExploration() {
 /** Section 7: 和组织对话——行百里者半九十（第六章，四阶段日出日落，滚动驱动公转，文字始终正立，闭环表达） */
 function renderDialogue() {
   const stepsHTML = DIALOGUE_STAGES.map((s) => {
-    // 2026-08-28 T-299 书记：原话整合进卡内（删 head 滚动联动区），正午时显示
+    // 2026-08-28 T-301 书记：文字太多，quote 点击卡片弹出（支持多条），不自动展开
+    const quoteHTML = s.quote
+      ? s.quote.map(q => `<p class="ab-dialogue-card-quote">${q}</p>`).join('')
+      : '';
     return `
-      <article class="ab-dialogue-card" data-state="future">
+      <article class="ab-dialogue-card" data-state="future" data-open="false">
         <div class="ab-dialogue-no">${s.no}</div>
         <div class="ab-dialogue-phase">${s.phase}</div>
         <div class="ab-dialogue-question">${s.question}</div>
         <div class="ab-dialogue-answer">${s.answer}</div>
         <div class="ab-dialogue-desc">${s.desc}</div>
-        ${s.quote ? `<p class="ab-dialogue-card-quote">${s.quote}</p>` : ''}
+        ${quoteHTML}
       </article>
     `;
   }).join('');
@@ -1498,7 +1513,7 @@ function bindDialogueScrollActivation() {
         // 地下（环底部扇区）：彻底消失（书记裁决「消失的卡片也就消失了」）
         card.style.transform = `translate(-50%, -50%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(0.92)`;
         card.style.opacity = '0';
-        card.style.zIndex = '0';
+        card.style.zIndex = card.dataset.open === 'true' ? '30' : '0';
         card.style.borderColor = '';
         card.dataset.state = 'future';
       } else {
@@ -1509,7 +1524,7 @@ function bindDialogueScrollActivation() {
         const scale = lerp(0.92, 1.05, b);
         card.style.transform = `translate(-50%, -50%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${scale.toFixed(3)})`;
         card.style.opacity = String(b);
-        card.style.zIndex = String(Math.round(b * 10));
+        card.style.zIndex = card.dataset.open === 'true' ? '30' : String(Math.round(b * 10));
         if (b > 0.6) {
           card.style.borderColor = `rgba(206, 17, 38, ${(((b - 0.6) / 0.4) * 0.4).toFixed(3)})`;
           card.dataset.state = 'current';

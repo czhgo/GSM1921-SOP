@@ -5943,3 +5943,34 @@ P-001~P-004、P-014~P-017 不变。物理顺序与编号一致。
 
 ### 验证
 - link-audit **5/5 通过（fail 0）**；GetDiagnostics 零错误
+
+## T-301 第一章 sticky 实测修复（并行编辑竞态回滚）+ 第六章卡点击展开 + 原话归位（2026-08-28）
+
+**任务**：书记 4 点——①第一章左侧还在移动必须改正 ②第六章文字太多，部分放外面，点击卡片弹出补充说明 ③尊重原话更像「工作之中往复交流」而非「工作之后」，工作之后应负责复盘 ④h2 偏安一隅但组件太长。
+
+**引用流程**：web-design-guidelines + brainstorming + 浏览器实测（browser_use 采样 119 点）
+
+### 一、① 第一章左侧移动根因（浏览器实测）
+- **根因**：T-298 的 renderCognition 左列重构（eyebrow/title 并入 `.ab-cognition-left` sticky）**因并行编辑竞态回滚丢失**——HTML 回退为旧结构（章头在 inner 顶部、左列 `.ab-cognition-sticky` 只含五词且无 position:sticky），而 CSS `.ab-cognition-left` sticky 规则一直在 → sticky 从未生效
+- 实测数据：改前 `.ab-cognition-sticky` computed position: static，top 随滚动线性变化（Δtop/Δy≈-1，无稳定区间）
+- 修复：renderCognition 恢复左列结构（`.ab-cognition-left` 含 eyebrow/title/五词）
+- 复测：`.ab-cognition-left` computed position: sticky，top 稳定 **96px** 贯穿 scrollY 769→1386（约 616px）——左栏滚动期间完全不动 ✓
+
+### 二、② 第六章 quote 改点击展开（不自动展开，文字有更多空间）
+- 卡内 quote 从「正午自动展开」改为「点击卡片弹出」：`.ab-dialogue-card[data-open="true"]` 展开
+- JS：click toggle（点击卡展开、点击其他卡关闭）；apply zIndex 保护（data-open 卡 zIndex 30，不被旋转层级覆盖）
+- 卡右下角小「+」提示（data-open 时变「−」旋转 180°）
+
+### 三、③ 原话归位（工作之中往复交流 vs 工作之后负责复盘）
+- **02 卡（工作之中）**：quote 两条 = 交流解决方案 + 尊重体谅（「支部成员也要多多体谅支委…实践中的尊重是困难的，也恰恰是我们最需要的！」——工作之中往复交流）
+- **03 卡（工作之后）**：quote = P-008「支部的建设永远以人为本，我们坚持高要求，不是坚持高压力——感到力不从心时，工作可以交接，但务必对交接本身负责。」（负责与复盘）
+- 04 卡保留「方兴未艾意见创新弥足珍贵」
+
+### 四、④ 标题组件缩小（偏安一隅 → 只容纳字）
+- `.ab-cognition-left .ab-chapter-title { width: fit-content; }`——标题框缩小到只容纳字
+
+### 同步
+- 字体子集重跑（1086 字）+ bump 20260828j
+
+### 验证
+- link-audit **5/5 通过（fail 0）**；GetDiagnostics 零错误

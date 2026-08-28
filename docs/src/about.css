@@ -18,7 +18,7 @@
    ⚠️ 改 about 页文案新增汉字后，重跑该工具再 bump 版本号；禁止用其他字体文件冒充本字体 */
 @font-face {
   font-family: 'NanxiYoumosong';
-  src: url('../assets/fonts/nanxi-youmosong-subset.woff2?v=20260828i') format('woff2');
+  src: url('../assets/fonts/nanxi-youmosong-subset.woff2?v=20260828j') format('woff2');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -513,6 +513,7 @@ html.lenis, html.lenis body { height: auto; }
 }
 .ab-cognition-left .ab-chapter-title {
   margin-bottom: 0;
+  width: fit-content; /* 2026-08-28 T-301 书记：标题偏安一隅但组件太长——缩小到只容纳字 */
 }
 /* 五词区：油墨宋墨色、无底（2026-08-28 书记：绝不允许有底，黑色的南西油墨宋） */
 .ab-cognition-sticky {
