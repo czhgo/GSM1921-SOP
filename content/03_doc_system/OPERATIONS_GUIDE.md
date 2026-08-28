@@ -677,7 +677,7 @@ Guides 文件不使用数字编号，使用**语义化文件名**（大写+下�
 
 本规范适用于面向用户的阐述性文档，包括：
 
-- `SECRETARY_PRONOUNCEMENTS.md`（书记重要论断汇编，位于 content/01\_strategy/）
+- `SECRETARY_PRONOUNCEMENTS.md`（党支书工作交接文档，位于 content/01\_strategy/）
 - `content/01_strategy/*.md`（战略路线文档）
 - `content/02_institution/sop/*.md`（制度母本与工作流程）
 - `content/insights/*.md`（经验沉淀文档）

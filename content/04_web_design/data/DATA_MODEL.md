@@ -593,7 +593,7 @@ assignedRoles: Array<{
 
 **派生显示状态**（UI 层派生，数据层不存储，实现 `deriveIssueDisplayState`）：`开放中` → `已指派`（有 assignee）→ `待终审`（resultPending 或已有 result 评论）→ `已关闭`。
 
-> **书记处置权设计**（2026-08-09 P-011 重写联动，倒写自 issues.js）——意见反馈处置权归书记独有：全员可参与开源讨论（issue.create / comment.add / reaction.toggle / mention / reference），但处置动作仅书记可执行，类比 GitHub maintainer 唯一拥有 merge/close 权（详见 [insights §2.2](../../insights/党支部管理与实务经验沉淀.md) D-244/T105 与 [COMMISSIONER_FRAMEWORK §C.1b](../../02_institution/COMMISSIONER_FRAMEWORK.md) 党课/意见反馈规则）。这是 P-011 组织内控总论"书记仲裁"防线的落点。
+> **书记处置权设计**（2026-08-09 P-011 重写联动，倒写自 issues.js）——意见反馈处置权归书记独有：全员可参与开源讨论（issue.create / comment.add / reaction.toggle / mention / reference），但处置动作仅书记可执行，类比 GitHub maintainer 唯一拥有 merge/close 权（详见 [insights §2.2](../../insights/党支部管理与实务经验沉淀.md) D-244/T105 与 [COMMISSIONER_FRAMEWORK §C.1b](../../02_institution/COMMISSIONER_FRAMEWORK.md) 党课/意见反馈规则）。这是 P-012 分工的运行保障（书记仲裁）的落点。
 
 | 处置动作 | 接口 | 说明 |
 |---|---|---|

@@ -87,7 +87,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 | `ARCHITECTURE.md` | `[工程师]+[AI]` | 核心架构，工程师维护 + AI 上下文 |
 | `CLAUDE.md` | `[工程师]+[AI]` | 核心规则、执行路线图，工程师维护 + AI 执行依据 |
 | `SSOT_INDEX.md` | `[工程师]+[AI]` | 注册表，工程师溯源 + AI 配置参考 |
-| `SECRETARY_PRONOUNCEMENTS.md` | `[用户]+[AI]` | 书记论断汇编，用户查阅 + AI 引用 |
+| `SECRETARY_PRONOUNCEMENTS.md` | `[用户]+[AI]` | 党支书工作交接文档，用户查阅 + AI 引用 |
 | `index.html` | `[用户]+[AI]` | 用户界面 + AI 修改目标 |
 
 ### content/ 内容中心

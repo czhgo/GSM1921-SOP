@@ -17,7 +17,7 @@ status: active
 
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
-| [SECRETARY_PRONOUNCEMENTS.md](SECRETARY_PRONOUNCEMENTS.md) | 书记重要论断汇编（项目顶级战略文档，17 条论断按「价值目标 → 组织机制 → 人的成长 → 组织再生产」四层组织，含 3 元命题） | **唯一权威**——书记路线级论断 |
+| [SECRETARY_PRONOUNCEMENTS.md](SECRETARY_PRONOUNCEMENTS.md) | 党支书工作交接文档（项目顶级战略文档，17 条论断按「价值目标 → 组织机制 → 人的成长 → 组织再生产」四层组织，含 3 元命题） | **唯一权威**——书记路线级论断 |
 | [DEVELOPMENT_PATH.md](DEVELOPMENT_PATH.md) | 发展路径——从入党申请人到正式党员的完整叙事（管理事、服务人总论 + 身份角色成长 + 恢复对话能力） | **唯一权威**——发展路径叙事 |
 
 ## 子目录

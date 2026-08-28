@@ -34,9 +34,9 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 |------|------|---------|
 | `CLAUDE.md` 甲部 H30.2 | `content/01_strategy/`、`content/04_web_design/`、`content/03_doc_system/` | Harness 是 guides 的摘要和索引（非副本）。甲部保留核心原则+判例，详细设计归 guides。甲部引用的原则变更必须同步更新 guides |
 | `CLAUDE.md` 乙部 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` | 路线图→执行。完成事项从乙部删除，写入执行日志 |
-| `SECRETARY_PRONOUNCEMENTS.md` | `CLAUDE.md` H90（外部权威源索引） | 书记论断汇编是理论基石的母本。新增论断时同步更新 CLAUDE.md H90 索引表 |
-| `SECRETARY_PRONOUNCEMENTS.md` | `content/01_strategy/DEVELOPMENT_PATH.md` | 理论基石→战略展开。书记论断汇编是母本（木本），DEVELOPMENT_PATH 是子本（AI 扩充的战略叙事）。冲突时以 SECRETARY_PRONOUNCEMENTS 为准 |
-| `SECRETARY_PRONOUNCEMENTS.md` | `content/02_institution/FLAT_DESIGN.md` | 理论基石→制度设计。扁平化论断（P-008/P-009）的母本，FLAT_DESIGN 是子本展开 |
+| `SECRETARY_PRONOUNCEMENTS.md` | `CLAUDE.md` H90（外部权威源索引） | 党支书工作交接文档是理论基石的母本。新增论断时同步更新 CLAUDE.md H90 索引表 |
+| `SECRETARY_PRONOUNCEMENTS.md` | `content/01_strategy/DEVELOPMENT_PATH.md` | 理论基石→战略展开。党支书工作交接文档是母本（木本），DEVELOPMENT_PATH 是子本（AI 扩充的战略叙事）。冲突时以 SECRETARY_PRONOUNCEMENTS 为准 |
+| `SECRETARY_PRONOUNCEMENTS.md` | `content/02_institution/FLAT_DESIGN.md` | 理论基石→制度设计。扁平化论断（P-009/P-010）的母本，FLAT_DESIGN 是子本展开 |
 | `SSOT_INDEX.md` | `ARCHITECTURE.md` | 注册表是架构说明的溯源参考 |
 
 ### content/ 内部及交叉（strategy ↔ institution ↔ doc_system ↔ web_design ↔ insights）

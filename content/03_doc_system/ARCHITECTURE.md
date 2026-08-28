@@ -74,7 +74,7 @@ Layer 0: 核心层（最高权威）
 Layer 1: 知识类型 1 — 战略（支部为什么存在、根本目标、战略路线）
   └─ content/01_strategy/                 [用户]+[AI] 战略路线与设计理念
       ├── DEVELOPMENT_PATH.md             [用户]+[AI] "管理事、服务人"战略
-      ├── SECRETARY_PRONOUNCEMENTS.md     [用户]+[AI] 书记重要论断汇编（项目顶级战略文档）
+      ├── SECRETARY_PRONOUNCEMENTS.md     [用户]+[AI] 党支书工作交接文档（项目顶级战略文档）
       └── references/                     [用户] 参考材料与模板（合规文件/历史会议材料/建设探索）
 
 Layer 2: 知识类型 2 — 制度（组织架构、分工、SOP）
@@ -153,7 +153,7 @@ Layer 7: 审计参考层（审计与参考）
 ├── content/                           [用户]+[AI] 内容中心（按 5 类知识类型组织，见第四章）
 │   ├── 01_strategy/                  [用户]+[AI] 战略层（支部为什么存在、根本目标、战略路线）
 │   │   ├── DEVELOPMENT_PATH.md       [用户]+[AI] "管理事、服务人"战略
-│   │   ├── SECRETARY_PRONOUNCEMENTS.md [用户]+[AI] 书记重要论断汇编（项目顶级战略文档，17 条论断）
+│   │   ├── SECRETARY_PRONOUNCEMENTS.md [用户]+[AI] 党支书工作交接文档（项目顶级战略文档，17 条论断）
 │   │   ├── README.md                 [用户]+[AI] 战略层目录索引
 │   │   └── references/               [用户] 参考材料与模板（合规文件/历史会议材料/建设探索）
 │   ├── 02_institution/               [用户]+[AI] 制度层（组织架构、分工、SOP）

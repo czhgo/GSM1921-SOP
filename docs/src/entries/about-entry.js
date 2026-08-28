@@ -302,7 +302,7 @@ const DEVELOPMENT_TIMELINE = [
 // 三个成长机会 → 身份阶段（明线：积极分子怎么发展）→ 考察维度 → 工作流 → 行百里者半九十 → 收束（致谢与期待）
 const TOC_ITEMS = [
   { id: 'hero',         label: '开篇' },
-  { id: 'cognition',    label: '"组织性"的展开' },
+  { id: 'cognition',    label: '「组织性」的展开' },
   { id: 'philosophy',   label: '成长机会' },
   { id: 'development',  label: '身份阶段' },
   { id: 'review',       label: '如何考察' },
@@ -380,7 +380,7 @@ function renderHero() {
   `;
 }
 
-/** Section 2: 我们如何考察（全员三维度卡片，党建贡献高亮） */
+/** Section 5: 我们如何考察（全员三维度卡片，党建贡献高亮） */
 function renderReview() {
   const cards = REVIEW_DIMENSIONS.map((d, i) => `
     <div class="ab-review-card ${d.highlight ? 'ab-review-card--highlight' : ''}" data-stagger tabindex="0" role="button" aria-label="${d.name}：${d.tag}">
@@ -403,14 +403,14 @@ function renderReview() {
         <h2 class="ab-chapter-title">我们如何考察</h2>
         <p class="ab-chapter-sub">三项考察内容——党课、贡献、评价，其中党建贡献特别看重原创性</p>
         <div class="ab-review-grid">${cards}</div>
-        <div class="ab-review-footer">什么是党建贡献？→ 我们支部有一套工作架构</div>
+        <div class="ab-review-footer">党建贡献如何产生？→ 见第五章「工作流」中的活动与专班</div>
       </div>
     </section>
   `;
 }
 
 /**
- * Section 4: 三个成长机会（2026-08-18 T-270 重构）
+ * Section 3: 三个成长机会（2026-08-18 T-270 重构）
  *
  * 母本：SECRETARY_PRONOUNCEMENTS.md「三、人的成长」P-014/P-015/P-016——
  * 适应学习 / 探索创新 / 对话 三个并列成长机会。党建+科研（P-016 对话）从独立章并入此处。
@@ -485,7 +485,7 @@ function renderPhilosophy() {
         <div class="ab-chapter-eyebrow">成长机会</div>
         <h2 class="ab-chapter-title">三个成长机会</h2>
         <p class="ab-chapter-sub" data-stagger>
-          爱具体的组织——光华管理学院本科生党支部提供三个并列的成长机会。
+          光华管理学院本科生党支部提供三个并列的成长机会。
         </p>
         <div class="ab-philosophy-opportunities">${cards}</div>
       </div>
@@ -494,7 +494,7 @@ function renderPhilosophy() {
 }
 
 /**
- * Section 2: 组织性——组织向大家讲述（2026-08-18 T-271 第 2 轮修缮）
+ * Section 2: 组织性——组织向大家讲述（2026-08-18 T-271 第 2 轮修缮，第一章）
  *
  * 布局：纵向铺展（章头在上，内容纵向展开，与第二章错落语言统一）。
  * 三个关键词：只单独展示关键词（大字 + 书记提供的完整短语），不配 AI desc、不配引文。
@@ -518,7 +518,7 @@ function renderCognition() {
     },
     {
       title: '你可以期待的表达空间',
-      quote: '我们不反对批评意见，但要求要在组织的框架内提出批评意见……我特别怕大家因为认为是\u201c党支部\u201d，所以怕说错话，而选择不\u201c真实表达\u201d！因为这样自己既没有真实的交互体验，组织也没办法持续进步。',
+      quote: '我们不反对批评意见，但要求要在组织的框架内提出批评意见……我特别怕大家因为认为是\'党支部\'，所以怕说错话，而选择不\'真实表达\'！因为这样自己既没有真实的交互体验，组织也没办法持续进步。',
     },
   ];
 
@@ -541,10 +541,10 @@ function renderCognition() {
       <span class="ab-page-no">01</span>
       <span class="ab-page-runner">第一章 · 组织性</span>
       <div class="ab-chapter ab-cognition-inner">
-        <div class="ab-chapter-eyebrow">"组织性"的展开</div>
-        <h2 class="ab-chapter-title">"组织性"<br/>的展开</h2>
+        <div class="ab-chapter-eyebrow">「组织性」的展开</div>
+        <h2 class="ab-chapter-title">「组织性」<br/>的展开</h2>
         <div class="ab-cognition-lead" data-stagger>
-          <p>一个正在建设中的组织，先向你打开自己的处境。</p>
+          <p>一个正在建设中的组织，先向你介绍自己。</p>
         </div>
         <div class="ab-keywords">${keywordsHTML}</div>
         <div class="ab-expect-list">${expectsHTML}</div>
@@ -658,7 +658,7 @@ function renderSceneSVG(scene) {
   return new XMLSerializer().serializeToString(svg);
 }
 
-/** Section 5: 工作流——镜组驱动连续运动（谁在什么时候该去找谁） */
+/** Section 6: 工作流——镜组驱动连续运动（谁在什么时候该去找谁，第五章） */
 /** 渲染单个探索场景片段（2026-08-14 T-248 性能：从 renderExploration 拆出，供懒渲染分片挂载） */
 function renderSceneFragment(scene) {
   const svg = renderSceneSVG(scene);
@@ -703,15 +703,12 @@ function renderExploration() {
         <h2 class="ab-chapter-title">工作流——谁在什么时候该去找谁？</h2>
         <p class="ab-chapter-sub">有先例的，按工作流走<br/>没先例的，靠探索沉淀</p>
         ${scenesHTML}
-        <p class="ab-exploration-coda">
-          程序在所有人之上，所以扁平；书记因更大的责任嵌入更深，所以集中——扁平与集中，统一于程序。
-        </p>
       </div>
     </section>
   `;
 }
 
-/** Section 7: 和组织对话——行百里者半九十（四阶段日出日落，滚动驱动公转，文字始终正立，闭环表达） */
+/** Section 7: 和组织对话——行百里者半九十（第六章，四阶段日出日落，滚动驱动公转，文字始终正立，闭环表达） */
 function renderDialogue() {
   const stepsHTML = DIALOGUE_STAGES.map((s) => {
     return `
@@ -764,7 +761,7 @@ function renderConclusion() {
   `;
 }
 
-/** Section 3: 发展党员交替时间轴（7 关键节点，居中列 + 左右交替侧面板，2026-08-18 T-270 压缩） */
+/** Section 4: 身份阶段·发展党员交替时间轴（第三章，7 关键节点，居中列 + 左右交替侧面板，2026-08-18 T-270 压缩） */
 function renderDevelopment() {
   // 阶段定义（4 阶段，2026-08-18 T-270 节点数随 7 节点压缩调整）
   const STAGES = [
@@ -830,11 +827,11 @@ function renderDevelopment() {
   return `
     <section id="development" class="ab-page ab-development-section" data-toc-id="development">
       <span class="ab-page-no">03</span>
-      <span class="ab-page-runner">第三章 · 发展党员</span>
+      <span class="ab-page-runner">第三章 · 身份阶段</span>
       <div class="ab-chapter">
         <div class="ab-chapter-eyebrow">身份阶段</div>
-        <h2 class="ab-chapter-title">从入党申请人到正式党员</h2>
-        <p class="ab-chapter-sub">依据《发展党员工作细则（2026年）》</p>
+        <h2 class="ab-chapter-title">身份阶段：从入党申请人到正式党员</h2>
+        <p class="ab-chapter-sub">依据《中国共产党发展党员工作细则（2026年）》</p>
         <div class="ab-timeline-legend">
           <span class="ab-timeline-legend-item"><span class="ab-timeline-legend-dot"></span>普通节点</span>
           <span class="ab-timeline-legend-item ab-timeline-legend-item--decision"><span class="ab-timeline-legend-dot"></span>关键决策节点</span>

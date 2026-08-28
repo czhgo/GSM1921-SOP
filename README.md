@@ -79,8 +79,8 @@ npm start
 
 | 角色 | 阅读顺序 |
 |------|---------|
-| **普通成员** | 本 README → [书记重要论断汇编](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（理解支部为什么这样运作）→ [常见工作场景快速指南](content/02_institution/sop/常见工作场景快速指南.md) → 系统工作台 |
-| **支委 / 党小组组长** | 本 README → [书记重要论断汇编](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) → [对应角色的工作流程指南](content/02_institution/sop/INDEX.md) → 系统对应工作台 → [ARCHITECTURE.md](content/03_doc_system/ARCHITECTURE.md)（如需了解架构） |
+| **普通成员** | 本 README → [党支书工作交接文档](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（理解支部为什么这样运作）→ [常见工作场景快速指南](content/02_institution/sop/常见工作场景快速指南.md) → 系统工作台 |
+| **支委 / 党小组组长** | 本 README → [党支书工作交接文档](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) → [对应角色的工作流程指南](content/02_institution/sop/INDEX.md) → 系统对应工作台 → [ARCHITECTURE.md](content/03_doc_system/ARCHITECTURE.md)（如需了解架构） |
 | **系统维护者** | 本 README → [ARCHITECTURE.md](content/03_doc_system/ARCHITECTURE.md)（核心架构说明）→ [CLAUDE.md](CLAUDE.md)（项目治理文件）→ [server/README.md](server/README.md)（后端服务说明）→ [OPERATIONS_GUIDE.md](content/03_doc_system/OPERATIONS_GUIDE.md) → [DOC_MAP.md](content/03_doc_system/DOC_MAP.md) → [SSOT_INDEX.md](content/03_doc_system/SSOT_INDEX.md)（母本子本注册表） |
 
 如果你带着具体问题而来，下表帮你快速定位权威文档。
@@ -142,9 +142,9 @@ npm start
 
 ### 按人视图 · 知情边界
 
-谁能看到谁，由赋权链（执行委托）计算得出，不靠人工判断——**信息可见性 = 职责空间的投影**。看 ≠ 做：可见性只决定"能看到什么维度"，不授予任何操作权；上级对下级仅"了解进展"与答复，无编辑他人待办入口。这是组织内控的第四道防线（知情边界）。
+谁能看到谁，由赋权链（执行委托）计算得出，不靠人工判断——**信息可见性 = 职责空间的投影**。看 ≠ 做：可见性只决定"能看到什么维度"，不授予任何操作权；上级对下级仅"了解进展"与答复，无编辑他人待办入口。这是分工的运行保障中的做与看分离。
 
-→ [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（P-011）+ [DESIGN_SYSTEM.md](content/04_web_design/design-system/DESIGN_SYSTEM.md) §一 原则 9
+→ [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（P-012）+ [DESIGN_SYSTEM.md](content/04_web_design/design-system/DESIGN_SYSTEM.md) §一 原则 9
 
 ### 党建工作与党务工作
 
@@ -168,11 +168,11 @@ npm start
 
 "条"与"块"是理解权责关系的方式：从职能视角看，三委员按专业职能分工（条）；从单元视角看，党小组组长按小组划分（块）。谁做什么，由岗位职责定义决定，不由条块推出；书记是条块间的协调节点。
 
-→ [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（P-010）
+→ [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（P-011）
 
 这些理念不是抽象的口号，而是每一条制度设计背后的理由。理解了它们，才能理解为什么系统是这样组织的，也才能在场景变化时判断原则在什么条件下成立。
 
-→ 完整的理论阐述见 [书记重要论断汇编](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（17 条论断，按「价值目标 → 组织机制 → 人的成长 → 组织再生产」四层组织，其中 P-002/P-003/P-017 为元命题）和 [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)
+→ 完整的理论阐述见 [党支书工作交接文档](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（17 条论断，按「价值目标 → 组织机制 → 人的成长 → 组织再生产」四层组织，其中 P-002/P-003/P-017 为元命题）和 [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)
 
 ---
 

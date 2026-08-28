@@ -35,7 +35,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | [用户] | `README.md`（根目录） | 项目门面，一句话说清是什么 |
 | [工程师]+[AI] | `content/03_doc_system/ARCHITECTURE.md` | 核心架构说明，技术全景 |
 | [工程师]+[AI] | `CLAUDE.md`（根目录） | Harness（甲乙丙三部）、AI 执行依据 |
-| [用户]+[AI] | `content/01_strategy/SECRETARY_PRONOUNCEMENTS.md` | 书记重要论断汇编（项目顶级战略文档） |
+| [用户]+[AI] | `content/01_strategy/SECRETARY_PRONOUNCEMENTS.md` | 党支书工作交接文档（项目顶级战略文档） |
 
 ---
 
@@ -50,7 +50,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `content/01_strategy/SECRETARY_PRONOUNCEMENTS.md` | [用户]+[AI] | 书记重要论断汇编（项目顶级战略文档，元命题 + 战略路线级 + 制度设计级论断） | CLAUDE.md H90/H100 |
+| `content/01_strategy/SECRETARY_PRONOUNCEMENTS.md` | [用户]+[AI] | 党支书工作交接文档（项目顶级战略文档，元命题 + 战略路线级 + 制度设计级论断） | CLAUDE.md H90/H100 |
 | `content/01_strategy/DEVELOPMENT_PATH.md` | [用户]+[AI] | 发展路径（从入党申请人到正式党员的完整叙事） | SECRETARY_PRONOUNCEMENTS.md |
 | `content/01_strategy/README.md` | [工程师]+[AI] | 战略层目录索引 | — |
 | `content/01_strategy/references/合规文件/` | [用户] | 党章、党支部工作规范、党员教育管理条例等（T1 制度原文） | content/02_institution/sop/（母本溯源） |
