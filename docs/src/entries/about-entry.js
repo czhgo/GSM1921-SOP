@@ -1278,6 +1278,7 @@ function bindCognitionScrollDriven() {
   if (!section) return;
   const cards = Array.from(section.querySelectorAll('.ab-expect-card'));
   if (!cards.length) return;
+  const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v); // ⚠️ 局部定义！顶层无全局 clamp01（2026-08-28 T-300 曾引用全局导致 ReferenceError 中断整个启动序列，第六章动画全灭）
   const geom = cards.map(() => ({ top: 0, height: 0 }));
   const cacheGeom = () => {
     cards.forEach((card, i) => {

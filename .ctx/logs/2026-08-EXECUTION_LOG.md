@@ -5924,3 +5924,22 @@ P-001~P-004、P-014~P-017 不变。物理顺序与编号一致。
 
 ### 验证
 - link-audit **5/5 通过（fail 0）**；GetDiagnostics 零错误
+
+## T-300 修复第六章动画全灭（ReferenceError 根因）+ 第一章左侧完全不动（2026-08-28）
+
+**任务**：书记 2 点——①第一章滚动驱动：左侧应当不动 ②第六章动画完全失败，检查问题。
+
+**引用流程**：systematic-debugging（静态根因定位）+ web-design-guidelines
+
+### 一、第六章动画全灭根因（致命 bug）
+- **根因**：`bindCognitionScrollDriven()` 内调用 `clamp01`，但文件**顶层无全局 clamp01**（L1057/L1439 均为函数内局部定义）→ ReferenceError 抛出 → **中断整个模块启动序列**：bindExplorationScrollDriven（第五章）、bindDialogueScrollActivation（第六章）、initLazySlots 全部未执行 → 第六章（及第五章）滚动动画完全失败
+- 修复：bindCognitionScrollDriven 内补局部 `const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);`（加 ⚠️ 注释防再犯）
+
+### 二、① 第一章左侧完全不动
+- `.ab-keyword-word` 去 view() 升起动画（ab-rise-in + animation-timeline）→ 左栏（章头+五词）纯静态 sticky 定格，右侧三卡 JS 滚动驱动不变
+
+### 同步
+- 字体子集重跑（1082 字）+ bump 20260828i
+
+### 验证
+- link-audit **5/5 通过（fail 0）**；GetDiagnostics 零错误
