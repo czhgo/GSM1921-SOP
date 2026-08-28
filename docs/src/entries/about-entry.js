@@ -455,7 +455,7 @@ function renderPhilosophy() {
         { label: '抽象能力', desc: '从现实到理论的抽象缺乏系统训练；马克思主义方法论与经济学工具互补，党建以组织化机制补足' },
         { label: '组织环境', desc: '党建+科研建设的是「促进高质量问题生成的组织环境」' },
       ],
-      insight: '对经管学生而言，"服务人"有一个特别值得做的方向——帮助你恢复与思想、与现实世界的对话能力。',
+      insight: '对经管学生而言，「服务人」有一个特别值得做的方向——恢复对话能力是「服务人」的一个子命题：帮助你恢复与思想、与现实世界的对话能力。',
     },
   ];
 
@@ -494,22 +494,16 @@ function renderPhilosophy() {
 }
 
 /**
- * Section 2: 组织性——组织向大家讲述（2026-08-18 T-271 第 2 轮修缮 + 2026-08-28 书记重排，第一章）
+ * Section 2: 组织性——组织向大家讲述（2026-08-18 T-271 + 2026-08-28 书记重排，第一章）
  *
- * 布局（2026-08-28 书记裁定）：章头（eyebrow/title/lead）在上 →
- * 组织双属性标签（一个学生组织 / 一个政治组织）→ 三条期待落点（右侧滚动驱动）→
- * 三个关键词（等大，0° 位移散落——错落=高低左右散落，非歪斜旋转；删黑体小字附注）。
+ * 布局（2026-08-28 书记裁定）：章头在上 → 左右分栏——
+ * 左侧 sticky 定格五个属性词（学生组织/政治组织/具体/方兴未艾/提供成长，统一 h3、等大、高低错落），
+ * 右侧三个期待落点卡随滚动驱动移动；lead 已删（书记：不喜欢这句话）。
  * 三条期待落点：标题 + 书记原话 blockquote（不写编号/日期/「书记」字样）。
  */
 function renderCognition() {
-  // 组织双属性标签（书记 2026-08-28 补充）：学生组织 + 政治组织
-  const tags = ['一个学生组织', '一个政治组织'];
-  // 三个关键词：等大 + 排列散放（0° 位移错落，2026-08-28 全清歪斜）——不再配小字附注（书记：下面黑体的小字都删去）
-  const keywords = [
-    { word: '具体' },
-    { word: '方兴未艾' },
-    { word: '提供成长' },
-  ];
+  // 组织属性词（书记 2026-08-28：只要定语，不要'一个……的'；与关键词统一 h3 模式）
+  const words = ['学生组织', '政治组织', '具体', '方兴未艾', '提供成长'];
 
   const expects = [
     {
@@ -526,12 +520,9 @@ function renderCognition() {
     },
   ];
 
-  const tagsHTML = `<div class="ab-cognition-tags" data-stagger>${tags.map(t => `<span class="ab-cognition-tag">${t}</span>`).join('')}</div>`;
-
-  const keywordsHTML = keywords.map((k, i) => `
-    <article class="ab-keyword" data-stagger data-i="${i}">
-      <h3 class="ab-keyword-word">${k.word}</h3>
-    </article>
+  // 左侧定格词区：五个 h3 等大 + 高低错落（0° 位移散落，2026-08-28 全清歪斜）
+  const wordsHTML = words.map((w, i) => `
+    <h3 class="ab-keyword-word" data-stagger data-i="${i}">${w}</h3>
   `).join('');
 
   const expectsHTML = expects.map((e, i) => `
@@ -548,14 +539,10 @@ function renderCognition() {
       <div class="ab-chapter ab-cognition-inner">
         <div class="ab-chapter-eyebrow">「组织性」的展开</div>
         <h2 class="ab-chapter-title">「组织性」<br/>的展开</h2>
-        <div class="ab-cognition-lead" data-stagger>
-          <p>一个正在建设中的组织，先向你介绍自己。</p>
-        </div>
-        ${tagsHTML}
-        <div class="ab-cognition-split">
+        <div class="ab-cognition-layout">
+          <div class="ab-cognition-sticky">${wordsHTML}</div>
           <div class="ab-expect-list">${expectsHTML}</div>
         </div>
-        <div class="ab-keywords">${keywordsHTML}</div>
       </div>
     </section>
   `;
@@ -743,7 +730,12 @@ function renderDialogue() {
             <div class="ab-chapter-eyebrow">善始善终</div>
             <h2 class="ab-chapter-title">行百里者半九十</h2>
             <p class="ab-chapter-sub">活动完成后，对话与复盘仍在继续——在实践中持续改进</p>
-            <p class="ab-chapter-lead">交流解决方案，而不是交流问题。</p>
+            <p class="ab-chapter-lead">交流解决方案，而不是交流问题——遇到问题，及时向组织汇报，说清思路与需要的支持。</p>
+            <!-- 汇报交互提示（2026-08-28 书记：行百里者半九十补充汇报提示 + 交互手段） -->
+            <details class="ab-dialogue-report">
+              <summary>关于汇报</summary>
+              <p>我们不期待听到“这里有一个问题”，我们期待听到的是“我认为解决问题的思路是这样，为什么是这样，支委会能否提供支持……”——有自己的思考，才能在组织反馈中得到具体的组织认知。</p>
+            </details>
           </div>
           <div class="ab-dialogue-stage">
             ${stepsHTML}
@@ -1561,11 +1553,6 @@ function initLazySlots() {
       </section>
     `);
     slot.querySelector('.ab-chapter').appendChild(scenesEl);
-    slot.querySelector('.ab-chapter').insertAdjacentHTML('beforeend', `
-      <p class="ab-exploration-coda">
-        程序在所有人之上，所以扁平；书记因更大的责任嵌入更深，所以集中——扁平与集中，统一于程序。
-      </p>
-    `);
     scenesEl.insertAdjacentHTML('beforeend', safe('Exploration1', () => renderSceneFragment(ACTIVITY_SCENE)));
     requestAnimationFrame(() => {
       scenesEl.insertAdjacentHTML('beforeend', safe('Exploration2', () => renderSceneFragment(TASKFORCE_SCENE)));

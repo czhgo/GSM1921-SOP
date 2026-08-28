@@ -18,7 +18,7 @@
    ⚠️ 改 about 页文案新增汉字后，重跑该工具再 bump 版本号；禁止用其他字体文件冒充本字体 */
 @font-face {
   font-family: 'NanxiYoumosong';
-  src: url('../assets/fonts/nanxi-youmosong-subset.woff2?v=20260828b') format('woff2');
+  src: url('../assets/fonts/nanxi-youmosong-subset.woff2?v=20260828c') format('woff2');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -475,20 +475,11 @@ html.lenis, html.lenis body { height: auto; }
   padding-top: 14px;
 }
 
-/* ── Section: "组织性"的展开（2026-08-18 T-271 纵向铺展：章头在上，内容纵向展开） ── */
+/* ── Section: "组织性"的展开（2026-08-28 左右分栏：左侧定格 + 右侧滚动） ── */
 .ab-cognition-inner {
   text-align: left;
 }
-.ab-cognition-lead {
-  font-family: 'Noto Serif SC', 'STZhongsong', serif;
-  font-weight: 500;
-  font-size: clamp(19px, 2.6vw, 26px);
-  line-height: 1.7;
-  color: var(--ab-ink);
-  max-width: 700px;
-  margin-bottom: clamp(48px, 7vh, 80px);
-}
-/* 章节原话题记（2026-08-28：身份/工作流/对话三章补书记中心句，弱于 cognition-lead） */
+/* 章节原话题记（2026-08-28：身份/工作流/对话三章补书记中心句） */
 .ab-chapter-lead {
   font-family: 'Noto Serif SC', 'STZhongsong', serif;
   font-weight: 500;
@@ -501,61 +492,38 @@ html.lenis, html.lenis body { height: auto; }
 }
 .ab-chapter--center .ab-chapter-lead { text-align: center; margin-left: auto; margin-right: auto; }
 
-/* ── 第一章：组织双属性标签 + 期待落点（右侧滚动驱动）+ 关键词（等大·高低左右散落） （2026-08-28 书记重排） ── */
-/* 组织双属性标签（书记 2026-08-28 补充：一个学生组织 / 一个政治组织） */
-.ab-cognition-tags {
+/* ── 第一章：左右分栏——左侧定格词区（sticky）+ 右侧期待卡滚动驱动 （2026-08-28 书记重排） ── */
+.ab-cognition-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(0, 1.25fr);
+  gap: clamp(40px, 6vw, 88px);
+  align-items: start;
+}
+/* 左侧词区：sticky 定格（书记：几个标题都不动，定格在左边） */
+.ab-cognition-sticky {
+  position: sticky;
+  top: clamp(110px, 16vh, 180px);
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: clamp(28px, 4.5vh, 44px);
+  flex-direction: column;
+  gap: clamp(22px, 3vh, 34px);
 }
-.ab-cognition-tag {
-  font-family: 'Noto Serif SC', 'STZhongsong', serif;
-  font-weight: 500;
-  font-size: 14px;
-  color: var(--ab-red-deep);
-  background: rgba(206, 17, 38, 0.08);
-  padding: 4px 14px;
-  border-radius: 3px;
-  letter-spacing: 0.04em;
-}
-/* 期待落点：右侧滚动驱动（书记：三个卡片放右侧滚动驱动） */
-.ab-cognition-split {
-  display: flex;
-  justify-content: flex-end;
-}
-/* 关键词：等大 + 排列散放（2026-08-28 全清歪斜——错落是高低左右散落，不是歪斜旋转）
-   三词横向递增间距 + 上下错落（词2 上浮、词3 下沉），0° 旋转 */
-.ab-keywords {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  margin-top: clamp(48px, 7vh, 80px);
-  margin-bottom: clamp(64px, 10vh, 108px);
-}
-.ab-keyword {
+/* 五个词等大 + 高低错落（0° 位移散落——错落=高低左右散落，非歪斜旋转；2026-08-28 书记裁定） */
+.ab-cognition-sticky .ab-keyword-word {
+  font-family: var(--ab-display);
+  font-weight: 400;
+  font-size: clamp(32px, 4vw, 44px);
+  color: var(--ab-red);
+  line-height: 1.15;
   animation: ab-rise-in 1s var(--ab-ease) both;
   animation-timeline: view();
   animation-range: entry 0% entry 100%;
 }
-.ab-keyword:nth-of-type(2) {
-  margin-left: clamp(24px, 4vw, 56px);
-  margin-top: -14px; /* 词2 上浮——高低错落 */
-}
-.ab-keyword:nth-of-type(3) {
-  margin-left: clamp(48px, 7vw, 96px);
-  margin-top: 14px; /* 词3 下沉——高低错落 */
-}
-.ab-keyword-word {
-  font-family: var(--ab-display);
-  font-weight: 400;
-  /* T-272 收敛原 58px 巨字：大字保留「题眼」感，但与叙事协调；三词等大（2026-08-28） */
-  font-size: clamp(32px, 4vw, 44px);
-  color: var(--ab-red);
-  line-height: 1.15;
-}
-/* 落点：右侧滚动驱动（2026-08-28 书记：三个卡片放右侧）+ 竖排 + 宽度思考（720px 中文舒适行宽，非满宽）+ 无竖线（原话改淡底区分） */
-.ab-cognition-split .ab-expect-list {
+.ab-cognition-sticky .ab-keyword-word:nth-of-type(2) { margin-top: -12px; }
+.ab-cognition-sticky .ab-keyword-word:nth-of-type(3) { margin-top: 10px; margin-left: clamp(8px, 1.5vw, 20px); }
+.ab-cognition-sticky .ab-keyword-word:nth-of-type(4) { margin-top: -16px; }
+.ab-cognition-sticky .ab-keyword-word:nth-of-type(5) { margin-top: 18px; margin-left: clamp(12px, 2vw, 28px); }
+/* 期待落点：右侧滚动驱动（书记：右侧的卡片随着滚动移动） */
+.ab-cognition-layout .ab-expect-list {
   display: flex;
   flex-direction: column;
   gap: clamp(18px, 3vh, 28px);
@@ -795,6 +763,7 @@ html.lenis, html.lenis body { height: auto; }
 }
 .ab-dialogue-head {
   text-align: center;
+  width: min(760px, 92vw); /* 2026-08-28 解决 head 组件过窄：sub/lead 在其中舒展 */
 }
 /* 2026-08-14 T-247 head 紧凑化：收紧 eyebrow/title/sub 间距，让 R 放宽后正午卡升起不遮 head */
 .ab-dialogue-head .ab-chapter-eyebrow {
@@ -805,6 +774,47 @@ html.lenis, html.lenis body { height: auto; }
 }
 .ab-dialogue-head .ab-chapter-sub {
   margin: 0 auto;
+}
+.ab-dialogue-head .ab-chapter-sub,
+.ab-dialogue-head .ab-chapter-lead {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+/* 汇报交互提示（2026-08-28 书记：行百里者半九十补汇报提示 + 交互手段，details 原生展开） */
+.ab-dialogue-report {
+  margin: clamp(16px, 2.5vh, 24px) auto 0;
+  max-width: 620px;
+  text-align: left;
+}
+.ab-dialogue-report summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-family: 'Noto Serif SC', 'STZhongsong', serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--ab-red-deep);
+  background: rgba(206, 17, 38, 0.08);
+  padding: 5px 14px;
+  border-radius: 999px;
+  user-select: none;
+  list-style: none;
+}
+.ab-dialogue-report summary::-webkit-details-marker { display: none; }
+.ab-dialogue-report summary::before { content: '+'; font-weight: 700; margin-right: 2px; }
+.ab-dialogue-report[open] summary::before { content: '−'; }
+.ab-dialogue-report p {
+  font-family: 'Noto Serif SC', 'STZhongsong', serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--ab-ink-sub);
+  line-height: 1.7;
+  margin: 12px 0 0;
+  padding: 14px 16px;
+  background: var(--ab-paper-1);
+  border-radius: 8px;
 }
 /* 2026-08-14 T-249 舞台视口驱动贴底：底部贴浏览器视窗最下端（243 = 紧凑 head≈122 + gap 121），大视口可超 640px
    2026-08-18 T-271 行百里者半九十转动半径加大：减数 243 → 200（舞台更高更大，环公转更舒展） */
@@ -895,19 +905,8 @@ html.lenis, html.lenis body { height: auto; }
   line-height: 1.55;
 }
 
-/* 2026-08-14 T-251 P-013 组织哲学收束（从终章移入工作流章末尾） */
-.ab-exploration-coda {
-  font-family: 'Noto Serif SC', 'STZhongsong', serif;
-  font-weight: 500;
-  font-size: clamp(16px, 2vw, 19px);
-  color: var(--ab-ink);
-  line-height: 1.8;
-  max-width: 680px;
-  margin: clamp(40px, 6vh, 64px) auto 0;
-  padding-top: 24px;
-  border-top: 1px solid var(--ab-paper-line);
-  text-align: center;
-}
+/* 2026-08-28 已删：原工作流章末 coda（"程序在所有人之上…"）——书记裁定删去，民主集中讨论尊重书记原话 */
+
 
 /* ── Section: 从入党申请人到正式党员（13 步时间轴） ── */
 .ab-timeline-legend {
@@ -1085,19 +1084,19 @@ html.lenis, html.lenis body { height: auto; }
   color: var(--ab-red);
 }
 
-/* ── 终章收束：三层小字自然收尾（2026-08-18 T-271 重构，去口号） ── */
+/* ── 终章收束：三层小字自然收尾（2026-08-18 T-271 重构，去口号；2026-08-28 书记裁定放大一倍） ── */
 .ab-conclusion-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(16px, 2.4vh, 28px);
+  gap: clamp(32px, 4.8vh, 56px);
   /* 2026-08-14 性能：will-change 移除 filter（终章动画已无 filter，冗余声明会强制 filter 合成层） */
   will-change: transform, opacity;
 }
 .ab-conclusion-thanks {
   font-family: var(--ab-display);
   font-weight: 400;
-  font-size: clamp(24px, 3.2vw, 36px);
+  font-size: clamp(48px, 6.4vw, 72px);
   color: var(--ab-ink);
   text-align: center;
   line-height: 1.5;
@@ -1105,7 +1104,7 @@ html.lenis, html.lenis body { height: auto; }
 .ab-conclusion-hope {
   font-family: var(--ab-display);
   font-weight: 400;
-  font-size: clamp(18px, 2.3vw, 26px);
+  font-size: clamp(36px, 4.6vw, 52px);
   color: var(--ab-red);
   text-align: center;
   line-height: 1.5;
@@ -1113,11 +1112,11 @@ html.lenis, html.lenis body { height: auto; }
 .ab-conclusion-coda {
   font-family: 'Noto Serif SC', 'STZhongsong', serif;
   font-weight: 500;
-  font-size: clamp(13px, 1.4vw, 16px);
+  font-size: clamp(26px, 2.8vw, 32px);
   color: var(--ab-ink-faint);
   text-align: center;
   line-height: 1.8;
-  margin-top: clamp(8px, 1.5vh, 16px);
+  margin-top: clamp(16px, 3vh, 32px);
 }
 
 /* ── 右侧圆点导航（小目录） ──
@@ -1344,7 +1343,6 @@ html.lenis, html.lenis body { height: auto; }
 }
 .ab-cognition-section .ab-chapter-eyebrow,
 .ab-cognition-section .ab-chapter-title,
-.ab-cognition-lead,
 .ab-philosophy-section .ab-chapter-title,
 .ab-philosophy-section .ab-chapter-sub,
 .ab-review-section .ab-chapter-title,
@@ -1467,7 +1465,7 @@ html.lenis, html.lenis body { height: auto; }
 /* 10. reduced-motion：全部动画关闭，元素正常 */
 @media (prefers-reduced-motion: reduce) {
   .ab-hero-title, .ab-hero-subtitle, .ab-hero-rule, .ab-hero-inner, .ab-hero-scroll-hint,
-  .ab-chapter-eyebrow, .ab-chapter-title, .ab-chapter-sub, .ab-cognition-lead,
+  .ab-chapter-eyebrow, .ab-chapter-title, .ab-chapter-sub,
   .ab-keyword, .ab-expect-card, .ab-philosophy-opp, .ab-review-card, .ab-dialogue-card, .ab-dialogue-coda,
   .ab-tl-stage, .ab-tl-row, .ab-scene-svg, .ab-exploration-scene .ab-scene-svg, .ab-chapter {
     animation: none !important;
