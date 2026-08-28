@@ -70,7 +70,7 @@ version: "4.1"
 
 - **角色优先**：登录后按 `ROLE_PAGE_MAP` 进入角色对应工作台，无手动模式切换
 - **权限判定**：常设角色（secretary/deputy-secretary/org-commissioner/prop-commissioner/disc-commissioner）+ 项目角色（organizer/deep）+ leader → `AuthStore.canDo()` 统一判定（`ROLE_PERMISSIONS` + `PROJECT_PERMISSIONS` 并集）
-- **按人视图**：书记/副书记在全局概况以"按维度/按人"子切换查看各角色在办任务（L1 条线视角，[DESIGN_SYSTEM §一 原则9](../design-system/DESIGN_SYSTEM.md)）——只读视角切换机制已随 2026-08-08 权限重构删除，不再切他人身份进他人工作台，按人视图按做与看分离（P-012）替代
+- **按人视图**：书记/副书记在全局概况以"按维度/按人"子切换查看各角色在办任务（L1 条线视角，[DESIGN_SYSTEM §一 原则9](../design-system/DESIGN_SYSTEM.md)）——只读视角切换机制已随 2026-08-08 权限重构删除，不再切他人身份进他人工作台，按人视图按做与看（P-012）替代
 - **Header 为工作台切换入口**：全局角色切换器（仅工作台切换，无只读视角切换）
 - **Sidebar 为角色快捷选择器**：与 Header 双向同步
 

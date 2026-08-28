@@ -43,7 +43,7 @@ function renderOverviewContent() {
   const container = document.getElementById('secretary-overview-content');
   if (!container) return;
 
-  // 子视图切换条（按维度 / 按人）——信息密度精确原则（P-012 分工的运行保障·做与看分离）：
+  // 子视图切换条（按维度 / 按人）——信息密度精确原则（P-012 分工的运行保障·做与看）：
   // 按维度 = 态势总览；按人 = L1 条线视角，看各角色在办概览（不含操作细节）
   // 2026-08-10 书记裁定：本页禁用 SVG 图标，切换条为纯文字（避免图标选取丑）
   const subTabs = [

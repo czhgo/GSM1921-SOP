@@ -74,7 +74,7 @@ const ACTIVITY_SCENE = {
   id: 'activity',
   no: '01',
   title: '活动：党小组组长发起，同志们参与',
-  note: '探索的边界由党小组组长划定，信息流与任务流并行——从策划、通知、执行到考勤、归档，每个环节都有明确的"谁找谁"。',
+  note: '探索的边界由党小组组长划定，信息流与任务流并行——从策划、通知、执行到考勤、归档，每个环节都有明确的“谁找谁”。',
   viewBox: '0 0 800 720',
   shots: [
     {
@@ -421,14 +421,14 @@ function renderPhilosophy() {
     {
       title: '适应、学习的机会',
       quoteLines: [
-        '"民主集中制"下感受真实的组织的两个向度：',
-        '"赋权"背景下的程序性 和 "探索"背景下的扁平化。',
-        '这也就意味着真实的组织，不能只靠程序性令人凝聚在一起，也不能只靠"扁平化"而不去形成共识、带来效率。',
+        '“民主集中制”下感受真实的组织的两个向度：',
+        '“赋权”背景下的程序性 和 “探索”背景下的扁平化。',
+        '这也就意味着真实的组织，不能只靠程序性令人凝聚在一起，也不能只靠“扁平化”而不去形成共识、带来效率。',
         '提高生涯发展中对于所处组织的适应能力和开放心态。',
       ],
       points: [
-        { label: '程序性', desc: '"赋权"背景下——组织通过分工、流程、记录、复盘让人凝聚' },
-        { label: '扁平化', desc: '"探索"背景下——组织通过平等协商、无上下级分工让人创新' },
+        { label: '程序性', desc: '“赋权”背景下——组织通过分工、流程、记录、复盘让人凝聚' },
+        { label: '扁平化', desc: '“探索”背景下——组织通过平等协商、无上下级分工让人创新' },
       ],
       insight: '体悟这种平衡，能提高生涯发展中对于所处组织的适应能力和开放心态——未来无论进入什么组织，都能理解真实组织既有程序性的一面，也有扁平化的一面。',
     },
@@ -437,13 +437,13 @@ function renderPhilosophy() {
       quoteLines: [
         '作为AI时代中一个建设方兴未艾的学生组织，',
         '①可以真实地参与组织制度和组织文化的构建；',
-        '②可以在"没有经济负担"的背景下探索AI时代下组织转型的萌芽和组织产品的生产。',
+        '②可以在“没有经济负担”的背景下探索AI时代下组织转型的萌芽和组织产品的生产。',
       ],
       points: [
         { label: '参与构建', desc: '可以真实地参与组织制度和组织文化的构建' },
-        { label: '探索自由度', desc: '在"没有经济负担"的背景下探索组织转型的萌芽和组织产品的生产——未来进入职场后难以获得' },
+        { label: '探索自由度', desc: '在“没有经济负担”的背景下探索组织转型的萌芽和组织产品的生产——未来进入职场后难以获得' },
       ],
-      insight: '学生党支部的"方兴未艾"恰恰是机会所在：成熟组织没有这种探索空间，而学生组织有。',
+      insight: '学生党支部的“方兴未艾”恰恰是机会所在：成熟组织没有这种探索空间，而学生组织有。',
     },
     {
       title: '对话的机会——党建+科研',
@@ -518,7 +518,7 @@ function renderCognition() {
     },
     {
       title: '你可以期待的表达空间',
-      quote: '我们不反对批评意见，但要求要在组织的框架内提出批评意见……我特别怕大家因为认为是\'党支部\'，所以怕说错话，而选择不\'真实表达\'！因为这样自己既没有真实的交互体验，组织也没办法持续进步。',
+      quote: '我们不反对批评意见，但要求要在组织的框架内提出批评意见……我特别怕大家因为认为是‘党支部’，所以怕说错话，而选择不‘真实表达’！因为这样自己既没有真实的交互体验，组织也没办法持续进步。',
     },
   ];
 
@@ -702,6 +702,7 @@ function renderExploration() {
         <div class="ab-chapter-eyebrow">工作流</div>
         <h2 class="ab-chapter-title">工作流——谁在什么时候该去找谁？</h2>
         <p class="ab-chapter-sub">有先例的，按工作流走<br/>没先例的，靠探索沉淀</p>
+        <p class="ab-chapter-lead">组织者和深度参与者之间没有上下级，只是分工内容不同——统筹是最大的管理。</p>
         ${scenesHTML}
       </div>
     </section>
@@ -734,6 +735,7 @@ function renderDialogue() {
             <div class="ab-chapter-eyebrow">善始善终</div>
             <h2 class="ab-chapter-title">行百里者半九十</h2>
             <p class="ab-chapter-sub">活动完成后，对话与复盘仍在继续——在实践中持续改进</p>
+            <p class="ab-chapter-lead">交流解决方案，而不是交流问题。</p>
           </div>
           <div class="ab-dialogue-stage">
             ${stepsHTML}
@@ -832,6 +834,7 @@ function renderDevelopment() {
         <div class="ab-chapter-eyebrow">身份阶段</div>
         <h2 class="ab-chapter-title">身份阶段：从入党申请人到正式党员</h2>
         <p class="ab-chapter-sub">依据《中国共产党发展党员工作细则（2026年）》</p>
+        <p class="ab-chapter-lead">从入党申请人到正式党员，变的不仅是身份，更是「组织性」——党员最重要的特质。</p>
         <div class="ab-timeline-legend">
           <span class="ab-timeline-legend-item"><span class="ab-timeline-legend-dot"></span>普通节点</span>
           <span class="ab-timeline-legend-item ab-timeline-legend-item--decision"><span class="ab-timeline-legend-dot"></span>关键决策节点</span>

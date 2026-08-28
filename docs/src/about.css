@@ -18,7 +18,7 @@
    ⚠️ 改 about 页文案新增汉字后，重跑该工具再 bump 版本号；禁止用其他字体文件冒充本字体 */
 @font-face {
   font-family: 'NanxiYoumosong';
-  src: url('../assets/fonts/nanxi-youmosong-subset.woff2') format('woff2');
+  src: url('../assets/fonts/nanxi-youmosong-subset.woff2?v=20260828') format('woff2');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -135,7 +135,7 @@ html.lenis, html.lenis body { height: auto; }
   gap: 12px;
   font-family: 'Noto Sans SC', sans-serif;
   font-weight: 400;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.32em;
   color: var(--ab-ink-faint);
 }
@@ -266,7 +266,7 @@ html.lenis, html.lenis body { height: auto; }
 .ab-chapter--right .ab-chapter-sub { text-align: right; margin-left: auto; }
 /* 工作流章引言（原长 sub 拆分后的收束说明，弱化层级，不抢两行短句主视觉） */
 .ab-exploration-why {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--ab-ink-faint);
   line-height: 1.8;
   max-width: 640px;
@@ -311,7 +311,7 @@ html.lenis, html.lenis body { height: auto; }
   display: block;
   font-family: var(--ab-display);
   font-weight: 400;
-  font-size: 26px;
+  font-size: 24px;
   line-height: 1;
   color: rgba(206, 17, 38, 0.48);
   letter-spacing: 0.08em;
@@ -337,7 +337,7 @@ html.lenis, html.lenis body { height: auto; }
 }
 .ab-review-card-badge {
   padding: 2px 10px;
-  font-size: 11px;
+  font-size: 12px;
   font-family: 'Noto Sans SC', sans-serif;
   font-weight: 400;
   letter-spacing: 0.1em;
@@ -346,7 +346,7 @@ html.lenis, html.lenis body { height: auto; }
   border-radius: 3px;
 }
 .ab-review-card-tag {
-  font-size: 13px;
+  font-size: 14px;
   font-family: 'Noto Sans SC', sans-serif;
   font-weight: 400;
   color: var(--ab-red);
@@ -363,7 +363,7 @@ html.lenis, html.lenis body { height: auto; }
 }
 .ab-review-footer {
   text-align: center;
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: 0.08em;
   color: var(--ab-ink-sub);
   padding: 16px 24px;
@@ -421,7 +421,7 @@ html.lenis, html.lenis body { height: auto; }
 .ab-philosophy-opp-title {
   font-family: var(--ab-display);
   font-weight: 400;
-  font-size: 21px;
+  font-size: 20px;
   color: var(--ab-ink);
   margin-bottom: 14px;
   line-height: 1.35;
@@ -493,6 +493,18 @@ html.lenis, html.lenis body { height: auto; }
   max-width: 700px;
   margin-bottom: clamp(48px, 7vh, 80px);
 }
+/* 章节原话题记（2026-08-28：身份/工作流/对话三章补书记中心句，弱于 cognition-lead） */
+.ab-chapter-lead {
+  font-family: 'Noto Serif SC', 'STZhongsong', serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--ab-ink-sub);
+  max-width: 640px;
+  margin: -12px 0 clamp(34px, 5vh, 56px);
+  text-align: left;
+}
+.ab-chapter--center .ab-chapter-lead { text-align: center; margin-left: auto; margin-right: auto; }
 
 /* ── 第一章：三个关键词（语义性错落散放）+ 三条期待落点（竖排宽适无竖线） （2026-08-19 T-272 重构） ── */
 .ab-keywords {
@@ -529,7 +541,7 @@ html.lenis, html.lenis body { height: auto; }
   margin-bottom: 8px;
 }
 .ab-keyword-full {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--ab-ink);
   letter-spacing: 0.05em;
@@ -552,7 +564,7 @@ html.lenis, html.lenis body { height: auto; }
   animation-range: entry 0% entry 100%;
 }
 .ab-expect-card-title {
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--ab-ink);
   margin-bottom: 14px;
@@ -612,7 +624,7 @@ html.lenis, html.lenis body { height: auto; }
   fill: var(--ab-ink-sub);
   font-family: 'Noto Serif SC', 'STZhongsong', serif;
   /* 2026-08-18 T-270 SVG 加宽：14 → 17 */
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 400;
 }
 /* 探索场景 + 滚动吸附 stage */
@@ -628,7 +640,7 @@ html.lenis, html.lenis body { height: auto; }
 .ab-exploration-block-no {
   font-family: var(--ab-display);
   font-weight: 400;
-  font-size: 30px;
+  font-size: 32px;
   color: var(--ab-red);
   line-height: 1;
 }
@@ -642,7 +654,7 @@ html.lenis, html.lenis body { height: auto; }
 .ab-exploration-scene-note {
   font-family: 'Noto Sans SC', sans-serif;
   font-weight: 400;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--ab-ink-faint);
   margin-top: 14px;
   letter-spacing: 0.02em;
@@ -691,7 +703,7 @@ html.lenis, html.lenis body { height: auto; }
 .ab-exploration-stage-no {
   font-family: var(--ab-display);
   font-weight: 400;
-  font-size: 30px;
+  font-size: 32px;
   color: var(--ab-red);
   line-height: 1;
   min-width: 1.5ch;
@@ -699,7 +711,7 @@ html.lenis, html.lenis body { height: auto; }
   margin-bottom: 6px; /* 2026-08-14 T-248 眉标式：标题在序号下方换行 */
 }
 .ab-exploration-stage-title {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   color: inherit; /* 2026-08-14 T-249 灰→黑：标题随 data-state 颜色（future 浅灰/past 中灰/current 墨黑） */
   margin-bottom: 10px;
@@ -708,7 +720,7 @@ html.lenis, html.lenis body { height: auto; }
 .ab-exploration-stage-desc {
   font-family: 'Noto Serif SC', 'STZhongsong', serif;
   font-weight: 500;
-  font-size: 15px;
+  font-size: 14px;
   color: inherit;
   line-height: 1.75;
   margin-bottom: 12px;
@@ -849,7 +861,7 @@ html.lenis, html.lenis body { height: auto; }
 .ab-dialogue-question {
   font-family: 'Noto Serif SC', 'STZhongsong', serif;
   font-weight: 500;
-  font-size: 14.5px;
+  font-size: 14px;
   color: var(--ab-ink);
   line-height: 1.5;
   margin-bottom: 8px;
@@ -859,7 +871,7 @@ html.lenis, html.lenis body { height: auto; }
   display: inline-block;
   font-family: 'Noto Serif SC', 'STZhongsong', serif;
   font-weight: 500;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--ab-red-deep);
   background: rgba(206, 17, 38, 0.08);
   padding: 3px 10px;
@@ -928,7 +940,7 @@ html.lenis, html.lenis body { height: auto; }
   padding: 26px 0 12px;
   font-family: 'Noto Sans SC', sans-serif;
   font-weight: 400;
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: 0.24em;
   color: var(--ab-ink-faint);
   width: 100%;
@@ -989,7 +1001,7 @@ html.lenis, html.lenis body { height: auto; }
   color: var(--ab-gold);
 }
 .ab-tl-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--ab-ink);
   line-height: 1.45;
@@ -999,7 +1011,7 @@ html.lenis, html.lenis body { height: auto; }
 .ab-tl-time {
   font-family: 'Noto Sans SC', sans-serif;
   font-weight: 400;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--ab-ink-faint);
   white-space: nowrap;
 }
@@ -1042,7 +1054,7 @@ html.lenis, html.lenis body { height: auto; }
 .ab-tl-detail-text {
   font-family: 'Noto Serif SC', 'STZhongsong', serif;
   font-weight: 500;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--ab-ink-sub);
   line-height: 1.6;
   text-wrap: pretty;
