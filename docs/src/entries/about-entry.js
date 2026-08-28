@@ -254,6 +254,7 @@ const DIALOGUE_STAGES = [
     question: '谁去告诉同志们活动/专班的工作内容？',
     answer: '党小组组长 / 发起人',
     desc: '工作开始前，由党小组组长（活动）或发起人（专班）向参与同志讲清工作内容、边界与预期。',
+    quote: null,
   },
   {
     no: '02',
@@ -261,6 +262,7 @@ const DIALOGUE_STAGES = [
     question: '工作中遇到问题怎么办？',
     answer: '及时和组织沟通',
     desc: '反馈要在过程中进行——遇到偏差及时和组织对话、调整，避免事倍功半。',
+    quote: '交流解决方案，而不是交流问题——我们不期待听到“这里有一个问题”，我们期待听到的是“我认为解决问题的思路是这样，为什么是这样，支委会能否提供支持……”',
   },
   {
     no: '03',
@@ -268,6 +270,7 @@ const DIALOGUE_STAGES = [
     question: '如何在实践中改进？',
     answer: '和组织对话',
     desc: '活动完成后，还要和组织对话、复盘得失——行百里者半九十。',
+    quote: '支部的建设永远以人为本，我们坚持高要求，不是坚持高压力——感到力不从心时，工作可以交接，但务必对交接本身负责。',
   },
   {
     no: '04',
@@ -275,6 +278,7 @@ const DIALOGUE_STAGES = [
     question: '经验如何传承？',
     answer: '从这次到下一次',
     desc: '从一次活动/专班到下一次，同志与组织形成持续的对话关系——上次的经验成为下次的起点，在实践中不断改进工作内容与模式。',
+    quote: '支部的建设方兴未艾，任何的意见、建议、创新都弥足珍贵。',
   },
 ];
 
@@ -421,24 +425,29 @@ function renderPhilosophy() {
   const opportunities = [
     {
       title: '适应、学习的机会',
+      // 2026-08-28 书记：从党支书工作交接文档撷取关联原话补全完整表达（P-014 主体 + P-005 程序 + P-009 扁平化）
       quoteLines: [
-        '“民主集中制”下感受真实的组织的两个向度：',
-        '“赋权”背景下的程序性 和 “探索”背景下的扁平化。',
+        '“民主集中制”下感受真实的组织的两个向度：“赋权”背景下的程序性 和 “探索”背景下的扁平化。',
         '这也就意味着真实的组织，不能只靠程序性令人凝聚在一起，也不能只靠“扁平化”而不去形成共识、带来效率。',
+        '程序在所有人之上，所以扁平——组织者和深度参与者之间没有上下级关系，只是分工内容不同。',
         '提高生涯发展中对于所处组织的适应能力和开放心态。',
       ],
       points: [
-        { label: '程序性', desc: '“赋权”背景下——组织通过分工、流程、记录、复盘让人凝聚' },
-        { label: '扁平化', desc: '“探索”背景下——组织通过平等协商、无上下级分工让人创新' },
+        // 2026-08-28 书记：重新挑选基于书记原话的要点（程序=程序在所有人之上；扁平=没有上下级分工不同）
+        { label: '程序性', desc: '“赋权”背景下——程序在所有人之上，分工、流程、记录、复盘让责任可追溯' },
+        { label: '扁平化', desc: '“探索”背景下——没有上下级，只是分工内容不同；靠协商与分工推进' },
       ],
-      insight: '体悟这种平衡，能提高生涯发展中对于所处组织的适应能力和开放心态——未来无论进入什么组织，都能理解真实组织既有程序性的一面，也有扁平化的一面。',
+      // insight 已删（2026-08-28 书记：不是很好）
     },
     {
       title: '探索、创新的机会',
+      // 2026-08-28 书记：撷取 P-015 关联原话补全（①② + 组织高度赞赏创新 + 方兴未艾意见创新弥足珍贵）
       quoteLines: [
         '作为AI时代中一个建设方兴未艾的学生组织，',
         '①可以真实地参与组织制度和组织文化的构建；',
         '②可以在“没有经济负担”的背景下探索AI时代下组织转型的萌芽和组织产品的生产。',
+        '组织高度赞赏创新，不要因为年级、政治面貌而影响想法的交流和反馈。',
+        '支部的建设方兴未艾，任何的意见、建议、创新都弥足珍贵。',
       ],
       points: [
         { label: '参与构建', desc: '可以真实地参与组织制度和组织文化的构建' },
@@ -473,7 +482,7 @@ function renderPhilosophy() {
         <h3 class="ab-philosophy-opp-title">${opp.title}</h3>
         <blockquote class="ab-philosophy-opp-quote">${opp.quoteLines.map(l => `<span class="ab-philosophy-opp-quote-line">${l}</span>`).join('')}</blockquote>
         <div class="ab-philosophy-opp-points">${pointsHTML}</div>
-        <p class="ab-philosophy-opp-insight">${opp.insight}</p>
+        ${opp.insight ? `<p class="ab-philosophy-opp-insight">${opp.insight}</p>` : ''}
       </article>
     `;
   }).join('');
@@ -509,19 +518,29 @@ function renderCognition() {
   const expects = [
     {
       title: '你可以期待的成长路径',
-      quote: '各种发展轨迹，都可以加入其中，获得他想要的成长，并且是通过组织获得他想要的成长。',
+      quotes: [
+        '各种发展轨迹，都可以加入其中，获得他想要的成长，并且是通过组织获得他想要的成长。',
+      ],
     },
     {
       title: '你可以期待的做事方式',
-      quote: '事情的运作固然有管理的科学和既往的经验。作为支部成员，在执行已沉淀的工作流的基础上，本身便可以得到成长和锻炼。',
+      // 2026-08-28 书记：有先例和没先例的工作原话都写进去（P-006 + P-007）
+      quotes: [
+        '事情的运作固然有管理的科学和既往的经验。作为支部成员，在执行已沉淀的工作流的基础上，本身便可以得到成长和锻炼。',
+        '支部的建设方兴未艾，所以需要大家都发挥主人翁意识来创新、沉淀新的经验。',
+      ],
     },
     {
       title: '你可以期待的表达空间',
-      quote: '我们不反对批评意见，但要求要在组织的框架内提出批评意见……我特别怕大家因为认为是‘党支部’，所以怕说错话，而选择不‘真实表达’！因为这样自己既没有真实的交互体验，组织也没办法持续进步。',
+      // 2026-08-28 书记：多找相关句子突出「期待」（P-008 + P-004 职责所在）
+      quotes: [
+        '我们不反对批评意见，但要求要在组织的框架内提出批评意见……我特别怕大家因为认为是‘党支部’，所以怕说错话，而选择不‘真实表达’！因为这样自己既没有真实的交互体验，组织也没办法持续进步。',
+        '支委和支书的职责所在包含了开放心态，积极交流，维护团结。也因此要充分吸收意见建议、帮助支部成员按照组织程序进行组织表达。',
+      ],
     },
   ];
 
-  // 左侧定格词区：五个 h3 等大 + 高低错落（0° 位移散落，2026-08-28 全清歪斜）
+  // 左侧定格词区：五个徽标（2026-08-28 书记：小标题徽标，上下左右参差错落）
   const wordsHTML = words.map((w, i) => `
     <h3 class="ab-keyword-word" data-stagger data-i="${i}">${w}</h3>
   `).join('');
@@ -529,7 +548,7 @@ function renderCognition() {
   const expectsHTML = expects.map((e, i) => `
     <article class="ab-expect-card" data-stagger data-i="${i}">
       <h4 class="ab-expect-card-title">${e.title}</h4>
-      <blockquote class="ab-expect-card-quote">${e.quote}</blockquote>
+      ${e.quotes.map(q => `<blockquote class="ab-expect-card-quote">${q}</blockquote>`).join('')}
     </article>
   `).join('');
 
@@ -731,13 +750,8 @@ function renderDialogue() {
             <div class="ab-chapter-eyebrow">善始善终</div>
             <h2 class="ab-chapter-title">行百里者半九十</h2>
             <p class="ab-chapter-sub">活动完成后，对话与复盘仍在继续——在实践中持续改进</p>
-            <p class="ab-chapter-lead">交流解决方案，而不是交流问题——遇到问题，及时向组织汇报，说清思路与需要的支持。</p>
-            <p class="ab-chapter-lead">支部的建设永远以人为本，我们坚持高要求，不是坚持高压力——感到力不从心时，工作可以交接，但务必对交接本身负责。</p>
-            <!-- 汇报交互提示（2026-08-28 书记：行百里者半九十补充汇报提示 + 交互手段） -->
-            <details class="ab-dialogue-report">
-              <summary>关于汇报</summary>
-              <p>我们不期待听到“这里有一个问题”，我们期待听到的是“我认为解决问题的思路是这样，为什么是这样，支委会能否提供支持……”——有自己的思考，才能在组织反馈中得到具体的组织认知。</p>
-            </details>
+            <!-- 滚动联动原话（2026-08-28 书记：与旋转卡关联，随阶段在正午卡上方浮现；head 精简去静态 lead/details） -->
+            <p class="ab-dialogue-quote" aria-live="polite"></p>
           </div>
           <div class="ab-dialogue-stage">
             ${stepsHTML}
@@ -757,9 +771,9 @@ function renderConclusion() {
   return `
     <section id="conclusion" class="ab-page ab-page--closing ab-conclusion-section" data-toc-id="conclusion">
       <div class="ab-conclusion-inner">
-        <p class="ab-conclusion-thanks" data-stagger>感谢你读到这里。</p>
-        <p class="ab-conclusion-hope" data-stagger>期待我们的共同成长。</p>
-        <p class="ab-conclusion-coda" data-stagger>实践是检验真理的唯一标准。</p>
+        <p class="ab-conclusion-thanks" data-stagger>感谢你读到这里</p>
+        <p class="ab-conclusion-hope" data-stagger>期待我们的共同成长</p>
+        <p class="ab-conclusion-coda" data-stagger>实践是检验真理的唯一标准</p>
       </div>
     </section>
   `;
@@ -1460,6 +1474,21 @@ function bindDialogueScrollActivation() {
         }
       }
     });
+
+    // 2026-08-28 滚动联动原话：随阶段在正午卡上方浮现（书记：与旋转卡关联，不孤零零堆在 head）
+    const q = section.querySelector('.ab-dialogue-quote');
+    if (q) {
+      const si = Math.min(cards.length - 1, Math.max(0, Math.floor(stepwise(progress) * cards.length)));
+      const text = (DIALOGUE_STAGES[si] && DIALOGUE_STAGES[si].quote) || '';
+      if (q.dataset.cur !== text) {
+        q.dataset.cur = text;
+        q.textContent = text;
+        // 内容变化重触发淡入动画
+        q.style.animation = 'none';
+        void q.offsetWidth;
+        q.style.animation = '';
+      }
+    }
   };
 
   // 2026-08-13 sticky 固定视窗（书记裁决）：flow 变 sticky——滚动时视窗固定，卡片在内公转 + 正午停留。
