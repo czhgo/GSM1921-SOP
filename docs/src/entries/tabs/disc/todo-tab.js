@@ -2,14 +2,14 @@
 // 纪检委员工作台 Tab：待办（T-279 M3 拆分，照 M2 样板）
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降。
 
-import { showToast } from '../../../core/utils.js?v=20260827c';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType, seedTodos } from '../../../services/todo.js?v=20260827c';
-import { renderTodoList } from '../../../components/todo-list.js?v=20260827c';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260827c';
-import { badgeHtml } from '../../../components/badge.js?v=20260827c';
-import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260827c';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260827c';
-import { getPersonName } from '../../../mock/index.js?v=20260827c';
+import { showToast } from '../../../core/utils.js?v=20260829f';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType, seedTodos } from '../../../services/todo.js?v=20260829f';
+import { renderTodoList } from '../../../components/todo-list.js?v=20260829f';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260829f';
+import { badgeHtml } from '../../../components/badge.js?v=20260829f';
+import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260829f';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260829f';
+import { getPersonName } from '../../../mock/index.js?v=20260829f';
 
 // 私有状态（随模块自持，不污染入口）
 let _selectedTodoId = null;
@@ -40,6 +40,15 @@ export function renderContent(ctx) {
     },
     onActionTodo: (todo) => {
       _handleTodoAction(todo);
+    },
+    // B 档 CRUD 补全：待办删除（确认后删除，聚合卡删除整组）
+    onDeleteTodo: (todo) => {
+      const items = todo.items && todo.items.length ? todo.items : [todo];
+      const label = items.length === 1 ? items[0].title : `${items[0].title} 等 ${items.length} 条`;
+      if (!window.confirm(`确认删除待办「${label}」？删除后不可恢复。`)) return;
+      items.forEach(t => TodoStore.delete(t.id));
+      showToast('success', '待办已删除');
+      renderContent(ctx);
     },
   });
 
@@ -193,6 +202,7 @@ function _handleTodoAction(todo) {
     'inspection-confirm': { tab: 'inspection', label: '考察管理' },
     'review-submit':      { tab: 'review', label: '活动监督复盘' },
     'review-confirm':     { tab: 'review', label: '活动监督复盘' },
+    'handoff-material-shortage': { tab: 'makeup', label: '补课制度' },
     review:   { tab: 'review', label: '活动监督复盘' },
     submit:   { tab: 'attendance', label: '考勤管理' },
     confirm:  { tab: 'inspection', label: '考察管理' },

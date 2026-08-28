@@ -4,21 +4,23 @@
 // 2026-08-07 T232：改为「动态聚合 + 复核确认面板」——SecretaryTodoDeriver.computeAggregates()
 //   实时计算 4 提醒 + 4 复核，复核类一键写 secretaryConfirmedAt 销项，不再创建虚假实体待办。
 
-import { showToast } from '../../../core/utils.js?v=20260827c';
-import { renderTodoList } from '../../../components/todo-list.js?v=20260827c';
-import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260827c';
-import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260827c';
-import { badgeHtml } from '../../../components/badge.js?v=20260827c';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260827c';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260827c';
-import { updateActivityReview } from '../../../services/review.js?v=20260827c';
-import { loadActivities } from '../../../services/activity.js?v=20260827c';
-import { mockDB } from '../../../core/domain.js?v=20260827c';
-import { persist } from '../../../core/data-adapter.js?v=20260827c';
-import { getPersonById } from '../../../mock/index.js?v=20260827c';
-import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260827c';
-import { IssueStore } from '../../../services/issues.js?v=20260827c';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/report-inbox.js?v=20260827c';
+import { showToast } from '../../../core/utils.js?v=20260829f';
+import { renderTodoList } from '../../../components/todo-list.js?v=20260829f';
+import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260829f';
+import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260829f';
+import { badgeHtml } from '../../../components/badge.js?v=20260829f';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260829f';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260829f';
+import { updateActivityReview } from '../../../services/review.js?v=20260829f';
+import { loadActivities } from '../../../services/activity.js?v=20260829f';
+import { mockDB } from '../../../core/domain.js?v=20260829f';
+import { persist } from '../../../core/data-adapter.js?v=20260829f';
+import { getPersonById } from '../../../mock/index.js?v=20260829f';
+import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260829f';
+import { IssueStore } from '../../../services/issues.js?v=20260829f';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260829f';
+import { openFormModal } from '../../../components/modal.js?v=20260829f';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/report-inbox.js?v=20260829f';
 
 const { accent, accentBorder } = getAccentColors(resolveAccentRole('secretary'));
 
@@ -313,6 +315,39 @@ function handleTodoAction(todo) {
       window.location.href = `${base}${page}?id=${srcId}`;
       return;
     }
+  }
+  // T-304 C3 专班发起审批：组织委员发起专班 → 书记批准/驳回（写专班记录 + 销待办）
+  if (todo.actionKey === 'taskforce-approval') {
+    const first = (todo.items && todo.items[0]) || todo;
+    const tfId = first.actionData?.taskforceId || first.sourceId || '';
+    const tf = tfId ? TaskForceRecordStore.getAll().find(t => t.id === tfId) : null;
+    if (!tf) { showToast('error', '专班不存在或已变更'); return; }
+    openFormModal({
+      id: 'tf-approve',
+      title: `审批专班发起「${tf.name || '未命名'}` + '」',
+      fields: [
+        { key: 'decision', label: '审批意见', type: 'select', required: true, options: [
+          { value: 'approved', label: '批准发起' },
+          { value: 'rejected', label: '驳回' },
+        ]},
+        { key: 'note', label: '审批说明', type: 'textarea', required: false, placeholder: '如：同意，注意按期完成并按时报送考察' },
+      ],
+      onSubmit: (values) => {
+        const updated = TaskForceRecordStore.update(tfId, {
+          approvalStatus: values.decision,
+          approvedBy: 'secretary',
+          approvedAt: new Date().toISOString(),
+          approvalNote: values.note || '',
+        });
+        if (!updated) { showToast('error', '专班不存在或已变更'); return; }
+        // 销审批待办（聚合卡取首条 id；单条直接 complete）
+        if (first.id) TodoStore.complete(first.id);
+        showToast('success', values.decision === 'approved' ? `专班「${tf.name}」已批准发起` : `专班「${tf.name}」发起已驳回`);
+        renderContent();
+      },
+      accentColor: accent,
+    });
+    return;
   }
   // 提醒类聚合卡：「去活动管理」按钮直接切 calendar tab
   if (todo.groupKey && (todo.actionKey || '').endsWith('-remind')) {

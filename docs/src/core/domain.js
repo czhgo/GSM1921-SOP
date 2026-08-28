@@ -243,6 +243,8 @@ export const mockDB = {
   fileSpaceRecords: [],
   /** @type {Object[]} 经验沉淀 */
   experienceDeposits: [],
+  /** @type {Object[]} 三委数据交接记录（T-304 C2 §E.2 数据交接协议） */
+  handoffs: [],
   /** @type {Object[]} 专班数据 */
   taskforces: [],
   /** @type {Object[]} 通知数据 */

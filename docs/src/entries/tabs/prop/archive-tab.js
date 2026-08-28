@@ -2,16 +2,16 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/icons.js?v=20260827c';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260827c';
-import { showToast } from '../../../core/utils.js?v=20260827c';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260827c';
-import { mockDB } from '../../../core/domain.js?v=20260827c';
-import { loadActivities } from '../../../services/activity.js?v=20260827c';
-import { isApiMode } from '../../../services/runtime.js?v=20260827c';
-import { AuthStore } from '../../../services/auth.js?v=20260827c';
-import { _personName } from '../../../mock/index.js?v=20260827c';
-import { addExternalDispatch } from '../../../services/external-dispatch.js?v=20260827c';
+import { icon } from '../../../core/icons.js?v=20260829f';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260829f';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate } from '../../../core/utils.js?v=20260829f';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260829f';
+import { mockDB } from '../../../core/domain.js?v=20260829f';
+import { loadActivities } from '../../../services/activity.js?v=20260829f';
+import { isApiMode } from '../../../services/runtime.js?v=20260829f';
+import { AuthStore } from '../../../services/auth.js?v=20260829f';
+import { _personName } from '../../../mock/index.js?v=20260829f';
+import { addExternalDispatch } from '../../../services/external-dispatch.js?v=20260829f';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -148,12 +148,39 @@ export function renderContent(ctx) {
     });
   });
 
-  // 模板下载按钮
+  // 模板下载按钮（T-304 A 档：假提示 → 真实文件下载）
   container.querySelectorAll('.archive-tpl-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      showToast('info', `模板「${btn.dataset.tplName}」下载已开始`);
+      const tpl = ARCHIVE_TEMPLATES.find(t => t.name === btn.dataset.tplName);
+      if (!tpl) return;
+      _downloadTemplate(tpl);
     });
+  });
+
+  // 已归档材料下载（T-304 A 档：mock base64 直下 / server 带鉴权拉取；事件委托防搜索重渲染失效）
+  container.querySelector('#archive-list')?.addEventListener('click', async (e) => {
+    const dlBtn = e.target.closest('.archive-file-dl-btn');
+    if (dlBtn) {
+      const record = _loadArchiveRecords().find(r => r.id === dlBtn.dataset.recordId);
+      if (!record || !record.fileName) return;
+      dlBtn.disabled = true;
+      const ok = await _downloadArchiveFile(record);
+      dlBtn.disabled = false;
+      if (ok) showToast('success', `「${record.fileName}」已下载`);
+      else showToast('error', `「${record.fileName}」下载失败`);
+      return;
+    }
+    // D 档文件闭环：材料删除（mock 删本地记录；server 连物理文件一起删）
+    const delBtn = e.target.closest('.archive-file-del-btn');
+    if (delBtn) {
+      const record = _loadArchiveRecords().find(r => r.id === delBtn.dataset.recordId);
+      if (!record || !record.fileName) return;
+      if (!window.confirm(`确认删除材料「${record.fileName}」？${record.filePath ? '服务器物理文件将一并删除。' : ''}`)) return;
+      await _deleteArchiveFile(record);
+      showToast('success', `材料「${record.fileName}」已删除`);
+      renderContent(ctx);
+    }
   });
 
   // 上传材料按钮（attachments 双模式：mock base64 / server multipart）
@@ -185,6 +212,11 @@ function _renderArchiveList(records) {
     const doneHtml = isFinal
       ? `<span class="text-xs text-green-600">✓</span>`
       : '';
+    // 已归档材料（上传过文件）显示下载按钮
+    const fileBtn = r.fileName
+      ? `<button class="archive-file-dl-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors inline-flex items-center gap-1" data-record-id="${r.id}" title="下载 ${r.fileName}" style="cursor:pointer;">${icon('download', { className: 'w-3 h-3' })} 下载</button>
+        <button class="archive-file-del-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-red-500 border border-red-200 hover:bg-red-50 transition-colors" data-record-id="${r.id}" title="删除该材料（连物理文件）" style="cursor:pointer;">删除</button>`
+      : '';
     return `
       <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors flex items-center justify-between gap-3">
         <div class="flex-1 min-w-0">
@@ -194,11 +226,83 @@ function _renderArchiveList(records) {
             <span class="text-xs px-1.5 py-0.5 rounded-full border ${statusStyle} shrink-0">${ARCHIVE_STATUS_LABEL[r.status]}</span>
             ${progressHtml}${doneHtml}
           </div>
-          <span class="text-xs text-gray-400">归档日期：${r.archiveDate}</span>
+          <span class="text-xs text-gray-400">归档日期：${r.archiveDate}${r.fileName ? ` · 材料：${r.fileName}` : ''}</span>
         </div>
-        ${advanceBtn}
+        <div class="flex items-center gap-2 flex-shrink-0">${fileBtn}${advanceBtn}</div>
       </div>`;
   }).join('');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  T-304 A 档下载闭环：模板真实下载 + 材料下载
+// ════════════════════════════════════════════════════════════════
+
+/** 模板真实下载：新闻稿 → Word 兼容 .doc；照片/视频 → CSV（Excel 直开，UTF-8 BOM） */
+function _downloadTemplate(tpl) {
+  const stamp = _fmtDate(new Date());
+  if (tpl.category === '新闻稿') {
+    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"></head><body>
+      <h1>${tpl.name}</h1>
+      <p>标题：＿＿＿＿＿＿＿＿＿＿</p>
+      <p><b>一、活动背景与目的</b>：2-3 句说明为何开展。</p>
+      <p><b>二、活动过程</b>：按环节展开，突出亮点与互动。</p>
+      <p><b>三、活动成效与反响</b>：引用参与者反馈。</p>
+      <p><b>四、配图</b>：3 张以上原图，横版为主，命名：日期_活动名_序号。</p>
+      <p><b>署名</b>：＿＿＿＿（撰稿人）</p>
+      <p style="color:#999">（本模板由 GSM1921 党务工作系统生成，请按材料标准填写）</p>
+    </body></html>`;
+    downloadBlob(`${tpl.name}_${stamp}.doc`, new Blob([html], { type: 'application/msword' }));
+  } else {
+    const headers = tpl.category === '照片'
+      ? ['序号', '照片文件名', '拍摄日期', '活动名称', '摄影者', '备注']
+      : ['序号', '视频文件名', '拍摄日期', '活动名称', '时长', '分辨率', '是否含字幕', '备注'];
+    downloadCSV(`${tpl.name}_${stamp}.csv`, headers, []);
+  }
+  showToast('success', `模板「${tpl.name}」已下载`);
+}
+
+/** 已归档材料下载：mock=base64 dataURL 直下；server=受保护静态下载（带鉴权拉取） */
+async function _downloadArchiveFile(record) {
+  if (record.fileData) {
+    const a = document.createElement('a');
+    a.href = record.fileData;
+    a.download = record.fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return true;
+  }
+  if (record.filePath) {
+    const baseUrl = getApiBaseUrl();
+    const token = getAuthToken();
+    const url = record.filePath.startsWith('http') ? record.filePath : `${baseUrl}${record.filePath}`;
+    return downloadUrl(url, record.fileName, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  }
+  return false;
+}
+
+/** 材料删除（D 档文件闭环）：mock 删本地记录；server 先调 DELETE 接口（联动删物理文件）再删内存记录 */
+async function _deleteArchiveFile(record) {
+  if (record.filePath) {
+    const baseUrl = getApiBaseUrl();
+    const token = getAuthToken();
+    // server 上传时 fileSpaceRecords 记录 id 由服务端生成，按 filePath 匹配后删除
+    const fsRec = (mockDB.fileSpaceRecords || []).find(f => f.filePath === record.filePath);
+    if (fsRec) {
+      try {
+        await fetch(`${baseUrl}/api/v1/fileSpaceRecords/${fsRec.id}`, {
+          method: 'DELETE',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+      } catch (e) {
+        console.warn('[archive] 服务端删除失败：', e);
+      }
+      mockDB.fileSpaceRecords = mockDB.fileSpaceRecords.filter(f => f.id !== fsRec.id);
+    }
+  }
+  mockDB.archiveRecords = mockDB.archiveRecords.filter(r => r.id !== record.id);
+  persist();
+  return true;
 }
 
 // ════════════════════════════════════════════════════════════════

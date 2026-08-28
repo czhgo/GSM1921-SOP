@@ -2,11 +2,11 @@
 // 组长工作台 Tab：待办（T-279 M2 拆分）
 // 最小三成本原则落地：进入即见首条详情，减一次点击。
 
-import { TodoStore, TodoStatus } from '../../../services/todo.js?v=20260827c';
-import { renderTodoList } from '../../../components/todo-list.js?v=20260827c';
-import { badgeHtml } from '../../../components/badge.js?v=20260827c';
-import { showToast } from '../../../core/utils.js?v=20260827c';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260827c';
+import { TodoStore, TodoStatus } from '../../../services/todo.js?v=20260829f';
+import { renderTodoList } from '../../../components/todo-list.js?v=20260829f';
+import { badgeHtml } from '../../../components/badge.js?v=20260829f';
+import { showToast } from '../../../core/utils.js?v=20260829f';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260829f';
 
 // 私有状态（随模块自持，不污染入口）
 let _selectedTodoId = null;
@@ -40,6 +40,15 @@ export function renderContent(ctx) {
     },
     onActionTodo: (todo) => {
       _handleTodoAction(todo, ctx);
+    },
+    // B 档 CRUD 补全：待办删除（确认后删除，聚合卡删除整组）
+    onDeleteTodo: (todo) => {
+      const items = todo.items && todo.items.length ? todo.items : [todo];
+      const label = items.length === 1 ? items[0].title : `${items[0].title} 等 ${items.length} 条`;
+      if (!window.confirm(`确认删除待办「${label}」？删除后不可恢复。`)) return;
+      items.forEach(t => TodoStore.delete(t.id));
+      showToast('success', '待办已删除');
+      renderContent(ctx);
     },
   });
 

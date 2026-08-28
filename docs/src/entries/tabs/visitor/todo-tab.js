@@ -2,10 +2,10 @@
 // 参与者工作台 Tab：待办（T-279 M3 拆分，照 M2 样板）
 // 最小三成本原则落地：进入即见首条详情，减一次点击。
 
-import { TodoStore } from '../../../services/todo.js?v=20260827c';
-import { renderTodoList } from '../../../components/todo-list.js?v=20260827c';
-import { badgeHtml } from '../../../components/badge.js?v=20260827c';
-import { showToast } from '../../../core/utils.js?v=20260827c';
+import { TodoStore } from '../../../services/todo.js?v=20260829f';
+import { renderTodoList } from '../../../components/todo-list.js?v=20260829f';
+import { badgeHtml } from '../../../components/badge.js?v=20260829f';
+import { showToast } from '../../../core/utils.js?v=20260829f';
 
 // 私有状态（随模块自持，不污染入口）
 let _selectedTodoId = null;
@@ -40,7 +40,15 @@ export function renderContent(ctx) {
     onActionTodo: (todo) => {
       _handleTodoAction(todo);
     },
-    // 待办行动按钮金色系（书记 2026-08-01 决策：改金色，与完成绿呼应，红色收敛到品牌语义）
+    // B 档 CRUD 补全：待办删除（确认后删除，聚合卡删除整组）
+    onDeleteTodo: (todo) => {
+      const items = todo.items && todo.items.length ? todo.items : [todo];
+      const label = items.length === 1 ? items[0].title : `${items[0].title} 等 ${items.length} 条`;
+      if (!window.confirm(`确认删除待办「${label}」？删除后不可恢复。`)) return;
+      items.forEach(t => TodoStore.delete(t.id));
+      showToast('success', '待办已删除');
+      renderContent(ctx);
+    },
     // G3 修正（2026-08-08）：纯亮金 #FFD700 实底过艳 → 金浅底 rgba(255,215,0,0.12)+深金字；
     // 补金边框与详情按钮一致（G2-c 裁定「同页两按钮金感不一致」）
     actionBtnStyle: '--acc-bg-dark:rgba(251,191,36,0.16);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.35);background:rgba(255,215,0,0.12);color:#A16207;border:1px solid rgba(255,215,0,0.35);',

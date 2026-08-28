@@ -94,8 +94,9 @@ export function createResourcesRouter(db) {
 
     // 删除
     router.delete(`/${name}/:id`, writeAuth, (req, res) => {
-      // 支部文件：删除记录前联动删除已上传的物理文件（书记 2026-08-18 裁决「连物理文件一起删」）
-      if (name === 'branchDocs') {
+      // 文件类资源（支部文件/文件空间记录/图片记录）：删除记录前联动删除已上传的物理文件
+      // （书记 2026-08-18 裁决「连物理文件一起删」；T-304 D 档扩展至文件空间/图片记录，杜绝孤儿文件）
+      if (name === 'branchDocs' || name === 'fileSpaceRecords' || name === 'imageRecords') {
         const existing = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(req.params.id);
         if (existing) {
           const doc = JSON.parse(existing.data);

@@ -3,9 +3,10 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore } from '../../../services/notice.js?v=20260827c';
-import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260827c';
-import { badgeHtml } from '../../../components/badge.js?v=20260827c';
+import { NoticeStore } from '../../../services/notice.js?v=20260829f';
+import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260829f';
+import { badgeHtml } from '../../../components/badge.js?v=20260829f';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260829f';
 
 const NOTIFICATION_TAB_HTML = `
   <div class="card rounded-2xl p-6 mb-6">
@@ -195,6 +196,8 @@ function renderNotificationList() {
             ${audienceBadges}
           </div>
           <button data-notif-action="delete" data-notif-id="${n.id}" class="text-xs text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50">删除</button>
+          <!-- B 档 CRUD 补全：通知编辑（复用 NoticeStore.update，同源写穿） -->
+          <button data-notif-action="edit" data-notif-id="${n.id}" class="text-xs text-gray-300 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-blue-50" title="编辑该通知" style="cursor:pointer;">编辑</button>
         </div>
         <p class="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">${n.content}</p>
         <p class="text-xs text-gray-400 mt-1.5">${n.publishedBy || '书记'} · ${dateStr}</p>
@@ -213,11 +216,90 @@ function renderNotificationList() {
     });
   });
 
+  // B 档 CRUD 补全：通知编辑（打开预填编辑浮窗 → NoticeStore.update）
+  listArea.querySelectorAll('[data-notif-action="edit"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const notifId = btn.dataset.notifId;
+      const notice = NoticeStore.getAll().find(n => n.id === notifId);
+      if (notice) _openNoticeEditModal(notice);
+    });
+  });
+
   // 绑定行点击：预览已发布通知（跳通知详情页，可回退）
   listArea.querySelectorAll('[data-notif-row="1"]').forEach(row => {
     row.addEventListener('click', () => {
       const notifId = row.dataset.notifId;
       window.location.href = `${getBasePath()}notice.html?id=${notifId}`;
     });
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+//  B 档 CRUD 补全：通知编辑浮窗（预填 → NoticeStore.update 同源写穿）
+// ════════════════════════════════════════════════════════════════
+function _openNoticeEditModal(notice) {
+  const audienceValues = Array.isArray(notice.audience) ? notice.audience : (notice.audience ? [notice.audience] : []);
+  const chips = NOTIFICATION_AUDIENCES.map(a => {
+    const on = audienceValues.includes(a.value) ? ' chip-accent-on font-medium' : '';
+    return `<button type="button" data-notif-edit-aud="${a.value}" class="chip-option text-sm px-4 py-2 rounded-lg${on}">${a.label}</button>`;
+  }).join('');
+
+  openModal({
+    id: 'notice-edit',
+    title: '编辑通知',
+    width: '560px',
+    accentColor: '#CE1126',
+    bodyHtml: `
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知标题 <span class="text-red-500">*</span></label>
+          <input type="text" id="ne-title" class="input-flat w-full" value="${notice.title || ''}">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知内容 <span class="text-red-500">*</span></label>
+          <textarea id="ne-content" rows="4" class="input-flat w-full">${notice.content || ''}</textarea>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">目标受众</label>
+          <div class="flex flex-wrap gap-2">${chips}</div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">优先级</label>
+          <select id="ne-priority" class="input-flat w-full">
+            <option value="normal" ${notice.priority !== 'urgent' ? 'selected' : ''}>普通</option>
+            <option value="urgent" ${notice.priority === 'urgent' ? 'selected' : ''}>紧急</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 mt-4">
+        <button id="ne-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+        <button id="ne-save" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:#CE1126;cursor:pointer;">保存</button>
+      </div>
+    `,
+    onMount: (panel) => {
+      panel.querySelectorAll('[data-notif-edit-aud]').forEach(chip => {
+        chip.addEventListener('click', () => chip.classList.toggle('chip-accent-on'));
+      });
+      panel.querySelector('#ne-cancel')?.addEventListener('click', () => closeModal('notice-edit'));
+      panel.querySelector('#ne-save')?.addEventListener('click', () => {
+        const title = panel.querySelector('#ne-title')?.value?.trim();
+        const content = panel.querySelector('#ne-content')?.value?.trim();
+        if (!title) { showToast('error', '请填写通知标题'); return; }
+        if (!content) { showToast('error', '请填写通知内容'); return; }
+        const values = [...panel.querySelectorAll('[data-notif-edit-aud].chip-accent-on')].map(c => c.dataset.notifEditAud);
+        const updated = NoticeStore.update(notice.id, {
+          title,
+          content,
+          audience: values,
+          audienceLabel: _audienceLabels(values).join('、'),
+          priority: panel.querySelector('#ne-priority')?.value || 'normal',
+        }, 'secretary');
+        if (!updated) { showToast('error', '通知更新失败'); return; }
+        showToast('success', '通知已更新');
+        closeModal('notice-edit');
+        renderNotificationList();
+      });
+    },
   });
 }

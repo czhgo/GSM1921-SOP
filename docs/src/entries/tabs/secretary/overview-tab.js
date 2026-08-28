@@ -8,18 +8,18 @@
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 // 2026-08-10 书记裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { showToast } from '../../../core/utils.js?v=20260827c';
-import { NoticeStore } from '../../../services/notice.js?v=20260827c';
-import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260827c';
-import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260827c';
-import { badgeHtml } from '../../../components/badge.js?v=20260827c';
-import { loadActivities } from '../../../services/activity.js?v=20260827c';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260827c';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260827c';
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260827c';
-import { AuthStore } from '../../../services/auth.js?v=20260827c';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260827c';
-import { getPersonName } from '../../../mock/index.js?v=20260827c';
+import { showToast } from '../../../core/utils.js?v=20260829f';
+import { NoticeStore } from '../../../services/notice.js?v=20260829f';
+import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260829f';
+import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260829f';
+import { badgeHtml } from '../../../components/badge.js?v=20260829f';
+import { loadActivities } from '../../../services/activity.js?v=20260829f';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260829f';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260829f';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260829f';
+import { AuthStore } from '../../../services/auth.js?v=20260829f';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260829f';
+import { getPersonName } from '../../../mock/index.js?v=20260829f';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>

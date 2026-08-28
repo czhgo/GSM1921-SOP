@@ -838,3 +838,43 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 **阶段2 后端支持**：归档浮窗中材料清单每项可点击查看——图片预览/文档下载/视频预览，需后端文件存储支持。
 
 ---
+
+## 2.26 文件空间记录 / 图片记录（T-304 D 档·权威字段表）
+
+> **定位**：宣传委员上传宣传材料（照片/新闻稿/视频等）落「文件空间」；文件元数据与文件实体分离存储。
+> **双模式**：mock 模式 `fileData`（base64 dataURL，本地存储）；server 模式 `filePath`（服务端磁盘路径，受保护静态下载 `/api/v1/uploads/:name`）。
+> **读写闭环**：创建（`archive-tab` 上传）→ 读取（档案列表/产出物区渲染）→ 下载（mock 直下 / server 鉴权拉取）→ 删除（`DELETE /api/v1/fileSpaceRecords/:id` 联动删物理文件）。类型定义见 [domain.js](../../docs/src/core/domain.js) `FileSpaceRecord` / `ImageRecord` typedef。
+
+### FileSpaceRecord
+
+| 字段名 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| id | string | 是 | 记录 ID（mock `ar-u-*` / server UUID） |
+| activityId | string \| null | 否 | 关联活动 ID |
+| activityName | string | 否 | 关联活动名（快照冗余） |
+| category | `'新闻稿'\|'照片'\|'视频'\|'其他'` | 否 | 材料类别 |
+| fileName | string | 是 | 原始文件名（下载命名） |
+| fileSize | number | 是 | 文件字节数 |
+| filePath | string | 否 | server 模式下载路径（`/api/v1/uploads/xxx`） |
+| fileData | string | 否 | mock 模式 base64 dataURL（≤2MB 本地容量约束） |
+| status | `'archived'\|'in_progress'\|'pending'` | 否 | 归档状态 |
+| archiveDate | string (YYYY-MM-DD) | 否 | 归档日期 |
+| uploadedBy | string | 否 | 上传人 personId |
+| createdAt | string (ISO) | 否 | 创建时间 |
+
+### ImageRecord
+
+| 字段名 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| id | string | 是 | 记录 ID |
+| filePath / fileData | string | 二选一 | 同 FileSpaceRecord 双模式 |
+| fileName | string | 是 | 文件名 |
+| fileSize | number | 是 | 字节数 |
+| uploadedBy / uploadedAt | string | 是 | 上传人 / 时间 |
+
+### 删除语义（防孤儿文件）
+
+- **server 模式**：`DELETE /api/v1/fileSpaceRecords/:id` 与 `DELETE /api/v1/imageRecords/:id` 在删记录前联动 `deleteUploadedFile(filePath)` 删除物理文件（[resources.js](../../../server/routes/resources.js) L96-105，T-304 D 档扩展）。
+- **mock 模式**：删除 `mockDB.archiveRecords` 对应记录 + `persist()`，无物理文件。
+
+---

@@ -5,20 +5,21 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../core/state.js?v=20260827c';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260827c';
-import { _fmtChinese, showToast } from '../core/utils.js?v=20260827c';
-import { icon } from '../core/icons.js?v=20260827c';
-import { PEOPLE, getPersonById } from '../mock/index.js?v=20260827c';
-import { BranchService } from '../services/runtime.js?v=20260827c';
-import { AuthStore } from '../services/auth.js?v=20260827c';
-import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260827c';
-import { badgeHtml } from './badge.js?v=20260827c';
-import { persist } from '../core/data-adapter.js?v=20260827c';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260827c';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260827c';
-import { loadActivityReviews } from '../services/review.js?v=20260827c';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260827c';
+import { setState, STATE, getAppState } from '../core/state.js?v=20260829f';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260829f';
+import { _fmtChinese, showToast } from '../core/utils.js?v=20260829f';
+import { icon } from '../core/icons.js?v=20260829f';
+import { openModal, closeModal } from './modal.js?v=20260829f';
+import { PEOPLE, getPersonById } from '../mock/index.js?v=20260829f';
+import { BranchService } from '../services/runtime.js?v=20260829f';
+import { AuthStore } from '../services/auth.js?v=20260829f';
+import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260829f';
+import { badgeHtml } from './badge.js?v=20260829f';
+import { persist, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260829f';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260829f';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260829f';
+import { loadActivityReviews } from '../services/review.js?v=20260829f';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260829f';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -297,7 +298,7 @@ function _buildOutputsSectionHTML(activity) {
 
   const pubItems = [
     ...publicitySubs.map(p => ({ title: p.title || '宣传材料', meta: [p.author, p.channel].filter(Boolean).join(' · '), status: '已提交' })),
-    ...archiveRecs.map(a => ({ title: `${a.category || '材料'}：${a.activityName}`, meta: [a.archiveDate, a.fileName].filter(Boolean).join(' · '), status: a.status === 'archived' ? '已归档' : (a.status === 'in_progress' ? '归档中' : '待归档') })),
+    ...archiveRecs.map(a => ({ title: `${a.category || '材料'}：${a.activityName}`, meta: [a.archiveDate, a.fileName].filter(Boolean).join(' · '), status: a.status === 'archived' ? '已归档' : (a.status === 'in_progress' ? '归档中' : '待归档'), fileName: a.fileName, fileData: a.fileData, filePath: a.filePath, arcId: a.id })),
   ];
   const pubStatus = pubItems.length === 0
     ? badgeHtml('未归档', 'neutral')
@@ -326,6 +327,7 @@ function _buildOutputsSectionHTML(activity) {
             <div class="flex items-center justify-between text-[11px] text-gray-600 py-0.5">
               <span class="truncate pr-2">${it.title}</span>
               <span class="text-gray-400 flex-shrink-0">${it.meta ? it.meta + ' · ' : ''}${it.status}</span>
+              ${it.fileName ? `<button type="button" class="insp-pub-dl text-blue-600 hover:text-blue-800 pl-2 flex-shrink-0" data-arc-id="${it.arcId}" title="下载 ${it.fileName}" style="background:none;border:none;cursor:pointer;padding:0 0 0 8px;">下载</button>` : ''}
             </div>`).join('')}
           ${pubItems.length > 5 ? `<div class="text-[11px] text-gray-400">…另有 ${pubItems.length - 5} 项</div>` : ''}
         </div>` : ''}
@@ -561,6 +563,12 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   }
 
   html += '<div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">';
+  if (isSecretary && !isArchived) {
+    // B 档 CRUD 补全：活动信息编辑（书记持有 create_activity，含编辑权）
+    html += '<button id="inspector-edit-btn"'
+      + ' class=" text-xs text-blue-700 hover:text-blue-900 px-3 py-1.5 rounded-lg transition-colors"'
+      + ' style="--acc-bg-dark:rgba(96,165,250,0.16);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.35);background:rgba(59,130,246,0.10);border:1px solid rgba(59,130,246,0.40);">编辑信息</button>';
+  }
   if (isArchived) {
     html += '<button id="inspector-restore-btn"'
       + ' class=" text-xs text-green-700 hover:text-green-900 px-3 py-1.5 rounded-lg transition-colors"'
@@ -585,6 +593,25 @@ function renderInspectorDetail(activity, tasks, managementRole) {
       _startAgendaEdit(activity, cardsEl, tasks, managementRole);
     });
   }
+
+  // B 档 CRUD 补全：活动信息编辑入口（书记专属）
+  const editBtn = document.getElementById('inspector-edit-btn');
+  if (editBtn) {
+    editBtn.addEventListener('click', () => {
+      _openActivityEditModal(activity, tasks, managementRole);
+    });
+  }
+
+  // D 档文件闭环：产出物区材料下载（mock base64 直下 / server 带鉴权拉取）
+  cardsEl.querySelectorAll('.insp-pub-dl').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const rec = (mockDB.archiveRecords || []).find(r => r.id === btn.dataset.arcId);
+      if (!rec) { showToast('error', '材料记录不存在'); return; }
+      const ok = await _downloadMaterialRecord(rec);
+      showToast(ok ? 'success' : 'error', ok ? `「${rec.fileName || '材料'}」已下载` : '材料下载失败');
+    });
+  });
 
   if (!isArchived) {
     cardsEl.querySelectorAll('[data-status-badge]').forEach(badge => {
@@ -781,4 +808,118 @@ function _startAgendaEdit(activity, cardsEl, tasks, managementRole) {
     });
   };
   renderEditor();
+}
+
+// ════════════════════════════════════════════════════════════════
+//  B 档 CRUD 补全：活动信息编辑浮窗（书记预填 → BranchService.updateActivity）
+//  仅编辑基础信息（名称/日期/时间/地点/主持人/详情），议程走行内编辑、状态走生命周期。
+// ════════════════════════════════════════════════════════════════
+function _openActivityEditModal(activity, tasks, managementRole) {
+  openModal({
+    id: 'activity-edit',
+    title: '编辑活动信息',
+    width: '560px',
+    accentColor: '#CE1126',
+    bodyHtml: `
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动名称 <span class="text-red-500">*</span></label>
+          <input type="text" id="ae-title" class="input-flat w-full" value="${activity.title || ''}">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium">日期 <span class="text-red-500">*</span></label>
+            <input type="date" id="ae-date" class="input-flat w-full" value="${activity.date || ''}">
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium">时间 <span class="text-gray-300">（选填）</span></label>
+            <input type="text" id="ae-time" class="input-flat w-full" value="${activity.time || ''}" placeholder="如 14:00-16:00">
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">地点 <span class="text-red-500">*</span></label>
+          <input type="text" id="ae-location" class="input-flat w-full" value="${activity.location || ''}">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">主持人 <span class="text-gray-300">（选填）</span></label>
+          <input type="text" id="ae-host" class="input-flat w-full" value="${activity.host || ''}">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动详情 <span class="text-gray-300">（选填）</span></label>
+          <textarea id="ae-desc" rows="3" class="input-flat w-full">${activity.description || ''}</textarea>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 mt-4">
+        <button id="ae-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+        <button id="ae-save" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:#CE1126;cursor:pointer;">保存</button>
+      </div>
+    `,
+    onMount: (panel) => {
+      panel.querySelector('#ae-cancel')?.addEventListener('click', () => closeModal('activity-edit'));
+      panel.querySelector('#ae-save')?.addEventListener('click', async () => {
+        const title = panel.querySelector('#ae-title')?.value?.trim();
+        const date = panel.querySelector('#ae-date')?.value?.trim();
+        const location = panel.querySelector('#ae-location')?.value?.trim();
+        if (!title) { showToast('error', '请填写活动名称'); return; }
+        if (!date) { showToast('error', '请选择日期'); return; }
+        if (!location) { showToast('error', '请填写活动地点'); return; }
+        const patch = {
+          title,
+          date,
+          time: panel.querySelector('#ae-time')?.value?.trim() || '',
+          location,
+          host: panel.querySelector('#ae-host')?.value?.trim() || '',
+          description: panel.querySelector('#ae-desc')?.value?.trim() || '',
+        };
+        try {
+          const updated = await BranchService.updateActivity(activity.id, patch);
+          persist();
+          showToast('success', '活动信息已更新');
+          closeModal('activity-edit');
+          setState({
+            activities: getAppState().activities.map(a => (a.id === activity.id ? updated : a)),
+          });
+          renderInspectorDetail(updated, tasks, managementRole);
+        } catch (e) {
+          showToast('error', '保存失败：' + ((e && e.message) || '未知错误'));
+        }
+      });
+    },
+  });
+}
+
+/** D 档文件闭环：产出物区材料下载（mock=base64 dataURL 直下；server=受保护静态下载带鉴权拉取） */
+async function _downloadMaterialRecord(rec) {
+  if (rec.fileData) {
+    const a = document.createElement('a');
+    a.href = rec.fileData;
+    a.download = rec.fileName || 'material';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return true;
+  }
+  if (rec.filePath) {
+    const baseUrl = getApiBaseUrl();
+    const token = getAuthToken();
+    const url = rec.filePath.startsWith('http') ? rec.filePath : `${baseUrl}${rec.filePath}`;
+    try {
+      const resp = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      if (!resp.ok) return false;
+      const blob = await resp.blob();
+      const u = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = u;
+      a.download = rec.fileName || 'material';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(u);
+      return true;
+    } catch (e) {
+      console.warn('[inspector] 材料下载失败：', e);
+      return false;
+    }
+  }
+  return false;
 }

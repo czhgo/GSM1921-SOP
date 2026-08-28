@@ -5,13 +5,13 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260827c';
-import { persist } from '../core/data-adapter.js?v=20260827c';
-import { MOCK_NOTICES } from '../mock/index.js?v=20260827c';
-import { showToast, getBasePath } from '../core/utils.js?v=20260827c';
-import { AuthStore } from './auth.js?v=20260827c';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260827c';
-import { badgeHtml } from '../components/badge.js?v=20260827c';
+import { mockDB } from '../core/domain.js?v=20260829f';
+import { persist } from '../core/data-adapter.js?v=20260829f';
+import { MOCK_NOTICES } from '../mock/index.js?v=20260829f';
+import { showToast, getBasePath } from '../core/utils.js?v=20260829f';
+import { AuthStore } from './auth.js?v=20260829f';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260829f';
+import { badgeHtml } from '../components/badge.js?v=20260829f';
 
 function _loadNotices() {
   try {

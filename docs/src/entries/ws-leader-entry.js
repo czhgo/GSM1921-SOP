@@ -4,19 +4,19 @@
 // 入口职责：bootstrap + tab 清单读取（能力注册表 M2e）+ URL 导航落点 + 状态变更驱动的当前 tab 重渲染。
 // tab.render 为懒加载动态 import（点击时才加载对应模块），各 tab 私有状态随模块自持。
 
-import { setState, registerRenderCallback } from '../core/state.js?v=20260827c';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260827c';
-import { renderTabBar } from '../components/tab-bar.js?v=20260827c';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260827c';
-import { flashHighlight } from '../core/utils.js?v=20260827c';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260827c';
-import { getCapabilities } from '../core/registry.js?v=20260827c';
-import { loadActivities } from '../services/activity.js?v=20260827c';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260827c';
-import { SignupStore } from '../services/signup.js?v=20260827c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260827c';
-import { TodoStore, seedTodos } from '../services/todo.js?v=20260827c';
-import { filterByRole } from './tabs/leader/_shared.js?v=20260827c';
+import { setState, registerRenderCallback } from '../core/state.js?v=20260829f';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260829f';
+import { renderTabBar } from '../components/tab-bar.js?v=20260829f';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260829f';
+import { flashHighlight } from '../core/utils.js?v=20260829f';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260829f';
+import { getCapabilities } from '../core/registry.js?v=20260829f';
+import { loadActivities } from '../services/activity.js?v=20260829f';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260829f';
+import { SignupStore } from '../services/signup.js?v=20260829f';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260829f';
+import { TodoStore, seedTodos } from '../services/todo.js?v=20260829f';
+import { filterByRole } from './tabs/leader/_shared.js?v=20260829f';
 // 副作用导入触发组长工作台能力注册（tab 清单，M2e）
 import '../modules/capabilities/leader-workspace.js?v=20260822e';
 

@@ -3,24 +3,24 @@
 // 看板式专班全生命周期管理 + 发布招募表单 + 活动进度追踪（原追踪看板融入）。
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类/activities）经 ctx 传入。
 
-import { setState } from '../../../core/state.js?v=20260827c';
-import { BranchService } from '../../../services/runtime.js?v=20260827c';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260827c';
-import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260827c';
-import { AuthStore } from '../../../services/auth.js?v=20260827c';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260827c';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260827c';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260827c';
-import { NoticeStore } from '../../../services/notice.js?v=20260827c';
-import { mockDB, SourceType, ParticipationLevel, ReviewStatus } from '../../../core/domain.js?v=20260827c';
-import { persist } from '../../../core/data-adapter.js?v=20260827c';
-import { showToast } from '../../../core/utils.js?v=20260827c';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260827c';
-import { icon } from '../../../core/icons.js?v=20260827c';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260827c';
-import { renderQueryView } from '../../../components/query-view.js?v=20260827c';
-import { badgeHtml } from '../../../components/badge.js?v=20260827c';
-import { _personName, getPersonName } from '../../../mock/index.js?v=20260827c';
+import { setState } from '../../../core/state.js?v=20260829f';
+import { BranchService } from '../../../services/runtime.js?v=20260829f';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260829f';
+import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260829f';
+import { AuthStore } from '../../../services/auth.js?v=20260829f';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260829f';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260829f';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260829f';
+import { NoticeStore } from '../../../services/notice.js?v=20260829f';
+import { mockDB, SourceType, ParticipationLevel, ReviewStatus } from '../../../core/domain.js?v=20260829f';
+import { persist } from '../../../core/data-adapter.js?v=20260829f';
+import { showToast } from '../../../core/utils.js?v=20260829f';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260829f';
+import { icon } from '../../../core/icons.js?v=20260829f';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260829f';
+import { renderQueryView } from '../../../components/query-view.js?v=20260829f';
+import { badgeHtml } from '../../../components/badge.js?v=20260829f';
+import { _personName, getPersonName } from '../../../mock/index.js?v=20260829f';
 
 // 私有状态（随模块自持，不污染入口）
 let _recruitPersonPicker = null;
@@ -144,6 +144,25 @@ export function renderContent(ctx) {
         } else {
           showToast('error', '归档失败，状态流转不合法');
         }
+      });
+    });
+    // B 档 CRUD 补全：撤销招募中专班（彻底删除 + 清理关联报名/待办）
+    container.querySelectorAll('.tf-delete-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const tfId = btn.dataset.tfId;
+        const tf = TaskForceRecordStore.getAll().find(r => r.id === tfId);
+        if (!tf || tf.status !== 'recruiting') return;
+        const confirmed = window.confirm(`确认撤销招募「${tf.name}」？专班将被彻底删除，关联报名与待办一并清理。`);
+        if (!confirmed) return;
+        TaskForceRecordStore.remove(tfId);
+        // 清理关联报名（内存 + 落库同源）
+        SignupStore._signups = SignupStore._signups.filter(s => !(s.sourceType === 'taskforce' && s.sourceId === tfId));
+        mockDB.signups = [...SignupStore._signups];
+        TodoStore.deleteBySource(TodoSourceType.TASKFORCE, tfId);
+        persist();
+        showToast('success', `专班「${tf.name}」已撤销删除`);
+        setState({});
       });
     });
   }
@@ -649,7 +668,11 @@ function _renderTfCard(t, statusLabel, statusColor) {
   // 招募状态流转按钮：recruiting → active → archived
   let statusBtn = '';
   if (t.status === 'recruiting') {
-    statusBtn = `<button class="tf-start-btn text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">启动专班</button>`;
+    // B 档 CRUD 补全：招募中可撤销（彻底删除），误建/取消招募的专班可清理
+    statusBtn = `<div class="flex gap-2 mt-2">
+      <button class="tf-start-btn text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();">启动专班</button>
+      <button class="tf-delete-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">撤销</button>
+    </div>`;
   } else if (t.status === 'active') {
     statusBtn = `<button class="tf-archive-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">归档专班</button>`;
   }
@@ -856,7 +879,24 @@ function _submitRecruitForm(ctx) {
       const actorId = AuthStore.getCurrentUser()?.personId;
       AuthStore.recordProjectGrants(created.id, members, actorId);
     }
-    showToast('success', `专班「${name}」发布成功`);
+    // T-304 C3 专班发起审批环节：组织委员发起 → 自动派生书记审批待办（书记批准/驳回写专班记录）
+    if (created) {
+      TodoStore.create({
+        title: `审批专班发起「${name}」`,
+        description: `组织委员发起专班招募（任务：${task || '—'}），请书记审批是否批准发起`,
+        role: 'secretary',
+        category: TodoCategory.REVIEW,
+        priority: 'urgent',
+        deadline: deadline || null,
+        sourceType: TodoSourceType.TASKFORCE,
+        sourceId: created.id,
+        actionType: TodoActionType.REVIEW,
+        actionKey: 'taskforce-approval',
+        actionData: { taskforceId: created.id, taskforceName: name },
+        flow: '专班发起 → 书记审批 → 正式招募',
+      });
+    }
+    showToast('success', `专班「${name}」发布成功，已提交书记审批`);
 
     // 预拟通知「只跑一次」（2026-08-05）：仅在表单填写了标题时发布一条通知，
     // NoticeStore.add 单次调用，通知→待办仅派生一次，不重复发。

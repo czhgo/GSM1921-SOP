@@ -3,12 +3,14 @@
 // 缺勤/请假的三会一课、主题党日须在7日内补课，纪检委员确认完成。
 // B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260827c';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260827c';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260827c';
-import { getPersonName } from '../../../mock/index.js?v=20260827c';
-import { badgeHtml } from '../../../components/badge.js?v=20260827c';
-import { showToast } from '../../../core/utils.js?v=20260827c';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260829f';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260829f';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260829f';
+import { getPersonName } from '../../../mock/index.js?v=20260829f';
+import { badgeHtml } from '../../../components/badge.js?v=20260829f';
+import { showToast } from '../../../core/utils.js?v=20260829f';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260829f';
+import { getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260829f';
 
 export function renderContent() {
   const container = document.getElementById('disc-tab-content');
@@ -26,6 +28,11 @@ export function renderContent() {
 
   container.innerHTML = `
     <div class="space-y-4">
+      ${renderHandoffInboxHtml({
+        to: 'disc-commissioner',
+        accent: getAccentColors(resolveAccentRole('disc-commissioner')).accent,
+        title: '补课需求回执（组织→纪检）',
+      })}
       <div class="card rounded-xl p-5">
         <div class="flex items-center justify-between mb-3">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">补课任务</h3>
@@ -111,4 +118,7 @@ export function renderContent() {
       }
     });
   });
+
+  // T-304 C2 数据交接：纪检确认补课需求回执（组织标记材料缺失 → 纪检收到并闭环）
+  bindHandoffInbox(container, { to: 'disc-commissioner', onDone: () => { showToast('success', '补课需求回执已确认'); renderContent(); } });
 }

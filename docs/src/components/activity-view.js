@@ -4,12 +4,13 @@
 // 日历视图（复用 calendar.js 渲染引擎）+ 只读活动详情（点击日历条目）。
 // 形态依据书记第四轮裁定：「书记的日历视图只要删去写入活动等功能，就可以提供很好的活动详情」。
 
-import { getAppState, setState } from '../core/state.js?v=20260827c';
-import { renderCalendarByActivities } from './calendar.js?v=20260827c';
-import { _fmtDate, _currentYearMonth, flashHighlight } from '../core/utils.js?v=20260827c';
-import { badgeHtml } from './badge.js?v=20260827c';
-import { ROLE_COLORS, dotDarkVars } from '../core/constants.js?v=20260827c';
-import { activityLifecycleBadgeHtml } from './inspector.js?v=20260827c';
+import { getAppState, setState } from '../core/state.js?v=20260829f';
+import { renderCalendarByActivities } from './calendar.js?v=20260829f';
+import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast } from '../core/utils.js?v=20260829f';
+import { badgeHtml } from './badge.js?v=20260829f';
+import { ROLE_COLORS, dotDarkVars } from '../core/constants.js?v=20260829f';
+import { activityLifecycleBadgeHtml } from './inspector.js?v=20260829f';
+import { getPersonById } from '../mock/index.js?v=20260829f';
 
 // 任务状态元数据（状态点 + 文案，轻量自包含，避免依赖 status-badge 全家桶）
 const _TASK_STATUS_META = {
@@ -41,7 +42,10 @@ export function renderActivityView(container, opts = {}) {
       <div class="card rounded-2xl p-6">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">活动查看</h3>
-          <span class="text-xs text-gray-400">全支部活动一览 · 点击条目查看详情（只读）</span>
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-gray-400">全支部活动一览 · 点击条目查看详情（只读）</span>
+            <button class="av-export-btn btn-tab" style="cursor:pointer;">导出 CSV</button>
+          </div>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
           <div class="lg:col-span-3">
@@ -52,6 +56,18 @@ export function renderActivityView(container, opts = {}) {
           <div id="av-detail-panel" class="lg:col-span-2 rounded-xl bg-gray-50/50 border border-gray-100 p-3"></div>
         </div>
       </div>`;
+
+    // T-304 A 档下载闭环：活动清单导出 CSV（随当前月份筛选）
+    container.querySelector('.av-export-btn')?.addEventListener('click', () => {
+      const month = document.getElementById('month-selector')?.value || '';
+      const list = month ? activities.filter(a => (a.date || '').startsWith(month)) : activities;
+      const rows = list.map(a => [
+        a.title || '未命名活动', a.type || '', a.date || '', a.time || '', a.location || '',
+        a.organizer ? (getPersonById(a.organizer)?.name || a.organizer) : '', a.status || '',
+      ]);
+      downloadCSV(`活动清单_${_fmtDate(new Date())}.csv`, ['标题', '类型', '日期', '时间', '地点', '组织者', '状态'], rows);
+      showToast('success', `活动清单已导出（${rows.length} 条）`);
+    });
   }
 
   // ── 月份选择器（activity-view 自管理，不依赖 calendar.js 的全局单绑）──

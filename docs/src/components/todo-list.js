@@ -12,9 +12,9 @@ import {
   TodoStatus,
   TODO_STATUS_LABELS,
   DEFAULT_EXPANDED_CATEGORIES,
-} from '../services/todo.js?v=20260827c';
-import { badgeHtml } from './badge.js?v=20260827c';
-import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260827c';
+} from '../services/todo.js?v=20260829f';
+import { badgeHtml } from './badge.js?v=20260829f';
+import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260829f';
 
 /**
  * 渲染待办列表组件
@@ -27,6 +27,7 @@ import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260827c'
  * @param {Function} [opts.onSelectTodo]    — 点击待办项回调 (todo) => void
  * @param {Function} [opts.onCompleteTodo]  — 完成待办回调 (todoId) => void
  * @param {Function} [opts.onActionTodo]    — 行动按钮回调 (todo) => void（如"去赋权"）
+ * @param {Function} [opts.onDeleteTodo]    — 删除待办回调 (todo) => void（B 档 CRUD 补全：传入才渲染删除键）
  *
  * @returns {{ html: string, bindEvents: (container: HTMLElement) => void }}
  */
@@ -40,6 +41,7 @@ export function renderTodoList(opts) {
     onSelectTodo = () => {},
     onCompleteTodo = () => {},
     onActionTodo = () => {},
+    onDeleteTodo = null,
     // 聚合待办（TodoStore.getGroupedByAction 返回值）；传入时列表按聚合卡渲染，替代明细列表
     groupedAggregates = null,
     // 行动按钮自定义内联样式（默认使用角色 accent 实心；visitor 传金色系，T-144 推广轮 2026-08-01）
@@ -92,12 +94,12 @@ export function renderTodoList(opts) {
     }
     groupsHtml = categoryOrder
       .filter(cat => byCat[cat] && byCat[cat].length > 0)
-      .map(cat => _renderAggregateGroup(prefix, cat, byCat[cat], accent, today, selectedTodoId, actionBtnStyle))
+      .map(cat => _renderAggregateGroup(prefix, cat, byCat[cat], accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo))
       .join('');
   } else {
     groupsHtml = categoryOrder
       .filter(cat => groupedTodos[cat] && groupedTodos[cat].length > 0)
-      .map(cat => _renderCategoryGroup(prefix, cat, groupedTodos[cat], accent, today, selectedTodoId, actionBtnStyle))
+      .map(cat => _renderCategoryGroup(prefix, cat, groupedTodos[cat], accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo))
       .join('');
   }
 
@@ -168,18 +170,36 @@ export function renderTodoList(opts) {
         if (todo) onActionTodo(todo);
       });
     });
+
+    // 删除按钮（B 档 CRUD 补全：onDeleteTodo 传入时渲染；明细与聚合均支持）
+    if (typeof onDeleteTodo === 'function') {
+      container.querySelectorAll(`.${prefix}-todo-del-btn`).forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const groupKey = btn.dataset.groupKey;
+          if (groupKey) {
+            const g = _findGroupInAggregates(groupedAggregates, groupKey);
+            if (g) onDeleteTodo(g);
+            return;
+          }
+          const todoId = btn.dataset.todoId;
+          const todo = _findTodoInGrouped(groupedTodos, todoId);
+          if (todo) onDeleteTodo(todo);
+        });
+      });
+    }
   }
 
   return { html, bindEvents };
 }
 
 // ── 渲染单个分类分组 ──────────────────────────────────────────
-function _renderCategoryGroup(prefix, category, todos, accent, today, selectedTodoId, actionBtnStyle) {
+function _renderCategoryGroup(prefix, category, todos, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo) {
   const label = TODO_CATEGORY_LABELS[category] || category;
   const isExpanded = DEFAULT_EXPANDED_CATEGORIES.has(category);
   const hasExpired = todos.some(t => _isExpired(t, today));
 
-  const itemsHtml = todos.map(todo => _renderTodoItem(prefix, todo, accent, today, selectedTodoId, actionBtnStyle)).join('');
+  const itemsHtml = todos.map(todo => _renderTodoItem(prefix, todo, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo)).join('');
 
   return `
     <div class="${prefix}-todo-group mb-3" data-category="${category}">
@@ -201,7 +221,7 @@ function _renderCategoryGroup(prefix, category, todos, accent, today, selectedTo
 }
 
 // ── 渲染单个待办项（单行紧凑式：色条+标题+截止/状态+行动/完成按钮）──
-function _renderTodoItem(prefix, todo, accent, today, selectedTodoId, actionBtnStyle) {
+function _renderTodoItem(prefix, todo, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo) {
   const isExpired = _isExpired(todo, today);
   const isUrgent = todo.priority === 'urgent';
   const isSelected = todo.id === selectedTodoId;
@@ -261,18 +281,19 @@ function _renderTodoItem(prefix, todo, accent, today, selectedTodoId, actionBtnS
         ${hasAction ? `
           <button type="button" class="${prefix}-todo-action-btn text-xs px-3 py-1.5 rounded-lg transition-colors hover:opacity-90" data-todo-id="${todo.id}" style="${actionBtnStyle || solidAccentStyle(accent)}">${actionLabel}</button>
         ` : ''}
+        ${onDeleteTodo ? `<button type="button" class="${prefix}-todo-del-btn text-xs text-gray-300 hover:text-red-500 px-1.5 py-1 rounded hover:bg-red-50 transition-colors" data-todo-id="${todo.id}" title="删除该待办" style="cursor:pointer;">✕</button>` : ''}
       </div>
     </div>
   `;
 }
 
 // ── 渲染聚合分类分组 ────────────────────────────────────────
-function _renderAggregateGroup(prefix, category, groups, accent, today, selectedTodoId, actionBtnStyle) {
+function _renderAggregateGroup(prefix, category, groups, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo) {
   const label = TODO_CATEGORY_LABELS[category] || category;
   const isExpanded = DEFAULT_EXPANDED_CATEGORIES.has(category);
   const hasExpired = groups.some(g => g.items.some(t => _isExpired(t, today)));
 
-  const itemsHtml = groups.map(g => _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle)).join('');
+  const itemsHtml = groups.map(g => _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo)).join('');
 
   return `
     <div class="${prefix}-todo-group mb-3" data-category="${category}">
@@ -294,7 +315,7 @@ function _renderAggregateGroup(prefix, category, groups, accent, today, selected
 }
 
 // ── 渲染单个聚合卡（同跳转目标合并，数量角标 + 处理按钮）──
-function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle) {
+function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo) {
   const isSelected = g.groupKey === selectedTodoId;
   const hasExpired = g.items.some(t => _isExpired(t, today));
 
@@ -335,6 +356,7 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
       </button>
       <div class="flex items-center gap-1.5 ml-2 pr-3 flex-shrink-0">
         <button type="button" class="${prefix}-todo-action-btn text-xs px-3 py-1.5 rounded-lg transition-colors hover:opacity-90" data-group-key="${g.groupKey}" style="${actionBtnStyle || solidAccentStyle(accent)}">${actionLabel}</button>
+        ${onDeleteTodo ? `<button type="button" class="${prefix}-todo-del-btn text-xs text-gray-300 hover:text-red-500 px-1.5 py-1 rounded hover:bg-red-50 transition-colors" data-group-key="${g.groupKey}" title="删除该组待办" style="cursor:pointer;">✕</button>` : ''}
       </div>
     </div>
   `;

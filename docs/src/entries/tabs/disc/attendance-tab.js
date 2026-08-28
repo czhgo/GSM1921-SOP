@@ -3,17 +3,18 @@
 // 纪检委员维护考勤系统：待确认（请假/缺勤/超期）→ 确认 → 自动生成补课任务。
 // filterActivityId 经 ctx.attendanceFilterActId 传入（URL activityId 落点直达该活动考勤）。
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260827c';
-import { attendanceToLong, attendanceToWide, getPersonName } from '../../../mock/index.js?v=20260827c';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260827c';
-import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260827c';
-import { loadActivities } from '../../../services/activity.js?v=20260827c';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260827c';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260827c';
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260827c';
-import { badgeHtml } from '../../../components/badge.js?v=20260827c';
-import { showToast } from '../../../core/utils.js?v=20260827c';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260827c';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260829f';
+import { attendanceToLong, attendanceToWide, getPersonName } from '../../../mock/index.js?v=20260829f';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260829f';
+import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260829f';
+import { loadActivities } from '../../../services/activity.js?v=20260829f';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260829f';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260829f';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260829f';
+import { badgeHtml } from '../../../components/badge.js?v=20260829f';
+import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260829f';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260829f';
+import { HandoffStore } from '../../../services/handoff.js?v=20260829f';
 
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');
@@ -75,6 +76,12 @@ export function renderContent(ctx) {
         <div class="flex gap-2">
           <button class="att-view-btn btn-tab active" data-view="long">活动视图</button>
           <button class="att-view-btn btn-tab" data-view="wide">人视图</button>
+          <!-- 2026-08-28 T-304 A 档下载闭环：考勤总表导出 CSV + 打印 -->
+          <button class="att-export-btn btn-tab" style="cursor:pointer;">导出 CSV</button>
+          <button class="att-print-btn btn-tab" style="cursor:pointer;">打印</button>
+          <!-- 2026-08-29 T-304 C2 数据交接协议：纪检→宣传 考勤备案 -->
+          <button class="att-handoff-btn btn-tab" style="cursor:pointer;">提交考勤至宣传</button>
+          ${HandoffStore.hasPendingFor('attendance-archival', 'attendance') ? '<span class="text-xs text-teal-600 font-medium">待宣传备案</span>' : ''}
         </div>
       </div>
       <div class="text-xs text-gray-500 mb-3">纪检委员维护考勤系统，组织委员的活动出勤数据直接使用本系统</div>
@@ -243,14 +250,67 @@ export function renderContent(ctx) {
     `;
   }
 
+  // T-304 A 档下载闭环：当前视图跟踪（导出 CSV 按当前视图导出）
+  let currentView = 'long';
   container.querySelectorAll('.att-view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       container.querySelectorAll('.att-view-btn').forEach(b => {
         b.style.background = 'var(--surface-card)'; b.style.color = 'var(--neutral-500)'; b.style.border = '1px solid var(--neutral-200)';
       });
       btn.style.background = accentRgba; btn.style.color = accent; btn.style.border = `1px solid ${accentBorder}`;
+      currentView = btn.dataset.view;
       if (btn.dataset.view === 'long') renderLong(); else renderWide();
     });
+  });
+
+  // T-304 A 档下载闭环：导出当前视图 CSV（随当前搜索/筛选）+ 打印
+  container.querySelector('.att-export-btn')?.addEventListener('click', () => {
+    const stamp = _fmtDate(new Date());
+    if (currentView === 'long') {
+      const actById = new Map(loadActivities().map(a => [a.id, a]));
+      const rows = applySearchFilter(filtered).map(a => {
+        const act = actById.get(allRecords.find(r => r.id === a.id)?.activityId);
+        return [act?.date ? act.date.slice(0, 7) : '未排期', a.name, a.activity, a.type, a.status, a.confirmer];
+      });
+      downloadCSV(`考勤总表_${stamp}.csv`, ['月份', '姓名', '活动', '类别', '状态', '确认人'], rows);
+    } else {
+      const searchEl = document.getElementById('att-search-input');
+      const q = searchEl ? searchEl.value.trim().toLowerCase() : '';
+      const rows = q
+        ? filteredWide.rows.filter(r => (r.name || '').toLowerCase().includes(q))
+        : filteredWide.rows;
+      downloadCSV(
+        `考勤人视图_${stamp}.csv`,
+        ['姓名', ...filteredWide.columns.map(c => c.title)],
+        rows.map(row => [row.name, ...filteredWide.columns.map(c => row.cells[c.id] || '')])
+      );
+    }
+    showToast('success', `考勤表已导出（${currentView === 'long' ? '活动视图' : '人视图'}）`);
+  });
+  container.querySelector('.att-print-btn')?.addEventListener('click', () => {
+    triggerPrint();
+  });
+
+  // T-304 C2 数据交接协议：纪检→宣传 考勤备案（后台自动派生宣传侧待办）
+  container.querySelector('.att-handoff-btn')?.addEventListener('click', () => {
+    if (HandoffStore.hasPendingFor('attendance-archival', 'attendance')) {
+      showToast('info', '考勤已提交待宣传备案，请勿重复提交');
+      return;
+    }
+    const unconfirmed = filtered.filter(r => r.confirmer === '—').length;
+    if (unconfirmed > 0) {
+      showToast('error', `尚有 ${unconfirmed} 条考勤未确认，请先确认后再提交备案`);
+      return;
+    }
+    HandoffStore.create({
+      type: 'attendance-archival',
+      refType: 'attendance',
+      refLabel: '考勤总表',
+      refId: 'attendance',
+      note: `考勤总表共 ${filtered.length} 条，纪检确认后提交宣传备案`,
+    });
+    showToast('success', '考勤已提交至宣传委员，等待备案确认');
+    renderContent(ctx);
   });
 
   // T223：活动选择器切换 → 重新渲染对应活动考勤（filterActivityId 驱动过滤与活动列显隐）

@@ -2,9 +2,9 @@
 // 宣传委员工作台 Tab：宣传任务（T-279 M3 拆分，照 M2 样板）
 // 任务状态流转：待接收 → 进行中 → 已提交（seed 常量 + mockDB 持久化，刷新不再丢失）。
 
-import { mockDB } from '../../../core/domain.js?v=20260827c';
-import { persist } from '../../../core/data-adapter.js?v=20260827c';
-import { showToast } from '../../../core/utils.js?v=20260827c';
+import { mockDB } from '../../../core/domain.js?v=20260829f';
+import { persist } from '../../../core/data-adapter.js?v=20260829f';
+import { showToast, downloadCSV, _fmtDate } from '../../../core/utils.js?v=20260829f';
 
 // ── 宣传任务 mock 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 const PROP_TASKS_SEED = [
@@ -51,6 +51,10 @@ export function renderContent() {
   const submitted = _loadPropTasks().filter(t => t.status === 'submitted');
 
   container.innerHTML = `
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-title-cn text-base font-semibold text-gray-800">宣传任务</h3>
+      <button class="prop-task-export-btn btn-tab" style="cursor:pointer;">导出 CSV</button>
+    </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
       <div class="card rounded-xl p-0 overflow-hidden">
         <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(251,191,36,0.10);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.25);background:rgba(245,158,11,0.06);color:#d97706;border-bottom:2px solid rgba(245,158,11,0.15);">待接收 (${pending.length})</div>
@@ -75,6 +79,13 @@ export function renderContent() {
       </div>
     </div>
   `;
+
+  // T-304 A 档下载闭环：宣传任务导出 CSV
+  container.querySelector('.prop-task-export-btn')?.addEventListener('click', () => {
+    const rows = _loadPropTasks().map(t => [t.source, t.type, t.summary, TASK_STATUS_LABEL[t.status] || t.status, t.createdAt]);
+    downloadCSV(`宣传任务_${_fmtDate(new Date())}.csv`, ['来源', '类型', '任务内容', '状态', '创建日期'], rows);
+    showToast('success', '宣传任务已导出');
+  });
 
   // 推进状态按钮事件
   container.querySelectorAll('.task-advance-btn').forEach(btn => {

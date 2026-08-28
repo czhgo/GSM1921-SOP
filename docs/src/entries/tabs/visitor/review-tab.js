@@ -1,40 +1,44 @@
 // role: [工程师]+[AI]
-// 组长工作台 Tab：复盘提交（T-279 M2 拆分）
-// 党小组组长提交活动复盘总结 → 纪检委员批注/确认。
+// 参与者工作台 Tab：我的复盘（T-304 C1 组织者承载面）
+// SOP 复盘提交归「组织者」——组织者可能是党小组组长，也可能是被赋权的普通成员。
+// 本 tab 让担任组织者/深度参与者的成员在自己的工作台即可提交复盘，复盘提交人 = 当前用户（组织者）。
 
 import { loadActivities } from '../../../services/activity.js?v=20260829f';
 import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../../../services/review.js?v=20260829f';
 import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260829f';
 import { PEOPLE } from '../../../mock/index.js?v=20260829f';
+import { AuthStore } from '../../../services/auth.js?v=20260829f';
 import { showToast } from '../../../core/utils.js?v=20260829f';
 import { solidAccentStyle } from '../../../core/constants.js?v=20260829f';
-import { currentLeaderGroup, getCurrentLeaderId } from './_shared.js?v=20260829f';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;
 
 /**
- * 复盘提交 tab：展示本组活动列表，按复盘状态分桶（待复盘/已复盘），
- * 待复盘活动可展开填写复盘总结并提交。
+ * 我的复盘 tab：展示当前用户担任组织者/深度参与者的活动，
+ * 待复盘活动可展开填写复盘总结并提交 → 纪检委员批注/确认。
  */
 export function renderContent(ctx) {
-  const container = document.getElementById('leader-tab-content');
+  const container = document.getElementById('visitor-tab-content');
   if (!container) return;
 
   const { accent, accentBorder } = ctx;
+  const currentUserId = AuthStore.getCurrentUser()?.personId || '';
+  const authRecords = ctx.authRecords || [];
 
-  // 当前组长所属党小组（数据驱动：AuthStore 当前用户 → partyGroup）
-  const { group: myGroup } = currentLeaderGroup();
-  const currentLeaderId = getCurrentLeaderId();
+  // 我参与的活动（组织者/深度参与者）：assignments + authRecords 双源合并
+  const myIds = new Set();
+  for (const a of loadActivities()) {
+    if (Array.isArray(a.assignments)) {
+      a.assignments.forEach(x => { if (x.personId === currentUserId && ['organizer', 'deep'].includes(x.role)) myIds.add(a.id); });
+    }
+  }
+  for (const r of authRecords) {
+    if (r.targetPersonId === currentUserId && ['organizer', 'deep'].includes(r.role)) myIds.add(r.scopeRef);
+  }
 
-  // 筛选本组活动（三会一课/主题党日等由本组组长组织的活动；已归档活动退出工作区）
-  // T223 排序统一：date 降序（新者在前）
-  const myGroupActivities = loadActivities()
-    .filter(a => {
-      // 按组织者属于本组 或 按 hostGroup 匹配
-      const organizer = PEOPLE.find(p => p.id === a.organizer);
-      return organizer && organizer.partyGroup === myGroup && a.status !== 'cancelled' && !a.archived;
-    })
+  const myActivities = loadActivities()
+    .filter(a => myIds.has(a.id) && a.status !== 'cancelled' && !a.archived)
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   // 获取已有复盘记录
@@ -44,9 +48,9 @@ export function renderContent(ctx) {
   }
 
   // 按复盘状态分桶
-  const pending = [];   // 待复盘：未提交 / 已打回
-  const completed = []; // 已复盘：已上传 / 批注中 / 已确认
-  for (const act of myGroupActivities) {
+  const pending = [];
+  const completed = [];
+  for (const act of myActivities) {
     const rev = reviewMap[act.id];
     if (!rev || rev.reviewStatus === ReviewStatus.NOT_SUBMITTED || rev.reviewStatus === ReviewStatus.REJECTED) {
       pending.push({ act, rev: rev || null });
@@ -55,7 +59,6 @@ export function renderContent(ctx) {
     }
   }
 
-  // 复盘状态颜色映射
   const reviewColorMap = {
     [ReviewStatus.NOT_SUBMITTED]: 'bg-red-100 text-red-700',
     [ReviewStatus.UPLOADED]: 'bg-orange-100 text-orange-700',
@@ -70,13 +73,14 @@ export function renderContent(ctx) {
     const statusLabel = rev ? REVIEW_STATUS_LABELS[rev.reviewStatus] : '未提交';
     const statusColor = reviewColorMap[rev?.reviewStatus || ReviewStatus.NOT_SUBMITTED] || 'bg-gray-100 text-gray-500';
     const isExpanded = _reviewExpandedId === act.id;
+    const orgName = act.organizer ? (PEOPLE.find(p => p.id === act.organizer)?.name || act.organizer) : '—';
 
     return `
-      <div class="leader-review-item p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors ${rev?.reviewStatus === ReviewStatus.REJECTED ? 'border border-red-100' : ''}" data-act-id="${act.id}">
+      <div class="visitor-review-item p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors ${rev?.reviewStatus === ReviewStatus.REJECTED ? 'border border-red-100' : ''}" data-act-id="${act.id}">
         <div class="flex items-center justify-between cursor-pointer review-toggle">
           <div class="flex-1 min-w-0">
             <div class="text-sm font-medium text-gray-800">${act.title || '未命名'}</div>
-            <div class="text-xs text-gray-500 mt-0.5">${act.date || ''} ${act.type ? '· ' + act.type : ''}</div>
+            <div class="text-xs text-gray-500 mt-0.5">${act.date || ''} ${act.type ? '· ' + act.type : ''} · 组织者 ${orgName}</div>
           </div>
           <div class="flex items-center gap-2 ml-4">
             <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
@@ -92,23 +96,22 @@ export function renderContent(ctx) {
   container.innerHTML = `
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">复盘提交</h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">我的复盘</h3>
+        <span class="text-xs text-gray-400">我担任组织者/深度参与者的活动 · 提交人即组织者</span>
       </div>
-      <div class="text-xs text-gray-500 mb-4">党小组组长提交活动复盘总结 → 纪检委员批注/确认</div>
+      <div class="text-xs text-gray-500 mb-4">提交活动复盘总结 → 纪检委员批注/确认 → 活动闭环</div>
 
-      <!-- 待复盘 -->
       <div class="mb-4">
         <div class="text-xs font-bold text-gray-600 mb-2">待复盘 <span class="text-gray-400 font-normal">(${pending.length})</span></div>
-        <div class="space-y-2" id="leader-review-pending">
+        <div class="space-y-2" id="visitor-review-pending">
           ${pending.length === 0 ? '<p class="text-xs text-gray-400 text-center py-3">暂无待复盘活动</p>' :
             pending.map(item => renderActivityCard(item, 'pending')).join('')}
         </div>
       </div>
 
-      <!-- 已复盘 -->
       <div class="pt-3 border-t border-gray-100">
         <div class="text-xs font-bold text-gray-600 mb-2">已复盘 <span class="text-gray-400 font-normal">(${completed.length})</span></div>
-        <div class="space-y-2" id="leader-review-completed">
+        <div class="space-y-2" id="visitor-review-completed">
           ${completed.length === 0 ? '<p class="text-xs text-gray-400 text-center py-3">暂无已复盘活动</p>' :
             completed.map(item => renderActivityCard(item, 'completed')).join('')}
         </div>
@@ -119,7 +122,7 @@ export function renderContent(ctx) {
   // 绑定活动卡片点击展开/收起
   container.querySelectorAll('.review-toggle').forEach(toggle => {
     toggle.addEventListener('click', () => {
-      const item = toggle.closest('.leader-review-item');
+      const item = toggle.closest('.visitor-review-item');
       const actId = item?.dataset.actId;
       _reviewExpandedId = _reviewExpandedId === actId ? null : actId;
       renderContent(ctx);
@@ -136,14 +139,11 @@ export function renderContent(ctx) {
         showToast('error', '请填写复盘总结');
         return;
       }
-      // 真问题（每行一条）：书记 KPI「复盘问题」以此计量（书记 2026-08-10 裁定：复盘率 100% 会诱导随意提交，改问题导向）
       const issuesEl = container.querySelector(`#review-issues-${actId}`);
       const issues = (issuesEl?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
 
-      // 在复盘记录中查找或创建
       const existIdx = findActivityReviewIndex(actId);
       if (existIdx >= 0) {
-        // 更新已有记录（如已打回重新提交）
         const existing = loadActivityReviews()[existIdx];
         const isResubmit = existing.reviewStatus === ReviewStatus.REJECTED;
         updateActivityReview(actId, {
@@ -154,11 +154,11 @@ export function renderContent(ctx) {
           ...(isResubmit ? { annotation: '' } : {}),
         });
       } else {
-        // 新建复盘记录
+        // 复盘提交人统一归组织者（C1）：organizerId = 当前组织者
         addActivityReview({
           id: 'rev_' + Date.now(),
           activityId: actId,
-          organizerId: currentLeaderId,
+          organizerId: currentUserId,
           progress: '已完成',
           overdue: false,
           reviewStatus: ReviewStatus.UPLOADED,

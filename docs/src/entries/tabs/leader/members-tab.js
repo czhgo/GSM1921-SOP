@@ -5,16 +5,16 @@
 // P-011 知情边界：看 ≠ 做——组长只知情与温和「了解进展」，答复由书记完成，不跳转他人工作台。
 // 本视图禁用 SVG 图标，类别用色点+文字区分。
 
-import { AuthStore } from '../../../services/auth.js?v=20260827c';
-import { IssueStore } from '../../../services/issues.js?v=20260827c';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/report-inbox.js?v=20260827c';
-import { TodoStore, TodoStatus } from '../../../services/todo.js?v=20260827c';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260827c';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260827c';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260827c';
-import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260827c';
-import { getPersonName } from '../../../mock/index.js?v=20260827c';
-import { showToast } from '../../../core/utils.js?v=20260827c';
+import { AuthStore } from '../../../services/auth.js?v=20260829f';
+import { IssueStore } from '../../../services/issues.js?v=20260829f';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/report-inbox.js?v=20260829f';
+import { TodoStore, TodoStatus } from '../../../services/todo.js?v=20260829f';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260829f';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260829f';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260829f';
+import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260829f';
+import { getPersonName } from '../../../mock/index.js?v=20260829f';
+import { showToast } from '../../../core/utils.js?v=20260829f';
 
 // 模块级 ctx 缓存：重渲染（了解进展/行内答复后刷新）复用首次渲染的 accent
 let _ctx = null;

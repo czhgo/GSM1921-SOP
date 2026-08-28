@@ -2,13 +2,13 @@
 // 纪检委员工作台 Tab：活动监督复盘（T-279 M3 拆分）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain.js?v=20260827c';
-import { persist } from '../../../core/data-adapter.js?v=20260827c';
-import { reviewToDisplay } from '../../../mock/index.js?v=20260827c';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/review.js?v=20260827c';
-import { showToast } from '../../../core/utils.js?v=20260827c';
-import { openFormModal } from '../../../components/modal.js?v=20260827c';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260827c';
+import { mockDB, ReviewStatus } from '../../../core/domain.js?v=20260829f';
+import { persist } from '../../../core/data-adapter.js?v=20260829f';
+import { reviewToDisplay } from '../../../mock/index.js?v=20260829f';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/review.js?v=20260829f';
+import { showToast } from '../../../core/utils.js?v=20260829f';
+import { openFormModal } from '../../../components/modal.js?v=20260829f';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260829f';
 
 // ── 经验沉淀数据层（mockDB） ────────────────────────────
 function _loadDeposits() {
@@ -175,11 +175,39 @@ export function renderContent(ctx) {
     if (id) updateReviewById(id, { remindedAt: new Date().toISOString(), reminderType: 'resubmit' });
     showToast('success', '复盘超期邮件提醒已发送至组织者');
   }));
-  // 督促沉淀按钮
+  // 督促沉淀按钮（B 档 CRUD 补全：督促 → 直接在本界面记录经验沉淀，落库同源）
   container.querySelectorAll('.btn-disc-urge-deposit').forEach(btn => btn.addEventListener('click', () => {
-    const id = btn.dataset.reviewId;
-    const organizer = btn.dataset.organizer;
-    if (id) updateReviewById(id, { remindedAt: new Date().toISOString(), reminderType: 'deposit' });
-    showToast('success', `已发送沉淀督促提醒至 ${organizer}`);
+    const reviewId = btn.dataset.reviewId;
+    const activityName = btn.dataset.activityName || btn.dataset.organizer || '该活动';
+    openFormModal({
+      id: 'deposit',
+      title: '记录经验沉淀',
+      fields: [
+        { key: 'title', label: '沉淀主题', type: 'input', required: true, placeholder: `如：${activityName}的组织经验` },
+        { key: 'content', label: '经验内容', type: 'textarea', required: true, placeholder: '做了什么、怎么做的、为什么这样做（可操作、有边界）' },
+        { key: 'scenario', label: '适用场景', type: 'input', required: false, placeholder: '什么情况下可用这条经验（选填）' },
+        { key: 'counter', label: '常见误区/反例', type: 'textarea', required: false, placeholder: '不这样做会怎样 / 什么情况下不适用（选填）' },
+      ],
+      onSubmit: (values) => {
+        const deposits = _loadDeposits();
+        deposits.push({
+          id: 'exp_' + Date.now(),
+          sourceName: activityName,
+          sourceType: 'activity',
+          reviewId: reviewId || null,
+          title: values.title,
+          content: values.content,
+          scenario: values.scenario || '',
+          counter: values.counter || '',
+          submittedBy: DISC_COMMISSIONER_ID,
+          createdAt: new Date().toISOString(),
+        });
+        _saveDeposits(deposits);
+        if (reviewId) updateReviewById(reviewId, { remindedAt: new Date().toISOString(), reminderType: 'deposit', depositedAt: new Date().toISOString() });
+        showToast('success', '经验沉淀已记录');
+        renderContent(ctx);
+      },
+      accentColor: ctx.accent || 'var(--accent-disc-commissioner)'
+    });
   }));
 }

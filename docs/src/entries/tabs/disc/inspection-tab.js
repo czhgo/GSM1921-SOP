@@ -2,12 +2,13 @@
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
 // 专班名单区（组织→纪检 自动同步，纪检只读同源）+ 考察总表（确认/删除）。
 
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260827c';
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260827c';
-import { inspectionToLong, inspectionToWide, getPersonName } from '../../../mock/index.js?v=20260827c';
-import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260827c';
-import { badgeHtml } from '../../../components/badge.js?v=20260827c';
-import { showToast } from '../../../core/utils.js?v=20260827c';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260829f';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260829f';
+import { inspectionToLong, inspectionToWide, getPersonName } from '../../../mock/index.js?v=20260829f';
+import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260829f';
+import { badgeHtml } from '../../../components/badge.js?v=20260829f';
+import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260829f';
+import { HandoffStore } from '../../../services/handoff.js?v=20260829f';
 
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');
@@ -41,6 +42,12 @@ export function renderContent(ctx) {
         <div class="flex gap-2">
           <button class="insp-view-btn btn-tab active" data-view="long">活动视图</button>
           <button class="insp-view-btn btn-tab" data-view="wide">人视图</button>
+          <!-- 2026-08-28 T-304 A 档下载闭环：考察总表导出 CSV + 打印 -->
+          <button class="insp-export-btn btn-tab" style="cursor:pointer;">导出 CSV</button>
+          <button class="insp-print-btn btn-tab" style="cursor:pointer;">打印</button>
+          <!-- 2026-08-29 T-304 C2 数据交接协议：纪检→组织 考察记录提交 -->
+          <button class="insp-handoff-btn btn-tab" style="cursor:pointer;">提交考察至支委会</button>
+          ${HandoffStore.hasPendingFor('inspection-report', 'inspection') ? '<span class="text-xs text-teal-600 font-medium">待组织接收</span>' : ''}
         </div>
       </div>
       <div class="text-xs text-gray-500 mb-3">纪检委员管理考察记录，党小组组长/组织委员上传 → 纪检确认 → 录入考察总表</div>
@@ -176,14 +183,64 @@ export function renderContent(ctx) {
     `;
   }
 
+  // T-304 A 档下载闭环：当前视图跟踪（导出 CSV 按当前视图导出）
+  let currentView = 'long';
   container.querySelectorAll('.insp-view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       container.querySelectorAll('.insp-view-btn').forEach(b => {
         b.style.background = 'var(--surface-card)'; b.style.color = 'var(--neutral-500)'; b.style.border = '1px solid var(--neutral-200)';
       });
       btn.style.background = accentRgba; btn.style.color = accent; btn.style.border = `1px solid ${accentBorder}`;
+      currentView = btn.dataset.view;
       if (btn.dataset.view === 'long') renderLong(); else renderWide();
     });
+  });
+
+  // T-304 A 档下载闭环：导出当前视图 CSV（随当前搜索/筛选）+ 打印
+  container.querySelector('.insp-export-btn')?.addEventListener('click', () => {
+    const stamp = _fmtDate(new Date());
+    const statusLabel = i => overdueIds.has(i.id) ? '超期' : (i.status === 'confirmed' ? '已确认' : '待确认');
+    if (currentView === 'long') {
+      const rows = applyInspFilter(longData).map(i => [i.name, i.source, i.sourceType, i.level, i.role || i.content, statusLabel(i)]);
+      downloadCSV(`考察总表_${stamp}.csv`, ['姓名', '来源', '类别', '参与层级', '内容/角色', '状态'], rows);
+    } else {
+      const searchEl = document.getElementById('insp-search-input');
+      const q = searchEl ? searchEl.value.trim().toLowerCase() : '';
+      const rows = q
+        ? wideData.rows.filter(r => (r.name || '').toLowerCase().includes(q))
+        : wideData.rows;
+      downloadCSV(
+        `考察人视图_${stamp}.csv`,
+        ['姓名', ...wideData.columns.map(c => `${c.title}（${c.type}）`)],
+        rows.map(row => [row.name, ...wideData.columns.map(c => row.cells[c.key] || '')])
+      );
+    }
+    showToast('success', `考察表已导出（${currentView === 'long' ? '活动视图' : '人视图'}）`);
+  });
+  container.querySelector('.insp-print-btn')?.addEventListener('click', () => {
+    triggerPrint();
+  });
+
+  // T-304 C2 数据交接协议：纪检→组织 考察记录提交（后台自动派生组织侧待办）
+  container.querySelector('.insp-handoff-btn')?.addEventListener('click', () => {
+    if (HandoffStore.hasPendingFor('inspection-report', 'inspection')) {
+      showToast('info', '考察记录已提交待组织接收，请勿重复提交');
+      return;
+    }
+    const pendingCount = longData.filter(r => r.status !== 'confirmed').length;
+    if (pendingCount > 0) {
+      showToast('error', `尚有 ${pendingCount} 条考察未确认，请先确认后再提交`);
+      return;
+    }
+    HandoffStore.create({
+      type: 'inspection-report',
+      refType: 'inspection',
+      refLabel: '考察总表',
+      refId: 'inspection',
+      note: `考察总表共 ${longData.length} 条，纪检确认后提交支委会建档`,
+    });
+    showToast('success', '考察记录已提交至支委会，等待组织委员接收');
+    renderContent(ctx);
   });
 
   renderLong();

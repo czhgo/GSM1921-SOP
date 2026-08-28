@@ -119,3 +119,51 @@ export function flashHighlight(el, { duration = 2800, className = 'nav-flash-hig
   el.addEventListener('click', off, { once: true });
   setTimeout(off, duration);
 }
+
+/** 2026-08-28 T-304 A 档下载闭环：通用 CSV 导出（UTF-8 BOM，Excel 中文不乱码） */
+export function downloadCSV(filename, headers, rows) {
+  const esc = (v) => {
+    const s = String(v == null ? '' : v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+  const csv = '\uFEFF' + [headers, ...rows].map(r => r.map(esc).join(',')).join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/** 2026-08-28 T-304 A 档下载闭环：触发打印（配合 @media print 样式） */
+export function triggerPrint() {
+  window.print();
+}
+
+/** 2026-08-28 T-304 A 档下载闭环：通用 Blob 下载（模板/材料/导出共用） */
+export function downloadBlob(filename, blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/** 2026-08-28 T-304 A 档下载闭环：通用 URL 下载（dataURL 直下 / 服务端文件带鉴权拉取） */
+export async function downloadUrl(url, filename, fetchInit) {
+  try {
+    const resp = await fetch(url, fetchInit);
+    if (!resp.ok) throw new Error(`下载失败(${resp.status})`);
+    downloadBlob(filename, await resp.blob());
+    return true;
+  } catch (e) {
+    console.warn('[downloadUrl]', e);
+    return false;
+  }
+}

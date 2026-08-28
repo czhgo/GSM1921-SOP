@@ -2,11 +2,14 @@
 // 组织委员工作台 Tab：待办（T-279 M3 拆分，照 M2 样板）
 // 最小三成本原则落地：进入即见首条详情，减一次点击。
 
-import { TodoStore } from '../../../services/todo.js?v=20260827c';
-import { renderTodoList } from '../../../components/todo-list.js?v=20260827c';
-import { badgeHtml } from '../../../components/badge.js?v=20260827c';
-import { showToast } from '../../../core/utils.js?v=20260827c';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260827c';
+import { TodoStore } from '../../../services/todo.js?v=20260829f';
+import { renderTodoList } from '../../../components/todo-list.js?v=20260829f';
+import { badgeHtml } from '../../../components/badge.js?v=20260829f';
+import { showToast } from '../../../core/utils.js?v=20260829f';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260829f';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260829f';
+import { HandoffStore } from '../../../services/handoff.js?v=20260829f';
+import { openFormModal } from '../../../components/modal.js?v=20260829f';
 
 // 私有状态（随模块自持，不污染入口）
 let _selectedTodoId = null;
@@ -41,6 +44,15 @@ export function renderContent(ctx) {
     onActionTodo: (todo) => {
       _handleTodoAction(todo, ctx);
     },
+    // B 档 CRUD 补全：待办删除（确认后删除，聚合卡删除整组）
+    onDeleteTodo: (todo) => {
+      const items = todo.items && todo.items.length ? todo.items : [todo];
+      const label = items.length === 1 ? items[0].title : `${items[0].title} 等 ${items.length} 条`;
+      if (!window.confirm(`确认删除待办「${label}」？删除后不可恢复。`)) return;
+      items.forEach(t => TodoStore.delete(t.id));
+      showToast('success', '待办已删除');
+      renderContent(ctx);
+    },
   });
 
   const detailHtml = selectedTodo ? _renderTodoDetail(selectedTodo, ctx) : `
@@ -51,6 +63,14 @@ export function renderContent(ctx) {
   `;
 
   container.innerHTML = `
+    ${renderHandoffInboxHtml({
+      to: 'org-commissioner',
+      accent: ctx.accent,
+      title: '数据交接·考察建档',
+      extraActionHtml: `<div class="mt-2 pt-2 border-t border-gray-100">
+        <button id="org-shortage-btn" class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" style="cursor:pointer;">标记补课材料缺失（通知纪检）</button>
+      </div>`,
+    })}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2">
         <div class="card rounded-xl p-5">
@@ -70,6 +90,31 @@ export function renderContent(ctx) {
   `;
 
   bindEvents(container);
+  // T-304 C2 数据交接：组织确认考察建档（纪检提交 → 组织接收，后台自动派生待办）
+  bindHandoffInbox(container, { to: 'org-commissioner', onDone: () => { showToast('success', '考察记录已接收建档'); renderContent(ctx); } });
+  // T-304 C2 数据交接：组织标记补课材料缺失 → 纪检补课制度高亮（回执机制）
+  container.querySelector('#org-shortage-btn')?.addEventListener('click', () => {
+    openFormModal({
+      id: 'shortage',
+      title: '标记补课材料缺失',
+      fields: [
+        { key: 'source', label: '关联活动/专班', type: 'input', required: true, placeholder: '如：5月主题党日：五四精神传承' },
+        { key: 'note', label: '缺失说明', type: 'textarea', required: true, placeholder: '如：张三缺勤补课材料（心得）未提交' },
+      ],
+      onSubmit: (values) => {
+        HandoffStore.create({
+          type: 'material-shortage',
+          refType: 'activity',
+          refLabel: values.source,
+          refId: 'shortage_' + Date.now(),
+          note: values.note,
+        });
+        showToast('success', '补课需求回执已发送至纪检委员');
+        renderContent(ctx);
+      },
+      accentColor: ctx.accent || '#3B82F6',
+    });
+  });
   _bindTodoDetailEvents(container, ctx);
 }
 
