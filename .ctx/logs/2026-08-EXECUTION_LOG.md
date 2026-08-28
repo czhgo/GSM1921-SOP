@@ -5896,3 +5896,31 @@ P-001~P-004、P-014~P-017 不变。物理顺序与编号一致。
 
 ### 验证
 - link-audit **5/5 通过（fail 0）**；GetDiagnostics 零错误
+
+## T-299 第一章 JS 滚动驱动三卡 + 第六章原话整合进卡 + 尊重体现在实践中（2026-08-28）
+
+**任务**：书记 3 点指令——①第一章滚动驱动完全消失，学习第五章 JS 连续驱动 ②第六章文字出现地方不对，删 head 滚动联动区，给文字更多空间 ③「尊重要体现在实践中」（P-005：体谅支委压力给予同理心）加在哪里——AskUserQuestion 裁定：整合进 03 卡。
+
+**引用流程**：web-design-guidelines + brainstorming + AskUserQuestion
+
+### 一、① 第一章 JS 滚动驱动三卡（学习第五章）
+- 根因：`.ab-expect-card` 的 CSS view() 动画在左列 sticky 化后失效（animation-timeline 不推进）
+- 改：弃 CSS view() → 新增 `bindCognitionScrollDriven()`（仿第五章）：rAF 节流 + 几何缓存，每卡在其触发区间（卡顶进入视口 → 到达视口 30% 高度）连续上移浮现（translateY 64→0 + opacity 0→1）
+- 左栏（章头+五词）保持 sticky 定格
+- 启动区调用
+
+### 二、② 第六章删 head 滚动联动原话区
+- 删 `.ab-dialogue-quote` p（head 内）→ head 只留 eyebrow/title/sub，文字有更多空间
+- 删 CSS `.ab-dialogue-quote`（absolute）+ head padding-bottom/position:relative + ab-quote-fade keyframes
+- apply 删 head quote 更新逻辑
+
+### 三、③ 尊重原话整合进 03 卡（书记裁定「行百里者半九十」）
+- 卡内加 `.ab-dialogue-card-quote`（12px 墨色），**正午时展开**（data-state=current → opacity 1 + max-height 22em，过渡 400/500ms）
+- 03 卡 quote = P-005 尊重原话原文：「支部成员也要多多体谅支委同样作为学生参与工作的压力，要给予同理心——特别体现在时间紧、任务重的工作中，实践中的尊重是困难的，也恰恰是我们最需要的！」
+- 02 卡保留「交流解决方案」、04 卡保留「方兴未艾意见创新弥足珍贵」（正午展开）
+
+### 同步
+- 字体子集重跑（1080 字）+ bump 20260828h
+
+### 验证
+- link-audit **5/5 通过（fail 0）**；GetDiagnostics 零错误

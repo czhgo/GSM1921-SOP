@@ -270,7 +270,7 @@ const DIALOGUE_STAGES = [
     question: '如何在实践中改进？',
     answer: '和组织对话',
     desc: '活动完成后，还要和组织对话、复盘得失——行百里者半九十。',
-    quote: '支部的建设永远以人为本，我们坚持高要求，不是坚持高压力——感到力不从心时，工作可以交接，但务必对交接本身负责。',
+    quote: '支部成员也要多多体谅支委同样作为学生参与工作的压力，要给予同理心——特别体现在时间紧、任务重的工作中，实践中的尊重是困难的，也恰恰是我们最需要的！',
   },
   {
     no: '04',
@@ -728,6 +728,7 @@ function renderExploration() {
 /** Section 7: 和组织对话——行百里者半九十（第六章，四阶段日出日落，滚动驱动公转，文字始终正立，闭环表达） */
 function renderDialogue() {
   const stepsHTML = DIALOGUE_STAGES.map((s) => {
+    // 2026-08-28 T-299 书记：原话整合进卡内（删 head 滚动联动区），正午时显示
     return `
       <article class="ab-dialogue-card" data-state="future">
         <div class="ab-dialogue-no">${s.no}</div>
@@ -735,6 +736,7 @@ function renderDialogue() {
         <div class="ab-dialogue-question">${s.question}</div>
         <div class="ab-dialogue-answer">${s.answer}</div>
         <div class="ab-dialogue-desc">${s.desc}</div>
+        ${s.quote ? `<p class="ab-dialogue-card-quote">${s.quote}</p>` : ''}
       </article>
     `;
   }).join('');
@@ -751,8 +753,7 @@ function renderDialogue() {
             <div class="ab-chapter-eyebrow">善始善终</div>
             <h2 class="ab-chapter-title">行百里者半九十</h2>
             <p class="ab-chapter-sub">活动完成后，对话与复盘仍在继续——在实践中持续改进</p>
-            <!-- 滚动联动原话（2026-08-28 书记：与旋转卡关联，随阶段在正午卡上方浮现；head 精简去静态 lead/details） -->
-            <p class="ab-dialogue-quote" aria-live="polite"></p>
+            <!-- 2026-08-28 T-299 书记：删 head 滚动联动原话区（位置不对），原话整合进各卡内、正午时显示 -->
           </div>
           <div class="ab-dialogue-stage">
             ${stepsHTML}
@@ -1269,6 +1270,48 @@ function bindExplorationScrollDriven() {
   window.addEventListener('resize', () => { cacheGeom(); if (!ticking) update(); });
 }
 
+/** 2026-08-28 T-299 第一章 JS 滚动驱动三卡（学习第五章连续驱动）：
+ *  左栏（章头+五词）sticky 定格；右栏三卡随滚动在其触发区间连续上移浮现（translateY+opacity）。
+ *  替代失效的 CSS view() 动画（sticky 化后 animation-timeline 不推进）。 */
+function bindCognitionScrollDriven() {
+  const section = document.querySelector('.ab-cognition-section');
+  if (!section) return;
+  const cards = Array.from(section.querySelectorAll('.ab-expect-card'));
+  if (!cards.length) return;
+  const geom = cards.map(() => ({ top: 0, height: 0 }));
+  const cacheGeom = () => {
+    cards.forEach((card, i) => {
+      const r = card.getBoundingClientRect();
+      geom[i] = { top: r.top + window.scrollY, height: r.height };
+    });
+  };
+  cacheGeom();
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const vh = window.innerHeight;
+    const scrollTop = window.scrollY;
+    cards.forEach((card, i) => {
+      const g = geom[i];
+      if (!g || !g.height) return;
+      const start = g.top - vh; // 卡顶进入视口底部
+      const end = g.top - vh * 0.3; // 卡顶到达视口 30% 高度处完成浮现
+      const p = clamp01((scrollTop - start) / Math.max(1, end - start));
+      card.style.transform = `translateY(${((1 - p) * 64).toFixed(1)}px)`;
+      card.style.opacity = p.toFixed(3);
+    });
+  };
+  const onScroll = () => {
+    if (!ticking) {
+      requestAnimationFrame(update);
+      ticking = true;
+    }
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', cacheGeom);
+  update();
+}
+
 // ════════════════════════════════════════════════════════════════
 //  电影化滚动叙事（2026-08-04 书记三轮裁决后重构）
 //  ① 滚动驱动的场景切换（Hero 退场 + Dialogue/Exploration 章节点亮）
@@ -1475,21 +1518,6 @@ function bindDialogueScrollActivation() {
         }
       }
     });
-
-    // 2026-08-28 滚动联动原话：随阶段在正午卡上方浮现（书记：与旋转卡关联，不孤零零堆在 head）
-    const q = section.querySelector('.ab-dialogue-quote');
-    if (q) {
-      const si = Math.min(cards.length - 1, Math.max(0, Math.floor(stepwise(progress) * cards.length)));
-      const text = (DIALOGUE_STAGES[si] && DIALOGUE_STAGES[si].quote) || '';
-      if (q.dataset.cur !== text) {
-        q.dataset.cur = text;
-        q.textContent = text;
-        // 内容变化重触发淡入动画
-        q.style.animation = 'none';
-        void q.offsetWidth;
-        q.style.animation = '';
-      }
-    }
   };
 
   // 2026-08-13 sticky 固定视窗（书记裁决）：flow 变 sticky——滚动时视窗固定，卡片在内公转 + 正午停留。
@@ -1627,6 +1655,7 @@ renderAboutContent();
 bindTimelineToggle();
 bindLenis();
 bindTOC();
+bindCognitionScrollDriven(); // 2026-08-28 T-299 第一章 JS 滚动驱动三卡（学习第五章）
 bindExplorationScrollDriven();
 bindDialogueScrollActivation();
 initLazySlots();

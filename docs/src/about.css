@@ -18,7 +18,7 @@
    ⚠️ 改 about 页文案新增汉字后，重跑该工具再 bump 版本号；禁止用其他字体文件冒充本字体 */
 @font-face {
   font-family: 'NanxiYoumosong';
-  src: url('../assets/fonts/nanxi-youmosong-subset.woff2?v=20260828g') format('woff2');
+  src: url('../assets/fonts/nanxi-youmosong-subset.woff2?v=20260828h') format('woff2');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -559,9 +559,7 @@ html.lenis, html.lenis body { height: auto; }
   border-radius: 10px;
   padding: 0;
   transition: transform 320ms var(--ab-ease);
-  animation: ab-rise-in 1s var(--ab-ease) both;
-  animation-timeline: view();
-  animation-range: entry 0% entry 100%;
+  will-change: transform, opacity; /* 2026-08-28 T-299 JS 滚动驱动三卡（学习第五章），由 JS 写 transform/opacity */
 }
 .ab-expect-card-title {
   font-size: 18px;
@@ -788,10 +786,8 @@ html.lenis, html.lenis body { height: auto; }
   gap: 121px; /* 2026-08-14 T-249 正午卡升起 ≤121px 恰到 head 底不遮副标题 p */
 }
 .ab-dialogue-head {
-  position: relative; /* 2026-08-28 T-297b quote 绝对定位锚点 */
   text-align: center;
   width: min(760px, 92vw); /* 2026-08-28 解决 head 组件过窄：sub/lead 在其中舒展 */
-  padding-bottom: clamp(72px, 9vh, 100px); /* 2026-08-28 T-297b 为绝对定位 quote 预留，不干扰 flow 几何 */
 }
 /* 2026-08-14 T-247 head 紧凑化：收紧 eyebrow/title/sub 间距，让 R 放宽后正午卡升起不遮 head */
 .ab-dialogue-head .ab-chapter-eyebrow {
@@ -803,27 +799,22 @@ html.lenis, html.lenis body { height: auto; }
 .ab-dialogue-head .ab-chapter-sub {
   margin: 0 auto;
 }
-/* 滚动联动原话（2026-08-28 书记：与旋转卡关联，随阶段浮现，非静态堆叠）
-   2026-08-28 T-297b 修复卡壳：head 内流元素高度变化 → head 高度抖动 → progress 抖动画卡壳。
-   改绝对定位（head padding 预留），不占布局高度 → head 高度恒定 → 旋转顺滑 */
-.ab-dialogue-quote {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(560px, 92%);
-  margin: 0;
+/* 卡内原话（2026-08-28 T-299 书记：原话整合进卡内，正午时展开显示；删 head 滚动联动区） */
+.ab-dialogue-card-quote {
+  margin: 10px 0 0;
   font-family: 'Noto Serif SC', 'STZhongsong', serif;
   font-weight: 500;
-  font-size: 15px;
-  color: var(--ab-ink);
-  line-height: 1.8;
-  text-align: center;
-  animation: ab-quote-fade 0.6s var(--ab-ease) both;
+  font-size: 12px;
+  color: var(--ab-ink-sub);
+  line-height: 1.6;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 400ms var(--ab-ease) 120ms, max-height 500ms var(--ab-ease);
 }
-@keyframes ab-quote-fade {
-  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+.ab-dialogue-card[data-state="current"] .ab-dialogue-card-quote {
+  opacity: 1;
+  max-height: 22em;
 }
 /* 2026-08-14 T-249 舞台视口驱动贴底：底部贴浏览器视窗最下端（243 = 紧凑 head≈122 + gap 121），大视口可超 640px
    2026-08-18 T-271 行百里者半九十转动半径加大：减数 243 → 200（舞台更高更大，环公转更舒展） */
