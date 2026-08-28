@@ -6002,3 +6002,29 @@ P-001~P-004、P-014~P-017 不变。物理顺序与编号一致。
 
 ### 验证
 - link-audit **5/5 通过（fail 0）**；GetDiagnostics 零错误
+
+## T-303 第六章只保留 02 卡点击（03/04 归并）+ 点击后卡片虚化 + pop 移到左侧空间（2026-08-28）
+
+**任务**：书记 3 点——①只保留 02 卡点击功能，03 卡点击内容归属 02（高要求交接负责并入 02 往复交流）②点击后卡片虚化（否则字看不清），pop 可考虑左右空间、不局限下方 ③执行完 commit（不 push）。
+
+**引用流程**：web-design-guidelines + browser_use 实测
+
+### 一、① 只保留 02 卡点击
+- 02 卡 quote 三条（往复交流·双向）：交流解决方案（组织对成员）+ 尊重体谅（成员对组织）+ 高要求非高压力交接负责（03 归属并入）
+- 03/04 卡 quote: null → 无 + 提示、无点击功能
+
+### 二、② 点击后卡片虚化 + pop 移左侧空间
+- `section[data-pop="open"] .ab-dialogue-card { filter: blur(2px) saturate(0.8) }`——点击后全部卡片虚化，pop 内容清晰（apply 不写 filter，无 inline 覆盖冲突）
+- pop 位置：舞台底部居中 → **舞台左侧空间**（left 3%、bottom 6%、width min(460px,44%)、左对齐）——不局限下方
+- keyframes ab-pop-in 去 translateX(-50%)（pop 不再居中）
+- JS：pop show 时 `section.dataset.pop='open'`，隐藏时删除
+
+### 三、浏览器实测
+- 点击 02 → pop 三条命中（交流解决方案/尊重/高要求）✓、dataset.pop=open ✓、卡片 filter blur(2px) ✓、pop 位于舞台左侧（left≈329 vs 舞台 319）✓
+- 再点 → pop 隐藏 + 虚化解除（filter none）✓
+
+### 同步
+- 字体子集重跑（1087 字）+ bump 20260828l
+
+### 验证
+- link-audit **5/5 通过（fail 0）**；GetDiagnostics 零错误

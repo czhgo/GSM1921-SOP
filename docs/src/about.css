@@ -18,7 +18,7 @@
    ⚠️ 改 about 页文案新增汉字后，重跑该工具再 bump 版本号；禁止用其他字体文件冒充本字体 */
 @font-face {
   font-family: 'NanxiYoumosong';
-  src: url('../assets/fonts/nanxi-youmosong-subset.woff2?v=20260828k') format('woff2');
+  src: url('../assets/fonts/nanxi-youmosong-subset.woff2?v=20260828l') format('woff2');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -816,14 +816,13 @@ html.lenis, html.lenis body { height: auto; }
   opacity: 0.8;
   transform: rotate(180deg);
 }
-/* 双向交流原话浮层（2026-08-28 T-302 书记：点击卡片后淡入淡出于页面其他位置——舞台底部） */
+/* 双向交流原话浮层（2026-08-28 T-302 点击卡片淡入淡出于页面其他位置；T-303 移到左侧空间、不局限下方） */
 .ab-dialogue-pop {
   position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 2%;
-  width: min(560px, 86%);
-  text-align: center;
+  left: 3%;
+  bottom: 6%;
+  width: min(460px, 44%);
+  text-align: left;
   opacity: 0;
   transition: opacity 500ms var(--ab-ease);
   pointer-events: none;
@@ -831,6 +830,10 @@ html.lenis, html.lenis body { height: auto; }
 .ab-dialogue-pop[data-show="true"] {
   opacity: 1;
   animation: ab-pop-in 500ms var(--ab-ease);
+}
+/* 点击后卡片虚化（2026-08-28 T-303 书记：卡片虚化否则字看不清；apply 只写 transform/opacity 不写 filter，无覆盖冲突） */
+.ab-dialogue-section[data-pop="open"] .ab-dialogue-card {
+  filter: blur(2px) saturate(0.8);
 }
 .ab-dialogue-pop-quote {
   margin: 0;
@@ -844,8 +847,8 @@ html.lenis, html.lenis body { height: auto; }
   margin-top: 10px;
 }
 @keyframes ab-pop-in {
-  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 /* 2026-08-14 T-249 舞台视口驱动贴底：底部贴浏览器视窗最下端（243 = 紧凑 head≈122 + gap 121），大视口可超 640px
    2026-08-18 T-271 行百里者半九十转动半径加大：减数 243 → 200（舞台更高更大，环公转更舒展） */

@@ -262,9 +262,11 @@ const DIALOGUE_STAGES = [
     question: '工作中遇到问题怎么办？',
     answer: '及时和组织沟通',
     desc: '反馈要在过程中进行——遇到偏差及时和组织对话、调整，避免事倍功半。',
+    // 2026-08-28 T-303 书记：只保留 02 点击；03 高要求交接负责归属 02（往复交流——双向）
     quote: [
       '交流解决方案，而不是交流问题——我们不期待听到“这里有一个问题”，我们期待听到的是“我认为解决问题的思路是这样，为什么是这样，支委会能否提供支持……”',
       '支部成员也要多多体谅支委同样作为学生参与工作的压力，要给予同理心——特别体现在时间紧、任务重的工作中，实践中的尊重是困难的，也恰恰是我们最需要的！',
+      '支部的建设永远以人为本，我们坚持高要求，不是坚持高压力——感到力不从心时，工作可以交接，但务必对交接本身负责。',
     ],
   },
   {
@@ -273,9 +275,7 @@ const DIALOGUE_STAGES = [
     question: '如何在实践中改进？',
     answer: '和组织对话',
     desc: '活动完成后，还要和组织对话、复盘得失——行百里者半九十。',
-    quote: [
-      '支部的建设永远以人为本，我们坚持高要求，不是坚持高压力——感到力不从心时，工作可以交接，但务必对交接本身负责。',
-    ],
+    quote: null,
   },
   {
     no: '04',
@@ -283,9 +283,7 @@ const DIALOGUE_STAGES = [
     question: '经验如何传承？',
     answer: '从这次到下一次',
     desc: '从一次活动/专班到下一次，同志与组织形成持续的对话关系——上次的经验成为下次的起点，在实践中不断改进工作内容与模式。',
-    quote: [
-      '支部的建设方兴未艾，任何的意见、建议、创新都弥足珍贵。',
-    ],
+    quote: null,
   },
 ];
 
@@ -1610,6 +1608,7 @@ function bindDialogueScrollActivation() {
         if (pop) {
           pop.innerHTML = stage.quote.map(q => `<p class="ab-dialogue-pop-quote">${q}</p>`).join('');
           pop.dataset.show = 'true';
+          section.dataset.pop = 'open'; // 2026-08-28 T-303 点击后卡片虚化（filter blur），pop 内容清晰
           // 内容切换重触发淡入动画
           pop.style.animation = 'none';
           void pop.offsetWidth;
@@ -1617,6 +1616,7 @@ function bindDialogueScrollActivation() {
         }
       } else if (pop) {
         pop.dataset.show = 'false';
+        delete section.dataset.pop;
       }
     });
   });
