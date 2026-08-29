@@ -4,20 +4,20 @@
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../components/sidebar.js?v=20260829j';
-import { renderHeader } from '../components/header.js?v=20260829j';
-import { AuthStore } from '../services/auth.js?v=20260829j';
-import { IssueStore } from '../services/issues.js?v=20260829j';
-import { MilestoneStore } from '../services/milestones.js?v=20260829j';
-import { getAccentColors, resolveAccentRole } from './constants.js?v=20260829j';
-import { CrossPageState } from './cross-page-state.js?v=20260829j';
-import { getBasePath } from './utils.js?v=20260829j';
-import { enhanceSelects } from '../components/custom-select.js?v=20260829j';
-import { registerApiAdapter, init } from './data-adapter.js?v=20260829j';
-import { ApiAdapter } from './api-adapter.js?v=20260829j';
-import { getCapabilities } from './registry.js?v=20260829j';
+import { renderSidebar } from '../components/sidebar.js?v=20260829k';
+import { renderHeader } from '../components/header.js?v=20260829k';
+import { AuthStore } from '../services/auth.js?v=20260829k';
+import { IssueStore } from '../services/issues.js?v=20260829k';
+import { MilestoneStore } from '../services/milestones.js?v=20260829k';
+import { getAccentColors, resolveAccentRole } from './constants.js?v=20260829k';
+import { CrossPageState } from './cross-page-state.js?v=20260829k';
+import { getBasePath } from './utils.js?v=20260829k';
+import { enhanceSelects } from '../components/custom-select.js?v=20260829k';
+import { registerApiAdapter, init } from './data-adapter.js?v=20260829k';
+import { ApiAdapter } from './api-adapter.js?v=20260829k';
+import { getCapabilities } from './registry.js?v=20260829k';
 // M4 数据源注册化：副作用导入触发 mock/api 数据源能力注册，bootstrap 经注册表选择数据源
-import '../modules/capabilities/data-source.js?v=20260829j';
+import '../modules/capabilities/data-source.js?v=20260829k';
 
 // ════════════════════════════════════════════════════════════════
 // S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）

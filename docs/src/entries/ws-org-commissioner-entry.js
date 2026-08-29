@@ -4,20 +4,20 @@
 // 入口职责：bootstrap + tab 清单读取（能力注册表，M2e 同款）+ URL 导航落点 + 状态变更驱动的当前 tab 重渲染。
 // tab.render 为懒加载动态 import（点击时才加载对应模块），各 tab 私有状态随模块自持。
 
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260829j';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260829j';
-import { renderTabBar } from '../components/tab-bar.js?v=20260829j';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260829j';
-import { flashHighlight } from '../core/utils.js?v=20260829j';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260829j';
-import { getCapabilities } from '../core/registry.js?v=20260829j';
-import { loadActivities } from '../services/activity.js?v=20260829j';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260829j';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260829j';
-import { TodoStore, seedTodos } from '../services/todo.js?v=20260829j';
-import { SignupStore } from '../services/signup.js?v=20260829j';
-import { solidAccentStyle } from '../core/constants.js?v=20260829j';
-import { openRecruitForm } from './tabs/org/taskforce-tab.js?v=20260829j';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260829k';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260829k';
+import { renderTabBar } from '../components/tab-bar.js?v=20260829k';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260829k';
+import { flashHighlight } from '../core/utils.js?v=20260829k';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260829k';
+import { getCapabilities } from '../core/registry.js?v=20260829k';
+import { loadActivities } from '../services/activity.js?v=20260829k';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260829k';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260829k';
+import { TodoStore, seedTodos } from '../services/todo.js?v=20260829k';
+import { SignupStore } from '../services/signup.js?v=20260829k';
+import { solidAccentStyle } from '../core/constants.js?v=20260829k';
+import { openRecruitForm } from './tabs/org/taskforce-tab.js?v=20260829k';
 // 副作用导入触发组织委员工作台能力注册（tab 清单）
 import '../modules/capabilities/org-workspace.js?v=20260812d';
 

@@ -8,18 +8,18 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（书记反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260829j';
-import { attendanceToLong, getPersonName } from '../../../mock/index.js?v=20260829j';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260829j';
-import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260829j';
-import { loadActivities } from '../../../services/activity.js?v=20260829j';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260829j';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260829j';
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260829j';
-import { badgeHtml } from '../../../components/badge.js?v=20260829j';
-import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260829j';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260829j';
-import { HandoffStore } from '../../../services/handoff.js?v=20260829j';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260829k';
+import { attendanceToLong, getPersonName } from '../../../mock/index.js?v=20260829k';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260829k';
+import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260829k';
+import { loadActivities } from '../../../services/activity.js?v=20260829k';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260829k';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260829k';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260829k';
+import { badgeHtml } from '../../../components/badge.js?v=20260829k';
+import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260829k';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260829k';
+import { HandoffStore } from '../../../services/handoff.js?v=20260829k';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -43,13 +43,15 @@ export function renderContent(ctx) {
   const longData = attendanceToLong(allRecords);
   const actById = new Map(loadActivities().map(a => [a.id, a]));
 
-  // ── 待确认集合（队列）：请假/缺勤未确认 + 超期未确认，合并去重 ──
+  // ── 待确认集合（队列）：异常驱动（T-304 第5轮 · 源头审校+异常驱动）
+  // 准则：出勤/已补视为上传方已审校（自动确认，不进队列）；纪检只处理异常（缺勤/请假，含超期）。
+  const isRegular = r => r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP;
   const now = new Date();
   const pendingRecs = allRecords.filter(r =>
-    !r.recordedBy && (r.status === AttendanceStatus.LEAVE || r.status === AttendanceStatus.ABSENT)
+    !r.recordedBy && !isRegular(r)
   );
   const overdueRecs = allRecords.filter(r => {
-    if (r.recordedBy) return false;
+    if (r.recordedBy || isRegular(r)) return false;
     const act = actById.get(r.activityId);
     return act && act.date && new Date(act.date) < now;
   });
@@ -62,6 +64,8 @@ export function renderContent(ctx) {
   const queueLeave = pendingRecs.filter(r => r.status === AttendanceStatus.LEAVE).length;
   const queueAbsent = pendingRecs.filter(r => r.status === AttendanceStatus.ABSENT).length;
   const queueOverdue = overdueRecs.length;
+  // 出勤/已补未确认 → 视为已审校自动确认（源头审校：上传方已把关，纪检只核异常）
+  const autoConfirmedCount = allRecords.filter(r => !r.recordedBy && isRegular(r)).length;
 
   const filterBanner = filterActivityId
     ? `<div class="mb-3 p-2.5 rounded-lg border border-blue-200 flex items-center justify-between">
@@ -75,7 +79,7 @@ export function renderContent(ctx) {
   // ════════════════════════════════════════════════════════════════
   container.innerHTML = `
     ${filterBanner}
-    ${_buildQueueHTML(queueItems, queueLeave, queueAbsent, queueOverdue, accent, accentBorder, actById)}
+    ${_buildQueueHTML(queueItems, queueLeave, queueAbsent, queueOverdue, autoConfirmedCount, accent, accentBorder, actById)}
     ${_buildMatrixCardHTML(ctx, allRecords, actById, filterActivityId, accent, accentRgba, accentBorder)}
     ${_buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityId, accent, accentRgba, accentBorder)}
   `;
@@ -108,6 +112,11 @@ export function renderContent(ctx) {
         if (qEl) qEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     });
+  });
+  // 队列「展开全部 / 收起」（最小信息成本：默认只暴露 8 条）
+  container.querySelector('#att-queue-more')?.addEventListener('click', () => {
+    _queueExpanded = !_queueExpanded;
+    renderContent(ctx);
   });
 
   // ── 矩阵转置切换 + 活动名/时间区间筛选 ──
@@ -145,7 +154,9 @@ export function renderContent(ctx) {
     const stamp = _fmtDate(new Date());
     const rows = applyTableFilter(longData, allRecords, actById).map(a => {
       const act = actById.get(allRecords.find(r => r.id === a.id)?.activityId);
-      return [act?.date ? act.date.slice(0, 7) : '未排期', a.name, a.activity, a.type, a.status, a.confirmer];
+      const rec = allRecords.find(r => r.id === a.id);
+      const autoConfirmed = rec && !rec.recordedBy && (rec.status === AttendanceStatus.PRESENT || rec.status === AttendanceStatus.MADE_UP);
+      return [act?.date ? act.date.slice(0, 7) : '未排期', a.name, a.activity, a.type, a.status, autoConfirmed ? '自动确认' : a.confirmer];
     });
     downloadCSV(`考勤总表_${stamp}.csv`, ['月份', '姓名', '活动', '类别', '状态', '确认人'], rows);
     showToast('success', `考勤总表已导出（${rows.length} 条）`);
@@ -178,31 +189,42 @@ export function renderContent(ctx) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  ① 待确认队列（卡片式 · 白底 + 左侧状态色条 · 进入即见）
+//  ① 待确认队列（异常驱动 · 极简白底无边框无条纹 · 默认 8 条折叠）
+//  T-304 第5轮：仅异常（缺勤/请假，含超期）进队列；出勤/已补源头已审校不占队列
 // ════════════════════════════════════════════════════════════════
-function _buildQueueHTML(items, leaveCount, absentCount, overdueCount, accent, accentBorder, actById) {
-  const listHtml = items.length === 0
-    ? `<div class="py-4 text-center">
-        <div class="text-sm font-medium text-gray-700 mb-1">考勤已全部确认 ✓</div>
-        <div class="text-xs text-gray-400">无待确认的请假 / 缺勤 / 超期记录，补课任务已按需自动生成</div>
+const QUEUE_VISIBLE = 8; // 最小信息成本：默认只暴露最近需处理的少量条目
+let _queueExpanded = false;
+
+function _buildQueueHTML(items, leaveCount, absentCount, overdueCount, autoConfirmedCount, accent, accentBorder, actById) {
+  const visible = _queueExpanded ? items : items.slice(0, QUEUE_VISIBLE);
+  const total = items.length;
+  const listHtml = total === 0
+    ? `<div class="py-5 text-center">
+        <div class="text-sm font-medium text-gray-700 mb-1">无待处理异常 ✓</div>
+        <div class="text-xs text-gray-400">出勤/已补已源头审校自动确认${autoConfirmedCount > 0 ? `（${autoConfirmedCount} 条）` : ''}，缺勤/请假已全部确认</div>
       </div>`
-    : `<div class="space-y-2">${items.map(r => {
+    : `<div class="space-y-1">${visible.map(r => {
         const act = actById.get(r.activityId);
-        const isOverdue = overdueCount > 0 && act && act.date && new Date(act.date) < new Date();
         const color = r.status === AttendanceStatus.ABSENT ? '#EF4444' : '#F59E0B';
         return `
-        <div class="flex items-center gap-3 rounded-xl border border-gray-200 py-2 px-3" style="border-left:4px solid ${color};">
+        <div class="flex items-center gap-3 py-2 rounded-xl hover:bg-gray-50 transition-colors">
+          <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${color}"></span>
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">
               <span class="text-sm font-medium text-gray-800">${getPersonName(r.personId)}</span>
               ${r.status === AttendanceStatus.ABSENT ? badgeHtml('缺勤', 'danger') : badgeHtml('请假', 'warning')}
-              ${isOverdue ? badgeHtml('超期', 'danger') : ''}
+              ${r.overdue || (act && act.date && new Date(act.date) < new Date()) ? badgeHtml('超期', 'danger') : ''}
             </div>
             <div class="text-xs text-gray-400 truncate mt-0.5">${act ? act.title : '活动已下架'}${act?.date ? ' · ' + act.date : ''}</div>
           </div>
           <button class="btn-confirm-att text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0" data-record-id="${r.id}" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">确认</button>
         </div>`;
-      }).join('')}</div>`;
+      }).join('')}
+      ${total > QUEUE_VISIBLE ? `
+        <button id="att-queue-more" class="w-full text-xs text-gray-400 hover:text-gray-600 py-2 rounded-lg transition-colors" style="cursor:pointer;">
+          ${_queueExpanded ? '收起' : `展开全部（${total} 条）`}
+        </button>` : ''}
+      </div>`;
 
   return `
     <div id="att-queue" class="card rounded-xl p-4 mb-4">
@@ -212,6 +234,7 @@ function _buildQueueHTML(items, leaveCount, absentCount, overdueCount, accent, a
           <span class="text-gray-600">请假 <span class="font-bold text-orange-700">${leaveCount}</span></span>
           <span class="text-gray-600">缺勤 <span class="font-bold text-red-700">${absentCount}</span></span>
           <span class="text-gray-600">超期 <span class="font-bold text-amber-700">${overdueCount}</span></span>
+          ${autoConfirmedCount > 0 ? `<span class="text-gray-400">出勤自动确认 <span class="font-bold text-green-600">${autoConfirmedCount}</span></span>` : ''}
         </div>
       </div>
       ${listHtml}
@@ -275,21 +298,23 @@ function _filterActivities(acts, actById) {
 function _renderMatrix(matrixView, actById, allRecords, ctx, accent, accentBorder) {
   const tc = document.getElementById('att-matrix-container');
   if (!tc) return;
-  const acts = loadActivities().filter(a => a.status !== 'cancelled' && !a.archived);
+  // 时间降序：活动按日期最新在前（按活动视图最新在最上；按人视图最新在最左）
+  const acts = loadActivities()
+    .filter(a => a.status !== 'cancelled' && !a.archived)
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const visibleActs = _filterActivities(acts, actById);
   // 矩阵数据：人 × 活动 → 状态（无记录 = 空）
   const personIds = [...new Set(allRecords.map(r => r.personId))];
   const cellOf = (personId, activityId) => allRecords.find(r => r.personId === personId && r.activityId === activityId);
 
+  // T-304 第5轮：矩阵回归只读分析（去确认操作/去待确认标记，职责单一化）
   const cellHtml = (personId, activityId) => {
     const rec = cellOf(personId, activityId);
     if (!rec) return '<td class="py-1.5 px-2 text-center text-gray-300">—</td>';
     const m = CELL_META[rec.status];
-    const isPending = !rec.recordedBy;
-    return `<td class="py-1.5 px-2 text-center" title="${getPersonName(rec.personId)} · ${ATTENDANCE_STATUS_LABELS[rec.status]}${isPending ? ' · 待确认' : ''}">
-      <span class="inline-flex items-center gap-1 ${isPending ? 'cursor-pointer hover:opacity-70' : ''}" data-cell-p="${personId}" data-cell-a="${activityId}" style="${isPending ? 'cursor:pointer;' : ''}">
+    return `<td class="py-1.5 px-2 text-center" title="${getPersonName(rec.personId)} · ${ATTENDANCE_STATUS_LABELS[rec.status]}">
+      <span class="inline-flex items-center gap-1">
         <span class="w-2 h-2 rounded-full" style="background:${m.dot}"></span><span class="text-xs text-gray-600">${m.label}</span>
-        ${isPending ? '<span class="text-[10px] text-orange-600 font-bold">·</span>' : ''}
       </span>
     </td>`;
   };
@@ -332,26 +357,6 @@ function _renderMatrix(matrixView, actById, allRecords, ctx, accent, accentBorde
         </table>
       </div>`;
   }
-
-  // 待确认单元格点击 → 直达确认（信息同地：看到即处理）
-  tc.querySelectorAll('[data-cell-p]').forEach(el => {
-    el.addEventListener('click', () => {
-      const pid = el.dataset.cellP;
-      const aid = el.dataset.cellA;
-      const rec = allRecords.find(r => r.personId === pid && r.activityId === aid);
-      if (!rec || rec.recordedBy) return;
-      const records = loadAttendanceRecords();
-      const target = records.find(r => r.id === rec.id);
-      if (!target) return;
-      target.recordedBy = DISC_COMMISSIONER_ID;
-      saveAttendanceRecords(records);
-      TodoStore.completeBySource(TodoSourceType.ACTIVITY, target.activityId);
-      TodoStore.completeBySource(TodoSourceType.ACTIVITY, `review_${target.activityId}`);
-      autoGenerateMakeupTask(target);
-      showToast('success', `已确认「${getPersonName(pid)}」考勤`);
-      renderContent(ctx);
-    });
-  });
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -359,7 +364,10 @@ function _renderMatrix(matrixView, actById, allRecords, ctx, accent, accentBorde
 // ════════════════════════════════════════════════════════════════
 function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityId, accent, accentRgba, accentBorder) {
   const total = longData.length;
-  const totalPending = longData.filter(r => r.confirmer === '—').length;
+  // 待确认 = 仅异常（缺勤/请假）未确认；出勤/已补源头审校自动确认不计入
+  const isRegular = r => r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP;
+  const totalPending = allRecords.filter(r => !r.recordedBy && !isRegular(r)).length;
+  const totalAuto = allRecords.filter(r => !r.recordedBy && isRegular(r)).length;
   return `
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
@@ -368,6 +376,7 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
           <div class="flex gap-2 text-xs">
             <span class="text-gray-600">共 <span class="font-bold text-gray-800">${total}</span> 条</span>
             <span class="text-gray-600">待确认 <span class="font-bold text-orange-700">${totalPending}</span></span>
+            ${totalAuto > 0 ? `<span class="text-gray-400">自动确认 <span class="font-bold text-green-600">${totalAuto}</span></span>` : ''}
             ${HandoffStore.hasPendingFor('attendance-archival', 'attendance') ? '<span class="text-teal-600 font-medium">待宣传备案</span>' : ''}
           </div>
         </div>
@@ -429,15 +438,18 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx) 
           <th class="py-2 px-3 text-left text-gray-500 font-medium">操作</th>
         </tr></thead>
         <tbody>${pageRows.map(a => {
+          const rec = allRecords.find(r => r.id === a.id);
+          const isRegularRec = rec && (rec.status === AttendanceStatus.PRESENT || rec.status === AttendanceStatus.MADE_UP);
           const isPending = a.confirmer === '—';
+          const autoConfirmed = isPending && isRegularRec; // 出勤/已补源头审校自动确认
           const statusColor = a.status === AttendanceStatus.PRESENT ? 'text-green-700' : a.status === AttendanceStatus.ABSENT ? 'text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'text-teal-700' : 'text-orange-700';
           return `
           <tr class="border-b border-gray-100 hover:bg-gray-50">
             <td class="py-2 px-3 font-medium text-gray-800">${a.name}</td>
             <td class="py-2 px-3 text-gray-600">${a.activity}</td>
             <td class="py-2 px-3"><span class="${statusColor}">${a.status}</span></td>
-            <td class="py-2 px-3 text-gray-500">${isPending ? '<span class="text-orange-600">待确认</span>' : `<span class="text-green-600">${a.confirmer}</span>`}</td>
-            <td class="py-2 px-3">${isPending ? `<button class="btn-confirm-att text-xs px-2.5 py-1 rounded-lg text-white transition-colors hover:opacity-90" data-record-id="${a.id}" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">确认</button>` : '<span class="text-xs text-green-600">✓</span>'}</td>
+            <td class="py-2 px-3 text-gray-500">${autoConfirmed ? '<span class="text-green-600">自动确认</span>' : (isPending ? '<span class="text-orange-600">待确认</span>' : `<span class="text-green-600">${a.confirmer}</span>`)}</td>
+            <td class="py-2 px-3">${isPending && !autoConfirmed ? `<button class="btn-confirm-att text-xs px-2.5 py-1 rounded-lg text-white transition-colors hover:opacity-90" data-record-id="${a.id}" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">确认</button>` : (autoConfirmed ? '<span class="text-xs text-gray-400">自动</span>' : '<span class="text-xs text-green-600">✓</span>')}</td>
           </tr>`;
         }).join('')}</tbody>
       </table>

@@ -2,14 +2,15 @@
 // 纪检委员工作台 Tab：待办（T-279 M3 拆分，照 M2 样板）
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降。
 
-import { showToast } from '../../../core/utils.js?v=20260829j';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType, seedTodos } from '../../../services/todo.js?v=20260829j';
-import { renderTodoList } from '../../../components/todo-list.js?v=20260829j';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260829j';
-import { badgeHtml } from '../../../components/badge.js?v=20260829j';
-import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260829j';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260829j';
-import { getPersonName } from '../../../mock/index.js?v=20260829j';
+import { showToast } from '../../../core/utils.js?v=20260829k';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType, seedTodos } from '../../../services/todo.js?v=20260829k';
+import { renderTodoList } from '../../../components/todo-list.js?v=20260829k';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260829k';
+import { badgeHtml } from '../../../components/badge.js?v=20260829k';
+import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260829k';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260829k';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260829k';
+import { getPersonName } from '../../../mock/index.js?v=20260829k';
 
 // 私有状态（随模块自持，不污染入口）
 let _selectedTodoId = null;
@@ -88,8 +89,9 @@ export function renderContent(ctx) {
 function _buildDiscAggregates() {
   const todoGroups = TodoStore.getGroupedByAction('disc-commissioner');
   const dynamic = [];
-  // 动态组1：考勤待确认（recordedBy 为空 = 纪检未确认；仅活跃活动，归档活动退出工作区）
-  const pendingAtt = loadActiveAttendanceRecords().filter(r => !r.recordedBy);
+  // 动态组1：考勤待确认（T-304 第5轮 · 源头审校+异常驱动：出勤/已补上传方已审校自动确认，
+  // 纪检只处理异常=缺勤/请假未确认；仅活跃活动，归档活动退出工作区）
+  const pendingAtt = loadActiveAttendanceRecords().filter(r => !r.recordedBy && r.status !== AttendanceStatus.PRESENT && r.status !== AttendanceStatus.MADE_UP);
   if (pendingAtt.length > 0) {
     dynamic.push({
       groupKey: 'disc-commissioner:attendance-confirm',

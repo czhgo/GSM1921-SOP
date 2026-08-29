@@ -3,7 +3,7 @@
 //  tab-bar.js — 通用 Tab 切换组件
 // ════════════════════════════════════════════════════════════════
 
-import { accDarkParts } from '../core/constants.js?v=20260829j';
+import { accDarkParts } from '../core/constants.js?v=20260829k';
 
 // 角色识别层：tab 激活态 = 主题色三件套渲染（书记 2026-08-08 三审定稿）。
 // 背景：前三轮把 tab 强行为品牌金（半透明 0.14/0.30 → 实色 #FFD700），书记全部否决——
