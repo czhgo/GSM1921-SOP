@@ -5,12 +5,12 @@
 // - '党建工作台' → '工作台'（角色自适应跳转）
 // - 帮助/关于移入主导航区
 
-import { getBasePath } from '../core/utils.js?v=20260829q';
-import { icon } from '../core/icons.js?v=20260829q';
-import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260829q';
-import { getThemePreference, setThemePreference, initTheme } from '../core/theme.js?v=20260829q';
-import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260829q';
-import { DEPLOY_MODE } from '../config/deploy.js?v=20260829q';
+import { getBasePath } from '../core/utils.js?v=20260829r';
+import { icon } from '../core/icons.js?v=20260829r';
+import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260829r';
+import { getThemePreference, setThemePreference, initTheme } from '../core/theme.js?v=20260829r';
+import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260829r';
+import { DEPLOY_MODE } from '../config/deploy.js?v=20260829r';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染侧边栏：不预加载 auth 数据链
@@ -22,11 +22,11 @@ let AuthStore = null;
 let _authModule = null;
 let _popoverModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../services/auth.js?v=20260829q');
+  if (!_authModule) _authModule = import('../services/auth.js?v=20260829r');
   return _authModule;
 }
 function loadPopover() {
-  if (!_popoverModule) _popoverModule = import('./workspace-popover.js?v=20260829q');
+  if (!_popoverModule) _popoverModule = import('./workspace-popover.js?v=20260829r');
   return _popoverModule;
 }
 

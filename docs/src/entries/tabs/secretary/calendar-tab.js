@@ -2,23 +2,23 @@
 // entries/tabs/secretary/calendar-tab.js — 书记工作台·活动管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 考勤概况 + 活动查询。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260829q';
-import { _fmtDate, showToast } from '../../../core/utils.js?v=20260829q';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260829q';
-import { renderInspectorFromState } from '../../../components/inspector.js?v=20260829q';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260829q';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260829q';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260829q';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260829q';
-import { loadActivities } from '../../../services/activity.js?v=20260829q';
-import { renderQueryView } from '../../../components/query-view.js?v=20260829q';
-import { icon } from '../../../core/icons.js?v=20260829q';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260829q';
-import { getPersonName } from '../../../mock/index.js?v=20260829q';
-import { NoticeStore } from '../../../services/notice.js?v=20260829q';
-import { BranchService } from '../../../services/runtime.js?v=20260829q';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars } from '../../../core/constants.js?v=20260829q';
-import { badgeHtml } from '../../../components/badge.js?v=20260829q';
+import { getAppState, setState } from '../../../core/state.js?v=20260829r';
+import { _fmtDate, showToast } from '../../../core/utils.js?v=20260829r';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260829r';
+import { renderInspectorFromState } from '../../../components/inspector.js?v=20260829r';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260829r';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260829r';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260829r';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260829r';
+import { loadActivities } from '../../../services/activity.js?v=20260829r';
+import { renderQueryView } from '../../../components/query-view.js?v=20260829r';
+import { icon } from '../../../core/icons.js?v=20260829r';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260829r';
+import { getPersonName } from '../../../mock/index.js?v=20260829r';
+import { NoticeStore } from '../../../services/notice.js?v=20260829r';
+import { BranchService } from '../../../services/runtime.js?v=20260829r';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars } from '../../../core/constants.js?v=20260829r';
+import { badgeHtml } from '../../../components/badge.js?v=20260829r';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 
@@ -287,8 +287,9 @@ function renderAttendanceSummary(activities) {
     const rate = total > 0 ? Math.round((present / total) * 100) : 0;
     const rateColor = rate >= 90 ? 'text-green-600' : rate >= 70 ? 'text-orange-600' : 'text-red-600';
 
+    // T-304 Q2 点击热区：纯展示行不加 hover 伪装（COMPONENT_SPEC §4.3）——去 hover:bg-gray-50
     return `
-      <div class="flex items-center gap-3 py-2 border-b border-gray-50 last:border-b-0 hover:bg-gray-50 rounded-lg px-2 -mx-2 transition-all duration-200">
+      <div class="flex items-center gap-3 py-2 border-b border-gray-50 last:border-b-0 rounded-lg px-2 -mx-2">
         <div class="flex-1 min-w-0">
           <p class="text-sm text-gray-800 truncate">${act.title}</p>
           <p class="text-xs text-gray-400">${_fmtDate(new Date(act.date))}</p>

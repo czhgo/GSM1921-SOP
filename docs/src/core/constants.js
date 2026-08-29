@@ -177,6 +177,17 @@ export const ACTIVITY_TYPE_SHORT = {
   'default':              '活动',
 };
 
+// ── 角色键单一事实源（T-304 Q3 权限收敛，2026-08-29）──────────────
+// 与内容层 ROLE_CLASSIFICATION.md §9 角色键全表对齐；
+// ROLE_LABELS / ROLE_COLORS / ACCENT_COLORS / 能力 requiredRoles 均以本枚举为基准核对。
+// 常设角色（7）+ 项目角色（2）为业务角色；遗留键（3）无角色语义，仅保留兼容兜底。
+export const ROLE_KEYS = [
+  'secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
+  'leader', 'participant',
+  'organizer', 'deep',
+];
+export const ROLE_LEGACY_KEYS = ['commissioner', 'initiator', 'all']; // 遗留键：无独立角色，保留兼容
+
 export const ROLE_LABELS = {
   'secretary':         '党支部书记',
   'deputy-secretary':  '党支部副书记',
@@ -191,6 +202,8 @@ export const ROLE_LABELS = {
   'all':               '全体相关',
 };
 
+// 条条委员集合（业务语义：三委员，不含书记/副书记）——与 auth.js 的 COMMISSIONER_ROLES（授权语义：含书记/副书记）
+// 语义不同、键集不同，T-304 Q3 已注明区分，勿混用。消费方：inspector.js 执行人/监督人「是否委员」判定。
 export const COMMISSIONER_ROLES = new Set([
   'commissioner', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
 ]);

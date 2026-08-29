@@ -5,9 +5,9 @@
 //  关联 ActivityRecordStore 用于活动维度的专班关联
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260829q';
-import { persist } from '../core/data-adapter.js?v=20260829q';
-import { MOCK_TASKFORCES, _personName, PEOPLE } from '../mock/index.js?v=20260829q';
+import { mockDB } from '../core/domain.js?v=20260829r';
+import { persist } from '../core/data-adapter.js?v=20260829r';
+import { MOCK_TASKFORCES, _personName, PEOPLE } from '../mock/index.js?v=20260829r';
 
 const TASKFORCE_STORAGE_KEY = 'workflowos_taskforces_v1';
 
@@ -81,7 +81,7 @@ export const TaskForceRecordStore = {
     // T-190：招募时已内联选初始成员（members 非空）则不再派生；未选人保留待办兜底
     // 使用 dynamic import 避免与 todo.js 的潜在循环依赖
     if (!newRecord.members || newRecord.members.length === 0) {
-      import('./todo.js?v=20260829q').then(({ LifecycleTodoDeriver }) => {
+      import('./todo.js?v=20260829r').then(({ LifecycleTodoDeriver }) => {
         LifecycleTodoDeriver.deriveFromTaskforceCreate(newRecord);
       }).catch(e => console.warn('[TaskForceRecordStore] 派生专班赋权待办失败：', e));
     }

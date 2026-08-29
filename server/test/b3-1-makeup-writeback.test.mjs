@@ -23,8 +23,8 @@ await p.waitForTimeout(3000);
 
 // 2. 注入合成补课任务（指向 att38 = ABSENT），持久化
 await p.evaluate(async () => {
-  const { mockDB } = await import('/src/core/domain.js?v=20260829q');
-  const { persist } = await import('/src/core/data-adapter.js?v=20260829q');
+  const { mockDB } = await import('/src/core/domain.js?v=20260829r');
+  const { persist } = await import('/src/core/data-adapter.js?v=20260829r');
   mockDB.makeupTasks = (mockDB.makeupTasks || []).filter(t => t.id !== 'mk_b31_test');
   mockDB.makeupTasks.push({
     id: 'mk_b31_test',
@@ -62,7 +62,7 @@ if (taskVisible) {
 
 // 5. 验证 att38 回写为 made_up
 const st = await p.evaluate(async () => {
-  const { mockDB } = await import('/src/core/domain.js?v=20260829q');
+  const { mockDB } = await import('/src/core/domain.js?v=20260829r');
   const att = mockDB.attendances.find(r => r.id === 'att38');
   const task = (mockDB.makeupTasks || []).find(t => t.id === 'mk_b31_test');
   return { attStatus: att ? att.status : 'missing', taskStatus: task ? task.status : 'missing', attOverdue: att ? att.overdue : null };

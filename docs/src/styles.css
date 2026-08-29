@@ -606,6 +606,12 @@ textarea.input-flat {
    · 选中态 chip（党小组/受众/模板/维度） → .chip-accent-on
    · 原生 radio 微调（自定义圆点 + 主题色选中态） → .radio-accent
    ═══════════════════════════════════════════════════════════════ */
+/* ── T-304 Q2 点击热区：全局 button 光标兜底（2026-08-29 全治裁定）──
+   根因：手写 Tailwind 类 + 内联样式按钮绕过 .btn-* 规则导致 cursor 大量缺失；
+   此处兜底 button 默认 pointer / disabled not-allowed，覆盖 D1-D11 全部案例。 */
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+
 .btn-accent {
   background: color-mix(in srgb, var(--app-accent, #B91C1C) 80%, #1F2937);
   color: #fff;

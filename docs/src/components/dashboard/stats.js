@@ -5,9 +5,9 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/notice.js?v=20260829q';
-import { _fmtDate } from '../../core/utils.js?v=20260829q';
-import { icon } from '../../core/icons.js?v=20260829q';
+import { NoticeStore } from '../../services/notice.js?v=20260829r';
+import { _fmtDate } from '../../core/utils.js?v=20260829r';
+import { icon } from '../../core/icons.js?v=20260829r';
 
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-green-600', dot: '#10B981' },
@@ -83,8 +83,10 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
     { label: '个人考勤', value: myTotal > 0 ? `${myPresent}/${myTotal}` : '—', unit: '', color: myColor, icon: 'clipboard', interactive: true },
   ];
 
+  // T-304 Q2 点击热区：不可点卡（前三张）不再 hover 上浮（纯展示卡不加 hover 伪装，COMPONENT_SPEC §4.3）；
+  // 仅可点卡（个人考勤）保留 hover 反馈。统一 cursor：可点卡 pointer / 展示卡 default。
   container.innerHTML = stats.map(s => `
-    <div class="card rounded-xl p-4 flex items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${s.interactive ? 'cursor-pointer' : 'cursor-default'}"
+    <div class="card rounded-xl p-4 flex items-center gap-3 ${s.interactive ? 'hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer' : ''}"
          ${s.interactive ? 'data-attendance-popover="1"' : ''}>
       <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 stat-icon-tint" style="--tint:${s.color};">
         ${icon(s.icon, { strokeWidth: 1.8, stroke: s.color, className: 'w-5 h-5' })}

@@ -242,6 +242,30 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 
 > 本节为角色权限矩阵的权威源，对齐 `docs/src/services/auth.js` 的 ROLE_PERMISSIONS/PROJECT_PERMISSIONS/AUTHORIZE_CHAIN。数据流设计与界面实现路径见 [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md)。
 
+### 9a0. 角色键全表（代码层单一事实源，T-304 Q3 权限收敛 2026-08-29）
+
+> **本表为角色键的权威清单**：对齐 `docs/src/core/constants.js` 的 `ROLE_KEYS`/`ROLE_LEGACY_KEYS`，并登记 `auth.js` 角色→页面映射（ROLE_PAGE_MAP）与能力注册表 `requiredRoles` 的对应关系。新增角色键必须同步本表与 constants.js 两处。
+
+| 角色键 | 中文标签 | 类型 | 工作台页面 | 能力 requiredRoles |
+|---|---|---|---|---|
+| `secretary` | 党支部书记 | 常设 | `workspace/secretary.html` | `secretary-workspace` |
+| `deputy-secretary` | 党支部副书记 | 常设 | `workspace/secretary.html`（与书记同页） | `secretary-workspace` |
+| `org-commissioner` | 组织委员 | 常设 | `workspace/org.html` | `org-workspace` |
+| `prop-commissioner` | 宣传委员 | 常设 | `workspace/prop.html` | `prop-workspace` |
+| `disc-commissioner` | 纪检委员 | 常设 | `workspace/disc.html` | `disc-workspace` |
+| `leader` | 党小组组长 | 常设 | `workspace/leader.html` | `leader-workspace` |
+| `participant` | 普通参与者 | 常设 | `workspace/visitor.html` | `visitor-workspace` |
+| `organizer` | 组织者（项目角色） | 项目 | 无独立页面（归入首页/工作台视图） | — |
+| `deep` | 深度参与者（项目角色） | 项目 | 无独立页面 | — |
+| `commissioner` | 条条委员（遗留键） | 遗留 | — | — |
+| `initiator` | 发起人（遗留键） | 遗留 | — | — |
+| `all` | 全体相关（兜底键） | 遗留 | — | — |
+
+**语义约定**：
+- **访客 ≠ 角色**：未登录即访客（无角色键），`visitor` 仅为参与者工作台页面的 tab 前缀/待办聚合键，勿与「访客（未登录）」混淆。
+- **`COMMISSIONER_ROLES` 两处语义区分**：constants.js 版 = 条条委员（三委员，不含书记/副书记，业务判定用）；auth.js 版 = 授权语义（含书记/副书记，赋权候选人排除支委用）。勿混用。
+- **遗留键**仅保留兼容兜底，不参与权限判定；新功能不得新增遗留键。
+
 ### 9a. 活动写入门禁
 
 > **来源：**[USAGE_POLICY.md](../03_doc_system/USAGE_POLICY.md) §1.2.5 — 术语权威源。

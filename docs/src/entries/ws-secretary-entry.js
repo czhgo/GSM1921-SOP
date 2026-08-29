@@ -1,21 +1,24 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ws-secretary-entry.js — 书记工作台入口（薄壳版）
 // 2026-08-07 懒加载重构：6 个 tab 全部拆分为独立模块（entries/tabs/secretary/），
 //   入口只保留：bootstrap + Tab 栏定义 + 状态变更驱动的当前 tab 重渲染。
 //   首屏只动态加载默认 tab（待办）模块；其余 tab 在首次点击时才 import。
 //   tab-bar.js 支持异步 render（render 返回 Promise 时自动 await/catch）。
 
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260829q';
-import { BranchService } from '../services/runtime.js?v=20260829q';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260829q';
-import { renderTabBar } from '../components/tab-bar.js?v=20260829q';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260829q';
-import { SignupStore } from '../services/signup.js?v=20260829q';
-import { loadActivities } from '../services/activity.js?v=20260829q';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260829q';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260829q';
-import { _currentYearMonth } from '../core/utils.js?v=20260829q';
-import { TodoStore } from '../services/todo.js?v=20260829q';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260829r';
+import { BranchService } from '../services/runtime.js?v=20260829r';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260829r';
+import { renderTabBar } from '../components/tab-bar.js?v=20260829r';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260829r';
+import { SignupStore } from '../services/signup.js?v=20260829r';
+import { loadActivities } from '../services/activity.js?v=20260829r';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260829r';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260829r';
+import { _currentYearMonth } from '../core/utils.js?v=20260829r';
+import { TodoStore } from '../services/todo.js?v=20260829r';
+import { getCapabilities } from '../core/registry.js?v=20260829r';
+// T-304 Q3 权限收敛：副作用导入触发书记工作台能力注册（tab 清单，与其余 5 工作台对齐）
+import '../modules/capabilities/secretary-workspace.js?v=20260829r';
 
 // accentRole 走 resolveAccentRole：侧边栏「主题色」个性化对书记工作台同样生效
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'secretary' });
@@ -34,6 +37,16 @@ const NAV_SUPPRESS_MS = 3000;
 let _secNavSuppressUntil = 0;
 let _secNavTargetSel = null; // 导航目标元素选择器（用于条件抑制判断）
 
+/** 渲染上下文（供各 tab 模块使用；高亮目标由导航路径 3s 定时器清除，B1-5） */
+function _renderCtx() {
+  return {
+    accent, accentRgba, accentBorder,
+    navTarget: _secNavTarget,
+    highlightTfId: _secHighlightTfId,
+    appState: getAppState(),
+  };
+}
+
 /** 初始化书记 Tab 栏（仅首次构建，state 变化时仅刷新内容） */
 function _ensureSecTabBar() {
   const container = document.getElementById('secretary-content');
@@ -42,23 +55,18 @@ function _ensureSecTabBar() {
   // 有待办必见待办（书记 2026-08-10 裁定）：_ensureSecTabBar 仅执行一次，天然一次性消费
   const priorityTab = TodoStore.getGroupedByAction('secretary').length > 0 ? 'todo' : undefined;
 
+  // T-304 Q3 权限收敛：tab 清单经能力注册表读取（secretary-workspace），入口不再硬编码
+  const secCap = getCapabilities({ scope: 'workspace:secretary' }).find(c => c.id === 'secretary-workspace');
+  const tabs = secCap && typeof secCap.tabs === 'function' ? secCap.tabs() : [];
+
   _secTabBar = renderTabBar({
     prefix: 'secretary',
-    tabs: [
-      { id: 'todo', label: '待办', groupLabel: '工作台', render: () => import('./tabs/secretary/todo-tab.js?v=20260829q').then(m => m.renderContent()) },
-      { id: 'overview', label: '全局概况', groupLabel: '工作台', render: () => import('./tabs/secretary/overview-tab.js?v=20260829q').then(m => m.renderContent()) },
-      { id: 'calendar', label: '活动管理', groupLabel: '党建', render: () => import('./tabs/secretary/calendar-tab.js?v=20260829q').then(m => m.renderContent(getAppState())) },
-      { id: 'assign', label: '赋权管理', groupLabel: '党建', render: () => import('./tabs/secretary/assign-tab.js?v=20260829q').then(m => m.renderContent()) },
-      { id: 'notification', label: '通知发布', groupLabel: '党建', render: () => import('./tabs/secretary/notification-tab.js?v=20260829q').then(m => m.renderContent()) },
-      // 专班查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增）
-      // B1-5：高亮目标由导航路径的 3s 定时器清除（不再 onLocated 即时清除，补渲染可重新应用高亮）
-      { id: 'tf-view', label: '专班查看', render: () => import('../components/taskforce-view.js?v=20260829q').then(m => { const el = document.getElementById('secretary-tab-content'); if (el) m.renderTaskforceView(el, { highlightId: _secHighlightTfId || null }); }), groupLabel: '党建' },
-      { id: 'feedback', label: '反馈管理', groupLabel: '反馈', render: () => import('./tabs/secretary/feedback-tab.js?v=20260829q').then(m => m.renderContent()) },
-    ],
+    tabs,
     accentColor: { accent, accentRgba, accentBorder },
+    renderCtx: _renderCtx(),
+    storageKey: SEC_TAB_STORAGE_KEY,
     defaultTab: 'todo',
     extraRightHtml: `<div class="flex items-center gap-2" id="sec-toolbar"></div>`,
-    storageKey: SEC_TAB_STORAGE_KEY,
     priorityTab,
     onTabChange: (tabId) => { _secCurrentTab = tabId; },
   });
@@ -75,7 +83,7 @@ function _renderSecCurrentTab(state) {
   const tab = _secTabBar.tabs.find(t => t.id === _secCurrentTab);
   if (!tab || typeof tab.render !== 'function') return;
   try {
-    const r = tab.render(state);
+    const r = tab.render(_renderCtx());
     if (r && typeof r.catch === 'function') r.catch(e => console.error('[ws-secretary] tab 渲染失败', e));
   } catch (e) {
     console.error('[ws-secretary] tab 渲染异常', e);
