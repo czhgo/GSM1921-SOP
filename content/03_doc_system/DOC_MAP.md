@@ -166,6 +166,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | 了解支委系统设计 | content/02_institution/COMMISSIONER_FRAMEWORK.md | content/04_web_design/module/MODULE_UI_DESIGN.md |
 | 了解登录系统设计前置 | content/04_web_design/data/DATA_FLOW.md | DATA_MODEL.md §登录态打桩设计 |
 | 查看服务清单与权限矩阵 | content/03_doc_system/SERVICE_CATALOG.md | content/02_institution/ROLE_CLASSIFICATION.md §九 |
+| 运行/编写测试 | [server/README.md](../../server/README.md) 测试说明 | CLAUDE.md H25（AI 必知测试命令） |
 | 理解架构变更 | content/03_doc_system/ARCHITECTURE.md §八 | content/03_doc_system/SSOT_INDEX.md |
 | 了解三类文件角色规范 | content/03_doc_system/OPERATIONS_GUIDE.md §14 | content/02_institution/ROLE_CLASSIFICATION.md |
 | 查看文档权威层级 | content/03_doc_system/OPERATIONS_GUIDE.md §1.1 | 本文档 §二 |

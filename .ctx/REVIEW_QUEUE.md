@@ -57,11 +57,11 @@
 | 方法 | 内容概要 | 权威源 |
 | --- | --- | --- |
 | 最小三成本基线 | 五场景检查法 / 六工作台 G1-G8 / ≤2 跳 / 信息同地 / 待办必见 / 数据驱动 / 无虚假目标 / KPI 异化防御 | 本文件附录⑤ + DESIGN\_SYSTEM §一 |
-| 数据完整性检查 | 引用外键、必填字段、id 唯一、类型/状态合法（M1）+ 生命周期一致性（M2） | `server/test/mock-integrity-audit.mjs` |
-| 点击成本实测 | 创建活动 ≤5 次 / 详情查看 ≤2 次 / 待办 0 次额外点击（C1-C3） | `server/test/click-cost-audit.mjs` |
-| 链接审查四层法 | 静态存在 → JS 动态字面量 → HTTP 200 → 登录态逻辑（L1-L4） | CHECKLIST「链接完整性」+ `server/test/link-audit.mjs` |
-| 编辑完整性 | GetDiagnostics 全仓 + 模块加载审计（E1）+ 短 Edit 批次立即回归 | KNOWN\_PITFALLS §14.1 + CHECKLIST「编辑完整性」 |
-| 双形态实测 | 静态 + server 双形态各走一遍关键链路（S1-S5 / L1-L4） | `server/test/min3-review-regression.mjs` |
+| 数据完整性检查 | 引用外键、必填字段、id 唯一、类型/状态合法（M1）+ 生命周期一致性（M2） | `server/test/mock-integrity.test.mjs` |
+| 点击成本实测 | 创建活动 ≤5 次 / 详情查看 ≤2 次 / 待办 0 次额外点击（C1-C3） | `server/test/click-cost.test.mjs` |
+| 链接审查四层法 | 静态存在 → JS 动态字面量 → HTTP 200 → 登录态逻辑（L1-L4） | CHECKLIST「链接完整性」+ `server/test/link-integrity.test.mjs` |
+| 编辑完整性 | GetDiagnostics 全仓 + 模块加载审计（E1）+ 短 Edit 批次立即回归 | KNOWN\_PITFALLS §14.1 + CHECKLIST「编辑完整性」+ `server/test/module-load.test.mjs` |
+| 双形态实测 | 静态 + server 双形态各走一遍关键链路（登录链路归 e2e-login，链接四层法归 link-integrity；原 min3-review 专项脚本已随 2026-08-30 脚本清理归档） | `server/test/e2e-login.test.js` + `server/test/link-integrity.test.mjs` |
 
 ### 附录 ① 反论评议（T-116 → W4 专项①）
 

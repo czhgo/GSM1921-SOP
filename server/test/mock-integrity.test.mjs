@@ -1,8 +1,8 @@
 // role: [工程师]+[AI]
-// mock-integrity-audit.mjs — Mock 数据完整性审计（T-283 方向1）
+// mock-integrity.test.mjs — Mock 数据完整性审计（T-283 方向1；原 mock-integrity-audit.mjs）
 // 覆盖：引用完整性（外键）、字段完整性（必填）、id 唯一性、类型/状态合法性
 // 环境：server localhost:3000 + Playwright（浏览器内动态 import，规避 ?v= 版本戳 node 解析问题）
-// 运行：node --test server/test/mock-integrity-audit.mjs（server 需在 3000 端口）
+// 运行：node --test server/test/mock-integrity.test.mjs（server 需在 3000 端口）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';

@@ -1,12 +1,12 @@
 // role: [工程师]+[AI]
-// edit-integrity-audit.mjs — 编辑完整性审计（T-283 书记指令：共性问题全局化）
+// module-load.test.mjs — 模块加载完整性审计（原 edit-integrity-audit.mjs，T-283 书记指令：共性问题全局化）
 // 背景判例（2026-08-27）：多轮 Edit 反复增删同一文件时出现系统性损坏——
 //   ①同作用域重复声明（agendaList ×2 → SyntaxError）
 //   ②函数被误删仍被调用（_addAgendaRow → ReferenceError）
 //   ③绑定代码被误删（inspector 议程编辑按钮绑定丢失 → 点击无效）
 //   ④声明被误删仍被引用（agenda → ReferenceError）
 // 机制：浏览器内 import 全部 docs/src 模块，任何语法/重复声明/未定义顶层引用都会在 import 时抛错
-// 运行：node --test server/test/edit-integrity-audit.mjs（自包含 server）
+// 运行：node --test server/test/module-load.test.mjs（自包含 server）
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';

@@ -258,7 +258,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 
 **新增可执行清单（在 14 主清单基础上追加）**：
 5. **多步功能开发改为"短 Edit 批次 + 立即回归"循环**：每完成一个模块的编辑批次（3-5 次 Edit 内），立即跑一次浏览器回归或模块加载检查，把"误删/重复"暴露在最近批次内，而非全部改完后集中调试
-6. **跨文件功能开发结束后，必跑模块加载完整性审计**：`node --test server/test/edit-integrity-audit.mjs`（浏览器 import 全部 docs/src 模块，任何语法/重复声明/未定义顶层引用都会在 import 时抛错）——该用例已入 `npm test` 回归
+6. **跨文件功能开发结束后，必跑模块加载完整性审计**：`node --test server/test/module-load.test.mjs`（浏览器 import 全部 docs/src 模块，任何语法/重复声明/未定义顶层引用都会在 import 时抛错）——该用例已入 `npm test` 回归
 7. **GetDiagnostics 全仓**作为每次多文件修改后的最低检查（捕获语法错误、未定义引用、重复声明），先于浏览器回归
 8. 删除性 Edit 的 old_string 尽量带上下边界锚点（如函数签名行 + 尾行），避免匹配到过大区域连带误删
 

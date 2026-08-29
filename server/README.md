@@ -30,6 +30,9 @@ npm test           # 运行全部测试（裸 node --test 自动发现 test/ 下
 
 ## 测试说明
 
-- 15 个后端单测/集成测试 + 1 个 Playwright E2E（`test/e2e-login.test.js`），共 16 个用例。
-- E2E 自包含：测试内用 `createApp({ dbPath: ':memory:' })` + 种子启动真实服务并监听随机端口，无需外部启动服务器。
-- `playwright` 锁定精确版本 `1.60.0`（与其配套的 chromium 浏览器二进制已随本机缓存；若在全新环境安装依赖，需先执行一次 `npx playwright install chromium` 下载浏览器）。
+- **套件**：`server/test/` 共 **17 个测试文件**（`npm test` 裸 `node --test` 自动发现 `*.test.{js,mjs}`）：
+  - **单元/集成（9 个 `.test.js`）**：auth / db / resources / seed / skeleton / snapshot / uploads / report / e2e-login
+  - **审计守护（8 个 `.test.mjs`）**：agenda-flow（三会一课议程回归）、b3-1-makeup-writeback（补课完成→考勤回写）、capability-registry（能力注册表原语）、click-cost（点击成本 ≤2 跳）、link-integrity（死链四层法 L1-L5）、mock-integrity（Mock 数据完整性 M1-M2）、module-load（全模块加载冒烟：语法/重复声明/未定义引用）、references-official-links（官方制度文件 12371 链接断言）
+- **两类运行形态**：多数自包含（测试内 `createApp({ dbPath: ':memory:' })` + 种子起真实服务并监听随机端口）；`click-cost` / `mock-integrity` 需先 `npm start`（外部 server 在 3000 端口）。
+- **版本戳**：`node docs/scripts/bump-version.mjs` 会同步 `server/test/*.mjs` 内的 `?v=` 版本戳；bump 后跑一次全量测试。
+- **Playwright**：锁定 `1.60.0`（配套 chromium 二进制随本机缓存）；全新环境需先 `npx playwright install chromium` 下载浏览器。

@@ -126,6 +126,23 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 ***
 
+## H25. 测试系统（AI 必知，2026-08-30 沉淀）
+
+> 系统有**正式测试套件**（`server/test/`，17 个文件）。AI 做代码改动后应主动运行验证——这是「编辑完整性」防线（KNOWN_PITFALLS §14.1）的组成部分，不是可选步骤。
+
+**命令**：
+- 全量：`cd server && npm test`（裸 `node --test`，自动发现 `test/` 下全部 `*.test.{js,mjs}`）
+- 单跑：`node --test server/test/<文件名>`
+- 版本戳同步：`node docs/scripts/bump-version.mjs`（bump 后必须跑一次全量，防模块实例分裂误报，KNOWN_PITFALLS §17）
+
+**套件构成**：单元/集成 9 个 `.test.js`（auth/db/resources/seed/skeleton/snapshot/uploads/report/e2e-login）+ 审计守护 8 个 `.test.mjs`（agenda-flow / b3-1 / capability-registry / click-cost / link-integrity / mock-integrity / module-load / references-official-links）。
+
+**注意**：`click-cost`、`mock-integrity` 需外部 server 在 3000 端口（先 `npm start`），其余自包含。t235/t280-b1/m4/min3-review/t280-b5 票证专项已随 2026-08-30 脚本清理归档，覆盖由上述套件承接。
+
+**何时必跑**：跨文件开发结束（module-load）· 改链接后（link-integrity）· 改 mock 数据后（mock-integrity）· 改活动/工作流/登录后（agenda-flow + e2e-login）。
+
+***
+
 ## H30. 一改具改原则与母本子本关系
 
 ### H30.1 一改具改
@@ -568,7 +585,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | T-281 | **扁平化与集中论断 refinement（2026-08-24 书记发起，明天继续）**：书记提出——支部面对的不是"听了方向就知道如何行动"的人：表达对有社会阅历者有方向价值，但无社会阅历的学生党员听到"集中"等高远表达会产生强烈想法/期待，若组织达不到宣称高度（尤其集中部分）期待落空即反噬，影响参与之后的工作。担忧的不是情绪反弹而是"讨论虚幻→主人翁精神瓦解"。推论：扁平化表述可能太绝对（学生形成"书记不能决定"认知风险）；现有原话下"集中"缺效率合法性。**目标**：对既有论断条目做增删精炼（refinement，非新增条目）——候选对象 P-009 扁平化≠无程序 / P-005 民主集中制的实践 / P-014 两个向度，联动 P-012 分工的运行保障；**必须严格区分"应作为原话写入的"与"作为修改提示词（context/prompt）存在的"（如"我很担心……"是给 AI 的 context 不收入原话）**。已达成：①逻辑链 7 条获认可——讨论有效≠结果按讨论来（=意见真实进入+按层级透明+理由可理解）、集中正当=决策有归属+责任有人担、主人翁在知情层级内参与；②透明度分层——不是每项工作讨论对所有人透明，三会即透明分层，角色划分更细→更细透明度划分（原则说清即可，不落地机制）；③书记认可一段 AI 扩充（对象差异→冲击→反噬）达"可写入文件水平"。**待续（明天）**：候选原话范围确认、修改对象确认、偏差定位（书记指出"区分有偏差"但未明示） | H60 书记评议 + T-206 范式改革 + SECRETARY\_PRONOUNCEMENTS.md | content/01\_strategy/SECRETARY\_PRONOUNCEMENTS.md（P-009/P-005/P-014 等）+ DEVELOPMENT\_PATH.md | 🔄 进行中（明天继续） |
 | T-237 | **制度层色值硬编码清理**：COMMISSIONER\_FRAMEWORK.md §C.3 旧固定角色色表已删（2026-08-14 书记裁决：身份不再保留既有固定颜色设定，引入自定义主题色色板），DESIGN\_SYSTEM.md 已补「主题色/功能色/品牌色三色区别」定义 + 读本文件指南（外包可读）；代码层 WORKFLOW\_ROLES 节点辨识色已对齐 §2.3.2 | H60 书记评议 + DESIGN\_SYSTEM.md 统一色板                    | content/02\_institution/COMMISSIONER\_FRAMEWORK.md + content/04\_web\_design/DESIGN\_SYSTEM.md | ✅ 已完成（2026-08-14） |
 
-> **注**：T-283 最小三成本第 4 轮（Mock 数据完整性 + 数据结构生命周期 + 点击成本 + 三会一课议程功能 + 编辑完整性共性问题全局化）已全部完成（2026-08-27 归档执行日志），乙部删除——三会一课【议程】写入/修改功能落地（DATA_MODEL agenda 字段 + 写入表单 + 详情行内编辑）；删除活动联动清理子记录三处同步；点击成本实测（创建 4 次/详情 2 次/待办 0 次）；新增 4 个审计文件入回归（mock-integrity/click-cost/agenda-flow/edit-integrity）；KNOWN_PITFALLS §14.1 + CHECKLIST「编辑完整性校验」章节。
+> **注**：T-283 最小三成本第 4 轮（Mock 数据完整性 + 数据结构生命周期 + 点击成本 + 三会一课议程功能 + 编辑完整性共性问题全局化）已全部完成（2026-08-27 归档执行日志），乙部删除——三会一课【议程】写入/修改功能落地（DATA_MODEL agenda 字段 + 写入表单 + 详情行内编辑）；删除活动联动清理子记录三处同步；点击成本实测（创建 4 次/详情 2 次/待办 0 次）；新增 4 个审计文件入回归（mock-integrity/click-cost/agenda-flow/module-load，2026-08-30 统一命名规范化）；KNOWN_PITFALLS §14.1 + CHECKLIST「编辑完整性校验」章节。
 
 > **注**：T-280 网页逻辑全量梳理已全部完成（B1-B6，2026-08-24 归档执行日志），乙部删除——完整对账报告与收口记录见 `.ctx/logs/2026-08-EXECUTION_LOG.md`（L4777~5080），检查依据见 [CHECKLIST.md](content/04_web_design/evolution/CHECKLIST.md)（含 T-280-B1/T-280-B5 手动检查小节与各批新理念校验点）。
 

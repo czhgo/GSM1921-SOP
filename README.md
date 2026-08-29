@@ -93,6 +93,7 @@ npm start
 | 理论在哪 | [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) + [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) + [content/insights/](content/insights/) |
 | 工作流是什么 | [CLAUDE.md](CLAUDE.md) — 项目最高治理文件，定义工作方式、核心原则和运行标准 |
 | 系统怎么跑起来 | [server/README.md](server/README.md) — 安装、启动、测试与部署对接 |
+| 系统怎么验证 | `cd server && npm test` — 17 个测试文件（单元 9 + 审计守护 8），详见 [server/README.md](server/README.md) 测试说明 |
 
 ---
 

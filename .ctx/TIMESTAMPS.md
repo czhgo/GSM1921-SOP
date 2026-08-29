@@ -164,9 +164,8 @@ dynamic_role:
 | server/routes/auth.js | 2026-08-03 | [工程师]+[AI] | 登录/token/me |
 | server/routes/resources.js | 2026-08-03 | [工程师]+[AI] | 25 资源 list/create/update + bootstrap + snapshot |
 | server/routes/uploads.js | 2026-08-03 | [工程师]+[AI] | 附件上传（jpg/png/pdf/docx/xlsx，≤10MB） |
-| server/test/*.test.js | 2026-08-03 | [工程师]+[AI] | 8 测试文件 16 用例（含 Playwright E2E） |
-| server/test/t235-browser-regression.mjs | 2026-08-24 | [工程师]+[AI] | T-235 首页跳转直达回归脚本（T-280 B1-2 新建，34 项 Playwright 断言） |
-| server/test/m4-browser-regression.mjs | 2026-08-24 | [工程师]+[AI] | T-279 M4 浏览器回归（T-280 B1-5 版本戳同步 20260824b） |
+| server/test/*.test.js | 2026-08-03 | [工程师]+[AI] | 单元测试套件（auth/db/resources/seed/skeleton/snapshot/uploads/report/e2e-login） |
+| server/test/*.test.mjs | 2026-08-30 | [工程师]+[AI] | 审计守护与专项测试（agenda-flow/b3-1/capability-registry/click-cost/link-integrity/mock-integrity/module-load/references-official-links；2026-08-30 自 docs/test 移入 + 命名规范化） |
 | server/test/b3-1-makeup-writeback.test.mjs | 2026-08-24 | [工程师]+[AI] | B3-1 补课完成→考勤回写验证（T-280 新建，5 项断言） |
 | server/test/probe*.mjs | — | — | 🗑️ 已删除（T-280 B1 临时探针，定位完成清理） |
 | server/README.md | 2026-08-10 | [工程师]+[AI] | 安装/启动/测试/部署对接说明 |

@@ -135,15 +135,17 @@ if (codeVersionChanged) {
   writeFileSync(cpsFile, cpsNext, 'utf8');
 }
 
-// ── 同步 server/test/*.mjs 内的页面模块版本戳（防模块实例分裂）──
+// ── 同步 server/test/*.mjs 与 *.test.js 内的页面模块版本戳（防模块实例分裂）──
 // 判例 KNOWN_PITFALLS §17：Playwright evaluate 内动态 import('/src/...?v=') 若版本
 // 落后于 src 内部 import，浏览器会按 URL 分裂出第二个模块实例（注册表/共享状态读空），
 // 导致回归误报（m4 回归 22/31 即为 20260824b 未随 bump 至 20260824c 的误报）。
+// 2026-08-30 扩展：*.test.js 一并纳入（e2e-login.test.js 硬编码 ?v= 曾漏同步，
+// 上一轮 bump 后仍持旧戳 20260829r → 模块分裂 → 写穿闭环误报超时）。
 let testCount = 0;
 const testDir = join(ROOT, '..', 'server', 'test');
 if (existsSync(testDir)) {
   for (const name of readdirSync(testDir)) {
-    if (!name.endsWith('.mjs')) continue;
+    if (!name.endsWith('.mjs') && !name.endsWith('.test.js')) continue;
     const file = join(testDir, name);
     let content = readFileSync(file, 'utf8');
     const next = content.replace(

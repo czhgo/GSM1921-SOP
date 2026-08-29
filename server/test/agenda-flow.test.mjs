@@ -1,8 +1,8 @@
 // role: [工程师]+[AI]
-// agenda-flow-audit.mjs — 三会一课议程功能回归（T-283 方向4）
+// agenda-flow.test.mjs — 三会一课议程功能回归（T-283 方向4；原 agenda-flow-audit.mjs）
 // 覆盖：①详情显示议程 ②创建活动写入议程 ③详情行内编辑议程→保存→持久化
 // 自包含 server（createApp + listen(0)，与 e2e-login 同模式，避免外部 3000 连续测试卡顿）
-// 运行：node --test server/test/agenda-flow-audit.mjs
+// 运行：node --test server/test/agenda-flow.test.mjs
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';

@@ -439,7 +439,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 > 检查方式：登录各角色后进入「待办」tab，点击通知类/审核类待办的行动按钮或聚合卡「处理」按钮，观察是否直达对应处理页/详情页。
 > 背景：最小三成本 / 高频零跳转理念落地——待办行动按钮直达处理界面，减少中间跳转（DESIGN_SYSTEM.md 原则10）。
-> **2026-08-24 浏览器实测（`server/test/t280-b1-browser-regression.mjs`）：29/29 全过**——7 条全部代码化断言验证（URL / tab 激活态 / 详情面板 DOM）。实测修复 2 缺陷：
+> **2026-08-24 浏览器实测：29/29 全过**——7 条全部代码化断言验证（URL / tab 激活态 / 详情面板 DOM；专项脚本已随 2026-08-30 脚本清理归档）。实测修复 2 缺陷：
 > ① leader todo-tab 无 actionKey 级 tabMap → `review-submit` 复盘待办点「去提交」误跳考勤上传，已对齐 disc 的 actionKey 级映射；
 > ② 赋权待办聚合对象无 sourceId + 懒加载 tab 渲染异步 → 同步 querySelector 找不到活动条目、直达详情失效，已改为 items[0] 取 sourceId + 以「详情面板打开」为完成条件的轮询点击。
 
@@ -455,14 +455,14 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 > 检查方式：对照 `server/db.js` / `server/routes/resources.js` / `server/seed.js` 与前端 `data-adapter.js` / `mock-adapter.js` 的持久化域，逐表核对映射与写穿边界。
 > 背景：T-280 B5 前后端对账——server 26 表（users + 25 业务）与前端 mockDB 25 个持久化域一一映射；snapshot 全量写穿与 per-item CRUD 两条写路径边界清晰。
-> **2026-08-24 实测（`server/test/t280-b5-api-regression.mjs`）：6/6 全过**——API 级代码断言（无浏览器依赖）。实测说明：V2/V3 因 server seed 仅在空库执行（db 持久化），archiveRecords 等「初始有种子」与 attendances 等「初始为空」改代码级断言（读 seed.js/mock/seed.js 源码印证）；V4 验证 login 路由在 `/api/v1/auth/login`。
+> **2026-08-24 实测：6/6 全过**——API 级代码断言（无浏览器依赖；专项脚本已随 2026-08-30 脚本清理归档）。实测说明：V2/V3 因 server seed 仅在空库执行（db 持久化），archiveRecords 等「初始有种子」与 attendances 等「初始为空」改代码级断言（读 seed.js/mock/seed.js 源码印证）；V4 验证 login 路由在 `/api/v1/auth/login`。
 
 - [x] **表↔域映射**：26 资源 list 全部返回 200+数组（`resources.js` RESOURCE_TABLES 26 名全通）✅
 - [x] **seed 复用**：运行时 users 50/taskforces 8/activities 29+ 基线 + 代码级确认 `mock/seed.js` SEED_ARCHIVE_RECORDS/SEED_SIGNUPS 常量与 `server/seed.js` 的 archive_records/signups 注入 ✅
-- [x] **空表回退**：代码级确认 `server/seed.js` 仅 seed 8 集合、**不覆盖 attendances/inspections/todos**（前端 init 空表回退本地种子的必要性印证；运行时回退行为由 B4/b3-1/t235 浏览器验证）✅
+- [x] **空表回退**：代码级确认 `server/seed.js` 仅 seed 8 集合、**不覆盖 attendances/inspections/todos**（前端 init 空表回退本地种子的必要性印证；运行时回退行为由 b3-1/e2e-login 浏览器验证）✅
 - [x] **branchDocs 写权限**：未登录 POST→401；非支委（leader p1）POST→403；支委（secretary p13）POST→201 + 删除 204（COMMISSIONER_WRITE 强制支委身份）✅
 - [x] **聚合域 round-trip**：快照写穿 `[{id:'__root__', body}]` → 读回 `__root__` 单行 + body 深比较一致 → 清理写回空 ✅
-- [x] **auth 测试**：`server/test` 全量测试通过（2026-08-24：21/21，含 b3-1 回写 5 项 + t235 直达 34 项 + m4 能力注册 31 项 + t280-b1 待办直达 29 项 + t280-b5 对账 6 项），含 e2e-login 回归
+- [x] **auth 测试**：`server/test` 全量测试通过（2026-08-24：21/21，含 b3-1 回写 5 项等；历史票证专项脚本已随 2026-08-30 清理归档），含 e2e-login 回归
 
 ## T223 活动排序统一（2026-08-09 追加）
 
@@ -494,7 +494,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 ## 链接完整性校验（T-284 新增，2026-08-27）
 
-> 书记指令「所有链接的审查，每一个都要查」。四层法：静态存在 ≠ 跳转合理。全量审计脚本 `server/test/link-audit.mjs`（L1-L4，已入 npm test 回归）。
+> 书记指令「所有链接的审查，每一个都要查」。四层法：静态存在 ≠ 跳转合理。全量审计脚本 `server/test/link-integrity.test.mjs`（L1-L5，已入 npm test 回归）。
 
 - [ ] **L1 静态链接**：全部 HTML href/src 目标文件存在 + `#锚点` 有效（含 `<base href>` 解析与 `?v=` 剥离）
 - [ ] **L2 JS 导航**：`location.href`/`replace`/`assign` 目标存在（模板插值动态跳转抽取 `.html` 字面量片段校验）

@@ -1,8 +1,8 @@
 // role: [工程师]+[AI]
-// click-cost-audit.mjs — 点击成本实测（T-283 方向3，书记强调"点击是最重要的"）
+// click-cost.test.mjs — 点击成本实测（T-283 方向3，书记强调"点击是最重要的"；原 click-cost-audit.mjs）
 // 覆盖：书记创建三会一课活动全流程点击数 + 活动详情查看点击数 + 待办行动点击数
 // 基线：REVIEW_QUEUE 附录⑤（进入工作台→可执行事项 ≤2 跳 / 待办行动按钮 1 次直达）
-// 运行：node --test server/test/click-cost-audit.mjs（server 需在 3000 端口）
+// 运行：node --test server/test/click-cost.test.mjs（server 需在 3000 端口）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
