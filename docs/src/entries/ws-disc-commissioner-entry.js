@@ -4,18 +4,18 @@
 // 入口职责：bootstrap + tab 清单读取（能力注册表）+ URL 导航落点 + 状态变更驱动的当前 tab 重渲染。
 // tab.render 为懒加载动态 import（点击时才加载对应模块），各 tab 私有状态随模块自持。
 
-import { setState, registerRenderCallback } from '../core/state.js?v=20260829l';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260829l';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260829l';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260829l';
-import { renderTabBar } from '../components/tab-bar.js?v=20260829l';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260829l';
-import { TodoStore, seedTodos } from '../services/todo.js?v=20260829l';
-import { loadActivities } from '../services/activity.js?v=20260829l';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260829l';
-import { getCapabilities } from '../core/registry.js?v=20260829l';
+import { setState, registerRenderCallback } from '../core/state.js?v=20260829m';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260829m';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260829m';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260829m';
+import { renderTabBar } from '../components/tab-bar.js?v=20260829m';
+import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260829m';
+import { TodoStore, seedTodos } from '../services/todo.js?v=20260829m';
+import { loadActivities } from '../services/activity.js?v=20260829m';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260829m';
+import { getCapabilities } from '../core/registry.js?v=20260829m';
 // 副作用导入触发纪检工作台能力注册（tab 清单）
-import '../modules/capabilities/disc-workspace.js?v=20260829l';
+import '../modules/capabilities/disc-workspace.js?v=20260829m';
 
 // accentRole 走 resolveAccentRole：侧边栏「主题色」个性化对纪检工作台同样生效
 const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole: 'disc-commissioner' });

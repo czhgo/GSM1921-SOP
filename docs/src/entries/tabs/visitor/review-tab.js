@@ -3,13 +3,13 @@
 // SOP 复盘提交归「组织者」——组织者可能是党小组组长，也可能是被赋权的普通成员。
 // 本 tab 让担任组织者/深度参与者的成员在自己的工作台即可提交复盘，复盘提交人 = 当前用户（组织者）。
 
-import { loadActivities } from '../../../services/activity.js?v=20260829l';
-import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../../../services/review.js?v=20260829l';
-import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260829l';
-import { PEOPLE } from '../../../mock/index.js?v=20260829l';
-import { AuthStore } from '../../../services/auth.js?v=20260829l';
-import { showToast } from '../../../core/utils.js?v=20260829l';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260829l';
+import { loadActivities } from '../../../services/activity.js?v=20260829m';
+import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../../../services/review.js?v=20260829m';
+import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260829m';
+import { PEOPLE } from '../../../mock/index.js?v=20260829m';
+import { AuthStore } from '../../../services/auth.js?v=20260829m';
+import { showToast } from '../../../core/utils.js?v=20260829m';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260829m';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;
@@ -207,14 +207,14 @@ function _renderReviewDetail(rev) {
   return `
     <div class="mt-3 pt-3 border-t border-gray-100">
       <div class="text-xs text-gray-600 p-2 bg-gray-50 rounded-lg border border-gray-100">${rev.reviewContent || ''}</div>
-      ${issues.length ? `<div class="mt-2 p-2 rounded-lg border border-amber-100 bg-amber-50">
-        <div class="text-[11px] text-amber-700 font-bold mb-1">提出的真问题（${issues.length}）</div>
+      ${issues.length ? `<div class="mt-2 p-2 rounded-lg border border-amber-200" style="border-left:3px solid #F59E0B;">
+        <div class="flex items-center gap-1.5 text-[11px] text-amber-700 font-bold mb-1"><span class="w-1.5 h-1.5 rounded-full" style="background:#F59E0B;"></span>提出的真问题（${issues.length}）</div>
         <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-800">· ${i}</li>`).join('')}</ul>
       </div>` : ''}
       ${rev.submittedAt ? `<div class="text-xs text-gray-400 mt-1">提交时间：${rev.submittedAt.slice(0, 16).replace('T', ' ')}</div>` : ''}
       ${rev.annotation ? `
-        <div class="mt-2 p-2 rounded-lg bg-blue-50 border border-blue-100">
-          <div class="text-xs text-blue-500 font-bold mb-1">纪检委员批注</div>
+        <div class="mt-2 p-2 rounded-lg border border-blue-200" style="border-left:3px solid #3B82F6;">
+          <div class="flex items-center gap-1.5 text-xs text-blue-600 font-bold mb-1"><span class="w-1.5 h-1.5 rounded-full" style="background:#3B82F6;"></span>纪检委员批注</div>
           <div class="text-xs text-blue-700">${rev.annotation}</div>
         </div>
       ` : ''}

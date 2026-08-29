@@ -8,18 +8,18 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（书记反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260829l';
-import { attendanceToLong, getPersonName } from '../../../mock/index.js?v=20260829l';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260829l';
-import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260829l';
-import { loadActivities } from '../../../services/activity.js?v=20260829l';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260829l';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260829l';
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260829l';
-import { badgeHtml } from '../../../components/badge.js?v=20260829l';
-import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260829l';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260829l';
-import { HandoffStore } from '../../../services/handoff.js?v=20260829l';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260829m';
+import { attendanceToLong, getPersonName } from '../../../mock/index.js?v=20260829m';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260829m';
+import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260829m';
+import { loadActivities } from '../../../services/activity.js?v=20260829m';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260829m';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260829m';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260829m';
+import { badgeHtml } from '../../../components/badge.js?v=20260829m';
+import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260829m';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260829m';
+import { HandoffStore } from '../../../services/handoff.js?v=20260829m';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）

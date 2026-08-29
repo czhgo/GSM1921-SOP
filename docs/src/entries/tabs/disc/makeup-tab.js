@@ -3,14 +3,14 @@
 // 缺勤/请假的三会一课、主题党日须在7日内补课，纪检委员确认完成。
 // B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260829l';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260829l';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260829l';
-import { getPersonName } from '../../../mock/index.js?v=20260829l';
-import { badgeHtml } from '../../../components/badge.js?v=20260829l';
-import { showToast } from '../../../core/utils.js?v=20260829l';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260829l';
-import { getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260829l';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260829m';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260829m';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260829m';
+import { getPersonName } from '../../../mock/index.js?v=20260829m';
+import { badgeHtml } from '../../../components/badge.js?v=20260829m';
+import { showToast } from '../../../core/utils.js?v=20260829m';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260829m';
+import { getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260829m';
 
 export function renderContent() {
   const container = document.getElementById('disc-tab-content');

@@ -3,10 +3,10 @@
 // 书记 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { PEOPLE } from '../../../mock/index.js?v=20260829l';
-import { AuthStore } from '../../../services/auth.js?v=20260829l';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260829l';
-import { flashHighlight } from '../../../core/utils.js?v=20260829l';
+import { PEOPLE } from '../../../mock/index.js?v=20260829m';
+import { AuthStore } from '../../../services/auth.js?v=20260829m';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260829m';
+import { flashHighlight } from '../../../core/utils.js?v=20260829m';
 
 // 项目分工子视图（书记 2026-08-10 裁定第5点）：区分「我的分工」（以人为中心）与「全局分工」（全局查询）
 let _projSubView = 'mine'; // 'mine' | 'all'
@@ -273,7 +273,7 @@ function _renderProjectCard(project, currentUserId) {
     <div class="visitor-proj-card p-3 rounded-lg bg-white" data-tf-id="${project.type === '专班' ? project.id : ''}">
       <div class="flex items-center justify-between mb-1.5">
         <div class="flex items-center gap-2 min-w-0">
-          <span class="text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${project.type === '活动' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}">${project.typeBadge}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 border ${project.type === '活动' ? 'text-red-700 border-red-200' : 'text-amber-700 border-amber-200'}">${project.typeBadge}</span>
           <p class="text-sm font-medium text-gray-800 truncate">${project.name}</p>
         </div>
         <span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${project.statusColor}">${project.status}</span>

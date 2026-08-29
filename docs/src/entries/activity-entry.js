@@ -2,21 +2,21 @@
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../components/sidebar.js?v=20260829l';
-import { renderHeader } from '../components/header.js?v=20260829l';
-import { BranchService } from '../services/runtime.js?v=20260829l';
-import { mockDB } from '../core/domain.js?v=20260829l';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260829l';
-import { NoticeStore } from '../services/notice.js?v=20260829l';
-import { SignupStore } from '../services/signup.js?v=20260829l';
-import { AuthStore } from '../services/auth.js?v=20260829l';
-import { getPersonById } from '../mock/index.js?v=20260829l';
-import { getBasePath } from '../core/utils.js?v=20260829l';
-import { getActivityTypeColors } from '../core/constants.js?v=20260829l';
-import { badgeHtml } from '../components/badge.js?v=20260829l';
-import { enhanceSelects } from '../components/custom-select.js?v=20260829l';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260829l';
-import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260829l';
+import { renderSidebar } from '../components/sidebar.js?v=20260829m';
+import { renderHeader } from '../components/header.js?v=20260829m';
+import { BranchService } from '../services/runtime.js?v=20260829m';
+import { mockDB } from '../core/domain.js?v=20260829m';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260829m';
+import { NoticeStore } from '../services/notice.js?v=20260829m';
+import { SignupStore } from '../services/signup.js?v=20260829m';
+import { AuthStore } from '../services/auth.js?v=20260829m';
+import { getPersonById } from '../mock/index.js?v=20260829m';
+import { getBasePath } from '../core/utils.js?v=20260829m';
+import { getActivityTypeColors } from '../core/constants.js?v=20260829m';
+import { badgeHtml } from '../components/badge.js?v=20260829m';
+import { enhanceSelects } from '../components/custom-select.js?v=20260829m';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260829m';
+import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260829m';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

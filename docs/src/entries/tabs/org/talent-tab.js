@@ -2,12 +2,12 @@
 // 组织委员工作台 Tab：人才库（T-279 M3 拆分，照 M2 样板）
 // 人员信息汇总提炼，输出人才画像；点击人员展开考察记录汇总。
 
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260829l';
-import { loadActivities } from '../../../services/activity.js?v=20260829l';
-import { PEOPLE, getPersonById } from '../../../mock/index.js?v=20260829l';
-import { renderQueryView } from '../../../components/query-view.js?v=20260829l';
-import { badgeHtml } from '../../../components/badge.js?v=20260829l';
-import { icon } from '../../../core/icons.js?v=20260829l';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260829m';
+import { loadActivities } from '../../../services/activity.js?v=20260829m';
+import { PEOPLE, getPersonById } from '../../../mock/index.js?v=20260829m';
+import { renderQueryView } from '../../../components/query-view.js?v=20260829m';
+import { badgeHtml } from '../../../components/badge.js?v=20260829m';
+import { icon } from '../../../core/icons.js?v=20260829m';
 
 export function renderContent(ctx) {
   const container = document.getElementById('org-tab-content');
