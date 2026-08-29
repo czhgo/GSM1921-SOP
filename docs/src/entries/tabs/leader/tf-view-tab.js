@@ -5,7 +5,7 @@
 export function renderContent(ctx) {
   const el = document.getElementById('leader-tab-content');
   if (!el) return null;
-  return import('../../../components/taskforce-view.js?v=20260829m').then(m => m.renderTaskforceView(el, {
+  return import('../../../components/taskforce-view.js?v=20260829o').then(m => m.renderTaskforceView(el, {
     highlightId: ctx?.highlightTfId || null,
     onLocated: () => { if (ctx?.onNavLocated) ctx.onNavLocated(); },
   }));

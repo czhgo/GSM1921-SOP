@@ -2,8 +2,8 @@
 // 组长工作台 Tab：工作概况（T-279 M2 拆分）
 // 书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览，个人视角。
 
-import { renderWorkOverview } from '../../../components/work-overview.js?v=20260829m';
-import { AuthStore } from '../../../services/auth.js?v=20260829m';
+import { renderWorkOverview } from '../../../components/work-overview.js?v=20260829o';
+import { AuthStore } from '../../../services/auth.js?v=20260829o';
 
 export function renderContent(ctx) {
   const el = document.getElementById('leader-tab-content');

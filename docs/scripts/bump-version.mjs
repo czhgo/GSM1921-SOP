@@ -104,6 +104,15 @@ for (const file of htmlFiles) {
       return `${pre}?v=${VERSION}${end}`;
     }
   );
+  // 公共脚本（theme-init/tailwind-config 等，HTML 公共资源抽取 2026-08-29 方案A）：
+  // 普通 <script src=".../src/*.js"> 版本统一（不匹配 type="module" 的 entry——其 src 前有 type 属性）
+  content = content.replace(
+    /(<script src="[^"?]*\/src\/[^"?]*\.js)(\?[^"]*)?(")/g,
+    (m, pre, _q, end) => {
+      changed = true;
+      return `${pre}?v=${VERSION}${end}`;
+    }
+  );
   if (changed) {
     writeFileSync(file, content, 'utf8');
     htmlCount++;
