@@ -140,8 +140,8 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
     const today = new Date();
     const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     await page.evaluate(async ({ uniqueTitle, dateStr }) => {
-      const { mockDB } = await import('/src/core/domain.js?v=20260829f');
-      const { persist } = await import('/src/core/data-adapter.js?v=20260829f');
+      const { mockDB } = await import('/src/core/domain.js?v=20260829h');
+      const { persist } = await import('/src/core/data-adapter.js?v=20260829h');
       mockDB.activities.push({
         id: 'act-e2e-' + Date.now(),
         title: uniqueTitle,

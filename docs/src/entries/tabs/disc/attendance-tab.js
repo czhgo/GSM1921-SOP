@@ -3,18 +3,18 @@
 // 纪检委员维护考勤系统：待确认（请假/缺勤/超期）→ 确认 → 自动生成补课任务。
 // filterActivityId 经 ctx.attendanceFilterActId 传入（URL activityId 落点直达该活动考勤）。
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260829f';
-import { attendanceToLong, attendanceToWide, getPersonName } from '../../../mock/index.js?v=20260829f';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260829f';
-import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260829f';
-import { loadActivities } from '../../../services/activity.js?v=20260829f';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260829f';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260829f';
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260829f';
-import { badgeHtml } from '../../../components/badge.js?v=20260829f';
-import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260829f';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260829f';
-import { HandoffStore } from '../../../services/handoff.js?v=20260829f';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260829h';
+import { attendanceToLong, attendanceToWide, getPersonName } from '../../../mock/index.js?v=20260829h';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260829h';
+import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260829h';
+import { loadActivities } from '../../../services/activity.js?v=20260829h';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260829h';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260829h';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260829h';
+import { badgeHtml } from '../../../components/badge.js?v=20260829h';
+import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260829h';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260829h';
+import { HandoffStore } from '../../../services/handoff.js?v=20260829h';
 
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');

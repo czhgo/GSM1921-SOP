@@ -4,20 +4,20 @@
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../components/sidebar.js?v=20260829f';
-import { renderHeader } from '../components/header.js?v=20260829f';
-import { AuthStore } from '../services/auth.js?v=20260829f';
-import { IssueStore } from '../services/issues.js?v=20260829f';
-import { MilestoneStore } from '../services/milestones.js?v=20260829f';
-import { getAccentColors, resolveAccentRole } from './constants.js?v=20260829f';
-import { CrossPageState } from './cross-page-state.js?v=20260829f';
-import { getBasePath } from './utils.js?v=20260829f';
-import { enhanceSelects } from '../components/custom-select.js?v=20260829f';
-import { registerApiAdapter, init } from './data-adapter.js?v=20260829f';
-import { ApiAdapter } from './api-adapter.js?v=20260829f';
-import { getCapabilities } from './registry.js?v=20260829f';
+import { renderSidebar } from '../components/sidebar.js?v=20260829h';
+import { renderHeader } from '../components/header.js?v=20260829h';
+import { AuthStore } from '../services/auth.js?v=20260829h';
+import { IssueStore } from '../services/issues.js?v=20260829h';
+import { MilestoneStore } from '../services/milestones.js?v=20260829h';
+import { getAccentColors, resolveAccentRole } from './constants.js?v=20260829h';
+import { CrossPageState } from './cross-page-state.js?v=20260829h';
+import { getBasePath } from './utils.js?v=20260829h';
+import { enhanceSelects } from '../components/custom-select.js?v=20260829h';
+import { registerApiAdapter, init } from './data-adapter.js?v=20260829h';
+import { ApiAdapter } from './api-adapter.js?v=20260829h';
+import { getCapabilities } from './registry.js?v=20260829h';
 // M4 数据源注册化：副作用导入触发 mock/api 数据源能力注册，bootstrap 经注册表选择数据源
-import '../modules/capabilities/data-source.js?v=20260829f';
+import '../modules/capabilities/data-source.js?v=20260829h';
 
 // ════════════════════════════════════════════════════════════════
 // S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）
@@ -134,15 +134,18 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
   // workspace 时会出现"身份标签与页面错位"。修复：计算该用户"允许访问的工作台页面集合"
   // （登录快照角色页面 + 内存判定角色页面），当前页面不在集合内时自动跳转到身份对应页面。
   if (module === 'workspace' && user) {
-    const currentPage = window.location.pathname.split('/').pop();
+    // T-304 遗留修复：剥后缀归一化——内嵌视图会把 workspace/xxx.html 剥成 workspace/xxx，
+    // 两侧同时去掉 .html 后缀再比较，避免「恒不匹配 → 无限重定向循环」白屏。
+    const norm = (p) => (p || '').replace(/\.html$/, '');
+    const currentPage = norm(window.location.pathname.split('/').pop());
     const allowedPages = new Set();
     // 1. 登录快照身份对应工作台（header 身份标签同源：右上角显示什么身份，就该落在什么工作台）
     const snapPage = AuthStore.getPageForRole('workspace', user.role);
-    if (snapPage) allowedPages.add(snapPage);
+    if (snapPage) allowedPages.add(norm(snapPage));
     // 2. 内存判定角色对应工作台（赋权记录优先于 mock：如登录后被赋权为党小组组长，
     //    允许其合法访问组长工作台——header 切换工作台下拉的 1b 项同款场景）
     const memPage = AuthStore.getPageForRole('workspace', AuthStore.getUserRole(user.personId));
-    if (memPage) allowedPages.add(memPage);
+    if (memPage) allowedPages.add(norm(memPage));
 
     if (!allowedPages.has(currentPage)) {
       // 跳转目标：以登录快照身份为准（与身份标签一致）；缺失时回退内存判定角色页面

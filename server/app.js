@@ -29,7 +29,9 @@ export function createApp({ dbPath = ':memory:' } = {}) {
     res.type('application/javascript').send('export const DEPLOY_MODE = "server";\n');
   });
 
-  app.use(express.static(DOCS_DIR));
+  // 静态托管：无后缀请求自动补 .html（T-304 遗留修复——登录跳转在部分浏览器/内嵌视图
+  // 会把 workspace/xxx.html 剥成 workspace/xxx 导致 404，extensions 选项兜底解析）
+  app.use(express.static(DOCS_DIR, { extensions: ['html'] }));
 
   // 统一 JSON 错误响应：multer 大小超限 → 413，其余 → 500（避免默认 HTML 错误页破坏 API 契约）
   // 2026-08-03（I2）：express.json 超限（2mb）抛出的 PayloadTooLargeError 自带 err.status=413，

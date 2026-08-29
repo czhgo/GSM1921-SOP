@@ -2,9 +2,9 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../services/auth.js?v=20260829f';
-import { mockLogin } from '../mock/accounts.js?v=20260829f';
-import { getAccentColors, solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260829f';
+import { AuthStore } from '../services/auth.js?v=20260829h';
+import { mockLogin } from '../mock/accounts.js?v=20260829h';
+import { getAccentColors, solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260829h';
 
 // 已登录则直接跳转
 const user = AuthStore.getCurrentUser();
@@ -14,8 +14,10 @@ if (user) {
 
 // 登录成功后按角色直达对应工作台（最小三成本：登录→工作台 ≤2 跳）
 // 2026-08-24 最小三成本专项评议 P2 修复：原固定跳首页，改为直达角色工作台
+// 2026-08-29 T-304 遗留修复：page 规范化补 .html 后缀（防御内嵌视图剥后缀导致的 404）
 function _goToWorkspace(role) {
-  const page = AuthStore.getPageForRole('workspace', role);
+  const raw = AuthStore.getPageForRole('workspace', role);
+  const page = raw && !raw.endsWith('.html') ? raw + '.html' : raw;
   if (page) {
     window.location.href = `./workspace/${page}`;
   } else {

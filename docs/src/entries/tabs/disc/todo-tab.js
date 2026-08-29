@@ -2,14 +2,14 @@
 // 纪检委员工作台 Tab：待办（T-279 M3 拆分，照 M2 样板）
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降。
 
-import { showToast } from '../../../core/utils.js?v=20260829f';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType, seedTodos } from '../../../services/todo.js?v=20260829f';
-import { renderTodoList } from '../../../components/todo-list.js?v=20260829f';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260829f';
-import { badgeHtml } from '../../../components/badge.js?v=20260829f';
-import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260829f';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260829f';
-import { getPersonName } from '../../../mock/index.js?v=20260829f';
+import { showToast } from '../../../core/utils.js?v=20260829h';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType, seedTodos } from '../../../services/todo.js?v=20260829h';
+import { renderTodoList } from '../../../components/todo-list.js?v=20260829h';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260829h';
+import { badgeHtml } from '../../../components/badge.js?v=20260829h';
+import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260829h';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260829h';
+import { getPersonName } from '../../../mock/index.js?v=20260829h';
 
 // 私有状态（随模块自持，不污染入口）
 let _selectedTodoId = null;

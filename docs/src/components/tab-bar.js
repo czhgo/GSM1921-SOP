@@ -3,7 +3,7 @@
 //  tab-bar.js — 通用 Tab 切换组件
 // ════════════════════════════════════════════════════════════════
 
-import { accDarkParts } from '../core/constants.js?v=20260829f';
+import { accDarkParts } from '../core/constants.js?v=20260829h';
 
 // 角色识别层：tab 激活态 = 主题色三件套渲染（书记 2026-08-08 三审定稿）。
 // 背景：前三轮把 tab 强行为品牌金（半透明 0.14/0.30 → 实色 #FFD700），书记全部否决——
@@ -121,6 +121,28 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
   // 延迟绑定事件（调用方在 innerHTML 后调用 bindTabEvents）
   let boundContainer = null; // 记录绑定容器，供 activate 同步按钮高亮
+  // T-304 遗留修复：tab 懒加载并发去重——entry 重渲染（loadWorkspaceData 两次 setState）或快速点击
+  // 会重复触发同一 tab 的动态 import，浏览器中止首个请求产生 net::ERR_ABORTED 噪音。
+  // 同一 tabId 的渲染 Promise 只保留一个；完成后释放，下次重渲染照常刷新数据。
+  const _renderInFlight = new Map();
+  function _safeRender(tab, ctx) {
+    if (!tab || typeof tab.render !== 'function') return;
+    let p = _renderInFlight.get(tab.id);
+    if (!p) {
+      try {
+        p = Promise.resolve(tab.render(ctx));
+        p.then(() => {
+          if (_renderInFlight.get(tab.id) === p) _renderInFlight.delete(tab.id);
+        });
+      } catch (e) {
+        console.error(`[tab-bar] tab「${tab.id}」渲染异常`, e);
+        return;
+      }
+      _renderInFlight.set(tab.id, p);
+    }
+    p.catch(e => console.error(`[tab-bar] tab「${tab.id}」渲染失败`, e));
+  }
+
   function bindEvents(container) {
     boundContainer = container;
     _bindScrollHints(container.querySelector('.ws-tab-scroll'));
@@ -143,15 +165,8 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
         const tab = tabs.find(t => t.id === tabId);
         currentTab = tabId;
         if (typeof onTabChange === 'function') onTabChange(tabId, tab);
-        // 懒加载支持：render 可能返回 Promise（动态 import），统一兜底捕获
-        if (tab && typeof tab.render === 'function') {
-          try {
-            const r = tab.render(renderCtx);
-            if (r && typeof r.catch === 'function') r.catch(e => console.error(`[tab-bar] tab「${tabId}」渲染失败`, e));
-          } catch (e) {
-            console.error(`[tab-bar] tab「${tabId}」渲染异常`, e);
-          }
-        }
+        // 懒加载支持：render 可能返回 Promise（动态 import），统一去重兜底（T-304）
+        _safeRender(tab, renderCtx);
       });
     });
   }
@@ -181,14 +196,8 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
       }
     }
     const tab = tabs.find(t => t.id === tabId);
-    if (tab && typeof tab.render === 'function') {
-      try {
-        const r = tab.render(ctx || renderCtx);
-        if (r && typeof r.catch === 'function') r.catch(e => console.error(`[tab-bar] tab「${tabId}」渲染失败`, e));
-      } catch (e) {
-        console.error(`[tab-bar] tab「${tabId}」渲染异常`, e);
-      }
-    }
+    // 懒加载支持：render 可能返回 Promise（动态 import），统一去重兜底（T-304）
+    _safeRender(tab, ctx || renderCtx);
   }
 
   return { html, bindEvents, activate, contentId, activeTab, tabs, get currentTab() { return currentTab; } };

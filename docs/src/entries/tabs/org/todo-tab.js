@@ -2,14 +2,14 @@
 // 组织委员工作台 Tab：待办（T-279 M3 拆分，照 M2 样板）
 // 最小三成本原则落地：进入即见首条详情，减一次点击。
 
-import { TodoStore } from '../../../services/todo.js?v=20260829f';
-import { renderTodoList } from '../../../components/todo-list.js?v=20260829f';
-import { badgeHtml } from '../../../components/badge.js?v=20260829f';
-import { showToast } from '../../../core/utils.js?v=20260829f';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260829f';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260829f';
-import { HandoffStore } from '../../../services/handoff.js?v=20260829f';
-import { openFormModal } from '../../../components/modal.js?v=20260829f';
+import { TodoStore } from '../../../services/todo.js?v=20260829h';
+import { renderTodoList } from '../../../components/todo-list.js?v=20260829h';
+import { badgeHtml } from '../../../components/badge.js?v=20260829h';
+import { showToast } from '../../../core/utils.js?v=20260829h';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260829h';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260829h';
+import { HandoffStore } from '../../../services/handoff.js?v=20260829h';
+import { openFormModal } from '../../../components/modal.js?v=20260829h';
 
 // 私有状态（随模块自持，不污染入口）
 let _selectedTodoId = null;

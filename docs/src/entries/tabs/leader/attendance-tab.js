@@ -2,16 +2,16 @@
 // 组长工作台 Tab：考勤上传（T-279 M2 拆分）
 // 党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表。
 
-import { loadActiveAttendanceRecords, loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260829f';
-import { loadMakeupTasks } from '../../../services/makeup.js?v=20260829f';
-import { loadActivities } from '../../../services/activity.js?v=20260829f';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260829f';
-import { getPersonById, getPersonName, PEOPLE, attendanceToLong } from '../../../mock/index.js?v=20260829f';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260829f';
-import { badgeHtml } from '../../../components/badge.js?v=20260829f';
-import { showToast } from '../../../core/utils.js?v=20260829f';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260829f';
-import { currentLeaderGroup } from './_shared.js?v=20260829f';
+import { loadActiveAttendanceRecords, loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260829h';
+import { loadMakeupTasks } from '../../../services/makeup.js?v=20260829h';
+import { loadActivities } from '../../../services/activity.js?v=20260829h';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260829h';
+import { getPersonById, getPersonName, PEOPLE, attendanceToLong } from '../../../mock/index.js?v=20260829h';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260829h';
+import { badgeHtml } from '../../../components/badge.js?v=20260829h';
+import { showToast } from '../../../core/utils.js?v=20260829h';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260829h';
+import { currentLeaderGroup } from './_shared.js?v=20260829h';
 
 // 私有状态（随模块自持，不污染入口）
 let _attFormVisible = false;
