@@ -2,11 +2,11 @@
 // 组长工作台 Tab：待办（T-279 M2 拆分）
 // 最小三成本原则落地：进入即见首条详情，减一次点击。
 
-import { TodoStore, TodoStatus } from '../../../services/todo.js?v=20260829o';
-import { renderTodoList } from '../../../components/todo-list.js?v=20260829o';
-import { badgeHtml } from '../../../components/badge.js?v=20260829o';
-import { showToast } from '../../../core/utils.js?v=20260829o';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260829o';
+import { TodoStore, TodoStatus } from '../../../services/todo.js?v=20260829q';
+import { renderTodoList } from '../../../components/todo-list.js?v=20260829q';
+import { badgeHtml } from '../../../components/badge.js?v=20260829q';
+import { showToast } from '../../../core/utils.js?v=20260829q';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260829q';
 
 // 私有状态（随模块自持，不污染入口）
 let _selectedTodoId = null;
