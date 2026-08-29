@@ -39,7 +39,9 @@ related_files: [docs/src/core/data-adapter.js, docs/src/core/api-adapter.js, doc
 | 前端模块化 | `docs/src/` ESM 分层（entries/components/core/services/workflow/modules/mock），8 根 HTML + 6 工作台 |
 | 数据抽象 | `data-adapter.js` mock/api 双模式，`setDataSource('mock'/'api', { apiBaseUrl, authToken })` 动态切换；`runtime.js` 默认 mock，`bootstrap.js` 检测到 token 自动切 api、服务器不可达静默回退 mock |
 | API 适配器 | `api-adapter.js` P1 已实现：25 服务端资源 `list()`（供 init 拉全量）+ `snapshot()` 全量写穿 + 8s 超时兜底；路由表见文件头（25 资源 + auth/login/logout + snapshot + uploads + health/bootstrap） |
-| 后端服务 | `server/` Express + better-sqlite3：**26 资源表**（id + data JSON 通用结构，含 branch_docs）+ sessions/attachments；routes：auth（login/logout/me）、resources（CRUD + bootstrap + snapshot 写穿）、uploads（jpg/png/pdf/docx/xlsx ≤10MB）；`npm test` 16 用例全绿（含 Playwright E2E 登录链路） |
+| 后端服务 | `server/` Express + better-sqlite3：**26 资源表**（id + data JSON 通用结构，含 branch_docs）+ sessions/attachments；routes：auth（login/logout/me）、resources（CRUD + bootstrap + snapshot 写穿）、uploads（jpg/png/pdf/docx/xlsx ≤10MB）、report（§六）；`npm test` 单测 24 用例全绿（含上报接口 8 例） |
+| 邮件双通道（§五） | `server/services/mailer.js`（nodemailer 通用 SMTP，env 注入不落库，失败重试 3 次 + 静默降级）+ `services/mailer-hooks.js` 接入通知发布/待办提醒/反馈汇报触发点；成员档案 email 字段预留，补充后通道自动生效 |
+| 数据上报（§六） | `server/routes/report.js` + `services/reporting.js`：`GET /api/v1/report/:domain`（JSON 拉取）/ `/report/export`（CSV+BOM 人工导入）/ `POST /report/trigger`（手动推送）+ 每日 03:00 定时批量上报 + 每 10 分钟会议提醒扫描 |
 | 部署形态区分 | `docs/src/config/deploy.js` `DEPLOY_MODE: 'static' | 'server'`（构建时注入）；侧边栏「关于」显隐按此区分（静态托管显示 / 有后端隐藏） |
 | 登录门控 | 四层模型已落地（DEPLOYMENT_AUTH_MODEL.md §四）：L1 页面 / L2 功能写入 / L3 身份组件 / L4 下载 |
 

@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { requireAuth, requireCommissioner } from './auth.js';
 import { replaceCollection } from '../db.js';
 import { deleteUploadedFile } from './uploads.js';
+import { afterResourceWrite } from '../services/mailer-hooks.js';
 
 // 资源名 → 表名映射（与 data-adapter 的分组名对齐）
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
@@ -79,6 +80,9 @@ export function createResourcesRouter(db) {
       const id = row.id || `${ID_PREFIX[name] || 'x'}-${randomUUID().slice(0, 8)}`;
       const data = { ...row, id };
       db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify(data));
+      // 邮件双通道（部署文档 §五）：通知发布/待办提醒/反馈汇报触发邮件，异步 fire-and-forget，
+      // 失败/未配置均不影响站内功能（降级不阻断）
+      afterResourceWrite(db, name, data).catch(() => {});
       res.status(201).json(data);
     });
 

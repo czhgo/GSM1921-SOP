@@ -5,6 +5,7 @@ import { initDb } from './db.js';
 import { createAuthRouter } from './routes/auth.js';
 import { createResourcesRouter } from './routes/resources.js';
 import { createUploadsRouter } from './routes/uploads.js';
+import { createReportRouter } from './routes/report.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DOCS_DIR = path.resolve(__dirname, '../docs');
@@ -22,6 +23,10 @@ export function createApp({ dbPath = ':memory:' } = {}) {
   app.use('/api/v1', createResourcesRouter(app.locals.db));
 
   app.use('/api/v1', createUploadsRouter(app.locals.db));
+
+  // 数据上报（智慧党建/党校系统协同，T-304 部署文档 §六落地）：
+  // GET /api/v1/report/:domain（JSON 拉取）/ /report/export（CSV）/ POST /report/trigger（手动推送）
+  app.use('/api/v1', createReportRouter(app.locals.db));
 
   // 部署形态注入：server 模式下前端 deploy.js 应标记为 'server'（有后端，无「关于」门面）
   // 依据 content/04_web_design/deploy/DEPLOYMENT_AUTH_MODEL.md §六（构建时注入，非运行时探测）
