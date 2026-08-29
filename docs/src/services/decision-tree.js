@@ -2,13 +2,13 @@
 // services/decision-tree.js — 统一决策树服务
 // 从 ws-leader-entry.js 和 ws-secretary-entry.js 中提取的共享逻辑
 // 包含：配置管理、状态管理、场景映射、工作流面板渲染、活动写入
-import { BranchService } from './runtime.js?v=20260829h';
-import { showToast } from '../core/utils.js?v=20260829h';
-import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260829h';
-import { icon } from '../core/icons.js?v=20260829h';
+import { BranchService } from './runtime.js?v=20260829j';
+import { showToast } from '../core/utils.js?v=20260829j';
+import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260829j';
+import { icon } from '../core/icons.js?v=20260829j';
 // M4 场景注册化：经注册表读取 SOP 场景能力（sop-scenarios），行为零变化——能力缺省时回退直接读 sopDatabase
-import { getCapabilities } from '../core/registry.js?v=20260829h';
-import '../modules/capabilities/sop-scenarios.js?v=20260829h';
+import { getCapabilities } from '../core/registry.js?v=20260829j';
+import '../modules/capabilities/sop-scenarios.js?v=20260829j';
 
 /**
  * 经注册表读取场景（M4 场景注册化消费点）

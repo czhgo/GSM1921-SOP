@@ -21,10 +21,10 @@ page.on('pageerror', (e) => homeErrs.push(String(e)));
 await page.goto(BASE + '/index.html?view=calendar', { waitUntil: 'domcontentloaded' });
 await page.waitForTimeout(2500);
 const home = await page.evaluate(async () => {
-  const reg = await import('/src/core/registry.js?v=20260829h');
-  await import('/src/modules/capabilities/data-source.js?v=20260829h');
-  await import('/src/modules/capabilities/sop-scenarios.js?v=20260829h');
-  const cal = await import('/src/components/calendar.js?v=20260829h');
+  const reg = await import('/src/core/registry.js?v=20260829j');
+  await import('/src/modules/capabilities/data-source.js?v=20260829j');
+  await import('/src/modules/capabilities/sop-scenarios.js?v=20260829j');
+  const cal = await import('/src/components/calendar.js?v=20260829j');
   const main = document.querySelector('main');
   return {
     mainLen: main?.innerHTML.length || 0,
@@ -65,7 +65,7 @@ for (const ws of workspaces) {
   await p.goto(`${BASE}/workspace/${ws.file}.html?dev=${ws.role}`, { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(2200);
   const info = await p.evaluate(async ({ scope, file, minTabs }) => {
-    const reg = await import('/src/core/registry.js?v=20260829h');
+    const reg = await import('/src/core/registry.js?v=20260829j');
     const capIds = reg.getCapabilities({ scope }).map(c => c.id);
     // tab 按钮：前缀式 class（${file}-tab-btn），或通用 [class*="-tab-btn"]
     const btns = [...document.querySelectorAll(`#${file}-content [class*="tab-btn"]`)]

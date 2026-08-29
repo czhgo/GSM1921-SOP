@@ -2,25 +2,25 @@
 // main-entry.js — 主页入口
 // index.html 专属，处理 dashboard 全量数据渲染
 
-import { BranchService } from '../services/runtime.js?v=20260829h';
-import { STATE, setState, registerRenderCallback, getAppState } from '../core/state.js?v=20260829h';
-import { NoticeStore, renderNoticeList } from '../services/notice.js?v=20260829h';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260829h';
-import { _fmtDate, getBasePath } from '../core/utils.js?v=20260829h';
-import { _personName, getPersonName } from '../mock/index.js?v=20260829h';
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../services/attendance.js?v=20260829h';
-import { loadActivities } from '../services/activity.js?v=20260829h';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260829h';
-import { getActivityTypeColors } from '../core/constants.js?v=20260829h';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260829h';
-import { AuthStore } from '../services/auth.js?v=20260829h';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260829h';
-import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260829h';
-import { icon } from '../core/icons.js?v=20260829h';
-import { badgeHtml } from '../components/badge.js?v=20260829h';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../components/inspector.js?v=20260829h';
-import { populateMonthSelector } from '../components/calendar.js?v=20260829h';
-import { getCapabilities, mountCapability } from '../core/registry.js?v=20260829h';
+import { BranchService } from '../services/runtime.js?v=20260829j';
+import { STATE, setState, registerRenderCallback, getAppState } from '../core/state.js?v=20260829j';
+import { NoticeStore, renderNoticeList } from '../services/notice.js?v=20260829j';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260829j';
+import { _fmtDate, getBasePath } from '../core/utils.js?v=20260829j';
+import { _personName, getPersonName } from '../mock/index.js?v=20260829j';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../services/attendance.js?v=20260829j';
+import { loadActivities } from '../services/activity.js?v=20260829j';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260829j';
+import { getActivityTypeColors } from '../core/constants.js?v=20260829j';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260829j';
+import { AuthStore } from '../services/auth.js?v=20260829j';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260829j';
+import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260829j';
+import { icon } from '../core/icons.js?v=20260829j';
+import { badgeHtml } from '../components/badge.js?v=20260829j';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../components/inspector.js?v=20260829j';
+import { populateMonthSelector } from '../components/calendar.js?v=20260829j';
+import { getCapabilities, mountCapability } from '../core/registry.js?v=20260829j';
 import '../modules/capabilities/activity-calendar.js?v=20260822a'; // 副作用导入：注册首页活动日历能力
 
 const { user } = await bootstrapPage({ module: 'dashboard' });

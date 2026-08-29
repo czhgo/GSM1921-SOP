@@ -4,7 +4,7 @@
 // 读取本能力，tab 声明（含懒加载 render）不再硬编码在入口。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §四/§六
 
-import { registerCapability } from '../../core/registry.js?v=20260829h';
+import { registerCapability } from '../../core/registry.js?v=20260829j';
 
 // 6 个 tab 清单：render 为懒加载动态 import（相对本模块解析到 entries/tabs/visitor/）
 // tab 私有状态随模块自持；共享只读配置（accent/activities/任务专班/授权记录/导航目标）经 ctx 传入。
@@ -14,14 +14,14 @@ registerCapability({
   version: '20260823',
   scope: ['workspace:visitor'],
   tabs: () => [
-    { id: 'todo', label: '待办', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/visitor/todo-tab.js?v=20260829h').then(m => m.renderContent(ctx)) },
+    { id: 'todo', label: '待办', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/visitor/todo-tab.js?v=20260829j').then(m => m.renderContent(ctx)) },
     // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览，参与者仅自我聚合）
-    { id: 'overview', label: '工作概况', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/visitor/overview-tab.js?v=20260829h').then(m => m.renderContent(ctx)) },
-    { id: 'projects', label: '项目分工', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/projects-tab.js?v=20260829h').then(m => m.renderContent(ctx)) },
-    { id: 'activities', label: '活动动态', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/activities-tab.js?v=20260829h').then(m => m.renderContent(ctx)) },
-    { id: 'attendance', label: '考勤概况', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/attendance-tab.js?v=20260829h').then(m => m.renderContent(ctx)) },
-    { id: 'inspection', label: '我的考察', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/inspection-tab.js?v=20260829h').then(m => m.renderContent(ctx)) },
+    { id: 'overview', label: '工作概况', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/visitor/overview-tab.js?v=20260829j').then(m => m.renderContent(ctx)) },
+    { id: 'projects', label: '项目分工', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/projects-tab.js?v=20260829j').then(m => m.renderContent(ctx)) },
+    { id: 'activities', label: '活动动态', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/activities-tab.js?v=20260829j').then(m => m.renderContent(ctx)) },
+    { id: 'attendance', label: '考勤概况', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/attendance-tab.js?v=20260829j').then(m => m.renderContent(ctx)) },
+    { id: 'inspection', label: '我的考察', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/inspection-tab.js?v=20260829j').then(m => m.renderContent(ctx)) },
     // T-304 C1 组织者承载面：复盘提交归组织者（组织者/深度参与者在自己工作台提交）
-    { id: 'review', label: '我的复盘', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/review-tab.js?v=20260829h').then(m => m.renderContent(ctx)) },
+    { id: 'review', label: '我的复盘', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/review-tab.js?v=20260829j').then(m => m.renderContent(ctx)) },
   ],
 });

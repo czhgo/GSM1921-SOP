@@ -4,7 +4,7 @@
 //  使用 registerRenderCallback 模式避免循环依赖
 // ════════════════════════════════════════════════════════════════
 
-import { _currentYearMonth } from './utils.js?v=20260829h';
+import { _currentYearMonth } from './utils.js?v=20260829j';
 
 export const STATE = {
   IDLE:       0,
@@ -102,9 +102,20 @@ export function getAppState() { return appState; }
  * import main.js 则形成循环。通过延迟注册回调，依赖图保持为 DAG。
  */
 let _onStateChange = () => {};
+let _rafId = null; // T-304 遗留修复：同帧渲染合并去抖
 export function registerRenderCallback(fn) { _onStateChange = fn; }
 
-/** Immutable 状态更新，触发渲染 */
+/** rAF 合并渲染：同帧多次 setState（如 loadWorkspaceData 双 setState）只触发一次渲染回调 */
+function _flushRender() {
+  _rafId = null;
+  try {
+    _onStateChange(appState);
+  } catch (e) {
+    console.error('[state] 渲染回调异常', e);
+  }
+}
+
+/** Immutable 状态更新，触发渲染（rAF 合并：同帧连续 setState 只渲染一次） */
 export function setState(patch) {
   // ── 状态推导逻辑 ───────────────────────────────────────────────
   // 当 selectedRole 变化时，自动推导 viewType 和 role
@@ -115,5 +126,10 @@ export function setState(patch) {
   }
 
   appState = { ...appState, ...patch };
-  _onStateChange(appState);
+  // T-304 遗留修复：loadWorkspaceData「加载中 + 完成后」双 setState 同帧连发，
+  // 同步渲染会让 entry 层 _renderCurrentTab 与 tab-bar activate 并发 import 同一懒加载模块，
+  // 浏览器中止首个请求产生 net::ERR_ABORTED。rAF 合并为一次渲染，最终态一致、无感。
+  if (_rafId == null) {
+    _rafId = requestAnimationFrame(_flushRender);
+  }
 }
