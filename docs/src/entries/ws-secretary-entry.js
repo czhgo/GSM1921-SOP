@@ -5,18 +5,18 @@
 //   首屏只动态加载默认 tab（待办）模块；其余 tab 在首次点击时才 import。
 //   tab-bar.js 支持异步 render（render 返回 Promise 时自动 await/catch）。
 
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260829r';
-import { BranchService } from '../services/runtime.js?v=20260829r';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260829r';
-import { renderTabBar } from '../components/tab-bar.js?v=20260829r';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260829r';
-import { SignupStore } from '../services/signup.js?v=20260829r';
-import { loadActivities } from '../services/activity.js?v=20260829r';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260829r';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260829r';
-import { _currentYearMonth } from '../core/utils.js?v=20260829r';
-import { TodoStore } from '../services/todo.js?v=20260829r';
-import { getCapabilities } from '../core/registry.js?v=20260829r';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260829a';
+import { BranchService } from '../services/runtime.js?v=20260829a';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260829a';
+import { renderTabBar } from '../components/tab-bar.js?v=20260829a';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260829a';
+import { SignupStore } from '../services/signup.js?v=20260829a';
+import { loadActivities } from '../services/activity.js?v=20260829a';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260829a';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260829a';
+import { _currentYearMonth } from '../core/utils.js?v=20260829a';
+import { TodoStore } from '../services/todo.js?v=20260829a';
+import { getCapabilities } from '../core/registry.js?v=20260829a';
 // T-304 Q3 权限收敛：副作用导入触发书记工作台能力注册（tab 清单，与其余 5 工作台对齐）
 import '../modules/capabilities/secretary-workspace.js?v=20260829r';
 

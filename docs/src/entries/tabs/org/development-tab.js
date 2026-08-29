@@ -2,10 +2,10 @@
 // 组织委员工作台 Tab：发展数据（T-279 M3 拆分，照 M2 样板）
 // 从入党积极分子到正式党员的完整发展路径数据（管线概览 + 阶段筛选 + 推进）。
 
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260829r';
-import { PEOPLE } from '../../../mock/index.js?v=20260829r';
-import { badgeHtml } from '../../../components/badge.js?v=20260829r';
-import { showToast } from '../../../core/utils.js?v=20260829r';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260829a';
+import { PEOPLE } from '../../../mock/index.js?v=20260829a';
+import { badgeHtml } from '../../../components/badge.js?v=20260829a';
+import { showToast } from '../../../core/utils.js?v=20260829a';
 
 // ════════════════════════════════════════════════════════════════
 //  发展党员追踪 — Mock 数据（模块私有，随模块自持）

@@ -22,6 +22,7 @@ const _TEXT_DARK_MAP = {
   '#059669': '#34D399', '#DC2626': '#F87171',
   // 强调色补充（主题色个性化可选色中的亮色，本身已亮，深色下保持自身）
   '#7DD3FC': '#7DD3FC', '#94a3b8': '#94a3b8',
+  '#A78BFA': '#C4B5FD', // deep 强调色（violet-400 → 深色提亮至 violet-300，S6 与语义色同源）
 };
 function _hexToRgbStr(hex) {
   const h = hex.replace('#', '');
@@ -199,6 +200,7 @@ export const ROLE_LABELS = {
   'organizer':         '组织者',
   'deep':              '深度参与者',
   'participant':       '普通参与者',
+  'initiator':         '发起人',
   'all':               '全体相关',
 };
 
@@ -208,12 +210,19 @@ export const COMMISSIONER_ROLES = new Set([
   'commissioner', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
 ]);
 
+// inspector 角色横幅主题类契约（消费方：inspector.js 管理视图横幅；CSS 类规则在各页样式按需定义）
+// S7 补全三委员/participant/deputy-secretary：deputy 同书记（党建红），与 ROLE_COLORS/ACCENT_COLORS 键集对齐
 export const ROLE_THEME_CLASS = {
-  leader:       'role-theme-leader',
-  commissioner: 'role-theme-commissioner',
-  organizer:    'role-theme-organizer',
-  deep:         'role-theme-deep',
-  secretary:    'role-theme-secretary',
+  'deputy-secretary':  'role-theme-secretary',
+  leader:              'role-theme-leader',
+  commissioner:        'role-theme-commissioner',
+  'org-commissioner':  'role-theme-org',
+  'prop-commissioner': 'role-theme-prop',
+  'disc-commissioner': 'role-theme-disc',
+  organizer:           'role-theme-organizer',
+  deep:                'role-theme-deep',
+  participant:         'role-theme-participant',
+  secretary:           'role-theme-secretary',
 };
 
 // ── 角色强调色（accent 三件套统一来源）──────────────────────────
@@ -239,12 +248,12 @@ export const ACCENT_COLORS = {
   'org-commissioner':  { hex: '#0EA5E9' },  // 天蓝
   'prop-commissioner': { hex: '#2563EB' },  // 海蓝
   'disc-commissioner': { hex: '#C2410C' },  // 深橙
-  commissioner:        { hex: '#C2410C' },  // 同纪检
-  organizer:           { hex: '#7DD3FC' },  // 亮天蓝
-  deep:                { hex: '#94a3b8' },  // 浅灰蓝
+  commissioner:        { hex: '#C2410C' },  // 同纪检（遗留键）
+  organizer:           { hex: '#7DD3FC' },  // 亮天蓝 = 语义色 #0369A1（sky-700）同色系提亮（sky-300），同源（S6）
+  deep:                { hex: '#A78BFA' },  // 雾紫 = 语义色 #7C3AED（violet-600）同色系提亮（violet-400），同源（S6）
   participant:         { hex: '#A16207', bg: 'rgba(255,215,0,0.12)', border: 'rgba(255,215,0,0.35)' },  // 金（主题党日胶囊三件套：亮金底+深金字+亮金边框，2026-08-08 四审改，与主题活动色同源）
   all:                 { hex: '#0E7490' },  // 深青
-  purple:              { hex: '#7C3AED' },  // 紫罗兰（侧边栏色板可选色，不与角色挂钩，与 deep 语义色同源）
+  purple:              { hex: '#7C3AED' },  // 紫罗兰 = deep 语义色本身；色板专用别名键（非角色键，S8），供主题色选色板取用
 };
 
 // ── 主题色个性化（书记指令 2026-08-06：侧边栏设置，所有角色均可选）──
@@ -254,6 +263,9 @@ export const ACCENT_COLORS = {
 /**
  * 侧边栏「主题色」选色板的可选色（书记指令 2026-08-06：颜色就是颜色，不与人挂钩）
  * 按色相规律排列，2 行 × 5 个；key = 色板键（映射 ACCENT_COLORS 取衍生色），label = 颜色名
+ * S8 键集对齐：色板键集 ⊂ ACCENT_COLORS——deputy-secretary（同书记红）、commissioner（遗留键）
+ * 不入色板；participant 金为专用胶囊三件套；purple 为 deep 语义色别名（紫罗兰）。色板键若
+ * 被 resolveAccentRole 读取后写入 ACCENT_COLORS，须保证二者键集一致。
  */
 export const ACCENT_PALETTE = [
   { key: 'secretary',          hex: ACCENT_COLORS.secretary.hex,            label: '红' },
@@ -264,7 +276,7 @@ export const ACCENT_PALETTE = [
   { key: 'org-commissioner',   hex: ACCENT_COLORS['org-commissioner'].hex,  label: '天蓝' },
   { key: 'prop-commissioner',  hex: ACCENT_COLORS['prop-commissioner'].hex, label: '海蓝' },
   { key: 'purple',             hex: ACCENT_COLORS.purple.hex,               label: '紫' },
-  { key: 'deep',               hex: ACCENT_COLORS.deep.hex,                 label: '灰' },
+  { key: 'deep',               hex: ACCENT_COLORS.deep.hex,                 label: '雾紫' },
   { key: 'organizer',          hex: ACCENT_COLORS.organizer.hex,            label: '亮蓝' },
 ];
 

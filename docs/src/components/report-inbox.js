@@ -8,11 +8,11 @@
 //  本组件禁用 SVG 图标（书记裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260829r';
-import { AuthStore } from '../services/auth.js?v=20260829r';
-import { showToast } from '../core/utils.js?v=20260829r';
-import { getPersonName } from '../mock/index.js?v=20260829r';
-import { solidAccentStyle } from '../core/constants.js?v=20260829r';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260829a';
+import { AuthStore } from '../services/auth.js?v=20260829a';
+import { showToast } from '../core/utils.js?v=20260829a';
+import { getPersonName } from '../mock/index.js?v=20260829a';
+import { solidAccentStyle } from '../core/constants.js?v=20260829a';
 
 /**
  * 待答复收件箱 HTML

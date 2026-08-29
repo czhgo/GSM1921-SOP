@@ -32,7 +32,7 @@ async function showTodoActions(page, prefix) {
   // 构造通知阅读待办（NoticeTodoDeriver 与真实发布链同源）
   let createdId = null;
   await page.evaluate(async () => {
-    const { NoticeTodoDeriver } = await import('/src/services/todo.js?v=20260829r');
+    const { NoticeTodoDeriver } = await import('/src/services/todo.js?v=20260829a');
     const items = NoticeTodoDeriver.deriveFromNotice({
       id: 'ntc-b1test', title: 'B1测试通知（阅读直达）', content: '浏览器回归构造',
       actionable: true, actionRoles: ['leader'], targetModule: 'workspace', priority: 'normal',
@@ -54,7 +54,7 @@ async function showTodoActions(page, prefix) {
     check('U1 通知阅读：点击「去阅读」跳 notice.html?id=ntc-b1test', /notice\.html\?id=ntc-b1test/.test(url), `url=${url}`);
   }
   await page.evaluate(async (id) => {
-    const { TodoStore } = await import('/src/services/todo.js?v=20260829r');
+    const { TodoStore } = await import('/src/services/todo.js?v=20260829a');
     TodoStore.delete(id);
   }, createdId);
   check('U1 无 JS 错误', errs.length === 0, errs.slice(0, 2).join(' | '));
@@ -92,7 +92,7 @@ async function showTodoActions(page, prefix) {
   await page.goto(`${BASE}/workspace/org.html?dev=org-commissioner`, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(2200);
   const todoId = await page.evaluate(async () => {
-    const { TodoStore, TodoCategory, TodoActionType, TodoSourceType } = await import('/src/services/todo.js?v=20260829r');
+    const { TodoStore, TodoCategory, TodoActionType, TodoSourceType } = await import('/src/services/todo.js?v=20260829a');
     const [t] = TodoStore.createBatch([{
       title: 'B1测试：审核活动报名', role: 'org-commissioner', category: TodoCategory.REVIEW,
       actionType: TodoActionType.REVIEW, actionKey: 'signup-review', sourceType: TodoSourceType.ACTIVITY,
@@ -113,7 +113,7 @@ async function showTodoActions(page, prefix) {
     check('U2b 报名审核：点击「去审核」跳 activity.html?id=act-15', /activity\.html\?id=act-15/.test(url), `url=${url}`);
   }
   await page.evaluate(async (id) => {
-    const { TodoStore } = await import('/src/services/todo.js?v=20260829r');
+    const { TodoStore } = await import('/src/services/todo.js?v=20260829a');
     TodoStore.delete(id);
   }, todoId);
   check('U2b 无 JS 错误', errs.length === 0, errs.slice(0, 2).join(' | '));
@@ -128,7 +128,7 @@ async function showTodoActions(page, prefix) {
   await page.goto(`${BASE}/workspace/leader.html?dev=leader`, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(2200);
   const todoId = await page.evaluate(async () => {
-    const { LifecycleTodoDeriver, TodoStore } = await import('/src/services/todo.js?v=20260829r');
+    const { LifecycleTodoDeriver, TodoStore } = await import('/src/services/todo.js?v=20260829a');
     // act-2 为组长（p3）可见活动（act-1 属 p3 bottom-up 创建，组长不可见属正常权限）
     const items = LifecycleTodoDeriver.deriveFromActivityCreate({ id: 'act-2', title: 'B1赋权测试', date: '2026-08-30' });
     return items[0].id;
@@ -161,7 +161,7 @@ async function showTodoActions(page, prefix) {
     check('U3 赋权：act-2 详情面板自动打开（≤2 跳直达）', detailOpen);
   }
   await page.evaluate(async (id) => {
-    const { TodoStore } = await import('/src/services/todo.js?v=20260829r');
+    const { TodoStore } = await import('/src/services/todo.js?v=20260829a');
     TodoStore.delete(id);
   }, todoId);
   check('U3 无 JS 错误', errs.length === 0, errs.slice(0, 2).join(' | '));
@@ -176,7 +176,7 @@ async function showTodoActions(page, prefix) {
   await page.goto(`${BASE}/workspace/leader.html?dev=leader`, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(2200);
   const todoId = await page.evaluate(async () => {
-    const { TodoStore, TodoCategory, TodoActionType, TodoSourceType } = await import('/src/services/todo.js?v=20260829r');
+    const { TodoStore, TodoCategory, TodoActionType, TodoSourceType } = await import('/src/services/todo.js?v=20260829a');
     const [t] = TodoStore.createBatch([{
       title: 'B1测试：上传活动考勤', role: 'leader', category: TodoCategory.SUBMIT,
       actionType: TodoActionType.SUBMIT, actionKey: 'attendance-upload', sourceType: TodoSourceType.ACTIVITY,
@@ -198,7 +198,7 @@ async function showTodoActions(page, prefix) {
     check('U4 考勤上传：点击「去提交」切到「考勤上传」tab', active);
   }
   await page.evaluate(async (id) => {
-    const { TodoStore } = await import('/src/services/todo.js?v=20260829r');
+    const { TodoStore } = await import('/src/services/todo.js?v=20260829a');
     TodoStore.delete(id);
   }, todoId);
   check('U4 无 JS 错误', errs.length === 0, errs.slice(0, 2).join(' | '));
@@ -213,7 +213,7 @@ async function showTodoActions(page, prefix) {
   await page.goto(`${BASE}/workspace/leader.html?dev=leader`, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(2200);
   const todoId = await page.evaluate(async () => {
-    const { TodoStore, TodoCategory, TodoActionType, TodoSourceType } = await import('/src/services/todo.js?v=20260829r');
+    const { TodoStore, TodoCategory, TodoActionType, TodoSourceType } = await import('/src/services/todo.js?v=20260829a');
     const [t] = TodoStore.createBatch([{
       title: 'B1测试：提交活动复盘', role: 'leader', category: TodoCategory.SUBMIT,
       actionType: TodoActionType.SUBMIT, actionKey: 'review-submit', sourceType: TodoSourceType.ACTIVITY,
@@ -239,7 +239,7 @@ async function showTodoActions(page, prefix) {
     check('U5 复盘提交：点击「去提交」切到「复盘提交」tab', active.review && !active.attendance, `active=${JSON.stringify(active)}`);
   }
   await page.evaluate(async (id) => {
-    const { TodoStore } = await import('/src/services/todo.js?v=20260829r');
+    const { TodoStore } = await import('/src/services/todo.js?v=20260829a');
     TodoStore.delete(id);
   }, todoId);
   check('U5 无 JS 错误', errs.length === 0, errs.slice(0, 2).join(' | '));
@@ -282,7 +282,7 @@ async function showTodoActions(page, prefix) {
   await page.goto(`${BASE}/workspace/leader.html?dev=leader`, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(2200);
   const ids = await page.evaluate(async () => {
-    const { LifecycleTodoDeriver, TodoStore } = await import('/src/services/todo.js?v=20260829r');
+    const { LifecycleTodoDeriver, TodoStore } = await import('/src/services/todo.js?v=20260829a');
     // 同 actionKey 两条 → 聚合卡（count=2）；另一条不同 actionKey → 明细按钮
     const a = LifecycleTodoDeriver.deriveFromActivityCreate({ id: 'act-2', title: 'B1聚合测试A', date: '2026-08-30' })[0];
     const b = LifecycleTodoDeriver.deriveFromActivityCreate({ id: 'act-2', title: 'B1聚合测试B', date: '2026-08-31' })[0];
@@ -313,7 +313,7 @@ async function showTodoActions(page, prefix) {
     check('U7 聚合卡「处理」：act-2 详情面板自动打开（与明细行为一致）', d2);
   }
   await page.evaluate(async (ids) => {
-    const { TodoStore } = await import('/src/services/todo.js?v=20260829r');
+    const { TodoStore } = await import('/src/services/todo.js?v=20260829a');
     TodoStore.delete(ids.a); TodoStore.delete(ids.b);
   }, ids);
   check('U7 无 JS 错误', errs.length === 0, errs.slice(0, 2).join(' | '));

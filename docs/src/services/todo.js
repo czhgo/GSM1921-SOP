@@ -6,9 +6,9 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260829r';
-import { persist } from '../core/data-adapter.js?v=20260829r';
-import { generateId } from '../core/id.js?v=20260829r';
+import { mockDB } from '../core/domain.js?v=20260829a';
+import { persist } from '../core/data-adapter.js?v=20260829a';
+import { generateId } from '../core/id.js?v=20260829a';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -581,6 +581,9 @@ export const LifecycleTodoDeriver = {
 //  幂等：按 sourceType+sourceId 去重，可安全重复调用
 // ════════════════════════════════════════════════════════════════
 
+// 待办聚合键 'visitor' 与角色键 participant 的映射（S9 文档登记，书记 2026-08-30 裁定：不改代码）
+// 语义：'visitor' 是「普通参与者工作台（participant.html）」的待办聚合键，对应角色 participant；
+// 与「访客（未登录）」无关。设计文档 ROLE_SSOT_DESIGN.md S9 已登记映射，保留 'visitor' 键不动。
 export const VisitorTodoDeriver = {
   /**
    * 派生全部 visitor 待办（通知待阅读 + 活动待参与）

@@ -5,6 +5,16 @@
 //  两个分类依据：时长 / 发起方向（品牌为属性标签 isBrand，非工作流分类依据）
 // ════════════════════════════════════════════════════════════════
 
+import { ROLE_KEYS } from '../core/constants.js?v=20260829a';
+
+// 工作流执行角色白名单（S10 单一事实源：键集必须 ⊆ ROLE_KEYS，新增角色须同步 ROLE_CLASSIFICATION §9a0）
+// 筹备/协调阶段参与方：组织者、党小组组长、书记、纪检委员（考勤/考察对接）、宣传委员（宣传统筹）；
+// 组织委员负责发展事务不参与活动筹备；participant/deputy/deep 非授权执行方（可经赋权/报名进入）。
+const WORKFLOW_ROLES = ['organizer', 'leader', 'secretary', 'disc-commissioner', 'prop-commissioner'];
+if (WORKFLOW_ROLES.some(r => !ROLE_KEYS.includes(r))) {
+  console.warn('[workflow] requiredRoles 含未知角色键，须与 core/constants.js ROLE_KEYS 对齐');
+}
+
 // ════════════════════════════════════════════════════════════════
 //  A. 共享状态节点工厂
 // ════════════════════════════════════════════════════════════════
@@ -80,7 +90,7 @@ const PREPARING = (timeoutHours = 72) => ({
   allowedTransitions: ['IN_PROGRESS', 'DRAFT'],
   timeoutHours,
   metadata: { phase: '筹备', editable: true },
-  requiredRoles: ['organizer', 'leader', 'secretary', 'disc-commissioner', 'prop-commissioner'],
+  requiredRoles: WORKFLOW_ROLES,
   subStates: {
     attendance: {
       name: 'attendance',
@@ -134,7 +144,7 @@ const SYNCING = (timeoutHours = 336) => ({
   allowedTransitions: ['COMPLETED', 'IN_PROGRESS'],
   timeoutHours,
   metadata: { phase: '协调', editable: true },
-  requiredRoles: ['organizer', 'leader', 'secretary', 'disc-commissioner', 'prop-commissioner'],
+  requiredRoles: WORKFLOW_ROLES,
   subStates: {
     content_sync: {
       name: 'content_sync',

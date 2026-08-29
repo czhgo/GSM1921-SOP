@@ -58,20 +58,22 @@
 | S4 | COMMISSIONER_ROLES 双定义语义注释区分（constants 条条委员 / auth 授权链），代码不改行为 | ✅ |
 | S5 | ROLE_CLASSIFICATION.md §9a0 角色键全表入库（12 键 + 访客≠角色 + 语义约定） | ✅ |
 
-### 4.2 待实施（后续轮次，按需推进）
+### 4.2 后续步骤（书记 2026-08-30 裁定：实施无行为变更项 S6/S7/S8/S10；S9 文档登记映射不改代码）
 
-| 步骤 | 内容 | 优先级 |
-|------|------|--------|
-| S6 | 色值统一：organizer/deep 的语义色与强调色同源（消除差异 4） | 中 |
-| S7 | ROLE_LABELS 补 `initiator`；ROLE_THEME_CLASS 补全三委员/participant/deputy-secretary（差异 5/6） | 低 |
-| S8 | ACCENT_PALETTE 与 ACCENT_COLORS 键集对齐，purple 键语义化（差异 7） | 低 |
-| S9 | `visitor` 待办聚合键去歧义 → `participant`（或文档显式登记映射）（差异 8） | 低（行为变更需谨慎） |
-| S10 | workflow/definitions.js requiredRoles 从 ROLE_KEYS 导入或补业务依据注释（差异 2/10） | 中 |
+| 步骤 | 内容 | 状态 |
+|------|------|------|
+| S6 | 色值统一：organizer/deep 的语义色与强调色同源（消除差异 4）——deep 强调色 #94a3b8 → #A78BFA（violet-400，与语义色 #7C3AED 同色系）；organizer 亮天蓝与语义色 sky-700 同源关系显式注释 | ✅（2026-08-30） |
+| S7 | ROLE_LABELS 补 `initiator`；ROLE_THEME_CLASS 补全三委员/participant/deputy-secretary（deputy 同书记红） | ✅（2026-08-30） |
+| S8 | ACCENT_PALETTE 与 ACCENT_COLORS 键集对齐：色板键集 ⊆ ACCENT_COLORS 显式注释；purple 标记为色板专用别名键（非角色键）；deep 色板标签 灰→雾紫 | ✅（2026-08-30） |
+| S9 | `visitor` 待办聚合键去歧义 → 按书记裁定**文档登记映射，不改代码**：todo.js 派生处注释 + 本文档登记 participant↔visitor 映射 | ✅ 文档登记（2026-08-30，行为零变更） |
+| S10 | workflow/definitions.js requiredRoles 从 ROLE_KEYS 校验：引入 WORKFLOW_ROLES 白名单 + 运行时键集校验 + 业务依据注释（组织委员不参与活动筹备的业务说明） | ✅（2026-08-30） |
 
-## 5. 验收标准（已达成部分）
+## 5. 验收标准（全部达成，2026-08-30）
 
 - [x] 全仓能力 requiredRoles 无死代码（6 工作台全覆盖）
 - [x] 书记/副书记共用书记工作台（secretary-workspace requiredRoles）
 - [x] 角色键全表内容层 + 代码层双源对齐
 - [x] COMMISSIONER_ROLES 语义区分文档化
-- [ ] 色值/标签键集完全对齐（S6-S10，后续轮次）
+- [x] 色值/标签键集完全对齐（S6-S8）
+- [x] workflow requiredRoles 与 ROLE_KEYS 单一事实源校验（S10）
+- [x] visitor 待办聚合键歧义已文档登记（S9，行为零变更）
