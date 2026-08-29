@@ -2,13 +2,13 @@
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
 // 专班名单区（组织→纪检 自动同步，纪检只读同源）+ 考察总表（确认/删除）。
 
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260829k';
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260829k';
-import { inspectionToLong, inspectionToWide, getPersonName } from '../../../mock/index.js?v=20260829k';
-import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260829k';
-import { badgeHtml } from '../../../components/badge.js?v=20260829k';
-import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260829k';
-import { HandoffStore } from '../../../services/handoff.js?v=20260829k';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260829l';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260829l';
+import { inspectionToLong, inspectionToWide, getPersonName } from '../../../mock/index.js?v=20260829l';
+import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260829l';
+import { badgeHtml } from '../../../components/badge.js?v=20260829l';
+import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260829l';
+import { HandoffStore } from '../../../services/handoff.js?v=20260829l';
 
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');
@@ -222,14 +222,16 @@ export function renderContent(ctx) {
   });
 
   // T-304 C2 数据交接协议：纪检→组织 考察记录提交（后台自动派生组织侧待办）
+  // T-304 第5轮 P6 源头审校+抽查：不再要求全部确认才可提交——按已确认部分按需提交，
+  // 未确认/历史超期不再阻塞已确认记录的流转（每考察记录含 recordedBy 上传人=源头审校人）。
   container.querySelector('.insp-handoff-btn')?.addEventListener('click', () => {
     if (HandoffStore.hasPendingFor('inspection-report', 'inspection')) {
       showToast('info', '考察记录已提交待组织接收，请勿重复提交');
       return;
     }
-    const pendingCount = longData.filter(r => r.status !== 'confirmed').length;
-    if (pendingCount > 0) {
-      showToast('error', `尚有 ${pendingCount} 条考察未确认，请先确认后再提交`);
+    const confirmedCount = longData.filter(r => r.status === 'confirmed').length;
+    if (confirmedCount === 0) {
+      showToast('error', '暂无可提交的已确认考察，请先确认（或抽查）后再提交');
       return;
     }
     HandoffStore.create({
@@ -237,9 +239,9 @@ export function renderContent(ctx) {
       refType: 'inspection',
       refLabel: '考察总表',
       refId: 'inspection',
-      note: `考察总表共 ${longData.length} 条，纪检确认后提交支委会建档`,
+      note: `考察总表共 ${longData.length} 条，已确认 ${confirmedCount} 条提交建档（未确认 ${longData.length - confirmedCount} 条可后续补提）`,
     });
-    showToast('success', '考察记录已提交至支委会，等待组织委员接收');
+    showToast('success', `考察记录（已确认 ${confirmedCount} 条）已提交至支委会，等待组织委员接收`);
     renderContent(ctx);
   });
 

@@ -2,16 +2,17 @@
 // 组长工作台 Tab：考勤上传（T-279 M2 拆分）
 // 党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表。
 
-import { loadActiveAttendanceRecords, loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260829k';
-import { loadMakeupTasks } from '../../../services/makeup.js?v=20260829k';
-import { loadActivities } from '../../../services/activity.js?v=20260829k';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260829k';
-import { getPersonById, getPersonName, PEOPLE, attendanceToLong } from '../../../mock/index.js?v=20260829k';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260829k';
-import { badgeHtml } from '../../../components/badge.js?v=20260829k';
-import { showToast } from '../../../core/utils.js?v=20260829k';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260829k';
-import { currentLeaderGroup } from './_shared.js?v=20260829k';
+import { loadActiveAttendanceRecords, loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260829l';
+import { loadMakeupTasks } from '../../../services/makeup.js?v=20260829l';
+import { loadActivities } from '../../../services/activity.js?v=20260829l';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260829l';
+import { getPersonById, getPersonName, PEOPLE, attendanceToLong } from '../../../mock/index.js?v=20260829l';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260829l';
+import { badgeHtml } from '../../../components/badge.js?v=20260829l';
+import { showToast } from '../../../core/utils.js?v=20260829l';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260829l';
+import { currentLeaderGroup } from './_shared.js?v=20260829l';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260829l';
 
 // 私有状态（随模块自持，不污染入口）
 let _attFormVisible = false;
@@ -27,8 +28,14 @@ export function renderContent(ctx) {
   // 清理旧的 PersonPicker 实例
   if (_attPickerInstance) { _attPickerInstance.destroy(); _attPickerInstance = null; }
 
+  // 本组人员 + 实际上传活动（T-304 第5轮 P9：不再限定「党小组会」类型，按实际上传展示）
+  const { group: myGroup } = currentLeaderGroup();
+  const myGroupMembers = PEOPLE.filter(p => p.partyGroup === myGroup);
+  const myGroupMemberIds = myGroupMembers.map(p => p.id);
   const allRecords = loadActiveAttendanceRecords();
-  const myAttendance = allRecords.filter(r => r.activityId && loadActivities().find(a => a.id === r.activityId)?.type === '党小组会');
+  const myAttendance = allRecords.filter(r =>
+    myGroupMemberIds.includes(r.personId) && r.activityId && loadActivities().find(a => a.id === r.activityId)
+  );
 
   // 筛选三会一课和主题党日活动；T223 排序统一：date 降序（新者在前）
   const eligibleActivities = loadActivities()
@@ -38,9 +45,6 @@ export function renderContent(ctx) {
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   // 获取本组待补课人员
-  const { group: myGroup } = currentLeaderGroup();
-  const myGroupMembers = PEOPLE.filter(p => p.partyGroup === myGroup);
-  const myGroupMemberIds = myGroupMembers.map(p => p.id);
   const makeupTasks = loadMakeupTasks();
   const myGroupMakeupTasks = makeupTasks.filter(t =>
     myGroupMemberIds.includes(t.personId) && t.status !== 'completed'
@@ -175,6 +179,7 @@ function _initAttForm(container, eligibleActivities, ctx) {
 
     // 收集每人的出勤状态
     const records = [];
+    const { leaderId } = currentLeaderGroup();
     for (const personId of selectedIds) {
       const statusEl = container.querySelector(`#att-status-${personId}`);
       const status = statusEl ? statusEl.value : AttendanceStatus.PRESENT;
@@ -183,6 +188,8 @@ function _initAttForm(container, eligibleActivities, ctx) {
         personId: personId,
         activityId,
         status,
+        // T-304 第5轮 P7 源头审校：submittedBy=组长（上传即审校）；recordedBy 留纪检复核异常
+        submittedBy: leaderId,
         recordedBy: null,
         overdue: false,
       });
@@ -193,13 +200,16 @@ function _initAttForm(container, eligibleActivities, ctx) {
     allRecords.push(...records);
     saveAttendanceRecords(allRecords);
 
+    // T-304 第5轮 P7 真实补课：上传时即生成补课任务（防重复：同人同活动已有任务则跳过），
+    // 消除「提示已生成但实际未生成」的虚假反馈；出勤/已补源头审校即确认，异常留纪检复核。
+    records.forEach(r => autoGenerateMakeupTask(r));
+
     // 检查本组是否有缺勤人员
     const absentCount = records.filter(r => r.status === AttendanceStatus.ABSENT || r.status === AttendanceStatus.LEAVE).length;
-    const baseMsg = `考勤上传成功，共 ${records.length} 条记录，等待纪检委员确认`;
     if (absentCount > 0) {
-      showToast('success', `${baseMsg}。本组有 ${absentCount} 人缺勤，已生成补课任务`);
+      showToast('success', `考勤上传成功，共 ${records.length} 条记录。其中 ${absentCount} 条异常已生成补课任务，待纪检复核`);
     } else {
-      showToast('success', baseMsg);
+      showToast('success', `考勤上传成功，共 ${records.length} 条记录，已源头审校确认`);
     }
 
     // 清理并刷新

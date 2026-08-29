@@ -7,16 +7,16 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260829k';
-import { loadActivities } from './activity.js?v=20260829k';
-import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260829k';
-import { TaskForceRecordStore } from './taskforce.js?v=20260829k';
-import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260829k';
-import { NoticeStore } from './notice.js?v=20260829k';
-import { TodoStore, seedTodos, TodoCategory, TodoActionType } from './todo.js?v=20260829k';
-import { getPersonById, PEOPLE } from '../mock/index.js?v=20260829k';
-import { ROLE_LABELS } from '../core/constants.js?v=20260829k';
-import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260829k';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260829l';
+import { loadActivities } from './activity.js?v=20260829l';
+import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260829l';
+import { TaskForceRecordStore } from './taskforce.js?v=20260829l';
+import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260829l';
+import { NoticeStore } from './notice.js?v=20260829l';
+import { TodoStore, seedTodos, TodoCategory, TodoActionType } from './todo.js?v=20260829l';
+import { getPersonById, PEOPLE } from '../mock/index.js?v=20260829l';
+import { ROLE_LABELS } from '../core/constants.js?v=20260829l';
+import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260829l';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数

@@ -3,10 +3,10 @@
 // 书记 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { PEOPLE } from '../../../mock/index.js?v=20260829k';
-import { AuthStore } from '../../../services/auth.js?v=20260829k';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260829k';
-import { flashHighlight } from '../../../core/utils.js?v=20260829k';
+import { PEOPLE } from '../../../mock/index.js?v=20260829l';
+import { AuthStore } from '../../../services/auth.js?v=20260829l';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260829l';
+import { flashHighlight } from '../../../core/utils.js?v=20260829l';
 
 // 项目分工子视图（书记 2026-08-10 裁定第5点）：区分「我的分工」（以人为中心）与「全局分工」（全局查询）
 let _projSubView = 'mine'; // 'mine' | 'all'
@@ -137,6 +137,17 @@ export function renderContent(ctx) {
     listEl.innerHTML = filtered.length === 0
       ? `<p class="text-xs text-gray-400 text-center py-6">${emptyText}</p>`
       : `<div class="space-y-2">${filtered.map(p => _renderProjectCard(p, currentUserId)).join('')}</div>`;
+
+    // T-304 第5轮 P8：专班卡片点击直达详情页（含报名入口）——补 visitor 报名可达性
+    // （此前报名入口仅独立页 taskforce.html 可达，工作台内卡片无跳转 = 报名断链）
+    listEl.querySelectorAll('.visitor-proj-card[data-tf-id]').forEach(card => {
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', () => {
+        const tfId = card.dataset.tfId;
+        const base = window.location.pathname.includes('/workspace/') ? '../' : '';
+        window.location.href = `${base}taskforce.html?id=${tfId}`;
+      });
+    });
 
     // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片
     if (_highlightTfId) {
