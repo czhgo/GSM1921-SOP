@@ -398,6 +398,8 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | ③ 黑话审查     | T-195       | 表述维度专项（OPERATIONS\_GUIDE §18.5 理论复用 D 表述） | REVIEW\_QUEUE 附录③ |
 | ④ 书记原话逐条复核 | T-200       | SECRETARY\_PRONOUNCEMENTS 原话精确性           | REVIEW\_QUEUE 附录④ |
 | ⑤ 最小三成本    | 总纲级（H10 声明） | 系统设计最高验收标准（最小信息/操作/适应学习成本）                | REVIEW\_QUEUE 附录⑤ |
+| ⑥ 减负评议     | 2026-08-13 书记发起 | 全仓库减负专项（制度层混入实现层等）                  | REVIEW\_QUEUE 附录⑥ |
+| ⑦ AI逃逸捕捉   | 2026-08-30 书记引入 | 提示词体系逃逸点五维扫描（E1-E5，rule-based 收敛）          | REVIEW\_QUEUE 附录⑦ |
 
 **机制要点**：
 
