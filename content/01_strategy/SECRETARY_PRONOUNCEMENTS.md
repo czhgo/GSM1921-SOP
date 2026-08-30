@@ -83,7 +83,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > **与 CLAUDE.md H100 的关系**：本条是元命题记录，CLAUDE.md 甲部 H100“项目产出声明”承载该元命题的治理层锚点。详细叙事见 [DEVELOPMENT\_PATH.md](DEVELOPMENT_PATH.md) 第一章。
 
-> 出处：2026-07-14 元命题阐述 + 2026-07-16 AI 展开原则（原P-046 融入） · 子本：DEVELOPMENT\_PATH.md 第一章（展开叙事）+ CLAUDE.md H100（系统产出锚点）；USAGE\_POLICY.md §二 + OPERATIONS\_GUIDE.md §13.6（AI 展开原则） · 层次：元命题
+> 出处：2026-07-14 元命题阐述 + 2026-07-16 AI 展开原则（原P-046 融入） · 子本：DEVELOPMENT\_PATH.md 第一章 + CLAUDE.md H100 + USAGE\_POLICY.md §二 + OPERATIONS\_GUIDE.md §13.6 · 层次：元命题
 
 ***
 
