@@ -14,7 +14,7 @@ import { getActivityTypeColors } from '../../core/constants.js?v=20260829a';
 import { badgeHtml } from '../badge.js?v=20260829a';
 import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260829a';
 import { populateMonthSelector } from '../calendar.js?v=20260829a';
-import { getCapabilities, mountCapability } from '../../core/registry.js?v=20260829a';
+import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/registry.js?v=20260829a';
 
 const DASHBOARD_DEFAULT_VIEW = 'calendar';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
@@ -143,7 +143,9 @@ export function renderActivityCalendar(state) {
       const initialMonth = getInitialMonth() || targetMonth;
       setState({ displayMonth: initialMonth });
     }
-    const cap = getCapabilities({ scope: 'dashboard' }).find(c => c.id === 'activity-calendar');
+    // M7（2026-08-30）：dashboard 能力发现显式传 env/role，启用「按环境/角色选择性启用」机制
+    // （activity-calendar 声明 env:null/requiredRoles:null，行为不变；机制对未来的 env/role 差异化能力生效）
+    const cap = getCapabilities({ scope: 'dashboard', env: getRuntimeEnv(), role: AuthStore.getCurrentUser()?.role }).find(c => c.id === 'activity-calendar');
     if (cap) {
       mountCapability('activity-calendar', null, { state, targetMonth: state.displayMonth || targetMonth });
     }

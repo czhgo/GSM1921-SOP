@@ -1,7 +1,9 @@
 # GSM1921-SOP
 
-> 光华管理学院本科生党支部组织操作系统（Org OS）
-> "管理事，服务人"——将党支部制度文本转化为可执行的代码工作流，让制度从"写在文档里没人看"变成"嵌入系统中必须遵守"。
+> 光华管理学院本科生党支部组织操作系统（Org OS）——**一套可复用的学生组织/党支部管理引擎**
+> "管理事，服务人"——将组织制度文本转化为可执行的代码工作流，让制度从"写在文档里没人看"变成"嵌入系统中必须遵守"。
+>
+> **开源可复用**：MIT 许可，任何组织可以按需复用本系统——替换组织数据即可换组织，自定义角色/颜色/术语/扩展能力均有正式入口（见 [九、复用与二次开发](#九复用与二次开发给其他组织)）。
 
 **公网访问：[https://czhgo.github.io/GSM1921-SOP/](https://czhgo.github.io/GSM1921-SOP/)**
 
@@ -207,6 +209,70 @@ npm start
 | Phase 2 — 后端基建 | ✅ 已完成（2026-08） | Node 一体化后端（Express + better-sqlite3）+ 账号认证 + 25 资源表全栈对称 + 数据持久化 |
 | Phase 2.5 — 减负空间 | 🔄 分批进行 | 系统性精简工作流冗余环节与信息冗余，持续降低最小三成本（第一批已完成：KPI 异化修复 / 文件流闭环 / 金色统一 / 切换冗余清理） |
 | Phase 3 — Workflow Engine | 规划中 | 工作流自动实例化 + 提醒推送 + 审计报告 |
+
+---
+
+## 九、复用与二次开发（给其他组织）
+
+> 本系统按"可复用"设计：**组织数据、角色权限、主题色、术语、功能扩展都有正式入口**。其他组织/学生团体可按需取用，不必改动系统骨架。以下按"从易到难"给出复用路径。
+
+### 9.1 三种部署形态（任选其一）
+
+| 形态 | 怎么用 | 适用 |
+|------|--------|------|
+| **A · 纯静态** | `docs/` 直接部署到任意静态托管（GitHub Pages/Netlify/Nginx），无需后端 | 体验、演示、轻量使用（数据存浏览器本地，刷新丢失） |
+| **B · 自托管完整版** | `cd server && npm install && npm start`（Express + SQLite 单文件），页面与 API 同源 | 正式使用：账号登录、数据持久化 |
+| **C · 对接自有后端** | 前端数据层一个配置切到 `api` 模式，UI 零改动 | 已有后端/计算中心托管（见 [DEPLOYMENT_ROADMAP.md](content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md)） |
+
+部署形态在 `docs/src/config/deploy.js` 一个常量切换（`static` / `server`），页面按形态自动调整。
+
+### 9.2 换组织数据（最快见效）
+
+组织数据集中在 `docs/src/mock/`（10 个数据文件：人员/活动/通知/专班/任务/考勤等）+ `docs/src/mock/seed.js`；服务端种子 `server/seed.js` 复用同一份数据。**替换这些文件即可换成你的组织数据**，无需改任何逻辑。人员字段含姓名/学号/角色/党小组/发展阶段等，按需增删。
+
+### 9.3 自定义角色与权限（单一事实源）
+
+角色清单是**单一事实源**：`docs/src/core/constants.js` 的 `ROLE_KEYS`（9 个业务键 + 3 个遗留键）。从这里出发，系统自动派生：
+
+```
+ROLE_KEYS（改这里）
+  → 能力注册表 requiredRoles（谁能用哪个能力）
+  → 侧边栏可见性（谁看到哪个入口）
+  → 主题色/角色色（谁用什么颜色）
+```
+
+改角色/加角色：只改 `ROLE_KEYS` + 对应工作台能力声明，其余自动跟随（收敛设计见 [ROLE_SSOT_DESIGN.md](content/04_web_design/evolution/ROLE_SSOT_DESIGN.md)）。
+
+### 9.4 自定义主题色与术语
+
+- **主题色**：侧边栏「主题选择」色板（`ACCENT_PALETTE`）可换角色主题色；品牌色（党徽金/党建红）在 `core/constants.js` 定义
+- **术语**：全仓库术语权威源 `content/03_doc_system/USAGE_POLICY.md`——改术语即改此文件 + 全局引用
+- **深色模式**：遵循 [DESIGN_SYSTEM.md §七](content/04_web_design/design-system/DESIGN_SYSTEM.md) 色块平行性总则，改色后须过自查清单
+
+### 9.5 插件化扩展（能力注册表）
+
+系统 UI 层已插件化（M1-M5）：**功能 = 能力声明**，通过注册表注册（`register` → `get` → `mount`），消费点从清单读取自动发现。
+
+- **新增工作台 tab**：写一个 tab 模块 + 注册能力，入口薄壳自动加载（无需改多处 HTML/entry）
+- **新增数据源/场景**：注册为能力（env/deps/apply），按环境启用
+- **新增功能开关/灰度**：能力声明携带 scope/role/env，可按部署形态与角色选择性启用
+
+架构演进记录见 [ARCHITECTURE_EVOLUTION.md](content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md)。
+
+### 9.6 二次开发约定
+
+| 事项 | 约定 |
+|------|------|
+| 架构 | 分层：`docs/src/entries → components → services → core → mock → workflow`；数据变更必须经服务层，UI 禁止直改数据源 |
+| 母本优先 | 制度文本（`content/02_institution/sop/`）是代码逻辑的母本——先改制度，再同步代码 |
+| 测试 | `cd server && npm test`——17 个测试文件（单元 9 + 审计守护 8），覆盖登录链路/死链/数据完整性/模块加载 |
+| 版本管理 | `docs/scripts/bump-version.mjs` 一键同步全站 `?v=` 版本戳（避免浏览器缓存分裂） |
+| 设计规范 | 改 UI 前必读 [DESIGN_SYSTEM.md](content/04_web_design/design-system/DESIGN_SYSTEM.md)（含可验证条件自检）；可点击落点见 [CLICK_MAP.md](content/04_web_design/design-system/CLICK_MAP.md) |
+| 在线演示 | `docs/` 静态部署即得演示版（演示账号，无需后端） |
+
+### 9.7 完整文档导航
+
+复用者/维护者的完整阅读路径：本 README → [ARCHITECTURE.md](content/03_doc_system/ARCHITECTURE.md)（核心架构）→ [DEPLOYMENT_ROADMAP.md](content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md)（部署落地全案）→ [server/README.md](server/README.md)（后端与测试）→ [DOC_MAP.md](content/03_doc_system/DOC_MAP.md)（全部文档导航）。
 
 ---
 

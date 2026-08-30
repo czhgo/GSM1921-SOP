@@ -140,3 +140,32 @@ test('bootstrap 数据源选择经注册表（行为零变化：有 token 走 ap
   assert.match(src, /mockCap\.apply\(\)/);
   assert.doesNotMatch(src, /setDataSource\('api'\)/); // 直接切换收敛到能力 apply
 });
+
+test('components.js 注册共享组件能力（scope: component，M6）', async () => {
+  const src = await readFile(
+    new URL('../../docs/src/modules/capabilities/components.js', import.meta.url),
+    'utf8',
+  );
+  assert.match(src, /id: 'component:todo-list'/);
+  assert.match(src, /id: 'component:calendar'/);
+  assert.match(src, /id: 'component:custom-select'/);
+  assert.match(src, /scope: \['component'\]/);
+  assert.match(src, /registerCapability\(\{[\s\S]*registerCapability\(\{/); // 多次注册
+});
+
+test('M6/M7 功能断言：component scope 过滤 + env 按环境启用', async () => {
+  registry.registerCapability({ id: 'component:test-x', name: '测试组件', scope: ['component'], version: '20260830a', deps: ['state'] });
+  assert.ok(
+    registry.getCapabilities({ scope: 'component' }).some(c => c.id === 'component:test-x'),
+    'scope:component 应过滤出组件能力'
+  );
+  // M7：dev-only 能力在 prod 下不可见（env 开关）
+  registry.registerCapability({ id: 'env-dev-only', scope: ['all'], env: ['dev'] });
+  assert.ok(registry.getCapabilities({ env: 'dev' }).some(c => c.id === 'env-dev-only'));
+  assert.ok(
+    !registry.getCapabilities({ env: 'prod' }).some(c => c.id === 'env-dev-only'),
+    'prod 下 dev-only 能力不可见'
+  );
+  registry.unregisterCapability('component:test-x');
+  registry.unregisterCapability('env-dev-only');
+});

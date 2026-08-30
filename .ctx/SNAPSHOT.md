@@ -55,7 +55,7 @@ GSM1921-SOP/
 │   ├── app.js                  ← createApp 工厂 + JSON 错误中间件
 │   ├── db.js                   ← 25 资源表 + sessions/attachments
 │   ├── seed.js                 ← 复用前端 mock 导入种子
-│   ├── routes/                 ← auth / resources / uploads
+│   ├── routes/                 ← auth / resources / uploads / report（四域上报 + 邮件触发钩子）
 │   ├── test/                   ← 17 测试文件（单元 9 `.test.js` + 审计守护 8 `.test.mjs`，npm test 全量；命令见 CLAUDE.md H25）
 │   └── data.db                 ← SQLite 单文件库（运行时产物）
 ├── content/
@@ -133,6 +133,7 @@ GSM1921-SOP/
 | 按人视图·知情边界 | 谁能看到谁由赋权链（执行委托）计算得出；看≠做，可见性不授予操作权 | DESIGN_SYSTEM.md §一 原则9 + visibility.js (P-015) |
 | SOP 回写 | 将网页中已实现的工作逻辑反整合到SOP中（用业务语言），使SOP成为规范、结构化、清晰的制度母本 | insights 工程演进与设计方法论.md §4.11 |
 | 打卡化判定 | 完成必须对应真实产物——`complete(task)` 的副作用集合仅含状态翻转即为打卡化设计缺陷 | insights 工程演进与设计方法论.md §6.23 |
+| 能力注册表·插件化 | 功能单元按「能力声明」注册（register/get/mount 三原语 + unregister/resolveDeps），消费点从清单读取自动发现；6 工作台薄壳化 + 数据源/场景注册化 + 入口/HTML 瘦身（M1-M5 完成） | ARCHITECTURE_EVOLUTION.md §四/§六 |
 
 ## V. 权限矩阵摘要
 

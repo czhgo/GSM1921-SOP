@@ -22,7 +22,7 @@ status: active
 | [`data/`](data/) | 数据架构（模型/流/路由） | [DATA_MODEL.md](data/DATA_MODEL.md) · [DATA_FLOW.md](data/DATA_FLOW.md) · [DATA_ARCHITECTURE.md](data/DATA_ARCHITECTURE.md) |
 | [`deploy/`](deploy/) | 部署与集成（路径/认证/外部对接） | [DEPLOYMENT_ROADMAP.md](deploy/DEPLOYMENT_ROADMAP.md) · [DEPLOYMENT_AUTH_MODEL.md](deploy/DEPLOYMENT_AUTH_MODEL.md) · [PKU_PARTY_INTEGRATION.md](deploy/PKU_PARTY_INTEGRATION.md) · [WECHAT_INTEGRATION.md](deploy/WECHAT_INTEGRATION.md) |
 | [`module/`](module/) | 页面/模块设计（UI 与 SOP 联动） | [MODULE_UI_DESIGN.md](module/MODULE_UI_DESIGN.md) · [SOP_WEB.md](module/SOP_WEB.md) · [ABOUT_DESIGN_SYSTEM.md](module/ABOUT_DESIGN_SYSTEM.md) |
-| [`evolution/`](evolution/) | 演进与校验（架构演进/工程质检） | [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) · [CHECKLIST.md](evolution/CHECKLIST.md) |
+| [`evolution/`](evolution/) | 演进与校验（架构演进/工程质检/权限收敛） | [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) · [CHECKLIST.md](evolution/CHECKLIST.md) · [ROLE_SSOT_DESIGN.md](evolution/ROLE_SSOT_DESIGN.md) |
 
 ---
 

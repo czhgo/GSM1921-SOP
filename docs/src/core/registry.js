@@ -2,11 +2,14 @@
 // 能力注册表：registerCapability / getCapabilities / getCapability / mountCapability（T-279 M1）
 //            + getRuntimeEnv / getRegistryVersion / listCapabilities / unregisterCapability / resolveDeps（T-279 M4 迭代机制）
 // 能力声明形态：
-//   { id, name, scope: ['dashboard'|'workspace'|'data-source'|'scenario'|'all'], requiredRoles: null|string[],
+//   { id, name, scope: ['dashboard'|'workspace'|'data-source'|'scenario'|'component'|'all'],
+//     requiredRoles: null|string[],
 //     env: null|string[],          // M4：null=所有环境；数组=仅这些环境启用（dev/prod）
 //     version: string,             // M4：能力版本（建议日期后缀，如 '20260823a'）
 //     deps: ['data-adapter'|...], mount: (container, ctx) => void|Promise,
 //     apply: (ctx) => void         // M4：数据源等"动作型"能力的选择方法（调用方显式执行）}
+// scope: 'component'（M6，2026-08-30）：共享组件注册为能力（todo-list/calendar/custom-select），
+//   消费点经 getCapabilities({scope:'component'}) 发现组件清单；deps 可声明组件依赖。
 // deps 仅登记 + resolveDeps 查询（M4 落地，不做自动解析）；requiredRoles 在 getCapabilities 中已应用。
 // 回滚=unregisterCapability(id)（M4 验收：注销声明即从能力清单消失）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §四/§五

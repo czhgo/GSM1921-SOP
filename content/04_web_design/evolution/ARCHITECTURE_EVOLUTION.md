@@ -171,6 +171,8 @@ export const activityCalendar = {
 | M3 | ✅ 数据源与工作流场景注册化——6 工作台全薄壳化完成（组长 1850/组织 1806/宣传 1320/纪检 1339/成员 897 行单体 → 各 ~140-170 行薄壳 + 独立 tab 模块 + 各自 scope 能力注册，2026-08-23 全量验证通过） | 场景清单可查、可按环境启用 |
 | M4 | ✅ 迭代机制落地（2026-08-23 完成）——registry 补全 unregisterCapability/resolveDeps 原语；数据源（mock/api）与 SOP 场景库注册为能力；bootstrap 数据源选择与决策树场景读取经注册表（行为零变化）；全站版本统一 20260823b；Node 断言 10/10 + 浏览器回归 31/31 | 新功能可按 scope 灰度，回滚=注销声明 |
 | M5 | ✅ 入口/HTML 瘦身（2026-08-30）——方案A：HTML 公共资源抽取（`theme-init.js` + `tailwind-config.js`，16 页各减 ~28 行，公共脚本入 bump 链）；方案B：`main-entry.js` 599→191 行拆为 4 个 dashboard 组件（stats/activity-panel/taskforce-list/gallery）；修复未登录 user.role 空引用（T-304 方案B 判例） | 公共脚本单一维护源；入口层为调度壳；新增页面不再复制 head 脚本 |
+| M6 | ✅ 组件能力化·注册层（2026-08-30）——共享组件注册为能力（`modules/capabilities/components.js`：todo-list/calendar/custom-select，scope:['component']，deps 可声明组件依赖）；registry 支持任意 scope；测试断言 component 过滤；**消费点接入（从清单动态发现组件）留待真实场景逐步启用，避免大面积 import 改造回归** | 组件清单可查（getCapabilities({scope:'component'})）；组件可作能力 deps |
+| M7 | ✅ 环境/角色开关·消费点启用（2026-08-30）——registry 已支持 env 过滤（M4）与 requiredRoles 过滤；本轮消费点显式传参启用：dashboard 能力发现传 `env: getRuntimeEnv(), role: AuthStore.getCurrentUser()?.role`（行为零变化，机制对未来的 env/role 差异化能力生效）；测试补 dev/prod env 开关断言 | 能力可按部署形态（static/server）与角色选择性启用 |
 
 每阶段之间允许长期停留——注册表的价值在 M1 后即可验证，后续阶段按迭代需要推进，不预设完成时间。
 

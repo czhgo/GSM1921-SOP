@@ -6053,3 +6053,13 @@ P-001~P-004、P-014~P-017 不变。物理顺序与编号一致。
 - **skills 扫描**：brainstorming（HARD-GATE 先设计后批准）、fullstack-developer（技术栈参考）等外部通用 skill 规则密度足够，无本仓库相关逃逸点——**只报告不擅改外部通用文件**（修改会影响其他项目）
 - **检查要点库入库**（REVIEW_QUEUE 附录⑦）：新增「开放清单同步闸门」通用检查项（EP-04 判例）；附录⑦ 轮次进度更新至第二轮
 - **验证**：全部为提示词体系文档改动，无代码变更；提交后工作树干净
+
+---
+
+### 2026-08-30 · 四任务并进：文档同步审查 + 根 README 复用重构 + AI逃逸第三轮 + 插件化 M6/M7
+
+- **任务1 文件同步审查**：project_memory §八 清理作废条目（T-141/角色单页制已完成删除；T-116 更新为 W4 专项①待发起；权限候补注记 S1-S10 已实施）；SNAPSHOT routes 行补 report、IV 核心理论表补「能力注册表·插件化」；04_web_design/README evolution 行补 ROLE_SSOT_DESIGN
+- **任务2 根 README 开源复用重构**（书记："别的组织可以按需复用我们的系统"）：顶部定位强化（MIT 开源可复用 + 复用章锚点）；新增「九、复用与二次开发（给其他组织）」——9.1 三种部署形态（静态/自托管/对接自有后端）/ 9.2 换组织数据（mock 10 文件）/ 9.3 自定义角色（ROLE_KEYS 单一事实源派生链）/ 9.4 主题色与术语 / 9.5 插件化扩展（能力注册表）/ 9.6 二次开发约定 / 9.7 文档导航
+- **任务3 AI逃逸捕捉第三轮**：扫描 content/04_web_design/ 16 设计约束文档——总体结论规则密度与判据完整性高（原则 7-14 均带可验证条件），无 E1 软化；修复 EP-06（E5 验证无闭环：DESIGN_SYSTEM 可验证条件与深色自查 9 条无强制触发闸门）→ CLAUDE.md H40 加第 12 项「设计原则自检」+ DESIGN_SYSTEM 头部加强制自检声明；检查要点库补 [2026-08-30-3] 规则强制触发闸门
+- **任务4 插件化 M6+M7**：M6 组件能力化·注册层（新增 `modules/capabilities/components.js` 注册 todo-list/calendar/custom-select，scope:['component']；registry 注释补 component scope）；M7 环境/角色开关·消费点启用（dashboard 能力发现传 `env:getRuntimeEnv()/role`，行为零变化）；capability-registry.test.mjs 新增 2 断言（M6 组件过滤 + M7 dev/prod env 开关）；ARCHITECTURE_EVOLUTION 补 M6/M7 实施路径行
+- **验证**：npm test **52/52 全绿**（96.8s，含新增 2 用例）；GetDiagnostics 零错误；mock-integrity 需 server:3000（本轮先启动 server 后通过）
