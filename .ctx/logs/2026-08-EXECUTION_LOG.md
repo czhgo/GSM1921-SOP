@@ -6077,3 +6077,15 @@ P-001~P-004、P-014~P-017 不变。物理顺序与编号一致。
   - ④ **M6 接线修复**：bootstrap.js 副作用导入 components.js（上轮注册了组件能力但无人接线，运行时组件清单为空——孤儿扫描发现）
 - **净减 ~930 行**；npm test **52/52 全绿**（module-load 97/97 + e2e-login + click-cost + agenda-flow 验证前端行为零变化）
 - **可持续铁律**（写入 ARCHITECTURE_EVOLUTION M8）：每个 M 阶段必须伴随净代码减负或持平，禁止纯横向拆分堆叠（防屎山）
+
+---
+
+### 2026-08-30 · 过程文件清理（书记：「spec/plan 即使被 ignore 也不该留存」）
+
+- **书记指令**：可用的部分落实到上下文文件；不可复用的部分直接处理；建议事项基于上下文可直接决策（授权）
+- **盘点**：`.trae/`（gitignore）下 **25 个 spec/plan 过程文件**（plans/2026-08-18-about-redesign + specs/ 7 个 about-* 子目录（spec/checklist/tasks）+ 2 个 pronouncement + harness-restructure + insights-self-revealing×2 + workflow-animation + Audit-of-DEVELOPMENT-PATH + ABOUT_*×4 + CAPABILITY_REGISTRY_M1/M2/M4）
+- **逐个判断（抽查决策是否已落实权威文档）**：
+  - **已落实 → 删除**：about 系列（→ ABOUT_DESIGN_SYSTEM.md 权威）、pronouncement×2（→ PRONOUNCEMENTS P-017 主客统一）、harness-restructure（→ CLAUDE.md 甲部三层）、insights×2（→ insights/ + H30.4）、Audit-DEVELOPMENT-PATH（→ DEVELOPMENT_PATH 方兴未艾）、CAPABILITY_REGISTRY_M1/M2/M4（→ ARCHITECTURE_EVOLUTION）
+  - **未落地但原则可复用 → 先整合再删**：workflow-animation-redesign（分镜式设计从未实现，DESIGN_SYSTEM 无引用）→ 4 条可复用原则（扁平化连线主角/动静分离/分镜式进出/flow 级分镜）沉淀入 DESIGN_SYSTEM §5.5，然后删除
+- **结果**：`.trae/` 全目录删除（25 文件）；DESIGN_SYSTEM 新增 §5.5；全仓再扫描确认无 specs/plans/checklists 残留
+- **经验**：spec/plan 可能生成在 gitignore 目录（.trae/）——清理要扫 ignore 目录；判断标准=决策是否已落实权威文档（grep 关键词验证），未落实的决策先沉淀再删（H26 清理纪律的完整闭环）
