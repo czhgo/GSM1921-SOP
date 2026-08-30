@@ -18,6 +18,8 @@ import { ApiAdapter } from './api-adapter.js?v=20260829a';
 import { getCapabilities } from './registry.js?v=20260829a';
 // M4 数据源注册化：副作用导入触发 mock/api 数据源能力注册，bootstrap 经注册表选择数据源
 import '../modules/capabilities/data-source.js?v=20260829r';
+// M6（2026-08-30）：共享组件能力随全局引导注册（todo-list/calendar/custom-select），所有页面可发现组件清单
+import '../modules/capabilities/components.js?v=20260829a';
 
 // ════════════════════════════════════════════════════════════════
 // S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）
