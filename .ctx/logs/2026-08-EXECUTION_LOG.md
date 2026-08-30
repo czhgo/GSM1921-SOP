@@ -6063,3 +6063,17 @@ P-001~P-004、P-014~P-017 不变。物理顺序与编号一致。
 - **任务3 AI逃逸捕捉第三轮**：扫描 content/04_web_design/ 16 设计约束文档——总体结论规则密度与判据完整性高（原则 7-14 均带可验证条件），无 E1 软化；修复 EP-06（E5 验证无闭环：DESIGN_SYSTEM 可验证条件与深色自查 9 条无强制触发闸门）→ CLAUDE.md H40 加第 12 项「设计原则自检」+ DESIGN_SYSTEM 头部加强制自检声明；检查要点库补 [2026-08-30-3] 规则强制触发闸门
 - **任务4 插件化 M6+M7**：M6 组件能力化·注册层（新增 `modules/capabilities/components.js` 注册 todo-list/calendar/custom-select，scope:['component']；registry 注释补 component scope）；M7 环境/角色开关·消费点启用（dashboard 能力发现传 `env:getRuntimeEnv()/role`，行为零变化）；capability-registry.test.mjs 新增 2 断言（M6 组件过滤 + M7 dev/prod env 开关）；ARCHITECTURE_EVOLUTION 补 M6/M7 实施路径行
 - **验证**：npm test **52/52 全绿**（96.8s，含新增 2 用例）；GetDiagnostics 零错误；mock-integrity 需 server:3000（本轮先启动 server 后通过）
+
+---
+
+### 2026-08-30 · 代码减负（书记：「模块化只见代码增多，少见代码减少」）+ 可持续原则（提交 e1285b9）
+
+- **书记核心批评**：模块化一路做下来文件多了，代码总量没净减少——要求「代码减负」「可持续作为维护系统最重要原则」「防止屎山代码」
+- **量化盘点**（node 统计）：entries 64 文件 15444 行（重灾区）/ components 7495 / services 5942 / core 3800；6 个 todo-tab 各 175-422 行高度重复、6 个入口薄壳骨架重复 ~60%
+- **三项减负（书记确认后实施，每步跑测试验证行为零变化）**：
+  - ① **todo-tab 共性化**：新增 `components/todo-tab-shell.js`（createTodoTab 工厂：选中首条/两栏/详情默认渲染/删除/按钮绑定抽壳，角色差异参数化）→ 5 个 tab **1020→373 行（-647）**（leader 206→74 / org 224→95 / prop 175→45 / disc 232→106 / visitor 183→53）
+  - ② **工作台入口壳化**：新增 `components/workspace-shell.js`（createWorkspaceShell 工厂：注册表 tab 读取/懒加载渲染/数据兜底/URL 导航落点/B1-5 抑制抽壳，导航回调/高亮选择器/renderCtx/extraRightHtml/loadOptions 参数化）→ 6 入口 **1022→420 行（-602）**（secretary 163→65 / leader 179→65 / org 184→89 / prop 158→64 / disc 151→48 / visitor 187→89）；排雷：await bootstrapPage 在非 async 工厂 → 改 async + 入口顶层 await
+  - ③ **死代码清理**：删 `components/role-hierarchy.js`（8 角色层级可视化组件，全仓无引用，-80 行）
+  - ④ **M6 接线修复**：bootstrap.js 副作用导入 components.js（上轮注册了组件能力但无人接线，运行时组件清单为空——孤儿扫描发现）
+- **净减 ~930 行**；npm test **52/52 全绿**（module-load 97/97 + e2e-login + click-cost + agenda-flow 验证前端行为零变化）
+- **可持续铁律**（写入 ARCHITECTURE_EVOLUTION M8）：每个 M 阶段必须伴随净代码减负或持平，禁止纯横向拆分堆叠（防屎山）
