@@ -66,7 +66,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 1. **Blueprint**：输出任务拆解计划与执行路径
 2. **实施**：调用对应工具执行任务
-3. **验收**：自动运行 `GetDiagnostics` 或执行 lint/type-check
+3. **验收**：自动运行 `GetDiagnostics`；**涉及代码改动必须按 H25 测试系统运行相关测试**（前端多文件改动必跑 `server/test/module-load.test.mjs`，改动链接跑 link-integrity，改动 mock 数据跑 mock-integrity，改动活动/工作流/登录跑 agenda-flow + e2e-login），**不得仅以 GetDiagnostics 零错误代替运行验证**（语法对≠运行对，KNOWN_PITFALLS §17 子代理交付三查判例）
 4. **记录**：追加至 `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`
 
 > 🔴 **歧义消解铁律**：人类表达可能有歧义。当任务复杂、庞大、或用户表述不清晰时，**必须**：
@@ -143,11 +143,39 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 ***
 
+## H26. 上下文文件 vs 过程产物（2026-08-30 定义）
+
+**上下文文件** = AI 执行任务时**直接读取**、用于建立「项目当前状态 + 当前规则」认知的活跃文件。三特征：
+① 描述**当前状态/规则**（非历史过程）；② 内容**可执行引用**（读即用）；③ 变更立即影响后续任务。
+
+- **对照**：知识资产（`content/insights/`，人类阅读、非 AI 活跃上下文）；过程产物（spec/plan/一次性脚本，任务闭环即归档或删除）
+- **当前上下文文件清单**：本文件（甲/乙/丙部）· `.ctx/SNAPSHOT.md`（当前基线）· `.ctx/TIMESTAMPS.md`（文件注册表）· `.ctx/REVIEW_QUEUE.md`（评议队列）· `content/03_doc_system/`（ARCHITECTURE/SSOT_INDEX/OPERATIONS_GUIDE/DOC_MAP/USAGE_POLICY/SERVICE_CATALOG）· `content/04_web_design/evolution/`（ARCHITECTURE_EVOLUTION/CHECKLIST/ROLE_SSOT_DESIGN）· `server/README.md`（测试/部署）· 项目记忆（跨会话）
+- **清理纪律**：过程产物不留仓库——可复用部分（决策/约束/落地记录）整合进上下文文件后删除原文件；空目录同步删除；整合处标注来源与日期（判例：2026-08-30 html-slimming spec 整合入 ARCHITECTURE_EVOLUTION 后删除）
+
+***
+
+## H27. AI逃逸捕捉评议（2026-08-30 书记引入）
+
+**定义**：检查提示词体系（本文件甲部 + 检查要点库 REVIEW_QUEUE 附录⑤ + skills）中「本应 rule-based（确定性执行）却写成 AI 可自行取舍的软性表述」的位置——**逃逸点**（AI 可合理化偏离规则意图）。
+
+**五维扫描（E1-E5）**：
+- **E1 规则软化**：must/禁止 写成「应/宜/建议/尽量」
+- **E2 判据缺位**：要求「必须复核」但无「如何验证/验证什么」的可执行判据
+- **E3 边界模糊**：方向有、边界无（「不得过度/适度」无标尺）
+- **E4 例外无闸**：允许例外但无触发条件 + ask 确认闸
+- **E5 验证无闭环**：无「完成后如何证明」（可执行命令/检查清单）
+
+**流程**：扫描 → 逃逸点清单（位置+原文+E 分类+修复建议）→ 修复（软→硬）→ 检查要点库登记 → 书记复核。要点与判例见 REVIEW_QUEUE 附录⑦「AI逃逸捕捉」。
+
+***
+
 ## H30. 一改具改原则与母本子本关系
 
 ### H30.1 一改具改
 
 > **核心原则**：修改任何一项制度/设计/术语，必须在全仓库范围内同步更新所有相关引用，不得遗漏。
+>
+> **零残留验证（E2 判据，2026-08-30 AI逃逸捕捉首轮修复）**：修改完成后必须用**全仓 Grep 验证旧引用（旧表述/旧编号/旧路径）零残留**，并 Read 复核改动文件——不得以「我记得都改了」代替实测；H40 检查清单第 3 项同步执行该验证。
 
 **执行标准**：
 
@@ -206,7 +234,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 ```
 □ 1. 确认修改范围：哪些文件受影响？
 □ 2. 检查钩稽：CLAUDE.md / guides 中是否有对该文件的引用？
-□ 3. 一改具改：全仓库搜索相关引用，逐一同步更新
+□ 3. 一改具改：全仓库搜索相关引用，逐一同步更新；完成后 Grep 验证零残留（H30.1）
 □ 4. 术语合规：修改内容是否符合 USAGE_POLICY.md §一？
 □ 5. 母本优先：若涉及 SOP 制度变更，先改 content/02_institution/sop/ 再改代码
 □ 6. YAML 更新：🔴 任何有 YAML frontmatter 的文件被修改后，必须更新 last_updated 字段。子任务修改文件时同样必须遵守。遗漏即违规。

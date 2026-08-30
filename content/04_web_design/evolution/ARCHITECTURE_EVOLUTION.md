@@ -52,7 +52,7 @@ related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEB.md, DEPLOYMENT_ROADMAP.md, 
 | 差距 | 证据 |
 |------|------|
 | 页面入口层偏厚 | [main-entry.js](../docs/src/entries/main-entry.js) 约 590 行，统计卡/弹窗/列表/画廊渲染逻辑内嵌在入口；工作台入口同理 |
-| HTML 层重复硬编码 | tailwind config、T231 防闪烁脚本等逐页复制（多个 HTML 重复），页面骨架未模板化 |
+| HTML 层重复硬编码 | ✅ 已消除（2026-08-30 方案A）：tailwind config 与 T231 防闪烁脚本抽为 `docs/src/tailwind-config.js` / `docs/src/theme-init.js` 公共脚本，16 页 head 各只留 2 行引用（每页净减 ~28 行）；边界约束：不引入构建步骤（纯静态直开部署形态不变）、head 其余部分（字体 preconnect/preload/meta）不动、方案C（HTML 骨架模板化构建）留远期 |
 | **静态引用而非注册** | 组件「import 即用」——页面 import 什么就用什么，没有「注册表 + 自动发现」机制；新增功能需手动改 HTML 引用 + entry 逻辑 + tab 配置 + 样式多处 |
 | 无功能开关/能力清单 | 新功能无法按环境/角色/阶段选择性启用 |
 | 版本手动维护 | `?v=20260812a` 每处手改，发布约等于全量刷新，无版本协商机制 |
@@ -170,6 +170,7 @@ export const activityCalendar = {
 | M2 | ✅ 工作台 tab 收敛为注册表条目——组长工作台样板先行（1850 行单体 → 薄壳入口 161 行 + 9 独立 tab 模块 + `leader-workspace` 能力注册），其余 4 工作台按样板批量推进 | 所有 tab 从清单读取，新增 tab 只注册不连改多个入口 |
 | M3 | ✅ 数据源与工作流场景注册化——6 工作台全薄壳化完成（组长 1850/组织 1806/宣传 1320/纪检 1339/成员 897 行单体 → 各 ~140-170 行薄壳 + 独立 tab 模块 + 各自 scope 能力注册，2026-08-23 全量验证通过） | 场景清单可查、可按环境启用 |
 | M4 | ✅ 迭代机制落地（2026-08-23 完成）——registry 补全 unregisterCapability/resolveDeps 原语；数据源（mock/api）与 SOP 场景库注册为能力；bootstrap 数据源选择与决策树场景读取经注册表（行为零变化）；全站版本统一 20260823b；Node 断言 10/10 + 浏览器回归 31/31 | 新功能可按 scope 灰度，回滚=注销声明 |
+| M5 | ✅ 入口/HTML 瘦身（2026-08-30）——方案A：HTML 公共资源抽取（`theme-init.js` + `tailwind-config.js`，16 页各减 ~28 行，公共脚本入 bump 链）；方案B：`main-entry.js` 599→191 行拆为 4 个 dashboard 组件（stats/activity-panel/taskforce-list/gallery）；修复未登录 user.role 空引用（T-304 方案B 判例） | 公共脚本单一维护源；入口层为调度壳；新增页面不再复制 head 脚本 |
 
 每阶段之间允许长期停留——注册表的价值在 M1 后即可验证，后续阶段按迭代需要推进，不预设完成时间。
 

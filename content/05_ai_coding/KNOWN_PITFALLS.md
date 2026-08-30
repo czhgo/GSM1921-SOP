@@ -314,6 +314,8 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 
 **相关强化**：KNOWN_PITFALLS §14 的「同区域连续编辑相互覆盖」在并行 Edit 场景同样成立——同文件多个 Edit 在同一消息并行发起会基于旧快照互相覆盖（本次 org-workspace.js 的 registry 版本被后续 replace_all 覆盖回旧值）。
 
+**⚠️ 补充判例（2026-08-30 测试整理）**：并行 Edit 相互覆盖**不限同区域**——同文件多个**不同区域**的 Edit 在同一消息并行发起时同样基于旧快照，实际只有最后一个写盘（capability-registry.test.mjs 4 处 `../src/` → `../../docs/src/` 路径修改并行发起仅 1 处落盘，另 3 处靠事后 Read 复核逐一重改；CHECKLIST.md / SNAPSHOT.md 多区域并行编辑同样部分丢失）。**规则强化**：同文件无论同区域还是不同区域，都禁止在一条消息内并行 Edit——改为逐条串行，每条后 Read 复核（批量场景可用 `git diff` 核对实际落盘）。
+
 **⚠️ 补充判例（T-280 B6 收口，2026-08-24）：「bump 全站后 server/test 测试脚本版本失配」是同一模式的测试侧表现**——Playwright evaluate 内动态 `import('/src/...?v=...')` 若落后于 src 内部 import（bump 只覆盖 docs/src 与 docs/*.html，未覆盖 server/test），浏览器按 URL 分裂出第二个 registry/共享状态实例 → 测试读到空注册表，回归误报（m4 回归 22/31 实为 9 项能力注册误报，功能本身正常）。**已机制化修复**：`docs/scripts/bump-version.mjs` 新增 server/test/*.mjs 的 `/src/...?v=` 同步逻辑（bump 一次即连带更新测试戳）；若手工改测试版本，必须与 src 当前戳一致，并跑一次 m4 回归验证。
 
 **生效条件**：任何批量修改 import 版本、子代理交付大文件拆分、或同文件连续/并行编辑时。
