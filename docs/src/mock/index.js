@@ -21,6 +21,7 @@ export function _personName(id) {
 export { ACTIVITIES } from './activities.js?v=20260829a';
 export { ATTENDANCE_RECORDS, attendanceToLong, attendanceToWide } from './attendance.js?v=20260829a';
 export { INSPECTION_RECORDS, inspectionToLong, inspectionToWide, inspectionToDisplay } from './inspection.js?v=20260829a';
+export { THOUGHT_REPORTS } from './thought-reports.js?v=20260829a';
 export { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS, reviewToDisplay } from './review.js?v=20260829a';
 export { MOCK_NOTICES } from './notices.js?v=20260829a';
 export { MOCK_TASKFORCES } from './taskforces.js?v=20260829a';

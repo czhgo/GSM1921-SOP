@@ -28,7 +28,7 @@ related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_instit
 |---|---|---|---|---|
 | id | string | 是 | `generateId('act')` | 唯一标识符，前缀 `act_` |
 | title | string | 是 | -- | 活动标题 |
-| type | string | 是 | -- | 活动类型。类型体系（2026-08-07 归一，两大顶层非并列）：三会一课系 = 支部党员大会/支委会/党小组会/党课（组织生活会是**内容**而非子类，由三会之一召开，见 §2.1.2）；主题党日系 = `type='主题党日'` + 载体见 `carriers`。查询筛选按 `classifyActivityType` 级联展示 |
+| type | string | 是 | -- | 活动类型。类型体系（2026-08-07 归一，两大顶层非并列）：三会一课系含支部党员大会/支委会/党小组会/党课（组织生活会是**内容**而非子类，由三会之一召开，见 §2.1.2）；主题党日系含 `type='主题党日'` + 载体见 `carriers`。查询筛选按 `classifyActivityType` 级联展示 |
 | status | `'draft'\|'published'\|'ongoing'\|'completed'` | 是 | `'draft'` | 活动存储状态；页面展示态由生命周期派生（见下方"活动生命周期展示态"） |
 | visibility | `'branch'\|'group'` | 是 | `'group'` | 可见范围：全支部 or 党小组 |
 | date | string (YYYY-MM-DD) | 是 | -- | 活动日期 ISO 字符串 |
@@ -100,8 +100,8 @@ ActivityRecord (主记录)
 | type 值 | 中文 | items 内容 | 对应实现层数据 | 写入角色 |
 |---|---|---|---|---|
 | `attendance` | 考勤子记录 | 出勤记录列表 | AttendanceRecord（见 §2.5） | 纪检委员 |
-| `materials` | 材料子记录 | 交付物列表 | FileSpaceRecord（category≠publicity） | 深度参与者（组织者打包提交）；实现层暂为党小组组长/宣传委员 |
-| `publicity` | 宣传子记录 | 宣传素材列表 | FileSpaceRecord（category=publicity） | 宣传委员 |
+| `materials` | 材料子记录 | 交付物列表 | FileSpaceRecord（category 非 publicity 类） | 深度参与者（组织者打包提交）；实现层暂为党小组组长/宣传委员 |
+| `publicity` | 宣传子记录 | 宣传素材列表 | FileSpaceRecord（category 为 publicity 类） | 宣传委员 |
 
 **子记录关键规则：**
 
@@ -243,7 +243,7 @@ assignedRoles: Array<{
 
 ### 2.4 系列活动数据 (SeriesRecord)
 
-> 长期活动/系列活动 = 时间维度的重复模式，≠ 专班（人员维度的组织结构）。
+> 长期活动/系列活动属于时间维度的重复模式，与专班（人员维度的组织结构）相区分。
 
 | 字段名 | 类型 | 必填 | 说明 |
 |---|---|---|---|

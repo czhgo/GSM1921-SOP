@@ -6,6 +6,8 @@ import { BranchService } from './runtime.js?v=20260829a';
 import { showToast } from '../core/utils.js?v=20260829a';
 import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260829a';
 import { icon } from '../core/icons.js?v=20260829a';
+import { NoticeStore } from './notice.js?v=20260829a';
+import { getPersonById } from './person.js?v=20260829a';
 // M4 场景注册化：经注册表读取 SOP 场景能力（sop-scenarios），行为零变化——能力缺省时回退直接读 sopDatabase
 import { getCapabilities } from '../core/registry.js?v=20260829a';
 import '../modules/capabilities/sop-scenarios.js?v=20260829r';
@@ -342,5 +344,26 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
     }
   }
 
+  // 自动广播（混合模式落地）：活动创建后通知建核心群（现场协调在微信群）
+  _broadcastActivityCreated(activity);
+
   return { activity, taskCount: createdCount };
+}
+
+// ── 自动广播（2026-08-30 书记批准，混合模式落地）────────────────
+// 活动创建后：站内通知组织者/组长「请前往微信群建核心群」——现场协调在微信群，
+// 资料归档交接在系统（书记 2026-08-30 裁决）。通知失败不影响活动创建主流程。
+function _broadcastActivityCreated(activity) {
+  try {
+    const orgId = activity.organizer;
+    const orgName = (orgId && getPersonById(orgId)?.name) || '组织者';
+    NoticeStore.add({
+      title: '活动已创建，请建核心群',
+      content: `「${activity.title || '新活动'}」已创建（${orgName}）。请前往微信群建立核心群（按党小组组长工作手册 §6 拉齐成员、发送开场说明），现场协调在微信群进行，资料归档与交接在系统完成。`,
+      priority: 'normal',
+      targetUrl: 'workspace/leader.html',
+    });
+  } catch (e) {
+    console.warn('[DecisionTree] 建群广播失败（不影响活动创建）：', e);
+  }
 }

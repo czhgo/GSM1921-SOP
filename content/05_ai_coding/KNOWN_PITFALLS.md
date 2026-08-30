@@ -11,7 +11,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 # 已知陷阱与上下文丢失教训
 
 > **定位：** 本文件聚焦 AI 工具使用陷阱——记录 AI 在上下文丢失后反复犯过的工具使用错误及其纠正，供 Agent 集群按需读取。
-> **分工边界**：本文件 = AI 工具使用陷阱；[insights 工程演进与设计方法论.md §6](../insights/工程演进与设计方法论.md) = 业务/制度教训判例。
+> **分工边界**：本文件记录 AI 工具使用陷阱；[insights 工程演进与设计方法论.md §6](../insights/工程演进与设计方法论.md) 记录业务/制度教训判例。
 > OPERATIONS_GUIDE.md §1 保留原则级提醒，本文件提供判例级细节。
 
 ## 1. 文件修改持久化陷阱（Edit 虚假成功 → Write 整体覆写）
@@ -190,7 +190,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 
 **问题**：browser_use subagent 报告"验证通过"不等于真实验证——subagent 可能只检查 DOM 结构或源代码，而非屏幕上实际渲染的效果。
 
-**根因**：browser_use subagent 的默认验证行为是检查 DOM 元素是否存在、CSS 类是否正确，而不是截图确认视觉效果。当 CSS 规则冲突或被覆盖时（如 `opacity:0` 的元素仍在 DOM 中），subagent 会报告"元素存在=验证通过"，但用户实际看不到任何内容。
+**根因**：browser_use subagent 的默认验证行为是检查 DOM 元素是否存在、CSS 类是否正确，而不是截图确认视觉效果。当 CSS 规则冲突或被覆盖时（如 `opacity:0` 的元素仍在 DOM 中），subagent 会报告"元素存在即验证通过"，但用户实际看不到任何内容。
 
 **典型实例（T147）**：about.html 中 6 处元素设置了 `opacity:0` + GSAP `is-revealed` 触发机制，但 GSAP 未执行导致元素始终不可见。browser_use subagent 检查 DOM 结构后报告"验证通过"，实际屏幕上这些元素完全不可见。
 
@@ -302,7 +302,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 
 **背景（判例 T-279 M3）**：子代理拆分组织委员工作台时，把入口/tab 模块**所有** import 版本统一改为 20260823a。但依赖链（data-loader.js 等旧文件）内部 import 版本固定为 20260812a → **同页面 state.js 出现两个实例**（`state.js?v=20260812a` 与 `?v=20260823a` 是不同模块 URL）→ data-loader 的 `setState` 作用在 A 实例，入口的 `registerRenderCallback` 注册在 B 实例 → 渲染回调永不触发，**页面空白且无任何报错**（最隐蔽的 bug 形态）。
 
-**根因机制**：浏览器 ES module 按**完整 URL（含 ?v= 查询串）缓存模块**。同一文件不同 `?v=` 加载 = 两个独立实例，各自持有独立的模块级状态。**共享可变状态的模块**（state.js 的 appState、data-adapter 的数据源、domain.js 的 mockDB、各 Store）一旦双实例，写入与读取分属两实例即静默失效。
+**根因机制**：浏览器 ES module 按**完整 URL（含 ?v= 查询串）缓存模块**。同一文件不同 `?v=` 加载即两个独立实例，各自持有独立的模块级状态。**共享可变状态的模块**（state.js 的 appState、data-adapter 的数据源、domain.js 的 mockDB、各 Store）一旦双实例，写入与读取分属两实例即静默失效。
 
 **判断标准**：改/新增入口或模块的 import 版本前，先 Grep 依赖链（data-loader/bootstrap/state 等）**内部**对这些模块的引用版本，保持一致；**禁止批量统一 bump** 所有 import——只有真正改动的文件（如 tab-bar.js 20260812a→20260823a）才 bump 自身版本，其余必须沿用依赖链既有版本。
 
@@ -310,7 +310,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 
 **⚠️ 补充判例（T-279 M4，2026-08-23）：「发布=bump 一次」全站统一是例外路径**——M4 迭代机制给 registry.js 新增了引用方（bootstrap/decision-tree 经注册表读数据源/场景），registry 是共享状态模块，**新增引用方与原引用方版本不一致 → 同页双实例分裂**。此时手工逐文件 bump 极易遗漏（12 处 registry 引用版本不一：6 能力文件 20260812a / activity-calendar 与 main-entry 20260822a）。正确做法：跑 `node docs/scripts/bump-version.mjs <新版本>` **全站统一一次**（100 JS 文件 644 处 import + 16 HTML + styles.css + CODE_VERSION 自增），从机制上根除分裂，而非逐处手改。**判断标准**：改动波及共享状态模块（registry/state/data-adapter）且新增消费方 → 全站 bump 一次；仅单个业务模块内容调整 → 局部 bump 自身版本。
 
-**子代理交付三查**（本次子代理拆分后 3 个问题均未被其自报，全靠独立验证发现）：① 查版本链是否与依赖链分裂；② 查 diag 调试日志残留（子代理在入口加了 before/after bootstrap 日志未清理）；③ 查行为回归（页面空白必须 Playwright 断言验证，不能信"GetDiagnostics 零错误"——语法对≠运行对）。
+**子代理交付三查**（本次子代理拆分后 3 个问题均未被其自报，全靠独立验证发现）：① 查版本链是否与依赖链分裂；② 查 diag 调试日志残留（子代理在入口加了 before/after bootstrap 日志未清理）；③ 查行为回归（页面空白必须 Playwright 断言验证，不能信"GetDiagnostics 零错误"——语法正确与运行正确是两回事）。
 
 **相关强化**：KNOWN_PITFALLS §14 的「同区域连续编辑相互覆盖」在并行 Edit 场景同样成立——同文件多个 Edit 在同一消息并行发起会基于旧快照互相覆盖（本次 org-workspace.js 的 registry 版本被后续 replace_all 覆盖回旧值）。
 
@@ -324,7 +324,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/in
 
 **背景（判例 T-282）**：用 RunCommand 执行 node 拆分脚本（tmp-split-ops.mjs：OPERATIONS_GUIDE.md → §1-14 + §15-18 两个文件）。**沙箱对同一命令重复执行**——首次执行成功拆分（源文件被截为 §1-14），重试执行读到已被截断的源文件（§15 已不在），`findIndex` 返回 -1 → `slice(0, -1)` 误覆盖源文件、目标文件被写入错误内容（PROCESS_GUIDE 仅剩最后一行），**§15-18 完整内容工作区丢失**。
 
-**根因机制**：非幂等脚本 + 沙箱重复执行。脚本基于"源文件处于完整预期状态"假设，未校验前置条件；`slice(0, -1)` 在边界异常时不是报错而是静默产生错误写入。
+**根因机制**：非幂等脚本 + 沙箱重复执行。脚本基于"源文件处于完整预期状态"假设，未校验前置条件；`slice(0, -1)` 在边界异常时静默产生错误写入，而非报错。
 
 **规则（批量文件操作脚本必守）**：
 1. **幂等保护**：执行前校验源文件处于预期状态（如章节边界存在），不满足则 `process.exit(1)` 中止，绝不覆写

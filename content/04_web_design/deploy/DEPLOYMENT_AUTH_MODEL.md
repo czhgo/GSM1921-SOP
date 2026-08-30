@@ -41,7 +41,7 @@ related_files: [docs/src/components/sidebar.js, docs/src/components/header.js, d
 | S4 | 有后端 · 开发绕过 | 有后端 | 已登录 · 演示 | mock |
 | S5 | 有后端 · 正常登录 | 有后端 | 已登录 · 正常 | api |
 
-「开发模式 vs 正常模式」不是独立的部署场景，而是「已登录」的两种方式——差异体现在数据源（mock vs api）与持久化，不影响侧边栏 footer。
+「开发模式 vs 正常模式」同为「已登录」的两种方式——差异体现在数据源（mock vs api）与持久化，不影响侧边栏 footer。
 
 ## 三、侧边栏 footer 统一
 
@@ -63,7 +63,7 @@ related_files: [docs/src/components/sidebar.js, docs/src/components/header.js, d
 
 ## 四、登录门控四层模型
 
-登录门控不是「页面级」开关，而是分层触发：
+登录门控采用分层触发：
 
 | 层 | 门控对象 | 未登录时行为 |
 |----|---------|------------|

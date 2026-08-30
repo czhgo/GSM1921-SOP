@@ -11,7 +11,7 @@ import { registerCapability } from '../../core/registry.js?v=20260829a';
 registerCapability({
   id: 'visitor-workspace',
   name: '成员工作台',
-  version: '20260823',
+  version: '20260830',
   scope: ['workspace:visitor'],
   requiredRoles: ['participant'], // T-304 Q3 权限收敛：普通参与者（页面 visitor.html，键 participant）
   tabs: () => [
@@ -22,6 +22,8 @@ registerCapability({
     { id: 'activities', label: '活动动态', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/activities-tab.js?v=20260829a').then(m => m.renderContent(ctx)) },
     { id: 'attendance', label: '考勤概况', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/attendance-tab.js?v=20260829a').then(m => m.renderContent(ctx)) },
     { id: 'inspection', label: '我的考察', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/inspection-tab.js?v=20260829a').then(m => m.renderContent(ctx)) },
+    // 2026-08-30 思想汇报数字化：参与者系统内提交，算法自动归档
+    { id: 'thought-report', label: '思想汇报', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/thought-report-tab.js?v=20260829a').then(m => m.renderContent(ctx)) },
     // T-304 C1 组织者承载面：复盘提交归组织者（组织者/深度参与者在自己工作台提交）
     { id: 'review', label: '我的复盘', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/review-tab.js?v=20260829a').then(m => m.renderContent(ctx)) },
   ],

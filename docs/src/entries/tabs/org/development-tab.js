@@ -3,6 +3,7 @@
 // 从入党积极分子到正式党员的完整发展路径数据（管线概览 + 阶段筛选 + 推进）。
 
 import { loadInspectionRecords } from '../../../services/inspection.js?v=20260829a';
+import { loadThoughtReports, listThoughtReportsByPerson } from '../../../services/thought-report.js?v=20260829a';
 import { PEOPLE } from '../../../mock/index.js?v=20260829a';
 import { badgeHtml } from '../../../components/badge.js?v=20260829a';
 import { showToast } from '../../../core/utils.js?v=20260829a';
@@ -37,11 +38,13 @@ function _saveDevOverrides(overrides) {
 function _buildCandidates() {
   const overrides = _loadDevOverrides();
   const allInspections = loadInspectionRecords();
+  const allReports = loadThoughtReports();
   return PEOPLE
     .filter(p => p.developStage && p.developStage !== '正式党员')
     .map(p => {
       const ov = overrides[p.id] || {};
       const inspCount = allInspections.filter(r => r.personId === p.id).length;
+      const reportCount = allReports.filter(r => r.personId === p.id).length;
       return {
         id: `dc_${p.id}`,
         personId: p.id,
@@ -50,6 +53,7 @@ function _buildCandidates() {
         stage: ov.stage || p.developStage,
         entryDate: ov.entryDate || '2026-01-01',
         inspCount,
+        reportCount,
         note: ov.note || (inspCount > 0 ? `已参与 ${inspCount} 次考察记录` : '培养考察中'),
       };
     });
@@ -125,12 +129,16 @@ export function renderContent(ctx) {
                     ${c.partyGroup ? `<span class="text-xs text-gray-400">${c.partyGroup}</span>` : ''}
                     <span class="text-xs text-gray-400">进入当前阶段：${c.entryDate}</span>
                     ${c.inspCount > 0 ? badgeHtml(`考察 ${c.inspCount}`, 'info') : ''}
+                    ${c.reportCount > 0
+                      ? `<button class="dev-reports-btn text-xs px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 hover:bg-indigo-100 transition-colors" data-person-id="${c.personId}" data-name="${c.name}">思想汇报 ${c.reportCount}</button>`
+                      : ''}
                   </div>
                 </div>
                 ${advanceBtn}
               </div>
               <div class="flex items-center gap-0.5 mb-2">${progressDots}</div>
               <div class="text-[12px] text-gray-500">${c.note || ''}</div>
+              ${c.reportCount > 0 ? `<div class="mt-2 hidden dev-reports-panel" data-person-id="${c.personId}"></div>` : ''}
             </div>`;
         }).join('');
 
@@ -183,6 +191,27 @@ export function renderContent(ctx) {
         _saveDevOverrides(overrides);
         showToast('success', `「${candidate.name}」已推进至${nextStage}`);
         render();
+      });
+    });
+    // 绑定思想汇报查看（算法归档调用侧：展开该候选人的思想汇报记录）
+    container.querySelectorAll('.dev-reports-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const personId = btn.dataset.personId;
+        const panel = container.querySelector(`.dev-reports-panel[data-person-id="${personId}"]`);
+        if (!panel) return;
+        if (!panel.classList.contains('hidden')) { panel.classList.add('hidden'); return; }
+        const reports = listThoughtReportsByPerson(personId);
+        panel.innerHTML = reports.length === 0
+          ? '<p class="text-xs text-gray-400 text-center py-3">暂无思想汇报</p>'
+          : `<div class="space-y-2 py-2">${reports.map(r => `
+              <div class="p-2.5 rounded-lg bg-indigo-50/50 border border-indigo-100">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-medium text-indigo-700">${r.title || '思想汇报'}</span>
+                  <span class="text-[11px] text-gray-400">${(r.submittedAt || '').slice(0, 10)}</span>
+                </div>
+                <p class="text-[12px] text-gray-600 whitespace-pre-wrap">${r.content || ''}</p>
+              </div>`).join('')}</div>`;
+        panel.classList.remove('hidden');
       });
     });
   }

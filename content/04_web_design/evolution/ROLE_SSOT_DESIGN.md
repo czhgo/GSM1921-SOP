@@ -56,7 +56,7 @@
 | S2 | 6 个工作台能力声明 `requiredRoles`（visitor/leader/org/prop/disc + 新建 `secretary-workspace`） | ✅ |
 | S3 | 书记入口 tab 清单从硬编码改为经能力注册表读取（renderCtx 模式，与组长入口同构） | ✅ |
 | S4 | COMMISSIONER_ROLES 双定义语义注释区分（constants 条条委员 / auth 授权链），代码不改行为 | ✅ |
-| S5 | ROLE_CLASSIFICATION.md §9a0 角色键全表入库（12 键 + 访客≠角色 + 语义约定） | ✅ |
+| S5 | ROLE_CLASSIFICATION.md §9a0 角色键全表入库（12 键 + 访客不属于角色 + 语义约定） | ✅ |
 
 ### 4.2 后续步骤（书记 2026-08-30 裁定：实施无行为变更项 S6/S7/S8/S10；S9 文档登记映射不改代码）
 

@@ -32,7 +32,7 @@ status: active
 
 | SOP 文档 | 用途 | 责任人 | 关联 Schema 字段 |
 |----------|------|--------|------------------|
-| 组织委员工作流程指南.md | 描述组织委员职责与活动创建流程（考察档案、思想汇报归档、发展党员材料复核） | 组织委员 | `Activity.executor`, `Activity.supervisor`, `Task.status` |
+| 组织委员工作流程指南.md | 描述组织委员职责与活动创建流程（考察档案、思想汇报查看调用、发展党员材料复核） | 组织委员 | `Activity.executor`, `Activity.supervisor`, `Task.status` |
 | 纪检委员工作流程指南.md | 描述纪检委员职责与考勤管理流程（三会一课考勤、活动考察记录、意见建议反馈） | 纪检委员 | `Activity.status`, `AttendanceRecord.status`, `AttendanceRecord.recordedBy` |
 | 宣传委员工作流程指南.md | 描述宣传委员职责与宣传档案制度流程（支部大会宣传、活动材料归档、模板体系建设） | 宣传委员 | `Activity.type`, `Activity.title` |
 | 党小组组长工作手册.md | 党小组组长专用操作指南——党小组日常活动组织、条块协作、数据提交流程 | 党小组组长 | `Activity.executor`, `Activity.supervisor` |

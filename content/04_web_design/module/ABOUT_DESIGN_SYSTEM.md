@@ -156,7 +156,7 @@ related_files: [docs/src/about.css, docs/src/entries/about-entry.js, DESIGN_SYST
 |------|------|-----------|
 | 静 | 视窗（.ab-dialogue-flow/stage 容器） | 固定不缩放不平移 |
 | 静 | 卡片文字 | 不 rotate，文字始终正立 |
-| 静 | 地平线（= 视窗底边） | 无视觉元素，界定消失线 |
+| 静 | 地平线（即视窗底边） | 无视觉元素，界定消失线 |
 | 动 | 卡片公转（第六章） | θ 驱动 opacity/scale/border/zIndex |
 | 动 | 滚动行程（spacer 垫片） | 仅提供行程 |
 | 动 | 章节标题镜头动画（ab-cam） | 进入驶入/滚出后拉压暗 |

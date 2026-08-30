@@ -42,12 +42,12 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 **同源校验点**：
 
-- [ ] 书记工作台赋权管理 tab 中被赋权人候选列表 = PEOPLE 中非支委成员
-- [ ] 各工作台人员选择器中的列表 = PEOPLE 全部成员（PersonPicker 默认可注入 filter；特定场景由调用方传过滤，如发展党员候选=非正式党员、书记赋权被赋权人=非支委）
+- [ ] 书记工作台赋权管理 tab 中被赋权人候选列表对应 PEOPLE 中非支委成员
+- [ ] 各工作台人员选择器中的列表对应 PEOPLE 全部成员（PersonPicker 默认可注入 filter；特定场景由调用方传过滤，如发展党员候选为非正式党员、书记赋权被赋权人为非支委）
 - [ ] 人员发展阶段在各页面中一致（正式党员/预备党员/发展对象/积极分子），与 people.js 定义相同
 - [ ] 登录页输入 accounts.js 中的学号+密码 → 成功登录后跳转首页，首页顶栏展示对应角色工作台入口（login-entry.js 登录后跳 index.html；main-entry.js 按角色改写 workspace 链接）
-- [ ] 书记工作台赋权管理 tab 中常设角色标签（书记/支委/组长）= PEOPLE 中 role 字段 + AuthStore 赋权记录
-- [ ] 发展党员追踪候选人（由 PEOPLE 中 developStage≠'正式党员' 的成员动态派生）的 stage 与 developStage 一致
+- [ ] 书记工作台赋权管理 tab 中常设角色标签（书记/支委/组长）对应 PEOPLE 中 role 字段 + AuthStore 赋权记录
+- [ ] 发展党员追踪候选人（由 PEOPLE 中 developStage 非'正式党员' 的成员动态派生）的 stage 与 developStage 一致
 
 ---
 
@@ -494,7 +494,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 ## 链接完整性校验（T-284 新增，2026-08-27）
 
-> 书记指令「所有链接的审查，每一个都要查」。四层法：静态存在 ≠ 跳转合理。全量审计脚本 `server/test/link-integrity.test.mjs`（L1-L5，已入 npm test 回归）。
+> 书记指令「所有链接的审查，每一个都要查」。四层法：静态存在与跳转合理相区分。全量审计脚本 `server/test/link-integrity.test.mjs`（L1-L5，已入 npm test 回归）。
 
 - [ ] **L1 静态链接**：全部 HTML href/src 目标文件存在 + `#锚点` 有效（含 `<base href>` 解析与 `?v=` 剥离）
 - [ ] **L2 JS 导航**：`location.href`/`replace`/`assign` 目标存在（模板插值动态跳转抽取 `.html` 字面量片段校验）

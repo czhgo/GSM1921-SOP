@@ -62,7 +62,7 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 
 #### 边线语义（Border-Left Semantics）
 
-> 沉淀：2026-08-02，反馈"纯白卡片 vs 左侧边线是否有逻辑"。经全仓抽样（styles.css + 6 个工作台 + help/about 页）确认：**边线不是随机出现，而是"强调/可交互/角色归属"的视觉编码，纯白是中性内容**。本规范为成文依据，防止未来加边线时语义漂移。
+> 沉淀：2026-08-02，反馈"纯白卡片 vs 左侧边线是否有逻辑"。经全仓抽样（styles.css + 6 个工作台 + help/about 页）确认：**边线承担"强调/可交互/角色归属"的视觉编码语义，纯白代表中性内容**。本规范为成文依据，防止未来加边线时语义漂移。
 
 **适用范围**：卡片/区块级元素（容器）。**列表项（行级元素）仍遵循"列表项白底原则"不加边线**——行内区分靠圆点，容器级区分靠边线，两层不混用。
 
@@ -118,10 +118,10 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 
 **交互增强**：`select.input-flat` 由 `custom-select.js`（S2）自动增强为自定义圆角下拉（`.cs-select` + `.cs-trigger` + `.cs-menu`），原生 select 作为值载体保留（`data-cs-enhanced` 防重；bootstrap 全局 MutationObserver 覆盖动态渲染）。增强后：
 - 触发器外观与 `input-flat` 完全一致（圆角 `--radius-sm`、边框 `--neutral-200`、聚焦金框）
-- 菜单选中项 = 主题色（背景 `var(--app-accent-bg)`、文字 `var(--app-accent)`，跟随当前用户主题色，2026-08-08 三审定稿，与 tab 激活态同档同源）
+- 菜单选中项用主题色（背景 `var(--app-accent-bg)`、文字 `var(--app-accent)`，跟随当前用户主题色，2026-08-08 三审定稿，与 tab 激活态同档同源）
 - 智能定位（向上/向下翻转、视口 clamp）；选项超 10 条自动内嵌搜索
 
-**弹层统一基准（2026-08-08）**：所有"选择类弹层"（`.cs-menu`、`.status-badge-popover`）统一：圆角 `--radius-sm`、阴影 `--shadow-dropdown`、选中色=主题色（`var(--app-accent-*)` 三件套，bootstrap 按 accentRole 注入）；禁止各自另设圆角/阴影/选中色。
+**弹层统一基准（2026-08-08）**：所有"选择类弹层"（`.cs-menu`、`.status-badge-popover`）统一：圆角 `--radius-sm`、阴影 `--shadow-dropdown`、选中色用主题色（`var(--app-accent-*)` 三件套，bootstrap 按 accentRole 注入）；禁止各自另设圆角/阴影/选中色。
 
 #### 输入组件统一原则
 

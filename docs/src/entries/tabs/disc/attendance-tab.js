@@ -15,6 +15,7 @@ import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecor
 import { loadActivities } from '../../../services/activity.js?v=20260829a';
 import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260829a';
 import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260829a';
+import { NoticeStore } from '../../../services/notice.js?v=20260829a';
 import { enhanceSelects } from '../../../components/custom-select.js?v=20260829a';
 import { badgeHtml } from '../../../components/badge.js?v=20260829a';
 import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260829a';
@@ -103,6 +104,15 @@ export function renderContent(ctx) {
       TodoStore.completeBySource(TodoSourceType.ACTIVITY, `review_${record.activityId}`);
       // 考勤确认后自动生成补课任务
       autoGenerateMakeupTask(record);
+      // 自动广播（混合模式落地·场景2）：确认后通知组织委员——系统已自动归档至考察档案
+      try {
+        NoticeStore.add({
+          title: '考勤已确认并归档',
+          content: `「${actById.get(record.activityId)?.title || '活动'}」考勤已由纪检确认，系统已自动归档至考察档案，组织委员可直接读取使用。`,
+          priority: 'normal',
+          targetUrl: 'workspace/org.html',
+        });
+      } catch (e) { console.warn('[disc-attendance] 归档广播失败（不影响确认）：', e); }
       showToast('success', `已确认「${getPersonName(record.personId)}」${actById.get(record.activityId)?.title || ''}考勤`);
       renderContent(ctx);
       // 焦点反馈：仍有待确认时滚动到队列区并聚焦下一条

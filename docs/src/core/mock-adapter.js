@@ -74,6 +74,8 @@ function _saveToStorage() {
       branchDocs: mockDB.branchDocs,
       // 2026-08-29 T-304 C2 三委数据交接：持久化（刷新不丢回执实体）
       handoffs: mockDB.handoffs,
+      // 2026-08-30 思想汇报数字化（算法归档）：持久化
+      thoughtReports: mockDB.thoughtReports,
     }));
   } catch (e) {
     console.warn('[MockAdapter] saveDB 失败：', e);
@@ -148,6 +150,7 @@ function _loadFromStorage() {
     if (Array.isArray(parsed.externalDispatches)) mockDB.externalDispatches = parsed.externalDispatches;
     if (Array.isArray(parsed.branchDocs)) mockDB.branchDocs = parsed.branchDocs;
     if (Array.isArray(parsed.handoffs)) mockDB.handoffs = parsed.handoffs;
+    if (Array.isArray(parsed.thoughtReports)) mockDB.thoughtReports = parsed.thoughtReports;
 
     // 修复（T174）：恢复后若核心数据仍为空（脏数据保护拒绝 + 数组为空并存），
     // 补齐 seed 数据，防止页面空态。
@@ -763,6 +766,7 @@ export function restoreNicheCollections() {
     if (Array.isArray(parsed.externalDispatches)) mockDB.externalDispatches = parsed.externalDispatches;
     if (Array.isArray(parsed.branchDocs)) mockDB.branchDocs = parsed.branchDocs;
     if (Array.isArray(parsed.handoffs)) mockDB.handoffs = parsed.handoffs;
+    if (Array.isArray(parsed.thoughtReports)) mockDB.thoughtReports = parsed.thoughtReports;
   } catch (e) {
     console.warn('[MockAdapter] restoreNicheCollections 失败（本地备份解析错误，已跳过）：', e);
   }
