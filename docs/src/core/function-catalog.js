@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // 功能目录（FUNCTION_CATALOG）——系统全部功能与帮助内容的单一事实源
-// 消费方：docs/scripts/gen-function-mermaid.mjs（生成 README/FUNCTION_MAP.md 图，待 Task 2 接入）+ docs/src/modules/help-catalog.js（help 页目录树/搜索/章节卡片，待 Task 3 接入）
+// 消费方：docs/scripts/gen-function-mermaid.mjs（生成 README/FUNCTION_MAP.md 图，已接入）+ docs/src/modules/help-catalog.js（help 页目录树/搜索/章节卡片，待 Task 3 接入）
 // 约定：本文件为「纯数据表达式」——gen 脚本以文本求值方式读取，勿引入函数/模板字符串
 // generic: true=通用能力（可复用到任何组织）| false=支部特有；kind: feature 功能 | flow 业务链路 | arch 架构
 // 字段约定：feature 条目含 role（public 页无 tab）；flow/arch 条目无 role/tab/usage

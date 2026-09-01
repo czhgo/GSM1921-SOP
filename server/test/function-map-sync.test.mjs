@@ -3,15 +3,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { generateMindmap, generateAll, applyToReadme } from '../../docs/scripts/gen-function-mermaid.mjs';
+import { generateMindmap, generateAll } from '../../docs/scripts/gen-function-mermaid.mjs';
 
 const README = fileURLToPath(new URL('../../README.md', import.meta.url));
 const MAP = fileURLToPath(new URL('../../content/03_doc_system/FUNCTION_MAP.md', import.meta.url));
 
 test('README 标记块与实时生成一致（防漂移）', () => {
   const readme = readFileSync(README, 'utf8');
-  const generated = applyToReadme(readme);
-  assert.ok(generated.includes('<!--FUNC-MAP:START-->') && generated.includes('<!--FUNC-MAP:END-->'), '标记块存在');
+  assert.ok(readme.includes('<!--FUNC-MAP:START-->'), 'README 已含标记块');
   const m = /<!--FUNC-MAP:START-->([\s\S]*?)<!--FUNC-MAP:END-->/.exec(readme);
   assert.ok(m, 'README 已含标记块');
   assert.equal(m[1].trim(), generateMindmap().trim(), '标记块内容 = 实时生成');

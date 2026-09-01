@@ -49,10 +49,10 @@ function genFlow(id) {
     'flow-member-change': ['A[议程「待讨论名单」记录通过] --> B[生成成员变更申请]', 'B --> C[组织委员审批通过]', 'C --> D[广播通知全体支委]', 'D --> E[书记确认]', 'E --> F[发展阶段更新]'],
     'flow-taskforce': ['A[发起专班] --> B[组织委员招募统筹]', 'B --> C[定人定责定岗]', 'C --> D[工作量记录]'],
     'flow-thought-report': ['A[成员提交思想汇报] --> B[自动入库归集]', 'B --> C[组织委员查看归档]'],
-    'flow-makeup': ['A[缺勤记录] --> B[生成补课任务]', 'B --> C[完成补课]', 'C --> D[考勤回写 made_up]', 'D --> E[逾期清除]'],
+    'flow-makeup': ['A[缺勤记录] --> B[生成补课任务]', 'B --> C[完成补课]', 'C --> D[考勤回写 / 逾期清除]', 'D --> E[逾期清除]'],
   };
   const flow = map[id];
-  if (!flow) return '';
+  if (!flow) throw new Error(`未注册 flow 图：${id}`);
   return ['```mermaid', 'flowchart TD', ...flow, '```'].join('\n');
 }
 
@@ -113,14 +113,20 @@ export function applyToReadme(readme) {
   const end = '<!--FUNC-MAP:END-->';
   const title = '### 功能地图';
   const section = `${title}\n\n${start}\n\n${block}\n\n${end}`;
-  if (readme.includes(start) && readme.includes(end)) {
+  const hasStart = readme.includes(start);
+  const hasEnd = readme.includes(end);
+  if (hasStart && hasEnd) {
     const s = readme.indexOf(start);
     const e = readme.indexOf(end) + end.length;
     const before = readme.slice(0, s).replace(/\n### 功能地图\n*$/, '').replace(/\n+$/, '');
     const after = readme.slice(e);
     return `${before}\n\n${section}${after}`;
   }
-  return readme.replace('\n## License\n', `\n${section}\n\n## License\n`);
+  // 半损坏（只含 START 或缺 END 等）：先清理残留标记与紧邻标题，再按锚点重建
+  const cleaned = (hasStart || hasEnd ? readme.replace(/### 功能地图\s*(?=<!--FUNC-MAP:)/g, '').replace(/<!--FUNC-MAP:START-->|<!--FUNC-MAP:END-->/g, '') : readme);
+  const anchor = '\n## License\n';
+  if (!cleaned.includes(anchor)) throw new Error('README 缺少 "## License" 锚点，无法插入功能地图');
+  return cleaned.replace(anchor, `\n${section}\n\n## License\n`);
 }
 
 // CLI：--write 时写回 README + 输出 FUNCTION_MAP.md
