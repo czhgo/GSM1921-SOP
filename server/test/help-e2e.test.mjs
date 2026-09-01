@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
+import { FUNCTION_CATALOG } from '../../docs/src/core/function-catalog.js';
 
 let server, base, browser;
 
@@ -36,9 +37,11 @@ test('help 页：目录树（致谢第一）+ 搜索 + 章节卡片 + 导图降�
   const firstToc = await page.textContent('.help-toc-item:first-child');
   assert.ok(firstToc.includes('致谢'), `目录树第一项应为致谢，实际：${firstToc}`);
 
-  // 2. 功能章节卡片渲染（catalog 驱动：38 feature + 5 flow = 43 张）
+  // 2. 功能章节卡片渲染（与 catalog 动态计算一致：feature + flow 数量）
+  const expected = FUNCTION_CATALOG.filter((i) => i.kind === 'feature').length
+    + FUNCTION_CATALOG.filter((i) => i.kind === 'flow').length;
   const cardCount = await page.locator('.help-card').count();
-  assert.ok(cardCount >= 40, `章节卡片至少 40 张，实际 ${cardCount}`);
+  assert.equal(cardCount, expected, `章节卡片应为 ${expected} 张（feature+flow），实际 ${cardCount}`);
 
   // 3. 搜索：输入「补课」→ 匹配条目出现
   await page.fill('#help-search-input', '补课');

@@ -2,9 +2,11 @@
 // help-catalog.js — help 页目录树/搜索/章节卡片/功能地图渲染（功能目录驱动）
 // 数据源：docs/src/core/function-catalog.js（单一事实源）
 // 渲染三区：左侧目录树（#help-toc-slot）+ 顶部搜索框（#help-search-slot）+ 功能章节卡片（#help-catalog-slot）
-// 功能地图 mindmap 与业务链路 flowchart 以 <pre class="mermaid"> 文本注入，
-// 由 help-entry.js 懒加载 mermaid CDN 渲染（离线失败保留 .mermaid-fallback 降级文本）
+// 功能地图 mindmap 与业务链路 flowchart 以 <pre class="mermaid"> 文本注入（源文本来自共享模块
+// src/core/mermaid-sources.js，与 gen 脚本同实现），由 help-entry.js 懒加载 mermaid CDN 渲染
+// （离线失败保留 .mermaid-fallback 降级文本）
 import { FUNCTION_GROUPS, FUNCTION_CATALOG } from '../core/function-catalog.js?v=20260901e';
+import { generateMindmapText, FLOW_STEPS } from '../core/mermaid-sources.js?v=20260901e';
 
 // 目录树静态项（致谢第一）+ 章节顺序（与右侧内容面板顺序一致）
 const STATIC_TOC = [
@@ -24,32 +26,6 @@ function genericBadge(generic) {
     ? '<span class="help-badge generic">通用</span>'
     : '<span class="help-badge specific">特有</span>';
 }
-
-function tag(it) {
-  return it.generic ? '通用' : '特有';
-}
-
-// 功能地图 mindmap 文本（与 docs/scripts/gen-function-mermaid.mjs generateMindmap 同逻辑，浏览器版）
-// 注意：节点文本不含半角分号，冒号用全角（mermaid mindmap 语法兼容）
-export function generateMindmapText() {
-  const lines = ['mindmap', '  root((系统功能))'];
-  for (const g of FUNCTION_GROUPS) {
-    const its = FUNCTION_CATALOG.filter((i) => i.group === g);
-    if (!its.length) continue;
-    lines.push(`    ${g}`);
-    for (const it of its) lines.push(`      ${it.name}（${tag(it)}）`);
-  }
-  return lines.join('\n');
-}
-
-// 业务链路 flowchart 步骤（与 gen 脚本 genFlow 的流程定义保持一致）
-const FLOW_STEPS = {
-  'flow-activity': ['A[书记/组长创建活动] --> B[议程：讨论文件 / 待讨论名单]', 'B --> C[会后记录「通过」]', 'C --> D[草案自动归档]', 'D --> E[资料查询展示「经《活动》讨论通过」]'],
-  'flow-member-change': ['A[议程「待讨论名单」记录通过] --> B[生成成员变更申请]', 'B --> C[组织委员审批通过]', 'C --> D[广播通知全体支委]', 'D --> E[书记确认]', 'E --> F[发展阶段更新]'],
-  'flow-taskforce': ['A[发起专班] --> B[组织委员招募统筹]', 'B --> C[定人定责定岗]', 'C --> D[工作量记录]'],
-  'flow-thought-report': ['A[成员提交思想汇报] --> B[自动入库归集]', 'B --> C[组织委员查看归档]'],
-  'flow-makeup': ['A[缺勤记录] --> B[生成补课任务]', 'B --> C[完成补课]', 'C --> D[考勤回写 / 逾期清除]', 'D --> E[逾期清除]'],
-};
 
 export function renderHelpCatalog(root) {
   // ── 左侧目录树 ──
@@ -83,7 +59,7 @@ export function renderHelpCatalog(root) {
     let cardHtml = '';
     for (const it of its) {
       const related = (it.related || [])
-        .map((r) => `<a class="help-card-rel" href="#card-${r}">${r}</a>`)
+        .map((r) => `<a class="help-card-rel" href="#card-${esc(r)}">${esc(r)}</a>`)
         .join('');
       cardHtml += `
         <article class="help-card" id="card-${it.id}" data-search="${esc(it.name + ' ' + it.desc + ' ' + (it.related || []).join(' ') + ' ' + g)}">
@@ -150,6 +126,21 @@ ${steps.join('\n')}</pre></div>` : ''}
     card.classList.add('is-highlighted');
     setTimeout(() => card.classList.remove('is-highlighted'), 2600);
     input.value = '';
+    resultsBox.hidden = true;
+    resultsBox.innerHTML = '';
+  });
+
+  // ── 搜索面板关闭：ESC 清空并隐藏；点击面板/输入框外区域关闭 ──
+  input.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    input.value = '';
+    resultsBox.hidden = true;
+    resultsBox.innerHTML = '';
+    input.blur();
+  });
+  document.addEventListener('pointerdown', (e) => {
+    if (resultsBox.hidden) return;
+    if (searchBox.contains(e.target)) return; // 输入框与结果面板自身不触发关闭
     resultsBox.hidden = true;
     resultsBox.innerHTML = '';
   });

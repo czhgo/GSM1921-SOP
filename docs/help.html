@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   
@@ -113,7 +113,6 @@
     .help-toc-item { display:block; font-size:0.84rem; color:#4B5563; text-decoration:none; padding:5px 10px; border-radius:var(--radius-sm); line-height:1.5; transition:background-color .15s,color .15s; }
     .help-toc-item:hover { background:#F8F9FA; color:#111827; }
     .help-toc-item:focus-visible { outline:2px solid #CE1126; outline-offset:2px; }
-    .help-toc-item.is-active { color:#CE1126; font-weight:600; background:#FDF2F2; }
     .toc-anchor { display:block; scroll-margin-top:76px; }
 
     /* ── 顶部搜索框 ── */
@@ -132,6 +131,7 @@
     .help-card-group .doc-divider { margin:14px 0 4px; }
     .help-card { background:#FFFFFF; border:1px solid #EEEFF2; border-radius:var(--radius-md); padding:16px 20px; margin-top:12px; scroll-margin-top:76px; transition:box-shadow .2s, background-color .2s; }
     .help-card-group > .help-card:first-of-type { margin-top:0; }
+    .help-card-group > #mermaid-flows > .help-card:first-child { margin-top:0; }
     .help-card-title { display:flex; align-items:center; gap:8px; font-size:0.95rem; font-weight:700; color:#111827; margin:0 0 6px; }
     .help-card-desc { font-size:0.86rem; line-height:1.8; color:#4B5563; margin:0; }
     .help-card-usage { font-size:0.82rem; line-height:1.8; color:#6B7280; margin:6px 0 0; }
@@ -145,7 +145,8 @@
 
     /* ── mermaid 渲染宿主与降级占位 ── */
     .mermaid-host { margin:12px 0 4px; overflow-x:auto; }
-    .mermaid-host pre.mermaid { margin:0; text-align:center; }
+    /* 原始 mermaid 文本默认隐藏；渲染成功（宿主加 .is-rendered）后以 SVG 呈现，失败仅保留降级文案 */
+    .mermaid-host pre.mermaid { display:none; margin:0; text-align:center; }
     .mermaid-fallback { font-size:0.86rem; color:#6B7280; background:#F8F9FA; border:1px dashed #E5E7EB; border-radius:var(--radius-md); padding:14px 18px; line-height:1.8; margin:0; }
     .mermaid-host svg { max-width:100%; height:auto; }
 
@@ -375,7 +376,7 @@
       <div id="help-catalog-slot"></div>
 
       <!-- ========== 业务链路（flow 条目卡片 + mermaid 流程图，动态注入） ========== -->
-      <section class="doc-card" id="sec-业务链路" data-toc-id="sec-业务链路">
+      <section class="help-card-group" id="sec-业务链路" data-toc-id="sec-业务链路">
         <h2 class="doc-h2"><span class="doc-num">链</span>业务链路</h2>
         <hr class="doc-divider">
         <div id="mermaid-flows"></div>
