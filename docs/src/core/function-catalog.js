@@ -1,8 +1,9 @@
 // role: [工程师]+[AI]
 // 功能目录（FUNCTION_CATALOG）——系统全部功能与帮助内容的单一事实源
-// 消费方：docs/scripts/gen-function-mermaid.mjs（生成 README/FUNCTION_MAP.md 图）+ docs/src/modules/help-catalog.js（help 页目录树/搜索/章节卡片）
+// 消费方：docs/scripts/gen-function-mermaid.mjs（生成 README/FUNCTION_MAP.md 图，待 Task 2 接入）+ docs/src/modules/help-catalog.js（help 页目录树/搜索/章节卡片，待 Task 3 接入）
 // 约定：本文件为「纯数据表达式」——gen 脚本以文本求值方式读取，勿引入函数/模板字符串
 // generic: true=通用能力（可复用到任何组织）| false=支部特有；kind: feature 功能 | flow 业务链路 | arch 架构
+// 字段约定：feature 条目含 role（public 页无 tab）；flow/arch 条目无 role/tab/usage
 
 export const FUNCTION_GROUPS = [
   '党建',
@@ -65,7 +66,7 @@ export const FUNCTION_CATALOG = [
   { id: 'flow-thought-report', name: '思想汇报流程', group: '党务', desc: '提交 → 自动归档归集 → 组织委员查看', related: ['thought-report', 'talent'], generic: true, kind: 'flow' },
   { id: 'flow-makeup', name: '补课回写流程', group: '党务', desc: '缺勤 → 补课任务 → 完成 → 考勤回写/逾期清除', related: ['makeup', 'attendance-mgmt'], generic: false, kind: 'flow' },
   // ══════════ 架构（kind: arch） ══════════
-  { id: 'arch-layers', name: '架构分层', group: '活动与专班', desc: '前台 14 页 → 中台 entries/components/core → 服务层 services/mock → 后端 server/API → 母本 sop', related: ['arch-service-deps', 'arch-data-flow'], generic: true, kind: 'arch' },
-  { id: 'arch-service-deps', name: '服务依赖', group: '活动与专班', desc: '服务模块调用关系（activity → attendance → review → todo）', related: ['arch-layers'], generic: true, kind: 'arch' },
-  { id: 'arch-data-flow', name: '数据变更链路', group: '活动与专班', desc: '制度母本 → 服务层 → 入口层 → 页面；UI 禁止直改数据源', related: ['arch-layers'], generic: true, kind: 'arch' },
+  { id: 'arch-layers', name: '架构分层', group: '公共', desc: '前台 14 页 → 中台 entries/components/core → 服务层 services/mock → 后端 server/API → 母本 sop', related: ['arch-service-deps', 'arch-data-flow'], generic: true, kind: 'arch' },
+  { id: 'arch-service-deps', name: '服务依赖', group: '公共', desc: '服务模块调用关系（activity → attendance → review → todo）', related: ['arch-layers'], generic: true, kind: 'arch' },
+  { id: 'arch-data-flow', name: '数据变更链路', group: '公共', desc: '制度母本 → 服务层 → 入口层 → 页面；UI 禁止直改数据源', related: ['arch-layers'], generic: true, kind: 'arch' },
 ];

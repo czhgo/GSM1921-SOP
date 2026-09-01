@@ -23,6 +23,7 @@ test('FUNCTION_CATALOG 结构合法', () => {
   assert.ok(Array.isArray(items) && items.length >= 40, `条目至少 40 条，实际 ${items.length}`);
   const ids = new Set();
   const allIds = new Set(items.map((i) => i.id)); // 全量 id：related 可引用任意位置条目（含前向引用）
+  const ROLES = ['secretary', 'org', 'prop', 'disc', 'leader', 'member', 'public'];
   for (const it of items) {
     assert.ok(it.id && /^[a-z0-9-]+$/.test(it.id), `id 非法：${it.id}`);
     assert.ok(!ids.has(it.id), `id 重复：${it.id}`);
@@ -31,6 +32,10 @@ test('FUNCTION_CATALOG 结构合法', () => {
     assert.ok(groups.includes(it.group), `group 未定义：${it.group}（${it.id}）`);
     assert.ok(typeof it.generic === 'boolean', `generic 必须 boolean：${it.id}`);
     assert.ok(['feature', 'flow', 'arch'].includes(it.kind), `kind 非法：${it.id}`);
+    // kind 分支字段约定：feature 必须有 role（∈ 枚举）；flow/arch 允许无 role
+    if (it.kind === 'feature') {
+      assert.ok(ROLES.includes(it.role), `feature 条目 role 非法或缺失：${it.id}（role=${it.role}）`);
+    }
     for (const r of it.related || []) {
       assert.ok(allIds.has(r) || r.startsWith('group:'), `related 引用不存在：${it.id} → ${r}`);
     }
