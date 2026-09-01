@@ -5,22 +5,22 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../core/state.js?v=20260901e';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260901e';
-import { _fmtChinese, showToast } from '../core/utils.js?v=20260901e';
-import { icon } from '../core/icons.js?v=20260901e';
-import { openModal, closeModal } from './modal.js?v=20260901e';
-import { PEOPLE, getPersonById } from '../mock/index.js?v=20260901e';
-import { BranchService } from '../services/runtime.js?v=20260901e';
-import { AuthStore } from '../services/auth.js?v=20260901e';
-import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260901e';
-import { badgeHtml } from './badge.js?v=20260901e';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260901e';
-import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260901e';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260901e';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260901e';
-import { loadActivityReviews } from '../services/review.js?v=20260901e';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260901e';
+import { setState, STATE, getAppState } from '../core/state.js?v=20260901f';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260901f';
+import { _fmtChinese, showToast } from '../core/utils.js?v=20260901f';
+import { icon } from '../core/icons.js?v=20260901f';
+import { openModal, closeModal } from './modal.js?v=20260901f';
+import { PEOPLE, getPersonById } from '../mock/index.js?v=20260901f';
+import { BranchService } from '../services/runtime.js?v=20260901f';
+import { AuthStore } from '../services/auth.js?v=20260901f';
+import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260901f';
+import { badgeHtml } from './badge.js?v=20260901f';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260901f';
+import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260901f';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260901f';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260901f';
+import { loadActivityReviews } from '../services/review.js?v=20260901f';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260901f';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {

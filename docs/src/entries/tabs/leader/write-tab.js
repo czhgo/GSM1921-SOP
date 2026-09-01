@@ -3,21 +3,21 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/state.js?v=20260901e';
-import { BranchService } from '../../../services/runtime.js?v=20260901e';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260901e';
-import { AuthStore } from '../../../services/auth.js?v=20260901e';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260901e';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260901e';
-import { persist } from '../../../core/data-adapter.js?v=20260901e';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260901e';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260901e';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260901e';
-import { getPersonName, PEOPLE } from '../../../mock/index.js?v=20260901e';
-import { badgeHtml } from '../../../components/badge.js?v=20260901e';
-import { showToast } from '../../../core/utils.js?v=20260901e';
-import { solidAccentStyle, accDarkVars, accDarkParts } from '../../../core/constants.js?v=20260901e';
-import { filterByRole, getCurrentLeaderId } from './_shared.js?v=20260901e';
+import { setState, getAppState } from '../../../core/state.js?v=20260901f';
+import { BranchService } from '../../../services/runtime.js?v=20260901f';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260901f';
+import { AuthStore } from '../../../services/auth.js?v=20260901f';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260901f';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260901f';
+import { persist } from '../../../core/data-adapter.js?v=20260901f';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260901f';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260901f';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260901f';
+import { getPersonName, PEOPLE } from '../../../mock/index.js?v=20260901f';
+import { badgeHtml } from '../../../components/badge.js?v=20260901f';
+import { showToast } from '../../../core/utils.js?v=20260901f';
+import { solidAccentStyle, accDarkVars, accDarkParts } from '../../../core/constants.js?v=20260901f';
+import { filterByRole, getCurrentLeaderId } from './_shared.js?v=20260901f';
 
 // 私有状态（随模块自持，不污染入口）
 const dt = new DecisionTreeState('leader');
