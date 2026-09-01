@@ -407,7 +407,8 @@ function _scheduleSnapshot() {
 }
 
 /**
- * 构造全量快照 payload（T-209 全栈同步：覆盖 mockDB 全部 25 个持久化域，不含 users）
+ * 构造全量快照 payload（T-209 全栈同步：覆盖 mockDB 全部 26 个持久化域，不含 users）
+ * agendaVotes 为 REST 直写域，不进快照 payload（防防抖窗口以陈旧缓存覆盖服务器新表态）
  * 聚合域（actSubRecords/tfSubRecords/mailboxConfig）包装为「__root__ 单行」，
  * 与 init() 的 _unwrapRootRows 解包对称。
  */

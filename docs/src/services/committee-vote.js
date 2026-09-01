@@ -13,44 +13,35 @@ function currentPersonId() {
 
 /** 查询活动的表态列表（全量可见；API 模式走 REST，mock 模式读本地） */
 export async function fetchVotes(activityId) {
-  const adapter = getAdapter();
   if (getDataSource() === 'api' && getAuthToken()) {
     const r = await fetch(`${getApiBaseUrl()}/api/v1/agenda-votes?activityId=${activityId}`, {
       headers: { Authorization: `Bearer ${getAuthToken()}` },
     });
     if (r.ok) return r.json();
+    // API 拉取失败降级本地缓存（服务器瞬时不可达不阻断 UI）
+    console.warn('[committee-vote] 获取表态失败，使用本地缓存', r.status);
   }
   return (mockDB.agendaVotes || []).filter((v) => v.activityId === activityId);
 }
 
-/** 提交/覆盖表态（同人同议题幂等：mock 本地 upsert + persist()；API 提交 201/覆盖 200） */
+/** 提交/覆盖表态（同人同议题幂等：adapter 统一处理 upsert；API 提交 201/覆盖 200） */
 export async function submitVote({ activityId, agendaItemId, position, note = '' }) {
-  const adapter = getAdapter();
   if (getDataSource() === 'api' && getAuthToken()) {
-    const r = await fetch(`${getApiBaseUrl()}/api/v1/agenda-votes`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getAuthToken()}` },
-      body: JSON.stringify({ activityId, agendaItemId, position, note }),
-    });
-    if (!r.ok) throw new Error((await r.json()).error || '表态提交失败');
-    return r.json();
+    // API 模式：adapter 直写服务器（POST /api/v1/agenda-votes，personId 由服务端取 JWT）
+    return getAdapter().agendaVotes.create({ activityId, agendaItemId, position, note });
   }
-  // mock 模式：本地 upsert + 持久化（personId 取当前登录用户，见 AuthStore.getCurrentUser）
-  const personId = currentPersonId();
-  const list = mockDB.agendaVotes || (mockDB.agendaVotes = []);
-  const existing = list.find((v) => v.activityId === activityId && v.agendaItemId === agendaItemId && v.personId === personId);
-  const row = existing
-    ? { ...existing, position, note, updatedAt: new Date().toISOString() }
-    : { id: `av-${Date.now()}`, activityId, agendaItemId, personId, position, note, createdAt: new Date().toISOString(), updatedAt: null };
-  if (existing) Object.assign(existing, row); else list.push(row);
+  // mock 模式：adapter 幂等 upsert + 落盘（personId 取当前登录用户，见 AuthStore.getCurrentUser）
+  const row = await getAdapter().agendaVotes.create({
+    activityId, agendaItemId, position, note, personId: currentPersonId(),
+  });
   persist();
   return row;
 }
 
 /** 书记截止表态（置 votesLocked / voteDeadline；mock 本地写活动 + persist()） */
 export async function lockVotes({ activityId, votesLocked, voteDeadline }) {
-  const adapter = getAdapter();
   if (getDataSource() === 'api' && getAuthToken()) {
+    // 保持 fetch /lock：adapter 未提供 lock 方法（截止为专用端点，属可接受）
     const r = await fetch(`${getApiBaseUrl()}/api/v1/agenda-votes/lock`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getAuthToken()}` },
@@ -62,7 +53,8 @@ export async function lockVotes({ activityId, votesLocked, voteDeadline }) {
   const activities = mockDB.activities || [];
   const act = activities.find((a) => a.id === activityId);
   if (act) {
-    if (typeof votesLocked === 'boolean') act.votesLocked = votesLocked;
+    // 截止不可逆（与 server/routes/committee.js 对齐）：仅置 true，传 false 不落库
+    if (votesLocked === true) act.votesLocked = true;
     if (voteDeadline) act.voteDeadline = voteDeadline;
   }
   persist();
