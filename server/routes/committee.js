@@ -3,10 +3,12 @@
 // 表态可见性：先全量可见（信息同步开放），边界后续评议
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
-import { requireAuth, requireCommissioner } from './auth.js';
+import { requireAuth, requireRole, requireCommissioner } from './auth.js';
 
 // 支委白名单（与 member.js COMMITTEE_IDS 对齐：书记/副书记/组织/宣传/纪检）
 const COMMITTEE_IDS = new Set(['p10', 'p11', 'p12', 'p13', 'p14']);
+// 书记角色（截止锁定仅书记可操作，与 member.js SECRETARY_ROLES 口径一致）
+const SECRETARY_ROLES = new Set(['secretary']);
 
 function listTable(db, table) {
   return db.prepare(`SELECT data FROM ${table}`).all().map((r) => JSON.parse(r.data));
@@ -38,12 +40,19 @@ export function createCommitteeRouter(db) {
     if (!activityId || !agendaItemId || !POSITIONS.has(position)) {
       return res.status(400).json({ error: '缺少必要字段或表态无效：activityId/agendaItemId/position(agree|object|comment)' });
     }
+    if (typeof note !== 'string') {
+      return res.status(400).json({ error: 'note 须为字符串' });
+    }
+    if (note.length > 500) {
+      return res.status(400).json({ error: 'note 长度不能超过 500 字符' });
+    }
     if (position === 'object' && !note.trim()) {
       return res.status(400).json({ error: '异议须附言说明' });
     }
-    // 活动锁定期检查（活动数据在 activities 表）
+    // 活动存在性 + 锁定期检查（活动数据在 activities 表；活动不存在一律 404，不静默放行）
     const actRow = getRow(db, 'activities', activityId);
-    if (actRow && actRow.votesLocked) {
+    if (!actRow) return res.status(404).json({ error: '活动不存在' });
+    if (actRow.votesLocked) {
       return res.status(400).json({ error: '表态已截止锁定，不可再提交' });
     }
     const existing = listTable(db, 'agenda_votes').find((v) =>
@@ -65,14 +74,19 @@ export function createCommitteeRouter(db) {
     res.status(201).json(row);
   });
 
-  // 书记截止（置 votesLocked / voteDeadline；书记角色）
-  router.post('/agenda-votes/lock', requireCommissioner(db), (req, res) => {
+  // 书记截止（不可逆）：置 votesLocked=true / voteDeadline；仅书记角色，截止后不可解锁
+  router.post('/agenda-votes/lock', requireRole(db, SECRETARY_ROLES), (req, res) => {
     const { activityId, votesLocked, voteDeadline } = req.body || {};
     if (!activityId) return res.status(400).json({ error: '缺少 activityId' });
-    const act = getRow(db, 'activities', activityId) || { id: activityId };
+    if (voteDeadline !== undefined && (typeof voteDeadline !== 'string' || !voteDeadline.trim())) {
+      return res.status(400).json({ error: 'voteDeadline 须为非空字符串' });
+    }
+    const act = getRow(db, 'activities', activityId);
+    if (!act) return res.status(404).json({ error: '活动不存在' });
     const merged = {
       ...act,
-      ...(typeof votesLocked === 'boolean' ? { votesLocked } : {}),
+      // 截止不可逆：仅允许置 true，禁止解锁（传 false 不写入）
+      ...(votesLocked === true ? { votesLocked: true } : {}),
       ...(voteDeadline ? { voteDeadline } : {}),
     };
     writeRow(db, 'activities', merged);
