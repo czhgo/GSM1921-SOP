@@ -2037,6 +2037,88 @@ html.theme-dark .tf-section-head {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   COMPONENT: Vote Panel — 委员端表态（线上支委会 2026-09-01）
+   议程条目内嵌「我的表态」：未锁定可交互（三按钮+附言+提交），锁定只读；
+   圆角统一（--radius-*）、面板仅浅底无边框（无嵌套边线）、token 驱动随主题翻转
+   ═══════════════════════════════════════════════════════════════ */
+.vote-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  background-color: var(--neutral-50);
+  border-radius: var(--radius-md);
+}
+.vote-title {
+  font-size: 0.7rem;
+  color: var(--neutral-400);
+}
+.vote-current {
+  font-size: 0.75rem;
+  color: var(--neutral-700);
+}
+.vote-actions {
+  display: flex;
+  gap: 6px;
+}
+.vote-btn {
+  flex: 1;
+  padding: 6px 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--neutral-600);
+  background-color: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast);
+}
+.vote-btn:hover {
+  border-color: var(--party-gold);
+  color: #A16207;
+}
+.vote-btn.active {
+  background-color: var(--party-red);
+  border-color: var(--party-red);
+  color: #fff;
+}
+.vote-note {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--neutral-800);
+  background-color: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  outline: none;
+  resize: vertical;
+  transition: border-color var(--transition-fast);
+}
+.vote-note:focus {
+  border-color: var(--party-gold);
+}
+.vote-submit {
+  align-self: flex-end;
+  padding: 6px 16px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #fff;
+  background-color: var(--party-red);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+.vote-submit:hover {
+  opacity: 0.9;
+}
+.vote-submit:disabled {
+  cursor: not-allowed;
+}
+
+/* ═══════════════════════════════════════════════════════════════
    COMPONENT: Status Badge（T-217 §2.4 行内状态轻交互原型）
    徽章 = 色点 + 文字 + 下拉箭头；点击弹出悬浮选择器（clamp 边界定位）
    ═══════════════════════════════════════════════════════════════ */

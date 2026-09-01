@@ -17,6 +17,7 @@ import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260901f'
 import { badgeHtml } from './badge.js?v=20260901f';
 import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260901f';
 import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260901f';
+import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260901f';
 import { loadAttendanceRecords } from '../services/attendance.js?v=20260901f';
 import { loadInspectionRecords } from '../services/inspection.js?v=20260901f';
 import { loadActivityReviews } from '../services/review.js?v=20260901f';
@@ -463,6 +464,64 @@ async function _recordAgendaResult(activity, agendaItemId, result) {
   return updated;
 }
 
+// ════════════════════════════════════════════════════════════════
+//  委员端表态面板（2026-09-01 线上支委会 Task3：支委角色可见）
+//  未锁定 → 三按钮（同意/异议/附言）+ 附言输入框 + 提交（可覆盖表态）；
+//  已表态 → 「已表态：同意（附言…）」；锁定后只读（标题带「已截止」，仅显示已表态记录）
+// ════════════════════════════════════════════════════════════════
+const VOTE_LABELS = { agree: '同意', object: '异议', comment: '附言' };
+
+function renderVotePanel(container, { activity, agendaItem, votes, isCommittee, currentUserId }) {
+  const locked = activity.votesLocked === true;
+  const mine = (votes || []).find(v => v.personId === currentUserId && v.agendaItemId === agendaItem.id);
+  container.innerHTML = `
+    <div class="vote-panel">
+      <div class="vote-title">我的表态${locked ? '（已截止）' : ''}</div>
+      ${mine ? `<div class="vote-current">已表态：${VOTE_LABELS[mine.position] || mine.position}${mine.note ? '（' + mine.note + '）' : ''}</div>` : ''}
+      ${!locked && isCommittee ? `
+        <div class="vote-actions">
+          <button type="button" class="vote-btn" data-pos="agree">同意</button>
+          <button type="button" class="vote-btn" data-pos="object">异议</button>
+          <button type="button" class="vote-btn" data-pos="comment">附言</button>
+        </div>
+        <textarea class="vote-note" rows="2" placeholder="附言/异议说明（异议必填）"></textarea>
+        <button type="button" class="vote-submit">提交表态</button>` : ''}
+    </div>`;
+
+  container.querySelectorAll('.vote-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.vote-btn').forEach(x => x.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  const submitBtn = container.querySelector('.vote-submit');
+  if (submitBtn) {
+    submitBtn.addEventListener('click', async () => {
+      const pos = container.querySelector('.vote-btn.active')?.dataset.pos;
+      if (!pos) { showToast('error', '请先选择表态（同意/异议/附言）'); return; }
+      const note = container.querySelector('.vote-note').value.trim();
+      if (pos === 'object' && !note) { showToast('error', '异议须附言说明'); return; }
+      // P1 防连点：提交期间禁用按钮（异步落库期间重复点击会重复请求）
+      if (submitBtn.dataset.processing === '1') return;
+      submitBtn.dataset.processing = '1';
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.5';
+      try {
+        await submitVote({ activityId: activity.id, agendaItemId: agendaItem.id, position: pos, note });
+        showToast('success', '表态已提交');
+        container.dispatchEvent(new CustomEvent('vote-submitted', { bubbles: true }));
+      } catch (e) {
+        console.warn('[inspector] 表态提交失败：', e);
+        showToast('error', (e && e.message) || '表态提交失败');
+        submitBtn.dataset.processing = '';
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '';
+      }
+    });
+  }
+}
+
 function renderInspectorDetail(activity, tasks, managementRole) {
   const defEl     = document.getElementById('inspector-default');
   const contentEl = document.getElementById('inspector-content');
@@ -483,6 +542,9 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   const isArchived   = activity.archived === true;
   const _user = AuthStore.getCurrentUser();
   const isSecretary = _user?.role === 'secretary';
+  // 支委集合（书记/副书记/组织/宣传/纪检）→ 表态面板可见（AuthStore.isCommissioner 与 auth.js 授权语义一致）
+  const isCommittee = !!_user && AuthStore.isCommissioner(_user.role);
+  const currentUserId = _user?.personId || null;
   const isBrandActive = !!activity.isBrand;
 
   let html = '';
@@ -580,6 +642,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
             ${resultBadge}
           </div>
           <div class="text-gray-400 mt-0.5">${a.host ? `（主持人：${a.host}）` : ''}${recordInfo}</div>
+          ${isCommittee && a.id ? `<div class="vote-panel-slot" data-vote-agenda-id="${a.id}"></div>` : ''}
         </div>
         ${canRecord ? `
           <div class="flex gap-1 shrink-0">
@@ -654,6 +717,27 @@ function renderInspectorDetail(activity, tasks, managementRole) {
 
   if (!cardsEl) return;
   cardsEl.innerHTML = html;
+
+  // 委员端表态面板（2026-09-01 线上支委会 Task3）
+  // 加载后 fetchVotes → 逐条议程渲染表态区；vote-submitted 冒泡刷新（重新拉取重绘，支持覆盖表态）。
+  // 监听挂在 #agenda-block 上（每次内渲染重建，闭包捕获本次 activity，避免跨活动串态）。
+  if (isCommittee) {
+    const actId = activity.id;
+    const renderAllVotePanels = async () => {
+      const votes = await fetchVotes(actId);
+      cardsEl.querySelectorAll('.vote-panel-slot').forEach(slot => {
+        const agendaItem = (activity.agenda || []).find(a => a.id === slot.dataset.voteAgendaId);
+        if (agendaItem) renderVotePanel(slot, { activity, agendaItem, votes, isCommittee, currentUserId });
+      });
+    };
+    renderAllVotePanels().catch(e => console.warn('[inspector] 表态数据加载失败：', e));
+    const agendaBlock = cardsEl.querySelector('#agenda-block');
+    if (agendaBlock) {
+      agendaBlock.addEventListener('vote-submitted', () => {
+        renderAllVotePanels().catch(e => console.warn('[inspector] 表态刷新失败：', e));
+      });
+    }
+  }
 
   // 会议议程编辑入口（T-283：书记行内编辑，保存→persist→重渲染）
   const agendaEditBtn = document.getElementById('inspector-agenda-edit-btn');
