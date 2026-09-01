@@ -277,6 +277,9 @@ export const mockDB = {
   memberChangeRequests: [],
   /** @type {Object[]} 支委广播记录（组织委员审批通过后广播全体支委确认收到） */
   committeeBroadcasts: [],
+  // ── 2026-09-01 线上支委会表态（异步表态闭环）──
+  /** @type {Object[]} 支委表态记录（委员异步表态：agree 同意 / object 异议 / comment 附言；书记截止后 votesLocked 锁定） */
+  agendaVotes: [],
   // ── 2026-08-30 思想汇报数字化（书记决策，算法归档原则）──
   /** @type {Object[]} 思想汇报（党员/发展对象系统内提交，算法自动归集至个人档案，组织委员查看调用） */
   thoughtReports: [],

@@ -228,7 +228,7 @@ export async function init() {
           propTasks, weeklyReports, archiveRecords,
           mailboxHistory, externalDispatches,
           branchDocs,
-          memberChangeRequests, committeeBroadcasts,
+          memberChangeRequests, committeeBroadcasts, agendaVotes,
           actSubRecordsRows, tfSubRecordsRows, mailboxConfigRows,
         ] = await Promise.all([
           adapter.experienceDeposits.list(),
@@ -246,6 +246,7 @@ export async function init() {
           adapter.branchDocs.list(),
           adapter.memberChangeRequests.list(),
           adapter.committeeBroadcasts.list(),
+          adapter.agendaVotes.list(),
           adapter.actSubRecords.list(),
           adapter.tfSubRecords.list(),
           adapter.mailboxConfig.list(),
@@ -265,6 +266,7 @@ export async function init() {
         mockDB.branchDocs            = branchDocs || [];
         mockDB.memberChangeRequests  = memberChangeRequests || [];
         mockDB.committeeBroadcasts    = committeeBroadcasts || [];
+        mockDB.agendaVotes           = agendaVotes || [];
         mockDB.actSubRecords         = _unwrapRootRows(actSubRecordsRows, {});
         mockDB.tfSubRecords          = _unwrapRootRows(tfSubRecordsRows, {});
         mockDB.mailboxConfig         = _unwrapRootRows(mailboxConfigRows, null);

@@ -75,6 +75,8 @@ function _saveToStorage() {
       // 2026-09-01 成员变更审批链路：持久化
       memberChangeRequests: mockDB.memberChangeRequests,
       committeeBroadcasts: mockDB.committeeBroadcasts,
+      // 2026-09-01 线上支委会表态：持久化
+      agendaVotes: mockDB.agendaVotes,
       // 2026-08-29 T-304 C2 三委数据交接：持久化（刷新不丢回执实体）
       handoffs: mockDB.handoffs,
       // 2026-08-30 思想汇报数字化（算法归档）：持久化
@@ -154,6 +156,7 @@ function _loadFromStorage() {
     if (Array.isArray(parsed.branchDocs)) mockDB.branchDocs = parsed.branchDocs;
     if (Array.isArray(parsed.memberChangeRequests)) mockDB.memberChangeRequests = parsed.memberChangeRequests;
     if (Array.isArray(parsed.committeeBroadcasts)) mockDB.committeeBroadcasts = parsed.committeeBroadcasts;
+    if (Array.isArray(parsed.agendaVotes)) mockDB.agendaVotes = parsed.agendaVotes;
     if (Array.isArray(parsed.handoffs)) mockDB.handoffs = parsed.handoffs;
     if (Array.isArray(parsed.thoughtReports)) mockDB.thoughtReports = parsed.thoughtReports;
 
@@ -813,6 +816,44 @@ export const MockAdapter = {
       });
     },
   },
+
+  // 2026-09-01 线上支委会表态（与 server/routes/committee.js 同构）
+  // 闭环：委员异步表态（agree/object/comment）→ 书记汇总 → 截止锁定（votesLocked 写入 activities）
+  agendaVotes: {
+    list(params = {}) {
+      return _withDelay(() => {
+        let rows = [...mockDB.agendaVotes];
+        if (params.activityId) rows = rows.filter(v => v.activityId === params.activityId);
+        return rows;
+      });
+    },
+    create(data) {
+      return _withDelay(() => {
+        // 幂等 upsert：同人同议题覆盖更新（与 committee 路由同构）
+        const idx = mockDB.agendaVotes.findIndex(v =>
+          v.activityId === data.activityId && v.agendaItemId === data.agendaItemId && v.personId === data.personId);
+        if (idx !== -1) {
+          const updated = { ...mockDB.agendaVotes[idx], ...data, updatedAt: new Date().toISOString() };
+          mockDB.agendaVotes = [
+            ...mockDB.agendaVotes.slice(0, idx),
+            updated,
+            ...mockDB.agendaVotes.slice(idx + 1),
+          ];
+          _saveToStorage();
+          return updated;
+        }
+        const row = {
+          ...data,
+          id: generateId('av'),
+          createdAt: new Date().toISOString(),
+          updatedAt: null,
+        };
+        mockDB.agendaVotes = [...mockDB.agendaVotes, row];
+        _saveToStorage();
+        return row;
+      });
+    },
+  },
 };
 
 /**
@@ -853,6 +894,7 @@ export function restoreNicheCollections() {
     if (Array.isArray(parsed.branchDocs)) mockDB.branchDocs = parsed.branchDocs;
     if (Array.isArray(parsed.memberChangeRequests)) mockDB.memberChangeRequests = parsed.memberChangeRequests;
     if (Array.isArray(parsed.committeeBroadcasts)) mockDB.committeeBroadcasts = parsed.committeeBroadcasts;
+    if (Array.isArray(parsed.agendaVotes)) mockDB.agendaVotes = parsed.agendaVotes;
     if (Array.isArray(parsed.handoffs)) mockDB.handoffs = parsed.handoffs;
     if (Array.isArray(parsed.thoughtReports)) mockDB.thoughtReports = parsed.thoughtReports;
   } catch (e) {

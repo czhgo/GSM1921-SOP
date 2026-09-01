@@ -588,4 +588,16 @@ export const ApiAdapter = {
       return _get(`/api/v1/committeeBroadcasts${query ? '?' + query : ''}`);
     },
   },
+
+  // 2026-09-01 线上支委会表态（与 server/routes/committee.js 同构）
+  agendaVotes: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/agenda-votes${query ? '?' + query : ''}`);
+    },
+
+    create(data) {
+      return _post('/api/v1/agenda-votes', data);
+    },
+  },
 };
