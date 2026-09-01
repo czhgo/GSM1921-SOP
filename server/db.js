@@ -14,6 +14,7 @@ const RESOURCE_TABLES = [
   'archive_records', 'mailbox_config', 'mailbox_history', 'external_dispatches',
   'act_sub_records', 'tf_sub_records',
   'branch_docs', 'member_change_requests', 'committee_broadcasts',
+  'agenda_votes',
 ];
 
 const SCHEMA = `

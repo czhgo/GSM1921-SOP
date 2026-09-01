@@ -7,6 +7,7 @@ import { createResourcesRouter } from './routes/resources.js';
 import { createUploadsRouter } from './routes/uploads.js';
 import { createReportRouter } from './routes/report.js';
 import { createMemberRouter } from './routes/member.js';
+import { createCommitteeRouter } from './routes/committee.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DOCS_DIR = path.resolve(__dirname, '../docs');
@@ -29,6 +30,9 @@ export function createApp({ dbPath = ':memory:' } = {}) {
 
   // 成员变更审批链路（议程记录通过 → 组织委员审批广播 → 书记确认更新阶段）
   app.use('/api/v1', createMemberRouter(app.locals.db));
+
+  // 线上支委会表态链路（异步表态 → 书记汇总/截止）
+  app.use('/api/v1', createCommitteeRouter(app.locals.db));
 
   app.use('/api/v1', createUploadsRouter(app.locals.db));
 
