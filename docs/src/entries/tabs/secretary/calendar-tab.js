@@ -2,25 +2,72 @@
 // entries/tabs/secretary/calendar-tab.js — 书记工作台·活动管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 考勤概况 + 活动查询。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260829a';
-import { _fmtDate, showToast } from '../../../core/utils.js?v=20260829a';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260829a';
-import { renderInspectorFromState } from '../../../components/inspector.js?v=20260829a';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260829a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260829a';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260829a';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260829a';
-import { loadActivities } from '../../../services/activity.js?v=20260829a';
-import { renderQueryView } from '../../../components/query-view.js?v=20260829a';
-import { icon } from '../../../core/icons.js?v=20260829a';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260829a';
-import { getPersonName } from '../../../mock/index.js?v=20260829a';
-import { NoticeStore } from '../../../services/notice.js?v=20260829a';
-import { BranchService } from '../../../services/runtime.js?v=20260829a';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars } from '../../../core/constants.js?v=20260829a';
-import { badgeHtml } from '../../../components/badge.js?v=20260829a';
+import { getAppState, setState } from '../../../core/state.js?v=20260901e';
+import { _fmtDate, showToast } from '../../../core/utils.js?v=20260901e';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260901e';
+import { renderInspectorFromState } from '../../../components/inspector.js?v=20260901e';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260901e';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260901e';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260901e';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260901e';
+import { loadActivities } from '../../../services/activity.js?v=20260901e';
+import { renderQueryView } from '../../../components/query-view.js?v=20260901e';
+import { icon } from '../../../core/icons.js?v=20260901e';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260901e';
+import { getPersonName, PEOPLE } from '../../../mock/index.js?v=20260901e';
+import { NoticeStore } from '../../../services/notice.js?v=20260901e';
+import { BranchService } from '../../../services/runtime.js?v=20260901e';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars } from '../../../core/constants.js?v=20260901e';
+import { badgeHtml } from '../../../components/badge.js?v=20260901e';
+import { collectAgendaRows } from './agenda-form.js?v=20260901e';
+import { getAdapter } from '../../../core/data-adapter.js?v=20260901e';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
+
+// 成员发展阶段（议程「待讨论名单」类型：名单统一阶段转换选项；与 people.js developStage 口径一致）
+const DEVELOP_STAGES = ['积极分子', '发展对象', '预备党员', '正式党员'];
+
+// 议程类型 chips（2026-09-01 书记裁决：类型不互斥，一条议程可多类型；按自增列表思路写入）
+// 「待讨论名单」替代原「成员变更」：多选人员 + 名单统一阶段转换（书记 2026-09-01 裁决）
+const AGENDA_KIND_CHIPS = [
+  { kind: 'discussion-file', label: '讨论文件' },
+  { kind: 'attendee-list', label: '待讨论名单' },
+];
+
+/** 议程行 HTML（议题 + 主持人 + 类型 chips + 折叠的草案/待讨论名单字段） */
+function _agendaRowHTML({ item = '', host = '', kinds = [], branchDocId = '', fromStage = '', toStage = '' } = {}) {
+  const kindOn = (k) => (kinds.includes(k) ? ' wp-agenda-kind-on' : '');
+  const docVisible = kinds.includes('discussion-file') ? '' : ' hidden';
+  const memberVisible = kinds.includes('attendee-list') ? '' : ' hidden';
+  const stageOptions = (cur) => DEVELOP_STAGES.map((s) =>
+    `<option value="${s}" ${s === cur ? 'selected' : ''}>${s}</option>`).join('');
+  return `
+    <div class="wp-agenda-row border border-gray-100 rounded-lg p-2 space-y-1.5 bg-white">
+      <div class="flex items-center gap-2">
+        <input type="text" class="wp-agenda-item input-flat w-full text-xs" placeholder="议题，如：讨论关于 N 名发展对象转为预备党员" value="${item}">
+        <input type="text" class="wp-agenda-host input-flat w-24 text-xs" placeholder="主持人" value="${host}">
+        <button type="button" data-action="agenda-remove" class="text-gray-300 hover:text-red-500 text-sm px-1 shrink-0" title="删除该条">✕</button>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-[10px] text-gray-400 shrink-0">类型</span>
+        ${AGENDA_KIND_CHIPS.map((c) => `
+          <button type="button" data-kind="${c.kind}" class="wp-agenda-kind text-[11px] px-2 py-0.5 rounded-full border border-gray-200 text-gray-500 hover:border-gray-300 transition-colors${kindOn(c.kind)}">${c.label}</button>
+        `).join('')}
+      </div>
+      <div class="wp-agenda-doc-slot${docVisible}">
+        <select class="wp-agenda-doc input-flat w-full text-xs">
+          <option value="">加载会前草案…</option>
+        </select>
+        <p class="wp-agenda-doc-hint text-[10px] text-gray-400 mt-1 hidden">暂无会前草案，<a href="search.html" target="_blank" class="text-blue-600 hover:text-blue-800">去资料查询写入 →</a></p>
+      </div>
+      <div class="wp-agenda-member-slot flex items-center gap-2${memberVisible}">
+        <select class="wp-agenda-from input-flat text-xs w-28">${stageOptions(fromStage)}</select>
+        <span class="text-gray-300 text-xs shrink-0">→</span>
+        <select class="wp-agenda-to input-flat text-xs w-28">${stageOptions(toStage)}</select>
+        <div class="wp-agenda-person-slot flex-1"></div>
+      </div>
+    </div>`;
+}
 
 // 各 Tab 内容骨架模板（复用原 HTML 静态容器结构，由 render 函数按需注入）
 const CALENDAR_TAB_HTML = `
@@ -400,6 +447,10 @@ function renderWritePanel(container) {
     html += `返回选模板</button>`;
   }
 
+  // 清理上次会话遗留的议程行 PersonPicker（防 DOM 泄漏；重渲染前销毁）
+  (wp.agendaPickers || []).forEach(({ picker }) => { try { picker.destroy(); } catch (_) {} });
+  wp.agendaPickers = [];
+
   container.innerHTML = html;
   bindWritePanelEvents(container);
 }
@@ -420,8 +471,9 @@ function renderTemplateStep() {
     html += `<div class="p-2 space-y-1">`;
     if (tpl.subtypes.length === 0) {
       // 主题党日无固定子类型，直接选择模板（正交维度在 Step 2 表单中填写）
+      // 2026-09-01：唯一选项 → hover 即选（降低点击时间；data-hover-select 由 bindWritePanelEvents 绑定）
       const isSelected = wp.selections.L1 === tpl.category;
-      html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="" data-scenario-id="${tpl.scenarioId || 'theme-party'}" data-activity-type="" data-color="${tpl.color}" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'sel-accent-on' : 'text-gray-700 hover:bg-gray-50'}">`;
+      html += `<button data-action="select-template" data-hover-select="1" data-category="${tpl.category}" data-subtype="" data-scenario-id="${tpl.scenarioId || 'theme-party'}" data-activity-type="" data-color="${tpl.color}" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'sel-accent-on' : 'text-gray-700 hover:bg-gray-50'}">`;
       html += `选择${tpl.categoryLabel}`;
       html += `</button>`;
     } else {
@@ -507,20 +559,18 @@ function renderFormStep() {
   // 会议议程（T-283：三会一课专用；逐条议题 + 可选主持人，行内编辑最少点击）
   if (tpl.category === 'three-meetings') {
     html += `<div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3">`;
-    html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">会议议程 <span class="text-gray-300">（选填）</span></label>`;
+    html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">会议议程 <span class="text-gray-300">（选填；类型可多选）</span></label>`;
     html += `<div id="wp-agenda-list" class="space-y-2">`;
     // 初始 1 行空议程（HTML 内嵌，减少首条输入点击；添加/删除由 bindWritePanelEvents 事件处理）
-    html += `<div class="flex items-center gap-2">`;
-    html += `<input type="text" class="wp-agenda-item input-flat w-full text-xs" placeholder="议题，如：学习《…》">`;
-    html += `<input type="text" class="wp-agenda-host input-flat w-24 text-xs" placeholder="主持人">`;
-    html += `<button type="button" data-action="agenda-remove" class="text-gray-300 hover:text-red-500 text-sm px-1 shrink-0" title="删除该条">✕</button>`;
-    html += `</div>`;
+    html += _agendaRowHTML();
     html += `</div>`;
     html += `<button type="button" data-action="agenda-add" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors">+ 添加议程</button>`;
     html += `</div>`;
   }
 
   // 品牌（2026-08-07 书记原始意图：看是否延续旧品牌 / 创建新品牌）
+  // 2026-09-01：品牌概念仅主题党日适用（三会一课无品牌语义，隐藏该字段）
+  if (tpl.category === 'theme-day') {
   const brandNames = [...new Set((_getBrandList() || []).map(a => a.brandName).filter(Boolean))];
   html += `<div class="mb-3">`;
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">品牌 <span class="text-gray-300">（选填）</span></label>`;
@@ -536,6 +586,7 @@ function renderFormStep() {
   html += `<input type="text" id="wp-brand-input" class="input-flat w-full" placeholder="品牌名称，如：人生回望录">`;
   html += `</div>`;
   html += `</div>`;
+  }
 
   // 备注
   html += `<div class="mb-3">`;
@@ -639,18 +690,64 @@ function renderThemeDayDimensions() {
   return html;
 }
 
-/** 添加一条议程输入行（T-283：议题 + 可选主持人） */
-function _addAgendaRow(container, item = '', host = '') {
+/** 添加一条议程输入行（T-283：议题 + 可选主持人；2026-09-01：类型 chips + 待讨论名单多选） */
+function _addAgendaRow(container, item = '', host = '', kinds = [], branchDocId = '', fromStage = '', toStage = '') {
   const list = container.querySelector('#wp-agenda-list');
   if (!list) return;
-  const row = document.createElement('div');
-  row.className = 'flex items-center gap-2';
-  row.innerHTML = `
-    <input type="text" class="wp-agenda-item input-flat w-full text-xs" placeholder="议题，如：学习《…》" value="${item}">
-    <input type="text" class="wp-agenda-host input-flat w-24 text-xs" placeholder="主持人" value="${host}">
-    <button type="button" data-action="agenda-remove" class="text-gray-300 hover:text-red-500 text-sm px-1 shrink-0" title="删除该条">✕</button>
-  `;
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = _agendaRowHTML({ item, host, kinds, branchDocId, fromStage, toStage });
+  const row = wrapper.firstElementChild;
   list.appendChild(row);
+  _hydrateDraftDocs(row);
+  _bindRowKindChips(row);
+  _initRowPersonPicker(row);
+}
+
+/** 绑定单个议程行的类型 chips（多选不互斥；选中展开对应字段区） */
+function _bindRowKindChips(row) {
+  if (!row) return;
+  row.querySelectorAll('.wp-agenda-kind').forEach(chip => {
+    if (chip.dataset.bound) return;
+    chip.dataset.bound = '1';
+    chip.addEventListener('click', () => {
+      chip.classList.toggle('wp-agenda-kind-on');
+      if (chip.dataset.kind === 'discussion-file') row.querySelector('.wp-agenda-doc-slot')?.classList.toggle('hidden');
+      if (chip.dataset.kind === 'attendee-list') row.querySelector('.wp-agenda-member-slot')?.classList.toggle('hidden');
+    });
+  });
+}
+
+/** 初始化议程行的待讨论名单多选（PersonPicker multi；实例挂 wp.agendaPickers 供收集读取） */
+function _initRowPersonPicker(row) {
+  const slot = row.querySelector('.wp-agenda-person-slot');
+  if (!slot || slot.dataset.bound) return;
+  slot.dataset.bound = '1';
+  const picker = new PersonPicker({
+    mode: 'multi',
+    placeholder: '选择待讨论名单（可多选）',
+    accentColor: accent,
+    stageBatch: true,
+    onSelect: () => {},
+  });
+  picker.render(slot);
+  wp.agendaPickers.push({ row, picker });
+}
+
+/** 填充议程行「会前草案」下拉（draft 状态支部文件；异步，不阻塞表单；空态引导去资料查询写入） */
+async function _hydrateDraftDocs(row) {
+  const select = row?.querySelector('.wp-agenda-doc');
+  if (!select) return;
+  const hint = row.querySelector('.wp-agenda-doc-hint');
+  try {
+    const docs = await getAdapter().branchDocs.list();
+    const drafts = docs.filter(d => !d.status || d.status === 'draft');
+    select.innerHTML = `<option value="">${drafts.length ? '选择会前草案…' : '暂无会前草案'}</option>`
+      + drafts.map(d => `<option value="${d.id}">${d.title || d.fileName || '未命名草案'}</option>`).join('');
+    if (hint) hint.classList.toggle('hidden', drafts.length > 0);
+  } catch (e) {
+    console.warn('[calendar] 会前草案加载失败：', e);
+    select.innerHTML = '<option value="">草案加载失败</option>';
+  }
 }
 
 function bindWritePanelEvents(container) {
@@ -661,16 +758,32 @@ function bindWritePanelEvents(container) {
   // 置于最前：避免后续参与人选择器（PersonPicker）初始化异常导致议程行被跳过
   const agendaList = container.querySelector('#wp-agenda-list');
   if (agendaList && agendaList.children.length === 0) _addAgendaRow(container);
-  // 参与人选择（PersonPicker 多选；重渲染时保留已选，销毁旧实例防泄漏）
+  if (agendaList) {
+    agendaList.querySelectorAll('.wp-agenda-row').forEach((row) => {
+      _hydrateDraftDocs(row);
+      _initRowPersonPicker(row);
+    });
+  }
+  // 议程类型 chips（2026-09-01：多选不互斥；初始行绑定，新增行在 _addAgendaRow 内绑定）
+  container.querySelectorAll('.wp-agenda-row').forEach((row) => _bindRowKindChips(row));
+  // 主题党日模板 hover 即选（书记 2026-09-01：第一步只有一个选项时降低点击时间）
+  container.querySelectorAll('[data-hover-select="1"]').forEach((btn) => {
+    if (btn.dataset.hoverBound) return;
+    btn.dataset.hoverBound = '1';
+    btn.addEventListener('mouseenter', () => { if (!btn.dataset.selected) btn.click(); });
+  });
+  // 参与人选择（PersonPicker 多选 + 按阶段批量；重渲染时保留已选，销毁旧实例防泄漏）
+  // 2026-09-01：三会一课不强制积极分子参加但鼓励列席——阶段批量选择提供「积极分子」快捷项
   const participantsSlot = container.querySelector('#wp-participants-slot');
   if (participantsSlot) {
     const prevSelected = wp.personPicker ? wp.personPicker.getSelected() : [];
     if (wp.personPicker) wp.personPicker.destroy();
     wp.personPicker = new PersonPicker({
       mode: 'multi',
-      placeholder: '选择参与人（选填）',
+      placeholder: '选择参与人（选填，可多选）',
       accentColor: accent,
       initialIds: prevSelected,
+      stageBatch: true,
       onSelect: () => {},
     });
     wp.personPicker.render(participantsSlot);
@@ -732,10 +845,10 @@ function handleWritePanelAction(e) {
 
     case 'agenda-remove': {
       const list = btn.closest('#wp-agenda-list');
-      const row = btn.closest('.flex');
+      const row = btn.closest('.wp-agenda-row');
       if (row) {
         if (list && list.children.length > 1) row.remove();
-        else row.querySelectorAll('input').forEach(i => { i.value = ''; });
+        else row.querySelectorAll('input, select').forEach(i => { i.value = ''; });
       }
       return;
     }
@@ -778,17 +891,25 @@ async function handleSubmitActivity() {
   // 参与人（多选；须在 wp.submitting 触发重渲染前读取）
   const participants = wp.personPicker ? wp.personPicker.getSelected() : [];
 
-  // 会议议程（T-283：三会一课逐条议题 + 主持人；空行忽略）
+  // 会议议程（T-283：三会一课逐条议题 + 主持人；2026-09-01：类型 chips 多选 + 待讨论名单多选，collectAgendaRows 规范化）
   const agenda = [];
   {
     const formArea = _getWritePanelContainer();
     if (formArea) {
-      const items = [...formArea.querySelectorAll('.wp-agenda-item')];
-      const hosts = [...formArea.querySelectorAll('.wp-agenda-host')];
-      items.forEach((inp, i) => {
-        const text = inp.value?.trim();
-        if (text) agenda.push({ item: text, host: hosts[i]?.value?.trim() || '' });
-      });
+      const rows = [...formArea.querySelectorAll('.wp-agenda-row')];
+      agenda.push(...collectAgendaRows(rows.map(row => {
+        const kinds = [...row.querySelectorAll('.wp-agenda-kind.wp-agenda-kind-on')].map(c => c.dataset.kind);
+        const pickerEntry = (wp.agendaPickers || []).find(entry => entry.row === row);
+        return {
+          item: row.querySelector('.wp-agenda-item')?.value || '',
+          host: row.querySelector('.wp-agenda-host')?.value || '',
+          kinds,
+          branchDocId: row.querySelector('.wp-agenda-doc')?.value || '',
+          personIds: pickerEntry ? pickerEntry.picker.getSelected() : [],
+          fromStage: row.querySelector('.wp-agenda-from')?.value || '',
+          toStage: row.querySelector('.wp-agenda-to')?.value || '',
+        };
+      })));
     }
   }
 

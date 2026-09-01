@@ -1,6 +1,7 @@
 // server/routes/resources.js — 资源读写 API（list + bootstrap + 资源级 CRUD + snapshot 快照写穿）
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
+import { gunzipSync } from 'node:zlib';
 import { requireAuth, requireCommissioner } from './auth.js';
 import { replaceCollection } from '../db.js';
 import { deleteUploadedFile } from './uploads.js';
@@ -170,8 +171,28 @@ export function createResourcesRouter(db) {
   });
 
   // 全量快照写穿透：认证后整表替换（data-adapter persist() 的落库目标）
+  // 2026-09-01：支持 gzip 压缩体（前端 CompressionStream 压缩，规避大 payload 传输限制）；
+  // 兼容未压缩 JSON（snapshot.test.js 等直连用例）。
   router.post('/snapshot', requireAuth(db), (req, res) => {
-    const payload = req.body || {};
+    let payload = req.body;
+    try {
+      if (req.headers['content-encoding'] === 'gzip') {
+        try {
+          payload = JSON.parse(gunzipSync(req.body).toString('utf8'));
+        } catch (e) {
+          // 沙箱代理（TRAE）会自动解压 gzip 请求体但保留 Content-Encoding 头：
+          // 服务器收到的是已解压 JSON，gunzip 必然失败 → 回退直接 parse。
+          payload = JSON.parse(req.body.toString('utf8'));
+        }
+      } else if (Buffer.isBuffer(req.body)) {
+        payload = JSON.parse(req.body.toString('utf8'));
+      }
+    } catch (e) {
+      return res.status(400).json({ error: '快照 payload 解析失败：' + e.message });
+    }
+    if (!payload || typeof payload !== 'object') {
+      return res.status(400).json({ error: '快照 payload 必须是 JSON 对象' });
+    }
     for (const [name, table] of Object.entries(RESOURCE_TABLES)) {
       if (Array.isArray(payload[name])) {
         replaceCollection(db, table, payload[name]);

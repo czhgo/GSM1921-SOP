@@ -13,7 +13,7 @@ const RESOURCE_TABLES = [
   'signups', 'activity_reviews', 'taskforce_reviews', 'prop_tasks', 'weekly_reports',
   'archive_records', 'mailbox_config', 'mailbox_history', 'external_dispatches',
   'act_sub_records', 'tf_sub_records',
-  'branch_docs',
+  'branch_docs', 'member_change_requests', 'committee_broadcasts',
 ];
 
 const SCHEMA = `

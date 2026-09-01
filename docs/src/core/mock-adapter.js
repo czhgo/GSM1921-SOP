@@ -9,17 +9,17 @@
 //  Source: content/04_web_design/data/DATA_ARCHITECTURE.md
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SCHEMA_VERSION } from './domain.js?v=20260829a';
-import { generateId } from './id.js?v=20260829a';
+import { mockDB, SCHEMA_VERSION } from './domain.js?v=20260901e';
+import { generateId } from './id.js?v=20260901e';
 // 修复（T175）：直接从 ../mock/activities.js 导入 ACTIVITIES，
 // 绕过 ../mock/index.js 的 re-export 转发（与 services/mock.js 对齐，
 // 消除循环依赖/TDZ 导致的 seed 失败风险）
-import { ACTIVITIES } from '../mock/activities.js?v=20260829a';
-import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS } from '../mock/seed.js?v=20260829a';
+import { ACTIVITIES } from '../mock/activities.js?v=20260901e';
+import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS } from '../mock/seed.js?v=20260901e';
 // Seed 增量合并用（2026-08-05）：attendance.js/notices.js 为纯数据模块，
 // 经 services/person.js（只依赖 domain/people）→ 无指向本文件的循环依赖
-import { ATTENDANCE_RECORDS } from '../mock/attendance.js?v=20260829a';
-import { MOCK_NOTICES } from '../mock/notices.js?v=20260829a';
+import { ATTENDANCE_RECORDS } from '../mock/attendance.js?v=20260901e';
+import { MOCK_NOTICES } from '../mock/notices.js?v=20260901e';
 
 const STORAGE_KEY = 'workflowos_branch_db_v1';
 
@@ -72,6 +72,9 @@ function _saveToStorage() {
       externalDispatches: mockDB.externalDispatches,
       // 2026-08-18 支部文件：持久化
       branchDocs: mockDB.branchDocs,
+      // 2026-09-01 成员变更审批链路：持久化
+      memberChangeRequests: mockDB.memberChangeRequests,
+      committeeBroadcasts: mockDB.committeeBroadcasts,
       // 2026-08-29 T-304 C2 三委数据交接：持久化（刷新不丢回执实体）
       handoffs: mockDB.handoffs,
       // 2026-08-30 思想汇报数字化（算法归档）：持久化
@@ -149,6 +152,8 @@ function _loadFromStorage() {
     if (Array.isArray(parsed.mailboxHistory)) mockDB.mailboxHistory = parsed.mailboxHistory;
     if (Array.isArray(parsed.externalDispatches)) mockDB.externalDispatches = parsed.externalDispatches;
     if (Array.isArray(parsed.branchDocs)) mockDB.branchDocs = parsed.branchDocs;
+    if (Array.isArray(parsed.memberChangeRequests)) mockDB.memberChangeRequests = parsed.memberChangeRequests;
+    if (Array.isArray(parsed.committeeBroadcasts)) mockDB.committeeBroadcasts = parsed.committeeBroadcasts;
     if (Array.isArray(parsed.handoffs)) mockDB.handoffs = parsed.handoffs;
     if (Array.isArray(parsed.thoughtReports)) mockDB.thoughtReports = parsed.thoughtReports;
 
@@ -327,7 +332,7 @@ export const MockAdapter = {
     if (merged) _saveToStorage();
     // 数据加载完成广播：通知 header 角标等初始快照据实刷新（与 data-loader 的
     // notifyDataLoaded 双保险；此处覆盖 data-adapter.init() mock 分支等直连路径）
-    import('./data-adapter.js?v=20260829a').then(({ notifyDataLoaded }) => notifyDataLoaded())
+    import('./data-adapter.js?v=20260901e').then(({ notifyDataLoaded }) => notifyDataLoaded())
       .catch(() => {});
   },
 
@@ -356,7 +361,7 @@ export const MockAdapter = {
         mockDB.activities = [...mockDB.activities, newItem];
         _saveToStorage();
         // 派生赋权待办（dynamic import 避免循环依赖）
-        import('../services/todo.js?v=20260829a').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260901e').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deriveFromActivityCreate(newItem);
         }).catch(e => console.warn('[MockAdapter] 派生活动赋权待办失败：', e));
         return newItem;
@@ -389,7 +394,7 @@ export const MockAdapter = {
         if (Array.isArray(mockDB.signups)) mockDB.signups = mockDB.signups.filter(s => !(s.sourceType === 'activity' && s.sourceId === id));
         if (Array.isArray(mockDB.notices)) mockDB.notices = mockDB.notices.filter(n => !(n.targetType === 'activity' && n.targetId === id));
         _saveToStorage();
-        import('../services/todo.js?v=20260829a').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260901e').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deleteByActivity(id);
         }).catch(e => console.warn('[MockAdapter] 联动删除待办失败：', e));
         return { id };
@@ -410,11 +415,11 @@ export const MockAdapter = {
           t.activityId === id && t.status !== 'completed' ? { ...t, status: 'completed' } : t
         );
         _saveToStorage();
-        import('../services/todo.js?v=20260829a').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260901e').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deriveFromActivityArchive(archived);
         }).catch(e => console.warn('[MockAdapter] 派生活动归档待办失败：', e));
         // 2026-08-08 归档闭环：活动归档 → 配套通知随之一并归档，退出工作区
-        import('../services/notice.js?v=20260829a').then(({ NoticeStore }) => {
+        import('../services/notice.js?v=20260901e').then(({ NoticeStore }) => {
           NoticeStore.archiveBySource('activity', id);
         }).catch(e => console.warn('[MockAdapter] 归档关联通知失败：', e));
         return archived;
@@ -518,7 +523,7 @@ export const MockAdapter = {
         const tf = { ...data, id: generateId('tf'), createdAt: new Date().toISOString() };
         mockDB.taskforces = [...mockDB.taskforces, tf];
         _saveToStorage();
-        import('../services/todo.js?v=20260829a').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260901e').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deriveFromTaskforceCreate(tf);
         }).catch(e => console.warn('[MockAdapter] 派生专班赋权待办失败：', e));
         return tf;
@@ -541,7 +546,7 @@ export const MockAdapter = {
       return _withDelay(() => {
         mockDB.taskforces = mockDB.taskforces.filter(t => t.id !== id);
         _saveToStorage();
-        import('../services/todo.js?v=20260829a').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260901e').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deleteByTaskforce(id);
         }).catch(e => console.warn('[MockAdapter] 联动删除待办失败：', e));
         return { id };
@@ -556,7 +561,7 @@ export const MockAdapter = {
         const notice = { ...data, id: data.id || generateId('notice'), publishDate: data.publishDate || new Date().toISOString().slice(0, 10) };
         mockDB.notices = [...mockDB.notices, notice];
         _saveToStorage();
-        import('../services/todo.js?v=20260829a').then(({ NoticeTodoDeriver }) => {
+        import('../services/todo.js?v=20260901e').then(({ NoticeTodoDeriver }) => {
           NoticeTodoDeriver.deriveFromNotice(notice);
         }).catch(e => console.warn('[MockAdapter] 通知派生待办失败：', e));
         return notice;
@@ -727,6 +732,87 @@ export const MockAdapter = {
       });
     },
   },
+
+  // 2026-09-01 成员变更审批链路（书记点验链路 ③④ 落地；与 server/routes/member.js 同构）
+  // 数据闭环：议程记录通过 → 创建申请(pending-org-approval) → 组织委员审批(广播全体支委)
+  //          → 书记确认 → 更新成员发展阶段（users.developStage）
+  memberChangeRequests: {
+    list(params = {}) {
+      return _withDelay(() => {
+        let rows = [...mockDB.memberChangeRequests];
+        if (params.activityId) rows = rows.filter(r => r.activityId === params.activityId);
+        if (params.status) rows = rows.filter(r => r.status === params.status);
+        return rows;
+      });
+    },
+    create(data) {
+      return _withDelay(() => {
+        const row = {
+          ...data,
+          id: generateId('mcr'),
+          status: 'pending-org-approval',
+          createdAt: new Date().toISOString(),
+        };
+        mockDB.memberChangeRequests = [...mockDB.memberChangeRequests, row];
+        _saveToStorage();
+        return row;
+      });
+    },
+    approve(id) {
+      return _withDelay(() => {
+        const idx = mockDB.memberChangeRequests.findIndex(r => r.id === id);
+        if (idx === -1) throw Object.assign(new Error(`成员变更申请 ${id} 不存在`), { type: 'NotFoundError' });
+        const updated = { ...mockDB.memberChangeRequests[idx], status: 'pending-secretary', approvedAt: new Date().toISOString() };
+        mockDB.memberChangeRequests = [
+          ...mockDB.memberChangeRequests.slice(0, idx),
+          updated,
+          ...mockDB.memberChangeRequests.slice(idx + 1),
+        ];
+        // 广播全体支委（幂等：已广播过的不重复）
+        const COMMITTEE_IDS = ['p10', 'p11', 'p12', 'p13', 'p14'];
+        const already = mockDB.committeeBroadcasts.filter(b => b.requestId === id);
+        for (const recipientId of COMMITTEE_IDS) {
+          if (already.some(b => b.recipientId === recipientId)) continue;
+          mockDB.committeeBroadcasts = [...mockDB.committeeBroadcasts, {
+            id: generateId('cb'),
+            requestId: id,
+            recipientId,
+            status: 'pending',
+            broadcastAt: new Date().toISOString(),
+          }];
+        }
+        _saveToStorage();
+        return updated;
+      });
+    },
+    confirm(id) {
+      return _withDelay(() => {
+        const idx = mockDB.memberChangeRequests.findIndex(r => r.id === id);
+        if (idx === -1) throw Object.assign(new Error(`成员变更申请 ${id} 不存在`), { type: 'NotFoundError' });
+        const row = mockDB.memberChangeRequests[idx];
+        const updated = { ...row, status: 'completed', confirmedAt: new Date().toISOString() };
+        mockDB.memberChangeRequests = [
+          ...mockDB.memberChangeRequests.slice(0, idx),
+          updated,
+          ...mockDB.memberChangeRequests.slice(idx + 1),
+        ];
+        // 更新成员发展阶段
+        mockDB.users = mockDB.users.map(u => u.id === row.personId ? { ...u, developStage: row.toStage || u.developStage } : u);
+        _saveToStorage();
+        return updated;
+      });
+    },
+  },
+
+  committeeBroadcasts: {
+    list(params = {}) {
+      return _withDelay(() => {
+        let rows = [...mockDB.committeeBroadcasts];
+        if (params.requestId) rows = rows.filter(r => r.requestId === params.requestId);
+        return rows;
+      });
+    },
+  },
 };
 
 /**
@@ -765,6 +851,8 @@ export function restoreNicheCollections() {
     if (Array.isArray(parsed.mailboxHistory))  mockDB.mailboxHistory  = parsed.mailboxHistory;
     if (Array.isArray(parsed.externalDispatches)) mockDB.externalDispatches = parsed.externalDispatches;
     if (Array.isArray(parsed.branchDocs)) mockDB.branchDocs = parsed.branchDocs;
+    if (Array.isArray(parsed.memberChangeRequests)) mockDB.memberChangeRequests = parsed.memberChangeRequests;
+    if (Array.isArray(parsed.committeeBroadcasts)) mockDB.committeeBroadcasts = parsed.committeeBroadcasts;
     if (Array.isArray(parsed.handoffs)) mockDB.handoffs = parsed.handoffs;
     if (Array.isArray(parsed.thoughtReports)) mockDB.thoughtReports = parsed.thoughtReports;
   } catch (e) {

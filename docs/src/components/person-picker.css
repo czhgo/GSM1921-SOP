@@ -312,6 +312,41 @@
   flex-shrink: 0;
 }
 
+/* ── 按阶段批量选择（书记 2026-09-01：参与人/待讨论名单集体选项） ── */
+.person-picker-batch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px 0;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.person-picker-batch-label {
+  font-size: 0.6875rem;
+  color: #9CA3AF;
+  flex-shrink: 0;
+}
+.person-picker-batch-chip {
+  font-size: 0.6875rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid #E5E7EB;
+  background: #FFFFFF;
+  color: #6B7280;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.person-picker-batch-chip:hover {
+  border-color: var(--pp-accent);
+  color: var(--pp-accent);
+}
+.person-picker-batch-chip.active {
+  background: var(--pp-accent-10);
+  border-color: var(--pp-accent);
+  color: var(--pp-accent);
+  font-weight: 500;
+}
+
 .person-picker-count {
   font-size: 0.75rem;
   color: #6B7280;

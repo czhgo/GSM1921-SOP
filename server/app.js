@@ -6,12 +6,17 @@ import { createAuthRouter } from './routes/auth.js';
 import { createResourcesRouter } from './routes/resources.js';
 import { createUploadsRouter } from './routes/uploads.js';
 import { createReportRouter } from './routes/report.js';
+import { createMemberRouter } from './routes/member.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DOCS_DIR = path.resolve(__dirname, '../docs');
 
 export function createApp({ dbPath = ':memory:' } = {}) {
   const app = express();
+  // 2026-09-01 快照 gzip：/api/v1/snapshot 用 raw body（快照 payload 全量 25 域 ~66KB，
+  // 前端压缩后传输；路由内手动 gunzip + parse）。须在 express.json 之前挂载，否则 gzip
+  // 二进制会被 json parser 误解析。
+  app.use('/api/v1/snapshot', express.raw({ type: '*/*', limit: '4mb' }));
   app.use(express.json({ limit: '2mb' }));
 
   app.get('/api/v1/health', (req, res) => res.json({ ok: true }));
@@ -21,6 +26,9 @@ export function createApp({ dbPath = ':memory:' } = {}) {
   app.use('/api/v1/auth', createAuthRouter(app.locals.db));
 
   app.use('/api/v1', createResourcesRouter(app.locals.db));
+
+  // 成员变更审批链路（议程记录通过 → 组织委员审批广播 → 书记确认更新阶段）
+  app.use('/api/v1', createMemberRouter(app.locals.db));
 
   app.use('/api/v1', createUploadsRouter(app.locals.db));
 

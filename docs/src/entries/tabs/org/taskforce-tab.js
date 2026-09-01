@@ -3,24 +3,24 @@
 // 看板式专班全生命周期管理 + 发布招募表单 + 活动进度追踪（原追踪看板融入）。
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类/activities）经 ctx 传入。
 
-import { setState } from '../../../core/state.js?v=20260829a';
-import { BranchService } from '../../../services/runtime.js?v=20260829a';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260829a';
-import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260829a';
-import { AuthStore } from '../../../services/auth.js?v=20260829a';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260829a';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260829a';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260829a';
-import { NoticeStore } from '../../../services/notice.js?v=20260829a';
-import { mockDB, SourceType, ParticipationLevel, ReviewStatus } from '../../../core/domain.js?v=20260829a';
-import { persist } from '../../../core/data-adapter.js?v=20260829a';
-import { showToast } from '../../../core/utils.js?v=20260829a';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260829a';
-import { icon } from '../../../core/icons.js?v=20260829a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260829a';
-import { renderQueryView } from '../../../components/query-view.js?v=20260829a';
-import { badgeHtml } from '../../../components/badge.js?v=20260829a';
-import { _personName, getPersonName } from '../../../mock/index.js?v=20260829a';
+import { setState } from '../../../core/state.js?v=20260901e';
+import { BranchService } from '../../../services/runtime.js?v=20260901e';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260901e';
+import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260901e';
+import { AuthStore } from '../../../services/auth.js?v=20260901e';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260901e';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260901e';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260901e';
+import { NoticeStore } from '../../../services/notice.js?v=20260901e';
+import { mockDB, SourceType, ParticipationLevel, ReviewStatus } from '../../../core/domain.js?v=20260901e';
+import { persist } from '../../../core/data-adapter.js?v=20260901e';
+import { showToast } from '../../../core/utils.js?v=20260901e';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260901e';
+import { icon } from '../../../core/icons.js?v=20260901e';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260901e';
+import { renderQueryView } from '../../../components/query-view.js?v=20260901e';
+import { badgeHtml } from '../../../components/badge.js?v=20260901e';
+import { _personName, getPersonName } from '../../../mock/index.js?v=20260901e';
 
 // 私有状态（随模块自持，不污染入口）
 let _recruitPersonPicker = null;

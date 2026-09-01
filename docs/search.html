@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260829a"></script>
+<script src="./src/theme-init.js?v=20260901e"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>光华管理学院本科生党支部</title>
@@ -12,8 +12,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260829a"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260829a">
+  <script src="./src/tailwind-config.js?v=20260901e"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260901e">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -34,20 +34,11 @@
           <p class="text-xs text-gray-500 mt-1">系统迭代资料 / 党支部文档 / 外部链接 / 常用工具</p>
         </div>
         <div class="flex items-center gap-2">
-          <input type="text" id="ref-search-input" class="input-flat" style="width:200px;height:36px;font-size:0.75rem;" placeholder="搜索资料...">
+          <label for="ref-search-input" class="sr-only">搜索资料</label>
+          <input type="search" id="ref-search-input" class="input-flat" style="width:200px;height:36px;font-size:0.75rem;" placeholder="搜索资料..." autocomplete="off">
           <a href="./index.html" class="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">← 返回主页</a>
         </div>
       </div>
-
-      <div id="ref-category-tabs" class="flex flex-wrap gap-2 mb-6">
-        <button class="ref-cat-btn active" data-cat="all">全部</button>
-        <button class="ref-cat-btn" data-cat="system">系统迭代</button>
-        <button class="ref-cat-btn" data-cat="party-doc">党支部文档</button>
-        <button class="ref-cat-btn" data-cat="tools">常用工具</button>
-        <button class="ref-cat-btn" data-cat="external">外部链接</button>
-      </div>
-
-      <div id="ref-sites-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"></div>
 
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">官方文件</h3>
@@ -64,11 +55,16 @@
       <div id="ref-branch-docs-empty" class="hidden text-center py-12 text-gray-400 text-sm">暂无支部文件</div>
       <div id="ref-branch-docs-login-hint" class="hidden text-center py-12 text-gray-400 text-sm">登录后查看支部文件</div>
 
+      <div class="flex items-center justify-between mb-4 mt-8">
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">常用入口</h3>
+      </div>
+      <div id="ref-sites-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
     </div>
   </main>
 </div>
 
 
-<script type="module" src="./src/entries/search-entry.js?v=20260829a"></script>
+<script type="module" src="./src/entries/search-entry.js?v=20260901e"></script>
 </body>
 </html>

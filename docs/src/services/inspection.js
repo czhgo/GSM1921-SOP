@@ -3,11 +3,11 @@
 //  inspection.js — 考察记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType } from '../core/domain.js?v=20260829a';
-import { persist } from '../core/data-adapter.js?v=20260829a';
-import { INSPECTION_RECORDS } from '../mock/index.js?v=20260829a';
-import { TodoStore, TodoSourceType } from './todo.js?v=20260829a';
-import { loadActivities } from './activity.js?v=20260829a';
+import { mockDB, SourceType } from '../core/domain.js?v=20260901e';
+import { persist } from '../core/data-adapter.js?v=20260901e';
+import { INSPECTION_RECORDS } from '../mock/index.js?v=20260901e';
+import { TodoStore, TodoSourceType } from './todo.js?v=20260901e';
+import { loadActivities } from './activity.js?v=20260901e';
 
 export function loadInspectionRecords() {
   return mockDB.inspections.length > 0 ? [...mockDB.inspections] : [...INSPECTION_RECORDS];

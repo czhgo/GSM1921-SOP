@@ -127,6 +127,13 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 
 所有 `<input>`/`<select>`/`<textarea>` 使用 `input-flat` 体系，禁用内联 Tailwind input 样式（如 `border border-gray-200 rounded-lg px-3 py-2 focus:border-red-300` 等）。紧凑场景使用 `input-flat-sm`，多行文本使用 `textarea.input-flat`。
 
+#### 表单字段条件显示与批量选择（2026-09-01 书记裁决）
+
+- **品牌字段按活动模板条件显示**：三会一课无品牌语义，品牌区（label + chips）不渲染；主题党日保留（实现：calendar-tab renderFormStep 按 `tpl.category === 'theme-day'` 条件渲染）。
+- **参与人/名单集体选项**：PersonPicker（multi）启用 `stageBatch` 时，面板头部显示「按阶段批量」chips（正式党员/预备党员/发展对象/积极分子），点击批量勾选/取消当前可见范围该阶段全部人员；chip 激活态表示该阶段已全选。三会一课参与人含「积极分子」快捷项（不强制参加、鼓励列席）。
+- **唯一选项 hover 即选**：模板选择 Step1 中仅一个子选项的类别（如主题党日），按钮移入即选中（`data-hover-select`），降低点击时间；多选项类别保持点击选择。
+- **工作台内嵌面板统一用 `card rounded-xl p-4`**：标题 `font-title-cn text-sm font-bold` + 计数 badge + 描述行 + `divide-y` 列表（对齐 handoff-inbox/report-inbox）；禁止自创 `bg-gray-50/50 border rounded-lg` 非标卡片变体。
+
 ### 4.4 侧边栏（Sidebar）
 
 #### 规范

@@ -7,9 +7,9 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE, getPersonById } from '../mock/index.js?v=20260829a';
-import { icon } from '../core/icons.js?v=20260829a';
-import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../core/constants.js?v=20260829a';
+import { PEOPLE, getPersonById } from '../mock/index.js?v=20260901e';
+import { icon } from '../core/icons.js?v=20260901e';
+import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../core/constants.js?v=20260901e';
 
 // ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
 function hexToRgba(hex, alpha) {
@@ -69,6 +69,8 @@ export class PersonPicker {
     this._activeGroup = '全部';
     this._panelOpen = false;
     this._accent = options.accentColor || '#CE1126';
+    // 2026-09-01 书记裁决：参与人/待讨论名单支持「按阶段批量选择」（正式党员/预备党员/发展对象/积极分子）
+    this._stageBatch = options.stageBatch || false;
 
     // 预计算主题色 CSS 变量（注入到 wrapper 上，供 person-picker.css 使用）
     this._cssVars = {
@@ -319,6 +321,29 @@ export class PersonPicker {
     listContainer.className = 'person-picker-list';
     panel.appendChild(listContainer);
 
+    // ── 按阶段批量选择（书记 2026-09-01：参与人/待讨论名单集体选项；multi + stageBatch 时显示）──
+    if (this._mode === 'multi' && this._stageBatch) {
+      const batchBar = document.createElement('div');
+      batchBar.className = 'person-picker-batch';
+      batchBar.innerHTML = `<span class="person-picker-batch-label">按阶段批量</span>`
+        + Object.keys(STAGE_LABELS).map(stage =>
+          `<button type="button" class="person-picker-batch-chip" data-stage="${stage}">${stage}</button>`).join('');
+      panel.insertBefore(batchBar, listContainer);
+      this._batchEl = batchBar;
+      batchBar.querySelectorAll('.person-picker-batch-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const stage = chip.dataset.stage;
+          const target = this._getVisiblePeople().filter(p => p.developStage === stage);
+          if (target.length === 0) return;
+          const allSelected = target.every(p => this._selected.has(p.id));
+          target.forEach(p => { allSelected ? this._selected.delete(p.id) : this._selected.add(p.id); });
+          this._renderList();
+          this._updateFooterCount();
+          this._renderTrigger();
+        });
+      });
+    }
+
     // ── 底部操作栏（多选模式） ──
     if (this._mode === 'multi') {
       const footer = document.createElement('div');
@@ -457,6 +482,15 @@ export class PersonPicker {
         this._handleSelect(personId);
       });
     });
+
+    // 更新按阶段批量 chips 激活态（当前可见范围内该阶段全部已选则高亮）
+    if (this._batchEl) {
+      const visible = this._getVisiblePeople();
+      this._batchEl.querySelectorAll('.person-picker-batch-chip').forEach(chip => {
+        const target = visible.filter(p => p.developStage === chip.dataset.stage);
+        chip.classList.toggle('active', target.length > 0 && target.every(p => this._selected.has(p.id)));
+      });
+    }
   }
 
   // ── 选中逻辑 ────────────────────────────────────────────────

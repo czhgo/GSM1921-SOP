@@ -5,21 +5,22 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../core/state.js?v=20260829a';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260829a';
-import { _fmtChinese, showToast } from '../core/utils.js?v=20260829a';
-import { icon } from '../core/icons.js?v=20260829a';
-import { openModal, closeModal } from './modal.js?v=20260829a';
-import { PEOPLE, getPersonById } from '../mock/index.js?v=20260829a';
-import { BranchService } from '../services/runtime.js?v=20260829a';
-import { AuthStore } from '../services/auth.js?v=20260829a';
-import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260829a';
-import { badgeHtml } from './badge.js?v=20260829a';
-import { persist, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260829a';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260829a';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260829a';
-import { loadActivityReviews } from '../services/review.js?v=20260829a';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260829a';
+import { setState, STATE, getAppState } from '../core/state.js?v=20260901e';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260901e';
+import { _fmtChinese, showToast } from '../core/utils.js?v=20260901e';
+import { icon } from '../core/icons.js?v=20260901e';
+import { openModal, closeModal } from './modal.js?v=20260901e';
+import { PEOPLE, getPersonById } from '../mock/index.js?v=20260901e';
+import { BranchService } from '../services/runtime.js?v=20260901e';
+import { AuthStore } from '../services/auth.js?v=20260901e';
+import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260901e';
+import { badgeHtml } from './badge.js?v=20260901e';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260901e';
+import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260901e';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260901e';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260901e';
+import { loadActivityReviews } from '../services/review.js?v=20260901e';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260901e';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -95,7 +96,8 @@ export function filterTasksByManagementRole(tasks, managementRole) {
 // ════════════════════════════════════════════════════════════════
 //  检查器状态路由分发（根据 viewMode / viewType 切换 List / Detail）
 // ════════════════════════════════════════════════════════════════
-export function renderInspectorFromState(state) {
+export function renderInspectorFromState(state = getAppState()) {
+  if (!state || !state.activities) return;
   if (state.viewType === 'participant' && state.viewMode !== 'detail') {
     renderInspectorList(state.activities, state.selectedDate, state.viewType, state.viewArchived);
     return;
@@ -415,6 +417,52 @@ function _showCloseBlockModal(activity, missing) {
 // ════════════════════════════════════════════════════════════════
 //  详情视图：渲染单个活动的任务列表与危险操作按钮
 // ════════════════════════════════════════════════════════════════
+
+/** 议程类型徽章（2026-09-01 书记点验链路 ①/②）：讨论文件 → 草案标题；待讨论名单 → 人数与阶段转换 */
+function _agendaTypeBadges(a) {
+  const badges = [];
+  const isKind = (k) => (Array.isArray(a.kinds) && a.kinds.includes(k)) || a.kind === k;
+  if (isKind('discussion-file')) {
+    const doc = (mockDB.branchDocs || []).find(d => d.id === a.branchDocId);
+    const docLabel = doc ? (doc.title || doc.fileName || '未命名草案') : '（草案已删除）';
+    badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium text-amber-700 bg-amber-50">讨论文件：${docLabel}</span>`);
+  }
+  if (isKind('attendee-list') || isKind('member-change')) {
+    const personIds = Array.isArray(a.personIds) ? a.personIds : (a.personId ? [a.personId] : []);
+    const stage = `${a.fromStage || ''}→${a.toStage || ''}`;
+    const label = personIds.length > 0
+      ? `待讨论名单：${personIds.length} 名 · ${stage}`
+      : `待讨论名单：${stage}`;
+    badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium text-blue-700 bg-blue-50">${label}</span>`);
+  }
+  return badges.join('');
+}
+
+/** 议程结果记录（2026-09-01 书记点验链路 ②）：记录通过/未通过 → 归档草案/建成员变更申请 → 落库活动 */
+async function _recordAgendaResult(activity, agendaItemId, result) {
+  const actor = AuthStore.getCurrentUser();
+  const adapter = getAdapter();
+  const db = {
+    branchDocs: [...(mockDB.branchDocs || [])],
+    memberChangeRequests: [...(mockDB.memberChangeRequests || [])],
+  };
+  const updated = await recordAgendaResultForActivity({
+    activity,
+    agendaItemId,
+    result,
+    adapter,
+    db,
+    actorId: actor?.personId || null,
+  });
+  // 2026-09-01 代码审查修复（P1）：新创建的申请回写 mockDB（recordAgendaResult 只在局部 db 更新，
+  // 不回写会导致 API 模式下本地查重失效、重复建申请）
+  if (Array.isArray(db.memberChangeRequests) && db.memberChangeRequests.length > 0) {
+    mockDB.memberChangeRequests = db.memberChangeRequests;
+  }
+  await BranchService.updateActivity(activity.id, { agenda: updated.agenda });
+  return updated;
+}
+
 function renderInspectorDetail(activity, tasks, managementRole) {
   const defEl     = document.getElementById('inspector-default');
   const contentEl = document.getElementById('inspector-content');
@@ -506,7 +554,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     html += `<div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3"><p class="text-xs text-gray-400 mb-1">活动详情</p><p class="text-xs text-gray-700 leading-relaxed">${activity.description}</p></div>`;
   }
 
-  // ── 会议议程（T-283：三会一课；显示 + 书记行内编辑）──
+  // ── 会议议程（T-283：三会一课；显示 + 书记行内编辑；2026-09-01：类型徽章 + 结果记录）──
   if (Array.isArray(activity.agenda) && activity.agenda.length > 0) {
     html += '<div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3" id="agenda-block">';
     html += '<div class="flex items-center justify-between mb-1.5">';
@@ -515,9 +563,30 @@ function renderInspectorDetail(activity, tasks, managementRole) {
       html += '<button id="inspector-agenda-edit-btn" class="text-xs text-blue-600 hover:text-blue-800 transition-colors" style="background:none;border:none;cursor:pointer;padding:0;">编辑议程</button>';
     }
     html += '</div>';
-    html += '<ol class="space-y-1">';
+    html += '<ol class="space-y-1.5">';
     activity.agenda.forEach((a, i) => {
-      html += `<li class="flex items-start gap-2 text-xs"><span class="text-gray-400 flex-shrink-0 w-4">${i + 1}.</span><span class="text-gray-700">${a.item}${a.host ? ` <span class="text-gray-400">（主持人：${a.host}）</span>` : ''}</span></li>`;
+      const canRecord = isSecretary && !isArchived && !a.result && !!a.id;
+      const typeBadges = _agendaTypeBadges(a);
+      const resultBadge = a.result
+        ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${a.result === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${a.result === 'passed' ? '已通过' : '未通过'}</span>`
+        : '';
+      const recordInfo = a.recordedBy ? ` · 记录：${getPersonById(a.recordedBy)?.name || a.recordedBy}${a.recordedAt ? ' ' + String(a.recordedAt).slice(0, 10) : ''}` : '';
+      html += `<li class="flex items-start gap-2 text-xs">
+        <span class="text-gray-400 flex-shrink-0 w-4">${i + 1}.</span>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="text-gray-700">${a.item}</span>
+            ${typeBadges}
+            ${resultBadge}
+          </div>
+          <div class="text-gray-400 mt-0.5">${a.host ? `（主持人：${a.host}）` : ''}${recordInfo}</div>
+        </div>
+        ${canRecord ? `
+          <div class="flex gap-1 shrink-0">
+            <button type="button" data-agenda-result="passed" data-agenda-item-id="${a.id}" class="inspector-agenda-result text-[11px] px-2 py-0.5 rounded-lg text-white font-medium" style="background:#16A34A;cursor:pointer;">通过</button>
+            <button type="button" data-agenda-result="rejected" data-agenda-item-id="${a.id}" class="inspector-agenda-result text-[11px] px-2 py-0.5 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors" style="cursor:pointer;">未通过</button>
+          </div>` : ''}
+      </li>`;
     });
     html += '</ol>';
     html += '</div>';
@@ -593,6 +662,31 @@ function renderInspectorDetail(activity, tasks, managementRole) {
       _startAgendaEdit(activity, cardsEl, tasks, managementRole);
     });
   }
+
+  // 议程结果记录（2026-09-01 书记点验链路 ②：通过/未通过 → 归档草案/建成员变更申请 → 重渲染）
+  // P1 防连点：点击后禁用按钮（async 落库期间重复点击会重复建申请）
+  cardsEl.querySelectorAll('.inspector-agenda-result').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (btn.dataset.processing === '1') return;
+      btn.dataset.processing = '1';
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      try {
+        const result = btn.dataset.agendaResult;
+        await _recordAgendaResult(activity, btn.dataset.agendaItemId, result);
+        showToast('success', result === 'passed' ? '已记录通过' : '已记录未通过');
+        // 同步全局 state（mockDB 已更新，state.activities 是旧副本 → 不刷新则详情不即时更新）
+        setState({ activities: [...mockDB.activities] });
+        renderInspectorFromState();
+      } catch (e) {
+        console.warn('[inspector] 议程结果记录失败：', e);
+        showToast('error', e.message || '记录失败');
+        btn.dataset.processing = '';
+        btn.disabled = false;
+        btn.style.opacity = '';
+      }
+    });
+  });
 
   // B 档 CRUD 补全：活动信息编辑入口（书记专属）
   const editBtn = document.getElementById('inspector-edit-btn');

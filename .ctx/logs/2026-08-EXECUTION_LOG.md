@@ -1,8 +1,9 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
+
 title: "2026年8月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-08-23"
+last_updated: "2026-08-31"
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -6199,3 +6200,26 @@ P-001~P-004、P-014~P-017 不变。物理顺序与编号一致。
   - `KNOWN_PITFALLS.md`：4 处（分工边界/子代理三查/双实例/验证=通过）
 - **保留清单**：书记原话（SECRETARY L372 等）、书记判例引用（PROCESS_GUIDE L356/L395、OPERATIONS L518）、USAGE_POLICY 规则原文、历史日志与 REVIEW_QUEUE 评议记录、references/ 外部文献、代码/数学语境表达式
 - **验证**：全仓 Grep「不是…而是」与 ≠ 语义符号在活跃文档零残留；剩余命中均为保留边界（原话/日志/外部文献/代码语境）
+
+---
+
+### 2026-08-31 · T-305 后端跨端验证
+
+- `server/test/e2e-login.test.js` 通过；活动与成员阶段分别在两份独立登录会话中完成写入、读取和后端重启后的读回。
+- 两次验证均使用临时 SQLite 数据库，已删除，未触及项目默认数据文件。
+
+---
+
+### 2026-09-01 · 会议结果与成员变更闭环回归
+
+- `server/test/agenda-follow-up.test.mjs` 通过：讨论文件通过后归档关联草案；成员变更通过后创建待组织委员审批申请；未通过不创建申请；结果记录含操作人和时间。
+- `server/test/member-change-flow.test.js` 通过：组织委员审批后生成全体支委广播记录，书记确认后更新成员阶段。
+- `server/test/member-change-cross-session.test.js` 通过：独立支委登录会话读取同一服务器，确认后的成员阶段与本人广播收件记录一致。
+- `server/test/agenda-editing.test.mjs` 通过：编辑议程标题或主持人时保留文件关联、成员阶段、会议结果等结构字段。
+
+### 2026-09-01 · 内置浏览器与运行中服务回归
+
+- Codex 内置浏览器已恢复可用，并成功加载运行在 `http://localhost:50626/search.html` 的本地服务；服务健康检查返回 HTTP 200。
+- 实测资料查询首屏：页面未出现分类 tab；官方文件位于支部文件之前；搜索框与返回入口正常显示。
+- 新增闭环回归 5/5 通过：`agenda-editing`、`agenda-follow-up`、`member-change-flow`、`member-change-cross-session`。
+- 旧有 Playwright 无头浏览器用例在当前 Windows 环境仍会因 `spawn EPERM` 无法启动；该限制已与内置浏览器实测分开记录，不作为业务功能失败。

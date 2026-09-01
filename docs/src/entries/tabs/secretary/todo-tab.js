@@ -4,23 +4,24 @@
 // 2026-08-07 T232：改为「动态聚合 + 复核确认面板」——SecretaryTodoDeriver.computeAggregates()
 //   实时计算 4 提醒 + 4 复核，复核类一键写 secretaryConfirmedAt 销项，不再创建虚假实体待办。
 
-import { showToast } from '../../../core/utils.js?v=20260829a';
-import { renderTodoList } from '../../../components/todo-list.js?v=20260829a';
-import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260829a';
-import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260829a';
-import { badgeHtml } from '../../../components/badge.js?v=20260829a';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260829a';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260829a';
-import { updateActivityReview } from '../../../services/review.js?v=20260829a';
-import { loadActivities } from '../../../services/activity.js?v=20260829a';
-import { mockDB } from '../../../core/domain.js?v=20260829a';
-import { persist } from '../../../core/data-adapter.js?v=20260829a';
-import { getPersonById } from '../../../mock/index.js?v=20260829a';
-import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260829a';
-import { IssueStore } from '../../../services/issues.js?v=20260829a';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260829a';
-import { openFormModal } from '../../../components/modal.js?v=20260829a';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/report-inbox.js?v=20260829a';
+import { showToast } from '../../../core/utils.js?v=20260901e';
+import { renderTodoList } from '../../../components/todo-list.js?v=20260901e';
+import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260901e';
+import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260901e';
+import { badgeHtml } from '../../../components/badge.js?v=20260901e';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260901e';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260901e';
+import { updateActivityReview } from '../../../services/review.js?v=20260901e';
+import { loadActivities } from '../../../services/activity.js?v=20260901e';
+import { mockDB } from '../../../core/domain.js?v=20260901e';
+import { persist } from '../../../core/data-adapter.js?v=20260901e';
+import { getPersonById } from '../../../mock/index.js?v=20260901e';
+import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260901e';
+import { IssueStore } from '../../../services/issues.js?v=20260901e';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260901e';
+import { openFormModal } from '../../../components/modal.js?v=20260901e';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/report-inbox.js?v=20260901e';
+import { renderMemberChangePanel } from '../../../components/member-change-panel.js?v=20260901e';
 
 const { accent, accentBorder } = getAccentColors(resolveAccentRole('secretary'));
 
@@ -111,6 +112,7 @@ export async function renderContent() {
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2">
         <div class="space-y-4">
+          <div id="secretary-member-change-panel"></div>
           ${inboxHtml}
           <div class="card rounded-xl p-5">
             <div class="flex items-center justify-between mb-4">
@@ -132,6 +134,12 @@ export async function renderContent() {
   bindEvents(container);
   bindTodoDetailEvents();
   bindReportInbox(container, { role: 'secretary', onAnswered: () => renderContent() });
+  // 成员变更确认面板（2026-09-01 书记点验链路 ④：组织委员审批后 → 书记确认 → 更新阶段）
+  await renderMemberChangePanel(container.querySelector('#secretary-member-change-panel'), {
+    mode: 'secretary-confirm',
+    accent,
+    onDone: () => renderContent(),
+  });
 }
 
 // ── 详情卡：按聚合类型分发（confirm / remind / 种子行动类） ────

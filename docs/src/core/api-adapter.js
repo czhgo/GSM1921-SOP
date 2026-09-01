@@ -14,12 +14,22 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260829a';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260901e';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
-/** 普通请求超时（ms）。keepalive 请求不设超时，见 _request 注释 */
+/** 请求超时（ms）。keepalive 请求不设超时，见 _request 注释 */
 const REQUEST_TIMEOUT_MS = 8000;
+
+/**
+ * gzip 压缩字符串（快照 payload 压缩传输；Chrome 80+ / 现代浏览器支持 CompressionStream）
+ * @param {string} str
+ * @returns {Promise<ArrayBuffer>}
+ */
+async function _gzip(str) {
+  const stream = new Blob([str]).stream().pipeThrough(new CompressionStream('gzip'));
+  return new Response(stream).arrayBuffer();
+}
 
 /**
  * 发送认证 HTTP 请求
@@ -154,13 +164,15 @@ export const ApiAdapter = {
    * @returns {Promise<null>} 204 No Content
    */
   snapshot(payload) {
-    // keepalive + pagehide 兜底（I1）：导航（整页 reload/切页）卸载瞬间仍能发出快照，
-    // 避免 800ms 防抖窗口内的写入随旧上下文销毁而静默丢失
-    return _request('/api/v1/snapshot', {
+    // 2026-09-01 点验修复：keepalive 请求体有 64KB 硬限制，全量快照 payload（25 域）常超限
+    // 导致 API 模式下活动创建/议程记录写穿静默失败。改普通 fetch 保证写穿；
+    // 并 gzip 压缩 payload（66KB → ~10KB），规避大请求体传输限制（沙箱代理/网络层）。
+    // 卸载瞬间丢失的写入由 localStorage 备份兜底（刷新后 loadDB 恢复，下次 persist 补写）。
+    return _gzip(JSON.stringify(payload)).then((body) => _request('/api/v1/snapshot', {
       method: 'POST',
-      body: JSON.stringify(payload),
-      keepalive: true,
-    });
+      headers: { 'Content-Encoding': 'gzip' },
+      body,
+    }));
   },
 
   // ── 资源分组接口 ──────────────────────────────────────────
@@ -538,6 +550,42 @@ export const ApiAdapter = {
 
     delete(id) {
       return _delete(`/api/v1/branchDocs/${id}`);
+    },
+  },
+
+  users: {
+    list() {
+      return _get('/api/v1/users');
+    },
+
+    update(id, patch) {
+      return _patch(`/api/v1/users/${id}`, patch);
+    },
+  },
+
+  memberChangeRequests: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/member-change-requests${query ? '?' + query : ''}`);
+    },
+
+    create(data) {
+      return _post('/api/v1/member-change-requests', data);
+    },
+
+    approve(id) {
+      return _post(`/api/v1/member-change-requests/${id}/approve`);
+    },
+
+    confirm(id) {
+      return _post(`/api/v1/member-change-requests/${id}/confirm`);
+    },
+  },
+
+  committeeBroadcasts: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/committeeBroadcasts${query ? '?' + query : ''}`);
     },
   },
 };

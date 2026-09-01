@@ -36,10 +36,30 @@ export function createAuthRouter(db) {
 // token 校验中间件（保护资源写接口）
 export function requireAuth(db) {
   return (req, res, next) => {
-    const token = (req.headers.authorization || '').replace('Bearer ', '');
-    const session = token ? db.prepare('SELECT * FROM sessions WHERE token = ?').get(token) : null;
-    if (!session) return res.status(401).json({ error: '未登录' });
-    req.session = session;
+    const actor = getSessionUser(db, req);
+    if (!actor) return res.status(401).json({ error: '未登录' });
+    req.session = actor.session;
+    req.actor = actor.user;
+    next();
+  };
+}
+
+function getSessionUser(db, req) {
+  const token = (req.headers.authorization || '').replace('Bearer ', '');
+  const session = token ? db.prepare('SELECT * FROM sessions WHERE token = ?').get(token) : null;
+  if (!session) return null;
+  const userRow = db.prepare('SELECT data FROM users WHERE id = ?').get(session.person_id);
+  if (!userRow) return null;
+  return { session, user: JSON.parse(userRow.data) };
+}
+
+export function requireRole(db, roles) {
+  return (req, res, next) => {
+    const actor = getSessionUser(db, req);
+    if (!actor) return res.status(401).json({ error: '未登录' });
+    if (!roles.has(actor.user.role)) return res.status(403).json({ error: '无权限' });
+    req.session = actor.session;
+    req.actor = actor.user;
     next();
   };
 }
@@ -52,14 +72,5 @@ const COMMISSIONER_ROLES = new Set([
 
 // 支委写权限中间件（requireAuth + 角色校验，保护支部文件等需支委写入的资源）
 export function requireCommissioner(db) {
-  return (req, res, next) => {
-    const token = (req.headers.authorization || '').replace('Bearer ', '');
-    const session = token ? db.prepare('SELECT * FROM sessions WHERE token = ?').get(token) : null;
-    if (!session) return res.status(401).json({ error: '未登录' });
-    const userRow = db.prepare('SELECT data FROM users WHERE id = ?').get(session.person_id);
-    const role = userRow ? JSON.parse(userRow.data).role : null;
-    if (!COMMISSIONER_ROLES.has(role)) return res.status(403).json({ error: '无权限：仅支委可操作' });
-    req.session = session;
-    next();
-  };
+  return requireRole(db, COMMISSIONER_ROLES);
 }

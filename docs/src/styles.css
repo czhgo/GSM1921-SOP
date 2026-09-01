@@ -439,6 +439,23 @@ input.input-flat.text-xs {
   font-weight: 500;
 }
 
+/* 议程类型 chips（2026-09-01：多选不互斥） */
+.wp-agenda-kind {
+  cursor: pointer;
+  user-select: none;
+  background-color: var(--neutral-0);
+}
+.wp-agenda-kind:hover {
+  border-color: var(--party-gold);
+  color: #A16207;
+}
+.wp-agenda-kind.wp-agenda-kind-on {
+  background-color: var(--app-accent-bg, rgba(185, 28, 28, 0.1));
+  border-color: var(--app-accent, #B91C1C);
+  color: var(--app-accent, #B91C1C);
+  font-weight: 500;
+}
+
 select.input-flat {
   appearance: none;
   -webkit-appearance: none;

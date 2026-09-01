@@ -2,12 +2,13 @@
 // 组织委员工作台 Tab：待办（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 todo-tab-shell）
 // 最小三成本原则落地：进入即见首条详情，减一次点击。
 
-import { TodoStore } from '../../../services/todo.js?v=20260829a';
-import { showToast } from '../../../core/utils.js?v=20260829a';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260829a';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260829a';
-import { HandoffStore } from '../../../services/handoff.js?v=20260829a';
-import { openFormModal } from '../../../components/modal.js?v=20260829a';
+import { TodoStore } from '../../../services/todo.js?v=20260901e';
+import { showToast } from '../../../core/utils.js?v=20260901e';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260901e';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260901e';
+import { HandoffStore } from '../../../services/handoff.js?v=20260901e';
+import { openFormModal } from '../../../components/modal.js?v=20260901e';
+import { renderMemberChangePanel } from '../../../components/member-change-panel.js?v=20260901e';
 
 function _handleTodoAction(todo, ctx) {
   // 通知阅读待办（T-234 F1）：直达通知详情页（聚合时取首条 noticeId）
@@ -56,8 +57,8 @@ export const { renderContent } = createTodoTab({
   prefix: 'org',
   role: 'org-commissioner',
   onAction: _handleTodoAction,
-  // T-304 C2 数据交接：组织确认考察建档（纪检提交 → 组织接收，后台自动派生待办）
-  extraTopHtml: (ctx) => renderHandoffInboxHtml({
+  // 2026-09-01 成员变更审批入口（书记点验链路 ③：议程记录通过 → 组织委员审批 → 广播全体支委）
+  extraTopHtml: (ctx) => `<div id="org-member-change-panel"></div>` + renderHandoffInboxHtml({
     to: 'org-commissioner',
     accent: ctx.accent,
     title: '数据交接·考察建档',
@@ -66,6 +67,12 @@ export const { renderContent } = createTodoTab({
     </div>`,
   }),
   bindExtras: (container, ctx) => {
+    // 成员变更审批面板（渲染与操作都在组件内；完成后重渲染 todo）
+    renderMemberChangePanel(container.querySelector('#org-member-change-panel'), {
+      mode: 'org-approve',
+      accent: ctx.accent,
+      onDone: () => renderContent(ctx),
+    });
     bindHandoffInbox(container, { to: 'org-commissioner', onDone: () => { showToast('success', '考察记录已接收建档'); renderContent(ctx); } });
     // T-304 C2 数据交接：组织标记补课材料缺失 → 纪检补课制度高亮（回执机制）
     container.querySelector('#org-shortage-btn')?.addEventListener('click', () => {

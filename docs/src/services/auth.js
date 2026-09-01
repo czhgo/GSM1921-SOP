@@ -9,14 +9,14 @@
 //   - 链式赋权: AUTHORIZE_CHAIN 定义谁可以赋权什么角色
 //   - party 页面已移除，organizer/deep 内容归入首页"我的角色"区块
 
-import { ROLE_LABELS } from '../core/constants.js?v=20260829a';
-import { PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260829a';
-import { mockDB } from '../core/domain.js?v=20260829a';
-import { NoticeStore } from './notice.js?v=20260829a';
-import { updateActivity } from './mock.js?v=20260829a';
-import { TaskForceRecordStore } from './taskforce.js?v=20260829a';
-import { persist } from '../core/data-adapter.js?v=20260829a';
-import { enableApiMode } from './runtime.js?v=20260829a';
+import { ROLE_LABELS } from '../core/constants.js?v=20260901e';
+import { PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260901e';
+import { mockDB } from '../core/domain.js?v=20260901e';
+import { NoticeStore } from './notice.js?v=20260901e';
+import { updateActivity } from './mock.js?v=20260901e';
+import { TaskForceRecordStore } from './taskforce.js?v=20260901e';
+import { persist } from '../core/data-adapter.js?v=20260901e';
+import { enableApiMode } from './runtime.js?v=20260901e';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }

@@ -1,9 +1,10 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../core/icons.js?v=20260829a';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260829a';
-import { AuthStore } from '../services/auth.js?v=20260829a';
+import { icon } from '../core/icons.js?v=20260901e';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260901e';
+import { AuthStore } from '../services/auth.js?v=20260901e';
+import { loadActivities } from '../services/activity.js?v=20260901e';
 
 const SITE_GROUPS = [
   {
@@ -137,15 +138,22 @@ function _readFileAsDataURL(file) {
   });
 }
 
+/** 归档来源标签（2026-09-01 代码审查 P3）：已归档支部文件显示「经 XX 会议讨论通过」，留痕完整 */
+function _discussionLabel(d) {
+  if (!d || d.status === 'draft' || !d.discussionActivityId) return '';
+  try {
+    const act = loadActivities().find((a) => a.id === d.discussionActivityId);
+    return act && act.title ? ` · 经《${act.title}》讨论通过` : '';
+  } catch (_) { return ''; }
+}
+
 export class ReferencesModule {
-  static _currentCat = 'all';
   static _searchTerm = '';
   static _branchDocs = [];
   static _currentUser = null;
   static _isCommissioner = false;
 
   static init() {
-    ReferencesModule._bindCategoryTabs();
     ReferencesModule._bindSearch();
     ReferencesModule._bindBranchDocAdd();
     ReferencesModule._loadAuth();
@@ -166,19 +174,6 @@ export class ReferencesModule {
       console.warn('[references] 支部文件加载失败：', e);
       ReferencesModule._branchDocs = [];
     }
-  }
-
-  static _bindCategoryTabs() {
-    const container = document.getElementById('ref-category-tabs');
-    if (!container) return;
-    container.querySelectorAll('.ref-cat-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        container.querySelectorAll('.ref-cat-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        ReferencesModule._currentCat = btn.dataset.cat;
-        ReferencesModule.render();
-      });
-    });
   }
 
   static _bindSearch() {
@@ -206,9 +201,6 @@ export class ReferencesModule {
     if (!grid) return;
 
     let sites = SITE_GROUPS;
-    if (ReferencesModule._currentCat !== 'all') {
-      sites = sites.filter(s => s.cat === ReferencesModule._currentCat);
-    }
     if (ReferencesModule._searchTerm) {
       const q = ReferencesModule._searchTerm;
       sites = sites.filter(s => s.title.toLowerCase().includes(q) || s.desc.toLowerCase().includes(q));
@@ -232,9 +224,6 @@ export class ReferencesModule {
     if (!list) return;
 
     let docs = OFFICIAL_DOCS;
-    if (ReferencesModule._currentCat !== 'all') {
-      docs = docs.filter(d => d.cat === ReferencesModule._currentCat);
-    }
     if (ReferencesModule._searchTerm) {
       const q = ReferencesModule._searchTerm;
       docs = docs.filter(d => d.title.toLowerCase().includes(q) || d.desc.toLowerCase().includes(q));
@@ -282,9 +271,12 @@ export class ReferencesModule {
     if (loginHint) loginHint.classList.add('hidden');
     if (addBtn) addBtn.classList.toggle('hidden', !ReferencesModule._isCommissioner);
 
-    let docs = ReferencesModule._branchDocs;
-    if (ReferencesModule._currentCat !== 'all') {
-      docs = docs.filter(d => (d.cat || 'party-doc') === ReferencesModule._currentCat);
+    let docs = ReferencesModule._branchDocs.map((doc) => ({
+      ...doc,
+      status: doc.status || 'archived',
+    }));
+    if (!ReferencesModule._isCommissioner) {
+      docs = docs.filter((doc) => doc.status === 'archived');
     }
     if (ReferencesModule._searchTerm) {
       const q = ReferencesModule._searchTerm;
@@ -319,7 +311,7 @@ export class ReferencesModule {
             ${_formatIcon(d.format || _extFromName(d.fileName))}
             <div class="ref-doc-info">
               <span class="ref-doc-title">${_esc(d.title || d.fileName || '未命名文件')}</span>
-              <span class="ref-doc-meta">${_esc(d.desc || d.fileName || '')}</span>
+              <span class="ref-doc-meta">${_esc(d.status === 'draft' ? '会前草案' : '已归档')}${_discussionLabel(d)}${d.desc || d.fileName ? ' · ' + _esc(d.desc || d.fileName || '') : ''}</span>
             </div>
           </div>
           <div class="ref-doc-right">
@@ -360,7 +352,7 @@ export class ReferencesModule {
     card.innerHTML = `
       <div class="px-5 pt-4 pb-3 flex items-center justify-between" style="border-bottom:1px solid var(--neutral-200);">
         <h3 class="font-title-cn text-sm font-semibold" style="color:var(--neutral-800);">${editing ? '修改支部文件' : '写入支部文件'}</h3>
-        <button id="ref-modal-close" type="button" style="color:var(--neutral-400);font-size:1rem;line-height:1;background:none;border:none;cursor:pointer;">&times;</button>
+        <button id="ref-modal-close" type="button" aria-label="关闭写入支部文件窗口" style="color:var(--neutral-400);font-size:1rem;line-height:1;background:none;border:none;cursor:pointer;">&times;</button>
       </div>
       <div class="px-5 py-4 space-y-3.5 overflow-y-auto">
         <div>
@@ -448,6 +440,7 @@ export class ReferencesModule {
         fileData: fileMeta.fileData || null,
         uploadedBy: ReferencesModule._currentUser ? ReferencesModule._currentUser.personId : null,
         uploadedAt: new Date().toISOString(),
+        status: 'draft',
       };
       const created = await getAdapter().branchDocs.create(data);
       ReferencesModule._branchDocs = [...ReferencesModule._branchDocs, created];
