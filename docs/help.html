@@ -20,7 +20,7 @@
   <style>
     /* ═══════════ 帮助页（系统说明书）文档样式 ═══════════ */
     .doc-wrap { max-width: 880px; margin: 0 auto; padding: 24px 16px 72px; }
-    .doc-card { background:#FFFFFF; border:1px solid #EEEFF2; border-radius:20px; padding:36px 40px; margin-bottom:22px; box-shadow:0 1px 3px rgba(0,0,0,0.03); }
+    .doc-card { background:#FFFFFF; border:1px solid #EEEFF2; border-radius:20px; padding:36px 40px; margin-bottom:22px; box-shadow:0 1px 3px rgba(0,0,0,0.03); scroll-margin-top:76px; }
     .doc-h2 { font-family:'Noto Serif SC','STZhongsong',serif; font-size:1.35rem; font-weight:700; color:#1F2937; letter-spacing:0.02em; line-height:1.3; display:flex; align-items:baseline; gap:12px; }
     .doc-h2 .doc-num { color:#CE1126; font-weight:800; font-size:1.5rem; }
     .doc-divider { height:1px; background:linear-gradient(90deg,#CE1126 0 64px,#E5E7EB 64px 100%); margin:14px 0 22px; border:none; }
@@ -103,6 +103,59 @@
       .doc-minis { grid-template-columns:1fr; }
     }
 
+    /* ═══════════ help 三区布局：左目录树 + 右内容面板 ═══════════ */
+    .help-layout { display:flex; gap:28px; align-items:flex-start; }
+    #help-toc-slot { width:220px; flex-shrink:0; position:sticky; top:76px; max-height:calc(100vh - 92px); overflow-y:auto; padding-right:4px; }
+    #help-toc-slot::-webkit-scrollbar { width:6px; }
+    #help-toc-slot::-webkit-scrollbar-thumb { background:#E5E7EB; border-radius:999px; }
+    .help-main { flex:1; min-width:0; }
+    .help-toc { display:flex; flex-direction:column; gap:2px; border-left:1px solid #EEEFF2; padding-left:12px; }
+    .help-toc-item { display:block; font-size:0.84rem; color:#4B5563; text-decoration:none; padding:5px 10px; border-radius:var(--radius-sm); line-height:1.5; transition:background-color .15s,color .15s; }
+    .help-toc-item:hover { background:#F8F9FA; color:#111827; }
+    .help-toc-item:focus-visible { outline:2px solid #CE1126; outline-offset:2px; }
+    .help-toc-item.is-active { color:#CE1126; font-weight:600; background:#FDF2F2; }
+    .toc-anchor { display:block; scroll-margin-top:76px; }
+
+    /* ── 顶部搜索框 ── */
+    .help-search { position:relative; margin-bottom:24px; }
+    .help-search-input { width:100%; border:1px solid #E5E7EB; border-radius:var(--radius-md); padding:10px 16px; font-size:0.9rem; background:#FFFFFF; color:#111827; outline:none; transition:border-color .15s, box-shadow .15s; }
+    .help-search-input::placeholder { color:#9CA3AF; }
+    .help-search-input:focus { border-color:#CE1126; box-shadow:0 0 0 3px rgba(206,17,38,0.08); }
+    .help-search-results { position:absolute; top:calc(100% + 6px); left:0; right:0; background:#FFFFFF; border:1px solid #EEEFF2; border-radius:var(--radius-md); box-shadow:0 8px 24px rgba(0,0,0,0.08); z-index:30; max-height:320px; overflow-y:auto; padding:4px; }
+    .help-search-result { display:block; width:100%; text-align:left; padding:8px 12px; font-size:0.86rem; color:#374151; background:none; border:none; border-radius:var(--radius-sm); cursor:pointer; }
+    .help-search-result:hover { background:#FDF2F2; color:#CE1126; }
+    .help-search-none { padding:10px 12px; font-size:0.84rem; color:#9CA3AF; }
+
+    /* ── 功能章节卡片 ── */
+    .help-catalog-cards { display:flex; flex-direction:column; gap:26px; }
+    .help-card-group { scroll-margin-top:76px; }
+    .help-card-group .doc-divider { margin:14px 0 4px; }
+    .help-card { background:#FFFFFF; border:1px solid #EEEFF2; border-radius:var(--radius-md); padding:16px 20px; margin-top:12px; scroll-margin-top:76px; transition:box-shadow .2s, background-color .2s; }
+    .help-card-group > .help-card:first-of-type { margin-top:0; }
+    .help-card-title { display:flex; align-items:center; gap:8px; font-size:0.95rem; font-weight:700; color:#111827; margin:0 0 6px; }
+    .help-card-desc { font-size:0.86rem; line-height:1.8; color:#4B5563; margin:0; }
+    .help-card-usage { font-size:0.82rem; line-height:1.8; color:#6B7280; margin:6px 0 0; }
+    .help-card-rel-line { font-size:0.82rem; color:#9CA3AF; margin:6px 0 0; }
+    .help-card-rel { color:#CE1126; text-decoration:none; margin-right:8px; }
+    .help-card-rel:hover { text-decoration:underline; }
+    .help-card.is-highlighted { outline:2px solid rgba(206,17,38,0.35); outline-offset:2px; background:#FFFBFB; }
+    .help-badge { display:inline-flex; align-items:center; font-size:0.68rem; font-weight:600; padding:1px 8px; border-radius:999px; line-height:1.6; letter-spacing:0.04em; }
+    .help-badge.generic { color:#CE1126; background:#FDF2F2; border:1px solid #F6D1D1; }
+    .help-badge.specific { color:#4B5563; background:#F3F4F6; border:1px solid #E5E7EB; }
+
+    /* ── mermaid 渲染宿主与降级占位 ── */
+    .mermaid-host { margin:12px 0 4px; overflow-x:auto; }
+    .mermaid-host pre.mermaid { margin:0; text-align:center; }
+    .mermaid-fallback { font-size:0.86rem; color:#6B7280; background:#F8F9FA; border:1px dashed #E5E7EB; border-radius:var(--radius-md); padding:14px 18px; line-height:1.8; margin:0; }
+    .mermaid-host svg { max-width:100%; height:auto; }
+
+    @media (max-width:820px) {
+      .help-layout { flex-direction:column; gap:16px; }
+      #help-toc-slot { width:100%; position:static; max-height:none; overflow-y:visible; }
+      .help-toc { flex-direction:row; flex-wrap:wrap; border-left:none; padding-left:0; }
+      .help-toc-item { font-size:0.8rem; }
+    }
+
     /* ═══════════ Role Hierarchy 组件样式 ═══════════ */
     .rh { text-align:center; padding:8px 0; }
     .rh-intro { font-family:'Noto Sans SC',sans-serif; font-size:0.95rem; color:#374151; line-height:1.8; margin-bottom:6px; text-align:left; }
@@ -164,6 +217,12 @@
         <h2 class="font-title-cn text-2xl font-bold text-gray-800 mb-1">光华管理学院本科生党支部</h2>
         <p class="text-sm text-gray-400">GSM1921-SOP · 系统说明书</p>
       </div>
+
+      <!-- ========== 三区布局：左目录树 + 右内容面板（搜索框/章节） ========== -->
+      <div class="help-layout">
+        <div id="help-toc-slot"></div>
+        <div class="help-main">
+          <div id="help-search-slot"></div>
 
       <!-- ========== 致谢 ========== -->
       <section class="doc-card" id="sec-ack" data-toc-id="sec-ack">
@@ -263,7 +322,8 @@
           </table>
         </div>
 
-        <!-- 1.2 权限体系 -->
+        <!-- 1.2 权限体系（目录树「权限体系」锚点） -->
+        <span id="sec-权限体系" class="toc-anchor"></span>
         <h3 class="doc-h3"><span class="doc-h3-badge">1.2</span>权限体系</h3>
         <p class="doc-p">系统权限不是"给你一个账号就什么都能做"，而是<strong>赋权关系链</strong>——谁给你赋的权，你就在谁的赋权范围里干活。权限由 <strong>canDo()</strong> 统一判定：<strong>常设角色</strong>（书记/副书记/组织委员/宣传委员/纪检委员/党小组组长）+ <strong>项目角色</strong>（组织者/深度参与者）的权限取并集，按"能做什么"逐项判定。</p>
         <p class="doc-p" style="margin-top:18px;">知情边界界定"能看什么"（信息密度精确原则——看得见的，精确等于你职责所需的）：</p>
@@ -297,6 +357,28 @@
           <li>宣传委员不可自行招募宣传专班，赋权操作统一归口组织委员</li>
           <li>看 ≠ 做：能看他人条线在办（按人视图），不等于能代劳其操作——分工的运行保障中的做与看</li>
         </ul>
+      </section>
+
+      <!-- ========== 功能地图（mermaid 懒加载，离线降级为文本占位） ========== -->
+      <section class="doc-card" id="sec-功能地图" data-toc-id="sec-功能地图">
+        <h2 class="doc-h2"><span class="doc-num">图</span>功能地图</h2>
+        <hr class="doc-divider">
+        <p class="doc-p">系统全部功能一览。通用能力（任何组织可复用）与支部特有以标签区分。</p>
+        <div id="sec-funcmap">
+          <div id="mermaid-funcmap" class="mermaid-host">
+            <p class="mermaid-fallback">功能地图加载中…（离线时此处降级为文本目录，功能章节卡片不受影响）</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 功能章节卡片（catalog 驱动，动态注入） ========== -->
+      <div id="help-catalog-slot"></div>
+
+      <!-- ========== 业务链路（flow 条目卡片 + mermaid 流程图，动态注入） ========== -->
+      <section class="doc-card" id="sec-业务链路" data-toc-id="sec-业务链路">
+        <h2 class="doc-h2"><span class="doc-num">链</span>业务链路</h2>
+        <hr class="doc-divider">
+        <div id="mermaid-flows"></div>
       </section>
 
       <!-- ========== 二、这个系统在干什么 ========== -->
@@ -361,6 +443,9 @@
           本系统为北京大学光华管理学院本科生党支部内部管理工具。<strong>所有功能仅供支部内部使用</strong>，不对任何外部组织或个人承担技术可用性或数据准确性保证。系统中展示的活动日历、人员信息、SOP 文献与制度文件均为内部参考资料，不构成对上级党委或外部机构的正式上报材料。<strong>使用本系统的任何决策后果由使用者自行承担</strong>。系统开发者及维护者不承担因系统功能变更、数据展示不完整或误解系统输出而产生的任何责任。
         </p>
       </section>
+
+        </div><!-- /help-main -->
+      </div><!-- /help-layout -->
 
       <div class="text-center pb-4">
         <p class="text-xs text-gray-400">光华管理学院本科生党支部 · GSM1921-SOP</p>

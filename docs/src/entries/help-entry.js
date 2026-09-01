@@ -1,13 +1,18 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // help-entry.js — 帮助页入口（系统说明书）
 
 import { renderSidebar } from '../components/sidebar.js?v=20260901e';
 import { renderHeader } from '../components/header.js?v=20260901e';
+import { renderHelpCatalog } from '../modules/help-catalog.js?v=20260901e';
 
 // 静态壳模式（2026-08-12）：help 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
 // 仅渲染共享侧边栏/顶栏壳；通知铃首次点击时才按需加载通知模块。
 renderSidebar('help', { staticShell: true });
 renderHeader('help', { staticShell: true });
+
+// 目录树 + 搜索 + 功能章节卡片 + 功能地图/业务链路 mermaid 源（catalog 驱动，
+// 搜索框由渲染器直接注入右内容面板顶部 #help-search-slot）
+renderHelpCatalog(document.getElementById('help-toc-slot'));
 
 // ── 右侧圆点目录（参考关于页 .help-toc-nav）──
 // 2026-08-18：删重叠叙事（原「分工中的制度设计」「怎么理解具体的这个组织」两章），
@@ -93,3 +98,40 @@ function bindTOC() {
 }
 
 bindTOC();
+
+// ── 功能地图/业务链路 mermaid 懒加载 ──
+// 滚动至功能地图章可见时注入 mermaid CDN；onload 后渲染 .mermaid 元素：
+// 渲染成功以 SVG 替换宿主内内容（含 fallback 占位），失败保留 .mermaid-fallback 降级文本。
+// 注：startOnLoad:false + 逐元素 render（避免 startOnLoad:true 自动 run 与手动 render 双重渲染竞态）
+let mermaidLoaded = false;
+function loadMermaid() {
+  if (mermaidLoaded) return;
+  mermaidLoaded = true;
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+  script.onload = () => {
+    window.mermaid?.initialize({
+      startOnLoad: false,
+      theme: 'base',
+      themeVariables: { primaryColor: '#FDF2F2', primaryBorderColor: '#CE1126', primaryTextColor: '#7A0010', lineColor: '#D1D5DB' },
+    });
+    document.querySelectorAll('.mermaid-host pre.mermaid').forEach((el) => {
+      if (el.dataset.processed === '1') return;
+      el.dataset.processed = '1';
+      window.mermaid?.render('fm' + Math.random().toString(36).slice(2), el.textContent)
+        .then((r) => {
+          const host = el.closest('.mermaid-host');
+          if (host && r.svg) host.innerHTML = r.svg;
+        })
+        .catch(() => {});
+    });
+  };
+  document.head.appendChild(script);
+}
+const funcmapEl = document.getElementById('sec-功能地图');
+if (funcmapEl) {
+  const io = new IntersectionObserver((entries) => {
+    if (entries.some((en) => en.isIntersecting)) { loadMermaid(); io.disconnect(); }
+  }, { rootMargin: '200px' });
+  io.observe(funcmapEl);
+}
