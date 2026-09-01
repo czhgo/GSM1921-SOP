@@ -231,6 +231,8 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
 
   if (cardsEl) {
     cardsEl.innerHTML = html;
+    // I3：列表视图无表态面板 → 清除代次标记，防详情页遗留的旧 fetch 触碰列表 DOM
+    delete cardsEl.dataset.actId;
 
     if (!isParticipant) {
       cardsEl.querySelectorAll('[data-act-id]').forEach(card => {
@@ -471,6 +473,13 @@ async function _recordAgendaResult(activity, agendaItemId, result) {
 // ════════════════════════════════════════════════════════════════
 const VOTE_LABELS = { agree: '同意', object: '异议', comment: '附言' };
 
+// HTML 转义（表态附言/表态值为用户输入，innerHTML 渲染前转义防存储型 XSS）
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function renderVotePanel(container, { activity, agendaItem, votes, isCommittee, currentUserId }) {
   const locked = activity.votesLocked === true;
   const mine = (votes || []).find(v => v.personId === currentUserId && v.agendaItemId === agendaItem.id);
@@ -490,8 +499,12 @@ function renderVotePanel(container, { activity, agendaItem, votes, isCommittee, 
 
   container.querySelectorAll('.vote-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      container.querySelectorAll('.vote-btn').forEach(x => x.classList.remove('active'));
+      container.querySelectorAll('.vote-btn').forEach(x => {
+        x.classList.remove('active');
+        x.setAttribute('aria-pressed', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
     });
   });
 
@@ -510,7 +523,15 @@ function renderVotePanel(container, { activity, agendaItem, votes, isCommittee, 
       try {
         await submitVote({ activityId: activity.id, agendaItemId: agendaItem.id, position: pos, note });
         showToast('success', '表态已提交');
-        container.dispatchEvent(new CustomEvent('vote-submitted', { bubbles: true }));
+        // I2：仅重绘本议程表态区（其他议程已填草稿保留），detail 携带触发项 id
+        container.dispatchEvent(new CustomEvent('vote-submitted', {
+          bubbles: true,
+          detail: { agendaItemId: agendaItem.id },
+        }));
+        // I1：成功路径恢复按钮（重绘为异步进行，若监听缺失/失败也不残留禁用态）
+        submitBtn.dataset.processing = '';
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '';
       } catch (e) {
         console.warn('[inspector] 表态提交失败：', e);
         showToast('error', (e && e.message) || '表态提交失败');

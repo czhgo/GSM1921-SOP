@@ -2076,7 +2076,7 @@ html.theme-dark .tf-section-head {
 }
 .vote-btn:hover {
   border-color: var(--party-gold);
-  color: #A16207;
+  color: var(--brand-amber-dark);
 }
 .vote-btn.active {
   background-color: var(--party-red);
