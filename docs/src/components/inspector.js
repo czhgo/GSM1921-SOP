@@ -13,11 +13,13 @@ import { openModal, closeModal } from './modal.js?v=20260901f';
 import { PEOPLE, getPersonById } from '../mock/index.js?v=20260901f';
 import { BranchService } from '../services/runtime.js?v=20260901f';
 import { AuthStore } from '../services/auth.js?v=20260901f';
+import { PersonStore } from '../services/person.js?v=20260901f';
 import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260901f';
 import { badgeHtml } from './badge.js?v=20260901f';
 import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260901f';
 import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260901f';
 import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260901f';
+import { renderVoteSummary } from './vote-summary-panel.js?v=20260901f';
 import { loadAttendanceRecords } from '../services/attendance.js?v=20260901f';
 import { loadInspectionRecords } from '../services/inspection.js?v=20260901f';
 import { loadActivityReviews } from '../services/review.js?v=20260901f';
@@ -563,6 +565,8 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   const isArchived   = activity.archived === true;
   const _user = AuthStore.getCurrentUser();
   const isSecretary = _user?.role === 'secretary';
+  // 书记/副书记可查看表态汇总（2026-09-01 线上支委会 Task4：书记端汇总矩阵+截止）
+  const isSecretaryOrDeputy = !!_user && (_user.role === 'secretary' || _user.role === 'deputy-secretary');
   // 支委集合（书记/副书记/组织/宣传/纪检）→ 表态面板可见（AuthStore.isCommissioner 与 auth.js 授权语义一致）
   const isCommittee = !!_user && AuthStore.isCommissioner(_user.role);
   const currentUserId = _user?.personId || null;
@@ -676,6 +680,11 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     html += '</div>';
   }
 
+  // ── 表态汇总（2026-09-01 线上支委会 Task4：书记/副书记专属，议程区下方） ──
+  if (isSecretaryOrDeputy && Array.isArray(activity.agenda) && activity.agenda.length > 0) {
+    html += '<div id="vote-summary-slot" class="mb-3"></div>';
+  }
+
   // ── 产出物区（T-224 §8 附件查看窗口：同源读取，点击展开预览） ──
   html += _buildOutputsSectionHTML(activity);
 
@@ -756,6 +765,29 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     if (agendaBlock) {
       agendaBlock.addEventListener('vote-submitted', () => {
         renderAllVotePanels().catch(e => console.warn('[inspector] 表态刷新失败：', e));
+      });
+    }
+  }
+
+  // 书记端表态汇总（2026-09-01 线上支委会 Task4：书记/副书记可见）
+  // 加载后 fetchVotes → 汇总矩阵；votes-locked 冒泡 → 提示记录决议 + 刷新锁定态
+  // committeeMembers 取支委角色（书记/副书记/组织/宣传/纪检），排除 u_* 系统账号
+  if (isSecretaryOrDeputy && Array.isArray(activity.agenda) && activity.agenda.length > 0) {
+    const vsSlot = cardsEl.querySelector('#vote-summary-slot');
+    if (vsSlot) {
+      const committeeMembers = PersonStore.getAll()
+        .filter(p => !String(p.id).startsWith('u_') && AuthStore.isCommissioner(p.role));
+      const renderSummary = async (act) => {
+        await renderVoteSummary(vsSlot, { activity: act, committeeMembers, currentUserId });
+      };
+      renderSummary(activity).catch(e => console.warn('[inspector] 表态汇总加载失败：', e));
+      vsSlot.addEventListener('votes-locked', () => {
+        showToast('success', '表态已截止，请记录决议');
+        // lockVotes 已落库 votesLocked；同步全局 state（浅拷贝数组，元素引用同一对象）
+        // 并本地构造锁定态即时刷新汇总区块（避免依赖全局重渲染的异步时机）
+        const latest = { ...activity, votesLocked: true };
+        setState({ activities: getAppState().activities.map(a => (a.id === activity.id ? latest : a)) });
+        renderSummary(latest).catch(e => console.warn('[inspector] 表态汇总刷新失败：', e));
       });
     }
   }

@@ -2119,6 +2119,96 @@ html.theme-dark .tf-section-head {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   COMPONENT: Vote Summary — 书记端表态汇总矩阵（线上支委会 2026-09-01 Task4）
+   议题 × 委员矩阵：应到/已表态/未表态统计 + 截止按钮；
+   异议红底高亮（党建红系）、附言完整显示；token 驱动、圆角统一（--radius-*）、
+   面板浅底无边框（无嵌套边线）
+   ═══════════════════════════════════════════════════════════════ */
+.vote-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px;
+  background-color: var(--neutral-50);
+  border-radius: var(--radius-md);
+}
+.vs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.vs-head strong {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--neutral-700);
+}
+.vs-stat {
+  font-size: 0.7rem;
+  color: var(--neutral-400);
+}
+.vs-lock {
+  padding: 5px 14px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #fff;
+  background-color: var(--party-red);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+.vs-lock:hover {
+  opacity: 0.9;
+}
+.vs-locked {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--party-red);
+}
+.vs-matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+.vs-matrix th,
+.vs-matrix td {
+  padding: 5px 8px;
+  text-align: center;
+  border: 1px solid var(--neutral-200);
+}
+.vs-matrix thead th {
+  font-weight: 500;
+  color: var(--neutral-500);
+  background-color: var(--neutral-0);
+}
+.vs-matrix th:first-child,
+.vs-matrix td:first-child {
+  text-align: left;
+  white-space: normal;
+  min-width: 110px;
+  color: var(--neutral-700);
+}
+.vs-none {
+  color: var(--neutral-300);
+}
+.vs-object {
+  background-color: color-mix(in srgb, var(--party-red) 12%, #fff);
+  color: var(--party-red);
+  font-weight: 600;
+}
+.vs-note {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 400;
+  color: var(--neutral-500);
+  white-space: normal;
+  max-width: 150px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
    COMPONENT: Status Badge（T-217 §2.4 行内状态轻交互原型）
    徽章 = 色点 + 文字 + 下拉箭头；点击弹出悬浮选择器（clamp 边界定位）
    ═══════════════════════════════════════════════════════════════ */
