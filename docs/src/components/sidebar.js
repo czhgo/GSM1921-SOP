@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // components/sidebar.js — 共享侧边栏（角色单页制 v2）
 // 2026-07-29: 角色单页制重构——合并党建/党务为"工作台"单入口
 // - 移除 '党务管理' / '人员管理' 独立入口
@@ -20,14 +20,9 @@ import { DEPLOY_MODE } from '../config/deploy.js?v=20260901z';
 // 动态 import 沿用与原静态 import 相同的版本号 → 与全站其他引用共享同一模块实例。
 let AuthStore = null;
 let _authModule = null;
-let _popoverModule = null;
 function loadAuth() {
   if (!_authModule) _authModule = import('../services/auth.js?v=20260901z');
   return _authModule;
-}
-function loadPopover() {
-  if (!_popoverModule) _popoverModule = import('./workspace-popover.js?v=20260901z');
-  return _popoverModule;
 }
 
 function getNavItems() {
@@ -85,21 +80,19 @@ export async function renderSidebar(activeModule, opts = {}) {
   const navHTML = navItems.map(item => {
     // 工作台：根据角色自动跳转对应页面
     let href = item.href;
-    let extraAttrs = '';
     if (item.module === 'workspace') {
       const pages = user ? AuthStore.getAccessibleWorkspacePages(user.personId) : [];
       if (pages.length === 0) return '';
       const standingPage = AuthStore.getPageForRole('workspace', role);
       if (!standingPage) return '';
       href = getBasePath() + 'workspace/' + standingPage;
-      // 多身份时加 popover 标记
-      if (pages.length > 1) {
-        extraAttrs = ' data-workspace-popover="1"';
-      }
+      // 2026-09-03 清理余毒：多身份"选择进入身份"弹窗冗余——项目角色(组织者/深参与)
+      // 内容已归首页「我的角色」区块，身份切换走 header 下拉；sidebar 工作台一律直达常设工作台。
+      // （原 data-workspace-popover 触发 + workspace-popover.js 已删除）
     }
 
     return `
-      <a href="${href}" class="module-tab ${item.module === activeModule ? 'active' : ''}" data-module="${item.module}"${extraAttrs}>
+      <a href="${href}" class="module-tab ${item.module === activeModule ? 'active' : ''}" data-module="${item.module}">
         ${item.icon}
         <span class="font-title-cn">${item.label}</span>
       </a>
@@ -152,11 +145,6 @@ export async function renderSidebar(activeModule, opts = {}) {
   _bindFontSizeToggle(sidebar);
   _bindThemeToggle(sidebar);
   _bindAccentToggle(sidebar);
-
-  // 工作台多身份浮窗：仅 app 模式按需加载绑定（静态壳无 data-workspace-popover 元素，无需绑定）
-  if (!staticShell && user) {
-    loadPopover().then(({ bindWorkspacePopover }) => bindWorkspacePopover(sidebar)).catch(() => {});
-  }
 }
 
 function _currentTheme() {
