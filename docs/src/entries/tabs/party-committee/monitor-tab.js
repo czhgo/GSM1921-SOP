@@ -3,10 +3,10 @@
 // 党委见全院：各支部运行概览（成员规模/发展阶段/组织生活台账/现任书记/近期活动）
 // 数源：mockDB.branches（支部实例）+ PEOPLE（成员档案，已挂 branchId）+ ctx.activities（工作台已加载）
 
-import { mockDB } from '../../../core/domain.js?v=20260901u';
-import { PEOPLE } from '../../../mock/people.js?v=20260901u';
-import { PARTY_COMMITTEE } from '../../../mock/branches.js?v=20260901u';
-import { getPersonName } from '../../../services/person.js?v=20260901u';
+import { mockDB } from '../../../core/domain.js?v=20260901x';
+import { PEOPLE } from '../../../mock/people.js?v=20260901x';
+import { PARTY_COMMITTEE } from '../../../mock/branches.js?v=20260901x';
+import { getPersonName } from '../../../services/person.js?v=20260901x';
 
 const STAGE_ORDER = ['正式党员', '预备党员', '发展对象', '积极分子'];
 

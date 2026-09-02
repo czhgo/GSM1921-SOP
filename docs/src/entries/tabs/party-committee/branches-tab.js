@@ -2,11 +2,11 @@
 // 党委工作台 Tab：支部管理（P1 党委后台，2026-09-02）
 // 支部不预设名字：党委创建/改名支部实例；config.headerTitle 随名软编码（header 随支部更换）
 
-import { mockDB } from '../../../core/domain.js?v=20260901u';
-import { PARTY_COMMITTEE } from '../../../mock/branches.js?v=20260901u';
-import { getPersonName } from '../../../services/person.js?v=20260901u';
-import { createBranch, renameBranch } from '../../../services/branch.js?v=20260901u';
-import { showToast } from '../../../core/utils.js?v=20260901u';
+import { mockDB } from '../../../core/domain.js?v=20260901x';
+import { PARTY_COMMITTEE } from '../../../mock/branches.js?v=20260901x';
+import { getPersonName } from '../../../services/person.js?v=20260901x';
+import { createBranch, renameBranch } from '../../../services/branch.js?v=20260901x';
+import { showToast } from '../../../core/utils.js?v=20260901x';
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

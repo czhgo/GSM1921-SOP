@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260901u';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260901x';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -560,6 +560,26 @@ export const ApiAdapter = {
 
     update(id, patch) {
       return _patch(`/api/v1/users/${id}`, patch);
+    },
+  },
+
+  // P1 党委后台（2026-09-02）：支部实例 API 通路（server branches 表已在 RESOURCE_TABLES 白名单）
+  branches: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/branches${query ? '?' + query : ''}`);
+    },
+
+    create(data) {
+      return _post('/api/v1/branches', data);
+    },
+
+    update(id, patch) {
+      return _patch(`/api/v1/branches/${id}`, patch);
+    },
+
+    delete(id) {
+      return _delete(`/api/v1/branches/${id}`);
     },
   },
 

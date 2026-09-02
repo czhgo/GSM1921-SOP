@@ -5,13 +5,13 @@
 //  依赖：domain.js, id.js（单向依赖，不依赖 UI 或 runtime）
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260901u';
-import { generateId } from '../core/id.js?v=20260901u';
-import { getDataSource } from '../core/data-adapter.js?v=20260901u';
+import { mockDB } from '../core/domain.js?v=20260901x';
+import { generateId } from '../core/id.js?v=20260901x';
+import { getDataSource } from '../core/data-adapter.js?v=20260901x';
 // Mock 持久化/种子引擎（saveDB/loadDB/seed 同步）收敛到 core/mock-adapter.js 唯一实现
 // （T-2026-09-007 Step1：services 版私有引擎曾与 mock-adapter 同 Key 双写并缺
 //   imageRecords/agendaVotes 等新域恢复 → 刷新即丢；现统一由 MockAdapter 承担全量 26 域）
-import { MockAdapter } from '../core/mock-adapter.js?v=20260901u';
+import { MockAdapter } from '../core/mock-adapter.js?v=20260901x';
 
 const MOCK_DELAY_MS = 600;
 
@@ -29,7 +29,7 @@ export function saveDB() {
   // 2026-08-06 扎口修复（Z1）：API 模式下本地备份已写，仍需触发全量快照写穿，
   // 否则 BranchService 写操作（创建/删除/归档/品牌/任务状态）不会同步服务器，刷新即还原。
   if (getDataSource() === 'api') {
-    import('../core/data-adapter.js?v=20260901u').then(({ persist }) => persist()).catch((e) => {
+    import('../core/data-adapter.js?v=20260901x').then(({ persist }) => persist()).catch((e) => {
       console.warn('[MockAdapter] saveDB 触发快照写穿失败：', e);
     });
   }
@@ -89,7 +89,7 @@ export function createActivity(data) {
     // 派生赋权待办（最小三成本原则·阶段1C-3）
     // T-190：创建时已内联赋权（assignments 非空）则不再派生；未选人保留待办兜底
     if (!newItem.assignments || newItem.assignments.length === 0) {
-      import('./todo.js?v=20260901u').then(({ LifecycleTodoDeriver }) => {
+      import('./todo.js?v=20260901x').then(({ LifecycleTodoDeriver }) => {
         LifecycleTodoDeriver.deriveFromActivityCreate(newItem);
       }).catch(e => console.warn('[MockAdapter] 派生活动赋权待办失败：', e));
     }
@@ -149,7 +149,7 @@ export function deleteActivity(id) {
     saveDB();
     console.info('[MockAdapter] deleteActivity 成功，id=' + id);
     // 联动删除关联待办（避免遗留孤儿待办）
-    import('./todo.js?v=20260901u').then(({ LifecycleTodoDeriver }) => {
+    import('./todo.js?v=20260901x').then(({ LifecycleTodoDeriver }) => {
       LifecycleTodoDeriver.deleteByActivity(id);
     }).catch(e => console.warn('[MockAdapter] 联动删除待办失败：', e));
     // 2026-08-27 T-283 生命周期修复：彻底删除活动须联动清理全部子记录
@@ -203,7 +203,7 @@ export function archiveActivity(id) {
     console.info('[MockAdapter] archiveActivity 成功，id=' + id
       + '，级联完成下属 tasks。');
     // 派生归档待办给宣传委员（最小三成本原则·阶段1C-3）
-    import('./todo.js?v=20260901u').then(({ LifecycleTodoDeriver }) => {
+    import('./todo.js?v=20260901x').then(({ LifecycleTodoDeriver }) => {
       LifecycleTodoDeriver.deriveFromActivityArchive(archived);
     }).catch(e => console.warn('[MockAdapter] 派生活动归档待办失败：', e));
     return archived;

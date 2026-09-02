@@ -3,10 +3,10 @@
 // 支部边界收敛点（防漂移）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
 // 单一数据源：mockDB.branches（首启 seed 自 mock/branches.js BRANCHES）
 
-import { mockDB } from '../core/domain.js?v=20260901u';
-import { getPersonById } from './person.js?v=20260901u';
-import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260901u';
-import { getAdapter, persist } from '../core/data-adapter.js?v=20260901u';
+import { mockDB } from '../core/domain.js?v=20260901x';
+import { getPersonById } from './person.js?v=20260901x';
+import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260901x';
+import { getAdapter, persist } from '../core/data-adapter.js?v=20260901x';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
@@ -46,10 +46,14 @@ export function withinBranch(rows, personId) {
   return rows.filter(r => (r.branchId || 'br-b1') === bid);
 }
 
-// ── 党委支部管理写操作（P1；经 data-adapter，mock 持久化，刷新不丢）────────
+// ── 党委支部管理写操作（P1；adapter CRUD 实时写 + 本地 mockDB 同步，刷新不丢）────────
 /** 党委创建支部（支部不预设名字——名称/类型由党委录入） */
 export async function createBranch({ name, type }) {
   const branch = await getAdapter().branches.create({ name: String(name || '').trim(), type: String(type || '').trim() });
+  // API 模式 adapter.create 只 POST server——本地 mockDB 同步（mock 模式已改本地，防重复）
+  if (!(mockDB.branches || []).some(b => b.id === branch.id)) {
+    mockDB.branches = [...mockDB.branches, branch];
+  }
   persist();
   return branch;
 }
@@ -57,6 +61,10 @@ export async function createBranch({ name, type }) {
 /** 党委改支部名（同步 config.headerTitle——header 软编码随之变化） */
 export async function renameBranch(id, name) {
   const next = await getAdapter().branches.update(id, { name: String(name || '').trim() });
+  const idx = (mockDB.branches || []).findIndex(b => b.id === id);
+  if (idx >= 0) {
+    mockDB.branches = [...mockDB.branches.slice(0, idx), next, ...mockDB.branches.slice(idx + 1)];
+  }
   persist();
   return next;
 }

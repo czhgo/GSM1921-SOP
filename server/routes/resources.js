@@ -37,6 +37,8 @@ const RESOURCE_TABLES = {
   actSubRecords: 'act_sub_records',
   tfSubRecords: 'tf_sub_records',
   branchDocs: 'branch_docs',
+  // P1 党委后台（2026-09-02）：支部实例（党委工作台支部管理；写权限默认 requireAuth，收紧留 P2）
+  branches: 'branches',
 };
 
 function listTable(db, table) {
@@ -54,6 +56,7 @@ const ID_PREFIX = {
   mailboxConfig: 'mbx', mailboxHistory: 'mbh', externalDispatches: 'ed',
   actSubRecords: 'asr', tfSubRecords: 'tfs',
   branchDocs: 'bd',
+  branches: 'br',
 };
 
 export function createResourcesRouter(db) {

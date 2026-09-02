@@ -56,9 +56,10 @@ export function extractDomain(db, domain, from, to) {
   const nameOf = id => (userById.get(id) || {}).name || id;
 
   if (domain === 'member') {
-    // 党员信息：全量成员档案；联系方式默认不报（脱敏可配 REPORT_INCLUDE_CONTACT=true，§6.2）
+    // 党员信息：全量支部成员档案；排除组织级人员（party-staff 党委组织员不属于支部党员档案，P1 党委后台）
+    // 联系方式默认不报（脱敏可配 REPORT_INCLUDE_CONTACT=true，§6.2）
     const withContact = process.env.REPORT_INCLUDE_CONTACT === 'true';
-    return users.map(u => ({
+    return users.filter(u => u.role !== 'party-staff').map(u => ({
       name: u.name,
       studentId: u.studentId,
       partyGroup: u.partyGroup,

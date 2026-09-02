@@ -3,9 +3,9 @@
 // 党员/发展对象在系统内提交思想汇报 → 算法自动归档归集至个人档案（无人工归档环节）
 // 本人可查看自己的历史提交；组织委员在「发展数据」tab 调用查看。
 
-import { AuthStore } from '../../../services/auth.js?v=20260901u';
-import { addThoughtReport, listThoughtReportsByPerson } from '../../../services/thought-report.js?v=20260901u';
-import { showToast } from '../../../core/utils.js?v=20260901u';
+import { AuthStore } from '../../../services/auth.js?v=20260901x';
+import { addThoughtReport, listThoughtReportsByPerson } from '../../../services/thought-report.js?v=20260901x';
+import { showToast } from '../../../core/utils.js?v=20260901x';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
