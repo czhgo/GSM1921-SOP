@@ -245,3 +245,15 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - mock-adapter branches CRUD（config 随行持久化，改名联动 headerTitle）+ services/branch.js 写函数（getAdapter+persist）
 - header 党委名：party-staff → PARTY_COMMITTEE.name（branches.js 常量）
 **未闭环（下一步）**：浏览器 E2E 党委登录实测（登录→台账→创建支部→header 变化）+ api-adapter branches resource（API 模式写通路）+ 全量回归 + Step5 收口（清理 P1 spec）
+
+## T-2026-09-016 P1 收口——branches 全链路 + 党委 E2E（2026-09-02）
+
+**实施**（版本串 w→x，commit b1385fb）：
+- api-adapter 加 branches resource（list/create/update/delete /api/v1/branches）
+- server routes/resources.js：RESOURCE_TABLES 补 branches（表名+ID_PREFIX br；写权限 requireAuth，收紧留 P2）
+- data-adapter 全量恢复域清单补 branches（init 拉取 → mockDB.branches）
+- services/branch.js 写函数加本地 mockDB 同步（API 模式 adapter.create 后 push/update 幂等）
+- server/services/reporting.js member 域排除 party-staff（党委组织员非支部党员档案——修复 full 回归 1 败）
+- **新 E2E party-committee.test.mjs**：党委账号 9000000001 登录 → 直达党委台 → header 党委名 → 台账渲染 br-b1/现任书记 → 支部管理创建支部（确定性展开，UI toggle 时序 flaky 已规避）→ reload 持久化。连续 2 次通过
+**调试实录**：台账不渲染=API 模式 bootstrap 恢复域清单缺 branches（data-adapter 补）；创建 404=server resources 未注册 branches 端点；创建后不持久=service 缺本地同步——三层各自补齐闭环
+**P1 状态**：Step1-4 全 ✅（dea729d/703c201/c5fcb1f/6f97552/b1385fb）；**P2 书记任命与任期 / P3 党委审批+下发**（design §5）未启动——登记后续大项
