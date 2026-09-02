@@ -772,6 +772,10 @@ export const MockAdapter = {
           ...mockDB.memberChangeRequests.slice(idx + 1),
         ];
         // 广播全体支委（幂等：已广播过的不重复）
+        // 注：支委名单权威源 = services/vote-config.js resolveVoterIds('committee')
+        //   （people.js role + AuthStore.isCommissioner，排除 u_*）。本文件位于 core 数据层，
+        //   静态引用 vote-config.js 会经 auth → runtime → mock-adapter 形成循环依赖，
+        //   故保留 p10-p14 ID 快照（与 server member.js COMMITTEE_IDS 同构）；名单变更请改 vote-config 权威源。
         const COMMITTEE_IDS = ['p10', 'p11', 'p12', 'p13', 'p14'];
         const already = mockDB.committeeBroadcasts.filter(b => b.requestId === id);
         for (const recipientId of COMMITTEE_IDS) {

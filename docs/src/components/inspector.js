@@ -771,13 +771,14 @@ function renderInspectorDetail(activity, tasks, managementRole) {
 
   // 书记端表态汇总（2026-09-01 线上支委会 Task4：书记/副书记可见）
   // 加载后 fetchVotes → 汇总矩阵；votes-locked 冒泡 → 提示记录决议 + setState 刷新锁定态
-  // committeeMembers 取支委角色（书记/副书记/组织/宣传/纪检），排除 u_* 系统账号
+  // committeeMembers 取权威名单 resolveVoterIds('committee')（vote-config.js：people.js role + isCommissioner、排除 u_*），
+  //   再映射回 PersonStore 人员对象（渲染需姓名/角色；名单顺序仍以 PersonStore 原序为准，勿自行重写过滤口径）
   // canLock 仅书记为 true（截止按钮仅书记可见，与 server requireRole(secretary) 三端一致）
   if (isSecretaryOrDeputy && Array.isArray(activity.agenda) && activity.agenda.length > 0) {
     const vsSlot = cardsEl.querySelector('#vote-summary-slot');
     if (vsSlot) {
-      const committeeMembers = PersonStore.getAll()
-        .filter(p => !String(p.id).startsWith('u_') && AuthStore.isCommissioner(p.role));
+      const committeeIds = new Set(resolveVoterIds('committee'));
+      const committeeMembers = PersonStore.getAll().filter((p) => committeeIds.has(p.id));
       renderVoteSummary(vsSlot, { activity, committeeMembers, canLock: isSecretary })
         .catch(e => console.warn('[inspector] 表态汇总加载失败：', e));
       vsSlot.addEventListener('votes-locked', () => {

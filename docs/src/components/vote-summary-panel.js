@@ -3,7 +3,8 @@
 // 展示：应到/已表态/未表态统计 + 矩阵（同意/异议/附言；异议红底高亮、附言完整显示）
 // 操作：截止按钮（prompt 设置截止时间，留空立即截止 → lockVotes）→ votes-locked 事件冒泡
 // 权限：canLock 仅书记为 true（与 server requireRole(secretary) 三端一致）；副书记可见不可截止
-// committeeMembers 由调用方传入（支委角色过滤见 inspector.js，与 server COMMITTEE_IDS 对齐）
+// committeeMembers 由调用方传入（支委名单权威：services/vote-config.js resolveVoterIds('committee')；过滤见 inspector.js；
+// server/routes/committee.js COMMITTEE_IDS 仅作旧活动回退白名单，勿再本地罗列支委成员）
 import { fetchVotes, lockVotes } from '../services/committee-vote.js?v=20260901g';
 import { showToast } from '../core/utils.js?v=20260901g';
 

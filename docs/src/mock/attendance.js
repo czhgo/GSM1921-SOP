@@ -96,7 +96,9 @@ export const ATTENDANCE_RECORDS = [
 //   act-29 8/4  暑期实践总结分享（主题党日）   → 全员 50 人
 // 状态分布：出勤为主；按 (idx + 事件偏移) 确定性抽取请假/缺勤，统一待纪检确认（recordedBy null）。
 
-// 支委班子（书记/副书记/三委员/三组长）
+// 支委班子出席快照（书记/副书记/三委员/三组长 共 8 人）——系 act-27 考勤出席名单，非支委集合定义：
+// 前五位 p13/p14/p11/p12/p10 = 支委五人（权威名单：services/vote-config.js resolveVoterIds('committee')），
+// p1/p2/p4 = 三组长；勿据此名单增删支委，成员变更请改 vote-config 权威源。
 const _BRANCH_COMMITTEE_IDS = ['p13', 'p14', 'p11', 'p12', 'p10', 'p1', 'p2', 'p4'];
 // 全员（三党小组 17/17/16 共 50 人）
 const _ALL_PERSON_IDS = PEOPLE.map(p => p.id);

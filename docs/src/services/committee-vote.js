@@ -6,12 +6,13 @@ import { mockDB } from '../core/domain.js?v=20260901g';
 import { persist, getAdapter, getAuthToken, getApiBaseUrl, getDataSource } from '../core/data-adapter.js?v=20260901g';
 import { AuthStore } from './auth.js?v=20260901g';
 import { NoticeStore } from './notice.js?v=20260901g';
-import { PEOPLE } from '../mock/index.js?v=20260901g';
+import { resolveVoterIds } from './vote-config.js?v=20260901g';
 
-// 支委角色集合（与 auth.js COMMISSIONER_ROLES / server COMMITTEE_IDS 口径一致）
-const COMMITTEE_ROLES = new Set(['secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner']);
 // 支委总数（通知文案「已有 N/M 位委员表态」的分母）
-const COMMITTEE_TOTAL = PEOPLE.filter((p) => COMMITTEE_ROLES.has(p.role)).length;
+// 单一源化（2026-09-02）：改引权威名单 vote-config.js resolveVoterIds('committee')
+// ——people.js role + AuthStore.isCommissioner、排除 u_*（auth.js COMMISSIONER_ROLES 为角色底层源），
+// 不再本地按角色/成员自算，消除与 vote-config 的漂移。
+const COMMITTEE_TOTAL = resolveVoterIds('committee').length;
 
 // 通知去重（2026-09-02）：submitVote 幂等 upsert 下改票/多议题/重提会重复触发
 // notifySecretaryProgress——以活动为粒度缓存「已通知的 distinct 表态人数」，仅当人数

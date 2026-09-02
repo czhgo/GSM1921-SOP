@@ -5,7 +5,11 @@ import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole, requireCommissioner } from './auth.js';
 
-// 支委白名单（与 member.js COMMITTEE_IDS 对齐：书记/副书记/组织/宣传/纪检）
+// 支委白名单 = 旧活动回退白名单（保留不改行为；历史固定成员 p10-p14，与 member.js COMMITTEE_IDS 对齐），
+// 供无 voteConfig 的旧活动/回退场景兜底校验。
+// 权威名单 = 活动 voteConfig.voterIds（前端创建活动时经 vote-config 固化写入活动）；
+// 前端唯一源 = docs/src/services/vote-config.js resolveVoterIds('committee')
+//   （people.js role + AuthStore.isCommissioner，排除 u_*）。名单变更请改前端权威源，勿在此增删成员。
 const COMMITTEE_IDS = new Set(['p10', 'p11', 'p12', 'p13', 'p14']);
 // 书记角色（截止锁定仅书记可操作，与 member.js SECRETARY_ROLES 口径一致）
 const SECRETARY_ROLES = new Set(['secretary']);

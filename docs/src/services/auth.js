@@ -111,6 +111,8 @@ const ROLE_PAGE_MAP = {
 };
 
 // ── 常设角色集合 ────────────────────────────────
+// 支委角色（书记/副书记/组织/宣传/纪检）——vote-config.js resolveVoterIds('committee') 依此过滤
+// （people.js role + isCommissioner），为前端支委名单的角色底层源；新增/调整角色在此，勿在多处重复罗列。
 const COMMISSIONER_ROLES = new Set([
   'secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'
 ]);
