@@ -1,14 +1,16 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // components/header.js — 共享顶栏组件（重构版）
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 书记裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260901r';
-import { getBasePath } from '../core/utils.js?v=20260901r';
-import { icon } from '../core/icons.js?v=20260901r';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260901r';
-import { badgeHtml } from './badge.js?v=20260901r';
-import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260901r';
+import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260901s';
+import { getBasePath } from '../core/utils.js?v=20260901s';
+import { icon } from '../core/icons.js?v=20260901s';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260901s';
+import { badgeHtml } from './badge.js?v=20260901s';
+import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260901s';
+// P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
+import { getHeaderTitle } from '../services/branch.js?v=20260901s';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -17,11 +19,11 @@ import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260901r';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../services/auth.js?v=20260901r');
+  if (!_authModule) _authModule = import('../services/auth.js?v=20260901s');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../services/notice.js?v=20260901r');
+  if (!_noticeModule) _noticeModule = import('../services/notice.js?v=20260901s');
   return _noticeModule;
 }
 
@@ -98,15 +100,19 @@ export async function renderHeader(activeModule, opts = {}) {
   // 登录态感知壳：静态页轻量读快照（零依赖）——已登录才动态加载 auth 渲染身份标签；
   // 未登录访客 → 无身份标签；app 模式按需加载后渲染身份
   let role = '';
+  let personId = '';
   if (staticShell ? readLoginSnapshot() : true) {
     try {
       const { AuthStore } = await loadAuth();
       const user = AuthStore.getCurrentUser();
       role = user?.role || '';
+      personId = user?.personId || '';
     } catch (e) {
       console.warn('[header] auth 加载失败，降级为静态壳', e);
     }
   }
+  // P1 软编码：支部名随配置档案（访客无 personId → 默认 br-b1 标题）
+  const headerTitle = getHeaderTitle(personId || undefined);
 
   header.innerHTML = `
     <div class="header-content">
@@ -117,7 +123,7 @@ export async function renderHeader(activeModule, opts = {}) {
         <img src="${getBasePath()}assets/images/party_emblem.png" alt="党徽" class="party-emblem" draggable="false" onerror="this.style.display='none';">
       </div>
       <div class="header-title">
-        <h1 class="font-title-cn">光华管理学院本科生党支部</h1>
+        <h1 class="font-title-cn">${headerTitle}</h1>
       </div>
       <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
         ${_roleLabelHTML(role)}

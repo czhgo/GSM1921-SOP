@@ -2,13 +2,13 @@
 // 组织委员工作台 Tab：考察上传（T-279 M3 拆分，照 M2 样板）
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260901r';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260901r';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260901r';
-import { getPersonById, getPersonName, inspectionToLong } from '../../../mock/index.js?v=20260901r';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260901r';
-import { showToast } from '../../../core/utils.js?v=20260901r';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260901r';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260901s';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260901s';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260901s';
+import { getPersonById, getPersonName, inspectionToLong } from '../../../mock/index.js?v=20260901s';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260901s';
+import { showToast } from '../../../core/utils.js?v=20260901s';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260901s';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;

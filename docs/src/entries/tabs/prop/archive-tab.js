@@ -2,16 +2,16 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/icons.js?v=20260901r';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260901r';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate } from '../../../core/utils.js?v=20260901r';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260901r';
-import { mockDB } from '../../../core/domain.js?v=20260901r';
-import { loadActivities } from '../../../services/activity.js?v=20260901r';
-import { isApiMode } from '../../../services/runtime.js?v=20260901r';
-import { AuthStore } from '../../../services/auth.js?v=20260901r';
-import { _personName } from '../../../mock/index.js?v=20260901r';
-import { addExternalDispatch } from '../../../services/external-dispatch.js?v=20260901r';
+import { icon } from '../../../core/icons.js?v=20260901s';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260901s';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate } from '../../../core/utils.js?v=20260901s';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260901s';
+import { mockDB } from '../../../core/domain.js?v=20260901s';
+import { loadActivities } from '../../../services/activity.js?v=20260901s';
+import { isApiMode } from '../../../services/runtime.js?v=20260901s';
+import { AuthStore } from '../../../services/auth.js?v=20260901s';
+import { _personName } from '../../../mock/index.js?v=20260901s';
+import { addExternalDispatch } from '../../../services/external-dispatch.js?v=20260901s';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），

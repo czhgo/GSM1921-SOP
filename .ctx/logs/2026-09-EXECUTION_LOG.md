@@ -201,3 +201,27 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **卡点全景（已汇报书记）**：① 外部依赖——托管机器申请（书记推动）/REVIEW_QUEUE 逐条/界面减负目检；② 决策待定——表决信任边界/push/备份 SOP；③ 纯执行——R2/抽壳/Step2（已批）；④ 排队——表决留档/help 术语
 **部署件实施**（版本串 20260901o，commit bda8fd9）：server.js `DISABLE_SEED=1` env（空库不导入演示种子）；deploy.js `SEED_FALLBACK` 开关（真实部署=false）+ 污染机制注释；DEPLOYMENT_ROADMAP §2.3「真实部署 checklist」6 步（新库启动 3 步含 services 9 处空表回退关闭清单 + 日常运维备份/恢复/更新 3 步）；module-load 109/109 + seed 通过
 **后续**：R2 角色键收敛 / 同构抽壳（review-submit 等）/ Step2 CRUD 统一——主攻线待新会话执行（需完整上下文逐文件改）
+
+## T-2026-09-011 R2 角色键单一源化·首批 + capability 派生（2026-09-02）
+
+**任务**：R2 减负——角色→页面映射单一源化，消除各工作台字面量副本
+**设计裁定（书记）**：talent 角色词统一 T1 全称（党支部书记/党支部副书记）；R2 先做 capability 派生
+**实施**（版本串 o→q，commits 527558b/5744637）：
+- constants.js 新增 `ROLE_PAGE_MAP` + `rolesForPage()`（单一源）；auth.js 删本地 ROLE_PAGE_MAP 改引用
+- talent-tab roleLabel 统一全称（书记裁决）
+- 6 个 workspace capability `requiredRoles` 全部改 `rolesForPage(page)` 派生（secretary/org/prop/disc/leader/visitor）
+- 验证：module-load 109→110 + capability-registry + **全量 89/89**
+**教训**：R2 多数"角色键副本"非同值（state ROLE_TYPES 系合法枚举、auth/constants 双 COMMISSIONER_ROLES 语义不同）——收敛前须先裁决，防误改 UI 文本
+
+## T-2026-09-012 党委后台 P1 Step1a·支部多实例数据层（2026-09-02）
+
+**任务**：院系党委后台设计落地（设计定案见 content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md；执行路线图 .trae/specs/2026-09-02-party-committee-p1.md）
+**书记方向裁定（brainstorming 逐项）**：真实接入学院党委（院系级非全校）；支部不预设名字动态创建；同一套两级部署；党员严格单支部；书记=职务动态绑定；支部=配置驱动实例（header 软编码 + enabledModules 排列组合 + branchDocs 一支部一存储空间）；架构路径 A 原地横向扩展
+**实施**（版本串 q→r，commit dea729d，T-2026-09-012）：
+- 新建 mock/branches.js（BRANCHES br-b1 实例 + PARTY_COMMITTEE 常量；config：headerTitle/enabledModules=null 全开/fileSpaceIsolated）
+- domain.js mockDB 加 branches 域（含注释语义）
+- mock-adapter 四处接入（import/首启 seed/saveDB 组装/两处 load 恢复 replace_all）
+- server/db.js RESOURCE_TABLES 加 branches；server/seed.js 两级导入（users 前 replace branches）
+- mock/people.js 全员缺省注入 branchId='br-b1'（undefined→br-b1；党委级 person 显式 null 待 Step4）
+- 验证：module-load 110/110 + seed/db/snapshot 8/8 通过
+**下一步**：Step2 支部隔离（services 层收敛，惰性维度：老数据无 branchId 视作 br-b1）→ Step3 配置档案生效（header 软编码）→ Step4 党委工作台 + party-staff 角色/党委账号
