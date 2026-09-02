@@ -204,6 +204,31 @@ export const ROLE_LABELS = {
   'all':               '全体相关',
 };
 
+// ── 角色到页面映射（T-2026-09-011 R2 单一源化：原居 services/auth.js，提升至此纯净层供 auth/capabilities 双端共享）
+// organizer/deep 无独立 workspace 页面（T-141 角色单页制重构后归入工作台）；header view-switcher 仅展示有独立页面的身份
+export const ROLE_PAGE_MAP = {
+  workspace: {
+    'secretary':         'secretary.html',
+    'deputy-secretary':  'secretary.html',
+    'org-commissioner':  'org.html',
+    'prop-commissioner': 'prop.html',
+    'disc-commissioner': 'disc.html',
+    'leader':            'leader.html',
+    'participant':       'visitor.html',
+  },
+};
+
+/** 反查：哪些角色进入该页面（capability requiredRoles 单一源，消除各工作台字面量副本） */
+export function rolesForPage(page) {
+  const out = [];
+  for (const map of Object.values(ROLE_PAGE_MAP)) {
+    for (const [role, p] of Object.entries(map)) {
+      if (p === page) out.push(role);
+    }
+  }
+  return out;
+}
+
 // 条条委员集合（业务语义：三委员，不含书记/副书记）——与 auth.js 的 COMMISSIONER_ROLES（授权语义：含书记/副书记）
 // 语义不同、键集不同，T-304 Q3 已注明区分，勿混用。消费方：inspector.js 执行人/监督人「是否委员」判定。
 export const COMMISSIONER_ROLES = new Set([

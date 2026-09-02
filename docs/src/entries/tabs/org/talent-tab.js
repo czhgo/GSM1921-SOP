@@ -2,12 +2,12 @@
 // 组织委员工作台 Tab：人才库（T-279 M3 拆分，照 M2 样板）
 // 人员信息汇总提炼，输出人才画像；点击人员展开考察记录汇总。
 
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260901o';
-import { loadActivities } from '../../../services/activity.js?v=20260901o';
-import { PEOPLE, getPersonById } from '../../../mock/index.js?v=20260901o';
-import { renderQueryView } from '../../../components/query-view.js?v=20260901o';
-import { badgeHtml } from '../../../components/badge.js?v=20260901o';
-import { icon } from '../../../core/icons.js?v=20260901o';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260901p';
+import { loadActivities } from '../../../services/activity.js?v=20260901p';
+import { PEOPLE, getPersonById } from '../../../mock/index.js?v=20260901p';
+import { renderQueryView } from '../../../components/query-view.js?v=20260901p';
+import { badgeHtml } from '../../../components/badge.js?v=20260901p';
+import { icon } from '../../../core/icons.js?v=20260901p';
 
 // 发展阶段颜色映射（单一模块级；收敛 2026-09-02：原 query/detail 两函数内各有一份同值副本）
 const STAGE_COLOR = {
@@ -103,9 +103,9 @@ function _renderTalentDetail(personId) {
 
   const colorCls = STAGE_COLOR[person.developStage] || 'bg-gray-100 text-gray-500';
 
-  // 角色标签映射
+  // 角色标签映射（2026-09-02 书记裁决：统一 T1 全称，与 core/constants.js ROLE_LABELS 对齐）
   const roleLabel = {
-    'secretary': '支部书记', 'deputy-secretary': '支部副书记',
+    'secretary': '党支部书记', 'deputy-secretary': '党支部副书记',
     'org-commissioner': '组织委员', 'prop-commissioner': '宣传委员',
     'disc-commissioner': '纪检委员', 'leader': '党小组组长',
     'participant': '', 'organizer': '组织者',

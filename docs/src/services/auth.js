@@ -9,14 +9,14 @@
 //   - 链式赋权: AUTHORIZE_CHAIN 定义谁可以赋权什么角色
 //   - party 页面已移除，organizer/deep 内容归入首页"我的角色"区块
 
-import { ROLE_LABELS } from '../core/constants.js?v=20260901o';
-import { PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260901o';
-import { mockDB } from '../core/domain.js?v=20260901o';
-import { NoticeStore } from './notice.js?v=20260901o';
-import { updateActivity } from './mock.js?v=20260901o';
-import { TaskForceRecordStore } from './taskforce.js?v=20260901o';
-import { persist } from '../core/data-adapter.js?v=20260901o';
-import { enableApiMode } from './runtime.js?v=20260901o';
+import { ROLE_LABELS, ROLE_PAGE_MAP } from '../core/constants.js?v=20260901p';
+import { PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260901p';
+import { mockDB } from '../core/domain.js?v=20260901p';
+import { NoticeStore } from './notice.js?v=20260901p';
+import { updateActivity } from './mock.js?v=20260901p';
+import { TaskForceRecordStore } from './taskforce.js?v=20260901p';
+import { persist } from '../core/data-adapter.js?v=20260901p';
+import { enableApiMode } from './runtime.js?v=20260901p';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
@@ -93,21 +93,6 @@ const AUTHORIZE_CHAIN = {
   'org-commissioner':  ['organizer', 'deep'],
   'leader':            ['organizer', 'deep'],
   'organizer':         ['deep'],
-};
-
-// ── 角色到页面映射 ──────────────────────────────
-// 2026-07-30: organizer/deep 无独立 workspace 页面（T-141 角色单页制重构后归入工作台）
-// header view-switcher 仅展示有独立页面的工作台身份（standing role + leader）
-const ROLE_PAGE_MAP = {
-  workspace: {
-    'secretary':         'secretary.html',
-    'deputy-secretary':  'secretary.html',
-    'org-commissioner':  'org.html',
-    'prop-commissioner': 'prop.html',
-    'disc-commissioner': 'disc.html',
-    'leader':            'leader.html',
-    'participant':       'visitor.html',
-  },
 };
 
 // ── 常设角色集合 ────────────────────────────────
