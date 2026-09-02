@@ -13,23 +13,36 @@ const COMMITTEE_ROLES = new Set(['secretary', 'deputy-secretary', 'org-commissio
 // 支委总数（通知文案「已有 N/M 位委员表态」的分母）
 const COMMITTEE_TOTAL = PEOPLE.filter((p) => COMMITTEE_ROLES.has(p.role)).length;
 
+// 通知去重（2026-09-02）：submitVote 幂等 upsert 下改票/多议题/重提会重复触发
+// notifySecretaryProgress——以活动为粒度缓存「已通知的 distinct 表态人数」，仅当人数
+// 突破上次已通知值（N > 上次）才新增一条通知；同人改票/多议题导致 N 不涨时不再打扰
+// 书记。缓存随活动数量增长（支委会活动量级小），简单 Map 即可，可接受。
+const notifiedCountByActivity = new Map(); // activityId -> 已通知表态人数
+
 // 通知书记表态进度（委员提交后触发，统计 fetchVotes 去重 personId 数；失败不阻断主流程）
 async function notifySecretaryProgress(activityId) {
   try {
     const votes = await fetchVotes(activityId);
     const n = new Set(votes.map((v) => v.personId)).size;
-    NoticeStore.add({
-      title: '线上支委会表态更新',
-      content: `「线上支委会」已有 ${n}/${COMMITTEE_TOTAL} 位委员表态`,
-      priority: 'normal',
-      targetUrl: 'workspace/secretary.html',
-    });
+    const notified = notifiedCountByActivity.get(activityId) || 0;
+    if (n > notified) {
+      NoticeStore.add({
+        title: '线上支委会表态更新',
+        content: `「线上支委会」已有 ${n}/${COMMITTEE_TOTAL} 位委员表态`,
+        priority: 'normal',
+        targetUrl: 'workspace/secretary.html',
+        actionRoles: ['secretary'],
+      });
+      notifiedCountByActivity.set(activityId, n);
+    }
   } catch (e) {
     console.warn('[committee-vote] 表态进度通知发送失败：', e);
   }
 }
 
 // 提醒书记记录决议（截止后触发；失败不阻断主流程）
+// actionRoles: ['secretary'] —— 复用 notice.js 既有门控（resolveNoticeUrl），
+// 仅书记可由此通知直达工作台，其余角色不跳转。
 function remindRecordDecision() {
   try {
     NoticeStore.add({
@@ -37,6 +50,7 @@ function remindRecordDecision() {
       content: '支委会议程已截止，请记录决议',
       priority: 'normal',
       targetUrl: 'workspace/secretary.html',
+      actionRoles: ['secretary'],
     });
   } catch (e) {
     console.warn('[committee-vote] 记录决议提醒发送失败：', e);
@@ -83,6 +97,9 @@ export async function submitVote({ activityId, agendaItemId, position, note = ''
 /** 书记截止表态（置 votesLocked / voteDeadline；mock 本地写活动 + persist()） */
 export async function lockVotes({ activityId, votesLocked, voteDeadline }) {
   if (getDataSource() === 'api' && getAuthToken()) {
+    // 截止提醒迁移守卫：仅「先前未锁」的新锁才 remind（本地快照即提交前状态；
+    // 本地已锁 = 重复截止，跳过 remind 避免重复通知）
+    const wasLocked = (mockDB.activities || []).find((a) => a.id === activityId)?.votesLocked === true;
     // 保持 fetch /lock：adapter 未提供 lock 方法（截止为专用端点，属可接受）
     const r = await fetch(`${getApiBaseUrl()}/api/v1/agenda-votes/lock`, {
       method: 'POST',
@@ -91,8 +108,8 @@ export async function lockVotes({ activityId, votesLocked, voteDeadline }) {
     });
     if (!r.ok) throw new Error((await r.json()).error || '截止操作失败');
     const act = await r.json();
-    // 通知闭环：截止成功后提醒书记记录决议
-    if (act.votesLocked) remindRecordDecision();
+    // 通知闭环：截止成功后提醒书记记录决议（仅新锁触发）
+    if (act.votesLocked && !wasLocked) remindRecordDecision();
     return act;
   }
   // mock 分支角色校验（与 server requireRole(secretary) 三端一致：截止仅书记可操作）
@@ -100,13 +117,15 @@ export async function lockVotes({ activityId, votesLocked, voteDeadline }) {
   if (!me || me.role !== 'secretary') throw new Error('仅书记可截止表态');
   const activities = mockDB.activities || [];
   const act = activities.find((a) => a.id === activityId);
+  // 截止提醒迁移守卫：锁前记录本地状态，仅「先前未锁」的新锁才 remind
+  const wasLocked = act?.votesLocked === true;
   if (act) {
     // 截止不可逆（与 server/routes/committee.js 对齐）：仅置 true，传 false 不落库
     if (votesLocked === true) act.votesLocked = true;
     if (voteDeadline) act.voteDeadline = voteDeadline;
   }
   persist();
-  // mock 模式同发记录决议提醒
-  if (act?.votesLocked) remindRecordDecision();
+  // mock 模式同发记录决议提醒（仅新锁触发）
+  if (act?.votesLocked && !wasLocked) remindRecordDecision();
   return act || { id: activityId };
 }
