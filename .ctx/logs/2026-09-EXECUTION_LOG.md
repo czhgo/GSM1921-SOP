@@ -177,3 +177,18 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **验证**：module-load 109/109 + core 27/27 + 全量 **89/89**；版本串 20260901l→m；commit 79e10c0
 - **沉淀标签**：双引擎收敛 · Z1 递归陷阱 · C1 守卫 · 纯 mock 新域刷新丢修复 · 单文件净减 318 行
 - **后续**：**R2 角色键单一源化**（书记已批；constants.js 已确认纯净无 import、可被 server 共享——新会话按清单执行：6 capability requiredRoles 由 ROLE_PAGE_MAP 派生 / talent roleLabel→ROLE_LABELS / feedback ASSIGNEE_OPTIONS+CLOSE_REASONS / login DEV_CARDS / state ROLE_TYPES / server COMMISSIONER_ROLES+SECRETARY_ROLES 共享纯常量）；表决活动详情「决议票数留档」区块待实施；漂移裁决待书记目检
+
+---
+
+## T-2026-09-009 漂移裁决 3 处落实（书记逐项裁定）（2026-09-02）
+
+**任务**：书记要求先列漂移差异（Q4）→ 逐项问裁 → 落实
+**引用流程**：盘点精确到行（含追查"待确认"真实语义位置——纪检端=确认方处理队列/组织端=提交方状态展示）→ AskUserQuestion 逐项 → 落实 + full
+**书记裁定（全部采纳）**：①「待确认」pending 权威色 = **橙**（纪检主视口+超期红同族警示）；② 专班状态词全站统一 = **运行中/已完结**（内部一致，公共页 projects-tab 误用任务态词已改）；③ 活动状态 = **落实 2026-08-07 既有裁决**（"已完成"全站移除——inspector 已执行而公共 activity-entry 漏执行，实为落实缺口非新议题）
+**实施**（版本串 20260901n，全量 89/89，commit 6232772）：
+- ① pending 统一橙：org/inspection-tab L58 + org/talent-tab L117 青→橙；全站复核无 cyan pending 残留（disc/leader 已橙）；集中到单一常量层登记 R2
+- ② 专班词：visitor/projects-tab `_tfStatusLabel` active 进行中→**运行中**、completed 已完成→**已完结**（含 fallback）；色已一致（与 dashboard 同灰）
+- ③ 活动词：activity-entry STATUS_BADGE **拆分** ACT_STATUS_BADGE（completed→已执行）/TF_STATUS_BADGE（completed→已完结、active→运行中）——修掉"活动/专班共用一张表致语义混用"的根因；两处调用带 kind 参数
+- **防回归教训**：activity-entry 两处 statusBadge 调用并行 Edit 又现写覆盖（L151 act 参数丢失一次，复核补回）——同文件编辑必须串行+事后 Grep 复核
+- **沉淀标签**：漂移裁决 · pending 权威橙 · 专班运行中/已完结 · 已完成全站移除落实 · 活动/专班徽章表拆分
+- **后续（书记四项全选，新会话按序）**：R2 角色键收敛 / 同构抽壳+Step2 CRUD 统一 / **部署 checklist 立项**（含空表回退 mock 污染处理 = 对接第一位）/ 表决决议票数留档
