@@ -1,9 +1,11 @@
-// server/routes/committee.js — 线上支委会：异步表态（agenda_votes）
-// 闭环：书记创建支委会+议题 → 通知支委 → 委员异步表态 → 书记汇总/截止 → 记录决议（复用 agenda）
+// server/routes/committee.js — 线上表决：异步表态（agenda_votes）
+// 闭环：书记创建表决活动+议题 → 通知应到成员 → 成员异步表态 → 书记汇总/截止 → 记录决议（复用 agenda）
 // 表态可见性：先全量可见（信息同步开放），边界后续评议
+// 泛化（AV3）：position 按活动 voteConfig.optionSet 枚举校验、应到按 voteConfig.voterIds 校验；
+//   旧活动（无 voteConfig）回退 deliberative + 支委白名单（现状行为零变化）。
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
-import { requireAuth, requireRole, requireCommissioner } from './auth.js';
+import { requireAuth, requireRole } from './auth.js';
 
 // 支委白名单 = 旧活动回退白名单（保留不改行为；历史固定成员 p10-p14，与 member.js COMMITTEE_IDS 对齐），
 // 供无 voteConfig 的旧活动/回退场景兜底校验。
@@ -25,7 +27,13 @@ function writeRow(db, table, row) {
   db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(row.id, JSON.stringify(row));
 }
 
-const POSITIONS = new Set(['agree', 'object', 'comment']);
+// 选项集枚举：position 按活动 voteConfig.optionSet 校验（与前端 vote-config.js OPTION_SETS 对齐）
+//   deliberative（支委会交流式）：agree(同意)/object(异议)/comment(附言)
+//   formal（支部党员大会正式表决）：approve(赞成)/oppose(反对)/abstain(弃权)
+const OPTION_ENUMS = {
+  deliberative: ['agree', 'object', 'comment'],
+  formal: ['approve', 'oppose', 'abstain'],
+};
 
 export function createCommitteeRouter(db) {
   const router = Router();
@@ -37,12 +45,11 @@ export function createCommitteeRouter(db) {
     res.json(rows);
   });
 
-  // 提交/覆盖表态（支委；截止锁定后 400；非支委 403）
-  router.post('/agenda-votes', requireCommissioner(db), (req, res) => {
-    if (!COMMITTEE_IDS.has(req.actor.id)) return res.status(403).json({ error: '仅支委可表态' });
+  // 提交/覆盖表态（活动应到名单内成员；截止锁定后 400；不在名单 403；非法 position 400）
+  router.post('/agenda-votes', requireAuth(db), (req, res) => {
     const { activityId, agendaItemId, position, note = '' } = req.body || {};
-    if (!activityId || !agendaItemId || !POSITIONS.has(position)) {
-      return res.status(400).json({ error: '缺少必要字段或表态无效：activityId/agendaItemId/position(agree|object|comment)' });
+    if (!activityId || !agendaItemId) {
+      return res.status(400).json({ error: '缺少必要字段：activityId/agendaItemId' });
     }
     if (typeof note !== 'string') {
       return res.status(400).json({ error: 'note 须为字符串' });
@@ -50,12 +57,25 @@ export function createCommitteeRouter(db) {
     if (note.length > 500) {
       return res.status(400).json({ error: 'note 长度不能超过 500 字符' });
     }
-    if (position === 'object' && !note.trim()) {
-      return res.status(400).json({ error: '异议须附言说明' });
-    }
-    // 活动存在性 + 锁定期检查（活动数据在 activities 表；活动不存在一律 404，不静默放行）
+    // 活动存在性检查（活动数据在 activities 表；活动不存在一律 404，不静默放行）
     const actRow = getRow(db, 'activities', activityId);
     if (!actRow) return res.status(404).json({ error: '活动不存在' });
+    // 表决泛化：读活动 voteConfig；无 voteConfig（旧活动）→ 回退 optionSet='deliberative' + 支委白名单（现状行为）
+    const vc = actRow.voteConfig;
+    const hasConfig = Boolean(vc && Array.isArray(vc.voterIds));
+    const optionSet = vc && OPTION_ENUMS[vc.optionSet] ? vc.optionSet : 'deliberative';
+    const voterIds = hasConfig ? new Set(vc.voterIds) : COMMITTEE_IDS;
+    if (!voterIds.has(req.actor.id)) {
+      return res.status(403).json({ error: hasConfig ? '不在本次表决名单' : '仅支委可表态' });
+    }
+    if (!position || !OPTION_ENUMS[optionSet].includes(position)) {
+      return res.status(400).json({ error: `表态无效：position(${OPTION_ENUMS[optionSet].join('|')})` });
+    }
+    // 「异议须附言」仅 deliberative（object）适用；formal（反对/弃权/附言选填）无必附言要求
+    if (optionSet === 'deliberative' && position === 'object' && !note.trim()) {
+      return res.status(400).json({ error: '异议须附言说明' });
+    }
+    // 锁定期检查（截止锁定后不可再提交）
     if (actRow.votesLocked) {
       return res.status(400).json({ error: '表态已截止锁定，不可再提交' });
     }
