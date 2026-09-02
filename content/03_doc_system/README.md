@@ -2,7 +2,7 @@
 title: "文档系统管理层索引——全仓库文档系统管理的技术方法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-08-10"
+last_updated: "2026-09-03"
 status: active
 ---
 
@@ -24,6 +24,7 @@ status: active
 | [USAGE_POLICY.md](USAGE_POLICY.md) | P0 强制执行的使用规范，含术语标准（§一）+ AI 展开原则（§二）+ Emoji 边界（§三） | **唯一权威**——术语/Emoji 变更触发一改具改 |
 | [DOC_MAP.md](DOC_MAP.md) | 按 5 类知识类型组织的全局文档导航 | **唯一权威**——文档导航图 |
 | [SERVICE_CATALOG.md](SERVICE_CATALOG.md) | 统一服务目录：系统所有服务功能及其角色权限映射 | **唯一权威**——功能盘点和权限设计 |
+| [FUNCTION_MAP.md](FUNCTION_MAP.md) | 系统功能地图（mermaid mindmap 可视化）——**自动生成物**：由 `docs/scripts/gen-function-mermaid.mjs --write` 生成，勿手改；功能清单以 `docs/src/core/function-catalog.js` 为准 | 功能地图展示页（派生，非权威源） |
 
 ### 二、项目架构与母本注册
 

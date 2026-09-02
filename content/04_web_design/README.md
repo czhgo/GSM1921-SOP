@@ -19,10 +19,10 @@ status: active
 
 | 子目录 | 内容 | 文件 |
 |--------|------|------|
-| [`design-system/`](design-system/) | 设计系统规范（视觉/色彩/组件） | [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md) · [COLOR_SYSTEM.md](design-system/COLOR_SYSTEM.md) · [COMPONENT_SPEC.md](design-system/COMPONENT_SPEC.md) |
+| [`design-system/`](design-system/) | 设计系统规范（视觉/色彩/组件/点击落点） | [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md) · [COLOR_SYSTEM.md](design-system/COLOR_SYSTEM.md) · [COMPONENT_SPEC.md](design-system/COMPONENT_SPEC.md) · [CLICK_MAP.md](design-system/CLICK_MAP.md) |
 | [`data/`](data/) | 数据架构（模型/流/路由） | [DATA_MODEL.md](data/DATA_MODEL.md) · [DATA_FLOW.md](data/DATA_FLOW.md) · [DATA_ARCHITECTURE.md](data/DATA_ARCHITECTURE.md) |
 | [`deploy/`](deploy/) | 部署与集成（路径/认证/外部对接） | [DEPLOYMENT_ROADMAP.md](deploy/DEPLOYMENT_ROADMAP.md) · [DEPLOYMENT_AUTH_MODEL.md](deploy/DEPLOYMENT_AUTH_MODEL.md) · [PKU_PARTY_INTEGRATION.md](deploy/PKU_PARTY_INTEGRATION.md) · [WECHAT_INTEGRATION.md](deploy/WECHAT_INTEGRATION.md) |
-| [`module/`](module/) | 页面/模块设计（UI 与 SOP 联动） | [MODULE_UI_DESIGN.md](module/MODULE_UI_DESIGN.md) · [SOP_WEB.md](module/SOP_WEB.md) · [ABOUT_DESIGN_SYSTEM.md](module/ABOUT_DESIGN_SYSTEM.md) |
+| [`module/`](module/) | 页面/模块设计（UI 与 SOP 联动） | [MODULE_UI_DESIGN.md](module/MODULE_UI_DESIGN.md) · [SOP_WEB.md](module/SOP_WEB.md) · [ABOUT_DESIGN_SYSTEM.md](module/ABOUT_DESIGN_SYSTEM.md) · [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md)（草案） |
 | [`evolution/`](evolution/) | 演进与校验（架构演进/组件化/权限收敛/党委两级治理） | [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) · [CHECKLIST.md](evolution/CHECKLIST.md) · [ROLE_SSOT_DESIGN.md](evolution/ROLE_SSOT_DESIGN.md) · [PARTY_COMMITTEE_DESIGN.md](evolution/PARTY_COMMITTEE_DESIGN.md) |
 
 ---
@@ -44,6 +44,7 @@ status: active
 | [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md) | 设计系统规范（设计哲学/排版/交互/响应式/深色模式/设计资产/快速参考） | **唯一权威**——前端视觉规范（2026-08-24 拆分 §二→COLOR_SYSTEM、§四→COMPONENT_SPEC） |
 | [COLOR_SYSTEM.md](design-system/COLOR_SYSTEM.md) | 色彩系统规范（色盘/主色/辅助色/中性色/功能色/表面色/配色规则） | **唯一权威**——查色值优先（2026-08-24 拆分） |
 | [COMPONENT_SPEC.md](design-system/COMPONENT_SPEC.md) | 组件规范（按钮/卡片/输入/侧边栏/导航/日历图例/数据展示/图标/选人/状态徽章等） | **唯一权威**——写组件优先（2026-08-24 拆分） |
+| [CLICK_MAP.md](design-system/CLICK_MAP.md) | 点击落点映射表（什么地方可点击、点击落在哪里——分层原则 2026-08-29 书记裁定） | **唯一权威**——点击落点规范 |
 
 ### 部署与集成（deploy/）
 
@@ -61,6 +62,7 @@ status: active
 | [MODULE_UI_DESIGN.md](module/MODULE_UI_DESIGN.md) | 模块界面设计：「党建」Tab 分组界面+日历功能模块 | **唯一权威**——「党建」Tab 分组与日历功能界面设计 |
 | [SOP_WEB.md](module/SOP_WEB.md) | SOP-系统联动方法论（系统架构设计、SOP-系统映射） | **唯一权威**——SOP 与系统的双向修改指南 |
 | [ABOUT_DESIGN_SYSTEM.md](module/ABOUT_DESIGN_SYSTEM.md) | About 页面设计系统（叙事册风：超参数设定原则/防风格疲劳/无竖线红线） | **唯一权威**——about 页设计的超参数设定原则 |
+| [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md) | 会议议程与资料查询联动设计（会前草案关联/会后少重复录入/单一数据源） | 设计（**草案·待实施**，2026-08-31） |
 
 ### 演进与校验（evolution/）
 

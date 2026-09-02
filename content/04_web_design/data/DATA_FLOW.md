@@ -205,7 +205,7 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 
 | 键名 | 存储内容 | 格式 | 读写位置 |
 |---|---|---|---|
-| `workflowos_branch_db_v1` | 完整 mockDB 状态（全量序列化） | JSON | [services/mock.js](../../docs/src/services/mock.js#L29) |
+| `workflowos_branch_db_v1` | 完整 mockDB 状态（全量序列化） | JSON | [services/mock.js](../../../docs/src/services/mock.js#L29) |
 
 **全量键字段清单**（`saveDB()` 序列化的完整字段）：
 
@@ -235,13 +235,13 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 
 | 键名 | 存储内容 | 格式 | 读写位置 |
 |---|---|---|---|
-| `gsm1921-auth-records` | 认证记录 | JSON | [services/auth.js](../../docs/src/services/auth.js) |
-| `gsm1921-primary-role` | 主角色 | string | [services/auth.js](../../docs/src/services/auth.js) |
-| `gsm1921-auth-grants` | 赋权授权记录 | JSON | [services/auth.js](../../docs/src/services/auth.js) |
-| `sop_org_os_assigned_roles` | 赋权角色列表 | JSON: `Array<{name, role, activity}>` | [services/roles.js](../../docs/src/services/roles.js) |
-| `gsm1921-feedback-submissions` | 反馈提交记录 | JSON | [services/issues.js](../../docs/src/services/issues.js) |
-| `sop_org_os_session` | 跨页面会话状态 | JSON | [core/cross-page-state.js](../../docs/src/core/cross-page-state.js) |
-| `sop_org_os_data_version` | 数据版本号（跨页面同步） | number | [core/cross-page-state.js](../../docs/src/core/cross-page-state.js) |
+| `gsm1921-auth-records` | 认证记录 | JSON | [services/auth.js](../../../docs/src/services/auth.js) |
+| `gsm1921-primary-role` | 主角色 | string | [services/auth.js](../../../docs/src/services/auth.js) |
+| `gsm1921-auth-grants` | 赋权授权记录 | JSON | [services/auth.js](../../../docs/src/services/auth.js) |
+| `sop_org_os_assigned_roles` | 赋权角色列表 | JSON: `Array<{name, role, activity}>` | [services/roles.js](../../../docs/src/services/roles.js) |
+| `gsm1921-feedback-submissions` | 反馈提交记录 | JSON | [services/issues.js](../../../docs/src/services/issues.js) |
+| `sop_org_os_session` | 跨页面会话状态 | JSON | [core/cross-page-state.js](../../../docs/src/core/cross-page-state.js) |
+| `sop_org_os_data_version` | 数据版本号（跨页面同步） | number | [core/cross-page-state.js](../../../docs/src/core/cross-page-state.js) |
 
 **持久化机制细节：**
 

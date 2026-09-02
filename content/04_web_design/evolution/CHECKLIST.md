@@ -486,7 +486,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 > 背景：T-283 功能开发中多次出现「多轮 Edit 导致误删/重复」系统性损坏——重复声明（SyntaxError）、函数/绑定被误删（ReferenceError 或点击静默失效）、声明误删。书记指令：此类共性问题须成为 checklist 重要部分并全局检查。机制与判例详见 [KNOWN_PITFALLS §14.1](../../05_ai_coding/KNOWN_PITFALLS.md)（注：相对路径以仓库根为准）。
 
 - [ ] **GetDiagnostics 全仓零错误**（每次多文件修改后的最低检查：语法错误/未定义引用/重复声明）
-- [ ] **模块加载完整性审计**：`node --test server/test/edit-integrity-audit.mjs`（浏览器 import 全部 docs/src 模块，86/86 通过；已入 npm test 回归）
+- [ ] **模块加载完整性审计**：`node --test server/test/edit-integrity-audit.mjs`（浏览器 import 全部 docs/src 模块全量通过——模块数随演进变化，不在本文维护具体数值；已入 npm test 回归）
 - [ ] **新增功能浏览器回归**：功能路径实测（如三会一课议程：创建写入→详情显示→行内编辑→保存→持久化，server/test/agenda-flow-audit.mjs A1-A3）
 - [ ] **点击成本回归**：进入工作台→可执行事项 ≤2 跳；高频操作点击次数达标（server/test/click-cost-audit.mjs C1-C3）
 - [ ] **数据完整性回归**：Mock 数据引用/字段/id/类型 + 生命周期一致性（server/test/mock-integrity-audit.mjs M1-M2）

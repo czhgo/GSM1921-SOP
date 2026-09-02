@@ -22,7 +22,7 @@ related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_instit
 
 ### 2.1 活动数据 (ActivityRecord)
 
-> 类型定义位于 [domain.js](../../docs/src/core/domain.js#L12-L32)
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L12-L32)
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -179,7 +179,7 @@ ActivityRecord (主记录)
 
 ### 2.2 角色与权限数据
 
-> 角色类型定义位于 [core/state.js](../../docs/src/core/state.js#L18-L28)，标签/颜色位于 [core/constants.js](../../docs/src/core/constants.js)
+> 角色类型定义位于 [core/state.js](../../../docs/src/core/state.js#L18-L28)，标签/颜色位于 [core/constants.js](../../../docs/src/core/constants.js)
 > 权限的详细解释见 [ROLE_CLASSIFICATION.md §九 角色权限矩阵](../../02_institution/ROLE_CLASSIFICATION.md)。本节为该权威源在数据层 ACL 中的切面视图，冲突时以权威源为准。
 
 #### 2.2.1 角色常量定义
@@ -206,7 +206,7 @@ ActivityRecord (主记录)
 > 权限矩阵、模块可见性、数据共享规则的完整定义见 [ROLE_CLASSIFICATION.md §九](../../02_institution/ROLE_CLASSIFICATION.md) + [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md)。本节不重复展开，仅指向权威源。
 
 **关键规则要点**（详细规则见权威源）：
-- 基础 ACL 实现：[domain.js `can()`](../../docs/src/core/domain.js#L78-L91)
+- 基础 ACL 实现：[domain.js `can()`](../../../docs/src/core/domain.js#L78-L91)
 - 特殊资源 `evaluation`（考察档案）: 仅 `secretary` 和 `org-commissioner` 可读写，其他角色绝对隔离
 - 宣传委员不可创建活动（仅党支书和党小组组长可创建），但任何活动创建后应自动出现在宣传委员的视图中
 - 支委身份选择：sidebar "支委" 卡片 → 模态框选择 → `setState({ selectedRole })` → 「党建」Tab 分组面板按角色显示对应支委面板
@@ -267,7 +267,7 @@ assignedRoles: Array<{
 
 ### 2.5 考勤数据 (AttendanceRecord)
 
-> 类型定义位于 [domain.js](../../docs/src/core/domain.js#L34-L45)
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L34-L45)
 > **字段命名说明**：`personId` 统一为人员标识字段（2026-07-15 审计改进）。代码中仍使用 `userId`，待后续同步。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
@@ -304,7 +304,7 @@ assignedRoles: Array<{
 
 ### 2.6 分工数据 (AssignmentRecord)
 
-> 类型定义位于 [domain.js](../../docs/src/core/domain.js)
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js)
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -321,7 +321,7 @@ assignedRoles: Array<{
 
 ### 2.7 产出物 (OutputRecord)
 
-> 类型定义位于 [domain.js](../../docs/src/core/domain.js)（`OutputType` / `OUTPUT_ROUTES` / `deriveOutputRoute`）
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js)（`OutputType` / `OUTPUT_ROUTES` / `deriveOutputRoute`）
 > **来源：**T-224 产出物定向路由（spec §5.5/§8）。废除原「数据交接」手动推送模型——投递去向由产出类型派生，系统自动执行，组织者只见「提交」不见「发送对象」。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
@@ -349,7 +349,7 @@ assignedRoles: Array<{
 
 ### 2.8 补课任务 (MakeupTask)
 
-> 类型定义位于 [makeup.js](../../docs/src/services/makeup.js)（`autoGenerateMakeupTask` 动态生成）
+> 类型定义位于 [makeup.js](../../../docs/src/services/makeup.js)（`autoGenerateMakeupTask` 动态生成）
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -369,7 +369,7 @@ assignedRoles: Array<{
 
 ### 2.9 通知数据 (Notice)
 
-> 类型定义位于 [notice.js](../../docs/src/services/notice.js)
+> 类型定义位于 [notice.js](../../../docs/src/services/notice.js)
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -384,7 +384,7 @@ assignedRoles: Array<{
 
 ### 2.10 经验沉淀 (ExperienceDeposit)
 
-> 类型定义位于 [domain.js](../../docs/src/core/domain.js)
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js)
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -399,7 +399,7 @@ assignedRoles: Array<{
 
 ### 2.11 制度文件引用 (ComplianceReference)
 
-> 类型定义位于 [domain.js](../../docs/src/core/domain.js)
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js)
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -414,7 +414,7 @@ assignedRoles: Array<{
 
 ### 2.12 任务数据 (Task)
 
-> 类型定义位于 [domain.js](../../docs/src/core/domain.js#L59-L66)
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L59-L66)
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -426,7 +426,7 @@ assignedRoles: Array<{
 
 ### 2.13 应用状态数据 (appState)
 
-> 定义位于 [core/state.js](../../docs/src/core/state.js#L126-L146)
+> 定义位于 [core/state.js](../../../docs/src/core/state.js#L126-L146)
 
 | 字段名 | 类型 | 初始值 | 说明 |
 |---|---|---|---|
@@ -457,7 +457,7 @@ assignedRoles: Array<{
 
 #### 2.13.1 动态角色上下文
 
-> 定义位于 [core/state.js](../../docs/src/core/state.js#L32-L37)
+> 定义位于 [core/state.js](../../../docs/src/core/state.js#L32-L37)
 
 本系统区分两种角色模型：**用户角色**（控制 Web UI 视图）和**动态文件角色**（控制 AI/人机 协作边界）。
 
@@ -478,7 +478,7 @@ assignedRoles: Array<{
 
 ### 2.14 SOP 场景模板 (Scenario)
 
-> 定义位于 [sopData.js](../../docs/src/workflow/sopData.js)
+> 定义位于 [sopData.js](../../../docs/src/workflow/sopData.js)
 
 | 字段名 | 类型 | 说明 |
 |---|---|---|
@@ -517,7 +517,7 @@ assignedRoles: Array<{
 
 ### 2.15 工作流定义 (Definition)
 
-> 定义位于 [definitions.js](../../docs/src/workflow/definitions.js)
+> 定义位于 [definitions.js](../../../docs/src/workflow/definitions.js)
 
 **通用状态节点：**
 
@@ -568,7 +568,7 @@ assignedRoles: Array<{
 
 > **D-244/T105 变更**：意见反馈已升级为 GitHub Issue 风格意见反馈系统。数据从 localStorage 单轨（FeedbackStore）升级为双轨（issues.json 权威源 + localStorage 草稿/缓存）。旧 FeedbackRecord 类型已弃用，保留向后兼容 shim（feedback.js）。
 
-> 类型定义与权威实现位于 [issues.js](../../docs/src/services/issues.js)（IssueStore），权威源 `docs/data/issues.json`
+> 类型定义与权威实现位于 [issues.js](../../../docs/src/services/issues.js)（IssueStore），权威源 `docs/data/issues.json`
 
 | 字段名 | 类型 | 说明 |
 |---|---|---|
@@ -613,7 +613,7 @@ assignedRoles: Array<{
 
 ### 2.16.1 复盘数据 (ReviewRecord) — D-242 本轮补建
 
-> 类型定义位于 [domain.js](../../docs/src/core/domain.js)（ReviewRecord typedef + ReviewStatus 枚举）
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js)（ReviewRecord typedef + ReviewStatus 枚举）
 > **设计依据**：D-238 活动复盘模板系统内表单 + D-242 复盘状态枚举本轮补建
 > **数据流**：§3.1.2 第⑧步复盘监督（批注/打回/确认）+ 第⑨步补交/修改复盘
 
@@ -710,7 +710,7 @@ assignedRoles: Array<{
 
 > **设计依据**：最小三成本原则（见 [DESIGN_SYSTEM.md §一 第2条](../design-system/DESIGN_SYSTEM.md)）——任务流默认直接展示在工作台，不要求用户额外操作才能看到"我需要做什么"。
 > **派生来源**：通知派生（§2.19）+ 活动生命周期事件派生 + 专班生命周期事件派生 + 手动创建。
-> **类型定义将位于** [domain.js](../../docs/src/core/domain.js)（待新增）。
+> **类型定义将位于** [domain.js](../../../docs/src/core/domain.js)（待新增）。
 
 #### 2.18.1 字段定义
 
@@ -842,7 +842,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 > **编者注（2026-09-03）**：本节为追加补建，原以 `## 2.26` 游离于 §2.20 之后（2.21~2.25 缺号系历史编号笔误），现归位为 §2.20.1 子节；新补域自 §2.21 起续编。
 > **定位**：宣传委员上传宣传材料（照片/新闻稿/视频等）落「文件空间」；文件元数据与文件实体分离存储。
 > **双模式**：mock 模式 `fileData`（base64 dataURL，本地存储）；server 模式 `filePath`（服务端磁盘路径，受保护静态下载 `/api/v1/uploads/:name`）。
-> **读写闭环**：创建（`archive-tab` 上传）→ 读取（档案列表/产出物区渲染）→ 下载（mock 直下 / server 鉴权拉取）→ 删除（`DELETE /api/v1/fileSpaceRecords/:id` 联动删物理文件）。类型定义见 [domain.js](../../docs/src/core/domain.js) `FileSpaceRecord` / `ImageRecord` typedef。
+> **读写闭环**：创建（`archive-tab` 上传）→ 读取（档案列表/产出物区渲染）→ 下载（mock 直下 / server 鉴权拉取）→ 删除（`DELETE /api/v1/fileSpaceRecords/:id` 联动删物理文件）。类型定义见 [domain.js](../../../docs/src/core/domain.js) `FileSpaceRecord` / `ImageRecord` typedef。
 
 #### FileSpaceRecord
 

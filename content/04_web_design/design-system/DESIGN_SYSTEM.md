@@ -281,7 +281,7 @@ li + li { margin-top: 0.25em; }
 ## 七、深色模式设计规范
 
 > **确立背景（2026-08-09 指令）**："每一个色块的设计，请都要考虑【深色模式】。只要是主题色，每一个颜色都必须平行——如果一个在深色模式下是淡色的底深色的字，别的也应该是淡色的底深色的字（总之是一致的，且易用的）。对于功能色，因为不随主题色变化而变化，也要记得去做好深色模式下可见度、可分辨率的评估。"
-> **实现机制**：[theme.js](../../docs/src/core/theme.js) — `<html class="theme-dark">` 前缀驱动三态（浅色/深色/跟随系统，默认跟随系统）；CSS 侧深色规则统一 `html.theme-dark` 前缀（T231 决策，2026-08-07 替代 @media prefers-color-scheme）。
+> **实现机制**：[theme.js](../../../docs/src/core/theme.js) — `<html class="theme-dark">` 前缀驱动三态（浅色/深色/跟随系统，默认跟随系统）；CSS 侧深色规则统一 `html.theme-dark` 前缀（T231 决策，2026-08-07 替代 @media prefers-color-scheme）。
 > **分层覆盖**（T-207 D3 沉淀）：CSS 变量反向 + 高频 Tailwind 类 `!important` 提权 + 硬编码组件逐一覆盖；`--party-red` 系不变 / `--surface-header` 深红保持 / 角色识别色不变。
 
 ### 7.1 色块平行性总则（主题色）

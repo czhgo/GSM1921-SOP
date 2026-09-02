@@ -51,7 +51,7 @@ related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEB.md, DEPLOYMENT_ROADMAP.md, 
 
 | 差距 | 证据 |
 |------|------|
-| 页面入口层偏厚 | [main-entry.js](../docs/src/entries/main-entry.js) 约 590 行，统计卡/弹窗/列表/画廊渲染逻辑内嵌在入口；工作台入口同理 |
+| 页面入口层偏厚 | [main-entry.js](../../../docs/src/entries/main-entry.js) 约 590 行，统计卡/弹窗/列表/画廊渲染逻辑内嵌在入口；工作台入口同理 |
 | HTML 层重复硬编码 | ✅ 已消除（2026-08-30 方案A）：tailwind config 与 T231 防闪烁脚本抽为 `docs/src/tailwind-config.js` / `docs/src/theme-init.js` 公共脚本，16 页 head 各只留 2 行引用（每页净减 ~28 行）；边界约束：不引入构建步骤（纯静态直开部署形态不变）、head 其余部分（字体 preconnect/preload/meta）不动、方案C（HTML 骨架模板化构建）留远期 |
 | **静态引用而非注册** | 组件「import 即用」——页面 import 什么就用什么，没有「注册表 + 自动发现」机制；新增功能需手动改 HTML 引用 + entry 逻辑 + tab 配置 + 样式多处 |
 | 无功能开关/能力清单 | 新功能无法按环境/角色/阶段选择性启用 |
@@ -173,7 +173,7 @@ export const activityCalendar = {
 | M5 | ✅ 入口/HTML 瘦身（2026-08-30）——方案A：HTML 公共资源抽取（`theme-init.js` + `tailwind-config.js`，16 页各减 ~28 行，公共脚本入 bump 链）；方案B：`main-entry.js` 599→191 行拆为 4 个 dashboard 组件（stats/activity-panel/taskforce-list/gallery）；修复未登录 user.role 空引用（T-304 方案B 判例） | 公共脚本单一维护源；入口层为调度壳；新增页面不再复制 head 脚本 |
 | M6 | ✅ 组件能力化·注册层（2026-08-30）——共享组件注册为能力（`modules/capabilities/components.js`：todo-list/calendar/custom-select，scope:['component']，deps 可声明组件依赖）；registry 支持任意 scope；测试断言 component 过滤；**消费点接入（从清单动态发现组件）留待真实场景逐步启用，避免大面积 import 改造回归** | 组件清单可查（getCapabilities({scope:'component'})）；组件可作能力 deps |
 | M7 | ✅ 环境/角色开关·消费点启用（2026-08-30）——registry 已支持 env 过滤（M4）与 requiredRoles 过滤；本轮消费点显式传参启用：dashboard 能力发现传 `env: getRuntimeEnv(), role: AuthStore.getCurrentUser()?.role`（行为零变化，机制对未来的 env/role 差异化能力生效）；测试补 dev/prod env 开关断言 | 能力可按部署形态（static/server）与角色选择性启用 |
-| M8 | ✅ 代码减负（2026-08-30，书记：「模块化只见代码增多，少见代码减少」）——①todo-tab 共性化（`todo-tab-shell.js` 抽壳，5 个 tab 1020→373 行）②工作台入口壳化（`workspace-shell.js` 抽壳，6 入口 1022→420 行；导航落点/高亮/抑制参数化）③死代码清理（删 `role-hierarchy.js` -80 行）④M6 接线修复（bootstrap 副作用导入 components.js，组件清单运行时不再为空）；**净减 ~930 行**，npm test 52/52 全绿 | **可持续铁律（书记 2026-08-30）：每个 M 阶段必须伴随净代码减负或持平，禁止纯横向拆分堆叠（防屎山代码）** |
+| M8 | ✅ 代码减负（2026-08-30，书记：「模块化只见代码增多，少见代码减少」）——①todo-tab 共性化（`todo-tab-shell.js` 抽壳，5 个 tab 1020→373 行）②工作台入口壳化（`workspace-shell.js` 抽壳，6 入口 1022→420 行；导航落点/高亮/抑制参数化）③死代码清理（删 `role-hierarchy.js` -80 行）④M6 接线修复（bootstrap 副作用导入 components.js，组件清单运行时不再为空）；**净减 ~930 行**，npm test 回归全绿（该期基线 52/52，随演进不再维护） | **可持续铁律（书记 2026-08-30）：每个 M 阶段必须伴随净代码减负或持平，禁止纯横向拆分堆叠（防屎山代码）** |
 
 每阶段之间允许长期停留——注册表的价值在 M1 后即可验证，后续阶段按迭代需要推进，不预设完成时间。
 

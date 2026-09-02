@@ -282,3 +282,18 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **教训**：版本串 bump 必须全仓同步——party-committee.test.mjs/async-vote 等 evaluate 内硬编码 `?v=` 仍留旧串，导致同名模块双实例（test 内 domain.js?v=y 与页面 z 实例分裂，secretaryId 读到 undefined）；全仓替换后 P2 稳定复绿
 **登记 follow-up**：服务端资源级写权限仍 requireAuth（branches/appointmentRecords/reviewRequests 任意登录用户可写，含自批风险）——UI 层已收敛，上线部署前须 requireRole 按 party-staff/支委层收紧（design §7 已记）
 **P3 状态**：双向通道闭环达成（design §5 P3 验收项行为通过）；design 文档 §0/§5/§7 已按方向选择说明更新
+
+## T-2026-09-019 文档体系治理——role 越界修正 + 死链修复 + 索引补全 + DATA_MODEL 补录（2026-09-03）
+
+**触发（书记 4 项关切）**：①文档系统混乱；②PARTY_COMMITTEE_DESIGN role 字段出现 `[书记]`=AI 把决策人/批准人冒充为编者身份（逃逸）；③content 混入执行过程、spec 与 content 混淆；④「工作流块拖拽编排」须立为开源项目目标。
+
+**处置**：
+- **role 越界**：全仓扫描仅 1 处（PARTY_COMMITTEE_DESIGN）——修正为 `[工程师]+[AI]`；书记=决策人/批准人，裁定记录于正文，不入编者 role（复扫 0 违规）
+- **content/spec 边界**：按书记口径「不是 =，而是逐份实时判断」写入 04_web_design README 归类原则；PARTY_COMMITTEE_DESIGN 清悬空 spec 文件名引用与陈旧测试数字（89/86/52 等），回归设计/方向纯记录
+- **死链批量修复**：04_web_design 四个子目录指向 docs/src 代码文件的链接少一级 `../`（28 条）→ 正则收敛为 `../../../docs/`；复验死链 0（仅剩 2 条表格占位符"路径/链接"误报）
+- **索引补全（孤儿 3 篇）**：FUNCTION_MAP（自动生成·标注勿手改）入 03 README；CLICK_MAP（点击落点权威）与 AGENDA_AND_REFERENCE_DESIGN（标草案·待实施）入 04 README 目录结构与权威源速查
+- **DATA_MODEL 补录**：游离 `## 2.26` 归位 §2.20.1（含编者注）；新增党委域 §2.21 BranchRecord(config 档案)/§2.22 AppointmentRecord/§2.23 ReviewRequest/§2.24 党委下发通知扩展（audience='committee' 复用语义 + 受众过滤规则）
+- **愿景立项**：ARCHITECTURE_EVOLUTION §八「工作流块可视化拖拽编排」开源项目目标（L1 能力目录→L2 支部组合→L3 块封装契约→L4 拖拽编排→L5 块分享 + 架构锚点：不新造执行引擎、权限数据同源、可视化是编辑器非目的）；PARTY_COMMITTEE_DESIGN §2.5 标注远期形态衔接
+
+**提交**：5cf3893（role/边界/愿景）、0749ca1（DATA_MODEL 补录+归类原则软化）、本轮（死链/索引/数字标注）
+**遗留**：DATA_MODEL 全文档编号体系仍建议在后续「数据模型治理专项」通读归序（本轮只修了游离 2.26 与新域续编）；普通通知跨支部隔离缺口已登记（design §7）
