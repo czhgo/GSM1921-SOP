@@ -5,11 +5,11 @@
 //   校验不通过抛错中止（不写 result）；弃权计入出席不计赞成；quorumCheck=false 不拦截。
 //   经 recordAgendaResultForActivity 走完整校验链（与 agenda-closure-core 同入口），
 //   表态数据注入 mockDB.agendaVotes —— 须与 committee-vote.js 内部同一 mockDB 实例
-//   （模块缓存键含 ?v= 查询串，故此处同样带 ?v=20260901g 导入）。
+//   （模块缓存键含 ?v= 查询串，故此处同样带 ?v=20260901h 导入）。
 // 运行：node --test server/test/agenda-quorum.test.mjs
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockDB } from '../../docs/src/core/domain.js?v=20260901g';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260901h';
 import { recordAgendaResultForActivity } from '../../docs/src/services/agenda-follow-up.js';
 
 const ACT_ID = 'act-quorum';

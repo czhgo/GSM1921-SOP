@@ -12,7 +12,7 @@
 //   workspace 页（visitor/secretary）经 bootstrap 为 api 数据源（读/写服务器）。
 //   故「公共页 UI 演示」用 mock 本地（活动经 persist 备份进 localStorage 供 activity.html 恢复），
 //   「服务器登记/硬校验真值」用同身份页面 evaluate 调 service（committee-vote/agenda-follow-up）+ node fetch。
-// - 关键服务调用均在页面 evaluate 内以 ?v=20260901g 导入（与页面共享模块实例，防 mockDB 双实例分裂）。
+// - 关键服务调用均在页面 evaluate 内以 ?v=20260901h 导入（与页面共享模块实例，防 mockDB 双实例分裂）。
 // 运行：cd server; 设沙箱环境变量; node --test test/async-vote.test.mjs test/online-committee.test.mjs test/agenda-quorum.test.mjs
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -88,7 +88,7 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
   const secCtx = await browser.newContext();
   const secPage = await login(secCtx, 'p13');
   const created = await secPage.evaluate(async ({ title, voterIds, ag1, ag2 }) => {
-    const { getAdapter } = await import('/src/core/data-adapter.js?v=20260901g');
+    const { getAdapter } = await import('/src/core/data-adapter.js?v=20260901h');
     const act = await getAdapter().activities.create({
       title,
       type: '支部党员大会',
@@ -106,7 +106,7 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
       ],
     });
     // 同步本地 mockDB（防 800ms 防抖快照以过期缓存覆盖服务器活动，参照 online-committee.test.mjs）
-    const { mockDB } = await import('/src/core/domain.js?v=20260901g');
+    const { mockDB } = await import('/src/core/domain.js?v=20260901h');
     if (!mockDB.activities.some((a) => a.id === act.id)) mockDB.activities.push(act);
     return act;
   }, { title: TITLE, voterIds: FORMAL_IDS, ag1: AG1, ag2: AG2 });
@@ -125,7 +125,7 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
   const prepCtx = await browser.newContext();
   const prepPage = await login(prepCtx, 'p24');
   await prepPage.evaluate(async () => {
-    const { persist } = await import('/src/core/data-adapter.js?v=20260901g');
+    const { persist } = await import('/src/core/data-adapter.js?v=20260901h');
     persist(); // api 模式：saveDB 本地备份（快照与服务器一致）
   });
   await prepPage.goto(`${base}/activity.html?id=${actId}`, { waitUntil: 'domcontentloaded' });
@@ -163,7 +163,7 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
   const memberCtx = await browser.newContext();
   const memberPage = await login(memberCtx, 'p5');
   await memberPage.evaluate(async () => {
-    const { persist } = await import('/src/core/data-adapter.js?v=20260901g');
+    const { persist } = await import('/src/core/data-adapter.js?v=20260901h');
     persist(); // 本地备份（含服务器 act-xxx）供 activity.html mock 恢复
   });
   await memberPage.goto(`${base}/activity.html?id=${actId}`, { waitUntil: 'domcontentloaded' });
@@ -184,9 +184,9 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
   // 同页切 api 数据源后以 p5 身份经 submitVote 服务登记服务器（公共页 mock 不落服务器，见文件头注释）
   const p5Row = await memberPage.evaluate(async ({ activityId, ag1 }) => {
     const token = sessionStorage.getItem('gsm1921-api-token');
-    const { enableApiMode } = await import('/src/services/runtime.js?v=20260901g');
+    const { enableApiMode } = await import('/src/services/runtime.js?v=20260901h');
     enableApiMode(token);
-    const { submitVote } = await import('/src/services/committee-vote.js?v=20260901g');
+    const { submitVote } = await import('/src/services/committee-vote.js?v=20260901h');
     return submitVote({ activityId, agendaItemId: ag1, position: 'approve', note: '' });
   }, { activityId: actId, ag1: AG1 });
   assert.equal(p5Row.personId, 'p5', '服务端登记 personId 应为 p5');
@@ -216,8 +216,8 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
     await secPage.click('.secretary-tab-btn[data-secretary-tab="calendar"]').catch(() => {});
     await secPage.waitForTimeout(800);
     await secPage.evaluate(async ({ id }) => {
-      const { setState } = await import('/src/core/state.js?v=20260901g');
-      const { mockDB } = await import('/src/core/domain.js?v=20260901g');
+      const { setState } = await import('/src/core/state.js?v=20260901h');
+      const { mockDB } = await import('/src/core/domain.js?v=20260901h');
       setState({ activities: [...mockDB.activities], viewMode: 'detail', selectedActivityId: id });
     }, { id: actId });
     await secPage.waitForSelector('#vote-summary-slot .vs-stat', { timeout: 12000 });

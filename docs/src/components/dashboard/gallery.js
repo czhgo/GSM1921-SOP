@@ -5,12 +5,12 @@
 //  职责单一：品牌/已归档活动风采卡片（前 6 条，类型渐变底）。
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState } from '../../core/state.js?v=20260901g';
-import { _fmtDate } from '../../core/utils.js?v=20260901g';
-import { getPersonName } from '../../mock/index.js?v=20260901g';
-import { getActivityTypeColors } from '../../core/constants.js?v=20260901g';
-import { badgeHtml } from '../badge.js?v=20260901g';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260901g';
+import { getAppState } from '../../core/state.js?v=20260901h';
+import { _fmtDate } from '../../core/utils.js?v=20260901h';
+import { getPersonName } from '../../mock/index.js?v=20260901h';
+import { getActivityTypeColors } from '../../core/constants.js?v=20260901h';
+import { badgeHtml } from '../badge.js?v=20260901h';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260901h';
 
 const GALLERY_TYPE_GRADIENTS = {
   '主题党日': 'linear-gradient(135deg, #FEF2F2, #FECACA)',
