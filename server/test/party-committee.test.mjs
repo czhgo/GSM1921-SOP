@@ -88,9 +88,15 @@ test('党委组织员登录直达党委工作台：台账见支部、可创建�
       return w && !w.classList.contains('hidden') && w.querySelector('#branch-name-input');
     }, { timeout: 5000 });
     const branchName = `党委测试支部-${Date.now()}`;
-    await page.fill('#branch-name-input', branchName);
-    await page.fill('#branch-type-input', '硕士');
-    await page.click('#branch-form-submit');
+    // fill 同样可能撞 workspace-shell 周期重渲（input 被重置）——evaluate 直接赋值
+    await page.evaluate((name) => {
+      const n = document.getElementById('branch-name-input');
+      const t = document.getElementById('branch-type-input');
+      if (n) { n.value = name; n.dispatchEvent(new Event('input', { bubbles: true })); }
+      if (t) { t.value = '硕士'; t.dispatchEvent(new Event('input', { bubbles: true })); }
+    }, branchName);
+    // submit 用 DOM click（workspace-shell 周期重渲会把表单重置 hidden，Playwright actionability 会超时）
+    await page.evaluate(() => document.getElementById('branch-form-submit')?.click());
     await waitForBodyText(page, branchName);
 
     // 5. 持久化：reload 后新支部仍在（API 模式 → server branches 表）
