@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createEditableAgenda, normalizeEditedAgenda } from '../../docs/src/services/agenda-editing.js?v=20260901q';
+import { createEditableAgenda, normalizeEditedAgenda } from '../../docs/src/services/agenda-editing.js?v=20260901r';
 
 test('编辑议程文字时保留成员变更和文件讨论的结构字段', () => {
   const editing = createEditableAgenda([

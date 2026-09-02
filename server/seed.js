@@ -2,15 +2,17 @@
 import { replaceCollection } from './db.js';
 
 export async function seedDatabase(db) {
-  const [peopleMod, activitiesMod, noticesMod, taskforcesMod, seedMod] = await Promise.all([
+  const [peopleMod, activitiesMod, noticesMod, taskforcesMod, seedMod, branchesMod] = await Promise.all([
     import('../docs/src/mock/people.js'),
     import('../docs/src/mock/activities.js'),
     import('../docs/src/mock/notices.js'),
     import('../docs/src/mock/taskforces.js'),
     import('../docs/src/mock/seed.js'),
+    import('../docs/src/mock/branches.js'),
   ]);
 
   replaceCollection(db, 'users', peopleMod.PEOPLE);
+  replaceCollection(db, 'branches', branchesMod.BRANCHES);
   replaceCollection(db, 'activities', activitiesMod.ACTIVITIES);
   replaceCollection(db, 'notices', noticesMod.MOCK_NOTICES);
   replaceCollection(db, 'taskforces', taskforcesMod.MOCK_TASKFORCES);

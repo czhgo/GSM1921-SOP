@@ -283,6 +283,11 @@ export const mockDB = {
   // ── 2026-08-30 思想汇报数字化（书记决策，算法归档原则）──
   /** @type {Object[]} 思想汇报（党员/发展对象系统内提交，算法自动归集至个人档案，组织委员查看调用） */
   thoughtReports: [],
+  // ── 2026-09-02 党委后台 P1：支部多实例 ──
+  /** @type {Object[]} 支部实例（br-b1 本科生党支部；硕博等由党委动态创建不预设名字）
+   *  config.headerTitle=header 软编码；config.enabledModules=null 表示启用全部已注册能力；
+   *  config.fileSpaceIsolated=支部文件（branchDocs）/附件一支部一独立存储空间 */
+  branches: [],
 };
 
 // ════════════════════════════════════════════════════════════════

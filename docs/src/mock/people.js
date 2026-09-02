@@ -54,3 +54,9 @@ export const PEOPLE = [
   { id: 'p49', name: '段志远', studentId: '2500010035', partyGroup: '第一党小组', developStage: '积极分子', role: 'participant' },
   { id: 'p50', name: '汪洋',   studentId: '2500010036', partyGroup: '第二党小组', developStage: '积极分子', role: 'participant' },
 ];
+
+// ── P1 党委后台（2026-09-02，书记决策：党员严格单支部）──
+// 成员缺省归属本科生党支部 br-b1；党委级人员（party-staff，Step4 引入）显式 branchId: null（不属于支部）
+for (const p of PEOPLE) {
+  if (p.branchId === undefined) p.branchId = 'br-b1';
+}

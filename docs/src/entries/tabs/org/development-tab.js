@@ -2,11 +2,11 @@
 // 组织委员工作台 Tab：发展数据（T-279 M3 拆分，照 M2 样板）
 // 从入党积极分子到正式党员的完整发展路径数据（管线概览 + 阶段筛选 + 推进）。
 
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260901q';
-import { loadThoughtReports, listThoughtReportsByPerson } from '../../../services/thought-report.js?v=20260901q';
-import { PEOPLE } from '../../../mock/index.js?v=20260901q';
-import { badgeHtml } from '../../../components/badge.js?v=20260901q';
-import { showToast } from '../../../core/utils.js?v=20260901q';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260901r';
+import { loadThoughtReports, listThoughtReportsByPerson } from '../../../services/thought-report.js?v=20260901r';
+import { PEOPLE } from '../../../mock/index.js?v=20260901r';
+import { badgeHtml } from '../../../components/badge.js?v=20260901r';
+import { showToast } from '../../../core/utils.js?v=20260901r';
 
 // ════════════════════════════════════════════════════════════════
 //  发展党员追踪 — Mock 数据（模块私有，随模块自持）

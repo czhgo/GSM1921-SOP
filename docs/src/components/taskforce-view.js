@@ -4,11 +4,11 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据书记第五轮裁定「新建专班查看组件（列表+详情）」。
 // 书记设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260901q';
-import { _personName } from '../mock/index.js?v=20260901q';
-import { badgeHtml } from './badge.js?v=20260901q';
-import { dotDarkVars } from '../core/constants.js?v=20260901q';
-import { flashHighlight } from '../core/utils.js?v=20260901q';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260901r';
+import { _personName } from '../mock/index.js?v=20260901r';
+import { badgeHtml } from './badge.js?v=20260901r';
+import { dotDarkVars } from '../core/constants.js?v=20260901r';
+import { flashHighlight } from '../core/utils.js?v=20260901r';
 
 const STATUS_LABEL = { draft: '草稿', pending_review: '待审核', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档' };
 const STATUS_COLOR = { pending_review: '#6366F1', recruiting: '#D97706', active: '#10B981', completed: '#3B82F6', archived: '#6B7280', draft: '#6B7280' };

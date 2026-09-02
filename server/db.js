@@ -15,6 +15,8 @@ const RESOURCE_TABLES = [
   'act_sub_records', 'tf_sub_records',
   'branch_docs', 'member_change_requests', 'committee_broadcasts',
   'agenda_votes',
+  // 2026-09-02 党委后台 P1：支部多实例（br-b1 + 党委动态创建的支部，config 配置档案同存）
+  'branches',
 ];
 
 const SCHEMA = `

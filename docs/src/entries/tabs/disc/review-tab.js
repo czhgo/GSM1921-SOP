@@ -2,13 +2,13 @@
 // 纪检委员工作台 Tab：活动监督复盘（T-279 M3 拆分）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain.js?v=20260901q';
-import { persist } from '../../../core/data-adapter.js?v=20260901q';
-import { reviewToDisplay } from '../../../mock/index.js?v=20260901q';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/review.js?v=20260901q';
-import { showToast } from '../../../core/utils.js?v=20260901q';
-import { openFormModal } from '../../../components/modal.js?v=20260901q';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260901q';
+import { mockDB, ReviewStatus } from '../../../core/domain.js?v=20260901r';
+import { persist } from '../../../core/data-adapter.js?v=20260901r';
+import { reviewToDisplay } from '../../../mock/index.js?v=20260901r';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/review.js?v=20260901r';
+import { showToast } from '../../../core/utils.js?v=20260901r';
+import { openFormModal } from '../../../components/modal.js?v=20260901r';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260901r';
 
 // ── 经验沉淀数据层（mockDB） ────────────────────────────
 function _loadDeposits() {

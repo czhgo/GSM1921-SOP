@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-const catalogPath = fileURLToPath(new URL('../../docs/src/core/function-catalog.js?v=20260901q', import.meta.url));
+const catalogPath = fileURLToPath(new URL('../../docs/src/core/function-catalog.js?v=20260901r', import.meta.url));
 
 function loadCatalog() {
   const src = readFileSync(catalogPath, 'utf8');
