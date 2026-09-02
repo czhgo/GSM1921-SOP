@@ -149,3 +149,13 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
   - 表决回归：agenda-votes 15 + async-vote（真实 UI 表决链）+ module-load 109/109 全绿
 - **沉淀标签**：写侧约束 · 文案三端统一 · OPTION_SETS 单一源 · tally 每议程项独立 · 存量迁移结论（不迁）
 - **后续**：书记追问「表决活动【归档】显示什么」（归档库/活动详情对表决决议与票数的回看呈现）待定方向；服务端强制（活动写 REST 化 + 名单推导）登记架构 spec
+
+---
+
+## T-2026-09-007 减负架构 spec 已批准 · 待实施（2026-09-02）
+
+**任务**：书记批准 Step1+R2 实施——但本 session 上下文预算将尽，300 行引擎手术 + 全量回归需完整上下文保证质量，**留待新会话立即执行**（方案已定、bug 已发现、边界已清，直取 spec 即做）
+**产物**：`.trae/specs/2026-09-02-mock-engine-merge-spec.md`（书记已审批准；实施后整合 ARCHITECTURE_EVOLUTION 并删除本文件）
+**方案定稿（微调优于原案）**：Step1 A' —— services/mock.js `saveDB/loadDB` 转发 `MockAdapter`（唯一全量实现）+ 删私有引擎（saveDB/loadDB/_seedInitialData/_mergeNewSeedRecords/_maybeError/仅 seed import），净减 ~250+ 行；**附带修复纯 mock 新域（imageRecords/agendaVotes/handoffs/thoughtReports 等）刷新即丢 bug**（现 mock 恢复走旧 loadDB 缺这些域）；R2 角色键单一源化清 9 前端副本 + 3 服务端副本（先确认 constants 纯净性/抽 role-defs）；漂移词色冻结
+**新会话首步**：读 spec → Step1 实施（先做纯 mock 新域刷新丢 bug 的临时复现验证 → 重构 → e2e-login/b3-1/seed/module-load + full 行为闸）→ R2 → bump + 登记 + spec 清理
+**另登记**：表决活动详情「决议票数留档」区块（书记已定方向，待实施——活动详情显示各议程项决议+票数统计，可回看）
