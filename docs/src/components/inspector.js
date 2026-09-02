@@ -5,26 +5,26 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../core/state.js?v=20260901y';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260901y';
-import { _fmtChinese, showToast } from '../core/utils.js?v=20260901y';
-import { icon } from '../core/icons.js?v=20260901y';
-import { openModal, closeModal } from './modal.js?v=20260901y';
-import { PEOPLE, getPersonById } from '../mock/index.js?v=20260901y';
-import { BranchService } from '../services/runtime.js?v=20260901y';
-import { AuthStore } from '../services/auth.js?v=20260901y';
-import { PersonStore } from '../services/person.js?v=20260901y';
-import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260901y';
-import { badgeHtml } from './badge.js?v=20260901y';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260901y';
-import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260901y';
-import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260901y';
-import { optionSetOf, resolveVoterIds, OPTION_SETS } from '../services/vote-config.js?v=20260901y';
-import { renderVoteSummary } from './vote-summary-panel.js?v=20260901y';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260901y';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260901y';
-import { loadActivityReviews } from '../services/review.js?v=20260901y';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260901y';
+import { setState, STATE, getAppState } from '../core/state.js?v=20260901z';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260901z';
+import { _fmtChinese, showToast } from '../core/utils.js?v=20260901z';
+import { icon } from '../core/icons.js?v=20260901z';
+import { openModal, closeModal } from './modal.js?v=20260901z';
+import { PEOPLE, getPersonById } from '../mock/index.js?v=20260901z';
+import { BranchService } from '../services/runtime.js?v=20260901z';
+import { AuthStore } from '../services/auth.js?v=20260901z';
+import { PersonStore } from '../services/person.js?v=20260901z';
+import { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260901z';
+import { badgeHtml } from './badge.js?v=20260901z';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260901z';
+import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260901z';
+import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260901z';
+import { optionSetOf, resolveVoterIds, OPTION_SETS } from '../services/vote-config.js?v=20260901z';
+import { renderVoteSummary } from './vote-summary-panel.js?v=20260901z';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260901z';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260901z';
+import { loadActivityReviews } from '../services/review.js?v=20260901z';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260901z';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {

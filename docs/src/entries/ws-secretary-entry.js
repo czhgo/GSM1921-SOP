@@ -1,14 +1,14 @@
-﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ws-secretary-entry.js — 书记工作台入口（T-279 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { getAppState, setState } from '../core/state.js?v=20260901y';
-import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260901y';
-import { _currentYearMonth } from '../core/utils.js?v=20260901y';
-import { loadActivities } from '../services/activity.js?v=20260901y';
-import { BranchService } from '../services/runtime.js?v=20260901y';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260901y';
-import { SignupStore } from '../services/signup.js?v=20260901y';
+import { getAppState, setState } from '../core/state.js?v=20260901z';
+import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260901z';
+import { _currentYearMonth } from '../core/utils.js?v=20260901z';
+import { loadActivities } from '../services/activity.js?v=20260901z';
+import { BranchService } from '../services/runtime.js?v=20260901z';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260901z';
+import { SignupStore } from '../services/signup.js?v=20260901z';
 // T-304 Q3 权限收敛：副作用导入触发书记工作台能力注册（tab 清单，与其余 5 工作台对齐）
 import '../modules/capabilities/secretary-workspace.js?v=20260829r';
 

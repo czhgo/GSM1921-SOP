@@ -3,9 +3,9 @@
 //  data-loader.js — 数据加载统一入口
 // ════════════════════════════════════════════════════════════════
 
-import { BranchService } from '../services/runtime.js?v=20260901y';
-import { getAppState, setState, STATE } from './state.js?v=20260901y';
-import { notifyDataLoaded } from './data-adapter.js?v=20260901y';
+import { BranchService } from '../services/runtime.js?v=20260901z';
+import { getAppState, setState, STATE } from './state.js?v=20260901z';
+import { notifyDataLoaded } from './data-adapter.js?v=20260901z';
 
 /**
  * 将 mock ACTIVITIES 映射为带完整字段的 fallback 数据

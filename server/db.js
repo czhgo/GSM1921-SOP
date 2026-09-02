@@ -19,6 +19,8 @@ const RESOURCE_TABLES = [
   'branches',
   // 2026-09-02 党委后台 P2：书记任期记录（党委任命/撤换档案）
   'appointment_records',
+  // 2026-09-02 党委后台 P3：支部上报审批（发展节点/活动报备 → 党委批驳档案）
+  'review_requests',
 ];
 
 const SCHEMA = `

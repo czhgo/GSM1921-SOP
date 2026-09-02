@@ -3,10 +3,10 @@
 // 支部边界收敛点（防漂移）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
 // 单一数据源：mockDB.branches（首启 seed 自 mock/branches.js BRANCHES）
 
-import { mockDB } from '../core/domain.js?v=20260901y';
-import { getPersonById } from './person.js?v=20260901y';
-import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260901y';
-import { getAdapter, persist } from '../core/data-adapter.js?v=20260901y';
+import { mockDB } from '../core/domain.js?v=20260901z';
+import { getPersonById } from './person.js?v=20260901z';
+import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260901z';
+import { getAdapter, persist } from '../core/data-adapter.js?v=20260901z';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;

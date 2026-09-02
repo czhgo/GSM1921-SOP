@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  components/work-overview.js — 各角色「工作概况」tab
 //  书记 2026-08-10 裁定：全部角色新增工作概况 tab（组长走组员进展升级版）
@@ -9,19 +9,19 @@
 //  职责空间最小充分信息（P-011 知情边界）；本页禁用 SVG 图标（书记裁定）
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight } from '../core/utils.js?v=20260901y';
-import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260901y';
-import { IssueStore, REPORT_CATEGORIES } from '../services/issues.js?v=20260901y';
-import { AuthStore } from '../services/auth.js?v=20260901y';
-import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260901y';
-import { loadActivities } from '../services/activity.js?v=20260901y';
-import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260901y';
-import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260901y';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260901y';
-import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260901y';
-import { PEOPLE } from '../mock/people.js?v=20260901y';
-import { getPersonName } from '../mock/index.js?v=20260901y';
-import { AttendanceStatus } from '../core/domain.js?v=20260901y';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260901z';
+import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260901z';
+import { IssueStore, REPORT_CATEGORIES } from '../services/issues.js?v=20260901z';
+import { AuthStore } from '../services/auth.js?v=20260901z';
+import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260901z';
+import { loadActivities } from '../services/activity.js?v=20260901z';
+import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260901z';
+import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260901z';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260901z';
+import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260901z';
+import { PEOPLE } from '../mock/people.js?v=20260901z';
+import { getPersonName } from '../mock/index.js?v=20260901z';
+import { AttendanceStatus } from '../core/domain.js?v=20260901z';
 
 // 在办下钻详情目标（书记 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -388,10 +388,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('./activity-view.js?v=20260901y');
+    const { renderActivityView } = await import('./activity-view.js?v=20260901z');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260901y');
+    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260901z');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

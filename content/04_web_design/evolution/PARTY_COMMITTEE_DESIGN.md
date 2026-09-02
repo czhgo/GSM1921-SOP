@@ -3,7 +3,7 @@ title: "院系党委后台——支部多实例两级治理设计定案"
 type: design
 role: "[工程师]+[AI]+[书记]"
 created: 2026-09-02
-last_updated: "2026-09-02"
+last_updated: "2026-09-03"
 status: approved-by-secretary
 related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/accounts.js, server/seed.js, server/db.js, docs/src/core/data-adapter.js, docs/src/core/constants.js, docs/src/services/auth.js, docs/src/modules/capabilities/]
 ---
@@ -27,6 +27,9 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 | 架构路径 | A 原地横向扩展 / B 党委独立系统 / C 支部模板参数化 | **A 原地横向扩展**（复用全部支部功能、党员数据零迁移；B 被否因要同套，C 过重 YAGNI） |
 | 支部差异 | 同构复制 / **配置驱动实例** | **配置驱动实例**：支部从已注册能力模块中排列组合自己的工作流（见 §2.5）；支部文件 branchDocs 一支部一存储空间 |
 | 品牌 | 硬编码单支部名 / **header 软编码** | **header 软编码**（支部名/主题随支部配置更换） |
+| P3 上报审批范围（2026-09-03） | 细粒度节点 / 仅活动报备 / **发展节点+活动报备** | **发展节点+活动报备**：「发展节点」泛化（确定积极分子/发展对象、接收预备、转正等一节点一报），不细分字段；重要活动走「活动报备」 |
+| P3 下发承载（2026-09-03） | 新建「下发箱」领域 / **复用通知** | **复用通知**：通知实体加 `audience:'committee'` + `branchId` 受众过滤与「党委下发」来源徽标——送达=目标支部**支委层**，普通党员/党委组织员（非支委）不打扰；支部不可在自发通知管理区删改上级下发 |
+| P3 入口落点（2026-09-03） | — | 支部侧=书记工作台新 tab「上报党委」；党委侧=独立 tab「上报审批」与「下发通知」——上报/下发两向入口分离，互不混淆 |
 
 ## 1. 目标与边界
 
@@ -84,7 +87,9 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 
 - **P1 支部多实例 + 党委监控台账**：branch 落地 + 现数据迁移 br-b1；党委账号与工作台；监控台账（各支部成员规模/三会一课/主题党日/发展党员进度/思想汇报/书记任期状态）+ 支部列表管理（创建/改名）；数据隔离生效。验收：党委登录见全院两视图、支部登录只见本支部；现有 89 测试全绿 + 新增两级相关测试。
 - **P2 书记任命与任期**：党委任命/撤换书记 → 书记工作台动态绑定被任命人；任期记录（改选换届档案）。验收：任命某成员后其登录即书记台、原书记降回成员/副书记；任期历史可查。
-- **P3 党委指导审批 + 下发通知**：党委对支部关键事项审批（范围待 P2 后定：优先发展党员相关节点/重要活动报备）；党委下发通知/提醒 → 支部全员可见。验收：双向通道闭环。
+- **P3 党委指导审批 + 下发通知**（2026-09-03 范围与形态已裁定，见 §0）：
+  - **上报（支部→党委）**：书记/副书记在书记工作台「上报党委」tab 发起——`develop-node`（发展节点）/`activity-report`（活动报备）两类，标题+说明上报（`reviewRequests` 记录，挂 branchId，状态 pending/approved/rejected）；党委在党委工作台「上报审批」tab 逐项批/驳（驳回须附意见，批准可附指导意见）→ 结论（含意见与处理人）回传支部侧同页可见。
+  - **下发（党委→支委层）**：党委在「下发通知」tab 选目标支部（支部动态创建后自动可选）撰写下发 → 复用通知实体（`source:'committee'` + `audience:'committee'` + `branchId`），仅目标支部支委层成员在通知入口（铃铛/通知列表）可见并已读反馈，条目带「党委下发」红标；支部自发通知管理区不出现上级下发（只读治理信息，不可删改）。验收：双向通道闭环（上报→批复→回传；下发→支委收件），支部非支委党员不受打扰。
 
 ## 6. 演示与基线
 
@@ -98,6 +103,7 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 - **书记机制变化影响演示/测试**：P2 前保持 u_sec 可访问书记台（任命绑定与固定账号并存过渡，P2 切换）。
 - 隔离在 services 层收敛，勿在各 tab 手写过滤（防漂移）。
 - 新能力注册式（modules/capabilities/ 新增 party-committee-workspace），勿增核心单体。
+- **上线前待收紧（P3 落地时登记）**：服务端资源级写权限仍为通用 requireAuth——任何登录用户理论上可写 branches/appointmentRecords/reviewRequests（含自批风险）；当前以 UI 层角色收敛 + 数据为演示态接受，上线部署前须按角色收紧（requireRole: party-staff / 本支部支委层）。
 
 ## 8. 验收（总原则）
 

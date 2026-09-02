@@ -5,13 +5,14 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260901y';
-import { persist } from '../core/data-adapter.js?v=20260901y';
-import { MOCK_NOTICES } from '../mock/index.js?v=20260901y';
-import { showToast, getBasePath } from '../core/utils.js?v=20260901y';
-import { AuthStore } from './auth.js?v=20260901y';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260901y';
-import { badgeHtml } from '../components/badge.js?v=20260901y';
+import { mockDB } from '../core/domain.js?v=20260901z';
+import { persist } from '../core/data-adapter.js?v=20260901z';
+import { MOCK_NOTICES } from '../mock/index.js?v=20260901z';
+import { showToast, getBasePath } from '../core/utils.js?v=20260901z';
+import { AuthStore } from './auth.js?v=20260901z';
+import { getPersonById } from './person.js?v=20260901z';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260901z';
+import { badgeHtml } from '../components/badge.js?v=20260901z';
 
 function _loadNotices() {
   try {
@@ -112,6 +113,18 @@ export const NoticeStore = {
     // 2026-08-08 归档闭环：默认排除已归档通知（随活动/专班归档退出工作区）
     if (filter.includeArchived !== true) {
       result = result.filter(n => !n.archived);
+    }
+
+    // P3 党委下发（2026-09-02，书记裁定送达范围=支部委员会/支委层）：
+    // audience==='committee' 的党委下发通知，仅对目标支部的支委层成员可见；
+    // 普通党员/党委组织员（非支委）不消费本通道，其余通知行为不变。
+    {
+      const _me = AuthStore.getCurrentUser();
+      const _isComm = _me && ['secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'].includes(_me.role);
+      const _myBranch = _me ? (getPersonById(_me.personId)?.branchId || 'br-b1') : null;
+      result = result.filter(n =>
+        n.audience !== 'committee' || (_isComm && _myBranch && (n.branchId || 'br-b1') === _myBranch)
+      );
     }
 
     if (filter.activeOnly !== false) {
@@ -332,6 +345,11 @@ export function resolveNoticeUrl(n, currentRole = null) {
   return { url: getBasePath() + page, direct: true };
 }
 
+/** P3 党委下发来源徽标（红底白字，与支部自发的通知区分；下发=党委→支委层治理通道） */
+function committeeSourceChip() {
+  return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:#C8102E;color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>';
+}
+
 export function renderNoticeList(containerId, limit = 5) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -356,7 +374,10 @@ export function renderNoticeList(containerId, limit = 5) {
          title="${n.title} — ${n.content}">
       ${priorityBadge[n.priority] || ''}
       <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium text-gray-800 truncate group-hover:text-blue-700 transition-colors">${n.title}</p>
+        <div class="flex items-center gap-1.5 min-w-0">
+          ${n.source === 'committee' ? committeeSourceChip() : ''}
+          <p class="text-sm font-medium text-gray-800 truncate group-hover:text-blue-700 transition-colors">${n.title}</p>
+        </div>
         <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">${n.content}</p>
       </div>
       <div class="flex items-center gap-1 whitespace-nowrap mt-0.5">
@@ -412,10 +433,11 @@ function _showNoticePopover(notice, triggerBtn) {
 
   popover.innerHTML = `
     <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
-      <div class="flex items-center gap-2">
-        ${priorityBadge[notice.priority] || ''}
-        <h3 class="font-title-cn text-sm font-semibold text-gray-800">${notice.title}</h3>
-      </div>
+        <div class="flex items-center gap-2">
+          ${priorityBadge[notice.priority] || ''}
+          ${notice.source === 'committee' ? committeeSourceChip() : ''}
+          <h3 class="font-title-cn text-sm font-semibold text-gray-800">${notice.title}</h3>
+        </div>
       <button id="notice-popover-close" class="text-gray-400 hover:text-gray-600 text-sm leading-none">&times;</button>
     </div>
     <div class="text-xs text-gray-400 mb-3">${notice.publishDate || ''}</div>

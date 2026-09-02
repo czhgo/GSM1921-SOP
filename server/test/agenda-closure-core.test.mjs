@@ -5,8 +5,8 @@
 // 运行：node --test server/test/agenda-closure-core.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { collectAgendaRows } from '../../docs/src/entries/tabs/secretary/agenda-form.js?v=20260901y';
-import { recordAgendaResultForActivity } from '../../docs/src/services/agenda-follow-up.js?v=20260901y';
+import { collectAgendaRows } from '../../docs/src/entries/tabs/secretary/agenda-form.js?v=20260901z';
+import { recordAgendaResultForActivity } from '../../docs/src/services/agenda-follow-up.js?v=20260901z';
 
 test('collectAgendaRows：议程行多类型不互斥，产出 kinds 数组与结构化字段', () => {
   const rows = [

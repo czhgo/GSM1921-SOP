@@ -265,3 +265,20 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **教训**：p3 王五无 MOCK_ACCOUNTS 登录账号（accounts 仅部分成员）——E2E 任命对象须选有账号成员（p5 钱七）；appointSecretary 内 users PATCH 用 try/catch 吞错——探针直测定位为账号问题非 PATCH 问题
 **mock 纯本地边界**：users 演示行（u_*）无 person 档案 → role 同步静默跳过（记录/secretaryId 仍完整）；角色动态生效以 API 模式（真实部署）为准
 **P3 党委审批+下发**：未启动——登记后续大项
+
+## T-2026-09-018 P3 双向治理通道落地——支部上报审批 + 党委下发通知（2026-09-03）
+
+**范围与形态（书记 AskUser 逐项裁定，已记入 design §0/§5）**：①上报=发展节点+活动报备（泛化节点，非细粒度）；②下发承载=复用通知（不新建「下发箱」领域），送达=党委→目标支部**支委层**；③入口落点：支部侧=书记工作台新 tab「上报党委」；党委侧=独立 tab「上报审批」「下发通知」。
+
+**实施**（版本串 y→z，module-load 114/114）：
+- reviewRequests 领域全套接线：domain（status/type 契约）→ services/review-request.js（submit/decide/list）→ mock-adapter（saveDB/loadDB/restoreNicheCollections 三处 + CRUD rq-*）→ api-adapter（/api/v1/reviewRequests）→ data-adapter init 恢复域 → server db.js/resource 表 review_requests（ID_PREFIX rq）
+- 支部侧 report-up-tab（书记/副书记）：两类上报发起表单（类型 chip/标题/说明）+ 待批复/已批准/已驳回统计 + 上报历史（党委批驳结论+意见+处理人回传显示）
+- 党委侧 review-tab：待批复队列（支部标签/类型/提交人/时间）+ 批准/驳回（驳回须填意见，批准意见选填）→ 已处理区
+- 党委侧 dispatch-tab：下发通知（目标支部多选含全部/支部动态可选/标题/正文/重要与紧急）+ 下发历史（党委留痕，支部快照名防改名漂移）
+- 通知复用改造：NoticeStore.list() 受众过滤（audience='committee' 仅目标支部支委层可见；非支委/无登录一律不可见）+「党委下发」红标（renderNoticeList/铃铛下拉/浮窗/notice 详情）；支部「已发布通知」管理列表过滤上级下发（只读治理信息不可删改）；dispatch 通知 publisher='院党委（组织员）' recipients='支部委员会（支委层）'
+**E2E 验收**（新增 2 测试文件，共 4/4 连续通过）：
+- party-committee-review：书记上报发展节点 → 党委批准（带意见）→ 书记页可见「党委批准+意见」；活动报备驳回：空意见守卫拦截（仍待批复）→ 带意见驳回 → 回传可见（双向闭环）
+- party-committee-dispatch：党委下发 → 下发历史即时可见；书记（支委层）铃铛可见带「党委下发」标；党委组织员（非支委）铃铛不可见；普通成员（p5 非支委）铃铛不可见
+**教训**：版本串 bump 必须全仓同步——party-committee.test.mjs/async-vote 等 evaluate 内硬编码 `?v=` 仍留旧串，导致同名模块双实例（test 内 domain.js?v=y 与页面 z 实例分裂，secretaryId 读到 undefined）；全仓替换后 P2 稳定复绿
+**登记 follow-up**：服务端资源级写权限仍 requireAuth（branches/appointmentRecords/reviewRequests 任意登录用户可写，含自批风险）——UI 层已收敛，上线部署前须 requireRole 按 party-staff/支委层收紧（design §7 已记）
+**P3 状态**：双向通道闭环达成（design §5 P3 验收项行为通过）；design 文档 §0/§5/§7 已按方向选择说明更新

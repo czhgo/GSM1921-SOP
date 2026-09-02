@@ -1,13 +1,13 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // notice-entry.js — 通知详情独立入口
 // 2026-07-30: 增加邮件要素（通知者/被通知者/时间），但不采用邮箱 UI
-import { renderSidebar } from '../components/sidebar.js?v=20260901y';
-import { renderHeader } from '../components/header.js?v=20260901y';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260901y';
-import { getBasePath, showToast } from '../core/utils.js?v=20260901y';
-import { AuthStore } from '../services/auth.js?v=20260901y';
-import { getPersonById } from '../mock/index.js?v=20260901y';
-import { badgeHtml } from '../components/badge.js?v=20260901y';
+import { renderSidebar } from '../components/sidebar.js?v=20260901z';
+import { renderHeader } from '../components/header.js?v=20260901z';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260901z';
+import { getBasePath, showToast } from '../core/utils.js?v=20260901z';
+import { AuthStore } from '../services/auth.js?v=20260901z';
+import { getPersonById } from '../mock/index.js?v=20260901z';
+import { badgeHtml } from '../components/badge.js?v=20260901z';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -109,6 +109,7 @@ function renderNoticeDetail(n) {
       <div class="flex items-center gap-2.5 mb-3">
         <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full ${pri.bg} ${pri.text}">${pri.label}</span>
         ${isUnread ? badgeHtml('未读', 'warning') : ''}
+        ${n.source === 'committee' ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-white" style="background:#C8102E;">党委下发</span>' : ''}
       </div>
 
       <!-- 通知者 / 被通知者 / 时间 —— 信息条，非邮箱 UI -->

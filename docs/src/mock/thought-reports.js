@@ -3,7 +3,7 @@
 // 提交人：党员/发展对象（p6 发展对象 / p7 积极分子 / p16 预备党员）
 // 算法归档原则：提交即入库即归档，按 personId 自动归集至个人档案，组织委员查看调用
 
-import { getPersonName } from '../services/person.js?v=20260901y';
+import { getPersonName } from '../services/person.js?v=20260901z';
 
 const _personName = (id) => getPersonName(id) || id;
 

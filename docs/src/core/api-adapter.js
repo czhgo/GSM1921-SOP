@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260901y';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260901z';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -596,6 +596,22 @@ export const ApiAdapter = {
 
     update(id, patch) {
       return _patch(`/api/v1/appointmentRecords/${id}`, patch);
+    },
+  },
+
+  // P3 党委后台（2026-09-02）：支部上报审批 API 通路（支部提交 / 党委批驳）
+  reviewRequests: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/reviewRequests${query ? '?' + query : ''}`);
+    },
+
+    create(data) {
+      return _post('/api/v1/reviewRequests', data);
+    },
+
+    update(id, patch) {
+      return _patch(`/api/v1/reviewRequests/${id}`, patch);
     },
   },
 

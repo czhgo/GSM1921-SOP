@@ -1,16 +1,16 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // components/header.js — 共享顶栏组件（重构版）
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 书记裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260901y';
-import { getBasePath } from '../core/utils.js?v=20260901y';
-import { icon } from '../core/icons.js?v=20260901y';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260901y';
-import { badgeHtml } from './badge.js?v=20260901y';
-import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260901y';
+import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260901z';
+import { getBasePath } from '../core/utils.js?v=20260901z';
+import { icon } from '../core/icons.js?v=20260901z';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260901z';
+import { badgeHtml } from './badge.js?v=20260901z';
+import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260901z';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../services/branch.js?v=20260901y';
+import { getHeaderTitle } from '../services/branch.js?v=20260901z';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -19,11 +19,11 @@ import { getHeaderTitle } from '../services/branch.js?v=20260901y';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../services/auth.js?v=20260901y');
+  if (!_authModule) _authModule = import('../services/auth.js?v=20260901z');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../services/notice.js?v=20260901y');
+  if (!_noticeModule) _noticeModule = import('../services/notice.js?v=20260901z');
   return _noticeModule;
 }
 
@@ -200,6 +200,7 @@ function _bindNotificationBell(header) {
              style="padding:12px;border-bottom:1px solid var(--neutral-200);cursor:pointer;transition:background 0.15s;">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
             ${priorityBadge[n.priority] || ''}
+            ${n.source === 'committee' ? '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:#C8102E;color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>' : ''}
             <p style="color:var(--neutral-700);margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" class="text-body-sm">${n.title || n.content}</p>
             ${!n.read ? `<button class="notif-mark-read text-xs" data-notice-id="${n.id}" style="color:var(--functional-info);background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;transition:background 0.15s;flex-shrink:0;" onmouseenter="this.style.background='var(--surface-hover)'" onmouseleave="this.style.background='none'">已读</button>` : ''}
           </div>

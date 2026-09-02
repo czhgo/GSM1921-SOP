@@ -292,6 +292,11 @@ export const mockDB = {
   /** @type {Object[]} 书记任期记录（党委任命/撤换；换届改选档案）
    *  { id, branchId, secretaryId, appointedBy, note, from, to(null=现任) } */
   appointmentRecords: [],
+  // ── 2026-09-02 党委后台 P3：支部上报审批 ──
+  /** @type {Object[]} 支部上报记录（发展党员关键节点/重要活动报备 → 党委逐项批/驳）
+   *  { id, branchId, type:'develop-node'|'activity-report', title, content,
+   *    status:'pending'|'approved'|'rejected', submittedBy, decidedBy, decidedAt, decisionNote, createdAt } */
+  reviewRequests: [],
 };
 
 // ════════════════════════════════════════════════════════════════

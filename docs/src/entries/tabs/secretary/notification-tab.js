@@ -3,10 +3,10 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore } from '../../../services/notice.js?v=20260901y';
-import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260901y';
-import { badgeHtml } from '../../../components/badge.js?v=20260901y';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260901y';
+import { NoticeStore } from '../../../services/notice.js?v=20260901z';
+import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260901z';
+import { badgeHtml } from '../../../components/badge.js?v=20260901z';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260901z';
 
 const NOTIFICATION_TAB_HTML = `
   <div class="card rounded-2xl p-6 mb-6">
@@ -170,7 +170,10 @@ function renderNotificationList() {
   const listArea = document.getElementById('notification-list-area');
   if (!listArea) return;
 
+  // P3 党委下发（2026-09-02）：audience='committee' 的党委下发通知不进支部「已发布」管理列表
+  // （方向：上级下发为只读治理信息，支部不可在其自发通知管理区删改）
   const notifications = NoticeStore.getAll()
+    .filter(n => n.source !== 'committee')
     .sort((a, b) => (b.publishDate || '').localeCompare(a.publishDate || ''));
 
   if (notifications.length === 0) {

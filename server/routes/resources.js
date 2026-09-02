@@ -41,6 +41,8 @@ const RESOURCE_TABLES = {
   branches: 'branches',
   // P2 党委后台（2026-09-02）：书记任期记录
   appointmentRecords: 'appointment_records',
+  // P3 党委后台（2026-09-02）：支部上报审批（发展节点/活动报备 → 党委批驳）
+  reviewRequests: 'review_requests',
 };
 
 function listTable(db, table) {
@@ -60,6 +62,7 @@ const ID_PREFIX = {
   branchDocs: 'bd',
   branches: 'br',
   appointmentRecords: 'appt',
+  reviewRequests: 'rq',
 };
 
 export function createResourcesRouter(db) {

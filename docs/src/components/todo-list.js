@@ -12,9 +12,9 @@ import {
   TodoStatus,
   TODO_STATUS_LABELS,
   DEFAULT_EXPANDED_CATEGORIES,
-} from '../services/todo.js?v=20260901y';
-import { badgeHtml } from './badge.js?v=20260901y';
-import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260901y';
+} from '../services/todo.js?v=20260901z';
+import { badgeHtml } from './badge.js?v=20260901z';
+import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260901z';
 
 /**
  * 渲染待办列表组件
