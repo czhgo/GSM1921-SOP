@@ -2167,6 +2167,12 @@ html.theme-dark .tf-section-head {
   font-weight: 600;
   color: var(--party-red);
 }
+/* 移动端矩阵横向溢出：外包滚动容器（议题 × 委员列数多时窄屏可横滑） */
+.vs-matrix-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
 .vs-matrix {
   width: 100%;
   border-collapse: collapse;

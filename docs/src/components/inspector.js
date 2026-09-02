@@ -770,24 +770,24 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   }
 
   // 书记端表态汇总（2026-09-01 线上支委会 Task4：书记/副书记可见）
-  // 加载后 fetchVotes → 汇总矩阵；votes-locked 冒泡 → 提示记录决议 + 刷新锁定态
+  // 加载后 fetchVotes → 汇总矩阵；votes-locked 冒泡 → 提示记录决议 + setState 刷新锁定态
   // committeeMembers 取支委角色（书记/副书记/组织/宣传/纪检），排除 u_* 系统账号
+  // canLock 仅书记为 true（截止按钮仅书记可见，与 server requireRole(secretary) 三端一致）
   if (isSecretaryOrDeputy && Array.isArray(activity.agenda) && activity.agenda.length > 0) {
     const vsSlot = cardsEl.querySelector('#vote-summary-slot');
     if (vsSlot) {
       const committeeMembers = PersonStore.getAll()
         .filter(p => !String(p.id).startsWith('u_') && AuthStore.isCommissioner(p.role));
-      const renderSummary = async (act) => {
-        await renderVoteSummary(vsSlot, { activity: act, committeeMembers, currentUserId });
-      };
-      renderSummary(activity).catch(e => console.warn('[inspector] 表态汇总加载失败：', e));
+      renderVoteSummary(vsSlot, { activity, committeeMembers, canLock: isSecretary })
+        .catch(e => console.warn('[inspector] 表态汇总加载失败：', e));
       vsSlot.addEventListener('votes-locked', () => {
         showToast('success', '表态已截止，请记录决议');
-        // lockVotes 已落库 votesLocked；同步全局 state（浅拷贝数组，元素引用同一对象）
-        // 并本地构造锁定态即时刷新汇总区块（避免依赖全局重渲染的异步时机）
+        // lockVotes 已落库（mock 直写 mockDB / API 写服务器）。setState 触发全局重建，
+        // 重建后 renderVoteSummary 重新 fetchVotes 渲染「已截止」态。
+        // latest 本地构造为即时反馈：保证 API 模式下重绘时 activity.votesLocked 立即为 true
+        // （服务器锁定态尚未同步回本地 state，不能只依赖 mockDB）。
         const latest = { ...activity, votesLocked: true };
         setState({ activities: getAppState().activities.map(a => (a.id === activity.id ? latest : a)) });
-        renderSummary(latest).catch(e => console.warn('[inspector] 表态汇总刷新失败：', e));
       });
     }
   }

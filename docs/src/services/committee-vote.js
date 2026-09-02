@@ -50,6 +50,9 @@ export async function lockVotes({ activityId, votesLocked, voteDeadline }) {
     if (!r.ok) throw new Error((await r.json()).error || '截止操作失败');
     return r.json();
   }
+  // mock 分支角色校验（与 server requireRole(secretary) 三端一致：截止仅书记可操作）
+  const me = AuthStore.getCurrentUser();
+  if (!me || me.role !== 'secretary') throw new Error('仅书记可截止表态');
   const activities = mockDB.activities || [];
   const act = activities.find((a) => a.id === activityId);
   if (act) {
