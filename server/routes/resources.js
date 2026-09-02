@@ -49,6 +49,40 @@ function listTable(db, table) {
   return db.prepare(`SELECT data FROM ${table}`).all().map(r => JSON.parse(r.data));
 }
 
+// ── P3 上线前收紧（2026-09-03，design §7 登记项落地）：资源级写角色门 ──────────
+// 默认仍 requireAuth；以下资源写权限按角色收紧（防支部成员自批/篡改治理档案）：
+//   branches / appointmentRecords / users → 仅 party-staff（党委组织员/党务老师）
+//   reviewRequests → POST=本支部支委层（同支部校验）；PATCH/DELETE=party-staff（党委审批）
+const PARTY_STAFF_ROLE = new Set(['party-staff']);
+const BRANCH_COMMITTEE_ROLES = new Set([
+  'secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
+]);
+const RESOURCE_WRITE_GATE = {
+  branches: 'party-staff',
+  appointmentRecords: 'party-staff',
+  users: 'party-staff',
+  reviewRequests: { post: 'branch-committee', patch: 'party-staff', delete: 'party-staff' },
+};
+
+/** 资源写角色门判定（在 requireAuth 之后、handler 内调用；未设门资源一律放行） */
+function _assertResourceWrite(actor, name, method, body) {
+  const gate = RESOURCE_WRITE_GATE[name];
+  if (!gate) return true; // 未设门：由既有 writeAuth（requireAuth / requireCommissioner）把关
+  const need = typeof gate === 'string' ? gate : gate[method];
+  if (!need) return true;
+  if (need === 'party-staff') {
+    return !!actor && PARTY_STAFF_ROLE.has(actor.role);
+  }
+  if (need === 'branch-committee') {
+    // 支部侧上报：仅本支部支委层成员（actor 归属支部与上报支部一致；老数据缺省视为 br-b1）
+    if (!actor || !BRANCH_COMMITTEE_ROLES.has(actor.role)) return false;
+    const myBranch = actor.branchId || 'br-b1';
+    const targetBranch = (body && body.branchId) || 'br-b1';
+    return myBranch === targetBranch;
+  }
+  return true;
+}
+
 // create 缺 id 时的前缀（与前端 mock 生成风格对齐：act-xxx / tsk-xxx ...）
 const ID_PREFIX = {
   activities: 'act', tasks: 'tsk', attendances: 'att', inspections: 'ins',
@@ -83,6 +117,9 @@ export function createResourcesRouter(db) {
 
     // 创建：body 为单条数据对象；缺 id 时服务端生成（与前端 mock 生成风格对齐）
     router.post(`/${name}`, writeAuth, (req, res) => {
+      if (!_assertResourceWrite(req.actor, name, 'post', req.body)) {
+        return res.status(403).json({ error: '无权限：该写操作仅限党委组织员/党务老师或本支部支委层' });
+      }
       const row = req.body;
       if (!row || typeof row !== 'object' || Array.isArray(row)) {
         return res.status(400).json({ error: 'body 须为单条数据对象' });
@@ -98,6 +135,9 @@ export function createResourcesRouter(db) {
 
     // 更新：局部合并 patch（与前端 update(id, patch) 语义一致）
     router.patch(`/${name}/:id`, writeAuth, (req, res) => {
+      if (!_assertResourceWrite(req.actor, name, 'patch', req.body)) {
+        return res.status(403).json({ error: '无权限：该写操作仅限党委组织员/党务老师' });
+      }
       const id = req.params.id;
       const existing = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(id);
       if (!existing) return res.status(404).json({ error: 'not found' });
@@ -108,6 +148,9 @@ export function createResourcesRouter(db) {
 
     // 删除
     router.delete(`/${name}/:id`, writeAuth, (req, res) => {
+      if (!_assertResourceWrite(req.actor, name, 'delete', null)) {
+        return res.status(403).json({ error: '无权限：该写操作仅限党委组织员/党务老师' });
+      }
       // 文件类资源（支部文件/文件空间记录/图片记录）：删除记录前联动删除已上传的物理文件
       // （书记 2026-08-18 裁决「连物理文件一起删」；T-304 D 档扩展至文件空间/图片记录，杜绝孤儿文件）
       if (name === 'branchDocs' || name === 'fileSpaceRecords' || name === 'imageRecords') {

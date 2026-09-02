@@ -295,5 +295,16 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **DATA_MODEL 补录**：游离 `## 2.26` 归位 §2.20.1（含编者注）；新增党委域 §2.21 BranchRecord(config 档案)/§2.22 AppointmentRecord/§2.23 ReviewRequest/§2.24 党委下发通知扩展（audience='committee' 复用语义 + 受众过滤规则）
 - **愿景立项**：ARCHITECTURE_EVOLUTION §八「工作流块可视化拖拽编排」开源项目目标（L1 能力目录→L2 支部组合→L3 块封装契约→L4 拖拽编排→L5 块分享 + 架构锚点：不新造执行引擎、权限数据同源、可视化是编辑器非目的）；PARTY_COMMITTEE_DESIGN §2.5 标注远期形态衔接
 
-**提交**：5cf3893（role/边界/愿景）、0749ca1（DATA_MODEL 补录+归类原则软化）、本轮（死链/索引/数字标注）
+**提交**：5cf3893（role/边界/愿景）、0749ca1（DATA_MODEL 补录+归类原则软化）、eb46724（死链/索引/数字标注）
 **遗留**：DATA_MODEL 全文档编号体系仍建议在后续「数据模型治理专项」通读归序（本轮只修了游离 2.26 与新域续编）；普通通知跨支部隔离缺口已登记（design §7）
+
+## T-2026-09-020 权限收紧 + 工作流块 L1 服务层 + AI 逃逸评议 + 本地验收（2026-09-03）
+
+**书记指令**：服务端权限收紧、工作流块 L1 接线、启动本地验收、拖拽工作流块推进、AI 逃逸评议审查。
+
+**服务端资源写角色门（design §7 登记项落地）**：resources.js 新增 RESOURCE_WRITE_GATE——branches/appointmentRecords/users 写=仅 party-staff；reviewRequests POST=本支部支委层（actor.branchId 与 body.branchId 同支部校验）、PATCH/DELETE=party-staff（防支部书记自批/支部成员篡改治理档案）。新测试 permission-gate（HTTP 直连，3 例）：治理档案越权 403、本支部可提交/自批 403/党委可审批、未设门资源行为不变。既有 party-committee E2E（P1/P2/P3 上报/下发）10/10 回归全绿。
+**工作流块 L1 服务层（愿景 §八）**：services/branch.js 新增 listBranchModuleCatalog（注册表 workspace:* 能力+tab 元数据→支部可勾选目录）、getEnabledModuleIds/isModuleEnabled（config.enabledModules 消费：null=全开、数组=仅启用清单）。新测试 branch-module-catalog 2/2。**渲染过滤与党委勾选 UI 留待交互设计接入（下一步）**。
+**AI 逃逸评议审查**：role 越界 0 处；status:approved-by-secretary 仅 PARTY_COMMITTEE_DESIGN 且正文含裁定记录；自称式表述 0（唯一命中=书记 2026-08-22「无人称」文体纪律记录）。判据固化：role=编者身份；书记裁定记正文决策记录；文案无人称化。
+**拖拽 L3/L4 草案**：ARCHITECTURE_EVOLUTION §8.5（block manifest JSONC 草案 + 画布→既有 WorkflowEngine 的映射 + v0 原型范围=块排序/启停画布，YAGNI 边界明确）。
+**本地验收**：启动独立预览 http://localhost:3100（.tmp/preview.db 全新种子；端口 3000 已被既有实例占用，未触碰）。
+**下一步候选**：工作台 tab 按支部 config 过滤 + 党委勾选 UI（L2 消费闭环）；v0 块画布原型专项；push 待书记批准。

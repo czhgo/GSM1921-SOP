@@ -7,9 +7,39 @@ import { mockDB } from '../core/domain.js?v=20260901z';
 import { getPersonById } from './person.js?v=20260901z';
 import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260901z';
 import { getAdapter, persist } from '../core/data-adapter.js?v=20260901z';
+import { listCapabilities } from '../core/registry.js?v=20260901z';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
+}
+
+// ── 工作流块 L1（2026-09-03，ARCHITECTURE_EVOLUTION §八）：支部 config.enabledModules 消费函数 ──
+// config.enabledModules = null → 全开（默认，兼容现有演示）；数组 → 仅启用清单内能力。
+// 本批只落"读取/判定/目录查询"服务层；工作台 tab 过滤与党委勾选 UI 在其后按交互设计接入。
+
+/** 支部可勾选的工作流能力目录（派生自能力注册表 workspace:* 能力 + 其 tab 元数据） */
+export function listBranchModuleCatalog() {
+  const { items } = listCapabilities({});
+  return items
+    .filter(cap => Array.isArray(cap.scope) && cap.scope.some(s => String(s).startsWith('workspace:')))
+    .map(cap => ({
+      capId: cap.id,
+      name: cap.name,
+      tabs: (typeof cap.tabs === 'function' ? cap.tabs() : [])
+        .map(t => ({ id: t.id, label: t.label, groupLabel: t.groupLabel })),
+    }));
+}
+
+/** 支部启用的模块清单：null=全开（未配置）；string[]=仅启用列表 */
+export function getEnabledModuleIds(branchId) {
+  const b = getBranchById(branchId);
+  return b?.config?.enabledModules ?? null;
+}
+
+/** 支部是否启用某能力（null=全开 → 恒 true） */
+export function isModuleEnabled(branchId, capId) {
+  const list = getEnabledModuleIds(branchId);
+  return list === null || list.includes(capId);
 }
 
 /**

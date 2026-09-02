@@ -224,6 +224,32 @@ export const activityCalendar = {
 
 支部「配置驱动实例」（PARTY_COMMITTEE_DESIGN §2.5）在未来形态下演进为：**支部管理员在画布上把系统已注册的工作流块拖成本支部的流程组合 → 自动写回 config.enabledModules 与场景清单**——"从已注册能力中勾选"的文本交互升级为"拖积木"的图形交互，数据模型不变。
 
+### 8.5 L3 块封装契约草案 + L4 画布产物映射（原型专项前置 · 2026-09-03）
+
+> 状态：草案，供原型专项落地时收敛；核心原则 = **块不独立于既有机制存在**（块 = 注册能力/场景 + 下述元数据），画布产物 = 一段版本化 workflow 数据，仍交给既有 WorkflowEngine/决策树执行。
+
+**工作流块元数据草案（block manifest）**：
+
+```jsonc
+{
+  "blockId": "act-organize",            // 对应 capability id 或 scenario id（不新造第三套 id）
+  "name": "活动组织块",
+  "sopRef": "02_institution/sop/...",  // 制度/SOP 溯源（一改具改锚点）
+  "initiatorRoles": ["secretary"],
+  "stages": [                          // 阶段即决策树/引擎的阶段序列
+    { "id": "create",  "kind": "decision-tree", "outputs": ["activity"] },
+    { "id": "assign",  "kind": "engine",        "outputs": ["assignment", "todo"] },
+    { "id": "attend",  "kind": "engine",        "outputs": ["attendance"] },
+    { "id": "review",  "kind": "engine",        "outputs": ["review"] }
+  ],
+  "inputs": { "required": ["title", "date"], "optional": ["location", "agenda"] }
+}
+```
+
+**L4 画布 → 执行的映射（不做第二套引擎）**：拖拽产物 = `{ branchId, version, blocks: [blockId 序列 + 连线/条件] }`，经一次编译收敛为既有 workflow `definitions`（或 scenario 参数）→ WorkflowEngine 消费；权限仍在块粒度上受角色与支部 config 约束。
+
+**原型最小实验范围（YAGNI 边界）**：v0 画布只做「块的**排序/启停**预览」——把一个 scenario 的阶段序列可视化排布、勾选启停并保存回 config.enabledModules（文本勾选 ↔ 画布双向同步）；图形化条件分支、块导出/市场（L5）不在 v0。这样既能拿到"拖积木"的真实手感，又不触碰执行引擎。
+
 ---
 
 ## 附：本次探索的自我限定
