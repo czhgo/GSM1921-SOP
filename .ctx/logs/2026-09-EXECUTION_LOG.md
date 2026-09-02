@@ -234,3 +234,14 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 
 **实施**（版本串 s→t，commit c5fcb1f）：mock-adapter branchDocs.create 挂 branchId（缺省 br-b1，支部文件一支部一空间字段级落地）；branch.js 加 `withinBranch(rows, personId)` 统一隔离过滤收敛点（无 branchId 视 br-b1 惰性迁移；单支部恒等、跨支部自然生效，防各 tab 手写过滤漂移）。验证 module-load 111/111 + capability-registry 13/13
 **P1 进度**：Step1 数据层 ✅（dea729d）/ Step2 隔离锚点 ✅（c5fcb1f）/ Step3 header 软编码 ✅（703c201）；**Step4 党委工作台 + party-staff 角色/账号/台账/支部管理 = 最大块未动**，需 UI 密集开发 + E2E，留新会话专做（本会话上下文耗尽前收口保质量）
+
+## T-2026-09-015 P1 Step4a 党委工作台落地（2026-09-02）
+
+**实施**（版本串 t→u，commit 6f97552，module-load 112/112 + registry/seed/db 18/18）：
+- party-staff 组织级角色链：constants ROLE_KEYS/ROLE_LABELS('党委组织员')/ROLE_PAGE_MAP(→party-committee.html)；people p_pc 档案（branchId:null）；accounts 党委账号 9000000001
+- 新页面 docs/workspace/party-committee.html + ws-party-committee-entry.js（createWorkspaceShell 薄壳）+ capabilities/party-committee-workspace.js（注册 2 tab）
+- 监控台账 monitor-tab：支部卡片（成员规模/发展阶段分布/思想汇报/组织生活类型计数/近期活动/现任书记），党委见全院
+- 支部管理 branches-tab：支部列表+创建（名称/类型自由录入，不预设名）+改名（同步 config.headerTitle）
+- mock-adapter branches CRUD（config 随行持久化，改名联动 headerTitle）+ services/branch.js 写函数（getAdapter+persist）
+- header 党委名：party-staff → PARTY_COMMITTEE.name（branches.js 常量）
+**未闭环（下一步）**：浏览器 E2E 党委登录实测（登录→台账→创建支部→header 变化）+ api-adapter branches resource（API 模式写通路）+ 全量回归 + Step5 收口（清理 P1 spec）
