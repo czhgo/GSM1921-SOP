@@ -858,14 +858,16 @@ function bindWritePanelEvents(container) {
       container.querySelector('#wp-brand-create')?.classList.toggle('hidden', mode !== 'create');
     });
   });
-  // 会议形式（2026-09-02 泛化：决策类场景选「线上异步表决」展开参与范围配置区，互斥单选由 name 保证）
-  const meetingFormRadios = [...container.querySelectorAll('input[name="wp-meeting-form"]')];
-  if (meetingFormRadios.length) {
-    const voteConfigArea = container.querySelector('#wp-vote-config');
-    meetingFormRadios.forEach(radio => {
-      radio.addEventListener('change', () => {
-        if (voteConfigArea) voteConfigArea.classList.toggle('hidden', !(radio.value === 'async' && radio.checked));
-      });
+  // 会议形式（2026-09-02 泛化：决策类场景选「线上异步表决」展开参与范围配置区）
+  // I1：组级事件委托——handler 内统一查询组内选中态决定 toggle，不依赖单个 radio 的
+  // change 分发顺序（切换时被取消选中与被选中的 radio 都会触发 change，旧逐 radio 实现结果相反）
+  const voteConfigArea = container.querySelector('#wp-vote-config');
+  if (voteConfigArea && !container.dataset.meetingFormBound) {
+    container.dataset.meetingFormBound = '1';
+    container.addEventListener('change', (e) => {
+      if (e.target?.name !== 'wp-meeting-form') return;
+      const isAsync = container.querySelector('input[name="wp-meeting-form"]:checked')?.value === 'async';
+      voteConfigArea.classList.toggle('hidden', !isAsync);
     });
   }
 }
