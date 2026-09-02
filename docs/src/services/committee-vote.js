@@ -5,6 +5,43 @@
 import { mockDB } from '../core/domain.js?v=20260901g';
 import { persist, getAdapter, getAuthToken, getApiBaseUrl, getDataSource } from '../core/data-adapter.js?v=20260901g';
 import { AuthStore } from './auth.js?v=20260901g';
+import { NoticeStore } from './notice.js?v=20260901g';
+import { PEOPLE } from '../mock/index.js?v=20260901g';
+
+// 支委角色集合（与 auth.js COMMISSIONER_ROLES / server COMMITTEE_IDS 口径一致）
+const COMMITTEE_ROLES = new Set(['secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner']);
+// 支委总数（通知文案「已有 N/M 位委员表态」的分母）
+const COMMITTEE_TOTAL = PEOPLE.filter((p) => COMMITTEE_ROLES.has(p.role)).length;
+
+// 通知书记表态进度（委员提交后触发，统计 fetchVotes 去重 personId 数；失败不阻断主流程）
+async function notifySecretaryProgress(activityId) {
+  try {
+    const votes = await fetchVotes(activityId);
+    const n = new Set(votes.map((v) => v.personId)).size;
+    NoticeStore.add({
+      title: '线上支委会表态更新',
+      content: `「线上支委会」已有 ${n}/${COMMITTEE_TOTAL} 位委员表态`,
+      priority: 'normal',
+      targetUrl: 'workspace/secretary.html',
+    });
+  } catch (e) {
+    console.warn('[committee-vote] 表态进度通知发送失败：', e);
+  }
+}
+
+// 提醒书记记录决议（截止后触发；失败不阻断主流程）
+function remindRecordDecision() {
+  try {
+    NoticeStore.add({
+      title: '线上支委会表决截止',
+      content: '支委会议程已截止，请记录决议',
+      priority: 'normal',
+      targetUrl: 'workspace/secretary.html',
+    });
+  } catch (e) {
+    console.warn('[committee-vote] 记录决议提醒发送失败：', e);
+  }
+}
 
 /** 当前登录用户 personId（mock 模式表态归属；无登录态回退 null） */
 function currentPersonId() {
@@ -28,13 +65,18 @@ export async function fetchVotes(activityId) {
 export async function submitVote({ activityId, agendaItemId, position, note = '' }) {
   if (getDataSource() === 'api' && getAuthToken()) {
     // API 模式：adapter 直写服务器（POST /api/v1/agenda-votes，personId 由服务端取 JWT）
-    return getAdapter().agendaVotes.create({ activityId, agendaItemId, position, note });
+    const row = await getAdapter().agendaVotes.create({ activityId, agendaItemId, position, note });
+    // 通知闭环：委员表态成功后提醒书记查看汇总（人数 = 该活动已表态 distinct 委员数）
+    await notifySecretaryProgress(activityId);
+    return row;
   }
   // mock 模式：adapter 幂等 upsert + 落盘（personId 取当前登录用户，见 AuthStore.getCurrentUser）
   const row = await getAdapter().agendaVotes.create({
     activityId, agendaItemId, position, note, personId: currentPersonId(),
   });
   persist();
+  // mock 模式同发书记汇总提醒（UI 反馈一致）
+  await notifySecretaryProgress(activityId);
   return row;
 }
 
@@ -48,7 +90,10 @@ export async function lockVotes({ activityId, votesLocked, voteDeadline }) {
       body: JSON.stringify({ activityId, votesLocked, voteDeadline }),
     });
     if (!r.ok) throw new Error((await r.json()).error || '截止操作失败');
-    return r.json();
+    const act = await r.json();
+    // 通知闭环：截止成功后提醒书记记录决议
+    if (act.votesLocked) remindRecordDecision();
+    return act;
   }
   // mock 分支角色校验（与 server requireRole(secretary) 三端一致：截止仅书记可操作）
   const me = AuthStore.getCurrentUser();
@@ -61,5 +106,7 @@ export async function lockVotes({ activityId, votesLocked, voteDeadline }) {
     if (voteDeadline) act.voteDeadline = voteDeadline;
   }
   persist();
+  // mock 模式同发记录决议提醒
+  if (act?.votesLocked) remindRecordDecision();
   return act || { id: activityId };
 }
