@@ -141,7 +141,6 @@ Layer 7: 审计参考层（审计与参考）
 │       ├── entries/                   [工程师]+[AI] 页面入口（15 个 entry JS）
 │       ├── components/                [工程师]+[AI] 共享组件（18 个，含 todo-list/custom-select/workspace-popover）
 │       ├── core/                      [工程师]+[AI] 核心工具（12 个，含 domain/data-adapter/api-adapter/mock-adapter）
-│       ├── config/                    [工程师]+[AI] 配置（branch.json）
 │       ├── services/                  [工程师]+[AI] 服务层（19 个，含 todo/auth/notice/decision-tree/image）
 │       ├── mock/                      [工程师]+[AI] Mock 数据（10 个，含 accounts）
 │       ├── modules/                   [工程师]+[AI] 业务模块（1 个，references.js）

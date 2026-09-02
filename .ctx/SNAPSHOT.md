@@ -44,7 +44,6 @@ GSM1921-SOP/
 │       ├── entries/            ← 页面入口（22 个 entry JS，含 tabs/ 子目录）
 │       ├── components/         ← 共享组件（26 个：25 js + 1 css，含 todo-list/custom-select/workspace-popover/report-inbox/work-overview）
 │       ├── core/               ← 核心工具（13 个，含 theme.js）
-│       ├── config/             ← 配置（branch.json）
 │       ├── services/           ← 服务层（20 个，含 todo/auth/notice/decision-tree/visibility/external-dispatch）
 │       ├── mock/               ← Mock 数据（10 个，含 accounts）
 │       ├── modules/            ← 业务模块（1 个）

@@ -384,7 +384,6 @@ dynamic_role:
 |---------|-------------|------|------|
 | docs/src/styles.css | 2026-08-23 | [工程师]+[AI] | 全局样式（D3 深色主题/按钮四档/主题色选择器/ab-* 拆出至 about.css；2026-08-23 新增 .ws-tab-scroll 单行滚动样式） |
 | docs/src/about.css | 2026-08-19 | [工程师]+[AI] | 关于页独立样式表（ab-* 内容区 + 南西油墨宋 @font-face + Tailwind 最小兜底，about.html 独占引用；T-272 第一章错落无竖线/第二章文字优先） |
-| docs/src/config/branch.json | 2026-07-31 | [工程师]+[AI] | 分支配置 |
 
 ### docs/ 其他
 
