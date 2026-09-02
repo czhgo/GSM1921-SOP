@@ -2,13 +2,13 @@
 // 组织委员工作台 Tab：考察上传（T-279 M3 拆分，照 M2 样板）
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260901m';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260901m';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260901m';
-import { getPersonById, getPersonName, inspectionToLong } from '../../../mock/index.js?v=20260901m';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260901m';
-import { showToast } from '../../../core/utils.js?v=20260901m';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260901m';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260901n';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260901n';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260901n';
+import { getPersonById, getPersonName, inspectionToLong } from '../../../mock/index.js?v=20260901n';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260901n';
+import { showToast } from '../../../core/utils.js?v=20260901n';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260901n';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
@@ -55,7 +55,7 @@ export function renderContent(ctx) {
   ` : '';
 
   const tagColor = { 'activity': 'bg-blue-50 text-blue-600', 'taskforce': 'bg-green-50 text-green-600' };
-  const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-cyan-100 text-cyan-700' };
+  const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-orange-100 text-orange-700' };
 
   container.innerHTML = `
     <div class="card rounded-xl p-5">

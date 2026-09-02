@@ -5,9 +5,9 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/notice.js?v=20260901m';
-import { _fmtDate } from '../../core/utils.js?v=20260901m';
-import { icon } from '../../core/icons.js?v=20260901m';
+import { NoticeStore } from '../../services/notice.js?v=20260901n';
+import { _fmtDate } from '../../core/utils.js?v=20260901n';
+import { icon } from '../../core/icons.js?v=20260901n';
 
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-green-600', dot: '#10B981' },

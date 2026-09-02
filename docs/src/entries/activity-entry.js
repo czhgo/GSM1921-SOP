@@ -1,24 +1,24 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../components/sidebar.js?v=20260901m';
-import { renderHeader } from '../components/header.js?v=20260901m';
-import { BranchService } from '../services/runtime.js?v=20260901m';
-import { mockDB } from '../core/domain.js?v=20260901m';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260901m';
-import { NoticeStore } from '../services/notice.js?v=20260901m';
-import { SignupStore } from '../services/signup.js?v=20260901m';
-import { AuthStore } from '../services/auth.js?v=20260901m';
-import { getPersonById } from '../mock/index.js?v=20260901m';
-import { getBasePath } from '../core/utils.js?v=20260901m';
-import { getActivityTypeColors } from '../core/constants.js?v=20260901m';
-import { badgeHtml } from '../components/badge.js?v=20260901m';
-import { enhanceSelects } from '../components/custom-select.js?v=20260901m';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260901m';
-import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260901m';
-import { renderVoteWidget } from '../components/vote-widget.js?v=20260901m';
-import { fetchVotes } from '../services/committee-vote.js?v=20260901m';
+import { renderSidebar } from '../components/sidebar.js?v=20260901n';
+import { renderHeader } from '../components/header.js?v=20260901n';
+import { BranchService } from '../services/runtime.js?v=20260901n';
+import { mockDB } from '../core/domain.js?v=20260901n';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260901n';
+import { NoticeStore } from '../services/notice.js?v=20260901n';
+import { SignupStore } from '../services/signup.js?v=20260901n';
+import { AuthStore } from '../services/auth.js?v=20260901n';
+import { getPersonById } from '../mock/index.js?v=20260901n';
+import { getBasePath } from '../core/utils.js?v=20260901n';
+import { getActivityTypeColors } from '../core/constants.js?v=20260901n';
+import { badgeHtml } from '../components/badge.js?v=20260901n';
+import { enhanceSelects } from '../components/custom-select.js?v=20260901n';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260901n';
+import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260901n';
+import { renderVoteWidget } from '../components/vote-widget.js?v=20260901n';
+import { fetchVotes } from '../services/committee-vote.js?v=20260901n';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -46,20 +46,26 @@ function esc(s) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-/** 状态 → 徽章（活动 + 专班共用） */
-const STATUS_BADGE = {
+/** 活动状态 → 徽章（2026-09-02 落实裁决③：活动用生命周期词 —— completed 即"已执行"，
+ *   "已完成"字样全站移除，与 inspector 生命周期一致；原表活动/专班共用致语义混用，现拆开） */
+const ACT_STATUS_BADGE = {
   published: ['已发布', 'success'],
   ongoing: ['进行中', 'info'],
-  completed: ['已完成', 'neutral'],
+  completed: ['已执行', 'success'],
   cancelled: ['已取消', 'danger'],
   draft: ['草稿', 'warning'],
-  recruiting: ['招募中', 'success'],
-  active: ['进行中', 'info'],
-  archived: ['已归档', 'neutral'],
-  dissolved: ['已解散', 'danger'],
 };
-function statusBadge(status) {
-  const cfg = STATUS_BADGE[status];
+/** 专班状态 → 徽章（2026-09-02 书记裁决②：专班词全站统一 = 运行中/已完结） */
+const TF_STATUS_BADGE = {
+  recruiting: ['招募中', 'success'],
+  active: ['运行中', 'info'],
+  completed: ['已完结', 'neutral'],
+  dissolved: ['已解散', 'danger'],
+  archived: ['已归档', 'neutral'],
+};
+function statusBadge(status, kind) {
+  const table = kind === 'tf' ? TF_STATUS_BADGE : ACT_STATUS_BADGE;
+  const cfg = table[status];
   return cfg ? badgeHtml(cfg[0], cfg[1]) : badgeHtml(status || '—', 'neutral');
 }
 
@@ -142,7 +148,7 @@ function renderActivity(id) {
     <!-- 标题区 -->
     <div class="mb-5 pb-5 border-b border-gray-100">
       <div class="flex items-center gap-2.5 mb-2 flex-wrap">
-        ${statusBadge(act.status)}
+        ${statusBadge(act.status, 'act')}
         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium" style="background:${tagColor}14;color:${tagColor};--acc-bg-dark:${tagColorDark}24;--acc-text-dark:${tagColorDark};">${act.type || '活动'}</span>
         <span class="text-xs text-gray-400">${act.id}</span>
         <span class="ml-auto">${renderShareButtonHtml()}</span>
@@ -231,7 +237,7 @@ function renderTaskforce(tf) {
     <!-- 标题区 -->
     <div class="mb-5 pb-5 border-b border-gray-100">
       <div class="flex items-center gap-2.5 mb-2 flex-wrap">
-        ${statusBadge(tf.status)}
+        ${statusBadge(tf.status, 'tf')}
         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-violet-50 text-violet-600">专班</span>
         <span class="text-xs text-gray-400">${tf.id}</span>
         <span class="ml-auto">${renderShareButtonHtml()}</span>

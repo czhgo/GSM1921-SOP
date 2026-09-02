@@ -3,10 +3,10 @@
 // 书记 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { PEOPLE } from '../../../mock/index.js?v=20260901m';
-import { AuthStore } from '../../../services/auth.js?v=20260901m';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260901m';
-import { flashHighlight } from '../../../core/utils.js?v=20260901m';
+import { PEOPLE } from '../../../mock/index.js?v=20260901n';
+import { AuthStore } from '../../../services/auth.js?v=20260901n';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260901n';
+import { flashHighlight } from '../../../core/utils.js?v=20260901n';
 
 // 项目分工子视图（书记 2026-08-10 裁定第5点）：区分「我的分工」（以人为中心）与「全局分工」（全局查询）
 let _projSubView = 'mine'; // 'mine' | 'all'
@@ -237,8 +237,10 @@ function _actStatusColor(status) {
   return map[status] || 'bg-gray-100 text-gray-500';
 }
 function _tfStatusLabel(status) {
-  const map = { recruiting: '招募中', active: '进行中', completed: '已完成', dissolved: '已解散', draft: '草稿' };
-  return map[status] || status || '进行中';
+  // 2026-09-02 书记裁决（漂移②）：专班状态词全站统一 —— 内部工作台/首页为「运行中/已完结」，
+  // 公共活动页此前误用任务态「进行中/已完成」，一并对齐
+  const map = { recruiting: '招募中', active: '运行中', completed: '已完结', dissolved: '已解散', draft: '草稿' };
+  return map[status] || status || '运行中';
 }
 function _tfStatusColor(status) {
   const map = { recruiting: 'bg-orange-100 text-orange-700', active: 'bg-green-100 text-green-700', completed: 'bg-gray-100 text-gray-600', dissolved: 'bg-red-100 text-red-600', draft: 'bg-yellow-100 text-yellow-700' };

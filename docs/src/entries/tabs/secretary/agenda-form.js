@@ -4,7 +4,7 @@
 // 按自增列表思路写入，写入同时辅以高级选项。「待讨论名单」= 名单统一阶段转换 + 多选人员。
 // 本模块只做数据规范化，UI 接线在 calendar-tab。
 
-import { generateId } from '../../../core/id.js?v=20260901m';
+import { generateId } from '../../../core/id.js?v=20260901n';
 
 /**
  * 将创建/编辑表单的议程行收集为规范化议程数组。

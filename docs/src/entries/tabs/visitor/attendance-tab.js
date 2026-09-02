@@ -2,7 +2,7 @@
 // 参与者工作台 Tab：考勤概况（T-279 M3 拆分，照 M2 样板）
 // 本月活动出勤一览（参与者视角：支部成员对自己的活动出勤有查询视图）。
 
-import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260901m';
+import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260901n';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
