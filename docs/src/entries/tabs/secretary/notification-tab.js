@@ -3,10 +3,10 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore } from '../../../services/notice.js?v=20260901h';
-import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260901h';
-import { badgeHtml } from '../../../components/badge.js?v=20260901h';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260901h';
+import { NoticeStore } from '../../../services/notice.js?v=20260901i';
+import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260901i';
+import { badgeHtml } from '../../../components/badge.js?v=20260901i';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260901i';
 
 const NOTIFICATION_TAB_HTML = `
   <div class="card rounded-2xl p-6 mb-6">

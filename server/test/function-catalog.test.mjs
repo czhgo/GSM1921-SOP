@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-const catalogPath = fileURLToPath(new URL('../../docs/src/core/function-catalog.js', import.meta.url));
+const catalogPath = fileURLToPath(new URL('../../docs/src/core/function-catalog.js?v=20260901i', import.meta.url));
 
 function loadCatalog() {
   const src = readFileSync(catalogPath, 'utf8');
@@ -40,8 +40,10 @@ test('FUNCTION_CATALOG 结构合法', () => {
       assert.ok(allIds.has(r) || r.startsWith('group:'), `related 引用不存在：${it.id} → ${r}`);
     }
   }
-  // 链路与架构条目必须存在
-  for (const required of ['flow-activity', 'flow-member-change', 'arch-layers']) {
+  // 链路与架构条目必须存在（12 条角色化链路 + 架构）
+  const flowIds = items.filter((i) => i.kind === 'flow').map((i) => i.id);
+  assert.ok(flowIds.length >= 12, `flow 条目至少 12 条，实际 ${flowIds.length}`);
+  for (const required of ['flow-branch-committee', 'flow-general-meeting', 'flow-development', 'flow-institution', 'arch-layers']) {
     assert.ok(ids.has(required), `缺少必需条目 ${required}`);
   }
 });

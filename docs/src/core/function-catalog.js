@@ -17,21 +17,22 @@ export const FUNCTION_GROUPS = [
 export const FUNCTION_CATALOG = [
   // ══════════ 党建 ══════════
   { id: 'activity-create', name: '活动创建', group: '党建', role: 'secretary', tab: 'calendar', desc: '书记/党小组组长创建三会一课、主题党日等活动', usage: '工作台 → 活动管理 → 写入活动 → 选模板 → 创建', related: ['agenda', 'activity-signup'], generic: true, kind: 'feature' },
-  { id: 'agenda', name: '会议议程', group: '党建', role: 'secretary', tab: 'calendar', desc: '活动议程含讨论文件/待讨论名单，会后记录通过并自动归档', usage: '创建活动时在「高级选项」添加议程 → 会后在议程下记录通过/未通过', related: ['flow-activity', 'flow-member-change', 'branch-doc'], generic: true, kind: 'feature' },
+  { id: 'agenda', name: '会议议程', group: '党建', role: 'secretary', tab: 'calendar', desc: '活动议程含讨论文件/待讨论名单，会后记录通过并自动归档', usage: '创建活动时在「高级选项」添加议程 → 会后在议程下记录通过/未通过', related: ['flow-branch-committee', 'flow-general-meeting', 'branch-doc'], generic: true, kind: 'feature' },
   { id: 'three-meetings', name: '三会一课', group: '党建', role: 'secretary', tab: 'calendar', desc: '支部党员大会、支委会、党小组会、党课的统一承载', usage: '工作台 → 活动管理 → 模板「三会一课」', related: ['activity-create', 'theme-party'], generic: true, kind: 'feature' },
   { id: 'theme-party', name: '主题党日', group: '党建', role: 'secretary', tab: 'calendar', desc: '主题党日活动，支持共建/校外/载体维度，hover 即选', usage: '工作台 → 活动管理 → 模板「主题党日」', related: ['three-meetings', 'activity-create'], generic: true, kind: 'feature' },
   { id: 'activity-signup', name: '活动报名', group: '党建', role: 'member', tab: 'activities', desc: '成员报名参加活动，按阶段批量选择参与人', usage: '成员工作台 → 活动动态 → 报名', related: ['activity-create', 'attendance-personal'], generic: true, kind: 'feature' },
   { id: 'assign', name: '赋权管理', group: '党建', role: 'secretary', tab: 'assign', desc: '书记向下委托活动写入等权限，赋权链计算知情边界', usage: '书记工作台 → 赋权管理 → 添加/撤销赋权', related: ['activity-create', 'notification'], generic: true, kind: 'feature' },
-  { id: 'notification', name: '通知发布', group: '党建', role: 'secretary', tab: 'notification', desc: '发布通知，自动派生成员待办；审批类变更同步广播', usage: '书记工作台 → 通知发布', related: ['todo', 'flow-member-change'], generic: true, kind: 'feature' },
+  { id: 'notification', name: '通知发布', group: '党建', role: 'secretary', tab: 'notification', desc: '发布通知，自动派生成员待办；审批类变更同步广播', usage: '书记工作台 → 通知发布', related: ['todo', 'flow-development'], generic: true, kind: 'feature' },
+  { id: 'online-vote', name: '线上异步表决', group: '党建', role: 'public', desc: '支委会/支部党员大会等决策活动的线上异步表决：选项集/参与范围可配，赞成过半数可记录通过', usage: '书记创建决策活动时会议形式选「线上异步表决」→ 配置参与范围 → 委员/党员在活动详情页表态 → 书记汇总并记录决议', related: ['three-meetings', 'agenda', 'activity-create', 'flow-online-committee', 'flow-general-meeting'], generic: true, kind: 'feature' },
   // ══════════ 党务 ══════════
   { id: 'development', name: '发展党员', group: '党务', role: 'org', tab: 'development', desc: '发展党员全流程管理与阶段推进', usage: '组织委员工作台 → 发展党员', related: ['talent', 'inspection'], generic: true, kind: 'feature' },
   { id: 'talent', name: '人才库', group: '党务', role: 'org', tab: 'talent', desc: '积极分子/发展对象档案与考察材料归集', usage: '组织委员工作台 → 人才库', related: ['development', 'inspection'], generic: true, kind: 'feature' },
   { id: 'inspection', name: '考察记录', group: '党务', role: 'org', tab: 'inspection', desc: '考察材料上传与归集', usage: '组织委员/党小组组长工作台 → 考察', related: ['talent', 'development'], generic: true, kind: 'feature' },
   { id: 'attendance-mgmt', name: '考勤管理', group: '党务', role: 'disc', tab: 'attendance', desc: '纪检委员管理全支部考勤，与组织委员同源共享', usage: '纪检委员工作台 → 考勤管理', related: ['attendance-personal', 'makeup'], generic: true, kind: 'feature' },
   { id: 'makeup', name: '补课制度', group: '党务', role: 'disc', tab: 'makeup', desc: '缺勤成员通过补课任务恢复考勤状态', usage: '纪检委员工作台 → 补课制度 → 提交补课任务 → 完成回写考勤', related: ['attendance-mgmt', 'flow-makeup'], generic: false, kind: 'feature' },
-  { id: 'review', name: '复盘评议', group: '党务', role: 'disc', tab: 'review', desc: '活动监督复盘与评议记录', usage: '纪检委员工作台 → 活动监督复盘', related: ['attendance-mgmt', 'flow-activity'], generic: true, kind: 'feature' },
+  { id: 'review', name: '复盘评议', group: '党务', role: 'disc', tab: 'review', desc: '活动监督复盘与评议记录', usage: '纪检委员工作台 → 活动监督复盘', related: ['attendance-mgmt', 'flow-theme-party'], generic: true, kind: 'feature' },
   { id: 'thought-report', name: '思想汇报', group: '党务', role: 'member', tab: 'thought-report', desc: '成员提交思想汇报，提交即入库自动归集', usage: '成员工作台 → 思想汇报 → 提交', related: ['flow-thought-report', 'talent'], generic: true, kind: 'feature' },
-  { id: 'member-change', name: '成员变更审批', group: '党务', role: 'org', tab: 'development', desc: '待讨论名单统一阶段转换，经组织委员审批、书记确认后更新', usage: '议程「待讨论名单」记录通过 → 组织委员审批 → 书记确认 → 阶段更新', related: ['agenda', 'flow-member-change'], generic: false, kind: 'feature' },
+  { id: 'member-change', name: '成员变更审批', group: '党务', role: 'org', tab: 'development', desc: '待讨论名单统一阶段转换，经组织委员审批、书记确认后更新', usage: '议程「待讨论名单」记录通过 → 组织委员审批 → 书记确认 → 阶段更新', related: ['agenda', 'flow-development'], generic: false, kind: 'feature' },
   // ══════════ 宣传与档案 ══════════
   { id: 'tasks', name: '宣传任务', group: '宣传与档案', role: 'prop', tab: 'tasks', desc: '宣传任务分配与推进', usage: '宣传委员工作台 → 宣传任务', related: ['kanban', 'weekly'], generic: true, kind: 'feature' },
   { id: 'kanban', name: '项目看板', group: '宣传与档案', role: 'prop', tab: 'kanban', desc: '宣传项目看板化管理', usage: '宣传委员工作台 → 项目看板', related: ['tasks'], generic: true, kind: 'feature' },
@@ -59,12 +60,21 @@ export const FUNCTION_CATALOG = [
   { id: 'ws-disc', name: '纪检委员工作台', group: '角色工作台', role: 'disc', desc: '考勤管理/考察管理/监督复盘/补课/公邮', usage: '登录 → 纪检委员工作台', related: ['attendance-mgmt', 'makeup'], generic: true, kind: 'feature' },
   { id: 'ws-leader', name: '党小组组长工作台', group: '角色工作台', role: 'leader', desc: '活动组织/考勤上传/考察上传/复盘/组员进展', usage: '登录 → 党小组组长工作台', related: ['activity-create', 'attendance-personal'], generic: true, kind: 'feature' },
   { id: 'ws-visitor', name: '成员工作台', group: '角色工作台', role: 'member', desc: '活动动态/专班进展/个人考勤/思想汇报/待办', usage: '登录 → 成员工作台', related: ['homepage', 'thought-report', 'todo'], generic: true, kind: 'feature' },
-  // ══════════ 业务链路（kind: flow） ══════════
-  { id: 'flow-activity', name: '活动全链路', group: '活动与专班', desc: '创建 → 议程（讨论文件/待讨论名单）→ 记录通过 → 归档 → 资料查询展示', related: ['activity-create', 'agenda', 'branch-doc'], generic: true, kind: 'flow' },
-  { id: 'flow-member-change', name: '成员变更审批链', group: '党务', desc: '议程通过 → 组织委员审批 → 广播通知 → 书记确认 → 发展阶段更新', related: ['member-change', 'agenda', 'notification'], generic: false, kind: 'flow' },
-  { id: 'flow-taskforce', name: '专班流程', group: '活动与专班', desc: '发起 → 招募统筹 → 定人定责定岗 → 工作量记录', related: ['taskforce-create', 'taskforce-recruit', 'taskforce-assign'], generic: true, kind: 'flow' },
-  { id: 'flow-thought-report', name: '思想汇报流程', group: '党务', desc: '提交 → 自动归档归集 → 组织委员查看', related: ['thought-report', 'talent'], generic: true, kind: 'flow' },
-  { id: 'flow-makeup', name: '补课回写流程', group: '党务', desc: '缺勤 → 补课任务 → 完成 → 考勤回写/逾期清除', related: ['makeup', 'attendance-mgmt'], generic: false, kind: 'flow' },
+  // ══════════ 业务链路（kind: flow · 节点=执行者:任务，图源 mermaid-sources.js FLOW_LINKS） ══════════
+  // 活动型 6 条（党建）：
+  { id: 'flow-branch-committee', name: '支委会链路', group: '党建', desc: '书记定议题通知 → 纪检考勤 → 书记记录决议 → 宣传归档 → 补课跟进', related: ['three-meetings', 'agenda', 'branch-doc'], generic: true, kind: 'flow' },
+  { id: 'flow-online-committee', name: '线上支委会链路', group: '党建', desc: '书记定稿议程 → 委员异步表态（同意/异议/附言）→ 汇总截止 → 记录决议', related: ['three-meetings', 'online-vote', 'agenda'], generic: true, kind: 'flow' },
+  { id: 'flow-group-meeting', name: '党小组会链路', group: '党建', desc: '组长统筹通知 → 组长发布二维码 → 纪检考勤 → 自评互评 → 组长总结汇总 → 宣传归档', related: ['three-meetings', 'activity-create'], generic: true, kind: 'flow' },
+  { id: 'flow-party-lecture', name: '党课链路', group: '党建', desc: '书记发布党课通知与学习材料 → 提醒缺席党员补课', related: ['three-meetings'], generic: true, kind: 'flow' },
+  { id: 'flow-theme-party', name: '主题党日链路', group: '党建', desc: '组织者发起策划 → 支委扩大会讨论 → 筹备对接 → 实施 → 纪检考勤复盘 → 组织者复盘 → 宣传归档', related: ['theme-party', 'activity-create', 'review'], generic: true, kind: 'flow' },
+  { id: 'flow-general-meeting', name: '支部党员大会链路', group: '党建', desc: '组长统筹 → 书记发布 → 纪检考勤 → 议题讨论表决 → 记录决议 → 宣传归档', related: ['three-meetings', 'agenda', 'development'], generic: true, kind: 'flow' },
+  // 事务型 6 条（党务/活动与专班）：
+  { id: 'flow-taskforce', name: '专班链路', group: '活动与专班', desc: '发起 → 招募统筹 → 定人定责定岗 → 执行记录', related: ['taskforce-create', 'taskforce-recruit', 'taskforce-assign'], generic: true, kind: 'flow' },
+  { id: 'flow-development', name: '发展党员链路', group: '党务', desc: '支委会推荐发展对象 → 党员大会表决 → 记录议程通过 → 组织委员审批 → 书记确认更新阶段', related: ['development', 'member-change', 'agenda', 'flow-inspection'], generic: true, kind: 'flow' },
+  { id: 'flow-inspection', name: '考察积极分子链路', group: '党务', desc: '组长日常观察 → 组织委员建档归集 → 反馈书记 → 支委会/大会讨论', related: ['inspection', 'talent', 'thought-report', 'development'], generic: true, kind: 'flow' },
+  { id: 'flow-institution', name: '制度制定与迭代链路', group: '党务', desc: '条条委员起草试点 → 各党小组征求意见 → 修改提交 → 支委会审议 → 党员大会表决 → 监督落实修订', related: [], generic: true, kind: 'flow' },
+  { id: 'flow-makeup', name: '补课回写链路', group: '党务', desc: '纪检记录缺勤 → 生成补课任务 → 成员完成 → 考勤回写/逾期清除', related: ['makeup', 'attendance-mgmt'], generic: false, kind: 'flow' },
+  { id: 'flow-thought-report', name: '思想汇报链路', group: '党务', desc: '党员提交 → 系统自动归集 → 组织委员查看调用', related: ['thought-report', 'talent'], generic: true, kind: 'flow' },
   // ══════════ 架构（kind: arch） ══════════
   { id: 'arch-layers', name: '架构分层', group: '公共', desc: '前台 14 页 → 中台 entries/components/core → 服务层 services/mock → 后端 server/API → 母本 sop', related: ['arch-service-deps', 'arch-data-flow'], generic: true, kind: 'arch' },
   { id: 'arch-service-deps', name: '服务依赖', group: '公共', desc: '服务模块调用关系（activity → attendance → review → todo）', related: ['arch-layers'], generic: true, kind: 'arch' },

@@ -1,14 +1,14 @@
 // docs/scripts/gen-function-mermaid.mjs — 功能目录 → mermaid 图生成器
 // 读 docs/src/core/function-catalog.js（文本求值，纯数据表达式），生成：
 //   ① 功能地图（mindmap，含通用/特有文本标记；文本来自共享模块 src/core/mermaid-sources.js）
-//   ② 5 条业务链路（flowchart TD；步骤来自共享模块 FLOW_STEPS）
+//   ② 12 条角色化业务链路（flowchart TD；节点=执行者:任务，源来自共享模块 FLOW_LINKS）
 //   ③ 架构分层（flowchart TD）
 //   ④ 服务依赖（flowchart LR）
 // 写回 README 标记块（<!--FUNC-MAP:START/END-->）+ 输出 content/03_doc_system/FUNCTION_MAP.md
 // 用法：node docs/scripts/gen-function-mermaid.mjs [--write]
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { generateMindmapText, FLOW_STEPS } from '../src/core/mermaid-sources.js';
+import { generateMindmapText, FLOW_LINKS } from '../src/core/mermaid-sources.js';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url)); // docs/
 const CATALOG_PATH = fileURLToPath(new URL('../src/core/function-catalog.js', import.meta.url));
@@ -34,7 +34,7 @@ export function generateMindmap() {
 }
 
 function genFlow(id) {
-  const flow = FLOW_STEPS[id];
+  const flow = FLOW_LINKS[id];
   if (!flow) throw new Error(`未注册 flow 图：${id}`);
   return ['```mermaid', 'flowchart TD', ...flow, '```'].join('\n');
 }

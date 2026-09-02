@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260901h"></script>
+<script src="./src/theme-init.js?v=20260901i"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — 光华管理学院本科生党支部</title>
@@ -12,8 +12,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260901h"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260901h">
+  <script src="./src/tailwind-config.js?v=20260901i"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260901i">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -251,7 +251,7 @@
         <!-- 1.1 页面导航 -->
         <h3 class="doc-h3"><span class="doc-h3-badge">1.1</span>页面导航</h3>
         <p class="doc-p">
-          系统由 14 个独立页面组成，通过侧边栏全局导航串联。六类角色各自对应一个工作台页面，各项功能通过页内 tab 切换。所有页面共享同一套数据源，不同角色看到的是同一数据的不同视角。
+          系统由 16 个独立页面组成：10 个公共与功能页面（首页、资料查询、活动详情、归档库等）+ 6 个角色工作台。公共页面通过导航串联；登录后直达各自角色工作台，各项功能通过页内 tab 切换。所有页面共享同一套数据源，不同角色看到的是同一数据的不同视角。
         </p>
         <div class="nav-tree">
           首页（通知/招募/日历）<br>
@@ -398,7 +398,10 @@
           <div class="doc-mini"><h4>经验可传承</h4><p>复盘与归档沉淀经验，让新支委快速上手、制度随届接续。</p></div>
         </div>
         <p class="doc-p">
-          系统现有 14 个页面：首页、资料查询、意见反馈、归档库等公共页面，以及六类角色各自的工作台（党支书、党小组组长、组织委员、宣传委员、纪检委员、普通成员）。每个角色打开自己的工作台，就是该角色的全部工作视图——各项功能按 Tab 分组，无需在页面之间来回跳转；所有角色共享同一套数据，看到的是同一数据的不同视角。
+          系统现有 16 个页面：首页、资料查询、意见反馈、归档库、活动详情等公共与功能页面，以及六类角色各自的工作台（书记、党小组组长、组织委员、宣传委员、纪检委员、成员）。每个角色登录后直达自己的工作台，该工作台就是该角色的全部工作视图——各项功能按 Tab 分组，无需在页面之间来回跳转；所有角色共享同一套数据，看到的是同一数据的不同视角。
+        </p>
+        <p class="doc-p">
+          系统采用「静态前端 + 一体化后端」：界面在浏览器渲染，数据经登录认证后落库持久化——换届不丢档、操作有留痕。谁负责哪块、谁能看到哪层，由<strong>赋权链</strong>计算：书记向下委托执行边界，其余角色的操作权限与知情范围随之派生（详见「权限体系」章节）。
         </p>
       </section>
 
@@ -407,32 +410,33 @@
         <h2 class="doc-h2"><span class="doc-num">三</span>技术架构</h2>
         <hr class="doc-divider">
         <p class="doc-p doc-lead">
-          系统采用纯前端静态架构，无需后端部署。以下两层讲清代码与制度的关系。
+          系统采用「静态前端 + Node 一体化后端」：界面在浏览器渲染，后端同源提供登录认证与数据持久化。以下分层讲清代码与制度的关系。
         </p>
 
-        <!-- 3.1 前中后台分层 -->
-        <h3 class="doc-h3"><span class="doc-h3-badge">3.1</span>前中后台分层</h3>
+        <!-- 3.1 分层结构 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">3.1</span>分层结构</h3>
         <div class="doc-table-wrap">
           <table class="doc-table">
             <thead><tr><th style="width:16%;">层</th><th style="width:42%;">位置</th><th>职责</th></tr></thead>
             <tbody>
-              <tr><td>前台（UI）</td><td>docs/*.html（8 根页面 + 6 角色工作台 = 14 页）</td><td>页面骨架，零硬编码逻辑</td></tr>
-              <tr><td>中台（路由+渲染）</td><td>docs/src/entries/（16 个 entry JS）</td><td>角色面板路由、视图切换、DOM 渲染</td></tr>
-              <tr><td>后台（服务层）</td><td>docs/src/services/（20 个 service JS）</td><td>数据 CRUD、权限计算、持久化</td></tr>
+              <tr><td>前台（页面）</td><td>docs/（16 个页面：10 个根页面 + 6 个角色工作台）</td><td>页面骨架，零硬编码逻辑</td></tr>
+              <tr><td>中台（逻辑）</td><td>docs/src/entries/ + components/ + core/ + modules/</td><td>角色面板路由、视图切换、DOM 渲染、能力注册</td></tr>
+              <tr><td>后台（服务层）</td><td>docs/src/services/ + mock/</td><td>数据 CRUD、权限计算、持久化</td></tr>
+              <tr><td>后端（server/）</td><td>server/（Express + better-sqlite3 单进程）</td><td>同源托管静态页面 + /api/v1 REST（登录认证 / 资源表读写 / 附件上传 / 快照持久化）</td></tr>
               <tr><td>母本层</td><td>content/02_institution/sop/</td><td>所有代码逻辑的制度来源</td></tr>
             </tbody>
           </table>
         </div>
 
-        <!-- 3.2 技术栈 -->
-        <h3 class="doc-h3"><span class="doc-h3-badge">3.2</span>技术栈</h3>
+        <!-- 3.2 技术栈与运行方式 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">3.2</span>技术栈与运行方式</h3>
         <ul class="doc-list">
-          <li>纯前端静态架构 — 默认本地 mock 数据（localStorage 持久化），GitHub Pages 直接托管；可选 Node 后端（server/）提供 REST API</li>
+          <li>静态前端 + Node 一体化后端 — 本地完整运行：进入 server/ 目录执行 <code>npm start</code>，浏览器访问即全链路使用（登录 → API → 数据持久化）；docs/ 亦可独立静态托管作演示形态</li>
           <li>ES Modules — 无构建工具、零打包依赖</li>
           <li>Tailwind CSS CDN — 原子化样式引擎</li>
-          <li>sessionStorage / localStorage — 跨页面状态持久化</li>
+          <li>REST API（/api/v1）— 登录认证、资源表读写、附件上传、快照持久化</li>
           <li>Custom Events — 组件间解耦通信</li>
-          <li>多页面应用（MPA）— 14 个独立 HTML 页面</li>
+          <li>多页面应用（MPA）— 16 个独立 HTML 页面</li>
         </ul>
       </section>
 
@@ -455,6 +459,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/help-entry.js?v=20260901h"></script>
+<script type="module" src="./src/entries/help-entry.js?v=20260901i"></script>
 </body>
 </html>

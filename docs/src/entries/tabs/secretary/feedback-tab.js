@@ -3,14 +3,14 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260901h';
-import { showToast } from '../../../core/utils.js?v=20260901h';
-import { icon } from '../../../core/icons.js?v=20260901h';
-import { AuthStore } from '../../../services/auth.js?v=20260901h';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260901h';
-import { getPersonName } from '../../../mock/index.js?v=20260901h';
-import { PersonStore } from '../../../services/person.js?v=20260901h';
-import { badgeHtml, badgeVariantClass } from '../../../components/badge.js?v=20260901h';
+import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260901i';
+import { showToast } from '../../../core/utils.js?v=20260901i';
+import { icon } from '../../../core/icons.js?v=20260901i';
+import { AuthStore } from '../../../services/auth.js?v=20260901i';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260901i';
+import { getPersonName } from '../../../mock/index.js?v=20260901i';
+import { PersonStore } from '../../../services/person.js?v=20260901i';
+import { badgeHtml, badgeVariantClass } from '../../../components/badge.js?v=20260901i';
 
 const FEEDBACK_TAB_HTML = `
   <!-- 列表面板 -->
