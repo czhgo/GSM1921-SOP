@@ -2,12 +2,12 @@
 // 宣传委员工作台 Tab：周报报送（T-279 M3 拆分，照 M2 样板）
 // 周报 seed 常量 + mockDB 持久化，刷新不再丢失；T-209 改进项②：新建周次内联表单。
 
-import { icon } from '../../../core/icons.js?v=20260901t';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260901t';
-import { showToast } from '../../../core/utils.js?v=20260901t';
-import { persist } from '../../../core/data-adapter.js?v=20260901t';
-import { mockDB } from '../../../core/domain.js?v=20260901t';
-import { AuthStore } from '../../../services/auth.js?v=20260901t';
+import { icon } from '../../../core/icons.js?v=20260901u';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260901u';
+import { showToast } from '../../../core/utils.js?v=20260901u';
+import { persist } from '../../../core/data-adapter.js?v=20260901u';
+import { mockDB } from '../../../core/domain.js?v=20260901u';
+import { AuthStore } from '../../../services/auth.js?v=20260901u';
 
 // ── 周报报送 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 const WEEKLY_REPORTS_SEED = [

@@ -6,9 +6,9 @@
 //  仅复用既有样式类 .vote-panel/.vote-btn/.vote-note/.vote-submit/.vote-title/.vote-current
 //  （styles.css 已定义），本模块不新增任何样式。
 // ════════════════════════════════════════════════════════════════
-import { showToast } from '../core/utils.js?v=20260901t';
-import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260901t';
-import { optionSetOf, OPTION_SETS } from '../services/vote-config.js?v=20260901t';
+import { showToast } from '../core/utils.js?v=20260901u';
+import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260901u';
+import { optionSetOf, OPTION_SETS } from '../services/vote-config.js?v=20260901u';
 
 // HTML 转义（position 回退值/表态附言为用户输入，innerHTML 渲染前转义防存储型 XSS）
 function esc(s) {

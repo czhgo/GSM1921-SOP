@@ -53,6 +53,8 @@ export const PEOPLE = [
   { id: 'p48', name: '江珊',   studentId: '2500010034', partyGroup: '第三党小组', developStage: '积极分子', role: 'participant' },
   { id: 'p49', name: '段志远', studentId: '2500010035', partyGroup: '第一党小组', developStage: '积极分子', role: 'participant' },
   { id: 'p50', name: '汪洋',   studentId: '2500010036', partyGroup: '第二党小组', developStage: '积极分子', role: 'participant' },
+  // P1 党委后台（2026-09-02）：党委组织员（党务老师，组织级角色——不属于任何支部，branchId:null 保持）
+  { id: 'p_pc', name: '党委组织员', studentId: '9000000001', partyGroup: '', developStage: '', role: 'party-staff', branchId: null },
 ];
 
 // ── P1 党委后台（2026-09-02，书记决策：党员严格单支部）──

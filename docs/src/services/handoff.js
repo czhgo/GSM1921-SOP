@@ -8,9 +8,9 @@
 //  接收方确认 → 待办自动销项 + 状态落库，双向可追溯。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260901t';
-import { persist } from '../core/data-adapter.js?v=20260901t';
-import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260901t';
+import { mockDB } from '../core/domain.js?v=20260901u';
+import { persist } from '../core/data-adapter.js?v=20260901u';
+import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260901u';
 
 // ── 交接类型元数据（from→to + 展示文案） ──
 export const HANDOFF_TYPES = {

@@ -3,8 +3,10 @@
 // 支部边界收敛点（防漂移）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
 // 单一数据源：mockDB.branches（首启 seed 自 mock/branches.js BRANCHES）
 
-import { mockDB } from '../core/domain.js?v=20260901t';
-import { getPersonById } from './person.js?v=20260901t';
+import { mockDB } from '../core/domain.js?v=20260901u';
+import { getPersonById } from './person.js?v=20260901u';
+import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260901u';
+import { getAdapter, persist } from '../core/data-adapter.js?v=20260901u';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
@@ -25,6 +27,11 @@ export function getBranchIdOfPerson(personId) {
  * 支部名随支部配置更换显示——不硬编码"光华管理学院本科生党支部"
  */
 export function getHeaderTitle(personId) {
+  // 党委级角色：header 显示院系党委名（不属于任一支部）
+  if (personId) {
+    const person = getPersonById(personId);
+    if (person?.role === 'party-staff') return PARTY_COMMITTEE.name;
+  }
   const branch = getBranchById(getBranchIdOfPerson(personId));
   return branch?.config?.headerTitle || branch?.name || '光华管理学院本科生党支部';
 }
@@ -37,4 +44,19 @@ export function getHeaderTitle(personId) {
 export function withinBranch(rows, personId) {
   const bid = getBranchIdOfPerson(personId);
   return rows.filter(r => (r.branchId || 'br-b1') === bid);
+}
+
+// ── 党委支部管理写操作（P1；经 data-adapter，mock 持久化，刷新不丢）────────
+/** 党委创建支部（支部不预设名字——名称/类型由党委录入） */
+export async function createBranch({ name, type }) {
+  const branch = await getAdapter().branches.create({ name: String(name || '').trim(), type: String(type || '').trim() });
+  persist();
+  return branch;
+}
+
+/** 党委改支部名（同步 config.headerTitle——header 软编码随之变化） */
+export async function renameBranch(id, name) {
+  const next = await getAdapter().branches.update(id, { name: String(name || '').trim() });
+  persist();
+  return next;
 }

@@ -5,7 +5,7 @@
 export function renderContent(ctx) {
   const el = document.getElementById('org-tab-content');
   if (!el) return null;
-  return import('../../../components/activity-view.js?v=20260901t').then(m => m.renderActivityView(el, {
+  return import('../../../components/activity-view.js?v=20260901u').then(m => m.renderActivityView(el, {
     highlightId: ctx?.highlightActId || null,
     onLocated: () => { if (ctx?.onNavLocated) ctx.onNavLocated(); },
   }));

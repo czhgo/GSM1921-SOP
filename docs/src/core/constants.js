@@ -185,6 +185,8 @@ export const ACTIVITY_TYPE_SHORT = {
 export const ROLE_KEYS = [
   'secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
   'leader', 'participant',
+  // P1 党委后台（2026-09-02）：党委组织员/党务老师——组织级角色（院系党委），不属于任一支部
+  'party-staff',
   'organizer', 'deep',
 ];
 export const ROLE_LEGACY_KEYS = ['commissioner', 'initiator', 'all']; // 遗留键：无独立角色，保留兼容
@@ -200,6 +202,7 @@ export const ROLE_LABELS = {
   'organizer':         '组织者',
   'deep':              '深度参与者',
   'participant':       '普通参与者',
+  'party-staff':       '党委组织员',
   'initiator':         '发起人',
   'all':               '全体相关',
 };
@@ -215,6 +218,8 @@ export const ROLE_PAGE_MAP = {
     'disc-commissioner': 'disc.html',
     'leader':            'leader.html',
     'participant':       'visitor.html',
+    // P1 党委后台（2026-09-02）：党委组织员 → 党委工作台（监控全院各支部，登录直达）
+    'party-staff':       'party-committee.html',
   },
 };
 

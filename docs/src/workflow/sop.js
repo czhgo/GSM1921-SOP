@@ -3,7 +3,7 @@
 //  sop.js — SOP 推演引擎
 // ════════════════════════════════════════════════════════════════
 
-import { sopDatabase } from './sopData.js?v=20260901t';
+import { sopDatabase } from './sopData.js?v=20260901u';
 
 /**
  * 根据场景 ID 数组与 T-0 日期，实例化 SOP 任务节点

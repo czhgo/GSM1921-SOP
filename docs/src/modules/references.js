@@ -1,10 +1,10 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../core/icons.js?v=20260901t';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260901t';
-import { AuthStore } from '../services/auth.js?v=20260901t';
-import { loadActivities } from '../services/activity.js?v=20260901t';
+import { icon } from '../core/icons.js?v=20260901u';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260901u';
+import { AuthStore } from '../services/auth.js?v=20260901u';
+import { loadActivities } from '../services/activity.js?v=20260901u';
 
 const SITE_GROUPS = [
   {

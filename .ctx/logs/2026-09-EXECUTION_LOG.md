@@ -225,3 +225,12 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - mock/people.js 全员缺省注入 branchId='br-b1'（undefined→br-b1；党委级 person 显式 null 待 Step4）
 - 验证：module-load 110/110 + seed/db/snapshot 8/8 通过
 **下一步**：Step2 支部隔离（services 层收敛，惰性维度：老数据无 branchId 视作 br-b1）→ Step3 配置档案生效（header 软编码）→ Step4 党委工作台 + party-staff 角色/党委账号
+
+## T-2026-09-013 P1 Step3 header 品牌软编码（2026-09-02）
+
+**实施**（版本串 r→s，commit 703c201）：新建 services/branch.js（getBranchById/getBranchIdOfPerson/getHeaderTitle——person→branchId→branches.config.headerTitle→兜底）；components/header.js h1 硬编码改 `getHeaderTitle(personId)`（访客默认 br-b1）。验证 module-load 111/111 + click-cost 4/4（浏览器实测书记台创建活动/看详情流程正常）
+
+## T-2026-09-014 P1 Step2 支部隔离锚点（2026-09-02）
+
+**实施**（版本串 s→t，commit c5fcb1f）：mock-adapter branchDocs.create 挂 branchId（缺省 br-b1，支部文件一支部一空间字段级落地）；branch.js 加 `withinBranch(rows, personId)` 统一隔离过滤收敛点（无 branchId 视 br-b1 惰性迁移；单支部恒等、跨支部自然生效，防各 tab 手写过滤漂移）。验证 module-load 111/111 + capability-registry 13/13
+**P1 进度**：Step1 数据层 ✅（dea729d）/ Step2 隔离锚点 ✅（c5fcb1f）/ Step3 header 软编码 ✅（703c201）；**Step4 党委工作台 + party-staff 角色/账号/台账/支部管理 = 最大块未动**，需 UI 密集开发 + E2E，留新会话专做（本会话上下文耗尽前收口保质量）

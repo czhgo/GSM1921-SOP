@@ -21,6 +21,8 @@ export const MOCK_ACCOUNTS = [
   { studentId: '2500010009', password: '123456', personId: 'p23' },  // 积极分子 程思源
   { studentId: '2500010014', password: '123456', personId: 'p28' },  // 预备党员 陈晓彤
   { studentId: '2500010025', password: '123456', personId: 'p39' },  // 积极分子 赵倩
+  // P1 党委后台（2026-09-02）：党委组织员账号（组织级，登录直达党委工作台）
+  { studentId: '9000000001', password: '123456', personId: 'p_pc' },
 ];
 
 /**
