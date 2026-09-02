@@ -39,6 +39,8 @@ const RESOURCE_TABLES = {
   branchDocs: 'branch_docs',
   // P1 党委后台（2026-09-02）：支部实例（党委工作台支部管理；写权限默认 requireAuth，收紧留 P2）
   branches: 'branches',
+  // P2 党委后台（2026-09-02）：书记任期记录
+  appointmentRecords: 'appointment_records',
 };
 
 function listTable(db, table) {
@@ -57,6 +59,7 @@ const ID_PREFIX = {
   actSubRecords: 'asr', tfSubRecords: 'tfs',
   branchDocs: 'bd',
   branches: 'br',
+  appointmentRecords: 'appt',
 };
 
 export function createResourcesRouter(db) {

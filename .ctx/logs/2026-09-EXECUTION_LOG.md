@@ -257,3 +257,11 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **新 E2E party-committee.test.mjs**：党委账号 9000000001 登录 → 直达党委台 → header 党委名 → 台账渲染 br-b1/现任书记 → 支部管理创建支部（确定性展开，UI toggle 时序 flaky 已规避）→ reload 持久化。连续 2 次通过
 **调试实录**：台账不渲染=API 模式 bootstrap 恢复域清单缺 branches（data-adapter 补）；创建 404=server resources 未注册 branches 端点；创建后不持久=service 缺本地同步——三层各自补齐闭环
 **P1 状态**：Step1-4 全 ✅（dea729d/703c201/c5fcb1f/6f97552/b1385fb）；**P2 书记任命与任期 / P3 党委审批+下发**（design §5）未启动——登记后续大项
+
+## T-2026-09-017 P2 书记任命与任期落地（2026-09-02）
+
+**实施**（版本串 x→y，module-load 113/113）：appointmentRecords 域全套（domain/双 adapter/server 表 appointment_records/server resources 路由 + data-adapter 恢复）+ services/appointment.js（appointSecretary：①branches.secretaryId ②双方 users.role 同步（API PATCH server）③任期记录闭环封口/新建）+ branches-tab 任命 UI（支部卡任命按钮/成员下拉/任期档案显示）
+**E2E 验收**（party-committee.test 第 2 test，2/2）：党委登录 → 真实任命链任命钱七(p5) → br-b1.secretaryId=p5 + 任期记录现任=p5 → p5 登录直达 secretary.html → 原书记沈一(p13) 登录直达 visitor.html（降回成员）。design §5 P2 验收达成
+**教训**：p3 王五无 MOCK_ACCOUNTS 登录账号（accounts 仅部分成员）——E2E 任命对象须选有账号成员（p5 钱七）；appointSecretary 内 users PATCH 用 try/catch 吞错——探针直测定位为账号问题非 PATCH 问题
+**mock 纯本地边界**：users 演示行（u_*）无 person 档案 → role 同步静默跳过（记录/secretaryId 仍完整）；角色动态生效以 API 模式（真实部署）为准
+**P3 党委审批+下发**：未启动——登记后续大项

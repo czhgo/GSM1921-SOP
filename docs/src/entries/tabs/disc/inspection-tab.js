@@ -2,13 +2,13 @@
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
 // 专班名单区（组织→纪检 自动同步，纪检只读同源）+ 考察总表（确认/删除）。
 
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260901x';
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260901x';
-import { inspectionToLong, inspectionToWide, getPersonName } from '../../../mock/index.js?v=20260901x';
-import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260901x';
-import { badgeHtml } from '../../../components/badge.js?v=20260901x';
-import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260901x';
-import { HandoffStore } from '../../../services/handoff.js?v=20260901x';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260901y';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260901y';
+import { inspectionToLong, inspectionToWide, getPersonName } from '../../../mock/index.js?v=20260901y';
+import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260901y';
+import { badgeHtml } from '../../../components/badge.js?v=20260901y';
+import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260901y';
+import { HandoffStore } from '../../../services/handoff.js?v=20260901y';
 
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');

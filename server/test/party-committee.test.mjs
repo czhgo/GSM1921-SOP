@@ -107,3 +107,65 @@ test('党委组织员登录直达党委工作台：台账见支部、可创建�
     await page.close();
   }
 });
+
+test('P2 书记任命：任命钱七(p5)为书记 → p5 登录直达书记台、原书记沈一(p13)降回成员', async () => {
+  const page = await browser.newPage();
+  await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
+  await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
+  await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
+  try {
+    // 1. 党委登录 → 走真实任命服务链（appointSecretary：branch.secretaryId + 双方 role + 任期记录）
+    await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
+    await page.fill('#student-id', '9000000001');
+    await page.fill('#password', '123456');
+    await Promise.all([
+      page.waitForURL('**/workspace/party-committee.html', { timeout: 10000 }),
+      page.click('button[type="submit"]'),
+    ]);
+    await page.waitForFunction(() => {
+      const h = document.getElementById('app-header');
+      return h && h.textContent.includes('光华管理学院党委');
+    }, { timeout: 10000 });
+    const appoint = await page.evaluate(async () => {
+      const { appointSecretary } = await import('/src/services/appointment.js?v=20260901y');
+      await appointSecretary({ branchId: 'br-b1', personId: 'p5', note: 'E2E 换届测试' });
+      const { mockDB } = await import('/src/core/domain.js?v=20260901y');
+      const branch = (mockDB.branches || []).find(b => b.id === 'br-b1');
+      const recs = (mockDB.appointmentRecords || []).filter(r => r.branchId === 'br-b1');
+      return { secretaryId: branch?.secretaryId, recs: recs.length, currentTo: (recs.find(r => !r.to) || {}).secretaryId };
+    });
+    // 2. 断言：br-b1.secretaryId=p5 + 任期记录存在且现任=p5（原书记记录已封口）
+    if (appoint.secretaryId !== 'p5') throw new Error(`任命后 secretaryId 应为 p5，实际 ${appoint.secretaryId}`);
+    if (!(appoint.recs >= 1 && appoint.currentTo === 'p5')) throw new Error(`任期记录异常：${JSON.stringify(appoint)}`);
+
+    // 3. 新任书记钱七(p5)登录 → 直达书记工作台 secretary.html
+    const p5 = await browser.newPage();
+    await p5.route('**://fonts.googleapis.com/**', (r) => r.abort());
+    await p5.route('**://fonts.gstatic.com/**', (r) => r.abort());
+    await p5.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
+    await p5.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
+    await p5.fill('#student-id', '2400012349'); // p5 钱七
+    await p5.fill('#password', '123456');
+    await Promise.all([
+      p5.waitForURL('**/workspace/secretary.html', { timeout: 10000 }),
+      p5.click('button[type="submit"]'),
+    ]);
+
+    // 4. 原书记沈一(p13)登录 → 降回成员，直达 visitor.html
+    const p13 = await browser.newPage();
+    await p13.route('**://fonts.googleapis.com/**', (r) => r.abort());
+    await p13.route('**://fonts.gstatic.com/**', (r) => r.abort());
+    await p13.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
+    await p13.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
+    await p13.fill('#student-id', '2300010001'); // p13 沈一
+    await p13.fill('#password', '123456');
+    await Promise.all([
+      p13.waitForURL('**/workspace/visitor.html', { timeout: 10000 }),
+      p13.click('button[type="submit"]'),
+    ]);
+    await p5.close();
+    await p13.close();
+  } finally {
+    await page.close();
+  }
+});

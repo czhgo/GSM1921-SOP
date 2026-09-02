@@ -288,6 +288,10 @@ export const mockDB = {
    *  config.headerTitle=header 软编码；config.enabledModules=null 表示启用全部已注册能力；
    *  config.fileSpaceIsolated=支部文件（branchDocs）/附件一支部一独立存储空间 */
   branches: [],
+  // ── 2026-09-02 党委后台 P2：书记任命与任期 ──
+  /** @type {Object[]} 书记任期记录（党委任命/撤换；换届改选档案）
+   *  { id, branchId, secretaryId, appointedBy, note, from, to(null=现任) } */
+  appointmentRecords: [],
 };
 
 // ════════════════════════════════════════════════════════════════

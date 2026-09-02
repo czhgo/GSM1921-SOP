@@ -2,13 +2,13 @@
 // 组长工作台 Tab：复盘提交（T-279 M2 拆分）
 // 党小组组长提交活动复盘总结 → 纪检委员批注/确认。
 
-import { loadActivities } from '../../../services/activity.js?v=20260901x';
-import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../../../services/review.js?v=20260901x';
-import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260901x';
-import { PEOPLE } from '../../../mock/index.js?v=20260901x';
-import { showToast } from '../../../core/utils.js?v=20260901x';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260901x';
-import { currentLeaderGroup, getCurrentLeaderId } from './_shared.js?v=20260901x';
+import { loadActivities } from '../../../services/activity.js?v=20260901y';
+import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../../../services/review.js?v=20260901y';
+import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260901y';
+import { PEOPLE } from '../../../mock/index.js?v=20260901y';
+import { showToast } from '../../../core/utils.js?v=20260901y';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260901y';
+import { currentLeaderGroup, getCurrentLeaderId } from './_shared.js?v=20260901y';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;

@@ -17,6 +17,8 @@ const RESOURCE_TABLES = [
   'agenda_votes',
   // 2026-09-02 党委后台 P1：支部多实例（br-b1 + 党委动态创建的支部，config 配置档案同存）
   'branches',
+  // 2026-09-02 党委后台 P2：书记任期记录（党委任命/撤换档案）
+  'appointment_records',
 ];
 
 const SCHEMA = `

@@ -7,9 +7,9 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE, getPersonById } from '../mock/index.js?v=20260901x';
-import { icon } from '../core/icons.js?v=20260901x';
-import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../core/constants.js?v=20260901x';
+import { PEOPLE, getPersonById } from '../mock/index.js?v=20260901y';
+import { icon } from '../core/icons.js?v=20260901y';
+import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../core/constants.js?v=20260901y';
 
 // ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
 function hexToRgba(hex, alpha) {

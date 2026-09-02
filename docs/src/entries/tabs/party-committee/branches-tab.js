@@ -2,11 +2,13 @@
 // 党委工作台 Tab：支部管理（P1 党委后台，2026-09-02）
 // 支部不预设名字：党委创建/改名支部实例；config.headerTitle 随名软编码（header 随支部更换）
 
-import { mockDB } from '../../../core/domain.js?v=20260901x';
-import { PARTY_COMMITTEE } from '../../../mock/branches.js?v=20260901x';
-import { getPersonName } from '../../../services/person.js?v=20260901x';
-import { createBranch, renameBranch } from '../../../services/branch.js?v=20260901x';
-import { showToast } from '../../../core/utils.js?v=20260901x';
+import { mockDB } from '../../../core/domain.js?v=20260901y';
+import { PEOPLE } from '../../../mock/people.js?v=20260901y';
+import { PARTY_COMMITTEE } from '../../../mock/branches.js?v=20260901y';
+import { getPersonName } from '../../../services/person.js?v=20260901y';
+import { createBranch, renameBranch } from '../../../services/branch.js?v=20260901y';
+import { appointSecretary, listAppointments } from '../../../services/appointment.js?v=20260901y';
+import { showToast } from '../../../core/utils.js?v=20260901y';
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -54,11 +56,29 @@ export async function renderContent() {
             </div>
             <div class="flex items-center gap-2">
               <button class="branch-rename-toggle text-xs px-2.5 py-1 rounded-lg text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600">改名</button>
+              <button class="branch-appoint-toggle text-xs px-2.5 py-1 rounded-lg text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600">任命书记</button>
             </div>
             <div class="branch-rename-row hidden mt-2 flex gap-2">
               <input class="branch-rename-input w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 outline-none focus:border-red-400" value="${esc(b.config?.headerTitle || b.name)}" placeholder="支部全称" />
               <button class="branch-rename-save text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" style="background:#C8102E;">保存</button>
             </div>
+            <div class="branch-appoint-row hidden mt-2 space-y-2">
+              <select class="branch-appoint-select w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 outline-none focus:border-red-400 bg-white">
+                <option value="">— 选择本支部成员为新任书记 —</option>
+                ${PEOPLE.filter(p => p.branchId === b.id && p.role !== 'party-staff').map(p =>
+                  `<option value="${esc(p.id)}" ${p.id === b.secretaryId ? 'disabled' : ''}>${esc(p.name)}（${esc(p.developStage || '')}）${p.id === b.secretaryId ? '·现任' : ''}</option>`).join('')}
+              </select>
+              <div class="flex items-center justify-between gap-2">
+                <input class="branch-appoint-note w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-red-400" placeholder="任命说明（可选，如 换届选举 2026-09）" />
+                <button class="branch-appoint-save text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" style="background:#C8102E;">确认任命</button>
+              </div>
+            </div>
+            ${(() => { const h = listAppointments(b.id); return h.length ? `
+            <div class="mt-2 pt-2 border-t border-gray-100">
+              <p class="text-xs text-gray-400 mb-1">任期档案</p>
+              ${h.slice(0, 3).map(r => `
+                <p class="text-xs text-gray-500 leading-5">${esc(getPersonName(r.secretaryId))} · ${String(r.from || '').slice(0, 10)}${r.to ? ' → ' + String(r.to).slice(0, 10) : ' · 现任'}${r.note ? ' · ' + esc(r.note) : ''}</p>`).join('')}
+            </div>` : ''; })()}
           </div>`).join('')}
       </div>
       <p class="text-xs text-gray-400">党委组织：${esc(PARTY_COMMITTEE.name)} · 支部 ${branches.length} 个</p>
@@ -92,6 +112,19 @@ export async function renderContent() {
       if (!name) { showToast('支部名称不能为空'); return; }
       await renameBranch(branchId, name);
       showToast('支部名称已更新（header 已随配置更换）');
+      renderContent();
+    });
+    // 任命书记（P2：toggle 展开 → 选成员 → 确认任命）
+    card.querySelector('.branch-appoint-toggle')?.addEventListener('click', () => {
+      card.querySelector('.branch-appoint-row')?.classList.toggle('hidden');
+    });
+    card.querySelector('.branch-appoint-save')?.addEventListener('click', async () => {
+      const personId = card.querySelector('.branch-appoint-select')?.value;
+      if (!personId) { showToast('请选择新任书记'); return; }
+      const note = card.querySelector('.branch-appoint-note')?.value.trim() || '';
+      const name = card.querySelector('.branch-appoint-select')?.selectedOptions?.[0]?.textContent || personId;
+      await appointSecretary({ branchId, personId, note });
+      showToast(`已任命 ${name.split('（')[0]} 为支部书记（原书记已降回成员，任期档案已记录）`);
       renderContent();
     });
   });

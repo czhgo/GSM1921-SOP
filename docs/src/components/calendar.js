@@ -5,11 +5,11 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../core/state.js?v=20260901x';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260901x';
-import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260901x';
-import { filterTasksByManagementRole } from './inspector.js?v=20260901x';
-import { badgeHtml } from './badge.js?v=20260901x';
+import { getAppState, setState } from '../core/state.js?v=20260901y';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260901y';
+import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260901y';
+import { filterTasksByManagementRole } from './inspector.js?v=20260901y';
+import { badgeHtml } from './badge.js?v=20260901y';
 
 // ── 内联标签深色变量对（与 constants.js _applyDark 生成的 bgDark/textDark/borderDark 配套）──
 // 标签/卡片：三件套（bg/text/border）；纯文字：仅 text；圆点：仅实色提亮（--acc-dot-dark）
