@@ -3,7 +3,7 @@ title: "部署落地总览——从开发到正式上线的四条路径（含计
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-19
-last_updated: "2026-08-29"
+last_updated: "2026-09-02"
 status: active
 related_files: [docs/src/core/data-adapter.js, docs/src/core/api-adapter.js, docs/src/services/runtime.js, docs/src/config/deploy.js, docs/src/core/bootstrap.js, server/server.js, server/app.js, server/db.js, server/routes/auth.js, server/routes/resources.js, server/routes/uploads.js]
 ---
@@ -52,6 +52,20 @@ related_files: [docs/src/core/data-adapter.js, docs/src/core/api-adapter.js, doc
 | api-adapter 资源级 CRUD（P2） | 当前写穿走全量 snapshot，资源级 create/update/delete 为 P2 | 无（工作量问题，不阻塞部署） |
 | 北大 IAAA 单点登录 | 登录落点的最终目标，门控触发条件已预留（见 §3.7） | 依赖计算中心对接推进 |
 | AI 本地部署 | 计算中心 GPU 上的推理服务（见 §3.6） | 依赖计算中心资源 |
+
+### 2.3 真实部署 checklist（2026-09-02 部署件登记）
+
+> 供 B 路径（Node 自托管正式使用）与 C 路径（计算中心对接）落地时逐项执行。代码基座已就绪（server.js DISABLE_SEED / deploy.js SEED_FALLBACK）。
+
+**新建库启动（首次，防演示种子混入真实账本）**
+1. `server/` 启动加 `DISABLE_SEED=1`：空库**不导入** 50 人演示支部种子，全新建库直接录入真实人员（server.js 已支持该 env）
+2. `docs/src/config/deploy.js`：`DEPLOY_MODE` 改 `'server'`，`SEED_FALLBACK` 改 `false`
+3. 逐一关闭 **services 层 9 处空表回退**（`_loadX` 空则注入演示 seed：attendance/inspection/review/thought-report/activity/makeup/notice/todo/signup）——统一挂 `SEED_FALLBACK` 条件。**原因**：空表回退只填前端缓存本无害，但用户任一后续写会触发快照上传，把回退的演示种子整体写到服务端，污染真实账本
+
+**日常运维**
+4. 备份 = 复制 `server/data.db`（先停服务更稳妥；正常停止后单文件即完整快照）
+5. 恢复 = 停服务 → 用备份文件替换 `data.db` → 启动（users 表非空不会重新 seed）
+6. 更新 = 覆盖 `docs/` 与 `server/` 代码（保留 `data.db` 不动）→ `npm start`
 
 ---
 

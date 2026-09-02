@@ -7,3 +7,10 @@
 //
 // 部署时按形态改此常量（GitHub Pages 保持 'static'；Node server 部署改为 'server'）。
 export const DEPLOY_MODE = 'static';
+
+// 空域 seed 回退开关（2026-09-02 部署件）：服务层在对应数据域为空时是否回退注入演示种子。
+// - true  = 演示形态（默认）：空表回退演示数据，体验不空窗
+// - false = 真实部署（server 形态 + 真实账本）务必改 false：
+//   否则用户任何一次写触发快照上传时，会把先前空表回退注入的演示种子一并写到服务端，污染真实账本。
+//   切换后按 DEPLOYMENT_ROADMAP「真实部署 checklist」逐一关闭 services 层 9 处空表回退。
+export const SEED_FALLBACK = true;
