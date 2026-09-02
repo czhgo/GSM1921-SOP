@@ -3,7 +3,7 @@
 // 2026-09-02 AV4：记录「通过」前对支部党员大会（voteConfig.quorumCheck=true）做出席/赞成过半数硬校验
 //（spec §3.4）；校验不通过抛错中止（不写 result，UI 层 catch 以 error toast 提示书记）。
 
-import { fetchVotes } from './committee-vote.js?v=20260901g';
+import { fetchVotesStrict } from './committee-vote.js?v=20260901g';
 
 function replaceById(records, record) {
   const index = records.findIndex((item) => item.id === record.id);
@@ -38,7 +38,9 @@ function agendaPersonIds(agendaItem) {
  * 正式表决硬校验（spec §3.4）：活动 voteConfig.quorumCheck === true 时，记录「通过」前校验
  *   (a) 出席过半数：已表态人数（含弃权，本议程项去重 personId）≥ ceil(应到/2)；
  *   (b) 赞成过半数：approve 人数 > 应到/2。
- * 弃权计入出席、不计入赞成。返回拦截文案；null = 校验通过。
+ * 弃权计入出席、不计入赞成。返回拦截文案（含按场景拆分的可采取动作提示）；null = 校验通过。
+ * 表态取 fetchVotesStrict（fail-hard）：API 拉取失败直接抛错中止记录——
+ * 硬校验若静默降级本地缓存，门禁将按失真数据放行（AV4 审查修复）。
  * 支委会（deliberative / quorumCheck 默认 false）不拦截（保持展示不拦截现状）。
  */
 async function quorumBlockMessage(activity, agendaItemId) {
@@ -46,16 +48,16 @@ async function quorumBlockMessage(activity, agendaItemId) {
   if (!cfg || cfg.quorumCheck !== true) return null;
   const total = Array.isArray(cfg.voterIds) ? cfg.voterIds.length : 0;
   if (total <= 0) return '应到名单为空，无法校验过半数';
-  const votes = await fetchVotes(activity.id);
+  const votes = await fetchVotesStrict(activity.id);
   // 按本议程项统计（一条议程一次表决；多议题各自独立判定出席/赞成）
   const itemVotes = votes.filter((v) => v.agendaItemId === agendaItemId);
   const present = new Set(itemVotes.map((v) => v.personId)).size;
   const approve = itemVotes.filter((v) => v.position === 'approve').length;
   if (present < Math.ceil(total / 2)) {
-    return `应到会有表决权党员过半数出席方可表决（当前 ${present}/${total} 已表态）`;
+    return `应到会有表决权党员过半数出席方可表决（当前 ${present}/${total} 已表态），可督促未表态党员表态`;
   }
   if (approve <= total / 2) {
-    return `赞成未超过应到会有表决权党员的半数（${approve}/${total}），不能记录为通过`;
+    return `赞成未超过应到会有表决权党员的半数（${approve}/${total}），不能记录为通过，可继续沟通争取赞成票`;
   }
   return null;
 }
@@ -71,11 +73,12 @@ export async function recordAgendaResult({ activity, agendaItemId, result, adapt
   if (!agendaItem) throw new Error('议程项不存在');
 
   // 正式表决硬校验（AV4）：quorumCheck=true 且记录「通过」时校验出席/赞成过半数；
-  // 命中任一 → 抛错中止（不写 result），消息含可采取动作提示（UI 层 catch 弹 error toast）。
+  // 命中任一 → 抛错中止（不写 result），消息按场景附可采取动作提示（出席不足→督促表态，
+  // 赞成不足→继续沟通争取赞成票；UI 层 catch 弹 error toast）。
   // 记录「未通过」或 quorumCheck=false 不拦截。
   if (result === 'passed') {
     const block = await quorumBlockMessage(activity, agendaItemId);
-    if (block) throw new Error(`${block}；可督促未表态党员表态或补足附议`);
+    if (block) throw new Error(block);
   }
 
   const agenda = activity.agenda.map((item) => item.id === agendaItemId

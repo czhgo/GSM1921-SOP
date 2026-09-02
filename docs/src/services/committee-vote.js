@@ -76,6 +76,22 @@ export async function fetchVotes(activityId) {
   return (mockDB.agendaVotes || []).filter((v) => v.activityId === activityId);
 }
 
+/**
+ * 查询活动的表态列表（fail-hard：API 失败直接抛错，不降级本地缓存）。
+ * 供硬校验等「必须真值」场景使用（如议程记录通过的出席/赞成门禁——
+ * 降级缓存会使门禁失真）；mock 模式同 fetchVotes（本地即真源）。
+ */
+export async function fetchVotesStrict(activityId) {
+  if (getDataSource() === 'api' && getAuthToken()) {
+    const r = await fetch(`${getApiBaseUrl()}/api/v1/agenda-votes?activityId=${activityId}`, {
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+    });
+    if (!r.ok) throw new Error(`获取表态失败（HTTP ${r.status}）`);
+    return r.json();
+  }
+  return (mockDB.agendaVotes || []).filter((v) => v.activityId === activityId);
+}
+
 /** 提交/覆盖表态（同人同议题幂等：adapter 统一处理 upsert；API 提交 201/覆盖 200） */
 export async function submitVote({ activityId, agendaItemId, position, note = '' }) {
   if (getDataSource() === 'api' && getAuthToken()) {

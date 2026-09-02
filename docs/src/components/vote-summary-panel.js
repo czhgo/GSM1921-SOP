@@ -67,7 +67,7 @@ export async function renderVoteSummary(container, { activity, committeeMembers,
                 const v = votes.find((x) => x.personId === m.id && x.agendaItemId === it.id);
                 if (!v) return '<td class="vs-none">—</td>';
                 const cls = v.position === 'object' ? 'vs-object' : '';
-                return `<td class="${cls}">${labelOf(v.position)}${v.note ? `<span class="vs-note">${esc(v.note)}</span>` : ''}</td>`;
+                return `<td class="${cls}">${esc(labelOf(v.position))}${v.note ? `<span class="vs-note">${esc(v.note)}</span>` : ''}</td>`;
               }).join('');
               return `<tr><td>${esc(it.item || '(无标题议题)')}</td>${row}</tr>`;
             }).join('')}
