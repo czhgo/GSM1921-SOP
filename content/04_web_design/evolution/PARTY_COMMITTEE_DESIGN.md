@@ -1,7 +1,7 @@
 ---
 title: "院系党委后台——支部多实例两级治理设计定案"
 type: design
-role: "[工程师]+[AI]+[书记]"
+role: "[工程师]+[AI]"
 created: 2026-09-02
 last_updated: "2026-09-03"
 status: approved-by-secretary
@@ -11,9 +11,9 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 # 院系党委后台——支部多实例两级治理设计定案
 
 > **性质：设计图与方向选择说明**（为什么这样做、选了什么方向）。
-> 执行路线图（怎么一步步落地）另置过程 spec：`.trae/specs/2026-09-02-party-committee-p1.md`（P1，用后即删）。
+> 执行路线图（怎么一步步落地）另置过程 spec（`.trae/specs/`，**用后即删**）；落地过程台账在 `.ctx/logs/`。本文档为常驻设计记录，**不承载执行步骤、测试清单与过程台账**。
 
-> 定位：光华管理学院党委（**院系级**，非全校）→ 动态支部多实例的两级治理架构。书记 2026-09-02 逐段批准（Part 1 架构 / Part 2 分期）。
+> 定位：光华管理学院党委（**院系级**，非全校）→ 动态支部多实例的两级治理架构。书记 2026-09-02 逐段批准（Part 1 架构 / Part 2 分期），P3 范围与形态 2026-09-03 裁定。
 
 ## 0. 方向选择说明（书记 2026-09-02 逐项决策记录）
 
@@ -51,7 +51,7 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 ```
 
 - 新表 `branches`：`id`（br-*）、`name`（党委命名）、`type`（可选类别标签，不预设枚举则留自由文本）、`secretaryId`（现任书记 personId，P2 后由任命驱动）、`createdAt`、`status`。
-- 现有 users/members/activities/notices/taskforces/attendance… 全部数据域加 `branchId`。
+- 核心数据域挂 `branchId`（users/people/activities/taskforces 等）；**落地口径**：存量数据迁入 br-b1，老数据缺省视为 br-b1（惰性维度迁移，不逐行回填）；支部内隔离一律收敛于 `services/branch.js`（`getBranchIdOfPerson`/`withinBranch`），各 tab 不手写过滤（防漂移）。
 
 ### 2.5 支部配置档案（开源通用性 · 2026-09-02 书记补充）
 
@@ -65,6 +65,8 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 - 党委可在支部管理里调整 config（换 header/主题/启停模块）——支部是"配置驱动的实例"而非"同构复制品"
 
 工作流匹配：支部内 decision-tree/sop-scenarios 消费自身 config.enabledModules 的子集（如硕博支部不需要"本科积极分子考察节奏"的 scenario 则不启用），场景引擎已注册式可配，仅需支部级过滤。
+
+> **远期形态**：config 的"勾选组合"将演进为「工作流块拖拽编排」（支部把已注册的工作流块拖进画布 → 自动写回 enabledModules/场景清单）——见 [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八（开源项目目标）。数据模型不变，块即注册表中的能力+元数据。
 
 ## 3. 两级角色与可见范围
 
@@ -85,7 +87,7 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 
 ## 5. 功能分期
 
-- **P1 支部多实例 + 党委监控台账**：branch 落地 + 现数据迁移 br-b1；党委账号与工作台；监控台账（各支部成员规模/三会一课/主题党日/发展党员进度/思想汇报/书记任期状态）+ 支部列表管理（创建/改名）；数据隔离生效。验收：党委登录见全院两视图、支部登录只见本支部；现有 89 测试全绿 + 新增两级相关测试。
+- **P1 支部多实例 + 党委监控台账**：branch 落地 + 现数据迁移 br-b1；党委账号与工作台；监控台账（各支部成员规模/三会一课/主题党日/发展党员进度/思想汇报/书记任期状态）+ 支部列表管理（创建/改名）；数据隔离生效。验收（行为）：党委登录见全院两视图、支部登录只见本支部；现有支部演示功能不回归。
 - **P2 书记任命与任期**：党委任命/撤换书记 → 书记工作台动态绑定被任命人；任期记录（改选换届档案）。验收：任命某成员后其登录即书记台、原书记降回成员/副书记；任期历史可查。
 - **P3 党委指导审批 + 下发通知**（2026-09-03 范围与形态已裁定，见 §0）：
   - **上报（支部→党委）**：书记/副书记在书记工作台「上报党委」tab 发起——`develop-node`（发展节点）/`activity-report`（活动报备）两类，标题+说明上报（`reviewRequests` 记录，挂 branchId，状态 pending/approved/rejected）；党委在党委工作台「上报审批」tab 逐项批/驳（驳回须附意见，批准可附指导意见）→ 结论（含意见与处理人）回传支部侧同页可见。
@@ -94,18 +96,17 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 ## 6. 演示与基线
 
 - mock 升级 "1 党委 + 1 支部（br-b1）"：新增党委演示账号，现有支部演示数据/功能完全保留。
-- 测试基线 89 保持全绿；新增党委功能各自 E2E。
-- 版本串纪律照旧（每期 bump）。
+- 回归口径（行为）：两级可见范围、支部配置驱动、branchDocs 隔离、双向通道闭环逐项通过后收口；执行记录（版本串/测试清单）在 `.ctx/logs/`。
 
 ## 7. 风险与原则
 
 - **最大改动面**：全数据域加 branchId（触及 46 功能的数据读写）——P1 只做"维度落地 + 隔离生效"，功能行为不变。
-- **书记机制变化影响演示/测试**：P2 前保持 u_sec 可访问书记台（任命绑定与固定账号并存过渡，P2 切换）。
+- **书记身份判定**：P2 起书记工作台访问以 `branches.secretaryId`（党委任命链，见 §3）为准，不再依赖固定演示账号 u_sec。
 - 隔离在 services 层收敛，勿在各 tab 手写过滤（防漂移）。
 - 新能力注册式（modules/capabilities/ 新增 party-committee-workspace），勿增核心单体。
 - **上线前待收紧（P3 落地时登记）**：服务端资源级写权限仍为通用 requireAuth——任何登录用户理论上可写 branches/appointmentRecords/reviewRequests（含自批风险）；当前以 UI 层角色收敛 + 数据为演示态接受，上线部署前须按角色收紧（requireRole: party-staff / 本支部支委层）。
 
 ## 8. 验收（总原则）
 
-- 设计成不成立以**行为验收**为准：两级可见范围（党委见全院、支部见本支部）、支部配置驱动（换 header/启停模块生效）、branchDocs 支部级隔离。
-- 每期具体验收步骤与测试清单见执行 spec（`.trae/specs/2026-09-02-party-committee-p1.md`，P1），完成后删除。
+- 设计成不成立以**行为验收**为准：两级可见范围（党委见全院、支部见本支部）、支部配置驱动（换 header/启停模块生效）、branchDocs 支部级隔离、P3 双向通道闭环（上报→批复→回传；下发→支委收件且非支委不打扰）。
+- 行为验收的**执行记录**（版本串、测试清单、通过结论）属过程内容：随 spec 用后即删、台账存 `.ctx/logs/`，不常驻本设计文档。

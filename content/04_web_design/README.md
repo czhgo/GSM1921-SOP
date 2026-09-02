@@ -2,7 +2,7 @@
 title: "网站设计层索引——网站系统的设计想法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-08-27"
+last_updated: "2026-09-03"
 status: active
 ---
 
@@ -11,6 +11,7 @@ status: active
 > **定位：** 本目录存放**知识类型 4：网站系统的设计想法**——回答"网站功能、数据架构、UI 设计"。
 > **受众：** [工程师]（系统维护者、开发者）
 > **结构：** 2026-08-27（T-286）按主题分子目录分组，各子目录文件间可互相引用；跨组引用使用相对路径（`../组名/`）。
+> **内容/过程边界（书记 2026-09-03 裁定）：** 本目录只放**设计图与方向选择说明**（为什么这样做、选了哪些方向、模型长什么样）。执行路线图（怎么一步步改）属过程内容，放 `.trae/specs/`（用后即删）；落地台账（版本串/测试清单）放 `.ctx/logs/`。二者都不得以"设计"之名常驻 content。
 
 ---
 
@@ -22,7 +23,7 @@ status: active
 | [`data/`](data/) | 数据架构（模型/流/路由） | [DATA_MODEL.md](data/DATA_MODEL.md) · [DATA_FLOW.md](data/DATA_FLOW.md) · [DATA_ARCHITECTURE.md](data/DATA_ARCHITECTURE.md) |
 | [`deploy/`](deploy/) | 部署与集成（路径/认证/外部对接） | [DEPLOYMENT_ROADMAP.md](deploy/DEPLOYMENT_ROADMAP.md) · [DEPLOYMENT_AUTH_MODEL.md](deploy/DEPLOYMENT_AUTH_MODEL.md) · [PKU_PARTY_INTEGRATION.md](deploy/PKU_PARTY_INTEGRATION.md) · [WECHAT_INTEGRATION.md](deploy/WECHAT_INTEGRATION.md) |
 | [`module/`](module/) | 页面/模块设计（UI 与 SOP 联动） | [MODULE_UI_DESIGN.md](module/MODULE_UI_DESIGN.md) · [SOP_WEB.md](module/SOP_WEB.md) · [ABOUT_DESIGN_SYSTEM.md](module/ABOUT_DESIGN_SYSTEM.md) |
-| [`evolution/`](evolution/) | 演进与校验（架构演进/工程质检/权限收敛） | [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) · [CHECKLIST.md](evolution/CHECKLIST.md) · [ROLE_SSOT_DESIGN.md](evolution/ROLE_SSOT_DESIGN.md) |
+| [`evolution/`](evolution/) | 演进与校验（架构演进/组件化/权限收敛/党委两级治理） | [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) · [CHECKLIST.md](evolution/CHECKLIST.md) · [ROLE_SSOT_DESIGN.md](evolution/ROLE_SSOT_DESIGN.md) · [PARTY_COMMITTEE_DESIGN.md](evolution/PARTY_COMMITTEE_DESIGN.md) |
 
 ---
 
@@ -65,8 +66,10 @@ status: active
 
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
-| [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) | 架构演进（组件化落地评估 + 轻量插件化「能力注册表」设计 + 迭代机制 + 实施路径） | **唯一权威**——组件化落地评估与插件化演进方向 |
+| [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) | 架构演进（组件化落地评估 + 轻量插件化「能力注册表」设计 + 迭代机制 + 实施路径 + **§八 工作流块拖拽编排远期愿景**） | **唯一权威**——组件化落地评估与插件化演进方向 |
 | [CHECKLIST.md](evolution/CHECKLIST.md) | 数据同源一致性校验手册（工程质检流程 + 编辑完整性/链接完整性校验章节） | 校验流程执行依据 |
+| [ROLE_SSOT_DESIGN.md](evolution/ROLE_SSOT_DESIGN.md) | 权限功能合一收敛设计（角色权限四处分散声明 → 单一事实源 ROLE_KEYS + 派生） | **唯一权威**——角色权限单一事实源收敛设计（2026-08-29 裁定） |
+| [PARTY_COMMITTEE_DESIGN.md](evolution/PARTY_COMMITTEE_DESIGN.md) | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 书记任命 / P3 上报审批+下发） | **唯一权威**——党委两级治理架构与方向选择说明 |
 
 ---
 
