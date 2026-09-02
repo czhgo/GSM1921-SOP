@@ -34,6 +34,19 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 - 新表 `branches`：`id`（br-*）、`name`（党委命名）、`type`（可选类别标签，不预设枚举则留自由文本）、`secretaryId`（现任书记 personId，P2 后由任命驱动）、`createdAt`、`status`。
 - 现有 users/members/activities/notices/taskforces/attendance… 全部数据域加 `branchId`。
 
+### 2.5 支部配置档案（开源通用性 · 2026-09-02 书记补充）
+
+不同支部特点不同（本科/硕博），系统作为开源通用体，**支部 = 从已注册能力单元中排列组合出自己的工作流**。机制复用既有能力注册表（modules/capabilities/* 自注册 + scenario 引擎），不新造核心单体。
+
+每个支部实例挂 `config`（branches.config JSON）：
+- `headerTitle`：支部名（header 标题**软编码**，随支部更换显示，不硬编码"光华本科生党支部"）
+- `accent`：支部主题色（可选，默认党建红不变）
+- `enabledModules: [capability/scenario id 列表]`：该支部启用的功能模块与 SOP 场景（从已注册能力池勾选）——支部 profile 决定其工作台 tab 组成与可用工作流；默认 profile = 现 46 功能全开（兼容现有演示）
+- `fileSpaceIsolated: true`：**支部文件（branchDocs）与附件一个支部一个独立存储空间**——存储/查询按 branchId 分区，跨支部不可见（P1 落地）
+- 党委可在支部管理里调整 config（换 header/主题/启停模块）——支部是"配置驱动的实例"而非"同构复制品"
+
+工作流匹配：支部内 decision-tree/sop-scenarios 消费自身 config.enabledModules 的子集（如硕博支部不需要"本科积极分子考察节奏"的 scenario 则不启用），场景引擎已注册式可配，仅需支部级过滤。
+
 ## 3. 两级角色与可见范围
 
 | 级 | 角色 | 范围 | 核心能力 |
