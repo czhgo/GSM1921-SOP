@@ -20,6 +20,7 @@ import { BranchService } from '../../../services/runtime.js?v=20260901g';
 import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars } from '../../../core/constants.js?v=20260901g';
 import { badgeHtml } from '../../../components/badge.js?v=20260901g';
 import { collectAgendaRows } from './agenda-form.js?v=20260901g';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds } from '../../../services/vote-config.js?v=20260901g';
 import { getAdapter } from '../../../core/data-adapter.js?v=20260901g';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
@@ -510,6 +511,7 @@ function renderFormStep() {
   }
 
   const scenarioTitle = wp.getScenarioTitle();
+  const scenarioId = wp.selections._scenarioId || wp.getScenarioId?.() || '';
   const today = new Date().toISOString().slice(0, 10);
 
   let html = `<div>`;
@@ -555,6 +557,12 @@ function renderFormStep() {
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">主持人 <span class="text-gray-300">（选填）</span></label>`;
   html += `<input type="text" id="wp-host" class="input-flat w-full" placeholder="默认为当前用户">`;
   html += `</div>`;
+
+  // 会议形式（2026-09-02 线上异步表决泛化 A 期：仅决策类场景——支委会/支部党员大会；
+  // 默认线下开会保持现状；选「线上异步表决」后展开参与范围配置，见 renderVoteConfigSection）
+  if (isDecisionScenario(scenarioId)) {
+    html += renderVoteConfigSection(scenarioId);
+  }
 
   // 会议议程（T-283：三会一课专用；逐条议题 + 可选主持人，行内编辑最少点击）
   if (tpl.category === 'three-meetings') {
@@ -690,6 +698,45 @@ function renderThemeDayDimensions() {
   return html;
 }
 
+/** 会议形式配置区（2026-09-02 线上异步表决泛化 A 期：仅决策类场景调用）
+ *  参与范围按场景预填：支委会固定「支委」只读文案；支部党员大会可切换
+ *  正式党员（默认）/ 正式党员+预备党员；人数经 resolveVoterIds 实时解析。
+ *  配置区默认隐藏，选「线上异步表决」后展开（事件见 bindWritePanelEvents）。
+ */
+function renderVoteConfigSection(scenarioId) {
+  const countOf = (scope) => resolveVoterIds(scope).length;
+  let html = `<div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3">`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">会议形式</label>`;
+  html += `<div class="flex gap-4 pt-0.5">`;
+  html += `<label class="flex items-center gap-2 text-xs cursor-pointer">`;
+  html += `<input type="radio" name="wp-meeting-form" value="onsite" class="radio-accent" checked>线下开会`;
+  html += `</label>`;
+  html += `<label class="flex items-center gap-2 text-xs cursor-pointer">`;
+  html += `<input type="radio" name="wp-meeting-form" value="async" class="radio-accent">线上异步表决`;
+  html += `</label>`;
+  html += `</div>`;
+  // 线上异步表决配置区（默认隐藏；「线上异步表决」选中时展开）
+  html += `<div id="wp-vote-config" class="hidden mt-2.5 pt-2.5 border-t border-gray-100">`;
+  if (scenarioId === 'branch-committee') {
+    // 支委会：参与范围固定支委（只读文案，无选择项）
+    html += `<p class="text-xs text-gray-600">参与范围：支委（${countOf('committee')} 人）</p>`;
+  } else if (scenarioId === 'branch-party-meeting') {
+    html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">参与范围</label>`;
+    html += `<div class="flex gap-4 pt-0.5">`;
+    html += `<label class="flex items-center gap-2 text-xs cursor-pointer">`;
+    html += `<input type="radio" name="wp-vote-scope" value="formal-only" class="radio-accent" checked>正式党员（${countOf('formal-only')} 人）`;
+    html += `</label>`;
+    html += `<label class="flex items-center gap-2 text-xs cursor-pointer">`;
+    html += `<input type="radio" name="wp-vote-scope" value="formal-plus-prep" class="radio-accent">正式党员 + 预备党员（${countOf('formal-plus-prep')} 人）`;
+    html += `</label>`;
+    html += `</div>`;
+    html += `<p class="text-xs text-gray-400 mt-2">表决选项：赞成 / 反对 / 弃权 + 可附言</p>`;
+  }
+  html += `</div>`;
+  html += `</div>`;
+  return html;
+}
+
 /** 添加一条议程输入行（T-283：议题 + 可选主持人；2026-09-01：类型 chips + 待讨论名单多选） */
 function _addAgendaRow(container, item = '', host = '', kinds = [], branchDocId = '', fromStage = '', toStage = '') {
   const list = container.querySelector('#wp-agenda-list');
@@ -811,6 +858,16 @@ function bindWritePanelEvents(container) {
       container.querySelector('#wp-brand-create')?.classList.toggle('hidden', mode !== 'create');
     });
   });
+  // 会议形式（2026-09-02 泛化：决策类场景选「线上异步表决」展开参与范围配置区，互斥单选由 name 保证）
+  const meetingFormRadios = [...container.querySelectorAll('input[name="wp-meeting-form"]')];
+  if (meetingFormRadios.length) {
+    const voteConfigArea = container.querySelector('#wp-vote-config');
+    meetingFormRadios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        if (voteConfigArea) voteConfigArea.classList.toggle('hidden', !(radio.value === 'async' && radio.checked));
+      });
+    });
+  }
 }
 
 function handleWritePanelAction(e) {
@@ -952,6 +1009,19 @@ async function handleSubmitActivity() {
   const scenarioId = wp.selections._scenarioId || wp.getScenarioId?.();
   if (!scenarioId) { showToast('error', '场景信息缺失，请重新选择模板'); return; }
 
+  // 会议形式（2026-09-02 线上异步表决泛化：决策类场景选「线上异步表决」→ 写入 voteConfig，
+  // 参与范围按用户选择解析固化应到名单 voterIds；线下开会不写 voteConfig）
+  const voteFormArea = _getWritePanelContainer();
+  const meetingForm = voteFormArea?.querySelector('input[name="wp-meeting-form"]:checked')?.value || 'onsite';
+  let voteConfig = null;
+  if (meetingForm === 'async') {
+    const vc = defaultVoteConfig(scenarioId);
+    if (vc) {
+      const voterScope = voteFormArea?.querySelector('input[name="wp-vote-scope"]:checked')?.value || vc.voterScope;
+      voteConfig = { ...vc, voterScope, voterIds: resolveVoterIds(voterScope) };
+    }
+  }
+
   wp.submitting = true;
   const container = _getWritePanelContainer();
   if (container) renderWritePanel(container);
@@ -994,6 +1064,7 @@ async function handleSubmitActivity() {
       // 会议议程（T-283：三会一课）
       agenda,
     };
+    if (voteConfig) activityData.voteConfig = voteConfig;
     const { taskCount } = await writeActivityWithSOP(activityData, scenarioId, date);
     showToast('success', `活动写入成功，已生成 ${taskCount} 个任务节点`);
 
