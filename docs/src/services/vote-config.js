@@ -1,8 +1,8 @@
 // role: [工程师]+[AI]
 // vote-config.js — 线上异步表决配置（voteConfig）解析与场景默认
 // 泛化：支委会 deliberative / 支部党员大会 formal+硬校验；optionSet/voterScope/quorumCheck 参数化
-import { PersonStore } from './person.js?v=20260901j';
-import { AuthStore } from './auth.js?v=20260901j';
+import { PersonStore } from './person.js?v=20260901k';
+import { AuthStore } from './auth.js?v=20260901k';
 
 export const OPTION_SETS = {
   deliberative: {

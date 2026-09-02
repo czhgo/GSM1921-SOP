@@ -6,9 +6,9 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260901j';
-import { persist } from '../core/data-adapter.js?v=20260901j';
-import { generateId } from '../core/id.js?v=20260901j';
+import { mockDB } from '../core/domain.js?v=20260901k';
+import { persist } from '../core/data-adapter.js?v=20260901k';
+import { generateId } from '../core/id.js?v=20260901k';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -105,6 +105,31 @@ function _isTodoExpired(todo, today) {
   return todo.deadline < today;
 }
 
+/** 待办默认字段构造（create / createBatch 共用；收敛 2026-09-02，原两份逐字相同） */
+function _buildTodo(data) {
+  return {
+    id: data.id || generateId('todo_'),
+    title: data.title || '未命名待办',
+    description: data.description || '',
+    role: data.role,
+    personId: data.personId || null,
+    category: data.category,
+    priority: data.priority || 'normal',
+    status: data.status || TodoStatus.PENDING,
+    deadline: data.deadline || null,
+    createdAt: data.createdAt || new Date().toISOString(),
+    completedAt: data.completedAt || null,
+    sourceType: data.sourceType || TodoSourceType.MANUAL,
+    sourceId: data.sourceId || null,
+    actionType: data.actionType || null,
+    actionData: data.actionData || null,
+    // 业务动作标识（聚合键组成：role+actionKey，区分同 actionType 的不同业务域）
+    actionKey: data.actionKey || null,
+    // 数据上下游标注（E2：待办项标注数据流，如「组长上传考勤 → 纪检确认 → 考勤总表」；无则列表不显示）
+    flow: data.flow || null,
+  };
+}
+
 // ════════════════════════════════════════════════════════════════
 //  TodoStore — 待办 CRUD + 派生触发
 // ════════════════════════════════════════════════════════════════
@@ -178,27 +203,7 @@ export const TodoStore = {
 
   /** 创建单条待办 */
   create(data) {
-    const todo = {
-      id: data.id || generateId('todo_'),
-      title: data.title || '未命名待办',
-      description: data.description || '',
-      role: data.role,
-      personId: data.personId || null,
-      category: data.category,
-      priority: data.priority || 'normal',
-      status: data.status || TodoStatus.PENDING,
-      deadline: data.deadline || null,
-      createdAt: data.createdAt || new Date().toISOString(),
-      completedAt: data.completedAt || null,
-      sourceType: data.sourceType || TodoSourceType.MANUAL,
-      sourceId: data.sourceId || null,
-      actionType: data.actionType || null,
-      actionData: data.actionData || null,
-      // 业务动作标识（聚合键组成：role+actionKey，区分同 actionType 的不同业务域）
-      actionKey: data.actionKey || null,
-      // 数据上下游标注（E2：待办项标注数据流，如「组长上传考勤 → 纪检确认 → 考勤总表」；无则列表不显示）
-      flow: data.flow || null,
-    };
+    const todo = _buildTodo(data);
 
     const todos = _loadTodos();
     todos.push(todo);
@@ -211,27 +216,7 @@ export const TodoStore = {
     const todos = _loadTodos();
     const created = [];
     for (const data of items) {
-      const todo = {
-        id: data.id || generateId('todo_'),
-        title: data.title || '未命名待办',
-        description: data.description || '',
-        role: data.role,
-        personId: data.personId || null,
-        category: data.category,
-        priority: data.priority || 'normal',
-        status: data.status || TodoStatus.PENDING,
-        deadline: data.deadline || null,
-        createdAt: data.createdAt || new Date().toISOString(),
-        completedAt: data.completedAt || null,
-        sourceType: data.sourceType || TodoSourceType.MANUAL,
-        sourceId: data.sourceId || null,
-        actionType: data.actionType || null,
-        actionData: data.actionData || null,
-        // 业务动作标识（聚合键组成：role+actionKey，同 create）
-        actionKey: data.actionKey || null,
-        // 数据上下游标注（E2，同 create）
-        flow: data.flow || null,
-      };
+      const todo = _buildTodo(data);
       todos.push(todo);
       created.push(todo);
     }

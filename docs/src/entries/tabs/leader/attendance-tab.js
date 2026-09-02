@@ -2,17 +2,17 @@
 // 组长工作台 Tab：考勤上传（T-279 M2 拆分）
 // 党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表。
 
-import { loadActiveAttendanceRecords, loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260901j';
-import { loadMakeupTasks } from '../../../services/makeup.js?v=20260901j';
-import { loadActivities } from '../../../services/activity.js?v=20260901j';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260901j';
-import { getPersonById, getPersonName, PEOPLE, attendanceToLong } from '../../../mock/index.js?v=20260901j';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260901j';
-import { badgeHtml } from '../../../components/badge.js?v=20260901j';
-import { showToast } from '../../../core/utils.js?v=20260901j';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260901j';
-import { currentLeaderGroup } from './_shared.js?v=20260901j';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260901j';
+import { loadActiveAttendanceRecords, loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260901k';
+import { loadMakeupTasks } from '../../../services/makeup.js?v=20260901k';
+import { loadActivities } from '../../../services/activity.js?v=20260901k';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260901k';
+import { getPersonById, getPersonName, PEOPLE, attendanceToLong } from '../../../mock/index.js?v=20260901k';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260901k';
+import { badgeHtml } from '../../../components/badge.js?v=20260901k';
+import { showToast } from '../../../core/utils.js?v=20260901k';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260901k';
+import { currentLeaderGroup } from './_shared.js?v=20260901k';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260901k';
 
 // 私有状态（随模块自持，不污染入口）
 let _attFormVisible = false;

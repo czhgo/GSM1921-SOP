@@ -2,13 +2,13 @@
 // ws-secretary-entry.js — 书记工作台入口（T-279 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { getAppState, setState } from '../core/state.js?v=20260901j';
-import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260901j';
-import { _currentYearMonth } from '../core/utils.js?v=20260901j';
-import { loadActivities } from '../services/activity.js?v=20260901j';
-import { BranchService } from '../services/runtime.js?v=20260901j';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260901j';
-import { SignupStore } from '../services/signup.js?v=20260901j';
+import { getAppState, setState } from '../core/state.js?v=20260901k';
+import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260901k';
+import { _currentYearMonth } from '../core/utils.js?v=20260901k';
+import { loadActivities } from '../services/activity.js?v=20260901k';
+import { BranchService } from '../services/runtime.js?v=20260901k';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260901k';
+import { SignupStore } from '../services/signup.js?v=20260901k';
 // T-304 Q3 权限收敛：副作用导入触发书记工作台能力注册（tab 清单，与其余 5 工作台对齐）
 import '../modules/capabilities/secretary-workspace.js?v=20260829r';
 
@@ -22,15 +22,7 @@ await createWorkspaceShell({
   defaultTab: 'todo',
   // 角色特有渲染上下文：全局 appState（书记各 tab 依赖）
   renderCtxExtras: (state, ctx) => ({ appState: getAppState(), activities: state.activities || [] }),
-  // 空表回退：书记视角需附带 viewType/managementRole（全局概况按维度/按人视图）
-  mapFallbackActivities: (a) => ({
-    ...a,
-    visibility: a.visibility || 'branch',
-    executor: a.organizer || 'u_exec',
-    supervisor: null,
-    createdBy: a.organizer || 'u_exec',
-    createdAt: a.date || new Date().toISOString(),
-  }),
+  // 空表回退映射省略：与 workspace-shell 缺省逐字一致（收敛 2026-09-02，删除内联副本）
   // ── 首页跳转落点（书记 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
   onNavTarget: (nav, state, shell) => {
     if (nav.tfId) {

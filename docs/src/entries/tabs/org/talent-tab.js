@@ -2,12 +2,20 @@
 // 组织委员工作台 Tab：人才库（T-279 M3 拆分，照 M2 样板）
 // 人员信息汇总提炼，输出人才画像；点击人员展开考察记录汇总。
 
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260901j';
-import { loadActivities } from '../../../services/activity.js?v=20260901j';
-import { PEOPLE, getPersonById } from '../../../mock/index.js?v=20260901j';
-import { renderQueryView } from '../../../components/query-view.js?v=20260901j';
-import { badgeHtml } from '../../../components/badge.js?v=20260901j';
-import { icon } from '../../../core/icons.js?v=20260901j';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260901k';
+import { loadActivities } from '../../../services/activity.js?v=20260901k';
+import { PEOPLE, getPersonById } from '../../../mock/index.js?v=20260901k';
+import { renderQueryView } from '../../../components/query-view.js?v=20260901k';
+import { badgeHtml } from '../../../components/badge.js?v=20260901k';
+import { icon } from '../../../core/icons.js?v=20260901k';
+
+// 发展阶段颜色映射（单一模块级；收敛 2026-09-02：原 query/detail 两函数内各有一份同值副本）
+const STAGE_COLOR = {
+  '正式党员': 'bg-green-100 text-green-700',
+  '预备党员': 'bg-blue-100 text-blue-700',
+  '发展对象': 'bg-amber-100 text-amber-700',
+  '积极分子': 'bg-cyan-100 text-cyan-700',
+};
 
 export function renderContent(ctx) {
   const container = document.getElementById('org-tab-content');
@@ -41,14 +49,7 @@ export function renderContent(ctx) {
     inspCount: allInspections.filter(r => r.personId === p.id).length,
   }));
 
-  // 发展阶段颜色映射
-  const stageColor = {
-    '正式党员': 'bg-green-100 text-green-700',
-    '预备党员': 'bg-blue-100 text-blue-700',
-    '发展对象': 'bg-amber-100 text-amber-700',
-    '积极分子': 'bg-cyan-100 text-cyan-700',
-  };
-
+  // 发展阶段颜色映射（query 视图）
   renderQueryView(queryContainer, {
     searchPlaceholder: '搜索姓名...',
     searchKey: 'name',
@@ -58,7 +59,7 @@ export function renderContent(ctx) {
     ],
     data: queryData,
     renderRow: (p) => {
-      const colorCls = stageColor[p.developStage] || 'bg-gray-100 text-gray-500';
+      const colorCls = STAGE_COLOR[p.developStage] || 'bg-gray-100 text-gray-500';
       return `
         <div class="flex items-center justify-between p-3 rounded-xl bg-white cursor-pointer talent-person-card hover:bg-gray-50 transition-colors" data-person-id="${p.id}">
           <div class="flex-1 min-w-0">
@@ -100,14 +101,7 @@ function _renderTalentDetail(personId) {
   // 2026-08-08 人才库展示增强：活动来源考察记录显示活动名（专班来源用 sourceName）
   const actTitleById = new Map(loadActivities().map(a => [a.id, a.title]));
 
-  // 发展阶段颜色映射
-  const stageColor = {
-    '正式党员': 'bg-green-100 text-green-700',
-    '预备党员': 'bg-blue-100 text-blue-700',
-    '发展对象': 'bg-amber-100 text-amber-700',
-    '积极分子': 'bg-cyan-100 text-cyan-700',
-  };
-  const colorCls = stageColor[person.developStage] || 'bg-gray-100 text-gray-500';
+  const colorCls = STAGE_COLOR[person.developStage] || 'bg-gray-100 text-gray-500';
 
   // 角色标签映射
   const roleLabel = {

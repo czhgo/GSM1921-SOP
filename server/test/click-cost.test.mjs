@@ -77,7 +77,7 @@ test('C1 书记创建三会一课活动：点击次数统计（目标 ≤5 次�
       };
     }, uniqueTitle);
     const st = await page.evaluate(async (u) => {
-      const m = await import('/src/core/state.js?v=20260901j');
+      const m = await import('/src/core/state.js?v=20260901k');
       const acts = m.getAppState().activities || [];
       return {
         appStateCount: acts.length,

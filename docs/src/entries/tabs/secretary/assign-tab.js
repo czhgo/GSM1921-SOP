@@ -2,15 +2,15 @@
 // entries/tabs/secretary/assign-tab.js — 书记工作台·赋权管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：常设赋权（设党小组组长）+ 项目赋权（organizer/deep）。
 
-import { showToast } from '../../../core/utils.js?v=20260901j';
-import { AuthStore } from '../../../services/auth.js?v=20260901j';
-import { getPersonById, PEOPLE } from '../../../mock/index.js?v=20260901j';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260901j';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260901j';
-import { ROLE_LABELS, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260901j';
-import { loadActivities } from '../../../services/activity.js?v=20260901j';
-import { badgeHtml } from '../../../components/badge.js?v=20260901j';
-import { TodoStore } from '../../../services/todo.js?v=20260901j';
+import { showToast } from '../../../core/utils.js?v=20260901k';
+import { AuthStore } from '../../../services/auth.js?v=20260901k';
+import { getPersonById, PEOPLE } from '../../../mock/index.js?v=20260901k';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260901k';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260901k';
+import { ROLE_LABELS, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260901k';
+import { loadActivities } from '../../../services/activity.js?v=20260901k';
+import { badgeHtml } from '../../../components/badge.js?v=20260901k';
+import { TodoStore } from '../../../services/todo.js?v=20260901k';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 

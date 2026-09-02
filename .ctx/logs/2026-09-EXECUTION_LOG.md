@@ -109,3 +109,25 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **代码审查**：修复后重跑演练脚本——场景 2b 跨集合转 PASS，场景 2 同集合双写保持预期残留（已列 follow-up：集合级冲突检测/updatedAt）；演练过程脚本与 db 清理无残留
 - **沉淀标签**：脏集合增量快照 · 并发互覆缺陷 · 快照基线 · mock/server 关系澄清 · 真机双账号演练 · 上线储备档位③
 - **后续**：同集合并发冲突检测（follow-up）；全仓代码层复用/冗余扫描（减负专项，书记已定切入）；表决 follow-up（写侧约束/存量迁移/AV4 Minor）；REVIEW_QUEUE 逐条 ask；计算中心托管对接专项（DEPLOYMENT_ROADMAP 对照）
+
+---
+
+## T-2026-09-005 减负·复用专项：全仓代码层扫描 + 零风险收敛第一批（2026-09-02）
+
+**任务**：书记发起全仓库减负（"能复用的部分一定要会复用"）→ 三路并行扫描（数据层/UI 层/常量映射）→ 书记裁定「零风险收敛先行 + 冻结漂移项」→ 执行第一批收敛
+**引用流程**：3 个 search 子代理并行盘点（只读）→ AskUserQuestion 范围裁定 → TDD（收敛后跑关键回归）→ 全量收口
+**来源**：书记——"继续推进全仓库减负任务！能复用的部分一定要会复用！我们有了 server 和 mock 数据，我并不知道它们之间的关系目前是什么状态"
+
+- **盘点结论（三路扫描，全部只读）**：
+  - **真重复（最大项）**：双 Mock 持久化引擎（`services/mock.js` 旧 BranchService vs `core/mock-adapter.js` 新适配层，同 Key 双写、`imageRecords/agendaVotes` 字段已漂移）；`_mergeNewSeedRecords` 两份逐段复制；活动字段补全映射 7 处（data-loader 已抽仍被漏用）
+  - **UI 同构**：leader/visitor review-tab 95% 同构（~400 行）；secretary/todo-tab 漏迁 todo-tab-shell；三处 PersonPicker 上传表单壳重复；状态 chip 大量手写未用 badge/status-badge
+  - **常量映射副本**：角色键 9+ 副本；活动分类 5+ 份；发展阶段 4 套；**3 处同语义不同色漂移实证**（pending 橙/青、recruiting 橙/蓝、active 运行中/进行中、completed 已执行/已完成）；默认红 #CE1126/#B91C1C 两口径
+  - 死代码：attendanceToWide / _maybeError；MOCK_ACCOUNTS 被 mock-integrity 测试消费 → 非死（扫描误报，已澄清）
+- **第一批零风险收敛（净减 ~73 行，行为零变化）**：
+  - `talent-tab.js`：同文件双份 stageColor dict → 模块级 `STAGE_COLOR` 单一（-26 行）
+  - `todo.js`：create/createBatch 逐字重复的对象构造 → 抽 `_buildTodo`（-22 行）
+  - `mock/attendance.js` + `mock/index.js`：死导出 `attendanceToWide` 删除（-15 行）
+  - `ws-secretary-entry.js`：删与 workspace-shell 缺省逐字一致的内联 `mapFallbackActivities`（-11 行）
+- **验证**：module-load 109/109 + e2e-login + b3-1 5/5 + seed + GetDiagnostics 零 JS 错误；全量 **89/89 通过**；版本串 20260901j→k
+- **沉淀标签**：减负专项 · 复用盘点 · 零风险收敛 · 冻结漂移项 · 漂移实证（同语义不同色 3 处）
+- **后续（登记待办，未做）**：架构大项——双 Mock 持久化引擎合并（独立 spec）、角色键单一源化（constants ROLE_KEYS + server 共享纯常量）、tab 内嵌 mini-store 收拢 service；同构抽壳——review-tab 合并组件、secretary/todo 迁 shell、PersonPicker 表单壳；漂移裁决（状态词/颜色）——待书记浏览器目检后逐项定；死代码 _maybeError 随引擎合并一并清

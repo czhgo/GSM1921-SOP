@@ -4,12 +4,12 @@
 // secretary：待确认（pending-secretary）→ 确认（confirm，更新成员发展阶段）
 // 数据闭环：议程「记录通过」→ 自动建申请 → 本面板审批 → 广播/更新阶段。
 
-import { getAdapter } from '../core/data-adapter.js?v=20260901j';
-import { getPersonById, getPersonName } from '../mock/index.js?v=20260901j';
-import { loadActivities } from '../services/activity.js?v=20260901j';
-import { showToast } from '../core/utils.js?v=20260901j';
-import { badgeHtml } from './badge.js?v=20260901j';
-import { NoticeStore } from '../services/notice.js?v=20260901j';
+import { getAdapter } from '../core/data-adapter.js?v=20260901k';
+import { getPersonById, getPersonName } from '../mock/index.js?v=20260901k';
+import { loadActivities } from '../services/activity.js?v=20260901k';
+import { showToast } from '../core/utils.js?v=20260901k';
+import { badgeHtml } from './badge.js?v=20260901k';
+import { NoticeStore } from '../services/notice.js?v=20260901k';
 
 const STATUS_LABEL = {
   'pending-org-approval': '待组织委员审批',
