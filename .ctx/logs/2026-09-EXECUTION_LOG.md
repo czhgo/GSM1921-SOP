@@ -88,3 +88,24 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **代码审查**：实施中踩 **2 次同文件并行 Edit 写覆盖**（KNOWN_PITFALLS §14 再现——import 行回退为 FLOW_STEPS 致 module-load/help-e2e 首轮 fail 2），教训：**同一文件多 Edit 必须串行，改完 Grep 复核实际状态**；修复后 core 25/25 + 全量 87/87
 - **沉淀标签**：角色化链路 · FLOW_LINKS · 单一事实源 · mindmap feature-only · 一改具改（catalog/mermaid-sources 变更→gen --write→测试）· 同文件并行编辑写覆盖教训 · help 架构叙事对齐
 - **后续**：help 页 1.2 权限体系「党支书」称呼（L282/L347 等）未动（超 T7 范围，术语统一另立）；表决写侧约束 follow-up 持续；AV4 Minor（formal tally 跨议程语义、voteConfig 异常三端回退口径）待办
+
+---
+
+## T-2026-09-004 多用户写穿并发互覆缺陷修复（脏集合增量快照）（2026-09-02）
+
+**任务**：书记质询「server 与 mock 数据关系现状 + 上线储备程度」→ 真机双账号演练 → 实证并发互覆缺陷 → 修复 + 回归测试沉淀
+**引用流程**：AskUserQuestion（上线目标 ③/工作重点 4 项全选/减负切入点 代码层/现在做演练 4 项裁定）→ fullstack-developer skill → 真机演练（过程脚本，用完即删）→ TDD
+**来源**：书记——"我并不了解完整上线过程中的测试、迭代、代码储备需要到什么程度""我们有了 server 和 mock 数据，并不知道它们之间的关系目前是什么状态"；上线目标裁定 **③ 计算中心托管对接**
+
+- **关系澄清（已核实代码，向书记通俗汇报）**：mock = 演示样例库 + 浏览器本地草稿（每台浏览器各记各的小本子）；server = 正式账本（SQLite data.db 单文件）；前端内存工作区（mockDB）双形态共用——api 模式 init 全量拉取 + 写走 persist→防抖快照写穿；**种子同源复用**（server/seed.js import docs/src/mock）
+- **真机演练实证（过程脚本 collab-drill.mjs 已删）**：
+  - 顺序写 PASS（A flush 后 B init 含 A 数据，写后互不损）
+  - **并发 FAIL（复现缺陷）**：两账号同时在线（B 内存落后）→ A 写通知 flush 成功 → B 写任意数据 flush → **A 的通知被 B 的全量快照整表覆盖（丢）**
+  - **跨集合 FAIL（更严重）**：A 写活动、B 写待办（不同集合）→ **A 的活动被跨集合洗掉**
+  - 重启 PASS（users 空才 seed，重启不覆盖用户数据）
+  - 根因：快照 = 26 域全量 `DELETE+INSERT` 整表替换；任一内存滞后的在线用户下一次写会把他人数据整体覆盖（async-vote 当年把 agendaVotes 移出快照直写即同因，只救一个域）
+- **修复（书记批准「脏集合增量快照」，同集合并发残留批准列 follow-up）**：`docs/src/core/data-adapter.js` 单点——以「init 拉取完成态」为基线（_captureBase），flush 时逐域比较只上传**脏集合**（_collectDirty），成功后基线推进（_commitBase），失败不推进自动重试；pagehide 同步冲刷同步改造；**服务端零改动**（resources.js 已按 payload 键逐表处理）；回退种子计入基线（不再自动污染服务器，契合 Z5 注释）
+- **测试**：新增 `server/test/multi-user-write.test.mjs`（2 项：跨集合并发不互覆 + 顺序写不互损），入 core 层（package.json test:core）；全量 **89/89 通过**（87+2）；版本串 20260901i→j（148 JS+16 HTML+CODE_VERSION+1+15 test）
+- **代码审查**：修复后重跑演练脚本——场景 2b 跨集合转 PASS，场景 2 同集合双写保持预期残留（已列 follow-up：集合级冲突检测/updatedAt）；演练过程脚本与 db 清理无残留
+- **沉淀标签**：脏集合增量快照 · 并发互覆缺陷 · 快照基线 · mock/server 关系澄清 · 真机双账号演练 · 上线储备档位③
+- **后续**：同集合并发冲突检测（follow-up）；全仓代码层复用/冗余扫描（减负专项，书记已定切入）；表决 follow-up（写侧约束/存量迁移/AV4 Minor）；REVIEW_QUEUE 逐条 ask；计算中心托管对接专项（DEPLOYMENT_ROADMAP 对照）

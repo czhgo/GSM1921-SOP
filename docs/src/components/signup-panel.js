@@ -4,10 +4,10 @@
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，书记 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260901i';
-import { getPersonById } from '../mock/index.js?v=20260901i';
-import { showToast } from '../core/utils.js?v=20260901i';
-import { badgeHtml } from './badge.js?v=20260901i';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260901j';
+import { getPersonById } from '../mock/index.js?v=20260901j';
+import { showToast } from '../core/utils.js?v=20260901j';
+import { badgeHtml } from './badge.js?v=20260901j';
 
 /** 角色标签（报名/专班/活动 assignments 共用） */
 export function roleLabel(role) {

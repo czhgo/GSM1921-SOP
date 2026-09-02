@@ -1,10 +1,10 @@
 // 修复（T175）：不再从 ./index.js 导入 _personName 等辅助函数，
 // 消除 mock/index.js ↔ mock/attendance.js 循环依赖。
 // 直接依赖 services/person.js + mock/activities.js。
-import { getPersonName } from '../services/person.js?v=20260901i';
-import { ACTIVITIES } from './activities.js?v=20260901i';
-import { PEOPLE } from './people.js?v=20260901i';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260901i';
+import { getPersonName } from '../services/person.js?v=20260901j';
+import { ACTIVITIES } from './activities.js?v=20260901j';
+import { PEOPLE } from './people.js?v=20260901j';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260901j';
 
 const _personName = (id) => getPersonName(id);
 const _activityTitle = (id) => ACTIVITIES.find(a => a.id === id)?.title || id;

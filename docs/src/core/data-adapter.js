@@ -201,7 +201,7 @@ export async function init() {
       ]);
 
       // 填充 mockDB 缓存（供服务层同步读取）
-      const { mockDB } = await import('./domain.js?v=20260901i');
+      const { mockDB } = await import('./domain.js?v=20260901j');
       // 缓存引用：pagehide 同步冲刷时不能再 await 动态 import（文档卸载中挂起），
       // 必须直接同步读取（见 _flushSnapshotSync）
       _cachedMockDB = mockDB;
@@ -273,7 +273,7 @@ export async function init() {
       } catch (e) {
         console.warn('[DataAdapter] init: niche/新域集合拉取失败，回退本地备份：', e);
         try {
-          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260901i');
+          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260901j');
           restoreNicheCollections();
         } catch (e2) {
           console.warn('[DataAdapter] init: 本地 niche 备份恢复失败：', e2);
@@ -292,8 +292,8 @@ export async function init() {
       // makeupTasks 无静态种子（由纪检操作生成），空属合理，不回退。
       if (!mockDB.attendances.length || !mockDB.inspections.length) {
         try {
-          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260901i');
-          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260901i');
+          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260901j');
+          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260901j');
           if (!mockDB.attendances.length) mockDB.attendances = ATTENDANCE_RECORDS.map(r => ({ ...r }));
           if (!mockDB.inspections.length) mockDB.inspections = INSPECTION_RECORDS.map(r => ({ ...r }));
           console.info('[DataAdapter] init: 考勤/考察空集合已回退本地 seed');
@@ -303,13 +303,17 @@ export async function init() {
       }
       if (!mockDB.todos.length) {
         try {
-          const { SEED_TODOS } = await import('../services/todo.js?v=20260901i');
+          const { SEED_TODOS } = await import('../services/todo.js?v=20260901j');
           mockDB.todos = SEED_TODOS.map(t => ({ ...t }));
           console.info('[DataAdapter] init: 待办空集合已回退本地 seed');
         } catch (e) {
           console.warn('[DataAdapter] init: 待办 seed 回退失败：', e);
         }
       }
+
+      // 2026-09-02 增量快照：以「init 拉取完成态」为基线，flush 只上传与基线有差异的集合
+      // （回退种子亦计入基线 → 不会自动污染服务器，契合 Z5 注释语义）
+      _captureBase(mockDB);
     } catch (e) {
       console.error('[DataAdapter] init: API 模式初始化失败：', e);
       throw e;
@@ -400,6 +404,45 @@ function _unwrapRootRows(rows, fallback) {
   return row && row.body !== undefined ? row.body : fallback;
 }
 
+// ── 脏集合增量快照（2026-09-02 修复：并发互覆）────────────────────
+// 背景：原全量快照「26 域整表替换」存在致命缺陷——任一内存滞后的在线用户一次写，
+// 会把他人已写入的数据整体覆盖（真机双账号演练实证：跨集合互洗，A 写活动被 B 写待办洗掉）。
+// 修复：只上传「与基线有差异的集合」。
+//   基线（_base） = init() 拉取完成时 + 每次 flush 成功后，各集合的序列化缓存；
+//   flush 时逐域比较 → 只 POST 脏集合 → 服务端对 payload 未出现的键不触碰
+//   （resources.js 已按 payload 键逐表处理，服务端零改动）。
+// 残余窗口：同集合并发双写（低频编辑冲突，冲突检测列 follow-up，本次接受）。
+let _base = {};
+
+function _serKey(v) {
+  return JSON.stringify(v === undefined ? null : v);
+}
+
+function _captureBase(mockDB) {
+  const base = {};
+  for (const k of Object.keys(_buildSnapshotPayload(mockDB))) {
+    base[k] = _serKey(mockDB[k]);
+  }
+  _base = base;
+}
+
+/** 计算脏集合 payload：与基线有差异的集合才纳入；无差异返回 null（跳过上传） */
+function _collectDirty(mockDB) {
+  const full = _buildSnapshotPayload(mockDB);
+  const payload = {};
+  for (const k of Object.keys(full)) {
+    if (!(k in _base) || _base[k] !== _serKey(mockDB[k])) {
+      payload[k] = full[k];
+    }
+  }
+  return Object.keys(payload).length ? payload : null;
+}
+
+/** flush 成功后把上传过的集合推进为新基线（失败不推进 → 下次 flush 自动重试同脏集合） */
+function _commitBase(mockDB, keys) {
+  for (const k of keys) _base[k] = _serKey(mockDB[k]);
+}
+
 /** 调度一次防抖快照写穿（已有排程则合并） */
 function _scheduleSnapshot() {
   if (_snapshotTimer) return;
@@ -450,11 +493,14 @@ async function _flushSnapshot() {
   // flush 时若数据源已切回 mock（如服务器不可达回退），跳过写穿
   if (DATA_SOURCE !== 'api') return;
   try {
-    const { mockDB } = await import('./domain.js?v=20260901i');
+    const { mockDB } = await import('./domain.js?v=20260901j');
     _cachedMockDB = mockDB;
-    await getAdapter().snapshot(_buildSnapshotPayload(mockDB));
+    const payload = _collectDirty(mockDB);
+    if (!payload) return; // 无脏集合：跳过上传（2026-09-02 增量快照）
+    await getAdapter().snapshot(payload);
+    _commitBase(mockDB, Object.keys(payload)); // 上传成功 → 基线推进
   } catch (e) {
-    console.warn('[DataAdapter] 全量快照写穿失败（已保留本地备份）：', e);
+    console.warn('[DataAdapter] 增量快照写穿失败（已保留本地备份，下次 flush 自动重试）：', e);
   }
 }
 
@@ -473,8 +519,10 @@ function _flushSnapshotSync() {
   try {
     // snapshot() 内部为 async：fetch 在同步调用栈内发出（keepalive），
     // 卸载后剩余 await 可忽略；rejection 兜底避免 unhandledrejection
-    getAdapter().snapshot(_buildSnapshotPayload(_cachedMockDB)).catch((e) => {
-      console.warn('[DataAdapter] 全量快照写穿失败（pagehide，已保留本地备份）：', e);
+    const payload = _collectDirty(_cachedMockDB);
+    if (!payload) return; // 无脏集合：跳过（2026-09-02 增量快照）
+    getAdapter().snapshot(payload).catch((e) => {
+      console.warn('[DataAdapter] 增量快照写穿失败（pagehide，已保留本地备份）：', e);
     });
   } catch (e) {
     console.warn('[DataAdapter] pagehide 快照发起失败（已保留本地备份）：', e);
