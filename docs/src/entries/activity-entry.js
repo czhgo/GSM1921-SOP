@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
@@ -17,6 +17,8 @@ import { badgeHtml } from '../components/badge.js?v=20260901g';
 import { enhanceSelects } from '../components/custom-select.js?v=20260901g';
 import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260901g';
 import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260901g';
+import { renderVoteWidget } from '../components/vote-widget.js?v=20260901g';
+import { fetchVotes } from '../services/committee-vote.js?v=20260901g';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -36,6 +38,13 @@ backBtn?.addEventListener('click', () => {
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 const currentUser = AuthStore.getCurrentUser();
 const myId = currentUser?.personId || '';
+
+// HTML 转义（会议议程为用户输入，innerHTML 渲染前转义防存储型 XSS）
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
 
 /** 状态 → 徽章（活动 + 专班共用） */
 const STATUS_BADGE = {
@@ -95,6 +104,40 @@ function renderActivity(id) {
   const assignments = Array.isArray(act.assignments) ? act.assignments : [];
   const canSignup = _canSignup('activity', act);
 
+  // 线上异步表决区（AV4.5 公共入口：党员/委员端）——voteConfig.mode==='async' 且
+  // 已登录、议程含可表决项（须有 id）才渲染；canVote 由固化应到名单 voteConfig.voterIds 判定
+  // （预备党员等在 formal-only 名单外 → 只读提示「仅应到表决人可表态」）。
+  const voterIds = (act.voteConfig && Array.isArray(act.voteConfig.voterIds)) ? act.voteConfig.voterIds : [];
+  const canVote = !!currentUser && voterIds.includes(currentUser.personId);
+  const voteAgenda = Array.isArray(act.agenda) ? act.agenda.filter(a => a && a.id) : [];
+  let asyncVoteHtml = '';
+  if (currentUser && act.voteConfig?.mode === 'async' && voteAgenda.length > 0) {
+    asyncVoteHtml = `
+    <!-- 议程与表决（AV4.5：线上异步表决） -->
+    <div id="async-vote-section" class="mt-6">
+      <h3 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2 flex-wrap">
+        议程与表决
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium text-amber-700 bg-amber-50">线上异步表决</span>
+      </h3>
+      <div class="space-y-3">
+        ${voteAgenda.map((a, i) => `
+          <div class="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+            <div class="flex items-start gap-2 text-sm">
+              <span class="text-xs text-gray-400 flex-shrink-0 w-5 pt-0.5">${i + 1}.</span>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-sm font-medium text-gray-700">${esc(a.item)}</span>
+                  ${a.result ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${a.result === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${a.result === 'passed' ? '已通过' : '未通过'}</span>` : ''}
+                </div>
+                ${a.host ? `<div class="text-xs text-gray-400 mt-0.5">（主持人：${esc(a.host)}）</div>` : ''}
+              </div>
+            </div>
+            <div class="vote-widget-slot" data-vote-item-id="${esc(a.id)}"></div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
   cardEl.innerHTML = `
     <!-- 标题区 -->
     <div class="mb-5 pb-5 border-b border-gray-100">
@@ -125,6 +168,8 @@ function renderActivity(id) {
     <!-- 报名名单 -->
     ${renderSignupList({ sourceType: 'activity', sourceId: act.id, signups, myId })}
 
+    ${asyncVoteHtml}
+
     <!-- 参与人员（assignments） -->
     <div class="mt-6">
       <h3 class="text-sm font-semibold text-gray-700 mb-3">参与人员（${assignments.length}）</h3>
@@ -143,6 +188,31 @@ function renderActivity(id) {
   enhanceSelects(cardEl);
   bindSignupEvents({ sourceType: 'activity', sourceId: act.id, title: act.title, myId, cardEl });
   bindShareButton(cardEl);
+
+  // 线上异步表决区（AV4.5）：加载后 fetchVotes → 逐条议程渲染表决组件；
+  // vote-submitted 冒泡（detail.agendaItemId）→ 重拉该条表态并重绘（支持覆盖表态/多议程各自刷新）。
+  const voteSection = cardEl.querySelector('#async-vote-section');
+  if (voteSection && currentUser) {
+    const renderAllVoteWidgets = async () => {
+      const votes = await fetchVotes(act.id);
+      voteSection.querySelectorAll('.vote-widget-slot').forEach(slot => {
+        const item = (act.agenda || []).find(x => x.id === slot.dataset.voteItemId);
+        if (item) renderVoteWidget(slot, { activity: act, agendaItem: item, votes, currentUserId: currentUser.personId, canVote });
+      });
+    };
+    renderAllVoteWidgets().catch(e => console.warn('[activity-entry] 表态数据加载失败：', e));
+    voteSection.addEventListener('vote-submitted', (e) => {
+      const itemId = e.detail?.agendaItemId;
+      const slot = itemId ? voteSection.querySelector(`[data-vote-item-id="${CSS.escape(itemId)}"]`) : null;
+      if (!slot) return;
+      fetchVotes(act.id)
+        .then(votes => {
+          const item = (act.agenda || []).find(x => x.id === itemId);
+          if (item) renderVoteWidget(slot, { activity: act, agendaItem: item, votes, currentUserId: currentUser.personId, canVote });
+        })
+        .catch(err => console.warn('[activity-entry] 表态刷新失败：', err));
+    });
+  }
 }
 
 // ════════════════════════════════════════════════════════════════
