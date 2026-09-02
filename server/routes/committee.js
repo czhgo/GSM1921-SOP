@@ -60,10 +60,25 @@ export function createCommitteeRouter(db) {
     // 活动存在性检查（活动数据在 activities 表；活动不存在一律 404，不静默放行）
     const actRow = getRow(db, 'activities', activityId);
     if (!actRow) return res.status(404).json({ error: '活动不存在' });
-    // 表决泛化：读活动 voteConfig；无 voteConfig（旧活动）→ 回退 optionSet='deliberative' + 支委白名单（现状行为）
+    // ===== 表决授权解析（AV3，fail-closed）=====
+    // 信任模型：表决授权（optionSet 选项枚举 + voterIds 应到名单）存于活动 voteConfig，
+    //   由前端创建活动时经 vote-config 固化写入（客户端写）；当前信任模型 = 仅 UI 书记操作 + 演示场景，
+    //   服务端按「活动已带 voteConfig 即视为可信」处理。
+    // TODO(follow-up)：补写侧约束 —— 仅书记可改 voteConfig（或将名单改为服务端按角色推导），
+    //   使授权源从「客户端写」收敛为「服务端强制」，再放开正式场景
+    //   （涉及活动创建/编辑端点 + 前端 vote-config 联调）。
+    // 旧活动兼容：仅当活动完全无 voteConfig 时回退 deliberative + 支委白名单（现状行为零变化）；
+    //   活动带 voteConfig 即须完整合法 —— optionSet 缺失/不受支持、voterIds 缺失/非数组/空数组
+    //   一律 400（fail-closed，不回退默认值）。
     const vc = actRow.voteConfig;
-    const hasConfig = Boolean(vc && Array.isArray(vc.voterIds));
-    const optionSet = vc && OPTION_ENUMS[vc.optionSet] ? vc.optionSet : 'deliberative';
+    const hasConfig = vc !== undefined && vc !== null;
+    if (hasConfig && !OPTION_ENUMS[vc.optionSet]) {
+      return res.status(400).json({ error: '活动表决配置无效：optionSet 缺失或不受支持' });
+    }
+    if (hasConfig && (!Array.isArray(vc.voterIds) || vc.voterIds.length === 0)) {
+      return res.status(400).json({ error: '活动表决名单无效：voterIds 须为非空数组' });
+    }
+    const optionSet = hasConfig ? vc.optionSet : 'deliberative';
     const voterIds = hasConfig ? new Set(vc.voterIds) : COMMITTEE_IDS;
     if (!voterIds.has(req.actor.id)) {
       return res.status(403).json({ error: hasConfig ? '不在本次表决名单' : '仅支委可表态' });

@@ -177,3 +177,54 @@ test('formal 活动：不在 voterIds 的支委 p14 表态 approve：403', async
   assert.match(j.error, /不在本次表决名单/);
 });
 
+// ===== AV3 fail-closed：voteConfig 非法配置一律 400（不回退默认值，消除 voterIds:[] 死锁）=====
+function addActivityFixture(act) {
+  db.prepare('INSERT INTO activities (id, data) VALUES (?, ?)').run(act.id, JSON.stringify(act));
+}
+
+test('formal 活动：同人幂等覆盖 approve→oppose 返回 200 且列表仅 1 条', async () => {
+  const post = (position) => fetch(`${base}/api/v1/agenda-votes`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenMember}` },
+    body: JSON.stringify({ ...FORMAL_VOTE, position }),
+  });
+  // p3 已在前置用例投过 approve，此处再投 approve/oppose 均应幂等覆盖 200
+  assert.equal((await post('approve')).status, 200);
+  assert.equal((await post('oppose')).status, 200);
+  const list = await (await fetch(`${base}/api/v1/agenda-votes?activityId=act-formal-test`, {
+    headers: { Authorization: `Bearer ${tokenMember}` },
+  })).json();
+  const mine = list.filter((v) => v.personId === 'p3' && v.agendaItemId === 'ai-formal-1');
+  assert.equal(mine.length, 1);
+  assert.equal(mine[0].position, 'oppose');
+});
+
+test('formal 活动：voteConfig.optionSet 非法（formal2）：400', async () => {
+  addActivityFixture({
+    id: 'act-bad-option-set', title: '支部党员大会：配置非法 optionSet（测试）', date: '2026-09-06',
+    type: '支部党员大会', scenarioId: 'branch-party-meeting', status: 'published',
+    voteConfig: { mode: 'async', optionSet: 'formal2', voterIds: ['p3'], quorumCheck: true },
+  });
+  const r = await fetch(`${base}/api/v1/agenda-votes`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenMember}` },
+    body: JSON.stringify({ activityId: 'act-bad-option-set', agendaItemId: 'ai-x', position: 'approve', note: '' }),
+  });
+  assert.equal(r.status, 400);
+  const j = await r.json();
+  assert.match(j.error, /活动表决配置无效/);
+});
+
+test('formal 活动：voteConfig.voterIds 空数组：400（fail-closed，不回退支委白名单）', async () => {
+  addActivityFixture({
+    id: 'act-empty-voter-ids', title: '支部党员大会：名单为空（测试）', date: '2026-09-06',
+    type: '支部党员大会', scenarioId: 'branch-party-meeting', status: 'published',
+    voteConfig: { mode: 'async', optionSet: 'formal', voterIds: [], quorumCheck: true },
+  });
+  const r = await fetch(`${base}/api/v1/agenda-votes`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenMember}` },
+    body: JSON.stringify({ activityId: 'act-empty-voter-ids', agendaItemId: 'ai-x', position: 'approve', note: '' }),
+  });
+  assert.equal(r.status, 400);
+  const j = await r.json();
+  assert.match(j.error, /活动表决名单无效/);
+});
+
