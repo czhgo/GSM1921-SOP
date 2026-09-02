@@ -159,3 +159,21 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **方案定稿（微调优于原案）**：Step1 A' —— services/mock.js `saveDB/loadDB` 转发 `MockAdapter`（唯一全量实现）+ 删私有引擎（saveDB/loadDB/_seedInitialData/_mergeNewSeedRecords/_maybeError/仅 seed import），净减 ~250+ 行；**附带修复纯 mock 新域（imageRecords/agendaVotes/handoffs/thoughtReports 等）刷新即丢 bug**（现 mock 恢复走旧 loadDB 缺这些域）；R2 角色键单一源化清 9 前端副本 + 3 服务端副本（先确认 constants 纯净性/抽 role-defs）；漂移词色冻结
 **新会话首步**：读 spec → Step1 实施（先做纯 mock 新域刷新丢 bug 的临时复现验证 → 重构 → e2e-login/b3-1/seed/module-load + full 行为闸）→ R2 → bump + 登记 + spec 清理
 **另登记**：表决活动详情「决议票数留档」区块（书记已定方向，待实施——活动详情显示各议程项决议+票数统计，可回看）
+
+---
+
+## T-2026-09-008 减负架构 Step1 实施完成（双 Mock 持久化引擎收敛）（2026-09-02）
+
+**任务**：实施已批准 spec 的 Step1（services/mock.js 引擎收敛到 MockAdapter）+ 附带修复纯 mock 新域刷新丢 bug
+**引用流程**：实读两引擎全文比对 → 收敛决策（转发而非抽新文件）→ TDD（module-load/seed → core 27/27 → 纯 mock 演练 PASS → full 89/89）
+**来源**：T-2026-09-007 spec（书记已批准 Step1+R2 实施）
+
+- **比对结论（防降级关键）**：services/mock.js 引擎含 2026-09-01 最新恢复域；mock-adapter 引擎是**超集**（含 imageRecords/agendaVotes）但 **MockAdapter.saveDB 无 Z1 persist 分支**（services 版有：API 模式 BranchService 写后触发快照写穿）→ **Z1 若内置于 _saveToStorage 会 persist→saveDB 无限递归**，必须留在 BranchService 转发外层
+- **实施**（services/mock.js **净减 318 行**，+23/−341）：
+  - `saveDB()` → MockAdapter.saveDB() + Z1 persist 外层（dynamic import 防环）
+  - `loadDB()` → C1 读路径守卫（API 模式防本地旧备份覆盖）保留外层 + MockAdapter.loadDB()
+  - 删除私有引擎：saveDB 全量序列化实现 / loadDB 恢复实现 / `_seedInitialData` / `_mergeNewSeedRecords` / `_maybeError`（+ 8 处 CRUD 内 no-op 调用）/ 仅 seed 用 import
+- **修复 bug（演练实证）**：纯 mock 模式恢复原走 services 旧 loadDB（缺 imageRecords/agendaVotes 等新域恢复）→ **新域刷新即丢**；收敛后走 MockAdapter 全量 26 域恢复。临时演练脚本 PASS：写 agendaVotes → reload → 记录仍在（脚本已删）
+- **验证**：module-load 109/109 + core 27/27 + 全量 **89/89**；版本串 20260901l→m；commit 79e10c0
+- **沉淀标签**：双引擎收敛 · Z1 递归陷阱 · C1 守卫 · 纯 mock 新域刷新丢修复 · 单文件净减 318 行
+- **后续**：**R2 角色键单一源化**（书记已批；constants.js 已确认纯净无 import、可被 server 共享——新会话按清单执行：6 capability requiredRoles 由 ROLE_PAGE_MAP 派生 / talent roleLabel→ROLE_LABELS / feedback ASSIGNEE_OPTIONS+CLOSE_REASONS / login DEV_CARDS / state ROLE_TYPES / server COMMISSIONER_ROLES+SECRETARY_ROLES 共享纯常量）；表决活动详情「决议票数留档」区块待实施；漂移裁决待书记目检
