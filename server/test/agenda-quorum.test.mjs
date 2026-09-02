@@ -9,8 +9,8 @@
 // 运行：node --test server/test/agenda-quorum.test.mjs
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockDB } from '../../docs/src/core/domain.js?v=20260901k';
-import { recordAgendaResultForActivity } from '../../docs/src/services/agenda-follow-up.js?v=20260901k';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260901l';
+import { recordAgendaResultForActivity } from '../../docs/src/services/agenda-follow-up.js?v=20260901l';
 
 const ACT_ID = 'act-quorum';
 const AGENDA_ITEM_ID = 'a1';

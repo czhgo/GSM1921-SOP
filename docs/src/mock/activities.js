@@ -44,6 +44,9 @@ export const ACTIVITIES = [
   { id: 'act-27', title: '8月支委会：新学期筹备', date: '2026-08-03', type: '支委会', organizer: 'p11', direction: 'top-down', location: '光华1号楼305会议室', status: 'published', scenarioId: 'branch-committee', domain: 'party-building', assignments: [{ personId: 'p11', role: 'organizer' }], agenda: [{ item: '新学期支部工作计划', host: '书记' }, { item: '迎新工作分工', host: '组织委员' }, { item: '九月主题党日策划', host: '宣传委员' }] },
   { id: 'act-29', title: '暑期实践总结分享', date: '2026-08-04', type: '主题党日', organizer: 'p1', direction: 'bottom-up', location: '光华1号楼101报告厅', status: 'published', isBrand: true, brandName: '暑期实践', scenarioId: 'theme-party', domain: 'party-building', assignments: [{ personId: 'p1', role: 'organizer' }, { personId: 'p8', role: 'deep' }, { personId: 'p5', role: 'participant' }] },
   // act-30 秋季学期工作部署会为未来活动（published，可报名），无考勤记录——保持日期 8/28
+  // 存量决策活动 voteConfig 迁移结论（2026-09-02，T-2026-09-006）：act-30 为普通工作部署会、无表决语义，
+  //   不加 voteConfig（服务端无 voteConfig 回退 deliberative+支委白名单仅在其议程触发表决时生效，
+  //   部署会无此场景）；线上表决演示由 act-31 承担，无 voteConfig 回退路径已有服务端测试覆盖。
   { id: 'act-30', title: '秋季学期工作部署会', date: '2026-08-28', type: '支部党员大会', organizer: 'p11', direction: 'top-down', location: '光华1号楼101报告厅', status: 'published', scenarioId: 'branch-party-meeting', domain: 'party-building', assignments: [{ personId: 'p11', role: 'organizer' }, { personId: 'p8', role: 'participant' }, { personId: 'p15', role: 'participant' }] },
   // act-31 线上异步表决样例（AV4.5 演示）：支部党员大会 voteConfig formal-only 固化应到名单，
   // voterIds = 正式党员（与 resolveVoterIds('formal-only') 同口径：p1-p5、p8-p14，均非 u_*），

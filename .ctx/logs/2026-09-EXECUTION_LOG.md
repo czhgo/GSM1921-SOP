@@ -131,3 +131,21 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **验证**：module-load 109/109 + e2e-login + b3-1 5/5 + seed + GetDiagnostics 零 JS 错误；全量 **89/89 通过**；版本串 20260901j→k
 - **沉淀标签**：减负专项 · 复用盘点 · 零风险收敛 · 冻结漂移项 · 漂移实证（同语义不同色 3 处）
 - **后续（登记待办，未做）**：架构大项——双 Mock 持久化引擎合并（独立 spec）、角色键单一源化（constants ROLE_KEYS + server 共享纯常量）、tab 内嵌 mini-store 收拢 service；同构抽壳——review-tab 合并组件、secretary/todo 迁 shell、PersonPicker 表单壳；漂移裁决（状态词/颜色）——待书记浏览器目检后逐项定；死代码 _maybeError 随引擎合并一并清
+
+---
+
+## T-2026-09-006 表决 follow-up 收尾：写侧约束收敛 + 文案三端统一 + 存量迁移结论（2026-09-02）
+
+**任务**：交接 follow-up——① voteConfig 写侧约束（仅书记可改/服务端强制）② 存量决策活动 voteConfig 迁移 ③ AV4 Minor（formal tally 跨议程语义 + voteConfig 异常三端回退口径）
+**引用流程**：现状盘点（committee.js/calendar-tab/agenda-follow-up/vote-widget/inspector 实读）→ AskUserQuestion 3 项裁定 → 小改 + 表决回归
+**来源**：交接快照 follow-up（表决功能插入搁置项）
+
+- **盘点结论**：tally 已按「每条议程项独立判定出席/赞成」实现（agenda-follow-up `quorumBlockMessage`，与 spec §3.4 一致）——AV4 Minor 该语义项**实质已闭环**；写侧约束 TODO 在 committee.js（快照整库写穿架构下服务端无法区分单条活动的写入者，服务端强制依赖活动写 REST 化）
+- **书记裁定**：① 前端收敛 + 登记 spec（不做服务端推导本轮）② 存量迁移需先想清「归档」语义（追问）③ AV4 Minor 只做文案三端统一
+- **实施**（版本串 20260901k→l，全量 89/89）：
+  - 文案三端统一：`vote-widget.js` / `inspector.js` 两处 `['agree','object','comment']` 字面量兜底 → `OPTION_SETS.deliberative.options`（前端 vote-config 权威单一）
+  - 写侧约束收敛：`calendar-tab.js` 表决配置区注释声明「仅书记/副书记工作台呈现」；`committee.js` 信任模型注释更新（前端收敛完成 + 服务端强制登记架构 spec，与双引擎合并同批）
+  - 存量迁移结论：act-30（秋季部署会）为普通会议无表决语义 → **不迁**，mock 注释说明原因（回退路径仅议程触发表决时生效 + 已有服务端测试覆盖）
+  - 表决回归：agenda-votes 15 + async-vote（真实 UI 表决链）+ module-load 109/109 全绿
+- **沉淀标签**：写侧约束 · 文案三端统一 · OPTION_SETS 单一源 · tally 每议程项独立 · 存量迁移结论（不迁）
+- **后续**：书记追问「表决活动【归档】显示什么」（归档库/活动详情对表决决议与票数的回看呈现）待定方向；服务端强制（活动写 REST 化 + 名单推导）登记架构 spec

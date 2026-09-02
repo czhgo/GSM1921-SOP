@@ -2,26 +2,26 @@
 // entries/tabs/secretary/calendar-tab.js — 书记工作台·活动管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 考勤概况 + 活动查询。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260901k';
-import { _fmtDate, showToast } from '../../../core/utils.js?v=20260901k';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260901k';
-import { renderInspectorFromState } from '../../../components/inspector.js?v=20260901k';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260901k';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260901k';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260901k';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260901k';
-import { loadActivities } from '../../../services/activity.js?v=20260901k';
-import { renderQueryView } from '../../../components/query-view.js?v=20260901k';
-import { icon } from '../../../core/icons.js?v=20260901k';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260901k';
-import { getPersonName, PEOPLE } from '../../../mock/index.js?v=20260901k';
-import { NoticeStore } from '../../../services/notice.js?v=20260901k';
-import { BranchService } from '../../../services/runtime.js?v=20260901k';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars } from '../../../core/constants.js?v=20260901k';
-import { badgeHtml } from '../../../components/badge.js?v=20260901k';
-import { collectAgendaRows } from './agenda-form.js?v=20260901k';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds } from '../../../services/vote-config.js?v=20260901k';
-import { getAdapter } from '../../../core/data-adapter.js?v=20260901k';
+import { getAppState, setState } from '../../../core/state.js?v=20260901l';
+import { _fmtDate, showToast } from '../../../core/utils.js?v=20260901l';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260901l';
+import { renderInspectorFromState } from '../../../components/inspector.js?v=20260901l';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260901l';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260901l';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260901l';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260901l';
+import { loadActivities } from '../../../services/activity.js?v=20260901l';
+import { renderQueryView } from '../../../components/query-view.js?v=20260901l';
+import { icon } from '../../../core/icons.js?v=20260901l';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260901l';
+import { getPersonName, PEOPLE } from '../../../mock/index.js?v=20260901l';
+import { NoticeStore } from '../../../services/notice.js?v=20260901l';
+import { BranchService } from '../../../services/runtime.js?v=20260901l';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars } from '../../../core/constants.js?v=20260901l';
+import { badgeHtml } from '../../../components/badge.js?v=20260901l';
+import { collectAgendaRows } from './agenda-form.js?v=20260901l';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds } from '../../../services/vote-config.js?v=20260901l';
+import { getAdapter } from '../../../core/data-adapter.js?v=20260901l';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 
@@ -560,6 +560,8 @@ function renderFormStep() {
 
   // 会议形式（2026-09-02 线上异步表决泛化 A 期：仅决策类场景——支委会/支部党员大会；
   // 默认线下开会保持现状；选「线上异步表决」后展开参与范围配置，见 renderVoteConfigSection）
+  // 写侧约束（2026-09-02，T-2026-09-006）：本写入面板仅在书记/副书记工作台（secretary.html）
+  // 呈现——组长等其它角色工作台写活动无表决配置入口，voteConfig 只能由书记/副书记配置。
   if (isDecisionScenario(scenarioId)) {
     html += renderVoteConfigSection(scenarioId);
   }

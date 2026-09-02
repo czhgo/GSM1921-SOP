@@ -4,18 +4,18 @@
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../components/sidebar.js?v=20260901k';
-import { renderHeader } from '../components/header.js?v=20260901k';
-import { AuthStore } from '../services/auth.js?v=20260901k';
-import { IssueStore } from '../services/issues.js?v=20260901k';
-import { MilestoneStore } from '../services/milestones.js?v=20260901k';
-import { getAccentColors, resolveAccentRole } from './constants.js?v=20260901k';
-import { CrossPageState } from './cross-page-state.js?v=20260901k';
-import { getBasePath } from './utils.js?v=20260901k';
-import { enhanceSelects } from '../components/custom-select.js?v=20260901k';
-import { registerApiAdapter, init } from './data-adapter.js?v=20260901k';
-import { ApiAdapter } from './api-adapter.js?v=20260901k';
-import { getCapabilities } from './registry.js?v=20260901k';
+import { renderSidebar } from '../components/sidebar.js?v=20260901l';
+import { renderHeader } from '../components/header.js?v=20260901l';
+import { AuthStore } from '../services/auth.js?v=20260901l';
+import { IssueStore } from '../services/issues.js?v=20260901l';
+import { MilestoneStore } from '../services/milestones.js?v=20260901l';
+import { getAccentColors, resolveAccentRole } from './constants.js?v=20260901l';
+import { CrossPageState } from './cross-page-state.js?v=20260901l';
+import { getBasePath } from './utils.js?v=20260901l';
+import { enhanceSelects } from '../components/custom-select.js?v=20260901l';
+import { registerApiAdapter, init } from './data-adapter.js?v=20260901l';
+import { ApiAdapter } from './api-adapter.js?v=20260901l';
+import { getCapabilities } from './registry.js?v=20260901l';
 // M4 数据源注册化：副作用导入触发 mock/api 数据源能力注册，bootstrap 经注册表选择数据源
 import '../modules/capabilities/data-source.js?v=20260829r';
 // M6（2026-08-30）：共享组件能力随全局引导注册（todo-list/calendar/custom-select），所有页面可发现组件清单

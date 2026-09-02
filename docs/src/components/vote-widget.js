@@ -6,9 +6,9 @@
 //  仅复用既有样式类 .vote-panel/.vote-btn/.vote-note/.vote-submit/.vote-title/.vote-current
 //  （styles.css 已定义），本模块不新增任何样式。
 // ════════════════════════════════════════════════════════════════
-import { showToast } from '../core/utils.js?v=20260901k';
-import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260901k';
-import { optionSetOf } from '../services/vote-config.js?v=20260901k';
+import { showToast } from '../core/utils.js?v=20260901l';
+import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260901l';
+import { optionSetOf, OPTION_SETS } from '../services/vote-config.js?v=20260901l';
 
 // HTML 转义（position 回退值/表态附言为用户输入，innerHTML 渲染前转义防存储型 XSS）
 function esc(s) {
@@ -39,7 +39,7 @@ export function renderVoteWidget(container, { activity, agendaItem, votes, curre
   const locked = activity.votesLocked === true;
   const os = optionSetOf(activity);
   const labelOf = (pos) => (os.labels && os.labels[pos]) || pos;
-  const options = (Array.isArray(os.options) && os.options.length > 0) ? os.options : ['agree', 'object', 'comment'];
+  const options = (Array.isArray(os.options) && os.options.length > 0) ? os.options : OPTION_SETS.deliberative.options;
   const mine = (votes || []).find(v => v.personId === currentUserId && v.agendaItemId === agendaItem.id);
   // 可交互：已登录 + 应到表决人 + 未锁定（已表态仍可改投覆盖）
   const canInteract = !!currentUserId && canVote === true && !locked;

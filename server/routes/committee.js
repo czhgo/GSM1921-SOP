@@ -62,11 +62,11 @@ export function createCommitteeRouter(db) {
     if (!actRow) return res.status(404).json({ error: '活动不存在' });
     // ===== 表决授权解析（AV3，fail-closed）=====
     // 信任模型：表决授权（optionSet 选项枚举 + voterIds 应到名单）存于活动 voteConfig，
-    //   由前端创建活动时经 vote-config 固化写入（客户端写）；当前信任模型 = 仅 UI 书记操作 + 演示场景，
-    //   服务端按「活动已带 voteConfig 即视为可信」处理。
-    // TODO(follow-up)：补写侧约束 —— 仅书记可改 voteConfig（或将名单改为服务端按角色推导），
-    //   使授权源从「客户端写」收敛为「服务端强制」，再放开正式场景
-    //   （涉及活动创建/编辑端点 + 前端 vote-config 联调）。
+    //   由前端创建活动时经 vote-config 固化写入（客户端写）。
+    // 写侧约束（2026-09-02 收敛，T-2026-09-006）：voteConfig 配置 UI 仅在书记/副书记工作台
+    //   （secretary.html calendar 写入面板）呈现——组长等其它角色写活动无表决配置入口；
+    //   「服务端强制」（活动写 REST 化后按角色校验 voteConfig / 名单按 scope 从 users 推导）
+    //   已登记架构 spec，与双 Mock 引擎合并同批排期。当前信任模型 = 书记/副书记操作 + 演示场景。
     // 旧活动兼容：仅当活动完全无 voteConfig 时回退 deliberative + 支委白名单（现状行为零变化）；
     //   活动带 voteConfig 即须完整合法 —— optionSet 缺失/不受支持、voterIds 缺失/非数组/空数组
     //   一律 400（fail-closed，不回退默认值）。

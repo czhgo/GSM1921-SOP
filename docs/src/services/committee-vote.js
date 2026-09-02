@@ -2,11 +2,11 @@
 // committee-vote.js — 线上支委会表态服务
 // 数据源：mockDB.agendaVotes（本地）或 /api/v1/agenda-votes（API 模式）
 // 闭环：委员异步表态（同意/异议/附言）→ 书记汇总 → 截止锁定（votesLocked 写入活动）
-import { mockDB } from '../core/domain.js?v=20260901k';
-import { persist, getAdapter, getAuthToken, getApiBaseUrl, getDataSource } from '../core/data-adapter.js?v=20260901k';
-import { AuthStore } from './auth.js?v=20260901k';
-import { NoticeStore } from './notice.js?v=20260901k';
-import { resolveVoterIds } from './vote-config.js?v=20260901k';
+import { mockDB } from '../core/domain.js?v=20260901l';
+import { persist, getAdapter, getAuthToken, getApiBaseUrl, getDataSource } from '../core/data-adapter.js?v=20260901l';
+import { AuthStore } from './auth.js?v=20260901l';
+import { NoticeStore } from './notice.js?v=20260901l';
+import { resolveVoterIds } from './vote-config.js?v=20260901l';
 
 // 支委总数（通知文案「已有 N/M 位委员表态」的分母）
 // 单一源化（2026-09-02）：改引权威名单 vote-config.js resolveVoterIds('committee')

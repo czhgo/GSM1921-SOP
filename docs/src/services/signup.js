@@ -9,14 +9,14 @@
 //            organizer/deep = 报名 + 发起人审核（pending → 通过/拒绝）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260901k';
-import { generateId } from '../core/id.js?v=20260901k';
-import { persist } from '../core/data-adapter.js?v=20260901k';
-import { SEED_SIGNUPS } from '../mock/seed.js?v=20260901k';
-import { getPersonById } from '../mock/index.js?v=20260901k';
-import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from './todo.js?v=20260901k';
-import { AuthStore } from './auth.js?v=20260901k';
-import { TaskForceRecordStore } from './taskforce.js?v=20260901k';
+import { mockDB } from '../core/domain.js?v=20260901l';
+import { generateId } from '../core/id.js?v=20260901l';
+import { persist } from '../core/data-adapter.js?v=20260901l';
+import { SEED_SIGNUPS } from '../mock/seed.js?v=20260901l';
+import { getPersonById } from '../mock/index.js?v=20260901l';
+import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from './todo.js?v=20260901l';
+import { AuthStore } from './auth.js?v=20260901l';
+import { TaskForceRecordStore } from './taskforce.js?v=20260901l';
 
 // ── 枚举 ────────────────────────────────────────────────────────
 const SignupRole = {
@@ -175,7 +175,7 @@ async function _writeSource(sourceType, sourceId, personId, role) {
       await AuthStore.syncProjectRoles({ scopeRef: sourceId, assignments: merged, actorId: personId });
     } else {
       // participant：直接并入 assignments（保留既有条目）
-      const { updateActivity } = await import('./mock.js?v=20260901k');
+      const { updateActivity } = await import('./mock.js?v=20260901l');
       await updateActivity(sourceId, { assignments: [...cur, { personId, role }] });
     }
   } else {
@@ -348,7 +348,7 @@ export const SignupStore = {
         const act = mockDB.activities.find(a => a.id === s.sourceId);
         if (act && Array.isArray(act.assignments) && act.assignments.some(x => x.personId === personId)) {
           const remaining = act.assignments.filter(x => x.personId !== personId);
-          import('./mock.js?v=20260901k').then(({ updateActivity }) => {
+          import('./mock.js?v=20260901l').then(({ updateActivity }) => {
             updateActivity(s.sourceId, { assignments: remaining });
             persist(); // updateActivity 不自动落盘，须显式 persist
           });
