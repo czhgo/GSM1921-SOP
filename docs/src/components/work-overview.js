@@ -9,19 +9,19 @@
 //  职责空间最小充分信息（P-011 知情边界）；本页禁用 SVG 图标（书记裁定）
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight } from '../core/utils.js?v=20260901l';
-import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260901l';
-import { IssueStore, REPORT_CATEGORIES } from '../services/issues.js?v=20260901l';
-import { AuthStore } from '../services/auth.js?v=20260901l';
-import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260901l';
-import { loadActivities } from '../services/activity.js?v=20260901l';
-import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260901l';
-import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260901l';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260901l';
-import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260901l';
-import { PEOPLE } from '../mock/people.js?v=20260901l';
-import { getPersonName } from '../mock/index.js?v=20260901l';
-import { AttendanceStatus } from '../core/domain.js?v=20260901l';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260901m';
+import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260901m';
+import { IssueStore, REPORT_CATEGORIES } from '../services/issues.js?v=20260901m';
+import { AuthStore } from '../services/auth.js?v=20260901m';
+import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260901m';
+import { loadActivities } from '../services/activity.js?v=20260901m';
+import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260901m';
+import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260901m';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260901m';
+import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260901m';
+import { PEOPLE } from '../mock/people.js?v=20260901m';
+import { getPersonName } from '../mock/index.js?v=20260901m';
+import { AttendanceStatus } from '../core/domain.js?v=20260901m';
 
 // 在办下钻详情目标（书记 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -388,10 +388,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('./activity-view.js?v=20260901l');
+    const { renderActivityView } = await import('./activity-view.js?v=20260901m');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260901l');
+    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260901m');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

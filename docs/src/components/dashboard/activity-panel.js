@@ -5,16 +5,16 @@
 //  职责单一：日历/列表双视图切换 + ?view=?month= URL 同步 + 活动列表（前 10 条）。
 // ════════════════════════════════════════════════════════════════
 
-import { setState, getAppState } from '../../core/state.js?v=20260901l';
-import { _fmtDate, getBasePath } from '../../core/utils.js?v=20260901l';
-import { getPersonName } from '../../mock/index.js?v=20260901l';
-import { CrossPageState } from '../../core/cross-page-state.js?v=20260901l';
-import { AuthStore } from '../../services/auth.js?v=20260901l';
-import { getActivityTypeColors } from '../../core/constants.js?v=20260901l';
-import { badgeHtml } from '../badge.js?v=20260901l';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260901l';
-import { populateMonthSelector } from '../calendar.js?v=20260901l';
-import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/registry.js?v=20260901l';
+import { setState, getAppState } from '../../core/state.js?v=20260901m';
+import { _fmtDate, getBasePath } from '../../core/utils.js?v=20260901m';
+import { getPersonName } from '../../mock/index.js?v=20260901m';
+import { CrossPageState } from '../../core/cross-page-state.js?v=20260901m';
+import { AuthStore } from '../../services/auth.js?v=20260901m';
+import { getActivityTypeColors } from '../../core/constants.js?v=20260901m';
+import { badgeHtml } from '../badge.js?v=20260901m';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260901m';
+import { populateMonthSelector } from '../calendar.js?v=20260901m';
+import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/registry.js?v=20260901m';
 
 const DASHBOARD_DEFAULT_VIEW = 'calendar';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });

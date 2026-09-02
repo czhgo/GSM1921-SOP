@@ -5,19 +5,19 @@
 //  数据源 TaskForceRecordStore（独立持久化 workflowos_taskforces_v1），
 //  报名面板复用 signup-panel.js 组件（与活动详情页共用，避免重复散落）。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../components/sidebar.js?v=20260901l';
-import { renderHeader } from '../components/header.js?v=20260901l';
-import { BranchService } from '../services/runtime.js?v=20260901l';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260901l';
-import { NoticeStore } from '../services/notice.js?v=20260901l';
-import { SignupStore } from '../services/signup.js?v=20260901l';
-import { AuthStore } from '../services/auth.js?v=20260901l';
-import { getPersonById } from '../mock/index.js?v=20260901l';
-import { getBasePath } from '../core/utils.js?v=20260901l';
-import { badgeHtml } from '../components/badge.js?v=20260901l';
-import { enhanceSelects } from '../components/custom-select.js?v=20260901l';
-import { canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260901l';
-import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260901l';
+import { renderSidebar } from '../components/sidebar.js?v=20260901m';
+import { renderHeader } from '../components/header.js?v=20260901m';
+import { BranchService } from '../services/runtime.js?v=20260901m';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260901m';
+import { NoticeStore } from '../services/notice.js?v=20260901m';
+import { SignupStore } from '../services/signup.js?v=20260901m';
+import { AuthStore } from '../services/auth.js?v=20260901m';
+import { getPersonById } from '../mock/index.js?v=20260901m';
+import { getBasePath } from '../core/utils.js?v=20260901m';
+import { badgeHtml } from '../components/badge.js?v=20260901m';
+import { enhanceSelects } from '../components/custom-select.js?v=20260901m';
+import { canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260901m';
+import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260901m';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

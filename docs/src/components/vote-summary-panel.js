@@ -8,9 +8,9 @@
 //   committeeMembers.length。矩阵成员由调用方传入（有 voteConfig → voterIds 映射人员；无 → 权威支委名单
 //   resolveVoterIds('committee')，过滤见 inspector.js；server/routes/committee.js COMMITTEE_IDS 仅作旧活动
 //   回退白名单，勿再本地罗列支委成员）。选项集/标签权威 = vote-config.js OPTION_SETS（勿再本地硬编码）
-import { fetchVotes, lockVotes } from '../services/committee-vote.js?v=20260901l';
-import { optionSetOf } from '../services/vote-config.js?v=20260901l';
-import { showToast } from '../core/utils.js?v=20260901l';
+import { fetchVotes, lockVotes } from '../services/committee-vote.js?v=20260901m';
+import { optionSetOf } from '../services/vote-config.js?v=20260901m';
+import { showToast } from '../core/utils.js?v=20260901m';
 
 // HTML 转义（议题/附言为输入或既有数据，innerHTML 渲染前转义防存储型 XSS）
 function esc(s) {

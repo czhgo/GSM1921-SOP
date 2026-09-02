@@ -5,8 +5,8 @@
 // 行为零变化：apply 内部仍调用 data-adapter.setDataSource（与 bootstrap 既有切换逻辑一致）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §四.3（数据源注册为能力，按部署环境启用）
 
-import { registerCapability } from '../../core/registry.js?v=20260901l';
-import { setDataSource } from '../../core/data-adapter.js?v=20260901l';
+import { registerCapability } from '../../core/registry.js?v=20260901m';
+import { setDataSource } from '../../core/data-adapter.js?v=20260901m';
 
 // mock 数据源：全环境可用（本地 dev 默认 / prod 服务器不可达回退）
 registerCapability({

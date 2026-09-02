@@ -2,26 +2,26 @@
 // entries/tabs/secretary/calendar-tab.js — 书记工作台·活动管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 考勤概况 + 活动查询。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260901l';
-import { _fmtDate, showToast } from '../../../core/utils.js?v=20260901l';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260901l';
-import { renderInspectorFromState } from '../../../components/inspector.js?v=20260901l';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260901l';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260901l';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260901l';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260901l';
-import { loadActivities } from '../../../services/activity.js?v=20260901l';
-import { renderQueryView } from '../../../components/query-view.js?v=20260901l';
-import { icon } from '../../../core/icons.js?v=20260901l';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260901l';
-import { getPersonName, PEOPLE } from '../../../mock/index.js?v=20260901l';
-import { NoticeStore } from '../../../services/notice.js?v=20260901l';
-import { BranchService } from '../../../services/runtime.js?v=20260901l';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars } from '../../../core/constants.js?v=20260901l';
-import { badgeHtml } from '../../../components/badge.js?v=20260901l';
-import { collectAgendaRows } from './agenda-form.js?v=20260901l';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds } from '../../../services/vote-config.js?v=20260901l';
-import { getAdapter } from '../../../core/data-adapter.js?v=20260901l';
+import { getAppState, setState } from '../../../core/state.js?v=20260901m';
+import { _fmtDate, showToast } from '../../../core/utils.js?v=20260901m';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260901m';
+import { renderInspectorFromState } from '../../../components/inspector.js?v=20260901m';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260901m';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260901m';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260901m';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260901m';
+import { loadActivities } from '../../../services/activity.js?v=20260901m';
+import { renderQueryView } from '../../../components/query-view.js?v=20260901m';
+import { icon } from '../../../core/icons.js?v=20260901m';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260901m';
+import { getPersonName, PEOPLE } from '../../../mock/index.js?v=20260901m';
+import { NoticeStore } from '../../../services/notice.js?v=20260901m';
+import { BranchService } from '../../../services/runtime.js?v=20260901m';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars } from '../../../core/constants.js?v=20260901m';
+import { badgeHtml } from '../../../components/badge.js?v=20260901m';
+import { collectAgendaRows } from './agenda-form.js?v=20260901m';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds } from '../../../services/vote-config.js?v=20260901m';
+import { getAdapter } from '../../../core/data-adapter.js?v=20260901m';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 
