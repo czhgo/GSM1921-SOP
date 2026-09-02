@@ -9,18 +9,18 @@
 //  Source: content/04_web_design/data/DATA_ARCHITECTURE.md
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SCHEMA_VERSION } from './domain.js?v=20260901s';
-import { generateId } from './id.js?v=20260901s';
+import { mockDB, SCHEMA_VERSION } from './domain.js?v=20260901t';
+import { generateId } from './id.js?v=20260901t';
 // 修复（T175）：直接从 ../mock/activities.js 导入 ACTIVITIES，
 // 绕过 ../mock/index.js 的 re-export 转发（与 services/mock.js 对齐，
 // 消除循环依赖/TDZ 导致的 seed 失败风险）
-import { ACTIVITIES } from '../mock/activities.js?v=20260901s';
-import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS } from '../mock/seed.js?v=20260901s';
+import { ACTIVITIES } from '../mock/activities.js?v=20260901t';
+import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS } from '../mock/seed.js?v=20260901t';
 // Seed 增量合并用（2026-08-05）：attendance.js/notices.js 为纯数据模块，
 // 经 services/person.js（只依赖 domain/people）→ 无指向本文件的循环依赖
-import { ATTENDANCE_RECORDS } from '../mock/attendance.js?v=20260901s';
-import { MOCK_NOTICES } from '../mock/notices.js?v=20260901s';
-import { BRANCHES } from '../mock/branches.js?v=20260901s';
+import { ATTENDANCE_RECORDS } from '../mock/attendance.js?v=20260901t';
+import { MOCK_NOTICES } from '../mock/notices.js?v=20260901t';
+import { BRANCHES } from '../mock/branches.js?v=20260901t';
 
 const STORAGE_KEY = 'workflowos_branch_db_v1';
 
@@ -341,7 +341,7 @@ export const MockAdapter = {
     if (merged) _saveToStorage();
     // 数据加载完成广播：通知 header 角标等初始快照据实刷新（与 data-loader 的
     // notifyDataLoaded 双保险；此处覆盖 data-adapter.init() mock 分支等直连路径）
-    import('./data-adapter.js?v=20260901s').then(({ notifyDataLoaded }) => notifyDataLoaded())
+    import('./data-adapter.js?v=20260901t').then(({ notifyDataLoaded }) => notifyDataLoaded())
       .catch(() => {});
   },
 
@@ -370,7 +370,7 @@ export const MockAdapter = {
         mockDB.activities = [...mockDB.activities, newItem];
         _saveToStorage();
         // 派生赋权待办（dynamic import 避免循环依赖）
-        import('../services/todo.js?v=20260901s').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260901t').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deriveFromActivityCreate(newItem);
         }).catch(e => console.warn('[MockAdapter] 派生活动赋权待办失败：', e));
         return newItem;
@@ -403,7 +403,7 @@ export const MockAdapter = {
         if (Array.isArray(mockDB.signups)) mockDB.signups = mockDB.signups.filter(s => !(s.sourceType === 'activity' && s.sourceId === id));
         if (Array.isArray(mockDB.notices)) mockDB.notices = mockDB.notices.filter(n => !(n.targetType === 'activity' && n.targetId === id));
         _saveToStorage();
-        import('../services/todo.js?v=20260901s').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260901t').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deleteByActivity(id);
         }).catch(e => console.warn('[MockAdapter] 联动删除待办失败：', e));
         return { id };
@@ -424,11 +424,11 @@ export const MockAdapter = {
           t.activityId === id && t.status !== 'completed' ? { ...t, status: 'completed' } : t
         );
         _saveToStorage();
-        import('../services/todo.js?v=20260901s').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260901t').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deriveFromActivityArchive(archived);
         }).catch(e => console.warn('[MockAdapter] 派生活动归档待办失败：', e));
         // 2026-08-08 归档闭环：活动归档 → 配套通知随之一并归档，退出工作区
-        import('../services/notice.js?v=20260901s').then(({ NoticeStore }) => {
+        import('../services/notice.js?v=20260901t').then(({ NoticeStore }) => {
           NoticeStore.archiveBySource('activity', id);
         }).catch(e => console.warn('[MockAdapter] 归档关联通知失败：', e));
         return archived;
@@ -532,7 +532,7 @@ export const MockAdapter = {
         const tf = { ...data, id: generateId('tf'), createdAt: new Date().toISOString() };
         mockDB.taskforces = [...mockDB.taskforces, tf];
         _saveToStorage();
-        import('../services/todo.js?v=20260901s').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260901t').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deriveFromTaskforceCreate(tf);
         }).catch(e => console.warn('[MockAdapter] 派生专班赋权待办失败：', e));
         return tf;
@@ -555,7 +555,7 @@ export const MockAdapter = {
       return _withDelay(() => {
         mockDB.taskforces = mockDB.taskforces.filter(t => t.id !== id);
         _saveToStorage();
-        import('../services/todo.js?v=20260901s').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260901t').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deleteByTaskforce(id);
         }).catch(e => console.warn('[MockAdapter] 联动删除待办失败：', e));
         return { id };
@@ -570,7 +570,7 @@ export const MockAdapter = {
         const notice = { ...data, id: data.id || generateId('notice'), publishDate: data.publishDate || new Date().toISOString().slice(0, 10) };
         mockDB.notices = [...mockDB.notices, notice];
         _saveToStorage();
-        import('../services/todo.js?v=20260901s').then(({ NoticeTodoDeriver }) => {
+        import('../services/todo.js?v=20260901t').then(({ NoticeTodoDeriver }) => {
           NoticeTodoDeriver.deriveFromNotice(notice);
         }).catch(e => console.warn('[MockAdapter] 通知派生待办失败：', e));
         return notice;
@@ -712,7 +712,9 @@ export const MockAdapter = {
     list() { return _withDelay(() => [...mockDB.branchDocs]); },
     create(data) {
       return _withDelay(() => {
-        const doc = { ...data, id: generateId('bd'), uploadedAt: new Date().toISOString() };
+        // P1 党委后台（2026-09-02）：支部文件一支部一存储空间——记录挂所属 branchId（缺省 br-b1）；
+        // 跨支部查询隔离由消费端按登录人 branch 收敛（fileSpaceIsolated）
+        const doc = { ...data, id: generateId('bd'), branchId: data.branchId || 'br-b1', uploadedAt: new Date().toISOString() };
         mockDB.branchDocs = [...mockDB.branchDocs, doc];
         _saveToStorage();
         return doc;

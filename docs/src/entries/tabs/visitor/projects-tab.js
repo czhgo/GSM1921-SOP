@@ -3,10 +3,10 @@
 // 书记 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { PEOPLE } from '../../../mock/index.js?v=20260901s';
-import { AuthStore } from '../../../services/auth.js?v=20260901s';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260901s';
-import { flashHighlight } from '../../../core/utils.js?v=20260901s';
+import { PEOPLE } from '../../../mock/index.js?v=20260901t';
+import { AuthStore } from '../../../services/auth.js?v=20260901t';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260901t';
+import { flashHighlight } from '../../../core/utils.js?v=20260901t';
 
 // 项目分工子视图（书记 2026-08-10 裁定第5点）：区分「我的分工」（以人为中心）与「全局分工」（全局查询）
 let _projSubView = 'mine'; // 'mine' | 'all'

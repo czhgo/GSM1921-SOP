@@ -5,7 +5,7 @@
 export function renderContent(ctx) {
   const el = document.getElementById('disc-tab-content');
   if (!el) return null;
-  return import('../../../components/taskforce-view.js?v=20260901s').then(m => m.renderTaskforceView(el, {
+  return import('../../../components/taskforce-view.js?v=20260901t').then(m => m.renderTaskforceView(el, {
     highlightId: ctx?.highlightTfId || null,
     onLocated: () => { if (ctx?.onNavLocated) ctx.onNavLocated(); },
   }));

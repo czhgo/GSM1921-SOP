@@ -3,8 +3,8 @@
 // 支部边界收敛点（防漂移）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
 // 单一数据源：mockDB.branches（首启 seed 自 mock/branches.js BRANCHES）
 
-import { mockDB } from '../core/domain.js?v=20260901s';
-import { getPersonById } from './person.js?v=20260901s';
+import { mockDB } from '../core/domain.js?v=20260901t';
+import { getPersonById } from './person.js?v=20260901t';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
@@ -27,4 +27,14 @@ export function getBranchIdOfPerson(personId) {
 export function getHeaderTitle(personId) {
   const branch = getBranchById(getBranchIdOfPerson(personId));
   return branch?.config?.headerTitle || branch?.name || '光华管理学院本科生党支部';
+}
+
+/**
+ * 支部内资源隔离过滤（收敛点，防各 tab 手写过滤漂移）：
+ * 按当前人所属支部过滤行；老数据无 branchId 视为 br-b1（惰性维度迁移兼容）。
+ * 单支部时代恒等（全部 br-b1）；党委创建新支部并挂入跨支部数据后自然生效。
+ */
+export function withinBranch(rows, personId) {
+  const bid = getBranchIdOfPerson(personId);
+  return rows.filter(r => (r.branchId || 'br-b1') === bid);
 }

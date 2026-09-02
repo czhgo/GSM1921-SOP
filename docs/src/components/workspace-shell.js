@@ -9,14 +9,14 @@
 // 行为零变化：原各入口的注册表读取、懒加载渲染、导航落点消费、B1-5 抑制逐字保留于壳内。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260901s';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260901s';
-import { renderTabBar } from './tab-bar.js?v=20260901s';
-import { flashHighlight } from '../core/utils.js?v=20260901s';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260901s';
-import { getCapabilities } from '../core/registry.js?v=20260901s';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260901s';
-import { TodoStore } from '../services/todo.js?v=20260901s';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260901t';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260901t';
+import { renderTabBar } from './tab-bar.js?v=20260901t';
+import { flashHighlight } from '../core/utils.js?v=20260901t';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260901t';
+import { getCapabilities } from '../core/registry.js?v=20260901t';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260901t';
+import { TodoStore } from '../services/todo.js?v=20260901t';
 
 // B1-5 修复：URL 导航落点后抑制当前 tab 重渲染，防止二次 setState 重建 DOM 冲掉直达高亮。
 // 条件抑制：仅当导航目标元素已在 DOM 中（高亮已展示）才抑制；目标缺失（延迟数据）放行补渲染。
