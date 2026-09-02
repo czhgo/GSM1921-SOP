@@ -4,22 +4,22 @@
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../components/sidebar.js?v=20260901f';
-import { renderHeader } from '../components/header.js?v=20260901f';
-import { AuthStore } from '../services/auth.js?v=20260901f';
-import { IssueStore } from '../services/issues.js?v=20260901f';
-import { MilestoneStore } from '../services/milestones.js?v=20260901f';
-import { getAccentColors, resolveAccentRole } from './constants.js?v=20260901f';
-import { CrossPageState } from './cross-page-state.js?v=20260901f';
-import { getBasePath } from './utils.js?v=20260901f';
-import { enhanceSelects } from '../components/custom-select.js?v=20260901f';
-import { registerApiAdapter, init } from './data-adapter.js?v=20260901f';
-import { ApiAdapter } from './api-adapter.js?v=20260901f';
-import { getCapabilities } from './registry.js?v=20260901f';
+import { renderSidebar } from '../components/sidebar.js?v=20260901g';
+import { renderHeader } from '../components/header.js?v=20260901g';
+import { AuthStore } from '../services/auth.js?v=20260901g';
+import { IssueStore } from '../services/issues.js?v=20260901g';
+import { MilestoneStore } from '../services/milestones.js?v=20260901g';
+import { getAccentColors, resolveAccentRole } from './constants.js?v=20260901g';
+import { CrossPageState } from './cross-page-state.js?v=20260901g';
+import { getBasePath } from './utils.js?v=20260901g';
+import { enhanceSelects } from '../components/custom-select.js?v=20260901g';
+import { registerApiAdapter, init } from './data-adapter.js?v=20260901g';
+import { ApiAdapter } from './api-adapter.js?v=20260901g';
+import { getCapabilities } from './registry.js?v=20260901g';
 // M4 数据源注册化：副作用导入触发 mock/api 数据源能力注册，bootstrap 经注册表选择数据源
 import '../modules/capabilities/data-source.js?v=20260829r';
 // M6（2026-08-30）：共享组件能力随全局引导注册（todo-list/calendar/custom-select），所有页面可发现组件清单
-import '../modules/capabilities/components.js?v=20260901f';
+import '../modules/capabilities/components.js?v=20260901g';
 
 // ════════════════════════════════════════════════════════════════
 // S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）

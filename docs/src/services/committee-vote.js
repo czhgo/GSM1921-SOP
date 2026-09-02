@@ -2,9 +2,9 @@
 // committee-vote.js — 线上支委会表态服务
 // 数据源：mockDB.agendaVotes（本地）或 /api/v1/agenda-votes（API 模式）
 // 闭环：委员异步表态（同意/异议/附言）→ 书记汇总 → 截止锁定（votesLocked 写入活动）
-import { mockDB } from '../core/domain.js?v=20260901f';
-import { persist, getAdapter, getAuthToken, getApiBaseUrl, getDataSource } from '../core/data-adapter.js?v=20260901f';
-import { AuthStore } from './auth.js?v=20260901f';
+import { mockDB } from '../core/domain.js?v=20260901g';
+import { persist, getAdapter, getAuthToken, getApiBaseUrl, getDataSource } from '../core/data-adapter.js?v=20260901g';
+import { AuthStore } from './auth.js?v=20260901g';
 
 /** 当前登录用户 personId（mock 模式表态归属；无登录态回退 null） */
 function currentPersonId() {

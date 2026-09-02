@@ -2,8 +2,8 @@
 // 组长工作台共享上下文（T-279 M2 拆分样板）
 // 各 tab 模块复用的只读配置与纯函数：accent 三件套、当前组长组、活动按角色过滤。
 
-import { PEOPLE } from '../../../mock/index.js?v=20260901f';
-import { AuthStore } from '../../../services/auth.js?v=20260901f';
+import { PEOPLE } from '../../../mock/index.js?v=20260901g';
+import { AuthStore } from '../../../services/auth.js?v=20260901g';
 
 /** 当前组长身份（数据驱动：AuthStore 当前用户 + partyGroup，不硬编码人） */
 export function currentLeaderGroup() {

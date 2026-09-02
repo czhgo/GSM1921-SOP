@@ -1,13 +1,13 @@
 ﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // notice-entry.js — 通知详情独立入口
 // 2026-07-30: 增加邮件要素（通知者/被通知者/时间），但不采用邮箱 UI
-import { renderSidebar } from '../components/sidebar.js?v=20260901f';
-import { renderHeader } from '../components/header.js?v=20260901f';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260901f';
-import { getBasePath, showToast } from '../core/utils.js?v=20260901f';
-import { AuthStore } from '../services/auth.js?v=20260901f';
-import { getPersonById } from '../mock/index.js?v=20260901f';
-import { badgeHtml } from '../components/badge.js?v=20260901f';
+import { renderSidebar } from '../components/sidebar.js?v=20260901g';
+import { renderHeader } from '../components/header.js?v=20260901g';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260901g';
+import { getBasePath, showToast } from '../core/utils.js?v=20260901g';
+import { AuthStore } from '../services/auth.js?v=20260901g';
+import { getPersonById } from '../mock/index.js?v=20260901g';
+import { badgeHtml } from '../components/badge.js?v=20260901g';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

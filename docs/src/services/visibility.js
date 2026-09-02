@@ -12,10 +12,10 @@
 //  核心："看 ≠ 做"——可见性只决定"能看到什么维度"，不授予任何操作权。
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE } from '../mock/people.js?v=20260901f';
-import { ROLE_LABELS } from '../core/constants.js?v=20260901f';
-import { TaskForceRecordStore } from './taskforce.js?v=20260901f';
-import { loadActivities } from './activity.js?v=20260901f';
+import { PEOPLE } from '../mock/people.js?v=20260901g';
+import { ROLE_LABELS } from '../core/constants.js?v=20260901g';
+import { TaskForceRecordStore } from './taskforce.js?v=20260901g';
+import { loadActivities } from './activity.js?v=20260901g';
 
 // ── 可见维度（职责空间投影的最小充分信息）─────────────────────────
 //  progress    — 在办进度（待办/活动/专班聚合）
