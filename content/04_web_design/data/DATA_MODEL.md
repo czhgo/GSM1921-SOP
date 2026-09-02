@@ -3,7 +3,7 @@ title: "数据模型设计"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: "2026-08-24"
+last_updated: "2026-09-03"
 status: active
 split_from: "DATA_ARCHITECTURE.md（2026-08-24 T-282 拆分）"
 related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/data/DATA_FLOW.md]
@@ -837,15 +837,14 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 **阶段2 后端支持**：归档浮窗中材料清单每项可点击查看——图片预览/文档下载/视频预览，需后端文件存储支持。
 
----
+### 2.20.1 文件空间记录 / 图片记录（T-304 D 档·权威字段表）
 
-## 2.26 文件空间记录 / 图片记录（T-304 D 档·权威字段表）
-
+> **编者注（2026-09-03）**：本节为追加补建，原以 `## 2.26` 游离于 §2.20 之后（2.21~2.25 缺号系历史编号笔误），现归位为 §2.20.1 子节；新补域自 §2.21 起续编。
 > **定位**：宣传委员上传宣传材料（照片/新闻稿/视频等）落「文件空间」；文件元数据与文件实体分离存储。
 > **双模式**：mock 模式 `fileData`（base64 dataURL，本地存储）；server 模式 `filePath`（服务端磁盘路径，受保护静态下载 `/api/v1/uploads/:name`）。
 > **读写闭环**：创建（`archive-tab` 上传）→ 读取（档案列表/产出物区渲染）→ 下载（mock 直下 / server 鉴权拉取）→ 删除（`DELETE /api/v1/fileSpaceRecords/:id` 联动删物理文件）。类型定义见 [domain.js](../../docs/src/core/domain.js) `FileSpaceRecord` / `ImageRecord` typedef。
 
-### FileSpaceRecord
+#### FileSpaceRecord
 
 | 字段名 | 类型 | 必填 | 说明 |
 |---|---|---|---|
@@ -862,7 +861,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | uploadedBy | string | 否 | 上传人 personId |
 | createdAt | string (ISO) | 否 | 创建时间 |
 
-### ImageRecord
+#### ImageRecord
 
 | 字段名 | 类型 | 必填 | 说明 |
 |---|---|---|---|
@@ -872,9 +871,85 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | fileSize | number | 是 | 字节数 |
 | uploadedBy / uploadedAt | string | 是 | 上传人 / 时间 |
 
-### 删除语义（防孤儿文件）
+#### 删除语义（防孤儿文件）
 
 - **server 模式**：`DELETE /api/v1/fileSpaceRecords/:id` 与 `DELETE /api/v1/imageRecords/:id` 在删记录前联动 `deleteUploadedFile(filePath)` 删除物理文件（[resources.js](../../../server/routes/resources.js) L96-105，T-304 D 档扩展）。
 - **mock 模式**：删除 `mockDB.archiveRecords` 对应记录 + `persist()`，无物理文件。
+
+---
+
+> **党委两级治理数据域补录（P1~P3 · 2026-09-03）**：支部多实例两级治理新增数据域统一在此续编 §2.21~§2.24（沿用 §2.20.1 归位后自 2.21 起的编号）。设计定案见 [PARTY_COMMITTEE_DESIGN.md](../evolution/PARTY_COMMITTEE_DESIGN.md)；服务端表/路由接线见 [db.js](../../../server/db.js) 与 [resources.js](../../../server/routes/resources.js)；类型定义位于 `docs/src/core/domain.js`（mockDB 成员）+ `docs/src/services/{branch,appointment,review-request}.js`。
+
+### 2.21 支部实例数据 (BranchRecord)
+
+> 支部**不预设名字**，由党委动态创建/改名（硕博等支部随时可加）；`config` 为支部配置档案（header 软编码/主题/启停模块/文件空间隔离）。
+
+| 字段名 | 类型 | 必填 | 默认值 | 说明 |
+|---|---|---|---|---|
+| id | string | 是 | `generateId('br')` | 支部实例 ID（seed 为 `br-b1`） |
+| name | string | 是 | -- | 支部名称（党委命名） |
+| type | string | 否 | `''` | 类型类别标签（自由文本，不预设枚举：如 硕士/博士/本科生） |
+| config | object | 是 | 见下 | 支部配置档案 |
+| secretaryId | string \| null | 否 | `null` | 现任书记 personId（P2 起由任命链维护，访问书记工作台以本值为准） |
+| status | `'active'` | 是 | `'active'` | 支部状态 |
+| createdAt | string (ISO) | 是 | -- | 创建时间 |
+
+**config 配置档案（sub）**：
+
+| 字段名 | 类型 | 必填 | 默认值 | 说明 |
+|---|---|---|---|---|
+| headerTitle | string | 是 | = name | header 品牌**软编码**（改支部名自动同步；header 标题随支部更换） |
+| accent | string \| null | 否 | `null` | 支部主题色（可选，默认党建红不变） |
+| enabledModules | string[] \| null | 否 | `null` | 该支部启用的能力/场景清单（null=全开兼容现有演示；远期「工作流块拖拽编排」自动写回此处，见 [ARCHITECTURE_EVOLUTION §八](../evolution/ARCHITECTURE_EVOLUTION.md)） |
+| fileSpaceIsolated | boolean | 是 | `true` | 支部文件（branchDocs）/附件一支部一独立存储空间——按 branchId 分区、跨支部不可见 |
+
+### 2.22 书记任期记录 (AppointmentRecord)
+
+> 党委任命/撤换书记的任期档案；`to=null` 表示现任。任命即三写：`branches.secretaryId` + 双方 `users.role` 同步 + 本记录封口/新建。
+
+| 字段名 | 类型 | 必填 | 默认值 | 说明 |
+|---|---|---|---|---|
+| id | string | 是 | `generateId('appt')` | 任期记录 ID |
+| branchId | string | 是 | -- | 所属支部 |
+| secretaryId | string | 是 | -- | 被任命人 personId |
+| appointedBy | string | 是 | `'party-staff'` | 任命方 personId（党委组织员） |
+| note | string | 否 | `''` | 任命说明（如 换届选举 2026-09） |
+| from | string (ISO) | 是 | -- | 任期开始时间 |
+| to | string (ISO) \| null | 是 | `null` | 任期结束时间（null=现任；撤换时旧记录封口） |
+
+### 2.23 支部上报审批记录 (ReviewRequest)
+
+> P3 双向治理通道·上报半侧：支部书记/副书记发起（发展节点/活动报备）→ 党委逐项批/驳（驳回须意见）→ 结论回传支部侧同页可见。
+
+| 字段名 | 类型 | 必填 | 默认值 | 说明 |
+|---|---|---|---|---|
+| id | string | 是 | `generateId('rq')` | 上报记录 ID |
+| branchId | string | 是 | -- | 上报支部 |
+| type | `'develop-node'\|'activity-report'` | 是 | -- | 上报类型：发展节点（泛化：确定积极分子/发展对象、接收预备、转正等）/ 活动报备（重要活动） |
+| title | string | 是 | -- | 事项标题 |
+| content | string | 是 | -- | 事项说明（时间/对象/依据等） |
+| status | `'pending'\|'approved'\|'rejected'` | 是 | `'pending'` | 审批状态 |
+| submittedBy | string | 是 | -- | 提交人 personId（书记/副书记） |
+| decidedBy | string \| null | 否 | `null` | 审批人 personId（党委组织员） |
+| decidedAt | string (ISO) \| null | 否 | `null` | 审批时间 |
+| decisionNote | string | 否 | `''` | 审批意见（驳回必填；批准可附指导意见） |
+| createdAt | string (ISO) | 是 | -- | 提交时间 |
+
+### 2.24 党委下发通知扩展（复用 Notice，不新建领域）
+
+> P3 双向治理通道·下发半侧：党委选目标支部下发 → **复用通知实体**，仅目标支部支委层成员在通知入口可见（书记 2026-09-03 裁定：能复用就复用，不新建「下发箱」领域）。
+
+§2.9 通知基础字段不变，下发时额外写入：
+
+| 字段名 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| source | `'committee'` | 是 | 来源标记：`'committee'` = 党委下发；缺省 = 支部自发通知（信息性/行动性） |
+| audience | `'committee'` | 是 | 取值说明：既有字段（§2.19.1 起通知发布用）为受众群体**数组**；党委下发取常量 `'committee'`（字符串）表示「本支部支委层」 |
+| branchId | string | 是 | 目标支部（支部动态创建后自动可选） |
+| branchName | string | 否 | 目标支部名快照（支部后续改名不使历史下发漂移） |
+| publisher | string | 否 | 展示覆盖 `'院党委（组织员）'`（通知详情「通知者」不按 targetModule 推断） |
+| recipients | string | 否 | 展示覆盖 `'支部委员会（支委层）'` |
+
+**受众过滤规则**（`NoticeStore.list()`）：`audience === 'committee'` 的通知仅对「目标 branchId 支部且角色为支委层（书记/副书记/组织/宣传/纪检）」的当前登录用户可见；普通党员、党委组织员（非支委）一律不可见。支部端「已发布通知」管理区不展示上级下发（只读治理信息，不可删改）。
 
 ---
