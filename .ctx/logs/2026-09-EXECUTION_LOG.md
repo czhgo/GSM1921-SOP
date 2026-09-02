@@ -192,3 +192,12 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **防回归教训**：activity-entry 两处 statusBadge 调用并行 Edit 又现写覆盖（L151 act 参数丢失一次，复核补回）——同文件编辑必须串行+事后 Grep 复核
 - **沉淀标签**：漂移裁决 · pending 权威橙 · 专班运行中/已完结 · 已完成全站移除落实 · 活动/专班徽章表拆分
 - **后续（书记四项全选，新会话按序）**：R2 角色键收敛 / 同构抽壳+Step2 CRUD 统一 / **部署 checklist 立项**（含空表回退 mock 污染处理 = 对接第一位）/ 表决决议票数留档
+
+---
+
+## T-2026-09-010 卡点全景汇报 + 部署件基座（2026-09-02）
+
+**书记决策**：不 push（风险自担已知悉）；上线=先把能做的部署件做掉；表决服务端强制=列后续专项；主攻减负 R2+抽壳
+**卡点全景（已汇报书记）**：① 外部依赖——托管机器申请（书记推动）/REVIEW_QUEUE 逐条/界面减负目检；② 决策待定——表决信任边界/push/备份 SOP；③ 纯执行——R2/抽壳/Step2（已批）；④ 排队——表决留档/help 术语
+**部署件实施**（版本串 20260901o，commit bda8fd9）：server.js `DISABLE_SEED=1` env（空库不导入演示种子）；deploy.js `SEED_FALLBACK` 开关（真实部署=false）+ 污染机制注释；DEPLOYMENT_ROADMAP §2.3「真实部署 checklist」6 步（新库启动 3 步含 services 9 处空表回退关闭清单 + 日常运维备份/恢复/更新 3 步）；module-load 109/109 + seed 通过
+**后续**：R2 角色键收敛 / 同构抽壳（review-submit 等）/ Step2 CRUD 统一——主攻线待新会话执行（需完整上下文逐文件改）
