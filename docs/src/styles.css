@@ -2213,6 +2213,18 @@ html.theme-dark .tf-section-head {
   white-space: normal;
   max-width: 150px;
 }
+/* AV4：formal 票数统计行 + quorumCheck 通过条件提示（书记端汇总，轻量弱化文字） */
+.vs-tally {
+  margin-top: 6px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--neutral-600);
+}
+.vs-quorum {
+  margin-top: 3px;
+  font-size: 0.7rem;
+  color: var(--neutral-500);
+}
 
 /* ═══════════════════════════════════════════════════════════════
    COMPONENT: Status Badge（T-217 §2.4 行内状态轻交互原型）

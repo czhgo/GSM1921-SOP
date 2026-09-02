@@ -1,14 +1,16 @@
 // role: [工程师]+[AI]
-// vote-summary-panel.js — 书记端表态汇总矩阵（议题 × 委员）
-// 展示：应到/已表态/未表态统计 + 矩阵（同意/异议/附言；异议红底高亮、附言完整显示）
+// vote-summary-panel.js — 书记端表态汇总矩阵（议题 × 应到成员）
+// 展示：应到/已表态/未表态统计 + 矩阵（选项标签随活动 optionSet：deliberative 同意/异议/附言、formal 赞成/反对/弃权；
+//   异议红底高亮、附言完整显示）+ formal 票数统计（赞成/反对/弃权）+ quorumCheck 通过条件提示
 // 操作：截止按钮（prompt 设置截止时间，留空立即截止 → lockVotes）→ votes-locked 事件冒泡
 // 权限：canLock 仅书记为 true（与 server requireRole(secretary) 三端一致）；副书记可见不可截止
-// committeeMembers 由调用方传入（支委名单权威：services/vote-config.js resolveVoterIds('committee')；过滤见 inspector.js；
-// server/routes/committee.js COMMITTEE_IDS 仅作旧活动回退白名单，勿再本地罗列支委成员）
+// 应到总数 = activity.voteConfig.voterIds.length（AV2 创建时固化）；旧活动/线下无 voteConfig 回退
+//   committeeMembers.length。矩阵成员由调用方传入（有 voteConfig → voterIds 映射人员；无 → 权威支委名单
+//   resolveVoterIds('committee')，过滤见 inspector.js；server/routes/committee.js COMMITTEE_IDS 仅作旧活动
+//   回退白名单，勿再本地罗列支委成员）。选项集/标签权威 = vote-config.js OPTION_SETS（勿再本地硬编码）
 import { fetchVotes, lockVotes } from '../services/committee-vote.js?v=20260901g';
+import { optionSetOf } from '../services/vote-config.js?v=20260901g';
 import { showToast } from '../core/utils.js?v=20260901g';
-
-const LABELS = { agree: '同意', object: '异议', comment: '附言' };
 
 // HTML 转义（议题/附言为输入或既有数据，innerHTML 渲染前转义防存储型 XSS）
 function esc(s) {
@@ -22,7 +24,30 @@ export async function renderVoteSummary(container, { activity, committeeMembers,
   const locked = activity.votesLocked === true;
   const items = Array.isArray(activity.agenda) ? activity.agenda : [];
   const votedCount = new Set(votes.map((v) => v.personId)).size;
-  const total = committeeMembers.length;
+  // 应到总数：voteConfig.voterIds（创建时固化应到名单）优先；旧活动/线下无 voteConfig → committeeMembers.length
+  const total = activity.voteConfig?.voterIds?.length ?? committeeMembers.length;
+  const os = optionSetOf(activity);
+  const optionSet = activity.voteConfig?.optionSet;
+  const labelOf = (pos) => (os.labels && os.labels[pos]) || pos;
+  const isFormal = optionSet === 'formal';
+  const quorumCheck = activity.voteConfig?.quorumCheck === true;
+
+  // formal 票数统计（赞成/反对/弃权；已表态 = 去重 personId，与头部统计口径一致）
+  let tallyHtml = '';
+  if (isFormal) {
+    const count = { approve: 0, oppose: 0, abstain: 0 };
+    for (const v of votes) {
+      if (Object.prototype.hasOwnProperty.call(count, v.position)) count[v.position] += 1;
+    }
+    tallyHtml = `<div class="vs-tally">票数统计：赞成 ${count.approve} · 反对 ${count.oppose} · 弃权 ${count.abstain} · 已表态 ${votedCount}/${total}</div>`;
+  }
+  // quorumCheck（支部党员大会硬校验）时显示通过条件提示（spec §四：出席 ≥ ceil(应到/2)，赞成 > 应到/2）
+  let quorumHtml = '';
+  if (quorumCheck) {
+    const needPresent = Math.ceil(total / 2);
+    const needApprove = Math.floor(total / 2) + 1; // > 应到/2 的最小整数
+    quorumHtml = `<div class="vs-quorum">通过条件：出席（已表态，含弃权）需 ≥ ${needPresent}/${total}，通过需赞成 &gt; 应到/2（≥ ${needApprove} 人）</div>`;
+  }
 
   container.innerHTML = `
     <div class="vote-summary">
@@ -31,6 +56,8 @@ export async function renderVoteSummary(container, { activity, committeeMembers,
         <span class="vs-stat">应到 ${total} · 已表态 ${votedCount} · 未表态 ${total - votedCount}</span>
         ${locked ? '<span class="vs-locked">已截止</span>' : (canLock === true ? '<button class="vs-lock" type="button">截止表态</button>' : '')}
       </div>
+      ${tallyHtml}
+      ${quorumHtml}
       <div class="vs-matrix-wrap">
         <table class="vs-matrix">
           <thead><tr><th>议题</th>${committeeMembers.map((m) => `<th>${esc(m.name)}</th>`).join('')}</tr></thead>
@@ -40,7 +67,7 @@ export async function renderVoteSummary(container, { activity, committeeMembers,
                 const v = votes.find((x) => x.personId === m.id && x.agendaItemId === it.id);
                 if (!v) return '<td class="vs-none">—</td>';
                 const cls = v.position === 'object' ? 'vs-object' : '';
-                return `<td class="${cls}">${LABELS[v.position] || esc(v.position)}${v.note ? `<span class="vs-note">${esc(v.note)}</span>` : ''}</td>`;
+                return `<td class="${cls}">${labelOf(v.position)}${v.note ? `<span class="vs-note">${esc(v.note)}</span>` : ''}</td>`;
               }).join('');
               return `<tr><td>${esc(it.item || '(无标题议题)')}</td>${row}</tr>`;
             }).join('')}

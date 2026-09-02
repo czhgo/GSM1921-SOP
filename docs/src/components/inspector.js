@@ -19,6 +19,7 @@ import { badgeHtml } from './badge.js?v=20260901g';
 import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260901g';
 import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260901g';
 import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260901g';
+import { optionSetOf, resolveVoterIds } from '../services/vote-config.js?v=20260901g';
 import { renderVoteSummary } from './vote-summary-panel.js?v=20260901g';
 import { loadAttendanceRecords } from '../services/attendance.js?v=20260901g';
 import { loadInspectionRecords } from '../services/inspection.js?v=20260901g';
@@ -469,11 +470,12 @@ async function _recordAgendaResult(activity, agendaItemId, result) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  委员端表态面板（2026-09-01 线上支委会 Task3：支委角色可见）
-//  未锁定 → 三按钮（同意/异议/附言）+ 附言输入框 + 提交（可覆盖表态）；
-//  已表态 → 「已表态：同意（附言…）」；锁定后只读（标题带「已截止」，仅显示已表态记录）
+//  委员/党员端表态面板（2026-09-01 线上支委会 Task3：支委角色可见；2026-09-02 AV4：选项集参数化）
+//  未锁定 → 按活动 optionSet 渲染表态按钮（deliberative: 同意/异议/附言；formal: 赞成/反对/弃权）
+//          + 附言输入框 + 提交（可覆盖表态）；
+//  已表态 → 「已表态：…」；锁定后只读（标题带「已截止」，仅显示已表态记录）
+//  文案/校验来自 vote-config.js OPTION_SETS（labels/options/objectRequiresNote），勿再本地硬编码
 // ════════════════════════════════════════════════════════════════
-const VOTE_LABELS = { agree: '同意', object: '异议', comment: '附言' };
 
 // HTML 转义（表态附言/表态值为用户输入，innerHTML 渲染前转义防存储型 XSS）
 function esc(s) {
@@ -484,18 +486,19 @@ function esc(s) {
 
 function renderVotePanel(container, { activity, agendaItem, votes, isCommittee, currentUserId }) {
   const locked = activity.votesLocked === true;
+  const os = optionSetOf(activity);
+  const labelOf = (pos) => (os.labels && os.labels[pos]) || pos;
+  const options = (Array.isArray(os.options) && os.options.length > 0) ? os.options : ['agree', 'object', 'comment'];
   const mine = (votes || []).find(v => v.personId === currentUserId && v.agendaItemId === agendaItem.id);
   container.innerHTML = `
     <div class="vote-panel">
       <div class="vote-title">我的表态${locked ? '（已截止）' : ''}</div>
-      ${mine ? `<div class="vote-current">已表态：${VOTE_LABELS[mine.position] || mine.position}${mine.note ? '（' + mine.note + '）' : ''}</div>` : ''}
+      ${mine ? `<div class="vote-current">已表态：${esc(labelOf(mine.position))}${mine.note ? '（' + esc(mine.note) + '）' : ''}</div>` : ''}
       ${!locked && isCommittee ? `
         <div class="vote-actions">
-          <button type="button" class="vote-btn" data-pos="agree">同意</button>
-          <button type="button" class="vote-btn" data-pos="object">异议</button>
-          <button type="button" class="vote-btn" data-pos="comment">附言</button>
+          ${options.map((pos) => `<button type="button" class="vote-btn" data-pos="${pos}">${labelOf(pos)}</button>`).join('')}
         </div>
-        <textarea class="vote-note" rows="2" placeholder="附言/异议说明（异议必填）"></textarea>
+        <textarea class="vote-note" rows="2" placeholder="${os.objectRequiresNote ? '附言/异议说明（异议必填）' : '附言说明（选填）'}"></textarea>
         <button type="button" class="vote-submit">提交表态</button>` : ''}
     </div>`;
 
@@ -514,9 +517,10 @@ function renderVotePanel(container, { activity, agendaItem, votes, isCommittee, 
   if (submitBtn) {
     submitBtn.addEventListener('click', async () => {
       const pos = container.querySelector('.vote-btn.active')?.dataset.pos;
-      if (!pos) { showToast('error', '请先选择表态（同意/异议/附言）'); return; }
+      if (!pos) { showToast('error', `请先选择表态（${options.map((p) => labelOf(p)).join('/')}）`); return; }
       const note = container.querySelector('.vote-note').value.trim();
-      if (pos === 'object' && !note) { showToast('error', '异议须附言说明'); return; }
+      // 「异议须附言」由选项集 objectRequiresNote 控制（deliberative 适用；formal 附言选填不强制）
+      if (os.objectRequiresNote && pos === 'object' && !note) { showToast('error', `${labelOf('object')}须附言说明`); return; }
       // P1 防连点：提交期间禁用按钮（异步落库期间重复点击会重复请求）
       if (submitBtn.dataset.processing === '1') return;
       submitBtn.dataset.processing = '1';
@@ -771,14 +775,19 @@ function renderInspectorDetail(activity, tasks, managementRole) {
 
   // 书记端表态汇总（2026-09-01 线上支委会 Task4：书记/副书记可见）
   // 加载后 fetchVotes → 汇总矩阵；votes-locked 冒泡 → 提示记录决议 + setState 刷新锁定态
-  // committeeMembers 取权威名单 resolveVoterIds('committee')（vote-config.js：people.js role + isCommissioner、排除 u_*），
-  //   再映射回 PersonStore 人员对象（渲染需姓名/角色；名单顺序仍以 PersonStore 原序为准，勿自行重写过滤口径）
+  // 矩阵名单 = 活动投票成员：有 voteConfig.voterIds（创建时固化应到名单）→ 按名单映射人员（AV4 泛化，
+  //   支部党员大会/支委会通用）；无 voteConfig（旧活动/线下）→ 回退权威支委名单 resolveVoterIds('committee')
+  //   （vote-config.js：people.js role + isCommissioner、排除 u_*）。再映射回 PersonStore 人员对象
+  //   （渲染需姓名/角色；名单顺序仍以 PersonStore 原序为准，勿自行重写过滤口径）
   // canLock 仅书记为 true（截止按钮仅书记可见，与 server requireRole(secretary) 三端一致）
   if (isSecretaryOrDeputy && Array.isArray(activity.agenda) && activity.agenda.length > 0) {
     const vsSlot = cardsEl.querySelector('#vote-summary-slot');
     if (vsSlot) {
-      const committeeIds = new Set(resolveVoterIds('committee'));
-      const committeeMembers = PersonStore.getAll().filter((p) => committeeIds.has(p.id));
+      const cfgIds = (Array.isArray(activity.voteConfig?.voterIds) && activity.voteConfig.voterIds.length > 0)
+        ? activity.voteConfig.voterIds
+        : resolveVoterIds('committee');
+      const memberIds = new Set(cfgIds);
+      const committeeMembers = PersonStore.getAll().filter((p) => memberIds.has(p.id));
       renderVoteSummary(vsSlot, { activity, committeeMembers, canLock: isSecretary })
         .catch(e => console.warn('[inspector] 表态汇总加载失败：', e));
       vsSlot.addEventListener('votes-locked', () => {
