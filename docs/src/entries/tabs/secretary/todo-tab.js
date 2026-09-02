@@ -4,24 +4,24 @@
 // 2026-08-07 T232：改为「动态聚合 + 复核确认面板」——SecretaryTodoDeriver.computeAggregates()
 //   实时计算 4 提醒 + 4 复核，复核类一键写 secretaryConfirmedAt 销项，不再创建虚假实体待办。
 
-import { showToast } from '../../../core/utils.js?v=20260901p';
-import { renderTodoList } from '../../../components/todo-list.js?v=20260901p';
-import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260901p';
-import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260901p';
-import { badgeHtml } from '../../../components/badge.js?v=20260901p';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260901p';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260901p';
-import { updateActivityReview } from '../../../services/review.js?v=20260901p';
-import { loadActivities } from '../../../services/activity.js?v=20260901p';
-import { mockDB } from '../../../core/domain.js?v=20260901p';
-import { persist } from '../../../core/data-adapter.js?v=20260901p';
-import { getPersonById } from '../../../mock/index.js?v=20260901p';
-import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260901p';
-import { IssueStore } from '../../../services/issues.js?v=20260901p';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260901p';
-import { openFormModal } from '../../../components/modal.js?v=20260901p';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/report-inbox.js?v=20260901p';
-import { renderMemberChangePanel } from '../../../components/member-change-panel.js?v=20260901p';
+import { showToast } from '../../../core/utils.js?v=20260901q';
+import { renderTodoList } from '../../../components/todo-list.js?v=20260901q';
+import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260901q';
+import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260901q';
+import { badgeHtml } from '../../../components/badge.js?v=20260901q';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260901q';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260901q';
+import { updateActivityReview } from '../../../services/review.js?v=20260901q';
+import { loadActivities } from '../../../services/activity.js?v=20260901q';
+import { mockDB } from '../../../core/domain.js?v=20260901q';
+import { persist } from '../../../core/data-adapter.js?v=20260901q';
+import { getPersonById } from '../../../mock/index.js?v=20260901q';
+import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260901q';
+import { IssueStore } from '../../../services/issues.js?v=20260901q';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260901q';
+import { openFormModal } from '../../../components/modal.js?v=20260901q';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/report-inbox.js?v=20260901q';
+import { renderMemberChangePanel } from '../../../components/member-change-panel.js?v=20260901q';
 
 const { accent, accentBorder } = getAccentColors(resolveAccentRole('secretary'));
 

@@ -6,9 +6,9 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260901p';
-import { persist } from '../core/data-adapter.js?v=20260901p';
-import { generateId } from '../core/id.js?v=20260901p';
+import { mockDB } from '../core/domain.js?v=20260901q';
+import { persist } from '../core/data-adapter.js?v=20260901q';
+import { generateId } from '../core/id.js?v=20260901q';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {

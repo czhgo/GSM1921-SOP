@@ -2,12 +2,12 @@
 // 组织委员工作台 Tab：人才库（T-279 M3 拆分，照 M2 样板）
 // 人员信息汇总提炼，输出人才画像；点击人员展开考察记录汇总。
 
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260901p';
-import { loadActivities } from '../../../services/activity.js?v=20260901p';
-import { PEOPLE, getPersonById } from '../../../mock/index.js?v=20260901p';
-import { renderQueryView } from '../../../components/query-view.js?v=20260901p';
-import { badgeHtml } from '../../../components/badge.js?v=20260901p';
-import { icon } from '../../../core/icons.js?v=20260901p';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260901q';
+import { loadActivities } from '../../../services/activity.js?v=20260901q';
+import { PEOPLE, getPersonById } from '../../../mock/index.js?v=20260901q';
+import { renderQueryView } from '../../../components/query-view.js?v=20260901q';
+import { badgeHtml } from '../../../components/badge.js?v=20260901q';
+import { icon } from '../../../core/icons.js?v=20260901q';
 
 // 发展阶段颜色映射（单一模块级；收敛 2026-09-02：原 query/detail 两函数内各有一份同值副本）
 const STAGE_COLOR = {

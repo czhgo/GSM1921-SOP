@@ -2,13 +2,13 @@
 // 纪检委员工作台 Tab：待办（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 todo-tab-shell）
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降。
 
-import { showToast } from '../../../core/utils.js?v=20260901p';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType, seedTodos } from '../../../services/todo.js?v=20260901p';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260901p';
-import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260901p';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260901p';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260901p';
-import { getPersonName } from '../../../mock/index.js?v=20260901p';
+import { showToast } from '../../../core/utils.js?v=20260901q';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType, seedTodos } from '../../../services/todo.js?v=20260901q';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260901q';
+import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260901q';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260901q';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260901q';
+import { getPersonName } from '../../../mock/index.js?v=20260901q';
 
 // ── 纪检聚合构建（2026-08-07 闭环化） ────────────────────────
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降，

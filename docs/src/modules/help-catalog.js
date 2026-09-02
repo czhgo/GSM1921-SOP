@@ -5,8 +5,8 @@
 // 功能地图 mindmap 与业务链路 flowchart 以 <pre class="mermaid"> 文本注入（源文本来自共享模块
 // src/core/mermaid-sources.js，与 gen 脚本同实现），由 help-entry.js 懒加载 mermaid CDN 渲染
 // （离线失败保留 .mermaid-fallback 降级文本）
-import { FUNCTION_GROUPS, FUNCTION_CATALOG } from '../core/function-catalog.js?v=20260901p';
-import { generateMindmapText, FLOW_LINKS } from '../core/mermaid-sources.js?v=20260901p';
+import { FUNCTION_GROUPS, FUNCTION_CATALOG } from '../core/function-catalog.js?v=20260901q';
+import { generateMindmapText, FLOW_LINKS } from '../core/mermaid-sources.js?v=20260901q';
 
 // 目录树静态项（致谢第一）+ 章节顺序（与右侧内容面板顺序一致）
 const STATIC_TOC = [

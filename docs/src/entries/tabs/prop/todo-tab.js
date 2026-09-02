@@ -2,9 +2,9 @@
 // 宣传委员工作台 Tab：待办（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 todo-tab-shell）
 // 最小三成本原则落地：进入即见首条详情，减一次点击。
 
-import { showToast } from '../../../core/utils.js?v=20260901p';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260901p';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260901p';
+import { showToast } from '../../../core/utils.js?v=20260901q';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260901q';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260901q';
 
 function _handleTodoAction(todo, ctx) {
   // 通知阅读待办（T-234 F1）：直达通知详情页（聚合时取首条 noticeId）
