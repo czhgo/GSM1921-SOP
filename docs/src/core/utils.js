@@ -32,6 +32,8 @@ export function showToast(type, message) {
   if (!_toastContainer) {
     _toastContainer = document.createElement('div');
     _toastContainer.id = 'toast-container';
+    _toastContainer.setAttribute('role', 'status');          // B4 无障碍（2026-09-03）：异步更新需 aria-live
+    _toastContainer.setAttribute('aria-live', 'polite');
     _toastContainer.style.cssText = [
       'position:fixed', 'bottom:1.5rem', 'right:1.5rem',
       'z-index:9999', 'display:flex', 'flex-direction:column',

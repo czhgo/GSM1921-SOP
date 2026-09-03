@@ -11,6 +11,7 @@ import { mockDB } from '../../../core/domain.js?v=20260903a';
 import { AuthStore } from '../../../services/auth.js?v=20260903a';
 import { PARTY_COMMITTEE } from '../../../mock/branches.js?v=20260903a';
 import { NoticeStore } from '../../../services/notice.js?v=20260903a';
+import { textField, textareaField } from '../../../components/form-field.js?v=20260903a';
 import { showToast } from '../../../core/utils.js?v=20260903a';
 
 function esc(s) {
@@ -59,14 +60,8 @@ export function renderContent() {
           <p class="text-xs text-gray-500 block mb-1.5">目标支部（可多选）<span class="text-red-500">*</span></p>
           <div id="dispatch-branches" class="flex flex-wrap gap-2"></div>
         </div>
-        <div class="mb-3">
-          <label class="text-xs text-gray-500 block mb-1">标题 <span class="text-red-500">*</span></label>
-          <input id="dispatch-title" type="text" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-red-400" value="${esc(prev.title)}" placeholder="如：关于规范主题党日开展程序的工作提示" />
-        </div>
-        <div class="mb-3">
-          <label class="text-xs text-gray-500 block mb-1">正文（下发内容/要求）<span class="text-red-500">*</span></label>
-          <textarea id="dispatch-content" rows="4" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-red-400 resize-none" placeholder="面向支部委员会的工作要求/提醒/安排">${esc(prev.content)}</textarea>
-        </div>
+        ${textField({ id: 'dispatch-title', label: '标题', required: true, value: prev.title || '', placeholder: '例：关于规范主题党日开展程序的工作提示…', autocomplete: 'off', compact: false })}
+        ${textareaField({ id: 'dispatch-content', label: '正文（下发内容/要求）', required: true, value: prev.content || '', rows: 4, placeholder: '面向支部委员会的工作要求、提醒或安排…' })}
         <div class="mb-4">
           <p class="text-xs text-gray-500 block mb-1.5">优先级</p>
           <div class="flex gap-2">
