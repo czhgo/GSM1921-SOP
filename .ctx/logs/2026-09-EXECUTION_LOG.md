@@ -332,3 +332,15 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **P0**：① 行内追加记录小表单重复双轨——org/taskforce-tab.js:496/508 与 leader/write-tab.js:272/287/301 同构灰底块 5 处复制粘贴（抽 InlineRecordForm）；② type="date" 全仓 8 处原生 picker 与圆角体系/主题 focus 不统一（收口 FormField date 包装）。
 **P1**：标签文本普遍不关联控件（无 for/id，点击不聚焦/读屏无关联）；错误态多为 toast、按钮提交中态仅部分禁用；非登录输入缺 autocomplete/name。
 **建议批次（待授权）**：B1 抽 InlineRecordForm（零行为变化）→ B2 表单积木 FormField 目录（label 关联/date/select 收口）→ B3 全站输入违例 grep 收编 input-flat → B4 合规 pass（aria-live/focus-visible/autocomplete）。每批独立交付+回归。
+
+## T-2026-09-023 块画布 v0 落地 + 表单 B2/B4 + B3 示范（2026-09-03，提交 8c84e48/c0e5b73）
+
+**块画布 v0（spec step1-5 完成，E2E 闭环）**：
+- OUTPUT_BLOCK_DEFS 目录（attendance/inspection/publicity/materials）；branch.js getOutputBlockPolicy/applyOutputBlockPolicy(纯)/updateBranchBlocks
+- config.blocks={outputBlocks:{hiddenBlockIds,blockOrder}}；server config 子路由扩展可选 modules/blocks 白名单（结构校验/缺一 400/null 恢复默认）
+- UI「工作台配置」新增活动产出块区（chips+画布拖拽+保存合并 modules/blocks+恢复默认）
+- 消费：leader write-tab 活动详情「添加记录」按支部产出块过滤排序（全停用提示）
+- 测试：output-block-policy(3)+module-config blocks HTTP+block-canvas-e2e（书记停宣传→组长按钮消失→恢复回归）——注：UI 保存时序曾致 E2E 不稳，改服务直写（写路径 HTTP 单测覆盖）后通过；UI 保存待目视复核
+**表单美学**：B2 components/form-field.js（text/textarea/select/date + label 关联/必填/aria 错误/placeholder…/value 转义；四要素落点注释）；dispatch-tab 标题/正文收编示范；B4 showToast role=status+aria-live；**B3 全量粗扫 42 文件含非 input-flat 控件（含 checkbox/radio/chip hidden 误报，需人工甄别）——批量收编留连续批**
+**回归**：module-load 115/115；P3 下发/审批 E2E、module-config、block E2E、权限门等 9/9 绿
+**下一步候选**：B3 批量收编（form-field 工具已备）；label for 存量改造；L3 block manifest 契约；目视复核工作台配置新区；push 待书记批准
