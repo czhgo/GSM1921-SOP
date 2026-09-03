@@ -20,7 +20,7 @@ import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../c
 import { IssueStore } from '../../../services/issues.js?v=20260903c';
 import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903c';
 import { openFormModal } from '../../../components/modal.js?v=20260903c';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/report-inbox.js?v=20260903c';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260903c';
 import { renderMemberChangePanel } from '../../../components/member-change-panel.js?v=20260903c';
 
 const { accent, accentBorder } = getAccentColors(resolveAccentRole('secretary'));

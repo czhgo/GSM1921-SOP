@@ -389,6 +389,12 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - 新建 `components/badges.js` 聚合 badge（badgeHtml/badgeVariantClass 展示徽章）+ status-badge（statusBadgeHtml/bindStatusBadge 交互状态徽章）
 - 全站 37 个文件收口（components 内部 13 + dashboard 2 + entries/services 6 + tabs 16）；仅 import 来源一行替换，零行为变化
 
+**P0 试点三·汇报库 reporting.js（完成）**：
+- 新建 `components/reporting.js` 聚合汇报闭环收/发两侧：report-entry（发起入口 renderReportEntryHtml/bindReportEntry）+ report-inbox（答复收件箱 renderReportInboxHtml/bindReportInbox）
+- 域边界判断：两者同属 Issue kind='report' 汇报数据流才入库；handoff-inbox（HandoffStore 数据交接）为另一数据流不硬凑
+- 7 个调用方收口（ws-leader/visitor/org/prop/disc 五入口 + secretary todo-tab + leader members-tab）；无直连残留
+- 回归：module-load + multi-user-write + write-hover 3/3 绿
+
 **MPO 评估归档**：新建 `content/04_web_design/evolution/MODULARIZATION_ASSESSMENT.md` —— 模块化 80 / 插件化 72 / 开源化 74 ≈ 75；确立「统一扎口范式」（域内多实现→一个库出口 + 四条改造纪律：聚合重导出不搬运/调用方只改 import 一行/每批回归/禁双轨）；行动优先级 P0 扎口推广与数据域接线 → P1 开源合规包 → P2 L3 block manifest
 
 **回归**：module-load 116/116（含新库）；party-committee + write-hover + capability-registry 15/15 绿；git diff 净 37 文件 +41/−42（无编码异常）

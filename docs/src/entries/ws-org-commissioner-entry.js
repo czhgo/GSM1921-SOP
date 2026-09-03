@@ -4,7 +4,7 @@
 
 import { getAppState, setState } from '../core/state.js?v=20260903c';
 import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260903c';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260903c';
+import { renderReportEntryHtml, bindReportEntry } from '../components/reporting.js?v=20260903c';
 import { flashHighlight } from '../core/utils.js?v=20260903c';
 import { loadActivities } from '../services/activity.js?v=20260903c';
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260903c';

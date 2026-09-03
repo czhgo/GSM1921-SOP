@@ -3,7 +3,7 @@
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
 import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260903c';
-import { renderReportEntryHtml, bindReportEntry } from '../components/report-entry.js?v=20260903c';
+import { renderReportEntryHtml, bindReportEntry } from '../components/reporting.js?v=20260903c';
 import { loadActivities } from '../services/activity.js?v=20260903c';
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260903c';
 import { NoticeStore } from '../services/notice.js?v=20260903c';
