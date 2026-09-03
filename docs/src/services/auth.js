@@ -11,6 +11,8 @@
 
 import { ROLE_LABELS, ROLE_PAGE_MAP } from '../core/constants.js?v=20260903c';
 import { PEOPLE } from '../mock/index.js?v=20260903c';
+// 账号登录校验 mock 实现（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
+import { mockLogin } from '../mock/accounts.js?v=20260903c';
 import { getPersonById, getPersonName } from './person.js?v=20260903c';
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { NoticeStore } from './notice.js?v=20260903c';
@@ -252,6 +254,16 @@ function _saveAuthRecords(records) {
 // AuthStore API
 // ════════════════════════════════════════════════
 export const AuthStore = {
+  /**
+   * 账号密码校验（登录域收口 2026-09-03：UI 不直连 mock 账号仓；真实后端接入时替换实现）
+   * @param {string} studentId
+   * @param {string} password
+   * @returns {{ ok: boolean, personId: string|null }}
+   */
+  verifyCredentials(studentId, password) {
+    return mockLogin(studentId, password);
+  },
+
   /**
    * 登录（本地角色判定 + 后端 token 会话，失败静默降级本地模式）
    * @param {string} personId

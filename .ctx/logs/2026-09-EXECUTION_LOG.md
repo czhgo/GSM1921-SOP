@@ -435,6 +435,13 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - mock/index PEOPLE re-export 仅剩 services 层 7 处种子引用（契约 §五 条款 2 更新：成员名单唯一出口=getMembers）
 - 回归：module-load + party/multi-user/block-entry-guard/capability-registry 18/18 全绿
 
+**P0 试点四·批次四（余种子与机构/登录收口收官，完成）**：
+- 党委机构名收口：branch.js 增 getCommitteeName()；monitor/dispatch/branches 三党委 tab 直连 mock/branches PARTY_COMMITTEE → 服务（header 品牌同域收敛）
+- 登录收口：auth.js 增 AuthStore.verifyCredentials()（mock 校验实现入认证域，真实后端替换点明确）；login-entry 不再直连 mock/accounts
+- **P0 收官态达成：UI 层（entries/components/modules）mock import 直连清零**——全仓 mock 引用仅存 services/core 数据层
+- 回归：module-load + party-committee/dispatch + write-hover 5/5 全绿
+- 教训：同一文件两处 Edit 并行又致 import 替换丢失（monitor/dispatch）——grep 复验抓出，串行补修；同文件改动必须串行执行
+
 **MPO 评估归档**：新建 `content/04_web_design/evolution/MODULARIZATION_ASSESSMENT.md` —— 模块化 80 / 插件化 72 / 开源化 74 ≈ 75；确立「统一扎口范式」（域内多实现→一个库出口 + 四条改造纪律：聚合重导出不搬运/调用方只改 import 一行/每批回归/禁双轨）；行动优先级 P0 扎口推广与数据域接线 → P1 开源合规包 → P2 L3 block manifest
 
 **回归**：module-load 116/116（含新库）；party-committee + write-hover + capability-registry 15/15 绿；git diff 净 37 文件 +41/−42（无编码异常）

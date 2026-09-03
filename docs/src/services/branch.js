@@ -211,6 +211,14 @@ export function getHeaderTitle(personId) {
 }
 
 /**
+ * 党委机构名（2026-09-03 数据域接线收口：党委台 UI 原直连 mock/branches PARTY_COMMITTEE）
+ * 机构信息单一源（接入真实党委机构配置时替换本实现，UI 零改动）
+ */
+export function getCommitteeName() {
+  return PARTY_COMMITTEE?.name || '光华管理学院党委';
+}
+
+/**
  * 支部内资源隔离过滤（收敛点，防各 tab 手写过滤漂移）：
  * 按当前人所属支部过滤行；老数据无 branchId 视为 br-b1（惰性维度迁移兼容）。
  * 单支部时代恒等（全部 br-b1）；党委创建新支部并挂入跨支部数据后自然生效。

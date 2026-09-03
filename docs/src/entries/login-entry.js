@@ -3,7 +3,6 @@
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
 import { AuthStore } from '../services/auth.js?v=20260903c';
-import { mockLogin } from '../mock/accounts.js?v=20260903c';
 import { getAccentColors, solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260903c';
 
 // 已登录则直接跳转
@@ -93,7 +92,7 @@ if (loginForm) {
     const password = document.getElementById('password').value.trim();
     const errorEl = document.getElementById('login-error');
 
-    const result = mockLogin(studentId, password);
+    const result = AuthStore.verifyCredentials(studentId, password);
     if (!result.ok) {
       errorEl.classList.remove('hidden');
       return;

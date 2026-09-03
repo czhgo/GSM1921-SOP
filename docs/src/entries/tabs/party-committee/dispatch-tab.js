@@ -9,7 +9,7 @@
 
 import { mockDB } from '../../../core/domain.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { PARTY_COMMITTEE } from '../../../mock/branches.js?v=20260903c';
+import { getCommitteeName } from '../../../services/branch.js?v=20260903c';
 import { NoticeStore } from '../../../services/notice.js?v=20260903c';
 import { textField, textareaField } from '../../../components/forms.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
@@ -79,7 +79,7 @@ export function renderContent() {
       </div>
 
       <div>
-        <p class="text-xs text-gray-400 mb-2">下发历史（${esc(PARTY_COMMITTEE.name)}）</p>
+        <p class="text-xs text-gray-400 mb-2">下发历史（${esc(getCommitteeName())}）</p>
         <div id="dispatch-history" class="space-y-3"></div>
       </div>
     </div>

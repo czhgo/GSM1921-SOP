@@ -7,7 +7,7 @@ import { mockDB } from '../../../core/domain.js?v=20260903c';
 import { PersonStore } from '../../../services/person.js?v=20260903c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { PARTY_COMMITTEE } from '../../../mock/branches.js?v=20260903c';
+import { getCommitteeName } from '../../../services/branch.js?v=20260903c';
 import { getPersonName } from '../../../services/person.js?v=20260903c';
 
 const STAGE_ORDER = ['正式党员', '预备党员', '发展对象', '积极分子'];
@@ -35,7 +35,7 @@ export async function renderContent(ctx) {
       <div class="rounded-xl border border-gray-200 bg-white p-4 flex items-center justify-between">
         <div>
           <p class="text-xs text-gray-400">院系党组织</p>
-          <p class="font-title-cn text-lg font-bold text-gray-800">${PARTY_COMMITTEE.name}</p>
+          <p class="font-title-cn text-lg font-bold text-gray-800">${getCommitteeName()}</p>
         </div>
         <div class="text-right">
           <p class="text-2xl font-bold text-red-600">${branches.length}</p>

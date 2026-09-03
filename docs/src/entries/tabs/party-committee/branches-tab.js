@@ -6,9 +6,8 @@ import { mockDB } from '../../../core/domain.js?v=20260903c';
 import { PersonStore } from '../../../services/person.js?v=20260903c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { PARTY_COMMITTEE } from '../../../mock/branches.js?v=20260903c';
+import { createBranch, renameBranch, getCommitteeName } from '../../../services/branch.js?v=20260903c';
 import { getPersonName } from '../../../services/person.js?v=20260903c';
-import { createBranch, renameBranch } from '../../../services/branch.js?v=20260903c';
 import { appointSecretary, listAppointments } from '../../../services/appointment.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 
@@ -83,7 +82,7 @@ export async function renderContent() {
             </div>` : ''; })()}
           </div>`).join('')}
       </div>
-      <p class="text-xs text-gray-400">党委组织：${esc(PARTY_COMMITTEE.name)} · 支部 ${branches.length} 个</p>
+      <p class="text-xs text-gray-400">党委组织：${esc(getCommitteeName())} · 支部 ${branches.length} 个</p>
     </div>
   `;
 
