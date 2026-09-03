@@ -413,6 +413,11 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - S1 编码（书记点名 主题党日+专班）：docs/src/workflow/blocks/manifests.js —— THEME_PARTY_DAY_MANIFEST + TASKFORCE_RUN_MANIFEST + validateBlockManifest 纯校验器（含 capability→provenance 权威对照，反例 1 曾暴露「通用谎报自创」未拦截，已补）
 - 单测：server/test/block-manifest.test.mjs（清单合规 + 5 反例拦截）+ module-load 全绿
 
+**L3 S2（表单渲染桥，完成）**：
+- docs/src/workflow/blocks/form-renderer.js：manifest.inputs.fields → forms.js 积木（kind 一一映射 textField/textareaField/selectField/dateField；块级 id 前缀防多块冲突；name=fieldId 供提交取值约定）
+- 表单条目可组装落地（维度②）：enabledDefault=false 默认收起（quota），includeDisabled=true 供配置面预览全量条目；manifestFieldCatalog 字段目录供 S3
+- 单测：server/test/block-form-renderer.test.mjs（kind 映射/收拢/预览/组织选项/无障碍 for 关联）+ S1 + module-load 3/3 绿
+
 **MPO 评估归档**：新建 `content/04_web_design/evolution/MODULARIZATION_ASSESSMENT.md` —— 模块化 80 / 插件化 72 / 开源化 74 ≈ 75；确立「统一扎口范式」（域内多实现→一个库出口 + 四条改造纪律：聚合重导出不搬运/调用方只改 import 一行/每批回归/禁双轨）；行动优先级 P0 扎口推广与数据域接线 → P1 开源合规包 → P2 L3 block manifest
 
 **回归**：module-load 116/116（含新库）；party-committee + write-hover + capability-registry 15/15 绿；git diff 净 37 文件 +41/−42（无编码异常）

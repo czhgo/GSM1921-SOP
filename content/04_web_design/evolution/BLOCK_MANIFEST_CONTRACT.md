@@ -231,8 +231,9 @@ related_files: [ARCHITECTURE_EVOLUTION.md, MODULARIZATION_ASSESSMENT.md, PARTY_C
 - ✅ manifest 数据栖身：`docs/src/workflow/blocks/manifests.js`（与引擎数据同目录）。
 - ✅ S3 配置面：党委台「支部配置」内展示块级启停与字段级收拢（不另设页面）。
 
-**待定（S2 编码前收敛）**：
+**待定（S3 编码前收敛）**：
 - ✅ S1 已完成（书记点名 主题党日+专班，2026-09-03）：`docs/src/workflow/blocks/manifests.js`（THEME_PARTY_DAY_MANIFEST + TASKFORCE_RUN_MANIFEST + `validateBlockManifest` 纯校验器 + capability→provenance 权威对照防谎报）；单测 `server/test/block-manifest.test.mjs`（正/反 5 样例）+ module-load 全绿。
-- 待定：S2 表单渲染桥（manifest → forms.js 积木生成表单）的挂载点与首批接入 tab——进入 S2 前与书记对齐。
+- ✅ S2 已完成（2026-09-03）：`docs/src/workflow/blocks/form-renderer.js` 渲染桥（manifest.inputs.fields → forms.js 积木，kind 一一映射、块级 id 前缀、enabledDefault=false 默认收起 + includeDisabled 预览、字段目录 manifestFieldCatalog 供 S3 配置面）；单测 `server/test/block-form-renderer.test.mjs` 绿。
+- 待定：S3 配置面接线（党委台「支部配置」展示块级启停与字段收拢）——与 S3 现有 config.modules/blocks UI 的合并方式，进入 S3 前与书记对齐。
 
-> 书记确认本契约 v1.1 与 S1 交付后，S2 编码按 §六 路线图继续。
+> 书记确认 S1/S2 交付后，S3 编码按 §六 路线图继续。

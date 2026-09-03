@@ -93,7 +93,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 | P0 | 统一扎口推广：以 forms.js 为样板，为徽章/状态、数据视图等高频组件域逐一建库出口，全站收口 | forms.js、badges.js、reporting.js 三库完成（组件平铺层同域多文件已收敛） | 每建一库跑 module-load + E2E；仓库无该域直连残留 |
 | P0 | 数据域自动接线：tab/能力声明依赖的 service + mock 整体可替换 | person 域试点完成；其余域收口推进中 | 新增 demo 分支或后端接入时 UI 零改动（data-adapter 双实现全量走通） |
 | P1 | 开源合规包：LICENSE、示例账号外置 env、部署/贡献说明 | 未开工 | 新机器按 README 可独立跑通并自建数据 |
-| P2 | L3 block manifest + 拖拽编排（根 README 总目标） | 契约 v1.1 定稿；S1 完成（manifests.js 两块 + 校验器 + 单测绿） | 块声明 inputs/事件/校验契约定稿并经用户确认后编码（S1 ✅） |
+| P2 | L3 block manifest + 拖拽编排（根 README 总目标） | 契约 v1.1 定稿；S1+S2 完成（manifests 双块 + 校验器 + 表单渲染桥，单测全绿） | 块声明 inputs/事件/校验契约定稿并经用户确认后编码（S1 ✅ S2 ✅） |
 
 ---
 
