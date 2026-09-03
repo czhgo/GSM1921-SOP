@@ -268,7 +268,7 @@ function _openNoticeEditModal(notice) {
           <div class="flex flex-wrap gap-2">${chips}</div>
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">优先级</label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="ne-priority">优先级</label>
           <select id="ne-priority" class="input-flat w-full">
             <option value="normal" ${notice.priority !== 'urgent' ? 'selected' : ''}>普通</option>
             <option value="urgent" ${notice.priority === 'urgent' ? 'selected' : ''}>紧急</option>

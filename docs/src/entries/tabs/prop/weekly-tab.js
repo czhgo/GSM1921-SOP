@@ -62,13 +62,13 @@ export function renderContent(ctx) {
         </div>
         <div class="space-y-3">
           <div>
-            <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择周次</label>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="weekly-week">选择周次</label>
             <select id="weekly-week" class="input-flat text-xs w-full">
               ${_loadWeeklyReports().map(r => `<option value="${r.id}" ${draftReport && r.id === draftReport.id ? 'selected' : ''}>${r.week}（${r.weekRange}）</option>`).join('')}
             </select>
           </div>
           <div>
-            <label class="text-xs text-gray-500 mb-1.5 block font-medium">周报内容</label>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="weekly-content">周报内容</label>
             <textarea id="weekly-content" rows="6" placeholder="请填写本周工作内容，每条一行..." class="input-flat text-xs w-full resize-none">${draftReport ? draftReport.content : ''}</textarea>
           </div>
           <button id="weekly-submit-btn" class="w-full text-sm px-4 py-[7px] font-medium text-white rounded-lg transition-colors" style="${solidAccentStyle(ctx.accent, ctx.accentBorder)}">报送</button>

@@ -360,7 +360,7 @@ export class ReferencesModule {
           <input id="ref-modal-title" class="input-flat text-xs w-full" placeholder="如：积极分子考察表模板" value="${editing ? _esc(editing.title || '') : ''}" />
         </div>
         <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">描述</label>
+          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-desc">描述</label>
           <textarea id="ref-modal-desc" class="input-flat text-xs w-full" rows="2" placeholder="可选：文件用途 / 说明">${editing ? _esc(editing.desc || '') : ''}</textarea>
         </div>
         <div>

@@ -110,14 +110,14 @@ function renderProjectAuthPanel() {
         <div id="project-auth-picker-container"></div>
       </div>
       <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择项目类型</label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="project-type-select">选择项目类型</label>
         <select id="project-type-select" class="input-flat text-xs w-full">
           <option value="activity">活动</option>
           <option value="taskforce">专班</option>
         </select>
       </div>
       <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择项目</label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="project-id-select">选择项目</label>
         <select id="project-id-select" class="input-flat text-xs w-full">
           ${[...loadActivities()].sort((a, b) => (b.date || '').localeCompare(a.date || '')).map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('')}
         </select>

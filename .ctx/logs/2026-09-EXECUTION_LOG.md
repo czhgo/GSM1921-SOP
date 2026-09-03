@@ -354,3 +354,16 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **教训（编码/文件安全）**：① PowerShell 批处理 [IO.File] 无显式 UTF-8 读写会把 UTF-8 中文文件损坏——批量文本替换必须用 Edit/Grep 工具或显式 UTF8 编码读写；② 同一文件多个 Edit 并行会竞态叠加——同文件改动必须串行。检测法：git diff --stat 行数异常放大=损坏信号（本次曾致 review E2E 文本断言超时，checkout 还原后重做）
 **回归**：复扫真实违例 0（form-field 模板插值 4 处为误报）；module-load 115/115 + review/P1/P2 4/4 绿
 **下一步候选**：目视复核（强刷 20260903b 后：主题卡整卡可点/工作台配置产出块区）；B2 label for 存量改造；L3 block manifest；push 待书记批准
+
+## T-2026-09-025 B 系列表单批次统一收口 + B2 label for 存量改造（2026-09-03，提交 f3c4a9a 后累计）
+
+**B 系列表单美学批次全交付汇总**（书记 2026-09-03 授权四批 + 四要素）：
+- **B1** 行内记录小表单外壳 form-shell（5 处复制粘贴收编，record-* 类名归一）
+- **B2（组件+存量）** components/form-field.js 字段积木（label 关联/必填/aria 错误/placeholder…/value 转义）；dispatch 表单调积木；**存量改造 15 对 label→for**（Node 一次性脚本 dry-run→apply，8 文件：archive 4/taskforce 2/branches 2/weekly 2/assign 2/write-tab 1/notification 1/references 1）
+- **B3** 全站 6 文件 14 处内联输入收编 input-flat（真实违例清零，Edit 逐处，规避编码损坏教训）
+- **B4** showToast role=status+aria-live（无障碍异步更新）
+**主题卡交互语义定稿**（书记澄清=点击热区整卡、仍须点击、非 hover 自动进入）：data-hover-select 自动触发移除 → data-tpl-click 整卡点击委托；E2E 负/正双断言（hover 不进入、click 色块进入）
+**配套**：项目愿景整合根 README；版本 bump 20260903a→b（清浏览器旧缓存，194 文件零残留）
+**回归**：module-load 115/115；party P1/P2、review、hover、module-config、block-canvas、write E2E 全绿
+**教训沉淀**：① 批量文本改写禁 PowerShell 无显式 UTF-8 读写（会毁中文）；② 同文件并行 Edit 竞态；③ git diff --stat 行数放大=文件损坏信号；④ UI 行为语义有歧义必须 AskUser 澄清后再实现（hover 即选教训）
+**下一步候选**：目视复核（强刷 20260903b）；L3 block manifest 契约专项；push 待书记批准

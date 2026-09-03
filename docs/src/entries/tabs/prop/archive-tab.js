@@ -484,13 +484,13 @@ function _showArchiveUploadModal(ctx) {
         <select id="upload-activity" class="input-flat text-xs w-full">${activityOptions}</select>
       </div>
       <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">材料类别</label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="upload-category">材料类别</label>
         <select id="upload-category" class="input-flat text-xs w-full">
           ${MATERIAL_STANDARDS.map(s => `<option value="${s.category}">${s.category}</option>`).join('')}
         </select>
       </div>
       <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择文件（可多选）</label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="upload-file">选择文件（可多选）</label>
         <input id="upload-file" type="file" multiple
           accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.mp4,.mov"
           class="block w-full text-xs text-gray-600 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" />
@@ -623,13 +623,13 @@ function _promptExternalDispatch(activityId, activityName, ctx) {
           请在此标记「已外发」——对方收到后会在其工作台确认，形成可审计闭环（谁 / 何时 / 发给谁 / 何时确认）。
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">接收方</label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="ed-receiver">接收方</label>
           <select id="ed-receiver" class="input-flat text-xs w-full">
             ${receiverOptions.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
           </select>
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">备注（可选）</label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="ed-note">备注（可选）</label>
           <input id="ed-note" type="text" class="input-flat text-xs w-full" placeholder="如：新闻稿终稿，请审核…" />
         </div>
       </div>

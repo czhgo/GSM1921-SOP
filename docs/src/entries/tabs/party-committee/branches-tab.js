@@ -31,11 +31,11 @@ export async function renderContent() {
       <div id="branch-form-wrap" class="hidden rounded-xl border border-gray-200 bg-white p-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
           <div>
-            <label class="text-xs text-gray-500 block mb-1">支部名称（如 光华管理学院本科第二党支部）</label>
+            <label class="text-xs text-gray-500 block mb-1" for="branch-name-input">支部名称（如 光华管理学院本科第二党支部）</label>
             <input id="branch-name-input" type="text" class="input-flat w-full" placeholder="支部全称" />
           </div>
           <div>
-            <label class="text-xs text-gray-500 block mb-1">类型（可选，自由文本）</label>
+            <label class="text-xs text-gray-500 block mb-1" for="branch-type-input">类型（可选，自由文本）</label>
             <input id="branch-type-input" type="text" class="input-flat w-full" placeholder="如 硕士/博士/本科生" />
           </div>
         </div>

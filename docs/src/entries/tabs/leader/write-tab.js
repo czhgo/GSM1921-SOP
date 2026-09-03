@@ -506,7 +506,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
         <input type="text" id="dt-title" class="input-flat w-full" placeholder="活动名称">
       </div>
       <div class="mb-4">
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动描述（选填）</label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="dt-desc">活动描述（选填）</label>
         <textarea id="dt-desc" class="input-flat w-full resize-none" rows="2" placeholder="简要描述活动内容"></textarea>
       </div>
 

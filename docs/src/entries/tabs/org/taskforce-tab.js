@@ -772,11 +772,11 @@ export function openRecruitForm(ctx) {
         <div class="wp-collapse-toggle text-xs text-gray-400 cursor-pointer hover:text-gray-600 select-none" onclick="this.nextElementSibling.classList.toggle('hidden')">自动发布通知（选填，发布专班后立即通知全体成员）</div>
         <div class="mt-2 space-y-3">
           <div>
-            <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知标题</label>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="rf-notice-title">通知标题</label>
             <input type="text" id="rf-notice-title" class="input-flat w-full" placeholder="默认使用专班名称">
           </div>
           <div>
-            <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知内容</label>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="rf-notice-content">通知内容</label>
             <textarea id="rf-notice-content" rows="3" class="input-flat w-full" placeholder="如：宣传专班（第三期）招募中，截止 8月20日，欢迎报名参与。"></textarea>
           </div>
         </div>
