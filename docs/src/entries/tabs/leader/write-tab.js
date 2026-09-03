@@ -3,23 +3,23 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/state.js?v=20260903b';
-import { BranchService } from '../../../services/runtime.js?v=20260903b';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260903b';
-import { AuthStore } from '../../../services/auth.js?v=20260903b';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260903b';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260903b';
-import { persist } from '../../../core/data-adapter.js?v=20260903b';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260903b';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260903b';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260903b';
-import { recordFormShell } from '../../../components/form-shell.js?v=20260903b';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260903b';
-import { getPersonName, PEOPLE } from '../../../mock/index.js?v=20260903b';
-import { badgeHtml } from '../../../components/badge.js?v=20260903b';
-import { showToast } from '../../../core/utils.js?v=20260903b';
-import { solidAccentStyle, accDarkVars, accDarkParts } from '../../../core/constants.js?v=20260903b';
-import { filterByRole, getCurrentLeaderId } from './_shared.js?v=20260903b';
+import { setState, getAppState } from '../../../core/state.js?v=20260903c';
+import { BranchService } from '../../../services/runtime.js?v=20260903c';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260903c';
+import { AuthStore } from '../../../services/auth.js?v=20260903c';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260903c';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260903c';
+import { persist } from '../../../core/data-adapter.js?v=20260903c';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260903c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
+import { recordFormShell } from '../../../components/form-shell.js?v=20260903c';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260903c';
+import { getPersonName, PEOPLE } from '../../../mock/index.js?v=20260903c';
+import { badgeHtml } from '../../../components/badge.js?v=20260903c';
+import { showToast } from '../../../core/utils.js?v=20260903c';
+import { solidAccentStyle, accDarkVars, accDarkParts } from '../../../core/constants.js?v=20260903c';
+import { filterByRole, getCurrentLeaderId } from './_shared.js?v=20260903c';
 
 // 私有状态（随模块自持，不污染入口）
 const dt = new DecisionTreeState('leader');
@@ -182,7 +182,7 @@ export function renderContent(ctx) {
         <div class="mt-3 pt-3 border-t border-gray-100">
           <h6 class="font-title-cn text-xs font-bold text-gray-600 mb-1">子记录</h6>
           ${visBlocks.length === 0
-            ? '<p class="text-[12px] text-gray-400 pl-2">本支部已停用全部活动产出块——如需启用请联系书记在「工作台配置」开启</p>'
+            ? '<p class="text-[12px] text-gray-400 pl-2">本支部已停用全部活动产出块——如需启用请联系党委在「支部配置」开启</p>'
             : visBlocks.map(type => renderActSubTable(type, actSubs[type] || [])).join('')}
         </div>
       `;
@@ -282,8 +282,8 @@ export function renderContent(ctx) {
               body: `${routeHint('attendance')}
                 <div class="mb-2 act-sub-picker"></div>
                 <div class="flex gap-2 mb-2">
-                  <select class="f-status input-flat text-xs flex-1">${statusOpts.map(s => `<option value="${s.value}">${s.label}</option>`).join('')}</select>
-                  <input class="f-note input-flat text-xs flex-1" placeholder="备注（选填）">
+                  <select class="f-status input-flat flex-1">${statusOpts.map(s => `<option value="${s.value}">${s.label}</option>`).join('')}</select>
+                  <input class="f-note input-flat flex-1" placeholder="备注（选填）">
                 </div>`,
             });
           } else if (type === 'inspection') {
@@ -293,8 +293,8 @@ export function renderContent(ctx) {
               accentBorder,
               body: `${routeHint('inspection')}
                 <div class="mb-2 act-sub-picker"></div>
-                <textarea class="f-content input-flat text-xs w-full resize-none mb-2" rows="2" placeholder="考察内容描述（必填）"></textarea>
-                <select class="f-result input-flat text-xs w-full mb-2">${resultOpts.map(r => `<option>${r}</option>`).join('')}</select>`,
+                <textarea class="f-content input-flat w-full resize-none mb-2" rows="2" placeholder="考察内容描述（必填）"></textarea>
+                <select class="f-result input-flat w-full mb-2">${resultOpts.map(r => `<option>${r}</option>`).join('')}</select>`,
             });
           } else {
             const fields = textFields[type];
@@ -303,7 +303,7 @@ export function renderContent(ctx) {
               accent,
               accentBorder,
               body: `${routeHint(type)}
-                ${fields.map(([key, label]) => `<input class="f-${key} input-flat text-xs w-full mb-2" placeholder="${label}${key === 'title' || key === 'name' ? '（必填）' : '（选填）'}">`).join('')}`,
+                ${fields.map(([key, label]) => `<input class="f-${key} input-flat w-full mb-2" placeholder="${label}${key === 'title' || key === 'name' ? '（必填）' : '（选填）'}">`).join('')}`,
             });
           }
 

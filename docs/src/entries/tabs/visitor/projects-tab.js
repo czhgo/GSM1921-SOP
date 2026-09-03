@@ -3,10 +3,10 @@
 // 书记 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { PEOPLE } from '../../../mock/index.js?v=20260903b';
-import { AuthStore } from '../../../services/auth.js?v=20260903b';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260903b';
-import { flashHighlight } from '../../../core/utils.js?v=20260903b';
+import { PEOPLE } from '../../../mock/index.js?v=20260903c';
+import { AuthStore } from '../../../services/auth.js?v=20260903c';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260903c';
+import { flashHighlight } from '../../../core/utils.js?v=20260903c';
 
 // 项目分工子视图（书记 2026-08-10 裁定第5点）：区分「我的分工」（以人为中心）与「全局分工」（全局查询）
 let _projSubView = 'mine'; // 'mine' | 'all'
@@ -90,16 +90,16 @@ export function renderContent(ctx) {
   tc.innerHTML = `
     ${subTabsHtml}
     <div class="flex flex-wrap gap-2 mb-3 items-center">
-      <select id="visitor-proj-type" class="input-flat text-xs w-20">
+      <select id="visitor-proj-type" class="input-flat w-20">
         <option value="">全部</option>
         <option value="活动">活动</option>
         <option value="专班">专班</option>
       </select>
-      <select id="visitor-proj-group" class="input-flat text-xs w-28">
+      <select id="visitor-proj-group" class="input-flat w-28">
         <option value="">全部党小组</option>
         ${partyGroups.map(g => `<option value="${g}">${g}</option>`).join('')}
       </select>
-      <input type="text" id="visitor-proj-search" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索项目名称或人员...">
+      <input type="text" id="visitor-proj-search" class="input-flat flex-1 min-w-[140px]" placeholder="搜索项目名称或人员...">
       <span id="visitor-proj-count" class="text-xs text-gray-400 ml-1"></span>
     </div>
     <div id="visitor-proj-list"></div>

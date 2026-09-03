@@ -3,14 +3,14 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260903b';
-import { showToast } from '../../../core/utils.js?v=20260903b';
-import { icon } from '../../../core/icons.js?v=20260903b';
-import { AuthStore } from '../../../services/auth.js?v=20260903b';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260903b';
-import { getPersonName } from '../../../mock/index.js?v=20260903b';
-import { PersonStore } from '../../../services/person.js?v=20260903b';
-import { badgeHtml, badgeVariantClass } from '../../../components/badge.js?v=20260903b';
+import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260903c';
+import { showToast } from '../../../core/utils.js?v=20260903c';
+import { icon } from '../../../core/icons.js?v=20260903c';
+import { AuthStore } from '../../../services/auth.js?v=20260903c';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260903c';
+import { getPersonName } from '../../../mock/index.js?v=20260903c';
+import { PersonStore } from '../../../services/person.js?v=20260903c';
+import { badgeHtml, badgeVariantClass } from '../../../components/badge.js?v=20260903c';
 
 const FEEDBACK_TAB_HTML = `
   <!-- 列表面板 -->
@@ -34,15 +34,15 @@ const FEEDBACK_TAB_HTML = `
 
     <!-- 筛选条（T-217 §2.5 统一顺序：搜索框 → 筛选器们 → 清除） -->
     <div class="flex flex-wrap items-center gap-2 mb-3">
-      <input type="text" id="issue-filter-keyword" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索标题或正文...">
-      <select id="issue-filter-status" class="input-flat text-xs w-24">
+      <input type="text" id="issue-filter-keyword" class="input-flat flex-1 min-w-[140px]" placeholder="搜索标题或正文...">
+      <select id="issue-filter-status" class="input-flat w-24">
         <option value="all">全部状态</option>
         <option value="open">开放中</option>
         <option value="assigned">已指派</option>
         <option value="pending-review">待终审</option>
         <option value="closed">已关闭</option>
       </select>
-      <select id="issue-filter-assignee" class="input-flat text-xs w-32">
+      <select id="issue-filter-assignee" class="input-flat w-32">
         <option value="all">全部指派</option>
         <option value="unassigned">未指派</option>
         <option value="secretary">书记处置中</option>
@@ -397,7 +397,7 @@ function renderIssueDetail(issueId) {
   });
   html += `</div>`;
   html += `<div class="mt-2 flex items-center gap-2">`;
-  html += `<input type="text" id="assign-note-input" class="input-flat text-xs flex-1" placeholder="指派备注（选填）">`;
+  html += `<input type="text" id="assign-note-input" class="input-flat flex-1" placeholder="指派备注（选填）">`;
   html += `</div></div>`;
   html += `</div>`;
 
@@ -418,7 +418,7 @@ function renderIssueDetail(issueId) {
       html += `<button data-detail-action="confirm-close" data-reason="${r.value}" class="text-xs px-3 py-1.5 rounded-lg bg-white text-gray-600 border border-gray-200 hover:border-gray-300 transition-all">${r.label}</button>`;
     });
     html += `</div>`;
-    html += `<input type="text" id="close-note-input" class="input-flat text-xs w-full" placeholder="关闭备注（选填）">`;
+    html += `<input type="text" id="close-note-input" class="input-flat w-full" placeholder="关闭备注（选填）">`;
     html += `</div>`;
     // 合并选择器（默认隐藏）
     html += `<div id="issue-merge-selector" class="hidden mt-2 p-3 rounded-lg bg-gray-50 border border-gray-200">`;
@@ -479,12 +479,12 @@ function renderIssueDetail(issueId) {
   if (issue.status === 'open') {
     html += `<div class="pt-3 border-t border-gray-100 space-y-2">`;
     html += `<div class="flex gap-2">`;
-    html += `<input type="text" id="issue-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论…">`;
+    html += `<input type="text" id="issue-comment-input" class="input-flat flex-1" placeholder="添加评论…">`;
     html += `<button data-detail-action="add-comment" class="btn-accent-soft text-xs px-3 py-2">评论</button>`;
     html += `<button data-detail-action="add-verdict" class="btn-accent text-xs px-3 py-2">批复</button>`;
     html += `</div>`;
     html += `<div class="flex gap-2">`;
-    html += `<input type="text" id="issue-reply-input" class="input-flat text-xs flex-1" placeholder="正式答复（以组织名义回应反馈人）…">`;
+    html += `<input type="text" id="issue-reply-input" class="input-flat flex-1" placeholder="正式答复（以组织名义回应反馈人）…">`;
     html += `<button data-detail-action="add-reply" class="btn-accent text-xs px-3 py-2 whitespace-nowrap">正式答复</button>`;
     html += `</div>`;
     html += `</div>`;

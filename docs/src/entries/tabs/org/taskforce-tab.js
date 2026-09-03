@@ -3,25 +3,25 @@
 // 看板式专班全生命周期管理 + 发布招募表单 + 活动进度追踪（原追踪看板融入）。
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类/activities）经 ctx 传入。
 
-import { setState } from '../../../core/state.js?v=20260903b';
-import { BranchService } from '../../../services/runtime.js?v=20260903b';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903b';
-import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260903b';
-import { AuthStore } from '../../../services/auth.js?v=20260903b';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260903b';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260903b';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260903b';
-import { NoticeStore } from '../../../services/notice.js?v=20260903b';
-import { mockDB, SourceType, ParticipationLevel, ReviewStatus } from '../../../core/domain.js?v=20260903b';
-import { persist } from '../../../core/data-adapter.js?v=20260903b';
-import { showToast } from '../../../core/utils.js?v=20260903b';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260903b';
-import { icon } from '../../../core/icons.js?v=20260903b';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260903b';
-import { recordFormShell } from '../../../components/form-shell.js?v=20260903b';
-import { renderQueryView } from '../../../components/query-view.js?v=20260903b';
-import { badgeHtml } from '../../../components/badge.js?v=20260903b';
-import { _personName, getPersonName } from '../../../mock/index.js?v=20260903b';
+import { setState } from '../../../core/state.js?v=20260903c';
+import { BranchService } from '../../../services/runtime.js?v=20260903c';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903c';
+import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260903c';
+import { AuthStore } from '../../../services/auth.js?v=20260903c';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260903c';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260903c';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260903c';
+import { NoticeStore } from '../../../services/notice.js?v=20260903c';
+import { mockDB, SourceType, ParticipationLevel, ReviewStatus } from '../../../core/domain.js?v=20260903c';
+import { persist } from '../../../core/data-adapter.js?v=20260903c';
+import { showToast } from '../../../core/utils.js?v=20260903c';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260903c';
+import { icon } from '../../../core/icons.js?v=20260903c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
+import { recordFormShell } from '../../../components/form-shell.js?v=20260903c';
+import { renderQueryView } from '../../../components/query-view.js?v=20260903c';
+import { badgeHtml } from '../../../components/badge.js?v=20260903c';
+import { _personName, getPersonName } from '../../../mock/index.js?v=20260903c';
 
 // 私有状态（随模块自持，不污染入口）
 let _recruitPersonPicker = null;
@@ -48,7 +48,7 @@ export function renderContent(ctx) {
 
   container.innerHTML = `
     <div class="flex flex-wrap gap-2 mb-3">
-      <input type="text" id="org-tf-search" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索专班名称或任务...">
+      <input type="text" id="org-tf-search" class="input-flat flex-1 min-w-[140px]" placeholder="搜索专班名称或任务...">
     </div>
     <div id="org-tf-kanban"></div>
     <div id="tf-detail-panel" class="hidden card rounded-xl p-5"></div>
@@ -346,9 +346,9 @@ export function renderContent(ctx) {
                 <h6 class="font-title-cn text-xs font-bold text-gray-600">专班复盘</h6>
                 <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600">未提交</span>
               </div>
-              <textarea id="tf-review-content" rows="3" placeholder="专班任务完成情况、工作成果与不足..." class="input-flat text-xs w-full resize-none"></textarea>
+              <textarea id="tf-review-content" rows="3" placeholder="专班任务完成情况、工作成果与不足..." class="input-flat w-full resize-none"></textarea>
               <div class="flex items-center gap-2 mt-2">
-                <input id="tf-review-issues" type="text" placeholder="待改进问题（选填，多条用；分隔）" class="input-flat text-xs flex-1" />
+                <input id="tf-review-issues" type="text" placeholder="待改进问题（选填，多条用；分隔）" class="input-flat flex-1" />
                 <button id="btn-submit-tf-review" class="text-xs px-3 py-2 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0" style="${solidAccentStyle(accent, accentBorder)};">提交复盘</button>
               </div>
             </div>`;
@@ -500,8 +500,8 @@ export function renderContent(ctx) {
               accentBorder,
               body: `
                 <div class="mb-2 sub-picker"></div>
-                <textarea class="f-content input-flat text-xs w-full resize-none mb-2" rows="2" placeholder="考察内容描述（必填）"></textarea>
-                <select class="f-result input-flat text-xs w-full mb-2">${resultOpts.map(r => `<option>${r}</option>`).join('')}</select>`,
+                <textarea class="f-content input-flat w-full resize-none mb-2" rows="2" placeholder="考察内容描述（必填）"></textarea>
+                <select class="f-result input-flat w-full mb-2">${resultOpts.map(r => `<option>${r}</option>`).join('')}</select>`,
             });
           } else {
             formHtml = recordFormShell({
@@ -510,9 +510,9 @@ export function renderContent(ctx) {
               accent,
               accentBorder,
               body: `
-                <input class="f-name input-flat text-xs w-full mb-2" placeholder="材料名称（必填）">
-                <input class="f-author input-flat text-xs w-full mb-2" placeholder="提交人（选填）">
-                <input class="f-note input-flat text-xs w-full mb-2" placeholder="备注（选填）">`,
+                <input class="f-name input-flat w-full mb-2" placeholder="材料名称（必填）">
+                <input class="f-author input-flat w-full mb-2" placeholder="提交人（选填）">
+                <input class="f-note input-flat w-full mb-2" placeholder="备注（选填）">`,
             });
           }
 

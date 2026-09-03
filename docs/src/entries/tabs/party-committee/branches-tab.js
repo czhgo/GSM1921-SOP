@@ -2,13 +2,13 @@
 // 党委工作台 Tab：支部管理（P1 党委后台，2026-09-02）
 // 支部不预设名字：党委创建/改名支部实例；config.headerTitle 随名软编码（header 随支部更换）
 
-import { mockDB } from '../../../core/domain.js?v=20260903b';
-import { PEOPLE } from '../../../mock/people.js?v=20260903b';
-import { PARTY_COMMITTEE } from '../../../mock/branches.js?v=20260903b';
-import { getPersonName } from '../../../services/person.js?v=20260903b';
-import { createBranch, renameBranch } from '../../../services/branch.js?v=20260903b';
-import { appointSecretary, listAppointments } from '../../../services/appointment.js?v=20260903b';
-import { showToast } from '../../../core/utils.js?v=20260903b';
+import { mockDB } from '../../../core/domain.js?v=20260903c';
+import { PEOPLE } from '../../../mock/people.js?v=20260903c';
+import { PARTY_COMMITTEE } from '../../../mock/branches.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260903c';
+import { createBranch, renameBranch } from '../../../services/branch.js?v=20260903c';
+import { appointSecretary, listAppointments } from '../../../services/appointment.js?v=20260903c';
+import { showToast } from '../../../core/utils.js?v=20260903c';
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -59,17 +59,17 @@ export async function renderContent() {
               <button class="branch-appoint-toggle text-xs px-2.5 py-1 rounded-lg text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600">任命书记</button>
             </div>
             <div class="branch-rename-row hidden mt-2 flex gap-2">
-              <input class="branch-rename-input input-flat text-xs w-full" value="${esc(b.config?.headerTitle || b.name)}" placeholder="支部全称" />
+              <input class="branch-rename-input input-flat w-full" value="${esc(b.config?.headerTitle || b.name)}" placeholder="支部全称" />
               <button class="branch-rename-save text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" style="background:#C8102E;">保存</button>
             </div>
             <div class="branch-appoint-row hidden mt-2 space-y-2">
-              <select class="branch-appoint-select input-flat text-xs w-full">
+              <select class="branch-appoint-select input-flat w-full">
                 <option value="">— 选择本支部成员为新任书记 —</option>
                 ${PEOPLE.filter(p => p.branchId === b.id && p.role !== 'party-staff').map(p =>
                   `<option value="${esc(p.id)}" ${p.id === b.secretaryId ? 'disabled' : ''}>${esc(p.name)}（${esc(p.developStage || '')}）${p.id === b.secretaryId ? '·现任' : ''}</option>`).join('')}
               </select>
               <div class="flex items-center justify-between gap-2">
-                <input class="branch-appoint-note input-flat text-xs w-full" placeholder="任命说明（可选，如 换届选举 2026-09）" />
+                <input class="branch-appoint-note input-flat w-full" placeholder="任命说明（可选，如 换届选举 2026-09）" />
                 <button class="branch-appoint-save text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" style="background:#C8102E;">确认任命</button>
               </div>
             </div>

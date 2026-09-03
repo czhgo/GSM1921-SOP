@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  visibility.js — 谁应该看谁（全员可见性矩阵）
 //  依据 P-011 知情边界（content/01_strategy/SECRETARY_PRONOUNCEMENTS.md）：
@@ -12,10 +12,10 @@
 //  核心："看 ≠ 做"——可见性只决定"能看到什么维度"，不授予任何操作权。
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE } from '../mock/people.js?v=20260903b';
-import { ROLE_LABELS } from '../core/constants.js?v=20260903b';
-import { TaskForceRecordStore } from './taskforce.js?v=20260903b';
-import { loadActivities } from './activity.js?v=20260903b';
+import { PEOPLE } from '../mock/people.js?v=20260903c';
+import { ROLE_LABELS } from '../core/constants.js?v=20260903c';
+import { TaskForceRecordStore } from './taskforce.js?v=20260903c';
+import { loadActivities } from './activity.js?v=20260903c';
 
 // ── 可见维度（职责空间投影的最小充分信息）─────────────────────────
 //  progress    — 在办进度（待办/活动/专班聚合）

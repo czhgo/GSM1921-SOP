@@ -2,14 +2,14 @@
 // 组长工作台 Tab：考察上传（T-279 M2 拆分）
 // 党小组活动考察：党小组组长上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260903b';
-import { loadActivities } from '../../../services/activity.js?v=20260903b';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903b';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260903b';
-import { getPersonById, getPersonName, inspectionToLong } from '../../../mock/index.js?v=20260903b';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260903b';
-import { showToast } from '../../../core/utils.js?v=20260903b';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260903b';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260903c';
+import { loadActivities } from '../../../services/activity.js?v=20260903c';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
+import { getPersonById, getPersonName, inspectionToLong } from '../../../mock/index.js?v=20260903c';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260903c';
+import { showToast } from '../../../core/utils.js?v=20260903c';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260903c';
 
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;
@@ -44,7 +44,7 @@ export function renderContent(ctx) {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">来源类型 <span class="text-red-500">*</span></label>
-          <select id="insp-source-type" class="input-flat text-xs w-full">
+          <select id="insp-source-type" class="input-flat w-full">
             <option value="">请选择来源类型</option>
             <option value="activity">活动</option>
             <option value="taskforce">专班</option>
@@ -52,7 +52,7 @@ export function renderContent(ctx) {
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择具体来源 <span class="text-red-500">*</span></label>
-          <select id="insp-source-select" class="input-flat text-xs w-full" disabled>
+          <select id="insp-source-select" class="input-flat w-full" disabled>
             <option value="">请先选择来源类型</option>
           </select>
         </div>

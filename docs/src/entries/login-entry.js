@@ -2,9 +2,9 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../services/auth.js?v=20260903b';
-import { mockLogin } from '../mock/accounts.js?v=20260903b';
-import { getAccentColors, solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260903b';
+import { AuthStore } from '../services/auth.js?v=20260903c';
+import { mockLogin } from '../mock/accounts.js?v=20260903c';
+import { getAccentColors, solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260903c';
 
 // 已登录则直接跳转
 const user = AuthStore.getCurrentUser();
@@ -34,6 +34,7 @@ const DEV_CARDS = [
   { role: 'disc-commissioner', label: '纪检委员',     desc: '考勤考察' },
   { role: 'leader',            label: '党小组组长',   desc: '活动统筹' },
   { role: 'participant',       label: '普通参与者',   desc: '查看信息' },
+  { role: 'party-staff',       label: '党委组织员',   desc: '党务老师 · 监控全院支部' },
 ];
 
 // ── 渲染开发模式卡片 ──────────────────────────────

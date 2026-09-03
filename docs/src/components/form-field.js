@@ -28,21 +28,21 @@ function _esc(s) {
 
 /** 单行文本字段 */
 export function textField({ id, label, value = '', placeholder = '请输入…', required = false, hint = '', error = '', name = '', autocomplete = 'off', compact = false, type = 'text' }) {
-  const cls = compact ? 'input-flat text-xs w-full' : 'input-flat w-full';
+  const cls = compact ? 'input-flat w-full' : 'input-flat w-full';
   const control = `<input type="${type}" id="${id}" name="${name || id}" autocomplete="${autocomplete}" class="${cls}${error ? ' border-red-400' : ''}" value="${_esc(value)}" placeholder="${placeholder}${placeholder.endsWith('…') ? '' : '…'}"${error ? ` aria-describedby="${id}-err"` : ''}>`;
   return _fieldShell({ id, label, required, hint, error, control });
 }
 
 /** 多行文本字段 */
 export function textareaField({ id, label, value = '', placeholder = '请输入…', rows = 3, required = false, hint = '', error = '', name = '', compact = false }) {
-  const cls = compact ? 'input-flat text-xs w-full resize-none' : 'input-flat w-full resize-none';
+  const cls = compact ? 'input-flat w-full resize-none' : 'input-flat w-full resize-none';
   const control = `<textarea id="${id}" name="${name || id}" autocomplete="off" class="${cls}${error ? ' border-red-400' : ''}" rows="${rows}" placeholder="${placeholder}${placeholder.endsWith('…') ? '' : '…'}"${error ? ` aria-describedby="${id}-err"` : ''}>${_esc(value)}</textarea>`;
   return _fieldShell({ id, label, required, hint, error, control });
 }
 
 /** 下拉字段（原生 select 载体，由 custom-select 自动增强为圆角下拉——统一走 select.input-flat） */
 export function selectField({ id, label, options = [], value = '', required = false, hint = '', error = '', name = '', compact = false, placeholder = '' }) {
-  const cls = compact ? 'input-flat text-xs w-full' : 'input-flat w-full';
+  const cls = compact ? 'input-flat w-full' : 'input-flat w-full';
   const opts = placeholder ? `<option value="">${placeholder}</option>` : '';
   const control = `<select id="${id}" name="${name || id}" class="${cls}${error ? ' border-red-400' : ''}"${error ? ` aria-describedby="${id}-err"` : ''}>${opts}${options.map(o => `<option value="${o.value}" ${String(o.value) === String(value) ? 'selected' : ''}>${o.label}</option>`).join('')}</select>`;
   return _fieldShell({ id, label, required, hint, error, control });
@@ -50,7 +50,7 @@ export function selectField({ id, label, options = [], value = '', required = fa
 
 /** 日期字段（input-flat 收口原生 picker 外观；聚焦金框与圆角体系一致） */
 export function dateField({ id, label, value = '', required = false, hint = '', error = '', name = '', compact = false }) {
-  const cls = compact ? 'input-flat text-xs w-full' : 'input-flat w-full';
+  const cls = compact ? 'input-flat w-full' : 'input-flat w-full';
   const control = `<input type="date" id="${id}" name="${name || id}" autocomplete="off" class="${cls}${error ? ' border-red-400' : ''}" value="${String(value)}"${error ? ` aria-describedby="${id}-err"` : ''}>`;
   return _fieldShell({ id, label, required, hint, error, control });
 }

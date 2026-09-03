@@ -8,19 +8,19 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（书记反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260903b';
-import { attendanceToLong, getPersonName } from '../../../mock/index.js?v=20260903b';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260903b';
-import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260903b';
-import { loadActivities } from '../../../services/activity.js?v=20260903b';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260903b';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260903b';
-import { NoticeStore } from '../../../services/notice.js?v=20260903b';
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260903b';
-import { badgeHtml } from '../../../components/badge.js?v=20260903b';
-import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260903b';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260903b';
-import { HandoffStore } from '../../../services/handoff.js?v=20260903b';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260903c';
+import { attendanceToLong, getPersonName } from '../../../mock/index.js?v=20260903c';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260903c';
+import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
+import { loadActivities } from '../../../services/activity.js?v=20260903c';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260903c';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260903c';
+import { NoticeStore } from '../../../services/notice.js?v=20260903c';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260903c';
+import { badgeHtml } from '../../../components/badge.js?v=20260903c';
+import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260903c';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260903c';
+import { HandoffStore } from '../../../services/handoff.js?v=20260903c';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -274,14 +274,14 @@ function _buildMatrixCardHTML(ctx, allRecords, actById, filterActivityId, accent
         </div>
       </div>
       <div class="flex flex-wrap gap-2 mb-3">
-        <select id="att-activity-select" class="input-flat text-xs min-w-[180px]">
+        <select id="att-activity-select" class="input-flat min-w-[180px]">
           <option value="">全部活动</option>
           ${actOptions}
         </select>
-        <input type="text" id="att-mtx-search" class="input-flat text-xs min-w-[160px]" placeholder="活动名筛选...">
-        <input type="date" id="att-mtx-from" class="input-flat text-xs" title="时间区间：起始日期">
+        <input type="text" id="att-mtx-search" class="input-flat min-w-[160px]" placeholder="活动名筛选...">
+        <input type="date" id="att-mtx-from" class="input-flat" title="时间区间：起始日期">
         <span class="text-xs text-gray-400 self-center">至</span>
-        <input type="date" id="att-mtx-to" class="input-flat text-xs" title="时间区间：截止日期">
+        <input type="date" id="att-mtx-to" class="input-flat" title="时间区间：截止日期">
       </div>
       <div class="text-[11px] text-gray-400 mb-2">色点 + 缩写：${Object.entries(CELL_META).map(([k, m]) => `<span class="inline-flex items-center gap-1 mr-2"><span class="w-2 h-2 rounded-full" style="background:${m.dot}"></span>${ATTENDANCE_STATUS_LABELS[k]}</span>`).join('')}</div>
       <div id="att-matrix-container"></div>
@@ -397,8 +397,8 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
         </div>
       </div>
       <div class="flex flex-wrap gap-2 mb-3">
-        <input type="text" id="att-table-search" class="input-flat text-xs flex-1 min-w-[160px]" placeholder="搜索姓名或活动...">
-        <select id="att-table-status" class="input-flat text-xs w-24">
+        <input type="text" id="att-table-search" class="input-flat flex-1 min-w-[160px]" placeholder="搜索姓名或活动...">
+        <select id="att-table-status" class="input-flat w-24">
           <option value="">全部状态</option>
           ${Object.values(AttendanceStatus).map(s => `<option value="${s}">${ATTENDANCE_STATUS_LABELS[s]}</option>`).join('')}
         </select>

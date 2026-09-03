@@ -1,16 +1,16 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // components/header.js — 共享顶栏组件（重构版）
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 书记裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260903b';
-import { getBasePath } from '../core/utils.js?v=20260903b';
-import { icon } from '../core/icons.js?v=20260903b';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260903b';
-import { badgeHtml } from './badge.js?v=20260903b';
-import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260903b';
+import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260903c';
+import { getBasePath } from '../core/utils.js?v=20260903c';
+import { icon } from '../core/icons.js?v=20260903c';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260903c';
+import { badgeHtml } from './badge.js?v=20260903c';
+import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260903c';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../services/branch.js?v=20260903b';
+import { getHeaderTitle } from '../services/branch.js?v=20260903c';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -19,11 +19,11 @@ import { getHeaderTitle } from '../services/branch.js?v=20260903b';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../services/auth.js?v=20260903b');
+  if (!_authModule) _authModule = import('../services/auth.js?v=20260903c');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../services/notice.js?v=20260903b');
+  if (!_noticeModule) _noticeModule = import('../services/notice.js?v=20260903c');
   return _noticeModule;
 }
 

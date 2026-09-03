@@ -65,7 +65,7 @@ test('产出块：书记停用宣传 → 组长活动详情无 publicity 按钮 
   await login(sec, '2300010001');
   await sec.waitForURL('**/workspace/secretary.html', { timeout: 10000 });
   await sec.evaluate(async () => {
-    const { updateBranchBlocks } = await import('/src/services/branch.js?v=20260903b');
+    const { updateBranchBlocks } = await import('/src/services/branch.js?v=20260903c');
     await updateBranchBlocks('br-b1', { outputBlocks: { hiddenBlockIds: ['publicity'], blockOrder: [] } });
   });
   await new Promise((r) => setTimeout(r, 1200));
@@ -83,7 +83,7 @@ test('产出块：书记停用宣传 → 组长活动详情无 publicity 按钮 
 
   // ③ 书记恢复默认（产出块=null）→ 组长刷新详情 → publicity 回归
   await sec.evaluate(async () => {
-    const { updateBranchBlocks } = await import('/src/services/branch.js?v=20260903b');
+    const { updateBranchBlocks } = await import('/src/services/branch.js?v=20260903c');
     await updateBranchBlocks('br-b1', null);
   });
   await new Promise((r) => setTimeout(r, 1000));

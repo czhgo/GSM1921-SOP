@@ -4,9 +4,9 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260903b';
-import { persist } from '../core/data-adapter.js?v=20260903b';
-import { ACTIVITIES } from '../mock/index.js?v=20260903b';
+import { mockDB } from '../core/domain.js?v=20260903c';
+import { persist } from '../core/data-adapter.js?v=20260903c';
+import { ACTIVITIES } from '../mock/index.js?v=20260903c';
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {

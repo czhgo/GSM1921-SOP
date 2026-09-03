@@ -48,7 +48,12 @@ export function createApp({ dbPath = ':memory:' } = {}) {
 
   // 静态托管：无后缀请求自动补 .html（T-304 遗留修复——登录跳转在部分浏览器/内嵌视图
   // 会把 workspace/xxx.html 剥成 workspace/xxx 导致 404，extensions 选项兜底解析）
-  app.use(express.static(DOCS_DIR, { extensions: ['html'] }));
+  // 静态资源：强制回源校验（no-cache）——开发/测试期防浏览器启发式缓存命中旧模块
+  // （2026-09-03 工程标准修复：此前无 Cache-Control → Last-Modified 启发缓存致「改了代码看不到」）
+  app.use(express.static(DOCS_DIR, {
+    extensions: ['html'],
+    setHeaders: (res) => res.setHeader('Cache-Control', 'no-cache, must-revalidate'),
+  }));
 
   // 统一 JSON 错误响应：multer 大小超限 → 413，其余 → 500（避免默认 HTML 错误页破坏 API 契约）
   // 2026-08-03（I2）：express.json 超限（2mb）抛出的 PayloadTooLargeError 自带 err.status=413，

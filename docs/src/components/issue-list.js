@@ -1,12 +1,12 @@
 // role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../services/issues.js?v=20260903b';
-import { AuthStore } from '../services/auth.js?v=20260903b';
-import { icon } from '../core/icons.js?v=20260903b';
-import { getPersonName } from '../mock/index.js?v=20260903b';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260903b';
-import { badgeHtml } from './badge.js?v=20260903b';
+import { IssueStore } from '../services/issues.js?v=20260903c';
+import { AuthStore } from '../services/auth.js?v=20260903c';
+import { icon } from '../core/icons.js?v=20260903c';
+import { getPersonName } from '../mock/index.js?v=20260903c';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260903c';
+import { badgeHtml } from './badge.js?v=20260903c';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -92,16 +92,16 @@ export function renderIssueList() {
       </div>
 
       <div class="flex items-center gap-2 mb-3 flex-wrap text-xs">
-        <input type="text" id="filter-keyword" placeholder="搜索标题/正文..." value="${_filterState.keyword}" class="input-flat text-xs px-2 py-1 rounded flex-1 min-w-[140px]">
+        <input type="text" id="filter-keyword" placeholder="搜索标题/正文..." value="${_filterState.keyword}" class="input-flat px-2 py-1 rounded flex-1 min-w-[140px]">
         <button class="filter-btn px-3 py-1 rounded-full transition-colors ${_filterState.status === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="all">全部 (${counts.total})</button>
         <button class="filter-btn px-3 py-1 rounded-full transition-colors ${_filterState.status === 'open' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" style="${_filterState.status === 'open' ? 'background:#CE1126' : ''}" data-status="open">开放中 (${counts.open})</button>
         <button class="filter-btn px-3 py-1 rounded-full transition-colors ${_filterState.status === 'closed' ? 'bg-gray-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="closed">已关闭 (${counts.closed})</button>
         <span class="mx-1 text-gray-300">|</span>
-        <select id="filter-scope" class="input-flat text-xs px-2 py-1 rounded">
+        <select id="filter-scope" class="input-flat px-2 py-1 rounded">
           <option value="all" ${_filterState.scope === 'all' ? 'selected' : ''}>所有范围</option>
           ${Object.entries(SCOPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.scope === v ? 'selected' : ''}>${l}</option>`).join('')}
         </select>
-        <select id="filter-type" class="input-flat text-xs px-2 py-1 rounded">
+        <select id="filter-type" class="input-flat px-2 py-1 rounded">
           <option value="all" ${_filterState.type === 'all' ? 'selected' : ''}>所有类型</option>
           ${Object.entries(TYPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.type === v ? 'selected' : ''}>${l}</option>`).join('')}
         </select>

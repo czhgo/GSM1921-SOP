@@ -9,11 +9,11 @@
 //  最小三成本：按钮常驻顶部（零搜寻），弹窗两步完成（选分类+填正文）
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../services/issues.js?v=20260903b';
-import { AuthStore } from '../services/auth.js?v=20260903b';
-import { showToast } from '../core/utils.js?v=20260903b';
-import { getPersonName } from '../mock/index.js?v=20260903b';
-import { solidAccentStyle } from '../core/constants.js?v=20260903b';
+import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../services/issues.js?v=20260903c';
+import { AuthStore } from '../services/auth.js?v=20260903c';
+import { showToast } from '../core/utils.js?v=20260903c';
+import { getPersonName } from '../mock/index.js?v=20260903c';
+import { solidAccentStyle } from '../core/constants.js?v=20260903c';
 
 /**
  * 一键汇报按钮 HTML（挂在 tab-bar extraRightHtml 右侧）
@@ -67,7 +67,7 @@ async function openReportModal() {
             data-category="${key}">${label}</button>
         `).join('')}
       </div>
-      <textarea id="report-modal-body" class="input-flat text-xs w-full h-24 resize-none" placeholder="填写汇报内容（进度 / 难点卡点 / 请示事项）…"></textarea>
+      <textarea id="report-modal-body" class="input-flat w-full h-24 resize-none" placeholder="填写汇报内容（进度 / 难点卡点 / 请示事项）…"></textarea>
       <div class="flex justify-end gap-2 mt-3">
         <button type="button" class="report-modal-close text-xs px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
         <button id="report-modal-submit" class="text-xs px-4 py-2 rounded-lg text-white" style="background:var(--app-accent,#B91C1C);">发出汇报</button>

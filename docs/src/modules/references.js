@@ -1,10 +1,10 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../core/icons.js?v=20260903b';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260903b';
-import { AuthStore } from '../services/auth.js?v=20260903b';
-import { loadActivities } from '../services/activity.js?v=20260903b';
+import { icon } from '../core/icons.js?v=20260903c';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260903c';
+import { AuthStore } from '../services/auth.js?v=20260903c';
+import { loadActivities } from '../services/activity.js?v=20260903c';
 
 const SITE_GROUPS = [
   {
@@ -357,11 +357,11 @@ export class ReferencesModule {
       <div class="px-5 py-4 space-y-3.5 overflow-y-auto">
         <div>
           <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:#EF4444;">*</span></label>
-          <input id="ref-modal-title" class="input-flat text-xs w-full" placeholder="如：积极分子考察表模板" value="${editing ? _esc(editing.title || '') : ''}" />
+          <input id="ref-modal-title" class="input-flat w-full" placeholder="如：积极分子考察表模板" value="${editing ? _esc(editing.title || '') : ''}" />
         </div>
         <div>
           <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-desc">描述</label>
-          <textarea id="ref-modal-desc" class="input-flat text-xs w-full" rows="2" placeholder="可选：文件用途 / 说明">${editing ? _esc(editing.desc || '') : ''}</textarea>
+          <textarea id="ref-modal-desc" class="input-flat w-full" rows="2" placeholder="可选：文件用途 / 说明">${editing ? _esc(editing.desc || '') : ''}</textarea>
         </div>
         <div>
           <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">${editing ? '替换文件（可选，不选则保留原文件）' : '选择文件 <span style="color:#EF4444;">*</span>'}</label>

@@ -555,7 +555,7 @@ export const ISSUE_CLOSED_REASON_LABELS = {
 };
 
 // ── 活动产出块目录（块画布 v0，2026-09-03 书记裁定：活动产出记录=块；支部级 config.blocks 启停/排序）──
-// 消费点：活动详情「添加记录」按钮组（leader write-tab 等）；UI：书记工作台「工作台配置」产出块区
+// 消费点：活动详情「添加记录」按钮组（leader write-tab 等）；UI：党委工作台「支部配置」产出块区
 export const OUTPUT_BLOCK_DEFS = [
   { id: 'attendance', label: '考勤', desc: '出勤记录（同步正式考勤库）' },
   { id: 'inspection', label: '考察', desc: '考察记录（同步正式考察库）' },

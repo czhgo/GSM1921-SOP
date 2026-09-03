@@ -2,16 +2,16 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/icons.js?v=20260903b';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260903b';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate } from '../../../core/utils.js?v=20260903b';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260903b';
-import { mockDB } from '../../../core/domain.js?v=20260903b';
-import { loadActivities } from '../../../services/activity.js?v=20260903b';
-import { isApiMode } from '../../../services/runtime.js?v=20260903b';
-import { AuthStore } from '../../../services/auth.js?v=20260903b';
-import { _personName } from '../../../mock/index.js?v=20260903b';
-import { addExternalDispatch } from '../../../services/external-dispatch.js?v=20260903b';
+import { icon } from '../../../core/icons.js?v=20260903c';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260903c';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate } from '../../../core/utils.js?v=20260903c';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260903c';
+import { mockDB } from '../../../core/domain.js?v=20260903c';
+import { loadActivities } from '../../../services/activity.js?v=20260903c';
+import { isApiMode } from '../../../services/runtime.js?v=20260903c';
+import { AuthStore } from '../../../services/auth.js?v=20260903c';
+import { _personName } from '../../../mock/index.js?v=20260903c';
+import { addExternalDispatch } from '../../../services/external-dispatch.js?v=20260903c';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -55,17 +55,17 @@ export function renderContent(ctx) {
   container.innerHTML = `
     <div class="mb-4 flex flex-col sm:flex-row gap-3">
       <div class="relative flex-1">
-        <input id="archive-search" type="text" placeholder="搜索活动名称..." class="input-flat text-xs flex-1 pl-8" />
+        <input id="archive-search" type="text" placeholder="搜索活动名称..." class="input-flat flex-1 pl-8" />
         ${icon('search', { className: 'absolute left-2.5 top-2.5 w-3.5 h-3.5 text-gray-400' })}
       </div>
-      <select id="archive-filter-category" class="input-flat text-xs">
+      <select id="archive-filter-category" class="input-flat">
         <option value="">全部类别</option>
         <option value="新闻稿">新闻稿</option>
         <option value="照片">照片</option>
         <option value="视频">视频</option>
         <option value="其他">其他</option>
       </select>
-      <select id="archive-filter-status" class="input-flat text-xs">
+      <select id="archive-filter-status" class="input-flat">
         <option value="">全部状态</option>
         <option value="pending">待归档</option>
         <option value="in_progress">归档中</option>
@@ -481,11 +481,11 @@ function _showArchiveUploadModal(ctx) {
     <div class="px-5 py-4 space-y-3.5 overflow-y-auto">
       <div>
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">关联活动 <span class="text-red-500">*</span></label>
-        <select id="upload-activity" class="input-flat text-xs w-full">${activityOptions}</select>
+        <select id="upload-activity" class="input-flat w-full">${activityOptions}</select>
       </div>
       <div>
         <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="upload-category">材料类别</label>
-        <select id="upload-category" class="input-flat text-xs w-full">
+        <select id="upload-category" class="input-flat w-full">
           ${MATERIAL_STANDARDS.map(s => `<option value="${s.category}">${s.category}</option>`).join('')}
         </select>
       </div>
@@ -624,13 +624,13 @@ function _promptExternalDispatch(activityId, activityName, ctx) {
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="ed-receiver">接收方</label>
-          <select id="ed-receiver" class="input-flat text-xs w-full">
+          <select id="ed-receiver" class="input-flat w-full">
             ${receiverOptions.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
           </select>
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="ed-note">备注（可选）</label>
-          <input id="ed-note" type="text" class="input-flat text-xs w-full" placeholder="如：新闻稿终稿，请审核…" />
+          <input id="ed-note" type="text" class="input-flat w-full" placeholder="如：新闻稿终稿，请审核…" />
         </div>
       </div>
       <div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">

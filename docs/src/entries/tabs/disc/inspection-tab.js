@@ -2,13 +2,13 @@
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
 // 专班名单区（组织→纪检 自动同步，纪检只读同源）+ 考察总表（确认/删除）。
 
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903b';
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260903b';
-import { inspectionToLong, inspectionToWide, getPersonName } from '../../../mock/index.js?v=20260903b';
-import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260903b';
-import { badgeHtml } from '../../../components/badge.js?v=20260903b';
-import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260903b';
-import { HandoffStore } from '../../../services/handoff.js?v=20260903b';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903c';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260903c';
+import { inspectionToLong, inspectionToWide, getPersonName } from '../../../mock/index.js?v=20260903c';
+import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260903c';
+import { badgeHtml } from '../../../components/badge.js?v=20260903c';
+import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260903c';
+import { HandoffStore } from '../../../services/handoff.js?v=20260903c';
 
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');
@@ -53,13 +53,13 @@ export function renderContent(ctx) {
       <div class="text-xs text-gray-500 mb-3">纪检委员管理考察记录，党小组组长/组织委员上传 → 纪检确认 → 录入考察总表</div>
       ${overdueHtml}
       <div class="flex flex-wrap gap-2 mb-3">
-        <input type="text" id="insp-search-input" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索姓名或内容...">
-        <select id="insp-tag-filter" class="input-flat text-xs w-24">
+        <input type="text" id="insp-search-input" class="input-flat flex-1 min-w-[140px]" placeholder="搜索姓名或内容...">
+        <select id="insp-tag-filter" class="input-flat w-24">
           <option value="">全部来源</option>
           <option value="activity">活动</option>
           <option value="taskforce">专班</option>
         </select>
-        <select id="insp-status-filter" class="input-flat text-xs w-24">
+        <select id="insp-status-filter" class="input-flat w-24">
           <option value="">全部状态</option>
           <option value="confirmed">已确认</option>
           <option value="pending">待确认</option>

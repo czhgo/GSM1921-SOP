@@ -8,11 +8,11 @@
 //  本组件禁用 SVG 图标（书记裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260903b';
-import { AuthStore } from '../services/auth.js?v=20260903b';
-import { showToast } from '../core/utils.js?v=20260903b';
-import { getPersonName } from '../mock/index.js?v=20260903b';
-import { solidAccentStyle } from '../core/constants.js?v=20260903b';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260903c';
+import { AuthStore } from '../services/auth.js?v=20260903c';
+import { showToast } from '../core/utils.js?v=20260903c';
+import { getPersonName } from '../mock/index.js?v=20260903c';
+import { solidAccentStyle } from '../core/constants.js?v=20260903c';
 
 /**
  * 待答复收件箱 HTML
@@ -124,7 +124,7 @@ function _renderInboxDetail(r, accent) {
     <div class="space-y-2 mt-2">${timeline}</div>
     ${r.status === 'open' ? `
       <div class="flex gap-2 mt-2">
-        <input type="text" id="rep-inbox-input-${r.id}" class="input-flat text-xs flex-1" placeholder="添加答复…" aria-label="答复内容">
+        <input type="text" id="rep-inbox-input-${r.id}" class="input-flat flex-1" placeholder="添加答复…" aria-label="答复内容">
         <button type="button" class="rep-inbox-reply text-xs px-3 py-2 rounded-lg text-white hover:opacity-90 transition-opacity flex-shrink-0" data-report-id="${r.id}" style="${solidAccentStyle(accent)};">正式答复</button>
       </div>` : ''}
   `;

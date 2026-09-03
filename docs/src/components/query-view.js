@@ -50,7 +50,7 @@ export function renderQueryView(container, config) {
 
   // 搜索栏 + 筛选器 HTML
   const filtersHtml = filters.map(f => `
-    <select id="${uid}-filter-${f.key}" class="input-flat text-xs py-1.5 min-w-[100px]">
+    <select id="${uid}-filter-${f.key}" class="input-flat py-1.5 min-w-[100px]">
       <option value="">${f.label}</option>
       ${f.options.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
     </select>
@@ -58,7 +58,7 @@ export function renderQueryView(container, config) {
 
   // T229：级联大类下拉 + 子类 chips + 品牌 chip（活动类型体系层级化表达）
   const categoryHtml = category ? `
-    <select id="${uid}-cat" class="input-flat text-xs py-1.5 min-w-[110px]">
+    <select id="${uid}-cat" class="input-flat py-1.5 min-w-[110px]">
       <option value="">${category.label}</option>
       ${Object.keys(category.groups).map(g => `<option value="${g}">${g}</option>`).join('')}
     </select>
@@ -71,7 +71,7 @@ export function renderQueryView(container, config) {
   container.innerHTML = `
     <div class="query-view">
       <div class="flex flex-wrap items-center gap-2 mb-3">
-        <input type="text" id="${uid}-search" class="input-flat text-xs flex-1 min-w-[160px] py-1.5"
+        <input type="text" id="${uid}-search" class="input-flat flex-1 min-w-[160px] py-1.5"
                placeholder="${searchPlaceholder}" />
         ${filtersHtml}
         ${categoryHtml}

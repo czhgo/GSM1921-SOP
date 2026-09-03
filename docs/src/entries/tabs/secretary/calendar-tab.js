@@ -2,26 +2,26 @@
 // entries/tabs/secretary/calendar-tab.js — 书记工作台·活动管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 考勤概况 + 活动查询。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260903b';
-import { _fmtDate, showToast } from '../../../core/utils.js?v=20260903b';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260903b';
-import { renderInspectorFromState } from '../../../components/inspector.js?v=20260903b';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260903b';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260903b';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260903b';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260903b';
-import { loadActivities } from '../../../services/activity.js?v=20260903b';
-import { renderQueryView } from '../../../components/query-view.js?v=20260903b';
-import { icon } from '../../../core/icons.js?v=20260903b';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260903b';
-import { getPersonName, PEOPLE } from '../../../mock/index.js?v=20260903b';
-import { NoticeStore } from '../../../services/notice.js?v=20260903b';
-import { BranchService } from '../../../services/runtime.js?v=20260903b';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars } from '../../../core/constants.js?v=20260903b';
-import { badgeHtml } from '../../../components/badge.js?v=20260903b';
-import { collectAgendaRows } from './agenda-form.js?v=20260903b';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds } from '../../../services/vote-config.js?v=20260903b';
-import { getAdapter } from '../../../core/data-adapter.js?v=20260903b';
+import { getAppState, setState } from '../../../core/state.js?v=20260903c';
+import { _fmtDate, showToast } from '../../../core/utils.js?v=20260903c';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260903c';
+import { renderInspectorFromState } from '../../../components/inspector.js?v=20260903c';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260903c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260903c';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260903c';
+import { loadActivities } from '../../../services/activity.js?v=20260903c';
+import { renderQueryView } from '../../../components/query-view.js?v=20260903c';
+import { icon } from '../../../core/icons.js?v=20260903c';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
+import { getPersonName, PEOPLE } from '../../../mock/index.js?v=20260903c';
+import { NoticeStore } from '../../../services/notice.js?v=20260903c';
+import { BranchService } from '../../../services/runtime.js?v=20260903c';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars } from '../../../core/constants.js?v=20260903c';
+import { badgeHtml } from '../../../components/badge.js?v=20260903c';
+import { collectAgendaRows } from './agenda-form.js?v=20260903c';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds } from '../../../services/vote-config.js?v=20260903c';
+import { getAdapter } from '../../../core/data-adapter.js?v=20260903c';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 
@@ -62,9 +62,9 @@ function _agendaRowHTML({ item = '', host = '', kinds = [], branchDocId = '', fr
         <p class="wp-agenda-doc-hint text-[10px] text-gray-400 mt-1 hidden">暂无会前草案，<a href="search.html" target="_blank" class="text-blue-600 hover:text-blue-800">去资料查询写入 →</a></p>
       </div>
       <div class="wp-agenda-member-slot flex items-center gap-2${memberVisible}">
-        <select class="wp-agenda-from input-flat text-xs w-28">${stageOptions(fromStage)}</select>
+        <select class="wp-agenda-from input-flat w-28">${stageOptions(fromStage)}</select>
         <span class="text-gray-300 text-xs shrink-0">→</span>
-        <select class="wp-agenda-to input-flat text-xs w-28">${stageOptions(toStage)}</select>
+        <select class="wp-agenda-to input-flat w-28">${stageOptions(toStage)}</select>
         <div class="wp-agenda-person-slot flex-1"></div>
       </div>
     </div>`;
@@ -85,7 +85,7 @@ const CALENDAR_TAB_HTML = `
     </div>
     <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
       <div class="lg:col-span-3">
-        <select id="month-selector" class="input-flat text-xs mb-3"></select>
+        <select id="month-selector" class="input-flat mb-3"></select>
         <div id="cal-main-grid"></div>
         <div id="calendar-legend" class="mt-3"></div>
       </div>
@@ -593,7 +593,7 @@ function renderFormStep() {
   html += `<button type="button" data-wp-brand="create" class="wp-brand-chip text-xs px-3 py-1.5 rounded-lg border transition-colors">创建新品牌</button>`;
   html += `</div>`;
   html += `<div id="wp-brand-inherit" class="hidden mt-2">`;
-  html += `<select id="wp-brand-select" class="input-flat text-xs w-full">${brandNames.map(n => `<option value="${n}">${n}</option>`).join('')}</select>`;
+  html += `<select id="wp-brand-select" class="input-flat w-full">${brandNames.map(n => `<option value="${n}">${n}</option>`).join('')}</select>`;
   html += `</div>`;
   html += `<div id="wp-brand-create" class="hidden mt-2">`;
   html += `<input type="text" id="wp-brand-input" class="input-flat w-full" placeholder="品牌名称，如：人生回望录">`;

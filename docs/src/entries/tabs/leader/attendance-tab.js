@@ -2,17 +2,17 @@
 // 组长工作台 Tab：考勤上传（T-279 M2 拆分）
 // 党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表。
 
-import { loadActiveAttendanceRecords, loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260903b';
-import { loadMakeupTasks } from '../../../services/makeup.js?v=20260903b';
-import { loadActivities } from '../../../services/activity.js?v=20260903b';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260903b';
-import { getPersonById, getPersonName, PEOPLE, attendanceToLong } from '../../../mock/index.js?v=20260903b';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260903b';
-import { badgeHtml } from '../../../components/badge.js?v=20260903b';
-import { showToast } from '../../../core/utils.js?v=20260903b';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260903b';
-import { currentLeaderGroup } from './_shared.js?v=20260903b';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260903b';
+import { loadActiveAttendanceRecords, loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
+import { loadMakeupTasks } from '../../../services/makeup.js?v=20260903c';
+import { loadActivities } from '../../../services/activity.js?v=20260903c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
+import { getPersonById, getPersonName, PEOPLE, attendanceToLong } from '../../../mock/index.js?v=20260903c';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260903c';
+import { badgeHtml } from '../../../components/badge.js?v=20260903c';
+import { showToast } from '../../../core/utils.js?v=20260903c';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260903c';
+import { currentLeaderGroup } from './_shared.js?v=20260903c';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260903c';
 
 // 私有状态（随模块自持，不污染入口）
 let _attFormVisible = false;
@@ -56,7 +56,7 @@ export function renderContent(ctx) {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择活动 <span class="text-red-500">*</span></label>
-          <select id="att-activity-select" class="input-flat text-xs w-full">
+          <select id="att-activity-select" class="input-flat w-full">
             <option value="">请选择活动</option>
             ${eligibleActivities.map(a => `<option value="${a.id}">${a.title}（${a.date}）</option>`).join('')}
           </select>
@@ -233,7 +233,7 @@ function _renderAttStatusRows(selectedIds) {
     <div class="text-xs font-bold text-gray-600 mb-2">逐人出勤状态</div>
     <div class="flex items-center gap-2 mb-2">
       <span class="text-xs text-gray-500">批量设置：</span>
-      <select id="att-batch-status" class="input-flat text-xs">
+      <select id="att-batch-status" class="input-flat">
         <option value="">— 选择状态 —</option>
         <option value="${AttendanceStatus.PRESENT}">全部出勤</option>
         <option value="${AttendanceStatus.ABSENT}">全部缺勤</option>
@@ -248,7 +248,7 @@ function _renderAttStatusRows(selectedIds) {
         return `
           <div class="flex items-center gap-3 p-2 rounded-lg bg-white">
             <span class="text-sm font-medium text-gray-800 min-w-[60px]">${name}</span>
-            <select id="att-status-${pid}" class="input-flat text-xs">
+            <select id="att-status-${pid}" class="input-flat">
               <option value="${AttendanceStatus.PRESENT}">出勤</option>
               <option value="${AttendanceStatus.ABSENT}">缺勤</option>
               <option value="${AttendanceStatus.LEAVE}">请假</option>

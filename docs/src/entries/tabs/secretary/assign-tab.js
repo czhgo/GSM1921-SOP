@@ -2,15 +2,15 @@
 // entries/tabs/secretary/assign-tab.js — 书记工作台·赋权管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：常设赋权（设党小组组长）+ 项目赋权（organizer/deep）。
 
-import { showToast } from '../../../core/utils.js?v=20260903b';
-import { AuthStore } from '../../../services/auth.js?v=20260903b';
-import { getPersonById, PEOPLE } from '../../../mock/index.js?v=20260903b';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903b';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260903b';
-import { ROLE_LABELS, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260903b';
-import { loadActivities } from '../../../services/activity.js?v=20260903b';
-import { badgeHtml } from '../../../components/badge.js?v=20260903b';
-import { TodoStore } from '../../../services/todo.js?v=20260903b';
+import { showToast } from '../../../core/utils.js?v=20260903c';
+import { AuthStore } from '../../../services/auth.js?v=20260903c';
+import { getPersonById, PEOPLE } from '../../../mock/index.js?v=20260903c';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
+import { ROLE_LABELS, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260903c';
+import { loadActivities } from '../../../services/activity.js?v=20260903c';
+import { badgeHtml } from '../../../components/badge.js?v=20260903c';
+import { TodoStore } from '../../../services/todo.js?v=20260903c';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 
@@ -111,14 +111,14 @@ function renderProjectAuthPanel() {
       </div>
       <div>
         <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="project-type-select">选择项目类型</label>
-        <select id="project-type-select" class="input-flat text-xs w-full">
+        <select id="project-type-select" class="input-flat w-full">
           <option value="activity">活动</option>
           <option value="taskforce">专班</option>
         </select>
       </div>
       <div>
         <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="project-id-select">选择项目</label>
-        <select id="project-id-select" class="input-flat text-xs w-full">
+        <select id="project-id-select" class="input-flat w-full">
           ${[...loadActivities()].sort((a, b) => (b.date || '').localeCompare(a.date || '')).map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('')}
         </select>
       </div>

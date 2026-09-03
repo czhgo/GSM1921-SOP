@@ -2,7 +2,7 @@
 // 参与者工作台 Tab：考勤概况（T-279 M3 拆分，照 M2 样板）
 // 本月活动出勤一览（参与者视角：支部成员对自己的活动出勤有查询视图）。
 
-import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260903b';
+import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -13,7 +13,7 @@ export function renderContent(ctx) {
   const monthActs = activities.filter(a => (a.date || '').startsWith(thisMonth) && !a.archived);
   tc.innerHTML = `
     <div class="flex flex-wrap gap-2 mb-3">
-      <input type="text" id="visitor-att-search" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索活动名称...">
+      <input type="text" id="visitor-att-search" class="input-flat flex-1 min-w-[140px]" placeholder="搜索活动名称...">
     </div>
     <div id="visitor-att-list"></div>
   `;

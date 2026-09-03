@@ -2,13 +2,13 @@
 // 组织委员工作台 Tab：考察上传（T-279 M3 拆分，照 M2 样板）
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260903b';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903b';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260903b';
-import { getPersonById, getPersonName, inspectionToLong } from '../../../mock/index.js?v=20260903b';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260903b';
-import { showToast } from '../../../core/utils.js?v=20260903b';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260903b';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260903c';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
+import { getPersonById, getPersonName, inspectionToLong } from '../../../mock/index.js?v=20260903c';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260903c';
+import { showToast } from '../../../core/utils.js?v=20260903c';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260903c';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
@@ -36,7 +36,7 @@ export function renderContent(ctx) {
       <div class="text-xs font-bold text-gray-600 mb-3">上传专班考察表单</div>
       <div class="mb-3">
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择专班 <span class="text-red-500">*</span></label>
-        <select id="org-insp-tf-select" class="input-flat text-xs w-full">
+        <select id="org-insp-tf-select" class="input-flat w-full">
           <option value="">请选择专班</option>
           ${activeTaskforces.map(tf => `<option value="${tf.id}" data-name="${tf.name}">${tf.name}（${tf.status === 'active' ? '运行中' : '招募中'}）</option>`).join('')}
         </select>

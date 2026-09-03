@@ -4,11 +4,11 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据书记第五轮裁定「新建专班查看组件（列表+详情）」。
 // 书记设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260903b';
-import { _personName } from '../mock/index.js?v=20260903b';
-import { badgeHtml } from './badge.js?v=20260903b';
-import { dotDarkVars } from '../core/constants.js?v=20260903b';
-import { flashHighlight } from '../core/utils.js?v=20260903b';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260903c';
+import { _personName } from '../mock/index.js?v=20260903c';
+import { badgeHtml } from './badge.js?v=20260903c';
+import { dotDarkVars } from '../core/constants.js?v=20260903c';
+import { flashHighlight } from '../core/utils.js?v=20260903c';
 
 const STATUS_LABEL = { draft: '草稿', pending_review: '待审核', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档' };
 const STATUS_COLOR = { pending_review: '#6366F1', recruiting: '#D97706', active: '#10B981', completed: '#3B82F6', archived: '#6B7280', draft: '#6B7280' };
@@ -43,7 +43,7 @@ export function renderTaskforceView(container, opts = {}) {
           <span class="text-xs text-gray-400">全支部专班一览 · 点击卡片查看详情（只读）</span>
         </div>
         <div class="flex flex-wrap gap-2 mb-3">
-          <input type="text" id="tfv-search" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索专班名称或任务...">
+          <input type="text" id="tfv-search" class="input-flat flex-1 min-w-[140px]" placeholder="搜索专班名称或任务...">
         </div>
         <div id="tfv-list"></div>
         <div id="tfv-detail" class="hidden card rounded-xl p-5 mt-4"></div>

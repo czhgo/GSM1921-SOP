@@ -367,3 +367,12 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **回归**：module-load 115/115；party P1/P2、review、hover、module-config、block-canvas、write E2E 全绿
 **教训沉淀**：① 批量文本改写禁 PowerShell 无显式 UTF-8 读写（会毁中文）；② 同文件并行 Edit 竞态；③ git diff --stat 行数放大=文件损坏信号；④ UI 行为语义有歧义必须 AskUser 澄清后再实现（hover 即选教训）
 **下一步候选**：目视复核（强刷 20260903b）；L3 block manifest 契约专项；push 待书记批准
+
+## T-2026-09-026 四点整改：党委入口/缓存工程标准/工作台配置回炉/表单字背景统一（2026-09-03，版本 bump 20260903c）
+
+**① 党委后台入口**：登录页 DEV_CARDS 补「党委组织员（党务老师·监控全院支部）」演示卡（devLogin 已支持 p_pc，直达 party-committee.html）
+**② 缓存工程标准修复（根因）**：server static 无 Cache-Control → Last-Modified 启发式缓存命中旧模块（"改了看不到"根因）——补 `Cache-Control: no-cache, must-revalidate`（浏览器每次回源校验）；版本 query 保留为整体失效手段；**版本串纪律更新：bump 仅当需整体失效或 query 不齐，日常改码靠 no-cache 即可**（当前运行实例未重启前仍以 bump c 兜底）
+**③ 工作台配置回炉 v2（书记裁定：定位不对+UI 过重）**：从书记工作台核心组移除（不再日常出现）；收拢到**党委工作台「支部配置」tab**（支部治理组，party-config-tab.js）；UI 减负：去掉双画布拖拽，仅选支部+业务模块/活动产出块分组开关+恢复默认；保留 config.modules/blocks 数据与写口（party-staff/书记可写）；删除 secretary/module-config-tab.js；绑定改容器级 change 委托（tab 重绘/多入口稳健）；目录依赖 secretary-workspace 能力副作用注册（单一源）
+**④ 表单背景与字号统一**：背景=白卡为主、浅灰槽仅行内追加记录（record-form-shell 语义）；**输入统一 14px**——全站 28 文件移除输入控件 input-flat text-xs 特例（含表单正文/工具条/行内编辑输入，无分级歧义）
+**测试**：party-config E2E（党委停用业务模块→书记台消失→恢复默认回归）1/1；全相关 9/9 + module-load 115/115；bump b→c 194 文件零残留
+**下一步候选**：目视复核（强刷 20260903c：登录页党委卡/党委台支部配置/表单字号背景统一）；L3 block manifest 契约；push 待书记批准

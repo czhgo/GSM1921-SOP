@@ -7,12 +7,12 @@
 // 故本 tab 每次渲染前先读取表单现值、渲染后回填——工作台数据变更重绘不丢撰写内容。
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain.js?v=20260903b';
-import { AuthStore } from '../../../services/auth.js?v=20260903b';
-import { PARTY_COMMITTEE } from '../../../mock/branches.js?v=20260903b';
-import { NoticeStore } from '../../../services/notice.js?v=20260903b';
-import { textField, textareaField } from '../../../components/form-field.js?v=20260903b';
-import { showToast } from '../../../core/utils.js?v=20260903b';
+import { mockDB } from '../../../core/domain.js?v=20260903c';
+import { AuthStore } from '../../../services/auth.js?v=20260903c';
+import { PARTY_COMMITTEE } from '../../../mock/branches.js?v=20260903c';
+import { NoticeStore } from '../../../services/notice.js?v=20260903c';
+import { textField, textareaField } from '../../../components/form-field.js?v=20260903c';
+import { showToast } from '../../../core/utils.js?v=20260903c';
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

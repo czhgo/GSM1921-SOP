@@ -2,8 +2,8 @@
 // issues.js — GitHub Issue 风格意见反馈数据服务
 // 权威源 docs/data/issues.json + localStorage 个人草稿
 
-import { AuthStore } from './auth.js?v=20260903b';
-import { PersonStore } from './person.js?v=20260903b';
+import { AuthStore } from './auth.js?v=20260903c';
+import { PersonStore } from './person.js?v=20260903c';
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
 function _displayName(id) {
@@ -791,7 +791,7 @@ export function renderMyDispatchTab(role, userId) {
       html += `<p class="text-sm font-medium text-gray-800">${r.title}</p>`;
       if (r.body && r.body !== r.title) html += `<p class="text-xs text-gray-600 mt-1">${r.body}</p>`;
       html += `<div class="flex gap-2 mt-2">`;
-      html += `<input type="text" id="report-req-input-${r.id}" class="input-flat text-xs flex-1" placeholder="填写汇报内容…">`;
+      html += `<input type="text" id="report-req-input-${r.id}" class="input-flat flex-1" placeholder="填写汇报内容…">`;
       html += `<button data-mydispatch-action="submit-report" data-issue-id="${r.id}" class="text-xs px-3 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors flex-shrink-0">汇报</button>`;
       html += `</div></div>`;
     });
@@ -926,7 +926,7 @@ function _renderMyReportDetail(issueId, role, userId, container) {
       html += `<button data-mydispatch-action="confirm-received" class="text-xs px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">确认已收到答复</button>`;
     }
     html += `<div class="flex gap-2">`;
-    html += `<input type="text" id="mydispatch-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论…">`;
+    html += `<input type="text" id="mydispatch-comment-input" class="input-flat flex-1" placeholder="添加评论…">`;
     html += `<button data-mydispatch-action="comment" class="text-xs px-3 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-800 transition-colors">评论</button>`;
     html += `</div></div>`;
   }
@@ -1002,7 +1002,7 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
 
   if (issue.status === 'open') {
     html += `<div class="pt-3 border-t border-gray-100"><div class="flex gap-2">`;
-    html += `<input type="text" id="mydispatch-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论…">`;
+    html += `<input type="text" id="mydispatch-comment-input" class="input-flat flex-1" placeholder="添加评论…">`;
     html += `<button data-mydispatch-action="comment" class="text-xs px-3 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-800 transition-colors">评论</button>`;
     html += `<button data-mydispatch-action="submit-result" class="text-xs px-3 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">提交处置结果</button>`;
     html += `</div></div>`;
