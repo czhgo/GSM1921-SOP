@@ -249,7 +249,7 @@ function _downloadTemplate(tpl) {
       <p><b>三、活动成效与反响</b>：引用参与者反馈。</p>
       <p><b>四、配图</b>：3 张以上原图，横版为主，命名：日期_活动名_序号。</p>
       <p><b>署名</b>：＿＿＿＿（撰稿人）</p>
-      <p style="color:#999">（本模板由 GSM1921 党务工作系统生成，请按材料标准填写）</p>
+      <p style="color:#999">（本模板由 GSM1921 系统生成，请按材料标准填写）</p>
     </body></html>`;
     downloadBlob(`${tpl.name}_${stamp}.doc`, new Blob([html], { type: 'application/msword' }));
   } else {

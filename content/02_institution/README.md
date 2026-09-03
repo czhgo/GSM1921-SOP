@@ -21,7 +21,7 @@ status: active
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
 | [FLAT_DESIGN.md](FLAT_DESIGN.md) | 扁平化组织设计（组织者与深度参与者的扁平化设计） | **唯一权威**——扁平化参与途径 |
-| [COMMISSIONER_FRAMEWORK.md](COMMISSIONER_FRAMEWORK.md) | 三支委党务工作职能 + 党小组交互 + 专班设计 + §审批流程规范 | **唯一权威**——委员系统、专班与审批流程 |
+| [COMMISSIONER_FRAMEWORK.md](COMMISSIONER_FRAMEWORK.md) | 三支委职能 + 党小组交互 + 专班设计 + §审批流程规范 | **唯一权威**——委员系统、专班与审批流程 |
 
 ### 二、角色分类
 

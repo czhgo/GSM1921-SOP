@@ -29,7 +29,7 @@ export function generateMindmapText() {
 // 权威来源：docs/src/workflow/sopData.js（executor/supervisor）+ 快速指南 + voteConfig 模型
 // 与 function-catalog.js 的 flow 条目 id 一一对应（防漂移测试以 catalog 为准）
 export const FLOW_LINKS = {
-  // ── 活动型（党建）──
+  // ── 活动型 ──
   'flow-branch-committee': [
     'A[书记: 确定议题并提前通知] --> B[纪检委员: 签到考勤]',
     'B --> C[书记: 主持并记录会议决议]',
@@ -69,7 +69,7 @@ export const FLOW_LINKS = {
     'E --> F[纪检委员: 考勤汇总·补课跟进]',
     'F --> G[宣传委员: 推文与工作记录归档]',
   ],
-  // ── 事务型（党务/活动与专班）──
+  // ── 事务型 ──
   'flow-taskforce': [
     'A[书记/组长/委员: 发起专班] --> B[组织委员: 招募统筹]',
     'B --> C[组织委员: 定人定责定岗]',

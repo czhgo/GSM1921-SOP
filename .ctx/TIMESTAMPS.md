@@ -77,11 +77,11 @@ dynamic_role:
 
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
-| content/02_institution/COMMISSIONER_FRAMEWORK.md | 2026-08-05 | [用户]+[AI] | 支委框架与赋权（含§D赋权入口设计） |
+| content/02_institution/COMMISSIONER_FRAMEWORK.md | 2026-09-03 | [用户]+[AI] | 支委框架与赋权（2026-09-03 矩阵命名/概念定位去党建党务二分） |
 | content/02_institution/FLAT_DESIGN.md | 2026-08-05 | [工程师]+[AI] | 扁平化设计 |
 | content/02_institution/ROLE_CLASSIFICATION.md | 2026-08-10 | [工程师]+[AI] | 角色分类（[AI] 角色描述去开发期 Agent 术语） |
 | content/02_institution/README.md | 2026-08-10 | [用户]+[AI] | 02_institution 目录索引 |
-| content/02_institution/sop/INDEX.md | 2026-08-04 | [用户]+[AI] | SOP 导航 |
+| content/02_institution/sop/INDEX.md | 2026-09-03 | [用户]+[AI] | SOP 导航（术语段删除党建/党务二分） |
 | content/02_institution/sop/常见工作场景快速指南.md | 2026-08-05 | [用户]+[AI] | |
 | content/02_institution/sop/支委与党小组定人定责定岗说明.md | 2026-08-05 | [用户]+[AI] | |
 | content/02_institution/sop/宣传委员工作流程指南.md | 2026-08-05 | [用户]+[AI] | |
@@ -95,8 +95,8 @@ dynamic_role:
 |---------|-------------|------|------|
 | content/03_doc_system/OPERATIONS_GUIDE.md | 2026-08-24 | [工程师]+[AI] | 运行标准·文档规范（§1-14：权威层级/术语/关系/角色/YAML/编码/排版/有机性/编号/日志/反论/命名/面向用户/角色操作；2026-08-24 T-282 拆分 §15-18 至 PROCESS_GUIDE） |
 | content/03_doc_system/PROCESS_GUIDE.md | 2026-08-24 | [工程师]+[AI] | 运行标准·流程机制（§15 甲部修改/§16 吸收外部输入/§17 周期性任务含 W4 五专项/§18 书记评议细节；T-282 自 OPERATIONS_GUIDE 拆分） |
-| content/03_doc_system/USAGE_POLICY.md | 2026-08-12 | [工程师]+[AI] | 使用规范（术语 §一 + Emoji §二） |
-| content/03_doc_system/ARCHITECTURE.md | 2026-08-03 | [工程师]+[AI] | 核心架构说明（迁移自根目录 ARCHITECTURE.md） |
+| content/03_doc_system/USAGE_POLICY.md | 2026-09-03 | [工程师]+[AI] | 使用规范（术语 §一 + Emoji §三；2026-09-03 书记裁定废止「党建工作×党务工作」二分） |
+| content/03_doc_system/ARCHITECTURE.md | 2026-09-03 | [工程师]+[AI] | 核心架构说明（2026-09-03 删除党建/党务分类节） |
 | content/03_doc_system/DOC_MAP.md | 2026-08-19 | [工程师]+[AI] | 全局文档导航 |
 | content/03_doc_system/SSOT_INDEX.md | 2026-08-05 | [工程师]+[AI] | 母本子本注册表 |
 | content/03_doc_system/SERVICE_CATALOG.md | 2026-08-12 | [工程师]+[AI] | 服务目录（v4.0 有机重组：清单总表+权限矩阵+权威源指针） |
@@ -144,7 +144,7 @@ dynamic_role:
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
 | content/insights/README.md | 2026-08-24 | [用户]+[工程师] | 经验沉淀层目录索引（2026-08-24 新增，与其他目录对齐） |
-| content/insights/党支部管理与实务经验沉淀.md | 2026-08-11 | [用户]+[AI] | 党建与党务工作理论贡献 |
+| content/insights/党支部管理与实务经验沉淀.md | 2026-09-03 | [用户]+[AI] | 组织性/条块二元/专班等经验贡献 |
 | content/insights/工程演进与设计方法论.md | 2026-08-11 | [用户]+[AI] | 工程演进与设计方法论（文档逻辑顺序重组后拆分为独立文件） |
 
 ## content/README.md

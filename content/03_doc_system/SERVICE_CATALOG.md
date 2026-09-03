@@ -14,7 +14,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 >
 > **受众：** [工程师]+[AI] — 工程师决策参考 + AI 自主读取作为实施上下文。
 >
-> 引用流程：[USAGE_POLICY.md §1.1.1](./USAGE_POLICY.md)（党建/党务 T1 官方定义）→ [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)（数据模型）→ [COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md)（支委系统）→ [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md)（角色权限矩阵）
+> 引用流程：[USAGE_POLICY.md §一](./USAGE_POLICY.md)（术语与使用规范，含 2026-09-03 书记裁定）→ [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)（数据模型）→ [COMMISSIONER_FRAMEWORK.md](../02_institution/COMMISSIONER_FRAMEWORK.md)（支委系统）→ [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md)（角色权限矩阵）
 >
 > **阅读约定**：本目录只盘点「有哪些服务、由哪些代码实现、谁有权限」。服务间数据流与依赖见 [DATA_FLOW.md §1.3](../04_web_design/data/DATA_FLOW.md)；页面路由与入口映射见 [ARCHITECTURE.md §五](./ARCHITECTURE.md)；权限矩阵权威源为 [ROLE_CLASSIFICATION.md §9](../02_institution/ROLE_CLASSIFICATION.md)。
 

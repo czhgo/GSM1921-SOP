@@ -266,7 +266,7 @@ export const NoticeStore = {
 // targetModule → 业务页（角色感知）：模块语义决定业务落点
 //  - activity（活动/主题党日）→ 首页活动日历（全员统一活动视图）
 //  - attendance（考勤）→ 纪检委员考勤管理 / 书记考勤概况
-//  - party（发展党员/考察）→ 组织委员党务工作 / 纪检委员考察管理 / 书记工作台
+//  - party（发展党员/考察）→ 组织委员档案与发展党员 / 纪检委员考察管理 / 书记工作台
 //  - workspace（工作部署/筹备）→ 支委各归其位 / 组长工作台 / 其余首页
 const NOTICE_MODULE_ROLE_PAGES = {
   activity: {

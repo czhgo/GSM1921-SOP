@@ -27,7 +27,7 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  [scenarioId] - 关联的场景 ID（对应 sopDatabase）* - Source: knowledge/SOP/常见工作场景快速指南.md#目录
  * @property {string}  [description] - 活动描述
  * @property {string}  [targetDate]  - 目标日期 ISO 字符串（T-0，兼容旧字段）
- * @property {'leader'|'disc-commissioner'} [attendanceQROwner] - 考勤二维码发布方（组织生活会专用：现场组织的党小组组长） - Source: content/02_institution/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
+ * @property {'leader'|'disc-commissioner'} [attendanceQROwner] - 考勤二维码发布方（组织生活会专用：现场组织的党小组组长） - Source: content/02_institution/sop/常见工作场景快速指南.md#组织生活会
  * @property {boolean} [isBrand]  - 品牌属性标签（由书记认定，不影响工作流选择） - Source: content/04_web_design/data/DATA_ARCHITECTURE.md
  * @property {OutputRecord[]} [outputs] - 产出物记录（T-224 §5.5/§8 数据结构预留）：
  *   `{ type: OutputType, title, submittedBy, submittedAt, status: 'pending'|'submitted', routedTo: deriveOutputRoute(type).route }`
@@ -42,9 +42,9 @@ export const SCHEMA_VERSION = 1;
  * @property {'present'|'absent'|'leave'} status - 出勤状态
  * @property {string}  recordedBy  - 记录人用户 ID（纪检委员）
  * @property {string}  recordedAt  - 记录时间 ISO 字符串
- * @property {string}  [studentId] - 学号 - Source: content/02_institution/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
+ * @property {string}  [studentId] - 学号 - Source: content/02_institution/sop/常见工作场景快速指南.md#组织生活会
  * @property {'积极分子'|'发展对象'|'预备党员'|'正式党员'} [developStage] - 发展阶段（四阶段，2026-08-01 书记决策移除【入党申请人】） - Source: content/02_institution/sop/纪检委员工作流程指南.md#二考勤管理三会一课 + content/04_web_design/data/DATA_ARCHITECTURE.md §2.5
- * @property {string}  [partyGroup] - 所属党小组 - Source: content/02_institution/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
+ * @property {string}  [partyGroup] - 所属党小组 - Source: content/02_institution/sop/常见工作场景快速指南.md#组织生活会
  */
 
 /**
@@ -219,7 +219,7 @@ export const mockDB = {
   tasks: [],
   /** @type {AttendanceRecord[]} */
   // Fields: studentId（学号）, developStage（发展阶段）, partyGroup（所属党小组）are required for 组织生活会 attendance summary
-  // Source: content/02_institution/sop/常见工作场景快速指南.md#党建工作组织生活会严肃政治会议
+  // Source: content/02_institution/sop/常见工作场景快速指南.md#组织生活会
   attendances: [],
   /** @type {InspectionRecord[]} */
   // 考察记录（仅组织者和深度参与者的工作量记录）— Source: content/04_web_design/data/DATA_ARCHITECTURE.md §3.3

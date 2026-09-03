@@ -2,11 +2,11 @@
 title: "流程指南文档索引"
 type: index
 role: "[用户]+[AI]"
-last_updated: "2026-08-11"
+last_updated: "2026-09-03"
 status: active
 ---
 
-## 术语与党建/党务工作定义
+## 术语
 
 > 本段为 sop/ 目录下所有文件共享的术语权威源。各 sop/ 文件仅引用本段，不再重复定义。
 
@@ -20,12 +20,6 @@ status: active
 
 **块块**即横向党小组（各党小组组长）
 
-**党建工作**即党为保持先进性纯洁性而开展的自我建设（涵盖政治建设、思想建设、组织建设、作风建设、纪律建设，并把制度建设贯穿其中）；组织活动（三会一课、主题党日、专班）归此 → 工作台
-
-**党务工作**即党内事务的具体管理工作（包括党员发展、党员教育管理、组织生活、党内选举、党费收缴管理等）；发展党员、民主评议党员、换届选举、考勤考察归此 → 工作台
-
-> 两者都是"管理事，服务人"的工作。定义依据 [USAGE_POLICY.md §1.1.1](../../03_doc_system/USAGE_POLICY.md)（T1 官方定义）。详见 [DATA_MODEL.md](../../04_web_design/data/DATA_MODEL.md) 与 [DATA_FLOW.md](../../04_web_design/data/DATA_FLOW.md)。
-
 ---
 
 ## SOP Navigation
@@ -36,7 +30,7 @@ status: active
 | 纪检委员工作流程指南.md | 描述纪检委员职责与考勤管理流程（三会一课考勤、活动考察记录、意见建议反馈） | 纪检委员 | `Activity.status`, `AttendanceRecord.status`, `AttendanceRecord.recordedBy` |
 | 宣传委员工作流程指南.md | 描述宣传委员职责与宣传档案制度流程（支部大会宣传、活动材料归档、模板体系建设） | 宣传委员 | `Activity.type`, `Activity.title` |
 | 党小组组长工作手册.md | 党小组组长专用操作指南——党小组日常活动组织、条块协作、数据提交流程 | 党小组组长 | `Activity.executor`, `Activity.supervisor` |
-| 常见工作场景快速指南.md | 为所有支委和党小组成员提供常见工作场景（党建工作、党务工作）的快速操作指南 | 支部书记 | `Activity.type`, `Activity.status`, `Activity.executor`, `Activity.supervisor` |
+| 常见工作场景快速指南.md | 为所有支委和党小组成员提供常见工作场景（三会一课、主题党日、专班、发展党员、民主评议、换届选举等）的快速操作指南 | 支部书记 | `Activity.type`, `Activity.status`, `Activity.executor`, `Activity.supervisor` |
 | 支委与党小组定人定责定岗说明.md | 说明支委会成员与党小组的人员结构、双重身份体系及条条块块双线管理协调机制 | 支部书记 | `Activity.executor`, `Activity.supervisor` |
 
 ---
