@@ -463,9 +463,10 @@ function renderTemplateStep() {
   html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">`;
 
   WRITE_TEMPLATES.forEach(tpl => {
-    const isUnique = tpl.subtypes.length === 0; // 主题党日：无子类型=唯一选项 → 整卡 hover 即选
-    // 2026-09-03：hover 热区扩至整卡（原仅文字按钮可 hover，需精准移到文字条，交互偏慢）
-    html += `<div class="rounded-xl border border-gray-200 overflow-hidden" data-tpl-hover="${isUnique ? '1' : ''}" style="${isUnique ? 'cursor:pointer;' : ''}">`;
+    const isUnique = tpl.subtypes.length === 0; // 主题党日：无子类型=唯一选项 → 整卡可点（点击热区=全卡）
+    // 2026-09-03 书记澄清：仍须【点击】进入，只是点击热区扩至整卡（不必精准命中文字按钮）——
+    // 绝不是 hover 自动进入。卡内按钮区域直接点击走按钮；其余区域点击由 data-tpl-click 委托触发。
+    html += `<div class="rounded-xl border border-gray-200 overflow-hidden transition-shadow hover:shadow-sm hover:border-gray-300" data-tpl-click="${isUnique ? '1' : ''}" style="${isUnique ? 'cursor:pointer;' : ''}" title="${isUnique ? `选择${tpl.categoryLabel}` : ''}">`;
     // 类别标题色块
     html += `<div class="px-3 py-2" style="background:${tpl.bg};border-bottom:1px solid ${tpl.border};">`;
     html += `<span class="text-sm font-semibold" style="color:${tpl.color};">${tpl.categoryLabel}</span>`;
@@ -474,9 +475,9 @@ function renderTemplateStep() {
     html += `<div class="p-2 space-y-1">`;
     if (isUnique) {
       // 主题党日无固定子类型，直接选择模板（正交维度在 Step 2 表单中填写）
-      // 2026-09-01：唯一选项 → hover 即选（降低点击时间；data-hover-select 由 bindWritePanelEvents 绑定）
+      // 点击由 bindWritePanelEvents 委托（整卡 data-tpl-click；按钮自身 data-action 不受影响）
       const isSelected = wp.selections.L1 === tpl.category;
-      html += `<button data-action="select-template" data-hover-select="1" data-category="${tpl.category}" data-subtype="" data-scenario-id="${tpl.scenarioId || 'theme-party'}" data-activity-type="" data-color="${tpl.color}" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'sel-accent-on' : 'text-gray-700 hover:bg-gray-50'}">`;
+      html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="" data-scenario-id="${tpl.scenarioId || 'theme-party'}" data-activity-type="" data-color="${tpl.color}" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'sel-accent-on' : 'text-gray-700 hover:bg-gray-50'}">`;
       html += `选择${tpl.categoryLabel}`;
       html += `</button>`;
     } else {
@@ -817,19 +818,16 @@ function bindWritePanelEvents(container) {
   }
   // 议程类型 chips（2026-09-01：多选不互斥；初始行绑定，新增行在 _addAgendaRow 内绑定）
   container.querySelectorAll('.wp-agenda-row').forEach((row) => _bindRowKindChips(row));
-  // 主题党日模板 hover 即选（书记 2026-09-01：第一步只有一个选项时降低点击时间）
-  container.querySelectorAll('[data-hover-select="1"]').forEach((btn) => {
-    if (btn.dataset.hoverBound) return;
-    btn.dataset.hoverBound = '1';
-    btn.addEventListener('mouseenter', () => { if (!btn.dataset.selected) btn.click(); });
-  });
-  // 2026-09-03 书记：hover 热区扩至整卡——移入卡片任意处即可选（不必精准命中文字按钮）
-  container.querySelectorAll('[data-tpl-hover="1"]').forEach((card) => {
-    if (card.dataset.hoverBound) return;
-    card.dataset.hoverBound = '1';
-    card.addEventListener('mouseenter', () => {
-      const btn = card.querySelector('[data-hover-select="1"]');
-      if (btn && !btn.dataset.selected) btn.click();
+  // 主题党日模板：整卡可点（2026-09-03 书记澄清——点击热区=全卡，仍须点击进入；绝非 hover 自动进入）。
+  // 卡内按钮区域直接点击走按钮自身（data-action）；其余区域（如标题色块）点击由本委托触发选择。
+  container.querySelectorAll('[data-tpl-click="1"]').forEach((card) => {
+    if (card.dataset.bound) return;
+    card.dataset.bound = '1';
+    card.addEventListener('click', (e) => {
+      const btn = card.querySelector('[data-action="select-template"]');
+      if (!btn) return;
+      if (e.target.closest('button')) return; // 已由按钮自身处理，避免双击触发
+      btn.click();
     });
   });
   // 参与人选择（PersonPicker 多选 + 按阶段批量；重渲染时保留已选，销毁旧实例防泄漏）
