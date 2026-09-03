@@ -407,6 +407,12 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - 7 个 UI 调用方 import 面改挂 services；mock 数据模块格式化逻辑清零（thought-reports 种子的静态 personName 字段除外）
 - 回归：module-load + mock-integrity + party + multi-user 7/7 绿
 
+**L3 块契约 v1.1 + S1（完成）**：
+- 书记裁定吸收：块差异化 = ①流程组合 ②表单条目 ③参与人范围 三维；制度来源分层 provenance ∈ institution-common | branch-custom（通用 vs 支部自创不可谎报）；manifest 栖身 workflow/blocks；配置面在党委台支部配置
+- 契约文档：content/04_web_design/evolution/BLOCK_MANIFEST_CONTRACT.md（v1.1：字段规格/合法性表/资产映射/通用+自创双示例/落地拆分 S1~S4）
+- S1 编码（书记点名 主题党日+专班）：docs/src/workflow/blocks/manifests.js —— THEME_PARTY_DAY_MANIFEST + TASKFORCE_RUN_MANIFEST + validateBlockManifest 纯校验器（含 capability→provenance 权威对照，反例 1 曾暴露「通用谎报自创」未拦截，已补）
+- 单测：server/test/block-manifest.test.mjs（清单合规 + 5 反例拦截）+ module-load 全绿
+
 **MPO 评估归档**：新建 `content/04_web_design/evolution/MODULARIZATION_ASSESSMENT.md` —— 模块化 80 / 插件化 72 / 开源化 74 ≈ 75；确立「统一扎口范式」（域内多实现→一个库出口 + 四条改造纪律：聚合重导出不搬运/调用方只改 import 一行/每批回归/禁双轨）；行动优先级 P0 扎口推广与数据域接线 → P1 开源合规包 → P2 L3 block manifest
 
 **回归**：module-load 116/116（含新库）；party-committee + write-hover + capability-registry 15/15 绿；git diff 净 37 文件 +41/−42（无编码异常）

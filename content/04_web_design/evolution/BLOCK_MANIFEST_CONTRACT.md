@@ -231,7 +231,8 @@ related_files: [ARCHITECTURE_EVOLUTION.md, MODULARIZATION_ASSESSMENT.md, PARTY_C
 - ✅ manifest 数据栖身：`docs/src/workflow/blocks/manifests.js`（与引擎数据同目录）。
 - ✅ S3 配置面：党委台「支部配置」内展示块级启停与字段级收拢（不另设页面）。
 
-**待定（S1 编码前最后一次收敛）**：
-- 首批试点块的具体名单：建议 = **主题党日（institution-common，验证通用块 + 表单条目收拢）** + **专班运行（branch-custom，验证组织模式 organizer-deep + 参与人范围）** 各一，覆盖三个差异化维度且横跨"通用/自创"两源。书记认可名单或另点名后，进入 S1。
+**待定（S2 编码前收敛）**：
+- ✅ S1 已完成（书记点名 主题党日+专班，2026-09-03）：`docs/src/workflow/blocks/manifests.js`（THEME_PARTY_DAY_MANIFEST + TASKFORCE_RUN_MANIFEST + `validateBlockManifest` 纯校验器 + capability→provenance 权威对照防谎报）；单测 `server/test/block-manifest.test.mjs`（正/反 5 样例）+ module-load 全绿。
+- 待定：S2 表单渲染桥（manifest → forms.js 积木生成表单）的挂载点与首批接入 tab——进入 S2 前与书记对齐。
 
-> 书记确认本契约 v1.1 与首批名单后，方可进入 S1 编码。
+> 书记确认本契约 v1.1 与 S1 交付后，S2 编码按 §六 路线图继续。
