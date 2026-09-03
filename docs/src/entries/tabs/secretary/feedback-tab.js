@@ -10,7 +10,7 @@ import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260903c';
 import { getPersonName } from '../../../mock/index.js?v=20260903c';
 import { PersonStore } from '../../../services/person.js?v=20260903c';
-import { badgeHtml, badgeVariantClass } from '../../../components/badge.js?v=20260903c';
+import { badgeHtml, badgeVariantClass } from '../../../components/badges.js?v=20260903c';
 
 const FEEDBACK_TAB_HTML = `
   <!-- 列表面板 -->

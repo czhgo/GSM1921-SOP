@@ -9,7 +9,7 @@ import { icon } from '../core/icons.js?v=20260903c';
 import { getPersonName } from '../mock/index.js?v=20260903c';
 import { renderReactions, bindReactions } from './reactions.js?v=20260903c';
 import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260903c';
-import { badgeHtml } from './badge.js?v=20260903c';
+import { badgeHtml } from './badges.js?v=20260903c';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',

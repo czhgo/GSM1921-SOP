@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  taskforce-entry.js — 专班详情独立入口
 //  书记 2026-08-11 裁定：专班拥有自己的界面与数据集（便于长期共享）。
@@ -14,7 +14,7 @@ import { SignupStore } from '../services/signup.js?v=20260903c';
 import { AuthStore } from '../services/auth.js?v=20260903c';
 import { getPersonById } from '../mock/index.js?v=20260903c';
 import { getBasePath } from '../core/utils.js?v=20260903c';
-import { badgeHtml } from '../components/badge.js?v=20260903c';
+import { badgeHtml } from '../components/badges.js?v=20260903c';
 import { enhanceSelects } from '../components/custom-select.js?v=20260903c';
 import { canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260903c';
 import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260903c';

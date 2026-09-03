@@ -6,7 +6,7 @@ import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260903c';
 import { inspectionToDisplay } from '../../../mock/index.js?v=20260903c';
 import { ROLE_COLORS } from '../../../core/constants.js?v=20260903c';
-import { badgeHtml } from '../../../components/badge.js?v=20260903c';
+import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');

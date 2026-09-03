@@ -11,7 +11,7 @@ import { mockDB } from '../../../core/domain.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { PARTY_COMMITTEE } from '../../../mock/branches.js?v=20260903c';
 import { NoticeStore } from '../../../services/notice.js?v=20260903c';
-import { textField, textareaField } from '../../../components/form-field.js?v=20260903c';
+import { textField, textareaField } from '../../../components/forms.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 
 function esc(s) {

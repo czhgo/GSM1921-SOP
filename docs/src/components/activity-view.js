@@ -7,7 +7,7 @@
 import { getAppState, setState } from '../core/state.js?v=20260903c';
 import { renderCalendarByActivities } from './calendar.js?v=20260903c';
 import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast } from '../core/utils.js?v=20260903c';
-import { badgeHtml } from './badge.js?v=20260903c';
+import { badgeHtml } from './badges.js?v=20260903c';
 import { ROLE_COLORS, dotDarkVars } from '../core/constants.js?v=20260903c';
 import { activityLifecycleBadgeHtml } from './inspector.js?v=20260903c';
 import { getPersonById } from '../mock/index.js?v=20260903c';

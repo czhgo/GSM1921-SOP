@@ -6,7 +6,7 @@
 
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260903c';
 import { _personName } from '../mock/index.js?v=20260903c';
-import { badgeHtml } from './badge.js?v=20260903c';
+import { badgeHtml } from './badges.js?v=20260903c';
 import { dotDarkVars } from '../core/constants.js?v=20260903c';
 import { flashHighlight } from '../core/utils.js?v=20260903c';
 

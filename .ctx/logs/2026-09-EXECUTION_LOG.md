@@ -376,3 +376,20 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **④ 表单背景与字号统一**：背景=白卡为主、浅灰槽仅行内追加记录（record-form-shell 语义）；**输入统一 14px**——全站 28 文件移除输入控件 input-flat text-xs 特例（含表单正文/工具条/行内编辑输入，无分级歧义）
 **测试**：party-config E2E（党委停用业务模块→书记台消失→恢复默认回归）1/1；全相关 9/9 + module-load 115/115；bump b→c 194 文件零残留
 **下一步候选**：目视复核（强刷 20260903c：登录页党委卡/党委台支部配置/表单字号背景统一）；L3 block manifest 契约；push 待书记批准
+
+## T-2026-09-027 统一扎口试点（表单域+徽章域）+ 模块化/插件化/开源化评估归档（2026-09-03）
+
+**背景**：书记定调「模块调用统一扎口——同一域若干函数，统一由新库文件调用，一改具改上下文负担小」+ 请求 100 分制 MPO 评估以指导开发顺序。
+
+**P0 试点一·表单库 forms.js（完成）**：
+- 新建 `components/forms.js` 聚合重导出 form-field（textField/textareaField/selectField/dateField/labelHtml/errorHtml）+ form-shell（recordFormShell）
+- 三个直连调用方收口：dispatch-tab（字段积木）、write-tab/taskforce-tab（外壳）；仓库无 form-field/form-shell 直连残留
+
+**P0 试点二·徽章库 badges.js（完成）**：
+- 新建 `components/badges.js` 聚合 badge（badgeHtml/badgeVariantClass 展示徽章）+ status-badge（statusBadgeHtml/bindStatusBadge 交互状态徽章）
+- 全站 37 个文件收口（components 内部 13 + dashboard 2 + entries/services 6 + tabs 16）；仅 import 来源一行替换，零行为变化
+
+**MPO 评估归档**：新建 `content/04_web_design/evolution/MODULARIZATION_ASSESSMENT.md` —— 模块化 80 / 插件化 72 / 开源化 74 ≈ 75；确立「统一扎口范式」（域内多实现→一个库出口 + 四条改造纪律：聚合重导出不搬运/调用方只改 import 一行/每批回归/禁双轨）；行动优先级 P0 扎口推广与数据域接线 → P1 开源合规包 → P2 L3 block manifest
+
+**回归**：module-load 116/116（含新库）；party-committee + write-hover + capability-registry 15/15 绿；git diff 净 37 文件 +41/−42（无编码异常）
+**下一步候选**：目视复核（20260903c）；L3 block manifest 契约专项；push 待书记批准

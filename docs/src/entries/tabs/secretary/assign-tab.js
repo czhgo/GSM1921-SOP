@@ -9,7 +9,7 @@ import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903c
 import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
 import { ROLE_LABELS, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
-import { badgeHtml } from '../../../components/badge.js?v=20260903c';
+import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { TodoStore } from '../../../services/todo.js?v=20260903c';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;

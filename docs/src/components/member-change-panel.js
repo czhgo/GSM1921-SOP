@@ -8,7 +8,7 @@ import { getAdapter } from '../core/data-adapter.js?v=20260903c';
 import { getPersonById, getPersonName } from '../mock/index.js?v=20260903c';
 import { loadActivities } from '../services/activity.js?v=20260903c';
 import { showToast } from '../core/utils.js?v=20260903c';
-import { badgeHtml } from './badge.js?v=20260903c';
+import { badgeHtml } from './badges.js?v=20260903c';
 import { NoticeStore } from '../services/notice.js?v=20260903c';
 
 const STATUS_LABEL = {

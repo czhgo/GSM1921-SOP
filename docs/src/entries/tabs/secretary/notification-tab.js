@@ -5,7 +5,7 @@
 
 import { NoticeStore } from '../../../services/notice.js?v=20260903c';
 import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260903c';
-import { badgeHtml } from '../../../components/badge.js?v=20260903c';
+import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { openModal, closeModal } from '../../../components/modal.js?v=20260903c';
 
 const NOTIFICATION_TAB_HTML = `

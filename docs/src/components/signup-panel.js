@@ -7,7 +7,7 @@
 import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260903c';
 import { getPersonById } from '../mock/index.js?v=20260903c';
 import { showToast } from '../core/utils.js?v=20260903c';
-import { badgeHtml } from './badge.js?v=20260903c';
+import { badgeHtml } from './badges.js?v=20260903c';
 
 /** 角色标签（报名/专班/活动 assignments 共用） */
 export function roleLabel(role) {

@@ -7,7 +7,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { HandoffStore, HANDOFF_TYPES, HANDOFF_ROLE_LABELS } from '../services/handoff.js?v=20260903c';
-import { badgeHtml } from './badge.js?v=20260903c';
+import { badgeHtml } from './badges.js?v=20260903c';
 import { solidAccentStyle } from '../core/constants.js?v=20260903c';
 
 /**

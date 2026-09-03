@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
 import { renderSidebar } from '../components/sidebar.js?v=20260903c';
@@ -12,7 +12,7 @@ import { getActivityTypeColors } from '../core/constants.js?v=20260903c';
 import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260903c';
 import { getBasePath } from '../core/utils.js?v=20260903c';
 import { AuthStore } from '../services/auth.js?v=20260903c';
-import { badgeHtml } from '../components/badge.js?v=20260903c';
+import { badgeHtml } from '../components/badges.js?v=20260903c';
 
 renderSidebar('archive');
 renderHeader('archive');

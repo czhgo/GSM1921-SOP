@@ -10,7 +10,7 @@
 
 import { TodoStore } from '../services/todo.js?v=20260903c';
 import { renderTodoList } from './todo-list.js?v=20260903c';
-import { badgeHtml } from './badge.js?v=20260903c';
+import { badgeHtml } from './badges.js?v=20260903c';
 import { showToast } from '../core/utils.js?v=20260903c';
 import { solidAccentStyle } from '../core/constants.js?v=20260903c';
 

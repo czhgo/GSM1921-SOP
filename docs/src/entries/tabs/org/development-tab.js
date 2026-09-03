@@ -5,7 +5,7 @@
 import { loadInspectionRecords } from '../../../services/inspection.js?v=20260903c';
 import { loadThoughtReports, listThoughtReportsByPerson } from '../../../services/thought-report.js?v=20260903c';
 import { PEOPLE } from '../../../mock/index.js?v=20260903c';
-import { badgeHtml } from '../../../components/badge.js?v=20260903c';
+import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 
 // ════════════════════════════════════════════════════════════════

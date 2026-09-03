@@ -9,7 +9,7 @@ import { getAppState } from '../../core/state.js?v=20260903c';
 import { _fmtDate } from '../../core/utils.js?v=20260903c';
 import { getPersonName } from '../../mock/index.js?v=20260903c';
 import { getActivityTypeColors } from '../../core/constants.js?v=20260903c';
-import { badgeHtml } from '../badge.js?v=20260903c';
+import { badgeHtml } from '../badges.js?v=20260903c';
 import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260903c';
 
 const GALLERY_TYPE_GRADIENTS = {

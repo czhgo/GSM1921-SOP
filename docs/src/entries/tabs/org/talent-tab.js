@@ -6,7 +6,7 @@ import { loadInspectionRecords } from '../../../services/inspection.js?v=2026090
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { PEOPLE, getPersonById } from '../../../mock/index.js?v=20260903c';
 import { renderQueryView } from '../../../components/query-view.js?v=20260903c';
-import { badgeHtml } from '../../../components/badge.js?v=20260903c';
+import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { icon } from '../../../core/icons.js?v=20260903c';
 
 // 发展阶段颜色映射（单一模块级；收敛 2026-09-02：原 query/detail 两函数内各有一份同值副本）

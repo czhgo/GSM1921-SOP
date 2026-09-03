@@ -12,7 +12,7 @@ import { showToast, getBasePath } from '../core/utils.js?v=20260903c';
 import { AuthStore } from './auth.js?v=20260903c';
 import { getPersonById } from './person.js?v=20260903c';
 import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260903c';
-import { badgeHtml } from '../components/badge.js?v=20260903c';
+import { badgeHtml } from '../components/badges.js?v=20260903c';
 
 function _loadNotices() {
   try {

@@ -7,7 +7,7 @@ import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constan
 import { getBasePath } from '../core/utils.js?v=20260903c';
 import { icon } from '../core/icons.js?v=20260903c';
 import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260903c';
-import { badgeHtml } from './badge.js?v=20260903c';
+import { badgeHtml } from './badges.js?v=20260903c';
 import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260903c';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
 import { getHeaderTitle } from '../services/branch.js?v=20260903c';

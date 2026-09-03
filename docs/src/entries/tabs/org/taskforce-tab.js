@@ -18,9 +18,9 @@ import { showToast } from '../../../core/utils.js?v=20260903c';
 import { solidAccentStyle } from '../../../core/constants.js?v=20260903c';
 import { icon } from '../../../core/icons.js?v=20260903c';
 import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
-import { recordFormShell } from '../../../components/form-shell.js?v=20260903c';
+import { recordFormShell } from '../../../components/forms.js?v=20260903c';
 import { renderQueryView } from '../../../components/query-view.js?v=20260903c';
-import { badgeHtml } from '../../../components/badge.js?v=20260903c';
+import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { _personName, getPersonName } from '../../../mock/index.js?v=20260903c';
 
 // 私有状态（随模块自持，不污染入口）
