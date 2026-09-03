@@ -5,12 +5,15 @@
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole, requireCommissioner } from './auth.js';
+// P2c（2026-09-03）：角色/支委名单单一源 = docs/src/core/constants.js（勿手写）
+import { SECRETARY_ROLES as SECRETARY_ROLE_KEYS, COMMITTEE_IDS as BRANCH_COMMITTEE_IDS } from '../../docs/src/core/constants.js';
 
 // 全体支委（广播对象：书记/副书记/组织/宣传/纪检，与 member-change-flow 测试断言一致）
-const COMMITTEE_IDS = ['p10', 'p11', 'p12', 'p13', 'p14'];
+// P2c：名单单一源 = constants.js COMMITTEE_IDS / SECRETARY_ROLES（勿手写）
+const COMMITTEE_IDS = BRANCH_COMMITTEE_IDS;
 
 const ORG_COMMISSIONER_ROLES = new Set(['org-commissioner']);
-const SECRETARY_ROLES = new Set(['secretary']);
+const SECRETARY_ROLES = new Set(SECRETARY_ROLE_KEYS);
 
 function listTable(db, table) {
   return db.prepare(`SELECT data FROM ${table}`).all().map((r) => JSON.parse(r.data));

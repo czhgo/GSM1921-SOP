@@ -1,6 +1,8 @@
 // server/routes/auth.js — token 会话认证
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
+// P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/constants.js（前端 AuthStore.isCommissioner 同源，勿另写）
+import { BRANCH_COMMISSION_ROLES } from '../../docs/src/core/constants.js';
 
 // ── 登录口令校验（2026-09-03 P1b 运行安全；书记裁定「做，可开关」）────────────
 // 原状：POST /login 仅凭 personId 发 token——多人/计算中心部署时任何知道学号者可冒名登录。
@@ -80,11 +82,9 @@ export function requireRole(db, roles) {
   };
 }
 
-// 支委角色集合（与前端 AuthStore.isCommissioner 口径一致）：
-// 书记 / 副书记 / 组织委员 / 宣传委员 / 纪检委员
-const COMMISSIONER_ROLES = new Set([
-  'secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
-]);
+// 支委授权角色集合（含书记/副书记；授权语义，与前端 AuthStore.isCommissioner 口径一致）
+// P2c（2026-09-03）：单一源 = constants.js BRANCH_COMMISSION_ROLES（勿在此手写）
+const COMMISSIONER_ROLES = new Set(BRANCH_COMMISSION_ROLES);
 
 // 支委写权限中间件（requireAuth + 角色校验，保护支部文件等需支委写入的资源）
 export function requireCommissioner(db) {

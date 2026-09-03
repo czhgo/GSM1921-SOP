@@ -9,7 +9,7 @@
 //   - 链式赋权: AUTHORIZE_CHAIN 定义谁可以赋权什么角色
 //   - party 页面已移除，organizer/deep 内容归入首页"我的角色"区块
 
-import { ROLE_LABELS, ROLE_PAGE_MAP } from '../core/constants.js?v=20260903c';
+import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260903c';
 import { PEOPLE } from '../mock/index.js?v=20260903c';
 // 账号登录校验 mock 实现（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
 import { mockLogin } from '../mock/accounts.js?v=20260903c';
@@ -99,11 +99,10 @@ const AUTHORIZE_CHAIN = {
 };
 
 // ── 常设角色集合 ────────────────────────────────
-// 支委角色（书记/副书记/组织/宣传/纪检）——vote-config.js resolveVoterIds('committee') 依此过滤
-// （people.js role + isCommissioner），为前端支委名单的角色底层源；新增/调整角色在此，勿在多处重复罗列。
-const COMMISSIONER_ROLES = new Set([
-  'secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'
-]);
+// 支委授权角色（书记/副书记/组织/宣传/纪检）——vote-config.js resolveVoterIds('committee') 依此过滤
+// （people.js role + isCommissioner），为前端支委名单的角色底层源；
+// P2c（2026-09-03）：授权集单一源 = constants.js BRANCH_COMMISSION_ROLES（勿手写，server requireRole 同源）
+const COMMISSIONER_ROLES = new Set(BRANCH_COMMISSION_ROLES);
 
 // ── 获取用户的常设角色 ──────────────────────────
 // 优先级: 赋权记录 > mock 数据

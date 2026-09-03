@@ -191,6 +191,17 @@ export const ROLE_KEYS = [
 ];
 export const ROLE_LEGACY_KEYS = ['commissioner', 'initiator', 'all']; // 遗留键：无独立角色，保留兼容
 
+// ── 授权语义角色集（2026-09-03 P2c 收敛：server 鉴权与前端 AuthStore 共用单一源，勿各自手写）──
+// 注意与上方「条条委员 COMMISSIONER_ROLES（业务语义：三委员，不含书记/副书记）」区分——
+// 授权语义含书记/副书记（写活动/发任务等全局授权门），是 server requireRole 与前端 isCommissioner 的依据。
+// 名单与 ROLE_CLASSIFICATION.md §9 角色键全表一致；成员名单 COMMITTEE_IDS 对应演示支部支委（p10~p14）。
+export const BRANCH_COMMISSION_ROLES = [
+  'secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
+]; // 授权支委（含书记/副书记）
+export const SECRETARY_ROLES = ['secretary']; // 书记专属（副书记/委员不越权书记专属操作）
+export const PARTY_STAFF_ROLE = ['party-staff']; // 党委组织员（组织级，不属于支部）
+export const COMMITTEE_IDS = ['p10', 'p11', 'p12', 'p13', 'p14']; // 演示支部支委名单（与 mock people 对齐）
+
 export const ROLE_LABELS = {
   'secretary':         '党支部书记',
   'deputy-secretary':  '党支部副书记',

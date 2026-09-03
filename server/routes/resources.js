@@ -8,6 +8,8 @@ import { deleteUploadedFile } from './uploads.js';
 import { afterResourceWrite } from '../services/mailer-hooks.js';
 // P1a 单向权威（2026-09-03）：config（modules/blocks）净化唯一实现 = docs/src/core/config-clean.js（前端 branch.js 同源，勿在 server 另写 clean）
 import { sanitizeConfigModules, sanitizeConfigBlocks } from '../../docs/src/core/config-clean.js';
+// P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/constants.js（勿手写）
+import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS } from '../../docs/src/core/constants.js';
 
 // 资源名 → 表名映射（与 data-adapter 的分组名对齐）
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
@@ -55,10 +57,9 @@ function listTable(db, table) {
 // 默认仍 requireAuth；以下资源写权限按角色收紧（防支部成员自批/篡改治理档案）：
 //   branches / appointmentRecords / users → 仅 party-staff（党委组织员/党务老师）
 //   reviewRequests → POST=本支部支委层（同支部校验）；PATCH/DELETE=party-staff（党委审批）
-const PARTY_STAFF_ROLE = new Set(['party-staff']);
-const BRANCH_COMMITTEE_ROLES = new Set([
-  'secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
-]);
+// P2c（2026-09-03）：角色集单一源 = constants.js（勿手写）
+const PARTY_STAFF_ROLE = new Set(PARTY_STAFF_KEYS);
+const BRANCH_COMMITTEE_ROLES = new Set(BRANCH_COMMISSION_ROLES);
 const RESOURCE_WRITE_GATE = {
   branches: 'party-staff',
   appointmentRecords: 'party-staff',
