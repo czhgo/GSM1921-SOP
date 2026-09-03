@@ -8,6 +8,9 @@ import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.j
 import { icon } from '../core/icons.js?v=20260903c';
 import { NoticeStore } from './notice.js?v=20260903c';
 import { getPersonById } from './person.js?v=20260903c';
+// P2b（2026-09-03）：写活动场景选择清单单一源 = core/constants.js SCENARIO_WRITE_IDS/SCENARIO_LABELS
+//   （与 calendar-tab WRITE_TEMPLATES 同源，勿再手写四子会清单）
+import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../core/constants.js?v=20260903c';
 // M4 场景注册化：经注册表读取 SOP 场景能力（sop-scenarios），行为零变化——能力缺省时回退直接读 sopDatabase
 import { getCapabilities } from '../core/registry.js?v=20260903c';
 import '../modules/capabilities/sop-scenarios.js?v=20260829r';
@@ -87,12 +90,10 @@ export const DECISION_TREE_CONFIGS = {
       { value: 'theme-party', label: '主题党日', icon: '主', iconColor: '#FFD700', iconBg: 'rgba(255,215,0,0.12)', scenarioId: 'theme-party' },
     ],
     L1Sub: {
-      'three-meetings': [
-        { value: 'branch-party-meeting', label: '支部党员大会', scenarioId: 'branch-party-meeting' },
-        { value: 'branch-committee', label: '支委会', scenarioId: 'branch-committee' },
-        { value: 'party-group-meeting', label: '党小组会', scenarioId: 'party-group-meeting' },
-        { value: 'party-lecture', label: '党课', scenarioId: 'party-lecture' },
-      ],
+      // P2b（2026-09-03）：四子会写入选项目录 = SCENARIO_WRITE_IDS/LABELS 派生（单一源，勿手写）
+      'three-meetings': SCENARIO_WRITE_IDS['three-meetings'].map((scenarioId) => ({
+        value: scenarioId, label: SCENARIO_LABELS[scenarioId], scenarioId,
+      })),
     },
     // 主题党日正交维度（多选）
     THEME_PARTY_DIMENSIONS: {

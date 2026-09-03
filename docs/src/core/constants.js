@@ -493,6 +493,22 @@ export const ACTIVITY_CLASSIFICATION = {
 
 const _THREE_MEETINGS_SUBTYPES = ACTIVITY_CLASSIFICATION['three-meetings'].subtypes;
 
+// ── 活动写入可选项目录（单一源 2026-09-03 P2b）──────────────────────
+// 供 services/decision-tree.js（书记/组长写活动场景选择）与 entries/tabs/secretary/calendar-tab.js
+//  WRITE_TEMPLATES 共用——id 顺序与中文名均派生自上方 ACTIVITY_CLASSIFICATION（subtypes 为权威中文名序列），
+//  主题党日 id 与 SCENARIO_TO_CATEGORY 键对齐；消费端不再各自手写场景清单（一改具改）。
+export const SCENARIO_WRITE_IDS = {
+  'three-meetings': ['branch-party-meeting', 'branch-committee', 'party-group-meeting', 'party-lecture'],
+  'theme-day': ['theme-party'],
+};
+export const SCENARIO_LABELS = {
+  'branch-party-meeting': _THREE_MEETINGS_SUBTYPES[0],
+  'branch-committee': _THREE_MEETINGS_SUBTYPES[1],
+  'party-group-meeting': _THREE_MEETINGS_SUBTYPES[2],
+  'party-lecture': _THREE_MEETINGS_SUBTYPES[3],
+  'theme-party': ACTIVITY_CLASSIFICATION['theme-party'].label,
+};
+
 /** type → 大类（three-meetings | theme-party） */
 export function classifyActivityType(type) {
   if (!type) return null;

@@ -20,7 +20,7 @@ const PEOPLE = PersonStore.getMembers();
 import { getPersonName } from '../../../services/person.js?v=20260903c';
 import { NoticeStore } from '../../../services/notice.js?v=20260903c';
 import { BranchService } from '../../../services/runtime.js?v=20260903c';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars } from '../../../core/constants.js?v=20260903c';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { collectAgendaRows } from './agenda-form.js?v=20260903c';
 import { defaultVoteConfig, isDecisionScenario, resolveVoterIds } from '../../../services/vote-config.js?v=20260903c';
@@ -398,12 +398,10 @@ const WRITE_TEMPLATES = [
     color: '#CE1126',
     bg: 'rgba(206,17,38,0.08)',
     border: 'rgba(206,17,38,0.25)',
-    subtypes: [
-      { value: 'branch-party-meeting', label: '支部党员大会', scenarioId: 'branch-party-meeting' },
-      { value: 'branch-committee', label: '支委会', scenarioId: 'branch-committee' },
-      { value: 'party-group-meeting', label: '党小组会', scenarioId: 'party-group-meeting' },
-      { value: 'party-lecture', label: '党课', scenarioId: 'party-lecture' },
-    ],
+    // P2b（2026-09-03）：四子会写入选项目录 = SCENARIO_WRITE_IDS/LABELS 派生（与决策树同源，勿手写）
+    subtypes: SCENARIO_WRITE_IDS['three-meetings'].map((scenarioId) => ({
+      value: scenarioId, label: SCENARIO_LABELS[scenarioId], scenarioId,
+    })),
   },
   {
     category: 'theme-day',
