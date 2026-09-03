@@ -10,7 +10,8 @@ import { getCapabilities } from '../../../core/registry.js?v=20260903c';
 import { OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260903c';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源；党委页默认未加载该能力）
 import '../../../modules/capabilities/secretary-workspace.js?v=20260903c';
-import { getBranchTabPolicy, getCoreTabIds, getBranchOutputBlocks, getOutputBlockPolicy, updateBranchModules } from '../../../services/branch.js?v=20260903c';
+import { getBranchTabPolicy, getCoreTabIds, getBranchOutputBlocks, getOutputBlockPolicy, getWorkflowBlockPolicy, updateBranchModules } from '../../../services/branch.js?v=20260903c';
+import { BLOCK_MANIFESTS } from '../../../workflow/blocks/manifests.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 
 function esc(s) {
@@ -83,6 +84,10 @@ function _renderBranchConfig(el, body, branchId) {
   const order = policy.order || businessTabs.map(t => t.id);
   const bPolicy = getOutputBlockPolicy(getBranchOutputBlocks(branchId));
   const bHidden = new Set(bPolicy.hidden);
+  // L3 S3：工作流块启停（config.blocks.workflowBlocks.hiddenBlockIds，缺省全开）
+  const wPolicy = getWorkflowBlockPolicy(getBranchOutputBlocks(branchId));
+  const wbHidden = new Set(wPolicy.hidden);
+  const PROV_LABEL = { 'institution-common': '通用制度', 'branch-custom': '支部自创' };
 
   const chip = (id, label, isOn, kind) =>
     `<button data-${kind}="${esc(id)}" class="text-xs px-3 py-1.5 rounded-lg border transition-all ${isOn ? '' : 'opacity-45'}" style="${isOn ? 'background:rgba(200,16,46,0.08);border-color:rgba(200,16,46,0.25);color:#C8102E;' : 'border:1px solid var(--neutral-200);color:var(--neutral-500);background:var(--neutral-100);'}">${esc(label)}</button>`;
@@ -103,6 +108,8 @@ function _renderBranchConfig(el, body, branchId) {
       <div class="flex flex-wrap gap-2 mb-3">${businessTabs.map(t => chip(t.id, t.label, !hidden.has(t.id), 'pc-module')).join('')}</div>
       <p class="text-xs font-bold text-gray-600 mb-2">活动产出块 <span class="text-[10px] text-gray-400 font-normal">（活动详情「添加记录」按钮集）</span></p>
       <div class="flex flex-wrap gap-2 mb-3">${OUTPUT_BLOCK_DEFS.map(d => chip(d.id, d.label, !bHidden.has(d.id), 'pc-block')).join('')}</div>
+      <p class="text-xs font-bold text-gray-600 mb-1">工作流块 <span class="text-[10px] text-gray-400 font-normal">（整条 SOP 入口，L3 愿景；目录源 workflow/blocks）</span></p>
+      <div class="flex flex-wrap gap-2 mb-3">${BLOCK_MANIFESTS.map(m => `<button data-pc-wblock="${esc(m.blockId)}" title="${esc(PROV_LABEL[m.provenance] || m.provenance)} · ${esc(m.name)}" class="text-xs px-3 py-1.5 rounded-lg border transition-all ${!wbHidden.has(m.blockId) ? '' : 'opacity-45'}" style="${!wbHidden.has(m.blockId) ? 'background:rgba(200,16,46,0.08);border-color:rgba(200,16,46,0.25);color:#C8102E;' : 'border:1px solid var(--neutral-200);color:var(--neutral-500);background:var(--neutral-100);'}">${esc(m.name)}<span class="ml-1 text-[10px] ${!wbHidden.has(m.blockId) ? 'text-red-400' : 'text-gray-400'}">${PROV_LABEL[m.provenance] || ''}</span></button>`).join('')}</div>
       <div class="flex gap-2 justify-end pt-2 border-t border-gray-100">
         <button id="pc-reset" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">恢复默认（全开）</button>
         <button id="pc-save" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium transition-colors" style="background:#C8102E;">保存配置</button>
@@ -117,7 +124,7 @@ function _renderBranchConfig(el, body, branchId) {
     btn.addEventListener('click', () => {
       const id = btn.dataset.pcModule;
       if (hidden.has(id)) hidden.delete(id); else hidden.add(id);
-      _paint(body, businessTabs, hidden, coreTabs, bHidden);
+      _paint(body, businessTabs, hidden, coreTabs, bHidden, wbHidden);
     });
   });
   body.querySelectorAll('[data-pc-block]').forEach(btn => {
@@ -126,11 +133,23 @@ function _renderBranchConfig(el, body, branchId) {
     btn.addEventListener('click', () => {
       const id = btn.dataset.pcBlock;
       if (bHidden.has(id)) bHidden.delete(id); else bHidden.add(id);
-      _paint(body, businessTabs, hidden, coreTabs, bHidden);
+      _paint(body, businessTabs, hidden, coreTabs, bHidden, wbHidden);
+    });
+  });
+  body.querySelectorAll('[data-pc-wblock]').forEach(btn => {
+    if (btn.dataset.bound) return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.pcWblock;
+      if (wbHidden.has(id)) wbHidden.delete(id); else wbHidden.add(id);
+      _paint(body, businessTabs, hidden, coreTabs, bHidden, wbHidden);
     });
   });
   on('#pc-save', async () => {
-    const blockPayload = { outputBlocks: { hiddenBlockIds: [...bHidden], blockOrder: [] } };
+    const blockPayload = {
+      outputBlocks: { hiddenBlockIds: [...bHidden], blockOrder: [] },
+      workflowBlocks: { hiddenBlockIds: [...wbHidden] },
+    };
     await updateBranchModules(branchId, { hiddenTabIds: [...hidden], tabOrder: order }, rawTabs, blockPayload);
     showToast('已保存——该支部成员下次进入工作台/活动详情生效', 'success');
   });
@@ -143,7 +162,7 @@ function _renderBranchConfig(el, body, branchId) {
 }
 
 // 重绘 chips（仅更新开关按钮状态，不重建整卡以保住绑定）
-function _paint(body, businessTabs, hidden, coreTabs, bHidden) {
+function _paint(body, businessTabs, hidden, coreTabs, bHidden, wbHidden) {
   const refresh = (attr, isHidden) => {
     body.querySelectorAll(`[data-${attr}]`).forEach(btn => {
       const on = !isHidden(btn.dataset[attr]);
@@ -153,4 +172,5 @@ function _paint(body, businessTabs, hidden, coreTabs, bHidden) {
   };
   refresh('pc-module', id => hidden.has(id));
   refresh('pc-block', id => bHidden.has(id));
+  refresh('pc-wblock', id => wbHidden.has(id));
 }

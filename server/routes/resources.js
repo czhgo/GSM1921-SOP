@@ -296,11 +296,18 @@ export function createResourcesRouter(db) {
     if (hasBlocks) {
       const b = cfg.blocks;
       if (b === null) {
-        nextConfig.blocks = null; // 恢复默认（全部产出块启用 + 注册顺序）
-      } else if (!b || typeof b !== 'object' || Array.isArray(b) || !b.outputBlocks) {
-        return res.status(400).json({ error: 'config.blocks 须为对象 { outputBlocks: { hiddenBlockIds, blockOrder } } 或 null' });
+        nextConfig.blocks = null; // 恢复默认（产出块/工作流块全开 + 注册顺序）
+      } else if (!b || typeof b !== 'object' || Array.isArray(b) || (!b.outputBlocks && !b.workflowBlocks)) {
+        return res.status(400).json({ error: 'config.blocks 须为对象 { outputBlocks?, workflowBlocks? }（至少其一）或 null' });
       } else {
-        nextConfig.blocks = { outputBlocks: { hiddenBlockIds: cleanStr(b.outputBlocks.hiddenBlockIds, 50), blockOrder: cleanStr(b.outputBlocks.blockOrder, 50) } };
+        const cleanBlocks = {};
+        if (b.outputBlocks) {
+          cleanBlocks.outputBlocks = { hiddenBlockIds: cleanStr(b.outputBlocks.hiddenBlockIds, 50), blockOrder: cleanStr(b.outputBlocks.blockOrder, 50) };
+        }
+        if (b.workflowBlocks) {
+          cleanBlocks.workflowBlocks = { hiddenBlockIds: cleanStr(b.workflowBlocks.hiddenBlockIds, 50) };
+        }
+        nextConfig.blocks = cleanBlocks;
       }
     }
     branch.config = nextConfig;

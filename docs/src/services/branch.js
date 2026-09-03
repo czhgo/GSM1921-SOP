@@ -111,11 +111,36 @@ export function applyOutputBlockPolicy(defIds, blocks) {
   return visible;
 }
 
-/** 产出块配置净化（hiddenBlockIds/blockOrder 字符串数组；null=恢复默认） */
+// ── 工作流块策略（L3 S3，2026-09-03 书记裁定：config.blocks 增 workflowBlocks）──────
+// config.blocks.workflowBlocks = { hiddenBlockIds: string[] }；null/缺省=全开。
+// 目录单一源：workflow/blocks/manifests.js BLOCK_MANIFESTS（主题党日/专班等整条 SOP 入口块）。
+
+/** 解析工作流块策略：{ hidden:Set }（纯） */
+export function getWorkflowBlockPolicy(blocks) {
+  const cfg = blocks?.workflowBlocks;
+  return {
+    hidden: new Set(Array.isArray(cfg?.hiddenBlockIds) ? cfg.hiddenBlockIds : []),
+  };
+}
+
+/** 按支部工作流块策略过滤块 id 列表（纯：传 defIds + config.blocks） */
+export function applyWorkflowBlockPolicy(defIds, blocks) {
+  const { hidden } = getWorkflowBlockPolicy(blocks);
+  return defIds.filter(id => !hidden.has(id));
+}
+
+/** 产出块配置净化（outputBlocks/workflowBlocks；null=恢复默认） */
 function _sanitizeBlocks(blocks) {
   if (blocks === null) return null;
   const clean = (v) => [...new Set((v || []).map(String).filter(x => x && x.length <= 80))].slice(0, 50);
-  return { outputBlocks: { hiddenBlockIds: clean(blocks?.outputBlocks?.hiddenBlockIds), blockOrder: clean(blocks?.outputBlocks?.blockOrder) } };
+  const out = {};
+  if (blocks.outputBlocks) {
+    out.outputBlocks = { hiddenBlockIds: clean(blocks.outputBlocks.hiddenBlockIds), blockOrder: clean(blocks.outputBlocks.blockOrder) };
+  }
+  if (blocks.workflowBlocks) {
+    out.workflowBlocks = { hiddenBlockIds: clean(blocks.workflowBlocks.hiddenBlockIds) };
+  }
+  return out;
 }
 
 /** 保存支部产出块配置（书记操作；blocks=null=恢复默认） */

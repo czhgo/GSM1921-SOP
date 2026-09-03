@@ -418,6 +418,12 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - 表单条目可组装落地（维度②）：enabledDefault=false 默认收起（quota），includeDisabled=true 供配置面预览全量条目；manifestFieldCatalog 字段目录供 S3
 - 单测：server/test/block-form-renderer.test.mjs（kind 映射/收拢/预览/组织选项/无障碍 for 关联）+ S1 + module-load 3/3 绿
 
+**L3 S3（工作流块配置区，完成）**：
+- config.blocks 增 workflowBlocks.hiddenBlockIds（书记裁定：与 outputBlocks 平级）；branch.js getWorkflowBlockPolicy/applyWorkflowBlockPolicy 纯策略；_sanitizeBlocks 双段净化
+- server config 路由 blocks 校验兼容 { outputBlocks?, workflowBlocks? }（至少其一，恢复默认 null 全清）
+- 党委台「支部配置」新增「工作流块」区：manifest 目录 chips（含制度来源标签 通用制度/支部自创，title 悬浮说明），启停/保存/恢复默认与业务模块、产出块同卡
+- 测试：workflow-block-config.test（纯函数 4 断言 + HTTP 写回/400/恢复）+ block-config-ui-e2e（chips 呈现→停用保存→重进持久化置灰→恢复默认）+ 既有 module-config/block-canvas/module-load 回归 6/6 绿
+
 **MPO 评估归档**：新建 `content/04_web_design/evolution/MODULARIZATION_ASSESSMENT.md` —— 模块化 80 / 插件化 72 / 开源化 74 ≈ 75；确立「统一扎口范式」（域内多实现→一个库出口 + 四条改造纪律：聚合重导出不搬运/调用方只改 import 一行/每批回归/禁双轨）；行动优先级 P0 扎口推广与数据域接线 → P1 开源合规包 → P2 L3 block manifest
 
 **回归**：module-load 116/116（含新库）；party-committee + write-hover + capability-registry 15/15 绿；git diff 净 37 文件 +41/−42（无编码异常）
