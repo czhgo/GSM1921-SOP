@@ -112,7 +112,7 @@ function cardHtml(r) {
       <p class="text-xs text-gray-400 mt-1.5">${esc(getPersonName(r.submittedBy) || r.submittedBy)} 提交 · ${fmtDt(r.createdAt)}</p>
       ${r.status === 'pending' ? `
       <div class="mt-2.5 pt-2.5 border-t border-gray-100">
-        <textarea class="rq-decision w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-red-400 resize-none" rows="2" placeholder="审批意见（驳回必填；批准可选填写指导意见）"></textarea>
+        <textarea class="rq-decision input-flat text-xs w-full resize-none" rows="2" placeholder="审批意见（驳回必填；批准可选填写指导意见）"></textarea>
         <div class="flex justify-end gap-2 mt-2">
           <button data-rq-act="reject" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600">驳回</button>
           <button data-rq-act="approve" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:#C8102E;">批准</button>

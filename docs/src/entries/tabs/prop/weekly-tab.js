@@ -52,8 +52,8 @@ export function renderContent(ctx) {
         <div id="weekly-add-form" class="hidden mb-3 p-3 rounded-lg bg-blue-50/50 border border-blue-100">
           <div class="text-[12px] font-bold text-gray-600 mb-2">新建周次</div>
           <div class="flex flex-col gap-2 mb-2">
-            <input id="weekly-add-week" type="text" placeholder="周次标签，如：第32周" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200" />
-            <input id="weekly-add-range" type="text" placeholder="日期范围，如：2026-08-04 ~ 2026-08-08" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200" />
+            <input id="weekly-add-week" type="text" placeholder="周次标签，如：第32周" class="input-flat text-xs w-full" />
+            <input id="weekly-add-range" type="text" placeholder="日期范围，如：2026-08-04 ~ 2026-08-08" class="input-flat text-xs w-full" />
           </div>
           <div class="flex gap-2 justify-end">
             <button id="weekly-add-cancel" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
@@ -69,7 +69,7 @@ export function renderContent(ctx) {
           </div>
           <div>
             <label class="text-xs text-gray-500 mb-1.5 block font-medium">周报内容</label>
-            <textarea id="weekly-content" rows="6" placeholder="请填写本周工作内容，每条一行..." class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none">${draftReport ? draftReport.content : ''}</textarea>
+            <textarea id="weekly-content" rows="6" placeholder="请填写本周工作内容，每条一行..." class="input-flat text-xs w-full resize-none">${draftReport ? draftReport.content : ''}</textarea>
           </div>
           <button id="weekly-submit-btn" class="w-full text-sm px-4 py-[7px] font-medium text-white rounded-lg transition-colors" style="${solidAccentStyle(ctx.accent, ctx.accentBorder)}">报送</button>
         </div>

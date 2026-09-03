@@ -95,11 +95,11 @@ function renderForm(branchId, me, tc) {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">${typeOptions}</div>
     <div class="mb-3">
       <label class="text-xs text-gray-500 block mb-1">事项标题 <span class="text-red-500">*</span></label>
-      <input id="rq-title" type="text" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-red-400" placeholder="如：关于接收王同学为预备党员的请示 / 关于赴香山开展主题党日的报备" />
+      <input id="rq-title" type="text" class="input-flat w-full" placeholder="如：关于接收王同学为预备党员的请示 / 关于赴香山开展主题党日的报备" />
     </div>
     <div class="mb-4">
       <label class="text-xs text-gray-500 block mb-1">事项说明（时间、对象、依据等）<span class="text-red-500">*</span></label>
-      <textarea id="rq-content" rows="4" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-red-400 resize-none" placeholder="请说明关键信息，便于党委审批"></textarea>
+      <textarea id="rq-content" rows="4" class="input-flat w-full resize-none" placeholder="请说明关键信息，便于党委审批"></textarea>
     </div>
     <div class="flex justify-end gap-2">
       <button id="rq-form-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 border border-gray-200">取消</button>

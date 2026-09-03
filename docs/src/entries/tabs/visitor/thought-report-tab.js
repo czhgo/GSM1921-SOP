@@ -27,7 +27,7 @@ export function renderContent(ctx) {
       </div>
       <div class="mb-3 p-3 rounded-lg bg-white border border-gray-100">
         <p class="text-xs font-medium text-gray-600 mb-2">提交思想汇报</p>
-        <textarea id="tr-content" rows="5" class="w-full text-sm p-2.5 rounded-lg border border-gray-200 focus:outline-none focus:border-sky-300" placeholder="请书写本季度思想汇报（字数 1500 字以上；对积极分子不作硬性要求）"></textarea>
+        <textarea id="tr-content" rows="5" class="input-flat w-full resize-none" placeholder="请书写本季度思想汇报（字数 1500 字以上；对积极分子不作硬性要求）"></textarea>
         <div class="flex items-center justify-between mt-2">
           <p class="text-[11px] text-gray-400">提交后系统自动归档至个人档案，供组织委员考察调用</p>
           <button id="tr-submit" class="text-xs px-4 py-1.5 rounded-lg bg-sky-600 text-white hover:bg-sky-700 transition-colors">提交</button>

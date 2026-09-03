@@ -32,11 +32,11 @@ export async function renderContent() {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
           <div>
             <label class="text-xs text-gray-500 block mb-1">支部名称（如 光华管理学院本科第二党支部）</label>
-            <input id="branch-name-input" type="text" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-red-400" placeholder="支部全称" />
+            <input id="branch-name-input" type="text" class="input-flat w-full" placeholder="支部全称" />
           </div>
           <div>
             <label class="text-xs text-gray-500 block mb-1">类型（可选，自由文本）</label>
-            <input id="branch-type-input" type="text" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-red-400" placeholder="如 硕士/博士/本科生" />
+            <input id="branch-type-input" type="text" class="input-flat w-full" placeholder="如 硕士/博士/本科生" />
           </div>
         </div>
         <div class="flex justify-end gap-2">
@@ -59,17 +59,17 @@ export async function renderContent() {
               <button class="branch-appoint-toggle text-xs px-2.5 py-1 rounded-lg text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600">任命书记</button>
             </div>
             <div class="branch-rename-row hidden mt-2 flex gap-2">
-              <input class="branch-rename-input w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 outline-none focus:border-red-400" value="${esc(b.config?.headerTitle || b.name)}" placeholder="支部全称" />
+              <input class="branch-rename-input input-flat text-xs w-full" value="${esc(b.config?.headerTitle || b.name)}" placeholder="支部全称" />
               <button class="branch-rename-save text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" style="background:#C8102E;">保存</button>
             </div>
             <div class="branch-appoint-row hidden mt-2 space-y-2">
-              <select class="branch-appoint-select w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 outline-none focus:border-red-400 bg-white">
+              <select class="branch-appoint-select input-flat text-xs w-full">
                 <option value="">— 选择本支部成员为新任书记 —</option>
                 ${PEOPLE.filter(p => p.branchId === b.id && p.role !== 'party-staff').map(p =>
                   `<option value="${esc(p.id)}" ${p.id === b.secretaryId ? 'disabled' : ''}>${esc(p.name)}（${esc(p.developStage || '')}）${p.id === b.secretaryId ? '·现任' : ''}</option>`).join('')}
               </select>
               <div class="flex items-center justify-between gap-2">
-                <input class="branch-appoint-note w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-red-400" placeholder="任命说明（可选，如 换届选举 2026-09）" />
+                <input class="branch-appoint-note input-flat text-xs w-full" placeholder="任命说明（可选，如 换届选举 2026-09）" />
                 <button class="branch-appoint-save text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" style="background:#C8102E;">确认任命</button>
               </div>
             </div>

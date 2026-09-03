@@ -346,9 +346,9 @@ export function renderContent(ctx) {
                 <h6 class="font-title-cn text-xs font-bold text-gray-600">专班复盘</h6>
                 <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600">未提交</span>
               </div>
-              <textarea id="tf-review-content" rows="3" placeholder="专班任务完成情况、工作成果与不足..." class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 resize-none"></textarea>
+              <textarea id="tf-review-content" rows="3" placeholder="专班任务完成情况、工作成果与不足..." class="input-flat text-xs w-full resize-none"></textarea>
               <div class="flex items-center gap-2 mt-2">
-                <input id="tf-review-issues" type="text" placeholder="待改进问题（选填，多条用；分隔）" class="flex-1 px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-amber-200" />
+                <input id="tf-review-issues" type="text" placeholder="待改进问题（选填，多条用；分隔）" class="input-flat text-xs flex-1" />
                 <button id="btn-submit-tf-review" class="text-xs px-3 py-2 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0" style="${solidAccentStyle(accent, accentBorder)};">提交复盘</button>
               </div>
             </div>`;
