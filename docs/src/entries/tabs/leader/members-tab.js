@@ -13,7 +13,7 @@ import { loadAttendanceRecords } from '../../../services/attendance.js?v=2026090
 import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260903c';
 import { AttendanceStatus } from '../../../core/domain.js?v=20260903c';
 import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260903c';
-import { getPersonName } from '../../../mock/index.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 
 // 模块级 ctx 缓存：重渲染（了解进展/行内答复后刷新）复用首次渲染的 accent

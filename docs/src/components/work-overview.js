@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  components/work-overview.js — 各角色「工作概况」tab
 //  书记 2026-08-10 裁定：全部角色新增工作概况 tab（组长走组员进展升级版）
@@ -20,7 +20,7 @@ import { loadInspectionRecords, getOverdueRecords } from '../services/inspection
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260903c';
 import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260903c';
 import { PEOPLE } from '../mock/people.js?v=20260903c';
-import { getPersonName } from '../mock/index.js?v=20260903c';
+import { getPersonName } from '../services/person.js?v=20260903c';
 import { AttendanceStatus } from '../core/domain.js?v=20260903c';
 
 // 在办下钻详情目标（书记 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）

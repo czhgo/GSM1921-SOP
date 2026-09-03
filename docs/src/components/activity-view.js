@@ -10,7 +10,7 @@ import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast } f
 import { badgeHtml } from './badges.js?v=20260903c';
 import { ROLE_COLORS, dotDarkVars } from '../core/constants.js?v=20260903c';
 import { activityLifecycleBadgeHtml } from './inspector.js?v=20260903c';
-import { getPersonById } from '../mock/index.js?v=20260903c';
+import { getPersonById } from '../services/person.js?v=20260903c';
 
 // 任务状态元数据（状态点 + 文案，轻量自包含，避免依赖 status-badge 全家桶）
 const _TASK_STATUS_META = {

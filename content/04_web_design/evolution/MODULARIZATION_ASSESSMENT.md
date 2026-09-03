@@ -90,14 +90,31 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 
 | 优先级 | 行动 | 现状 | 验收标准 |
 |--------|------|------|---------|
-| P0 | 统一扎口推广：以 forms.js 为样板，为徽章/状态、数据视图等高频组件域逐一建库出口，全站收口 | forms.js 完成；badges.js 推进中 | 每建一库跑 module-load + E2E；仓库无该域直连残留 |
-| P0 | 数据域自动接线：tab/能力声明依赖的 service + mock 整体可替换 | 未开工 | 新增 demo 分支或后端接入时 UI 零改动（data-adapter 双实现全量走通） |
+| P0 | 统一扎口推广：以 forms.js 为样板，为徽章/状态、数据视图等高频组件域逐一建库出口，全站收口 | forms.js、badges.js、reporting.js 三库完成（组件平铺层同域多文件已收敛） | 每建一库跑 module-load + E2E；仓库无该域直连残留 |
+| P0 | 数据域自动接线：tab/能力声明依赖的 service + mock 整体可替换 | person 域试点完成；其余域收口推进中 | 新增 demo 分支或后端接入时 UI 零改动（data-adapter 双实现全量走通） |
 | P1 | 开源合规包：LICENSE、示例账号外置 env、部署/贡献说明 | 未开工 | 新机器按 README 可独立跑通并自建数据 |
 | P2 | L3 block manifest + 拖拽编排（根 README 总目标） | 未开工 | 块声明 inputs/事件/校验契约定稿并经用户确认后编码 |
 
 ---
 
-## 五、复核约定
+## 六、数据域接线契约 v1（2026-09-03 person 域试点确立）
+
+**背景**：盘点显示全站 68 处直连 mock；mock/index.js 实为"旧兼容中转"（person 函数早已落到 services/person.js 又被 re-export 回 mock）。债根 = **UI/服务层 import 面挂在 mock，而非真正实现所在的 service**。
+
+**试点（person 域，已完成）**：
+- 全站人名函数（getPersonById/getPersonName/PersonStore）import 面从 `mock/index`、`mock/people` 统一迁至 **`services/person.js`**（唯一服务出口）；`_personName` 兼容别名调用点全部改 `getPersonName`。
+- `mock/index.js` 清除 person 中转段（不再 re-export person 函数），退化为**纯种子/展示格式化数据仓**。
+- 涉及约 40 个文件；module-load + party/multi-user/write-hover/function-catalog 7/7 回归绿。
+
+**契约条款**：
+1. **人名与人员对象获取**（getPersonById/getPersonName/PersonStore）唯一出口 = `services/person.js`；任何层禁止从 `mock/*` 获取人名。
+2. **种子数据**（PEOPLE/ACTIVITIES/MOCK_* 等）只许 service 层引用；UI/tab/组件层不直连种子数组（PEOPLE 收口为下一批）。
+3. **展示格式化函数**（attendanceToLong/inspectionToLong 等）当前滞留 mock/*，属历史债，后续迁至各业务域的展示层或 service。
+4. 新代码一律遵守 1~3；存量收口按批次推进，每批回归。
+
+---
+
+## 六、复核约定
 
 - 每完成一个 P0 扎口试点，回本表更新"现状"列并留 T- 日志。
 - 评分按季度或重大架构变更后复核一次，防"评估僵尸化"。

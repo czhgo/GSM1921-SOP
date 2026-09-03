@@ -5,7 +5,7 @@
 // 数据闭环：议程「记录通过」→ 自动建申请 → 本面板审批 → 广播/更新阶段。
 
 import { getAdapter } from '../core/data-adapter.js?v=20260903c';
-import { getPersonById, getPersonName } from '../mock/index.js?v=20260903c';
+import { getPersonById, getPersonName } from '../services/person.js?v=20260903c';
 import { loadActivities } from '../services/activity.js?v=20260903c';
 import { showToast } from '../core/utils.js?v=20260903c';
 import { badgeHtml } from './badges.js?v=20260903c';

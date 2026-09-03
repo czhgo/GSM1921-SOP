@@ -4,7 +4,7 @@
 
 import { mockDB } from '../../../core/domain.js?v=20260903c';
 import { persist } from '../../../core/data-adapter.js?v=20260903c';
-import { getPersonName } from '../../../mock/index.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260903c';
 

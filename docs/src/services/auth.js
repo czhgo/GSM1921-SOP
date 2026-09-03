@@ -10,7 +10,8 @@
 //   - party 页面已移除，organizer/deep 内容归入首页"我的角色"区块
 
 import { ROLE_LABELS, ROLE_PAGE_MAP } from '../core/constants.js?v=20260903c';
-import { PEOPLE, getPersonById, getPersonName } from '../mock/index.js?v=20260903c';
+import { PEOPLE } from '../mock/index.js?v=20260903c';
+import { getPersonById, getPersonName } from './person.js?v=20260903c';
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { NoticeStore } from './notice.js?v=20260903c';
 import { updateActivity } from './mock.js?v=20260903c';

@@ -5,7 +5,7 @@
 //  职责单一：活跃/招募中专班列表（前 5 条，进度条 + 状态徽章）。
 // ════════════════════════════════════════════════════════════════
 
-import { _personName } from '../../mock/index.js?v=20260903c';
+import { getPersonName } from '../../services/person.js?v=20260903c';
 
 const TF_STATUS_BADGE = {
   recruiting: { text: '招募中', cls: 'bg-orange-100 text-orange-700' },
@@ -52,7 +52,7 @@ export function renderTaskforceList(taskforces) {
           </div>
         </div>
         <div class="text-right whitespace-nowrap flex-shrink-0">
-          <p class="text-xs text-gray-400">发起: ${_personName(r.initiator)}</p>
+          <p class="text-xs text-gray-400">发起: ${getPersonName(r.initiator)}</p>
           ${r.deadline ? `<p class="text-xs text-gray-400">截止 ${r.deadline}</p>` : ''}
         </div>
       </div>

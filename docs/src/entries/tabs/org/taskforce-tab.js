@@ -21,7 +21,7 @@ import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
 import { recordFormShell } from '../../../components/forms.js?v=20260903c';
 import { renderQueryView } from '../../../components/query-view.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
-import { _personName, getPersonName } from '../../../mock/index.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260903c';
 
 // 私有状态（随模块自持，不污染入口）
 let _recruitPersonPicker = null;
@@ -192,7 +192,7 @@ export function renderContent(ctx) {
           return `
             <div class="py-2 border-b border-gray-50 last:border-b-0">
               <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-gray-700">${_personName(m.personId)}</span>
+                <span class="text-xs font-medium text-gray-700">${getPersonName(m.personId)}</span>
                 <div class="flex items-center gap-2">
                   ${badgeHtml(m.role || '深度参与者', 'neutral')}
                   <span class="text-xs text-gray-400">贡献 ${contribCount} 项</span>
@@ -286,21 +286,21 @@ export function renderContent(ctx) {
       const myApplied = tfSignups.some(s => s.personId === currentUserId &&
         (s.status === SignupStatus.APPROVED || s.status === SignupStatus.PENDING));
       const otherSignupTxt = [
-        ...rejectedSignups.map(s => `${_personName(s.personId)}（已拒绝）`),
-        ...cancelledSignups.map(s => `${_personName(s.personId)}（已取消）`),
+        ...rejectedSignups.map(s => `${getPersonName(s.personId)}（已拒绝）`),
+        ...cancelledSignups.map(s => `${getPersonName(s.personId)}（已取消）`),
       ].join('、');
       let signupSectionHtml = '';
       if (tf.status === 'recruiting' || tf.status === 'active') {
         const signupRows = approvedSignups.map(s => `
           <div class="flex items-center gap-2 py-1.5">
-            <span class="text-xs font-medium text-gray-700">${_personName(s.personId)}</span>
+            <span class="text-xs font-medium text-gray-700">${getPersonName(s.personId)}</span>
             <span class="text-[11px] text-gray-400">${s.role === 'participant' ? '普通参与' : s.role === 'organizer' ? '组织者' : '深度参与'}</span>
             ${s.note ? `<span class="text-[11px] text-gray-400 truncate max-w-[120px]">${s.note}</span>` : ''}
             ${badgeHtml('已通过', 'success')}
           </div>`).join('');
         const pendingRows = isTfReviewer && pendingSignups.length > 0 ? pendingSignups.map(s => `
           <div class="flex items-center gap-2 py-1.5">
-            <span class="text-xs font-medium text-gray-700">${_personName(s.personId)}</span>
+            <span class="text-xs font-medium text-gray-700">${getPersonName(s.personId)}</span>
             <span class="text-[11px] text-gray-400">${s.role === 'participant' ? '普通参与' : s.role === 'organizer' ? '组织者' : '深度参与'}</span>
             ${s.note ? `<span class="text-[11px] text-gray-400 truncate max-w-[120px]">${s.note}</span>` : ''}
             <span class="ml-auto flex items-center gap-1.5">
@@ -361,9 +361,9 @@ export function renderContent(ctx) {
         <div class="flex gap-4 text-xs text-gray-400 mb-3">
           <span>${filled}/${tf.capacity}</span>
           ${tf.deadline ? `<span>${tf.deadline}</span>` : ''}
-          <span>发起: ${_personName(tf.initiator)}</span>
+          <span>发起: ${getPersonName(tf.initiator)}</span>
         </div>
-        <div class="text-xs text-gray-500">成员：${tf.members.map(m => _personName(m.personId)).join('、')}</div>
+        <div class="text-xs text-gray-500">成员：${tf.members.map(m => getPersonName(m.personId)).join('、')}</div>
 
         <!-- T-190 成员角色内联编辑：主源 members 预填，保存走 syncProjectRoles 三合一 -->
         <div class="mt-4 pt-3 border-t border-gray-100">

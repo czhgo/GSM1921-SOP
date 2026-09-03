@@ -10,7 +10,7 @@ import { mockDB } from '../../../core/domain.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { isApiMode } from '../../../services/runtime.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { _personName } from '../../../mock/index.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260903c';
 import { addExternalDispatch } from '../../../services/external-dispatch.js?v=20260903c';
 
 // ── 档案归档 ─────────────────────────────────────────────
@@ -651,7 +651,7 @@ function _promptExternalDispatch(activityId, activityName, ctx) {
       refType: 'publicity',
       refLabel: `宣传材料：${activityName || '未命名活动'}`,
       senderId: user.personId,
-      senderName: _personName(user.personId) || '宣传委员',
+      senderName: getPersonName(user.personId) || '宣传委员',
       receiverRole,
       note,
     });

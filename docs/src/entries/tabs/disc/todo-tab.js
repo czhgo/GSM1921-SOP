@@ -8,7 +8,7 @@ import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260903c
 import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
 import { AttendanceStatus } from '../../../core/domain.js?v=20260903c';
 import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260903c';
-import { getPersonName } from '../../../mock/index.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260903c';
 
 // ── 纪检聚合构建（2026-08-07 闭环化） ────────────────────────
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降，

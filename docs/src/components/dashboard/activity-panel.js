@@ -7,7 +7,7 @@
 
 import { setState, getAppState } from '../../core/state.js?v=20260903c';
 import { _fmtDate, getBasePath } from '../../core/utils.js?v=20260903c';
-import { getPersonName } from '../../mock/index.js?v=20260903c';
+import { getPersonName } from '../../services/person.js?v=20260903c';
 import { CrossPageState } from '../../core/cross-page-state.js?v=20260903c';
 import { AuthStore } from '../../services/auth.js?v=20260903c';
 import { getActivityTypeColors } from '../../core/constants.js?v=20260903c';

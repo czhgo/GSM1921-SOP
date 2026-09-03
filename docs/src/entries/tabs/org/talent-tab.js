@@ -4,7 +4,8 @@
 
 import { loadInspectionRecords } from '../../../services/inspection.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
-import { PEOPLE, getPersonById } from '../../../mock/index.js?v=20260903c';
+import { PEOPLE } from '../../../mock/index.js?v=20260903c';
+import { getPersonById } from '../../../services/person.js?v=20260903c';
 import { renderQueryView } from '../../../components/query-view.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { icon } from '../../../core/icons.js?v=20260903c';

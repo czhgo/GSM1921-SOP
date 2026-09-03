@@ -6,7 +6,7 @@ import { renderHeader } from '../components/header.js?v=20260903c';
 import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260903c';
 import { getBasePath, showToast } from '../core/utils.js?v=20260903c';
 import { AuthStore } from '../services/auth.js?v=20260903c';
-import { getPersonById } from '../mock/index.js?v=20260903c';
+import { getPersonById } from '../services/person.js?v=20260903c';
 import { badgeHtml } from '../components/badges.js?v=20260903c';
 
 renderSidebar('dashboard');

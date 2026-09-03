@@ -395,6 +395,12 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - 7 个调用方收口（ws-leader/visitor/org/prop/disc 五入口 + secretary todo-tab + leader members-tab）；无直连残留
 - 回归：module-load + multi-user-write + write-hover 3/3 绿
 
+**P0 试点四·数据域接线（person 域，完成）**：
+- 背景：全站 68 处直连 mock；mock/index.js 实为旧兼容中转（person 函数已落 services/person.js 又被 re-export 回 mock）——债根是 UI 层 import 面挂在 mock
+- 全站人名函数（getPersonById/getPersonName/PersonStore）import 面迁至 services/person.js（唯一服务出口）；_personName 兼容别名调用点统一改 getPersonName（taskforce-list/view、taskforce-tab、archive-tab、kanban-tab）
+- mock/index.js 清除 person 中转段（含 deprecated _personName 与冗余 import），退化为纯种子/展示格式化数据仓；契约 v1 写入 MODULARIZATION_ASSESSMENT.md §五（人名出口唯一 / 种子仅 service 层 / formatter 历史债后续迁）
+- 44 文件 +95/−72；module-load + party/multi-user/write-hover/function-catalog 7/7 回归绿
+
 **MPO 评估归档**：新建 `content/04_web_design/evolution/MODULARIZATION_ASSESSMENT.md` —— 模块化 80 / 插件化 72 / 开源化 74 ≈ 75；确立「统一扎口范式」（域内多实现→一个库出口 + 四条改造纪律：聚合重导出不搬运/调用方只改 import 一行/每批回归/禁双轨）；行动优先级 P0 扎口推广与数据域接线 → P1 开源合规包 → P2 L3 block manifest
 
 **回归**：module-load 116/116（含新库）；party-committee + write-hover + capability-registry 15/15 绿；git diff 净 37 文件 +41/−42（无编码异常）

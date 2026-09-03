@@ -6,7 +6,8 @@ import { loadInspectionRecords, saveInspectionRecords } from '../../../services/
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903c';
 import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
-import { getPersonById, getPersonName, inspectionToLong } from '../../../mock/index.js?v=20260903c';
+import { inspectionToLong } from '../../../mock/index.js?v=20260903c';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260903c';
 import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260903c';

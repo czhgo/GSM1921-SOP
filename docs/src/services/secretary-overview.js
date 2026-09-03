@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  secretary-overview.js — 书记全局概况服务层
 //  四维度信息面板：考勤与纪律 / 发展与考察 / 活动与专班进度 / 宣传与档案
@@ -14,7 +14,8 @@ import { TaskForceRecordStore } from './taskforce.js?v=20260903c';
 import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260903c';
 import { NoticeStore } from './notice.js?v=20260903c';
 import { TodoStore, seedTodos, TodoCategory, TodoActionType } from './todo.js?v=20260903c';
-import { getPersonById, PEOPLE } from '../mock/index.js?v=20260903c';
+import { PEOPLE } from '../mock/index.js?v=20260903c';
+import { getPersonById } from './person.js?v=20260903c';
 import { ROLE_LABELS } from '../core/constants.js?v=20260903c';
 import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260903c';
 

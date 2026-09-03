@@ -4,7 +4,8 @@
 
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { getPersonById, PEOPLE } from '../../../mock/index.js?v=20260903c';
+import { PEOPLE } from '../../../mock/index.js?v=20260903c';
+import { getPersonById } from '../../../services/person.js?v=20260903c';
 import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903c';
 import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
 import { ROLE_LABELS, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260903c';

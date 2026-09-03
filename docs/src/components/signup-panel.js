@@ -5,7 +5,7 @@
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，书记 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
 import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260903c';
-import { getPersonById } from '../mock/index.js?v=20260903c';
+import { getPersonById } from '../services/person.js?v=20260903c';
 import { showToast } from '../core/utils.js?v=20260903c';
 import { badgeHtml } from './badges.js?v=20260903c';
 

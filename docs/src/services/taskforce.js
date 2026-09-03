@@ -7,7 +7,8 @@
 
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
-import { MOCK_TASKFORCES, _personName, PEOPLE } from '../mock/index.js?v=20260903c';
+import { MOCK_TASKFORCES, PEOPLE } from '../mock/index.js?v=20260903c';
+import { getPersonName } from './person.js?v=20260903c';
 
 const TASKFORCE_STORAGE_KEY = 'workflowos_taskforces_v1';
 

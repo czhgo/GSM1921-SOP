@@ -12,7 +12,7 @@
 import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../services/issues.js?v=20260903c';
 import { AuthStore } from '../services/auth.js?v=20260903c';
 import { showToast } from '../core/utils.js?v=20260903c';
-import { getPersonName } from '../mock/index.js?v=20260903c';
+import { getPersonName } from '../services/person.js?v=20260903c';
 import { solidAccentStyle } from '../core/constants.js?v=20260903c';
 
 /**

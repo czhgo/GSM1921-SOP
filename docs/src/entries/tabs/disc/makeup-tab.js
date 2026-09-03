@@ -6,7 +6,7 @@
 import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260903c';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
 import { AttendanceStatus } from '../../../core/domain.js?v=20260903c';
-import { getPersonName } from '../../../mock/index.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260903c';

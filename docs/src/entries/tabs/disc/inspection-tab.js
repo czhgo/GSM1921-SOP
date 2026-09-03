@@ -4,7 +4,8 @@
 
 import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903c';
 import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260903c';
-import { inspectionToLong, inspectionToWide, getPersonName } from '../../../mock/index.js?v=20260903c';
+import { inspectionToLong, inspectionToWide } from '../../../mock/index.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260903c';
 import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260903c';

@@ -5,7 +5,7 @@
 // 书记设计原则：「无职责 不代表 没有知情权」。
 
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260903c';
-import { _personName } from '../mock/index.js?v=20260903c';
+import { getPersonName } from '../services/person.js?v=20260903c';
 import { badgeHtml } from './badges.js?v=20260903c';
 import { dotDarkVars } from '../core/constants.js?v=20260903c';
 import { flashHighlight } from '../core/utils.js?v=20260903c';
@@ -154,7 +154,7 @@ function _renderTfDetail(container, tf, highlightId) {
         return `
           <div class="py-2 border-b border-gray-50 last:border-b-0">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-medium text-gray-700">${_personName(m.personId)}</span>
+              <span class="text-xs font-medium text-gray-700">${getPersonName(m.personId)}</span>
               <div class="flex items-center gap-2">
                 ${badgeHtml(m.role || '深度参与者', 'neutral')}
                 <span class="text-xs text-gray-400">贡献 ${contribs} 项</span>
@@ -173,7 +173,7 @@ function _renderTfDetail(container, tf, highlightId) {
       ${tf.task ? `<p><span class="text-gray-400">任务：</span>${tf.task}</p>` : ''}
       <p><span class="text-gray-400">人数：</span>${filled.length}/${tf.capacity || 0}</p>
       ${tf.deadline ? `<p><span class="text-gray-400">截止：</span>${tf.deadline}</p>` : ''}
-      ${tf.initiator ? `<p><span class="text-gray-400">发起人：</span>${_personName(tf.initiator)}</p>` : ''}
+      ${tf.initiator ? `<p><span class="text-gray-400">发起人：</span>${getPersonName(tf.initiator)}</p>` : ''}
     </div>
     <div class="pt-3 border-t border-gray-100">
       <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">成员与工作量</h5>

@@ -9,7 +9,8 @@
 //   - 条目不得使用浅色底板（书记反感）→ 白底 + 左侧状态色条
 
 import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260903c';
-import { attendanceToLong, getPersonName } from '../../../mock/index.js?v=20260903c';
+import { attendanceToLong } from '../../../mock/index.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260903c';
 import { solidAccentStyle } from '../../../core/constants.js?v=20260903c';
 import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';

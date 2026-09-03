@@ -10,7 +10,7 @@ import { NoticeStore } from '../../../services/notice.js?v=20260903c';
 import { persist } from '../../../core/data-adapter.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { setState } from '../../../core/state.js?v=20260903c';
-import { _personName } from '../../../mock/index.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260903c';
 
 export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');
@@ -161,7 +161,7 @@ function _renderWorkloadBlock(propTf) {
         `<div class="space-y-2">${members.map(m => `
           <div class="flex items-center justify-between p-2 rounded-lg bg-white">
             <div class="flex items-center gap-2">
-              <span class="text-xs font-medium text-gray-700">${_personName(m.personId)}</span>
+              <span class="text-xs font-medium text-gray-700">${getPersonName(m.personId)}</span>
               <span class="text-xs text-gray-400">${Array.from(m.roles).join('·')}</span>
             </div>
             <div class="flex items-center gap-3 text-xs text-gray-500">
