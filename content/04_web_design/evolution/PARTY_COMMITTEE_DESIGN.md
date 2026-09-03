@@ -30,6 +30,8 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 | P3 上报审批范围（2026-09-03） | 细粒度节点 / 仅活动报备 / **发展节点+活动报备** | **发展节点+活动报备**：「发展节点」泛化（确定积极分子/发展对象、接收预备、转正等一节点一报），不细分字段；重要活动走「活动报备」 |
 | P3 下发承载（2026-09-03） | 新建「下发箱」领域 / **复用通知** | **复用通知**：通知实体加 `audience:'committee'` + `branchId` 受众过滤与「党委下发」来源徽标——送达=目标支部**支委层**，普通党员/党委组织员（非支委）不打扰；支部不可在自发通知管理区删改上级下发 |
 | P3 入口落点（2026-09-03） | — | 支部侧=书记工作台新 tab「上报党委」；党委侧=独立 tab「上报审批」与「下发通知」——上报/下发两向入口分离，互不混淆 |
+| L2 工作流模块配置权（2026-09-03） | 党委代配 / **支部自治（书记操作）** | **支部自治**：config 工作流模块由**本支部现任书记**在书记工作台「工作台配置」操作（清单 chips 启停 + 画布拖拽排序），党委不代配（党委只管建支部/任命/审批/下发） |
+| L2 配置粒度与策略（2026-09-03） | — | 最小单位=**工作台 tab**（能力为分组容器）；**默认全开**（config.modules=null，46 功能兼容）；**核心组固定**（待办/概况等 groupLabel='工作台' 不可关）；服务端 PATCH /branches/:id/config 仅本支部现任书记/party-staff，白名单只收 config.modules（治理字段不可经此改） |
 
 ## 1. 目标与边界
 
@@ -60,13 +62,13 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 每个支部实例挂 `config`（branches.config JSON）：
 - `headerTitle`：支部名（header 标题**软编码**，随支部更换显示，不硬编码"光华本科生党支部"）
 - `accent`：支部主题色（可选，默认党建红不变）
-- `enabledModules: [capability/scenario id 列表]`：该支部启用的功能模块与 SOP 场景（从已注册能力池勾选）——支部 profile 决定其工作台 tab 组成与可用工作流；默认 profile = 现 46 功能全开（兼容现有演示）
+- `modules`（L2，2026-09-03 定案）：工作流模块配置 `{ hiddenTabIds: string[], tabOrder: string[] }`，**null=默认全开**（46 功能兼容）。最小单位=工作台 tab；核心组（groupLabel='工作台'：待办/概况等）固定不可关。**维护权=本支部现任书记**（书记工作台「工作台配置」tab：清单 chips 启停 + 画布 v0 拖拽排序），非党委代配。
 - `fileSpaceIsolated: true`：**支部文件（branchDocs）与附件一个支部一个独立存储空间**——存储/查询按 branchId 分区，跨支部不可见（P1 落地）
-- 党委可在支部管理里调整 config（换 header/主题/启停模块）——支部是"配置驱动的实例"而非"同构复制品"
+- 支部配置的**治理字段**（name/type/secretaryId/status）由党委管理（改名/任期），与书记可写的 modules 分离（服务端白名单）。
 
-工作流匹配：支部内 decision-tree/sop-scenarios 消费自身 config.enabledModules 的子集（如硕博支部不需要"本科积极分子考察节奏"的 scenario 则不启用），场景引擎已注册式可配，仅需支部级过滤。
+工作流匹配：支部内 decision-tree/sop-scenarios 消费自身 config.modules 显隐后的工作流集合（如硕博支部不需要的模块由书记在本支部配置中停用），场景引擎已注册式可配，仅需支部级过滤。
 
-> **远期形态**：config 的"勾选组合"将演进为「工作流块拖拽编排」（支部把已注册的工作流块拖进画布 → 自动写回 enabledModules/场景清单）——见 [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八（开源项目目标）。数据模型不变，块即注册表中的能力+元数据。
+> **远期形态**：config 的"清单/画布组合"将演进为「工作流块拖拽编排」（支部把已注册的工作流块拖进画布 → 自动写回 modules 与场景清单）——见 [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八（开源项目目标）。数据模型不变，块即注册表中的能力+元数据。
 
 ## 3. 两级角色与可见范围
 

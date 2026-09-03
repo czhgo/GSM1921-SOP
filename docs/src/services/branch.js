@@ -3,21 +3,22 @@
 // 支部边界收敛点（防漂移）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
 // 单一数据源：mockDB.branches（首启 seed 自 mock/branches.js BRANCHES）
 
-import { mockDB } from '../core/domain.js?v=20260901z';
-import { getPersonById } from './person.js?v=20260901z';
-import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260901z';
-import { getAdapter, persist } from '../core/data-adapter.js?v=20260901z';
-import { listCapabilities } from '../core/registry.js?v=20260901z';
+import { mockDB } from '../core/domain.js?v=20260903a';
+import { getPersonById } from './person.js?v=20260903a';
+import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260903a';
+import { getAdapter, persist } from '../core/data-adapter.js?v=20260903a';
+import { listCapabilities } from '../core/registry.js?v=20260903a';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
 }
 
-// ── 工作流块 L1（2026-09-03，ARCHITECTURE_EVOLUTION §八）：支部 config.enabledModules 消费函数 ──
-// config.enabledModules = null → 全开（默认，兼容现有演示）；数组 → 仅启用清单内能力。
-// 本批只落"读取/判定/目录查询"服务层；工作台 tab 过滤与党委勾选 UI 在其后按交互设计接入。
+// ── 工作流模块配置 L2（2026-09-03 书记裁定：支部自治/书记操作/清单+画布并用/tab 级/核心固定）──
+// config.modules = { hiddenTabIds: string[], tabOrder: string[] }；null = 默认全开（兼容现有演示）。
+// 核心组 tab（groupLabel==='工作台'：待办/概况等，书记 2026-08-10 裁定全员必有）固定显示、
+// 不可隐藏、不参与排序；业务组（党建/反馈/对接党委…）可隐藏、可按画布顺序调整。
 
-/** 支部可勾选的工作流能力目录（派生自能力注册表 workspace:* 能力 + 其 tab 元数据） */
+/** 支部可勾选的工作流能力目录（派生自能力注册表 workspace:* 能力 + 其 tab 元数据；画布/清单数据源） */
 export function listBranchModuleCatalog() {
   const { items } = listCapabilities({});
   return items
@@ -30,16 +31,79 @@ export function listBranchModuleCatalog() {
     }));
 }
 
-/** 支部启用的模块清单：null=全开（未配置）；string[]=仅启用列表 */
-export function getEnabledModuleIds(branchId) {
-  const b = getBranchById(branchId);
-  return b?.config?.enabledModules ?? null;
+/** 由 config.modules 解析策略：{ hidden:Set(tabId), order:string[]|null }（null order=沿用注册顺序） */
+export function getTabPolicy(modules) {
+  return {
+    hidden: new Set(Array.isArray(modules?.hiddenTabIds) ? modules.hiddenTabIds : []),
+    order: Array.isArray(modules?.tabOrder) && modules.tabOrder.length ? [...modules.tabOrder] : null,
+  };
 }
 
-/** 支部是否启用某能力（null=全开 → 恒 true） */
-export function isModuleEnabled(branchId, capId) {
-  const list = getEnabledModuleIds(branchId);
-  return list === null || list.includes(capId);
+/** 支部工作流模块策略（读 mockDB.branches；纯判定见 getTabPolicy） */
+export function getBranchTabPolicy(branchId) {
+  return getTabPolicy(getBranchById(branchId)?.config?.modules);
+}
+
+/** tab 分类：核心组（groupLabel='工作台'）固定；业务组可配置 */
+function _splitTabs(tabs) {
+  const core = tabs.filter(t => t.groupLabel === '工作台');
+  const coreIds = new Set(core.map(t => t.id));
+  const business = tabs.filter(t => !coreIds.has(t.id));
+  return { core, business };
+}
+
+/**
+ * 纯函数：按 config.modules 过滤/排序工作台 tab（不读全局状态，便于单测与复用）
+ * 核心组保持注册顺序置于前；业务组过滤 hidden 后按 tabOrder 排序（新注册 tab 若不在 order → 尾部）。
+ */
+export function applyTabPolicyPure(tabs, modules) {
+  const { hidden, order } = getTabPolicy(modules);
+  const { core, business } = _splitTabs(tabs);
+  const visible = business.filter(t => !hidden.has(t.id));
+  if (order && order.length) {
+    const idxMap = new Map(order.map((id, i) => [id, i]));
+    visible.sort((a, b) => {
+      const ia = idxMap.has(a.id) ? idxMap.get(a.id) : Infinity;
+      const ib = idxMap.has(b.id) ? idxMap.get(b.id) : Infinity;
+      return ia - ib;
+    });
+  }
+  return [...core, ...visible];
+}
+
+/**
+ * 按支部策略过滤/排序工作台 tab（渲染侧收敛点：workspace-shell 构建 tab bar 前调用一次）
+ */
+export function applyTabPolicy(tabs, branchId) {
+  return applyTabPolicyPure(tabs, getBranchById(branchId)?.config?.modules);
+}
+
+/** 核心 tab id 集合（供配置 UI 展示「固定」与隐藏校验） */
+export function getCoreTabIds(tabs) {
+  return _splitTabs(tabs).core.map(t => t.id);
+}
+
+/** 保存支部工作流模块配置（书记操作；防御核心 tab 不可隐藏——传入 tabs 元数据供校验；modules=null=恢复默认全开） */
+export async function updateBranchModules(branchId, modules, tabs = []) {
+  let payload;
+  if (modules === null) {
+    payload = null; // 恢复默认：config.modules = null（全开 + 注册顺序）
+  } else {
+    const coreIds = new Set(getCoreTabIds(tabs));
+    const sanitize = (v) => [...new Set((v || []).map(String).filter(x => x && x.length <= 80))];
+    const hiddenTabIds = sanitize(modules?.hiddenTabIds).filter(id => !coreIds.has(id)); // 核心不可隐藏
+    const tabOrder = sanitize(modules?.tabOrder).filter(id => !coreIds.has(id));        // 核心不参与排序
+    payload = { hiddenTabIds, tabOrder };
+  }
+  const next = await getAdapter().branches.updateConfig(branchId, payload);
+  const idx = (mockDB.branches || []).findIndex(b => b.id === branchId);
+  if (idx >= 0) {
+    mockDB.branches = [...mockDB.branches.slice(0, idx), next, ...mockDB.branches.slice(idx + 1)];
+  } else if (next) {
+    mockDB.branches = [...mockDB.branches, next];
+  }
+  persist();
+  return next;
 }
 
 /**

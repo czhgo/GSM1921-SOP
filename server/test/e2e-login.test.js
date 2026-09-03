@@ -142,8 +142,8 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
     await page.evaluate(async ({ uniqueTitle, dateStr }) => {
       // 版本串与当前全库一致（20260901c）：确保 import 的是页面主模块实例，
       // push/persist 作用于真实 mockDB（版本串不一致会加载孤儿实例，写穿落服务器但本地不渲染）
-      const { mockDB } = await import('/src/core/domain.js?v=20260901z');
-      const { persist } = await import('/src/core/data-adapter.js?v=20260901z');
+      const { mockDB } = await import('/src/core/domain.js?v=20260903a');
+      const { persist } = await import('/src/core/data-adapter.js?v=20260903a');
       mockDB.activities.push({
         id: 'act-e2e-' + Date.now(),
         title: uniqueTitle,
@@ -172,7 +172,7 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
         if (!landed) await new Promise((r) => setTimeout(r, 300));
       }
       if (!landed) {
-        await page.evaluate(() => import('/src/core/data-adapter.js?v=20260901z').then((m) => m.persist()));
+        await page.evaluate(() => import('/src/core/data-adapter.js?v=20260903a').then((m) => m.persist()));
       }
     }
     if (!landed) {

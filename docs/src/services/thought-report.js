@@ -6,11 +6,11 @@
 //  组织委员只做查看/调用（考察发展党员时直接调用思想汇报记录）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260901z';
-import { persist } from '../core/data-adapter.js?v=20260901z';
-import { THOUGHT_REPORTS } from '../mock/index.js?v=20260901z';
-import { NoticeStore } from './notice.js?v=20260901z';
-import { getPersonById } from './person.js?v=20260901z';
+import { mockDB } from '../core/domain.js?v=20260903a';
+import { persist } from '../core/data-adapter.js?v=20260903a';
+import { THOUGHT_REPORTS } from '../mock/index.js?v=20260903a';
+import { NoticeStore } from './notice.js?v=20260903a';
+import { getPersonById } from './person.js?v=20260903a';
 
 /** 读取全部思想汇报（算法归集的完整集合；持久化为空时回退 seed，与 inspection.js 同模式） */
 export function loadThoughtReports() {

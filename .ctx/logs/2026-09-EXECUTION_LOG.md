@@ -308,3 +308,20 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **拖拽 L3/L4 草案**：ARCHITECTURE_EVOLUTION §8.5（block manifest JSONC 草案 + 画布→既有 WorkflowEngine 的映射 + v0 原型范围=块排序/启停画布，YAGNI 边界明确）。
 **本地验收**：启动独立预览 http://localhost:3100（.tmp/preview.db 全新种子；端口 3000 已被既有实例占用，未触碰）。
 **下一步候选**：工作台 tab 按支部 config 过滤 + 党委勾选 UI（L2 消费闭环）；v0 块画布原型专项；push 待书记批准。
+
+## T-2026-09-021 L2 支部工作流模块配置落地 + 全仓版本 bump 20260903a（2026-09-03）
+
+**书记裁定**：配置权=支部自治（现任书记操作，非党委代配）；清单与画布并用；tab 级最小单位；核心组固定；顺带清理"侧边栏身份弹窗"余毒与主题党日卡 hover 热区（上轮已提交）。
+
+**实现**：
+- 数据：branches.config.modules={hiddenTabIds,tabOrder}（替代 enabledModules，null=全开）；mock/domain 种子同步
+- 服务层（services/branch.js）：getTabPolicy（纯）/applyTabPolicyPure/applyTabPolicy/getBranchTabPolicy/getCoreTabIds/updateBranchModules（核心不可隐藏防御；modules=null=恢复默认）
+- 渲染：workspace-shell 构建 tab bar 前按当前人支部应用策略（核心组固定前置、业务过滤+tabOrder 排序；党委工作台不受支部配置）
+- UI：书记工作台新核心 tab「工作台配置」（renderContent 含清单 chips 启停 + 画布 v0 HTML5 拖拽排序 + 保存/恢复默认；副书记只读）
+- 服务端：PATCH /branches/:id/config（本支部现任书记 secretaryId 或 party-staff；body 白名单仅 config.modules；null=恢复默认；治理字段 name/secretaryId 不受 body 影响）
+- 测试：branch-module-catalog（纯函数 2 例）、module-config HTTP（5 断言组）、module-config-e2e（隐藏→reload 生效→复原）；party-committee P1/P2/P3 E2E 回归全绿
+- **版本 bump 20260901z→20260903a**：docs/src(*.js/*.html) 159 + server/test(*.mjs 16 漏网补扫) + docs/*.html 17——教训：bump 必须覆盖 .js/.mjs/.html 全扩展并全仓复扫零残留，否则 E2E 页面 evaluate 硬编码旧版本造成双模块实例（P2 测试一度 fail）
+- role 注释逃逸修正 3 处（appointment/branches/review-request 头注释 [书记] 混入编者身份——上轮只清 content front-matter，代码注释漏网）
+
+**文档同步**：PARTY_COMMITTEE_DESIGN §0（两行 L2 决策）/§2.5（modules、书记自治、治理字段分离）；DATA_MODEL §2.21 config 表；ARCHITECTURE_EVOLUTION §8.2 L2=已落地
+**下一步候选**：L3/L4 工作流块原型专项（ARCHITECTURE §8.5 v0 范围）；表单美学评估（并行推进中）；push 待书记批准

@@ -253,5 +253,39 @@ export function createResourcesRouter(db) {
     res.status(204).end();
   });
 
+  // ── L2 支部工作流模块配置（2026-09-03 书记裁定：支部自治/书记操作/核心固定）────────
+  // 支部书记写自己支部 config.modules；党委组织员保留；body 白名单仅收 modules 两数组，
+  // 不触碰治理字段（name/type/secretaryId/status）——与通用 branches PATCH（party-staff）互补。
+  router.patch('/branches/:id/config', requireAuth(db), (req, res) => {
+    const actor = req.actor;
+    if (!actor) return res.status(401).json({ error: '未登录' });
+    const row = db.prepare('SELECT data FROM branches WHERE id = ?').get(req.params.id);
+    if (!row) return res.status(404).json({ error: '支部不存在' });
+    const branch = JSON.parse(row.data);
+
+    const isStaff = actor.role === 'party-staff';
+    const isSecretary = !!branch.secretaryId && actor.id === branch.secretaryId;
+    if (!isStaff && !isSecretary) {
+      return res.status(403).json({ error: '无权限：仅本支部现任书记或党委组织员可配置' });
+    }
+
+    const m = req.body?.config?.modules;
+    if (m === null) {
+      branch.config = { ...(branch.config || {}), modules: null }; // 恢复默认（全开 + 注册顺序）
+      db.prepare('UPDATE branches SET data = ? WHERE id = ?').run(JSON.stringify(branch), branch.id);
+      return res.json(branch);
+    }
+    if (!m || typeof m !== 'object' || Array.isArray(m)) {
+      return res.status(400).json({ error: 'body.config.modules 须为对象 { hiddenTabIds, tabOrder } 或 null' });
+    }
+    const clean = (v) => {
+      if (!Array.isArray(v)) return [];
+      return [...new Set(v)].filter(x => typeof x === 'string' && x && x.length <= 80).slice(0, 200);
+    };
+    branch.config = { ...(branch.config || {}), modules: { hiddenTabIds: clean(m.hiddenTabIds), tabOrder: clean(m.tabOrder) } };
+    db.prepare('UPDATE branches SET data = ? WHERE id = ?').run(JSON.stringify(branch), branch.id);
+    res.json(branch);
+  });
+
   return router;
 }

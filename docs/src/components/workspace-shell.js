@@ -9,14 +9,16 @@
 // 行为零变化：原各入口的注册表读取、懒加载渲染、导航落点消费、B1-5 抑制逐字保留于壳内。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260901z';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260901z';
-import { renderTabBar } from './tab-bar.js?v=20260901z';
-import { flashHighlight } from '../core/utils.js?v=20260901z';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260901z';
-import { getCapabilities } from '../core/registry.js?v=20260901z';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260901z';
-import { TodoStore } from '../services/todo.js?v=20260901z';
+import { getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260903a';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260903a';
+import { renderTabBar } from './tab-bar.js?v=20260903a';
+import { flashHighlight } from '../core/utils.js?v=20260903a';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260903a';
+import { getCapabilities } from '../core/registry.js?v=20260903a';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260903a';
+import { TodoStore } from '../services/todo.js?v=20260903a';
+import { AuthStore } from '../services/auth.js?v=20260903a';
+import { applyTabPolicy, getBranchIdOfPerson } from '../services/branch.js?v=20260903a';
 
 // B1-5 修复：URL 导航落点后抑制当前 tab 重渲染，防止二次 setState 重建 DOM 冲掉直达高亮。
 // 条件抑制：仅当导航目标元素已在 DOM 中（高亮已展示）才抑制；目标缺失（延迟数据）放行补渲染。
@@ -92,7 +94,19 @@ export async function createWorkspaceShell(opts) {
 
     // M2e 注册表衔接：tab 清单经能力注册表读取（scope 能力），入口不再硬编码
     const cap = getCapabilities({ scope }).find(c => c.id === capId);
-    const tabs = cap && typeof cap.tabs === 'function' ? cap.tabs() : [];
+    const rawTabs = cap && typeof cap.tabs === 'function' ? cap.tabs() : [];
+    // L2 支部工作流模块配置（2026-09-03 书记裁定：书记操作/tab 级/核心固定）：
+    // 本支部 config.modules 决定业务 tab 显隐与顺序；党委工作台（party-committee）不受支部配置影响
+    let tabs = rawTabs;
+    try {
+      const me = typeof AuthStore?.getCurrentUser === 'function' ? AuthStore.getCurrentUser() : null;
+      const personId = me && (me.personId || me.id);
+      if (personId && scope !== 'workspace:party-committee' && me.role !== 'party-staff') {
+        tabs = applyTabPolicy(rawTabs, getBranchIdOfPerson(personId));
+      }
+    } catch (e) {
+      console.warn('[ws-shell] 支部工作流模块配置读取失败，按默认全开渲染', e);
+    }
 
     _tabBar = renderTabBar({
       prefix,

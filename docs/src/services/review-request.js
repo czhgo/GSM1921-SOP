@@ -1,11 +1,11 @@
-// role: [工程师]+[AI]+[书记]
+// role: [工程师]+[AI]
 // services/review-request.js — 支部上报审批（P3 党委后台，2026-09-02）
 // 闭环：支部书记上报（发展党员关键节点 develop-node / 重要活动报备 activity-report）
 //       → 党委逐项审批（approve/reject + 意见）→ 支部侧可见结果。
 // 模式：adapter CRUD 实时写 server（API 模式）+ 本地 mockDB 同步（刷新不丢）。
 
-import { mockDB } from '../core/domain.js?v=20260901z';
-import { getAdapter, persist } from '../core/data-adapter.js?v=20260901z';
+import { mockDB } from '../core/domain.js?v=20260903a';
+import { getAdapter, persist } from '../core/data-adapter.js?v=20260903a';
 
 /** 支部上报（书记/组织委员视角） */
 export async function submitReviewRequest({ branchId, type, title, content, submittedBy }) {

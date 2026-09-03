@@ -8,11 +8,11 @@
 // 行为零变化：各 tab 原有渲染/跳转/删除/绑定逻辑逐字保留于壳内。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore } from '../services/todo.js?v=20260901z';
-import { renderTodoList } from './todo-list.js?v=20260901z';
-import { badgeHtml } from './badge.js?v=20260901z';
-import { showToast } from '../core/utils.js?v=20260901z';
-import { solidAccentStyle } from '../core/constants.js?v=20260901z';
+import { TodoStore } from '../services/todo.js?v=20260903a';
+import { renderTodoList } from './todo-list.js?v=20260903a';
+import { badgeHtml } from './badge.js?v=20260903a';
+import { showToast } from '../core/utils.js?v=20260903a';
+import { solidAccentStyle } from '../core/constants.js?v=20260903a';
 
 /**
  * 创建待办 tab 壳实例

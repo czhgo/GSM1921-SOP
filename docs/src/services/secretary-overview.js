@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  secretary-overview.js — 书记全局概况服务层
 //  四维度信息面板：考勤与纪律 / 发展与考察 / 活动与专班进度 / 宣传与档案
@@ -7,16 +7,16 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260901z';
-import { loadActivities } from './activity.js?v=20260901z';
-import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260901z';
-import { TaskForceRecordStore } from './taskforce.js?v=20260901z';
-import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260901z';
-import { NoticeStore } from './notice.js?v=20260901z';
-import { TodoStore, seedTodos, TodoCategory, TodoActionType } from './todo.js?v=20260901z';
-import { getPersonById, PEOPLE } from '../mock/index.js?v=20260901z';
-import { ROLE_LABELS } from '../core/constants.js?v=20260901z';
-import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260901z';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260903a';
+import { loadActivities } from './activity.js?v=20260903a';
+import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260903a';
+import { TaskForceRecordStore } from './taskforce.js?v=20260903a';
+import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260903a';
+import { NoticeStore } from './notice.js?v=20260903a';
+import { TodoStore, seedTodos, TodoCategory, TodoActionType } from './todo.js?v=20260903a';
+import { getPersonById, PEOPLE } from '../mock/index.js?v=20260903a';
+import { ROLE_LABELS } from '../core/constants.js?v=20260903a';
+import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260903a';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数

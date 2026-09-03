@@ -900,7 +900,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 |---|---|---|---|---|
 | headerTitle | string | 是 | = name | header 品牌**软编码**（改支部名自动同步；header 标题随支部更换） |
 | accent | string \| null | 否 | `null` | 支部主题色（可选，默认党建红不变） |
-| enabledModules | string[] \| null | 否 | `null` | 该支部启用的能力/场景清单（null=全开兼容现有演示；远期「工作流块拖拽编排」自动写回此处，见 [ARCHITECTURE_EVOLUTION §八](../evolution/ARCHITECTURE_EVOLUTION.md)） |
+| modules | object \| null | 否 | `null` | 工作流模块配置（L2，2026-09-03）：`{ hiddenTabIds: string[], tabOrder: string[] }`——null=全开（默认 profile 兼容现有演示）；最小单位=工作台 tab，核心组（groupLabel='工作台'）固定不可关；维护权=本支部现任书记（「工作台配置」tab）；治理字段（name/type/secretaryId/status）不经此写 |
 | fileSpaceIsolated | boolean | 是 | `true` | 支部文件（branchDocs）/附件一支部一独立存储空间——按 branchId 分区、跨支部不可见 |
 
 ### 2.22 书记任期记录 (AppointmentRecord)

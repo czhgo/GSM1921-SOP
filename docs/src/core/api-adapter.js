@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260901z';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260903a';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -576,6 +576,11 @@ export const ApiAdapter = {
 
     update(id, patch) {
       return _patch(`/api/v1/branches/${id}`, patch);
+    },
+
+    // L2 支部工作流模块配置（2026-09-03）：config 子路由（本支部书记/party-staff 专属，防治理字段误写）
+    updateConfig(id, modules) {
+      return _patch(`/api/v1/branches/${id}/config`, { config: { modules } });
     },
 
     delete(id) {

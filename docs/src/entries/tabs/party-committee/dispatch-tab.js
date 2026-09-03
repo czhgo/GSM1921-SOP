@@ -7,11 +7,11 @@
 // 故本 tab 每次渲染前先读取表单现值、渲染后回填——工作台数据变更重绘不丢撰写内容。
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain.js?v=20260901z';
-import { AuthStore } from '../../../services/auth.js?v=20260901z';
-import { PARTY_COMMITTEE } from '../../../mock/branches.js?v=20260901z';
-import { NoticeStore } from '../../../services/notice.js?v=20260901z';
-import { showToast } from '../../../core/utils.js?v=20260901z';
+import { mockDB } from '../../../core/domain.js?v=20260903a';
+import { AuthStore } from '../../../services/auth.js?v=20260903a';
+import { PARTY_COMMITTEE } from '../../../mock/branches.js?v=20260903a';
+import { NoticeStore } from '../../../services/notice.js?v=20260903a';
+import { showToast } from '../../../core/utils.js?v=20260903a';
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

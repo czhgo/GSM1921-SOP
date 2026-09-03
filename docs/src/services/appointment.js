@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]+[书记]
+// role: [工程师]+[AI]
 // services/appointment.js — 书记任命与任期（P2 党委后台，2026-09-02）
 // 语义（design §3/§5 P2）：书记=职务动态绑定——党委任命谁，谁登录即书记工作台；
 // 任命动作：① branches.secretaryId 指向被任命人 ② 双方 users.role 同步（新书记→secretary，原书记→participant）
@@ -6,8 +6,8 @@
 // 模式：adapter CRUD 实时写 server（API 模式）+ 本地 mockDB 同步（刷新不丢）；
 // mock 纯本地：users 演示行（u_*）无 person 档案 → role 同步静默跳过，记录/secretaryId 仍完整。
 
-import { mockDB } from '../core/domain.js?v=20260901z';
-import { getAdapter, persist } from '../core/data-adapter.js?v=20260901z';
+import { mockDB } from '../core/domain.js?v=20260903a';
+import { getAdapter, persist } from '../core/data-adapter.js?v=20260903a';
 
 function _syncBranch(next) {
   const idx = (mockDB.branches || []).findIndex(b => b.id === next.id);
