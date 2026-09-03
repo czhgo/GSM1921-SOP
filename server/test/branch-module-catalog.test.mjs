@@ -17,7 +17,10 @@ test('L2：支部可勾选能力目录含工作台能力与 tab 元数据（注�
   assert.ok(Array.isArray(catalog), '目录返回数组');
   const sec = catalog.find(c => c.capId === 'secretary-workspace');
   assert.ok(sec, '目录含书记工作台能力');
-  assert.ok(sec.tabs.some(t => t.id === 'module-config'), '目录含工作台配置 tab（L2 新入口）');
+  assert.ok(sec.tabs.some(t => t.id === 'calendar'), '目录含书记工作台业务 tab 元数据');
+  // 书记 2026-08 裁定（party-config-tab.js:3）：书记工作台「工作台配置」定位不对 + UI 过重，
+  // 配置属党委/部署期职责——书记工作台不注册 module-config tab；此处锁定该裁定，勿再加回。
+  assert.ok(!sec.tabs.some(t => t.id === 'module-config'), '书记工作台不设「工作台配置」tab（配置归党委/部署期）');
 });
 
 test('L2：默认全开；配置子集后业务 tab 过滤/排序生效，核心组固定不可关（纯函数）', async () => {
