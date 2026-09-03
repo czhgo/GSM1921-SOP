@@ -8,6 +8,8 @@
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
 import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../mock/index.js?v=20260903c';
+import { ACTIVITIES } from '../mock/activities.js?v=20260903c';
+import { getPersonName } from './person.js?v=20260903c';
 import { loadActivities } from './activity.js?v=20260903c';
 
 /** 读取活动复盘记录（mock 常量兜底，写入后以 mockDB 为准） */
@@ -77,4 +79,43 @@ export function addTaskforceReview(record) {
   mockDB.taskforceReviews = [...loadTaskforceReviews(), record];
   persist();
   return record;
+}
+
+// ── 展示格式化（2026-09-03 数据域接线批次二：自 mock/review.js 原样提升）──
+const _personName = (id) => getPersonName(id);
+const _activityTitle = (id) => ACTIVITIES.find(a => a.id === id)?.title || id;
+
+/**
+ * 将复盘记录转为展示用对象
+ * @param {ReviewRecord[]} records - 活动复盘记录
+ * @param {ReviewRecord[]} tfRecords - 专班复盘记录
+ * @returns {Array<Object>}
+ */
+export function reviewToDisplay(records, tfRecords) {
+  const all = [...records, ...tfRecords].map(r => ({
+    id: r.id,
+    activity: r.activityId ? _activityTitle(r.activityId) : r.sourceName,
+    activityId: r.activityId || null,
+    sourceType: r.sourceType || null,
+    sourceName: r.sourceName || null,
+    organizerId: r.organizerId,
+    organizer: _personName(r.organizerId),
+    progress: r.progress,
+    overdue: r.overdue,
+    reviewStatus: r.reviewStatus,
+    reviewContent: r.reviewContent,
+    issues: Array.isArray(r.issues) ? r.issues : [],
+    annotation: r.annotation || '',
+    annotatedBy: r.annotatedBy ? _personName(r.annotatedBy) : null,
+    annotatedById: r.annotatedBy || null,
+    annotatedAt: r.annotatedAt || null,
+    submittedAt: r.submittedAt || null,
+    confirmedAt: r.confirmedAt || null,
+  }));
+  // 2026-08-08 修复（纪检反馈）：复盘列表按时间倒序（最新在前）。
+  // 排序键 = 确认时间 ?? 提交时间 ?? 活动日期；无任何时间戳的「未提交」记录排最末。
+  const keyOf = (r) => r.confirmedAt || r.submittedAt
+    || (r.activityId ? (ACTIVITIES.find(a => a.id === r.activityId)?.date || '') : '') || '';
+  all.sort((a, b) => keyOf(b).localeCompare(keyOf(a)));
+  return all;
 }

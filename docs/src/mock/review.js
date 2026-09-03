@@ -3,15 +3,9 @@
 // 复盘状态流转：未提交→已上传→批注中→确认/打回
 // 组织者提交复盘报告，纪检委员批注/打回/确认
 
-// 修复（T175）：不再从 ./index.js 导入 _personName/_activityTitle，
-// 消除 mock/index.js ↔ mock/review.js 循环依赖。
-// 直接依赖 services/person.js + mock/activities.js。
-import { getPersonName } from '../services/person.js?v=20260903c';
-import { ACTIVITIES } from './activities.js?v=20260903c';
+// 数据域接线批次二（2026-09-03）：展示格式化 reviewToDisplay 已提升至 services/review.js；
+// 本文件退化为纯复盘种子数据仓。
 import { ReviewStatus } from '../core/domain.js?v=20260903c';
-
-const _personName = (id) => getPersonName(id);
-const _activityTitle = (id) => ACTIVITIES.find(a => a.id === id)?.title || id;
 
 /**
  * 活动复盘记录
@@ -185,38 +179,3 @@ export const TASKFORCE_REVIEW_RECORDS = [
     confirmedAt: '2026-05-24T15:00:00',
   },
 ];
-
-/**
- * 将复盘记录转为展示用对象
- * @param {ReviewRecord[]} records - 活动复盘记录
- * @param {ReviewRecord[]} tfRecords - 专班复盘记录
- * @returns {Array<Object>}
- */
-export function reviewToDisplay(records, tfRecords) {
-  const all = [...records, ...tfRecords].map(r => ({
-    id: r.id,
-    activity: r.activityId ? _activityTitle(r.activityId) : r.sourceName,
-    activityId: r.activityId || null,
-    sourceType: r.sourceType || null,
-    sourceName: r.sourceName || null,
-    organizerId: r.organizerId,
-    organizer: _personName(r.organizerId),
-    progress: r.progress,
-    overdue: r.overdue,
-    reviewStatus: r.reviewStatus,
-    reviewContent: r.reviewContent,
-    issues: Array.isArray(r.issues) ? r.issues : [],
-    annotation: r.annotation || '',
-    annotatedBy: r.annotatedBy ? _personName(r.annotatedBy) : null,
-    annotatedById: r.annotatedBy || null,
-    annotatedAt: r.annotatedAt || null,
-    submittedAt: r.submittedAt || null,
-    confirmedAt: r.confirmedAt || null,
-  }));
-  // 2026-08-08 修复（纪检反馈）：复盘列表按时间倒序（最新在前）。
-  // 排序键 = 确认时间 ?? 提交时间 ?? 活动日期；无任何时间戳的「未提交」记录排最末。
-  const keyOf = (r) => r.confirmedAt || r.submittedAt
-    || (r.activityId ? (ACTIVITIES.find(a => a.id === r.activityId)?.date || '') : '') || '';
-  all.sort((a, b) => keyOf(b).localeCompare(keyOf(a)));
-  return all;
-}

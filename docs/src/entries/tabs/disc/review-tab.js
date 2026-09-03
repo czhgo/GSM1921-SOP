@@ -4,7 +4,7 @@
 
 import { mockDB, ReviewStatus } from '../../../core/domain.js?v=20260903c';
 import { persist } from '../../../core/data-adapter.js?v=20260903c';
-import { reviewToDisplay } from '../../../mock/index.js?v=20260903c';
+import { reviewToDisplay } from '../../../services/review.js?v=20260903c';
 import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/review.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { openFormModal } from '../../../components/modal.js?v=20260903c';

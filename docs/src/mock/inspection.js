@@ -5,16 +5,9 @@
 // 考察查询以人为中心，写入以活动/专班的具体工作计入
 // 考勤=0-1变量对所有人成立；考察=对深度参与者和组织者的工作量记录
 
-// 修复（T175）：不再从 ./index.js 导入 _personName 等辅助函数，
-// 消除 mock/index.js ↔ mock/inspection.js 循环依赖。
-// 直接依赖 services/person.js + mock/activities.js。
-import { getPersonName } from '../services/person.js?v=20260903c';
-import { ACTIVITIES } from './activities.js?v=20260903c';
-import { ParticipationLevel, PARTICIPATION_LEVEL_LABELS, SourceType, SOURCE_TYPE_LABELS } from '../core/domain.js?v=20260903c';
-
-const _personName = (id) => getPersonName(id);
-const _activityTitle = (id) => ACTIVITIES.find(a => a.id === id)?.title || id;
-const _activityType = (id) => ACTIVITIES.find(a => a.id === id)?.type || '未知';
+// 数据域接线批次二（2026-09-03）：展示格式化 inspectionToDisplay/Long/Wide 已提升至 services/inspection.js；
+// 本文件退化为纯考察种子数据仓。
+import { ParticipationLevel, SourceType } from '../core/domain.js?v=20260903c';
 
 export const INSPECTION_RECORDS = [
   // ── 活动考察记录 ──────────────────────────────────────────
@@ -85,69 +78,3 @@ export const INSPECTION_RECORDS = [
   { id: 'insp-42', sourceType: SourceType.ACTIVITY, activityId: 'act-26', sourceName: null, personId: 'p49', level: ParticipationLevel.DEEP_PARTICIPATE, role: '记录整理',           recordedBy: 'p1',  recordedAt: '2026-08-07T21:25:00', status: 'confirmed' },
   { id: 'insp-43', sourceType: SourceType.ACTIVITY, activityId: 'act-26', sourceName: null, personId: 'p50', level: ParticipationLevel.DEEP_PARTICIPATE, role: '会后资料分发',       recordedBy: 'p1',  recordedAt: '2026-08-07T21:30:00', status: 'confirmed' },
 ];
-
-/**
- * 将考察记录转为展示用对象（以人为中心）
- * @param {InspectionRecord[]} records
- * @returns {Array<{id, personId, personName, sourceType, sourceLabel, activityId, activityTitle, sourceName, level, levelLabel, role, recordedByName, recordedAt, status}>}
- */
-export function inspectionToDisplay(records) {
-  return records.map(r => ({
-    id: r.id,
-    personId: r.personId,
-    personName: _personName(r.personId),
-    sourceType: r.sourceType,
-    sourceLabel: SOURCE_TYPE_LABELS[r.sourceType] || r.sourceType,
-    activityId: r.activityId,
-    activityTitle: r.activityId ? _activityTitle(r.activityId) : null,
-    sourceName: r.sourceName,
-    level: r.level,
-    levelLabel: PARTICIPATION_LEVEL_LABELS[r.level] || r.level,
-    content: r.content || r.role, // P1-5：content 优先，旧数据以 role 兜底
-    role: r.role,
-    recordedByName: _personName(r.recordedBy),
-    recordedAt: r.recordedAt,
-    status: r.status || 'pending',
-  }));
-}
-
-/**
- * 考察记录长格式（按来源分组展示）
- */
-export function inspectionToLong(records) {
-  return records.map(r => ({
-    id: r.id,
-    name: _personName(r.personId),
-    source: r.activityId ? _activityTitle(r.activityId) : r.sourceName,
-    sourceType: SOURCE_TYPE_LABELS[r.sourceType] || r.sourceType,
-    level: PARTICIPATION_LEVEL_LABELS[r.level] || r.level,
-    role: r.role,
-    status: r.status,
-  }));
-}
-
-/**
- * 考察记录宽格式（以人为行、来源为列）
- */
-export function inspectionToWide(records) {
-  const personMap = {};
-  const sourceIds = [];
-  records.forEach(r => {
-    const sourceKey = r.activityId || r.sourceName;
-    if (!sourceIds.find(s => s.key === sourceKey)) {
-      sourceIds.push({
-        key: sourceKey,
-        title: r.activityId ? _activityTitle(r.activityId) : r.sourceName,
-        type: SOURCE_TYPE_LABELS[r.sourceType] || r.sourceType,
-      });
-    }
-    if (!personMap[r.personId]) {
-      personMap[r.personId] = { name: _personName(r.personId), personId: r.personId, cells: {} };
-    }
-    personMap[r.personId].cells[sourceKey] = r.content || r.role; // P1-5：content 优先
-  });
-  return {
-    columns: sourceIds,
-    rows: Object.values(personMap),
-  };
-}

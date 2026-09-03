@@ -3,9 +3,11 @@
 //  inspection.js — 考察记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType } from '../core/domain.js?v=20260903c';
+import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS } from '../core/domain.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
 import { INSPECTION_RECORDS } from '../mock/index.js?v=20260903c';
+import { ACTIVITIES } from '../mock/activities.js?v=20260903c';
+import { getPersonName } from './person.js?v=20260903c';
 import { TodoStore, TodoSourceType } from './todo.js?v=20260903c';
 import { loadActivities } from './activity.js?v=20260903c';
 
@@ -88,4 +90,71 @@ export function getRecordsBySource(sourceType, sourceId) {
     if (sourceType === SourceType.ACTIVITY) return r.activityId === sourceId;
     return r.sourceName === sourceId;
   });
+}
+
+// ── 展示格式化（2026-09-03 数据域接线批次二：自 mock/inspection.js 原样提升）──
+const _personName = (id) => getPersonName(id);
+const _activityTitle = (id) => ACTIVITIES.find(a => a.id === id)?.title || id;
+const _activityType = (id) => ACTIVITIES.find(a => a.id === id)?.type || '未知';
+
+/** 考察记录显示格式（以人为单位聚合展示） */
+export function inspectionToDisplay(records) {
+  return records.map(r => ({
+    id: r.id,
+    personId: r.personId,
+    personName: _personName(r.personId),
+    sourceType: r.sourceType,
+    sourceLabel: SOURCE_TYPE_LABELS[r.sourceType] || r.sourceType,
+    activityId: r.activityId,
+    activityTitle: r.activityId ? _activityTitle(r.activityId) : null,
+    sourceName: r.sourceName,
+    level: r.level,
+    levelLabel: PARTICIPATION_LEVEL_LABELS[r.level] || r.level,
+    content: r.content || r.role, // P1-5：content 优先，旧数据以 role 兜底
+    role: r.role,
+    recordedByName: _personName(r.recordedBy),
+    recordedAt: r.recordedAt,
+    status: r.status || 'pending',
+  }));
+}
+
+/**
+ * 考察记录长格式（按来源分组展示）
+ */
+export function inspectionToLong(records) {
+  return records.map(r => ({
+    id: r.id,
+    name: _personName(r.personId),
+    source: r.activityId ? _activityTitle(r.activityId) : r.sourceName,
+    sourceType: SOURCE_TYPE_LABELS[r.sourceType] || r.sourceType,
+    level: PARTICIPATION_LEVEL_LABELS[r.level] || r.level,
+    role: r.role,
+    status: r.status,
+  }));
+}
+
+/**
+ * 考察记录宽格式（以人为行、来源为列）
+ */
+export function inspectionToWide(records) {
+  const personMap = {};
+  const sourceIds = [];
+  records.forEach(r => {
+    const sourceKey = r.activityId || r.sourceName;
+    if (!sourceIds.find(s => s.key === sourceKey)) {
+      sourceIds.push({
+        key: sourceKey,
+        title: r.activityId ? _activityTitle(r.activityId) : r.sourceName,
+        type: SOURCE_TYPE_LABELS[r.sourceType] || r.sourceType,
+      });
+    }
+    if (!personMap[r.personId]) {
+      personMap[r.personId] = { name: _personName(r.personId), personId: r.personId, cells: {} };
+    }
+    personMap[r.personId].cells[sourceKey] = r.content || r.role; // P1-5：content 优先
+  });
+  return {
+    columns: sourceIds,
+    rows: Object.values(personMap),
+  };
 }

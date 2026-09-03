@@ -401,6 +401,12 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - mock/index.js 清除 person 中转段（含 deprecated _personName 与冗余 import），退化为纯种子/展示格式化数据仓；契约 v1 写入 MODULARIZATION_ASSESSMENT.md §五（人名出口唯一 / 种子仅 service 层 / formatter 历史债后续迁）
 - 44 文件 +95/−72；module-load + party/multi-user/write-hover/function-catalog 7/7 回归绿
 
+**P0 试点四·批次二（展示格式化提升，完成）**：
+- 5 个纯展示格式化函数原样自 mock/* 提升至业务 service：attendanceToLong→services/attendance.js；inspectionToDisplay/Long/Wide→services/inspection.js；reviewToDisplay→services/review.js（连同 _personName/_activityTitle 标题解析依赖）
+- mock/attendance|inspection|review.js 仅剩种子数组（getPersonName/ACTIVITIES/标签映射等冗余 import 清理）；mock/index.js 不再中转格式化函数
+- 7 个 UI 调用方 import 面改挂 services；mock 数据模块格式化逻辑清零（thought-reports 种子的静态 personName 字段除外）
+- 回归：module-load + mock-integrity + party + multi-user 7/7 绿
+
 **MPO 评估归档**：新建 `content/04_web_design/evolution/MODULARIZATION_ASSESSMENT.md` —— 模块化 80 / 插件化 72 / 开源化 74 ≈ 75；确立「统一扎口范式」（域内多实现→一个库出口 + 四条改造纪律：聚合重导出不搬运/调用方只改 import 一行/每批回归/禁双轨）；行动优先级 P0 扎口推广与数据域接线 → P1 开源合规包 → P2 L3 block manifest
 
 **回归**：module-load 116/116（含新库）；party-committee + write-hover + capability-registry 15/15 绿；git diff 净 37 文件 +41/−42（无编码异常）

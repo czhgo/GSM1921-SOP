@@ -1,14 +1,7 @@
-// 修复（T175）：不再从 ./index.js 导入 _personName 等辅助函数，
-// 消除 mock/index.js ↔ mock/attendance.js 循环依赖。
-// 直接依赖 services/person.js + mock/activities.js。
-import { getPersonName } from '../services/person.js?v=20260903c';
-import { ACTIVITIES } from './activities.js?v=20260903c';
+// 数据域接线批次二（2026-09-03）：展示格式化 attendanceToLong 已提升至 services/attendance.js；
+// 本文件退化为纯考勤种子数据仓（PEOPLE 供全员出席名单生成）。
 import { PEOPLE } from './people.js?v=20260903c';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260903c';
-
-const _personName = (id) => getPersonName(id);
-const _activityTitle = (id) => ACTIVITIES.find(a => a.id === id)?.title || id;
-const _activityType = (id) => ACTIVITIES.find(a => a.id === id)?.type || '未知';
+import { AttendanceStatus } from '../core/domain.js?v=20260903c';
 
 // 最后更新：2026-07-16（T-2026-07-006 第 5 轮 mock 数据迭代）
 // ID 重排为连续序列 att1~att43，补充 recordedAt 字段
@@ -135,16 +128,3 @@ function _buildAugustAttendance() {
 
 // 追加到导出数组（生成器 att44 起连续序列，与 att1~att43 显式段衔接）
 ATTENDANCE_RECORDS.push(..._buildAugustAttendance());
-
-export function attendanceToLong(records) {
-  return records.map(r => ({
-    id: r.id,
-    name: _personName(r.personId),
-    activity: _activityTitle(r.activityId),
-    type: _activityType(r.activityId),
-    status: ATTENDANCE_STATUS_LABELS[r.status] || r.status,
-    statusKey: r.status,
-    confirmer: r.recordedBy ? _personName(r.recordedBy) : '—',
-    overdue: r.overdue,
-  }));
-}

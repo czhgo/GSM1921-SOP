@@ -97,7 +97,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 
 ---
 
-## 六、数据域接线契约 v1（2026-09-03 person 域试点确立）
+## 五、数据域接线契约 v1（2026-09-03 person 域试点确立）
 
 **背景**：盘点显示全站 68 处直连 mock；mock/index.js 实为"旧兼容中转"（person 函数早已落到 services/person.js 又被 re-export 回 mock）。债根 = **UI/服务层 import 面挂在 mock，而非真正实现所在的 service**。
 
@@ -106,10 +106,15 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 - `mock/index.js` 清除 person 中转段（不再 re-export person 函数），退化为**纯种子/展示格式化数据仓**。
 - 涉及约 40 个文件；module-load + party/multi-user/write-hover/function-catalog 7/7 回归绿。
 
+**批次二（展示格式化提升，已完成 2026-09-03）**：
+- 5 个纯展示格式化函数自 mock/* 原样提升至对应业务 service：`attendanceToLong` → services/attendance.js；`inspectionToDisplay/inspectionToLong/inspectionToWide` → services/inspection.js；`reviewToDisplay` → services/review.js。
+- mock/attendance|inspection|review.js 仅剩种子数组（冗余 person/activities/标签依赖随之清理）；mock/index.js 不再中转任何格式化函数。
+- 7 个 UI 调用方 import 面改挂 services；module-load + mock-integrity + party + multi-user 7/7 回归绿。
+
 **契约条款**：
 1. **人名与人员对象获取**（getPersonById/getPersonName/PersonStore）唯一出口 = `services/person.js`；任何层禁止从 `mock/*` 获取人名。
 2. **种子数据**（PEOPLE/ACTIVITIES/MOCK_* 等）只许 service 层引用；UI/tab/组件层不直连种子数组（PEOPLE 收口为下一批）。
-3. **展示格式化函数**（attendanceToLong/inspectionToLong 等）当前滞留 mock/*，属历史债，后续迁至各业务域的展示层或 service。
+3. **展示格式化函数**（attendanceToLong/inspectionToLong/reviewToDisplay 等）统一栖身各业务 domain service（attendance/inspection/review），随记录读写同域演进；mock 数据模块不承载格式化逻辑。
 4. 新代码一律遵守 1~3；存量收口按批次推进，每批回归。
 
 ---

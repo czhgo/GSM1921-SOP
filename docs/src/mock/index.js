@@ -10,9 +10,9 @@ import { PEOPLE } from './people.js?v=20260903c';
 export { PEOPLE };
 
 export { ACTIVITIES } from './activities.js?v=20260903c';
-export { ATTENDANCE_RECORDS, attendanceToLong } from './attendance.js?v=20260903c';
-export { INSPECTION_RECORDS, inspectionToLong, inspectionToWide, inspectionToDisplay } from './inspection.js?v=20260903c';
+export { ATTENDANCE_RECORDS } from './attendance.js?v=20260903c';
+export { INSPECTION_RECORDS } from './inspection.js?v=20260903c';
 export { THOUGHT_REPORTS } from './thought-reports.js?v=20260903c';
-export { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS, reviewToDisplay } from './review.js?v=20260903c';
+export { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from './review.js?v=20260903c';
 export { MOCK_NOTICES } from './notices.js?v=20260903c';
 export { MOCK_TASKFORCES } from './taskforces.js?v=20260903c';
