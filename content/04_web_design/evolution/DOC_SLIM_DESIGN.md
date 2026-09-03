@@ -53,6 +53,9 @@ related_files: [content/README.md, content/04_web_design/README.md, content/03_d
 - **不动**：`.ctx`、references/ 历史材料、官方合规原文、在用母本/指南正文事实（除 A3/A4 明确收敛句）。
 
 ## 三、验收
+
+> 批次 1 ✅ 2026-09-03 / 批次 2（A1+A2）✅ / 批次 3（A3 保自包含提示 + A4 定义句/死链）✅
+
 1. `content/` 根与三层 README 无指向已删/已归档文件的死链（link-integrity 绿）。
 2. 同主题重复段收敛到单一载体（grep 抽查：专班定义句、公共规则、同源句、权限矩阵各剩唯一正文句）。
 3. 批次间各一次提交（少而精，3 批 3 commit 上下）。
