@@ -7,6 +7,7 @@
 //  语义采用 server 严格口径：id 只收非空字符串（不强制转串）、长度 ≤80、去重保序、限长截断。
 //  本文件为纯 ESM、零依赖（不 import 任何 ?v= 模块），浏览器与 node 双端可加载。
 // ════════════════════════════════════════════════════════════════
+import { WORK_MAP_IDS } from './work-map.js';
 
 const MAX_ID_LEN = 80;
 const MODULES_LIMIT = 200;
@@ -31,6 +32,27 @@ export function sanitizeConfigModules(modules, { coreIds = new Set() } = {}) {
   };
 }
 
+/**
+ * 净化 config.workforce（L4 支部分工；null=恢复默认缺省分工）
+ * 只保留 WORK_MAP_IDS 内的模块键；每项 { ownerType∈{role,person}, ownerId: 非空字符串 ≤80 }。
+ * 语义校验（ownerId 是否真实角色/成员）由 service/UI 层负责，此处只做形状防脏注入。
+ */
+export function sanitizeConfigWorkforce(workforce) {
+  if (workforce === null) return null;
+  if (!workforce || typeof workforce !== 'object' || Array.isArray(workforce)) return {};
+  const idSet = new Set(WORK_MAP_IDS);
+  const out = {};
+  for (const [moduleId, assign] of Object.entries(workforce)) {
+    if (!idSet.has(moduleId)) continue;
+    const ownerType = assign?.ownerType;
+    const ownerId = assign?.ownerId;
+    if ((ownerType === 'role' || ownerType === 'person') &&
+        typeof ownerId === 'string' && ownerId && ownerId.length <= MAX_ID_LEN) {
+      out[moduleId] = { ownerType, ownerId };
+    }
+  }
+  return out;
+}
 /**
  * 净化 config.blocks（{ outputBlocks?, workflowBlocks? }；null=恢复默认）
  * 只保留调用方提供的子段；每子段 id 按 BLOCKS_LIMIT 截断。

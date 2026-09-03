@@ -4,11 +4,13 @@ type: design
 role: "[工程师]+[AI]"
 created: 2026-09-03
 last_updated: "2026-09-03"
-status: draft-pending-confirm
+status: confirmed
 related_files: [BLOCK_MANIFEST_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, MODULARIZATION_ASSESSMENT.md]
 ---
 
 # L4 支部工作地图设计稿 v2.1
+
+> **2026-09-03 书记裁决（放行编码）**：① 模块清单照 11 项放行；② 「支部分工」书记台入口 + 支委会议题生效（可会前草稿）**全链路放行**。
 
 > **定位**：支部工作的组织视图与分工载体。书记 2026-09-03 三重命令：
 > ① **党建/党务二分已取消**（全仓废止，本稿不再出现该表达）；
@@ -70,7 +72,14 @@ related_files: [BLOCK_MANIFEST_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, MODULARIZ
 
 **验收闭环**：书记台「支部分工」→ 平铺/按人两视图 → 提议"发展党员改派副书记"→ 支委会议题 → 票决通过 → config.workforce 落库 → 副书记工作台出现对应入口。
 
-## 七、待书记裁决
+## 七、裁决记录与落地进度
 
-1. 模块清单（11 项平铺）是否有要加/删的既有工作形式？
-2. 「支部分工」书记台入口 + 支委会议题生效（可会前草稿）是否放行编码？
+**2026-09-03 书记裁决**：
+1. 模块清单 **照 11 项放行**（不增删既有工作形式）；
+2. 「支部分工」入口 + 支委会议题生效（可会前草稿）**全链路放行**。
+
+**落地进度（攒批推进）**：
+- ✅ **M0 数据契约**：`docs/src/core/work-map.js`（11 模块目录 + 缺省分工 + `expandWorkforce` 快照展开，零依赖双端可加载）；`config-clean.js` 新增 `sanitizeConfigWorkforce`；server `PATCH /branches/:id/config` 支持 `config.workforce`（null=恢复缺省）；`branch.js` 新增 `getBranchWorkforce/updateBranchWorkforce`（写配置抽 `_saveBranchConfig` 共用）。
+- ✅ **M1 地图视图**：书记台新增「支部分工」tab（党建组）——视图 A 平铺 11 模块卡 / 视图 B 按人分组（纯排列切换，同一份 workforce）；禁 SVG 图标（沿用书记台裁定）。
+- ⏳ **M2（下一批）**：改派提议（会前草稿）→ 生成支委会议题（班子分工/模块归属）→ 票决通过 → 生效落 `config.workforce` → 对应负责人工作台入口回显。
+- 测试：`server/test/work-map.test.mjs`（目录唯一性/快照展开/净化/HTTP PATCH 含恢复默认）绿；module-load 全量加载绿。

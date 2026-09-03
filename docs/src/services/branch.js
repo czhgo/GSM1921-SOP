@@ -9,7 +9,9 @@ import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260903c';
 import { getAdapter, persist } from '../core/data-adapter.js?v=20260903c';
 import { listCapabilities } from '../core/registry.js?v=20260903c';
 // P1a 单向权威（2026-09-03）：config 净化唯一实现 = core/config-clean.js（server PATCH /branches/:id/config 同源）
-import { sanitizeConfigBlocks, sanitizeConfigModules } from '../core/config-clean.js?v=20260903c';
+import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce } from '../core/config-clean.js?v=20260903c';
+// L4（2026-09-03）：支部工作地图模块目录单一源 = core/work-map.js（11 模块/缺省分工/快照展开）
+import { expandWorkforce } from '../core/work-map.js?v=20260903c';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
@@ -146,6 +148,19 @@ export function getCoreTabIds(tabs) {
   return _splitTabs(tabs).core.map(t => t.id);
 }
 
+/** 统一写配置（modules/blocks/workforce 共用：adapter 落库 + mock 同步 + persist） */
+async function _saveBranchConfig(branchId, payload) {
+  const next = await getAdapter().branches.updateConfig(branchId, payload);
+  const idx = (mockDB.branches || []).findIndex(b => b.id === branchId);
+  if (idx >= 0) {
+    mockDB.branches = [...mockDB.branches.slice(0, idx), next, ...mockDB.branches.slice(idx + 1)];
+  } else if (next) {
+    mockDB.branches = [...mockDB.branches, next];
+  }
+  persist();
+  return next;
+}
+
 /**
  * 保存支部工作流配置（书记操作）：
  *   modules —— config.modules：模块/业务 tab 配置（null=恢复默认全开；undefined=不改）；
@@ -164,16 +179,25 @@ export async function updateBranchModules(branchId, modules, tabs = [], blocks) 
     }
   }
   if (blocks !== undefined) payload.blocks = _sanitizeBlocks(blocks);
+  return _saveBranchConfig(branchId, payload);
+}
 
-  const next = await getAdapter().branches.updateConfig(branchId, payload);
-  const idx = (mockDB.branches || []).findIndex(b => b.id === branchId);
-  if (idx >= 0) {
-    mockDB.branches = [...mockDB.branches.slice(0, idx), next, ...mockDB.branches.slice(idx + 1)];
-  } else if (next) {
-    mockDB.branches = [...mockDB.branches, next];
-  }
-  persist();
-  return next;
+// ── L4 支部分工（workforce）───────────────────────────────────
+// config.workforce = { [moduleId]: { ownerType:'role'|'person', ownerId } }；null=缺省分工。
+// 模块目录单一源 = core/work-map.js（WORK_MAP_MODULES 11 项）；分工调整走支委会议题（M2）。
+
+/** 读取支部分工快照（纯）：config.workforce 覆盖 + 未覆盖模块按缺省主责（expandWorkforce 兜底） */
+export function getBranchWorkforce(branchId) {
+  const branch = getBranchById(branchId);
+  return expandWorkforce(branch?.config?.workforce);
+}
+
+/** 保存支部分工（书记操作/议题通过后落库；workforce=null 恢复缺省分工） */
+export async function updateBranchWorkforce(branchId, workforce) {
+  const payload = workforce === null
+    ? { workforce: null }
+    : { workforce: sanitizeConfigWorkforce(workforce) };
+  return _saveBranchConfig(branchId, payload);
 }
 
 /**

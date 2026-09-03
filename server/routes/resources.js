@@ -7,7 +7,7 @@ import { replaceCollection } from '../db.js';
 import { deleteUploadedFile } from './uploads.js';
 import { afterResourceWrite } from '../services/mailer-hooks.js';
 // P1a 单向权威（2026-09-03）：config（modules/blocks）净化唯一实现 = docs/src/core/config-clean.js（前端 branch.js 同源，勿在 server 另写 clean）
-import { sanitizeConfigModules, sanitizeConfigBlocks } from '../../docs/src/core/config-clean.js';
+import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce } from '../../docs/src/core/config-clean.js';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/constants.js（勿手写）
 import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS } from '../../docs/src/core/constants.js';
 
@@ -278,8 +278,9 @@ export function createResourcesRouter(db) {
     }
     const hasModules = Object.prototype.hasOwnProperty.call(cfg, 'modules');
     const hasBlocks = Object.prototype.hasOwnProperty.call(cfg, 'blocks');
-    if (!hasModules && !hasBlocks) {
-      return res.status(400).json({ error: '至少提供 config.modules 或 config.blocks 之一' });
+    const hasWorkforce = Object.prototype.hasOwnProperty.call(cfg, 'workforce');
+    if (!hasModules && !hasBlocks && !hasWorkforce) {
+      return res.status(400).json({ error: '至少提供 config.modules / config.blocks / config.workforce 之一' });
     }
     const nextConfig = { ...(branch.config || {}) };
     if (hasModules) {
@@ -300,6 +301,16 @@ export function createResourcesRouter(db) {
         return res.status(400).json({ error: 'config.blocks 须为对象 { outputBlocks?, workflowBlocks? }（至少其一）或 null' });
       } else {
         nextConfig.blocks = sanitizeConfigBlocks(b); // 净化唯一实现 = docs/src/core/config-clean.js（与前端 branch.js 同源）
+      }
+    }
+    if (hasWorkforce) {
+      const wf = cfg.workforce;
+      if (wf === null) {
+        nextConfig.workforce = null; // 恢复默认缺省分工（SOP 责任人列）
+      } else if (!wf || typeof wf !== 'object' || Array.isArray(wf)) {
+        return res.status(400).json({ error: 'config.workforce 须为对象 { moduleId: { ownerType, ownerId } } 或 null' });
+      } else {
+        nextConfig.workforce = sanitizeConfigWorkforce(wf); // 净化唯一实现 = docs/src/core/config-clean.js（与前端 branch.js 同源）
       }
     }
     branch.config = nextConfig;
