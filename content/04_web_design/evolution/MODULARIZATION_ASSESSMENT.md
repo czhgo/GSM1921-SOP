@@ -180,4 +180,5 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 > - P0b ✅（部分）：`MEETING_TYPES` → `ACTIVITY_CLASSIFICATION['three-meetings'].subtypes` 引用；write-tab 产出块 4-id 字面量（2 处）→ `OUTPUT_BLOCK_DEFS` 派生；calendar-tab `THEME_DAY_BLOCK_ID` → `THEME_PARTY_DAY_MANIFEST.blockId` 派生。
 > - **复核保留（防行为漂移）**：①TYPE_META/STATUS_META 支部侧（"待党委批复"+desc）与党委侧（"待批复"）文案不同，属双视角差异，暂不合并；②makeup `MANDATORY_ACTIVITY_TYPES`（刚性考勤子集+主题党日）与 gallery 色名，业务语义 ≠ 三会子类清单，不并入 subtypes。
 > - P0c ✅：新增 `server/test/flow-catalog-sync.test.mjs`——FLOW_LINKS 键集与 function-catalog flow id 键集**双向断言**（任一侧增删即红）；纯 node 文本求值，沙箱内跑绿。
+> - P1a ✅：R7 新增共享纯模块 `docs/src/core/config-clean.js`（cleanIdList/sanitizeConfigModules/sanitizeConfigBlocks，server 严格口径为单向权威），前端 `branch.js` 与 server `resources.js /branches/:id/config` 同源引用，两处本地净化实现删除；R8 `OPTION_ENUMS` 从 committee.js 导出 + 新增 `test/vote-option-sync.test.mjs` 键集双向断言。纯 node 回归：module-config / module-config-validate / workflow-block-config（HTTP config 写路径）/ agenda-votes / output-block-policy / function-map-sync / vote-option-sync 全绿（28 测试 25 过，3 失败均为沙箱 Playwright EPERM）。
 > - 验证：13 个改动文件 GetDiagnostics 零错误；E2E 需在非沙箱终端补跑（`cd server && npm test`）。

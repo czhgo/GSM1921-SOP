@@ -6,6 +6,8 @@ import { requireAuth, requireCommissioner } from './auth.js';
 import { replaceCollection } from '../db.js';
 import { deleteUploadedFile } from './uploads.js';
 import { afterResourceWrite } from '../services/mailer-hooks.js';
+// P1a 单向权威（2026-09-03）：config（modules/blocks）净化唯一实现 = docs/src/core/config-clean.js（前端 branch.js 同源，勿在 server 另写 clean）
+import { sanitizeConfigModules, sanitizeConfigBlocks } from '../../docs/src/core/config-clean.js';
 
 // 资源名 → 表名映射（与 data-adapter 的分组名对齐）
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
@@ -273,10 +275,6 @@ export function createResourcesRouter(db) {
     if (!cfg || typeof cfg !== 'object' || Array.isArray(cfg)) {
       return res.status(400).json({ error: 'body.config 须为对象' });
     }
-    const cleanStr = (v, limit) => {
-      if (!Array.isArray(v)) return [];
-      return [...new Set(v)].filter(x => typeof x === 'string' && x && x.length <= 80).slice(0, limit);
-    };
     const hasModules = Object.prototype.hasOwnProperty.call(cfg, 'modules');
     const hasBlocks = Object.prototype.hasOwnProperty.call(cfg, 'blocks');
     if (!hasModules && !hasBlocks) {
@@ -290,7 +288,7 @@ export function createResourcesRouter(db) {
       } else if (!m || typeof m !== 'object' || Array.isArray(m)) {
         return res.status(400).json({ error: 'config.modules 须为对象 { hiddenTabIds, tabOrder } 或 null' });
       } else {
-        nextConfig.modules = { hiddenTabIds: cleanStr(m.hiddenTabIds, 200), tabOrder: cleanStr(m.tabOrder, 200) };
+        nextConfig.modules = sanitizeConfigModules(m); // 净化唯一实现 = docs/src/core/config-clean.js（与前端 branch.js 同源）
       }
     }
     if (hasBlocks) {
@@ -300,14 +298,7 @@ export function createResourcesRouter(db) {
       } else if (!b || typeof b !== 'object' || Array.isArray(b) || (!b.outputBlocks && !b.workflowBlocks)) {
         return res.status(400).json({ error: 'config.blocks 须为对象 { outputBlocks?, workflowBlocks? }（至少其一）或 null' });
       } else {
-        const cleanBlocks = {};
-        if (b.outputBlocks) {
-          cleanBlocks.outputBlocks = { hiddenBlockIds: cleanStr(b.outputBlocks.hiddenBlockIds, 50), blockOrder: cleanStr(b.outputBlocks.blockOrder, 50) };
-        }
-        if (b.workflowBlocks) {
-          cleanBlocks.workflowBlocks = { hiddenBlockIds: cleanStr(b.workflowBlocks.hiddenBlockIds, 50) };
-        }
-        nextConfig.blocks = cleanBlocks;
+        nextConfig.blocks = sanitizeConfigBlocks(b); // 净化唯一实现 = docs/src/core/config-clean.js（与前端 branch.js 同源）
       }
     }
     branch.config = nextConfig;

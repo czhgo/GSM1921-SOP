@@ -27,10 +27,12 @@ function writeRow(db, table, row) {
   db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(row.id, JSON.stringify(row));
 }
 
-// 选项集枚举：position 按活动 voteConfig.optionSet 校验（与前端 vote-config.js OPTION_SETS 对齐）
+// 选项集枚举：position 按活动 voteConfig.optionSet 校验。
+// 业务单一源 = 前端 docs/src/services/vote-config.js OPTION_SETS（label/labels/objectRequiresNote 全量）；
+// 本表仅镜像 options 键集，键集一致性由 test/vote-option-sync.test.mjs 双向断言锁定（2026-09-03 P1a）。
 //   deliberative（支委会交流式）：agree(同意)/object(异议)/comment(附言)
 //   formal（支部党员大会正式表决）：approve(赞成)/oppose(反对)/abstain(弃权)
-const OPTION_ENUMS = {
+export const OPTION_ENUMS = {
   deliberative: ['agree', 'object', 'comment'],
   formal: ['approve', 'oppose', 'abstain'],
 };

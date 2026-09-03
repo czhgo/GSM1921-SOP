@@ -8,6 +8,8 @@ import { getPersonById } from './person.js?v=20260903c';
 import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260903c';
 import { getAdapter, persist } from '../core/data-adapter.js?v=20260903c';
 import { listCapabilities } from '../core/registry.js?v=20260903c';
+// P1a 单向权威（2026-09-03）：config 净化唯一实现 = core/config-clean.js（server PATCH /branches/:id/config 同源）
+import { sanitizeConfigBlocks, sanitizeConfigModules } from '../core/config-clean.js?v=20260903c';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
@@ -129,18 +131,9 @@ export function applyWorkflowBlockPolicy(defIds, blocks) {
   return defIds.filter(id => !hidden.has(id));
 }
 
-/** 产出块配置净化（outputBlocks/workflowBlocks；null=恢复默认） */
+/** 产出块配置净化（outputBlocks/workflowBlocks；null=恢复默认）——单一实现 = core/config-clean.js sanitizeConfigBlocks（2026-09-03 P1a 收口，勿另写） */
 function _sanitizeBlocks(blocks) {
-  if (blocks === null) return null;
-  const clean = (v) => [...new Set((v || []).map(String).filter(x => x && x.length <= 80))].slice(0, 50);
-  const out = {};
-  if (blocks.outputBlocks) {
-    out.outputBlocks = { hiddenBlockIds: clean(blocks.outputBlocks.hiddenBlockIds), blockOrder: clean(blocks.outputBlocks.blockOrder) };
-  }
-  if (blocks.workflowBlocks) {
-    out.workflowBlocks = { hiddenBlockIds: clean(blocks.workflowBlocks.hiddenBlockIds) };
-  }
-  return out;
+  return sanitizeConfigBlocks(blocks);
 }
 
 /** 保存支部产出块配置（书记操作；blocks=null=恢复默认） */
@@ -165,12 +158,9 @@ export async function updateBranchModules(branchId, modules, tabs = [], blocks) 
     if (modules === null) {
       payload.modules = null;
     } else {
+      // 核心 tab 不可隐藏/不参与排序（配置 UI 只读展示）；限长与严格字符串口径见 core/config-clean.js
       const coreIds = new Set(getCoreTabIds(tabs));
-      const sanitize = (v) => [...new Set((v || []).map(String).filter(x => x && x.length <= 80))];
-      payload.modules = {
-        hiddenTabIds: sanitize(modules?.hiddenTabIds).filter(id => !coreIds.has(id)), // 核心不可隐藏
-        tabOrder: sanitize(modules?.tabOrder).filter(id => !coreIds.has(id)),        // 核心不参与排序
-      };
+      payload.modules = sanitizeConfigModules(modules, { coreIds });
     }
   }
   if (blocks !== undefined) payload.blocks = _sanitizeBlocks(blocks);
