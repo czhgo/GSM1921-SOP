@@ -243,7 +243,7 @@ ROLE_KEYS（改这里）
   → 主题色/角色色（谁用什么颜色）
 ```
 
-改角色/加角色：只改 `ROLE_KEYS` + 对应工作台能力声明，其余自动跟随（收敛设计见 [ROLE_SSOT_DESIGN.md](content/04_web_design/evolution/ROLE_SSOT_DESIGN.md)）。
+改角色/加角色：只改 `ROLE_KEYS` + 对应工作台能力声明，其余自动跟随（收敛设计档案见 [ROLE_SSOT_DESIGN.md](content/04_web_design/archive/ROLE_SSOT_DESIGN.md)，已归档 2026-09-03，历史结论仍可读）。
 
 ### 9.4 自定义主题色与术语
 

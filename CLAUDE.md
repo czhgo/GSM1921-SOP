@@ -149,7 +149,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 ① 描述**当前状态/规则**（非历史过程）；② 内容**可执行引用**（读即用）；③ 变更立即影响后续任务。
 
 - **对照**：知识资产（`content/insights/`，人类阅读、非 AI 活跃上下文）；过程产物（spec/plan/一次性脚本，任务闭环即归档或删除）
-- **当前上下文文件清单**：本文件（甲/乙/丙部）· `.ctx/SNAPSHOT.md`（当前基线）· `.ctx/TIMESTAMPS.md`（文件注册表）· `.ctx/REVIEW_QUEUE.md`（评议队列）· `content/03_doc_system/`（ARCHITECTURE/SSOT_INDEX/OPERATIONS_GUIDE/DOC_MAP/USAGE_POLICY/SERVICE_CATALOG）· `content/04_web_design/evolution/`（ARCHITECTURE_EVOLUTION/CHECKLIST/ROLE_SSOT_DESIGN）· `server/README.md`（测试/部署）· 项目记忆（跨会话）
+- **当前上下文文件清单**：本文件（甲/乙/丙部）· `.ctx/SNAPSHOT.md`（当前基线）· `.ctx/TIMESTAMPS.md`（文件注册表）· `.ctx/REVIEW_QUEUE.md`（评议队列）· `content/03_doc_system/`（ARCHITECTURE/SSOT_INDEX/OPERATIONS_GUIDE/DOC_MAP/USAGE_POLICY/SERVICE_CATALOG）· `content/04_web_design/evolution/`（ARCHITECTURE_EVOLUTION/CHECKLIST；ROLE_SSOT_DESIGN 已归档 2026-09-03 → `content/04_web_design/archive/`，不再属活跃上下文）· `server/README.md`（测试/部署）· 项目记忆（跨会话）
 - **清理纪律**：过程产物不留仓库——可复用部分（决策/约束/落地记录）整合进上下文文件后删除原文件；空目录同步删除；整合处标注来源与日期（判例：2026-08-30 html-slimming spec 整合入 ARCHITECTURE_EVOLUTION 后删除）
 
 ***
@@ -623,9 +623,9 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 > **注**：T-280 网页逻辑全量梳理已全部完成（B1-B6，2026-08-24 归档执行日志），乙部删除——完整对账报告与收口记录见 `.ctx/logs/2026-08-EXECUTION_LOG.md`（L4777~5080），检查依据见 [CHECKLIST.md](content/04_web_design/evolution/CHECKLIST.md)（含 T-280-B1/T-280-B5 手动检查小节与各批新理念校验点）。
 
-> **注**：T-282 content 体系优化升级已全部完成（2026-08-24 归档执行日志 L5168~5208），乙部删除——三方向：①巨型文件拆分（DATA_ARCHITECTURE→DATA_MODEL+DATA_FLOW、OPERATIONS_GUIDE→+PROCESS_GUIDE、DESIGN_SYSTEM→+COLOR_SYSTEM+COMPONENT_SPEC）；②04 部署类重组（SCHOOL_IT 并入 DEPLOYMENT_ROADMAP）；③目录规范补缺（insights README、references 归位）。导航更新见 [DOC_MAP.md](content/03_doc_system/DOC_MAP.md) 与 [SSOT_INDEX.md](content/03_doc_system/SSOT_INDEX.md)。
+> **注**：T-282 content 体系优化升级已全部完成（2026-08-24 归档执行日志 L5168~5208），乙部删除——三方向：①巨型文件拆分（原数据架构总文件 DATA_ARCHITECTURE（路由文件，2026-09-03 精简删除）→DATA_MODEL+DATA_FLOW、OPERATIONS_GUIDE→+PROCESS_GUIDE、DESIGN_SYSTEM→+COLOR_SYSTEM+COMPONENT_SPEC）；②04 部署类重组（SCHOOL_IT 并入 DEPLOYMENT_ROADMAP）；③目录规范补缺（insights README、references 归位）。导航更新见 [DOC_MAP.md](content/03_doc_system/DOC_MAP.md) 与 [SSOT_INDEX.md](content/03_doc_system/SSOT_INDEX.md)。
 
-> **注**：T-279 轻量插件化实施已全部完成（M1-M4，2026-08-23 归档执行日志），乙部删除——完整记录见 `.ctx/logs/2026-08-EXECUTION_LOG.md`，设计权威源见 [ARCHITECTURE\_EVOLUTION.md §六](content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md)。
+> **注**：T-279 轻量插件化实施已全部完成（M1-M4，2026-08-23 归档执行日志），乙部删除——完整记录见 `.ctx/logs/2026-08-EXECUTION_LOG.md`，历史结论见 [ARCHITECTURE\_EVOLUTION.md §二 历史结论](content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md)（M1~M8 全落地；现行评估与去重队列见 MODULARIZATION_ASSESSMENT.md）。
 
 > **注**：常态化专项评议（反论/理论复用/黑话审查/原话复核/最小三成本）已制度化，由 W4 专项评议循环承接，不再驻留乙部——专项清单、侧重维度与轮次进度见 CLAUDE.md H60.5 + `.ctx/REVIEW_QUEUE.md` 附录（乙部清理不灭机制）。
 
