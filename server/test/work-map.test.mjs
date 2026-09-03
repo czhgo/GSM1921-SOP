@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 import {
-  WORK_MAP_MODULES, WORK_MAP_IDS, WORK_MAP_DEFAULT, expandWorkforce,
+  WORK_MAP_MODULES, WORK_MAP_IDS, WORK_MAP_DEFAULT, expandWorkforce, mergeWorkforceSnapshot,
 } from '../../docs/src/core/work-map.js';
 import { sanitizeConfigWorkforce } from '../../docs/src/core/config-clean.js';
 import { ROLE_KEYS } from '../../docs/src/core/constants.js';
@@ -51,6 +51,19 @@ test('expandWorkforce：null → 全缺省 role；覆盖 person 项保留、其�
   const withPerson = expandWorkforce({ 'develop-party-member': { ownerType: 'person', ownerId: 'p14' } });
   assert.deepEqual(withPerson['develop-party-member'], { ownerType: 'person', ownerId: 'p14' });
   assert.equal(withPerson['theme-party'].ownerType, 'role'); // 未覆盖 → 缺省
+});
+
+test('mergeWorkforceSnapshot：按改派清单合并，未涉及模块原样保留（M2 采纳落库前置）', () => {
+  const snapshot = expandWorkforce({ 'develop-party-member': { ownerType: 'person', ownerId: 'p14' } });
+  const merged = mergeWorkforceSnapshot(snapshot, [
+    { moduleId: 'theme-party', to: { ownerType: 'role', ownerId: 'deputy-secretary' } },
+    { moduleId: 'not-a-module', to: { ownerType: 'person', ownerId: 'p5' } }, // 未知模块 → 忽略
+  ]);
+  assert.equal(Object.keys(merged).length, 11);
+  assert.deepEqual(merged['theme-party'], { ownerType: 'role', ownerId: 'deputy-secretary' });
+  assert.deepEqual(merged['develop-party-member'], { ownerType: 'person', ownerId: 'p14' }); // 既有 person 保留
+  assert.equal(merged['taskforce'].ownerType, 'role'); // 未涉及 → 缺省
+  assert.equal(merged['not-a-module'], undefined);
 });
 
 test('sanitizeConfigWorkforce：null→null；合法保留；未知模块/非法 owner 丢弃', () => {

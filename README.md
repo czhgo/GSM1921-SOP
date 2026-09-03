@@ -42,7 +42,7 @@ npm install
 npm start
 ```
 
-然后访问 `http://127.0.0.1:3000/login.html` 登录使用（演示账号见 `server/README.md`）。
+然后访问 `http://127.0.0.1:3000/login.html` 登录使用（演示账号见 `docs/src/mock/accounts.js`；贡献与工程约定见 [CONTRIBUTING.md](CONTRIBUTING.md)，环境变量模板见 `server/.env.example`）。
 
 **然后呢？**
 
@@ -336,3 +336,5 @@ mindmap
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+
+参与开发请先读 [CONTRIBUTING.md](CONTRIBUTING.md)（工程纪律与提交约定）。

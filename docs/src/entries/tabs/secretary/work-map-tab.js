@@ -2,7 +2,7 @@
 // entries/tabs/secretary/work-map-tab.js — 书记工作台·支部分工 tab（L4 支部工作地图，2026-09-03）
 // 书记三重裁定落地：党建/党务二分取消、不设分类筐、平铺模块 + 按人 双视图。
 // 模块目录单一源 = core/work-map.js（11 项既有工作形式）；分工快照 = config.workforce（缺省按 SOP 责任人列）。
-// M1 为只读地图视图；改派/议题/票决/生效落库（M2）在下一批接入。
+// M2（2026-09-03）：分工调整走支委会议题（panel = workforce-panel.js）——发起改派议题/跟踪表决/采纳生效。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
 import { escHtml as esc } from '../../../core/utils.js?v=20260903c';
@@ -11,6 +11,8 @@ import { ROLE_LABELS } from '../../../core/constants.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch.js?v=20260903c';
 import { getPersonName } from '../../../services/person.js?v=20260903c';
+// L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅书记/副书记可见
+import { mountWorkforcePanel } from './workforce-panel.js?v=20260903c';
 
 let _view = 'modules'; // 视图 A 平铺模块 / 视图 B 按人（同一会话内保持）
 
@@ -105,7 +107,7 @@ export function renderContent() {
           { key: 'persons', label: '按人' },
         ].map(t => `
           <button type="button"
-            class="wm-sub-tab px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${_view === t.key ? 'wm-sub-tab-active' : 'text-gray-500 hover:text-gray-700'}"
+            class="ov-sub-tab px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${_view === t.key ? 'ov-sub-tab-active' : 'text-gray-500 hover:text-gray-700'}"
             data-wm-view="${t.key}">${t.label}</button>`).join('')}
       </div>
       <p class="text-xs text-gray-400 ml-auto">分工 = 支部自治（缺省按 SOP 责任人；调整走支委会议题）</p>
@@ -120,4 +122,14 @@ export function renderContent() {
       renderContent();
     });
   });
+  // L4 M2：分工调整工具（发起议题 / 跟踪 / 采纳）——仅书记/副书记可见（分工 = 支部自治）
+  const editable = me && (me.role === 'secretary' || me.role === 'deputy-secretary');
+  const oldHost = root.querySelector('#workforce-panel-host');
+  if (oldHost) oldHost.remove();
+  if (editable) {
+    const host = document.createElement('div');
+    host.id = 'workforce-panel-host';
+    root.appendChild(host);
+    mountWorkforcePanel(branchId, host).catch(e => console.error('[work-map] 分工调整面板渲染失败', e));
+  }
 }

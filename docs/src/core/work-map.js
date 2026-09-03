@@ -95,3 +95,21 @@ export function expandWorkforce(workforce) {
   }
   return out;
 }
+
+/**
+ * 按改派清单合并分工快照（纯；M2 议题通过后落库前用）
+ * @param {Record<string,{ownerType,ownerId}>} snapshot expandWorkforce 展开后的当前快照
+ * @param {Array<{moduleId:string,to:{ownerType:'role'|'person',ownerId:string}}>} changes 改派清单
+ * @returns {Record<string,{ownerType,ownerId}>} 合并后快照（未涉及的模块原样保留）
+ */
+export function mergeWorkforceSnapshot(snapshot, changes) {
+  const next = { ...(snapshot || {}) };
+  const idSet = new Set(WORK_MAP_IDS);
+  for (const c of Array.isArray(changes) ? changes : []) {
+    if (c && idSet.has(c.moduleId) &&
+        c.to && (c.to.ownerType === 'role' || c.to.ownerType === 'person') && c.to.ownerId) {
+      next[c.moduleId] = { ownerType: c.to.ownerType, ownerId: c.to.ownerId };
+    }
+  }
+  return next;
+}
