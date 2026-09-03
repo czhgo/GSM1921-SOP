@@ -325,3 +325,10 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 
 **文档同步**：PARTY_COMMITTEE_DESIGN §0（两行 L2 决策）/§2.5（modules、书记自治、治理字段分离）；DATA_MODEL §2.21 config 表；ARCHITECTURE_EVOLUTION §8.2 L2=已落地
 **下一步候选**：L3/L4 工作流块原型专项（ARCHITECTURE §8.5 v0 范围）；表单美学评估（并行推进中）；push 待书记批准
+
+## T-2026-09-022 表单美学评估·首轮（2026-09-03，报告见对话；批次待书记授权）
+
+**基线**：COMPONENT_SPEC §4.3（input-flat 体系/select.input-flat+cs-select/禁内联输入/按钮四档）+ styles.css .input-flat ——"硬件"规范已齐，漂移在实现层。
+**P0**：① 行内追加记录小表单重复双轨——org/taskforce-tab.js:496/508 与 leader/write-tab.js:272/287/301 同构灰底块 5 处复制粘贴（抽 InlineRecordForm）；② type="date" 全仓 8 处原生 picker 与圆角体系/主题 focus 不统一（收口 FormField date 包装）。
+**P1**：标签文本普遍不关联控件（无 for/id，点击不聚焦/读屏无关联）；错误态多为 toast、按钮提交中态仅部分禁用；非登录输入缺 autocomplete/name。
+**建议批次（待授权）**：B1 抽 InlineRecordForm（零行为变化）→ B2 表单积木 FormField 目录（label 关联/date/select 收口）→ B3 全站输入违例 grep 收编 input-flat → B4 合规 pass（aria-live/focus-visible/autocomplete）。每批独立交付+回归。
