@@ -13,6 +13,7 @@ import { persist } from '../../../core/data-adapter.js?v=20260903a';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260903a';
 import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260903a';
 import { PersonPicker } from '../../../components/person-picker.js?v=20260903a';
+import { recordFormShell } from '../../../components/form-shell.js?v=20260903a';
 import { getPersonName, PEOPLE } from '../../../mock/index.js?v=20260903a';
 import { badgeHtml } from '../../../components/badge.js?v=20260903a';
 import { showToast } from '../../../core/utils.js?v=20260903a';
@@ -240,7 +241,7 @@ export function renderContent(ctx) {
         btn.addEventListener('click', () => {
           const type = btn.dataset.type;
           const panelEl = btn.closest('.mt-3');
-          const existing = panelEl?.querySelector('.act-sub-inline-form');
+          const existing = panelEl?.querySelector('.record-form-shell');
           if (existing) { existing.remove(); return; }
 
           // 内联表单 HTML（person 字段由 PersonPicker 渲染，其余为原生控件）
@@ -268,49 +269,40 @@ export function renderContent(ctx) {
             return route ? `<div class="text-[11px] text-gray-400 mb-2">提交后自动投递：${route.route} → ${route.sink}</div>` : '';
           };
           if (type === 'attendance') {
-            formHtml = `
-              <div class="act-sub-inline-form mt-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
-                <div class="text-[12px] font-bold text-gray-600 mb-2">添加考勤记录（同步正式考勤库）</div>
-                ${routeHint('attendance')}
+            formHtml = recordFormShell({
+              title: '添加考勤记录（同步正式考勤库）',
+              accent,
+              accentBorder,
+              body: `${routeHint('attendance')}
                 <div class="mb-2 act-sub-picker"></div>
                 <div class="flex gap-2 mb-2">
                   <select class="f-status input-flat text-xs flex-1">${statusOpts.map(s => `<option value="${s.value}">${s.label}</option>`).join('')}</select>
                   <input class="f-note input-flat text-xs flex-1" placeholder="备注（选填）">
-                </div>
-                <div class="flex gap-2 justify-end">
-                  <button type="button" class="act-sub-cancel-btn text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="${solidAccentStyle(accent, accentBorder)};">提交</button>
-                </div>
-              </div>`;
+                </div>`,
+            });
           } else if (type === 'inspection') {
-            formHtml = `
-              <div class="act-sub-inline-form mt-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
-                <div class="text-[12px] font-bold text-gray-600 mb-2">添加考察记录（同步正式考察库，待纪检委员确认）</div>
-                ${routeHint('inspection')}
+            formHtml = recordFormShell({
+              title: '添加考察记录（同步正式考察库，待纪检委员确认）',
+              accent,
+              accentBorder,
+              body: `${routeHint('inspection')}
                 <div class="mb-2 act-sub-picker"></div>
                 <textarea class="f-content input-flat text-xs w-full resize-none mb-2" rows="2" placeholder="考察内容描述（必填）"></textarea>
-                <select class="f-result input-flat text-xs w-full mb-2">${resultOpts.map(r => `<option>${r}</option>`).join('')}</select>
-                <div class="flex gap-2 justify-end">
-                  <button type="button" class="act-sub-cancel-btn text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="${solidAccentStyle(accent, accentBorder)};">提交</button>
-                </div>
-              </div>`;
+                <select class="f-result input-flat text-xs w-full mb-2">${resultOpts.map(r => `<option>${r}</option>`).join('')}</select>`,
+            });
           } else {
             const fields = textFields[type];
-            formHtml = `
-              <div class="act-sub-inline-form mt-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
-                <div class="text-[12px] font-bold text-gray-600 mb-2">添加${type === 'publicity' ? '宣传' : '材料'}记录</div>
-                ${routeHint(type)}
-                ${fields.map(([key, label]) => `<input class="f-${key} input-flat text-xs w-full mb-2" placeholder="${label}${key === 'title' || key === 'name' ? '（必填）' : '（选填）'}">`).join('')}
-                <div class="flex gap-2 justify-end">
-                  <button type="button" class="act-sub-cancel-btn text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-                  <button type="button" class="act-sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="${solidAccentStyle(accent, accentBorder)};">提交</button>
-                </div>
-              </div>`;
+            formHtml = recordFormShell({
+              title: `添加${type === 'publicity' ? '宣传' : '材料'}记录`,
+              accent,
+              accentBorder,
+              body: `${routeHint(type)}
+                ${fields.map(([key, label]) => `<input class="f-${key} input-flat text-xs w-full mb-2" placeholder="${label}${key === 'title' || key === 'name' ? '（必填）' : '（选填）'}">`).join('')}`,
+            });
           }
 
           panelEl.insertAdjacentHTML('beforeend', formHtml);
-          const form = panelEl.querySelector('.act-sub-inline-form');
+          const form = panelEl.querySelector('.record-form-shell');
 
           // person 类记录用 PersonPicker 选人（直接得 personId，对齐正式库）
           if (type === 'attendance' || type === 'inspection') {
@@ -319,12 +311,12 @@ export function renderContent(ctx) {
             form._picker = picker;
           }
 
-          form.querySelector('.act-sub-cancel-btn').addEventListener('click', () => {
+          form.querySelector('.record-cancel-btn').addEventListener('click', () => {
             if (form._picker?.destroy) form._picker.destroy();
             form.remove();
           });
 
-          form.querySelector('.act-sub-save-btn').addEventListener('click', () => {
+          form.querySelector('.record-save-btn').addEventListener('click', () => {
             if (type === 'attendance') {
               const ids = form._picker ? form._picker.getSelected() : [];
               if (ids.length === 0) { showToast('error', '请选择人员'); return; }

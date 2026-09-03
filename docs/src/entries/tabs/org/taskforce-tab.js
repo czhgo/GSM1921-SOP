@@ -18,6 +18,7 @@ import { showToast } from '../../../core/utils.js?v=20260903a';
 import { solidAccentStyle } from '../../../core/constants.js?v=20260903a';
 import { icon } from '../../../core/icons.js?v=20260903a';
 import { PersonPicker } from '../../../components/person-picker.js?v=20260903a';
+import { recordFormShell } from '../../../components/form-shell.js?v=20260903a';
 import { renderQueryView } from '../../../components/query-view.js?v=20260903a';
 import { badgeHtml } from '../../../components/badge.js?v=20260903a';
 import { _personName, getPersonName } from '../../../mock/index.js?v=20260903a';
@@ -486,39 +487,37 @@ export function renderContent(ctx) {
         btn.addEventListener('click', () => {
           const type = btn.dataset.type;
           const panelEl = btn.closest('.mt-3');
-          const existing = panelEl?.querySelector('.sub-inline-form');
+          const existing = panelEl?.querySelector('.record-form-shell');
           if (existing) { existing.remove(); return; }
 
           const resultOpts = ['考察合格', '待观察', '需补材料'];
           let formHtml = '';
           if (type === 'inspection') {
-            formHtml = `
-              <div class="sub-inline-form mt-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
-                <div class="text-[12px] font-bold text-gray-600 mb-2">添加考察记录（同步正式考察库，待纪检委员确认）</div>
+            formHtml = recordFormShell({
+              title: '添加考察记录（同步正式考察库，待纪检委员确认）',
+              saveText: '保存',
+              accent,
+              accentBorder,
+              body: `
                 <div class="mb-2 sub-picker"></div>
                 <textarea class="f-content input-flat text-xs w-full resize-none mb-2" rows="2" placeholder="考察内容描述（必填）"></textarea>
-                <select class="f-result input-flat text-xs w-full mb-2">${resultOpts.map(r => `<option>${r}</option>`).join('')}</select>
-                <div class="flex gap-2 justify-end">
-                  <button type="button" class="sub-cancel-btn text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-                  <button type="button" class="sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="${solidAccentStyle(accent, accentBorder)};">保存</button>
-                </div>
-              </div>`;
+                <select class="f-result input-flat text-xs w-full mb-2">${resultOpts.map(r => `<option>${r}</option>`).join('')}</select>`,
+            });
           } else {
-            formHtml = `
-              <div class="sub-inline-form mt-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
-                <div class="text-[12px] font-bold text-gray-600 mb-2">添加材料记录</div>
+            formHtml = recordFormShell({
+              title: '添加材料记录',
+              saveText: '保存',
+              accent,
+              accentBorder,
+              body: `
                 <input class="f-name input-flat text-xs w-full mb-2" placeholder="材料名称（必填）">
                 <input class="f-author input-flat text-xs w-full mb-2" placeholder="提交人（选填）">
-                <input class="f-note input-flat text-xs w-full mb-2" placeholder="备注（选填）">
-                <div class="flex gap-2 justify-end">
-                  <button type="button" class="sub-cancel-btn text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-                  <button type="button" class="sub-save-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="${solidAccentStyle(accent, accentBorder)};">保存</button>
-                </div>
-              </div>`;
+                <input class="f-note input-flat text-xs w-full mb-2" placeholder="备注（选填）">`,
+            });
           }
 
           panelEl.insertAdjacentHTML('beforeend', formHtml);
-          const form = panelEl.querySelector('.sub-inline-form');
+          const form = panelEl.querySelector('.record-form-shell');
 
           if (type === 'inspection') {
             const picker = new PersonPicker({ mode: 'multi', placeholder: '选择被考察人', accentColor: accent, onSelect: () => {} });
@@ -526,12 +525,12 @@ export function renderContent(ctx) {
             form._picker = picker;
           }
 
-          form.querySelector('.sub-cancel-btn').addEventListener('click', () => {
+          form.querySelector('.record-cancel-btn').addEventListener('click', () => {
             if (form._picker?.destroy) form._picker.destroy();
             form.remove();
           });
 
-          form.querySelector('.sub-save-btn').addEventListener('click', () => {
+          form.querySelector('.record-save-btn').addEventListener('click', () => {
             if (type === 'inspection') {
               const content = form.querySelector('.f-content').value.trim();
               if (!content) { showToast('error', '请填写考察内容'); return; }
