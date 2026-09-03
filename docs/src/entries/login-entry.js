@@ -2,9 +2,9 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../services/auth.js?v=20260903a';
-import { mockLogin } from '../mock/accounts.js?v=20260903a';
-import { getAccentColors, solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260903a';
+import { AuthStore } from '../services/auth.js?v=20260903b';
+import { mockLogin } from '../mock/accounts.js?v=20260903b';
+import { getAccentColors, solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260903b';
 
 // 已登录则直接跳转
 const user = AuthStore.getCurrentUser();

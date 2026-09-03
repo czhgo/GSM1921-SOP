@@ -3,9 +3,9 @@
 // 院系党委组织员/党务老师：监控全院各支部（台账）+ 支部管理（创建/改名/配置）
 // 职责与其余工作台一致：壳配置（capability tab 清单）+ 数据加载；角色特有逻辑仅保留。
 
-import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260903a';
-import { loadActivities } from '../services/activity.js?v=20260903a';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260903a';
+import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260903b';
+import { loadActivities } from '../services/activity.js?v=20260903b';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260903b';
 // 副作用导入触发党委工作台能力注册（tab 清单）
 import '../modules/capabilities/party-committee-workspace.js?v=20260901t';
 

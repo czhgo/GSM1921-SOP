@@ -3,23 +3,23 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/state.js?v=20260903a';
-import { BranchService } from '../../../services/runtime.js?v=20260903a';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260903a';
-import { AuthStore } from '../../../services/auth.js?v=20260903a';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260903a';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260903a';
-import { persist } from '../../../core/data-adapter.js?v=20260903a';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260903a';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260903a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260903a';
-import { recordFormShell } from '../../../components/form-shell.js?v=20260903a';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260903a';
-import { getPersonName, PEOPLE } from '../../../mock/index.js?v=20260903a';
-import { badgeHtml } from '../../../components/badge.js?v=20260903a';
-import { showToast } from '../../../core/utils.js?v=20260903a';
-import { solidAccentStyle, accDarkVars, accDarkParts } from '../../../core/constants.js?v=20260903a';
-import { filterByRole, getCurrentLeaderId } from './_shared.js?v=20260903a';
+import { setState, getAppState } from '../../../core/state.js?v=20260903b';
+import { BranchService } from '../../../services/runtime.js?v=20260903b';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260903b';
+import { AuthStore } from '../../../services/auth.js?v=20260903b';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260903b';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260903b';
+import { persist } from '../../../core/data-adapter.js?v=20260903b';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260903b';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260903b';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260903b';
+import { recordFormShell } from '../../../components/form-shell.js?v=20260903b';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260903b';
+import { getPersonName, PEOPLE } from '../../../mock/index.js?v=20260903b';
+import { badgeHtml } from '../../../components/badge.js?v=20260903b';
+import { showToast } from '../../../core/utils.js?v=20260903b';
+import { solidAccentStyle, accDarkVars, accDarkParts } from '../../../core/constants.js?v=20260903b';
+import { filterByRole, getCurrentLeaderId } from './_shared.js?v=20260903b';
 
 // 私有状态（随模块自持，不污染入口）
 const dt = new DecisionTreeState('leader');

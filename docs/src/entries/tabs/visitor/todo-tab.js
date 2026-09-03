@@ -2,8 +2,8 @@
 // 参与者工作台 Tab：待办（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 todo-tab-shell）
 // 最小三成本原则落地：进入即见首条详情，减一次点击。
 
-import { showToast } from '../../../core/utils.js?v=20260903a';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260903a';
+import { showToast } from '../../../core/utils.js?v=20260903b';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260903b';
 
 // G3 修正（2026-08-08）：参与者视角按钮用金浅底（纯亮金 #FFD700 实底过艳）
 const GOLD_BTN_STYLE = '--acc-bg-dark:rgba(251,191,36,0.16);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.35);background:rgba(255,215,0,0.12);color:#A16207;border:1px solid rgba(255,215,0,0.35);';

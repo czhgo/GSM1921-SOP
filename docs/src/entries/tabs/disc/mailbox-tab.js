@@ -2,11 +2,11 @@
 // 纪检委员工作台 Tab：公邮管理（T-279 M3 拆分）
 // 支部公邮配置/查收周期倒计时 + 查收历史；配置与历史经 mockDB 持久化（seed 兜底注入一次）。
 
-import { mockDB } from '../../../core/domain.js?v=20260903a';
-import { persist } from '../../../core/data-adapter.js?v=20260903a';
-import { getPersonName } from '../../../mock/index.js?v=20260903a';
-import { showToast } from '../../../core/utils.js?v=20260903a';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260903a';
+import { mockDB } from '../../../core/domain.js?v=20260903b';
+import { persist } from '../../../core/data-adapter.js?v=20260903b';
+import { getPersonName } from '../../../mock/index.js?v=20260903b';
+import { showToast } from '../../../core/utils.js?v=20260903b';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260903b';
 
 // ── 公邮管理 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 const MAILBOX_CONFIG_SEED = {

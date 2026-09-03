@@ -5,11 +5,11 @@
 // 服务端权限：PATCH /branches/:id/config 仅本支部现任书记或党委组织员（副书记只读）。
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §2.5 + ARCHITECTURE_EVOLUTION.md §八
 
-import { AuthStore } from '../../../services/auth.js?v=20260903a';
-import { getBranchById, getBranchIdOfPerson, getBranchTabPolicy, getBranchOutputBlocks, getCoreTabIds, getOutputBlockPolicy, updateBranchModules } from '../../../services/branch.js?v=20260903a';
-import { getCapabilities } from '../../../core/registry.js?v=20260903a';
-import { OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260903a';
-import { showToast } from '../../../core/utils.js?v=20260903a';
+import { AuthStore } from '../../../services/auth.js?v=20260903b';
+import { getBranchById, getBranchIdOfPerson, getBranchTabPolicy, getBranchOutputBlocks, getCoreTabIds, getOutputBlockPolicy, updateBranchModules } from '../../../services/branch.js?v=20260903b';
+import { getCapabilities } from '../../../core/registry.js?v=20260903b';
+import { OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260903b';
+import { showToast } from '../../../core/utils.js?v=20260903b';
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

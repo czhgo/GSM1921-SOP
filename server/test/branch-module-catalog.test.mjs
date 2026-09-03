@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-const V = '?v=20260903a'; // 与 docs/src 模块内部 import 版本一致（同一 query → 同一模块实例）；bump 时同步替换
+const V = '?v=20260903b'; // 与 docs/src 模块内部 import 版本一致（同一 query → 同一模块实例）；bump 时同步替换
 
 test('L2：支部可勾选能力目录含工作台能力与 tab 元数据（注册表派生，画布数据源）', async () => {
   await import(`../../docs/src/modules/capabilities/secretary-workspace.js${V}`);

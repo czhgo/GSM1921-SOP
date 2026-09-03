@@ -45,8 +45,8 @@ async function login(page, sid) {
 /** 以正式写路径（mockDB 变更 → persist → 防抖快照写穿）写入一条记录 */
 async function pushAndPersist(page, collection, row) {
   await page.evaluate(async ({ collection, row }) => {
-    const { mockDB } = await import('/src/core/domain.js?v=20260903a');
-    const { persist } = await import('/src/core/data-adapter.js?v=20260903a');
+    const { mockDB } = await import('/src/core/domain.js?v=20260903b');
+    const { persist } = await import('/src/core/data-adapter.js?v=20260903b');
     mockDB[collection].push(row);
     persist();
   }, { collection, row });
