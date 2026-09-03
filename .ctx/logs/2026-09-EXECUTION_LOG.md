@@ -344,3 +344,13 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **表单美学**：B2 components/form-field.js（text/textarea/select/date + label 关联/必填/aria 错误/placeholder…/value 转义；四要素落点注释）；dispatch-tab 标题/正文收编示范；B4 showToast role=status+aria-live；**B3 全量粗扫 42 文件含非 input-flat 控件（含 checkbox/radio/chip hidden 误报，需人工甄别）——批量收编留连续批**
 **回归**：module-load 115/115；P3 下发/审批 E2E、module-config、block E2E、权限门等 9/9 绿
 **下一步候选**：B3 批量收编（form-field 工具已备）；label for 存量改造；L3 block manifest 契约；目视复核工作台配置新区；push 待书记批准
+
+## T-2026-09-024 主题卡整卡可点修正 + B3 输入违例收编清零（2026-09-03，提交 701e62c/f3c4a9a）
+
+**主题卡交互语义修正（书记澄清）**：要的是【点击热区=整卡】（仍须点击），否认 hover 自动进入——
+- calendar-tab：移除 data-hover-select 的 mouseenter 自动 click（此前的"hover 即选"系 AI 理解过头）；data-tpl-click 整卡 click 委托：按钮区直点走自身 data-action，其余区域（标题色块等）点击触发内部选择按钮；hover 仅视觉（shadow/border）加 title 提示
+- function-catalog desc 同步「整卡可点」；新 E2E：hover 色块不进入（负断言）→ click 色块进入 Step2（1/1）
+**B3 批量收编（真实违例清零）**：6 文件 14 处内联 border/rounded 可见输入控件 → input-flat 体系（taskforce 复盘/branches 新建/改名/任命/review 驳回意见/weekly/report-up/thought）
+**教训（编码/文件安全）**：① PowerShell 批处理 [IO.File] 无显式 UTF-8 读写会把 UTF-8 中文文件损坏——批量文本替换必须用 Edit/Grep 工具或显式 UTF8 编码读写；② 同一文件多个 Edit 并行会竞态叠加——同文件改动必须串行。检测法：git diff --stat 行数异常放大=损坏信号（本次曾致 review E2E 文本断言超时，checkout 还原后重做）
+**回归**：复扫真实违例 0（form-field 模板插值 4 处为误报）；module-load 115/115 + review/P1/P2 4/4 绿
+**下一步候选**：目视复核（强刷 20260903b 后：主题卡整卡可点/工作台配置产出块区）；B2 label for 存量改造；L3 block manifest；push 待书记批准
