@@ -5,16 +5,16 @@ role: "[工程师]+[AI]"
 version: "1.0"
 last_updated: "2026-09-03"
 status: active
-split_from: "DATA_ARCHITECTURE.md（2026-08-24 T-282 拆分）"
+split_from: "原数据架构总文件（2026-08-24 T-282 拆分；路由文件 2026-09-03 精简删除）"
 related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/data/DATA_FLOW.md]
 ---
 
 # 数据模型设计
 
-> **定位：** 本文件是系统**静态数据模型**的唯一权威源（原 DATA_ARCHITECTURE.md §二）。动态数据流见 [DATA_FLOW.md](DATA_FLOW.md)。
+> **定位：** 本文件是系统**静态数据模型**的唯一权威源（2026-08-24 自原数据架构总文件 §二 拆分）。动态数据流见 [DATA_FLOW.md](DATA_FLOW.md)。
 > **受众：** [工程师]+[AI] —— 供开发决策参考，确保数据结构变更时全栈一致。
 > **权限矩阵**：本文档含权限简表，完整定义见 [ROLE_CLASSIFICATION.md](../../02_institution/ROLE_CLASSIFICATION.md) §九 角色权限矩阵。
-> **拆分说明**：2026-08-24 自 DATA_ARCHITECTURE.md 拆分（T-282 content 体系优化）——数据模型定义在此，数据流定义移至 DATA_FLOW.md。
+> **拆分说明**：2026-08-24 自原数据架构总文件拆分（T-282 content 体系优化；原路由文件 2026-09-03 精简删除）——数据模型定义在此，数据流定义移至 DATA_FLOW.md。
 
 ---
 
@@ -203,7 +203,7 @@ ActivityRecord (主记录)
 
 #### 2.2.2 ACL 基础规则与模块权限
 
-> 权限矩阵、模块可见性、数据共享规则的完整定义见 [ROLE_CLASSIFICATION.md §九](../../02_institution/ROLE_CLASSIFICATION.md) + [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md)。本节不重复展开，仅指向权威源。
+> 权限矩阵、模块可见性、数据共享规则的完整定义见 [ROLE_CLASSIFICATION.md §九](../../02_institution/ROLE_CLASSIFICATION.md) + [MODULE_UI_DESIGN.md](../archive/MODULE_UI_DESIGN.md)（已归档 2026-09-03，历史模块可见性设计仍可读）。本节不重复展开，仅指向权威源。
 
 **关键规则要点**（详细规则见权威源）：
 - 基础 ACL 实现：[domain.js `can()`](../../../docs/src/core/domain.js#L78-L91)

@@ -11,6 +11,8 @@ related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04
 
 # 模块界面设计
 
+> **已归档 2026-09-03，历史结论仍可读**：本文档与 SOP_WEB / COMPONENT_SPEC 重叠且停更（书记 2026-09-03 批准精简，见 ../evolution/DOC_SLIM_DESIGN.md），移入 `../archive/` 存档；现行组件规范见 [COMPONENT_SPEC.md](../design-system/COMPONENT_SPEC.md)，SOP-系统联动方法论见 [SOP_WEB.md](../module/SOP_WEB.md)。
+
 > **定位：** 本文档是系统功能模块界面设计的单一权威源，涵盖「党建」Tab 分组和日历功能模块的界面布局、交互逻辑、视图切换设计。
 > **受众：** [工程师]+[AI] —— 供前端开发决策参考。
 > **视觉规范**：色彩、字体、间距等视觉规范见 [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md)，本文档不重复。
@@ -30,7 +32,7 @@ related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04
 - **「党建」Tab 分组**：角色工作台内的功能板块，涵盖发展党员全流程追踪、补课制度跟踪、意见反馈、公邮查收提醒等子功能。
 - **日历功能模块**：工作台的核心视图组件，涵盖月/周/日/列表多视图展示、文本溢出处理、活动数据存储、快速聚焦视图等设计。
 
-角色权限与逻辑层面请参阅 [DATA_FLOW.md](../data/DATA_FLOW.md)（三级管理架构数据流）和 [COMMISSIONER_FRAMEWORK.md](../../02_institution/COMMISSIONER_FRAMEWORK.md)（支委系统设计）。日历视图范围限定（仅对参与者/组织者/书记/党小组组长展示，支委不展示日历）的已落地规则见 [SOP_WEB.md §B.4](SOP_WEB.md)。
+角色权限与逻辑层面请参阅 [DATA_FLOW.md](../data/DATA_FLOW.md)（三级管理架构数据流）和 [COMMISSIONER_FRAMEWORK.md](../../02_institution/COMMISSIONER_FRAMEWORK.md)（支委系统设计）。日历视图范围限定（仅对参与者/组织者/书记/党小组组长展示，支委不展示日历）的已落地规则见 [SOP_WEB.md §B.4](../module/SOP_WEB.md)。
 
 ---
 
@@ -342,5 +344,5 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 | [DATA_FLOW.md](../data/DATA_FLOW.md) | 三级管理架构数据流 |
 | [COMMISSIONER_FRAMEWORK.md](../../02_institution/COMMISSIONER_FRAMEWORK.md) | 支委系统设计 |
 | [ROLE_CLASSIFICATION.md](../../02_institution/ROLE_CLASSIFICATION.md) | 制度文件渲染、角色关系矩阵 |
-| [SOP_WEB.md](SOP_WEB.md) | 日历视图范围限定（§B.4） |
+| [SOP_WEB.md](../module/SOP_WEB.md) | 日历视图范围限定（§B.4） |
 | [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) | 数据变更规则 |

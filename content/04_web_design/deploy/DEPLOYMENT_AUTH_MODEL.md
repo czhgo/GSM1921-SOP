@@ -4,7 +4,7 @@ type: design
 role: "[工程师]+[AI]"
 created: 2026-08-18
 last_updated: "2026-08-22"
-status: draft
+status: active
 author: AI 起草，审定
 related_files: [docs/src/components/sidebar.js, docs/src/components/header.js, docs/src/core/bootstrap.js, docs/src/config/deploy.js, docs/login.html, docs/src/services/auth.js]
 ---

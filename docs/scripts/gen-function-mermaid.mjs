@@ -4,8 +4,11 @@
 //   ② 12 条角色化业务链路（flowchart TD；节点=执行者:任务，源来自共享模块 FLOW_LINKS）
 //   ③ 架构分层（flowchart TD）
 //   ④ 服务依赖（flowchart LR）
-// 写回 README 标记块（<!--FUNC-MAP:START/END-->）+ 输出 content/03_doc_system/FUNCTION_MAP.md
-// 用法：node docs/scripts/gen-function-mermaid.mjs [--write]
+// 产物策略（2026-09-03 DOC_SLIM A5）：不再随仓库维护独立 FUNCTION_MAP.md（派生稿），
+//   仓库内唯一地图 = README 标记块（<!--FUNC-MAP:START/END-->，仅 mindmap）。
+//   完整四章文档 = 直接运行本脚本打印（stdout）供按需查看/引用，不落盘。
+// 用法：node docs/scripts/gen-function-mermaid.mjs --write  # 更新 README 标记块
+//       node docs/scripts/gen-function-mermaid.mjs          # stdout 打印完整四章
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { generateMindmapText, FLOW_LINKS } from '../src/core/mermaid-sources.js';
@@ -13,7 +16,6 @@ import { generateMindmapText, FLOW_LINKS } from '../src/core/mermaid-sources.js'
 const ROOT = fileURLToPath(new URL('../', import.meta.url)); // docs/
 const CATALOG_PATH = fileURLToPath(new URL('../src/core/function-catalog.js', import.meta.url));
 const README_PATH = fileURLToPath(new URL('../../README.md', import.meta.url));
-const MAP_PATH = fileURLToPath(new URL('../../content/03_doc_system/FUNCTION_MAP.md', import.meta.url));
 
 export function loadCatalog() {
   const src = readFileSync(CATALOG_PATH, 'utf8');
@@ -112,9 +114,12 @@ export function applyToReadme(readme) {
   return cleaned.replace(anchor, `\n${section}\n\n## License\n`);
 }
 
-// CLI：--write 时写回 README + 输出 FUNCTION_MAP.md
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1] && process.argv.includes('--write')) {
+// CLI：--write 时只更新 README 标记块（独立 FUNCTION_MAP.md 已不随仓库维护，见头注释）；
+// 直接运行时 stdout 打印完整四章（供按需查看/引用）。
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+if (isMain && process.argv.includes('--write')) {
   writeFileSync(README_PATH, applyToReadme(readFileSync(README_PATH, 'utf8')), 'utf8');
-  writeFileSync(MAP_PATH, generateAll(), 'utf8');
-  console.log('✓ 已生成 README 标记块 + FUNCTION_MAP.md');
+  console.log('✓ 已更新 README 标记块（功能地图 mindmap）');
+} else if (isMain) {
+  console.log(generateAll());
 }

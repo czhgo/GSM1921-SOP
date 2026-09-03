@@ -86,7 +86,7 @@ Layer 3: 知识类型 3 — 文档系统治理（文档怎么治理、术语、�
       └── ARCHITECTURE.md                 [工程师]+[AI] 核心架构说明（本文件）
 
 Layer 4: 知识类型 4+5 — 网站设计 + AI 编码
-  └─ content/04_web_design/               [工程师]+[AI] 设计理念层（DATA_MODEL/DATA_FLOW/DESIGN_SYSTEM/MODULE_UI_DESIGN/SOP_WEB/CHECKLIST）
+  └─ content/04_web_design/               [工程师]+[AI] 设计理念层（DATA_MODEL/DATA_FLOW/DESIGN_SYSTEM/SOP_WEB/CHECKLIST；已归档文档见 archive/）
   └─ content/05_ai_coding/                [工程师]+[AI] AI 编码层（KNOWN_PITFALLS）
 
 Layer 5: 经验沉淀（跨多类知识类型）
@@ -172,7 +172,6 @@ Layer 7: 审计参考层（审计与参考）
 │   ├── 04_web_design/                [工程师]+[AI] 网站设计层（设计理念）
 │   │   ├── DATA_MODEL.md              [工程师]+[AI] 数据模型设计（静态模型权威）
 │   │   ├── DATA_FLOW.md               [工程师]+[AI] 数据流设计（动态数据流权威）
-│   │   ├── MODULE_UI_DESIGN.md       [工程师]+[AI] 模块界面设计
 │   │   ├── DESIGN_SYSTEM.md          [工程师]+[AI] 设计系统规范（哲学/排版/交互/响应式/深色）
 │   │   ├── COLOR_SYSTEM.md           [工程师]+[AI] 色彩系统规范（§二 拆分）
 │   │   ├── COMPONENT_SPEC.md         [工程师]+[AI] 组件规范（§四 拆分）

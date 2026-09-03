@@ -2,7 +2,7 @@
 title: "前端设计系统规范"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-08-24"
+last_updated: "2026-08-30"
 status: active
 related_files: [COLOR_SYSTEM.md, COMPONENT_SPEC.md, docs/src/styles.css]
 ---

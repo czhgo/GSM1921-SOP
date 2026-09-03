@@ -10,36 +10,30 @@ status: active
 
 > **定位：** 本目录存放**知识类型 3：全仓库文档系统管理的技术方法**——回答"文档系统如何被治理、上下文如何管理、一改具改如何执行"。
 > **受众：** [工程师]（系统维护者、开发者）
-
----
+> **目录入口（2026-09-03 精简）**：本 README 仅列文件清单与子目录；逐篇一句话说明、权威层级与全仓库导航见 [DOC_MAP.md](DOC_MAP.md)——**DOC_MAP 承担全仓库导航**；母本子本关系注册见 [SSOT_INDEX.md](SSOT_INDEX.md)。
 
 ## 文件清单
 
 ### 一、运行标准与使用规范
 
-| 文件 | 一句话说明 | 权威源 |
-|------|-----------|--------|
-| [OPERATIONS_GUIDE.md](OPERATIONS_GUIDE.md) | 运行标准·文档规范（YAML规范/术语/角色/编码/文档关系/编号/文档层级/三类文件角色/一致性检查规范 §1.4） | **唯一权威**——文档规范类标准（2026-08-24 拆分，§15-18 迁至 PROCESS_GUIDE） |
-| [PROCESS_GUIDE.md](PROCESS_GUIDE.md) | 运行标准·流程机制（§15 甲部修改流程/§16 吸收外部输入/§17 周期性任务含 W4 专项评议循环/§18 书记评议细节） | **唯一权威**——流程机制类标准（2026-08-24 自 OPERATIONS_GUIDE 拆分） |
-| [USAGE_POLICY.md](USAGE_POLICY.md) | P0 强制执行的使用规范，含术语标准（§一）+ AI 展开原则（§二）+ Emoji 边界（§三） | **唯一权威**——术语/Emoji 变更触发一改具改 |
-| [DOC_MAP.md](DOC_MAP.md) | 按 5 类知识类型组织的全局文档导航 | **唯一权威**——文档导航图 |
-| [SERVICE_CATALOG.md](SERVICE_CATALOG.md) | 统一服务目录：系统所有服务功能及其角色权限映射 | **唯一权威**——功能盘点和权限设计 |
-| [FUNCTION_MAP.md](FUNCTION_MAP.md) | 系统功能地图（mermaid mindmap 可视化）——**自动生成物**：由 `docs/scripts/gen-function-mermaid.mjs --write` 生成，勿手改；功能清单以 `docs/src/core/function-catalog.js` 为准 | 功能地图展示页（派生，非权威源） |
+- [OPERATIONS_GUIDE.md](OPERATIONS_GUIDE.md) — 运行标准·文档规范（YAML/术语/角色/编码/文档关系/编号/文档层级/一致性检查）
+- [PROCESS_GUIDE.md](PROCESS_GUIDE.md) — 运行标准·流程机制（甲部修改流程/吸收外部输入/周期性任务/书记评议）
+- [USAGE_POLICY.md](USAGE_POLICY.md) — P0 强制执行的使用规范（术语 §一 + AI 展开原则 §二 + Emoji 边界 §三）
+- [DOC_MAP.md](DOC_MAP.md) — 全局文档导航（按 5 类知识类型）——**全仓库导航唯一权威**
+- [SERVICE_CATALOG.md](SERVICE_CATALOG.md) — 统一服务目录（系统所有服务功能 + 角色权限映射）
+
+> FUNCTION_MAP.md 已删除（2026-09-03，DOC_SLIM 批次 1）：原为自动生成的功能地图派生稿，功能清单以 `docs/src/core/function-catalog.js` 与 SERVICE_CATALOG.md 为准。
 
 ### 二、项目架构与母本注册
 
-| 文件 | 一句话说明 | 权威源 |
-|------|-----------|--------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | 核心架构说明、分层架构、数据模型、变更流水线 | **唯一权威**——技术全景 |
-| [SSOT_INDEX.md](SSOT_INDEX.md) | 母本注册表、溯源参考（Agent/Skill 配置已迁出） | **唯一权威**——母本子本关系注册 |
+- [ARCHITECTURE.md](ARCHITECTURE.md) — 核心架构说明（分层架构/数据模型/变更流水线），技术全景唯一权威
+- [SSOT_INDEX.md](SSOT_INDEX.md) — 母本注册表（全工作区母本子本关系的唯一权威注册）
 
 ## 子目录
 
 | 子目录 | 内容 | type |
 |--------|------|------|
 | [工作模板/经验沉淀辅助提示词.md](工作模板/经验沉淀辅助提示词.md) | 可复用工作模板（经验沉淀辅助提示词等） | template |
-
----
 
 ## 与其他知识类型的关系
 

@@ -5,15 +5,15 @@ role: "[工程师]+[AI]"
 version: "1.0"
 last_updated: "2026-08-24"
 status: active
-split_from: "DATA_ARCHITECTURE.md（2026-08-24 T-282 拆分）"
+split_from: "原数据架构总文件（2026-08-24 T-282 拆分；路由文件 2026-09-03 精简删除）"
 related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/sop/纪检委员工作流程指南.md]
 ---
 
 # 数据流设计
 
-> **定位：** 本文件是系统**动态数据流**的唯一权威源（原 DATA_ARCHITECTURE.md §一总览 + §三参与者数据流 + §四前端数据流）。静态数据模型见 [DATA_MODEL.md](DATA_MODEL.md)。
+> **定位：** 本文件是系统**动态数据流**的唯一权威源（2026-08-24 自原数据架构总文件拆分：数据架构总览 + 参与者数据流 + 前端数据流）。静态数据模型见 [DATA_MODEL.md](DATA_MODEL.md)。
 > **受众：** [工程师]+[AI] —— 供开发决策参考，理解数据如何产生、流动、聚合。
-> **拆分说明**：2026-08-24 自 DATA_ARCHITECTURE.md 拆分（T-282 content 体系优化）——数据流定义在此，数据模型定义移至 DATA_MODEL.md。
+> **拆分说明**：2026-08-24 自原数据架构总文件拆分（T-282 content 体系优化；原路由文件 2026-09-03 精简删除）——数据流定义在此，数据模型定义移至 DATA_MODEL.md。
 
 ---
 
