@@ -10,14 +10,9 @@
 //   回退白名单，勿再本地罗列支委成员）。选项集/标签权威 = vote-config.js OPTION_SETS（勿再本地硬编码）
 import { fetchVotes, lockVotes } from '../services/committee-vote.js?v=20260903c';
 import { optionSetOf } from '../services/vote-config.js?v=20260903c';
-import { showToast } from '../core/utils.js?v=20260903c';
+import { showToast, escHtml as esc } from '../core/utils.js?v=20260903c';
 
-// HTML 转义（议题/附言为输入或既有数据，innerHTML 渲染前转义防存储型 XSS）
-function esc(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
+// HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
 export async function renderVoteSummary(container, { activity, committeeMembers, canLock }) {
   const votes = await fetchVotes(activity.id);

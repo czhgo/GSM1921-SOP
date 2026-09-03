@@ -9,11 +9,9 @@ const PEOPLE = PersonStore.getMembers();
 import { createBranch, renameBranch, getCommitteeName } from '../../../services/branch.js?v=20260903c';
 import { getPersonName } from '../../../services/person.js?v=20260903c';
 import { appointSecretary, listAppointments } from '../../../services/appointment.js?v=20260903c';
-import { showToast } from '../../../core/utils.js?v=20260903c';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260903c';
 
-function esc(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
+// HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
 export async function renderContent() {
   const el = document.getElementById('party-committee-tab-content');

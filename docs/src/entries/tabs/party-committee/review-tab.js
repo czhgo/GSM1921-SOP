@@ -10,7 +10,7 @@ import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { getPersonName } from '../../../services/person.js?v=20260903c';
 import { getBranchById } from '../../../services/branch.js?v=20260903c';
 import { decideReviewRequest, listReviewRequests } from '../../../services/review-request.js?v=20260903c';
-import { showToast } from '../../../core/utils.js?v=20260903c';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260903c';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点' },
@@ -22,13 +22,7 @@ const STATUS_META = {
   rejected: { label: '已驳回', cls: 'bg-gray-100 text-gray-500' },
 };
 
-function esc(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
-function fmtDt(iso) {
-  if (!iso) return '';
-  return String(iso).slice(0, 16).replace('T', ' ');
-}
+// HTML 转义/日期格式化统一走 core/utils.js（escHtml/fmtDt，2026-09-03 去重收口）
 function branchName(branchId) {
   const b = getBranchById(branchId);
   return b?.config?.headerTitle || b?.name || branchId;

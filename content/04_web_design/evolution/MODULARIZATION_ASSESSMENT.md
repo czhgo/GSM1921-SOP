@@ -174,3 +174,9 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 | P1a | R7/R8 跨层：config 净化与表决枚举改为 server 单向权威 or 前端生成 → 注释互链 + 键集测试 | 两端字段集合由测试断言一致 |
 | P1b | R12 出仓：server 登录加密码校验（可开关）；演示账号外置 env；.ctx 是否出仓裁决；历史会议材料脱敏/移出 | 新 clone 部署默认无明文后门；隐私材料不出仓 |
 | P2 | R4/R6/R9 结构性统一：场景目录、tab id、角色集合向单一源收敛（可随 L4 拖拽编排一并做） | 随 L3/L4 推进时验收 |
+
+> **执行状态（2026-09-03）**
+> - P0a ✅：`esc` 本地实现 10 处 + `fmtDt` 2 处全部收口到 `core/utils.js` 新增 `escHtml/fmtDt` 唯一出口（各文件 import 别名 `esc`，调用面零改动）。
+> - P0b ✅（部分）：`MEETING_TYPES` → `ACTIVITY_CLASSIFICATION['three-meetings'].subtypes` 引用；write-tab 产出块 4-id 字面量（2 处）→ `OUTPUT_BLOCK_DEFS` 派生；calendar-tab `THEME_DAY_BLOCK_ID` → `THEME_PARTY_DAY_MANIFEST.blockId` 派生。
+> - **复核保留（防行为漂移）**：①TYPE_META/STATUS_META 支部侧（"待党委批复"+desc）与党委侧（"待批复"）文案不同，属双视角差异，暂不合并；②makeup `MANDATORY_ACTIVITY_TYPES`（刚性考勤子集+主题党日）与 gallery 色名，业务语义 ≠ 三会子类清单，不并入 subtypes。
+> - 验证：13 个改动文件 GetDiagnostics 零错误；E2E 需在非沙箱终端补跑（`cd server && npm test`）。

@@ -21,7 +21,7 @@ const PEOPLE = PersonStore.getMembers();
 import { getPersonName } from '../../../services/person.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
-import { solidAccentStyle, accDarkVars, accDarkParts } from '../../../core/constants.js?v=20260903c';
+import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260903c';
 import { filterByRole, getCurrentLeaderId } from './_shared.js?v=20260903c';
 
 // 私有状态（随模块自持，不污染入口）
@@ -108,11 +108,12 @@ export function renderContent(ctx) {
       if (!detailPanel) return;
       detailPanel.classList.remove('hidden');
 
-      const actSubs = (mockDB.actSubRecords && mockDB.actSubRecords[actId]) || { attendance: [], inspection: [], publicity: [], materials: [] };
+      const actSubs = (mockDB.actSubRecords && mockDB.actSubRecords[actId]) || Object.fromEntries(OUTPUT_BLOCK_DEFS.map(d => [d.id, []]));
 
       // 块画布 v0（2026-09-03）：本支部活动产出块策略——书记在「工作台配置」启停/排序；缺省全开
+      // 产出块 id 单一源 = OUTPUT_BLOCK_DEFS（2026-09-03 去重收口，勿再手写 id 数组）
       const visBlocks = applyOutputBlockPolicy(
-        ['attendance', 'inspection', 'publicity', 'materials'],
+        OUTPUT_BLOCK_DEFS.map(d => d.id),
         getBranchOutputBlocks(getBranchIdOfPerson(AuthStore.getCurrentUser()?.personId))
       );
 

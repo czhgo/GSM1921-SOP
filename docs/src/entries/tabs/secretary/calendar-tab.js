@@ -32,8 +32,8 @@ import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blo
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 
-// L3 S4：主题党日块 id 与当前支部可用工作流块集合（workflowBlocks 隐藏 → 入口守卫）
-const THEME_DAY_BLOCK_ID = 'theme-party-day';
+// L3 S4：主题党日块 id 由 manifest 单一源派生（2026-09-03 去重收口，勿再手写字符串）
+const THEME_DAY_BLOCK_ID = THEME_PARTY_DAY_MANIFEST.blockId;
 function _myBranchBlocks() {
   try {
     const me = AuthStore.getCurrentUser();

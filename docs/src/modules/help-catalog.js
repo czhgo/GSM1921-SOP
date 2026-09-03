@@ -7,6 +7,7 @@
 // （离线失败保留 .mermaid-fallback 降级文本）
 import { FUNCTION_GROUPS, FUNCTION_CATALOG } from '../core/function-catalog.js?v=20260903c';
 import { generateMindmapText, FLOW_LINKS } from '../core/mermaid-sources.js?v=20260903c';
+import { escHtml as esc } from '../core/utils.js?v=20260903c';
 
 // 目录树静态项（致谢第一）+ 章节顺序（与右侧内容面板顺序一致）
 const STATIC_TOC = [
@@ -17,9 +18,7 @@ const TOC_GROUPS = ['功能地图', ...FUNCTION_GROUPS, '业务链路', '权限�
 // 目录树项 → 页面目标 id 映射（静态章沿用现有 id：sec-tech/sec-disclaimer；组名章节自动 sec-<组名>）
 const TOC_TARGET = { '技术架构': 'sec-tech', '免责声明': 'sec-disclaimer' };
 
-function esc(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
+// HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
 function genericBadge(generic) {
   return generic

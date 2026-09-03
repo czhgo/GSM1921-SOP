@@ -10,7 +10,7 @@ import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { getPersonName } from '../../../services/person.js?v=20260903c';
 import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260903c';
 import { submitReviewRequest, listReviewRequests } from '../../../services/review-request.js?v=20260903c';
-import { showToast } from '../../../core/utils.js?v=20260903c';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260903c';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点', desc: '发展党员关键节点（确定积极分子/发展对象、接收预备党员、按期转正等）' },
@@ -22,13 +22,7 @@ const STATUS_META = {
   rejected: { label: '已驳回', cls: 'bg-gray-100 text-gray-500' },
 };
 
-function esc(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
-function fmtDt(iso) {
-  if (!iso) return '';
-  return String(iso).slice(0, 16).replace('T', ' ');
-}
+// HTML 转义/日期格式化统一走 core/utils.js（escHtml/fmtDt，2026-09-03 去重收口）
 
 export function renderContent() {
   const tc = document.getElementById('secretary-tab-content');

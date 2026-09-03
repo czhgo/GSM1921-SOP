@@ -6,8 +6,8 @@
 // ════════════════════════════════════════════════════════════════
 
 import { setState, STATE, getAppState } from '../core/state.js?v=20260903c';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '../core/constants.js?v=20260903c';
-import { _fmtChinese, showToast } from '../core/utils.js?v=20260903c';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260903c';
+import { _fmtChinese, showToast, escHtml as esc } from '../core/utils.js?v=20260903c';
 import { icon } from '../core/icons.js?v=20260903c';
 import { openModal, closeModal } from './modal.js?v=20260903c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
@@ -353,7 +353,8 @@ function _buildOutputsSectionHTML(activity) {
 //    考察确认 + 工作量报告
 //  产出缺失阻塞关闭，缺失项在关闭入口明确显示（最小信息成本）。
 // ════════════════════════════════════════════════════════════════
-const MEETING_TYPES = ['党小组会', '支委会', '党课', '支部党员大会'];
+// 三会四子类单一源 = ACTIVITY_CLASSIFICATION['three-meetings'].subtypes（2026-09-03 去重收口，勿再手写清单）
+const MEETING_TYPES = ACTIVITY_CLASSIFICATION['three-meetings'].subtypes;
 
 export function checkActivityCloseConditions(activity) {
   const actId = activity.id;
@@ -478,12 +479,7 @@ async function _recordAgendaResult(activity, agendaItemId, result) {
 //  文案/校验来自 vote-config.js OPTION_SETS（labels/options/objectRequiresNote），勿再本地硬编码
 // ════════════════════════════════════════════════════════════════
 
-// HTML 转义（表态附言/表态值为用户输入，innerHTML 渲染前转义防存储型 XSS）
-function esc(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
+// HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
 function renderVotePanel(container, { activity, agendaItem, votes, isCommittee, currentUserId }) {
   const locked = activity.votesLocked === true;

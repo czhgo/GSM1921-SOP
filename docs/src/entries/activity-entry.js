@@ -11,7 +11,7 @@ import { NoticeStore } from '../services/notice.js?v=20260903c';
 import { SignupStore } from '../services/signup.js?v=20260903c';
 import { AuthStore } from '../services/auth.js?v=20260903c';
 import { getPersonById } from '../services/person.js?v=20260903c';
-import { getBasePath } from '../core/utils.js?v=20260903c';
+import { getBasePath, escHtml as esc } from '../core/utils.js?v=20260903c';
 import { getActivityTypeColors } from '../core/constants.js?v=20260903c';
 import { badgeHtml } from '../components/badges.js?v=20260903c';
 import { enhanceSelects } from '../components/custom-select.js?v=20260903c';
@@ -39,12 +39,7 @@ const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 const currentUser = AuthStore.getCurrentUser();
 const myId = currentUser?.personId || '';
 
-// HTML 转义（会议议程为用户输入，innerHTML 渲染前转义防存储型 XSS）
-function esc(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
+// HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
 /** 活动状态 → 徽章（2026-09-02 落实裁决③：活动用生命周期词 —— completed 即"已执行"，
  *   "已完成"字样全站移除，与 inspector 生命周期一致；原表活动/专班共用致语义混用，现拆开） */

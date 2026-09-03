@@ -12,11 +12,9 @@ import { OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260903c';
 import '../../../modules/capabilities/secretary-workspace.js?v=20260903c';
 import { getBranchTabPolicy, getCoreTabIds, getBranchOutputBlocks, getOutputBlockPolicy, getWorkflowBlockPolicy, updateBranchModules } from '../../../services/branch.js?v=20260903c';
 import { BLOCK_MANIFESTS } from '../../../workflow/blocks/manifests.js?v=20260903c';
-import { showToast } from '../../../core/utils.js?v=20260903c';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260903c';
 
-function esc(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
+// HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
 // 支部工作台的业务 tab 目录（支委层工作台 = secretary-workspace 能力；支部 profile 默认全开）
 function _branchTabs() {

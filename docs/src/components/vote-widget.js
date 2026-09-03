@@ -6,16 +6,11 @@
 //  仅复用既有样式类 .vote-panel/.vote-btn/.vote-note/.vote-submit/.vote-title/.vote-current
 //  （styles.css 已定义），本模块不新增任何样式。
 // ════════════════════════════════════════════════════════════════
-import { showToast } from '../core/utils.js?v=20260903c';
+import { showToast, escHtml as esc } from '../core/utils.js?v=20260903c';
 import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260903c';
 import { optionSetOf, OPTION_SETS } from '../services/vote-config.js?v=20260903c';
 
-// HTML 转义（position 回退值/表态附言为用户输入，innerHTML 渲染前转义防存储型 XSS）
-function esc(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
+// HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
 /**
  * 渲染单条议程的「我的表态」面板（公共端表决组件）。

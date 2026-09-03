@@ -20,6 +20,19 @@ export function _currentYearMonth() {
   return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0');
 }
 
+/** ISO 时间串 → 'YYYY-MM-DD HH:mm'（去 T 分隔；空值返回 ''） */
+export function fmtDt(iso) {
+  if (!iso) return '';
+  return String(iso).slice(0, 16).replace('T', ' ');
+}
+
+// ── HTML 转义（innerHTML 渲染前统一出口，防存储型 XSS）─────────
+export function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 // ── Toast 组件 — 浮层通知（固定定位，不影响文档流）─────────────
 let _toastContainer = null;
 

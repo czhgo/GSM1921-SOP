@@ -12,11 +12,9 @@ import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { getCommitteeName } from '../../../services/branch.js?v=20260903c';
 import { NoticeStore } from '../../../services/notice.js?v=20260903c';
 import { textField, textareaField } from '../../../components/forms.js?v=20260903c';
-import { showToast } from '../../../core/utils.js?v=20260903c';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260903c';
 
-function esc(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
+// HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
 /** 重绘前读取表单现值（分支勾选/优先级/标题/正文）——缺省：全支部选中、重要 */
 function _readFormState(el) {
