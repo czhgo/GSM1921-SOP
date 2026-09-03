@@ -424,6 +424,11 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - 党委台「支部配置」新增「工作流块」区：manifest 目录 chips（含制度来源标签 通用制度/支部自创，title 悬浮说明），启停/保存/恢复默认与业务模块、产出块同卡
 - 测试：workflow-block-config.test（纯函数 4 断言 + HTTP 写回/400/恢复）+ block-config-ui-e2e（chips 呈现→停用保存→重进持久化置灰→恢复默认）+ 既有 module-config/block-canvas/module-load 回归 6/6 绿
 
+**L3 S4（主题党日创建侧 manifest 驱动试点，完成）**：
+- calendar-tab（书记台写入面板）接入：① 入口守卫——支部停用 theme-party-day → Step1 主题党日模板卡消失 + 停用提示（三会一课模板不受影响，无对应块）；② 表单元数据单一源——主题党日 Step2 标题字段 label/required/hint 读 THEME_PARTY_DAY_MANIFEST（默认态渲染与既有一致，主题党日加 hint 提示文案）
+- 默认态回归：write-hover（整卡可点语义）等全绿；block-entry-guard-e2e：停用→模板消失+提示→恢复→回归 闭环通过
+- **L3 S1~S4 全链完成（2026-09-03）**——契约文档 BLOCK_MANIFEST_CONTRACT.md 转 active
+
 **MPO 评估归档**：新建 `content/04_web_design/evolution/MODULARIZATION_ASSESSMENT.md` —— 模块化 80 / 插件化 72 / 开源化 74 ≈ 75；确立「统一扎口范式」（域内多实现→一个库出口 + 四条改造纪律：聚合重导出不搬运/调用方只改 import 一行/每批回归/禁双轨）；行动优先级 P0 扎口推广与数据域接线 → P1 开源合规包 → P2 L3 block manifest
 
 **回归**：module-load 116/116（含新库）；party-committee + write-hover + capability-registry 15/15 绿；git diff 净 37 文件 +41/−42（无编码异常）

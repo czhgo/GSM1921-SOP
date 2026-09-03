@@ -23,8 +23,29 @@ import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { collectAgendaRows } from './agenda-form.js?v=20260903c';
 import { defaultVoteConfig, isDecisionScenario, resolveVoterIds } from '../../../services/vote-config.js?v=20260903c';
 import { getAdapter } from '../../../core/data-adapter.js?v=20260903c';
+import { AuthStore } from '../../../services/auth.js?v=20260903c';
+import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260903c';
+// L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
+import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260903c';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
+
+// L3 S4：主题党日块 id 与当前支部可用工作流块集合（workflowBlocks 隐藏 → 入口守卫）
+const THEME_DAY_BLOCK_ID = 'theme-party-day';
+function _myBranchBlocks() {
+  try {
+    const me = AuthStore.getCurrentUser();
+    return getBranchById(getBranchIdOfPerson(me?.personId))?.config?.blocks ?? null;
+  } catch { return null; }
+}
+/** 当前支部可用工作流块 id 集（manifest 目录 − config.blocks.workflowBlocks 隐藏） */
+function _enabledWorkflowBlocks() {
+  return new Set(applyWorkflowBlockPolicy(BLOCK_MANIFESTS.map(m => m.blockId), _myBranchBlocks()));
+}
+/** 主题党日块输入字段元数据（表单条目声明；无块/无字段回退硬编码等价项） */
+function _themeField(fieldId) {
+  return THEME_PARTY_DAY_MANIFEST?.inputs?.fields?.find(f => f.fieldId === fieldId) || null;
+}
 
 // 成员发展阶段（议程「待讨论名单」类型：名单统一阶段转换选项；与 people.js developStage 口径一致）
 const DEVELOP_STAGES = ['积极分子', '发展对象', '预备党员', '正式党员'];
@@ -463,7 +484,10 @@ function renderTemplateStep() {
   html += `<p class="text-sm font-medium text-gray-700 mb-3">选择活动模板</p>`;
   html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">`;
 
-  WRITE_TEMPLATES.forEach(tpl => {
+  // L3 S4 入口守卫：支部停用「主题党日」工作流块 → 模板卡消失（manifest 目录 − workflowBlocks 隐藏）
+  const themeBlockOn = _enabledWorkflowBlocks().has(THEME_DAY_BLOCK_ID);
+  const visibleTemplates = WRITE_TEMPLATES.filter(tpl => tpl.category !== 'theme-day' || themeBlockOn);
+  visibleTemplates.forEach(tpl => {
     const isUnique = tpl.subtypes.length === 0; // 主题党日：无子类型=唯一选项 → 整卡可点（点击热区=全卡）
     // 2026-09-03 书记澄清：仍须【点击】进入，只是点击热区扩至整卡（不必精准命中文字按钮）——
     // 绝不是 hover 自动进入。卡内按钮区域直接点击走按钮；其余区域点击由 data-tpl-click 委托触发。
@@ -495,6 +519,9 @@ function renderTemplateStep() {
 
   html += `</div>`;
   html += `</div>`;
+  if (!themeBlockOn) {
+    html += `<p class="mt-3 text-[11px] text-gray-400">工作流块「主题党日组织块」已由支部配置停用——党委台「支部配置 · 工作流块」可恢复。</p>`;
+  }
   return html;
 }
 
@@ -527,10 +554,15 @@ function renderFormStep() {
   }
   html += `</div>`;
 
-  // 标题（必填）
+  // 标题（必填）—— L3 S4：主题党日 title 字段 label/required/hint 以 manifest 声明为单一源（其余模板维持原样）
+  const titleField = tpl.category === 'theme-day' ? _themeField('title') : null;
+  const titleLabel = titleField?.label || '活动名称';
+  const titleRequired = titleField ? !!titleField.required : true;
+  const titleHint = titleField?.hint || '';
   html += `<div class="mb-3">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">活动名称 <span class="text-red-500">*</span></label>`;
-  html += `<input type="text" id="wp-title" class="input-flat w-full" placeholder="活动名称">`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">${titleLabel} ${titleRequired ? '<span class="text-red-500">*</span>' : ''}</label>`;
+  html += `<input type="text" id="wp-title" class="input-flat w-full" placeholder="${titleLabel}">`;
+  if (titleHint) html += `<p class="text-[11px] text-gray-400 mt-1">${titleHint}</p>`;
   html += `</div>`;
 
   // 日期 + 时间
