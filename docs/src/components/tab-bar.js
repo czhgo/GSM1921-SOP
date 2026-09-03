@@ -4,6 +4,8 @@
 // ════════════════════════════════════════════════════════════════
 
 import { accDarkParts } from '../core/constants.js?v=20260903c';
+// R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
+import { resolveInitialTab, resolveTargetTab } from '../core/tab-nav.js?v=20260903c';
 
 // 角色识别层：tab 激活态 = 主题色三件套渲染（书记 2026-08-08 三审定稿）。
 // 背景：前三轮把 tab 强行为品牌金（半透明 0.14/0.30 → 实色 #FFD700），书记全部否决——
@@ -70,17 +72,13 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
   const contentId = `${prefix}-tab-content`;
 
   // 优先级：priorityTab（"有待办必见待办"，一次性）> localStorage 记忆 > defaultTab > tabs[0]
-  let activeTab = defaultTab || tabs[0]?.id;
-  if (priorityTab && tabs.some(t => t.id === priorityTab)) {
-    activeTab = priorityTab;
-  } else if (storageKey) {
-    try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved && tabs.some(t => t.id === saved)) {
-        activeTab = saved;
-      }
-    } catch (_) { /* localStorage 不可用时静默降级 */ }
+  // R6 导航守卫（2026-09-03 P2a）：决策收敛到 core/tab-nav.js resolveInitialTab——
+  //   defaultTab/记忆/priority 若已被支部 config.modules 隐藏，一律回退首个可见 tab，杜绝静默无内容。
+  let savedTab = null;
+  if (storageKey) {
+    try { savedTab = localStorage.getItem(storageKey); } catch (_) { /* localStorage 不可用时静默降级 */ }
   }
+  const activeTab = resolveInitialTab(tabs, { defaultTab, savedTab, priorityTab });
   let currentTab = activeTab;
 
   // 激活态颜色 = 主题色三件套（调用方 accentColor，来自 bootstrapPage 的 accentRole/自选主题色）
@@ -178,6 +176,14 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
   // 根因：loadWorkspaceData 连续两次 setState（LOADING→IDLE）触发 entry 重渲染，
   // 重渲染时 renderTabBar 从 localStorage 读取记忆并回退默认 tab，覆盖 URL 直达的目标 tab。
   function activate(tabId, ctx) {
+    // R6 导航守卫（2026-09-03 P2a）：目标 tab 不在可见清单（被支部 config 隐藏/清单外）→
+    // 回退首个可见 tab 并告警，杜绝「URL 直达/导航落点激活不存在 tab → 内容区静默空白」。
+    const { id: targetId, fellBack } = resolveTargetTab(tabs, tabId);
+    if (fellBack) {
+      console.warn(`[tab-bar] tab「${tabId}」不在当前可见清单（可能已被支部配置隐藏），回退到「${targetId}」`);
+    }
+    tabId = targetId;
+    if (!tabId) return; // 无可渲染 tab（理论不发生：核心组固定保证至少一个可见）
     currentTab = tabId;
     // 记忆到 localStorage（与点击切换一致，重渲染时保持目标 tab）
     if (storageKey) {
