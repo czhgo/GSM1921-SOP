@@ -14,6 +14,7 @@ import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/
 import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260903a';
 import { PersonPicker } from '../../../components/person-picker.js?v=20260903a';
 import { recordFormShell } from '../../../components/form-shell.js?v=20260903a';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260903a';
 import { getPersonName, PEOPLE } from '../../../mock/index.js?v=20260903a';
 import { badgeHtml } from '../../../components/badge.js?v=20260903a';
 import { showToast } from '../../../core/utils.js?v=20260903a';
@@ -106,6 +107,12 @@ export function renderContent(ctx) {
 
       const actSubs = (mockDB.actSubRecords && mockDB.actSubRecords[actId]) || { attendance: [], inspection: [], publicity: [], materials: [] };
 
+      // 块画布 v0（2026-09-03）：本支部活动产出块策略——书记在「工作台配置」启停/排序；缺省全开
+      const visBlocks = applyOutputBlockPolicy(
+        ['attendance', 'inspection', 'publicity', 'materials'],
+        getBranchOutputBlocks(getBranchIdOfPerson(AuthStore.getCurrentUser()?.personId))
+      );
+
       function saveActSubs() {
         mockDB.actSubRecords = { ...mockDB.actSubRecords, [actId]: actSubs };
         persist();
@@ -174,10 +181,9 @@ export function renderContent(ctx) {
 
         <div class="mt-3 pt-3 border-t border-gray-100">
           <h6 class="font-title-cn text-xs font-bold text-gray-600 mb-1">子记录</h6>
-          ${renderActSubTable('attendance', actSubs.attendance)}
-          ${renderActSubTable('inspection', actSubs.inspection)}
-          ${renderActSubTable('publicity', actSubs.publicity)}
-          ${renderActSubTable('materials', actSubs.materials)}
+          ${visBlocks.length === 0
+            ? '<p class="text-[12px] text-gray-400 pl-2">本支部已停用全部活动产出块——如需启用请联系书记在「工作台配置」开启</p>'
+            : visBlocks.map(type => renderActSubTable(type, actSubs[type] || [])).join('')}
         </div>
       `;
 

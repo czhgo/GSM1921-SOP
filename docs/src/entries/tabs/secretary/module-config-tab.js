@@ -6,8 +6,9 @@
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §2.5 + ARCHITECTURE_EVOLUTION.md §八
 
 import { AuthStore } from '../../../services/auth.js?v=20260903a';
-import { getBranchById, getBranchIdOfPerson, getBranchTabPolicy, getCoreTabIds, updateBranchModules } from '../../../services/branch.js?v=20260903a';
+import { getBranchById, getBranchIdOfPerson, getBranchTabPolicy, getBranchOutputBlocks, getCoreTabIds, getOutputBlockPolicy, updateBranchModules } from '../../../services/branch.js?v=20260903a';
 import { getCapabilities } from '../../../core/registry.js?v=20260903a';
+import { OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260903a';
 import { showToast } from '../../../core/utils.js?v=20260903a';
 
 function esc(s) {
@@ -44,7 +45,14 @@ export function renderContent(ctx) {
   const regOrder = businessTabs.map(t => t.id);
   let order = policy.order || regOrder;
   order = [...order.filter(id => businessTabs.some(t => t.id === id)), ...regOrder.filter(id => !order.includes(id))];
-  const visibleBiz = order.filter(id => !hidden.has(id));
+
+  // 活动产出块编辑态（块画布 v0，2026-09-03）
+  const bPolicy = getOutputBlockPolicy(getBranchOutputBlocks(branchId));
+  const bHidden = new Set(bPolicy.hidden);
+  const bIsHidden = (id) => bHidden.has(id);
+  const bReg = OUTPUT_BLOCK_DEFS.map(d => d.id);
+  let bOrder = bPolicy.order || bReg;
+  bOrder = [...bOrder.filter(id => bReg.includes(id)), ...bReg.filter(id => !bOrder.includes(id))];
 
   if (tc.dataset.currentTab !== 'module-config') {
     tc.innerHTML = `
@@ -63,6 +71,13 @@ export function renderContent(ctx) {
         <div class="rounded-xl border border-gray-200 bg-white p-4">
           <p class="text-xs font-bold text-gray-600 mb-2">固定模块（全员必见，不可关闭）</p>
           <div class="flex flex-wrap gap-2">${coreTabs.map(t => `<span class="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">${esc(t.label)}<span class="text-[10px] text-gray-400">固定</span></span>`).join('')}</div>
+        </div>
+        <div class="rounded-xl border border-gray-200 bg-white p-4">
+          <p class="text-xs font-bold text-gray-600 mb-1">活动产出块 <span class="text-[10px] text-gray-400 font-normal">（活动详情「添加记录」按钮集 · 块画布 v0）</span></p>
+          <p class="text-[11px] text-gray-400 mb-3">按本支部工作流启停/排序——活动详情只出现启用的产出按钮</p>
+          <div id="mc-blocks-chips" class="flex flex-wrap gap-2 mb-3"></div>
+          <p class="text-[11px] text-gray-400 mb-1.5">启用顺序（拖拽调整）</p>
+          <div id="mc-blocks-canvas" class="space-y-1.5"></div>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div class="rounded-xl border border-gray-200 bg-white p-4">
@@ -129,7 +144,31 @@ export function renderContent(ctx) {
       : '<p class="text-xs text-gray-400">无——全部业务模块启用中</p>';
   };
 
-  const paint = () => { renderChips(); renderCanvas(); renderOff(); };
+  // —— 活动产出块（块画布 v0，2026-09-03）：chips 启停 + 画布拖拽排序 ——
+  const renderBlockChips = () => {
+    const el = tc.querySelector('#mc-blocks-chips');
+    if (!el) return;
+    el.innerHTML = OUTPUT_BLOCK_DEFS.map(d => {
+      const on = !bHidden.has(d.id);
+      return `<button data-mc-block="${esc(d.id)}" title="${esc(d.desc)}" class="text-xs px-3 py-1.5 rounded-lg border transition-all ${on ? '' : 'opacity-45'}" style="${on ? `background:${ctx?.accentRgba || 'rgba(206,17,38,0.08)'};border-color:${ctx?.accentBorder || 'rgba(206,17,38,0.25)'};color:${ctx?.accent || '#CE1126'};` : 'border-gray-200;color:var(--neutral-500);background:var(--neutral-100);'}">${esc(d.label)}</button>`;
+    }).join('');
+  };
+  const renderBlockCanvas = () => {
+    const cv = tc.querySelector('#mc-blocks-canvas');
+    if (!cv) return;
+    const list = bOrder.filter(id => !bHidden.has(id));
+    cv.innerHTML = list.length ? list.map((id, i) => {
+      const d = OUTPUT_BLOCK_DEFS.find(x => x.id === id);
+      if (!d) return '';
+      return `<div data-mc-block-slot="${esc(id)}" draggable="true" class="mc-drag-row flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 cursor-grab active:cursor-grabbing">
+        <span class="w-5 h-5 flex items-center justify-center rounded-md text-[11px] font-semibold" style="background:${ctx?.accentRgba || 'rgba(206,17,38,0.08)'};color:${ctx?.accent || '#CE1126'};">${i + 1}</span>
+        <span class="text-xs font-medium text-gray-700 flex-1 min-w-0">${esc(d.label)}</span>
+        <span class="text-[10px] text-gray-400">${esc(d.desc)}</span>
+      </div>`;
+    }).join('') : '<p class="text-xs text-gray-400 text-center py-4">全部产出块已停用——活动详情不再显示「添加」按钮</p>';
+  };
+
+  const paint = () => { renderChips(); renderCanvas(); renderOff(); renderBlockChips(); renderBlockCanvas(); };
   paint();
 
   // —— 绑定（元素级防重复）——
@@ -139,16 +178,19 @@ export function renderContent(ctx) {
   };
   on('#mc-save', async () => {
     if (!isSecretary) return;
-    await updateBranchModules(branchId, { hiddenTabIds: [...hidden], tabOrder: order }, rawTabs);
-    showToast('已保存——本支部成员下次进入工作台生效', 'success');
+    const blockPayload = { outputBlocks: { hiddenBlockIds: [...bHidden], blockOrder: bOrder } };
+    await updateBranchModules(branchId, { hiddenTabIds: [...hidden], tabOrder: order }, rawTabs, blockPayload);
+    showToast('已保存——本支部成员下次进入工作台/活动详情生效', 'success');
   });
   on('#mc-reset', async () => {
     if (!isSecretary) return;
     hidden.clear();
     order = businessTabs.map(t => t.id);
-    await updateBranchModules(branchId, null, rawTabs);
+    bHidden.clear();
+    bOrder = bReg.slice();
+    await updateBranchModules(branchId, null, rawTabs, null);
     paint();
-    showToast('已恢复默认（全部模块启用，注册顺序）', 'success');
+    showToast('已恢复默认（业务模块与活动产出块全开、注册顺序）', 'success');
   });
 
   tc.querySelectorAll('[data-mc-chip]').forEach(btn => {
@@ -201,6 +243,50 @@ export function renderContent(ctx) {
       const offIds = order.filter(id => hidden.has(id));
       order = [...visibleIds, ...offIds];
       from = null;
+      paint();
+    });
+  }
+
+  // 产出块 chips 启停
+  tc.querySelectorAll('[data-mc-block]').forEach(btn => {
+    if (btn.dataset.bound) return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.mcBlock;
+      if (bHidden.has(id)) { bHidden.delete(id); if (!bOrder.includes(id)) bOrder.push(id); } else { bHidden.add(id); }
+      paint();
+    });
+  });
+
+  // 产出块画布拖拽（v0：启用块排序）
+  const bcv = tc.querySelector('#mc-blocks-canvas');
+  if (bcv && !bcv.dataset.bound) {
+    bcv.dataset.bound = '1';
+    let bFrom = null;
+    bcv.addEventListener('dragstart', (e) => {
+      const row = e.target.closest('[data-mc-block-slot]');
+      if (!row || !isSecretary) { e.preventDefault(); return; }
+      bFrom = row.dataset.mcBlockSlot;
+      row.style.opacity = '0.5';
+    });
+    bcv.addEventListener('dragend', (e) => {
+      const row = e.target.closest('[data-mc-block-slot]');
+      if (row) row.style.opacity = '';
+      bFrom = null;
+    });
+    bcv.addEventListener('dragover', (e) => e.preventDefault());
+    bcv.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (!bFrom) return;
+      const target = e.target.closest('[data-mc-block-slot]');
+      if (!target || target.dataset.mcBlockSlot === bFrom) return;
+      const visible = bOrder.filter(id => !bHidden.has(id));
+      const to = visible.indexOf(target.dataset.mcBlockSlot);
+      visible.splice(visible.indexOf(bFrom), 1);
+      visible.splice(to, 0, bFrom);
+      const hiddenTail = bOrder.filter(id => bHidden.has(id));
+      bOrder = [...visible, ...hiddenTail];
+      bFrom = null;
       paint();
     });
   }

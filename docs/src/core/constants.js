@@ -553,3 +553,12 @@ export const ISSUE_CLOSED_REASON_LABELS = {
   wontfix: '不修复',
   not_planned: '暂不计划',
 };
+
+// ── 活动产出块目录（块画布 v0，2026-09-03 书记裁定：活动产出记录=块；支部级 config.blocks 启停/排序）──
+// 消费点：活动详情「添加记录」按钮组（leader write-tab 等）；UI：书记工作台「工作台配置」产出块区
+export const OUTPUT_BLOCK_DEFS = [
+  { id: 'attendance', label: '考勤', desc: '出勤记录（同步正式考勤库）' },
+  { id: 'inspection', label: '考察', desc: '考察记录（同步正式考察库）' },
+  { id: 'publicity', label: '宣传', desc: '宣传记录（标题/渠道）' },
+  { id: 'materials', label: '材料', desc: '材料归档记录' },
+];

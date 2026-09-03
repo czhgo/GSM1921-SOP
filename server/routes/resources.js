@@ -269,20 +269,41 @@ export function createResourcesRouter(db) {
       return res.status(403).json({ error: '无权限：仅本支部现任书记或党委组织员可配置' });
     }
 
-    const m = req.body?.config?.modules;
-    if (m === null) {
-      branch.config = { ...(branch.config || {}), modules: null }; // 恢复默认（全开 + 注册顺序）
-      db.prepare('UPDATE branches SET data = ? WHERE id = ?').run(JSON.stringify(branch), branch.id);
-      return res.json(branch);
+    const cfg = req.body?.config;
+    if (!cfg || typeof cfg !== 'object' || Array.isArray(cfg)) {
+      return res.status(400).json({ error: 'body.config 须为对象' });
     }
-    if (!m || typeof m !== 'object' || Array.isArray(m)) {
-      return res.status(400).json({ error: 'body.config.modules 须为对象 { hiddenTabIds, tabOrder } 或 null' });
-    }
-    const clean = (v) => {
+    const cleanStr = (v, limit) => {
       if (!Array.isArray(v)) return [];
-      return [...new Set(v)].filter(x => typeof x === 'string' && x && x.length <= 80).slice(0, 200);
+      return [...new Set(v)].filter(x => typeof x === 'string' && x && x.length <= 80).slice(0, limit);
     };
-    branch.config = { ...(branch.config || {}), modules: { hiddenTabIds: clean(m.hiddenTabIds), tabOrder: clean(m.tabOrder) } };
+    const hasModules = Object.prototype.hasOwnProperty.call(cfg, 'modules');
+    const hasBlocks = Object.prototype.hasOwnProperty.call(cfg, 'blocks');
+    if (!hasModules && !hasBlocks) {
+      return res.status(400).json({ error: '至少提供 config.modules 或 config.blocks 之一' });
+    }
+    const nextConfig = { ...(branch.config || {}) };
+    if (hasModules) {
+      const m = cfg.modules;
+      if (m === null) {
+        nextConfig.modules = null; // 恢复默认（全开 + 注册顺序）
+      } else if (!m || typeof m !== 'object' || Array.isArray(m)) {
+        return res.status(400).json({ error: 'config.modules 须为对象 { hiddenTabIds, tabOrder } 或 null' });
+      } else {
+        nextConfig.modules = { hiddenTabIds: cleanStr(m.hiddenTabIds, 200), tabOrder: cleanStr(m.tabOrder, 200) };
+      }
+    }
+    if (hasBlocks) {
+      const b = cfg.blocks;
+      if (b === null) {
+        nextConfig.blocks = null; // 恢复默认（全部产出块启用 + 注册顺序）
+      } else if (!b || typeof b !== 'object' || Array.isArray(b) || !b.outputBlocks) {
+        return res.status(400).json({ error: 'config.blocks 须为对象 { outputBlocks: { hiddenBlockIds, blockOrder } } 或 null' });
+      } else {
+        nextConfig.blocks = { outputBlocks: { hiddenBlockIds: cleanStr(b.outputBlocks.hiddenBlockIds, 50), blockOrder: cleanStr(b.outputBlocks.blockOrder, 50) } };
+      }
+    }
+    branch.config = nextConfig;
     db.prepare('UPDATE branches SET data = ? WHERE id = ?').run(JSON.stringify(branch), branch.id);
     res.json(branch);
   });

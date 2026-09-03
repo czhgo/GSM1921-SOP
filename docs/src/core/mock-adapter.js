@@ -789,10 +789,10 @@ export const MockAdapter = {
         return next;
       });
     },
-    // L2 支部工作流模块配置（2026-09-03 书记裁定：书记操作/清单+画布/核心固定）
-    // 仅写 config.modules（hiddenTabIds/tabOrder），不触碰治理字段（name/type/secretaryId/status）
-    updateConfig(id, modules) {
-      return this.update(id, { config: { modules } });
+    // L2/L3 支部工作流配置（2026-09-03 书记裁定）：config 子级白名单写
+    // configPatch = { modules?: {...}|null, blocks?: {...}|null }——undefined key 不改（merge 保留现值）
+    updateConfig(id, configPatch) {
+      return this.update(id, { config: configPatch });
     },
     delete(id) {
       return _withDelay(() => {

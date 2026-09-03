@@ -68,3 +68,26 @@ test('L2 config：现任书记可写，副书记/普通成员 403，党委可写
   // ⑤ 非法 payload → 400
   assert.equal((await patchConfig(sec, { config: { modules: 'nope' } })).status, 400, 'modules 非对象 → 400');
 });
+
+test('L2 config.blocks：产出块写回/单独写 blocks/恢复默认/结构校验', async () => {
+  const { token: sec } = await login('p13');
+  const { token: staff } = await login('p_pc');
+
+  // ① 单独写 blocks（modules 缺省保留现值）
+  const r1 = await patchConfig(sec, { config: { blocks: { outputBlocks: { hiddenBlockIds: ['publicity'], blockOrder: ['materials', 'attendance'] } } } });
+  assert.equal(r1.status, 200, '书记可写 blocks');
+  const b1 = await r1.json();
+  assert.deepEqual(b1.config.blocks.outputBlocks.hiddenBlockIds, ['publicity'], 'blocks.hiddenBlockIds 写回');
+  assert.deepEqual(b1.config.blocks.outputBlocks.blockOrder, ['materials', 'attendance'], 'blocks.blockOrder 写回');
+
+  // ② 结构非法 → 400
+  assert.equal((await patchConfig(sec, { config: { blocks: { hiddenBlockIds: ['publicity'] } } })).status, 400, '缺 outputBlocks 包裹 → 400');
+
+  // ③ 全空 config → 400
+  assert.equal((await patchConfig(sec, { config: {} })).status, 400, '无 modules/blocks → 400');
+
+  // ④ 党委可恢复默认（blocks=null）
+  const r4 = await patchConfig(staff, { config: { blocks: null } });
+  assert.equal(r4.status, 200, '党委可恢复 blocks 默认');
+  assert.equal((await r4.json()).config.blocks, null, 'blocks=null 恢复默认');
+});

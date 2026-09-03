@@ -78,23 +78,78 @@ export function applyTabPolicy(tabs, branchId) {
   return applyTabPolicyPure(tabs, getBranchById(branchId)?.config?.modules);
 }
 
+// ── 活动产出块策略（块画布 v0，2026-09-03）────────────────────────────────────
+// config.blocks = { outputBlocks: { hiddenBlockIds, blockOrder } }；null=默认全开。
+// 目录单一源：core/constants OUTPUT_BLOCK_DEFS（attendance/inspection/publicity/materials）。
+
+/** 解析产出块策略：{ hidden:Set, order:string[]|null }（纯） */
+export function getOutputBlockPolicy(blocks) {
+  const cfg = blocks?.outputBlocks;
+  return {
+    hidden: new Set(Array.isArray(cfg?.hiddenBlockIds) ? cfg.hiddenBlockIds : []),
+    order: Array.isArray(cfg?.blockOrder) && cfg.blockOrder.length ? [...cfg.blockOrder] : null,
+  };
+}
+
+/** 读支部产出块配置（null=全开） */
+export function getBranchOutputBlocks(branchId) {
+  return getBranchById(branchId)?.config?.blocks ?? null;
+}
+
+/** 按支部产出块策略过滤/排序块 id 列表（纯：传 defIds + config.blocks） */
+export function applyOutputBlockPolicy(defIds, blocks) {
+  const { hidden, order } = getOutputBlockPolicy(blocks);
+  const visible = defIds.filter(id => !hidden.has(id));
+  if (order && order.length) {
+    const idx = new Map(order.map((id, i) => [id, i]));
+    visible.sort((a, b) => {
+      const ia = idx.has(a) ? idx.get(a) : Infinity;
+      const ib = idx.has(b) ? idx.get(b) : Infinity;
+      return ia - ib;
+    });
+  }
+  return visible;
+}
+
+/** 产出块配置净化（hiddenBlockIds/blockOrder 字符串数组；null=恢复默认） */
+function _sanitizeBlocks(blocks) {
+  if (blocks === null) return null;
+  const clean = (v) => [...new Set((v || []).map(String).filter(x => x && x.length <= 80))].slice(0, 50);
+  return { outputBlocks: { hiddenBlockIds: clean(blocks?.outputBlocks?.hiddenBlockIds), blockOrder: clean(blocks?.outputBlocks?.blockOrder) } };
+}
+
+/** 保存支部产出块配置（书记操作；blocks=null=恢复默认） */
+export async function updateBranchBlocks(branchId, blocks) {
+  return updateBranchModules(branchId, undefined, [], blocks);
+}
+
 /** 核心 tab id 集合（供配置 UI 展示「固定」与隐藏校验） */
 export function getCoreTabIds(tabs) {
   return _splitTabs(tabs).core.map(t => t.id);
 }
 
-/** 保存支部工作流模块配置（书记操作；防御核心 tab 不可隐藏——传入 tabs 元数据供校验；modules=null=恢复默认全开） */
-export async function updateBranchModules(branchId, modules, tabs = []) {
-  let payload;
-  if (modules === null) {
-    payload = null; // 恢复默认：config.modules = null（全开 + 注册顺序）
-  } else {
-    const coreIds = new Set(getCoreTabIds(tabs));
-    const sanitize = (v) => [...new Set((v || []).map(String).filter(x => x && x.length <= 80))];
-    const hiddenTabIds = sanitize(modules?.hiddenTabIds).filter(id => !coreIds.has(id)); // 核心不可隐藏
-    const tabOrder = sanitize(modules?.tabOrder).filter(id => !coreIds.has(id));        // 核心不参与排序
-    payload = { hiddenTabIds, tabOrder };
+/**
+ * 保存支部工作流配置（书记操作）：
+ *   modules —— config.modules：模块/业务 tab 配置（null=恢复默认全开；undefined=不改）；
+ *   blocks  —— config.blocks：活动产出块配置（null=恢复默认；undefined=不改）
+ * tabs 仅用于防御核心 tab 不可隐藏。
+ */
+export async function updateBranchModules(branchId, modules, tabs = [], blocks) {
+  const payload = {};
+  if (modules !== undefined) {
+    if (modules === null) {
+      payload.modules = null;
+    } else {
+      const coreIds = new Set(getCoreTabIds(tabs));
+      const sanitize = (v) => [...new Set((v || []).map(String).filter(x => x && x.length <= 80))];
+      payload.modules = {
+        hiddenTabIds: sanitize(modules?.hiddenTabIds).filter(id => !coreIds.has(id)), // 核心不可隐藏
+        tabOrder: sanitize(modules?.tabOrder).filter(id => !coreIds.has(id)),        // 核心不参与排序
+      };
+    }
   }
+  if (blocks !== undefined) payload.blocks = _sanitizeBlocks(blocks);
+
   const next = await getAdapter().branches.updateConfig(branchId, payload);
   const idx = (mockDB.branches || []).findIndex(b => b.id === branchId);
   if (idx >= 0) {

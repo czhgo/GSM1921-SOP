@@ -578,9 +578,10 @@ export const ApiAdapter = {
       return _patch(`/api/v1/branches/${id}`, patch);
     },
 
-    // L2 支部工作流模块配置（2026-09-03）：config 子路由（本支部书记/party-staff 专属，防治理字段误写）
-    updateConfig(id, modules) {
-      return _patch(`/api/v1/branches/${id}/config`, { config: { modules } });
+    // L2/L3 支部工作流配置（2026-09-03）：config 子路由（本支部书记/party-staff 专属，防治理字段误写）
+    // configPatch = { modules?: {...}|null, blocks?: {...}|null }——undefined key 不改
+    updateConfig(id, configPatch) {
+      return _patch(`/api/v1/branches/${id}/config`, { config: configPatch });
     },
 
     delete(id) {
