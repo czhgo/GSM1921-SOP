@@ -43,6 +43,15 @@ export const PersonStore = {
   },
 
   /**
+   * 支部成员名单（2026-09-03 数据域接线收口：UI 原直连 mock PEOPLE 改为经本服务获取）
+   * 语义 = 静态党员种子 PEOPLE（成员选择/名单遍历用；不含登录系统账号 mockDB.users——见 getAll 注释）
+   * @returns {Array} 成员数组
+   */
+  getMembers() {
+    return [...PEOPLE];
+  },
+
+  /**
    * 获取全部人员列表
    * @returns {Array} 人员数组
    */

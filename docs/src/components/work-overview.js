@@ -19,7 +19,9 @@ import { loadActiveAttendanceRecords } from '../services/attendance.js?v=2026090
 import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260903c';
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260903c';
 import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260903c';
-import { PEOPLE } from '../mock/people.js?v=20260903c';
+import { PersonStore } from '../services/person.js?v=20260903c';
+// 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
+const PEOPLE = PersonStore.getMembers();
 import { getPersonName } from '../services/person.js?v=20260903c';
 import { AttendanceStatus } from '../core/domain.js?v=20260903c';
 

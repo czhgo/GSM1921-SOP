@@ -10,7 +10,8 @@ import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES } from '
 import { _fmtChinese, showToast } from '../core/utils.js?v=20260903c';
 import { icon } from '../core/icons.js?v=20260903c';
 import { openModal, closeModal } from './modal.js?v=20260903c';
-import { PEOPLE } from '../mock/index.js?v=20260903c';
+// 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
+const PEOPLE = PersonStore.getMembers();
 import { getPersonById } from '../services/person.js?v=20260903c';
 import { BranchService } from '../services/runtime.js?v=20260903c';
 import { AuthStore } from '../services/auth.js?v=20260903c';

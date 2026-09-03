@@ -4,7 +4,9 @@
 // 数源：mockDB.branches（支部实例）+ PEOPLE（成员档案，已挂 branchId）+ ctx.activities（工作台已加载）
 
 import { mockDB } from '../../../core/domain.js?v=20260903c';
-import { PEOPLE } from '../../../mock/people.js?v=20260903c';
+import { PersonStore } from '../../../services/person.js?v=20260903c';
+// 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
+const PEOPLE = PersonStore.getMembers();
 import { PARTY_COMMITTEE } from '../../../mock/branches.js?v=20260903c';
 import { getPersonName } from '../../../services/person.js?v=20260903c';
 

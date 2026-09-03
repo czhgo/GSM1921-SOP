@@ -14,7 +14,9 @@ import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { renderQueryView } from '../../../components/query-view.js?v=20260903c';
 import { icon } from '../../../core/icons.js?v=20260903c';
 import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
-import { PEOPLE } from '../../../mock/index.js?v=20260903c';
+import { PersonStore } from '../../../services/person.js?v=20260903c';
+// 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
+const PEOPLE = PersonStore.getMembers();
 import { getPersonName } from '../../../services/person.js?v=20260903c';
 import { NoticeStore } from '../../../services/notice.js?v=20260903c';
 import { BranchService } from '../../../services/runtime.js?v=20260903c';

@@ -91,7 +91,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 | 优先级 | 行动 | 现状 | 验收标准 |
 |--------|------|------|---------|
 | P0 | 统一扎口推广：以 forms.js 为样板，为徽章/状态、数据视图等高频组件域逐一建库出口，全站收口 | forms.js、badges.js、reporting.js 三库完成（组件平铺层同域多文件已收敛） | 每建一库跑 module-load + E2E；仓库无该域直连残留 |
-| P0 | 数据域自动接线：tab/能力声明依赖的 service + mock 整体可替换 | person 域试点完成；其余域收口推进中 | 新增 demo 分支或后端接入时 UI 零改动（data-adapter 双实现全量走通） |
+| P0 | 数据域自动接线：tab/能力声明依赖的 service + mock 整体可替换 | person 域试点 + formatter 批次二 + PEOPLE 批次三 完成（UI 层 mock 直连清零；services 层种子引用合规） | 新增 demo 分支或后端接入时 UI 零改动（data-adapter 双实现全量走通） |
 | P1 | 开源合规包：LICENSE、示例账号外置 env、部署/贡献说明 | 未开工 | 新机器按 README 可独立跑通并自建数据 |
 | P2 | L3 block manifest + 拖拽编排（根 README 总目标） | 契约 v1.1 定稿；L3 S1~S4 全部落地（manifests 双块 + 校验器 + 渲染桥 + config.workflowBlocks 配置区 + 主题党日入口守卫，测试全绿） | 块声明 inputs/事件/校验契约定稿并经用户确认后编码（L3 ✅ 2026-09-03） |
 
@@ -111,9 +111,15 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 - mock/attendance|inspection|review.js 仅剩种子数组（冗余 person/activities/标签依赖随之清理）；mock/index.js 不再中转任何格式化函数。
 - 7 个 UI 调用方 import 面改挂 services；module-load + mock-integrity + party + multi-user 7/7 回归绿。
 
+**批次三（成员名单 PEOPLE 收口，已完成 2026-09-03）**：
+- `services/person.js` 增 `PersonStore.getMembers()`（成员名单语义 = 静态党员种子，不含登录系统账号 mockDB.users——区别于 getAll）。
+- 全站 UI/组件/entry/tab 层 16 个文件直连 mock PEOPLE（mock/index 或 mock/people）改为经 `PersonStore.getMembers()` 模块级捕获（体内用法零改动，行为与静态种子一致）。
+- UI 层 PEOPLE 直连 mock **清零**；mock/index 的 PEOPLE re-export 仅剩 services 层 7 处种子引用（契约允许）。
+- 回归：module-load + party/multi-user/block-entry-guard/capability-registry 18/18 全绿。
+
 **契约条款**：
 1. **人名与人员对象获取**（getPersonById/getPersonName/PersonStore）唯一出口 = `services/person.js`；任何层禁止从 `mock/*` 获取人名。
-2. **种子数据**（PEOPLE/ACTIVITIES/MOCK_* 等）只许 service 层引用；UI/tab/组件层不直连种子数组（PEOPLE 收口为下一批）。
+2. **成员名单**（PEOPLE 语义）唯一出口 = `services/person.js` 的 `PersonStore.getMembers()`；UI/tab/组件层禁止直连 mock 种子数组；种子数据仅许 service 层引用。
 3. **展示格式化函数**（attendanceToLong/inspectionToLong/reviewToDisplay 等）统一栖身各业务 domain service（attendance/inspection/review），随记录读写同域演进；mock 数据模块不承载格式化逻辑。
 4. 新代码一律遵守 1~3；存量收口按批次推进，每批回归。
 

@@ -7,7 +7,9 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE } from '../mock/index.js?v=20260903c';
+import { PersonStore } from '../services/person.js?v=20260903c';
+// 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
+const PEOPLE = PersonStore.getMembers();
 import { getPersonById } from '../services/person.js?v=20260903c';
 import { icon } from '../core/icons.js?v=20260903c';
 import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../core/constants.js?v=20260903c';

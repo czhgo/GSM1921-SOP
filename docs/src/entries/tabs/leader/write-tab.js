@@ -15,7 +15,9 @@ import { loadInspectionRecords, saveInspectionRecords } from '../../../services/
 import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
 import { recordFormShell } from '../../../components/forms.js?v=20260903c';
 import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260903c';
-import { PEOPLE } from '../../../mock/index.js?v=20260903c';
+import { PersonStore } from '../../../services/person.js?v=20260903c';
+// 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
+const PEOPLE = PersonStore.getMembers();
 import { getPersonName } from '../../../services/person.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
