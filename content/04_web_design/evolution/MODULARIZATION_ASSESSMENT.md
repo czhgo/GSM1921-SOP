@@ -22,10 +22,11 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 |------|------|-----------|
 | 模块化 | 70 / 100 | 分层与组件积木真实；失分在主评估之后的**冗余/重复批判审计**——微工具（esc/fmtDt）十余份、元数据（类型/阶段）三写、清单（场景/链路）双维护 |
 | 插件化 | 71 / 100 | 注册表单一源做得干净；短在「能力化」多为装饰性转发、tab id 散落导航侧、manifest 消费端手写 blockId、声明的防漂移测试未落地 |
-| 开源化 | 66 / 100 | LICENSE/env 外置/文档已就位；硬伤在安全与出仓：server 登录不验密码、18 个明文 123456 演示账号、.ctx 与真实会议材料随仓分发 |
+| 开源化 | 66 / 100 | 本维度按「可复用/可移植性」评估（非对外发布合规）——LICENSE/env 外置/文档就位；缺口=server 登录不验密、18 个明文 123456、无 .env.example 与贡献说明 |
 | **综合** | **≈ 69 / 100** | 最贵的问题不是缺新架构，而是**已存在的重复实现清单**——统一扎口的方向正确，但扎口面只覆盖了组件平铺层，未覆盖工具/元数据/清单层 |
 
-> 注：上表为 2026-09-03 书记第二轮问询后的**批判性复评**（首评 80/72/74≈75 见 §三）。复评不推翻既有 P0~P2 结论，§七 的冗余审计与去重队列为新增最高优先输入。
+> 注 1：上表为 2026-09-03 书记第二轮问询后的**批判性复评**（首评 80/72/74≈75 见 §三）。复评不推翻既有 P0~P2 结论，§七 的冗余审计与去重队列为新增最高优先输入。
+> 注 2（书记 2026-09-03 口径修正）：本仓库是支部自己的内部系统，**.ctx 日志与 references/历史会议材料均为内部资产、保留上传**，不存在"出仓脱敏"需求；§7.1 R12 与 §7.2 P1b 中的出仓子项（脱敏/移出/账号外置/.ctx ignore）**全部撤销**。真正保留的工程项仅是「运行安全」：server 登录不校验密码在多人/计算中心部署时任何人可凭 personId 冒名登录。
 
 ---
 
@@ -160,7 +161,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 | R9 角色集合 ≥5 份 | 支委/书记/党委组织员角色 `Set` 分散多文件 | server/routes/auth.js:69-71 / member.js:13 / committee.js:15,17 / resources.js:56-59 / docs/src/core/constants.js:185 |
 | R10 删除/归档级联同构 | DELETE 活动联动清理、归档级联 tasks，server 与前端同构实现（注释自认） | server/routes/resources.js:165-204 / docs/src/services/mock.js:142-204 |
 | R11 资源名/ID 注册表两端各一 | RESOURCE_TABLES + ID_PREFIX 与前端快照键名两端手维护 | server/routes/resources.js:13-46,87-100 |
-| R12 出仓安全残留 | server 登录不验密码（凭 personId 发 token）；18 个演示账号明文 123456；.ctx 日志未 gitignore 且含演示凭据明文；真实支部会议材料随仓分发 | server/routes/auth.js:8-17 / docs/src/mock/accounts.js:4-26 / .gitignore（无 .ctx）/ content/01_strategy/references/历史会议材料/ |
+| R12 运行安全 | server 登录不验密码（凭 personId 发 token）；18 个账号明文 123456；demo 态/信任模型注释自认（"书记/副书记操作 + 演示场景"）。**书记 2026-09-03 口径：.ctx 与历史材料为内部资产保留上传，非风险项；本条仅保留运行安全部分** | server/routes/auth.js:8-17 / docs/src/mock/accounts.js:4-26 |
 
 > 反例（无需拆分，防过度去重）：block manifest 校验唯一源在前端 manifests.js（server 测试经浏览器复用同文件），职责与 R7 的"config 形状净化"不同——勿误并。
 
@@ -172,7 +173,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 | P0b | R2/R3 元数据单一源：MEETING_TYPES、MANDATORY_ACTIVITY_TYPES、gallery 色名、write-tab 4 id、calendar blockId 全部改为引用 constants/manifests | 全仓该 4 id/类型名无第二份字面量；写路径零行为变化 |
 | P0c | R5 防漂移测试落地：新增测试断言 FLOW_LINKS 键集 == function-catalog flow id 键集（落实 mermaid-sources.js:30 注释承诺） | 测试进 server/test 且绿 |
 | P1a | R7/R8 跨层：config 净化与表决枚举改为 server 单向权威 or 前端生成 → 注释互链 + 键集测试 | 两端字段集合由测试断言一致 |
-| P1b | R12 出仓：server 登录加密码校验（可开关）；演示账号外置 env；.ctx 是否出仓裁决；历史会议材料脱敏/移出 | 新 clone 部署默认无明文后门；隐私材料不出仓 |
+| P1b | R12 运行安全（口径修正后唯一保留项）：server 登录加密码校验（可开关，缺省演示态兼容）——多人/计算中心部署时防凭 personId 冒名 | 新 clone 部署后无 personId 直取 token 路径；demo 态开关显式 |
 | P2 | R4/R6/R9 结构性统一：场景目录、tab id、角色集合向单一源收敛（可随 L4 拖拽编排一并做） | 随 L3/L4 推进时验收 |
 
 > **执行状态（2026-09-03）**
