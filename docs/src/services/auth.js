@@ -267,9 +267,10 @@ export const AuthStore = {
   /**
    * 登录（本地角色判定 + 后端 token 会话，失败静默降级本地模式）
    * @param {string} personId
+   * @param {string} [password] 账号密码（后端 /login 校验口令；演示账号=123456）
    * @returns {Promise<void>}
    */
-  async login(personId) {
+  async login(personId, password) {
     const role = _getUserRoleFromMemory(personId);
     _writeLogin({ personId, role });
 
@@ -278,7 +279,7 @@ export const AuthStore = {
       const r = await fetch('/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ personId }),
+        body: JSON.stringify({ personId, password }),
       });
       const data = r.ok ? await r.json() : null;
       if (data && data.token) {

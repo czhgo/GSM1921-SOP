@@ -100,7 +100,8 @@ if (loginForm) {
 
     errorEl.classList.add('hidden');
     // 等待登录完成（含后端 token 获取）后再跳转，确保 API 模式在导航前已生效
-    AuthStore.login(result.personId).then(() => {
+    // 2026-09-03 P1b：向后端一并传递账号密码，供 /login 口令校验（演示账号 123456）
+    AuthStore.login(result.personId, password).then(() => {
       _goToWorkspace(AuthStore.getCurrentUser()?.role);
     });
   });

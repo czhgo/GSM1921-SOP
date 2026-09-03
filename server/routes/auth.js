@@ -2,13 +2,29 @@
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 
+// ── 登录口令校验（2026-09-03 P1b 运行安全；书记裁定「做，可开关」）────────────
+// 原状：POST /login 仅凭 personId 发 token——多人/计算中心部署时任何知道学号者可冒名登录。
+// 现状：默认校验口令。口令 = 支部统一登录口令，env LOGIN_PASSWORD 可换，缺省 '123456'
+//   （与前端演示账号密码一致，登录体验不变；同时堵住「直连 API 猜 personId」通道）。
+// 逃逸门：env DISABLE_PASSWORD_CHECK=1 恢复旧行为（内网单机演示/测试套件用）。
+function passwordCheckDisabled() {
+  return process.env.DISABLE_PASSWORD_CHECK === '1';
+}
+function loginPasswordOk(password) {
+  return typeof password === 'string' && password.length > 0 &&
+    password === (process.env.LOGIN_PASSWORD || '123456');
+}
+
 export function createAuthRouter(db) {
   const router = Router();
 
   router.post('/login', (req, res) => {
-    const { personId } = req.body || {};
+    const { personId, password } = req.body || {};
     const userRow = db.prepare('SELECT data FROM users WHERE id = ?').get(personId);
     if (!userRow) return res.status(401).json({ error: '未知人员' });
+    if (!passwordCheckDisabled() && !loginPasswordOk(password)) {
+      return res.status(401).json({ error: '口令错误' });
+    }
     const user = JSON.parse(userRow.data);
     const token = randomUUID();
     db.prepare('INSERT INTO sessions (token, person_id, created_at) VALUES (?, ?, ?)')
