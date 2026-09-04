@@ -369,7 +369,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 **关键区分**：机械性问题与设计性问题的边界——若反馈涉及"该规则是否适用于此场景"的判定，归设计性问题；若反馈确认违规且需扫描同类模式，归机械性问题。
 
-**新原则整合收口（3.1 机制，2026-08-09 补）**：书记评议/决策中确立的新原则、新原话，决策后 AI 必须检查是否需要整合进长期文档——涉及 AI 行为约束/工作流的原则→CLAUDE.md 甲部（或对应 governance 文档）；涉及书记原话→content 权威源（SECRETARY\_PRONOUNCEMENTS 等）；涉及设计与经验→对应设计文档 / insights。整合动作必须写入评议记录（格式见 OPERATIONS\_GUIDE.md §18.3）。原则只有落到长期文档，后续工作才能持续遵守——"决策归档即遗忘"等同未落地。
+**新原则整合收口（3.1 机制，2026-08-09 补）**：书记评议/决策中确立的新原则、新原话，决策后 AI 必须检查是否需要整合进长期文档——涉及 AI 行为约束/工作流的原则→CLAUDE.md 甲部（或对应 governance 文档）；涉及书记原话→content 权威源（SECRETARY\_DIRECTIVES 等）；涉及设计与经验→对应设计文档 / insights。整合动作必须写入评议记录（格式见 OPERATIONS\_GUIDE.md §18.3）。原则只有落到长期文档，后续工作才能持续遵守——"决策归档即遗忘"等同未落地。
 
 ### H60.4 修订校验原则 \[工作表达]
 
@@ -400,7 +400,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | ① 反论评议     | T-116       | 全仓库反论的书记评议（速查见 OPERATIONS\_GUIDE §18.5）   | REVIEW\_QUEUE 附录① |
 | ② 理论复用评议   | T-117       | 跨节/跨文件引用复用评议（速查见 OPERATIONS\_GUIDE §18.5） | REVIEW\_QUEUE 附录② |
 | ③ 黑话审查     | T-195       | 表述维度专项（OPERATIONS\_GUIDE §18.5 理论复用 D 表述） | REVIEW\_QUEUE 附录③ |
-| ④ 书记原话逐条复核 | T-200       | SECRETARY\_PRONOUNCEMENTS 原话精确性           | REVIEW\_QUEUE 附录④ |
+| ④ 书记原话逐条复核 | T-200       | SECRETARY\_DIRECTIVES 原话精确性           | REVIEW\_QUEUE 附录④ |
 | ⑤ 最小三成本    | 总纲级（H10 声明） | 系统设计最高验收标准（最小信息/操作/适应学习成本）                | REVIEW\_QUEUE 附录⑤ |
 | ⑥ 减负评议     | 2026-08-13 书记发起 | 全仓库减负专项（制度层混入实现层等）                  | REVIEW\_QUEUE 附录⑥ |
 | ⑦ AI逃逸捕捉   | 2026-08-30 书记引入 | 提示词体系逃逸点五维扫描（E1-E5，rule-based 收敛）          | REVIEW\_QUEUE 附录⑦ |
@@ -452,7 +452,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 当书记表达"反思""值得思考""为什么还在"等反思信号时，AI **必须**按以下流程执行，不得只口头反思：
 
-1. **定位权威源最近变更**：读 [USAGE\_POLICY.md](content/03_doc_system/USAGE_POLICY.md) §1 术语表 + [SECRETARY\_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_DIRECTIVES.md) 最新 P 编号，确认最近一次定义/术语/层级变更是什么（如 2026-08-03 确立党建/党务 T1 官方定义）
+1. **定位权威源最近变更**：读 [USAGE\_POLICY.md](content/03_doc_system/USAGE_POLICY.md) §1 术语表 + [SECRETARY\_DIRECTIVES.md](content/01_strategy/SECRETARY_DIRECTIVES.md) 最新 P 编号，确认最近一次定义/术语/层级变更是什么（如 2026-08-03 确立党建/党务 T1 官方定义）
 2. **沿链接传播排查**：从权威源出发，**追踪所有链接"指向"的 content/docs 文件**，有选择地读取被引用文件，确认定义是否已同步（🔴 书记补充要求：不能只看权威源本身，必须顺链接读下游）
 3. **全仓 Grep 旧表述**：搜索被降级/替换的旧术语、旧定义、旧层级表述，列出全部残留位置
 4. **一改具改**：按 H30.1 全仓同步修正；区分「定义残留」（必须改）与「合法功能分区标题/UI 标签」（保留，如 `## 党建工作` 章节标题、`【党建工作】` 场景前缀）
@@ -506,7 +506,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | 看甲部修改流程    | [PROCESS\_GUIDE.md §15](content/03_doc_system/PROCESS_GUIDE.md)                     |
 | 看日志规范      | [OPERATIONS\_GUIDE.md §10](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
 | 看面向用户表述规范  | [OPERATIONS\_GUIDE.md §13](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
-| 看理论基石      | [SECRETARY\_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_DIRECTIVES.md)（项目顶级战略文档） |
+| 看理论基石      | [SECRETARY\_DIRECTIVES.md](content/01_strategy/SECRETARY_DIRECTIVES.md)（项目顶级战略文档） |
 | 看经验沉淀      | [content/insights/](content/insights/)                                                    |
 | 看已知陷阱      | [05 AI 协作方法论 README.md](content/05_ai_coding/README.md)（5 分篇索引）          |
 | 看运行标准      | [OPERATIONS\_GUIDE.md](content/03_doc_system/OPERATIONS_GUIDE.md)                         |
@@ -538,7 +538,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 | 层级                | 内容                                           | 权威源                                                                                                                                                           |
 | ----------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ① 总论叙事            | "管理事，服务人"——从入党申请人到正式党员的完整路径，囊括②和③            | [DEVELOPMENT\_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) + [SECRETARY\_PRONOUNCEMENTS.md P-002/P-003](content/01_strategy/SECRETARY_DIRECTIVES.md) |
+| ① 总论叙事            | "管理事，服务人"——从入党申请人到正式党员的完整路径，囊括②和③            | [DEVELOPMENT\_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) + [SECRETARY\_DIRECTIVES.md P-002/P-003](content/01_strategy/SECRETARY_DIRECTIVES.md) |
 | ② 组织架构与 SOP       | 一整套组织架构、分工、SOP                               | `content/02_institution/sop/` + `content/02_institution/FLAT_ORGANIZATION_DESIGN.md` + `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md`                                  |
 | ③ AI-driven 仓库工作流 | 一整套关于 AI-driven 的组织形态的仓库工作流（上下文、Harness、提示词） | 本文件 CLAUDE.md（Harness）+ `content/03_doc_system/OPERATIONS_GUIDE.md` + `.ctx/`（审计底座）                                                                           |
 
@@ -548,19 +548,19 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 书记已于 2026-07-14 亲补两个宝贵机会：
 
-- **机会1**：民主集中制下感受真实组织的两个向度——"赋权"背景下的程序性 和 "探索"背景下的扁平化。详见 [SECRETARY\_PRONOUNCEMENTS.md P-014](content/01_strategy/SECRETARY_DIRECTIVES.md) + [DEVELOPMENT\_PATH.md 第一章收束](content/01_strategy/DEVELOPMENT_PATH.md)。
-- **机会2**：AI 时代中学生党支部的探索机会——①真实地参与组织制度和组织文化的构建；②在"没有经济负担"的背景下探索 AI 时代下组织转型的萌芽和组织产品的生产。详见 [SECRETARY\_PRONOUNCEMENTS.md P-015](content/01_strategy/SECRETARY_DIRECTIVES.md) + DEVELOPMENT\_PATH.md 第一章收束。
+- **机会1**：民主集中制下感受真实组织的两个向度——"赋权"背景下的程序性 和 "探索"背景下的扁平化。详见 [SECRETARY\_DIRECTIVES.md P-014](content/01_strategy/SECRETARY_DIRECTIVES.md) + [DEVELOPMENT\_PATH.md 第一章收束](content/01_strategy/DEVELOPMENT_PATH.md)。
+- **机会2**：AI 时代中学生党支部的探索机会——①真实地参与组织制度和组织文化的构建；②在"没有经济负担"的背景下探索 AI 时代下组织转型的萌芽和组织产品的生产。详见 [SECRETARY\_DIRECTIVES.md P-015](content/01_strategy/SECRETARY_DIRECTIVES.md) + DEVELOPMENT\_PATH.md 第一章收束。
 
 ### H100.3 引用流程
 
 - 任何涉及"系统产出是什么"的总论性表述，引用本节 H100
 - 任何涉及"发展路径"的具体叙事，引用 [DEVELOPMENT\_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)
-- 任何涉及"书记论断"的具体论断，引用 [SECRETARY\_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_DIRECTIVES.md)
-- 本节为治理层锚点，不承载叙事全文——叙事全文在 DEVELOPMENT\_PATH.md，论断全文在 SECRETARY\_PRONOUNCEMENTS.md
+- 任何涉及"书记论断"的具体论断，引用 [SECRETARY\_DIRECTIVES.md](content/01_strategy/SECRETARY_DIRECTIVES.md)
+- 本节为治理层锚点，不承载叙事全文——叙事全文在 DEVELOPMENT\_PATH.md，论断全文在 SECRETARY\_DIRECTIVES.md
 
 ### H100.4 门面文档避讳原则
 
-门面文档（根 README、宣传材料、开源介绍等以公开读者为对象的文本）正文不出现「书记/书记思想」等来源标签——思想融于叙述：讲透"为什么这样设计"的理由与内在逻辑，让读者读完自能体会一以贯之的理念，而非贴标签声明思想的来源。认知形成靠的是内容本身的说服力，不是署名。内部治理文档（CLAUDE.md、执行日志、SECRETARY\_PRONOUNCEMENTS.md 等以归因精确为先的文档）不受此限——内部恰恰需要明确归因，两者是不同场景，不构成矛盾。
+门面文档（根 README、宣传材料、开源介绍等以公开读者为对象的文本）正文不出现「书记/书记思想」等来源标签——思想融于叙述：讲透"为什么这样设计"的理由与内在逻辑，让读者读完自能体会一以贯之的理念，而非贴标签声明思想的来源。认知形成靠的是内容本身的说服力，不是署名。内部治理文档（CLAUDE.md、执行日志、SECRETARY\_DIRECTIVES.md 等以归因精确为先的文档）不受此限——内部恰恰需要明确归因，两者是不同场景，不构成矛盾。
 
 ***
 
@@ -592,7 +592,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | C-6-1 | **常态化专项评议 · 反论评议**：全仓库反论的书记评议（速查见 OPERATIONS\_GUIDE §18.5），每周轮转，轮次进度/侧重维度见 `.ctx/REVIEW_QUEUE.md` 附录①                                                                                                                        | H60.5 + OPERATIONS\_GUIDE.md §17.2.1（W4）                                                 | 全仓库                                               | 🔄 持续 |
 | C-6-2 | **常态化专项评议 · 理论复用评议**：跨节/跨文件引用复用的书记评议（速查见 OPERATIONS\_GUIDE §18.5），每周轮转，轮次进度/侧重维度见 `.ctx/REVIEW_QUEUE.md` 附录②                                                                                                                 | H60.5 + OPERATIONS\_GUIDE.md §17.2.1（W4）                                                 | 全仓库                                               | 🔄 持续 |
 | C-6-3 | **常态化专项评议 · 黑话审查**：全仓库 AI 编造黑话的书记审查（OPERATIONS\_GUIDE §18.5 理论复用 D 表述），每周轮转，轮次进度/侧重维度见 `.ctx/REVIEW_QUEUE.md` 附录③                                                                                                            | H60.5 + OPERATIONS\_GUIDE.md §17.2.1（W4）                                                 | 全仓库用户文档                                           | 🔄 持续 |
-| C-6-4 | **常态化专项评议 · 书记原话逐条复核**：SECRETARY\_PRONOUNCEMENTS 论断逐条复核确认原话（H60），每周轮转，轮次进度/侧重维度见 `.ctx/REVIEW_QUEUE.md` 附录④                                                                                                                  | H60.5 + OPERATIONS\_GUIDE.md §17.2.1（W4）                                                 | `content/01_strategy/SECRETARY_DIRECTIVES.md` | 🔄 持续 |
+| C-6-4 | **常态化专项评议 · 书记原话逐条复核**：SECRETARY\_DIRECTIVES 论断逐条复核确认原话（H60），每周轮转，轮次进度/侧重维度见 `.ctx/REVIEW_QUEUE.md` 附录④                                                                                                                  | H60.5 + OPERATIONS\_GUIDE.md §17.2.1（W4）                                                 | `content/01_strategy/SECRETARY_DIRECTIVES.md` | 🔄 持续 |
 | C-6-5 | **常态化专项评议 · 最小三成本**：系统设计最高验收标准（H10 总纲声明），最小信息/操作/适应学习成本的持续评议，侧重维度基线见 `.ctx/REVIEW_QUEUE.md` 附录⑤                                                                                                                              | H10 总纲 + H60.5 + DESIGN\_SYSTEM.md §一 第2条/原则10                                           | 全系统工作台                                            | 🔄 持续 |
 
 ***
@@ -616,9 +616,9 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | ID    | 事项                                                                                                                                                                                                    | 引用流程                                                        | 修改对象                                                                                           | 状态       |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------- |
 | T-118 | **治理文档完善+用户文档体系梳理**：基于Harness框架同步推进治理文档完善，梳理现有用户文档体系，识别缺失/冗余/过时（2026-08-03 根目录文档更新 + 2026-08-10 Agent 残留清理/主题色色盘表述/常态化评议制度化已推进）                                                                       | H30.2 母本子本 + H100 项目产出声明 + 书记 2026-08-10「开发的不同阶段会有不同的方法和观念」 | content/ + docs/                                                                               | 🔄 进行中   |
-| T-206 | **书记论述范式改革·书记继续调整**：SECRETARY\_PRONOUNCEMENTS.md 范式改革已落地（2026-08-04：书记原话作正文/多条原话无序列表/AI 扩充入引用块/去"书记原话："标签/后缀式日期，文件头部 L16 已写入"正文形式"条款，16 条带原话条目全部改造完成）。AI 自查（2026-08-14）已产出 14 项疑似待调整点清单（计数/日期矛盾、引号标点规则、AI 标注残留等）——**待书记逐条确认后 AI 修订** | H60 书记评议 + SECRETARY\_PRONOUNCEMENTS.md 头部"正文形式"条款          | content/01\_strategy/SECRETARY\_PRONOUNCEMENTS.md                                              | 🔄 待书记确认  |
-| T-281 | **扁平化与集中论断 refinement**：已解决（2026-08-28 书记以「战略模糊自觉」总纲裁决——AI 不替书记收口定性，保持战略模糊；P-005 已含 2026-08-28 书记合并原话"程序在所有人之上，所以扁平；但程序中，支委个人都因为更大的责任而被要求嵌入地更深"即"集中/程序/嵌入"关系的落地）——2026-08-30 复核确认：AI 草案（替书记定性）违反战略模糊自觉，已撤回不落地；本条目归档 | H60 书记评议 + 战略模糊自觉总纲 | content/01\_strategy/SECRETARY\_PRONOUNCEMENTS.md | ✅ 已完成（2026-08-28 总纲解决，2026-08-30 归档） |
-| T-237 | **制度层色值硬编码清理**：COMMISSIONER\_FRAMEWORK.md §C.3 旧固定角色色表已删（2026-08-14 书记裁决：身份不再保留既有固定颜色设定，引入自定义主题色色板），DESIGN\_SYSTEM.md 已补「主题色/功能色/品牌色三色区别」定义 + 读本文件指南（外包可读）；代码层 WORKFLOW\_ROLES 节点辨识色已对齐 §2.3.2 | H60 书记评议 + DESIGN\_SYSTEM.md 统一色板                    | content/02\_institution/COMMISSIONER\_FRAMEWORK.md + content/04\_web\_design/DESIGN\_SYSTEM.md | ✅ 已完成（2026-08-14） |
+| T-206 | **书记论述范式改革·书记继续调整**：SECRETARY\_DIRECTIVES.md 范式改革已落地（2026-08-04：书记原话作正文/多条原话无序列表/AI 扩充入引用块/去"书记原话："标签/后缀式日期，文件头部 L16 已写入"正文形式"条款，16 条带原话条目全部改造完成）。AI 自查（2026-08-14）已产出 14 项疑似待调整点清单（计数/日期矛盾、引号标点规则、AI 标注残留等）——**待书记逐条确认后 AI 修订** | H60 书记评议 + SECRETARY\_DIRECTIVES.md 头部"正文形式"条款          | content/01\_strategy/SECRETARY\_DIRECTIVES.md                                              | 🔄 待书记确认  |
+| T-281 | **扁平化与集中论断 refinement**：已解决（2026-08-28 书记以「战略模糊自觉」总纲裁决——AI 不替书记收口定性，保持战略模糊；P-005 已含 2026-08-28 书记合并原话"程序在所有人之上，所以扁平；但程序中，支委个人都因为更大的责任而被要求嵌入地更深"即"集中/程序/嵌入"关系的落地）——2026-08-30 复核确认：AI 草案（替书记定性）违反战略模糊自觉，已撤回不落地；本条目归档 | H60 书记评议 + 战略模糊自觉总纲 | content/01\_strategy/SECRETARY\_DIRECTIVES.md | ✅ 已完成（2026-08-28 总纲解决，2026-08-30 归档） |
+| T-237 | **制度层色值硬编码清理**：COMMISSIONER\_DUTY\_FRAMEWORK.md §C.3 旧固定角色色表已删（2026-08-14 书记裁决：身份不再保留既有固定颜色设定，引入自定义主题色色板），DESIGN\_SYSTEM.md 已补「主题色/功能色/品牌色三色区别」定义 + 读本文件指南（外包可读）；代码层 WORKFLOW\_ROLES 节点辨识色已对齐 §2.3.2 | H60 书记评议 + DESIGN\_SYSTEM.md 统一色板                    | content/02\_institution/COMMISSIONER\_DUTY\_FRAMEWORK.md + content/04\_web\_design/DESIGN\_SYSTEM.md | ✅ 已完成（2026-08-14） |
 
 > **注**：T-283 最小三成本第 4 轮（Mock 数据完整性 + 数据结构生命周期 + 点击成本 + 三会一课议程功能 + 编辑完整性共性问题全局化）已全部完成（2026-08-27 归档执行日志），乙部删除——三会一课【议程】写入/修改功能落地（DATA_MODEL agenda 字段 + 写入表单 + 详情行内编辑）；删除活动联动清理子记录三处同步；点击成本实测（创建 4 次/详情 2 次/待办 0 次）；新增 4 个审计文件入回归（mock-integrity/click-cost/agenda-flow/module-load，2026-08-30 统一命名规范化）；FILE_OPERATION_RULES.md §14.1（同区域连续编辑覆盖判例）+ CHECKLIST「编辑完整性校验」章节。
 

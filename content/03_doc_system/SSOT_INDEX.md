@@ -179,7 +179,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | content/design/PAFFAIRS_UI.md | → content/04_web_design/module/MODULE_UI_DESIGN.md（合并至模块界面设计总文件） | 2026-07-12 |
 | content/design/CALENDAR.md | → content/04_web_design/module/MODULE_UI_DESIGN.md（合并至模块界面设计总文件） | 2026-07-12 |
 | content/design/SOP_WEB.md | → content/04_web_design/module/SOP_WEBSITE_GUIDE.md（2026-07-12 迁移至 web_design 层；2026-09-04 命名规范化） | 2026-07-12 |
-| content/design/FLAT_DESIGN.md | → content/02_institution/FLAT_DESIGN.md（迁移至 institution 层） | 2026-07-12 |
+| content/design/FLAT_DESIGN.md | → content/02_institution/FLAT_ORGANIZATION_DESIGN.md（迁移至 institution 层；2026-09-04 命名规范化） | 2026-07-12 |
 | content/governance/TERMINOLOGY.md | → content/03_doc_system/USAGE_POLICY.md §一（合并至使用规范） | 2026-07-12 |
 | content/governance/EMOJI_POLICY.md | → content/03_doc_system/USAGE_POLICY.md §三（合并至使用规范） | 2026-07-12 |
 | content/governance/RECURRING_TASKS.md | → content/03_doc_system/OPERATIONS_GUIDE.md §17（合并为周期性任务章节，删除原 §五附录初始化清单） | 2026-07-12 |

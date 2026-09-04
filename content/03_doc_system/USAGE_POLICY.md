@@ -2,7 +2,7 @@
 title: "使用规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-03"
+last_updated: "2026-09-05"
 status: active
 related_files: [CLAUDE.md, content/02_institution/ROLE_CLASSIFICATION.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -353,6 +353,39 @@ AI 对书记原话的展开，目标是**吃透书记精神后用自己的语言
 | 日期 | 决策 | 上下文 |
 |------|------|--------|
 | 2026-07-12 | 合并 TERMINOLOGY.md + EMOJI_POLICY.md → USAGE_POLICY.md（T88） | governance/ 目录精简优化，使用规范归一 |
+
+---
+
+## 内部代号简明词典（2026-09-05）
+
+> **确立日期**：2026-09-05
+> **为什么需要**：仓库文档与代码里高频出现一批代号——行业通用词与内部自造词混在一起，新读者（含新接手的 AI）难以分辨哪些可自行查证、哪些离开本仓库读不懂。
+> **词典设计原则（书记裁决）**：**行业共识/通用词**只讲行业全称 + 一句解释，一句话带过，不建死板字段表；**真内部黑话/自造词**（离开本仓库读不懂的）才给「一句话人话解释 + 指向权威处」。判断核心 = 分辨行业共识与内部黑话。
+
+### 行业共识词（可自行查证，一句话带过）
+
+- **SSOT**（Single Source of Truth）：单一事实源——同一信息只在一处权威定义、其余只引用，本仓母本/子本关系注册见 [SSOT_INDEX.md](SSOT_INDEX.md)
+- **SOP**（Standard Operating Procedure）：标准作业程序——把制度写成可执行的分步流程，制度母本在 `content/02_institution/sop/`
+- **UI**（User Interface）：用户界面
+- **ROADMAP**（路线图）：分阶段推进计划（如工作流模块化 L1→L5 愿景、各类整改批次 B1→B4）
+- **mock**（模拟/桩数据）：开发与演示期的替身数据，相对真实后端数据
+- **DataAdapter**（数据适配器）：隔离数据源的接口层，上层不关心数据来自 mock 还是真实后端（`docs/src/core/data-adapter.js`）
+- **auth**（authentication / authorization）：认证与授权——登录与权限控制
+
+### 内部黑话（真自造词，离开仓库读不懂）
+
+- **L1-L4 阶段号**：工作流「代码化 → 可拖拽化」演进的推进层级号——L1 能力目录化 → L2 支部组合化 → L3 块封装契约 → L4 拖拽编排（L5 块分享复用）；说「做到 L3」即指推进到该层（[ARCHITECTURE_EVOLUTION.md §八](../04_web_design/evolution/ARCHITECTURE_EVOLUTION.md) 8.2 目标分层表；愿景总述见根 [README.md](../../README.md)「开源项目目标」）
+- **T-/D-/P- 编号体系**：全仓前缀编号——T 是任务（CLAUDE.md 乙部条目 / 执行日志条目），D 是决策（`.ctx/logs/` 决策日志，全局递增），P 是待决策问题（CLAUDE.md 丙部）或书记论断索引（[SECRETARY_DIRECTIVES.md](../01_strategy/SECRETARY_DIRECTIVES.md) 附录 P-001…）；看到前缀即知去哪个权威处查（生命周期见 [CLAUDE.md](../../CLAUDE.md) H50，编号规则总表见 [OPERATIONS_GUIDE.md §9](OPERATIONS_GUIDE.md)）
+- **H 编号**：根 [CLAUDE.md](../../CLAUDE.md) 甲部规则条编号（H10~H100，按约束力分热/温/冷三层、10 递增预留）；「H30 一改具改」即引用该文件的第 30 号条款（编号语义对照见 [OPERATIONS_GUIDE.md §9.1](OPERATIONS_GUIDE.md)）
+- **block manifest（旧词）**：工作流块元数据/封装契约的旧称，已改名并独立成文 [WORKFLOW_BLOCK_CONTRACT.md](../04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md)（L3 块封装契约 v1.1 唯一权威）；「manifest」现仅指该契约内的块元数据载体字段，不再代指整份契约
+- **canvas**：可视化拖拽「画布」——把工作流块拖入排列组合的编排界面（L4 愿景形态）；v0 已落地于书记工作台「工作台配置」的清单启停 + 画布拖拽排序（[ARCHITECTURE_EVOLUTION.md §八](../04_web_design/evolution/ARCHITECTURE_EVOLUTION.md) 8.2/8.5）
+- **FLAT_DESIGN（旧词）**：扁平化组织设计权威文档的旧名，已改名 [FLAT_ORGANIZATION_DESIGN.md](../02_institution/FLAT_ORGANIZATION_DESIGN.md)（组织者与深度参与者的扁平化设计 v2.2）——新文档/文件名一律用新名
+- **CLICK_MAP（旧词）**：点击落点规范的旧名，已改名 [CLICK_ROUTING.md](../04_web_design/design-system/CLICK_ROUTING.md)（「哪些地方可点、点了落在哪」的全局规范，书记 2026-08-29 分层原则裁定）
+- **ROLE_KEYS**：代码层角色英文键枚举（`secretary` / `deputy-secretary` / 各委员 / `leader`…）——角色标签、主题色、权限声明的单一事实源，对齐制度层角色键全表（[constants.js](../../docs/src/core/constants.js) 导出，对照 [ROLE_CLASSIFICATION.md §9](../02_institution/ROLE_CLASSIFICATION.md)）
+- **mockDB**：浏览器端「模拟数据库」对象（演示/无后端形态可用）——数据读写统一收敛于 [mock.js](../../docs/src/services/mock.js)（对象定义于 [domain.js](../../docs/src/core/domain.js)，持久化由 `core/mock-adapter.js` 承担），勿绕过该层直接改数据
+- **CLAUDE.md（harness 文件名惯例）**：仓库约定「给 AI 的主指令文件」固定命名为 CLAUDE.md（根目录一份；harness = 规则/工作流骨架，分甲/乙/丙三部）；「CLAUDE.md Hxx / T-xxx」即指该文件的编号条款（[CLAUDE.md](../../CLAUDE.md)）
+
+> **用词纪律（2026-09-05 起）**：新文档/文件名用词先自查本节；工程层文件名禁用内部代号（行业词按行业全称或规范名使用，自造词不得作文件名）。
 
 ---
 
