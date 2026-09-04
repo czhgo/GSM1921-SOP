@@ -245,6 +245,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 □ 10. 反论合规：若本次修改涉及反论（"为什么不是..."），必须按 OPERATIONS_GUIDE.md §11.6 自检清单逐项验证，含§11.7历史范畴检查（被否定项是否仍在使用）和§11.8 AI治理技术特殊性（涉及AI工具使用时需联网补充）
 □ 11. 概念命名合规：若本次修改涉及概念命名或标签创建，必须按 H40.1 概念命名守则自检
 □ 12. 设计原则自检（EP-06 修复，2026-08-30 AI逃逸捕捉第三轮）：若本次修改涉及 UI/工作台/数据流/组件/颜色，必须对照 DESIGN_SYSTEM.md 相关原则的「可验证条件」与 CLICK_ROUTING.md 分层落点自检；改颜色必须过 DESIGN_SYSTEM §7.3 深色自查 9 条
+□ 13. 文档目的达成度自查（2026-09-05 专项⑨）：若本次新建/大改 content 文档，按 PROCESS_GUIDE.md §18.8 五类判据自查——宣称目的真的实现了吗（不是形式主义小点）；新文档验收用「读完能做什么」判据
 ```
 
 ### H40.1 概念命名守则 \[工作表达]
@@ -405,6 +406,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | ⑥ 减负评议     | 2026-08-13 书记发起 | 全仓库减负专项（制度层混入实现层等）                  | REVIEW\_QUEUE 附录⑥ |
 | ⑦ AI逃逸捕捉   | 2026-08-30 书记引入 | 提示词体系逃逸点五维扫描（E1-E5，rule-based 收敛）          | REVIEW\_QUEUE 附录⑦ |
 | ⑧ 功能实现评议  | 2026-08-30 书记引入 | SOP/设计考量 ↔ 代码实现对照核查（描述的功能是否已实现，判例：思想汇报） | REVIEW\_QUEUE 附录⑧ |
+| ⑨ 文件目的达成度 | 2026-09-05 书记发起 | 每篇文件真实现所宣称目的（五类判据 + v1.1 补充，判据正文见 [PROCESS\_GUIDE.md §18.8](content/03_doc_system/PROCESS_GUIDE.md)） | REVIEW\_QUEUE 附录⑨ |
 
 **机制要点**：
 
