@@ -149,7 +149,8 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 ① 描述**当前状态/规则**（非历史过程）；② 内容**可执行引用**（读即用）；③ 变更立即影响后续任务。
 
 - **对照**：知识资产（`content/insights/`，人类阅读、非 AI 活跃上下文）；过程产物（spec/plan/一次性脚本，任务闭环即归档或删除）
-- **当前上下文文件清单**：本文件（甲/乙/丙部）· `.ctx/SNAPSHOT.md`（当前基线）· `.ctx/TIMESTAMPS.md`（文件注册表）· `.ctx/REVIEW_QUEUE.md`（评议队列）· `content/03_doc_system/`（ARCHITECTURE/SSOT_INDEX/OPERATIONS_GUIDE/DOC_MAP/USAGE_POLICY/SERVICE_CATALOG）· `content/04_web_design/evolution/`（ARCHITECTURE_EVOLUTION；ROLE_SSOT_DESIGN 已落地 2026-09-03 → 回 `content/04_web_design/evolution/`，属设计论证档案，不承担现行权威）· `content/05_ai_coding/`（README + 5 分篇 + CHECKLIST：文件操作纪律/测试验证纪律/文档治理与一改具改/上下文管理与防失忆/评议与表达纪律；AI 方法论层，CHECKLIST 2026-09-04 自 04 evolution 迁入）· `server/README.md`（测试/部署）· 项目记忆（跨会话）
+- **当前上下文文件清单**：本文件（甲/乙/丙部）· `.ctx/SNAPSHOT.md`（当前基线）· `.ctx/TIMESTAMPS.md`（文件注册表）· `.ctx/REVIEW_QUEUE.md`（评议队列）· `content/03_doc_system/`（ARCHITECTURE/SSOT_INDEX/OPERATIONS_GUIDE/DOC_MAP/USAGE_POLICY/SERVICE_CATALOG）· `content/04_web_design/`（设计知识防逃逸、按需活跃：DESIGN_SYSTEM/COLOR_SYSTEM/COMPONENT_SPEC/DATA_MODEL/DATA_FLOW/COMMISSIONER 相关在动对应代码/数据时读；evolution/DESIGN_METHODOLOGY.md 设计决策前读）· `content/05_ai_coding/`（AI 协作方法论层：README + 5 分篇——文件操作纪律/测试验证纪律/文档治理与一改具改/上下文管理与防失忆【active】/评议与表达纪律——+ CHECKLIST.md 手册；read_strategy 按 README 标注读）· `server/README.md`（测试/部署）· 项目记忆（跨会话）
+- **失忆闭环指针**：书记裁决落活层闭环规则见 `content/05_ai_coding/上下文管理与防失忆.md`
 - **清理纪律**：过程产物不留仓库——可复用部分（决策/约束/落地记录）整合进上下文文件后删除原文件；空目录同步删除；整合处标注来源与日期（判例：2026-08-30 html-slimming spec 整合入 ARCHITECTURE_EVOLUTION 后删除）
 
 ***
