@@ -107,12 +107,13 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | `content/04_web_design/module/MODULE_UI_DESIGN.md`（已落地 2026-09-03） | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能，已落地、设计论证档案） | docs/src/components/calendar.js |
 | `content/04_web_design/evolution/ROLE_SSOT_DESIGN.md`（已落地 2026-09-03） | [工程师]+[AI] | 权限功能合一收敛设计（角色权限四处分散声明 → 单一事实源 ROLE_KEYS + 派生；S1~S10 已验收达成、设计论证档案） | 权威源 ROLE_CLASSIFICATION.md §9a0/§9b/§9c + 代码 ROLE_KEYS |
 | `content/04_web_design/module/SOP_WEB.md` | [工程师]+[AI] | SOP 系统优化与同步指南 | CLAUDE.md H30.2 |
-| `content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md` | [工程师]+[AI] | 部署落地总览（四条落地路径 + 计算中心对接全案 + 决策矩阵） | DEPLOYMENT_AUTH_MODEL.md、WECHAT_INTEGRATION.md |
+| `content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md` | [工程师]+[AI] | 部署与对外对接总案（系统形态速览 + 四条落地路径与决策矩阵 + 学校/党校对接总叙事与决策矩阵 + 专项细节指针；2026-09-04 按阅读对象重构，原计算中心对接全案并入 §三） | DEPLOYMENT_AUTH_MODEL.md、WECHAT_INTEGRATION.md、PKU_PARTY_INTEGRATION.md |
 | `content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md` | [工程师]+[AI] | 北大党校与智慧党建系统对接设计（党校单向爬取 + 智慧党建双向同步 + 数据映射 + 小程序归位说明 + 待确认清单） | DEPLOYMENT_ROADMAP.md、WECHAT_INTEGRATION.md、DATA_MODEL.md |
 | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md` | [工程师]+[AI] | 架构演进（2026-09-03 精简：组件化落地评估历史结论 + §八 拖拽编排远期愿景；评估承接见 MODULARIZATION_ASSESSMENT） | MODULARIZATION_ASSESSMENT.md、DATA_MODEL.md、DATA_FLOW.md、SOP_WEB.md |
 | `content/04_web_design/evolution/MODULARIZATION_ASSESSMENT.md` | [工程师]+[AI] | 模块化/插件化/开源化 100 分评估（统一扎口范式 + 冗余审计去重队列 P0~P2 + 执行状态；2026-09-03） | ARCHITECTURE_EVOLUTION.md、CLAUDE.md（模块化方向唯一权威） |
 | `content/04_web_design/evolution/BLOCK_MANIFEST_CONTRACT.md` | [工程师]+[AI] | L3 工作流块封装契约 v1.1（块差异化三维度 + 契约总则 + manifest 字段定义；2026-09-03 定稿） | docs/src/workflow/blocks/*、server/test/block-*（契约源） |
-| `content/04_web_design/evolution/L4_CANVAS_DESIGN.md` | [工程师]+[AI] | L4 支部工作地图设计稿 v2.1（平铺模块清单 + 按人双视图，书记 2026-09-03 放行编码） | docs/src/entries/tabs/secretary/work-map-tab.js |
+| `content/04_web_design/evolution/L4_CANVAS_DESIGN.md`（已落地 2026-09-04） | [工程师]+[AI] | L4 支部工作地图设计稿 v2.1（平铺模块清单 + 按人双视图，已落地、设计论证档案；书记 2026-09-03 放行编码） | docs/src/entries/tabs/secretary/work-map-tab.js + workforce-panel.js（server/test/work-map.test.mjs） |
+| `content/04_web_design/evolution/DESIGN_METHODOLOGY.md` | [工程师]+[AI] | 设计理念与方法论承接（设计论证与方法档案：系统/工作台/前端实现方法论与判例、打卡化底线、叙述性人读方法论；2026-09-04 承接自 insights [4] 标签小节，出处注记保留） | DESIGN_SYSTEM.md、COMPONENT_SPEC.md（论证档案去向）；规范权威源 = DESIGN_SYSTEM / COMPONENT_SPEC / COLOR_SYSTEM / DATA_MODEL / DATA_FLOW / SOP_WEB |
 | `content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md` | [工程师]+[AI] | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 书记任命 / P3 上报审批+下发；书记逐段批准） | docs/src/modules/capabilities/party-committee-workspace.js |
 | `content/04_web_design/deploy/DEPLOYMENT_AUTH_MODEL.md` | [工程师]+[AI] | 部署与认证场景模型（5 场景两轴正交 + 侧边栏统一 + 登录门控四层 + 构建注入配置） | docs/src/config/deploy.js、docs/src/components/sidebar.js、docs/src/core/bootstrap.js |
 | `content/04_web_design/deploy/WECHAT_INTEGRATION.md` | [工程师]+[AI] | 微信协同与小程序设计方案（文件流分类+宣传墙/档案分层浏览+过程性汇报集成+小程序路径评估） | DESIGN_SYSTEM.md（原则 10/13）、T-230 |
@@ -134,13 +135,12 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 
 ### 跨多类：经验沉淀（content/insights/）
 
-> insights 跨多类，双文件组织（党建实务=类型 1+2，工程演进=类型 3+4+5）。
+> insights 跨多类经验沉淀（党建实务 = 类型 1+2 保留）；工程方法论（类型 3+4+5）已于 2026-09-04 分流至 04/05/03/02 各权威文件，承接声明见 [content/insights/README.md](../insights/README.md)。
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `content/insights/README.md` | [用户]+[工程师] | 经验沉淀层目录索引（2026-08-24 新增，与其他目录索引对齐） | — |
+| `content/insights/README.md` | [用户]+[工程师] | 经验沉淀层目录索引（含 2026-09-04 工程方法论分流承接声明） | — |
 | `content/insights/党支部管理与实务经验沉淀.md` | [用户]+[AI] | 经验沉淀（组织性/管理事服务人、条块二元结构、三支委角色设计、活动分类体系、专班） | AI（经验提炼） |
-| `content/insights/工程演进与设计方法论.md` | [工程师]+[AI] | 经验沉淀（信息组织、减负与取舍、上下文治理、系统与工作台设计、架构迁移、实操判例、表达与沉淀纪律） | AI（经验提炼） |
 
 ### 跨多类：根目录 + 审计底座 + 实现层
 
@@ -153,6 +153,53 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` | [工程师] | 月度执行日志 | ARCHITECTURE.md、CLAUDE.md |
 | `.ctx/logs/DECISION_LOG.md` | [工程师] | 决策日志 | ARCHITECTURE.md、CLAUDE.md |
 | `docs/src/*` | [工程师] | 代码实现（workflow/services/entries/core/components/styles） | ARCHITECTURE.md |
+
+---
+
+## 三、content 分层治理方法
+
+### 3.1 content/ 梳理方法论（原 insights §5.6 并入）
+
+> **确立日期**：2026-09-04（insights 分流归位）。原 §5.6 写于 content/ 旧目录结构时代（design/、governance/、sop/、insights/ 四目录），现按现行结构转写——design/ ≈ 04_web_design/（网站设计想法）、governance/ ≈ 03_doc_system/（文档系统治理）、sop/ = 02_institution/sop/（制度操作流程）。
+
+大规模文件夹梳理采用「5 维度审查 + 分批执行 + 精简合并」相结合。
+
+**5 维度审查清单**：
+
+1. **层级归位**：文件是否放在与其知识类型匹配的目录（对照 §二 5 类知识类型）
+2. **术语合规**：是否符合 [USAGE_POLICY.md §一](USAGE_POLICY.md) 当前定义，是否含废弃术语
+3. **写作风格**：是否避免生硬排比、程式化格式，是否有人话表述
+4. **版块裁剪**：是否含越界内容——实施路径/时限表/检查清单/表单 → 02_institution/sop/；代码块/伪代码 → 删除（设计文档不是代码仓库）；AI 编码方法论 → 05_ai_coding/；通用方法论沉淀 → insights/
+5. **一致性**：文件间交叉引用是否断裂，是否有 `../../../` 等破损路径
+
+**分批流程**（按依赖顺序，先改上层再改下层，避免下游文件引用尚未稳定的上游路径）：04_web_design/ + 03_doc_system/（设计理念与治理规范）→ 01_strategy/ → 02_institution/（含 sop/ 操作流程）→ insights/ + 05_ai_coding/（经验沉淀与方法论）。
+
+**精简合并策略**：合并时仅合并核心独有章节，重叠章节以链接替代——控制合并后文件长度，避免「合并即变大」；合并前判断文件定位：若文件内部存在主题分裂（如"当前打桩实现"与"未来系统设计"），应拆分为两个独立文件而非强行合并。
+
+**为什么不是"逐文件审查"？** 逐文件审查缺乏全局视角，无法发现跨文件的一致性问题（引用断裂、术语漂移）；5 维度审查以"维度"为单位扫描整个目录，能系统性发现同类问题。
+
+**为什么不是"一次性全部改"？** content/ 各知识类型目录存在依赖——上游路径变更后下游引用都要跟着改；同时全改会使一改具改的搜索范围爆炸、遗漏概率上升。分批执行让每批完成后形成稳定基线，下一批基于稳定基线工作。
+
+**为什么合并时只合并核心独有章节？** 全量合并导致文件膨胀（两个 200 行文件合并为一个 400 行文件，违背"精简"初衷）；重叠章节以链接替代，既消除内容重复，又控制文件长度。
+
+**生效条件**：适用于 content/ 目录下文件数量超过 10 个、或文件平均行数超过 300 行的大规模梳理场景；小规模调整（单文件修订、单个新增）不需要启动此流程。
+
+### 3.2 2026-09-04 insights 分流来源声明（原 insights §7.6 并入）
+
+> **确立日期**：2026-09-04 | **拆分维度**：知识类型（T127 insights 拆分操作经验）
+
+insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分为多个文件（§二「跨多类：经验沉淀」）：
+
+- **文件 1（content/insights/党支部管理与实务经验沉淀.md）**：党支部管理与实务 + 共识性组织智慧——面向"管理事，服务人"叙事
+- **文件 2（content/insights/工程演进与设计方法论.md）**：工程演进 + 设计方法论 + 架构迁移方法论 + 共识性组织智慧——面向 AI-driven 仓库工作流
+
+**2026-09-04 二次分流（工程方法论 → 各知识类型权威文件）**：文件 2 中属仓库级系统治理规范与制度判例的章节，按知识类型归并至既有权威文件——03_doc_system/（PROCESS_GUIDE、USAGE_POLICY、DOC_MAP、SSOT_INDEX、OPERATIONS_GUIDE）与 02_institution/（COMMISSIONER_FRAMEWORK）承接各自同题章节，并入文本均保留出处注「（原 insights §N）」，去重融合、不产生双份；源文件已删除（2026-09-04，承接声明见 [content/insights/README.md](../insights/README.md)）。
+
+**拆分条件**（什么条件下用知识类型拆分）：① 单文件已膨胀到 10+ 章或 1000+ 行——跨主题切换上下文成本已高于拆分成本；② 知识类型存在明确的理论边界——同一类知识的内部细分不构成拆分依据；③ 拆分后每个文件都能独立承载完整的知识子体系。
+
+**拆分粒度的边界**：以"文件能独立承载完整知识子体系"为界——共识性组织智慧横跨"管理事"与"AI-driven"两类工作，须在两文件中都存在；面向同一叙事、强耦合的知识（管理事类；工程演进/设计方法论/架构迁移类）不继续细分——拆分会切断耦合、增加跨文件引用成本。
+
+**操作要点**：拆分前完成知识类型分类 + 母本子本关系梳理；拆分后全仓库一改具改（H30.1），Grep 验证旧文件名零残留、双文件内容无重叠、章节编号连续。
 
 ---
 

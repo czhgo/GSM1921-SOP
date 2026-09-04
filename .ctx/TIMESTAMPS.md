@@ -120,7 +120,7 @@ dynamic_role:
 | content/04_web_design/data/DATA_ARCHITECTURE.md | 2026-08-24 | [工程师]+[AI] | 数据架构设计（T-282 拆分后转为路由薄壳，正文已迁至 DATA_MODEL/DATA_FLOW） |
 | content/04_web_design/module/MODULE_UI_DESIGN.md | 2026-08-09 | [工程师]+[AI] | 模块界面设计 |
 | content/04_web_design/module/SOP_WEB.md | 2026-08-22 | [工程师]+[AI] | SOP-系统联动方法（T-278 无人称修缮） |
-| content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md | 2026-08-24 | [工程师]+[AI] | 部署落地总览（四条路径 + 决策矩阵；2026-08-24 并入 SCHOOL_IT_DEPLOYMENT 全部内容为 §三 计算中心对接全案） |
+| content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md | 2026-09-04 | [工程师]+[AI] | 部署与对外对接总案（2026-09-04 按阅读对象重构为对外总案：系统形态速览/四路径与决策矩阵/学校党校对接总叙事与决策矩阵/专项细节指针+附录；原计算中心对接全案并入 §三；SCHOOL_IT_DEPLOYMENT 2026-08-24 并入历史） |
 | content/04_web_design/deploy/DEPLOYMENT_AUTH_MODEL.md | 2026-08-22 | [工程师]+[AI] | 部署与认证场景模型（5 场景两轴正交 + 侧边栏统一 + 登录门控四层；T-278 无人称修缮） |
 | content/04_web_design/SCHOOL_IT_DEPLOYMENT.md | 2026-08-24 | [工程师]+[AI] | 已并入 DEPLOYMENT_ROADMAP.md §三（计算中心对接全案），2026-08-24 合并删除 |
 | content/04_web_design/README.md | 2026-08-24 | [工程师]+[AI] | 04_web_design 目录索引（2026-08-24 部署类重组更新） |

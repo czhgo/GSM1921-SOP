@@ -274,7 +274,7 @@ ROLE_KEYS（改这里）
 
 ### 9.7 完整文档导航
 
-复用者/维护者的完整阅读路径：本 README → [ARCHITECTURE.md](content/03_doc_system/ARCHITECTURE.md)（核心架构）→ [DEPLOYMENT_ROADMAP.md](content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md)（部署落地全案）→ [server/README.md](server/README.md)（后端与测试）→ [DOC_MAP.md](content/03_doc_system/DOC_MAP.md)（全部文档导航）。
+复用者/维护者的完整阅读路径：本 README → [ARCHITECTURE.md](content/03_doc_system/ARCHITECTURE.md)（核心架构）→ [DEPLOYMENT_ROADMAP.md](content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md)（部署与对外对接总案）→ [server/README.md](server/README.md)（后端与测试）→ [DOC_MAP.md](content/03_doc_system/DOC_MAP.md)（全部文档导航）。
 
 ---
 

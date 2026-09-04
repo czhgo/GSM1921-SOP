@@ -2,7 +2,7 @@
 title: "运行标准与操作规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-27"
+last_updated: "2026-09-04"
 version: "3.2"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/USAGE_POLICY.md, content/02_institution/ROLE_CLASSIFICATION.md, content/03_doc_system/DOC_MAP.md, content/05_ai_coding/README.md, content/03_doc_system/SSOT_INDEX.md, content/03_doc_system/PROCESS_GUIDE.md]
@@ -38,7 +38,7 @@ related_files: [CLAUDE.md, content/03_doc_system/USAGE_POLICY.md, content/02_ins
 | 4  | 网站系统的设计想法            | 网站功能与视觉设计         | content/04\_web\_design/ |
 | 5  | 网站系统的 AI coding 技术方法 | AI 编码的经验教训与陷阱     | content/05\_ai\_coding/  |
 
-> 跨多类的经验沉淀归 content/insights/（双文件：党支部管理与实务经验沉淀.md 涵盖类型 1+2，工程演进与设计方法论.md 涵盖类型 3+4+5）。
+> 跨多类的经验沉淀归 content/insights/（党支部管理与实务经验沉淀.md，党建实务 = 类型 1+2）；原工程方法论文件（类型 3+4+5）已于 2026-09-04 分流至 04/05/03/02 各权威文件（去向见 content/insights/README.md 承接声明）。
 > 根目录 CLAUDE.md 是 Harness（治理性文件），README.md 是项目门面；.ctx/ 是审计底座；docs/ 是代码实现层。
 
 **冲突裁决规则**：
@@ -179,6 +179,8 @@ related_files: [...]
 ---
 ```
 
+> **标准模板出处与禁止自创字段（原 insights §6.7 并入）**：上述字段顺序与内容以 [ARCHITECTURE.md](ARCHITECTURE.md) 为标准模板，新建文件不得自行添加未经批准的字段。为什么"每个文件按需自定义"不成立：字段自定义膨胀导致维护混乱——owner、audience、purpose 等字段曾被随意添加，后因非批准设定而全部删除；统一模板确保字段含义一致、字段顺序一致、新增字段需经审批。ARCHITECTURE.md 作为仓库架构说明文件，天然是 YAML 规范的权威源。为什么"没有模板也行"站不住：没有模板时每个新建文件会参照不同的既有文件，导致字段名和顺序漂移；模板的作用是减少决策成本而非施加限制——新建文件时无需思考"该加哪些字段"，直接套用即可。
+
 **type 枚举值**（仅限以下值，不得自创）：
 
 | type             | 含义             | 典型位置                                                                      |
@@ -261,7 +263,7 @@ related_files: [...]
 ### 7.7 适用范围与分批推进
 
 - 本节规范自确立日起适用于全仓 `content/` 所有 `.md` 文件
-- **执行节奏**：本次（2026-08-09）先落地 insights 两份（《党支部管理与实务经验沉淀.md》《工程演进与设计方法论.md》）；其余目录（01\_strategy / 02\_institution / 03\_doc\_system / 04\_web\_design / 05\_ai\_coding）按批次逐步对齐，不一次性全仓改动
+- **执行节奏**：2026-08-09 落地时先对齐 insights 两文件的 YAML 规范（《党支部管理与实务经验沉淀.md》与工程方法论文件，后者已于 2026-09-04 分流归位，见 content/insights/README.md 承接声明）；其余目录（01\_strategy / 02\_institution / 03\_doc\_system / 04\_web\_design / 05\_ai\_coding）按批次逐步对齐，不一次性全仓改动
 - 历史记录（`.ctx/logs/` 等）按 §3.6 历史记录不可变原则不受本节约束
 
 ## 8. 内容写入与有机性标准
@@ -602,7 +604,7 @@ Guides 文件不使用数字编号，使用**语义化文件名**（大写+下�
 
 **案例参考**：
 
-- R7"为什么'搁置'不是'待决策'？" + R8"为什么'不需要'不是'搁置'？"——涉及 AI 治理技术（丙部状态管理），AI 联网搜索后，书记决策保留并要求表述精进为正例（详见 insights 工程演进与设计方法论.md §2.5 正例表格）
+- R7"为什么'搁置'不是'待决策'？" + R8"为什么'不需要'不是'搁置'？"——涉及 AI 治理技术（丙部状态管理），AI 联网搜索后，书记决策保留并要求表述精进为正例（详见 content/05_ai_coding/上下文管理与防失忆.md「三种决策状态的语义区分」正例表格）
 
 ### 11.9 反论评议维度体系
 

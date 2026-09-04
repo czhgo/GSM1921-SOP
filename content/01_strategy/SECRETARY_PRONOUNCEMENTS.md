@@ -2,9 +2,9 @@
 title: "党支书工作交接文档"
 type: governance
 role: "[用户]+[AI]"
-last_updated: "2026-08-28"
+last_updated: "2026-09-04"
 status: active
-related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/FLAT_DESIGN.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/module/SOP_WEB.md, content/03_doc_system/USAGE_POLICY.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/党支部管理与实务经验沉淀.md, content/insights/工程演进与设计方法论.md]
+related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/FLAT_DESIGN.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/module/SOP_WEB.md, content/03_doc_system/USAGE_POLICY.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/党支部管理与实务经验沉淀.md]
 ---
 
 # 党支书工作交接文档
@@ -220,7 +220,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 组织者有两种情况：自上而下布置的——从支委或党小组组长处承包任务，发挥桥梁作用，对深度参与者进行分工（分派任务），分工需经平等协商；自下而上创建的——必须联系本组党小组组长或组织委员，由党小组组长或组织委员赋权后方可进行任务分派。
 
-> 出处：D-15 + FLAT\_DESIGN.md + insights §4.6 · 子本：FLAT\_DESIGN.md（展开叙事） · 层次：制度设计级
+> 出处：D-15 + FLAT\_DESIGN.md + 05_ai_coding/评议与表达纪律.md（原 insights §4.6） · 子本：FLAT\_DESIGN.md（展开叙事） · 层次：制度设计级
 
 ***
 
@@ -265,7 +265,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > 专班打破了条块格局（见 [P-013](#p-013-专班不限时间不限地点活动之外考察积极分子的载体)）：跨职能又跨小组，不限时间、不限地点，是目标导向的横向切口。
 
-> 出处：2026-08-03 T-199 书记条块认知澄清 + 2026-08-28 书记补录条块合作三句原话 + COMMISSIONER\_FRAMEWORK.md §A.3 · 子本：COMMISSIONER\_FRAMEWORK.md §A.3 + insights §2.1（展开叙事） · 层次：制度设计级
+> 出处：2026-08-03 T-199 书记条块认知澄清 + 2026-08-28 书记补录条块合作三句原话 + COMMISSIONER\_FRAMEWORK.md §A.3 · 子本：COMMISSIONER\_FRAMEWORK.md §A.3 + 05_ai_coding/上下文管理与防失忆.md「减负审查标准」（原 insights §2.1） · 层次：制度设计级
 
 ***
 
@@ -411,8 +411,8 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 - 原P-007（党建与党务——都是「管理事，服务人」的工作）：2026-08-09 迁出至 `content/insights/党支部管理与实务经验沉淀.md` §1.2（同源不同视角）；作为 meta 级论断从汇编删除——区分两分法给成员带来理解压力，全部文档统一使用 T1 官方定义叙述
 - 原P-011：2026-08-09 并入 P-010 并弃用比喻
 - 原P-013（提出需求与招募统筹分离——发起是提出需求，招募是统筹执行）：2026-08-09 并入 P-012 分工的运行保障（提出需求与统筹执行）；2026-08-28 该原话随设计系统内容移出至 COMMISSIONER_FRAMEWORK §F.6
-- 原P-008（视图按需取用原则）：2026-07-20 迁出至 `content/insights/工程演进与设计方法论.md` §4.9（母本：`content/04_web_design/data/DATA_FLOW.md` §三）
-- 原P-021（经验沉淀按需正反两面论）：2026-07-20 迁出至 `content/insights/工程演进与设计方法论.md` §3.7（母本：CLAUDE.md H30.4 规则 2）
+- 原P-008（视图按需取用原则）：2026-07-20 迁出至 insights 经验沉淀（§4.9）；2026-09-04 随工程方法论分流归位至 `content/04_web_design/data/DATA_FLOW.md` §4.7（§4.9 原则 + §6.13 判例同置）
+- 原P-021（经验沉淀按需正反两面论）：2026-07-20 迁出至 insights 经验沉淀（§3.7）；2026-09-04 随工程方法论分流归位至 `content/05_ai_coding/评议与表达纪律.md`（原 §3.7 节，母本：CLAUDE.md H30.4 规则 2）
 - 原P-022（写入型 vs 支撑型角色分类）：2026-08-04 删除——写入门禁机制真实存在，但该分类的角色清单与 auth.js 权限表不符、系统未使用此命名，书记奥卡姆剃刀裁决清除
 - 原P-016（一改具改原则——修改一处必须全仓同步）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（一改具改操作流程母本，权威源在 CLAUDE.md H30.1）；本文件不再展开
 - 原P-017（甲部自省原则——执行失败时先反思制度）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（甲部自省原则，权威源在 CLAUDE.md H30.1）

@@ -2,7 +2,7 @@
 title: "网站设计层索引——网站系统的设计想法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-09-03"
+last_updated: "2026-09-04"
 status: active
 ---
 
@@ -23,11 +23,20 @@ status: active
 | [`data/`](data/) | 数据架构（模型/流） | [DATA_MODEL.md](data/DATA_MODEL.md) · [DATA_FLOW.md](data/DATA_FLOW.md) |
 | [`deploy/`](deploy/) | 部署与集成（路径/认证/外部对接） | [DEPLOYMENT_ROADMAP.md](deploy/DEPLOYMENT_ROADMAP.md) · [DEPLOYMENT_AUTH_MODEL.md](deploy/DEPLOYMENT_AUTH_MODEL.md) · [PKU_PARTY_INTEGRATION.md](deploy/PKU_PARTY_INTEGRATION.md) · [WECHAT_INTEGRATION.md](deploy/WECHAT_INTEGRATION.md) |
 | [`module/`](module/) | 页面/模块设计（UI 与 SOP 联动） | [SOP_WEB.md](module/SOP_WEB.md) · [MODULE_UI_DESIGN.md](module/MODULE_UI_DESIGN.md) · [ABOUT_DESIGN_SYSTEM.md](module/ABOUT_DESIGN_SYSTEM.md) · [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md)（草案） |
-| [`evolution/`](evolution/) | 演进与校验（架构演进/组件化评估/契约与画布/党委两级治理） | [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) · [MODULARIZATION_ASSESSMENT.md](evolution/MODULARIZATION_ASSESSMENT.md) · [BLOCK_MANIFEST_CONTRACT.md](evolution/BLOCK_MANIFEST_CONTRACT.md) · [L4_CANVAS_DESIGN.md](evolution/L4_CANVAS_DESIGN.md) · [PARTY_COMMITTEE_DESIGN.md](evolution/PARTY_COMMITTEE_DESIGN.md) · [ROLE_SSOT_DESIGN.md](evolution/ROLE_SSOT_DESIGN.md) |
+| [`evolution/`](evolution/) | 演进与校验（架构演进/组件化评估/契约与画布/党委两级治理/设计方法论承接） | [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) · [MODULARIZATION_ASSESSMENT.md](evolution/MODULARIZATION_ASSESSMENT.md) · [BLOCK_MANIFEST_CONTRACT.md](evolution/BLOCK_MANIFEST_CONTRACT.md) · [L4_CANVAS_DESIGN.md](evolution/L4_CANVAS_DESIGN.md) · [PARTY_COMMITTEE_DESIGN.md](evolution/PARTY_COMMITTEE_DESIGN.md) · [ROLE_SSOT_DESIGN.md](evolution/ROLE_SSOT_DESIGN.md) · [DESIGN_METHODOLOGY.md](evolution/DESIGN_METHODOLOGY.md) |
 
 ---
 
 ## 权威源速查
+
+### 状态标注规范（active / draft / landed 语义）
+
+本目录设计稿类文件的 frontmatter `status` 与速查表「权威源」列状态词的语义：
+
+- **active**——现行有效：当前承担该主题权威（速查表常标 **唯一权威**），以此为准；
+- **draft**——草案未定稿（速查表标「草案·待实施」）：尚未放行实施，如 [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md)、`deploy/PKU_PARTY_INTEGRATION.md`；
+- **landed / 已落地 YYYY-MM-DD**——设计结论已实现：文档转为**设计论证档案**，不再承担现行权威；现行权威见该行标注（如 MODULE_UI_DESIGN → COMPONENT_SPEC + SOP_WEB、ROLE_SSOT_DESIGN → ROLE_CLASSIFICATION §9a0/§9b/§9c + 代码 `ROLE_KEYS`）或实现代码（如 L4_CANVAS_DESIGN → `work-map-tab.js` + `workforce-panel.js`）；
+- **论证档案**——只承载论证（为什么）、反论（为什么不是）、判例与生效条件，规范正文以对应权威源文件为准。
 
 ### 数据架构（data/）
 
@@ -51,7 +60,7 @@ status: active
 
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
-| [DEPLOYMENT_ROADMAP.md](deploy/DEPLOYMENT_ROADMAP.md) | 部署落地总览（四条落地路径 + 计算中心对接全案 + 决策矩阵） | **唯一权威**——部署落地视图与路径决策（2026-08-24 并入原 SCHOOL_IT_DEPLOYMENT 内容） |
+| [DEPLOYMENT_ROADMAP.md](deploy/DEPLOYMENT_ROADMAP.md) | 部署与对外对接总案（系统形态速览 + 四条落地路径与决策矩阵 + 学校/党校对接总叙事与决策矩阵 + 专项细节指针） | **唯一权威**——部署路径决策与对外对接诉求（2026-08-24 并入原 SCHOOL_IT_DEPLOYMENT 内容；2026-09-04 重构为对外总案） |
 | [DEPLOYMENT_AUTH_MODEL.md](deploy/DEPLOYMENT_AUTH_MODEL.md) | 部署与认证场景模型（5 场景两轴正交 + 侧边栏统一 + 登录门控四层 + 构建注入配置） | **唯一权威**——部署形态 / 登录态 / 门控的统一模型 |
 | [PKU_PARTY_INTEGRATION.md](deploy/PKU_PARTY_INTEGRATION.md) | 北大党校与智慧党建系统对接设计 | **唯一权威**——北大党建系统对接总体设计 |
 | [WECHAT_INTEGRATION.md](deploy/WECHAT_INTEGRATION.md) | 微信协同与小程序设计方案 | **唯一权威**——小程序侧设计 |
@@ -69,6 +78,7 @@ status: active
 
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
+| [DESIGN_METHODOLOGY.md](evolution/DESIGN_METHODOLOGY.md) | 设计理念与方法论承接（设计论证与方法档案：系统/工作台/前端实现方法论与判例、打卡化底线、叙述性人读方法论，2026-09-04 承接自 insights [4] 标签小节） | 论证档案——论证/反论/判例/生效条件在此；规范权威源 = DESIGN_SYSTEM / COMPONENT_SPEC / COLOR_SYSTEM / DATA_MODEL / DATA_FLOW / SOP_WEB |
 | [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) | 架构演进（2026-09-03 精简：评估正文压为 §二 历史结论段，保留 §八 工作流块拖拽编排远期愿景；评估承接见 MODULARIZATION_ASSESSMENT） | 历史探索与愿景定位（现行方向判断依据 = MODULARIZATION_ASSESSMENT） |
 | [MODULARIZATION_ASSESSMENT.md](evolution/MODULARIZATION_ASSESSMENT.md) | 模块化/插件化/开源化 100 分评估（统一扎口范式 + 冗余审计去重队列 P0~P2 + 执行状态） | **唯一权威**——模块化方向与去重优先级（2026-09-03） |
 | [BLOCK_MANIFEST_CONTRACT.md](evolution/BLOCK_MANIFEST_CONTRACT.md) | L3 工作流块封装契约 v1.1（块差异化三维度 + 契约总则 + manifest 字段定义） | **唯一权威**——工作流块封装契约（2026-09-03 定稿） |

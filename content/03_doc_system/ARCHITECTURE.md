@@ -2,7 +2,7 @@
 title: "系统架构说明"
 type: architecture
 role: "[工程师]+[AI]"
-last_updated: "2026-09-03"
+last_updated: "2026-09-04"
 version: "7.3"
 status: active
 related_files: [CLAUDE.md, content/04_web_design/]
@@ -173,7 +173,7 @@ Layer 7: 审计参考层（审计与参考）
 │   │   ├── design-system/             [工程师]+[AI] 全站通用规范（DESIGN_SYSTEM / COLOR_SYSTEM / COMPONENT_SPEC / CLICK_MAP）
 │   │   ├── module/                    [工程师]+[AI] 页面与模块设计（SOP_WEB / MODULE_UI_DESIGN / ABOUT_DESIGN_SYSTEM / AGENDA_AND_REFERENCE_DESIGN）
 │   │   ├── deploy/                    [工程师]+[AI] 部署与集成设计（DEPLOYMENT_ROADMAP / DEPLOYMENT_AUTH_MODEL / WECHAT_INTEGRATION / PKU_PARTY_INTEGRATION）
-│   │   ├── evolution/                 [工程师]+[AI] 演进、契约与评估（ARCHITECTURE_EVOLUTION / MODULARIZATION_ASSESSMENT / BLOCK_MANIFEST_CONTRACT / L4_CANVAS_DESIGN / PARTY_COMMITTEE_DESIGN / ROLE_SSOT_DESIGN）
+│   │   ├── evolution/                 [工程师]+[AI] 演进、契约与评估（ARCHITECTURE_EVOLUTION / MODULARIZATION_ASSESSMENT / BLOCK_MANIFEST_CONTRACT / L4_CANVAS_DESIGN / PARTY_COMMITTEE_DESIGN / ROLE_SSOT_DESIGN / DESIGN_METHODOLOGY）
 │   │   └── README.md                 [工程师]+[AI] 网站设计层目录索引（逐文件一句话说明）
 │   ├── 05_ai_coding/                 [工程师]+[AI] AI 协作方法论层（唯一 AI 协作方法论层：README + 5 分篇 + CHECKLIST）
 │   │   ├── README.md                 [工程师]+[AI] AI 协作方法论层目录索引（层索引表 + 分流来源声明）
@@ -183,9 +183,9 @@ Layer 7: 审计参考层（审计与参考）
 │   │   ├── 上下文管理与防失忆.md       [工程师]+[AI] 上下文管理与防失忆分篇（原 §4/§8/§9；read_strategy: active）
 │   │   ├── 评议与表达纪律.md          [工程师]+[AI] 评议与表达纪律分篇（原 §5）
 │   │   └── CHECKLIST.md              [工程师]+[AI] 数据同源一致性校验手册（工程质检纪律，2026-09-04 自 04 evolution 迁入）
-│   ├── insights/                     [用户]+[AI] 经验沉淀（跨多类知识类型）
-│   │   ├── 党支部管理与实务经验沉淀.md [用户]+[AI] 按 5 类知识类型组织的经验沉淀
-│   │   └── 工程演进与设计方法论.md     [用户]+[AI] 工程方法论沉淀
+│   ├── insights/                     [用户]+[AI] 经验沉淀（党建实务保留）
+│   │   ├── README.md                 [用户]+[工程师] 经验沉淀层目录索引（含 2026-09-04 工程方法论分流承接声明）
+│   │   └── 党支部管理与实务经验沉淀.md [用户]+[AI] 按 5 类知识类型组织的经验沉淀（党建实务）
 │   └── README.md                     [用户]+[AI] 内容中心索引
 │
 ├── .ctx/                              [AI] 运行时上下文（审计底座）

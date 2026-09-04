@@ -3,7 +3,7 @@ title: "数据模型设计"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: "2026-09-03"
+last_updated: "2026-09-04"
 status: active
 split_from: "原数据架构总文件（2026-08-24 T-282 拆分；路由文件 2026-09-03 精简删除）"
 related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/data/DATA_FLOW.md]
@@ -51,6 +51,8 @@ related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_instit
 | isJoint | boolean | 否 | `false` | 共建性质（共建开展为 true，2026-08-07） |
 | brandName | string | 否 | -- | 品牌族名称（如"五四精神传承"/"人生回望录"），书记认定 isBrand 后由写入表单"延续已有品牌/创建新品牌"补录（2026-08-07） |
 | agenda | `Array<{item: string, host?: string}>` | 否 | `[]` | 会议议程（三会一课专用：逐条议题 + 可选主持人）。创建时经写入表单"会议议程"区块填写；会后可在活动详情修改（T-283 新增，2026-08-27） |
+
+> **设计注记（活动写入表单必有地点字段，承接原 insights §6.6，2026-09-04 分流）**：活动写入表单不得只含日期而没有地点——"什么时候"和"在哪里"是参与者最基本的信息需求，缺少任何一个，表单就是不完整的（原判例：活动写入表单最初只有日期没有地点，后补齐地点输入）。适用：任何活动写入/编辑表单设计，与字段表 `location` 行（含线上会议链接场景）配套阅读。
 
 **活动存储状态：**
 
