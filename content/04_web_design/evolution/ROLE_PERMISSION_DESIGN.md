@@ -1,4 +1,4 @@
-# 权限功能合一收敛设计（ROLE_SSOT）
+# 权限功能合一收敛设计
 
 > **已落地 2026-09-03**：本设计结论已实现（权威源：content/02_institution/ROLE_CLASSIFICATION.md §9a0 角色键全表 / §9b·§9c 权限矩阵 + 代码 docs/src/core/constants.js ROLE_KEYS）；本文档继续承担设计论证档案，不再承担现行权威。
 

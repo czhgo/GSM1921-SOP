@@ -5,14 +5,14 @@ role: "[工程师]+[AI]"
 created: 2026-08-22
 last_updated: "2026-09-03"
 status: active
-related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEB.md, DEPLOYMENT_ROADMAP.md, ../03_doc_system/ARCHITECTURE.md, ../05_ai_coding/README.md]
+related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../03_doc_system/ARCHITECTURE.md, ../05_ai_coding/README.md]
 ---
 
 # 架构演进——组件化落地评估与轻量插件化设计
 
 > **定位**：一次关于系统架构的探索——「高度组件化、高度可复用」的目标落地到什么程度？距离「一切皆插件」的灵活性还有多远？上线后的多轮迭代靠什么机制承载？本文档只表达探索与选择，不代表最终结论，更不代表方案完备。
 > **受众**：[工程师]+[AI]（架构维护者、开发者）+ 愿意给出架构反馈的外部评审者
-> **关联**：[DATA_MODEL.md](../data/DATA_MODEL.md)（数据模型权威源）+ [DATA_FLOW.md](../data/DATA_FLOW.md)（数据流权威源）、[SOP_WEB.md](../module/SOP_WEB.md)（SOP-系统联动方法论）、[DEPLOYMENT_ROADMAP.md](../deploy/DEPLOYMENT_ROADMAP.md)（部署落地路径）、[ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)（核心架构说明）、[MODULARIZATION_ASSESSMENT.md](MODULARIZATION_ASSESSMENT.md)（2026-09-03 模块化/插件化/开源化评估——评估结论的现行承接）。
+> **关联**：[DATA_MODEL.md](../data/DATA_MODEL.md)（数据模型权威源）+ [DATA_FLOW.md](../data/DATA_FLOW.md)（数据流权威源）、[SOP_WEBSITE_GUIDE.md](../module/SOP_WEBSITE_GUIDE.md)（SOP-系统联动方法论）、[DEPLOYMENT_GUIDE.md](../deploy/DEPLOYMENT_GUIDE.md)（部署落地路径）、[ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)（核心架构说明）、[MODULARIZATION_ASSESSMENT.md](MODULARIZATION_ASSESSMENT.md)（2026-09-03 模块化/插件化/开源化评估——评估结论的现行承接）。
 
 ---
 
@@ -37,7 +37,7 @@ related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEB.md, DEPLOYMENT_ROADMAP.md, 
 - **演进路径 M1~M8 已全部落地（2026-08-22 → 2026-08-30）**：M1 注册表骨架（register/get/mount 三原语 + 活动日历首例）→ M2 工作台 tab 收敛（组长工作台样板先行）→ M3 数据源与工作流场景注册化（6 工作台全薄壳化）→ M4 迭代机制落地（unregister/resolveDeps、版本统一 20260823b）→ M5 入口/HTML 瘦身（公共脚本抽取 + main-entry 拆分）→ M6 组件能力化（components.js 注册层）→ M7 环境/角色开关消费点启用 → M8 代码减负（todo-tab/workspace-shell 抽壳、死代码清理，**净减 ~930 行**）。
 - **书记铁律（2026-08-30，M8）**：「模块化只见代码增多，少见代码减少」——每个 M 阶段必须伴随净代码减负或持平，禁止纯横向拆分堆叠（防屎山代码）。
 - **迭代机制设计（一句话结论）**：功能开关 = 能力清单按环境/角色过滤（`getCapabilities({ scope, role, env })`）；版本化 = 注册表整体版本替代各处 `?v=` 手改；灰度与回滚 = 能力按 scope 分批开放、问题能力单独注销即回滚。
-- **与既有文档的关系（原 §七，维持不变）**：DATA_MODEL/DATA_FLOW（注册化不动数据模型）、SOP_WEB（场景注册化是 SOP-系统联动方法论的延伸）、DEPLOYMENT_ROADMAP（M3/M4 依赖后端/小程序路径的环境配置）、ARCHITECTURE.md（注册表落地后回写为其中一节）。
+- **与既有文档的关系（原 §七，维持不变）**：DATA_MODEL/DATA_FLOW（注册化不动数据模型）、SOP_WEBSITE_GUIDE（场景注册化是 SOP-系统联动方法论的延伸）、DEPLOYMENT_GUIDE（M3/M4 依赖后端/小程序路径的环境配置）、ARCHITECTURE.md（注册表落地后回写为其中一节）。
 
 ---
 
@@ -47,7 +47,7 @@ related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEB.md, DEPLOYMENT_ROADMAP.md, 
 
 ### 8.1 为什么是这个方向
 
-本系统的核心资产不是界面，而是**一套把支部工作流（SOP）代码化的方法论**：决策树引导写入、WorkflowEngine 纯数据驱动、SOP-系统双向映射（SOP_WEB）。三者已经证明「流程可被描述、可被机器执行」。在此基础上，真正的复用瓶颈不再是"能不能写"而是"支部/用户能否自己组合"：
+本系统的核心资产不是界面，而是**一套把支部工作流（SOP）代码化的方法论**：决策树引导写入、WorkflowEngine 纯数据驱动、SOP-系统双向映射（SOP_WEBSITE_GUIDE）。三者已经证明「流程可被描述、可被机器执行」。在此基础上，真正的复用瓶颈不再是"能不能写"而是"支部/用户能否自己组合"：
 
 - 不同支部流程不同（本科 vs 硕博、常规 vs 专项），`enabledModules` 勾选已能排列组合（见 [PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md) §2.5）；
 - 能力注册表（见 §二 历史结论，M1~M8 已落地）已经为每个能力单元提供**目录**；
@@ -63,7 +63,7 @@ related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEB.md, DEPLOYMENT_ROADMAP.md, 
 | L4 拖拽编排 | 画布拖拽块 → 连线定顺序/条件 → 导出为版本化工作流定义 JSON（可预览、可回退） | 远期愿景 |
 | L5 块市场/分享 | 编排好的工作流块可命名、可导出、可复用于其他支部（开源社区的场景库） | 远期愿景 |
 
-> **注（2026-09-03 后续落地）**：L3 契约与 L4 画布/地图设计已独立成文——[BLOCK_MANIFEST_CONTRACT.md](BLOCK_MANIFEST_CONTRACT.md)（L3 块封装契约 v1.1 定稿）、[L4_CANVAS_DESIGN.md](L4_CANVAS_DESIGN.md)（L4 支部工作地图设计稿 v2.1，书记放行编码）；本表与 §8.5 的草案状态以上述两文件为准。
+> **注（2026-09-03 后续落地）**：L3 契约与 L4 画布/地图设计已独立成文——[WORKFLOW_BLOCK_CONTRACT.md](WORKFLOW_BLOCK_CONTRACT.md)（L3 块封装契约 v1.1 定稿）、[BRANCH_WORK_MAP.md](BRANCH_WORK_MAP.md)（L4 支部工作地图设计稿 v2.1，书记放行编码）；本表与 §8.5 的草案状态以上述两文件为准。
 
 ### 8.3 落地时的架构锚点（不新造核心）
 

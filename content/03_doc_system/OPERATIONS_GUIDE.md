@@ -96,7 +96,7 @@ related_files: [CLAUDE.md, content/03_doc_system/USAGE_POLICY.md, content/02_ins
 
 ### 1.4 一致性检查规范
 
-> 本节为仓库 7 套分层体系的一致性检查权威源。历史冲突记录见 [文档治理与一改具改.md（分层体系冲突记录）](../05_ai_coding/文档治理与一改具改.md)，定期扫描任务见 [§17.2 Q4](#172-周期性任务清单)。
+> 本节为仓库 7 套分层体系的一致性检查权威源。历史冲突记录见 [DOCUMENT_GOVERNANCE.md（分层体系冲突记录）](../05_ai_coding/DOCUMENT_GOVERNANCE.md)，定期扫描任务见 [§17.2 Q4](#172-周期性任务清单)。
 
 **命名前缀**：知识类型（1-5）/ T（术语权威层级）/ 热温冷（CLAUDE.md 三层）/ 用户·工程师·AI（文件角色）——每套分层体系有专属前缀，不得混用。注：原"4 层文档层次（战略/制度/方法/实操）"已于 D-262 决策降级为局部维度，不再作为全仓库命名前缀。
 
@@ -346,7 +346,7 @@ H10.1.1 ← 三级章节（细则，仅在必要时使用）
 | H90 | 外部权威源索引 | 外部权威源导航表（按需参考层）                                 |
 | H100 | 项目产出声明  | 系统最最重要的产出/逻辑缺漏与书记亲补/引用流程                       |
 
-> **理论基石**已外移到 [SECRETARY\_PRONOUNCEMENTS.md](../01_strategy/SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档，17 条论断，P-002/P-003 为元命题）；**运行标准**即本文件（OPERATIONS\_GUIDE.md）；**日志规范**见本文件 §10；**已知陷阱/纪律**见 [05 AI 协作方法论层 README](../05_ai_coding/README.md)（5 分篇索引）。
+> **理论基石**已外移到 [SECRETARY\_PRONOUNCEMENTS.md](../01_strategy/SECRETARY_DIRECTIVES.md)（项目顶级战略文档，17 条论断，P-002/P-003 为元命题）；**运行标准**即本文件（OPERATIONS\_GUIDE.md）；**日志规范**见本文件 §10；**已知陷阱/纪律**见 [05 AI 协作方法论层 README](../05_ai_coding/README.md)（5 分篇索引）。
 
 ### 9.2 乙部任务编号体系
 
@@ -474,7 +474,7 @@ Guides 文件不使用数字编号，使用**语义化文件名**（大写+下�
 | T编号 | 日期 | 标题 | 关键变更文件 | 沉淀 |
 |-------|------|------|-------------|------|
 | T37 | 07-01 | 确立战略路线 | MANAGE_SERVE.md | ✅ |
-| T42 | 07-02 | SECRETARY_PRONOUNCEMENTS 重构 | — | — |
+| T42 | 07-02 | SECRETARY_DIRECTIVES 重构 | — | — |
 ```
 
 **沉淀列格式**（条件触发三档）：
@@ -604,7 +604,7 @@ Guides 文件不使用数字编号，使用**语义化文件名**（大写+下�
 
 **案例参考**：
 
-- R7"为什么'搁置'不是'待决策'？" + R8"为什么'不需要'不是'搁置'？"——涉及 AI 治理技术（丙部状态管理），AI 联网搜索后，书记决策保留并要求表述精进为正例（详见 content/05_ai_coding/上下文管理与防失忆.md「三种决策状态的语义区分」正例表格）
+- R7"为什么'搁置'不是'待决策'？" + R8"为什么'不需要'不是'搁置'？"——涉及 AI 治理技术（丙部状态管理），AI 联网搜索后，书记决策保留并要求表述精进为正例（详见 content/05_ai_coding/CONTEXT_MANAGEMENT.md「三种决策状态的语义区分」正例表格）
 
 ### 11.9 反论评议维度体系
 
@@ -637,7 +637,7 @@ Guides 文件不使用数字编号，使用**语义化文件名**（大写+下�
 
 ### 12.1 适用范围
 
-本规范适用于 `content/` 目录下所有 `.md` 文件的命名。根目录文件（`CLAUDE.md`、`ARCHITECTURE.md`、`SSOT_INDEX.md`、`SECRETARY_PRONOUNCEMENTS.md`、`README.md`）和 `.ctx/` 下日志文件遵循既有约定，不强制适用本规范。
+本规范适用于 `content/` 目录下所有 `.md` 文件的命名。根目录文件（`CLAUDE.md`、`ARCHITECTURE.md`、`SSOT_INDEX.md`、`SECRETARY_DIRECTIVES.md`、`README.md`）和 `.ctx/` 下日志文件遵循既有约定，不强制适用本规范。
 
 ### 12.2 命名标准
 
@@ -682,7 +682,7 @@ Guides 文件不使用数字编号，使用**语义化文件名**（大写+下�
 
 本规范适用于面向用户的阐述性文档，包括：
 
-- `SECRETARY_PRONOUNCEMENTS.md`（党支书工作交接文档，位于 content/01\_strategy/）
+- `SECRETARY_DIRECTIVES.md`（党支书工作交接文档，位于 content/01\_strategy/）
 - `content/01_strategy/*.md`（战略路线文档）
 - `content/02_institution/sop/*.md`（制度母本与工作流程）
 - `content/insights/*.md`（经验沉淀文档）

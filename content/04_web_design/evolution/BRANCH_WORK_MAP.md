@@ -1,14 +1,14 @@
 ---
-title: "L4 支部工作地图设计稿 v2.1（平铺模块 + 按人双视图）"
+title: "支部工作地图设计稿（平铺模块 + 按人双视图）"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-03
 last_updated: "2026-09-04"
 status: landed
-related_files: [BLOCK_MANIFEST_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, MODULARIZATION_ASSESSMENT.md]
+related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, MODULARIZATION_ASSESSMENT.md]
 ---
 
-# L4 支部工作地图设计稿 v2.1
+# 支部工作地图设计稿（平铺模块 + 按人双视图）
 
 > **已落地 2026-09-04**：本设计已实现（代码：docs/src/entries/tabs/secretary/work-map-tab.js + workforce-panel.js；测试：server/test/work-map.test.mjs 绿）；本文档继续承担设计论证档案。
 

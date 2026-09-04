@@ -41,7 +41,7 @@ export function createApp({ dbPath = ':memory:' } = {}) {
   app.use('/api/v1', createReportRouter(app.locals.db));
 
   // 部署形态注入：server 模式下前端 deploy.js 应标记为 'server'（有后端，无「关于」门面）
-  // 依据 content/04_web_design/deploy/DEPLOYMENT_AUTH_MODEL.md §六（构建时注入，非运行时探测）
+  // 依据 content/04_web_design/deploy/AUTHENTICATION_MODEL.md §六（构建时注入，非运行时探测）
   app.get('/src/config/deploy.js', (req, res) => {
     res.type('application/javascript').send('export const DEPLOY_MODE = "server";\n');
   });

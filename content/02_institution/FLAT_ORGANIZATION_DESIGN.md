@@ -5,7 +5,7 @@ role: "[工程师]+[AI]"
 last_updated: "2026-08-16"
 version: "2.2"
 status: active
-related_files: [CLAUDE.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/insights/党支部管理与实务经验沉淀.md, content/01_strategy/SECRETARY_PRONOUNCEMENTS.md]
+related_files: [CLAUDE.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/insights/党支部管理与实务经验沉淀.md, content/01_strategy/SECRETARY_DIRECTIVES.md]
 ---
 
 # 组织者与深度参与者的扁平化设计
@@ -18,7 +18,7 @@ related_files: [CLAUDE.md, content/04_web_design/data/DATA_FLOW.md, content/02_i
 
 ## 一、核心定义
 
-- **核心定义**：组织者和深度参与者是为了建设【活动】或【专班】、推动支部工作更加扁平化的设计。活动与专班是并列概念，都需要人手（专班与活动并列关系定义见 [COMMISSIONER_FRAMEWORK.md](./COMMISSIONER_FRAMEWORK.md) §A.4，本处不重复展开）
+- **核心定义**：组织者和深度参与者是为了建设【活动】或【专班】、推动支部工作更加扁平化的设计。活动与专班是并列概念，都需要人手（专班与活动并列关系定义见 [COMMISSIONER_DUTY_FRAMEWORK.md](./COMMISSIONER_DUTY_FRAMEWORK.md) §A.4，本处不重复展开）
 - **扁平化含义**：组织者和深度参与者之间没有上下级关系，只是分工内容不同。身份不是最重要的，年级和政治面貌不决定是否胜任
 
 ---

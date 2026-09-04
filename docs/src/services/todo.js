@@ -568,7 +568,7 @@ export const LifecycleTodoDeriver = {
 
 // 待办聚合键 'visitor' 与角色键 participant 的映射（S9 文档登记，书记 2026-08-30 裁定：不改代码）
 // 语义：'visitor' 是「普通参与者工作台（participant.html）」的待办聚合键，对应角色 participant；
-// 与「访客（未登录）」无关。设计文档 ROLE_SSOT_DESIGN.md S9 已登记映射，保留 'visitor' 键不动。
+// 与「访客（未登录）」无关。设计文档 ROLE_PERMISSION_DESIGN.md S9 已登记映射，保留 'visitor' 键不动。
 export const VisitorTodoDeriver = {
   /**
    * 派生全部 visitor 待办（通知待阅读 + 活动待参与）

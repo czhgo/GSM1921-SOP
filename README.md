@@ -83,8 +83,8 @@ npm start
 
 | 角色 | 阅读顺序 |
 |------|---------|
-| **普通成员** | 本 README → [党支书工作交接文档](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（理解支部为什么这样运作）→ [常见工作场景快速指南](content/02_institution/sop/常见工作场景快速指南.md) → 系统工作台 |
-| **支委 / 党小组组长** | 本 README → [党支书工作交接文档](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) → [对应角色的工作流程指南](content/02_institution/sop/INDEX.md) → 系统对应工作台 → [ARCHITECTURE.md](content/03_doc_system/ARCHITECTURE.md)（如需了解架构） |
+| **普通成员** | 本 README → [党支书工作交接文档](content/01_strategy/SECRETARY_DIRECTIVES.md)（理解支部为什么这样运作）→ [常见工作场景快速指南](content/02_institution/sop/常见工作场景快速指南.md) → 系统工作台 |
+| **支委 / 党小组组长** | 本 README → [党支书工作交接文档](content/01_strategy/SECRETARY_DIRECTIVES.md) → [对应角色的工作流程指南](content/02_institution/sop/INDEX.md) → 系统对应工作台 → [ARCHITECTURE.md](content/03_doc_system/ARCHITECTURE.md)（如需了解架构） |
 | **系统维护者** | 本 README → [ARCHITECTURE.md](content/03_doc_system/ARCHITECTURE.md)（核心架构说明）→ [CLAUDE.md](CLAUDE.md)（项目治理文件）→ [server/README.md](server/README.md)（后端服务说明）→ [OPERATIONS_GUIDE.md](content/03_doc_system/OPERATIONS_GUIDE.md) → [DOC_MAP.md](content/03_doc_system/DOC_MAP.md) → [SSOT_INDEX.md](content/03_doc_system/SSOT_INDEX.md)（母本子本注册表） |
 
 如果你带着具体问题而来，下表帮你快速定位权威文档。
@@ -94,7 +94,7 @@ npm start
 | 项目是什么 | [README.md](README.md)（本文件） |
 | 架构是什么 | [ARCHITECTURE.md](content/03_doc_system/ARCHITECTURE.md) — 分层模型、数据模型、变更流水线 |
 | 制度在哪 | [content/02_institution/sop/INDEX.md](content/02_institution/sop/INDEX.md) — 各角色工作流程指南导航 |
-| 理论在哪 | [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) + [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) + [content/insights/](content/insights/) |
+| 理论在哪 | [SECRETARY_DIRECTIVES.md](content/01_strategy/SECRETARY_DIRECTIVES.md) + [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) + [content/insights/](content/insights/) |
 | 工作流是什么 | [CLAUDE.md](CLAUDE.md) — 项目最高治理文件，定义工作方式、核心原则和运行标准 |
 | 系统怎么跑起来 | [server/README.md](server/README.md) — 安装、启动、测试与部署对接 |
 | 系统怎么验证 | `cd server && npm test` — 28 个测试文件（E2E/单元/审计），详见 [server/README.md](server/README.md) 测试说明 |
@@ -131,7 +131,7 @@ npm start
 
 系统最重要产出是"从入党申请人到正式党员"的完整叙事，而非某个功能模块。各种发展轨迹的同学都能加入支部，通过组织获得各自的成长；支部的各项工作都是"管理事，服务人"的工作，任何一名党员（包括支委会在内）在管理事和服务人两方面都各有职责与成长空间。
 
-→ [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)（完整叙事）+ [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（P-002/P-003 元命题）
+→ [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)（完整叙事）+ [SECRETARY_DIRECTIVES.md](content/01_strategy/SECRETARY_DIRECTIVES.md)（P-002/P-003 元命题）
 
 ### 元原则 · 最小三成本
 
@@ -149,7 +149,7 @@ npm start
 
 谁能看到谁，由赋权链（执行委托）计算得出，不靠人工判断——**信息可见性 = 职责空间的投影**。看 ≠ 做：可见性只决定"能看到什么维度"，不授予任何操作权；上级对下级仅"了解进展"与答复，无编辑他人待办入口。这是分工的运行保障中的做与看。
 
-→ [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（P-012）+ [DESIGN_SYSTEM.md](content/04_web_design/design-system/DESIGN_SYSTEM.md) §一 原则 9
+→ [SECRETARY_DIRECTIVES.md](content/01_strategy/SECRETARY_DIRECTIVES.md)（P-012）+ [DESIGN_SYSTEM.md](content/04_web_design/design-system/DESIGN_SYSTEM.md) §一 原则 9
 
 ### 工作台与「党建」功能分区
 
@@ -161,23 +161,23 @@ npm start
 
 跨小组跨职能抽调人手、不限时间不限地点、集中推进某项工作的组织形式。专班是活动之外考察积极分子的载体，赋权是运行支撑机制，工作量记录是运行保障机制；发起是提出需求，招募是统筹执行，两者分离。
 
-→ [COMMISSIONER_FRAMEWORK.md](content/02_institution/COMMISSIONER_FRAMEWORK.md) §A
+→ [COMMISSIONER_DUTY_FRAMEWORK.md](content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) §A
 
 ### 扁平化设计
 
 组织者和深度参与者之间无上下级，只是分工不同；组织者的分工记录职责是做好分工记录，深度参与者承担具体分工。扁平化不等于没有"程序"——分工、流程、记录、复盘依然有规律。
 
-→ [FLAT_DESIGN.md](content/02_institution/FLAT_DESIGN.md)
+→ [FLAT_ORGANIZATION_DESIGN.md](content/02_institution/FLAT_ORGANIZATION_DESIGN.md)
 
 ### 条块二元
 
 "条"与"块"是理解权责关系的方式：从职能视角看，三委员按专业职能分工（条）；从单元视角看，党小组组长按小组划分（块）。谁做什么，由岗位职责定义决定，不由条块推出；书记是条块间的协调节点。
 
-→ [SECRETARY_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（P-011）
+→ [SECRETARY_DIRECTIVES.md](content/01_strategy/SECRETARY_DIRECTIVES.md)（P-011）
 
 这些理念构成每一条制度设计背后的理由，而非抽象的口号。理解了它们，才能理解为什么系统是这样组织的，也才能在场景变化时判断原则在什么条件下成立。
 
-→ 完整的理论阐述见 [党支书工作交接文档](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（17 条论断，按「价值目标 → 组织机制 → 人的成长 → 组织再生产」四层组织，其中 P-002/P-003/P-017 为元命题）和 [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)
+→ 完整的理论阐述见 [党支书工作交接文档](content/01_strategy/SECRETARY_DIRECTIVES.md)（17 条论断，按「价值目标 → 组织机制 → 人的成长 → 组织再生产」四层组织，其中 P-002/P-003/P-017 为元命题）和 [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)
 
 ---
 
@@ -199,7 +199,7 @@ npm start
 
 - **公网演示**：GitHub Pages 静态托管 `docs/`（开发演示账号模式，无需后端）
 - **本地完整运行**：`cd server && npm start`，访问 `http://127.0.0.1:3000/login.html`，浏览器全链路工作（登录 → API → 数据持久化）
-- **北大计算中心对接**：`docs/` 与 `server/` 部署到同一 Web 根目录，统一反向代理转发 `/api/v1/`，见 [server/README.md](server/README.md) 与 [DEPLOYMENT_ROADMAP.md](content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md) §三（计算中心对接全案）
+- **北大计算中心对接**：`docs/` 与 `server/` 部署到同一 Web 根目录，统一反向代理转发 `/api/v1/`，见 [server/README.md](server/README.md) 与 [DEPLOYMENT_GUIDE.md](content/04_web_design/deploy/DEPLOYMENT_GUIDE.md) §三（计算中心对接全案）
 
 ---
 
@@ -224,7 +224,7 @@ npm start
 |------|--------|------|
 | **A · 纯静态** | `docs/` 直接部署到任意静态托管（GitHub Pages/Netlify/Nginx），无需后端 | 体验、演示、轻量使用（数据存浏览器本地，刷新丢失） |
 | **B · 自托管完整版** | `cd server && npm install && npm start`（Express + SQLite 单文件），页面与 API 同源 | 正式使用：账号登录、数据持久化 |
-| **C · 对接自有后端** | 前端数据层一个配置切到 `api` 模式，UI 零改动 | 已有后端/计算中心托管（见 [DEPLOYMENT_ROADMAP.md](content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md)） |
+| **C · 对接自有后端** | 前端数据层一个配置切到 `api` 模式，UI 零改动 | 已有后端/计算中心托管（见 [DEPLOYMENT_GUIDE.md](content/04_web_design/deploy/DEPLOYMENT_GUIDE.md)） |
 
 部署形态在 `docs/src/config/deploy.js` 一个常量切换（`static` / `server`），页面按形态自动调整。
 
@@ -243,7 +243,7 @@ ROLE_KEYS（改这里）
   → 主题色/角色色（谁用什么颜色）
 ```
 
-改角色/加角色：只改 `ROLE_KEYS` + 对应工作台能力声明，其余自动跟随（收敛设计档案见 [ROLE_SSOT_DESIGN.md](content/04_web_design/evolution/ROLE_SSOT_DESIGN.md)，已落地 2026-09-03，作为设计论证档案保留）。
+改角色/加角色：只改 `ROLE_KEYS` + 对应工作台能力声明，其余自动跟随（收敛设计档案见 [ROLE_PERMISSION_DESIGN.md](content/04_web_design/evolution/ROLE_PERMISSION_DESIGN.md)，已落地 2026-09-03，作为设计论证档案保留）。
 
 ### 9.4 自定义主题色与术语
 
@@ -269,12 +269,12 @@ ROLE_KEYS（改这里）
 | 母本优先 | 制度文本（`content/02_institution/sop/`）是代码逻辑的母本——先改制度，再同步代码 |
 | 测试 | `cd server && npm test`——28 个测试文件（E2E/单元/审计），覆盖登录链路/死链/数据完整性/模块加载 |
 | 版本管理 | `docs/scripts/bump-version.mjs` 一键同步全站 `?v=` 版本戳（避免浏览器缓存分裂） |
-| 设计规范 | 改 UI 前必读 [DESIGN_SYSTEM.md](content/04_web_design/design-system/DESIGN_SYSTEM.md)（含可验证条件自检）；可点击落点见 [CLICK_MAP.md](content/04_web_design/design-system/CLICK_MAP.md) |
+| 设计规范 | 改 UI 前必读 [DESIGN_SYSTEM.md](content/04_web_design/design-system/DESIGN_SYSTEM.md)（含可验证条件自检）；可点击落点见 [CLICK_ROUTING.md](content/04_web_design/design-system/CLICK_ROUTING.md) |
 | 在线演示 | `docs/` 静态部署即得演示版（演示账号，无需后端） |
 
 ### 9.7 完整文档导航
 
-复用者/维护者的完整阅读路径：本 README → [ARCHITECTURE.md](content/03_doc_system/ARCHITECTURE.md)（核心架构）→ [DEPLOYMENT_ROADMAP.md](content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md)（部署与对外对接总案）→ [server/README.md](server/README.md)（后端与测试）→ [DOC_MAP.md](content/03_doc_system/DOC_MAP.md)（全部文档导航）。
+复用者/维护者的完整阅读路径：本 README → [ARCHITECTURE.md](content/03_doc_system/ARCHITECTURE.md)（核心架构）→ [DEPLOYMENT_GUIDE.md](content/04_web_design/deploy/DEPLOYMENT_GUIDE.md)（部署与对外对接总案）→ [server/README.md](server/README.md)（后端与测试）→ [DOC_MAP.md](content/03_doc_system/DOC_MAP.md)（全部文档导航）。
 
 ---
 

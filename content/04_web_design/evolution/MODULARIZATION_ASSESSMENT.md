@@ -5,7 +5,7 @@ role: "[工程师]+[AI]"
 created: 2026-09-03
 last_updated: "2026-09-03"
 status: active
-related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/SOP_WEB.md, ../deploy/DEPLOYMENT_ROADMAP.md]
+related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/SOP_WEBSITE_GUIDE.md, ../deploy/DEPLOYMENT_GUIDE.md]
 ---
 
 # 模块化 / 插件化 / 开源化评估

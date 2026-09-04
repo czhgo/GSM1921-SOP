@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // bootstrap.js — 页面初始化统一入口（重构版）
 // 变化: 去掉 ViewModeStore/CrossPageState/setActiveRole，改为基于 getCurrentUser() 的登录检查
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
@@ -115,7 +115,7 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
       window.location.reload();
       return { user: null };
     }
-    // L1 页面门控：仅工作台强制跳登录；首页等公开页匿名可访（DEPLOYMENT_AUTH_MODEL.md §四）
+    // L1 页面门控：仅工作台强制跳登录；首页等公开页匿名可访（AUTHENTICATION_MODEL.md §四）
     // 首页组件（活动/专班/日历）点击跳工作台，再由工作台门控触发登录（当前跳 login.html，IAAA 为后续目标）
     if (module === 'workspace') {
       const base = window.location.pathname.includes('/workspace/')

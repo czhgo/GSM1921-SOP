@@ -15,9 +15,9 @@ related_files: [docs/src/core/data-adapter.js, docs/src/core/api-adapter.js, doc
 > - **对外的读者**（学校计算中心、党委组织部、党校办公室、信息中心的对接人）：读 **一（系统形态速览）→ 二（四条落地路径）→ 三（对接总叙事与决策矩阵）**——这三章已完整自包含，讲清我方是什么系统、部署在哪、给谁用、对接诉求是什么、数据边界在哪、能交付什么，**不需要再去别的文件拼装**。
 > - **对内的读者**（书记/工程师/AI/未来接手者）：部署路径决策与对外诉求以本文件为唯一权威源；专项设计细节（认证模型 / 微信协同与小程序 / 北大党校与智慧党建对接）各自归位对应专项文件，本文件 **四** 为专项细节指针（各留 1-3 行结论摘要），落地实施细节（代码就绪度 / 真实部署 checklist / 风险）见**附录**。
 >
-> **权威层级**：部署路径决策、计算中心对接全案（学校侧诉求/前置/步骤/交付物）、邮件与上报通道——唯一权威源在本文件 §三；DEPLOYMENT_AUTH_MODEL.md（部署形态/登录态/门控统一模型）、WECHAT_INTEGRATION.md（微信协同与小程序专项）、PKU_PARTY_INTEGRATION.md（北大党校/智慧党建对接专项）为各自领域的唯一权威源，本文件 四 只做摘要与指针。
+> **权威层级**：部署路径决策、计算中心对接全案（学校侧诉求/前置/步骤/交付物）、邮件与上报通道——唯一权威源在本文件 §三；AUTHENTICATION_MODEL.md（部署形态/登录态/门控统一模型）、WECHAT_INTEGRATION.md（微信协同与小程序专项）、PKU_PARTY_INTEGRATION.md（北大党校/智慧党建对接专项）为各自领域的唯一权威源，本文件 四 只做摘要与指针。
 >
-> **战略母本**：本系统是支部「管理事、服务人」叙事的数字化承载，其战略论断母本见 [SECRETARY_PRONOUNCEMENTS.md](../../01_strategy/SECRETARY_PRONOUNCEMENTS.md)（P-001「管理事、服务人」战略路线、P-015 探索机会——支部方兴未艾、探索 AI 时代组织产品）与 [DEVELOPMENT_PATH.md](../../01_strategy/DEVELOPMENT_PATH.md)（发展路径叙事；第四章 发展党员流程对应本系统的全流程追踪与培训对接诉求）。工具类论断出处（2026-08-10 微信协同战略目标、2026-08-19 北大对接「提前想全面」）见对应专项文件的出处注。
+> **战略母本**：本系统是支部「管理事、服务人」叙事的数字化承载，其战略论断母本见 [SECRETARY_DIRECTIVES.md](../../01_strategy/SECRETARY_DIRECTIVES.md)（P-001「管理事、服务人」战略路线、P-015 探索机会——支部方兴未艾、探索 AI 时代组织产品）与 [DEVELOPMENT_PATH.md](../../01_strategy/DEVELOPMENT_PATH.md)（发展路径叙事；第四章 发展党员流程对应本系统的全流程追踪与培训对接诉求）。工具类论断出处（2026-08-10 微信协同战略目标、2026-08-19 北大对接「提前想全面」）见对应专项文件的出处注。
 >
 > **合并与改造说明**：①2026-08-24 原 SCHOOL_IT_DEPLOYMENT.md（计算中心对接准备文档）内容并入本文件，原文件删除；②2026-09-04 按阅读对象重构为对外总案——原「计算中心对接全案」拆入 §三 各小节（系统能力 3.2 / 前置 3.4 / 步骤 3.5 / AI 3.6 / 交付清单 3.7），原微信小程序章节（§四）内容归位 WECHAT 专项（本文件保留路径 D 决策行 + 四 指针），原邮件（§五）与上报（§六）并入 §三 数据流边界通道小节（3.8 / 3.9），原代码就绪度盘点 / 真实部署 checklist / 决策矩阵 / 风险 / 索引归入本文件 二 与附录（对内）。内容不丢，仅按读者重排。
 
@@ -153,7 +153,7 @@ UI 层零改动，通过 `getAdapter()` 访问数据自动走 API 适配器。Da
 | 仅支委 | 支委会议、考察建档 | `role IN ('secretary','vice-secretary','org-commissioner','disc-commissioner','prop-commissioner')` |
 | 指定人（私发） | 工作私信 | `targetPersonIds` 字段 |
 
-> 登录门控（谁能进页面/谁能写/谁能下载）的四层模型见 [DEPLOYMENT_AUTH_MODEL.md](DEPLOYMENT_AUTH_MODEL.md)（§四 摘要见本文件 §4.1）。
+> 登录门控（谁能进页面/谁能写/谁能下载）的四层模型见 [AUTHENTICATION_MODEL.md](AUTHENTICATION_MODEL.md)（§四 摘要见本文件 §4.1）。
 
 ### 3.3 数据流边界：我方数据从哪来到哪去
 
@@ -214,7 +214,7 @@ UI 层零改动，通过 `getAdapter()` 访问数据自动走 API 适配器。Da
 
 > **注意**：每一步对接前，需要与学校计算中心确认技术规范和数据安全协议。
 
-**登录落点：北大 IAAA 单点登录（后续目标）**——登录门控四层已预留 IAAA 为登录落点的最终目标（[DEPLOYMENT_AUTH_MODEL.md](DEPLOYMENT_AUTH_MODEL.md) §四）：工作台（L1）与写入操作（L2）的跳转目标由本地 `login.html` 替换为 IAAA 网页。**接入前不改变门控触发条件**——IAAA 只是换登录落点，门控模型不变。
+**登录落点：北大 IAAA 单点登录（后续目标）**——登录门控四层已预留 IAAA 为登录落点的最终目标（[AUTHENTICATION_MODEL.md](AUTHENTICATION_MODEL.md) §四）：工作台（L1）与写入操作（L2）的跳转目标由本地 `login.html` 替换为 IAAA 网页。**接入前不改变门控触发条件**——IAAA 只是换登录落点，门控模型不变。
 
 ### 3.6 AI 本地部署需求（计算中心 GPU 资源，可选）
 
@@ -260,7 +260,7 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 | Mock 适配器实现 | `docs/src/core/mock-adapter.js` | DataAdapter 的 mock 实现，供参考数据结构和业务逻辑 |
 | 数据访问抽象层 | `docs/src/core/data-adapter.js` | 统一切换机制（setDataSource），学校计算中心无需修改 |
 | 运行时插槽 | `docs/src/services/runtime.js` | 初始化入口，注册适配器实例 |
-| 认证流程说明 | `docs/src/services/auth.js` + `content/04_web_design/deploy/DEPLOYMENT_AUTH_MODEL.md` | 登录/注销/会话管理逻辑 + 5 场景部署认证模型 + 登录门控四层 |
+| 认证流程说明 | `docs/src/services/auth.js` + `content/04_web_design/deploy/AUTHENTICATION_MODEL.md` | 登录/注销/会话管理逻辑 + 5 场景部署认证模型 + 登录门控四层 |
 | 可见性规则说明 | 本文件 §3.2.5 | 多级可见性的过滤逻辑 |
 | AI 接入需求 | 本文件 §3.6 | AI 本地部署的场景和模型要求 |
 | 前端页面清单 | `docs/` 目录 | 所有 HTML 页面及其功能说明 |
@@ -394,11 +394,11 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 
 > 本章为 deploy/ 三个专项文件的入口——各专项关键结论在此摘要（1-3 行），细节一律在对应文件。查「怎么落地」请跳转专项文件，不在此展开。
 
-### 4.1 DEPLOYMENT_AUTH_MODEL.md（认证与门控专项）
+### 4.1 AUTHENTICATION_MODEL.md（认证与门控专项）
 
 **摘要**：部署形态（静态托管/有后端）与登录态（未登录/演示绕过/正常登录）两轴正交，去掉不可能项得 **5 场景（S1-S5）** 统一侧边栏与登录行为；登录门控按 **L1 页面 → L2 写入 → L3 身份组件 → L4 下载** 四层触发；登录落点当前为本地 `login.html`，最终目标为北大 IAAA 单点登录（只换落点、不改门控模型）。后端有无以 `docs/src/config/deploy.js` 构建时注入判定。
 
-**细节见** [DEPLOYMENT_AUTH_MODEL.md](DEPLOYMENT_AUTH_MODEL.md)。
+**细节见** [AUTHENTICATION_MODEL.md](AUTHENTICATION_MODEL.md)。
 
 ### 4.2 WECHAT_INTEGRATION.md（微信协同与小程序专项）
 
@@ -431,7 +431,7 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 | 邮件双通道（§3.8） | `server/services/mailer.js`（nodemailer 通用 SMTP，env 注入不落库，失败重试 3 次 + 静默降级）+ `services/mailer-hooks.js` 接入通知发布/待办提醒/反馈汇报触发点；成员档案 email 字段预留，补充后通道自动生效 |
 | 数据上报（§3.9） | `server/routes/report.js` + `services/reporting.js`：`GET /api/v1/report/:domain`（JSON 拉取）/ `/report/export`（CSV+BOM 人工导入）/ `POST /report/trigger`（手动推送）+ 每日 03:00 定时批量上报 + 每 10 分钟会议提醒扫描 |
 | 部署形态区分 | `docs/src/config/deploy.js` `DEPLOY_MODE: 'static' | 'server'`（构建时注入）；侧边栏「关于」显隐按此区分（静态托管显示 / 有后端隐藏） |
-| 登录门控 | 四层模型已落地（[DEPLOYMENT_AUTH_MODEL.md](DEPLOYMENT_AUTH_MODEL.md) §四）：L1 页面 / L2 功能写入 / L3 身份组件 / L4 下载 |
+| 登录门控 | 四层模型已落地（[AUTHENTICATION_MODEL.md](AUTHENTICATION_MODEL.md) §四）：L1 页面 / L2 功能写入 / L3 身份组件 / L4 下载 |
 
 **待做**：
 
@@ -472,9 +472,9 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 | 文档 | 角色 |
 |------|------|
 | [DATA_FLOW.md](../data/DATA_FLOW.md) §4.4 | DataAdapter 数据抽象（mock/api）权威源 |
-| [DEPLOYMENT_AUTH_MODEL.md](DEPLOYMENT_AUTH_MODEL.md) | 部署形态 / 登录态 / 门控统一模型（§4.1 摘要） |
+| [AUTHENTICATION_MODEL.md](AUTHENTICATION_MODEL.md) | 部署形态 / 登录态 / 门控统一模型（§4.1 摘要） |
 | [WECHAT_INTEGRATION.md](WECHAT_INTEGRATION.md) | 微信协同与小程序专项设计（§4.2 摘要） |
 | [PKU_PARTY_INTEGRATION.md](PKU_PARTY_INTEGRATION.md) | 北大党校/智慧党建对接专项设计（§4.3 摘要） |
-| [SECRETARY_PRONOUNCEMENTS.md](../../01_strategy/SECRETARY_PRONOUNCEMENTS.md) | 战略母本：P-001「管理事、服务人」/ P-015 探索机会 |
+| [SECRETARY_DIRECTIVES.md](../../01_strategy/SECRETARY_DIRECTIVES.md) | 战略母本：P-001「管理事、服务人」/ P-015 探索机会 |
 | [DEVELOPMENT_PATH.md](../../01_strategy/DEVELOPMENT_PATH.md) | 发展路径叙事（第四章 发展党员流程 = 全流程追踪的母本） |
 | [server/README.md](../../../server/README.md) | 后端安装 / 启动 / 测试 / 部署对接说明 |

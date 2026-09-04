@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
-// server/services/mailer-hooks.js — 邮件双通道触发钩子（部署文档 §五落地，2026-08-29）
-//  设计依据：content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md §5.1/§5.3
+// server/services/mailer-hooks.js — 邮件双通道触发钩子（部署文档 §3.8 落地，2026-08-29）
+//  设计依据：content/04_web_design/deploy/DEPLOYMENT_GUIDE.md §3.8.1/§3.8.3
 //  - 站内优先、邮件并行：hooks 全部 fire-and-forget，失败/未配置均不影响站内功能（降级不阻断）
 //  - 收件人从成员档案 email 字段读取（字段预留：暂无 email → 整条静默跳过）
 //  - 受众尽力解析：复杂受众规则与前端 services/notice.js 对齐，当前覆盖 activity/全体两种

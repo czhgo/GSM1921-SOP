@@ -43,7 +43,7 @@ status: active
 > - 出处：最小三成本原则确立（T-142，2026-07-31）+ spec `.trae/specs/min-cost-workspace-design/`
 > - 母本位置：DESIGN_SYSTEM.md §一 第2条
 > - 数据模型位置：DATA_MODEL.md §2.18-§2.20
-> - 赋权入口位置：content/02_institution/COMMISSIONER_FRAMEWORK.md §D.1.1
+> - 赋权入口位置：content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md §D.1.1
 
 ### 1.3 设计决策原则（原 insights §4.12.1 / §4.12.4 / §4.12.5）
 

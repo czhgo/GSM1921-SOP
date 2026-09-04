@@ -355,7 +355,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组功能；E2�
 
 ### F.6 分工的运行保障（P-012）
 
-分工定下来后，靠"执行委托与知情监督对应统一"来运行、防失效（权威源：[SECRETARY_PRONOUNCEMENTS.md P-012](../01_strategy/SECRETARY_PRONOUNCEMENTS.md#p-012-分工的运行保障执行委托与知情监督的统一)）：
+分工定下来后，靠"执行委托与知情监督对应统一"来运行、防失效（权威源：[SECRETARY_DIRECTIVES.md P-012](../01_strategy/SECRETARY_DIRECTIVES.md#p-012-分工的运行保障执行委托与知情监督的统一)）：
 
 | 分工的运行 | 内容 | 本文档落点 |
 |------|------|-----------|
@@ -372,12 +372,12 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组功能；E2�
 
 | 本文档章节 | 关联文件 |
 |-----------|---------|
-| §A.3~A.7 专班 | SECRETARY_PRONOUNCEMENTS.md（P-013 专班论断，权威源） |
+| §A.3~A.7 专班 | SECRETARY_DIRECTIVES.md（P-013 专班论断，权威源） |
 | §B 职责体系 | 支委与党小组定人定责定岗说明.md §二 |
 | §C 权限矩阵 | ROLE_CLASSIFICATION.md §九 |
 | §D UI 体系 | MODULE_UI_DESIGN.md §2.3 + §5（已落地 2026-09-03 → module/，历史 UI 布局论证仍可读） |
 | §E 协作数据流 | 纪检/组织/宣传委员工作流程指南 |
-| §F 条块交互与分工的运行 | 支委与党小组定人定责定岗说明.md + SECRETARY_PRONOUNCEMENTS.md（P-012 分工的运行保障，权威源） |
+| §F 条块交互与分工的运行 | 支委与党小组定人定责定岗说明.md + SECRETARY_DIRECTIVES.md（P-012 分工的运行保障，权威源） |
 | §审批流程规范 | 原 APPROVAL_FLOW.md（已合并） |
 
 ---
@@ -410,13 +410,13 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组功能；E2�
 
 ### 二、专班立项审议
 
-> 依据：[SECRETARY_PRONOUNCEMENTS.md](../01_strategy/SECRETARY_PRONOUNCEMENTS.md) P-013（专班与赋权考察）→ 本文档 §A.6~A.7
+> 依据：[SECRETARY_DIRECTIVES.md](../01_strategy/SECRETARY_DIRECTIVES.md) P-013（专班与赋权考察）→ 本文档 §A.6~A.7
 
 **详细步骤**：发起人（书记/党小组组长/支委/宣传委员等，可多人）提出专班需求 → 支委会审议立项（线上或线下）→ 通过则组织委员招募赋权成员，驳回则调整方案重新提交。状态机与权限矩阵见 §六、§七。
 
 ### 三、赋权审批
 
-> 依据：[P-009~P-010 + P-013 + P-012 赋权与内控关系链](../01_strategy/SECRETARY_PRONOUNCEMENTS.md) → 本文档 §A.7
+> 依据：[P-009~P-010 + P-013 + P-012 赋权与内控关系链](../01_strategy/SECRETARY_DIRECTIVES.md) → 本文档 §A.7
 
 #### 3.1 专班赋权（组织委员发起）
 

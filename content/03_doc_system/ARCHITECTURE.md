@@ -65,14 +65,14 @@ Layer 0: 核心层（最高权威）
 Layer 1: 知识类型 1 — 战略（支部为什么存在、根本目标、战略路线）
   └─ content/01_strategy/                 [用户]+[AI] 战略路线与设计理念
       ├── DEVELOPMENT_PATH.md             [用户]+[AI] "管理事、服务人"战略
-      ├── SECRETARY_PRONOUNCEMENTS.md     [用户]+[AI] 党支书工作交接文档（项目顶级战略文档）
+      ├── SECRETARY_DIRECTIVES.md     [用户]+[AI] 党支书工作交接文档（项目顶级战略文档）
       └── references/                     [用户] 参考材料与模板（合规文件/历史会议材料/建设探索）
 
 Layer 2: 知识类型 2 — 制度（组织架构、分工、SOP）
   └─ content/02_institution/              [用户]+[AI] 组织制度层
       ├── sop/                            [用户]+[AI] 制度母本，所有代码逻辑的来源
-      ├── COMMISSIONER_FRAMEWORK.md       [用户]+[AI] 支委系统框架
-      ├── FLAT_DESIGN.md                  [用户]+[AI] 扁平化设计
+      ├── COMMISSIONER_DUTY_FRAMEWORK.md       [用户]+[AI] 支委系统框架
+      ├── FLAT_ORGANIZATION_DESIGN.md                  [用户]+[AI] 扁平化设计
       └── ROLE_CLASSIFICATION.md          [用户]+[AI] 文件角色分类体系
 
 Layer 3: 知识类型 3 — 文档系统治理（文档怎么治理、术语、运行标准）
@@ -86,7 +86,7 @@ Layer 3: 知识类型 3 — 文档系统治理（文档怎么治理、术语、�
 
 Layer 4: 知识类型 4+5 — 网站设计 + AI 编码
   └─ content/04_web_design/               [工程师]+[AI] 设计理念层（子目录：data/ 数据模型与数据流、design-system/ 全站规范、module/ 页面模块设计、deploy/ 部署与集成、evolution/ 演进契约与评估；逐文件清单与一句话说明见 content/04_web_design/README.md）
-  └─ content/05_ai_coding/                [工程师]+[AI] AI 协作方法论层（唯一 AI 协作方法论层：README + 5 分篇 + CHECKLIST）
+  └─ content/05_ai_coding/                [工程师]+[AI] AI 协作方法论层（唯一 AI 协作方法论层：README + 5 分篇 + DATA_CONSISTENCY_CHECKLIST）
 
 Layer 5: 经验沉淀（跨多类知识类型）
   └─ content/insights/                    [用户]+[AI] 经验沉淀（双文件）
@@ -142,7 +142,7 @@ Layer 7: 审计参考层（审计与参考）
 ├── content/                           [用户]+[AI] 内容中心（按 5 类知识类型组织，见第四章）
 │   ├── 01_strategy/                  [用户]+[AI] 战略层（支部为什么存在、根本目标、战略路线）
 │   │   ├── DEVELOPMENT_PATH.md       [用户]+[AI] "管理事、服务人"战略
-│   │   ├── SECRETARY_PRONOUNCEMENTS.md [用户]+[AI] 党支书工作交接文档（项目顶级战略文档，17 条论断）
+│   │   ├── SECRETARY_DIRECTIVES.md [用户]+[AI] 党支书工作交接文档（项目顶级战略文档，17 条论断）
 │   │   ├── README.md                 [用户]+[AI] 战略层目录索引
 │   │   └── references/               [用户] 参考材料与模板（合规文件/历史会议材料/建设探索）
 │   ├── 02_institution/               [用户]+[AI] 制度层（组织架构、分工、SOP）
@@ -154,8 +154,8 @@ Layer 7: 审计参考层（审计与参考）
 │   │   │   ├── 组织委员工作流程指南.md [用户]+[AI] 组织委员 SOP
 │   │   │   ├── 纪检委员工作流程指南.md [用户]+[AI] 纪检委员 SOP
 │   │   │   └── 党小组组长工作手册.md   [用户]+[AI] 党小组组长操作指南
-│   │   ├── COMMISSIONER_FRAMEWORK.md [用户]+[AI] 支委系统框架
-│   │   ├── FLAT_DESIGN.md            [用户]+[AI] 扁平化设计
+│   │   ├── COMMISSIONER_DUTY_FRAMEWORK.md [用户]+[AI] 支委系统框架
+│   │   ├── FLAT_ORGANIZATION_DESIGN.md            [用户]+[AI] 扁平化设计
 │   │   ├── ROLE_CLASSIFICATION.md    [用户]+[AI] 文件角色分类体系
 │   │   └── README.md                 [用户]+[AI] 制度层目录索引
 │   ├── 03_doc_system/                [工程师]+[AI] 文档系统治理层（文档怎么治理、术语、运行标准）
@@ -170,19 +170,19 @@ Layer 7: 审计参考层（审计与参考）
 │   │   └── README.md                 [工程师]+[AI] 文档系统治理层目录索引
 │   ├── 04_web_design/                [工程师]+[AI] 网站设计层（设计理念与思路档案）
 │   │   ├── data/                      [工程师]+[AI] 数据权威（DATA_MODEL 静态模型 / DATA_FLOW 数据流）
-│   │   ├── design-system/             [工程师]+[AI] 全站通用规范（DESIGN_SYSTEM / COLOR_SYSTEM / COMPONENT_SPEC / CLICK_MAP）
-│   │   ├── module/                    [工程师]+[AI] 页面与模块设计（SOP_WEB / MODULE_UI_DESIGN / ABOUT_DESIGN_SYSTEM / AGENDA_AND_REFERENCE_DESIGN）
-│   │   ├── deploy/                    [工程师]+[AI] 部署与集成设计（DEPLOYMENT_ROADMAP / DEPLOYMENT_AUTH_MODEL / WECHAT_INTEGRATION / PKU_PARTY_INTEGRATION）
-│   │   ├── evolution/                 [工程师]+[AI] 演进、契约与评估（ARCHITECTURE_EVOLUTION / MODULARIZATION_ASSESSMENT / BLOCK_MANIFEST_CONTRACT / L4_CANVAS_DESIGN / PARTY_COMMITTEE_DESIGN / ROLE_SSOT_DESIGN / DESIGN_METHODOLOGY）
+│   │   ├── design-system/             [工程师]+[AI] 全站通用规范（DESIGN_SYSTEM / COLOR_SYSTEM / COMPONENT_SPEC / CLICK_ROUTING）
+│   │   ├── module/                    [工程师]+[AI] 页面与模块设计（SOP_WEBSITE_GUIDE / MODULE_UI_DESIGN / ABOUT_PAGE_DESIGN / AGENDA_AND_REFERENCE_DESIGN）
+│   │   ├── deploy/                    [工程师]+[AI] 部署与集成设计（DEPLOYMENT_GUIDE / AUTHENTICATION_MODEL / WECHAT_INTEGRATION / PKU_PARTY_INTEGRATION）
+│   │   ├── evolution/                 [工程师]+[AI] 演进、契约与评估（ARCHITECTURE_EVOLUTION / MODULARIZATION_ASSESSMENT / WORKFLOW_BLOCK_CONTRACT / BRANCH_WORK_MAP / PARTY_COMMITTEE_DESIGN / ROLE_PERMISSION_DESIGN / DESIGN_METHODOLOGY）
 │   │   └── README.md                 [工程师]+[AI] 网站设计层目录索引（逐文件一句话说明）
-│   ├── 05_ai_coding/                 [工程师]+[AI] AI 协作方法论层（唯一 AI 协作方法论层：README + 5 分篇 + CHECKLIST）
-│   │   ├── README.md                 [工程师]+[AI] AI 协作方法论层目录索引（层索引表 + 分流来源声明）
-│   │   ├── 文件操作纪律.md            [工程师]+[AI] 文件操作纪律分篇（原 §1/§3/§6/§13/§14/§18）
-│   │   ├── 测试验证纪律.md            [工程师]+[AI] 测试验证纪律分篇（原 §11/§12/§15/§16/§17/§19；含数据同源一致性校验节）
-│   │   ├── 文档治理与一改具改.md       [工程师]+[AI] 文档治理与一改具改分篇（原 §2/§7/§10）
-│   │   ├── 上下文管理与防失忆.md       [工程师]+[AI] 上下文管理与防失忆分篇（原 §4/§8/§9；read_strategy: active）
-│   │   ├── 评议与表达纪律.md          [工程师]+[AI] 评议与表达纪律分篇（原 §5）
-│   │   └── CHECKLIST.md              [工程师]+[AI] 数据同源一致性校验手册（工程质检纪律，2026-09-04 自 04 evolution 迁入）
+│   ├── 05_ai_coding/                 [工程师]+[AI] AI 协作方法论层（唯一 AI 协作方法论层：README + 5 分篇 + DATA_CONSISTENCY_CHECKLIST）
+│   │   ├── README.md                         [工程师]+[AI] AI 协作方法论层目录索引（层索引表 + 分流来源声明）
+│   │   ├── FILE_OPERATION_RULES.md           [工程师]+[AI] 文件操作纪律分篇（原 §1/§3/§6/§13/§14/§18）
+│   │   ├── TEST_AND_VERIFICATION.md         [工程师]+[AI] 测试验证纪律分篇（原 §11/§12/§15/§16/§17/§19；含数据同源一致性校验节）
+│   │   ├── DOCUMENT_GOVERNANCE.md           [工程师]+[AI] 文档治理与一改具改分篇（原 §2/§7/§10）
+│   │   ├── CONTEXT_MANAGEMENT.md            [工程师]+[AI] 上下文管理与防失忆分篇（原 §4/§8/§9；read_strategy: active）
+│   │   ├── REVIEW_AND_EXPRESSION.md         [工程师]+[AI] 评议与表达纪律分篇（原 §5）
+│   │   └── DATA_CONSISTENCY_CHECKLIST.md    [工程师]+[AI] 数据同源一致性校验手册（工程质检纪律，2026-09-04 自 04 evolution 迁入）
 │   ├── insights/                     [用户]+[AI] 经验沉淀（党建实务保留）
 │   │   ├── README.md                 [用户]+[工程师] 经验沉淀层目录索引（含 2026-09-04 工程方法论分流承接声明）
 │   │   └── 党支部管理与实务经验沉淀.md [用户]+[AI] 按 5 类知识类型组织的经验沉淀（党建实务）

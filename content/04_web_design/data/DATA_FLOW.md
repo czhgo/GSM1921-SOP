@@ -109,7 +109,7 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 | **普通参与者**（考勤记录层） | 参加但无具体分工 | 出席 | 考勤记录：出勤 |
 | **归档层** | 纪检委员（执行人） | 汇总考勤/考察记录 | 考勤（对象：党员+预备党员；适用：三会一课；状态：出勤/请假/缺勤；提交：宣传委员备案）+ 考察（对象：深度参与者和组织者；适用：所有支部工作；层级：组织/深度参与；提交：组织委员建档每月） |
 
-> 完整的分工记录、桥梁作用、考勤/考察规则详见 [FLAT_DESIGN.md](../../02_institution/FLAT_DESIGN.md) + [纪检委员工作流程指南 §1.2](../../02_institution/sop/纪检委员工作流程指南.md)。
+> 完整的分工记录、桥梁作用、考勤/考察规则详见 [FLAT_ORGANIZATION_DESIGN.md](../../02_institution/FLAT_ORGANIZATION_DESIGN.md) + [纪检委员工作流程指南 §1.2](../../02_institution/sop/纪检委员工作流程指南.md)。
 
 #### 3.1.2 数据流
 
@@ -140,7 +140,7 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 
 ### 3.3 考勤与考察的核心区分
 
-> 完整的考勤/考察规则、判断逻辑、记录字段定义见 [纪检委员工作流程指南 §1.2](../../02_institution/sop/纪检委员工作流程指南.md) + [COMMISSIONER_FRAMEWORK.md 补课闭环](../../02_institution/COMMISSIONER_FRAMEWORK.md)。本节仅保留要点索引。考勤/考察在端到端数据流中的「挂靠活动 + 聚合总数据」交织位置见 [§1.3](#13-端到端数据流交织图)。
+> 完整的考勤/考察规则、判断逻辑、记录字段定义见 [纪检委员工作流程指南 §1.2](../../02_institution/sop/纪检委员工作流程指南.md) + [COMMISSIONER_DUTY_FRAMEWORK.md 补课闭环](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)。本节仅保留要点索引。考勤/考察在端到端数据流中的「挂靠活动 + 聚合总数据」交织位置见 [§1.3](#13-端到端数据流交织图)。
 
 **要点**：考勤为 0-1 变量（出勤/请假/缺勤），对象为党员+预备党员，适用三会一课；考察为工作量记录（组织/深度参与），对象为深度参与者和组织者，适用所有支部工作。系统记录字段：考勤见 §2.5 AttendanceRecord；考察补充字段 `participationLevel`/`deepRole`/`specificWork`/`divisionRecordedBy`/`submittedTo`/`submittedAt`。
 
@@ -403,7 +403,7 @@ UI 层零改动。
 
 #### 4.7.1 原则陈述（原 insights §4.9）
 
-> **来源：**本节内容接收自 `content/01_strategy/SECRETARY_PRONOUNCEMENTS.md` 原 P-008（视图按需取用原则，2026-07-20 insights 拆分时迁移）。
+> **来源：**本节内容接收自 `content/01_strategy/SECRETARY_DIRECTIVES.md` 原 P-008（视图按需取用原则，2026-07-20 insights 拆分时迁移）。
 
 视图作为解决具体问题的工具，承担查询入口的角色。三条原则（查询视图、应用场景优先、视图-写入源）的完整论证与判例见 4.7.2。
 

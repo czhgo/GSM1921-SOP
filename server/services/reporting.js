@@ -1,12 +1,12 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
-//  reporting.js — 数据上报服务（智慧党建/党校系统协同，T-304 部署文档 §六落地，2026-08-29）
-//  设计依据：content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md §六
+//  reporting.js — 数据上报服务（智慧党建/党校系统协同，T-304 部署文档 §3.9 落地，2026-08-29）
+//  设计依据：content/04_web_design/deploy/DEPLOYMENT_GUIDE.md §3.9
 //  - 四类数据域：member(党员信息) / activity(活动记录) / attendance(考勤记录) / study(学习记录)
 //  - 出口：GET /api/v1/report/:domain（JSON 拉取）、GET /api/v1/report/export（CSV 人工导入）
 //  - 推送模式：REPORT_WEBHOOK_URL + REPORT_TOKEN 环境变量；失败重试 3 次，最终失败管理员告警
-//  - 原则：仅上报已确认/已归档数据（源头审校+异常驱动——草稿/待确认不外发，§6.4）
-//  - 会议提醒（§5.1 场景④）：活动当日扫描 + reminderSentAt 持久化防重复
+//  - 原则：仅上报已确认/已归档数据（源头审校+异常驱动——草稿/待确认不外发，§3.9.4）
+//  - 会议提醒（§3.8.1 场景④）：活动当日扫描 + reminderSentAt 持久化防重复
 // ════════════════════════════════════════════════════════════════
 
 import { emailOf, sendMail } from './mailer.js';

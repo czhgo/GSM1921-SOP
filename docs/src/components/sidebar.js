@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // components/sidebar.js — 共享侧边栏（角色单页制 v2）
 // 2026-07-29: 角色单页制重构——合并党建/党务为"工作台"单入口
 // - 移除 '党务管理' / '人员管理' 独立入口
@@ -42,7 +42,7 @@ function getFooterItems() {
     { module: 'help', label: '帮助', href: base + 'help.html', icon: icon('book') },
   ];
   // 「关于」仅在静态托管（GitHub Pages）显示——有后端（内部工具）无公开门面
-  // 依据 content/04_web_design/deploy/DEPLOYMENT_AUTH_MODEL.md §三
+  // 依据 content/04_web_design/deploy/AUTHENTICATION_MODEL.md §三
   if (DEPLOY_MODE === 'static') {
     items.push({ module: 'about', label: '关于', href: base + 'about.html', icon: icon('info') });
   }

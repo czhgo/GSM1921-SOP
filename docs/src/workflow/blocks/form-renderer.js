@@ -5,7 +5,7 @@
 // label for/必填/aria/placeholder… 体系由积木自带（B2 交付），渲染桥只负责「声明 → 参数」翻译与块级 id 前缀。
 // 表单条目可组装（书记裁定维度②）：enabledDefault=false 的字段默认不渲染（支部 config 未启用即收起）；
 // includeDisabled=true 供配置面预览全量条目。
-// 契约源：content/04_web_design/evolution/BLOCK_MANIFEST_CONTRACT.md v1.1（S2）
+// 契约源：content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md v1.1（S2）
 // 设计纪律：不在此做事件绑定/提交——宿主 tab 各自持有提交逻辑（S4 迁移试点再收敛）。
 
 import { textField, textareaField, selectField, dateField } from '../../components/forms.js?v=20260903c';

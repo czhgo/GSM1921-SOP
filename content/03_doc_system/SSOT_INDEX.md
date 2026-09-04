@@ -34,9 +34,9 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 |------|------|---------|
 | `CLAUDE.md` 甲部 H30.2 | `content/01_strategy/`、`content/04_web_design/`、`content/03_doc_system/` | Harness 是 guides 的摘要和索引（非副本）。甲部保留核心原则+判例，详细设计归 guides。甲部引用的原则变更必须同步更新 guides |
 | `CLAUDE.md` 乙部 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` | 路线图→执行。完成事项从乙部删除，写入执行日志 |
-| `SECRETARY_PRONOUNCEMENTS.md` | `CLAUDE.md` H90（外部权威源索引） | 党支书工作交接文档是理论基石的母本。新增论断时同步更新 CLAUDE.md H90 索引表 |
-| `SECRETARY_PRONOUNCEMENTS.md` | `content/01_strategy/DEVELOPMENT_PATH.md` | 理论基石→战略展开。党支书工作交接文档是母本（木本），DEVELOPMENT_PATH 是子本（AI 扩充的战略叙事）。冲突时以 SECRETARY_PRONOUNCEMENTS 为准 |
-| `SECRETARY_PRONOUNCEMENTS.md` | `content/02_institution/FLAT_DESIGN.md` | 理论基石→制度设计。扁平化论断（P-009/P-010）的母本，FLAT_DESIGN 是子本展开 |
+| `SECRETARY_DIRECTIVES.md` | `CLAUDE.md` H90（外部权威源索引） | 党支书工作交接文档是理论基石的母本。新增论断时同步更新 CLAUDE.md H90 索引表 |
+| `SECRETARY_DIRECTIVES.md` | `content/01_strategy/DEVELOPMENT_PATH.md` | 理论基石→战略展开。党支书工作交接文档是母本（木本），DEVELOPMENT_PATH 是子本（AI 扩充的战略叙事）。冲突时以 SECRETARY_DIRECTIVES 为准 |
+| `SECRETARY_DIRECTIVES.md` | `content/02_institution/FLAT_ORGANIZATION_DESIGN.md` | 理论基石→制度设计。扁平化论断（P-009/P-010）的母本，FLAT_ORGANIZATION_DESIGN 是子本展开 |
 | `SSOT_INDEX.md` | `ARCHITECTURE.md` | 注册表是架构说明的溯源参考 |
 
 ### content/ 内部及交叉（strategy ↔ institution ↔ doc_system ↔ web_design ↔ insights）
@@ -44,9 +44,9 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
 | `content/01_strategy/DEVELOPMENT_PATH.md` | `content/04_web_design/data/DATA_FLOW.md` | 战略→设计。DEVELOPMENT_PATH 是上游战略依据，DATA_FLOW 是数据流设计的落地（原 PARTICIPANT_DATAFLOW.md，2026-08-24 拆分） |
-| `content/01_strategy/DEVELOPMENT_PATH.md` | `content/02_institution/FLAT_DESIGN.md` | 战略→设计。FLAT_DESIGN 的扁平化是"理解真实"认知的具体实现。冲突时以 DEVELOPMENT_PATH 为准 |
-| `content/04_web_design/data/DATA_FLOW.md` | `content/02_institution/COMMISSIONER_FRAMEWORK.md` | 数据流→支委系统。DATA_FLOW 定义三级参与者数据流，COMMISSIONER_FRAMEWORK 细化支委系统设计 |
-| `content/04_web_design/module/SOP_WEB.md` | `content/02_institution/sop/*.md`（双向） | 双向修改规则（CLAUDE.md H30.2 制度→代码）。规则0：文本SOP是母本；规则2：先改SOP母本→再改系统代码→验证 |
+| `content/01_strategy/DEVELOPMENT_PATH.md` | `content/02_institution/FLAT_ORGANIZATION_DESIGN.md` | 战略→设计。FLAT_ORGANIZATION_DESIGN 的扁平化是"理解真实"认知的具体实现。冲突时以 DEVELOPMENT_PATH 为准 |
+| `content/04_web_design/data/DATA_FLOW.md` | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | 数据流→支委系统。DATA_FLOW 定义三级参与者数据流，COMMISSIONER_DUTY_FRAMEWORK 细化支委系统设计 |
+| `content/04_web_design/module/SOP_WEBSITE_GUIDE.md` | `content/02_institution/sop/*.md`（双向） | 双向修改规则（CLAUDE.md H30.2 制度→代码）。规则0：文本SOP是母本；规则2：先改SOP母本→再改系统代码→验证 |
 | `content/insights/党支部管理与实务经验沉淀.md` | `content/01_strategy/`、`content/04_web_design/` | 经验→设计反馈。insights 是经验沉淀，可反哺战略和设计校准。当经验与战略冲突时提交书记决策 |
 
 ### content/ → docs/src/（设计/制度 → 代码）
@@ -55,7 +55,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 |------|------|---------|
 | `content/02_institution/sop/*.md` | `docs/src/workflow/`、`docs/src/` | 制度→代码（H30.2 规则1）。SOP 制度文本是系统代码的母本。凡涉及流程步骤、术语、权限规则，必须先检查 content/02_institution/sop/ |
 | `content/04_web_design/data/DATA_FLOW.md` | `docs/src/`（角色权限引擎） | 设计→代码。数据流架构定义角色数据流、§登录态打桩设计，代码实现设计（原 PARTICIPANT_DATAFLOW.md） |
-| `content/02_institution/COMMISSIONER_FRAMEWORK.md` | `docs/src/`（专班管理 + 审批流程） | 设计→代码。支委系统设计定义专班管理逻辑和§审批流程规范，代码实现 |
+| `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | `docs/src/`（专班管理 + 审批流程） | 设计→代码。支委系统设计定义专班管理逻辑和§审批流程规范，代码实现 |
 | `content/04_web_design/design-system/DESIGN_SYSTEM.md` | `docs/src/styles.css` | 设计→样式。设计系统规范是全局样式的母本（2026-08-24 拆分：色彩→COLOR_SYSTEM，组件→COMPONENT_SPEC） |
 | `content/04_web_design/design-system/COLOR_SYSTEM.md` | `docs/src/styles.css`（色彩变量） | 设计→样式。色彩系统规范是色值定义的母本（查色值优先） |
 | `content/04_web_design/design-system/COMPONENT_SPEC.md` | `docs/src/components/*` | 设计→代码。组件规范是各组件实现的母本（写组件优先） |
@@ -168,7 +168,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | content/design/LOGIN_STUB.md | → content/04_web_design/data/DATA_FLOW.md（登录态打桩设计 §一~§五 + 登录系统设计前置 §六~§十一；2026-07 先并入数据架构总文件，2026-08-24 拆分后归 DATA_FLOW） | 2026-07-08 |
 | content/design/APPROVAL_FLOW.md | → content/02_institution/COMMISSIONER_FRAMEWORK.md §审批流程规范（全量合并） | 2026-07-08 |
 | content/design/WRITE_VERIFY.md | → content/04_web_design/data/DATA_MODEL.md §写入数据验证设计（精简合并，§三/§五删除；2026-07 并入数据架构总文件，2026-08-24 拆分后归 DATA_MODEL） | 2026-07-08 |
-| content/governance/LAYERING_FRAMEWORK.md | → content/03_doc_system/OPERATIONS_GUIDE.md §1.3/§1.4（独有内容合并）+ content/05_ai_coding/文档治理与一改具改.md（分层体系冲突记录节，原 §7）+ OPERATIONS_GUIDE.md §17（原 RECURRING_TASKS Q4，5 步流程） | 2026-07-09 |
+| content/governance/LAYERING_FRAMEWORK.md | → content/03_doc_system/OPERATIONS_GUIDE.md §1.3/§1.4（独有内容合并）+ content/05_ai_coding/DOCUMENT_GOVERNANCE.md（分层体系冲突记录节，原 §7）+ OPERATIONS_GUIDE.md §17（原 RECURRING_TASKS Q4，5 步流程） | 2026-07-09 |
 | content/design/SERVICE_CATALOG.md | → content/03_doc_system/SERVICE_CATALOG.md（迁移至治理层） | 2026-07-11 |
 | content/design/ORG_BUILDING.md | → content/04_web_design/module/MODULE_UI_DESIGN.md（系统设计部分，经 PAFFAIRS_UI.md 合并）+ content/01_strategy/DEVELOPMENT_PATH.md 附录 B（战略分类部分，原"第七章"） | 2026-07-11 |
 | content/design/COMMISSIONER_SYSTEM.md | → content/02_institution/COMMISSIONER_FRAMEWORK.md（迁移+重命名，"FRAMEWORK"避免"SYSTEM"歧义） | 2026-07-11 |
@@ -178,7 +178,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | content/design/BRAND_ACTIVITY.md | → content/04_web_design/data/DATA_MODEL.md + DATA_FLOW.md（品牌/活动内容随 2026-07-12 并入数据架构总文件、2026-08-24 拆分归位） | 2026-07-12 |
 | content/design/PAFFAIRS_UI.md | → content/04_web_design/module/MODULE_UI_DESIGN.md（合并至模块界面设计总文件） | 2026-07-12 |
 | content/design/CALENDAR.md | → content/04_web_design/module/MODULE_UI_DESIGN.md（合并至模块界面设计总文件） | 2026-07-12 |
-| content/design/SOP_WEB.md | → content/04_web_design/module/SOP_WEB.md（迁移至 web_design 层） | 2026-07-12 |
+| content/design/SOP_WEB.md | → content/04_web_design/module/SOP_WEBSITE_GUIDE.md（2026-07-12 迁移至 web_design 层；2026-09-04 命名规范化） | 2026-07-12 |
 | content/design/FLAT_DESIGN.md | → content/02_institution/FLAT_DESIGN.md（迁移至 institution 层） | 2026-07-12 |
 | content/governance/TERMINOLOGY.md | → content/03_doc_system/USAGE_POLICY.md §一（合并至使用规范） | 2026-07-12 |
 | content/governance/EMOJI_POLICY.md | → content/03_doc_system/USAGE_POLICY.md §三（合并至使用规范） | 2026-07-12 |

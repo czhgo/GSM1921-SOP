@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // workflow/blocks/manifests.js — L3 工作流块清单（S1 试点，2026-09-03）
-// 契约权威源：content/04_web_design/evolution/BLOCK_MANIFEST_CONTRACT.md（v1.1）
+// 契约权威源：content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md（v1.1）
 // 书记裁定（v1.1 §〇）：块差异化 = ①流程组合 ②表单条目（fields 可收拢）③参与人范围（participants 可配）；
 // 制度来源分层 provenance ∈ institution-common（三会一课等全党通用）| branch-custom（支部自创制度尝试）。
 // S1 试点块（书记点名）：主题党日（通用）+ 专班运行（自创，验 organizer-deep 组织模式）。

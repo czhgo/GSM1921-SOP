@@ -87,7 +87,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 | `ARCHITECTURE.md` | `[工程师]+[AI]` | 核心架构，工程师维护 + AI 上下文 |
 | `CLAUDE.md` | `[工程师]+[AI]` | 核心规则、执行路线图，工程师维护 + AI 执行依据 |
 | `SSOT_INDEX.md` | `[工程师]+[AI]` | 注册表，工程师溯源 + AI 配置参考 |
-| `SECRETARY_PRONOUNCEMENTS.md` | `[用户]+[AI]` | 党支书工作交接文档，用户查阅 + AI 引用 |
+| `SECRETARY_DIRECTIVES.md` | `[用户]+[AI]` | 党支书工作交接文档，用户查阅 + AI 引用 |
 | `index.html` | `[用户]+[AI]` | 用户界面 + AI 修改目标 |
 
 ### content/ 内容中心
@@ -188,7 +188,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 | 角色 | 存储目录 | 访问控制 |
 |------|---------|---------|
 | `[用户]` | `content/01_strategy/references/合规文件/`、`assets/`、`README.md` | AI 只读，用户读写 |
-| `[用户]+[AI]` | `content/01_strategy/`、`content/02_institution/sop/`、`content/insights/`、`content/03_doc_system/工作模板/`、`SECRETARY_PRONOUNCEMENTS.md` | AI 读取+授权修改，用户读写 |
+| `[用户]+[AI]` | `content/01_strategy/`、`content/02_institution/sop/`、`content/insights/`、`content/03_doc_system/工作模板/`、`SECRETARY_DIRECTIVES.md` | AI 读取+授权修改，用户读写 |
 | `[工程师]+[AI]` | `content/04_web_design/`、`content/03_doc_system/`、`docs/src/`、根目录核心文档、`.ctx/TIMESTAMPS.md`、`.ctx/logs/` | AI 读取+授权修改，工程师读写 |
 | `[AI]` | `.ctx/SNAPSHOT.md` | AI 读写（受核心规则约束），人类一般不编辑 |
 

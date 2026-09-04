@@ -15,7 +15,7 @@
 //  - 初始化：init() 从当前数据源预加载到 mockDB
 //
 //  Source: content/04_web_design/data/DATA_ARCHITECTURE.md
-//  Source: content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md §3.4（计算中心对接全案）
+//  Source: content/04_web_design/deploy/DEPLOYMENT_GUIDE.md §3.2.4/§3.7.2（与学校对接：API 设计要求与交付清单）
 // ════════════════════════════════════════════════════════════════
 
 /**

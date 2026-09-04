@@ -4,14 +4,14 @@ type: governance
 role: "[工程师]+[AI]"
 last_updated: "2026-09-04"
 status: active
-related_files: [CLAUDE.md, CHECKLIST.md, content/03_doc_system/PROCESS_GUIDE.md, docs/scripts/bump-version.mjs]
+related_files: [CLAUDE.md, DATA_CONSISTENCY_CHECKLIST.md, content/03_doc_system/PROCESS_GUIDE.md, docs/scripts/bump-version.mjs]
 ---
 
 # 测试验证纪律（05 AI 协作方法论层分篇）
 
-> **定位：** 本篇属 **05 AI 协作方法论层**（唯一 AI 协作方法论层，活跃上下文）「测试验证纪律」分篇——2026-09-04 由原 KNOWN_PITFALLS（19 条总篇）按协作环节拆分而来，承接 Subagent 验证虚假确认、同一套数据原则盲区、代码复杂度标准、受限视觉验证三件套、共享状态版本分裂、e2e 写穿断言 6 类陷阱判例；并含「数据同源一致性校验」节，指针指向配套手册 [CHECKLIST.md](CHECKLIST.md)。
+> **定位：** 本篇属 **05 AI 协作方法论层**（唯一 AI 协作方法论层，活跃上下文）「测试验证纪律」分篇——2026-09-04 由原 KNOWN_PITFALLS（19 条总篇）按协作环节拆分而来，承接 Subagent 验证虚假确认、同一套数据原则盲区、代码复杂度标准、受限视觉验证三件套、共享状态版本分裂、e2e 写穿断言 6 类陷阱判例；并含「数据同源一致性校验」节，指针指向配套手册 [DATA_CONSISTENCY_CHECKLIST.md](DATA_CONSISTENCY_CHECKLIST.md)。
 > **read_strategy: on-demand**——含义：非每次会话必读，不常驻活跃上下文，按环节触发后按需读取。
-> **何时读：** 涉及验证结论采信（subagent 报告/对话总结）、数据同源审计、代码复杂度评审、无视觉/受限视觉环境验证、`?v=` 版本链变更、浏览器 e2e 写穿断言等测试验证场景前；数据同源逐步校验执行时读 [CHECKLIST.md](CHECKLIST.md)。
+> **何时读：** 涉及验证结论采信（subagent 报告/对话总结）、数据同源审计、代码复杂度评审、无视觉/受限视觉环境验证、`?v=` 版本链变更、浏览器 e2e 写穿断言等测试验证场景前；数据同源逐步校验执行时读 [DATA_CONSISTENCY_CHECKLIST.md](DATA_CONSISTENCY_CHECKLIST.md)。
 > **分篇索引与各篇 read_strategy 一览见 [README.md](README.md)。**
 
 ---
@@ -49,9 +49,9 @@ related_files: [CLAUDE.md, CHECKLIST.md, content/03_doc_system/PROCESS_GUIDE.md,
 
 ## 数据同源一致性校验（配套手册指针）
 
-> 本篇 §12（同一套数据原则盲区）确立的"读端全量审计"思想，其工程执行载体是**配套手册 [CHECKLIST.md](CHECKLIST.md)——数据同源一致性校验手册**（原 `content/04_web_design/evolution/CHECKLIST.md`，2026-09-04 自 04 evolution 迁入 05，属本测试验证纪律域）。
-> **何时用：** 凡涉及"如果在某处看到了某数据，可以预期在其他地方看到同源的数据"的逐步校验（按数据类别：人员/活动/专班/考勤/考察/通知/待办/赋权/反馈/补课/复盘/分工/图片/文件空间/登录门控 + 跨类别同源校验），一律按 CHECKLIST.md 的执行流程跑——机器检查 + 人工检查分工，本篇不重复手册细节。
-> 本篇与 CHECKLIST.md 的关系：本篇沉淀"为什么必须校验/校验失败的判例与纪律"，CHECKLIST.md 提供"按什么步骤校验"的可执行清单，两者配套使用。
+> 本篇 §12（同一套数据原则盲区）确立的"读端全量审计"思想，其工程执行载体是**配套手册 [DATA_CONSISTENCY_CHECKLIST.md](DATA_CONSISTENCY_CHECKLIST.md)——数据同源一致性校验手册**（原 `content/04_web_design/evolution/CHECKLIST.md`，2026-09-04 自 04 evolution 迁入 05，属本测试验证纪律域）。
+> **何时用：** 凡涉及"如果在某处看到了某数据，可以预期在其他地方看到同源的数据"的逐步校验（按数据类别：人员/活动/专班/考勤/考察/通知/待办/赋权/反馈/补课/复盘/分工/图片/文件空间/登录门控 + 跨类别同源校验），一律按 DATA_CONSISTENCY_CHECKLIST.md 的执行流程跑——机器检查 + 人工检查分工，本篇不重复手册细节。
+> 本篇与 DATA_CONSISTENCY_CHECKLIST.md 的关系：本篇沉淀"为什么必须校验/校验失败的判例与纪律"，DATA_CONSISTENCY_CHECKLIST.md 提供"按什么步骤校验"的可执行清单，两者配套使用。
 
 ## 代码复杂度标准（2026-08-14 立规）（原 KNOWN_PITFALLS §15）
 
@@ -101,9 +101,9 @@ related_files: [CLAUDE.md, CHECKLIST.md, content/03_doc_system/PROCESS_GUIDE.md,
 
 **子代理交付三查**（本次子代理拆分后 3 个问题均未被其自报，全靠独立验证发现）：① 查版本链是否与依赖链分裂；② 查 diag 调试日志残留（子代理在入口加了 before/after bootstrap 日志未清理）；③ 查行为回归（页面空白必须 Playwright 断言验证，不能信"GetDiagnostics 零错误"——语法正确与运行正确是两回事）。
 
-**相关强化**：文件操作纪律.md「同区域连续编辑覆盖陷阱」节（原 KNOWN_PITFALLS §14）在并行 Edit 场景同样成立——同文件多个 Edit 在同一消息并行发起会基于旧快照互相覆盖（本次 org-workspace.js 的 registry 版本被后续 replace_all 覆盖回旧值）。
+**相关强化**：FILE_OPERATION_RULES.md「同区域连续编辑覆盖陷阱」节（原 KNOWN_PITFALLS §14）在并行 Edit 场景同样成立——同文件多个 Edit 在同一消息并行发起会基于旧快照互相覆盖（本次 org-workspace.js 的 registry 版本被后续 replace_all 覆盖回旧值）。
 
-**⚠️ 补充判例（2026-08-30 测试整理）**：并行 Edit 相互覆盖**不限同区域**——同文件多个**不同区域**的 Edit 在同一消息并行发起时同样基于旧快照，实际只有最后一个写盘（capability-registry.test.mjs 4 处 `../src/` → `../../docs/src/` 路径修改并行发起仅 1 处落盘，另 3 处靠事后 Read 复核逐一重改；CHECKLIST.md / SNAPSHOT.md 多区域并行编辑同样部分丢失）。**规则强化**：同文件无论同区域还是不同区域，都禁止在一条消息内并行 Edit——改为逐条串行，每条后 Read 复核（批量场景可用 `git diff` 核对实际落盘）。
+**⚠️ 补充判例（2026-08-30 测试整理）**：并行 Edit 相互覆盖**不限同区域**——同文件多个**不同区域**的 Edit 在同一消息并行发起时同样基于旧快照，实际只有最后一个写盘（capability-registry.test.mjs 4 处 `../src/` → `../../docs/src/` 路径修改并行发起仅 1 处落盘，另 3 处靠事后 Read 复核逐一重改；DATA_CONSISTENCY_CHECKLIST.md / SNAPSHOT.md 多区域并行编辑同样部分丢失）。**规则强化**：同文件无论同区域还是不同区域，都禁止在一条消息内并行 Edit——改为逐条串行，每条后 Read 复核（批量场景可用 `git diff` 核对实际落盘）。
 
 **⚠️ 补充判例（T-280 B6 收口，2026-08-24）：「bump 全站后 server/test 测试脚本版本失配」是同一模式的测试侧表现**——Playwright evaluate 内动态 `import('/src/...?v=...')` 若落后于 src 内部 import（bump 只覆盖 docs/src 与 docs/*.html，未覆盖 server/test），浏览器按 URL 分裂出第二个 registry/共享状态实例 → 测试读到空注册表，回归误报（m4 回归 22/31 实为 9 项能力注册误报，功能本身正常）。**已机制化修复**：`docs/scripts/bump-version.mjs` 新增 server/test/*.mjs 的 `/src/...?v=` 同步逻辑（bump 一次即连带更新测试戳）；若手工改测试版本，必须与 src 当前戳一致，并跑一次 m4 回归验证。
 
@@ -127,7 +127,7 @@ related_files: [CLAUDE.md, CHECKLIST.md, content/03_doc_system/PROCESS_GUIDE.md,
 
 模拟数据是系统演示与验收的基础。同一活动、专班或任务，凡系统内有显示它的地方（日历、待办、详情、统计、归档、通知），必须展示同一条数据——不允许同一实体在不同页面以不同状态、不同归属或不同字段出现。数据一致性是"最小信息成本"的前置条件：用户看到不一致的数据，会怀疑整个系统的可信度。全链路一致性审计与 50 人规模模拟均为本原则的落地执行。
 
-**与 §12「同一套数据」原则盲区的关系**：§12 管写端主源与读端收敛（数据从哪个源来、旧读端是否全量迁移）；本节管显示层一致（同一实体在各页面必须同状态、同归属、同字段）。两者互补——本节是 §12 数据同源校验（[CHECKLIST.md](CHECKLIST.md)）在"验收演示面"上的表现要求。
+**与 §12「同一套数据」原则盲区的关系**：§12 管写端主源与读端收敛（数据从哪个源来、旧读端是否全量迁移）；本节管显示层一致（同一实体在各页面必须同状态、同归属、同字段）。两者互补——本节是 §12 数据同源校验（[DATA_CONSISTENCY_CHECKLIST.md](DATA_CONSISTENCY_CHECKLIST.md)）在"验收演示面"上的表现要求。
 
 **生效条件**：任何系统演示/验收前的数据准备与审计；出现"同实体跨页面不一致"投诉时优先按本节归因。
 
@@ -137,7 +137,7 @@ related_files: [CLAUDE.md, CHECKLIST.md, content/03_doc_system/PROCESS_GUIDE.md,
 
 **为什么不是"写成可复现的自动化检查"？** 因为人工清单的价值恰在于承接机器判不了的部分；若能自动化，就应写成机器检查而非人工清单。机器有机器检查的部分，人工有人工检查的部分——两者各司其职，不是同一张清单的两半。
 
-**生效条件**：任何新增人工检查条目时——按「人在哪里→做什么→看到什么」三要素写作；能自动化的判定不写进人工清单。人工检查的执行载体见 [CHECKLIST.md](CHECKLIST.md)「手动检查清单（浏览器实测）」部分。
+**生效条件**：任何新增人工检查条目时——按「人在哪里→做什么→看到什么」三要素写作；能自动化的判定不写进人工清单。人工检查的执行载体见 [DATA_CONSISTENCY_CHECKLIST.md](DATA_CONSISTENCY_CHECKLIST.md)「手动检查清单（浏览器实测）」部分。
 
 ## UI 修复前必须先 Grep 全仓库定位渲染入口（T102 判例，原 insights §6.17）
 

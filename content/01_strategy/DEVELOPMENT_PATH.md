@@ -4,14 +4,14 @@ type: guide
 role: "[用户]+[AI]"
 last_updated: "2026-08-28"
 status: active
-related_files: [ARCHITECTURE.md, CLAUDE.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/FLAT_DESIGN.md, content/insights/党支部管理与实务经验沉淀.md, content/02_institution/sop/支委与党小组定人定责定岗说明.md, SECRETARY_PRONOUNCEMENTS.md]
+related_files: [ARCHITECTURE.md, CLAUDE.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/FLAT_ORGANIZATION_DESIGN.md, content/insights/党支部管理与实务经验沉淀.md, content/02_institution/sop/支委与党小组定人定责定岗说明.md, SECRETARY_DIRECTIVES.md]
 ---
 
 > **受众：** [用户]（党支书、支委、党员，以及刚加入、尚不了解本支部的积极分子和发展对象）
 
-> **分工声明**：本文档是 [SECRETARY_PRONOUNCEMENTS.md](SECRETARY_PRONOUNCEMENTS.md)（党支书工作交接文档）的**子本**——书记原话的母本在党支书工作交接文档，本文档是那些论断面向成长、发展的支部成员的叙事展开。两文件相互吸收、相互解释，冲突时以党支书工作交接文档为准。本文档回答“党支部为什么存在”“通过组织获得成长”的根本命题，确立「管理事、服务人」作为从入党申请人到正式党员完整叙事的总路径（不是“党建与党务的统一主语”——该表述为错误概括，2026-08-15 书记裁决清理）。
+> **分工声明**：本文档是 [SECRETARY_DIRECTIVES.md](SECRETARY_DIRECTIVES.md)（党支书工作交接文档）的**子本**——书记原话的母本在党支书工作交接文档，本文档是那些论断面向成长、发展的支部成员的叙事展开。两文件相互吸收、相互解释，冲突时以党支书工作交接文档为准。本文档回答“党支部为什么存在”“通过组织获得成长”的根本命题，确立「管理事、服务人」作为从入党申请人到正式党员完整叙事的总路径（不是“党建与党务的统一主语”——该表述为错误概括，2026-08-15 书记裁决清理）。
 >
-> - 与 [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md)（数据流，含三级参与者数据流）、[ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) §九、[FLAT_DESIGN.md](../02_institution/FLAT_DESIGN.md) 的关系见附录 A。
+> - 与 [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md)（数据流，含三级参与者数据流）、[ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) §九、[FLAT_ORGANIZATION_DESIGN.md](../02_institution/FLAT_ORGANIZATION_DESIGN.md) 的关系见附录 A。
 > - 第三章 P-016「恢复对话能力」是「党建+科研」这一方面的重要战略选择——恢复对话能力是「党建+科研」的目标，不是党建全局的根本目标。
 
 # 发展路径
@@ -286,5 +286,5 @@ DEVELOPMENT_PATH.md 回答“为什么”——支部为什么存在、为什么
 
 - **与 DATA_FLOW.md 的关系**：DATA_FLOW.md 侧重数据流与界面实现，是本文档在执行层的落地。本文档确立的“组织性与成员成长”叙事，是 DATA_FLOW.md 三级参与者数据流的上游战略依据。
 - **与 ROLE_CLASSIFICATION.md §九 的关系**：权限矩阵服务于本文档的战略路线。若某项权限设计实质上制造了“谁听谁的”层级关系，则违背“理解真实”的认知（身份由分工决定——组织者和深度参与者之间没有上下级，只是分工内容不同），需重新审视。
-- **与 FLAT_DESIGN.md 的关系**：FLAT_DESIGN.md 的“组织者与深度参与者扁平化”是“理解真实”认知的具体实现——身份由分工决定，组织者和深度参与者之间没有上下级，只是分工内容不同。
+- **与 FLAT_ORGANIZATION_DESIGN.md 的关系**：FLAT_ORGANIZATION_DESIGN.md 的“组织者与深度参与者扁平化”是“理解真实”认知的具体实现——身份由分工决定，组织者和深度参与者之间没有上下级，只是分工内容不同。
 - **与 insights 的关系**：insights（[党支部管理与实务经验沉淀.md](../insights/党支部管理与实务经验沉淀.md)）记录“历届支委集体萃取的可跨届复用的组织智慧”（经验层的“怎么做更好”），本文档记录“指导实践的战略路线”（战略层的“为什么这样做”）。两者是“战略—经验”闭环：战略指引实践方向，实践沉淀经验反哺战略校准；当经验与战略冲突时，提交书记决策，不得自行取舍。

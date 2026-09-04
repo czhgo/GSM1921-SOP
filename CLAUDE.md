@@ -4,7 +4,7 @@ type: roadmap
 role: "[工程师]+[AI]"
 last_updated: "2026-08-28"
 status: active
-related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSOT_INDEX.md, content/01_strategy/SECRETARY_PRONOUNCEMENTS.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
+related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSOT_INDEX.md, content/01_strategy/SECRETARY_DIRECTIVES.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
 ---
 
 # CLAUDE.md
@@ -66,7 +66,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 1. **Blueprint**：输出任务拆解计划与执行路径
 2. **实施**：调用对应工具执行任务
-3. **验收**：自动运行 `GetDiagnostics`；**涉及代码改动必须按 H25 测试系统运行相关测试**（前端多文件改动必跑 `server/test/module-load.test.mjs`，改动链接跑 link-integrity，改动 mock 数据跑 mock-integrity，改动活动/工作流/登录跑 agenda-flow + e2e-login），**不得仅以 GetDiagnostics 零错误代替运行验证**（语法对≠运行对，content/05_ai_coding/测试验证纪律.md §17 子代理交付三查判例）
+3. **验收**：自动运行 `GetDiagnostics`；**涉及代码改动必须按 H25 测试系统运行相关测试**（前端多文件改动必跑 `server/test/module-load.test.mjs`，改动链接跑 link-integrity，改动 mock 数据跑 mock-integrity，改动活动/工作流/登录跑 agenda-flow + e2e-login），**不得仅以 GetDiagnostics 零错误代替运行验证**（语法对≠运行对，content/05_ai_coding/TEST_AND_VERIFICATION.md §17 子代理交付三查判例）
 4. **记录**：追加至 `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`
 
 > 🔴 **歧义消解铁律**：人类表达可能有歧义。当任务复杂、庞大、或用户表述不清晰时，**必须**：
@@ -128,12 +128,12 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 ## H25. 测试系统（AI 必知，2026-08-30 沉淀）
 
-> 系统有**正式测试套件**（`server/test/`，17 个文件）。AI 做代码改动后应主动运行验证——这是「编辑完整性」防线（content/05_ai_coding/文件操作纪律.md §14.1）的组成部分，不是可选步骤。
+> 系统有**正式测试套件**（`server/test/`，17 个文件）。AI 做代码改动后应主动运行验证——这是「编辑完整性」防线（content/05_ai_coding/FILE_OPERATION_RULES.md §14.1）的组成部分，不是可选步骤。
 
 **命令**：
 - 全量：`cd server && npm test`（裸 `node --test`，自动发现 `test/` 下全部 `*.test.{js,mjs}`）
 - 单跑：`node --test server/test/<文件名>`
-- 版本戳同步：`node docs/scripts/bump-version.mjs`（bump 后必须跑一次全量，防模块实例分裂误报，content/05_ai_coding/测试验证纪律.md §17）
+- 版本戳同步：`node docs/scripts/bump-version.mjs`（bump 后必须跑一次全量，防模块实例分裂误报，content/05_ai_coding/TEST_AND_VERIFICATION.md §17）
 
 **套件构成**：单元/集成 9 个 `.test.js`（auth/db/resources/seed/skeleton/snapshot/uploads/report/e2e-login）+ 审计守护 8 个 `.test.mjs`（agenda-flow / b3-1 / capability-registry / click-cost / link-integrity / mock-integrity / module-load / references-official-links）。
 
@@ -149,8 +149,8 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 ① 描述**当前状态/规则**（非历史过程）；② 内容**可执行引用**（读即用）；③ 变更立即影响后续任务。
 
 - **对照**：知识资产（`content/insights/`，人类阅读、非 AI 活跃上下文）；过程产物（spec/plan/一次性脚本，任务闭环即归档或删除）
-- **当前上下文文件清单**：本文件（甲/乙/丙部）· `.ctx/SNAPSHOT.md`（当前基线）· `.ctx/TIMESTAMPS.md`（文件注册表）· `.ctx/REVIEW_QUEUE.md`（评议队列）· `content/03_doc_system/`（ARCHITECTURE/SSOT_INDEX/OPERATIONS_GUIDE/DOC_MAP/USAGE_POLICY/SERVICE_CATALOG）· `content/04_web_design/`（设计知识防逃逸、按需活跃：DESIGN_SYSTEM/COLOR_SYSTEM/COMPONENT_SPEC/DATA_MODEL/DATA_FLOW/COMMISSIONER 相关在动对应代码/数据时读；evolution/DESIGN_METHODOLOGY.md 设计决策前读）· `content/05_ai_coding/`（AI 协作方法论层：README + 5 分篇——文件操作纪律/测试验证纪律/文档治理与一改具改/上下文管理与防失忆【active】/评议与表达纪律——+ CHECKLIST.md 手册；read_strategy 按 README 标注读）· `server/README.md`（测试/部署）· 项目记忆（跨会话）
-- **失忆闭环指针**：书记裁决落活层闭环规则见 `content/05_ai_coding/上下文管理与防失忆.md`
+- **当前上下文文件清单**：本文件（甲/乙/丙部）· `.ctx/SNAPSHOT.md`（当前基线）· `.ctx/TIMESTAMPS.md`（文件注册表）· `.ctx/REVIEW_QUEUE.md`（评议队列）· `content/03_doc_system/`（ARCHITECTURE/SSOT_INDEX/OPERATIONS_GUIDE/DOC_MAP/USAGE_POLICY/SERVICE_CATALOG）· `content/04_web_design/`（设计知识防逃逸、按需活跃：DESIGN_SYSTEM/COLOR_SYSTEM/COMPONENT_SPEC/DATA_MODEL/DATA_FLOW/COMMISSIONER 相关在动对应代码/数据时读；evolution/DESIGN_METHODOLOGY.md 设计决策前读）· `content/05_ai_coding/`（AI 协作方法论层：README + 5 分篇——FILE_OPERATION_RULES/TEST_AND_VERIFICATION/DOCUMENT_GOVERNANCE/CONTEXT_MANAGEMENT【active】/REVIEW_AND_EXPRESSION——+ DATA_CONSISTENCY_CHECKLIST.md 手册；read_strategy 按 README 标注读）· `server/README.md`（测试/部署）· 项目记忆（跨会话）
+- **失忆闭环指针**：书记裁决落活层闭环规则见 `content/05_ai_coding/CONTEXT_MANAGEMENT.md`
 - **清理纪律**：过程产物不留仓库——可复用部分（决策/约束/落地记录）整合进上下文文件后删除原文件；空目录同步删除；整合处标注来源与日期（判例：2026-08-30 html-slimming spec 整合入 ARCHITECTURE_EVOLUTION 后删除）
 
 ***
@@ -197,7 +197,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 | 关系类型   | 母本                                                                                   | 子本                             | 同步规则                                                         |
 | ------ | ------------------------------------------------------------------------------------ | ------------------------------ | ------------------------------------------------------------ |
-| 制度→代码  | `content/02_institution/sop/*.md`                                                    | `docs/src/*.js`                | 母本优先，代码跟随（见 [SOP\_WEB.md](content/04_web_design/module/SOP_WEB.md)） |
+| 制度→代码  | `content/02_institution/sop/*.md`                                                    | `docs/src/*.js`                | 母本优先，代码跟随（见 [SOP\_WEBSITE_GUIDE.md](content/04_web_design/module/SOP_WEBSITE_GUIDE.md)） |
 | 理论→工程  | `content/{01_strategy,02_institution,03_doc_system,04_web_design,05_ai_coding}/*.md` | `docs/src/*.js`                | guides 定义设计，代码实现设计                                           |
 | 路线图→执行 | `CLAUDE.md` 乙部                                                                       | `.ctx/logs/*-EXECUTION_LOG.md` | 完成事项从乙部删除，写入执行日志                                             |
 | 经验→沉淀  | `.ctx/logs/DECISION_LOG.md`                                                          | `content/insights/*.md`        | 决策日志定期沉淀为经验沉淀                                                |
@@ -244,7 +244,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 □ 9. 表达合规：若本次修改涉及书记原话展开，必须调用 USAGE_POLICY.md §二（AI 展开原则，含 2.3 五条可复用检查规则）自查（"而非"警惕/"所以"因果链/反面假设/私加强调/元叙事标签）
 □ 10. 反论合规：若本次修改涉及反论（"为什么不是..."），必须按 OPERATIONS_GUIDE.md §11.6 自检清单逐项验证，含§11.7历史范畴检查（被否定项是否仍在使用）和§11.8 AI治理技术特殊性（涉及AI工具使用时需联网补充）
 □ 11. 概念命名合规：若本次修改涉及概念命名或标签创建，必须按 H40.1 概念命名守则自检
-□ 12. 设计原则自检（EP-06 修复，2026-08-30 AI逃逸捕捉第三轮）：若本次修改涉及 UI/工作台/数据流/组件/颜色，必须对照 DESIGN_SYSTEM.md 相关原则的「可验证条件」与 CLICK_MAP.md 分层落点自检；改颜色必须过 DESIGN_SYSTEM §7.3 深色自查 9 条
+□ 12. 设计原则自检（EP-06 修复，2026-08-30 AI逃逸捕捉第三轮）：若本次修改涉及 UI/工作台/数据流/组件/颜色，必须对照 DESIGN_SYSTEM.md 相关原则的「可验证条件」与 CLICK_ROUTING.md 分层落点自检；改颜色必须过 DESIGN_SYSTEM §7.3 深色自查 9 条
 ```
 
 ### H40.1 概念命名守则 \[工作表达]
@@ -329,7 +329,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 **生命周期**：写入丙部 → next\_prompt提交 → 书记决策 → Decision Log归档 → 执行 → 从丙部删除
 
-**多步决策规则**：丙部条目可能包含多步决策。当所有步骤均已获得书记明确方向（包括"搁置"/"删除"等否定性决策）时，该条目视为决策完成，应退出丙部。三种决策状态的语义边界（详见 content/05_ai_coding/上下文管理与防失忆.md「三种决策状态的语义区分」）：待决策=未决策（停留丙部）；搁置=时机判断（已决策"现在不做"，退出丙部）；删除/不需要=终局判断（已决策"明确不需要"，退出丙部）。"搁置"是已做出的决策，不是"待决策"的暂存。
+**多步决策规则**：丙部条目可能包含多步决策。当所有步骤均已获得书记明确方向（包括"搁置"/"删除"等否定性决策）时，该条目视为决策完成，应退出丙部。三种决策状态的语义边界（详见 content/05_ai_coding/CONTEXT_MANAGEMENT.md「三种决策状态的语义区分」）：待决策=未决策（停留丙部）；搁置=时机判断（已决策"现在不做"，退出丙部）；删除/不需要=终局判断（已决策"明确不需要"，退出丙部）。"搁置"是已做出的决策，不是"待决策"的暂存。
 
 ***
 
@@ -429,7 +429,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 **入库分级**：
 | 入库对象 | 目标位置 | 标注 |
 | --- | --- | --- |
-| 通用检查要点（跨场景可复用） | CHECKLIST.md（追加小节） | 来源轮次 + 生效条件 |
+| 通用检查要点（跨场景可复用） | DATA_CONSISTENCY_CHECKLIST.md（追加小节） | 来源轮次 + 生效条件 |
 | 专项检查要点 | REVIEW_QUEUE 对应专项附录「检查要点库」区 | 来源轮次 + 生效条件 |
 | 错误模式判例 | content/05_ai_coding/ 对应分篇（见该层 [README.md](content/05_ai_coding/README.md) 索引） | 判例 + 纠正清单 |
 
@@ -452,7 +452,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 当书记表达"反思""值得思考""为什么还在"等反思信号时，AI **必须**按以下流程执行，不得只口头反思：
 
-1. **定位权威源最近变更**：读 [USAGE\_POLICY.md](content/03_doc_system/USAGE_POLICY.md) §1 术语表 + [SECRETARY\_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) 最新 P 编号，确认最近一次定义/术语/层级变更是什么（如 2026-08-03 确立党建/党务 T1 官方定义）
+1. **定位权威源最近变更**：读 [USAGE\_POLICY.md](content/03_doc_system/USAGE_POLICY.md) §1 术语表 + [SECRETARY\_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_DIRECTIVES.md) 最新 P 编号，确认最近一次定义/术语/层级变更是什么（如 2026-08-03 确立党建/党务 T1 官方定义）
 2. **沿链接传播排查**：从权威源出发，**追踪所有链接"指向"的 content/docs 文件**，有选择地读取被引用文件，确认定义是否已同步（🔴 书记补充要求：不能只看权威源本身，必须顺链接读下游）
 3. **全仓 Grep 旧表述**：搜索被降级/替换的旧术语、旧定义、旧层级表述，列出全部残留位置
 4. **一改具改**：按 H30.1 全仓同步修正；区分「定义残留」（必须改）与「合法功能分区标题/UI 标签」（保留，如 `## 党建工作` 章节标题、`【党建工作】` 场景前缀）
@@ -506,7 +506,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | 看甲部修改流程    | [PROCESS\_GUIDE.md §15](content/03_doc_system/PROCESS_GUIDE.md)                     |
 | 看日志规范      | [OPERATIONS\_GUIDE.md §10](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
 | 看面向用户表述规范  | [OPERATIONS\_GUIDE.md §13](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
-| 看理论基石      | [SECRETARY\_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档） |
+| 看理论基石      | [SECRETARY\_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_DIRECTIVES.md)（项目顶级战略文档） |
 | 看经验沉淀      | [content/insights/](content/insights/)                                                    |
 | 看已知陷阱      | [05 AI 协作方法论 README.md](content/05_ai_coding/README.md)（5 分篇索引）          |
 | 看运行标准      | [OPERATIONS\_GUIDE.md](content/03_doc_system/OPERATIONS_GUIDE.md)                         |
@@ -515,7 +515,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | 查决策历史      | `.ctx/logs/DECISION_LOG.md`                                                               |
 | 查执行日志      | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`                                                      |
 | 查母本链路      | [SSOT\_INDEX.md](content/03_doc_system/SSOT_INDEX.md)                                     |
-| 查数据一致性     | [CHECKLIST.md](content/05_ai_coding/CHECKLIST.md)                                        |
+| 查数据一致性     | [DATA_CONSISTENCY_CHECKLIST.md](content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md)                                        |
 | 取用模板       | `content/03_doc_system/工作模板/`                                                             |
 | 查可用 Skills | `npx skills find <keyword>`                                                               |
 | 看项目产出声明    | 本文件 H100                                                                                  |
@@ -538,8 +538,8 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 | 层级                | 内容                                           | 权威源                                                                                                                                                           |
 | ----------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ① 总论叙事            | "管理事，服务人"——从入党申请人到正式党员的完整路径，囊括②和③            | [DEVELOPMENT\_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) + [SECRETARY\_PRONOUNCEMENTS.md P-002/P-003](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) |
-| ② 组织架构与 SOP       | 一整套组织架构、分工、SOP                               | `content/02_institution/sop/` + `content/02_institution/FLAT_DESIGN.md` + `content/02_institution/COMMISSIONER_FRAMEWORK.md`                                  |
+| ① 总论叙事            | "管理事，服务人"——从入党申请人到正式党员的完整路径，囊括②和③            | [DEVELOPMENT\_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) + [SECRETARY\_PRONOUNCEMENTS.md P-002/P-003](content/01_strategy/SECRETARY_DIRECTIVES.md) |
+| ② 组织架构与 SOP       | 一整套组织架构、分工、SOP                               | `content/02_institution/sop/` + `content/02_institution/FLAT_ORGANIZATION_DESIGN.md` + `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md`                                  |
 | ③ AI-driven 仓库工作流 | 一整套关于 AI-driven 的组织形态的仓库工作流（上下文、Harness、提示词） | 本文件 CLAUDE.md（Harness）+ `content/03_doc_system/OPERATIONS_GUIDE.md` + `.ctx/`（审计底座）                                                                           |
 
 ### H100.2 逻辑缺漏与书记亲补
@@ -548,14 +548,14 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 书记已于 2026-07-14 亲补两个宝贵机会：
 
-- **机会1**：民主集中制下感受真实组织的两个向度——"赋权"背景下的程序性 和 "探索"背景下的扁平化。详见 [SECRETARY\_PRONOUNCEMENTS.md P-014](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) + [DEVELOPMENT\_PATH.md 第一章收束](content/01_strategy/DEVELOPMENT_PATH.md)。
-- **机会2**：AI 时代中学生党支部的探索机会——①真实地参与组织制度和组织文化的构建；②在"没有经济负担"的背景下探索 AI 时代下组织转型的萌芽和组织产品的生产。详见 [SECRETARY\_PRONOUNCEMENTS.md P-015](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md) + DEVELOPMENT\_PATH.md 第一章收束。
+- **机会1**：民主集中制下感受真实组织的两个向度——"赋权"背景下的程序性 和 "探索"背景下的扁平化。详见 [SECRETARY\_PRONOUNCEMENTS.md P-014](content/01_strategy/SECRETARY_DIRECTIVES.md) + [DEVELOPMENT\_PATH.md 第一章收束](content/01_strategy/DEVELOPMENT_PATH.md)。
+- **机会2**：AI 时代中学生党支部的探索机会——①真实地参与组织制度和组织文化的构建；②在"没有经济负担"的背景下探索 AI 时代下组织转型的萌芽和组织产品的生产。详见 [SECRETARY\_PRONOUNCEMENTS.md P-015](content/01_strategy/SECRETARY_DIRECTIVES.md) + DEVELOPMENT\_PATH.md 第一章收束。
 
 ### H100.3 引用流程
 
 - 任何涉及"系统产出是什么"的总论性表述，引用本节 H100
 - 任何涉及"发展路径"的具体叙事，引用 [DEVELOPMENT\_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)
-- 任何涉及"书记论断"的具体论断，引用 [SECRETARY\_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)
+- 任何涉及"书记论断"的具体论断，引用 [SECRETARY\_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_DIRECTIVES.md)
 - 本节为治理层锚点，不承载叙事全文——叙事全文在 DEVELOPMENT\_PATH.md，论断全文在 SECRETARY\_PRONOUNCEMENTS.md
 
 ### H100.4 门面文档避讳原则
@@ -584,7 +584,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 | ID    | 事项                                                                                                                                                                                                                           | 引用流程                                                                                     | 修改对象                                              | 状态    |
 | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------- | ----- |
-| C-1   | **JS 组件化**：完善 `docs/src/` 下的 JS 组件（renderHeader/renderSidebar/renderFooter/renderCalendar 等），使 HTML 仅需引用/调用特定 JS 组件即可实现功能，消除 HTML 中的硬编码逻辑                                                                                    | H30.4 规则 2（方向指引）→ [SOP\_WEB.md](content/04_web_design/module/SOP_WEB.md)                        | `docs/src/*.js` + `docs/*.html`                   | 🔄 持续 |
+| C-1   | **JS 组件化**：完善 `docs/src/` 下的 JS 组件（renderHeader/renderSidebar/renderFooter/renderCalendar 等），使 HTML 仅需引用/调用特定 JS 组件即可实现功能，消除 HTML 中的硬编码逻辑                                                                                    | H30.4 规则 2（方向指引）→ [SOP\_WEBSITE_GUIDE.md](content/04_web_design/module/SOP_WEBSITE_GUIDE.md)                        | `docs/src/*.js` + `docs/*.html`                   | 🔄 持续 |
 | C-2   | **一改具改巡检**：定期检查仓库中是否存在信息重复散落，发现后归并至权威源                                                                                                                                                                                       | H30.1 + OPERATIONS\_GUIDE.md §1                                                          | 全仓库                                               | 🔄 持续 |
 | C-3   | **经验沉淀**：从执行日志和决策日志中提炼可复用模式，写入 insights                                                                                                                                                                                      | H30.4 + OPERATIONS\_GUIDE.md §10.1 → [党支部管理与实务经验沉淀.md](content/insights/党支部管理与实务经验沉淀.md) | `content/insights/`                               | 🔄 持续 |
 | C-4   | **视觉体验持续优化**：颜色方案调优 + 卡片设计（嵌套/并列/顺序排布）审校修订                                                                                                                                                                                   | DATA\_ARCHITECTURE.md §三 参与者数据流设计 + DESIGN\_SYSTEM.md                                    | `docs/src/styles.css` + 各 entry JS                | 🔄 持续 |
@@ -592,7 +592,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | C-6-1 | **常态化专项评议 · 反论评议**：全仓库反论的书记评议（速查见 OPERATIONS\_GUIDE §18.5），每周轮转，轮次进度/侧重维度见 `.ctx/REVIEW_QUEUE.md` 附录①                                                                                                                        | H60.5 + OPERATIONS\_GUIDE.md §17.2.1（W4）                                                 | 全仓库                                               | 🔄 持续 |
 | C-6-2 | **常态化专项评议 · 理论复用评议**：跨节/跨文件引用复用的书记评议（速查见 OPERATIONS\_GUIDE §18.5），每周轮转，轮次进度/侧重维度见 `.ctx/REVIEW_QUEUE.md` 附录②                                                                                                                 | H60.5 + OPERATIONS\_GUIDE.md §17.2.1（W4）                                                 | 全仓库                                               | 🔄 持续 |
 | C-6-3 | **常态化专项评议 · 黑话审查**：全仓库 AI 编造黑话的书记审查（OPERATIONS\_GUIDE §18.5 理论复用 D 表述），每周轮转，轮次进度/侧重维度见 `.ctx/REVIEW_QUEUE.md` 附录③                                                                                                            | H60.5 + OPERATIONS\_GUIDE.md §17.2.1（W4）                                                 | 全仓库用户文档                                           | 🔄 持续 |
-| C-6-4 | **常态化专项评议 · 书记原话逐条复核**：SECRETARY\_PRONOUNCEMENTS 论断逐条复核确认原话（H60），每周轮转，轮次进度/侧重维度见 `.ctx/REVIEW_QUEUE.md` 附录④                                                                                                                  | H60.5 + OPERATIONS\_GUIDE.md §17.2.1（W4）                                                 | `content/01_strategy/SECRETARY_PRONOUNCEMENTS.md` | 🔄 持续 |
+| C-6-4 | **常态化专项评议 · 书记原话逐条复核**：SECRETARY\_PRONOUNCEMENTS 论断逐条复核确认原话（H60），每周轮转，轮次进度/侧重维度见 `.ctx/REVIEW_QUEUE.md` 附录④                                                                                                                  | H60.5 + OPERATIONS\_GUIDE.md §17.2.1（W4）                                                 | `content/01_strategy/SECRETARY_DIRECTIVES.md` | 🔄 持续 |
 | C-6-5 | **常态化专项评议 · 最小三成本**：系统设计最高验收标准（H10 总纲声明），最小信息/操作/适应学习成本的持续评议，侧重维度基线见 `.ctx/REVIEW_QUEUE.md` 附录⑤                                                                                                                              | H10 总纲 + H60.5 + DESIGN\_SYSTEM.md §一 第2条/原则10                                           | 全系统工作台                                            | 🔄 持续 |
 
 ***
@@ -620,11 +620,11 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | T-281 | **扁平化与集中论断 refinement**：已解决（2026-08-28 书记以「战略模糊自觉」总纲裁决——AI 不替书记收口定性，保持战略模糊；P-005 已含 2026-08-28 书记合并原话"程序在所有人之上，所以扁平；但程序中，支委个人都因为更大的责任而被要求嵌入地更深"即"集中/程序/嵌入"关系的落地）——2026-08-30 复核确认：AI 草案（替书记定性）违反战略模糊自觉，已撤回不落地；本条目归档 | H60 书记评议 + 战略模糊自觉总纲 | content/01\_strategy/SECRETARY\_PRONOUNCEMENTS.md | ✅ 已完成（2026-08-28 总纲解决，2026-08-30 归档） |
 | T-237 | **制度层色值硬编码清理**：COMMISSIONER\_FRAMEWORK.md §C.3 旧固定角色色表已删（2026-08-14 书记裁决：身份不再保留既有固定颜色设定，引入自定义主题色色板），DESIGN\_SYSTEM.md 已补「主题色/功能色/品牌色三色区别」定义 + 读本文件指南（外包可读）；代码层 WORKFLOW\_ROLES 节点辨识色已对齐 §2.3.2 | H60 书记评议 + DESIGN\_SYSTEM.md 统一色板                    | content/02\_institution/COMMISSIONER\_FRAMEWORK.md + content/04\_web\_design/DESIGN\_SYSTEM.md | ✅ 已完成（2026-08-14） |
 
-> **注**：T-283 最小三成本第 4 轮（Mock 数据完整性 + 数据结构生命周期 + 点击成本 + 三会一课议程功能 + 编辑完整性共性问题全局化）已全部完成（2026-08-27 归档执行日志），乙部删除——三会一课【议程】写入/修改功能落地（DATA_MODEL agenda 字段 + 写入表单 + 详情行内编辑）；删除活动联动清理子记录三处同步；点击成本实测（创建 4 次/详情 2 次/待办 0 次）；新增 4 个审计文件入回归（mock-integrity/click-cost/agenda-flow/module-load，2026-08-30 统一命名规范化）；文件操作纪律.md §14.1（同区域连续编辑覆盖判例）+ CHECKLIST「编辑完整性校验」章节。
+> **注**：T-283 最小三成本第 4 轮（Mock 数据完整性 + 数据结构生命周期 + 点击成本 + 三会一课议程功能 + 编辑完整性共性问题全局化）已全部完成（2026-08-27 归档执行日志），乙部删除——三会一课【议程】写入/修改功能落地（DATA_MODEL agenda 字段 + 写入表单 + 详情行内编辑）；删除活动联动清理子记录三处同步；点击成本实测（创建 4 次/详情 2 次/待办 0 次）；新增 4 个审计文件入回归（mock-integrity/click-cost/agenda-flow/module-load，2026-08-30 统一命名规范化）；FILE_OPERATION_RULES.md §14.1（同区域连续编辑覆盖判例）+ CHECKLIST「编辑完整性校验」章节。
 
-> **注**：T-280 网页逻辑全量梳理已全部完成（B1-B6，2026-08-24 归档执行日志），乙部删除——完整对账报告与收口记录见 `.ctx/logs/2026-08-EXECUTION_LOG.md`（L4777~5080），检查依据见 [CHECKLIST.md](content/05_ai_coding/CHECKLIST.md)（含 T-280-B1/T-280-B5 手动检查小节与各批新理念校验点）。
+> **注**：T-280 网页逻辑全量梳理已全部完成（B1-B6，2026-08-24 归档执行日志），乙部删除——完整对账报告与收口记录见 `.ctx/logs/2026-08-EXECUTION_LOG.md`（L4777~5080），检查依据见 [DATA_CONSISTENCY_CHECKLIST.md](content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md)（含 T-280-B1/T-280-B5 手动检查小节与各批新理念校验点）。
 
-> **注**：T-282 content 体系优化升级已全部完成（2026-08-24 归档执行日志 L5168~5208），乙部删除——三方向：①巨型文件拆分（原数据架构总文件 DATA_ARCHITECTURE（路由文件，2026-09-03 精简删除）→DATA_MODEL+DATA_FLOW、OPERATIONS_GUIDE→+PROCESS_GUIDE、DESIGN_SYSTEM→+COLOR_SYSTEM+COMPONENT_SPEC）；②04 部署类重组（SCHOOL_IT 并入 DEPLOYMENT_ROADMAP）；③目录规范补缺（insights README、references 归位）。导航更新见 [DOC_MAP.md](content/03_doc_system/DOC_MAP.md) 与 [SSOT_INDEX.md](content/03_doc_system/SSOT_INDEX.md)。
+> **注**：T-282 content 体系优化升级已全部完成（2026-08-24 归档执行日志 L5168~5208），乙部删除——三方向：①巨型文件拆分（原数据架构总文件 DATA_ARCHITECTURE（路由文件，2026-09-03 精简删除）→DATA_MODEL+DATA_FLOW、OPERATIONS_GUIDE→+PROCESS_GUIDE、DESIGN_SYSTEM→+COLOR_SYSTEM+COMPONENT_SPEC）；②04 部署类重组（SCHOOL_IT 并入 DEPLOYMENT_GUIDE）；③目录规范补缺（insights README、references 归位）。导航更新见 [DOC_MAP.md](content/03_doc_system/DOC_MAP.md) 与 [SSOT_INDEX.md](content/03_doc_system/SSOT_INDEX.md)。
 
 > **注**：T-279 轻量插件化实施已全部完成（M1-M4，2026-08-23 归档执行日志），乙部删除——完整记录见 `.ctx/logs/2026-08-EXECUTION_LOG.md`，历史结论见 [ARCHITECTURE\_EVOLUTION.md §二 历史结论](content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md)（M1~M8 全落地；现行评估与去重队列见 MODULARIZATION_ASSESSMENT.md）。
 

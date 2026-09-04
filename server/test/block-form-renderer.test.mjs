@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // block-form-renderer.test.mjs — L3 S2：manifest → forms.js 渲染桥单测（2026-09-03）
-// 契约源：BLOCK_MANIFEST_CONTRACT.md v1.1 §六 S2（验收=渲染输出与手写 forms.js 调用等价）
+// 契约源：WORKFLOW_BLOCK_CONTRACT.md v1.1 §六 S2（验收=渲染输出与手写 forms.js 调用等价）
 // 机制：浏览器内 import manifests + form-renderer，断言 kind 映射/字段收拢/无障碍关联
 // 运行：node --test server/test/block-form-renderer.test.mjs（自包含 server，TMP 需可写）
 import { test, before, after } from 'node:test';

@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
-//  mailer.js — 邮件发送服务（通用 SMTP，T-304 部署文档 §五落地，2026-08-29）
-//  设计依据：content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md §五
+//  mailer.js — 邮件发送服务（通用 SMTP，T-304 部署文档 §3.8 落地，2026-08-29）
+//  设计依据：content/04_web_design/deploy/DEPLOYMENT_GUIDE.md §3.8（邮件发送通道）
 //  - 环境变量注入配置（不写进代码/仓库）：SMTP_HOST/PORT/USER/PASS/FROM/TLS/MAIL_ENABLED
 //  - 站内优先、邮件并行：发送失败不影响站内功能（降级不阻断）
 //  - 失败重试 3 次（1min/5min/30min），最终失败记入日志

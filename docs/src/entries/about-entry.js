@@ -422,7 +422,7 @@ function renderReview() {
 /**
  * Section 3: 三个成长机会（2026-08-18 T-270 重构）
  *
- * 母本：SECRETARY_PRONOUNCEMENTS.md「三、人的成长」P-014/P-015/P-016——
+ * 母本：SECRETARY_DIRECTIVES.md「三、人的成长」P-014/P-015/P-016——
  * 适应学习 / 探索创新 / 对话 三个并列成长机会。党建+科研（P-016 对话）从独立章并入此处。
  * blockquote 直接展示书记原话全文（延续既有风格）。
  */

@@ -147,7 +147,7 @@ T1 官方表达"入党积极分子"可简化为"积极分子"——这是发展�
 | 文档 | 受众 | 内容性质 | 主表达方式 |
 |------|------|---------|-----------|
 | `content/01_strategy/DEVELOPMENT_PATH.md` | [用户] | 故事叙述 | **段落化**（全仓库唯一需要"故事完整"的文档） |
-| `SECRETARY_PRONOUNCEMENTS.md` | [用户] | 书记论断 | 段落化为主，元数据单行化（引用块小字） |
+| `SECRETARY_DIRECTIVES.md` | [用户] | 书记论断 | 段落化为主，元数据单行化（引用块小字） |
 | `content/02_institution/sop/*.md` | [用户] | 制度流程 | 结构化为主（表格/列表），why 讲解用段落化 |
 | `content/03_doc_system/*.md` | [工程师]+[AI] | 治理规范 | 结构化为主 |
 | `content/insights/*.md` | [用户]+[AI] | 经验沉淀 | 混合——理论/共识类段落化，技术/判例类结构化 |
@@ -166,7 +166,7 @@ T1 官方表达"入党积极分子"可简化为"积极分子"——这是发展�
 
 > **确立日期**：2026-07-16 | **确立背景**：书记指出"AI 作为秘书，写出的话应该就是 grill 书记后的话——不需要在用户文档中区隔'书记写的'和'AI写的'，因为吃透精神后两者本应一致。问题只在于 AI 没吃透就写了"
 > **优先级**：P0（强制执行）——本条是 AI 展开书记原话的最高准则（2026-08-05 第4轮评议升为独立章）
-> **同步索引**：[OPERATIONS_GUIDE.md §13.6](OPERATIONS_GUIDE.md) + [SECRETARY_PRONOUNCEMENTS.md P-002](../01_strategy/SECRETARY_PRONOUNCEMENTS.md)
+> **同步索引**：[OPERATIONS_GUIDE.md §13.6](OPERATIONS_GUIDE.md) + [SECRETARY_DIRECTIVES.md P-002](../01_strategy/SECRETARY_DIRECTIVES.md)
 
 ### 2.1 核心原则
 

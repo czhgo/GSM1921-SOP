@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // block-manifest.test.mjs — L3 块 manifest 校验器单测（S1，2026-09-03）
-// 契约源：content/04_web_design/evolution/BLOCK_MANIFEST_CONTRACT.md v1.1
+// 契约源：content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md v1.1
 // 机制：浏览器内 import workflow/blocks/manifests.js（与运行时同解析），跑正/反样例断言
 // 运行：node --test server/test/block-manifest.test.mjs（自包含 server，TMP 需指向可写目录）
 import { test, before, after } from 'node:test';

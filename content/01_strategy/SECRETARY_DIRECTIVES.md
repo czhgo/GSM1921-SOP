@@ -4,7 +4,7 @@ type: governance
 role: "[用户]+[AI]"
 last_updated: "2026-09-04"
 status: active
-related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/FLAT_DESIGN.md, content/02_institution/COMMISSIONER_FRAMEWORK.md, content/04_web_design/module/SOP_WEB.md, content/03_doc_system/USAGE_POLICY.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/党支部管理与实务经验沉淀.md]
+related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/FLAT_ORGANIZATION_DESIGN.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/03_doc_system/USAGE_POLICY.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/党支部管理与实务经验沉淀.md]
 ---
 
 # 党支书工作交接文档
@@ -220,7 +220,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 组织者有两种情况：自上而下布置的——从支委或党小组组长处承包任务，发挥桥梁作用，对深度参与者进行分工（分派任务），分工需经平等协商；自下而上创建的——必须联系本组党小组组长或组织委员，由党小组组长或组织委员赋权后方可进行任务分派。
 
-> 出处：D-15 + FLAT\_DESIGN.md + 05_ai_coding/评议与表达纪律.md（原 insights §4.6） · 子本：FLAT\_DESIGN.md（展开叙事） · 层次：制度设计级
+> 出处：D-15 + FLAT\_DESIGN.md + 05_ai_coding/REVIEW_AND_EXPRESSION.md（原 insights §4.6） · 子本：FLAT\_DESIGN.md（展开叙事） · 层次：制度设计级
 
 ***
 
@@ -265,7 +265,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > 专班打破了条块格局（见 [P-013](#p-013-专班不限时间不限地点活动之外考察积极分子的载体)）：跨职能又跨小组，不限时间、不限地点，是目标导向的横向切口。
 
-> 出处：2026-08-03 T-199 书记条块认知澄清 + 2026-08-28 书记补录条块合作三句原话 + COMMISSIONER\_FRAMEWORK.md §A.3 · 子本：COMMISSIONER\_FRAMEWORK.md §A.3 + 05_ai_coding/上下文管理与防失忆.md「减负审查标准」（原 insights §2.1） · 层次：制度设计级
+> 出处：2026-08-03 T-199 书记条块认知澄清 + 2026-08-28 书记补录条块合作三句原话 + COMMISSIONER\_FRAMEWORK.md §A.3 · 子本：COMMISSIONER\_FRAMEWORK.md §A.3 + 05_ai_coding/CONTEXT_MANAGEMENT.md「减负审查标准」（原 insights §2.1） · 层次：制度设计级
 
 ***
 
@@ -278,7 +278,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > 分工的运行，还靠**人与岗位分离**——工作随身份走而非随人走：支委可以兼任党小组组长，但无「当然」关系，职责始终分开；谁做什么由岗位职责定义决定，涉及本人审核事项主动回避。
 >
-> 提出需求与统筹执行（发起是提出需求，招募是统筹执行）、做与看的边界（信息可见范围精确等于职责空间所需的最小充分信息）是分工落到系统上的设计落点，见 [COMMISSIONER\_FRAMEWORK §F.6](../02_institution/COMMISSIONER_FRAMEWORK.md) 与 [DESIGN\_SYSTEM.md §一 原则9](../04_web_design/design-system/DESIGN_SYSTEM.md)；分工冲突的裁决（多条条对同一块块下达矛盾任务时书记仲裁）见 §F.5。
+> 提出需求与统筹执行（发起是提出需求，招募是统筹执行）、做与看的边界（信息可见范围精确等于职责空间所需的最小充分信息）是分工落到系统上的设计落点，见 [COMMISSIONER\_FRAMEWORK §F.6](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) 与 [DESIGN\_SYSTEM.md §一 原则9](../04_web_design/design-system/DESIGN_SYSTEM.md)；分工冲突的裁决（多条条对同一块块下达矛盾任务时书记仲裁）见 §F.5。
 >
 > **考察信息评价边界**（服务—考察张力的裁决，2026-08-16 书记裁决）：考察信息进入正式评价时，必须有独立的制度边界——党小组活动和专班「不承担直接发展考核党员的职能」，支委会要做好培养发展党员的实质性、全流程把关。同一实践、双重产出：服务是面向成员的价值功能，考察是面向组织的认识功能——功能并列、评价分离，实践产生的观察信息不自动等于正式考核结论。
 
@@ -410,17 +410,17 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 - 原P-006（党建与党务工作理论——党建工作不等同于创新探索，党务工作不等同于合规运行，区分的是工作内容）：2026-08-09 迁出至 `content/03_doc_system/USAGE_POLICY.md` §1.1.1（T1 官方定义知识）+ `content/insights/党支部管理与实务经验沉淀.md` §1.1（本质属性判定）
 - 原P-007（党建与党务——都是「管理事，服务人」的工作）：2026-08-09 迁出至 `content/insights/党支部管理与实务经验沉淀.md` §1.2（同源不同视角）；作为 meta 级论断从汇编删除——区分两分法给成员带来理解压力，全部文档统一使用 T1 官方定义叙述
 - 原P-011：2026-08-09 并入 P-010 并弃用比喻
-- 原P-013（提出需求与招募统筹分离——发起是提出需求，招募是统筹执行）：2026-08-09 并入 P-012 分工的运行保障（提出需求与统筹执行）；2026-08-28 该原话随设计系统内容移出至 COMMISSIONER_FRAMEWORK §F.6
+- 原P-013（提出需求与招募统筹分离——发起是提出需求，招募是统筹执行）：2026-08-09 并入 P-012 分工的运行保障（提出需求与统筹执行）；2026-08-28 该原话随设计系统内容移出至 COMMISSIONER_DUTY_FRAMEWORK §F.6
 - 原P-008（视图按需取用原则）：2026-07-20 迁出至 insights 经验沉淀（§4.9）；2026-09-04 随工程方法论分流归位至 `content/04_web_design/data/DATA_FLOW.md` §4.7（§4.9 原则 + §6.13 判例同置）
-- 原P-021（经验沉淀按需正反两面论）：2026-07-20 迁出至 insights 经验沉淀（§3.7）；2026-09-04 随工程方法论分流归位至 `content/05_ai_coding/评议与表达纪律.md`（原 §3.7 节，母本：CLAUDE.md H30.4 规则 2）
+- 原P-021（经验沉淀按需正反两面论）：2026-07-20 迁出至 insights 经验沉淀（§3.7）；2026-09-04 随工程方法论分流归位至 `content/05_ai_coding/REVIEW_AND_EXPRESSION.md`（原 §3.7 节，母本：CLAUDE.md H30.4 规则 2）
 - 原P-022（写入型 vs 支撑型角色分类）：2026-08-04 删除——写入门禁机制真实存在，但该分类的角色清单与 auth.js 权限表不符、系统未使用此命名，书记奥卡姆剃刀裁决清除
 - 原P-016（一改具改原则——修改一处必须全仓同步）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（一改具改操作流程母本，权威源在 CLAUDE.md H30.1）；本文件不再展开
 - 原P-017（甲部自省原则——执行失败时先反思制度）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（甲部自省原则，权威源在 CLAUDE.md H30.1）
-- 原P-018（书记讲出的重要道理必须检查是否写入 guides/Harness——不得只记决策不沉淀原则）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（原则沉淀机制）+ `content/05_ai_coding/上下文管理与防失忆.md`（已收录，上下文丢失教训节条目 10）
+- 原P-018（书记讲出的重要道理必须检查是否写入 guides/Harness——不得只记决策不沉淀原则）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（原则沉淀机制）+ `content/05_ai_coding/CONTEXT_MANAGEMENT.md`（已收录，上下文丢失教训节条目 10）
 - 原P-024（SOP 与 guides 各自独立——理念与执行互不替代）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md` §1.1（文档权威层级定义母本）
 - 原P-026（人才库与原始材料库相区分——画像数据库与原始记录的关系）：2026-08-09 迁出至 `content/04_web_design/data/DATA_FLOW.md` §3.3（人才库数据流）
-- 原P-029（身份与权限相区分——身份选择和模式选择是两个独立决策）：2026-08-09 迁出至 `content/04_web_design/module/SOP_WEB.md` §G.3（身份权限）；原论断已退役（2026-08-08），保留为历史决策记录
-- 原P-027（书记的审批反馈是活动执行方向把握的关键环节——报备审批是双向关系）：2026-08-09 拆解迁出——①组织性框架内表达例证 → 本文件 P-008 讲解块（报备审批作为「在框架内说真话」的具体例子）；②书记对已开展活动可否补充意见的 UI 设计 → `content/04_web_design/module/SOP_WEB.md`（书记全局概览设计任务）；③报备/审批程序规范化 → `content/02_institution/COMMISSIONER_FRAMEWORK.md` §审批流程规范
+- 原P-029（身份与权限相区分——身份选择和模式选择是两个独立决策）：2026-08-09 迁出至 `content/04_web_design/module/SOP_WEBSITE_GUIDE.md` §G.3（身份权限）；原论断已退役（2026-08-08），保留为历史决策记录
+- 原P-027（书记的审批反馈是活动执行方向把握的关键环节——报备审批是双向关系）：2026-08-09 拆解迁出——①组织性框架内表达例证 → 本文件 P-008 讲解块（报备审批作为「在框架内说真话」的具体例子）；②书记对已开展活动可否补充意见的 UI 设计 → `content/04_web_design/module/SOP_WEBSITE_GUIDE.md`（书记全局概览设计任务）；③报备/审批程序规范化 → `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` §审批流程规范
 
 > 历史重构操作记录（D-230 二次重构、T24 索引补齐、首轮 12 条 + 二轮 4 条非 meta 级论断删除清单、原P-008/原P-021 迁出至 insights 文件 2、P-015/P-016 移至目录后作为第一章元命题引子、论断层次标注、附录索引建立、2026-08-16 四层结构重组：价值目标 → 组织机制 → 人的成长 → 组织再生产，编号重排为 P-001\~P-017）已归档至执行日志，本文件不再保留历史变更说明。
 
