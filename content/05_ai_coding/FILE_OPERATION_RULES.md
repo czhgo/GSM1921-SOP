@@ -2,7 +2,7 @@
 title: "文件操作纪律"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-04"
+last_updated: "2026-09-05"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/04_web_design/data/DATA_FLOW.md]
 ---
@@ -90,7 +90,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/04
 
 **与 §1 的区别**：§1 是"Edit 报告成功但未写入磁盘"（工具返回值与磁盘状态不符）；本节是"第二次 Edit 将第一次 Edit 的写入还原"（两次编辑的 diff 相互覆盖）。两者都可能造成"磁盘内容与预期不符"，验证手段相同——Read/Grep 复核磁盘实际状态。
 
-**与 §9 的区别**：§9 是 AI 总结描述与磁盘状态不符（认知层面）；本节是编辑引擎行为导致前次修改丢失（工具行为层面），与 AI 记忆/预期无关。
+**与 [CONTEXT_MANAGEMENT.md](CONTEXT_MANAGEMENT.md)『对话总结虚假完成陷阱』节（原 §9）的区别**：该节是 AI 总结描述与磁盘状态不符（认知层面）；本节是编辑引擎行为导致前次修改丢失（工具行为层面），与 AI 记忆/预期无关。
 
 **生效条件**：对同一文件同一区域进行连续/并行的多次 Edit 时适用。单一 Edit、或不同文件/不同区域的编辑不受此陷阱影响。
 

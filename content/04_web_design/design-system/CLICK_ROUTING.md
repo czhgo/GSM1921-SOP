@@ -44,7 +44,7 @@
 ## 4. 可点击性规范（T-304 Q2 全治裁定）
 
 1. **光标兜底**：`styles.css` 全局 `button { cursor: pointer }` / `button:disabled { cursor: not-allowed }`（2026-08-29 已实施）——手写按钮不再逐个补 cursor。
-2. **纯展示不加 hover 伪装**（COMPONENT_SPEC §4.3）：纯展示行/卡不得有 hover 上浮/变底（已清理：首页统计卡前三张、书记考勤明细行）。
+2. **纯展示不加 hover 伪装**（COMPONENT_SPEC §4.2 硬性规则 4）：纯展示行/卡不得有 hover 上浮/变底（已清理：首页统计卡前三张、书记考勤明细行）。
 3. **嵌套热区**：操作按钮嵌在可点击卡片内必须 `event.stopPropagation()` 阻断冒泡（已有：taskforce-tab/todo-list/header/references）——新增此类结构时必须同步阻断。
 4. **z-index 层级**：浮层统一三档——dropdown 100 / modal 500 / overlay 9999，新浮层不得另起档位。
 

@@ -3,7 +3,7 @@ title: "About 页面设计系统——超参数设定原则"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-19
-last_updated: "2026-08-22"
+last_updated: "2026-09-05"
 status: active
 related_files: [docs/src/about.css, docs/src/entries/about-entry.js, DESIGN_SYSTEM.md, DEPLOYMENT_GUIDE.md]
 ---
@@ -76,10 +76,10 @@ related_files: [docs/src/about.css, docs/src/entries/about-entry.js, DESIGN_SYST
 |--------|-----|---------|
 | 布局 | **左右分栏**：左 sticky 定格词区 + 右期待卡滚动驱动 | 书记 2026-08-28：「几个标题都不动，定格在左边，而右侧的卡片随着滚动移动」——`.ab-cognition-layout` grid（左 `minmax(220px,1fr)` / 右 `minmax(0,1.25fr)`）+ 左 `.ab-cognition-sticky` sticky |
 | 组织属性词 | 五个 h3：学生组织 / 政治组织 / 具体 / 方兴未艾 / 提供成长 | 书记 2026-08-28：「只要定语就可以，不要'一个……的'」；标签（span）与关键词（h3）**统一 h3 模式** |
-| 属性词字号 | `clamp(32px, 4vw, 44px)` 五词**等大** | 题眼感但收敛（T-272）；等大（书记「等大+排列散放」） |
-| 属性词错落 | 0° 旋转；词2/4 上浮（-12/-16px）、词3/5 下沉（+10/+18px 并左移） | **全清歪斜（2026-08-28 书记裁定）**：错落=高低左右散落（scatter），**不是歪斜旋转** |
+| 属性词字号 | `clamp(24px, 3vw, 32px)` 五词**等大** | 题眼感但收敛（T-272）；等大（书记「等大+排列散放」）；2026-08-28 T-300/T-301 左右分栏改版时随左侧定格收窄实测下调（原 `clamp(32px, 4vw, 44px)`，见 about.css `.ab-cognition-sticky .ab-keyword-word`） |
+| 属性词错落 | 0° 旋转位移散落：词1 flex-start；词2 上浮 -8px + 左移 24px（center）；词3 下沉 +10px + 左移 48px；词4 上浮 -12px + 左移 20px（center）；词5 下沉 +14px + 左移 44px（flex-end） | **全清歪斜（2026-08-28 书记裁定）**：错落=高低左右散落（scatter），**不是歪斜旋转**；偏移值按 about.css `.ab-cognition-sticky .ab-keyword-word:nth-of-type(n)` 实测回填（2026-08-28 T-300/T-301，原登记 -12/-16/+10/+18px 不精确） |
 | 属性词小字附注 | **删去** | 书记：「下面黑体的小字可以都删去」——只留大字 |
-| 属性词动画 | `ab-rise-in` 纯升起（0°） | 全清歪斜后统一升起渐显 |
+| 属性词动画 | **无动画——左栏纯静态定格**（2026-08-28 T-300 改：去 view() 升起，见 about.css L525-526 注释「书记『左侧应当不动』：去 view() 升起动画，左栏纯静态定格」） | 2026-08-28 T-300 书记「左侧应当不动」——左侧词区 sticky 定格，滚动动画只保留给右侧期待卡（JS 驱动，T-299）；原 `ab-rise-in` 纯升起（全清歪斜后统一升起渐显）仅适用于右侧入场元素 |
 | 章节 lead | **删去** | 书记 2026-08-28：「我不喜欢这句话」（原「一个正在建设中的组织，先向你介绍自己。」） |
 | 落点卡宽 | `width:100%; max-width: min(720px, 100%)` | **宽度思考**：1120px 满宽行过长难读，720px 为中文舒适行宽 |
 | 落点标题 | 18px 墨色 700 | 「你可以期待的XX」是承诺引导，不喧宾 |

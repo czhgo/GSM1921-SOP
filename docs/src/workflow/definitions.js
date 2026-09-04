@@ -7,7 +7,7 @@
 
 import { ROLE_KEYS } from '../core/constants.js?v=20260903c';
 
-// 工作流执行角色白名单（S10 单一事实源：键集必须 ⊆ ROLE_KEYS，新增角色须同步 ROLE_CLASSIFICATION §9a0）
+// 工作流执行角色白名单（S10 单一事实源：键集必须 ⊆ ROLE_KEYS，新增角色须同步 SYSTEM_ROLE_PERMISSION.md §9a0）
 // 筹备/协调阶段参与方：组织者、党小组组长、书记、纪检委员（考勤/考察对接）、宣传委员（宣传统筹）；
 // 组织委员负责发展事务不参与活动筹备；participant/deputy/deep 非授权执行方（可经赋权/报名进入）。
 const WORKFLOW_ROLES = ['organizer', 'leader', 'secretary', 'disc-commissioner', 'prop-commissioner'];

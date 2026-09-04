@@ -3,7 +3,7 @@ title: "支部工作地图设计稿（平铺模块 + 按人双视图）"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-09-04"
+last_updated: "2026-09-05"
 status: landed
 related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, MODULARIZATION_ASSESSMENT.md]
 ---
@@ -12,13 +12,13 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, MODULARIZ
 
 > **已落地 2026-09-04**：本设计已实现（代码：docs/src/entries/tabs/secretary/work-map-tab.js + workforce-panel.js；测试：server/test/work-map.test.mjs 绿）；本文档继续承担设计论证档案。
 
-> **2026-09-03 书记裁决（放行编码）**：① 模块清单照 11 项放行；② 「支部分工」书记台入口 + 支委会议题生效（可会前草稿）**全链路放行**。
+> **2026-09-03 书记裁决（放行编码）**：① 模块清单照 11 项放行；② 「支部分工」书记台入口 + 支委会议题生效（可会前草稿）**全链路放行**。（裁决出处见 2026-09-03 执行日志 `.ctx/logs/2026-09-EXECUTION_LOG.md`；SECRETARY_DIRECTIVES.md 未收录该设计裁定，无对应 P 编号）
 
 > **定位**：支部工作的组织视图与分工载体。书记 2026-09-03 三重命令：
 > ① **党建/党务二分已取消**（全仓废止，本稿不再出现该表达）；
 > ② **"组织生活会"也是错误范畴**（本稿不设此模块）；
 > ③ 地图呈现 = **平铺模块清单 + 按人分组 两种视图**（不设任何顶层大类筐）。
-> 本稿模块清单只列既有工作形式，模块归属与分工由支部自行建设（书记台），调整走支委会议题。
+> 本稿模块清单只列既有工作形式，模块归属与分工由支部自行建设（书记台），调整走支委会议题。（三重命令裁决出处同上——2026-09-03 执行日志，SECRETARY_DIRECTIVES 无对应 P 编号）
 
 ---
 
@@ -70,7 +70,10 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, MODULARIZ
 
 ## 六、YAGNI
 
-❌ 连线/条件 ｜ ❌ 党委编排分工 ｜ ❌ 顶层分类筐（党建/党务等全部不设）｜ ❌ 全站 tab 重构成地图（地图=组织与分工视图；执行仍走既有工作台）。
+❌ **连线/条件**：本稿是组织与分工视图，不是流程编排器——连线只复述流程先后，信息量增而无决策收益（执行顺序已由 workflow stages / 决策树承载；同 WORKFLOW_BLOCK_CONTRACT §六 YAGNI「图形化条件分支连线」）。
+❌ **党委编排分工**：分工是支部内政，党委台只做实例/上报/监控——党委编排越权代庖（见 §三；支部自治依据 PARTY_COMMITTEE_DESIGN §0 L2 工作流模块配置权）。
+❌ **顶层分类筐（党建/党务等全部不设）**：平铺模块清单 = 最小信息成本——再套一层分组筐，用户找模块要先多钻一层，违反最小三成本（DESIGN_METHODOLOGY §1.2 / DESIGN_SYSTEM §一 第2条）。
+❌ **全站 tab 重构成地图**：执行入口已按角色工作台落地（最小操作成本形态）；地图只承载组织与分工视图，执行仍走既有工作台，重构不增决策收益。
 
 **验收闭环**：书记台「支部分工」→ 平铺/按人两视图 → 提议"发展党员改派副书记"→ 支委会议题 → 票决通过 → config.workforce 落库 → 副书记工作台出现对应入口。
 
@@ -79,6 +82,8 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, MODULARIZ
 **2026-09-03 书记裁决**：
 1. 模块清单 **照 11 项放行**（不增删既有工作形式）；
 2. 「支部分工」入口 + 支委会议题生效（可会前草稿）**全链路放行**。
+
+> 裁决出处：2026-09-03 执行日志（`.ctx/logs/2026-09-EXECUTION_LOG.md`）；SECRETARY_DIRECTIVES.md 未收录该设计裁定，无对应 P 编号。
 
 **落地进度（攒批推进）**：
 - ✅ **M0 数据契约**：`docs/src/core/work-map.js`（11 模块目录 + 缺省分工 + `expandWorkforce` 快照展开，零依赖双端可加载）；`config-clean.js` 新增 `sanitizeConfigWorkforce`；server `PATCH /branches/:id/config` 支持 `config.workforce`（null=恢复缺省）；`branch.js` 新增 `getBranchWorkforce/updateBranchWorkforce`（写配置抽 `_saveBranchConfig` 共用）。

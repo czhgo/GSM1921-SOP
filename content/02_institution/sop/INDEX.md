@@ -26,11 +26,11 @@ status: active
 
 | SOP 文档 | 用途 | 责任人 | 关联 Schema 字段 |
 |----------|------|--------|------------------|
-| 组织委员工作流程指南.md | 描述组织委员职责与活动创建流程（考察档案、思想汇报查看调用、发展党员材料复核） | 组织委员 | `Activity.executor`, `Activity.supervisor`, `Task.status` |
+| 组织委员工作流程指南.md | 描述组织委员职责与主流程——专班协调（需求审查→发布招募→名单同步纪检委员→监控归档）与发展党员全流程（考察档案维护、思想汇报查看调用、材料清单） | 组织委员 | `Activity.executor`, `Activity.supervisor`, `Task.status` |
 | 纪检委员工作流程指南.md | 描述纪检委员职责与考勤管理流程（三会一课考勤、活动考察记录、意见建议反馈） | 纪检委员 | `Activity.status`, `AttendanceRecord.status`, `AttendanceRecord.recordedBy` |
 | 宣传委员工作流程指南.md | 描述宣传委员职责与宣传档案制度流程（支部大会宣传、活动材料归档、模板体系建设） | 宣传委员 | `Activity.type`, `Activity.title` |
 | 党小组组长工作手册.md | 党小组组长专用操作指南——党小组日常活动组织、条块协作、数据提交流程 | 党小组组长 | `Activity.executor`, `Activity.supervisor` |
-| 常见工作场景快速指南.md | 为所有支委和党小组成员提供常见工作场景（三会一课、主题党日、专班、发展党员、民主评议、换届选举等）的快速操作指南 | 支部书记 | `Activity.type`, `Activity.status`, `Activity.executor`, `Activity.supervisor` |
+| 常见工作场景快速指南.md | 为支部成员提供常见工作场景的快速操作指南——活动与品牌：主题党日、三会一课（含组织生活会）、团支部合办活动、品牌属性标签；制度与日常事务：制度制定与迭代、积极分子考察、考勤记录查询、意见建议反馈 | 支部书记 | `Activity.type`, `Activity.status`, `Activity.executor`, `Activity.supervisor` |
 | 支委与党小组定人定责定岗说明.md | 说明支委会成员与党小组的人员结构、双重身份体系及条条块块双线管理协调机制 | 支部书记 | `Activity.executor`, `Activity.supervisor` |
 
 ---

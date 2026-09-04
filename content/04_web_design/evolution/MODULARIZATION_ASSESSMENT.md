@@ -3,7 +3,7 @@ title: "模块化 / 插件化 / 开源化评估——统一扎口方向裁决"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-09-03"
+last_updated: "2026-09-05"
 status: active
 related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/SOP_WEBSITE_GUIDE.md, ../deploy/DEPLOYMENT_GUIDE.md]
 ---
@@ -73,7 +73,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 - 无插件清单/依赖关系/冲突检测契约。
 - 工作台 tab 显隐需 workspace-shell 与 capability tabs 双维护。
 - 能力与页面 scope 常量强绑定，未达到"配置即组合"。
-- L3 block manifest（块的 inputs 声明、事件、校验）未定义 → 拖拽工作流模块（根 README 总目标）的代码前提未立。
+- ~~L3 block manifest（块的 inputs 声明、事件、校验）未定义 → 拖拽工作流模块（根 README 总目标）的代码前提未立。~~ ✅ 2026-09-03 已定义落地：契约 v1.1（WORKFLOW_BLOCK_CONTRACT）+ manifests.js 双块 + 校验器 + 渲染桥 + config.blocks.workflowBlocks 配置区 + 主题党日入口守卫（见 §四 P2 现状）。
 
 ### 3.3 开源化 —— 74/100
 
@@ -84,7 +84,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 
 失分项（列入修复线）：
 - mock 数据内嵌示例姓名/账号；dev 登录卡直连 mock → 需"示例数据外置"才可他人部署。
-- 无 LICENSE / CONTRIBUTING / 发布（release）工作流。
+- ~~无 LICENSE / CONTRIBUTING~~ / 发布（release）工作流：LICENSE 与根 CONTRIBUTING.md 已补仓（2026-09-04，见 §四 P1 现状）；语义化发布（release）工作流仍未做（维持失分）。
 - `?v=` 软版本利于日常整体失效，但非语义化版本发布。
 
 ---
@@ -95,7 +95,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 |--------|------|------|---------|
 | P0 | 统一扎口推广：以 forms.js 为样板，为徽章/状态、数据视图等高频组件域逐一建库出口，全站收口 | forms.js、badges.js、reporting.js 三库完成（组件平铺层同域多文件已收敛） | 每建一库跑 module-load + E2E；仓库无该域直连残留 |
 | P0 | 数据域自动接线：tab/能力声明依赖的 service + mock 整体可替换 | **收官**：person 域/formatter/PEOPLE/机构/登录四批收口完成——UI 层 mock 直连清零，种子仅存 services/core 数据层 | 新增 demo 分支或后端接入时 UI 零改动（data-adapter 双实现全量走通） |
-| P1 | 开源合规包：LICENSE、示例账号外置 env、部署/贡献说明 | 未开工 | 新机器按 README 可独立跑通并自建数据 |
+| P1 | 开源合规包：LICENSE、示例账号外置 env、部署/贡献说明 | 部分落地：根 LICENSE + CONTRIBUTING.md + server/.env.example 已在仓（2026-09-04 补，见 BRANCH_WORK_MAP 落地进度·可复用文档件） | 新机器按 README 可独立跑通并自建数据 |
 | P2 | L3 block manifest + 拖拽编排（根 README 总目标） | 契约 v1.1 定稿；L3 S1~S4 全部落地（manifests 双块 + 校验器 + 渲染桥 + config.workflowBlocks 配置区 + 主题党日入口守卫，测试全绿） | 块声明 inputs/事件/校验契约定稿并经用户确认后编码（L3 ✅ 2026-09-03） |
 
 ---
@@ -167,14 +167,16 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 
 ### 7.2 去重队列（优先级=改造成本低 × 漂移风险高）
 
-| 项 | 动作 | 验收标准 |
-|----|------|---------|
-| P0a | R1 微工具建库：HTML 转义/日期格式化收敛到唯一工具出口，10 处本地 `esc` 改 import | grep 本地 `function esc` 归零；module-load 全绿 |
-| P0b | R2/R3 元数据单一源：MEETING_TYPES、MANDATORY_ACTIVITY_TYPES、gallery 色名、write-tab 4 id、calendar blockId 全部改为引用 constants/manifests | 全仓该 4 id/类型名无第二份字面量；写路径零行为变化 |
-| P0c | R5 防漂移测试落地：新增测试断言 FLOW_LINKS 键集 == function-catalog flow id 键集（落实 mermaid-sources.js:30 注释承诺） | 测试进 server/test 且绿 |
-| P1a | R7/R8 跨层：config 净化与表决枚举改为 server 单向权威 or 前端生成 → 注释互链 + 键集测试 | 两端字段集合由测试断言一致 |
-| P1b | R12 运行安全（口径修正后唯一保留项）：server 登录加密码校验（可开关，缺省演示态兼容）——多人/计算中心部署时防凭 personId 冒名 | 新 clone 部署后无 personId 直取 token 路径；demo 态开关显式 |
-| P2 | R4/R6/R9 结构性统一：场景目录、tab id、角色集合向单一源收敛（可随 L4 拖拽编排一并做） | 随 L3/L4 推进时验收 |
+| 项 | 动作 | 执行状态 | 验收标准 |
+|----|------|---------|---------|
+| P0a | R1 微工具建库：HTML 转义/日期格式化收敛到唯一工具出口，10 处本地 `esc` 改 import | ✅ 完成（2026-09-03，见下） | grep 本地 `function esc` 归零；module-load 全绿 |
+| P0b | R2/R3 元数据单一源：MEETING_TYPES、MANDATORY_ACTIVITY_TYPES、gallery 色名、write-tab 4 id、calendar blockId 全部改为引用 constants/manifests | 🟡 部分完成（TYPE_META/STATUS_META 与 MANDATORY_ACTIVITY_TYPES/gallery 色名 2 项复核保留，见下） | 全仓该 4 id/类型名无第二份字面量；写路径零行为变化 |
+| P0c | R5 防漂移测试落地：新增测试断言 FLOW_LINKS 键集 == function-catalog flow id 键集（落实 mermaid-sources.js:30 注释承诺） | ✅ 完成（2026-09-03，见下） | 测试进 server/test 且绿 |
+| P1a | R7/R8 跨层：config 净化与表决枚举改为 server 单向权威 or 前端生成 → 注释互链 + 键集测试 | ✅ 完成（2026-09-03，见下） | 两端字段集合由测试断言一致 |
+| P1b | R12 运行安全（口径修正后唯一保留项）：server 登录加密码校验（可开关，缺省演示态兼容）——多人/计算中心部署时防凭 personId 冒名 | ✅ 完成（2026-09-03，见下） | 新 clone 部署后无 personId 直取 token 路径；demo 态开关显式 |
+| P2a | R6 结构性统一：tab id 收敛——`docs/src/core/tab-nav.js` 纯决策 + tab-bar 守卫（原随 L4 一并做的拆分提前单做） | ✅ 完成（2026-09-03，见下） | 落点命中支部隐藏 tab 回退首个可见 tab、杜绝静默白屏 |
+| P2b | R4 结构性统一：写活动场景选择清单收敛单一源（constants `SCENARIO_WRITE_IDS/SCENARIO_LABELS` 派生） | ✅ 完成（2026-09-03，见下） | 写路径三会四子类/场景清单无第二份字面量 |
+| P2c | R9 结构性统一：授权语义角色集单一源（constants `BRANCH_COMMISSION_ROLES/SECRETARY_ROLES/PARTY_STAFF_ROLE/COMMITTEE_IDS`） | ✅ 完成（2026-09-03，见下） | 五处本地手写角色集清零，角色 ∈ ROLE_KEYS 断言绿 |
 
 > **执行状态（2026-09-03）**
 > - P0a ✅：`esc` 本地实现 10 处 + `fmtDt` 2 处全部收口到 `core/utils.js` 新增 `escHtml/fmtDt` 唯一出口（各文件 import 别名 `esc`，调用面零改动）。
@@ -185,5 +187,5 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 > - P1b ✅：server `/login` 默认口令校验（env `LOGIN_PASSWORD` 缺省 '123456' 可换；`DISABLE_PASSWORD_CHECK=1` 逃逸门）；前端 AuthStore.login 与登录页传递密码；`npm test` 系列脚本统一置逃逸门保测试零回归；新增 `test/auth-password.test.mjs` 覆盖默认开/错口令/放行/逃逸门/换口令 5 态。纯 node 回归 24/24 绿（含 agenda-votes/module-config/workflow-block-config）。
 > - P2a ✅（R6 首步）：新增 `docs/src/core/tab-nav.js`（resolveInitialTab/resolveTargetTab 纯决策，零依赖双端可加载），`components/tab-bar.js` 初始激活与目标激活接入守卫——defaultTab/记忆/priority 或 URL 导航落点命中被支部隐藏的 tab 时回退首个可见 tab 并 `console.warn`，杜绝静默白屏；`test/tab-nav.test.mjs` 4 态绿（与 capability-registry 共 16/16 绿）。注：branch-module-catalog.test.mjs 依赖浏览器能力注册，沙箱不可用（既有限制非本项回归）。
 > - P2b ✅（R4 首步）：写活动场景选择清单收敛单一源——constants.js 新增 `SCENARIO_WRITE_IDS/SCENARIO_LABELS`（中文名派生自 `ACTIVITY_CLASSIFICATION['three-meetings'].subtypes` 权威序列），decision-tree secretary L1Sub 与 calendar-tab WRITE_TEMPLATES 三会 subtypes 改为派生引用（手写清单删除，渲染色/正交维度等本地属性保留）；`test/scene-write-sync.test.mjs` 3 断言绿（键集=平铺 id、四子会中文名逐序一致、写入 id ⊆ SCENARIO_TO_CATEGORY）。注：SCENARIO_TO_CATEGORY 为模块私有常量，测试文本求值。
-> - P2c ✅（R9 收口，队列 8/8 完成）：授权语义角色集单一源——constants.js 新增 `BRANCH_COMMISSION_ROLES/SECRETARY_ROLES/PARTY_STAFF_ROLE/COMMITTEE_IDS`（与业务语义「条条三委员 COMMISSIONER_ROLES」明确区分）；前端 services/auth.js 与 server routes/auth/member/committee/resources 五处本地手写角色集/名单全部改为派生引用。`test/roles-sync.test.mjs` 4 断言绿（角色 ∈ ROLE_KEYS、授权/条条语义不混淆、名单=5 人、文本扫描特征串仅存 constants.js）。纯 node 回归 33/33 绿（含鉴权相关 agenda-votes/module-config/workflow-block-config/auth-password）。
+> - P2c ✅（R9 收口；至此去重队列 7/8 全量完成 + P0b 部分完成（2 项复核保留见上），非 8/8 全量）：constants.js 新增 BRANCH_COMMISSION_ROLES/SECRETARY_ROLES/PARTY_STAFF_ROLE/COMMITTEE_IDS（与业务语义「条条三委员 COMMISSIONER_ROLES」明确区分）；前端 services/auth.js 与 server routes/auth/member/committee/resources 五处本地手写角色集/名单全部改为派生引用。`test/roles-sync.test.mjs` 4 断言绿（角色 ∈ ROLE_KEYS、授权/条条语义不混淆、名单=5 人、文本扫描特征串仅存 constants.js）。纯 node 回归 33/33 绿（含鉴权相关 agenda-votes/module-config/workflow-block-config/auth-password）。
 > - 验证：13 个改动文件 GetDiagnostics 零错误；E2E 需在非沙箱终端补跑（`cd server && npm test`）。

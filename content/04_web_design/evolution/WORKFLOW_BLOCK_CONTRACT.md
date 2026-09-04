@@ -3,14 +3,14 @@ title: "工作流块封装契约"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-09-03"
+last_updated: "2026-09-05"
 status: active
 related_files: [ARCHITECTURE_EVOLUTION.md, MODULARIZATION_ASSESSMENT.md, PARTY_COMMITTEE_DESIGN.md, ../../03_doc_system/ARCHITECTURE.md]
 ---
 
 # 工作流块封装契约
 
-> **定位**：根 README 顶层愿景 L1→L5 的第 3 层（L3 块封装契约）。把一条 SOP 封装为一个「工作流块」：声明输入（fields，渲染器 = 既有 forms.js 字段积木）、阶段（引擎阶段序列）、产出（todo/notice/归档等既有联动）。本文档只定义契约与示例，编码按书记批准后的路线图拆分。
+> **定位**：根 README 顶层愿景 L1→L5 的第 3 层（L3 块封装契约）。把一条 SOP 封装为一个「工作流块」：声明输入（fields，渲染器 = 既有 forms.js 字段积木）、阶段（引擎阶段序列）、产出（todo/notice/归档等既有联动）。契约与示例已随 S1~S4 编码落地（2026-09-03，见 §七）；本文档当前为契约定义 + 落地进度档案。
 > **受众**：[工程师]+[AI]（工作流/表单/能力注册三个面的维护者）+ 书记（交互与边界裁决人）
 > **关联**：[ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §8（愿景与 §8.5 草案）、[MODULARIZATION_ASSESSMENT.md](MODULARIZATION_ASSESSMENT.md)（P2 行动）、[PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md)（两级治理）。
 
@@ -116,7 +116,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, MODULARIZATION_ASSESSMENT.md, PARTY_C
 | provenance | 仅 2 值：`institution-common`（三会一课等全党通用）\| `branch-custom`（支部自创制度尝试）；通用块禁止声明为 branch-custom |
 | kind | 仅 4 值：`textField/textareaField/selectField/dateField`（新增字段类型 = forms.js 库扩，不是块特例） |
 | inputs.fields | fieldId 块内唯一；requiredConfigurable=true 时支部 config 可改必填；enabledDefault=false 的字段默认收起 |
-| participants | mode=`configurable` 时须提供 defaultRoles（角色键合法）；orgMode ∈ none \| organizer-deep（后者为支部自创组织模式，名单解析走 person 服务） |
+| participants | mode=`configurable` 时须提供 defaultRoles；**角色键 = [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md) §9a0 角色键全表 / `docs/src/core/constants.js` `ROLE_KEYS` 之一**（两源同构对齐，见 ROLE_PERMISSION_DESIGN 收敛）；orgMode ∈ none \| organizer-deep（后者为支部自创组织模式，名单解析走 person 服务） |
 | outputs.entities | 仅 services 层已存在实体名；不存在即声明即错误 |
 | outputs.outputBlocks | 仅 OUTPUT_BLOCK_DEFS 目录内 id |
 | validation.initiatorRoles | 仅 ROLE 常量内角色键；块对不可见角色自动隐藏（不泄露） |
@@ -134,8 +134,8 @@ related_files: [ARCHITECTURE_EVOLUTION.md, MODULARIZATION_ASSESSMENT.md, PARTY_C
 | outputs.entities/outputBlocks | services 层写口 + `OUTPUT_BLOCK_DEFS` + config.blocks | ✅ 已有（2026-09-03 产出块目录与支部级启停） |
 | events | `DATA_CHANGED_EVENT` 广播 | ✅ 已有 |
 | validation | 角色常量 + 支部 config + content 死链校验 | ✅ 已有（permission-gate / link-integrity） |
-| **manifest 数据文件** | 新建 `docs/src/workflow/blocks/*.json`（或并入 registry 声明） | ⬜ 待编码（P2 首批） |
-| **manifest 校验器** | 纯函数 `validateBlockManifest(m)`（无 DOM 依赖，可单测） | ⬜ 待编码 |
+| **manifest 数据文件** | `docs/src/workflow/blocks/manifests.js`（THEME_PARTY_DAY_MANIFEST + TASKFORCE_RUN_MANIFEST，与引擎数据同目录；不另建 *.json） | ✅ 已编码（2026-09-03，见 §六 S1 / §七 S1） |
+| **manifest 校验器** | 纯函数 `validateBlockManifest(m)`（无 DOM 依赖，可单测） | ✅ 已编码（2026-09-03，见 §七 S1：正/反样例单测绿） |
 
 > 结论：**契约的每一个字段都已能找到既有落点**——L3 的唯一新增物是一份「元数据文件 + 校验器」，不触碰执行与渲染核心。
 
@@ -149,7 +149,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, MODULARIZATION_ASSESSMENT.md, PARTY_C
   "name": "主题党日组织块",
   "version": "1.0.0",
   "provenance": "institution-common",      // 三会一课/主题党日 = 全党通用制度
-  "sopRef": "02_institution/sop/theme_party_day.md",
+  "sopRef": "02_institution/sop/常见工作场景快速指南.md", // 主题党日 SOP 实际栖身此文件（「主题党日」节）
   "capabilityId": "activity-calendar",
   "scope": ["workspace:secretary", "workspace:leader"],
   "inputs": {
@@ -182,7 +182,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, MODULARIZATION_ASSESSMENT.md, PARTY_C
   "name": "专班运行块",
   "version": "1.0.0",
   "provenance": "branch-custom",            // 专班 = 支部自己的制度尝试
-  "sopRef": "02_institution/sop/taskforce.md",
+  "sopRef": "02_institution/sop/组织委员工作流程指南.md", // 专班招募/运行 SOP（组织委员 = 唯一专班管理节点）；制度定义另见 COMMISSIONER_DUTY_FRAMEWORK.md §A.4~A.7
   "capabilityId": "taskforce",
   "scope": ["workspace:org-commissioner", "workspace:secretary"],
   "inputs": {
@@ -211,7 +211,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, MODULARIZATION_ASSESSMENT.md, PARTY_C
 
 ---
 
-## 六、编码落地拆分（待书记批准后作为路线图）
+## 六、编码落地拆分（S1~S4 已按此拆分落地，2026-09-03；完成进度见 §七）
 
 | 步 | 内容 | 验收 |
 |----|------|------|
@@ -231,7 +231,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, MODULARIZATION_ASSESSMENT.md, PARTY_C
 - ✅ manifest 数据栖身：`docs/src/workflow/blocks/manifests.js`（与引擎数据同目录）。
 - ✅ S3 配置面：党委台「支部配置」内展示块级启停与字段级收拢（不另设页面）。
 
-**待定（S4 编码前收敛）**：
+**S1~S4 落地进度（2026-09-03，按书记裁定路线图）**：
 - ✅ S1 已完成（书记点名 主题党日+专班，2026-09-03）：`docs/src/workflow/blocks/manifests.js`（THEME_PARTY_DAY_MANIFEST + TASKFORCE_RUN_MANIFEST + `validateBlockManifest` 纯校验器 + capability→provenance 权威对照防谎报）；单测 `server/test/block-manifest.test.mjs`（正/反 5 样例）+ module-load 全绿。
 - ✅ S2 已完成（2026-09-03）：`docs/src/workflow/blocks/form-renderer.js` 渲染桥（manifest.inputs.fields → forms.js 积木，kind 一一映射、块级 id 前缀、enabledDefault=false 默认收起 + includeDisabled 预览、字段目录 manifestFieldCatalog 供配置面）；单测 `server/test/block-form-renderer.test.mjs` 绿。
 - ✅ S3 已完成（2026-09-03）：config.blocks 增 `workflowBlocks.hiddenBlockIds`（与 outputBlocks 平级，书记裁定）；branch.js 增 getWorkflowBlockPolicy/applyWorkflowBlockPolicy 纯策略；server config 校验兼容 { outputBlocks?, workflowBlocks? }；党委台「支部配置」新增「工作流块」区（manifest 目录 chips + 制度来源标签 通用制度/支部自创，启停/保存/恢复默认）；测试 workflow-block-config（HTTP+纯函数）+ block-config-ui-e2e 全绿。

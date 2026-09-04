@@ -2,7 +2,7 @@
 title: "数据同源一致性校验手册"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-04"
+last_updated: "2026-09-05"
 status: active
 related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ---
@@ -173,7 +173,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 |------|---------|------|
 | index.html | 通知铃铛+通知列表 | 全部 |
 | notice.html | 通知详情页（含通知者/被通知者/时间） | 全部 |
-| 各工作台 | 通知→待办派生（§2.19 机制） | 各角色 |
+| 各工作台 | 通知→待办派生（[DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md) §2.19 机制） | 各角色 |
 
 **同源校验点**：
 
@@ -425,7 +425,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 7 | 党小组组长 | `/workspace/leader.html?activityId=act-2` | 落「活动管理」tab + act-2 详情展开 + 条目高亮褪去（注：act-1 属 p3 bottom-up，组长不可见属正常权限） | ❌ 修复后待人工复核（原 SignupStore 未导入已修，改用 act-2） | ✅ PASS（条目存在+高亮） |
 | 8 | 访客 | `/workspace/visitor.html?activityId=act-1` | 落「活动动态」tab + act-1 条目高亮**自动褪去**（修复"一直亮着"） | ✅ PASS | ✅ PASS（条目存在+高亮+褪去） |
 
-> **2026-08-24 第 3 轮说明（T-280 B1-2/B1-5）**：8 用例 + 附加 4 项全部浏览器实测 PASS（34/34，见 `server/test/t235-browser-regression.mjs`）。
+> **2026-08-24 第 3 轮说明（T-280 B1-2/B1-5）**：8 用例 + 附加 4 项全部浏览器实测 PASS（34/34，专项脚本 `server/test/t235-browser-regression.mjs` 已随 2026-08-30 脚本清理归档）。
 > 实测中发现并修复 B1-5 缺陷：URL 直达高亮原被 `loadWorkspaceData` 二次 setState 重渲染冲掉（实际可见仅 ~300ms），已按方案 A 修复——
 > 各工作台入口导航落点后 3 秒条件抑制当前 tab 重渲染（仅当导航目标已在 DOM 时抑制，目标缺失放行延迟数据补渲染），高亮目标存活至抑制窗口结束，一次性定位改为轮询定位。
 
@@ -488,10 +488,10 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 > 背景：T-283 功能开发中多次出现「多轮 Edit 导致误删/重复」系统性损坏——重复声明（SyntaxError）、函数/绑定被误删（ReferenceError 或点击静默失效）、声明误删。书记指令：此类共性问题须成为 checklist 重要部分并全局检查。机制与判例详见 [FILE_OPERATION_RULES.md §14.1（同区域连续编辑覆盖）](FILE_OPERATION_RULES.md)。
 
 - [ ] **GetDiagnostics 全仓零错误**（每次多文件修改后的最低检查：语法错误/未定义引用/重复声明）
-- [ ] **模块加载完整性审计**：`node --test server/test/edit-integrity-audit.mjs`（浏览器 import 全部 docs/src 模块全量通过——模块数随演进变化，不在本文维护具体数值；已入 npm test 回归）
-- [ ] **新增功能浏览器回归**：功能路径实测（如三会一课议程：创建写入→详情显示→行内编辑→保存→持久化，server/test/agenda-flow-audit.mjs A1-A3）
-- [ ] **点击成本回归**：进入工作台→可执行事项 ≤2 跳；高频操作点击次数达标（server/test/click-cost-audit.mjs C1-C3）
-- [ ] **数据完整性回归**：Mock 数据引用/字段/id/类型 + 生命周期一致性（server/test/mock-integrity-audit.mjs M1-M2）
+- [ ] **模块加载完整性审计**：`node --test server/test/module-load.test.mjs`（浏览器 import 全部 docs/src 模块全量通过——模块数随演进变化，不在本文维护具体数值；已入 npm test 回归）
+- [ ] **新增功能浏览器回归**：功能路径实测（如三会一课议程：创建写入→详情显示→行内编辑→保存→持久化，server/test/agenda-flow.test.mjs A1-A3）
+- [ ] **点击成本回归**：进入工作台→可执行事项 ≤2 跳；高频操作点击次数达标（server/test/click-cost.test.mjs C1-C3）
+- [ ] **数据完整性回归**：Mock 数据引用/字段/id/类型 + 生命周期一致性（server/test/mock-integrity.test.mjs M1-M2）
 - [ ] **删除性 Edit 复核**：删除代码块后 Read 复核邻近区域，确认无连带误删
 
 ## 链接完整性校验（T-284 新增，2026-08-27）

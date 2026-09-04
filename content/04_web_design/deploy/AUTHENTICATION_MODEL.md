@@ -3,7 +3,7 @@ title: "部署与认证场景模型"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-18
-last_updated: "2026-08-22"
+last_updated: "2026-09-05"
 status: active
 author: AI 起草，审定
 related_files: [docs/src/components/sidebar.js, docs/src/components/header.js, docs/src/core/bootstrap.js, docs/src/config/deploy.js, docs/login.html, docs/src/services/auth.js]
@@ -102,5 +102,5 @@ related_files: [docs/src/components/sidebar.js, docs/src/components/header.js, d
 ## 八、与既有文档的关系
 
 - 数据源抽象（mock / api）：见 [DATA_FLOW.md](../data/DATA_FLOW.md) §4.4
-- 对接学校计算中心的部署方案：见 [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) §三（计算中心对接全案）
+- 对接学校计算中心的部署方案：见 [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) §三（与学校/党校对接总叙事与决策矩阵；计算中心托管对接前置见 §3.4、步骤见 §3.5）
 - 可见性规则（谁能看到谁）：见 [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md) 原则 9

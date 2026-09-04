@@ -2,7 +2,7 @@
 title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-04"
+last_updated: "2026-09-05"
 version: "2.4"
 status: active
 related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
@@ -65,7 +65,8 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 |------|------|------|---------|
 | `content/02_institution/FLAT_ORGANIZATION_DESIGN.md` | [工程师]+[AI] | 组织者与深度参与者的扁平化设计 | SECRETARY_DIRECTIVES.md |
 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | [用户]+[AI] | 支委系统设计（含专班、赋权关系链、§审批流程规范） | SECRETARY_DIRECTIVES.md |
-| `content/02_institution/ROLE_CLASSIFICATION.md` | [工程师]+[AI] | 文件角色分类体系设计 + 权限矩阵 §九 | CLAUDE.md、SERVICE_CATALOG.md |
+| `content/02_institution/ROLE_CLASSIFICATION.md` | [工程师]+[AI] | 文件角色分类体系设计（[用户]/[工程师]/[AI] 三类标记 + 协作方式 + 存储读取机制） | OPERATIONS_GUIDE.md、USAGE_POLICY.md |
+| `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | [工程师]+[AI] | 系统角色权限矩阵（角色键全表 9a0 + 权限矩阵/赋权链，代码键级权威；2026-09-05 自 ROLE_CLASSIFICATION.md §九 迁出） | SERVICE_CATALOG.md、DATA_MODEL.md、DATA_FLOW.md、COMMISSIONER_DUTY_FRAMEWORK.md |
 | `content/02_institution/sop/INDEX.md` | [用户]+[AI] | SOP 导航目录 | ARCHITECTURE.md |
 | `content/02_institution/sop/常见工作场景快速指南.md` | [用户]+[AI] | 快速使用指南 | INDEX |
 | `content/02_institution/sop/支委与党小组定人定责定岗说明.md` | [用户]+[AI] | 职责分工文档 | INDEX |
@@ -87,8 +88,8 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | `content/03_doc_system/DOC_MAP.md` | [工程师]+[AI] | 本文档：全局导航中心 | 所有文件 |
 | `content/03_doc_system/SSOT_INDEX.md` | [工程师]+[AI] | 母本注册表、溯源参考（Agent/Skill 配置已迁出，见 ARCHITECTURE.md） | ARCHITECTURE.md |
 | `content/03_doc_system/ARCHITECTURE.md` | [工程师]+[AI] | 核心架构说明、分层架构、数据模型、变更流水线 | README.md（架构图引用） |
-| `content/03_doc_system/SERVICE_CATALOG.md` | [工程师]+[AI] | 统一服务目录（服务清单+角色权限矩阵） | DATA_MODEL.md / ROLE_CLASSIFICATION.md / COMMISSIONER_DUTY_FRAMEWORK.md |
-| `content/03_doc_system/工作模板/经验沉淀辅助提示词.md` | [用户] | 经验沉淀辅助提示词模板 | content/04_web_design/module/SOP_WEBSITE_GUIDE.md |
+| `content/03_doc_system/SERVICE_CATALOG.md` | [工程师]+[AI] | 统一服务目录（服务清单+角色权限矩阵） | DATA_MODEL.md / SYSTEM_ROLE_PERMISSION.md / COMMISSIONER_DUTY_FRAMEWORK.md |
+| `content/03_doc_system/工作模板/经验沉淀辅助提示词.md` | [用户]+[AI] | 经验沉淀辅助提示词模板 | content/04_web_design/module/SOP_WEBSITE_GUIDE.md |
 | `content/03_doc_system/README.md` | [工程师]+[AI] | 文档系统管理层目录索引 | — |
 
 ### 知识类型 4：网站系统的设计想法（content/04_web_design/）
@@ -98,14 +99,15 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
 | `content/04_web_design/data/DATA_MODEL.md` | [工程师]+[AI] | 数据模型设计（静态模型权威：20 类数据模型字段定义 + §写入数据验证 + 待办/通知派生 + 归档扩展字段） | SECRETARY_DIRECTIVES.md、ARCHITECTURE.md、CLAUDE.md |
-| `content/04_web_design/data/DATA_FLOW.md` | [工程师]+[AI] | 数据流设计（动态数据流权威：数据架构总览 + 参与者数据流 + 前端数据流：状态管理/持久化/数据源边界/DataAdapter/写穿透） | DATA_MODEL.md、ROLE_CLASSIFICATION.md |
+| `content/04_web_design/data/DATA_FLOW.md` | [工程师]+[AI] | 数据流设计（动态数据流权威：数据架构总览 + 参与者数据流 + 前端数据流：状态管理/持久化/数据源边界/DataAdapter/写穿透） | DATA_MODEL.md、SYSTEM_ROLE_PERMISSION.md |
 | `content/04_web_design/design-system/DESIGN_SYSTEM.md` | [工程师]+[AI] | 设计系统规范（设计哲学/排版/交互反馈/响应式/深色模式/设计资产/快速参考；2026-08-24 §二→COLOR_SYSTEM、§四→COMPONENT_SPEC） | docs/src/styles.css |
 | `content/04_web_design/design-system/COLOR_SYSTEM.md` | [工程师]+[AI] | 色彩系统规范（色盘/主色/辅助色/中性色/功能色/表面色/配色规则；2026-08-24 自 DESIGN_SYSTEM 拆分） | docs/src/styles.css |
 | `content/04_web_design/design-system/COMPONENT_SPEC.md` | [工程师]+[AI] | 组件规范（按钮/卡片/输入/侧边栏/导航/日历图例/数据展示/图标/选人/状态徽章；2026-08-24 自 DESIGN_SYSTEM 拆分） | docs/src/components/* |
+| `content/04_web_design/design-system/CLICK_ROUTING.md` | [工程师]+[AI] | 点击落点映射表（「什么地方可点击、点击后落在哪里」全局规范：分层原则 + 活动/专班/通知条目落点映射；2026-08-29 书记分层原则裁定） | docs/src/core/cross-page-state.js（buildURL 统一出口）、docs/src/services/notice.js（resolveNoticeUrl） |
 | `content/04_web_design/module/ABOUT_PAGE_DESIGN.md` | [工程师]+[AI] | About 页面设计系统（超参数设定原则/防风格疲劳/无竖线红线） | docs/src/about.css、docs/src/entries/about-entry.js |
 | `content/04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md` | [工程师]+[AI] | 会议议程与资料查询联动设计（会前草案关联/会后少重复录入/单一数据源） | —（草案·待实施 2026-08-31） |
 | `content/04_web_design/module/MODULE_UI_DESIGN.md`（已落地 2026-09-03） | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能，已落地、设计论证档案） | docs/src/components/calendar.js |
-| `content/04_web_design/evolution/ROLE_PERMISSION_DESIGN.md`（已落地 2026-09-03） | [工程师]+[AI] | 权限功能合一收敛设计（角色权限四处分散声明 → 单一事实源 ROLE_KEYS + 派生；S1~S10 已验收达成、设计论证档案） | 权威源 ROLE_CLASSIFICATION.md §9a0/§9b/§9c + 代码 ROLE_KEYS |
+| `content/04_web_design/evolution/ROLE_PERMISSION_DESIGN.md`（已落地 2026-09-03） | [工程师]+[AI] | 权限功能合一收敛设计（角色权限四处分散声明 → 单一事实源 ROLE_KEYS + 派生；S1~S10 已验收达成、设计论证档案） | 权威源 SYSTEM_ROLE_PERMISSION.md §9a0/§9b/§9c + 代码 ROLE_KEYS |
 | `content/04_web_design/module/SOP_WEBSITE_GUIDE.md` | [工程师]+[AI] | SOP 系统优化与同步指南 | CLAUDE.md H30.2 |
 | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` | [工程师]+[AI] | 部署与对外对接总案（系统形态速览 + 四条落地路径与决策矩阵 + 学校/党校对接总叙事与决策矩阵 + 专项细节指针；2026-09-04 按阅读对象重构，原计算中心对接全案并入 §三） | AUTHENTICATION_MODEL.md、WECHAT_INTEGRATION.md、PKU_PARTY_INTEGRATION.md |
 | `content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md` | [工程师]+[AI] | 北大党校与智慧党建系统对接设计（党校单向爬取 + 智慧党建双向同步 + 数据映射 + 小程序归位说明 + 待确认清单） | DEPLOYMENT_GUIDE.md、WECHAT_INTEGRATION.md、DATA_MODEL.md |
@@ -208,11 +210,12 @@ insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分
 | 我想做什么 | 先读哪里 | 再读哪里 |
 |-----------|---------|---------|
 | 了解项目全貌 | README.md | content/03_doc_system/ARCHITECTURE.md |
-| 查看待办任务 | CLAUDE.md §C | .ctx/logs/DECISION_LOG.md |
+| 查看待办任务 | CLAUDE.md 乙部（具体执行事项） | .ctx/logs/DECISION_LOG.md |
 | 查 SOP 流程 | content/02_institution/sop/INDEX.md | 对应功能委员 SOP |
 | 使用 Skill 工作流 | content/05_ai_coding/README.md | 对应 Skill 定义 |
 | 提交改进反馈 | content/04_web_design/module/SOP_WEBSITE_GUIDE.md §E | content/02_institution/sop/对应文件 |
-| 了解角色分类体系 | content/02_institution/ROLE_CLASSIFICATION.md | （含可扩展性评估 §六） |
+| 了解角色分类体系 | content/02_institution/ROLE_CLASSIFICATION.md | （含可扩展性评估 §七） |
+| 了解系统角色权限矩阵 | content/02_institution/SYSTEM_ROLE_PERMISSION.md | （角色键全表 §9a0 + 权限矩阵 §9b/§9c + 赋权链 §9e；双轨见 §9f） |
 | 查看设计系统规范 | content/04_web_design/design-system/DESIGN_SYSTEM.md | docs/src/styles.css |
 | 了解 Emoji 使用规范 | content/03_doc_system/USAGE_POLICY.md §三 | CLAUDE.md 钩稽矩阵 |
 | 查看日历功能规划（设计论证档案） | content/04_web_design/module/MODULE_UI_DESIGN.md（已落地 2026-09-03） | docs/src/components/calendar.js |
@@ -221,8 +224,8 @@ insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分
 | 查看执行日志 | .ctx/logs/EXECUTION_LOG_INDEX.md | 对应月份日志 |
 | 查看 SOP 系统优化 | content/04_web_design/module/SOP_WEBSITE_GUIDE.md | content/02_institution/sop/对应 SOP |
 | 了解支委系统设计 | content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md | content/04_web_design/module/MODULE_UI_DESIGN.md（已落地 2026-09-03） |
-| 了解登录系统设计前置 | content/04_web_design/data/DATA_FLOW.md | DATA_MODEL.md §登录态打桩设计 |
-| 查看服务清单与权限矩阵 | content/03_doc_system/SERVICE_CATALOG.md | content/02_institution/ROLE_CLASSIFICATION.md §九 |
+| 了解登录系统设计前置 | content/04_web_design/data/DATA_FLOW.md §3.4（已实现登录态：AuthStore/账号体系/存储键） | content/04_web_design/deploy/AUTHENTICATION_MODEL.md（登录场景模型与门控） |
+| 查看服务清单与权限矩阵 | content/03_doc_system/SERVICE_CATALOG.md | content/02_institution/SYSTEM_ROLE_PERMISSION.md（系统角色权限矩阵） |
 | 运行/编写测试 | [server/README.md](../../server/README.md) 测试说明 | CLAUDE.md H25（AI 必知测试命令） |
 | 理解架构变更 | content/03_doc_system/ARCHITECTURE.md §八 | content/03_doc_system/SSOT_INDEX.md |
 | 了解三类文件角色规范 | content/03_doc_system/OPERATIONS_GUIDE.md §14 | content/02_institution/ROLE_CLASSIFICATION.md |

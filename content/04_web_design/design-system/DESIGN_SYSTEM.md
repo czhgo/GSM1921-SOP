@@ -2,7 +2,7 @@
 title: "前端设计系统规范"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-09-04"
+last_updated: "2026-09-05"
 status: active
 related_files: [COLOR_SYSTEM.md, COMPONENT_SPEC.md, docs/src/styles.css]
 ---
@@ -305,7 +305,7 @@ li + li { margin-top: 0.25em; }
 |---|---------|-------------|
 | 1 | 党建红系（`--party-red-*`） | 不变，保持 `#CE1126` 语义；深色下文字/背景对比度达标，红色不刺眼、不糊 |
 | 2 | 角色识别色（书记/副书记/组长/三支委/组织者/参与者） | 不变，深色下可区分、不撞色 |
-| 3 | 党徽金（`--party-gold`） | 不反白、不荧光，保持庄重；金底文字一律金黄 `#A16207`（延续 COLOR_SYSTEM.md 金点描边约定） |
+| 3 | 党徽金（`--party-gold`） | 不反白、不荧光，保持庄重；金底文字一律金黄 `#A16207`（延续 [COLOR_SYSTEM.md](COLOR_SYSTEM.md) §2.7 金点描边约定） |
 | 4 | 主题色 X（各角色 `getAccentColors(role)`） | 三件套（浅底/边框/文字）整体随主题反转，明暗关系与全站一致 |
 
 ### 7.2 功能色可见度与可分辨率（不随主题色变化的色）

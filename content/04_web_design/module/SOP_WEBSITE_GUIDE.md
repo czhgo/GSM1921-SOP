@@ -2,7 +2,7 @@
 title: "SOP 系统优化与同步指南"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-09-04"
+last_updated: "2026-09-05"
 version: "4.1"
 ---
 
@@ -42,7 +42,7 @@ version: "4.1"
 
 > **2026-09-03 收敛**：本节原 B.1~B.6 展开（MPA 页面结构 / canDo() 权限判定 / 三支委看板路由与细则 / 日历范围限定 / 赋权链 / 数据模型全家福）均已由权威源表达，不再在本指南重复：
 > - 页面/组件/服务分层、`AuthStore.canDo()` 权限判定、`AUTHORIZE_CHAIN`、数据模型 → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)（核心架构说明）+ [DATA_MODEL.md](../data/DATA_MODEL.md)（静态模型权威）+ [DATA_FLOW.md](../data/DATA_FLOW.md)（动态数据流权威）
-> - 角色权限矩阵 / 写入门禁 / 赋权链 → [ROLE_CLASSIFICATION.md §九](../../02_institution/ROLE_CLASSIFICATION.md)（权限矩阵唯一权威）+ [COMMISSIONER_DUTY_FRAMEWORK.md §C](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)
+> - 角色权限矩阵 / 写入门禁 / 赋权链 → [系统角色权限矩阵](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（SYSTEM_ROLE_PERMISSION.md，权限矩阵唯一权威）+ [COMMISSIONER_DUTY_FRAMEWORK.md §C](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（逐操作位视图）
 > - 部署形态 / 登录态 / 门控 → [AUTHENTICATION_MODEL.md](../deploy/AUTHENTICATION_MODEL.md)
 > 以下仅保留本指南独有的决策摘要与历史注记。
 
@@ -52,7 +52,7 @@ version: "4.1"
 
 - **视图路由（决策摘要，已落地）**：secretary/deputy-secretary 与 leader = 活动写入面板 + 日历；org-commissioner = 专班协调看板（2 列：待启动/进行中 + 发布招募表单 + 专班详情展开）；prop/disc-commissioner = 项目看板（2 列 + 卡片展开子任务）；participant/organizer/deep = 成员工作台（待办/项目分工/活动动态/考勤概况/我的考察）。
 - **看板细则**：仅两列（待启动 + 进行中），无"已完成"列；活动/专班完成后归档；子任务完成后灰显 + 删除线 + 绿色对勾 ✓ 沉底不消失；宣传蓝色调、纪检琥珀色调；宣传/纪检在党建维度**服务于**活动与专班，不直接写入活动。细则实现见 [COMPONENT_SPEC.md](../design-system/COMPONENT_SPEC.md)。
-- **写入门禁**：仅党支部书记、副书记、党小组组长可直接创建/修改活动数据；宣传/纪检委员经审核、确认、备案等流程间接参与（`create_activity` 仅 secretary/deputy-secretary/leader 持有；组织委员专班走 `initiate_taskforce`/`authorize_taskforce`）。权威源 = ROLE_CLASSIFICATION §九。
+- **写入门禁**：仅党支部书记、副书记、党小组组长可直接创建/修改活动数据；宣传/纪检委员经审核、确认、备案等流程间接参与（`create_activity` 仅 secretary/deputy-secretary/leader 持有；组织委员专班走 `initiate_taskforce`/`authorize_taskforce`）。权威源 = [系统角色权限矩阵 §9b](../../02_institution/SYSTEM_ROLE_PERMISSION.md)。
 - **日历视图范围限定（T29 修正，规则仍有效）**：日历面向参与者、看板面向管理者——工作台 secretary/leader/organizer/deep 显示日历；org/prop/disc-commissioner 工作台不显示（只看看板）。权限判定统一 `AuthStore.canDo(personId, action, context)`（常设角色 + 项目角色并集）。
 
 ---
@@ -162,7 +162,7 @@ SOP 是给人读的制度文件，网页是给机器执行的信息系统。当�
 
 ## G. Mock 数据 vs 真实鉴权（权威见 AUTHENTICATION_MODEL / DATA_FLOW）
 
-> **2026-09-03 收敛**：原 G.1「当前处于 Mock 状态的功能」与 G.2「赋权链的 Mock 与真实形态」属部署与认证模型展开，权威见 [AUTHENTICATION_MODEL.md](../deploy/AUTHENTICATION_MODEL.md)（5 场景两轴正交 / 登录门控四层 / 构建注入配置）与 [DATA_FLOW.md](../data/DATA_FLOW.md) §4.4（mock/api 数据源）；权限判定体系权威见 [ROLE_CLASSIFICATION.md §九](../../02_institution/ROLE_CLASSIFICATION.md)。以下 G.3/G.4 为本指南独有的历史决策注记（编号沿用原文，避免历史交叉引用失效）。
+> **2026-09-03 收敛**：原 G.1「当前处于 Mock 状态的功能」与 G.2「赋权链的 Mock 与真实形态」属部署与认证模型展开，权威见 [AUTHENTICATION_MODEL.md](../deploy/AUTHENTICATION_MODEL.md)（5 场景两轴正交 / 登录门控四层 / 构建注入配置）与 [DATA_FLOW.md](../data/DATA_FLOW.md) §4.4（mock/api 数据源）；权限判定体系权威见 [系统角色权限矩阵 §9b/§9e](../../02_institution/SYSTEM_ROLE_PERMISSION.md)。以下 G.3/G.4 为本指南独有的历史决策注记（编号沿用原文，避免历史交叉引用失效）。
 
 ### G.3 不变的设计原则
 
@@ -181,4 +181,4 @@ SOP 是给人读的制度文件，网页是给机器执行的信息系统。当�
 
 ---
 
-*本指南原为 SOP 文档优化方法论 + 系统架构 / 数据映射 / Mock-vs-鉴权 的整合稿。2026-09-03 精简：架构与数据类展开收敛至 DATA_MODEL / DATA_FLOW / ARCHITECTURE / AUTHENTICATION_MODEL / ROLE_CLASSIFICATION 等权威源，本指南保留 SOP 文档优化方法论（§A / §C）与独有决策摘要、历史注记（§B.3 / §E.3-4 / §G.3-4）。2026-05-06 v4.0 更新：全面反映 T25-T29 架构决策——MPA 架构、Mode 统一、三支委看板体系、日历限定、赋权链全量重写、系列活动模型。*
+*本指南原为 SOP 文档优化方法论 + 系统架构 / 数据映射 / Mock-vs-鉴权 的整合稿。2026-09-03 精简：架构与数据类展开收敛至 DATA_MODEL / DATA_FLOW / ARCHITECTURE / AUTHENTICATION_MODEL / SYSTEM_ROLE_PERMISSION（2026-09-05 自 ROLE_CLASSIFICATION §九 迁出）等权威源，本指南保留 SOP 文档优化方法论（§A / §C）与独有决策摘要、历史注记（§B.3 / §E.3-4 / §G.3-4）。2026-05-06 v4.0 更新：全面反映 T25-T29 架构决策——MPA 架构、Mode 统一、三支委看板体系、日历限定、赋权链全量重写、系列活动模型。*

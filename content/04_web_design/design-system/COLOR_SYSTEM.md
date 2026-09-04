@@ -3,7 +3,7 @@ title: "色彩系统规范"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: "2026-08-24"
+last_updated: "2026-09-05"
 status: active
 split_from: "DESIGN_SYSTEM.md（2026-08-24 T-282 拆分）"
 related_files: [DESIGN_SYSTEM.md, COMPONENT_SPEC.md]
@@ -18,6 +18,8 @@ related_files: [DESIGN_SYSTEM.md, COMPONENT_SPEC.md]
 ---
 
 ## 二、色彩系统
+
+> **章节编号说明**：本文件标题编号沿用拆分前（原 DESIGN_SYSTEM.md §二 色彩系统，2026-08-24 T-282 拆出），故首层从「二」起、无「## 一」——「一」为设计哲学，保留于 [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) §一。
 
 ### 2.1 色盘总览
 
@@ -100,7 +102,7 @@ related_files: [DESIGN_SYSTEM.md, COMPONENT_SPEC.md]
 **应用范围（固定，不得私自扩增）**：
 1. ~~tab 激活态~~（2026-08-08 三审移出：回归角色识别层主题色渲染，见 §2.8 ②）
 2. ~~tab 组标签~~（同上，随 tab 走主题色）
-3. **可交互强调卡边框**：inspector 品牌活动卡 `border-left:3px solid #EAB308`（档位 1，见 §4.2）
+3. **可交互强调卡边框**：inspector 品牌活动卡 `border-left:3px solid var(--party-gold)`（品牌金边框，档位 1 卡片，见 [COMPONENT_SPEC.md](COMPONENT_SPEC.md) §4.2「五档语义表」档位 1；实现中 inspector.js 内联 `#EAB308` 为历史存量、不入权威色板，待收敛至 `var(--party-gold)`）
 4. **主题党日系**：类别色（`ACTIVITY_CAT_COLOR['theme-party']`）
 5. **待办行动按钮**：visitor「去处理/处理」金底
 6. **通知/紧急徽章**：header 未读数、badge--gold
@@ -128,7 +130,7 @@ related_files: [DESIGN_SYSTEM.md, COMPONENT_SPEC.md]
 | `--accent-prop-commissioner` | `#2563EB` | ██ | 宣传委员 | 海蓝系 | 宣传传播 |
 | `--accent-disc-commissioner` | `#C2410C` | ██ | 纪检委员 | 深橙系 | 监督警示 |
 | `--accent-organizer` | `#7DD3FC` | ██ | 组织者 | 亮天蓝系 | 执行核心，分工记录 |
-| `--accent-deep` | `#94a3b8` | ██ | 深度参与者 | 浅灰蓝系 | 承担分工 |
+| `--accent-deep` | `#A78BFA` | ██ | 深度参与者 | 雾紫系 | 承担分工（2026-08-29 T-304 S6 提亮轮改定：由浅灰蓝 `#94a3b8` 改为雾紫 `#A78BFA`，与语义色 `#7C3AED` 同源提亮——见 docs/src/core/constants.js `ACCENT_COLORS.deep`；styles.css :root `--accent-deep` 仍为 `#94a3b8` 历史存量，待收敛） |
 | `--accent-participant` | `#A16207`（三件套即主题党日胶囊） | ██ | 普通参与者 | 金色系（金黄） | 「金」主题色即主题党日胶囊：亮金底 `rgba(255,215,0,0.12)` + 金黄字 `#A16207` + 亮金边框 `rgba(255,215,0,0.35)`（2026-08-08 四审改，2026-08-10 裁定"再黄一点"改 #A16207） |
 
 **使用约束**：

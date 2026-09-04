@@ -3,7 +3,7 @@ title: "北大党校与智慧党建系统对接设计——爬取、双向同步
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-19
-last_updated: "2026-08-22"
+last_updated: "2026-09-05"
 status: draft
 related_files: [DEPLOYMENT_GUIDE.md, WECHAT_INTEGRATION.md, DATA_MODEL.md, ../../server/db.js, ../../docs/src/core/api-adapter.js]
 ---
@@ -14,7 +14,7 @@ related_files: [DEPLOYMENT_GUIDE.md, WECHAT_INTEGRATION.md, DATA_MODEL.md, ../..
 >
 > **定位**：北大党校系统与智慧党建平台的对接总体设计——「嫁接什么 API / 爬取什么数据 / 系统内部数据类型字段 / 双向同步机制」的一张全图（微信小程序为独立问题，见 [WECHAT_INTEGRATION.md](WECHAT_INTEGRATION.md)）。**提前想全面**，避免实际对接时被动（2026-08-19 提出：「等到我们实际对接的时候，已经是太晚了」）。
 > **受众**：书记（决策）+ [工程师]+[AI]（对接实施）+ 北大党校办公室/信息中心（待确认清单 §九 的沟通对象）
-> **关联**：[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)（部署与对外对接总案——部署四路径 + 与学校/党校对接总叙事（含计算中心对接全案）在其 §三；本文件是「北大侧数据对接」的专项细目）、[WECHAT_INTEGRATION.md](WECHAT_INTEGRATION.md)（小程序方案权威源，对接数据在小程序端的展示归位其 §八）、[DATA_MODEL.md](../data/DATA_MODEL.md)（我们系统数据模型权威源）。
+> **关联**：[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)（部署与对外对接总案——部署四路径与部署决策在其 §二；与学校/党校对接总叙事与决策矩阵在其 §三；本文件是「北大侧数据对接」的专项细目）、[WECHAT_INTEGRATION.md](WECHAT_INTEGRATION.md)（小程序方案权威源，对接数据在小程序端的展示归位其 §八）、[DATA_MODEL.md](../data/DATA_MODEL.md)（我们系统数据模型权威源）。
 
 ---
 
@@ -61,7 +61,7 @@ related_files: [DEPLOYMENT_GUIDE.md, WECHAT_INTEGRATION.md, DATA_MODEL.md, ../..
 ```text
 ┌──────────────┐   只读爬取（Playwright+IAAA）   ┌──────────────────┐
 │  党校系统     │ ─────────────────────────────▶ │  我们的工作台      │
-│ dangxiao.pku │   培训进度/成绩/学时/结业评议    │（server/ 26 资源表）│
+│ dangxiao.pku │   培训进度/成绩/学时/结业评议    │（server/ 32 资源表）│
 └──────────────┘                                 └──────────────────┘
 ┌──────────────┐   双向同步（读+写）              │        │
 │ 智慧党建平台  │ ◀───────────────────────────── │   微信小程序       │
@@ -75,7 +75,7 @@ related_files: [DEPLOYMENT_GUIDE.md, WECHAT_INTEGRATION.md, DATA_MODEL.md, ../..
 
 ## 三、我们系统的数据类型与字段（对接映射的「我方」）
 
-### 3.1 后端 26 资源表（server/db.js）
+### 3.1 后端 32 资源表（server/db.js）
 
 > 统一结构 `id + data JSON`（与前端数据结构完全一致，嵌套字段零损失）。会话与附件独立两表。
 
@@ -218,7 +218,7 @@ related_files: [DEPLOYMENT_GUIDE.md, WECHAT_INTEGRATION.md, DATA_MODEL.md, ../..
 
 微信小程序是**独立问题**，其设计权威源为 [WECHAT_INTEGRATION.md](WECHAT_INTEGRATION.md)（2026-08-19 提出：「微信小程序似乎是一个独立的问题。请一定要让对应的内容进入对应的文档，以防长期污染仓库！」）。
 
-本文件（对接设计）与小程序之间只保留**数据接口约定**：对接产生的数据（党校培训进度、智慧党建记载）在小程序端的展示板块与交互设计，已归位 [WECHAT_INTEGRATION.md §八·北大对接数据展示](WECHAT_INTEGRATION.md)；小程序落地路径与前置见 [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)（部署总案：路径 D 总览 + 专项指针 §4.2）。
+本文件（对接设计）与小程序之间只保留**数据接口约定**：对接产生的数据（党校培训进度、智慧党建记载）在小程序端的展示板块与交互设计，已归位 [WECHAT_INTEGRATION.md §八·北大对接数据展示](WECHAT_INTEGRATION.md)；小程序落地路径与前置见 [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)（部署总案：路径 D 总览与部署决策见其 §2.1/§2.2，专项指针见 §4.2）。
 
 ---
 
@@ -267,7 +267,7 @@ related_files: [DEPLOYMENT_GUIDE.md, WECHAT_INTEGRATION.md, DATA_MODEL.md, ../..
 
 | 文档 | 角色 |
 |------|------|
-| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | 部署与对外对接总案（部署四路径 + 与学校/党校对接总叙事、计算中心对接全案；本文件的上游——本文件的爬取/同步运行于路径 B/C 之上，校园网环境/服务器前置见其 §三） |
+| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | 部署与对外对接总案（部署四路径 + 与学校/党校对接总叙事、计算中心对接全案；本文件的上游——本文件的爬取/同步运行于路径 B/C 之上，校园网环境/服务器前置见其 §3.4） |
 | [WECHAT_INTEGRATION.md](WECHAT_INTEGRATION.md) | 小程序方案权威源（对接数据在小程序端的展示归位其 §八） |
 | [DATA_MODEL.md](../data/DATA_MODEL.md) | 我们系统数据模型权威源（§二 字段规格） |
 | [AUTHENTICATION_MODEL.md](AUTHENTICATION_MODEL.md) | IAAA 登录模型（党校爬取凭证依赖） |

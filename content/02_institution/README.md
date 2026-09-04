@@ -2,7 +2,7 @@
 title: "制度层索引——支部发展和管理的制度"
 type: index
 role: "[用户]+[工程师]+[AI]"
-last_updated: "2026-08-10"
+last_updated: "2026-09-05"
 status: active
 ---
 
@@ -10,7 +10,7 @@ status: active
 
 > **定位：** 本目录存放**知识类型 2：支部发展和管理的制度**——回答"支部如何运作、分工、专班、报备审批"。
 > **受众：** [用户]+[工程师]（党支书、支委、系统维护者）
-> 本目录内部区分：制度设计（FLAT_ORGANIZATION_DESIGN/COMMISSIONER_DUTY_FRAMEWORK/ROLE_CLASSIFICATION）+ 方法指引（SOP 文件），作为文件合并参考
+> 本目录内部区分：制度设计（FLAT_ORGANIZATION_DESIGN/COMMISSIONER_DUTY_FRAMEWORK/ROLE_CLASSIFICATION/SYSTEM_ROLE_PERMISSION）+ 方法指引（SOP 文件），作为文件合并参考
 
 ---
 
@@ -27,7 +27,13 @@ status: active
 
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
-| [ROLE_CLASSIFICATION.md](ROLE_CLASSIFICATION.md) | [用户]/[工程师]/[AI] 三类文件角色标记体系 + 角色权限矩阵 | **唯一权威**——角色分类与权限矩阵 |
+| [ROLE_CLASSIFICATION.md](ROLE_CLASSIFICATION.md) | [用户]/[工程师]/[AI] 三类文件角色标记体系 | **唯一权威**——文件角色分类（含协作方式、存储与读取机制） |
+
+### 三、系统角色权限
+
+| 文件 | 一句话说明 | 权威源 |
+|------|-----------|--------|
+| [SYSTEM_ROLE_PERMISSION.md](SYSTEM_ROLE_PERMISSION.md) | 系统运行角色权限矩阵（角色键全表 9a0/权限矩阵/赋权链，代码键级权威；2026-09-05 自 ROLE_CLASSIFICATION.md §九 迁出） | **唯一权威**——系统角色权限矩阵（双轨：COMMISSIONER_DUTY_FRAMEWORK.md §C 为逐操作位视图） |
 
 ## 子目录
 

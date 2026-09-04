@@ -3,7 +3,7 @@ title: "组件规范"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: "2026-09-04"
+last_updated: "2026-09-05"
 status: active
 split_from: "DESIGN_SYSTEM.md（2026-08-24 T-282 拆分）"
 related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
@@ -71,15 +71,15 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 | 档位 | 样式 | 语义 | 典型场景 |
 |------|------|------|---------|
 | 0. 中性 | 纯白卡，无边线 | 常规内容容器 | `card rounded-2xl p-6` 默认态 |
-| 1. 可交互高亮主卡 | 白卡 + `border-left: 4px` **品牌金**（2026-08-08 起由主题色改金色） | 可点击进详情/当前聚焦项，**必须有 hover 反馈** | `.inspector-card`（inspector.js 活动卡，品牌活动 `#EAB308`） |
+| 1. 可交互高亮主卡 | 白卡 + `border-left: 4px` **品牌金**（2026-08-08 起由主题色改金色） | 可点击进详情/当前聚焦项，**必须有 hover 反馈** | `.inspector-card`（inspector.js 活动卡，品牌活动卡 `var(--party-gold)` 金边框；实现内联 `#EAB308` 为历史存量，见下方用色来源注） |
 | 2. 角色职责核心卡 | 白卡 + `border-l-4` 角色主题色 | 该角色职责范围内的核心卡/详情面板（角色识别，保留主题色） | 考勤概况（书记红）、专班详情（组织委员）、纪检面板（橙）、访客金色 |
 | 3. 引述/要点块 | 浅底色 + `border-left: 3px` 主题色 | 引述、对立观点、要点提示 | help 页 `--help-party-red` 引述块、about 模块说明卡 |
 | 4. 嵌套/时间线 | `border-left: 1-2px` 灰色（`--neutral-200`） | 层级嵌套、时间线、子项缩进 | issue-detail 嵌套、专班列表子项 |
 
 **用色来源**：
-- 可交互强调卡（档位 1）：**品牌金** `#EAB308` / `var(--party-gold)`（品牌统一层，见 §2.3.1）
+- 可交互强调卡（档位 1）：**品牌金** `var(--party-gold)`（品牌统一层，色值权威见 [COLOR_SYSTEM.md](COLOR_SYSTEM.md) §2.3.1）
 - 角色职责核心卡（档位 2）：`--accent-<role>`（主色）或 `--accent-<role>-light`（低饱和 border-left / 浅底，styles.css :root L46 已声明）——属角色识别层，保留主题色
-- 品牌/活动色：主题党日金 `#EAB308`（inspector 品牌卡）、党徽金 `var(--party-gold)`
+- 品牌/活动色：党徽金 `var(--party-gold)`（inspector 品牌卡边框，2026-09-05 起规范统一至品牌金系；实现中 inspector.js 内联 `#EAB308` 为历史存量、不入权威色板，待收敛至 `var(--party-gold)`）
 - 嵌套灰色：`--neutral-200`
 
 **硬性规则**：

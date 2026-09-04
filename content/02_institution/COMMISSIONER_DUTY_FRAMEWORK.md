@@ -2,7 +2,7 @@
 title: "委员体系框架"
 type: design
 role: "[用户]+[AI]"
-last_updated: "2026-09-04"
+last_updated: "2026-09-05"
 status: active
 merged_from:
   - content/guides/COMMISSIONER_ORGANIZATION_ROLE.md (已删除)
@@ -15,16 +15,18 @@ input:
   - content/02_institution/sop/宣传委员工作流程指南.md
   - content/04_web_design/data/DATA_MODEL.md
   - content/04_web_design/data/DATA_FLOW.md
-  - content/02_institution/ROLE_CLASSIFICATION.md
+  - content/02_institution/SYSTEM_ROLE_PERMISSION.md
 ---
 
-# 支委系统设计
+# 委员体系框架
 
 > **定位：**[用户]+[AI] — 用户决策参考 + AI 自主读取作为实施上下文。
 
 ---
 
 ## A. 设计背景与核心定义
+
+> 编号注记：章节编号跳缺（A.2/A.5、G/H）为有意保留——历史删除或预留，非笔误。
 
 ### A.1 问题缘起
 
@@ -76,7 +78,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组功能；E2�
 
 #### 赋权记录数据结构
 
-> 赋权记录数据结构见 [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md) §2.18
+> 赋权审计记录（只增不改，撤销追加 action:'revoke'）数据结构见 [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md) §2.3「项目角色赋权与审计（现行，T-190）」——审计键 `sop_org_os_auth_audit`（AUDIT_KEY，services/auth.js）；§2.18 是赋权类**待办**（category:'auth'）的数据结构，非赋权记录本身。
 
 ---
 
@@ -285,7 +287,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组功能；E2�
 |------|---------|---------|
 | 发展党员追踪 | 发展阶段靠翻本子，无法动态了解 | 确认每位走到哪一步，便于动态了解支部情况 |
 
-> 仅追踪阶段（积极分子→发展对象→预备党员→正式党员），不做材料缺失检测/上传（搁置）。组织委员可修改阶段，其他只读。
+> 本节只追踪阶段（积极分子→发展对象→预备党员→正式党员）；材料上传/缺失检测已实现，见 §C.1b 事务管理矩阵（组织委员：上传/更新材料；纪检委员督办、组织委员催缴：标记材料缺失并提醒），本节不重复。组织委员可修改阶段，其他只读。
 
 **制度文件查询**：不属于任何角色工作台，应链接到外部 search 界面（含党章、党支部工作条例、发展党员工作细则等 12371 子页面）。
 
@@ -374,7 +376,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组功能；E2�
 |-----------|---------|
 | §A.3~A.7 专班 | SECRETARY_DIRECTIVES.md（P-013 专班论断，权威源） |
 | §B 职责体系 | 支委与党小组定人定责定岗说明.md §二 |
-| §C 权限矩阵 | ROLE_CLASSIFICATION.md §九 |
+| §C 权限矩阵 | SYSTEM_ROLE_PERMISSION.md（键级视图 §9b/§9e）；CF §C 为逐操作位视图（双轨约定见 SYSTEM_ROLE_PERMISSION.md §9f） |
 | §D UI 体系 | MODULE_UI_DESIGN.md §2.3 + §5（已落地 2026-09-03 → module/，历史 UI 布局论证仍可读） |
 | §E 协作数据流 | 纪检/组织/宣传委员工作流程指南 |
 | §F 条块交互与分工的运行 | 支委与党小组定人定责定岗说明.md + SECRETARY_DIRECTIVES.md（P-012 分工的运行保障，权威源） |
@@ -386,7 +388,8 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组功能；E2�
 
 - [MODULE_UI_DESIGN.md](../04_web_design/module/MODULE_UI_DESIGN.md)（已落地 2026-09-03，设计论证档案）
 - [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md) + [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md)
-- [ROLE_CLASSIFICATION.md](./ROLE_CLASSIFICATION.md)
+- [SYSTEM_ROLE_PERMISSION.md](./SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵，键级权威）
+- [ROLE_CLASSIFICATION.md](./ROLE_CLASSIFICATION.md)（文件角色分类体系）
 - [支委与党小组定人定责定岗说明](./sop/支委与党小组定人定责定岗说明.md)
 - [纪检委员工作流程指南](./sop/纪检委员工作流程指南.md)
 - [组织委员工作流程指南](./sop/组织委员工作流程指南.md)
@@ -406,7 +409,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组功能；E2�
 
 **详细步骤**：党小组组长汇集相关信息（活动方案/需求）→ 支委扩大会讨论研究 → 通过则推进执行，驳回则调整方案重新提交。状态机与权限矩阵见 §六、§七。
 
-> 活动方案的讨论与发起权限见 [USAGE_POLICY.md §1.3 活动写入门禁](../03_doc_system/USAGE_POLICY.md) 与 [ROLE_CLASSIFICATION.md §9b](./ROLE_CLASSIFICATION.md)。
+> 活动方案的讨论与发起权限见 [USAGE_POLICY.md §1.3 活动写入门禁](../03_doc_system/USAGE_POLICY.md) 与 [系统角色权限矩阵 §9b](./SYSTEM_ROLE_PERMISSION.md)。
 
 ### 二、专班立项审议
 

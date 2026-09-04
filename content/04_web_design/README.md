@@ -2,7 +2,7 @@
 title: "网站设计层索引——网站系统的设计想法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-09-04"
+last_updated: "2026-09-05"
 status: active
 ---
 
@@ -35,7 +35,7 @@ status: active
 
 - **active**——现行有效：当前承担该主题权威（速查表常标 **唯一权威**），以此为准；
 - **draft**——草案未定稿（速查表标「草案·待实施」）：尚未放行实施，如 [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md)、`deploy/PKU_PARTY_INTEGRATION.md`；
-- **landed / 已落地 YYYY-MM-DD**——设计结论已实现：文档转为**设计论证档案**，不再承担现行权威；现行权威见该行标注（如 MODULE_UI_DESIGN → COMPONENT_SPEC + SOP_WEBSITE_GUIDE、ROLE_PERMISSION_DESIGN → ROLE_CLASSIFICATION §9a0/§9b/§9c + 代码 `ROLE_KEYS`）或实现代码（如 BRANCH_WORK_MAP → `work-map-tab.js` + `workforce-panel.js`）；
+- **landed / 已落地 YYYY-MM-DD**——设计结论已实现：文档转为**设计论证档案**，不再承担现行权威；现行权威见该行标注（如 MODULE_UI_DESIGN → COMPONENT_SPEC + SOP_WEBSITE_GUIDE、AGENDA_AND_REFERENCE_DESIGN → references.js + calendar-tab.js + member-change-panel.js、ROLE_PERMISSION_DESIGN → SYSTEM_ROLE_PERMISSION §9a0/§9b/§9c + 代码 `ROLE_KEYS`）或实现代码（如 BRANCH_WORK_MAP → `work-map-tab.js` + `workforce-panel.js`）；
 - **论证档案**——只承载论证（为什么）、反论（为什么不是）、判例与生效条件，规范正文以对应权威源文件为准。
 
 ### 数据架构（data/）
@@ -72,7 +72,7 @@ status: active
 | [SOP_WEBSITE_GUIDE.md](module/SOP_WEBSITE_GUIDE.md) | SOP-系统联动方法论（SOP 文档优化方法论 + 架构/数据/鉴权权威引用，2026-09-03 精简） | **唯一权威**——SOP 与系统的双向修改指南 |
 | [ABOUT_PAGE_DESIGN.md](module/ABOUT_PAGE_DESIGN.md) | About 页面设计系统（叙事册风：超参数设定原则/防风格疲劳/无竖线红线） | **唯一权威**——about 页设计的超参数设定原则 |
 | [MODULE_UI_DESIGN.md](module/MODULE_UI_DESIGN.md) | 模块界面设计：「党建」Tab 分组界面+日历功能模块（已落地 2026-09-03，设计论证档案） | **已落地**——与 SOP_WEBSITE_GUIDE/COMPONENT_SPEC 重叠停更，权威源 = COMPONENT_SPEC + SOP_WEBSITE_GUIDE |
-| [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md) | 会议议程与资料查询联动设计（会前草案关联/会后少重复录入/单一数据源） | 设计（**草案·待实施**，2026-08-31） |
+| [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md) | 会议议程与资料查询联动设计（会前草案关联/会后少重复录入/单一数据源） | **已落地 2026-09-01**（设计论证档案）；权威源 = `references.js`（支部文件/草案）+ `calendar-tab.js`（议程封装）+ `member-change-panel.js`（成员变更）+ `server/db.js`（branch_docs 等表） |
 
 ### 演进与校验（evolution/）
 
@@ -84,7 +84,7 @@ status: active
 | [WORKFLOW_BLOCK_CONTRACT.md](evolution/WORKFLOW_BLOCK_CONTRACT.md) | L3 工作流块封装契约 v1.1（块差异化三维度 + 契约总则 + manifest 字段定义） | **唯一权威**——工作流块封装契约（2026-09-03 定稿） |
 | [BRANCH_WORK_MAP.md](evolution/BRANCH_WORK_MAP.md) | L4 支部工作地图设计稿 v2.1（平铺模块清单 + 按人双视图，书记 2026-09-03 放行编码） | **唯一权威**——支部工作地图/分工载体设计 |
 | [PARTY_COMMITTEE_DESIGN.md](evolution/PARTY_COMMITTEE_DESIGN.md) | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 书记任命 / P3 上报审批+下发） | **唯一权威**——党委两级治理架构与方向选择说明 |
-| [ROLE_PERMISSION_DESIGN.md](evolution/ROLE_PERMISSION_DESIGN.md) | 权限功能合一收敛设计（角色权限四处分散声明 → 单一事实源 ROLE_KEYS + 派生） | **已落地 2026-09-03**（S1~S10 已验收达成，设计论证档案）；权威源 = [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) §9a0/§9b/§9c + 代码 `ROLE_KEYS` |
+| [ROLE_PERMISSION_DESIGN.md](evolution/ROLE_PERMISSION_DESIGN.md) | 权限功能合一收敛设计（角色权限四处分散声明 → 单一事实源 ROLE_KEYS + 派生） | **已落地 2026-09-03**（S1~S10 已验收达成，设计论证档案）；权威源 = [SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md) §9a0/§9b/§9c + 代码 `ROLE_KEYS` |
 
 ---
 

@@ -2,7 +2,7 @@
 title: "系统架构说明"
 type: architecture
 role: "[工程师]+[AI]"
-last_updated: "2026-09-04"
+last_updated: "2026-09-05"
 version: "7.3"
 status: active
 related_files: [CLAUDE.md, content/04_web_design/]
@@ -73,7 +73,8 @@ Layer 2: 知识类型 2 — 制度（组织架构、分工、SOP）
       ├── sop/                            [用户]+[AI] 制度母本，所有代码逻辑的来源
       ├── COMMISSIONER_DUTY_FRAMEWORK.md       [用户]+[AI] 支委系统框架
       ├── FLAT_ORGANIZATION_DESIGN.md                  [用户]+[AI] 扁平化设计
-      └── ROLE_CLASSIFICATION.md          [用户]+[AI] 文件角色分类体系
+      ├── ROLE_CLASSIFICATION.md          [用户]+[AI] 文件角色分类体系
+      └── SYSTEM_ROLE_PERMISSION.md       [工程师]+[AI] 系统角色权限矩阵（代码键级权威）
 
 Layer 3: 知识类型 3 — 文档系统治理（文档怎么治理、术语、运行标准）
   └─ content/03_doc_system/               [工程师]+[AI] 系统治理层
@@ -92,7 +93,7 @@ Layer 5: 经验沉淀（跨多类知识类型）
   └─ content/insights/                    [用户]+[AI] 经验沉淀（双文件）
 
 Layer 6: 实现层（代码实现与运行时）
-  └─ docs/                                [用户]+[AI] 前端代码层（8 根 HTML + workspace/ 6 工作台 + ESM 模块化源码）
+  └─ docs/                                [用户]+[AI] 前端代码层（10 根 HTML + workspace/ 7 工作台 + ESM 模块化源码）
   └─ server/                              [工程师]+[AI] Node 一体化后端（Express + better-sqlite3）
 
 Layer 7: 审计参考层（审计与参考）
@@ -109,9 +110,9 @@ Layer 7: 审计参考层（审计与参考）
 ├── CLAUDE.md                         [工程师]+[AI] 上下文入口（甲部 Harness + 乙部执行 + 丙部待决策）
 ├── server/                            [工程师]+[AI] Node 一体化后端（Express + better-sqlite3）
 │   ├── server.js / app.js / db.js / seed.js   [工程师]+[AI] 后端核心
-│   ├── routes/                        [工程师]+[AI] auth / resources / uploads
+│   ├── routes/                        [工程师]+[AI] auth / committee / member / report / resources / uploads
 │   └── test/                          [工程师]+[AI] 测试
-├── docs/                              [工程师]+[AI] 前端代码层（8 根 HTML + workspace/ 6 工作台 + ESM 模块化源码）
+├── docs/                              [工程师]+[AI] 前端代码层（10 根 HTML + workspace/ 7 工作台 + ESM 模块化源码）
 │   ├── index.html                     [用户]+[AI] 主页（通知/招募/活动日历/待办）
 │   ├── notice.html                    [用户]+[AI] 通知独立页
 │   ├── about.html                     [用户]+[AI] 支部的故事
@@ -120,22 +121,25 @@ Layer 7: 审计参考层（审计与参考）
 │   ├── feedback.html                  [用户]+[AI] 意见反馈
 │   ├── help.html                      [用户]+[AI] 系统说明书
 │   ├── login.html                     [用户]+[AI] 登录页
-│   ├── workspace/                     [用户]+[AI] 角色工作台页面（6 个 HTML）
+│   ├── activity.html                  [用户]+[AI] 活动详情独立页（访客动态 / 通知直达详情）
+│   ├── taskforce.html                 [用户]+[AI] 专班详情独立页（通知直达详情）
+│   ├── workspace/                     [用户]+[AI] 角色工作台页面（7 个 HTML）
 │   │   ├── secretary.html             [用户]+[AI] 书记工作台（工作台+赋权管理+issue管理+通知发布+待办）
 │   │   ├── leader.html                [用户]+[AI] 党小组组长工作台（活动写入+考勤上传+考察上传+复盘提交+待办）
 │   │   ├── org.html                   [用户]+[AI] 组织委员工作台（考察上传+专班管理+人才库+发展党员+待办）
 │   │   ├── prop.html                  [用户]+[AI] 宣传委员工作台（宣传任务+项目看板+档案归档+周报报送+待办）
 │   │   ├── disc.html                  [用户]+[AI] 纪检委员工作台（考勤管理+监督复盘+考察管理+补课制度+公邮管理+待办）
-│   │   └── visitor.html               [用户]+[AI] 成员工作台（含待办）
+│   │   ├── visitor.html               [用户]+[AI] 成员工作台（含待办）
+│   │   └── party-committee.html       [工程师]+[AI] 党委后台工作台（支部实例+书记任命+上报审批，P1-P3）
 │   └── src/                           [工程师]+[AI] ESM 模块化源码
-│       ├── entries/                   [工程师]+[AI] 页面入口（15 个 entry JS）
-│       ├── components/                [工程师]+[AI] 共享组件（18 个，含 todo-list/custom-select/workspace-popover）
-│       ├── core/                      [工程师]+[AI] 核心工具（12 个，含 domain/data-adapter/api-adapter/mock-adapter）
-│       ├── services/                  [工程师]+[AI] 服务层（19 个，含 todo/auth/notice/decision-tree/image）
-│       ├── mock/                      [工程师]+[AI] Mock 数据（10 个，含 accounts）
-│       ├── modules/                   [工程师]+[AI] 业务模块（1 个，references.js）
-│       ├── workflow/                  [工程师]+[AI] 工作流引擎（6 个）
-│       └── styles.css                 [工程师]+[AI] 全局样式
+│       ├── entries/                   [工程师]+[AI] 页面入口（基础页 entry + ws-* 工作台入口 + tabs/ 角色 Tab，非全量）
+│       ├── components/                [工程师]+[AI] 共享组件（含 todo-list/custom-select/tab-bar/workspace-shell 等，非全量）
+│       ├── core/                      [工程师]+[AI] 核心工具（含 domain/data-adapter/api-adapter/mock-adapter 等，非全量）
+│       ├── services/                  [工程师]+[AI] 服务层（含 todo/auth/notice/decision-tree 等，非全量）
+│       ├── mock/                      [工程师]+[AI] Mock 数据（accounts/seed/thought-reports 等，非全量）
+│       ├── modules/                   [工程师]+[AI] 业务模块（references + help-catalog + capabilities/ 能力清单，非全量）
+│       ├── workflow/                  [工程师]+[AI] 工作流引擎（definitions/engine/renderer/sop 等，非全量）
+│       └── styles.css                 [工程师]+[AI] 全局样式（各子目录全量清单以 docs/src/ 实际文件为准）
 │
 ├── .markdownlint.json                 [工具] 代码风格规范
 │
@@ -157,6 +161,7 @@ Layer 7: 审计参考层（审计与参考）
 │   │   ├── COMMISSIONER_DUTY_FRAMEWORK.md [用户]+[AI] 支委系统框架
 │   │   ├── FLAT_ORGANIZATION_DESIGN.md            [用户]+[AI] 扁平化设计
 │   │   ├── ROLE_CLASSIFICATION.md    [用户]+[AI] 文件角色分类体系
+│   │   ├── SYSTEM_ROLE_PERMISSION.md [工程师]+[AI] 系统角色权限矩阵（角色键全表 + 权限矩阵，代码键级权威）
 │   │   └── README.md                 [用户]+[AI] 制度层目录索引
 │   ├── 03_doc_system/                [工程师]+[AI] 文档系统治理层（文档怎么治理、术语、运行标准）
 │   │   ├── SSOT_INDEX.md             [AI] 母本注册表与溯源参考
@@ -206,7 +211,7 @@ Layer 7: 审计参考层（审计与参考）
 
 ### Activity（活动记录）
 
-> **字段级定义见权威源**：[DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md) §2.1（Activity 全量字段主表；status 存储字面值无 `cancelled`，展示态由生命周期派生；组织者由 `assignments` 主源派生）与 [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md)（数据流权威）。本处只记架构语义，不复刻字段表，避免双载体漂移。
+> **字段级定义见权威源**：[DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md) §2.1（Activity 全量字段主表；status 存储字面值为 `draft`/`published`/`ongoing`/`completed`/`cancelled` 五态——含 `cancelled`，见 [domain.js:16](../../docs/src/core/domain.js) 与 DATA_MODEL §2.1 字段表，展示一律用生命周期派生态；组织者由 `assignments` 主源派生）与 [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md)（数据流权威）。本处只记架构语义，不复刻字段表，避免双载体漂移。
 
 mockDB 为唯一数据源，所有视图经 Service 层读取；按角色过滤经 `services/auth.js`（以 `activity.assignments` 为主源，`syncProjectRoles()` 保证与顶层 organizer 一致）。
 

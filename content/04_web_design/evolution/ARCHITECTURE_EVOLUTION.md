@@ -3,9 +3,9 @@ title: "架构演进——组件化落地评估与轻量插件化设计"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-22
-last_updated: "2026-09-03"
+last_updated: "2026-09-05"
 status: active
-related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../03_doc_system/ARCHITECTURE.md, ../05_ai_coding/README.md]
+related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../03_doc_system/ARCHITECTURE.md, ../../05_ai_coding/README.md]
 ---
 
 # 架构演进——组件化落地评估与轻量插件化设计
@@ -59,7 +59,7 @@ related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GU
 |---|---|---|
 | L1 能力目录化 | 能力注册表 = 全仓能力的单一目录（M1~M8 已全落地，2026-08-30） | 已落地 |
 | L2 支部组合化 | 支部 config.modules（hiddenTabIds/tabOrder）从已注册工作台 tab 中排列组合；**已落地（2026-09-03，书记自治/书记操作/核心固定）**——书记工作台「工作台配置」tab 清单启停 + 画布 v0 拖拽排序 | 已落地（L2 定案） |
-| L3 块封装契约 | 把一条 SOP 封装为一个「工作流块」：声明输入（发起角色/必填字段）、阶段（节点与顺序）、产出（待办/通知/归档联动） | 待设计 |
+| L3 块封装契约 | 把一条 SOP 封装为一个「工作流块」：声明输入（发起角色/必填字段）、阶段（节点与顺序）、产出（待办/通知/归档联动） | 已落地（2026-09-03，S1~S4）→ 见 [WORKFLOW_BLOCK_CONTRACT.md](WORKFLOW_BLOCK_CONTRACT.md) §六/§七 |
 | L4 拖拽编排 | 画布拖拽块 → 连线定顺序/条件 → 导出为版本化工作流定义 JSON（可预览、可回退） | 远期愿景 |
 | L5 块市场/分享 | 编排好的工作流块可命名、可导出、可复用于其他支部（开源社区的场景库） | 远期愿景 |
 

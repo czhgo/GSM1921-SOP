@@ -3,17 +3,17 @@ title: "数据模型设计"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: "2026-09-04"
+last_updated: "2026-09-05"
 status: active
 split_from: "原数据架构总文件（2026-08-24 T-282 拆分；路由文件 2026-09-03 精简删除）"
-related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/04_web_design/data/DATA_FLOW.md]
+related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/04_web_design/data/DATA_FLOW.md]
 ---
 
 # 数据模型设计
 
 > **定位：** 本文件是系统**静态数据模型**的唯一权威源（2026-08-24 自原数据架构总文件 §二 拆分）。动态数据流见 [DATA_FLOW.md](DATA_FLOW.md)。
 > **受众：** [工程师]+[AI] —— 供开发决策参考，确保数据结构变更时全栈一致。
-> **权限矩阵**：本文档含权限简表，完整定义见 [ROLE_CLASSIFICATION.md](../../02_institution/ROLE_CLASSIFICATION.md) §九 角色权限矩阵。
+> **权限矩阵**：本文档含权限简表，完整定义见 [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵，代码键级权威）。
 > **拆分说明**：2026-08-24 自原数据架构总文件拆分（T-282 content 体系优化；原路由文件 2026-09-03 精简删除）——数据模型定义在此，数据流定义移至 DATA_FLOW.md。
 
 ---
@@ -22,14 +22,14 @@ related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_instit
 
 ### 2.1 活动数据 (ActivityRecord)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L12-L32)
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L12-L35)（Activity typedef）
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
 | id | string | 是 | `generateId('act')` | 唯一标识符，前缀 `act_` |
 | title | string | 是 | -- | 活动标题 |
 | type | string | 是 | -- | 活动类型。类型体系（2026-08-07 归一，两大顶层非并列）：三会一课系含支部党员大会/支委会/党小组会/党课（组织生活会是**内容**而非子类，由三会之一召开，见 §2.1.2）；主题党日系含 `type='主题党日'` + 载体见 `carriers`。查询筛选按 `classifyActivityType` 级联展示 |
-| status | `'draft'\|'published'\|'ongoing'\|'completed'` | 是 | `'draft'` | 活动存储状态；页面展示态由生命周期派生（见下方"活动生命周期展示态"） |
+| status | `'draft'\|'published'\|'ongoing'\|'completed'\|'cancelled'` | 是 | `'draft'` | 活动存储状态；页面展示态由生命周期派生（见下方"活动生命周期展示态"） |
 | visibility | `'branch'\|'group'` | 是 | `'group'` | 可见范围：全支部 or 党小组 |
 | date | string (YYYY-MM-DD) | 是 | -- | 活动日期 ISO 字符串 |
 | location | string\|null | 否 | null | 活动地点（线下活动场地/线上会议链接），用于活动详情与日历展示；可选字段，无则不显示地点 |
@@ -62,6 +62,7 @@ related_files: [content/02_institution/ROLE_CLASSIFICATION.md, content/02_instit
 | `published` | 已发布 | 已通知相关人员 |
 | `ongoing` | 进行中 | 活动正在执行 |
 | `completed` | 已结束 | 执行完毕（字面值仅用于存储，展示一律用下方生命周期派生态） |
+| `cancelled` | 已取消 | 仅存于存储层字面值；展示态由下方生命周期表 `cancelled` 行派生（`status='cancelled'` → 徽章「已取消」） |
 
 **活动生命周期展示态（2026-08-07 决策：消除"已完成 vs 未归档"矛盾）：**
 
@@ -172,7 +173,7 @@ ActivityRecord (主记录)
 | 入口 | 数据载体 | 写入时机 | 语义 | 派生影响 |
 |---|---|---|---|---|
 | **活动参与人** | `activity.assignments: Array<{personId, role:'participant'}>`（活动创建时内联） | 书记/组长创建活动表单勾选参与人 | 记录"谁参加本次活动"（参与层） | **非空时不再派生组长赋权待办**（calendar-tab.js 内联赋权）；不影响 organizer/deep 项目角色 |
-| **项目级授权** | `AuthStore.authorize` 独立授权记录（`gsm1921-auth-grants`） | 书记工作台「项目赋权」Tab 单独操作 | 授予"组织者/深度参与者"项目角色权限（活动/专班共用全局授权体系） | 派生对应对应项目的管理权限，与参与人名单无关 |
+| **项目级授权** | `AuthStore.authorize` 写主源（活动 `assignments` / 专班 `members`）+ 审计快照键 `sop_org_os_auth_audit`（旧键 `gsm1921-auth-grants` 已废弃） | 书记工作台「项目赋权」Tab 单独操作 | 授予"组织者/深度参与者"项目角色权限（活动/专班共用全局授权体系） | 派生对应对应项目的管理权限，与参与人名单无关 |
 
 **边界规则**：
 1. 活动参与人是**活动级事实**，只回答"谁参加"；项目角色授权是**权限级事实**，只回答"谁能管这个项目"。
@@ -182,9 +183,11 @@ ActivityRecord (主记录)
 ### 2.2 角色与权限数据
 
 > 角色类型定义位于 [core/state.js](../../../docs/src/core/state.js#L18-L28)，标签/颜色位于 [core/constants.js](../../../docs/src/core/constants.js)
-> 权限的详细解释见 [ROLE_CLASSIFICATION.md §九 角色权限矩阵](../../02_institution/ROLE_CLASSIFICATION.md)。本节为该权威源在数据层 ACL 中的切面视图，冲突时以权威源为准。
+> 权限的详细解释见 [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（§9a0 角色键全表 / §9a~§9g 权限矩阵与赋权链）。本节为该权威源在数据层 ACL 中的切面视图，冲突时以权威源为准。
 
 #### 2.2.1 角色常量定义
+
+> **角色键权威见 [SYSTEM_ROLE_PERMISSION.md §9a0](../../02_institution/SYSTEM_ROLE_PERMISSION.md) / `core/constants.js ROLE_KEYS`（代码层单一事实源：13 键 = 10 业务键 + 3 遗留键），本表仅记录字段枚举与展示分组，冲突时以权威源为准。**
 
 | 角色键 | 中文标签 | 首页日历角色分组 | 所属分类 |
 |---|---|---|---|
@@ -196,8 +199,14 @@ ActivityRecord (主记录)
 | `organizer` | 组织者 | manager | 项目角色 |
 | `deep` | 深度参与者 | manager | 项目角色 |
 | `secretary` | 党支书 | manager | 支委（书记） |
-| `global` | 全局视图 | global | 参考指南专用 |
-| `all` | 全体相关 | participant | 参考指南显示用 |
+| `deputy-secretary` | 党支部副书记 | manager | 支委（副书记） |
+| `party-staff` | 党委组织员 | -- | 组织级角色（院系党委，不属于任一支部） |
+| `commissioner` | 条条委员 | -- | 遗留键（ROLE_LEGACY_KEYS；业务语义见下方 COMMISSIONER_ROLES 集合） |
+| `initiator` | 发起人 | -- | 遗留键（ROLE_LEGACY_KEYS，无独立角色语义，兼容兜底） |
+| `global` | 全局视图 | global | 参考指南专用（state.js ROLE_TYPES 键，非业务角色键） |
+| `all` | 全体相关 | participant | 遗留键（ROLE_LEGACY_KEYS，无独立角色语义；参考指南显示兜底） |
+
+> 注：`deputy-secretary` / `party-staff` 已入 `constants.js ROLE_KEYS`（2026-08-29 起），但不在 state.js 首页日历 ROLE_TYPES 中——日历分组列对其按 `ROLE_PAGE_MAP` 归属展示（deputy-secretary → secretary.html 书记工作台；party-staff → party-committee.html 党委工作台，登录直达）。`organizer`/`deep` 无独立工作台页面（T-141 后归入首页「我的角色」区块）。
 
 **管理角色集合** (`MANAGEMENT_ROLES`): `leader`, `org-commissioner`, `prop-commissioner`, `disc-commissioner`, `organizer`, `deep`, `secretary`
 
@@ -205,43 +214,45 @@ ActivityRecord (主记录)
 
 #### 2.2.2 ACL 基础规则与模块权限
 
-> 权限矩阵、模块可见性、数据共享规则的完整定义见 [ROLE_CLASSIFICATION.md §九](../../02_institution/ROLE_CLASSIFICATION.md) + [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md)（已落地 2026-09-03，历史模块可见性设计论证仍可读）。本节不重复展开，仅指向权威源。
+> 权限矩阵、模块可见性、数据共享规则的完整定义见 [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md) + [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md)（已落地 2026-09-03，历史模块可见性设计论证仍可读）。本节不重复展开，仅指向权威源。
 
 **关键规则要点**（详细规则见权威源）：
-- 基础 ACL 实现：[domain.js `can()`](../../../docs/src/core/domain.js#L78-L91)
+- 基础 ACL 实现：[services/auth.js `AuthStore.canDo(personId, action, context)`](../../../docs/src/services/auth.js#L469-L488)（ROLE_PERMISSIONS + PROJECT_PERMISSIONS 并集判定；旧 domain.js `can()` 已移除）
 - 特殊资源 `evaluation`（考察档案）: 仅 `secretary` 和 `org-commissioner` 可读写，其他角色绝对隔离
 - 宣传委员不可创建活动（仅党支书和党小组组长可创建），但任何活动创建后应自动出现在宣传委员的视图中
 - 支委身份选择：sidebar "支委" 卡片 → 模态框选择 → `setState({ selectedRole })` → 「党建」Tab 分组面板按角色显示对应支委面板
-- 书记独占能力：党课布置、主持大会、全局视角切换、赋权管理（详见 ROLE_CLASSIFICATION.md §九）
+- 书记独占能力：党课布置、主持大会、全局视角切换、赋权管理（详见 SYSTEM_ROLE_PERMISSION.md §9b）
 
 ### 2.3 专班数据 (TaskForceRecord)
 
-> 专班管理位于组织委员面板，通过赋权记录间接体现。赋权记录持久化于 localStorage。
+> 专班为人员维度组织结构，由 `TaskForceRecordStore`（services/taskforce.js）实体化管理，存储于 `mockDB.taskforces`（随全量键 `workflowos_branch_db_v1` 持久化），组织委员面板看板展示。历史「专班通过赋权记录间接体现」的旧模型已废弃。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
 | id | string | 是 | `generateId('tf')` | 唯一标识符，前缀 `tf_` |
 | name | string | 是 | -- | 专班名称 |
 | type | string | 是 | -- | 专班类型 |
-| status | `'active'\|'dissolved'` | 是 | `'active'` | 专班状态 |
+| status | `'recruiting'\|'active'\|'archived'\|'dissolved'` | 是 | `'recruiting'` | 专班状态（状态机见 TaskForceRecordStore：recruiting → active → archived/dissolved） |
 | activityId | string\|null | 否 | `null` | 关联活动 ID（专班与活动互斥，为 null） |
 | createdBy | string | 是 | -- | 创建者 ID |
 | createdAt | string (ISO) | 是 | -- | 创建时间 |
-| members | string[] | 否 | `[]` | 成员 ID 列表 |
+| members | `Array<{personId: string, role: 'organizer'\|'deep'\|'participant', contributions: string[]}>` | 否 | `[]` | 专班成员对象数组（项目角色主源之一：organizer/deep 在此登记，含工作量 contributions；非字符串 ID 列表） |
 | description | string | 否 | -- | 专班描述 |
 
-**赋权记录结构** (`sop_org_os_assigned_roles`):
+> **字段核对**：mock/seed 另含展示字段 `task`/`manager`/`initiator`/`capacity`/`deadline`（见 [mock/taskforces.js](../../../docs/src/mock/taskforces.js) 样本），未列为必填模型字段。
+
+**项目角色赋权与审计（现行，T-190）**：遗留键 `sop_org_os_assigned_roles` 已删除（services/roles.js 启动时清理一次存储残留，无调用方）。项目角色（organizer/deep）以**主源**为准——活动挂 `activity.assignments`、专班挂 `members`；`AuthStore.authorize` / `revokeAuthorization` / `syncProjectRoles` 写主源 + 追加审计快照：
 
 ```js
-// 存储在 localStorage，键: 'sop_org_os_assigned_roles'
-assignedRoles: Array<{
-  name: string,        // 同志姓名
-  role: 'organizer' | 'deep',  // 赋予角色
-  activity: string     // 关联活动名称（可为空）
-}>
+// 主源（运行时实体，随活动/专班持久化）
+activity.assignments: Array<{ personId, role: 'organizer' | 'deep' | 'participant' }>
+taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participant', contributions: string[] }>
+// 审计快照（独立 localStorage 键，只增不改；撤销为追加 action:'revoke' 记录，判定取最新一条）
+// 键: 'sop_org_os_auth_audit'（AUDIT_KEY，services/auth.js）
+// 记录: { id, targetPersonId, role, scopeRef(活动/专班 ID), authorizedBy, authorizedAt, action: 'grant'|'revoke' }
 ```
 
-**专班成员展示** (位于宣传委员面板 `#publicity-taskforce-chips`)：由 `assignedRoles` 中 `role='organizer'` 或 `role='deep'` 的记录渲染。
+**专班成员展示**：由专班 `members` 主源渲染（组织委员/宣传委员看板按需取用），不再经赋权记录。
 
 ### 2.4 系列活动数据 (SeriesRecord)
 
@@ -269,7 +280,7 @@ assignedRoles: Array<{
 
 ### 2.5 考勤数据 (AttendanceRecord)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L34-L45)
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L37-L48)（AttendanceRecord typedef）
 > **字段命名说明**：`personId` 统一为人员标识字段（2026-07-15 审计改进）。代码中仍使用 `userId`，待后续同步。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
@@ -291,7 +302,7 @@ assignedRoles: Array<{
 | `present` | 出席 | 按时到场 |
 | `absent` | 缺席 | 未到场（触发补课机制，T+7 内完成） |
 | `leave` | 请假 | 事假须提前1天申请；病假可事后补假 |
-| `made_up` | 已补 | 补课完成后考勤状态变更为"已补"（§2.17.2 补课制度） |
+| `made_up` | 已补 | 补课完成后考勤状态变更为"已补"（补课任务结构见 §2.8 MakeupTask） |
 
 **发展阶段枚举（D-239 统一中文，2026-08-01 收敛为四阶段）：**
 
@@ -303,6 +314,25 @@ assignedRoles: Array<{
 | `发展对象` | 发展对象 |
 | `预备党员` | 预备党员 |
 | `正式党员` | 正式党员 |
+
+#### 2.5.1 考察数据 (InspectionRecord)
+
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L148-L160)（InspectionRecord typedef），持久化域 `mockDB.inspections`（随全量键 `workflowos_branch_db_v1` 持久化）。考察记录为**工作量记录**（对象：组织者/深度参与者；适用：所有支部工作），与考勤（0-1 出席变量，对象：党员+预备党员）相区分（见 DATA_FLOW §3.3）。
+
+| 字段名 | 类型 | 必填 | 默认值 | 说明 |
+|---|---|---|---|---|
+| id | string | 是 | `generateId('insp')` | 唯一标识符，前缀 `insp_` |
+| sourceType | `'activity'\|'taskforce'` | 是 | -- | 考察来源类型：活动 or 专班（D-198） |
+| activityId | string | 是 | -- | 关联活动 ID（sourceType='activity' 时必填） |
+| sourceName | string | 否 | -- | 来源名称（sourceType='taskforce' 时为专班名称） |
+| personId | string | 是 | -- | 人员 ID（引用 people.js） |
+| level | `'organize'\|'deep'` | 是 | -- | 考察层级（仅组织者与深度参与者有考察记录） |
+| role | string | 是 | -- | 分工角色+描述（如：策划+全流程统筹、视频制作、PPT 设计） |
+| recordedBy | string | 是 | -- | 记录人 personId |
+| recordedAt | string (ISO) | 是 | -- | 记录时间 |
+| status | `'pending'\|'confirmed'` | 否 | `'pending'` | 考察确认状态（纪检委员确认后录入考察总表） |
+
+> **写入/确认链路**：党小组组长（活动）或专班负责人/组织委员上传 → 纪检委员确认后录入考察总表（与 server 端同构，见 mock-adapter.js inspections）。
 
 ### 2.6 分工数据 (AssignmentRecord)
 
@@ -416,7 +446,7 @@ assignedRoles: Array<{
 
 ### 2.12 任务数据 (Task)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L59-L66)
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L50-L57)（Task typedef）
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -428,7 +458,7 @@ assignedRoles: Array<{
 
 ### 2.13 应用状态数据 (appState)
 
-> 定义位于 [core/state.js](../../../docs/src/core/state.js#L126-L146)
+> 定义位于 [core/state.js](../../../docs/src/core/state.js#L71-L93)（appState 对象）
 
 | 字段名 | 类型 | 初始值 | 说明 |
 |---|---|---|---|
@@ -459,7 +489,7 @@ assignedRoles: Array<{
 
 #### 2.13.1 动态角色上下文
 
-> 定义位于 [core/state.js](../../../docs/src/core/state.js#L32-L37)
+> 本节为内容层文件治理规则（SNAPSHOT.md / TIMESTAMPS.md 的 [AI]/[工程师] 读写角色），非前端代码状态——不指向 state.js（state.js 的 ROLE_TYPES / MANAGEMENT_ROLES 见 §2.2.1，与本节无映射关系）。
 
 本系统区分两种角色模型：**用户角色**（控制 Web UI 视图）和**动态文件角色**（控制 AI/人机 协作边界）。
 
@@ -506,10 +536,11 @@ assignedRoles: Array<{
 | scenarioId | 标题 | domain | 考勤类型 |
 |---|---|---|---|
 | `org-life` | 组织生活会 | activity | 刚性考勤 |
-| `theme-party` | 主题党日活动 | activity | 弹性考勤 |
+| `theme-party` | 党小组主题党日活动 | activity | 弹性考勤 |
 | `branch-party-meeting` | 支部党员大会 | activity | 刚性考勤 |
 | `party-group-meeting` | 党小组会 | activity | 刚性考勤 |
 | `party-lecture` | 党课 | activity | 刚性考勤 |
+| `branch-committee` | 支委会 | activity | 刚性考勤 |
 | `joint-event` | 团支部合办活动 | activity | 党小组主导 |
 | `new-system` | 制度制定与迭代 | organization | -- |
 | `develop-activist` | 考察积极分子 | organization | -- |
@@ -588,7 +619,7 @@ assignedRoles: Array<{
 | mentions / references | string[] | 提及 / 引用 |
 | participants / commentCount | string[] / number | 参与人 / 评论数 |
 | hidden / mergedInto | boolean / string\|null | 书记隐藏（不在公开列表显示）/ 合并去向（被合并的 source 置位） |
-| comments | {id, author, authorRole, body, createdAt, kind, hidden, hiddenBy, hiddenReason, hiddenAt}[] | 评论时间线；kind：`comment` / `dispatch`（指派事件）/ `result`（处置结果）/ `verdict`（书记终审/合并事件） |
+| comments | {id, author, authorRole, body, createdAt, kind, hidden, hiddenBy, hiddenReason, hiddenAt}[] | 评论时间线；kind：`comment`（普通评论）/ `reply`（书记正式答复，通知汇报人）/ `dispatch`（指派事件）/ `result`（处置结果）/ `verdict`（书记终审/合并事件）。注：工作汇报型 issue 自身 `kind='report'`（issue 级，非评论时间线 kind，见 issues.js addReport） |
 | resultPending / resultSubmittedAt | boolean / string\|null | 待终审标记（处置结果提交后置位） |
 
 **处理流程（GitHub Issue 风格）**：提交(open) → 书记审阅并指派（assignee + dispatchHistory，通知被指派人）→ 公开讨论（评论+表态，全员可参与）→ 被指派人提交处置结果（kind=`result`）→ 待终审（resultPending=true，书记工作台高亮）→ 书记终审：关闭(closed) / 重新开放(reopen)。
@@ -721,7 +752,7 @@ assignedRoles: Array<{
 | id | string | 是 | `generateId('todo')` | 唯一标识符，前缀 `todo_` |
 | title | string | 是 | -- | 待办标题 |
 | description | string | 否 | `''` | 待办描述 |
-| role | string | 是 | -- | 目标角色（secretary/leader/org-commissioner/prop-commissioner/disc-commissioner/organizer/deep/participant） |
+| role | string | 是 | -- | 目标角色（secretary/deputy-secretary/org-commissioner/prop-commissioner/disc-commissioner/leader/participant/party-staff/organizer/deep；角色键权威见 constants.js ROLE_KEYS） |
 | personId | string \| null | 否 | `null` | 目标人员 ID（null=该角色所有人） |
 | category | `'auth' \| 'archive' \| 'review' \| 'notice' \| 'submit' \| 'track'` | 是 | -- | 分类（赋权/归档/审核/通知/提交/追踪） |
 | priority | `'urgent' \| 'normal'` | 是 | `'normal'` | 优先级 |
@@ -946,7 +977,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 字段名 | 类型 | 必填 | 说明 |
 |---|---|---|---|
 | source | `'committee'` | 是 | 来源标记：`'committee'` = 党委下发；缺省 = 支部自发通知（信息性/行动性） |
-| audience | `'committee'` | 是 | 取值说明：既有字段（§2.19.1 起通知发布用）为受众群体**数组**；党委下发取常量 `'committee'`（字符串）表示「本支部支委层」 |
+| audience | `'committee'` | 是 | 党委下发通知专用取值：常量 `'committee'`（字符串）表示「本支部支委层」；支部自发通知缺省不设本字段。注意区分 §2.19.1 的 `actionRoles`（行动性通知待办执行角色**数组**）——`audience` 是下发专用可见性过滤常量，二者语义不同 |
 | branchId | string | 是 | 目标支部（支部动态创建后自动可选） |
 | branchName | string | 否 | 目标支部名快照（支部后续改名不使历史下发漂移） |
 | publisher | string | 否 | 展示覆盖 `'院党委（组织员）'`（通知详情「通知者」不按 targetModule 推断） |

@@ -2,9 +2,9 @@
 title: "文件角色分类体系"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-10"
+last_updated: "2026-09-05"
 status: active
-related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/03_doc_system/OPERATIONS_GUIDE.md]
+related_files: [ARCHITECTURE.md, CLAUDE.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/03_doc_system/DOC_MAP.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
 
 # 文件角色分类体系
@@ -207,8 +207,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 |------|-----------|------|
 | ARCHITECTURE.md §四 分层架构 | Layer 0-7 角色标注与本文件一致 | ✅ 2026-07-11 |
 | content/03_doc_system/DOC_MAP.md | 三类受众定义与本文件一致（合并为单维度） | ✅ 2026-07-11 |
-| CLAUDE.md | 写盘权限 + can-modify 白名单 + 动态角色判定与本文件一致 | ✅ 2026-07-11 |
-| .ctx/SNAPSHOT.md §3 文件访问权限 | Route ID 权限表与本文件协作方式一致 | ✅ 2026-07-11 |
+| CLAUDE.md | 修改检查清单要求 YAML front matter（role/last_updated）随改随更，与本文件角色标记规范一致 | ✅ 2026-09-05 |
 | OPERATIONS_GUIDE.md §14 | 文件角色分类操作指南（受众定义指向本文件 §一） | ✅ 2026-07-11 |
 
 ---
@@ -221,11 +220,9 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 |------|--------|------|
 | 文件角色标注 | 100% | 所有仓库文件均有 `role` 标记 |
 | 权限边界定义 | 100% | 三类角色的读写权限明确 |
-| 协作方式定义 | 95% | 跨角色修改规则已定义，can-modify 白名单已实施 |
+| 协作方式定义 | 95% | 跨角色修改规则已定义（按角色标记判定，见 §四） |
 | 存储机制 | 100% | 存储分区与访问控制明确 |
-| 读取机制 | 95% | 读取优先级已定义，动态角色判定已实施 |
-| SA1 动态角色 | ✅ 已完成 | `dynamic_role` front matter + CLAUDE.md 判定逻辑 |
-| SA2 can-modify 白名单 | ✅ 已完成 | CLAUDE.md 白名单 + state.js `canAIModify()` |
+| 读取机制 | 95% | 读取优先级已定义（见 §五） |
 
 ### 迭代计划
 
@@ -238,122 +235,9 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, co
 
 ---
 
-## 九、角色权限矩阵
-
-> 本节为角色权限矩阵的权威源，对齐 `docs/src/services/auth.js` 的 ROLE_PERMISSIONS/PROJECT_PERMISSIONS/AUTHORIZE_CHAIN。数据流设计与界面实现路径见 [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md)。
-
-> **待办派生语义**：具体活动/专班任务不与支委身份静态绑定；谁做什么 = 由该具体的人在该活动/专班承担的角色（组织者/执行者/组长）派生其待办并广播。本节矩阵是待办派生规则集，非静态全能授权；标注 `--` 表示仅因身份不会收到该键待办（除非其为该活动承担者）。
-
-### 9a0. 角色键全表（代码层单一事实源，T-304 Q3 权限收敛 2026-08-29）
-
-> **本表为角色键的权威清单**：对齐 `docs/src/core/constants.js` 的 `ROLE_KEYS`/`ROLE_LEGACY_KEYS`，并登记 `auth.js` 角色→页面映射（ROLE_PAGE_MAP）与能力注册表 `requiredRoles` 的对应关系。新增角色键必须同步本表与 constants.js 两处。
-
-| 角色键 | 中文标签 | 类型 | 工作台页面 | 能力 requiredRoles |
-|---|---|---|---|---|
-| `secretary` | 党支部书记 | 常设 | `workspace/secretary.html` | `secretary-workspace` |
-| `deputy-secretary` | 党支部副书记 | 常设 | `workspace/secretary.html`（与书记同页） | `secretary-workspace` |
-| `org-commissioner` | 组织委员 | 常设 | `workspace/org.html` | `org-workspace` |
-| `prop-commissioner` | 宣传委员 | 常设 | `workspace/prop.html` | `prop-workspace` |
-| `disc-commissioner` | 纪检委员 | 常设 | `workspace/disc.html` | `disc-workspace` |
-| `leader` | 党小组组长 | 常设 | `workspace/leader.html` | `leader-workspace` |
-| `participant` | 普通参与者 | 常设 | `workspace/visitor.html` | `visitor-workspace` |
-| `organizer` | 组织者（项目角色） | 项目 | 无独立页面（归入首页/工作台视图） | — |
-| `deep` | 深度参与者（项目角色） | 项目 | 无独立页面 | — |
-| `commissioner` | 条条委员（遗留键） | 遗留 | — | — |
-| `initiator` | 发起人（遗留键） | 遗留 | — | — |
-| `all` | 全体相关（兜底键） | 遗留 | — | — |
-
-**语义约定**：
-- **访客非角色**：未登录即访客（无角色键），`visitor` 仅为参与者工作台页面的 tab 前缀/待办聚合键，勿与「访客（未登录）」混淆。
-- **`COMMISSIONER_ROLES` 两处语义区分**：constants.js 版指条条委员（三委员，不含书记/副书记，业务判定用）；auth.js 版指授权语义（含书记/副书记，赋权候选人排除支委用）。勿混用。
-- **遗留键**仅保留兼容兜底，不参与权限判定；新功能不得新增遗留键。
-
-### 9a. 活动写入门禁
-
-> **来源：**[USAGE_POLICY.md](../03_doc_system/USAGE_POLICY.md) §1.2.5 — 术语权威源。
-
-**写入门禁**：仅党支部书记、党支部副书记、党小组组长持有 `create_activity` 权限，可直接创建/修改活动数据（见 §9b 矩阵）；宣传委员、纪检委员不持有该权限，通过审核、确认、备案等流程间接参与。专班创建走 `initiate_taskforce`/`authorize_taskforce` 通道（组织委员持有，见 §9b）。
-
-### 9b. 常设角色权限矩阵（6 角色 × 16 操作）
-
-> 本矩阵对齐 `auth.js` 的 ROLE_PERMISSIONS。`Y` 表示有此权限；`--` 表示无此权限；`Y(限定语)` 表示有此权限但限定于特定语义。
-
-| 角色 | view_all | create_activity | assign_task | modify_assignment | mark_complete | fill_review | record_attendance | summarize_inspection | record_inspection | manage_taskforce | initiate_taskforce | authorize_taskforce | authorize | assign_project_role | archive | manage_members |
-|------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| 党支部书记 | Y | Y | Y | Y | Y | Y | -- | -- | Y(审阅) | Y | Y | Y | Y | -- | Y | Y |
-| 党支部副书记 | Y | Y | Y | Y | Y | Y | -- | -- | Y(审阅) | Y | Y | Y | Y | -- | Y | Y |
-| 组织委员 | Y | -- | -- | -- | -- | -- | -- | -- | Y(建档)（专班负责人上传位待身份编码） | Y | Y | Y | -- | -- | Y | -- |
-| 宣传委员 | Y | -- | -- | -- | -- | -- | -- | -- | -- | Y | Y | -- | -- | -- | Y | -- |
-| 纪检委员 | Y | -- | -- | -- | -- | --（纪检为该活动组织者时承担复盘（监督自己）；非组织者时收监督组织者复盘的审批待办） | Y | Y | Y(监督/只读+督办)（查看台账与督办待办，不上传不建档） | Y | Y* | -- | -- | -- | -- | -- |
-| 党小组组长 | Y | Y | Y | Y | Y | Y | --（党小组活动考勤上传=该活动组织者 Y(考勤上传·追加提交)（组织者按活动身份；改/删走纪检确认流程），组长非组织者=本组监督位） | -- | Y(导入)（组长若为该活动组织者按组织者程序上传；非组织者时组长=监督位（督促该活动组织者上传）） | -- | -- | -- | -- | Y | Y(配合·本组活动组织者上下文交档) | -- |
-
-\* 纪检委员的 initiate_taskforce：原则上可以，但业务上一般不使用。
-
-### 9c. 项目角色权限矩阵（2 角色 × 7 操作）
-
-> 本矩阵对齐 `auth.js` 的 PROJECT_PERMISSIONS。项目角色仅在 `canDo(userId, action, {projectId})` 上下文中生效。
-
-| 角色 | view_project | assign_task | modify_assignment | mark_complete | fill_review | record_inspection | assign_project_role |
-|------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| 组织者 | Y | Y | Y | Y | Y | Y(导入) | Y |
-| 深度参与者 | Y | -- | -- | Y | -- | -- | -- |
-
-### 9d. 默认角色权限（1 角色 × 2 操作）
-
-| 角色 | view_public | record_inspection |
-|------|:---:|:---:|
-| 普通参与者 | Y | Y(自己的) |
-
-### 9e. 赋权链（AUTHORIZE_CHAIN）
-
-> 本表对齐 `auth.js` 的 AUTHORIZE_CHAIN + AUTHORIZE_CHAIN 关联的权限名。
-
-| 授权人 | 可赋权角色 | 权限名 |
-|--------|-----------|--------|
-| 党支部书记/党支部副书记 | 党小组组长（常设） | `authorize` |
-| 党支部书记/党支部副书记 + 组织委员 | 组织者/深度参与者（专班） | `authorize_taskforce` |
-| 党小组组长 | 组织者/深度参与者（项目） | `assign_project_role` |
-| 组织者 | 深度参与者（项目） | `assign_project_role` |
-
-### 9f. 权限名语义说明
-
-| 权限名 | 语义 |
-|--------|------|
-| `view_all` | 查看所有活动（含考勤、考察） |
-| `view_project` | 查看被赋权的项目（活动/专班） |
-| `view_public` | 查看公开信息 |
-| `create_activity` | 创建新活动 |
-| `assign_task` | 分配任务给成员 |
-| `modify_assignment` | 修改分工记录 |
-| `mark_complete` | 标记任务完成 |
-| `fill_review` | 填写活动复盘 |
-| `record_attendance` | 记录考勤 |
-| `summarize_inspection` | 汇总纪检检查记录 |
-| `record_inspection` | 记录/导入/建档考察记录（按角色细分：导入/建档/汇总/自己的/审阅） |
-| `manage_taskforce` | 修改/解散专班本身（非"作为组织者操作"） |
-| `initiate_taskforce` | 创建新专班 |
-| `authorize_taskforce` | 赋权专班成员（organizer/deep） |
-| `authorize` | 赋权常设角色 leader |
-| `assign_project_role` | 赋权项目角色 organizer/deep |
-| `archive` | 归档操作 |
-| `manage_members` | 管理成员（设为/取消组长） |
-
-> 另设「条线下发」（组织线/宣传线/纪检线职能任务下发，授予对应支委；与 `assign_task`（书记/副书记/组长派执行）分两类，键后续编码）。
-
-### 9g. 权限矩阵标记说明
-
-- **Y** 表示有此权限（完整权限）
-- **--** 表示无此权限
-- **Y(审阅)** 表示仅能查看（不能编辑/记录）
-- **Y(建档)** 表示仅限建立档案（基于已有记录建档，不能记录原始数据）
-- **Y(汇总)** 表示仅限汇总分析（基于已有记录汇总，不能记录原始数据）
-- **Y(导入)** 表示仅限从其他来源导入（不能直接记录原始数据）
-- **Y(自己的)** 表示仅限记录自己的（只能记录自己的考察记录）
-- **Y\*** 表示原则上有此权限，但业务上一般不使用
-
----
-
 ## 八、变更历史
+
+- **2026-09-05**：§九 系统角色权限矩阵（角色键全表 9a0/权限矩阵 9a~9g/赋权链）已拆至 [SYSTEM_ROLE_PERMISSION.md](./SYSTEM_ROLE_PERMISSION.md)（名实分离——本文档回归纯文件角色分类；系统运行角色的键级权威见新文件，双轨约定见新文件 §9f）。同批清理 §六/§七 中已过时的实现断言（`dynamic_role` front matter、state.js `canAIModify()`、SNAPSHOT §3 均已不存在）。
 
 - **2026-07-11（v3.0）**：从旧三分类 `[人]/[人机]/[AI]` 升级为新三分类 `[用户]/[工程师]/[AI]` + 复合标记。书记明确指出"【人】可以划分为'用户'和'工程师'两种角色"，"涉及党支部具体建设的解释、思路、书记的具体表述是给用户看的，工程师看的只是跟编程、系统设计、需求落地相关的文档"。废弃"正交双维度"模型，合并为单一维度。strategy/sop/insights 从 [人机] 重新判定为 [用户]+[AI]（非 [工程师]+[AI]）。
 - **2026-05-02（v2.0）**：SA1 动态角色判定 + SA2 can-modify 白名单。

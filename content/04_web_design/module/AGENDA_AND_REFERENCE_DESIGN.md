@@ -3,12 +3,14 @@ title: "会议议程与资料查询设计"
 type: design
 role: "[工程师]+[AI]"
 created: "2026-08-31"
-last_updated: "2026-08-31"
-status: draft
+last_updated: "2026-09-05"
+status: landed
 related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04_web_design/data/DATA_MODEL.md, content/04_web_design/data/DATA_FLOW.md, docs/search.html, docs/src/modules/references.js, docs/src/entries/tabs/secretary/calendar-tab.js, server/routes/resources.js]
 ---
 
 # 会议议程与资料查询设计
+
+> **已落地（2026-09-01）**：本设计结论已实现（对照实读：`docs/src/modules/references.js` 支部文件/草案 CRUD + `docs/src/entries/tabs/secretary/calendar-tab.js` 议程与会后衔接 + `docs/src/components/member-change-panel.js` 成员变更面板 + `server/db.js` RESOURCE_TABLES 中 `branch_docs` / `member_change_requests` / `committee_broadcasts` / `agenda_votes` 表 + `server/routes/resources.js` CRUD，配套 server/test/ member-change-flow、agenda-* 系列测试）；本文档继续承担设计论证档案，验收条件见 §五（已达成，2026-09-05 复核）。
 
 > **目标**：让资料查询中的支部文件与重要会议的议程形成一条可追溯的工作路径，并将会议完成后的重复录入收束为少量有责任归属的动作。
 >
@@ -135,6 +137,8 @@ related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04
 ---
 
 ## 五、验收条件
+
+> **验收状态（2026-09-05 复核）：全部通过 ✅**——5.1 资料查询（`references.js` 官方/支部文件分区 + 草案创建/关联活动/归档展示）；5.2 会议与成员变更（`calendar-tab.js` 议程封装 + 成员变更申请审批流 + 服务端 `users` 阶段更新 + 支委广播；`server/test/` member-change-flow、member-change-cross-session、agenda-* 系列测试佐证双会话一致性与重启持久）；5.3 回归与界面质量（`server/test/` 全绿 + 链接/审计守护通过）。
 
 ### 5.1 资料查询
 

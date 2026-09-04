@@ -1,8 +1,8 @@
 ---
 title: "组织者与深度参与者的扁平化设计"
 type: design
-role: "[工程师]+[AI]"
-last_updated: "2026-08-16"
+role: "[用户]+[AI]"
+last_updated: "2026-09-05"
 version: "2.2"
 status: active
 related_files: [CLAUDE.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/insights/党支部管理与实务经验沉淀.md, content/01_strategy/SECRETARY_DIRECTIVES.md]
@@ -10,9 +10,9 @@ related_files: [CLAUDE.md, content/04_web_design/data/DATA_FLOW.md, content/02_i
 
 # 组织者与深度参与者的扁平化设计
 
-> **这是党支部扁平化参与途径的理论基础。**（D-15 决策确立）
+> **这是党支部扁平化参与途径的理论基础。**（D-15 决策确立；论断权威表述见 [SECRETARY_DIRECTIVES.md](../01_strategy/SECRETARY_DIRECTIVES.md) P-009/P-010）
 > **本文件为扁平化设计的权威源**——定义组织者与深度参与者的分工关系、协作模式、启动判据。
-> **书记论断母本**：P-009（扁平化不能与没有"程序"等同）、P-010（组织者的分工记录职责）均以本文件为母本位置。
+> **书记论断母本**：P-009（扁平化不能与没有"程序"等同）、P-010（组织者的分工记录职责）均以本文件为母本位置（论断出处：D-15，权威文本见 [SECRETARY_DIRECTIVES.md P-009](../01_strategy/SECRETARY_DIRECTIVES.md#p-009-扁平化不能与没有程序等同组织者与深度参与者之间没有上下级只是分工内容不同) / [P-010](../01_strategy/SECRETARY_DIRECTIVES.md#p-010-组织者的分工记录职责做记录做协调做交接)）。
 
 ---
 
@@ -27,7 +27,7 @@ related_files: [CLAUDE.md, content/04_web_design/data/DATA_FLOW.md, content/02_i
 
 ### （一）扁平化不能与没有"程序"等同（P-009）
 
-扁平化不等于"没有程序"——扁平化消除的是上下级命令，分工、流程、记录仍然保留。分工仍需协商和记录，工作流仍是组织运行的程序；没有"程序"的组织无法形成共识、带来效率（见 P-014）。组织者和深度参与者是平等的协作关系，分工需经平等协商完成。
+扁平化不等于"没有程序"——扁平化消除的是上下级命令，分工、流程、记录仍然保留。分工仍需协商和记录，工作流仍是组织运行的程序；没有"程序"的组织无法形成共识、带来效率（见 [SECRETARY_DIRECTIVES.md P-014](../01_strategy/SECRETARY_DIRECTIVES.md#p-014-适应学习的机会民主集中制下真实组织的两个向度)）。组织者和深度参与者是平等的协作关系，分工需经平等协商完成。
 
 > 书记原话："组织者和深度参与者之间没有上下级关系，只是分工内容不同。"（2026-05-17）
 
@@ -83,4 +83,8 @@ related_files: [CLAUDE.md, content/04_web_design/data/DATA_FLOW.md, content/02_i
 
 ---
 
+> **反论处置记录**：本文件的「不是…而是…」反论式表述已于 2026-08-17 经 T-263 正面化处置（02_institution 反论/等号全仓清理；评议轮次见 [REVIEW_QUEUE.md](../../.ctx/REVIEW_QUEUE.md)「02_institution 下游同步审计」），处置明细见 [2026-08 执行日志 T-263](../../.ctx/logs/2026-08-EXECUTION_LOG.md)。
+>
+> **实现落点（系统侧）**：组织者（organizer）/深度参与者（deep）为活动/专班的项目角色——权限与赋权链见 `docs/src/services/auth.js` 的 `PROJECT_PERMISSIONS` / `AUTHORIZE_CHAIN`（组织委员赋专班角色、党小组组长赋活动角色、组织者可赋深度参与者）；赋权入口与待办联动见 [COMMISSIONER_DUTY_FRAMEWORK.md](./COMMISSIONER_DUTY_FRAMEWORK.md) §D.1.1 赋权入口设计。
+>
 > 详细设计见 [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md) §三

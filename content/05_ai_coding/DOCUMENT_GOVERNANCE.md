@@ -2,14 +2,14 @@
 title: "文档治理与一改具改"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-04"
+last_updated: "2026-09-05"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/03_doc_system/SSOT_INDEX.md]
 ---
 
 # 文档治理与一改具改（05 AI 协作方法论层分篇）
 
-> **定位：** 本篇属 **05 AI 协作方法论层**（唯一 AI 协作方法论层，活跃上下文）「文档治理与一改具改」分篇——2026-09-04 由原 KNOWN_PITFALLS（19 条总篇）按协作环节拆分而来，承接一改具改执行、分层体系冲突记录、一改具改遗漏典型场景 3 类陷阱判例。
+> **定位：** 本篇属 **05 AI 协作方法论层**（唯一 AI 协作方法论层，活跃上下文）「文档治理与一改具改」分篇——2026-09-04 由原 KNOWN_PITFALLS（19 条总篇）按协作环节拆分而来，承接一改具改执行、分层体系冲突记录、一改具改遗漏典型场景 3 类陷阱判例；同日并入 insights [3][5] 文档系统管理/内容治理标签小节（命名/SSOT/单一表达/历史不可变/文件归置/spec 全流程/被否决残留等，见文末「文档治理：命名、SSOT 与文件归置」「内容治理与一改具改验证」节）。
 > **read_strategy: on-demand**——含义：非每次会话必读，不常驻活跃上下文，按环节触发后按需读取。
 > **何时读：** 涉及术语/制度/编号/路径变更（一改具改执行与遗漏核查）、仓库分层体系（知识类型/T 术语层级/热温冷/content 目录结构/文件角色/insights 结构/五层架构）命名与引用核对、母本子本溯源等文档治理场景前。
 > **分篇索引与各篇 read_strategy 一览见 [README.md](README.md)。**
@@ -49,7 +49,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/03
 
 ### 7.3 待监测的潜在冲突
 
-- **insights 知识类型标注**：insights 按 5 类知识类型标注（如 [3]，见 OPERATIONS_GUIDE §1.1），引用时标明"§X.Y"+知识类型编号
+- **insights 知识类型标注**：insights 现仅存党建实务条目（[1]支部战略 / [2]支部制度，如 [党支部管理与实务经验沉淀.md](../insights/党支部管理与实务经验沉淀.md) 各条 [1]/[2] 标注）；工程方法论条目（[3]文档系统管理 / [4]网站设计 / [5]AI coding）已于 2026-09-04 分流至 03/04/05 各权威文件，承接小节以「（原 insights §N）」「（insights [N] 并入）」标注（本篇定位列与 [README.md](README.md) 定位列可查）——引用 insights 条目时须以承接文件现行小节为准，不再以 5 类知识类型标注笼统指代。
 
 ## 一改具改遗漏的典型场景（原 KNOWN_PITFALLS §10）
 

@@ -3,7 +3,7 @@ title: "院系党委后台——支部多实例两级治理设计定案"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-02
-last_updated: "2026-09-03"
+last_updated: "2026-09-05"
 status: approved-by-secretary
 related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/accounts.js, server/seed.js, server/db.js, docs/src/core/data-adapter.js, docs/src/core/constants.js, docs/src/services/auth.js, docs/src/modules/capabilities/]
 ---
@@ -14,6 +14,8 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 > 执行路线图（怎么一步步落地）另置过程 spec（`.trae/specs/`，**用后即删**）；落地过程台账在 `.ctx/logs/`。本文档为常驻设计记录，**不承载执行步骤、测试清单与过程台账**。
 
 > 定位：光华管理学院党委（**院系级**，非全校）→ 动态支部多实例的两级治理架构。书记 2026-09-02 逐段批准（Part 1 架构 / Part 2 分期），P3 范围与形态 2026-09-03 裁定。
+>
+> **落地状态（P1~P3 代码/测试已入仓）**：党委台 tabs 在 `docs/src/entries/tabs/party-committee/`——monitor-tab.js（P1 支部监控台账）、branches-tab.js（P1 支部管理 + P2 书记任命；任命链 `docs/src/services/appointment.js`）、party-config-tab.js（§2.5 支部配置收拢：config.modules/blocks 启停）、review-tab.js（P3 上报审批）、dispatch-tab.js（P3 下发通知）；测试：`server/test/party-committee.test.mjs`（P1+P2 E2E）、`server/test/party-committee-review.test.mjs`、`server/test/party-committee-dispatch.test.mjs`（P3 双向通道）。
 
 ## 0. 方向选择说明（书记 2026-09-02 逐项决策记录）
 
@@ -31,7 +33,7 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 | P3 下发承载（2026-09-03） | 新建「下发箱」领域 / **复用通知** | **复用通知**：通知实体加 `audience:'committee'` + `branchId` 受众过滤与「党委下发」来源徽标——送达=目标支部**支委层**，普通党员/党委组织员（非支委）不打扰；支部不可在自发通知管理区删改上级下发 |
 | P3 入口落点（2026-09-03） | — | 支部侧=书记工作台新 tab「上报党委」；党委侧=独立 tab「上报审批」与「下发通知」——上报/下发两向入口分离，互不混淆 |
 | L2 工作流模块配置权（2026-09-03） | 党委代配 / **支部自治（书记操作）** | **支部自治**：config 工作流模块由**本支部现任书记**在书记工作台「工作台配置」操作（清单 chips 启停 + 画布拖拽排序），党委不代配（党委只管建支部/任命/审批/下发） |
-| L2 配置粒度与策略（2026-09-03） | — | 最小单位=**工作台 tab**（能力为分组容器）；**默认全开**（config.modules=null，46 功能兼容）；**核心组固定**（待办/概况等 groupLabel='工作台' 不可关）；服务端 PATCH /branches/:id/config 仅本支部现任书记/party-staff，白名单只收 config.modules（治理字段不可经此改） |
+| L2 配置粒度与策略（2026-09-03） | — | 最小单位=**工作台 tab**（能力为分组容器）；**默认全开**（config.modules=null，46 功能兼容）；**核心组固定**（待办/概况等 groupLabel='工作台' 不可关）；服务端 PATCH /branches/:id/config 仅本支部现任书记/party-staff，白名单收 **config.modules / config.blocks / config.workforce 三组**（blocks 含 workflowBlocks.hiddenBlockIds，见 [WORKFLOW_BLOCK_CONTRACT.md §七 S3](WORKFLOW_BLOCK_CONTRACT.md)；workforce 见 [BRANCH_WORK_MAP.md M0](BRANCH_WORK_MAP.md)；治理字段不可经此改） |
 
 ## 1. 目标与边界
 

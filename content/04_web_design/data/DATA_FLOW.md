@@ -3,10 +3,10 @@ title: "数据流设计"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: "2026-09-04"
+last_updated: "2026-09-05"
 status: active
 split_from: "原数据架构总文件（2026-08-24 T-282 拆分；路由文件 2026-09-03 精简删除）"
-related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/sop/纪检委员工作流程指南.md]
+related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/sop/纪检委员工作流程指南.md]
 ---
 
 # 数据流设计
@@ -39,11 +39,11 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 | 制度文件引用 (ComplianceReference) | mockDB.complianceReferences + localStorage | 引用->持久化 | 组织委员引用的制度文件 |
 | 任务 (Task) | mockDB.tasks + localStorage | 随活动创建->待办->进行中->已完成 | 活动子任务，由 SOP 模板生成 |
 | SOP 场景模板 (Scenario) | sopData.js (静态代码) | 静态，代码级维护 | 12 个内置场景，驱动任务生成和工作流 |
-| 工作流定义 (Definition) | definitions.js (静态代码) | 静态，代码级维护 | 5 套状态机模板，驱动活动流转 |
+| 工作流定义 (Definition) | definitions.js (静态代码) | 静态，代码级维护 | 3 套流程定义模板（theme-party-day / short-term / long-term），驱动活动流转（与 DATA_MODEL §2.15 一致） |
 | 应用状态 (appState) | core/state.js (内存) | 页面生命周期内 | UI 视图状态，不持久化 |
-| 用户/角色预设 (users) | mockDB.users (内存) | 静态预设 | 3 个内置用户（书记/组织委员/党小组组长） |
-| 赋权记录 (assignedRoles) | localStorage `sop_org_os_assigned_roles` | 跨会话持久化 | 书记赋权给组织者/深度参与者的记录 |
-| 角色常量 (ROLE_LABELS/COLORS) | core/constants.js (静态代码) | 静态，代码级维护 | 9 种角色的中文标签与视觉配色 |
+| 用户/角色预设 (users) | mockDB.users (内存) | 静态预设 | 11 个 `u_*` 系统账号（书记/副书记/三支委/3 组长/执行组长/组织者/深度参与者）；登录账号另见 mock/accounts.js `MOCK_ACCOUNTS`（`p*`，含党委组织员 p_pc） |
+| 赋权审计 (AuthRecord) | localStorage `sop_org_os_auth_audit`（审计快照）+ 主源内嵌（活动 `assignments` / 专班 `members`） | 跨会话持久化 | AuthStore.authorize 写主源 + 追加快照（旧键 `sop_org_os_assigned_roles` 已删除） |
+| 角色常量 (ROLE_LABELS/COLORS) | core/constants.js (静态代码) | 静态，代码级维护 | 13 键角色（10 业务 + 3 遗留）的中文标签与视觉配色 |
 | 意见反馈 (IssueRecord) | `docs/data/issues.json` + localStorage `gsm1921-issue-drafts` | open->closed->reopened | GitHub Issue 风格开源讨论，双轨数据层，书记维护 issues.json 权威源 |
 
 ### 1.3 端到端数据流交织图
@@ -136,19 +136,19 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 
 ### 3.2 角色权限矩阵
 
-> 权限矩阵的完整定义见 [ROLE_CLASSIFICATION.md](../../02_institution/ROLE_CLASSIFICATION.md) §九 角色权限矩阵。本节数据层切面视图已合并至权威源，冲突时以权威源为准。
+> 权限矩阵的完整定义见 [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵，代码键级权威）。本节数据层切面视图已合并至权威源，冲突时以权威源为准。
 
 ### 3.3 考勤与考察的核心区分
 
 > 完整的考勤/考察规则、判断逻辑、记录字段定义见 [纪检委员工作流程指南 §1.2](../../02_institution/sop/纪检委员工作流程指南.md) + [COMMISSIONER_DUTY_FRAMEWORK.md 补课闭环](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)。本节仅保留要点索引。考勤/考察在端到端数据流中的「挂靠活动 + 聚合总数据」交织位置见 [§1.3](#13-端到端数据流交织图)。
 
-**要点**：考勤为 0-1 变量（出勤/请假/缺勤），对象为党员+预备党员，适用三会一课；考察为工作量记录（组织/深度参与），对象为深度参与者和组织者，适用所有支部工作。系统记录字段：考勤见 §2.5 AttendanceRecord；考察补充字段 `participationLevel`/`deepRole`/`specificWork`/`divisionRecordedBy`/`submittedTo`/`submittedAt`。
+**要点**：考勤为 0-1 变量（出勤/请假/缺勤），对象为党员+预备党员，适用三会一课；考察为工作量记录（组织/深度参与），对象为深度参与者和组织者，适用所有支部工作。系统记录字段：考勤见 DATA_MODEL §2.5 AttendanceRecord；考察见 DATA_MODEL §2.5.1 InspectionRecord（`level`/`role`/`recordedBy`/`recordedAt`/`status`，持久化域 `mockDB.inspections`）。
 
 > **（论断 P-026，2026-08-09 自论断汇编迁出）：人才库（组织委员维护）是画像数据库，基于考察信息更新——装的是"画像"（某同志擅长什么、表现如何、有何特长），不是原始材料本身；原始材料库（纪检委员持有）是考勤总表、考察总表等原始记录。纪检委员把考察信息给组织委员，原始材料留在纪检委员处——不是副本关系。**
 
 ### 3.4 登录态说明
 
-> 当前无登录态，所有交互按"党支书站位"运行。未来接入北大 IAAA 系统时再设计登录态规范。
+> **现状（已实现登录态）**：账号体系见 [accounts.js](../../../docs/src/mock/accounts.js)（`MOCK_ACCOUNTS`：`studentId`+口令映射 `p*` personId，演示口令 123456）；认证与登录实现见 [auth.js](../../../docs/src/services/auth.js) `AuthStore`——`verifyCredentials`（账号密码校验）/ `login`（本地角色判定 + 后端 `/api/v1/auth/login` 换 token，失败静默降级本地）/ `devLogin`（开发模式选身份直达对应工作台）/ `logout` / `getCurrentUser`（返回 `{ personId, role }`，A-11 多标签防串扰）。登录存储键见 §4.2.2。真实后端接入与登录门控设计见 [AUTHENTICATION_MODEL.md](../deploy/AUTHENTICATION_MODEL.md)。
 
 ---
 
@@ -197,6 +197,8 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 | leader / org-commissioner / prop-commissioner / disc-commissioner / organizer / deep / secretary | `'manager'` |
 | `global` | `'global'` |
 
+> 注：上表为 state.js `getViewTypeByRole` 对首页日历/参考指南角色（ROLE_TYPES + MANAGEMENT_ROLES）的实际推导行为。**角色键权威清单**（含 `deputy-secretary`/`party-staff` 等）见 [SYSTEM_ROLE_PERMISSION.md §9a0](../../02_institution/SYSTEM_ROLE_PERMISSION.md) / `core/constants.js ROLE_KEYS`（13 键单一事实源）；state.js 为遗留展示枚举，新增角色以 ROLE_KEYS 为准，必要时回填 ROLE_TYPES。
+
 ### 4.2 localStorage 持久化
 
 > **统一全量键架构**：所有业务数据通过单一全量键 `workflowos_branch_db_v1` 持久化，消除双重存储与同步断裂风险。
@@ -205,18 +207,17 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 
 | 键名 | 存储内容 | 格式 | 读写位置 |
 |---|---|---|---|
-| `workflowos_branch_db_v1` | 完整 mockDB 状态（全量序列化） | JSON | [services/mock.js](../../../docs/src/services/mock.js#L29) |
+| `workflowos_branch_db_v1` | 完整 mockDB 状态（全量序列化） | JSON | [core/mock-adapter.js `_saveToStorage()`](../../../docs/src/core/mock-adapter.js#L36-L95)（saveDB/loadDB 已收敛至 MockAdapter，services/mock.js 仅保留 API 模式扎口代理） |
 
-**全量键字段清单**（`saveDB()` 序列化的完整字段）：
+**全量键字段清单**（`mock-adapter.js _saveToStorage()` 实际序列化的 35 个字段，按代码顺序）：
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
-| `_schema` | number | Schema 版本号，当前值为 1 |
-| `users` | User[] | 静态预设用户（持久化但不从存储恢复，避免运行时污染） |
+| `_schema` | number | Schema 版本号，当前值为 1（loadDB 校验，不匹配拒绝加载） |
+| `users` | User[] | `u_*` 系统账号预设（持久化但恢复时不做运行时污染覆盖） |
 | `activities` | ActivityRecord[] | 活动记录 |
 | `tasks` | Task[] | 任务记录 |
 | `attendances` | AttendanceRecord[] | 考勤记录 |
-| `deliverables` | ~~Deliverable[]~~ | ~~交付物记录（已废弃，由 FileSpaceRecord 覆盖）~~ |
 | `inspections` | InspectionRecord[] | 考察记录 |
 | `assignments` | AssignmentRecord[] | 分工记录 |
 | `makeupTasks` | MakeupTask[] | 补课任务 |
@@ -225,31 +226,54 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 | `complianceReferences` | ComplianceReference[] | 制度文件引用 |
 | `fileSpaceRecords` | FileSpaceRecord[] | 文件空间记录 |
 | `experienceDeposits` | ExperienceDeposit[] | 经验沉淀记录 |
+| `imageRecords` | ImageRecord[] | 图片记录 |
 | `taskforces` | TaskForceRecord[] | 专班记录 |
 | `notices` | Notice[] | 通知记录 |
 | `todos` | Todo[] | 待办任务记录（最小三成本原则落地，见 §2.18） |
+| `signups` | SignupRecord[] | 报名记录（活动/专班统一报名渠道） |
+| `activityReviews` | ReviewRecord[] | 活动复盘记录 |
+| `taskforceReviews` | ReviewRecord[] | 专班复盘记录 |
+| `propTasks` | Object[] | 宣传任务（prop-commissioner 工作台） |
+| `weeklyReports` | WeeklyReport[] | 宣传周报记录 |
+| `archiveRecords` | ArchiveRecord[] | 档案归档记录（prop-commissioner 工作台） |
+| `mailboxConfig` | Object \| null | 纪检公邮配置 |
+| `mailboxHistory` | Object[] | 纪检公邮查收历史 |
+| `externalDispatches` | Object[] | 文件流外发确认记录 |
+| `branchDocs` | Object[] | 支部文件（一支部一存储空间，挂 branchId） |
+| `memberChangeRequests` | Object[] | 成员变更审批申请 |
+| `committeeBroadcasts` | Object[] | 支委广播记录 |
+| `agendaVotes` | Object[] | 线上支委会表态记录 |
+| `handoffs` | Object[] | 三委数据交接记录（T-304 C2） |
+| `thoughtReports` | Object[] | 思想汇报记录 |
+| `branches` | BranchRecord[] | 支部实例（含 config 配置档案） |
+| `appointmentRecords` | AppointmentRecord[] | 书记任期记录 |
+| `reviewRequests` | ReviewRequest[] | 支部上报审批记录 |
 
 #### 4.2.2 UI 状态独立键
 
 > 以下键存储 UI/会话状态，不属于业务数据，保持独立键存储。
 
-| 键名 | 存储内容 | 格式 | 读写位置 |
-|---|---|---|---|
-| `gsm1921-auth-records` | 认证记录 | JSON | [services/auth.js](../../../docs/src/services/auth.js) |
-| `gsm1921-primary-role` | 主角色 | string | [services/auth.js](../../../docs/src/services/auth.js) |
-| `gsm1921-auth-grants` | 赋权授权记录 | JSON | [services/auth.js](../../../docs/src/services/auth.js) |
-| `sop_org_os_assigned_roles` | 赋权角色列表 | JSON: `Array<{name, role, activity}>` | [services/roles.js](../../../docs/src/services/roles.js) |
-| `gsm1921-feedback-submissions` | 反馈提交记录 | JSON | [services/issues.js](../../../docs/src/services/issues.js) |
-| `sop_org_os_session` | 跨页面会话状态 | JSON | [core/cross-page-state.js](../../../docs/src/core/cross-page-state.js) |
-| `sop_org_os_data_version` | 数据版本号（跨页面同步） | number | [core/cross-page-state.js](../../../docs/src/core/cross-page-state.js) |
+| 键名 | 存储位置 | 存储内容 | 格式 | 读写位置 |
+|---|---|---|---|---|
+| `gsm1921-login-user` | localStorage | 当前登录用户（含 tabId，A-11 防串扰） | JSON `{personId, role, tabId}` | [services/auth.js](../../../docs/src/services/auth.js)（LOGIN_KEY） |
+| `gsm1921-tab-id` | sessionStorage | 当前标签页唯一 ID | string `tab-*` | [services/auth.js](../../../docs/src/services/auth.js)（TAB_KEY） |
+| `gsm1921-session-snap` | sessionStorage | 本标签页登录会话快照（登录被其它页覆盖时回退） | JSON `{personId, role}` | [services/auth.js](../../../docs/src/services/auth.js)（SESSION_KEY） |
+| `gsm1921-api-token` | sessionStorage | API 认证 token（enableApiMode 写入；登出/开发模式清除） | string | [services/auth.js](../../../docs/src/services/auth.js)（SESSION_TOKEN_KEY） |
+| `sop_org_os_auth_audit` | localStorage | 赋权审计快照（只增不改；revoke 追加记录，判定取最新一条） | JSON `Array<{id, targetPersonId, role, scopeRef, authorizedBy, authorizedAt, action:'grant'\|'revoke'}>` | [services/auth.js](../../../docs/src/services/auth.js)（AUDIT_KEY）；主源=活动 assignments / 专班 members |
+| `gsm1921-issue-cache-v3` / `gsm1921-issue-cache-version` | localStorage | 意见反馈缓存 + 缓存版本号（v3 不匹配强制重拉） | JSON / string | [services/issues.js](../../../docs/src/services/issues.js) |
+| `gsm1921-issue-drafts` | localStorage | 意见反馈草稿（新建/评论/反应） | JSON | [services/issues.js](../../../docs/src/services/issues.js)（DRAFT_KEY） |
+| `sop_org_os_session` | sessionStorage | 跨页面会话状态 | JSON | [core/cross-page-state.js](../../../docs/src/core/cross-page-state.js) |
+| `sop_org_os_data_version` | localStorage | 数据版本号（跨页面同步，写入自增） | number | [core/cross-page-state.js](../../../docs/src/core/cross-page-state.js) |
+
+> 旧键清理说明：`gsm1921-auth-records` / `gsm1921-primary-role` / `gsm1921-auth-grants`（auth 域）、`sop_org_os_assigned_roles`（roles.js 赋权，启动时清除残留）、`gsm1921-feedback-submissions`（FeedbackStore 旧数据，迁移后删除）均无写入方，不再列为存储键。
 
 **持久化机制细节：**
 
-- `workflowos_branch_db_v1`：当前 `SANDBOX_MODE = true`，每次刷新清空持久化存储，使用初始 mock 数据。设为 `false` 可恢复跨刷新持久化
-- Schema 版本校验：loadDB 会检查 `_schema` 与当前 `SCHEMA_VERSION`（值为 1）是否匹配，不匹配则拒绝加载脏数据
-- 写入策略：所有 CRUD 操作在操作成功后调用 `saveDB()`，将 mockDB 全量序列化到单一键，保证数据一致性
-- SANDBOX 清理：`loadDB()` 在 SANDBOX 模式下不仅清理全量键，还清理旧版独立键（兼容性清理），确保无残留
-- 容错：JSON 解析失败 / quota exceeded 均静默处理，不中断用户操作
+- `workflowos_branch_db_v1`：当前 `SANDBOX_MODE = false`（[core/mock-adapter.js](../../../docs/src/core/mock-adapter.js)，2026-07-31 T174 修复，与 services/mock.js 对齐）——默认**跨刷新持久化**：localStorage 存在且 `_schema` 匹配的合法数据时全量恢复；无数据或数据被污染（核心数组为空）时回退加载初始 seed（`_seedInitialData`），并按种子基线增量同步（删除已移除种子/覆盖已变更种子/补齐缺失种子，保留用户运行时字段）
+- Schema 版本校验：loadDB 检查 `_schema` 与当前 `SCHEMA_VERSION`（值为 1）是否匹配，不匹配则拒绝加载脏数据
+- 写入策略：CRUD 写操作后经 `persist()` / `MockAdapter.saveDB()` 将 mockDB 全量序列化到单一键；saveDB 含持久化守卫（`mockDB._loaded` 为 false 即 loadDB 完成前拒绝写入，防止加载早期空数据覆盖用户已存数据）
+- SANDBOX 清理（仅 `SANDBOX_MODE = true` 时启用，当前为 false 不触发）：`loadDB()` 不仅清理全量键，还清理旧版独立键（`assignment_records`/`attendance_records` 等 legacyKeys 兼容清理），随后重灌 seed
+- 容错：写入失败（含 quota exceeded）console.warn 降级不中断用户操作；loadDB JSON 解析/seed 错误 console.error 透出真实原因（T175，不静默吞错）
 
 ### 4.3 数据源使用边界（D-248）
 

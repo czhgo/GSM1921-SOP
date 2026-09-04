@@ -3,8 +3,8 @@ title: "模块界面设计"
 type: design
 role: "[工程师]+[AI]"
 version: "2.0"
-last_updated: "2026-08-09"
-status: active
+last_updated: "2026-09-05"
+status: landed
 merged_from: [content/design/PAFFAIRS_UI.md, content/design/CALENDAR.md]
 related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04_web_design/data/DATA_MODEL.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md]
 ---
@@ -32,7 +32,7 @@ related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04
 - **「党建」Tab 分组**：角色工作台内的功能板块，涵盖发展党员全流程追踪、补课制度跟踪、意见反馈、公邮查收提醒等子功能。
 - **日历功能模块**：工作台的核心视图组件，涵盖月/周/日/列表多视图展示、文本溢出处理、活动数据存储、快速聚焦视图等设计。
 
-角色权限与逻辑层面请参阅 [DATA_FLOW.md](../data/DATA_FLOW.md)（三级管理架构数据流）和 [COMMISSIONER_DUTY_FRAMEWORK.md](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（支委系统设计）。日历视图范围限定（仅对参与者/组织者/书记/党小组组长展示，支委不展示日历）的已落地规则见 [SOP_WEBSITE_GUIDE.md §B.4](../module/SOP_WEBSITE_GUIDE.md)。
+角色权限与逻辑层面请参阅 [DATA_FLOW.md](../data/DATA_FLOW.md)（三级管理架构数据流）和 [COMMISSIONER_DUTY_FRAMEWORK.md](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（支委系统设计）。日历视图范围限定（仅对参与者/组织者/书记/党小组组长展示，支委不展示日历）的已落地规则见 [SOP_WEBSITE_GUIDE.md §B.3](SOP_WEBSITE_GUIDE.md)。
 
 ---
 
@@ -259,7 +259,7 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 
 #### 数据存储方案
 
-**当前方案：纯前端 localStorage**——实现难度低，数据容量约 5-10MB 足够存储数百条活动和数千条任务，适用于 MVP/Demo/单人使用阶段。将 `SANDBOX_MODE` 改为 `false` 并取消注释持久化恢复代码即可获得跨刷新持久化能力。
+**当前方案：纯前端 localStorage**——实现难度低，数据容量约 5-10MB 足够存储数百条活动和数千条任务，适用于 MVP/Demo/单人使用阶段。将 `SANDBOX_MODE` 改为 `false` 并取消注释持久化恢复代码即可获得跨刷新持久化能力。**（历史方案注：该方案已被 server 后端 + DataAdapter 取代——2026-09-03 起系统走 mock/api 双模式数据层，`docs/src/services/runtime.js` 默认 mock、接后端切 api，localStorage 持久化不再承担权威状态；见 [DATA_FLOW.md](../data/DATA_FLOW.md) §4）**
 
 #### 数据结构 Schema 设计
 
@@ -267,7 +267,7 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 
 #### 数据持久化与备份策略
 
-**当前过渡方案**：将 `SANDBOX_MODE` 改为 `false` 启用 localStorage 持久化，并在设置面板提供"导出数据"按钮，将全部数据序列化为 JSON 文件下载。备份与同步策略详见 [DATA_FLOW.md](../data/DATA_FLOW.md) §4.2。
+**当前过渡方案**：将 `SANDBOX_MODE` 改为 `false` 启用 localStorage 持久化，并在设置面板提供"导出数据"按钮，将全部数据序列化为 JSON 文件下载。备份与同步策略详见 [DATA_FLOW.md](../data/DATA_FLOW.md) §4.2。**（历史方案注：已被 server 后端 + DataAdapter 取代，见 §三 数据存储方案下的注记——持久化权威已移至 server 端 SQLite，localStorage 仅作 mock 演示缓存）**
 
 ### 快速聚焦视图设计
 
@@ -343,6 +343,7 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 | [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md) | 视觉规范权威源（色彩/字体/间距/卡片样式） |
 | [DATA_FLOW.md](../data/DATA_FLOW.md) | 三级管理架构数据流 |
 | [COMMISSIONER_DUTY_FRAMEWORK.md](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) | 支委系统设计 |
-| [ROLE_CLASSIFICATION.md](../../02_institution/ROLE_CLASSIFICATION.md) | 制度文件渲染、角色关系矩阵 |
-| [SOP_WEBSITE_GUIDE.md](../module/SOP_WEBSITE_GUIDE.md) | 日历视图范围限定（§B.4） |
+| [ROLE_CLASSIFICATION.md](../../02_institution/ROLE_CLASSIFICATION.md) | 制度文件渲染（[用户] 文件引用渲染机制） |
+| [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md) | 系统角色权限矩阵（模块可见性/权限依据，2026-09-05 自 ROLE_CLASSIFICATION §九 迁出） |
+| [SOP_WEBSITE_GUIDE.md](../module/SOP_WEBSITE_GUIDE.md) | 日历视图范围限定（§B.3） |
 | [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) | 数据变更规则 |

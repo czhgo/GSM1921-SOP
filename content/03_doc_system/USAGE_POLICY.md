@@ -4,7 +4,7 @@ type: governance
 role: "[工程师]+[AI]"
 last_updated: "2026-09-05"
 status: active
-related_files: [CLAUDE.md, content/02_institution/ROLE_CLASSIFICATION.md, content/03_doc_system/OPERATIONS_GUIDE.md]
+related_files: [CLAUDE.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
 
 # 使用规范
@@ -40,7 +40,7 @@ T1 官方表达"入党积极分子"可简化为"积极分子"——这是发展�
 
 > **确立日期**：2026-06-14 | **2026-08-04 修订**：废除"写入型 vs 支撑型"命名与角色清单，仅保留与代码一致的机制事实（原分类的角色清单与 `auth.js` 权限表不符）
 
-**写入门禁**：仅党支部书记、党支部副书记、党小组组长持有 `create_activity` 权限，可直接创建/修改活动数据；宣传委员、纪检委员不持有该权限，通过审核、确认、备案等流程间接参与，不直接写入活动。专班创建走独立的 `initiate_taskforce`/`authorize_taskforce` 通道（权限矩阵见 [ROLE_CLASSIFICATION.md §9b](../02_institution/ROLE_CLASSIFICATION.md)）。
+**写入门禁**：仅党支部书记、党支部副书记、党小组组长持有 `create_activity` 权限，可直接创建/修改活动数据；宣传委员、纪检委员不持有该权限，通过审核、确认、备案等流程间接参与，不直接写入活动。专班创建走独立的 `initiate_taskforce`/`authorize_taskforce` 通道（权限矩阵见 [系统角色权限矩阵 §9b](../02_institution/SYSTEM_ROLE_PERMISSION.md)）。
 
 ---
 
@@ -381,7 +381,7 @@ AI 对书记原话的展开，目标是**吃透书记精神后用自己的语言
 - **canvas**：可视化拖拽「画布」——把工作流块拖入排列组合的编排界面（L4 愿景形态）；v0 已落地于书记工作台「工作台配置」的清单启停 + 画布拖拽排序（[ARCHITECTURE_EVOLUTION.md §八](../04_web_design/evolution/ARCHITECTURE_EVOLUTION.md) 8.2/8.5）
 - **FLAT_DESIGN（旧词）**：扁平化组织设计权威文档的旧名，已改名 [FLAT_ORGANIZATION_DESIGN.md](../02_institution/FLAT_ORGANIZATION_DESIGN.md)（组织者与深度参与者的扁平化设计 v2.2）——新文档/文件名一律用新名
 - **CLICK_MAP（旧词）**：点击落点规范的旧名，已改名 [CLICK_ROUTING.md](../04_web_design/design-system/CLICK_ROUTING.md)（「哪些地方可点、点了落在哪」的全局规范，书记 2026-08-29 分层原则裁定）
-- **ROLE_KEYS**：代码层角色英文键枚举（`secretary` / `deputy-secretary` / 各委员 / `leader`…）——角色标签、主题色、权限声明的单一事实源，对齐制度层角色键全表（[constants.js](../../docs/src/core/constants.js) 导出，对照 [ROLE_CLASSIFICATION.md §9](../02_institution/ROLE_CLASSIFICATION.md)）
+- **ROLE_KEYS**：代码层角色英文键枚举（`secretary` / `deputy-secretary` / 各委员 / `leader`…）——角色标签、主题色、权限声明的单一事实源，对齐制度层角色键全表（[constants.js](../../docs/src/core/constants.js) 导出，对照 [SYSTEM_ROLE_PERMISSION.md §9a0](../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵））
 - **mockDB**：浏览器端「模拟数据库」对象（演示/无后端形态可用）——数据读写统一收敛于 [mock.js](../../docs/src/services/mock.js)（对象定义于 [domain.js](../../docs/src/core/domain.js)，持久化由 `core/mock-adapter.js` 承担），勿绕过该层直接改数据
 - **CLAUDE.md（harness 文件名惯例）**：仓库约定「给 AI 的主指令文件」固定命名为 CLAUDE.md（根目录一份；harness = 规则/工作流骨架，分甲/乙/丙三部）；「CLAUDE.md Hxx / T-xxx」即指该文件的编号条款（[CLAUDE.md](../../CLAUDE.md)）
 

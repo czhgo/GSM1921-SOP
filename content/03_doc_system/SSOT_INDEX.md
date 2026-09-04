@@ -2,7 +2,7 @@
 title: "单一权威源索引"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-09-04"
+last_updated: "2026-09-05"
 version: "3.9"
 status: active
 related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web_design/, content/03_doc_system/, content/02_institution/sop/, content/insights/]
@@ -54,14 +54,14 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
 | `content/02_institution/sop/*.md` | `docs/src/workflow/`、`docs/src/` | 制度→代码（H30.2 规则1）。SOP 制度文本是系统代码的母本。凡涉及流程步骤、术语、权限规则，必须先检查 content/02_institution/sop/ |
-| `content/04_web_design/data/DATA_FLOW.md` | `docs/src/`（角色权限引擎） | 设计→代码。数据流架构定义角色数据流、§登录态打桩设计，代码实现设计（原 PARTICIPANT_DATAFLOW.md） |
+| `content/04_web_design/data/DATA_FLOW.md` | `docs/src/`（角色权限引擎） | 设计→代码。数据流架构定义角色数据流与登录态说明（§3.4，已实现登录态），代码实现设计（原 PARTICIPANT_DATAFLOW.md） |
 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | `docs/src/`（专班管理 + 审批流程） | 设计→代码。支委系统设计定义专班管理逻辑和§审批流程规范，代码实现 |
 | `content/04_web_design/design-system/DESIGN_SYSTEM.md` | `docs/src/styles.css` | 设计→样式。设计系统规范是全局样式的母本（2026-08-24 拆分：色彩→COLOR_SYSTEM，组件→COMPONENT_SPEC） |
 | `content/04_web_design/design-system/COLOR_SYSTEM.md` | `docs/src/styles.css`（色彩变量） | 设计→样式。色彩系统规范是色值定义的母本（查色值优先） |
 | `content/04_web_design/design-system/COMPONENT_SPEC.md` | `docs/src/components/*` | 设计→代码。组件规范是各组件实现的母本（写组件优先） |
 | `content/04_web_design/module/MODULE_UI_DESIGN.md`（已落地 2026-09-03） | `docs/src/components/calendar.js` | 设计→代码。日历功能规划（原 CALENDAR.md，已合并入 MODULE_UI_DESIGN）是日历渲染引擎的历史母本 |
 | `content/04_web_design/data/DATA_MODEL.md` | `docs/src/core/domain.js` | 数据→代码。数据字段定义权威源（含§写入数据验证设计，原 DATA.md），代码中的数据结构必须与 DATA_MODEL.md 一致 |
-| `content/04_web_design/data/DATA_FLOW.md` | `docs/src/core/state.js` | 设计→代码。DATA_FLOW §登录态打桩设计是状态中心登录逻辑的母本（原 LOGIN_STUB.md §一~§五，原 PARTICIPANT_DATAFLOW.md） |
+| `content/04_web_design/data/DATA_FLOW.md` | `docs/src/core/state.js` | 设计→代码。DATA_FLOW §3.4 登录态说明是状态中心登录逻辑的母本（原 LOGIN_STUB.md §一~§五，原 PARTICIPANT_DATAFLOW.md） |
 | `content/04_web_design/data/DATA_FLOW.md` | `docs/src/services/auth.js`（未来） | 设计→代码（预留）。登录系统设计前置规范定义未来登录系统的用户身份模型和认证机制（原 LOGIN_STUB.md §六~§十一，原 LOGIN_SYSTEM_DESIGN.md） |
 | `content/04_web_design/data/DATA_FLOW.md` | `docs/src/services/auth.js`（T110 新增 API） | 设计→代码。DATA_FLOW 定义角色数据流模型，auth.js 实现 `getUserProjectRoles` / `hasProjectRole` / `getAccessibleWorkspacePages` 三个公开 API（T110 新增，含 `getPageForRole` 内部映射） |
 | `content/04_web_design/module/MODULE_UI_DESIGN.md`（已落地 2026-09-03） | `docs/index.html`（Module 4） | 设计→代码。模块界面设计（原 PAFFAIRS_UI.md，原 ORG_BUILDING.md 拆分后的系统设计部分）是工作台模块 UI 的历史母本 |
@@ -73,7 +73,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 |------|------|---------|
 | `content/03_doc_system/USAGE_POLICY.md` | 全仓库 + `docs/src/core/constants.js` | 术语→全仓。术语变更触发一改具改（H30.1）。代码中的术语必须与 USAGE_POLICY.md §一 一致（2026-07-12 合并自 TERMINOLOGY.md + EMOJI_POLICY.md） |
 | `content/03_doc_system/OPERATIONS_GUIDE.md` | 全仓库 | 运行标准→全仓。YAML/编码/编号/文档关系/权威层级/三类文件角色规范/§15 周期性任务，全仓库必须遵守（2026-07-12 合并原 RECURRING_TASKS.md 为 §15） |
-| `content/02_institution/ROLE_CLASSIFICATION.md` | `docs/src/core/state.js` | 角色分类→代码。文件角色分类体系是 state.js 角色常量的母本 |
+| `content/02_institution/SYSTEM_ROLE_PERMISSION.md` + `docs/src/core/constants.js` | `docs/src/core/state.js`（角色枚举消费方） | 系统角色键→代码。角色键权威全表在 SYSTEM_ROLE_PERMISSION.md §9a0（2026-09-05 自 ROLE_CLASSIFICATION.md §九 拆出），代码侧单一源 `ROLE_KEYS`（constants.js，T-304 Q3 收敛）；state.js `ROLE_TYPES` 为首页日历分组用途的角色枚举 |
 
 ### 审计参考层 → content/ 制度
 
@@ -164,7 +164,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | AI_ENTRYPOINT.md | → 已合并至 ARCHITECTURE.md | 2026-05-01 |
 | SYSTEM_CLAUDE.md | → CLAUDE.md | 2026-05-02 |
 | .github/SSOT_INDEX.md | → SSOT_INDEX.md（移至根目录） | 2026-05-18 |
-| content/design/PERMISSION_MATRIX.md | → content/02_institution/ROLE_CLASSIFICATION.md §九 角色权限矩阵（经 MANAGEMENT_MODE.md 过渡） | 2026-07-08 |
+| content/design/PERMISSION_MATRIX.md | → content/02_institution/SYSTEM_ROLE_PERMISSION.md（角色权限矩阵；经 MANAGEMENT_MODE.md → ROLE_CLASSIFICATION.md §九 过渡，2026-09-05 §九 拆出为 SYSTEM_ROLE_PERMISSION.md） | 2026-07-08（2026-09-05 迁址） |
 | content/design/LOGIN_STUB.md | → content/04_web_design/data/DATA_FLOW.md（登录态打桩设计 §一~§五 + 登录系统设计前置 §六~§十一；2026-07 先并入数据架构总文件，2026-08-24 拆分后归 DATA_FLOW） | 2026-07-08 |
 | content/design/APPROVAL_FLOW.md | → content/02_institution/COMMISSIONER_FRAMEWORK.md §审批流程规范（全量合并） | 2026-07-08 |
 | content/design/WRITE_VERIFY.md | → content/04_web_design/data/DATA_MODEL.md §写入数据验证设计（精简合并，§三/§五删除；2026-07 并入数据架构总文件，2026-08-24 拆分后归 DATA_MODEL） | 2026-07-08 |

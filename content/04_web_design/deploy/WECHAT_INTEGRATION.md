@@ -2,13 +2,15 @@
 title: "微信协同与小程序设计方案——文件流、浏览功能与过程性汇报"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-08-22"
+last_updated: "2026-09-05"
 status: active
 related_files: [DESIGN_SYSTEM.md, PKU_PARTY_INTEGRATION.md]
 ---
 
 # 微信协同与小程序设计方案——文件流、浏览功能与过程性汇报
 
+> **落地状态（2026-09-05）**：**已实现部分**——网页端发送方登记制 + 外发确认闭环（`docs/src/services/external-dispatch.js`「已发/已收」+ 接收方工作台确认，原则 13）与宣传墙/档案浏览底座；**规划部分**——小程序本体（WebView 套壳短期 → Taro 跨端中期）与微信订阅消息原生批复（§四/§五），依赖路径 B/C 后端上线与企业主体前置。本文档仍为该主题唯一权威设计源（status 口径同 PKU_PARTY_INTEGRATION：设计权威不分已实现/规划，实现差异以本注为准）。
+>
 > **对外画像总览见 [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)（部署与对外对接总案）**；本篇为专项设计细节。
 >
 > **定位**：承接 2026-08-10 战略目标（「如果这个系统可以做成一个小程序或者服务号，就可以低成本和微信本来的功能协同了！」）与 2026-08-11 三项决策，明确文件流分类、浏览功能形态、过程性汇报集成方式与小程序落地路径。
@@ -182,4 +184,4 @@ related_files: [DESIGN_SYSTEM.md, PKU_PARTY_INTEGRATION.md]
 
 ### 8.4 落地路径
 
-WebView 套壳（短期）→ Taro 跨端（中期），与网页共用后端；数据层切 api（前置与 API 要求见 [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) §2 路径 D / §3.2.4）；前置 = 后端上线 + 北大对接数据可用（PKU_PARTY_INTEGRATION M0–M4 推进后）。
+WebView 套壳（短期）→ Taro 跨端（中期），与网页共用后端；数据层切 api（前置与 API 要求见 [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) §2.1/§2.2 路径 D / §3.2.4）；前置 = 后端上线 + 北大对接数据可用（PKU_PARTY_INTEGRATION M0–M4 推进后）。

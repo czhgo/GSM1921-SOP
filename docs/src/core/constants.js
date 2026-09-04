@@ -179,7 +179,7 @@ export const ACTIVITY_TYPE_SHORT = {
 };
 
 // ── 角色键单一事实源（T-304 Q3 权限收敛，2026-08-29）──────────────
-// 与内容层 ROLE_CLASSIFICATION.md §9 角色键全表对齐；
+// 与内容层 SYSTEM_ROLE_PERMISSION.md §9a0 角色键全表对齐（2026-09-05 自 ROLE_CLASSIFICATION.md §九 迁出）；
 // ROLE_LABELS / ROLE_COLORS / ACCENT_COLORS / 能力 requiredRoles 均以本枚举为基准核对。
 // 常设角色（7）+ 项目角色（2）为业务角色；遗留键（3）无角色语义，仅保留兼容兜底。
 export const ROLE_KEYS = [
@@ -194,7 +194,7 @@ export const ROLE_LEGACY_KEYS = ['commissioner', 'initiator', 'all']; // 遗留�
 // ── 授权语义角色集（2026-09-03 P2c 收敛：server 鉴权与前端 AuthStore 共用单一源，勿各自手写）──
 // 注意与上方「条条委员 COMMISSIONER_ROLES（业务语义：三委员，不含书记/副书记）」区分——
 // 授权语义含书记/副书记（写活动/发任务等全局授权门），是 server requireRole 与前端 isCommissioner 的依据。
-// 名单与 ROLE_CLASSIFICATION.md §9 角色键全表一致；成员名单 COMMITTEE_IDS 对应演示支部支委（p10~p14）。
+// 名单与 SYSTEM_ROLE_PERMISSION.md §9a0 角色键全表一致；成员名单 COMMITTEE_IDS 对应演示支部支委（p10~p14）。
 export const BRANCH_COMMISSION_ROLES = [
   'secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
 ]; // 授权支委（含书记/副书记）

@@ -1,9 +1,17 @@
+---
+title: "权限功能合一收敛设计"
+type: design
+role: "[工程师]+[AI]"
+last_updated: "2026-09-05"
+status: landed
+---
+
 # 权限功能合一收敛设计
 
-> **已落地 2026-09-03**：本设计结论已实现（权威源：content/02_institution/ROLE_CLASSIFICATION.md §9a0 角色键全表 / §9b·§9c 权限矩阵 + 代码 docs/src/core/constants.js ROLE_KEYS）；本文档继续承担设计论证档案，不再承担现行权威。
+> **已落地 2026-09-03**：本设计结论已实现（权威源：content/02_institution/SYSTEM_ROLE_PERMISSION.md §9a0 角色键全表 / §9b·§9c 权限矩阵 + 代码 docs/src/core/constants.js ROLE_KEYS）；本文档继续承担设计论证档案，不再承担现行权威。
 
 > **权威源**：本文档为「角色权限四处分散声明 → 单一事实源」的收敛设计（书记 2026-08-29 全收敛裁定 + 2026-08-29 实施）。
-> 角色权限矩阵的**业务权威源**见 [ROLE_CLASSIFICATION.md](../../02_institution/ROLE_CLASSIFICATION.md) §9a0 角色键全表与 §9b/9c 权限矩阵。
+> 角色权限矩阵的**业务权威源**见 [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md) §9a0 角色键全表与 §9b/9c 权限矩阵。
 
 ## 1. 背景：四处分散声明
 
@@ -34,7 +42,7 @@
 ```
 ┌─────────────────────────────┐
 │  单一事实源（ROLE_KEYS 枚举）    │  core/constants.js ROLE_KEYS
-│  + ROLE_CLASSIFICATION §9a0    │  内容层角色键全表
+│  + SYSTEM_ROLE_PERMISSION §9a0 │  内容层角色键全表
 └─────────────┬───────────────┘
               │ 派生（键集强制一致）
    ┌──────────┼──────────┬──────────────┐
@@ -44,7 +52,7 @@
 ```
 
 原则：
-- **角色键集合只定义一处**（ROLE_KEYS），各表键集与其对齐（新增角色必须同步两处：constants + 内容层 §9a0）。
+- **角色键集合只定义一处**（ROLE_KEYS），各表键集与其对齐（新增角色必须同步两处：constants + 内容层 SYSTEM_ROLE_PERMISSION.md §9a0）。
 - **语义区分显式化**：同名概念（COMMISSIONER_ROLES）若语义不同必须注释声明、不得静默复用。
 - **能力 requiredRoles 从死代码转为活性声明**：与 ROLE_PAGE_MAP 一一对应，作为「该能力属哪些角色」的权威声明。
 
@@ -54,11 +62,11 @@
 
 | 步骤 | 内容 | 状态 |
 |------|------|------|
-| S1 | constants.js 新增 `ROLE_KEYS`（9 业务键）+ `ROLE_LEGACY_KEYS`（3 遗留键） | ✅ |
+| S1 | constants.js 新增 `ROLE_KEYS`（9 业务键，2026-09-02 增补 `party-staff` 后现为 10 业务键）+ `ROLE_LEGACY_KEYS`（3 遗留键） | ✅ |
 | S2 | 6 个工作台能力声明 `requiredRoles`（visitor/leader/org/prop/disc + 新建 `secretary-workspace`） | ✅ |
 | S3 | 书记入口 tab 清单从硬编码改为经能力注册表读取（renderCtx 模式，与组长入口同构） | ✅ |
 | S4 | COMMISSIONER_ROLES 双定义语义注释区分（constants 条条委员 / auth 授权链），代码不改行为 | ✅ |
-| S5 | ROLE_CLASSIFICATION.md §9a0 角色键全表入库（12 键 + 访客不属于角色 + 语义约定） | ✅ |
+| S5 | SYSTEM_ROLE_PERMISSION.md §9a0 角色键全表入库（13 键 = 10 业务键 + 3 遗留键；含 2026-09-02 增补 `party-staff`；2026-09-05 随 §九 迁入该文件，原 ROLE_CLASSIFICATION.md §9a0）+ 访客不属于角色 + 语义约定 | ✅ |
 
 ### 4.2 后续步骤（书记 2026-08-30 裁定：实施无行为变更项 S6/S7/S8/S10；S9 文档登记映射不改代码）
 
@@ -67,7 +75,7 @@
 | S6 | 色值统一：organizer/deep 的语义色与强调色同源（消除差异 4）——deep 强调色 #94a3b8 → #A78BFA（violet-400，与语义色 #7C3AED 同色系）；organizer 亮天蓝与语义色 sky-700 同源关系显式注释 | ✅（2026-08-30） |
 | S7 | ROLE_LABELS 补 `initiator`；ROLE_THEME_CLASS 补全三委员/participant/deputy-secretary（deputy 同书记红） | ✅（2026-08-30） |
 | S8 | ACCENT_PALETTE 与 ACCENT_COLORS 键集对齐：色板键集 ⊆ ACCENT_COLORS 显式注释；purple 标记为色板专用别名键（非角色键）；deep 色板标签 灰→雾紫 | ✅（2026-08-30） |
-| S9 | `visitor` 待办聚合键去歧义 → 按书记裁定**文档登记映射，不改代码**：todo.js 派生处注释 + 本文档登记 participant↔visitor 映射（归档后该注记的现行载体 = ROLE_CLASSIFICATION §9a0 访客非角色注记） | ✅ 文档登记（2026-08-30，行为零变更） |
+| S9 | `visitor` 待办聚合键去歧义 → 按书记裁定**文档登记映射，不改代码**：todo.js 派生处注释 + 本文档登记 participant↔visitor 映射（归档后该注记的现行载体 = SYSTEM_ROLE_PERMISSION.md §9a0 访客非角色注记） | ✅ 文档登记（2026-08-30，行为零变更） |
 | S10 | workflow/definitions.js requiredRoles 从 ROLE_KEYS 校验：引入 WORKFLOW_ROLES 白名单 + 运行时键集校验 + 业务依据注释（组织委员不参与活动筹备的业务说明） | ✅（2026-08-30） |
 
 ## 5. 验收标准（全部达成，2026-08-30）

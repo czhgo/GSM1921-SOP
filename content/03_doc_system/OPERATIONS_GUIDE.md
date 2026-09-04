@@ -2,7 +2,7 @@
 title: "运行标准与操作规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-04"
+last_updated: "2026-09-05"
 version: "3.2"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/USAGE_POLICY.md, content/02_institution/ROLE_CLASSIFICATION.md, content/03_doc_system/DOC_MAP.md, content/05_ai_coding/README.md, content/03_doc_system/SSOT_INDEX.md, content/03_doc_system/PROCESS_GUIDE.md]
@@ -96,7 +96,7 @@ related_files: [CLAUDE.md, content/03_doc_system/USAGE_POLICY.md, content/02_ins
 
 ### 1.4 一致性检查规范
 
-> 本节为仓库 7 套分层体系的一致性检查权威源。历史冲突记录见 [DOCUMENT_GOVERNANCE.md（分层体系冲突记录）](../05_ai_coding/DOCUMENT_GOVERNANCE.md)，定期扫描任务见 [§17.2 Q4](#172-周期性任务清单)。
+> 本节为仓库 7 套分层体系的一致性检查权威源。历史冲突记录见 [DOCUMENT_GOVERNANCE.md（分层体系冲突记录）](../05_ai_coding/DOCUMENT_GOVERNANCE.md)，定期扫描任务见 [PROCESS_GUIDE.md §17.2 Q4](PROCESS_GUIDE.md#172-周期性任务清单)。
 
 **命名前缀**：知识类型（1-5）/ T（术语权威层级）/ 热温冷（CLAUDE.md 三层）/ 用户·工程师·AI（文件角色）——每套分层体系有专属前缀，不得混用。注：原"4 层文档层次（战略/制度/方法/实操）"已于 D-262 决策降级为局部维度，不再作为全仓库命名前缀。
 
@@ -340,7 +340,7 @@ H10.1.1 ← 三级章节（细则，仅在必要时使用）
 | H30 | 一改具改    | 一改具改/母本子本/Guides定位/经验沉淀（含沉淀优先级联动）              |
 | H40 | 检查清单    | 文件修改检查清单+概念命名守则                                 |
 | H50 | 乙部与丙部   | 乙部生命周期/丙部待决策                                    |
-| H60 | 书记评议    | 触发/流程/分流/校验/常态化专项（骨架）；抽样/预审维度/记录格式/概念复用扫描/类型速查→§18 |
+| H60 | 书记评议    | 触发/流程/分流/校验/常态化专项（骨架）；抽样/预审维度/记录格式/概念复用扫描/类型速查→[PROCESS_GUIDE.md §18](PROCESS_GUIDE.md) |
 | H70 | 反思触发流   | 书记"反思"信号触发的沿链接传播排查                              |
 | H80 | 反馈学习闭环  | 捕获→沉淀→复用                                          |
 | H90 | 外部权威源索引 | 外部权威源导航表（按需参考层）                                 |
@@ -473,7 +473,7 @@ Guides 文件不使用数字编号，使用**语义化文件名**（大写+下�
 
 | T编号 | 日期 | 标题 | 关键变更文件 | 沉淀 |
 |-------|------|------|-------------|------|
-| T37 | 07-01 | 确立战略路线 | MANAGE_SERVE.md | ✅ |
+| T37 | 07-01 | 确立战略路线 | DEVELOPMENT_PATH.md | ✅ |
 | T42 | 07-02 | SECRETARY_DIRECTIVES 重构 | — | — |
 ```
 
