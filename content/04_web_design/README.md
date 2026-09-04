@@ -22,9 +22,8 @@ status: active
 | [`design-system/`](design-system/) | 设计系统规范（视觉/色彩/组件/点击落点） | [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md) · [COLOR_SYSTEM.md](design-system/COLOR_SYSTEM.md) · [COMPONENT_SPEC.md](design-system/COMPONENT_SPEC.md) · [CLICK_MAP.md](design-system/CLICK_MAP.md) |
 | [`data/`](data/) | 数据架构（模型/流） | [DATA_MODEL.md](data/DATA_MODEL.md) · [DATA_FLOW.md](data/DATA_FLOW.md) |
 | [`deploy/`](deploy/) | 部署与集成（路径/认证/外部对接） | [DEPLOYMENT_ROADMAP.md](deploy/DEPLOYMENT_ROADMAP.md) · [DEPLOYMENT_AUTH_MODEL.md](deploy/DEPLOYMENT_AUTH_MODEL.md) · [PKU_PARTY_INTEGRATION.md](deploy/PKU_PARTY_INTEGRATION.md) · [WECHAT_INTEGRATION.md](deploy/WECHAT_INTEGRATION.md) |
-| [`module/`](module/) | 页面/模块设计（UI 与 SOP 联动） | [SOP_WEB.md](module/SOP_WEB.md) · [ABOUT_DESIGN_SYSTEM.md](module/ABOUT_DESIGN_SYSTEM.md) · [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md)（草案） |
-| [`evolution/`](evolution/) | 演进与校验（架构演进/组件化评估/契约与画布/党委两级治理） | [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) · [MODULARIZATION_ASSESSMENT.md](evolution/MODULARIZATION_ASSESSMENT.md) · [BLOCK_MANIFEST_CONTRACT.md](evolution/BLOCK_MANIFEST_CONTRACT.md) · [L4_CANVAS_DESIGN.md](evolution/L4_CANVAS_DESIGN.md) · [CHECKLIST.md](evolution/CHECKLIST.md) · [PARTY_COMMITTEE_DESIGN.md](evolution/PARTY_COMMITTEE_DESIGN.md) |
-| [`archive/`](archive/) | 已归档设计档案（历史结论仍可读） | [README.md](archive/README.md)（索引：ROLE_SSOT_DESIGN / MODULE_UI_DESIGN） |
+| [`module/`](module/) | 页面/模块设计（UI 与 SOP 联动） | [SOP_WEB.md](module/SOP_WEB.md) · [MODULE_UI_DESIGN.md](module/MODULE_UI_DESIGN.md) · [ABOUT_DESIGN_SYSTEM.md](module/ABOUT_DESIGN_SYSTEM.md) · [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md)（草案） |
+| [`evolution/`](evolution/) | 演进与校验（架构演进/组件化评估/契约与画布/党委两级治理） | [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) · [MODULARIZATION_ASSESSMENT.md](evolution/MODULARIZATION_ASSESSMENT.md) · [BLOCK_MANIFEST_CONTRACT.md](evolution/BLOCK_MANIFEST_CONTRACT.md) · [L4_CANVAS_DESIGN.md](evolution/L4_CANVAS_DESIGN.md) · [PARTY_COMMITTEE_DESIGN.md](evolution/PARTY_COMMITTEE_DESIGN.md) · [ROLE_SSOT_DESIGN.md](evolution/ROLE_SSOT_DESIGN.md) |
 
 ---
 
@@ -63,6 +62,7 @@ status: active
 |------|-----------|--------|
 | [SOP_WEB.md](module/SOP_WEB.md) | SOP-系统联动方法论（SOP 文档优化方法论 + 架构/数据/鉴权权威引用，2026-09-03 精简） | **唯一权威**——SOP 与系统的双向修改指南 |
 | [ABOUT_DESIGN_SYSTEM.md](module/ABOUT_DESIGN_SYSTEM.md) | About 页面设计系统（叙事册风：超参数设定原则/防风格疲劳/无竖线红线） | **唯一权威**——about 页设计的超参数设定原则 |
+| [MODULE_UI_DESIGN.md](module/MODULE_UI_DESIGN.md) | 模块界面设计：「党建」Tab 分组界面+日历功能模块（已落地 2026-09-03，设计论证档案） | **已落地**——与 SOP_WEB/COMPONENT_SPEC 重叠停更，权威源 = COMPONENT_SPEC + SOP_WEB |
 | [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md) | 会议议程与资料查询联动设计（会前草案关联/会后少重复录入/单一数据源） | 设计（**草案·待实施**，2026-08-31） |
 
 ### 演进与校验（evolution/）
@@ -73,17 +73,8 @@ status: active
 | [MODULARIZATION_ASSESSMENT.md](evolution/MODULARIZATION_ASSESSMENT.md) | 模块化/插件化/开源化 100 分评估（统一扎口范式 + 冗余审计去重队列 P0~P2 + 执行状态） | **唯一权威**——模块化方向与去重优先级（2026-09-03） |
 | [BLOCK_MANIFEST_CONTRACT.md](evolution/BLOCK_MANIFEST_CONTRACT.md) | L3 工作流块封装契约 v1.1（块差异化三维度 + 契约总则 + manifest 字段定义） | **唯一权威**——工作流块封装契约（2026-09-03 定稿） |
 | [L4_CANVAS_DESIGN.md](evolution/L4_CANVAS_DESIGN.md) | L4 支部工作地图设计稿 v2.1（平铺模块清单 + 按人双视图，书记 2026-09-03 放行编码） | **唯一权威**——支部工作地图/分工载体设计 |
-| [CHECKLIST.md](evolution/CHECKLIST.md) | 数据同源一致性校验手册（工程质检流程 + 编辑完整性/链接完整性校验章节） | 校验流程执行依据 |
 | [PARTY_COMMITTEE_DESIGN.md](evolution/PARTY_COMMITTEE_DESIGN.md) | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 书记任命 / P3 上报审批+下发） | **唯一权威**——党委两级治理架构与方向选择说明 |
-
-### 已归档（archive/）
-
-| 文件 | 一句话说明 | 归档信息 |
-|------|-----------|---------|
-| [ROLE_SSOT_DESIGN.md](archive/ROLE_SSOT_DESIGN.md) | 权限功能合一收敛设计（角色权限四处分散声明 → 单一事实源 ROLE_KEYS + 派生） | **已归档 2026-09-03**（S1~S10 已验收达成）；替代权威 = [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) §9a0/§9b/§9c + 代码 `ROLE_KEYS` |
-| [MODULE_UI_DESIGN.md](archive/MODULE_UI_DESIGN.md) | 模块界面设计：「党建」Tab 分组界面+日历功能模块 | **已归档 2026-09-03**（与 SOP_WEB/COMPONENT_SPEC 重叠停更）；替代权威 = COMPONENT_SPEC + SOP_WEB |
-
-> 迁入日期、归档原因与替代权威完整索引见 [archive/README.md](archive/README.md)。
+| [ROLE_SSOT_DESIGN.md](evolution/ROLE_SSOT_DESIGN.md) | 权限功能合一收敛设计（角色权限四处分散声明 → 单一事实源 ROLE_KEYS + 派生） | **已落地 2026-09-03**（S1~S10 已验收达成，设计论证档案）；权威源 = [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) §9a0/§9b/§9c + 代码 `ROLE_KEYS` |
 
 ---
 

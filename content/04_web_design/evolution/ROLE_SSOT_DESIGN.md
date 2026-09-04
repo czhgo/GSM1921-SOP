@@ -1,6 +1,6 @@
 # 权限功能合一收敛设计（ROLE_SSOT）
 
-> **已归档 2026-09-03，历史结论仍可读**：S1~S10 已全部验收达成（见 §4 迁移路径与 §5 验收标准），本文档移入 `archive/` 存档，不再承担现行权威；角色权限单一事实源的现行权威 = [ROLE_CLASSIFICATION.md](../../02_institution/ROLE_CLASSIFICATION.md) §9a0/§9b/§9c + 代码 `docs/src/core/constants.js` `ROLE_KEYS`。
+> **已落地 2026-09-03**：本设计结论已实现（权威源：content/02_institution/ROLE_CLASSIFICATION.md §9a0 角色键全表 / §9b·§9c 权限矩阵 + 代码 docs/src/core/constants.js ROLE_KEYS）；本文档继续承担设计论证档案，不再承担现行权威。
 
 > **权威源**：本文档为「角色权限四处分散声明 → 单一事实源」的收敛设计（书记 2026-08-29 全收敛裁定 + 2026-08-29 实施）。
 > 角色权限矩阵的**业务权威源**见 [ROLE_CLASSIFICATION.md](../../02_institution/ROLE_CLASSIFICATION.md) §9a0 角色键全表与 §9b/9c 权限矩阵。

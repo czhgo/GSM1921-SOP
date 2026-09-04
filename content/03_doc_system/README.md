@@ -22,7 +22,7 @@ status: active
 - [DOC_MAP.md](DOC_MAP.md) — 全局文档导航（按 5 类知识类型）——**全仓库导航唯一权威**
 - [SERVICE_CATALOG.md](SERVICE_CATALOG.md) — 统一服务目录（系统所有服务功能 + 角色权限映射）
 
-> FUNCTION_MAP.md 已删除（2026-09-03，DOC_SLIM 批次 1）：原为自动生成的功能地图派生稿，功能清单以 `docs/src/core/function-catalog.js` 与 SERVICE_CATALOG.md 为准。
+> FUNCTION_MAP.md 已删除（2026-09-03）：原为自动生成的功能地图派生稿，功能清单以 `docs/src/core/function-catalog.js` 与 SERVICE_CATALOG.md 为准。
 
 ### 二、项目架构与母本注册
 

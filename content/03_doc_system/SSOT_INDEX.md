@@ -59,12 +59,12 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | `content/04_web_design/design-system/DESIGN_SYSTEM.md` | `docs/src/styles.css` | 设计→样式。设计系统规范是全局样式的母本（2026-08-24 拆分：色彩→COLOR_SYSTEM，组件→COMPONENT_SPEC） |
 | `content/04_web_design/design-system/COLOR_SYSTEM.md` | `docs/src/styles.css`（色彩变量） | 设计→样式。色彩系统规范是色值定义的母本（查色值优先） |
 | `content/04_web_design/design-system/COMPONENT_SPEC.md` | `docs/src/components/*` | 设计→代码。组件规范是各组件实现的母本（写组件优先） |
-| `content/04_web_design/archive/MODULE_UI_DESIGN.md`（已归档 2026-09-03） | `docs/src/components/calendar.js` | 设计→代码。日历功能规划（原 CALENDAR.md，随档归档）是日历渲染引擎的历史母本 |
+| `content/04_web_design/module/MODULE_UI_DESIGN.md`（已落地 2026-09-03） | `docs/src/components/calendar.js` | 设计→代码。日历功能规划（原 CALENDAR.md，已合并入 MODULE_UI_DESIGN）是日历渲染引擎的历史母本 |
 | `content/04_web_design/data/DATA_MODEL.md` | `docs/src/core/domain.js` | 数据→代码。数据字段定义权威源（含§写入数据验证设计，原 DATA.md），代码中的数据结构必须与 DATA_MODEL.md 一致 |
 | `content/04_web_design/data/DATA_FLOW.md` | `docs/src/core/state.js` | 设计→代码。DATA_FLOW §登录态打桩设计是状态中心登录逻辑的母本（原 LOGIN_STUB.md §一~§五，原 PARTICIPANT_DATAFLOW.md） |
 | `content/04_web_design/data/DATA_FLOW.md` | `docs/src/services/auth.js`（未来） | 设计→代码（预留）。登录系统设计前置规范定义未来登录系统的用户身份模型和认证机制（原 LOGIN_STUB.md §六~§十一，原 LOGIN_SYSTEM_DESIGN.md） |
 | `content/04_web_design/data/DATA_FLOW.md` | `docs/src/services/auth.js`（T110 新增 API） | 设计→代码。DATA_FLOW 定义角色数据流模型，auth.js 实现 `getUserProjectRoles` / `hasProjectRole` / `getAccessibleWorkspacePages` 三个公开 API（T110 新增，含 `getPageForRole` 内部映射） |
-| `content/04_web_design/archive/MODULE_UI_DESIGN.md`（已归档 2026-09-03） | `docs/index.html`（Module 4） | 设计→代码。模块界面设计（原 PAFFAIRS_UI.md，原 ORG_BUILDING.md 拆分后的系统设计部分）是工作台模块 UI 的历史母本 |
+| `content/04_web_design/module/MODULE_UI_DESIGN.md`（已落地 2026-09-03） | `docs/index.html`（Module 4） | 设计→代码。模块界面设计（原 PAFFAIRS_UI.md，原 ORG_BUILDING.md 拆分后的系统设计部分）是工作台模块 UI 的历史母本 |
 | `content/03_doc_system/SERVICE_CATALOG.md` | `docs/src/entries/*.js` | 治理→代码。服务清单是各入口文件服务实现的母本（原 design/ 迁移至 governance/） |
 
 ### doc_system/ → 全仓库
@@ -148,16 +148,16 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | content/design/LOGIN_STUB.md | → content/04_web_design/data/DATA_FLOW.md（登录态打桩设计 §一~§五 + 登录系统设计前置 §六~§十一；2026-07 先并入数据架构总文件，2026-08-24 拆分后归 DATA_FLOW） | 2026-07-08 |
 | content/design/APPROVAL_FLOW.md | → content/02_institution/COMMISSIONER_FRAMEWORK.md §审批流程规范（全量合并） | 2026-07-08 |
 | content/design/WRITE_VERIFY.md | → content/04_web_design/data/DATA_MODEL.md §写入数据验证设计（精简合并，§三/§五删除；2026-07 并入数据架构总文件，2026-08-24 拆分后归 DATA_MODEL） | 2026-07-08 |
-| content/governance/LAYERING_FRAMEWORK.md | → content/03_doc_system/OPERATIONS_GUIDE.md §1.3/§1.4（独有内容合并）+ content/05_ai_coding/KNOWN_PITFALLS.md §7（历史冲突记录）+ OPERATIONS_GUIDE.md §17（原 RECURRING_TASKS Q4，5 步流程） | 2026-07-09 |
+| content/governance/LAYERING_FRAMEWORK.md | → content/03_doc_system/OPERATIONS_GUIDE.md §1.3/§1.4（独有内容合并）+ content/05_ai_coding/文档治理与一改具改.md（分层体系冲突记录节，原 §7）+ OPERATIONS_GUIDE.md §17（原 RECURRING_TASKS Q4，5 步流程） | 2026-07-09 |
 | content/design/SERVICE_CATALOG.md | → content/03_doc_system/SERVICE_CATALOG.md（迁移至治理层） | 2026-07-11 |
-| content/design/ORG_BUILDING.md | → content/04_web_design/archive/MODULE_UI_DESIGN.md（系统设计部分，经 PAFFAIRS_UI.md 合并，2026-09-03 归档）+ content/01_strategy/DEVELOPMENT_PATH.md 附录 B（战略分类部分，原"第七章"） | 2026-07-11 |
+| content/design/ORG_BUILDING.md | → content/04_web_design/module/MODULE_UI_DESIGN.md（系统设计部分，经 PAFFAIRS_UI.md 合并）+ content/01_strategy/DEVELOPMENT_PATH.md 附录 B（战略分类部分，原"第七章"） | 2026-07-11 |
 | content/design/COMMISSIONER_SYSTEM.md | → content/02_institution/COMMISSIONER_FRAMEWORK.md（迁移+重命名，"FRAMEWORK"避免"SYSTEM"歧义） | 2026-07-11 |
 | content/design/DATA.md | → content/04_web_design/data/DATA_MODEL.md（数据模型定义；2026-07-12 并入数据架构总文件，2026-08-24 拆分后归 DATA_MODEL） | 2026-07-12 |
 | content/design/PARTICIPANT_DATAFLOW.md | → content/04_web_design/data/DATA_FLOW.md（动态数据流；2026-07-12 并入数据架构总文件，2026-08-24 拆分后归 DATA_FLOW） | 2026-07-12 |
 | content/design/LOGIN_SYSTEM_DESIGN.md | → content/04_web_design/data/DATA_FLOW.md（登录系统设计前置 §六~§十一；2026-07-12 并入数据架构总文件，2026-08-24 拆分后归 DATA_FLOW） | 2026-07-12 |
 | content/design/BRAND_ACTIVITY.md | → content/04_web_design/data/DATA_MODEL.md + DATA_FLOW.md（品牌/活动内容随 2026-07-12 并入数据架构总文件、2026-08-24 拆分归位） | 2026-07-12 |
-| content/design/PAFFAIRS_UI.md | → content/04_web_design/archive/MODULE_UI_DESIGN.md（合并至模块界面设计总文件；2026-09-03 归档停更） | 2026-07-12 |
-| content/design/CALENDAR.md | → content/04_web_design/archive/MODULE_UI_DESIGN.md（合并至模块界面设计总文件；2026-09-03 归档停更） | 2026-07-12 |
+| content/design/PAFFAIRS_UI.md | → content/04_web_design/module/MODULE_UI_DESIGN.md（合并至模块界面设计总文件） | 2026-07-12 |
+| content/design/CALENDAR.md | → content/04_web_design/module/MODULE_UI_DESIGN.md（合并至模块界面设计总文件） | 2026-07-12 |
 | content/design/SOP_WEB.md | → content/04_web_design/module/SOP_WEB.md（迁移至 web_design 层） | 2026-07-12 |
 | content/design/FLAT_DESIGN.md | → content/02_institution/FLAT_DESIGN.md（迁移至 institution 层） | 2026-07-12 |
 | content/governance/TERMINOLOGY.md | → content/03_doc_system/USAGE_POLICY.md §一（合并至使用规范） | 2026-07-12 |

@@ -5,7 +5,7 @@ role: "[工程师]+[AI]"
 last_updated: "2026-08-27"
 version: "3.2"
 status: active
-related_files: [CLAUDE.md, content/03_doc_system/USAGE_POLICY.md, content/02_institution/ROLE_CLASSIFICATION.md, content/03_doc_system/DOC_MAP.md, content/05_ai_coding/KNOWN_PITFALLS.md, content/03_doc_system/SSOT_INDEX.md, content/03_doc_system/PROCESS_GUIDE.md]
+related_files: [CLAUDE.md, content/03_doc_system/USAGE_POLICY.md, content/02_institution/ROLE_CLASSIFICATION.md, content/03_doc_system/DOC_MAP.md, content/05_ai_coding/README.md, content/03_doc_system/SSOT_INDEX.md, content/03_doc_system/PROCESS_GUIDE.md]
 ---
 
 # 运行标准与操作规范
@@ -96,7 +96,7 @@ related_files: [CLAUDE.md, content/03_doc_system/USAGE_POLICY.md, content/02_ins
 
 ### 1.4 一致性检查规范
 
-> 本节为仓库 7 套分层体系的一致性检查权威源。历史冲突记录见 [KNOWN\_PITFALLS.md §7](../05_ai_coding/KNOWN_PITFALLS.md#7-分层体系冲突记录)，定期扫描任务见 [§17.2 Q4](#172-周期性任务清单)。
+> 本节为仓库 7 套分层体系的一致性检查权威源。历史冲突记录见 [文档治理与一改具改.md（分层体系冲突记录）](../05_ai_coding/文档治理与一改具改.md)，定期扫描任务见 [§17.2 Q4](#172-周期性任务清单)。
 
 **命名前缀**：知识类型（1-5）/ T（术语权威层级）/ 热温冷（CLAUDE.md 三层）/ 用户·工程师·AI（文件角色）——每套分层体系有专属前缀，不得混用。注：原"4 层文档层次（战略/制度/方法/实操）"已于 D-262 决策降级为局部维度，不再作为全仓库命名前缀。
 
@@ -344,7 +344,7 @@ H10.1.1 ← 三级章节（细则，仅在必要时使用）
 | H90 | 外部权威源索引 | 外部权威源导航表（按需参考层）                                 |
 | H100 | 项目产出声明  | 系统最最重要的产出/逻辑缺漏与书记亲补/引用流程                       |
 
-> **理论基石**已外移到 [SECRETARY\_PRONOUNCEMENTS.md](../01_strategy/SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档，17 条论断，P-002/P-003 为元命题）；**运行标准**即本文件（OPERATIONS\_GUIDE.md）；**日志规范**见本文件 §10；**已知陷阱**见 [KNOWN\_PITFALLS.md](../05_ai_coding/KNOWN_PITFALLS.md)。
+> **理论基石**已外移到 [SECRETARY\_PRONOUNCEMENTS.md](../01_strategy/SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档，17 条论断，P-002/P-003 为元命题）；**运行标准**即本文件（OPERATIONS\_GUIDE.md）；**日志规范**见本文件 §10；**已知陷阱/纪律**见 [05 AI 协作方法论层 README](../05_ai_coding/README.md)（5 分篇索引）。
 
 ### 9.2 乙部任务编号体系
 

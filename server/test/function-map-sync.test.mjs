@@ -1,5 +1,5 @@
 // server/test/function-map-sync.test.mjs — 目录 → README 功能地图块一致性（防漂移）
-// 2026-09-03 DOC_SLIM A5：独立 FUNCTION_MAP.md 不再随仓库维护，仅校验 README 标记块。
+// 2026-09-03 起：独立 FUNCTION_MAP.md 不再随仓库维护，仅校验 README 标记块。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

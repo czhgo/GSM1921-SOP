@@ -5,7 +5,7 @@ role: "[工程师]+[AI]"
 created: 2026-08-22
 last_updated: "2026-09-03"
 status: active
-related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEB.md, DEPLOYMENT_ROADMAP.md, ../03_doc_system/ARCHITECTURE.md, ../05_ai_coding/KNOWN_PITFALLS.md]
+related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEB.md, DEPLOYMENT_ROADMAP.md, ../03_doc_system/ARCHITECTURE.md, ../05_ai_coding/README.md]
 ---
 
 # 架构演进——组件化落地评估与轻量插件化设计

@@ -373,7 +373,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组功能；E2�
 | §A.3~A.7 专班 | SECRETARY_PRONOUNCEMENTS.md（P-013 专班论断，权威源） |
 | §B 职责体系 | 支委与党小组定人定责定岗说明.md §二 |
 | §C 权限矩阵 | ROLE_CLASSIFICATION.md §九 |
-| §D UI 体系 | MODULE_UI_DESIGN.md §2.3 + §5（已归档 2026-09-03 → archive/，历史 UI 布局结论仍可读） |
+| §D UI 体系 | MODULE_UI_DESIGN.md §2.3 + §5（已落地 2026-09-03 → module/，历史 UI 布局论证仍可读） |
 | §E 协作数据流 | 纪检/组织/宣传委员工作流程指南 |
 | §F 条块交互与分工的运行 | 支委与党小组定人定责定岗说明.md + SECRETARY_PRONOUNCEMENTS.md（P-012 分工的运行保障，权威源） |
 | §审批流程规范 | 原 APPROVAL_FLOW.md（已合并） |
@@ -382,7 +382,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了「党建」Tab 分组功能；E2�
 
 ## 附录：参考文档
 
-- [MODULE_UI_DESIGN.md](../04_web_design/archive/MODULE_UI_DESIGN.md)（已归档 2026-09-03）
+- [MODULE_UI_DESIGN.md](../04_web_design/module/MODULE_UI_DESIGN.md)（已落地 2026-09-03，设计论证档案）
 - [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md) + [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md)
 - [ROLE_CLASSIFICATION.md](./ROLE_CLASSIFICATION.md)
 - [支委与党小组定人定责定岗说明](./sop/支委与党小组定人定责定岗说明.md)

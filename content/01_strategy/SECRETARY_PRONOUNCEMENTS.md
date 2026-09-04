@@ -416,7 +416,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 - 原P-022（写入型 vs 支撑型角色分类）：2026-08-04 删除——写入门禁机制真实存在，但该分类的角色清单与 auth.js 权限表不符、系统未使用此命名，书记奥卡姆剃刀裁决清除
 - 原P-016（一改具改原则——修改一处必须全仓同步）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（一改具改操作流程母本，权威源在 CLAUDE.md H30.1）；本文件不再展开
 - 原P-017（甲部自省原则——执行失败时先反思制度）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（甲部自省原则，权威源在 CLAUDE.md H30.1）
-- 原P-018（书记讲出的重要道理必须检查是否写入 guides/Harness——不得只记决策不沉淀原则）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（原则沉淀机制）+ `content/05_ai_coding/KNOWN_PITFALLS.md`（已收录）
+- 原P-018（书记讲出的重要道理必须检查是否写入 guides/Harness——不得只记决策不沉淀原则）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（原则沉淀机制）+ `content/05_ai_coding/上下文管理与防失忆.md`（已收录，上下文丢失教训节条目 10）
 - 原P-024（SOP 与 guides 各自独立——理念与执行互不替代）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md` §1.1（文档权威层级定义母本）
 - 原P-026（人才库与原始材料库相区分——画像数据库与原始记录的关系）：2026-08-09 迁出至 `content/04_web_design/data/DATA_FLOW.md` §3.3（人才库数据流）
 - 原P-029（身份与权限相区分——身份选择和模式选择是两个独立决策）：2026-08-09 迁出至 `content/04_web_design/module/SOP_WEB.md` §G.3（身份权限）；原论断已退役（2026-08-08），保留为历史决策记录

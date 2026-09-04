@@ -36,7 +36,7 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 
 ## 三、Vibe Coding 协作模式
 
-系统通过 Vibe Coding 模式由 AI 协作维护与迭代——不依赖固定 Agent 群，而是由 AI 按需调用工具与 Skill 完成开发与治理任务。工具形态随开发阶段演进（当前：Trae IDE + Skill 工作流 + 周期任务机制），AI 工具的使用规律与使用建议见 [KNOWN_PITFALLS.md](../05_ai_coding/KNOWN_PITFALLS.md)（AI 工具使用陷阱）与各 Skill 定义。
+系统通过 Vibe Coding 模式由 AI 协作维护与迭代——不依赖固定 Agent 群，而是由 AI 按需调用工具与 Skill 完成开发与治理任务。工具形态随开发阶段演进（当前：Trae IDE + Skill 工作流 + 周期任务机制），AI 工具的使用规律与使用建议见 [05 AI 协作方法论层 README](../05_ai_coding/README.md)（AI 协作方法论 5 分篇索引）与各 Skill 定义。
 
 ### 协作机制
 
@@ -44,7 +44,7 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 |------|------|--------|
 | Harness 工作流 | CLAUDE.md 甲乙丙三部：工作流、执行事项、待决策 | CLAUDE.md |
 | 周期任务机制 | 周/月/季/年级自动唤醒任务（含 W4 专项评议循环） | [PROCESS_GUIDE.md §17](./PROCESS_GUIDE.md) |
-| Skill 工作流 | 专项任务按 Skill 规范执行（SOP→代码、经验提炼、日志归档等） | [KNOWN_PITFALLS.md](../05_ai_coding/KNOWN_PITFALLS.md) |
+| Skill 工作流 | 专项任务按 Skill 规范执行（SOP→代码、经验提炼、日志归档等） | [05 AI 协作方法论层 README](../05_ai_coding/README.md) |
 | 文件角色分类 | `[用户]/[工程师]/[AI]` 三类受众 + 复合标记，AI 权限边界 | [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) |
 
 ### 任务优先级
@@ -85,8 +85,8 @@ Layer 3: 知识类型 3 — 文档系统治理（文档怎么治理、术语、�
       └── ARCHITECTURE.md                 [工程师]+[AI] 核心架构说明（本文件）
 
 Layer 4: 知识类型 4+5 — 网站设计 + AI 编码
-  └─ content/04_web_design/               [工程师]+[AI] 设计理念层（子目录：data/ 数据模型与数据流、design-system/ 全站规范、module/ 页面模块设计、deploy/ 部署与集成、evolution/ 演进契约与评估、archive/ 已归档档案；逐文件清单与一句话说明见 content/04_web_design/README.md）
-  └─ content/05_ai_coding/                [工程师]+[AI] AI 编码层（KNOWN_PITFALLS）
+  └─ content/04_web_design/               [工程师]+[AI] 设计理念层（子目录：data/ 数据模型与数据流、design-system/ 全站规范、module/ 页面模块设计、deploy/ 部署与集成、evolution/ 演进契约与评估；逐文件清单与一句话说明见 content/04_web_design/README.md）
+  └─ content/05_ai_coding/                [工程师]+[AI] AI 协作方法论层（唯一 AI 协作方法论层：README + 5 分篇 + CHECKLIST）
 
 Layer 5: 经验沉淀（跨多类知识类型）
   └─ content/insights/                    [用户]+[AI] 经验沉淀（双文件）
@@ -171,14 +171,18 @@ Layer 7: 审计参考层（审计与参考）
 │   ├── 04_web_design/                [工程师]+[AI] 网站设计层（设计理念与思路档案）
 │   │   ├── data/                      [工程师]+[AI] 数据权威（DATA_MODEL 静态模型 / DATA_FLOW 数据流）
 │   │   ├── design-system/             [工程师]+[AI] 全站通用规范（DESIGN_SYSTEM / COLOR_SYSTEM / COMPONENT_SPEC / CLICK_MAP）
-│   │   ├── module/                    [工程师]+[AI] 页面与模块设计（SOP_WEB / ABOUT_DESIGN_SYSTEM / AGENDA_AND_REFERENCE_DESIGN）
+│   │   ├── module/                    [工程师]+[AI] 页面与模块设计（SOP_WEB / MODULE_UI_DESIGN / ABOUT_DESIGN_SYSTEM / AGENDA_AND_REFERENCE_DESIGN）
 │   │   ├── deploy/                    [工程师]+[AI] 部署与集成设计（DEPLOYMENT_ROADMAP / DEPLOYMENT_AUTH_MODEL / WECHAT_INTEGRATION / PKU_PARTY_INTEGRATION）
-│   │   ├── evolution/                 [工程师]+[AI] 演进、契约与评估（ARCHITECTURE_EVOLUTION / MODULARIZATION_ASSESSMENT / BLOCK_MANIFEST_CONTRACT / L4_CANVAS_DESIGN / PARTY_COMMITTEE_DESIGN / CHECKLIST）
-│   │   ├── archive/                   [工程师]+[AI] 已归档设计档案（MODULE_UI_DESIGN / ROLE_SSOT_DESIGN，索引见 archive/README.md）
+│   │   ├── evolution/                 [工程师]+[AI] 演进、契约与评估（ARCHITECTURE_EVOLUTION / MODULARIZATION_ASSESSMENT / BLOCK_MANIFEST_CONTRACT / L4_CANVAS_DESIGN / PARTY_COMMITTEE_DESIGN / ROLE_SSOT_DESIGN）
 │   │   └── README.md                 [工程师]+[AI] 网站设计层目录索引（逐文件一句话说明）
-│   ├── 05_ai_coding/                 [工程师]+[AI] AI 编码层
-│   │   ├── KNOWN_PITFALLS.md         [工程师]+[AI] 已知陷阱
-│   │   └── README.md                 [工程师]+[AI] AI 编码层目录索引
+│   ├── 05_ai_coding/                 [工程师]+[AI] AI 协作方法论层（唯一 AI 协作方法论层：README + 5 分篇 + CHECKLIST）
+│   │   ├── README.md                 [工程师]+[AI] AI 协作方法论层目录索引（层索引表 + 分流来源声明）
+│   │   ├── 文件操作纪律.md            [工程师]+[AI] 文件操作纪律分篇（原 §1/§3/§6/§13/§14/§18）
+│   │   ├── 测试验证纪律.md            [工程师]+[AI] 测试验证纪律分篇（原 §11/§12/§15/§16/§17/§19；含数据同源一致性校验节）
+│   │   ├── 文档治理与一改具改.md       [工程师]+[AI] 文档治理与一改具改分篇（原 §2/§7/§10）
+│   │   ├── 上下文管理与防失忆.md       [工程师]+[AI] 上下文管理与防失忆分篇（原 §4/§8/§9；read_strategy: active）
+│   │   ├── 评议与表达纪律.md          [工程师]+[AI] 评议与表达纪律分篇（原 §5）
+│   │   └── CHECKLIST.md              [工程师]+[AI] 数据同源一致性校验手册（工程质检纪律，2026-09-04 自 04 evolution 迁入）
 │   ├── insights/                     [用户]+[AI] 经验沉淀（跨多类知识类型）
 │   │   ├── 党支部管理与实务经验沉淀.md [用户]+[AI] 按 5 类知识类型组织的经验沉淀
 │   │   └── 工程演进与设计方法论.md     [用户]+[AI] 工程方法论沉淀

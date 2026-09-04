@@ -104,9 +104,8 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | `content/04_web_design/design-system/COMPONENT_SPEC.md` | [工程师]+[AI] | 组件规范（按钮/卡片/输入/侧边栏/导航/日历图例/数据展示/图标/选人/状态徽章；2026-08-24 自 DESIGN_SYSTEM 拆分） | docs/src/components/* |
 | `content/04_web_design/module/ABOUT_DESIGN_SYSTEM.md` | [工程师]+[AI] | About 页面设计系统（超参数设定原则/防风格疲劳/无竖线红线） | docs/src/about.css、docs/src/entries/about-entry.js |
 | `content/04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md` | [工程师]+[AI] | 会议议程与资料查询联动设计（会前草案关联/会后少重复录入/单一数据源） | —（草案·待实施 2026-08-31） |
-| `content/04_web_design/evolution/CHECKLIST.md` | [用户]+[AI] | 数据同源一致性校验手册（工程质检流程，按数据类别逐步检查；机器检查+人工检查分工） | DATA_MODEL.md、ARCHITECTURE.md |
-| `content/04_web_design/archive/MODULE_UI_DESIGN.md`（已归档 2026-09-03） | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能，历史结论仍可读） | docs/src/components/calendar.js |
-| `content/04_web_design/archive/ROLE_SSOT_DESIGN.md`（已归档 2026-09-03） | [工程师]+[AI] | 权限功能合一收敛设计（角色权限四处分散声明 → 单一事实源 ROLE_KEYS + 派生；S1~S10 已验收达成） | 替代权威 ROLE_CLASSIFICATION.md §9a0/§9b/§9c + 代码 ROLE_KEYS |
+| `content/04_web_design/module/MODULE_UI_DESIGN.md`（已落地 2026-09-03） | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能，已落地、设计论证档案） | docs/src/components/calendar.js |
+| `content/04_web_design/evolution/ROLE_SSOT_DESIGN.md`（已落地 2026-09-03） | [工程师]+[AI] | 权限功能合一收敛设计（角色权限四处分散声明 → 单一事实源 ROLE_KEYS + 派生；S1~S10 已验收达成、设计论证档案） | 权威源 ROLE_CLASSIFICATION.md §9a0/§9b/§9c + 代码 ROLE_KEYS |
 | `content/04_web_design/module/SOP_WEB.md` | [工程师]+[AI] | SOP 系统优化与同步指南 | CLAUDE.md H30.2 |
 | `content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md` | [工程师]+[AI] | 部署落地总览（四条落地路径 + 计算中心对接全案 + 决策矩阵） | DEPLOYMENT_AUTH_MODEL.md、WECHAT_INTEGRATION.md |
 | `content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md` | [工程师]+[AI] | 北大党校与智慧党建系统对接设计（党校单向爬取 + 智慧党建双向同步 + 数据映射 + 小程序归位说明 + 待确认清单） | DEPLOYMENT_ROADMAP.md、WECHAT_INTEGRATION.md、DATA_MODEL.md |
@@ -125,8 +124,13 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `content/05_ai_coding/KNOWN_PITFALLS.md` | [工程师]+[AI] | 已知陷阱判例（AI工具使用陷阱） | CLAUDE.md H90 |
-| `content/05_ai_coding/README.md` | [工程师]+[AI] | AI coding 技术层目录索引 | — |
+| `content/05_ai_coding/README.md` | [工程师]+[AI] | AI 协作方法论层目录索引（层索引表 + 分流来源声明；2026-09-04 原 19 条总篇拆分为 5 分篇） | CLAUDE.md H90 |
+| `content/05_ai_coding/文件操作纪律.md` | [工程师]+[AI] | 文件操作纪律分篇（文件修改持久化/临时文件遗留/工具选择/子组件导入版本参数/连续编辑覆盖/批量脚本沙箱；原 §1/§3/§6/§13/§14/§18） | CLAUDE.md |
+| `content/05_ai_coding/测试验证纪律.md` | [工程师]+[AI] | 测试验证纪律分篇（Subagent 虚假确认/同一套数据盲区/复杂度标准/受限视觉三件套/版本分裂/e2e 写穿断言 + 数据同源一致性校验节；原 §11/§12/§15/§16/§17/§19） | CHECKLIST.md（配套手册） |
+| `content/05_ai_coding/文档治理与一改具改.md` | [工程师]+[AI] | 文档治理与一改具改分篇（一改具改执行/分层体系冲突记录/一改具改遗漏典型场景；原 §2/§7/§10） | OPERATIONS_GUIDE.md §1.4 |
+| `content/05_ai_coding/上下文管理与防失忆.md` | [工程师]+[AI] | 上下文管理与防失忆分篇（上下文丢失后制度推断/上下文丢失教训/对话总结虚假完成 + 书记裁决落活层闭环占位；原 §4/§8/§9；read_strategy: active） | CLAUDE.md H90 |
+| `content/05_ai_coding/评议与表达纪律.md` | [工程师]+[AI] | 评议与表达纪律分篇（经验沉淀位置；原 §5） | insights/ |
+| `content/05_ai_coding/CHECKLIST.md` | [工程师]+[AI] | 数据同源一致性校验手册（工程质检流程，按数据类别逐步检查；机器检查+人工检查分工；2026-09-04 自 04 evolution 迁入，AI 方法论归 05） | DATA_MODEL.md、ARCHITECTURE.md |
 
 ### 跨多类：经验沉淀（content/insights/）
 
@@ -159,17 +163,17 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | 了解项目全貌 | README.md | content/03_doc_system/ARCHITECTURE.md |
 | 查看待办任务 | CLAUDE.md §C | .ctx/logs/DECISION_LOG.md |
 | 查 SOP 流程 | content/02_institution/sop/INDEX.md | 对应功能委员 SOP |
-| 使用 Skill 工作流 | content/05_ai_coding/KNOWN_PITFALLS.md | 对应 Skill 定义 |
+| 使用 Skill 工作流 | content/05_ai_coding/README.md | 对应 Skill 定义 |
 | 提交改进反馈 | content/04_web_design/module/SOP_WEB.md §E | content/02_institution/sop/对应文件 |
 | 了解角色分类体系 | content/02_institution/ROLE_CLASSIFICATION.md | （含可扩展性评估 §六） |
 | 查看设计系统规范 | content/04_web_design/design-system/DESIGN_SYSTEM.md | docs/src/styles.css |
 | 了解 Emoji 使用规范 | content/03_doc_system/USAGE_POLICY.md §三 | CLAUDE.md 钩稽矩阵 |
-| 查看日历功能规划（历史档案） | content/04_web_design/archive/MODULE_UI_DESIGN.md（已归档 2026-09-03） | docs/src/components/calendar.js |
+| 查看日历功能规划（设计论证档案） | content/04_web_design/module/MODULE_UI_DESIGN.md（已落地 2026-09-03） | docs/src/components/calendar.js |
 | 查看品牌标签设计 | content/04_web_design/data/DATA_MODEL.md | CLAUDE.md |
 | 查官方合规 | content/01_strategy/references/合规文件/ | content/02_institution/sop/溯源 |
 | 查看执行日志 | .ctx/logs/EXECUTION_LOG_INDEX.md | 对应月份日志 |
 | 查看 SOP 系统优化 | content/04_web_design/module/SOP_WEB.md | content/02_institution/sop/对应 SOP |
-| 了解支委系统设计 | content/02_institution/COMMISSIONER_FRAMEWORK.md | content/04_web_design/archive/MODULE_UI_DESIGN.md（已归档 2026-09-03） |
+| 了解支委系统设计 | content/02_institution/COMMISSIONER_FRAMEWORK.md | content/04_web_design/module/MODULE_UI_DESIGN.md（已落地 2026-09-03） |
 | 了解登录系统设计前置 | content/04_web_design/data/DATA_FLOW.md | DATA_MODEL.md §登录态打桩设计 |
 | 查看服务清单与权限矩阵 | content/03_doc_system/SERVICE_CATALOG.md | content/02_institution/ROLE_CLASSIFICATION.md §九 |
 | 运行/编写测试 | [server/README.md](../../server/README.md) 测试说明 | CLAUDE.md H25（AI 必知测试命令） |

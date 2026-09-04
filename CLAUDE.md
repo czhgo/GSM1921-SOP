@@ -66,7 +66,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 1. **Blueprint**：输出任务拆解计划与执行路径
 2. **实施**：调用对应工具执行任务
-3. **验收**：自动运行 `GetDiagnostics`；**涉及代码改动必须按 H25 测试系统运行相关测试**（前端多文件改动必跑 `server/test/module-load.test.mjs`，改动链接跑 link-integrity，改动 mock 数据跑 mock-integrity，改动活动/工作流/登录跑 agenda-flow + e2e-login），**不得仅以 GetDiagnostics 零错误代替运行验证**（语法对≠运行对，KNOWN_PITFALLS §17 子代理交付三查判例）
+3. **验收**：自动运行 `GetDiagnostics`；**涉及代码改动必须按 H25 测试系统运行相关测试**（前端多文件改动必跑 `server/test/module-load.test.mjs`，改动链接跑 link-integrity，改动 mock 数据跑 mock-integrity，改动活动/工作流/登录跑 agenda-flow + e2e-login），**不得仅以 GetDiagnostics 零错误代替运行验证**（语法对≠运行对，content/05_ai_coding/测试验证纪律.md §17 子代理交付三查判例）
 4. **记录**：追加至 `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`
 
 > 🔴 **歧义消解铁律**：人类表达可能有歧义。当任务复杂、庞大、或用户表述不清晰时，**必须**：
@@ -128,12 +128,12 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 ## H25. 测试系统（AI 必知，2026-08-30 沉淀）
 
-> 系统有**正式测试套件**（`server/test/`，17 个文件）。AI 做代码改动后应主动运行验证——这是「编辑完整性」防线（KNOWN_PITFALLS §14.1）的组成部分，不是可选步骤。
+> 系统有**正式测试套件**（`server/test/`，17 个文件）。AI 做代码改动后应主动运行验证——这是「编辑完整性」防线（content/05_ai_coding/文件操作纪律.md §14.1）的组成部分，不是可选步骤。
 
 **命令**：
 - 全量：`cd server && npm test`（裸 `node --test`，自动发现 `test/` 下全部 `*.test.{js,mjs}`）
 - 单跑：`node --test server/test/<文件名>`
-- 版本戳同步：`node docs/scripts/bump-version.mjs`（bump 后必须跑一次全量，防模块实例分裂误报，KNOWN_PITFALLS §17）
+- 版本戳同步：`node docs/scripts/bump-version.mjs`（bump 后必须跑一次全量，防模块实例分裂误报，content/05_ai_coding/测试验证纪律.md §17）
 
 **套件构成**：单元/集成 9 个 `.test.js`（auth/db/resources/seed/skeleton/snapshot/uploads/report/e2e-login）+ 审计守护 8 个 `.test.mjs`（agenda-flow / b3-1 / capability-registry / click-cost / link-integrity / mock-integrity / module-load / references-official-links）。
 
@@ -149,7 +149,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 ① 描述**当前状态/规则**（非历史过程）；② 内容**可执行引用**（读即用）；③ 变更立即影响后续任务。
 
 - **对照**：知识资产（`content/insights/`，人类阅读、非 AI 活跃上下文）；过程产物（spec/plan/一次性脚本，任务闭环即归档或删除）
-- **当前上下文文件清单**：本文件（甲/乙/丙部）· `.ctx/SNAPSHOT.md`（当前基线）· `.ctx/TIMESTAMPS.md`（文件注册表）· `.ctx/REVIEW_QUEUE.md`（评议队列）· `content/03_doc_system/`（ARCHITECTURE/SSOT_INDEX/OPERATIONS_GUIDE/DOC_MAP/USAGE_POLICY/SERVICE_CATALOG）· `content/04_web_design/evolution/`（ARCHITECTURE_EVOLUTION/CHECKLIST；ROLE_SSOT_DESIGN 已归档 2026-09-03 → `content/04_web_design/archive/`，不再属活跃上下文）· `server/README.md`（测试/部署）· 项目记忆（跨会话）
+- **当前上下文文件清单**：本文件（甲/乙/丙部）· `.ctx/SNAPSHOT.md`（当前基线）· `.ctx/TIMESTAMPS.md`（文件注册表）· `.ctx/REVIEW_QUEUE.md`（评议队列）· `content/03_doc_system/`（ARCHITECTURE/SSOT_INDEX/OPERATIONS_GUIDE/DOC_MAP/USAGE_POLICY/SERVICE_CATALOG）· `content/04_web_design/evolution/`（ARCHITECTURE_EVOLUTION；ROLE_SSOT_DESIGN 已落地 2026-09-03 → 回 `content/04_web_design/evolution/`，属设计论证档案，不承担现行权威）· `content/05_ai_coding/`（README + 5 分篇 + CHECKLIST：文件操作纪律/测试验证纪律/文档治理与一改具改/上下文管理与防失忆/评议与表达纪律；AI 方法论层，CHECKLIST 2026-09-04 自 04 evolution 迁入）· `server/README.md`（测试/部署）· 项目记忆（跨会话）
 - **清理纪律**：过程产物不留仓库——可复用部分（决策/约束/落地记录）整合进上下文文件后删除原文件；空目录同步删除；整合处标注来源与日期（判例：2026-08-30 html-slimming spec 整合入 ARCHITECTURE_EVOLUTION 后删除）
 
 ***
@@ -423,14 +423,14 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 **触发条件**（满足任一即入库；不满足则归档注明"按既有基线执行，无新检查要点"，省略入库）：
 1. **新维度**：本轮发现既有检查要点库/CHECKLIST 未覆盖的评判维度（如数据生命周期一致性、链接四层法）
 2. **新侧重**：书记在本轮评议中确立了新的侧重维度（H60.1 触发条件②的承接）
-3. **重复判例**：同一类错误模式第二次出现（第一次记 KNOWN_PITFALLS 判例，第二次触发入库为检查项）
+3. **重复判例**：同一类错误模式第二次出现（第一次记 05_ai_coding 分篇判例，第二次触发入库为检查项）
 
 **入库分级**：
 | 入库对象 | 目标位置 | 标注 |
 | --- | --- | --- |
 | 通用检查要点（跨场景可复用） | CHECKLIST.md（追加小节） | 来源轮次 + 生效条件 |
 | 专项检查要点 | REVIEW_QUEUE 对应专项附录「检查要点库」区 | 来源轮次 + 生效条件 |
-| 错误模式判例 | KNOWN_PITFALLS.md | 判例 + 纠正清单 |
+| 错误模式判例 | content/05_ai_coding/ 对应分篇（见该层 [README.md](content/05_ai_coding/README.md) 索引） | 判例 + 纠正清单 |
 
 **防过拟合铁律**（书记强调）：
 1. 入库粒度 = **检查维度/标准（大命题）**，禁止把单个用例细节机械入库（H40.1 概念命名守则①大命题原则）
@@ -507,14 +507,14 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | 看面向用户表述规范  | [OPERATIONS\_GUIDE.md §13](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
 | 看理论基石      | [SECRETARY\_PRONOUNCEMENTS.md](content/01_strategy/SECRETARY_PRONOUNCEMENTS.md)（项目顶级战略文档） |
 | 看经验沉淀      | [content/insights/](content/insights/)                                                    |
-| 看已知陷阱      | [KNOWN\_PITFALLS.md](content/05_ai_coding/KNOWN_PITFALLS.md)                              |
+| 看已知陷阱      | [05 AI 协作方法论 README.md](content/05_ai_coding/README.md)（5 分篇索引）          |
 | 看运行标准      | [OPERATIONS\_GUIDE.md](content/03_doc_system/OPERATIONS_GUIDE.md)                         |
 | 看术语规范      | [USAGE\_POLICY.md](content/03_doc_system/USAGE_POLICY.md)                                 |
 | 查 SOP 流程   | [content/02\_institution/sop/INDEX.md](content/02_institution/sop/INDEX.md)               |
 | 查决策历史      | `.ctx/logs/DECISION_LOG.md`                                                               |
 | 查执行日志      | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`                                                      |
 | 查母本链路      | [SSOT\_INDEX.md](content/03_doc_system/SSOT_INDEX.md)                                     |
-| 查数据一致性     | [CHECKLIST.md](content/04_web_design/evolution/CHECKLIST.md)                                        |
+| 查数据一致性     | [CHECKLIST.md](content/05_ai_coding/CHECKLIST.md)                                        |
 | 取用模板       | `content/03_doc_system/工作模板/`                                                             |
 | 查可用 Skills | `npx skills find <keyword>`                                                               |
 | 看项目产出声明    | 本文件 H100                                                                                  |
@@ -619,9 +619,9 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | T-281 | **扁平化与集中论断 refinement**：已解决（2026-08-28 书记以「战略模糊自觉」总纲裁决——AI 不替书记收口定性，保持战略模糊；P-005 已含 2026-08-28 书记合并原话"程序在所有人之上，所以扁平；但程序中，支委个人都因为更大的责任而被要求嵌入地更深"即"集中/程序/嵌入"关系的落地）——2026-08-30 复核确认：AI 草案（替书记定性）违反战略模糊自觉，已撤回不落地；本条目归档 | H60 书记评议 + 战略模糊自觉总纲 | content/01\_strategy/SECRETARY\_PRONOUNCEMENTS.md | ✅ 已完成（2026-08-28 总纲解决，2026-08-30 归档） |
 | T-237 | **制度层色值硬编码清理**：COMMISSIONER\_FRAMEWORK.md §C.3 旧固定角色色表已删（2026-08-14 书记裁决：身份不再保留既有固定颜色设定，引入自定义主题色色板），DESIGN\_SYSTEM.md 已补「主题色/功能色/品牌色三色区别」定义 + 读本文件指南（外包可读）；代码层 WORKFLOW\_ROLES 节点辨识色已对齐 §2.3.2 | H60 书记评议 + DESIGN\_SYSTEM.md 统一色板                    | content/02\_institution/COMMISSIONER\_FRAMEWORK.md + content/04\_web\_design/DESIGN\_SYSTEM.md | ✅ 已完成（2026-08-14） |
 
-> **注**：T-283 最小三成本第 4 轮（Mock 数据完整性 + 数据结构生命周期 + 点击成本 + 三会一课议程功能 + 编辑完整性共性问题全局化）已全部完成（2026-08-27 归档执行日志），乙部删除——三会一课【议程】写入/修改功能落地（DATA_MODEL agenda 字段 + 写入表单 + 详情行内编辑）；删除活动联动清理子记录三处同步；点击成本实测（创建 4 次/详情 2 次/待办 0 次）；新增 4 个审计文件入回归（mock-integrity/click-cost/agenda-flow/module-load，2026-08-30 统一命名规范化）；KNOWN_PITFALLS §14.1 + CHECKLIST「编辑完整性校验」章节。
+> **注**：T-283 最小三成本第 4 轮（Mock 数据完整性 + 数据结构生命周期 + 点击成本 + 三会一课议程功能 + 编辑完整性共性问题全局化）已全部完成（2026-08-27 归档执行日志），乙部删除——三会一课【议程】写入/修改功能落地（DATA_MODEL agenda 字段 + 写入表单 + 详情行内编辑）；删除活动联动清理子记录三处同步；点击成本实测（创建 4 次/详情 2 次/待办 0 次）；新增 4 个审计文件入回归（mock-integrity/click-cost/agenda-flow/module-load，2026-08-30 统一命名规范化）；文件操作纪律.md §14.1（同区域连续编辑覆盖判例）+ CHECKLIST「编辑完整性校验」章节。
 
-> **注**：T-280 网页逻辑全量梳理已全部完成（B1-B6，2026-08-24 归档执行日志），乙部删除——完整对账报告与收口记录见 `.ctx/logs/2026-08-EXECUTION_LOG.md`（L4777~5080），检查依据见 [CHECKLIST.md](content/04_web_design/evolution/CHECKLIST.md)（含 T-280-B1/T-280-B5 手动检查小节与各批新理念校验点）。
+> **注**：T-280 网页逻辑全量梳理已全部完成（B1-B6，2026-08-24 归档执行日志），乙部删除——完整对账报告与收口记录见 `.ctx/logs/2026-08-EXECUTION_LOG.md`（L4777~5080），检查依据见 [CHECKLIST.md](content/05_ai_coding/CHECKLIST.md)（含 T-280-B1/T-280-B5 手动检查小节与各批新理念校验点）。
 
 > **注**：T-282 content 体系优化升级已全部完成（2026-08-24 归档执行日志 L5168~5208），乙部删除——三方向：①巨型文件拆分（原数据架构总文件 DATA_ARCHITECTURE（路由文件，2026-09-03 精简删除）→DATA_MODEL+DATA_FLOW、OPERATIONS_GUIDE→+PROCESS_GUIDE、DESIGN_SYSTEM→+COLOR_SYSTEM+COMPONENT_SPEC）；②04 部署类重组（SCHOOL_IT 并入 DEPLOYMENT_ROADMAP）；③目录规范补缺（insights README、references 归位）。导航更新见 [DOC_MAP.md](content/03_doc_system/DOC_MAP.md) 与 [SSOT_INDEX.md](content/03_doc_system/SSOT_INDEX.md)。
 

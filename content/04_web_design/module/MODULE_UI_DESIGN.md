@@ -11,7 +11,7 @@ related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04
 
 # 模块界面设计
 
-> **已归档 2026-09-03，历史结论仍可读**：本文档与 SOP_WEB / COMPONENT_SPEC 重叠且停更（书记 2026-09-03 批准精简，见 ../evolution/DOC_SLIM_DESIGN.md），移入 `../archive/` 存档；现行组件规范见 [COMPONENT_SPEC.md](../design-system/COMPONENT_SPEC.md)，SOP-系统联动方法论见 [SOP_WEB.md](../module/SOP_WEB.md)。
+> **已落地 2026-09-03**：本设计结论已实现（权威源：content/04_web_design/design-system/COMPONENT_SPEC.md + content/04_web_design/module/SOP_WEB.md + 代码 docs/src/components/calendar.js 等）；本文档继续承担设计论证档案，不再承担现行权威。
 
 > **定位：** 本文档是系统功能模块界面设计的单一权威源，涵盖「党建」Tab 分组和日历功能模块的界面布局、交互逻辑、视图切换设计。
 > **受众：** [工程师]+[AI] —— 供前端开发决策参考。

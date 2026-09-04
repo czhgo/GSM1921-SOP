@@ -203,7 +203,7 @@ ActivityRecord (主记录)
 
 #### 2.2.2 ACL 基础规则与模块权限
 
-> 权限矩阵、模块可见性、数据共享规则的完整定义见 [ROLE_CLASSIFICATION.md §九](../../02_institution/ROLE_CLASSIFICATION.md) + [MODULE_UI_DESIGN.md](../archive/MODULE_UI_DESIGN.md)（已归档 2026-09-03，历史模块可见性设计仍可读）。本节不重复展开，仅指向权威源。
+> 权限矩阵、模块可见性、数据共享规则的完整定义见 [ROLE_CLASSIFICATION.md §九](../../02_institution/ROLE_CLASSIFICATION.md) + [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md)（已落地 2026-09-03，历史模块可见性设计论证仍可读）。本节不重复展开，仅指向权威源。
 
 **关键规则要点**（详细规则见权威源）：
 - 基础 ACL 实现：[domain.js `can()`](../../../docs/src/core/domain.js#L78-L91)

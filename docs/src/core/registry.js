@@ -61,7 +61,7 @@ export function getCapabilities({ scope, role, env } = {}) {
 /**
  * 注册表版本（M4 版本化）：聚合当前已注册能力的最大版本号。
  * 约定版本为日期后缀字符串（'20260823a' > '20260822e' 字典序成立），未声明版本的能力按 '1.0.0' 计。
- * 发布=更新注册表版本，消费点据此做缓存失效/灰度判断（承接 KNOWN_PITFALLS §13 人工纪律 → 机制保证）。
+ * 发布=更新注册表版本，消费点据此做缓存失效/灰度判断（承接 05_ai_coding/文件操作纪律.md §13 人工纪律 → 机制保证）。
  * @returns {string}
  */
 export function getRegistryVersion() {
