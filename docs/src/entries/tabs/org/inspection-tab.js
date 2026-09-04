@@ -80,7 +80,7 @@ export function renderContent(ctx) {
               <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
               <td class="py-2 px-3 text-gray-600">${i.source}</td>
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-xs ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">专班</span></td>
-              <td class="py-2 px-3 text-gray-600">${i.role}</td>
+              <td class="py-2 px-3 text-gray-600">${i.content || i.role}</td>
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${statusColor[i.status] || 'bg-gray-100 text-gray-500'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
             </tr>
           `).join('')}</tbody>
@@ -133,7 +133,7 @@ export function renderContent(ctx) {
               <p style="color:var(--neutral-700);">状态 ${statusBadge}</p>
             </div>
             <div class="grid grid-cols-1 gap-x-6 py-1.5">
-              <p style="color:var(--neutral-700);">考察内容 <span style="color:var(--neutral-800);font-weight:500;">${rec.role || '—'}</span></p>
+              <p style="color:var(--neutral-700);">考察内容 <span style="color:var(--neutral-800);font-weight:500;">${rec.content || rec.role || '—'}</span></p>
             </div>
           </div>
           <p class="text-[11px] mt-2 pt-2" style="color:var(--neutral-500);border-top:1px solid var(--neutral-200);">流程：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表</p>
@@ -195,7 +195,8 @@ function _initOrgInspForm(container, activeTaskforces, ctx) {
         sourceName: tfName,
         personId,
         level: ParticipationLevel.DEEP_PARTICIPATE,
-        role: content,
+        content,                 // 2026-09-04 补齐 P1-5：考察内容入 content 字段（原误写 role）
+        role: '深度参与者',       // role 恢复为角色标签（与 level deep 语义一致）
         recordedBy: 'p13', // 组织委员
         recordedAt: new Date().toISOString(),
         status: 'pending',

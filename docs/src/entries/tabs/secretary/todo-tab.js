@@ -22,6 +22,7 @@ import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903c
 import { openFormModal } from '../../../components/modal.js?v=20260903c';
 import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260903c';
 import { renderMemberChangePanel } from '../../../components/member-change-panel.js?v=20260903c';
+import { tryDirectJump } from '../../../components/todo-jump.js?v=20260903c';
 
 const { accent, accentBorder } = getAccentColors(resolveAccentRole('secretary'));
 
@@ -305,25 +306,8 @@ function confirmGroup(group) {
 
 // ── 行动跳转（种子行动类 / 提醒类跳活动管理） ──────────────────
 function handleTodoAction(todo) {
-  // 通知阅读待办（T-234 F1）：直达通知详情页（聚合时取首条 noticeId）
-  const firstNotice = (todo.items && todo.items[0]) || todo;
-  if (firstNotice.sourceType === 'notice' && (firstNotice.actionData?.noticeId || todo.actionData?.noticeId)) {
-    const noticeId = firstNotice.actionData?.noticeId || todo.actionData?.noticeId;
-    const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
-    window.location.href = `${basePath}notice.html?id=${noticeId}`;
-    return;
-  }
-  // 报名审核待办（T233）：直达活动/专班详情页（多源聚合时取首条 sourceId）
-  if (todo.actionKey === 'signup-review' || (todo.actionType === 'review' && ((todo.actionData && todo.actionData.signupId) || (todo.items || []).some(i => i.actionData && i.actionData.signupId)))) {
-    const first = (todo.items && todo.items[0]) || todo;
-    const srcId = first.sourceId || (first.actionData && first.actionData.sourceId);
-    if (srcId) {
-      const base = window.location.pathname.includes('/workspace/') ? '../' : '';
-      const page = srcId.startsWith('tf-') ? 'taskforce.html' : 'activity.html';
-      window.location.href = `${base}${page}?id=${srcId}`;
-      return;
-    }
-  }
+  // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/todo-jump.js（2026-09-04）
+  if (tryDirectJump(todo)) return;
   // T-304 C3 专班发起审批：组织委员发起专班 → 书记批准/驳回（写专班记录 + 销待办）
   if (todo.actionKey === 'taskforce-approval') {
     const first = (todo.items && todo.items[0]) || todo;

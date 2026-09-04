@@ -5,27 +5,11 @@
 import { TodoStore } from '../../../services/todo.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260903c';
+import { tryDirectJump } from '../../../components/todo-jump.js?v=20260903c';
 
 function _handleTodoAction(todo, ctx) {
-  // 通知阅读待办（T-234 F1）：直达通知详情页（聚合时取首条 noticeId）
-  const firstNotice = (todo.items && todo.items[0]) || todo;
-  if (firstNotice.sourceType === 'notice' && (firstNotice.actionData?.noticeId || todo.actionData?.noticeId)) {
-    const noticeId = firstNotice.actionData?.noticeId || todo.actionData?.noticeId;
-    const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
-    window.location.href = `${basePath}notice.html?id=${noticeId}`;
-    return;
-  }
-  // 报名审核待办（T233）：直达活动/专班详情页（多源聚合时取首条 sourceId）
-  if (todo.actionKey === 'signup-review' || (todo.actionType === 'review' && ((todo.actionData && todo.actionData.signupId) || (todo.items || []).some(i => i.actionData && i.actionData.signupId)))) {
-    const first = (todo.items && todo.items[0]) || todo;
-    const srcId = first.sourceId || (first.actionData && first.actionData.sourceId);
-    if (srcId) {
-      const base = window.location.pathname.includes('/workspace/') ? '../' : '';
-      const page = srcId.startsWith('tf-') ? 'taskforce.html' : 'activity.html';
-      window.location.href = `${base}${page}?id=${srcId}`;
-      return;
-    }
-  }
+  // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/todo-jump.js（2026-09-04）
+  if (tryDirectJump(todo)) return;
   // 根据 actionType 跳转到对应 tab
   // 2026-08-24 T-280-B1 实测修复：actionKey 优先（同 actionType 多业务域区分，
   // 对齐 disc todo-tab 的 actionKey 级 tabMap）——review-submit 归复盘提交而非考勤上传

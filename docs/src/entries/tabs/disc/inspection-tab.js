@@ -82,7 +82,7 @@ export function renderContent(ctx) {
     const t = tagEl ? tagEl.value : '';
     const s = statusEl ? statusEl.value : '';
     return data.filter(r => {
-      if (q && !(r.name || '').toLowerCase().includes(q) && !(r.role || '').toLowerCase().includes(q) && !(r.source || '').toLowerCase().includes(q)) return false;
+      if (q && !(r.name || '').toLowerCase().includes(q) && !(r.content || '').toLowerCase().includes(q) && !(r.role || '').toLowerCase().includes(q) && !(r.source || '').toLowerCase().includes(q)) return false;
       if (t && r.sourceType !== t) return false;
       if (s === 'overdue') return overdueIds.has(r.id);
       if (s && r.status !== s) return false;

@@ -81,12 +81,11 @@ Layer 3: 知识类型 3 — 文档系统治理（文档怎么治理、术语、�
       ├── PROCESS_GUIDE.md                [工程师]+[AI] 运行标准·流程机制（§15-18）
       ├── USAGE_POLICY.md                 [工程师]+[AI] 使用规范（术语+Emoji）
       ├── DOC_MAP.md                      [工程师]+[AI] 文档导航中心
-      ├── CHECKLIST.md                    [工程师]+[AI] 校验清单
       ├── SERVICE_CATALOG.md              [工程师]+[AI] 统一服务目录
       └── ARCHITECTURE.md                 [工程师]+[AI] 核心架构说明（本文件）
 
 Layer 4: 知识类型 4+5 — 网站设计 + AI 编码
-  └─ content/04_web_design/               [工程师]+[AI] 设计理念层（DATA_MODEL/DATA_FLOW/DESIGN_SYSTEM/SOP_WEB/CHECKLIST；已归档文档见 archive/）
+  └─ content/04_web_design/               [工程师]+[AI] 设计理念层（子目录：data/ 数据模型与数据流、design-system/ 全站规范、module/ 页面模块设计、deploy/ 部署与集成、evolution/ 演进契约与评估、archive/ 已归档档案；逐文件清单与一句话说明见 content/04_web_design/README.md）
   └─ content/05_ai_coding/                [工程师]+[AI] AI 编码层（KNOWN_PITFALLS）
 
 Layer 5: 经验沉淀（跨多类知识类型）
@@ -169,17 +168,14 @@ Layer 7: 审计参考层（审计与参考）
 │   │   ├── ARCHITECTURE.md           [工程师]+[AI] 核心架构说明（本文件）
 │   │   ├── 工作模板/                  [用户]+[AI] 经验沉淀辅助提示词
 │   │   └── README.md                 [工程师]+[AI] 文档系统治理层目录索引
-│   ├── 04_web_design/                [工程师]+[AI] 网站设计层（设计理念）
-│   │   ├── DATA_MODEL.md              [工程师]+[AI] 数据模型设计（静态模型权威）
-│   │   ├── DATA_FLOW.md               [工程师]+[AI] 数据流设计（动态数据流权威）
-│   │   ├── DESIGN_SYSTEM.md          [工程师]+[AI] 设计系统规范（哲学/排版/交互/响应式/深色）
-│   │   ├── COLOR_SYSTEM.md           [工程师]+[AI] 色彩系统规范（§二 拆分）
-│   │   ├── COMPONENT_SPEC.md         [工程师]+[AI] 组件规范（§四 拆分）
-│   │   ├── SOP_WEB.md                [工程师]+[AI] SOP 系统指南
-│   │   ├── CHECKLIST.md              [工程师]+[AI] 数据同源一致性校验清单
-│   │   ├── DEPLOYMENT_ROADMAP.md     [工程师]+[AI] 部署落地总览 + 计算中心对接全案
-│   │   ├── DEPLOYMENT_AUTH_MODEL.md  [工程师]+[AI] 部署与认证场景模型
-│   │   └── README.md                 [工程师]+[AI] 网站设计层目录索引
+│   ├── 04_web_design/                [工程师]+[AI] 网站设计层（设计理念与思路档案）
+│   │   ├── data/                      [工程师]+[AI] 数据权威（DATA_MODEL 静态模型 / DATA_FLOW 数据流）
+│   │   ├── design-system/             [工程师]+[AI] 全站通用规范（DESIGN_SYSTEM / COLOR_SYSTEM / COMPONENT_SPEC / CLICK_MAP）
+│   │   ├── module/                    [工程师]+[AI] 页面与模块设计（SOP_WEB / ABOUT_DESIGN_SYSTEM / AGENDA_AND_REFERENCE_DESIGN）
+│   │   ├── deploy/                    [工程师]+[AI] 部署与集成设计（DEPLOYMENT_ROADMAP / DEPLOYMENT_AUTH_MODEL / WECHAT_INTEGRATION / PKU_PARTY_INTEGRATION）
+│   │   ├── evolution/                 [工程师]+[AI] 演进、契约与评估（ARCHITECTURE_EVOLUTION / MODULARIZATION_ASSESSMENT / BLOCK_MANIFEST_CONTRACT / L4_CANVAS_DESIGN / PARTY_COMMITTEE_DESIGN / CHECKLIST）
+│   │   ├── archive/                   [工程师]+[AI] 已归档设计档案（MODULE_UI_DESIGN / ROLE_SSOT_DESIGN，索引见 archive/README.md）
+│   │   └── README.md                 [工程师]+[AI] 网站设计层目录索引（逐文件一句话说明）
 │   ├── 05_ai_coding/                 [工程师]+[AI] AI 编码层
 │   │   ├── KNOWN_PITFALLS.md         [工程师]+[AI] 已知陷阱
 │   │   └── README.md                 [工程师]+[AI] AI 编码层目录索引
@@ -206,43 +202,19 @@ Layer 7: 审计参考层（审计与参考）
 
 ### Activity（活动记录）
 
-数据结构定义于 `docs/src/core/domain.js`（领域层 typedef）。核心字段模型：
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | string | 唯一标识符（id.js 生成） |
-| title | string | 活动标题 |
-| type | string | 活动类型（党小组会/支委会/主题党日/党课/支部党员大会/组织生活会等） |
-| status | string | 活动状态（draft/published/ongoing/completed/cancelled） |
-| visibility | string | 可见范围（branch=全支部 / group=党小组） |
-| date | string | 活动日期 ISO 格式 |
-| domain | string | 领域（activity=党建活动 / organization=组织事务） |
-| scenarioId | string | 关联场景 ID（对应 sopDatabase） |
-| organizer | string | 组织者 personId（由 assignments 主源同步派生，见 services/auth.js） |
-| assignments | object[] | 分工记录（organizer/deep/participant 角色，权限联动主源） |
-| createdBy | string | 创建者用户 ID |
-| createdAt | string | 创建时间 ISO 格式 |
-| isBrand | boolean | 品牌属性标签（书记认定） |
+> **字段级定义见权威源**：[DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md) §2.1（Activity 全量字段主表；status 存储字面值无 `cancelled`，展示态由生命周期派生；组织者由 `assignments` 主源派生）与 [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md)（数据流权威）。本处只记架构语义，不复刻字段表，避免双载体漂移。
 
 mockDB 为唯一数据源，所有视图经 Service 层读取；按角色过滤经 `services/auth.js`（以 `activity.assignments` 为主源，`syncProjectRoles()` 保证与顶层 organizer 一致）。
 
 ### Task（任务）
 
-数据结构定义于 `docs/src/core/domain.js`（typedef + mockDB.tasks）。核心字段：
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | string | 唯一标识符 |
-| activityId | string | 所属活动 ID |
-| title | string | 任务标题 |
-| status | string | 任务状态（pending/in_progress/completed） |
-| createdAt | string | ISO 格式创建时间（审计字段） |
+> **字段级定义见权威源**：[DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md) §2.12（任务数据字段）。任务与所属活动、分工记录的关系同上，UI 不直接操作 `mockDB.tasks`。
 
 ### Storage Model
 
 - **键名**： `workflowos_branch_db_v1`（`localStorage`，见 `docs/src/services/mock.js`）
-- **根结构**： `mockDB = { _schema, users, activities, tasks, attendances, inspections, activityReviews, taskforceReviews, assignments, makeupTasks, notices, todos, imageRecords, ... }`
 - **版本防御**： `loadDB()` 检查 `_schema !== SCHEMA_VERSION` 时拒绝脏数据并 `console.warn`
+- **根结构完整键表见权威源**：[DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md) §4.2.1（存储键/字段/版本校验全量清单），本处不复刻。
 
 ---
 

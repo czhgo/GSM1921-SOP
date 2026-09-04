@@ -2,8 +2,8 @@
 title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-08-19"
-version: "2.3"
+last_updated: "2026-09-04"
+version: "2.4"
 status: active
 related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 ---
@@ -103,12 +103,18 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | `content/04_web_design/design-system/COLOR_SYSTEM.md` | [工程师]+[AI] | 色彩系统规范（色盘/主色/辅助色/中性色/功能色/表面色/配色规则；2026-08-24 自 DESIGN_SYSTEM 拆分） | docs/src/styles.css |
 | `content/04_web_design/design-system/COMPONENT_SPEC.md` | [工程师]+[AI] | 组件规范（按钮/卡片/输入/侧边栏/导航/日历图例/数据展示/图标/选人/状态徽章；2026-08-24 自 DESIGN_SYSTEM 拆分） | docs/src/components/* |
 | `content/04_web_design/module/ABOUT_DESIGN_SYSTEM.md` | [工程师]+[AI] | About 页面设计系统（超参数设定原则/防风格疲劳/无竖线红线） | docs/src/about.css、docs/src/entries/about-entry.js |
+| `content/04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md` | [工程师]+[AI] | 会议议程与资料查询联动设计（会前草案关联/会后少重复录入/单一数据源） | —（草案·待实施 2026-08-31） |
 | `content/04_web_design/evolution/CHECKLIST.md` | [用户]+[AI] | 数据同源一致性校验手册（工程质检流程，按数据类别逐步检查；机器检查+人工检查分工） | DATA_MODEL.md、ARCHITECTURE.md |
 | `content/04_web_design/archive/MODULE_UI_DESIGN.md`（已归档 2026-09-03） | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能，历史结论仍可读） | docs/src/components/calendar.js |
+| `content/04_web_design/archive/ROLE_SSOT_DESIGN.md`（已归档 2026-09-03） | [工程师]+[AI] | 权限功能合一收敛设计（角色权限四处分散声明 → 单一事实源 ROLE_KEYS + 派生；S1~S10 已验收达成） | 替代权威 ROLE_CLASSIFICATION.md §9a0/§9b/§9c + 代码 ROLE_KEYS |
 | `content/04_web_design/module/SOP_WEB.md` | [工程师]+[AI] | SOP 系统优化与同步指南 | CLAUDE.md H30.2 |
 | `content/04_web_design/deploy/DEPLOYMENT_ROADMAP.md` | [工程师]+[AI] | 部署落地总览（四条落地路径 + 计算中心对接全案 + 决策矩阵） | DEPLOYMENT_AUTH_MODEL.md、WECHAT_INTEGRATION.md |
 | `content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md` | [工程师]+[AI] | 北大党校与智慧党建系统对接设计（党校单向爬取 + 智慧党建双向同步 + 数据映射 + 小程序归位说明 + 待确认清单） | DEPLOYMENT_ROADMAP.md、WECHAT_INTEGRATION.md、DATA_MODEL.md |
 | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md` | [工程师]+[AI] | 架构演进（2026-09-03 精简：组件化落地评估历史结论 + §八 拖拽编排远期愿景；评估承接见 MODULARIZATION_ASSESSMENT） | MODULARIZATION_ASSESSMENT.md、DATA_MODEL.md、DATA_FLOW.md、SOP_WEB.md |
+| `content/04_web_design/evolution/MODULARIZATION_ASSESSMENT.md` | [工程师]+[AI] | 模块化/插件化/开源化 100 分评估（统一扎口范式 + 冗余审计去重队列 P0~P2 + 执行状态；2026-09-03） | ARCHITECTURE_EVOLUTION.md、CLAUDE.md（模块化方向唯一权威） |
+| `content/04_web_design/evolution/BLOCK_MANIFEST_CONTRACT.md` | [工程师]+[AI] | L3 工作流块封装契约 v1.1（块差异化三维度 + 契约总则 + manifest 字段定义；2026-09-03 定稿） | docs/src/workflow/blocks/*、server/test/block-*（契约源） |
+| `content/04_web_design/evolution/L4_CANVAS_DESIGN.md` | [工程师]+[AI] | L4 支部工作地图设计稿 v2.1（平铺模块清单 + 按人双视图，书记 2026-09-03 放行编码） | docs/src/entries/tabs/secretary/work-map-tab.js |
+| `content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md` | [工程师]+[AI] | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 书记任命 / P3 上报审批+下发；书记逐段批准） | docs/src/modules/capabilities/party-committee-workspace.js |
 | `content/04_web_design/deploy/DEPLOYMENT_AUTH_MODEL.md` | [工程师]+[AI] | 部署与认证场景模型（5 场景两轴正交 + 侧边栏统一 + 登录门控四层 + 构建注入配置） | docs/src/config/deploy.js、docs/src/components/sidebar.js、docs/src/core/bootstrap.js |
 | `content/04_web_design/deploy/WECHAT_INTEGRATION.md` | [工程师]+[AI] | 微信协同与小程序设计方案（文件流分类+宣传墙/档案分层浏览+过程性汇报集成+小程序路径评估） | DESIGN_SYSTEM.md（原则 10/13）、T-230 |
 | `content/04_web_design/README.md` | [工程师]+[AI] | 网站设计层目录索引 | — |

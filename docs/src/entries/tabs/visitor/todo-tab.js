@@ -4,27 +4,14 @@
 
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260903c';
+import { tryDirectJump } from '../../../components/todo-jump.js?v=20260903c';
 
 // G3 修正（2026-08-08）：参与者视角按钮用金浅底（纯亮金 #FFD700 实底过艳）
 const GOLD_BTN_STYLE = '--acc-bg-dark:rgba(251,191,36,0.16);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.35);background:rgba(255,215,0,0.12);color:#A16207;border:1px solid rgba(255,215,0,0.35);';
 
 function _handleTodoAction(todo) {
-  // 通知类待办：优先跳转通知详情页
-  if (todo.sourceType === 'notice' && todo.actionData?.noticeId) {
-    const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
-    window.location.href = `${basePath}notice.html?id=${todo.actionData.noticeId}`;
-    return;
-  }
-  // 报名审核待办：活动/专班 → 统一详情页（T233）
-  if (todo.actionKey === 'signup-review' || (todo.actionType === 'review' && todo.actionData?.signupId)) {
-    const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
-    const srcId = todo.sourceId || todo.actionData?.sourceId;
-    if (srcId) {
-      const page = srcId.startsWith('tf-') ? 'taskforce.html' : 'activity.html';
-      window.location.href = `${basePath}${page}?id=${srcId}`;
-      return;
-    }
-  }
+  // 直达跳转（通知阅读 / 报名审核 T-233）已收敛于 components/todo-jump.js（2026-09-04）
+  if (tryDirectJump(todo)) return;
   // 根据 actionType 跳转到对应 tab
   const tabMap = {
     read: 'activities',

@@ -129,6 +129,7 @@ export function inspectionToLong(records) {
     sourceType: SOURCE_TYPE_LABELS[r.sourceType] || r.sourceType,
     level: PARTICIPATION_LEVEL_LABELS[r.level] || r.level,
     role: r.role,
+    content: r.content || r.role, // P1-5：content 优先，旧数据以 role 兜底
     status: r.status,
   }));
 }

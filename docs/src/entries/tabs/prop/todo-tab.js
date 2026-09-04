@@ -4,17 +4,12 @@
 
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260903c';
+import { tryDirectJump } from '../../../components/todo-jump.js?v=20260903c';
 import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260903c';
 
 function _handleTodoAction(todo, ctx) {
-  // 通知阅读待办（T-234 F1）：直达通知详情页（聚合时取首条 noticeId）
-  const firstNotice = (todo.items && todo.items[0]) || todo;
-  if (firstNotice.sourceType === 'notice' && (firstNotice.actionData?.noticeId || todo.actionData?.noticeId)) {
-    const noticeId = firstNotice.actionData?.noticeId || todo.actionData?.noticeId;
-    const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
-    window.location.href = `${basePath}notice.html?id=${noticeId}`;
-    return;
-  }
+  // 直达跳转（通知阅读 T-234 F1）已收敛于 components/todo-jump.js（2026-09-04）
+  if (tryDirectJump(todo)) return;
   // 根据 actionType 跳转到对应 tab
   const tabMap = {
     submit: 'tasks',
