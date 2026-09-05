@@ -215,7 +215,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
     const isBrand = !!act.isBrand;
     const brandTag = isBrand ? badgeHtml('品牌', 'brand') : '';
     if (isParticipant) {
-      html += `<div class="inspector-card" data-act-id="${act.id}" style="${isBrand ? 'border-left:3px solid #EAB308;' : ''}">`;
+      html += `<div class="inspector-card" data-act-id="${act.id}" style="${isBrand ? 'border-left:3px solid var(--party-gold);' : ''}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
       html += `<p class=" font-bold text-sm text-gray-800 leading-snug flex-1">${act.title}</p>`;
       html += activityLifecycleBadgeHtml(act, allTasks);
@@ -223,7 +223,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
       html += `<div class="flex items-center gap-1.5">${brandTag}<p class=" text-xs text-gray-400">活动信息 · 点击查看</p></div>`;
       html += '</div>';
     } else {
-      html += `<div class="inspector-card" style="cursor:pointer;${isBrand ? 'border-left:3px solid #EAB308;' : ''}" data-act-id="${act.id}">`;
+      html += `<div class="inspector-card" style="cursor:pointer;${isBrand ? 'border-left:3px solid var(--party-gold);' : ''}" data-act-id="${act.id}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
       html += `<div class="flex items-center gap-1.5 flex-1"><p class=" font-bold text-sm text-gray-800 leading-snug">${act.title}</p>${brandTag}</div>`;
       html += activityLifecycleBadgeHtml(act, allTasks);

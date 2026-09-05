@@ -32,6 +32,13 @@ export function saveAttendanceRecords(records) {
 
 // ── A1 写入门禁（2026-09-05 落代码，操作位语义见 SYSTEM_ROLE_PERMISSION §9b/§9f + CF §C.1a）──
 
+/**
+ * 会议考勤上传位的活动类型（纪检直接上传并录入，CF §C.1a「会议考勤」）。
+ * 开源超参数：默认=本科生党支部口径（党课/党员大会/组织生活会/支委会）；
+ * 党小组会/主题党日归组长·组织者位，不入此列。见 MODULARIZATION_ASSESSMENT §八 P3b。
+ */
+export const MEETING_ATTENDANCE_TYPES = ['党课', '支部党员大会', '组织生活会', '支委会'];
+
 /** 考勤记录是否已闭环锁定（不可由上传侧覆盖）：出勤/已补 = 源头审校已确认；recordedBy 非空 = 纪检已复核 */
 function isAttendanceLocked(r) {
   if (!r) return true;
@@ -52,8 +59,8 @@ export function canUploadAttendance(personId, activityId) {
   const role = (getPersonById(personId) || {}).role;
   if (role === 'secretary' || role === 'deputy-secretary') return true; // 书记/副书记例外承担
   if (role === 'disc-commissioner') {
-    // 纪检：会议考勤上传位（党课/支部党员大会/组织生活会/支委会等会议类，CF §C.1a）；党小组会与主题党日归组长/组织者
-    return ['党课', '支部党员大会', '组织生活会', '支委会'].includes(activity.type);
+    // 纪检：会议考勤上传位（CF §C.1a）；类型清单单源 MEETING_ATTENDANCE_TYPES
+    return MEETING_ATTENDANCE_TYPES.includes(activity.type);
   }
   if (role === 'leader' && activity.type === '党小组会') return true;
   // 该活动组织者（组织者按活动身份，组长兼组织者同）

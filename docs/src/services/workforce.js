@@ -20,13 +20,21 @@ import { fetchVotesStrict } from './committee-vote.js?v=20260903c';
 export const WORKFORCE_PROPOSAL_KIND = 'workforce-proposal';
 
 /**
- * 票决通过判定（支委会议题，2026-09-05 书记裁门槛=从严：2/3 出席且无异议）
+ * 支部默认票决门槛（开源超参数：开源部署方可按支部制度调整；
+ * 默认值 = 本科生党支部 2026-09-05 书记裁决「支委会从严」。见 MODULARIZATION_ASSESSMENT §八 P3a）
+ */
+export const WORKFORCE_VOTE_DEFAULT = { quorum: 2 / 3, vetoOnObject: true };
+
+/**
+ * 票决通过判定（支委会议题，默认门槛=2/3 出席且无异议；可经 opts 覆盖）
  * @param {{ roster?: string[], votes?: Array<{personId?:string, position?:string}> }} input
  *   roster = 应到支委（resolveVoterIds('committee')）；votes = 该活动表态列表
+ * @param {{ quorum?: number, vetoOnObject?: boolean }} [opts] 门槛覆盖（默认 WORKFORCE_VOTE_DEFAULT）
  * @returns {{ status:'pending'|'passed'|'failed', tally:{total,voted,agree,object,comment}, needed:number }}
- *   pending=表态不足（未达 2/3）；failed=有异议；passed=通过
+ *   pending=表态不足；failed=有异议（vetoOnObject）；passed=通过
  */
-export function evaluateWorkforceVotes({ roster = [], votes = [] }) {
+export function evaluateWorkforceVotes({ roster = [], votes = [] }, opts = {}) {
+  const { quorum = WORKFORCE_VOTE_DEFAULT.quorum, vetoOnObject = WORKFORCE_VOTE_DEFAULT.vetoOnObject } = opts;
   const rosterSet = new Set(roster || []);
   const tally = { total: rosterSet.size, voted: 0, agree: 0, object: 0, comment: 0 };
   const seen = new Set();
@@ -38,10 +46,10 @@ export function evaluateWorkforceVotes({ roster = [], votes = [] }) {
     else if (v.position === 'comment') tally.comment += 1;
     else tally.agree += 1; // agree / 其他均按同意计
   });
-  const needed = Math.ceil(tally.total * 2 / 3);
+  const needed = Math.ceil(tally.total * quorum);
   const status = tally.total === 0 || tally.voted < needed
     ? 'pending'
-    : (tally.object > 0 ? 'failed' : 'passed');
+    : (vetoOnObject && tally.object > 0 ? 'failed' : 'passed');
   return { status, tally, needed };
 }
 

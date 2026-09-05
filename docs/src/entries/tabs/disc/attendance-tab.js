@@ -9,7 +9,7 @@
 //   - 条目不得使用浅色底板（书记反感）→ 白底 + 左侧状态色条
 
 import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260903c';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance } from '../../../services/attendance.js?v=20260903c';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES } from '../../../services/attendance.js?v=20260903c';
 import { getPersonName } from '../../../services/person.js?v=20260903c';
 import { solidAccentStyle } from '../../../core/constants.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
@@ -249,7 +249,7 @@ let _queueExpanded = false;
 // A1-2026-09-05：纪检会议考勤录入（CF §C.1a 会议考勤：纪检直接上传并录入）
 let _meetFormVisible = false;
 let _meetPickerInstance = null;
-const MEETING_TYPES = ['党课', '支部党员大会', '组织生活会', '支委会']; // 会议考勤上传位的活动类型（纪检）
+// 会议考勤上传位的活动类型：单源 = services/attendance.js MEETING_ATTENDANCE_TYPES（开源超参数，可调）
 
 function _buildQueueHTML(items, leaveCount, absentCount, overdueCount, autoConfirmedCount, accent, accentBorder, actById) {
   const visible = _queueExpanded ? items : items.slice(0, QUEUE_VISIBLE);

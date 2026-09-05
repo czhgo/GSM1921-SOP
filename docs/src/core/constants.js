@@ -21,7 +21,7 @@ const _TEXT_DARK_MAP = {
   // 表态组件/状态图标补充（d10 全局扫尾：reactions 选中态 / toast 状态色等）
   '#059669': '#34D399', '#DC2626': '#F87171',
   // 强调色补充（主题色个性化可选色中的亮色，本身已亮，深色下保持自身）
-  '#7DD3FC': '#7DD3FC', '#94a3b8': '#94a3b8',
+  '#7DD3FC': '#7DD3FC',
   '#A78BFA': '#C4B5FD', // deep 强调色（violet-400 → 深色提亮至 violet-300，S6 与语义色同源）
 };
 function _hexToRgbStr(hex) {

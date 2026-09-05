@@ -65,7 +65,7 @@ export function dutyCardHtml(prefix) {
   }).join('');
 
   return `
-    <div class="card rounded-xl p-3.5 border-l-4" style="border-left-color:var(--party-gold, #EAB308);">
+    <div class="card rounded-xl p-3.5">
       <div class="flex items-center gap-2 mb-2">
         <p class="font-title-cn text-sm font-bold text-gray-800">支部安排 · 我的分工</p>
         <span class="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">经支委会议题生效</span>

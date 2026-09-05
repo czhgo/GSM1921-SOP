@@ -40,7 +40,7 @@
   --accent-prop-commissioner:#2563EB;  /* 宣传委员 — 海蓝 */
   --accent-disc-commissioner:#C2410C;  /* 纪检委员 — 深橙 */
   --accent-organizer:        #7DD3FC;  /* 组织者 — 亮天蓝 */
-  --accent-deep:             #94a3b8;  /* 深度参与者 — 浅灰蓝 */
+  --accent-deep:             #A78BFA;  /* 深度参与者 — 雾紫（2026-08-29 S6 提亮，替代旧浅灰蓝） */
   --accent-participant:      #CE1126;  /* 普通参与者 — 党建红（打样版 2026-08-01） */
 
   /* ── 角色识别色 — Light 变体（用于 border-left / 浅底色等低饱和场景） ── */
@@ -51,7 +51,7 @@
   --accent-prop-commissioner-light:#93C5FD;  /* blue-300 */
   --accent-disc-commissioner-light:#FDBA74;  /* orange-300 */
   --accent-organizer-light:        #E0F2FE;  /* sky-100 */
-  --accent-deep-light:             #cbd5e1;  /* 浅灰蓝-light */
+  --accent-deep-light:             #C4B5FD;  /* 雾紫-light（violet-300，随主色同步） */
   --accent-participant-light:      #FCA5A5;  /* red-300 */
   --accent-sky:         #0EA5E9;
   --accent-indigo:      #6366F1;
