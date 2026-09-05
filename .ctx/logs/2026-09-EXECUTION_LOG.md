@@ -540,3 +540,11 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **收尾审计结论**（逐项核对书记要求）：①批量考勤单测 ✅（attendance-batch 6 例，commit 9e99fc5）；立项③ 阶段 b（贡献写入 addContributions+org 录入区）、c（创建=pending_review→书记批准 recruiting/驳回 draft+重新提交，复用 _spawnTaskforceApprovalTodo）、d（纪检复盘批量确认，同单行口径 N/M 回执）本轮全部落地。②数据复核 ✅：mock 无 2026-03~06 残留、无「一二三四」数字人名（仅「第二期/五四/七月」等合法词），真人名=书记储子禾/组织高翔宇/纪检董建军/宣传方文静/副书记潘振华。③committee-vote 通知补活动定位锚点：targetUrl 带 activityId 直达书记台对应活动 inspector（避免 type/id 规则把书记误导到 activity.html 丢失记录决议入口），notice.archiveBySource 扩展匹配 targetUrl 活动号——两则书记通知随活动归档不再孤儿。
 **验证**：5/6 新改文件 node 导入 OK（secretary todo-tab 顶层 localStorage 属既有浏览器依赖，GetDiagnostics 零错误）；taskforce addContributions 行为冒烟全过（空白 desc/非成员/不存在拒、批量每人+1、去重、旧数据兼容）；review-tab 顶层导入正常；浏览器交互/目视待常规终端。
 **待办**：全量 npm test（含浏览器 E2E）常规终端复核；「应到名单」权威源待书记裁；README logo/英文占位后续。
+
+---
+
+**T-2026-09-041 滞留党员·应到名单落地 + 弃用 logo（2026-09-06，commit b75681a）**
+**书记裁决（产品/逻辑）**：①不使用 logo（README 维持文字版式，删除 logo 相关待办表述）；②「滞留党员」=关系在·人不在；应到口径=三会+党课统一「党员（正式+预备）非滞留」；标记=状态字段+备注；组织维护+全局剔除；③模块化/插件化/开源化将再评（见下轮发问）。
+**落地**：services/roster.js（getMeetingRoster/getRosterStats/saveResidenceChange 留痕，policy attendance.roster 单一源 partyStages/excludeDetained）；people.js p5/p9 示范滞留（在册党员 21，应到 19）；纪检会议考勤候选/全选收敛应到（支部大会/党课/组织生活会）、滞留徽标+备注、p_pc 不再入候选；组织委员 org「人才库」维护在校/滞留+备注留痕、书记 secretary 概况「滞留复核」卡；domain.js Person @typedef。
+**验证**：roster.test 9/9（口径/滞留排除/列席不计/小组按组/候选=全选/p_pc 剔除/统计/留痕即时生效）+ attendance-batch 6 + roles-sync 4 + policy-sync 5 = 24/24 全绿；GetDiagnostics 零。
+**遗留**：①滞留「可见不可选」用候选剔除+徽标说明（Picker 无逐人禁用，需要另立项）；②线上表决 voterIds 快照与滞留语义兼容（线上不需到场）；③组长小组会表单未接 roster（后续同 util）；④浏览器目视待常规终端。
