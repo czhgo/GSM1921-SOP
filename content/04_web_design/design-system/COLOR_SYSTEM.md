@@ -130,7 +130,7 @@ related_files: [DESIGN_SYSTEM.md, COMPONENT_SPEC.md]
 | `--accent-prop-commissioner` | `#2563EB` | ██ | 宣传委员 | 海蓝系 | 宣传传播 |
 | `--accent-disc-commissioner` | `#C2410C` | ██ | 纪检委员 | 深橙系 | 监督警示 |
 | `--accent-organizer` | `#7DD3FC` | ██ | 组织者 | 亮天蓝系 | 执行核心，分工记录 |
-| `--accent-deep` | `#A78BFA` | ██ | 深度参与者 | 雾紫系 | 承担分工（2026-08-29 T-304 S6 提亮轮改定：由浅灰蓝 `#94a3b8` 改为雾紫 `#A78BFA`，与语义色 `#7C3AED` 同源提亮——见 docs/src/core/constants.js `ACCENT_COLORS.deep`；styles.css :root `--accent-deep` 仍为 `#94a3b8` 历史存量，待收敛） |
+| `--accent-deep` | `#A78BFA` | ██ | 深度参与者 | 雾紫系 | 承担分工（2026-08-29 T-304 S6 提亮轮改定：由浅灰蓝 `#94a3b8` 改为雾紫 `#A78BFA`，与语义色 `#7C3AED` 同源提亮——见 docs/src/core/constants.js `ACCENT_COLORS.deep`；✅ 2026-09-05 已收敛——styles.css :root `--accent-deep`/`--accent-deep-light` 同步雾紫系） |
 | `--accent-participant` | `#A16207`（三件套即主题党日胶囊） | ██ | 普通参与者 | 金色系（金黄） | 「金」主题色即主题党日胶囊：亮金底 `rgba(255,215,0,0.12)` + 金黄字 `#A16207` + 亮金边框 `rgba(255,215,0,0.35)`（2026-08-08 四审改，2026-08-10 裁定"再黄一点"改 #A16207） |
 
 **使用约束**：

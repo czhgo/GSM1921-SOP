@@ -23,7 +23,11 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 | 模块化 | 70 / 100 | 分层与组件积木真实；失分在主评估之后的**冗余/重复批判审计**——微工具（esc/fmtDt）十余份、元数据（类型/阶段）三写、清单（场景/链路）双维护 |
 | 插件化 | 71 / 100 | 注册表单一源做得干净；短在「能力化」多为装饰性转发、tab id 散落导航侧、manifest 消费端手写 blockId、声明的防漂移测试未落地 |
 | 开源化 | 66 / 100 | 本维度按「可复用/可移植性」评估（非对外发布合规）——LICENSE/env 外置/文档就位；缺口=server 登录不验密、18 个明文 123456、无 .env.example 与贡献说明 |
-| **综合** | **≈ 69 / 100** | 最贵的问题不是缺新架构，而是**已存在的重复实现清单**——统一扎口的方向正确，但扎口面只覆盖了组件平铺层，未覆盖工具/元数据/清单层 |
+| 超参数可调性（2026-09-05 新增） | 60 / 100 | 「默认=支部设计」语义未全局声明：部分阈值/类型/名单字面量沉底业务层（票决 2/3、纪检会议类型、上传位例外名单），改一处需要动代码；好例=vote-config/支部 config/设计令牌已参数化 |
+| 模块组合性（2026-09-05 新增） | 68 / 100 | 组合面=能力注册表（台内 tab 固定组合）+ 支部 config.modules/blocks/workforce（实例级启停/归属）+ L3 manifest（主题党日块编排）；失分=模块不自声明「可与谁组合/依赖/互斥」，无插件安装与冲突检测 |
+| **综合 v1** | **≈ 75 / 100** | 首评（模块化 80 / 插件化 72 / 开源化 74） |
+| **综合 v2** | **≈ 69 / 100** | 批判复评（见注 1）——冗余/重复审计拉低模块化至 70 |
+| **综合 v3（含超参数与组合维度）** | **≈ 67 / 100** | 口径最严：五维均值（70/71/66/60/68）；同一架构越检越严，v3 不推翻 v1/v2 结论，新增两维是「开源可部署」视角的显性失分（见 §八） |
 
 > 注 1：上表为 2026-09-03 书记第二轮问询后的**批判性复评**（首评 80/72/74≈75 见 §三）。复评不推翻既有 P0~P2 结论，§七 的冗余审计与去重队列为新增最高优先输入。
 > 注 2（书记 2026-09-03 口径修正）：本仓库是支部自己的内部系统，**.ctx 日志与 references/历史会议材料均为内部资产、保留上传**，不存在"出仓脱敏"需求；§7.1 R12 与 §7.2 P1b 中的出仓子项（脱敏/移出/账号外置/.ctx ignore）**全部撤销**。真正保留的工程项仅是「运行安全」：server 登录不校验密码在多人/计算中心部署时任何人可凭 personId 冒名登录。
@@ -189,3 +193,66 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 > - P2b ✅（R4 首步）：写活动场景选择清单收敛单一源——constants.js 新增 `SCENARIO_WRITE_IDS/SCENARIO_LABELS`（中文名派生自 `ACTIVITY_CLASSIFICATION['three-meetings'].subtypes` 权威序列），decision-tree secretary L1Sub 与 calendar-tab WRITE_TEMPLATES 三会 subtypes 改为派生引用（手写清单删除，渲染色/正交维度等本地属性保留）；`test/scene-write-sync.test.mjs` 3 断言绿（键集=平铺 id、四子会中文名逐序一致、写入 id ⊆ SCENARIO_TO_CATEGORY）。注：SCENARIO_TO_CATEGORY 为模块私有常量，测试文本求值。
 > - P2c ✅（R9 收口；至此去重队列 7/8 全量完成 + P0b 部分完成（2 项复核保留见上），非 8/8 全量）：constants.js 新增 BRANCH_COMMISSION_ROLES/SECRETARY_ROLES/PARTY_STAFF_ROLE/COMMITTEE_IDS（与业务语义「条条三委员 COMMISSIONER_ROLES」明确区分）；前端 services/auth.js 与 server routes/auth/member/committee/resources 五处本地手写角色集/名单全部改为派生引用。`test/roles-sync.test.mjs` 4 断言绿（角色 ∈ ROLE_KEYS、授权/条条语义不混淆、名单=5 人、文本扫描特征串仅存 constants.js）。纯 node 回归 33/33 绿（含鉴权相关 agenda-votes/module-config/workflow-block-config/auth-password）。
 > - 验证：13 个改动文件 GetDiagnostics 零错误；E2E 需在非沙箱终端补跑（`cd server && npm test`）。
+
+---
+
+## 八、超参数可调性与模块组合评估（2026-09-05 第三轮 · 书记开源化问询）
+
+> **定位**：书记问询「既然是开源项目，有些超参数要保留调整空间——我们做的只是**默认设置/本科生党支部自己的设计**；有没有做到模块化，并声明清楚每个模块内部哪些参数可调、模块之间怎么排列组合？」本节为全局评估（覆盖含 A1 权限语义、M2 分工等近期改造板块），口径：**每个默认值都应能回答『这是支部默认，还是制度/合规不可调』**。
+> **受众**：[工程师]+[AI]（架构维护者）+ 书记（方向裁决人）。
+
+### 8.1 超参数可调性 —— 60 / 100
+
+**得分项（好例，参数化或已声明）**：
+
+| 超参数 | 默认（=本科生党支部设置） | 位置 | 调整面 |
+|---|---|---|---|
+| 表决配置 optionSet/voterScope/quorumCheck | deliberative 交流式 / committee 应到 | vote-config.defaultVoteConfig(scenarioId) | 每活动 voteConfig 可覆盖 |
+| 支部 tab/块 启停·排序 | 全开 | branch config.modules/blocks + config-clean 单源净化 | 支部实例级配置 |
+| 分工归属（11 模块） | SOP 缺省责任人 | config.workforce | 支委会议题改派 |
+| 主题色/角色识别色 | 各角色预设 | styles.css `--accent-*` + COLOR_SYSTEM | 侧边栏主题自选（可调）；党建红/党徽金=固定（不可调，已声明） |
+| 考察超期判定 | 7 天 | inspection.getOverdueRecords(daysThreshold=7) | 函数入参（未接 config，半开放） |
+
+**失分项（近期改造亦未带原则，2026-09-05 前）**：
+- 票决门槛 2/3 出席+无异议**硬编码**于 evaluateWorkforceVotes 内部，改门槛须改码（M2 板块）。
+- 纪检会议考勤类型清单**双写**（attendance 服务字面量 + disc tab 本地 const）（A1 板块）。
+- 考勤/考察上传位角色例外名单（书记/副书记例外、组长党小组会、组织者位）为函数内字面量数组。
+- 无「可调参数声明」近码契约：多数默认值没有回答「支部默认 vs 制度固定」，调整点不集中（建议单一 `policy-defaults` 出口 + 每处默认旁注释）。
+- 近期新功能（A1/M2）改动时未把原则带进去——触发本轮。
+
+### 8.2 模块组合性 —— 68 / 100
+
+**组合机制（已存在）**：
+- 能力注册表：`capabilities/*` 自注册，scope→工作台 tab 清单（**台内固定组合的声明面**）。
+- 支部 config：`config.modules`（tab 显隐/排序）、`config.blocks.workflowBlocks`（L3 块启停）、`config.workforce`（分工归属）——**实例级"配置即组合"**；净化单一源 config-clean.js；tab-nav 守卫防隐藏冲突。
+- L3 block manifest：块的 inputs 声明/校验器/渲染桥 = **块级组合契约**（当前落地于主题党日编排）。
+- 场景联动：scenarioId → defaultVoteConfig / 决策树模板（默认组合，可换）。
+
+**失分项**：
+- 模块**不自声明**「可与谁组合/依赖谁/互斥谁」——组合靠 config 白名单与注册顺序隐式成立，无组合矩阵、依赖图或冲突检测（插件安装/卸载不存在）。
+- 能力 `requiredRoles` 门禁未被 workspace-shell 消费（仅元数据），"组合后授权"弱。
+- 工作流块组合目前仅主题党日一处，未覆盖全站（L1→L5 愿景未达）。
+
+### 8.3 声明清楚度（默认=支部语义标注）——含于上两维，判据：代码近旁能否回答"可调/不可调+默认出处"
+
+已达标示例：styles.css（不可变底线注释）、COLOR_SYSTEM（固定/可调四层表）、vote-config（默认场景函数）、config-clean（支部配置单源）。未达标：业务阈值/类型/名单默认出处多数无标注（见 8.1 失分项）。
+
+### 8.4 综合 v3 = **≈ 67 / 100**（五维均值：70 模块化 / 71 插件化 / 66 开源化 / 60 超参数 / 68 组合）
+
+> 口径说明：v1≈75（首评宽松）、v2≈69（批判复评）、v3≈67（新增开源部署双维度）——**同一架构越检越严**；v3 不推翻 v1/v2 的 P0~P2 结论，新增两维指向的行动如下。
+
+### 8.5 行动项（书记据以裁决）
+
+| 项 | 动作 | 状态（2026-09-05） | 验收 |
+|---|---|---|---|
+| P3a | 阈值参数化：票决门槛（quorum/veto）→ 常量默认 + opts 覆盖 | ✅ 已做（WORKFORCE_VOTE_DEFAULT，默认=书记裁 2/3+无异议，可覆盖） | evaluateWorkforceVotes(opts) 用例绿；默认不变 |
+| P3b | 纪检会议考勤类型单源：attendance `MEETING_ATTENDANCE_TYPES` 导出，disc tab 引用（消双写） | ✅ 已做 | 全仓该类型清单无第二份字面量 |
+| P3c | 建立 `core/policy-defaults.js`：业务阈值/名单（上传位例外、超期天数等）集中默认 + 注释「支部默认/制度固定」 | 待办 | 每默认值旁可答"可调/不可调+出处" |
+| P3d | 模块组合声明契约：capabilities/模块元数据补 `depends/combinesWith/exclusive`（草案）＋ config 校验扩展 | 待办（低优先） | 组合矩阵文档化 + 冲突检测测试 |
+| P3e | 色板：styles.css 令牌与 COLOR_SYSTEM 已对齐（固定/可调标注在文件头注释与四层表） | ✅ 2026-09-05（见 §8.6） | 全仓无游离业务色字面量（品牌/角色色一律走令牌） |
+
+### 8.6 色值收敛落地（2026-09-05，可调/不可调双口径）
+
+- **不可调（合规/品牌底线，令牌化）**：党建红 `--party-red #CE1126`、党徽金 `--party-gold #FFD700`——全站走令牌；inspector 品牌卡历史内联 `#EAB308` 已收敛为 `var(--party-gold)`；duty-card 移除越界金边框（金色应用范围=COLOR_SYSTEM 固定清单，不得扩增）。
+- **可调（角色识别层，主题自选）**：`--accent-*` 系列走令牌；深度参与者 `--accent-deep` 由历史存量浅灰蓝 `#94a3b8` 收敛为雾紫 `#A78BFA`（`--accent-deep-light` 同步 `#C4B5FD`），与 COLOR_SYSTEM/constants `ACCENT_COLORS.deep` 三源一致。
+- 权威唯一：COLOR_SYSTEM（文档）↔ styles.css/constants.js（代码）↔ 实现零游离字面量。
