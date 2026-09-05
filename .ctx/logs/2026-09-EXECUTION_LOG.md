@@ -556,3 +556,10 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **评估 v4（MODULARIZATION_ASSESSMENT 覆盖式更新）**：模块化 75 / 插件化 75 / 开源化 74 / 超参数可调性 78 / 组合能力(二开视角) 78 / **综合≈76**（口径回归+新增可换壳证据；失分仍=config 驱动未接、requiredRoles 未消费、拖拽编排未实现、登录缺省弱口令、无 English）。§8.8 行动 P4a✅/P4b 立项④/P4c 立项⑤/P4d 后续。
 **落地**：README「给新组织：30 分钟换壳指南」（5 步：clone 跑→换 mock 数据清单→角色/权限/术语/配色/policy→支部名与分支配置→验证含应到口径与 ?reset=1）；mock-adapter 支持 `?reset=1`（浏览器演示一键回种子：无 API token 才执行、清 workflowos_*/gsm1921-*/sop_org_os_* 与历史遗留键→去参 reload），README 快速开始补说明。
 **验证**：link-integrity L1/L2/L3/L5 全过（L4 EPERM 待常规终端）；mock-adapter node 加载 OK；GetDiagnostics 零。立项④⑤ 已登记 REVIEW_QUEUE 待启动（spec 先行）。
+
+---
+
+**T-2026-09-043 提问准则定稿 + 待办/待决策同步（2026-09-06）**
+**书记原话**：「书记不是决断代码的，而是决断 strategy、product、marketing 的！！这个原则请你务必写入 AI 提问书记的准则中！！要做一个好秘书！！」
+**落地**：CLAUDE.md H60 增「向书记提问/请裁的准则」段（书记决断 strategy/product/marketing；AI 负责代码工程；请裁一律译为战略/产品/运营叙事层选项+上下文+推荐；把决策做薄、把问题做厚；适用 H60 评议/REVIEW_QUEUE 问裁/立项审批/AskUserQuestion）。
+**同步**：全仓待办/待决策总表见会话收尾 NEXT PROMPT；周期任务现状=W3 每周书记内容评议（OPERATIONS_GUIDE §17）+ W4 常态化专项周轮（反论/理论复用/黑话/原话复核/三成本/减负/AI逃逸/功能实现）已存在，待书记发起的为减负⑥轮次与下一评议轮侧重。
