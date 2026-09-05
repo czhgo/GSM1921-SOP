@@ -469,3 +469,11 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - 测试/文档：`server/test/workforce-gate.test.mjs`（判定 4 例 + 合并快照 1 例）5 项全绿；SERVICE_CATALOG 行、BRANCH_WORK_MAP 验收闭环与落地进度标注 2026-09-05。
 **验证**：判定函数隔离自检 PASS；workforce/work-overview/duty-card/panel 导入冒烟 4/4；link-integrity L1/L2/L3/L5 全绿（L4 沙盒 EPERM 可接受）；工作区 clean；spec 已删（gitignored 目录）。
 **遗留**：演示验收闭环（改派发展党员→副书记：发起→表态 2/3→采纳→副书记台履职卡可见）目视复核待浏览器环境（沙盒 L4 不可跑）；「去履职」tab 映射为保守子集，待目视校准。
+
+---
+
+**T-2026-09-034 开源化评估 v3 + 色值收敛（2026-09-05，commits 0264d98/69f674f）**
+**书记问询**：开源项目超参数应保留调整空间——我们做的是默认设置/本支部设计；是否做到模块化并声明"模块内哪些可调、模块间怎么组合"（须百分制评估）；色值收敛同样要区分可调/不可调。
+**评估**（MODULARIZATION_ASSESSMENT §八 第三轮，全局含 A1/M2 近期板块）：**超参数可调性 60/100**（票决 2/3、纪检会议类型、上传位例外名单沉底业务层；好例=vote-config/支部 config/令牌）；**模块组合性 68/100**（组合面=能力注册表+config.modules/blocks/workforce+L3 manifest；失分=模块不自声明依赖/互斥、requiredRoles 未消费）；**综合 v3≈67/100**（五维均值，v1 75/v2 69 口径递严不推翻）。行动 P3a/P3b/P3e 本日落地，P3c（policy-defaults 集中默认）P3d（组合声明契约）待办。
+**落地**：①票决门槛参数化 `WORKFORCE_VOTE_DEFAULT{quorum:2/3,vetoOnObject:true}`（默认=书记裁，opts 可覆盖）；②纪检会议考勤类型单源 `MEETING_ATTENDANCE_TYPES`（attendance 导出、disc tab 引用，消双写）；③色值收敛：inspector `#EAB308`→`var(--party-gold)`（2 处，文档标记已收敛）；styles.css `--accent-deep` #94a3b8→#A78BFA、`--accent-deep-light`→#C4B5FD；constants 暗色恒等映射清旧灰蓝死码；duty-card 移除越界金边框（金色范围=COLOR_SYSTEM 固定清单）。可调/不可调双口径记入 §8.6（不可调=党建红/党徽金令牌；可调=角色主题色）。
+**验证**：workforce-gate 5/5 绿；veto 开关 opts 隔离自检（vetoOn false→passed / true→failed）；导入冒烟 4/5（disc tab 浏览器模块 window 依赖为既有限制）；link-integrity L1/L2/L3/L5 绿（L4 EPERM 可接受）；工作区 clean。
