@@ -10,7 +10,7 @@
 
 import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260903c';
 import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES } from '../../../services/attendance.js?v=20260903c';
-import { getPersonName } from '../../../services/person.js?v=20260903c';
+import { getPersonName, PersonStore } from '../../../services/person.js?v=20260903c';
 import { solidAccentStyle } from '../../../core/constants.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260903c';
@@ -159,6 +159,24 @@ export function renderContent(ctx) {
   if (_meetFormVisible) {
     _initMeetForm(container, accent);
   }
+  // 全选支部成员 / 清空（纪检批量录入·方案A 2026-09-06）：picker 无内置全选，按支部成员名单 setSelected
+  container.querySelector('#disc-meet-select-all')?.addEventListener('click', () => {
+    if (!_meetPickerInstance) return;
+    const allIds = PersonStore.getMembers().map(p => p.id);
+    _meetPickerInstance.setSelected(allIds);
+    _renderDiscMeetStatusRows(allIds);
+    showToast('info', `已全选支部成员 ${allIds.length} 人，可逐人调整状态后提交`);
+  });
+  container.querySelector('#disc-meet-clear')?.addEventListener('click', () => {
+    if (!_meetPickerInstance) return;
+    _meetPickerInstance.clearSelection();
+    _renderDiscMeetStatusRows([]);
+  });
+  // 纪检更正：切换活动后按该活动已录记录重渲染逐人状态行（保留已选人员与状态调整）
+  container.querySelector('#disc-meet-activity')?.addEventListener('change', () => {
+    const ids = _meetPickerInstance ? _meetPickerInstance.getSelected() : [];
+    _renderDiscMeetStatusRows(ids);
+  });
   container.querySelector('#disc-meet-submit')?.addEventListener('click', () => {
     const activityId = container.querySelector('#disc-meet-activity')?.value;
     if (!activityId) { showToast('error', '请选择会议活动'); return; }
@@ -172,17 +190,18 @@ export function renderContent(ctx) {
       status: (container.querySelector(`#disc-meet-status-${pid}`)?.value) || AttendanceStatus.PRESENT,
       overdue: false,
     }));
-    const res = upsertMeetingAttendance({ actorId, records });
-    if (res.added > 0) {
+    // 纪检更正（方案A）：overwrite=true 允许覆盖本人已录记录；回执按 新增/更正/跳过 分项
+    const res = upsertMeetingAttendance({ actorId, records }, { overwrite: true });
+    if (res.added > 0 || res.updated > 0) {
       records.forEach(r => autoGenerateMakeupTask(r));
-      showToast('success', `会议考勤录入成功 ${res.added} 条（纪检直接确认）${res.skipped ? `；${res.skipped} 条已存在跳过` : ''}`);
+      showToast('success', `会议考勤提交成功：新增 ${res.added} · 更正 ${res.updated} · 跳过 ${res.skipped}（纪检直接确认/更正）`);
       // 提交成功后才重置会话（收起表单、销毁 picker、清空已选）
       _meetFormVisible = false;
       if (_meetPickerInstance) { _meetPickerInstance.destroy(); _meetPickerInstance = null; }
       renderContent(ctx);
     } else {
-      // 无新增（提交未成功）：保留会话与已选，供改选活动/人员后再次提交
-      showToast('error', res.skipped > 0 ? '无新增：所选人员均已录过该会议考勤' : '没有可录入的记录');
+      // 无可写入（提交未成功）：保留会话与已选，供改选活动/人员后再次提交
+      showToast('error', res.skipped > 0 ? '无可写入：所选均为他人权威已录记录（不可覆盖）或无上传权限的活动' : '没有可录入的记录');
     }
   });
 
@@ -341,7 +360,13 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
           </select>
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">参会人员（逐人状态） <span class="text-red-500">*</span></label>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs text-gray-500 block font-medium">参会人员（逐人状态） <span class="text-red-500">*</span></label>
+            <div class="flex gap-2">
+              <button type="button" id="disc-meet-select-all" class="text-[11px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;">全选支部成员</button>
+              <button type="button" id="disc-meet-clear" class="text-[11px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;">清空</button>
+            </div>
+          </div>
           <div id="disc-meet-picker"></div>
         </div>
       </div>
@@ -350,7 +375,7 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
         <button id="disc-meet-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="${accentStyle}cursor:pointer;">提交录入</button>
         <button id="disc-meet-cancel" class="text-sm px-4 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
-      <div class="mt-3 text-[11px] text-gray-400">纪检直接录入即确认（recordedBy=纪检）；同人同活动已有记录自动跳过</div>`;
+      <div class="mt-3 text-[11px] text-gray-400">纪检直接录入即确认（recordedBy=纪检）；已录条目将覆盖（纪检更正）· 新增与更正计数见提交回执</div>`;
     body = `<div id="disc-meet-body">${bodyInner}</div>`;
   }
 
@@ -374,28 +399,49 @@ function _initMeetForm(container, accent) {
     mode: 'multi',
     placeholder: '选择参会人员',
     accentColor: accent,
+    stageBatch: true, // 支持「按阶段批量选择」（正式党员/预备党员/发展对象/积极分子），便于批量录入
     onSelect: (ids) => { _renderDiscMeetStatusRows(ids); },
   });
   _meetPickerInstance.render(pickerContainer);
   _renderDiscMeetStatusRows([]);
 }
 
+/** 逐人状态下拉候选项（会议考勤三态；「已补」仅当已录原状态为已补时追加，保证预填不改原值） */
+const MEET_STATUS_OPTIONS = [
+  { value: AttendanceStatus.PRESENT, label: '出勤' },
+  { value: AttendanceStatus.ABSENT, label: '缺勤' },
+  { value: AttendanceStatus.LEAVE, label: '请假' },
+];
+
 function _renderDiscMeetStatusRows(selectedIds) {
   const rowsContainer = document.getElementById('disc-meet-status-rows');
   if (!rowsContainer) return;
   if (selectedIds.length === 0) { rowsContainer.innerHTML = ''; return; }
+  // 纪检更正（方案A 2026-09-06）：按当前选中活动加载已录记录——已录者状态下拉预填原状态（行尾标「已录·更正」），未录者默认出勤
+  const activityId = document.getElementById('disc-meet-activity')?.value;
+  const existStatusByPerson = new Map(
+    loadAttendanceRecords()
+      .filter(r => r.activityId === activityId)
+      .map(r => [r.personId, r.status])
+  );
   rowsContainer.innerHTML = `
     <div class="text-xs font-bold text-gray-600 mb-2">逐人出勤状态</div>
     <div class="space-y-2 max-h-48 overflow-y-auto">
-      ${selectedIds.map(pid => `
+      ${selectedIds.map(pid => {
+        const preStatus = existStatusByPerson.get(pid);
+        const options = [...MEET_STATUS_OPTIONS];
+        if (preStatus && !options.some(o => o.value === preStatus)) {
+          options.push({ value: preStatus, label: ATTENDANCE_STATUS_LABELS[preStatus] || preStatus });
+        }
+        return `
         <div class="flex items-center gap-3 p-2 rounded-lg bg-white">
           <span class="text-sm font-medium text-gray-800 min-w-[60px]">${getPersonName(pid)}</span>
           <select id="disc-meet-status-${pid}" class="input-flat">
-            <option value="${AttendanceStatus.PRESENT}">出勤</option>
-            <option value="${AttendanceStatus.ABSENT}">缺勤</option>
-            <option value="${AttendanceStatus.LEAVE}">请假</option>
+            ${options.map(o => `<option value="${o.value}" ${(preStatus || AttendanceStatus.PRESENT) === o.value ? 'selected' : ''}>${o.label}</option>`).join('')}
           </select>
-        </div>`).join('')}
+          ${preStatus ? '<span class="text-[10px] text-amber-600 whitespace-nowrap">已录·更正</span>' : ''}
+        </div>`;
+      }).join('')}
     </div>`;
 }
 

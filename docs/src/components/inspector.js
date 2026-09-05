@@ -19,6 +19,11 @@ import { PersonStore } from '../services/person.js?v=20260903c';
 import { statusBadgeHtml, bindStatusBadge, badgeHtml } from './badges.js?v=20260903c';
 import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260903c';
 import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260903c';
+// 议程行内编辑纯函数（2026-09-06 复用激活）：createEditableAgenda 整对象投影随行保留扩展字段；
+// normalizeEditedAgenda 保存时 {...原对象, item/host} 重建并剔空行——修复编辑丢 id/配置/结果的数据安全事故
+import { createEditableAgenda, normalizeEditedAgenda } from '../services/agenda-editing.js?v=20260903c';
+// 议程更新后通知全员（活动锚定，targetType/targetId 供归档联动）
+import { NoticeStore } from '../services/notice.js?v=20260903c';
 import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260903c';
 import { optionSetOf, resolveVoterIds, OPTION_SETS } from '../services/vote-config.js?v=20260903c';
 import { renderVoteSummary } from './vote-summary-panel.js?v=20260903c';
@@ -969,12 +974,26 @@ function renderInspectorDetail(activity, tasks, managementRole) {
 
 // ════════════════════════════════════════════════════════════════
 //  会议议程行内编辑（T-283：三会一课；书记修改议程，保存→persist→重渲染）
+//  数据安全（2026-09-06 点验结论）：编辑仅覆盖每行议程项的 item/host 文本，
+//  完整原对象（id/kinds/branchDocId/personIds/fromStage/toStage/result/recordedBy/recordedAt）
+//  按原 index 随行保留——保存时 {...原对象, item, host} 重建，杜绝清空结构化配置、
+//  抹掉已记录结果、丢失 item.id 使 agendaVotes 关联失效（票成孤儿/记录按钮失效）。
+//  投影/规范化纯函数复用 services/agenda-editing.js（原为死代码，本次接线激活）。
 // ════════════════════════════════════════════════════════════════
 function _startAgendaEdit(activity, cardsEl, tasks, managementRole) {
   const block = cardsEl.querySelector('#agenda-block');
   if (!block) return;
-  const current = (Array.isArray(activity.agenda) ? activity.agenda : [])
-    .map(a => ({ item: a.item || '', host: a.host || '' }));
+  // 编辑态行数据 = 议程项完整对象（createEditableAgenda 整对象投影，保留 id/扩展字段/结果字段），
+  // DOM 行顺序恒等于本数组 index：删除=splice 真删该对象；新增=push 新对象。
+  const current = createEditableAgenda(Array.isArray(activity.agenda) ? activity.agenda : []);
+
+  // 该行是否含结构化扩展配置（讨论文件/待讨论名单，含旧单值 kind/personId 兼容）：
+  // 是 → 编辑只改文本，配置与已记录结果原样保留（渲染只读提示，不提供配置编辑入口）
+  const _hasStructuredCfg = (a) => !!(a && (
+    (Array.isArray(a.kinds) && a.kinds.length > 0)
+    || (Array.isArray(a.personIds) && a.personIds.length > 0)
+    || a.branchDocId || a.kind || a.personId || a.fromStage || a.toStage
+  ));
 
   const renderEditor = () => {
     let html = '<div class="flex items-center justify-between mb-1.5"><p class="text-xs text-gray-400">编辑会议议程</p></div>';
@@ -987,32 +1006,38 @@ function _startAgendaEdit(activity, cardsEl, tasks, managementRole) {
     block.innerHTML = html;
 
     const list = block.querySelector('#agenda-edit-list');
+    // DOM → current 同步：重建/保存前读回已输入文本（仅覆盖 item/host，扩展字段不动，
+    // 防添加/删除重建时丢失未保存的输入——T-283 判例）
+    const syncFromDom = () => {
+      const rows = [...list.children].filter(c => c.classList.contains('agenda-edit-row'));
+      rows.forEach((row, i) => {
+        if (current[i]) {
+          current[i].item = row.querySelector('.agenda-edit-item')?.value || '';
+          current[i].host = row.querySelector('.agenda-edit-host')?.value || '';
+        }
+      });
+    };
     const refreshRows = () => {
-      // 同步：重建前从当前 DOM 读回已输入值（T-283 判例：添加/删除重建曾丢失 fill 的输入）
-      const existingRows = [...list.children].filter(c => c.classList.contains('agenda-edit-row'));
-      if (existingRows.length > 0) {
-        existingRows.forEach((row, i) => {
-          if (current[i]) {
-            current[i].item = row.querySelector('.agenda-edit-item')?.value || '';
-            current[i].host = row.querySelector('.agenda-edit-host')?.value || '';
-          }
-        });
-      }
+      syncFromDom();
       if (current.length === 0) {
         list.innerHTML = '<p class="text-xs text-gray-400 py-1">暂无议程，点击「添加议程」填写</p>';
         return;
       }
+      // 行模板仅编辑 item/host 文本；含讨论文件/待讨论名单配置的行在输入区下方给只读提示
       list.innerHTML = current.map((a) => `
-        <div class="agenda-edit-row flex items-center gap-1.5">
-          <input type="text" class="agenda-edit-item input-flat w-full text-xs" value="${a.item}" placeholder="议题">
-          <input type="text" class="agenda-edit-host input-flat w-24 text-xs" value="${a.host}" placeholder="主持人">
-          <button type="button" class="agenda-edit-del text-gray-300 hover:text-red-500 text-sm px-1 shrink-0" style="cursor:pointer;">✕</button>
+        <div class="agenda-edit-row">
+          <div class="flex items-center gap-1.5">
+            <input type="text" class="agenda-edit-item input-flat w-full text-xs" value="${a.item}" placeholder="议题">
+            <input type="text" class="agenda-edit-host input-flat w-24 text-xs" value="${a.host}" placeholder="主持人">
+            <button type="button" class="agenda-edit-del text-gray-300 hover:text-red-500 text-sm px-1 shrink-0" style="cursor:pointer;" title="删除该议程（连同其讨论文件/待讨论名单配置）">✕</button>
+          </div>
+          ${_hasStructuredCfg(a) ? '<div class="agenda-edit-ext text-[10px] text-amber-700 pl-1 mt-0.5 leading-snug" title="该议程的讨论文件/待讨论名单配置及已记录结果将原样保留，本次仅可修改议题/主持人文本">该议程含讨论文件/待讨论名单配置，将原样保留</div>' : ''}
         </div>`).join('');
       list.querySelectorAll('.agenda-edit-del').forEach((btn) => {
         btn.addEventListener('click', () => {
           const row = btn.closest('.agenda-edit-row');
           const idx = [...list.children].indexOf(row);
-          if (idx > -1) current.splice(idx, 1);
+          if (idx > -1) current.splice(idx, 1); // 真删该项：id/扩展字段/已记录结果一并移除
           refreshRows();
         });
       });
@@ -1020,7 +1045,7 @@ function _startAgendaEdit(activity, cardsEl, tasks, managementRole) {
     refreshRows();
 
     block.querySelector('#agenda-edit-add').addEventListener('click', () => {
-      current.push({ item: '', host: '' });
+      current.push({ item: '', host: '' }); // 新增普通文本行（无原项可保留，保持既有无 id 语义）
       refreshRows();
       list.lastElementChild?.querySelector('.agenda-edit-item')?.focus();
     });
@@ -1028,17 +1053,25 @@ function _startAgendaEdit(activity, cardsEl, tasks, managementRole) {
       renderInspectorDetail(activity, tasks, managementRole);
     });
     block.querySelector('#agenda-edit-save').addEventListener('click', async () => {
-      const rows = [...block.querySelectorAll('.agenda-edit-row')];
-      const next = rows
-        .map((row) => ({
-          item: row.querySelector('.agenda-edit-item')?.value?.trim() || '',
-          host: row.querySelector('.agenda-edit-host')?.value?.trim() || '',
-        }))
-        .filter((a) => a.item);
+      // 先同步 DOM 已填文本，再规范化保存：逐行 {...完整原对象, item/host trim}，
+      // 剔除空 item 行（新加未填行自动忽略）；原对象的 id/result/扩展字段全部保留
+      syncFromDom();
+      const next = normalizeEditedAgenda(current);
       try {
         const updated = await BranchService.updateActivity(activity.id, { agenda: next });
         persist();
         showToast('success', '会议议程已更新');
+        // 通知全员（不加 actionRoles = 全员可见；活动锚定 targetType/targetId 供归档联动）
+        try {
+          NoticeStore.add({
+            title: `「${activity.title}」议程已更新`,
+            content: '议程已更新，可查看最新议程',
+            targetType: 'activity',
+            targetId: activity.id,
+          });
+        } catch (ne) {
+          console.warn('[inspector] 议程更新通知发送失败（不影响保存）：', ne);
+        }
         renderInspectorDetail(updated, tasks, managementRole);
       } catch (e) {
         showToast('error', '议程保存失败：' + ((e && e.message) || '未知错误'));

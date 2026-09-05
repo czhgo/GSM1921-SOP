@@ -105,15 +105,24 @@ function renderActivity(id) {
   const assignments = Array.isArray(act.assignments) ? act.assignments : [];
   const canSignup = _canSignup('activity', act);
 
-  // 线上异步表决区（AV4.5 公共入口：党员/委员端）——voteConfig.mode==='async' 且
-  // 已登录、议程含可表决项（须有 id）才渲染；canVote 由固化应到名单 voteConfig.voterIds 判定
-  // （预备党员等在 formal-only 名单外 → 只读提示「仅应到表决人可表态」）。
+  // 会议议程区（2026-09-06 点验修复①）：渲染条件放宽为「activity.agenda 存在且 length>0」——
+  // 此前议程只随线上异步表决区（voteConfig.mode==='async'）渲染，导致「支部党员大会」等
+  // 线下活动的议程在 activity.html 完全不显示。现两种形态：
+  //  ① 表决形态（async + 已登录 + 议程含 id 项）→ 保留现有逐条表决挂载（canVote 由固化
+  //     应到名单 voteConfig.voterIds 判定，名单外登录人由表决组件提示「仅应到表决人可表态」）；
+  //  ② 只读形态（线下活动 / async 但未登录或议程无 id 项）→ 只读议程列表，不渲染投票。
+  // 空议程不显示。
   const voterIds = (act.voteConfig && Array.isArray(act.voteConfig.voterIds)) ? act.voteConfig.voterIds : [];
   const canVote = !!currentUser && voterIds.includes(currentUser.personId);
-  const voteAgenda = Array.isArray(act.agenda) ? act.agenda.filter(a => a && a.id) : [];
-  let asyncVoteHtml = '';
-  if (currentUser && act.voteConfig?.mode === 'async' && voteAgenda.length > 0) {
-    asyncVoteHtml = `
+  const agendaList = Array.isArray(act.agenda) ? act.agenda.filter(a => a && a.item) : [];
+  const voteAgenda = agendaList.filter(a => a && a.id);
+  const isAsyncVote = !!currentUser && act.voteConfig?.mode === 'async' && voteAgenda.length > 0;
+  const agendaResultBadge = (r) => (r
+    ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${r === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${r === 'passed' ? '已通过' : '未通过'}</span>`
+    : '');
+  let agendaAreaHtml = '';
+  if (isAsyncVote) {
+    agendaAreaHtml = `
     <!-- 议程与表决（AV4.5：线上异步表决） -->
     <div id="async-vote-section" class="mt-6">
       <h3 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2 flex-wrap">
@@ -134,6 +143,28 @@ function renderActivity(id) {
               </div>
             </div>
             <div class="vote-widget-slot" data-vote-item-id="${esc(a.id)}"></div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  } else if (agendaList.length > 0) {
+    // 只读议程列表（线下活动等非表决场景）：item + host + result 徽标；kinds 从略，不渲染投票
+    agendaAreaHtml = `
+    <!-- 会议议程（只读列表：线下活动 / async 未达表决挂载条件） -->
+    <div id="agenda-readonly-section" class="mt-6">
+      <h3 class="text-sm font-semibold text-gray-700 mb-3">会议议程</h3>
+      <div class="space-y-3">
+        ${agendaList.map((a, i) => `
+          <div class="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+            <div class="flex items-start gap-2 text-sm">
+              <span class="text-xs text-gray-400 flex-shrink-0 w-5 pt-0.5">${i + 1}.</span>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-sm font-medium text-gray-700">${esc(a.item)}</span>
+                  ${agendaResultBadge(a.result)}
+                </div>
+                ${a.host ? `<div class="text-xs text-gray-400 mt-0.5">（主持人：${esc(a.host)}）</div>` : ''}
+              </div>
+            </div>
           </div>`).join('')}
       </div>
     </div>`;
@@ -169,7 +200,7 @@ function renderActivity(id) {
     <!-- 报名名单 -->
     ${renderSignupList({ sourceType: 'activity', sourceId: act.id, signups, myId })}
 
-    ${asyncVoteHtml}
+    ${agendaAreaHtml}
 
     <!-- 参与人员（assignments） -->
     <div class="mt-6">

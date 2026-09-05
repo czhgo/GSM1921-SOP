@@ -511,3 +511,13 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - ③CLAUDE.md:131 测试计数改动态口径；SNAPSHOT 树注释去固定计数（v18 里程碑行=历史记录保留）；SNAPSHOT 全量 v19 刷新（旧名清理）仍挂 .ctx 运行时层。
 - ④面板保态：检查要点固化入 REVIEW_QUEUE 附录⑧（2026-09-05 面板保态检查要点 + 术语纪律提醒）；附录⑥候选 2-4 标注书记批与进度；版本串纪律要点误删已补回。
 **验证**：roles-sync 4/4 绿（矩阵↔代码键同步完好）；permission-gate 3 项 401 系沙盒无 live server 登录（E2E 限制非本次改动）；link-integrity L1/L2/L3/L5 绿（L4 EPERM 可接受）。
+
+---
+
+**T-2026-09-038 六场景功能点验 + 考勤批量/更正 + 议程安全与可见锚点（2026-09-05）**
+**书记输入**：点验 ①支委会表决 ②打磨议程 ③发布大会 ④上传大会考勤 ⑤创建活动通知 ⑥专班进度介入 六场景完整性与操作减负；考勤是否「逐个点」→ 批量怎么批（/goal + brainstorming + dogfood；dogfood 浏览器工具沙盒 EPERM 受限，采用代码级点验 + 待常规终端目视）。
+**点验结论（代码证据全记录于 REVIEW_QUEUE 附录⑧ 轮次记录/检查要点）**：①闭环但委员端无自然投票入口/通知无直达/公共页不见讨论文件/draft 即可表决；②有数据事故缺口（编辑丢结构化字段与 item.id→票孤儿，agenda-editing.js 死代码）；③半可用（线下大会议程成员不可见、无发布态）；④链路可用但逐人贵（50 人≈55+ 击，服务层已幂等具备批量前提）；⑤秘书闭环但通知无 activity 锚点、组长无成员通知；⑥主干可用但专班无进度字段/贡献无写入→解散门槛恒阻塞/待审核空壳。
+**书记裁定**：考勤=方案A（全选批量）+纪检更正入口；修复②③⑤① 本轮；⑥专班=另立项分批。
+**落地（并行 3 子代理）**：①activity-view 支委表决槽+只读议程（复用 vote-widget，canVote=voterIds）；②inspector 议程编辑接线 agenda-editing.js（保存保留 id/kinds/result/扩展字段）+ 保存后活动锚定通知；③activity.html 对含议程活动恒定渲染议程区 + decision-tree/calendar 通知补 activity 锚点（直达/邮件定向/随活动归档）；④会议考勤 Picker stageBatch+全选支部成员+已录预填原状态，upsertMeetingAttendance 增 opts.overwrite（同权威可覆盖，返回 added/updated/skipped 分项回执，默认语义不变）。
+**验证**：attendance 行为冒烟 4 例全对（新增/默认 skip 旧语义/本人权威覆盖/他人权威拒盖）；inspector 行为冒烟 5 断言全对（删行+空行剔除+字段全保留）；GetDiagnostics 全零；node --check 通过；浏览器目视待常规终端。
+**遗留**：立项③专班专项（a-d 阶段+应到名单权威源待裁）；通知锚点未覆盖 committee-vote 表态进度/截止提醒（同型待补，已登记检查要点）。

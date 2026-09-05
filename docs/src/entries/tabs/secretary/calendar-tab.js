@@ -1111,7 +1111,8 @@ async function handleSubmitActivity() {
       agenda,
     };
     if (voteConfig) activityData.voteConfig = voteConfig;
-    const { taskCount } = await writeActivityWithSOP(activityData, scenarioId, date);
+    // 2026-09-06 点验修复③：取 create 返回值拿刚创建的活动 id（预拟通知绑定 targetType/targetId）
+    const { activity, taskCount } = await writeActivityWithSOP(activityData, scenarioId, date);
     showToast('success', `活动写入成功，已生成 ${taskCount} 个任务节点`);
 
     // 4. 渲染工作流可视化面板
@@ -1128,6 +1129,10 @@ async function handleSubmitActivity() {
         publishDate: new Date().toISOString().slice(0, 10),
         expireDate: date,
         targetModule: 'activity',
+        // 2026-09-06 点验修复③：补 targetType/targetId（刚创建的活动 id）→ 点击直达
+        // activity.html 详情；服务端邮件可定向到参与人；活动归档时通知随之一并归档
+        targetType: 'activity',
+        targetId: activity.id,
         read: false,
       });
       showToast('success', '已自动发布通知');

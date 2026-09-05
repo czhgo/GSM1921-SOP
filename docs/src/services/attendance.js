@@ -74,22 +74,43 @@ export function canUploadAttendance(personId, activityId) {
 
 /**
  * 纪检会议考勤直接录入（上传位即确认，recordedBy=纪检；CF §C.1a 会议考勤：上传/修改/确认/录入）
- * 同人同活动已有记录（含待复核异常）→ 跳过（不可覆盖已有记录，改走纪检确认界面）
- * @returns {{ added: number, skipped: number }}
+ * - 默认（不传 opts.overwrite）：同人同活动已有记录（含待复核异常）→ 跳过（不可覆盖已有记录，改走纪检确认界面）
+ * - 纪检更正（opts.overwrite=true，书记已批方案A 2026-09-06）：
+ *   批量上传时，若该 (activityId,personId) 已有记录且为本人权威所录（recordedBy===actorId，即纪检本人
+ *   此前经会议考勤位录入/确认），按本次状态覆盖更正，并写 updatedBy/updatedAt；
+ *   他人权威所录记录仍跳过（不可覆盖非本人录入，改走纪检确认界面）。
+ * @param {Object} params
+ * @param {string} params.actorId 操作人（纪检本人）
+ * @param {Array}  params.records 待录入记录（含 personId/activityId/status）
+ * @param {Object} [opts={}]     可选参数
+ * @param {boolean} [opts.overwrite=false] true=纪检更正模式：允许覆盖本人已录记录
+ * @returns {{ added: number, updated: number, skipped: number }}
  */
-export function upsertMeetingAttendance({ actorId, records = [] }) {
-  const res = { added: 0, skipped: 0 };
+export function upsertMeetingAttendance({ actorId, records = [] }, opts = {}) {
+  const res = { added: 0, updated: 0, skipped: 0 };
   if (!actorId || !Array.isArray(records) || records.length === 0) return res;
+  const overwrite = !!opts.overwrite;
   const all = loadAttendanceRecords();
   records.forEach(r => {
     if (!r.personId || !r.activityId) return;
     if (!canUploadAttendance(actorId, r.activityId)) { res.skipped += 1; return; }
     const exist = all.find(x => x.personId === r.personId && x.activityId === r.activityId);
-    if (exist) { res.skipped += 1; return; }
+    if (exist) {
+      // 纪检更正（方案A）：仅同一权威（recordedBy===纪检本人）的已录记录可覆盖更正；他人权威仍跳过
+      if (overwrite && exist.recordedBy === actorId) {
+        exist.status = r.status;
+        exist.updatedBy = actorId;
+        exist.updatedAt = new Date().toISOString();
+        res.updated += 1;
+      } else {
+        res.skipped += 1;
+      }
+      return;
+    }
     all.push({ ...r, submittedBy: actorId, recordedBy: actorId, overdue: false });
     res.added += 1;
   });
-  if (res.added > 0) saveAttendanceRecords(all);
+  if (res.added > 0 || res.updated > 0) saveAttendanceRecords(all);
   return res;
 }
 

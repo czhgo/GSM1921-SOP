@@ -362,6 +362,11 @@ function _broadcastActivityCreated(activity) {
       title: '活动已创建，请建核心群',
       content: `「${activity.title || '新活动'}」已创建（${orgName}）。请前往微信群建立核心群（按党小组组长工作手册 §6 拉齐成员、发送开场说明），现场协调在微信群进行，资料归档与交接在系统完成。`,
       priority: 'normal',
+      // 2026-09-06 点验修复②：通知绑定来源活动（targetType/targetId）→ 点击直达
+      // activity.html 活动详情；服务端邮件可按 targetId 定向到参与人；活动归档时随
+      // NoticeStore.archiveBySource 一并归档（targetUrl 保留作兜底）。
+      targetType: 'activity',
+      targetId: activity.id,
       targetUrl: 'workspace/leader.html',
     });
   } catch (e) {

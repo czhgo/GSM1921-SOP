@@ -6,11 +6,15 @@
 
 import { getAppState, setState } from '../core/state.js?v=20260903c';
 import { renderCalendarByActivities } from './calendar.js?v=20260903c';
-import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast } from '../core/utils.js?v=20260903c';
+import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc } from '../core/utils.js?v=20260903c';
 import { badgeHtml } from './badges.js?v=20260903c';
 import { ROLE_COLORS, dotDarkVars } from '../core/constants.js?v=20260903c';
 import { activityLifecycleBadgeHtml } from './inspector.js?v=20260903c';
 import { getPersonById } from '../services/person.js?v=20260903c';
+import { AuthStore } from '../services/auth.js?v=20260903c';
+import { fetchVotes } from '../services/committee-vote.js?v=20260903c';
+// 表决组件（AV4.5 公共端：复用 activity.html 同款 renderVoteWidget，授权按 voterIds 判定）
+import { renderVoteWidget } from './vote-widget.js?v=20260903c';
 
 // 任务状态元数据（状态点 + 文案，轻量自包含，避免依赖 status-badge 全家桶）
 const _TASK_STATUS_META = {
@@ -126,6 +130,39 @@ function _renderDetail(state, activities, tasks, highlightId) {
   }
   const actTasks = tasks.filter(t => t.activityId === act.id);
 
+  // 会议议程（2026-09-06 点验修复④）：知情权组件（委员/组长工作台）补议程展示与表决支持——
+  // ① async + 议程含 id 项：逐条议程（item + host + 表决组件，复用 vote-widget renderVoteWidget，
+  //    canVote 由 voteConfig.voterIds 判定，名单外登录人 → 组件内只读提示「仅应到表决人可表态」）；
+  // ② 线下（非 async）或议程无 id 项：只读议程列表（item + host + result 徽标），不渲染投票；
+  // ③ 空议程不显示。
+  const agendaList = Array.isArray(act.agenda) ? act.agenda.filter(a => a && a.item) : [];
+  const voteAgenda = agendaList.filter(a => a && a.id);
+  const viewer = AuthStore.getCurrentUser();
+  const actVoterIds = (act.voteConfig && Array.isArray(act.voteConfig.voterIds)) ? act.voteConfig.voterIds : [];
+  const canVote = !!viewer && actVoterIds.includes(viewer.personId);
+  const isAsyncVote = !!viewer && act.voteConfig?.mode === 'async' && voteAgenda.length > 0;
+  const resultBadgeHtml = (r) => (r
+    ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${r === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${r === 'passed' ? '已通过' : '未通过'}</span>`
+    : '');
+  const agendaHtml = agendaList.length === 0 ? '' : `
+    <div class="pt-3 border-t border-gray-100">
+      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2 flex items-center gap-1.5 flex-wrap">会议议程${isAsyncVote ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium text-amber-700 bg-amber-50">线上异步表决</span>' : ''}</h5>
+      <ol id="av-agenda-list" class="space-y-1.5">
+        ${agendaList.map((a, i) => `
+          <li class="flex items-start gap-1.5 text-xs">
+            <span class="text-gray-400 flex-shrink-0 w-4">${i + 1}.</span>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-gray-700">${esc(a.item)}</span>
+                ${resultBadgeHtml(a.result)}
+              </div>
+              ${a.host ? `<div class="text-gray-400 mt-0.5">（主持人：${esc(a.host)}）</div>` : ''}
+              ${isAsyncVote && a.id ? `<div class="vote-widget-slot" data-vote-item-id="${esc(a.id)}"></div>` : ''}
+            </div>
+          </li>`).join('')}
+      </ol>
+    </div>`;
+
   panel.innerHTML = `
     <h4 class="font-title-cn text-sm font-bold text-gray-800 mb-3">${act.title || '未命名活动'}</h4>
     <div class="flex flex-wrap gap-1.5 mb-3">
@@ -139,6 +176,7 @@ function _renderDetail(state, activities, tasks, highlightId) {
       ${act.brandName ? `<p><span class="text-gray-400">品牌：</span>${act.brandName}</p>` : ''}
       ${act.description ? `<p class="pt-1"><span class="text-gray-400">内容：</span>${act.description}</p>` : ''}
     </div>
+    ${agendaHtml}
     <div class="pt-3 border-t border-gray-100">
       <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">任务节点</h5>
       ${actTasks.length === 0 ? '<p class="text-xs text-gray-400">暂无任务节点</p>' : `
@@ -156,4 +194,33 @@ function _renderDetail(state, activities, tasks, highlightId) {
       `}
     </div>
   `;
+
+  // 表决组件挂载（复用 vote-widget.js，同 activity-entry.js 的用法）：
+  // fetchVotes 全量拉取 → 逐条议程渲染；vote-submitted 冒泡（detail.agendaItemId）→ 重拉该条
+  // 并重绘（支持覆盖表态/多议程各自刷新）。监听挂在 #av-agenda-list（每次渲染为全新节点，
+  // 监听随旧节点回收，避免挂到常驻 #av-detail-panel 上造成多次渲染累积监听）。
+  if (isAsyncVote) {
+    const agendaOl = panel.querySelector('#av-agenda-list');
+    if (agendaOl) {
+      const renderAllVoteWidgets = async () => {
+        const votes = await fetchVotes(act.id);
+        agendaOl.querySelectorAll('.vote-widget-slot').forEach(slot => {
+          const item = voteAgenda.find(x => x.id === slot.dataset.voteItemId);
+          if (item) renderVoteWidget(slot, { activity: act, agendaItem: item, votes, currentUserId: viewer.personId, canVote });
+        });
+      };
+      renderAllVoteWidgets().catch(e => console.warn('[activity-view] 表态数据加载失败：', e));
+      agendaOl.addEventListener('vote-submitted', (e) => {
+        const itemId = e.detail?.agendaItemId;
+        const slot = itemId ? agendaOl.querySelector(`[data-vote-item-id="${CSS.escape(itemId)}"]`) : null;
+        if (!slot) return;
+        fetchVotes(act.id)
+          .then(votes => {
+            const item = voteAgenda.find(x => x.id === itemId);
+            if (item) renderVoteWidget(slot, { activity: act, agendaItem: item, votes, currentUserId: viewer.personId, canVote });
+          })
+          .catch(err => console.warn('[activity-view] 表态刷新失败：', err));
+      });
+    }
+  }
 }
