@@ -10,7 +10,7 @@
 //
 // 说明：
 // - 登录必须走账号密码表单（#student-id / #password），不走 dev 卡片（devLogin 不产生 API token）。
-// - 合法账号 2300010001/123456 → personId 'p13'（党支部书记 沈一），p13 在种子 users 表中。
+// - 合法账号 2300010001/123456 → personId 'p13'（党支部书记 储子禾），p13 在种子 users 表中。
 // - fresh browser context 下 localStorage 为空：登录页不会因已登录自动跳转；
 //   首页首次加载会触发 CODE_VERSION 自检 reload 一次，sessionStorage（含 API token）在 reload 间保留。
 //

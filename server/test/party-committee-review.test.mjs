@@ -121,7 +121,7 @@ test('P3 支部上报审批闭环：发展节点批准 + 活动报备驳回（�
   const partyPage = await newPage();
 
   try {
-    // ── ① 书记（沈一 p13）登录书记工作台 → 上报党委 tab → 发起发展节点上报 ──
+    // ── ① 书记（储子禾 p13）登录书记工作台 → 上报党委 tab → 发起发展节点上报 ──
     await loginAs(branchPage, { studentId: '2300010001', expectUrlPart: 'secretary.html' });
     await activateTab(branchPage, '上报党委');
     await waitForBodyText(branchPage, '支部 → 党委 双向治理通道');

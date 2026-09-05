@@ -112,11 +112,11 @@ test('C2 书记查看活动详情：进入工作台后 ≤2 次点击可见', as
     await click(page.locator('.secretary-tab-btn[data-secretary-tab="calendar"]'), 'Tab「活动管理」');
     await page.waitForSelector('#month-selector', { timeout: 10000 });
 
-    // 切月份到 2026-06（act-15 所在月）：原生 select 被 cs-select 自定义下拉替换，
+    // 切月份到 2026-07（act-15 所在月）：原生 select 被 cs-select 自定义下拉替换，
     // 直接设值 + dispatch change（测试环境设置，不计点击）
     await page.evaluate(() => {
       const sel = document.getElementById('month-selector');
-      sel.value = '2026-06';
+      sel.value = '2026-07';
       sel.dispatchEvent(new Event('change', { bubbles: true }));
     });
     await page.waitForSelector('.cal-activity-item[data-act-id="act-15"]', { timeout: 10000 });

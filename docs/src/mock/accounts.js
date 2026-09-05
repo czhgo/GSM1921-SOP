@@ -1,15 +1,16 @@
 // role: [工程师]+[AI]
 // mock/accounts.js — Mock 登录账号（模拟 IAAA 校验）
+// 2026-09-06 基线刷新：注释中 p1~p15 显示名与 people.js 同步（书记=储子禾 p13）
 
 export const MOCK_ACCOUNTS = [
-  { studentId: '2300010001', password: '123456', personId: 'p13' },  // 书记 沈一
-  { studentId: '2300010002', password: '123456', personId: 'p14' },  // 副书记 陆二
-  { studentId: '2400012355', password: '123456', personId: 'p11' },  // 组织委员 杨十四
-  { studentId: '2400012356', password: '123456', personId: 'p12' },  // 宣传委员 林十五
-  { studentId: '2400012354', password: '123456', personId: 'p10' },  // 纪检委员 陈十三
-  { studentId: '2400012345', password: '123456', personId: 'p1'  },  // 组长 张三
-  { studentId: '2400012346', password: '123456', personId: 'p2'  },  // 组长 李四
-  { studentId: '2400012349', password: '123456', personId: 'p5'  },  // 普通成员 钱七
+  { studentId: '2300010001', password: '123456', personId: 'p13' },  // 书记 储子禾
+  { studentId: '2300010002', password: '123456', personId: 'p14' },  // 副书记 潘振华
+  { studentId: '2400012355', password: '123456', personId: 'p11' },  // 组织委员 高翔宇
+  { studentId: '2400012356', password: '123456', personId: 'p12' },  // 宣传委员 方文静
+  { studentId: '2400012354', password: '123456', personId: 'p10' },  // 纪检委员 董建军
+  { studentId: '2400012345', password: '123456', personId: 'p1'  },  // 组长 罗文杰
+  { studentId: '2400012346', password: '123456', personId: 'p2'  },  // 组长 郭子睿
+  { studentId: '2400012349', password: '123456', personId: 'p5'  },  // 普通成员 宋佳宁
   // === T4.4 补充角色切换样本（2026-07-16）===
   { studentId: '2500010012', password: '123456', personId: 'p26' },  // 积极分子 朱欣怡（D-240 organizer 候选）
   { studentId: '2500010010', password: '123456', personId: 'p24' },  // 预备党员 曹雅婷

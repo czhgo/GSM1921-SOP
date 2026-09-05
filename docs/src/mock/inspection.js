@@ -7,39 +7,41 @@
 
 // 数据域接线批次二（2026-09-03）：展示格式化 inspectionToDisplay/Long/Wide 已提升至 services/inspection.js；
 // 本文件退化为纯考察种子数据仓。
+// 2026-09-06 基线刷新：recordedAt 随关联活动/专班时间轴同步平移（活动新日期见 activities.js 头注）；
+//   注释中旧人名同步（与 people.js 一致）。
 import { ParticipationLevel, SourceType } from '../core/domain.js?v=20260903c';
 
 export const INSPECTION_RECORDS = [
   // ── 活动考察记录 ──────────────────────────────────────────
-  // act-3: 3月主题党日：学习两会精神（组织者: 王五 p3）
-  { id: 'insp-1', sourceType: SourceType.ACTIVITY, activityId: 'act-3',  sourceName: null, personId: 'p3',  level: ParticipationLevel.ORGANIZE,         role: '策划+全流程统筹',     recordedBy: 'p1',  recordedAt: '2026-03-22T10:00:00', status: 'pending' },
-  { id: 'insp-2', sourceType: SourceType.ACTIVITY, activityId: 'act-3',  sourceName: null, personId: 'p8',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '视频制作',           recordedBy: 'p3',  recordedAt: '2026-03-22T10:05:00', status: 'pending' },
-  { id: 'insp-3', sourceType: SourceType.ACTIVITY, activityId: 'act-3',  sourceName: null, personId: 'p9',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '新闻稿撰写',         recordedBy: 'p3',  recordedAt: '2026-03-22T10:10:00', status: 'pending' },
+  // act-3: 7月主题党日：学习两会精神（组织者: 何晓峰 p3）
+  { id: 'insp-1', sourceType: SourceType.ACTIVITY, activityId: 'act-3',  sourceName: null, personId: 'p3',  level: ParticipationLevel.ORGANIZE,         role: '策划+全流程统筹',     recordedBy: 'p1',  recordedAt: '2026-07-03T10:00:00', status: 'pending' },
+  { id: 'insp-2', sourceType: SourceType.ACTIVITY, activityId: 'act-3',  sourceName: null, personId: 'p8',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '视频制作',           recordedBy: 'p3',  recordedAt: '2026-07-03T10:05:00', status: 'pending' },
+  { id: 'insp-3', sourceType: SourceType.ACTIVITY, activityId: 'act-3',  sourceName: null, personId: 'p9',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '新闻稿撰写',         recordedBy: 'p3',  recordedAt: '2026-07-03T10:10:00', status: 'pending' },
 
-  // act-7: 4月主题党日：红色基地参访（组织者: 王五 p3）
-  { id: 'insp-4', sourceType: SourceType.ACTIVITY, activityId: 'act-7',  sourceName: null, personId: 'p3',  level: ParticipationLevel.ORGANIZE,         role: '路线规划+车辆协调',   recordedBy: 'p1',  recordedAt: '2026-04-15T08:00:00', status: 'pending' },
-  { id: 'insp-5', sourceType: SourceType.ACTIVITY, activityId: 'act-7',  sourceName: null, personId: 'p12', level: ParticipationLevel.DEEP_PARTICIPATE, role: '宣传素材采集',       recordedBy: 'p3',  recordedAt: '2026-04-15T08:05:00', status: 'pending' },
+  // act-7: 7月主题党日：红色基地参访（组织者: 何晓峰 p3）
+  { id: 'insp-4', sourceType: SourceType.ACTIVITY, activityId: 'act-7',  sourceName: null, personId: 'p3',  level: ParticipationLevel.ORGANIZE,         role: '路线规划+车辆协调',   recordedBy: 'p1',  recordedAt: '2026-07-04T08:00:00', status: 'pending' },
+  { id: 'insp-5', sourceType: SourceType.ACTIVITY, activityId: 'act-7',  sourceName: null, personId: 'p12', level: ParticipationLevel.DEEP_PARTICIPATE, role: '宣传素材采集',       recordedBy: 'p3',  recordedAt: '2026-07-04T08:05:00', status: 'pending' },
 
-  // act-10: 5月主题党日：五四精神传承（组织者: 王五 p3）
-  { id: 'insp-6', sourceType: SourceType.ACTIVITY, activityId: 'act-10', sourceName: null, personId: 'p3',  level: ParticipationLevel.ORGANIZE,         role: '全流程策划+现场主持', recordedBy: 'p1',  recordedAt: '2026-05-18T09:00:00', status: 'pending' },
-  { id: 'insp-7', sourceType: SourceType.ACTIVITY, activityId: 'act-10', sourceName: null, personId: 'p8',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '视频拍摄+剪辑',       recordedBy: 'p3',  recordedAt: '2026-05-18T09:05:00', status: 'pending' },
-  { id: 'insp-8', sourceType: SourceType.ACTIVITY, activityId: 'act-10', sourceName: null, personId: 'p9',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '新闻稿撰写+排版',     recordedBy: 'p3',  recordedAt: '2026-05-18T09:10:00', status: 'pending' },
+  // act-10: 7月主题党日：五四精神传承（组织者: 何晓峰 p3）
+  { id: 'insp-6', sourceType: SourceType.ACTIVITY, activityId: 'act-10', sourceName: null, personId: 'p3',  level: ParticipationLevel.ORGANIZE,         role: '全流程策划+现场主持', recordedBy: 'p1',  recordedAt: '2026-07-13T09:00:00', status: 'pending' },
+  { id: 'insp-7', sourceType: SourceType.ACTIVITY, activityId: 'act-10', sourceName: null, personId: 'p8',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '视频拍摄+剪辑',       recordedBy: 'p3',  recordedAt: '2026-07-13T09:05:00', status: 'pending' },
+  { id: 'insp-8', sourceType: SourceType.ACTIVITY, activityId: 'act-10', sourceName: null, personId: 'p9',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '新闻稿撰写+排版',     recordedBy: 'p3',  recordedAt: '2026-07-13T09:10:00', status: 'pending' },
 
-  // act-12: 校企共建座谈：光华 x 中信证券（组织者: 杨十四 p11）
-  { id: 'insp-9',  sourceType: SourceType.ACTIVITY, activityId: 'act-12', sourceName: null, personId: 'p11', level: ParticipationLevel.ORGANIZE,         role: '嘉宾邀请+议程设计',   recordedBy: 'p13', recordedAt: '2026-05-20T14:00:00', status: 'pending' },
-  { id: 'insp-10', sourceType: SourceType.ACTIVITY, activityId: 'act-12', sourceName: null, personId: 'p10', level: ParticipationLevel.DEEP_PARTICIPATE, role: '现场记录+纪要整理',   recordedBy: 'p11', recordedAt: '2026-05-20T14:05:00', status: 'pending' },
+  // act-12: 校企共建座谈：光华 x 中信证券（组织者: 高翔宇 p11）
+  { id: 'insp-9',  sourceType: SourceType.ACTIVITY, activityId: 'act-12', sourceName: null, personId: 'p11', level: ParticipationLevel.ORGANIZE,         role: '嘉宾邀请+议程设计',   recordedBy: 'p13', recordedAt: '2026-07-14T14:00:00', status: 'pending' },
+  { id: 'insp-10', sourceType: SourceType.ACTIVITY, activityId: 'act-12', sourceName: null, personId: 'p10', level: ParticipationLevel.DEEP_PARTICIPATE, role: '现场记录+纪要整理',   recordedBy: 'p11', recordedAt: '2026-07-14T14:05:00', status: 'pending' },
 
   // ── 专班考察记录 ──────────────────────────────────────────
-  // 宣传专班（第二期）（p9 冯十二 — tf-001 实际成员）
-  { id: 'insp-11', sourceType: SourceType.TASKFORCE, activityId: null, sourceName: '宣传专班（第二期）', personId: 'p9',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '文案撰写',           recordedBy: 'p1',  recordedAt: '2026-04-01T09:00:00', status: 'pending' },
-  // 共建座谈对接专班（p10 陈十三 — tf-004 实际成员）
-  { id: 'insp-12', sourceType: SourceType.TASKFORCE, activityId: null, sourceName: '共建座谈对接专班', personId: 'p10', level: ParticipationLevel.DEEP_PARTICIPATE, role: 'PPT设计',            recordedBy: 'p11', recordedAt: '2026-04-10T10:00:00', status: 'pending' },
+  // 宣传专班（第二期）（p9 吕思涵 — tf-001 实际成员）
+  { id: 'insp-11', sourceType: SourceType.TASKFORCE, activityId: null, sourceName: '宣传专班（第二期）', personId: 'p9',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '文案撰写',           recordedBy: 'p1',  recordedAt: '2026-07-07T09:00:00', status: 'pending' },
+  // 共建座谈对接专班（p10 董建军 — tf-004 实际成员）
+  { id: 'insp-12', sourceType: SourceType.TASKFORCE, activityId: null, sourceName: '共建座谈对接专班', personId: 'p10', level: ParticipationLevel.DEEP_PARTICIPATE, role: 'PPT设计',            recordedBy: 'p11', recordedAt: '2026-07-09T10:00:00', status: 'pending' },
 
   // ── 各发展阶段人员考察记录（补齐书记全局概况"发展与考察"阶段人数）──
-  // 积极分子（p7 周九 / p15 吴十 / p18 谢晓东 / p26 朱欣怡）— 参与积极分子座谈会
-  { id: 'insp-13', sourceType: SourceType.ACTIVITY, activityId: 'act-18', sourceName: null, personId: 'p7',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '发言准备',           recordedBy: 'p11', recordedAt: '2026-05-25T10:00:00', status: 'pending' },
-  { id: 'insp-14', sourceType: SourceType.ACTIVITY, activityId: 'act-18', sourceName: null, personId: 'p15', level: ParticipationLevel.DEEP_PARTICIPATE, role: '会议记录',           recordedBy: 'p11', recordedAt: '2026-05-25T10:05:00', status: 'pending' },
-  { id: 'insp-15', sourceType: SourceType.ACTIVITY, activityId: 'act-18', sourceName: null, personId: 'p18', level: ParticipationLevel.DEEP_PARTICIPATE, role: '学习心得分享',       recordedBy: 'p11', recordedAt: '2026-05-25T10:10:00', status: 'pending' },
+  // 积极分子（p7 曾雨桐 / p15 丁嘉懿 / p18 谢晓东 / p26 朱欣怡）— 参与积极分子座谈会
+  { id: 'insp-13', sourceType: SourceType.ACTIVITY, activityId: 'act-18', sourceName: null, personId: 'p7',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '发言准备',           recordedBy: 'p11', recordedAt: '2026-07-17T10:00:00', status: 'pending' },
+  { id: 'insp-14', sourceType: SourceType.ACTIVITY, activityId: 'act-18', sourceName: null, personId: 'p15', level: ParticipationLevel.DEEP_PARTICIPATE, role: '会议记录',           recordedBy: 'p11', recordedAt: '2026-07-17T10:05:00', status: 'pending' },
+  { id: 'insp-15', sourceType: SourceType.ACTIVITY, activityId: 'act-18', sourceName: null, personId: 'p18', level: ParticipationLevel.DEEP_PARTICIPATE, role: '学习心得分享',       recordedBy: 'p11', recordedAt: '2026-07-17T10:10:00', status: 'pending' },
   // 积极分子 7月座谈会（act-22）：p26 朱欣怡
   { id: 'insp-16', sourceType: SourceType.ACTIVITY, activityId: 'act-22', sourceName: null, personId: 'p26', level: ParticipationLevel.DEEP_PARTICIPATE, role: '发言准备+反馈收集',  recordedBy: 'p11', recordedAt: '2026-07-28T10:00:00', status: 'pending' },
   // 预备党员（p17 顾文博 / p20 韩雨欣 / p24 曹雅婷）— 参与7月主题党日：深化改革（act-21）

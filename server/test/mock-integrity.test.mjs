@@ -174,10 +174,11 @@ function auditLifecycle(data) {
     const act = actById(t.activityId);
     if (act && act.status === 'completed' && t.status !== 'completed') issues.push(`[lifecycle] 已完成活动 ${t.activityId} 有关联任务未完成 ${t.id}(${t.status})`);
   }
-  // 4. 考勤关联活动必须已发生（书记 2026-08-05 规则：已生成考勤的活动日期须已发生）
+  // 4. 考勤关联活动必须已发生（书记 2026-08-05 规则：已生成考勤的活动日期须已发生；
+  //    2026-09-06 基线刷新：锚点由 2026-08-05 调整至「今天」2026-09-05）
   for (const att of data.ATTENDANCE_RECORDS) {
     const act = actById(att.activityId);
-    if (act && act.date > '2026-08-05' && act.status !== 'cancelled') issues.push(`[lifecycle] 未来活动 ${att.activityId}(${act.date}) 已有考勤 ${att.id}`);
+    if (act && act.date > '2026-09-05' && act.status !== 'cancelled') issues.push(`[lifecycle] 未来活动 ${att.activityId}(${act.date}) 已有考勤 ${att.id}`);
   }
   // 5. signups/archive 引用源存在
   const tfIds = new Set(data.MOCK_TASKFORCES.map(t => t.id));

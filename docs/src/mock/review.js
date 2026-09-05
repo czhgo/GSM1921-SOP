@@ -5,6 +5,8 @@
 
 // 数据域接线批次二（2026-09-03）：展示格式化 reviewToDisplay 已提升至 services/review.js；
 // 本文件退化为纯复盘种子数据仓。
+// 2026-09-06 基线刷新：时间字段随关联活动重排（活动新日期见 activities.js 头注）同步平移，
+//   正文中旧人名/月份词同步更新（人名与 people.js 一致）。
 import { ReviewStatus } from '../core/domain.js?v=20260903c';
 
 /**
@@ -17,7 +19,7 @@ import { ReviewStatus } from '../core/domain.js?v=20260903c';
  * - 未提交：活动完成但组织者尚未提交复盘
  */
 export const REVIEW_RECORDS = [
-  // ── 3 月活动复盘（已确认） ─────────────────────────────
+  // ── 7 月上旬活动复盘（已确认） ─────────────────────────────
   {
     id: 'rev1',
     activityId: 'act-1',
@@ -25,9 +27,9 @@ export const REVIEW_RECORDS = [
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.CONFIRMED,
-    reviewContent: '3月党小组会围绕新学期支部工作计划展开，第一党小组全员到齐，讨论充分。会议形成三条具体行动项，已分别落实至各支委。',
-    submittedAt: '2026-03-16T10:00:00',
-    confirmedAt: '2026-03-17T09:30:00',
+    reviewContent: '7月党小组会围绕新学期支部工作计划展开，第一党小组全员到齐，讨论充分。会议形成三条具体行动项，已分别落实至各支委。',
+    submittedAt: '2026-07-02T10:00:00',
+    confirmedAt: '2026-07-03T09:30:00',
   },
   {
     id: 'rev2',
@@ -36,9 +38,9 @@ export const REVIEW_RECORDS = [
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.CONFIRMED,
-    reviewContent: '3月支委会完成本月各项决议审议，重点讨论春季党员发展工作节奏。会议议定4月启动积极分子考察程序。',
-    submittedAt: '2026-03-19T14:00:00',
-    confirmedAt: '2026-03-20T11:00:00',
+    reviewContent: '7月支委会完成本月各项决议审议，重点讨论下半年党员发展工作节奏。会议议定8月启动新一轮积极分子考察程序。',
+    submittedAt: '2026-07-03T14:00:00',
+    confirmedAt: '2026-07-04T11:00:00',
   },
   {
     id: 'rev3',
@@ -47,12 +49,12 @@ export const REVIEW_RECORDS = [
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.UPLOADED,
-    reviewContent: '3月主题党日"学习两会精神"为品牌活动首场，参与度高，深度参与者郑十一、冯十二的视频和新闻稿反响良好。建议下月品牌活动延续此类深度参与机制。',
+    reviewContent: '7月主题党日"学习两会精神"为品牌活动首场，参与度高，深度参与者彭博文、吕思涵的视频和新闻稿反响良好。建议下月品牌活动延续此类深度参与机制。',
     issues: ['品牌活动深度参与机制需固化延续'],
-    submittedAt: '2026-03-23T10:00:00',
+    submittedAt: '2026-07-04T10:00:00',
   },
 
-  // ── 4 月活动复盘（覆盖已上传/批注中/已打回 三态） ──────
+  // ── 7 月上旬活动复盘（覆盖已上传/批注中/已打回 三态） ──────
   {
     id: 'rev4',
     activityId: 'act-4',
@@ -60,8 +62,8 @@ export const REVIEW_RECORDS = [
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.UPLOADED,
-    reviewContent: '4月党小组会完成本月学习任务，第一党小组讨论积极分子培养路径。会议记录已上传。',
-    submittedAt: '2026-04-13T16:00:00',
+    reviewContent: '7月党小组会完成本月学习任务，第一党小组讨论积极分子培养路径。会议记录已上传。',
+    submittedAt: '2026-07-07T16:00:00',
   },
   {
     id: 'rev5',
@@ -70,12 +72,12 @@ export const REVIEW_RECORDS = [
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.ANNOTATING,
-    reviewContent: '4月支委会审议本月积极分子考察结果，议定5月支部党员大会议程。各项决议已落实至承办委员。',
-    annotation: '请补充积极分子 p7 周九的考察材料清单，明确材料缺失项。',
+    reviewContent: '7月支委会审议本月积极分子考察结果，议定7月支部党员大会议程。各项决议已落实至承办委员。',
+    annotation: '请补充积极分子 p7 曾雨桐的考察材料清单，明确材料缺失项。',
     annotatedBy: 'p10',
-    annotatedAt: '2026-04-17T10:00:00',
+    annotatedAt: '2026-07-09T10:00:00',
     issues: ['积极分子 p7 考察材料清单缺失'],
-    submittedAt: '2026-04-16T14:00:00',
+    submittedAt: '2026-07-08T14:00:00',
   },
   {
     id: 'rev6',
@@ -84,9 +86,9 @@ export const REVIEW_RECORDS = [
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.UPLOADED,
-    reviewContent: '4月党课"新时代青年担当"由书记主讲，参与度高，深度参与者林十五完成宣传稿。课后讨论环节延长至 40 分钟，建议后续党课预留更多讨论时间。',
+    reviewContent: '7月党课"新时代青年担当"由书记主讲，参与度高，深度参与者方文静完成宣传稿。课后讨论环节延长至 40 分钟，建议后续党课预留更多讨论时间。',
     issues: ['党课课后讨论时间不足，需预留更多'],
-    submittedAt: '2026-04-26T10:00:00',
+    submittedAt: '2026-07-10T10:00:00',
   },
   {
     id: 'rev7',
@@ -95,15 +97,15 @@ export const REVIEW_RECORDS = [
     progress: '超时',
     overdue: true,
     reviewStatus: ReviewStatus.REJECTED,
-    reviewContent: '4月主题党日红色基地参访复盘（初稿）。',
-    annotation: '复盘材料缺失：① 参访人员名单与签到表 ② 现场影像记录 ③ 深度参与者 p9 冯十二的工作量记录。请补充完整后重新提交。',
+    reviewContent: '7月主题党日红色基地参访复盘（初稿）。',
+    annotation: '复盘材料缺失：① 参访人员名单与签到表 ② 现场影像记录 ③ 深度参与者 p9 吕思涵的工作量记录。请补充完整后重新提交。',
     annotatedBy: 'p10',
-    annotatedAt: '2026-04-22T11:00:00',
+    annotatedAt: '2026-07-11T11:00:00',
     issues: ['参访材料缺失：人员名单与签到表、现场影像、深度参与者工作量记录'],
-    submittedAt: '2026-04-21T10:00:00',
+    submittedAt: '2026-07-10T10:00:00',
   },
 
-  // ── 5 月活动复盘（覆盖已确认/批注中/未提交） ───────────
+  // ── 7 月中旬活动复盘（覆盖已确认/批注中/未提交） ───────────
   {
     id: 'rev8',
     activityId: 'act-8',
@@ -111,8 +113,8 @@ export const REVIEW_RECORDS = [
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.UPLOADED,
-    reviewContent: '5月支部党员大会完成本月各项决议审议，重点讨论预备党员接收工作。会议议定6月启动支部大会讨论接收预备党员程序。',
-    submittedAt: '2026-05-11T15:00:00',
+    reviewContent: '7月支部党员大会完成本月各项决议审议，重点讨论预备党员接收工作。会议议定9月启动支部大会讨论接收预备党员程序。',
+    submittedAt: '2026-07-12T15:00:00',
   },
   {
     id: 'rev9',
@@ -121,12 +123,12 @@ export const REVIEW_RECORDS = [
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.ANNOTATING,
-    reviewContent: '5月主题党日"五四精神传承"为品牌活动第二场，深度参与者郑十一、冯十二完成视频制作与新闻稿撰写。本次活动引入校企共建元素，效果良好。',
+    reviewContent: '7月主题党日"五四精神传承"为品牌活动第二场，深度参与者彭博文、吕思涵完成视频制作与新闻稿撰写。本次活动引入校企共建元素，效果良好。',
     annotation: '建议补充品牌活动培育路径说明，体现"培育→成熟→标杆"四阶段中的当前阶段。',
     annotatedBy: 'p10',
-    annotatedAt: '2026-05-20T09:00:00',
+    annotatedAt: '2026-07-15T09:00:00',
     issues: ['品牌活动培育路径说明缺失'],
-    submittedAt: '2026-05-19T16:00:00',
+    submittedAt: '2026-07-14T16:00:00',
   },
   {
     id: 'rev10',
@@ -135,8 +137,8 @@ export const REVIEW_RECORDS = [
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.UPLOADED,
-    reviewContent: '校企共建座谈"光华 x 中信证券"为品牌活动第三场，深度参与者陈十三完成现场记录与考勤统计。座谈形成 3 项后续合作意向，已转共建对接专班跟进。',
-    submittedAt: '2026-05-23T10:00:00',
+    reviewContent: '校企共建座谈"光华 x 中信证券"为品牌活动第三场，深度参与者董建军完成现场记录与考勤统计。座谈形成 3 项后续合作意向，已转共建对接专班跟进。',
+    submittedAt: '2026-07-17T10:00:00',
   },
   {
     id: 'rev11',
@@ -162,9 +164,9 @@ export const TASKFORCE_REVIEW_RECORDS = [
     progress: '进行中',
     overdue: false,
     reviewStatus: ReviewStatus.UPLOADED,
-    reviewContent: '宣传专班（第二期）5月宣传任务完成情况：深度报道 2 篇、专题视频 1 部。视频制作周期略长于预期，建议下期专班预留更多后期时间。',
+    reviewContent: '宣传专班（第二期）7月宣传任务完成情况：深度报道 2 篇、专题视频 1 部。视频制作周期略长于预期，建议下期专班预留更多后期时间。',
     issues: ['视频制作周期长于预期，需预留更多后期时间'],
-    submittedAt: '2026-05-21T14:00:00',
+    submittedAt: '2026-07-18T14:00:00',
   },
   {
     id: 'tfrev2',
@@ -174,8 +176,8 @@ export const TASKFORCE_REVIEW_RECORDS = [
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.CONFIRMED,
-    reviewContent: '共建座谈对接专班完成"光华 x 中信证券"座谈全流程筹备与执行，深度参与者陈十三完成现场记录与考勤统计。座谈形成 3 项后续合作意向。',
-    submittedAt: '2026-05-23T10:00:00',
-    confirmedAt: '2026-05-24T15:00:00',
+    reviewContent: '共建座谈对接专班完成"光华 x 中信证券"座谈全流程筹备与执行，深度参与者董建军完成现场记录与考勤统计。座谈形成 3 项后续合作意向。',
+    submittedAt: '2026-07-17T10:00:00',
+    confirmedAt: '2026-07-18T15:00:00',
   },
 ];

@@ -71,7 +71,7 @@ test('党委组织员登录直达党委工作台：台账见支部、可创建�
     // 3. 监控台账（默认 tab）渲染 br-b1 支部（现有数据迁移入此实例）
     await waitForBodyText(page, '支部监控台账');
     await waitForBodyText(page, '光华管理学院本科生党支部');
-    await waitForBodyText(page, '沈一'); // 台账含现任书记（br-b1.secretaryId → p13 沈一）与阶段分布聚合
+    await waitForBodyText(page, '储子禾'); // 台账含现任书记（br-b1.secretaryId → p13 储子禾）与阶段分布聚合
 
     // 4. 切到「支部管理」tab → 新建支部（支部不预设名字——党委动态录入）
     await page.click('.ws-tab-scroll button:has-text("支部管理")');
@@ -108,7 +108,7 @@ test('党委组织员登录直达党委工作台：台账见支部、可创建�
   }
 });
 
-test('P2 书记任命：任命钱七(p5)为书记 → p5 登录直达书记台、原书记沈一(p13)降回成员', async () => {
+test('P2 书记任命：任命宋佳宁(p5)为书记 → p5 登录直达书记台、原书记储子禾(p13)降回成员', async () => {
   const page = await browser.newPage();
   await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
   await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
@@ -138,26 +138,26 @@ test('P2 书记任命：任命钱七(p5)为书记 → p5 登录直达书记台�
     if (appoint.secretaryId !== 'p5') throw new Error(`任命后 secretaryId 应为 p5，实际 ${appoint.secretaryId}`);
     if (!(appoint.recs >= 1 && appoint.currentTo === 'p5')) throw new Error(`任期记录异常：${JSON.stringify(appoint)}`);
 
-    // 3. 新任书记钱七(p5)登录 → 直达书记工作台 secretary.html
+    // 3. 新任书记宋佳宁(p5)登录 → 直达书记工作台 secretary.html
     const p5 = await browser.newPage();
     await p5.route('**://fonts.googleapis.com/**', (r) => r.abort());
     await p5.route('**://fonts.gstatic.com/**', (r) => r.abort());
     await p5.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
     await p5.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
-    await p5.fill('#student-id', '2400012349'); // p5 钱七
+    await p5.fill('#student-id', '2400012349'); // p5 宋佳宁
     await p5.fill('#password', '123456');
     await Promise.all([
       p5.waitForURL('**/workspace/secretary.html', { timeout: 10000 }),
       p5.click('button[type="submit"]'),
     ]);
 
-    // 4. 原书记沈一(p13)登录 → 降回成员，直达 visitor.html
+    // 4. 原书记储子禾(p13)登录 → 降回成员，直达 visitor.html
     const p13 = await browser.newPage();
     await p13.route('**://fonts.googleapis.com/**', (r) => r.abort());
     await p13.route('**://fonts.gstatic.com/**', (r) => r.abort());
     await p13.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
     await p13.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
-    await p13.fill('#student-id', '2300010001'); // p13 沈一
+    await p13.fill('#student-id', '2300010001'); // p13 储子禾
     await p13.fill('#password', '123456');
     await Promise.all([
       p13.waitForURL('**/workspace/visitor.html', { timeout: 10000 }),

@@ -40,7 +40,7 @@ function authHeaders(token) {
 }
 
 test('资源写角色门：治理档案写仅限 party-staff，支部成员一律 403', async () => {
-  const { token: secToken } = await login('p13');   // 沈一 书记（支部 br-b1）
+  const { token: secToken } = await login('p13');   // 储子禾 书记（支部 br-b1）
   const { token: pcToken } = await login('p_pc');   // 党委组织员
 
   // 支部成员建支部 → 403

@@ -29,8 +29,8 @@ const AG2 = 'av5-ag-2'; // 议题 2（并列存在，验证多议题）
 const TITLE = 'AV5线上支部党员大会E2E';
 
 const ACCOUNTS = {
-  p13: { studentId: '2300010001', target: '**/workspace/secretary.html' }, // 书记 沈一
-  p5:  { studentId: '2400012349', target: '**/workspace/visitor.html' },    // 钱七（正式党员 participant）
+  p13: { studentId: '2300010001', target: '**/workspace/secretary.html' }, // 书记 储子禾
+  p5:  { studentId: '2400012349', target: '**/workspace/visitor.html' },    // 宋佳宁（正式党员 participant）
   p24: { studentId: '2500010010', target: '**/workspace/visitor.html' },    // 曹雅婷（预备党员 participant）
 };
 

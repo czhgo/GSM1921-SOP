@@ -64,8 +64,8 @@ export const { renderContent } = createTodoTab({
         id: 'shortage',
         title: '标记补课材料缺失',
         fields: [
-          { key: 'source', label: '关联活动/专班', type: 'input', required: true, placeholder: '如：5月主题党日：五四精神传承' },
-          { key: 'note', label: '缺失说明', type: 'textarea', required: true, placeholder: '如：张三缺勤补课材料（心得）未提交' },
+          { key: 'source', label: '关联活动/专班', type: 'input', required: true, placeholder: '如：7月主题党日：五四精神传承' },
+          { key: 'note', label: '缺失说明', type: 'textarea', required: true, placeholder: '如：某成员缺勤补课材料（心得）未提交' },
         ],
         onSubmit: (values) => {
           HandoffStore.create({

@@ -61,20 +61,20 @@ async function setMonth(page, month) {
   }, month);
 }
 
-// A1：三会一课活动详情显示议程（act-8 5月支部党员大会）
+// A1：三会一课活动详情显示议程（act-8 7月支部党员大会；2026-09-06 基线刷新：原 5 月批次重排至 7 月）
 test('A1 活动详情显示会议议程（含主持人）', async () => {
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await loginAs(browser, 'secretary');
     await gotoCalendar(page);
-    await setMonth(page, '2026-05');
+    await setMonth(page, '2026-07');
     await page.waitForSelector('.cal-activity-item[data-act-id="act-8"]', { timeout: 10000 });
     await page.click('.cal-activity-item[data-act-id="act-8"]');
     await page.waitForSelector('#agenda-block', { timeout: 10000 });
     const text = await page.locator('#agenda-block').innerText();
     console.log(`[A1] 议程内容: ${text.replace(/\n/g, ' / ')}`);
-    assert.ok(text.includes('通报 4 月支部工作情况'), '议程第1条应显示');
-    assert.ok(text.includes('审议 5 月发展对象名单'), '议程第2条应显示');
+    assert.ok(text.includes('通报 6 月支部工作情况'), '议程第1条应显示');
+    assert.ok(text.includes('审议 7 月发展对象名单'), '议程第2条应显示');
     assert.ok(text.includes('民主评议党员'), '议程第3条应显示');
     assert.ok(text.includes('组织委员'), '主持人应显示');
     console.log('[A1] ✅ 详情议程显示通过');

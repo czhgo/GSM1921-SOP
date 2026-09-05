@@ -32,10 +32,10 @@ await p.evaluate(async () => {
     personId: 'p5',
     activityId: 'act-11',
     attendanceRecordId: 'att38',
-    activityName: '5月主题党日',
+    activityName: '7月支委会',   // 2026-09-06 基线刷新：act-11 由 5 月批次重排至 7/14
     personName: '测试成员',
-    absentDate: '2026-05-20',
-    deadline: '2026-05-27',
+    absentDate: '2026-07-14',
+    deadline: '2026-07-21',
     status: 'pending',
     isMandatory: true,
     createdAt: new Date().toISOString(),

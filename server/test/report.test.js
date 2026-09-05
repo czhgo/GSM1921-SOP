@@ -37,12 +37,13 @@ test('activity 域 JSON 拉取（全时段）', async () => {
 });
 
 test('activity 域 from/to 时段过滤', async () => {
-  const res = await fetch(`${base}/api/v1/report/activity?from=2026-05-01&to=2026-05-31`, {
+  // 2026-09-06 基线刷新：3–6 月旧批活动已重排至 7 月，过滤窗口改用 2026-07
+  const res = await fetch(`${base}/api/v1/report/activity?from=2026-07-01&to=2026-07-31`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const body = await res.json();
   assert.ok(body.count > 0);
-  assert.ok(body.items.every(i => i.date >= '2026-05-01' && i.date <= '2026-05-31'));
+  assert.ok(body.items.every(i => i.date >= '2026-07-01' && i.date <= '2026-07-31'));
 });
 
 test('member 域返回全量成员档案（脱敏：默认不报联系方式）', async () => {
@@ -74,7 +75,7 @@ test('export CSV 导出（BOM + 表头 + 数据行）', async () => {
   assert.deepEqual([...bytes.slice(0, 3)], [0xef, 0xbb, 0xbf], 'CSV 应带 UTF-8 BOM');
   const text = new TextDecoder('utf-8').decode(bytes);
   assert.match(text, /title/);
-  assert.match(text, /2026-03-15/);
+  assert.match(text, /2026-07-01/);  // 2026-09-06 基线刷新：act-1 由 3/15 重排至 7/1
 });
 
 test('未知数据域返回 400', async () => {

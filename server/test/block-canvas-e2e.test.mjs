@@ -1,5 +1,5 @@
 // server/test/block-canvas-e2e.test.mjs — 块画布 v0 E2E（2026-09-03）
-// 书记在「工作台配置」停用「宣传」产出块 → 保存 → 组长(张三 p1)活动详情
+// 书记在「工作台配置」停用「宣传」产出块 → 保存 → 组长(罗文杰 p1)活动详情
 // 「添加记录」按钮组不再含 publicity；恢复默认后回归。
 // 自包含：createApp(:memory:) + seedDatabase + 账号密码登录。
 
