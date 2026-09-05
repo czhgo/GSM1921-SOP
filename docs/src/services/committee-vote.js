@@ -43,14 +43,15 @@ async function notifySecretaryProgress(activityId) {
 
 // 提醒书记记录决议（截止后触发；失败不阻断主流程）
 // actionRoles: ['secretary'] —— 复用 notice.js 既有门控（resolveNoticeUrl），
-// 仅书记可由此通知直达工作台，其余角色不跳转。
-function remindRecordDecision() {
+// 仅书记可由此通知直达工作台，其余角色不跳转。targetUrl 带 activityId 定位参数，
+// 直达该活动 inspector（2026-09-05 补全，见 notice.js archiveBySource 活动号匹配）。
+function remindRecordDecision(activityId) {
   try {
     NoticeStore.add({
       title: '线上支委会表决截止',
       content: '支委会议程已截止，请记录决议',
       priority: 'normal',
-      targetUrl: 'workspace/secretary.html',
+      targetUrl: `workspace/secretary.html?activityId=${activityId}`, // 活动定位锚点
       actionRoles: ['secretary'],
     });
   } catch (e) {
@@ -143,6 +144,6 @@ export async function lockVotes({ activityId, votesLocked, voteDeadline }) {
   }
   persist();
   // mock 模式同发记录决议提醒（仅新锁触发）
-  if (act?.votesLocked && !wasLocked) remindRecordDecision();
+  if (act?.votesLocked && !wasLocked) remindRecordDecision(act.id);
   return act || { id: activityId };
 }

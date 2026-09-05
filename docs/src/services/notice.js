@@ -230,7 +230,11 @@ export const NoticeStore = {
     let count = 0;
     this._notices = this._notices.map(n => {
       if (n.archived) return n;
-      if (n.targetType === targetType && n.targetId === targetId) {
+      // targetType/targetId 精确匹配；或活动源通知经 targetUrl 携带 activityId 定位参数（如书记台 inspector 直达）——
+      // 2026-09-05 补全：此类通知随活动归档不再成孤儿
+      const urlCarriesActivity = targetType === 'activity' && typeof n.targetUrl === 'string'
+        && n.targetUrl.includes(`activityId=${targetId}`);
+      if ((n.targetType === targetType && n.targetId === targetId) || urlCarriesActivity) {
         count++;
         return { ...n, archived: true, archivedAt: new Date().toISOString().slice(0, 10) };
       }
