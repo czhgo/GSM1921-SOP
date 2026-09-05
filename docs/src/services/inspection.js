@@ -4,6 +4,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS } from '../core/domain.js?v=20260903c';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
 import { INSPECTION_RECORDS } from '../mock/index.js?v=20260903c';
 import { ACTIVITIES } from '../mock/activities.js?v=20260903c';
@@ -87,9 +88,10 @@ export function confirmInspectionRecord(id) {
 
 /**
  * 获取超期未确认的考察记录
- * 超期标准：待确认状态 + 录入时间超过7天
+ * 超期标准：待确认状态 + 录入时间超过默认天数（默认 7；P3c 单一源 =
+ * core/policy-defaults.js inspection.overdueDays，可经 daysThreshold 覆盖，行为与既有调用兼容）
  */
-export function getOverdueRecords(daysThreshold = 7) {
+export function getOverdueRecords(daysThreshold = POLICY_DEFAULTS.inspection.overdueDays) {
   const records = loadInspectionRecords();
   const now = Date.now();
   const threshold = daysThreshold * 24 * 60 * 60 * 1000;

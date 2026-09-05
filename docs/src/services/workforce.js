@@ -11,6 +11,7 @@ import { BranchService } from './runtime.js?v=20260903c';
 import { NoticeStore } from './notice.js?v=20260903c';
 import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260903c';
 import { ROLE_LABELS } from '../core/constants.js?v=20260903c';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260903c';
 import { WORK_MAP_MODULES, mergeWorkforceSnapshot } from '../core/work-map.js?v=20260903c';
 import { getPersonName } from './person.js?v=20260903c';
 import { AuthStore } from './auth.js?v=20260903c';
@@ -20,10 +21,11 @@ import { fetchVotesStrict } from './committee-vote.js?v=20260903c';
 export const WORKFORCE_PROPOSAL_KIND = 'workforce-proposal';
 
 /**
- * 支部默认票决门槛（开源超参数：开源部署方可按支部制度调整；
- * 默认值 = 本科生党支部 2026-09-05 书记裁决「支委会从严」。见 MODULARIZATION_ASSESSMENT §八 P3a）
+ * 支部默认票决门槛（P3c 单一源 = core/policy-defaults.js，派生导出保持名/形状不变）
+ * 默认值 = 本科生党支部 2026-09-05 书记裁决「支委会从严」（见 MODULARIZATION_ASSESSMENT §八 P3a）；
+ * 开源部署如需调整改 policy-defaults.js，勿在本文件新写字面量。
  */
-export const WORKFORCE_VOTE_DEFAULT = { quorum: 2 / 3, vetoOnObject: true };
+export const WORKFORCE_VOTE_DEFAULT = { ...POLICY_DEFAULTS.workforce.voteThreshold };
 
 /**
  * 票决通过判定（支委会议题，默认门槛=2/3 出席且无异议；可经 opts 覆盖）
