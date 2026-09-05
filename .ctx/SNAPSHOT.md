@@ -55,7 +55,7 @@ GSM1921-SOP/
 │   ├── db.js                   ← 25 资源表 + sessions/attachments
 │   ├── seed.js                 ← 复用前端 mock 导入种子
 │   ├── routes/                 ← auth / resources / uploads / report（四域上报 + 邮件触发钩子）
-│   ├── test/                   ← 17 测试文件（单元 9 `.test.js` + 审计守护 8 `.test.mjs`，npm test 全量；命令见 CLAUDE.md H25）
+│   ├── test/                   ← 测试文件（.test.js/.test.mjs 混合，数量随目录增长；全量 npm test——命令见 CLAUDE.md H25；2026-09-05 起不再维护固定计数）
 │   └── data.db                 ← SQLite 单文件库（运行时产物）
 ├── content/
 │   ├── 01_strategy/            ← [用户] 战略路线层（DEVELOPMENT_PATH + SECRETARY_PRONOUNCEMENTS + references/）

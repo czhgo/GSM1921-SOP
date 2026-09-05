@@ -128,7 +128,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 ## H25. 测试系统（AI 必知，2026-08-30 沉淀）
 
-> 系统有**正式测试套件**（`server/test/`，17 个文件）。AI 做代码改动后应主动运行验证——这是「编辑完整性」防线（content/05_ai_coding/FILE_OPERATION_RULES.md §14.1）的组成部分，不是可选步骤。
+> 系统有**正式测试套件**（`server/test/`，`.test.js`/`.test.mjs` 混合；数量随目录增长，不维护固定计数，以 `cd server && npm test` 实测为准）。AI 做代码改动后应主动运行验证——这是「编辑完整性」防线（content/05_ai_coding/FILE_OPERATION_RULES.md §14.1）的组成部分，不是可选步骤。
 
 **命令**：
 - 全量：`cd server && npm test`（裸 `node --test`，自动发现 `test/` 下全部 `*.test.{js,mjs}`）

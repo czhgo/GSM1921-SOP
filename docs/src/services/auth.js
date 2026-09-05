@@ -77,7 +77,7 @@ const ROLE_PERMISSIONS = {
   'prop-commissioner': ['view_all', 'manage_taskforce', 'initiate_taskforce', 'archive', 'dispatch_line', ..._ISSUE_PERMS_ALL],
   'disc-commissioner': ['view_all', 'record_attendance', 'summarize_inspection', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'dispatch_line', ..._ISSUE_PERMS_ALL],
   'leader':            ['view_all', 'create_activity', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'assign_project_role', ..._ISSUE_PERMS_ALL],
-  'participant':       ['view_public', 'record_inspection', ..._ISSUE_PERMS_ALL],
+  'participant':       ['view_public', ..._ISSUE_PERMS_ALL], // record_inspection 已收敛（2026-09-05 书记裁：无「本人写」路径，矩阵 §9d 改 '--'，本人素材走活动参与记录）
 };
 // dispatch_line（条线下发，A1-2026-09-05 落代码）：组织线/宣传线/纪检线职能任务下发，授予对应支委；
 // 与 assign_task（书记/副书记/组长派执行）分两类——键级已入集（canDo 可判定），交互流消费侧待建。

@@ -501,3 +501,13 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - CRUD/功能实现评议轮次（A1/M2/履职卡↔SOP 对照，附录⑧ 记录 7 项已对齐 + 遗留待裁 2 项：participant record_inspection 键、capability requiredRoles 门禁未消费——登记待书记裁）。
 - 减负候选登记（附录⑥ 第二批复选 4 项：面板保态面批量复查/文档数字风化/评估表逐轮加行/含 CLAUDE 与 SNAPSHOT 旧计数待清）。
 **验证**：workforce-panel 导入冒烟 OK；术语残留 grep 清零；link-integrity 基线 L1/L2/L3/L5 绿（L4 EPERM 可接受）。
+
+---
+
+**T-2026-09-037 CRUD 遗留裁定落地 + 减负批执行（2026-09-05，AskUserQuestion 四项全按推荐）**
+**裁定与落地**：
+- ①participant `record_inspection` → **收敛去键**：auth.js participant 键移除（注释记裁定）；SYSTEM_ROLE_PERMISSION §9d 单元格改「--（本人素材走活动参与记录）」；`Y(自己的)` 死定义删除（理论复用评议：无下游承接即删）。
+- ②capability `requiredRoles` → **登记 L3 债不动**（页面入口 ROLE_PAGE_MAP 隔离足够；getCapabilities role 过滤=可选双保险）——经查 registry.js getCapabilities 已支持 role 过滤且 activity-panel 等已用，workspace-shell 未传 role 属实。
+- ③CLAUDE.md:131 测试计数改动态口径；SNAPSHOT 树注释去固定计数（v18 里程碑行=历史记录保留）；SNAPSHOT 全量 v19 刷新（旧名清理）仍挂 .ctx 运行时层。
+- ④面板保态：检查要点固化入 REVIEW_QUEUE 附录⑧（2026-09-05 面板保态检查要点 + 术语纪律提醒）；附录⑥候选 2-4 标注书记批与进度；版本串纪律要点误删已补回。
+**验证**：roles-sync 4/4 绿（矩阵↔代码键同步完好）；permission-gate 3 项 401 系沙盒无 live server 登录（E2E 限制非本次改动）；link-integrity L1/L2/L3/L5 绿（L4 EPERM 可接受）。

@@ -79,7 +79,7 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 
 | 角色 | view_public | record_inspection |
 |------|:---:|:---:|
-| 普通参与者 | Y | Y(自己的) |
+| 普通参与者 | Y | --（本人素材走活动参与记录，2026-09-05 收敛） |
 
 ## 9e. 赋权链（AUTHORIZE_CHAIN）
 
@@ -128,7 +128,6 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 - **Y(建档)** 表示仅限建立档案（基于已有记录建档，不能记录原始数据）
 - **Y(汇总)** 表示仅限汇总分析（基于已有记录汇总，不能记录原始数据）
 - **Y(导入)** 表示仅限从其他来源导入（不能直接记录原始数据）
-- **Y(自己的)** 表示仅限记录自己的（只能记录自己的考察记录）
 - **Y\*** 表示原则上有此权限，但业务上一般不使用
 
 ## 变更历史
