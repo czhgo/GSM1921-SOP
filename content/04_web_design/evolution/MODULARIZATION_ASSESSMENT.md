@@ -247,8 +247,8 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 |---|---|---|---|
 | P3a | 阈值参数化：票决门槛（quorum/veto）→ 常量默认 + opts 覆盖 | ✅ 已做（WORKFORCE_VOTE_DEFAULT，默认=书记裁 2/3+无异议，可覆盖） | evaluateWorkforceVotes(opts) 用例绿；默认不变 |
 | P3b | 纪检会议考勤类型单源：attendance `MEETING_ATTENDANCE_TYPES` 导出，disc tab 引用（消双写） | ✅ 已做 | 全仓该类型清单无第二份字面量 |
-| P3c | 建立 `core/policy-defaults.js`：业务阈值/名单（上传位例外、超期天数等）集中默认 + 注释「支部默认/制度固定」 | 待办 | 每默认值旁可答"可调/不可调+出处" |
-| P3d | 模块组合声明契约：capabilities/模块元数据补 `depends/combinesWith/exclusive`（草案）＋ config 校验扩展 | 待办（低优先） | 组合矩阵文档化 + 冲突检测测试 |
+| P3c | 建立 `core/policy-defaults.js`：业务阈值/名单（上传位例外、超期天数等）集中默认 + 注释「支部默认/制度固定」 | ✅ 2026-09-05（spec open-source-deploy-improve，见 §8.7） | 每默认值旁可答"可调/不可调+出处"；policy-defaults-sync.test 5/5 绿 |
+| P3d | 模块组合声明契约：capabilities/模块元数据补 `depends/combinesWith/exclusive`（草案）＋ config 校验扩展 | ✅ v0 2026-09-05（spec open-source-deploy-improve，见 §8.7） | module-compose 纯校验 + 失败态测试 6/6 绿；服务端 config 校验留 v1 |
 | P3e | 色板：styles.css 令牌与 COLOR_SYSTEM 已对齐（固定/可调标注在文件头注释与四层表） | ✅ 2026-09-05（见 §8.6） | 全仓无游离业务色字面量（品牌/角色色一律走令牌） |
 
 ### 8.6 色值收敛落地（2026-09-05，可调/不可调双口径）
@@ -256,3 +256,15 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 - **不可调（合规/品牌底线，令牌化）**：党建红 `--party-red #CE1126`、党徽金 `--party-gold #FFD700`——全站走令牌；inspector 品牌卡历史内联 `#EAB308` 已收敛为 `var(--party-gold)`；duty-card 移除越界金边框（金色应用范围=COLOR_SYSTEM 固定清单，不得扩增）。
 - **可调（角色识别层，主题自选）**：`--accent-*` 系列走令牌；深度参与者 `--accent-deep` 由历史存量浅灰蓝 `#94a3b8` 收敛为雾紫 `#A78BFA`（`--accent-deep-light` 同步 `#C4B5FD`），与 COLOR_SYSTEM/constants `ACCENT_COLORS.deep` 三源一致。
 - 权威唯一：COLOR_SYSTEM（文档）↔ styles.css/constants.js（代码）↔ 实现零游离字面量。
+
+### 8.7 最小三成本自查与 deploy 改进（2026-09-05，spec：`.trae/specs/open-source-deploy-improve`）
+
+**修复（操作成本，评估→执行）**：
+- ①书记台分工面板多议题票决判定：串行 for…of → `Promise.allSettled` 并行（单失败 console.warn 不阻断）——多议题时缩短书记等待（`entries/tabs/secretary/workforce-panel.js`）。
+- ②纪检会议考勤录入「收起/展开」保态：改为容器 CSS `hidden` 切换（不销毁 PersonPicker、不重建 innerHTML），仅提交成功后才重置会话——防已选活动/人员/状态重复劳动（`entries/tabs/disc/attendance-tab.js`）；外部 re-render（如队列确认）重建为既有行为，已注释说明。
+
+**deploy 对接（文档口径风化修正）**：server/README 与根 README 测试计数改动态口径（实测 server/test 54 文件为底）、命令段与 package.json scripts 对齐、env 说明补 `LOGIN_PASSWORD`/`DISABLE_PASSWORD_CHECK`。遗留：CLAUDE.md / SNAPSHOT 仍含旧计数（另行处理）。
+
+**疑点登记（待书记目视批）**：秘书台分工面板展开态每次重建会丢未提交表单——与 ② 同类，待 UI 批次一并处理。
+
+**P3c/P3d 落地摘要（本 spec）**：`core/policy-defaults.js`（集中默认，逐项 kind=branch-default 可调 / institutional 固定 + 出处）消费点改引用（workforce 门槛/attendance 会议类型与上传位例外/inspection 超期天数），`policy-defaults-sync.test.mjs` 5/5 绿；`core/module-compose.js`（组合声明纯校验：引用存在/互斥同含/depends 禁环）+ `manifests.js` 两块补 `depends/conflictsWith` 并接自检 + WORKFLOW_BLOCK_CONTRACT「组合声明（P3d v0）」节 + registry.js 头注释，`module-compose.test.mjs` 6/6 绿、capability-registry 7/7 绿——默认行为零变化。

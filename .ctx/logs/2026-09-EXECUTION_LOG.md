@@ -477,3 +477,15 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **评估**（MODULARIZATION_ASSESSMENT §八 第三轮，全局含 A1/M2 近期板块）：**超参数可调性 60/100**（票决 2/3、纪检会议类型、上传位例外名单沉底业务层；好例=vote-config/支部 config/令牌）；**模块组合性 68/100**（组合面=能力注册表+config.modules/blocks/workforce+L3 manifest；失分=模块不自声明依赖/互斥、requiredRoles 未消费）；**综合 v3≈67/100**（五维均值，v1 75/v2 69 口径递严不推翻）。行动 P3a/P3b/P3e 本日落地，P3c（policy-defaults 集中默认）P3d（组合声明契约）待办。
 **落地**：①票决门槛参数化 `WORKFORCE_VOTE_DEFAULT{quorum:2/3,vetoOnObject:true}`（默认=书记裁，opts 可覆盖）；②纪检会议考勤类型单源 `MEETING_ATTENDANCE_TYPES`（attendance 导出、disc tab 引用，消双写）；③色值收敛：inspector `#EAB308`→`var(--party-gold)`（2 处，文档标记已收敛）；styles.css `--accent-deep` #94a3b8→#A78BFA、`--accent-deep-light`→#C4B5FD；constants 暗色恒等映射清旧灰蓝死码；duty-card 移除越界金边框（金色范围=COLOR_SYSTEM 固定清单）。可调/不可调双口径记入 §8.6（不可调=党建红/党徽金令牌；可调=角色主题色）。
 **验证**：workforce-gate 5/5 绿；veto 开关 opts 隔离自检（vetoOn false→passed / true→failed）；导入冒烟 4/5（disc tab 浏览器模块 window 依赖为既有限制）；link-integrity L1/L2/L3/L5 绿（L4 EPERM 可接受）；工作区 clean。
+
+---
+
+**T-2026-09-035 开源化改进执行 spec（P3c/P3d + 三评估落地，spec: .trae/specs/open-source-deploy-improve，4+1 commits 分批）**
+**书记方向**：不为评估而评估——把开源化/最小三成本/对接 deploy 评估转为已执行改进；四项裁定均为推荐档（P3c 集中默认+注释、P3d 声明+校验+测试+文档、三成本修 2 点+自查、deploy 修文档+自检）。
+**执行（子代理并行）**：
+- P3c：新建 `core/policy-defaults.js`（集中默认：票决 2/3+无异议/会议考勤四类/上传位例外=institutional/超期 7 天，逐项 kind+出处）；workforce/attendance/inspection 消费点改引用（导出面零变化）；`policy-defaults-sync.test.mjs` 5/5 绿。
+- P3d：新建 `core/module-compose.js`（纯校验：引用缺失/互斥同含/depends 禁环）；manifests 双块补 depends/conflictsWith 并接自检；WORKFLOW_BLOCK_CONTRACT「组合声明（P3d v0）」节；registry 头注释；`module-compose.test.mjs` 6/6、capability-registry 7/7 绿。
+- 三成本×2：workforce-panel 议题判定串行→Promise.allSettled 并行；disc 会议考勤录入收起/展开保态（CSS hidden 不重建、仅提交成功重置）。
+- deploy：server/README 与根 README 测试计数动态口径（实测 54 文件）、命令段与 package.json 对齐、env 补 LOGIN_PASSWORD/DISABLE_PASSWORD_CHECK；遗留 CLAUDE.md/SNAPSHOT 旧计数另行处理。
+- 文档闭环：MODULARIZATION_ASSESSMENT §8.5 P3c/P3d 置 ✅、新增 §8.7（三成本自查+deploy 改进+P3c/P3d 摘要+疑点登记）。
+**验证**：policy-defaults-sync 5/5、module-compose 6/6、capability-registry 7/7、workforce-gate 5/5；GetDiagnostics 空；link-integrity L1/L2/L3/L5 绿（L4 沙盒 EPERM 可接受）。**经验**：同文件多处并行 Edit 会丢更新——同文件多改须单次原子 Write。
