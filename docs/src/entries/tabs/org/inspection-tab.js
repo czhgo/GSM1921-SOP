@@ -4,6 +4,7 @@
 
 import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260903c';
 import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903c';
+import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
 import { inspectionToLong } from '../../../services/inspection.js?v=20260903c';
 import { getPersonById, getPersonName } from '../../../services/person.js?v=20260903c';
@@ -197,7 +198,7 @@ function _initOrgInspForm(container, activeTaskforces, ctx) {
         level: ParticipationLevel.DEEP_PARTICIPATE,
         content,                 // 2026-09-04 补齐 P1-5：考察内容入 content 字段（原误写 role）
         role: '深度参与者',       // role 恢复为角色标签（与 level deep 语义一致）
-        recordedBy: 'p13', // 组织委员
+        recordedBy: AuthStore.getCurrentUser()?.personId || 'p13', // A1-2026-09-05：真实操作人（组织委员建档位临时承载专班上传，负责人位待另裁）
         recordedAt: new Date().toISOString(),
         status: 'pending',
       });

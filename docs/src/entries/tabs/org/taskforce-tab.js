@@ -546,7 +546,8 @@ export function renderContent(ctx) {
                   sourceType: SourceType.TASKFORCE, activityId: null, sourceName: tf.name,
                   personId: pid, level: ParticipationLevel.DEEP_PARTICIPATE,
                   content, role: '深度参与者',
-                  recordedBy: 'u_exec', recordedAt: new Date().toISOString(), status: 'pending',
+                  recordedBy: currentUserId || 'u_org', // A1-2026-09-05：真实操作人，弃幽灵 u_exec
+                  recordedAt: new Date().toISOString(), status: 'pending',
                 });
               });
               const all = loadInspectionRecords();

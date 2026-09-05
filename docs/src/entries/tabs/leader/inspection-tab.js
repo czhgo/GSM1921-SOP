@@ -2,7 +2,7 @@
 // 组长工作台 Tab：考察上传（T-279 M2 拆分）
 // 党小组活动考察：党小组组长上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260903c';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903c';
 import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
@@ -11,6 +11,7 @@ import { getPersonById, getPersonName } from '../../../services/person.js?v=2026
 import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260903c';
+import { currentLeaderGroup } from './_shared.js?v=20260903c';
 
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;
@@ -31,9 +32,12 @@ export function renderContent(ctx) {
 
   // 来源类型选项
   // T223 排序统一：来源活动 date 降序（新者在前），专班 createdAt 降序
+  // A1-2026-09-05 上传位门禁：活动类仅列本组长可上传（本组党小组会 / 本人为该活动组织者）且未归档者；专班类暂放行（负责人位待身份编码）
+  const { leaderId } = currentLeaderGroup();
   const sourceActivities = loadActivities()
     .filter(a =>
-      a.type === '党小组会' || a.type === '主题党日' || a.type === '党课' || a.type === '支部党员大会'
+      (a.type === '党小组会' || a.type === '主题党日' || a.type === '党课' || a.type === '支部党员大会') &&
+      canUploadInspection(leaderId, SourceType.ACTIVITY, a.id)
     )
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const sourceTaskforces = TaskForceRecordStore.getAll()
@@ -170,6 +174,12 @@ function _initInspForm(container, sourceActivities, sourceTaskforces, ctx) {
     const selectedIds = _inspPickerInstance ? _inspPickerInstance.getSelected() : [];
     if (selectedIds.length === 0) { showToast('error', '请选择人员'); return; }
 
+    // A1-2026-09-05 上传位守卫：活动类须为本人可上传（本组党小组会 / 本人为该活动组织者）；专班类暂放行（负责人位待身份编码）
+    const { leaderId } = currentLeaderGroup();
+    if (sourceType === 'activity' && !canUploadInspection(leaderId, SourceType.ACTIVITY, sourceId)) {
+      showToast('error', '该活动不在您的考察上传位内（仅本组党小组会/本人组织的活动可上传）'); return;
+    }
+
     // 收集每人的考察内容
     const records = [];
     for (const personId of selectedIds) {
@@ -186,7 +196,7 @@ function _initInspForm(container, sourceActivities, sourceTaskforces, ctx) {
         level: ParticipationLevel.ORGANIZE, // 默认组织层级，可由用户选择
         content,   // P1-5 修复：考察内容入 content 字段
         role: '组织者', // role 字段恢复为角色职责标签
-        recordedBy: 'u_exec',
+        recordedBy: leaderId, // A1-2026-09-05：recordedBy 记真实操作人（组长），弃幽灵 u_exec
         recordedAt: new Date().toISOString(),
         status: 'pending',
       };

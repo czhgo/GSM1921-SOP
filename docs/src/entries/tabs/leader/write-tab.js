@@ -10,8 +10,8 @@ import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260903c';
 import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260903c';
 import { persist } from '../../../core/data-adapter.js?v=20260903c';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260903c';
+import { appendAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260903c';
 import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
 import { recordFormShell } from '../../../components/forms.js?v=20260903c';
 import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260903c';
@@ -332,30 +332,43 @@ export function renderContent(ctx) {
               if (ids.length === 0) { showToast('error', '请选择人员'); return; }
               const statusEnum = form.querySelector('.f-status').value;
               const note = form.querySelector('.f-note').value.trim();
+              const actorId = AuthStore.getCurrentUser()?.personId;
+              if (!actorId) { showToast('error', '未登录，无法记录考勤'); return; }
               const newAtts = [];
               ids.forEach(pid => {
-                actSubs[type].push({ person: getPersonName(pid), personId: pid, status: ATTENDANCE_STATUS_LABELS[statusEnum], note, recordedBy: AuthStore.getCurrentUser()?.personId || 'u_exec', recordedAt: new Date().toISOString() });
-                newAtts.push({ id: 'att_' + Date.now() + '_' + pid, personId: pid, activityId: actId, status: statusEnum, recordedBy: 'u_exec', recordedAt: new Date().toISOString(), overdue: false });
+                actSubs[type].push({ person: getPersonName(pid), personId: pid, status: ATTENDANCE_STATUS_LABELS[statusEnum], note, recordedBy: actorId, recordedAt: new Date().toISOString() });
+                // A1-2026-09-05：recordedBy 记真实操作人，弃幽灵 u_exec
+                newAtts.push({ id: 'att_' + Date.now() + '_' + pid, personId: pid, activityId: actId, status: statusEnum, recordedBy: actorId, recordedAt: new Date().toISOString(), overdue: false });
               });
-              const all = loadAttendanceRecords();
-              saveAttendanceRecords([...all, ...newAtts]);
-              showToast('success', `已添加 ${ids.length} 条考勤记录并同步正式考勤库`);
+              // A1-2026-09-05：追加提交语义（上传位门禁 + 已确认不可覆盖）
+              const res = appendAttendanceRecords({ actorId, records: newAtts });
+              if (res.added > 0) {
+                showToast('success', `已添加 ${res.added} 条考勤记录并同步正式考勤库` + (res.skipped ? `（${res.skipped} 条已确认记录跳过）` : '') + (res.blocked ? `（${res.blocked} 条不在上传位/需走纪检确认被拦）` : ''));
+              } else {
+                showToast('error', res.blocked > 0 ? '考勤添加被拦：不在您的上传位或需走纪检确认流程' : '无可新增考勤记录（重复或已闭环）');
+              }
             } else if (type === 'inspection') {
               const content = form.querySelector('.f-content').value.trim();
               if (!content) { showToast('error', '请填写考察内容'); return; }
               const ids = form._picker ? form._picker.getSelected() : [];
               if (ids.length === 0) { showToast('error', '请选择被考察人'); return; }
               const result = form.querySelector('.f-result').value;
+              // A1-2026-09-05：上传位守卫 + 真实操作人（弃幽灵 u_exec）
+              const actorId = AuthStore.getCurrentUser()?.personId;
+              if (!actorId) { showToast('error', '未登录，无法记录考察'); return; }
+              if (!canUploadInspection(actorId, SourceType.ACTIVITY, actId)) {
+                showToast('error', '该活动不在您的考察上传位内（仅本组党小组会/本人组织的活动可上传）'); return;
+              }
               const newRecords = [];
               ids.forEach(pid => {
-                actSubs[type].push({ person: getPersonName(pid), personId: pid, content, result, recordedBy: AuthStore.getCurrentUser()?.personId || 'u_exec', recordedAt: new Date().toISOString() });
+                actSubs[type].push({ person: getPersonName(pid), personId: pid, content, result, recordedBy: actorId, recordedAt: new Date().toISOString() });
                 // P1-5 语义修复：考察内容入 content，role 存角色职责标签
                 newRecords.push({
                   id: 'insp_' + Date.now() + '_' + pid,
                   sourceType: SourceType.ACTIVITY, activityId: actId, sourceName: null,
                   personId: pid, level: ParticipationLevel.ORGANIZE,
                   content, role: '组织者',
-                  recordedBy: 'u_exec', recordedAt: new Date().toISOString(), status: 'pending',
+                  recordedBy: actorId, recordedAt: new Date().toISOString(), status: 'pending',
                 });
               });
               const all = loadInspectionRecords();

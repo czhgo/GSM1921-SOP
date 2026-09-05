@@ -2,7 +2,7 @@
 // 组长工作台 Tab：考勤上传（T-279 M2 拆分）
 // 党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表。
 
-import { loadActiveAttendanceRecords, loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
+import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
 import { loadMakeupTasks } from '../../../services/makeup.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
@@ -42,9 +42,12 @@ export function renderContent(ctx) {
   );
 
   // 筛选三会一课和主题党日活动；T223 排序统一：date 降序（新者在前）
+  // A1-2026-09-05 上传位门禁：列表仅保留本组长可上传（本组党小组会 / 本人为该活动组织者）且未归档的活动
+  const { leaderId } = currentLeaderGroup();
   const eligibleActivities = loadActivities()
     .filter(a =>
-      a.type === '党小组会' || a.type === '主题党日' || a.type === '党课' || a.type === '支部党员大会'
+      (a.type === '党小组会' || a.type === '主题党日' || a.type === '党课' || a.type === '支部党员大会') &&
+      canUploadAttendance(leaderId, a.id)
     )
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
@@ -199,21 +202,22 @@ function _initAttForm(container, eligibleActivities, ctx) {
       });
     }
 
-    // 写入 mockDB
-    const allRecords = loadAttendanceRecords();
-    allRecords.push(...records);
-    saveAttendanceRecords(allRecords);
+    // A1-2026-09-05 追加提交语义：新增记录；同人同活动已闭环（出勤/已补/纪检已复核）→ 跳过；待复核异常 → 拦截走纪检确认
+    const { added, skipped, blocked } = appendAttendanceRecords({ actorId: leaderId, records });
 
     // T-304 第5轮 P7 真实补课：上传时即生成补课任务（防重复：同人同活动已有任务则跳过），
     // 消除「提示已生成但实际未生成」的虚假反馈；出勤/已补源头审校即确认，异常留纪检复核。
     records.forEach(r => autoGenerateMakeupTask(r));
 
-    // 检查本组是否有缺勤人员
-    const absentCount = records.filter(r => r.status === AttendanceStatus.ABSENT || r.status === AttendanceStatus.LEAVE).length;
-    if (absentCount > 0) {
-      showToast('success', `考勤上传成功，共 ${records.length} 条记录。其中 ${absentCount} 条异常已生成补课任务，待纪检复核`);
+    if (added === 0 && blocked === 0 && skipped === 0) {
+      showToast('error', '没有可上传的记录（活动不在您的上传位内）');
     } else {
-      showToast('success', `考勤上传成功，共 ${records.length} 条记录，已源头审校确认`);
+      const parts = [`新增 ${added} 条`];
+      if (skipped > 0) parts.push(`重复跳过 ${skipped} 条（已确认记录不可覆盖）`);
+      if (blocked > 0) parts.push(`拦截 ${blocked} 条`);
+      const absentCount = records.filter(r => r.status === AttendanceStatus.ABSENT || r.status === AttendanceStatus.LEAVE).length;
+      parts.push(absentCount > 0 ? `${absentCount} 条异常已生成补课任务，待纪检复核` : '出勤已源头审校确认');
+      showToast('success', `考勤上传：${parts.join('；')}`);
     }
 
     // 清理并刷新

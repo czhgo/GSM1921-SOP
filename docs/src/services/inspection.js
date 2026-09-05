@@ -7,7 +7,7 @@ import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS } fr
 import { persist } from '../core/data-adapter.js?v=20260903c';
 import { INSPECTION_RECORDS } from '../mock/index.js?v=20260903c';
 import { ACTIVITIES } from '../mock/activities.js?v=20260903c';
-import { getPersonName } from './person.js?v=20260903c';
+import { getPersonById, getPersonName } from './person.js?v=20260903c';
 import { TodoStore, TodoSourceType } from './todo.js?v=20260903c';
 import { loadActivities } from './activity.js?v=20260903c';
 
@@ -31,6 +31,28 @@ export function loadActiveInspectionRecords() {
 export function saveInspectionRecords(records) {
   mockDB.inspections = [...records];
   persist();
+}
+
+// ── A1 上传位门禁（2026-09-05 落代码，语义见 SYSTEM_ROLE_PERMISSION §9b/§9f + CF §C.1a 考察管理）──
+
+/**
+ * 考察上传位门禁
+ * - 活动类：上传/修改=该活动组织者（assignments organizer 或顶层 organizer 派生；组长兼组织者同）；
+ *   组长非组织者=本组监督位（督促上传，见组长页监督提示）
+ * - 专班类：上传=专班实际负责人——身份（指派到人/角色）待书记另裁（§9b 组织委员行注）；
+ *   裁决前暂按页面可达放行（组委/组长既有入口保留），recordedBy 记真实操作人
+ */
+export function canUploadInspection(personId, sourceType, sourceId) {
+  if (!personId || !sourceType || !sourceId) return false;
+  const role = (getPersonById(personId) || {}).role;
+  if (role === 'secretary' || role === 'deputy-secretary') return true; // 书记/副书记例外承担
+  if (sourceType === SourceType.TASKFORCE) return true; // 专班负责人位待身份编码，暂放行（见上）
+  const activity = loadActivities().find(a => a.id === sourceId);
+  if (!activity || activity.archived) return false;
+  if (role === 'leader' && activity.type === '党小组会') return true; // 组长兼组织者（本组上传位）
+  const isOrg = (Array.isArray(activity.assignments) && activity.assignments.some(x => x.personId === personId && x.role === 'organizer'))
+    || activity.organizer === personId;
+  return !!isOrg;
 }
 
 /** 更新考察记录 */
