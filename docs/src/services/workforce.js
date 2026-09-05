@@ -4,10 +4,12 @@
 //   （voteConfig = deliberative 交流式表决，应到支委）→ 支委经既有表决 UI 表态 →
 //   书记确认采纳 → 合并 config.workforce 落库 → 视图即时生效。
 // 表决本身复用既有 agenda-votes 资产，本服务不重复实现投票 UI；采纳为人工确认动作
-// （表决结果在支委会活动详情查看），前置校验：至少已有表态方可采纳（防空表误生效）。
+// （表决结果在支委会活动详情查看），前置校验：票决通过判定（见 evaluateWorkforceVotes）方可采纳。
+// A1/M2 补齐（2026-09-05）：票决通过判定（2/3 出席且无异议）为采纳硬门槛；
+//   议题 extras 记 voteOutcome {status,tally,needed,evaluatedAt}；会前草稿=书记台暂存。
 import { BranchService } from './runtime.js?v=20260903c';
 import { NoticeStore } from './notice.js?v=20260903c';
-import { defaultVoteConfig } from './vote-config.js?v=20260903c';
+import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260903c';
 import { ROLE_LABELS } from '../core/constants.js?v=20260903c';
 import { WORK_MAP_MODULES, mergeWorkforceSnapshot } from '../core/work-map.js?v=20260903c';
 import { getPersonName } from './person.js?v=20260903c';
@@ -16,6 +18,32 @@ import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=2026090
 import { fetchVotesStrict } from './committee-vote.js?v=20260903c';
 
 export const WORKFORCE_PROPOSAL_KIND = 'workforce-proposal';
+
+/**
+ * 票决通过判定（支委会议题，2026-09-05 书记裁门槛=从严：2/3 出席且无异议）
+ * @param {{ roster?: string[], votes?: Array<{personId?:string, position?:string}> }} input
+ *   roster = 应到支委（resolveVoterIds('committee')）；votes = 该活动表态列表
+ * @returns {{ status:'pending'|'passed'|'failed', tally:{total,voted,agree,object,comment}, needed:number }}
+ *   pending=表态不足（未达 2/3）；failed=有异议；passed=通过
+ */
+export function evaluateWorkforceVotes({ roster = [], votes = [] }) {
+  const rosterSet = new Set(roster || []);
+  const tally = { total: rosterSet.size, voted: 0, agree: 0, object: 0, comment: 0 };
+  const seen = new Set();
+  (votes || []).forEach(v => {
+    if (!v || !v.personId || !rosterSet.has(v.personId) || seen.has(v.personId)) return;
+    seen.add(v.personId);
+    tally.voted += 1;
+    if (v.position === 'object') tally.object += 1;
+    else if (v.position === 'comment') tally.comment += 1;
+    else tally.agree += 1; // agree / 其他均按同意计
+  });
+  const needed = Math.ceil(tally.total * 2 / 3);
+  const status = tally.total === 0 || tally.voted < needed
+    ? 'pending'
+    : (tally.object > 0 ? 'failed' : 'passed');
+  return { status, tally, needed };
+}
 
 function currentPersonId() {
   return AuthStore.getCurrentUser()?.personId || AuthStore.getCurrentUser()?.id || null;
@@ -89,9 +117,16 @@ export async function listWorkforceProposals(branchId) {
     .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
 }
 
+/** 拉取议题实时票决判定（应到=委员会名单；供采纳硬校验与书记台卡片共用） */
+export async function getWorkforceVoteOutcome(activityId) {
+  const roster = resolveVoterIds('committee');
+  const votes = await fetchVotesStrict(activityId);
+  return evaluateWorkforceVotes({ roster, votes });
+}
+
 /**
  * 采纳分工议题：合并改派清单写入 config.workforce 并标记活动已采纳
- * 前置：议题存在且未采纳；至少已有一名支委表态（防空表误生效——表决结果请先在活动详情核对）。
+ * 前置（2026-09-05 补）：票决通过（2/3 出席且无异议）方可采纳；未达门槛/有异议均拒绝并给原因。
  */
 export async function adoptWorkforceProposal(branchId, activityId) {
   const acts = await BranchService.listActivities();
@@ -101,16 +136,24 @@ export async function adoptWorkforceProposal(branchId, activityId) {
   }
   if (act.extras.adoptedAt) throw new Error('该议题已采纳，无需重复操作');
 
-  const votes = await fetchVotesStrict(activityId);
-  if (!Array.isArray(votes) || votes.length === 0) {
-    throw new Error('尚无支委表态：请先在本次支委会活动中完成线上表决后再采纳');
+  const outcome = await getWorkforceVoteOutcome(activityId);
+  if (outcome.status === 'pending') {
+    throw new Error(`表决未达通过门槛：表态 ${outcome.tally.voted}/${outcome.needed}（应到 ${outcome.tally.total} 的 2/3），暂不可采纳`);
+  }
+  if (outcome.status === 'failed') {
+    throw new Error('表决未通过：存在异议，需再议后重新表决方可采纳');
   }
 
   const merged = mergeWorkforceSnapshot(getBranchWorkforce(branchId), act.extras.proposal);
   await updateBranchWorkforce(branchId, merged);
 
   const updated = await BranchService.updateActivity(activityId, {
-    extras: { ...act.extras, adoptedAt: new Date().toISOString(), adoptedBy: currentPersonId() },
+    extras: {
+      ...act.extras,
+      adoptedAt: new Date().toISOString(),
+      adoptedBy: currentPersonId(),
+      voteOutcome: { status: 'passed', tally: outcome.tally, needed: outcome.needed, evaluatedAt: new Date().toISOString() },
+    },
   });
   try {
     NoticeStore.add({

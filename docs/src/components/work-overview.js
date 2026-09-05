@@ -10,6 +10,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { showToast, flashHighlight } from '../core/utils.js?v=20260903c';
+import { dutyCardHtml } from './workforce-duty-card.js?v=20260903c';
 import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260903c';
 import { IssueStore, REPORT_CATEGORIES } from '../services/issues.js?v=20260903c';
 import { AuthStore } from '../services/auth.js?v=20260903c';
@@ -213,6 +214,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
 
   container.innerHTML = `
     <div class="space-y-4">
+      ${dutyCardHtml(prefix)}
       <div class="card rounded-xl p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">汇报</h4>

@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // entries/tabs/secretary/overview-tab.js — 书记工作台·全局概况 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 设计初衷（书记 2026-08-02 确认方向后记录）：
@@ -11,6 +11,7 @@
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { NoticeStore } from '../../../services/notice.js?v=20260903c';
 import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260903c';
+import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260903c';
 import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
@@ -60,7 +61,7 @@ function renderOverviewContent() {
     </div>
   `;
 
-  container.innerHTML = `<div class="space-y-4"><div>${subTabsHtml}</div><div id="ov-subview-body"></div></div>`;
+  container.innerHTML = `<div class="space-y-4">${dutyCardHtml('secretary')}<div>${subTabsHtml}</div><div id="ov-subview-body"></div></div>`;
 
   // 绑定子切换
   container.querySelectorAll('.ov-sub-tab').forEach(btn => {
