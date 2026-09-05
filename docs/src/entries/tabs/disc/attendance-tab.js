@@ -133,15 +133,28 @@ export function renderContent(ctx) {
   });
 
   // ── 会议考勤录入（纪检，CF §C.1a：纪检直接上传并录入；A1-2026-09-05）──
+  // 保态折叠：表单已渲染（#disc-meet-body 在 DOM）时，收起/展开只切该容器 hidden——
+  // 不销毁 _meetPickerInstance、不重建 innerHTML，已选活动/人员/逐人状态保留；
+  // 队列确认等外部 re-render 仍按 _meetFormVisible 原逻辑整容器重建（重建即重新展开
+  // 并重建 picker、丢手选，属既有行为，可接受——保态折叠只覆盖用户手动折叠/展开路径）。
   container.querySelector('#disc-meet-toggle')?.addEventListener('click', () => {
-    _meetFormVisible = !_meetFormVisible;
-    if (!_meetFormVisible && _meetPickerInstance) { _meetPickerInstance.destroy(); _meetPickerInstance = null; }
-    renderContent(ctx);
+    const bodyEl = container.querySelector('#disc-meet-body');
+    if (!bodyEl) { // 首次打开（表单未渲染）：走 _meetFormVisible 打开并渲染表单 + 创建 picker
+      _meetFormVisible = true;
+      renderContent(ctx);
+      return;
+    }
+    const collapsed = bodyEl.classList.toggle('hidden');
+    const btn = container.querySelector('#disc-meet-toggle');
+    if (btn) btn.textContent = collapsed ? '录入会议考勤' : '收起';
   });
+  // 取消 = 保态折叠（保留已选，不销毁 picker）；仅提交成功后才重置会话（见下方 submit 成功分支）
   container.querySelector('#disc-meet-cancel')?.addEventListener('click', () => {
-    _meetFormVisible = false;
-    if (_meetPickerInstance) { _meetPickerInstance.destroy(); _meetPickerInstance = null; }
-    renderContent(ctx);
+    const bodyEl = container.querySelector('#disc-meet-body');
+    if (!bodyEl) return;
+    bodyEl.classList.add('hidden');
+    const btn = container.querySelector('#disc-meet-toggle');
+    if (btn) btn.textContent = '录入会议考勤';
   });
   if (_meetFormVisible) {
     _initMeetForm(container, accent);
@@ -163,12 +176,14 @@ export function renderContent(ctx) {
     if (res.added > 0) {
       records.forEach(r => autoGenerateMakeupTask(r));
       showToast('success', `会议考勤录入成功 ${res.added} 条（纪检直接确认）${res.skipped ? `；${res.skipped} 条已存在跳过` : ''}`);
+      // 提交成功后才重置会话（收起表单、销毁 picker、清空已选）
+      _meetFormVisible = false;
+      if (_meetPickerInstance) { _meetPickerInstance.destroy(); _meetPickerInstance = null; }
+      renderContent(ctx);
     } else {
+      // 无新增（提交未成功）：保留会话与已选，供改选活动/人员后再次提交
       showToast('error', res.skipped > 0 ? '无新增：所选人员均已录过该会议考勤' : '没有可录入的记录');
     }
-    _meetFormVisible = false;
-    if (_meetPickerInstance) { _meetPickerInstance.destroy(); _meetPickerInstance = null; }
-    renderContent(ctx);
   });
 
   // ── 矩阵转置切换 + 活动名/时间区间筛选 ──
@@ -247,6 +262,9 @@ export function renderContent(ctx) {
 const QUEUE_VISIBLE = 8; // 最小信息成本：默认只暴露最近需处理的少量条目
 let _queueExpanded = false;
 // A1-2026-09-05：纪检会议考勤录入（CF §C.1a 会议考勤：纪检直接上传并录入）
+// 保态折叠（2026-09-05 quick-fix）：收起/取消只切 #disc-meet-body 的 hidden——
+// 不销毁 _meetPickerInstance、不重建 innerHTML，已选活动/人员/逐人状态保留；
+// 仅在「提交成功」后才重置会话（见 submit 成功分支）。
 let _meetFormVisible = false;
 let _meetPickerInstance = null;
 // 会议考勤上传位的活动类型：单源 = services/attendance.js MEETING_ATTENDANCE_TYPES（开源超参数，可调）
@@ -311,7 +329,8 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
 
   let body = '';
   if (_meetFormVisible) {
-    body = meetings.length === 0
+    // 稳定容器 #disc-meet-body（保态折叠挂点）：收起/取消只切 hidden，不重建 innerHTML、不销毁 picker
+    const bodyInner = meetings.length === 0
       ? `<div class="py-3 text-xs text-gray-400">当前无会议类活动（党课/支部党员大会/组织生活会/支委会）可录入</div>`
       : `
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
@@ -332,6 +351,7 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
         <button id="disc-meet-cancel" class="text-sm px-4 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
       <div class="mt-3 text-[11px] text-gray-400">纪检直接录入即确认（recordedBy=纪检）；同人同活动已有记录自动跳过</div>`;
+    body = `<div id="disc-meet-body">${bodyInner}</div>`;
   }
 
   return `

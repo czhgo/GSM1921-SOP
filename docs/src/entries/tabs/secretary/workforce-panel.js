@@ -247,12 +247,15 @@ export async function mountWorkforcePanel(branchId, hostEl) {
   async function renderBody() {
     // 发起表单（默认收起）＋ 议题列表（实时票决判定）
     const proposals = await listWorkforceProposals(branchId);
+    // 对未生效议题并行求票决判定：Promise.allSettled 并发，单条失败 console.warn 不阻断其余卡片；
+    // 理由：多议题时缩短书记等待（最小操作成本，MODULARIZATION_ASSESSMENT §8.7）
+    const pending = proposals.filter((a) => !(a.extras && a.extras.adoptedAt));
     const outcomesByAct = {};
-    for (const a of proposals) {
-      if (a.extras && a.extras.adoptedAt) continue;
-      try { outcomesByAct[a.id] = await getWorkforceVoteOutcome(a.id); }
-      catch (e) { console.warn('[workforce] 判定失败（不影响列表）', a.id, e); }
-    }
+    const settled = await Promise.allSettled(pending.map((a) => getWorkforceVoteOutcome(a.id)));
+    settled.forEach((r, i) => {
+      if (r.status === 'fulfilled') outcomesByAct[pending[i].id] = r.value;
+      else console.warn('[workforce] 判定失败（不影响列表）', pending[i].id, r.reason);
+    });
     body.innerHTML = `
       <div id="wf-form-wrap" class="hidden"></div>
       <div class="flex flex-col gap-2">${_proposalCards(proposals, outcomesByAct)}</div>`;
