@@ -8,6 +8,8 @@
 // validateBlockManifest 为纯函数（浏览器/Node 均可用），白名单内联自 core/constants.js（ROLE_KEYS/OUTPUT_BLOCK_DEFS）。
 
 import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/constants.js?v=20260903c';
+// P3d v0 组合声明校验（2026-09-05）：块级 depends/conflictsWith 组合体检，见 WORKFLOW_BLOCK_CONTRACT
+import { assertComposeValid } from '../../core/module-compose.js?v=20260905a';
 
 const FIELD_KINDS = new Set(['textField', 'textareaField', 'selectField', 'dateField']);
 const PROVENANCE_SET = new Set(['institution-common', 'branch-custom']);
@@ -30,6 +32,9 @@ export const THEME_PARTY_DAY_MANIFEST = {
   sopRef: 'content/02_institution/sop/theme_party_day.md',
   capabilityId: 'activity-calendar',
   scope: ['workspace:secretary', 'workspace:leader'],
+  // P3d v0 组合声明，见 WORKFLOW_BLOCK_CONTRACT
+  depends: [],        // 依赖的其他块 blockId（引用须 ∈ 块清单，禁环）
+  conflictsWith: [],  // 互斥块 blockId（同一组合不得同含双方）
   inputs: {
     fields: [
       { fieldId: 'title', label: '活动名称', kind: 'textField', required: true, requiredConfigurable: false, hint: '如：学习两会精神主题党日', enabledDefault: true },
@@ -59,6 +64,9 @@ export const TASKFORCE_RUN_MANIFEST = {
   sopRef: 'content/02_institution/sop/taskforce.md',
   capabilityId: 'taskforce',
   scope: ['workspace:org-commissioner', 'workspace:secretary'],
+  // P3d v0 组合声明，见 WORKFLOW_BLOCK_CONTRACT
+  depends: [],        // 依赖的其他块 blockId（引用须 ∈ 块清单，禁环）
+  conflictsWith: [],  // 互斥块 blockId（同一组合不得同含双方）
   inputs: {
     fields: [
       { fieldId: 'name', label: '专班名称', kind: 'textField', required: true, requiredConfigurable: false, hint: '', enabledDefault: true },
@@ -149,3 +157,10 @@ BLOCK_MANIFESTS.forEach((m) => {
   const res = validateBlockManifest(m);
   if (!res.ok) console.warn(`[workflow/blocks] manifest 不合规 ${m?.blockId}: ${res.errors.join('; ')}`);
 });
+
+// P3d v0 组合声明体检（同挂模块加载自检，2026-09-05）：引用缺失/互斥同含/depends 成环打警告不阻断
+try {
+  assertComposeValid(BLOCK_MANIFESTS);
+} catch (e) {
+  console.warn(`[workflow/blocks] 组合声明不合规: ${e.message}`);
+}

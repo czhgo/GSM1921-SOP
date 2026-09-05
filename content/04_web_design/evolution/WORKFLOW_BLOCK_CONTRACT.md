@@ -122,6 +122,22 @@ related_files: [ARCHITECTURE_EVOLUTION.md, MODULARIZATION_ASSESSMENT.md, PARTY_C
 | validation.initiatorRoles | 仅 ROLE 常量内角色键；块对不可见角色自动隐藏（不泄露） |
 | sopRef | 指向 content 内真实制度文档（死链四层法同款校验） |
 
+### 组合声明（P3d v0，2026-09-05）
+
+> 定位：把「块之间可组合关系」显式化——manifest 新增两个**可选**组合元数据字段。v0 为前端纯校验（模块加载自检 + 单测），**不进 server 端 config/路由校验**（服务端组合校验后续版本接入）。
+
+| 字段 | 类型 | 语义 | 规则 |
+|------|------|------|------|
+| depends | `string[]` | 本块依赖的其他块 `blockId`（组合内先满足的块） | 引用必须 ∈ 本组合块 id 集合；**不允许成环**（含自依赖，DFS 检出） |
+| conflictsWith | `string[]` | 与本块互斥的块 `blockId` | 引用必须 ∈ 本组合块 id 集合；**同一组合不得同时含互斥双方** |
+
+- **引用必须存在**：`depends`/`conflictsWith` 的每个引用都必须是组合内某块的 `blockId`（引用组合外 id = 声明即错误，防笔误/漂移）。
+- **互斥同含拦截**：同一组合清单同时出现 `conflictsWith` 双方即不合规（互斥对按 id 序规范化、去重，不偏袒声明方）。
+- **depends 禁环**：`depends` 不允许成环——DFS（三色标记）检出并返回完整环路径。
+- **收集式体检**：`resolveConflicts(items)` 不抛错，一次返回 `{ missingRefs, mutual, cycles }` 三类问题全集；`assertComposeValid(items)` 任一非空即抛错——错误信息含缺失引用（`引用方 -> 缺失 id`）、互斥双方 id、环路径；全部干净返回 `true`。
+- **v0 边界**：前端纯校验，不进 server 路由与 `config-clean` 校验；服务端组合校验后续版本接入。
+- **实现**：`docs/src/core/module-compose.js`（纯 ESM、零依赖、浏览器/Node 双端可加载）；试点块已按本契约在 `docs/src/workflow/blocks/manifests.js` 声明 `depends: []` / `conflictsWith: []`，块清单模块加载自检 + `server/test/module-compose.test.mjs` 接线断言。
+
 ---
 
 ## 三、与现有资产的映射表（落地不新造）

@@ -12,6 +12,8 @@
 //   消费点经 getCapabilities({scope:'component'}) 发现组件清单；deps 可声明组件依赖。
 // deps 仅登记 + resolveDeps 查询（M4 落地，不做自动解析）；requiredRoles 在 getCapabilities 中已应用。
 // 回滚=unregisterCapability(id)（M4 验收：注销声明即从能力清单消失）。
+// 能力组合语义（P3d v0，2026-09-05）：台内 tab 为固定组合；模块/块级组合声明
+// （可选元数据 depends/conflictsWith：引用存在 / 互斥同含 / depends 禁环）见 core/module-compose.js 纯校验。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §四/§五
 
 const _capabilities = new Map();
