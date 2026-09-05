@@ -79,8 +79,9 @@ dynamic_role:
 |---------|-------------|------|------|
 | content/02_institution/COMMISSIONER_FRAMEWORK.md | 2026-09-03 | [用户]+[AI] | 支委框架与赋权（2026-09-03 矩阵命名/概念定位去党建党务二分） |
 | content/02_institution/FLAT_DESIGN.md | 2026-08-05 | [工程师]+[AI] | 扁平化设计 |
-| content/02_institution/ROLE_CLASSIFICATION.md | 2026-08-10 | [工程师]+[AI] | 角色分类（[AI] 角色描述去开发期 Agent 术语） |
-| content/02_institution/README.md | 2026-08-10 | [用户]+[AI] | 02_institution 目录索引 |
+| content/02_institution/ROLE_CLASSIFICATION.md | 2026-09-05 | [工程师]+[AI] | 文件角色分类（2026-09-05 §九 系统角色权限矩阵拆出，本文档回归纯文件角色分类） |
+| content/02_institution/SYSTEM_ROLE_PERMISSION.md | 2026-09-05 | [工程师]+[AI] | 系统角色权限矩阵（2026-09-05 自 ROLE_CLASSIFICATION.md §九 拆出：角色键全表 9a0 + 权限矩阵/赋权链 + 双轨约定 §9f） |
+| content/02_institution/README.md | 2026-09-05 | [用户]+[AI] | 02_institution 目录索引（2026-09-05 拆述角色分类与系统角色权限矩阵） |
 | content/02_institution/sop/INDEX.md | 2026-09-03 | [用户]+[AI] | SOP 导航（术语段删除党建/党务二分） |
 | content/02_institution/sop/常见工作场景快速指南.md | 2026-08-05 | [用户]+[AI] | |
 | content/02_institution/sop/支委与党小组定人定责定岗说明.md | 2026-08-05 | [用户]+[AI] | |
