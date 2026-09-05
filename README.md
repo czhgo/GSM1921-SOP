@@ -97,7 +97,7 @@ npm start
 | 理论在哪 | [SECRETARY_DIRECTIVES.md](content/01_strategy/SECRETARY_DIRECTIVES.md) + [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) + [content/insights/](content/insights/) |
 | 工作流是什么 | [CLAUDE.md](CLAUDE.md) — 项目最高治理文件，定义工作方式、核心原则和运行标准 |
 | 系统怎么跑起来 | [server/README.md](server/README.md) — 安装、启动、测试与部署对接 |
-| 系统怎么验证 | `cd server && npm test` — 53 个测试文件（E2E/单元/审计），详见 [server/README.md](server/README.md) 测试说明 |
+| 系统怎么验证 | `cd server && npm test` — 全量测试随 `server/test/` 增长（E2E/单元/审计），详见 [server/README.md](server/README.md) 测试说明 |
 
 ---
 
@@ -267,7 +267,7 @@ ROLE_KEYS（改这里）
 |------|------|
 | 架构 | 分层：`docs/src/entries → components → services → core → mock → workflow`；数据变更必须经服务层，UI 禁止直改数据源 |
 | 母本优先 | 制度文本（`content/02_institution/sop/`）是代码逻辑的母本——先改制度，再同步代码 |
-| 测试 | `cd server && npm test`——53 个测试文件（E2E/单元/审计），覆盖登录链路/死链/数据完整性/模块加载 |
+| 测试 | `cd server && npm test`——全量测试随 `server/test/` 增长（E2E/单元/审计），覆盖登录链路/死链/数据完整性/模块加载 |
 | 版本管理 | `docs/scripts/bump-version.mjs` 一键同步全站 `?v=` 版本戳（避免浏览器缓存分裂） |
 | 设计规范 | 改 UI 前必读 [DESIGN_SYSTEM.md](content/04_web_design/design-system/DESIGN_SYSTEM.md)（含可验证条件自检）；可点击落点见 [CLICK_ROUTING.md](content/04_web_design/design-system/CLICK_ROUTING.md) |
 | 在线演示 | `docs/` 静态部署即得演示版（演示账号，无需后端） |

@@ -6,13 +6,16 @@ Node ESM + Express + better-sqlite3 单进程服务：同时托管前端静态�
 
 ```bash
 cd server
-npm install        # 安装依赖（含 devDependency playwright，用于 E2E）
-npm start          # 启动服务，默认端口 3000（可用 PORT 环境变量覆盖）
-npm test           # 运行全部测试（裸 node --test 自动发现 test/ 下的 *.test.js）
+npm install            # 安装依赖（含 devDependency playwright，用于 E2E）
+npm start              # 启动服务，默认端口 3000（可用 PORT 环境变量覆盖）
+npm test               # 全量测试（等价 npm run test:full）
+npm run test:core      # 核心流程子集回归（议程/表决、成员变更、多端写入、模块加载、帮助 E2E 等，文件清单见 server/package.json）
+npm run test:fast      # 快速回归子集（基础单元 + 目录/链接审计等，文件清单见 server/package.json）
+npm run clean:tmp      # 清理测试残留目录 .tmp（脚本非正常中止时使用）
 ```
 
 - 启动入口 `server/server.js`：数据库为空时自动从 `docs/src/mock/*.js` 导入种子数据（users/activities/notices/taskforces/tasks/assignments/archive_records/signups）。
-- 可通过 `DB_PATH` 环境变量指定数据库文件路径（默认 `server/data.db`），`PORT` 指定监听端口。
+- 环境变量模板见 `server/.env.example`（均有缺省，未配置即可本地演示运行）：`DB_PATH` 指定数据库文件路径（默认 `server/data.db`）、`PORT` 指定监听端口、`LOGIN_PASSWORD` 为统一登录口令（缺省 '123456'，与前端演示账号一致）、`DISABLE_PASSWORD_CHECK=1` 跳过口令校验（内网演示/测试套件用，生产勿开；`npm test`/`test:core`/`test:fast`/`test:full` 脚本均默认注入）。
 
 ## 数据与文件
 
@@ -30,9 +33,9 @@ npm test           # 运行全部测试（裸 node --test 自动发现 test/ 下
 
 ## 测试说明
 
-- **套件**：`server/test/` 共 **17 个测试文件**（`npm test` 裸 `node --test` 自动发现 `*.test.{js,mjs}`）：
-  - **单元/集成（9 个 `.test.js`）**：auth / db / resources / seed / skeleton / snapshot / uploads / report / e2e-login
-  - **审计守护（8 个 `.test.mjs`）**：agenda-flow（三会一课议程回归）、b3-1-makeup-writeback（补课完成→考勤回写）、capability-registry（能力注册表原语）、click-cost（点击成本 ≤2 跳）、link-integrity（死链四层法 L1-L5）、mock-integrity（Mock 数据完整性 M1-M2）、module-load（全模块加载冒烟：语法/重复声明/未定义引用）、references-official-links（官方制度文件 12371 链接断言）
-- **两类运行形态**：多数自包含（测试内 `createApp({ dbPath: ':memory:' })` + 种子起真实服务并监听随机端口）；`click-cost` / `mock-integrity` 需先 `npm start`（外部 server 在 3000 端口）。
+- **套件规模（动态口径）**：测试文件随 `server/test/` 目录增长（`.test.js` / `.test.mjs` 混合，含单元/集成、审计守护、E2E 等），本文件不维护固定计数，以 `server/test/` 实际目录为准。
+- **全量跑**：`npm test`（等价 `npm run test:full`）——脚本注入 `DISABLE_PASSWORD_CHECK=1` 后执行 `node --test --test-concurrency=1`，自动发现 `server/test/` 下全部 `*.test.{js,mjs}`。纯 node 部分沙箱环境即可运行；浏览器类/E2E（Playwright）需在常规终端运行（依赖见下文 Playwright 条）。
+- **子集回归**：`npm run test:core`（核心流程：议程/表决、成员变更、多端写入、模块加载、帮助 E2E 等）与 `npm run test:fast`（基础单元 + 目录/链接审计等快速项）按子集加速回归，文件清单见 `server/package.json` 的 scripts。
+- **运行形态**：大多数测试自包含——测试内 `createApp({ dbPath: ':memory:' })` + 种子起真实服务并监听随机端口（如 `e2e-login.test.js`）；部分审计/E2E 需先 `npm start` 起外部 server 于 3000 端口（如 `click-cost` / `mock-integrity`，各自文件头注释有运行说明）。
 - **版本戳**：`node docs/scripts/bump-version.mjs` 会同步 `server/test/*.mjs` 内的 `?v=` 版本戳；bump 后跑一次全量测试。
 - **Playwright**：锁定 `1.60.0`（配套 chromium 二进制随本机缓存）；全新环境需先 `npx playwright install chromium` 下载浏览器。
