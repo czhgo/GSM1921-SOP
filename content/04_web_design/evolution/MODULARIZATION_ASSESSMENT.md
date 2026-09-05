@@ -3,7 +3,7 @@ title: "模块化 / 插件化 / 开源化评估——统一扎口方向裁决"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-09-05"
+last_updated: "2026-09-06"
 status: active
 related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/SOP_WEBSITE_GUIDE.md, ../deploy/DEPLOYMENT_GUIDE.md]
 ---
@@ -18,15 +18,17 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 
 ## 一、评估结论速览
 
+> **书记 2026-09-06 再评定调**：① 综合分反映的是**二开组合能力**（模板型交付下「别人能否快速换壳用起来」），不是纯工程内聚分；② **重改进不唯分**——分数只作方向指引，重点看残项清单与行动是否推进（本轮 74→76 主要是**口径回归二开组合能力 + 新增可换壳证据**，不是"凭空改出 2 分"）；③ **开源长期交付形态 = 模板型**——仓库是「制度即代码」模板，随附示例组织（本科生党支部）只是可整体替换的默认值，文档与演示以「给新组织换壳」为叙事主线（落地：§8.8 P4a 根 README 30 分钟换壳指南 + 演示数据一键重置 `?reset=1`）。本文档**覆盖式维护、不逐轮留历史行**，口径沿革见 §八。
+
 | 维度 | 得分 | 一句话结论 |
 |------|------|-----------|
-| 模块化 | 74 / 100 | 分层与组件积木真实；重复/三写清单（esc/fmtDt 微工具、类型/阶段元数据、场景清单）已收敛、近三轮新代码引入重复趋零（会议类型单源、阈值入 policy）；残项=微工具重复全清 |
-| 插件化 | 73 / 100 | 注册表单一源干净 + P3d 组合声明契约 v0（depends/conflictsWith 纯校验 + 测试 + 文档）；短在「能力化」装饰性转发、tab id 散落导航侧、requiredRoles 门禁未消费、manifest 防漂移测试未全落地 |
-| 开源化 | 70 / 100 | P3a–P3e + policy-defaults + README/env 对齐后回补；缺口=server 登录不验密（运行安全，多人/计算中心部署场景）、示例数据为 mock |
-| 超参数可调性 | 76 / 100 | P3c 集中默认单一源（policy-defaults，逐项 branch-default 可调/institutional 固定 + 出处）；缺口=未接 config 驱动（可调不改码，留 v1） |
-| 模块组合性 | 76 / 100 | 组合面=能力注册表 + 支部 config.modules/blocks/workforce + L3 manifest；P3d v0 元数据声明与校验落地；缺口=requiredRoles 未被消费、服务端 config 冲突校验留 v1 |
-| **综合（当前）** | **≈ 74 / 100** | 五维均值（74/73/70/76/76）——口径经 2026-09-05 三轮改进后回升（v1 75 → v2 69 → v3 67 → 当前 74）；沿革明细见执行日志 T-2026-09-033/034/035，本文档**覆盖式维护、不再逐轮留历史行** |
-> 注 2（书记 2026-09-03 口径修正）：本仓库是支部自己的内部系统，**.ctx 日志与 references/历史会议材料均为内部资产、保留上传**，不存在"出仓脱敏"需求；§7.1 R12 与 §7.2 P1b 中的出仓子项（脱敏/移出/账号外置/.ctx ignore）**全部撤销**。真正保留的工程项仅是「运行安全」：server 登录不校验密码在多人/计算中心部署时任何人可凭 personId 冒名登录。
+| 模块化 | 75 / 100 | 五层分层 + 组件积木 + tab 懒加载为真；esc/fmtDt 微工具、类型/阶段元数据、写场景清单等重复/三写均已收敛（近三轮新代码引入重复趋零）；残项=徽章/选择器等组件出口仍散、服务层个别 UI 依赖 |
+| 插件化 | 75 / 100 | registry 自注册 + config.modules/blocks/workforce「配置即组合」+ module-compose v0 契约（depends/conflictsWith 纯校验 + 测试 + 文档）落地；残项=requiredRoles 门禁未被 workspace-shell 消费（仅元数据）、manifest 防漂移测试未全落地 |
+| 开源化 | 74 / 100 | 根 README 已一般化、以「复用与二次开发（给其他组织）」为核心章节且增 30 分钟换壳指南（P4a）；数据真人化可整体替换（people/accounts 2026-09-06 基线）；MIT + CONTRIBUTING 齐；残项=无 English 版、release 发布工作流未做 |
+| 超参数可调性 | 78 / 100 | policy-defaults 集中默认单一源：票决门槛（应到 2/3+无异议）/ 会议类型与上传位例外 / 考察超期天数 / 应到名单 roster（partyStages+excludeDetained，**已含滞留口径**，2026-09-06）逐项标注 branch-default 可调 / institutional 固定；残项=未接 config 驱动（可调仍改码，留 v1） |
+| 组合能力（二开视角） | 78 / 100 | 组合面=工作台配置启停排序 + config.modules/blocks/workforce + L3 block manifest + module-compose v0 契约与测试 6/6 绿；证据=支部书记「工作台配置」入口可视启停排序（party-config-tab）+ config 净化单源 config-clean；残项=requiredRoles 未消费、拖拽编排仅主题党日一处（L1→L5 未达） |
+| **综合（当前）** | **≈ 76 / 100** | 五维均值（75/75/74/78/78）——书记 2026-09-06 再评定调「综合分反映二开组合能力 + 重改进不唯分 + 开源长期交付形态=模板型」；失分仍=无 config 驱动可调（默认/阈值改码）、requiredRoles 未消费、拖拽编排未实现、server 登录默认口令弱（P1b 已加口令校验，缺省 123456 + dev/demo 免密路径在，生产须显式换密）、无 English 版 |
+> 注 2（书记 2026-09-03 口径修正）：本仓库是支部自己的内部系统，**.ctx 日志与 references/历史会议材料均为内部资产、保留上传**，不存在"出仓脱敏"需求；§7.1 R12 与 §7.2 P1b 中的出仓子项（脱敏/移出/账号外置/.ctx ignore）**全部撤销**。真正保留的工程项仅是「运行安全」：server 登录不校验密码在多人/计算中心部署时任何人可凭 personId 冒名登录（该运行安全项已由 P1b 于 2026-09-03 修复：默认口令校验可换 `LOGIN_PASSWORD` + `DISABLE_PASSWORD_CHECK=1` 逃逸门，见 §7.2 执行状态；本条保留撤销口径原貌）。
 
 ---
 
@@ -216,7 +218,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 - 无「可调参数声明」近码契约：多数默认值没有回答「支部默认 vs 制度固定」，调整点不集中（建议单一 `policy-defaults` 出口 + 每处默认旁注释）。
 - 近期新功能（A1/M2）改动时未把原则带进去——触发本轮。
 
-### 8.2 模块组合性——基线 68 / 100（改进后当前 76，见速览与 §8.5 P3d）
+### 8.2 模块组合性 / 组合能力（二开视角）——基线 68 / 100（2026-09-06 再评 78，见速览与 §8.5 P3d）
 
 **组合机制（已存在）**：
 - 能力注册表：`capabilities/*` 自注册，scope→工作台 tab 清单（**台内固定组合的声明面**）。
@@ -233,9 +235,9 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 
 已达标示例：styles.css（不可变底线注释）、COLOR_SYSTEM（固定/可调四层表）、vote-config（默认场景函数）、config-clean（支部配置单源）。未达标：业务阈值/类型/名单默认出处多数无标注（见 8.1 失分项）。
 
-### 8.4 综合——当前 ≈ 74 / 100（基线 v3 ≈ 67 为 2026-09-05 首测，改进见速览）
+### 8.4 综合——当前 ≈ 76 / 100（2026-09-06 书记再评定调后口径，改进见速览）
 
-> 口径说明：评估沿革 v1≈75（首评宽松）→ v2≈69（批判复评）→ v3≈67（新增开源部署双维度、最严）→ 当前 ≈74（P3a–P3e + P3c/P3d + 本轮改进回补）。本文档覆盖式维护，不逐轮留表；明细见执行日志 T-2026-09-033/034/035/036。
+> 口径说明：评估沿革 v1≈75（首评宽松）→ v2≈69（批判复评）→ v3≈67（新增开源部署双维度、最严）→ ≈74（P3a–P3e + P3c/P3d 回补）→ **≈76（2026-09-06 再评定调：综合分反映二开组合能力、重改进不唯分、交付形态=模板型；P4a 新增可换壳证据）**。本文档覆盖式维护，不逐轮留表；明细见执行日志 T-2026-09-033/034/035/036。
 
 ### 8.5 行动项（书记据以裁决）
 
@@ -264,3 +266,16 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 **疑点登记（待书记目视批）**：书记台分工面板展开态每次重建会丢未提交表单——2026-09-05 已修复（表单区独立于议题列表，见 §8.7 修复②）；同类「面板展开态重建丢表单」面批量复查列为减负/最小三成本候选。
 
 **P3c/P3d 落地摘要（本 spec）**：`core/policy-defaults.js`（集中默认，逐项 kind=branch-default 可调 / institutional 固定 + 出处）消费点改引用（workforce 门槛/attendance 会议类型与上传位例外/inspection 超期天数），`policy-defaults-sync.test.mjs` 5/5 绿；`core/module-compose.js`（组合声明纯校验：引用存在/互斥同含/depends 禁环）+ `manifests.js` 两块补 `depends/conflictsWith` 并接自检 + WORKFLOW_BLOCK_CONTRACT「组合声明（P3d v0）」节 + registry.js 头注释，`module-compose.test.mjs` 6/6 绿、capability-registry 7/7 绿——默认行为零变化。
+
+### 8.8 评估→改进（2026-09-06 · 书记第四轮再评定调，模板化落地）
+
+> **书记 2026-09-06 再评定调三句**：① 综合分反映**二开组合能力**（模板型交付下"别人能否快速换壳用起来"），非纯工程内聚分；② **重改进不唯分**——分数只作方向指引，重点看残项清单与行动推进；③ **开源长期交付形态 = 模板型**——仓库是"制度即代码"模板，随附示例组织只是可整体替换的默认值。速览分项据此口径（模块化 75 / 插件化 75 / 开源化 74 / 超参数可调性 78 / 组合能力 78 / 综合 ≈76，依据见 §一速览）。
+
+| 项 | 动作 | 状态（2026-09-06） | 验收 |
+|---|---|---|---|
+| P4a | 模板型落地最小包：根 README 增「给新组织：30 分钟换壳指南」（clone 跑 → 换 mock 数据 → 角色/术语/配色/policy 默认 → 支部名与分支配置 → npm test 验证）＋ 浏览器演示数据一键重置（URL `?reset=1` 清除本域演示存储键回种子初始态） | ✅ 本次完成 | 新 clone 者按指南约 30 分钟换壳跑通；`?reset=1` 后回种子初始态且不破坏正常加载与 API 模式 |
+| P4b | 换组织向导页：引导式完成 people/accounts/branches/policy 替换并生成组织配置包 | 立项④（大，待书记排期） | 向导产出可一键应用的换壳配置 |
+| P4c | 演示数据与空组织模板分离：仓库随附「模板 + 示例组织」双形态，seed 完整性自动校验、一键重置服务化 | 立项⑤（大，待书记排期） | 模板态零示例痕迹；seed 缺失/漂移测试兜底 |
+| P4d | 组合能力补强（后续批次）：policy-defaults 接入 config 驱动（超参可调不改码）、requiredRoles 门禁消费、拖拽编排由主题党日推广全站（L1→L5） | 后续批次（残项见 §8.1/8.2 与速览失分行） | 超参改码→可配置；requiredRoles 生效；拖拽块覆盖多场景 |
+
+> 落地位置（P4a）：根 README「复用与二次开发」节（替换入口总表后新增 30 分钟换壳指南）与「快速开始」节（`?reset=1` 说明）；`docs/src/core/mock-adapter.js` `MockAdapter.loadDB()`（读取即检测 `?reset=1`，清除 `workflowos_*`/`gsm1921-*`/`sop_org_os_*` 前缀键与历史遗留键后整页导航回种子初始态；无 API token 时才执行，不清 sessionStorage，不破坏 API 模式）。

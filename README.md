@@ -54,6 +54,63 @@ GSM1921-SOP 是把组织制度文本转化为可执行代码工作流的运行�
 | 功能模块组合 | 能力注册表（功能 = 能力声明 register/get/mount，台内 tab 组合 + 支部 config.modules/blocks 启停排序）；模块组合声明契约（depends/conflictsWith）见 [docs/src/core/module-compose.js](docs/src/core/module-compose.js) |
 | 后端与部署 | [server/README.md](server/README.md)；环境变量模板 [server/.env.example](server/.env.example)；数据源 adapter（本地 mock ↔ REST API）见 [docs/src/core/](docs/src/core/) |
 
+### 给新组织：30 分钟换壳指南
+
+> 本仓库是**模板型**交付：系统骨架（分层 / 能力注册表 / 工作流块 / 权限链）不动，只替换默认值即换组织。下面按「先跑 → 换数据 → 换角色/术语/配色/默认 → 换支部名与分支配置 → 验证」五步走完上表全部替换入口（组织内的逐项替换示例见 [README-members.md 九、复用与二次开发（给其他组织）](README-members.md#九复用与二次开发给其他组织)）。
+
+**步骤 1 —— clone 并跑起来（约 5 分钟）**
+
+```bash
+git clone https://github.com/czhgo/GSM1921-SOP.git
+cd GSM1921-SOP/server
+npm install
+npm start
+```
+
+打开 `http://127.0.0.1:3000/login.html`，用 [docs/src/mock/accounts.js](docs/src/mock/accounts.js) 中的演示账号登录（如书记 储子禾：学号 `2300010001` / 密码 `123456`）。
+- 验证点：顶栏品牌显示支部名「光华管理学院本科生党支部」；不改代码直接开公网演示 <https://czhgo.github.io/GSM1921-SOP/> 可先看效果。
+
+**步骤 2 —— 换数据：整体替换 [docs/src/mock/](docs/src/mock/)（约 10 分钟）**
+
+组织数据全部集中在 `docs/src/mock/`，关键文件清单：
+
+| 文件 | 内容 |
+| --- | --- |
+| [people.js](docs/src/mock/people.js) | 成员名单（姓名/学号/党小组/发展阶段/角色；滞留党员可选标注 `residenceStatus`，见文件头注释） |
+| [accounts.js](docs/src/mock/accounts.js) | 登录演示账号（学号 + 密码 + personId 映射） |
+| [activities.js](docs/src/mock/activities.js) | 活动种子（三会一课 / 主题党日 / 品牌活动） |
+| [attendance.js](docs/src/mock/attendance.js) / [inspection.js](docs/src/mock/inspection.js) | 考勤 / 考察记录种子 |
+| [notices.js](docs/src/mock/notices.js) / [taskforces.js](docs/src/mock/taskforces.js) | 通知 / 专班种子 |
+| [seed.js](docs/src/mock/seed.js) | 任务分工 / 档案归档 / 报名种子 |
+| [thought-reports.js](docs/src/mock/thought-reports.js) / [review.js](docs/src/mock/review.js) | 思想汇报 / 复盘材料种子 |
+
+服务端种子 [server/seed.js](server/seed.js) 复用同一份数据——只换前端 `mock/` 即可，启动 server 后同源生效，无需前后端各换一遍。
+- 验证点：重跑后各工作台的成员 / 活动 / 通知 / 专班列表显示你的数据；用你自己的 `accounts.js` 账号可登录。
+
+**步骤 3 —— 换角色 / 权限 / 术语 / 配色 / 业务默认（约 10 分钟）**
+
+- 角色与权限：角色清单单一事实源 [docs/src/core/constants.js](docs/src/core/constants.js)；权限矩阵 [content/02_institution/SYSTEM_ROLE_PERMISSION.md](content/02_institution/SYSTEM_ROLE_PERMISSION.md)；部署形态切换 [docs/src/config/deploy.js](docs/src/config/deploy.js)。
+- 术语与制度：制度母本 [content/02_institution/](content/02_institution/)（`sop/` 为角色工作流指南）；术语权威源见 [content/03_doc_system/USAGE_POLICY.md](content/03_doc_system/USAGE_POLICY.md)。
+- 配色：色彩令牌与品牌色在 [docs/src/styles.css](docs/src/styles.css) + constants.js；「固定 / 可调」口径见 [content/04_web_design/design-system/COLOR_SYSTEM.md](content/04_web_design/design-system/COLOR_SYSTEM.md)（党建红 / 党徽金为制度固定，勿改）。
+- 业务默认（阈值 / 应到名单口径 / 考察超期天数等）：集中在 [docs/src/core/policy-defaults.js](docs/src/core/policy-defaults.js)，逐项标注 `branch-default`（支部可调）或 `institutional`（制度固定，改须书记裁决）。
+- 验证点：改 `policy-defaults.js` 的票决门槛 / 应到名单口径后重跑，表决判定与会务「应到」人数按新值生效。
+
+**步骤 4 —— 换支部名字与分支配置（约 5 分钟）**
+
+- 支部名：示例支部在 [docs/src/mock/branches.js](docs/src/mock/branches.js)（`br-b1`：`name` + `config.headerTitle`，改支部名即同步顶栏品牌）。
+- 分支配置（支部自治组合）：`config.modules`（tab 启停 / 排序）、`config.blocks`（工作流块）、`config.workforce`（分工归属）；支部书记工作台有可视化「工作台配置」入口（[docs/src/entries/tabs/party-committee/party-config-tab.js](docs/src/entries/tabs/party-committee/party-config-tab.js)）。
+- 验证点：顶栏显示新支部名；在「工作台配置」隐藏某模块后对应 tab 消失，直达该 tab 的链接自动回退到首个可见 tab（tab-nav 守卫）。
+
+**步骤 5 —— 验证（约 5 分钟）**
+
+```bash
+cd server && npm test
+```
+
+- 链接完整性基线（[server/test/link-integrity.test.mjs](server/test/link-integrity.test.mjs)）守护全站链接与锚点——改动文件/文档结构后必跑。
+- 检查应到名单：登录后进会议 / 表决相关页，「应到」口径 = 正式党员 + 预备党员且非滞留（派生自 [docs/src/core/policy-defaults.js](docs/src/core/policy-defaults.js) 的 `attendance.roster`；滞留示范见 [docs/src/mock/people.js](docs/src/mock/people.js) 的 p5 / p9 `residenceStatus`）。替换成员数据后若口径不同，改 `partyStages / excludeDetained` 即可，不必改页面代码。
+- 冒烟建议：先按 [快速开始](#快速开始) 的 `?reset=1` 说明验证一键重置链路（重置后应回到种子初始态），再做你的替换，防止把演示残留误当自己的数据。
+
 ### 可能性（长期演进主线）
 
 把工作流封装为可复用的代码块，由各组织按自己的实际工作流排列组合，最终在界面上拖拽编排、跨组织分享复用（能力目录化 → 组织组合化 → 块封装契约 → 拖拽编排 → 块分享复用）。设计方向见 [ARCHITECTURE_EVOLUTION.md §八](content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md)，当前模块化/插件化/开源化成熟度与行动项见 [MODULARIZATION_ASSESSMENT.md](content/04_web_design/evolution/MODULARIZATION_ASSESSMENT.md)。
@@ -69,6 +126,8 @@ GSM1921-SOP 是把组织制度文本转化为可执行代码工作流的运行�
 **公网演示（最快体验）**
 
 直接打开 [https://czhgo.github.io/GSM1921-SOP/](https://czhgo.github.io/GSM1921-SOP/)，无需安装。演示环境使用开发演示账号，适合快速了解系统长什么样（演示账号见 [docs/src/mock/accounts.js](docs/src/mock/accounts.js)，请勿用于生产）。
+
+> 提示：演示数据可随时恢复初始态——访问地址后加 `?reset=1`（如 `https://czhgo.github.io/GSM1921-SOP/?reset=1`，或本地任意页面如 `http://127.0.0.1:3000/index.html?reset=1`），即清除本浏览器的演示存储、回到种子初始态（仅作用于浏览器内的演示数据；登录后端后数据以服务器为准，不在此列）。
 
 **本地完整运行**
 

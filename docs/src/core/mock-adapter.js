@@ -24,6 +24,16 @@ import { BRANCHES } from '../mock/branches.js?v=20260903c';
 
 const STORAGE_KEY = 'workflowos_branch_db_v1';
 
+// 历史遗留存储键（并入 workflowos_branch_db_v1 全量键架构前的旧单域键）：
+// SANDBOX_MODE 每刷清理与演示数据一键重置（?reset=1，见 _resetDemoIfRequested）
+// 共用同一清单，避免两处键集合漂移。
+const LEGACY_STORAGE_KEYS = [
+  'assignment_records', 'attendance_records',
+  'inspection_records', 'makeup_tasks', 'act_sub_records',
+  'tf_sub_records', 'compliance_references', 'file_space_records',
+  'experience_deposits', 'gsm1921-auth-records',
+];
+
 /**
  * 内存沙盒模式开关：true 时每次刷新自动清空持久化存储
  * 2026-07-31 修复（T174）：与 services/mock.js 对齐改为 false，
@@ -94,18 +104,53 @@ function _saveToStorage() {
   }
 }
 
+/**
+ * 演示数据一键重置（P4a，2026-09-06 模板型落地）：
+ * 浏览器演示场景在 URL 加 ?reset=1 访问时，清除本域全部演示存储键
+ * （workflowos_* 项目 DB / gsm1921-* 登录与会话缓存 / sop_org_os_* 审计 +
+ * LEGACY_STORAGE_KEYS 历史遗留键），随后去掉 URL 上的 reset 参数整页导航，
+ * 下次 loadDB 无持久化数据即回种子初始态（_loadFromStorage → _seedInitialData）。
+ *
+ * 边界（不破坏正常加载与 API 模式）：
+ * - 仅在无 API token（sessionStorage['gsm1921-api-token'] 不存在）的纯演示/本地
+ *   mock 场景执行；API 模式数据以服务器为权威，不清 sessionStorage 登录会话。
+ * - 所有存储访问均包 try-catch：隐私模式/存储不可用时跳过，不影响正常加载。
+ * @returns {boolean} true=已执行重置并触发导航（调用方应中止本次加载）
+ */
+function _resetDemoIfRequested() {
+  try {
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') return false;
+    // API 模式：演示数据以服务器为权威，token 存在时不执行重置，避免误清登录会话
+    if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('gsm1921-api-token')) return false;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('reset') !== '1') return false;
+    // 本域演示存储键集合 = 前缀键 + 历史遗留键（前缀与 SANDBOX_MODE 清理同源口径）
+    const PREFIX_KEYS = ['workflowos_', 'gsm1921-', 'sop_org_os_'];
+    const removeKeys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && PREFIX_KEYS.some(p => k.startsWith(p))) removeKeys.push(k);
+    }
+    LEGACY_STORAGE_KEYS.forEach(k => removeKeys.push(k));
+    removeKeys.forEach(k => localStorage.removeItem(k));
+    console.info(`[MockAdapter] ?reset=1 已清除演示存储键 ${removeKeys.length} 个，正在回到种子初始态`);
+    // 去掉 URL 上的 reset 参数再导航，防止新页面再次触发清空（造成重复刷新）
+    const url = new URL(window.location.href);
+    url.searchParams.delete('reset');
+    window.location.replace(url.toString());
+    return true;
+  } catch (e) {
+    console.warn('[MockAdapter] ?reset=1 重置失败（已跳过，不影响正常加载）：', e);
+    return false;
+  }
+}
+
 function _loadFromStorage() {
   if (SANDBOX_MODE) {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem('workflowos_notices_v1');
     localStorage.removeItem('workflowos_taskforces_v1');
-    const legacyKeys = [
-      'assignment_records', 'attendance_records',
-      'inspection_records', 'makeup_tasks', 'act_sub_records',
-      'tf_sub_records', 'compliance_references', 'file_space_records',
-      'experience_deposits', 'gsm1921-auth-records',
-    ];
-    legacyKeys.forEach(k => localStorage.removeItem(k));
+    LEGACY_STORAGE_KEYS.forEach(k => localStorage.removeItem(k));
     if (mockDB.activities.length === 0 && ACTIVITIES.length > 0) {
       mockDB.activities = ACTIVITIES.map(a => ({
         ...a,
@@ -341,6 +386,9 @@ export const MockAdapter = {
   // ── 全局操作 ──────────────────────────────────────────────
 
   loadDB() {
+    // 演示数据一键重置（P4a）：URL 带 ?reset=1 时清除本域演示存储并整页导航回种子初始态。
+    // 置于 _loadFromStorage 之前（读取即检测），覆盖全部 mock 模式加载路径。
+    if (_resetDemoIfRequested()) return;
     const merged = _loadFromStorage();
     // 持久化守卫解锁：无论恢复成功与否，加载流程已结束，后续写入允许
     mockDB._loaded = true;

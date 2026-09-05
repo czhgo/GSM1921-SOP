@@ -548,3 +548,11 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **落地**：services/roster.js（getMeetingRoster/getRosterStats/saveResidenceChange 留痕，policy attendance.roster 单一源 partyStages/excludeDetained）；people.js p5/p9 示范滞留（在册党员 21，应到 19）；纪检会议考勤候选/全选收敛应到（支部大会/党课/组织生活会）、滞留徽标+备注、p_pc 不再入候选；组织委员 org「人才库」维护在校/滞留+备注留痕、书记 secretary 概况「滞留复核」卡；domain.js Person @typedef。
 **验证**：roster.test 9/9（口径/滞留排除/列席不计/小组按组/候选=全选/p_pc 剔除/统计/留痕即时生效）+ attendance-batch 6 + roles-sync 4 + policy-sync 5 = 24/24 全绿；GetDiagnostics 零。
 **遗留**：①滞留「可见不可选」用候选剔除+徽标说明（Picker 无逐人禁用，需要另立项）；②线上表决 voterIds 快照与滞留语义兼容（线上不需到场）；③组长小组会表单未接 roster（后续同 util）；④浏览器目视待常规终端。
+
+---
+
+**T-2026-09-042 模块化/插件化/开源化再评 v4 + 换壳指南 + 演示一键重置（2026-09-06，commit 待）**
+**书记定调（产品/逻辑多问轮）**：①弃用 logo（README 维持文字版式）；②滞留/应到口径已裁（见 T-041）；③评估再评=「综合分反映二开组合能力」「重改进不唯分」「开源长期交付形态=模板型」；本轮改进选：换壳指南+一键演示 / 换组织向导(大) / 空模板分离(大)。
+**评估 v4（MODULARIZATION_ASSESSMENT 覆盖式更新）**：模块化 75 / 插件化 75 / 开源化 74 / 超参数可调性 78 / 组合能力(二开视角) 78 / **综合≈76**（口径回归+新增可换壳证据；失分仍=config 驱动未接、requiredRoles 未消费、拖拽编排未实现、登录缺省弱口令、无 English）。§8.8 行动 P4a✅/P4b 立项④/P4c 立项⑤/P4d 后续。
+**落地**：README「给新组织：30 分钟换壳指南」（5 步：clone 跑→换 mock 数据清单→角色/权限/术语/配色/policy→支部名与分支配置→验证含应到口径与 ?reset=1）；mock-adapter 支持 `?reset=1`（浏览器演示一键回种子：无 API token 才执行、清 workflowos_*/gsm1921-*/sop_org_os_* 与历史遗留键→去参 reload），README 快速开始补说明。
+**验证**：link-integrity L1/L2/L3/L5 全过（L4 EPERM 待常规终端）；mock-adapter node 加载 OK；GetDiagnostics 零。立项④⑤ 已登记 REVIEW_QUEUE 待启动（spec 先行）。
