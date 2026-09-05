@@ -50,12 +50,37 @@ export function canUploadAttendance(personId, activityId) {
   const activity = loadActivities().find(a => a.id === activityId);
   if (!activity || activity.archived) return false;
   const role = (getPersonById(personId) || {}).role;
-  if (['secretary', 'deputy-secretary', 'disc-commissioner'].includes(role)) return true;
+  if (role === 'secretary' || role === 'deputy-secretary') return true; // 书记/副书记例外承担
+  if (role === 'disc-commissioner') {
+    // 纪检：会议考勤上传位（党课/支部党员大会/组织生活会/支委会等会议类，CF §C.1a）；党小组会与主题党日归组长/组织者
+    return ['党课', '支部党员大会', '组织生活会', '支委会'].includes(activity.type);
+  }
   if (role === 'leader' && activity.type === '党小组会') return true;
   // 该活动组织者（组织者按活动身份，组长兼组织者同）
   const isOrg = (Array.isArray(activity.assignments) && activity.assignments.some(x => x.personId === personId && x.role === 'organizer'))
     || activity.organizer === personId;
   return !!isOrg;
+}
+
+/**
+ * 纪检会议考勤直接录入（上传位即确认，recordedBy=纪检；CF §C.1a 会议考勤：上传/修改/确认/录入）
+ * 同人同活动已有记录（含待复核异常）→ 跳过（不可覆盖已有记录，改走纪检确认界面）
+ * @returns {{ added: number, skipped: number }}
+ */
+export function upsertMeetingAttendance({ actorId, records = [] }) {
+  const res = { added: 0, skipped: 0 };
+  if (!actorId || !Array.isArray(records) || records.length === 0) return res;
+  const all = loadAttendanceRecords();
+  records.forEach(r => {
+    if (!r.personId || !r.activityId) return;
+    if (!canUploadAttendance(actorId, r.activityId)) { res.skipped += 1; return; }
+    const exist = all.find(x => x.personId === r.personId && x.activityId === r.activityId);
+    if (exist) { res.skipped += 1; return; }
+    all.push({ ...r, submittedBy: actorId, recordedBy: actorId, overdue: false });
+    res.added += 1;
+  });
+  if (res.added > 0) saveAttendanceRecords(all);
+  return res;
 }
 
 /**

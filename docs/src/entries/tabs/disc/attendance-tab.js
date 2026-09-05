@@ -9,10 +9,9 @@
 //   - 条目不得使用浅色底板（书记反感）→ 白底 + 左侧状态色条
 
 import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260903c';
-import { attendanceToLong } from '../../../services/attendance.js?v=20260903c';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance } from '../../../services/attendance.js?v=20260903c';
 import { getPersonName } from '../../../services/person.js?v=20260903c';
 import { solidAccentStyle } from '../../../core/constants.js?v=20260903c';
-import { loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260903c';
 import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260903c';
@@ -22,6 +21,8 @@ import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260903c';
 import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260903c';
 import { HandoffStore } from '../../../services/handoff.js?v=20260903c';
+import { AuthStore } from '../../../services/auth.js?v=20260903c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -82,6 +83,7 @@ export function renderContent(ctx) {
   container.innerHTML = `
     ${filterBanner}
     ${_buildQueueHTML(queueItems, queueLeave, queueAbsent, queueOverdue, autoConfirmedCount, accent, accentBorder, actById)}
+    ${_buildMeetingCardHTML(ctx, accent, accentBorder, actById)}
     ${_buildMatrixCardHTML(ctx, allRecords, actById, filterActivityId, accent, accentRgba, accentBorder)}
     ${_buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityId, accent, accentRgba, accentBorder)}
   `;
@@ -127,6 +129,45 @@ export function renderContent(ctx) {
   // 队列「展开全部 / 收起」（最小信息成本：默认只暴露 8 条）
   container.querySelector('#att-queue-more')?.addEventListener('click', () => {
     _queueExpanded = !_queueExpanded;
+    renderContent(ctx);
+  });
+
+  // ── 会议考勤录入（纪检，CF §C.1a：纪检直接上传并录入；A1-2026-09-05）──
+  container.querySelector('#disc-meet-toggle')?.addEventListener('click', () => {
+    _meetFormVisible = !_meetFormVisible;
+    if (!_meetFormVisible && _meetPickerInstance) { _meetPickerInstance.destroy(); _meetPickerInstance = null; }
+    renderContent(ctx);
+  });
+  container.querySelector('#disc-meet-cancel')?.addEventListener('click', () => {
+    _meetFormVisible = false;
+    if (_meetPickerInstance) { _meetPickerInstance.destroy(); _meetPickerInstance = null; }
+    renderContent(ctx);
+  });
+  if (_meetFormVisible) {
+    _initMeetForm(container, accent);
+  }
+  container.querySelector('#disc-meet-submit')?.addEventListener('click', () => {
+    const activityId = container.querySelector('#disc-meet-activity')?.value;
+    if (!activityId) { showToast('error', '请选择会议活动'); return; }
+    const selectedIds = _meetPickerInstance ? _meetPickerInstance.getSelected() : [];
+    if (selectedIds.length === 0) { showToast('error', '请选择参会人员'); return; }
+    const actorId = AuthStore.getCurrentUser()?.personId || DISC_COMMISSIONER_ID;
+    const records = selectedIds.map(pid => ({
+      id: 'att_' + Date.now() + '_' + pid,
+      personId: pid,
+      activityId,
+      status: (container.querySelector(`#disc-meet-status-${pid}`)?.value) || AttendanceStatus.PRESENT,
+      overdue: false,
+    }));
+    const res = upsertMeetingAttendance({ actorId, records });
+    if (res.added > 0) {
+      records.forEach(r => autoGenerateMakeupTask(r));
+      showToast('success', `会议考勤录入成功 ${res.added} 条（纪检直接确认）${res.skipped ? `；${res.skipped} 条已存在跳过` : ''}`);
+    } else {
+      showToast('error', res.skipped > 0 ? '无新增：所选人员均已录过该会议考勤' : '没有可录入的记录');
+    }
+    _meetFormVisible = false;
+    if (_meetPickerInstance) { _meetPickerInstance.destroy(); _meetPickerInstance = null; }
     renderContent(ctx);
   });
 
@@ -205,6 +246,10 @@ export function renderContent(ctx) {
 // ════════════════════════════════════════════════════════════════
 const QUEUE_VISIBLE = 8; // 最小信息成本：默认只暴露最近需处理的少量条目
 let _queueExpanded = false;
+// A1-2026-09-05：纪检会议考勤录入（CF §C.1a 会议考勤：纪检直接上传并录入）
+let _meetFormVisible = false;
+let _meetPickerInstance = null;
+const MEETING_TYPES = ['党课', '支部党员大会', '组织生活会', '支委会']; // 会议考勤上传位的活动类型（纪检）
 
 function _buildQueueHTML(items, leaveCount, absentCount, overdueCount, autoConfirmedCount, accent, accentBorder, actById) {
   const visible = _queueExpanded ? items : items.slice(0, QUEUE_VISIBLE);
@@ -251,6 +296,87 @@ function _buildQueueHTML(items, leaveCount, absentCount, overdueCount, autoConfi
       ${listHtml}
     </div>
   `;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  A1-2026-09-05 会议考勤录入（纪检：会议类考勤直接上传并录入，上传即确认）
+//  CF §C.1a「会议考勤：上传/修改/确认/录入 = 纪检」；党小组会归组长/组织者，不在此列
+// ════════════════════════════════════════════════════════════════
+function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
+  const meetings = loadActivities()
+    .filter(a => !a.archived && MEETING_TYPES.includes(a.type) && canUploadAttendance(DISC_COMMISSIONER_ID, a.id))
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const accentStyle = solidAccentStyle(accent, accentBorder);
+  const toggleBtn = `<button class="btn-md" id="disc-meet-toggle" style="${accentStyle}cursor:pointer;">${_meetFormVisible ? '收起' : '录入会议考勤'}</button>`;
+
+  let body = '';
+  if (_meetFormVisible) {
+    body = meetings.length === 0
+      ? `<div class="py-3 text-xs text-gray-400">当前无会议类活动（党课/支部党员大会/组织生活会/支委会）可录入</div>`
+      : `
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">会议活动 <span class="text-red-500">*</span></label>
+          <select id="disc-meet-activity" class="input-flat w-full">
+            ${meetings.map(m => `<option value="${m.id}">${m.title}（${m.date}）</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">参会人员（逐人状态） <span class="text-red-500">*</span></label>
+          <div id="disc-meet-picker"></div>
+        </div>
+      </div>
+      <div id="disc-meet-status-rows" class="space-y-2 mb-3"></div>
+      <div class="flex items-center gap-3">
+        <button id="disc-meet-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="${accentStyle}cursor:pointer;">提交录入</button>
+        <button id="disc-meet-cancel" class="text-sm px-4 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+      </div>
+      <div class="mt-3 text-[11px] text-gray-400">纪检直接录入即确认（recordedBy=纪检）；同人同活动已有记录自动跳过</div>`;
+  }
+
+  return `
+    <div class="card rounded-xl p-4 mb-4">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">会议考勤录入</h3>
+        ${toggleBtn}
+      </div>
+      <div class="text-xs text-gray-500 mb-3">会议类考勤（党课/支部党员大会/组织生活会/支委会）由纪检直接上传并录入总表；党小组会考勤由组长/组织者上传、纪检确认</div>
+      ${body}
+    </div>
+  `;
+}
+
+function _initMeetForm(container, accent) {
+  const pickerContainer = container.querySelector('#disc-meet-picker');
+  if (!pickerContainer) return;
+  if (_meetPickerInstance) { _meetPickerInstance.destroy(); _meetPickerInstance = null; }
+  _meetPickerInstance = new PersonPicker({
+    mode: 'multi',
+    placeholder: '选择参会人员',
+    accentColor: accent,
+    onSelect: (ids) => { _renderDiscMeetStatusRows(ids); },
+  });
+  _meetPickerInstance.render(pickerContainer);
+  _renderDiscMeetStatusRows([]);
+}
+
+function _renderDiscMeetStatusRows(selectedIds) {
+  const rowsContainer = document.getElementById('disc-meet-status-rows');
+  if (!rowsContainer) return;
+  if (selectedIds.length === 0) { rowsContainer.innerHTML = ''; return; }
+  rowsContainer.innerHTML = `
+    <div class="text-xs font-bold text-gray-600 mb-2">逐人出勤状态</div>
+    <div class="space-y-2 max-h-48 overflow-y-auto">
+      ${selectedIds.map(pid => `
+        <div class="flex items-center gap-3 p-2 rounded-lg bg-white">
+          <span class="text-sm font-medium text-gray-800 min-w-[60px]">${getPersonName(pid)}</span>
+          <select id="disc-meet-status-${pid}" class="input-flat">
+            <option value="${AttendanceStatus.PRESENT}">出勤</option>
+            <option value="${AttendanceStatus.ABSENT}">缺勤</option>
+            <option value="${AttendanceStatus.LEAVE}">请假</option>
+          </select>
+        </div>`).join('')}
+    </div>`;
 }
 
 // ════════════════════════════════════════════════════════════════
