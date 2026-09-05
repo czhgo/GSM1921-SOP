@@ -158,7 +158,12 @@ export async function mountWorkforcePanel(branchId, hostEl) {
     <button type="button" id="wf-open" class="ml-auto px-3 py-1 rounded-lg text-xs font-medium text-white bg-red-600 hover:bg-red-700">＋ 发起调整</button>`;
   const body = document.createElement('div');
   body.id = 'workforce-panel-body';
+  // 发起表单区独立于议题列表容器：renderBody 重建列表时不触碰表单 DOM——
+  // 保态修复（最小操作成本，疑点见 MODULARIZATION_ASSESSMENT §8.7，2026-09-05）
+  const formZone = document.createElement('div');
+  formZone.id = 'wf-form-zone';
   hostEl.appendChild(header);
+  hostEl.appendChild(formZone);
   hostEl.appendChild(body);
 
   const workforce = getBranchWorkforce(branchId);
@@ -235,7 +240,7 @@ export async function mountWorkforcePanel(branchId, hostEl) {
         await createWorkforceProposalActivity(branchId, rows, note, date);
         showToast('已发起支委会议题，等待表决');
         removeDraft(branchId);
-        wrap.classList.add('hidden');
+        formZone.innerHTML = ''; // 发起成功后重置表单（下次展开为全新表单）
         renderBody();
       } catch (e) {
         console.error('[workforce] 发起失败', e);
@@ -256,16 +261,8 @@ export async function mountWorkforcePanel(branchId, hostEl) {
       if (r.status === 'fulfilled') outcomesByAct[pending[i].id] = r.value;
       else console.warn('[workforce] 判定失败（不影响列表）', pending[i].id, r.reason);
     });
-    body.innerHTML = `
-      <div id="wf-form-wrap" class="hidden"></div>
-      <div class="flex flex-col gap-2">${_proposalCards(proposals, outcomesByAct)}</div>`;
-    header.querySelector('#wf-open').addEventListener('click', () => {
-      const wrap = body.querySelector('#wf-form-wrap');
-      const collapsed = wrap.classList.contains('hidden');
-      wrap.classList.toggle('hidden', !collapsed);
-      if (collapsed) renderForm(wrap);
-    });
-    // 采纳（仅通过态按钮带 wf-adopt 类）
+    body.innerHTML = `<div class="flex flex-col gap-2">${_proposalCards(proposals, outcomesByAct)}</div>`;
+    // 采纳（仅通过态按钮带 wf-adopt 类）——列表重建不影响已展开的表单区（formZone 独立）
     body.querySelectorAll('.wf-adopt').forEach((btn) => {
       btn.addEventListener('click', async () => {
         if (!window.confirm('确认按支委会表决结果采纳该分工调整？')) return;
@@ -280,5 +277,11 @@ export async function mountWorkforcePanel(branchId, hostEl) {
       });
     });
   }
+  // 「＋ 发起调整」：表单区为空则首次渲染（含草稿回填）；否则仅展开/收起已存在表单（保态）
+  header.querySelector('#wf-open').addEventListener('click', () => {
+    if (!formZone.innerHTML.trim()) { renderForm(formZone); return; }
+    formZone.classList.toggle('hidden');
+  });
+
   await renderBody();
 }
