@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿---
 
 title: "2026年8月执行日志"
 type: execution_log
@@ -1451,7 +1451,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
   - **纪检公邮持久化**：`ws-disc-commissioner-entry.js` MAILBOX_CONFIG/MAILBOX_HISTORY 同 Seed+Loader 模式，「标记已查收」写 history + config.lastCheckAt + persist
   - **7 域补持久化**：`core/domain.js` mockDB 加 propTasks/weeklyReports/archiveRecords/mailboxConfig/mailboxHistory/activityReviews/taskforceReviews 6 域（此前无）；`core/mock-adapter.js` + `services/mock.js` 双轨 `_saveToStorage()` 补 7 序列化字段 + `_loadFromStorage()` 补恢复
 - **④ 全站 JS 崩溃根因（选人浮窗审阅过程中发现）**：`core/mock-adapter.js` L184 与 `services/mock.js` L220 注释 `act_*/att_*/notice-{13位时间戳}`——`act_*` 后紧跟 `*/` 提前终止块注释，后续代码全被吞成注释且 `{13位时间戳}` 被解析为正则 → 浏览器报 `Invalid regular expression: missing /`，leader 页仅渲染静态标题、全组件失效。修复：`/` 改中文顿号
-- **④ PersonPicker 全面审阅（实测 16+ 场景全通过）**：playwright 脚本化实测秘书页 3 场景 × 8 视口（1440×900 至 800×500 含 Windows 125%/150% 缩放等效视口）+ 组长页 4 场景 + 组织委员页 3 场景 + browser_use 真人视角走查秘书页 3 场景（1095×661），面板均完整在视口、elementFromPoint 命中人员项、点击回显正确、确认按钮可达、0 pageerror。**健壮性修复 3 处**：
+- **④ PersonPicker 全面审阅（实测 16+ 场景全通过）**：playwright 脚本化实测书记页 3 场景 × 8 视口（1440×900 至 800×500 含 Windows 125%/150% 缩放等效视口）+ 组长页 4 场景 + 组织委员页 3 场景 + browser_use 真人视角走查书记页 3 场景（1095×661），面板均完整在视口、elementFromPoint 命中人员项、点击回显正确、确认按钮可达、0 pageerror。**健壮性修复 3 处**：
   - **panel 同级化**：panel 原为 overlay 子节点，其 z-index 601 只在 overlay(600) 层叠上下文内生效，根层叠下整体仅 600 → 改为 overlay/panel 均直接挂 body 同级，panel z-index 801 在根层叠生效
   - **z-index 层级收敛**：picker overlay 600→**800**、panel 601→**801**；status-badge-popover 700→**600**（此前会压住 picker）；全站层级定序 header 50 / sidebar 70 / dropdown 100 / modal 500 / status 600 / picker 800/801 / toast 9999
   - **`_positionPanel()` 重写**：「永不溢出视口」确定性定位——优先下方、下方不够且上方够则翻上方、高度按可用空间收敛（下限 160 上限 520）、宽度收敛视口内、兜底不遮触发按钮，保证「确认选择」底部操作栏始终可见可点
@@ -1462,7 +1462,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-07-EXECUTION_LOG.md, .ctx/logs/EXECUTI
   - ✅ mock 时间语义自洽：act-26/27/29 均已发生（8/1~8/4）有考勤；act-30（8/28 draft）无考勤；全站无「谈话考察」残留
   - ✅ 假操作 3 处全部真持久化：纪检复盘按钮落库、宣传三块/纪检公邮刷新数据保留（Seed+Loader + persist 双轨对齐）
   - ✅ 全站 JS 崩溃修复：node --check 通过 + 5 页浏览器加载无 pageerror
-  - ✅ PersonPicker 修复后复验：秘书页 3 场景 z-index 801、elementFromPoint 命中人员项、点击/确认正常；极小视口（800×500）面板完整在视口；组织委员页/组长页回归通过
+  - ✅ PersonPicker 修复后复验：书记页 3 场景 z-index 801、elementFromPoint 命中人员项、点击/确认正常；极小视口（800×500）面板完整在视口；组织委员页/组长页回归通过
   - ✅ GetDiagnostics 全部修改文件零错误；控制台无功能性 JS 报错
 
 - **沉淀标签**：`[经验: 块注释提前终止陷阱]` — 中文注释中含 `*/`（如 `act_*/att_*`）会提前终止 JSDoc 块注释，后续代码被吞并触发正则解析错误，是全站静默崩溃的隐蔽根因；注释中列举形如 `x/y` 的编号应改中文顿号；`[经验: 弹层 z-index 子级失效]` — fixed 子元素 z-index 只在父级层叠上下文内生效，弹层要「永远浮在最上端」必须同级挂 body 并在根层叠定序；`[待办]` — 无
