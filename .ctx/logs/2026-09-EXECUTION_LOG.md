@@ -457,3 +457,15 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - 批3 纪检会议考勤录入 UI（disc 考勤页新卡：会议类活动+逐人状态+录入即确认）+ 组长两页「监督位」提示文案。
 **验证**：守卫语义 Node 自检 PASS（组长党小组会可传/org 不可/去重 skip/复核异常 block/纪检会议类可传·党小组会不可）；link-integrity L1/L2/L3/L5 全绿（L4 浏览器沙盒 EPERM 可接受）；工作区 clean。
 **遗留/待裁**：①纪检「监督督办」集中只读区=待办页动态聚合已达，集中展示目视微调未做（待浏览器环境）；②专班负责人身份（指派到人/角色）待书记另裁——专班考察上传位暂按页面可达放行并注释；③E2E 沙盒外 node --test 全量补跑待常规终端。
+
+---
+
+**T-2026-09-033 L4 M2 支部分工改派闭环补齐（2026-09-05，走 brainstorming 设计先行：spec 临时文件用后即删；4 commits 96d9d6a/64b0e6e 等）**
+**书记裁决**：范围=生效消费端+会前草稿+票决通过判定+验收/文档 全做；票决门槛=应到支委 2/3 出席且无异议（支委会从严，批准 2/3 档）；草稿=暂存式（书记台本地）；消费端=常驻履职卡；设计整体「批准，开工」。
+**执行**：
+- 判定层：`evaluateWorkforceVotes`（应到=resolveVoterIds('committee')；去重且应到名单内计票；2/3 且无异议=passed / 有异议=failed / 不足=pending）为采纳硬门槛；adopt 拒绝并报原因；议题 extras 记 voteOutcome（status/tally/needed/evaluatedAt）。
+- 草稿：书记台「分工调整」表单升级多行（模块→新负责人，行可删）+ 存草稿/直接发起；草稿 localStorage `gsm1921-workforce-draft`（每支部一份，可载入/删除，提交后清除）。
+- 消费端：新组件 `components/workforce-duty-card.js`「支部安排·我的分工」——各工作台概况常驻履职卡（实时读 config.workforce；行内「去履职」点本台既有 tab 按钮走原 tab-bar 绑定）；注入 secretary overview 与共享 work-overview（覆盖 org/prop/disc/leader/visitor 五台）；书记台面板议题卡实时显示表决统计与 待足额/未通过/已通过·可采纳 徽标，采纳按钮仅通过态可点。
+- 测试/文档：`server/test/workforce-gate.test.mjs`（判定 4 例 + 合并快照 1 例）5 项全绿；SERVICE_CATALOG 行、BRANCH_WORK_MAP 验收闭环与落地进度标注 2026-09-05。
+**验证**：判定函数隔离自检 PASS；workforce/work-overview/duty-card/panel 导入冒烟 4/4；link-integrity L1/L2/L3/L5 全绿（L4 沙盒 EPERM 可接受）；工作区 clean；spec 已删（gitignored 目录）。
+**遗留**：演示验收闭环（改派发展党员→副书记：发起→表态 2/3→采纳→副书记台履职卡可见）目视复核待浏览器环境（沙盒 L4 不可跑）；「去履职」tab 映射为保守子集，待目视校准。
