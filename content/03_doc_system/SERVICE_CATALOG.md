@@ -59,7 +59,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 | 思想汇报 | `services/thought-report.js` | `workspace/visitor.html`（提交）、`workspace/org.html`（查看/调用） | 提交即入库即归档：按 personId 算法自动归集至个人档案，无人工归档环节 | [组织委员工作流程指南](../02_institution/sop/组织委员工作流程指南.md) |
 | 全员可见性矩阵 | `services/visibility.js` | 全站共用（数据维度投影） | 「谁看谁」可见性投影（L0 个人 / L1 条线 / L2 全局）；看 ≠ 做，不授予操作权 | RC §9b + P-011（SECRETARY_DIRECTIVES） |
 | 表决配置 | `services/vote-config.js` | 活动创建（表决配置区块） | voteConfig 解析与场景默认：deliberative（交流式）/ formal（正式表决）参数化（optionSet/quorumCheck/voterScope） | — |
-| 支部分工提议 | `services/workforce.js` | `workspace/secretary.html`（支部分工） | 改派提议 → 生成支委会议题 → 支委经表决 UI 表态 → 书记确认采纳 → 合并 config.workforce 落库 | BRANCH_WORK_MAP.md（L4 M2 闭环） |
+| 支部分工提议 | `services/workforce.js` | `workspace/secretary.html`（支部分工）、各工作台概况（履职卡） | 改派提议（可会前草稿）→ 生成支委会议题 → 支委经表决 UI 表态（门槛：应到 2/3 且无异议，2026-09-05）→ 书记采纳生效 → 合并 config.workforce 落库 → 各工作台概况「支部安排·我的分工」履职卡可见 | BRANCH_WORK_MAP.md（L4 M2 闭环） |
 | Mock 服务层 | `services/mock.js` | （数据基础设施） | Mock 持久化/种子引擎（saveDB/loadDB/seed 同步收敛至 core/mock-adapter.js） | — |
 | 线上表决 API | `server/routes/committee.js` | `/api/v1/agenda-votes`（API） | 异步表态提交/汇总/截止锁定服务端（voteConfig 校验；角色名单单一源 constants.js） | 与前端 committee-vote 配套 |
 | 成员变更审批 API | `server/routes/member.js` | `/api/v1/member-change-requests`（API） | 成员变更申请 → 组织委员审批 → 全体支委广播 → 书记确认 → 更新 developStage | [组织委员工作流程指南](../02_institution/sop/组织委员工作流程指南.md) |

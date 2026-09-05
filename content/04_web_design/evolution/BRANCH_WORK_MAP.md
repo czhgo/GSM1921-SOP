@@ -75,7 +75,7 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, MODULARIZ
 ❌ **顶层分类筐（党建/党务等全部不设）**：平铺模块清单 = 最小信息成本——再套一层分组筐，用户找模块要先多钻一层，违反最小三成本（DESIGN_METHODOLOGY §1.2 / DESIGN_SYSTEM §一 第2条）。
 ❌ **全站 tab 重构成地图**：执行入口已按角色工作台落地（最小操作成本形态）；地图只承载组织与分工视图，执行仍走既有工作台，重构不增决策收益。
 
-**验收闭环**：书记台「支部分工」→ 平铺/按人两视图 → 提议"发展党员改派副书记"→ 支委会议题 → 票决通过 → config.workforce 落库 → 副书记工作台出现对应入口。
+**验收闭环**：书记台「支部分工」→ 平铺/按人两视图 → 提议"发展党员改派副书记"→ 支委会议题 → 票决通过 → config.workforce 落库 → 副书记工作台出现对应入口（生效消费端=各工作台概况「支部安排·我的分工」履职卡，2026-09-05 已补）。
 
 ## 七、裁决记录与落地进度
 
@@ -89,5 +89,6 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, MODULARIZ
 - ✅ **M0 数据契约**：`docs/src/core/work-map.js`（11 模块目录 + 缺省分工 + `expandWorkforce` 快照展开，零依赖双端可加载）；`config-clean.js` 新增 `sanitizeConfigWorkforce`；server `PATCH /branches/:id/config` 支持 `config.workforce`（null=恢复缺省）；`branch.js` 新增 `getBranchWorkforce/updateBranchWorkforce`（写配置抽 `_saveBranchConfig` 共用）。
 - ✅ **M1 地图视图**：书记台新增「支部分工」tab（党建组）——视图 A 平铺 11 模块卡 / 视图 B 按人分组（纯排列切换，同一份 workforce）；禁 SVG 图标（沿用书记台裁定）。
 - ✅ **M2 已落地**：`services/workforce.js`（发起分工调整 = 创建「支委会」议题活动，voteConfig=deliberative 交流式，应到支委；议题列表；采纳 = 至少已有一名支委表态后合并 `config.workforce` 落库并标记活动）；`workforce-panel.js`（书记台「支部分工」tab 底部分工调整工具：发起表单 / 议题跟踪 / 去表决跳活动详情 / 采纳生效，仅书记/副书记可见）；`work-map.js` 增 `mergeWorkforceSnapshot`（模块白名单合并）。表决复用既有 agenda-votes 资产（本链路不重复造投票 UI）。
+- ✅ **M2 闭环补齐（2026-09-05，书记批准「批准，开工」）**：①票决通过判定 `evaluateWorkforceVotes`（应到支委 2/3 出席且无异议=通过）为采纳硬门槛，议题 extras 记 `voteOutcome`；②面板表单升级多行（模块→新负责人）+「存草稿/直接发起」，草稿=书记台本地暂存（`gsm1921-workforce-draft`）；③生效消费端 `components/workforce-duty-card.js`——各工作台概况常驻「支部安排·我的分工」履职卡（实时读 config.workforce，可去履职跳本台对应 tab）；④`server/test/workforce-gate.test.mjs` 判定/合并快照纯测试 5 项全绿。演示验收闭环（改派发展党员→副书记）目视复核待浏览器环境。
 - 测试：`server/test/work-map.test.mjs`（目录唯一性/快照展开/**合并白名单**/净化/HTTP PATCH 含恢复默认）5 项绿；module-load 全量加载绿。
 - **可复用文档件已补**：`server/.env.example` 环境模板、根 `CONTRIBUTING.md` 贡献指南、README 演示账号指引修正 + 贡献引用。
