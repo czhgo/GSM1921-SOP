@@ -10,7 +10,10 @@
 
 import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260903c';
 import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES } from '../../../services/attendance.js?v=20260903c';
-import { getPersonName, PersonStore } from '../../../services/person.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260903c';
+// S1–S4 滞留党员设计（2026-09-06 书记已批）：会议考勤「应到清点/全选范围」= 应到名单口径
+// （党员 正式+预备 且非滞留；滞留已剔除、党课列席不计应到），不再全支部 50 人候选
+import { getMeetingRoster, getDetainedMembers, getRosterStats } from '../../../services/roster.js?v=20260903c';
 import { solidAccentStyle } from '../../../core/constants.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260903c';
@@ -18,7 +21,7 @@ import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260903c
 import { NoticeStore } from '../../../services/notice.js?v=20260903c';
 import { enhanceSelects } from '../../../components/custom-select.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
-import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260903c';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc } from '../../../core/utils.js?v=20260903c';
 import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260903c';
 import { HandoffStore } from '../../../services/handoff.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
@@ -159,13 +162,14 @@ export function renderContent(ctx) {
   if (_meetFormVisible) {
     _initMeetForm(container, accent);
   }
-  // 全选支部成员 / 清空（纪检批量录入·方案A 2026-09-06）：picker 无内置全选，按支部成员名单 setSelected
+  // 全选应到名单 / 清空（S1–S4 书记已批）：picker 无内置全选，按应到名单（党员非滞留）setSelected——
+  // 不再全选支部 50 人（滞留/非党员/党课列席不计应到，党委组织员 p_pc 等非本支部党员亦不在候选）
   container.querySelector('#disc-meet-select-all')?.addEventListener('click', () => {
     if (!_meetPickerInstance) return;
-    const allIds = PersonStore.getMembers().map(p => p.id);
-    _meetPickerInstance.setSelected(allIds);
-    _renderDiscMeetStatusRows(allIds);
-    showToast('info', `已全选支部成员 ${allIds.length} 人，可逐人调整状态后提交`);
+    const rosterIds = _currentMeetingRoster().map(p => p.id);
+    _meetPickerInstance.setSelected(rosterIds);
+    _renderDiscMeetStatusRows(rosterIds);
+    showToast('info', `已全选应到名单 ${rosterIds.length} 人，可逐人调整状态后提交`);
   });
   container.querySelector('#disc-meet-clear')?.addEventListener('click', () => {
     if (!_meetPickerInstance) return;
@@ -176,6 +180,7 @@ export function renderContent(ctx) {
   container.querySelector('#disc-meet-activity')?.addEventListener('change', () => {
     const ids = _meetPickerInstance ? _meetPickerInstance.getSelected() : [];
     _renderDiscMeetStatusRows(ids);
+    _renderDiscMeetRosterHint();
   });
   container.querySelector('#disc-meet-submit')?.addEventListener('click', () => {
     const activityId = container.querySelector('#disc-meet-activity')?.value;
@@ -363,13 +368,14 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
           <div class="flex items-center justify-between mb-1.5">
             <label class="text-xs text-gray-500 block font-medium">参会人员（逐人状态） <span class="text-red-500">*</span></label>
             <div class="flex gap-2">
-              <button type="button" id="disc-meet-select-all" class="text-[11px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;">全选支部成员</button>
+              <button type="button" id="disc-meet-select-all" class="text-[11px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;" title="仅全选应到名单（党员正式+预备且非滞留）">全选应到名单</button>
               <button type="button" id="disc-meet-clear" class="text-[11px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;">清空</button>
             </div>
           </div>
           <div id="disc-meet-picker"></div>
         </div>
       </div>
+      <div id="disc-meet-roster-hint" class="mb-3 text-[11px] text-gray-400 leading-5"></div>
       <div id="disc-meet-status-rows" class="space-y-2 mb-3"></div>
       <div class="flex items-center gap-3">
         <button id="disc-meet-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="${accentStyle}cursor:pointer;">提交录入</button>
@@ -385,24 +391,60 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
         <h3 class="font-title-cn text-base font-semibold text-gray-800">会议考勤录入</h3>
         ${toggleBtn}
       </div>
-      <div class="text-xs text-gray-500 mb-3">会议类考勤（党课/支部党员大会/组织生活会/支委会）由纪检直接上传并录入总表；党小组会考勤由组长/组织者上传、纪检确认</div>
+      <div class="text-xs text-gray-500 mb-3">会议类考勤（党课/支部党员大会/组织生活会/支委会）由纪检直接上传并录入总表；党小组会考勤由组长/组织者上传、纪检确认。应到清点与全选范围 = 应到名单口径（党员 正式+预备 且非滞留，滞留已剔除；党课列席不计应到）</div>
       ${body}
     </div>
   `;
+}
+
+/** 表单当前选中活动的类型（读活动下拉；未选择返回 null） */
+function _currentMeetActivityType() {
+  const activityId = document.getElementById('disc-meet-activity')?.value;
+  if (!activityId) return null;
+  return loadActivities().find(a => a.id === activityId)?.type || null;
+}
+
+/** 当前会议（表单内均为纪检上传位类型：党课/支部大会/组织生活会/支委会）的应到名单 */
+function _currentMeetingRoster() {
+  return getMeetingRoster({ type: _currentMeetActivityType() });
+}
+
+/** 应到清点提示：应到 N 人；滞留者以「滞留」徽标展示（已从候选剔除、不可选） */
+function _renderDiscMeetRosterHint() {
+  const hintEl = document.getElementById('disc-meet-roster-hint');
+  if (!hintEl) return;
+  const stats = getRosterStats({ type: _currentMeetActivityType() });
+  const detained = getDetainedMembers();
+  const detainedHtml = detained.length === 0
+    ? '<span class="text-gray-400">无滞留成员</span>'
+    : detained.map(p => `
+      <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 align-middle"
+        title="${esc(p.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">${esc(p.name)} · 滞留</span>`).join(' ');
+  hintEl.innerHTML = `
+    <span>应到 <b class="text-gray-600">${stats.expected}</b> 人（在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}；党课列席不计应到）。滞留者已剔除且不可选：${detainedHtml}</span>
+    <span class="block mt-0.5 text-gray-300">应到口径 = 党员（正式党员/预备党员）且非滞留 · 由组织委员在成员档案维护「在校/滞留」并留痕，书记可复核</span>`;
 }
 
 function _initMeetForm(container, accent) {
   const pickerContainer = container.querySelector('#disc-meet-picker');
   if (!pickerContainer) return;
   if (_meetPickerInstance) { _meetPickerInstance.destroy(); _meetPickerInstance = null; }
+  // S1–S4 书记已批：候选项 = 应到名单（党员 正式+预备 且非滞留）；滞留者/非党员/党课列席不可选。
+  // PersonPicker 不支持逐人禁用 → 由 roster service 过滤候选集（设计核准的降级路径）；
+  // 候选随表单每次重建（打开/提交后重开）刷新，成员状态维护后即时生效。
+  const rosterIds = new Set(_currentMeetingRoster().map(p => p.id));
   _meetPickerInstance = new PersonPicker({
     mode: 'multi',
     placeholder: '选择参会人员',
     accentColor: accent,
-    stageBatch: true, // 支持「按阶段批量选择」（正式党员/预备党员/发展对象/积极分子），便于批量录入
+    // 原「按阶段批量」面向全支部 50 人候选（含党课列席）→ 应到口径下无列席可选，
+    // 批量录入改由「全选应到名单」按钮承载（stageBatch=false 不再渲染空转 chips）
+    stageBatch: false,
+    filter: (p) => rosterIds.has(p.id),
     onSelect: (ids) => { _renderDiscMeetStatusRows(ids); },
   });
   _meetPickerInstance.render(pickerContainer);
+  _renderDiscMeetRosterHint();
   _renderDiscMeetStatusRows([]);
 }
 

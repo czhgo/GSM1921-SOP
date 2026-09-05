@@ -26,6 +26,16 @@ export const POLICY_DEFAULTS = {
       // kind 'institutional'：出处 SYSTEM_ROLE_PERMISSION §9b 注——制度裁决固定，勿改。
       secretaryDeputy: ['secretary', 'deputy-secretary'],
     },
+    // 会议「应到名单」口径（S1–S4 滞留党员设计，2026-09-06 书记已批）
+    // kind 'branch-default'：开源部署可按支部制度调整（如支部大会仅正式党员计应到等）。
+    // 语义：应到 = 组织关系在本支部的党员（developStage ∈ partyStages）且非滞留；
+    //   滞留 = 组织关系保留但人不在校、不参加日常会议 → 成员身份保留、应到剔除、通知照发。
+    //   党课列席（积极分子/发展对象）不计应到；党小组会另按本组党员口径（范围=本组，规则同）。
+    // 消费点：services/roster.js getMeetingRoster（派生导出，勿在业务层新写字面量）。
+    roster: {
+      partyStages: ['正式党员', '预备党员'],
+      excludeDetained: true,
+    },
   },
   inspection: {
     // 考察超期默认天数（待确认 + 超过 N 天判超期）

@@ -1,14 +1,22 @@
 export const PEOPLE = [
   // ── 2026-09-06 基线刷新：p1~p15 全部姓名由「数字占位名」替换为常见真实人名（书记=储子禾 p13）──
+  // ── S1–S4 滞留党员示范（2026-09-06 书记已批）：成员档案可选字段 residenceStatus('在校'|'滞留')/
+  //    residenceNote（备注·原因起止）/ residenceHistory（变更留痕 {from,to,updatedBy,updatedAt}，组织委员
+  //    维护、书记可复核）；未标注 = 默认「在校」。示范取 p5/p9 两名「正式党员/普通成员」（经自查：二人
+  //    7~8 月历史活动/考勤均在滞留起始 2026-09-01 之前，无未来日期会议分工引用；滞留自 2026-09-01 起）。──
   { id: 'p1',  name: '罗文杰', studentId: '2400012345', partyGroup: '第一党小组', developStage: '正式党员', role: 'leader' },
   { id: 'p2',  name: '郭子睿', studentId: '2400012346', partyGroup: '第二党小组', developStage: '正式党员', role: 'leader' },
   { id: 'p3',  name: '何晓峰', studentId: '2400012347', partyGroup: '第一党小组', developStage: '正式党员', role: 'participant' },
   { id: 'p4',  name: '梁凯文', studentId: '2400012348', partyGroup: '第三党小组', developStage: '正式党员', role: 'leader' },
-  { id: 'p5',  name: '宋佳宁', studentId: '2400012349', partyGroup: '第二党小组', developStage: '正式党员', role: 'participant' },
+  { id: 'p5',  name: '宋佳宁', studentId: '2400012349', partyGroup: '第二党小组', developStage: '正式党员', role: 'participant',
+    residenceStatus: '滞留', residenceNote: '2026-09 起赴外校交换一学期（至 2027-01），人不在校；组织关系保留、应到剔除、通知照发',
+    residenceHistory: [{ from: '在校', to: '滞留', updatedBy: 'p11', updatedAt: '2026-09-01T09:00:00.000Z', note: '交换离校一学期，组织委员核录' }] },
   { id: 'p6',  name: '苏明哲', studentId: '2400012350', partyGroup: '第一党小组', developStage: '发展对象', role: 'participant' },
   { id: 'p7',  name: '曾雨桐', studentId: '2400012351', partyGroup: '第三党小组', developStage: '积极分子', role: 'participant' },
   { id: 'p8',  name: '彭博文', studentId: '2400012352', partyGroup: '第二党小组', developStage: '正式党员', role: 'participant' },
-  { id: 'p9',  name: '吕思涵', studentId: '2400012353', partyGroup: '第一党小组', developStage: '正式党员', role: 'participant' },
+  { id: 'p9',  name: '吕思涵', studentId: '2400012353', partyGroup: '第一党小组', developStage: '正式党员', role: 'participant',
+    residenceStatus: '滞留', residenceNote: '2026-09 起参加校外长期实践项目（至 2026-12），人不在校；组织关系保留、应到剔除、通知照发',
+    residenceHistory: [{ from: '在校', to: '滞留', updatedBy: 'p11', updatedAt: '2026-09-01T09:30:00.000Z', note: '校外长期实践离校，组织委员核录' }] },
   { id: 'p10', name: '董建军', studentId: '2400012354', partyGroup: '第二党小组', developStage: '正式党员', role: 'disc-commissioner' },
   { id: 'p11', name: '高翔宇', studentId: '2400012355', partyGroup: '第三党小组', developStage: '正式党员', role: 'org-commissioner' },
   { id: 'p12', name: '方文静', studentId: '2400012356', partyGroup: '第一党小组', developStage: '正式党员', role: 'prop-commissioner' },

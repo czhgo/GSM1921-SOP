@@ -48,6 +48,23 @@ export const SCHEMA_VERSION = 1;
  */
 
 /**
+ * @typedef {Object} Person
+ * @property {string}  id          - 人员 ID（如 'p5'）
+ * @property {string}  name        - 姓名
+ * @property {string}  studentId   - 学号
+ * @property {string}  partyGroup  - 所属党小组（如 '第一党小组'）
+ * @property {'正式党员'|'预备党员'|'发展对象'|'积极分子'} developStage - 发展阶段（四阶段，2026-08-01 书记决策移除【入党申请人】）
+ * @property {string}  role        - 角色键（secretary/org-commissioner/participant…，与 core/constants.js ROLE_KEYS 对齐）
+ * @property {string}  [branchId]  - 所属支部（缺省 br-b1；p_pc 党委组织员=null 不属于支部）
+ * @property {'在校'|'滞留'} [residenceStatus] - 居住/在册状态（S1–S4 滞留党员设计，2026-09-06 书记已批）：
+ *   滞留 = 组织关系在本支部但人不在校、不参加日常会议；成员身份保留、应到剔除、通知照发。
+ *   未标注 = 默认「在校」。
+ * @property {string}  [residenceNote] - 状态备注（原因/起止文字；组织委员维护）
+ * @property {Array<{from:'在校'|'滞留', to:'在校'|'滞留', updatedBy:string, updatedAt:string, note?:string}>} [residenceHistory]
+ *   - 状态变更留痕（组织委员维护时追加，书记可复核查看；运行期覆盖存 services/roster.js RESIDENCE_KEY）
+ */
+
+/**
  * @typedef {Object} Task
  * @property {string}  id          - 唯一标识符（由 id.js 生成）
  * @property {string}  activityId  - 所属活动 ID

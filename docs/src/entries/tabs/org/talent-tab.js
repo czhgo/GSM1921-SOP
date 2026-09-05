@@ -11,6 +11,10 @@ import { getPersonById } from '../../../services/person.js?v=20260903c';
 import { renderQueryView } from '../../../components/query-view.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { icon } from '../../../core/icons.js?v=20260903c';
+// S1–S4 滞留党员设计（2026-09-06 书记已批）：成员档案维护位——组织委员改「在校/滞留+备注」并留痕
+import { getResidenceOf, saveResidenceChange, RESIDENCE } from '../../../services/roster.js?v=20260903c';
+import { AuthStore } from '../../../services/auth.js?v=20260903c';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260903c';
 
 // 发展阶段颜色映射（单一模块级；收敛 2026-09-02：原 query/detail 两函数内各有一份同值副本）
 const STAGE_COLOR = {
@@ -19,6 +23,68 @@ const STAGE_COLOR = {
   '发展对象': 'bg-amber-100 text-amber-700',
   '积极分子': 'bg-cyan-100 text-cyan-700',
 };
+
+// ── S1–S4 滞留党员：行内「滞留」徽标（在校不展示，减少噪音；详情/书记复核卡可查备注与留痕）──
+function _residenceChipHtml(p) {
+  const rs = getResidenceOf(p);
+  if (rs.residenceStatus !== RESIDENCE.DETAINED) return '';
+  return `<span class="talent-res-chip text-[11px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100" title="${esc(rs.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">滞留</span>`;
+}
+
+/** 保存状态后原位刷新行徽标（详情面板已另刷新，不必整页重建丢失详情） */
+function _refreshRowResidenceChip(personId) {
+  const card = document.querySelector(`.talent-person-card[data-person-id="${personId}"]`);
+  const holder = card && card.querySelector('.talent-res-chip-holder');
+  if (holder) holder.innerHTML = _residenceChipHtml(getPersonById(personId) || {});
+}
+
+/** 成员状态维护区（详情面板内）：当前状态+备注、编辑控件、变更留痕（组织委员位；书记复核只读查看） */
+function _residenceSectionHtml(person) {
+  // 党委组织员（组织级角色）不属于本支部：只读说明，不提供维护
+  if (person.branchId === null || person.branchId === undefined) {
+    return `
+      <div class="mt-3 p-2.5 rounded-lg bg-white border border-gray-50">
+        <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-1">成员状态（在校 / 滞留）</h5>
+        <div class="text-xs text-gray-500">党委组织员为组织级角色，不属于本支部，不参与支部应到口径。</div>
+      </div>`;
+  }
+  const rs = getResidenceOf(person);
+  const statusBadge = rs.residenceStatus === RESIDENCE.DETAINED
+    ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">滞留</span>'
+    : '<span class="text-xs px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">在校</span>';
+  const historyHtml = (rs.residenceHistory || []).length === 0
+    ? '<div class="text-[11px] text-gray-400">暂无变更记录（缺省 = 在校）</div>'
+    : rs.residenceHistory.map((h, i) => `
+      <div class="flex items-start gap-2 text-[11px] text-gray-500">
+        <span class="text-gray-400 flex-shrink-0 tabular-nums">#${i + 1}</span>
+        <span class="flex-1 min-w-0">${esc(h.from || '')} → ${esc(h.to || '')}${h.note ? ` · ${esc(h.note)}` : ''}</span>
+        <span class="flex-shrink-0 text-gray-400">${esc((getPersonById(h.updatedBy) || {}).name || h.updatedBy || '—')} · ${(h.updatedAt || '').slice(0, 10)}</span>
+      </div>`).join('');
+  return `
+    <div class="mt-3">
+      <div class="flex items-center justify-between mb-2">
+        <h5 class="font-title-cn text-xs font-bold text-gray-600">成员状态（在校 / 滞留）</h5>
+        <span class="text-[10px] text-gray-400">组织委员维护留痕 · 书记可复核 · 滞留即应到剔除（通知照发）</span>
+      </div>
+      <div class="p-2.5 rounded-lg bg-white border border-gray-50">
+        <div class="flex items-center gap-2 flex-wrap mb-2">
+          <span class="text-xs text-gray-500">当前</span>${statusBadge}
+          ${rs.residenceNote ? `<span class="text-xs text-gray-500 min-w-0 flex-1">${esc(rs.residenceNote)}</span>` : ''}
+        </div>
+        <div class="flex items-center gap-2 mb-2">
+          <select id="talent-res-status-${person.id}" class="input-flat w-24 py-1.5" aria-label="成员状态">
+            <option value="${RESIDENCE.CAMPUS}" ${rs.residenceStatus === RESIDENCE.CAMPUS ? 'selected' : ''}>在校</option>
+            <option value="${RESIDENCE.DETAINED}" ${rs.residenceStatus === RESIDENCE.DETAINED ? 'selected' : ''}>滞留</option>
+          </select>
+          <input type="text" id="talent-res-note-${person.id}" class="input-flat flex-1 min-w-0" maxlength="120"
+            placeholder="备注：原因 / 起止（如 2026-09 起交换一学期不在校）" value="${esc(rs.residenceNote)}" aria-label="状态备注">
+          <button type="button" class="talent-res-save text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" data-person-id="${person.id}" style="cursor:pointer;">保存</button>
+        </div>
+        <div class="text-[10px] text-gray-400 mb-1">变更留痕（保存自动记录 updatedBy / updatedAt / from → to）</div>
+        <div class="space-y-0.5">${historyHtml}</div>
+      </div>
+    </div>`;
+}
 
 export function renderContent(ctx) {
   const container = document.getElementById('org-tab-content');
@@ -72,6 +138,7 @@ export function renderContent(ctx) {
           <div class="flex items-center gap-2">
             <span class="text-xs px-1.5 py-0.5 rounded-full ${colorCls}">${p.developStage || ''}</span>
             ${p.inspCount > 0 ? badgeHtml(`考察 ${p.inspCount}`, 'info') : ''}
+            <span class="talent-res-chip-holder">${_residenceChipHtml(p)}</span>
           </div>
         </div>
       `;
@@ -132,6 +199,7 @@ function _renderTalentDetail(personId) {
       </div>
       <button id="talent-detail-close" class="text-gray-400 hover:text-gray-600 transition-colors" style="cursor:pointer;">${icon('close', { stroke: '#6B7280', className: 'w-3.5 h-3.5' })}</button>
     </div>
+    ${_residenceSectionHtml(person)}
     <div class="mt-3">
       <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">考察记录汇总 (${personInspections.length})</h5>
       ${personInspections.length === 0
@@ -158,5 +226,25 @@ function _renderTalentDetail(personId) {
   // 关闭详情
   panel.querySelector('#talent-detail-close')?.addEventListener('click', () => {
     panel.classList.add('hidden');
+  });
+
+  // 成员状态保存（组织委员位）：写运行期覆盖 + 追加留痕（updatedBy/updatedAt/from/to），原位刷新
+  panel.querySelectorAll('.talent-res-save').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pid = btn.dataset.personId;
+      const target = getPersonById(pid);
+      if (!target) return;
+      const status = panel.querySelector(`#talent-res-status-${pid}`)?.value;
+      const note = panel.querySelector(`#talent-res-note-${pid}`)?.value;
+      const actorId = AuthStore.getCurrentUser()?.personId || 'p11'; // 组织委员位兜底
+      const updated = saveResidenceChange({ personId: pid, actorId, status, note });
+      if (!updated) {
+        showToast('info', '状态与备注均无变化，未产生新留痕');
+        return;
+      }
+      showToast('success', `「${target.name}」成员状态已更新为「${status}」并留痕（应到口径即时生效）`);
+      _renderTalentDetail(pid);       // 详情原位刷新（历史/备注同步）
+      _refreshRowResidenceChip(pid);  // 列表行徽标同步
+    });
   });
 }

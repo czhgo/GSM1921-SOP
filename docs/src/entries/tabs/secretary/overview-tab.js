@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // entries/tabs/secretary/overview-tab.js — 书记工作台·全局概况 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 设计初衷（书记 2026-08-02 确认方向后记录）：
@@ -8,12 +8,14 @@
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 // 2026-08-10 书记裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { showToast } from '../../../core/utils.js?v=20260903c';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260903c';
 import { NoticeStore } from '../../../services/notice.js?v=20260903c';
 import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260903c';
 import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260903c';
 import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
+// S1–S4 滞留党员设计（2026-09-06 书记已批）：书记复核卡（只读查看徽标/备注/变更留痕）
+import { getDetainedMembers, getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
 import { AttendanceStatus } from '../../../core/domain.js?v=20260903c';
@@ -463,6 +465,9 @@ function renderDimensionView(container) {
           </div>
         </div>
       </div>
+
+      <!-- S1–S4 滞留党员复核（书记只读复核：徽标 / 备注 / 变更留痕） -->
+      ${_renderDetainedReviewCard()}
     </div>
   `;
 
@@ -486,6 +491,43 @@ function renderDimensionView(container) {
       showToast('info', `已直达${tabLabels[tabId] || '对应功能'}`);
     });
   });
+}
+
+/** 滞留党员复核卡（书记只读复核：徽标/备注/变更留痕；维护位 = 组织委员「人才库」成员档案） */
+function _renderDetainedReviewCard() {
+  const stats = getRosterStats({ type: '支部党员大会' }); // 支部大会口径 = 三会+党课统一口径
+  const detained = getDetainedMembers();
+  const rowsHtml = detained.length === 0
+    ? `<div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
+         <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 无滞留党员
+       </div>`
+    : `<div class="space-y-1.5">${detained.map(p => {
+        const rs = getResidenceOf(p);
+        const history = rs.residenceHistory || [];
+        const histText = history.length === 0
+          ? '—'
+          : history.map(h => `${esc(h.from || '')} → ${esc(h.to || '')}（${esc(h.updatedBy ? getPersonName(h.updatedBy) : '—')} · ${(h.updatedAt || '').slice(0, 10)}${h.note ? ' · ' + esc(h.note) : ''}）`).join('；');
+        return `
+        <div class="rounded-lg bg-white border border-gray-50 p-2.5">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-sm font-medium text-gray-800">${esc(p.name)}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">滞留</span>
+            <span class="text-xs text-gray-400">${esc(p.partyGroup || '')} · ${esc(p.developStage || '')}</span>
+            <span class="ml-auto text-[10px] text-gray-400">最近维护：${history.length ? esc(getPersonName(history[history.length - 1].updatedBy)) : '—'} · ${history.length ? (history[history.length - 1].updatedAt || '').slice(0, 10) : ''}</span>
+          </div>
+          ${rs.residenceNote ? `<div class="text-xs text-gray-500 mt-1">备注：${esc(rs.residenceNote)}</div>` : ''}
+          <div class="text-[10px] text-gray-400 mt-1">变更留痕：${histText}</div>
+        </div>`;
+      }).join('')}</div>`;
+  return `
+    <div class="card rounded-xl p-4">
+      <div class="flex items-center justify-between mb-1">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">滞留党员复核</h4>
+        <span class="text-xs text-gray-400">会议应到 ${stats.expected} 人 = 在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}</span>
+      </div>
+      <p class="text-xs text-gray-500 mb-2">滞留 = 组织关系保留但人不在校、不参加日常会议 → 成员身份保留、应到剔除、通知照发。维护位：组织委员「人才库」成员档案；本卡只读复核（留痕随组织委员维护自动追加）。</p>
+      ${rowsHtml}
+    </div>`;
 }
 
 /** 近 6 场有考勤记录活动的出勤率序列（趋势线数据源） */
