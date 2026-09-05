@@ -533,3 +533,10 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - 考勤批量单测：attendance-batch.test.mjs 6 例（新增/旧语义 skip/纪检本人覆盖/他人权威拒盖/批量混合/常量单一源）。
 **验证**：纯 node 21/21 全绿（attendance-batch 6 + roles-sync + policy + workforce-gate + function-map + report + seed）；数据敏感纯测试 24/24 + 全量审计通过；GetDiagnostics 零；浏览器 E2E/link-integrity 沙盒 EPERM 无法跑（README 在扫描范围外的仓库根，content/docs 未动）——待常规终端 npm test 复核。工作区净（除本批提交外零残留）。
 **待办**：立项③ b（贡献写入位，建议优先）→c→d；「应到名单」权威源待书记裁（考勤方案B/党委组织员入会名单）；README 英文/logo 图片占位后续；committee-vote 通知锚点补全。
+
+---
+
+**T-2026-09-040 书记检查前收尾：立项③ b/c/d 全落地 + committee-vote 锚点 + 数据/单测复核（2026-09-05，3 commits 191ea76/229a22b/ccd8819）**
+**收尾审计结论**（逐项核对书记要求）：①批量考勤单测 ✅（attendance-batch 6 例，commit 9e99fc5）；立项③ 阶段 b（贡献写入 addContributions+org 录入区）、c（创建=pending_review→书记批准 recruiting/驳回 draft+重新提交，复用 _spawnTaskforceApprovalTodo）、d（纪检复盘批量确认，同单行口径 N/M 回执）本轮全部落地。②数据复核 ✅：mock 无 2026-03~06 残留、无「一二三四」数字人名（仅「第二期/五四/七月」等合法词），真人名=书记储子禾/组织高翔宇/纪检董建军/宣传方文静/副书记潘振华。③committee-vote 通知补活动定位锚点：targetUrl 带 activityId 直达书记台对应活动 inspector（避免 type/id 规则把书记误导到 activity.html 丢失记录决议入口），notice.archiveBySource 扩展匹配 targetUrl 活动号——两则书记通知随活动归档不再孤儿。
+**验证**：5/6 新改文件 node 导入 OK（secretary todo-tab 顶层 localStorage 属既有浏览器依赖，GetDiagnostics 零错误）；taskforce addContributions 行为冒烟全过（空白 desc/非成员/不存在拒、批量每人+1、去重、旧数据兼容）；review-tab 顶层导入正常；浏览器交互/目视待常规终端。
+**待办**：全量 npm test（含浏览器 E2E）常规终端复核；「应到名单」权威源待书记裁；README logo/英文占位后续。
