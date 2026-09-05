@@ -73,12 +73,16 @@ const _ISSUE_PERMS_SECRETARY = [
 const ROLE_PERMISSIONS = {
   'secretary':         ['view_all', 'create_activity', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'authorize_taskforce', 'authorize', 'archive', 'manage_members', ..._ISSUE_PERMS_ALL, ..._ISSUE_PERMS_SECRETARY],
   'deputy-secretary':  ['view_all', 'create_activity', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'authorize_taskforce', 'authorize', 'archive', 'manage_members', ..._ISSUE_PERMS_ALL],
-  'org-commissioner':  ['view_all', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'authorize_taskforce', 'archive', ..._ISSUE_PERMS_ALL],
-  'prop-commissioner': ['view_all', 'manage_taskforce', 'initiate_taskforce', 'archive', ..._ISSUE_PERMS_ALL],
-  'disc-commissioner': ['view_all', 'record_attendance', 'summarize_inspection', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', ..._ISSUE_PERMS_ALL],
+  'org-commissioner':  ['view_all', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'authorize_taskforce', 'archive', 'dispatch_line', ..._ISSUE_PERMS_ALL],
+  'prop-commissioner': ['view_all', 'manage_taskforce', 'initiate_taskforce', 'archive', 'dispatch_line', ..._ISSUE_PERMS_ALL],
+  'disc-commissioner': ['view_all', 'record_attendance', 'summarize_inspection', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'dispatch_line', ..._ISSUE_PERMS_ALL],
   'leader':            ['view_all', 'create_activity', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'assign_project_role', ..._ISSUE_PERMS_ALL],
   'participant':       ['view_public', 'record_inspection', ..._ISSUE_PERMS_ALL],
 };
+// dispatch_line（条线下发，A1-2026-09-05 落代码）：组织线/宣传线/纪检线职能任务下发，授予对应支委；
+// 与 assign_task（书记/副书记/组长派执行）分两类——键级已入集（canDo 可判定），交互流消费侧待建。
+// 文档映射：content/02_institution/SYSTEM_ROLE_PERMISSION.md §9f（权限名语义说明）+ CF §C.2。
+// 注：§9b 16 操作矩阵列不并该键（消费侧未建、不硬凑列），见该文件变更历史 2026-09-05 条目。
 
 const PROJECT_PERMISSIONS = {
   'organizer': ['view_project', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'assign_project_role'],

@@ -64,6 +64,8 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 
 \* 纪检委员的 initiate_taskforce：原则上可以，但业务上一般不使用。
 
+> 附（2026-09-05 A1 落代码）：`dispatch_line`（条线下发）已授予组织/宣传/纪检三委员（auth.js `ROLE_PERMISSIONS`，canDo 可判定）；因交互流消费侧未建，不入上表 16 操作列——见 §9f 映射行与变更历史。
+
 ## 9c. 项目角色权限矩阵（2 角色 × 7 操作）
 
 > 本矩阵对齐 `auth.js` 的 PROJECT_PERMISSIONS。项目角色仅在 `canDo(userId, action, {projectId})` 上下文中生效。
@@ -112,10 +114,11 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 | `assign_project_role` | 赋权项目角色 organizer/deep |
 | `archive` | 归档操作 |
 | `manage_members` | 管理成员（设为/取消组长） |
+| `dispatch_line` | 条线下发（组织线/宣传线/纪检线职能任务下发，授予对应支委；与 `assign_task` 分两类；键级 2026-09-05 入集，交互流消费侧待建） |
 
-> 另设「条线下发」（组织线/宣传线/纪检线职能任务下发，授予对应支委；与 `assign_task`（书记/副书记/组长派执行）分两类，键后续编码）。
+> 另设「条线下发」（组织线/宣传线/纪检线职能任务下发，授予对应支委；与 `assign_task`（书记/副书记/组长派执行）分两类）。**键已入集（2026-09-05 A1 落代码）**：`dispatch_line` 授予组织/宣传/纪检三委员（auth.js `ROLE_PERMISSIONS`，canDo 可判定）；交互流（下发→上报→审核）消费侧待建，见本表 `dispatch_line` 行。
 
-> **双轨约定（2026-09-05）**：[COMMISSIONER_DUTY_FRAMEWORK.md](./COMMISSIONER_DUTY_FRAMEWORK.md) §C = **逐操作位视图**（上传/确认/监督/备案等支部运行操作位，用户侧理解「谁在哪个环节做什么」）；本文件 = **权限键级视图**（角色键/权限键/矩阵/赋权链，代码侧判定依据）。两轨互补、以本文件键级为准。操作位 ↔ 权限键的完整映射属后续编码——如「条线下发」等键尚未进入权限键集（见上注），不硬凑缺键。
+> **双轨约定（2026-09-05）**：[COMMISSIONER_DUTY_FRAMEWORK.md](./COMMISSIONER_DUTY_FRAMEWORK.md) §C = **逐操作位视图**（上传/确认/监督/备案等支部运行操作位，用户侧理解「谁在哪个环节做什么」）；本文件 = **权限键级视图**（角色键/权限键/矩阵/赋权链，代码侧判定依据）。两轨互补、以本文件键级为准。操作位 ↔ 权限键的完整映射属后续编码——「条线下发」键已入集（见上注 `dispatch_line`）；其余操作位位限定（建档/监督/导入/自己的/配合等）依赖写层业务守卫而非裸键，不硬凑缺键。
 
 ## 9g. 权限矩阵标记说明
 
@@ -131,4 +134,5 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 ## 变更历史
 
 - **2026-09-05**：自 ROLE_CLASSIFICATION.md §九 迁出为独立文件（名实分离修复——该文件回归纯文件角色分类，本文件承担系统运行角色权限矩阵的键级权威）。迁出时同步修复：9a0 补 `party-staff`（党委组织员，组织级）行，真实对齐 constants.js `ROLE_KEYS`/`ROLE_LABELS`/`ROLE_PAGE_MAP`；9a0 登记表述改指 constants.js `ROLE_PAGE_MAP`（2026-09 已自 auth.js 迁入常量层）；9a 引用纠错（USAGE_POLICY §1.2.5 → §1.3）；9f 增补双轨约定（CF §C 逐操作位视图 ↔ 本文件键级视图）。
+- **2026-09-05（A1 批1 落代码）**：`dispatch_line`（条线下发）键入集——授予组织/宣传/纪检三委员（auth.js `ROLE_PERMISSIONS`，canDo 可判定），9f 增映射行、9b 附注说明；交互流消费侧待建、不入 16 操作列（不硬凑列原则）。
 - 前身沿革：本节原为 ROLE_CLASSIFICATION.md §九（PERMISSION_MATRIX.md → MANAGEMENT_MODE.md → ROLE_CLASSIFICATION §九，2026-07-08 迁入；2026-07-12 §九 重写 9a~9g；2026-08-29 增 9a0），历史记录见 ROLE_CLASSIFICATION.md §八 变更历史。
