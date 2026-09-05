@@ -15,7 +15,7 @@ import { generateMindmapText, FLOW_LINKS } from '../src/core/mermaid-sources.js'
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url)); // docs/
 const CATALOG_PATH = fileURLToPath(new URL('../src/core/function-catalog.js', import.meta.url));
-const README_PATH = fileURLToPath(new URL('../../README.md', import.meta.url));
+const README_PATH = fileURLToPath(new URL('../../README-members.md', import.meta.url));
 
 export function loadCatalog() {
   const src = readFileSync(CATALOG_PATH, 'utf8');
