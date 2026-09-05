@@ -27,6 +27,7 @@ import { getPersonName } from '../../../services/person.js?v=20260903c';
 let _recruitPersonPicker = null;
 let _tfOrgPicker = null;    // 专班详情：组织者多选
 let _tfDeepPicker = null;   // 专班详情：深度参与者多选
+let _tfContribPicker = null; // 专班详情：成员贡献录入多选（立项③阶段b）
 
 export function renderContent(ctx) {
   const container = document.getElementById('org-tab-content');
@@ -147,14 +148,21 @@ export function renderContent(ctx) {
         }
       });
     });
-    // B 档 CRUD 补全：撤销招募中专班（彻底删除 + 清理关联报名/待办）
+    // B 档 CRUD 补全：撤销/删除专班（彻底删除 + 清理关联报名/待办）
+    // 覆盖状态：recruiting（撤销招募）/ pending_review（待审核撤销）/ draft（驳回草稿删除）——立项③阶段c
     container.querySelectorAll('.tf-delete-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const tfId = btn.dataset.tfId;
         const tf = TaskForceRecordStore.getAll().find(r => r.id === tfId);
-        if (!tf || tf.status !== 'recruiting') return;
-        const confirmed = window.confirm(`确认撤销招募「${tf.name}」？专班将被彻底删除，关联报名与待办一并清理。`);
+        if (!tf) return;
+        if (tf.status !== 'recruiting' && tf.status !== 'pending_review' && tf.status !== 'draft') return;
+        const confirmMsg = tf.status === 'recruiting'
+          ? `确认撤销招募「${tf.name}」？专班将被彻底删除，关联报名与待办一并清理。`
+          : tf.status === 'pending_review'
+            ? `确认撤销「${tf.name}」？专班仍在待审核状态，撤销后将被彻底删除并清理关联待办。`
+            : `确认删除「${tf.name}」？该专班为驳回草稿，删除后不可恢复。`;
+        const confirmed = window.confirm(confirmMsg);
         if (!confirmed) return;
         TaskForceRecordStore.remove(tfId);
         // 清理关联报名（内存 + 落库同源）
@@ -162,7 +170,30 @@ export function renderContent(ctx) {
         mockDB.signups = [...SignupStore._signups];
         TodoStore.deleteBySource(TodoSourceType.TASKFORCE, tfId);
         persist();
-        showToast('success', `专班「${tf.name}」已撤销删除`);
+        showToast('success', `专班「${tf.name}」已删除`);
+        setState({});
+      });
+    });
+    // 立项③阶段c：被驳回专班（draft）→ 重新提交书记审批（组织侧无编辑表单，
+    // 最小合理改法：清理审批痕迹回 pending_review 并重新派生书记审批待办；内容修改可先删除重建）
+    container.querySelectorAll('.tf-resubmit-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const tfId = btn.dataset.tfId;
+        const tf = TaskForceRecordStore.getAll().find(r => r.id === tfId);
+        if (!tf || tf.status !== 'draft') return;
+        const confirmed = window.confirm(`确认重新提交「${tf.name}」发起审批？书记将再次审核。`);
+        if (!confirmed) return;
+        const updated = TaskForceRecordStore.update(tf.id, {
+          status: 'pending_review',
+          approvalStatus: null,
+          approvedBy: null,
+          approvedAt: null,
+          approvalNote: null,
+        });
+        if (!updated) { showToast('error', '重新提交失败，专班记录不存在'); return; }
+        _spawnTaskforceApprovalTodo(updated);
+        showToast('success', `专班「${tf.name}」已重新提交书记审批`);
         setState({});
       });
     });
@@ -180,13 +211,21 @@ export function renderContent(ctx) {
       const filled = tf.members.filter(m => m.personId).length;
 
       // ── 工作量汇总区域（运行中/已完结/已归档专班展示） ──
-      let workSummaryHtml = '';
+      // 贡献条目兼容两种形态：种子字符串摘要 / 阶段b写入对象 {id,desc,by,at}
+      const contribTextOf = (c) => typeof c === 'string' ? c : (c && (c.desc || c.description || c.title)) || (typeof c === 'string' ? c : JSON.stringify(c));
+      const contribMetaOf = (c) => {
+        if (!c || typeof c === 'string') return '';
+        const bits = [];
+        if (c.by) bits.push(getPersonName(c.by));
+        if (c.at) bits.push(String(c.at).slice(0, 16).replace('T', ' '));
+        return bits.length ? ' · ' + bits.join(' ') : '';
+      };
       if (tf.status === 'active' || tf.status === 'completed' || tf.status === 'archived') {
         const memberRows = tf.members.filter(m => m.personId).map(m => {
           const contribCount = (m.contributions || []).length;
           const contribList = (m.contributions || []).length > 0
             ? `<ul class="mt-1 space-y-0.5">${m.contributions.map(c =>
-                `<li class="text-[12px] text-gray-400 pl-2">${typeof c === 'string' ? c : (c.description || c.title || JSON.stringify(c))}</li>`
+                `<li class="text-[12px] text-gray-400 pl-2">${contribTextOf(c)}<span class="text-[10px] text-gray-300">${contribMetaOf(c)}</span></li>`
               ).join('')}</ul>`
             : '<span class="text-[12px] text-gray-300 pl-2">暂无贡献记录</span>';
           return `
@@ -216,6 +255,19 @@ export function renderContent(ctx) {
           workSummaryHtml += `
           <div class="mt-4 pt-3 border-t border-gray-100 flex justify-end">
             <button id="btn-dissolve-tf" class="btn-md btn-md-red">解散专班</button>
+          </div>`;
+          // 立项③阶段b：成员贡献批量录入（仅运行中；组织委员补录成员产出，解锁解散工作量门槛）
+          workSummaryHtml += `
+          <div class="mt-4 pt-3 border-t border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+              <h6 class="font-title-cn text-xs font-bold text-gray-600">成员贡献录入 <span class="text-gray-300 font-normal">· 按人批量补录产出（满足解散工作量门槛）</span></h6>
+            </div>
+            <div class="rounded-lg bg-gray-50 p-2.5">
+              <div class="text-[12px] text-gray-400 mb-1">选择成员（默认已全选该专班成员）</div>
+              <div id="tf-contrib-picker"></div>
+              <textarea id="tf-contrib-desc" rows="2" placeholder="贡献说明（必填），如：完成活动策划与执行排期…" class="input-flat w-full mt-2 resize-none"></textarea>
+              <button id="btn-add-tf-contrib" class="text-xs px-3 py-2 rounded-lg text-white transition-colors hover:opacity-90 mt-2" style="${solidAccentStyle(accent, accentBorder)};">录入贡献</button>
+            </div>
           </div>`;
         }
       }
@@ -447,6 +499,7 @@ export function renderContent(ctx) {
       // 初始化成员角色 PersonPicker（预填主源 members）
       if (_tfOrgPicker) { _tfOrgPicker.destroy(); _tfOrgPicker = null; }
       if (_tfDeepPicker) { _tfDeepPicker.destroy(); _tfDeepPicker = null; }
+      if (_tfContribPicker) { _tfContribPicker.destroy(); _tfContribPicker = null; }
       const tfOrgEl = panel.querySelector('#tf-org-picker');
       const tfDeepEl = panel.querySelector('#tf-deep-picker');
       const tfAssigns = Array.isArray(tf.members) ? tf.members.filter(m => m.personId) : [];
@@ -469,6 +522,21 @@ export function renderContent(ctx) {
           onSelect: () => {},
         });
         _tfDeepPicker.render(tfDeepEl);
+      }
+
+      // 成员贡献录入 picker（立项③阶段b）：默认全选专班成员，且可选范围限制为该专班成员
+      const tfContribEl = panel.querySelector('#tf-contrib-picker');
+      if (tfContribEl) {
+        const contribMemberIds = tfAssigns.map(m => m.personId);
+        _tfContribPicker = new PersonPicker({
+          mode: 'multi',
+          placeholder: '选择成员',
+          accentColor: accent,
+          initialIds: contribMemberIds,
+          filter: (person) => contribMemberIds.includes(person.id),
+          onSelect: () => {},
+        });
+        _tfContribPicker.render(tfContribEl);
       }
 
       // 保存成员角色：syncProjectRoles 三合一
@@ -658,6 +726,18 @@ export function renderContent(ctx) {
           card.click(); // 重渲染详情面板
         });
       });
+
+      // ── 成员贡献批量录入：提交（立项③阶段b） ──
+      panel.querySelector('#btn-add-tf-contrib')?.addEventListener('click', () => {
+        const desc = (panel.querySelector('#tf-contrib-desc')?.value || '').trim();
+        if (!desc) { showToast('error', '请填写贡献说明'); return; }
+        const ids = _tfContribPicker ? _tfContribPicker.getSelected() : [];
+        if (ids.length === 0) { showToast('error', '请选择成员'); return; }
+        const res = TaskForceRecordStore.addContributions(tf.id, { personIds: ids, desc, by: currentUserId });
+        if (!res) { showToast('error', '录入失败：贡献说明为空或所选人员非该专班成员'); return; }
+        showToast('success', `已为 ${res.added} 名成员录入贡献`);
+        card.click(); // 重渲染详情面板
+      });
     });
   });
   }
@@ -739,6 +819,8 @@ function _renderTfCard(t, statusLabel, statusColor) {
   const color = statusColor[t.status] || '#6B7280';
   // 内联徽章深色亮色映射（深色下提亮一档，由 html.theme-dark [style*="--acc-bg-dark"] 规则应用）
   const darkColor = { pending_review: '#A5B4FC', recruiting: '#FBBF24', active: '#34D399', completed: '#60A5FA', archived: '#94A3B8', draft: '#94A3B8' }[t.status] || '#94A3B8';
+  // 卡片状态徽标：draft（被驳回）特判为「已驳回·草稿」，其余走统一映射（立项③阶段c）
+  const badgeText = (t.status === 'draft' && t.approvalStatus === 'rejected') ? '已驳回·草稿' : (statusLabel[t.status] || t.status);
   // 招募状态流转按钮：recruiting → active → archived
   let statusBtn = '';
   if (t.status === 'recruiting') {
@@ -747,14 +829,26 @@ function _renderTfCard(t, statusLabel, statusColor) {
       <button class="tf-start-btn text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();">启动专班</button>
       <button class="tf-delete-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">撤销</button>
     </div>`;
+  } else if (t.status === 'pending_review') {
+    // 立项③阶段c：待审核专班 → 显示「待书记批准」标记，无启动按钮；可撤销删除
+    statusBtn = `<div class="flex items-center gap-2 mt-2">
+      <span class="text-[11px] px-2 py-1 rounded-full flex-shrink-0" style="background:#6366F115;color:#6366F1;">待书记批准</span>
+      <button class="tf-delete-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">撤销</button>
+    </div>`;
   } else if (t.status === 'active') {
     statusBtn = `<button class="tf-archive-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">归档专班</button>`;
+  } else if (t.status === 'draft') {
+    // 立项③阶段c：被驳回专班（draft）→ 可重新提交审批或删除（组织侧无编辑表单，最小合理改法见 bindStatusButtons）
+    statusBtn = `<div class="flex gap-2 mt-2">
+      <button class="tf-resubmit-btn text-xs px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();">重新提交审批</button>
+      <button class="tf-delete-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">删除</button>
+    </div>`;
   }
   return `
     <div class="kanban-card p-4 rounded-xl bg-white cursor-pointer tf-store-card hover:shadow-sm transition-shadow" data-tf-id="${t.id}">
       <div class="flex items-start justify-between gap-2 mb-2">
         <span class="text-sm font-semibold text-gray-800 leading-snug">${t.name}</span>
-        <span class="badge" style="background:${color}15;color:${color};--acc-bg-dark:${darkColor}24;--acc-text-dark:${darkColor};">${statusLabel[t.status] || t.status}</span>
+        <span class="badge" style="background:${color}15;color:${color};--acc-bg-dark:${darkColor}24;--acc-text-dark:${darkColor};">${badgeText}</span>
       </div>
       <p class="text-xs text-gray-500 mb-2 line-clamp-2">${t.task}</p>
       <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
@@ -897,6 +991,25 @@ function _closeRecruitForm() {
   if (overlay) overlay.remove();
 }
 
+// T-304 C3 专班发起审批待办派生（组织委员发起 / 驳回后重新发起共用；书记批准/驳回写专班记录状态）
+function _spawnTaskforceApprovalTodo(tf) {
+  if (!tf || !tf.id) return;
+  TodoStore.create({
+    title: `审批专班发起「${tf.name || '未命名'}」`,
+    description: `组织委员发起专班招募（任务：${tf.task || '—'}），请书记审批是否批准发起`,
+    role: 'secretary',
+    category: TodoCategory.REVIEW,
+    priority: 'urgent',
+    deadline: tf.deadline || null,
+    sourceType: TodoSourceType.TASKFORCE,
+    sourceId: tf.id,
+    actionType: TodoActionType.REVIEW,
+    actionKey: 'taskforce-approval',
+    actionData: { taskforceId: tf.id, taskforceName: tf.name || '' },
+    flow: '专班发起 → 书记审批 → 正式招募',
+  });
+}
+
 function _submitRecruitForm(ctx) {
   const name = document.getElementById('rf-name')?.value?.trim();
   const task = document.getElementById('rf-task')?.value?.trim();
@@ -926,10 +1039,11 @@ function _submitRecruitForm(ctx) {
   }));
 
   // 构建专班记录
+  // 立项③阶段c：发起即置 pending_review（待书记批准），批准后由书记侧写 recruiting，不再直接招募中
   const record = {
     name,
     task,
-    status: 'recruiting',
+    status: 'pending_review',
     manager: 'p11',
     initiator: 'p11',
     members,
@@ -954,22 +1068,7 @@ function _submitRecruitForm(ctx) {
       AuthStore.recordProjectGrants(created.id, members, actorId);
     }
     // T-304 C3 专班发起审批环节：组织委员发起 → 自动派生书记审批待办（书记批准/驳回写专班记录）
-    if (created) {
-      TodoStore.create({
-        title: `审批专班发起「${name}」`,
-        description: `组织委员发起专班招募（任务：${task || '—'}），请书记审批是否批准发起`,
-        role: 'secretary',
-        category: TodoCategory.REVIEW,
-        priority: 'urgent',
-        deadline: deadline || null,
-        sourceType: TodoSourceType.TASKFORCE,
-        sourceId: created.id,
-        actionType: TodoActionType.REVIEW,
-        actionKey: 'taskforce-approval',
-        actionData: { taskforceId: created.id, taskforceName: name },
-        flow: '专班发起 → 书记审批 → 正式招募',
-      });
-    }
+    if (created) _spawnTaskforceApprovalTodo(created);
     showToast('success', `专班「${name}」发布成功，已提交书记审批`);
 
     // 预拟通知「只跑一次」（2026-08-05）：仅在表单填写了标题时发布一条通知，

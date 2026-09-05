@@ -168,6 +168,40 @@ export const TaskForceRecordStore = {
     return this.update(tfId, { members: [...tf.members, newMember] });
   },
 
+  // ══════════════════════════════════════════════════════════════
+  //  成员贡献批量录入（立项③阶段b · 写入位补全）
+  //  数据域：mockDB.taskforces[].members[].contributions
+  //  数组项：种子为字符串摘要（历史只读形态）；本次写入为对象条目
+  //         { id:'tc-'+时间戳+'_'+personId, desc, by, at }
+  //  语义：组织委员在运行中（active）专班按人批量补录成员产出，
+  //        解锁解散门槛「工作量报告（成员有产出记录）」对新专班恒阻塞问题。
+  //  兼容旧数据：老成员无 contributions 字段（undefined）按 [] 处理。
+  // ══════════════════════════════════════════════════════════════
+
+  /** 批量录入贡献（写仅组织委员；desc 非空且 personIds 均为该专班成员才受理） */
+  addContributions(taskforceId, { personIds = [], desc = '', by = null } = {}) {
+    const tf = this._records.find(r => r.id === taskforceId);
+    const note = String(desc || '').trim();
+    const ids = Array.isArray(personIds) ? [...new Set(personIds.filter(Boolean))] : [];
+    if (!tf || !note || ids.length === 0) return null;
+    // 校验：所选人员必须均为该专班成员（含历史数据无 personId 的成员条目过滤）
+    const memberIds = (tf.members || []).map(m => m && m.personId);
+    if (!ids.every(pid => memberIds.includes(pid))) return null;
+    const ts = Date.now();
+    const at = new Date().toISOString();
+    const members = (tf.members || []).map(m => {
+      if (!m || !ids.includes(m.personId)) return m;
+      const list = Array.isArray(m.contributions) ? m.contributions : [];
+      return {
+        ...m,
+        contributions: [...list, { id: 'tc-' + ts + '_' + m.personId, desc: note, by: by || null, at }],
+      };
+    });
+    const updated = this.update(taskforceId, { members });
+    if (!updated) return null;
+    return { added: ids.length };
+  },
+
   getAll() {
     return [...this._records];
   },

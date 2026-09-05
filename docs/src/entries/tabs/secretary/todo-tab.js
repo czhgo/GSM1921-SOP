@@ -325,16 +325,21 @@ function handleTodoAction(todo) {
         { key: 'note', label: '审批说明', type: 'textarea', required: false, placeholder: '如：同意，注意按期完成并按时报送考察' },
       ],
       onSubmit: (values) => {
-        const updated = TaskForceRecordStore.update(tfId, {
+        // 立项③阶段c：审批不仅写 approval 字段，同时迁移专班状态——批准 → recruiting（进入招募中可启动），
+        // 驳回 → draft（退回草稿，组织委员侧待审核桶可见，可删除或重新提交审批）；修复「待审核」空壳与驳回后滞留 recruiting
+        const patch = {
           approvalStatus: values.decision,
           approvedBy: 'secretary',
           approvedAt: new Date().toISOString(),
           approvalNote: values.note || '',
-        });
+        };
+        if (values.decision === 'approved') patch.status = 'recruiting';
+        else patch.status = 'draft';
+        const updated = TaskForceRecordStore.update(tfId, patch);
         if (!updated) { showToast('error', '专班不存在或已变更'); return; }
         // 销审批待办（聚合卡取首条 id；单条直接 complete）
         if (first.id) TodoStore.complete(first.id);
-        showToast('success', values.decision === 'approved' ? `专班「${tf.name}」已批准发起` : `专班「${tf.name}」发起已驳回`);
+        showToast('success', values.decision === 'approved' ? `专班「${tf.name}」已批准发起` : `专班「${tf.name}」发起已驳回，已退回草稿`);
         renderContent();
       },
       accentColor: accent,
