@@ -446,3 +446,14 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 
 **回归**：module-load 116/116（含新库）；party-committee + write-hover + capability-registry 15/15 绿；git diff 净 37 文件 +41/−42（无编码异常）
 **下一步候选**：目视复核（20260903c）；L3 block manifest 契约专项；push 待书记批准
+
+---
+
+**T-2026-09-032 A1 权限语义落代码（2026-09-05，3 commits 8219fb3/eae54c1/36121ac）**
+**书记裁决**：A1 全层推进（判定→写层→待办→UI 一次多 commit）；条线下发=键族入集+映射表（不建交互流）；纪检督办=动态聚合（不新增 todo supervise 分类落库）；组长监督位=仅提示不产动作；会议考勤=按文档补纪检直接上传并录入（CF §C.1a）。
+**执行**：
+- 批1 判定层：`dispatch_line`（条线下发）键入 auth.js ROLE_PERMISSIONS（org/prop/disc，canDo 可判定）；SYSTEM_ROLE_PERMISSION §9f 增映射行、§9b 附注（消费侧未建不入 16 操作列）、变更历史登记。
+- 批2 写入门禁（服务层兜底，替代页面软隔离）：考勤上传位（本组党小组会=组长兼组织者/活动组织者/纪检仅会议类/书记副书记例外）＋追加提交（同人同活动已闭环=跳过、待纪检复核异常=拦截走纪检确认流程）；考察上传位守卫（活动类=组织者位）；纪检会议考勤直接录入 `upsertMeetingAttendance`（上传即确认，recordedBy=纪检）；3 处幽灵 recordedBy `u_exec`/硬编码 p13 全改真实操作人；leader 上传列表按上传位过滤（非本人组织活动不再可传）。
+- 批3 纪检会议考勤录入 UI（disc 考勤页新卡：会议类活动+逐人状态+录入即确认）+ 组长两页「监督位」提示文案。
+**验证**：守卫语义 Node 自检 PASS（组长党小组会可传/org 不可/去重 skip/复核异常 block/纪检会议类可传·党小组会不可）；link-integrity L1/L2/L3/L5 全绿（L4 浏览器沙盒 EPERM 可接受）；工作区 clean。
+**遗留/待裁**：①纪检「监督督办」集中只读区=待办页动态聚合已达，集中展示目视微调未做（待浏览器环境）；②专班负责人身份（指派到人/角色）待书记另裁——专班考察上传位暂按页面可达放行并注释；③E2E 沙盒外 node --test 全量补跑待常规终端。
