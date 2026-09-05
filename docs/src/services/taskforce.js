@@ -125,6 +125,42 @@ export const TaskForceRecordStore = {
     return true;
   },
 
+  // ══════════════════════════════════════════════════════════════
+  //  专班中间进度（立项③阶段a · 最小闭环）
+  //  数据域：mockDB.taskforces[].progressList
+  //  数组项：{ id:'tp-'+时间戳, stage, note, by, at }
+  //  语义：组织委员在运行中（active）专班分阶段填报进展，
+  //        纪检委员/党小组组长经只读专班查看（taskforce-view）可见；
+  //  兼容旧数据：老专班无 progressList 字段（undefined）按 [] 读写，不报错。
+  // ══════════════════════════════════════════════════════════════
+
+  /** 追加一条中间进度（写仅组织委员；by=填报人 personId，由调用方传入） */
+  addTaskforceProgress(taskforceId, { stage = '', note = '', by = null } = {}) {
+    const tf = this._records.find(r => r.id === taskforceId);
+    if (!tf || !String(note || '').trim()) return null;
+    const list = Array.isArray(tf.progressList) ? tf.progressList : [];
+    const item = {
+      id: 'tp-' + Date.now(),
+      stage: String(stage || '').trim(),
+      note: String(note).trim(),
+      by: by || null,
+      at: new Date().toISOString(),
+    };
+    return this.update(taskforceId, { progressList: [...list, item] });
+  },
+
+  /** 删除一条中间进度（按记录 id；by=当前操作者 personId，本人可删校验） */
+  removeTaskforceProgress(taskforceId, progressId, by = null) {
+    const tf = this._records.find(r => r.id === taskforceId);
+    if (!tf) return null;
+    const list = Array.isArray(tf.progressList) ? tf.progressList : [];
+    const target = list.find(p => p && p.id === progressId);
+    if (!target) return null;
+    // 本人可删：仅填报人本人可删；记录无 by（旧数据）时不拦截
+    if (by && target.by && target.by !== by) return null;
+    return this.update(taskforceId, { progressList: list.filter(p => p && p.id !== progressId) });
+  },
+
   addMember(tfId, member) {
     const tf = this._records.find(r => r.id === tfId);
     if (!tf) return null;

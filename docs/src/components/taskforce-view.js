@@ -164,6 +164,28 @@ function _renderTfDetail(container, tf, highlightId) {
           </div>`;
       }).join('');
 
+  // ── 立项③阶段a：专班中间进度只读时间线（有记录才渲染，减少噪音） ──
+  // 谁可看：本组件承载纪检/组长/全员只读专班查看，凡可展开详情者即可见，无额外权限过滤
+  const tfProgressList = Array.isArray(tf.progressList) ? tf.progressList : [];
+  const progressHtml = tfProgressList.length > 0 ? `
+    <div class="pt-3 border-t border-gray-100 mt-3">
+      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">中间进度 <span class="text-gray-300 font-normal">· ${tfProgressList.length} 条</span></h5>
+      <div>
+        ${tfProgressList.map(p => `
+          <div class="py-2 border-b border-gray-50 last:border-b-0 flex items-start gap-2">
+            <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#10B981;"></span>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                ${p.stage ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#10B98115;color:#0D9488;">${p.stage}</span>` : ''}
+                <span class="text-[11px] text-gray-400">${(p.at || '').slice(0, 16).replace('T', ' ')}</span>
+                <span class="text-[11px] text-gray-400">${p.by ? getPersonName(p.by) : ''}</span>
+              </div>
+              <p class="text-xs text-gray-600 leading-relaxed mt-0.5">${p.note || ''}</p>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>` : '';
+
   panel.innerHTML = `
     <div class="flex items-start justify-between gap-2 mb-3">
       <h4 class="font-title-cn text-sm font-bold text-gray-800">${tf.name}</h4>
@@ -178,5 +200,6 @@ function _renderTfDetail(container, tf, highlightId) {
     <div class="pt-3 border-t border-gray-100">
       <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">成员与工作量</h5>
       ${memberRows}
-    </div>`;
+    </div>
+    ${progressHtml}`;
 }

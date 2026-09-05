@@ -355,6 +355,59 @@ export function renderContent(ctx) {
         }
       }
 
+      // ── 立项③阶段a：专班中间进度（progressList 时间线；active 组织委员可填报） ──
+      const tfProgressList = Array.isArray(tf.progressList) ? tf.progressList : [];
+      const fmtTpAt = (iso) => (iso || '').slice(0, 16).replace('T', ' ') || '-';
+      const tfProgressRows = tfProgressList.map(p => {
+        const stageTag = p.stage
+          ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#10B98115;color:#0D9488;">${p.stage}</span>`
+          : '';
+        // 本人可删：仅填报人本人可见删除入口（旧数据无 by 时给组织委员兜底可删）
+        const canDel = currentUserId && (!p.by || p.by === currentUserId);
+        const delBtn = canDel
+          ? `<button class="tf-progress-del-btn text-[11px] text-red-400 hover:text-red-600" data-progress-id="${p.id}">删除</button>`
+          : '';
+        return `
+          <div class="py-2 border-b border-gray-50 last:border-b-0 flex items-start gap-2">
+            <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#10B981;"></span>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                ${stageTag}
+                <span class="text-[11px] text-gray-400">${fmtTpAt(p.at)}</span>
+                <span class="text-[11px] text-gray-400">${p.by ? getPersonName(p.by) : ''}</span>
+                <span class="ml-auto">${delBtn}</span>
+              </div>
+              <p class="text-xs text-gray-600 leading-relaxed mt-0.5">${p.note || ''}</p>
+            </div>
+          </div>`;
+      }).join('');
+
+      // 有记录即渲染只读时间线；active 专班额外渲染填报表单（本 tab 属组织委员工作台独占 → 写仅组织委员）
+      let progressSectionHtml = '';
+      if (tfProgressList.length > 0 || tf.status === 'active') {
+        const progressFormHtml = tf.status === 'active' ? `
+          <div class="mt-2 rounded-lg bg-gray-50 p-2.5">
+            <div class="flex flex-wrap items-center gap-2">
+              <select id="tf-progress-stage" class="input-flat w-28 flex-shrink-0">
+                ${['筹备中', '执行中', '攻坚中', '收尾'].map(s => `<option>${s}</option>`).join('')}
+              </select>
+              <textarea id="tf-progress-note" rows="1" placeholder="进度说明（必填）…" class="input-flat flex-1 min-w-[160px] resize-none"></textarea>
+              <button id="btn-add-tf-progress" class="text-xs px-3 py-2 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0" style="${solidAccentStyle(accent, accentBorder)};">添加进度</button>
+            </div>
+          </div>` : '';
+        progressSectionHtml = `
+          <div class="mt-4 pt-3 border-t border-gray-100">
+            <div class="flex items-center justify-between mb-1">
+              <h6 class="font-title-cn text-xs font-bold text-gray-600">中间进度 <span class="text-gray-300 font-normal">· 运行期分阶段进展</span></h6>
+              ${tfProgressList.length > 0 ? `<span class="text-[11px] text-gray-400">${tfProgressList.length} 条</span>` : ''}
+            </div>
+            ${tfProgressList.length === 0
+              ? '<p class="text-[12px] text-gray-300 pl-2 mb-1">暂无中间进度记录</p>'
+              : `<div class="mt-1">${tfProgressRows}</div>`}
+            ${progressFormHtml}
+          </div>`;
+      }
+
       panel.innerHTML = `
         <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">${tf.name}</h3>
         <p class="text-xs text-gray-500 mb-2">${tf.task}</p>
@@ -387,6 +440,7 @@ export function renderContent(ctx) {
         ${workSummaryHtml}
         ${signupSectionHtml}
         ${subRecordsHtml}
+        ${progressSectionHtml}
         ${reviewSectionHtml}
       `;
 
@@ -582,6 +636,26 @@ export function renderContent(ctx) {
           saveTfSubs();
           // 重新渲染详情面板
           card.click();
+        });
+      });
+
+      // ── 中间进度：添加 / 删除（立项③阶段a） ──
+      panel.querySelector('#btn-add-tf-progress')?.addEventListener('click', () => {
+        const noteEl = panel.querySelector('#tf-progress-note');
+        const note = (noteEl?.value || '').trim();
+        if (!note) { showToast('error', '请填写进度说明'); return; }
+        const stage = panel.querySelector('#tf-progress-stage')?.value || '';
+        const updated = TaskForceRecordStore.addTaskforceProgress(tf.id, { stage, note, by: currentUserId });
+        if (!updated) { showToast('error', '添加失败，专班记录不存在'); return; }
+        showToast('success', '中间进度已记录');
+        card.click(); // 重渲染详情面板
+      });
+      panel.querySelectorAll('.tf-progress-del-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const removed = TaskForceRecordStore.removeTaskforceProgress(tf.id, btn.dataset.progressId, currentUserId);
+          if (!removed) { showToast('error', '删除失败：仅填报人本人可删除'); return; }
+          showToast('success', '已删除该条进度记录');
+          card.click(); // 重渲染详情面板
         });
       });
     });
