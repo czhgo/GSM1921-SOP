@@ -521,3 +521,15 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **落地（并行 3 子代理）**：①activity-view 支委表决槽+只读议程（复用 vote-widget，canVote=voterIds）；②inspector 议程编辑接线 agenda-editing.js（保存保留 id/kinds/result/扩展字段）+ 保存后活动锚定通知；③activity.html 对含议程活动恒定渲染议程区 + decision-tree/calendar 通知补 activity 锚点（直达/邮件定向/随活动归档）；④会议考勤 Picker stageBatch+全选支部成员+已录预填原状态，upsertMeetingAttendance 增 opts.overwrite（同权威可覆盖，返回 added/updated/skipped 分项回执，默认语义不变）。
 **验证**：attendance 行为冒烟 4 例全对（新增/默认 skip 旧语义/本人权威覆盖/他人权威拒盖）；inspector 行为冒烟 5 断言全对（删行+空行剔除+字段全保留）；GetDiagnostics 全零；node --check 通过；浏览器目视待常规终端。
 **遗留**：立项③专班专项（a-d 阶段+应到名单权威源待裁）；通知锚点未覆盖 committee-vote 表态进度/截止提醒（同型待补，已登记检查要点）。
+
+---
+
+**T-2026-09-039 开源 README 一般化 + 支部版迁移 + 数据刷新 7~9 月真人名 + 立项③a + 考勤批量单测（2026-09-05，4 commits 98cbc4b/4d38cf9/9e99fc5/c631f07）**
+**书记口径**：①根 README 一般化——不以「光华…Org OS」框定，以设计原则+别组织可用功能+可能性为主，「复用与二次开发」为核心章节（没有之一）；版式=顶部 logo 区+链接行（仅支部成员版）。②成员版=原九章正文，迁新文件。③启动立项③分阶段 + 批量考勤补单测（有疑问 ask）。④数据重排 3–6 月→7–9 月窗口（基 09-05）+ 全真人名去「一二三四」占位（书记=储子禾）。
+**落地**：
+- README：根 README.md 重写为一般化开源版（这是什么→设计原则→「别的组织可以用它做什么」→**复用与二次开发（替换入口总表/可能性/示例组织声明）**→快速开始→功能与结构→开发验证→License→成员版章节索引（一~八锚点桥，九以根文件核心节为准））；原九章正文整体迁 README-members.md（FUNC-MAP 标记随迁，gen-function-mermaid/function-map-sync 路径同步）。
+- 数据：docs/src/mock 11 文件+org todo-tab 重排：旧 3–6 月活动 act-1~20 确定性平移至 7/1~7/24（id/相对序不变）、考勤/复盘/通知/专班等以活动锚同步；p1~p15 占位名→真人名（书记 p13=储子禾、组织=高翔宇、宣传=方文静、纪检=董建军、副书记=潘振华…）；12 个 server 测试断言同步。
+- 立项③阶段a：taskforce 加 progressList（add/removeProgress 服务）+ org 详情「中间进度」时间线（active 填报、本人可删）+ 组长/纪检只读展示；阶段 b/c/d 待启动。
+- 考勤批量单测：attendance-batch.test.mjs 6 例（新增/旧语义 skip/纪检本人覆盖/他人权威拒盖/批量混合/常量单一源）。
+**验证**：纯 node 21/21 全绿（attendance-batch 6 + roles-sync + policy + workforce-gate + function-map + report + seed）；数据敏感纯测试 24/24 + 全量审计通过；GetDiagnostics 零；浏览器 E2E/link-integrity 沙盒 EPERM 无法跑（README 在扫描范围外的仓库根，content/docs 未动）——待常规终端 npm test 复核。工作区净（除本批提交外零残留）。
+**待办**：立项③ b（贡献写入位，建议优先）→c→d；「应到名单」权威源待书记裁（考勤方案B/党委组织员入会名单）；README 英文/logo 图片占位后续；committee-vote 通知锚点补全。
