@@ -10,6 +10,11 @@ import { showToast } from '../../../core/utils.js?v=20260903c';
 import { openFormModal } from '../../../components/modal.js?v=20260903c';
 import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260903c';
 
+// ── 批量确认状态（2026-09-06 纪检批量评议确认）───────────────
+// 模块级状态：内部重渲染（renderContent）后仍保留「批量模式开关 + 勾选集合」。
+let _batchModeOn = false;           // 批量模式是否开启
+const _batchCheckedIds = new Set(); // 已勾选的复盘记录 id（仅「已上传」可勾）
+
 // ── 经验沉淀数据层（mockDB） ────────────────────────────
 function _loadDeposits() {
   return mockDB.experienceDeposits.length > 0 ? [...mockDB.experienceDeposits] : [];
@@ -27,6 +32,13 @@ export function renderContent(ctx) {
   const progressColor = { '已完成':'bg-green-100 text-green-700', '超时':'bg-red-100 text-red-700', '进行中':'bg-blue-100 text-blue-700' };
   const reviewColor = { '已上传':'bg-orange-100 text-orange-700', '未提交':'bg-red-100 text-red-700', '—':'bg-gray-100 text-gray-500' };
   const reviewData = reviewToDisplay(loadActiveActivityReviews(), loadTaskforceReviews());
+
+  // 批量勾选去重（2026-09-06）：仅在批量模式下生效——行被单行确认/打回或消失后，
+  // 已非「已上传」可确认态，自动移出勾选集合，避免批量确认误写已完结行。
+  if (_batchModeOn) {
+    const confirmableIds = new Set(reviewData.filter(r => r.reviewStatus === ReviewStatus.UPLOADED).map(r => r.id));
+    [..._batchCheckedIds].forEach(id => { if (!confirmableIds.has(id)) _batchCheckedIds.delete(id); });
+  }
 
   // 经验沉淀交叉引用：判断已完成复盘的活动是否已有沉淀
   const deposits = _loadDeposits();
@@ -60,13 +72,34 @@ export function renderContent(ctx) {
         </div>
       </div>
       <div class="card rounded-xl p-5">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">活动复盘监督</h3>
-        <div class="text-xs text-gray-500 mb-3">复盘状态流转：已上传 → 批注中 → 确认/打回</div>
+        <div class="flex items-center justify-between gap-2 mb-1">
+          <h3 class="font-title-cn text-base font-semibold text-gray-800">活动复盘监督</h3>
+          ${(_batchModeOn || reviewData.some(r => r.reviewStatus === ReviewStatus.UPLOADED)) ? `
+          <button class="btn-action btn-action-gray js-batch-toggle" style="cursor:pointer;">${_batchModeOn ? '退出批量模式' : '批量确认'}</button>` : ''}
+        </div>
+        <div class="text-xs text-gray-500 mb-3">复盘状态流转：已上传 → 批注中 → 确认/打回${_batchModeOn ? ' · 批量勾选「已上传」复盘后可一键确认' : ''}</div>
+        ${_batchModeOn ? `
+        <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 mb-3 text-xs text-gray-600">
+          <span>已勾选 <b class="js-batch-count tabular-nums">${_batchCheckedIds.size}</b> 条「已上传」复盘（已确认/打回/批注中/未提交行置灰不可勾）</span>
+          <button class="btn-action btn-action-green js-batch-confirm" style="cursor:${_batchCheckedIds.size ? 'pointer' : 'not-allowed'};${_batchCheckedIds.size ? '' : 'opacity:0.5;'}" ${_batchCheckedIds.size ? '' : 'disabled'}>批量确认所选（${_batchCheckedIds.size}）</button>
+        </div>` : ''}
         <div class="space-y-2">
-          ${reviewData.filter(r => r.reviewStatus !== '—').map(r => `
+          ${reviewData.filter(r => r.reviewStatus !== '—').map(r => {
+            // 可确认口径与单行「确认」按钮一致：仅「已上传」行可勾（taskforce 与 activity
+            // 复盘在本 tab 均走 updateReviewById 同一确认语义落库，故一并纳入；其余状态置灰）。
+            const confirmable = r.reviewStatus === ReviewStatus.UPLOADED;
+            const checked = _batchCheckedIds.has(r.id);
+            return `
             <div class="p-3 rounded-xl bg-white">
-              <div class="flex items-center justify-between mb-2">
-                <div class="text-sm font-medium text-gray-800">${r.activity}</div>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  ${_batchModeOn ? `
+                  <input type="checkbox" class="js-batch-check w-3.5 h-3.5 rounded shrink-0"
+                    data-review-id="${r.id}" ${checked ? 'checked' : ''} ${confirmable ? '' : 'disabled'}
+                    title="${confirmable ? '勾选后可由「批量确认所选」统一确认' : '仅「已上传」复盘可勾选确认'}"
+                    style="accent-color:${ctx.accent || 'var(--accent-disc-commissioner)'};cursor:${confirmable ? 'pointer' : 'not-allowed'};${confirmable ? '' : 'opacity:0.45;'}" />` : ''}
+                  <div class="text-sm font-medium text-gray-800">${r.activity}</div>
+                </div>
                 <div class="flex items-center gap-2">
                   <span class="text-xs px-1.5 py-0.5 rounded-full ${reviewColor[r.reviewStatus] || 'bg-gray-100 text-gray-500'}">${r.reviewStatus}</span>
                   ${r.reviewStatus === '已确认' ? `<span class="text-xs px-1.5 py-0.5 rounded-full ${hasDeposit(r) ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${hasDeposit(r) ? '已沉淀' : '未沉淀'}</span>` : ''}
@@ -91,7 +124,7 @@ export function renderContent(ctx) {
                 ` : ''}
               </div>
             </div>
-          `).join('')}
+          `; }).join('')}
         </div>
       </div>
       ${unDepositedReviews.length > 0 ? `
@@ -174,6 +207,55 @@ export function renderContent(ctx) {
     const id = btn.dataset.reviewId;
     if (id) updateReviewById(id, { remindedAt: new Date().toISOString(), reminderType: 'resubmit' });
     showToast('success', '复盘超期邮件提醒已发送至组织者');
+  }));
+  // ── 批量确认（2026-09-06 纪检批量评议确认）───────────────────
+  // 勾选汇总刷新：更新工具条计数与「批量确认所选（N）」按钮态（初始态已在模板内渲染）
+  const refreshBatchBar = () => {
+    const n = _batchCheckedIds.size;
+    const countEl = container.querySelector('.js-batch-count');
+    if (countEl) countEl.textContent = String(n);
+    container.querySelectorAll('.js-batch-confirm').forEach(b => {
+      b.textContent = `批量确认所选（${n}）`;
+      b.disabled = n === 0;
+      b.style.cursor = n === 0 ? 'not-allowed' : 'pointer';
+      b.style.opacity = n === 0 ? '0.5' : '';
+    });
+  };
+  // 批量模式开关：进入/退出均清空勾选后重渲染（单行批注/打回/确认交互不受影响）
+  container.querySelectorAll('.js-batch-toggle').forEach(btn => btn.addEventListener('click', () => {
+    _batchModeOn = !_batchModeOn;
+    _batchCheckedIds.clear();
+    renderContent(ctx);
+  }));
+  // 行勾选：disabled 行（已确认/打回/批注中/未提交）不会触发 change，天然置灰不可勾
+  container.querySelectorAll('.js-batch-check').forEach(cb => cb.addEventListener('change', () => {
+    const id = cb.dataset.reviewId;
+    if (!id) return;
+    if (cb.checked) _batchCheckedIds.add(id); else _batchCheckedIds.delete(id);
+    refreshBatchBar();
+  }));
+  // 批量确认：与单行「确认」同一服务路径 updateReviewById（写 reviewStatus=已确认 + confirmedAt 审计）
+  container.querySelectorAll('.js-batch-confirm').forEach(btn => btn.addEventListener('click', () => {
+    if (_batchCheckedIds.size === 0) return;
+    const now = new Date().toISOString();
+    // 落库前二次校验：行仍为「已上传」才确认，否则计为跳过
+    const confirmableIds = new Set(reviewData.filter(r => r.reviewStatus === ReviewStatus.UPLOADED).map(r => r.id));
+    let ok = 0, skip = 0;
+    for (const id of [..._batchCheckedIds]) {
+      if (!confirmableIds.has(id)) { skip++; continue; }
+      const updated = updateReviewById(id, {
+        reviewStatus: ReviewStatus.CONFIRMED,
+        confirmedAt: now,
+      });
+      if (updated) ok++; else skip++;
+    }
+    _batchCheckedIds.clear();
+    if (ok > 0) {
+      showToast('success', skip > 0 ? `已确认 ${ok} 条（${skip} 条跳过）` : `已确认 ${ok} 条，复盘结束`);
+    } else {
+      showToast('error', '批量确认失败：所选复盘均已不可确认');
+    }
+    renderContent(ctx);
   }));
   // 督促沉淀按钮（B 档 CRUD 补全：督促 → 直接在本界面记录经验沉淀，落库同源）
   container.querySelectorAll('.btn-disc-urge-deposit').forEach(btn => btn.addEventListener('click', () => {
