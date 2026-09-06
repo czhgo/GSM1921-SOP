@@ -591,3 +591,12 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - REVIEW_QUEUE 清理：COMMISSIONER L399/党小组 L27-L31 残留标 ✅（T-263 已决）；附录⑥候选1 色值已迁移标 ✅；附录⑧思想汇报判例复核=已实现（thought-report-tab/domain/种子均在）转轻复核完结；应到遗留①②③ 回填已落地；立项④ 阶段三/立项⑤ spec 进度更新。
 **验证**：纯 node 52/52 全绿（base-data-preview 7 + roster-vote-link 10 + roster 9 + attendance-batch 6 + org-config 4 + wizard-package 9 + wizard-report 6 等）；GetDiagnostics 零；HTTP E2E/浏览器目视待常规终端（async-vote 系列注释已同步）。
 **待办**：立项⑤ 阶段 A（空模板 seed+建新支部入口）启动；W4 减负⑥ 面板保态批量排查与 SNAPSHOT v19 仍挂 AI 待办；push 仍待批（ahead 121）。
+
+---
+
+**T-2026-09-047 spec 安置纪律 + 立项⑤阶段A（2026-09-06，commits 94c4520/1984ba9）**
+**书记裁定（product/治理）**：①「为什么 spec 又在 content」——误置根因=docs/superpowers 被 gitignore 时图省事放入 content/04_web_design/evolution，违反 content 只放长期权威源与 spec 用后即删；②未来 spec 入 .trae/specs（gitignore 受管临时区），用后即删；③存量=立项④ spec 删除（裁定已在 REVIEW_QUEUE/日志收敛）、立项⑤ spec 迁 .trae；④阶段A 前后端同做。
+**落地**：CLAUDE.md 清理纪律补「spec/临时设计文档位置纪律」（禁入 content）；content 两篇 spec 删除（-120 行）、⑤ spec 移至 .trae/specs/2026-09-06-empty-template-seed/spec.md、上轮残留 open-source-deploy-improve spec 清；立项④/⑤ 队列条目改路径引用与进度。
+**立项⑤阶段A**：EMPTY_BRANCH_TEMPLATE+createBranch（empty/copy、留痕 branch-created from empty-template/branch:源）；server POST /branches（party-staff 201/400/403，旧表单兼容）；向导「新建支部…」面板（party-staff 限、成功切新支部提示走 5 步）；branches-tab 适配；auditEmptyBranchRecord 引用审计三查；前端 mock 与服务端内联同构造口径、归一化 deepEqual 双形态守护；empty-template 10 测试+回归 42/42 绿。
+**域分区缺口（诚实登记）**：业务域与 people 单支部全域非 branch 分区→空支部"业务为空"=记录零引用零人物 id（验收 1/2 可达），全域分区不入本阶段。阶段B（?reset 分层/服务端对齐补全）待启动。
+**常规终端待跑**：mock-integrity + 浏览器目视（新建空/复制→5 步、branches-tab、?reset=1）+ async-vote HTTP E2E。push 仍待批（ahead 123）。
