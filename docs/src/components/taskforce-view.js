@@ -6,19 +6,29 @@
 
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260903c';
 import { getPersonName } from '../services/person.js?v=20260903c';
+import { AuthStore } from '../services/auth.js?v=20260903c';
 import { badgeHtml } from './badges.js?v=20260903c';
 import { dotDarkVars } from '../core/constants.js?v=20260903c';
-import { flashHighlight } from '../core/utils.js?v=20260903c';
+import { flashHighlight, showToast } from '../core/utils.js?v=20260903c';
 
-const STATUS_LABEL = { draft: '草稿', pending_review: '待审核', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档' };
-const STATUS_COLOR = { pending_review: '#6366F1', recruiting: '#D97706', active: '#10B981', completed: '#3B82F6', archived: '#6B7280', draft: '#6B7280' };
+// 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
+const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };
+const STATUS_COLOR = { pending_review: '#6366F1', recruiting: '#D97706', active: '#10B981', completed: '#3B82F6', archived: '#6B7280', dissolved: '#DC2626', draft: '#6B7280' };
 // 内联徽章深色亮色映射（深色下提亮一档，由 html.theme-dark [style*="--acc-bg-dark"] 规则应用）
-const STATUS_COLOR_DARK = { pending_review: '#A5B4FC', recruiting: '#FBBF24', active: '#34D399', completed: '#60A5FA', archived: '#94A3B8', draft: '#94A3B8' };
+const STATUS_COLOR_DARK = { pending_review: '#A5B4FC', recruiting: '#FBBF24', active: '#34D399', completed: '#60A5FA', archived: '#94A3B8', dissolved: '#F87171', draft: '#94A3B8' };
 // 内联徽章双套色：日 = 原色 15% 透明底 + 原色字；夜 = 亮色 24% 透明底 + 亮色字
 function statusBadgeStyle(status) {
   const c = STATUS_COLOR[status] || '#6B7280';
   const dc = STATUS_COLOR_DARK[status] || '#94A3B8';
   return `background:${c}15;color:${c};--acc-bg-dark:${dc}24;--acc-text-dark:${dc}`;
+}
+// B批：徽标文字（committeeRequest pending / draft 未通过 优先于纯状态映射）
+function statusText(t) {
+  if (!t) return '—';
+  const pendReq = (t.committeeRequest && t.committeeRequest.status === 'pending') ? t.committeeRequest : null;
+  if (pendReq) return pendReq.kind === 'dissolve' ? '待解散表决' : '待支委会表决';
+  if (t.status === 'draft' && t.approvalStatus === 'rejected') return '未通过·草稿';
+  return STATUS_LABEL[t.status] || t.status;
 }
 
 /**
@@ -60,12 +70,12 @@ export function renderTaskforceView(container, opts = {}) {
   // T223 排序统一：桶内 createdAt 降序（新者在前），与组织委员专班管理看板一致
   const sortTfByNew = (arr) => [...arr].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
-  // 状态分组（与组织委员专班管理一致的组序：待审核/招募中/运行中/已完结）
+  // 状态分组（与组织委员专班管理一致的组序：待支委会表决/招募中/运行中/已完结；dissolved 归已完结桶）
   const groups = [
-    { key: 'pending_review', label: '待审核', color: '#6366F1', list: sortTfByNew(filtered.filter(t => t.status === 'pending_review' || t.status === 'draft')) },
+    { key: 'pending_review', label: '待支委会表决', color: '#6366F1', list: sortTfByNew(filtered.filter(t => t.status === 'pending_review' || t.status === 'draft')) },
     { key: 'recruiting',     label: '招募中', color: '#D97706', list: sortTfByNew(filtered.filter(t => t.status === 'recruiting')) },
     { key: 'active',         label: '运行中', color: '#10B981', list: sortTfByNew(filtered.filter(t => t.status === 'active')) },
-    { key: 'completed',      label: '已完结', color: '#3B82F6', list: sortTfByNew(filtered.filter(t => t.status === 'completed' || t.status === 'archived')) },
+    { key: 'completed',      label: '已完结', color: '#3B82F6', list: sortTfByNew(filtered.filter(t => t.status === 'completed' || t.status === 'archived' || t.status === 'dissolved')) },
   ];
 
   const listEl = container.querySelector('#tfv-list');
@@ -125,7 +135,7 @@ function _renderTfCard(t) {
     <div class="tfv-card p-4 rounded-xl bg-white border border-gray-100 cursor-pointer hover:border-gray-200 hover:shadow-sm transition-all" data-tf-id="${t.id}">
       <div class="flex items-start justify-between gap-2 mb-2">
         <span class="text-sm font-semibold text-gray-800 leading-snug">${t.name}</span>
-        <span class="badge" style="${statusBadgeStyle(t.status)}">${STATUS_LABEL[t.status] || t.status}</span>
+        <span class="badge" style="${statusBadgeStyle(t.status)}">${statusText(t)}</span>
       </div>
       ${t.task ? `<p class="text-xs text-gray-500 mb-2 line-clamp-2">${t.task}</p>` : ''}
       <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
@@ -135,21 +145,39 @@ function _renderTfCard(t) {
     </div>`;
 }
 
-/** 只读详情：基本信息 + 成员工作量汇总 */
+/** B批 R3-3：对象贡献条目核验态小标签（字符串摘要=历史只读，无核验态） */
+function _contribTagOf(c) {
+  if (!c || typeof c !== 'object' || !c.id) return '';
+  if (c.verifiedStatus === 'approved') {
+    return `<span class="ml-1 inline-block align-middle text-[10px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-600">已入档${c.verifiedBy ? ' · ' + getPersonName(c.verifiedBy) : ''}</span>`;
+  }
+  if (c.verifiedStatus === 'rejected') {
+    return `<span class="ml-1 inline-block align-middle text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-500">已退回${c.rejectNote ? ' · ' + c.rejectNote : ''}</span>`;
+  }
+  return '<span class="ml-1 inline-block align-middle text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600">待核</span>';
+}
+
+/** 只读详情：基本信息 + 成员工作量汇总 + （B批）本人产出填报入口 */
 function _renderTfDetail(container, tf, highlightId) {
   const panel = container.querySelector('#tfv-detail');
   if (!panel) return;
   panel.classList.remove('hidden');
   const filled = (tf.members || []).filter(m => m.personId);
+  const me = AuthStore.getCurrentUser()?.personId || null;
+  const isMember = !!me && filled.some(m => m.personId === me);
 
   const memberRows = filled.length === 0
     ? '<p class="text-xs text-gray-400">暂无成员</p>'
     : filled.map(m => {
         const contribs = (m.contributions || []).length;
         const list = contribs > 0
-          ? `<ul class="mt-1 space-y-0.5">${(m.contributions || []).map(c =>
-              `<li class="text-[12px] text-gray-400 pl-2">${typeof c === 'string' ? c : (c.description || c.title || JSON.stringify(c))}</li>`
-            ).join('')}</ul>`
+          ? `<ul class="mt-1 space-y-0.5">${(m.contributions || []).map(c => {
+              const desc = typeof c === 'string' ? c : (c.desc || c.description || c.title || JSON.stringify(c));
+              const meta = (c && typeof c === 'object' && (c.by || c.at))
+                ? `<span class="text-[10px] text-gray-300"> · ${[c.by ? getPersonName(c.by) : '', c.at ? String(c.at).slice(0, 16).replace('T', ' ') : ''].filter(Boolean).join(' ')}</span>`
+                : '';
+              return `<li class="text-[12px] text-gray-400 pl-2">${desc}${meta}${_contribTagOf(c)}</li>`;
+            }).join('')}</ul>`
           : '<span class="text-[12px] text-gray-300 pl-2">暂无贡献记录</span>';
         return `
           <div class="py-2 border-b border-gray-50 last:border-b-0">
@@ -186,10 +214,22 @@ function _renderTfDetail(container, tf, highlightId) {
       </div>
     </div>` : '';
 
+  // B批 R3-3：专班成员本人对「本人」填报产出（仅运行中 + 当前登录人确为该专班成员）
+  const myFillHtml = (tf.status === 'active' && isMember) ? `
+    <div class="pt-3 border-t border-gray-100 mt-3">
+      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">我的产出填报 <span class="text-gray-300 font-normal">· 本人逐条填报，由组织委员核验后入档</span></h5>
+      <div class="rounded-lg bg-gray-50 p-2.5">
+        <textarea id="tfv-my-contrib-desc" rows="2" placeholder="本人产出说明（必填），如：完成专题稿件的采访与初稿撰写…" class="input-flat w-full resize-none"></textarea>
+        <div class="flex justify-end mt-2">
+          <button id="tfv-contrib-add" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:#10B981;">填报本条产出</button>
+        </div>
+      </div>
+    </div>` : '';
+
   panel.innerHTML = `
     <div class="flex items-start justify-between gap-2 mb-3">
       <h4 class="font-title-cn text-sm font-bold text-gray-800">${tf.name}</h4>
-      <span class="badge" style="${statusBadgeStyle(tf.status)}">${STATUS_LABEL[tf.status] || tf.status}</span>
+      <span class="badge" style="${statusBadgeStyle(tf.status)}">${statusText(tf)}</span>
     </div>
     <div class="space-y-1.5 text-xs text-gray-600 mb-4">
       ${tf.task ? `<p><span class="text-gray-400">任务：</span>${tf.task}</p>` : ''}
@@ -197,9 +237,22 @@ function _renderTfDetail(container, tf, highlightId) {
       ${tf.deadline ? `<p><span class="text-gray-400">截止：</span>${tf.deadline}</p>` : ''}
       ${tf.initiator ? `<p><span class="text-gray-400">发起人：</span>${getPersonName(tf.initiator)}</p>` : ''}
     </div>
+    ${myFillHtml}
     <div class="pt-3 border-t border-gray-100">
       <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">成员与工作量</h5>
       ${memberRows}
     </div>
     ${progressHtml}`;
+
+  // B批 R3-3：本人填报提交（写口 addContributions，by=填报人=本人）
+  panel.querySelector('#tfv-contrib-add')?.addEventListener('click', () => {
+    if (!me || !isMember) return;
+    const desc = (panel.querySelector('#tfv-my-contrib-desc')?.value || '').trim();
+    if (!desc) { showToast('error', '请填写产出说明'); return; }
+    const res = TaskForceRecordStore.addContributions(tf.id, { personIds: [me], desc, by: me });
+    if (!res) { showToast('error', '填报失败：产出说明为空或您不是该专班成员'); return; }
+    showToast('success', '产出已填报，等待组织委员逐条核验');
+    const fresh = TaskForceRecordStore.getAll().find(x => x.id === tf.id) || tf;
+    _renderTfDetail(container, fresh, highlightId);
+  });
 }

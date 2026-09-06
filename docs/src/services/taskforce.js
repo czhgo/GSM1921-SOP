@@ -10,6 +10,14 @@ import { persist } from '../core/data-adapter.js?v=20260903c';
 import { MOCK_TASKFORCES, PEOPLE } from '../mock/index.js?v=20260903c';
 import { getPersonName } from './person.js?v=20260903c';
 import { evaluateWorkforceVotes } from './workforce.js?v=20260906c';
+// 附录⑩ B批（3.3）专班议案排入支委会表决所需的活动/通知基建：
+// 与 services/workforce.js 同路径（BranchService.createActivity + NoticeStore.add），
+// 仅函数体内使用（懒加载语义），不新增模块初始化期副作用。
+import { BranchService } from './runtime.js?v=20260903c';
+import { NoticeStore } from './notice.js?v=20260903c';
+import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260903c';
+import { loadActivities } from './activity.js?v=20260903c';
+import { AuthStore } from './auth.js?v=20260903c';
 
 // 附录⑩ B批（S3 专班生命周期 · 书记裁定 2026-09-06）：
 //   R3-1/R3-2：专班发起与中途解散一律走「支委会表决」（报送归集·例会表决形态），
@@ -439,3 +447,103 @@ export const TaskForceRecordStore = {
     return { updated };
   },
 };
+
+// ══════════════════════════════════════════════════════════════
+//  专班议案 → 线上支委会表决活动（附录⑩ B批 · 3.2-3 / 3.3）
+//  书记在待办页「专班待议（支委会）」将专班报送（发起/解散）排入表决：
+//  以 BranchService.createActivity（services/mock.js 的通用创建口，禁用的
+//  calendar-tab UI 向导不是服务函数）创建一场 type='支委会' 的线上表决活动；
+//  委员沿用既有「活动详情在线表态」（activity.html / inspector），本服务不实现投票 UI。
+//  字段要求（3.3）：type='支委会'、status='published'、scenarioId='branch-committee'、
+//    voteConfig 与 defaultVoteConfig('branch-committee') 一致 + voterIds 固化现时支委应到名单
+//    （resolveVoterIds('committee')，roster 口径；历史活动快照不回改）、
+//    agenda 含带 id 的审议项（表决面板/记录结果均以议程项 id 关联 agendaVotes）、
+//    extras.taskforceProposal 挂专班关联供「查看表决结果并生效」反查。
+//  说明：本次做成「新增活动 + 发通知/待办提示」，暂不派生其它任务（最小可演示闭环）。
+// ══════════════════════════════════════════════════════════════
+
+/** 专班报送 kind → 中文标签（活动标题/议程文案共用） */
+function _taskforceProposalKindLabel(kind) {
+  return kind === 'dissolve' ? '解散' : '发起';
+}
+
+/**
+ * 创建专班议案的线上支委会表决活动（3.3 服务小助手）
+ * @param {Object} params
+ * @param {string} params.taskforceId 专班 id
+ * @param {'initiate'|'dissolve'} [params.kind] 报送类型（缺省读专班当前 committeeRequest.kind）
+ * @param {string} [params.note] 报送说明（写入活动描述）
+ * @returns {Promise<Object>} 创建的 activity
+ * @throws 专班不存在 / 当前无待表决报送时抛错（由调用方 toast 提示）
+ */
+export async function createTaskforceVoteActivity({ taskforceId, kind = 'initiate', note = '' } = {}) {
+  const tf = TaskForceRecordStore.getAll().find(r => r.id === taskforceId);
+  if (!tf) throw new Error('专班不存在，无法排入表决');
+  const req = (tf.committeeRequest && tf.committeeRequest.status === 'pending') ? tf.committeeRequest : null;
+  if (!req) throw new Error('该专班当前无待支委会表决的报送，无需排入');
+  const reqKind = (kind === 'initiate' || kind === 'dissolve') ? kind : req.kind;
+  const name = tf.name || '未命名专班';
+  const kindLabel = _taskforceProposalKindLabel(reqKind);
+  const today = new Date().toISOString().slice(0, 10);
+  const voterIds = resolveVoterIds('committee');
+  const me = AuthStore.getCurrentUser();
+  const byName = req.by ? getPersonName(req.by) : '组织委员';
+  const atText = String(req.at || '').slice(0, 16).replace('T', ' ') || '';
+  // assignments 非空 → BranchService.createActivity 不再派生「组长赋权」待办（最小噪音）；
+  // 组织者 = 当前排入人（书记工作台操作），参与者 = 应到支委（表决名单由 voteConfig.voterIds 固化）
+  const activity = await BranchService.createActivity({
+    type: '支委会',
+    scenarioId: 'branch-committee',
+    title: `线上支委会：审议专班「${name}」（${kindLabel}）`,
+    date: today,
+    status: 'published',
+    visibility: 'branch',
+    domain: 'party-building',
+    description: `专班「${name}」${kindLabel}报送：${byName}${atText ? ' 于 ' + atText : ''}报送支委会表决。${note ? `报送说明：${note}。` : ''}请支委在本次线上支委会活动中表态（交流式：同意 / 异议 / 附言）。`,
+    voteConfig: { ...defaultVoteConfig('branch-committee'), voterIds },
+    agenda: [{ id: 'ag-tf-' + Date.now(), item: `审议专班「${name}」（${kindLabel}）`, host: '书记' }],
+    extras: { taskforceProposal: { taskforceId: tf.id, kind: reqKind } },
+    organizer: (me && me.personId) || 'p13',
+    assignments: [{ personId: (me && me.personId) || 'p13', role: 'organizer' },
+      ...voterIds.filter(pid => pid !== (me && me.personId)).map(pid => ({ personId: pid, role: 'participant' }))],
+  });
+
+  // 给各支委角色发通知（+派生待办提示）：「有新的线上支委会表决（专班议案）待表态」。
+  // 参考 committee-vote.js 里 NoticeStore.add 的既有写法：actionable+actionRoles 派生待办；
+  // 支委点通知（targetType/targetId）直达活动详情页在线表态。失败不阻断排入结果。
+  try {
+    NoticeStore.add({
+      title: '线上支委会表决待表态（专班议案）',
+      content: `「${activity.title}」已发起，请支委在本次线上支委会活动中表态：同意 / 异议 / 附言（点击通知直达活动页）。`,
+      priority: 'normal',
+      publishDate: today,
+      targetType: 'activity',
+      targetId: activity.id,
+      audience: 'committee',
+      branchId: 'br-b1',
+      actionable: true,
+      actionRoles: ['secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'],
+      actionTask: '线上支委会表决待表态（专班议案）',
+      read: false,
+    });
+  } catch (e) {
+    console.warn('[TaskForceRecordStore] 支委通知失败（不影响排入表决）：', e);
+  }
+  return activity;
+}
+
+/**
+ * 反查某专班「当前待表决报送」已排入的线上支委会活动（3.2-4 查看表决结果用）
+ * 只认该报送发起（committeeRequest.at）之后创建的表决活动，多场取最新；
+ * 无（尚未排入 / 报送已失效）返回 null。
+ */
+export function findTaskforceVoteActivity(taskforceId) {
+  if (!taskforceId) return null;
+  const tf = TaskForceRecordStore.getAll().find(r => r.id === taskforceId);
+  if (!tf) return null;
+  const reqAt = (tf.committeeRequest && tf.committeeRequest.status === 'pending') ? tf.committeeRequest.at : null;
+  return loadActivities()
+    .filter(a => a.extras && a.extras.taskforceProposal && a.extras.taskforceProposal.taskforceId === taskforceId)
+    .filter(a => !reqAt || String(a.createdAt || '') >= String(reqAt))
+    .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))[0] || null;
+}

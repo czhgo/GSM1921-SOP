@@ -15,11 +15,12 @@ import { updateActivityReview } from '../../../services/review.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { mockDB } from '../../../core/domain.js?v=20260903c';
 import { persist } from '../../../core/data-adapter.js?v=20260903c';
-import { getPersonById } from '../../../services/person.js?v=20260903c';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260903c';
 import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260903c';
 import { IssueStore } from '../../../services/issues.js?v=20260903c';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903c';
-import { openFormModal } from '../../../components/modal.js?v=20260903c';
+import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/taskforce.js?v=20260903c';
+import { fetchVotes } from '../../../services/committee-vote.js?v=20260903c';
+import { resolveVoterIds } from '../../../services/vote-config.js?v=20260903c';
 import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260903c';
 import { renderMemberChangePanel } from '../../../components/member-change-panel.js?v=20260903c';
 import { tryDirectJump } from '../../../components/todo-jump.js?v=20260903c';
@@ -113,12 +114,32 @@ export async function renderContent() {
     emptyMsg: '暂无待答复汇报',
   });
 
+  // B批 3.2-2：「专班待议（支委会）」提醒区——数据源 listCommitteeRequests()（仅 pending、先报先议）
+  // 每项显示类型徽标（发起/解散）、专班名、任务摘要、报送人、报送时间；
+  // 已排入表决（findTaskforceVoteActivity 命中该报送后创建的支委会活动）→ 提供「查看表决结果并生效」。
+  const tfReqs = TaskForceRecordStore.listCommitteeRequests();
+  const arrangedActByTf = new Map();
+  tfReqs.forEach(r => { const act = findTaskforceVoteActivity(r.id); if (act) arrangedActByTf.set(r.id, act); });
+  const committeeTfHtml = `
+    <div class="card rounded-xl p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">专班待议（支委会）</h3>
+        <span class="text-[11px] text-gray-400">${tfReqs.length} 项待议</span>
+      </div>
+      <div class="space-y-2">
+        ${tfReqs.length === 0
+          ? '<p class="text-xs text-gray-400">暂无待议专班</p>'
+          : tfReqs.map(r => _committeeTfRowHtml(r, arrangedActByTf.get(r.id))).join('')}
+      </div>
+    </div>`;
+
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2">
         <div class="space-y-4">
           <div id="secretary-member-change-panel"></div>
           ${inboxHtml}
+          ${committeeTfHtml}
           <div class="card rounded-xl p-5">
             <div class="flex items-center justify-between mb-4">
               <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
@@ -137,6 +158,7 @@ export async function renderContent() {
   `;
 
   bindEvents(container);
+  bindCommitteeTfEvents(container);
   bindTodoDetailEvents();
   bindReportInbox(container, { role: 'secretary', onAnswered: () => renderContent() });
   // 成员变更确认面板（2026-09-01 书记点验链路 ④：组织委员审批后 → 书记确认 → 更新阶段）
@@ -312,42 +334,13 @@ function confirmGroup(group) {
 function handleTodoAction(todo) {
   // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/todo-jump.js（2026-09-04）
   if (tryDirectJump(todo)) return;
-  // T-304 C3 专班发起审批：组织委员发起专班 → 书记批准/驳回（写专班记录 + 销待办）
+  // B批 3.2-1：旧「专班发起书记单人审批」待办不再派生（专班发起已改支委会表决，R3-1）。
+  // 兼容处理旧存量：打开即提示并销该待办，引导到本页「专班待议（支委会）」区。
   if (todo.actionKey === 'taskforce-approval') {
-    const first = (todo.items && todo.items[0]) || todo;
-    const tfId = first.actionData?.taskforceId || first.sourceId || '';
-    const tf = tfId ? TaskForceRecordStore.getAll().find(t => t.id === tfId) : null;
-    if (!tf) { showToast('error', '专班不存在或已变更'); return; }
-    openFormModal({
-      id: 'tf-approve',
-      title: `审批专班发起「${tf.name || '未命名'}` + '」',
-      fields: [
-        { key: 'decision', label: '审批意见', type: 'select', required: true, options: [
-          { value: 'approved', label: '批准发起' },
-          { value: 'rejected', label: '驳回' },
-        ]},
-        { key: 'note', label: '审批说明', type: 'textarea', required: false, placeholder: '如：同意，注意按期完成并按时报送考察' },
-      ],
-      onSubmit: (values) => {
-        // 立项③阶段c：审批不仅写 approval 字段，同时迁移专班状态——批准 → recruiting（进入招募中可启动），
-        // 驳回 → draft（退回草稿，组织委员侧待审核桶可见，可删除或重新提交审批）；修复「待审核」空壳与驳回后滞留 recruiting
-        const patch = {
-          approvalStatus: values.decision,
-          approvedBy: 'secretary',
-          approvedAt: new Date().toISOString(),
-          approvalNote: values.note || '',
-        };
-        if (values.decision === 'approved') patch.status = 'recruiting';
-        else patch.status = 'draft';
-        const updated = TaskForceRecordStore.update(tfId, patch);
-        if (!updated) { showToast('error', '专班不存在或已变更'); return; }
-        // 销审批待办（聚合卡取首条 id；单条直接 complete）
-        if (first.id) TodoStore.complete(first.id);
-        showToast('success', values.decision === 'approved' ? `专班「${tf.name}」已批准发起` : `专班「${tf.name}」发起已驳回，已退回草稿`);
-        renderContent();
-      },
-      accentColor: accent,
-    });
+    const items = (todo.items && todo.items.length > 0) ? todo.items : (todo.id ? [todo] : []);
+    showToast('info', '专班发起已改支委会表决：请到本页「专班待议（支委会）」区排入表决处理');
+    items.forEach(it => { if (it && it.id) TodoStore.complete(it.id); });
+    renderContent();
     return;
   }
   // 提醒类聚合卡：「去活动管理」按钮直接切 calendar tab
@@ -419,4 +412,137 @@ function bindTodoDetailEvents() {
     const todo = TodoStore.getById(_selectedTodoId);
     if (todo) handleTodoAction(todo);
   });
+}
+
+// ════════════════════════════════════════════════════════════════
+//  B批 3.2-2/3/4：专班待议（支委会）区
+//  报送发起/解散（listCommitteeRequests）→ 书记「排入支委会表决」创建线上表决活动
+//  （services/taskforce.js createTaskforceVoteActivity）→ 委员在线表态 →
+//  「查看表决结果并生效」：fetchVotes + evaluateCommitteeVote 判定 → applyCommitteeDecision 落果。
+// ════════════════════════════════════════════════════════════════
+
+/** 单行：类型徽标（发起/解散）+ 专班名/任务摘要/报送人/报送时间 + 操作 */
+function _committeeTfRowHtml(req, act) {
+  const kindLabel = req.kind === 'dissolve' ? '解散' : '发起';
+  const kindCls = req.kind === 'dissolve'
+    ? 'bg-gray-100 text-gray-600'
+    : 'bg-indigo-50 text-indigo-600';
+  const byName = req.by ? getPersonName(req.by) : '组织委员';
+  const atText = String(req.at || '').slice(0, 16).replace('T', ' ');
+  const ops = act
+    ? `<span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 flex-shrink-0">已排入表决</span>
+       <button type="button" class="tf-cr-result text-xs px-2.5 py-1.5 rounded-lg text-white hover:opacity-90 transition-colors flex-shrink-0" style="background:#6366F1;" data-tf-id="${req.id}" data-activity-id="${act.id}">查看表决结果并生效</button>`
+    : `<button type="button" class="tf-cr-arrange text-xs px-2.5 py-1.5 rounded-lg text-white hover:opacity-90 transition-colors flex-shrink-0" style="background:#CE1126;" data-tf-id="${req.id}" data-kind="${req.kind}">排入支委会表决</button>`;
+  return `
+    <div class="rounded-xl border border-gray-100 bg-gray-50/40 p-3">
+      <div class="flex items-start gap-2">
+        <span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${kindCls}">${kindLabel}</span>
+        <div class="flex-1 min-w-0">
+          <p class="font-title-cn text-sm font-bold text-gray-800 truncate">${req.name || '未命名专班'}</p>
+          ${req.task ? `<p class="text-xs text-gray-500 truncate mt-0.5">${req.task}</p>` : ''}
+          <p class="text-[11px] text-gray-400 mt-0.5">报送人 ${byName} · ${atText || ''}${req.note ? ` · ${req.note}` : ''}</p>
+        </div>
+        <div class="flex flex-col items-end gap-1.5 flex-shrink-0">${ops}</div>
+      </div>
+    </div>`;
+}
+
+/** 事件绑定（列表每次重建后调用） */
+function bindCommitteeTfEvents(container) {
+  container.querySelectorAll('.tf-cr-arrange').forEach(btn => {
+    btn.addEventListener('click', () => _arrangeTfCommitteeVote(btn));
+  });
+  container.querySelectorAll('.tf-cr-result').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const req = TaskForceRecordStore.listCommitteeRequests().find(r => r.id === btn.dataset.tfId);
+      if (!req) { showToast('info', '该报送已处理或已失效，列表已刷新'); renderContent(); return; }
+      await _openTfDecisionModal(req, btn.dataset.activityId);
+    });
+  });
+}
+
+/** 3.2-3：为该报送创建一场「线上支委会」表决活动（title 形如「线上支委会：审议专班【名】（发起/解散）」） */
+async function _arrangeTfCommitteeVote(btn) {
+  const tfId = btn.dataset.tfId;
+  const kind = btn.dataset.kind;
+  const req = TaskForceRecordStore.listCommitteeRequests().find(r => r.id === tfId);
+  try {
+    const act = await createTaskforceVoteActivity({ taskforceId: tfId, kind, note: req ? req.note : '' });
+    showToast('success', `已排入支委会表决：「${act.title}」，委员将收到通知`);
+    renderContent();
+  } catch (e) {
+    console.error('[todo] 排入表决失败：', e);
+    showToast('error', `排入表决失败：${e.message || e}`);
+  }
+}
+
+/** 3.2-4：查看表决结果（fetchVotes→evaluateCommitteeVote 判定），弹确认框后按结论生效 */
+async function _openTfDecisionModal(req, activityId) {
+  const roster = resolveVoterIds('committee');
+  let votes;
+  try {
+    votes = await fetchVotes(activityId);
+  } catch (e) {
+    showToast('error', `获取表态失败：${e.message || e}`);
+    return;
+  }
+  const outcome = TaskForceRecordStore.evaluateCommitteeVote({
+    roster,
+    votes: (votes || []).map(v => ({ personId: v.personId, position: v.position })),
+  });
+  const { status, tally, needed } = outcome;
+  const kindLabel = req.kind === 'dissolve' ? '解散' : '发起';
+  const sumLine = `出席 ${tally.voted}/${needed}（应到 ${tally.total}）· 同意 ${tally.agree} · 异议/反对 ${tally.object}${tally.comment ? ' · 附言 ' + tally.comment : ''}`;
+  const conclusion = status === 'pending'
+    ? '表决未达门槛/尚未截止'
+    : (status === 'passed' ? '已通过' : '未通过（有异议/反对）');
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+  const card = document.createElement('div');
+  card.style.cssText = 'background:var(--surface-card);border-radius:var(--radius-lg);padding:20px 22px;max-width:440px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);';
+  card.innerHTML = `
+    <p class="font-bold text-sm text-gray-800 mb-1">专班${kindLabel}表决结果「${req.name || '未命名专班'}」</p>
+    <p class="text-xs text-gray-500 mb-3">表决活动：线上支委会（${kindLabel}专班议案）</p>
+    <div class="rounded-lg bg-gray-50 p-3 mb-3 text-xs space-y-1.5">
+      <p class="text-gray-700">${sumLine}</p>
+      <p class="font-medium ${status === 'passed' ? 'text-green-600' : status === 'failed' ? 'text-red-600' : 'text-amber-600'}">结论：${conclusion}</p>
+      ${status === 'pending'
+        ? '<p class="text-gray-400">判据（R2-3）：应到严格超过 2/3 出席且无反对（弃权允许）。未达标请等待委员表态/截止后再查看。</p>'
+        : '<p class="text-gray-400">确认后按此结论生效：' + (status === 'passed'
+            ? (req.kind === 'initiate' ? '专班转为招募中' : '专班解散（解散留痕）')
+            : (req.kind === 'initiate' ? '退回草稿（可修改后重新报送）' : '专班继续运行')) + '。</p>'}
+    </div>
+    ${status === 'pending'
+      ? '<button type="button" class="tf-modal-close text-xs text-white px-3 py-1.5 rounded-lg w-full transition-colors" style="background:#6366F1;">知道了</button>'
+      : `<div style="display:flex;gap:12px;justify-content:flex-end;">
+          <button type="button" class="tf-modal-close text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
+          <button type="button" id="tf-decision-apply" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="background:#CE1126;">按表决结果生效</button>
+        </div>`}
+  `;
+  const close = () => overlay.remove();
+  card.querySelectorAll('.tf-modal-close').forEach(b => b.addEventListener('click', close));
+  card.querySelector('#tf-decision-apply')?.addEventListener('click', () => {
+    const decision = outcome.status === 'passed' ? 'approved' : 'rejected';
+    const updated = TaskForceRecordStore.applyCommitteeDecision(req.id, {
+      decision,
+      outcome,
+      by: 'secretary',
+      note: '线上支委会表决结论已生效',
+      decisionRef: activityId,
+    });
+    close();
+    if (!updated) { showToast('error', '生效失败：该报送已处理或已失效'); renderContent(); return; }
+    const base = `专班「${req.name || '未命名专班'}」`;
+    if (req.kind === 'initiate') {
+      showToast('success', decision === 'approved' ? `${base}发起表决通过，已转为招募中` : `${base}发起表决未通过，已退回草稿（可修改后重新报送）`);
+    } else {
+      showToast('success', decision === 'approved' ? `${base}解散表决通过，专班已解散` : `${base}解散表决未通过，专班继续运行`);
+    }
+    renderContent();
+  });
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  card.addEventListener('click', e => e.stopPropagation());
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
 }

@@ -11,9 +11,9 @@ import { TaskForceRecordStore } from '../services/taskforce.js?v=20260903c';
 import { SignupStore } from '../services/signup.js?v=20260903c';
 import { seedTodos } from '../services/todo.js?v=20260903c';
 import { solidAccentStyle } from '../core/constants.js?v=20260903c';
-import { openRecruitForm } from './tabs/org/taskforce-tab.js?v=20260903c';
+import { openRecruitForm } from './tabs/org/taskforce-tab.js?v=20260906d';
 // 副作用导入触发组织委员工作台能力注册（tab 清单；含 立项⑥B波 成员名册 tab）
-import '../modules/capabilities/org-workspace.js?v=20260906a';
+import '../modules/capabilities/org-workspace.js?v=20260906d';
 
 await createWorkspaceShell({
   accentRole: 'org-commissioner',

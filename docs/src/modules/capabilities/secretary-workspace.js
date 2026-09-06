@@ -24,7 +24,7 @@ registerCapability({
     { id: 'notification', label: '通知发布', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/secretary/notification-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     // 专班查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增）
     // B1-5：高亮目标由导航路径的 3s 定时器清除（不再 onLocated 即时清除，补渲染可重新应用高亮）
-    { id: 'tf-view', label: '专班查看', groupLabel: '党建', render: (ctx) => import('../../components/taskforce-view.js?v=20260903c').then(m => { const el = document.getElementById('secretary-tab-content'); if (el) m.renderTaskforceView(el, { highlightId: ctx?.highlightTfId || null }); }) },
+    { id: 'tf-view', label: '专班查看', groupLabel: '党建', render: (ctx) => import('../../components/taskforce-view.js?v=20260906d').then(m => { const el = document.getElementById('secretary-tab-content'); if (el) m.renderTaskforceView(el, { highlightId: ctx?.highlightTfId || null }); }) },
     { id: 'feedback', label: '反馈管理', groupLabel: '反馈', render: (ctx) => import('../../entries/tabs/secretary/feedback-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     // P3 党委后台（2026-09-02）：支部关键事项上报党委（发展节点/活动报备；党委批驳结论回传本页）
     { id: 'report-up', label: '上报党委', groupLabel: '对接党委', render: (ctx) => import('../../entries/tabs/secretary/report-up-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },

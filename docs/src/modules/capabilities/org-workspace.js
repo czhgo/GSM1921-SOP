@@ -20,7 +20,7 @@ registerCapability({
     // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
     { id: 'overview', label: '工作概况', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/org/overview-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     { id: 'inspection', label: '考察上传', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/inspection-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
-    { id: 'taskforce', label: '专班管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/taskforce-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
+    { id: 'taskforce', label: '专班管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/taskforce-tab.js?v=20260906d').then(m => m.renderContent(ctx)) },
     // 成员名册（立项⑥ B波 2026-09-06：新增/行内编辑/删除 双形态持久；人才库为考察画像视图，分工不重复建设）
     { id: 'roster', label: '成员名册', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/roster-tab.js?v=20260906a').then(m => m.renderContent(ctx)) },
     { id: 'talent', label: '人才库', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/talent-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
