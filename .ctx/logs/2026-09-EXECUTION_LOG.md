@@ -571,3 +571,11 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **交付**：设计文档 content/04_web_design/evolution/2026-09-06-org-setup-wizard-design.md（ed91d07）；阶段一代码 3720e9e：components/org-setup-wizard.js（5 步：①组织信息 name/headerTitle/desc/themePreset（可调令牌 4 预设，party-red/gold 固定锁）②模块块组合（原 party-config 主体）③角色分工（11 模块→支委，config.workforce）④指引+工作单 md（services/org-wizard-report.js 纯函数）⑤roster 现读数+?reset=1+npm test）；party-config-tab 改造为向导式主体；独立 docs/wizard.html+wizard-entry.js（书记限本支部/党委任意/他角色无权限卡）；branch 服务 updateBranchOrg/getBranchOrg/getBranchThemePreset + configChangeHistory 留痕（前端+server/routes/resources.js PATCH 白名单扩+逐键 diff）；config-clean sanitizeConfigOrg/THEME_PRESET_IDS 双端共用；草稿 wizard-draft-<branchId> 续走；测试 wizard-report 6 + org-config 4 全绿（老 module-config/workflow-block HTTP 需 DISABLE_PASSWORD_CHECK=1 属基线，未动）。
 **验证**：node 全绿（带 env 14/14）；GetDiagnostics 零；浏览器交互冒烟由实施代理 25/25（沙箱内非 Playwright，目视待常规终端）。
 **风险/备注**：实施发现工作区存在 8 个**用户并行改动文件**（.ctx/logs、inspector、work-overview、mock-adapter、activity-entry、taskforce-tab、overview-tab）——全程未触碰未提交，保留给用户；本批提交仅含向导 10 文件。阶段二（JSON 覆盖预览/多支部批量/党委默认模板/打磨）已登记立项④。push 仍待批（ahead 113）。
+
+---
+
+**T-2026-09-045 立项④阶段二 + 并行文件复核/BOM 清理（2026-09-06，commits e6551a5/17710fb）**
+**书记裁定（阶段二四问，产品层）**：①JSON 覆盖预览=导出+本地预览应用 ②多支部批量 ③党委默认模板=先做「复制配置到支部」（完整模板抽象待多支部场景）④顺手打磨；BOM 机械杂质同意清除。
+**交付**：org-config-package.js（build/apply：kind/version 校验、config-clean 逐域净化、留痕 config-package-import、无变化不留痕）；branch.applyConfigCopy（源→多 target、includeOrg 开关、config-copied 留痕、逐条结果）；向导工具条=导出 json/导入 file→apply→toast+重渲染/复制面板（仅 party-staff；单支部空态）；打磨=已完成步骤回看+无 emoji 摘要 chips；设计文档补阶段二与 Out of Scope 更新。
+**复核**：8 个用户并行文件=无实质内容分歧（inspector/mock-adapter/taskforce-tab 为空 diff 的 CRLF stat 伪差，add 刷新归零）；work-overview/activity-entry/overview-tab/.ctx 08 日志仅首部重复 BOM 杂质——node 一次性脚本剥除（内容零改动，机械性）。
+**验证**：wizard-package 9 + wizard-copy 6 + 回归 34/34 全绿；GetDiagnostics 零；浏览器目视待常规终端。工作区净；push 仍待批（ahead 116）。
