@@ -90,13 +90,18 @@ export async function renderContent() {
   toggle?.addEventListener('click', () => formWrap?.classList.toggle('hidden'));
   el.querySelector('#branch-form-cancel')?.addEventListener('click', () => formWrap?.classList.add('hidden'));
 
-  // 创建支部
+  // 创建支部（立项⑤ 阶段A：写口升级为 createBranch 空模板双形态——建出的支部为空：
+  // config 默认全开、业务域为空、席位空缺待任命；返回 { ok, branch?, reason? }）
   el.querySelector('#branch-form-submit')?.addEventListener('click', async () => {
     const name = el.querySelector('#branch-name-input')?.value.trim();
     const type = el.querySelector('#branch-type-input')?.value.trim();
     if (!name) { showToast('请填写支部名称'); return; }
-    await createBranch({ name, type });
-    showToast(`支部「${name}」已创建`);
+    const res = await createBranch({ name, type });
+    if (!res || !res.ok) {
+      showToast('error', `创建失败：${(res && res.reason) || '未知原因'}`);
+      return;
+    }
+    showToast('success', `支部「${name}」已创建（空支部：业务为空，请在「支部配置」向导填入组织信息/模块/分工或按工作单补数据）`);
     renderContent();
   });
 

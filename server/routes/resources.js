@@ -120,22 +120,26 @@ export function createResourcesRouter(db) {
     const writeAuth = COMMISSIONER_WRITE.has(name) ? requireCommissioner(db) : requireAuth(db);
 
     // 创建：body 为单条数据对象；缺 id 时服务端生成（与前端 mock 生成风格对齐）
-    router.post(`/${name}`, writeAuth, (req, res) => {
-      if (!_assertResourceWrite(req.actor, name, 'post', req.body)) {
-        return res.status(403).json({ error: '无权限：该写操作仅限党委组织员/党务老师或本支部支委层' });
-      }
-      const row = req.body;
-      if (!row || typeof row !== 'object' || Array.isArray(row)) {
-        return res.status(400).json({ error: 'body 须为单条数据对象' });
-      }
-      const id = row.id || `${ID_PREFIX[name] || 'x'}-${randomUUID().slice(0, 8)}`;
-      const data = { ...row, id };
-      db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify(data));
-      // 邮件双通道（部署文档 §五）：通知发布/待办提醒/反馈汇报触发邮件，异步 fire-and-forget，
-      // 失败/未配置均不影响站内功能（降级不阻断）
-      afterResourceWrite(db, name, data).catch(() => {});
-      res.status(201).json(data);
-    });
+    // 2026-09-06 立项⑤：branches 的 POST 收口为下方语义化「POST /branches」
+    // （空模板/复制双形态创建，party-staff 门控，见 L2 配置路由之前）；本通用 POST 跳过 branches。
+    if (name !== 'branches') {
+      router.post(`/${name}`, writeAuth, (req, res) => {
+        if (!_assertResourceWrite(req.actor, name, 'post', req.body)) {
+          return res.status(403).json({ error: '无权限：该写操作仅限党委组织员/党务老师或本支部支委层' });
+        }
+        const row = req.body;
+        if (!row || typeof row !== 'object' || Array.isArray(row)) {
+          return res.status(400).json({ error: 'body 须为单条数据对象' });
+        }
+        const id = row.id || `${ID_PREFIX[name] || 'x'}-${randomUUID().slice(0, 8)}`;
+        const data = { ...row, id };
+        db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify(data));
+        // 邮件双通道（部署文档 §五）：通知发布/待办提醒/反馈汇报触发邮件，异步 fire-and-forget，
+        // 失败/未配置均不影响站内功能（降级不阻断）
+        afterResourceWrite(db, name, data).catch(() => {});
+        res.status(201).json(data);
+      });
+    }
 
     // 更新：局部合并 patch（与前端 update(id, patch) 语义一致）
     router.patch(`/${name}/:id`, writeAuth, (req, res) => {
@@ -188,6 +192,79 @@ export function createResourcesRouter(db) {
       res.status(204).end();
     });
   }
+
+  // ── 立项⑤ 阶段A：支部语义创建 POST /branches（2026-09-06）────────────
+  // 空模板初始化 / 复制现有支部为模板——双形态口径与前端 services/branch.js createBranch
+  // （EMPTY_BRANCH_TEMPLATE + buildNewBranchRecord）一致：server 内联同语义，
+  // 双形态一致性由 server/test/empty-template.test.mjs ⑤ 断言守护（防两端漂移）。
+  // 门控：party-staff（与 PATCH /branches/:id/config 同风格 requireAuth + 角色判定）。
+  // body：{ mode?: 'empty'|'copy', sourceId?, name?, type? }——
+  //   name 缺省 = 占位名「新支部（待配置）」（名待填，向导步骤①可改）；
+  //   显式空/超长（>80，与 config-clean ORG_MAX.name 对齐）→ 400 原因；type 仅 empty 模式透传。
+  // 复制语义：config 域 modules/blocks/workforce 深拷贝（源缺省 → null 默认全开/缺省分工）；
+  //   org 档案域复制 desc/themePreset；headerTitle 取新支部名（name→headerTitle 同步不变式，
+  //   与前端 renameBranch/updateBranchOrg 一致）；secretaryId 不带走（席位待任命）。
+  // 返回：201 { branch, ok:true }；门控/校验错误 → 400/401/403 { ok:false, reason }。
+  // 兼容：原支部管理「+ 新建支部」的 { name, type }（无 mode）按 empty 形态处理（type 透传）。
+  router.post('/branches', requireAuth(db), (req, res) => {
+    const actor = req.actor;
+    if (!actor) return res.status(401).json({ ok: false, reason: '未登录' });
+    if (!PARTY_STAFF_ROLE.has(actor.role)) {
+      return res.status(403).json({ ok: false, reason: '无权限：仅党委组织员/党务老师可创建支部' });
+    }
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const isCopy = body.mode === 'copy';
+    const nameRaw = body.name;
+    let finalName;
+    if (nameRaw === undefined || nameRaw === null) {
+      finalName = '新支部（待配置）';
+    } else {
+      const t = String(nameRaw).trim();
+      if (!t) return res.status(400).json({ ok: false, reason: '支部名不能为空' });
+      if (t.length > 80) return res.status(400).json({ ok: false, reason: '支部名过长（不超过 80 字）' });
+      finalName = t;
+    }
+    let sourceBranch = null;
+    if (isCopy) {
+      if (!body.sourceId) return res.status(400).json({ ok: false, reason: '复制模式须提供 sourceId' });
+      const srcRow = db.prepare('SELECT data FROM branches WHERE id = ?').get(String(body.sourceId));
+      if (!srcRow) return res.status(400).json({ ok: false, reason: '源支部不存在' });
+      sourceBranch = JSON.parse(srcRow.data);
+    }
+    const at = new Date().toISOString();
+    const cloneOrNull = (v) => (v === undefined || v === null ? null : JSON.parse(JSON.stringify(v)));
+    const srcCfg = isCopy ? (sourceBranch.config || {}) : null;
+    const config = {
+      headerTitle: isCopy ? finalName : '',
+      accent: null,
+      modules: isCopy ? cloneOrNull(srcCfg.modules) : null,
+      blocks: isCopy ? cloneOrNull(srcCfg.blocks) : null,
+      workforce: isCopy ? cloneOrNull(srcCfg.workforce) : null,
+      desc: isCopy ? (srcCfg.desc ?? '') : '',
+      themePreset: isCopy ? (srcCfg.themePreset ?? null) : null,
+      fileSpaceIsolated: isCopy ? (srcCfg.fileSpaceIsolated ?? true) : true,
+      // 建支部留痕（与前端 configChangeHistory 同一审计口径 {by,at,what,from,to}）
+      configChangeHistory: [{
+        by: actor.id,
+        at,
+        what: 'branch-created',
+        from: isCopy ? `branch:${sourceBranch.id}` : 'empty-template',
+        to: null,
+      }],
+    };
+    const id = `br-${randomUUID().slice(0, 8)}`;
+    const branch = {
+      id,
+      name: finalName,
+      type: isCopy ? (sourceBranch.type || '') : String(body.type || '').trim(),
+      config,
+      secretaryId: null, // 空支部席位空缺待任命（复制不带走源书记）
+      status: 'active',
+      createdAt: at,
+    };
+    db.prepare('INSERT OR REPLACE INTO branches (id, data) VALUES (?, ?)').run(id, JSON.stringify(branch));
+    res.status(201).json({ branch, ok: true });
+  });
 
   // 活动归档/品牌切换特例（与前端 BranchService.archiveActivity/toggleBrand 语义对齐）
   router.post('/activities/:id/archive', requireAuth(db), (req, res) => {

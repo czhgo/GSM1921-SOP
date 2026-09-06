@@ -25,7 +25,7 @@ import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getOutputBlockPolicy, getWorkflowBlockPolicy,
   updateBranchModules, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
-  applyConfigCopy,
+  applyConfigCopy, createBranch,
 } from '../services/branch.js?v=20260903c';
 import { buildConfigPackage, applyConfigPackage } from '../services/org-config-package.js?v=20260903c';
 import {
@@ -153,6 +153,9 @@ export function mountOrgSetupWizard(host, opts) {
     // 阶段三·目标1（2026-09-06）：成员基础数据预览面板展开态 + 导入草稿（净化后待确认应用）
     baseOpen: false,
     baseDraft: null,  // { people, stats, dropped } | null
+    // 立项⑤ 阶段A（2026-09-06）：「新建支部…」小面板（空模板初始化 / 复制现有；仅 party-staff）
+    createOpen: false,
+    createMode: 'empty', // 'empty' | 'copy'
   };
 
   // 权限初始化：party-staff 可切支部；其余必须落在「本支部现任书记」且仅本支部
@@ -190,6 +193,8 @@ function _enterBranch(S, branchId) {
   S.copySel = new Set();
   S.baseOpen = false;
   S.baseDraft = null;
+  S.createOpen = false;
+  S.createMode = 'empty';
   if (branchId) applyThemePreset(getBranchOrg(branchId).themePreset || 'red');
 }
 
@@ -289,10 +294,58 @@ function _headHtml(S, branch, org, isStaff) {
           <p class="font-title-cn text-base font-bold text-gray-800">换组织向导</p>
           <p class="text-xs text-gray-400">5 步引导式支部配置（吸收合并原「支部配置」）；部署期/调整期使用，改动即时生效并留痕</p>
         </div>
-        ${S.embed ? `<a href="../wizard.html?branch=${esc(S.branchId)}" class="text-[11px] text-blue-600 hover:text-blue-800 shrink-0" title="在新页面打开向导（独立 URL 直达）">独立页直达 ↗</a>` : ''}
+        <div class="flex items-center gap-2 shrink-0">
+          ${isStaff ? `<button type="button" data-wz-act="toggle-create" class="text-[11px] px-2.5 py-1.5 rounded-lg text-white transition-opacity hover:opacity-90" style="background:#C8102E;">新建支部…</button>` : ''}
+          ${S.embed ? `<a href="../wizard.html?branch=${esc(S.branchId)}" class="text-[11px] text-blue-600 hover:text-blue-800 shrink-0" title="在新页面打开向导（独立 URL 直达）">独立页直达 ↗</a>` : ''}
+        </div>
       </div>
       ${picker}
+      ${_createPanelHtml(S, isStaff)}
       ${_toolbarHtml(S, isStaff)}
+    </div>`;
+}
+
+// ── 立项⑤ 阶段A ·「新建支部…」小面板（2026-09-06；仅 party-staff）────────────
+// 双形态：空模板初始化（业务为空、config 默认全开，留痕 from='empty-template'）/
+// 复制现有支部为模板（config/org/workforce 复制，留痕 from='branch:<源>'）。
+// 业务域为全域单支部演示（见 services/branch.js 缺口登记）→ 新建只写 branches 集合，
+// 记录本身不产生业务引用；新支部用于配置/模板，随后按向导 5 步/换壳工作单补数据。
+function _createPanelHtml(S, isStaff) {
+  if (!isStaff || !S.createOpen) return '';
+  const branches = (mockDB.branches || []).filter(b => b.id && b.id !== 'pc-gsm');
+  const subtle = 'text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-white transition-colors';
+  const isCopy = S.createMode === 'copy';
+  const sourceOptions = branches.map(b =>
+    `<option value="${esc(b.id)}">${esc(b.name)}${b.id === S.branchId ? '（当前）' : ''}</option>`).join('');
+  const nameDefault = '新支部（待配置）';
+  return `
+    <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 space-y-2">
+      <p class="text-xs font-semibold text-gray-700">新建支部… <span class="text-[10px] font-normal text-gray-400">（从空组织模板起步，或复制现有支部为模板；创建后当前向导自动切到新支部）</span></p>
+      <div class="flex flex-wrap items-center gap-4">
+        <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
+          <input type="radio" name="wz-create-mode" value="empty" ${isCopy ? '' : 'checked'} class="shrink-0">
+          空模板初始化
+        </label>
+        <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
+          <input type="radio" name="wz-create-mode" value="copy" ${isCopy ? 'checked' : ''} class="shrink-0">
+          复制现有（以支部为模板）
+        </label>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <div>
+          <label class="text-[11px] text-gray-500 block mb-1" for="wz-create-name">支部名（留空 = ${nameDefault}，向导步骤①可改）</label>
+          <input id="wz-create-name" type="text" class="input-flat w-full" maxlength="80" placeholder="支部全称，如 光华管理学院硕士党支部">
+        </div>
+        <div id="wz-create-source-wrap" class="${isCopy ? '' : 'hidden'}">
+          <label class="text-[11px] text-gray-500 block mb-1" for="wz-create-source">源支部（配置/组织档案/workforce 复制源）</label>
+          <select id="wz-create-source" class="input-flat w-full" ${isCopy ? '' : 'disabled'}>${sourceOptions}</select>
+        </div>
+      </div>
+      <p class="text-[11px] text-gray-500">新支部为空：config 默认全开、业务域为空、书记席位空缺（待任命）——创建后在下方 5 步填入组织信息/模块/分工，或按「换壳工作单」补数据。<span class="text-gray-400">留痕：config.configChangeHistory 追加 <code class="text-[10px] bg-white px-1 py-0.5 rounded border border-blue-100">branch-created</code>。</span></p>
+      <div class="flex items-center justify-end gap-2">
+        <button type="button" data-wz-act="toggle-create" class="${subtle}">取消</button>
+        <button type="button" data-wz-act="do-create" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90" style="background:#C8102E;">创建支部</button>
+      </div>
     </div>`;
 }
 
@@ -773,6 +826,15 @@ function _onClick(S, e) {
     case 'do-copy':
       _doCopy(S);
       break;
+    // 立项⑤ 阶段A：「新建支部…」面板（展开/收起 + 创建提交）
+    case 'toggle-create':
+      S.createOpen = !S.createOpen;
+      if (!S.createOpen) S.createMode = 'empty';
+      _render(S);
+      break;
+    case 'do-create':
+      _doCreate(S);
+      break;
     // 阶段三·目标1：成员基础数据预览（面板展开 / 下载模板 / 清除 / 导入草稿应用·放弃）
     case 'toggle-base':
       S.baseOpen = !S.baseOpen;
@@ -824,6 +886,15 @@ function _onChange(S, e) {
       btn.classList.toggle('cursor-not-allowed', !S.copySel.size);
       btn.textContent = `确认复制（已选 ${S.copySel.size}）`;
     }
+    return;
+  }
+  // 立项⑤ 阶段A：「新建支部」模式切换（empty/copy → 显隐源支部下拉，不整页重绘保表单输入）
+  if (t.name === 'wz-create-mode') {
+    S.createMode = t.value;
+    const wrap = S.host.querySelector('#wz-create-source-wrap');
+    const sel = S.host.querySelector('#wz-create-source');
+    if (wrap) wrap.classList.toggle('hidden', t.value !== 'copy');
+    if (sel) sel.disabled = t.value !== 'copy';
     return;
   }
   // 导入 file input 选中：pkg = 配置包 / base = 成员名单模板 → 读取 JSON → 处理 → toast + 重渲染
@@ -1129,6 +1200,49 @@ async function _doCopy(S) {
   } catch (err) {
     console.error('[wizard] 复制配置失败', err);
     showToast('error', `复制失败：${(err && err.message) || err}`);
+  }
+}
+
+// ── 立项⑤ 阶段A ·「新建支部」创建提交（2026-09-06）────────────
+// 读面板表单 → createBranch（空模板/复制双形态）→ 成功后把当前选中切到新支部并提示。
+async function _doCreate(S) {
+  const nameInput = S.host.querySelector('#wz-create-name');
+  const name = nameInput ? nameInput.value.trim() : '';
+  const mode = S.createMode === 'copy' ? 'copy' : 'empty';
+  const sourceSel = S.host.querySelector('#wz-create-source');
+  const sourceId = mode === 'copy' ? (sourceSel ? sourceSel.value : '') : undefined;
+  if (mode === 'copy' && !sourceId) {
+    showToast('error', '请选择源支部');
+    return;
+  }
+  try {
+    const res = await createBranch({
+      mode,
+      ...(mode === 'copy' ? { sourceId } : {}),
+      ...(name ? { name } : {}), // 留空 → 缺省占位名「新支部（待配置）」（向导步骤①可改）
+      by: S.actor.personId || undefined,
+      actorRole: S.actor.role || undefined, // 双保险：服务入参校验须 party-staff（与 server 门控同口径）
+    });
+    if (!res || !res.ok) {
+      showToast('error', `新建支部失败：${(res && res.reason) || '未知原因'}`);
+      return;
+    }
+    const created = res.branch;
+    const srcLabel = (sourceSel && sourceSel.selectedOptions && sourceSel.selectedOptions[0])
+      ? sourceSel.selectedOptions[0].textContent.replace(/（当前）$/, '')
+      : '';
+    S.createOpen = false;
+    S.createMode = 'empty';
+    _enterBranch(S, created.id); // 当前选中切到新支部（内部重置草稿/编辑态 + 应用主题预设）
+    _refreshStepState(S);
+    _persistDraft(S);
+    _render(S);
+    showToast('success', mode === 'copy'
+      ? `「${created.name}」已创建（配置复制自「${srcLabel || created.name}」）——新支部为空：在向导 5 步中确认组织信息/模块/分工，或按工作单补数据。`
+      : `「${created.name}」已创建——新支部为空：在向导 5 步中填入组织信息/模块/分工，或按工作单补数据。`);
+  } catch (err) {
+    console.error('[wizard] 新建支部失败', err);
+    showToast('error', `新建支部失败：${(err && err.message) || err}`);
   }
 }
 

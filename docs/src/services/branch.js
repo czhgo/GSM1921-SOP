@@ -6,7 +6,7 @@
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { getPersonById } from './person.js?v=20260903c';
 import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260903c';
-import { getAdapter, persist } from '../core/data-adapter.js?v=20260903c';
+import { getAdapter, persist, getDataSource } from '../core/data-adapter.js?v=20260903c';
 import { listCapabilities } from '../core/registry.js?v=20260903c';
 // P1a 单向权威（2026-09-03）：config 净化唯一实现 = core/config-clean.js（server PATCH /branches/:id/config 同源）
 import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg } from '../core/config-clean.js?v=20260903c';
@@ -276,15 +276,170 @@ export function withinBranch(rows, personId) {
 }
 
 // ── 党委支部管理写操作（P1；adapter CRUD 实时写 + 本地 mockDB 同步，刷新不丢）────────
-/** 党委创建支部（支部不预设名字——名称/类型由党委录入） */
-export async function createBranch({ name, type }) {
-  const branch = await getAdapter().branches.create({ name: String(name || '').trim(), type: String(type || '').trim() });
-  // API 模式 adapter.create 只 POST server——本地 mockDB 同步（mock 模式已改本地，防重复）
-  if (!(mockDB.branches || []).some(b => b.id === branch.id)) {
-    mockDB.branches = [...mockDB.branches, branch];
+// 立项⑤ 阶段A（2026-09-06）：支部创建收敛为「空组织模板 / 复制现有」双形态（EMPTY_BRANCH_TEMPLATE +
+// createBranch mode），原「党委随手建支部」同一写口升级；?reset=1 仍回演示种子、不混（阶段 B 分层语义）。
+// 域名分区事实（2026-09-06 核查登记）：业务域（activities/attendance/taskforces/notices/thought-reports 等）
+// 当前为「单支部全域、非 branch 分区」（种子无 branchId 键），people 全员挂 br-b1（党委组织员 null）。
+// 因此「空支部业务为空」落实为：新建动作只写 branches 集合，记录本身不产生业务引用（验收 1/2 可达）；
+// 全域 branch 分区属 spec 风险段登记缺口，不在本立项重架构——新建支部先用于配置/模板，业务数据待分区能力落地。
+
+/** 新建支部名长度上限（与 core/config-clean.js ORG_MAX.name 对齐） */
+const NEW_BRANCH_NAME_MAX = 80;
+
+/**
+ * 空组织模板（立项⑤ 阶段A）：结构 = 支部记录骨架、业务为空。
+ * 语义：
+ *   - name = 占位名「新支部（待配置）」（名待填；创建时未显式给名则沿用，向导步骤①可改）。
+ *   - headerTitle 空 → header 回退 branch.name（占位名）展示；desc 空、themePreset null（默认红调）。
+ *   - config.modules/blocks null = 默认全开（同 br-b1）；config.workforce null = 缺省分工（expandWorkforce 兜底）。
+ *   - secretaryId null = 席位空缺待党委任命。
+ *   - 不引用演示成员 id（p1…）与任何业务域（people/activities/attendance/agenda/taskforces/notices/
+ *     thought-reports 等）——域内引用为空，按换壳工作单逐项填入。
+ */
+export const EMPTY_BRANCH_TEMPLATE = Object.freeze({
+  name: '新支部（待配置）',
+  type: '',                       // 类别标签（自由文本，待党委录入；br-b1 例='本科生'）
+  config: Object.freeze({
+    headerTitle: '',
+    accent: null,                 // null=默认党建红
+    modules: null,                // null=工作流模块默认全开（同 br-b1 语义）
+    blocks: null,                 // null=产出块/工作流块默认全开
+    workforce: null,              // null=缺省分工
+    desc: '',
+    themePreset: null,            // null=默认红调（THEME_PRESET_IDS 外）
+    fileSpaceIsolated: true,
+  }),
+  secretaryId: null,              // 席位空缺待任命
+  status: 'active',
+});
+
+/** 空支部创建名校验（与 server POST /branches 同规则；缺省键 → 模板占位名，显式空/超长 → 拒绝） */
+function _validateNewBranchName(name) {
+  if (name === undefined || name === null) return { ok: true, value: EMPTY_BRANCH_TEMPLATE.name };
+  const t = String(name).trim();
+  if (!t) return { ok: false, reason: '支部名不能为空' };
+  if (t.length > NEW_BRANCH_NAME_MAX) return { ok: false, reason: `支部名过长（不超过 ${NEW_BRANCH_NAME_MAX} 字）` };
+  return { ok: true, value: t };
+}
+
+/** 新支部 id（br-<8hex>；浏览器/node 双端可用——不依赖 crypto.randomUUID） */
+function _newBranchId() {
+  const rand = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+    ? crypto.randomUUID().slice(0, 8)
+    : Math.random().toString(16).slice(2, 10);
+  return `br-${rand}`;
+}
+
+function _cloneOrNull(v) {
+  return v === undefined || v === null ? null : JSON.parse(JSON.stringify(v));
+}
+
+/**
+ * 纯构造：新支部记录（空模板初始化 / 以源支部为模板复制）。零副作用，mock 本地直写与
+ * server POST /branches（内联同语义）双形态共用此口径——双形态一致性由
+ * server/test/empty-template.test.mjs ⑤ 断言守护。
+ * @param {Object} opts
+ * @param {string} [opts.id] 缺省时自生成 br-*
+ * @param {string} [opts.name] 支部名（缺省=模板占位名；显式空/超长 → throw {reason}）
+ * @param {'empty'|'copy'} [opts.mode='empty'] 空模板初始化 / 复制现有
+ * @param {Object|null} [opts.sourceBranch] mode='copy' 的源支部记录（缺省 → throw {reason}）
+ * @param {string} [opts.by] 操作者 personId（留痕）
+ * @param {string} [opts.type] 类别标签（仅 empty 模式透传；copy 取源 type）
+ * @param {string} [opts.now] 时间（测试可注入）
+ */
+export function buildNewBranchRecord({ id, name, mode = 'empty', sourceBranch = null, by = null, type = '', now } = {}) {
+  const isCopy = mode === 'copy';
+  const nameRes = _validateNewBranchName(name);
+  if (!nameRes.ok) throw Object.assign(new Error(nameRes.reason), { reason: nameRes.reason, code: 'BRANCH_NAME_INVALID' });
+  if (isCopy && !sourceBranch) throw Object.assign(new Error('源支部不存在'), { reason: '源支部不存在', code: 'SOURCE_BRANCH_MISSING' });
+  const finalName = nameRes.value;
+  const at = now || new Date().toISOString();
+  const srcCfg = isCopy ? (sourceBranch.config || {}) : null;
+  // 复制语义（与「复制配置到支部」applyConfigCopy 面向既有支部不同——本动作=以源支部为模板建新支部）：
+  // config 域 modules/blocks/workforce 深拷贝（源缺省 → null 默认全开/缺省分工）；
+  // org 档案域复制 desc/themePreset；headerTitle 取新支部名（保持 name→headerTitle 同步不变式，
+  // 与 renameBranch/updateBranchOrg 一致，避免创建即「页眉≠名」错位）；secretaryId 不带走（席位待任命）。
+  const config = {
+    headerTitle: isCopy ? finalName : '',
+    accent: null,
+    modules: isCopy ? _cloneOrNull(srcCfg.modules) : null,
+    blocks: isCopy ? _cloneOrNull(srcCfg.blocks) : null,
+    workforce: isCopy ? _cloneOrNull(srcCfg.workforce) : null,
+    desc: isCopy ? (srcCfg.desc ?? '') : '',
+    themePreset: isCopy ? (srcCfg.themePreset ?? null) : null,
+    fileSpaceIsolated: isCopy ? (srcCfg.fileSpaceIsolated ?? true) : true,
+    // 建支部留痕（与 config 各域写同一 configChangeHistory 数组，{by,at,what,from,to} 审计口径）
+    configChangeHistory: [{
+      by: by ?? null,
+      at,
+      what: 'branch-created',
+      from: isCopy ? `branch:${sourceBranch.id}` : 'empty-template',
+      to: null,
+    }],
+  };
+  const record = {
+    name: finalName,
+    type: isCopy ? (sourceBranch.type || '') : String(type || '').trim(),
+    config,
+    secretaryId: null,
+    status: 'active',
+    createdAt: at,
+  };
+  record.id = id || _newBranchId();
+  return record;
+}
+
+/**
+ * 党委创建支部（立项⑤ 阶段A 双形态；支部管理「+ 新建支部」与向导「新建支部…」共用同一写口）：
+ * @param {Object} opts
+ * @param {'empty'|'copy'} [opts.mode='empty'] empty=空组织模板初始化；copy=复制现有支部配置为模板
+ * @param {string} [opts.sourceId] mode='copy' 源支部 id（不存在 → {ok:false, reason:'源支部不存在'}）
+ * @param {string} [opts.name] 支部名（缺省=占位名「新支部（待配置）」；显式空/超长 → {ok:false, reason}）
+ * @param {string} [opts.type] 类别标签（empty 模式透传，兼容原支部管理表单）
+ * @param {string} [opts.by] 操作者 personId（留痕 by）
+ * @param {string} [opts.actorRole] 操作者角色（提供时校验须为 party-staff——UI/测试双保险；
+ *   mock 模式本无角色门控，入参校验与 server POST /branches 门控同口径，防绕过）
+ * @returns {Promise<{ok:boolean, branch?:Object, reason?:string}>}
+ */
+export async function createBranch({ mode = 'empty', sourceId, name, type, by, actorRole } = {}) {
+  if (actorRole && actorRole !== 'party-staff') {
+    return { ok: false, reason: '无权限：仅党委组织员/党务老师可创建支部' };
   }
-  persist();
-  return branch;
+  const m = mode === 'copy' ? 'copy' : 'empty';
+  const nameRes = _validateNewBranchName(name);
+  if (!nameRes.ok) return { ok: false, reason: nameRes.reason };
+  const sourceBranch = m === 'copy' ? getBranchById(sourceId) : null;
+  if (m === 'copy' && !sourceBranch) return { ok: false, reason: '源支部不存在' };
+  try {
+    let record;
+    if (getDataSource() === 'api') {
+      // API 模式：语义请求交服务端构造（server POST /branches 同源逻辑 + party-staff 门控净化），
+      // 以服务端返回为权威（防两端漂移；mock 模式本地同口径构造见下）。
+      const created = await getAdapter().branches.create({
+        mode: m,
+        ...(m === 'copy' ? { sourceId } : {}),
+        name: nameRes.value,
+        ...(m === 'empty' && type ? { type: String(type).trim() } : {}),
+      });
+      if (!created || created.ok === false) {
+        return { ok: false, reason: (created && created.reason) || '服务端拒绝创建支部' };
+      }
+      record = created.branch || created;
+    } else {
+      // mock 模式：本地纯构造直写 mockDB + persist（语义对齐 mock-adapter branches.create 骨架，
+      // 但保留完整 config——mock-adapter create 会按简版骨架重造 config，丢 org/blocks/workforce 细域）
+      record = buildNewBranchRecord({ name: nameRes.value, mode: m, sourceBranch, type, by });
+    }
+    // 本地 mockDB 同步（API 模式 adapter 只 POST server；mock 模式已写入，防重复）
+    if (!(mockDB.branches || []).some(b => b.id === record.id)) {
+      mockDB.branches = [...mockDB.branches, record];
+    }
+    persist();
+    return { ok: true, branch: record };
+  } catch (err) {
+    console.error('[branch] 创建支部失败', err);
+    return { ok: false, reason: (err && (err.reason || err.message)) || '创建支部失败' };
+  }
 }
 
 /** 党委改支部名（同步 config.headerTitle——header 软编码随之变化） */
@@ -484,4 +639,30 @@ export function getBranchOrg(branchId) {
     desc: b?.config?.desc || '',
     themePreset: b?.config?.themePreset ?? null,
   };
+}
+
+// ── 立项⑤ 阶段A · 空模板/空支部引用审计分层（2026-09-06）──────────────
+// 空模板与「空模板初始化」产出的支部记录应满足：不含业务域键、不含演示成员 id（p1…）、
+// 席位空缺（无 secretaryId 任命）。纯校验函数供测试/审计断言使用（mock-integrity 演示侧不动）。
+
+/** 空支部记录不应携带的业务域键（全域单支部演示下新建支部不产生业务引用；含即异常） */
+const EMPTY_BRANCH_FORBIDDEN_DOMAIN_KEYS = [
+  'people', 'members', 'memberIds', 'activities', 'attendances', 'inspections',
+  'agenda', 'agendaVotes', 'taskforces', 'notices', 'todos', 'assignments',
+  'makeupTasks', 'thoughtReports', 'reviews', 'archiveRecords', 'signups',
+];
+
+/**
+ * 引用审计（纯）：空模板/新建空支部记录不得引用演示业务数据。
+ * @param {Object} branch 待审计支部记录（空模板常量或 createBranch 产物）
+ * @returns {string|null} null=通过；否则返回问题描述
+ */
+export function auditEmptyBranchRecord(branch) {
+  if (!branch || typeof branch !== 'object' || Array.isArray(branch)) return '记录非对象';
+  const present = EMPTY_BRANCH_FORBIDDEN_DOMAIN_KEYS.filter(k => branch[k] !== undefined && branch[k] !== null && branch[k] !== '');
+  if (present.length) return `含业务域键：${present.join('、')}`;
+  // 不含演示成员 id（p1…）；留痕 by 允许党委组织员（p_pc 等非 p<数字>）审计人
+  if (/\bp\d+\b/.test(JSON.stringify(branch))) return '含演示成员 id 引用（p1…）';
+  if (branch.secretaryId) return '含 secretaryId（席位应空缺待任命）';
+  return null;
 }
