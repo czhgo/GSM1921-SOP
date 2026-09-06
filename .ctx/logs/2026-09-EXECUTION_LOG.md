@@ -579,3 +579,15 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **交付**：org-config-package.js（build/apply：kind/version 校验、config-clean 逐域净化、留痕 config-package-import、无变化不留痕）；branch.applyConfigCopy（源→多 target、includeOrg 开关、config-copied 留痕、逐条结果）；向导工具条=导出 json/导入 file→apply→toast+重渲染/复制面板（仅 party-staff；单支部空态）；打磨=已完成步骤回看+无 emoji 摘要 chips；设计文档补阶段二与 Out of Scope 更新。
 **复核**：8 个用户并行文件=无实质内容分歧（inspector/mock-adapter/taskforce-tab 为空 diff 的 CRLF stat 伪差，add 刷新归零）；work-overview/activity-entry/overview-tab/.ctx 08 日志仅首部重复 BOM 杂质——node 一次性脚本剥除（内容零改动，机械性）。
 **验证**：wizard-package 9 + wizard-copy 6 + 回归 34/34 全绿；GetDiagnostics 零；浏览器目视待常规终端。工作区净；push 仍待批（ahead 116）。
+
+---
+
+**T-2026-09-046 立项④阶段三目标1 + 应到三小遗留①②③ + 立项⑤spec + REVIEW_QUEUE 真/假决策清理（2026-09-06，commits 待）**
+**书记裁定**：①阶段三=两目标全做（目标1 数据预览实施 + 目标2/立项⑤ 开 spec）；②REVIEW_QUEUE 按盘点清理（真决策保留、假决策标 ✅/清理）；③应到三小遗留 ①②③ 全部立项。
+**交付**：
+- 目标1：services/org-base-data-preview.js（模板导出/净化/stats=roster 口径一致）+ person.js PersonStore overlay（仅基础字段、不写种子、clear 回种子）+ 向导「成员名册预览」面板（下载模板/导入预览/应用/清除，UI 注明业务历史仍关联演示成员、正式换数据走工作单）；base-data-preview 7 测试。
+- ①②③：person-picker disabledIds+滞留徽标（可见可辨禁选）；roster getMeetingRosterCandidates（候选=党员含滞留/disabled=滞留）；纪检会议表单全员可见 p5/p9 禁选；leader 党小组会候选=组内党员+滞留禁选+应到提示条；vote-config resolveVoterIds 现时剔滞留（新表决默认=roster，支委会/支部大会；历史快照 act-31 不回改+注释）；workforce/calendar 创建点同步；roster-vote-link 10 测试。
+- 立项⑤ spec：content/04_web_design/evolution/2026-09-06-empty-template-seed-design.md 成稿（六验收判据/阶段 A 空模板+建新支部入口→B ?reset 分层与服务端对齐→C 模板市场化）。
+- REVIEW_QUEUE 清理：COMMISSIONER L399/党小组 L27-L31 残留标 ✅（T-263 已决）；附录⑥候选1 色值已迁移标 ✅；附录⑧思想汇报判例复核=已实现（thought-report-tab/domain/种子均在）转轻复核完结；应到遗留①②③ 回填已落地；立项④ 阶段三/立项⑤ spec 进度更新。
+**验证**：纯 node 52/52 全绿（base-data-preview 7 + roster-vote-link 10 + roster 9 + attendance-batch 6 + org-config 4 + wizard-package 9 + wizard-report 6 等）；GetDiagnostics 零；HTTP E2E/浏览器目视待常规终端（async-vote 系列注释已同步）。
+**待办**：立项⑤ 阶段 A（空模板 seed+建新支部入口）启动；阶段三候选→W4 减负⑥ 面板保态批量排查与 SNAPSHOT v19 仍挂 AI 待办；push 仍待批（ahead 124）。
