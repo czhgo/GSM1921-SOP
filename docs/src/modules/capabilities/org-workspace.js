@@ -22,7 +22,7 @@ registerCapability({
     { id: 'inspection', label: '考察上传', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/inspection-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     { id: 'taskforce', label: '专班管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/taskforce-tab.js?v=20260906d').then(m => m.renderContent(ctx)) },
     // 成员名册（立项⑥ B波 2026-09-06：新增/行内编辑/删除 双形态持久；人才库为考察画像视图，分工不重复建设）
-    { id: 'roster', label: '成员名册', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/roster-tab.js?v=20260906a').then(m => m.renderContent(ctx)) },
+    { id: 'roster', label: '成员名册', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/roster-tab.js?v=20260906e').then(m => m.renderContent(ctx)) },
     { id: 'talent', label: '人才库', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/talent-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     { id: 'development', label: '发展数据', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/development-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     // 活动查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增；组织无活动 tab 由本组件承载）

@@ -56,11 +56,15 @@ export const PersonStore = {
   /**
    * 按 ID 获取人员姓名
    * @param {string} id - 人员 ID
-   * @returns {string} 人员姓名（未找到则返回 ID 本身）
+   * @returns {string} 人员姓名（档案查无 → 已移出/转出记录索引查名，保证历史不匿名；
+   *                   仍找不到则回退返回 ID 本身——既有未知文案）
    */
   getName(id) {
     const person = this.getById(id);
-    return person ? person.name : id;
+    if (person) return person.name;
+    const removed = findRemovedRecord(id);
+    if (removed && removed.name) return removed.name;
+    return id;
   },
 
   /**
@@ -121,8 +125,9 @@ export const PersonStore = {
    *    api 形态：DELETE server users。
    * @param {string} personId - 成员 id
    * @param {Object} [opts]
-   * @param {string} [opts.by] - 操作人（审计预留）
+   * @param {string} [opts.by] - 操作人（审计预留；mock 形态记入 removedIds.decidedBy）
    * @param {boolean} [opts.guardRefs=true] - 是否执行引用守卫（false = 强制删除，调用方自担孤儿）
+   * @param {boolean} [opts.transferOut=false] - 是否按「转出」移除（removedIds 记录带 transferOut 标记，读链可判「已转出」）
    * @returns {Promise<{ok:boolean, id?:string, reason?:string, refs?:Array}>}
    */
   async removeMember(personId, opts = {}) {
@@ -144,7 +149,7 @@ export const PersonStore = {
     if (!_baseMemberRecords().some(p => p.id === personId)) {
       return { ok: false, reason: '成员不存在（档案中无该 id）' };
     }
-    return _mockRemoveMember(personId);
+    return _mockRemoveMember(personId, { by: opts.by, transferOut: !!opts.transferOut });
   },
 
   /**
@@ -208,8 +213,10 @@ export function getPersonName(id) {
 //  立项⑥ A波：members 持久覆盖层（mock 形态成员档案写/读底座）
 //  · 键：gsm1921-members-overlay（gsm1921- 前缀 → ?reset=demo 档 collectResetKeys
 //    自动清除 = 回种子；?reset=preview 档不清 = 覆盖层属于演示数据本体，非运行时预览）。
-//  · 结构：{ version, upserts:[完整成员记录], removedIds:[id] }
+//  · 结构：{ version, upserts:[完整成员记录], removedIds:[string|{id,name,removedAt,decidedBy,transferOut?}] }
 //    读 = 静态 PEOPLE 基底 + 覆盖层（removed 过滤 → upsert 覆盖/追加）。
+//    removedIds 兼容旧 string 形态（历史数据）与新对象形态（含姓名 → 移出/转出后 getName 仍可解析，
+//    历史记录不匿名；transferOut=true 表示按「转出」流程移除）。
 //  · 独立于 workflowos_branch_db_v1 全量键：mock-adapter loadDB 不触碰本键，
 //    PersonStore 读链（getMembers/getAll）每次读取时动态合并 → 写后即时生效、刷新仍持久。
 // ════════════════════════════════════════════════════════════════
@@ -251,13 +258,36 @@ function _saveMemberOverlay({ upserts, removedIds }) {
 }
 
 /**
+ * 移除标记归一（removedIds 兼容）：项为 string（旧数据）→ 原样；对象 {id,name,…} → id
+ * @param {string|{id:string}} x
+ * @returns {string}
+ */
+function _removedIdOf(x) {
+  return (x && typeof x === 'object' && !Array.isArray(x)) ? String(x.id) : String(x);
+}
+
+/**
+ * 在 members 覆盖层 removedIds 中定位某成员的移除/转出记录（旧 string 项 → 仅含 id 的等价对象）
+ * @param {string} personId
+ * @returns {{id:string, name?:string, removedAt?:string, decidedBy?:string, transferOut?:boolean}|null}
+ */
+export function findRemovedRecord(personId) {
+  if (!personId) return null;
+  const ov = _loadMemberOverlay();
+  const hit = (ov?.removedIds || []).find(x => _removedIdOf(x) === personId);
+  if (hit === undefined) return null;
+  if (hit && typeof hit === 'object' && !Array.isArray(hit)) return { ...hit, id: String(hit.id) };
+  return { id: String(hit) };
+}
+
+/**
  * 合并函数（纯）：基底成员数组 × 覆盖层 → 档案视图（removed 过滤 → upsert 覆盖/追加）
  * @param {Array} base - 静态基底（PEOPLE）
- * @param {{upserts?:Array, removedIds?:string[]}|null} overlay
+ * @param {{upserts?:Array, removedIds?:Array}|null} overlay - removedIds 兼容 string[]（旧）与对象数组
  * @returns {Array} 新数组（基底顺序 + 新增尾随；不改动入参对象）
  */
 export function applyMemberOverlay(base, overlay) {
-  const removed = new Set((overlay?.removedIds) || []);
+  const removed = new Set((overlay?.removedIds || []).map(_removedIdOf).filter(Boolean));
   const map = new Map(base.filter(p => p && p.id && !removed.has(p.id)).map(p => [p.id, p]));
   for (const u of (overlay?.upserts) || []) {
     if (!u || !u.id || removed.has(u.id)) continue;
@@ -315,16 +345,30 @@ function _mockSaveMember(updates) {
   const idx = ov.upserts.findIndex(u => u.id === targetId);
   const upserts = [...ov.upserts];
   if (idx >= 0) upserts[idx] = { ...next }; else upserts.push({ ...next });
-  // save 即复活：清除历史删除标记（removedIds 中移除该 id）
-  const removedIds = ov.removedIds.filter(x => x !== targetId);
+  // save 即复活：清除历史删除标记（removedIds 中移除该 id；string/对象两种形态均兼容）
+  const removedIds = ov.removedIds.filter(x => _removedIdOf(x) !== targetId);
   if (!_saveMemberOverlay({ upserts, removedIds })) return { ok: false, reason: '本地存储不可用，未保存' };
   return { ok: true, member: { ...next } };
 }
 
-/** mock 形态移除（覆盖层删除标记） */
-function _mockRemoveMember(personId) {
+/** mock 形态移除（覆盖层删除标记；removedIds 写对象 {id,name,removedAt,decidedBy,transferOut?}——
+ *  name 取自档案，保证移出后历史读链仍可解析姓名（不匿名）；transferOut=true 供读链标「已转出」）
+ * @param {string} personId
+ * @param {{by?:string, transferOut?:boolean}} [opts]
+ */
+function _mockRemoveMember(personId, opts = {}) {
   const ov = _loadMemberOverlay() || { upserts: [], removedIds: [] };
-  const removedIds = ov.removedIds.includes(personId) ? ov.removedIds : [...ov.removedIds, personId];
+  const removedIds = [...ov.removedIds];
+  if (!removedIds.some(x => _removedIdOf(x) === personId)) {
+    const record = {
+      id: personId,
+      name: (_baseMemberRecords().find(p => p.id === personId) || {}).name || '',
+      removedAt: new Date().toISOString(),
+      decidedBy: opts.by || null,
+    };
+    if (opts.transferOut) record.transferOut = true;
+    removedIds.push(record);
+  }
   const upserts = ov.upserts.filter(u => u.id !== personId);
   if (!_saveMemberOverlay({ upserts, removedIds })) return { ok: false, reason: '本地存储不可用，未保存' };
   return { ok: true, id: personId };
@@ -416,14 +460,23 @@ function _branchHasHistory(branchId) {
   return false;
 }
 
-/** mock 形态整支部替换（覆盖层表达：旧该支部成员删除标记 + 新名单 upsert） */
+/** mock 形态整支部替换（覆盖层表达：旧该支部成员删除标记 + 新名单 upsert；removedIds 写对象含 name） */
 function _mockReplaceBranchMembers(records, branchId) {
   const ov = _loadMemberOverlay() || { upserts: [], removedIds: [] };
   const view = applyMemberOverlay(PEOPLE, ov);
   const oldIds = view.filter(p => p.branchId === branchId).map(p => p.id);
   const removedIds = [...ov.removedIds];
   let upserts = ov.upserts.filter(u => !oldIds.includes(u.id));
-  for (const id of oldIds) if (!removedIds.includes(id)) removedIds.push(id);
+  for (const id of oldIds) {
+    if (!removedIds.some(x => _removedIdOf(x) === id)) {
+      removedIds.push({
+        id,
+        name: (view.find(p => p.id === id) || {}).name || '',
+        removedAt: new Date().toISOString(),
+        decidedBy: null,
+      });
+    }
+  }
   const baseMap = new Map(view.map(p => [p.id, p]));
   for (const r of records) {
     const rid = String(r.id);
@@ -431,7 +484,7 @@ function _mockReplaceBranchMembers(records, branchId) {
       id: rid, name: '', studentId: '', partyGroup: '', developStage: '', role: 'participant', branchId,
     };
     const next = { ...base, ..._cleanMemberRecord({ ...r, id: rid }), branchId };
-    const ri = removedIds.indexOf(rid);
+    const ri = removedIds.findIndex(x => _removedIdOf(x) === rid);
     if (ri >= 0) removedIds.splice(ri, 1); // 入新名单 → 复活（若此前被删）
     const ui = upserts.findIndex(u => u.id === rid);
     if (ui >= 0) upserts[ui] = { ...next }; else upserts.push({ ...next });

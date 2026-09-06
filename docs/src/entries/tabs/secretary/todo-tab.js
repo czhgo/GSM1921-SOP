@@ -4,9 +4,9 @@
 // 2026-08-07 T232：改为「动态聚合 + 复核确认面板」——SecretaryTodoDeriver.computeAggregates()
 //   实时计算 4 提醒 + 4 复核，复核类一键写 secretaryConfirmedAt 销项，不再创建虚假实体待办。
 
-import { showToast } from '../../../core/utils.js?v=20260903c';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260903c';
 import { renderTodoList } from '../../../components/todo-list.js?v=20260903c';
-import { TodoStore, seedTodos } from '../../../services/todo.js?v=20260903c';
+import { TodoStore, seedTodos, TodoCategory } from '../../../services/todo.js?v=20260903c';
 import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
@@ -25,6 +25,11 @@ import { renderReportInboxHtml, bindReportInbox } from '../../../components/repo
 import { renderMemberChangePanel } from '../../../components/member-change-panel.js?v=20260903c';
 import { tryDirectJump } from '../../../components/todo-jump.js?v=20260903c';
 import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260906c';
+// C 批 附录⑩ S4：名册确权复核（组织委员发起 → 书记确认/退回）+ 学期末滞留集中复核提醒
+import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, MC_ACTION_LABEL } from '../../../services/member-confirmation.js?v=20260906e';
+import { getDetainedMembers, getResidenceOf } from '../../../services/roster.js?v=20260903c';
+import { AuthStore } from '../../../services/auth.js?v=20260903c';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260903c';
 
 const { accent, accentBorder } = getAccentColors(resolveAccentRole('secretary'));
 
@@ -51,8 +56,17 @@ export async function renderContent() {
   // R2-2（2026-09-06 书记批）：决议「待落实」逾期 → 书记待办提醒组
   // （扫描决议 followups 子域，纯函数见 services/resolution-followup.js；逾期=deadline < today）
   const followupOverdueAgg = buildOverdueRemindGroupNow();
+  // C 批 附录⑩ S4：成员变更待确认组（listPendingConfirmations）+ 学期末滞留集中复核提醒组
+  const mcConfirmAgg = _mcConfirmAgg();
+  const semesterAgg = _semesterRemindAgg();
   const seedAggs = TodoStore.getGroupedByAction('secretary');
-  _allAggregates = [...computedAggs, ...(followupOverdueAgg ? [followupOverdueAgg] : []), ...seedAggs];
+  _allAggregates = [
+    ...computedAggs,
+    ...(followupOverdueAgg ? [followupOverdueAgg] : []),
+    ...(mcConfirmAgg ? [mcConfirmAgg] : []),
+    ...(semesterAgg ? [semesterAgg] : []),
+    ...seedAggs,
+  ];
 
   // 统计条（聚合卡总数；过期仅统计提醒类缺口）
   const aggTotal = _allAggregates.reduce((s, g) => s + g.count, 0);
@@ -169,9 +183,12 @@ export async function renderContent() {
   });
 }
 
-// ── 详情卡：按聚合类型分发（confirm / remind / 种子行动类） ────
+// ── 详情卡：按聚合类型分发（confirm / remind / 种子行动类；C 批自定义组优先） ────
 function renderTodoDetail(todo) {
   const actionKey = todo.actionKey || '';
+  // C 批 附录⑩ S4：成员变更确权（逐项 确认/退回）+ 学期末滞留集中复核（自定义详情）
+  if (todo.groupKey === 'secretary:member-confirm') return renderMemberConfirmDetail(todo);
+  if (todo.groupKey === 'secretary:semester-detained-remind') return renderSemesterDetainedDetail(todo);
   if (todo.kind === 'confirm' || actionKey.endsWith('-confirm')) return renderConfirmDetail(todo);
   if (todo.kind === 'remind' || actionKey.endsWith('-remind')) return renderRemindDetail(todo);
   return renderSeedDetail(todo);
@@ -262,6 +279,191 @@ function renderSeedDetail(todo) {
       </div>
     </div>
   `;
+}
+
+// ── C 批 附录⑩ S4：成员变更确权（待确认组 + 逐项确认/退回） ────
+
+/** 书记操作人（确认/退回留痕 decidedBy；兜底 p13 书记位） */
+function _secActorId() {
+  return AuthStore.getCurrentUser()?.personId || 'p13';
+}
+
+/** 待确认聚合组（无 pending 返回 null；kind=confirm 复用既有「去处理→详情面板」交互） */
+function _mcConfirmAgg() {
+  const items = listPendingConfirmations();
+  if (!items.length) return null;
+  return {
+    groupKey: 'secretary:member-confirm',
+    actionKey: 'member-confirm',
+    title: '成员变更待确认',
+    category: TodoCategory.REVIEW,
+    flow: '组织委员发起（发展阶段 / 在册状态 / 移出）→ 书记确认生效或退回（双层留痕）',
+    kind: 'confirm',
+    count: items.length,
+    items,
+  };
+}
+
+/** 学期末滞留集中复核提醒组（窗口内且有滞留成员时出现；kind=remind 复用「去处理→详情面板」） */
+function _semesterRemindAgg() {
+  if (!shouldShowSemesterDetainedRemind()) return null;
+  const detained = getDetainedMembers();
+  if (!detained.length) return null;
+  return {
+    groupKey: 'secretary:semester-detained-remind',
+    actionKey: 'semester-detained-remind',
+    title: '学期末滞留集中复核',
+    category: TodoCategory.REVIEW,
+    flow: '学期末窗口提醒（6/15–7/15、12/15–次年1/15）：请集中复核在册滞留名单',
+    kind: 'remind',
+    count: detained.length,
+    items: detained.map(p => {
+      const rs = getResidenceOf(p);
+      return { id: p.id, name: p.name, note: rs.residenceNote || '', date: '' };
+    }),
+  };
+}
+
+/** 成员变更确权详情：逐项展示（kind 徽标 / 姓名 / from→to / 发起人 / 时间 / 备注 / 移出保持摘要） */
+function renderMemberConfirmDetail(group) {
+  const rows = (group.items || []).map(req => _mcReqCard(req)).join('');
+  return `
+    <div class="space-y-3">
+      <div class="flex items-center gap-2">
+        <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${group.count} 条待确认</span>
+      </div>
+      <p class="font-title-cn text-sm font-bold text-gray-800">成员变更待确认</p>
+      <p class="text-xs text-gray-600 leading-relaxed">组织委员发起的变更须书记确认后生效（或退回，双层留痕）。移出项将自动解除未开始引用，历史记录转「已转出」标注并保留（不删不匿名）。</p>
+      <div class="space-y-2 max-h-[26rem] overflow-y-auto">${rows || '<div class="text-xs text-gray-400">暂无待确认请求</div>'}</div>
+    </div>
+  `;
+}
+
+/** 单条确权请求卡：展示 + 确认生效 / 退回 */
+function _mcReqCard(req) {
+  const action = req.action;
+  const kindLabel = MC_ACTION_LABEL[action] || (req.kind === 'transferOut' ? '移出' : '变更');
+  const kindCls = action === 'developStage' ? 'bg-sky-50 text-sky-700'
+    : action === 'residence' ? 'bg-amber-50 text-amber-700'
+    : 'bg-red-50 text-red-600';
+  const byName = req.by ? (getPersonName(req.by) || req.by) : '组织委员';
+  const atText = String(req.at || '').slice(0, 16).replace('T', ' ');
+  return `
+    <div class="rounded-lg border border-gray-100 bg-gray-50/40 p-2.5 space-y-1.5" data-mc-card="${esc(req.id)}">
+      <div class="flex items-center gap-1.5 flex-wrap">
+        <span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${kindCls}">${kindLabel}</span>
+        <span class="text-sm font-medium text-gray-800">${esc(req.name || req.personId)}</span>
+        <span class="text-[11px] text-gray-400 ml-auto">${esc(byName)} · ${atText}</span>
+      </div>
+      <div class="text-xs text-gray-600 leading-relaxed">
+        <span class="font-medium text-gray-700">${esc(req.from || '')} → ${esc(req.to || '')}</span>
+        ${req.note ? ` <span class="text-gray-400">· ${esc(req.note)}</span>` : ''}
+      </div>
+      ${(req.kind === 'transferOut' && req.refsSummary) ? _mcRefsSummaryHtml(req.refsSummary) : ''}
+      <div class="flex items-center gap-2 pt-1">
+        <button type="button" class="mc-decide text-xs px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors" data-mc-id="${esc(req.id)}" data-decision="approved" style="${solidAccentStyle(accent, accentBorder)}">确认生效</button>
+        <button type="button" class="mc-decide text-xs px-2.5 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" data-mc-id="${esc(req.id)}" data-decision="rejected">退回</button>
+      </div>
+    </div>`;
+}
+
+/** 移出保持记录摘要（安全解除 / 转已转出标注；域名清单折叠展示） */
+function _mcRefsSummaryHtml(summary) {
+  const safe = summary.safe || [];
+  const keep = summary.keep || [];
+  const safeTotal = safe.reduce((s, x) => s + (x.count || 0), 0);
+  const keepTotal = keep.reduce((s, x) => s + (x.count || 0), 0);
+  const chip = (x, cls) => `<span class="text-[11px] px-1.5 py-0.5 rounded-full ${cls} whitespace-nowrap">${esc(x.label)} ×${x.count}</span>`;
+  const safeChips = safe.map(x => chip(x, 'bg-green-50 text-green-700 border border-green-100'));
+  const keepChips = keep.map(x => chip(x, 'bg-gray-50 text-gray-600 border border-gray-200'));
+  return `
+    <div class="rounded-md bg-white border border-gray-100 p-2 text-[11px] text-gray-500 space-y-1">
+      <p>保持记录摘要：自动解除 <span class="tabular-nums font-medium text-gray-700">${safeTotal}</span> 项 · 转已转出标注 <span class="tabular-nums font-medium text-gray-700">${keepTotal}</span> 条</p>
+      ${(safeChips.length || keepChips.length) ? `
+      <details>
+        <summary class="cursor-pointer text-gray-400 select-none">查看明细（安全解除 / 保留标注域名）</summary>
+        <div class="flex flex-wrap gap-1 pt-1.5">
+          ${safeChips.length ? `<span class="text-gray-400">自动解除：</span>${safeChips.join('')}` : ''}
+          ${keepChips.length ? `<span class="text-gray-400">保留标注：</span>${keepChips.join('')}` : ''}
+        </div>
+      </details>` : ''}
+    </div>`;
+}
+
+/** 学期末滞留集中复核详情：滞留名单 + 引导文案 */
+function renderSemesterDetainedDetail(group) {
+  const rows = (group.items || []).map(it => `
+    <div class="flex items-start justify-between gap-2 py-0.5">
+      <span class="text-xs text-gray-700 font-medium flex-shrink-0">${esc(it.name)}</span>
+      <span class="text-[11px] text-gray-400 text-right min-w-0 truncate" title="${esc(it.note)}">${esc(it.note || '滞留：组织关系保留、应到剔除、通知照发')}</span>
+    </div>`).join('');
+  return `
+    <div class="space-y-3">
+      <div class="flex items-center gap-2">
+        <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${group.count} 名滞留成员</span>
+      </div>
+      <p class="font-title-cn text-sm font-bold text-gray-800">学期末滞留集中复核</p>
+      <p class="text-xs text-gray-600 leading-relaxed">学期末窗口提醒书记集中复核在册滞留名单：滞留成员组织关系保留、应到剔除、通知照发。若滞留需延续或解除，请组织委员在「成员名册」发起变更，书记在本页「成员变更待确认」处理（确认生效或退回）。</p>
+      <div class="rounded-lg bg-gray-50 p-2.5 space-y-1 max-h-44 overflow-y-auto">
+        ${rows || '<div class="text-xs text-gray-400">当前无在册滞留成员</div>'}
+      </div>
+      <div class="pt-3 border-t border-gray-100 flex gap-2">
+        <button type="button" class="mc-semester-close text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">知道了</button>
+      </div>
+    </div>
+  `;
+}
+
+/** 确认/退回派发（approved 直接落；rejected 弹窗填原因） */
+async function _onMcDecide(btn) {
+  const reqId = btn.dataset.mcId;
+  const decision = btn.dataset.decision;
+  if (decision === 'rejected') { _askMcReject(reqId); return; }
+  const r = await decideConfirmation(reqId, { decision: 'approved', by: _secActorId(), note: '' });
+  if (r.ok) showToast('success', _mcApprovedToast(r.request));
+  else showToast('error', r.reason || '确认失败，请重试');
+  _selectedTodoId = null;
+  renderContent();
+}
+
+/** approved 产品话术（按请求类型） */
+function _mcApprovedToast(req) {
+  const name = req.name || req.personId;
+  if (req.kind === 'transferOut') {
+    return `已确认移出「${name}」：未开始引用已自动解除，历史记录已转「已转出」标注保留`;
+  }
+  if (req.action === 'developStage') return `「${name}」发展阶段已确认：${req.from || ''} → ${req.to || ''}`;
+  return `「${name}」在册状态已确认：${req.from || ''} → ${req.to || ''}`;
+}
+
+/** 退回弹窗（可填原因，透传 decideConfirmation rejectNote） */
+function _askMcReject(reqId) {
+  const pend = listPendingConfirmations().find(r => r.id === reqId);
+  const name = pend ? (pend.name || pend.personId) : '';
+  openModal({
+    id: 'mc-reject-modal',
+    title: '退回变更请求',
+    accentColor: '#6B7280',
+    bodyHtml: `
+      <p class="text-sm text-gray-700 mb-1">确认退回${name ? `「${esc(name)}」` : '该成员'}的变更请求？退回后不生效，组织委员可在名册重新发起。</p>
+      <textarea id="mc-reject-note" class="input-flat text-xs w-full mt-2 p-2 rounded-lg border border-gray-200" rows="3" maxlength="200" placeholder="退回原因（可选）"></textarea>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
+        <button type="button" data-mc-reject-cancel class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+        <button type="button" data-mc-reject-ok class="text-xs px-3 py-1.5 rounded-lg text-white hover:opacity-90 transition-opacity" style="background:#6B7280;cursor:pointer;">确认退回</button>
+      </div>`,
+    onMount: (panel) => {
+      panel.querySelector('[data-mc-reject-cancel]')?.addEventListener('click', () => closeModal('mc-reject-modal'));
+      panel.querySelector('[data-mc-reject-ok]')?.addEventListener('click', async () => {
+        const note = panel.querySelector('#mc-reject-note')?.value || '';
+        closeModal('mc-reject-modal');
+        const r = await decideConfirmation(reqId, { decision: 'rejected', by: _secActorId(), note });
+        if (r.ok) showToast('info', `已退回${name ? `「${name}」` : ''}的变更请求（未生效）`);
+        else showToast('error', r.reason || '退回失败，请重试');
+        _selectedTodoId = null;
+        renderContent();
+      });
+    },
+  });
 }
 
 // ── 复核项标签 ────────────────────────────────────────────────
@@ -411,6 +613,16 @@ function bindTodoDetailEvents() {
     if (group) { handleTodoAction(group); return; }
     const todo = TodoStore.getById(_selectedTodoId);
     if (todo) handleTodoAction(todo);
+  });
+  // C 批 附录⑩ S4：成员变更确权（确认生效 / 退回）+ 学期末提醒「知道了」
+  container.querySelectorAll('.mc-decide').forEach(btn => {
+    btn.addEventListener('click', () => _onMcDecide(btn));
+  });
+  container.querySelectorAll('.mc-semester-close').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _selectedTodoId = null;
+      renderContent();
+    });
   });
 }
 

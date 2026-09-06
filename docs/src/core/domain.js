@@ -314,6 +314,15 @@ export const mockDB = {
    *  { id, branchId, type:'develop-node'|'activity-report', title, content,
    *    status:'pending'|'approved'|'rejected', submittedBy, decidedBy, decidedAt, decisionNote, createdAt } */
   reviewRequests: [],
+  // ── 2026-09-06 附录⑩ S4 名册生命周期·确权复核（C 批）：成员变更/移出确权请求队列 ──
+  // 组织委员发起（发展阶段 / 在册滞留 / 移出）→ 书记确认生效或退回（双层留痕、可退回）；
+  // 终态（approved/rejected）保留供审计追溯。mock-adapter 域清单禁改 → 本数组仅承载内存读链；
+  // 跨刷新持久化由 member-confirmation 服务自管 localStorage 键 gsm1921-member-confirmations
+  // （gsm1921- 前缀 → ?reset=demo 自动清理 = 回种子）。
+  /** @type {Object[]} 成员确权请求（{ id, kind:'change'|'transferOut', action:'developStage'|'residence'|'transferOut',
+   *  personId, name, from, to, note, by, at, status:'pending'|'approved'|'rejected',
+   *  decidedBy, decidedAt, rejectNote, refsSummary? }） */
+  pendingMemberConfirmations: [],
 };
 
 // ════════════════════════════════════════════════════════════════
