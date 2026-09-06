@@ -25,7 +25,9 @@ import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getOutputBlockPolicy, getWorkflowBlockPolicy,
   updateBranchModules, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
+  applyConfigCopy,
 } from '../services/branch.js?v=20260903c';
+import { buildConfigPackage, applyConfigPackage } from '../services/org-config-package.js?v=20260903c';
 import { getRosterStats } from '../services/roster.js?v=20260903c';
 import { buildOrgWizardReport } from '../services/org-wizard-report.js?v=20260903c';
 import { getPersonName } from '../services/person.js?v=20260903c';
@@ -141,6 +143,9 @@ export function mountOrgSetupWizard(host, opts) {
     bHidden: null,     // Set output block id
     wbHidden: null,    // Set workflow block id
     wfSnapshot: null,  // 展开 workforce（保存时全量写回）
+    // 阶段二（2026-09-06）：「复制配置到支部…」小面板展开态 + 多选目标集
+    copyOpen: false,
+    copySel: new Set(),
   };
 
   // 权限初始化：party-staff 可切支部；其余必须落在「本支部现任书记」且仅本支部
@@ -174,6 +179,8 @@ function _enterBranch(S, branchId) {
   S.done = draft && draft.done ? { ...draft.done } : {};
   S.dirty = { 1: false, 2: false, 3: false };
   S.modHidden = S.modOrder = S.bHidden = S.wbHidden = S.wfSnapshot = null;
+  S.copyOpen = false;
+  S.copySel = new Set();
   if (branchId) applyThemePreset(getBranchOrg(branchId).themePreset || 'red');
 }
 
@@ -276,6 +283,46 @@ function _headHtml(S, branch, org, isStaff) {
         ${S.embed ? `<a href="../wizard.html?branch=${esc(S.branchId)}" class="text-[11px] text-blue-600 hover:text-blue-800 shrink-0" title="在新页面打开向导（独立 URL 直达）">独立页直达 ↗</a>` : ''}
       </div>
       ${picker}
+      ${_toolbarHtml(S, isStaff)}
+    </div>`;
+}
+
+// ── 配置工具条（阶段二 2026-09-06：JSON 覆盖件导出/导入 + 复制配置到支部）──────────
+function _toolbarHtml(S, isStaff) {
+  const branches = (mockDB.branches || []).filter(b => b.id && b.id !== 'pc-gsm');
+  const subtle = 'text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors';
+  const row = `
+    <div class="flex flex-wrap items-center gap-2 pt-2.5 mt-2.5 border-t border-gray-100">
+      <span class="text-[11px] text-gray-400 shrink-0">配置工具</span>
+      <button type="button" data-wz-act="export-pkg" class="${subtle}">导出 JSON 配置包</button>
+      <button type="button" data-wz-act="import-pkg" class="${subtle}">导入 JSON 配置包</button>
+      ${isStaff ? `<button type="button" data-wz-act="toggle-copy" class="${subtle}">${S.copyOpen ? '收起' : ''}复制配置到支部…</button>` : ''}
+      <input type="file" id="wz-pkg-file" accept=".json,application/json" class="hidden" data-wz-file="pkg">
+    </div>`;
+  const panel = isStaff && S.copyOpen ? _copyPanelHtml(S, branches) : '';
+  return row + panel;
+}
+
+/** 复制配置到支部小面板（源=当前选中支部；目标=多选其余支部；仅 party-staff 渲染） */
+function _copyPanelHtml(S, branches) {
+  const sourceName = esc((getBranchById(S.branchId) || {}).name || S.branchId);
+  const targets = branches.filter(b => b.id !== S.branchId);
+  const rows = targets.length
+    ? targets.map(b => `
+      <label class="flex items-center gap-2 py-1 px-1 rounded cursor-pointer hover:bg-white">
+        <input type="checkbox" data-wz-copy-target value="${esc(b.id)}" ${S.copySel.has(b.id) ? 'checked' : ''} class="shrink-0">
+        <span class="text-xs text-gray-700 min-w-0 truncate">${esc(b.name)}<span class="text-[10px] text-gray-400">（${esc(b.id)}）</span></span>
+      </label>`).join('')
+    : '<p class="text-[11px] text-gray-400 py-1">暂无其它支部可复制——请先由党委在「支部管理」中创建支部。</p>';
+  return `
+    <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 mt-2.5 space-y-2">
+      <p class="text-xs font-semibold text-gray-700">复制配置到支部…</p>
+      <p class="text-[11px] text-gray-500">源：<b class="text-gray-700">${sourceName}</b>；将模块/块组合、角色分工与组织档案（页眉/自述/主题预设）复制给勾选的目标支部，逐目标留痕 <code class="text-[10px] bg-white px-1 py-0.5 rounded border border-blue-100">config-copied</code>。</p>
+      <div class="rounded-lg bg-white border border-blue-100 px-2 py-1 max-h-44 overflow-y-auto">${rows}</div>
+      <div class="flex items-center justify-end gap-2">
+        <button type="button" data-wz-act="toggle-copy" class="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-white transition-colors">取消</button>
+        <button type="button" data-wz-act="do-copy" ${S.copySel.size ? '' : 'disabled'} class="px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90 ${S.copySel.size ? '' : 'opacity-40 cursor-not-allowed'}" style="background:#C8102E;">确认复制（已选 ${S.copySel.size}）</button>
+      </div>
     </div>`;
 }
 
@@ -517,6 +564,22 @@ function _step5Html(S, branch, org) {
 function _completeHtml(S, branch, org) {
   const preset = _presetOf(org.themePreset || 'red');
   const stats = getRosterStats({ type: '支部党员大会' });
+  // 摘要 chips（无 emoji：色点 + 文字徽标）——「换壳结果」一眼可读
+  const rep = _collectReportInput(S);
+  const mod = rep.modulesSummary || {};
+  const blk = rep.blocksSummary || {};
+  const hiddenMod = (mod.hiddenLabels || []).length;
+  const outHidden = (blk.outputHiddenLabels || []).length;
+  const wbHidden = (blk.wbHiddenLabels || []).length;
+  const chipDot = (bad) => bad ? '#EF4444' : '#16A34A';
+  const chip = (dot, text) =>
+    `<span class="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border border-gray-200 bg-white text-gray-600"><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background:${dot};"></span>${text}</span>`;
+  const summaryChips = [
+    chip(chipDot(hiddenMod), `业务模块启用 ${mod.visibleCount ?? mod.total ?? 0}/${mod.total ?? 0}${hiddenMod ? ` · 停用 ${hiddenMod}` : ''}`),
+    chip(chipDot(outHidden), outHidden ? `产出块停用 ${outHidden}` : '活动产出块全开'),
+    chip(chipDot(wbHidden), wbHidden ? `工作流块停用 ${wbHidden}` : '工作流块全开'),
+    chip(chipDot(false), `主题预设 ${esc(preset.name)}`),
+  ].join('');
   return `
     <div class="rounded-xl border border-green-200 bg-green-50/40 p-4 space-y-3">
       <div class="flex items-center gap-2">
@@ -524,6 +587,7 @@ function _completeHtml(S, branch, org) {
         <span class="text-[11px] px-2 py-0.5 rounded-full bg-green-100 text-green-700">配置已生效</span>
       </div>
       <p class="text-xs text-gray-500">以下改动已即时写入支部 config 并留痕（可查 config.configChangeHistory）；未写入仓库文件的项见下载的工作单。</p>
+      <div class="flex flex-wrap gap-1.5">${summaryChips}</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
         <div class="rounded-lg bg-white border border-green-100 p-2.5">
           <p class="text-gray-400 text-[11px] mb-0.5">页眉显示名</p>
@@ -565,11 +629,12 @@ function _footerHtml(S, isStaff) {
 function _onClick(S, e) {
   const el = e.target && e.target.closest ? e.target.closest('[data-wz-act],[data-wz-step],[data-wz-chip]') : null;
   if (!el) return;
-  // 步骤条跳转
+  // 步骤条跳转（已完成步可点击回看；完成报告页点步骤条回到向导视图）
   if (el.hasAttribute('data-wz-step')) {
     const target = Number(el.getAttribute('data-wz-step'));
     const maxReached = Math.max(1, ...Object.keys(S.done).map(Number), S.step);
     if (target >= 1 && target <= 5 && target <= maxReached && target !== S.step) {
+      if (S.view === 'complete') S.view = 'wizard';
       _goStep(S, target);
     }
     return;
@@ -616,6 +681,21 @@ function _onClick(S, e) {
     case 'goto-verify':
       S.view = 'wizard'; S.step = 5; _persistDraft(S); _render(S);
       break;
+    case 'export-pkg':
+      _exportPkg(S);
+      break;
+    case 'import-pkg': {
+      const fi = S.host.querySelector('#wz-pkg-file');
+      if (fi) fi.click(); // 触发隐藏 file input（用户手势链内）
+      break;
+    }
+    case 'toggle-copy':
+      S.copyOpen = !S.copyOpen;
+      _render(S);
+      break;
+    case 'do-copy':
+      _doCopy(S);
+      break;
     default:
       break;
   }
@@ -631,6 +711,25 @@ function _onChange(S, e) {
       _refreshStepState(S);
       _render(S);
     }
+    return;
+  }
+  // 「复制配置到支部」目标多选：更新 S.copySel + 确认按钮可用态（不整页重绘）
+  if (t.hasAttribute('data-wz-copy-target')) {
+    if (t.checked) S.copySel.add(t.value); else S.copySel.delete(t.value);
+    const btn = S.host.querySelector('[data-wz-act="do-copy"]');
+    if (btn) {
+      btn.disabled = !S.copySel.size;
+      btn.classList.toggle('opacity-40', !S.copySel.size);
+      btn.classList.toggle('cursor-not-allowed', !S.copySel.size);
+      btn.textContent = `确认复制（已选 ${S.copySel.size}）`;
+    }
+    return;
+  }
+  // 导入配置包：file input 选中 → 读取 JSON → apply → toast + 重渲染
+  if (t.hasAttribute('data-wz-file')) {
+    const file = t.files && t.files[0];
+    t.value = ''; // 置空以允许再次选择同一文件
+    if (file) _importPkgFile(S, file);
     return;
   }
   if (t.name === 'wz-theme') {
@@ -841,6 +940,91 @@ function _downloadReport(S) {
   const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
   downloadBlob(`换壳工作单-${branch.name}.md`, blob);
   showToast('success', '换壳工作单已下载（Markdown）');
+}
+
+// ── 配置包导出 / 导入 / 复制到支部（阶段二 2026-09-06）────────────
+const FIELD_LABELS = {
+  headerTitle: '页眉显示名', themePreset: '主题预设', desc: '支部自述',
+  modules: '模块组合', blocks: '块组合', workforce: '角色分工',
+};
+/** 字段列表 → 中文摘要（toast 用） */
+function _fieldsLabel(fields) {
+  const list = (Array.isArray(fields) ? fields : []).map(f => FIELD_LABELS[f] || f);
+  return list.length ? list.join('、') : '无';
+}
+
+/** 导出 JSON 配置包（Blob 下载 <branchId>-org-config.json） */
+function _exportPkg(S) {
+  try {
+    const pkg = buildConfigPackage({ branchId: S.branchId, by: S.actor.personId || undefined });
+    const blob = new Blob([JSON.stringify(pkg, null, 2)], { type: 'application/json;charset=utf-8' });
+    downloadBlob(`${S.branchId}-org-config.json`, blob);
+    showToast('success', '配置包已导出（JSON，可下载留档或在本地预览应用）');
+  } catch (err) {
+    console.error('[wizard] 导出配置包失败', err);
+    showToast('error', `导出失败：${(err && err.message) || err}`);
+  }
+}
+
+/** 导入 JSON 配置包：读取文件 → apply（净化+留痕+写库）→ toast 摘要 + 重渲染 */
+function _importPkgFile(S, file) {
+  const reader = new FileReader();
+  reader.onerror = () => showToast('error', '读取配置文件失败');
+  reader.onload = async () => {
+    try {
+      const pkg = JSON.parse(String(reader.result || ''));
+      const res = await applyConfigPackage(pkg, { branchId: S.branchId, by: S.actor.personId || undefined });
+      if (!res.ok) {
+        showToast('error', `导入失败：${res.reason || '未知原因'}`);
+        return;
+      }
+      if (res.unchanged) {
+        showToast('info', '配置包与当前配置一致，无变更');
+        return;
+      }
+      _refreshStepState(S);
+      applyThemePreset(getBranchOrg(S.branchId).themePreset || 'red'); // 主题随导入即时生效
+      _persistDraft(S);
+      _render(S);
+      showToast('success', `已应用配置包：${_fieldsLabel(res.updatedFields)}（已留痕）`);
+    } catch (err) {
+      console.error('[wizard] 导入配置包失败', err);
+      showToast('error', `导入失败：${(err && err.message) || err}`);
+    }
+  };
+  reader.readAsText(file);
+}
+
+/** 「复制配置到支部…」确认：批量复制 → toast 汇总 + 重渲染 */
+async function _doCopy(S) {
+  const ids = [...S.copySel];
+  if (!ids.length) return;
+  try {
+    const results = await applyConfigCopy(S.branchId, ids, { by: S.actor.personId || undefined });
+    const okNames = [];
+    const failMsgs = [];
+    for (const r of results) {
+      const b = getBranchById(r.targetId);
+      const label = b ? b.name : r.targetId;
+      if (r.ok) {
+        okNames.push(r.fields.length ? `${label}（${_fieldsLabel(r.fields)}）` : label);
+      } else {
+        failMsgs.push(`${label}：${r.reason || '复制失败'}`);
+      }
+    }
+    S.copyOpen = false;
+    S.copySel = new Set();
+    _refreshStepState(S);
+    applyThemePreset(getBranchOrg(S.branchId).themePreset || 'red');
+    _persistDraft(S);
+    _render(S);
+    const okPart = okNames.length ? `已复制到 ${okNames.length} 个支部：${okNames.join('、')}` : '';
+    const failPart = failMsgs.length ? `；未生效 ${failMsgs.join('；')}` : '';
+    showToast(okNames.length ? 'success' : 'error', (okPart + failPart) || '未执行复制');
+  } catch (err) {
+    console.error('[wizard] 复制配置失败', err);
+    showToast('error', `复制失败：${(err && err.message) || err}`);
+  }
 }
 
 /** 局部重绘 chips（保住 DOM 与滚动，不重建整步） */

@@ -361,6 +361,117 @@ export function getBranchThemePreset(branchId) {
   return getBranchById(branchId)?.config?.themePreset ?? null;
 }
 
+// ── 配置覆盖写（2026-09-06 立项④阶段二：JSON 配置包导入 / 复制配置到支部 共用落地）────────
+// domains = { org?: { headerTitle?, desc?, themePreset? }, modules?, blocks?, workforce? }
+//   域显式提供才处理；null = 该域恢复默认（与 updateBranchModules 等 null 语义一致）；缺省 = 不改。
+//   逐域净化唯一实现 = core/config-clean.js（sanitizeConfigOrg/sanitizeConfigModules/
+//   sanitizeConfigBlocks/sanitizeConfigWorkforce）——非法 id / 白名单外值丢弃，不写坏。
+//   一次调用 = 一次 adapter 写 + 一条聚合留痕 { by, at, what, from, to: fields }
+//   （批量/覆盖类操作一操作一痕可读；逐 key 明细可从 config 现读核对）。
+/** 支部配置域覆盖写（内部落地：applyConfigCopy / org-config-package.applyConfigPackage 共用） */
+export async function applyBranchConfig(branchId, domains = {}, opts = {}) {
+  const cur = getBranchById(branchId);
+  if (!cur) return { branchId, ok: false, reason: '目标支部不存在', changed: false, updatedFields: [] };
+  const by = (opts && opts.by) || _actorId() || null;
+  const at = new Date().toISOString();
+  const prev = cur.config || {};
+  const history = Array.isArray(prev.configChangeHistory) ? [...prev.configChangeHistory] : [];
+  const patch = {};
+  const fields = [];
+
+  // org 域（headerTitle/desc/themePreset；desc 允许清空为 ''，其余空串丢弃——sanitizeConfigOrg 口径）
+  if (domains && domains.org && typeof domains.org === 'object' && !Array.isArray(domains.org)) {
+    const clean = sanitizeConfigOrg(domains.org);
+    for (const key of ['headerTitle', 'desc', 'themePreset']) {
+      if (clean[key] === undefined) continue;
+      const old = key === 'desc' ? (prev.desc ?? '') : (prev[key] ?? null);
+      const next = key === 'desc' ? (clean[key] ?? '') : (clean[key] ?? null);
+      if (!_sameConfigVal(old, next)) { patch[key] = clean[key]; fields.push(key); }
+    }
+  }
+  if (domains && Object.prototype.hasOwnProperty.call(domains, 'modules')) {
+    const next = sanitizeConfigModules(domains.modules === undefined ? null : domains.modules);
+    const old = prev.modules ?? null;
+    if (!_sameConfigVal(old, next)) { patch.modules = next; fields.push('modules'); }
+  }
+  if (domains && Object.prototype.hasOwnProperty.call(domains, 'blocks')) {
+    const next = sanitizeConfigBlocks(domains.blocks === undefined ? null : domains.blocks);
+    const old = prev.blocks ?? null;
+    if (!_sameConfigVal(old, next)) { patch.blocks = next; fields.push('blocks'); }
+  }
+  if (domains && Object.prototype.hasOwnProperty.call(domains, 'workforce')) {
+    const next = sanitizeConfigWorkforce(domains.workforce === undefined ? null : domains.workforce);
+    const old = prev.workforce ?? null;
+    if (!_sameConfigVal(old, next)) { patch.workforce = next; fields.push('workforce'); }
+  }
+  if (!fields.length) return { branchId, ok: true, changed: false, updatedFields: [] }; // 与现状一致：不写不留痕
+
+  const what = (opts && opts.what) || 'config-overwrite';
+  const from = (opts && opts.from) || null;
+  history.push({ by, at, what, from, to: [...fields] });
+  const nextConfig = { ...prev, ...patch, configChangeHistory: history };
+  const next = await getAdapter().branches.updateConfig(branchId, nextConfig);
+  const idx = (mockDB.branches || []).findIndex(b => b.id === branchId);
+  if (idx >= 0) {
+    mockDB.branches = [...mockDB.branches.slice(0, idx), next, ...mockDB.branches.slice(idx + 1)];
+  } else if (next) {
+    mockDB.branches = [...mockDB.branches, next];
+  }
+  persist();
+  return { branchId, ok: true, changed: true, updatedFields: fields };
+}
+
+/**
+ * 复制配置到支部（2026-09-06 立项④阶段二：党委台向导工具条「复制配置到支部…」落地点）
+ * 语义：把源支部 config 的 modules/blocks/workforce（保留既有结构）复制给每个目标；
+ *   includeOrg=true 时连同 org 档案域（headerTitle/desc/themePreset）一并复制。
+ *   源 config 缺省（undefined/null）即「默认全开/默认分工」→ 目标相应域恢复默认（与源一致）。
+ * 留痕：逐 target 追加一条 { by, at, what:'config-copied', from:`branch:${sourceId}`, to: fields }。
+ * 净化：复用 config-clean sanitize（主题预设白名单外回退——非法值丢弃、themePreset:null 清除回默认红调）。
+ * 返回：Array<{ targetId, ok, fields: string[], reason? }>；非法/不存在返回 reason（不 throw）。
+ */
+export async function applyConfigCopy(sourceId, targetIds, opts = {}) {
+  const by = (opts && opts.by) || _actorId() || null;
+  const includeOrg = !(opts && opts.includeOrg === false);
+  const ids = [...new Set((Array.isArray(targetIds) ? targetIds : []).map(String).filter(Boolean))];
+  const source = getBranchById(sourceId);
+  if (!source) {
+    return ids.map(targetId => ({ targetId, ok: false, fields: [], reason: '源支部不存在' }));
+  }
+  const srcCfg = source.config || {};
+  const results = [];
+  for (const targetId of ids) {
+    if (targetId === sourceId) {
+      results.push({ targetId, ok: false, fields: [], reason: '目标与源为同一支部' });
+      continue;
+    }
+    if (!getBranchById(targetId)) {
+      results.push({ targetId, ok: false, fields: [], reason: '目标支部不存在' });
+      continue;
+    }
+    const domains = {
+      modules: srcCfg.modules === undefined ? null : srcCfg.modules,
+      blocks: srcCfg.blocks === undefined ? null : srcCfg.blocks,
+      workforce: srcCfg.workforce === undefined ? null : srcCfg.workforce,
+    };
+    if (includeOrg) {
+      domains.org = {
+        headerTitle: srcCfg.headerTitle || source.name || '',
+        desc: srcCfg.desc ?? '',
+        themePreset: srcCfg.themePreset ?? null,
+      };
+    }
+    const res = await applyBranchConfig(targetId, domains, { by, what: 'config-copied', from: `branch:${sourceId}` });
+    results.push({
+      targetId,
+      ok: res.ok && !res.reason,
+      fields: res.updatedFields || [],
+      ...(res.reason ? { reason: res.reason } : {}),
+    });
+  }
+  return results;
+}
+
 /** 支部组织档案读取（name/headerTitle/desc/themePreset 收口，UI 勿逐键直连 config） */
 export function getBranchOrg(branchId) {
   const b = getBranchById(branchId);
