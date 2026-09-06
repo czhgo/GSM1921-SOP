@@ -25,7 +25,7 @@ import { BRANCHES } from '../mock/branches.js?v=20260903c';
 const STORAGE_KEY = 'workflowos_branch_db_v1';
 
 // 历史遗留存储键（并入 workflowos_branch_db_v1 全量键架构前的旧单域键）：
-// SANDBOX_MODE 每刷清理与演示数据一键重置（?reset=1，见 _resetDemoIfRequested）
+// SANDBOX_MODE 每刷清理与演示数据一键重置（?reset demo 档，见 handleResetIfRequested/collectResetKeys）
 // 共用同一清单，避免两处键集合漂移。
 const LEGACY_STORAGE_KEYS = [
   'assignment_records', 'attendance_records',
@@ -104,43 +104,98 @@ function _saveToStorage() {
   }
 }
 
+// ════════════════════════════════════════════════════════════════
+//  ?reset 分层重置（立项⑤ 阶段B，2026-09-06）
+//  浏览器演示场景 URL 参数分两档（?reset=1 为 demo 档历史别名，向后兼容）：
+//    · demo    = 全回演示种子：清除本域全部演示存储键（workflowos_*/gsm1921-*/sop_org_os_* 前缀 +
+//                LEGACY_STORAGE_KEYS 历史遗留键），随后整页导航；下次 loadDB 无持久化数据即回种子初始态
+//                （_loadFromStorage → _seedInitialData）。—— 现状 ?reset=1 行为不变。
+//    · preview = 仅清运行时 overlay/预览键（成员基础数据预览 gsm1921-base-data-preview + 换组织向导草稿
+//                wizard-draft-*），不动演示数据本体——等价于「清除预览/清空草稿」的 URL 入口
+//                （看效果后想回干净界面再续走，无需重置演示数据）。
+//  两档共用执行边界：仅无 API token 时执行；token 存在（sessionStorage['gsm1921-api-token']）一律跳过——
+//  数据以服务器为权威（不清 sessionStorage 登录会话、不清服务器远端数据；服务端「重置」= 重建 DB 或走管理端，
+//  见 README 快速开始 reset 说明）。
+// ════════════════════════════════════════════════════════════════
+
+/** 演示数据本体存储键前缀（demo 档与 SANDBOX_MODE 每刷清理同源口径） */
+const DEMO_PREFIX_KEYS = ['workflowos_', 'gsm1921-', 'sop_org_os_'];
+
+/** preview 档精确匹配的运行时 overlay/预览键（非 mockDB 持久化键）：
+ *  - gsm1921-base-data-preview：成员基础数据预览（org-base-data-preview.js PREVIEW_KEY） */
+const PREVIEW_EXACT_KEYS = ['gsm1921-base-data-preview'];
+/** preview 档按前缀匹配的运行时键：换组织向导草稿（org-setup-wizard.js DRAFT_PREFIX='wizard-draft-'，按支部分键） */
+const PREVIEW_PREFIX_KEYS = ['wizard-draft-'];
+
 /**
- * 演示数据一键重置（P4a，2026-09-06 模板型落地）：
- * 浏览器演示场景在 URL 加 ?reset=1 访问时，清除本域全部演示存储键
- * （workflowos_* 项目 DB / gsm1921-* 登录与会话缓存 / sop_org_os_* 审计 +
- * LEGACY_STORAGE_KEYS 历史遗留键），随后去掉 URL 上的 reset 参数整页导航，
- * 下次 loadDB 无持久化数据即回种子初始态（_loadFromStorage → _seedInitialData）。
+ * 解析 ?reset 档位（纯函数，供单测与执行共用）：
+ * @param {string|null} resetValue URL 参数 reset 的值
+ * @returns {'demo'|'preview'|null} null=无重置请求（未知值不动作，防误触）
+ */
+export function resolveResetTier(resetValue) {
+  if (resetValue === '1' || resetValue === 'demo') return 'demo'; // ?reset=1 = demo 档历史别名（向后兼容）
+  if (resetValue === 'preview') return 'preview';
+  return null;
+}
+
+/**
+ * 收集某档位应移除的存储键（纯函数，供单测与执行共用）：
+ * demo 档 = 演示数据前缀键（含 gsm1921-base-data-preview 等 gsm1921-* 运行时键，同前缀）+ 历史遗留键
+ *           （遗留键不依赖存在性——removeItem 幂等，保持原 ?reset=1 键集合口径）；
+ * preview 档 = 仅运行时 overlay/预览键，逐键精确匹配，不动演示数据本体。
+ * @param {'demo'|'preview'} tier resolveResetTier 输出
+ * @param {string[]} [presentKeys] 当前存储的全部键
+ * @returns {string[]} 待移除键清单（去重）
+ */
+export function collectResetKeys(tier, presentKeys = []) {
+  if (tier === 'demo') {
+    const keys = new Set(presentKeys.filter(k => DEMO_PREFIX_KEYS.some(p => k.startsWith(p))));
+    LEGACY_STORAGE_KEYS.forEach(k => keys.add(k));
+    return [...keys];
+  }
+  if (tier === 'preview') {
+    return presentKeys.filter(k => PREVIEW_EXACT_KEYS.includes(k) || PREVIEW_PREFIX_KEYS.some(p => k.startsWith(p)));
+  }
+  return [];
+}
+
+/**
+ * URL ?reset 分层重置执行（P4a + 立项⑤ 阶段B）：
+ * 访问带 reset 档位参数的 URL 时，按档位清除对应存储键（见 resolveResetTier/collectResetKeys），
+ * 随后去掉 URL 上的 reset 参数整页导航（replace），新页面不再触发（防重复刷新）、恢复正常加载。
  *
- * 边界（不破坏正常加载与 API 模式）：
- * - 仅在无 API token（sessionStorage['gsm1921-api-token'] 不存在）的纯演示/本地
- *   mock 场景执行；API 模式数据以服务器为权威，不清 sessionStorage 登录会话。
+ * 边界（不破坏正常加载与 API 模式，复核 2026-09-06）：
+ * - 仅在无 API token（sessionStorage['gsm1921-api-token'] 不存在）的纯演示/本地 mock 场景执行；
+ *   API 模式数据以服务器为权威，两档均跳过——不清 sessionStorage 登录会话与远端数据。
  * - 所有存储访问均包 try-catch：隐私模式/存储不可用时跳过，不影响正常加载。
  * @returns {boolean} true=已执行重置并触发导航（调用方应中止本次加载）
  */
-function _resetDemoIfRequested() {
+export function handleResetIfRequested() {
   try {
     if (typeof window === 'undefined' || typeof localStorage === 'undefined') return false;
-    // API 模式：演示数据以服务器为权威，token 存在时不执行重置，避免误清登录会话
     if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('gsm1921-api-token')) return false;
     const params = new URLSearchParams(window.location.search);
-    if (params.get('reset') !== '1') return false;
-    // 本域演示存储键集合 = 前缀键 + 历史遗留键（前缀与 SANDBOX_MODE 清理同源口径）
-    const PREFIX_KEYS = ['workflowos_', 'gsm1921-', 'sop_org_os_'];
-    const removeKeys = [];
+    const tier = resolveResetTier(params.get('reset'));
+    if (!tier) return false;
+    const presentKeys = [];
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
-      if (k && PREFIX_KEYS.some(p => k.startsWith(p))) removeKeys.push(k);
+      if (k) presentKeys.push(k);
     }
-    LEGACY_STORAGE_KEYS.forEach(k => removeKeys.push(k));
+    const removeKeys = collectResetKeys(tier, presentKeys);
     removeKeys.forEach(k => localStorage.removeItem(k));
-    console.info(`[MockAdapter] ?reset=1 已清除演示存储键 ${removeKeys.length} 个，正在回到种子初始态`);
+    if (tier === 'demo') {
+      console.info(`[MockAdapter] ?reset=1/demo 已清除演示存储键 ${removeKeys.length} 个，正在回到种子初始态`);
+    } else {
+      console.info(`[MockAdapter] ?reset=preview 已清除运行时 overlay/预览键 ${removeKeys.length} 个（向导草稿/成员预览），演示数据未动，正在刷新`);
+    }
     // 去掉 URL 上的 reset 参数再导航，防止新页面再次触发清空（造成重复刷新）
     const url = new URL(window.location.href);
     url.searchParams.delete('reset');
     window.location.replace(url.toString());
     return true;
   } catch (e) {
-    console.warn('[MockAdapter] ?reset=1 重置失败（已跳过，不影响正常加载）：', e);
+    console.warn('[MockAdapter] ?reset 重置失败（已跳过，不影响正常加载）：', e);
     return false;
   }
 }
@@ -386,9 +441,10 @@ export const MockAdapter = {
   // ── 全局操作 ──────────────────────────────────────────────
 
   loadDB() {
-    // 演示数据一键重置（P4a）：URL 带 ?reset=1 时清除本域演示存储并整页导航回种子初始态。
+    // ?reset 分层重置（P4a + 立项⑤ 阶段B）：URL 带 reset 档位时按档清除存储并整页导航——
+    // demo=全回演示种子（?reset=1 为别名）、preview=仅清运行时 overlay/预览键；API 模式（有 token）不执行。
     // 置于 _loadFromStorage 之前（读取即检测），覆盖全部 mock 模式加载路径。
-    if (_resetDemoIfRequested()) return;
+    if (handleResetIfRequested()) return;
     const merged = _loadFromStorage();
     // 持久化守卫解锁：无论恢复成功与否，加载流程已结束，后续写入允许
     mockDB._loaded = true;

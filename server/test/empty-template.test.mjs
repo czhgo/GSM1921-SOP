@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import { mockDB } from '../../docs/src/core/domain.js?v=20260903c';
 import {
   EMPTY_BRANCH_TEMPLATE, buildNewBranchRecord,
-  createBranch, getBranchById, auditEmptyBranchRecord,
+  createBranch, getBranchById, getBranchOrg, auditEmptyBranchRecord,
 } from '../../docs/src/services/branch.js?v=20260903c';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
@@ -315,4 +315,36 @@ test('HTTP：copy 创建与前端本地构造双形态一致；源 br-b1 不被�
   // 双形态一致：前端本地构造（同一源记录）归一化后逐位相等
   const localExpected = buildNewBranchRecord({ mode: 'copy', sourceBranch: srcRow, name: 'HTTP复制支部', by: 'p_pc' });
   assert.deepEqual(_norm(branch), _norm(localExpected), 'server 与前端 copy 构造一致');
+});
+
+test('HTTP：POST /branches 后 GET /branches 全字段透传（headerTitle/themePreset 等新字段零丢失，前端消费口径对齐）', async () => {
+  const staff = await login('p_pc');
+  const posted = [];
+  for (const body of [
+    { mode: 'empty', name: 'GET透传空支部', type: '硕士' },
+    { mode: 'copy', sourceId: 'br-b1', name: 'GET透传复制支部' },
+  ]) {
+    const r = await postBranch(staff, body);
+    assert.equal(r.status, 201);
+    posted.push((await r.json()).branch);
+  }
+  // GET /branches 回读：与 POST 响应逐位相等（branches 表整记录 JSON 存储，config 新字段天然透传）
+  const list = await (await fetch(`${base}/api/v1/branches`, { headers: auth(staff) })).json();
+  for (const b of posted) {
+    const row = list.find(x => x.id === b.id);
+    assert.ok(row, `GET /branches 含新建支部 ${b.id}`);
+    assert.deepEqual(JSON.parse(JSON.stringify(row)), JSON.parse(JSON.stringify(b)), 'GET 回读 = POST 响应（headerTitle/themePreset/secretaryId 等不丢）');
+    assert.ok(Object.prototype.hasOwnProperty.call(row.config, 'headerTitle'), 'config.headerTitle 在 GET 列表透传');
+    assert.ok(Object.prototype.hasOwnProperty.call(row.config, 'themePreset'), 'config.themePreset 在 GET 列表透传');
+  }
+  // 前端消费口径（阶段B 核对结论：无补齐缺口）——模拟 API 模式 init() 以 GET 列表填充 mockDB.branches，
+  // 前端 getBranchOrg/getBranchById 直接读该行即可取到新字段，无需服务端再透传
+  mockDB.branches = list;
+  const org0 = getBranchOrg(posted[0].id);
+  assert.equal(org0.headerTitle, posted[0].config.headerTitle || posted[0].name);
+  assert.equal(org0.themePreset, posted[0].config.themePreset ?? null);
+  assert.equal(org0.secretaryId, null, '席位空缺在列表透传');
+  const org1 = getBranchOrg(posted[1].id);
+  assert.equal(org1.headerTitle, 'GET透传复制支部');
+  assert.equal(org1.themePreset, null);
 });
