@@ -26,6 +26,7 @@ function _goToWorkspace(role) {
 
 // ── 开发模式卡片数据 ──────────────────────────────
 const DEV_CARDS = [
+  { role: 'party-staff',       label: '党委组织员',   desc: '党务老师 · 治理总览·监控全院支部' },
   { role: 'secretary',         label: '党支部书记',   desc: '组织统筹决策' },
   { role: 'deputy-secretary',  label: '党支部副书记', desc: '协助书记工作' },
   { role: 'org-commissioner',  label: '组织委员',     desc: '发展数据' },
@@ -33,7 +34,6 @@ const DEV_CARDS = [
   { role: 'disc-commissioner', label: '纪检委员',     desc: '考勤考察' },
   { role: 'leader',            label: '党小组组长',   desc: '活动统筹' },
   { role: 'participant',       label: '普通参与者',   desc: '查看信息' },
-  { role: 'party-staff',       label: '党委组织员',   desc: '党务老师 · 监控全院支部' },
 ];
 
 // ── 渲染开发模式卡片 ──────────────────────────────
