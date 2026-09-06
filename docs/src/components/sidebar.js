@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // components/sidebar.js — 共享侧边栏（角色单页制 v2）
 // 2026-07-29: 角色单页制重构——合并党建/党务为"工作台"单入口
 // - 移除 '党务管理' / '人员管理' 独立入口
@@ -24,6 +24,14 @@ function loadAuth() {
   if (!_authModule) _authModule = import('../services/auth.js?v=20260903c');
   return _authModule;
 }
+
+// ── 党委视图全局导航收敛（书记立项⑦ A波，2026-09-06）────────────
+// 产品口径：party-staff（党委组织员/党务老师）视图 = 全局治理面，不含支部运行功能入口
+// （首页/资料查询/意见反馈/归档库等支部数据浏览页）；仅保留治理/必要项——「工作台」按
+// ROLE_PAGE_MAP 直达 party-committee.html 党委工作台。判定依据：party-staff 登录直达
+// 党委工作台（login-entry），首页 dashboard 无其治理内容（均为支部运行区块），非落点必需。
+// 支部层各角色（书记/副书记/三委员/组长/成员）导航行为不变。
+const PARTY_STAFF_HIDDEN_NAV = new Set(['dashboard', 'search', 'feedback', 'archive']);
 
 function getNavItems() {
   const base = getBasePath();
@@ -76,7 +84,9 @@ export async function renderSidebar(activeModule, opts = {}) {
   // 使用常设角色（非 effective role）决定导航结构
   const role = user ? AuthStore.getUserRole(user.personId) : '';
 
-  const navItems = getNavItems();
+  // party-staff（党委视图）隐藏支部运行导航项（PARTY_STAFF_HIDDEN_NAV）；
+  // 其余角色 / 访客不过滤，导航行为与既往完全一致
+  const navItems = getNavItems().filter(item => !(role === 'party-staff' && PARTY_STAFF_HIDDEN_NAV.has(item.module)));
   const navHTML = navItems.map(item => {
     // 工作台：根据角色自动跳转对应页面
     let href = item.href;
