@@ -15,6 +15,9 @@ import { mockDB } from '../core/domain.js?v=20260903c';
 // 修复（T175）：直接从 mock/people.js 导入 PEOPLE，
 // 断开 person.js ↔ mock/index.js 双向循环依赖（person.js 不再依赖 mock/index.js）
 import { PEOPLE } from '../mock/people.js?v=20260903c';
+// 成员基础数据预览叠加（立项④阶段三·目标1）：PersonStore 读取时套预览 override；
+// 依赖方向单向（person → preview，preview 不 import person/roster，无循环）
+import { overlayPreviewMembers } from './org-base-data-preview.js?v=20260903c';
 
 // ════════════════════════════════════════════════════════════════
 //  PersonStore — 人员数据统一服务接口
@@ -45,10 +48,12 @@ export const PersonStore = {
   /**
    * 支部成员名单（2026-09-03 数据域接线收口：UI 原直连 mock PEOPLE 改为经本服务获取）
    * 语义 = 静态党员种子 PEOPLE（成员选择/名单遍历用；不含登录系统账号 mockDB.users——见 getAll 注释）
+   * 读取时叠加「成员基础数据预览」（name/partyGroup/developStage/residenceStatus/residenceNote，
+   *   见 org-base-data-preview.js；未应用预览时 = 种子原值）
    * @returns {Array} 成员数组
    */
   getMembers() {
-    return [...PEOPLE];
+    return overlayPreviewMembers([...PEOPLE]);
   },
 
   /**
@@ -60,7 +65,7 @@ export const PersonStore = {
     // 此前仅返回 mockDB.users（8 条系统账号），导致学生 ID（p1/p12/p13 等）
     // 解析不到姓名，页面显示"发起: p12"而非真实姓名。
     const map = new Map();
-    [...PEOPLE, ...(mockDB.users || [])].forEach(p => {
+    [...overlayPreviewMembers([...PEOPLE]), ...(mockDB.users || [])].forEach(p => {
       if (p && p.id) map.set(p.id, p);
     });
     return Array.from(map.values());

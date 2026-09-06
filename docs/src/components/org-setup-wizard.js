@@ -28,6 +28,10 @@ import {
   applyConfigCopy,
 } from '../services/branch.js?v=20260903c';
 import { buildConfigPackage, applyConfigPackage } from '../services/org-config-package.js?v=20260903c';
+import {
+  buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
+  PREVIEW_KIND, PREVIEW_VERSION,
+} from '../services/org-base-data-preview.js?v=20260903c';
 import { getRosterStats } from '../services/roster.js?v=20260903c';
 import { buildOrgWizardReport } from '../services/org-wizard-report.js?v=20260903c';
 import { getPersonName } from '../services/person.js?v=20260903c';
@@ -146,6 +150,9 @@ export function mountOrgSetupWizard(host, opts) {
     // 阶段二（2026-09-06）：「复制配置到支部…」小面板展开态 + 多选目标集
     copyOpen: false,
     copySel: new Set(),
+    // 阶段三·目标1（2026-09-06）：成员基础数据预览面板展开态 + 导入草稿（净化后待确认应用）
+    baseOpen: false,
+    baseDraft: null,  // { people, stats, dropped } | null
   };
 
   // 权限初始化：party-staff 可切支部；其余必须落在「本支部现任书记」且仅本支部
@@ -181,6 +188,8 @@ function _enterBranch(S, branchId) {
   S.modHidden = S.modOrder = S.bHidden = S.wbHidden = S.wfSnapshot = null;
   S.copyOpen = false;
   S.copySel = new Set();
+  S.baseOpen = false;
+  S.baseDraft = null;
   if (branchId) applyThemePreset(getBranchOrg(branchId).themePreset || 'red');
 }
 
@@ -287,7 +296,8 @@ function _headHtml(S, branch, org, isStaff) {
     </div>`;
 }
 
-// ── 配置工具条（阶段二 2026-09-06：JSON 覆盖件导出/导入 + 复制配置到支部）──────────
+// ── 配置工具条（阶段二 2026-09-06：JSON 覆盖件导出/导入 + 复制配置到支部；
+//     阶段三·目标1 2026-09-06：成员基础数据预览）──────────────────────
 function _toolbarHtml(S, isStaff) {
   const branches = (mockDB.branches || []).filter(b => b.id && b.id !== 'pc-gsm');
   const subtle = 'text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors';
@@ -300,7 +310,74 @@ function _toolbarHtml(S, isStaff) {
       <input type="file" id="wz-pkg-file" accept=".json,application/json" class="hidden" data-wz-file="pkg">
     </div>`;
   const panel = isStaff && S.copyOpen ? _copyPanelHtml(S, branches) : '';
-  return row + panel;
+  const baseRow = `
+    <div class="flex flex-wrap items-center gap-2 pt-2.5 mt-2.5 border-t border-gray-100">
+      <span class="text-[11px] text-gray-400 shrink-0">数据预览</span>
+      <button type="button" data-wz-act="toggle-base" class="${subtle}">${S.baseOpen ? '收起' : ''}成员名册预览…</button>
+    </div>`;
+  const basePanel = S.baseOpen ? _basePanelHtml(S) : '';
+  return row + panel + baseRow + basePanel;
+}
+
+/** 成员名册数据预览面板（阶段三·目标1）：下载模板 / 导入预览 / 清除回种子 + 应用前统计卡 */
+function _basePanelHtml(S) {
+  const st = getPreviewState();
+  const subtle = 'text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors';
+  const n = st.rows.length;
+  return `
+    <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 mt-2.5 space-y-2">
+      <p class="text-xs font-semibold text-gray-700">成员基础数据预览 <span class="text-[10px] font-normal text-gray-400">（本地预览：仅覆盖姓名/党小组归属/发展阶段/在校·滞留，不写 mockDB / 种子持久）</span></p>
+      <p class="text-[11px] text-gray-500">下载「成员名单模板」→ 按真实名册改 JSON → 「导入名单(JSON)预览」：应到数字 / 党员分布即时可见变化（⑤ 验证与重置、纪检考勤等应到口径同源）；「清除预览」一键回种子。</p>
+      <p class="text-[11px] text-amber-600">注意：业务历史（活动/考勤/议程/专班等）仍关联演示成员，正式换数据请按「换壳工作单」落仓库文件。</p>
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" data-wz-act="download-base-template" class="${subtle}">下载成员名单模板</button>
+        <button type="button" data-wz-act="import-base" class="${subtle}">导入名单(JSON)预览</button>
+        <button type="button" data-wz-act="clear-base" ${st.active ? '' : 'disabled'} class="${subtle} ${st.active ? '' : 'opacity-40 cursor-not-allowed'}">清除预览</button>
+        <span class="text-[11px] text-gray-400">${st.active ? `当前已应用（${n} 条成员行叠加生效）` : '当前为种子初始读数'}</span>
+      </div>
+      ${st.active ? `
+      <div class="rounded-lg border border-green-200 bg-green-50/60 px-3 py-2 text-[11px] text-gray-600">
+        <p><b class="text-green-700">预览已生效</b>：成员名册 / 应到名单 / 发展阶段分布按导入名单读数——到 ⑤「验证与重置」可核对支部党员大会应到现值（纪检考勤等消费点同源）。</p>
+      </div>` : ''}
+      ${S.baseDraft ? _baseDraftHtml(S, S.baseDraft) : ''}
+      <input type="file" id="wz-base-file" accept=".json,application/json" class="hidden" data-wz-file="base">
+    </div>`;
+}
+
+/** 预览统计单格（label + 主读数 + 副注） */
+function _baseStatBox(label, main, sub) {
+  return `<div class="rounded-lg border border-blue-100 bg-white p-2.5">
+    <p class="text-[11px] text-gray-400">${esc(label)}</p>
+    <p class="text-base font-bold text-gray-800 leading-tight">${main}</p>
+    ${sub ? `<p class="text-[10px] text-gray-400 mt-0.5">${esc(sub)}</p>` : ''}
+  </div>`;
+}
+
+/** 导入草稿（净化通过、未应用）统计卡：在册 N / 滞留 K / 支部大会应到 / 各党小组应到 */
+function _baseDraftHtml(S, draft) {
+  const s = draft.stats;
+  const groupParts = Object.entries(s.perGroup).map(([g, v]) =>
+    `<span class="whitespace-nowrap">${esc(g)} <b class="text-gray-800">${v.expected}</b><span class="text-[10px] text-gray-400"> / 在册 ${v.partyTotal}</span></span>`).join(' · ');
+  return `
+    <div class="rounded-lg border border-green-200 bg-white p-3 space-y-2">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <p class="text-xs font-semibold text-gray-700">导入预览 · 应用前读数</p>
+        <span class="text-[11px] text-gray-400">有效 ${draft.people.length} 条${draft.dropped ? ` · 已忽略非法/白名单外 ${draft.dropped} 条` : ''}</span>
+      </div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        ${_baseStatBox('在册党员（应到基数）', `${s.partyTotal}<span class="text-xs font-normal text-gray-400"> 人</span>`, `正式 ${s.official} + 预备 ${s.probationary}`)}
+        ${_baseStatBox('滞留党员（剔除）', `${s.detained}<span class="text-xs font-normal text-gray-400"> 人</span>`, '组织关系保留、通知照发')}
+        ${_baseStatBox('支部党员大会应到', `<span class="text-red-600">${s.expected}</span><span class="text-xs font-normal text-gray-400"> 人</span>`, `= 党员 ${s.partyTotal} − 滞留 ${s.detained}`)}
+        ${_baseStatBox('各党小组会应到', groupParts || '—', '组内党员 − 组内滞留')}
+      </div>
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <p class="text-[11px] text-gray-500">确认应用后：成员名册 / 应到名单 / 发展阶段分布按上表变化（本地预览，可「清除预览」回种子）；「放弃」不写入。</p>
+        <div class="flex gap-2">
+          <button type="button" data-wz-act="discard-base" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-white transition-colors">放弃</button>
+          <button type="button" data-wz-act="apply-base" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90" style="background:#C8102E;">确认应用</button>
+        </div>
+      </div>
+    </div>`;
 }
 
 /** 复制配置到支部小面板（源=当前选中支部；目标=多选其余支部；仅 party-staff 渲染） */
@@ -696,6 +773,30 @@ function _onClick(S, e) {
     case 'do-copy':
       _doCopy(S);
       break;
+    // 阶段三·目标1：成员基础数据预览（面板展开 / 下载模板 / 清除 / 导入草稿应用·放弃）
+    case 'toggle-base':
+      S.baseOpen = !S.baseOpen;
+      if (!S.baseOpen) S.baseDraft = null;
+      _render(S);
+      break;
+    case 'download-base-template':
+      _downloadBaseTemplate(S);
+      break;
+    case 'import-base': {
+      const fi = S.host.querySelector('#wz-base-file');
+      if (fi) fi.click(); // 触发隐藏 file input（用户手势链内）
+      break;
+    }
+    case 'clear-base':
+      _clearBasePreview(S);
+      break;
+    case 'discard-base':
+      S.baseDraft = null;
+      _render(S);
+      break;
+    case 'apply-base':
+      _applyBaseDraft(S);
+      break;
     default:
       break;
   }
@@ -725,11 +826,15 @@ function _onChange(S, e) {
     }
     return;
   }
-  // 导入配置包：file input 选中 → 读取 JSON → apply → toast + 重渲染
+  // 导入 file input 选中：pkg = 配置包 / base = 成员名单模板 → 读取 JSON → 处理 → toast + 重渲染
   if (t.hasAttribute('data-wz-file')) {
+    const kind = t.getAttribute('data-wz-file');
     const file = t.files && t.files[0];
     t.value = ''; // 置空以允许再次选择同一文件
-    if (file) _importPkgFile(S, file);
+    if (file) {
+      if (kind === 'base') _importBaseFile(S, file);
+      else _importPkgFile(S, file);
+    }
     return;
   }
   if (t.name === 'wz-theme') {
@@ -1025,6 +1130,80 @@ async function _doCopy(S) {
     console.error('[wizard] 复制配置失败', err);
     showToast('error', `复制失败：${(err && err.message) || err}`);
   }
+}
+
+// ── 阶段三·目标1：成员基础数据预览（下载模板 / 导入净化 / 清除 / 应用）──────────
+/** 下载「成员名单模板」JSON（本支部成员名册，可按真实名册改后导入预览） */
+function _downloadBaseTemplate(S) {
+  try {
+    const tpl = buildPreviewTemplate();
+    if (!tpl.people || !tpl.people.length) {
+      showToast('info', '当前无预置成员名册可导出（演示成员种子见 docs/src/mock/people.js）');
+      return;
+    }
+    const blob = new Blob([JSON.stringify(tpl, null, 2)], { type: 'application/json;charset=utf-8' });
+    downloadBlob(`${S.branchId || 'branch'}-成员名册模板.json`, blob);
+    showToast('success', `成员名单模板已下载（${tpl.people.length} 名，JSON 可编辑）`);
+  } catch (err) {
+    console.error('[wizard] 下载成员名单模板失败', err);
+    showToast('error', `下载失败：${(err && err.message) || err}`);
+  }
+}
+
+/** 导入成员名单文件：包级门槛（kind/version）→ 净化 → 存草稿展示统计卡（确认应用/放弃） */
+function _importBaseFile(S, file) {
+  const reader = new FileReader();
+  reader.onerror = () => showToast('error', '读取名单文件失败');
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(String(reader.result || ''));
+      if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('文件不是 JSON 对象');
+      if (data.kind !== undefined && data.kind !== PREVIEW_KIND) {
+        throw new Error(`不是成员名单模板（kind=${String(data.kind)}，应为 ${PREVIEW_KIND}）`);
+      }
+      if (data.version !== undefined && data.version !== PREVIEW_VERSION) {
+        throw new Error(`模板版本不支持（${String(data.version)}，当前 ${PREVIEW_VERSION}）`);
+      }
+      const res = sanitizePreview(data);
+      if (!res.valid) {
+        showToast('error', res.reason || '名单净化未通过');
+        return;
+      }
+      S.baseDraft = { people: res.people, stats: res.stats, dropped: res.dropped };
+      _render(S);
+      const note = res.dropped ? `（已忽略非法/白名单外 ${res.dropped} 条）` : '';
+      showToast('success', `已读取 ${res.people.length} 条有效成员${note}，请核对统计后确认应用`);
+    } catch (err) {
+      console.error('[wizard] 导入成员名单失败', err);
+      showToast('error', `导入失败：${(err && err.message) || err}`);
+    }
+  };
+  reader.readAsText(file);
+}
+
+/** 清除预览（回种子）：二次确认后移除预览键并重渲染 */
+function _clearBasePreview(S) {
+  const st = getPreviewState();
+  if (!st.active) return;
+  if (!window.confirm('确认清除成员基础数据预览？成员读数将回到演示种子（业务历史数据不受影响）。')) return;
+  clearPreview();
+  S.baseDraft = null;
+  _render(S);
+  showToast('success', '已清除预览，成员读数回到种子初始');
+}
+
+/** 确认应用导入草稿：写预览键 → 成员读数即时叠加（⑤/纪检考勤同源），可再清除回种子 */
+function _applyBaseDraft(S) {
+  const draft = S.baseDraft;
+  if (!draft || !draft.people || !draft.people.length) return;
+  const res = applyPreview(draft.people);
+  if (!res.ok) {
+    showToast('error', res.reason || '应用失败');
+    return;
+  }
+  S.baseDraft = null;
+  _render(S);
+  showToast('success', '已应用成员基础数据预览（应到数字/党员分布即时生效，可清除回种子）');
 }
 
 /** 局部重绘 chips（保住 DOM 与滚动，不重建整步） */
