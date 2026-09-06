@@ -7,12 +7,12 @@
 import { registerCapability } from '../../core/registry.js?v=20260903c';
 import { rolesForPage } from '../../core/constants.js?v=20260903c';
 
-// 8 个 tab 清单：render 为懒加载动态 import（相对本模块解析到 entries/tabs/org/）
+// 9 个 tab 清单：render 为懒加载动态 import（相对本模块解析到 entries/tabs/org/）
 // tab 私有状态随模块自持；共享只读配置（accent/taskforce 分类/activities/导航目标）经 ctx 传入。
 registerCapability({
   id: 'org-workspace',
   name: '组织委员工作台',
-  version: '20260823d',
+  version: '20260906a',
   scope: ['workspace:org'],
   requiredRoles: rolesForPage('org.html'), // T-2026-09-011 R2：由 constants ROLE_PAGE_MAP 派生
   tabs: () => [
@@ -21,6 +21,8 @@ registerCapability({
     { id: 'overview', label: '工作概况', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/org/overview-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     { id: 'inspection', label: '考察上传', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/inspection-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     { id: 'taskforce', label: '专班管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/taskforce-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
+    // 成员名册（立项⑥ B波 2026-09-06：新增/行内编辑/删除 双形态持久；人才库为考察画像视图，分工不重复建设）
+    { id: 'roster', label: '成员名册', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/roster-tab.js?v=20260906a').then(m => m.renderContent(ctx)) },
     { id: 'talent', label: '人才库', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/talent-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     { id: 'development', label: '发展数据', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/development-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     // 活动查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增；组织无活动 tab 由本组件承载）
