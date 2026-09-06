@@ -140,11 +140,20 @@ export function renderContent(ctx) {
     </div>
   `;
 
-  // 绑定上传按钮
+  // 绑定上传按钮（保态折叠 2026-09-06：对齐纪检会议考勤录入判例——表单已渲染
+  //（#att-form-panel 在 DOM）时，收起/展开只切该容器 hidden，不销毁
+  // _attPickerInstance、不重建 innerHTML，已选活动/人员/逐人状态保留；
+  // 外部 re-render 仍按 _attFormVisible 原逻辑整容器重建，属既有行为可接受）
   container.querySelector('#btn-leader-upload-att')?.addEventListener('click', () => {
-    _attFormVisible = !_attFormVisible;
-    if (!_attFormVisible && _attPickerInstance) { _attPickerInstance.destroy(); _attPickerInstance = null; }
-    renderContent(ctx);
+    const panel = container.querySelector('#att-form-panel');
+    const btn = container.querySelector('#btn-leader-upload-att');
+    if (!panel) { // 首次打开（表单未渲染）：走 _attFormVisible 渲染表单 + 创建 picker
+      _attFormVisible = true;
+      renderContent(ctx);
+      return;
+    }
+    const collapsed = panel.classList.toggle('hidden');
+    if (btn) btn.textContent = collapsed ? '上传考勤表单' : '收起表单';
   });
 
   // 如果表单可见，初始化 PersonPicker 和绑定事件
@@ -213,11 +222,12 @@ function _initAttForm(container, eligibleActivities, ctx) {
   // 初始渲染（未选活动：空候选 + 提示先选活动）
   rebuildPicker();
 
-  // 取消按钮
+  // 取消按钮（保态折叠 2026-09-06：取消 = 收起，保留已选与逐人状态；仅提交成功后才重置会话）
   container.querySelector('#att-form-cancel')?.addEventListener('click', () => {
-    _attFormVisible = false;
-    if (_attPickerInstance) { _attPickerInstance.destroy(); _attPickerInstance = null; }
-    renderContent(ctx);
+    const panel = container.querySelector('#att-form-panel');
+    if (panel) panel.classList.add('hidden');
+    const btn = container.querySelector('#btn-leader-upload-att');
+    if (btn) btn.textContent = '上传考勤表单';
   });
 
   // 提交按钮

@@ -92,11 +92,20 @@ export function renderContent(ctx) {
     </div>
   `;
 
-  // 绑定上传按钮
+  // 绑定上传按钮（保态折叠 2026-09-06：对齐纪检会议考勤录入判例——表单已渲染
+  //（#org-insp-form-panel 在 DOM）时，收起/展开只切该容器 hidden，不销毁
+  // _orgInspPickerInstance、不重建 innerHTML，已选专班/人员/逐人考察内容保留；
+  // 外部 re-render 仍按 _orgInspFormVisible 原逻辑整容器重建，属既有行为可接受）
   container.querySelector('#btn-org-upload-insp')?.addEventListener('click', () => {
-    _orgInspFormVisible = !_orgInspFormVisible;
-    if (!_orgInspFormVisible && _orgInspPickerInstance) { _orgInspPickerInstance.destroy(); _orgInspPickerInstance = null; }
-    renderContent(ctx);
+    const panel = container.querySelector('#org-insp-form-panel');
+    const btn = container.querySelector('#btn-org-upload-insp');
+    if (!panel) { // 首次打开（表单未渲染）：走 _orgInspFormVisible 渲染表单 + 创建 picker
+      _orgInspFormVisible = true;
+      renderContent(ctx);
+      return;
+    }
+    const collapsed = panel.classList.toggle('hidden');
+    if (btn) btn.textContent = collapsed ? '上传考察表单' : '收起表单';
   });
 
   // 考察记录行 → 行下展开详情预览（书记 2026-08-11 裁定：卡片主体可点，展示该条考察记录详情）
@@ -168,9 +177,11 @@ function _initOrgInspForm(container, activeTaskforces, ctx) {
   _renderOrgInspContentRows([]);
 
   container.querySelector('#org-insp-form-cancel')?.addEventListener('click', () => {
-    _orgInspFormVisible = false;
-    if (_orgInspPickerInstance) { _orgInspPickerInstance.destroy(); _orgInspPickerInstance = null; }
-    renderContent(ctx);
+    // 保态折叠（同 toggle）：取消 = 收起，保留已选与逐人填写内容；仅提交成功后才重置会话
+    const panel = container.querySelector('#org-insp-form-panel');
+    if (panel) panel.classList.add('hidden');
+    const btn = container.querySelector('#btn-org-upload-insp');
+    if (btn) btn.textContent = '上传考察表单';
   });
 
   container.querySelector('#org-insp-form-submit')?.addEventListener('click', () => {

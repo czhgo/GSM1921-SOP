@@ -76,6 +76,14 @@ export function renderContent(ctx) {
     const statusColor = reviewColorMap[rev?.reviewStatus || ReviewStatus.NOT_SUBMITTED] || 'bg-gray-100 text-gray-500';
     const isExpanded = _reviewExpandedId === act.id;
     const orgName = act.organizer ? (PEOPLE.find(p => p.id === act.organizer)?.name || act.organizer) : '—';
+    // 展开区（复盘填写表单 / 复盘详情）常驻 DOM，展开态由 hidden 控制（保态折叠 2026-09-06）：
+    // 收合/切换只切 hidden，不整页重建，正在填写的复盘总结不因展开/收起丢失
+    const bodyContent = isPending
+      ? _renderReviewForm(act, rev, accent, accentBorder)
+      : (rev ? _renderReviewDetail(rev) : '');
+    const bodyHtml = bodyContent
+      ? `<div class="visitor-review-body ${isExpanded ? '' : 'hidden'}">${bodyContent}</div>`
+      : '';
 
     return `
       <div class="visitor-review-item p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors ${rev?.reviewStatus === ReviewStatus.REJECTED ? 'border border-red-100' : ''}" data-act-id="${act.id}">
@@ -89,8 +97,7 @@ export function renderContent(ctx) {
             ${rev?.reviewStatus === ReviewStatus.REJECTED ? '<span class="text-xs text-red-500">需修改</span>' : ''}
           </div>
         </div>
-        ${isExpanded && isPending ? _renderReviewForm(act, rev, accent, accentBorder) : ''}
-        ${isExpanded && !isPending && rev ? _renderReviewDetail(rev) : ''}
+        ${bodyHtml}
       </div>
     `;
   }
@@ -121,13 +128,29 @@ export function renderContent(ctx) {
     </div>
   `;
 
-  // 绑定活动卡片点击展开/收起
+  // 绑定活动卡片点击展开/收起（保态折叠 2026-09-06：直接切 .visitor-review-body 的 hidden，
+  // 不整页重建——展开中填写的复盘总结在收起/切换时保留；仅提交复盘成功后走 renderContent 重置）
   container.querySelectorAll('.review-toggle').forEach(toggle => {
     toggle.addEventListener('click', () => {
       const item = toggle.closest('.visitor-review-item');
       const actId = item?.dataset.actId;
-      _reviewExpandedId = _reviewExpandedId === actId ? null : actId;
-      renderContent(ctx);
+      const prevId = _reviewExpandedId;
+      // 先收起其它展开卡（单选语义）
+      container.querySelectorAll('.visitor-review-item').forEach(other => {
+        if (other.dataset.actId !== actId) {
+          const b = other.querySelector('.visitor-review-body');
+          if (b) b.classList.add('hidden');
+        }
+      });
+      if (prevId === actId) { // 点击当前展开卡 → 收起
+        const body = item?.querySelector('.visitor-review-body');
+        if (body) body.classList.add('hidden');
+        _reviewExpandedId = null;
+        return;
+      }
+      _reviewExpandedId = actId;
+      const body = item?.querySelector('.visitor-review-body');
+      if (body) body.classList.remove('hidden');
     });
   });
 
