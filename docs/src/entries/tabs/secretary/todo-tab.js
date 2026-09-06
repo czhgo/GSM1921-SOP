@@ -23,6 +23,7 @@ import { openFormModal } from '../../../components/modal.js?v=20260903c';
 import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260903c';
 import { renderMemberChangePanel } from '../../../components/member-change-panel.js?v=20260903c';
 import { tryDirectJump } from '../../../components/todo-jump.js?v=20260903c';
+import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260906c';
 
 const { accent, accentBorder } = getAccentColors(resolveAccentRole('secretary'));
 
@@ -46,8 +47,11 @@ export async function renderContent() {
 
   // 动态聚合（实时计算）+ 种子行动类聚合
   const computedAggs = SecretaryTodoDeriver.computeAggregates();
+  // R2-2（2026-09-06 书记批）：决议「待落实」逾期 → 书记待办提醒组
+  // （扫描决议 followups 子域，纯函数见 services/resolution-followup.js；逾期=deadline < today）
+  const followupOverdueAgg = buildOverdueRemindGroupNow();
   const seedAggs = TodoStore.getGroupedByAction('secretary');
-  _allAggregates = [...computedAggs, ...seedAggs];
+  _allAggregates = [...computedAggs, ...(followupOverdueAgg ? [followupOverdueAgg] : []), ...seedAggs];
 
   // 统计条（聚合卡总数；过期仅统计提醒类缺口）
   const aggTotal = _allAggregates.reduce((s, g) => s + g.count, 0);

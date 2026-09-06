@@ -8,7 +8,8 @@ import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
 import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260903c';
 import { ACTIVITIES } from '../mock/activities.js?v=20260903c';
-import { getPersonById, getPersonName } from './person.js?v=20260903c';
+import { PersonStore, getPersonById, getPersonName } from './person.js?v=20260903c';
+import { getRosterStats } from './roster.js?v=20260903c';
 import { loadActivities } from './activity.js?v=20260903c';
 
 export function loadAttendanceRecords() {
@@ -99,6 +100,16 @@ export function upsertMeetingAttendance({ actorId, records = [] }, opts = {}) {
       // 纪检更正（方案A）：仅同一权威（recordedBy===纪检本人）的已录记录可覆盖更正；他人权威仍跳过
       if (overwrite && exist.recordedBy === actorId) {
         exist.status = r.status;
+        // 附录⑩ A批·S1 · R1-2/R1-3：更正同步「标因 + 滞留补录标记」——
+        //   未到（缺勤/请假）携固定枚举标因 absenceReason；更正为到场（出勤/已补）时清除旧标因；
+        //   detainedMakeup 仅当本次携带时写入（普通行重提 → 清除滞留补录标记，防历史补录误延续）。
+        if (r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP) {
+          delete exist.absenceReason;
+        } else if (r.absenceReason) {
+          exist.absenceReason = r.absenceReason;
+        }
+        if (r.detainedMakeup !== undefined) exist.detainedMakeup = !!r.detainedMakeup;
+        else delete exist.detainedMakeup;
         exist.updatedBy = actorId;
         exist.updatedAt = new Date().toISOString();
         res.updated += 1;
@@ -163,4 +174,103 @@ export function attendanceToLong(records) {
     confirmer: r.recordedBy ? _personName(r.recordedBy) : '—',
     overdue: r.overdue,
   }));
+}
+
+// ════════════════════════════════════════════════════════════════
+//  附录⑩ A批·S1 会务考勤规则域（书记裁定 2026-09-06）
+//  派生出口均以 core/policy-defaults.js attendance 为单一源，业务层勿新写字面量
+// ════════════════════════════════════════════════════════════════
+
+/** 会议考勤记录人（按活动类型）— 单源 = policy attendance.recorderByType（R1-1 正式化）；深拷贝防消费点改动穿透 */
+export const ATTENDANCE_RECORDER_BY_TYPE = Object.fromEntries(
+  Object.entries(POLICY_DEFAULTS.attendance.recorderByType).map(([type, roles]) => [type, [...roles]])
+);
+
+/** 取某活动类型的记录人角色键数组（拷贝；未入表的类型（如主题党日=组织者位）= 空表） */
+export function recorderRolesOf(type) {
+  return [...(ATTENDANCE_RECORDER_BY_TYPE[type] || [])];
+}
+
+/** 未到标因固定枚举 — 单源 = policy attendance.reasons（R1-2：纪检认定标因，禁造新枚举） */
+export const ABSENCE_REASONS = POLICY_DEFAULTS.attendance.reasons.map(r => ({ ...r }));
+
+/** 标因中文标签（未知键回退键原文；空 → 空串） */
+export function absenceReasonLabel(key) {
+  if (!key) return '';
+  const it = POLICY_DEFAULTS.attendance.reasons.find(r => r.key === key);
+  return it ? it.label : key;
+}
+
+/**
+ * 纪检应到清点（含滞留到场补录，R1-3 书记裁定）：
+ * K = 会前预应到 = 口径统计 expected（在册党员 − 滞留剔除）；
+ * L = 该活动滞留到场补录人数（落行标记 detainedMakeup=true 的记录数）；
+ * 实际应到 = K + L（补录者计「到席」，档案按在场展示）。
+ * @param {Object} [params]
+ * @param {string} [params.type]     会议类型（'党小组会' 需配 groupId）
+ * @param {string} [params.groupId]  党小组名（党小组会必填）
+ * @param {string} [params.activityId] 目标活动（缺省 = 不按活动统计 L）
+ * @param {Array}  [params.records]  考勤记录（缺省 = 活跃记录，与界面同源）
+ * @returns {{ expectedPre:number, makeupArrival:number, actualExpected:number }}
+ */
+export function countExpectedWithMakeup({ type, groupId, activityId, records } = {}) {
+  const stats = getRosterStats({ type, groupId });
+  const src = records || loadActiveAttendanceRecords();
+  const makeupArrival = activityId
+    ? src.filter(r => r.activityId === activityId && r.detainedMakeup).length
+    : 0;
+  return { expectedPre: stats.expected, makeupArrival, actualExpected: stats.expected + makeupArrival };
+}
+
+/**
+ * 党小组会考勤只读视图数据（R1-1/裁定④：纪检纪律台只读掌握——组长上传、不代传不审改）。
+ * 按小组会活动聚合：组别 = 活动 organizer 所属党小组（缺省取成员多数党小组）；组长 = 该组
+ * role 'leader' 成员（记录人语义）；上传人 = submittedBy（组长上传即本人，可辨）。
+ * 纯数据辅助：纪检 disc attendance-tab 下方只读浏览块消费；单测直导无 DOM。
+ * @param {Array} [records] 考勤记录（缺省 = 活跃记录）
+ * @returns {Array<Object>} 按活动降序的聚合视图
+ */
+export function listGroupMeetingAttendance(records) {
+  const src = records || loadActiveAttendanceRecords();
+  const acts = loadActivities().filter(a => a.type === '党小组会' && !a.archived);
+  const people = PersonStore.getMembers();
+  const byId = new Map(people.map(p => [p.id, p]));
+  const view = [];
+  for (const a of acts) {
+    const rows = src.filter(r => r.activityId === a.id);
+    if (rows.length === 0) continue; // 无考勤记录的小组会不占位
+    const org = a.organizer ? byId.get(a.organizer) : null;
+    const memberGroups = [...new Set(rows.map(r => byId.get(r.personId)?.partyGroup).filter(Boolean))];
+    // 组别推导：活动组织者所属党小组优先；组织者缺失/串组时取成员多数党小组
+    const groupName = org?.partyGroup
+      || (memberGroups.length > 0
+        ? memberGroups.reduce((acc, g) =>
+            (rows.filter(r => byId.get(r.personId)?.partyGroup === g).length
+              > rows.filter(r => byId.get(r.personId)?.partyGroup === acc).length ? g : acc), memberGroups[0])
+        : '');
+    const leader = groupName ? people.find(p => p.role === 'leader' && p.partyGroup === groupName) : null;
+    const uploaderId = rows[0]?.submittedBy || null;
+    view.push({
+      activityId: a.id,
+      title: a.title,
+      date: a.date || '',
+      groupName,
+      leaderId: leader ? leader.id : null,
+      leaderName: leader ? leader.name : '',
+      uploaderId,
+      uploaderName: uploaderId ? _personName(uploaderId) : '',
+      total: rows.length,
+      present: rows.filter(r => r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP).length,
+      rows: rows.map(r => ({
+        personId: r.personId,
+        name: _personName(r.personId),
+        status: r.status,
+        statusLabel: ATTENDANCE_STATUS_LABELS[r.status] || r.status,
+        absenceReason: r.absenceReason || null,
+        absenceReasonLabel: r.absenceReason ? absenceReasonLabel(r.absenceReason) : '',
+        detainedMakeup: !!r.detainedMakeup,
+      })),
+    });
+  }
+  return view.sort((x, y) => (y.date || '').localeCompare(x.date || ''));
 }

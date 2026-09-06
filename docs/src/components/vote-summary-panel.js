@@ -11,6 +11,12 @@
 import { fetchVotes, lockVotes } from '../services/committee-vote.js?v=20260903c';
 import { optionSetOf } from '../services/vote-config.js?v=20260903c';
 import { showToast, escHtml as esc } from '../core/utils.js?v=20260903c';
+// R2-2（2026-09-06）：决议「待落实」跟进管理器（记录决议视图内勾选/保存/销项；本文件保留原版本串——
+//   唯一引用方 components/inspector.js 属禁改文件无法同步 ?v=，改动经子模块新版本串保证取新代码）
+import { loadActivities } from '../services/activity.js?v=20260903c';
+import {
+  resolutionFollowupSectionHtml, bindResolutionFollowupSection,
+} from './resolution-followup-manager.js?v=20260906c';
 
 // HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
@@ -44,6 +50,9 @@ export async function renderVoteSummary(container, { activity, committeeMembers,
     quorumHtml = `<div class="vs-quorum">通过条件：出席（已表态，含弃权）需 ≥ ${needPresent}/${total}，通过需赞成 &gt; 应到/2（≥ ${needApprove} 人）</div>`;
   }
 
+  // R2-2 决议「待落实」区（仅含已记录「通过」的议程；书记可管理、副书记只读）
+  const followupHtml = resolutionFollowupSectionHtml({ activity, canManage: canLock === true });
+
   container.innerHTML = `
     <div class="vote-summary">
       <div class="vs-head">
@@ -69,7 +78,19 @@ export async function renderVoteSummary(container, { activity, committeeMembers,
           </tbody>
         </table>
       </div>
-    </div>`;
+    </div>
+    ${followupHtml}`;
+
+  // R2-2 决议落实事件绑定；操作完成后重取最新活动并整卡重绘（含矩阵票数刷新）
+  const rerenderSummary = async () => {
+    try {
+      const fresh = loadActivities().find((x) => x.id === activity.id) || activity;
+      await renderVoteSummary(container, { activity: fresh, committeeMembers, canLock });
+    } catch (e) {
+      console.warn('[vote-summary] 决议落实变更后重绘失败', e);
+    }
+  };
+  bindResolutionFollowupSection({ root: container, activity, canManage: canLock === true, onChanged: rerenderSummary });
 
   const lockBtn = container.querySelector('.vs-lock');
   lockBtn?.addEventListener('click', async () => {

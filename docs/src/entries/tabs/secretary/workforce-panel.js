@@ -3,8 +3,8 @@
 // 挂载在「支部分工」tab 底部（仅书记/副书记可见）：
 //   ① 发起分工调整：多行（模块 → 新负责人）＋说明/日期 → 「存草稿」或「直接发起支委会议题表决」；
 //   ② 草稿（书记台暂存 localStorage 'gsm1921-workforce-draft'，每支部一份）可载入编辑/删除；
-//   ③ 议题列表：实时显示票决判定（应到 2/3 且无异议=通过）徽标与统计——
-//      已通过=可采纳；未达门槛/有异议=采纳禁用（去表决再议）。
+//   ③ 议题列表：实时显示票决判定（应到超过 2/3 且无反对=通过，附录⑩ S2 R2-3）徽标与统计——
+//      已通过=可采纳；未达出席门槛/有反对=采纳禁用（去表决再议）。
 // 表决 UI 复用既有 agenda-votes 资产；本面板不重复实现投票。
 
 import { escHtml as esc, showToast } from '../../../core/utils.js?v=20260903c';
@@ -14,7 +14,7 @@ import { PersonStore } from '../../../services/person.js?v=20260903c';
 import {
   createWorkforceProposalActivity, listWorkforceProposals, adoptWorkforceProposal,
   getWorkforceVoteOutcome, ownerDisplay,
-} from '../../../services/workforce.js?v=20260903c';
+} from '../../../services/workforce.js?v=20260906c';
 import { getBranchWorkforce } from '../../../services/branch.js?v=20260903c';
 
 const DRAFT_KEY = 'gsm1921-workforce-draft';
@@ -139,7 +139,7 @@ function _proposalCards(proposals, outcomesByAct) {
           <a href="secretary.html?activityId=${a.id}" class="px-2.5 py-1 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50">去表决</a>
           ${!adopted ? (adoptable
             ? `<button type="button" class="wf-adopt px-2.5 py-1 rounded-lg text-xs font-medium text-white bg-red-600 hover:bg-red-700" data-id="${a.id}">采纳生效</button>`
-            : `<button type="button" class="wf-adopt-disabled px-2.5 py-1 rounded-lg text-xs text-gray-400 border border-gray-200 cursor-not-allowed" data-id="${a.id}" title="票决通过（2/3 出席且无异议）后方可采纳">采纳生效</button>`) : ''}
+            : `<button type="button" class="wf-adopt-disabled px-2.5 py-1 rounded-lg text-xs text-gray-400 border border-gray-200 cursor-not-allowed" data-id="${a.id}" title="票决通过（应到超过 2/3 出席且无反对）后方可采纳">采纳生效</button>`) : ''}
         </div>
       </div>`;
   }).join('');

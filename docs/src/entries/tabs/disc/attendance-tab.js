@@ -9,12 +9,13 @@
 //   - 条目不得使用浅色底板（书记反感）→ 白底 + 左侧状态色条
 
 import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260903c';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES } from '../../../services/attendance.js?v=20260903c';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260903c';
 import { getPersonName } from '../../../services/person.js?v=20260903c';
 // S1–S4 滞留党员设计（2026-09-06 书记已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
-import { getMeetingRoster, getDetainedMembers, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260903c';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260903c';
+// 附录⑩ A批·S1（2026-09-06 书记裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260903c';
+import { solidAccentStyle, ROLE_LABELS } from '../../../core/constants.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260903c';
 import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260903c';
@@ -89,6 +90,7 @@ export function renderContent(ctx) {
     ${_buildMeetingCardHTML(ctx, accent, accentBorder, actById)}
     ${_buildMatrixCardHTML(ctx, allRecords, actById, filterActivityId, accent, accentRgba, accentBorder)}
     ${_buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityId, accent, accentRgba, accentBorder)}
+    ${_buildGroupMeetingReadonlyHTML()}
   `;
 
   // ── 队列确认：确认 → 计数递减 → 聚焦下一条 ──
@@ -177,31 +179,59 @@ export function renderContent(ctx) {
     _renderDiscMeetStatusRows([]);
   });
   // 纪检更正：切换活动后按该活动已录记录重渲染逐人状态行（保留已选人员与状态调整）
+  // 附录⑩ A批·S1：切换活动同时重置「滞留到场补录」勾选（按新活动已录补录预填）并刷新应到口径
   container.querySelector('#disc-meet-activity')?.addEventListener('change', () => {
     const ids = _meetPickerInstance ? _meetPickerInstance.getSelected() : [];
+    _prefillMakeupForActivity();
     _renderDiscMeetStatusRows(ids);
     _renderDiscMeetRosterHint();
+    _renderDiscMeetDetainedMakeup();
   });
   container.querySelector('#disc-meet-submit')?.addEventListener('click', () => {
     const activityId = container.querySelector('#disc-meet-activity')?.value;
     if (!activityId) { showToast('error', '请选择会议活动'); return; }
     const selectedIds = _meetPickerInstance ? _meetPickerInstance.getSelected() : [];
-    if (selectedIds.length === 0) { showToast('error', '请选择参会人员'); return; }
+    // 滞留到场补录集合（纪检单独勾选；与全选应到互斥，重复防御）
+    const makeupIds = [..._meetMakeupIds].filter(pid => !selectedIds.includes(pid));
+    if (selectedIds.length === 0 && makeupIds.length === 0) { showToast('error', '请选择参会人员，或在「滞留党员到场补录」勾选线下到场者'); return; }
     const actorId = AuthStore.getCurrentUser()?.personId || DISC_COMMISSIONER_ID;
-    const records = selectedIds.map(pid => ({
-      id: 'att_' + Date.now() + '_' + pid,
-      personId: pid,
-      activityId,
-      status: (container.querySelector(`#disc-meet-status-${pid}`)?.value) || AttendanceStatus.PRESENT,
-      overdue: false,
-    }));
+    const records = [];
+    for (const pid of selectedIds) {
+      const status = (container.querySelector(`#disc-meet-status-${pid}`)?.value) || AttendanceStatus.PRESENT;
+      const r = {
+        id: 'att_' + Date.now() + '_' + pid,
+        personId: pid,
+        activityId,
+        status,
+        overdue: false,
+      };
+      // 附录⑩ A批·S1 · R1-2：未到（缺勤/请假）须带纪检认定标因（固定枚举，禁造新枚举）
+      if (status !== AttendanceStatus.PRESENT && status !== AttendanceStatus.MADE_UP) {
+        r.absenceReason = (container.querySelector(`#disc-meet-reason-${pid}`)?.value) || _defaultReasonFor(status);
+      }
+      records.push(r);
+    }
+    // 附录⑩ A批·S1 · R1-3：滞留线下到场 → 补录为「应到」（status=present + detainedMakeup 标记，
+    // 计入到席 L；档案等既有读取按在场展示，不破坏）
+    for (const pid of makeupIds) {
+      records.push({
+        id: 'att_' + Date.now() + '_mk_' + pid,
+        personId: pid,
+        activityId,
+        status: AttendanceStatus.PRESENT,
+        detainedMakeup: true,
+        overdue: false,
+      });
+    }
     // 纪检更正（方案A）：overwrite=true 允许覆盖本人已录记录；回执按 新增/更正/跳过 分项
     const res = upsertMeetingAttendance({ actorId, records }, { overwrite: true });
     if (res.added > 0 || res.updated > 0) {
       records.forEach(r => autoGenerateMakeupTask(r));
-      showToast('success', `会议考勤提交成功：新增 ${res.added} · 更正 ${res.updated} · 跳过 ${res.skipped}（纪检直接确认/更正）`);
-      // 提交成功后才重置会话（收起表单、销毁 picker、清空已选）
+      const makeupNote = makeupIds.length > 0 ? ` · 滞留到场补录 ${makeupIds.length}` : '';
+      showToast('success', `会议考勤提交成功：新增 ${res.added} · 更正 ${res.updated} · 跳过 ${res.skipped}${makeupNote}（纪检直接确认/更正）`);
+      // 提交成功后才重置会话（收起表单、销毁 picker、清空已选与补录勾选）
       _meetFormVisible = false;
+      _meetMakeupIds.clear();
       if (_meetPickerInstance) { _meetPickerInstance.destroy(); _meetPickerInstance = null; }
       renderContent(ctx);
     } else {
@@ -291,7 +321,32 @@ let _queueExpanded = false;
 // 仅在「提交成功」后才重置会话（见 submit 成功分支）。
 let _meetFormVisible = false;
 let _meetPickerInstance = null;
+// 附录⑩ A批·S1（2026-09-06）：「滞留党员到场补录」勾选集合（纪检单独勾选；随活动切换重置、
+// 提交成功清空）。滞留者默认不计应到（候选内灰态禁选），线下到场经此补录计入到席（实际应到=K+L）。
+let _meetMakeupIds = new Set();
 // 会议考勤上传位的活动类型：单源 = services/attendance.js MEETING_ATTENDANCE_TYPES（开源超参数，可调）
+
+/** 未到（缺勤/请假）的默认标因键（纪检认定枚举；缺席→无故、请假→请假，可再改选其它） */
+function _defaultReasonFor(status) {
+  if (status === AttendanceStatus.ABSENT) return 'unexcused';
+  if (status === AttendanceStatus.LEAVE) return 'leave';
+  return '';
+}
+
+/**
+ * 按当前选中活动预填滞留到场补录集合：已录补录（detainedMakeup=true）且当下仍滞留的成员 → 默认勾选，
+ * 供纪检更正/复核同活动历史补录；改回在校者不再入补录（正常走应到名单）。
+ */
+function _prefillMakeupForActivity() {
+  _meetMakeupIds = new Set();
+  const activityId = document.getElementById('disc-meet-activity')?.value;
+  if (!activityId) return;
+  const { disabledIds } = getMeetingRosterCandidates({ type: _currentMeetActivityType() });
+  const detainedSet = new Set(disabledIds);
+  loadAttendanceRecords().forEach(r => {
+    if (r.activityId === activityId && r.detainedMakeup && detainedSet.has(r.personId)) _meetMakeupIds.add(r.personId);
+  });
+}
 
 function _buildQueueHTML(items, leaveCount, absentCount, overdueCount, autoConfirmedCount, accent, accentBorder, actById) {
   const visible = _queueExpanded ? items : items.slice(0, QUEUE_VISIBLE);
@@ -375,13 +430,14 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
           <div id="disc-meet-picker"></div>
         </div>
       </div>
-      <div id="disc-meet-roster-hint" class="mb-3 text-[11px] text-gray-400 leading-5"></div>
+      <div id="disc-meet-roster-hint" class="mb-2 text-[11px] text-gray-400 leading-5"></div>
+      <div id="disc-meet-makeup-strip" class="mb-3"></div>
       <div id="disc-meet-status-rows" class="space-y-2 mb-3"></div>
       <div class="flex items-center gap-3">
         <button id="disc-meet-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="${accentStyle}cursor:pointer;">提交录入</button>
         <button id="disc-meet-cancel" class="text-sm px-4 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
-      <div class="mt-3 text-[11px] text-gray-400">纪检直接录入即确认（recordedBy=纪检）；已录条目将覆盖（纪检更正）· 新增与更正计数见提交回执</div>`;
+      <div class="mt-3 text-[11px] text-gray-400">纪检直接录入即确认（recordedBy=纪检）；未到（缺勤/请假）者须选标因（请假/无故/其它，纪检认定·固定枚举）；滞留线下到场者勾选「到场补录」计入到席（落「滞留·到场」标记）；已录条目将覆盖（纪检更正）· 新增/更正/跳过计数见提交回执</div>`;
     body = `<div id="disc-meet-body">${bodyInner}</div>`;
   }
 
@@ -391,7 +447,7 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
         <h3 class="font-title-cn text-base font-semibold text-gray-800">会议考勤录入</h3>
         ${toggleBtn}
       </div>
-      <div class="text-xs text-gray-500 mb-3">会议类考勤（党课/支部党员大会/组织生活会/支委会）由纪检直接上传并录入总表；党小组会考勤由组长/组织者上传、纪检确认。应到清点与全选范围 = 应到名单口径（党员 正式+预备 且非滞留）；滞留者「可见但不可选」（灰态禁选，悬浮看备注）；党课列席不计应到</div>
+      <div class="text-xs text-gray-500 mb-3">会议类考勤（党课/支部党员大会/组织生活会/支委会）由纪检直接上传并录入总表；党小组会考勤由组长上传、纪检确认（记录人=本组组长）。应到口径（书记裁定）：<b>预应到 K</b>（在册党员 − 滞留剔除；党课列席不计应到）→ 滞留到场补录 <b>L</b> → <b>实际应到 = K+L</b>；候选中滞留者默认不计（灰态可见原因），「全选应到名单」不含滞留，线下到场由纪检于下方单独勾选「到场补录」</div>
       ${body}
     </div>
   `;
@@ -409,20 +465,64 @@ function _currentMeetingRoster() {
   return getMeetingRoster({ type: _currentMeetActivityType() });
 }
 
-/** 应到清点提示：应到 N 人；滞留者「可见但不可选」（候选列表内灰态 + 徽标 + title 备注） */
+/** 应到口径提示（附录⑩ A批·S1 · R1-3）：预应到 K → 滞留到场补录 L → 实际应到 K+L；滞留者默认不计（灰态可见原因） */
 function _renderDiscMeetRosterHint() {
   const hintEl = document.getElementById('disc-meet-roster-hint');
   if (!hintEl) return;
-  const stats = getRosterStats({ type: _currentMeetActivityType() });
-  const detained = getDetainedMembers();
+  const type = _currentMeetActivityType();
+  const stats = getRosterStats({ type });
+  const K = stats.expected;
+  const L = _meetMakeupIds.size;
+  const { candidates, disabledIds } = getMeetingRosterCandidates({ type });
+  const disabledSet = new Set(disabledIds);
+  const detained = candidates.filter(p => disabledSet.has(p.id));
   const detainedHtml = detained.length === 0
-    ? '<span class="text-gray-400">无滞留成员</span>'
+    ? '<span class="text-gray-400">无滞留党员</span>'
     : detained.map(p => `
       <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 align-middle"
         title="${esc(p.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">${esc(p.name)} · 滞留</span>`).join(' ');
   hintEl.innerHTML = `
-    <span>应到 <b class="text-gray-600">${stats.expected}</b> 人（在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}；党课列席不计应到）。滞留者已在候选中<b class="text-amber-700">标灰禁选</b>（可见原因，悬浮查看备注）：${detainedHtml}</span>
+    <span>应到口径：预应到 <b class="text-gray-600">K=${K}</b>（在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}；党课列席不计应到）→ 滞留到场补录 <b class="text-amber-700">L=${L}</b> → 实际应到 <b class="text-gray-800">K+L=${K + L}</b>（补录者计「到席」，档案按在场展示）</span>
+    <span class="block mt-1">滞留者默认不计应到（候选内灰态可见原因，title 悬浮查看备注）：${detainedHtml}——线下到场由纪检在下方「滞留党员到场补录」单独勾选，不随「全选应到名单」</span>
     <span class="block mt-0.5 text-gray-300">应到口径 = 党员（正式党员/预备党员）且非滞留 · 由组织委员在成员档案维护「在校/滞留」并留痕，书记可复核</span>`;
+}
+
+/** 滞留党员到场补录区（纪检单独勾选；勾选计入到席 L 并徽标「滞留·到场」，仍附原因 title） */
+function _renderDiscMeetDetainedMakeup() {
+  const strip = document.getElementById('disc-meet-makeup-strip');
+  if (!strip) return;
+  const activityId = document.getElementById('disc-meet-activity')?.value;
+  if (!activityId) { strip.innerHTML = ''; return; }
+  const { candidates, disabledIds } = getMeetingRosterCandidates({ type: _currentMeetActivityType() });
+  const disabledSet = new Set(disabledIds);
+  const detained = candidates.filter(p => disabledSet.has(p.id));
+  if (detained.length === 0) {
+    strip.innerHTML = '<div class="text-[11px] text-gray-400">滞留党员到场补录：本活动范围无滞留党员（无需补录）</div>';
+    return;
+  }
+  strip.innerHTML = `
+    <div class="text-[11px] font-medium text-gray-500 mb-1.5">滞留党员到场补录（纪检认定：线下到场 → 勾选计入到席；不随「全选应到名单」）</div>
+    <div class="flex flex-wrap gap-2">
+      ${detained.map(p => {
+        const checked = _meetMakeupIds.has(p.id);
+        return `
+        <label class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border transition-colors cursor-pointer select-none ${checked ? 'border-amber-300 bg-amber-50' : 'border-gray-200 bg-white hover:bg-gray-50'}"
+          title="${esc(p.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">
+          <input type="checkbox" id="disc-meet-makeup-${p.id}" ${checked ? 'checked' : ''} class="accent-amber-600" style="cursor:pointer;">
+          <span class="text-xs font-medium text-gray-700">${esc(p.name)}</span>
+          <span class="text-[10px] px-1 py-0.5 rounded bg-amber-100 text-amber-700 align-middle">滞留</span>
+          ${checked ? badgeHtml('滞留·到场', 'warning') : ''}
+        </label>`;
+      }).join('')}
+    </div>`;
+  strip.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const pid = cb.id.replace('disc-meet-makeup-', '');
+      if (cb.checked) _meetMakeupIds.add(pid); else _meetMakeupIds.delete(pid);
+      _renderDiscMeetDetainedMakeup(); // 重绘勾选态徽标
+      _renderDiscMeetRosterHint();      // 实时刷新 L / K+L
+    });
+  });
 }
 
 function _initMeetForm(container, accent) {
@@ -434,6 +534,7 @@ function _initMeetForm(container, accent) {
   // 「滞留」徽标 + title 备注）；党课列席/非党员仍不可见。候选随表单每次重建刷新（成员状态
   // 维护后即时生效）。「全选应到名单」按钮走 setSelected(rosterIds) → 只选可用项（picker 内
   // 禁用 id 一律不入选中集，批量全选不破坏）。
+  // 附录⑩ A批·S1 ③（2026-09-06）：滞留线下到场 → 「到场补录」勾选（见 _renderDiscMeetDetainedMakeup）
   const { candidates, disabledIds } = getMeetingRosterCandidates({ type: _currentMeetActivityType() });
   const candidateIds = new Set(candidates.map(p => p.id));
   _meetPickerInstance = new PersonPicker({
@@ -450,7 +551,9 @@ function _initMeetForm(container, accent) {
     onSelect: (ids) => { _renderDiscMeetStatusRows(ids); },
   });
   _meetPickerInstance.render(pickerContainer);
+  _prefillMakeupForActivity(); // 纪检更正/复核：按当前活动已录补录预填勾选
   _renderDiscMeetRosterHint();
+  _renderDiscMeetDetainedMakeup();
   _renderDiscMeetStatusRows([]);
 }
 
@@ -466,31 +569,58 @@ function _renderDiscMeetStatusRows(selectedIds) {
   if (!rowsContainer) return;
   if (selectedIds.length === 0) { rowsContainer.innerHTML = ''; return; }
   // 纪检更正（方案A 2026-09-06）：按当前选中活动加载已录记录——已录者状态下拉预填原状态（行尾标「已录·更正」），未录者默认出勤
+  // 附录⑩ A批·S1 · R1-2（2026-09-06）：未到（缺勤/请假）行尾追加纪检认定「标因」下拉（固定枚举：请假/无故/其它，禁造新枚举）
   const activityId = document.getElementById('disc-meet-activity')?.value;
-  const existStatusByPerson = new Map(
+  const existByPerson = new Map(
     loadAttendanceRecords()
       .filter(r => r.activityId === activityId)
-      .map(r => [r.personId, r.status])
+      .map(r => [r.personId, r])
   );
   rowsContainer.innerHTML = `
     <div class="text-xs font-bold text-gray-600 mb-2">逐人出勤状态</div>
     <div class="space-y-2 max-h-48 overflow-y-auto">
       ${selectedIds.map(pid => {
-        const preStatus = existStatusByPerson.get(pid);
+        const pre = existByPerson.get(pid);
+        const preStatus = pre?.status;
         const options = [...MEET_STATUS_OPTIONS];
         if (preStatus && !options.some(o => o.value === preStatus)) {
           options.push({ value: preStatus, label: ATTENDANCE_STATUS_LABELS[preStatus] || preStatus });
         }
+        const curStatus = preStatus || AttendanceStatus.PRESENT;
+        const showReason = curStatus === AttendanceStatus.ABSENT || curStatus === AttendanceStatus.LEAVE;
+        const reasonValue = (pre?.absenceReason && ABSENCE_REASONS.some(x => x.key === pre.absenceReason))
+          ? pre.absenceReason
+          : _defaultReasonFor(curStatus);
         return `
         <div class="flex items-center gap-3 p-2 rounded-lg bg-white">
           <span class="text-sm font-medium text-gray-800 min-w-[60px]">${getPersonName(pid)}</span>
           <select id="disc-meet-status-${pid}" class="input-flat">
-            ${options.map(o => `<option value="${o.value}" ${(preStatus || AttendanceStatus.PRESENT) === o.value ? 'selected' : ''}>${o.label}</option>`).join('')}
+            ${options.map(o => `<option value="${o.value}" ${curStatus === o.value ? 'selected' : ''}>${o.label}</option>`).join('')}
           </select>
+          <span class="reason-group-${pid} inline-flex items-center gap-1 ${showReason ? '' : 'hidden'}">
+            <span class="text-[11px] text-gray-400 whitespace-nowrap">标因</span>
+            <select id="disc-meet-reason-${pid}" class="input-flat" title="未到标因（纪检认定：请假/无故/其它）">
+              ${ABSENCE_REASONS.map(x => `<option value="${x.key}" ${reasonValue === x.key ? 'selected' : ''}>${x.label}</option>`).join('')}
+            </select>
+          </span>
           ${preStatus ? '<span class="text-[10px] text-amber-600 whitespace-nowrap">已录·更正</span>' : ''}
         </div>`;
       }).join('')}
     </div>`;
+  // 标因显隐随状态联动：出勤/已补隐藏；缺勤/请假显示并同步默认标因（缺席→无故、请假→请假，纪检可再改）
+  rowsContainer.querySelectorAll('select[id^="disc-meet-status-"]').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const pid = sel.id.replace('disc-meet-status-', '');
+      const groupEl = rowsContainer.querySelector(`.reason-group-${pid}`);
+      if (!groupEl) return;
+      const notAttending = sel.value === AttendanceStatus.ABSENT || sel.value === AttendanceStatus.LEAVE;
+      groupEl.classList.toggle('hidden', !notAttending);
+      if (notAttending) {
+        const reasonSel = rowsContainer.querySelector(`#disc-meet-reason-${pid}`);
+        if (reasonSel) reasonSel.value = _defaultReasonFor(sel.value);
+      }
+    });
+  });
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -726,4 +856,62 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx) 
       renderContent(ctx);
     });
   });
+}
+
+// ════════════════════════════════════════════════════════════════
+//  ④ 党小组会考勤（纪检纪律台只读掌握）— 附录⑩ A批·S1 裁定④（2026-09-06）
+//  组长上传（记录人=本组组长，submittedBy 可辨）；纪检只读查看：不代传、不在此审改；
+//  异常（缺勤/请假）处理走上方「待确认考勤」队列。无写口；挂在考勤总表下方只读区，
+//  不新增工作台 tab（能力清单不变）。
+// ════════════════════════════════════════════════════════════════
+function _buildGroupMeetingReadonlyHTML() {
+  const groups = listGroupMeetingAttendance();
+  const statusColor = (s) => s === AttendanceStatus.PRESENT ? 'text-green-700'
+    : s === AttendanceStatus.MADE_UP ? 'text-teal-700'
+    : s === AttendanceStatus.ABSENT ? 'text-red-700' : 'text-orange-700';
+  const recorderSemantic = recorderRolesOf('党小组会').map(r => ROLE_LABELS[r] || r).join('/');
+  const listHtml = groups.length === 0
+    ? '<div class="py-5 text-center text-xs text-gray-400">暂无党小组会考勤记录（组长上传后此处只读展示）</div>'
+    : groups.map(g => {
+        const abnormal = g.total - g.present;
+        const trs = g.rows.map(r => `
+          <tr class="border-b border-gray-50">
+            <td class="py-1.5 px-3 text-xs font-medium text-gray-800">${esc(r.name)}</td>
+            <td class="py-1.5 px-3 text-xs"><span class="${statusColor(r.status)}">${esc(r.statusLabel)}</span></td>
+            <td class="py-1.5 px-3 text-[11px] text-gray-500">${r.detainedMakeup ? badgeHtml('滞留·到场', 'warning') : (r.absenceReasonLabel ? esc(r.absenceReasonLabel) : '<span class="text-gray-300">—</span>')}</td>
+          </tr>`).join('');
+        const headerChips = [
+          g.groupName ? `<span class="text-[11px] px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">${esc(g.groupName)}</span>` : '',
+          g.leaderName ? `<span class="text-[11px] px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600">组长 ${esc(g.leaderName)}</span>` : '',
+          g.uploaderName ? `<span class="text-[11px] px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600">上传 ${esc(g.uploaderName)}</span>` : '<span class="text-[11px] text-gray-300">上传 —</span>',
+        ].filter(Boolean).join(' ');
+        return `
+        <div class="border border-gray-100 rounded-lg mb-2 overflow-hidden">
+          <div class="flex items-center justify-between flex-wrap gap-1 px-3 py-2 bg-gray-50">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-xs font-semibold text-gray-800">${esc(g.title)}</span>
+              <span class="text-[11px] text-gray-400">${esc(g.date)}</span>
+              ${headerChips}
+            </div>
+            <div class="text-[11px] text-gray-500">到席 <b class="text-green-700">${g.present}</b> · 异常 <b class="${abnormal > 0 ? 'text-red-700' : 'text-gray-400'}">${abnormal}</b> · 共 ${g.total}</div>
+          </div>
+          <table class="w-full text-xs">
+            <thead><tr class="border-b border-gray-100 bg-white">
+              <th class="py-1.5 px-3 text-left text-gray-400 font-medium">姓名</th>
+              <th class="py-1.5 px-3 text-left text-gray-400 font-medium">状态</th>
+              <th class="py-1.5 px-3 text-left text-gray-400 font-medium">备注（标因/补录）</th>
+            </tr></thead>
+            <tbody>${trs}</tbody>
+          </table>
+        </div>`;
+      }).join('');
+  return `
+    <div class="card rounded-xl p-4">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">党小组会考勤（纪检只读掌握）</h3>
+      </div>
+      <div class="text-[11px] text-gray-400 leading-5 mb-3">党小组会考勤由<b>本组组长</b>上传（记录人=${recorderSemantic}，submittedBy 可辨；记录人映射单一源 = policy recorderByType）；纪检纪律台<b>只读查看、不代传、不在此审改</b>——异常（缺勤/请假）请在「待确认考勤」队列处理，改/删走纪检确认流程</div>
+      ${listHtml}
+    </div>
+  `;
 }

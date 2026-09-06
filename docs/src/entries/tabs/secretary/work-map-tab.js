@@ -12,7 +12,7 @@ import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch.js?v=20260903c';
 import { getPersonName } from '../../../services/person.js?v=20260903c';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅书记/副书记可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20260903c';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20260906c';
 
 let _view = 'modules'; // 视图 A 平铺模块 / 视图 B 按人（同一会话内保持）
 

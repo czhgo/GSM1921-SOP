@@ -11,9 +11,13 @@
 
 export const POLICY_DEFAULTS = {
   workforce: {
-    // 票决通过门槛（应到比例 + 有异议即否）
-    // kind 'branch-default'：2026-09-05 书记裁「支委会从严：应到 2/3 且无异议」，
-    //   出处 MODULARIZATION_ASSESSMENT §8.5 P3a。开源部署可按支部制度调整。
+    // 票决通过门槛（支委会从严：应到会人数超过 2/3 且无反对，弃权允许）
+    // kind 'branch-default'：2026-09-06 书记裁（附录⑩ S2 R2-3，出处 .ctx/REVIEW_QUEUE.md），
+    //   取代 2026-09-05 版「应到 2/3 且无异议」（出处 MODULARIZATION_ASSESSMENT §8.5 P3a）。
+    //   语义裁定：quorum=2/3 为「严格超过」——出席/应到 >2/3 才达出席门槛（2/3 整界不过，
+    //   如应到 3 出席 2 仍不足）；vetoOnObject=true 为「反对=0」——交流式 'object'（异议）与
+    //   正式 'oppose'（反对）同口径视为反对，任一即否决；'abstain'（弃权）计出席不计赞成与反对。
+    //   开源部署可按支部制度调整；消费点：services/workforce.js evaluateWorkforceVotes（勿另写字面量）。
     voteThreshold: { quorum: 2 / 3, vetoOnObject: true },
   },
   attendance: {
@@ -36,6 +40,29 @@ export const POLICY_DEFAULTS = {
       partyStages: ['正式党员', '预备党员'],
       excludeDetained: true,
     },
+    // 会议考勤「记录人」按活动类型映射（附录⑩ A批·S1 · R1-1，书记裁定 2026-09-06）
+    // kind 'institutional'：出处 .ctx/REVIEW_QUEUE.md 附录⑩ S1 R1-1——制度裁决固定，改须书记裁决。
+    // 语义正式化：支部党员大会=纪检、党课=书记或纪检（含副书记例外承担）、组织生活会/支委会=纪检、
+    //   党小组会=组长（兼组织者）；值为角色键数组（secretary/deputy-secretary/disc-commissioner/leader，
+    //   键名见 core/constants.js ROLE_LABELS）。
+    // 仅覆盖「会议考勤」类型；主题党日等组织者位活动不入此表（记录人=该活动组织者，由 assignments 定）。
+    // 注：上传位门禁实现仍以 services/attendance.js canUploadAttendance 为准（含组织者兜底位，
+    //   不据此表做破坏性收紧）；本表为记录人语义的单一源——展示/解释/测试消费，业务层勿新写字面量。
+    recorderByType: {
+      支部党员大会: ['disc-commissioner'],
+      党课: ['secretary', 'deputy-secretary', 'disc-commissioner'],
+      组织生活会: ['disc-commissioner'],
+      支委会: ['disc-commissioner'],
+      党小组会: ['leader'],
+    },
+    // 未到（请假/缺席）标因固定枚举（附录⑩ A批·S1 · R1-2，书记裁定 2026-09-06）
+    // kind 'institutional'：出处 REVIEW_QUEUE 附录⑩ S1 R1-2——请假/缺席由纪检认定、系统标因=固定枚举，
+    //   禁造新枚举（新增须书记裁决）。key=英文（落 attendance.absenceReason 字段），label=中文标签（界面显示）。
+    reasons: [
+      { key: 'leave',     label: '请假' },
+      { key: 'unexcused', label: '无故' },
+      { key: 'other',     label: '其它' },
+    ],
   },
   inspection: {
     // 考察超期默认天数（待确认 + 超过 N 天判超期）
