@@ -600,3 +600,11 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **立项⑤阶段A**：EMPTY_BRANCH_TEMPLATE+createBranch（empty/copy、留痕 branch-created from empty-template/branch:源）；server POST /branches（party-staff 201/400/403，旧表单兼容）；向导「新建支部…」面板（party-staff 限、成功切新支部提示走 5 步）；branches-tab 适配；auditEmptyBranchRecord 引用审计三查；前端 mock 与服务端内联同构造口径、归一化 deepEqual 双形态守护；empty-template 10 测试+回归 42/42 绿。
 **域分区缺口（诚实登记）**：业务域与 people 单支部全域非 branch 分区→空支部"业务为空"=记录零引用零人物 id（验收 1/2 可达），全域分区不入本阶段。阶段B（?reset 分层/服务端对齐补全）待启动。
 **常规终端待跑**：mock-integrity + 浏览器目视（新建空/复制→5 步、branches-tab、?reset=1）+ async-vote HTTP E2E。push 仍待批（ahead 123）。
+
+---
+
+**T-2026-09-048 立项⑤阶段B + 减负⑥批量排查 + SNAPSHOT v19（2026-09-06，commits 待）**
+**① 立项⑤阶段B**：?reset 分层= demo（?reset=1 历史别名）清演示键集回种子 / preview 清运行时 overlay+预览键（gsm1921-base-data-preview、wizard-draft-*）不动演示本体 / 未知不动作；API 模式（有 token）两档跳过（服务器权威）；mock-adapter reset 重构为可导入纯函数（resolveResetTier/collectResetKeys/handleResetIfRequested）；服务端 GET /branches 全字段透传核对=零补丁 + POST→GET 逐位一致断言；README 补两档与 API 重置说明；reset-tier 9 测试+empty-template 11。
+**② 减负⑥ 面板保态批量排查**：全工作台 30+ 面板审计（判据=手动折叠须 CSS 保态；外部 re-render/提交后重建可接受），3 处真缺陷修复→常驻 DOM+hidden 保态（org/inspection-tab 考察上传、leader/attendance-tab 党小组会上传、visitor/review-tab 我的复盘展开）；其余审计通过。
+**③ SNAPSHOT v19**：覆盖式 169→148 行——v19/真人名注册（储子禾等）/7-9 月窗口/旧名与计数清理（目录计数动态化、db 32 表与页面 18 实测）/新功能登记（roster·会议考勤批量·立项③·锚点·评估 v4·向导·空模板·spec 纪律·H60 提问准则）/理论表+权限矩阵校正；自查零「秘书」中文、零占位名。
+**验证**：52/52 全绿（reset-tier 9+empty-template 11+org-config+wizard-copy+base-data-preview+roster+attendance-batch）；GetDiagnostics 零；module-load/浏览器目视待常规终端。push 仍待批（ahead 128）。
