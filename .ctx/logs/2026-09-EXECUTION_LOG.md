@@ -608,3 +608,10 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **② 减负⑥ 面板保态批量排查**：全工作台 30+ 面板审计（判据=手动折叠须 CSS 保态；外部 re-render/提交后重建可接受），3 处真缺陷修复→常驻 DOM+hidden 保态（org/inspection-tab 考察上传、leader/attendance-tab 党小组会上传、visitor/review-tab 我的复盘展开）；其余审计通过。
 **③ SNAPSHOT v19**：覆盖式 169→148 行——v19/真人名注册（储子禾等）/7-9 月窗口/旧名与计数清理（目录计数动态化、db 32 表与页面 18 实测）/新功能登记（roster·会议考勤批量·立项③·锚点·评估 v4·向导·空模板·spec 纪律·H60 提问准则）/理论表+权限矩阵校正；自查零「秘书」中文、零占位名。
 **验证**：52/52 全绿（reset-tier 9+empty-template 11+org-config+wizard-copy+base-data-preview+roster+attendance-batch）；GetDiagnostics 零；module-load/浏览器目视待常规终端。push 仍待批（ahead 128）。
+
+---
+
+**T-2026-09-049 产品方向三定调 + 沟通准则补强（2026-09-06，commit 待）**
+**书记定调（strategy/product，AI 自我纠偏）**：①配置不靠改文件=网页操作与后端交互，仓库 mock 仅初始种子/开源示例（纠偏：我此前把"改 mock+工作单"当交付边界，是把开发实现外露给使用者，违背好用）；落点=双形态并存（无后端本地可用/有后端自动持久）；②名册全面网页化（逐人增删改/分组/在册滞留/整表导入替换）；③党委与支部分层（党委=全局管理面，不含意见反馈/首页概况/资料查询等支部运行功能；支部层=现有工作台）；④「报告只讲交互与功能含义」本轮固化。
+**落地**：CLAUDE H60 补「向书记报告的表现准则」（禁代码细节入请裁/汇报，写完自检"书记是否需读代码才懂"）；REVIEW_QUEUE 检查要点+2（报告表现/配置必网页化）与立项⑥（配置数据网页化：持久底座→名册 CRUD→整表导入替换）、立项⑦（党委支部分层：两级导航→党委功能面收敛→支部切换）登记。
+**模式沉淀（sample-diff-learning）**：ai_assumption「配置/数据替换=改仓库文件+工作单是合理边界」vs human_intent「好用=面向使用者的配置/数据动作一律网页化+持久，文件只是种子」→ divergence=scope/priority；generalization=「凡使用者配置/数据动作先问能否网页化+持久，禁止把改源码当交付步骤」（入立项⑥与检查要点）。push 仍待批（ahead 128+）。
