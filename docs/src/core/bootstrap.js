@@ -149,6 +149,11 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
     const memPage = AuthStore.getPageForRole('workspace', AuthStore.getUserRole(user.personId));
     if (memPage) allowedPages.add(norm(memPage));
 
+    // 立项⑦ B波：party-staff「进入支部（演示）」——身份门最小放行（受控条件见顶部注释）
+    if (!allowedPages.has(currentPage) && _partyStaffBranchDemoAllowed(user, currentPage)) {
+      allowedPages.add(currentPage);
+    }
+
     if (!allowedPages.has(currentPage)) {
       // 跳转目标：以登录快照身份为准（与身份标签一致）；缺失时回退内存判定角色页面
       const target = snapPage || memPage || 'visitor.html';

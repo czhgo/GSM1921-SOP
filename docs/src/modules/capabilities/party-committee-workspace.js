@@ -14,6 +14,9 @@ registerCapability({
   scope: ['workspace:party-committee'],
   requiredRoles: rolesForPage('party-committee.html'),
   tabs: () => [
+    // 立项⑦ B波（2026-09-06）：「治理总览」= 党委治理首页/登录落点，置首。
+    // 含支部概览列表（成员/党员/滞留实时统计 + 近期动态摘要）→ 支部卡「进入支部（演示）」。
+    { id: 'governance-overview', label: '治理总览', groupLabel: '首页', render: (ctx) => import('../../entries/tabs/party-committee/governance-overview-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     { id: 'monitor', label: '支部监控台账', groupLabel: '全院治理', render: (ctx) => import('../../entries/tabs/party-committee/monitor-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     { id: 'branches', label: '支部管理', groupLabel: '全院治理', render: (ctx) => import('../../entries/tabs/party-committee/branches-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     // P3 党委后台（2026-09-02）：支部上报审批（发展节点/活动报备逐项批驳，结论回传支部）

@@ -18,7 +18,7 @@ import { getCapabilities } from '../core/registry.js?v=20260903c';
 import { loadWorkspaceData } from '../core/data-loader.js?v=20260903c';
 import { TodoStore } from '../services/todo.js?v=20260903c';
 import { AuthStore } from '../services/auth.js?v=20260903c';
-import { applyTabPolicy, getBranchIdOfPerson } from '../services/branch.js?v=20260903c';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260903c';
 
 // B1-5 修复：URL 导航落点后抑制当前 tab 重渲染，防止二次 setState 重建 DOM 冲掉直达高亮。
 // 条件抑制：仅当导航目标元素已在 DOM 中（高亮已展示）才抑制；目标缺失（延迟数据）放行补渲染。
@@ -71,7 +71,25 @@ export async function createWorkspaceShell(opts) {
   let _highlightSel = null;      // 导航目标元素选择器（用于条件抑制判断）
   let _navSuppressUntil = 0;
 
-  const { accent, accentRgba, accentBorder } = await bootstrapPage({ module: 'workspace', accentRole });
+  const { accent, accentRgba, accentBorder, user } = await bootstrapPage({ module: 'workspace', accentRole });
+
+  // ── 立项⑦ B波：党委「进入支部（演示）」演示横幅（2026-09-06）──────────
+  // party-staff 经 core/bootstrap.js 放行门进入支部层工作台（URL 携带 ?branch=）时，
+  // 在内容区顶部给出「支部层 × 演示视图」标识与返回党委总览入口。
+  // 仅 party-staff + branch 参数 + 支部层壳（scope ≠ party-committee）触发；其余角色/页面无横幅。
+  const _demoBranchId = (user && user.role === 'party-staff' && scope !== 'workspace:party-committee')
+    ? CrossPageState.getParam('branch')
+    : null;
+  const _demoBannerHtml = _demoBranchId
+    ? (() => {
+        const _b = getBranchById(_demoBranchId);
+        const _branchName = _b?.config?.headerTitle || _b?.name || _demoBranchId;
+        return `<div class="rounded-xl border border-dashed bg-red-50 text-red-700 px-4 py-2.5 mb-3 flex flex-wrap items-center justify-between gap-2 text-xs" style="border-color:rgba(248,113,113,0.4);">
+  <span><b>党委演示视图 · ${escHtml(_branchName)}</b> — 该支部书记工作台（branch 上下文）；以党委组织员会话演示，写操作按角色权限拒绝</span>
+  <a href="./workspace/party-committee.html" class="font-semibold whitespace-nowrap" style="color:#C8102E;">← 返回党委治理总览</a>
+</div>`;
+      })()
+    : '';
 
   /** 渲染上下文（供各 tab 模块使用；高亮目标由导航路径 3s 定时器清除，B1-5） */
   function _renderCtx(state) {
