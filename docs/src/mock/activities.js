@@ -58,7 +58,12 @@ export const ACTIVITIES = [
   //   部署会无此场景）；线上表决演示由 act-31 承担，无 voteConfig 回退路径已有服务端测试覆盖。
   { id: 'act-30', title: '秋季学期工作部署会', date: '2026-08-28', type: '支部党员大会', organizer: 'p11', direction: 'top-down', location: '光华1号楼101报告厅', status: 'published', scenarioId: 'branch-party-meeting', domain: 'party-building', assignments: [{ personId: 'p11', role: 'organizer' }, { personId: 'p8', role: 'participant' }, { personId: 'p15', role: 'participant' }] },
   // act-31 线上异步表决样例（AV4.5 演示）：支部党员大会 voteConfig formal-only 固化应到名单，
-  // voterIds = 正式党员（与 resolveVoterIds('formal-only') 同口径：p1-p5、p8-p14，均非 u_*），
+  // voterIds = 正式党员（p1-p5、p8-p14，均非 u_*），
   // 预备党员/积极分子不在名单 → activity.html 只读提示「仅应到表决人可表态」
+  // ── 历史快照语义（书记 2026-09-06 ②批 voterIds 与 roster 联动）──
+  //   voteConfig.voterIds = 活动创建时固化的名单快照，此后成员「在校/滞留」状态变更
+  //   不回改历史活动（本快照固化于滞留剔除口径落地前，故仍含 p5/p9）；
+  //   新创建活动的默认 voterIds 由 services/vote-config.js resolveVoterIds 现时生成
+  //   （范围 + 剔除滞留，roster 口径单一源 = policy-defaults attendance.roster），本数据保持原值。
   { id: 'act-31', title: '9月支部党员大会（线上异步表决）', date: '2026-09-10', type: '支部党员大会', organizer: 'p11', direction: 'top-down', location: '线上（异步表决）', status: 'published', scenarioId: 'branch-party-meeting', domain: 'party-building', voteConfig: { mode: 'async', optionSet: 'formal', voterScope: 'formal-only', voterIds: ['p1', 'p2', 'p3', 'p4', 'p5', 'p8', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14'], quorumCheck: true }, assignments: [{ personId: 'p11', role: 'organizer' }, { personId: 'p5', role: 'participant' }, { personId: 'p8', role: 'participant' }], agenda: [{ id: 'ag-mtg-1', item: '审议 2026 年秋季学期支部工作计划', host: '书记' }, { id: 'ag-mtg-2', item: '审议发展对象接收为预备党员的决议', host: '组织委员' }] },
 ];

@@ -100,7 +100,9 @@ export async function createWorkforceProposalActivity(branchId, changes, note = 
     date: date || new Date().toISOString().slice(0, 10),
     status: 'published',
     visibility: 'group',
-    voteConfig: defaultVoteConfig('branch-committee'), // deliberative / committee / quorum=false
+    // 新支委会表决活动（书记 2026-09-06 ②批）：voterIds 固化 = 现时支委应到名单
+    // （支委若滞留则剔，roster 口径；历史活动快照不回改）
+    voteConfig: { ...defaultVoteConfig('branch-committee'), voterIds: resolveVoterIds('committee') }, // deliberative / committee / quorum=false
     agenda: [{
       item: '审议支部分工调整',
       content: `${note ? `${note}\n` : ''}${lines.join('\n')}`,

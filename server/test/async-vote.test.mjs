@@ -22,7 +22,8 @@ import { seedDatabase } from '../seed.js';
 
 let server, base, browser;
 
-// 支部党员大会应到名单 = 12 名正式党员（与 vote-config resolveVoterIds('formal-only') / mock act-31 同口径）
+// 表决名单 = 12 名正式党员（mock act-31 创建时固化的快照口径——含滞留 p5/p9，历史快照不回改；
+//   新活动默认由 vote-config resolveVoterIds('formal-only') 现时生成，会按居住状态剔滞留）
 const FORMAL_IDS = ['p1', 'p2', 'p3', 'p4', 'p5', 'p8', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14'];
 const AG1 = 'av5-ag-1'; // 议题 1（表决/记录决议对象）
 const AG2 = 'av5-ag-2'; // 议题 2（并列存在，验证多议题）

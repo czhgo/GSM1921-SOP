@@ -128,6 +128,31 @@ export function getMeetingRosterIds(opts = {}) {
 }
 
 /**
+ * 会议考勤「可见候选 + 禁用集合」（纪检/组长表单共用，书记 2026-09-06 ①批）：
+ *   - candidates = 本范围党员（developStage ∈ partyStages，含滞留者）——滞留者不再被
+ *     filter 整体剔除，而是「可见但不可选」（PersonPicker disabledIds），使录入人
+ *     （纪检/组长）能直接看到"此人为何不在应到"（灰态 + 「滞留」徽标 + title 备注）；
+ *   - disabledIds = candidates 中滞留党员 id（口径 excludeDetained=false 时为空表；
+ *     党小组会缺 groupId → 不猜测，返回空）。
+ * 与 getMeetingRoster 同范围同规则，仅差「滞留者是否可见」：应到 = candidates − disabledIds。
+ * @param {Object} params 同 getMeetingRoster（type/groupId/branchId）
+ * @returns {{ candidates:Array, disabledIds:string[] }}
+ */
+export function getMeetingRosterCandidates({ type, groupId, branchId } = {}) {
+  const cfg = getRosterConfig();
+  let members = getEffectiveMembers(branchId);
+  if (type === '党小组会') {
+    if (!groupId) return { candidates: [], disabledIds: [] };
+    members = members.filter(p => p.partyGroup === groupId);
+  }
+  const candidates = members.filter(p => isPartyMember(p, cfg));
+  const disabledIds = cfg.excludeDetained
+    ? candidates.filter(p => isDetained(p)).map(p => p.id)
+    : [];
+  return { candidates, disabledIds };
+}
+
+/**
  * 应到清点统计（供界面展示「应到 N 人 / 滞留 M 人已剔除」）
  * @returns {{ expected:number, partyTotal:number, detainedParty:number }}
  *   expected = 应到（党员非滞留）；partyTotal = 同范围党员总数（正式+预备）；

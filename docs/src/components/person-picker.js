@@ -29,6 +29,15 @@ function darkenHex(hex) {
   ).join('');
 }
 
+// ── 辅助：HTML 属性转义（禁用项 title/标签可含用户备注） ───────
+function _escAttr(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 // ── 党小组列表（从数据中动态提取） ──────────────────────────────
 const PARTY_GROUPS = [...new Set(PEOPLE.map(p => p.partyGroup))];
 
@@ -61,13 +70,21 @@ export class PersonPicker {
    * @param {Function}          [options.onSelect]  - 选中回调 (personIds: string[]) => void
    * @param {string[]}          [options.initialIds]- 初始选中的人员 ID 列表
    * @param {string}            [options.accentColor] - 主题色 hex，默认 '#CE1126'
+   * @param {string[]}          [options.disabledIds] - 禁用（可见但不可勾选）的人员 ID 列表
+   *   （书记 2026-09-06 ①批：滞留者「可见但不可选」——灰态 + aria-disabled + title 备注，
+   *    不再依赖 filter 把滞留者整体剔除；批量全选只选可用项）
+   * @param {Function}          [options.disabledLabel] - (person)=>string 禁用项短标签（如「滞留」）
+   * @param {Function}          [options.disabledTitle] - (person)=>string 禁用项悬浮备注（默认「该人员当前不可选」）
    */
   constructor(options = {}) {
     this._mode = options.mode || 'single';
     this._placeholder = options.placeholder || '选择人员';
     this._filter = options.filter || null;
     this._onSelect = options.onSelect || null;
-    this._selected = new Set(options.initialIds || []);
+    this._disabled = new Set(options.disabledIds || []);
+    this._disabledLabel = options.disabledLabel || null;
+    this._disabledTitle = options.disabledTitle || null;
+    this._selected = new Set((options.initialIds || []).filter(id => !this._disabled.has(id)));
     this._searchQuery = '';
     this._activeGroup = '全部';
     this._panelOpen = false;
@@ -451,20 +468,27 @@ export class PersonPicker {
 
     listEl.innerHTML = people.map(person => {
       const isSelected = this._selected.has(person.id);
+      const isDisabled = this._disabled.has(person.id);
+      const disabledLabel = isDisabled ? ((this._disabledLabel && this._disabledLabel(person)) || '不可选') : '';
+      const disabledTitle = isDisabled
+        ? ((this._disabledTitle && this._disabledTitle(person)) || '该人员当前不可选')
+        : '';
       const stageColor = STAGE_COLORS[person.developStage] || STAGE_COLORS['正式党员'];
       const stageLabel = STAGE_LABELS[person.developStage] || person.developStage;
       const roleLabel = person.role ? (ROLE_LABELS[person.role] || person.role) : '';
 
       return `
-        <button type="button" class="person-picker-item ${isSelected ? 'selected' : ''}"
+        <button type="button" class="person-picker-item ${isSelected ? 'selected' : ''}${isDisabled ? ' disabled' : ''}"
              data-person-id="${person.id}"
-             aria-pressed="${isSelected}">
+             aria-pressed="${isSelected}"
+             ${isDisabled ? `aria-disabled="true" title="${_escAttr(disabledTitle)}"` : ''}>
           <span class="person-picker-item-avatar" aria-hidden="true">
             ${person.name.charAt(0)}
           </span>
           <span class="person-picker-item-info">
             <span class="person-picker-item-name-row">
               <span class="person-picker-item-name">${person.name}</span>
+              ${isDisabled ? `<span class="person-picker-item-lock">${_escAttr(disabledLabel)}</span>` : ''}
               <span class="person-picker-item-stage" style="--acc-bg-dark:${stageColor.bgDark};--acc-text-dark:${stageColor.textDark};--acc-border-dark:${stageColor.borderDark};background:${stageColor.bg};color:${stageColor.text};border:1px solid ${stageColor.border};">${stageLabel}</span>
             </span>
             <span class="person-picker-item-meta">
@@ -578,7 +602,8 @@ export class PersonPicker {
    * @param {string[]} ids
    */
   setSelected(ids) {
-    this._selected = new Set(ids);
+    // 批量全选只选可用项：禁用 id（滞留等）一律不入选中集
+    this._selected = new Set((ids || []).filter(id => !this._disabled.has(id)));
     this._renderTrigger();
   }
 

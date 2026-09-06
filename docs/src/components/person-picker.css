@@ -239,6 +239,35 @@
   border-color: var(--pp-accent-20);
 }
 
+/* ── 逐人禁用（书记 2026-09-06 ①批：滞留者「可见但不可选」）── */
+.person-picker-item.disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.person-picker-item.disabled:focus-visible {
+  outline: 2px solid var(--neutral-300);
+  outline-offset: -2px;
+}
+.person-picker-item.disabled:hover {
+  background: transparent;
+}
+.person-picker-item.disabled .person-picker-item-name {
+  color: #9CA3AF;
+}
+.person-picker-item.disabled .person-picker-item-avatar {
+  background: #F3F4F6;
+  color: #D1D5DB;
+}
+.person-picker-item-lock {
+  font-size: 0.625rem;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+  flex-shrink: 0;
+}
+
 .person-picker-item-avatar {
   width: 32px;
   height: 32px;

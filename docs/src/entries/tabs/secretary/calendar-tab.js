@@ -758,6 +758,7 @@ function renderVoteConfigSection(scenarioId) {
   if (scenarioId === 'branch-committee') {
     // 支委会：参与范围固定支委（只读文案，无选择项）
     html += `<p class="text-xs text-gray-600">参与范围：支委（${countOf('committee')} 人）</p>`;
+    html += `<p class="text-xs text-gray-400 mt-1">名单按现时「在校/滞留」状态自动剔除滞留支委；创建时固化快照</p>`;
   } else if (scenarioId === 'branch-party-meeting') {
     html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">参与范围</label>`;
     html += `<div class="flex gap-4 pt-0.5">`;
@@ -769,6 +770,7 @@ function renderVoteConfigSection(scenarioId) {
     html += `</label>`;
     html += `</div>`;
     html += `<p class="text-xs text-gray-400 mt-2">表决选项：赞成 / 反对 / 弃权 + 可附言</p>`;
+    html += `<p class="text-xs text-gray-400 mt-1">人数按现时「在校/滞留」状态自动剔除滞留成员（支部大会应到口径）；创建时固化快照</p>`;
   }
   html += `</div>`;
   html += `</div>`;
@@ -1057,6 +1059,8 @@ async function handleSubmitActivity() {
 
   // 会议形式（2026-09-02 线上异步表决泛化：决策类场景选「线上异步表决」→ 写入 voteConfig，
   // 参与范围按用户选择解析固化应到名单 voterIds；线下开会不写 voteConfig）
+  // ②批（2026-09-06）：resolveVoterIds 已按现时居住状态剔滞留（roster 口径）→ 此处生成的
+  //   voterIds = 应到名单快照；已创建活动（历史快照）不回改
   const voteFormArea = _getWritePanelContainer();
   const meetingForm = voteFormArea?.querySelector('input[name="wp-meeting-form"]:checked')?.value || 'onsite';
   let voteConfig = null;

@@ -12,8 +12,8 @@ import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain
 import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES } from '../../../services/attendance.js?v=20260903c';
 import { getPersonName } from '../../../services/person.js?v=20260903c';
 // S1–S4 滞留党员设计（2026-09-06 书记已批）：会议考勤「应到清点/全选范围」= 应到名单口径
-// （党员 正式+预备 且非滞留；滞留已剔除、党课列席不计应到），不再全支部 50 人候选
-import { getMeetingRoster, getDetainedMembers, getRosterStats } from '../../../services/roster.js?v=20260903c';
+// （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
+import { getMeetingRoster, getDetainedMembers, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260903c';
 import { solidAccentStyle } from '../../../core/constants.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260903c';
@@ -391,7 +391,7 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
         <h3 class="font-title-cn text-base font-semibold text-gray-800">会议考勤录入</h3>
         ${toggleBtn}
       </div>
-      <div class="text-xs text-gray-500 mb-3">会议类考勤（党课/支部党员大会/组织生活会/支委会）由纪检直接上传并录入总表；党小组会考勤由组长/组织者上传、纪检确认。应到清点与全选范围 = 应到名单口径（党员 正式+预备 且非滞留，滞留已剔除；党课列席不计应到）</div>
+      <div class="text-xs text-gray-500 mb-3">会议类考勤（党课/支部党员大会/组织生活会/支委会）由纪检直接上传并录入总表；党小组会考勤由组长/组织者上传、纪检确认。应到清点与全选范围 = 应到名单口径（党员 正式+预备 且非滞留）；滞留者「可见但不可选」（灰态禁选，悬浮看备注）；党课列席不计应到</div>
       ${body}
     </div>
   `;
@@ -409,7 +409,7 @@ function _currentMeetingRoster() {
   return getMeetingRoster({ type: _currentMeetActivityType() });
 }
 
-/** 应到清点提示：应到 N 人；滞留者以「滞留」徽标展示（已从候选剔除、不可选） */
+/** 应到清点提示：应到 N 人；滞留者「可见但不可选」（候选列表内灰态 + 徽标 + title 备注） */
 function _renderDiscMeetRosterHint() {
   const hintEl = document.getElementById('disc-meet-roster-hint');
   if (!hintEl) return;
@@ -421,7 +421,7 @@ function _renderDiscMeetRosterHint() {
       <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 align-middle"
         title="${esc(p.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">${esc(p.name)} · 滞留</span>`).join(' ');
   hintEl.innerHTML = `
-    <span>应到 <b class="text-gray-600">${stats.expected}</b> 人（在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}；党课列席不计应到）。滞留者已剔除且不可选：${detainedHtml}</span>
+    <span>应到 <b class="text-gray-600">${stats.expected}</b> 人（在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}；党课列席不计应到）。滞留者已在候选中<b class="text-amber-700">标灰禁选</b>（可见原因，悬浮查看备注）：${detainedHtml}</span>
     <span class="block mt-0.5 text-gray-300">应到口径 = 党员（正式党员/预备党员）且非滞留 · 由组织委员在成员档案维护「在校/滞留」并留痕，书记可复核</span>`;
 }
 
@@ -429,10 +429,13 @@ function _initMeetForm(container, accent) {
   const pickerContainer = container.querySelector('#disc-meet-picker');
   if (!pickerContainer) return;
   if (_meetPickerInstance) { _meetPickerInstance.destroy(); _meetPickerInstance = null; }
-  // S1–S4 书记已批：候选项 = 应到名单（党员 正式+预备 且非滞留）；滞留者/非党员/党课列席不可选。
-  // PersonPicker 不支持逐人禁用 → 由 roster service 过滤候选集（设计核准的降级路径）；
-  // 候选随表单每次重建（打开/提交后重开）刷新，成员状态维护后即时生效。
-  const rosterIds = new Set(_currentMeetingRoster().map(p => p.id));
+  // 书记 2026-09-06 ①批：滞留者「可见但不可选」（逐人禁用）——候选不再 filter 剔除滞留者，
+  // 而是「党员（含滞留）全可见 + disabledIds 禁选」：纪检能看到"此人为何不在应到"（灰态 +
+  // 「滞留」徽标 + title 备注）；党课列席/非党员仍不可见。候选随表单每次重建刷新（成员状态
+  // 维护后即时生效）。「全选应到名单」按钮走 setSelected(rosterIds) → 只选可用项（picker 内
+  // 禁用 id 一律不入选中集，批量全选不破坏）。
+  const { candidates, disabledIds } = getMeetingRosterCandidates({ type: _currentMeetActivityType() });
+  const candidateIds = new Set(candidates.map(p => p.id));
   _meetPickerInstance = new PersonPicker({
     mode: 'multi',
     placeholder: '选择参会人员',
@@ -440,7 +443,10 @@ function _initMeetForm(container, accent) {
     // 原「按阶段批量」面向全支部 50 人候选（含党课列席）→ 应到口径下无列席可选，
     // 批量录入改由「全选应到名单」按钮承载（stageBatch=false 不再渲染空转 chips）
     stageBatch: false,
-    filter: (p) => rosterIds.has(p.id),
+    filter: (p) => candidateIds.has(p.id),
+    disabledIds,
+    disabledLabel: () => '滞留',
+    disabledTitle: (p) => `滞留：${p.residenceNote || '组织关系保留、应到剔除、通知照发'}`,
     onSelect: (ids) => { _renderDiscMeetStatusRows(ids); },
   });
   _meetPickerInstance.render(pickerContainer);

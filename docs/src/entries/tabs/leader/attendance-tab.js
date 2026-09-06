@@ -13,7 +13,10 @@ import { attendanceToLong } from '../../../services/attendance.js?v=20260903c';
 import { getPersonById, getPersonName } from '../../../services/person.js?v=20260903c';
 import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
-import { showToast } from '../../../core/utils.js?v=20260903c';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260903c';
+// ③批（书记 2026-09-06）：党小组会考勤候选 = 本组应到名单（党员非滞留）；
+// 滞留者「可见但不可选」（灰态 + 「滞留」徽标 + title 备注，同纪检口径）
+import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260903c';
 import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260903c';
 import { currentLeaderGroup } from './_shared.js?v=20260903c';
 import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260903c';
@@ -73,6 +76,7 @@ export function renderContent(ctx) {
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择参会人员 <span class="text-red-500">*</span></label>
         <div id="att-person-picker-container"></div>
       </div>
+      <div id="att-roster-hint" class="mb-3 text-[11px] text-gray-400 leading-5"></div>
       <div id="att-status-rows" class="mb-3"></div>
       <div class="flex items-center gap-3">
         <button id="att-form-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">提交考勤</button>
@@ -150,24 +154,64 @@ export function renderContent(ctx) {
 }
 
 function _initAttForm(container, eligibleActivities, ctx) {
-  const { accent, accentBorder } = ctx;
-
-  // 初始化 PersonPicker
+  const { accent } = ctx;
   const pickerContainer = container.querySelector('#att-person-picker-container');
-  if (pickerContainer) {
+  const activitySelect = container.querySelector('#att-activity-select');
+  const { group: myGroup } = currentLeaderGroup();
+
+  /** 党小组会 → 本组应到候选语境（组内党员 + 滞留者禁用）；其余/未选活动 → null（全成员，上传位语义不变） */
+  function rosterCtxFor(activity) {
+    if (!activity || activity.type !== '党小组会') return null;
+    const { candidates, disabledIds } = getMeetingRosterCandidates({ type: '党小组会', groupId: myGroup });
+    return {
+      candidateIds: new Set(candidates.map(p => p.id)),
+      disabledIds,
+      candidates,
+      stats: getRosterStats({ type: '党小组会', groupId: myGroup }),
+    };
+  }
+
+  /** 按当前所选活动重建 PersonPicker（党小组会收紧候选；切换活动清空已选，重新引导选择） */
+  function rebuildPicker() {
+    if (_attPickerInstance) { _attPickerInstance.destroy(); _attPickerInstance = null; }
+    if (!pickerContainer) return;
+    const activityId = activitySelect?.value;
+    const activity = eligibleActivities.find(a => a.id === activityId) || null;
+    const rosterCtx = rosterCtxFor(activity);
+    // ③批（书记 2026-09-06）：党小组会候选 = 本组应到名单（组内党员 非滞留），
+    // 滞留者「可见但不可选」；未选活动 → 空候选（引导先选活动，避免先选人后切活动丢选择）
     _attPickerInstance = new PersonPicker({
       mode: 'multi',
       placeholder: '选择参会人员',
       accentColor: accent,
+      filter: activity
+        ? (rosterCtx ? (p) => rosterCtx.candidateIds.has(p.id) : undefined)
+        : () => false,
+      disabledIds: rosterCtx ? rosterCtx.disabledIds : [],
+      ...(rosterCtx && rosterCtx.disabledIds.length > 0
+        ? {
+            disabledLabel: () => '滞留',
+            disabledTitle: (p) => `滞留：${p.residenceNote || '组织关系保留、应到剔除、通知照发'}`,
+          }
+        : {}),
       onSelect: (ids) => {
         _renderAttStatusRows(ids);
       }
     });
     _attPickerInstance.render(pickerContainer);
+    _renderAttRosterHint(activity, rosterCtx, myGroup);
+    _renderAttStatusRows(_attPickerInstance.getSelected());
   }
 
-  // 渲染初始状态行（空）
-  _renderAttStatusRows([]);
+  // 活动切换 → 按类型重建候选（已选随重建清空并提示）
+  activitySelect?.addEventListener('change', () => {
+    const hadSelection = !!(_attPickerInstance && _attPickerInstance.getSelected().length > 0);
+    rebuildPicker();
+    if (hadSelection) showToast('info', '已按所选活动重置参会候选，请重新选择');
+  });
+
+  // 初始渲染（未选活动：空候选 + 提示先选活动）
+  rebuildPicker();
 
   // 取消按钮
   container.querySelector('#att-form-cancel')?.addEventListener('click', () => {
@@ -225,6 +269,31 @@ function _initAttForm(container, eligibleActivities, ctx) {
     if (_attPickerInstance) { _attPickerInstance.destroy(); _attPickerInstance = null; }
     renderContent(ctx);
   });
+}
+
+/** 组长上传表单候选提示：党小组会 = 本组应到 + 滞留者标灰禁选；其余活动说明候选范围（同纪检口径） */
+function _renderAttRosterHint(activity, rosterCtx, myGroup) {
+  const hintEl = document.getElementById('att-roster-hint');
+  if (!hintEl) return;
+  if (!activity) {
+    hintEl.innerHTML = '请先选择活动：党小组会候选取本组应到名单（组内党员 且非滞留）；其他活动候选项 = 支部成员';
+    return;
+  }
+  if (!rosterCtx) {
+    hintEl.innerHTML = '候选项 = 支部在册成员（本活动非党小组会，候选不按应到收紧）；党小组会活动将自动取本组应到名单';
+    return;
+  }
+  const { stats, candidates, disabledIds } = rosterCtx;
+  const disabledSet = new Set(disabledIds);
+  const detained = candidates.filter(p => disabledSet.has(p.id));
+  const chips = detained.length === 0
+    ? '<span class="text-gray-400">无滞留成员</span>'
+    : detained.map(p => `
+      <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 align-middle"
+        title="${esc(p.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">${esc(p.name)} · 滞留</span>`).join(' ');
+  hintEl.innerHTML = `
+    <span>本组（${esc(myGroup)}）应到 <b class="text-gray-600">${stats.expected}</b> 人（组内党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}）。滞留者已在候选中<b class="text-amber-700">标灰禁选</b>（悬浮查看备注）：${chips}</span>
+    <span class="block mt-0.5 text-gray-300">应到口径 = 组内党员（正式党员/预备党员）且非滞留 · 由组织委员在成员档案维护「在校/滞留」并留痕，书记可复核</span>`;
 }
 
 function _renderAttStatusRows(selectedIds) {
