@@ -32,9 +32,11 @@ import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
 } from '../services/org-base-data-preview.js?v=20260903c';
-import { getRosterStats } from '../services/roster.js?v=20260903c';
+import { getRosterStats, isDetained } from '../services/roster.js?v=20260903c';
 import { buildOrgWizardReport } from '../services/org-wizard-report.js?v=20260903c';
-import { getPersonName } from '../services/person.js?v=20260903c';
+import { PersonStore, getPersonName } from '../services/person.js?v=20260903c';
+// R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
+import { appointInauguralOfficers } from '../services/appointment.js?v=20260906f';
 
 // ── 步骤元信息（书记已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
@@ -156,6 +158,8 @@ export function mountOrgSetupWizard(host, opts) {
     // 立项⑤ 阶段A（2026-09-06）：「新建支部…」小面板（空模板初始化 / 复制现有；仅 party-staff）
     createOpen: false,
     createMode: 'empty', // 'empty' | 'copy'
+    // R5-1（2026-09-06）：「新建支部…」就地任命首任骨干勾选态（默认开；关闭面板/创建成功后复位 true）
+    appointOn: true,
   };
 
   // 权限初始化：party-staff 可切支部；其余必须落在「本支部现任书记」且仅本支部
@@ -318,6 +322,46 @@ function _createPanelHtml(S, isStaff) {
   const sourceOptions = branches.map(b =>
     `<option value="${esc(b.id)}">${esc(b.name)}${b.id === S.branchId ? '（当前）' : ''}</option>`).join('');
   const nameDefault = '新支部（待配置）';
+  // R5-1（2026-09-06）：就地任命首任骨干区块——候选 = 现役成员（PersonStore 读链），
+  // 剔除滞留党员（口径单一源 roster.isDetained）与组织级人员 party-staff（不挂支部、非成员 → 天然排除 p_pc）。
+  // option 文案 = 姓名 + 当前支部/职务（如「张三（br-b1 · 组织委员）」）。
+  const appointOn = S.appointOn !== false;
+  const appointCandidates = PersonStore.getMembers()
+    .filter(m => m && m.id && m.role !== 'party-staff' && !isDetained(m));
+  const appointable = appointCandidates.length > 0;
+  const memberOption = (m) => {
+    const roleLabel = ROLE_LABELS[m.role] || m.role;
+    return `<option value="${esc(m.id)}">${esc(m.name)}（${esc(m.branchId || '—')} · ${esc(roleLabel)}）</option>`;
+  };
+  const secretaryOptions = appointCandidates.map(memberOption).join('');
+  const orgOptions = appointCandidates.map(memberOption).join('');
+  const appointSection = appointable ? `
+      <div class="rounded-lg border border-blue-100 bg-white/70 p-2.5 space-y-2">
+        <label class="flex items-center gap-1.5 text-xs font-semibold text-gray-700 cursor-pointer select-none">
+          <input type="checkbox" id="wz-create-appoint" ${appointOn ? 'checked' : ''} class="shrink-0">
+          就地任命首任骨干（首任书记 + 组织委员各 1 人，任命后立即建册）
+        </label>
+        <p class="text-[11px] text-gray-500 leading-relaxed">新支部为空、书记席位空缺：勾选后创建时一并就地任命首任骨干——新任书记凭本人账号登录即可接管该支部（组织信息/模块/名册可在书记工作台与支部配置中继续完善）。任命对象来自现有成员（演示=跨支部兼任/调任）：若其在原支部任支委/组长，原支部对应席位将空缺（界面明示）；人员后续也可在成员管理/名单导入中补入新支部后再次调整。</p>
+        <div id="wz-create-appoint-fields" class="grid grid-cols-1 md:grid-cols-2 gap-2 ${appointOn ? '' : 'hidden'}">
+          <div>
+            <label class="text-[11px] text-gray-500 block mb-1" for="wz-create-appoint-secretary">首任书记 <span class="text-red-500">*</span>（勾选时必选）</label>
+            <select id="wz-create-appoint-secretary" class="input-flat w-full" ${appointOn ? '' : 'disabled'}>
+              <option value="">请选择首任书记…</option>${secretaryOptions}
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] text-gray-500 block mb-1" for="wz-create-appoint-org">组织委员（可选）</label>
+            <select id="wz-create-appoint-org" class="input-flat w-full" ${appointOn ? '' : 'disabled'}>
+              <option value="">不任命（创建后可补任）</option>${orgOptions}
+            </select>
+          </div>
+        </div>
+        <p id="wz-create-appoint-conflict" class="hidden text-[11px] text-red-600">首任书记与组织委员不能为同一人——请更换人选，或取消勾选就地任命。</p>
+      </div>`
+    : `
+      <div class="rounded-lg border border-amber-200 bg-amber-50/60 p-2.5">
+        <p class="text-[11px] text-amber-700">当前没有可任命的现役成员（已剔除滞留党员）——请先经下方「成员名册预览」导入成员名单，或到成员管理补入成员后，再创建支部并就地任命首任骨干。</p>
+      </div>`;
   return `
     <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 space-y-2">
       <p class="text-xs font-semibold text-gray-700">新建支部… <span class="text-[10px] font-normal text-gray-400">（从空组织模板起步，或复制现有支部为模板；创建后当前向导自动切到新支部）</span></p>
@@ -341,7 +385,8 @@ function _createPanelHtml(S, isStaff) {
           <select id="wz-create-source" class="input-flat w-full" ${isCopy ? '' : 'disabled'}>${sourceOptions}</select>
         </div>
       </div>
-      <p class="text-[11px] text-gray-500">新支部为空：config 默认全开、业务域为空、书记席位空缺（待任命）——创建后在下方 5 步填入组织信息/模块/分工，或按「换壳工作单」补数据。<span class="text-gray-400">留痕：config.configChangeHistory 追加 <code class="text-[10px] bg-white px-1 py-0.5 rounded border border-blue-100">branch-created</code>。</span></p>
+      ${appointSection}
+      <p class="text-[11px] text-gray-500">新支部为空：config 默认全开、业务域为空、书记席位空缺——勾选上方「就地任命首任骨干」时随创建一并任命（已就地任命首任书记/组织委员者，创建后即建册、书记登录即可接管新支部）；不勾选则按原路径：创建后在下方 5 步填入组织信息/模块/分工，或按「换壳工作单」补数据。<span class="text-gray-400">留痕：config.configChangeHistory 追加 <code class="text-[10px] bg-white px-1 py-0.5 rounded border border-blue-100">branch-created</code>。</span></p>
       <div class="flex items-center justify-end gap-2">
         <button type="button" data-wz-act="toggle-create" class="${subtle}">取消</button>
         <button type="button" data-wz-act="do-create" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90" style="background:#C8102E;">创建支部</button>
@@ -826,10 +871,10 @@ function _onClick(S, e) {
     case 'do-copy':
       _doCopy(S);
       break;
-    // 立项⑤ 阶段A：「新建支部…」面板（展开/收起 + 创建提交）
+    // 立项⑤ 阶段A：「新建支部…」面板（展开/收起 + 创建提交）；R5-1 收起时复位就地任命勾选（默认开）
     case 'toggle-create':
       S.createOpen = !S.createOpen;
-      if (!S.createOpen) S.createMode = 'empty';
+      if (!S.createOpen) { S.createMode = 'empty'; S.appointOn = true; }
       _render(S);
       break;
     case 'do-create':
@@ -874,6 +919,25 @@ function _onChange(S, e) {
       _refreshStepState(S);
       _render(S);
     }
+    return;
+  }
+  // R5-1（2026-09-06）：「新建支部…」就地任命——勾选开关显隐任命字段并启停下拉；
+  // 书记/组织委员人选变更即时刷新「同人冲突」提示（提交时仍二次校验拦截，双保险；不整页重绘保表单值）
+  if (t.id === 'wz-create-appoint' || t.id === 'wz-create-appoint-secretary' || t.id === 'wz-create-appoint-org') {
+    if (t.id === 'wz-create-appoint') {
+      S.appointOn = t.checked;
+      const fields = S.host.querySelector('#wz-create-appoint-fields');
+      if (fields) fields.classList.toggle('hidden', !t.checked);
+      ['#wz-create-appoint-secretary', '#wz-create-appoint-org'].forEach((sel) => {
+        const el = S.host.querySelector(sel);
+        if (el) el.disabled = !t.checked;
+      });
+    }
+    const sec = S.host.querySelector('#wz-create-appoint-secretary');
+    const org = S.host.querySelector('#wz-create-appoint-org');
+    const conflict = !!(S.appointOn && sec && org && sec.value && org.value && sec.value === org.value);
+    const note = S.host.querySelector('#wz-create-appoint-conflict');
+    if (note) note.classList.toggle('hidden', !conflict);
     return;
   }
   // 「复制配置到支部」目标多选：更新 S.copySel + 确认按钮可用态（不整页重绘）
@@ -1205,6 +1269,9 @@ async function _doCopy(S) {
 
 // ── 立项⑤ 阶段A ·「新建支部」创建提交（2026-09-06）────────────
 // 读面板表单 → createBranch（空模板/复制双形态）→ 成功后把当前选中切到新支部并提示。
+// R5-1（2026-09-06）：勾选「就地任命首任骨干」时，createBranch 成功后按序就地任命
+// 首任书记/组织委员（appointment.js appointInauguralOfficers 收口）——任一步失败不阻断
+// 建支部成功流程（toast 提示到支部管理/任命处补任）。
 async function _doCreate(S) {
   const nameInput = S.host.querySelector('#wz-create-name');
   const name = nameInput ? nameInput.value.trim() : '';
@@ -1213,6 +1280,21 @@ async function _doCreate(S) {
   const sourceId = mode === 'copy' ? (sourceSel ? sourceSel.value : '') : undefined;
   if (mode === 'copy' && !sourceId) {
     showToast('error', '请选择源支部');
+    return;
+  }
+  // R5-1：就地任命表单读取 + 前置校验（勾选后首任书记必选；书记=组织委员同人拦截——均不建支部）
+  const appointBox = S.host.querySelector('#wz-create-appoint');
+  const appointOn = !!(appointBox && appointBox.checked);
+  const appointSecSel = S.host.querySelector('#wz-create-appoint-secretary');
+  const appointOrgSel = S.host.querySelector('#wz-create-appoint-org');
+  const appointSecretaryId = appointOn && appointSecSel ? String(appointSecSel.value || '') : '';
+  const appointOrgId = appointOn && appointOrgSel ? String(appointOrgSel.value || '') : '';
+  if (appointOn && !appointSecretaryId) {
+    showToast('error', '已勾选「就地任命首任骨干」，请选择首任书记（或取消勾选，仅创建空支部）');
+    return;
+  }
+  if (appointOn && appointOrgId && appointOrgId === appointSecretaryId) {
+    showToast('error', '首任书记与组织委员不能为同一人——请更换组织委员人选');
     return;
   }
   try {
@@ -1231,6 +1313,28 @@ async function _doCreate(S) {
     const srcLabel = (sourceSel && sourceSel.selectedOptions && sourceSel.selectedOptions[0])
       ? sourceSel.selectedOptions[0].textContent.replace(/（当前）$/, '')
       : '';
+    // R5-1：建空支部就地任命首任骨干（勾选时；空模板/复制两模式皆可）。任一步失败不阻断
+    // 建支部成功——席位留空，toast 提示到支部管理/任命处补任（数据边界见 appointInauguralOfficers 注释：
+    // 不改 person.branchId = 跨支部兼任演示；原支部席位空缺由换届/调岗收口）。
+    let appointMsg = '';
+    if (appointOn) {
+      try {
+        const ap = await appointInauguralOfficers({
+          branchId: created.id,
+          secretaryId: appointSecretaryId,
+          orgCommissionerId: appointOrgId || null,
+        });
+        if (ap && ap.ok) {
+          appointMsg = ap.org
+            ? `；已就地任命首任书记 ${getPersonName(appointSecretaryId)}、组织委员 ${getPersonName(appointOrgId)}（任命已建册，书记登录即可接管新支部）`
+            : `；已就地任命首任书记 ${getPersonName(appointSecretaryId)}（组织委员席位暂缺，可后续在任命处补任）`;
+        }
+      } catch (err) {
+        console.error('[wizard] 就地任命首任骨干失败（支部已创建，可到任命处补任）', err);
+        appointMsg = '；支部已创建，但就地任命未完成（请到支部管理/任命处补任）';
+      }
+    }
+    S.appointOn = true; // 下一轮打开「新建支部…」面板恢复默认勾选
     S.createOpen = false;
     S.createMode = 'empty';
     _enterBranch(S, created.id); // 当前选中切到新支部（内部重置草稿/编辑态 + 应用主题预设）
@@ -1238,8 +1342,8 @@ async function _doCreate(S) {
     _persistDraft(S);
     _render(S);
     showToast('success', mode === 'copy'
-      ? `「${created.name}」已创建（配置复制自「${srcLabel || created.name}」）——新支部为空：在向导 5 步中确认组织信息/模块/分工，或按工作单补数据。`
-      : `「${created.name}」已创建——新支部为空：在向导 5 步中填入组织信息/模块/分工，或按工作单补数据。`);
+      ? `「${created.name}」已创建（配置复制自「${srcLabel || created.name}」）——新支部为空：在向导 5 步中确认组织信息/模块/分工，或按工作单补数据。${appointMsg}`
+      : `「${created.name}」已创建——新支部为空：在向导 5 步中填入组织信息/模块/分工，或按工作单补数据。${appointMsg}`);
   } catch (err) {
     console.error('[wizard] 新建支部失败', err);
     showToast('error', `新建支部失败：${(err && err.message) || err}`);

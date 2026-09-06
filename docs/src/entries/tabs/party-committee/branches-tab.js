@@ -10,7 +10,7 @@ import { mockDB } from '../../../core/domain.js?v=20260903c';
 // 每次渲染现读（members 覆盖层即时吃到），不缓存在模块顶层
 import { PersonStore, getPersonName } from '../../../services/person.js?v=20260903c';
 import { createBranch, renameBranch, getCommitteeName } from '../../../services/branch.js?v=20260903c';
-import { appointSecretary, listAppointments } from '../../../services/appointment.js?v=20260903c';
+import { appointSecretary, listAppointments } from '../../../services/appointment.js?v=20260906f';
 import { getRosterStats } from '../../../services/roster.js?v=20260903c';
 // 立项⑥ B波：空支部名册导入服务（模板/净化/统计；确认落库直接走 PersonStore.replaceBranchMembers）
 import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../../services/branch-roster-import.js?v=20260906b';

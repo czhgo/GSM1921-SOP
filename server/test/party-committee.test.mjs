@@ -127,7 +127,7 @@ test('P2 书记任命：任命宋佳宁(p5)为书记 → p5 登录直达书记�
       return h && h.textContent.includes('光华管理学院党委');
     }, { timeout: 10000 });
     const appoint = await page.evaluate(async () => {
-      const { appointSecretary } = await import('/src/services/appointment.js?v=20260903c');
+      const { appointSecretary } = await import('/src/services/appointment.js?v=20260906f');
       await appointSecretary({ branchId: 'br-b1', personId: 'p5', note: 'E2E 换届测试' });
       const { mockDB } = await import('/src/core/domain.js?v=20260903c');
       const branch = (mockDB.branches || []).find(b => b.id === 'br-b1');
