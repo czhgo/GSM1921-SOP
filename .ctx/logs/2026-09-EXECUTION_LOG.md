@@ -638,3 +638,11 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **S1–S6 场景叙述已呈书记评议**（六场景：支部党员大会考勤表决/支委会议事决议/专班生命周期/党员在册一生/换组织/日常三会一课——叙述以"谁·何时·做什么"产品语言，含系统自动动作）。
 **书记逐条裁定（附录⑩）**：S1 记录人按活动类型（大会=纪检/党课=书记或纪检/小组会=组长）、缺席纪检认定、滞留线下到场可补录应到；S2 线上表决为准、决议自动督办闭环、门槛=应到>2/3且无反对；S3 专班一律支委会表决（含解散走议题）、组织委员逐条核贡献；S4 阶段变更与滞留=组织发起书记确认、学期末滞留复核提醒、移出=安全项一键解除+历史转已转出标注；S5 建空支部可选就地任命首任骨干、开箱1支部、制度文本网页化=立项⑧（本轮立项）；S6（略过）按推荐执行可改（纪检只读小组会考勤/思想汇报组织初阅书记抽阅/首页今天卡）。
 **待实施分批**：A 会务规则域（记录人按类型+滞留补录应到+表决门槛>2/3无反对+决议督办）；B 专班生命周期（一律支委会议题含解散+逐条核）；C 确权复核（阶段/滞留书记确认+学期复核提醒+移出安全解除/已转出）；D 空支部首任骨干；E 立项⑧ 制度文本网页化（spec）。push 仍待批（ahead 137）。
+
+**T-2026-09-053 附录⑩ A 批会务规则域落地（2026-09-06，commit 8dfdeb8）**
+**范围**：S1 会务考勤 + S2 支委会 + R6-1（纪检只读掌握小组会考勤）。
+**S1 落地**：考勤记录人=按活动类型定（支部大会=纪检、党课=书记/副书/纪检、组织生活会与支委会=纪检、党小组会=组长；未入表活动类型沿用组织者兜底，不据表做破坏性收紧）；未到（请假/缺席）由纪检标因且**固定枚举**（请假/无故/其它，单一源 core/policy-defaults attendance.reasons，禁造新枚举）；滞留党员线下到场可**补录为到席/应到**（勾选落入 present+detainedMakeup；应到口径=会前预应到 K+补录 L=实际应到 K+L；更正回归防历史补录误延续）；纪检考勤表单下方只读「党小组会考勤」块（组长上传、submittedBy 可辨，纪检不代传）=R6-1。
+**S2 落地**：表决以**线上表决为准**（记录决议=生效点）；决议「待落实」项自动督办闭环（并入议程项 followups 子数组、无新顶层域；派书记待办=actionKey resolution-followup、责任人+时限；到期催办由 deadline 驱动，逾期进书记待办「决议落实逾期」提醒组；支持销项/重开）；门槛改=**应到会人数严格超过 2/3 且无反对**（>2/3 出席、反对=0；正式 'oppose' 与交流式 'object' 同视为反对任一口径即否决、'abstain' 弃权只计出席不计赞同与反对；needed 用 floor(n*q)+1 修 >2/3 整界，2/3 整界不过）。**policy-defaults 值未变**（voteThreshold {2/3, vetoOnObject:true} 注释语义细化；attendance 增 recorderByType+reasons 枚举，均 kind institutional/分支默认注释）。
+**版本串**：同步链 →20260906c（work-map-tab/workforce-panel/secretary-workspace/ws-secretary-entry/org-setup-wizard/secretary.html/todo-tab/resolution-followup-manager）；vote-summary-panel 因唯一引用方 inspector.js 属禁改文件无法同步其自身 ?v=（改动经子模块新版本串取新代码，文件内注明=遗留）。
+**验收**：专项 22/22 绿（meeting-attendance-rules 6 项含 R1-1/R1-2/R1-3/R6-1 只读视图与滞留仍候补不占应到；workforce-gate 11 项含 >2/3 整界/oppose/object/弃权/重复计票；resolution-followup 派发/逾期/闭环/销项重开）；全量 267=238 pass+29 fail 全为沙箱 playwright EPERM（环境性，非回归）。两子代理并行产物已合并（BOM 字节级对齐修复 2 文件首部噪音）；ws-secretary-entry/secretary.html 的 BOM 噪音已清。
+**遗留登记**：①vote-summary-panel 自身版本串因 inspector 禁改未 bump（防回归需 inspector 解除时一并处理）；②通用支委会议程「记录决议→决议落实」接入面暂以 vote-summary（记录决议视图）为主入口，议程型决议待落实录入如另需扩展再开改动面；③R6-2 思想汇报（组织初阅书记抽阅）与 R6-3 首页「今天」卡未在 A 批，另行分批（G/正文）。
