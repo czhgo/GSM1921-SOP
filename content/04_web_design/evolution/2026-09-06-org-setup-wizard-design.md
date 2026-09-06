@@ -60,10 +60,12 @@
 ## Out of Scope（阶段一不做）
 
 - 改仓库文件（mock/制度/术语）的在线编辑——只出工作单。
-- 拖拽编排、JSON 覆盖应用、审批闸、多支部批量。
+- 拖拽编排、审批闸、完整「党委默认模板」抽象（待多支部场景成形，先以复制到支部替代）、数据层（people/activities）覆盖预览。
+- 已完：阶段一（5 步向导+工作单）＋阶段二（JSON 导出/本地预览导入、复制配置到支部、顺手打磨）。
 
 ---
 
 ## 变更历史
 
 - 2026-09-06 成稿（书记 R1–R4 裁定）；初稿误放 docs/superpowers（被 gitignore）→ 迁移至 content/04_web_design/evolution/（跟踪目录）。
+- 2026-09-06 阶段二裁定与落地：书记四问全选=①JSON 覆盖预览（导出+本地预览应用）②多支部批量③党委默认模板=先做「复制配置到支部」（完整模板抽象待多支部场景成形）④顺手打磨；BOM 机械性清理（用户并行文件复核=无实质分歧）。落地：org-config-package.js（build/apply 配置包，config-clean 净化+聚合留痕 config-package-import）；branch.applyConfigCopy（config-copied，逐 target 结果）；向导工具条=导出/导入/复制（复制仅 party-staff）；步骤条已完成可回看+无 emoji 摘要 chips；测试 wizard-package 9 + wizard-copy 6 + 回归 34/34 全绿。演示单支部下复制面板空态提示，多支部语义已服务层覆盖。

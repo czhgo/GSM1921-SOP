@@ -563,3 +563,11 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **书记原话**：「书记不是决断代码的，而是决断 strategy、product、marketing 的！！这个原则请你务必写入 AI 提问书记的准则中！！要做一个好秘书！！」
 **落地**：CLAUDE.md H60 增「向书记提问/请裁的准则」段（书记决断 strategy/product/marketing；AI 负责代码工程；请裁一律译为战略/产品/运营叙事层选项+上下文+推荐；把决策做薄、把问题做厚；适用 H60 评议/REVIEW_QUEUE 问裁/立项审批/AskUserQuestion）。
 **同步**：全仓待办/待决策总表见会话收尾 NEXT PROMPT；周期任务现状=W3 每周书记内容评议（OPERATIONS_GUIDE §17）+ W4 常态化专项周轮（反论/理论复用/黑话/原话复核/三成本/减负/AI逃逸/功能实现）已存在，待书记发起的为减负⑥轮次与下一评议轮侧重。
+
+---
+
+**T-2026-09-044 立项④换组织向导——设计+阶段一实现（2026-09-06，commits ed91d07/3720e9e）**
+**书记多轮裁定（R1–R4，全部产品/叙事层，AI 未越界）**：主线=向导；push 仍不推；换壳导向；可改即改+余出换壳工作单；五步全选；吸收合并 party-config；入口=党委台向导化+独立 URL 页；书记=URL 直达限本支部（保住 09-03 减负）；党委=任意支部+恢复默认；配置即时生效+留痕、无审批闸；「书记与党委都有配置权力且要有对应功能」已落实为权限双轨。
+**交付**：设计文档 content/04_web_design/evolution/2026-09-06-org-setup-wizard-design.md（ed91d07）；阶段一代码 3720e9e：components/org-setup-wizard.js（5 步：①组织信息 name/headerTitle/desc/themePreset（可调令牌 4 预设，party-red/gold 固定锁）②模块块组合（原 party-config 主体）③角色分工（11 模块→支委，config.workforce）④指引+工作单 md（services/org-wizard-report.js 纯函数）⑤roster 现读数+?reset=1+npm test）；party-config-tab 改造为向导式主体；独立 docs/wizard.html+wizard-entry.js（书记限本支部/党委任意/他角色无权限卡）；branch 服务 updateBranchOrg/getBranchOrg/getBranchThemePreset + configChangeHistory 留痕（前端+server/routes/resources.js PATCH 白名单扩+逐键 diff）；config-clean sanitizeConfigOrg/THEME_PRESET_IDS 双端共用；草稿 wizard-draft-<branchId> 续走；测试 wizard-report 6 + org-config 4 全绿（老 module-config/workflow-block HTTP 需 DISABLE_PASSWORD_CHECK=1 属基线，未动）。
+**验证**：node 全绿（带 env 14/14）；GetDiagnostics 零；浏览器交互冒烟由实施代理 25/25（沙箱内非 Playwright，目视待常规终端）。
+**风险/备注**：实施发现工作区存在 8 个**用户并行改动文件**（.ctx/logs、inspector、work-overview、mock-adapter、activity-entry、taskforce-tab、overview-tab）——全程未触碰未提交，保留给用户；本批提交仅含向导 10 文件。阶段二（JSON 覆盖预览/多支部批量/党委默认模板/打磨）已登记立项④。push 仍待批（ahead 113）。
