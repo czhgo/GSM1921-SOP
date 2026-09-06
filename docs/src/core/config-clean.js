@@ -71,3 +71,42 @@ export function sanitizeConfigBlocks(blocks) {
   }
   return out;
 }
+
+// ── 换组织向导 · 支部组织档案字段（2026-09-06 书记 R4：可改即改 + 固定令牌不改）─────────
+// config.headerTitle（页眉显示名）/ config.desc（支部自述）/ config.themePreset（主题预设 id）。
+// 主题预设只提供「可调令牌」（角色识别层强调色 --app-accent 三件套）的 3-4 档；
+// 党建红 party-red 与党徽金 party-gold 为固定合规底线，不提供更改——预设 id 白名单即此口径的代码面。
+export const THEME_PRESET_IDS = ['red', 'green', 'sky', 'blue'];
+
+const ORG_MAX = { name: 80, headerTitle: 120, desc: 500 };
+
+/**
+ * 净化支部组织档案写片（向导步骤①；单一实现 = 本文件，前端 branch.js / server resources.js 共用）
+ * 仅返回「调用方提供了且净化后合法」的键：name/headerTitle/desc/themePreset。
+ * 语义：
+ *   - name/headerTitle：trim 非空、按上限截断；空串 → 不返回（不改，页眉名不允许清空）。
+ *   - desc：trim 后按上限截断；空串 → ''（可清空自述）。
+ *   - themePreset：白名单 THEME_PRESET_IDS 内 → 返回；null → null（清除预设回默认红调）；其它 → 忽略。
+ * @param {Object|null} org 前端 UI 传入的写片
+ */
+export function sanitizeConfigOrg(org) {
+  if (!org || typeof org !== 'object' || Array.isArray(org)) return {};
+  const out = {};
+  if (Object.prototype.hasOwnProperty.call(org, 'name')) {
+    const t = String(org.name ?? '').trim();
+    if (t) out.name = t.slice(0, ORG_MAX.name);
+  }
+  if (Object.prototype.hasOwnProperty.call(org, 'headerTitle')) {
+    const t = String(org.headerTitle ?? '').trim();
+    if (t) out.headerTitle = t.slice(0, ORG_MAX.headerTitle);
+  }
+  if (Object.prototype.hasOwnProperty.call(org, 'desc')) {
+    out.desc = String(org.desc ?? '').trim().slice(0, ORG_MAX.desc);
+  }
+  if (Object.prototype.hasOwnProperty.call(org, 'themePreset')) {
+    const v = org.themePreset;
+    if (v === null) out.themePreset = null;
+    else if (THEME_PRESET_IDS.includes(v)) out.themePreset = v;
+  }
+  return out;
+}

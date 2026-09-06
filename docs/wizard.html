@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  
+<script src="./src/theme-init.js?v=20260903c"></script>
+<meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>换组织向导 — 30 分钟跑起来</title>
+  <meta name="description" content="换组织向导 — 组织信息 / 模块组合 / 角色分工 / 换壳工作单 / 验证与重置">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="./src/tailwind-config.js?v=20260903c"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260903c">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+</head>
+<body>
+
+<header id="app-header"></header>
+<div id="sidebar-overlay"></div>
+<aside id="app-sidebar" class="sidebar-collapsed"></aside>
+
+<div class="sidebar-main-content pt-16 min-h-screen">
+  <main class="flex-1 px-4 py-6 md:px-8 overflow-y-auto min-w-0">
+    <div class="max-w-6xl mx-auto">
+
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="font-title-cn text-xl font-bold text-gray-800">换组织向导</h2>
+          <p class="text-xs text-gray-500 mt-1">30 分钟跑起来：组织信息 → 模块组合 → 角色分工 → 工作单 → 验证</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <a href="./index.html" class="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">← 返回主页</a>
+        </div>
+      </div>
+
+      <div id="wizard-content"></div>
+
+    </div>
+  </main>
+</div>
+
+
+<script type="module" src="./src/entries/wizard-entry.js?v=20260903c"></script>
+</body>
+</html>

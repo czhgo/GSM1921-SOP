@@ -7,7 +7,8 @@ import { replaceCollection } from '../db.js';
 import { deleteUploadedFile } from './uploads.js';
 import { afterResourceWrite } from '../services/mailer-hooks.js';
 // P1a 单向权威（2026-09-03）：config（modules/blocks）净化唯一实现 = docs/src/core/config-clean.js（前端 branch.js 同源，勿在 server 另写 clean）
-import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce } from '../../docs/src/core/config-clean.js';
+// 2026-09-06 换组织向导：config 组织档案字段（headerTitle/desc/themePreset）净化同源
+import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce, sanitizeConfigOrg } from '../../docs/src/core/config-clean.js';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/constants.js（勿手写）
 import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS } from '../../docs/src/core/constants.js';
 
@@ -259,6 +260,8 @@ export function createResourcesRouter(db) {
   // ── L2 支部工作流模块配置（2026-09-03 书记裁定：支部自治/书记操作/核心固定）────────
   // 支部书记写自己支部 config.modules；党委组织员保留；body 白名单仅收 modules 两数组，
   // 不触碰治理字段（name/type/secretaryId/status）——与通用 branches PATCH（party-staff）互补。
+  // 2026-09-06 换组织向导（书记 R4）：白名单扩 config.headerTitle/desc/themePreset（组织档案域，
+  // 仍在 config 内、非治理字段）；配置变更统一追加 config.configChangeHistory（by/at/what/from/to）。
   router.patch('/branches/:id/config', requireAuth(db), (req, res) => {
     const actor = req.actor;
     if (!actor) return res.status(401).json({ error: '未登录' });
@@ -279,10 +282,12 @@ export function createResourcesRouter(db) {
     const hasModules = Object.prototype.hasOwnProperty.call(cfg, 'modules');
     const hasBlocks = Object.prototype.hasOwnProperty.call(cfg, 'blocks');
     const hasWorkforce = Object.prototype.hasOwnProperty.call(cfg, 'workforce');
-    if (!hasModules && !hasBlocks && !hasWorkforce) {
-      return res.status(400).json({ error: '至少提供 config.modules / config.blocks / config.workforce 之一' });
+    const hasOrg = ['headerTitle', 'desc', 'themePreset'].some(k => Object.prototype.hasOwnProperty.call(cfg, k));
+    if (!hasModules && !hasBlocks && !hasWorkforce && !hasOrg) {
+      return res.status(400).json({ error: '至少提供 config.modules / config.blocks / config.workforce / 组织档案字段(headerTitle/desc/themePreset) 之一' });
     }
-    const nextConfig = { ...(branch.config || {}) };
+    const prevConfig = { ...(branch.config || {}) };
+    const nextConfig = { ...prevConfig };
     if (hasModules) {
       const m = cfg.modules;
       if (m === null) {
@@ -313,6 +318,29 @@ export function createResourcesRouter(db) {
         nextConfig.workforce = sanitizeConfigWorkforce(wf); // 净化唯一实现 = docs/src/core/config-clean.js（与前端 branch.js 同源）
       }
     }
+    if (hasOrg) {
+      // 组织档案域（headerTitle/desc/themePreset）：净化单一实现 = config-clean sanitizeConfigOrg
+      const orgClean = sanitizeConfigOrg(cfg);
+      if (Object.prototype.hasOwnProperty.call(orgClean, 'headerTitle')) nextConfig.headerTitle = orgClean.headerTitle;
+      if (Object.prototype.hasOwnProperty.call(orgClean, 'desc')) nextConfig.desc = orgClean.desc;
+      if (Object.prototype.hasOwnProperty.call(orgClean, 'themePreset')) nextConfig.themePreset = orgClean.themePreset;
+      // headerTitle 不允许清空（空串净化时被丢弃）→ 写空回退支部名
+      if (nextConfig.headerTitle === undefined && cfg.headerTitle !== undefined) nextConfig.headerTitle = branch.name || '';
+    }
+
+    // 配置变更留痕（2026-09-06 书记 R4：即时生效 + 留痕；低频可回滚，不设审批闸）
+    // 逐键 diff prevConfig → nextConfig，有实质变化才追加 {by,at,what,from,to}；空变化不产生冗余条目。
+    const history = Array.isArray(prevConfig.configChangeHistory) ? [...prevConfig.configChangeHistory] : [];
+    const at = new Date().toISOString();
+    const TRACKED_KEYS = ['modules', 'blocks', 'workforce', 'headerTitle', 'desc', 'themePreset'];
+    const jsonEq = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+    for (const k of TRACKED_KEYS) {
+      if (!jsonEq(prevConfig[k], nextConfig[k])) {
+        history.push({ by: actor.id, at, what: k, from: prevConfig[k] ?? null, to: nextConfig[k] ?? null });
+      }
+    }
+    nextConfig.configChangeHistory = history;
+
     branch.config = nextConfig;
     db.prepare('UPDATE branches SET data = ? WHERE id = ?').run(JSON.stringify(branch), branch.id);
     res.json(branch);
