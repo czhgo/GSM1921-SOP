@@ -558,8 +558,18 @@ export const ApiAdapter = {
       return _get('/api/v1/users');
     },
 
+    // 2026-09-06 立项⑥ A波：users 双形态写口补齐（server RESOURCE_TABLES 通用 CRUD 已存在：
+    // POST /api/v1/users / PATCH /users/:id / DELETE /users/:id，party-staff 门）
+    create(data) {
+      return _post('/api/v1/users', data);
+    },
+
     update(id, patch) {
       return _patch(`/api/v1/users/${id}`, patch);
+    },
+
+    delete(id) {
+      return _delete(`/api/v1/users/${id}`);
     },
   },
 

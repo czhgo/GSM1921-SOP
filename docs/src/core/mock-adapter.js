@@ -855,6 +855,47 @@ export const MockAdapter = {
     },
   },
 
+  // 2026-09-06 立项⑥ A波：users 资源组（与 api-adapter.users 接口对称；mock 形态落
+  // 「members 持久覆盖层」子域 = localStorage 键 gsm1921-members-overlay（服务实现与
+  // PersonStore 写口同源，见 services/person.js；键 gsm1921- 前缀自动纳入 ?reset=demo
+  // 清除集 = 回种子即清覆盖）。list 返回 = PEOPLE 种子 + 覆盖层（server users 表对应物，
+  // 含 p_pc 党委组织员）；create/update/delete 复用 PersonStore.saveMember/removeMember
+  // 的 mock 分支（动态 import 防静态环，与 todo.js 同法）。
+  users: {
+    list() {
+      return _withDelay(() => import('../services/person.js?v=20260903c')
+        .then(({ getBaseMemberRecords }) => getBaseMemberRecords()));
+    },
+
+    create(data) {
+      return _withDelay(async () => {
+        const { PersonStore } = await import('../services/person.js?v=20260903c');
+        const r = await PersonStore.saveMember(data, { by: data?.by });
+        if (!r.ok) throw Object.assign(new Error(r.reason), { type: 'BadRequestError' });
+        return r.member;
+      });
+    },
+
+    update(id, patch) {
+      return _withDelay(async () => {
+        const { PersonStore } = await import('../services/person.js?v=20260903c');
+        const r = await PersonStore.saveMember({ id, ...patch }, { by: patch?.by });
+        if (!r.ok) throw Object.assign(new Error(r.reason), { type: 'BadRequestError' });
+        return r.member;
+      });
+    },
+
+    delete(id) {
+      // adapter 层为数据原语（PersonStore.removeMember 为带引用守卫的业务口；此处直删由守卫在业务层把关）
+      return _withDelay(async () => {
+        const { PersonStore } = await import('../services/person.js?v=20260903c');
+        const r = await PersonStore.removeMember(id, { guardRefs: false });
+        if (!r.ok) throw Object.assign(new Error(r.reason), { type: 'BadRequestError' });
+        return { id };
+      });
+    },
+  },
+
   // P1 党委后台（2026-09-02）：支部实例 CRUD（党委工作台支部管理；config 配置档案随行持久化）
   branches: {
     list() { return _withDelay(() => [...mockDB.branches]); },
