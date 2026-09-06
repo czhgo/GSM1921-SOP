@@ -9,6 +9,15 @@ import { mockDB } from '../core/domain.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
 import { MOCK_TASKFORCES, PEOPLE } from '../mock/index.js?v=20260903c';
 import { getPersonName } from './person.js?v=20260903c';
+import { evaluateWorkforceVotes } from './workforce.js?v=20260906c';
+
+// 附录⑩ B批（S3 专班生命周期 · 书记裁定 2026-09-06）：
+//   R3-1/R3-2：专班发起与中途解散一律走「支委会表决」（报送归集·例会表决形态），
+//     不再由书记单人批准/组织委员直接解散；表决判据与 R2-3 一致（见 applyCommitteeDecision 顶部注释）。
+//   R3-3：成员贡献=成员填报（addContributions 写口，by=填报成员）、组织委员逐条核
+//     （verifyContributions：同意入档 / 退回补料，全程留痕）；纪检结项复盘兜底。
+//   数据形态（无新顶层域）：专班记录字段 committeeRequest = 当前待表决请求，
+//     committeeDecision[] = 历次表决留痕（append-only）。status/approvalStatus 沿用既有语义。
 
 const TASKFORCE_STORAGE_KEY = 'workflowos_taskforces_v1';
 
@@ -169,16 +178,17 @@ export const TaskForceRecordStore = {
   },
 
   // ══════════════════════════════════════════════════════════════
-  //  成员贡献批量录入（立项③阶段b · 写入位补全）
+  //  成员贡献录入/填报（立项③阶段b · 写入位补全）
   //  数据域：mockDB.taskforces[].members[].contributions
   //  数组项：种子为字符串摘要（历史只读形态）；本次写入为对象条目
   //         { id:'tc-'+时间戳+'_'+personId, desc, by, at }
-  //  语义：组织委员在运行中（active）专班按人批量补录成员产出，
-  //        解锁解散门槛「工作量报告（成员有产出记录）」对新专班恒阻塞问题。
+  //  语义：附录⑩ B批（S3 R3-3，2026-09-06 书记裁定）起，写口=专班成员本人逐条填报
+  //        （by=填报人）或组织委员代录，随后由组织委员 verifyContributions 逐条核
+  //        （同意入档 / 退回补料，留痕）。历史字符串条目不参与核验（只读展示）。
   //  兼容旧数据：老成员无 contributions 字段（undefined）按 [] 处理。
   // ══════════════════════════════════════════════════════════════
 
-  /** 批量录入贡献（写仅组织委员；desc 非空且 personIds 均为该专班成员才受理） */
+  /** 录入/填报贡献（by=填报成员本人或组织委员代录；desc 非空且 personIds 均为该专班成员才受理） */
   addContributions(taskforceId, { personIds = [], desc = '', by = null } = {}) {
     const tf = this._records.find(r => r.id === taskforceId);
     const note = String(desc || '').trim();
@@ -298,5 +308,134 @@ export const TaskForceRecordStore = {
 
     this._migrationReport = report;
     return { migrated: report.filter(r => r.status === 'migrated').length, report };
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  //  专班支委会表决域（附录⑩ B批 · S3 R3-1/R3-2 · 书记裁定 2026-09-06）
+  //  数据域：mockDB.taskforces[].committeeRequest / committeeDecision[]
+  //  形态：报送归集·例会表决——申请方将发起或解散「报送支委会」，归集为待议；
+  //        书记召开线上支委会时纳入表决（判据=R2-3：应到严格 >2/3 出席且无反对，
+  //        object/oppose 均视为反对、弃权允许——透传 services/workforce.js
+  //        evaluateWorkforceVotes 单一判据），达标后 applyCommitteeDecision 落结果。
+  //  语义：committeeRequest.status='pending' 期间专班保持现态（只读等待）；
+  //        表决落果后请求清空、留痕 committeeDecision[]（append-only）。
+  // ══════════════════════════════════════════════════════════════
+
+  /** 报送支委会（发起或解散）：kind 'initiate'=发起 / 'dissolve'=中途解散；by=报送人 */
+  submitForCommittee(tfId, { kind = 'initiate', by = null, note = '' } = {}) {
+    const tf = this._records.find(r => r.id === tfId);
+    if (!tf) return null;
+    const valid = kind === 'initiate'
+      ? ['draft', 'pending_review'].includes(tf.status) // 新发起 / 未通过后修改重报
+      : kind === 'dissolve'
+        ? tf.status === 'active'                        // 仅运行中可报解散
+        : false;
+    if (!valid) return null;
+    return this.update(tfId, {
+      committeeRequest: {
+        kind,
+        by: by || null,
+        note: String(note || '').trim(),
+        at: new Date().toISOString(),
+        status: 'pending',
+      },
+    });
+  },
+
+  /** 支委会表决判据（R2-3：应到严格 >2/3 出席且无反对）——透传 workforce 单一判据 */
+  evaluateCommitteeVote({ roster = [], votes = [] }) {
+    return evaluateWorkforceVotes({ roster, votes });
+  },
+
+  /** 归集视图数据：全部「待支委会表决」的报送（供书记线上支委会纳入表决） */
+  listCommitteeRequests() {
+    return this._records
+      .filter(r => r.committeeRequest && r.committeeRequest.status === 'pending')
+      .map(r => ({
+        id: r.id,
+        name: r.name || '',
+        task: r.task || '',
+        status: r.status,
+        kind: r.committeeRequest.kind,
+        note: r.committeeRequest.note || '',
+        by: r.committeeRequest.by,
+        at: r.committeeRequest.at,
+        initiator: r.initiator || null,
+        createdAt: r.createdAt || '',
+        deadline: r.deadline || '',
+      }))
+      .sort((a, b) => (a.at || '').localeCompare(b.at || '')); // 先报先议
+  },
+
+  /**
+   * 应用支委会表决结果：approved=执行（发起→招募中；解散→已解散+时间戳留痕）；
+   * rejected=退回（发起→草稿可改重报；解散→回运行中）。请求清空、留痕 append-only。
+   * @param {Object} opts
+   * @param {'approved'|'rejected'} [opts.decision]
+   * @param {Object|null} [opts.outcome]  判定 tally（透传 evaluateCommitteeVote 结果供展示）
+   * @param {string|null} [opts.decisionRef] 表决来源（如支委会活动 id+议程项 id）
+   */
+  applyCommitteeDecision(tfId, { decision = 'approved', outcome = null, by = null, note = '', decisionRef = null } = {}) {
+    const tf = this._records.find(r => r.id === tfId);
+    if (!tf || !tf.committeeRequest || tf.committeeRequest.status !== 'pending') return null;
+    const req = tf.committeeRequest;
+    if (!['approved', 'rejected'].includes(decision)) return null;
+    const decisions = Array.isArray(tf.committeeDecision) ? tf.committeeDecision : [];
+    const trace = {
+      kind: req.kind,
+      decision,
+      by: by || null,
+      note: String(note || '').trim(),
+      at: new Date().toISOString(),
+      outcome: outcome || null,
+      decisionRef: decisionRef || null,
+    };
+    let patch = { committeeRequest: null, committeeDecision: [...decisions, trace] };
+    if (req.kind === 'initiate') {
+      patch.status = decision === 'approved' ? 'recruiting' : 'draft';
+      patch.approvalStatus = decision; // approved / rejected（UI 展示：已通过 / 未通过）
+    } else if (req.kind === 'dissolve') {
+      if (decision === 'approved') {
+        patch.status = 'dissolved';
+        patch.dissolvedAt = new Date().toISOString().slice(0, 10);
+      } else {
+        patch.status = 'active'; // 未通过：专班保持运行中
+      }
+    }
+    return this.update(tfId, patch);
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  //  成员贡献逐条核（附录⑩ B批 · S3 R3-3 · 书记裁定 2026-09-06）
+  //  语义：成员在专班内逐条填报产出（addContributions，by=填报人）→ 组织委员逐条核
+  //    （verifyContributions：同意入档 / 退回补料，全程留痕）；纪检结项复盘兜底。
+  //  仅作用于对象形态条目 { id, desc, by, at }；历史字符串摘要不参与核验（只读展示）。
+  // ══════════════════════════════════════════════════════════════
+
+  /** 逐条核验贡献：'approve' 同意入档 / 'reject' 退回补料；已核条目幂等跳过 */
+  verifyContributions(tfId, { contributionIds = [], decision = 'approve', by = null, note = '' } = {}) {
+    const tf = this._records.find(r => r.id === tfId);
+    const ids = Array.isArray(contributionIds) ? [...new Set(contributionIds.filter(Boolean))] : [];
+    if (!tf || !['approve', 'reject'].includes(decision) || ids.length === 0) return null;
+    const at = new Date().toISOString();
+    let updated = 0;
+    const members = (tf.members || []).map(m => {
+      if (!m) return m;
+      const list = Array.isArray(m.contributions) ? m.contributions : [];
+      let changed = false;
+      const next = list.map(c => {
+        if (!c || typeof c !== 'object' || !c.id || !ids.includes(c.id)) return c;
+        if (c.verifiedStatus) return c; // 已核幂等跳过
+        changed = true;
+        updated += 1;
+        return decision === 'approve'
+          ? { ...c, verifiedStatus: 'approved', verifiedBy: by || null, verifiedAt: at, rejectNote: undefined }
+          : { ...c, verifiedStatus: 'rejected', verifiedBy: by || null, verifiedAt: at, rejectNote: String(note || '').trim() };
+      });
+      return changed ? { ...m, contributions: next } : m;
+    });
+    if (updated === 0) return { updated: 0 };
+    this.update(tfId, { members });
+    return { updated };
   },
 };
