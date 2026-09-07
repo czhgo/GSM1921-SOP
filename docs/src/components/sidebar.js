@@ -184,13 +184,7 @@ function _bindThemeToggle(sidebar) {
     setThemePreference(mode);
     Object.entries(btns).forEach(([key, el]) => {
       const on = key === mode;
-      // UI-A（2026-09-07）：独立小圆角钮激活=主题浅底+主题色字/边框（无衬不用 ov-sub-tab-active）
-      el.classList.toggle('bg-[var(--app-accent-bg)]', on);
-      el.classList.toggle('border-[var(--app-accent)]', on);
-      el.classList.toggle('text-[var(--app-accent)]', on);
-      el.classList.toggle('bg-white', !on);
-      el.classList.toggle('border-neutral-200', !on);
-      el.classList.toggle('text-gray-600', !on);
+      el.classList.toggle('active', on);
     });
   };
 
@@ -224,20 +218,8 @@ function _bindFontSizeToggle(sidebar) {
     } else {
       document.documentElement.classList.remove('font-size-large');
     }
-    const onM = size === 'medium';
-    btnMedium.classList.toggle('bg-[var(--app-accent-bg)]', onM);
-    btnMedium.classList.toggle('border-[var(--app-accent)]', onM);
-    btnMedium.classList.toggle('text-[var(--app-accent)]', onM);
-    btnMedium.classList.toggle('bg-white', !onM);
-    btnMedium.classList.toggle('border-neutral-200', !onM);
-    btnMedium.classList.toggle('text-gray-600', !onM);
-    const onL = size === 'large';
-    btnLarge.classList.toggle('bg-[var(--app-accent-bg)]', onL);
-    btnLarge.classList.toggle('border-[var(--app-accent)]', onL);
-    btnLarge.classList.toggle('text-[var(--app-accent)]', onL);
-    btnLarge.classList.toggle('bg-white', !onL);
-    btnLarge.classList.toggle('border-neutral-200', !onL);
-    btnLarge.classList.toggle('text-gray-600', !onL);
+    btnMedium.classList.toggle('active', size === 'medium');
+    btnLarge.classList.toggle('active', size === 'large');
   };
 
   btnMedium.addEventListener('click', () => apply('medium'));

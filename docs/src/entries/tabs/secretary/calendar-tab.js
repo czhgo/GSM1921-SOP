@@ -111,7 +111,10 @@ const CALENDAR_TAB_HTML = `
     </div>
     <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
       <div class="lg:col-span-3">
-        <select id="month-selector" class="input-flat text-xs mb-3"></select>
+        <div class="flex flex-wrap items-center gap-2 mb-3">
+          <select id="month-selector" class="input-flat text-xs"></select>
+          <div id="cal-view-switcher"></div>
+        </div>
         <div id="cal-main-grid"></div>
         <div id="calendar-legend" class="mt-3"></div>
       </div>

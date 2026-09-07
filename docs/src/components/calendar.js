@@ -177,12 +177,14 @@ function _renderViewSwitcher(currentView) {
     if (!grid) return;
     switcher = document.createElement('div');
     switcher.id = 'cal-view-switcher';
+    switcher.style.marginBottom = '12px'; // fallback（无工具行槽，如活动查看页）保持与格网间距
     grid.parentNode.insertBefore(switcher, grid);
   }
 
-  // UI-A（2026-09-07）：视图切换回退 U5 前形态=独立小圆角钮组（去胶囊底衬；激活=主题浅底+主题色字/边框，data-view 逻辑照旧）
+  // 书记 2026-09-07：视图切换与月份选择器并排（calendar-tab 已把两者放同一工具行）；
+  // 无槽时（fallback，如首页紧凑月）仍插到网格前。
   switcher.innerHTML = `
-    <div class="flex items-center gap-2 mb-3">
+    <div class="flex items-center gap-1.5">
       ${Object.entries(VIEW_LABELS).map(([key, label]) => `
         <button class="cal-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${key === currentView ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}" data-view="${key}">${label}</button>
       `).join('')}
