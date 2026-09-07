@@ -789,9 +789,9 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
       <div id="att-table-container">${_attSectionSkeletonHtml()}</div>
       <div class="flex items-center justify-between mt-3">
         <span class="text-xs text-gray-400" id="att-table-info"></span>
-        <div class="flex gap-2">
-          <button id="att-table-prev" class="btn-tab" style="cursor:pointer;">上一页</button>
-          <button id="att-table-next" class="btn-tab" style="cursor:pointer;">下一页</button>
+        <div class="inline-flex items-center">
+          <button id="att-table-prev" class="h-8 px-3.5 rounded-l-full border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">上一页</button>
+          <button id="att-table-next" class="h-8 px-3.5 rounded-r-full border border-gray-200 border-l-0 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">下一页</button>
         </div>
       </div>
     </div>

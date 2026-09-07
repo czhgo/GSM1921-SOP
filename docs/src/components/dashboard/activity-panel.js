@@ -61,10 +61,8 @@ export function switchActivityView(view) {
   // 更新 tab 样式
   document.querySelectorAll('.activity-tab-btn').forEach(btn => {
     const isActive = btn.dataset.view === view;
-    btn.className = `activity-tab-btn px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-      isActive
-        ? 'bg-party-50 text-party-700 border border-party-200'
-        : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+    btn.className = `activity-tab-btn ov-sub-tab px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+      isActive ? 'ov-sub-tab-active' : 'text-gray-500 hover:text-gray-700'
     }`;
   });
 

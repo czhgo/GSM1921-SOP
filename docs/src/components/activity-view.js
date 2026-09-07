@@ -48,12 +48,12 @@ export function renderActivityView(container, opts = {}) {
           <h3 class="font-title-cn text-base font-semibold text-gray-800">活动查看</h3>
           <div class="flex items-center gap-3">
             <span class="text-xs text-gray-400">全支部活动一览 · 点击条目查看详情（只读）</span>
-            <button class="av-export-btn btn-tab" style="cursor:pointer;">导出 CSV</button>
+            <button class="av-export-btn h-8 px-3.5 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">导出 CSV</button>
           </div>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
           <div class="lg:col-span-3">
-            <select id="month-selector" class="input-flat mb-3"></select>
+            <select id="month-selector" class="input-flat text-xs mb-3"></select>
             <div id="cal-main-grid"></div>
             <div id="calendar-legend" class="mt-3"></div>
           </div>

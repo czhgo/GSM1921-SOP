@@ -102,14 +102,14 @@ const CALENDAR_TAB_HTML = `
   <div class="card rounded-2xl p-6 mb-4">
     <div class="flex items-center justify-between mb-4">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">活动日历</h3>
-      <button id="ws-sec-write-btn" type="button" class="btn-accent-soft shrink-0 text-sm px-4 py-1.5 inline-flex items-center gap-1.5">
+      <button id="ws-sec-write-btn" type="button" class="btn-accent-soft shrink-0 h-8 px-4 text-sm inline-flex items-center gap-1.5">
         ${icon('pencil', { className: 'w-3.5 h-3.5' })}
         写入活动
       </button>
     </div>
     <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
       <div class="lg:col-span-3">
-        <select id="month-selector" class="input-flat mb-3"></select>
+        <select id="month-selector" class="input-flat text-xs mb-3"></select>
         <div id="cal-main-grid"></div>
         <div id="calendar-legend" class="mt-3"></div>
       </div>
