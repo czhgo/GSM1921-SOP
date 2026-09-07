@@ -31,6 +31,12 @@ import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
 
+/** U3（2026-09-07）：矩阵/总表容器首帧骨架占位行（真实表格 rAF 后渐进填充，防整块弹出） */
+function _attSectionSkeletonHtml() {
+  const row = '<div class="h-8 rounded bg-gray-100 animate-pulse"></div>';
+  return `<div class="space-y-1.5 py-1">${row}${row}${row}${row}</div>`;
+}
+
 /** 状态缩写 + 色点（矩阵单元格用：色点 + 2 字缩写，风格对齐日历） */
 const CELL_META = {
   [AttendanceStatus.PRESENT]: { dot: '#16A34A', label: '出' },
@@ -304,9 +310,16 @@ export function renderContent(ctx) {
     renderContent(ctx);
   });
 
-  renderMatrix();
-  renderTable();
+  // U3（2026-09-07）「队列区先行、大区渐进」：待确认队列/会议录入等卡结构与队列首帧同步渲染；
+  // 矩阵与全量总表（大 DOM）容器先骨架占位，真实表格 rAF 下一帧填充（防一次性整块 DOM 造成首帧卡顿/弹出）。
+  // 表格 fill 在容器仍连接时执行（快速切 tab 宿主被重建则跳过）；enhanceSelects 同步（防下拉形态晚帧变化）。
   enhanceSelects(container);
+  requestAnimationFrame(() => {
+    const mEl = document.getElementById('att-matrix-container');
+    const tEl = document.getElementById('att-table-container');
+    if (mEl && mEl.isConnected) renderMatrix();
+    if (tEl && tEl.isConnected) renderTable();
+  });
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -774,7 +787,7 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
           ${Object.values(AttendanceStatus).map(s => `<option value="${s}">${ATTENDANCE_STATUS_LABELS[s]}</option>`).join('')}
         </select>
       </div>
-      <div id="att-table-container"></div>
+      <div id="att-table-container">${_attSectionSkeletonHtml()}</div>
       <div class="flex items-center justify-between mt-3">
         <span class="text-xs text-gray-400" id="att-table-info"></span>
         <div class="flex gap-2">

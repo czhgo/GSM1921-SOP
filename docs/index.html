@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
 <!-- role: [用户]+[AI] -->
 <html lang="zh-CN">
 <head>
@@ -64,7 +64,25 @@
                 <select id="month-selector" class="input-flat text-xs" style="min-width:120px;"></select>
               </div>
               <div id="cal-main-empty" class="hidden text-sm text-gray-400 text-center py-8">本月暂无活动</div>
-              <div id="cal-main-grid"></div>
+              <!-- U3（2026-09-07）：日历网格 JS 填充前预置等高骨架（min-height 由骨架占位）——数据到达整块填充不再从 0 高弹出 -->
+              <div id="cal-main-grid">
+                <div data-cal-skeleton style="min-height:340px;display:flex;flex-direction:column;gap:8px;">
+                  <div class="flex gap-2">
+                    <div class="flex-1 h-3 rounded bg-gray-100 animate-pulse"></div>
+                    <div class="flex-1 h-3 rounded bg-gray-100 animate-pulse"></div>
+                    <div class="flex-1 h-3 rounded bg-gray-100 animate-pulse"></div>
+                    <div class="flex-1 h-3 rounded bg-gray-100 animate-pulse"></div>
+                    <div class="flex-1 h-3 rounded bg-gray-100 animate-pulse"></div>
+                    <div class="flex-1 h-3 rounded bg-gray-100 animate-pulse"></div>
+                    <div class="flex-1 h-3 rounded bg-gray-100 animate-pulse"></div>
+                  </div>
+                  <div class="flex-1 rounded-lg bg-gray-100 animate-pulse"></div>
+                  <div class="flex-1 rounded-lg bg-gray-100 animate-pulse"></div>
+                  <div class="flex-1 rounded-lg bg-gray-100 animate-pulse"></div>
+                  <div class="flex-1 rounded-lg bg-gray-100 animate-pulse"></div>
+                  <div class="flex-1 rounded-lg bg-gray-100 animate-pulse"></div>
+                </div>
+              </div>
               <div id="calendar-legend" class="mt-3">
                 <div id="legend-items" class="flex flex-wrap gap-3 text-xs text-gray-500"></div>
               </div>

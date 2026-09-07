@@ -67,6 +67,22 @@ export function createTodoTab(opts) {
   // 私有状态（随壳实例自持，不污染入口——与原模块级私有状态等价）
   let _selectedTodoId = null;
 
+  /** U3（2026-09-07）待办两栏等高骨架（await onBeforeRender/数据聚合期间占位；styles.css 禁改不碰） */
+  function _todoShellSkeletonHtml() {
+    const row = '<div class="h-9 rounded-lg bg-gray-100 animate-pulse"></div>';
+    return `
+      <div data-ws-todo-skeleton class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="lg:col-span-2 card rounded-xl p-5" style="min-height:340px;">
+          <div class="h-4 w-20 rounded bg-gray-100 animate-pulse mb-4"></div>
+          <div class="space-y-2.5">${row}${row}${row}${row}${row}</div>
+        </div>
+        <div class="lg:col-span-1 card rounded-xl p-5" style="min-height:220px;">
+          <div class="h-4 w-12 rounded bg-gray-100 animate-pulse mb-4"></div>
+          <div class="h-24 rounded-lg bg-gray-100 animate-pulse"></div>
+        </div>
+      </div>`;
+  }
+
   /**
    * 详情渲染（内置缺省：聚合组 = 概要 + 处理入口；单项 = 状态 + 描述 + 处理）。
    * 角色自定义详情经 opts.renderDetail 覆盖（如书记 confirm/remind/成员确权逐项面板）。
@@ -161,6 +177,12 @@ export function createTodoTab(opts) {
   async function renderContent(ctx) {
     const container = document.getElementById(containerId);
     if (!container) return;
+
+    // U3（2026-09-07）：onBeforeRender（seedTodos/异步预载）挂起期间若容器仍为壳骨架/空 →
+    // 先换为待办两栏等高骨架（防 await 期 0 高与整块弹出）；已有真实内容（重渲染）保留由 tab-bar 置灰过渡
+    if (!container.innerHTML.trim() || container.querySelector('[data-ws-tab-loading-bar]')) {
+      container.innerHTML = _todoShellSkeletonHtml();
+    }
 
     // 渲染前钩子（书记：seedTodos + 异步预载待答复汇报等）
     if (onBeforeRender) await onBeforeRender(ctx);

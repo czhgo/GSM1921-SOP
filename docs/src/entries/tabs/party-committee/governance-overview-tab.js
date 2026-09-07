@@ -10,6 +10,8 @@
 //     党员=正式/预备，滞留=组织关系保留但人不在校、应到剔除；含组织委员运行期覆盖）
 //   · 近期动态摘要 = ctx.activities（工作台已加载活动台账）按支部归属取最近活动 + 全院通知计数
 // 消费方：party-committee-workspace.js tabs 清单首项；ws-party-committee-entry defaultTab。
+// U3（2026-09-07）「卡片先占位不弹跳」：治理总览两级渐进——首帧先渲染「顶部+全委统计条」，
+//   支部概览卡列表先等高骨架占位（#pc-branch-cards），下一帧填充真实卡网格（避免整块弹出支部卡）。
 
 import { mockDB } from '../../../core/domain.js?v=20260903c';
 import { PersonStore, getPersonName } from '../../../services/person.js?v=20260903c';
@@ -18,7 +20,23 @@ import { getCommitteeName } from '../../../services/branch.js?v=20260903c';
 import { escHtml as esc } from '../../../core/utils.js?v=20260903c';
 import { bindBranchDemoButtons } from '../../../modules/branch-demo-nav.js?v=20260903c';
 
-export async function renderContent(ctx) {
+/** 支部概览卡等高骨架（网格占位，防「支部卡列表整块弹出」；styles.css 禁改不碰） */
+function _branchCardsSkeleton() {
+  const card = `
+    <div class="rounded-xl border border-gray-200 bg-white p-4" style="min-height:216px;">
+      <div class="h-5 w-28 rounded bg-gray-100 animate-pulse mb-3"></div>
+      <div class="h-3 w-40 rounded bg-gray-100 animate-pulse mb-4"></div>
+      <div class="grid grid-cols-3 gap-3 mb-3">
+        <div class="h-14 rounded-lg bg-gray-100 animate-pulse"></div>
+        <div class="h-14 rounded-lg bg-gray-100 animate-pulse"></div>
+        <div class="h-14 rounded-lg bg-gray-100 animate-pulse"></div>
+      </div>
+      <div class="h-8 rounded-lg bg-gray-100 animate-pulse"></div>
+    </div>`;
+  return `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${card}${card}</div>`;
+}
+
+export function renderContent(ctx) {
   const el = document.getElementById('party-committee-tab-content');
   if (!el) return;
 
@@ -57,6 +75,7 @@ export async function renderContent(ctx) {
     { members: 0, party: 0, detained: 0, activities: 0 }
   );
 
+  // U3：首帧 = 统计条（登录落点首见信息）+ 支部卡骨架占位；第二帧 = 真实支部卡网格
   el.innerHTML = `
     <div class="space-y-5">
       <!-- 顶部：院系党组织 + 全委统计条 -->
@@ -92,50 +111,56 @@ export async function renderContent(ctx) {
         </div>
       </div>
 
-      <!-- 支部概览卡列表（支部列表 → 「进入支部（演示）」） -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        ${rows.map(r => `
-          <div class="rounded-xl border border-gray-200 bg-white p-4 flex flex-col" data-branch-card="${esc(r.id)}">
-            <div class="flex items-start justify-between gap-2 mb-2">
-              <div class="min-w-0">
-                <p class="font-title-cn text-base font-bold text-gray-800 truncate">${esc(r.name)}</p>
-                <p class="text-xs text-gray-400 mt-0.5">${esc(r.type)} · 现任书记：${esc(r.secretaryName)}</p>
-              </div>
-              <span class="text-xs px-2 py-0.5 rounded-full shrink-0 ${r.status === 'active' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'}">${r.status === 'active' ? '运行中' : esc(r.status)}</span>
-            </div>
-            <div class="grid grid-cols-3 gap-3 mb-3">
-              <div class="rounded-lg bg-gray-50 p-2.5">
-                <p class="text-xs text-gray-400">当前成员</p>
-                <p class="text-lg font-bold text-gray-800 mt-0.5">${r.memberCount}<span class="text-xs font-normal text-gray-400"> 人</span></p>
-              </div>
-              <div class="rounded-lg bg-gray-50 p-2.5">
-                <p class="text-xs text-gray-400">在册党员</p>
-                <p class="text-lg font-bold text-gray-800 mt-0.5">${r.partyTotal}<span class="text-xs font-normal text-gray-400"> 人</span></p>
-              </div>
-              <div class="rounded-lg bg-gray-50 p-2.5">
-                <p class="text-xs text-gray-400">滞留</p>
-                <p class="text-lg font-bold text-gray-800 mt-0.5">${r.detained}<span class="text-xs font-normal text-gray-400"> 人</span></p>
-              </div>
-            </div>
-            <div class="mb-3">
-              <p class="text-xs text-gray-400 mb-1.5">近期动态（最近组织生活 ${r.activityCount} 场）</p>
-              ${r.recent.length ? `
-                <div class="flex flex-col gap-1">
-                  ${r.recent.map(a => `<span class="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded px-2 py-1">${esc(a.date?.slice(5) || '')} ${esc(a.title)}</span>`).join('')}
-                </div>` : `<p class="text-xs text-gray-400">暂无组织生活记录</p>`}
-            </div>
-            <div class="mt-auto flex items-center justify-between gap-2 pt-1 border-t border-gray-100">
-              <p class="text-xs text-gray-400">支部 ${esc(r.type)} · 组织生活共 ${r.activityCount} 场</p>
-              <button type="button" class="branch-demo-enter text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" data-branch-id="${esc(r.id)}"
-                title="以分支上下文打开该支部书记工作台（演示视图；本地开发 + 非真实后端登录可用）">进入支部（演示）</button>
-            </div>
-          </div>`).join('')}
-      </div>
+      <!-- 支部概览卡列表（先骨架占位，rAF 后填充真实卡网格 → 「进入支部（演示）」） -->
+      <div id="pc-branch-cards">${_branchCardsSkeleton()}</div>
 
       <p class="text-xs text-gray-400">党委组织：${esc(getCommitteeName())} · 支部 ${branches.length} 个 · 在册成员合计 ${totals.members} 人（通知计数为全院全域——业务数据域尚未按支部实例分区）</p>
     </div>
   `;
 
-  // 「进入支部（演示）」：经 modules/branch-demo-nav.js 统一放行校验（本地开发 + 非 API 登录）
-  bindBranchDemoButtons(el);
+  const cardsHtml = rows.map(r => `
+    <div class="rounded-xl border border-gray-200 bg-white p-4 flex flex-col" data-branch-card="${esc(r.id)}">
+      <div class="flex items-start justify-between gap-2 mb-2">
+        <div class="min-w-0">
+          <p class="font-title-cn text-base font-bold text-gray-800 truncate">${esc(r.name)}</p>
+          <p class="text-xs text-gray-400 mt-0.5">${esc(r.type)} · 现任书记：${esc(r.secretaryName)}</p>
+        </div>
+        <span class="text-xs px-2 py-0.5 rounded-full shrink-0 ${r.status === 'active' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'}">${r.status === 'active' ? '运行中' : esc(r.status)}</span>
+      </div>
+      <div class="grid grid-cols-3 gap-3 mb-3">
+        <div class="rounded-lg bg-gray-50 p-2.5">
+          <p class="text-xs text-gray-400">当前成员</p>
+          <p class="text-lg font-bold text-gray-800 mt-0.5">${r.memberCount}<span class="text-xs font-normal text-gray-400"> 人</span></p>
+        </div>
+        <div class="rounded-lg bg-gray-50 p-2.5">
+          <p class="text-xs text-gray-400">在册党员</p>
+          <p class="text-lg font-bold text-gray-800 mt-0.5">${r.partyTotal}<span class="text-xs font-normal text-gray-400"> 人</span></p>
+        </div>
+        <div class="rounded-lg bg-gray-50 p-2.5">
+          <p class="text-xs text-gray-400">滞留</p>
+          <p class="text-lg font-bold text-gray-800 mt-0.5">${r.detained}<span class="text-xs font-normal text-gray-400"> 人</span></p>
+        </div>
+      </div>
+      <div class="mb-3">
+        <p class="text-xs text-gray-400 mb-1.5">近期动态（最近组织生活 ${r.activityCount} 场）</p>
+        ${r.recent.length ? `
+          <div class="flex flex-col gap-1">
+            ${r.recent.map(a => `<span class="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded px-2 py-1">${esc(a.date?.slice(5) || '')} ${esc(a.title)}</span>`).join('')}
+          </div>` : `<p class="text-xs text-gray-400">暂无组织生活记录</p>`}
+      </div>
+      <div class="mt-auto flex items-center justify-between gap-2 pt-1 border-t border-gray-100">
+        <p class="text-xs text-gray-400">支部 ${esc(r.type)} · 组织生活共 ${r.activityCount} 场</p>
+        <button type="button" class="branch-demo-enter text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" data-branch-id="${esc(r.id)}"
+          title="以分支上下文打开该支部书记工作台（演示视图；本地开发 + 非真实后端登录可用）">进入支部（演示）</button>
+      </div>
+    </div>`).join('');
+
+  // U3：支部卡 rAF 渐进填充（宿主被切 tab 重建则跳过）；「进入支部（演示）」绑定随卡渲染
+  requestAnimationFrame(() => {
+    const host = document.getElementById('pc-branch-cards');
+    if (!host || !host.isConnected) return;
+    host.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${cardsHtml}</div>`;
+    // 「进入支部（演示）」：经 modules/branch-demo-nav.js 统一放行校验（本地开发 + 非 API 登录）
+    bindBranchDemoButtons(el);
+  });
 }
