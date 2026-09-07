@@ -5,7 +5,7 @@
 import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords } from '../../../services/attendance.js?v=20260907b';
 import { loadMakeupTasks } from '../../../services/makeup.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260908a';
 import { PersonStore } from '../../../services/person.js?v=20260907b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();

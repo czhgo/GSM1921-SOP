@@ -19,7 +19,7 @@ import { getDetainedMembers, getRosterStats, getResidenceOf } from '../../../ser
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260907b';
 import { AttendanceStatus } from '../../../core/domain.js?v=20260903c';
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260907b';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260908a';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260903c';
 import { getPersonName } from '../../../services/person.js?v=20260907b';

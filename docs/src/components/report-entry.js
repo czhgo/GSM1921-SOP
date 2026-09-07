@@ -9,7 +9,7 @@
 //  最小三成本：按钮常驻顶部（零搜寻），弹窗两步完成（选分类+填正文）
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../services/issues.js?v=20260903c';
+import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../services/issues.js?v=20260908a';
 import { AuthStore } from '../services/auth.js?v=20260903c';
 import { showToast } from '../core/utils.js?v=20260903c';
 import { getPersonName } from '../services/person.js?v=20260903c';

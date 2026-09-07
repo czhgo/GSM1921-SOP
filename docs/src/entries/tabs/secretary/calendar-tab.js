@@ -4,10 +4,10 @@
 
 import { getAppState, setState } from '../../../core/state.js?v=20260903c';
 import { _fmtDate, showToast } from '../../../core/utils.js?v=20260903c';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260907b';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260908a';
 import { renderInspectorFromState } from '../../../components/inspector.js?v=20260903c';
 import { computeSecretaryStats } from '../../../services/roles.js?v=20260903c';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260908a';
 import { openModal, closeModal } from '../../../components/modal.js?v=20260903c';
 import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';

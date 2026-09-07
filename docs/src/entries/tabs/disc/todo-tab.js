@@ -6,7 +6,7 @@
 
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260907b';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260907b';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260908a';
 import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260907b';
 import { AttendanceStatus } from '../../../core/domain.js?v=20260903c';
 import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260907b';

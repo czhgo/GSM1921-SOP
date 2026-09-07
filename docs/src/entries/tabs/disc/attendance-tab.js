@@ -26,7 +26,7 @@ import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc } from '
 import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260903c';
 import { HandoffStore } from '../../../services/handoff.js?v=20260907b';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260908a';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）

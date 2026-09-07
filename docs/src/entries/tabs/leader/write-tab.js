@@ -12,7 +12,7 @@ import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, Partici
 import { persist } from '../../../core/data-adapter.js?v=20260903c';
 import { appendAttendanceRecords } from '../../../services/attendance.js?v=20260907b';
 import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260907b';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260908a';
 import { recordFormShell } from '../../../components/forms.js?v=20260903c';
 import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260903c';
 import { PersonStore } from '../../../services/person.js?v=20260907b';

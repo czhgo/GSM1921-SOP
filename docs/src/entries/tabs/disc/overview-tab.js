@@ -4,9 +4,9 @@
 // IA-C2 收敛（2026-09-06）：work-overview 受保护不内改 → 绕行方案在概况顶部挂「待答复 n · 去处理」直达条。
 // U3（2026-09-07）：先 beginOverviewShell 骨架/槽位占位 → 预算计数 → 原地填充直达条（不推挤正文）。
 
-import { renderWorkOverview } from '../../../components/work-overview.js?v=20260903c';
+import { renderWorkOverview } from '../../../components/work-overview.js?v=20260908a';
 import { getDiscCommissionerId } from './_shared.js?v=20260903c';
-import { beginOverviewShell, countOwnPendingReports, mountOverviewDispatchBar } from '../../../components/overview-dispatch-bar.js?v=20260907a';
+import { beginOverviewShell, countOwnPendingReports, mountOverviewDispatchBar } from '../../../components/overview-dispatch-bar.js?v=20260908a';
 
 export async function renderContent(ctx) {
   const el = document.getElementById('disc-tab-content');

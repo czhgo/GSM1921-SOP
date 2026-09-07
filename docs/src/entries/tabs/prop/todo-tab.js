@@ -3,7 +3,7 @@
 // 最小三成本原则落地：进入即见首条详情，减一次点击。
 
 import { showToast } from '../../../core/utils.js?v=20260903c';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260907b';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260908a';
 import { tryDirectJump } from '../../../components/todo-jump.js?v=20260903c';
 import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260903c';
 

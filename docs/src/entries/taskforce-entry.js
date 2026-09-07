@@ -1,11 +1,11 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  taskforce-entry.js — 专班详情独立入口
 //  书记 2026-08-11 裁定：专班拥有自己的界面与数据集（便于长期共享）。
 //  数据源 TaskForceRecordStore（独立持久化 workflowos_taskforces_v1），
 //  报名面板复用 signup-panel.js 组件（与活动详情页共用，避免重复散落）。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../components/sidebar.js?v=20260903c';
+import { renderSidebar } from '../components/sidebar.js?v=20260908a';
 import { renderHeader } from '../components/header.js?v=20260903c';
 import { BranchService } from '../services/runtime.js?v=20260903c';
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260903c';
@@ -16,7 +16,7 @@ import { getPersonById } from '../services/person.js?v=20260903c';
 import { getBasePath } from '../core/utils.js?v=20260903c';
 import { badgeHtml } from '../components/badges.js?v=20260903c';
 import { enhanceSelects } from '../components/custom-select.js?v=20260903c';
-import { canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260903c';
+import { canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260908a';
 import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260903c';
 
 renderSidebar('dashboard');

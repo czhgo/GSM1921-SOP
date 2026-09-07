@@ -5,7 +5,7 @@
 // 动画：Lenis 平滑滚动 + CSS 滚动驱动（animation-timeline: view()）+ 原生 JS 驱动
 // 签名元素：收束致谢（三层小字）+ 探索区 SVG 关系网络 + 对话卡日出日落公转（文字正立）
 
-import { renderSidebar } from '../components/sidebar.js?v=20260903c';
+import { renderSidebar } from '../components/sidebar.js?v=20260908a';
 import { renderHeader } from '../components/header.js?v=20260903c';
 import { getBasePath } from '../core/utils.js?v=20260903c';
 import { icon } from '../core/icons.js?v=20260903c';

@@ -10,7 +10,7 @@
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
 import { STATE, getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260903c';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260907a';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260908a';
 import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260907a';
 import { flashHighlight } from '../core/utils.js?v=20260903c';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260903c';

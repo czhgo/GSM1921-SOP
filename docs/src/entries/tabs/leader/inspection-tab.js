@@ -5,7 +5,7 @@
 import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260907b';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260907b';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260908a';
 import { inspectionToLong } from '../../../services/inspection.js?v=20260907b';
 import { getPersonById, getPersonName } from '../../../services/person.js?v=20260907b';
 import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260903c';

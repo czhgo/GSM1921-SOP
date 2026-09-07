@@ -12,7 +12,7 @@
 import { showToast, flashHighlight } from '../core/utils.js?v=20260903c';
 import { dutyCardHtml } from './workforce-duty-card.js?v=20260903c';
 import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260903c';
-import { IssueStore, REPORT_CATEGORIES } from '../services/issues.js?v=20260903c';
+import { IssueStore, REPORT_CATEGORIES } from '../services/issues.js?v=20260908a';
 import { AuthStore } from '../services/auth.js?v=20260903c';
 import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260903c';
 import { loadActivities } from '../services/activity.js?v=20260903c';
@@ -392,10 +392,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('./activity-view.js?v=20260903c');
+    const { renderActivityView } = await import('./activity-view.js?v=20260908a');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260903c');
+    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260908a');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

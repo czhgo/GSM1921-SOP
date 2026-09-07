@@ -9,7 +9,7 @@
 //   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
 import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260903c';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260907b';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260908a';
 import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260907b';
 import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260907b';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
@@ -22,11 +22,11 @@ import { persist } from '../../../core/data-adapter.js?v=20260903c';
 import { bumpToken } from '../../../core/version-token.js?v=20260907b'; // P0 域缓存失效（spec §二.3）
 import { getPersonById, getPersonName } from '../../../services/person.js?v=20260907b';
 import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260903c';
-import { IssueStore } from '../../../services/issues.js?v=20260907b';
+import { IssueStore } from '../../../services/issues.js?v=20260908a';
 import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/taskforce.js?v=20260907b';
 import { fetchVotes } from '../../../services/committee-vote.js?v=20260903c';
 import { resolveVoterIds } from '../../../services/vote-config.js?v=20260903c';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260903c';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260908a';
 import { renderMemberChangePanel } from '../../../components/member-change-panel.js?v=20260903c';
 import { tryDirectJump } from '../../../components/todo-jump.js?v=20260903c';
 import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260907b';

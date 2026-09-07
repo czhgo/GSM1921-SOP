@@ -1,7 +1,7 @@
 ﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
-import { renderSidebar } from '../components/sidebar.js?v=20260903c';
+import { renderSidebar } from '../components/sidebar.js?v=20260908a';
 import { renderHeader } from '../components/header.js?v=20260903c';
 import { BranchService } from '../services/runtime.js?v=20260903c';
 import { mockDB } from '../core/domain.js?v=20260903c';

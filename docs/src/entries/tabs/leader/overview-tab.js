@@ -5,11 +5,11 @@
 // 组长收件位 = 本组组员汇报（组员进展 tab 行内答复）——计数取本组组员 open 汇报数并跳「组员进展」。
 // U3（2026-09-07）：先 beginOverviewShell 骨架/槽位占位 → 预算计数 → 原地填充直达条（不推挤正文）。
 
-import { renderWorkOverview } from '../../../components/work-overview.js?v=20260903c';
+import { renderWorkOverview } from '../../../components/work-overview.js?v=20260908a';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { IssueStore } from '../../../services/issues.js?v=20260907b';
+import { IssueStore } from '../../../services/issues.js?v=20260908a';
 import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260903c';
-import { beginOverviewShell, mountOverviewDispatchBar } from '../../../components/overview-dispatch-bar.js?v=20260907a';
+import { beginOverviewShell, mountOverviewDispatchBar } from '../../../components/overview-dispatch-bar.js?v=20260908a';
 
 /** 本组组员 open 汇报数（组长收件 = 组员汇报，处理位 = 组员进展 tab；P-011 同组可见） */
 async function _pendingMemberReportCount(personId) {

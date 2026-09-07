@@ -48,7 +48,7 @@ export function renderContent() {
 
   // mountOrgSetupWizard 自带 wzBound 守卫（已挂载直接返回）：同 tab 内后续重渲染不重复 mount
   if (host.dataset.wzBound === '1') return;
-  import('../../../components/org-setup-wizard.js?v=20260906j')
+  import('../../../components/org-setup-wizard.js?v=20260908a')
     .then(({ mountOrgSetupWizard }) => {
       mountOrgSetupWizard(host, {
         actor: { personId, role: me.role }, // 现任书记可进本支部；副书记由组件内权限兜底（与 wizard.html 一致）
