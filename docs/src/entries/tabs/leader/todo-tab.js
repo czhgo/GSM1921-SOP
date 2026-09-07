@@ -37,7 +37,7 @@ function _handleTodoAction(todo, ctx) {
         if (++tries > 40) clearInterval(timer); // 4s 超时（懒加载渲染 + 重建窗口）
       }, 100);
     }
-    const tabLabel = { write: '活动写入', review: '复盘提交' }[targetTab] || '';
+    const tabLabel = { write: '活动写入', review: '复盘状态' }[targetTab] || '';
     showToast('info', `已跳转到${tabLabel}，请处理：${todo.title}`);
   } else {
     showToast('info', `请处理：${todo.title}`);

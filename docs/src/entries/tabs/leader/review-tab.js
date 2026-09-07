@@ -1,33 +1,33 @@
 // role: [工程师]+[AI]
-// 组长工作台 Tab：复盘提交（T-279 M2 拆分）
-// 党小组组长提交活动复盘总结 → 纪检委员批注/确认。
+// 组长工作台 Tab：本组活动复盘状态（T-279 M2 拆分 · IA-C2 收敛 2026-09-06）
+// C2 裁定：复盘统一提交入口 = 活动组织者/深度参与者（成员端「我的复盘」visitor/review-tab）；
+// 本页改为本组活动复盘状态只读列表（待复盘/已复盘 + 徽标），页内不提供提交表单（登记 2026-09-06）。
 
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
-import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../../../services/review.js?v=20260903c';
+import { loadActivityReviews } from '../../../services/review.js?v=20260903c';
 import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260903c';
 import { PersonStore } from '../../../services/person.js?v=20260903c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { showToast } from '../../../core/utils.js?v=20260903c';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260903c';
-import { currentLeaderGroup, getCurrentLeaderId } from './_shared.js?v=20260903c';
+import { currentLeaderGroup } from './_shared.js?v=20260903c';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;
 
 /**
- * 复盘提交 tab：展示本组活动列表，按复盘状态分桶（待复盘/已复盘），
- * 待复盘活动可展开填写复盘总结并提交。
+ * 本组活动复盘状态（只读）：
+ *  - 待复盘：本组活动尚未提交复盘 / 已打回——行内提示「复盘由活动组织者/深度参与者提交」，无填写表单；
+ *  - 已复盘：可展开查看复盘内容 / 纪检批注（只读）。
+ * K2 登记：组长若同时是组织者 → 其复盘提交入口 = 成员端「我的复盘」（visitor/review-tab，勿改其规则）；
+ *  mock 种子中组长组织活动均带 assignments organizer 赋权行（如 act-4/9/16/17/21/23/26/29），
+ *  故其活动会出现在该组长「我的复盘」；运行时新建活动如缺 organizer 赋权行则需赋权补齐后才会出现。
  */
 export function renderContent(ctx) {
   const container = document.getElementById('leader-tab-content');
   if (!container) return;
 
-  const { accent, accentBorder } = ctx;
-
   // 当前组长所属党小组（数据驱动：AuthStore 当前用户 → partyGroup）
   const { group: myGroup } = currentLeaderGroup();
-  const currentLeaderId = getCurrentLeaderId();
 
   // 筛选本组活动（三会一课/主题党日等由本组组长组织的活动；已归档活动退出工作区）
   // T223 排序统一：date 降序（新者在前）
@@ -66,44 +66,61 @@ export function renderContent(ctx) {
     [ReviewStatus.REJECTED]: 'bg-red-100 text-red-700',
   };
 
-  function renderActivityCard(item, bucket) {
+  /** 待复盘行（只读，行内提示提交人规则，无展开表单） */
+  function renderPendingCard(item) {
     const { act, rev } = item;
-    const isPending = bucket === 'pending';
     const statusLabel = rev ? REVIEW_STATUS_LABELS[rev.reviewStatus] : '未提交';
     const statusColor = reviewColorMap[rev?.reviewStatus || ReviewStatus.NOT_SUBMITTED] || 'bg-gray-100 text-gray-500';
-    const isExpanded = _reviewExpandedId === act.id;
-
     return `
-      <div class="leader-review-item p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors ${rev?.reviewStatus === ReviewStatus.REJECTED ? 'border border-red-100' : ''}" data-act-id="${act.id}">
-        <div class="flex items-center justify-between cursor-pointer review-toggle">
+      <div class="leader-review-item p-3 rounded-xl bg-white ${rev?.reviewStatus === ReviewStatus.REJECTED ? 'border border-red-100' : 'border border-gray-50'}">
+        <div class="flex items-center justify-between">
           <div class="flex-1 min-w-0">
             <div class="text-sm font-medium text-gray-800">${act.title || '未命名'}</div>
             <div class="text-xs text-gray-500 mt-0.5">${act.date || ''} ${act.type ? '· ' + act.type : ''}</div>
+            <div class="text-[11px] text-gray-400 mt-1">复盘由活动组织者 / 深度参与者提交</div>
           </div>
           <div class="flex items-center gap-2 ml-4">
             <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
             ${rev?.reviewStatus === ReviewStatus.REJECTED ? '<span class="text-xs text-red-500">需修改</span>' : ''}
           </div>
         </div>
-        ${isExpanded && isPending ? _renderReviewForm(act, rev, accent, accentBorder) : ''}
-        ${isExpanded && !isPending && rev ? _renderReviewDetail(rev) : ''}
-      </div>
-    `;
+      </div>`;
+  }
+
+  /** 已复盘行（只读；可展开查看复盘详情/批注） */
+  function renderCompletedCard(item) {
+    const { act, rev } = item;
+    const statusLabel = REVIEW_STATUS_LABELS[rev?.reviewStatus];
+    const statusColor = reviewColorMap[rev?.reviewStatus] || 'bg-gray-100 text-gray-500';
+    const isExpanded = _reviewExpandedId === act.id;
+    return `
+      <div class="leader-review-item p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors cursor-pointer review-toggle" data-act-id="${act.id}">
+        <div class="flex items-center justify-between">
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium text-gray-800">${act.title || '未命名'}</div>
+            <div class="text-xs text-gray-500 mt-0.5">${act.date || ''} ${act.type ? '· ' + act.type : ''}</div>
+          </div>
+          <div class="flex items-center gap-2 ml-4">
+            <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
+          </div>
+        </div>
+        ${isExpanded && rev ? _renderReviewDetail(rev) : ''}
+      </div>`;
   }
 
   container.innerHTML = `
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">复盘提交</h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">本组活动复盘状态</h3>
       </div>
-      <div class="text-xs text-gray-500 mb-4">党小组组长提交活动复盘总结 → 纪检委员批注/确认</div>
+      <div class="text-xs text-gray-500 mb-4">复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）；本页仅展示本组活动复盘状态，不提供提交。</div>
 
       <!-- 待复盘 -->
       <div class="mb-4">
         <div class="text-xs font-bold text-gray-600 mb-2">待复盘 <span class="text-gray-400 font-normal">(${pending.length})</span></div>
         <div class="space-y-2" id="leader-review-pending">
           ${pending.length === 0 ? '<p class="text-xs text-gray-400 text-center py-3">暂无待复盘活动</p>' :
-            pending.map(item => renderActivityCard(item, 'pending')).join('')}
+            pending.map(item => renderPendingCard(item)).join('')}
         </div>
       </div>
 
@@ -112,13 +129,13 @@ export function renderContent(ctx) {
         <div class="text-xs font-bold text-gray-600 mb-2">已复盘 <span class="text-gray-400 font-normal">(${completed.length})</span></div>
         <div class="space-y-2" id="leader-review-completed">
           ${completed.length === 0 ? '<p class="text-xs text-gray-400 text-center py-3">暂无已复盘活动</p>' :
-            completed.map(item => renderActivityCard(item, 'completed')).join('')}
+            completed.map(item => renderCompletedCard(item)).join('')}
         </div>
       </div>
     </div>
   `;
 
-  // 绑定活动卡片点击展开/收起
+  // 已复盘卡片点击展开/收起详情（只读；待复盘行无交互）
   container.querySelectorAll('.review-toggle').forEach(toggle => {
     toggle.addEventListener('click', () => {
       const item = toggle.closest('.leader-review-item');
@@ -127,83 +144,9 @@ export function renderContent(ctx) {
       renderContent(ctx);
     });
   });
-
-  // 绑定复盘表单提交按钮
-  container.querySelectorAll('.btn-review-submit').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const actId = btn.dataset.actId;
-      const textarea = container.querySelector(`#review-textarea-${actId}`);
-      const content = textarea?.value?.trim();
-      if (!content) {
-        showToast('error', '请填写复盘总结');
-        return;
-      }
-      // 真问题（每行一条）：书记 KPI「复盘问题」以此计量（书记 2026-08-10 裁定：复盘率 100% 会诱导随意提交，改问题导向）
-      const issuesEl = container.querySelector(`#review-issues-${actId}`);
-      const issues = (issuesEl?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
-
-      // 在复盘记录中查找或创建
-      const existIdx = findActivityReviewIndex(actId);
-      if (existIdx >= 0) {
-        // 更新已有记录（如已打回重新提交）
-        const existing = loadActivityReviews()[existIdx];
-        const isResubmit = existing.reviewStatus === ReviewStatus.REJECTED;
-        updateActivityReview(actId, {
-          reviewContent: content,
-          issues,
-          reviewStatus: ReviewStatus.UPLOADED,
-          submittedAt: new Date().toISOString(),
-          ...(isResubmit ? { annotation: '' } : {}),
-        });
-      } else {
-        // 新建复盘记录
-        addActivityReview({
-          id: 'rev_' + Date.now(),
-          activityId: actId,
-          organizerId: currentLeaderId,
-          progress: '已完成',
-          overdue: false,
-          reviewStatus: ReviewStatus.UPLOADED,
-          reviewContent: content,
-          issues,
-          submittedAt: new Date().toISOString(),
-        });
-      }
-
-      _reviewExpandedId = null;
-      showToast('success', '复盘总结已提交，等待纪检委员确认');
-      renderContent(ctx);
-    });
-  });
 }
 
-/** 渲染复盘表单（待复盘活动展开时） */
-function _renderReviewForm(act, rev, accent, accentBorder) {
-  const existingContent = rev?.reviewContent || '';
-  const existingIssues = Array.isArray(rev?.issues) ? rev.issues : [];
-  const isRejected = rev?.reviewStatus === ReviewStatus.REJECTED;
-  return `
-    <div class="mt-3 pt-3 border-t border-gray-100">
-      ${isRejected && rev.annotation ? `
-        <div class="mb-2 p-2 rounded-lg bg-red-50 border border-red-100">
-          <div class="text-xs text-red-500 font-bold mb-1">纪检委员批注</div>
-          <div class="text-xs text-red-700">${rev.annotation}</div>
-        </div>
-      ` : ''}
-      <textarea id="review-textarea-${act.id}" class="input-flat w-full text-xs resize-none" rows="4" placeholder="请填写复盘总结（活动成效、经验教训、改进建议等）">${existingContent}</textarea>
-      <div class="mt-2">
-        <label class="text-xs text-gray-500 block mb-1">提出的真问题（每行一条，书记 KPI 以此计量）</label>
-        <textarea id="review-issues-${act.id}" class="input-flat w-full text-xs resize-none" rows="2" placeholder="如：讨论时间不足，需预留更多…">${existingIssues.join('\n')}</textarea>
-      </div>
-      <div class="flex items-center gap-2 mt-2">
-        <button class="btn-review-submit text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" data-act-id="${act.id}" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">提交复盘</button>
-        <span class="text-xs text-gray-400">提交后纪检委员将在监督复盘tab收到通知</span>
-      </div>
-    </div>
-  `;
-}
-
-/** 渲染复盘详情（已复盘活动展开时） */
+/** 渲染复盘详情（已复盘活动展开时 · 只读） */
 function _renderReviewDetail(rev) {
   const issues = Array.isArray(rev.issues) ? rev.issues : [];
   return `
