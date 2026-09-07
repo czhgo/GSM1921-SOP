@@ -110,7 +110,7 @@ export function renderContent() {
             class="ov-sub-tab px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${_view === t.key ? 'ov-sub-tab-active' : 'text-gray-500 hover:text-gray-700'}"
             data-wm-view="${t.key}">${t.label}</button>`).join('')}
       </div>
-      <p class="text-xs text-gray-400 ml-auto">分工 = 支部自治（缺省按 SOP 责任人；调整走支委会议题）</p>
+      <p class="text-xs text-gray-400 ml-auto">分工由本支部自行调整（缺省按 SOP 责任人，改派走支委会议题）</p>
     </div>`;
   const body = _view === 'persons' ? _personsHtml(workforce) : _modulesHtml(workforce);
 

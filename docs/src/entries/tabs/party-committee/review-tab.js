@@ -43,9 +43,8 @@ export function renderContent() {
     <div class="space-y-4">
       <div class="rounded-xl border border-gray-200 bg-white p-4 flex items-center justify-between gap-3">
         <div class="min-w-0">
-          <p class="text-xs text-gray-400">党委 → 支部 双向治理通道 · 审批半侧</p>
-          <p class="font-title-cn text-base font-bold text-gray-800 mt-0.5">上报审批</p>
-          <p class="text-xs text-gray-400 mt-0.5">支部上报关键事项（发展节点/活动报备），党委逐项批/驳并给出意见——结论随上报记录回传支部</p>
+          <p class="font-title-cn text-base font-bold text-gray-800">上报审批</p>
+          <p class="text-xs text-gray-400 mt-0.5">上报关键事项（发展节点/活动报备），党委逐项批复并反馈支部</p>
         </div>
         <div class="flex items-center gap-2 shrink-0 flex-wrap">
           <span class="text-xs px-2.5 py-1 rounded-full bg-amber-50 text-amber-600">待批复 ${n('pending')}</span>

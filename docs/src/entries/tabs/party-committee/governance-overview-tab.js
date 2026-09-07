@@ -84,7 +84,6 @@ export function renderContent(ctx) {
           <div class="min-w-0">
             <p class="text-xs text-gray-400">院系党组织 · 治理总览</p>
             <p class="font-title-cn text-lg font-bold text-gray-800 truncate">${esc(getCommitteeName())}</p>
-            <p class="text-xs text-gray-400 mt-0.5">支部治理首页 — 支部概览 / 成员规模 / 近期动态（登录落点，先总览再进各业务 tab）</p>
           </div>
           <div class="text-right shrink-0">
             <p class="text-2xl font-bold text-red-600">${branches.length}</p>
@@ -114,7 +113,7 @@ export function renderContent(ctx) {
       <!-- 支部概览卡列表（先骨架占位，rAF 后填充真实卡网格 → 「进入支部（演示）」） -->
       <div id="pc-branch-cards">${_branchCardsSkeleton()}</div>
 
-      <p class="text-xs text-gray-400">党委组织：${esc(getCommitteeName())} · 支部 ${branches.length} 个 · 在册成员合计 ${totals.members} 人（通知计数为全院全域——业务数据域尚未按支部实例分区）</p>
+      <p class="text-xs text-gray-400">党委组织：${esc(getCommitteeName())} · 支部 ${branches.length} 个 · 在册成员合计 ${totals.members} 人</p>
     </div>
   `;
 
@@ -151,7 +150,7 @@ export function renderContent(ctx) {
       <div class="mt-auto flex items-center justify-between gap-2 pt-1 border-t border-gray-100">
         <p class="text-xs text-gray-400">支部 ${esc(r.type)} · 组织生活共 ${r.activityCount} 场</p>
         <button type="button" class="branch-demo-enter text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" data-branch-id="${esc(r.id)}"
-          title="以分支上下文打开该支部书记工作台（演示视图；本地开发 + 非真实后端登录可用）">进入支部（演示）</button>
+          title="打开该支部书记工作台（演示视图）">进入支部（演示）</button>
       </div>
     </div>`).join('');
 

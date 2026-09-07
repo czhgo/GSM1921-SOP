@@ -92,7 +92,7 @@ export function renderContent(ctx) {
         <h3 class="font-title-cn text-base font-semibold text-gray-800">人才库</h3>
         <span class="text-xs text-gray-400">${people.length} 人</span>
       </div>
-      <div class="text-xs text-gray-500 mb-4">人员信息汇总提炼，输出人才画像</div>
+      <div class="text-xs text-gray-500 mb-4">成员考察档案汇总</div>
       <div id="org-talent-query"></div>
     </div>
     <div id="org-talent-detail" class="hidden card rounded-xl p-5 mt-3"></div>

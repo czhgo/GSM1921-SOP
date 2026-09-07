@@ -77,7 +77,7 @@ export function renderContent(ctx) {
           ${(_batchModeOn || reviewData.some(r => r.reviewStatus === ReviewStatus.UPLOADED)) ? `
           <button class="btn-action btn-action-gray js-batch-toggle" style="cursor:pointer;">${_batchModeOn ? '退出批量模式' : '批量确认'}</button>` : ''}
         </div>
-        <div class="text-xs text-gray-500 mb-3">复盘状态流转：已上传 → 批注中 → 确认/打回${_batchModeOn ? ' · 批量勾选「已上传」复盘后可一键确认' : ''}</div>
+        <div class="text-xs text-gray-500 mb-3">复盘流转：已上传 → 批注中 → 确认/打回</div>
         ${_batchModeOn ? `
         <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 mb-3 text-xs text-gray-600">
           <span>已勾选 <b class="js-batch-count tabular-nums">${_batchCheckedIds.size}</b> 条「已上传」复盘（已确认/打回/批注中/未提交行置灰不可勾）</span>

@@ -88,7 +88,7 @@ export async function renderContent() {
               <button class="branch-appoint-toggle text-xs px-2.5 py-1 rounded-lg text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600">任命书记</button>
               ${isEmpty
                 ? `<button type="button" class="text-xs px-2.5 py-1 rounded-lg text-white font-medium" style="background:#C8102E;" data-branch-roster-act="toggle" data-branch-id="${esc(bid)}">导入成员名册</button>`
-                : `<span class="text-[11px] text-gray-400" title="整支部替换会被业务历史守卫拒绝（防业务引用孤儿）">已有成员/历史：不可整表替换——成员调整请逐人编辑（成员档案）</span>`}
+                : `<span class="text-[11px] text-gray-400">已有成员/历史：不可整表替换，成员调整请逐人编辑（成员档案）</span>`}
             </div>
             <div class="branch-rename-row hidden mt-2 flex gap-2">
               <input class="branch-rename-input input-flat w-full" value="${esc(b.config?.headerTitle || b.name)}" placeholder="支部全称" />
@@ -115,7 +115,7 @@ export async function renderContent() {
           </div>`;
         }).join('')}
       </div>
-      <p class="text-xs text-gray-400">党委组织：${esc(getCommitteeName())} · 支部 ${branches.length} 个 · 名册导入仅对空支部开放（整支部替换落库，防业务引用孤儿）</p>
+      <p class="text-xs text-gray-400">党委组织：${esc(getCommitteeName())} · 支部 ${branches.length} 个 · 名册导入仅对空支部开放</p>
       <input type="file" id="branch-roster-file" accept=".json,application/json" class="hidden" aria-label="选择成员名册 JSON 文件">
     </div>
   `;

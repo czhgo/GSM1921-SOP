@@ -96,7 +96,7 @@ export function renderContent(ctx) {
             <button id="roster-add-btn" type="button" class="text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" style="cursor:pointer;">＋ 新增成员</button>
           </div>
         </div>
-        <p class="text-xs text-gray-500 mb-3">名单网页化管理：逐人新增 / 行内改分组·发展阶段·在册状态（含滞留备注）/ 移出名册。发展阶段与在册滞留由组织委员发起、书记确认后生效（双层留痕）；分组与备注即时生效；移出时未开始引用自动解除、历史记录经书记确认转「已转出」保留（不删不匿名）。刷新不丢失，应到口径同步变化。</p>
+        <p class="text-xs text-gray-500 mb-3">成员名册逐人新增、行内调整：分组与备注即时生效；发展阶段与在册状态变更由组织委员发起、书记确认后生效。</p>
         <div class="flex items-center gap-x-4 gap-y-1 flex-wrap text-xs">
           <span class="px-2 py-1 rounded-full bg-gray-50 border border-gray-100"><span class="font-medium text-gray-700">支部应到 ${stats.expected} 人</span><span class="text-gray-400">＝在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}</span></span>
           ${groupStats.map(x => `<span class="text-gray-500">${esc(x.g)}应到 <span class="text-gray-700 font-medium">${x.s.expected}</span><span class="text-gray-400">/${x.s.partyTotal}</span></span>`).join('')}
@@ -112,7 +112,7 @@ export function renderContent(ctx) {
       <div class="card rounded-xl p-4 overflow-x-auto" id="roster-list-card">
         ${_listHtml(members)}
       </div>
-      <p class="text-[11px] text-gray-400 px-1">移出说明：未开始的分工 / 未生效的报名 / 未读的广播接收将自动解除；考勤、考察等已开始或历史记录经书记确认后转「已转出」标注并保留（不删不匿名），成员移出后姓名仍可在历史记录中解析。成员考察画像与档案留痕见「人才库」。</p>
+      <p class="text-[11px] text-gray-400 px-1">移出：未开始的分工/报名/通知自动解除；已开始或历史经书记确认后转「已转出」保留。</p>
     </div>
   `;
 

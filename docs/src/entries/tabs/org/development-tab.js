@@ -152,7 +152,6 @@ export function renderContent(ctx) {
           <h3 class="font-title-cn text-base font-semibold text-gray-800">发展数据</h3>
           <span class="text-xs text-gray-400">${candidates.length} 人</span>
         </div>
-        <div class="text-xs text-gray-500 mb-4">从入党积极分子到正式党员的完整发展路径数据</div>
         <!-- 管线概览 -->
         <div class="flex items-center flex-wrap gap-1 mb-4 p-3 rounded-lg bg-gray-50">
           ${pipelineHtml}

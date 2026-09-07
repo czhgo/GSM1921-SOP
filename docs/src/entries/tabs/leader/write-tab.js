@@ -58,7 +58,7 @@ export function renderContent(ctx) {
         <h3 class="font-title-cn text-base font-semibold text-gray-800">活动写入</h3>
         <button class="btn-md" id="btn-leader-create" style="${_accVars}background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${panelVisible ? '收起面板' : '创建活动'}</button>
       </div>
-      <div class="text-xs text-gray-500 mb-3">党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点</div>
+      <div class="text-xs text-gray-500 mb-3">可创建党小组会与主题党日活动，创建后自动生成后续待办</div>
 
       ${panelVisible ? _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark }) : ''}
 

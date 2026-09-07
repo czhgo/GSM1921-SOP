@@ -393,7 +393,7 @@ function renderSemesterDetainedDetail(group) {
         <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${group.count} 名滞留成员</span>
       </div>
       <p class="font-title-cn text-sm font-bold text-gray-800">学期末滞留集中复核</p>
-      <p class="text-xs text-gray-600 leading-relaxed">学期末窗口提醒书记集中复核在册滞留名单：滞留成员组织关系保留、应到剔除、通知照发。若滞留需延续或解除，请组织委员在「成员名册」发起变更，书记在本页「成员变更待确认」处理（确认生效或退回）。</p>
+      <p class="text-xs text-gray-600 leading-relaxed">延续或解除滞留：组织委员在「成员名册」发起变更。</p>
       <div class="rounded-lg bg-gray-50 p-2.5 space-y-1 max-h-44 overflow-y-auto">
         ${rows || '<div class="text-xs text-gray-400">当前无在册滞留成员</div>'}
       </div>

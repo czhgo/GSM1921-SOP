@@ -36,9 +36,7 @@ export function renderContent() {
       <div class="space-y-4">
         <div class="rounded-xl border border-gray-200 bg-white p-4 flex items-center justify-between gap-3">
           <div class="min-w-0">
-            <p class="text-xs text-gray-400">支部 → 党委 双向治理通道 · 上报半侧</p>
-            <p class="font-title-cn text-base font-bold text-gray-800 mt-0.5">上报党委</p>
-            <p class="text-xs text-gray-400 mt-0.5">对本支部关键事项向上级党委报告——党委批/驳结论显示在本页</p>
+            <p class="font-title-cn text-base font-bold text-gray-800">上报党委</p>
           </div>
           <button id="rq-submit-toggle" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" style="background:#C8102E;">+ 发起上报</button>
         </div>

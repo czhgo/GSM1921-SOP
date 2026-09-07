@@ -41,8 +41,7 @@ export function renderContent() {
       <div class="rounded-xl border border-gray-200 bg-white p-4">
         <div class="flex items-center justify-between gap-3 mb-1">
           <div>
-            <p class="text-xs text-gray-400">党委 → 支部 双向治理通道 · 下发半侧</p>
-            <p class="font-title-cn text-base font-bold text-gray-800 mt-0.5">下发通知</p>
+            <p class="font-title-cn text-base font-bold text-gray-800">下发通知</p>
           </div>
           <div class="text-right shrink-0">
             <p class="text-xs text-gray-400">送达范围</p>

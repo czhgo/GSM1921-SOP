@@ -144,7 +144,6 @@ export async function renderContent(ctx) {
         </div>
         <div class="space-y-1">${progressRows}</div>
       </div>
-      <p class="text-[11px] text-gray-400">组员进展 = 块块知情视角（P-011 知情边界，看 ≠ 做）。本组组员汇报可行内「正式答复」，书记仍全局可见；「了解进展」发往本组组员，不跳转他人工作台。</p>
     </div>`;
 
   _bindMembersEvents(container);

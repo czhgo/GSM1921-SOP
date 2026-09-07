@@ -44,7 +44,6 @@ export function renderHandoffInboxHtml({ to, accent, title = '数据交接', ext
         <h4 class="font-title-cn text-sm font-bold text-gray-800">${title}</h4>
         ${items.length > 0 ? badgeHtml(`${items.length} 条待确认`, 'warning') : badgeHtml('已清空', 'neutral')}
       </div>
-      <div class="text-xs text-gray-500 mb-2">三委数据交接自动同步：纪检↔宣传↔组织 协作闭环</div>
       ${items.length > 0 ? `<div class="divide-y divide-gray-50">${rows}</div>` : '<p class="text-xs text-gray-400 py-1">暂无待确认的交接数据</p>'}
       ${extraActionHtml || ''}
     </div>

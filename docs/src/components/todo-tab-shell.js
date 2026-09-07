@@ -165,7 +165,6 @@ export function createTodoTab(opts) {
             <span class="inline-block w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></span>
             <span class="font-title-cn text-sm font-semibold text-gray-800">未读通知 <span class="tabular-nums">${notices.length}</span> 条</span>
           </span>
-          <span class="text-[11px] text-gray-400 flex-shrink-0">点击展开阅读，读后即消</span>
         </button>
         <div class="${prefix}-unread-items hidden">
           ${rows}
