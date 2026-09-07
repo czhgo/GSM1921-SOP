@@ -59,11 +59,11 @@ test('help 页：目录树（致谢第一）+ 搜索 + 章节卡片 + 导图降�
   const fallback = await page.locator('#sec-funcmap .mermaid-fallback').count();
   assert.ok(fallback >= 1, '功能地图区显示降级占位');
 
-  // 6. sec-what/sec-tech 对齐现状（2026-09-02）：含「一体化后端」与「16 个页面」，不含旧「纯前端静态架构/14 个页面」
+  // 6. sec-what/sec-tech 对齐现状（2026-09-07 C1）：含「一体化后端」与「18 个页面」，不含旧「纯前端静态架构/14 个页面」
   const techText = await page.textContent('#sec-tech');
   assert.ok(techText.includes('一体化后端'), '技术架构章应含「一体化后端」表述');
   assert.ok(!techText.includes('纯前端静态架构'), '技术架构章不得保留旧「纯前端静态架构」叙事');
-  assert.ok(techText.includes('16 个页面'), '技术架构章应为 16 个页面（10 根 + 6 工作台）');
+  assert.ok(techText.includes('18 个页面'), '技术架构章应为 18 个页面（11 根 + 7 工作台）');
   const whatText = await page.textContent('#sec-what');
   assert.ok(whatText.includes('一体化后端'), '系统是什么章应含「一体化后端」表述');
   assert.ok(whatText.includes('赋权链'), '系统是什么章应含「赋权链」术语');

@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // help-entry.js — 帮助页入口（系统说明书）
 
 import { renderSidebar } from '../components/sidebar.js?v=20260903c';
@@ -15,13 +15,19 @@ renderHeader('help', { staticShell: true });
 renderHelpCatalog(document.getElementById('help-toc-slot'));
 
 // ── 右侧圆点目录（参考关于页 .help-toc-nav）──
-// 2026-08-18：删重叠叙事（原「分工中的制度设计」「怎么理解具体的这个组织」两章），
-// help 回归「系统说明书」定位——叙事归 about / DEVELOPMENT_PATH。
+// 2026-09-07 C1 批次：help 重组为 0–7 章编号骨架（0 入口速查 / 1 快速上手 / 2 角色工作台导览 /
+// 3 域手册[C2] / 4 业务链路[C3] / 5 党委与配置[C3] / 6 系统理念 / 7 技术架构）；
+// 与 help.html 静态章节 id、help-catalog.js 左侧目录树保持同一序列。
 const TOC_ITEMS = [
   { id: 'sec-ack',        label: '致谢' },
-  { id: 'sec-quickstart', label: '快速上手' },
-  { id: 'sec-what',       label: '这个系统在干什么' },
-  { id: 'sec-tech',       label: '技术架构' },
+  { id: 'sec-entries',    label: '0 入口速查' },
+  { id: 'sec-quickstart', label: '1 快速上手' },
+  { id: 'sec-roles',      label: '2 角色工作台导览' },
+  { id: 'sec-domains',    label: '3 域手册' },
+  { id: 'sec-flows',      label: '4 业务链路' },
+  { id: 'sec-admin',      label: '5 党委与配置' },
+  { id: 'sec-what',       label: '6 这个系统在干什么' },
+  { id: 'sec-tech',       label: '7 技术架构' },
   { id: 'sec-disclaimer', label: '免责声明' },
 ];
 

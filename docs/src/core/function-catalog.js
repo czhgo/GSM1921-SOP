@@ -30,7 +30,7 @@ export const FUNCTION_CATALOG = [
   { id: 'attendance-mgmt', name: '考勤管理', group: '党建', role: 'disc', tab: 'attendance', desc: '纪检委员管理全支部考勤，与组织委员同源共享', usage: '纪检委员工作台 → 考勤管理', related: ['attendance-personal', 'makeup'], generic: true, kind: 'feature' },
   { id: 'makeup', name: '补课制度', group: '党建', role: 'disc', tab: 'makeup', desc: '缺勤成员通过补课任务恢复考勤状态', usage: '纪检委员工作台 → 补课制度 → 提交补课任务 → 完成回写考勤', related: ['attendance-mgmt', 'flow-makeup'], generic: false, kind: 'feature' },
   { id: 'review', name: '复盘评议', group: '党建', role: 'disc', tab: 'review', desc: '活动监督复盘与评议记录', usage: '纪检委员工作台 → 活动监督复盘', related: ['attendance-mgmt', 'flow-theme-party'], generic: true, kind: 'feature' },
-  { id: 'thought-report', name: '思想汇报', group: '党建', role: 'member', tab: 'thought-report', desc: '成员提交思想汇报，提交即入库自动归集', usage: '成员工作台 → 思想汇报 → 提交', related: ['flow-thought-report', 'talent'], generic: true, kind: 'feature' },
+  { id: 'thought-report', name: '思想汇报', group: '党建', role: 'member', tab: 'thought-report', desc: '成员提交思想汇报，经组织委员把关式初阅：通过才正式归档，退回附意见可修改重交', usage: '成员工作台 → 思想汇报 → 提交 → 组织委员初阅（通过归档 / 退回附意见）', related: ['flow-thought-report', 'talent'], generic: true, kind: 'feature' },
   { id: 'member-change', name: '成员变更审批', group: '党建', role: 'org', tab: 'development', desc: '待讨论名单统一阶段转换，经组织委员审批、书记确认后更新', usage: '议程「待讨论名单」记录通过 → 组织委员审批 → 书记确认 → 阶段更新', related: ['agenda', 'flow-development'], generic: false, kind: 'feature' },
   // ══════════ 宣传与档案 ══════════
   { id: 'tasks', name: '宣传任务', group: '宣传与档案', role: 'prop', tab: 'tasks', desc: '宣传任务分配与推进', usage: '宣传委员工作台 → 宣传任务', related: ['kanban', 'weekly'], generic: true, kind: 'feature' },
@@ -50,15 +50,15 @@ export const FUNCTION_CATALOG = [
   { id: 'feedback', name: '意见反馈', group: '公共', role: 'public', desc: '提交建议与问题，书记反馈并跟进处理', usage: '公共页面 → 意见反馈', related: ['notification'], generic: true, kind: 'feature' },
   { id: 'todo', name: '个人待办', group: '公共', role: 'member', tab: 'todo', desc: '通知/活动/专班自动派生待办与收件箱', usage: '各工作台 → 待办', related: ['notification', 'activity-create'], generic: true, kind: 'feature' },
   { id: 'attendance-personal', name: '个人考勤', group: '公共', role: 'member', tab: 'attendance', desc: '查看个人考勤与补课状态', usage: '成员工作台 → 个人考勤', related: ['attendance-mgmt', 'makeup'], generic: true, kind: 'feature' },
-  { id: 'help', name: '帮助（本页）', group: '公共', role: 'public', desc: '系统说明书：目录树 + 搜索 + 章节卡片 + 功能地图', usage: '页脚 → 帮助', related: ['about'], generic: true, kind: 'feature' },
-  { id: 'about', name: '关于', group: '公共', role: 'public', desc: '项目介绍与叙事', usage: '页脚 → 关于', related: ['help'], generic: true, kind: 'feature' },
+  { id: 'help', name: '帮助（本页）', group: '公共', role: 'public', desc: '系统说明书：0–7 章（入口速查 / 快速上手 / 角色工作台导览 / 域手册 / 业务链路 / 党委与配置）+ 搜索 + 功能总览', usage: '侧边栏 → 帮助', related: ['about'], generic: true, kind: 'feature' },
+  { id: 'about', name: '关于', group: '公共', role: 'public', desc: '项目介绍与叙事', usage: '侧边栏 → 关于（静态托管形态）', related: ['help'], generic: true, kind: 'feature' },
   // ══════════ 角色工作台 ══════════
-  { id: 'ws-secretary', name: '书记工作台', group: '角色工作台', role: 'secretary', desc: '全局概况/活动管理/赋权/通知/专班查看/反馈管理', usage: '登录 → 书记工作台', related: ['activity-create', 'assign', 'notification'], generic: true, kind: 'feature' },
-  { id: 'ws-org', name: '组织委员工作台', group: '角色工作台', role: 'org', desc: '专班建设/考察上传/人才库/发展党员', usage: '登录 → 组织委员工作台', related: ['taskforce-recruit', 'development'], generic: true, kind: 'feature' },
-  { id: 'ws-prop', name: '宣传委员工作台', group: '角色工作台', role: 'prop', desc: '宣传任务/项目看板/档案归档/周报报送', usage: '登录 → 宣传委员工作台', related: ['tasks', 'branch-doc'], generic: true, kind: 'feature' },
-  { id: 'ws-disc', name: '纪检委员工作台', group: '角色工作台', role: 'disc', desc: '考勤管理/考察管理/监督复盘/补课/公邮', usage: '登录 → 纪检委员工作台', related: ['attendance-mgmt', 'makeup'], generic: true, kind: 'feature' },
-  { id: 'ws-leader', name: '党小组组长工作台', group: '角色工作台', role: 'leader', desc: '活动组织/考勤上传/考察上传/复盘/组员进展', usage: '登录 → 党小组组长工作台', related: ['activity-create', 'attendance-personal'], generic: true, kind: 'feature' },
-  { id: 'ws-visitor', name: '成员工作台', group: '角色工作台', role: 'member', desc: '活动动态/专班进展/个人考勤/思想汇报/待办', usage: '登录 → 成员工作台', related: ['homepage', 'thought-report', 'todo'], generic: true, kind: 'feature' },
+  { id: 'ws-secretary', name: '书记工作台', group: '角色工作台', role: 'secretary', desc: '今天/待办/全局概况/活动管理/支部分工/赋权管理/支部配置/通知发布/专班查看/反馈管理/上报党委（11 tab，副书记共台）', usage: '登录 → 书记工作台（书记/副书记）', related: ['activity-create', 'assign', 'notification', 'todo'], generic: true, kind: 'feature' },
+  { id: 'ws-org', name: '组织委员工作台', group: '角色工作台', role: 'org', desc: '今天/待办/工作概况/考察上传/专班管理/成员名册/人才库/发展数据/思想汇报初阅/活动查看/我的处置（11 tab）', usage: '登录 → 组织委员工作台', related: ['taskforce-recruit', 'development', 'talent', 'thought-report', 'todo'], generic: true, kind: 'feature' },
+  { id: 'ws-prop', name: '宣传委员工作台', group: '角色工作台', role: 'prop', desc: '今天/待办/工作概况/宣传任务/项目看板/周报报送/档案归档/我的处置（8 tab）', usage: '登录 → 宣传委员工作台', related: ['tasks', 'branch-doc', 'weekly', 'archive', 'todo'], generic: true, kind: 'feature' },
+  { id: 'ws-disc', name: '纪检委员工作台', group: '角色工作台', role: 'disc', desc: '今天/待办/工作概况/考勤管理/活动监督复盘/考察管理/补课制度/公邮管理/专班查看/我的处置（10 tab）', usage: '登录 → 纪检委员工作台', related: ['attendance-mgmt', 'makeup', 'mailbox', 'review', 'todo'], generic: true, kind: 'feature' },
+  { id: 'ws-leader', name: '党小组组长工作台', group: '角色工作台', role: 'leader', desc: '今天/待办/工作概况/活动管理/考勤上传/考察上传/复盘状态/组员进展/专班查看/我的处置（10 tab；复盘状态只读——复盘提交已归组织者/深度参与者）', usage: '登录 → 党小组组长工作台', related: ['activity-create', 'attendance-personal', 'review', 'todo'], generic: true, kind: 'feature' },
+  { id: 'ws-visitor', name: '成员工作台', group: '角色工作台', role: 'member', desc: '今天/待办/工作概况/项目分工/活动动态/考勤概况/我的考察/思想汇报/我的复盘（9 tab，含组织者/深度参与者承载面）', usage: '登录 → 成员工作台', related: ['homepage', 'thought-report', 'review', 'todo'], generic: true, kind: 'feature' },
   // ══════════ 业务链路（kind: flow · 节点=执行者:任务，图源 mermaid-sources.js FLOW_LINKS） ══════════
   // 活动型链路（党建）：
   { id: 'flow-branch-committee', name: '支委会链路', group: '党建', desc: '书记定议题通知 → 纪检考勤 → 书记记录决议 → 宣传归档 → 补课跟进', related: ['three-meetings', 'agenda', 'branch-doc'], generic: true, kind: 'flow' },

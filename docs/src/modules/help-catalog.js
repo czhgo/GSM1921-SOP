@@ -9,14 +9,21 @@ import { FUNCTION_GROUPS, FUNCTION_CATALOG } from '../core/function-catalog.js?v
 import { generateMindmapText, FLOW_LINKS } from '../core/mermaid-sources.js?v=20260903c';
 import { escHtml as esc } from '../core/utils.js?v=20260903c';
 
-// 目录树静态项（致谢第一）+ 章节顺序（与右侧内容面板顺序一致）
-const STATIC_TOC = [
-  { id: 'sec-ack', label: '致谢' },
-  { id: 'sec-quickstart', label: '快速上手' },
+// 目录树（左）：0–7 章 + 致谢/免责声明（与 help.html 静态章节 id、help-entry.js TOC_ITEMS 同一序列）
+// 2026-09-07 C1 批次：原「功能地图/党建等组卡片/业务链路/权限体系」目录项随章节骨架重组撤销——
+// 卡片组仍由 catalog 渲染（过渡内容，位于第 2 章导览之后），C2 批次将并入第 3 章「域手册」。
+const TOC_CHAPTERS = [
+  { id: 'sec-ack',        label: '致谢' },
+  { id: 'sec-entries',    label: '0 入口速查' },
+  { id: 'sec-quickstart', label: '1 快速上手' },
+  { id: 'sec-roles',      label: '2 角色工作台导览' },
+  { id: 'sec-domains',    label: '3 域手册' },
+  { id: 'sec-flows',      label: '4 业务链路' },
+  { id: 'sec-admin',      label: '5 党委与配置' },
+  { id: 'sec-what',       label: '6 这个系统在干什么' },
+  { id: 'sec-tech',       label: '7 技术架构' },
+  { id: 'sec-disclaimer', label: '免责声明' },
 ];
-const TOC_GROUPS = ['功能地图', ...FUNCTION_GROUPS, '业务链路', '权限体系', '技术架构', '免责声明'];
-// 目录树项 → 页面目标 id 映射（静态章沿用现有 id：sec-tech/sec-disclaimer；组名章节自动 sec-<组名>）
-const TOC_TARGET = { '技术架构': 'sec-tech', '免责声明': 'sec-disclaimer' };
 
 // HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
@@ -31,11 +38,7 @@ export function renderHelpCatalog(root) {
   const toc = document.createElement('nav');
   toc.className = 'help-toc';
   toc.setAttribute('aria-label', '帮助目录');
-  let tocHtml = STATIC_TOC.map((s) => `<a class="help-toc-item" href="#${s.id}" data-target="${s.id}">${s.label}</a>`).join('');
-  for (const g of TOC_GROUPS) {
-    const id = TOC_TARGET[g] || `sec-${g}`;
-    tocHtml += `<a class="help-toc-item" href="#${id}" data-target="${id}">${g}</a>`;
-  }
+  let tocHtml = TOC_CHAPTERS.map((s) => `<a class="help-toc-item" href="#${s.id}" data-target="${s.id}">${s.label}</a>`).join('');
   toc.innerHTML = tocHtml;
   root.appendChild(toc);
 
@@ -48,7 +51,8 @@ export function renderHelpCatalog(root) {
     <div id="help-search-results" class="help-search-results" hidden></div>`;
   (searchSlot || root).appendChild(searchBox);
 
-  // ── 功能章节卡片（#help-catalog-slot：6 组 feature 条目，位于功能地图之后/业务链路之前）──
+  // ── 功能章节卡片（#help-catalog-slot：6 组 feature 条目；位于功能地图之后、第 3 章「域手册」之前——
+  //   C1 起为过渡内容（第 2 章导览之后），C2 批次并入 sec-domains 改写为域手册）──
   const catalogSlot = document.getElementById('help-catalog-slot');
   const content = document.createElement('div');
   content.className = 'help-catalog-cards';

@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   
@@ -240,128 +240,297 @@
         </p>
       </section>
 
-      <!-- ========== 一、快速上手 ========== -->
-      <section class="doc-card" id="sec-quickstart" data-toc-id="sec-quickstart">
-        <h2 class="doc-h2"><span class="doc-num">一</span>快速上手</h2>
+      <!-- ========== 第0章 入口速查 ========== -->
+      <section class="doc-card" id="sec-entries" data-toc-id="sec-entries">
+        <h2 class="doc-h2"><span class="doc-num">0</span>入口速查</h2>
         <hr class="doc-divider">
         <p class="doc-p doc-lead">
-          本页（帮助）是系统的分章节说明书。如果您只想快速上手，看本章即可——先认识全局导航结构，再对照各页面功能与权限。
+          系统说明书分 0–7 章。这一章是「先看哪、谁能进、怎么到」：全站共 <strong>18 个页面 = 11 个根页面 + 7 个角色工作台</strong>。
+          登录后按身份直达对应工作台，工作内容都收在工作台内——读第 1 章知道通用规则，再翻第 2 章自己那台的小节即可动手。
         </p>
 
-        <!-- 1.1 页面导航 -->
-        <h3 class="doc-h3"><span class="doc-h3-badge">1.1</span>页面导航</h3>
+        <!-- 0.1 全站页面清单 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">0.1</span>全站 18 页清单</h3>
+        <p class="doc-p">「谁能进」里的“公共”指未登录也可浏览（登录后可见更多本人相关数据）；工作台须登录（未登录访问自动跳登录页）。点击页面名可直达。</p>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead><tr><th style="width:17%;">页面</th><th style="width:36%;">是什么</th><th style="width:20%;">谁能进</th><th>怎么到达</th></tr></thead>
+            <tbody>
+              <tr><td><a href="./index.html">首页</a></td><td>支部活动日历 / 近期活动 / 通知与招募一览；登录后显示本人待办与角色区块</td><td>公共</td><td>站点入口；侧边栏「首页」</td></tr>
+              <tr><td><a href="./login.html">登录</a></td><td>账号登录（演示卡见 0.3）</td><td>所有人</td><td>顶栏 / 侧栏「登录」按钮；访问需登录页面自动跳转</td></tr>
+              <tr><td><a href="./search.html">资料查询</a></td><td>官方制度文件与支部文件检索；已归档支部文件标注讨论来源</td><td>公共</td><td>侧边栏「资料查询」</td></tr>
+              <tr><td><a href="./archive.html">归档库</a></td><td>历届已归档工作成果的浏览与检索</td><td>公共</td><td>侧边栏「归档库」</td></tr>
+              <tr><td><a href="./activity.html">活动详情</a></td><td>单个活动的详情页：议程 / 报名 / 线上表态 / 考勤与产出记录；报名、表态、记录需登录</td><td>公共可看；操作需登录</td><td>首页日历与活动卡、工作台内活动行、待办、通知等链接</td></tr>
+              <tr><td><a href="./notice.html">通知详情</a></td><td>单条通知的正文（读后消未读需登录）</td><td>公共可看</td><td>首页通知区；工作台待办「未读通知」条</td></tr>
+              <tr><td><a href="./taskforce.html">专班详情</a></td><td>单个专班的详情页：招募 / 分工 / 进展（专班为跨小组集中推进形态）</td><td>公共可看；报名、操作需登录</td><td>首页专班卡；工作台「专班管理 / 专班查看」行内链接</td></tr>
+              <tr><td><a href="./feedback.html">意见反馈</a></td><td>提交建议与问题，书记反馈并跟进处理</td><td>页面公共；提交需登录</td><td>侧边栏「意见反馈」</td></tr>
+              <tr><td><a href="./help.html">帮助（本页）</a></td><td>系统说明书：目录树 + 搜索 + 章节讲解 + 功能地图</td><td>公共</td><td>侧边栏「帮助」</td></tr>
+              <tr><td><a href="./about.html">关于</a></td><td>支部故事、成长路径与工作哲学（叙事性介绍）</td><td>公共</td><td>侧边栏「关于」（静态托管形态显示）</td></tr>
+              <tr><td><a href="./wizard.html">换组织向导</a></td><td>换组织 / 初始化：组织信息、模块组合、角色分工、换壳工作单、验证与重置（30 分钟跑起来）</td><td>部署者 / 书记</td><td>直接访问 wizard.html；书记台「支部配置」为同源内嵌入口</td></tr>
+              <tr><td><a href="./workspace/secretary.html">书记工作台</a></td><td>书记 / 副书记共台的全部工作视图（11 个 tab，见 2.1）</td><td>书记 / 副书记</td><td>登录后自动直达；侧边栏「工作台」按身份直达</td></tr>
+              <tr><td><a href="./workspace/org.html">组织委员工作台</a></td><td>组织委员全部工作视图（11 个 tab，见 2.2）</td><td>组织委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
+              <tr><td><a href="./workspace/prop.html">宣传委员工作台</a></td><td>宣传委员全部工作视图（8 个 tab，见 2.3）</td><td>宣传委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
+              <tr><td><a href="./workspace/disc.html">纪检委员工作台</a></td><td>纪检委员全部工作视图（10 个 tab，见 2.4）</td><td>纪检委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
+              <tr><td><a href="./workspace/leader.html">党小组组长工作台</a></td><td>组长全部工作视图（10 个 tab，见 2.5）</td><td>党小组组长</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
+              <tr><td><a href="./workspace/visitor.html">成员工作台</a></td><td>成员全部工作视图（9 个 tab，见 2.6）</td><td>普通成员；组织者 / 深度参与者被赋权后在本台承担对应操作</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
+              <tr><td><a href="./workspace/party-committee.html">党委工作台</a></td><td>全院支部治理视图（6 个 tab，见 2.7）——组织级，不属于任一支部</td><td>党委组织员（party-staff）</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 0.2 角色 ↔ 工作台映射 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">0.2</span>角色 ↔ 工作台映射</h3>
+        <p class="doc-p">登录后系统按角色自动跳转；侧边栏「工作台」也按身份直达（无角色切换下拉——跨台处理统一经待办 / 通知直达）。</p>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead><tr><th style="width:26%;">角色</th><th style="width:44%;">说明</th><th>登录直达</th></tr></thead>
+            <tbody>
+              <tr><td>党支部书记</td><td>全局统筹：活动、支部分工、赋权、通知、反馈、上报党委</td><td><a href="./workspace/secretary.html">书记工作台</a></td></tr>
+              <tr><td>党支部副书记</td><td>与书记<strong>共用一个书记工作台</strong>（同台同口径）</td><td><a href="./workspace/secretary.html">书记工作台</a></td></tr>
+              <tr><td>组织委员</td><td>组织线：专班统筹、名册、人才库、发展数据、思想汇报初阅把关</td><td><a href="./workspace/org.html">组织委员工作台</a></td></tr>
+              <tr><td>宣传委员</td><td>宣传线：宣传任务、项目看板、周报、档案归档</td><td><a href="./workspace/prop.html">宣传委员工作台</a></td></tr>
+              <tr><td>纪检委员</td><td>纪检线：考勤管理、监督复盘、考察管理、补课、公邮</td><td><a href="./workspace/disc.html">纪检委员工作台</a></td></tr>
+              <tr><td>党小组组长</td><td>块块：本组活动管理、考勤 / 考察上传、复盘状态、组员进展</td><td><a href="./workspace/leader.html">党小组组长工作台</a></td></tr>
+              <tr><td>普通成员</td><td>参与活动、看考勤考察、交思想汇报、复盘提交</td><td><a href="./workspace/visitor.html">成员工作台</a></td></tr>
+              <tr><td>组织者 / 深度参与者</td><td>项目角色，无独立页面，归入成员工作台；被赋权后在对应活动 / 专班内承担职责（如活动复盘提交）</td><td><a href="./workspace/visitor.html">成员工作台</a></td></tr>
+              <tr><td>党委组织员</td><td>组织级角色（party-staff），监控全院各支部，不属于任一支部、不参与支部内部闭环</td><td><a href="./workspace/party-committee.html">党委工作台</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 0.3 登录说明 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">0.3</span>登录说明</h3>
+        <div class="doc-key"><strong>账号登录</strong>：到登录页（顶栏 / 侧栏「登录」）输入<strong>学号 + 密码</strong>，登录后自动跳转到你身份对应的工作台（0.2 表）。演示 / 测试账号密码统一 <strong>123456</strong>（如书记 储子禾 2300010001、党委组织员 9000000001）。</div>
+        <div class="doc-key"><strong>开发演示卡</strong>：登录页勾选「开发模式」开关 → 出现身份卡片网格 → 点任意角色卡一键进入该工作台（仅本地开发 / 演示形态可用）。</div>
+        <div class="doc-key"><strong>未登录</strong>：11 个根页面大多可匿名浏览（见 0.1 表）；顶栏铃铛左侧与侧栏底部都有「登录」按钮；点工作台、提交反馈等需登录的操作会自动跳登录页。</div>
+      </section>
+
+      <!-- ========== 第1章 快速上手 ========== -->
+      <section class="doc-card" id="sec-quickstart" data-toc-id="sec-quickstart">
+        <h2 class="doc-h2"><span class="doc-num">1</span>快速上手</h2>
+        <hr class="doc-divider">
+        <p class="doc-p doc-lead">
+          这一章讲登录后的通用规则：登录落在哪、工作台长什么样、哪些事你能看能改。逐台 tab 详表在第 2 章，按你的身份翻对应小节即可。
+        </p>
+
+        <!-- 1.1 登录与角色落点 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">1.1</span>登录与角色落点</h3>
         <p class="doc-p">
-          系统由 16 个独立页面组成：10 个公共与功能页面（首页、资料查询、活动详情、归档库等）+ 6 个角色工作台。公共页面通过导航串联；登录后直达各自角色工作台，各项功能通过页内 tab 切换。所有页面共享同一套数据源，不同角色看到的是同一数据的不同视角。
+          登录后系统按角色直达工作台（映射见 0.2），且工作台打开即<strong>「今天」</strong>页——它是登录落点：当天到期的待办、临近的会议与分工一眼可见。
+          党委工作台的登录落点是「治理总览」（全院支部概览）。公共根页面未登录即可浏览，需要动手的操作一律先登录（0.3）。
         </p>
-        <div class="nav-tree">
-          首页（通知/招募/日历）<br>
-          ├── 工作台 → 六类角色工作台（角色选择）<br>
-          ├── 资料查询<br>
-          ├── 意见反馈<br>
-          ├── 归档库<br>
-          └── 帮助 · 关于（页脚）
-        </div>
 
-        <div class="qn-common">
-          <span class="qn-common-label">公共页面</span>
-          <a class="qn-chip" href="./index.html">首页</a>
-          <a class="qn-chip" href="./search.html">资料查询</a>
-          <a class="qn-chip" href="./feedback.html">意见反馈</a>
-          <a class="qn-chip" href="./archive.html">归档库</a>
-        </div>
-        <div class="qn-table-wrap">
-          <table class="qn-matrix">
-            <thead>
-              <tr>
-                <th>功能域</th>
-                <th><span class="qn-role"><span class="qn-role-dot" style="background:#22C55E"></span>党小组组长</span></th>
-                <th><span class="qn-role"><span class="qn-role-dot" style="background:#0EA5E9"></span>组织委员</span></th>
-                <th><span class="qn-role"><span class="qn-role-dot" style="background:#2563EB"></span>宣传委员</span></th>
-                <th><span class="qn-role"><span class="qn-role-dot" style="background:#C2410C"></span>纪检委员</span></th>
-                <th><span class="qn-role"><span class="qn-role-dot" style="background:#6B7280"></span>普通成员</span></th>
-                <th><span class="qn-role"><span class="qn-role-dot" style="background:#B91C1C"></span>党支书</span></th>
-              </tr>
-            </thead>
+        <!-- 1.2 工作台通用骨架 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">1.2</span>工作台通用骨架</h3>
+        <p class="doc-p">
+          七个工作台都是「一个页面、顶栏 tab 切功能」。tab 条按组分段（各组名因台而异），各台都有以下通用件：
+        </p>
+        <ul class="doc-list">
+          <li><strong>「今天」置首（登录落点）</strong>：当天到期 / 逾期与近期会议、分工的速览。行内「到期 / 逾期」点击直接去待办处理；「会议 / 分工」点击进对应活动详情；「全部」跳到本台承载活动的 tab。</li>
+          <li><strong>「待办」＝ 页顶「未读通知 N 条」轻量条 + 9 业务域折组</strong>：页顶点开逐条阅读、读后即消；下方待办按工作类型分 9 域折组——会务 / 活动与项目 / 考勤纪律 / 考察 / 成员发展 / 专班 / 决议上报 / 归档宣传 / 汇报反馈。每条待办卡片写明<strong>「做什么」并带「去处理」跳转</strong>——点按钮直达负责该事的 tab 或详情页（这就是“处理在哪做”的提示），做完自动消。书记 / 纪检等不落库的实时提醒也会并入对应域。</li>
+          <li><strong>「工作概况」三区总览</strong>：汇报 / 卡点 / 在办三区，条线数据按职责注入；书记台为「全局概况」，另含「按人视图」（各角色在办清单，谁在干什么、有无异常）与维度态势。</li>
+          <li><strong>「党建」组各域 tab</strong>：该角色的职责操作都在这组里（写活动、考勤、考察、归档……具体见第 2 章逐台表）。</li>
+          <li><strong>「我的处置」</strong>：你经手的反馈 / 上报及处理记录（书记台为「反馈管理」，成员台与党委台无此 tab）。</li>
+        </ul>
+        <p class="doc-note">处理在哪做：写操作都落在对应业务的 tab 或详情页里（例如写活动在「活动管理 / 活动写入」，交思想汇报在成员台「思想汇报」）；待办只做“提醒 + 跳转”，不做操作。</p>
+
+        <!-- 1.3 权限知情边界 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">1.3</span>权限知情边界</h3>
+        <p class="doc-p">系统权限不是“给你一个账号就什么都能做”，而是<strong>赋权关系链</strong>：谁给你赋的权，你就在谁的赋权范围里干活。能否操作由 <strong>canDo()</strong> 统一判定——<strong>常设角色</strong>（书记 / 副书记 / 组织委员 / 宣传委员 / 纪检委员 / 党小组组长）与 <strong>项目角色</strong>（组织者 / 深度参与者）的权限取并集，按“能做什么”逐项判定。党委组织员是组织级角色，走党委工作台的全院治理权限，不属于支部内部权限链。</p>
+        <p class="doc-p" style="margin-top:18px;">知情边界界定“能看什么”（看 ≠ 做：看得见不等于能代劳；信息精确等于职责所需的最小充分范围）：</p>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead><tr><th style="width:20%;">视角</th><th style="width:30%;">谁</th><th>能看到什么</th></tr></thead>
             <tbody>
-              <tr>
-                <td class="qn-domain">活动与专班</td>
-                <td><div class="qn-cell"><a class="qn-fn qn-fn-leader" href="./workspace/leader.html">活动写入</a><a class="qn-fn qn-fn-leader" href="./workspace/leader.html">复盘提交</a></div></td>
-                <td><div class="qn-cell"><a class="qn-fn qn-fn-org" href="./workspace/org.html">专班管理</a></div></td>
-                <td class="qn-empty"></td>
-                <td><div class="qn-cell"><a class="qn-fn qn-fn-disc" href="./workspace/disc.html">活动监督复盘</a></div></td>
-                <td><div class="qn-cell"><a class="qn-fn qn-fn-member" href="./index.html">活动动态</a><a class="qn-fn qn-fn-member" href="./index.html">专班进展</a></div></td>
-                <td><div class="qn-cell"><a class="qn-fn qn-fn-sec" href="./workspace/secretary.html">工作台</a></div></td>
-              </tr>
-              <tr>
-                <td class="qn-domain">考勤与考察</td>
-                <td><div class="qn-cell"><a class="qn-fn qn-fn-leader" href="./workspace/leader.html">考勤上传</a><a class="qn-fn qn-fn-leader" href="./workspace/leader.html">考察上传</a></div></td>
-                <td><div class="qn-cell"><a class="qn-fn qn-fn-org" href="./workspace/org.html">考察上传</a><a class="qn-fn qn-fn-org" href="./workspace/org.html">人才库</a><a class="qn-fn qn-fn-org" href="./workspace/org.html">发展党员</a></div></td>
-                <td class="qn-empty"></td>
-                <td><div class="qn-cell"><a class="qn-fn qn-fn-disc" href="./workspace/disc.html">考勤管理</a><a class="qn-fn qn-fn-disc" href="./workspace/disc.html">补课制度</a><a class="qn-fn qn-fn-disc" href="./workspace/disc.html">考察管理</a></div></td>
-                <td><div class="qn-cell"><a class="qn-fn qn-fn-member" href="./index.html">考勤概况</a></div></td>
-                <td class="qn-empty"></td>
-              </tr>
-              <tr>
-                <td class="qn-domain">宣传与档案</td>
-                <td class="qn-empty"></td>
-                <td class="qn-empty"></td>
-                <td><div class="qn-cell"><a class="qn-fn qn-fn-prop" href="./workspace/prop.html">宣传任务</a><a class="qn-fn qn-fn-prop" href="./workspace/prop.html">项目看板</a><a class="qn-fn qn-fn-prop" href="./workspace/prop.html">周报报送</a><a class="qn-fn qn-fn-prop" href="./workspace/prop.html">档案归档</a></div></td>
-                <td><div class="qn-cell"><a class="qn-fn qn-fn-disc" href="./workspace/disc.html">公邮管理</a></div></td>
-                <td class="qn-empty"></td>
-                <td class="qn-empty"></td>
-              </tr>
-              <tr>
-                <td class="qn-domain">统筹</td>
-                <td class="qn-empty"></td>
-                <td class="qn-empty"></td>
-                <td class="qn-empty"></td>
-                <td class="qn-empty"></td>
-                <td class="qn-empty"></td>
-                <td><div class="qn-cell"><a class="qn-fn qn-fn-sec" href="./workspace/secretary.html">全局概况</a><a class="qn-fn qn-fn-sec" href="./workspace/secretary.html">赋权管理</a><a class="qn-fn qn-fn-sec" href="./workspace/secretary.html">通知发布</a><a class="qn-fn qn-fn-sec" href="./workspace/secretary.html">反馈管理</a></div></td>
-              </tr>
+              <tr><td>个人视角</td><td>每名成员</td><td>自己的考勤 / 考察 / 参与记录、在办与汇报</td></tr>
+              <tr><td>块块视角</td><td>党小组组长</td><td>本党小组组员的「组员进展」：进度 / 考勤 / 考察（点开看，不能替做）</td></tr>
+              <tr><td>条线视角</td><td>有赋权链的角色（组织委员看专班组织者 / 深度参与者；纪检委员看全员考勤考察）</td><td>被赋权者的条线在办——谁给你赋的权，你在谁的范围内被看见</td></tr>
+              <tr><td>全局视角</td><td>书记 / 副书记</td><td>全局概况“按人视图”（各角色在办、可点击直达）与维度态势；支部分工视图</td></tr>
+              <tr><td>组织级视角</td><td>党委组织员</td><td>全院支部监控台账 / 上报审批 / 支部配置——跨支部、组织级，不参与任一支部内部闭环</td></tr>
             </tbody>
           </table>
         </div>
-
-        <!-- 1.2 权限体系（目录树「权限体系」锚点） -->
-        <span id="sec-权限体系" class="toc-anchor"></span>
-        <h3 class="doc-h3"><span class="doc-h3-badge">1.2</span>权限体系</h3>
-        <p class="doc-p">系统权限不是"给你一个账号就什么都能做"，而是<strong>赋权关系链</strong>——谁给你赋的权，你就在谁的赋权范围里干活。权限由 <strong>canDo()</strong> 统一判定：<strong>常设角色</strong>（书记/副书记/组织委员/宣传委员/纪检委员/党小组组长）+ <strong>项目角色</strong>（组织者/深度参与者）的权限取并集，按"能做什么"逐项判定。</p>
-        <p class="doc-p" style="margin-top:18px;">知情边界界定"能看什么"（信息密度精确原则——看得见的，精确等于你职责所需的）：</p>
+        <p class="doc-p" style="margin-top:18px;">写入范围界定“能改什么”：</p>
         <div class="doc-table-wrap">
           <table class="doc-table">
-            <thead><tr><th style="width:22%;">信息层</th><th style="width:26%;">谁</th><th>能看到什么</th></tr></thead>
-            <tbody>
-              <tr><td>L0 个人视角</td><td>每名成员</td><td>自己的考勤 / 考察 / 参与记录</td></tr>
-              <tr><td>L1 条线视角</td><td>书记/副书记看各角色</td><td>全局概况"按人视图"：各角色在办任务清单（谁在干什么、有无异常），可点击直达</td></tr>
-              <tr><td>L2 全局视角</td><td>书记/副书记</td><td>全局概况"按维度"：考勤/发展/活动/宣传四维态势</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="doc-p" style="margin-top:18px;">写入范围界定"能改什么"：</p>
-        <div class="doc-table-wrap">
-          <table class="doc-table">
-            <thead><tr><th>写入范围</th><th>授权人</th><th>享有角色</th></tr></thead>
+            <thead><tr><th>写入范围</th><th>授权方式</th><th>享有角色</th></tr></thead>
             <tbody>
               <tr><td>职能写入</td><td>天然权限</td><td>组织委员 / 宣传委员 / 纪检委员（各自板块）</td></tr>
-              <tr><td>活动写入</td><td>天然权限</td><td>党支书 / 党小组组长</td></tr>
-              <tr><td>活动写入（需赋权）</td><td>党小组组长</td><td>组织者 / 深度参与者</td></tr>
-              <tr><td>专班发起</td><td>天然权限</td><td>党支书 / 党小组组长 / 三委员</td></tr>
-              <tr><td>专班招募统筹</td><td>天然权限</td><td>组织委员（唯一节点）</td></tr>
+              <tr><td>活动写入</td><td>天然权限</td><td>书记工作台（书记 / 副书记共台）与党小组组长工作台（活动管理）</td></tr>
+              <tr><td>活动写入（需赋权）</td><td>书记 / 组长赋权</td><td>组织者 / 深度参与者（在成员台被赋权后操作）</td></tr>
+              <tr><td>专班发起 / 招募统筹</td><td>天然权限 / 唯一节点</td><td>发起：书记 / 组长 / 三委员；招募统筹：组织委员</td></tr>
+              <tr><td>思想汇报归档</td><td>把关式初阅</td><td>组织委员（通过才正式归档；退回附意见可修改重交）</td></tr>
+              <tr><td>支部配置 / 模块启停</td><td>部署期职责</td><td>党委组织员（党委台「支部配置」）；书记台「支部配置」为同源内嵌入口</td></tr>
+              <tr><td>通知发布</td><td>天然权限</td><td>书记（通知自动派生成员待办）；党委组织员（下发通知，标「党委下发」）</td></tr>
             </tbody>
           </table>
         </div>
         <p class="doc-p" style="margin-top:18px;">关键约束：</p>
         <ul class="doc-list">
-          <li>创建活动仅限党支书和党小组组长；党小组组长可独立创建，须报书记知情同意；组织委员协调的是专班（招募统筹），不是活动</li>
-          <li>纪检委员考勤数据与组织委员同源共享</li>
+          <li>创建活动仅限书记（副书记共台）与党小组组长；组长独立创建须报书记知情同意；组织委员协调的是专班（招募统筹），不是活动</li>
+          <li>复盘提交入口归组织者 / 深度参与者（成员台「我的复盘」）；组长台「复盘状态」只读查看本组复盘情况</li>
           <li>宣传委员不可自行招募宣传专班，赋权操作统一归口组织委员</li>
-          <li>看 ≠ 做：能看他人条线在办（按人视图），不等于能代劳其操作——分工的运行保障中的做与看</li>
+          <li>看 ≠ 做：能看他人条线在办（按人视图 / 组员进展），不等于能代劳其操作</li>
         </ul>
       </section>
 
+      <!-- ========== 第2章 角色工作台导览 ========== -->
+      <section class="doc-card" id="sec-roles" data-toc-id="sec-roles">
+        <h2 class="doc-h2"><span class="doc-num">2</span>角色工作台导览</h2>
+        <hr class="doc-divider">
+        <p class="doc-p doc-lead">
+          七个工作台逐台列出<strong>实际 tab</strong>（以当前版本为准），每行说明：这个 tab 给谁用、在这页做哪几件事、点哪里做。通用件（今天 / 待办 / 工作概况 / 我的处置）在 1.2 已讲，这里不重复展开。
+        </p>
+
+        <!-- 2.1 书记工作台 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">2.1</span>书记工作台（书记 / 副书记共台 · 11 tab）</h3>
+        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/secretary.html">secretary.html</a>。tab 条分段：工作台 / 党建 / 反馈 / 对接党委。</p>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead><tr><th style="width:15%;">tab</th><th style="width:14%;">给谁用</th><th style="width:43%;">这页做什么</th><th>怎么做（点哪里）</th></tr></thead>
+            <tbody>
+              <tr><td>今天</td><td>书记 / 副书记</td><td>登录落点速览（1.2）</td><td>打开工作台即此页；行内跳转待办 / 活动详情</td></tr>
+              <tr><td>待办</td><td>书记 / 副书记</td><td>未读通知条 + 9 域折组（1.2）</td><td>「工作台」段第 2 位；卡片「去处理」直达</td></tr>
+              <tr><td>全局概况</td><td>书记 / 副书记</td><td>汇报 / 卡点 / 在办三区 + 按人视图（各角色在办，可点击直达）+ 维度态势</td><td>「工作台」段第 3 位；点某人行看其条线在办</td></tr>
+              <tr><td>活动管理</td><td>书记 / 副书记</td><td>支部活动日历与写入：三会一课 / 主题党日 / 线上异步表决，可带议程（待讨论名单）与报名</td><td>「党建」段；「+ 写入活动」选模板 → 填表单 → 创建；点日历格子进详情 / 记录</td></tr>
+              <tr><td>支部分工</td><td>书记 / 副书记</td><td>支部工作地图：各模块定人定责定岗，平铺 / 按人双视图</td><td>「党建」段；切「平铺 / 按人」视图查看分工与空缺</td></tr>
+              <tr><td>赋权管理</td><td>书记 / 副书记</td><td>向下赋权（组长 / 组织者 / 深度参与者），赋权链计算知情边界</td><td>「党建」段；「添加赋权」选人 + 选权限 → 保存；需要撤销时点该条撤销</td></tr>
+              <tr><td>支部配置</td><td>书记 / 副书记</td><td>本支部初始化 / 换组织向导内嵌（模块组合、角色分工等，与党委台 party-config 同源）</td><td>「党建」段；按向导分步填写 → 生成工作单 → 验证</td></tr>
+              <tr><td>通知发布</td><td>书记 / 副书记</td><td>发布通知；审批类变更同步广播；自动派生成员待办</td><td>「党建」段；「+ 发布」填标题正文 → 选送达范围 → 发布</td></tr>
+              <tr><td>专班查看</td><td>书记 / 副书记</td><td>全院专班进展只读（知情权，无职责≠无知情权）</td><td>「党建」段；点专班卡看分工 / 进展</td></tr>
+              <tr><td>反馈管理</td><td>书记 / 副书记</td><td>收阅成员意见反馈并跟进处理（开放 / 关闭）</td><td>「反馈」段；点开反馈 → 回复 / 标记关闭</td></tr>
+              <tr><td>上报党委</td><td>书记 / 副书记</td><td>支部关键事项上报党委（发展节点 / 活动报备），批驳结论回传本页</td><td>「对接党委」段；「+ 上报」选事项类型 → 提交；查看回传结论</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 2.2 组织委员工作台 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">2.2</span>组织委员工作台（11 tab）</h3>
+        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/org.html">org.html</a>。tab 条分段：工作台 / 党建 / 反馈。</p>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead><tr><th style="width:15%;">tab</th><th style="width:14%;">给谁用</th><th style="width:43%;">这页做什么</th><th>怎么做（点哪里）</th></tr></thead>
+            <tbody>
+              <tr><td>今天</td><td>组织委员</td><td>登录落点速览（1.2）</td><td>打开工作台即此页</td></tr>
+              <tr><td>待办</td><td>组织委员</td><td>未读通知条 + 9 域折组（1.2）</td><td>「工作台」段第 2 位；卡片「去处理」直达</td></tr>
+              <tr><td>工作概况</td><td>组织委员</td><td>汇报 / 卡点 / 在办三区总览</td><td>「工作台」段第 3 位</td></tr>
+              <tr><td>考察上传</td><td>组织委员</td><td>考察材料上传 / 建档 / 归集（发展链条素材）</td><td>「党建」段；「+ 上传」选对象 → 传材料 → 保存</td></tr>
+              <tr><td>专班管理</td><td>组织委员</td><td>专班唯一统筹节点：发起 / 招募统筹 / 定人定责定岗 / 工作量</td><td>「党建」段；「+ 专班」发起 → 在专班内做招募与定岗</td></tr>
+              <tr><td>成员名册</td><td>组织委员</td><td>成员档案管理：新增 / 行内编辑 / 删除 / 分组</td><td>「党建」段；「+ 成员」录入；行内点编辑改档案</td></tr>
+              <tr><td>人才库</td><td>组织委员</td><td>积极分子 / 发展对象档案与考察画像视图</td><td>「党建」段；点人看画像与考察材料归集</td></tr>
+              <tr><td>发展数据</td><td>组织委员</td><td>发展党员各阶段名单与推进（含思想汇报只读展开）</td><td>「党建」段；按阶段列表查看 / 推进</td></tr>
+              <tr><td>思想汇报</td><td>组织委员</td><td>成员思想汇报把关式初阅：通过 → 正式归档；退回附意见（提交者可见并修改重交）</td><td>「党建」段；点开待初阅汇报 → 「通过 / 退回」；退回时填写意见</td></tr>
+              <tr><td>活动查看</td><td>组织委员</td><td>全支部活动只读知情查看（无职责≠无知情权）</td><td>「党建」段；点活动卡看详情 / 议程</td></tr>
+              <tr><td>我的处置</td><td>组织委员</td><td>经手反馈的处理记录</td><td>「反馈」段</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 2.3 宣传委员工作台 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">2.3</span>宣传委员工作台（8 tab）</h3>
+        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/prop.html">prop.html</a>。tab 条分段：工作台 / 党建 / 反馈。</p>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead><tr><th style="width:15%;">tab</th><th style="width:14%;">给谁用</th><th style="width:43%;">这页做什么</th><th>怎么做（点哪里）</th></tr></thead>
+            <tbody>
+              <tr><td>今天</td><td>宣传委员</td><td>登录落点速览（1.2）</td><td>打开工作台即此页</td></tr>
+              <tr><td>待办</td><td>宣传委员</td><td>未读通知条 + 9 域折组（1.2）</td><td>「工作台」段第 2 位；卡片「去处理」直达</td></tr>
+              <tr><td>工作概况</td><td>宣传委员</td><td>汇报 / 卡点 / 在办三区总览</td><td>「工作台」段第 3 位</td></tr>
+              <tr><td>宣传任务</td><td>宣传委员</td><td>宣传任务分配与推进</td><td>「党建」段；「+ 任务」指派 → 跟进完成</td></tr>
+              <tr><td>项目看板</td><td>宣传委员</td><td>宣传项目看板化管理（活动宣传卡承载）</td><td>「党建」段；看板列间拖动卡片改状态</td></tr>
+              <tr><td>周报报送</td><td>宣传委员</td><td>每周工作周报报送</td><td>「党建」段；「+ 报送」填本周工作 → 提交</td></tr>
+              <tr><td>档案归档</td><td>宣传委员</td><td>档案与支部文件管理：草案上传、会前分发，会议讨论通过后归档并展示来源</td><td>「党建」段；「+ 归档 / 上传草案」→ 关联议程 → 通过后归档</td></tr>
+              <tr><td>我的处置</td><td>宣传委员</td><td>经手反馈的处理记录</td><td>「反馈」段</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 2.4 纪检委员工作台 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">2.4</span>纪检委员工作台（10 tab）</h3>
+        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/disc.html">disc.html</a>。tab 条分段：工作台 / 党建 / 反馈。</p>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead><tr><th style="width:15%;">tab</th><th style="width:14%;">给谁用</th><th style="width:43%;">这页做什么</th><th>怎么做（点哪里）</th></tr></thead>
+            <tbody>
+              <tr><td>今天</td><td>纪检委员</td><td>登录落点速览（1.2）</td><td>打开工作台即此页</td></tr>
+              <tr><td>待办</td><td>纪检委员</td><td>未读通知条 + 9 域折组（1.2）</td><td>「工作台」段第 2 位；卡片「去处理」直达</td></tr>
+              <tr><td>工作概况</td><td>纪检委员</td><td>汇报 / 卡点 / 在办三区总览</td><td>「工作台」段第 3 位</td></tr>
+              <tr><td>考勤管理</td><td>纪检委员</td><td>全支部考勤管理与活动签到数据（与组织侧同源共享）</td><td>「党建」段；按活动 / 人员查考勤 → 缺勤记录生成补课（见补课制度）</td></tr>
+              <tr><td>活动监督复盘</td><td>纪检委员</td><td>活动监督（纪检视角）与复盘评议记录</td><td>「党建」段；点开活动 → 记录监督结论 / 评议</td></tr>
+              <tr><td>考察管理</td><td>纪检委员</td><td>考察材料在纪检线的查看 / 汇总</td><td>「党建」段；按对象查看考察记录</td></tr>
+              <tr><td>补课制度</td><td>纪检委员</td><td>缺勤成员补课任务管理：生成任务 → 成员完成 → 考勤回写 / 逾期处理</td><td>「党建」段；对缺勤记录「发起补课」→ 跟进完成回写</td></tr>
+              <tr><td>公邮管理</td><td>纪检委员</td><td>支部公邮登录与邮件处理入口</td><td>「党建」段；按提示登录公邮处理邮件</td></tr>
+              <tr><td>专班查看</td><td>纪检委员</td><td>专班进展只读知情查看</td><td>「党建」段；点专班卡查看</td></tr>
+              <tr><td>我的处置</td><td>纪检委员</td><td>经手反馈的处理记录</td><td>「反馈」段</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 2.5 党小组组长工作台 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">2.5</span>党小组组长工作台（10 tab）</h3>
+        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/leader.html">leader.html</a>。tab 条分段：工作台 / 党建 / 反馈。</p>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead><tr><th style="width:15%;">tab</th><th style="width:14%;">给谁用</th><th style="width:43%;">这页做什么</th><th>怎么做（点哪里）</th></tr></thead>
+            <tbody>
+              <tr><td>今天</td><td>党小组组长</td><td>登录落点速览（1.2）</td><td>打开工作台即此页</td></tr>
+              <tr><td>待办</td><td>党小组组长</td><td>未读通知条 + 9 域折组（1.2）</td><td>「工作台」段第 2 位；卡片「去处理」直达</td></tr>
+              <tr><td>工作概况</td><td>党小组组长</td><td>汇报 / 卡点 / 在办三区总览</td><td>「工作台」段第 3 位</td></tr>
+              <tr><td>活动管理</td><td>党小组组长</td><td>本组活动（党小组会等）的创建与管理，可现场发布考勤二维码</td><td>「党建」段；「+ 写入活动」选场景 → 创建；活动中发二维码供签到</td></tr>
+              <tr><td>考勤上传</td><td>党小组组长</td><td>本组活动考勤上传（现场签到 / 名单导入）</td><td>「党建」段；选活动 → 上传签到名单 / 二维码结果</td></tr>
+              <tr><td>考察上传</td><td>党小组组长</td><td>本组组员考察记录上传（日常观察素材）</td><td>「党建」段；选组员 → 填观察记录 → 上传</td></tr>
+              <tr><td>复盘状态</td><td>党小组组长</td><td>本组复盘状态只读查看（复盘提交已归组织者 / 深度参与者，本页不代提交）</td><td>「党建」段；点开活动看复盘完成情况</td></tr>
+              <tr><td>组员进展</td><td>党小组组长</td><td>本组组员进展：进度 / 考勤 / 考察（块块视角，看 ≠ 做）</td><td>「党建」段；点组员行展开其维度数据</td></tr>
+              <tr><td>专班查看</td><td>党小组组长</td><td>专班进展只读知情查看</td><td>「党建」段；点专班卡查看</td></tr>
+              <tr><td>我的处置</td><td>党小组组长</td><td>经手反馈的处理记录</td><td>「反馈」段</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 2.6 成员工作台 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">2.6</span>成员工作台（9 tab · 含组织者 / 深度参与者）</h3>
+        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/visitor.html">visitor.html</a>。tab 条分段：工作台 / 党建。</p>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead><tr><th style="width:15%;">tab</th><th style="width:14%;">给谁用</th><th style="width:43%;">这页做什么</th><th>怎么做（点哪里）</th></tr></thead>
+            <tbody>
+              <tr><td>今天</td><td>成员 / 组织者 / 深度参与者</td><td>登录落点速览（1.2）</td><td>打开工作台即此页</td></tr>
+              <tr><td>待办</td><td>成员 / 组织者 / 深度参与者</td><td>未读通知条 + 9 域折组（1.2）</td><td>「工作台」段第 2 位；卡片「去处理」直达</td></tr>
+              <tr><td>工作概况</td><td>成员 / 组织者 / 深度参与者</td><td>汇报 / 卡点 / 在办三区（仅自我聚合）</td><td>「工作台」段第 3 位</td></tr>
+              <tr><td>项目分工</td><td>成员 / 组织者 / 深度参与者</td><td>你参与的活动 / 专班的分工与职责</td><td>「党建」段；点项目看自己的分工职责</td></tr>
+              <tr><td>活动动态</td><td>成员 / 组织者 / 深度参与者</td><td>支部活动浏览与报名（按阶段批量选人由组织侧配置）</td><td>「党建」段；点活动卡 → 「报名」/ 查看详情</td></tr>
+              <tr><td>考勤概况</td><td>成员 / 组织者 / 深度参与者</td><td>个人考勤与补课状态</td><td>「党建」段；查看个人出勤 / 待补课任务</td></tr>
+              <tr><td>我的考察</td><td>成员 / 组织者 / 深度参与者</td><td>个人考察材料（积极分子 / 发展对象）</td><td>「党建」段；查看 / 补充材料</td></tr>
+              <tr><td>思想汇报</td><td>成员 / 组织者 / 深度参与者</td><td>提交思想汇报：经组织委员初阅通过才正式归档；退回可修改重交</td><td>「党建」段；「+ 提交」写内容 → 提交 → 关注初阅结果</td></tr>
+              <tr><td>我的复盘</td><td>组织者 / 深度参与者为主</td><td>活动复盘提交与查看（复盘提交入口所在，普通成员在此查看自己参与的复盘）</td><td>「党建」段；选活动 → 填复盘 → 提交；组长 / 纪检在各自台复核</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 2.7 党委工作台 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">2.7</span>党委工作台（6 tab · 党委组织员）</h3>
+        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/party-committee.html">party-committee.html</a>。组织级角色（party-staff）专用，监控全院各支部，不属于任一支部。tab 条分段：首页 / 全院治理 / 支部治理。</p>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead><tr><th style="width:15%;">tab</th><th style="width:14%;">给谁用</th><th style="width:43%;">这页做什么</th><th>怎么做（点哪里）</th></tr></thead>
+            <tbody>
+              <tr><td>治理总览</td><td>党委组织员</td><td>登录落点 / 全院治理首页：支部概览列表（成员 / 党员 / 滞留实时统计 + 近期动态摘要）</td><td>打开工作台即此页；支部卡「进入支部（演示）」下钻</td></tr>
+              <tr><td>支部监控台账</td><td>党委组织员</td><td>全院各支部台账监控（跨支部看板）</td><td>「全院治理」段；按支部 / 维度查看台账</td></tr>
+              <tr><td>支部管理</td><td>党委组织员</td><td>支部实例管理</td><td>「全院治理」段；增删改支部实例</td></tr>
+              <tr><td>上报审批</td><td>党委组织员</td><td>支部上报事项（发展节点 / 活动报备）逐项审批，结论回传支部</td><td>「全院治理」段；点开上报 → 「批准 / 批驳」并附意见</td></tr>
+              <tr><td>下发通知</td><td>党委组织员</td><td>面向支部支委层下发通知（标「党委下发」来源）</td><td>「全院治理」段；「+ 下发」选送达支部 → 发布</td></tr>
+              <tr><td>支部配置</td><td>党委组织员</td><td>支部工作流模块配置（模块启停 / 分组开关，部署期职责）</td><td>「支部治理」段；选支部 → 开关模块 → 保存</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="doc-note">用法习惯：翻到你自己那台后，头几次只需要记住两个位置——「待办」（系统替你把要做的事列好并指明去哪做）和「党建」组里的职责 tab（写操作都在这）。其余 tab 按需查看即可。</p>
+      </section>
+
+      <!-- ========== 过渡暂存区：功能总览（catalog 驱动；将随第3/4章正式编写并入对应章） ========== -->
+      <p class="doc-note" style="margin-bottom:22px;">以下「功能总览」（功能地图 + 按组分组的全部功能卡片）是目录驱动的现行总览，属过渡期内容：后续版本将并入第 3 章「域手册」（C2 填充）与第 4 章「业务链路」的正式章节；此前的搜索仍全文覆盖这些卡片。</p>
+
       <!-- ========== 功能地图（mermaid 懒加载，离线降级为文本占位） ========== -->
-      <section class="doc-card" id="sec-功能地图" data-toc-id="sec-功能地图">
+      <section class="doc-card" id="sec-功能地图">
         <h2 class="doc-h2"><span class="doc-num">图</span>功能地图</h2>
         <hr class="doc-divider">
         <p class="doc-p">系统全部功能一览。通用能力（任何组织可复用）与支部特有以标签区分。</p>
@@ -375,16 +544,39 @@
       <!-- ========== 功能章节卡片（catalog 驱动，动态注入） ========== -->
       <div id="help-catalog-slot"></div>
 
-      <!-- ========== 业务链路（flow 条目卡片 + mermaid 流程图，动态注入） ========== -->
-      <section class="help-card-group" id="sec-业务链路" data-toc-id="sec-业务链路">
-        <h2 class="doc-h2"><span class="doc-num">链</span>业务链路</h2>
+      <!-- ========== 第3章 域手册（C2 批次填充；当前为占位锚点） ========== -->
+      <section class="doc-card" id="sec-domains" data-toc-id="sec-domains">
+        <h2 class="doc-h2"><span class="doc-num">3</span>域手册</h2>
         <hr class="doc-divider">
+        <p class="doc-p doc-lead">
+          按业务域逐域讲解「这类工作怎么做、环节在哪」的手册章节（占位锚点）。本批次先立骨架，正文由下一批次（C2）填充；其雏形即上方过渡「功能总览」卡片区，C2 将并入本章改写为域手册。
+        </p>
+        <p class="doc-key">当前状态：<strong>骨架已立、内容待填</strong>（C2 批次交付）。想按功能检索“名称 / 说明 / 用法”，请用页顶搜索框或上方「功能总览」卡片区。</p>
+      </section>
+
+      <!-- ========== 第4章 业务链路 ========== -->
+      <section class="doc-card" id="sec-flows" data-toc-id="sec-flows">
+        <h2 class="doc-h2"><span class="doc-num">4</span>业务链路</h2>
+        <hr class="doc-divider">
+        <p class="doc-p doc-lead">
+          跨角色的工作怎么流转（图中节点 = 执行者：任务）。以下为现行角色化业务链路总览（图源由目录驱动、离线自动降级为文字说明）；C3 批次将在此基础上补充细化的链路手册说明。
+        </p>
         <div id="mermaid-flows"></div>
       </section>
 
-      <!-- ========== 二、这个系统在干什么 ========== -->
+      <!-- ========== 第5章 党委与配置（C3 批次填充；当前为占位锚点） ========== -->
+      <section class="doc-card" id="sec-admin" data-toc-id="sec-admin">
+        <h2 class="doc-h2"><span class="doc-num">5</span>党委与配置</h2>
+        <hr class="doc-divider">
+        <p class="doc-p doc-lead">
+          党委组织员的全院治理操作与支部级配置的详细说明（占位锚点）：支部监控台账、上报审批、下发通知、支部管理，以及支部工作流模块启停（部署期职责）。C3 批次填充正文；现行党委工作台 tab 概览见 2.7。
+        </p>
+        <p class="doc-key">当前状态：<strong>骨架已立、内容待填</strong>（C3 批次交付）。</p>
+      </section>
+
+      <!-- ========== 第6章 这个系统在干什么 ========== -->
       <section class="doc-card" id="sec-what" data-toc-id="sec-what">
-        <h2 class="doc-h2"><span class="doc-num">二</span>这个系统在干什么</h2>
+        <h2 class="doc-h2"><span class="doc-num">6</span>这个系统在干什么</h2>
         <hr class="doc-divider">
         <p class="doc-p doc-lead">
           这个系统是北京大学光华管理学院本科生党支部的数字化管理工具——把党支部制度文本转化为可执行的代码工作流，让工作不随人走。
@@ -398,28 +590,28 @@
           <div class="doc-mini"><h4>经验可传承</h4><p>复盘与归档沉淀经验，让新支委快速上手、制度随届接续。</p></div>
         </div>
         <p class="doc-p">
-          系统现有 16 个页面：首页、资料查询、意见反馈、归档库、活动详情等公共与功能页面，以及六类角色各自的工作台（书记、党小组组长、组织委员、宣传委员、纪检委员、成员）。每个角色登录后直达自己的工作台，该工作台就是该角色的全部工作视图——各项功能按 Tab 分组，无需在页面之间来回跳转；所有角色共享同一套数据，看到的是同一数据的不同视角。
+          系统现有 18 个页面：11 个根页面（首页、登录、资料查询、归档库、活动 / 通知 / 专班详情、意见反馈、帮助、关于、换组织向导）+ 7 个角色工作台（书记、组织委员、宣传委员、纪检委员、党小组组长、成员、党委工作台；副书记与书记共台，组织者 / 深度参与者归入成员工作台）。每个角色登录后直达自己的工作台，该工作台就是该角色的全部工作视图——各项功能按 tab 分组，无需在页面之间来回跳转；所有角色共享同一套数据，看到的是同一数据的不同视角。
         </p>
         <p class="doc-p">
-          系统采用「静态前端 + 一体化后端」：界面在浏览器渲染，数据经登录认证后落库持久化——换届不丢档、操作有留痕。谁负责哪块、谁能看到哪层，由<strong>赋权链</strong>计算：书记向下委托执行边界，其余角色的操作权限与知情范围随之派生（详见「权限体系」章节）。
+          系统采用「静态前端 + 一体化后端」：界面在浏览器渲染，数据经登录认证后落库持久化——换届不丢档、操作有留痕。谁负责哪块、谁能看到哪层，由<strong>赋权链</strong>计算：书记向下委托执行边界，其余角色的操作权限与知情范围随之派生（详见第 1 章 1.3「权限知情边界」）。
         </p>
       </section>
 
-      <!-- ========== 三、技术架构 ========== -->
+      <!-- ========== 第7章 技术架构 ========== -->
       <section class="doc-card" id="sec-tech" data-toc-id="sec-tech">
-        <h2 class="doc-h2"><span class="doc-num">三</span>技术架构</h2>
+        <h2 class="doc-h2"><span class="doc-num">7</span>技术架构</h2>
         <hr class="doc-divider">
         <p class="doc-p doc-lead">
           系统采用「静态前端 + Node 一体化后端」：界面在浏览器渲染，后端同源提供登录认证与数据持久化。以下分层讲清代码与制度的关系。
         </p>
 
-        <!-- 3.1 分层结构 -->
-        <h3 class="doc-h3"><span class="doc-h3-badge">3.1</span>分层结构</h3>
+        <!-- 7.1 分层结构 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">7.1</span>分层结构</h3>
         <div class="doc-table-wrap">
           <table class="doc-table">
             <thead><tr><th style="width:16%;">层</th><th style="width:42%;">位置</th><th>职责</th></tr></thead>
             <tbody>
-              <tr><td>前台（页面）</td><td>docs/（16 个页面：10 个根页面 + 6 个角色工作台）</td><td>页面骨架，零硬编码逻辑</td></tr>
+              <tr><td>前台（页面）</td><td>docs/（18 个页面：11 个根页面 + 7 个工作台）</td><td>页面骨架，零硬编码逻辑</td></tr>
               <tr><td>中台（逻辑）</td><td>docs/src/entries/ + components/ + core/ + modules/</td><td>角色面板路由、视图切换、DOM 渲染、能力注册</td></tr>
               <tr><td>后台（服务层）</td><td>docs/src/services/ + mock/</td><td>数据 CRUD、权限计算、持久化</td></tr>
               <tr><td>后端（server/）</td><td>server/（Express + better-sqlite3 单进程）</td><td>同源托管静态页面 + /api/v1 REST（登录认证 / 资源表读写 / 附件上传 / 快照持久化）</td></tr>
@@ -428,15 +620,15 @@
           </table>
         </div>
 
-        <!-- 3.2 技术栈与运行方式 -->
-        <h3 class="doc-h3"><span class="doc-h3-badge">3.2</span>技术栈与运行方式</h3>
+        <!-- 7.2 技术栈与运行方式 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">7.2</span>技术栈与运行方式</h3>
         <ul class="doc-list">
           <li>静态前端 + Node 一体化后端 — 本地完整运行：进入 server/ 目录执行 <code>npm start</code>，浏览器访问即全链路使用（登录 → API → 数据持久化）；docs/ 亦可独立静态托管作演示形态</li>
           <li>ES Modules — 无构建工具、零打包依赖</li>
           <li>Tailwind CSS CDN — 原子化样式引擎</li>
           <li>REST API（/api/v1）— 登录认证、资源表读写、附件上传、快照持久化</li>
           <li>Custom Events — 组件间解耦通信</li>
-          <li>多页面应用（MPA）— 16 个独立 HTML 页面</li>
+          <li>多页面应用（MPA）— 18 个独立 HTML 页面</li>
         </ul>
       </section>
 
