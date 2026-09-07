@@ -1,15 +1,21 @@
 // role: [工程师]+[AI]
-// components/todo-tab-shell.js — 待办 tab 公共壳（T-304 代码减负 2026-08-30）
+// components/todo-tab-shell.js — 待办 tab 公共壳（T-304 代码减负 2026-08-30；IA-C1 Task4 域化重构 2026-09-07）
 // 背景：6 个工作台 todo-tab 骨架逐字重复（选中首条 / renderTodoList / 两栏 HTML / 删除 / 详情按钮绑定），
 //       书记 2026-08-30：「模块化只见代码增多少见代码减少」→ 共性抽壳。
 // 设计：createTodoTab(opts) 工厂，每个角色一个实例（状态自持，与原模块级私有状态等价）。
-// 角色差异经参数注入：containerId/prefix/role/onAction/buildAggregates/buildStats/
-//       extraTopHtml/bindExtras/emptyHint/detailBtnClass/detailBtnStyle。
-// 行为零变化：各 tab 原有渲染/跳转/删除/绑定逻辑逐字保留于壳内。
+// IA-C1 Task4（按工作类型 9 域折组，spec .trae/specs/2026-09-06-ia-todo-cards/spec.md）：
+//   输出区 = ① 页顶「未读通知 N 条」轻量条（getUnreadNotices；点击展开阅读列表，点读即消）
+//          ② 9 业务域折组列表（getDomainsWithGroups + buildRealtimeGroups 实时组经
+//            mergeRealtimeDomains 并入对应域；域头=域名+计数+逾期红点，有活才显）
+//          ③ 各角色自定义渲染区（extraTopHtml/bindExtras）照旧挂载
+//   角色差异经参数注入：containerId/prefix/role/onAction/buildRealtimeGroups/renderDetail/
+//       onBeforeRender/onAfterRender/extraTopHtml/bindExtras/emptyHint/detailTitle/
+//       detailBtnClass/detailBtnStyle/onDeleteTodo。
+// 视觉沿用 card/rounded/折叠既有体系（域折组渲染在 components/todo-list.js renderDomainTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
 import { TodoStore } from '../services/todo.js?v=20260903c';
-import { renderTodoList } from './todo-list.js?v=20260903c';
+import { renderDomainTodoList } from './todo-list.js?v=20260903c';
 import { badgeHtml } from './badges.js?v=20260903c';
 import { showToast } from '../core/utils.js?v=20260903c';
 import { solidAccentStyle } from '../core/constants.js?v=20260903c';
@@ -17,17 +23,27 @@ import { solidAccentStyle } from '../core/constants.js?v=20260903c';
 /**
  * 创建待办 tab 壳实例
  * @param {Object} opts
- * @param {string} opts.containerId      工作台内容容器 id（如 'org-tab-content'）
- * @param {string} opts.prefix           事件/选择器前缀（如 'org'）
- * @param {string} opts.role             待办角色键（getGroupedByAction/getStatsByRole 用）
+ * @param {string} opts.containerId         工作台内容容器 id（如 'org-tab-content'）
+ * @param {string} opts.prefix              事件/选择器前缀（如 'org'）
+ * @param {string} opts.role                待办角色键（getByRole/getUnreadNotices 用）
  * @param {(todo:Object, ctx:Object)=>void} opts.onAction  角色特有动作处理（必填）
- * @param {(ctx:Object)=>Array} [opts.buildAggregates]     聚合构建（缺省=TodoStore.getGroupedByAction(role)）
- * @param {(aggregates:Array)=>Object} [opts.buildStats]   统计构建（缺省=TodoStore.getStatsByRole(role)）
- * @param {string|(ctx:Object)=>string} [opts.extraTopHtml] 列表上方额外区块 HTML（数据交接等；需 ctx 时用函数）
- * @param {(container:Element, ctx:Object)=>void} [opts.bindExtras] 额外绑定（handoff 等）
- * @param {string} [opts.emptyHint]      空态提示文案（缺省=通用）
- * @param {string} [opts.detailBtnClass] 详情按钮 class（缺省=prefix-todo-detail-action）
- * @param {string} [opts.detailBtnStyle] 详情按钮内联样式（缺省=solidAccentStyle 主题色）
+ * @param {(ctx:Object)=>Array} [opts.buildRealtimeGroups] 各台自定义「不落库」实时聚合组
+ *        （书记 SecretaryTodoDeriver 组/决议逾期/成员变更/纪检队列等；壳统一
+ *        mergeRealtimeDomains 并入对应业务域；缺省=[] 纯持久化域视图）
+ * @param {(todo:Object, ctx:Object)=>string} [opts.renderDetail] 自定义详情渲染
+ *        （书记按 kind/groupKey 分发；缺省=壳内置概要「去处理」）
+ * @param {async (ctx:Object)=>void} [opts.onBeforeRender] 渲染前钩子（seedTodos/异步预载；await）
+ * @param {async (container:Element, ctx:Object, api:Object)=>void} [opts.onAfterRender] 渲染后钩子
+ *        （异步面板挂载，如书记成员变更确认面板；api={renderContent,clearSelection,selectedTodo}）
+ * @param {string|(ctx:Object)=>string} [opts.extraTopHtml] 列表上方额外区块 HTML（数据交接/收件箱/专班区等）
+ * @param {(container:Element, ctx:Object, api:Object)=>void} [opts.bindExtras] 额外绑定
+ *        （handoff/成员变更/详情自定义按钮等；api 见 onAfterRender）
+ * @param {string} [opts.emptyHint]         空态提示文案（缺省=通用）
+ * @param {string} [opts.detailTitle]       右侧详情卡标题（缺省='详情'）
+ * @param {string} [opts.detailBtnClass]    内置详情按钮 class（缺省=prefix-todo-detail-action）
+ * @param {string} [opts.detailBtnStyle]    内置详情按钮内联样式（缺省=solidAccentStyle 主题色）
+ * @param {null|(todo:Object, ctx:Object)=>void} [opts.onDeleteTodo] null=不渲染删除键（书记等实时组台）；
+ *        函数=自定义；缺省=内置确认删除（聚合组删整组）
  */
 export function createTodoTab(opts) {
   const {
@@ -35,20 +51,26 @@ export function createTodoTab(opts) {
     prefix,
     role,
     onAction,
-    buildAggregates,
-    buildStats,
+    buildRealtimeGroups,
+    renderDetail,
+    onBeforeRender,
+    onAfterRender,
     extraTopHtml = '',
     bindExtras,
     emptyHint = '或直接点击"去赋权/去审核"等按钮处理',
+    detailTitle = '详情',
     detailBtnClass = `${prefix}-todo-detail-action`,
     detailBtnStyle,
+    onDeleteTodo,
   } = opts;
 
   // 私有状态（随壳实例自持，不污染入口——与原模块级私有状态等价）
   let _selectedTodoId = null;
-  let _todoAggregates = null;
 
-  /** 详情渲染（聚合对象 = 概要 + 处理入口；单项 = 状态 + 描述 + 处理） */
+  /**
+   * 详情渲染（内置缺省：聚合组 = 概要 + 处理入口；单项 = 状态 + 描述 + 处理）。
+   * 角色自定义详情经 opts.renderDetail 覆盖（如书记 confirm/remind/成员确权逐项面板）。
+   */
   function _renderTodoDetail(todo, ctx) {
     const btnStyle = detailBtnStyle || solidAccentStyle(ctx.accent, ctx.accentBorder);
     if (todo.groupKey) {
@@ -101,28 +123,90 @@ export function createTodoTab(opts) {
     `;
   }
 
-  function renderContent(ctx) {
+  /** 页顶「未读通知 N 条」轻量条（IA-C1：通知移出待办主列；无未读整条隐藏） */
+  function _unreadBarHtml(notices) {
+    const rows = notices.map(n => {
+      const timeText = n.deadline
+        ? `截止 ${n.deadline}`
+        : String(n.createdAt || '').slice(0, 16).replace('T', ' ');
+      return `
+        <div class="flex items-center gap-2 px-3 py-2 border-t border-gray-100">
+          <span class="flex-1 min-w-0">
+            <span class="block text-sm text-gray-800 truncate">${n.title || '未命名通知'}</span>
+            <span class="block text-[11px] text-gray-400">${timeText}</span>
+          </span>
+          <button type="button" class="${prefix}-unread-open-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors flex-shrink-0" data-notice-id="${n.id}" style="cursor:pointer;">阅读</button>
+          <button type="button" class="${prefix}-unread-read-btn text-xs px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors flex-shrink-0" data-notice-id="${n.id}" style="cursor:pointer;">标记已读</button>
+        </div>`;
+    }).join('');
+    return `
+      <div class="card rounded-xl px-4 py-2.5 mb-4">
+        <button type="button" class="${prefix}-unread-toggle w-full flex items-center justify-between text-left bg-transparent border-0 cursor-pointer px-1 py-1.5 rounded-lg hover:bg-gray-50 transition-colors" style="cursor:pointer;">
+          <span class="flex items-center gap-2">
+            <svg class="${prefix}-unread-arrow w-3 h-3 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+            </svg>
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></span>
+            <span class="font-title-cn text-sm font-semibold text-gray-800">未读通知 <span class="tabular-nums">${notices.length}</span> 条</span>
+          </span>
+          <span class="text-[11px] text-gray-400 flex-shrink-0">点击展开阅读，读后即消</span>
+        </button>
+        <div class="${prefix}-unread-items hidden">
+          ${rows}
+        </div>
+      </div>
+    `;
+  }
+
+  async function renderContent(ctx) {
     const container = document.getElementById(containerId);
     if (!container) return;
+
+    // 渲染前钩子（书记：seedTodos + 异步预载待答复汇报等）
+    if (onBeforeRender) await onBeforeRender(ctx);
 
     // 刷新过期状态
     TodoStore.refreshExpiredStatus();
 
-    _todoAggregates = buildAggregates ? buildAggregates(ctx) : TodoStore.getGroupedByAction(role);
-    const stats = buildStats ? buildStats(_todoAggregates) : TodoStore.getStatsByRole(role);
-    // 自动选中首条（书记 2026-08-10 裁定推广）：进入待办即见第一条详情，减一次点击
-    if (!_selectedTodoId && _todoAggregates.length > 0) {
-      _selectedTodoId = _todoAggregates[0].groupKey;
+    // 域视图：持久化待办按域聚合 + 各台实时聚合组并入对应域（IA-C1 Task4 融合点）
+    const realtimeGroups = buildRealtimeGroups ? (buildRealtimeGroups(ctx) || []) : [];
+    const domains = TodoStore.mergeRealtimeDomains(role, realtimeGroups);
+    // 全部组（选中态查找；含持久化聚合组与并入的实时组）
+    const allGroups = [];
+    for (const d of domains) {
+      if (Array.isArray(d.groups)) allGroups.push(...d.groups);
     }
-    const selectedTodo = _selectedTodoId ? (
-      _todoAggregates.find(g => g.groupKey === _selectedTodoId) || TodoStore.getById(_selectedTodoId)
-    ) : null;
 
-    const { html: todoListHtml, bindEvents } = renderTodoList({
+    // 自动选中首条（书记 2026-08-10 裁定推广）：进入待办即见第一条详情，减一次点击
+    if (!_selectedTodoId && allGroups.length > 0) {
+      _selectedTodoId = allGroups[0].groupKey;
+    }
+    const selectedTodo = _selectedTodoId
+      ? (allGroups.find(g => g.groupKey === _selectedTodoId) || TodoStore.getById(_selectedTodoId) || null)
+      : null;
+
+    // 删除处理：opts.onDeleteTodo=null → 禁删（实时组台）；函数 → 自定义；缺省 → 内置确认删除
+    let deleteHandler = null;
+    if (onDeleteTodo === null) {
+      deleteHandler = null;
+    } else if (typeof onDeleteTodo === 'function') {
+      deleteHandler = (todo) => onDeleteTodo(todo, ctx);
+    } else {
+      deleteHandler = (todo) => {
+        const items = todo.items && todo.items.length ? todo.items : [todo];
+        const label = items.length === 1 ? items[0].title : `${items[0].title} 等 ${items.length} 条`;
+        if (!window.confirm(`确认删除待办「${label}」？删除后不可恢复。`)) return;
+        items.forEach(t => TodoStore.delete(t.id));
+        showToast('success', '待办已删除');
+        renderContent(ctx);
+      };
+    }
+
+    const { html: domainListHtml, bindEvents } = renderDomainTodoList({
       prefix,
-      groupedAggregates: _todoAggregates,
-      stats,
+      domains,
       accent: ctx.accent,
+      selectedTodoId: _selectedTodoId,
       onSelectTodo: (todo) => {
         _selectedTodoId = todo.groupKey || todo.id;
         renderContent(ctx);
@@ -130,54 +214,92 @@ export function createTodoTab(opts) {
       onActionTodo: (todo) => {
         onAction(todo, ctx);
       },
-      // B 档 CRUD 补全：待办删除（确认后删除，聚合卡删除整组）
-      onDeleteTodo: (todo) => {
-        const items = todo.items && todo.items.length ? todo.items : [todo];
-        const label = items.length === 1 ? items[0].title : `${items[0].title} 等 ${items.length} 条`;
-        if (!window.confirm(`确认删除待办「${label}」？删除后不可恢复。`)) return;
-        items.forEach(t => TodoStore.delete(t.id));
-        showToast('success', '待办已删除');
-        renderContent(ctx);
-      },
+      onDeleteTodo: deleteHandler,
+      emptyHint,
     });
 
-    const detailHtml = selectedTodo ? _renderTodoDetail(selectedTodo, ctx) : `
-      <div class="text-center py-12 text-gray-400">
-        <p class="text-sm">点击左侧待办查看详情</p>
-        <p class="text-xs mt-1">${emptyHint}</p>
-      </div>
-    `;
+    // 未读通知条（无未读 → 整条隐藏）
+    const unreadNotices = TodoStore.getUnreadNotices(role);
+    const unreadHtml = unreadNotices.length > 0 ? _unreadBarHtml(unreadNotices) : '';
+
+    const detailHtml = selectedTodo
+      ? (renderDetail ? renderDetail(selectedTodo, ctx) : _renderTodoDetail(selectedTodo, ctx))
+      : `
+        <div class="text-center py-12 text-gray-400">
+          <p class="text-sm">点击左侧待办查看详情</p>
+          <p class="text-xs mt-1">${emptyHint}</p>
+        </div>
+      `;
 
     container.innerHTML = `
       ${typeof extraTopHtml === 'function' ? extraTopHtml(ctx) : extraTopHtml}
+      ${unreadHtml}
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div class="lg:col-span-2">
           <div class="card rounded-xl p-5">
             <div class="flex items-center justify-between mb-4">
               <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
             </div>
-            ${todoListHtml}
+            ${domainListHtml}
           </div>
         </div>
         <div class="lg:col-span-1">
           <div class="card rounded-xl p-5 sticky top-20">
-            <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">详情</h3>
+            <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">${detailTitle}</h3>
             ${detailHtml}
           </div>
         </div>
       </div>
     `;
 
+    // 域折组折叠 / 组行选中 / 行动按钮 / 删除
     bindEvents(container);
-    bindExtras?.(container, ctx);
-    // 详情面板按钮事件
+
+    // 未读条：展开阅读列表 + 标记已读（读后即消，重渲染）
+    container.querySelector(`.${prefix}-unread-toggle`)?.addEventListener('click', () => {
+      const items = container.querySelector(`.${prefix}-unread-items`);
+      const arrow = container.querySelector(`.${prefix}-unread-arrow`);
+      if (!items) return;
+      items.classList.toggle('hidden');
+      if (arrow) arrow.style.transform = items.classList.contains('hidden') ? 'rotate(-90deg)' : 'rotate(0deg)';
+    });
+    container.querySelectorAll(`.${prefix}-unread-open-btn`).forEach(btn => {
+      btn.addEventListener('click', () => {
+        const notice = unreadNotices.find(x => x.id === btn.dataset.noticeId);
+        if (!notice) return;
+        // 直达通知详情页（T-234 F1 同款）；notice 页内已读自动销「通知阅读」待办
+        const noticeId = notice.actionData?.noticeId || notice.sourceId || notice.id;
+        const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
+        window.location.href = `${basePath}notice.html?id=${noticeId}`;
+      });
+    });
+    container.querySelectorAll(`.${prefix}-unread-read-btn`).forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.noticeId;
+        if (!id) return;
+        TodoStore.complete(id);
+        showToast('success', '已标记已读');
+        renderContent(ctx);
+      });
+    });
+
+    // 详情面板按钮事件（内置概要详情 / 书记 remind·seed 详情共用 detailBtnClass）
     container.querySelector(`.${detailBtnClass}`)?.addEventListener('click', () => {
       if (!_selectedTodoId) return;
-      const group = _todoAggregates?.find(g => g.groupKey === _selectedTodoId);
+      const group = allGroups.find(g => g.groupKey === _selectedTodoId);
       if (group) { onAction(group, ctx); return; }
       const todo = TodoStore.getById(_selectedTodoId);
       if (todo) onAction(todo, ctx);
     });
+
+    // 角色扩展（handoff / 成员变更面板 / 自定义详情按钮如一键确认·逐项确认/退回 等）
+    const api = {
+      renderContent: () => renderContent(ctx),
+      clearSelection: () => { _selectedTodoId = null; },
+      selectedTodo,
+    };
+    bindExtras?.(container, ctx, api);
+    if (onAfterRender) await onAfterRender(container, ctx, api);
   }
 
   return { renderContent };

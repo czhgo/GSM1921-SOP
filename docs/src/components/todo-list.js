@@ -2,6 +2,8 @@
 // ════════════════════════════════════════════════════════════════
 //  todo-list.js — 待办列表组件
 //  最小三成本原则落地：进入工作台第一眼即见待办
+//  2026-09-07 IA-C1 Task4：新增 renderDomainTodoList（9 业务域折组列表，六台待办页主列；
+//  数据源=TodoStore.getDomainsWithGroups/mergeRealtimeDomains，域头=域名+计数+逾期红点）
 //  Source: content/04_web_design/data/DATA_ARCHITECTURE.md §2.18.2
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
@@ -193,6 +195,149 @@ export function renderTodoList(opts) {
   return { html, bindEvents };
 }
 
+/**
+ * 渲染「9 业务域折组」待办列表（IA 收敛 C1 Task4 六台待办页主列；替代旧按分类/actionType 大列表）。
+ *
+ * 数据源 = TodoStore.getDomainsWithGroups(role) / mergeRealtimeDomains(role, realtimeGroups) 输出：
+ *   [{ domain, label, count, expiredCount, groups: [{ groupKey, actionKey, title, deadline, count, items }] }]
+ * 呈现（spec 一）：域有活才显；域头=域名 + 计数 + 逾期红点；组行沿用聚合卡行（标题/截止/处理按钮），
+ * 域内组顺序由数据源保证（先逾期 → deadline → actionKey 稳定）。
+ * 默认展开：含逾期域全部展开；无逾期 → count 最大 1-2 个域展开（并列取 2），其余折叠；
+ * 组头点击展开/收起（与既有分类折叠同交互）。
+ *
+ * @param {Object} opts
+ * @param {string} opts.prefix          — 命名前缀（如 'leader'/'secretary'）
+ * @param {Array}  opts.domains         — 域视图数组（getDomainsWithGroups/mergeRealtimeDomains 返回）
+ * @param {string} opts.accent          — 强调色
+ * @param {string} [opts.selectedTodoId]— 当前选中组 groupKey
+ * @param {Function} [opts.onSelectTodo]— 点击组行回调 (group) => void（进详情）
+ * @param {Function} [opts.onActionTodo]— 行动按钮回调 (group) => void
+ * @param {Function|null} [opts.onDeleteTodo] — 删除组回调（null=不渲染删除键；实时组台禁用）
+ * @param {string} [opts.actionBtnStyle]— 行动按钮自定义内联样式（visitor 金色系）
+ * @param {string} [opts.emptyHint]     — 空态引导文案
+ * @returns {{ html: string, bindEvents: (container: HTMLElement) => void }}
+ */
+export function renderDomainTodoList(opts) {
+  const {
+    prefix,
+    domains,
+    accent,
+    selectedTodoId = null,
+    onSelectTodo = () => {},
+    onActionTodo = () => {},
+    onDeleteTodo = null,
+    actionBtnStyle = '',
+    emptyHint = '当前暂无待办。有新的活动、通知或待审事项时，会第一时间出现在这里。',
+  } = opts;
+
+  const today = new Date().toISOString().slice(0, 10);
+  const list = Array.isArray(domains) ? domains : [];
+
+  // 默认展开域：含逾期 → 全部展开；否则 count 最大 1-2 个域（count 并列取 2）
+  const expandedDomains = new Set();
+  const expiredDomains = list.filter(d => (d.expiredCount || 0) > 0);
+  if (expiredDomains.length > 0) {
+    expiredDomains.forEach(d => expandedDomains.add(d.domain));
+  } else {
+    const sorted = [...list].sort((a, b) => (b.count || 0) - (a.count || 0));
+    const take = (sorted.length > 1 && sorted[0] && sorted[0].count === sorted[1].count) ? 2 : 1;
+    sorted.slice(0, take).forEach(d => expandedDomains.add(d.domain));
+  }
+
+  const groupsHtml = list.map(domain => {
+    const isExpanded = expandedDomains.has(domain.domain);
+    const itemsHtml = (domain.groups || [])
+      .map(g => _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo))
+      .join('');
+    return `
+      <div class="${prefix}-todo-group mb-3" data-domain="${domain.domain}">
+        <button type="button" class="${prefix}-todo-group-header w-full text-left flex items-center justify-between px-3 py-2 rounded-t-lg cursor-pointer bg-transparent border-0 hover:bg-gray-50 transition-colors">
+          <div class="flex items-center gap-2">
+            <svg class="${prefix}-todo-arrow w-3 h-3 text-gray-400 transition-transform" style="transform:${isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)'};" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+            </svg>
+            <span class="font-title-cn text-sm font-bold text-gray-700">${domain.label || domain.domain}</span>
+            ${(domain.expiredCount || 0) > 0 ? badgeHtml(`${domain.expiredCount} 条逾期`, 'danger') : ''}
+          </div>
+          <span class="text-xs text-gray-400 tabular-nums">${domain.count || 0}</span>
+        </button>
+        <div class="${prefix}-todo-group-items ${isExpanded ? '' : 'hidden'} rounded-b-lg">
+          ${itemsHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const emptyHtml = list.length === 0 ? `
+    <div class="text-center py-12 text-gray-400">
+      <p class="text-sm">${emptyHint}</p>
+    </div>
+  ` : '';
+
+  const html = `
+    <div class="${prefix}-todo-domain-list">
+      ${groupsHtml}
+      ${emptyHtml}
+    </div>
+  `;
+
+  function bindEvents(container) {
+    if (!container) return;
+
+    // 域折组展开/收起（与既有分类折叠同交互）
+    container.querySelectorAll(`.${prefix}-todo-group-header`).forEach(header => {
+      header.addEventListener('click', () => {
+        const group = header.closest(`.${prefix}-todo-group`);
+        const items = group?.querySelector(`.${prefix}-todo-group-items`);
+        const arrow = header.querySelector(`.${prefix}-todo-arrow`);
+        if (items) {
+          items.classList.toggle('hidden');
+          if (arrow) arrow.style.transform = items.classList.contains('hidden') ? 'rotate(-90deg)' : 'rotate(0deg)';
+        }
+      });
+    });
+
+    // 组行点击 → 选中进详情
+    container.querySelectorAll(`.${prefix}-todo-item-main[data-group-key]`).forEach(main => {
+      main.addEventListener('click', () => {
+        const g = _findGroupInDomains(list, main.dataset.groupKey);
+        if (g) onSelectTodo(g);
+      });
+    });
+
+    // 组行动按钮（"处理"）
+    container.querySelectorAll(`.${prefix}-todo-action-btn[data-group-key]`).forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const g = _findGroupInDomains(list, btn.dataset.groupKey);
+        if (g) onActionTodo(g);
+      });
+    });
+
+    // 删除按钮（域折组内删除 = 删除整组；实时组台 onDeleteTodo=null 不渲染）
+    if (typeof onDeleteTodo === 'function') {
+      container.querySelectorAll(`.${prefix}-todo-del-btn[data-group-key]`).forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const g = _findGroupInDomains(list, btn.dataset.groupKey);
+          if (g) onDeleteTodo(g);
+        });
+      });
+    }
+  }
+
+  return { html, bindEvents };
+}
+
+/** 域视图（展平）中按 groupKey 找组 */
+function _findGroupInDomains(domains, groupKey) {
+  for (const d of domains || []) {
+    const g = (d.groups || []).find(x => x.groupKey === groupKey);
+    if (g) return g;
+  }
+  return null;
+}
+
 // ── 渲染单个分类分组 ──────────────────────────────────────────
 function _renderCategoryGroup(prefix, category, todos, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo) {
   const label = TODO_CATEGORY_LABELS[category] || category;
@@ -355,7 +500,7 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
         </span>
       </button>
       <div class="flex items-center gap-1.5 ml-2 pr-3 flex-shrink-0">
-        <button type="button" class="${prefix}-todo-action-btn text-xs px-3 py-1.5 rounded-lg transition-colors hover:opacity-90" data-group-key="${g.groupKey}" style="${actionBtnStyle || solidAccentStyle(accent)}">${actionLabel}</button>
+        ${g.hideActionBtn ? '' : `<button type="button" class="${prefix}-todo-action-btn text-xs px-3 py-1.5 rounded-lg transition-colors hover:opacity-90" data-group-key="${g.groupKey}" style="${actionBtnStyle || solidAccentStyle(accent)}">${actionLabel}</button>`}
         ${onDeleteTodo ? `<button type="button" class="${prefix}-todo-del-btn text-xs text-gray-300 hover:text-red-500 px-1.5 py-1 rounded hover:bg-red-50 transition-colors" data-group-key="${g.groupKey}" title="删除该组待办" style="cursor:pointer;">✕</button>` : ''}
       </div>
     </div>
