@@ -706,3 +706,12 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - 死键清理：todo-list 删 renderTodoList 及其辅助与 taskforce-archive/notice-read/review-submit 按钮展示、leader actionKeyMap（attendance-upload/review-submit）、disc jump 死键、org 未用 import；secretary taskforce-approval 兼容销存量块保留注释登记；todo-jump 无死键未改。
 **验收**：todo-domain 6/6、todo-deriver-domain 9/9、todo-domain-view 6/6；回归 member-confirmation 17、resolution-followup 29、today-summary/thought-review 等全绿；核心纯逻辑组（17 文件）EXIT=0 全绿；GetDiagnostics 0。全量其余 ✖=既有浏览器环境性集合。版本串 bump 统一在 C2/C3 收口轮做；浏览器目视（9 域页/未读条/折叠）留常规终端。
 **遗留**：secretary 布局变化（待答复/专班待议/成员变更=整行置顶卡）需目视；折叠态每次渲染回默认；todo-list renderTodoList 清理已完成。
+
+**T-2026-09-061 IA 收敛 C2 卡片收敛 + C3 中低清理 + 版本串收口完成（2026-09-06/07，commits 452ae0a9/c2fdaac9/d3efaca8/bd7fccbe/41de33af）**
+**C2 高影响 4 项（②③④+①已由 C1 域视图承接）**：
+- K1 人才库滞留直改位移除（org/talent-tab.js）：成员状态区只读化（删 select/保存与 talent-res-save 写口），旁注"阶段/在册/滞留变更请到成员名册报送书记确认"（C 批确权一致）。
+- K2 复盘入口统一（leader/review-tab.js 只读化）：页改"本组活动复盘状态"（待复盘/已复盘+徽标），去提交表单；tab 文案"复盘提交"→"复盘状态"；visitor 提交规则复核=组织者/深度者（组长兼组织者时其活动在其"我的复盘"出现）。
+- K3 汇报收件处理位=我的处置：services/issues.js 标题计数对齐/时间倒序补强；新增 components/overview-dispatch-bar.js 绕行直达条，接入 org/prop/disc/leader 四个可改 overview 壳（"待答复 n · 去处理"→本台我的处置/组长组员进展）；visitor 无 my-dispatch 登记不加、书记台 overview 禁改登记（待办页已有待答复入口）；登记 u_* 旧指派 id 接缝遗留另立项。
+**C3 中低清理 4 项**：①专班详情"添加考察记录"写入口只读化（考察统一走组织台考察上传；tfSubRecords 只读展示保留）；②发展数据思想汇报只读展开改"已归档 N 篇"计数（thought-review tab 承载详情）；③today 卡「我的分工」→「今日分工」；④书记 calendar 考勤概况默认折叠（避免与全局概况 KPI 同屏复读）。
+**版本串收口**：C1-C3 功能链全链→20260906j（37 文件；六 html/entry/workspace、todo 链、org/leader 链、overview-dispatch-bar 等）；**修复 h 轮事故**：0f26fe80 曾把 disc/leader/prop/visitor.html 的入口 script 误写为目录占位 ./src/entries/（致 4 工作台页无法加载），本次恢复为 ws-{role}-entry.js?v=20260906j（教训：html script src 编辑必须保留完整入口文件名，入库提醒）。禁改引用（work-overview/secretary overview/activity-entry/mock 链等）保持旧串=强刷登记。
+**验收**：todo-domain/deriver-domain/domain-view/today-summary/thought-review/member-confirmation/resolution-followup 56/56 绿；C2/C3 相关回归（taskforce-lifecycle 14、thought-review 8 等）全绿；GetDiagnostics 0。全量浏览器项仍环境性。浏览器目视（9 域待办页/直达条/折叠）留常规终端。
