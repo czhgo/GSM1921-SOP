@@ -1,9 +1,9 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // help-entry.js — 帮助页入口（系统说明书）
 
 import { renderSidebar } from '../components/sidebar.js?v=20260903c';
 import { renderHeader } from '../components/header.js?v=20260903c';
-import { renderHelpCatalog } from '../modules/help-catalog.js?v=20260903c';
+import { renderHelpCatalog } from '../modules/help-catalog.js?v=20260908a';
 
 // 静态壳模式（2026-08-12）：help 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
 // 仅渲染共享侧边栏/顶栏壳；通知铃首次点击时才按需加载通知模块。
@@ -15,8 +15,9 @@ renderHeader('help', { staticShell: true });
 renderHelpCatalog(document.getElementById('help-toc-slot'));
 
 // ── 右侧圆点目录（参考关于页 .help-toc-nav）──
-// 2026-09-07 C1 批次：help 重组为 0–7 章编号骨架（0 入口速查 / 1 快速上手 / 2 角色工作台导览 /
-// 3 域手册[C2] / 4 业务链路[C3] / 5 党委与配置[C3] / 6 系统理念 / 7 技术架构）；
+// 2026-09-07 起：help 重组为 0–7 章编号骨架（0 入口速查 / 1 快速上手 / 2 角色工作台导览 /
+// 3 域手册 / 4 业务链路 / 5 党委与配置 / 6 这个系统在干什么 / 7 技术架构）；
+// 各章已全部成章（C1 骨架 + C2 域手册 + C3 链路与党委配置收口）；
 // 与 help.html 静态章节 id、help-catalog.js 左侧目录树保持同一序列。
 const TOC_ITEMS = [
   { id: 'sec-ack',        label: '致谢' },

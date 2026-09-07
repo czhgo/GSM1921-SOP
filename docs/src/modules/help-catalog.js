@@ -5,13 +5,13 @@
 // 功能地图 mindmap 与业务链路 flowchart 以 <pre class="mermaid"> 文本注入（源文本来自共享模块
 // src/core/mermaid-sources.js，与 gen 脚本同实现），由 help-entry.js 懒加载 mermaid CDN 渲染
 // （离线失败保留 .mermaid-fallback 降级文本）
-import { FUNCTION_GROUPS, FUNCTION_CATALOG } from '../core/function-catalog.js?v=20260903c';
-import { generateMindmapText, FLOW_LINKS } from '../core/mermaid-sources.js?v=20260903c';
+import { FUNCTION_GROUPS, FUNCTION_CATALOG } from '../core/function-catalog.js?v=20260908a';
+import { generateMindmapText, FLOW_LINKS } from '../core/mermaid-sources.js?v=20260908a';
 import { escHtml as esc } from '../core/utils.js?v=20260903c';
 
 // 目录树（左）：0–7 章 + 致谢/免责声明（与 help.html 静态章节 id、help-entry.js TOC_ITEMS 同一序列）
 // 2026-09-07 C1 批次：原「功能地图/党建等组卡片/业务链路/权限体系」目录项随章节骨架重组撤销——
-// 卡片组仍由 catalog 渲染（过渡内容，位于第 2 章导览之后），C2 批次将并入第 3 章「域手册」。
+// 卡片组仍由 catalog 渲染（检索总览，位于第 2 章导览之后）；单功能细则/链路/党委配置已分别成章（第 3/4/5 章，C2/C3 完成）。
 const TOC_CHAPTERS = [
   { id: 'sec-ack',        label: '致谢' },
   { id: 'sec-entries',    label: '0 入口速查' },
@@ -51,8 +51,8 @@ export function renderHelpCatalog(root) {
     <div id="help-search-results" class="help-search-results" hidden></div>`;
   (searchSlot || root).appendChild(searchBox);
 
-  // ── 功能章节卡片（#help-catalog-slot：6 组 feature 条目；位于功能地图之后、第 3 章「域手册」之前——
-  //   C1 起为过渡内容（第 2 章导览之后），C2 批次并入 sec-domains 改写为域手册）──
+  // ── 功能章节卡片（#help-catalog-slot：5 组 feature 条目；位于功能地图之后、第 3 章「域手册」之前——
+  //   一句话名册供快速检索；细则正文见第 3/4/5 章（C2/C3 后本区保留为检索总览））──
   const catalogSlot = document.getElementById('help-catalog-slot');
   const content = document.createElement('div');
   content.className = 'help-catalog-cards';

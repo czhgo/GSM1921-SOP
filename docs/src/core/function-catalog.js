@@ -50,7 +50,7 @@ export const FUNCTION_CATALOG = [
   { id: 'feedback', name: '意见反馈', group: '公共', role: 'public', desc: '提交建议与问题，书记反馈并跟进处理', usage: '公共页面 → 意见反馈', related: ['notification'], generic: true, kind: 'feature' },
   { id: 'todo', name: '个人待办', group: '公共', role: 'member', tab: 'todo', desc: '通知/活动/专班自动派生待办与收件箱', usage: '各工作台 → 待办', related: ['notification', 'activity-create'], generic: true, kind: 'feature' },
   { id: 'attendance-personal', name: '个人考勤', group: '公共', role: 'member', tab: 'attendance', desc: '查看个人考勤与补课状态', usage: '成员工作台 → 个人考勤', related: ['attendance-mgmt', 'makeup'], generic: true, kind: 'feature' },
-  { id: 'help', name: '帮助（本页）', group: '公共', role: 'public', desc: '系统说明书：0–7 章（入口速查 / 快速上手 / 角色工作台导览 / 域手册 / 业务链路 / 党委与配置）+ 搜索 + 功能总览', usage: '侧边栏 → 帮助', related: ['about'], generic: true, kind: 'feature' },
+  { id: 'help', name: '帮助（本页）', group: '公共', role: 'public', desc: '系统说明书：0–7 章（入口速查 / 快速上手 / 角色工作台导览 / 域手册 / 业务链路 / 党委与配置 / 这个系统在干什么 / 技术架构）+ 页顶搜索 + 功能总览', usage: '侧边栏 → 帮助', related: ['about'], generic: true, kind: 'feature' },
   { id: 'about', name: '关于', group: '公共', role: 'public', desc: '项目介绍与叙事', usage: '侧边栏 → 关于（静态托管形态）', related: ['help'], generic: true, kind: 'feature' },
   // ══════════ 角色工作台 ══════════
   { id: 'ws-secretary', name: '书记工作台', group: '角色工作台', role: 'secretary', desc: '今天/待办/全局概况/活动管理/支部分工/赋权管理/支部配置/通知发布/专班查看/反馈管理/上报党委（11 tab，副书记共台）', usage: '登录 → 书记工作台（书记/副书记）', related: ['activity-create', 'assign', 'notification', 'todo'], generic: true, kind: 'feature' },
@@ -70,12 +70,12 @@ export const FUNCTION_CATALOG = [
   // 事务型链路：
   { id: 'flow-taskforce', name: '专班链路', group: '活动与专班', desc: '发起 → 招募统筹 → 定人定责定岗 → 执行记录', related: ['taskforce-create', 'taskforce-recruit', 'taskforce-assign'], generic: true, kind: 'flow' },
   { id: 'flow-development', name: '发展党员链路', group: '党建', desc: '支委会推荐发展对象 → 党员大会表决 → 记录议程通过 → 组织委员审批 → 书记确认更新阶段', related: ['development', 'member-change', 'agenda', 'flow-inspection'], generic: true, kind: 'flow' },
-  { id: 'flow-inspection', name: '考察积极分子链路', group: '党建', desc: '组长日常观察 → 组织委员建档归集 → 反馈书记 → 支委会/大会讨论', related: ['inspection', 'talent', 'thought-report', 'development'], generic: true, kind: 'flow' },
+  { id: 'flow-inspection', name: '考察积极分子链路', group: '党建', desc: '组长/专班上传考察 → 纪检确认 → 组织委员建档归集 → 支委会/大会讨论', related: ['inspection', 'talent', 'thought-report', 'development'], generic: true, kind: 'flow' },
   { id: 'flow-institution', name: '制度制定与迭代链路', group: '党建', desc: '条条委员起草试点 → 各党小组征求意见 → 修改提交 → 支委会审议 → 党员大会表决 → 监督落实修订', related: [], generic: true, kind: 'flow' },
   { id: 'flow-makeup', name: '补课回写链路', group: '党建', desc: '纪检记录缺勤 → 生成补课任务 → 成员完成 → 考勤回写/逾期清除', related: ['makeup', 'attendance-mgmt'], generic: false, kind: 'flow' },
-  { id: 'flow-thought-report', name: '思想汇报链路', group: '党建', desc: '党员提交 → 系统自动归集 → 组织委员查看调用', related: ['thought-report', 'talent'], generic: true, kind: 'flow' },
+  { id: 'flow-thought-report', name: '思想汇报链路', group: '党建', desc: '党员提交 → 组织委员把关式初阅（通过归档 / 退回附意见重交）→ 归集个人档案', related: ['thought-report', 'talent'], generic: true, kind: 'flow' },
   // ══════════ 架构（kind: arch） ══════════
-  { id: 'arch-layers', name: '架构分层', group: '公共', desc: '前台 14 页 → 中台 entries/components/core → 服务层 services/mock → 后端 server/API → 母本 sop', related: ['arch-service-deps', 'arch-data-flow'], generic: true, kind: 'arch' },
+  { id: 'arch-layers', name: '架构分层', group: '公共', desc: '前台 18 页（11 根 + 7 工作台） → 中台 entries/components/core → 服务层 services/mock → 后端 server/API → 母本 sop', related: ['arch-service-deps', 'arch-data-flow'], generic: true, kind: 'arch' },
   { id: 'arch-service-deps', name: '服务依赖', group: '公共', desc: '服务模块调用关系（activity → attendance → review → todo）', related: ['arch-layers'], generic: true, kind: 'arch' },
   { id: 'arch-data-flow', name: '数据变更链路', group: '公共', desc: '制度母本 → 服务层 → 入口层 → 页面；UI 禁止直改数据源', related: ['arch-layers'], generic: true, kind: 'arch' },
 ];

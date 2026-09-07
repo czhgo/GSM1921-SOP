@@ -266,7 +266,7 @@
               <tr><td><a href="./feedback.html">意见反馈</a></td><td>提交建议与问题，书记反馈并跟进处理</td><td>页面公共；提交需登录</td><td>侧边栏「意见反馈」</td></tr>
               <tr><td><a href="./help.html">帮助（本页）</a></td><td>系统说明书：目录树 + 搜索 + 章节讲解 + 功能地图</td><td>公共</td><td>侧边栏「帮助」</td></tr>
               <tr><td><a href="./about.html">关于</a></td><td>支部故事、成长路径与工作哲学（叙事性介绍）</td><td>公共</td><td>侧边栏「关于」（静态托管形态显示）</td></tr>
-              <tr><td><a href="./wizard.html">换组织向导</a></td><td>换组织 / 初始化：组织信息、模块组合、角色分工、换壳工作单、验证与重置（30 分钟跑起来）</td><td>部署者 / 书记</td><td>直接访问 wizard.html；书记台「支部配置」为同源内嵌入口</td></tr>
+              <tr><td><a href="./wizard.html">换组织向导</a></td><td>换组织 / 初始化：组织信息、模块组合、角色分工、换壳工作单、验证与重置（30 分钟跑起来）</td><td>党委组织员（任意支部）/ 现任书记（本支部）</td><td>直接访问 wizard.html；党委台「支部配置」与书记台「支部配置」为同源内嵌入口（5 步说明见第 5 章 5.2）</td></tr>
               <tr><td><a href="./workspace/secretary.html">书记工作台</a></td><td>书记 / 副书记共台的全部工作视图（11 个 tab，见 2.1）</td><td>书记 / 副书记</td><td>登录后自动直达；侧边栏「工作台」按身份直达</td></tr>
               <tr><td><a href="./workspace/org.html">组织委员工作台</a></td><td>组织委员全部工作视图（11 个 tab，见 2.2）</td><td>组织委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
               <tr><td><a href="./workspace/prop.html">宣传委员工作台</a></td><td>宣传委员全部工作视图（8 个 tab，见 2.3）</td><td>宣传委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
@@ -526,8 +526,8 @@
         <p class="doc-note">用法习惯：翻到你自己那台后，头几次只需要记住两个位置——「待办」（系统替你把要做的事列好并指明去哪做）和「党建」组里的职责 tab（写操作都在这）。其余 tab 按需查看即可。</p>
       </section>
 
-      <!-- ========== 过渡暂存区：功能总览（catalog 驱动；将随第3/4章正式编写并入对应章） ========== -->
-      <p class="doc-note" style="margin-bottom:22px;">以下「功能总览」（功能地图 + 按组分组的全部功能卡片）是目录驱动的现行总览，属过渡期内容：后续版本将并入第 3 章「域手册」（C2 填充）与第 4 章「业务链路」的正式章节；此前的搜索仍全文覆盖这些卡片。</p>
+      <!-- ========== 功能总览区（catalog 驱动的检索总览；第 2 章之后、第 3 章之前） ========== -->
+      <p class="doc-note" style="margin-bottom:22px;">以下「功能总览」（功能地图 + 按组分组的全部功能卡片）是目录驱动的检索总览：卡片 = 功能的一句话名册；用法细则在第 3 章「域手册」，跨角色先后顺序在第 4 章「业务链路」，党委侧操作与支部配置在第 5 章。页顶搜索全文覆盖本页全部卡片。</p>
 
       <!-- ========== 功能地图（mermaid 懒加载，离线降级为文本占位） ========== -->
       <section class="doc-card" id="sec-功能地图">
@@ -580,7 +580,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">创建表单「会议议程」区：填「议题 + 主持人」，可「＋ 添加议程」多条；一条议题可同时打两种类型签（不互斥）——「讨论文件」：关联会前草案（支部文件下拉；无草案时引导去资料查询页写入）；「待讨论名单」：选名单统一阶段转换（从阶段 → 到阶段 + 多选人员，如讨论 N 名发展对象转预备）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">会后在活动详情页对该条议程「记录通过 / 记录未通过」。</li>
           </ol>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>「讨论文件」记录「通过」→ 该会前草案自动转为「已归档」并记录讨论来源（资料查询页展示「经《会议》讨论通过」），宣传档案线无需二次上传；「待讨论名单」记录「通过」→ 名单内每人自动生成一条成员变更申请，走「组织委员审批 → 书记确认 → 更新发展阶段」留痕链（发展链路，见 3.5 与 4 章发展链路）；支部党员大会线上表决场景下记录「通过」前先做出席 / 赞成过半数硬校验（见下条）。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>「讨论文件」记录「通过」→ 该会前草案自动转为「已归档」并记录讨论来源（资料查询页展示「经《会议》讨论通过」），宣传档案线无需二次上传；「待讨论名单」记录「通过」→ 名单内每人自动生成一条成员变更申请，走「组织委员审批 → 书记确认 → 更新发展阶段」留痕链（发展链路，见 3.5 与 4.5 发展党员链路）；支部党员大会线上表决场景下记录「通过」前先做出席 / 赞成过半数硬校验（见下条）。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>记录「未通过」不触发上述任何派生；应到会有表决权党员出席未过半数、或赞成未过半数时系统拦截「记录通过」并给出可采取动作提示（督促未表态党员表态 / 继续沟通争取赞成票），不能强行记为通过。</p>
         </div>
 
@@ -944,7 +944,7 @@
 
         <!-- 3.7 决议上报 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">3.7</span>决议上报</h3>
-        <p class="doc-p">决议上报域含两个闭环：<strong>① 会议决议「待落实」跟踪</strong>——会议记录「通过」的决议可登记待落实项 → 自动生成责任人跟进待办（到期当天催办）→ 逾期自动进书记台待办督办 → 书记销项；<strong>② 支部关键事项上报党委</strong>——书记台「上报党委」发起（发展节点 / 活动报备）→ 党委台上报审批逐项批复（驳回必带意见）→ 结论回传支部侧本页。处理位提示：决议落实写在活动详情页记录决议视图（书记）；上报在书记台「对接党委」段「上报党委」，党委侧在党委工作台「上报审批」（组织级，第 5 章 C3 将展开党委全部配置）。</p>
+        <p class="doc-p">决议上报域含两个闭环：<strong>① 会议决议「待落实」跟踪</strong>——会议记录「通过」的决议可登记待落实项 → 自动生成责任人跟进待办（到期当天催办）→ 逾期自动进书记台待办督办 → 书记销项；<strong>② 支部关键事项上报党委</strong>——书记台「上报党委」发起（发展节点 / 活动报备）→ 党委台上报审批逐项批复（驳回必带意见）→ 结论回传支部侧本页。处理位提示：决议落实写在活动详情页记录决议视图（书记）；上报在书记台「对接党委」段「上报党委」，党委侧在党委工作台「上报审批」（组织级；党委台全量操作见第 5 章 5.1）。</p>
 
         <div class="help-card" id="card-dom37-resolution" data-search="决议 落实 待落实 责任人 时限 跟进待办 到期催办 逾期 书记督办 销项 恢复 决议落实逾期">
           <h4 class="help-card-title">会议决议落实（登记待落实 → 责任人跟进 → 逾期书记督办 → 销项）</h4>
@@ -976,7 +976,7 @@
 
         <div class="help-card" id="card-dom37-pc-approve" data-search="决议上报 上报审批 党委组织员 批准 驳回 意见 逐项批复 支部 发展节点 活动报备">
           <h4 class="help-card-title">党委批复（党委台「上报审批」· 组织级）</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>党委工作台「全院治理」段「上报审批」tab（组织级角色 party-staff；党委工作台全量说明见第 5 章 C3 批次）。</p>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>党委工作台「全院治理」段「上报审批」tab（组织级角色 party-staff；党委台全量操作见第 5 章 5.1）。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>党委组织员逐项批复（支部上报方查看结论）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
@@ -1149,7 +1149,7 @@
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>外发 ≠ 上传：材料本体始终在系统档案内（微信外发为线下动作，系统内只做内控闭环）；发送方未标记外发则无接收侧动作（材料仅归档）。</p>
         </div>
 
-        <p class="doc-note" style="margin-top:22px;">本批次（C2a + C2b）已覆盖 ①—⑨ 全部九个工作域：① 会务 ② 活动 / 项目 ③ 考勤纪律 ④ 考察 ⑤ 成员发展 ⑥ 专班 ⑦ 决议上报 ⑧ 归档与宣传 ⑨ 汇报与反馈；党委组织员侧（全院治理 / 上报审批 / 下发通知 / 支部配置）留待第 5 章 C3 批次展开。各域现行 tab 概览见第 2 章，功能检索用页顶搜索框。</p>
+        <p class="doc-note" style="margin-top:22px;">第 3 章已覆盖 ①—⑨ 全部九个工作域：① 会务 ② 活动 / 项目 ③ 考勤纪律 ④ 考察 ⑤ 成员发展 ⑥ 专班 ⑦ 决议上报 ⑧ 归档与宣传 ⑨ 汇报与反馈；各域的跨角色先后顺序与交接点见第 4 章，党委组织员侧（全院治理 / 上报审批 / 下发通知 / 支部管理 / 支部配置）的党委台操作与支部配置向导见第 5 章。各域现行 tab 概览见第 2 章，功能检索用页顶搜索框。</p>
       </section>
 
       <!-- ========== 第4章 业务链路 ========== -->
@@ -1157,19 +1157,204 @@
         <h2 class="doc-h2"><span class="doc-num">4</span>业务链路</h2>
         <hr class="doc-divider">
         <p class="doc-p doc-lead">
-          跨角色的工作怎么流转（图中节点 = 执行者：任务）。以下为现行角色化业务链路总览（图源由目录驱动、离线自动降级为文字说明）；C3 批次将在此基础上补充细化的链路手册说明。
+          第 3 章讲「单个功能怎么用」；本章讲<strong>从起点到终点的先后顺序与交接点</strong>——每条链路按「谁 → 在哪做 → 系统自动发生什么 → 下一步去哪」写清，共 10 条（4.1—4.10）。紧下方总览图由功能目录驱动（12 条角色化链路，节点 = 执行者：任务；离线自动降级为文字说明）；同一条业务在文字里的端到端顺序与交接点，比图的节点串更细、以文字为准。
         </p>
         <div id="mermaid-flows"></div>
+
+        <!-- 4.1 三会一课链路 -->
+        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">4.1</span>三会一课链路</h3>
+        <div class="help-card" id="card-chain-sanke" data-search="业务链路 三会一课 支部党员大会 支委会 党小组会 党课 会议创建 议程 记录通过 考勤 归档 交接">
+          <h4 class="help-card-title">创建 → 议程 → 记录 → 考勤 → 归档（支部党员大会 / 支委会 / 党小组会 / 党课）</h4>
+          <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 创建：书记 / 副书记在书记台「活动管理 → 写入活动」选三会一课子类建会（党小组会由组长在组长台建）；自动按会议类型实例化 SOP 待办（T-7 筹备 → T-3 通知到人 → T0 签到考勤 → T+3 汇总 → T+5 归档 / 补课跟进），填了预拟通知即自动发布并派生成员待办。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">议程编排（创建表单「会议议程」区）：一条议题可同时打「讨论文件」（关联会前草案）与「待讨论名单」（统一阶段转换）两种签；会后书记在活动详情页逐条「记录通过 / 未通过」。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">记录后的自动派生：讨论文件「通过」→ 草案自动转「已归档」并标讨论来源（宣传无需二次上传）；待讨论名单「通过」→ 名单内每人自动生成成员变更申请，走「组织审批 → 书记确认 → 阶段更新」（接 4.5）；支部党员大会线上表决先做出席 / 赞成双过半硬校验。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">考勤交接：党小组会考勤由组长上传（3.1），党课 / 支部党员大会 / 支委会由纪检直接录入（3.3）；出勤 / 已补源头自动确认，异常自动生成补课任务并入纪检「待确认」队列（接 4.3）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 归档：纪检确认考勤后「提交考勤至宣传」备案（3.3）；会议材料与宣传产出由宣传台「档案归档」收口（3.8）。</li>
+          </ol>
+        </div>
+
+        <!-- 4.2 主题党日链路 -->
+        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">4.2</span>主题党日链路</h3>
+        <div class="help-card" id="card-chain-theme" data-search="业务链路 主题党日 选型 报名 分工 赋权 实施监督 复盘 经验沉淀 宣传归档 品牌">
+          <h4 class="help-card-title">选型创建 → 报名分工 → 实施监督 → 复盘 → 宣传归档</h4>
+          <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 选型创建：书记 / 组长在「写入活动」点主题党日模板卡（整卡可点），按共建 / 内外 / 载体三维选型填表；自动按场景排 SOP 节点（T-7 支委扩大会讨论 → T-2 通知 + 纪检对接考勤与复盘底线 → T0 实施 → T+1 复盘提醒 → T+7 材料归档）；支部停用「主题党日组织块」时模板卡隐藏（见 5.2）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">报名与分工：成员在详情页报名——普通参与即通过并写入分工名单，申请深度参与 / 组织者待发起人审核（3.2）；创建时未选参与人 → 自动派生赋权待办，组长 / 组织委员选人后即定人定责定岗。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">实施与监督：现场签到 / 拍照 / 关键发言记录收齐（3.2）；纪检按弹性考勤口径核对，并监督复盘底线（超期由纪检提醒督促）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">复盘交接：组织者 / 深度参与者在成员台「我的复盘」提交 → 纪检「活动监督复盘」批注 / 打回 / 确认 → 复盘闭环；已确认未沉淀 → 纪检台自动出现「经验沉淀督促」清单。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 宣传归档：复盘闭环后宣传侧按项目看板 / 档案归档收口（摘要 + 配图等产出，见 3.8）。</li>
+          </ol>
+        </div>
+
+        <!-- 4.3 考勤纪律链路 -->
+        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">4.3</span>考勤纪律链路</h3>
+        <div class="help-card" id="card-chain-attendance" data-search="业务链路 考勤纪律 考勤上传 纪检录入 待确认 确认 自动补课 补课回写 宣传备案 数据交接">
+          <h4 class="help-card-title">组长上传 / 纪检录入 → 纪检确认 → 自动补课 → 宣传备案</h4>
+          <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 两条录入线：党小组会 = 组长台「考勤上传」（候选取本组应到名单，可批量设状态）；党课 / 支部党员大会 / 支委会 = 纪检台「考勤管理 · 会议考勤录入」（滞留党员线下到场单独补录、计到席）——纪检录入即确认。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">自动分流：出勤 / 已补 = 源头审校自动确认，不进纪检队列；异常（缺勤 / 请假）自动生成补课任务（截止 = 活动日 + 7 天）并入纪检「待确认」队列，党小组会异常同样等纪检复核。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">纪检确认：纪检台「考勤管理」待确认队列逐条确认（超期红标优先；也可在考勤总表按状态筛选逐行确认）→ 写确认人留痕，自动通知组织委员「考勤已确认并归档至考察档案」。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">补课闭环：成员线下完成（必修 = 自学 + 心得 / 选修 = 自学）→ 纪检「补课制度」确认完成 → 对应考勤自动回写「已补」、逾期清除；超期任务自动汇总为超期提醒红块。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 备案交接：纪检「提交考勤至宣传」→ 宣传委员待办收件箱确认接收（双向可追溯）；活动归档后其考勤退出工作区、历史仍在档案可查。</li>
+          </ol>
+        </div>
+
+        <!-- 4.4 考察链路 -->
+        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">4.4</span>考察链路</h3>
+        <div class="help-card" id="card-chain-inspection" data-search="业务链路 考察 考察上传 党小组 专班 纪检确认 超期提醒 提交考察至支委会 组织建档 人才库 素材">
+          <h4 class="help-card-title">考察上传 → 纪检确认 → 交接组织建档（供发展使用）</h4>
+          <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 上传位：活动侧 = 组长（本组党小组会 / 本人组织的活动）；专班侧 = 组织委员 / 专班负责人——在「考察上传」选来源对象、逐人填考察内容 → 自动入纪检台「考察管理」考察总表（状态 = 待确认，留痕上传人）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">纪检确认：纪检台「考察管理」对「待确认 / 超期」行「确认」（待确认超过 7 天自动标「超期」入顶部红块）；误传仅待确认可删。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">交接建档：纪检「提交考察至支委会」→ 组织委员待办收件箱确认接收 → 自动建档归集（人才库 / 考察档案即时可用，双向可追溯）；未确认条不阻塞已确认流转。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 供发展：归集后的考察材料成为发展党员的判断素材（接 4.5）；活动类考勤确认同样自动归档至考察档案（4.3 第 3 步同口）。</li>
+          </ol>
+        </div>
+
+        <!-- 4.5 发展党员链路 -->
+        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">4.5</span>发展党员链路</h3>
+        <div class="help-card" id="card-chain-development" data-search="业务链路 发展党员 发展数据 管线 积极分子 发展对象 预备党员 转正 待讨论名单 成员变更审批 名册确权 书记确认 应到口径">
+          <h4 class="help-card-title">管线推进 / 名册确权 → 书记确认（材料自动归集）</h4>
+          <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">素材积累（自动）：思想汇报归档（4.6）与考察确认建档（4.4）自动归集到人，发展卡片上的考察条数 / 汇报归档数同步刷新。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">管线追踪：组织台「发展数据」按积极分子 → 发展对象 → 预备党员 → 正式党员四段查看与「推进至下一阶段」（日常追踪；正式确权以名册为准）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">确权来源一 · 会议名单：大会 / 支委会「待讨论名单」记录通过 → 每人自动生成成员变更申请 → 组织台待办「成员变更审批」通过 → 广播全体支委 → 书记确认 → 阶段更新（4.1 第 3 步）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">确权来源二 · 名册行内：组织台「成员名册」改发展阶段 / 在册滞留或发起移出 → 书记台待办「成员变更待确认」确认生效或退回 → 应到口径联动（滞留剔除、通知照发）；有历史的移出经书记确认转「已转出」标注。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 节点上报：确定积极分子 / 发展对象、接收预备、转正等关键节点按 4.9 上报党委，获批后继续推进。</li>
+          </ol>
+        </div>
+
+        <!-- 4.6 思想汇报把关链路 -->
+        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">4.6</span>思想汇报把关链路</h3>
+        <div class="help-card" id="card-chain-thought" data-search="业务链路 思想汇报 提交 待初阅 把关 初阅 通过归档 退回 重交 组织委员 个人档案">
+          <h4 class="help-card-title">成员提交 → 组织初阅 → 归档 / 退回重交</h4>
+          <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 提交：成员台「思想汇报」写正文提交（状态 = 待初阅），自动通知组织委员。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">把关：组织台「思想汇报」待初阅队列先到先阅 → 「通过 · 归档」或「退回 · 需补充」（退回必填意见），每次初阅留痕（谁 / 何时 / 意见）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">退回重交：提交人见退回原因 → 修改后重新提交 → 回待初阅队列（历史留痕保留，不重复归档）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点：通过即正式归档并自动归集至个人档案（人才库 / 发展数据归档计数同步），供 4.4 考察与 4.5 发展调用。</li>
+          </ol>
+        </div>
+
+        <!-- 4.7 专班链路 -->
+        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">4.7</span>专班链路</h3>
+        <div class="help-card" id="card-chain-taskforce" data-search="业务链路 专班 发起 支委会表决 招募 报名审核 启动 定人定责定岗 产出核验 复盘 解散表决 归档">
+          <h4 class="help-card-title">发起 → 支委会表决 → 招募 → 执行核验 → 复盘 → 解散表决</h4>
+          <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 发起：组织台「发布招募」填名称 / 任务 / 人数 / 截止（可带初始成员与预拟通知）→ 创建即自动报送支委会表决（不派生单人审批待办）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">支委会表决：书记台待办「专班待议（支委会）」排入线上支委会 → 固化名单支委表态 → 书记「查看表决结果并生效」——通过转「招募中」，未通过退草稿可改后重新报送。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">招募与分工：成员在专班详情页报名（普通即通过；深度参与 / 组织者待发起人审核）；组织启动专班转「运行中」→ 配置成员角色（组织者 / 深度参与者），保存即同步赋权链并通知本人。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">执行与核验：成员逐条填报本人产出 → 组织「逐条核验」同意入档 / 退回补料（留痕）；中间进度由组织侧填时间线；书记 / 组长 / 纪检「专班查看」只读知情（看 ≠ 做）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">复盘：组织侧在专班详情提交复盘 → 纪检「活动监督复盘」批注 / 打回 / 确认闭环。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 解散表决：组织「报送解散表决」（前置：成员考察已确认 + 有工作量报告）→ 书记排入支委会表决 → 通过置「已解散」并落日期、未通过继续运行（历次表决 append-only 留痕）。</li>
+          </ol>
+        </div>
+
+        <!-- 4.8 决议落实链路 -->
+        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">4.8</span>决议落实链路</h3>
+        <div class="help-card" id="card-chain-resolution" data-search="业务链路 决议落实 待落实 责任人 时限 跟进待办 催办 逾期 书记督办 销项 恢复">
+          <h4 class="help-card-title">记录决议 → 责任人待办 → 逾期书记督办 → 销项</h4>
+          <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 登记：书记 / 副书记在活动详情页对已记录「通过」的议程，于「决议落实」卡添加待落实项（事项 + 责任人 + 时限）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">自动派生：保存即生成责任人跟进待办（责任人在本人工作台「决议上报」域折组可见）；到期当天 = 催办窗口，到期后待办自动转「已超期」。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">逾期督办：逾期未落实 → 书记台待办自动出现「决议落实逾期」提醒组（事项 / 会议 / 责任人 / 时限），点击直达决议视图督办。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 销项：责任人完成后反馈书记 → 书记销项（误销可恢复）→ 责任人跟进待办同步完成、逾期提醒消失；销项与恢复均留痕。</li>
+          </ol>
+        </div>
+
+        <!-- 4.9 上报党委链路 -->
+        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">4.9</span>上报党委链路</h3>
+        <div class="help-card" id="card-chain-report-up" data-search="业务链路 上报党委 发起上报 发展节点 活动报备 党委批复 批准 驳回 意见 结论回传 上报审批">
+          <h4 class="help-card-title">支部上报 → 党委批复 / 驳回 → 结论回传支部</h4>
+          <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 发起：书记台「对接党委」段「上报党委」→「+ 发起上报」选事项类型（发展节点 / 活动报备）+ 标题 + 说明 → 提交，自动同步党委台「上报审批」待批复区。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">党委批复：党委组织员在党委工作台「上报审批」逐项处理——「批准」（可附指导意见）或「驳回」（必填意见），操作见 5.1 表；已处理历史在党委台留存可查。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">结论回传：支部侧「上报党委」列表自动刷新状态与结论（处理人 / 时间 / 意见）；获批事项按对应链路继续（如发展节点推进，接 4.5）；被驳回按意见整改后可在获批范围内重报。</li>
+          </ol>
+        </div>
+
+        <!-- 4.10 换届 / 换组织链路 -->
+        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">4.10</span>换届 / 换组织链路</h3>
+        <div class="help-card" id="card-chain-wizard" data-search="业务链路 换届 换组织 换壳 初始化 支部配置 向导 任命书记 数据保留 重置 任期档案">
+          <h4 class="help-card-title">换届任命 → 支部配置向导 5 步（数据保留语义）</h4>
+          <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">换届任命：党委组织员在党委台「支部管理」对新任书记「任命书记」（选本支部成员，可写任命说明如换届选举）→ 原书记自动降回成员、任期档案记录（操作见 5.1 表）→ 新书记登录即接管本支部工作台。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">换组织 / 初始化：从三入口之一进入「支部配置向导」走 5 步——① 组织信息 → ② 模块 / 块组合 → ③ 角色分工 → ④ 术语制度指引 + 换壳工作单 → ⑤ 验证与重置（入口与每步说明见 5.2）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">数据保留语义：向导改的是「壳」（名称 / 模块 / 分工 / 主题），成员档案、考勤考察、思想汇报、支部文件、档案与决议等历史数据全部保留随支部；演示形态的重置档位只清演示 / 预览层，正式形态数据落库持久（见 5.3）。</li>
+          </ol>
+        </div>
       </section>
 
-      <!-- ========== 第5章 党委与配置（C3 批次填充；当前为占位锚点） ========== -->
+      <!-- ========== 第5章 党委与配置 ========== -->
       <section class="doc-card" id="sec-admin" data-toc-id="sec-admin">
         <h2 class="doc-h2"><span class="doc-num">5</span>党委与配置</h2>
         <hr class="doc-divider">
         <p class="doc-p doc-lead">
-          党委组织员的全院治理操作与支部级配置的详细说明（占位锚点）：支部监控台账、上报审批、下发通知、支部管理，以及支部工作流模块启停（部署期职责）。C3 批次填充正文；现行党委工作台 tab 概览见 2.7。
+          本章讲两个话题：<strong>① 党委组织员的全院治理操作</strong>（党委工作台 6 个 tab，5.1）；<strong>② 支部级配置</strong>（支部配置向导 5 步与三入口，5.2；数据保留与重置档位，5.3）。组织级角色（party-staff）不属于任一支部、不参与支部内部闭环（见 1.3）；tab 级概览在 2.7，本章写「进了这个 tab 具体怎么做」。
         </p>
-        <p class="doc-key">当前状态：<strong>骨架已立、内容待填</strong>（C3 批次交付）。</p>
+
+        <!-- 5.1 党委工作台 6 tab 导览 -->
+        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">5.1</span>党委工作台 6 tab 导览</h3>
+        <div class="help-card" id="card-admin-ws" data-search="党委工作台 治理总览 支部监控台账 支部管理 上报审批 下发通知 支部配置 党委组织员 全院治理 支部治理 操作要点">
+          <h4 class="help-card-title">6 tab：给谁用 · 做什么 · 操作要点</h4>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead><tr><th style="width:14%;">tab</th><th style="width:12%;">给谁用</th><th style="width:38%;">做什么</th><th>操作要点</th></tr></thead>
+              <tbody>
+                <tr><td>治理总览</td><td>党委组织员</td><td>登录落点：顶部全委统计条（支部数 / 在册成员 / 在册党员 / 滞留 / 全院通知）+ 各支部概览卡（成员 / 党员 / 滞留实时统计 + 近期动态摘要）</td><td>打开党委工作台即此页；支部卡「进入支部（演示）」可下钻支部层工作台（本地演示）</td></tr>
+                <tr><td>支部监控台账</td><td>党委组织员</td><td>全院支部运行台账：成员规模 / 发展阶段分布 / 思想汇报篇数 / 组织生活类型计数 / 近期活动 / 现任书记</td><td>「全院治理」段；逐支部卡片查看；支部在「支部管理」新增后自动上卡</td></tr>
+                <tr><td>支部管理</td><td>党委组织员</td><td>支部实例管理：新建空支部 / 改名 / 任命书记 / 空支部整表导入成员名册</td><td>「全院治理」段。「+ 新建支部」填名称与类型 → 建成空支部（模块默认全开、业务为空、书记席位空缺）→ 支部卡「导入成员名册」：下载名册模板 JSON → 保留迁入本支部的成员行、删去其余 → 「选择名册文件」→ 核对导入统计卡（在册党员 / 滞留 / 支部大会应到 / 各组应到）→「确认导入落库」；支部卡「任命书记」选本支部成员（可写任命说明）→ 确认后原书记自动降回成员、任期档案记录；「改名」即时更新页眉显示。仅空支部可整表导入，已有成员 / 历史的支部逐人在本支部「成员名册」维护（见 3.5）</td></tr>
+                <tr><td>上报审批</td><td>党委组织员</td><td>支部上报事项（发展节点 / 活动报备）逐项批复，结论回传支部</td><td>「全院治理」段；待批复区逐条填「审批意见」→「批准 / 驳回」（驳回必填意见，便于支部整改）；支部侧自动收到结论（支部侧操作见 3.7 / 4.9）</td></tr>
+                <tr><td>下发通知</td><td>党委组织员</td><td>面向支部支委层下发通知（送达支委收件与已读反馈，标「党委下发」来源，不打扰非支委党员）</td><td>「全院治理」段；「+ 下发」勾选目标支部（可全选；支部动态创建后自动可选）→ 填标题正文 → 发布</td></tr>
+                <tr><td>支部配置</td><td>党委组织员</td><td>支部级「支部配置向导」5 步（任意支部可切换；吸收合并原模块启停裸开关清单）</td><td>「支部治理」段；默认进入首支部，顶部可切其它支部 → 按 5 步向导操作（见 5.2）</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="help-card-desc" style="margin-top:8px;">党委台「我的处置」不设——组织级角色的处置位即上述治理 tab 本身；下发通知与上报审批构成党委 ↔ 支部双向通道（下发 → 支委收件；上报 → 支部书记发起）。账号与角色定位见 0.2 / 0.3。</p>
+        </div>
+
+        <!-- 5.2 支部配置向导 -->
+        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">5.2</span>支部配置向导（5 步 · 3 入口）</h3>
+        <p class="doc-p">支部配置向导 = 换组织 / 初始化 / 换届换壳的统一工具：把「支部改头换面」要动的东西收进 5 个步骤，每步保存即生效并留痕（可查 config 变更记录），中断可续走（草稿存档）。原党委台「支部配置」的模块启停裸开关清单已收进步骤②。</p>
+        <div class="help-card" id="card-admin-wizard-entries" data-search="支部配置 换组织向导 入口 权限 党委台 书记台 wizard.html 独立页 现任书记 党委组织员 同源">
+          <h4 class="help-card-title">三个入口：从哪进、谁能进</h4>
+          <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">党委工作台「支部治理」段「支部配置」tab：党委组织员可用，任意支部可切换（默认首支部）——建空支部后补组织信息 / 模块 / 分工的主入口。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">书记工作台「党建」段「支部配置」tab：现任书记 / 副书记共台可见，固定本人所属支部内嵌（纯点击可达，无需记 URL）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">独立页 <a href="./wizard.html">wizard.html</a>：直接访问；党委组织员任意支部（?branch=目标支部直达）、现任书记本支部（?branch=本支部）；无权限时显示提示卡、不渲染向导。</li>
+          </ol>
+          <p class="help-card-desc" style="margin-top:8px;">三入口共用同一渲染器与同一份支部 config——任一处改动即时生效并写留痕，另两处看到一致结果；非现任书记 / 非党委组织员的角色（含副书记按现任书记校验不一致时）只看到无权限提示。</p>
+        </div>
+        <div class="help-card" id="card-admin-wizard-steps" data-search="支部配置 向导 五步 组织信息 模块 块组合 角色分工 术语制度 换壳工作单 验证 重置 主题预设 复制配置">
+          <h4 class="help-card-title">五步分别做什么（保存即生效 / 出工作单）</h4>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead><tr><th style="width:14%;">步骤</th><th style="width:52%;">做什么</th><th>生效 / 产物</th></tr></thead>
+              <tbody>
+                <tr><td>① 组织信息</td><td>支部名（官方名；党委可改，书记只读）、页眉显示名、支部自述 / 口号、主题预设（角色识别层强调色四选一；党建红与党徽金为固定合规底色，不提供更改）</td><td>「保存本步」即时写入支部档案并留痕</td></tr>
+                <tr><td>② 模块 / 块组合</td><td>业务模块（书记工作台 tab，核心组固定不可关）、活动产出块（详情页「添加记录」按钮集）、工作流块（整条 SOP 入口）三组开关——决定成员下次进入工作台哪些 tab / 模板 / 按钮可见，如停用「主题党日组织块」→ 主题党日模板卡隐藏（见 3.2）</td><td>点开关后「保存本步」即时生效；「恢复默认（全开）」</td></tr>
+                <tr><td>③ 角色分工</td><td>各工作模块负责人归属（支委角色位 / 到人位）</td><td>部署期 / 换壳期直接写库即时生效并留痕；日常分工调整请走书记台「支部分工」的支委会议题流程</td></tr>
+                <tr><td>④ 术语制度指引 + 工作单</td><td>只读查看「换壳需人工替换内容」总表（术语 / 制度 / 数据 / 配色指引），说明哪些内容需按新组织人工替换</td><td>「生成并下载换壳工作单」（Markdown：已完成配置摘要 + 待人工替换文件清单 + 验证点）</td></tr>
+                <tr><td>⑤ 验证与重置</td><td>应到名单口径核对（支部党员大会应到 = 在册党员 − 滞留剔除，现读数）+ 演示重置档位说明 + 回归验证</td><td>步骤完成情况存档草稿可续走；完成后出「完成报告」（摘要 / 下载工作单 / 去验证 / 重走向导）</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="help-card-desc" style="margin-top:8px;">党委组织员另可用工具条「复制配置到支部…」：把当前支部的模块 / 块组合、角色分工与组织档案（页眉 / 自述 / 主题）整体复制给勾选的目标支部（逐目标留痕）——适合新支部沿用成熟配置。另可「导出 / 导入 JSON 配置包」在支部间迁移配置。</p>
+        </div>
+
+        <!-- 5.3 数据保留与重置档位 -->
+        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">5.3</span>数据保留与重置档位</h3>
+        <div class="help-card" id="card-admin-reset" data-search="数据保留 重置 档位 演示 reset demo preview API 换壳不换档 历史数据 种子 预览 草稿 持久化">
+          <h4 class="help-card-title">重置会清什么、保留什么（面向使用者说明）</h4>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>换壳不换档：</strong>向导 ①②③ 改的是支部的「壳」——名称 / 模块 / 分工 / 主题。成员档案（名册 / 发展阶段 / 在册滞留）、考勤考察、思想汇报、支部文件、档案与决议、专班历史等业务数据<strong>全部保留</strong>，随支部继续生效（历史留痕只追加、不覆盖）。</p>
+          <p class="help-card-desc"><strong>验证第⑤步的「重置」档位（本地演示形态，浏览器演示时使用）：</strong></p>
+          <ul class="doc-list" style="margin-top:6px;">
+            <li><strong>?reset=demo</strong>（?reset=1 为其旧写法同义）：把全部演示数据复位到「种子初始态」——向导里试改的配置也会被清掉。用于演示前整体复位。</li>
+            <li><strong>?reset=preview</strong>：只清理「运行痕迹」——向导草稿与成员基础数据预览等临时状态，演示数据本身保留。用于试走向导后想从头再走、但不想丢已演示的数据。</li>
+            <li><strong>API（正式对接）形态</strong>：上述 URL 参数不生效——数据经登录认证落库持久化（换届不丢档、操作有留痕）；正式数据不提供页面级清空入口（需清档属管理员级操作，走线下处理）。</li>
+          </ul>
+        </div>
       </section>
 
       <!-- ========== 第6章 这个系统在干什么 ========== -->
@@ -1209,7 +1394,7 @@
           <table class="doc-table">
             <thead><tr><th style="width:16%;">层</th><th style="width:42%;">位置</th><th>职责</th></tr></thead>
             <tbody>
-              <tr><td>前台（页面）</td><td>docs/（18 个页面：11 个根页面 + 7 个工作台）</td><td>页面骨架，零硬编码逻辑</td></tr>
+              <tr><td>前台（页面）</td><td>docs/（18 页 = 11 根页面 + 7 工作台）</td><td>页面骨架，零硬编码逻辑</td></tr>
               <tr><td>中台（逻辑）</td><td>docs/src/entries/ + components/ + core/ + modules/</td><td>角色面板路由、视图切换、DOM 渲染、能力注册</td></tr>
               <tr><td>后台（服务层）</td><td>docs/src/services/ + mock/</td><td>数据 CRUD、权限计算、持久化</td></tr>
               <tr><td>后端（server/）</td><td>server/（Express + better-sqlite3 单进程）</td><td>同源托管静态页面 + /api/v1 REST（登录认证 / 资源表读写 / 附件上传 / 快照持久化）</td></tr>
@@ -1217,11 +1402,13 @@
             </tbody>
           </table>
         </div>
+        <p class="doc-p" style="margin-top:18px;"><strong>页面与角色口径：</strong>全站 18 页 = 11 个根页面 + 7 个角色工作台（与第 0 章 0.1 清单一致）。工作台按角色共台 / 归并：书记与副书记共用书记工作台、组织者与深度参与者归入成员工作台、党委组织员专用党委工作台（组织级，不属于任一支部）——不因角色增页。</p>
+        <p class="doc-p" style="margin-top:14px;"><strong>「制度文本 → 代码」的来源：</strong>代码不是凭空设计——content/02_institution/sop/ 下的书记 / 组织 / 宣传 / 纪检 / 组长工作指南与流程 SOP 是各功能与工作流块的<strong>制度母本</strong>：活动 SOP 节点、专班表决门槛、补课与应到口径等规则都来自这些文本（第 6 章「制度即代码」）；支部文件里的「制度文本」另有线上现行版 / 历史版本，见 3.8 资料查询。</p>
 
         <!-- 7.2 技术栈与运行方式 -->
         <h3 class="doc-h3"><span class="doc-h3-badge">7.2</span>技术栈与运行方式</h3>
         <ul class="doc-list">
-          <li>静态前端 + Node 一体化后端 — 本地完整运行：进入 server/ 目录执行 <code>npm start</code>，浏览器访问即全链路使用（登录 → API → 数据持久化）；docs/ 亦可独立静态托管作演示形态</li>
+          <li>静态前端 + Node 一体化后端 — 本地完整运行：进入 server/ 目录执行 <code>npm start</code>，浏览器访问即全链路使用（登录 → API → 数据持久化）；docs/ 亦可独立静态托管作演示形态（数据存浏览器本地，重置档位见 5.3）</li>
           <li>ES Modules — 无构建工具、零打包依赖</li>
           <li>Tailwind CSS CDN — 原子化样式引擎</li>
           <li>REST API（/api/v1）— 登录认证、资源表读写、附件上传、快照持久化</li>
@@ -1249,6 +1436,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/help-entry.js?v=20260903c"></script>
+<script type="module" src="./src/entries/help-entry.js?v=20260908a"></script>
 </body>
 </html>

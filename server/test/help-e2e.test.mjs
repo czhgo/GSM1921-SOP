@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { FUNCTION_CATALOG } from '../../docs/src/core/function-catalog.js?v=20260903c';
+import { FUNCTION_CATALOG } from '../../docs/src/core/function-catalog.js?v=20260908a';
 
 let server, base, browser;
 
@@ -37,11 +37,17 @@ test('help 页：目录树（致谢第一）+ 搜索 + 章节卡片 + 导图降�
   const firstToc = await page.textContent('.help-toc-item:first-child');
   assert.ok(firstToc.includes('致谢'), `目录树第一项应为致谢，实际：${firstToc}`);
 
-  // 2. 功能章节卡片渲染（与 catalog 动态计算一致：feature + flow 数量）
+  // 2. 功能章节卡片渲染：目录驱动的 feature + flow 卡片应全部在场
+  // （C2/C3 起静态正文卡片与目录卡片并存，故目录计数只圈 catalog 驱动的两处宿主，
+  //   全页 .help-card 总数另含第 3/4/5 章静态正文卡片）
   const expected = FUNCTION_CATALOG.filter((i) => i.kind === 'feature').length
     + FUNCTION_CATALOG.filter((i) => i.kind === 'flow').length;
-  const cardCount = await page.locator('.help-card').count();
-  assert.equal(cardCount, expected, `章节卡片应为 ${expected} 张（feature+flow），实际 ${cardCount}`);
+  const dynamicCount = await page.locator('#help-catalog-slot .help-card, #mermaid-flows .help-card').count();
+  assert.equal(dynamicCount, expected, `目录驱动卡片应为 ${expected} 张（feature+flow），实际 ${dynamicCount}`);
+  // 静态正文卡片在场抽查：第 3 章域手册 / 第 4 章链路 / 第 5 章党委与配置
+  assert.ok(await page.locator('#sec-domains .help-card').count() >= 20, '第 3 章域手册正文卡片在场');
+  assert.ok(await page.locator('#sec-flows .help-card[id^="card-chain-"]').count() >= 10, '第 4 章业务链路文字卡片在场');
+  assert.ok(await page.locator('#sec-admin .help-card[id^="card-admin-"]').count() >= 3, '第 5 章党委与配置卡片在场');
 
   // 3. 搜索：输入「补课」→ 匹配条目出现
   await page.fill('#help-search-input', '补课');
