@@ -108,7 +108,12 @@ export async function createWorkspaceShell(opts) {
     if (!container || _tabBarInited) return;
 
     // 有待办必见待办（书记 2026-08-10 裁定）：tab bar 仅构建一次，天然一次性消费
-    const priorityTab = loadOptions.role && TodoStore.getGroupedByAction(loadOptions.role).length > 0 ? 'todo' : undefined;
+    // R6-3「今天」置首（2026-09-06 书记裁：登录落点=今天、待办降第二页）后：
+    // 显式 defaultTab='today' 的工作台不再被旧 priorityTab（任意未处理待办即跳待办）抢占——
+    // 「今天」页已内建今天到期+逾期红标露头（待办必见新形态）；其余 defaultTab 语义不变。
+    const priorityTab = defaultTab === 'today'
+      ? undefined
+      : (loadOptions.role && TodoStore.getGroupedByAction(loadOptions.role).length > 0 ? 'todo' : undefined);
 
     // M2e 注册表衔接：tab 清单经能力注册表读取（scope 能力），入口不再硬编码
     const cap = getCapabilities({ scope }).find(c => c.id === capId);
