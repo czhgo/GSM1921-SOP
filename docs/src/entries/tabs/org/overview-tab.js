@@ -2,25 +2,25 @@
 // 组织委员工作台 Tab：工作概况（T-279 M3 拆分，照 M2 样板）
 // 书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览，个人视角。
 // IA-C2 收敛（2026-09-06）：work-overview 受保护不内改 → 绕行方案在概况顶部挂「待答复 n · 去处理」直达条。
+// U3（2026-09-07）：先 beginOverviewShell 骨架/槽位占位 → 预算计数 → 原地填充直达条（不推挤正文）。
 
 import { renderWorkOverview } from '../../../components/work-overview.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { countOwnPendingReports, mountOverviewDispatchBar } from '../../../components/overview-dispatch-bar.js?v=20260906j';
+import { beginOverviewShell, countOwnPendingReports, mountOverviewDispatchBar } from '../../../components/overview-dispatch-bar.js?v=20260906j';
 
-export function renderContent(ctx) {
+export async function renderContent(ctx) {
   const el = document.getElementById('org-tab-content');
   if (!el) return null;
   const personId = AuthStore.getCurrentUser()?.personId || 'p11';
-  const done = renderWorkOverview(el, {
+  // U3：进入概况先骨架/槽位占位（防 0 高弹跳与渲染后插条下推）；计数失败不阻断概况渲染（降级=不挂条）
+  beginOverviewShell(el);
+  let count = 0;
+  try { count = await countOwnPendingReports(personId); } catch (e) { console.warn('[org-overview] 待答复计数失败（不挂直达条）', e); }
+  mountOverviewDispatchBar(el, { count, prefix: 'org', jumpTab: 'my-dispatch', accent: ctx.accent });
+  return renderWorkOverview(el, {
     role: 'org-commissioner',
     personId,
     accent: ctx.accent,
     prefix: 'org',
   });
-  // IA-C2 绕行（2026-09-06）：汇报收件处理位 = 我的处置；概况顶部加直达条（count>0 且处理位存在才挂）
-  Promise.resolve(done).then(async () => {
-    const count = await countOwnPendingReports(personId);
-    mountOverviewDispatchBar(el, { count, prefix: 'org', jumpTab: 'my-dispatch', accent: ctx.accent });
-  });
-  return done;
 }
