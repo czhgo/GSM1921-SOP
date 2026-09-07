@@ -3,7 +3,9 @@
 // 从入党积极分子到正式党员的完整发展路径数据（管线概览 + 阶段筛选 + 推进）。
 
 import { loadInspectionRecords } from '../../../services/inspection.js?v=20260903c';
-import { loadThoughtReports, listThoughtReportsByPerson } from '../../../services/thought-report.js?v=20260906h';
+// IA-C3 收敛只读展开 2026-09-06：思想汇报只读展开移除，仅留「已归档 N 篇」计数（计数沿用既有读口
+// loadThoughtReports 派生 reportCount；详细查看仍去 组织台「思想汇报」tab / 成员档案）。
+import { loadThoughtReports } from '../../../services/thought-report.js?v=20260906h';
 import { PersonStore } from '../../../services/person.js?v=20260903c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
@@ -126,13 +128,14 @@ export function renderContent(ctx) {
               <div class="flex items-start justify-between gap-3 mb-2">
                 <div>
                   <div class="text-sm font-semibold text-gray-800">${c.name}</div>
-                  <div class="flex items-center gap-2 mt-1">
+                  <div class="flex items-center flex-wrap gap-2 mt-1">
                     <span class="text-xs px-1.5 py-0.5 rounded-full ${sc.bg} ${sc.text} font-medium">${c.stage}</span>
                     ${c.partyGroup ? `<span class="text-xs text-gray-400">${c.partyGroup}</span>` : ''}
                     <span class="text-xs text-gray-400">进入当前阶段：${c.entryDate}</span>
                     ${c.inspCount > 0 ? badgeHtml(`考察 ${c.inspCount}`, 'info') : ''}
                     ${c.reportCount > 0
-                      ? `<button class="dev-reports-btn text-xs px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 hover:bg-indigo-100 transition-colors" data-person-id="${c.personId}" data-name="${c.name}">思想汇报 ${c.reportCount}</button>`
+                      // IA-C3 收敛只读展开 2026-09-06：原「思想汇报」可展开只读内容改为计数文本（无展开交互）
+                      ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100" title="思想汇报已归档 ${c.reportCount} 篇">思想汇报已归档 ${c.reportCount} 篇</span>`
                       : ''}
                   </div>
                 </div>
@@ -140,7 +143,6 @@ export function renderContent(ctx) {
               </div>
               <div class="flex items-center gap-0.5 mb-2">${progressDots}</div>
               <div class="text-[12px] text-gray-500">${c.note || ''}</div>
-              ${c.reportCount > 0 ? `<div class="mt-2 hidden dev-reports-panel" data-person-id="${c.personId}"></div>` : ''}
             </div>`;
         }).join('');
 
@@ -195,27 +197,8 @@ export function renderContent(ctx) {
         render();
       });
     });
-    // 绑定思想汇报查看（算法归档调用侧：展开该候选人的思想汇报记录）
-    container.querySelectorAll('.dev-reports-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const personId = btn.dataset.personId;
-        const panel = container.querySelector(`.dev-reports-panel[data-person-id="${personId}"]`);
-        if (!panel) return;
-        if (!panel.classList.contains('hidden')) { panel.classList.add('hidden'); return; }
-        const reports = listThoughtReportsByPerson(personId);
-        panel.innerHTML = reports.length === 0
-          ? '<p class="text-xs text-gray-400 text-center py-3">暂无思想汇报</p>'
-          : `<div class="space-y-2 py-2">${reports.map(r => `
-              <div class="p-2.5 rounded-lg bg-indigo-50/50 border border-indigo-100">
-                <div class="flex items-center justify-between mb-1">
-                  <span class="text-xs font-medium text-indigo-700">${r.title || '思想汇报'}</span>
-                  <span class="text-[11px] text-gray-400">${(r.submittedAt || '').slice(0, 10)}</span>
-                </div>
-                <p class="text-[12px] text-gray-600 whitespace-pre-wrap">${r.content || ''}</p>
-              </div>`).join('')}</div>`;
-        panel.classList.remove('hidden');
-      });
-    });
+    // IA-C3 收敛只读展开 2026-09-06：原「思想汇报」展开（.dev-reports-btn/.dev-reports-panel）
+    // 渲染与切换代码已随上方计数文本改造移除——思想汇报详细查看去 组织台「思想汇报」tab / 成员档案。
   }
 
   render();

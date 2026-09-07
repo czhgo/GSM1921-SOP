@@ -95,7 +95,8 @@ function _dueBlock(s) {
   `;
 }
 
-/** 我的分工（右下）：今天的活动里我负责的分工；点击 → 所在活动详情 activity.html */
+/** 今日分工（右下，IA-C3 2026-09-06 由「我的分工」改名，与工作概况『支部安排·我的分工』区分）：
+ *  今天的活动里我负责的分工；点击 → 所在活动详情 activity.html */
 function _dutyRows(items) {
   return items.map(d => `
     <button type="button" class="today-go w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left cursor-pointer"
@@ -111,9 +112,9 @@ function _dutyBlock(s) {
   const rows = _dutyRows(s.myDuties);
   return `
     <div class="flex items-center justify-between mb-1.5">
-      <h3 class="font-title-cn text-sm font-bold text-gray-700">我的分工${_count(s.myDuties.length)}</h3>
+      <h3 class="font-title-cn text-sm font-bold text-gray-700">今日分工${_count(s.myDuties.length)}</h3>
     </div>
-    ${rows ? `<div class="space-y-0.5">${rows}</div>` : '<p class="text-xs text-gray-400 px-1 py-1.5">今日无分工</p>'}
+    ${rows ? `<div class="space-y-0.5">${rows}</div>` : '<p class="text-xs text-gray-400 px-1 py-1.5">今日暂无分工安排</p>'}
   `;
 }
 

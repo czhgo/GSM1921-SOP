@@ -9,10 +9,10 @@ import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903c
 import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260903c';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260903c';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260903c'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
 import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260903c';
 import { NoticeStore } from '../../../services/notice.js?v=20260903c';
-import { mockDB, SourceType, ParticipationLevel, ReviewStatus } from '../../../core/domain.js?v=20260903c';
+import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260903c'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
 import { persist } from '../../../core/data-adapter.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { solidAccentStyle } from '../../../core/constants.js?v=20260903c';
@@ -327,7 +327,9 @@ export function renderContent(ctx) {
         persist();
       }
 
-      function renderSubTable(type, items) {
+      // IA-C3 收敛单写入口 2026-09-06：专班考察统一在组织台「考察上传」（inspection-tab）录入；
+      // 专班详情内考察记录子表改只读（readOnly=true，无 + 添加/删除），仅材料记录保留写入口。
+      function renderSubTable(type, items, readOnly) {
         const label = type === 'inspection' ? '考察记录' : '材料记录';
         const color = type === 'inspection' ? '#D97706' : '#3B82F6';
         const fields = type === 'inspection'
@@ -341,21 +343,23 @@ export function renderContent(ctx) {
         const rows = items.map((item, idx) => `
           <tr class="border-b border-gray-50">
             ${fields.map(f => `<td class="px-2 py-1.5 text-xs text-gray-700">${cellOf(item, f.key)}</td>`).join('')}
-            <td class="px-2 py-1.5 text-center"><button class="sub-del-btn text-xs text-red-400 hover:text-red-600" data-type="${type}" data-idx="${idx}">删除</button></td>
+            ${readOnly ? '' : `<td class="px-2 py-1.5 text-center"><button class="sub-del-btn text-xs text-red-400 hover:text-red-600" data-type="${type}" data-idx="${idx}">删除</button></td>`}
           </tr>
         `).join('');
 
         return `
           <div class="mt-3">
-            <div class="flex items-center justify-between mb-1.5">
+            <div class="flex items-center justify-between gap-2 mb-1.5">
               <h5 class="text-xs font-bold font-title-cn" style="color:${color}">${label} (${items.length})</h5>
-              <button class="sub-add-btn text-xs px-3 py-1.5 rounded-lg border hover:bg-gray-50 transition-colors" style="color:${color};border-color:${color}40" data-type="${type}">+ 添加</button>
+              ${readOnly
+                ? '<span class="text-[11px] text-amber-600 text-right">专班考察请统一到组织台『考察上传』录入</span>'
+                : `<button class="sub-add-btn text-xs px-3 py-1.5 rounded-lg border hover:bg-gray-50 transition-colors" style="color:${color};border-color:${color}40" data-type="${type}">+ 添加</button>`}
             </div>
             ${items.length === 0
               ? '<p class="text-[12px] text-gray-300 pl-2">暂无记录</p>'
               : `<table class="w-full text-left"><thead><tr class="border-b border-gray-200">
                   ${fields.map(f => `<th class="px-2 py-1 text-xs font-medium text-gray-500">${f.label}</th>`).join('')}
-                  <th class="px-2 py-1 text-xs font-medium text-gray-500 w-12"></th>
+                  ${readOnly ? '' : '<th class="px-2 py-1 text-xs font-medium text-gray-500 w-12"></th>'}
                 </tr></thead><tbody>${rows}</tbody></table>`
             }
           </div>`;
@@ -364,7 +368,7 @@ export function renderContent(ctx) {
       const subRecordsHtml = `
         <div class="mt-4 pt-3 border-t border-gray-100">
           <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">子记录</h5>
-          ${renderSubTable('inspection', tfSubs.inspection)}
+          ${renderSubTable('inspection', tfSubs.inspection, true) /* IA-C3 收敛单写入口 2026-09-06：考察记录只读展示 */}
           ${renderSubTable('materials', tfSubs.materials)}
         </div>`;
 
@@ -650,7 +654,10 @@ export function renderContent(ctx) {
         });
       });
 
-      // ── 子记录添加/删除事件（P3-4）— 内联表单替代 prompt，考察同步正式考察库 ──
+      // ── 子记录添加事件（P3-4）— 内联表单替代 prompt。
+      // IA-C3 收敛单写入口 2026-09-06：考察记录写入口已移除（专班详情内改只读展示，
+      // 统一至组织台「考察上传」录入）；此处仅保留材料记录添加（原考察表单/PersonPicker/
+      // 同步正式考察库逻辑一并移除）。
       panel.querySelectorAll('.sub-add-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const type = btn.dataset.type;
@@ -658,83 +665,36 @@ export function renderContent(ctx) {
           const existing = panelEl?.querySelector('.record-form-shell');
           if (existing) { existing.remove(); return; }
 
-          const resultOpts = ['考察合格', '待观察', '需补材料'];
-          let formHtml = '';
-          if (type === 'inspection') {
-            formHtml = recordFormShell({
-              title: '添加考察记录（同步正式考察库，待纪检委员确认）',
-              saveText: '保存',
-              accent,
-              accentBorder,
-              body: `
-                <div class="mb-2 sub-picker"></div>
-                <textarea class="f-content input-flat w-full resize-none mb-2" rows="2" placeholder="考察内容描述（必填）"></textarea>
-                <select class="f-result input-flat w-full mb-2">${resultOpts.map(r => `<option>${r}</option>`).join('')}</select>`,
-            });
-          } else {
-            formHtml = recordFormShell({
-              title: '添加材料记录',
-              saveText: '保存',
-              accent,
-              accentBorder,
-              body: `
-                <input class="f-name input-flat w-full mb-2" placeholder="材料名称（必填）">
-                <input class="f-author input-flat w-full mb-2" placeholder="提交人（选填）">
-                <input class="f-note input-flat w-full mb-2" placeholder="备注（选填）">`,
-            });
-          }
+          const formHtml = recordFormShell({
+            title: '添加材料记录',
+            saveText: '保存',
+            accent,
+            accentBorder,
+            body: `
+              <input class="f-name input-flat w-full mb-2" placeholder="材料名称（必填）">
+              <input class="f-author input-flat w-full mb-2" placeholder="提交人（选填）">
+              <input class="f-note input-flat w-full mb-2" placeholder="备注（选填）">`,
+          });
 
           panelEl.insertAdjacentHTML('beforeend', formHtml);
           const form = panelEl.querySelector('.record-form-shell');
 
-          if (type === 'inspection') {
-            const picker = new PersonPicker({ mode: 'multi', placeholder: '选择被考察人', accentColor: accent, onSelect: () => {} });
-            picker.render(form.querySelector('.sub-picker'));
-            form._picker = picker;
-          }
-
           form.querySelector('.record-cancel-btn').addEventListener('click', () => {
-            if (form._picker?.destroy) form._picker.destroy();
             form.remove();
           });
 
           form.querySelector('.record-save-btn').addEventListener('click', () => {
-            if (type === 'inspection') {
-              const content = form.querySelector('.f-content').value.trim();
-              if (!content) { showToast('error', '请填写考察内容'); return; }
-              const ids = form._picker ? form._picker.getSelected() : [];
-              if (ids.length === 0) { showToast('error', '请选择被考察人'); return; }
-              const result = form.querySelector('.f-result').value;
-              const newRecords = [];
-              ids.forEach(pid => {
-                tfSubs.inspection.push({ person: getPersonName(pid), personId: pid, content, result, recordedBy: currentUserId || 'u_org', recordedAt: new Date().toISOString() });
-                // P1-5 语义修复：考察内容入 content，role 存角色职责标签
-                newRecords.push({
-                  id: 'insp_' + Date.now() + '_' + pid,
-                  sourceType: SourceType.TASKFORCE, activityId: null, sourceName: tf.name,
-                  personId: pid, level: ParticipationLevel.DEEP_PARTICIPATE,
-                  content, role: '深度参与者',
-                  recordedBy: currentUserId || 'u_org', // A1-2026-09-05：真实操作人，弃幽灵 u_exec
-                  recordedAt: new Date().toISOString(), status: 'pending',
-                });
-              });
-              const all = loadInspectionRecords();
-              saveInspectionRecords([...all, ...newRecords]);
-              showToast('success', `已添加 ${ids.length} 条考察记录并同步正式考察库`);
-            } else {
-              const name = form.querySelector('.f-name').value.trim();
-              if (!name) { showToast('error', '请填写材料名称'); return; }
-              tfSubs.materials.push({
-                name,
-                author: form.querySelector('.f-author').value.trim(),
-                note: form.querySelector('.f-note').value.trim(),
-                recordedBy: currentUserId || 'u_org',
-                recordedAt: new Date().toISOString(),
-              });
-              showToast('success', '已添加');
-            }
+            const name = form.querySelector('.f-name').value.trim();
+            if (!name) { showToast('error', '请填写材料名称'); return; }
+            tfSubs.materials.push({
+              name,
+              author: form.querySelector('.f-author').value.trim(),
+              note: form.querySelector('.f-note').value.trim(),
+              recordedBy: currentUserId || 'u_org',
+              recordedAt: new Date().toISOString(),
+            });
+            showToast('success', '已添加');
             saveTfSubs();
-            if (form._picker?.destroy) form._picker.destroy();
             form.remove();
             // 重新渲染详情面板
             card.click();

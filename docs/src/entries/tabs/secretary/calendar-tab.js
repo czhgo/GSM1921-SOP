@@ -122,16 +122,18 @@ const CALENDAR_TAB_HTML = `
       </div>
     </div>
   </div>
-  <!-- 考勤概况（从首页迁移；t5a 就地方案：书记只读监督。2026-08-05：移至日历之后，不再压顶） -->
+  <!-- 考勤概况（从首页迁移；t5a 就地方案：书记只读监督。2026-08-05：移至日历之后，不再压顶）
+       IA-C3 2026-09-06：默认折叠为一行概要 + 「展开看逐活动出勤」链接（避免与全局概况
+       本月出勤 KPI 同屏复读）；展开后逐活动明细照旧只读下钻。 -->
   <div class="card rounded-xl p-4 mb-4">
     <div class="flex items-center justify-between mb-3">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤概况</h3>
       <button id="secretary-att-detail-toggle" type="button" class="text-xs text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 transition-colors">
-        <span id="secretary-att-detail-toggle-text">查看明细</span>
+        <span id="secretary-att-detail-toggle-text">展开看逐活动出勤</span>
         <svg id="secretary-att-detail-toggle-icon" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
       </button>
     </div>
-    <div id="secretary-attendance-summary" class="text-sm text-gray-500"><p>暂无考勤数据</p></div>
+    <div id="secretary-attendance-summary" class="text-sm text-gray-500"><p>本月暂无考勤数据</p></div>
     <div id="secretary-attendance-detail" class="hidden mt-3 pt-3 border-t border-gray-100"></div>
   </div>
   <!-- 活动查询（默认折叠，点击展开） -->
@@ -277,6 +279,7 @@ function bindQueryToggle() {
 
 // ── 考勤概况渲染（从首页迁移） ──
 // 考勤概况明细展开状态（t5a：就地展开，跨渲染保持）
+// IA-C3 2026-09-06：考勤概况默认折叠——false=卡内仅一行概要 + 「展开看逐活动出勤」按钮
 let _secAttDetailOpen = false;
 
 function renderAttendanceSummary(activities) {
@@ -331,7 +334,7 @@ function renderAttendanceSummary(activities) {
   const toggleText = document.getElementById('secretary-att-detail-toggle-text');
   const toggleIcon = document.getElementById('secretary-att-detail-toggle-icon');
   const syncToggleUI = () => {
-    if (toggleText) toggleText.textContent = _secAttDetailOpen ? '收起明细' : '查看明细';
+    if (toggleText) toggleText.textContent = _secAttDetailOpen ? '收起明细' : '展开看逐活动出勤';
     if (toggleIcon) toggleIcon.style.transform = _secAttDetailOpen ? 'rotate(180deg)' : 'rotate(0deg)';
   };
   if (toggleBtn) {
@@ -343,40 +346,14 @@ function renderAttendanceSummary(activities) {
     syncToggleUI();
   }
 
+  // ── 概要行（IA-C3 2026-09-06：默认只显一行概要，不再整份罗列逐活动出勤——避免与全局概况
+  //    本月出勤 KPI 同屏复读；逐活动出勤明细默认收起，点右上「展开看逐活动出勤」下钻，明细只读）──
   if (monthActivities.length === 0) {
     container.innerHTML = '<p class="text-sm text-gray-400">本月暂无考勤数据</p>';
     return;
   }
 
-  const attendanceRecords = loadAttendanceRecords();
-  const rows = monthActivities.map(act => {
-    const records = attendanceRecords.filter(r => r.activityId === act.id);
-    // 出勤口径统一（2026-08-07）：已补（made_up）计入出勤，与书记概况出勤率一致
-    const present = records.filter(r => r.status === 'present' || r.status === 'made_up').length;
-    const absent = records.filter(r => r.status === 'absent').length;
-    const leave = records.filter(r => r.status === 'leave').length;
-    const total = records.length;
-    const rate = total > 0 ? Math.round((present / total) * 100) : 0;
-    const rateColor = rate >= 90 ? 'text-green-600' : rate >= 70 ? 'text-orange-600' : 'text-red-600';
-
-    // T-304 Q2 点击热区：纯展示行不加 hover 伪装（COMPONENT_SPEC §4.3）——去 hover:bg-gray-50
-    return `
-      <div class="flex items-center gap-3 py-2 border-b border-gray-50 last:border-b-0 rounded-lg px-2 -mx-2">
-        <div class="flex-1 min-w-0">
-          <p class="text-sm text-gray-800 truncate">${act.title}</p>
-          <p class="text-xs text-gray-400">${_fmtDate(new Date(act.date))}</p>
-        </div>
-        <div class="flex items-center gap-3 text-xs whitespace-nowrap">
-          <span class="text-green-600">出勤 ${present}</span>
-          <span class="text-red-500">缺勤 ${absent}</span>
-          <span class="text-orange-500">请假 ${leave}</span>
-          <span class="font-medium ${rateColor}">${rate}%</span>
-        </div>
-      </div>
-    `;
-  });
-
-  container.innerHTML = rows.join('');
+  container.innerHTML = `<p class="text-sm text-gray-500">本月共 ${monthActivities.length} 场活动考勤（逐活动出勤与缺勤/请假名单见右上角展开）</p>`;
 }
 
 // ════════════════════════════════════════════════════════════════
