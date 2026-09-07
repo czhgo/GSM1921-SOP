@@ -775,7 +775,8 @@ export function renderMyDispatchTab(role, userId) {
   unread.forEach(id => IssueNotify.markRead(userId, id));
 
   // ── 我的汇报（2026-08-10 新增，书记裁定：信息双向互动）──
-  const reportRequests = IssueStore.getReportRequestsFor(userId); // 书记"了解进展"请我汇报
+  const reportRequests = IssueStore.getReportRequestsFor(userId)
+    .sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || '')); // IA-C2：与 ②③ 同为时间倒序
   const myReports = IssueStore.getMyReports(userId)
     .sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || ''));
 
@@ -815,7 +816,10 @@ export function renderMyDispatchTab(role, userId) {
   }
 
   // ③ 指派给我的反馈（原有）
-  html += `<p class="text-xs text-gray-500">指派给你的开放反馈，可评论或提交处置结果</p>`;
+  // IA-C2 收敛（2026-09-06）：块标题与 ①/② 对齐、明示计数；超期优先不适用（issue/report 无 deadline 字段），
+  // 排序沿用书记 2026-08-01「带时间字段按提交时间倒序」裁定（登记）。
+  html += `<p class="text-xs font-medium text-gray-700 mb-1">指派给我的反馈 · ${issues.length}</p>`;
+  html += `<p class="text-xs text-gray-400 mb-2">开放中指派，可评论或提交处置结果</p>`;
 
   if (issues.length === 0) {
     html += `<p class="text-xs text-gray-400 text-center py-4">暂无待处置反馈</p>`;
