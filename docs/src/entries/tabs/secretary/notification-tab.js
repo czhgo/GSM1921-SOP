@@ -9,11 +9,11 @@ import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { openModal, closeModal } from '../../../components/modal.js?v=20260903c';
 
 const NOTIFICATION_TAB_HTML = `
-  <div class="card rounded-2xl p-6 mb-6">
+  <div class="card rounded-xl p-6 mb-6">
     <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">发布通知</h3>
     <div id="notification-form-area"></div>
   </div>
-  <div class="card rounded-2xl p-6">
+  <div class="card rounded-xl p-6">
     <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">已发布通知</h3>
     <div id="notification-list-area"></div>
   </div>

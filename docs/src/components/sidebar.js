@@ -142,17 +142,17 @@ export async function renderSidebar(activeModule, opts = {}) {
       <div class="flex flex-col gap-0.5 mb-2">${footerHTML}</div>
       <div class="sidebar-font-size-toggle">
         <span class="text-[10px] text-gray-400">字号</span>
-        <div class="inline-flex items-center gap-1 p-0.5 rounded-full bg-neutral-100">
-          <button id="font-size-medium" class="ov-sub-tab px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 ${_currentFontSize() === 'medium' ? 'ov-sub-tab-active' : 'text-gray-500 hover:text-gray-700'}" title="中号字体">中</button>
-          <button id="font-size-large" class="ov-sub-tab px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 ${_currentFontSize() === 'large' ? 'ov-sub-tab-active' : 'text-gray-500 hover:text-gray-700'}" title="大号字体">大</button>
+        <div class="flex items-center gap-2">
+          <button id="font-size-medium" class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 ${_currentFontSize() === 'medium' ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}" title="中号字体">中</button>
+          <button id="font-size-large" class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 ${_currentFontSize() === 'large' ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}" title="大号字体">大</button>
         </div>
       </div>
       <div class="sidebar-theme-toggle" title="主题设置">
         <span class="text-[10px] text-gray-400">主题</span>
-        <div class="inline-flex items-center gap-1 p-0.5 rounded-full bg-neutral-100">
-          <button id="theme-light" class="ov-sub-tab px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 ${_currentTheme() === 'light' ? 'ov-sub-tab-active' : 'text-gray-500 hover:text-gray-700'}" title="浅色模式">${icon('sun', { className: 'w-3.5 h-3.5' })}</button>
-          <button id="theme-system" class="ov-sub-tab px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 ${_currentTheme() === 'system' ? 'ov-sub-tab-active' : 'text-gray-500 hover:text-gray-700'}" title="跟随系统">${icon('monitor', { className: 'w-3.5 h-3.5' })}</button>
-          <button id="theme-dark" class="ov-sub-tab px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 ${_currentTheme() === 'dark' ? 'ov-sub-tab-active' : 'text-gray-500 hover:text-gray-700'}" title="深色模式">${icon('moon', { className: 'w-3.5 h-3.5' })}</button>
+        <div class="flex items-center gap-2">
+          <button id="theme-light" class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 ${_currentTheme() === 'light' ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}" title="浅色模式">${icon('sun', { className: 'w-3.5 h-3.5' })}</button>
+          <button id="theme-system" class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 ${_currentTheme() === 'system' ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}" title="跟随系统">${icon('monitor', { className: 'w-3.5 h-3.5' })}</button>
+          <button id="theme-dark" class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 ${_currentTheme() === 'dark' ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}" title="深色模式">${icon('moon', { className: 'w-3.5 h-3.5' })}</button>
         </div>
         <button id="sidebar-accent-swatch" class="accent-swatch ml-auto" style="background:${effAccentHex}" data-label="主题：${effAccentLabel}" title="主题：${effAccentLabel}（点击更换）"></button>
       </div>
@@ -183,7 +183,14 @@ function _bindThemeToggle(sidebar) {
   const apply = (mode) => {
     setThemePreference(mode);
     Object.entries(btns).forEach(([key, el]) => {
-      el.classList.toggle('ov-sub-tab-active', key === mode);
+      const on = key === mode;
+      // UI-A（2026-09-07）：独立小圆角钮激活=主题浅底+主题色字/边框（无衬不用 ov-sub-tab-active）
+      el.classList.toggle('bg-[var(--app-accent-bg)]', on);
+      el.classList.toggle('border-[var(--app-accent)]', on);
+      el.classList.toggle('text-[var(--app-accent)]', on);
+      el.classList.toggle('bg-white', !on);
+      el.classList.toggle('border-neutral-200', !on);
+      el.classList.toggle('text-gray-600', !on);
     });
   };
 
@@ -217,8 +224,20 @@ function _bindFontSizeToggle(sidebar) {
     } else {
       document.documentElement.classList.remove('font-size-large');
     }
-    btnMedium.classList.toggle('active', size === 'medium');
-    btnLarge.classList.toggle('active', size === 'large');
+    const onM = size === 'medium';
+    btnMedium.classList.toggle('bg-[var(--app-accent-bg)]', onM);
+    btnMedium.classList.toggle('border-[var(--app-accent)]', onM);
+    btnMedium.classList.toggle('text-[var(--app-accent)]', onM);
+    btnMedium.classList.toggle('bg-white', !onM);
+    btnMedium.classList.toggle('border-neutral-200', !onM);
+    btnMedium.classList.toggle('text-gray-600', !onM);
+    const onL = size === 'large';
+    btnLarge.classList.toggle('bg-[var(--app-accent-bg)]', onL);
+    btnLarge.classList.toggle('border-[var(--app-accent)]', onL);
+    btnLarge.classList.toggle('text-[var(--app-accent)]', onL);
+    btnLarge.classList.toggle('bg-white', !onL);
+    btnLarge.classList.toggle('border-neutral-200', !onL);
+    btnLarge.classList.toggle('text-gray-600', !onL);
   };
 
   btnMedium.addEventListener('click', () => apply('medium'));

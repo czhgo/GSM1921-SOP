@@ -32,7 +32,7 @@ export async function renderContent(ctx) {
 
   el.innerHTML = `
     <div class="space-y-5">
-      <div class="rounded-xl border border-gray-200 bg-white p-4 flex items-center justify-between">
+      <div class="rounded-lg border border-gray-200 bg-white p-4 flex items-center justify-between">
         <div>
           <p class="text-xs text-gray-400">院系党组织</p>
           <p class="font-title-cn text-lg font-bold text-gray-800">${getCommitteeName()}</p>
@@ -43,7 +43,7 @@ export async function renderContent(ctx) {
         </div>
       </div>
       ${cards.map(({ b, members, stageRows, typeCounts, recent, secretaryName }) => `
-        <div class="rounded-xl border border-gray-200 bg-white p-4">
+        <div class="rounded-lg border border-gray-200 bg-white p-4">
           <div class="flex items-center justify-between mb-3">
             <div>
               <p class="font-title-cn text-base font-bold text-gray-800">${b.config?.headerTitle || b.name}</p>

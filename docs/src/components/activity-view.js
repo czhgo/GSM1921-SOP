@@ -43,7 +43,7 @@ export function renderActivityView(container, opts = {}) {
   if (container.dataset.avInited !== '1') {
     container.dataset.avInited = '1';
     container.innerHTML = `
-      <div class="card rounded-2xl p-6">
+      <div class="card rounded-xl p-6">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">活动查看</h3>
           <div class="flex items-center gap-3">

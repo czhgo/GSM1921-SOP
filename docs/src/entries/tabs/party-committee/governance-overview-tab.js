@@ -26,7 +26,7 @@ import { bindBranchDemoButtons } from '../../../modules/branch-demo-nav.js?v=202
 /** 支部概览卡等高骨架（网格占位，防「支部卡列表整块弹出」；styles.css 禁改不碰） */
 function _branchCardsSkeleton() {
   const card = `
-    <div class="rounded-xl border border-gray-200 bg-white p-4" style="min-height:216px;">
+    <div class="rounded-lg border border-gray-200 bg-white p-4" style="min-height:216px;">
       <div class="h-5 w-28 rounded bg-gray-100 animate-pulse mb-3"></div>
       <div class="h-3 w-40 rounded bg-gray-100 animate-pulse mb-4"></div>
       <div class="grid grid-cols-3 gap-3 mb-3">
@@ -118,7 +118,7 @@ function _renderGovernance(el, activities, branches, noticeCount) {
   el.innerHTML = `
     <div class="space-y-5" data-ws-memo="governance">
       <!-- 顶部：院系党组织 + 全委统计条 -->
-      <div class="rounded-xl border border-gray-200 bg-white p-4">
+      <div class="rounded-lg border border-gray-200 bg-white p-4">
         <div class="flex items-center justify-between">
           <div class="min-w-0">
             <p class="text-xs text-gray-400">院系党组织 · 治理总览</p>
@@ -157,7 +157,7 @@ function _renderGovernance(el, activities, branches, noticeCount) {
   `;
 
   const cardsHtml = rows.map(r => `
-    <div class="rounded-xl border border-gray-200 bg-white p-4 flex flex-col" data-branch-card="${esc(r.id)}">
+    <div class="rounded-lg border border-gray-200 bg-white p-4 flex flex-col" data-branch-card="${esc(r.id)}">
       <div class="flex items-start justify-between gap-2 mb-2">
         <div class="min-w-0">
           <p class="font-title-cn text-base font-bold text-gray-800 truncate">${esc(r.name)}</p>

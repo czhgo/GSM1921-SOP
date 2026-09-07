@@ -41,7 +41,7 @@ export function renderContent() {
 
   el.innerHTML = `
     <div class="space-y-4">
-      <div class="rounded-xl border border-gray-200 bg-white p-4 flex items-center justify-between gap-3">
+      <div class="rounded-lg border border-gray-200 bg-white p-4 flex items-center justify-between gap-3">
         <div class="min-w-0">
           <p class="font-title-cn text-base font-bold text-gray-800">上报审批</p>
           <p class="text-xs text-gray-400 mt-0.5">上报关键事项（发展节点/活动报备），党委逐项批复并反馈支部</p>
@@ -57,7 +57,7 @@ export function renderContent() {
         <p class="text-xs text-gray-400 mb-2">待批复（${pending.length}）</p>
         <div class="space-y-3">${pending.map(cardHtml).join('')}</div>
       </div>` : `
-      <div class="rounded-xl border border-gray-200 bg-white p-6 text-center">
+      <div class="rounded-lg border border-gray-200 bg-white p-6 text-center">
         <p class="text-sm text-gray-500">暂无待批复的上报</p>
         <p class="text-xs text-gray-400 mt-1">支部发起上报后，将出现在这里等待党委审批</p>
       </div>`}
@@ -94,7 +94,7 @@ function cardHtml(r) {
   const t = TYPE_META[r.type] || { label: r.type || '上报' };
   const s = STATUS_META[r.status] || { label: r.status, cls: 'bg-gray-100 text-gray-500' };
   return `
-    <div class="rounded-xl border border-gray-200 bg-white p-4" data-rq-card="${esc(r.id)}" data-rq-status="${r.status}">
+    <div class="rounded-lg border border-gray-200 bg-white p-4" data-rq-card="${esc(r.id)}" data-rq-status="${r.status}">
       <div class="flex items-center gap-2 flex-wrap mb-1.5">
         <span class="text-xs px-2 py-0.5 rounded-full bg-gray-50 border border-gray-200 text-gray-500">${esc(branchName(r.branchId))}</span>
         <span class="text-xs px-2 py-0.5 rounded-full ${r.type === 'develop-node' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}">${t.label}</span>

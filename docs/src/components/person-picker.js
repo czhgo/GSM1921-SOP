@@ -275,7 +275,7 @@ export class PersonPicker {
 
     // 面板主体（dialog 语义 + modal 焦点管理）
     const panel = document.createElement('div');
-    panel.className = 'person-picker-panel card rounded-2xl shadow-xl';
+    panel.className = 'person-picker-panel card rounded-xl shadow-xl';
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-modal', 'true');
     panel.setAttribute('aria-label', '选择人员');

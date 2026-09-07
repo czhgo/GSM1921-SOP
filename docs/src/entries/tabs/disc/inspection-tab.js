@@ -35,14 +35,14 @@ export function renderContent(ctx) {
 
   container.innerHTML = `
     ${_buildTaskforceRosterHTML()}
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-lg p-5">
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考察总表</h3>
         <div class="flex items-center flex-wrap justify-end gap-2">
-          <!-- U5b（2026-09-07）：互斥视图切换=圆角胶囊分段组（复用 ov-sub-tab 激活态，data-view 切换逻辑照旧） -->
-          <div class="inline-flex items-center gap-1 p-1 rounded-full bg-neutral-100">
-            <button class="insp-view-btn ov-sub-tab px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ov-sub-tab-active" data-view="long">活动视图</button>
-            <button class="insp-view-btn ov-sub-tab px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 text-gray-500 hover:text-gray-700" data-view="wide">人视图</button>
+          <!-- UI-A（2026-09-07）：互斥视图切换回退=独立小圆角钮组（去胶囊底衬；激活=主题浅底+主题色字/边框，data-view 切换逻辑照旧） -->
+          <div class="flex items-center gap-2">
+            <button class="insp-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]" data-view="long">活动视图</button>
+            <button class="insp-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-white border-neutral-200 text-gray-600 hover:bg-gray-50" data-view="wide">人视图</button>
           </div>
           <!-- 2026-08-28 T-304 A 档下载闭环：考察总表导出 CSV + 打印 -->
           <!-- U5b（2026-09-07）：低频操作钮统一 32px 圆角（与下拉/胶囊同 32px 档，hover 统一 bg-gray-50） -->
@@ -191,12 +191,15 @@ export function renderContent(ctx) {
   let currentView = 'long';
   container.querySelectorAll('.insp-view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      // U5b（2026-09-07）：激活态由 ov-sub-tab-active（白卡+主题色）驱动，不再内联覆盖背景/边框
+      // UI-A（2026-09-07）：激活态=主题浅底+主题色字/边框（独立小圆角钮，无衬不再用 ov-sub-tab-active）
       container.querySelectorAll('.insp-view-btn').forEach(b => {
         const on = b === btn;
-        b.classList.toggle('ov-sub-tab-active', on);
-        b.classList.toggle('text-gray-500', !on);
-        b.classList.toggle('hover:text-gray-700', !on);
+        b.classList.toggle('bg-[var(--app-accent-bg)]', on);
+        b.classList.toggle('border-[var(--app-accent)]', on);
+        b.classList.toggle('text-[var(--app-accent)]', on);
+        b.classList.toggle('bg-white', !on);
+        b.classList.toggle('border-neutral-200', !on);
+        b.classList.toggle('text-gray-600', !on);
       });
       currentView = btn.dataset.view;
       if (btn.dataset.view === 'long') renderLong(); else renderWide();
@@ -317,7 +320,7 @@ function _buildTaskforceRosterHTML() {
   }).join('');
 
   return `
-    <div class="card rounded-xl p-4 mb-4">
+    <div class="card rounded-lg p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">专班名单</h3>
         <span class="text-xs text-gray-500">名单由组织委员管理，纪检只读同步（前置）</span>

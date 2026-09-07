@@ -73,7 +73,7 @@ export function renderContent() {
   container.innerHTML = `
     <div class="space-y-4">
       <!-- 邮箱信息 + 倒计时 -->
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-lg p-5">
         <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">支部公邮</h3>
         <div class="flex items-center gap-3 mb-4">
           <div class="flex-1">
@@ -104,7 +104,7 @@ export function renderContent() {
       </div>
 
       <!-- 查收历史 -->
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-lg p-5">
         <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">查收历史</h3>
         <div class="text-xs text-gray-500 mb-3">纪检委员定期查收支部公邮，处理来往邮件</div>
         <div class="space-y-2">

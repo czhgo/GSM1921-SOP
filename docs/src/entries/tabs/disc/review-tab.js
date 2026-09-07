@@ -53,7 +53,7 @@ export function renderContent(ctx) {
 
   container.innerHTML = `
     <div class="space-y-4">
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-lg p-5">
         <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">活动流程监督</h3>
         <div class="text-xs text-gray-500 mb-3">阅览党小组活动/专班工作时间流 · 超时确认后邮件提醒</div>
         <div class="space-y-2">
@@ -71,7 +71,7 @@ export function renderContent(ctx) {
           `).join('')}
         </div>
       </div>
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-lg p-5">
         <div class="flex items-center justify-between gap-2 mb-1">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">活动复盘监督</h3>
           ${(_batchModeOn || reviewData.some(r => r.reviewStatus === ReviewStatus.UPLOADED)) ? `
@@ -128,7 +128,7 @@ export function renderContent(ctx) {
         </div>
       </div>
       ${unDepositedReviews.length > 0 ? `
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-lg p-5">
         <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">经验沉淀督促清单</h3>
         <div class="text-xs text-gray-500 mb-3">以下活动复盘已确认但尚未沉淀经验，请督促深度参与者提交</div>
         <div class="space-y-2">

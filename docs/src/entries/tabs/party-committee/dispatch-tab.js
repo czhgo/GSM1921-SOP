@@ -38,7 +38,7 @@ export function renderContent() {
 
   el.innerHTML = `
     <div class="space-y-4">
-      <div class="rounded-xl border border-gray-200 bg-white p-4">
+      <div class="rounded-lg border border-gray-200 bg-white p-4">
         <div class="flex items-center justify-between gap-3 mb-1">
           <div>
             <p class="font-title-cn text-base font-bold text-gray-800">下发通知</p>
@@ -51,7 +51,7 @@ export function renderContent() {
         <p class="text-xs text-gray-400">通知直达支部委员会（支委层收件并已读反馈）；支部非支委党员不受打扰。支部动态创建后自动可选。</p>
       </div>
 
-      <div class="rounded-xl border border-gray-200 bg-white p-4">
+      <div class="rounded-lg border border-gray-200 bg-white p-4">
         <p class="font-title-cn text-sm font-bold text-gray-800 mb-3">撰写下发通知</p>
         <div class="mb-3">
           <p class="text-xs text-gray-500 block mb-1.5">目标支部（可多选）<span class="text-red-500">*</span></p>
@@ -178,14 +178,14 @@ function renderHistory(el) {
     .filter(n => n.source === 'committee')
     .sort((a, b) => String(b.publishDate || '').localeCompare(String(a.publishDate || '')));
   if (!rows.length) {
-    wrap.innerHTML = `<div class="rounded-xl border border-gray-200 bg-white p-6 text-center">
+    wrap.innerHTML = `<div class="rounded-lg border border-gray-200 bg-white p-6 text-center">
       <p class="text-sm text-gray-500">暂无下发记录</p>
       <p class="text-xs text-gray-400 mt-1">撰写并下发后，此处留存党委下发历史</p>
     </div>`;
     return;
   }
   wrap.innerHTML = rows.map(n => `
-    <div class="rounded-xl border border-gray-200 bg-white p-4">
+    <div class="rounded-lg border border-gray-200 bg-white p-4">
       <div class="flex items-center gap-2 flex-wrap mb-1">
         <span class="text-xs px-2 py-0.5 rounded-full ${n.priority === 'urgent' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'}">${n.priority === 'urgent' ? '紧急' : '重要'}</span>
         <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">${esc(n.branchName || n.branchId || '—')}</span>

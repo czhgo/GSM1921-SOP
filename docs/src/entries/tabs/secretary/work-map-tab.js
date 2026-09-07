@@ -101,13 +101,13 @@ export function renderContent() {
 
   const switchBar = `
     <div class="flex items-center gap-2 mb-3">
-      <div class="inline-flex items-center gap-1 p-1 rounded-full bg-neutral-100">
+      <div class="flex items-center gap-2">
         ${[
           { key: 'modules', label: '平铺模块' },
           { key: 'persons', label: '按人' },
         ].map(t => `
           <button type="button"
-            class="ov-sub-tab px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${_view === t.key ? 'ov-sub-tab-active' : 'text-gray-500 hover:text-gray-700'}"
+            class="ov-sub-tab px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${_view === t.key ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"
             data-wm-view="${t.key}">${t.label}</button>`).join('')}
       </div>
       <p class="text-xs text-gray-400 ml-auto">分工由本支部自行调整（缺省按 SOP 责任人，改派走支委会议题）</p>

@@ -180,11 +180,11 @@ function _renderViewSwitcher(currentView) {
     grid.parentNode.insertBefore(switcher, grid);
   }
 
-  // U5a（2026-09-07）：视图切换统一为圆角胶囊分段组（复用 ov-sub-tab 激活态，data-view 切换逻辑照旧）
+  // UI-A（2026-09-07）：视图切换回退 U5 前形态=独立小圆角钮组（去胶囊底衬；激活=主题浅底+主题色字/边框，data-view 逻辑照旧）
   switcher.innerHTML = `
-    <div class="inline-flex items-center gap-1 p-1 rounded-full bg-neutral-100 mb-3">
+    <div class="flex items-center gap-2 mb-3">
       ${Object.entries(VIEW_LABELS).map(([key, label]) => `
-        <button class="cal-view-btn ov-sub-tab px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${key === currentView ? 'ov-sub-tab-active' : 'text-gray-500 hover:text-gray-700'}" data-view="${key}">${label}</button>
+        <button class="cal-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${key === currentView ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}" data-view="${key}">${label}</button>
       `).join('')}
     </div>
   `;
@@ -324,10 +324,10 @@ function _renderWeekView(grid, activeActivities, tasks, month, state) {
   let html = `<div class="mb-6">`;
   html += `<div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">`;
   html += `<span class=" text-sm font-bold text-gray-700">${weekStart.getFullYear()}年 第${_getWeekNumber(weekStart)}周</span>`;
-  // U5a（2026-09-07）：成对导航连体按钮（同高 32px、中缝 1px、左右圆角半胶囊）
+  // UI-A（2026-09-07）：成对导航连体按钮回退圆角档（保留 h-8 同高、中缝 1px；rounded-l/r-full→lg）
   html += `<div class="inline-flex items-center">`;
-  html += `<button id="cal-week-prev" class="h-8 px-3.5 rounded-l-full border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">上一周</button>`;
-  html += `<button id="cal-week-next" class="h-8 px-3.5 rounded-r-full border border-gray-200 border-l-0 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">下一周</button>`;
+  html += `<button id="cal-week-prev" class="h-8 px-3.5 rounded-l-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">上一周</button>`;
+  html += `<button id="cal-week-next" class="h-8 px-3.5 rounded-r-lg border border-gray-200 border-l-0 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">下一周</button>`;
   html += `</div></div>`;
 
   html += `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">`;
@@ -392,10 +392,10 @@ function _renderDayView(grid, activeActivities, tasks, month, state) {
   let html = `<div class="mb-6">`;
   html += `<div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">`;
   html += `<span class=" text-sm font-bold text-gray-700">${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 周${WEEKDAY[d.getDay()]}</span>`;
-  // U5a（2026-09-07）：成对导航连体按钮（同高 32px、中缝 1px、左右圆角半胶囊）
+  // UI-A（2026-09-07）：成对导航连体按钮回退圆角档（保留 h-8 同高、中缝 1px；rounded-l/r-full→lg）
   html += `<div class="inline-flex items-center">`;
-  html += `<button id="cal-day-prev" class="h-8 px-3.5 rounded-l-full border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">前一天</button>`;
-  html += `<button id="cal-day-next" class="h-8 px-3.5 rounded-r-full border border-gray-200 border-l-0 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">后一天</button>`;
+  html += `<button id="cal-day-prev" class="h-8 px-3.5 rounded-l-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">前一天</button>`;
+  html += `<button id="cal-day-next" class="h-8 px-3.5 rounded-r-lg border border-gray-200 border-l-0 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">后一天</button>`;
   html += `</div></div>`;
 
   if (dayActivities.length === 0 && allTasks.length === 0) {

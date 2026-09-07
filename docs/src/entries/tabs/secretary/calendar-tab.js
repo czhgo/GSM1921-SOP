@@ -101,7 +101,7 @@ const CALENDAR_TAB_HTML = `
   <!-- 统计条（紧凑文本概览） -->
   <div id="secretary-stats" class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500 mb-4 py-2 border-b border-gray-100"></div>
   <!-- 活动日历（2026-08-05：「写入活动」并入日历卡片头部，删除原独立活动写入卡片） -->
-  <div class="card rounded-2xl p-6 mb-4">
+  <div class="card rounded-xl p-6 mb-4">
     <div class="flex items-center justify-between mb-4">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">活动日历</h3>
       <button id="ws-sec-write-btn" type="button" class="btn-accent-soft shrink-0 h-8 px-4 text-sm inline-flex items-center gap-1.5">
@@ -139,8 +139,8 @@ const CALENDAR_TAB_HTML = `
     <div id="secretary-attendance-detail" class="hidden mt-3 pt-3 border-t border-gray-100"></div>
   </div>
   <!-- 活动查询（默认折叠，点击展开） -->
-  <div class="card rounded-2xl">
-    <button id="query-toggle" type="button" class="w-full px-6 py-3 text-left flex items-center justify-between hover:bg-gray-50 transition-colors rounded-2xl">
+  <div class="card rounded-xl">
+    <button id="query-toggle" type="button" class="w-full px-6 py-3 text-left flex items-center justify-between hover:bg-gray-50 transition-colors rounded-xl">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">活动查询</h3>
       <svg id="query-toggle-icon" class="w-4 h-4 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>

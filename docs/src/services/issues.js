@@ -914,7 +914,7 @@ function _renderMyReportDetail(issueId, role, userId, container) {
   const ds = deriveIssueDisplayState(issue);
   const hasReply = (issue.comments || []).some(c => c.kind === 'reply');
 
-  let html = `<div class="card rounded-2xl p-6">`;
+  let html = `<div class="card rounded-xl p-6">`;
   html += `<button data-mydispatch-action="back" class="text-xs text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
@@ -993,7 +993,7 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
   IssueNotify.markRead(userId, issueId);
   const ds = deriveIssueDisplayState(issue);
 
-  let html = `<div class="card rounded-2xl p-6">`;
+  let html = `<div class="card rounded-xl p-6">`;
   html += `<button data-mydispatch-action="back" class="text-xs text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;

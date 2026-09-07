@@ -44,7 +44,7 @@ export function renderContent(ctx) {
     .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
   const formHtml = _inspFormVisible ? `
-    <div class="mt-3 p-4 rounded-xl bg-white border border-gray-100 shadow-sm" id="insp-form-panel">
+    <div class="mt-3 p-4 rounded-lg bg-white border border-gray-100 shadow-sm" id="insp-form-panel">
       <div class="text-xs font-bold text-gray-600 mb-3">上传考察表单</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         <div>
@@ -75,7 +75,7 @@ export function renderContent(ctx) {
   ` : '';
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-lg p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考察上传</h3>
         <button class="btn-md" id="btn-leader-upload-insp" style="${_accVars}background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_inspFormVisible ? '收起表单' : '上传考察表单'}</button>

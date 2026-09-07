@@ -89,7 +89,7 @@ export function renderSignupSection({ sourceType, sourceId, title, signups, myId
   }
 
   return `
-    <div class="rounded-2xl border border-red-100 bg-red-50/40 p-5 mb-6">
+    <div class="rounded-xl border border-red-100 bg-red-50/40 p-5 mb-6">
       <h3 class="text-sm font-semibold text-gray-700 mb-3">报名参与</h3>
       ${body}
     </div>

@@ -47,7 +47,7 @@ export function renderTaskforceView(container, opts = {}) {
   if (container.dataset.tfvInited !== '1') {
     container.dataset.tfvInited = '1';
     container.innerHTML = `
-      <div class="card rounded-2xl p-6">
+      <div class="card rounded-xl p-6">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">专班查看</h3>
           <span class="text-xs text-gray-400">全支部专班一览 · 点击卡片查看详情（只读）</span>

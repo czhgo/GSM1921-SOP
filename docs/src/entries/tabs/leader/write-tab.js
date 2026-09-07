@@ -53,7 +53,7 @@ export function renderContent(ctx) {
   const panelVisible = dt.showPanel;
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-lg p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">活动写入</h3>
         <button class="btn-md" id="btn-leader-create" style="${_accVars}background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${panelVisible ? '收起面板' : '创建活动'}</button>
@@ -76,7 +76,7 @@ export function renderContent(ctx) {
               </div>
             `).join('')}
         </div>
-        <div id="leader-act-detail" class="hidden mt-3 rounded-xl p-4"></div>
+        <div id="leader-act-detail" class="hidden mt-3 rounded-lg p-4"></div>
       </div>
     </div>
   `;
@@ -558,7 +558,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
   ` : '';
 
   return `
-    <div class="p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
+    <div class="p-4 rounded-lg bg-white border border-gray-100 shadow-sm">
       ${stepperHtml}
       ${l1Html}
       ${hostGroupHtml}

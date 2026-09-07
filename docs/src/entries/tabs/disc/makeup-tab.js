@@ -33,7 +33,7 @@ export function renderContent() {
         accent: getAccentColors(resolveAccentRole('disc-commissioner')).accent,
         title: '补课需求回执（组织→纪检）',
       })}
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-lg p-5">
         <div class="flex items-center justify-between mb-3">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">补课任务</h3>
           <div class="flex gap-4 text-xs">

@@ -85,7 +85,7 @@ export function renderIssueList() {
   const pageItems = filtered.slice((_pageState - 1) * PAGE_SIZE, _pageState * PAGE_SIZE);
 
   container.innerHTML = `
-    <div class="card rounded-2xl p-6 mb-4">
+    <div class="card rounded-xl p-6 mb-4">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">全部意见 <span class="text-xs font-normal text-gray-400">开放中 ${counts.open} · 已关闭 ${counts.closed}</span></h3>
         ${canCreate ? `<button id="btn-new-issue" class="text-sm px-4 py-[7px] rounded-lg font-medium text-white transition-colors" style="background:#CE1126;" onmouseover="this.style.background='#991B1B'" onmouseout="this.style.background='#CE1126'">+ 新反馈</button>` : ''}
@@ -94,9 +94,9 @@ export function renderIssueList() {
       <!-- U5b（2026-09-07）：筛选条控件统一 32px 档——胶囊过滤钮 py-2、输入/下拉 text-xs 紧凑档（styles.css input-flat.text-xs 34px 对齐档 + cs-trigger h-8），与清除钮同高 -->
       <div class="flex items-center gap-2 mb-3 flex-wrap text-xs">
         <input type="text" id="filter-keyword" placeholder="搜索标题/正文..." value="${_filterState.keyword}" class="input-flat text-xs px-2 py-1 rounded flex-1 min-w-[140px]">
-        <button class="filter-btn px-3 py-2 rounded-full transition-colors ${_filterState.status === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="all">全部 (${counts.total})</button>
-        <button class="filter-btn px-3 py-2 rounded-full transition-colors ${_filterState.status === 'open' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" style="${_filterState.status === 'open' ? 'background:#CE1126' : ''}" data-status="open">开放中 (${counts.open})</button>
-        <button class="filter-btn px-3 py-2 rounded-full transition-colors ${_filterState.status === 'closed' ? 'bg-gray-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="closed">已关闭 (${counts.closed})</button>
+        <button class="filter-btn px-3 py-2 rounded-lg transition-colors ${_filterState.status === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="all">全部 (${counts.total})</button>
+        <button class="filter-btn px-3 py-2 rounded-lg transition-colors ${_filterState.status === 'open' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" style="${_filterState.status === 'open' ? 'background:#CE1126' : ''}" data-status="open">开放中 (${counts.open})</button>
+        <button class="filter-btn px-3 py-2 rounded-lg transition-colors ${_filterState.status === 'closed' ? 'bg-gray-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="closed">已关闭 (${counts.closed})</button>
         <span class="mx-1 text-gray-300">|</span>
         <select id="filter-scope" class="input-flat text-xs px-2 py-1 rounded">
           <option value="all" ${_filterState.scope === 'all' ? 'selected' : ''}>所有范围</option>

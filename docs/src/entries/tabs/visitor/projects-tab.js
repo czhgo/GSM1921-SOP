@@ -80,10 +80,10 @@ export function renderContent(ctx) {
     { key: 'all', label: '全局分工' },
   ];
   const subTabsHtml = `
-    <div class="inline-flex items-center gap-1 p-1 rounded-full bg-neutral-100 mb-3">
+    <div class="flex items-center gap-2 mb-3">
       ${subTabs.map(t => `
         <button type="button"
-          class="visitor-proj-sub px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${_projSubView === t.key ? 'ov-sub-tab-active' : 'text-gray-500 hover:text-gray-700'} "
+          class="visitor-proj-sub px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${_projSubView === t.key ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"
           data-proj-subview="${t.key}">${t.label}</button>
       `).join('')}
     </div>
@@ -168,9 +168,12 @@ export function renderContent(ctx) {
       _projSubView = btn.dataset.projSubview;
       tc.querySelectorAll('.visitor-proj-sub').forEach(b => {
         const active = b === btn;
-        b.classList.toggle('ov-sub-tab-active', active);
-        b.classList.toggle('text-gray-500', !active);
-        b.classList.toggle('hover:text-gray-700', !active);
+        b.classList.toggle('bg-[var(--app-accent-bg)]', active);
+        b.classList.toggle('border-[var(--app-accent)]', active);
+        b.classList.toggle('text-[var(--app-accent)]', active);
+        b.classList.toggle('bg-white', !active);
+        b.classList.toggle('border-neutral-200', !active);
+        b.classList.toggle('text-gray-600', !active);
       });
       renderList();
     });

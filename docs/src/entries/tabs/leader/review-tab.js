@@ -109,7 +109,7 @@ export function renderContent(ctx) {
   }
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-lg p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">本组活动复盘状态</h3>
       </div>

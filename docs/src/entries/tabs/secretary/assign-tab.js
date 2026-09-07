@@ -18,7 +18,7 @@ import { TodoStore } from '../../../services/todo.js?v=20260907b';
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 
 const ASSIGN_TAB_HTML = `
-  <div class="card rounded-2xl p-6 mb-6">
+  <div class="card rounded-xl p-6 mb-6">
     <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">常设赋权</h3>
     <p class="text-xs text-gray-500 mb-3">设党小组组长——角色指派靠口头/群聊，系统内设+记录可追溯</p>
     <button id="ws-sec-assign-btn" class="btn-accent-soft text-xs px-3 py-1.5">设党小组组长</button>
@@ -28,7 +28,7 @@ const ASSIGN_TAB_HTML = `
       <div id="assign-leaders-list"></div>
     </div>
   </div>
-  <div class="card rounded-2xl p-6">
+  <div class="card rounded-xl p-6">
     <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">项目赋权</h3>
     <p class="text-xs text-gray-500 mb-4">为同志赋权项目角色（组织者/深度参与者），赋权后该同志在对应活动/专班中拥有相应权限。</p>
     <div id="project-auth-panel"></div>

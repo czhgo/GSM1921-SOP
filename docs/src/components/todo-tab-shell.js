@@ -109,11 +109,11 @@ export function createTodoTab(opts) {
     const row = '<div class="h-9 rounded-lg bg-gray-100 animate-pulse"></div>';
     return `
       <div data-ws-todo-skeleton class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2 card rounded-xl p-5" style="min-height:340px;">
+        <div class="lg:col-span-2 card rounded-lg p-5" style="min-height:340px;">
           <div class="h-4 w-20 rounded bg-gray-100 animate-pulse mb-4"></div>
           <div class="space-y-2.5">${row}${row}${row}${row}${row}</div>
         </div>
-        <div class="lg:col-span-1 card rounded-xl p-5" style="min-height:220px;">
+        <div class="lg:col-span-1 card rounded-lg p-5" style="min-height:220px;">
           <div class="h-4 w-12 rounded bg-gray-100 animate-pulse mb-4"></div>
           <div class="h-24 rounded-lg bg-gray-100 animate-pulse"></div>
         </div>
@@ -326,7 +326,7 @@ export function createTodoTab(opts) {
         ${unreadHtml}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4" data-ws-memo="todo-shell">
           <div class="lg:col-span-2">
-            <div class="card rounded-xl p-5">
+            <div class="card rounded-lg p-5">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
               </div>
@@ -334,7 +334,7 @@ export function createTodoTab(opts) {
             </div>
           </div>
           <div class="lg:col-span-1">
-            <div class="card rounded-xl p-5 sticky top-20">
+            <div class="card rounded-lg p-5 sticky top-20">
               <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">${detailTitle}</h3>
               ${detailHtml}
             </div>

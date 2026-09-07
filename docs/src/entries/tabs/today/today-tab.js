@@ -151,7 +151,7 @@ function _dutyBlock(s) {
 /** 三块全空 → 卡片不消失，仅示一句空态 */
 function _allEmptyHtml() {
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-lg p-5">
       <div class="flex items-center justify-center gap-2 py-6">
         <span class="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"></span>
         <p class="text-sm text-gray-400">今天暂无安排</p>
@@ -189,7 +189,7 @@ export function renderTodayTab(container, { personId, role, onNav } = {}) {
       + summary.dueToday.length + summary.myDuties.length;
 
     const body = total === 0 ? _allEmptyHtml() : `
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-lg p-5">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
           <section class="lg:col-span-2 min-w-0">${_meetingBlock(summary)}</section>
           <div class="lg:col-span-1 min-w-0 space-y-5">

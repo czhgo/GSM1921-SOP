@@ -251,12 +251,15 @@ export function renderContent(ctx) {
   const renderMatrix = () => _renderMatrix(matrixView, actById, allRecords, ctx, accent, accentBorder);
   container.querySelectorAll('.att-mtx-view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      // U5b（2026-09-07）：激活态由 ov-sub-tab-active（白卡+主题色）驱动，不再内联覆盖背景/边框
+      // UI-A（2026-09-07）：激活态=主题浅底+主题色字/边框（独立小圆角钮，无衬不再用 ov-sub-tab-active）
       container.querySelectorAll('.att-mtx-view-btn').forEach(b => {
         const on = b === btn;
-        b.classList.toggle('ov-sub-tab-active', on);
-        b.classList.toggle('text-gray-500', !on);
-        b.classList.toggle('hover:text-gray-700', !on);
+        b.classList.toggle('bg-[var(--app-accent-bg)]', on);
+        b.classList.toggle('border-[var(--app-accent)]', on);
+        b.classList.toggle('text-[var(--app-accent)]', on);
+        b.classList.toggle('bg-white', !on);
+        b.classList.toggle('border-neutral-200', !on);
+        b.classList.toggle('text-gray-600', !on);
       });
       matrixView = btn.dataset.view;
       renderMatrix();
@@ -396,7 +399,7 @@ function _buildQueueHTML(items, leaveCount, absentCount, overdueCount, autoConfi
       </div>`;
 
   return `
-    <div id="att-queue" class="card rounded-xl p-4 mb-4">
+    <div id="att-queue" class="card rounded-lg p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">待确认考勤</h3>
         <div class="flex gap-3 text-xs">
@@ -458,7 +461,7 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
   }
 
   return `
-    <div class="card rounded-xl p-4 mb-4">
+    <div class="card rounded-lg p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">会议考勤录入</h3>
         ${toggleBtn}
@@ -651,13 +654,13 @@ function _buildMatrixCardHTML(ctx, allRecords, actById, filterActivityId, accent
     .join('');
 
   return `
-    <div class="card rounded-xl p-5 mb-4">
+    <div class="card rounded-lg p-5 mb-4">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤矩阵</h3>
-        <!-- U5b（2026-09-07）：互斥视图切换=圆角胶囊分段组（复用 ov-sub-tab 激活态，data-view 切换逻辑照旧） -->
-        <div class="inline-flex items-center gap-1 p-1 rounded-full bg-neutral-100">
-          <button class="att-mtx-view-btn ov-sub-tab px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ov-sub-tab-active" data-view="byActivity">按活动</button>
-          <button class="att-mtx-view-btn ov-sub-tab px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 text-gray-500 hover:text-gray-700" data-view="byPerson">按人</button>
+        <!-- UI-A（2026-09-07）：互斥视图切换回退=独立小圆角钮组（去胶囊底衬；激活=主题浅底+主题色字/边框，data-view 逻辑照旧） -->
+        <div class="flex items-center gap-2">
+          <button class="att-mtx-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]" data-view="byActivity">按活动</button>
+          <button class="att-mtx-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-white border-neutral-200 text-gray-600 hover:bg-gray-50" data-view="byPerson">按人</button>
         </div>
       </div>
       <div class="flex flex-wrap gap-2 mb-3">
@@ -766,7 +769,7 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
   const totalPending = allRecords.filter(r => !r.recordedBy && !isRegular(r)).length;
   const totalAuto = allRecords.filter(r => !r.recordedBy && isRegular(r)).length;
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-lg p-5">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
         <div class="flex items-center gap-3">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤总表</h3>
@@ -796,8 +799,8 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
       <div class="flex items-center justify-between mt-3">
         <span class="text-xs text-gray-400" id="att-table-info"></span>
         <div class="inline-flex items-center">
-          <button id="att-table-prev" class="h-8 px-3.5 rounded-l-full border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">上一页</button>
-          <button id="att-table-next" class="h-8 px-3.5 rounded-r-full border border-gray-200 border-l-0 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">下一页</button>
+          <button id="att-table-prev" class="h-8 px-3.5 rounded-l-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">上一页</button>
+          <button id="att-table-next" class="h-8 px-3.5 rounded-r-lg border border-gray-200 border-l-0 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">下一页</button>
         </div>
       </div>
     </div>
@@ -924,7 +927,7 @@ function _buildGroupMeetingReadonlyHTML() {
         </div>`;
       }).join('');
   return `
-    <div class="card rounded-xl p-4">
+    <div class="card rounded-lg p-4">
       <div class="flex items-center justify-between mb-2">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">党小组会考勤（纪检只读掌握）</h3>
       </div>

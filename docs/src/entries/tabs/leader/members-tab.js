@@ -32,7 +32,7 @@ export async function renderContent(ctx) {
   const targets = resolveVisibleTargets('leader', myPersonId);
   if (!targets.length) {
     container.innerHTML = `
-      <div class="card rounded-xl p-6 text-center">
+      <div class="card rounded-lg p-6 text-center">
         <p class="text-xs text-gray-400">本党小组暂无其他组员可查看</p>
       </div>`;
     return;
@@ -128,14 +128,14 @@ export async function renderContent(ctx) {
   container.innerHTML = `
     <div class="space-y-4">
       ${reportInboxHtml}
-      <div class="card rounded-xl p-4">
+      <div class="card rounded-lg p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">卡点</h4>
           <span class="text-xs text-gray-400">本组超期/上报/缺勤 · ${blockers.length} 项</span>
         </div>
         <div class="space-y-1">${blockerHtml}</div>
       </div>
-      <div class="card rounded-xl p-4">
+      <div class="card rounded-lg p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">进度</h4>
           <span class="text-xs text-gray-400">本组组员在办聚合</span>

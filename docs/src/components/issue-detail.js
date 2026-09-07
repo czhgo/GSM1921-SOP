@@ -59,7 +59,7 @@ export function renderIssueDetail(issueId) {
   const issue = IssueStore.getById(issueId);
   if (!issue) {
     container.innerHTML = `
-      <div class="card rounded-2xl p-6 text-center">
+      <div class="card rounded-xl p-6 text-center">
         <p class="text-sm text-gray-400 mb-3">反馈不存在或已被删除</p>
         <a href="./feedback.html" class="text-xs text-blue-600 hover:text-blue-800">← 返回列表</a>
       </div>
@@ -83,7 +83,7 @@ export function renderIssueDetail(issueId) {
     <div class="grid lg:grid-cols-10 gap-4">
       <!-- 主区 70% -->
       <div class="lg:col-span-7 space-y-4">
-        <div class="card rounded-2xl p-6">
+        <div class="card rounded-xl p-6">
           <div class="flex items-center gap-2 mb-3">
             <span class="text-xs text-gray-400 font-mono">#${issue.number}</span>
             ${issue.status === 'open'
@@ -136,7 +136,7 @@ export function renderIssueDetail(issueId) {
 
       <!-- 侧边栏 30% -->
       <div class="lg:col-span-3 space-y-3">
-        <div class="card rounded-2xl p-4 text-xs">
+        <div class="card rounded-xl p-4 text-xs">
           <div class="mb-3">
             <p class="text-gray-400 mb-1">提交者</p>
             <p class="text-gray-700 font-medium font-sans">${getPersonName(issue.submittedBy)}</p>

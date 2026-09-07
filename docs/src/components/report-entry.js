@@ -55,7 +55,7 @@ async function openReportModal() {
   root.id = 'report-modal-root';
   root.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;';
   root.innerHTML = `
-    <div class="card rounded-2xl p-5 w-full" style="max-width:480px;margin:16px;">
+    <div class="card rounded-xl p-5 w-full" style="max-width:480px;margin:16px;">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">一键汇报</h3>
         <button type="button" class="report-modal-close text-xs text-gray-400 hover:text-gray-600 transition-colors">关闭</button>

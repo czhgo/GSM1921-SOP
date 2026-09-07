@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
 import { renderSidebar } from '../components/sidebar.js?v=20260903c';
@@ -254,7 +254,7 @@ function _ensureArchiveDetailModal() {
   _archiveDetailOverlay.className = 'fixed inset-0 bg-black/40 z-50 hidden';
   _archiveDetailOverlay.innerHTML = `
     <div class="absolute inset-0" data-close></div>
-    <div id="archive-detail-modal" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[640px] max-w-[92vw] max-h-[85vh] overflow-y-auto bg-white rounded-2xl shadow-2xl">
+    <div id="archive-detail-modal" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[640px] max-w-[92vw] max-h-[85vh] overflow-y-auto bg-white rounded-xl shadow-2xl">
       <!-- 内容由 _showArchiveDetail 注入 -->
     </div>
   `;
