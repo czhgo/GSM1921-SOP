@@ -7,7 +7,7 @@
 
 import { renderWorkOverview } from '../../../components/work-overview.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { beginOverviewShell } from '../../../components/overview-dispatch-bar.js?v=20260906j';
+import { beginOverviewShell } from '../../../components/overview-dispatch-bar.js?v=20260907a';
 
 export function renderContent(ctx) {
   const el = document.getElementById('visitor-tab-content');

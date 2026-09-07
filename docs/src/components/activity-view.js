@@ -5,7 +5,7 @@
 // 形态依据书记第四轮裁定：「书记的日历视图只要删去写入活动等功能，就可以提供很好的活动详情」。
 
 import { getAppState, setState } from '../core/state.js?v=20260903c';
-import { renderCalendarByActivities } from './calendar.js?v=20260903c';
+import { renderCalendarByActivities } from './calendar.js?v=20260907a';
 import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc } from '../core/utils.js?v=20260903c';
 import { badgeHtml } from './badges.js?v=20260903c';
 import { ROLE_COLORS, dotDarkVars } from '../core/constants.js?v=20260903c';

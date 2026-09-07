@@ -10,12 +10,12 @@
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
 import { STATE, getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260903c';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260903c';
-import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260903c';
-import { flashHighlight } from '../core/utils.js?v=20260903c';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260903c';
-import { getCapabilities } from '../core/registry.js?v=20260903c';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260903c';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260907a';
+import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260907a';
+import { flashHighlight } from '../core/utils.js?v=20260903c';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260903c';
+import { getCapabilities } from '../core/registry.js?v=20260903c';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260907a';
 import { TodoStore } from '../services/todo.js?v=20260906j';
 import { AuthStore } from '../services/auth.js?v=20260903c';
 import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260903c';

@@ -3,7 +3,7 @@
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
 import { getAppState, setState } from '../core/state.js?v=20260903c';
-import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260906j';
+import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260907a';
 import { renderReportEntryHtml, bindReportEntry } from '../components/reporting.js?v=20260903c';
 import { flashHighlight } from '../core/utils.js?v=20260903c';
 import { loadActivities } from '../services/activity.js?v=20260903c';
@@ -11,9 +11,9 @@ import { TaskForceRecordStore } from '../services/taskforce.js?v=20260903c';
 import { SignupStore } from '../services/signup.js?v=20260906j';
 import { seedTodos } from '../services/todo.js?v=20260906j';
 import { solidAccentStyle } from '../core/constants.js?v=20260903c';
-import { openRecruitForm } from './tabs/org/taskforce-tab.js?v=20260906j';
+import { openRecruitForm } from './tabs/org/taskforce-tab.js?v=20260907a';
 // 副作用导入触发组织委员工作台能力注册（tab 清单；含 立项⑥B波 成员名册 tab）
-import '../modules/capabilities/org-workspace.js?v=20260906j';
+import '../modules/capabilities/org-workspace.js?v=20260907a';
 
 await createWorkspaceShell({
   accentRole: 'org-commissioner',

@@ -6,7 +6,7 @@
 // 本视图禁用 SVG 图标，类别用色点+文字区分。
 
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { IssueStore } from '../../../services/issues.js?v=20260903c';
+import { IssueStore } from '../../../services/issues.js?v=20260907a';
 import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260903c';
 import { TodoStore, TodoStatus } from '../../../services/todo.js?v=20260903c';
 import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260903c';

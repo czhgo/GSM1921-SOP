@@ -6,7 +6,7 @@
 
 import { renderWorkOverview } from '../../../components/work-overview.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { beginOverviewShell, countOwnPendingReports, mountOverviewDispatchBar } from '../../../components/overview-dispatch-bar.js?v=20260906j';
+import { beginOverviewShell, countOwnPendingReports, mountOverviewDispatchBar } from '../../../components/overview-dispatch-bar.js?v=20260907a';
 
 export async function renderContent(ctx) {
   const el = document.getElementById('prop-tab-content');

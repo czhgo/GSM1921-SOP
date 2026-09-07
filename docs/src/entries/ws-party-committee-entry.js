@@ -4,11 +4,11 @@
 // 职责与其余工作台一致：壳配置（capability tab 清单）+ 数据加载；角色特有逻辑仅保留。
 // 立项⑦ B波（2026-09-06）：登录落点 = 置首 tab「治理总览」（治理首页，先总览再进各业务 tab）。
 
-import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260903c';
+import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260907a';
 import { loadActivities } from '../services/activity.js?v=20260903c';
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260903c';
 // 副作用导入触发党委工作台能力注册（tab 清单）
-import '../modules/capabilities/party-committee-workspace.js?v=20260901t';
+import '../modules/capabilities/party-committee-workspace.js?v=20260907a';
 
 await createWorkspaceShell({
   accentRole: 'party-staff',

@@ -7,9 +7,9 @@
 
 import { renderWorkOverview } from '../../../components/work-overview.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { IssueStore } from '../../../services/issues.js?v=20260906j';
+import { IssueStore } from '../../../services/issues.js?v=20260907a';
 import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260903c';
-import { beginOverviewShell, mountOverviewDispatchBar } from '../../../components/overview-dispatch-bar.js?v=20260906j';
+import { beginOverviewShell, mountOverviewDispatchBar } from '../../../components/overview-dispatch-bar.js?v=20260907a';
 
 /** 本组组员 open 汇报数（组长收件 = 组员汇报，处理位 = 组员进展 tab；P-011 同组可见） */
 async function _pendingMemberReportCount(personId) {

@@ -20,7 +20,7 @@ registerCapability({
     // R6-3「今天」置首 + 登录落点（2026-09-07 方案 B）：共享渲染只读速览，数据同源派生；
     // 到期/逾期行 → onNav('todo')（todo tab 六台同 id）；会议/分工行在 today-tab 内直跳 activity.html；
     // 会议「全部」→ onNav('activities')，下方映射到本台活动承载 tab（组织台=活动查看 activity-view；无承载台为空操作）
-    { id: 'today', label: '今天', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/today/today-tab.js?v=20260906j').then(m => {
+    { id: 'today', label: '今天', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/today/today-tab.js?v=20260907a').then(m => {
       const el = document.getElementById('org-tab-content');
       if (el) m.renderTodayTab(el, {
         personId: ctx?.personId || AuthStore.getCurrentUser()?.personId,
@@ -34,13 +34,13 @@ registerCapability({
     }) },
     { id: 'todo', label: '待办', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/org/todo-tab.js?v=20260906j').then(m => m.renderContent(ctx)) },
     // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
-    { id: 'overview', label: '工作概况', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/org/overview-tab.js?v=20260906j').then(m => m.renderContent(ctx)) },
+    { id: 'overview', label: '工作概况', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/org/overview-tab.js?v=20260907a').then(m => m.renderContent(ctx)) },
     { id: 'inspection', label: '考察上传', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/inspection-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
-    { id: 'taskforce', label: '专班管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/taskforce-tab.js?v=20260906j').then(m => m.renderContent(ctx)) },
+    { id: 'taskforce', label: '专班管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/taskforce-tab.js?v=20260907a').then(m => m.renderContent(ctx)) },
     // 成员名册（立项⑥ B波 2026-09-06：新增/行内编辑/删除 双形态持久；人才库为考察画像视图，分工不重复建设）
-    { id: 'roster', label: '成员名册', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/roster-tab.js?v=20260906e').then(m => m.renderContent(ctx)) },
-    { id: 'talent', label: '人才库', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/talent-tab.js?v=20260906j').then(m => m.renderContent(ctx)) },
-    { id: 'development', label: '发展数据', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/development-tab.js?v=20260906j').then(m => m.renderContent(ctx)) },
+    { id: 'roster', label: '成员名册', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/roster-tab.js?v=20260907a').then(m => m.renderContent(ctx)) },
+    { id: 'talent', label: '人才库', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/talent-tab.js?v=20260907a').then(m => m.renderContent(ctx)) },
+    { id: 'development', label: '发展数据', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/development-tab.js?v=20260907a').then(m => m.renderContent(ctx)) },
     // R6-2 把关式初阅（2026-09-07 书记定案）：思想汇报通过才正式归档、退回附意见（提交者可见并修改重交）；
     // 初阅收敛本 tab 单入口——development「思想汇报」只读展开保持不动（不加操作，避免两处入口）。
     { id: 'thought-review', label: '思想汇报', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/thought-review-tab.js?v=20260906j').then(m => m.renderContent(ctx)) },

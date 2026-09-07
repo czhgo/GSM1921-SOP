@@ -4,15 +4,15 @@
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../components/sidebar.js?v=20260903c';
-import { renderHeader } from '../components/header.js?v=20260903c';
+import { renderSidebar } from '../components/sidebar.js?v=20260907a';
+import { renderHeader } from '../components/header.js?v=20260907a';
 import { AuthStore } from '../services/auth.js?v=20260903c';
-import { IssueStore } from '../services/issues.js?v=20260903c';
+import { IssueStore } from '../services/issues.js?v=20260907a';
 import { MilestoneStore } from '../services/milestones.js?v=20260903c';
 import { getAccentColors, resolveAccentRole } from './constants.js?v=20260903c';
 import { CrossPageState } from './cross-page-state.js?v=20260903c';
 import { getBasePath } from './utils.js?v=20260903c';
-import { enhanceSelects } from '../components/custom-select.js?v=20260903c';
+import { enhanceSelects } from '../components/custom-select.js?v=20260907a';
 import { registerApiAdapter, init } from './data-adapter.js?v=20260903c';
 import { ApiAdapter } from './api-adapter.js?v=20260903c';
 import { getCapabilities } from './registry.js?v=20260903c';

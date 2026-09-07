@@ -12,14 +12,14 @@ import { getBasePath } from '../core/utils.js?v=20260903c';
 import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../services/attendance.js?v=20260903c';
 import { loadActivities } from '../services/activity.js?v=20260903c';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260903c';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260903c';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260907a';
 import { AuthStore } from '../services/auth.js?v=20260903c';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260903c';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260907a';
 import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260903c';
-import '../modules/capabilities/activity-calendar.js?v=20260822a'; // 副作用导入：注册首页活动日历能力
+import '../modules/capabilities/activity-calendar.js?v=20260907a'; // 副作用导入：注册首页活动日历能力
 // ── 方案 B 入口拆分：dashboard 区块渲染模块 ──
 import { renderDashboardStats } from '../components/dashboard/stats.js?v=20260903c';
-import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../components/dashboard/activity-panel.js?v=20260903c';
+import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../components/dashboard/activity-panel.js?v=20260907a';
 import { renderTaskforceList } from '../components/dashboard/taskforce-list.js?v=20260903c';
 import { renderGallery } from '../components/dashboard/gallery.js?v=20260903c';
 

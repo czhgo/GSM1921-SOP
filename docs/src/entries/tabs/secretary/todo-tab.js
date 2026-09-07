@@ -9,7 +9,7 @@
 //   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
 import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260903c';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260906j';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260907a';
 import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260906j';
 import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260906j';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
@@ -21,7 +21,7 @@ import { mockDB } from '../../../core/domain.js?v=20260903c';
 import { persist } from '../../../core/data-adapter.js?v=20260903c';
 import { getPersonById, getPersonName } from '../../../services/person.js?v=20260903c';
 import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260903c';
-import { IssueStore } from '../../../services/issues.js?v=20260906j';
+import { IssueStore } from '../../../services/issues.js?v=20260907a';
 import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/taskforce.js?v=20260903c';
 import { fetchVotes } from '../../../services/committee-vote.js?v=20260903c';
 import { resolveVoterIds } from '../../../services/vote-config.js?v=20260903c';

@@ -20,7 +20,7 @@ registerCapability({
     // R6-3「今天」置首 + 登录落点（2026-09-07 方案 B）：共享渲染只读速览，数据同源派生；
     // 到期/逾期行 → onNav('todo')（todo tab 六台同 id）；会议/分工行在 today-tab 内直跳 activity.html；
     // 会议「全部」→ onNav('activities')，下方映射到本台活动承载 tab（组长台=活动管理 write）
-    { id: 'today', label: '今天', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/today/today-tab.js?v=20260906j').then(m => {
+    { id: 'today', label: '今天', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/today/today-tab.js?v=20260907a').then(m => {
       const el = document.getElementById('leader-tab-content');
       if (el) m.renderTodayTab(el, {
         personId: ctx?.personId || AuthStore.getCurrentUser()?.personId,
@@ -34,14 +34,14 @@ registerCapability({
     }) },
     // 有待办必见待办（书记 2026-08-10 裁定）：priorityTab 由入口计算，经 renderTabBar 传入
     { id: 'todo', label: '待办', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/leader/todo-tab.js?v=20260906j').then(m => m.renderContent(ctx)) },
-    { id: 'overview', label: '工作概况', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/leader/overview-tab.js?v=20260906j').then(m => m.renderContent(ctx)) },
-    { id: 'write', label: '活动管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/leader/write-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
-    { id: 'attendance', label: '考勤上传', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/leader/attendance-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
+    { id: 'overview', label: '工作概况', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/leader/overview-tab.js?v=20260907a').then(m => m.renderContent(ctx)) },
+    { id: 'write', label: '活动管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/leader/write-tab.js?v=20260907a').then(m => m.renderContent(ctx)) },
+    { id: 'attendance', label: '考勤上传', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/leader/attendance-tab.js?v=20260907a').then(m => m.renderContent(ctx)) },
     { id: 'inspection', label: '考察上传', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/leader/inspection-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     // IA-C2 收敛（2026-09-06）：复盘提交入口统一归组织者/深度参与者（成员端「我的复盘」），本 tab 只读展示本组复盘状态
-    { id: 'review', label: '复盘状态', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/leader/review-tab.js?v=20260906j').then(m => m.renderContent(ctx)) },
+    { id: 'review', label: '复盘状态', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/leader/review-tab.js?v=20260907a').then(m => m.renderContent(ctx)) },
     // 组员进展（书记 2026-08-10 裁定：全员可见性矩阵落地——组长看本组组员，P-011 知情边界看≠做）
-    { id: 'members', label: '组员进展', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/leader/members-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
+    { id: 'members', label: '组员进展', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/leader/members-tab.js?v=20260907a').then(m => m.renderContent(ctx)) },
     // 专班查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增）
     { id: 'tf-view', label: '专班查看', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/leader/tf-view-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     { id: 'my-dispatch', label: '我的处置', groupLabel: '反馈', render: (ctx) => import('../../entries/tabs/leader/my-dispatch-tab.js?v=20260906j').then(m => m.renderContent(ctx)) },

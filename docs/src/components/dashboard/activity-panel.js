@@ -13,7 +13,7 @@ import { AuthStore } from '../../services/auth.js?v=20260903c';
 import { getActivityTypeColors } from '../../core/constants.js?v=20260903c';
 import { badgeHtml } from '../badges.js?v=20260903c';
 import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260903c';
-import { populateMonthSelector } from '../calendar.js?v=20260903c';
+import { populateMonthSelector } from '../calendar.js?v=20260907a';
 import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/registry.js?v=20260903c';
 
 const DASHBOARD_DEFAULT_VIEW = 'calendar';
