@@ -7,7 +7,7 @@
 import { registerCapability } from '../../core/registry.js?v=20260903c';
 import { rolesForPage } from '../../core/constants.js?v=20260903c';
 
-// 9 个 tab 清单：render 为懒加载动态 import（相对本模块解析到 entries/tabs/org/）
+// 10 个 tab 清单：render 为懒加载动态 import（相对本模块解析到 entries/tabs/org/）
 // tab 私有状态随模块自持；共享只读配置（accent/taskforce 分类/activities/导航目标）经 ctx 传入。
 registerCapability({
   id: 'org-workspace',
@@ -25,6 +25,9 @@ registerCapability({
     { id: 'roster', label: '成员名册', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/roster-tab.js?v=20260906e').then(m => m.renderContent(ctx)) },
     { id: 'talent', label: '人才库', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/talent-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     { id: 'development', label: '发展数据', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/development-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
+    // R6-2 把关式初阅（2026-09-07 书记定案）：思想汇报通过才正式归档、退回附意见（提交者可见并修改重交）；
+    // 初阅收敛本 tab 单入口——development「思想汇报」只读展开保持不动（不加操作，避免两处入口）。
+    { id: 'thought-review', label: '思想汇报', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/thought-review-tab.js?v=20260906f').then(m => m.renderContent(ctx)) },
     // 活动查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增；组织无活动 tab 由本组件承载）
     // 排序：按工作流节奏「看→做→查→收」，知情查看置于职责操作后、反馈前（书记 2026-08-11 裁定）
     { id: 'activity-view', label: '活动查看', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/activity-view-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
