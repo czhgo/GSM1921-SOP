@@ -13,7 +13,7 @@ import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=2026
 import { TaskForceRecordStore } from './taskforce.js?v=20260903c';
 import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260903c';
 import { NoticeStore } from './notice.js?v=20260903c';
-import { TodoStore, seedTodos, TodoCategory, TodoActionType } from './todo.js?v=20260903c';
+import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20260903c';
 import { PEOPLE } from '../mock/index.js?v=20260903c';
 import { getPersonById } from './person.js?v=20260903c';
 import { ROLE_LABELS } from '../core/constants.js?v=20260903c';
@@ -334,6 +334,8 @@ export const SecretaryTodoDeriver = {
     return [{
       groupKey: `secretary:${actionKey}`,
       actionKey,
+      // IA-C1 Task2：实时组标注业务域（REALTIME_GROUP_DOMAIN 映射；供 T4 域折组归类展示）
+      domain: REALTIME_GROUP_DOMAIN[actionKey] || WORK_DOMAIN.NONE,
       title,
       category,
       actionType,

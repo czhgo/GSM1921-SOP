@@ -6,7 +6,7 @@
 
 import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260903c';
 import { renderTodoList } from '../../../components/todo-list.js?v=20260903c';
-import { TodoStore, seedTodos, TodoCategory } from '../../../services/todo.js?v=20260903c';
+import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260903c';
 import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
@@ -295,6 +295,8 @@ function _mcConfirmAgg() {
   return {
     groupKey: 'secretary:member-confirm',
     actionKey: 'member-confirm',
+    // IA-C1 Task2：实时组标注业务域（成员发展；供 T4 域折组）
+    domain: REALTIME_GROUP_DOMAIN['member-confirm'],
     title: '成员变更待确认',
     category: TodoCategory.REVIEW,
     flow: '组织委员发起（发展阶段 / 在册状态 / 移出）→ 书记确认生效或退回（双层留痕）',
@@ -312,6 +314,8 @@ function _semesterRemindAgg() {
   return {
     groupKey: 'secretary:semester-detained-remind',
     actionKey: 'semester-detained-remind',
+    // IA-C1 Task2：实时组标注业务域（成员发展；供 T4 域折组）
+    domain: REALTIME_GROUP_DOMAIN['semester-detained-remind'],
     title: '学期末滞留集中复核',
     category: TodoCategory.REVIEW,
     flow: '学期末窗口提醒（6/15–7/15、12/15–次年1/15）：请集中复核在册滞留名单',

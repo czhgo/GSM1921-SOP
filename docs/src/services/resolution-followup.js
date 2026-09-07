@@ -17,7 +17,7 @@
 
 import { generateId } from '../core/id.js?v=20260903c';
 import {
-  TodoStore, TodoStatus, TodoCategory, TodoActionType, TodoSourceType,
+  TodoStore, TodoStatus, TodoCategory, TodoActionType, TodoSourceType, REALTIME_GROUP_DOMAIN,
 } from './todo.js?v=20260903c';
 import { BranchService } from './runtime.js?v=20260903c';
 import { loadActivities } from './activity.js?v=20260903c';
@@ -250,6 +250,8 @@ export function buildOverdueRemindGroup(activities, today) {
   return {
     groupKey: 'secretary:resolution-followup-remind',
     actionKey: 'resolution-followup-remind',
+    // IA-C1 Task2：实时组标注业务域（决议上报；供 T4 域折组归类展示）
+    domain: REALTIME_GROUP_DOMAIN['resolution-followup-remind'],
     title: '决议落实逾期',
     category: TodoCategory.TRACK,
     actionType: TodoActionType.TRACK,

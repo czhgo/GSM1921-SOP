@@ -106,6 +106,19 @@ export function inferDomain(todo) {
     if (key.startsWith('taskforce-')) return WORK_DOMAIN.TASKFORCE;
     if (key.startsWith('resolution-')) return WORK_DOMAIN.RESOLUTION;
     if (key.startsWith('archive-') || key.endsWith('-archive')) return WORK_DOMAIN.ARCHIVE;
+    // 交接派生（C1 Task2 显式 domain 之外的兼容推断，spec 三节）：
+    // 考察记录提交（纪检→组织）归考察；考勤备案（纪检→宣传）/补课需求回执（组织→纪检）归考勤纪律
+    if (key.startsWith('handoff-')) {
+      if (key === 'handoff-inspection-report') return WORK_DOMAIN.INSPECTION;
+      return WORK_DOMAIN.ATTENDANCE;
+    }
+    // 报名审核（signup.js）：按源归域——专班源→专班；活动源按 scenarioId（三会→会务）否则活动/项目
+    if (key === 'signup-review') {
+      if (sourceType === TodoSourceType.TASKFORCE) return WORK_DOMAIN.TASKFORCE;
+      const sc = _activityScenarioOf(todo);
+      if (sc) return _ACTIVITY_TYPE_TO_DOMAIN[sc] || WORK_DOMAIN.ACTIVITY;
+      return WORK_DOMAIN.ACTIVITY;
+    }
     if (key.startsWith('notice-') || key === 'read') return WORK_DOMAIN.NONE;
     // 其余键（含与 actionType 同义的 authorize/participate 等）落到 actionType 判定
   }
@@ -132,6 +145,34 @@ export function inferDomain(todo) {
 export function _effDomain(todo) {
   if (!todo || typeof todo !== 'object') return WORK_DOMAIN.NONE;
   return todo.domain || inferDomain(todo);
+}
+
+/**
+ * 实时派生组（不落库：书记/纪检提醒·复核、决议逾期 remind、成员变更确认等）actionKey → 业务域标签。
+ * 2026-09-07 IA-C1 Task2：供 T4「9 域折组」把实时组按域归类展示；键由各实时组生成处统一引用
+ * （SecretaryTodoDeriver 8 组 / buildOverdueRemindGroup / 纪检 todo-tab 队列 / secretary 成员组）。
+ * 复盘相关（review-remind/confirm）归「活动/项目」域——spec 三节：活动复盘提交/确认在活动域。
+ */
+export const REALTIME_GROUP_DOMAIN = {
+  'attendance-remind': WORK_DOMAIN.ATTENDANCE,
+  'attendance-confirm': WORK_DOMAIN.ATTENDANCE,
+  'inspection-remind': WORK_DOMAIN.INSPECTION,
+  'inspection-confirm': WORK_DOMAIN.INSPECTION,
+  'review-remind': WORK_DOMAIN.ACTIVITY,   // 活动复盘待提交（活动域）
+  'review-confirm': WORK_DOMAIN.ACTIVITY,  // 活动复盘待复核（活动域）
+  'archive-remind': WORK_DOMAIN.ARCHIVE,
+  'archive-confirm': WORK_DOMAIN.ARCHIVE,
+  'resolution-followup-remind': WORK_DOMAIN.RESOLUTION,
+  'member-confirm': WORK_DOMAIN.MEMBER_DEV,
+  'semester-detained-remind': WORK_DOMAIN.MEMBER_DEV,
+};
+
+/** 实时组对象 → 业务域标注（供 T4 域折组展示；先查 actionKey，未收录回退 inferDomain 兼容） */
+export function realtimeGroupDomainOf(group) {
+  if (!group || typeof group !== 'object') return WORK_DOMAIN.NONE;
+  const key = group.actionKey || group.groupKey;
+  if (key && REALTIME_GROUP_DOMAIN[key]) return REALTIME_GROUP_DOMAIN[key];
+  return inferDomain(group);
 }
 
 // ── 待办状态枚举 ──────────────────────────────────────────────
@@ -537,6 +578,8 @@ export const NoticeTodoDeriver = {
       sourceType: TodoSourceType.NOTICE,
       sourceId: notice.id,
       actionType: this._inferActionType(notice),
+      // IA-C1 Task2：通知阅读稳定键（domain=NONE，轻量未读不入业务域；Task5 展示死键清理以本键为生产者）
+      actionKey: 'notice-read',
       actionData: { noticeId: notice.id },
       flow: this._inferFlow(notice),
     }));
@@ -603,7 +646,13 @@ export const LifecycleTodoDeriver = {
       sourceType: TodoSourceType.ACTIVITY,
       sourceId: activity.id,
       actionType: TodoActionType.AUTHORIZE,
-      actionData: { scope: 'activity', sourceId: activity.id, sourceName: activity.title },
+      // 稳定业务动作键（IA-C1 Task2：聚合键 = role+actionKey，不再依赖 actionType 兜底）
+      actionKey: 'activity-authorize',
+      actionData: {
+        scope: 'activity', sourceId: activity.id, sourceName: activity.title,
+        // IA-C1 Task2：源活动 scenarioId 落 actionData → domain 判定点（三会→会务，theme-party 等→活动/项目）
+        scenarioId: activity.scenarioId || activity.type || null,
+      },
       // E2 数据上下游标注
       flow: '活动创建 → 组长赋权 → 组织者/深度参与者执行',
     }]);
@@ -626,6 +675,8 @@ export const LifecycleTodoDeriver = {
       sourceType: TodoSourceType.TASKFORCE,
       sourceId: taskforce.id,
       actionType: TodoActionType.AUTHORIZE,
+      // IA-C1 Task2：稳定业务动作键（专班赋权 → 专班域聚合）
+      actionKey: 'taskforce-authorize',
       actionData: { scope: 'taskforce', sourceId: taskforce.id, sourceName: taskforce.name },
       // E2 数据上下游标注
       flow: '专班创建 → 组织委员赋权 → 成员执行',
@@ -649,6 +700,8 @@ export const LifecycleTodoDeriver = {
       sourceType: TodoSourceType.ACTIVITY,
       sourceId: activity.id,
       actionType: TodoActionType.ARCHIVE,
+      // IA-C1 Task2：稳定业务动作键（活动材料归档 → 归档宣传域；同遗留种子 activity-archive 键）
+      actionKey: 'activity-archive',
       actionData: { scope: 'activity', sourceId: activity.id, sourceName: activity.title },
       // E2 数据上下游标注
       flow: '宣传材料 → 宣传委员归档 → 产出物区',
@@ -718,6 +771,8 @@ export const VisitorTodoDeriver = {
         sourceType: TodoSourceType.NOTICE,
         sourceId: n.id,
         actionType: TodoActionType.READ,
+        // IA-C1 Task2：通知阅读稳定键（与 NoticeTodoDeriver 同键聚合；domain=NONE）
+        actionKey: 'notice-read',
         actionData: { noticeId: n.id },
       });
     }
@@ -761,7 +816,13 @@ export const VisitorTodoDeriver = {
         sourceType: TodoSourceType.ACTIVITY,
         sourceId: a.id,
         actionType: TodoActionType.PARTICIPATE,
-        actionData: { activityId: a.id },
+        // IA-C1 Task2：稳定业务动作键（visitor 参与统一 participate；与 signup 报名渠道同键聚合）
+        actionKey: 'participate',
+        actionData: {
+          activityId: a.id,
+          // IA-C1 Task2：源活动 scenarioId 落 actionData → domain 判定点（三会参与→会务，theme-party 等→活动/项目）
+          scenarioId: a.scenarioId || a.type || null,
+        },
       });
     }
     // 清理：本人已不适用（取消/过期/归档）的活动待办 → 移除
@@ -812,6 +873,8 @@ export const VisitorTodoDeriver = {
         sourceType: TodoSourceType.TASKFORCE,
         sourceId: tf.id,
         actionType: TodoActionType.PARTICIPATE,
+        // IA-C1 Task2：稳定业务动作键（专班参与与活动参与同键 participate；domain 按 sourceType 归专班）
+        actionKey: 'participate',
         actionData: { taskforceId: tf.id },
       });
     }

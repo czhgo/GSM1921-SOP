@@ -3,7 +3,7 @@
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降。
 
 import { showToast } from '../../../core/utils.js?v=20260903c';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType, seedTodos } from '../../../services/todo.js?v=20260903c';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260903c';
 import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260903c';
 import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
 import { AttendanceStatus } from '../../../core/domain.js?v=20260903c';
@@ -23,6 +23,8 @@ function _buildDiscAggregates() {
     dynamic.push({
       groupKey: 'disc-commissioner:attendance-confirm',
       actionKey: 'attendance-confirm',
+      // IA-C1 Task2：实时组标注业务域（考勤纪律；供 T4 域折组）
+      domain: REALTIME_GROUP_DOMAIN['attendance-confirm'],
       title: '考勤待确认',
       category: TodoCategory.REVIEW,
       actionType: TodoActionType.REVIEW,
@@ -38,6 +40,8 @@ function _buildDiscAggregates() {
     dynamic.push({
       groupKey: 'disc-commissioner:inspection-confirm',
       actionKey: 'inspection-confirm',
+      // IA-C1 Task2：实时组标注业务域（考察；供 T4 域折组）
+      domain: REALTIME_GROUP_DOMAIN['inspection-confirm'],
       title: '考察待确认',
       category: TodoCategory.REVIEW,
       actionType: TodoActionType.REVIEW,

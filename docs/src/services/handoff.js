@@ -13,10 +13,12 @@ import { persist } from '../core/data-adapter.js?v=20260903c';
 import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260903c';
 
 // ── 交接类型元数据（from→to + 展示文案） ──
+// IA-C1 Task2：domain 显式打标（handoff-* 键无法从前缀推断，逐型归域——
+// 考勤备案/补课回执归考勤纪律、考察记录提交归考察；spec 三节映射，处理位=接收委员）
 export const HANDOFF_TYPES = {
-  'attendance-archival': { from: 'disc-commissioner', to: 'prop-commissioner', label: '考勤备案' },
-  'inspection-report':   { from: 'disc-commissioner', to: 'org-commissioner',  label: '考察记录提交' },
-  'material-shortage':   { from: 'org-commissioner',  to: 'disc-commissioner', label: '补课需求回执' },
+  'attendance-archival': { from: 'disc-commissioner', to: 'prop-commissioner', label: '考勤备案', domain: 'attendance' },
+  'inspection-report':   { from: 'disc-commissioner', to: 'org-commissioner',  label: '考察记录提交', domain: 'inspection' },
+  'material-shortage':   { from: 'org-commissioner',  to: 'disc-commissioner', label: '补课需求回执', domain: 'attendance' },
 };
 
 export const HANDOFF_ROLE_LABELS = {
@@ -86,6 +88,7 @@ export const HandoffStore = {
         sourceId: handoff.id,
         actionType: TodoActionType.REVIEW,
         actionKey: `handoff-${type}`,
+        domain: meta.domain, // IA-C1 Task2：显式业务域（见 HANDOFF_TYPES 注释）
         actionData: { handoffId: handoff.id },
         flow: `交接：${HANDOFF_ROLE_LABELS[meta.from] || meta.from} → ${HANDOFF_ROLE_LABELS[meta.to] || meta.to}`,
       });

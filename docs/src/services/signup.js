@@ -54,6 +54,13 @@ function _saveSignups(records) {
 /** 今日 YYYY-MM-DD */
 function _today() { return new Date().toISOString().slice(0, 10); }
 
+/** 源对象 scenarioId（活动侧；专班无 scenario）——落 actionData 供 todo 域判定（IA-C1 Task2） */
+function _sourceScenarioId(sourceType, sourceId) {
+  if (sourceType !== 'activity') return null;
+  const act = mockDB.activities.find(a => a.id === sourceId);
+  return act ? (act.scenarioId || act.type || null) : null;
+}
+
 /**
  * 取审核人（发起人）
  * 活动：activity.organizer || activity.createdBy
@@ -113,7 +120,8 @@ function _createReviewTodo(sourceType, sourceId, signup) {
     sourceId,
     actionType: TodoActionType.REVIEW,
     actionKey: 'signup-review',
-    actionData: { signupId: signup.id, sourceType, sourceId },
+    // IA-C1 Task2：源 scenarioId 落 actionData → domain 判定（活动侧按三会/实践分域；专班侧按 sourceType）
+    actionData: { signupId: signup.id, sourceType, sourceId, scenarioId: _sourceScenarioId(sourceType, sourceId) },
     flow: `报名申请 → ${getPersonById(reviewerId)?.name || ''}审核`,
   });
 }
@@ -139,7 +147,9 @@ function _createParticipateTodo(sourceType, sourceId, personId) {
       sourceType: TodoSourceType.ACTIVITY,
       sourceId,
       actionType: TodoActionType.PARTICIPATE,
-      actionData: { activityId: sourceId },
+      // IA-C1 Task2：与 VisitorTodoDeriver 同键聚合；scenarioId 落 actionData 供域判定
+      actionKey: 'participate',
+      actionData: { activityId: sourceId, scenarioId: act.scenarioId || act.type || null },
     });
   } else {
     const tf = TaskForceRecordStore.getAll().find(t => t.id === sourceId);
@@ -157,6 +167,8 @@ function _createParticipateTodo(sourceType, sourceId, personId) {
       sourceType: TodoSourceType.TASKFORCE,
       sourceId,
       actionType: TodoActionType.PARTICIPATE,
+      // IA-C1 Task2：与 VisitorTodoDeriver 同键聚合（专班参与）
+      actionKey: 'participate',
       actionData: { taskforceId: sourceId },
     });
   }
@@ -227,7 +239,7 @@ export const SignupStore = {
           sourceId: s.sourceId,
           actionType: TodoActionType.REVIEW,
           actionKey: 'signup-review',
-          actionData: { signupId: s.id, sourceType: s.sourceType, sourceId: s.sourceId },
+          actionData: { signupId: s.id, sourceType: s.sourceType, sourceId: s.sourceId, scenarioId: _sourceScenarioId(s.sourceType, s.sourceId) },
           flow: `报名申请 → ${person.name || ''}审核`,
         });
         existKeys.add(s.id);
