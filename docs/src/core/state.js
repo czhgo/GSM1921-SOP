@@ -102,10 +102,10 @@ export function getAppState() { return appState; }
  * import main.js 则形成循环。通过延迟注册回调，依赖图保持为 DAG。
  */
 let _onStateChange = () => {};
-let _rafId = null; // T-304 遗留修复：同帧渲染合并去抖
+let _rafId = null; // U3（2026-09-07）：同帧渲染合并去抖（loadWorkspaceData 双 setState 首帧双渲染去重，见 setState）
 export function registerRenderCallback(fn) { _onStateChange = fn; }
 
-/** rAF 合并渲染：同帧多次 setState（如 loadWorkspaceData 双 setState）只触发一次渲染回调 */
+/** rAF 合并渲染：同帧多次 setState 只触发一次渲染回调（最终态广播；跨帧仍按帧各广播一次） */
 function _flushRender() {
   _rafId = null;
   try {
@@ -126,9 +126,13 @@ export function setState(patch) {
   }
 
   appState = { ...appState, ...patch };
-  // T-304 遗留修复：loadWorkspaceData「加载中 + 完成后」双 setState 同帧连发，
-  // 同步渲染会让 entry 层 _renderCurrentTab 与 tab-bar activate 并发 import 同一懒加载模块，
-  // 浏览器中止首个请求产生 net::ERR_ABORTED。rAF 合并为一次渲染，最终态一致、无感。
+  // U3（2026-09-07）首帧双渲染去重（原 T-304 遗留修复语义保留并收口）：
+  // loadWorkspaceData「LOADING → await → IDLE」双 setState——若 IDLE 在同一帧内就绪
+  // （本地缓存/同步 resolve），rAF 合并使渲染回调只广播一次最终态（IDLE），
+  // 不再「空数据先渲一遍 → 数据到达再整块替换」；真异步跨帧时 LOADING 帧仍广播，
+  // 供首页统计卡/工作台壳层渲染骨架占位（main-entry.js isLoading、workspace-shell renderUI 守卫）。
+  // 合并仅作用于渲染回调 _onStateChange：appState 快照每帧同步更新，其它监听者
+  // （getAppState 直读/notifyDataLoaded/DATA_CHANGED 事件）不受影响，header 角标刷新照旧。
   if (_rafId == null) {
     _rafId = requestAnimationFrame(_flushRender);
   }

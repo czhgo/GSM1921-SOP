@@ -61,6 +61,9 @@ export async function loadWorkspaceData({
   notifyDataLoaded();
 
   // Step 2: setState LOADING
+  // U3（2026-09-07）：LOADING 帧保留广播——真异步跨帧时首页/壳层用它渲染骨架占位；
+  // IDLE 若同帧立即就绪则由 state.js rAF 合并只广播最终态一次（首帧双渲染去重，
+  // 配合 main-entry.js:55-59 与 workspace-shell renderUI 的 LOADING 守卫，不再空数据先渲一遍）。
   setState({
     domain: 'activity',
     role,
