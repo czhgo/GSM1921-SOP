@@ -21,6 +21,7 @@ import { showToast } from '../core/utils.js?v=20260903c';
 import { solidAccentStyle } from '../core/constants.js?v=20260903c';
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { tokenOf } from '../core/version-token.js?v=20260903c'; // P0 域写版本戳（spec §二.4）
+import { memoizeRender } from './memoize-render.js?v=20260903c'; // P2 渲染守卫（spec §四.1）
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -215,8 +216,11 @@ export function createTodoTab(opts) {
 
     // U3（2026-09-07）：onBeforeRender（seedTodos/异步预载）挂起期间若容器仍为壳骨架/空 →
     // 先换为待办两栏等高骨架（防 await 期 0 高与整块弹出）；已有真实内容（重渲染）保留由 tab-bar 置灰过渡
+    // P2（2026-09-07）：此处分支会整体替换内容为骨架（非上次真实产物）→ 清 memoKey，
+    //   渲染守卫随之落入重建路径（不会对骨架误命中跳过、留下无内容骨架）
     if (!container.innerHTML.trim() || container.querySelector('[data-ws-tab-loading-bar]')) {
       container.innerHTML = _todoShellSkeletonHtml();
+      delete container.dataset.memoKey;
     }
 
     // 渲染前钩子（书记：seedTodos + 异步预载待答复汇报等）
@@ -254,119 +258,138 @@ export function createTodoTab(opts) {
       ? (allGroups.find(g => g.groupKey === _selectedTodoId) || TodoStore.getById(_selectedTodoId) || null)
       : null;
 
-    // 删除处理：opts.onDeleteTodo=null → 禁删（实时组台）；函数 → 自定义；缺省 → 内置确认删除
-    let deleteHandler = null;
-    if (onDeleteTodo === null) {
-      deleteHandler = null;
-    } else if (typeof onDeleteTodo === 'function') {
-      deleteHandler = (todo) => onDeleteTodo(todo, ctx);
-    } else {
-      deleteHandler = (todo) => {
-        const items = todo.items && todo.items.length ? todo.items : [todo];
-        const label = items.length === 1 ? items[0].title : `${items[0].title} 等 ${items.length} 条`;
-        if (!window.confirm(`确认删除待办「${label}」？删除后不可恢复。`)) return;
-        items.forEach(t => TodoStore.delete(t.id));
-        showToast('success', '待办已删除');
-        renderContent(ctx);
-      };
-    }
+    // ── P2 渲染守卫（2026-09-07 · spec §四.1/§四.2）─────────────────
+    // 数据与视图参数未变 → 跳过整卡 HTML 拼装 / DOM 重建 / 事件绑定 / 异步面板重跑，
+    // 现 DOM 原样保留（域折组折叠/组行选中/面板内交互状态不丢，旧事件绑定仍在）。
+    // key = P0 组合复合键 comboKey（各域 token+length 指纹 + todo/member + 日期 + role）
+    //   + 本卡自持交互状态（选中项 _selectedTodoId：换行选中须走重建）
+    //   + issue 版本（书记 extraTopHtml「待答复收件箱/汇报时间线」依赖 IssueStore，
+    //     其写口 bumpToken('issue') 见 services/issues.js——保证 extraTopHtml 内容随键覆盖；
+    //     命中跳过时 bindExtras/onAfterRender/extraTopHtml 不再重跑，内容仍正确）。
+    const renderKey = `${comboKey}|sel=${_selectedTodoId || ''}|issue=${tokenOf('issue')}`;
 
-    const { html: domainListHtml, bindEvents } = renderDomainTodoList({
-      prefix,
-      domains,
-      accent: ctx.accent,
-      selectedTodoId: _selectedTodoId,
-      onSelectTodo: (todo) => {
-        _selectedTodoId = todo.groupKey || todo.id;
-        renderContent(ctx);
-      },
-      onActionTodo: (todo) => {
-        onAction(todo, ctx);
-      },
-      onDeleteTodo: deleteHandler,
-      emptyHint,
-    });
-
-    // 未读通知条（无未读 → 整条隐藏；数据来自 P0 组合点记忆化结果，见上）
-    const unreadHtml = unreadNotices.length > 0 ? _unreadBarHtml(unreadNotices) : '';
-
-    const detailHtml = selectedTodo
-      ? (renderDetail ? renderDetail(selectedTodo, ctx) : _renderTodoDetail(selectedTodo, ctx))
-      : `
-        <div class="text-center py-12 text-gray-400">
-          <p class="text-sm">点击左侧待办查看详情</p>
-          <p class="text-xs mt-1">${emptyHint}</p>
-        </div>
-      `;
-
-    container.innerHTML = `
-      ${typeof extraTopHtml === 'function' ? extraTopHtml(ctx) : extraTopHtml}
-      ${unreadHtml}
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2">
-          <div class="card rounded-xl p-5">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
-            </div>
-            ${domainListHtml}
-          </div>
-        </div>
-        <div class="lg:col-span-1">
-          <div class="card rounded-xl p-5 sticky top-20">
-            <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">${detailTitle}</h3>
-            ${detailHtml}
-          </div>
-        </div>
-      </div>
-    `;
-
-    // 域折组折叠 / 组行选中 / 行动按钮 / 删除
-    bindEvents(container);
-
-    // 未读条：展开阅读列表 + 标记已读（读后即消，重渲染）
-    container.querySelector(`.${prefix}-unread-toggle`)?.addEventListener('click', () => {
-      const items = container.querySelector(`.${prefix}-unread-items`);
-      const arrow = container.querySelector(`.${prefix}-unread-arrow`);
-      if (!items) return;
-      items.classList.toggle('hidden');
-      if (arrow) arrow.style.transform = items.classList.contains('hidden') ? 'rotate(-90deg)' : 'rotate(0deg)';
-    });
-    container.querySelectorAll(`.${prefix}-unread-open-btn`).forEach(btn => {
-      btn.addEventListener('click', () => {
-        const notice = unreadNotices.find(x => x.id === btn.dataset.noticeId);
-        if (!notice) return;
-        // 直达通知详情页（T-234 F1 同款）；notice 页内已读自动销「通知阅读」待办
-        const noticeId = notice.actionData?.noticeId || notice.sourceId || notice.id;
-        const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
-        window.location.href = `${basePath}notice.html?id=${noticeId}`;
-      });
-    });
-    container.querySelectorAll(`.${prefix}-unread-read-btn`).forEach(btn => {
-      btn.addEventListener('click', () => {
-        const id = btn.dataset.noticeId;
-        if (!id) return;
-        TodoStore.complete(id);
-        showToast('success', '已标记已读');
-        renderContent(ctx);
-      });
-    });
-
-    // 详情面板按钮事件（内置概要详情 / 书记 remind·seed 详情共用 detailBtnClass）
-    container.querySelector(`.${detailBtnClass}`)?.addEventListener('click', () => {
-      if (!_selectedTodoId) return;
-      const group = allGroups.find(g => g.groupKey === _selectedTodoId);
-      if (group) { onAction(group, ctx); return; }
-      const todo = TodoStore.getById(_selectedTodoId);
-      if (todo) onAction(todo, ctx);
-    });
-
-    // 角色扩展（handoff / 成员变更面板 / 自定义详情按钮如一键确认·逐项确认/退回 等）
     const api = {
       renderContent: () => renderContent(ctx),
       clearSelection: () => { _selectedTodoId = null; },
       selectedTodo,
     };
-    bindExtras?.(container, ctx, api);
+
+    /** 整卡重建（仅守卫未命中时执行；产物含 data-ws-memo="todo-shell" 标记防跨 tab 误命中） */
+    const rebuild = () => {
+      // 删除处理：opts.onDeleteTodo=null → 禁删（实时组台）；函数 → 自定义；缺省 → 内置确认删除
+      let deleteHandler = null;
+      if (onDeleteTodo === null) {
+        deleteHandler = null;
+      } else if (typeof onDeleteTodo === 'function') {
+        deleteHandler = (todo) => onDeleteTodo(todo, ctx);
+      } else {
+        deleteHandler = (todo) => {
+          const items = todo.items && todo.items.length ? todo.items : [todo];
+          const label = items.length === 1 ? items[0].title : `${items[0].title} 等 ${items.length} 条`;
+          if (!window.confirm(`确认删除待办「${label}」？删除后不可恢复。`)) return;
+          items.forEach(t => TodoStore.delete(t.id));
+          showToast('success', '待办已删除');
+          renderContent(ctx);
+        };
+      }
+
+      const { html: domainListHtml, bindEvents } = renderDomainTodoList({
+        prefix,
+        domains,
+        accent: ctx.accent,
+        selectedTodoId: _selectedTodoId,
+        onSelectTodo: (todo) => {
+          _selectedTodoId = todo.groupKey || todo.id;
+          renderContent(ctx);
+        },
+        onActionTodo: (todo) => {
+          onAction(todo, ctx);
+        },
+        onDeleteTodo: deleteHandler,
+        emptyHint,
+      });
+
+      // 未读通知条（无未读 → 整条隐藏；数据来自 P0 组合点记忆化结果，见上）
+      const unreadHtml = unreadNotices.length > 0 ? _unreadBarHtml(unreadNotices) : '';
+
+      const detailHtml = selectedTodo
+        ? (renderDetail ? renderDetail(selectedTodo, ctx) : _renderTodoDetail(selectedTodo, ctx))
+        : `
+          <div class="text-center py-12 text-gray-400">
+            <p class="text-sm">点击左侧待办查看详情</p>
+            <p class="text-xs mt-1">${emptyHint}</p>
+          </div>
+        `;
+
+      container.innerHTML = `
+        ${typeof extraTopHtml === 'function' ? extraTopHtml(ctx) : extraTopHtml}
+        ${unreadHtml}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4" data-ws-memo="todo-shell">
+          <div class="lg:col-span-2">
+            <div class="card rounded-xl p-5">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
+              </div>
+              ${domainListHtml}
+            </div>
+          </div>
+          <div class="lg:col-span-1">
+            <div class="card rounded-xl p-5 sticky top-20">
+              <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">${detailTitle}</h3>
+              ${detailHtml}
+            </div>
+          </div>
+        </div>
+      `;
+
+      // 域折组折叠 / 组行选中 / 行动按钮 / 删除
+      bindEvents(container);
+
+      // 未读条：展开阅读列表 + 标记已读（读后即消，重渲染）
+      container.querySelector(`.${prefix}-unread-toggle`)?.addEventListener('click', () => {
+        const items = container.querySelector(`.${prefix}-unread-items`);
+        const arrow = container.querySelector(`.${prefix}-unread-arrow`);
+        if (!items) return;
+        items.classList.toggle('hidden');
+        if (arrow) arrow.style.transform = items.classList.contains('hidden') ? 'rotate(-90deg)' : 'rotate(0deg)';
+      });
+      container.querySelectorAll(`.${prefix}-unread-open-btn`).forEach(btn => {
+        btn.addEventListener('click', () => {
+          const notice = unreadNotices.find(x => x.id === btn.dataset.noticeId);
+          if (!notice) return;
+          // 直达通知详情页（T-234 F1 同款）；notice 页内已读自动销「通知阅读」待办
+          const noticeId = notice.actionData?.noticeId || notice.sourceId || notice.id;
+          const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
+          window.location.href = `${basePath}notice.html?id=${noticeId}`;
+        });
+      });
+      container.querySelectorAll(`.${prefix}-unread-read-btn`).forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.noticeId;
+          if (!id) return;
+          TodoStore.complete(id);
+          showToast('success', '已标记已读');
+          renderContent(ctx);
+        });
+      });
+
+      // 详情面板按钮事件（内置概要详情 / 书记 remind·seed 详情共用 detailBtnClass）
+      container.querySelector(`.${detailBtnClass}`)?.addEventListener('click', () => {
+        if (!_selectedTodoId) return;
+        const group = allGroups.find(g => g.groupKey === _selectedTodoId);
+        if (group) { onAction(group, ctx); return; }
+        const todo = TodoStore.getById(_selectedTodoId);
+        if (todo) onAction(todo, ctx);
+      });
+
+      // 角色扩展（handoff / 成员变更面板 / 自定义详情按钮如一键确认·逐项确认/退回 等）
+      bindExtras?.(container, ctx, api);
+    };
+
+    // 命中（返回 false）→ 整卡保留、异步面板不再重跑（其内容随 renderKey 未变而正确）
+    if (!memoizeRender(container, renderKey, rebuild, { marker: '[data-ws-memo="todo-shell"]' })) {
+      return;
+    }
     if (onAfterRender) await onAfterRender(container, ctx, api);
   }
 

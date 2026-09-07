@@ -15,9 +15,12 @@
 
 import { mockDB } from '../../../core/domain.js?v=20260903c';
 import { PersonStore, getPersonName } from '../../../services/person.js?v=20260903c';
-import { getRosterStats } from '../../../services/roster.js?v=20260903c';
+import { getRosterStats, RESIDENCE_KEY } from '../../../services/roster.js?v=20260903c';
 import { getCommitteeName } from '../../../services/branch.js?v=20260903c';
 import { escHtml as esc } from '../../../core/utils.js?v=20260903c';
+import { tokenOf } from '../../../core/version-token.js?v=20260903c'; // P0 域写版本戳（spec §二.4）
+import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260903c'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/memoize-render.js?v=20260903c'; // P2 渲染守卫（spec §四.1）
 import { bindBranchDemoButtons } from '../../../modules/branch-demo-nav.js?v=20260903c';
 
 /** 支部概览卡等高骨架（网格占位，防「支部卡列表整块弹出」；styles.css 禁改不碰） */
@@ -36,6 +39,29 @@ function _branchCardsSkeleton() {
   return `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${card}${card}</div>`;
 }
 
+// ── P2 渲染守卫 key（2026-09-07 · spec §四.1）─────────────────────
+// 支部统计/展示的数据版本 = member token（PersonStore.getMembers / getRosterStats 口径）
+//   + 滞留覆盖/基础数据预览 raw 源（roster/预览写口不在 bump 链 → raw 内容兜底）
+//   + activity token + activities.length（支部近期动态摘要 / 活动计数）
+//   + 支部行指纹 id:名称:类型:状态（支部配置写口无 token → 行指纹兜底）
+//   + notices.length（全院通知计数）。命中 → 整卡保留（跳过统计/拼装/rAF 二次填充）。
+function _rawStorage(key) {
+  try { return typeof localStorage === 'undefined' ? '' : (localStorage.getItem(key) || ''); } catch (_) { return ''; }
+}
+function _branchFingerprint(branches) {
+  return (branches || []).map(b =>
+    `${b.id}:${b.config?.headerTitle || b.name || ''}:${b.type || ''}:${b.status || ''}`
+  ).join('~');
+}
+function _governanceMemoKey(activities, branches, noticeCount) {
+  return [
+    `member=${tokenOf('member')}|${_rawStorage(RESIDENCE_KEY)}|${_rawStorage(PREVIEW_KEY)}`,
+    `activity=${tokenOf('activity')}+${(activities || []).length}`,
+    `notice=${noticeCount || 0}`,
+    `branch=${_branchFingerprint(branches)}`,
+  ].join('|');
+}
+
 export function renderContent(ctx) {
   const el = document.getElementById('party-committee-tab-content');
   if (!el) return;
@@ -44,6 +70,19 @@ export function renderContent(ctx) {
   const branches = (mockDB.branches || []).filter(b => b && b.id);
   const noticeCount = (mockDB.notices || []).length;
 
+  // P2 渲染守卫：统计/支部数据版本未变且现 DOM 为上次真实产物 → 整卡保留
+  // （跳过逐支部实时统计 / HTML 拼装 / rAF 二次填充；现有骨架+填充流程保留为重建路径）。
+  memoizeRender(el, _governanceMemoKey(activities, branches, noticeCount), () => {
+    _renderGovernance(el, activities, branches, noticeCount);
+  }, { marker: '[data-ws-memo="governance"]' });
+}
+
+/**
+ * 治理总览整卡重建（渲染守卫未命中时执行；产物含 data-ws-memo="governance" 标记，
+ * 防同内容容器跨 tab 复用时的 memoKey 残留误命中）。U3 渐进两段式：统计条 + 支部卡
+ * 骨架占位 → rAF 填充真实卡网格（宿主被切 tab 重建则跳过）。
+ */
+function _renderGovernance(el, activities, branches, noticeCount) {
   // ── 支部维度实时统计（每次渲染现算 → 成员/党员增删改后即时刷新）──
   const rows = branches.map(b => {
     const bid = b.id;
@@ -77,7 +116,7 @@ export function renderContent(ctx) {
 
   // U3：首帧 = 统计条（登录落点首见信息）+ 支部卡骨架占位；第二帧 = 真实支部卡网格
   el.innerHTML = `
-    <div class="space-y-5">
+    <div class="space-y-5" data-ws-memo="governance">
       <!-- 顶部：院系党组织 + 全委统计条 -->
       <div class="rounded-xl border border-gray-200 bg-white p-4">
         <div class="flex items-center justify-between">

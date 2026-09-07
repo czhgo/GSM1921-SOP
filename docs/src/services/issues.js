@@ -4,6 +4,7 @@
 
 import { AuthStore } from './auth.js?v=20260903c';
 import { PersonStore } from './person.js?v=20260903c';
+import { bumpToken } from '../core/version-token.js?v=20260903c'; // P2 渲染守卫失效（spec §四.1）
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
 function _displayName(id) {
@@ -20,6 +21,16 @@ const CACHE_VERSION = '3';
 const MIGRATED_KEY = 'gsm1921-feedback-migrated';
 
 let _issuesCache = null;
+
+/**
+ * P2（2026-09-07 · spec §四.1）：汇报/反馈写版本戳 +1。
+ * 书记待办页 extraTopHtml「待答复收件箱/汇报时间线」等渲染守卫 key 以 tokenOf('issue')
+ * 为数据版本（IssueStore 走 localStorage，不在 mockDB length 指纹覆盖内 → 须写口显式 bump）：
+ * 汇报被答复/状态变化后 → 键变 → 渲染守卫落重建，收件箱/时间线即时刷新。
+ */
+function _noteIssueChange() {
+  bumpToken('issue');
+}
 
 /** 获取当前登录用户 personId（plan 中为 AuthStore.getCurrentPersonId，修正为实际 API） */
 function _currentPersonId() {
@@ -193,6 +204,7 @@ export const IssueStore = {
         try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
       }
     }
+    _noteIssueChange(); // P2：草稿审核通过并入 issues → 写版本 +1
     return d;
   },
 
@@ -222,6 +234,7 @@ export const IssueStore = {
       issue.closedAt = null;
     }
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：状态变更（含关闭/重开）→ 写版本 +1
     return issue;
   },
 
@@ -236,6 +249,7 @@ export const IssueStore = {
     c.hiddenReason = reason;
     c.hiddenAt = new Date().toISOString().slice(0, 10);
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：评论隐藏 → 写版本 +1
     return issue;
   },
 
@@ -245,6 +259,7 @@ export const IssueStore = {
     if (!issue) return null;
     Object.assign(issue, updates);
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：编辑（隐藏/指派/隐藏/备注等汇聚点）→ 写版本 +1
     return issue;
   },
 
@@ -288,6 +303,7 @@ export const IssueStore = {
     issue.commentCount = (issue.commentCount || 0) + 1;
     if (!issue.participants.includes(by)) issue.participants.push(by);
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：指派 → 写版本 +1
     // 触发通知：被指派人工作台「我的处置」Tab 角标 +1
     if (assigneeId && assigneeId !== by) {
       IssueNotify.markUnread(assigneeId, issueId);
@@ -335,6 +351,7 @@ export const IssueStore = {
       }
     }
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：评论/答复/处置结果 → 写版本 +1（书记收件箱时间线渲染守卫失效）
     return issue;
   },
 
@@ -358,6 +375,7 @@ export const IssueStore = {
       this.addComment(issueId, _currentPersonId(), 'secretary', `关闭反馈（${reason}）：${note}`, 'verdict');
     }
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：关闭 → 写版本 +1
     return issue;
   },
 
@@ -370,6 +388,7 @@ export const IssueStore = {
     issue.closedAt = null;
     issue.resultPending = false;
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：重开 → 写版本 +1
     return issue;
   },
 
@@ -412,6 +431,7 @@ export const IssueStore = {
     _issuesCache = _issuesCache || [];
     _issuesCache.push(issue);
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：发起汇报 → 写版本 +1（书记收件箱新条）
     // 书记"待答复"高亮（复用 secretary-review 未读通道）
     IssueNotify.markSecretaryReviewPending(issue.id);
     return issue;
@@ -459,6 +479,7 @@ export const IssueStore = {
     _issuesCache = _issuesCache || [];
     _issuesCache.push(issue);
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：请汇报请求 → 写版本 +1
     // 被请汇报人工作台「我的处置」角标 +1
     IssueNotify.markUnread(targetPersonId, issue.id);
     return issue;
@@ -483,6 +504,7 @@ export const IssueStore = {
     issue.closedAt = new Date().toISOString().slice(0, 10);
     issue.resultPending = false;
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：汇报闭环确认 → 写版本 +1
     return issue;
   },
 
@@ -551,6 +573,7 @@ export const IssueStore = {
     });
     target.commentCount = (target.commentCount || 0) + 1;
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：合并 → 写版本 +1
     return { source, target };
   },
 

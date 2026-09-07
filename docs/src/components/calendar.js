@@ -8,6 +8,7 @@
 import { getAppState, setState } from '../core/state.js?v=20260903c';
 import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260903c';
 import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260903c';
+import { tokenOf } from '../core/version-token.js?v=20260903c'; // P2 视图渲染守卫数据版本（spec §四.2）
 import { filterTasksByManagementRole } from './inspector.js?v=20260903c';
 import { badgeHtml } from './badges.js?v=20260903c';
 
@@ -80,6 +81,48 @@ export function buildCalendarDayIndex(activeActivities, tasks) {
 }
 
 // ════════════════════════════════════════════════════════════════
+//  P2（2026-09-07 · spec §四.2）：视图渲染结果缓存（月/周/日/list/首页紧凑月）
+//  key 覆盖影响格网的一切版本：
+//   - 月份/日期范围（month：月/list 标题与区间；周/日经 sel=selectedDate 表达基准，
+//     导航 prev/next 均改 selectedDate → 键变重建）
+//   - view（calendarView 视图模式）+ viewType/managementRole（格内容角色口径）
+//   - selectedActivityId（周视图 _renderCellContent 任务聚焦）+ selectedDate（选中格高亮）
+//   - 当天 day（今日格高亮跨日刷新）+ isMobile mob（移动/桌面布局分支）
+//   - activities 数据版本：tokenOf('activity') + activeActivities.length
+//     （活动写口 bump；归档软删不改 length 的禁改直写路径由 length+token 惯例兜底，
+//     与 P0 服务层缓存同一失效模型）
+//   - tasks 内容签名（task 写口无 token、updateTask 不改 length → 逐条指纹兜底：
+//     id/date/activityId/status/executor，任务格/日视图内容即时正确）
+//  命中 → calendarGridNeedsRebuild 返回 false，调用方保留现格网（已绑 hover/点击/nav
+//  事件均在，DOM 不重建）；数据/切月/切视图任一变化 → 重建（与 buildCalendarDayIndex
+//  P1 分组配合——命中时连分组与整格拼装都省）。
+//  纯函数（无 DOM 顶导）→ 导出供 server/test/perf-render-guard 直测。
+export function calendarMemoKey(state, month, activeActivities, tasks) {
+  const st = state || {};
+  const isMobile = typeof window !== 'undefined' ? (window.innerWidth < 768 ? 1 : 0) : 0;
+  const taskSig = (tasks || []).map(t =>
+    `${(t && t.id) || ''}|${(t && t.date) || ''}|${(t && t.activityId) || ''}|${(t && t.status) || ''}|${(t && t.executor) || ''}`
+  ).join('~');
+  return [
+    `view=${st.calendarView || 'month'}`,
+    `month=${month || ''}`,
+    `sel=${st.selectedDate || ''}`,
+    `actSel=${st.selectedActivityId || ''}`,
+    `vt=${st.viewType || ''}`,
+    `mr=${st.managementRole || ''}`,
+    `mob=${isMobile}`,
+    `day=${_fmtDate(new Date())}`,
+    `act=${tokenOf('activity')}+${(activeActivities || []).length}`,
+    `task=${taskSig}`,
+  ].join('|');
+}
+
+/** 格网是否需要重建：false=键命中且格网有内容 → 跳过重建（保留现 DOM） */
+export function calendarGridNeedsRebuild(grid, memoKey) {
+  return !(grid && grid.dataset && grid.dataset.memoKey === memoKey && grid.firstElementChild);
+}
+
+// ════════════════════════════════════════════════════════════════
 //  主渲染入口 — 根据 calendarView 分发到对应视图
 // ════════════════════════════════════════════════════════════════
 export function renderCalendarByActivities(state, targetMonth) {
@@ -93,6 +136,7 @@ export function renderCalendarByActivities(state, targetMonth) {
   const view = calendarView || 'month';
 
   const activeActivities = activities.filter(a => !a.archived);
+  const month = targetMonth || _currentYearMonth();
 
   if (activeActivities.length === 0) {
     grid.classList.add('hidden');
@@ -102,13 +146,18 @@ export function renderCalendarByActivities(state, targetMonth) {
     return;
   }
 
+  // P2（2026-09-07 · spec §四.2）：视图渲染守卫——月份/日期范围 + view + activities 数据版本
+  // 未变 → 保留现格网（已绑 hover/点击/周·日导航事件均在，用户交互态不丢），跳过整格
+  // HTML 拼装与 DOM 重建；切月/切视图/数据变化才重建。与 buildCalendarDayIndex（P1）配合。
+  const memoKey = calendarMemoKey(state, month, activeActivities, tasks);
+  if (!calendarGridNeedsRebuild(grid, memoKey)) return;
+  grid.dataset.memoKey = memoKey;
+
   _renderLegend(activeActivities);
   _renderViewSwitcher(view);
 
   if (empty) empty.classList.add('hidden');
   grid.classList.remove('hidden');
-
-  const month = targetMonth || _currentYearMonth();
 
   switch (view) {
     case 'week':  _renderWeekView(grid, activeActivities, tasks, month, state); break;
@@ -920,6 +969,7 @@ export function renderCalendarForDashboard(state, targetMonth) {
   const { activities: rawActivities } = state || {};
   const activities = rawActivities || [];
   const activeActivities = activities.filter(a => !a.archived);
+  const month = targetMonth || _currentYearMonth();
 
   if (activeActivities.length === 0) {
     grid.classList.add('hidden');
@@ -929,12 +979,18 @@ export function renderCalendarForDashboard(state, targetMonth) {
     return;
   }
 
+  // P2（2026-09-07 · spec §四.2）：首页紧凑月视图渲染结果缓存（键同 calendarMemoKey；
+  // 紧凑模式不含任务 → tasks 空表签名恒定；resize 复用紧凑渲染器防 8rem 格覆盖——命中
+  // 时保留现格网与 hover 绑定，仅靠 CSS 响应式重排即可）。
+  const memoKey = calendarMemoKey(state, month, activeActivities, []);
+  if (!calendarGridNeedsRebuild(grid, memoKey)) return;
+  grid.dataset.memoKey = memoKey;
+
   _renderLegend(activeActivities);
 
   if (empty) empty.classList.add('hidden');
   grid.classList.remove('hidden');
 
-  const month = targetMonth || _currentYearMonth();
   // J3（2026-08-08）：首页模式传入 'dashboard'，日历条目点击不再 setState 详情，
   // 而是冒泡到 main-entry.js 首页委托 → 跳转对应工作台直达该活动。
   _renderMonthViewCompact(grid, activeActivities, month, state, 'dashboard');

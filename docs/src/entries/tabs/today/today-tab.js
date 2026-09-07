@@ -14,10 +14,40 @@
 
 import { escHtml as esc, _fmtDate } from '../../../core/utils.js?v=20260903c';
 import { buildTodaySummary } from '../../../services/today-summary.js?v=20260906j';
+import { mockDB } from '../../../core/domain.js?v=20260903c';
+import { tokenOf } from '../../../core/version-token.js?v=20260903c'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/roster.js?v=20260903c'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260903c'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/memoize-render.js?v=20260903c'; // P2 渲染守卫（spec §四.1）
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent, #B91C1C)';
 const ACCENT_BG = 'var(--app-accent-bg, rgba(185, 28, 28, 0.1))';
+
+// ── P2 渲染守卫（2026-09-07 · spec §四.1）────────────────────────
+// 今天卡为「读多写少」只读聚合视图：buildTodaySummary 内部已有 P0/P1 缓存，本守卫省的
+// 是全链重算与 HTML 拼装/DOM 重建（每次无关 setState 切回/刷新都会触发整卡重建）。
+// key = 今天日期 + 各数据源 tokenOf(todo/member/activity/signup/attendance) + 源数组 length
+//   指纹 + member 覆盖/预览 raw 源（滞留覆盖 RESIDENCE_KEY / 基础数据预览 PREVIEW_KEY 的
+//   写口不在 bump 链 → raw 内容比对兜底）+ 登录人/角色（同容器内容因人而异）。
+// 命中 → 现 DOM 保留（只读卡无交互状态；旧行点击事件仍在）；marker 防跨 tab 内容误命中。
+function _rawStorage(key) {
+  try { return typeof localStorage === 'undefined' ? '' : (localStorage.getItem(key) || ''); } catch (_) { return ''; }
+}
+function _arrLen(arr) {
+  return Array.isArray(arr) ? arr.length : 0;
+}
+function _todayMemoKey(personId, role) {
+  return [
+    `day=${_fmtDate(new Date())}`,
+    `todo=${tokenOf('todo')}`,
+    `member=${tokenOf('member')}|${_rawStorage(RESIDENCE_KEY)}|${_rawStorage(PREVIEW_KEY)}`,
+    `activity=${tokenOf('activity')}+${_arrLen(mockDB.activities)}`,
+    `signup=${tokenOf('signup')}+${_arrLen(mockDB.signups)}`,
+    `attendance=${tokenOf('attendance')}+${_arrLen(mockDB.attendances)}`,
+    `person=${personId || ''}|role=${role || ''}`,
+  ].join('|');
+}
 
 /** 'YYYY-MM-DD' → 中文月日+星期（如 '2026-09-06' → '9月6日 周日'）；非法返回 '' */
 function _dateLabel(dateStr) {
@@ -142,53 +172,57 @@ function _allEmptyHtml() {
 export function renderTodayTab(container, { personId, role, onNav } = {}) {
   if (!container) return;
 
-  // 实时聚合；异常不崩页：console.warn + 空态兜底
-  let summary;
-  try {
-    summary = buildTodaySummary({ personId, role });
-  } catch (err) {
-    console.warn('[today-tab] buildTodaySummary 失败，已渲染空态：', err);
-    summary = { date: '', hasMeeting: [], overdue: [], dueToday: [], myDuties: [] };
-  }
-  const dateLabel = _dateLabel(summary.date) || _dateLabel(_fmtDate(new Date()));
+  // P2 渲染守卫：数据键未变且现 DOM 为上次真实产物 → 整卡保留（跳过 buildTodaySummary
+  // 全链重算与 HTML/DOM 重建）。未命中 → 执行 render（重建路径，行为与改造前一致）。
+  memoizeRender(container, _todayMemoKey(personId, role), () => {
+    // 实时聚合；异常不崩页：console.warn + 空态兜底
+    let summary;
+    try {
+      summary = buildTodaySummary({ personId, role });
+    } catch (err) {
+      console.warn('[today-tab] buildTodaySummary 失败，已渲染空态：', err);
+      summary = { date: '', hasMeeting: [], overdue: [], dueToday: [], myDuties: [] };
+    }
+    const dateLabel = _dateLabel(summary.date) || _dateLabel(_fmtDate(new Date()));
 
-  const total = summary.hasMeeting.length + summary.overdue.length
-    + summary.dueToday.length + summary.myDuties.length;
+    const total = summary.hasMeeting.length + summary.overdue.length
+      + summary.dueToday.length + summary.myDuties.length;
 
-  const body = total === 0 ? _allEmptyHtml() : `
-    <div class="card rounded-xl p-5">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
-        <section class="lg:col-span-2 min-w-0">${_meetingBlock(summary)}</section>
-        <div class="lg:col-span-1 min-w-0 space-y-5">
-          ${_dueBlock(summary)}
-          ${_dutyBlock(summary)}
+    const body = total === 0 ? _allEmptyHtml() : `
+      <div class="card rounded-xl p-5">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
+          <section class="lg:col-span-2 min-w-0">${_meetingBlock(summary)}</section>
+          <div class="lg:col-span-1 min-w-0 space-y-5">
+            ${_dueBlock(summary)}
+            ${_dutyBlock(summary)}
+          </div>
         </div>
-      </div>
-    </div>`;
+      </div>`;
 
-  container.innerHTML = `
-    <div class="space-y-4">
-      <h2 class="font-title-cn text-lg font-bold text-gray-800">今天 · <span class="text-base font-normal text-gray-500">${esc(dateLabel)}</span></h2>
-      ${body}
-    </div>`;
+    container.innerHTML = `
+      <div class="space-y-4" data-ws-memo="today">
+        <h2 class="font-title-cn text-lg font-bold text-gray-800">今天 · <span class="text-base font-normal text-gray-500">${esc(dateLabel)}</span></h2>
+        ${body}
+      </div>`;
 
-  // 行点击：会议/分工 → 活动详情页；到期/逾期 → onNav('todo')（无 onNav 则空操作）
-  container.querySelectorAll('.today-go').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const go = btn.dataset.go;
-      if (go === 'activity') {
-        const id = btn.dataset.actId;
-        if (id) window.location = 'activity.html?id=' + encodeURIComponent(id);
-      } else if (go === 'todo' && typeof onNav === 'function') {
-        onNav('todo');
-      }
+    // 行点击：会议/分工 → 活动详情页；到期/逾期 → onNav('todo')（无 onNav 则空操作）
+    container.querySelectorAll('.today-go').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const go = btn.dataset.go;
+        if (go === 'activity') {
+          const id = btn.dataset.actId;
+          if (id) window.location = 'activity.html?id=' + encodeURIComponent(id);
+        } else if (go === 'todo' && typeof onNav === 'function') {
+          onNav('todo');
+        }
+      });
     });
-  });
-  // 「全部」小链接：到期 → 'todo'；会议 → 'activities'（语义 id；无 onNav 则空操作）
-  container.querySelectorAll('.today-all').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (typeof onNav !== 'function') return;
-      onNav(btn.dataset.todayAll === 'todo' ? 'todo' : 'activities');
+    // 「全部」小链接：到期 → 'todo'；会议 → 'activities'（语义 id；无 onNav 则空操作）
+    container.querySelectorAll('.today-all').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (typeof onNav !== 'function') return;
+        onNav(btn.dataset.todayAll === 'todo' ? 'todo' : 'activities');
+      });
     });
-  });
+  }, { marker: '[data-ws-memo="today"]' });
 }
