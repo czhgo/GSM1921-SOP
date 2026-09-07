@@ -328,12 +328,33 @@ function _todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
 
-/** 待办是否过期（pending 且 deadline 早于今日） */
-function _isTodoExpired(todo, today) {
-  if (todo.status === 'expired') return true;
-  if (todo.status !== 'pending') return false;
+/**
+ * 待办是否逾期（P1 过期判定收敛单一实现 · spec §三.6；原四处重复实现统一改调本函数）：
+ * 口径与既有四处一致——
+ *  - expired 显式态 → 逾期；
+ *  - completed / in_progress → 不计（进行中不标逾期）；
+ *  - 其余未完成（pending 及无 status 的实时组条目）有 deadline 且早于日期键 → 逾期。
+ * @param {Object} [todo]
+ * @param {string|Date} [now] 日期键 YYYY-MM-DD（缺省 = 当前 UTC ISO 日，与旧渲染层/域聚合口径一致）；
+ *                            Date 注入（测试/未来消费）按本地时区取日（勿用 UTC——跨日错位见 today-summary）
+ * @returns {boolean}
+ */
+export function isTodoExpired(todo, now) {
+  if (!todo || typeof todo !== 'object') return false;
+  if (todo.status === TodoStatus.EXPIRED) return true;
+  if (todo.status === TodoStatus.COMPLETED || todo.status === TodoStatus.IN_PROGRESS) return false;
   if (!todo.deadline) return false;
-  return todo.deadline < today;
+  return todo.deadline < _dateKeyOf(now);
+}
+
+/** 日期键归一（isTodoExpired 内部用）：显式 dateKey 串原样；Date → 本地时区日；缺省 → 当前 UTC ISO 日 */
+function _dateKeyOf(now) {
+  if (typeof now === 'string' && now) return now;
+  if (now instanceof Date) {
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  }
+  return _todayStr();
 }
 
 /** 待办默认字段构造（create / createBatch 共用；收敛 2026-09-02，原两份逐字相同） */
@@ -402,8 +423,8 @@ function _aggregateByAction(role, todos, today) {
   // 组内排序：过期优先、截止升序
   groups.forEach(g => {
     g.items.sort((a, b) => {
-      const aExp = _isTodoExpired(a, today);
-      const bExp = _isTodoExpired(b, today);
+      const aExp = isTodoExpired(a, today);
+      const bExp = isTodoExpired(b, today);
       if (aExp !== bExp) return aExp ? -1 : 1;
       return (a.deadline || '9999').localeCompare(b.deadline || '9999');
     });
@@ -411,23 +432,15 @@ function _aggregateByAction(role, todos, today) {
   return groups;
 }
 
-/** 条目级逾期判定：expired 态；或（pending/无 status 的实时条目）deadline 早于今日 → 逾期；完成/进行中不计 */
-function _isGroupItemExpired(item, today) {
-  if (item.status === TodoStatus.EXPIRED) return true;
-  if (item.status === TodoStatus.COMPLETED || item.status === TodoStatus.IN_PROGRESS) return false;
-  if (!item.deadline) return false;
-  return item.deadline < today;
-}
-
-/** 组是否含逾期条目（域内组排序「先逾期」用） */
+/** 组是否含逾期条目（域内组排序「先逾期」用；判定收敛 isTodoExpired） */
 function _groupHasExpired(g, today) {
-  return Array.isArray(g.items) && g.items.some(it => _isGroupItemExpired(it, today));
+  return Array.isArray(g.items) && g.items.some(it => isTodoExpired(it, today));
 }
 
-/** 组内逾期条数（并入域级 expiredCount 用） */
+/** 组内逾期条数（并入域级 expiredCount 用；判定收敛 isTodoExpired） */
 function _groupExpiredCount(g, today) {
   if (!Array.isArray(g.items)) return 0;
-  return g.items.filter(it => _isGroupItemExpired(it, today)).length;
+  return g.items.filter(it => isTodoExpired(it, today)).length;
 }
 
 /** 域内组排序：先逾期组、再 deadline（无 deadline 末位）、最后 actionKey 稳定兜底（跨调用确定性） */
@@ -465,7 +478,7 @@ function _aggregateByRole(role, today) {
       domain: d,
       label: WORK_DOMAIN_LABELS[d],
       count: bucket.length,
-      expiredCount: bucket.filter(t => _isGroupItemExpired(t, today)).length,
+      expiredCount: bucket.filter(t => isTodoExpired(t, today)).length,
       groups,
     });
   }
@@ -775,21 +788,20 @@ export const TodoStore = {
 
   // ── 过期检查 ──────────────────────────────────────────────
 
-  /** 检查待办是否过期（pending 状态且 deadline < today） */
+  /** 检查待办是否过期（历史兼容 API：仅 pending 逾期计过期；expired 态由调用方显式 || TodoStatus.EXPIRED 兜底）。
+   *  P1：deadline 判定收敛于 isTodoExpired（单一实现），本方法保留 pending 门禁防语义漂移 */
   _isExpired(todo) {
-    if (todo.status !== TodoStatus.PENDING) return false;
-    if (!todo.deadline) return false;
-    const today = new Date().toISOString().slice(0, 10);
-    return todo.deadline < today;
+    if (!todo || todo.status !== TodoStatus.PENDING) return false;
+    return isTodoExpired(todo);
   },
 
-  /** 扫描所有待办，将过期未处理标记为 expired */
+  /** 扫描所有待办，将过期未处理标记为 expired（判定收敛 isTodoExpired；仅 pending 可被翻转为 expired） */
   refreshExpiredStatus() {
     const todos = _loadTodos();
     let changed = false;
     const today = new Date().toISOString().slice(0, 10);
     const updated = todos.map(t => {
-      if (t.status === TodoStatus.PENDING && t.deadline && t.deadline < today) {
+      if (t.status === TodoStatus.PENDING && isTodoExpired(t, today)) {
         changed = true;
         return { ...t, status: TodoStatus.EXPIRED };
       }
@@ -813,7 +825,7 @@ export const TodoStore = {
       stats[t.category]++;
     }
     stats._total = todos.length;
-    stats._expired = todos.filter(t => this._isExpired(t) || t.status === TodoStatus.EXPIRED).length;
+    stats._expired = todos.filter(t => isTodoExpired(t)).length;
     return stats;
   },
 };

@@ -22,7 +22,9 @@ const VIEW_LABELS = { month: '月', week: '周', day: '日', list: '列表' };
 // 响应式：窗口宽度变化时重新渲染日历
 // 注意：首页使用紧凑渲染器（renderCalendarForDashboard），resize 时必须复用，
 //       否则会被 8rem 高格子覆盖（书记 2026-08-01 发现，浏览器实测复现）。
+// P1（2026-09-07）：typeof 守卫使本模块可在 node 直导（等价测试 import 纯分组 helper）
 let _resizeTimer = null;
+if (typeof window !== 'undefined') {
 window.addEventListener('resize', () => {
   clearTimeout(_resizeTimer);
   _resizeTimer = setTimeout(() => {
@@ -38,6 +40,44 @@ window.addEventListener('resize', () => {
     }
   }, 250);
 });
+}
+
+// ════════════════════════════════════════════════════════════════
+//  P1（2026-09-07 · spec §三.2）：按 date 一次分组的「日索引」
+//  月/周/紧凑视图渲染前建一次（O(A+T)），逐格 O(1) 取——
+//  消除「31 格 × 全量 activeActivities.filter(a.date===k)」与逐格
+//  tasks.filter(!t.date && activityId∈当日) 的 O(D·A) 嵌套；hover 复用本索引。
+//  等价性：与逐格扫描同数据同结果集合——
+//   - acts：date → 当日活动数组（保持原数组序；无 date 活动不入桶，
+//     与原 filter(a.date===k) 一致）；
+//   - viaTasksByDate：date → 无 date 但 activityId 属该日活动的任务数组
+//     （单遍保序入桶，等于原 tasks.filter(!t.date && activityId ∈ 当日活动 id 集)）。
+//  纯函数（无 DOM）→ 导出供 server/test/perf-index-equivalence 等价断言。
+//  @param {Array} activeActivities 非归档活动数组（调用方已过滤）
+//  @param {Array} tasks 任务数组
+//  @returns {{ acts: Map<string,Array>, viaTasksByDate: Map<string,Array> }}
+export function buildCalendarDayIndex(activeActivities, tasks) {
+  const acts = new Map();
+  for (const a of activeActivities || []) {
+    if (!a || typeof a.date !== 'string' || !a.date) continue;
+    const k = a.date;
+    if (!acts.has(k)) acts.set(k, []);
+    acts.get(k).push(a);
+  }
+  const actDateById = new Map();
+  for (const a of activeActivities || []) {
+    if (a && a.id && typeof a.date === 'string' && a.date) actDateById.set(a.id, a.date);
+  }
+  const viaTasksByDate = new Map();
+  for (const t of tasks || []) {
+    if (!t || t.date || !t.activityId) continue; // 仅无 date 任务经其活动落日桶
+    const ad = actDateById.get(t.activityId);
+    if (!ad) continue;
+    if (!viaTasksByDate.has(ad)) viaTasksByDate.set(ad, []);
+    viaTasksByDate.get(ad).push(t);
+  }
+  return { acts, viaTasksByDate };
+}
 
 // ════════════════════════════════════════════════════════════════
 //  主渲染入口 — 根据 calendarView 分发到对应视图
@@ -122,9 +162,11 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
 
   const isMobile = window.innerWidth < 768;
 
-  const actDates = new Set(
-    activeActivities.filter(a => typeof a.date === 'string' && a.date.startsWith(month)).map(a => a.date)
-  );
+  // P1：月视图渲染前按 date 一次分组（date → 当日 activities/viaTasks Map；逐格 O(1) 取，
+  // 消除 31 格 × 全量 filter 与逐格 tasks.filter；hover 复用本索引）
+  const dayIndex = buildCalendarDayIndex(activeActivities, tasks);
+  const { acts, viaTasksByDate } = dayIndex;
+
   const tasksByDate = {};
   tasks.forEach(t => {
     if (t.date && typeof t.date === 'string' && t.date.startsWith(month)) {
@@ -148,8 +190,10 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
   for (let day = 1; day <= daysInMonth; day++) {
     const k = `${month}-${String(day).padStart(2, '0')}`;
     const isT = k === todayKey;
+    const dayActs = acts.get(k) || [];
     const ct = tasksByDate[k] || [];
-    const hasActivity = actDates.has(k);
+    const viaTasks = viaTasksByDate.get(k) || [];
+    const hasActivity = dayActs.length > 0;
     let cls = isMobile ? 'cal-cell-mobile' : 'cal-cell-large cal-cell-compact';
     if (ct.length > 0 || hasActivity) cls += ' has-tasks';
     if (isT) cls += ' is-today';
@@ -157,9 +201,9 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
     html += `<div class="${cls}" data-date="${k}">`;
     html += `<div class=" ${isMobile ? 'text-xs' : 'text-[12px]'} font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${day}</div>`;
     if (isMobile) {
-      html += _renderMobileDots(k, activeActivities, ct, hasActivity, tasks, state);
+      html += _renderMobileDots(dayActs, ct, hasActivity, viaTasks, state);
     } else {
-      html += _renderCompactCellContent(k, activeActivities, ct, hasActivity, tasks, state);
+      html += _renderCompactCellContent(k, dayActs, ct, viaTasks, state);
     }
     html += '</div>';
   }
@@ -170,7 +214,7 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
     _bindMobileCellClicks(grid, activeActivities, tasks, month, state);
   } else {
     _bindCellClicks(grid);
-    _bindHoverPreview(grid, activeActivities);
+    _bindHoverPreview(grid, dayIndex);
   }
 }
 
@@ -178,10 +222,9 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
 //  月视图格子内容（紧凑方形格：简写常驻 + 最多 3 条活动标签）
 //  2026-08-01 统一全站月视图基线：方形格 + 简写 + hover 浮窗
 // ════════════════════════════════════════════════════════════════
-function _renderCompactCellContent(dateKey, activeActivities, ct, hasActivity, tasks, state) {
+function _renderCompactCellContent(dateKey, dayActs, ct, viaTasks, state) {
   const { managementRole } = state || {};
   let html = '';
-  const dayActs = activeActivities.filter(a => a.date === dateKey);
   dayActs.slice(0, 3).forEach(act => {
     const color = getActivityColor(act);
     const shortLabel = ACTIVITY_TYPE_SHORT[act.scenarioId] || ACTIVITY_TYPE_SHORT[act.type] || (act.type ? act.type.slice(0, 2) : '活动');
@@ -192,10 +235,8 @@ function _renderCompactCellContent(dateKey, activeActivities, ct, hasActivity, t
   if (dayActs.length > 3) html += `<div class=" text-[11px] text-gray-400 text-center mt-0.5">+${dayActs.length - 3} 项</div>`;
   // 无活动时才显示任务标签（紧凑，最多 2 条，避免挤爆方形格）
   if (dayActs.length === 0) {
-    const dayActIds = new Set(dayActs.map(a => a.id));
-    const dayTasksDirect = ct;
-    const dayTasksViaAct = tasks.filter(t => !t.date && t.activityId && dayActIds.has(t.activityId));
-    const allDayTasks = [...dayTasksDirect, ...dayTasksViaAct];
+    // P1：viaTasks 已由日索引预分组（等价原 tasks.filter(!t.date && activityId∈当日)）
+    const allDayTasks = [...ct, ...viaTasks];
     const filteredTasks = filterTasksByManagementRole(allDayTasks, managementRole);
     filteredTasks.slice(0, 2).forEach(t => {
       const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
@@ -228,6 +269,9 @@ function _renderWeekView(grid, activeActivities, tasks, month, state) {
     }
   });
 
+  // P1：周视图按 date 一次分组（7 格 × 全量 filter → 查表 O(1)）
+  const { acts, viaTasksByDate } = buildCalendarDayIndex(activeActivities, tasks);
+
   let html = `<div class="mb-6">`;
   html += `<div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">`;
   html += `<span class=" text-sm font-bold text-gray-700">${weekStart.getFullYear()}年 第${_getWeekNumber(weekStart)}周</span>`;
@@ -245,8 +289,10 @@ function _renderWeekView(grid, activeActivities, tasks, month, state) {
     d.setDate(d.getDate() + i);
     const k = _fmtDate(d);
     const isT = k === todayKey;
+    const dayActs = acts.get(k) || [];
     const ct = tasksByDate[k] || [];
-    const hasActivity = activeActivities.some(a => a.date === k);
+    const viaTasks = viaTasksByDate.get(k) || [];
+    const hasActivity = dayActs.length > 0;
     let cls = 'cal-cell-large';
     if (ct.length > 0 || hasActivity) cls += ' has-tasks';
     if (isT) cls += ' is-today';
@@ -254,7 +300,7 @@ function _renderWeekView(grid, activeActivities, tasks, month, state) {
 
     html += `<div class="${cls}" data-date="${k}" style="min-height:8rem;">`;
     html += `<div class=" text-[12px] font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${d.getDate()}</div>`;
-    html += _renderCellContent(k, activeActivities, ct, hasActivity, tasks, state, 8);
+    html += _renderCellContent(k, dayActs, ct, hasActivity, viaTasks, state, 8);
     html += '</div>';
   }
   html += '</div></div>';
@@ -407,12 +453,11 @@ function _renderListView(grid, activeActivities, tasks, month, state) {
 //  共享工具函数
 // ════════════════════════════════════════════════════════════════
 
-function _renderCellContent(dateKey, activeActivities, ct, hasActivity, tasks, state, maxItems = 4) {
+function _renderCellContent(dateKey, dayActs, ct, hasActivity, viaTasks, state, maxItems = 4) {
   const { viewType, managementRole } = state || {};
   let html = '';
 
   if (viewType === 'participant') {
-    const dayActs = activeActivities.filter(a => a.date === dateKey);
     dayActs.slice(0, maxItems).forEach(act => {
       const color = getActivityColor(act);
       html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" style="${_accDark(color)}background:${color.bg};color:${color.text};border:1px solid ${color.border};" title="${act.title || ''}">` +
@@ -422,7 +467,6 @@ function _renderCellContent(dateKey, activeActivities, ct, hasActivity, tasks, s
     if (dayActs.length > maxItems) html += `<div class=" text-[11px] text-gray-400 text-center mt-0.5">+${dayActs.length - maxItems} 项活动</div>`;
   } else {
     // 非参与者模式：先渲染活动条目（可点击进入详情）
-    const dayActs = activeActivities.filter(a => a.date === dateKey);
     if (dayActs.length > 0) {
       dayActs.slice(0, maxItems).forEach(act => {
         const color = getActivityColor(act);
@@ -433,7 +477,7 @@ function _renderCellContent(dateKey, activeActivities, ct, hasActivity, tasks, s
       if (dayActs.length > maxItems) html += `<div class=" text-[11px] text-gray-400 text-center mt-0.5">+${dayActs.length - maxItems} 项活动</div>`;
     } else if (hasActivity) {
       // 仅有活动标记但无具体活动条目时，保留原角色点指示
-      const dateActRoles = activeActivities.filter(a => a.date === dateKey).map(a => a.executor || 'all');
+      const dateActRoles = dayActs.map(a => a.executor || 'all');
       const uniqueRoles = [...new Set(dateActRoles)];
       const ROLE_ORDER = ['leader', 'commissioner', 'organizer', 'deep', 'all'];
       const sortedRoles = ROLE_ORDER.filter(r => uniqueRoles.includes(r));
@@ -445,10 +489,9 @@ function _renderCellContent(dateKey, activeActivities, ct, hasActivity, tasks, s
       });
       html += '</div>';
     }
-    const dayActIds = new Set(dayActs.map(a => a.id));
+    // P1：viaTasks 已由日索引预分组（等价原 tasks.filter(!t.date && activityId∈当日)）
     const dayTasksDirect = ct;
-    const dayTasksViaAct = tasks.filter(t => !t.date && t.activityId && dayActIds.has(t.activityId));
-    const allDayTasks = [...dayTasksDirect, ...dayTasksViaAct];
+    const allDayTasks = [...dayTasksDirect, ...viaTasks];
     const filteredTasks = filterTasksByManagementRole(allDayTasks, managementRole);
     const focusedTasks = state.selectedActivityId
       ? filteredTasks.filter(t => t.activityId === state.selectedActivityId)
@@ -501,12 +544,11 @@ function _bindCellClicks(grid, mode) {
 // ════════════════════════════════════════════════════════════════
 //  手机端交互式日历 — 圆点指示器 + 点击展开详情面板
 // ════════════════════════════════════════════════════════════════
-function _renderMobileDots(dateKey, activeActivities, ct, hasActivity, tasks, state) {
+function _renderMobileDots(dayActs, ct, hasActivity, viaTasks, state) {
   const { viewType, managementRole } = state || {};
   let html = '';
 
   if (viewType === 'participant') {
-    const dayActs = activeActivities.filter(a => a.date === dateKey);
     if (dayActs.length > 0) {
       html += '<div class="cal-mobile-dots">';
       dayActs.slice(0, 3).forEach(act => {
@@ -520,17 +562,15 @@ function _renderMobileDots(dateKey, activeActivities, ct, hasActivity, tasks, st
     // 非参与者模式：收集所有颜色点
     const dots = [];
     if (hasActivity) {
-      const dateActRoles = activeActivities.filter(a => a.date === dateKey).map(a => a.executor || 'all');
+      const dateActRoles = dayActs.map(a => a.executor || 'all');
       const uniqueRoles = [...new Set(dateActRoles)];
       uniqueRoles.forEach(r => {
         const c = ROLE_COLORS[r] || ROLE_COLORS.all;
         dots.push({ text: c.text, dark: c.textDark });
       });
     }
-    const dayActIds = new Set(activeActivities.filter(a => a.date === dateKey).map(a => a.id));
-    const dayTasksDirect = ct;
-    const dayTasksViaAct = tasks.filter(t => !t.date && t.activityId && dayActIds.has(t.activityId));
-    const allDayTasks = [...dayTasksDirect, ...dayTasksViaAct];
+    // P1：viaTasks 已由日索引预分组（等价原 tasks.filter(!t.date && activityId∈当日)）
+    const allDayTasks = [...ct, ...viaTasks];
     const filteredTasks = filterTasksByManagementRole(allDayTasks, managementRole);
     filteredTasks.forEach(t => {
       const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
@@ -743,14 +783,15 @@ function _renderLegend(activeActivities) {
 let _hoverPopover = null;
 let _hoverTimer = null;
 
-function _bindHoverPreview(grid, activeActivities) {
+function _bindHoverPreview(grid, dayIndex) {
   if (window.innerWidth < 768) return;
   const cells = grid.querySelectorAll('.cal-cell-large.has-tasks');
   cells.forEach(cell => {
     cell.addEventListener('mouseenter', () => {
       clearTimeout(_hoverTimer);
       const dateKey = cell.dataset.date;
-      const dayActs = activeActivities.filter(a => a.date === dateKey);
+      // P1：hover 复用渲染前分组的日索引（原 activeActivities.filter 逐格全扫）
+      const dayActs = (dayIndex.acts && dayIndex.acts.get(dateKey)) || [];
       if (dayActs.length === 0) return;
       _showHoverPopover(cell, dateKey, dayActs);
     });
@@ -827,9 +868,9 @@ function _renderMonthViewCompact(grid, activeActivities, month, state, mode) {
   const MN = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
   const DN = ['一','二','三','四','五','六','日'];
 
-  const actDates = new Set(
-    activeActivities.filter(a => typeof a.date === 'string' && a.date.startsWith(month)).map(a => a.date)
-  );
+  // P1：紧凑月视图按 date 一次分组（首页模式；逐格 O(1)，hover 复用）
+  const dayIndex = buildCalendarDayIndex(activeActivities, []);
+  const { acts } = dayIndex;
 
   const rawFirst = new Date(y, m - 1, 1).getDay();
   const firstDow = (rawFirst + 6) % 7;
@@ -846,14 +887,14 @@ function _renderMonthViewCompact(grid, activeActivities, month, state, mode) {
   for (let day = 1; day <= daysInMonth; day++) {
     const k = `${month}-${String(day).padStart(2, '0')}`;
     const isT = k === todayKey;
-    const hasActivity = actDates.has(k);
+    const dayActs = acts.get(k) || [];
+    const hasActivity = dayActs.length > 0;
     let cls = 'cal-cell-large';
     if (hasActivity) cls += ' has-tasks';
     if (isT) cls += ' is-today';
 
     html += `<div class="${cls} cal-cell-compact" data-date="${k}">`;
     html += `<div class=" text-[12px] font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${day}</div>`;
-    const dayActs = activeActivities.filter(a => a.date === k);
     dayActs.slice(0, 3).forEach(act => {
       const color = getActivityColor(act);
       const shortLabel = ACTIVITY_TYPE_SHORT[act.scenarioId] || ACTIVITY_TYPE_SHORT[act.type] || (act.type ? act.type.slice(0, 2) : '活动');
@@ -868,7 +909,7 @@ function _renderMonthViewCompact(grid, activeActivities, month, state, mode) {
   grid.innerHTML = html;
 
   _bindCellClicks(grid, mode);
-  _bindHoverPreview(grid, activeActivities);
+  _bindHoverPreview(grid, dayIndex);
 }
 
 export function renderCalendarForDashboard(state, targetMonth) {

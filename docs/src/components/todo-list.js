@@ -13,6 +13,8 @@
 
 import { badgeHtml } from './badges.js?v=20260903c';
 import { solidAccentStyle } from '../core/constants.js?v=20260903c';
+// P1（2026-09-07）：渲染层过期红点收敛于 todo.js isTodoExpired（单一过期判定实现 · spec §三.6）
+import { isTodoExpired } from '../services/todo.js?v=20260906j';
 
 /**
  * 渲染「9 业务域折组」待办列表（IA 收敛 C1 Task4 六台待办页主列；替代旧按分类/actionType 大列表）。
@@ -160,7 +162,7 @@ function _findGroupInDomains(domains, groupKey) {
 // ── 渲染单个聚合卡（同跳转目标合并，数量角标 + 处理按钮）──
 function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo) {
   const isSelected = g.groupKey === selectedTodoId;
-  const hasExpired = g.items.some(t => _isExpired(t, today));
+  const hasExpired = g.items.some(t => isTodoExpired(t, today));
 
   // 2026-08-07 闭环化：actionKey 优先决定按钮文案（同 actionType 不同业务域区分），actionType 兜底
   // 无生产者死键（IA-C1 Task5 登记 2026-09-06）：
@@ -196,7 +198,7 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
           ${g.flow ? `<span class="block text-[11px] text-gray-400 truncate">${g.flow}</span>` : ''}
         </span>
         <span class="flex items-center gap-2 flex-shrink-0">
-          ${g.deadline ? `<span class="text-xs ${_isExpired({ status: 'pending', deadline: g.deadline }, today) ? 'text-red-600' : 'text-gray-400'}">${g.deadline}</span>` : ''}
+          ${g.deadline ? `<span class="text-xs ${isTodoExpired({ status: 'pending', deadline: g.deadline }, today) ? 'text-red-600' : 'text-gray-400'}">${g.deadline}</span>` : ''}
         </span>
       </button>
       <div class="flex items-center gap-1.5 ml-2 pr-3 flex-shrink-0">
@@ -208,9 +210,4 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
 }
 
 // ── 工具函数 ──────────────────────────────────────────────────
-function _isExpired(todo, today) {
-  if (todo.status === 'expired') return true;
-  if (todo.status !== 'pending') return false;
-  if (!todo.deadline) return false;
-  return todo.deadline < today;
-}
+// P1：过期判定已收敛于 services/todo.js isTodoExpired（2026-09-07）；本地实现移除

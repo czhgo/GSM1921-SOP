@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  secretary-overview.js — 书记全局概况服务层
 //  四维度信息面板：考勤与纪律 / 发展与考察 / 活动与专班进度 / 宣传与档案
@@ -218,23 +218,27 @@ export const SecretaryOverviewStore = {
     const monthActivityIds = new Set(
       activities.filter(a => (a.date || '').startsWith(thisMonth)).map(a => a.id)
     );
-    const monthRecords = records.filter(r => monthActivityIds.has(r.activityId));
-
-    // 出勤率
-    const total   = monthRecords.length;
-    const present = monthRecords.filter(r =>
-      r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP
-    ).length;
+    // P1（2026-09-07）：records 多遍 filter 合并为单遍（口径不变——出勤/缺勤统计仅本月；
+    // absent/made_up 全集仍跨全部活跃记录，供补课未完成数判定）
+    let total = 0;
+    let present = 0;
+    const monthAbsent = []; // 本月缺席 personId（原 monthRecords.filter(ABSENT) 序列，去重后用于列表）
+    const absentIds = new Set(); // 全部活跃记录缺席 personId（原 records.filter(ABSENT)）
+    const madeUpIds = new Set(); // 全部活跃记录已补 personId（原 records.filter(MADE_UP)）
+    for (const r of records) {
+      const st = r.status;
+      if (st === AttendanceStatus.ABSENT) absentIds.add(r.personId);
+      else if (st === AttendanceStatus.MADE_UP) madeUpIds.add(r.personId);
+      if (monthActivityIds.has(r.activityId)) {
+        total += 1;
+        if (st === AttendanceStatus.PRESENT || st === AttendanceStatus.MADE_UP) present += 1;
+        else if (st === AttendanceStatus.ABSENT) monthAbsent.push(r.personId);
+      }
+    }
     const attendanceRate = total > 0 ? Math.round((present / total) * 100) : 0;
 
     // 缺勤人员列表（本月 absent 状态）
-    const absentPersonIds = [
-      ...new Set(
-        monthRecords
-          .filter(r => r.status === AttendanceStatus.ABSENT)
-          .map(r => r.personId)
-      ),
-    ];
+    const absentPersonIds = [...new Set(monthAbsent)];
     const absentPeople = absentPersonIds.slice(0, 5).map(id => {
       const person = getPersonById(id);
       return person ? person.name : id;
@@ -245,12 +249,6 @@ export const SecretaryOverviewStore = {
     }
 
     // 补课未完成数：absent 且无对应 made_up 记录
-    const absentIds = new Set(
-      records.filter(r => r.status === AttendanceStatus.ABSENT).map(r => r.personId)
-    );
-    const madeUpIds = new Set(
-      records.filter(r => r.status === AttendanceStatus.MADE_UP).map(r => r.personId)
-    );
     const makeupPending = [...absentIds].filter(id => !madeUpIds.has(id)).length;
 
     return {
@@ -416,10 +414,24 @@ export const SecretaryTodoDeriver = {
     const activities = loadActivities();
     const attendances = loadAttendanceRecords();
     const today = _today();
-    const gaps = activities
-      .filter(a => (a.status === 'completed' || a.archived) && a.date)
-      .filter(a => _daysBetween(a.date, today) > 3)
-      .filter(a => !attendances.some(r => r.activityId === a.id));
+    // P1（2026-09-07 · spec §三.1）：预建 Map<activityId, records[]> 一次分组（O(A+R)），
+    // 缺口查表 O(1)——替代原 attendances.some 逐活动全扫（O(A·R)）。等价：有无记录判定不变。
+    const recordsByActivity = new Map();
+    for (const r of attendances) {
+      if (!r) continue;
+      const k = r.activityId;
+      if (!recordsByActivity.has(k)) recordsByActivity.set(k, []);
+      recordsByActivity.get(k).push(r);
+    }
+    const hasRecords = (activityId) => {
+      const bucket = recordsByActivity.get(activityId);
+      return !!bucket && bucket.length > 0;
+    };
+    const gaps = activities.filter(a =>
+      (a.status === 'completed' || a.archived) && a.date &&
+      _daysBetween(a.date, today) > 3 &&
+      !hasRecords(a.id)
+    );
     return this._mkGroup('attendance-remind', '考勤待录入', TodoCategory.REVIEW, TodoActionType.REVIEW,
       '活动结束>3天未录入考勤 → 纪检确认 → 考勤总表',
       gaps.map(a => ({ id: a.id, activityId: a.id, name: a.title, date: a.date, deadline: _addDays(a.date, 5) })),

@@ -8,7 +8,7 @@
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { IssueStore } from '../../../services/issues.js?v=20260907a';
 import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260903c';
-import { TodoStore, TodoStatus } from '../../../services/todo.js?v=20260903c';
+import { TodoStore, TodoStatus, isTodoExpired } from '../../../services/todo.js?v=20260903c';
 import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
 import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260903c';
 import { AttendanceStatus } from '../../../core/domain.js?v=20260903c';
@@ -46,10 +46,8 @@ export async function renderContent(ctx) {
   // 每人聚合（progress/blocker/report/attendance/inspection 五维）
   const rows = targets.map(t => {
     const personTodos = allTodos.filter(td => td.personId === t.personId && td.status !== TodoStatus.COMPLETED);
-    const overdueTodos = personTodos.filter(td =>
-      td.status === TodoStatus.EXPIRED ||
-      (td.status === TodoStatus.PENDING && td.deadline && td.deadline < today)
-    );
+    // P1：内联过期判定收敛于 isTodoExpired（与域 expiredCount/渲染红点同口径）
+    const overdueTodos = personTodos.filter(td => isTodoExpired(td, today));
     const absentCount = attRecords.filter(r => r.personId === t.personId && r.status === AttendanceStatus.ABSENT).length;
     const inspPending = inspRecords.filter(r => r.personId === t.personId && r.status === 'pending').length;
     const reports = allIssues.filter(i => i.kind === 'report' && i.submittedBy === t.personId && !i.hidden && !i.mergedInto);

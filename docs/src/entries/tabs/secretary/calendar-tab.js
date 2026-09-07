@@ -29,6 +29,8 @@ import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260903c';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
 import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260903c';
+// P1（2026-09-07）：考勤明细惰性缓存失效键用域写版本戳（spec §三.5）
+import { tokenOf } from '../../../core/version-token.js?v=20260903c';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 
@@ -282,6 +284,62 @@ function bindQueryToggle() {
 // IA-C3 2026-09-06：考勤概况默认折叠——false=卡内仅一行概要 + 「展开看逐活动出勤」按钮
 let _secAttDetailOpen = false;
 
+// P1（2026-09-07 · spec §三.5）：明细惰性——折叠态不构建明细 HTML/不重算（U 轮已默认折叠 UI，
+// 本批补齐"折叠不算"）；仅展开时构建并缓存，缓存键=本月数据版本（月份 + activity/attendance
+// 写版本 token + 活动/明细行数指纹）变化才重建。
+let _secAttCache = { key: '', html: '' };
+
+/** 本月考勤明细缓存键：月份 + 读源写版本 token + 数组长度指纹（活动/记录写口已 bump；长度兜底禁改路径） */
+function _attDetailCacheKey(thisMonth, monthActivities, allActivities) {
+  return `${thisMonth}|act:${tokenOf('activity')}+${Array.isArray(allActivities) ? allActivities.length : 0}|att:${tokenOf('attendance')}|rows:${monthActivities.length}`;
+}
+
+/** 逐活动考勤明细 HTML（P1：预建 Map<activityId, records[]> 一次分组，逐活动查表 O(1)；
+ *  出勤口径与概览一致：present/made_up 计出勤，absent/leave 分列名单） */
+function _buildAttendanceDetailHtml(monthActivities) {
+  const attendanceRecords = loadAttendanceRecords();
+  const byActivity = new Map();
+  for (const r of attendanceRecords) {
+    if (!r) continue;
+    const k = r.activityId;
+    if (!byActivity.has(k)) byActivity.set(k, []);
+    byActivity.get(k).push(r);
+  }
+  return monthActivities.map(act => {
+    const records = byActivity.get(act.id) || [];
+    // 单遍归并三态（原三遍 filter 等价：present=出勤+已补计数；absent/leave 保序分列）
+    let present = 0;
+    const absent = [];
+    const leave = [];
+    for (const r of records) {
+      if (r.status === 'present' || r.status === 'made_up') present += 1;
+      else if (r.status === 'absent') absent.push(r);
+      else if (r.status === 'leave') leave.push(r);
+    }
+    const total = records.length;
+    const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+    const rateColor = rate >= 90 ? 'text-green-600' : rate >= 70 ? 'text-orange-600' : 'text-red-600';
+    const nameList = (arr, cls) => arr.length
+      ? `<span class="${cls}">${arr.map(r => getPersonName(r.personId)).join('、')}</span>`
+      : '<span class="text-gray-400">无</span>';
+    return `
+      <div class="py-2 border-b border-gray-50 last:border-b-0">
+        <div class="flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <p class="text-sm text-gray-800 truncate">${act.title}</p>
+            <p class="text-xs text-gray-400">${_fmtDate(new Date(act.date))} · 出勤 ${present}/${total}</p>
+          </div>
+          <span class="text-xs font-medium flex-shrink-0 ${rateColor}">${rate}%</span>
+        </div>
+        <div class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+          <span class="text-gray-500">缺勤：${nameList(absent, 'text-red-500')}</span>
+          <span class="text-gray-500">请假：${nameList(leave, 'text-orange-500')}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
 function renderAttendanceSummary(activities) {
   const container = document.getElementById('secretary-attendance-summary');
   if (!container) return;
@@ -290,42 +348,25 @@ function renderAttendanceSummary(activities) {
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const monthActivities = activities.filter(a => (a.date || '').startsWith(thisMonth) && !a.archived);
 
-  // ── 明细区（就地方案：书记只读监督，不越界处理） ──
+  // ── 明细区（就地方案：书记只读监督，不越界处理）──
   const detailEl = document.getElementById('secretary-attendance-detail');
+  const ensureDetailHtml = () => {
+    if (!detailEl || monthActivities.length === 0) return;
+    const key = _attDetailCacheKey(thisMonth, monthActivities, activities);
+    if (_secAttCache.key !== key) {
+      _secAttCache = { key, html: _buildAttendanceDetailHtml(monthActivities) };
+    }
+    detailEl.innerHTML = _secAttCache.html;
+  };
   if (detailEl) {
     if (monthActivities.length === 0) {
+      // 无本月活动：明细占位（与原行为一致），缓存清空防陈旧
+      _secAttCache = { key: '', html: '' };
       detailEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-3">本月暂无考勤明细</p>';
-    } else {
-      const attendanceRecords = loadAttendanceRecords();
-      detailEl.innerHTML = monthActivities.map(act => {
-        const records = attendanceRecords.filter(r => r.activityId === act.id);
-        // 出勤口径统一（2026-08-07）：已补（made_up）计入出勤，与书记概况出勤率一致
-        const present = records.filter(r => r.status === 'present' || r.status === 'made_up').length;
-        const absent = records.filter(r => r.status === 'absent');
-        const leave = records.filter(r => r.status === 'leave');
-        const total = records.length;
-        const rate = total > 0 ? Math.round((present / total) * 100) : 0;
-        const rateColor = rate >= 90 ? 'text-green-600' : rate >= 70 ? 'text-orange-600' : 'text-red-600';
-        const nameList = (arr, cls) => arr.length
-          ? `<span class="${cls}">${arr.map(r => getPersonName(r.personId)).join('、')}</span>`
-          : '<span class="text-gray-400">无</span>';
-        return `
-          <div class="py-2 border-b border-gray-50 last:border-b-0">
-            <div class="flex items-center justify-between gap-3">
-              <div class="min-w-0">
-                <p class="text-sm text-gray-800 truncate">${act.title}</p>
-                <p class="text-xs text-gray-400">${_fmtDate(new Date(act.date))} · 出勤 ${present}/${total}</p>
-              </div>
-              <span class="text-xs font-medium flex-shrink-0 ${rateColor}">${rate}%</span>
-            </div>
-            <div class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs">
-              <span class="text-gray-500">缺勤：${nameList(absent, 'text-red-500')}</span>
-              <span class="text-gray-500">请假：${nameList(leave, 'text-orange-500')}</span>
-            </div>
-          </div>
-        `;
-      }).join('');
+    } else if (_secAttDetailOpen) {
+      ensureDetailHtml(); // 展开态：数据版本变化才重建（惰性缓存）
     }
+    // 折叠态不构建/不重算（P1 惰性）；仅切换显隐
     detailEl.classList.toggle('hidden', !_secAttDetailOpen);
   }
 
@@ -340,6 +381,7 @@ function renderAttendanceSummary(activities) {
   if (toggleBtn) {
     toggleBtn.onclick = () => {
       _secAttDetailOpen = !_secAttDetailOpen;
+      if (_secAttDetailOpen) ensureDetailHtml(); // 展开时才构建（含缓存失效判定）
       detailEl?.classList.toggle('hidden', !_secAttDetailOpen);
       syncToggleUI();
     };
