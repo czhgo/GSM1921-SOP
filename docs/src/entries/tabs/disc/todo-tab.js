@@ -1,20 +1,24 @@
 // role: [工程师]+[AI]
 // 纪检委员工作台 Tab：待办（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 todo-tab-shell）
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降。
+// 2026-09-07 IA-C1 Task4：待办主列改为 9 业务域折组（共享壳渲染）；实时队列
+// （考勤待确认/考察待确认）作为 buildRealtimeGroups 并入「考勤纪律/考察」域展示。
 
 import { showToast } from '../../../core/utils.js?v=20260903c';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260903c';
+import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260903c';
 import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260903c';
 import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
 import { AttendanceStatus } from '../../../core/domain.js?v=20260903c';
 import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260903c';
 import { getPersonName } from '../../../services/person.js?v=20260903c';
 
-// ── 纪检聚合构建（2026-08-07 闭环化） ────────────────────────
+// ── 纪检实时聚合组（2026-08-07 闭环化） ────────────────────────
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降，
 // 不再依赖过期种子待办（种子来源与销项动作不匹配，无法闭环）。
-function _buildDiscAggregates() {
-  const todoGroups = TodoStore.getGroupedByAction('disc-commissioner');
+// IA-C1 Task4：持久化待办由壳 getDomainsWithGroups 按域聚合；本函数只返回
+// 「不落库」实时队列组，壳 mergeRealtimeDomains 并入「考勤纪律/考察」域（同 groupKey 去重）。
+function _buildDiscRealtimeGroups() {
+  seedTodos(); // 补种子 + 动态聚合（T232 闭环化）
   const dynamic = [];
   // 动态组1：考勤待确认（T-304 第5轮 · 源头审校+异常驱动：出勤/已补上传方已审校自动确认，
   // 纪检只处理异常=缺勤/请假未确认；仅活跃活动，归档活动退出工作区）
@@ -51,29 +55,7 @@ function _buildDiscAggregates() {
       items: pendingInsp.map(r => ({ id: r.id, title: `确认考察：${getPersonName(r.personId)}`, sourceType: TodoSourceType.ACTIVITY, sourceId: r.activityId ? `insp_${r.id}` : null })),
     });
   }
-  // 合并：同 groupKey 时并集（TodoStore 派生组 + 动态组），取最早截止
-  const map = new Map();
-  for (const g of [...todoGroups, ...dynamic]) {
-    if (!map.has(g.groupKey)) { map.set(g.groupKey, g); continue; }
-    const cur = map.get(g.groupKey);
-    cur.items = [...(cur.items || []), ...(g.items || [])];
-    cur.count = cur.items.length;
-    if (g.deadline && (!cur.deadline || g.deadline < cur.deadline)) cur.deadline = g.deadline;
-  }
-  return [...map.values()];
-}
-
-/** 纪检聚合统计（总数 = 聚合卡数量之和；过期 = 明细有截止且已过期的条目） */
-function _buildDiscStats(aggregates) {
-  const today = new Date().toISOString().slice(0, 10);
-  const total = aggregates.reduce((s, g) => s + g.count, 0);
-  let expired = 0;
-  for (const g of aggregates) {
-    for (const it of g.items || []) {
-      if (it.deadline && it.deadline < today && it.status !== 'completed') expired++;
-    }
-  }
-  return { _total: total, _expired: expired };
+  return dynamic;
 }
 
 function _handleTodoAction(todo) {
@@ -103,7 +85,7 @@ export const { renderContent } = createTodoTab({
   prefix: 'disc',
   role: 'disc-commissioner',
   onAction: _handleTodoAction,
-  buildAggregates: () => { seedTodos(); return _buildDiscAggregates(); }, // 补种子 + 动态聚合（T232 闭环化）
-  buildStats: _buildDiscStats,
+  // IA-C1 Task4：纪检实时队列（考勤/考察待确认）并入对应域折组
+  buildRealtimeGroups: _buildDiscRealtimeGroups,
   emptyHint: '或直接点击"去审核/去确认"等按钮处理',
 });

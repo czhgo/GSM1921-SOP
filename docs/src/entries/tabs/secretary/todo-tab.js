@@ -3,9 +3,13 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分：按 tab 代码分割，首屏只加载默认 tab。
 // 2026-08-07 T232：改为「动态聚合 + 复核确认面板」——SecretaryTodoDeriver.computeAggregates()
 //   实时计算 4 提醒 + 4 复核，复核类一键写 secretaryConfirmedAt 销项，不再创建虚假实体待办。
+// 2026-09-07 IA-C1 Task4：待办主列重构为共享壳「未读通知条 + 9 业务域折组」——
+//   实时聚合组（SecretaryTodoDeriver 8 组/决议逾期 remind/成员变更确认/学期末滞留复核）经
+//   buildRealtimeGroups 一次 merge 进对应域（考勤纪律/考察/活动项目/归档宣传/成员发展/决议上报）；
+//   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
 import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260903c';
-import { renderTodoList } from '../../../components/todo-list.js?v=20260903c';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260903c';
 import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260903c';
 import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
@@ -33,101 +37,39 @@ import { openModal, closeModal } from '../../../components/modal.js?v=20260903c'
 
 const { accent, accentBorder } = getAccentColors(resolveAccentRole('secretary'));
 
-let _selectedTodoId = null;
+// ── 模块级渲染缓存（onBeforeRender 预载 / 顶部自定义区共用） ─────
+let _pendingReports = [];
 
-// ── 聚合数据缓存（渲染与事件绑定共用） ─────────────────────────
-let _allAggregates = [];
+// ════════════════════════════════════════════════════════════════
+//  共享壳接线（IA-C1 Task4：未读通知条 + 9 业务域折组；原手写双栏大列表结构移除）
+// ════════════════════════════════════════════════════════════════
 
-/** 渲染待办 tab（双栏：聚合列表 + 详情确认面板；顶部内建「待答复」收件箱） */
-export async function renderContent() {
-  const container = document.getElementById('secretary-tab-content');
-  if (!container) return;
-  container.dataset.currentTab = 'todo';
-
-  // 补种子数据（幂等，仅行动类：设党小组组长等）；书记侧缺口/复核均为实时计算
-  seedTodos();
-  TodoStore.refreshExpiredStatus();
-  // 待答复汇报（书记 2026-08-10 裁定：答复类置顶待办）——预加载 issues 权威源
-  await IssueStore.loadAll();
-  const pendingReports = IssueStore.getSecretaryPendingReports();
-
-  // 动态聚合（实时计算）+ 种子行动类聚合
-  const computedAggs = SecretaryTodoDeriver.computeAggregates();
-  // R2-2（2026-09-06 书记批）：决议「待落实」逾期 → 书记待办提醒组
-  // （扫描决议 followups 子域，纯函数见 services/resolution-followup.js；逾期=deadline < today）
+/** 实时聚合组（不落库）：SecretaryTodoDeriver 8 组 + 决议逾期 + 成员变更确认 + 学期末滞留复核。
+ *  壳 mergeRealtimeDomains 按组 domain 并入对应业务域折组；实时组无「行尾直接动作」
+ *  （动作承载于详情内一键确认/去活动管理）→ hideActionBtn 只留点行进详情。
+ *  种子行动类（设党小组组长等）为持久化待办，由壳 getDomainsWithGroups 域内聚合，无需在此给出。 */
+function _buildRealtimeGroups() {
+  const computedAggs = SecretaryTodoDeriver.computeAggregates().map(g => ({ ...g, hideActionBtn: true }));
   const followupOverdueAgg = buildOverdueRemindGroupNow();
-  // C 批 附录⑩ S4：成员变更待确认组（listPendingConfirmations）+ 学期末滞留集中复核提醒组
   const mcConfirmAgg = _mcConfirmAgg();
   const semesterAgg = _semesterRemindAgg();
-  const seedAggs = TodoStore.getGroupedByAction('secretary');
-  _allAggregates = [
+  return [
     ...computedAggs,
-    ...(followupOverdueAgg ? [followupOverdueAgg] : []),
-    ...(mcConfirmAgg ? [mcConfirmAgg] : []),
-    ...(semesterAgg ? [semesterAgg] : []),
-    ...seedAggs,
+    ...(followupOverdueAgg ? [{ ...followupOverdueAgg, hideActionBtn: true }] : []),
+    ...(mcConfirmAgg ? [{ ...mcConfirmAgg, hideActionBtn: true }] : []),
+    ...(semesterAgg ? [{ ...semesterAgg, hideActionBtn: true }] : []),
   ];
+}
 
-  // 统计条（聚合卡总数；过期仅统计提醒类缺口）
-  const aggTotal = _allAggregates.reduce((s, g) => s + g.count, 0);
-  const today = new Date().toISOString().slice(0, 10);
-  let expiredCount = 0;
-  for (const g of computedAggs) {
-    if (g.kind !== 'remind') continue;
-    for (const it of g.items) {
-      if (it.deadline && it.deadline < today) expiredCount++;
-    }
-  }
-  const stats = { _total: aggTotal, _expired: expiredCount };
-
-  // 未选中时自动选中第一条（复核类优先展示）
-  let selectedTodo = _selectedTodoId ? _allAggregates.find(g => g.groupKey === _selectedTodoId) : null;
-  if (!selectedTodo && _allAggregates.length > 0) {
-    selectedTodo = _allAggregates[0];
-    _selectedTodoId = selectedTodo.groupKey;
-  }
-
-  const { html: todoListHtml, bindEvents } = renderTodoList({
-    prefix: 'secretary',
-    groupedAggregates: _allAggregates,
-    stats,
-    accent,
-    selectedTodoId: _selectedTodoId,
-    onSelectTodo: (todo) => {
-      _selectedTodoId = todo.groupKey || todo.id;
-      renderContent();
-    },
-    onActionTodo: (todo) => {
-      // 计算类聚合卡（提醒/复核）：「处理」→ 打开详情面板确认/查看清单
-      if (todo.groupKey && (todo.actionKey || '').endsWith('-confirm')) {
-        _selectedTodoId = todo.groupKey;
-        renderContent();
-        return;
-      }
-      if (todo.groupKey && (todo.actionKey || '').endsWith('-remind')) {
-        _selectedTodoId = todo.groupKey;
-        renderContent();
-        return;
-      }
-      handleTodoAction(todo);
-    },
-  });
-
-  const detailHtml = selectedTodo ? renderTodoDetail(selectedTodo) : `
-    <div class="text-center py-10 text-gray-400">
-      <p class="text-sm">当前暂无待办。有新的活动、通知或待审事项时，会第一时间出现在这里。</p>
-    </div>
-  `;
-
-  // 待答复收件箱（书记 2026-08-10 裁定：答复类置顶待办）——独立卡片置于待办列表上方
+/** 顶部自定义区：成员变更面板挂载点 + 待答复收件箱 + 专班待议（支委会）区 */
+function _extraTopHtml() {
   const inboxHtml = renderReportInboxHtml({
-    reports: pendingReports,
+    reports: _pendingReports,
     title: '待答复',
     role: 'secretary',
     accent,
     emptyMsg: '暂无待答复汇报',
   });
-
   // B批 3.2-2：「专班待议（支委会）」提醒区——数据源 listCommitteeRequests()（仅 pending、先报先议）
   // 每项显示类型徽标（发起/解散）、专班名、任务摘要、报送人、报送时间；
   // 已排入表决（findTaskforceVoteActivity 命中该报送后创建的支委会活动）→ 提供「查看表决结果并生效」。
@@ -146,41 +88,68 @@ export async function renderContent() {
           : tfReqs.map(r => _committeeTfRowHtml(r, arrangedActByTf.get(r.id))).join('')}
       </div>
     </div>`;
+  return `<div id="secretary-member-change-panel"></div>${inboxHtml}${committeeTfHtml}`;
+}
 
-  container.innerHTML = `
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <div class="lg:col-span-2">
-        <div class="space-y-4">
-          <div id="secretary-member-change-panel"></div>
-          ${inboxHtml}
-          ${committeeTfHtml}
-          <div class="card rounded-xl p-5">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
-            </div>
-            ${todoListHtml}
-          </div>
-        </div>
-      </div>
-      <div class="lg:col-span-1">
-        <div class="card rounded-xl p-5 lg:sticky lg:top-20">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">待办详情</h3>
-          ${detailHtml}
-        </div>
-      </div>
-    </div>
-  `;
-
-  bindEvents(container);
-  bindCommitteeTfEvents(container);
-  bindTodoDetailEvents();
-  bindReportInbox(container, { role: 'secretary', onAnswered: () => renderContent() });
-  // 成员变更确认面板（2026-09-01 书记点验链路 ④：组织委员审批后 → 书记确认 → 更新阶段）
-  await renderMemberChangePanel(container.querySelector('#secretary-member-change-panel'), {
-    mode: 'secretary-confirm',
-    accent,
-    onDone: () => renderContent(),
+/** 详情区自定义按钮（一键确认复核 / 成员确权逐项确认·退回 / 学期末「知道了」）；
+ *  remind·seed 详情共用 secretary-todo-detail-action 由壳默认绑定 handleTodoAction */
+function bindTodoDetailExtras(container, api) {
+  container.querySelector('.secretary-todo-detail-confirm')?.addEventListener('click', () => {
+    const group = api.selectedTodo;
+    if (group) confirmGroup(group, api);
   });
+  // C 批 附录⑩ S4：成员变更确权（确认生效 / 退回）+ 学期末提醒「知道了」
+  container.querySelectorAll('.mc-decide').forEach(btn => {
+    btn.addEventListener('click', () => _onMcDecide(btn, api));
+  });
+  container.querySelectorAll('.mc-semester-close').forEach(btn => {
+    btn.addEventListener('click', () => {
+      api.clearSelection();
+      api.renderContent();
+    });
+  });
+}
+
+const _tab = createTodoTab({
+  containerId: 'secretary-tab-content',
+  prefix: 'secretary',
+  role: 'secretary',
+  onAction: (todo, ctx) => handleTodoAction(todo, ctx),
+  // IA-C1 Task4：实时组（书记派生/决议逾期/成员变更等）并入对应域折组
+  buildRealtimeGroups: _buildRealtimeGroups,
+  // 自定义详情（confirm/remind/成员确权逐项面板；种子行动类走内置概要）
+  renderDetail: renderTodoDetail,
+  detailTitle: '待办详情',
+  // 书记台以实时组为主（销项走一键确认/业务联动），不提供组删除
+  onDeleteTodo: null,
+  onBeforeRender: async () => {
+    // 补种子数据（幂等，仅行动类：设党小组组长等）；书记侧缺口/复核均为实时计算
+    seedTodos();
+    TodoStore.refreshExpiredStatus();
+    // 待答复汇报（书记 2026-08-10 裁定：答复类置顶待办）——预加载 issues 权威源
+    await IssueStore.loadAll();
+    _pendingReports = IssueStore.getSecretaryPendingReports();
+  },
+  extraTopHtml: _extraTopHtml,
+  bindExtras: (container, ctx, api) => {
+    bindCommitteeTfEvents(container, api);
+    bindReportInbox(container, { role: 'secretary', onAnswered: () => api.renderContent() });
+    bindTodoDetailExtras(container, api);
+  },
+  onAfterRender: async (container, ctx, api) => {
+    // 成员变更确认面板（2026-09-01 书记点验链路 ④：组织委员审批后 → 书记确认 → 更新阶段）
+    await renderMemberChangePanel(container.querySelector('#secretary-member-change-panel'), {
+      mode: 'secretary-confirm',
+      accent,
+      onDone: () => api.renderContent(),
+    });
+  },
+});
+
+export function renderContent(ctx) {
+  const container = document.getElementById('secretary-tab-content');
+  if (container) container.dataset.currentTab = 'todo';
+  return _tab.renderContent(ctx);
 }
 
 // ── 详情卡：按聚合类型分发（confirm / remind / 种子行动类；C 批自定义组优先） ────
@@ -246,8 +215,25 @@ function renderRemindDetail(group) {
   `;
 }
 
-/** 种子行动类详情（如：设置党小组组长） */
+/** 种子行动类详情（如：设置党小组组长）；域折组模式下以聚合组对象进入 → 组概要 + 去处理 */
 function renderSeedDetail(todo) {
+  // 聚合组对象（同 actionKey 多条/实时聚合）：概要卡 + 处理入口
+  if (todo.groupKey) {
+    return `
+      <div class="space-y-3">
+        <div class="flex items-center gap-2">
+          <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${todo.count} 条待处理</span>
+        </div>
+        <p class="font-title-cn text-sm font-bold text-gray-800">${todo.title}</p>
+        ${todo.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.flow}</p>` : ''}
+        ${todo.deadline ? `<div class="text-xs text-gray-500">最早截止：${todo.deadline}</div>` : ''}
+        <div class="pt-3 border-t border-gray-100 flex gap-2">
+          <button class="secretary-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)}">去处理</button>
+        </div>
+      </div>
+    `;
+  }
+
   const statusLabel = {
     pending: '待处理',
     in_progress: '进行中',
@@ -419,15 +405,15 @@ function renderSemesterDetainedDetail(group) {
 }
 
 /** 确认/退回派发（approved 直接落；rejected 弹窗填原因） */
-async function _onMcDecide(btn) {
+async function _onMcDecide(btn, api) {
   const reqId = btn.dataset.mcId;
   const decision = btn.dataset.decision;
-  if (decision === 'rejected') { _askMcReject(reqId); return; }
+  if (decision === 'rejected') { _askMcReject(reqId, api); return; }
   const r = await decideConfirmation(reqId, { decision: 'approved', by: _secActorId(), note: '' });
   if (r.ok) showToast('success', _mcApprovedToast(r.request));
   else showToast('error', r.reason || '确认失败，请重试');
-  _selectedTodoId = null;
-  renderContent();
+  api.clearSelection();
+  api.renderContent();
 }
 
 /** approved 产品话术（按请求类型） */
@@ -441,7 +427,7 @@ function _mcApprovedToast(req) {
 }
 
 /** 退回弹窗（可填原因，透传 decideConfirmation rejectNote） */
-function _askMcReject(reqId) {
+function _askMcReject(reqId, api) {
   const pend = listPendingConfirmations().find(r => r.id === reqId);
   const name = pend ? (pend.name || pend.personId) : '';
   openModal({
@@ -463,8 +449,8 @@ function _askMcReject(reqId) {
         const r = await decideConfirmation(reqId, { decision: 'rejected', by: _secActorId(), note });
         if (r.ok) showToast('info', `已退回${name ? `「${name}」` : ''}的变更请求（未生效）`);
         else showToast('error', r.reason || '退回失败，请重试');
-        _selectedTodoId = null;
-        renderContent();
+        api.clearSelection();
+        api.renderContent();
       });
     },
   });
@@ -497,7 +483,7 @@ function _confirmItemLabel(actionKey, it) {
 }
 
 // ── 一键确认（复核类）：写 secretaryConfirmedAt 销项 ────────────
-function confirmGroup(group) {
+function confirmGroup(group, api) {
   const now = new Date().toISOString();
   const actionKey = group.actionKey;
   let n = 0;
@@ -532,12 +518,12 @@ function confirmGroup(group) {
   }
 
   showToast('success', `已复核 ${n} 条，${group.title}待办已清零`);
-  _selectedTodoId = null;
-  renderContent();
+  api.clearSelection();
+  api.renderContent();
 }
 
 // ── 行动跳转（种子行动类 / 提醒类跳活动管理） ──────────────────
-function handleTodoAction(todo) {
+function handleTodoAction(todo, ctx) {
   // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/todo-jump.js（2026-09-04）
   if (tryDirectJump(todo)) return;
   // B批 3.2-1：旧「专班发起书记单人审批」待办不再派生（专班发起已改支委会表决，R3-1）。
@@ -546,7 +532,7 @@ function handleTodoAction(todo) {
     const items = (todo.items && todo.items.length > 0) ? todo.items : (todo.id ? [todo] : []);
     showToast('info', '专班发起已改支委会表决：请到本页「专班待议（支委会）」区排入表决处理');
     items.forEach(it => { if (it && it.id) TodoStore.complete(it.id); });
-    renderContent();
+    renderContent(ctx);
     return;
   }
   // 提醒类聚合卡：「去活动管理」按钮直接切 calendar tab
@@ -605,31 +591,6 @@ function expandAssignPanelForTodo(todo) {
   }
 }
 
-function bindTodoDetailEvents() {
-  const container = document.getElementById('secretary-tab-content');
-  if (!container) return;
-  container.querySelector('.secretary-todo-detail-confirm')?.addEventListener('click', () => {
-    const group = _allAggregates.find(g => g.groupKey === _selectedTodoId);
-    if (group) confirmGroup(group);
-  });
-  container.querySelector('.secretary-todo-detail-action')?.addEventListener('click', () => {
-    const group = _allAggregates.find(g => g.groupKey === _selectedTodoId);
-    if (group) { handleTodoAction(group); return; }
-    const todo = TodoStore.getById(_selectedTodoId);
-    if (todo) handleTodoAction(todo);
-  });
-  // C 批 附录⑩ S4：成员变更确权（确认生效 / 退回）+ 学期末提醒「知道了」
-  container.querySelectorAll('.mc-decide').forEach(btn => {
-    btn.addEventListener('click', () => _onMcDecide(btn));
-  });
-  container.querySelectorAll('.mc-semester-close').forEach(btn => {
-    btn.addEventListener('click', () => {
-      _selectedTodoId = null;
-      renderContent();
-    });
-  });
-}
-
 // ════════════════════════════════════════════════════════════════
 //  B批 3.2-2/3/4：专班待议（支委会）区
 //  报送发起/解散（listCommitteeRequests）→ 书记「排入支委会表决」创建线上表决活动
@@ -664,28 +625,28 @@ function _committeeTfRowHtml(req, act) {
 }
 
 /** 事件绑定（列表每次重建后调用） */
-function bindCommitteeTfEvents(container) {
+function bindCommitteeTfEvents(container, api) {
   container.querySelectorAll('.tf-cr-arrange').forEach(btn => {
-    btn.addEventListener('click', () => _arrangeTfCommitteeVote(btn));
+    btn.addEventListener('click', () => _arrangeTfCommitteeVote(btn, api));
   });
   container.querySelectorAll('.tf-cr-result').forEach(btn => {
     btn.addEventListener('click', async () => {
       const req = TaskForceRecordStore.listCommitteeRequests().find(r => r.id === btn.dataset.tfId);
-      if (!req) { showToast('info', '该报送已处理或已失效，列表已刷新'); renderContent(); return; }
-      await _openTfDecisionModal(req, btn.dataset.activityId);
+      if (!req) { showToast('info', '该报送已处理或已失效，列表已刷新'); api.renderContent(); return; }
+      await _openTfDecisionModal(req, btn.dataset.activityId, api);
     });
   });
 }
 
 /** 3.2-3：为该报送创建一场「线上支委会」表决活动（title 形如「线上支委会：审议专班【名】（发起/解散）」） */
-async function _arrangeTfCommitteeVote(btn) {
+async function _arrangeTfCommitteeVote(btn, api) {
   const tfId = btn.dataset.tfId;
   const kind = btn.dataset.kind;
   const req = TaskForceRecordStore.listCommitteeRequests().find(r => r.id === tfId);
   try {
     const act = await createTaskforceVoteActivity({ taskforceId: tfId, kind, note: req ? req.note : '' });
     showToast('success', `已排入支委会表决：「${act.title}」，委员将收到通知`);
-    renderContent();
+    api.renderContent();
   } catch (e) {
     console.error('[todo] 排入表决失败：', e);
     showToast('error', `排入表决失败：${e.message || e}`);
@@ -693,7 +654,7 @@ async function _arrangeTfCommitteeVote(btn) {
 }
 
 /** 3.2-4：查看表决结果（fetchVotes→evaluateCommitteeVote 判定），弹确认框后按结论生效 */
-async function _openTfDecisionModal(req, activityId) {
+async function _openTfDecisionModal(req, activityId, api) {
   const roster = resolveVoterIds('committee');
   let votes;
   try {
@@ -748,14 +709,14 @@ async function _openTfDecisionModal(req, activityId) {
       decisionRef: activityId,
     });
     close();
-    if (!updated) { showToast('error', '生效失败：该报送已处理或已失效'); renderContent(); return; }
+    if (!updated) { showToast('error', '生效失败：该报送已处理或已失效'); api.renderContent(); return; }
     const base = `专班「${req.name || '未命名专班'}」`;
     if (req.kind === 'initiate') {
       showToast('success', decision === 'approved' ? `${base}发起表决通过，已转为招募中` : `${base}发起表决未通过，已退回草稿（可修改后重新报送）`);
     } else {
       showToast('success', decision === 'approved' ? `${base}解散表决通过，专班已解散` : `${base}解散表决未通过，专班继续运行`);
     }
-    renderContent();
+    api.renderContent();
   });
   overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
   card.addEventListener('click', e => e.stopPropagation());
