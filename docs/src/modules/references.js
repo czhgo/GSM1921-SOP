@@ -2,6 +2,7 @@
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
 import { icon } from '../core/icons.js?v=20260903c';
+import { getBasePath } from '../core/utils.js?v=20260903c';
 import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260903c';
 import { AuthStore } from '../services/auth.js?v=20260903c';
 import { loadActivities } from '../services/activity.js?v=20260903c';
@@ -315,12 +316,16 @@ export class ReferencesModule {
 
     ReferencesModule._ensureBranchFilterToolbar();
 
-    // 保持匿名可访：支部文件需登录后可见（书记 2026-08-18 裁决）
+    // 保持匿名可访：支部文件需登录后可见（书记 2026-08-18 裁决）；
+    // 匿名提示附「去登录」入口（书记 2026-09-07 U1 批准；静态文案位在 search.html，此处 JS 补链）
     if (!ReferencesModule._currentUser) {
       list.innerHTML = '';
       ReferencesModule._setBranchFilterVisible(false);
       if (empty) empty.classList.add('hidden');
-      if (loginHint) loginHint.classList.remove('hidden');
+      if (loginHint) {
+        loginHint.innerHTML = `登录后查看支部文件 <a href="${getBasePath()}login.html" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90" style="background:#C8102E;text-decoration:none;">去登录</a>`;
+        loginHint.classList.remove('hidden');
+      }
       if (addBtn) addBtn.classList.add('hidden');
       return;
     }

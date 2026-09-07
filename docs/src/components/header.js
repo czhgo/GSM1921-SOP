@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // components/header.js — 共享顶栏组件（重构版）
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 书记裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
@@ -78,6 +78,12 @@ function _roleLabelHTML(role) {
   `;
 }
 
+// 未登录「登录」入口（书记 2026-09-07 U1 批准）：与身份徽章同位（铃铛左侧），
+// 复用既有 .header-action-btn（styles.css 内 header 动作按钮风格：白透底/细边/浅字 + hover 提亮）
+function _loginEntryHTML() {
+  return `<a href="${getBasePath()}login.html" id="header-login-btn" class="header-action-btn" style="display:inline-flex;align-items:center;text-decoration:none;">登录</a>`;
+}
+
 function _notificationBellHTML() {
   // 角标由 _renderNotificationBadge() 在数据层加载后异步补充
   // （静态壳页不加载数据链 → 无角标；app 页渲染后即时补上，无感知延迟）
@@ -126,7 +132,7 @@ export async function renderHeader(activeModule, opts = {}) {
         <h1 class="font-title-cn">${headerTitle}</h1>
       </div>
       <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
-        ${_roleLabelHTML(role)}
+        ${role ? _roleLabelHTML(role) : _loginEntryHTML()}
         ${_notificationBellHTML()}
       </div>
     </div>

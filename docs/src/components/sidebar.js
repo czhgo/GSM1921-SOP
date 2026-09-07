@@ -122,12 +122,17 @@ export async function renderSidebar(activeModule, opts = {}) {
   const effAccentHex = ACCENT_PALETTE.find(c => c.key === effAccentKey)?.hex || ACCENT_COLORS[effAccentKey]?.hex || '#B91C1C';
   const effAccentLabel = ACCENT_PALETTE.find(c => c.key === effAccentKey)?.label || '红';
 
-  // 访客壳（静态页/未登录）不显示退出登录按钮
-  const logoutHTML = user ? `
+  // 登录态对偶入口（书记 2026-09-07 U1 批准）：已登录=「退出登录」；访客/未登录=「登录」→ login.html
+  // （同位同样式同 hover；图标为 logout 镜像 → 「进入」感，不新增图标字典项）
+  const authEntryHTML = user ? `
       <button id="sidebar-logout" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-400);cursor:pointer;border:none;background:none;">
         ${icon('logout', { stroke: 'var(--neutral-400)' })}
         <span>退出登录</span>
-      </button>` : '';
+      </button>` : `
+      <a href="${getBasePath()}login.html" id="sidebar-login" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-400);cursor:pointer;border:none;background:none;text-decoration:none;">
+        <span style="display:inline-block;transform:scaleX(-1);">${icon('logout', { stroke: 'var(--neutral-400)' })}</span>
+        <span>登录</span>
+      </a>`;
 
   sidebar.innerHTML = `
     <nav class="sidebar-nav">
@@ -147,7 +152,7 @@ export async function renderSidebar(activeModule, opts = {}) {
         <button id="theme-dark" class="theme-btn ${_currentTheme() === 'dark' ? 'active' : ''}" title="深色模式">${icon('moon', { className: 'w-3 h-3' })}</button>
         <button id="sidebar-accent-swatch" class="accent-swatch ml-auto" style="background:${effAccentHex}" data-label="主题：${effAccentLabel}" title="主题：${effAccentLabel}（点击更换）"></button>
       </div>
-      ${logoutHTML}
+      ${authEntryHTML}
     </div>
   `;
 

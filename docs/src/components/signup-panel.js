@@ -6,7 +6,7 @@
 // ════════════════════════════════════════════════════════════════
 import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260903c';
 import { getPersonById } from '../services/person.js?v=20260903c';
-import { showToast } from '../core/utils.js?v=20260903c';
+import { getBasePath, showToast } from '../core/utils.js?v=20260903c';
 import { badgeHtml } from './badges.js?v=20260903c';
 
 /** 角色标签（报名/专班/活动 assignments 共用） */
@@ -43,7 +43,12 @@ export function renderSignupSection({ sourceType, sourceId, title, signups, myId
 
   let body;
   if (!myId) {
-    body = '<p class="text-sm text-gray-400">请登录后报名参与。</p>';
+    // 未登录：提示附「去登录」入口（书记 2026-09-07 U1 批准，样式同 wizard-entry 去登录小按钮）
+    body = `
+      <div class="flex items-center gap-2 flex-wrap">
+        <p class="text-sm text-gray-400">请登录后报名参与。</p>
+        <a href="${getBasePath()}login.html" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90" style="background:#C8102E;text-decoration:none;">去登录</a>
+      </div>`;
   } else if (!mySignup) {
     body = `
       <div class="flex items-start gap-3 flex-wrap">
