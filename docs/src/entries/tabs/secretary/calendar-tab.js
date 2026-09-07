@@ -527,7 +527,7 @@ function renderFormStep() {
   html += `<div class="mb-4 px-3 py-2 rounded-lg" style="background:${tpl.bg};border:1px solid ${tpl.border};">`;
   html += `<p class="text-xs font-medium" style="color:${tpl.color};">已选模板：${tpl.categoryLabel}${sub ? ' · ' + sub.label : ''}</p>`;
   if (scenarioTitle) {
-    html += `<p class="text-[12px] text-gray-500 mt-0.5">SOP 场景：${scenarioTitle}（写入后自动生成任务节点）</p>`;
+    html += `<p class="text-[12px] text-gray-500 mt-0.5">场景：${scenarioTitle}（写入后自动生成后续待办）</p>`;
   }
   html += `</div>`;
 
@@ -747,7 +747,7 @@ function renderVoteConfigSection(scenarioId) {
     html += `</label>`;
     html += `</div>`;
     html += `<p class="text-xs text-gray-400 mt-2">表决选项：赞成 / 反对 / 弃权 + 可附言</p>`;
-    html += `<p class="text-xs text-gray-400 mt-1">人数按现时「在校/滞留」状态自动剔除滞留成员（支部大会应到口径）；创建时固化快照</p>`;
+    html += `<p class="text-xs text-gray-400 mt-1">人数按现时「在校/滞留」状态自动剔除滞留成员，创建时锁定名单</p>`;
   }
   html += `</div>`;
   html += `</div>`;
@@ -1094,7 +1094,7 @@ async function handleSubmitActivity() {
     if (voteConfig) activityData.voteConfig = voteConfig;
     // 2026-09-06 点验修复③：取 create 返回值拿刚创建的活动 id（预拟通知绑定 targetType/targetId）
     const { activity, taskCount } = await writeActivityWithSOP(activityData, scenarioId, date);
-    showToast('success', `活动写入成功，已生成 ${taskCount} 个任务节点`);
+    showToast('success', `活动写入成功，已生成 ${taskCount} 项后续待办`);
 
     // 4. 渲染工作流可视化面板
     const definitionId = wp.mapToDefinitionId();

@@ -285,7 +285,7 @@ function _mcConfirmAgg() {
     domain: REALTIME_GROUP_DOMAIN['member-confirm'],
     title: '成员变更待确认',
     category: TodoCategory.REVIEW,
-    flow: '组织委员发起（发展阶段 / 在册状态 / 移出）→ 书记确认生效或退回（双层留痕）',
+    flow: '组织委员发起（发展阶段 / 在册状态 / 移出）→ 书记确认生效或退回',
     kind: 'confirm',
     count: items.length,
     items,
@@ -323,7 +323,7 @@ function renderMemberConfirmDetail(group) {
         <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${group.count} 条待确认</span>
       </div>
       <p class="font-title-cn text-sm font-bold text-gray-800">成员变更待确认</p>
-      <p class="text-xs text-gray-600 leading-relaxed">组织委员发起的变更须书记确认后生效（或退回，双层留痕）。移出项将自动解除未开始引用，历史记录转「已转出」标注并保留（不删不匿名）。</p>
+      <p class="text-xs text-gray-600 leading-relaxed">组织委员发起的变更须书记确认后生效（或退回）。移出项将自动解除未开始引用，历史记录转「已转出」标注并保留（不删不匿名）。</p>
       <div class="space-y-2 max-h-[26rem] overflow-y-auto">${rows || '<div class="text-xs text-gray-400">暂无待确认请求</div>'}</div>
     </div>
   `;

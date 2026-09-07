@@ -59,16 +59,14 @@ function _residenceSectionHtml(person) {
       </div>`).join('');
   return `
     <div class="mt-3">
-      <div class="flex items-center justify-between mb-2">
+      <div class="mb-2">
         <h5 class="font-title-cn text-xs font-bold text-gray-600">成员状态（在校 / 滞留）</h5>
-        <span class="text-[10px] text-gray-400">查看只读 · 变更经书记确认后留痕</span>
       </div>
       <div class="p-2.5 rounded-lg bg-white border border-gray-50">
         <div class="flex items-center gap-2 flex-wrap mb-2">
           <span class="text-xs text-gray-500">当前</span>${statusBadge}
           ${rs.residenceNote ? `<span class="text-xs text-gray-500 min-w-0 flex-1">${esc(rs.residenceNote)}</span>` : ''}
         </div>
-        <div class="text-[10px] text-gray-400 mb-1">变更留痕（报送书记确认生效后自动记录 updatedBy / updatedAt / from → to）</div>
         <div class="space-y-0.5">${historyHtml}</div>
         <div class="mt-2 pt-2 border-t border-gray-100 text-[11px] text-amber-700">阶段 / 在册 / 滞留变更请到「成员名册」报送书记确认后生效（人才库仅查看）。</div>
       </div>

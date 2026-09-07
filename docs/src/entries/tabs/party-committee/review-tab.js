@@ -76,14 +76,14 @@ export function renderContent() {
     card.querySelector('[data-rq-act="approve"]')?.addEventListener('click', async () => {
       const note = card.querySelector('.rq-decision')?.value.trim() || '';
       await decideReviewRequest({ id, decision: 'approved', decidedBy: me.personId, decisionNote: note });
-      showToast('已批准该上报（结论已回传支部）');
+      showToast('已批准该上报（批复已送达支部）');
       renderContent();
     });
     card.querySelector('[data-rq-act="reject"]')?.addEventListener('click', async () => {
       const note = card.querySelector('.rq-decision')?.value.trim();
       if (!note) { showToast('驳回请填写意见，便于支部知悉整改方向'); return; }
       await decideReviewRequest({ id, decision: 'rejected', decidedBy: me.personId, decisionNote: note });
-      showToast('已驳回该上报（含意见，已回传支部）');
+      showToast('已驳回该上报（意见已反馈支部）');
       renderContent();
     });
   });

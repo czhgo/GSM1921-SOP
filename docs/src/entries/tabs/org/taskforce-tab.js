@@ -536,7 +536,7 @@ export function renderContent(ctx) {
               <div id="tf-deep-picker"></div>
             </div>
           </div>
-          <p class="text-[12px] text-gray-400 mt-2">提示：此处修改将同步写入专班主源数据，被赋权人将收到通知。</p>
+          <p class="text-[12px] text-gray-400 mt-2">提示：修改将同步到专班，被赋权人将收到通知。</p>
         </div>
 
         ${workSummaryHtml}

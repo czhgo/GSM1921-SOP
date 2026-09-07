@@ -180,7 +180,7 @@ export function renderContent(ctx) {
               <div id="detail-deep-picker"></div>
             </div>
           </div>
-          <p class="text-[12px] text-gray-400 mt-2">提示：此处修改将同步写入活动主源数据，被赋权人将收到通知。</p>
+          <p class="text-[12px] text-gray-400 mt-2">提示：修改将同步到活动，被赋权人将收到通知。</p>
         </div>
 
         <div class="mt-3 pt-3 border-t border-gray-100">
@@ -544,7 +544,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
 
       <!-- SOP 预览 -->
       <div class="mb-4 p-3 rounded-lg bg-white">
-        <div class="text-xs font-bold text-gray-600 mb-2">SOP 任务节点预览</div>
+        <div class="text-xs font-bold text-gray-600 mb-2">后续待办预览</div>
         <div id="dt-sop-preview" class="space-y-1 text-xs text-gray-500">
           ${_renderSopPreview()}
         </div>
@@ -709,7 +709,7 @@ function _bindDecisionTreeEvents(container, ctx) {
 
       showToast('success', `活动「${title}」创建成功`);
       if (taskCount > 0) {
-        showToast('success', `已生成 ${taskCount} 个SOP任务节点`);
+        showToast('success', `已生成 ${taskCount} 项后续待办`);
       }
 
       // 4. 渲染工作流可视化面板

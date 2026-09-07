@@ -87,7 +87,7 @@ export function resolutionFollowupSectionHtml({ activity, canManage = false }) {
   if (passedItems.length === 0) return '';
   return `
     <div class="mt-3 pt-3 border-t border-gray-100">
-      <p class="text-[10px] text-gray-400 mb-1">决议待落实 · 自动督办闭环（生成跟进任务 → 到期催办 → 逾期进书记待办）</p>
+      <p class="text-[10px] text-gray-400 mb-1">决议待落实 · 自动督办（生成跟进任务 → 到期催办 → 逾期进书记待办）</p>
       ${passedItems.map((item) => _cardHtml(activity, item, { canManage })).join('')}
     </div>`;
 }

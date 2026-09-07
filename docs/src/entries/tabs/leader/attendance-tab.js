@@ -302,8 +302,7 @@ function _renderAttRosterHint(activity, rosterCtx, myGroup) {
       <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 align-middle"
         title="${esc(p.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">${esc(p.name)} · 滞留</span>`).join(' ');
   hintEl.innerHTML = `
-    <span>本组（${esc(myGroup)}）应到 <b class="text-gray-600">${stats.expected}</b> 人（组内党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}）。滞留者已在候选中<b class="text-amber-700">标灰禁选</b>（悬浮查看备注）：${chips}</span>
-    <span class="block mt-0.5 text-gray-300">应到口径 = 组内党员（正式党员/预备党员）且非滞留 · 由组织委员在成员档案维护「在校/滞留」并留痕，书记可复核</span>`;
+    <span>本组（${esc(myGroup)}）应到 <b class="text-gray-600">${stats.expected}</b> 人（组内党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}）。滞留者已在候选中<b class="text-amber-700">标灰禁选</b>（悬浮查看备注）：${chips}</span>`;
 }
 
 function _renderAttStatusRows(selectedIds) {

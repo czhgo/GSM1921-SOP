@@ -20,7 +20,6 @@ export function renderContent() {
         <div class="rounded-xl border border-gray-200 bg-white p-4">
           <p class="text-xs text-gray-400">党委侧 · 换组织向导（吸收合并原「支部配置」；部署期/调整期使用，不在支部日常台出现）</p>
           <p class="font-title-cn text-base font-bold text-gray-800 mt-0.5">换组织向导 · 支部配置</p>
-          <p class="text-xs text-gray-400 mt-0.5">选择支部 → 5 步引导：组织信息 / 模块·块组合 / 角色分工 / 术语制度指引+工作单 / 验证与重置；改动即时生效并留痕</p>
         </div>
         <div id="pc-wizard-host"></div>
       </div>`;

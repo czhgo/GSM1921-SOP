@@ -496,8 +496,7 @@ function _renderDiscMeetRosterHint() {
         title="${esc(p.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">${esc(p.name)} · 滞留</span>`).join(' ');
   hintEl.innerHTML = `
     <span>应到口径：预应到 <b class="text-gray-600">K=${K}</b>（在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}；党课列席不计应到）→ 滞留到场补录 <b class="text-amber-700">L=${L}</b> → 实际应到 <b class="text-gray-800">K+L=${K + L}</b>（补录者计「到席」，档案按在场展示）</span>
-    <span class="block mt-1">滞留者默认不计应到（候选内灰态可见原因，title 悬浮查看备注）：${detainedHtml}——线下到场由纪检在下方「滞留党员到场补录」单独勾选，不随「全选应到名单」</span>
-    <span class="block mt-0.5 text-gray-300">应到口径 = 党员（正式党员/预备党员）且非滞留 · 由组织委员在成员档案维护「在校/滞留」并留痕，书记可复核</span>`;
+    <span class="block mt-1">滞留者默认不计应到（候选内灰态可见原因，title 悬浮查看备注）：${detainedHtml}——线下到场由纪检在下方「滞留党员到场补录」单独勾选，不随「全选应到名单」</span>`;
 }
 
 /** 滞留党员到场补录区（纪检单独勾选；勾选计入到席 L 并徽标「滞留·到场」，仍附原因 title） */
