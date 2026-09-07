@@ -23,7 +23,7 @@ await createWorkspaceShell({
   containerId: 'visitor-content',
   prefix: 'visitor',
   storageKey: 'workflowos_tab_visitor',
-  defaultTab: 'todo',
+  defaultTab: 'today',
   // 角色特有渲染上下文：活动 + 全部专班 + 授权记录 + 双高亮目标
   renderCtxExtras: (state, ctx) => ({
     activities: state.activities || [],

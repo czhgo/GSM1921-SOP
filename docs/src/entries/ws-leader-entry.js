@@ -20,7 +20,7 @@ await createWorkspaceShell({
   containerId: 'leader-content',
   prefix: 'leader',
   storageKey: 'workflowos_tab_leader',
-  defaultTab: 'todo',
+  defaultTab: 'today',
   // 角色特有渲染上下文：按组长视角过滤活动
   renderCtxExtras: (state, ctx) => ({ filteredActivities: filterByRole(state, 'leader').activities || [] }),
   // 一键汇报入口（书记 2026-08-10 裁定：复用 Issue 体系）

@@ -22,7 +22,7 @@ await createWorkspaceShell({
   containerId: 'org-content',
   prefix: 'org',
   storageKey: 'workflowos_tab_org',
-  defaultTab: 'todo',
+  defaultTab: 'today',
   // 角色特有渲染上下文：专班各状态栏分组排序（T223 新者在前）
   renderCtxExtras: (state, ctx) => {
     const taskforces = TaskForceRecordStore.getAll();

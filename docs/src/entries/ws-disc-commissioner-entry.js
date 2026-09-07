@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // ws-disc-commissioner-entry.js — 纪检委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
@@ -17,7 +17,7 @@ await createWorkspaceShell({
   containerId: 'disc-content',
   prefix: 'disc',
   storageKey: 'workflowos_tab_disc',
-  defaultTab: 'todo',
+  defaultTab: 'today',
   renderCtxExtras: (state) => ({ activities: state.activities || [] }),
   // 一键汇报入口（书记 2026-08-10 裁定：复用 Issue 体系）
   extraRightHtml: ({ accent, accentRgba }) => renderReportEntryHtml({ accent, accentRgba }),

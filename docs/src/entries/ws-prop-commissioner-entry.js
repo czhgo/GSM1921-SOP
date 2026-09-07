@@ -18,7 +18,7 @@ await createWorkspaceShell({
   containerId: 'prop-content',
   prefix: 'prop',
   storageKey: 'workflowos_tab_prop',
-  defaultTab: 'todo',
+  defaultTab: 'today',
   // 角色特有渲染上下文：宣传相关专班（名称含"宣传"或发起人为宣传委员）
   renderCtxExtras: (state) => {
     const taskforces = TaskForceRecordStore.getAll();

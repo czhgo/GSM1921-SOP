@@ -19,7 +19,7 @@ await createWorkspaceShell({
   containerId: 'secretary-content',
   prefix: 'secretary',
   storageKey: 'workflowos_tab_secretary',
-  defaultTab: 'todo',
+  defaultTab: 'today',
   // 角色特有渲染上下文：全局 appState（书记各 tab 依赖）
   renderCtxExtras: (state, ctx) => ({ appState: getAppState(), activities: state.activities || [] }),
   // 空表回退映射省略：与 workspace-shell 缺省逐字一致（收敛 2026-09-02，删除内联副本）

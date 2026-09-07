@@ -6,6 +6,7 @@
 
 import { registerCapability } from '../../core/registry.js?v=20260903c';
 import { rolesForPage } from '../../core/constants.js?v=20260903c';
+import { AuthStore } from '../../services/auth.js?v=20260903c';
 
 // 9 个 tab 清单：render 为懒加载动态 import（相对本模块解析到 entries/tabs/leader/）
 // tab 私有状态随模块自持；共享只读配置（accent/filteredActivities/导航目标）经 ctx 传入。
@@ -16,6 +17,21 @@ registerCapability({
   scope: ['workspace:leader'],
   requiredRoles: rolesForPage('leader.html'), // T-2026-09-011 R2：由 constants ROLE_PAGE_MAP 派生
   tabs: () => [
+    // R6-3「今天」置首 + 登录落点（2026-09-07 方案 B）：共享渲染只读速览，数据同源派生；
+    // 到期/逾期行 → onNav('todo')（todo tab 六台同 id）；会议/分工行在 today-tab 内直跳 activity.html；
+    // 会议「全部」→ onNav('activities')，下方映射到本台活动承载 tab（组长台=活动管理 write）
+    { id: 'today', label: '今天', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/today/today-tab.js?v=20260906g').then(m => {
+      const el = document.getElementById('leader-tab-content');
+      if (el) m.renderTodayTab(el, {
+        personId: ctx?.personId || AuthStore.getCurrentUser()?.personId,
+        role: 'leader', // 待办键对齐本台待办 tab
+        onNav: (tabId) => {
+          const target = tabId === 'activities' ? 'write' : tabId;
+          const btn = document.querySelector(`.leader-tab-btn[data-leader-tab="${target}"]`);
+          if (btn) btn.click();
+        },
+      });
+    }) },
     // 有待办必见待办（书记 2026-08-10 裁定）：priorityTab 由入口计算，经 renderTabBar 传入
     { id: 'todo', label: '待办', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/leader/todo-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     { id: 'overview', label: '工作概况', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/leader/overview-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
