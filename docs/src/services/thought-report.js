@@ -45,6 +45,7 @@ function _effective(r) {
     reviewStatus: _REVIEW_STATUS_SET.has(r && r.reviewStatus)
       ? r.reviewStatus
       : THOUGHT_REVIEW_STATUS.ARCHIVED,
+    reviewHistory: Array.isArray(r && r.reviewHistory) ? r.reviewHistory : [],
   };
 }
 
