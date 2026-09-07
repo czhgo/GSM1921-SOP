@@ -5,7 +5,7 @@
 // 本人可查看自己的历史提交（状态徽标 + 退回意见）；组织委员在「发展数据」tab 初阅调用。
 
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { addThoughtReport, listThoughtReportsByPerson, resubmitThoughtReport } from '../../../services/thought-report.js?v=20260903c';
+import { addThoughtReport, listThoughtReportsByPerson, resubmitThoughtReport } from '../../../services/thought-report.js?v=20260906h';
 import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260903c';
 
 // ── R6-2 初阅状态徽标（与 org 侧 thought-review-tab 同体系：琥珀待初阅 / 绿已归档 / 红已退回）──

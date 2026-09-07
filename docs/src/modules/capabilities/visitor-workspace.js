@@ -20,7 +20,7 @@ registerCapability({
     // R6-3「今天」置首 + 登录落点（2026-09-07 方案 B）：共享渲染只读速览，数据同源派生；
     // 到期/逾期行 → onNav('todo')（todo tab 六台同 id）；会议/分工行在 today-tab 内直跳 activity.html；
     // 会议「全部」→ onNav('activities')，下方映射到本台活动承载 tab（成员台=活动动态 activities，语义 id 即本台 id）
-    { id: 'today', label: '今天', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/today/today-tab.js?v=20260906g').then(m => {
+    { id: 'today', label: '今天', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/today/today-tab.js?v=20260906h').then(m => {
       const el = document.getElementById('visitor-tab-content');
       if (el) m.renderTodayTab(el, {
         personId: ctx?.personId || AuthStore.getCurrentUser()?.personId,
@@ -40,7 +40,7 @@ registerCapability({
     { id: 'attendance', label: '考勤概况', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/attendance-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     { id: 'inspection', label: '我的考察', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/inspection-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
     // 2026-08-30 思想汇报数字化：参与者系统内提交，算法自动归档
-    { id: 'thought-report', label: '思想汇报', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/thought-report-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
+    { id: 'thought-report', label: '思想汇报', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/thought-report-tab.js?v=20260906h').then(m => m.renderContent(ctx)) },
     // T-304 C1 组织者承载面：复盘提交归组织者（组织者/深度参与者在自己工作台提交）
     { id: 'review', label: '我的复盘', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/visitor/review-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
   ],

@@ -3,7 +3,7 @@
 // 从入党积极分子到正式党员的完整发展路径数据（管线概览 + 阶段筛选 + 推进）。
 
 import { loadInspectionRecords } from '../../../services/inspection.js?v=20260903c';
-import { loadThoughtReports, listThoughtReportsByPerson } from '../../../services/thought-report.js?v=20260903c';
+import { loadThoughtReports, listThoughtReportsByPerson } from '../../../services/thought-report.js?v=20260906h';
 import { PersonStore } from '../../../services/person.js?v=20260903c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();

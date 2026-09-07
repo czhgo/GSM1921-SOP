@@ -2,14 +2,14 @@
 // ws-prop-commissioner-entry.js — 宣传委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260903c';
+import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260906h';
 import { renderReportEntryHtml, bindReportEntry } from '../components/reporting.js?v=20260903c';
 import { flashHighlight } from '../core/utils.js?v=20260903c';
 import { loadActivities } from '../services/activity.js?v=20260903c';
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260903c';
 import { seedTodos } from '../services/todo.js?v=20260903c';
 // 副作用导入触发宣传委员工作台能力注册（tab 清单）
-import '../modules/capabilities/prop-workspace.js?v=20260812d';
+import '../modules/capabilities/prop-workspace.js?v=20260906h';
 
 await createWorkspaceShell({
   accentRole: 'prop-commissioner',
