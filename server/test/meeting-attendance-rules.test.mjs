@@ -21,7 +21,7 @@ import {
   absenceReasonLabel,
   countExpectedWithMakeup,
   listGroupMeetingAttendance,
-} from '../../docs/src/services/attendance.js?v=20260903c';
+} from '../../docs/src/services/attendance.js?v=20260907b';
 import {
   getRosterStats,
   getMeetingRosterIds,

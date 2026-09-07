@@ -7,7 +7,7 @@
 
 import { mockDB } from '../../../core/domain.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { getPersonName } from '../../../services/person.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260907b';
 import { getBranchById } from '../../../services/branch.js?v=20260903c';
 import { decideReviewRequest, listReviewRequests } from '../../../services/review-request.js?v=20260903c';
 import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260903c';

@@ -26,7 +26,7 @@ import {
   WORK_DOMAIN, WORK_DOMAIN_LABELS, DOMAIN_ORDER,
   TodoStore, TodoCategory, TodoStatus,
   realtimeGroupDomainOf,
-} from '../../docs/src/services/todo.js?v=20260903c';
+} from '../../docs/src/services/todo.js?v=20260907b';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();

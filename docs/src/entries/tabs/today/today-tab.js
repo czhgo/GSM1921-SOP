@@ -13,12 +13,12 @@
 // ════════════════════════════════════════════════════════════════
 
 import { escHtml as esc, _fmtDate } from '../../../core/utils.js?v=20260903c';
-import { buildTodaySummary } from '../../../services/today-summary.js?v=20260906j';
+import { buildTodaySummary } from '../../../services/today-summary.js?v=20260907b';
 import { mockDB } from '../../../core/domain.js?v=20260903c';
-import { tokenOf } from '../../../core/version-token.js?v=20260903c'; // P0 域写版本戳（spec §二.4）
+import { tokenOf } from '../../../core/version-token.js?v=20260907b'; // P0 域写版本戳（spec §二.4）
 import { RESIDENCE_KEY } from '../../../services/roster.js?v=20260903c'; // 滞留覆盖 raw 源（roster 禁改不内改）
 import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260903c'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/memoize-render.js?v=20260903c'; // P2 渲染守卫（spec §四.1）
+import { memoizeRender } from '../../../components/memoize-render.js?v=20260907b'; // P2 渲染守卫（spec §四.1）
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent, #B91C1C)';

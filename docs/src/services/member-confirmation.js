@@ -20,8 +20,8 @@
 
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
-import { bumpToken } from '../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3）
-import { PersonStore, findRemovedRecord } from './person.js?v=20260903c';
+import { bumpToken } from '../core/version-token.js?v=20260907b'; // P0 域缓存失效（spec §二.3）
+import { PersonStore, findRemovedRecord } from './person.js?v=20260907b';
 import { RESIDENCE, getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260903c';
 // 发展阶段枚举单一源（静态种子派生，禁造新枚举）
 import { DEVELOP_STAGE_OPTIONS } from './org-base-data-preview.js?v=20260903c';

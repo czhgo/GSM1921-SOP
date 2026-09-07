@@ -7,10 +7,10 @@
 
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
-import { bumpToken } from '../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3）
+import { bumpToken } from '../core/version-token.js?v=20260907b'; // P0 域缓存失效（spec §二.3）
 import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../mock/index.js?v=20260903c';
 import { ACTIVITIES } from '../mock/activities.js?v=20260903c';
-import { getPersonName } from './person.js?v=20260903c';
+import { getPersonName } from './person.js?v=20260907b';
 import { loadActivities } from './activity.js?v=20260903c';
 
 /** 读取活动复盘记录（mock 常量兜底，写入后以 mockDB 为准） */

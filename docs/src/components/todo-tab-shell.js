@@ -14,14 +14,14 @@
 // 视觉沿用 card/rounded/折叠既有体系（域折组渲染在 components/todo-list.js renderDomainTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore } from '../services/todo.js?v=20260906j';
-import { renderDomainTodoList } from './todo-list.js?v=20260906j';
+import { TodoStore } from '../services/todo.js?v=20260907b';
+import { renderDomainTodoList } from './todo-list.js?v=20260907b';
 import { badgeHtml } from './badges.js?v=20260903c';
 import { showToast } from '../core/utils.js?v=20260903c';
 import { solidAccentStyle } from '../core/constants.js?v=20260903c';
 import { mockDB } from '../core/domain.js?v=20260903c';
-import { tokenOf } from '../core/version-token.js?v=20260903c'; // P0 域写版本戳（spec §二.4）
-import { memoizeRender } from './memoize-render.js?v=20260903c'; // P2 渲染守卫（spec §四.1）
+import { tokenOf } from '../core/version-token.js?v=20260907b'; // P0 域写版本戳（spec §二.4）
+import { memoizeRender } from './memoize-render.js?v=20260907b'; // P2 渲染守卫（spec §四.1）
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以

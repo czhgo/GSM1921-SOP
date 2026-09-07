@@ -5,13 +5,13 @@
 
 import { setState } from '../../../core/state.js?v=20260903c';
 import { BranchService } from '../../../services/runtime.js?v=20260903c';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903c';
-import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260906j';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260907b';
+import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260907b';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260903c';
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260903c'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260906j';
-import { NoticeStore } from '../../../services/notice.js?v=20260903c';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260907b';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260907b'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260907b';
+import { NoticeStore } from '../../../services/notice.js?v=20260907b';
 import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260903c'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
 import { persist } from '../../../core/data-adapter.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
@@ -21,7 +21,7 @@ import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
 import { recordFormShell } from '../../../components/forms.js?v=20260903c';
 import { renderQueryView } from '../../../components/query-view.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
-import { getPersonName } from '../../../services/person.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260907b';
 
 // 私有状态（随模块自持，不污染入口）
 let _recruitPersonPicker = null;

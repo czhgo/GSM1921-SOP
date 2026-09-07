@@ -7,16 +7,16 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260903c';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260907b';
 import { loadActivities } from './activity.js?v=20260903c';
-import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260903c';
-import { TaskForceRecordStore } from './taskforce.js?v=20260903c';
-import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260903c';
-import { NoticeStore } from './notice.js?v=20260903c';
-import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20260906j';
-import { tokenOf } from '../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3/§二.4）
+import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260907b';
+import { TaskForceRecordStore } from './taskforce.js?v=20260907b';
+import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260907b';
+import { NoticeStore } from './notice.js?v=20260907b';
+import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20260907b';
+import { tokenOf } from '../core/version-token.js?v=20260907b'; // P0 域缓存失效（spec §二.3/§二.4）
 import { PEOPLE } from '../mock/index.js?v=20260903c';
-import { getPersonById } from './person.js?v=20260903c';
+import { getPersonById } from './person.js?v=20260907b';
 import { ROLE_LABELS } from '../core/constants.js?v=20260903c';
 import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260903c';
 

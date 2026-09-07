@@ -6,11 +6,11 @@
 import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS } from '../core/domain.js?v=20260903c';
 import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
-import { bumpToken } from '../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3）
+import { bumpToken } from '../core/version-token.js?v=20260907b'; // P0 域缓存失效（spec §二.3）
 import { INSPECTION_RECORDS } from '../mock/index.js?v=20260903c';
 import { ACTIVITIES } from '../mock/activities.js?v=20260903c';
-import { getPersonById, getPersonName } from './person.js?v=20260903c';
-import { TodoStore, TodoSourceType } from './todo.js?v=20260903c';
+import { getPersonById, getPersonName } from './person.js?v=20260907b';
+import { TodoStore, TodoSourceType } from './todo.js?v=20260907b';
 import { loadActivities } from './activity.js?v=20260903c';
 
 export function loadInspectionRecords() {

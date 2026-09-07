@@ -19,8 +19,8 @@
 
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from './roster.js?v=20260903c';
-import { TodoStore } from './todo.js?v=20260906j';
-import { tokenOf } from '../core/version-token.js?v=20260903c'; // P1 消费方会话缓存失效（spec §三.4）
+import { TodoStore } from './todo.js?v=20260907b';
+import { tokenOf } from '../core/version-token.js?v=20260907b'; // P1 消费方会话缓存失效（spec §三.4）
 // 成员基础数据预览键（仅作 raw 源指纹；person.js 读链叠加预览，见 org-base-data-preview）
 import { PREVIEW_KEY } from './org-base-data-preview.js?v=20260903c';
 

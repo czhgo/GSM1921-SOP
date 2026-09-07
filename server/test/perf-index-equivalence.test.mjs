@@ -17,12 +17,12 @@ import { mockDB } from '../../docs/src/core/domain.js?v=20260903c';
 import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260903c';
 import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260903c';
 // 日历日索引纯分组 helper（calendar.js 现为 node 可导：resize 监听已 typeof 守卫）
-import { buildCalendarDayIndex } from '../../docs/src/components/calendar.js?v=20260907a';
-import { SecretaryTodoDeriver } from '../../docs/src/services/secretary-overview.js?v=20260903c';
+import { buildCalendarDayIndex } from '../../docs/src/components/calendar.js?v=20260907b';
+import { SecretaryTodoDeriver } from '../../docs/src/services/secretary-overview.js?v=20260907b';
 import {
   buildApprovedSignupIndex, approvedSignupHit,
-} from '../../docs/src/services/today-summary.js?v=20260903c';
-import { TodoStatus, isTodoExpired } from '../../docs/src/services/todo.js?v=20260903c';
+} from '../../docs/src/services/today-summary.js?v=20260907b';
+import { TodoStatus, isTodoExpired } from '../../docs/src/services/todo.js?v=20260907b';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();

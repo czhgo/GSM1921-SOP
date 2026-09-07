@@ -4,12 +4,12 @@
 // 本页改为本组活动复盘状态只读列表（待复盘/已复盘 + 徽标），页内不提供提交表单（登记 2026-09-06）。
 
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
-import { loadActivityReviews } from '../../../services/review.js?v=20260903c';
+import { loadActivityReviews } from '../../../services/review.js?v=20260907b';
 import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260903c';
-import { PersonStore } from '../../../services/person.js?v=20260903c';
+import { PersonStore } from '../../../services/person.js?v=20260907b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { currentLeaderGroup } from './_shared.js?v=20260903c';
+import { currentLeaderGroup } from './_shared.js?v=20260907b';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;

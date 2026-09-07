@@ -4,11 +4,11 @@
 // 数源：mockDB.branches（支部实例）+ PEOPLE（成员档案，已挂 branchId）+ ctx.activities（工作台已加载）
 
 import { mockDB } from '../../../core/domain.js?v=20260903c';
-import { PersonStore } from '../../../services/person.js?v=20260903c';
+import { PersonStore } from '../../../services/person.js?v=20260907b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
 import { getCommitteeName } from '../../../services/branch.js?v=20260903c';
-import { getPersonName } from '../../../services/person.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260907b';
 
 const STAGE_ORDER = ['正式党员', '预备党员', '发展对象', '积极分子'];
 

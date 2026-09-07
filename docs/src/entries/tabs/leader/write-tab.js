@@ -7,22 +7,22 @@ import { setState, getAppState } from '../../../core/state.js?v=20260903c';
 import { BranchService } from '../../../services/runtime.js?v=20260903c';
 import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260903c';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260907b';
 import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260903c';
 import { persist } from '../../../core/data-adapter.js?v=20260903c';
-import { appendAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
-import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260903c';
+import { appendAttendanceRecords } from '../../../services/attendance.js?v=20260907b';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260907b';
 import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
 import { recordFormShell } from '../../../components/forms.js?v=20260903c';
 import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260903c';
-import { PersonStore } from '../../../services/person.js?v=20260903c';
+import { PersonStore } from '../../../services/person.js?v=20260907b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { getPersonName } from '../../../services/person.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260907b';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260903c';
-import { filterByRole, getCurrentLeaderId } from './_shared.js?v=20260903c';
+import { filterByRole, getCurrentLeaderId } from './_shared.js?v=20260907b';
 
 // 私有状态（随模块自持，不污染入口）
 const dt = new DecisionTreeState('leader');

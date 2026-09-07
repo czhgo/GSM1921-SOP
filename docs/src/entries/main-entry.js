@@ -6,17 +6,17 @@
 
 import { BranchService } from '../services/runtime.js?v=20260903c';
 import { STATE, setState, registerRenderCallback, getAppState } from '../core/state.js?v=20260903c';
-import { NoticeStore, renderNoticeList } from '../services/notice.js?v=20260903c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260903c';
+import { NoticeStore, renderNoticeList } from '../services/notice.js?v=20260907b';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260907b';
 import { getBasePath } from '../core/utils.js?v=20260903c';
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../services/attendance.js?v=20260903c';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../services/attendance.js?v=20260907b';
 import { loadActivities } from '../services/activity.js?v=20260903c';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260903c';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260907a';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260907b';
 import { AuthStore } from '../services/auth.js?v=20260903c';
 import { loadWorkspaceData } from '../core/data-loader.js?v=20260907a';
 import { DATA_CHANGED_EVENT } from '../core/data-adapter.js?v=20260903c';
-import '../modules/capabilities/activity-calendar.js?v=20260907a'; // 副作用导入：注册首页活动日历能力
+import '../modules/capabilities/activity-calendar.js?v=20260907b'; // 副作用导入：注册首页活动日历能力
 // ── 方案 B 入口拆分：dashboard 区块渲染模块 ──
 import { renderDashboardStats } from '../components/dashboard/stats.js?v=20260903c';
 import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../components/dashboard/activity-panel.js?v=20260907a';

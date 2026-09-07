@@ -9,20 +9,20 @@
 // 2026-08-10 书记裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
 import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260903c';
-import { NoticeStore } from '../../../services/notice.js?v=20260903c';
+import { NoticeStore } from '../../../services/notice.js?v=20260907b';
 import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260903c';
 import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260903c';
-import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260903c';
+import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260907b';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 // S1–S4 滞留党员设计（2026-09-06 书记已批）：书记复核卡（只读查看徽标/备注/变更留痕）
 import { getDetainedMembers, getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260907b';
 import { AttendanceStatus } from '../../../core/domain.js?v=20260903c';
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260903c';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260907b';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260903c';
-import { getPersonName } from '../../../services/person.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260907b';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>

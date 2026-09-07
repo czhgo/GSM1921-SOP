@@ -4,16 +4,16 @@
 
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { PersonStore } from '../../../services/person.js?v=20260903c';
+import { PersonStore } from '../../../services/person.js?v=20260907b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { getPersonById } from '../../../services/person.js?v=20260903c';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903c';
+import { getPersonById } from '../../../services/person.js?v=20260907b';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260907b';
 import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
 import { ROLE_LABELS, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
-import { TodoStore } from '../../../services/todo.js?v=20260903c';
+import { TodoStore } from '../../../services/todo.js?v=20260907b';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 

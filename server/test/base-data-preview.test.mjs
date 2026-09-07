@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 
 import { PEOPLE } from '../../docs/src/mock/people.js?v=20260903c';
 import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260903c';
-import { PersonStore } from '../../docs/src/services/person.js?v=20260903c';
+import { PersonStore } from '../../docs/src/services/person.js?v=20260907b';
 import {
   getMeetingRosterIds, getRosterStats, RESIDENCE as ROSTER_RESIDENCE,
 } from '../../docs/src/services/roster.js?v=20260903c';

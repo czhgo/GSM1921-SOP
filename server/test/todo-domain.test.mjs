@@ -23,7 +23,7 @@ import {
 import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260903c';
 import {
   WORK_DOMAIN, WORK_DOMAIN_LABELS, inferDomain, TodoStore,
-} from '../../docs/src/services/todo.js?v=20260903c';
+} from '../../docs/src/services/todo.js?v=20260907b';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();

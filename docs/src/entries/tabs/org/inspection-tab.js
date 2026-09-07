@@ -2,12 +2,12 @@
 // 组织委员工作台 Tab：考察上传（T-279 M3 拆分，照 M2 样板）
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260903c';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260903c';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260907b';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260907b';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260903c';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260903c';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260907b';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260907b';
 import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260903c';

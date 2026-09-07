@@ -10,7 +10,7 @@
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { mockDB } from '../../docs/src/core/domain.js?v=20260903c';
-import { TodoStore } from '../../docs/src/services/todo.js?v=20260903c';
+import { TodoStore } from '../../docs/src/services/todo.js?v=20260907b';
 import {
   buildFollowupTodoPayloads,
   saveFollowups, completeFollowup, reopenFollowup,

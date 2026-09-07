@@ -4,7 +4,7 @@
 
 import { getAppState, setState } from '../../../core/state.js?v=20260903c';
 import { _fmtDate, showToast } from '../../../core/utils.js?v=20260903c';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260907a';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260907b';
 import { renderInspectorFromState } from '../../../components/inspector.js?v=20260903c';
 import { computeSecretaryStats } from '../../../services/roles.js?v=20260903c';
 import { PersonPicker } from '../../../components/person-picker.js?v=20260903c';
@@ -13,12 +13,12 @@ import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '..
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { renderQueryView } from '../../../components/query-view.js?v=20260903c';
 import { icon } from '../../../core/icons.js?v=20260903c';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
-import { PersonStore } from '../../../services/person.js?v=20260903c';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260907b';
+import { PersonStore } from '../../../services/person.js?v=20260907b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { getPersonName } from '../../../services/person.js?v=20260903c';
-import { NoticeStore } from '../../../services/notice.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260907b';
+import { NoticeStore } from '../../../services/notice.js?v=20260907b';
 import { BranchService } from '../../../services/runtime.js?v=20260903c';
 import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
@@ -30,7 +30,7 @@ import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '..
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
 import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260903c';
 // P1（2026-09-07）：考勤明细惰性缓存失效键用域写版本戳（spec §三.5）
-import { tokenOf } from '../../../core/version-token.js?v=20260903c';
+import { tokenOf } from '../../../core/version-token.js?v=20260907b';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 

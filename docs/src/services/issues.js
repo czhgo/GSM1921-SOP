@@ -3,8 +3,8 @@
 // 权威源 docs/data/issues.json + localStorage 个人草稿
 
 import { AuthStore } from './auth.js?v=20260903c';
-import { PersonStore } from './person.js?v=20260903c';
-import { bumpToken } from '../core/version-token.js?v=20260903c'; // P2 渲染守卫失效（spec §四.1）
+import { PersonStore } from './person.js?v=20260907b';
+import { bumpToken } from '../core/version-token.js?v=20260907b'; // P2 渲染守卫失效（spec §四.1）
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
 function _displayName(id) {

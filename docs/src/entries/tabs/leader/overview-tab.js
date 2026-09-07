@@ -7,7 +7,7 @@
 
 import { renderWorkOverview } from '../../../components/work-overview.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { IssueStore } from '../../../services/issues.js?v=20260907a';
+import { IssueStore } from '../../../services/issues.js?v=20260907b';
 import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260903c';
 import { beginOverviewShell, mountOverviewDispatchBar } from '../../../components/overview-dispatch-bar.js?v=20260907a';
 

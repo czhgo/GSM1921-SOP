@@ -7,12 +7,12 @@
 
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
-import { bumpToken } from '../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3）
+import { bumpToken } from '../core/version-token.js?v=20260907b'; // P0 域缓存失效（spec §二.3）
 import { MOCK_NOTICES } from '../mock/index.js?v=20260903c';
 import { showToast, getBasePath } from '../core/utils.js?v=20260903c';
 import { AuthStore } from './auth.js?v=20260903c';
-import { getPersonById } from './person.js?v=20260903c';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260903c';
+import { getPersonById } from './person.js?v=20260907b';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260907b';
 import { badgeHtml } from '../components/badges.js?v=20260903c';
 
 function _loadNotices() {

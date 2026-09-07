@@ -26,7 +26,7 @@ import {
 } from '../../docs/src/core/mock-adapter.js?v=20260903c';
 import {
   PersonStore, MEMBER_OVERLAY_KEY, getBaseMemberRecords, findMemberRefs,
-} from '../../docs/src/services/person.js?v=20260903c';
+} from '../../docs/src/services/person.js?v=20260907b';
 import { getRosterStats } from '../../docs/src/services/roster.js?v=20260903c';
 import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260903c';
 import { createApp } from '../app.js';

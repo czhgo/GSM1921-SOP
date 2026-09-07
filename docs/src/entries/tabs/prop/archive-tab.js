@@ -7,11 +7,11 @@ import { solidAccentStyle } from '../../../core/constants.js?v=20260903c';
 import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate } from '../../../core/utils.js?v=20260903c';
 import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260903c';
 import { mockDB } from '../../../core/domain.js?v=20260903c';
-import { bumpToken } from '../../../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3）
+import { bumpToken } from '../../../core/version-token.js?v=20260907b'; // P0 域缓存失效（spec §二.3）
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { isApiMode } from '../../../services/runtime.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { getPersonName } from '../../../services/person.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260907b';
 import { addExternalDispatch } from '../../../services/external-dispatch.js?v=20260903c';
 
 // ── 档案归档 ─────────────────────────────────────────────

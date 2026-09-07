@@ -3,14 +3,14 @@
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
 import { getAppState, setState } from '../core/state.js?v=20260903c';
-import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260907a';
+import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260907b';
 import { _currentYearMonth } from '../core/utils.js?v=20260903c';
 import { loadActivities } from '../services/activity.js?v=20260903c';
 import { BranchService } from '../services/runtime.js?v=20260903c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260903c';
-import { SignupStore } from '../services/signup.js?v=20260906j';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260907b';
+import { SignupStore } from '../services/signup.js?v=20260907b';
 // T-304 Q3 权限收敛：副作用导入触发书记工作台能力注册（tab 清单，与其余 5 工作台对齐）
-import '../modules/capabilities/secretary-workspace.js?v=20260907a';
+import '../modules/capabilities/secretary-workspace.js?v=20260907b';
 
 await createWorkspaceShell({
   accentRole: 'secretary',

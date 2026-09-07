@@ -8,7 +8,7 @@
 import { getAppState, setState } from '../core/state.js?v=20260903c';
 import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260903c';
 import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260903c';
-import { tokenOf } from '../core/version-token.js?v=20260903c'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { tokenOf } from '../core/version-token.js?v=20260907b'; // P2 视图渲染守卫数据版本（spec §四.2）
 import { filterTasksByManagementRole } from './inspector.js?v=20260903c';
 import { badgeHtml } from './badges.js?v=20260903c';
 

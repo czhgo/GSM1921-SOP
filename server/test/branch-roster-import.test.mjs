@@ -19,7 +19,7 @@ import { mockDB } from '../../docs/src/core/domain.js?v=20260903c';
 import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260903c';
 import {
   PersonStore, getBaseMemberRecords,
-} from '../../docs/src/services/person.js?v=20260903c';
+} from '../../docs/src/services/person.js?v=20260907b';
 import { getRosterStats } from '../../docs/src/services/roster.js?v=20260903c';
 import {
   BRANCH_ROSTER_KIND, BRANCH_ROSTER_VERSION,

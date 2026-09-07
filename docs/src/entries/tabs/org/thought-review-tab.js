@@ -8,7 +8,7 @@
 // 角色自 AuthStore.getCurrentUser() 取（勿自由传参）；非组织委员（org-commissioner）防御：仅提示无权限。
 
 import { loadThoughtReports, listPendingReviews, reviewThoughtReport } from '../../../services/thought-report.js?v=20260906h';
-import { getPersonName } from '../../../services/person.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260907b';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260903c';
 

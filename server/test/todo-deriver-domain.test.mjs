@@ -28,14 +28,14 @@ import {
   WORK_DOMAIN, TodoStore, TodoSourceType,
   LifecycleTodoDeriver, VisitorTodoDeriver, NoticeTodoDeriver,
   REALTIME_GROUP_DOMAIN, realtimeGroupDomainOf,
-} from '../../docs/src/services/todo.js?v=20260903c';
-import { HandoffStore } from '../../docs/src/services/handoff.js?v=20260903c';
-import { SignupStore } from '../../docs/src/services/signup.js?v=20260903c';
-import { TaskForceRecordStore } from '../../docs/src/services/taskforce.js?v=20260903c';
+} from '../../docs/src/services/todo.js?v=20260907b';
+import { HandoffStore } from '../../docs/src/services/handoff.js?v=20260907b';
+import { SignupStore } from '../../docs/src/services/signup.js?v=20260907b';
+import { TaskForceRecordStore } from '../../docs/src/services/taskforce.js?v=20260907b';
 import {
   saveFollowups, buildOverdueRemindGroup,
-} from '../../docs/src/services/resolution-followup.js?v=20260903c';
-import { SecretaryTodoDeriver } from '../../docs/src/services/secretary-overview.js?v=20260903c';
+} from '../../docs/src/services/resolution-followup.js?v=20260907b';
+import { SecretaryTodoDeriver } from '../../docs/src/services/secretary-overview.js?v=20260907b';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();

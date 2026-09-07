@@ -7,7 +7,7 @@
 import { renderSidebar } from '../components/sidebar.js?v=20260907a';
 import { renderHeader } from '../components/header.js?v=20260907a';
 import { AuthStore } from '../services/auth.js?v=20260903c';
-import { IssueStore } from '../services/issues.js?v=20260907a';
+import { IssueStore } from '../services/issues.js?v=20260907b';
 import { MilestoneStore } from '../services/milestones.js?v=20260903c';
 import { getAccentColors, resolveAccentRole } from './constants.js?v=20260903c';
 import { CrossPageState } from './cross-page-state.js?v=20260903c';

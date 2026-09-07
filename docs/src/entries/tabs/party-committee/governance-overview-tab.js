@@ -14,13 +14,13 @@
 //   支部概览卡列表先等高骨架占位（#pc-branch-cards），下一帧填充真实卡网格（避免整块弹出支部卡）。
 
 import { mockDB } from '../../../core/domain.js?v=20260903c';
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260903c';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260907b';
 import { getRosterStats, RESIDENCE_KEY } from '../../../services/roster.js?v=20260903c';
 import { getCommitteeName } from '../../../services/branch.js?v=20260903c';
 import { escHtml as esc } from '../../../core/utils.js?v=20260903c';
-import { tokenOf } from '../../../core/version-token.js?v=20260903c'; // P0 域写版本戳（spec §二.4）
+import { tokenOf } from '../../../core/version-token.js?v=20260907b'; // P0 域写版本戳（spec §二.4）
 import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260903c'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/memoize-render.js?v=20260903c'; // P2 渲染守卫（spec §四.1）
+import { memoizeRender } from '../../../components/memoize-render.js?v=20260907b'; // P2 渲染守卫（spec §四.1）
 import { bindBranchDemoButtons } from '../../../modules/branch-demo-nav.js?v=20260903c';
 
 /** 支部概览卡等高骨架（网格占位，防「支部卡列表整块弹出」；styles.css 禁改不碰） */

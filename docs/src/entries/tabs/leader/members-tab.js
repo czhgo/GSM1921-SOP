@@ -6,14 +6,14 @@
 // 本视图禁用 SVG 图标，类别用色点+文字区分。
 
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { IssueStore } from '../../../services/issues.js?v=20260907a';
+import { IssueStore } from '../../../services/issues.js?v=20260907b';
 import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260903c';
-import { TodoStore, TodoStatus, isTodoExpired } from '../../../services/todo.js?v=20260903c';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260903c';
+import { TodoStore, TodoStatus, isTodoExpired } from '../../../services/todo.js?v=20260907b';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260907b';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260907b';
 import { AttendanceStatus } from '../../../core/domain.js?v=20260903c';
 import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260903c';
-import { getPersonName } from '../../../services/person.js?v=20260903c';
+import { getPersonName } from '../../../services/person.js?v=20260907b';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 
 // 模块级 ctx 缓存：重渲染（了解进展/行内答复后刷新）复用首次渲染的 accent

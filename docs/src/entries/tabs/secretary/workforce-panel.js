@@ -10,7 +10,7 @@
 import { escHtml as esc, showToast } from '../../../core/utils.js?v=20260903c';
 import { WORK_MAP_MODULES } from '../../../core/work-map.js?v=20260903c';
 import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/constants.js?v=20260903c';
-import { PersonStore } from '../../../services/person.js?v=20260903c';
+import { PersonStore } from '../../../services/person.js?v=20260907b';
 import {
   createWorkforceProposalActivity, listWorkforceProposals, adoptWorkforceProposal,
   getWorkforceVoteOutcome, ownerDisplay,

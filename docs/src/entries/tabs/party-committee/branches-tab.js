@@ -8,7 +8,7 @@
 import { mockDB } from '../../../core/domain.js?v=20260903c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）；
 // 每次渲染现读（members 覆盖层即时吃到），不缓存在模块顶层
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260903c';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260907b';
 import { createBranch, renameBranch, getCommitteeName } from '../../../services/branch.js?v=20260903c';
 import { appointSecretary, listAppointments } from '../../../services/appointment.js?v=20260906f';
 import { getRosterStats } from '../../../services/roster.js?v=20260903c';

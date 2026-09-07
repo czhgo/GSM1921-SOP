@@ -21,7 +21,7 @@ import { mockDB } from '../../docs/src/core/domain.js?v=20260903c';
 import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260903c';
 import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260903c';
 // namespace 导入：红阶段（新 API 未实现）以 per-test 失败呈现而非整文件链接失败
-import * as TS from '../../docs/src/services/today-summary.js?v=20260903c';
+import * as TS from '../../docs/src/services/today-summary.js?v=20260907b';
 
 // ── localStorage 内存桩（含 key/length）──
 const _store = new Map();

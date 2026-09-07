@@ -3,8 +3,8 @@
 // 个人考察记录查询视图（spec §五 数据访问规则：支部成员对自己的历次活动参与考察情况有查询视图）。
 
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260903c';
-import { inspectionToDisplay } from '../../../services/inspection.js?v=20260903c';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260907b';
+import { inspectionToDisplay } from '../../../services/inspection.js?v=20260907b';
 import { ROLE_COLORS } from '../../../core/constants.js?v=20260903c';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 

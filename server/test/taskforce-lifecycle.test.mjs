@@ -11,7 +11,7 @@
 import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { mockDB } from '../../docs/src/core/domain.js?v=20260903c';
-import { TaskForceRecordStore } from '../../docs/src/services/taskforce.js?v=20260906c';
+import { TaskForceRecordStore } from '../../docs/src/services/taskforce.js?v=20260907b';
 
 const ORIGINAL_TASKFORCES = mockDB.taskforces;
 

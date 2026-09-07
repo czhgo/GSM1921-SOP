@@ -17,13 +17,13 @@
 
 import { generateId } from '../core/id.js?v=20260903c';
 import { mockDB } from '../core/domain.js?v=20260903c';
-import { bumpToken, tokenOf } from '../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3/§二.4）
+import { bumpToken, tokenOf } from '../core/version-token.js?v=20260907b'; // P0 域缓存失效（spec §二.3/§二.4）
 import {
   TodoStore, TodoStatus, TodoCategory, TodoActionType, TodoSourceType, REALTIME_GROUP_DOMAIN,
-} from './todo.js?v=20260906j';
+} from './todo.js?v=20260907b';
 import { BranchService } from './runtime.js?v=20260903c';
 import { loadActivities } from './activity.js?v=20260903c';
-import { PersonStore } from './person.js?v=20260903c';
+import { PersonStore } from './person.js?v=20260907b';
 import { ROLE_LABELS } from '../core/constants.js?v=20260903c';
 
 /** 待落实跟进状态 */

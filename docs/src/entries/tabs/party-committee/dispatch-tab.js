@@ -10,7 +10,7 @@
 import { mockDB } from '../../../core/domain.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { getCommitteeName } from '../../../services/branch.js?v=20260903c';
-import { NoticeStore } from '../../../services/notice.js?v=20260903c';
+import { NoticeStore } from '../../../services/notice.js?v=20260907b';
 import { textField, textareaField } from '../../../components/forms.js?v=20260903c';
 import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260903c';
 
