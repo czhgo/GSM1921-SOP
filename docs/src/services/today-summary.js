@@ -18,7 +18,7 @@
 
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { getMeetingRosterIds, getEffectiveMembers } from './roster.js?v=20260903c';
-import { TodoStore } from './todo.js?v=20260903c';
+import { TodoStore } from './todo.js?v=20260906j';
 
 /** 按 roster 应到口径判定的会议类型（R6-3 书记裁定：今天有会 = 我应出席/参与） */
 const ROSTER_MEETING_TYPES = new Set(['支部党员大会', '党课', '组织生活会', '党小组会']);

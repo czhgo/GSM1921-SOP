@@ -19,7 +19,7 @@ registerCapability({
     // R6-3「今天」置首 + 登录落点（2026-09-07 方案 B）：共享渲染只读速览，数据同源派生；
     // 到期/逾期行 → onNav('todo')（todo tab 六台同 id）；会议/分工行在 today-tab 内直跳 activity.html；
     // 会议「全部」→ onNav('activities')，下方映射到本台活动承载 tab（书记台=活动管理 calendar；无承载台为空操作）
-    { id: 'today', label: '今天', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/today/today-tab.js?v=20260906h').then(m => {
+    { id: 'today', label: '今天', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/today/today-tab.js?v=20260906j').then(m => {
       const el = document.getElementById('secretary-tab-content');
       if (el) m.renderTodayTab(el, {
         personId: ctx?.personId || AuthStore.getCurrentUser()?.personId,
@@ -31,9 +31,9 @@ registerCapability({
         },
       });
     }) },
-    { id: 'todo', label: '待办', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/secretary/todo-tab.js?v=20260906e').then(m => m.renderContent(ctx)) },
+    { id: 'todo', label: '待办', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/secretary/todo-tab.js?v=20260906j').then(m => m.renderContent(ctx)) },
     { id: 'overview', label: '全局概况', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/secretary/overview-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },
-    { id: 'calendar', label: '活动管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/secretary/calendar-tab.js?v=20260903c').then(m => m.renderContent(ctx?.appState)) },
+    { id: 'calendar', label: '活动管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/secretary/calendar-tab.js?v=20260906j').then(m => m.renderContent(ctx?.appState)) },
     // L4 支部工作地图（2026-09-03 书记裁决放行）：支部分工 · 平铺/按人双视图（书记/副书记共用书记台）
     { id: 'work-map', label: '支部分工', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/secretary/work-map-tab.js?v=20260906c').then(m => m.renderContent(ctx)) },
     { id: 'assign', label: '赋权管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/secretary/assign-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },

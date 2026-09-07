@@ -14,7 +14,7 @@ import { generateId } from '../core/id.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
 import { SEED_SIGNUPS } from '../mock/seed.js?v=20260903c';
 import { getPersonById } from './person.js?v=20260903c';
-import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from './todo.js?v=20260903c';
+import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from './todo.js?v=20260906j';
 import { AuthStore } from './auth.js?v=20260903c';
 import { TaskForceRecordStore } from './taskforce.js?v=20260903c';
 

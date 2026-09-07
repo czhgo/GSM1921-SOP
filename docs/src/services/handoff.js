@@ -10,7 +10,7 @@
 
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
-import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260903c';
+import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260906j';
 
 // ── 交接类型元数据（from→to + 展示文案） ──
 // IA-C1 Task2：domain 显式打标（handoff-* 键无法从前缀推断，逐型归域——

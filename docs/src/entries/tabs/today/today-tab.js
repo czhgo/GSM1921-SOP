@@ -13,7 +13,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { escHtml as esc, _fmtDate } from '../../../core/utils.js?v=20260903c';
-import { buildTodaySummary } from '../../../services/today-summary.js?v=20260906h';
+import { buildTodaySummary } from '../../../services/today-summary.js?v=20260906j';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent, #B91C1C)';

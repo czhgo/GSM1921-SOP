@@ -9,9 +9,9 @@
 //   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
 import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260903c';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260903c';
-import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260903c';
-import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260903c';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260906j';
+import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260906j';
+import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260906j';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
 import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260903c';
@@ -21,14 +21,14 @@ import { mockDB } from '../../../core/domain.js?v=20260903c';
 import { persist } from '../../../core/data-adapter.js?v=20260903c';
 import { getPersonById, getPersonName } from '../../../services/person.js?v=20260903c';
 import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260903c';
-import { IssueStore } from '../../../services/issues.js?v=20260903c';
+import { IssueStore } from '../../../services/issues.js?v=20260906j';
 import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/taskforce.js?v=20260903c';
 import { fetchVotes } from '../../../services/committee-vote.js?v=20260903c';
 import { resolveVoterIds } from '../../../services/vote-config.js?v=20260903c';
 import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260903c';
 import { renderMemberChangePanel } from '../../../components/member-change-panel.js?v=20260903c';
 import { tryDirectJump } from '../../../components/todo-jump.js?v=20260903c';
-import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260906c';
+import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260906j';
 // C 批 附录⑩ S4：名册确权复核（组织委员发起 → 书记确认/退回）+ 学期末滞留集中复核提醒
 import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, MC_ACTION_LABEL } from '../../../services/member-confirmation.js?v=20260906e';
 import { getDetainedMembers, getResidenceOf } from '../../../services/roster.js?v=20260903c';

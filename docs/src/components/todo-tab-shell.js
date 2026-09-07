@@ -14,8 +14,8 @@
 // 视觉沿用 card/rounded/折叠既有体系（域折组渲染在 components/todo-list.js renderDomainTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore } from '../services/todo.js?v=20260903c';
-import { renderDomainTodoList } from './todo-list.js?v=20260903c';
+import { TodoStore } from '../services/todo.js?v=20260906j';
+import { renderDomainTodoList } from './todo-list.js?v=20260906j';
 import { badgeHtml } from './badges.js?v=20260903c';
 import { showToast } from '../core/utils.js?v=20260903c';
 import { solidAccentStyle } from '../core/constants.js?v=20260903c';

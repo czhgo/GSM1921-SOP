@@ -18,7 +18,7 @@
 import { generateId } from '../core/id.js?v=20260903c';
 import {
   TodoStore, TodoStatus, TodoCategory, TodoActionType, TodoSourceType, REALTIME_GROUP_DOMAIN,
-} from './todo.js?v=20260903c';
+} from './todo.js?v=20260906j';
 import { BranchService } from './runtime.js?v=20260903c';
 import { loadActivities } from './activity.js?v=20260903c';
 import { PersonStore } from './person.js?v=20260903c';

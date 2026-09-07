@@ -5,7 +5,7 @@
 
 import { renderWorkOverview } from '../../../components/work-overview.js?v=20260903c';
 import { getDiscCommissionerId } from './_shared.js?v=20260903c';
-import { countOwnPendingReports, mountOverviewDispatchBar } from '../../../components/overview-dispatch-bar.js?v=20260903c';
+import { countOwnPendingReports, mountOverviewDispatchBar } from '../../../components/overview-dispatch-bar.js?v=20260906j';
 
 export function renderContent(ctx) {
   const el = document.getElementById('disc-tab-content');

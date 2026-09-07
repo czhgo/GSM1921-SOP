@@ -16,7 +16,7 @@ import { flashHighlight } from '../core/utils.js?v=20260903c';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260903c';
 import { getCapabilities } from '../core/registry.js?v=20260903c';
 import { loadWorkspaceData } from '../core/data-loader.js?v=20260903c';
-import { TodoStore } from '../services/todo.js?v=20260903c';
+import { TodoStore } from '../services/todo.js?v=20260906j';
 import { AuthStore } from '../services/auth.js?v=20260903c';
 import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260903c';
 

@@ -5,8 +5,8 @@
 // （考勤待确认/考察待确认）作为 buildRealtimeGroups 并入「考勤纪律/考察」域展示。
 
 import { showToast } from '../../../core/utils.js?v=20260903c';
-import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260903c';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260903c';
+import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260906j';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260906j';
 import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260903c';
 import { AttendanceStatus } from '../../../core/domain.js?v=20260903c';
 import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260903c';
