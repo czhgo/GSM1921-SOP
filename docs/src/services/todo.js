@@ -60,6 +60,22 @@ export const WORK_DOMAIN_LABELS = {
   [WORK_DOMAIN.NONE]: '通知/未分类',
 };
 
+/**
+ * 业务域固定展示顺序（IA 收敛 C1 Task3：9 域折组视图域序 = spec 一 ①→⑨）。
+ * NONE（通知/未分类）不入列——通知类走 getUnreadNotices 页顶「未读 N 条」轻量区。
+ */
+export const DOMAIN_ORDER = [
+  WORK_DOMAIN.MEETING,     // ① 会务
+  WORK_DOMAIN.ACTIVITY,    // ② 活动/项目
+  WORK_DOMAIN.ATTENDANCE,  // ③ 考勤纪律
+  WORK_DOMAIN.INSPECTION,  // ④ 考察
+  WORK_DOMAIN.MEMBER_DEV,  // ⑤ 成员发展
+  WORK_DOMAIN.TASKFORCE,   // ⑥ 专班
+  WORK_DOMAIN.RESOLUTION,  // ⑦ 决议上报
+  WORK_DOMAIN.ARCHIVE,     // ⑧ 归档宣传
+  WORK_DOMAIN.REPORT,      // ⑨ 汇报反馈
+];
+
 /** 会务类型参考：scenarioId/type 属三会一课 → 会务域；theme-party 等实践型不在表内 → 活动/项目 */
 const _ACTIVITY_TYPE_TO_DOMAIN = {
   'branch-party-meeting': WORK_DOMAIN.MEETING, // 支部党员大会
@@ -281,6 +297,79 @@ function _buildTodo(data) {
 //  TodoStore — 待办 CRUD + 派生触发
 // ════════════════════════════════════════════════════════════════
 
+// ── 组/域聚合私有工具（C1 Task3：getGroupedByAction 与按域视图共享组聚合与排序）────
+
+/**
+ * actionKey 组聚合核心（getGroupedByAction 原逻辑抽出）：role 视角 todos → 组数组
+ * （组含 groupKey/actionKey/title/category/actionType/actionData/deadline/flow/count/items；
+ *  组内条目过期置顶、截止升序）。
+ */
+function _aggregateByAction(role, todos, today) {
+  const map = new Map();
+  for (const t of todos) {
+    // 聚合键 = role:actionKey，actionKey 缺省时按 actionType 兜底
+    const key = `${role}:${t.actionKey || t.actionType || t.category || 'other'}`;
+    if (!map.has(key)) {
+      map.set(key, {
+        groupKey: key,
+        actionKey: t.actionKey || t.actionType || 'other',
+        title: t.title,
+        category: t.category,
+        actionType: t.actionType,
+        actionData: t.actionData,
+        deadline: t.deadline,
+        flow: t.flow,
+        count: 0,
+        items: [],
+      });
+    }
+    const g = map.get(key);
+    g.count++;
+    g.items.push(t);
+    if (t.deadline && (!g.deadline || t.deadline < g.deadline)) g.deadline = t.deadline;
+  }
+  const groups = [...map.values()];
+  // 组内排序：过期优先、截止升序
+  groups.forEach(g => {
+    g.items.sort((a, b) => {
+      const aExp = _isTodoExpired(a, today);
+      const bExp = _isTodoExpired(b, today);
+      if (aExp !== bExp) return aExp ? -1 : 1;
+      return (a.deadline || '9999').localeCompare(b.deadline || '9999');
+    });
+  });
+  return groups;
+}
+
+/** 条目级逾期判定：expired 态；或（pending/无 status 的实时条目）deadline 早于今日 → 逾期；完成/进行中不计 */
+function _isGroupItemExpired(item, today) {
+  if (item.status === TodoStatus.EXPIRED) return true;
+  if (item.status === TodoStatus.COMPLETED || item.status === TodoStatus.IN_PROGRESS) return false;
+  if (!item.deadline) return false;
+  return item.deadline < today;
+}
+
+/** 组是否含逾期条目（域内组排序「先逾期」用） */
+function _groupHasExpired(g, today) {
+  return Array.isArray(g.items) && g.items.some(it => _isGroupItemExpired(it, today));
+}
+
+/** 组内逾期条数（并入域级 expiredCount 用） */
+function _groupExpiredCount(g, today) {
+  if (!Array.isArray(g.items)) return 0;
+  return g.items.filter(it => _isGroupItemExpired(it, today)).length;
+}
+
+/** 域内组排序：先逾期组、再 deadline（无 deadline 末位）、最后 actionKey 稳定兜底（跨调用确定性） */
+function _compareDomainGroups(a, b, today) {
+  const aExp = _groupHasExpired(a, today);
+  const bExp = _groupHasExpired(b, today);
+  if (aExp !== bExp) return aExp ? -1 : 1;
+  const dc = (a.deadline || '9999').localeCompare(b.deadline || '9999');
+  if (dc !== 0) return dc;
+  return String(a.actionKey || '').localeCompare(String(b.actionKey || ''));
+}
+
 export const TodoStore = {
   // ── 查询 ──────────────────────────────────────────────────
 
@@ -437,42 +526,112 @@ export const TodoStore = {
    * @returns {Array<{groupKey, actionKey, title, category, actionType, actionData, deadline, flow, count, items}>}
    */
   getGroupedByAction(role) {
+    return _aggregateByAction(role, this.getByRole(role), _todayStr());
+  },
+
+  /**
+   * 按业务域聚合视图（IA 收敛 C1 Task3，供 9 域折组）：域序=DOMAIN_ORDER（无活域不出、
+   * NONE 通知不入普通域列表）；域内 groups=复用 getGroupedByAction 的 actionKey 组聚合
+   * （含标题/deadline/items），组排序=先逾期 → deadline → actionKey 稳定。
+   * 域级 count=该域未完成条数；expiredCount=该域逾期条数。
+   * @param {string} role
+   * @returns {Array<{domain, label, count, expiredCount, groups: Array}>}
+   */
+  getDomainsWithGroups(role) {
     const todos = this.getByRole(role);
     const today = _todayStr();
-    const map = new Map();
+    const buckets = new Map();
+    for (const d of DOMAIN_ORDER) buckets.set(d, []);
     for (const t of todos) {
-      // 聚合键 = role:actionKey，actionKey 缺省时按 actionType 兜底
-      const key = `${role}:${t.actionKey || t.actionType || t.category || 'other'}`;
-      if (!map.has(key)) {
-        map.set(key, {
-          groupKey: key,
-          actionKey: t.actionKey || t.actionType || 'other',
-          title: t.title,
-          category: t.category,
-          actionType: t.actionType,
-          actionData: t.actionData,
-          deadline: t.deadline,
-          flow: t.flow,
-          count: 0,
-          items: [],
-        });
-      }
-      const g = map.get(key);
-      g.count++;
-      g.items.push(t);
-      if (t.deadline && (!g.deadline || t.deadline < g.deadline)) g.deadline = t.deadline;
+      const d = _effDomain(t);
+      if (d === WORK_DOMAIN.NONE || !buckets.has(d)) continue; // NONE 走未读轻量区；未知域值忽略
+      buckets.get(d).push(t);
     }
-    const groups = [...map.values()];
-    // 组内排序：过期优先、截止升序
-    groups.forEach(g => {
-      g.items.sort((a, b) => {
-        const aExp = _isTodoExpired(a, today);
-        const bExp = _isTodoExpired(b, today);
-        if (aExp !== bExp) return aExp ? -1 : 1;
-        return (a.deadline || '9999').localeCompare(b.deadline || '9999');
+    const view = [];
+    for (const d of DOMAIN_ORDER) {
+      const bucket = buckets.get(d);
+      if (bucket.length === 0) continue; // 无活域不出
+      const groups = _aggregateByAction(role, bucket, today);
+      groups.sort((a, b) => _compareDomainGroups(a, b, today));
+      view.push({
+        domain: d,
+        label: WORK_DOMAIN_LABELS[d],
+        count: bucket.length,
+        expiredCount: bucket.filter(t => _isGroupItemExpired(t, today)).length,
+        groups,
       });
+    }
+    return view;
+  },
+
+  /**
+   * 未读通知（页顶「未读 N 条」轻量区数据源，C1 Task3/Task4）：domain=NONE 的「通知阅读」
+   * 类未完成待办（category=notice），按 deadline（无则 createdAt）倒序——书记规则：带时间字段
+   * 列示一律时间倒序（最新在前）；同位次 createdAt 倒序保稳定。
+   * @param {string} role
+   * @returns {Array} 未读通知待办（未完成）
+   */
+  getUnreadNotices(role) {
+    const notices = this.getByRole(role).filter(t =>
+      _effDomain(t) === WORK_DOMAIN.NONE && t.category === TodoCategory.NOTICE
+    );
+    notices.sort((a, b) => {
+      const ka = a.deadline || a.createdAt || '';
+      const kb = b.deadline || b.createdAt || '';
+      const c = kb.localeCompare(ka);
+      if (c !== 0) return c;
+      const ca = a.createdAt || '';
+      const cb = b.createdAt || '';
+      if (ca !== cb) return cb.localeCompare(ca);
+      return 0;
     });
-    return groups;
+    return notices;
+  },
+
+  /**
+   * 实时组并入域视图（C1 Task4 融合点，最小实现）：书记/纪检等不落库的实时聚合组
+   * （组对象带 domain 标注，缺省按 realtimeGroupDomainOf 推断）并入 getDomainsWithGroups 输出——
+   * 纯实时域按 DOMAIN_ORDER 新增、域内组按同一排序规则归位、同 groupKey 去重、domain=NONE 不入。
+   * 不改写入参；供 todo-tab 组装「未读条 + 9 域折组」时把实时组并入对应域。
+   * @param {string} role
+   * @param {Array} [realtimeGroups]
+   * @returns {Array} 合并后的域视图（结构同 getDomainsWithGroups）
+   */
+  mergeRealtimeDomains(role, realtimeGroups = []) {
+    const view = this.getDomainsWithGroups(role);
+    const today = _todayStr();
+    const recByDomain = new Map(view.map(d => [d.domain, d]));
+    for (const g of realtimeGroups || []) {
+      if (!g || typeof g !== 'object') continue;
+      const domain = realtimeGroupDomainOf(g);
+      if (domain === WORK_DOMAIN.NONE || !DOMAIN_ORDER.includes(domain)) continue;
+      let rec = recByDomain.get(domain);
+      if (!rec) {
+        rec = { domain, label: WORK_DOMAIN_LABELS[domain], count: 0, expiredCount: 0, groups: [] };
+        recByDomain.set(domain, rec);
+        view.push(rec); // 追加后再按 DOMAIN_ORDER 统一归位
+      }
+      // 同 groupKey 已存在（持久化组或前序实时组）→ 去重，避免同组双卡
+      if (g.groupKey && rec.groups.some(x => x.groupKey === g.groupKey)) continue;
+      // 实时组可能只带条目 deadline（如 _mcConfirmAgg 无组级 deadline）：归一并入副本（不改写入参），
+      // 使域内组排序「按 deadline」与持久化组口径一致（组 deadline=组内最早截止）
+      const grp = { ...g };
+      if (!grp.deadline && Array.isArray(grp.items)) {
+        for (const it of grp.items) {
+          if (it && it.deadline && (!grp.deadline || it.deadline < grp.deadline)) grp.deadline = it.deadline;
+        }
+      }
+      rec.groups.push(grp);
+      const itemLen = Array.isArray(g.items) ? g.items.length : 0;
+      rec.count += typeof g.count === 'number' ? g.count : itemLen;
+      rec.expiredCount += _groupExpiredCount(g, today);
+    }
+    // 域序固定（含新增域）+ 域内组按同一排序规则归位
+    view.sort((a, b) => DOMAIN_ORDER.indexOf(a.domain) - DOMAIN_ORDER.indexOf(b.domain));
+    for (const rec of view) {
+      rec.groups.sort((a, b) => _compareDomainGroups(a, b, today));
+    }
+    return view;
   },
 
   /** 按来源批量标记完成（业务操作联动：纪检确认考勤→销对应待办等） */
