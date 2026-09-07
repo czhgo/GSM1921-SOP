@@ -7,6 +7,7 @@
 
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
+import { bumpToken } from '../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3）
 import { MOCK_TASKFORCES, PEOPLE } from '../mock/index.js?v=20260903c';
 import { getPersonName } from './person.js?v=20260903c';
 import { evaluateWorkforceVotes } from './workforce.js?v=20260906c';
@@ -41,6 +42,7 @@ function _loadTaskForces() {
 function _saveTaskForces(records) {
   try {
     mockDB.taskforces = [...records];
+    bumpToken('taskforce'); // P0：专班写口统一 bump（add/update/remove/表决落果/贡献核验等均经本函数）
     persist();
   } catch (e) {
     console.warn('[TaskForceRecordStore] 保存失败：', e);

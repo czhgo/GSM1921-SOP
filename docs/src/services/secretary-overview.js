@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  secretary-overview.js — 书记全局概况服务层
 //  四维度信息面板：考勤与纪律 / 发展与考察 / 活动与专班进度 / 宣传与档案
@@ -14,6 +14,7 @@ import { TaskForceRecordStore } from './taskforce.js?v=20260903c';
 import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260903c';
 import { NoticeStore } from './notice.js?v=20260903c';
 import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20260906j';
+import { tokenOf } from '../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3/§二.4）
 import { PEOPLE } from '../mock/index.js?v=20260903c';
 import { getPersonById } from './person.js?v=20260903c';
 import { ROLE_LABELS } from '../core/constants.js?v=20260903c';
@@ -49,6 +50,53 @@ function _daysBetween(dateStr1, dateStr2) {
 }
 
 // ════════════════════════════════════════════════════════════════
+//  P0 聚合入口复合键缓存（2026-09-07 · spec §二.4）
+//  复合键 = 相关源 tokenOf(各源) + 各源数组 length（+ 参数/日期）：
+//  未写 → 命中返回上次结果引用；写口 bump / 源长度变化 → 键变重算。
+//  ⚠️ 返回对象只读契约：调用方仅读（渲染层只读不写）；需改者先浅拷贝。
+//  _memoCap 防止长会话键无限累积（超限整体清空——键内已含写版本，清空仅损失命中）。
+const _aggMemo = new Map();
+const _MEMO_CAP = 48;
+function _memoGet(key) {
+  return _aggMemo.has(key) ? _aggMemo.get(key) : undefined;
+}
+function _memoSet(key, value) {
+  if (_aggMemo.size > _MEMO_CAP) _aggMemo.clear();
+  _aggMemo.set(key, value);
+  return value;
+}
+/** 源数组长度指纹（读 mockDB 长度 O(1)，不复制；防禁改路径（mock-adapter 直写等）length 变化兜底） */
+function _len(arr) {
+  return Array.isArray(arr) ? arr.length : 0;
+}
+/** 复合键工具：token + length 成对参与 */
+function _pair(token, arr) {
+  return `${token}:${tokenOf(token)}+${_len(arr)}`;
+}
+/** SecretaryOverviewStore 四维度读源指纹（考勤/活动/考察/专班/复盘/通知） */
+function _overviewFp() {
+  return [
+    'attendance', 'activity', 'inspection', 'taskforce', 'activityReview', 'notice',
+  ].map(t => _pair(t, mockDB[{
+    attendance: 'attendances', activity: 'activities', inspection: 'inspections',
+    taskforce: 'taskforces', activityReview: 'activityReviews', notice: 'notices',
+  }[t]])).join(',');
+}
+/** SecretaryTodoDeriver 8 组读源指纹（活动/考勤/考察/活动复盘/档案记录） */
+function _deriverFp() {
+  return [
+    'activity', 'attendance', 'inspection', 'activityReview', 'archiveRecord',
+  ].map(t => _pair(t, mockDB[{
+    activity: 'activities', attendance: 'attendances', inspection: 'inspections',
+    activityReview: 'activityReviews', archiveRecord: 'archiveRecords',
+  }[t]])).join(',');
+}
+/** 按人视图读源指纹（活动/专班 + 待办 todo token + 日期） */
+function _personFp() {
+  return `${_pair('activity', mockDB.activities)},${_pair('taskforce', mockDB.taskforces)},todo:${tokenOf('todo')},day:${_today()}`;
+}
+
+// ════════════════════════════════════════════════════════════════
 //  SecretaryOverviewStore — 四维度概况聚合
 // ════════════════════════════════════════════════════════════════
 
@@ -56,15 +104,19 @@ export const SecretaryOverviewStore = {
 
   /**
    * 获取书记全局概况（四维度）
+   * P0：复合键缓存（读源 token + 长度指纹；⚠️ 返回值只读契约，调用方仅读）。
    * @returns {{ attendance: Object, inspection: Object, activity: Object, propaganda: Object }}
    */
   getOverview() {
+    const key = 'overview:' + _overviewFp();
+    const hit = _memoGet(key);
+    if (hit !== undefined) return hit;
     const attendance = this._computeAttendance();
     const inspection = this._computeInspection();
     const activity   = this._computeActivity();
     const propaganda = this._computePropaganda();
 
-    return { attendance, inspection, activity, propaganda };
+    return _memoSet(key, { attendance, inspection, activity, propaganda });
   },
 
   // ── 按人视图：各角色在办概览（P-011 知情边界 / L1 条线视角） ──────
@@ -86,6 +138,8 @@ export const SecretaryOverviewStore = {
 
   /**
    * 按人视图数据聚合（L1 条线视角：上级看下级的条线在办）
+   * P0：seedTodos/refreshExpiredStatus 副作用每次执行（可能写 → 键自变），
+   * 其后以复合键缓存（活动/专班 token+长度 + todo token + 日期；⚠️ 返回值只读契约）。
    * @returns {Array<{
    *   role:string, label:string, personIds:string[], names:string,
    *   todoCount:number, overdueCount:number, todoGroups:Array,
@@ -97,11 +151,14 @@ export const SecretaryOverviewStore = {
   getPersonOverview() {
     seedTodos(); // 补齐种子待办（幂等），保证各角色在办口径与工作台一致
     TodoStore.refreshExpiredStatus();
+    const key = 'personOverview:' + _personFp();
+    const hit = _memoGet(key);
+    if (hit !== undefined) return hit;
     const today = _today();
     const activities = loadActivities();
     const taskforces = TaskForceRecordStore.list();
 
-    return this.PERSON_ROLES.map(cfg => {
+    const result = this.PERSON_ROLES.map(cfg => {
       const role = cfg.role;
       const people = PEOPLE.filter(p => p.role === role);
       const personIds = people.map(p => p.id);
@@ -147,6 +204,7 @@ export const SecretaryOverviewStore = {
         url: cfg.url,
       };
     });
+    return _memoSet(key, result);
   },
 
   // ── 维度1：考勤与纪律 ──────────────────────────────────────
@@ -311,9 +369,14 @@ export const SecretaryOverviewStore = {
 
 export const SecretaryTodoDeriver = {
 
-  /** 计算书记全部待办聚合卡（8 组；空组不展示，避免 0 条占位卡） */
+  /** 计算书记全部待办聚合卡（8 组；空组不展示，避免 0 条占位卡）
+   *  P0：复合键缓存（读源 token + 长度指纹；⚠️ 返回数组只读契约——调用方仅读，
+   *  需改（如加 hideActionBtn 标记）先浅拷贝——todo-tab 已按此消费）。 */
   computeAggregates() {
-    return [
+    const key = 'deriverAggs:' + _deriverFp() + ':day:' + _today();
+    const hit = _memoGet(key);
+    if (hit !== undefined) return hit;
+    const value = [
       ...this._aggAttendanceRemind(),
       ...this._aggInspectionRemind(),
       ...this._aggReviewRemind(),
@@ -323,6 +386,7 @@ export const SecretaryTodoDeriver = {
       ...this._aggReviewConfirm(),
       ...this._aggArchiveConfirm(),
     ].filter(g => g.count > 0);
+    return _memoSet(key, value);
   },
 
   /** 组装聚合组（groupKey = secretary:{actionKey}） */

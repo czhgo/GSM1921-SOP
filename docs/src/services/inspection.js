@@ -6,6 +6,7 @@
 import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS } from '../core/domain.js?v=20260903c';
 import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
+import { bumpToken } from '../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3）
 import { INSPECTION_RECORDS } from '../mock/index.js?v=20260903c';
 import { ACTIVITIES } from '../mock/activities.js?v=20260903c';
 import { getPersonById, getPersonName } from './person.js?v=20260903c';
@@ -31,6 +32,7 @@ export function loadActiveInspectionRecords() {
 
 export function saveInspectionRecords(records) {
   mockDB.inspections = [...records];
+  bumpToken('inspection'); // P0：考察写口统一 bump（录入/删除/纪检确认等均经本函数落库）
   persist();
 }
 

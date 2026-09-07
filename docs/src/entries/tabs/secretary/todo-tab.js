@@ -19,6 +19,7 @@ import { updateActivityReview } from '../../../services/review.js?v=20260903c';
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { mockDB } from '../../../core/domain.js?v=20260903c';
 import { persist } from '../../../core/data-adapter.js?v=20260903c';
+import { bumpToken } from '../../../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3）
 import { getPersonById, getPersonName } from '../../../services/person.js?v=20260903c';
 import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260903c';
 import { IssueStore } from '../../../services/issues.js?v=20260907a';
@@ -123,9 +124,9 @@ const _tab = createTodoTab({
   // 书记台以实时组为主（销项走一键确认/业务联动），不提供组删除
   onDeleteTodo: null,
   onBeforeRender: async () => {
-    // 补种子数据（幂等，仅行动类：设党小组组长等）；书记侧缺口/复核均为实时计算
+    // 补种子数据（幂等，仅行动类：设党小组组长等）；书记侧缺口/复核均为实时计算。
+    // P0 去重：refreshExpiredStatus 已由壳 renderContent 统一调用（本 tab 不再重复执行）。
     seedTodos();
-    TodoStore.refreshExpiredStatus();
     // 待答复汇报（书记 2026-08-10 裁定：答复类置顶待办）——预加载 issues 权威源
     await IssueStore.loadAll();
     _pendingReports = IssueStore.getSecretaryPendingReports();
@@ -511,6 +512,7 @@ function confirmGroup(group, api) {
     (mockDB.archiveRecords || []).forEach(r => {
       if (ids.has(r.id) && !r.secretaryConfirmedAt) { r.secretaryConfirmedAt = now; n++; }
     });
+    if (n > 0) bumpToken('archiveRecord'); // P0：书记归档复核写口（直写 mockDB → 显式 bump 失效聚合缓存）
     persist();
   } else {
     showToast('info', `暂不支持该聚合类型确认：${actionKey}`);

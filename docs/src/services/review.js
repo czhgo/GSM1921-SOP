@@ -7,6 +7,7 @@
 
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
+import { bumpToken } from '../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3）
 import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../mock/index.js?v=20260903c';
 import { ACTIVITIES } from '../mock/activities.js?v=20260903c';
 import { getPersonName } from './person.js?v=20260903c';
@@ -44,6 +45,7 @@ export function updateActivityReview(activityId, patch) {
   if (idx === -1) return null;
   records[idx] = { ...records[idx], ...patch };
   mockDB.activityReviews = records;
+  bumpToken('activityReview'); // P0：活动复盘写口 bump（批注/确认/书记复核等）
   persist();
   return records[idx];
 }
@@ -55,6 +57,7 @@ export function updateReviewById(id, patch) {
   if (idx !== -1) {
     records[idx] = { ...records[idx], ...patch };
     mockDB.activityReviews = records;
+    bumpToken('activityReview');
     persist();
     return records[idx];
   }
@@ -63,6 +66,7 @@ export function updateReviewById(id, patch) {
   if (idx === -1) return null;
   records[idx] = { ...records[idx], ...patch };
   mockDB.taskforceReviews = records;
+  bumpToken('taskforceReview');
   persist();
   return records[idx];
 }
@@ -70,6 +74,7 @@ export function updateReviewById(id, patch) {
 /** 新增活动复盘记录 */
 export function addActivityReview(record) {
   mockDB.activityReviews = [...loadActivityReviews(), record];
+  bumpToken('activityReview');
   persist();
   return record;
 }
@@ -77,6 +82,7 @@ export function addActivityReview(record) {
 /** 新增专班复盘记录（T-209 改进项①：组织委员提交专班复盘） */
 export function addTaskforceReview(record) {
   mockDB.taskforceReviews = [...loadTaskforceReviews(), record];
+  bumpToken('taskforceReview');
   persist();
   return record;
 }

@@ -6,6 +6,7 @@
 import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260903c';
 import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
+import { bumpToken } from '../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3）
 import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260903c';
 import { ACTIVITIES } from '../mock/activities.js?v=20260903c';
 import { PersonStore, getPersonById, getPersonName } from './person.js?v=20260903c';
@@ -29,6 +30,7 @@ export function loadActiveAttendanceRecords() {
 
 export function saveAttendanceRecords(records) {
   mockDB.attendances = [...records];
+  bumpToken('attendance'); // P0：考勤写口统一 bump（纪检确认/组长上传/纪检录入等均经本函数落库）
   persist();
 }
 

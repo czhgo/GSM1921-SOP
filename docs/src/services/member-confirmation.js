@@ -20,6 +20,7 @@
 
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
+import { bumpToken } from '../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3）
 import { PersonStore, findRemovedRecord } from './person.js?v=20260903c';
 import { RESIDENCE, getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260903c';
 // 发展阶段枚举单一源（静态种子派生，禁造新枚举）
@@ -168,6 +169,7 @@ export function submitMemberChange({ personId, kind, to, note, by } = {}) {
     refsSummary: null,
   };
   mockDB.pendingMemberConfirmations = [..._all(), request];
+  bumpToken('memberConfirmation'); // P0：确权请求队列写口 bump（书记待办页成员确认组新鲜度）
   _save();
   return { ok: true, request };
 }
@@ -312,6 +314,7 @@ export async function submitTransferOut({ personId, by, note } = {}) {
     refsSummary: { safe: _summarize(safe), keep: _summarize(keep) },
   };
   mockDB.pendingMemberConfirmations = [..._all(), request];
+  bumpToken('memberConfirmation'); // P0：确权请求队列写口 bump
   _save();
   return { ok: true, direct: false, request };
 }
@@ -344,6 +347,7 @@ export async function decideConfirmation(reqId, { decision, by, note } = {}) {
     req.rejectNote = (note === undefined || note === null ? '' : String(note).trim()) || '书记未确认生效，请求已退回';
     all[idx] = req;
     mockDB.pendingMemberConfirmations = all;
+    bumpToken('memberConfirmation'); // P0：确权决策（退回）写口 bump
     _save();
     return { ok: true, request: { ...req } };
   }
@@ -352,6 +356,7 @@ export async function decideConfirmation(reqId, { decision, by, note } = {}) {
   req.status = 'approved';
   all[idx] = req;
   mockDB.pendingMemberConfirmations = all;
+  bumpToken('memberConfirmation'); // P0：确权决策（生效）写口 bump
   _save();
   return { ok: true, request: { ...req } };
 }
@@ -393,6 +398,8 @@ async function _applyApproved(req) {
 
 /** 清安全引用（未开始的活动分工行 / 未生效报名 / 未读广播接收；整数组替换，符合 Immutable 原则） */
 function _clearSafeRefs(safe) {
+  let touchedActivity = false;
+  let touchedSignup = false;
   for (const e of safe) {
     if (e.domain === 'activities') {
       const a = e.ref;
@@ -400,12 +407,17 @@ function _clearSafeRefs(safe) {
       mockDB.activities = mockDB.activities.map(x => (x === a
         ? { ...x, assignments: (x.assignments || []).filter(y => !(y && y.personId === e.row.personId)) }
         : x));
+      touchedActivity = true;
     } else if (e.domain === 'signups') {
       mockDB.signups = mockDB.signups.filter(s => s !== e.row);
+      touchedSignup = true;
     } else if (e.domain === 'committeeBroadcasts') {
       mockDB.committeeBroadcasts = mockDB.committeeBroadcasts.filter(b => b !== e.row);
     }
   }
+  // P0：跨域直写（绕过对应 service 写口）→ 显式 bump 供聚合缓存失效
+  if (touchedActivity) bumpToken('activity');
+  if (touchedSignup) bumpToken('signup');
 }
 
 /** 保留记录转「已转出」标注（transferredOutAt；原记录保留、不删不匿名） */
@@ -453,6 +465,14 @@ function _annotateTransferredOut(personId, at) {
     }
     return changed ? { ...t, members } : t;
   });
+  // P0：跨域直写（考勤/考察/复盘/专班/活动等绕过对应 service 写口）→ 显式 bump 供聚合缓存失效
+  bumpToken('attendance');
+  bumpToken('inspection');
+  bumpToken('activityReview');
+  bumpToken('taskforceReview');
+  bumpToken('taskforce');
+  bumpToken('signup');
+  bumpToken('activity');
 }
 
 /** 移出执行（书记确认 approved 时调用）：当下重扫 → 安全解除 + 保留标注 */

@@ -10,6 +10,7 @@
 
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
+import { bumpToken } from '../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3）
 import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260906j';
 
 // ── 交接类型元数据（from→to + 展示文案） ──
@@ -33,6 +34,7 @@ function _load() {
 }
 function _save(list) {
   mockDB.handoffs = [...list];
+  bumpToken('handoff'); // P0：交接写口统一 bump（发起/接收方确认）
   persist();
 }
 

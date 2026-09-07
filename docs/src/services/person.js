@@ -26,6 +26,8 @@
 // ════════════════════════════════════════════════════════════════
 
 import { mockDB } from '../core/domain.js?v=20260903c';
+// P0 域缓存失效（spec §二.3）：成员覆盖层写口 bump（书记台 semester-remind/成员组等读数新鲜度）
+import { bumpToken } from '../core/version-token.js?v=20260903c';
 // 修复（T175）：直接从 mock/people.js 导入 PEOPLE，
 // 断开 person.js ↔ mock/index.js 双向循环依赖（person.js 不再依赖 mock/index.js）
 import { PEOPLE } from '../mock/people.js?v=20260903c';
@@ -253,6 +255,7 @@ function _saveMemberOverlay({ upserts, removedIds }) {
       upserts,
       removedIds,
     }));
+    bumpToken('member'); // P0：成员档案覆盖层写口 bump（saveMember/removeMember/replaceBranchMembers 汇聚点）
     return true;
   } catch (_) { return false; }
 }

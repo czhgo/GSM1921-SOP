@@ -9,6 +9,7 @@
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
 import { generateId } from '../core/id.js?v=20260903c';
+import { bumpToken, tokenOf } from '../core/version-token.js?v=20260903c';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -246,11 +247,80 @@ function _loadTodos() {
 
 function _saveTodos(todos) {
   try {
+    // P0（2026-09-07）：写口统一写版本 +1（create/createBatch/update/delete/complete/refresh/
+    // seedTodos 等全部经 _saveTodos 落库路径；mockDB.todos 共享 → 版本存共享 token，跨 ?v= 模块实例一致）
+    bumpToken('todo');
     mockDB.todos = [...todos];
     persist();
   } catch (e) {
     console.warn('[TodoStore] 保存失败：', e);
   }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  P0 聚合级 memo（2026-09-07 提速批 · spec .trae/specs/2026-09-07-perf/spec.md §二.1/§二.2）
+//  内部写版本 _todoVersion：TodoStore 全部写口经 _saveTodos 统一 +1（含种子 seedTodos 路径）；
+//  聚合方法（getGroupedByAction/getDomainsWithGroups/mergeRealtimeDomains/getUnreadNotices）
+//  以「入参签名 + _todoVersion」做模块级缓存，命中直接返回缓存结果。
+//  ⚠️ 只读引用契约：命中返回同一结果引用——**返回值仅供只读渲染，禁止调用方修改**
+//  （需改返回数组者须自行浅拷贝后再改；mergeRealtimeDomains 已在内部克隆基准域视图后并入，
+//  不污染共享缓存）。todo.js 在浏览器存在多 ?v= 模块实例而 mockDB 共享 → 版本存共享
+//  version-token('todo')，跨模块实例写后失效一致。
+//  _aggCacheStats 为护栏测试读数（aggregateRuns=实际聚合执行次数；cacheHits=缓存命中次数）。
+const _aggCache = new Map();
+const _aggCacheStats = { aggregateRuns: 0, cacheHits: 0 };
+const _AGG_CACHE_MAX = 96;
+
+function _todoVersion() {
+  return tokenOf('todo');
+}
+
+// mergeRealtimeDomains 的实时组来源域指纹（域 token + mockDB 源数组长度）：
+// 实时组内容（如书记 8 组/纪检队列）可能在其 groupKey/count/deadline 不变时内容已变
+// （写口 bump → token 变 / 禁改路径 → 长度变）——合并缓存键必须纳入本指纹，杜绝陈旧命中。
+const _MERGE_SOURCE_LENS = [
+  ['attendance', 'attendances'],
+  ['activity', 'activities'],
+  ['inspection', 'inspections'],
+  ['activityReview', 'activityReviews'],
+  ['archiveRecord', 'archiveRecords'],
+  ['taskforce', 'taskforces'],
+  ['signup', 'signups'],
+  ['handoff', 'handoffs'],
+  ['memberConfirmation', 'pendingMemberConfirmations'],
+  ['notice', 'notices'],
+];
+function _mergeFp() {
+  return _MERGE_SOURCE_LENS
+    .map(([tok, arr]) => `${tok}:${tokenOf(tok)}+${Array.isArray(mockDB[arr]) ? mockDB[arr].length : 0}`)
+    .concat(`member:${tokenOf('member')}`)
+    .join(',');
+}
+
+function _aggCacheGet(key) {
+  const entry = _aggCache.get(key);
+  if (!entry || entry.v !== _todoVersion()) return undefined;
+  return entry.value;
+}
+
+function _aggCacheSet(key, value) {
+  if (_aggCache.size > _AGG_CACHE_MAX) {
+    const cur = _todoVersion();
+    for (const [k, e] of _aggCache) if (e.v !== cur) _aggCache.delete(k);
+  }
+  _aggCache.set(key, { v: _todoVersion(), value });
+  return value;
+}
+
+/** 聚合缓存统一读写：命中 → 计数并返回缓存引用；未命中 → 计数并计算（只读契约见上） */
+function _withAggCache(key, compute) {
+  const hit = _aggCacheGet(key);
+  if (hit !== undefined) {
+    _aggCacheStats.cacheHits++;
+    return hit;
+  }
+  _aggCacheStats.aggregateRuns++;
+  return _aggCacheSet(key, compute());
 }
 
 /** 今日 YYYY-MM-DD（聚合排序用） */
@@ -370,7 +440,80 @@ function _compareDomainGroups(a, b, today) {
   return String(a.actionKey || '').localeCompare(String(b.actionKey || ''));
 }
 
+/**
+ * 域折组核心聚合（P0 提速批 2026-09-07 抽出，供 getDomainsWithGroups 与
+ * mergeRealtimeDomains 复用——同轮多方法共享一次全扫结果，消除各自全扫）：
+ * role 视角 todos 一次扫描 → 域折组数组（域序=DOMAIN_ORDER、无活域不出、NONE 不入列；
+ * 域内 groups=actionKey 组聚合，组序=先逾期 → deadline → actionKey 稳定）。
+ */
+function _aggregateByRole(role, today) {
+  const todos = TodoStore.getByRole(role);
+  const buckets = new Map();
+  for (const d of DOMAIN_ORDER) buckets.set(d, []);
+  for (const t of todos) {
+    const d = _effDomain(t);
+    if (d === WORK_DOMAIN.NONE || !buckets.has(d)) continue; // NONE 走未读轻量区；未知域值忽略
+    buckets.get(d).push(t);
+  }
+  const view = [];
+  for (const d of DOMAIN_ORDER) {
+    const bucket = buckets.get(d);
+    if (bucket.length === 0) continue; // 无活域不出
+    const groups = _aggregateByAction(role, bucket, today);
+    groups.sort((a, b) => _compareDomainGroups(a, b, today));
+    view.push({
+      domain: d,
+      label: WORK_DOMAIN_LABELS[d],
+      count: bucket.length,
+      expiredCount: bucket.filter(t => _isGroupItemExpired(t, today)).length,
+      groups,
+    });
+  }
+  return view;
+}
+
+/** 实时组并入基准域视图的实现（P0：基准为共享缓存引用 → 本方法只浅克隆自身要改写的层，不污染缓存） */
+function _mergeRealtimeDomains(role, realtimeGroups, today) {
+  // 基准域视图为 TodoStore 聚合缓存共享引用 → 先浅克隆「域记录 + groups 数组」两层（只读契约）
+  const view = TodoStore.getDomainsWithGroups(role).map(d => ({ ...d, groups: [...(d.groups || [])] }));
+  const recByDomain = new Map(view.map(d => [d.domain, d]));
+  for (const g of realtimeGroups || []) {
+    if (!g || typeof g !== 'object') continue;
+    const domain = realtimeGroupDomainOf(g);
+    if (domain === WORK_DOMAIN.NONE || !DOMAIN_ORDER.includes(domain)) continue;
+    let rec = recByDomain.get(domain);
+    if (!rec) {
+      rec = { domain, label: WORK_DOMAIN_LABELS[domain], count: 0, expiredCount: 0, groups: [] };
+      recByDomain.set(domain, rec);
+      view.push(rec); // 追加后再按 DOMAIN_ORDER 统一归位
+    }
+    // 同 groupKey 已存在（持久化组或前序实时组）→ 去重，避免同组双卡
+    if (g.groupKey && rec.groups.some(x => x.groupKey === g.groupKey)) continue;
+    // 实时组可能只带条目 deadline（如 _mcConfirmAgg 无组级 deadline）：归一并入副本（不改写入参），
+    // 使域内组排序「按 deadline」与持久化组口径一致（组 deadline=组内最早截止）
+    const grp = { ...g };
+    if (!grp.deadline && Array.isArray(grp.items)) {
+      for (const it of grp.items) {
+        if (it && it.deadline && (!grp.deadline || it.deadline < grp.deadline)) grp.deadline = it.deadline;
+      }
+    }
+    rec.groups.push(grp);
+    const itemLen = Array.isArray(g.items) ? g.items.length : 0;
+    rec.count += typeof g.count === 'number' ? g.count : itemLen;
+    rec.expiredCount += _groupExpiredCount(g, today);
+  }
+  // 域序固定（含新增域）+ 域内组按同一排序规则归位
+  view.sort((a, b) => DOMAIN_ORDER.indexOf(a.domain) - DOMAIN_ORDER.indexOf(b.domain));
+  for (const rec of view) {
+    rec.groups.sort((a, b) => _compareDomainGroups(a, b, today));
+  }
+  return view;
+}
+
 export const TodoStore = {
+  // ── P0 自检只读暴露（护栏测试 perf-todo-agg-cache 读数：实际聚合执行/缓存命中次数）──
+  _aggCacheStats,
+
   // ── 查询 ──────────────────────────────────────────────────
 
   /** 获取全部待办 */
@@ -522,116 +665,79 @@ export const TodoStore = {
 
   /**
    * 按「角色+业务动作」聚合（展示层聚合，同跳转目标合并为一条聚合卡）
+   * P0：以 (role, _todoVersion, 日期) 复合键模块级缓存——命中返回缓存引用（只读契约：
+   * 返回值仅供只读渲染，禁止调用方修改；需改者先浅拷贝）。
    * @param {string} role
    * @returns {Array<{groupKey, actionKey, title, category, actionType, actionData, deadline, flow, count, items}>}
    */
   getGroupedByAction(role) {
-    return _aggregateByAction(role, this.getByRole(role), _todayStr());
+    return _withAggCache(`byAction:${role}:${_todayStr()}`, () =>
+      _aggregateByAction(role, this.getByRole(role), _todayStr())
+    );
   },
 
   /**
    * 按业务域聚合视图（IA 收敛 C1 Task3，供 9 域折组）：域序=DOMAIN_ORDER（无活域不出、
-   * NONE 通知不入普通域列表）；域内 groups=复用 getGroupedByAction 的 actionKey 组聚合
-   * （含标题/deadline/items），组排序=先逾期 → deadline → actionKey 稳定。
-   * 域级 count=该域未完成条数；expiredCount=该域逾期条数。
+   * NONE 通知不入普通域列表）；域内 groups=复用 actionKey 组聚合（含标题/deadline/items），
+   * 组排序=先逾期 → deadline → actionKey 稳定。域级 count=该域未完成条数；
+   * expiredCount=该域逾期条数。
+   * P0：以 (role, _todoVersion, 日期) 复合键模块级缓存——命中返回缓存引用
+   * （⚠️ 只读契约：返回值仅供只读渲染，禁止调用方修改；mergeRealtimeDomains 内部已克隆）。
    * @param {string} role
    * @returns {Array<{domain, label, count, expiredCount, groups: Array}>}
    */
   getDomainsWithGroups(role) {
-    const todos = this.getByRole(role);
-    const today = _todayStr();
-    const buckets = new Map();
-    for (const d of DOMAIN_ORDER) buckets.set(d, []);
-    for (const t of todos) {
-      const d = _effDomain(t);
-      if (d === WORK_DOMAIN.NONE || !buckets.has(d)) continue; // NONE 走未读轻量区；未知域值忽略
-      buckets.get(d).push(t);
-    }
-    const view = [];
-    for (const d of DOMAIN_ORDER) {
-      const bucket = buckets.get(d);
-      if (bucket.length === 0) continue; // 无活域不出
-      const groups = _aggregateByAction(role, bucket, today);
-      groups.sort((a, b) => _compareDomainGroups(a, b, today));
-      view.push({
-        domain: d,
-        label: WORK_DOMAIN_LABELS[d],
-        count: bucket.length,
-        expiredCount: bucket.filter(t => _isGroupItemExpired(t, today)).length,
-        groups,
-      });
-    }
-    return view;
+    return _withAggCache(`domains:${role}:${_todayStr()}`, () => _aggregateByRole(role, _todayStr()));
   },
 
   /**
    * 未读通知（页顶「未读 N 条」轻量区数据源，C1 Task3/Task4）：domain=NONE 的「通知阅读」
    * 类未完成待办（category=notice），按 deadline（无则 createdAt）倒序——书记规则：带时间字段
    * 列示一律时间倒序（最新在前）；同位次 createdAt 倒序保稳定。
+   * P0：同 getDomainsWithGroups 复合键缓存（⚠️ 返回值只读引用契约，禁止调用方修改）。
    * @param {string} role
    * @returns {Array} 未读通知待办（未完成）
    */
   getUnreadNotices(role) {
-    const notices = this.getByRole(role).filter(t =>
-      _effDomain(t) === WORK_DOMAIN.NONE && t.category === TodoCategory.NOTICE
-    );
-    notices.sort((a, b) => {
-      const ka = a.deadline || a.createdAt || '';
-      const kb = b.deadline || b.createdAt || '';
-      const c = kb.localeCompare(ka);
-      if (c !== 0) return c;
-      const ca = a.createdAt || '';
-      const cb = b.createdAt || '';
-      if (ca !== cb) return cb.localeCompare(ca);
-      return 0;
+    return _withAggCache(`unread:${role}:${_todayStr()}`, () => {
+      const notices = this.getByRole(role).filter(t =>
+        _effDomain(t) === WORK_DOMAIN.NONE && t.category === TodoCategory.NOTICE
+      );
+      notices.sort((a, b) => {
+        const ka = a.deadline || a.createdAt || '';
+        const kb = b.deadline || b.createdAt || '';
+        const c = kb.localeCompare(ka);
+        if (c !== 0) return c;
+        const ca = a.createdAt || '';
+        const cb = b.createdAt || '';
+        if (ca !== cb) return cb.localeCompare(ca);
+        return 0;
+      });
+      return notices;
     });
-    return notices;
   },
 
   /**
    * 实时组并入域视图（C1 Task4 融合点，最小实现）：书记/纪检等不落库的实时聚合组
    * （组对象带 domain 标注，缺省按 realtimeGroupDomainOf 推断）并入 getDomainsWithGroups 输出——
    * 纯实时域按 DOMAIN_ORDER 新增、域内组按同一排序规则归位、同 groupKey 去重、domain=NONE 不入。
-   * 不改写入参；供 todo-tab 组装「未读条 + 9 域折组」时把实时组并入对应域。
+   * P0：基准 getDomainsWithGroups 走同轮缓存（不再内部重复全扫）；并入在克隆后的基准上进行
+   * （不污染共享缓存）；整体以 (role, 实时组指纹, _todoVersion, 日期) 复合键缓存——命中返回
+   * 缓存引用（⚠️ 只读契约：返回值仅供只读渲染，禁止调用方修改）。不改写入参。
    * @param {string} role
    * @param {Array} [realtimeGroups]
    * @returns {Array} 合并后的域视图（结构同 getDomainsWithGroups）
    */
   mergeRealtimeDomains(role, realtimeGroups = []) {
-    const view = this.getDomainsWithGroups(role);
     const today = _todayStr();
-    const recByDomain = new Map(view.map(d => [d.domain, d]));
-    for (const g of realtimeGroups || []) {
-      if (!g || typeof g !== 'object') continue;
-      const domain = realtimeGroupDomainOf(g);
-      if (domain === WORK_DOMAIN.NONE || !DOMAIN_ORDER.includes(domain)) continue;
-      let rec = recByDomain.get(domain);
-      if (!rec) {
-        rec = { domain, label: WORK_DOMAIN_LABELS[domain], count: 0, expiredCount: 0, groups: [] };
-        recByDomain.set(domain, rec);
-        view.push(rec); // 追加后再按 DOMAIN_ORDER 统一归位
-      }
-      // 同 groupKey 已存在（持久化组或前序实时组）→ 去重，避免同组双卡
-      if (g.groupKey && rec.groups.some(x => x.groupKey === g.groupKey)) continue;
-      // 实时组可能只带条目 deadline（如 _mcConfirmAgg 无组级 deadline）：归一并入副本（不改写入参），
-      // 使域内组排序「按 deadline」与持久化组口径一致（组 deadline=组内最早截止）
-      const grp = { ...g };
-      if (!grp.deadline && Array.isArray(grp.items)) {
-        for (const it of grp.items) {
-          if (it && it.deadline && (!grp.deadline || it.deadline < grp.deadline)) grp.deadline = it.deadline;
-        }
-      }
-      rec.groups.push(grp);
-      const itemLen = Array.isArray(g.items) ? g.items.length : 0;
-      rec.count += typeof g.count === 'number' ? g.count : itemLen;
-      rec.expiredCount += _groupExpiredCount(g, today);
-    }
-    // 域序固定（含新增域）+ 域内组按同一排序规则归位
-    view.sort((a, b) => DOMAIN_ORDER.indexOf(a.domain) - DOMAIN_ORDER.indexOf(b.domain));
-    for (const rec of view) {
-      rec.groups.sort((a, b) => _compareDomainGroups(a, b, today));
-    }
-    return view;
+    // 实时组指纹（groupKey+计数+截止）+ 来源域指纹（域 token + 源长度）——
+    // 写口 bump / 源长度变化均使合并缓存键变化（防止 groupKey/count 不变时内容已变的陈旧命中）
+    const rtSig = (realtimeGroups || []).map(g =>
+      `${(g && g.groupKey) || ''}:${typeof g === 'object' && typeof g.count === 'number' ? g.count : (g && Array.isArray(g.items) ? g.items.length : 0)}:${(g && g.deadline) || ''}`
+    ).join('|');
+    return _withAggCache(`merge:${role}:${today}:${_mergeFp()}:${rtSig}`, () =>
+      _mergeRealtimeDomains(role, realtimeGroups || [], today)
+    );
   },
 
   /** 按来源批量标记完成（业务操作联动：纪检确认考勤→销对应待办等） */

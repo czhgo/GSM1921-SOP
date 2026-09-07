@@ -12,6 +12,7 @@
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { generateId } from '../core/id.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
+import { bumpToken } from '../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3）
 import { SEED_SIGNUPS } from '../mock/seed.js?v=20260903c';
 import { getPersonById } from './person.js?v=20260903c';
 import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from './todo.js?v=20260906j';
@@ -48,6 +49,7 @@ function _loadSignups() {
 }
 function _saveSignups(records) {
   mockDB.signups = [...records];
+  bumpToken('signup'); // P0：报名写口统一 bump（apply/review/cancel/init 落库均经本函数）
   persist();
 }
 

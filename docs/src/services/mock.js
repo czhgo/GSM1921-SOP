@@ -8,6 +8,7 @@
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { generateId } from '../core/id.js?v=20260903c';
 import { getDataSource } from '../core/data-adapter.js?v=20260903c';
+import { bumpToken, resetAllTokens } from '../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3/§二.4）
 // Mock 持久化/种子引擎（saveDB/loadDB/seed 同步）收敛到 core/mock-adapter.js 唯一实现
 // （T-2026-09-007 Step1：services 版私有引擎曾与 mock-adapter 同 Key 双写并缺
 //   imageRecords/agendaVotes 等新域恢复 → 刷新即丢；现统一由 MockAdapter 承担全量 26 域）
@@ -47,9 +48,13 @@ export function loadDB() {
   if (getDataSource() === 'api') {
     // 持久化守卫解锁：API 模式数据由 data-adapter.init() 填充，允许本地备份写
     mockDB._loaded = true;
+    resetAllTokens(); // P0：整体数据导入（server 全量填充）= 全源重载 → 聚合缓存全域失效重算
     return;
   }
   MockAdapter.loadDB();
+  // P0 重置/overlay 导入路径（mock-adapter 禁改 → 由本可改入口兜底）：loadDB 会整体恢复/
+  // 重播种 mockDB（含 ?reset= 清理路径）→ 清空域写版本戳，聚合复合键归零自然重算。
+  resetAllTokens();
 }
 
 /** 包装为带固定延迟的 Promise */
@@ -83,6 +88,7 @@ export function createActivity(data) {
     };
     // Immutable 写入：展开符替换整个数组，禁止 push/splice
     mockDB.activities = [...mockDB.activities, newItem];
+    bumpToken('activity'); // P0：活动生命周期写口 bump（可改处；mock-adapter 触发路径禁改→依赖长度指纹兜底）
     saveDB();
     console.info('[MockAdapter] createActivity 成功，id=' + newItem.id
       + '，当前 activities 总数：' + mockDB.activities.length);
@@ -126,6 +132,7 @@ export function updateActivity(id, patch) {
       updated,
       ...mockDB.activities.slice(idx + 1),
     ];
+    bumpToken('activity'); // P0：活动写口 bump（议程/状态/归档标记等修改统一失效聚合缓存）
     // 2026-09-01 点验修复：此前 updateActivity 缺 saveDB，议程记录/状态修改等
     // 所有经 BranchService 的活动更新都不落库（刷新即失）；补齐与 createActivity 一致。
     saveDB();
@@ -146,6 +153,7 @@ export function deleteActivity(id) {
     if (mockDB.activities.length === prev) {
       throw Object.assign(new Error(`活动 ${id} 不存在`), { type: 'NotFoundError' });
     }
+    bumpToken('activity'); // P0：活动删除写口 bump
     saveDB();
     console.info('[MockAdapter] deleteActivity 成功，id=' + id);
     // 联动删除关联待办（避免遗留孤儿待办）
@@ -173,6 +181,12 @@ function _purgeActivityChildren(activityId) {
   if (Array.isArray(mockDB.notices)) {
     mockDB.notices = mockDB.notices.filter(n => !(n.targetType === 'activity' && n.targetId === activityId));
   }
+  // P0：活动删除联动清理会改旁路子域 → 一并 bump（考勤/考察/活动复盘/报名/通知聚合缓存失效）
+  bumpToken('attendance');
+  bumpToken('inspection');
+  bumpToken('activityReview');
+  bumpToken('signup');
+  bumpToken('notice');
   saveDB();
 }
 
@@ -195,6 +209,7 @@ export function archiveActivity(id) {
       archived,
       ...mockDB.activities.slice(idx + 1),
     ];
+    bumpToken('activity'); // P0：活动归档写口 bump（mock-adapter 触发路径禁改→长度指纹兜底）
     // 级联归档：将所有下属 Task 的 status 设为 completed（消灭孤儿任务）
     mockDB.tasks = mockDB.tasks.map(t =>
       t.activityId === id && t.status !== 'completed' ? { ...t, status: 'completed' } : t
@@ -230,6 +245,7 @@ export function toggleBrand(id) {
       updated,
       ...mockDB.activities.slice(idx + 1),
     ];
+    bumpToken('activity'); // P0：活动写口 bump（品牌标记）
     saveDB();
     console.info('[MockAdapter] toggleBrand 成功，id=' + id + '，isBrand=' + updated.isBrand);
     return updated;

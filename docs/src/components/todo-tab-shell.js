@@ -19,6 +19,39 @@ import { renderDomainTodoList } from './todo-list.js?v=20260906j';
 import { badgeHtml } from './badges.js?v=20260903c';
 import { showToast } from '../core/utils.js?v=20260903c';
 import { solidAccentStyle } from '../core/constants.js?v=20260903c';
+import { mockDB } from '../core/domain.js?v=20260903c';
+import { tokenOf } from '../core/version-token.js?v=20260903c'; // P0 域写版本戳（spec §二.4）
+
+// ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
+// 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
+// 「各域写版本戳 tokenOf + 各源数组 length + todo 写版本 + 日期」为键记忆化：
+// 未写 → 直接复用上次组合结果（⚠️ 返回对象只读契约——调用方仅读渲染）；
+// 数据变化经写口 bump / 源数组长度指纹触发键变重算（含禁改 adapter 直写路径的 length 兜底）。
+// role 每壳固定（createTodoTab 单角色实例）仍纳入键，防未来同壳复用。
+const _COMBO_LEN_KEYS = [
+  ['attendance', 'attendances'],
+  ['activity', 'activities'],
+  ['inspection', 'inspections'],
+  ['activityReview', 'activityReviews'],
+  ['archiveRecord', 'archiveRecords'],
+  ['taskforce', 'taskforces'],
+  ['resolution', null], // 决议 = 活动 agenda 内嵌：activities 长度 + activity/resolution 令牌已覆盖
+  ['signup', 'signups'],
+  ['handoff', 'handoffs'],
+  ['memberConfirmation', 'pendingMemberConfirmations'],
+  ['notice', 'notices'],
+];
+function _comboKeyOf(role) {
+  const parts = _COMBO_LEN_KEYS.map(([tok, arr]) => {
+    const len = arr ? (Array.isArray(mockDB[arr]) ? mockDB[arr].length : '') : '';
+    return len === '' ? `${tok}=${tokenOf(tok)}` : `${tok}=${tokenOf(tok)}+${len}`;
+  });
+  parts.push(`todo=${tokenOf('todo')}`);
+  parts.push(`member=${tokenOf('member')}`);
+  parts.push(`day=${new Date().toISOString().slice(0, 10)}`);
+  parts.push(`role=${role}`);
+  return parts.join(',');
+}
 
 /**
  * 创建待办 tab 壳实例
@@ -66,6 +99,9 @@ export function createTodoTab(opts) {
 
   // 私有状态（随壳实例自持，不污染入口——与原模块级私有状态等价）
   let _selectedTodoId = null;
+  // P0 组合点记忆化（每实例自持：复合键未变 → 复用上次组合数据对象；只读契约，见 _comboKeyOf 注释）
+  let _lastComboKey = null;
+  let _lastCombo = null; // { domains, allGroups, unreadNotices }
 
   /** U3（2026-09-07）待办两栏等高骨架（await onBeforeRender/数据聚合期间占位；styles.css 禁改不碰） */
   function _todoShellSkeletonHtml() {
@@ -186,17 +222,29 @@ export function createTodoTab(opts) {
     // 渲染前钩子（书记：seedTodos + 异步预载待答复汇报等）
     if (onBeforeRender) await onBeforeRender(ctx);
 
-    // 刷新过期状态
+    // 刷新过期状态（P0 渲染链去重后唯一入口：各 todo-tab 的 onBeforeRender 不再重复调用；
+    // 有实际变更 → TodoStore 写版本 +1 → 聚合缓存/组合键随之失效重算）
     TodoStore.refreshExpiredStatus();
 
-    // 域视图：持久化待办按域聚合 + 各台实时聚合组并入对应域（IA-C1 Task4 融合点）
-    const realtimeGroups = buildRealtimeGroups ? (buildRealtimeGroups(ctx) || []) : [];
-    const domains = TodoStore.mergeRealtimeDomains(role, realtimeGroups);
-    // 全部组（选中态查找；含持久化聚合组与并入的实时组）
-    const allGroups = [];
-    for (const d of domains) {
-      if (Array.isArray(d.groups)) allGroups.push(...d.groups);
+    // P0 组合点记忆化：域视图数据（realtimeGroups 并入 + 未读通知）复合键未变 → 直接复用
+    const comboKey = _comboKeyOf(role);
+    let combo;
+    if (comboKey === _lastComboKey && _lastCombo) {
+      combo = _lastCombo;
+    } else {
+      const rtGroups = buildRealtimeGroups ? (buildRealtimeGroups(ctx) || []) : [];
+      const domains = TodoStore.mergeRealtimeDomains(role, rtGroups);
+      // 全部组（选中态查找；含持久化聚合组与并入的实时组）
+      const allGroups = [];
+      for (const d of domains) {
+        if (Array.isArray(d.groups)) allGroups.push(...d.groups);
+      }
+      const unreadNotices = TodoStore.getUnreadNotices(role);
+      combo = { domains, allGroups, unreadNotices };
+      _lastComboKey = comboKey;
+      _lastCombo = combo;
     }
+    const { domains, allGroups, unreadNotices } = combo;
 
     // 自动选中首条（书记 2026-08-10 裁定推广）：进入待办即见第一条详情，减一次点击
     if (!_selectedTodoId && allGroups.length > 0) {
@@ -239,8 +287,7 @@ export function createTodoTab(opts) {
       emptyHint,
     });
 
-    // 未读通知条（无未读 → 整条隐藏）
-    const unreadNotices = TodoStore.getUnreadNotices(role);
+    // 未读通知条（无未读 → 整条隐藏；数据来自 P0 组合点记忆化结果，见上）
     const unreadHtml = unreadNotices.length > 0 ? _unreadBarHtml(unreadNotices) : '';
 
     const detailHtml = selectedTodo

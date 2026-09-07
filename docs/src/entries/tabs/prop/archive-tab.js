@@ -7,6 +7,7 @@ import { solidAccentStyle } from '../../../core/constants.js?v=20260903c';
 import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate } from '../../../core/utils.js?v=20260903c';
 import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260903c';
 import { mockDB } from '../../../core/domain.js?v=20260903c';
+import { bumpToken } from '../../../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3）
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { isApiMode } from '../../../services/runtime.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
@@ -301,6 +302,7 @@ async function _deleteArchiveFile(record) {
     }
   }
   mockDB.archiveRecords = mockDB.archiveRecords.filter(r => r.id !== record.id);
+  bumpToken('archiveRecord'); // P0：档案材料删除写口
   persist();
   return true;
 }
@@ -401,6 +403,7 @@ function _showArchiveAdvancePopover(record, triggerBtn, ctx) {
       record._checklistState = { checked: checkedCount, total: totalCount };
     }
     record.status = nextStatus;
+    bumpToken('archiveRecord'); // P0：档案状态推进写口（pending→in_progress→archived，长度不变须显式 bump）
     persist();
     closePopover();
     showToast('success', `「${record.activityName}」${nextLabel}${isStart ? '，请按材料标准准备' : ''}`);
@@ -722,7 +725,10 @@ async function _handleArchiveUpload(files, activityId, activityName, category) {
     }
   }
 
-  if (saved > 0) persist();
+  if (saved > 0) {
+    bumpToken('archiveRecord'); // P0：档案材料上传写口
+    persist();
+  }
   return saved;
 }
 

@@ -7,6 +7,7 @@
 
 import { mockDB } from '../core/domain.js?v=20260903c';
 import { persist } from '../core/data-adapter.js?v=20260903c';
+import { bumpToken } from '../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3）
 import { MOCK_NOTICES } from '../mock/index.js?v=20260903c';
 import { showToast, getBasePath } from '../core/utils.js?v=20260903c';
 import { AuthStore } from './auth.js?v=20260903c';
@@ -27,6 +28,7 @@ function _loadNotices() {
 function _saveNotices(notices) {
   try {
     mockDB.notices = [...notices];
+    bumpToken('notice'); // P0：通知写口统一 bump（发布/编辑/删除/归档/标记已读）
     persist();
   } catch (e) {
     console.warn('[NoticeStore] 保存失败：', e);

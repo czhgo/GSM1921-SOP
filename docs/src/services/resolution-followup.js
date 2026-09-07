@@ -16,6 +16,8 @@
 // ════════════════════════════════════════════════════════════════
 
 import { generateId } from '../core/id.js?v=20260903c';
+import { mockDB } from '../core/domain.js?v=20260903c';
+import { bumpToken, tokenOf } from '../core/version-token.js?v=20260903c'; // P0 域缓存失效（spec §二.3/§二.4）
 import {
   TodoStore, TodoStatus, TodoCategory, TodoActionType, TodoSourceType, REALTIME_GROUP_DOMAIN,
 } from './todo.js?v=20260906j';
@@ -172,6 +174,7 @@ export async function saveFollowups({ activityId, agendaItemId, followups, actor
   const clean = _cleanRows(followups, actorId, now);
   const updated = await _persistItem(activityId, agendaItemId, (item) => ({ ...item, followups: clean }));
   _resyncTodos(updated, agendaItemId);
+  bumpToken('resolution'); // P0：决议跟进写口 bump（决议=活动 agenda 内嵌；saveFollowups 整组替换）
   return updated;
 }
 
@@ -185,6 +188,7 @@ export async function completeFollowup({ activityId, agendaItemId, followupId, a
   }));
   const todo = _openTodoOf(activityId, followupId);
   if (todo) TodoStore.update(todo.id, { status: TodoStatus.COMPLETED, completedAt: now });
+  bumpToken('resolution'); // P0：决议跟进写口 bump（销项）
   return updated;
 }
 
@@ -200,6 +204,7 @@ export async function reopenFollowup({ activityId, agendaItemId, followupId, act
   const fu = (item.followups || []).find((f) => f.id === followupId);
   const payload = buildFollowupTodoPayload({ activity: updated, agendaItem: item, followup: fu });
   if (payload && !_openTodoOf(activityId, followupId)) TodoStore.create(payload);
+  bumpToken('resolution'); // P0：决议跟进写口 bump（恢复待落实）
   return updated;
 }
 
@@ -263,7 +268,17 @@ export function buildOverdueRemindGroup(activities, today) {
   };
 }
 
-/** 供书记台聚合的现读入口（mockDB/种子活动都吃；未逾期返回 null） */
+/** 供书记台聚合的现读入口（mockDB/种子活动都吃；未逾期返回 null）。
+ *  P0（2026-09-07 · spec §二.4）：复合键 = tokenOf('activity') + activities 长度 +
+ *  tokenOf('resolution') + 日期 —— 未变返回上次结果（⚠️ 返回对象只读契约，调用方仅读）；
+ *  变化经写口 bump（mock.js 活动写口 / 本文件 resolution 写口）或源数组长度指纹触发重算。 */
+const _overdueMemo = new Map();
 export function buildOverdueRemindGroupNow() {
-  return buildOverdueRemindGroup(loadActivities(), new Date().toISOString().slice(0, 10));
+  const day = new Date().toISOString().slice(0, 10);
+  const key = `${tokenOf('activity')}:${mockDB.activities.length}:${tokenOf('resolution')}:${day}`;
+  if (_overdueMemo.has(key)) return _overdueMemo.get(key);
+  const value = buildOverdueRemindGroup(loadActivities(), day);
+  if (_overdueMemo.size > 24) _overdueMemo.clear();
+  _overdueMemo.set(key, value);
+  return value;
 }
