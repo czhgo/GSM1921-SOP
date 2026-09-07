@@ -60,15 +60,14 @@ function _buildDiscRealtimeGroups() {
 
 function _handleTodoAction(todo) {
   // 2026-08-07 闭环化：聚合对象优先按 actionKey 跳转（区分同 actionType 的业务域），普通明细按 actionType 兜底
+  // 无生产者残留键清理（IA-C1 Task5 登记 2026-09-06）：review-submit/review-confirm/submit/confirm 旧键
+  // 均无派生器移除（纪检台现派生=实时考勤/考察待确认组 + handoff-material-shortage 补课回执，
+  // 均带 actionKey；actionType 兜底仅余 review 供 signup-review 未直跳等边界）——未知键落 else「请处理」。
   const jump = {
     'attendance-confirm': { tab: 'attendance', label: '考勤管理' },
     'inspection-confirm': { tab: 'inspection', label: '考察管理' },
-    'review-submit':      { tab: 'review', label: '活动监督复盘' },
-    'review-confirm':     { tab: 'review', label: '活动监督复盘' },
     'handoff-material-shortage': { tab: 'makeup', label: '补课制度' },
     review:   { tab: 'review', label: '活动监督复盘' },
-    submit:   { tab: 'attendance', label: '考勤管理' },
-    confirm:  { tab: 'inspection', label: '考察管理' },
   };
   const target = jump[todo.actionKey] || jump[todo.actionType];
   if (target) {

@@ -2,7 +2,6 @@
 // 组长工作台 Tab：待办（T-279 M2 拆分；T-304 代码减负 2026-08-30：骨架并入 todo-tab-shell）
 // 最小三成本原则落地：进入即见首条详情，减一次点击。
 
-import { TodoStore } from '../../../services/todo.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260903c';
 import { tryDirectJump } from '../../../components/todo-jump.js?v=20260903c';
@@ -11,18 +10,14 @@ function _handleTodoAction(todo, ctx) {
   // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/todo-jump.js（2026-09-04）
   if (tryDirectJump(todo)) return;
   // 根据 actionType 跳转到对应 tab
-  // 2026-08-24 T-280-B1 实测修复：actionKey 优先（同 actionType 多业务域区分，
-  // 对齐 disc todo-tab 的 actionKey 级 tabMap）——review-submit 归复盘提交而非考勤上传
-  const actionKeyMap = {
-    'attendance-upload': 'attendance',
-    'review-submit': 'review',
-  };
+  // 无生产者残留键清理（IA-C1 Task5 登记 2026-09-06）：actionKey 级 attendance-upload/review-submit
+  // 与 actionType submit（考勤上传）旧键均无派生器（组长赋权=activity-authorize、报名审核=signup-review
+  // 走 tryDirectJump 优先直达），仅余 authorize/review 兜底——未知键落下方 else「请处理」提示。
   const tabMap = {
     authorize: 'write',
-    submit: 'attendance',
     review: 'review',
   };
-  const targetTab = (todo.actionKey && actionKeyMap[todo.actionKey]) || tabMap[todo.actionType];
+  const targetTab = tabMap[todo.actionType];
   if (targetTab) {
     // 激活对应 tab
     const btn = document.querySelector(`.leader-tab-btn[data-leader-tab="${targetTab}"]`);
@@ -42,7 +37,7 @@ function _handleTodoAction(todo, ctx) {
         if (++tries > 40) clearInterval(timer); // 4s 超时（懒加载渲染 + 重建窗口）
       }, 100);
     }
-    const tabLabel = { write: '活动写入', attendance: '考勤上传', review: '复盘提交' }[targetTab] || '';
+    const tabLabel = { write: '活动写入', review: '复盘提交' }[targetTab] || '';
     showToast('info', `已跳转到${tabLabel}，请处理：${todo.title}`);
   } else {
     showToast('info', `请处理：${todo.title}`);

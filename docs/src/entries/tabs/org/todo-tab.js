@@ -2,7 +2,6 @@
 // 组织委员工作台 Tab：待办（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 todo-tab-shell）
 // 最小三成本原则落地：进入即见首条详情，减一次点击。
 
-import { TodoStore } from '../../../services/todo.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260903c';
 import { tryDirectJump } from '../../../components/todo-jump.js?v=20260903c';

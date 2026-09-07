@@ -526,8 +526,9 @@ function confirmGroup(group, api) {
 function handleTodoAction(todo, ctx) {
   // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/todo-jump.js（2026-09-04）
   if (tryDirectJump(todo)) return;
-  // B批 3.2-1：旧「专班发起书记单人审批」待办不再派生（专班发起已改支委会表决，R3-1）。
-  // 兼容处理旧存量：打开即提示并销该待办，引导到本页「专班待议（支委会）」区。
+  // 无生产者残留键登记（IA-C1 Task5 2026-09-06）：taskforce-approval 旧「专班发起书记单人审批」
+  // 待办不再派生（专班发起已改支委会表决，R3-1）；保留兼容处理旧存量：打开即提示并销该待办，
+  // 引导到本页「专班待议（支委会）」区。
   if (todo.actionKey === 'taskforce-approval') {
     const items = (todo.items && todo.items.length > 0) ? todo.items : (todo.id ? [todo] : []);
     showToast('info', '专班发起已改支委会表决：请到本页「专班待议（支委会）」区排入表决处理');
