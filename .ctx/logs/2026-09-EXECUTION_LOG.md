@@ -733,3 +733,11 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **P2 渲染守卫**：components/memoize-render.js memoizeRender（dataset.memoKey+内容存在→跳过重建保留状态/事件；marker 防跨 tab 误命中）；today-tab（键=日期+五源 token+length+member raw）、todo-tab-shell（P0 复合键+sel/issue 入键）、governance-overview（member/activity/支部行指纹）、calendar 四视图+首页紧凑月（view+月+活动 token+任务逐条签名兜底）接入；issues.js 全写口 bumpToken('issue') 补全（IssueStore 无 length 指纹，答复后即时重建）。
 **验收**：perf 新测试 22/22（agg-cache 5/version-token 8/index-equivalence 4/render-guard 5）；回归 70/70+261+86+35+53 等全绿；GetDiagnostics 0。测速（N=200）：buildTodaySummary 单次 0.012ms、getDomainsWithGroups 0.0024ms（缓存命中后真实聚合 0 次/200 调用）、computeAggregates 0.0045ms、calendar 索引 0.0136ms；_aggCacheStats 命中率 99.67%（608 hits/2 runs）。版本串全链→20260907b（109 文件 318 处）。
 **登记/遗留**：禁改内同型未内改（overview-tab _attendanceTrend O(A·R)、work-overview 内联过期/卡点、roster getEffectiveMembers 内部、mock-adapter 直写）依赖 token+length 指纹与服务层缓存间接提速，需特批才内改；disc attendance 队列/总表整卡守卫不适配登记；日历归档软删不改 length 禁改路径沿用失效模型+任务签名覆盖；today 实时组"含过期"徽标展示微差与口径对齐（浏览器目视确认）；体感验收留常规终端。
+
+**T-2026-09-064 UI 空间/圆角修正 + HELP 操作手册重写完成（2026-09-08，commits 29bd0809/9482eadb/98cf2733/2979482d/ce4a7822/31372644/f2412cbf）**
+**书记三轮反馈落地**：
+- 圆角与形态（书记："不喜欢胶囊/div 组合，喜欢之前没那么圆的版本；侧栏本来小巧一改全毁；审美务必谨慎"）：UI-A 互斥切换组去胶囊底衬回独立小圆角钮（rounded-lg、主题浅底激活，日志 29bd0809）；整体圆角收敛一档（16px 大卡→12、手写大面积白卡 12→8；小徽章 chip/圆点/头像保留）；UI-B 间距定档（行 6px 起步/块标题 8/卡头 12/块间 16-24、行高≥36px、同组 8 跨组 12-16、翻页三形态统一 h-8 rounded-lg，17 文件 9482eadb）。
+- 书记 2026-09-07 当场再反馈两处：①日历视图切换（月/周/日/列表）与月份下拉**并排一行**（calendar-tab 工具行 flex + #cal-view-switcher 槽，fallback 保持 marginBottom）；②侧栏字号/主题切换**恢复小巧**=styles.css 既有 .font-size-btn/.theme-btn（4-6px 圆角小钮、active 语义，回退 UI-A 大边框钮与 six-toggle 绑定）。98cf2733。
+- HELP 操作手册重写（对齐 18 页/7 台/9 域，操作级=入口/谁来用/几步/产出/退回，去黑话编号）：C1 骨架+第0章入口速查+第1章快速上手+第2章 7 台导览（5 文件，修正 thought-report 把关制/复盘入口/页数 16→18 等陈旧项）；C2a 域手册①会务②活动③考勤④考察⑤成员发展（18 条）；C2b 域手册⑥专班⑦决议上报⑧归档宣传⑨汇报反馈（23 卡）；C3 第4章 10 条链路（步骤表）+第5章 党委台 6 tab/支部配置向导 3 入口 5 步/数据保留与重置档（面向用户）+第7章架构口径 18 页+目录/锚点/搜索一致收口（7 文件）。help-e2e 卡片计数断言同步。
+- 版本串全链→20260908a（86 文件 176 处）；回归 77 用例全绿（含 function-catalog/flow/function-map sync 3）；GetDiagnostics 0。
+**登记/遗留**：.card rounded-xl（12px 重复无害）保持；secretary/overview-tab.js 禁改内同型胶囊与 UI-A/B 未触及（登记特批才内改）；login/help 链外普通页旧档=强刷登记；浏览器目视（书记两处修正观感/HELP 0-7 章可读性/help-e2e 常规终端补跑）留书记抽查。
