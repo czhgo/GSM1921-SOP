@@ -61,12 +61,12 @@ function _renderIssuePager(total) {
   return `
     <div class="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
       <span class="text-xs text-gray-400">共 ${total} 条 · 第 ${cur} / ${pages} 页</span>
-      <div class="flex items-center gap-1">
-        <button type="button" class="issue-page-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-issue-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
+      <div class="flex items-center gap-1.5">
+        <button type="button" class="issue-page-btn inline-flex items-center justify-center text-xs h-8 px-3 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-issue-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
         ${nums.map(n => `
-          <button type="button" class="issue-page-btn text-xs px-2.5 py-1 rounded-lg border ${n === cur ? 'chip-accent-on' : 'border-gray-200 hover:bg-gray-50'}" data-issue-page="${n}">${n}</button>
+          <button type="button" class="issue-page-btn inline-flex items-center justify-center text-xs h-8 min-w-8 px-2 rounded-lg border ${n === cur ? 'chip-accent-on' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'}" data-issue-page="${n}">${n}</button>
         `).join('')}
-        <button type="button" class="issue-page-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-issue-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
+        <button type="button" class="issue-page-btn inline-flex items-center justify-center text-xs h-8 px-3 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-issue-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
       </div>
     </div>`;
 }
@@ -91,22 +91,27 @@ export function renderIssueList() {
         ${canCreate ? `<button id="btn-new-issue" class="text-sm px-4 py-[7px] rounded-lg font-medium text-white transition-colors" style="background:#CE1126;" onmouseover="this.style.background='#991B1B'" onmouseout="this.style.background='#CE1126'">+ 新反馈</button>` : ''}
       </div>
 
-      <!-- U5b（2026-09-07）：筛选条控件统一 32px 档——胶囊过滤钮 py-2、输入/下拉 text-xs 紧凑档（styles.css input-flat.text-xs 34px 对齐档 + cs-trigger h-8），与清除钮同高 -->
-      <div class="flex items-center gap-2 mb-3 flex-wrap text-xs">
-        <input type="text" id="filter-keyword" placeholder="搜索标题/正文..." value="${_filterState.keyword}" class="input-flat text-xs px-2 py-1 rounded flex-1 min-w-[140px]">
-        <button class="filter-btn px-3 py-2 rounded-lg transition-colors ${_filterState.status === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="all">全部 (${counts.total})</button>
-        <button class="filter-btn px-3 py-2 rounded-lg transition-colors ${_filterState.status === 'open' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" style="${_filterState.status === 'open' ? 'background:#CE1126' : ''}" data-status="open">开放中 (${counts.open})</button>
-        <button class="filter-btn px-3 py-2 rounded-lg transition-colors ${_filterState.status === 'closed' ? 'bg-gray-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="closed">已关闭 (${counts.closed})</button>
-        <span class="mx-1 text-gray-300">|</span>
-        <select id="filter-scope" class="input-flat text-xs px-2 py-1 rounded">
-          <option value="all" ${_filterState.scope === 'all' ? 'selected' : ''}>所有范围</option>
-          ${Object.entries(SCOPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.scope === v ? 'selected' : ''}>${l}</option>`).join('')}
-        </select>
-        <select id="filter-type" class="input-flat text-xs px-2 py-1 rounded">
-          <option value="all" ${_filterState.type === 'all' ? 'selected' : ''}>所有类型</option>
-          ${Object.entries(TYPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.type === v ? 'selected' : ''}>${l}</option>`).join('')}
-        </select>
-        <button id="filter-clear" type="button" class="h-8 px-3 rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">清除</button>
+      <!-- U5b（2026-09-07）+ UI-B（2026-09-07）：筛选条分组——搜索｜状态筛选｜范围/类型+清除，组内 gap-2、组间 gap-3 -->
+      <div class="flex items-center gap-3 mb-3 flex-wrap text-xs">
+        <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+          <input type="text" id="filter-keyword" placeholder="搜索标题/正文..." value="${_filterState.keyword}" class="input-flat text-xs px-2 py-1 rounded flex-1 min-w-[140px]">
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="filter-btn px-3 py-2 rounded-lg transition-colors ${_filterState.status === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="all">全部 (${counts.total})</button>
+          <button class="filter-btn px-3 py-2 rounded-lg transition-colors ${_filterState.status === 'open' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" style="${_filterState.status === 'open' ? 'background:#CE1126' : ''}" data-status="open">开放中 (${counts.open})</button>
+          <button class="filter-btn px-3 py-2 rounded-lg transition-colors ${_filterState.status === 'closed' ? 'bg-gray-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="closed">已关闭 (${counts.closed})</button>
+        </div>
+        <div class="flex items-center gap-2">
+          <select id="filter-scope" class="input-flat text-xs px-2 py-1 rounded">
+            <option value="all" ${_filterState.scope === 'all' ? 'selected' : ''}>所有范围</option>
+            ${Object.entries(SCOPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.scope === v ? 'selected' : ''}>${l}</option>`).join('')}
+          </select>
+          <select id="filter-type" class="input-flat text-xs px-2 py-1 rounded">
+            <option value="all" ${_filterState.type === 'all' ? 'selected' : ''}>所有类型</option>
+            ${Object.entries(TYPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.type === v ? 'selected' : ''}>${l}</option>`).join('')}
+          </select>
+          <button id="filter-clear" type="button" class="h-8 px-3 rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">清除</button>
+        </div>
       </div>
 
       <div id="issue-list" class="space-y-2">

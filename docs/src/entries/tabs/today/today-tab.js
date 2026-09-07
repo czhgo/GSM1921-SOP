@@ -71,7 +71,7 @@ function _allBtn(kind) {
 /** 今天有会（左大块 C 排法）：时间 / 名称 / 类型 行；点击 → activity.html */
 function _meetingRows(items) {
   return items.map(m => `
-    <button type="button" class="today-go w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left cursor-pointer"
+    <button type="button" class="today-go w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left cursor-pointer"
       data-go="activity" data-act-id="${esc(m.activityId)}" title="${esc(m.title || '')}">
       <span class="text-[11px] tabular-nums text-gray-500 w-11 flex-shrink-0">${esc(m.start || '—')}</span>
       <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${ACCENT};"></span>
@@ -84,11 +84,11 @@ function _meetingRows(items) {
 function _meetingBlock(s) {
   const rows = _meetingRows(s.hasMeeting);
   return `
-    <div class="flex items-center justify-between mb-1.5">
+    <div class="flex items-center justify-between mb-2">
       <h3 class="font-title-cn text-sm font-bold text-gray-700">今天有会${_count(s.hasMeeting.length)}</h3>
       ${_allBtn('meeting')}
     </div>
-    ${rows ? `<div class="space-y-0.5">${rows}</div>` : '<p class="text-xs text-gray-400 px-1 py-1.5">今日无会</p>'}
+    ${rows ? `<div class="space-y-1.5">${rows}</div>` : '<p class="text-xs text-gray-400 px-1 py-1.5">今日无会</p>'}
   `;
 }
 
@@ -98,7 +98,7 @@ function _todoRows(items, overdue) {
   const dot = overdue ? 'background:#EF4444;' : 'background:#9CA3AF;';
   const dateCls = overdue ? 'text-red-500 font-medium' : 'text-gray-400';
   return items.map(t => `
-    <button type="button" class="today-go w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left cursor-pointer"
+    <button type="button" class="today-go w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left cursor-pointer"
       data-go="todo" title="${esc(t.title || '')}">
       <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="${dot}"></span>
       <span class="text-sm flex-1 min-w-0 truncate ${titleCls}">${esc(t.title || '未命名待办')}</span>
@@ -109,19 +109,19 @@ function _todoRows(items, overdue) {
 /** 今天到期（右上）：逾期红字置顶（逾期 m 项 · 已过期未办），下列今天到期（截止今日） */
 function _dueBlock(s) {
   const overdueZone = s.overdue.length ? `
-    <div class="rounded-lg bg-red-50/70 px-2 py-2 mb-2">
-      <p class="text-[11px] font-semibold text-red-600 px-1 mb-0.5">逾期 ${s.overdue.length} 项 · 已过期未办</p>
-      <div class="space-y-0.5">${_todoRows(s.overdue, true)}</div>
+    <div class="rounded-lg bg-red-50/70 px-2 py-2 mb-4">
+      <p class="text-[11px] font-semibold text-red-600 px-1 mb-2">逾期 ${s.overdue.length} 项 · 已过期未办</p>
+      <div class="space-y-1.5">${_todoRows(s.overdue, true)}</div>
     </div>` : '';
   const dueRows = s.dueToday.length ? _todoRows(s.dueToday, false) : '';
   const empty = !s.overdue.length && !s.dueToday.length;
   return `
-    <div class="flex items-center justify-between mb-1.5">
+    <div class="flex items-center justify-between mb-2">
       <h3 class="font-title-cn text-sm font-bold text-gray-700">今天到期${_count(s.dueToday.length)}</h3>
       ${_allBtn('todo')}
     </div>
     ${empty ? '<p class="text-xs text-gray-400 px-1 py-1.5">今日无到期</p>'
-      : overdueZone + (dueRows ? `<div class="space-y-0.5">${dueRows}</div>` : '')}
+      : overdueZone + (dueRows ? `<div class="space-y-1.5">${dueRows}</div>` : '')}
   `;
 }
 
@@ -129,7 +129,7 @@ function _dueBlock(s) {
  *  今天的活动里我负责的分工；点击 → 所在活动详情 activity.html */
 function _dutyRows(items) {
   return items.map(d => `
-    <button type="button" class="today-go w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left cursor-pointer"
+    <button type="button" class="today-go w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left cursor-pointer"
       data-go="activity" data-act-id="${esc(d.activityId)}" title="${esc(d.activityTitle || '')}">
       <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${ACCENT};"></span>
       <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(d.activityTitle || '未命名活动')}</span>
@@ -141,10 +141,10 @@ function _dutyRows(items) {
 function _dutyBlock(s) {
   const rows = _dutyRows(s.myDuties);
   return `
-    <div class="flex items-center justify-between mb-1.5">
+    <div class="flex items-center justify-between mb-2">
       <h3 class="font-title-cn text-sm font-bold text-gray-700">今日分工${_count(s.myDuties.length)}</h3>
     </div>
-    ${rows ? `<div class="space-y-0.5">${rows}</div>` : '<p class="text-xs text-gray-400 px-1 py-1.5">今日暂无分工安排</p>'}
+    ${rows ? `<div class="space-y-1.5">${rows}</div>` : '<p class="text-xs text-gray-400 px-1 py-1.5">今日暂无分工安排</p>'}
   `;
 }
 

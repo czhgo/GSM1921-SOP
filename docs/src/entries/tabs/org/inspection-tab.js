@@ -34,7 +34,7 @@ export function renderContent(ctx) {
     .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
   const formHtml = _orgInspFormVisible ? `
-    <div class="mt-3 p-4 rounded-xl bg-white border border-gray-100 shadow-sm" id="org-insp-form-panel">
+    <div class="mt-3 p-4 rounded-lg bg-white border border-gray-100 shadow-sm" id="org-insp-form-panel">
       <div class="text-xs font-bold text-gray-600 mb-3">上传专班考察表单</div>
       <div class="mb-3">
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择专班 <span class="text-red-500">*</span></label>

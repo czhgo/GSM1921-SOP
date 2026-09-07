@@ -71,7 +71,7 @@ export async function renderContent(ctx) {
           </div>
           ${recent.length ? `
           <div>
-            <p class="text-xs text-gray-400 mb-1.5">近期活动</p>
+            <p class="text-xs text-gray-400 mb-2">近期活动</p>
             <div class="flex flex-wrap gap-2">
               ${recent.map(a => `<span class="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded px-2 py-1">${a.date?.slice(5) || ''} ${a.title}</span>`).join('')}
             </div>

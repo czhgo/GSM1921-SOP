@@ -93,9 +93,9 @@ function _renderActListView(sorted, highlightId) {
     </div>
     ${totalPages > 1 ? `
       <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
-        <button type="button" class="visitor-act-page-btn text-xs px-3 py-1.5 rounded-lg border transition-colors ${page <= 1 ? 'opacity-40 pointer-events-none' : ''}" data-act-page="${page - 1}" style="border-color:var(--neutral-200);color:var(--neutral-600);">‹ 上一页</button>
+        <button type="button" class="visitor-act-page-btn inline-flex items-center justify-center text-xs h-8 px-3.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors ${page <= 1 ? 'opacity-40 pointer-events-none' : ''}" data-act-page="${page - 1}">‹ 上一页</button>
         <span class="text-xs text-gray-500">第 ${page} / ${totalPages} 页</span>
-        <button type="button" class="visitor-act-page-btn text-xs px-3 py-1.5 rounded-lg border transition-colors ${page >= totalPages ? 'opacity-40 pointer-events-none' : ''}" data-act-page="${page + 1}" style="border-color:var(--neutral-200);color:var(--neutral-600);">下一页 ›</button>
+        <button type="button" class="visitor-act-page-btn inline-flex items-center justify-center text-xs h-8 px-3.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors ${page >= totalPages ? 'opacity-40 pointer-events-none' : ''}" data-act-page="${page + 1}">下一页 ›</button>
       </div>` : ''}
   `;
 

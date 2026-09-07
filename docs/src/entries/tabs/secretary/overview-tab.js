@@ -285,7 +285,7 @@ function renderBlockerSection(people, today) {
         <h4 class="font-title-cn text-sm font-bold text-gray-700">卡点</h4>
         <span class="text-xs text-gray-400">超期/缺口告警 · ${rows.length} 项</span>
       </div>
-      <div class="space-y-1">${html}</div>
+      <div class="space-y-1.5">${html}</div>
     </div>`;
 }
 
@@ -322,7 +322,7 @@ function renderProgressSection(people) {
         <h4 class="font-title-cn text-sm font-bold text-gray-700">进度</h4>
         <span class="text-xs text-gray-400">各角色在办聚合</span>
       </div>
-      <div class="space-y-1">${rows}</div>
+      <div class="space-y-1.5">${rows}</div>
     </div>`;
 }
 
@@ -446,7 +446,7 @@ function renderDimensionView(container) {
           <h4 class="font-title-cn text-sm font-bold text-gray-700">异常优先队列</h4>
           <span class="text-xs text-gray-400">按紧急度排序 · ${exceptions.length + pendingDispatches.length} 项</span>
         </div>
-        <div class="space-y-1">${exceptionsHtml}</div>
+        <div class="space-y-1.5">${exceptionsHtml}</div>
       </div>
 
       <!-- 党员发展分布 -->

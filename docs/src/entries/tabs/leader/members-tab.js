@@ -133,14 +133,14 @@ export async function renderContent(ctx) {
           <h4 class="font-title-cn text-sm font-bold text-gray-700">卡点</h4>
           <span class="text-xs text-gray-400">本组超期/上报/缺勤 · ${blockers.length} 项</span>
         </div>
-        <div class="space-y-1">${blockerHtml}</div>
+        <div class="space-y-1.5">${blockerHtml}</div>
       </div>
       <div class="card rounded-lg p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">进度</h4>
           <span class="text-xs text-gray-400">本组组员在办聚合</span>
         </div>
-        <div class="space-y-1">${progressRows}</div>
+        <div class="space-y-1.5">${progressRows}</div>
       </div>
     </div>`;
 

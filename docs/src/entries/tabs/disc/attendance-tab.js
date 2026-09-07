@@ -375,7 +375,7 @@ function _buildQueueHTML(items, leaveCount, absentCount, overdueCount, autoConfi
         <div class="text-sm font-medium text-gray-700 mb-1">无待处理异常 ✓</div>
         <div class="text-xs text-gray-400">出勤/已补已源头审校自动确认${autoConfirmedCount > 0 ? `（${autoConfirmedCount} 条）` : ''}，缺勤/请假已全部确认</div>
       </div>`
-    : `<div class="space-y-1">${visible.map(r => {
+    : `<div class="space-y-1.5">${visible.map(r => {
         const act = actById.get(r.activityId);
         const color = r.status === AttendanceStatus.ABSENT ? '#EF4444' : '#F59E0B';
         return `
@@ -519,7 +519,7 @@ function _renderDiscMeetDetainedMakeup() {
     return;
   }
   strip.innerHTML = `
-    <div class="text-[11px] font-medium text-gray-500 mb-1.5">滞留党员到场补录（纪检认定：线下到场 → 勾选计入到席；不随「全选应到名单」）</div>
+    <div class="text-[11px] font-medium text-gray-500 mb-2">滞留党员到场补录（纪检认定：线下到场 → 勾选计入到席；不随「全选应到名单」）</div>
     <div class="flex flex-wrap gap-2">
       ${detained.map(p => {
         const checked = _meetMakeupIds.has(p.id);

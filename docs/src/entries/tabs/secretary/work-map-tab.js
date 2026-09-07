@@ -34,7 +34,7 @@ function _modulesHtml(workforce) {
         const outputs = (m.outputs || []).map(o => `
           <span class="text-[11px] px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-500">产出·${esc(o)}</span>`).join('');
         return `
-        <div class="rounded-xl border border-gray-200 bg-white p-3.5 flex flex-col gap-2">
+        <div class="rounded-lg border border-gray-200 bg-white p-3.5 flex flex-col gap-2">
           <div class="flex items-start justify-between gap-2">
             <p class="font-title-cn text-sm font-bold text-gray-800">${esc(m.name)}</p>
             <span class="shrink-0 text-[11px] px-2 py-0.5 rounded-full ${assign.ownerId === 'secretary' || assign.ownerId === 'deputy-secretary' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}">${esc(_ownerLabel(assign))}</span>
@@ -68,7 +68,7 @@ function _personsHtml(workforce) {
   return `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       ${sorted.map(([, { assign, modules }]) => `
-        <div class="rounded-xl border border-gray-200 bg-white p-3.5 flex flex-col gap-2">
+        <div class="rounded-lg border border-gray-200 bg-white p-3.5 flex flex-col gap-2">
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full ${assign.ownerId === 'secretary' || assign.ownerId === 'deputy-secretary' ? 'bg-red-600' : 'bg-blue-500'}"></span>
             <p class="font-title-cn text-sm font-bold text-gray-800">${esc(_ownerLabel(assign))}</p>

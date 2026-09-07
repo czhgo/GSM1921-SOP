@@ -78,7 +78,7 @@ export function renderContent() {
           ${badgeHtml(`${overdueTasks.length}条`, 'danger')}
         </div>
         <div class="text-xs text-red-600">以下补课任务已超期，请尽快督促完成</div>
-        <div class="mt-2 space-y-1">
+        <div class="mt-2 space-y-1.5">
           ${overdueTasks.map(t => `
             <div class="flex items-center justify-between text-xs">
               <span class="text-gray-700">${t.personName || getPersonName(t.personId)} — ${t.activityName || '—'}</span>

@@ -115,7 +115,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
   lineBlockers.forEach(b => blockerRows.push(`<div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#F59E0B;"></span><span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">条线缺口</span><span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b}</span></div>`));
 
   const blockerBody = blockerRows.length
-    ? `<div class="space-y-1">${blockerRows.join('')}</div>`
+    ? `<div class="space-y-1.5">${blockerRows.join('')}</div>`
     : `<div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
          <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 无超期与缺口，一切正常
        </div>`;
@@ -205,7 +205,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
     : '';
 
   const inProgressBody = inProgressRows
-    ? `<div class="space-y-1">${inProgressRows}${inProgressMore}</div>`
+    ? `<div class="space-y-1.5">${inProgressRows}${inProgressMore}</div>`
     : `<div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
          <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 暂无在办事项
        </div>`;

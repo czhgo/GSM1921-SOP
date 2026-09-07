@@ -309,7 +309,7 @@ function _buildTaskforceRosterHTML() {
               <span>${workloadItems.length > 0 ? `${workloadItems.length} 项产出` : '未生成'}</span>
             </div>
             ${workloadItems.length > 0 ? `
-              <ul class="space-y-0.5 pl-3">
+              <ul class="space-y-1.5 pl-3">
                 ${workloadItems.slice(0, 5).map(w => `<li class="text-[11px] text-gray-500 truncate">${w.name}：${w.item}</li>`).join('')}
                 ${workloadItems.length > 5 ? `<li class="text-[11px] text-gray-400">…另有 ${workloadItems.length - 5} 项</li>` : ''}
               </ul>` : ''}

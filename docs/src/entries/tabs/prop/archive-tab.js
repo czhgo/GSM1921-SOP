@@ -54,24 +54,26 @@ export function renderContent(ctx) {
   if (!container) return;
 
   container.innerHTML = `
-    <div class="mb-4 flex flex-col sm:flex-row gap-3">
-      <div class="relative flex-1">
+    <div class="mb-4 flex flex-col sm:flex-row gap-3 items-center">
+      <div class="relative flex-1 min-w-[200px]">
         <input id="archive-search" type="text" placeholder="搜索活动名称..." class="input-flat flex-1 pl-8" />
         ${icon('search', { className: 'absolute left-2.5 top-2.5 w-3.5 h-3.5 text-gray-400' })}
       </div>
-      <select id="archive-filter-category" class="input-flat">
-        <option value="">全部类别</option>
-        <option value="新闻稿">新闻稿</option>
-        <option value="照片">照片</option>
-        <option value="视频">视频</option>
-        <option value="其他">其他</option>
-      </select>
-      <select id="archive-filter-status" class="input-flat">
-        <option value="">全部状态</option>
-        <option value="pending">待归档</option>
-        <option value="in_progress">归档中</option>
-        <option value="archived">已归档</option>
-      </select>
+      <div class="flex items-center gap-2 flex-wrap">
+        <select id="archive-filter-category" class="input-flat">
+          <option value="">全部类别</option>
+          <option value="新闻稿">新闻稿</option>
+          <option value="照片">照片</option>
+          <option value="视频">视频</option>
+          <option value="其他">其他</option>
+        </select>
+        <select id="archive-filter-status" class="input-flat">
+          <option value="">全部状态</option>
+          <option value="pending">待归档</option>
+          <option value="in_progress">归档中</option>
+          <option value="archived">已归档</option>
+        </select>
+      </div>
       <button id="archive-upload-btn" class="text-xs px-3 py-2 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0 flex items-center justify-center gap-1.5" style="${solidAccentStyle(ctx.accent, ctx.accentBorder)}">
         ${icon('upload', { className: 'w-3.5 h-3.5' })}
         <span>上传材料</span>

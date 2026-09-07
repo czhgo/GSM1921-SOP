@@ -124,7 +124,7 @@ export function renderContent(ctx) {
           }).join('<span style="--acc-bg-dark:#334155;width:12px;height:1.5px;background:#E5E7EB;display:inline-block;vertical-align:middle;"></span>');
 
           return `
-            <div class="p-4 rounded-xl bg-white border border-gray-50 hover:shadow-sm transition-shadow">
+            <div class="p-4 rounded-lg bg-white border border-gray-50 hover:shadow-sm transition-shadow">
               <div class="flex items-start justify-between gap-3 mb-2">
                 <div>
                   <div class="text-sm font-semibold text-gray-800">${c.name}</div>

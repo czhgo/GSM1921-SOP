@@ -180,9 +180,9 @@ function _renderGovernance(el, activities, branches, noticeCount) {
         </div>
       </div>
       <div class="mb-3">
-        <p class="text-xs text-gray-400 mb-1.5">近期动态（最近组织生活 ${r.activityCount} 场）</p>
+        <p class="text-xs text-gray-400 mb-2">近期动态（最近组织生活 ${r.activityCount} 场）</p>
         ${r.recent.length ? `
-          <div class="flex flex-col gap-1">
+          <div class="flex flex-col gap-1.5">
             ${r.recent.map(a => `<span class="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded px-2 py-1">${esc(a.date?.slice(5) || '')} ${esc(a.title)}</span>`).join('')}
           </div>` : `<p class="text-xs text-gray-400">暂无组织生活记录</p>`}
       </div>
