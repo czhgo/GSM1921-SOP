@@ -256,6 +256,11 @@ function enhanceSelect(sel) {
   const trigger = document.createElement('button');
   trigger.type = 'button';
   trigger.className = 'cs-trigger ' + triggerCls;
+  // U5b（2026-09-07）：去"按钮上凸/双框"——触发体保持 input-flat 输入框语义，但高度由统一档驱动：
+  // 原 select 已是 text-xs 紧凑档（工具条/筛选行）时补 h-8（32px），与相邻操作按钮精确同高同圆角；
+  // 大号下拉（表单正文档，无 text-xs）不加高度类，维持原 input-flat 档位（防 14px 字号在 h-8 内裁切），
+  // 不改 styles.css 516-526 补丁（padding 8px 12px + h-8 叠合，border-box 下内容区容纳 12px 文字）。
+  if (/\btext-xs\b/.test(triggerCls)) trigger.classList.add('h-8');
   trigger.setAttribute('aria-haspopup', 'listbox');
   trigger.setAttribute('aria-expanded', 'false');
   trigger.innerHTML = `<span class="cs-value"></span>${ICON_CHEVRON}`;

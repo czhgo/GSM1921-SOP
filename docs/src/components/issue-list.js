@@ -91,21 +91,22 @@ export function renderIssueList() {
         ${canCreate ? `<button id="btn-new-issue" class="text-sm px-4 py-[7px] rounded-lg font-medium text-white transition-colors" style="background:#CE1126;" onmouseover="this.style.background='#991B1B'" onmouseout="this.style.background='#CE1126'">+ 新反馈</button>` : ''}
       </div>
 
+      <!-- U5b（2026-09-07）：筛选条控件统一 32px 档——胶囊过滤钮 py-2、输入/下拉 text-xs 紧凑档（styles.css input-flat.text-xs 34px 对齐档 + cs-trigger h-8），与清除钮同高 -->
       <div class="flex items-center gap-2 mb-3 flex-wrap text-xs">
-        <input type="text" id="filter-keyword" placeholder="搜索标题/正文..." value="${_filterState.keyword}" class="input-flat px-2 py-1 rounded flex-1 min-w-[140px]">
-        <button class="filter-btn px-3 py-1 rounded-full transition-colors ${_filterState.status === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="all">全部 (${counts.total})</button>
-        <button class="filter-btn px-3 py-1 rounded-full transition-colors ${_filterState.status === 'open' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" style="${_filterState.status === 'open' ? 'background:#CE1126' : ''}" data-status="open">开放中 (${counts.open})</button>
-        <button class="filter-btn px-3 py-1 rounded-full transition-colors ${_filterState.status === 'closed' ? 'bg-gray-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="closed">已关闭 (${counts.closed})</button>
+        <input type="text" id="filter-keyword" placeholder="搜索标题/正文..." value="${_filterState.keyword}" class="input-flat text-xs px-2 py-1 rounded flex-1 min-w-[140px]">
+        <button class="filter-btn px-3 py-2 rounded-full transition-colors ${_filterState.status === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="all">全部 (${counts.total})</button>
+        <button class="filter-btn px-3 py-2 rounded-full transition-colors ${_filterState.status === 'open' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" style="${_filterState.status === 'open' ? 'background:#CE1126' : ''}" data-status="open">开放中 (${counts.open})</button>
+        <button class="filter-btn px-3 py-2 rounded-full transition-colors ${_filterState.status === 'closed' ? 'bg-gray-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="closed">已关闭 (${counts.closed})</button>
         <span class="mx-1 text-gray-300">|</span>
-        <select id="filter-scope" class="input-flat px-2 py-1 rounded">
+        <select id="filter-scope" class="input-flat text-xs px-2 py-1 rounded">
           <option value="all" ${_filterState.scope === 'all' ? 'selected' : ''}>所有范围</option>
           ${Object.entries(SCOPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.scope === v ? 'selected' : ''}>${l}</option>`).join('')}
         </select>
-        <select id="filter-type" class="input-flat px-2 py-1 rounded">
+        <select id="filter-type" class="input-flat text-xs px-2 py-1 rounded">
           <option value="all" ${_filterState.type === 'all' ? 'selected' : ''}>所有类型</option>
           ${Object.entries(TYPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.type === v ? 'selected' : ''}>${l}</option>`).join('')}
         </select>
-        <button id="filter-clear" type="button" class="px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">清除</button>
+        <button id="filter-clear" type="button" class="h-8 px-3 rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">清除</button>
       </div>
 
       <div id="issue-list" class="space-y-2">

@@ -251,10 +251,13 @@ export function renderContent(ctx) {
   const renderMatrix = () => _renderMatrix(matrixView, actById, allRecords, ctx, accent, accentBorder);
   container.querySelectorAll('.att-mtx-view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
+      // U5b（2026-09-07）：激活态由 ov-sub-tab-active（白卡+主题色）驱动，不再内联覆盖背景/边框
       container.querySelectorAll('.att-mtx-view-btn').forEach(b => {
-        b.style.background = 'var(--surface-card)'; b.style.color = 'var(--neutral-500)'; b.style.border = '1px solid var(--neutral-200)';
+        const on = b === btn;
+        b.classList.toggle('ov-sub-tab-active', on);
+        b.classList.toggle('text-gray-500', !on);
+        b.classList.toggle('hover:text-gray-700', !on);
       });
-      btn.style.background = accentRgba; btn.style.color = accent; btn.style.border = `1px solid ${accentBorder}`;
       matrixView = btn.dataset.view;
       renderMatrix();
     });
@@ -651,9 +654,10 @@ function _buildMatrixCardHTML(ctx, allRecords, actById, filterActivityId, accent
     <div class="card rounded-xl p-5 mb-4">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤矩阵</h3>
-        <div class="flex gap-2">
-          <button class="att-mtx-view-btn btn-tab active" data-view="byActivity">按活动</button>
-          <button class="att-mtx-view-btn btn-tab" data-view="byPerson">按人</button>
+        <!-- U5b（2026-09-07）：互斥视图切换=圆角胶囊分段组（复用 ov-sub-tab 激活态，data-view 切换逻辑照旧） -->
+        <div class="inline-flex items-center gap-1 p-1 rounded-full bg-neutral-100">
+          <button class="att-mtx-view-btn ov-sub-tab px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ov-sub-tab-active" data-view="byActivity">按活动</button>
+          <button class="att-mtx-view-btn ov-sub-tab px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 text-gray-500 hover:text-gray-700" data-view="byPerson">按人</button>
         </div>
       </div>
       <div class="flex flex-wrap gap-2 mb-3">
@@ -773,15 +777,17 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
             ${HandoffStore.hasPendingFor('attendance-archival', 'attendance') ? '<span class="text-teal-600 font-medium">待宣传备案</span>' : ''}
           </div>
         </div>
-        <div class="flex gap-2">
-          <button class="att-export-btn btn-tab" style="cursor:pointer;">导出 CSV</button>
-          <button class="att-print-btn btn-tab" style="cursor:pointer;">打印</button>
-          <button class="att-handoff-btn btn-tab" style="cursor:pointer;">提交考勤至宣传</button>
+        <!-- U5b（2026-09-07）：低频操作钮统一 32px 圆角（与分页钮/下拉同高同 border 家族，hover 统一 bg-gray-50） -->
+        <div class="flex items-center gap-2">
+          <button class="att-export-btn h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">导出 CSV</button>
+          <button class="att-print-btn h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">打印</button>
+          <button class="att-handoff-btn h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">提交考勤至宣传</button>
         </div>
       </div>
-      <div class="flex flex-wrap gap-2 mb-3">
-        <input type="text" id="att-table-search" class="input-flat flex-1 min-w-[160px]" placeholder="搜索姓名或活动...">
-        <select id="att-table-status" class="input-flat w-24">
+      <!-- U5b（2026-09-07）：搜索输入 + 状态下拉（enhanceSelects 后为 cs-trigger）统一 text-xs 紧凑档，与 h-8 工具钮同高 -->
+      <div class="flex flex-wrap items-center gap-2 mb-3">
+        <input type="text" id="att-table-search" class="input-flat text-xs flex-1 min-w-[160px]" placeholder="搜索姓名或活动...">
+        <select id="att-table-status" class="input-flat text-xs w-24">
           <option value="">全部状态</option>
           ${Object.values(AttendanceStatus).map(s => `<option value="${s}">${ATTENDANCE_STATUS_LABELS[s]}</option>`).join('')}
         </select>

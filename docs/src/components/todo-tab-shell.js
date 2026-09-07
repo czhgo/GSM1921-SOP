@@ -151,8 +151,8 @@ export function createTodoTab(opts) {
             <span class="block text-sm text-gray-800 truncate">${n.title || '未命名通知'}</span>
             <span class="block text-[11px] text-gray-400">${timeText}</span>
           </span>
-          <button type="button" class="${prefix}-unread-open-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors flex-shrink-0" data-notice-id="${n.id}" style="cursor:pointer;">阅读</button>
-          <button type="button" class="${prefix}-unread-read-btn text-xs px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors flex-shrink-0" data-notice-id="${n.id}" style="cursor:pointer;">标记已读</button>
+          <button type="button" class="${prefix}-unread-open-btn text-xs px-2.5 py-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors flex-shrink-0" data-notice-id="${n.id}" style="cursor:pointer;">阅读</button>
+          <button type="button" class="${prefix}-unread-read-btn text-xs px-2.5 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors flex-shrink-0" data-notice-id="${n.id}" style="cursor:pointer;">标记已读</button>
         </div>`;
     }).join('');
     return `

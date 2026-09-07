@@ -929,8 +929,8 @@ function _renderMyReportDetail(issueId, role, userId, container) {
     if (hasReply) {
       html += `<button data-mydispatch-action="confirm-received" class="text-xs px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">确认已收到答复</button>`;
     }
-    html += `<div class="flex gap-2">`;
-    html += `<input type="text" id="mydispatch-comment-input" class="input-flat flex-1" placeholder="添加评论…">`;
+    html += `<div class="flex items-center gap-2">`;
+    html += `<input type="text" id="mydispatch-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论…">`;
     html += `<button data-mydispatch-action="comment" class="text-xs px-3 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-800 transition-colors">评论</button>`;
     html += `</div></div>`;
   }
@@ -1005,8 +1005,8 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
   html += `</div></div>`;
 
   if (issue.status === 'open') {
-    html += `<div class="pt-3 border-t border-gray-100"><div class="flex gap-2">`;
-    html += `<input type="text" id="mydispatch-comment-input" class="input-flat flex-1" placeholder="添加评论…">`;
+    html += `<div class="pt-3 border-t border-gray-100"><div class="flex items-center gap-2">`;
+    html += `<input type="text" id="mydispatch-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论…">`;
     html += `<button data-mydispatch-action="comment" class="text-xs px-3 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-800 transition-colors">评论</button>`;
     html += `<button data-mydispatch-action="submit-result" class="text-xs px-3 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">提交处置结果</button>`;
     html += `</div></div>`;

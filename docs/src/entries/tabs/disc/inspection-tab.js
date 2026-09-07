@@ -15,8 +15,6 @@ export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');
   if (!container) return;
 
-  const { accent, accentRgba, accentBorder } = ctx;
-
   const allRecords = loadActiveInspectionRecords();
   const longData = inspectionToLong(allRecords);
   const wideData = inspectionToWide(allRecords);
@@ -38,29 +36,34 @@ export function renderContent(ctx) {
   container.innerHTML = `
     ${_buildTaskforceRosterHTML()}
     <div class="card rounded-xl p-5">
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考察总表</h3>
-        <div class="flex gap-2">
-          <button class="insp-view-btn btn-tab active" data-view="long">活动视图</button>
-          <button class="insp-view-btn btn-tab" data-view="wide">人视图</button>
+        <div class="flex items-center flex-wrap justify-end gap-2">
+          <!-- U5b（2026-09-07）：互斥视图切换=圆角胶囊分段组（复用 ov-sub-tab 激活态，data-view 切换逻辑照旧） -->
+          <div class="inline-flex items-center gap-1 p-1 rounded-full bg-neutral-100">
+            <button class="insp-view-btn ov-sub-tab px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ov-sub-tab-active" data-view="long">活动视图</button>
+            <button class="insp-view-btn ov-sub-tab px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 text-gray-500 hover:text-gray-700" data-view="wide">人视图</button>
+          </div>
           <!-- 2026-08-28 T-304 A 档下载闭环：考察总表导出 CSV + 打印 -->
-          <button class="insp-export-btn btn-tab" style="cursor:pointer;">导出 CSV</button>
-          <button class="insp-print-btn btn-tab" style="cursor:pointer;">打印</button>
+          <!-- U5b（2026-09-07）：低频操作钮统一 32px 圆角（与下拉/胶囊同 32px 档，hover 统一 bg-gray-50） -->
+          <button class="insp-export-btn h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">导出 CSV</button>
+          <button class="insp-print-btn h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">打印</button>
           <!-- 2026-08-29 T-304 C2 数据交接协议：纪检→组织 考察记录提交 -->
-          <button class="insp-handoff-btn btn-tab" style="cursor:pointer;">提交考察至支委会</button>
+          <button class="insp-handoff-btn h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">提交考察至支委会</button>
           ${HandoffStore.hasPendingFor('inspection-report', 'inspection') ? '<span class="text-xs text-teal-600 font-medium">待组织接收</span>' : ''}
         </div>
       </div>
       <div class="text-xs text-gray-500 mb-3">纪检委员管理考察记录，党小组组长/组织委员上传 → 纪检确认 → 录入考察总表</div>
       ${overdueHtml}
-      <div class="flex flex-wrap gap-2 mb-3">
-        <input type="text" id="insp-search-input" class="input-flat flex-1 min-w-[140px]" placeholder="搜索姓名或内容...">
-        <select id="insp-tag-filter" class="input-flat w-24">
+      <!-- U5b（2026-09-07）：搜索输入 + 来源/状态下拉统一 text-xs 紧凑档，与 h-8 工具钮同高 -->
+      <div class="flex flex-wrap items-center gap-2 mb-3">
+        <input type="text" id="insp-search-input" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索姓名或内容...">
+        <select id="insp-tag-filter" class="input-flat text-xs w-24">
           <option value="">全部来源</option>
           <option value="activity">活动</option>
           <option value="taskforce">专班</option>
         </select>
-        <select id="insp-status-filter" class="input-flat w-24">
+        <select id="insp-status-filter" class="input-flat text-xs w-24">
           <option value="">全部状态</option>
           <option value="confirmed">已确认</option>
           <option value="pending">待确认</option>
@@ -188,10 +191,13 @@ export function renderContent(ctx) {
   let currentView = 'long';
   container.querySelectorAll('.insp-view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
+      // U5b（2026-09-07）：激活态由 ov-sub-tab-active（白卡+主题色）驱动，不再内联覆盖背景/边框
       container.querySelectorAll('.insp-view-btn').forEach(b => {
-        b.style.background = 'var(--surface-card)'; b.style.color = 'var(--neutral-500)'; b.style.border = '1px solid var(--neutral-200)';
+        const on = b === btn;
+        b.classList.toggle('ov-sub-tab-active', on);
+        b.classList.toggle('text-gray-500', !on);
+        b.classList.toggle('hover:text-gray-700', !on);
       });
-      btn.style.background = accentRgba; btn.style.color = accent; btn.style.border = `1px solid ${accentBorder}`;
       currentView = btn.dataset.view;
       if (btn.dataset.view === 'long') renderLong(); else renderWide();
     });
