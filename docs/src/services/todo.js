@@ -30,6 +30,110 @@ export const TODO_CATEGORY_LABELS = {
   [TodoCategory.TRACK]: '追踪类',
 };
 
+// ── 待办业务域枚举（工作类型 9 域 + NONE）────────────────────
+//  2026-09-07 IA-C1：书记裁定「待办按工作类型（业务域）分类，不按动作动词分」。
+//  依据 spec: .trae/specs/2026-09-06-ia-todo-cards/spec.md §一（9 域逐节批准）
+export const WORK_DOMAIN = {
+  MEETING: 'meeting',       // ① 会务（三会一课：参与 + 考勤记录闭环，无复盘）
+  ACTIVITY: 'activity',     // ② 活动/项目（实践型：参与/报名/全程管理/复盘沉淀）
+  ATTENDANCE: 'attendance', // ③ 考勤纪律
+  INSPECTION: 'inspection', // ④ 考察
+  MEMBER_DEV: 'member-dev', // ⑤ 成员发展
+  TASKFORCE: 'taskforce',   // ⑥ 专班
+  RESOLUTION: 'resolution', // ⑦ 决议上报
+  ARCHIVE: 'archive',       // ⑧ 归档宣传
+  REPORT: 'report',         // ⑨ 汇报反馈
+  NONE: 'none',             // 通知/未分类（轻量未读，不入域任务计数，见 C1 Task4 未读条）
+};
+
+/** 业务域中文标签（域序同 spec 一 ①→⑨ + NONE） */
+export const WORK_DOMAIN_LABELS = {
+  [WORK_DOMAIN.MEETING]: '会务',
+  [WORK_DOMAIN.ACTIVITY]: '活动/项目',
+  [WORK_DOMAIN.ATTENDANCE]: '考勤纪律',
+  [WORK_DOMAIN.INSPECTION]: '考察',
+  [WORK_DOMAIN.MEMBER_DEV]: '成员发展',
+  [WORK_DOMAIN.TASKFORCE]: '专班',
+  [WORK_DOMAIN.RESOLUTION]: '决议上报',
+  [WORK_DOMAIN.ARCHIVE]: '归档宣传',
+  [WORK_DOMAIN.REPORT]: '汇报反馈',
+  [WORK_DOMAIN.NONE]: '通知/未分类',
+};
+
+/** 会务类型参考：scenarioId/type 属三会一课 → 会务域；theme-party 等实践型不在表内 → 活动/项目 */
+const _ACTIVITY_TYPE_TO_DOMAIN = {
+  'branch-party-meeting': WORK_DOMAIN.MEETING, // 支部党员大会
+  'branch-committee': WORK_DOMAIN.MEETING,     // 支委会
+  'party-group-meeting': WORK_DOMAIN.MEETING,  // 党小组会
+  'party-lecture': WORK_DOMAIN.MEETING,        // 党课
+  'org-life': WORK_DOMAIN.MEETING,             // 组织生活会
+};
+
+/** 从待办取 scenario/type 信号（todo 本体 / actionData 两处均可携带） */
+function _activityScenarioOf(todo) {
+  const ad = todo.actionData;
+  return todo.scenarioId || (ad && ad.scenarioId)
+    || todo.activityType || (ad && ad.activityType)
+    || todo.type || null;
+}
+
+/**
+ * 业务域兼容推断：待办无 domain（历史数据/未打标派生）时，按 actionKey → actionType/sourceType → category 归一。
+ * 推断映射见 spec 三节速查；遗留种子 activity-archive（活动材料归档，处理位=宣传）兼容归「归档宣传」域。
+ * 边界注释：
+ *  - 显式 domain（含显式 NONE）一律原样返回，不做推断覆盖；
+ *  - authorize/participate：sourceType=taskforce → 专班；否则属 activity 型——若待办携带三会一课
+ *    scenarioId（branch-party-meeting/branch-committee/party-group-meeting/party-lecture/org-life）→ 会务，
+ *    theme-party 等 → 活动/项目；**现有派生器大多未把 scenario 落到待办**，故 activity 型无 scenario 时
+ *    默认「活动/项目」——准确会务归属待派生点（C1 Task2）在 create 时带 scenarioId 后细化；
+ *  - 未知/空输入 → NONE，不抛错。
+ * @param {Object} [todo]
+ * @returns {string} WORK_DOMAIN 值
+ */
+export function inferDomain(todo) {
+  if (!todo || typeof todo !== 'object') return WORK_DOMAIN.NONE;
+  if (todo.domain) return todo.domain;
+
+  const key = todo.actionKey;
+  const type = todo.actionType;
+  const sourceType = todo.sourceType;
+
+  // 1) actionKey 业务前缀（spec 三节映射速查；-archive 后缀兼容遗留 activity-archive 种子）
+  if (key) {
+    if (key.startsWith('attendance-')) return WORK_DOMAIN.ATTENDANCE;
+    if (key.startsWith('inspection-')) return WORK_DOMAIN.INSPECTION;
+    if (key.startsWith('member-') || key.startsWith('semester-')) return WORK_DOMAIN.MEMBER_DEV;
+    if (key.startsWith('taskforce-')) return WORK_DOMAIN.TASKFORCE;
+    if (key.startsWith('resolution-')) return WORK_DOMAIN.RESOLUTION;
+    if (key.startsWith('archive-') || key.endsWith('-archive')) return WORK_DOMAIN.ARCHIVE;
+    if (key.startsWith('notice-') || key === 'read') return WORK_DOMAIN.NONE;
+    // 其余键（含与 actionType 同义的 authorize/participate 等）落到 actionType 判定
+  }
+
+  // 2) actionType 判定（key 与动作词同义时同样参与）
+  const t = type || key;
+  if (t === TodoActionType.READ) return WORK_DOMAIN.NONE;
+  if (t === TodoActionType.AUTHORIZE || t === TodoActionType.PARTICIPATE) {
+    if (sourceType === TodoSourceType.TASKFORCE) return WORK_DOMAIN.TASKFORCE;
+    const sc = _activityScenarioOf(todo);
+    if (sc) return _ACTIVITY_TYPE_TO_DOMAIN[sc] || WORK_DOMAIN.ACTIVITY;
+    return WORK_DOMAIN.ACTIVITY; // 无 scenario 信息 → 默认活动/项目（见函数头边界注释）
+  }
+  if (t === TodoActionType.ARCHIVE) return WORK_DOMAIN.ARCHIVE;
+
+  // 3) category 兜底（历史数据仅有分类时）
+  if (todo.category === TodoCategory.NOTICE) return WORK_DOMAIN.NONE;
+  if (todo.category === TodoCategory.ARCHIVE) return WORK_DOMAIN.ARCHIVE;
+
+  return WORK_DOMAIN.NONE; // 未知/空 → NONE
+}
+
+/** 生效业务域（读取归一用）：显式 domain 优先，缺省按 inferDomain 推断 */
+export function _effDomain(todo) {
+  if (!todo || typeof todo !== 'object') return WORK_DOMAIN.NONE;
+  return todo.domain || inferDomain(todo);
+}
+
 // ── 待办状态枚举 ──────────────────────────────────────────────
 export const TodoStatus = {
   PENDING: 'pending',
@@ -114,6 +218,8 @@ function _buildTodo(data) {
     role: data.role,
     personId: data.personId || null,
     category: data.category,
+    // 业务域（工作类型 9 域，2026-09-07 IA-C1）：显式 domain 优先，缺省按 actionKey/actionType 兼容推断
+    domain: _effDomain(data),
     priority: data.priority || 'normal',
     status: data.status || TodoStatus.PENDING,
     deadline: data.deadline || null,
