@@ -78,7 +78,7 @@ export function renderReportInboxHtml({
           <span class="text-xs font-medium flex-shrink-0" style="color:${catColor};">${cat}</span>
           <span class="text-sm text-gray-800 font-medium flex-1 min-w-0 truncate">${r.title}</span>
           <span class="text-xs text-gray-400 flex-shrink-0">${getPersonName(r.submittedBy) || '匿名'}</span>
-          <span class="text-xs text-gray-400 flex-shrink-0">${r.submittedAt}</span>
+          <span class="text-xs text-gray-400 flex-shrink-0">${r.submittedAt || '—'}</span>
           ${requester}
           <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass} flex-shrink-0">${ds.label}</span>
         </button>

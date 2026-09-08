@@ -832,7 +832,7 @@ export function renderMyDispatchTab(role, userId) {
       html += `<span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
       html += `<span class="text-xs text-gray-400">${REPORT_CATEGORIES[r.reportCategory] || '进度'}</span>`;
       html += `<span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${r.title}</span>`;
-      html += `<span class="text-xs text-gray-400 flex-shrink-0">${r.submittedAt}</span>`;
+      html += `<span class="text-xs text-gray-400 flex-shrink-0">${r.submittedAt || '—'}</span>`;
       html += `</div>`;
     });
     html += `</div>`;
