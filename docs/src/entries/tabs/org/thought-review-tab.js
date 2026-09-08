@@ -56,6 +56,18 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
   const actor = { personId: user.personId, role: user.role };
 
   function render() {
+    // E-4（2026-09-09 · H60.7 面板保态复查④）：操作（通过/退回）后整 tab 重渲染，
+    // 原实现清其它已展开行的展开态与退回意见草稿 → 渲染前收集、渲染后回填；
+    // 被处置行已退出队列/归入浏览区 → 对应状态随元素消失自然清掉，不残留。
+    const openDetailIds = new Set();
+    container.querySelectorAll('.tr-detail:not(.hidden)').forEach(d => {
+      if (d.dataset.trDetail) openDetailIds.add(d.dataset.trDetail);
+    });
+    const noteVals = new Map();
+    container.querySelectorAll('input[id^="tr-note-"]').forEach(inp => {
+      if (inp.value) noteVals.set(inp.id, inp.value);
+    });
+
     // 待初阅队列：先到先阅（服务层 listPendingReviews 已按提交时间升序）
     const queue = listPendingReviews();
     // 按人浏览：全部思想汇报（含待初阅/已归档/已退回·需补充），按人归组
@@ -174,6 +186,19 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
     });
     container.querySelectorAll('.tr-reject-btn').forEach(btn => {
       btn.addEventListener('click', () => submitReview(btn.dataset.trId, 'reject'));
+    });
+
+    // ── E-4：回填本次重渲染前仍存在的其它展开行（展开态 + 退回意见草稿）──
+    openDetailIds.forEach(id => {
+      const detail = container.querySelector(`.tr-detail[data-tr-detail="${id}"]`);
+      if (!detail) return; // 行已退出队列（被处置/已归档）→ 展开态自然丢弃
+      detail.classList.remove('hidden');
+      const btn = container.querySelector(`.tr-expand-btn[data-tr-id="${id}"]`);
+      if (btn) btn.textContent = '收起'; // 与展开态同步按钮文案
+    });
+    noteVals.forEach((v, id) => {
+      const el = container.querySelector('#' + id);
+      if (el) el.value = v; // 行仍在队列才回填；被处置行草稿随元素消失
     });
   }
 
