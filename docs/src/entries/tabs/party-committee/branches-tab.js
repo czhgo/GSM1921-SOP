@@ -15,6 +15,8 @@ import { getRosterStats } from '../../../services/roster.js?v=20260908c';
 // 立项⑥ B波：空支部名册导入服务（模板/净化/统计；确认落库直接走 PersonStore.replaceBranchMembers）
 import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../../services/branch-roster-import.js?v=20260908c';
 import { showToast, escHtml as esc, downloadBlob } from '../../../core/utils.js?v=20260908c';
+// 立项⑦ B波：支部卡「进入支部（演示）」按钮绑定（与 governance-overview-tab 同源）
+import { bindBranchDemoButtons } from '../../../modules/branch-demo-nav.js?v=20260908c';
 
 // HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
