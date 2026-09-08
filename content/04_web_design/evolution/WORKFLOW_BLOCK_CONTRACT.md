@@ -5,14 +5,14 @@ role: "[工程师]+[AI]"
 created: 2026-09-03
 last_updated: "2026-09-05"
 status: active
-related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/MODULARIZATION_ASSESSMENT.md, PARTY_COMMITTEE_DESIGN.md, ../../03_doc_system/ARCHITECTURE.md]
+related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.md, PARTY_COMMITTEE_DESIGN.md, ../../03_doc_system/ARCHITECTURE.md]
 ---
 
 # 工作流块封装契约
 
 > **定位**：根 README 顶层愿景 L1→L5 的第 3 层（L3 块封装契约）。把一条 SOP 封装为一个「工作流块」：声明输入（fields，渲染器 = 既有 forms.js 字段积木）、阶段（引擎阶段序列）、产出（todo/notice/归档等既有联动）。契约与示例已随 S1~S4 编码落地（2026-09-03，见 §七）；本文档当前为契约定义 + 落地进度档案。
 > **受众**：[工程师]+[AI]（工作流/表单/能力注册三个面的维护者）+ 书记（交互与边界裁决人）
-> **关联**：[ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §8（愿景与 §8.5 草案）、[MODULARIZATION_ASSESSMENT.md](../../../.ctx/MODULARIZATION_ASSESSMENT.md)（P2 行动）、[PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md)（两级治理）。
+> **关联**：[ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §8（愿景与 §8.5 草案）、[ENGINEERING_ASSESSMENT.md](../../../.ctx/ENGINEERING_ASSESSMENT.md)（行动线 P2）、[PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md)（两级治理）。
 
 ---
 

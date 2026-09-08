@@ -43,7 +43,7 @@ export function saveAttendanceRecords(records) {
  * 会议考勤上传位的活动类型（纪检直接上传并录入，CF §C.1a「会议考勤」）。
  * P3c 单一源 = core/policy-defaults.js（派生导出，导出去重冻结导出面）：
  * 默认=本科生党支部口径（党课/支部党员大会/组织生活会/支委会）；
- * 党小组会/主题党日归组长·组织者位，不入此列。见 MODULARIZATION_ASSESSMENT §八 P3b。
+ * 党小组会/主题党日归组长·组织者位，不入此列。见 .ctx/ENGINEERING_ASSESSMENT.md 行动线 P3b。
  */
 export const MEETING_ATTENDANCE_TYPES = [...POLICY_DEFAULTS.attendance.meetingTypes];
 

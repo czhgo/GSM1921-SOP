@@ -13,7 +13,7 @@ export const POLICY_DEFAULTS = {
   workforce: {
     // 票决通过门槛（支委会从严：应到会人数超过 2/3 且无反对，弃权允许）
     // kind 'branch-default'：2026-09-06 书记裁（附录⑩ S2 R2-3，出处 .ctx/REVIEW_QUEUE.md），
-    //   取代 2026-09-05 版「应到 2/3 且无异议」（出处 MODULARIZATION_ASSESSMENT §8.5 P3a）。
+    //   取代 2026-09-05 版「应到 2/3 且无异议」（出处 .ctx/ENGINEERING_ASSESSMENT.md 行动线 P3a）。
     //   语义裁定：quorum=2/3 为「严格超过」——出席/应到 >2/3 才达出席门槛（2/3 整界不过，
     //   如应到 3 出席 2 仍不足）；vetoOnObject=true 为「反对=0」——交流式 'object'（异议）与
     //   正式 'oppose'（反对）同口径视为反对，任一即否决；'abstain'（弃权）计出席不计赞成与反对。

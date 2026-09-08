@@ -178,7 +178,7 @@ Layer 7: 审计参考层（审计与参考）
 │   │   ├── design-system/             [工程师]+[AI] 全站通用规范（DESIGN_SYSTEM / COLOR_SYSTEM / COMPONENT_SPEC / CLICK_ROUTING）
 │   │   ├── module/                    [工程师]+[AI] 页面与模块设计（SOP_WEBSITE_GUIDE / MODULE_UI_DESIGN / ABOUT_PAGE_DESIGN / AGENDA_AND_REFERENCE_DESIGN）
 │   │   ├── deploy/                    [工程师]+[AI] 部署与集成设计（DEPLOYMENT_GUIDE / AUTHENTICATION_MODEL / WECHAT_INTEGRATION / PKU_PARTY_INTEGRATION）
-│   │   ├── evolution/                 [工程师]+[AI] 演进、契约与评估（ARCHITECTURE_EVOLUTION / WORKFLOW_BLOCK_CONTRACT / BRANCH_WORK_MAP / PARTY_COMMITTEE_DESIGN / ROLE_PERMISSION_DESIGN / DESIGN_METHODOLOGY；模块化评估已迁 .ctx/，2026-09-08）
+│   │   ├── evolution/                 [工程师]+[AI] 演进、契约与评估（ARCHITECTURE_EVOLUTION / WORKFLOW_BLOCK_CONTRACT / BRANCH_WORK_MAP / PARTY_COMMITTEE_DESIGN / ROLE_PERMISSION_DESIGN / DESIGN_METHODOLOGY；工程化评估已迁 .ctx/ENGINEERING_ASSESSMENT.md（2026-09-08 迁入、2026-09-09 更名））
 │   │   └── README.md                 [工程师]+[AI] 网站设计层目录索引（逐文件一句话说明）
 │   ├── 05_ai_coding/                 [工程师]+[AI] AI 协作方法论层（唯一 AI 协作方法论层：README + 5 分篇 + DATA_CONSISTENCY_CHECKLIST）
 │   │   ├── README.md                         [工程师]+[AI] AI 协作方法论层目录索引（层索引表 + 分流来源声明）
@@ -197,7 +197,7 @@ Layer 7: 审计参考层（审计与参考）
 │   ├── TIMESTAMPS.md                  [工程师]+[AI] 文件时间戳注册表
 │   ├── SNAPSHOT.md                    [AI] 当前基线快照
 │   ├── REVIEW_QUEUE.md                [工程师]+[AI] 书记评议队列
-│   ├── MODULARIZATION_ASSESSMENT.md   [工程师]+[AI] 模块化/插件化/开源化评估（2026-09-08 自 04_web_design/evolution 迁入，评估职能归审计底座）
+│   ├── ENGINEERING_ASSESSMENT.md     [工程师]+[AI] 工程化评估与改造行动线（原 MODULARIZATION_ASSESSMENT；2026-09-08 自 04_web_design/evolution 迁入、2026-09-09 更名，评估职能归审计底座）
 │   ├── snapshots/                     [AI] 历史快照归档
 │   └── logs/                          [工程师]+[AI] 月度执行日志与决策日志
 │       ├── archive/                   [工程师]+[AI] 历史日志归档

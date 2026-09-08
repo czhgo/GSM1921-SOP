@@ -5,7 +5,7 @@ role: "[工程师]+[AI]"
 created: 2026-09-03
 last_updated: "2026-09-05"
 status: landed
-related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../.ctx/MODULARIZATION_ASSESSMENT.md]
+related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.md]
 ---
 
 # 支部工作地图设计稿（平铺模块 + 按人双视图）

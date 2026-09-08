@@ -159,7 +159,7 @@ export async function mountWorkforcePanel(branchId, hostEl) {
   const body = document.createElement('div');
   body.id = 'workforce-panel-body';
   // 发起表单区独立于议题列表容器：renderBody 重建列表时不触碰表单 DOM——
-  // 保态修复（最小操作成本，疑点见 MODULARIZATION_ASSESSMENT §8.7，2026-09-05）
+  // 保态修复（最小操作成本，疑点见 .ctx/ENGINEERING_ASSESSMENT.md 行动线 8.7-①，2026-09-05）
   const formZone = document.createElement('div');
   formZone.id = 'wf-form-zone';
   hostEl.appendChild(header);
@@ -253,7 +253,7 @@ export async function mountWorkforcePanel(branchId, hostEl) {
     // 发起表单（默认收起）＋ 议题列表（实时票决判定）
     const proposals = await listWorkforceProposals(branchId);
     // 对未生效议题并行求票决判定：Promise.allSettled 并发，单条失败 console.warn 不阻断其余卡片；
-    // 理由：多议题时缩短书记等待（最小操作成本，MODULARIZATION_ASSESSMENT §8.7）
+    // 理由：多议题时缩短书记等待（最小操作成本，见 .ctx/ENGINEERING_ASSESSMENT.md 行动线 8.7-②）
     const pending = proposals.filter((a) => !(a.extras && a.extras.adoptedAt));
     const outcomesByAct = {};
     const settled = await Promise.allSettled(pending.map((a) => getWorkforceVoteOutcome(a.id)));

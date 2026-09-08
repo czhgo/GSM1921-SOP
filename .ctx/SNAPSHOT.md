@@ -69,13 +69,13 @@ GSM1921-SOP/
 │   ├── 01_strategy/            ← [用户] 战略路线层（DEVELOPMENT_PATH + SECRETARY_DIRECTIVES（书记原话 P-001~P-016 基线，原 SECRETARY_PRONOUNCEMENTS 更名）+ references/）
 │   ├── 02_institution/         ← [用户] 组织制度层（sop/ + COMMISSIONER_DUTY_FRAMEWORK + FLAT_ORGANIZATION_DESIGN + ROLE_CLASSIFICATION + SYSTEM_ROLE_PERMISSION）
 │   ├── 03_doc_system/          ← [工程师] 系统治理层（ARCHITECTURE + SSOT_INDEX + OPERATIONS_GUIDE + PROCESS_GUIDE + USAGE_POLICY + SERVICE_CATALOG + DOC_MAP）
-│   ├── 04_web_design/          ← [工程师] 设计理念层（data/ deploy/ design-system/ evolution/ module/ 五子目录；DESIGN_SYSTEM/COMPONENT_SPEC/SOP_WEBSITE_GUIDE/PARTY_COMMITTEE_DESIGN 等；模块化评估已迁 .ctx/，2026-09-08）
+│   ├── 04_web_design/          ← [工程师] 设计理念层（data/ deploy/ design-system/ evolution/ module/ 五子目录；DESIGN_SYSTEM/COMPONENT_SPEC/SOP_WEBSITE_GUIDE/PARTY_COMMITTEE_DESIGN 等；工程化评估已迁 .ctx/（ENGINEERING_ASSESSMENT.md），2026-09-08（更名 2026-09-09））
 │   ├── 05_ai_coding/           ← [工程师] AI编码层（DOCUMENT_GOVERNANCE / CONTEXT_MANAGEMENT / REVIEW_AND_EXPRESSION / TEST_AND_VERIFICATION 等分篇）
 │   ├── insights/               ← [用户]+[AI] 经验沉淀（党支部管理与实务经验沉淀.md + README）
 │   └── README.md
 └── .ctx/                       ← [AI]/[工程师]+[AI] 审计底座
     ├── SNAPSHOT.md             ← 当前基线快照
-    ├── MODULARIZATION_ASSESSMENT.md ← 模块化/插件化/开源化评估（2026-09-08 自 content/04_web_design/evolution 迁入：评估职能归审计底座）
+    ├── ENGINEERING_ASSESSMENT.md  ← 工程化评估与改造行动线（原 MODULARIZATION_ASSESSMENT；2026-09-08 自 content/04_web_design/evolution 迁入、2026-09-09 更名：评估职能归审计底座）
     ├── REVIEW_QUEUE.md         ← 书记评议队列（W4 专项附录 + 检查要点库）
     ├── TIMESTAMPS.md           ← 文件时间戳注册表
     ├── snapshots/              ← 历史快照归档
@@ -151,7 +151,7 @@ GSM1921-SOP/
 | 向书记提问准则 | 书记决断 strategy/product/marketing，AI 负责代码工程；请裁呈「选项+上下文+推荐+默认」，把决策做薄 | CLAUDE.md H60（T-043） |
 | SOP 回写 | 将网页中已实现的工作逻辑反整合到SOP中（用业务语言），使SOP成为规范、结构化、清晰的制度母本 | SOP_WEBSITE_GUIDE.md §C.5（原 insights 工程演进与设计方法论 §4.11 承接） |
 | 打卡化判定 | 完成必须对应真实产物——`complete(task)` 的副作用集合仅含状态翻转即为打卡化设计缺陷 | DESIGN_METHODOLOGY.md §3.1（原 insights §6.23） |
-| 能力注册表·插件化 | 功能单元按「能力声明」注册（register/get/mount 三原语 + unregister/resolveDeps），消费点从清单读取自动发现；6 工作台薄壳化 + 数据源/场景注册化 + 入口/HTML 瘦身（M1-M4 + HTML 公共资源抽取方案A 完成；量化评估见 .ctx/MODULARIZATION_ASSESSMENT.md，2026-09-06 v4 综合≈76） | ARCHITECTURE_EVOLUTION.md §二（插件化演进）+ §八（拖拽编排愿景）+ .ctx/MODULARIZATION_ASSESSMENT.md |
+| 能力注册表·插件化 | 功能单元按「能力声明」注册（register/get/mount 三原语 + unregister/resolveDeps），消费点从清单读取自动发现；6 工作台薄壳化 + 数据源/场景注册化 + 入口/HTML 瘦身（M1-M4 + HTML 公共资源抽取方案A 完成；量化评估见 .ctx/ENGINEERING_ASSESSMENT.md（工程化评估与改造行动线），2026-09-06 v4 综合≈76） | ARCHITECTURE_EVOLUTION.md §二（插件化演进）+ §八（拖拽编排愿景）+ .ctx/ENGINEERING_ASSESSMENT.md |
 
 ## V. 权限矩阵摘要
 
