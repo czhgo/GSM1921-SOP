@@ -791,3 +791,18 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **登记（送审/下一批候选，非本次改动）**：①`org/taskforce-tab.js` 专班详情=多写块（专班复盘 textarea/中间进度/代录/材料记录）共享整面板重建——任一动作成功后 card.click() 整详情重建会丢其它块未提交草稿（尤其已写复盘未提交又点「添加进度/代录」）——最小修法=按 #wf-form-zone 判例将各写块抽独立容器分块刷新（改动面大，建议单批）②`leader/write-tab.js` L1-L4/承办党小组步骤重选仍整面板重建丢已填 title/date/location/desc/角色选择（非折叠路径，需草稿持久化）③`components/report-inbox.js`/`issues.js` 答复成功 onAnswered 重渲染会清其它展开行的草稿输入（列表内瞬态草稿，低）④`org/thought-review-tab.js` 阅看行退回复选框与他行操作互扰同型（低）⑤禁改文件（inspector.js/activity.html 详情侧展开/定义切换区、work-overview、secretary overview-tab、styles.css、mock-adapter、roster、domain）未触碰——如需复查内里面板行为须书记特批送审。
 **回归**：node --check 3 文件通过；GetDiagnostics 0（3 文件均 0 诊断）；module-load 依赖 playwright 浏览器启动受沙箱 EPERM 未跑（环境登记，与既往同）；改后未引入新 import，?v= 全站维持 20260908c 一致（同 b4cc8401/421e3d0e 快速修复先例），建议随下轮全站 bump 收口。
 **提交**：fix(ui): 面板保态批量复查修复（本批）。
+
+**T-2026-09-069 init 档回填修复 + 全前端冒泡测试（2026-09-08）**
+**书记令**：①修复浏览器单机形态 ?reset=init 种子回填 ②所有前端冒泡测试。
+- **init 回填修复 ✅（75c73643）**：判据分析=mock-adapter（禁改）三层触发（raw 不存在→seed；activities 空且种子非空→seed；_mergeNewSeedRecords 无条件补种子），纯哨兵无效。修复=哨兵键 `gsm1921-init-state` + `stripSeedRecordsIfInitState(db)`（每轮 loadDB 后剔除 7 种子域 id 匹配种子模式 `act-\d+/tsk-\d+/assign_seed_\d+/att\d+/notice-\d{3}/ar\d+/su-\d{3}` 的记录，用户记录 id=时间戳/uuid 形态与种子空间正交零误伤）+ 8 个 store/读兜底守卫（notice/taskforce/signup/activity/attendance/inspection 空态在 init 态跳过演示种子）+ 链 B 收口（wizard/search mock 分支走 BranchService.loadDB，MockAdapter.loadDB 收敛单调用者）。reset-tier-init 14/14 + reset-tier 9/9 + member-persist/empty-template 等 65/65 绿。
+- **全前端冒泡 ✅**（Playwright chromium headless + 静态服务；报告 .ctx/logs/2026-09-08-smoke-result.md）：A 公共页 11/11 + B 工作台 7 台×65 tab 全部 ✅（与 capabilities 声明一致）+ C 交互 10 项 9✅1⚠️（组织审批批量无种子目标=数据态非缺陷）——全程 0 console/page error；修复 2 缺陷（421e3d0e）：wizard/search-entry 调 BranchService.loadDB 缺绑定 → mock 路径 ReferenceError 被吞→向导误显「非现任书记」门禁/search 支部文件恒空（补 import）；branches-tab 缺 bindBranchDemoButtons import。性能：仅 help.html DCL 3.4s 需关注。
+- **提交**：75c73643/421e3d0e/645e79b2。
+
+**T-2026-09-070 C4 评议轮次排期（书记 2026-09-08 批准「全部近期」，REVIEW_QUEUE 附录引用本条目）**
+按序滚动启动（每轮走 H60：抽样→书记逐条 ASK→分流归档→REVIEW_QUEUE 保持无悬挂）：①黑话第4轮（源头污染优先，一律书记判定）②书记原话复核余批（P 系列，逐条书记过目）③功能实现评议下一轮（设计考量↔实现对照；随 W4 反论同步）④最小三成本下一轮（五场景/G 系/双形态）⑤专班详情多写块分块刷新批（面板保态登记①：org/taskforce-tab 整详情重建互扰，按 #wf-form-zone 判例抽独立容器）⑥概况侧禁改送审项（附录⑪ 语义：overview-tab.js/work-overview.js 内面板行为复查须书记特批）⑦AI 逃逸下轮/理论复用下轮按书记指令随时启动。轮次启动记 T-071+ 续号。
+
+**T-2026-09-071 README 全量同步 + 书记原话 closed-loop 补充 + REVIEW_QUEUE 清空（2026-09-08）**
+- **书记原话 ✅**：DEVELOPMENT_PATH.md「在框架内说真话」小节补书记原话（2026-09-08）「每个人都要学习掌握 closed-loop communication，让任务形成【确认闭环】」+ 简短释义（说到位有回音/复述领受/完成回执），原文原貌保留。
+- **README 全量同步 ✅（80b46e15）**：根 README.md（191 行覆盖：18 页/7 台/9 域/书记台 12 tab/党委台 6 tab/关键机制 11 条/表决门槛/开发路径章+目录/测试文件集/?v= 纪律/本地内网试用/禁改清单与 push 批准纪律）；README-members.md（241 行成员通俗版，功能地图由 function-catalog 重新生成单源同步）；server/README.md 最小同步（种子/初始化口径）。均对照代码核实口径。
+- **REVIEW_QUEUE 清空 ✅**：主队列两个已归档轮次（02_institution T-263 / 全角色全 tab 卡片 T-066-068）正文清除，文件=使用说明+附录区（方法总索引/①-⑪ 专项承接：悬挂「待发起」全部转为「机制持续·按书记指令随时启动」或「C4 已批准近期推进·排期见 T-070」）；检查要点库与专项语义保留（书记 2026-08-10 附录语义）。
+- **提交**：80b46e15（README）+ 本批（content 原话/REVIEW_QUEUE/日志）。push ahead 45+ 待书记批准。
