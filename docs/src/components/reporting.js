@@ -9,4 +9,4 @@
 // 设计源：书记 2026-08-10 裁定（汇报闭环、行内答复、措辞温和）
 
 export { renderReportEntryHtml, bindReportEntry } from './report-entry.js?v=20260908a';
-export { renderReportInboxHtml, bindReportInbox } from './report-inbox.js?v=20260908a';
+export { renderReportInboxHtml, bindReportInbox } from './report-inbox.js?v=20260908b';

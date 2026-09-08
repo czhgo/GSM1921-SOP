@@ -7,7 +7,7 @@
 
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { IssueStore } from '../../../services/issues.js?v=20260908a';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260908a';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260908b';
 import { TodoStore, TodoStatus, isTodoExpired } from '../../../services/todo.js?v=20260907b';
 import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260907b';
 import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260907b';

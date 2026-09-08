@@ -9,7 +9,7 @@ import { AttendanceStatus } from '../../../core/domain.js?v=20260903c';
 import { getPersonName } from '../../../services/person.js?v=20260907b';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260903c';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260908b';
 import { getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260903c';
 
 export function renderContent() {

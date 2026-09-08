@@ -32,7 +32,7 @@ registerCapability({
         },
       });
     }) },
-    { id: 'todo', label: '待办', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/prop/todo-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
+    { id: 'todo', label: '待办', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/prop/todo-tab.js?v=20260908b').then(m => m.renderContent(ctx)) },
     // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
     { id: 'overview', label: '工作概况', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/prop/overview-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
     { id: 'tasks', label: '宣传任务', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/prop/tasks-tab.js?v=20260903c').then(m => m.renderContent(ctx)) },

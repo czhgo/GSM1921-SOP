@@ -32,13 +32,13 @@ registerCapability({
         },
       });
     }) },
-    { id: 'todo', label: '待办', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/disc/todo-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
+    { id: 'todo', label: '待办', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/disc/todo-tab.js?v=20260908b').then(m => m.renderContent(ctx)) },
     // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
     { id: 'overview', label: '工作概况', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/disc/overview-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
     { id: 'attendance', label: '考勤管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/attendance-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
     { id: 'review', label: '活动监督复盘', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/review-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
     { id: 'inspection', label: '考察管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/inspection-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
-    { id: 'makeup', label: '补课制度', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/makeup-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
+    { id: 'makeup', label: '补课制度', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/makeup-tab.js?v=20260908b').then(m => m.renderContent(ctx)) },
     { id: 'mailbox', label: '公邮管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/mailbox-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
     // 专班查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增）
     { id: 'tf-view', label: '专班查看', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/tf-view-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },

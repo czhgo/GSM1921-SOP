@@ -31,7 +31,7 @@ registerCapability({
         },
       });
     }) },
-    { id: 'todo', label: '待办', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/secretary/todo-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
+    { id: 'todo', label: '待办', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/secretary/todo-tab.js?v=20260908b').then(m => m.renderContent(ctx)) },
     { id: 'overview', label: '全局概况', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/secretary/overview-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
     { id: 'calendar', label: '活动管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/secretary/calendar-tab.js?v=20260908a').then(m => m.renderContent(ctx?.appState)) },
     // L4 支部工作地图（2026-09-03 书记裁决放行）：支部分工 · 平铺/按人双视图（书记/副书记共用书记台）
@@ -39,7 +39,7 @@ registerCapability({
     { id: 'assign', label: '赋权管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/secretary/assign-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
     // U2（2026-09-07）：支部配置入口——以本人所属支部内嵌换组织向导（embed），解决向导对书记/副书记层纯网页不可达；
     // 共享渲染组件 org-setup-wizard.js（党委台 party-config / wizard.html 同源）；角色门在 tab 内部（仅书记/副书记）。
-    { id: 'branch-config', label: '支部配置', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/secretary/branch-config-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
+    { id: 'branch-config', label: '支部配置', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/secretary/branch-config-tab.js?v=20260908b').then(m => m.renderContent(ctx)) },
     { id: 'notification', label: '通知发布', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/secretary/notification-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
     // 专班查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增）
     // B1-5：高亮目标由导航路径的 3s 定时器清除（不再 onLocated 即时清除，补渲染可重新应用高亮）

@@ -3,7 +3,7 @@
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
 import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260908a';
-import { renderReportEntryHtml, bindReportEntry } from '../components/reporting.js?v=20260908a';
+import { renderReportEntryHtml, bindReportEntry } from '../components/reporting.js?v=20260908b';
 import { loadActivities } from '../services/activity.js?v=20260903c';
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260907b';
 import { NoticeStore } from '../services/notice.js?v=20260907b';
@@ -14,7 +14,7 @@ import { PersonStore } from '../services/person.js?v=20260907b';
 const PEOPLE = PersonStore.getMembers();
 import { TodoStore, seedTodos, VisitorTodoDeriver } from '../services/todo.js?v=20260907b';
 // 副作用导入触发参与者工作台能力注册（tab 清单）
-import '../modules/capabilities/visitor-workspace.js?v=20260908a';
+import '../modules/capabilities/visitor-workspace.js?v=20260908b';
 
 await createWorkspaceShell({
   accentRole: 'participant',

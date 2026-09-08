@@ -3,12 +3,12 @@
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
 import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260908a';
-import { renderReportEntryHtml, bindReportEntry } from '../components/reporting.js?v=20260908a';
+import { renderReportEntryHtml, bindReportEntry } from '../components/reporting.js?v=20260908b';
 import { loadActivities } from '../services/activity.js?v=20260903c';
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260907b';
 import { seedTodos } from '../services/todo.js?v=20260907b';
 // 副作用导入触发纪检工作台能力注册（tab 清单）
-import '../modules/capabilities/disc-workspace.js?v=20260908a';
+import '../modules/capabilities/disc-workspace.js?v=20260908b';
 
 await createWorkspaceShell({
   accentRole: 'disc-commissioner',

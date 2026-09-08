@@ -9,7 +9,7 @@
 //   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
 import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260903c';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260908a';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260908b';
 import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260907b';
 import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260907b';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
@@ -26,8 +26,8 @@ import { IssueStore } from '../../../services/issues.js?v=20260908a';
 import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/taskforce.js?v=20260907b';
 import { fetchVotes } from '../../../services/committee-vote.js?v=20260903c';
 import { resolveVoterIds } from '../../../services/vote-config.js?v=20260903c';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260908a';
-import { renderMemberChangePanelHtml, bindMemberChangePanel, preloadMemberChangeRequests, getCachedMemberChangeRequests } from '../../../components/member-change-panel.js?v=20260903c';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260908b';
+import { renderMemberChangePanelHtml, bindMemberChangePanel, preloadMemberChangeRequests, getCachedMemberChangeRequests } from '../../../components/member-change-panel.js?v=20260908b';
 import { tryDirectJump } from '../../../components/todo-jump.js?v=20260903c';
 import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260907b';
 // C 批 附录⑩ S4：名册确权复核（组织委员发起 → 书记确认/退回）+ 学期末滞留集中复核提醒

@@ -10,7 +10,7 @@ import { registerApiAdapter, setDataSource, init } from '../core/data-adapter.js
 import { ApiAdapter } from '../core/api-adapter.js?v=20260903c';
 import { AuthStore } from '../services/auth.js?v=20260903c';
 import { getBranchById, getBranchIdOfPerson } from '../services/branch.js?v=20260903c';
-import { mountOrgSetupWizard } from '../components/org-setup-wizard.js?v=20260908a';
+import { mountOrgSetupWizard } from '../components/org-setup-wizard.js?v=20260908b';
 import { renderSidebar } from '../components/sidebar.js?v=20260908a';
 import { renderHeader } from '../components/header.js?v=20260903c';
 import { escHtml as esc } from '../core/utils.js?v=20260903c';

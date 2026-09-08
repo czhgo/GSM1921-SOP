@@ -10,7 +10,7 @@ import { BranchService } from '../services/runtime.js?v=20260903c';
 import { TaskForceRecordStore } from '../services/taskforce.js?v=20260907b';
 import { SignupStore } from '../services/signup.js?v=20260907b';
 // T-304 Q3 权限收敛：副作用导入触发书记工作台能力注册（tab 清单，与其余 5 工作台对齐）
-import '../modules/capabilities/secretary-workspace.js?v=20260908a';
+import '../modules/capabilities/secretary-workspace.js?v=20260908b';
 
 await createWorkspaceShell({
   accentRole: 'secretary',

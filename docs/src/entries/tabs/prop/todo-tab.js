@@ -3,9 +3,9 @@
 // 最小三成本原则落地：进入即见首条详情，减一次点击。
 
 import { showToast } from '../../../core/utils.js?v=20260903c';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260908a';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260908b';
 import { tryDirectJump } from '../../../components/todo-jump.js?v=20260903c';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260903c';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260908b';
 
 function _handleTodoAction(todo, ctx) {
   // 直达跳转（通知阅读 T-234 F1）已收敛于 components/todo-jump.js（2026-09-04）
