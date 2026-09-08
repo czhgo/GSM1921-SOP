@@ -10,9 +10,20 @@
 
 import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260908c';
 import { AuthStore } from '../services/auth.js?v=20260908c';
-import { showToast } from '../core/utils.js?v=20260908c';
+import { showToast, escHtml } from '../core/utils.js?v=20260908c';
 import { getPersonName } from '../services/person.js?v=20260908c';
 import { solidAccentStyle } from '../core/constants.js?v=20260908c';
+
+// ── E-3（2026-09-09 · H60.7 面板保态复查③）：列表瞬态草稿互扰兜底 ──────
+// 某行正式答复成功 → onAnswered → 调用方整块重渲染（书记待办/组长组员汇报），
+// 原实现清掉其它已展开行的草稿与展开态。修法取「渲染前收集、渲染后回填」：
+// 以 reportId 为键的模块态在「展开/收起、行内输入」时持续收集（不依赖每次渲染
+// 前临时快照——渲染方与绑定方分属不同调用，模块态是唯一跨重建存活通道）；
+// renderReportInboxHtml 依态输出展开态与输入框初值，重建后即回填。
+// 答复成功的行草稿清零（保留展开态以便直接看到时间线新答复），被答复/关闭的行
+// 自然移出列表后状态随之清掉。跨复用方（todo-tab/members-tab）共享同一模块态，
+// 同一 reportId 不会同屏出现在两个容器，无串扰。
+const _rowUi = new Map(); // reportId → { open: boolean, draft: string }
 
 /**
  * 待答复收件箱 HTML
@@ -41,6 +52,7 @@ export function renderReportInboxHtml({
     </p>`;
 
   if (!reports.length) {
+    _rowUi.clear(); // 无行可展示：清模块态，防陈旧草稿/展开态残留下次渲染
     return `
       <div class="card rounded-xl p-4 mb-4">
         <div class="flex items-center justify-between mb-3">
@@ -62,6 +74,11 @@ export function renderReportInboxHtml({
     if (pa !== pb) return pa - pb;
     return (b.submittedAt || '').localeCompare(a.submittedAt || '');
   });
+  // E-3：状态只跟随仍在列表中的行（被关闭/答复移出的行其草稿/展开态一并清掉）
+  {
+    const alive = new Set(sorted.map(r => r.id));
+    for (const k of _rowUi.keys()) if (!alive.has(k)) _rowUi.delete(k);
+  }
 
   const rows = sorted.map(r => {
     const cat = REPORT_CATEGORIES[r.reportCategory] || '进度';
@@ -71,6 +88,9 @@ export function renderReportInboxHtml({
     const requester = r.requestedBy
       ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 flex-shrink-0">了解进展</span>'
       : '';
+    // E-3：模块态回填（整块重渲染后仍保持展开/输入；只保留仍在列表中的行）
+    const ui = _rowUi.get(r.id);
+    const rowOpen = !!(ui && ui.open);
     return `
       <div class="rounded-lg border ${r.reportCategory === 'blocked' ? 'border-red-200' : 'border-gray-100'} overflow-hidden">
         <button type="button" class="rep-inbox-toggle w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left" data-report-id="${r.id}">
@@ -82,8 +102,8 @@ export function renderReportInboxHtml({
           ${requester}
           <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass} flex-shrink-0">${ds.label}</span>
         </button>
-        <div id="rep-inbox-detail-${r.id}" class="hidden px-3 pb-3 border-t border-gray-100">
-          ${_renderInboxDetail(r, accent)}
+        <div id="rep-inbox-detail-${r.id}" class="px-3 pb-3 border-t border-gray-100${rowOpen ? '' : ' hidden'}">
+          ${_renderInboxDetail(r, accent, (ui && ui.draft) || '')}
         </div>
       </div>`;
   }).join('');
@@ -98,8 +118,9 @@ export function renderReportInboxHtml({
     </div>`;
 }
 
-/** 行内详情：汇报正文 + 了解进展说明 + 对话时间线 + 答复输入区 */
-function _renderInboxDetail(r, accent) {
+/** 行内详情：汇报正文 + 了解进展说明 + 对话时间线 + 答复输入区
+ *  @param {string} [draft] E-3：重建前收集的该行未提交草稿（作为输入框初值回填） */
+function _renderInboxDetail(r, accent, draft = '') {
   const requesterNote = r.requestedBy && r.requestedNote
     ? `<div class="rounded-lg p-2 bg-blue-50 mt-2"><p class="text-xs text-blue-700">请汇报：${r.requestedNote}</p></div>`
     : '';
@@ -126,7 +147,7 @@ function _renderInboxDetail(r, accent) {
     <div class="space-y-2 mt-2">${timeline}</div>
     ${r.status === 'open' ? `
       <div class="flex gap-2 mt-2">
-        <input type="text" id="rep-inbox-input-${r.id}" class="input-flat flex-1" placeholder="添加答复…" aria-label="答复内容">
+        <input type="text" id="rep-inbox-input-${r.id}" class="input-flat flex-1" value="${escHtml(draft)}" placeholder="添加答复…" aria-label="答复内容">
         <button type="button" class="rep-inbox-reply text-xs px-3 py-2 rounded-lg text-white hover:opacity-90 transition-opacity flex-shrink-0" data-report-id="${r.id}" style="${solidAccentStyle(accent)};">正式答复</button>
       </div>` : ''}
   `;
@@ -141,11 +162,26 @@ function _renderInboxDetail(r, accent) {
  */
 export function bindReportInbox(container, { role = 'secretary', onAnswered = () => {} } = {}) {
   if (!container) return;
-  // 展开/收起详情
+  /** E-3：读/写某行模块态（不存在则按默认建） */
+  const rowState = (id) => {
+    let s = _rowUi.get(id);
+    if (!s) { s = { open: false, draft: '' }; _rowUi.set(id, s); }
+    return s;
+  };
+  // 展开/收起详情（展开态写入模块态 → 整块重渲染后仍保持）
   container.querySelectorAll('.rep-inbox-toggle').forEach(btn => {
     btn.addEventListener('click', () => {
       const detail = document.getElementById('rep-inbox-detail-' + btn.dataset.reportId);
-      if (detail) detail.classList.toggle('hidden');
+      if (!detail) return;
+      detail.classList.toggle('hidden');
+      rowState(btn.dataset.reportId).open = !detail.classList.contains('hidden');
+    });
+  });
+  // 行内答复草稿输入（每次键入即写入模块态，重建后回填不丢）
+  container.querySelectorAll('input[id^="rep-inbox-input-"]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const id = inp.id.slice('rep-inbox-input-'.length);
+      rowState(id).draft = inp.value;
     });
   });
   // 正式答复（kind='reply' → 发回汇报人，通知未读）
@@ -158,6 +194,10 @@ export function bindReportInbox(container, { role = 'secretary', onAnswered = ()
       const user = AuthStore.getCurrentUser();
       IssueStore.addComment(id, user?.personId || '匿名', role, body, 'reply');
       showToast('success', '正式答复已发回');
+      // E-3：本行草稿清零、保留展开态（重建后时间线直接可见新答复）；其它行态不受影响
+      const s = rowState(id);
+      s.draft = '';
+      s.open = true;
       onAnswered();
     });
   });

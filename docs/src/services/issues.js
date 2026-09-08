@@ -869,11 +869,21 @@ export function renderMyDispatchTab(role, userId) {
   return html;
 }
 
-/** 重渲染「我的处置」Tab（汇报/评论动作后调用） */
+/** 重渲染「我的处置」Tab（汇报/评论动作后调用）
+ *  E-3（2026-09-09）：整 tab 重建前收集各「了解进展」待填行未提交草稿，重建后回填——
+ *  提交某行不丢其它行已填内容（原实现整表重建清所有行草稿）。 */
 function _rerenderMyDispatch(container, role, userId) {
   if (!container) return;
+  const drafts = new Map();
+  container.querySelectorAll('input[id^="report-req-input-"]').forEach(inp => {
+    if (inp.value) drafts.set(inp.id, inp.value);
+  });
   container.innerHTML = renderMyDispatchTab(role, userId);
   bindMyDispatchEvents(container, role, userId);
+  drafts.forEach((v, id) => {
+    const el = container.querySelector('#' + id);
+    if (el) el.value = v; // 提交行已随数据移出/重建 → 无对应元素自然跳过
+  });
 }
 
 /**
@@ -895,9 +905,13 @@ export function bindMyDispatchEvents(container, role, userId) {
   container.querySelectorAll('[data-mydispatch-action="submit-report"]').forEach(el => {
     el.addEventListener('click', () => {
       const id = el.dataset.issueId;
-      const body = document.getElementById('report-req-input-' + id)?.value?.trim();
+      const input = document.getElementById('report-req-input-' + id);
+      const body = input?.value?.trim();
       if (!body) { showToast('error', '请填写汇报内容'); return; }
       IssueStore.addComment(id, userId, role, body, 'result');
+      // E-3：提交行立即清空再整 tab 重渲染——已发内容不回填到该行输入框
+      //（该行因 requestedBy+open 过滤在 ① 区仍保留，仅草稿清空）
+      if (input) input.value = '';
       showToast('success', '汇报已发出，等待书记答复');
       _rerenderMyDispatch(container, role, userId);
     });
