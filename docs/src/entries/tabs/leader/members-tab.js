@@ -15,6 +15,8 @@ import { AttendanceStatus } from '../../../core/domain.js?v=20260903c';
 import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260903c';
 import { getPersonName } from '../../../services/person.js?v=20260907b';
 import { showToast } from '../../../core/utils.js?v=20260903c';
+// D8 裁决批二（2026-09-08）：本组活动复盘状态只读区块并入「组员进展」页（原独立「复盘状态」tab 已删）
+import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20260908a';
 
 // 模块级 ctx 缓存：重渲染（了解进展/行内答复后刷新）复用首次渲染的 accent
 let _ctx = null;
@@ -142,6 +144,8 @@ export async function renderContent(ctx) {
         </div>
         <div class="space-y-1.5">${progressRows}</div>
       </div>
+      <!-- D8 裁决批二（2026-09-08）：本组活动复盘状态只读区块并入组员进展页（原独立「复盘状态」tab 已删） -->
+      ${reviewStatusSectionHtml(ctx)}
     </div>`;
 
   _bindMembersEvents(container);
@@ -160,4 +164,6 @@ function _bindMembersEvents(container) {
   });
   // 组员汇报行内正式答复（书记 2026-08-10 裁定：组长可答复本组组员，块块闭环）
   bindReportInbox(container, { role: 'leader', onAnswered: () => renderContent(_ctx) });
+  // D8 裁决批二（2026-09-08）：复盘状态区块展开/收起（只读；rerender=本页整页重渲染）
+  bindReviewStatusSection(container, () => renderContent(_ctx));
 }

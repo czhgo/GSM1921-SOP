@@ -1,7 +1,10 @@
 // role: [工程师]+[AI]
-// 组长工作台 Tab：本组活动复盘状态（T-279 M2 拆分 · IA-C2 收敛 2026-09-06）
+// 组长工作台：本组活动复盘状态只读区块（T-279 M2 拆分 · IA-C2 收敛 2026-09-06 · D8 裁决批二 2026-09-08）
 // C2 裁定：复盘统一提交入口 = 活动组织者/深度参与者（成员端「我的复盘」visitor/review-tab）；
-// 本页改为本组活动复盘状态只读列表（待复盘/已复盘 + 徽标），页内不提供提交表单（登记 2026-09-06）。
+// 本模块只读展示本组活动复盘状态（待复盘/已复盘 + 徽标），页内不提供提交表单（登记 2026-09-06）。
+// D8 裁决批二（2026-09-08）：独立「复盘状态」tab 删除（leader-workspace 注册 10→9），
+//   本区块并入「组员进展」页（leader/members-tab.js 挂载）——模块改为可嵌入区块导出：
+//   reviewStatusSectionHtml(ctx) → 整卡 HTML 字符串；bindReviewStatusSection(container, rerender) → 绑定展开。
 
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { loadActivityReviews } from '../../../services/review.js?v=20260907b';
@@ -15,17 +18,14 @@ import { currentLeaderGroup } from './_shared.js?v=20260907b';
 let _reviewExpandedId = null;
 
 /**
- * 本组活动复盘状态（只读）：
+ * 本组活动复盘状态（只读）区块 HTML：
  *  - 待复盘：本组活动尚未提交复盘 / 已打回——行内提示「复盘由活动组织者/深度参与者提交」，无填写表单；
  *  - 已复盘：可展开查看复盘内容 / 纪检批注（只读）。
  * K2 登记：组长若同时是组织者 → 其复盘提交入口 = 成员端「我的复盘」（visitor/review-tab，勿改其规则）；
  *  mock 种子中组长组织活动均带 assignments organizer 赋权行（如 act-4/9/16/17/21/23/26/29），
  *  故其活动会出现在该组长「我的复盘」；运行时新建活动如缺 organizer 赋权行则需赋权补齐后才会出现。
  */
-export function renderContent(ctx) {
-  const container = document.getElementById('leader-tab-content');
-  if (!container) return;
-
+export function reviewStatusSectionHtml(ctx) {
   // 当前组长所属党小组（数据驱动：AuthStore 当前用户 → partyGroup）
   const { group: myGroup } = currentLeaderGroup();
 
@@ -77,7 +77,7 @@ export function renderContent(ctx) {
           <div class="flex-1 min-w-0">
             <div class="text-sm font-medium text-gray-800">${act.title || '未命名'}</div>
             <div class="text-xs text-gray-500 mt-0.5">${act.date || ''} ${act.type ? '· ' + act.type : ''}</div>
-            <div class="text-[11px] text-gray-400 mt-1">复盘由活动组织者 / 深度参与者提交</div>
+            <div class="text-[11px] text-gray-400 mt-1">复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）</div>
           </div>
           <div class="flex items-center gap-2 ml-4">
             <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
@@ -108,40 +108,43 @@ export function renderContent(ctx) {
       </div>`;
   }
 
-  container.innerHTML = `
-    <div class="card rounded-lg p-5">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">本组活动复盘状态</h3>
+  return `
+    <div class="card rounded-lg p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">本组活动复盘状态</h4>
+        <span class="text-xs text-gray-400">待复盘 ${pending.length} · 已复盘 ${completed.length}</span>
       </div>
-      <div class="text-xs text-gray-500 mb-4">复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）；本页仅展示本组活动复盘状态，不提供提交。</div>
+      <p class="text-[11px] text-gray-400 mb-3 -mt-1.5">复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）；本区仅展示状态，不提供提交。</p>
 
       <!-- 待复盘 -->
-      <div class="mb-4">
-        <div class="text-xs font-bold text-gray-600 mb-2">待复盘 <span class="text-gray-400 font-normal">(${pending.length})</span></div>
-        <div class="space-y-2" id="leader-review-pending">
-          ${pending.length === 0 ? '<p class="text-xs text-gray-400 text-center py-3">暂无待复盘活动</p>' :
+      <div class="mb-3">
+        <div class="text-xs font-bold text-gray-600 mb-1.5">待复盘 <span class="text-gray-400 font-normal">(${pending.length})</span></div>
+        <div class="space-y-1.5" id="leader-review-pending">
+          ${pending.length === 0 ? '<p class="text-xs text-gray-400 py-1">暂无待复盘活动</p>' :
             pending.map(item => renderPendingCard(item)).join('')}
         </div>
       </div>
 
       <!-- 已复盘 -->
-      <div class="pt-3 border-t border-gray-100">
-        <div class="text-xs font-bold text-gray-600 mb-2">已复盘 <span class="text-gray-400 font-normal">(${completed.length})</span></div>
-        <div class="space-y-2" id="leader-review-completed">
-          ${completed.length === 0 ? '<p class="text-xs text-gray-400 text-center py-3">暂无已复盘活动</p>' :
+      <div class="pt-2.5 border-t border-gray-100">
+        <div class="text-xs font-bold text-gray-600 mb-1.5">已复盘 <span class="text-gray-400 font-normal">(${completed.length})</span></div>
+        <div class="space-y-1.5" id="leader-review-completed">
+          ${completed.length === 0 ? '<p class="text-xs text-gray-400 py-1">暂无已复盘活动</p>' :
             completed.map(item => renderCompletedCard(item)).join('')}
         </div>
       </div>
     </div>
   `;
+}
 
-  // 已复盘卡片点击展开/收起详情（只读；待复盘行无交互）
+/** 绑定已复盘卡片展开/收起（只读；待复盘行无交互）。rerender = 宿主页整页重渲染回调（展开态模块级保持） */
+export function bindReviewStatusSection(container, rerender) {
   container.querySelectorAll('.review-toggle').forEach(toggle => {
     toggle.addEventListener('click', () => {
       const item = toggle.closest('.leader-review-item');
       const actId = item?.dataset.actId;
       _reviewExpandedId = _reviewExpandedId === actId ? null : actId;
-      renderContent(ctx);
+      if (typeof rerender === 'function') rerender();
     });
   });
 }
