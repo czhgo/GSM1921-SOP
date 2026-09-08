@@ -493,6 +493,22 @@ export function listPendingConfirmations() {
 }
 
 /**
+ * 读口：某人最后一次经确权链「书记确认生效」的发展阶段变更（D9 裁决批二 2026-09-08 发展观察用；
+ * 无记录 → null）。返回 { from, to, at }（at=生效时间 decidedAt 兜底发起时间）。
+ * @param {string} personId
+ * @returns {Object|null}
+ */
+export function lastApprovedStageChange(personId) {
+  const reqs = _all().filter(r =>
+    r && r.status === 'approved' && r.action === 'developStage' && r.kind === 'change' && r.personId === personId
+  );
+  if (reqs.length === 0) return null;
+  const last = reqs.reduce((m, r) =>
+    (String(r.decidedAt || r.at || '').localeCompare(String(m.decidedAt || m.at || '')) > 0 ? r : m));
+  return { from: last.from || '', to: last.to || '', at: last.decidedAt || last.at || '' };
+}
+
+/**
  * 是否已「转出」：档案已移除（removed overlay）且移除记录带 transferOut 标记（供读链 UI 标「已转出」）
  * @param {string} personId
  * @returns {boolean}

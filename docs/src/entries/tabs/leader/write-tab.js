@@ -8,17 +8,11 @@ import { BranchService } from '../../../services/runtime.js?v=20260903c';
 import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260903c';
 import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260907b';
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS, SourceType, ParticipationLevel, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260903c';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260903c';
 import { persist } from '../../../core/data-adapter.js?v=20260903c';
-import { appendAttendanceRecords } from '../../../services/attendance.js?v=20260907b';
-import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260907b';
 import { PersonPicker } from '../../../components/person-picker.js?v=20260908a';
 import { recordFormShell } from '../../../components/forms.js?v=20260903c';
 import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260903c';
-import { PersonStore } from '../../../services/person.js?v=20260907b';
-// 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
-const PEOPLE = PersonStore.getMembers();
-import { getPersonName } from '../../../services/person.js?v=20260907b';
 import { badgeHtml } from '../../../components/badges.js?v=20260903c';
 import { showToast } from '../../../core/utils.js?v=20260903c';
 import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260903c';
@@ -122,7 +116,10 @@ export function renderContent(ctx) {
         persist();
       }
 
-      function renderActSubTable(type, items) {
+      // D7 裁决批二（2026-09-08）：子记录区只读化——考勤/考察类 readOnly=true（双写口消除，
+      // 统一走对应「上传」页：考勤上传 / 考察上传，与专班详情只读化先例同款）；宣传/材料记录
+      // 无对应上传页，保留内联添加/删除（readOnly=false）。
+      function renderActSubTable(type, items, readOnly) {
         const configs = {
           attendance: { label: '考勤记录', color: '#10B981', fields: [{ key: 'person', label: '姓名' }, { key: 'status', label: '出勤状态' }, { key: 'note', label: '备注' }, { key: 'time', label: '时间' }] },
           inspection: { label: '考察记录', color: '#D97706', fields: [{ key: 'person', label: '被考察人' }, { key: 'content', label: '考察内容' }, { key: 'result', label: '考察结论' }, { key: 'time', label: '时间' }] },
@@ -137,21 +134,23 @@ export function renderContent(ctx) {
         const rows = items.map((item, idx) => `
           <tr class="border-b border-gray-50">
             ${cfg.fields.map(f => `<td class="px-2 py-1.5 text-xs text-gray-700">${cellOf(item, f.key)}</td>`).join('')}
-            <td class="px-2 py-1.5 text-center"><button class="act-sub-del-btn text-xs text-red-400 hover:text-red-600" data-type="${type}" data-idx="${idx}">删除</button></td>
+            ${readOnly ? '' : `<td class="px-2 py-1.5 text-center"><button class="act-sub-del-btn text-xs text-red-400 hover:text-red-600" data-type="${type}" data-idx="${idx}">删除</button></td>`}
           </tr>
         `).join('');
 
         return `
           <div class="mt-3">
-            <div class="flex items-center justify-between mb-1.5">
+            <div class="flex items-center justify-between gap-2 mb-1.5">
               <h5 class="text-xs font-bold font-title-cn" style="color:${cfg.color}">${cfg.label} (${items.length})</h5>
-              <button class="act-sub-add-btn text-xs px-3 py-1.5 rounded-lg border hover:bg-gray-50 transition-colors" style="color:${cfg.color};border-color:${cfg.color}40" data-type="${type}">+ 添加</button>
+              ${readOnly
+                ? `<span class="text-[11px] text-amber-600 text-right">${type === 'attendance' ? '考勤请到「考勤上传」录入' : '考察请到「考察上传」录入'}</span>`
+                : `<button class="act-sub-add-btn text-xs px-3 py-1.5 rounded-lg border hover:bg-gray-50 transition-colors" style="color:${cfg.color};border-color:${cfg.color}40" data-type="${type}">+ 添加</button>`}
             </div>
             ${items.length === 0
               ? '<p class="text-[12px] text-gray-300 pl-2">暂无记录</p>'
               : `<table class="w-full text-left"><thead><tr class="border-b border-gray-200">
                   ${cfg.fields.map(f => `<th class="px-2 py-1 text-xs font-medium text-gray-500">${f.label}</th>`).join('')}
-                  <th class="px-2 py-1 text-xs font-medium text-gray-500 w-12"></th>
+                  ${readOnly ? '' : '<th class="px-2 py-1 text-xs font-medium text-gray-500 w-12"></th>'}
                 </tr></thead><tbody>${rows}</tbody></table>`
             }
           </div>`;
@@ -187,7 +186,7 @@ export function renderContent(ctx) {
           <h6 class="font-title-cn text-xs font-bold text-gray-600 mb-1">子记录</h6>
           ${visBlocks.length === 0
             ? '<p class="text-[12px] text-gray-400 pl-2">本支部已停用全部活动产出块——如需启用请联系党委在「支部配置」开启</p>'
-            : visBlocks.map(type => renderActSubTable(type, actSubs[type] || [])).join('')}
+            : visBlocks.map(type => renderActSubTable(type, actSubs[type] || [], type === 'attendance' || type === 'inspection')).join('')}
         </div>
       `;
 
@@ -246,148 +245,52 @@ export function renderContent(ctx) {
         detailPanel.classList.add('hidden');
       });
 
-      // 添加子记录（内联表单替代 prompt 弹窗；attendance/inspection 同步写入正式考勤/考察库，消除双轨维护）
+      // 添加子记录（内联表单替代 prompt 弹窗）
+      // D7 裁决批二（2026-09-08）：考勤/考察子记录已只读化（无此添加按钮，见 renderActSubTable
+      // readOnly 引导文案 → 去对应「上传」页）；此处仅剩宣传/材料记录（无对应上传页）保留内联添加。
       detailPanel.querySelectorAll('.act-sub-add-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          const type = btn.dataset.type;
+          const type = btn.dataset.type; // 仅 publicity / materials（attendance/inspection 只读无此按钮）
           const panelEl = btn.closest('.mt-3');
           const existing = panelEl?.querySelector('.record-form-shell');
           if (existing) { existing.remove(); return; }
 
-          // 内联表单 HTML（person 字段由 PersonPicker 渲染，其余为原生控件）
-          const statusOpts = [
-            { value: AttendanceStatus.PRESENT, label: '出勤' },
-            { value: AttendanceStatus.LEAVE, label: '请假' },
-            { value: AttendanceStatus.ABSENT, label: '缺席' },
-            { value: AttendanceStatus.MADE_UP, label: '已补课' },
-          ];
-          const resultOpts = ['考察合格', '待观察', '需补材料'];
           const textFields = {
             publicity: [['title', '宣传标题'], ['author', '撰写人'], ['channel', '发布渠道']],
             materials: [['name', '材料名称'], ['author', '提交人'], ['note', '备注']],
           };
+          const fields = textFields[type];
 
-          let formHtml = '';
           // T-224 §5.5：投递去向由产出类型派生（系统内置），组织者只见「提交」不见「发送对象」
-          const routeHint = (type) => {
-            const map = {
-              attendance: OutputType.ATTENDANCE,
-              inspection: OutputType.INSPECTION,
-              publicity: OutputType.PUBLICITY,
-            };
-            const route = deriveOutputRoute(map[type]);
-            return route ? `<div class="text-[11px] text-gray-400 mb-2">提交后自动投递：${route.route} → ${route.sink}</div>` : '';
-          };
-          if (type === 'attendance') {
-            formHtml = recordFormShell({
-              title: '添加考勤记录（同步正式考勤库）',
-              accent,
-              accentBorder,
-              body: `${routeHint('attendance')}
-                <div class="mb-2 act-sub-picker"></div>
-                <div class="flex gap-2 mb-2">
-                  <select class="f-status input-flat flex-1">${statusOpts.map(s => `<option value="${s.value}">${s.label}</option>`).join('')}</select>
-                  <input class="f-note input-flat flex-1" placeholder="备注（选填）">
-                </div>`,
-            });
-          } else if (type === 'inspection') {
-            formHtml = recordFormShell({
-              title: '添加考察记录（同步正式考察库，待纪检委员确认）',
-              accent,
-              accentBorder,
-              body: `${routeHint('inspection')}
-                <div class="mb-2 act-sub-picker"></div>
-                <textarea class="f-content input-flat w-full resize-none mb-2" rows="2" placeholder="考察内容描述（必填）"></textarea>
-                <select class="f-result input-flat w-full mb-2">${resultOpts.map(r => `<option>${r}</option>`).join('')}</select>`,
-            });
-          } else {
-            const fields = textFields[type];
-            formHtml = recordFormShell({
-              title: `添加${type === 'publicity' ? '宣传' : '材料'}记录`,
-              accent,
-              accentBorder,
-              body: `${routeHint(type)}
-                ${fields.map(([key, label]) => `<input class="f-${key} input-flat w-full mb-2" placeholder="${label}${key === 'title' || key === 'name' ? '（必填）' : '（选填）'}">`).join('')}`,
-            });
-          }
+          const route = type === 'publicity' ? deriveOutputRoute(OutputType.PUBLICITY) : null;
+          const routeHint = route ? `<div class="text-[11px] text-gray-400 mb-2">提交后自动投递：${route.route} → ${route.sink}</div>` : '';
+
+          const formHtml = recordFormShell({
+            title: `添加${type === 'publicity' ? '宣传' : '材料'}记录`,
+            accent,
+            accentBorder,
+            body: `${routeHint}
+              ${fields.map(([key, label]) => `<input class="f-${key} input-flat w-full mb-2" placeholder="${label}${key === 'title' || key === 'name' ? '（必填）' : '（选填）'}">`).join('')}`,
+          });
 
           panelEl.insertAdjacentHTML('beforeend', formHtml);
           const form = panelEl.querySelector('.record-form-shell');
 
-          // person 类记录用 PersonPicker 选人（直接得 personId，对齐正式库）
-          if (type === 'attendance' || type === 'inspection') {
-            const picker = new PersonPicker({ mode: 'multi', placeholder: '选择人员', accentColor: accent, onSelect: () => {} });
-            picker.render(form.querySelector('.act-sub-picker'));
-            form._picker = picker;
-          }
-
           form.querySelector('.record-cancel-btn').addEventListener('click', () => {
-            if (form._picker?.destroy) form._picker.destroy();
             form.remove();
           });
 
           form.querySelector('.record-save-btn').addEventListener('click', () => {
-            if (type === 'attendance') {
-              const ids = form._picker ? form._picker.getSelected() : [];
-              if (ids.length === 0) { showToast('error', '请选择人员'); return; }
-              const statusEnum = form.querySelector('.f-status').value;
-              const note = form.querySelector('.f-note').value.trim();
-              const actorId = AuthStore.getCurrentUser()?.personId;
-              if (!actorId) { showToast('error', '未登录，无法记录考勤'); return; }
-              const newAtts = [];
-              ids.forEach(pid => {
-                actSubs[type].push({ person: getPersonName(pid), personId: pid, status: ATTENDANCE_STATUS_LABELS[statusEnum], note, recordedBy: actorId, recordedAt: new Date().toISOString() });
-                // A1-2026-09-05：recordedBy 记真实操作人，弃幽灵 u_exec
-                newAtts.push({ id: 'att_' + Date.now() + '_' + pid, personId: pid, activityId: actId, status: statusEnum, recordedBy: actorId, recordedAt: new Date().toISOString(), overdue: false });
-              });
-              // A1-2026-09-05：追加提交语义（上传位门禁 + 已确认不可覆盖）
-              const res = appendAttendanceRecords({ actorId, records: newAtts });
-              if (res.added > 0) {
-                showToast('success', `已添加 ${res.added} 条考勤记录并同步正式考勤库` + (res.skipped ? `（${res.skipped} 条已确认记录跳过）` : '') + (res.blocked ? `（${res.blocked} 条不在上传位/需走纪检确认被拦）` : ''));
-              } else {
-                showToast('error', res.blocked > 0 ? '考勤添加被拦：不在您的上传位或需走纪检确认流程' : '无可新增考勤记录（重复或已闭环）');
-              }
-            } else if (type === 'inspection') {
-              const content = form.querySelector('.f-content').value.trim();
-              if (!content) { showToast('error', '请填写考察内容'); return; }
-              const ids = form._picker ? form._picker.getSelected() : [];
-              if (ids.length === 0) { showToast('error', '请选择被考察人'); return; }
-              const result = form.querySelector('.f-result').value;
-              // A1-2026-09-05：上传位守卫 + 真实操作人（弃幽灵 u_exec）
-              const actorId = AuthStore.getCurrentUser()?.personId;
-              if (!actorId) { showToast('error', '未登录，无法记录考察'); return; }
-              if (!canUploadInspection(actorId, SourceType.ACTIVITY, actId)) {
-                showToast('error', '该活动不在您的考察上传位内（仅本组党小组会/本人组织的活动可上传）'); return;
-              }
-              const newRecords = [];
-              ids.forEach(pid => {
-                actSubs[type].push({ person: getPersonName(pid), personId: pid, content, result, recordedBy: actorId, recordedAt: new Date().toISOString() });
-                // P1-5 语义修复：考察内容入 content，role 存角色职责标签
-                newRecords.push({
-                  id: 'insp_' + Date.now() + '_' + pid,
-                  sourceType: SourceType.ACTIVITY, activityId: actId, sourceName: null,
-                  personId: pid, level: ParticipationLevel.ORGANIZE,
-                  content, role: '组织者',
-                  recordedBy: actorId, recordedAt: new Date().toISOString(), status: 'pending',
-                });
-              });
-              const all = loadInspectionRecords();
-              saveInspectionRecords([...all, ...newRecords]);
-              showToast('success', `已添加 ${ids.length} 条考察记录并同步正式考察库`);
-            } else {
-              const fields = textFields[type];
-              const requiredKey = type === 'publicity' ? 'title' : 'name';
-              const requiredVal = form.querySelector(`.f-${requiredKey}`).value.trim();
-              if (!requiredVal) { showToast('error', `请填写${type === 'publicity' ? '宣传标题' : '材料名称'}`); return; }
-              const entry = {};
-              fields.forEach(([key]) => { entry[key] = form.querySelector(`.f-${key}`).value.trim(); });
-              entry.recordedBy = AuthStore.getCurrentUser()?.personId || 'u_exec';
-              entry.recordedAt = new Date().toISOString();
-              actSubs[type].push(entry);
-              showToast('success', '已添加');
-            }
+            const requiredKey = type === 'publicity' ? 'title' : 'name';
+            const requiredVal = form.querySelector(`.f-${requiredKey}`).value.trim();
+            if (!requiredVal) { showToast('error', `请填写${type === 'publicity' ? '宣传标题' : '材料名称'}`); return; }
+            const entry = {};
+            fields.forEach(([key]) => { entry[key] = form.querySelector(`.f-${key}`).value.trim(); });
+            entry.recordedBy = AuthStore.getCurrentUser()?.personId || 'u_exec';
+            entry.recordedAt = new Date().toISOString();
+            actSubs[type].push(entry);
+            showToast('success', '已添加');
             saveActSubs();
-            if (form._picker?.destroy) form._picker.destroy();
             form.remove();
             const actEl = container.querySelector(`.leader-act-item[data-act-id="${actId}"]`);
             if (actEl) actEl.click();
@@ -395,7 +298,7 @@ export function renderContent(ctx) {
         });
       });
 
-      // 删除子记录
+      // 删除子记录（D7：仅宣传/材料记录有删除按钮——考勤/考察只读无此列）
       detailPanel.querySelectorAll('.act-sub-del-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const type = btn.dataset.type;

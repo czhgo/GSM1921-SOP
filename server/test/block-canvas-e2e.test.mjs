@@ -58,7 +58,7 @@ async function openActivityDetail(page) {
   await page.waitForFunction(() => document.querySelectorAll('.act-sub-add-btn').length > 0, { timeout: 8000 });
 }
 
-test('产出块：书记停用宣传 → 组长活动详情无 publicity 按钮 → 恢复默认回归', async () => {
+test('产出块：书记停用宣传 → 组长活动详情无 publicity 按钮 → 恢复默认回归（D7：考勤/考察子记录只读）', async () => {
   // ① 书记登录 → 经服务层写 config.blocks（停用 publicity；写路径已由 module-config HTTP 单测覆盖）
   const sec = await browser.newPage();
   blockRoutes(sec);
@@ -77,11 +77,15 @@ test('产出块：书记停用宣传 → 组长活动详情无 publicity 按钮 
   await lead.waitForURL('**/workspace/leader.html', { timeout: 10000 });
   await openActivityDetail(lead);
   const types = await addBtnTypes(lead);
-  assert.ok(types.length >= 3, `至少三种启用块，实际 ${types.join('/')}`);
+  // D7 裁决批二（2026-09-08）：考勤/考察子记录只读化（无 + 添加/删除，双写口消除——
+  // 统一走「考勤上传」「考察上传」页；专班详情只读化先例同款），仅宣传/材料保留写口。
   assert.ok(!types.includes('publicity'), '宣传块已隐藏');
-  assert.ok(types.includes('attendance') && types.includes('materials'), '其余块保留');
+  assert.ok(types.includes('materials'), '材料块保留添加');
+  assert.ok(!types.includes('attendance') && !types.includes('inspection'), '考勤/考察已只读（无添加按钮）');
+  const roHint = await lead.evaluate(() => document.body.textContent.includes('考勤请到「考勤上传」录入'));
+  assert.ok(roHint, '考勤只读引导文案可见（去「考勤上传」录入）');
 
-  // ③ 书记恢复默认（产出块=null）→ 组长刷新详情 → publicity 回归
+  // ③ 书记恢复默认（产出块=null）→ 组长刷新详情 → publicity 回归（考勤/考察仍只读）
   await sec.evaluate(async () => {
     const { updateBranchBlocks } = await import('/src/services/branch.js?v=20260903c');
     await updateBranchBlocks('br-b1', null);
@@ -92,6 +96,8 @@ test('产出块：书记停用宣传 → 组长活动详情无 publicity 按钮 
   await openActivityDetail(lead);
   const back = await addBtnTypes(lead);
   assert.ok(back.includes('publicity'), '恢复默认后宣传块回归');
+  assert.ok(back.includes('materials'), '材料块保留添加');
+  assert.ok(!back.includes('attendance') && !back.includes('inspection'), '考勤/考察仍只读（无添加按钮）');
 
   await lead.close();
   await sec.close();

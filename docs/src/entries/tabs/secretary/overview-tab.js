@@ -19,8 +19,9 @@ import { getDetainedMembers, getRosterStats, getResidenceOf } from '../../../ser
 import { loadActivities } from '../../../services/activity.js?v=20260903c';
 import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260907b';
 import { AttendanceStatus } from '../../../core/domain.js?v=20260903c';
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260908a';
-import { AuthStore } from '../../../services/auth.js?v=20260903c';
+import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260908a';
+// D2 裁决批二（2026-09-08 书记特批）：按人视图汇报区降级只读摘要 → 「去待办处理」定位跳转（pendingTarget 一次性消费）
+import { PendingTarget } from '../../../core/pending-target.js?v=20260903c';
 import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260903c';
 import { getPersonName } from '../../../services/person.js?v=20260907b';
 
@@ -82,7 +83,8 @@ function renderOverviewContent() {
 }
 
 /** 按人视图 v2：三区上下排布（问题优先）——2026-08-10 书记裁定重设计
- *  ① 汇报区（最上）：待答复收件箱——成员汇报（进度/卡点/请示）+ 书记"了解进展"请求，行内答复零跳转
+ *  ① 汇报区（最上）：待答复只读摘要（D2 裁决批二 2026-09-08 降级）——计数 + 最近 3 条
+ *     （谁/主题/时间）+「去待办处理 →」定位跳转；行内答复位只留待办页「待答复」顶卡
  *  ② 卡点区（次上）：各角色超期/缺口告警，行内"了解进展"（温和请求，措辞不用"要求"）
  *  ③ 进度区（最下）：角色×状态紧凑聚合表（一行一人，数据驱动，非卡片平铺）
  *  监管不插手：书记只答复/了解进展，无任何编辑他人待办入口（看 ≠ 做）
@@ -96,20 +98,23 @@ async function renderPersonView(container) {
 
   container.innerHTML = `
     <div class="space-y-4">
-      ${renderReportSection(reports, today)}
+      ${renderReportSection(reports)}
       ${renderBlockerSection(people, today)}
       ${renderProgressSection(people)}
     </div>
     <p class="text-[11px] text-gray-400 mt-3">
-      按人视图 = L1 条线视角：书记看各角色在办与汇报（知情边界，看 ≠ 做）。汇报/卡点行内答复与了解进展，不跳转他人工作台。
+      按人视图 = L1 条线视角：书记看各角色在办与汇报（知情边界，看 ≠ 做）。汇报为只读摘要（答复到「待办」）；卡点行内可温和了解进展，不跳转他人工作台。
     </p>
   `;
   bindReportSection(container);
   bindBlockerSection(container);
 }
 
-/** 汇报区：待答复收件箱（卡点优先 → 请示 → 进度；待答复优先于待汇报） */
-function renderReportSection(reports, today) {
+/** 汇报区：待答复只读摘要（D2 裁决批二 2026-09-08 书记特批降级）
+ *  待答复收件箱（原行内答复零跳转）→ 只读摘要：计数 + 最近 3 条（谁/主题/时间，无答复表单）
+ *  + 「去待办处理 →」（跳待办页并打开该答复详情定位，PendingTarget 一次性消费）；
+ *  行内答复位只留待办页「待答复」顶卡（批一保留，B2 唯一终答位）；本区无答复表单/无行内展开。 */
+function renderReportSection(reports) {
   const emptyBox = (msg) => `
     <div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
       <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> ${msg}
@@ -126,39 +131,27 @@ function renderReportSection(reports, today) {
       </div>`;
   }
 
-  const catOrder = { blocked: 0, ask: 1, progress: 2 };
-  const sorted = [...reports].sort((a, b) => {
-    const ca = catOrder[a.reportCategory] ?? 3;
-    const cb = catOrder[b.reportCategory] ?? 3;
-    if (ca !== cb) return ca - cb;
-    const pa = a.resultPending ? 0 : 1;
-    const pb = b.resultPending ? 0 : 1;
-    if (pa !== pb) return pa - pb;
-    return (b.submittedAt || '').localeCompare(a.submittedAt || '');
-  });
-
-  const rows = sorted.map(r => {
+  // 只读摘要 = 最近 3 条（与待办页「待答复」顶卡同源，按提交时间倒序；谁/主题/时间）
+  const sorted = [...reports].sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || ''));
+  const shown = sorted.slice(0, 3);
+  const rows = shown.map(r => {
     const cat = REPORT_CATEGORIES[r.reportCategory] || '进度';
     const catColor = r.reportCategory === 'blocked' ? '#EF4444'
       : r.reportCategory === 'ask' ? '#F59E0B' : '#16A34A';
-    const ds = deriveIssueDisplayState(r);
     const requester = r.requestedBy
       ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 flex-shrink-0">了解进展</span>'
       : '';
     return `
       <div class="rounded-lg border ${r.reportCategory === 'blocked' ? 'border-red-200' : 'border-gray-100'} overflow-hidden">
-        <button type="button" class="sec-report-toggle w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left" data-report-id="${r.id}">
+        <button type="button" class="sec-goto-report w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left" data-report-id="${r.id}" title="去待办处理该答复">
           <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${catColor};"></span>
           <span class="text-xs font-medium flex-shrink-0" style="color:${catColor};">${cat}</span>
           <span class="text-sm text-gray-800 font-medium flex-1 min-w-0 truncate">${r.title}</span>
           <span class="text-xs text-gray-400 flex-shrink-0">${getPersonName(r.submittedBy) || '匿名'}</span>
           <span class="text-xs text-gray-400 flex-shrink-0">${r.submittedAt}</span>
           ${requester}
-          <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass} flex-shrink-0">${ds.label}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 flex-shrink-0">去待办处理 →</span>
         </button>
-        <div id="report-detail-${r.id}" class="hidden px-3 pb-3 border-t border-gray-100">
-          ${renderReportDetail(r)}
-        </div>
       </div>`;
   }).join('');
 
@@ -166,76 +159,35 @@ function renderReportSection(reports, today) {
     <div class="card rounded-xl p-4">
       <div class="flex items-center justify-between mb-3">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">汇报</h4>
-        <span class="text-xs text-gray-400">${reports.length} 条待答复 · 行内答复</span>
+        <span class="text-xs text-gray-400">${reports.length} 条待答复 · 只读摘要（答复到「待办」）</span>
       </div>
       <div class="space-y-2">${rows}</div>
+      ${sorted.length > shown.length ? `
+        <button type="button" class="sec-goto-todo w-full mt-2 text-xs text-gray-400 hover:text-gray-600 text-left px-1 py-1 transition-colors">全部 ${sorted.length} 条 → 去待办处理</button>` : ''}
     </div>`;
 }
 
-/** 汇报详情：正文 + 了解进展说明 + 对话时间线 + 答复输入区 */
-function renderReportDetail(r) {
-  const requesterNote = r.requestedBy && r.requestedNote
-    ? `<div class="rounded-lg p-2 bg-blue-50 mt-2"><p class="text-xs text-blue-700">书记了解进展：${r.requestedNote}</p></div>`
-    : '';
-  const comments = (r.comments || []).filter(c => !c.hidden).map(c => {
-    const icon = c.kind === 'dispatch' ? '→' : c.kind === 'reply' ? '答'
-      : c.kind === 'result' ? '✓' : c.kind === 'verdict' ? '★' : '';
-    const bg = c.kind === 'reply' ? 'bg-red-50/70' : c.kind === 'result' ? 'bg-green-50'
-      : c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
-    return `
-      <div class="rounded-lg p-2 ${bg}">
-        <div class="flex items-center gap-1.5 mb-1">
-          <span class="text-xs font-medium text-gray-700">${icon} ${getPersonName(c.author) || '匿名'}</span>
-          ${c.kind === 'reply' ? `<span class="text-xs px-1 py-0.5 rounded font-medium" style="background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">正式答复</span>` : ''}
-          <span class="text-xs text-gray-400">${c.createdAt}</span>
-        </div>
-        <p class="text-xs text-gray-600 whitespace-pre-wrap">${c.body}</p>
-      </div>`;
-  }).join('');
-  const timeline = comments || '<p class="text-xs text-gray-400 py-2">暂无对话</p>';
-
-  return `
-    ${r.body ? `<p class="text-xs text-gray-600 whitespace-pre-wrap mt-2">${r.body}</p>` : ''}
-    ${requesterNote}
-    <div class="space-y-2 mt-2">${timeline}</div>
-    ${r.status === 'open' ? `
-      <div class="flex gap-2 mt-2">
-        <input type="text" id="report-comment-${r.id}" class="input-flat flex-1" placeholder="添加评论…">
-        <button type="button" class="sec-report-comment btn-accent-soft text-xs px-3 py-2" data-report-id="${r.id}">评论</button>
-        <button type="button" class="sec-report-reply btn-accent text-xs px-3 py-2 whitespace-nowrap" data-report-id="${r.id}">正式答复</button>
-      </div>` : ''}
-  `;
+/** 汇报区绑定（D2：只读摘要无表单——行级/区级跳待办定位） */
+function bindReportSection(container) {
+  container.querySelectorAll('.sec-goto-report').forEach(btn => {
+    btn.addEventListener('click', () => {
+      PendingTarget.set({ tab: 'todo', kind: 'report', id: btn.dataset.reportId });
+      _gotoTodoTab();
+    });
+  });
+  container.querySelectorAll('.sec-goto-todo').forEach(btn => {
+    btn.addEventListener('click', () => {
+      PendingTarget.set({ tab: 'todo', kind: 'report' });
+      _gotoTodoTab();
+    });
+  });
 }
 
-function bindReportSection(container) {
-  container.querySelectorAll('.sec-report-toggle').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const detail = document.getElementById('report-detail-' + btn.dataset.reportId);
-      if (detail) detail.classList.toggle('hidden');
-    });
-  });
-  container.querySelectorAll('.sec-report-comment').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.reportId;
-      const body = document.getElementById('report-comment-' + id)?.value?.trim();
-      if (!body) { showToast('error', '请输入评论内容'); return; }
-      const user = AuthStore.getCurrentUser();
-      IssueStore.addComment(id, user?.personId || 'u_sec', 'secretary', body, 'comment');
-      showToast('success', '评论已添加');
-      renderOverviewContent();
-    });
-  });
-  container.querySelectorAll('.sec-report-reply').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.reportId;
-      const body = document.getElementById('report-comment-' + id)?.value?.trim();
-      if (!body) { showToast('error', '请输入答复内容'); return; }
-      const user = AuthStore.getCurrentUser();
-      IssueStore.addComment(id, user?.personId || 'u_sec', 'secretary', body, 'reply');
-      showToast('success', '正式答复已发回');
-      renderOverviewContent();
-    });
-  });
+/** D2 跳转：切到本台「待办」tab（todo tab renderContent 读取 pendingTarget 后展开定位；无目标落页顶） */
+function _gotoTodoTab() {
+  const btn = document.querySelector('.secretary-tab-btn[data-secretary-tab="todo"]');
+  if (btn) { btn.click(); return; }
+  showToast('info', '请到「待办」页处理待答复汇报');
 }
 
 /** 卡点区：各角色超期/缺口告警（按 deadline 升序），行内"了解进展" */

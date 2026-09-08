@@ -8,7 +8,9 @@
 //   buildRealtimeGroups 一次 merge 进对应域（考勤纪律/考察/活动项目/归档宣传/成员发展/决议上报）；
 //   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260903c';
+import { showToast, escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260903c';
+// D2 裁决批二（2026-09-08）：概况汇报区只读摘要「去待办处理」→ 定位消费（展开该答复详情并滚动到视口）
+import { PendingTarget } from '../../../core/pending-target.js?v=20260903c';
 import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260908b';
 import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260907b';
 import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260907b';
@@ -151,6 +153,9 @@ const _tab = createTodoTab({
       requests: getCachedMemberChangeRequests(),
       onDone: () => api.renderContent(),
     });
+    // D2 裁决批二（2026-09-08）：概况汇报区「去待办处理」→ 展开目标答复详情并滚动到视口
+    //（一次性消费；目标不在待答复列表/无目标 → 不做动作 = 落待办页顶部）
+    _locatePendingTarget(container);
   },
 });
 
@@ -158,6 +163,17 @@ export function renderContent(ctx) {
   const container = document.getElementById('secretary-tab-content');
   if (container) container.dataset.currentTab = 'todo';
   return _tab.renderContent(ctx);
+}
+
+/** D2 定位消费：概况跳转后打开对应待答复详情并滚动到视口（见 PendingTarget 模块头注） */
+function _locatePendingTarget(container) {
+  const target = PendingTarget.consume();
+  if (!target || target.tab !== 'todo' || target.kind !== 'report' || !target.id) return; // 回退=待办页顶部
+  const detail = container.querySelector(`#rep-inbox-detail-${target.id}`);
+  if (!detail) return; // 该汇报已答复/关闭（不在待答复列表）→ 回退=待办页顶部
+  detail.classList.remove('hidden');
+  detail.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  flashHighlight(detail);
 }
 
 // ── 详情卡：按聚合类型分发（confirm / remind / 种子行动类；C 批自定义组优先） ────

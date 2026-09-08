@@ -4,6 +4,7 @@
 //  书记 2026-08-10 裁定：全部角色新增工作概况 tab（组长走组员进展升级版）
 //  三区上下排布、问题优先（数据结构定 UI，参考书记按人视图 v2）：
 //    ① 汇报区（最上）：待我行动——请我汇报（行内填写即发）+ 我发起的开放汇报
+//       （D2 裁决批二 2026-09-08 书记特批：开放汇报压缩为计数+缺口，处理位=「我的处置」）
 //    ② 卡点区（次上）：我的超期待办 + 条线缺口（按角色注入）
 //    ③ 进度区（最下）：我的在办聚合 + 条线态势（按角色注入）
 //  职责空间最小充分信息（P-011 知情边界）；本页禁用 SVG 图标（书记裁定）
@@ -12,7 +13,7 @@
 import { showToast, flashHighlight } from '../core/utils.js?v=20260903c';
 import { dutyCardHtml } from './workforce-duty-card.js?v=20260903c';
 import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260903c';
-import { IssueStore, REPORT_CATEGORIES } from '../services/issues.js?v=20260908a';
+import { IssueStore } from '../services/issues.js?v=20260908a';
 import { AuthStore } from '../services/auth.js?v=20260903c';
 import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260903c';
 import { loadActivities } from '../services/activity.js?v=20260903c';
@@ -66,24 +67,19 @@ export async function renderWorkOverview(container, { role, personId, accent = '
       </div>
     </div>`).join('');
 
-  const openRows = openMine.map(r => {
-    const cat = REPORT_CATEGORIES[r.reportCategory] || '进度';
-    const catColor = r.reportCategory === 'blocked' ? '#EF4444' : r.reportCategory === 'ask' ? '#F59E0B' : '#16A34A';
-    const state = r.resultPending
-      ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 flex-shrink-0">待答复</span>'
-      : r.requestedBy ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 flex-shrink-0">待汇报</span>'
-      : '<span class="text-xs px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 flex-shrink-0">进行中</span>';
-    return `
-      <div class="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors" data-wo-open-report="${r.id}">
-        <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${catColor};"></span>
-        <span class="text-xs font-medium flex-shrink-0" style="color:${catColor};">${cat}</span>
-        <span class="text-sm text-gray-800 font-medium flex-1 min-w-0 truncate">${r.title}</span>
-        <span class="text-xs text-gray-400 flex-shrink-0">${r.submittedAt}</span>
-        ${state}
-      </div>`;
-  }).join('');
+  // D2 裁决批二（2026-09-08 书记特批）：「我发起的开放汇报」行级列表 → 压缩为计数+缺口一行
+  // （处理位 = 「我的处置」；与 D5 概况=催办口径一致——概况只报缺口不列全行，逐条处理去处置页）
+  const openGap = openMine.filter(r => r.resultPending).length;
+  const openSummaryHtml = openMine.length === 0 ? '' : `
+    <div class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-white border border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors" data-wo-open-reports title="去「我的处置」处理开放汇报">
+      <span class="flex items-center gap-2 flex-1 min-w-0 text-xs text-gray-600">
+        <span class="inline-block w-2 h-2 rounded-full flex-shrink-0" style="background:#60A5FA;"></span>
+        <span class="truncate">我发起的开放汇报 ${openMine.length} 条${openGap > 0 ? `<span class="text-amber-600 font-medium"> · 待答复 ${openGap}</span>` : ''}</span>
+      </span>
+      <span class="text-xs text-blue-600 flex-shrink-0">去开放汇报 →</span>
+    </div>`;
 
-  const reportRows = requestRows + openRows;
+  const reportRows = requestRows + openSummaryHtml;
   const reportBody = reportRows
     ? `<div class="space-y-2">${reportRows}</div>`
     : `<div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
@@ -218,7 +214,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
       <div class="card rounded-lg p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">汇报</h4>
-          <span class="text-xs text-gray-400">${requests.length + openMine.length} 条待行动 · 行内填写</span>
+          <span class="text-xs text-gray-400">${requests.length + openMine.length} 条待行动 · 请我汇报行内填写 / 开放汇报到「我的处置」</span>
         </div>
         ${reportBody}
       </div>
@@ -343,19 +339,13 @@ function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
     });
   });
 
-  // 我发起的开放汇报行 → 跳转「我的处置」tab 并打开对应汇报详情
-  // （书记 2026-08-11 裁定：与 issues.js 我的处置汇报行行为一致，两处统一为可点击）
-  container.querySelectorAll('[data-wo-open-report]').forEach(row => {
+  // 我发起的开放汇报压缩行（D2 裁决批二 2026-09-08 书记特批）→ 跳转「我的处置」tab（处理位）；
+  // 概况只报计数+缺口不列全行（D5 概况=催办口径：逐条处理去处置页）
+  container.querySelectorAll('[data-wo-open-reports]').forEach(row => {
     row.addEventListener('click', () => {
-      const issueId = row.dataset.woOpenReport;
       const tabBtn = container.parentElement?.querySelector(`[data-${prefix}-tab="my-dispatch"]`);
-      if (!tabBtn) { showToast('info', '当前角色无「我的处置」tab'); return; }
+      if (!tabBtn) { showToast('info', '当前角色无「我的处置」tab，开放汇报请到待办跟进'); return; }
       tabBtn.click();
-      // my-dispatch 渲染可能异步（render 返回 Promise），延迟后定位并打开对应汇报行
-      setTimeout(() => {
-        const target = document.querySelector(`[data-mydispatch-action="open-report"][data-issue-id="${issueId}"]`);
-        if (target) target.click();
-      }, 180);
     });
   });
 }

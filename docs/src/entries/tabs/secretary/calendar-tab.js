@@ -1,9 +1,10 @@
 // role: [工程师]+[AI]
 // entries/tabs/secretary/calendar-tab.js — 书记工作台·活动管理 tab（懒加载模块）
-// 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 考勤概况 + 活动查询。
+// 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 活动查询。
+// D4 裁决批二（2026-09-08）：「考勤概况」独立卡移除 → 考勤作为活动字段入「活动查询」行内只读摘要。
 
 import { getAppState, setState } from '../../../core/state.js?v=20260903c';
-import { _fmtDate, showToast } from '../../../core/utils.js?v=20260903c';
+import { showToast } from '../../../core/utils.js?v=20260903c';
 import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260908a';
 import { renderInspectorFromState } from '../../../components/inspector.js?v=20260903c';
 import { computeSecretaryStats } from '../../../services/roles.js?v=20260903c';
@@ -17,7 +18,6 @@ import { loadAttendanceRecords } from '../../../services/attendance.js?v=2026090
 import { PersonStore } from '../../../services/person.js?v=20260907b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { getPersonName } from '../../../services/person.js?v=20260907b';
 import { NoticeStore } from '../../../services/notice.js?v=20260907b';
 import { BranchService } from '../../../services/runtime.js?v=20260903c';
 import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260903c';
@@ -29,8 +29,6 @@ import { AuthStore } from '../../../services/auth.js?v=20260903c';
 import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260903c';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
 import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260903c';
-// P1（2026-09-07）：考勤明细惰性缓存失效键用域写版本戳（spec §三.5）
-import { tokenOf } from '../../../core/version-token.js?v=20260907b';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 
@@ -127,20 +125,9 @@ const CALENDAR_TAB_HTML = `
       </div>
     </div>
   </div>
-  <!-- 考勤概况（从首页迁移；t5a 就地方案：书记只读监督。2026-08-05：移至日历之后，不再压顶）
-       IA-C3 2026-09-06：默认折叠为一行概要 + 「展开看逐活动出勤」链接（避免与全局概况
-       本月出勤 KPI 同屏复读）；展开后逐活动明细照旧只读下钻。 -->
-  <div class="card rounded-xl p-4 mb-4">
-    <div class="flex items-center justify-between mb-3">
-      <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤概况</h3>
-      <button id="secretary-att-detail-toggle" type="button" class="text-xs text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 transition-colors">
-        <span id="secretary-att-detail-toggle-text">展开看逐活动出勤</span>
-        <svg id="secretary-att-detail-toggle-icon" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-      </button>
-    </div>
-    <div id="secretary-attendance-summary" class="text-sm text-gray-500"><p>本月暂无考勤数据</p></div>
-    <div id="secretary-attendance-detail" class="hidden mt-3 pt-3 border-t border-gray-100"></div>
-  </div>
+  <!-- D4 裁决批二（2026-09-08）：原「考勤概况」独立折叠卡已移除——
+       考勤作为该活动的字段出现在下方「活动查询」行内只读摘要（书记只读监督）；
+       纪检总表与全局概况 KPI 为专职读位不动；异常处理位 = 纪检考勤管理。 -->
   <!-- 活动查询（默认折叠，点击展开） -->
   <div class="card rounded-xl">
     <button id="query-toggle" type="button" class="w-full px-6 py-3 text-left flex items-center justify-between hover:bg-gray-50 transition-colors rounded-xl">
@@ -166,7 +153,6 @@ export function renderContent(state) {
 
   const activities = state.activities || [];
   renderSecretaryStats(activities);
-  renderAttendanceSummary(activities);
 
   // T229：品牌筛选并入活动查询（品牌 chip 开关），日历恢复全量
   const displayActivities = activities;
@@ -218,6 +204,16 @@ function renderSecretaryStats(activities) {
 function renderQueryPanel(displayActivities) {
   const queryContainer = document.getElementById('secretary-query-container');
   if (!queryContainer) return;
+  // D4 裁决批二（2026-09-08）：考勤作为活动字段——查询行内只读摘要（inspector.js 禁改 →
+  // 字段落查询行自有区）。一次性分组 Map，逐行 O(1)；数据现读 attendance 记录。
+  const attendanceRecords = loadAttendanceRecords();
+  const recordsByActivity = new Map();
+  for (const r of attendanceRecords) {
+    if (!r || !r.activityId) continue;
+    const k = r.activityId;
+    if (!recordsByActivity.has(k)) recordsByActivity.set(k, []);
+    recordsByActivity.get(k).push(r);
+  }
   renderQueryView(queryContainer, {
     searchPlaceholder: '搜索活动名称...',
     searchKey: 'title',
@@ -246,6 +242,7 @@ function renderQueryPanel(displayActivities) {
         <div class="flex-1 min-w-0">
           <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
           <div class="text-xs text-gray-500 mt-0.5">${a.date || ''}${a.type ? ' · ' + a.type : ''}${a.carriers?.length ? ' · ' + a.carriers.join('/') : ''}</div>
+          ${_attendanceSummaryHtml(a.id, recordsByActivity)}
         </div>
         ${badgeHtml(a.type || '活动', 'neutral')}
       </div>
@@ -282,123 +279,41 @@ function bindQueryToggle() {
   }
 }
 
-// ── 考勤概况渲染（从首页迁移） ──
-// 考勤概况明细展开状态（t5a：就地展开，跨渲染保持）
-// IA-C3 2026-09-06：考勤概况默认折叠——false=卡内仅一行概要 + 「展开看逐活动出勤」按钮
-let _secAttDetailOpen = false;
+// ── D4 裁决批二（2026-09-08）：考勤并入活动字段（书记活动管理页）──
+// 原「考勤概况」独立折叠卡（renderAttendanceSummary 及相关 HTML/折叠块）已移除：
+//   书记只读监督的考勤改作「该活动的字段」出现在「活动查询」行内只读摘要（inspector.js 禁改 →
+//   落点放查询行自有区，见下方 renderQueryPanel renderRow）；数据现读 attendance 记录。
+// 纪检考勤总表与全局概况 KPI 为专职读位，不动；异常处理位 = 纪检考勤管理。
 
-// P1（2026-09-07 · spec §三.5）：明细惰性——折叠态不构建明细 HTML/不重算（U 轮已默认折叠 UI，
-// 本批补齐"折叠不算"）；仅展开时构建并缓存，缓存键=本月数据版本（月份 + activity/attendance
-// 写版本 token + 活动/明细行数指纹）变化才重建。
-let _secAttCache = { key: '', html: '' };
-
-/** 本月考勤明细缓存键：月份 + 读源写版本 token + 数组长度指纹（活动/记录写口已 bump；长度兜底禁改路径） */
-function _attDetailCacheKey(thisMonth, monthActivities, allActivities) {
-  return `${thisMonth}|act:${tokenOf('activity')}+${Array.isArray(allActivities) ? allActivities.length : 0}|att:${tokenOf('attendance')}|rows:${monthActivities.length}`;
-}
-
-/** 逐活动考勤明细 HTML（P1：预建 Map<activityId, records[]> 一次分组，逐活动查表 O(1)；
- *  出勤口径与概览一致：present/made_up 计出勤，absent/leave 分列名单） */
-function _buildAttendanceDetailHtml(monthActivities) {
-  const attendanceRecords = loadAttendanceRecords();
-  const byActivity = new Map();
-  for (const r of attendanceRecords) {
-    if (!r) continue;
-    const k = r.activityId;
-    if (!byActivity.has(k)) byActivity.set(k, []);
-    byActivity.get(k).push(r);
+/**
+ * 单个活动的考勤摘要 HTML（行内字段；无记录返回空串——不占行不误导）
+ * 计数口径与纪检纪律台一致：present=实到 / absent=缺勤 / leave=请假 / made_up=补课 /
+ * detainedMakeup=滞留到场补录；「应到」=该活动考勤记录覆盖人数（纪检全录时即应到清点口径）。
+ * @param {string} actId
+ * @param {Map<string, Array>} recordsByActivity — 一次性分组的考勤记录 Map
+ * @returns {string}
+ */
+function _attendanceSummaryHtml(actId, recordsByActivity) {
+  const records = recordsByActivity.get(actId) || [];
+  if (!records.length) return '';
+  let present = 0;
+  let absent = 0;
+  let leave = 0;
+  let madeUp = 0;
+  let detained = 0;
+  for (const r of records) {
+    if (r.status === 'present') present += 1;
+    else if (r.status === 'made_up') madeUp += 1;
+    else if (r.status === 'absent') absent += 1;
+    else if (r.status === 'leave') leave += 1;
+    if (r.detainedMakeup) detained += 1;
   }
-  return monthActivities.map(act => {
-    const records = byActivity.get(act.id) || [];
-    // 单遍归并三态（原三遍 filter 等价：present=出勤+已补计数；absent/leave 保序分列）
-    let present = 0;
-    const absent = [];
-    const leave = [];
-    for (const r of records) {
-      if (r.status === 'present' || r.status === 'made_up') present += 1;
-      else if (r.status === 'absent') absent.push(r);
-      else if (r.status === 'leave') leave.push(r);
-    }
-    const total = records.length;
-    const rate = total > 0 ? Math.round((present / total) * 100) : 0;
-    const rateColor = rate >= 90 ? 'text-green-600' : rate >= 70 ? 'text-orange-600' : 'text-red-600';
-    const nameList = (arr, cls) => arr.length
-      ? `<span class="${cls}">${arr.map(r => getPersonName(r.personId)).join('、')}</span>`
-      : '<span class="text-gray-400">无</span>';
-    return `
-      <div class="py-2 border-b border-gray-50 last:border-b-0">
-        <div class="flex items-center justify-between gap-3">
-          <div class="min-w-0">
-            <p class="text-sm text-gray-800 truncate">${act.title}</p>
-            <p class="text-xs text-gray-400">${_fmtDate(new Date(act.date))} · 出勤 ${present}/${total}</p>
-          </div>
-          <span class="text-xs font-medium flex-shrink-0 ${rateColor}">${rate}%</span>
-        </div>
-        <div class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs">
-          <span class="text-gray-500">缺勤：${nameList(absent, 'text-red-500')}</span>
-          <span class="text-gray-500">请假：${nameList(leave, 'text-orange-500')}</span>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function renderAttendanceSummary(activities) {
-  const container = document.getElementById('secretary-attendance-summary');
-  if (!container) return;
-
-  const now = new Date();
-  const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const monthActivities = activities.filter(a => (a.date || '').startsWith(thisMonth) && !a.archived);
-
-  // ── 明细区（就地方案：书记只读监督，不越界处理）──
-  const detailEl = document.getElementById('secretary-attendance-detail');
-  const ensureDetailHtml = () => {
-    if (!detailEl || monthActivities.length === 0) return;
-    const key = _attDetailCacheKey(thisMonth, monthActivities, activities);
-    if (_secAttCache.key !== key) {
-      _secAttCache = { key, html: _buildAttendanceDetailHtml(monthActivities) };
-    }
-    detailEl.innerHTML = _secAttCache.html;
-  };
-  if (detailEl) {
-    if (monthActivities.length === 0) {
-      // 无本月活动：明细占位（与原行为一致），缓存清空防陈旧
-      _secAttCache = { key: '', html: '' };
-      detailEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-3">本月暂无考勤明细</p>';
-    } else if (_secAttDetailOpen) {
-      ensureDetailHtml(); // 展开态：数据版本变化才重建（惰性缓存）
-    }
-    // 折叠态不构建/不重算（P1 惰性）；仅切换显隐
-    detailEl.classList.toggle('hidden', !_secAttDetailOpen);
-  }
-
-  // 明细切换按钮（就地方案：查看/收起，不跳纪检工作台）
-  const toggleBtn = document.getElementById('secretary-att-detail-toggle');
-  const toggleText = document.getElementById('secretary-att-detail-toggle-text');
-  const toggleIcon = document.getElementById('secretary-att-detail-toggle-icon');
-  const syncToggleUI = () => {
-    if (toggleText) toggleText.textContent = _secAttDetailOpen ? '收起明细' : '展开看逐活动出勤';
-    if (toggleIcon) toggleIcon.style.transform = _secAttDetailOpen ? 'rotate(180deg)' : 'rotate(0deg)';
-  };
-  if (toggleBtn) {
-    toggleBtn.onclick = () => {
-      _secAttDetailOpen = !_secAttDetailOpen;
-      if (_secAttDetailOpen) ensureDetailHtml(); // 展开时才构建（含缓存失效判定）
-      detailEl?.classList.toggle('hidden', !_secAttDetailOpen);
-      syncToggleUI();
-    };
-    syncToggleUI();
-  }
-
-  // ── 概要行（IA-C3 2026-09-06：默认只显一行概要，不再整份罗列逐活动出勤——避免与全局概况
-  //    本月出勤 KPI 同屏复读；逐活动出勤明细默认收起，点右上「展开看逐活动出勤」下钻，明细只读）──
-  if (monthActivities.length === 0) {
-    container.innerHTML = '<p class="text-sm text-gray-400">本月暂无考勤数据</p>';
-    return;
-  }
-
-  container.innerHTML = `<p class="text-sm text-gray-500">本月共 ${monthActivities.length} 场活动考勤（逐活动出勤与缺勤/请假名单见右上角展开）</p>`;
+  const parts = [`应到 ${records.length}`, `实到 ${present}`];
+  if (absent > 0) parts.push('<span class="text-red-500">缺勤 ' + absent + '</span>');
+  if (leave > 0) parts.push('<span class="text-orange-500">请假 ' + leave + '</span>');
+  if (madeUp > 0) parts.push('<span class="text-teal-600">补课 ' + madeUp + '</span>');
+  if (detained > 0) parts.push('<span class="text-blue-600">滞留补录 ' + detained + '</span>');
+  return `<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-400">考勤：${parts.join(' · ')}</div>`;
 }
 
 // ════════════════════════════════════════════════════════════════
