@@ -3,7 +3,7 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/state.js?v=20260908c';
+import { setState } from '../../../core/state.js?v=20260908c';
 import { BranchService } from '../../../services/runtime.js?v=20260908c';
 import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260908c';
 import { AuthStore } from '../../../services/auth.js?v=20260908c';
@@ -14,7 +14,7 @@ import { PersonPicker } from '../../../components/person-picker.js?v=20260908c';
 import { recordFormShell } from '../../../components/forms.js?v=20260908c';
 import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260908c';
 import { badgeHtml } from '../../../components/badges.js?v=20260908c';
-import { showToast } from '../../../core/utils.js?v=20260908c';
+import { showToast, escHtml } from '../../../core/utils.js?v=20260908c';
 import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260908c';
 import { filterByRole, getCurrentLeaderId } from './_shared.js?v=20260908c';
 
@@ -25,6 +25,35 @@ let _dtOrgPicker = null;      // 决策树表单：组织者多选
 let _dtDeepPicker = null;     // 决策树表单：深度参与者多选
 let _detailOrgPicker = null;   // 活动详情：组织者多选（预填现有 assignments）
 let _detailDeepPicker = null;  // 活动详情：深度参与者多选
+
+// E-2 活动写入步骤草稿（2026-09-09 乙部评议待办）：
+// 步骤（L1-L4/承办党小组）重选或重进时会重建决策面板与输入框/角色 PersonPicker，
+// 已填 title/date/location/desc/角色选择若只存于 DOM 会被整段丢弃。
+// 此处以模块级轻量草稿兜底：输入/选人即写入 dtDraft，重建面板时回填；
+// 生命周期=模块内存级（不跨整页刷新持久化——避免陈旧草稿误提交），
+// 仅「写入成功」或表单内「取消」（dt.reset 重置会话）时清空。
+const dtDraft = { date: '', location: '', title: '', desc: '', orgIds: null, deepIds: null };
+
+function _dtDraftClear() {
+  dtDraft.date = '';
+  dtDraft.location = '';
+  dtDraft.title = '';
+  dtDraft.desc = '';
+  dtDraft.orgIds = null;
+  dtDraft.deepIds = null;
+}
+
+/** 重建前兜底：把面板内已填表单值/角色选择捕获进草稿（正常时 input 事件已实时同步） */
+function _dtDraftCapture(scope) {
+  const root = scope || document;
+  const fieldMap = { '#dt-target-date': 'date', '#dt-location': 'location', '#dt-title': 'title', '#dt-desc': 'desc' };
+  Object.keys(fieldMap).forEach(sel => {
+    const el = root.querySelector(sel);
+    if (el) dtDraft[fieldMap[sel]] = el.value;
+  });
+  if (_dtOrgPicker) dtDraft.orgIds = _dtOrgPicker.getSelected();
+  if (_dtDeepPicker) dtDraft.deepIds = _dtDeepPicker.getSelected();
+}
 
 export function renderContent(ctx) {
   const container = document.getElementById('leader-tab-content');
@@ -78,21 +107,6 @@ export function renderContent(ctx) {
   `;
 
   _bindDecisionTreeEvents(container, { accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark });
-
-  // ── 决策树表单内联赋权 PersonPicker（表单可见时初始化，随渲染重建） ──
-  const dtOrgEl = container.querySelector('#dt-org-picker');
-  const dtDeepEl = container.querySelector('#dt-deep-picker');
-  const currentLeaderId = getCurrentLeaderId(); // 组长本人（默认赋权对象）
-  if (dtOrgEl) {
-    if (_dtOrgPicker) { _dtOrgPicker.destroy(); _dtOrgPicker = null; }
-    _dtOrgPicker = new PersonPicker({ mode: 'multi', placeholder: '选择组织者', accentColor: accent, initialIds: [currentLeaderId], onSelect: () => {} });
-    _dtOrgPicker.render(dtOrgEl);
-  }
-  if (dtDeepEl) {
-    if (_dtDeepPicker) { _dtDeepPicker.destroy(); _dtDeepPicker = null; }
-    _dtDeepPicker = new PersonPicker({ mode: 'multi', placeholder: '选择深度参与者', accentColor: accent, onSelect: () => {} });
-    _dtDeepPicker.render(dtDeepEl);
-  }
 
   // ── 活动点击展开详情+子记录（P3-4） ──
   container.querySelectorAll('.leader-act-item').forEach(item => {
@@ -416,20 +430,20 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">T-0 日期 <span class="text-red-500">*</span></label>
-          <input type="date" id="dt-target-date" class="input-flat w-full">
+          <input type="date" id="dt-target-date" class="input-flat w-full" value="${escHtml(dtDraft.date)}">
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动地点 <span class="text-red-500">*</span></label>
-          <input type="text" id="dt-location" class="input-flat w-full" placeholder="活动地点">
+          <input type="text" id="dt-location" class="input-flat w-full" placeholder="活动地点" value="${escHtml(dtDraft.location)}">
         </div>
       </div>
       <div class="mb-3">
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动名称 <span class="text-red-500">*</span></label>
-        <input type="text" id="dt-title" class="input-flat w-full" placeholder="活动名称">
+        <input type="text" id="dt-title" class="input-flat w-full" placeholder="活动名称" value="${escHtml(dtDraft.title)}">
       </div>
       <div class="mb-4">
         <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="dt-desc">活动描述（选填）</label>
-        <textarea id="dt-desc" class="input-flat w-full resize-none" rows="2" placeholder="简要描述活动内容"></textarea>
+        <textarea id="dt-desc" class="input-flat w-full resize-none" rows="2" placeholder="简要描述活动内容">${escHtml(dtDraft.desc)}</textarea>
       </div>
 
       <!-- T-190 活动角色：创建即赋权，组织者默认组长本人 -->
@@ -482,12 +496,6 @@ function _renderSopPreview() {
 function _bindDecisionTreeEvents(container, ctx) {
   const { accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark } = ctx;
 
-  const _refresh = () => {
-    const state = getAppState();
-    const filteredState = filterByRole(state, 'leader');
-    renderContent({ ...ctx, filteredActivities: filteredState.activities || [] });
-  };
-
   // 创建/收起按钮（保态折叠 2026-09-08：面板常驻 DOM（#dt-panel-wrap），收起/展开只切 hidden——
   // 不再 dt.reset() + 整页重建，进行中的步骤选择/已填活动信息/角色选择保留；
   // 重置会话 = 表单内「取消」按钮（dt.reset）或提交成功后自动重置）
@@ -500,8 +508,72 @@ function _bindDecisionTreeEvents(container, ctx) {
     if (btn) btn.textContent = collapsed ? '创建活动' : '收起面板';
   });
 
-  // L1 按钮
-  container.querySelectorAll('.dt-l1-btn').forEach(btn => {
+  // E-2 面板区轻量刷新（2026-09-09）：只重建决策面板动态区（步骤/校验依赖区），
+  // 不再整容器重建——活动列表/详情等其余 DOM 不被触碰；已填字段经 dtDraft 回填不丢。
+  const _refreshDtArea = () => {
+    const wrap = container.querySelector('#dt-panel-wrap');
+    if (!wrap) return;
+    _dtDraftCapture(wrap); // 兜底：把 DOM 中已填值先落草稿再重建
+    if (_dtOrgPicker) { _dtOrgPicker.destroy(); _dtOrgPicker = null; }
+    if (_dtDeepPicker) { _dtDeepPicker.destroy(); _dtDeepPicker = null; }
+    wrap.innerHTML = _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark });
+    _dtBindPanelArea(container, ctx, _refreshDtArea);
+    wrap.classList.toggle('hidden', !dt.showPanel);
+    const btn = container.querySelector('#btn-leader-create');
+    if (btn) btn.textContent = dt.showPanel ? '收起面板' : '创建活动';
+  };
+
+  _dtBindPanelArea(container, ctx, _refreshDtArea);
+}
+
+/**
+ * 绑定决策面板动态区（步骤按钮/承办党小组/取消/写入 + 表单草稿捕获 + 角色 PersonPicker）。
+ * E-2 面板区每次重建后须重跑；PersonPicker 重建前先 destroy 旧实例（防重复全局事件）。
+ */
+function _dtBindPanelArea(container, ctx, refresh) {
+  const { accent } = ctx;
+  const wrap = container.querySelector('#dt-panel-wrap');
+  if (!wrap) return;
+  // 整容器重建路径下旧实例仍持有全局监听 → 统一先销毁（与面板区重建路径同语义）
+  if (_dtOrgPicker) { _dtOrgPicker.destroy(); _dtOrgPicker = null; }
+  if (_dtDeepPicker) { _dtDeepPicker.destroy(); _dtDeepPicker = null; }
+
+  // 表单输入即存草稿（E-2）：步骤重选/重进重建面板时按草稿回填，不丢已填内容
+  const draftFieldMap = { '#dt-target-date': 'date', '#dt-location': 'location', '#dt-title': 'title', '#dt-desc': 'desc' };
+  Object.keys(draftFieldMap).forEach(sel => {
+    const el = wrap.querySelector(sel);
+    if (!el) return;
+    const key = draftFieldMap[sel];
+    el.addEventListener('input', () => { dtDraft[key] = el.value; });
+  });
+
+  // 决策树表单内联赋权 PersonPicker（initialIds 草稿回填；null=跟随默认——组织者默认组长本人）
+  const currentLeaderId = getCurrentLeaderId();
+  const dtOrgEl = wrap.querySelector('#dt-org-picker');
+  const dtDeepEl = wrap.querySelector('#dt-deep-picker');
+  if (dtOrgEl) {
+    _dtOrgPicker = new PersonPicker({
+      mode: 'multi',
+      placeholder: '选择组织者',
+      accentColor: accent,
+      initialIds: dtDraft.orgIds !== null ? dtDraft.orgIds : [currentLeaderId],
+      onSelect: (ids) => { dtDraft.orgIds = ids; },
+    });
+    _dtOrgPicker.render(dtOrgEl);
+  }
+  if (dtDeepEl) {
+    _dtDeepPicker = new PersonPicker({
+      mode: 'multi',
+      placeholder: '选择深度参与者',
+      accentColor: accent,
+      initialIds: dtDraft.deepIds !== null ? dtDraft.deepIds : [],
+      onSelect: (ids) => { dtDraft.deepIds = ids; },
+    });
+    _dtDeepPicker.render(dtDeepEl);
+  }
+
+  // L1 按钮（变更时重置后续选择，轻量刷新面板动态区）
+  wrap.querySelectorAll('.dt-l1-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const val = btn.dataset.value;
       dt.select('L1', val);
@@ -510,58 +582,59 @@ function _bindDecisionTreeEvents(container, ctx) {
       dt.select('L3', null);
       dt.select('L4', null);
       dt.select('hostGroup', null);
-      _refresh();
+      refresh();
     });
   });
 
   // 承办党小组按钮
-  container.querySelectorAll('.dt-host-btn').forEach(btn => {
+  wrap.querySelectorAll('.dt-host-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       dt.select('hostGroup', btn.dataset.value);
-      _refresh();
+      refresh();
     });
   });
 
   // L2 按钮
-  container.querySelectorAll('.dt-l2-btn').forEach(btn => {
+  wrap.querySelectorAll('.dt-l2-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       dt.select('L2', btn.dataset.value);
       dt.select('L3', null);
       dt.select('L4', null);
-      _refresh();
+      refresh();
     });
   });
 
   // L3 按钮
-  container.querySelectorAll('.dt-l3-btn').forEach(btn => {
+  wrap.querySelectorAll('.dt-l3-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       dt.select('L3', btn.dataset.value);
       dt.select('L4', null);
-      _refresh();
+      refresh();
     });
   });
 
   // L4 按钮
-  container.querySelectorAll('.dt-l4-btn').forEach(btn => {
+  wrap.querySelectorAll('.dt-l4-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       dt.select('L4', btn.dataset.value);
-      _refresh();
+      refresh();
     });
   });
 
-  // 取消按钮
-  container.querySelector('#dt-cancel')?.addEventListener('click', () => {
+  // 取消按钮（重置会话 = 决策树 + 步骤草稿一并清空）
+  wrap.querySelector('#dt-cancel')?.addEventListener('click', () => {
     dt.reset();
-    _refresh();
+    _dtDraftClear();
+    refresh();
   });
 
   // 写入活动按钮
-  container.querySelector('#dt-submit')?.addEventListener('click', async () => {
+  wrap.querySelector('#dt-submit')?.addEventListener('click', async () => {
     const { L1, L2, L3, L4, hostGroup } = dt.selections;
-    const targetDate = container.querySelector('#dt-target-date')?.value;
-    const location = container.querySelector('#dt-location')?.value?.trim();
-    const title = container.querySelector('#dt-title')?.value?.trim();
-    const desc = container.querySelector('#dt-desc')?.value?.trim();
+    const targetDate = wrap.querySelector('#dt-target-date')?.value;
+    const location = wrap.querySelector('#dt-location')?.value?.trim();
+    const title = wrap.querySelector('#dt-title')?.value?.trim();
+    const desc = wrap.querySelector('#dt-desc')?.value?.trim();
 
     // 校验必填
     if (!targetDate) { showToast('error', '请填写 T-0 日期'); return; }
@@ -626,8 +699,9 @@ function _bindDecisionTreeEvents(container, ctx) {
       const definitionId = dt.mapToDefinitionId();
       renderWorkflowPanel('leader-workflow', 'leader-tab-content', definitionId, title, 'append');
 
-      // 5. 重置面板并刷新
+      // 5. 提交成功 → 重置决策树并清空步骤草稿，刷新列表
       dt.reset();
+      _dtDraftClear();
       const activities = await BranchService.listActivities();
       setState({ activities });
     } catch (err) {
