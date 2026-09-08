@@ -25,3 +25,7 @@ server/uploads/
 # Build output (project uses ESM directly, no bundler needed)
 docs/dist
 .ctx/logs/2026-09-08-C2-browser/
+
+# Smoke test artifacts (2026-09-08 全前端冒烟)
+.ctx/logs/2026-09-08-smoke-run/
+.ctx/logs/2026-09-08-smoke-shots/
