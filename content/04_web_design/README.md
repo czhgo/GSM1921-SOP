@@ -23,7 +23,7 @@ status: active
 | [`data/`](data/) | 数据架构（模型/流） | [DATA_MODEL.md](data/DATA_MODEL.md) · [DATA_FLOW.md](data/DATA_FLOW.md) |
 | [`deploy/`](deploy/) | 部署与集成（路径/认证/外部对接） | [DEPLOYMENT_GUIDE.md](deploy/DEPLOYMENT_GUIDE.md) · [AUTHENTICATION_MODEL.md](deploy/AUTHENTICATION_MODEL.md) · [PKU_PARTY_INTEGRATION.md](deploy/PKU_PARTY_INTEGRATION.md) · [WECHAT_INTEGRATION.md](deploy/WECHAT_INTEGRATION.md) |
 | [`module/`](module/) | 页面/模块设计（UI 与 SOP 联动） | [SOP_WEBSITE_GUIDE.md](module/SOP_WEBSITE_GUIDE.md) · [MODULE_UI_DESIGN.md](module/MODULE_UI_DESIGN.md) · [ABOUT_PAGE_DESIGN.md](module/ABOUT_PAGE_DESIGN.md) · [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md)（草案） |
-| [`evolution/`](evolution/) | 演进与校验（架构演进/组件化评估/契约与画布/党委两级治理/设计方法论承接） | [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) · [MODULARIZATION_ASSESSMENT.md](evolution/MODULARIZATION_ASSESSMENT.md) · [WORKFLOW_BLOCK_CONTRACT.md](evolution/WORKFLOW_BLOCK_CONTRACT.md) · [BRANCH_WORK_MAP.md](evolution/BRANCH_WORK_MAP.md) · [PARTY_COMMITTEE_DESIGN.md](evolution/PARTY_COMMITTEE_DESIGN.md) · [ROLE_PERMISSION_DESIGN.md](evolution/ROLE_PERMISSION_DESIGN.md) · [DESIGN_METHODOLOGY.md](evolution/DESIGN_METHODOLOGY.md) |
+| [`evolution/`](evolution/) | 演进与校验（架构演进/契约与画布/党委两级治理/设计方法论承接；模块化评估已迁 `.ctx/MODULARIZATION_ASSESSMENT.md`，2026-09-08） | [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) · [WORKFLOW_BLOCK_CONTRACT.md](evolution/WORKFLOW_BLOCK_CONTRACT.md) · [BRANCH_WORK_MAP.md](evolution/BRANCH_WORK_MAP.md) · [PARTY_COMMITTEE_DESIGN.md](evolution/PARTY_COMMITTEE_DESIGN.md) · [ROLE_PERMISSION_DESIGN.md](evolution/ROLE_PERMISSION_DESIGN.md) · [DESIGN_METHODOLOGY.md](evolution/DESIGN_METHODOLOGY.md) |
 
 ---
 
@@ -79,12 +79,13 @@ status: active
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
 | [DESIGN_METHODOLOGY.md](evolution/DESIGN_METHODOLOGY.md) | 设计理念与方法论承接（设计论证与方法档案：系统/工作台/前端实现方法论与判例、打卡化底线、叙述性人读方法论，2026-09-04 承接自 insights [4] 标签小节） | 论证档案——论证/反论/判例/生效条件在此；规范权威源 = DESIGN_SYSTEM / COMPONENT_SPEC / COLOR_SYSTEM / DATA_MODEL / DATA_FLOW / SOP_WEBSITE_GUIDE |
-| [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) | 架构演进（2026-09-03 精简：评估正文压为 §二 历史结论段，保留 §八 工作流块拖拽编排远期愿景；评估承接见 MODULARIZATION_ASSESSMENT） | 历史探索与愿景定位（现行方向判断依据 = MODULARIZATION_ASSESSMENT） |
-| [MODULARIZATION_ASSESSMENT.md](evolution/MODULARIZATION_ASSESSMENT.md) | 模块化/插件化/开源化 100 分评估（统一扎口范式 + 冗余审计去重队列 P0~P2 + 执行状态） | **唯一权威**——模块化方向与去重优先级（2026-09-03） |
+| [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) | 架构演进（2026-09-03 精简：评估正文压为 §二 历史结论段，保留 §八 工作流块拖拽编排远期愿景；评估承接见 .ctx/MODULARIZATION_ASSESSMENT.md） | 历史探索与愿景定位（现行方向判断依据 = .ctx/MODULARIZATION_ASSESSMENT.md） |
 | [WORKFLOW_BLOCK_CONTRACT.md](evolution/WORKFLOW_BLOCK_CONTRACT.md) | L3 工作流块封装契约 v1.1（块差异化三维度 + 契约总则 + manifest 字段定义） | **唯一权威**——工作流块封装契约（2026-09-03 定稿） |
 | [BRANCH_WORK_MAP.md](evolution/BRANCH_WORK_MAP.md) | L4 支部工作地图设计稿 v2.1（平铺模块清单 + 按人双视图，书记 2026-09-03 放行编码） | **唯一权威**——支部工作地图/分工载体设计 |
 | [PARTY_COMMITTEE_DESIGN.md](evolution/PARTY_COMMITTEE_DESIGN.md) | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 书记任命 / P3 上报审批+下发） | **唯一权威**——党委两级治理架构与方向选择说明 |
 | [ROLE_PERMISSION_DESIGN.md](evolution/ROLE_PERMISSION_DESIGN.md) | 权限功能合一收敛设计（角色权限四处分散声明 → 单一事实源 ROLE_KEYS + 派生） | **已落地 2026-09-03**（S1~S10 已验收达成，设计论证档案）；权威源 = [SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md) §9a0/§9b/§9c + 代码 `ROLE_KEYS` |
+
+> **注（2026-09-08）**：模块化评估随评估职能迁入 `.ctx/`（审计底座），见 `.ctx/MODULARIZATION_ASSESSMENT.md`——本表不再单列该文件行。
 
 ---
 

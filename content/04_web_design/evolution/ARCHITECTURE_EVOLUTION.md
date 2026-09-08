@@ -12,7 +12,7 @@ related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GU
 
 > **定位**：一次关于系统架构的探索——「高度组件化、高度可复用」的目标落地到什么程度？距离「一切皆插件」的灵活性还有多远？上线后的多轮迭代靠什么机制承载？本文档只表达探索与选择，不代表最终结论，更不代表方案完备。
 > **受众**：[工程师]+[AI]（架构维护者、开发者）+ 愿意给出架构反馈的外部评审者
-> **关联**：[DATA_MODEL.md](../data/DATA_MODEL.md)（数据模型权威源）+ [DATA_FLOW.md](../data/DATA_FLOW.md)（数据流权威源）、[SOP_WEBSITE_GUIDE.md](../module/SOP_WEBSITE_GUIDE.md)（SOP-系统联动方法论）、[DEPLOYMENT_GUIDE.md](../deploy/DEPLOYMENT_GUIDE.md)（部署落地路径）、[ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)（核心架构说明）、[MODULARIZATION_ASSESSMENT.md](MODULARIZATION_ASSESSMENT.md)（2026-09-03 模块化/插件化/开源化评估——评估结论的现行承接）。
+> **关联**：[DATA_MODEL.md](../data/DATA_MODEL.md)（数据模型权威源）+ [DATA_FLOW.md](../data/DATA_FLOW.md)（数据流权威源）、[SOP_WEBSITE_GUIDE.md](../module/SOP_WEBSITE_GUIDE.md)（SOP-系统联动方法论）、[DEPLOYMENT_GUIDE.md](../deploy/DEPLOYMENT_GUIDE.md)（部署落地路径）、[ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)（核心架构说明）、[MODULARIZATION_ASSESSMENT.md](../../../.ctx/MODULARIZATION_ASSESSMENT.md)（2026-09-03 模块化/插件化/开源化评估——评估结论的现行承接）。
 
 ---
 
@@ -31,7 +31,7 @@ related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GU
 
 ## 二、组件化落地评估与插件化演进（历史结论 · 2026-08-22 → 2026-09-03）
 
-> **2026-09-03 精简**：本文档原评估正文（组件化落地评估 §二 / 迭代能力现状评估 §三 / 轻量插件化「能力注册表」设计 §四 / 迭代机制设计 §五 / 实施路径 §六 / 与既有文档关系 §七）已由 [MODULARIZATION_ASSESSMENT.md](MODULARIZATION_ASSESSMENT.md)（2026-09-03 书记问询「模块化/插件化/开源化 100 分评估怎么输出」后的固化评估）承接为**现行方向选择依据**。本节压为历史结论，各阶段详细验收记录不再展开，需要时查 git 历史或按 MODULARIZATION_ASSESSMENT 执行状态追踪：
+> **2026-09-03 精简**：本文档原评估正文（组件化落地评估 §二 / 迭代能力现状评估 §三 / 轻量插件化「能力注册表」设计 §四 / 迭代机制设计 §五 / 实施路径 §六 / 与既有文档关系 §七）已由 [MODULARIZATION_ASSESSMENT.md](../../../.ctx/MODULARIZATION_ASSESSMENT.md)（2026-09-03 书记问询「模块化/插件化/开源化 100 分评估怎么输出」后的固化评估）承接为**现行方向选择依据**。本节压为历史结论，各阶段详细验收记录不再展开，需要时查 git 历史或按 .ctx/MODULARIZATION_ASSESSMENT.md 执行状态追踪：
 
 - **评估结论（2026-08-22）**：当前架构是「结构分层」而非「运行时可组合」——数据层已走对（DataAdapter 接口隔离），UI 层停在「静态组装」；系统不缺组件，缺「组件的目录」（能力注册表）。
 - **演进路径 M1~M8 已全部落地（2026-08-22 → 2026-08-30）**：M1 注册表骨架（register/get/mount 三原语 + 活动日历首例）→ M2 工作台 tab 收敛（组长工作台样板先行）→ M3 数据源与工作流场景注册化（6 工作台全薄壳化）→ M4 迭代机制落地（unregister/resolveDeps、版本统一 20260823b）→ M5 入口/HTML 瘦身（公共脚本抽取 + main-entry 拆分）→ M6 组件能力化（components.js 注册层）→ M7 环境/角色开关消费点启用 → M8 代码减负（todo-tab/workspace-shell 抽壳、死代码清理，**净减 ~930 行**）。

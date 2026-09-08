@@ -632,7 +632,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 > **注**：T-282 content 体系优化升级已全部完成（2026-08-24 归档执行日志 L5168~5208），乙部删除——三方向：①巨型文件拆分（原数据架构总文件 DATA_ARCHITECTURE（路由文件，2026-09-03 精简删除）→DATA_MODEL+DATA_FLOW、OPERATIONS_GUIDE→+PROCESS_GUIDE、DESIGN_SYSTEM→+COLOR_SYSTEM+COMPONENT_SPEC）；②04 部署类重组（SCHOOL_IT 并入 DEPLOYMENT_GUIDE）；③目录规范补缺（insights README、references 归位）。导航更新见 [DOC_MAP.md](content/03_doc_system/DOC_MAP.md) 与 [SSOT_INDEX.md](content/03_doc_system/SSOT_INDEX.md)。
 
-> **注**：T-279 轻量插件化实施已全部完成（M1-M4，2026-08-23 归档执行日志），乙部删除——完整记录见 `.ctx/logs/2026-08-EXECUTION_LOG.md`，历史结论见 [ARCHITECTURE\_EVOLUTION.md §二 历史结论](content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md)（M1~M8 全落地；现行评估与去重队列见 MODULARIZATION_ASSESSMENT.md）。
+> **注**：T-279 轻量插件化实施已全部完成（M1-M4，2026-08-23 归档执行日志），乙部删除——完整记录见 `.ctx/logs/2026-08-EXECUTION_LOG.md`，历史结论见 [ARCHITECTURE\_EVOLUTION.md §二 历史结论](content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md)（M1~M8 全落地；现行评估与去重队列见 .ctx/MODULARIZATION_ASSESSMENT.md）。
 
 > **注**：常态化专项评议（反论/理论复用/黑话审查/原话复核/最小三成本）已制度化，由 W4 专项评议循环承接，不再驻留乙部——专项清单、侧重维度与轮次进度见 CLAUDE.md H60.5 + `.ctx/REVIEW_QUEUE.md` 附录（乙部清理不灭机制）。
 

@@ -12,7 +12,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, PARTY_COMMITTEE_DESIGN.md, ../module/
 
 > **定位**：书记 2026-09-03 问询「如果做一次 模块化、插件化、开源化 的 100 分评估，你会怎么输出？我以此来指导你」。本文档固化该评估结论与行动优先级，作为后续开发顺序的方向选择依据。
 > **受众**：[工程师]+[AI]（架构维护者）+ 书记（方向裁决人）
-> **关联**：[ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md)（组件化/插件化演进母文档）、[PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md)（两级治理设计）。
+> **关联**：[ARCHITECTURE_EVOLUTION.md](../content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md)（组件化/插件化演进母文档）、[PARTY_COMMITTEE_DESIGN.md](../content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)（两级治理设计）。
 
 ---
 
