@@ -14,14 +14,14 @@
 // 视觉沿用 card/rounded/折叠既有体系（域折组渲染在 components/todo-list.js renderDomainTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore } from '../services/todo.js?v=20260907b';
-import { renderDomainTodoList } from './todo-list.js?v=20260907b';
-import { badgeHtml } from './badges.js?v=20260903c';
-import { showToast } from '../core/utils.js?v=20260903c';
-import { solidAccentStyle } from '../core/constants.js?v=20260903c';
-import { mockDB } from '../core/domain.js?v=20260903c';
-import { tokenOf } from '../core/version-token.js?v=20260907b'; // P0 域写版本戳（spec §二.4）
-import { memoizeRender } from './memoize-render.js?v=20260907b'; // P2 渲染守卫（spec §四.1）
+import { TodoStore } from '../services/todo.js?v=20260908c';
+import { renderDomainTodoList } from './todo-list.js?v=20260908c';
+import { badgeHtml } from './badges.js?v=20260908c';
+import { showToast } from '../core/utils.js?v=20260908c';
+import { solidAccentStyle } from '../core/constants.js?v=20260908c';
+import { mockDB } from '../core/domain.js?v=20260908c';
+import { tokenOf } from '../core/version-token.js?v=20260908c'; // P0 域写版本戳（spec §二.4）
+import { memoizeRender } from './memoize-render.js?v=20260908c'; // P2 渲染守卫（spec §四.1）
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -69,6 +69,10 @@ function _comboKeyOf(role) {
  * @param {(ctx:Object)=>Array} [opts.buildRealtimeGroups] 各台自定义「不落库」实时聚合组
  *        （书记 SecretaryTodoDeriver 组/决议逾期/成员变更/纪检队列等；壳统一
  *        mergeRealtimeDomains 并入对应业务域；缺省=[] 纯持久化域视图）
+ *        ——2026-09-08 裁决批一（D1/D3）：实时组可携带 bulkHtml（组行批量块，见 todo-list.js
+ *        组行渲染扩展；勾选批量与详情逐项并行）与 hideActionBtn（批量组无行尾单键）；
+ *        写口均须 bumpToken 对应域（memberChangeRequests/memberConfirmation 等）使
+ *        _comboKeyOf 复合键变化 → 批量块内容随重建刷新。
  * @param {(todo:Object, ctx:Object)=>string} [opts.renderDetail] 自定义详情渲染
  *        （书记按 kind/groupKey 分发；缺省=壳内置概要「去处理」）
  * @param {async (ctx:Object)=>void} [opts.onBeforeRender] 渲染前钩子（seedTodos/异步预载；await）

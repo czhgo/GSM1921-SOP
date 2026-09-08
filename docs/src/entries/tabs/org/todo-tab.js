@@ -1,18 +1,40 @@
 // role: [工程师]+[AI]
 // 组织委员工作台 Tab：待办（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 todo-tab-shell）
 // 最小三成本原则落地：进入即见首条详情，减一次点击。
+// 2026-09-08 REVIEW_QUEUE 裁决批一（D1/D3/D6 组织侧）：
+//   · 顶部 member 审批面板 + 数据交接顶卡移除——确认位唯一化 = 「成员发展」域批量块
+//     （org-commissioner:member-approve，议程派生审批=通过）+ 「考察」域交接行「确认接收」；
+//   · org 无队列顶卡：仅保留页顶补课发起小操作条（非队列卡，发起闭环不丢）。
 
-import { showToast } from '../../../core/utils.js?v=20260903c';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260908b';
-import { tryDirectJump } from '../../../components/todo-jump.js?v=20260903c';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260908b';
-import { HandoffStore } from '../../../services/handoff.js?v=20260907b';
-import { openFormModal } from '../../../components/modal.js?v=20260903c';
-import { renderMemberChangePanelHtml, bindMemberChangePanel, preloadMemberChangeRequests, getCachedMemberChangeRequests } from '../../../components/member-change-panel.js?v=20260908b';
+import { showToast } from '../../../core/utils.js?v=20260908c';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260908c';
+import { tryDirectJump } from '../../../components/todo-jump.js?v=20260908c';
+import { REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260908c';
+import { HandoffStore } from '../../../services/handoff.js?v=20260908c';
+import { openFormModal } from '../../../components/modal.js?v=20260908c';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260908c';
 
 function _handleTodoAction(todo, ctx) {
   // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/todo-jump.js（2026-09-04）
   if (tryDirectJump(todo)) return;
+  const actionKey = todo.actionKey || '';
+  // 2026-09-08 裁决批一（D3 交接去顶卡入域折组）：组织接收 纪检→组织 考察记录提交——
+  // 行内「确认接收」= HandoffStore.confirm（销待办+状态落库）；同型多条合组>1 → 整组确认
+  if (actionKey.startsWith('handoff-')) {
+    const items = (todo.items && todo.items.length > 0) ? todo.items : (todo.id ? [todo] : []);
+    let n = 0;
+    for (const it of items) {
+      if (HandoffStore.confirm(it.actionData?.handoffId, 'org-commissioner')) n += 1;
+    }
+    if (n > 0) { showToast('success', `已确认接收 ${n} 条数据交接（考察记录已接收建档）`); renderContent(ctx); }
+    else showToast('info', '没有可确认的交接（可能已处理）');
+    return;
+  }
+  // member-approve 实时批量组：审批动作承载于左列批量块（勾选 → 「通过 N 项」）
+  if (actionKey === 'member-approve') {
+    showToast('info', '成员变更审批：在左列批量块勾选后点击「通过 N 项」，或点行进详情查看');
+    return;
+  }
   // 根据 actionType 跳转到对应 tab
   const tabMap = {
     authorize: 'taskforce',
@@ -35,34 +57,52 @@ function _handleTodoAction(todo, ctx) {
   }
 }
 
+/** 2026-09-08 裁决批一（D1/D3）：成员变更审批实时组（议程派生 pending-org-approval）——
+ * 组带 bulkHtml（域内批量审批块，来源徽标=议程）；组行点行进详情，批量勾选「通过 N 项」。 */
+function _buildOrgRealtimeGroups(ctx) {
+  const pending = (getCachedMemberChangeRequests() || []).filter(r => r.status === 'pending-org-approval');
+  if (!pending.length) return [];
+  const rows = buildMcBulkRows('org-approve');
+  return [{
+    groupKey: 'org-commissioner:member-approve',
+    actionKey: 'member-approve',
+    // IA-C1 Task2：实时组标注业务域（成员发展；member-confirm 同域键复用）
+    domain: REALTIME_GROUP_DOMAIN['member-confirm'],
+    title: '成员变更待审批',
+    flow: '议程记录通过 → 组织委员审批（批量/逐项）→ 广播全体支委 → 书记确认更新阶段',
+    count: rows.length,
+    items: pending,
+    hideActionBtn: true,
+    bulkHtml: renderMcBulkRowsHtml(rows, { mode: 'org-approve', accent: ctx?.accent }),
+  }];
+}
+
 export const { renderContent } = createTodoTab({
   containerId: 'org-tab-content',
   prefix: 'org',
   role: 'org-commissioner',
   onAction: _handleTodoAction,
-  // 2026-09-08 顶卡同步化：成员变更审批请求预载（缓存 → extraTopHtml 同步产物，不再 0 高挂点异步弹入；
-  // 签名未变秒回、变才 await 拉取——守卫命中路径不额外加延迟）
+  // 2026-09-08 裁决批一（D1/D3）：成员变更审批并入「成员发展」域实时组
+  buildRealtimeGroups: _buildOrgRealtimeGroups,
+  // 2026-09-08 裁决批一：成员变更审批请求预载（缓存 → 批量组同步产物；签名未变秒回、变才 await 拉取）
   onBeforeRender: async () => {
     await preloadMemberChangeRequests();
   },
-  // 2026-09-01 成员变更审批入口（书记点验链路 ③：议程记录通过 → 组织委员审批 → 广播全体支委）
-  extraTopHtml: (ctx) => renderMemberChangePanelHtml(getCachedMemberChangeRequests(), { mode: 'org-approve', accent: ctx.accent }) + renderHandoffInboxHtml({
-    to: 'org-commissioner',
-    accent: ctx.accent,
-    title: '数据交接·考察建档',
-    extraActionHtml: `<div class="mt-2 pt-2 border-t border-gray-100">
-      <button id="org-shortage-btn" class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" style="cursor:pointer;">标记补课材料缺失（通知纪检）</button>
+  // 2026-09-08 裁决批一（D3/D6）：org 无队列顶卡（member 审批卡/交接箱移除）——
+  // 仅保留页顶补课发起小操作条（非队列卡，发起闭环不丢）；交接确认=「考察」域折组行内「确认接收」
+  extraTopHtml: (ctx) => `
+    <div class="card rounded-xl px-4 py-2.5 mb-4 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="font-title-cn text-sm font-bold text-gray-800 flex-shrink-0">数据交接·考察建档</span>
+        <span class="text-[11px] text-gray-400 truncate">纪检→组织 考察记录提交：确认位=「考察」域折组行内「确认接收」</span>
+      </div>
+      <button id="org-shortage-btn" class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors flex-shrink-0" style="cursor:pointer;">标记补课材料缺失（通知纪检）</button>
     </div>`,
-  }),
   bindExtras: (container, ctx) => {
-    // 成员变更审批面板：内容已随 extraTopHtml 同步产物（预载缓存）→ 此处只绑事件；完成后重渲染 todo
-    bindMemberChangePanel(container.querySelector('[data-mc-panel="org-approve"]'), {
-      mode: 'org-approve',
-      requests: getCachedMemberChangeRequests(),
-      onDone: () => renderContent(ctx),
-    });
-    bindHandoffInbox(container, { to: 'org-commissioner', onDone: () => { showToast('success', '考察记录已接收建档'); renderContent(ctx); } });
-    // T-304 C2 数据交接：组织标记补课材料缺失 → 纪检补课制度高亮（回执机制）
+    // 2026-09-08 裁决批一（D1/D3）：成员变更批量块（勾选 → 「通过 N 项」 → 广播全体支委 + 重渲染）
+    bindMcBulk(container, { mode: 'org-approve', onDone: () => renderContent(ctx) });
+    // T-304 C2 数据交接：组织标记补课材料缺失 → 纪检补课制度高亮（回执机制；
+    // 2026-09-08 裁决批一：入口随顶卡收敛为页顶小操作条，非队列卡）
     container.querySelector('#org-shortage-btn')?.addEventListener('click', () => {
       openFormModal({
         id: 'shortage',

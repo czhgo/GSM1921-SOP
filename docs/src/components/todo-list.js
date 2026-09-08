@@ -11,10 +11,10 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from './badges.js?v=20260903c';
-import { solidAccentStyle } from '../core/constants.js?v=20260903c';
+import { badgeHtml } from './badges.js?v=20260908c';
+import { solidAccentStyle } from '../core/constants.js?v=20260908c';
 // P1（2026-09-07）：渲染层过期红点收敛于 todo.js isTodoExpired（单一过期判定实现 · spec §三.6）
-import { isTodoExpired } from '../services/todo.js?v=20260907b';
+import { isTodoExpired } from '../services/todo.js?v=20260908c';
 
 /**
  * 渲染「9 业务域折组」待办列表（IA 收敛 C1 Task4 六台待办页主列；替代旧按分类/actionType 大列表）。
@@ -67,8 +67,15 @@ export function renderDomainTodoList(opts) {
 
   const groupsHtml = list.map(domain => {
     const isExpanded = expandedDomains.has(domain.domain);
+    // 2026-09-08 裁决批一（D6/D1 接入点）：组带 bulkHtml（成员变更域内批量块等）→ 组行下直接内嵌
+    // （勾选批量与逐项详情并行：组行点击仍进详情逐项确认/退回，bulk 块负责批量确认/通过）。
     const itemsHtml = (domain.groups || [])
-      .map(g => _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo))
+      .map(g => {
+        const row = _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo);
+        return g.bulkHtml
+          ? `${row}<div class="${prefix}-todo-bulk rounded-b-lg bg-gray-50/40 border-t border-gray-50">${g.bulkHtml}</div>`
+          : row;
+      })
       .join('');
     return `
       <div class="${prefix}-todo-group mb-3" data-domain="${domain.domain}">
@@ -171,8 +178,10 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
   //   review-submit     —— 复盘提交不派生待办（组织者/深度在复盘 tab 内直接提交，无 todo 生产者）
   // 该三键对应旧按钮文案「去归档/去阅读/去提交」随之移除；未知 actionKey 落入 actionType 兜底或 '处理'。
   const actionLabels = {
-    'attendance-confirm': '去确认',
-    'inspection-confirm': '去确认',
+    // 2026-09-08 裁决批一（D6 纪检折组行仅提示+跳转）：考勤/考察待确认行尾=跳管理页队列
+    // （确认唯一位=考勤管理/考察管理页），不再用「去确认」暗示行内确认。
+    'attendance-confirm': '去考勤管理',
+    'inspection-confirm': '去考察管理',
     'activity-archive': '去归档',
     'review-confirm': '去复核',
     'signup-review': '去审核',
@@ -183,6 +192,10 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
     submit: '去提交',
     track: '去追踪',
     participate: '去参与',
+    // 2026-09-08 裁决批一（D3/D6 交接去顶卡入域折组）：数据交接行内确认/跳转
+    'handoff-attendance-archival': '确认接收',
+    'handoff-inspection-report': '确认接收',
+    'handoff-material-shortage': '去补课制度',
   };
   const actionLabel = actionLabels[g.actionKey] || actionLabels[g.actionType] || '处理';
 

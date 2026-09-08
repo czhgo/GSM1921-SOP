@@ -3,14 +3,17 @@
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降。
 // 2026-09-07 IA-C1 Task4：待办主列改为 9 业务域折组（共享壳渲染）；实时队列
 // （考勤待确认/考察待确认）作为 buildRealtimeGroups 并入「考勤纪律/考察」域展示。
+// 2026-09-08 REVIEW_QUEUE 裁决批一（D6 纪检折组行仅提示+跳转）：考勤/考察待确认行尾按钮
+// 文案由 components/todo-list.js actionLabels 收敛为「去考勤管理/去考察管理」（跳管理页队列，
+// 确认唯一位=考勤管理/考察管理页），补课回执交接行=「去补课制度」跳转——本文件无逻辑改动。
 
-import { showToast } from '../../../core/utils.js?v=20260903c';
-import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260907b';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260908b';
-import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260907b';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260903c';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260907b';
-import { getPersonName } from '../../../services/person.js?v=20260907b';
+import { showToast } from '../../../core/utils.js?v=20260908c';
+import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260908c';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260908c';
+import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260908c';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260908c';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260908c';
+import { getPersonName } from '../../../services/person.js?v=20260908c';
 
 // ── 纪检实时聚合组（2026-08-07 闭环化） ────────────────────────
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降，

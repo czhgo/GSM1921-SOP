@@ -8,35 +8,37 @@
 //   buildRealtimeGroups 一次 merge 进对应域（考勤纪律/考察/活动项目/归档宣传/成员发展/决议上报）；
 //   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
-import { showToast, escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260903c';
+import { showToast, escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260908c';
 // D2 裁决批二（2026-09-08）：概况汇报区只读摘要「去待办处理」→ 定位消费（展开该答复详情并滚动到视口）
-import { PendingTarget } from '../../../core/pending-target.js?v=20260903c';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260908b';
-import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260907b';
-import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260907b';
-import { badgeHtml } from '../../../components/badges.js?v=20260903c';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260907b';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260907b';
-import { updateActivityReview } from '../../../services/review.js?v=20260907b';
-import { loadActivities } from '../../../services/activity.js?v=20260903c';
-import { mockDB } from '../../../core/domain.js?v=20260903c';
-import { persist } from '../../../core/data-adapter.js?v=20260903c';
-import { bumpToken } from '../../../core/version-token.js?v=20260907b'; // P0 域缓存失效（spec §二.3）
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260907b';
-import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260903c';
-import { IssueStore } from '../../../services/issues.js?v=20260908a';
-import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/taskforce.js?v=20260907b';
-import { fetchVotes } from '../../../services/committee-vote.js?v=20260903c';
-import { resolveVoterIds } from '../../../services/vote-config.js?v=20260903c';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260908b';
-import { renderMemberChangePanelHtml, bindMemberChangePanel, preloadMemberChangeRequests, getCachedMemberChangeRequests } from '../../../components/member-change-panel.js?v=20260908b';
-import { tryDirectJump } from '../../../components/todo-jump.js?v=20260903c';
-import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260907b';
+import { PendingTarget } from '../../../core/pending-target.js?v=20260908c';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260908c';
+import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260908c';
+import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260908c';
+import { badgeHtml } from '../../../components/badges.js?v=20260908c';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260908c';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260908c';
+import { updateActivityReview } from '../../../services/review.js?v=20260908c';
+import { loadActivities } from '../../../services/activity.js?v=20260908c';
+import { mockDB } from '../../../core/domain.js?v=20260908c';
+import { persist } from '../../../core/data-adapter.js?v=20260908c';
+import { bumpToken } from '../../../core/version-token.js?v=20260908c'; // P0 域缓存失效（spec §二.3）
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260908c';
+import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260908c';
+import { IssueStore } from '../../../services/issues.js?v=20260908c';
+import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/taskforce.js?v=20260908c';
+import { fetchVotes } from '../../../services/committee-vote.js?v=20260908c';
+import { resolveVoterIds } from '../../../services/vote-config.js?v=20260908c';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260908c';
+// 2026-09-08 裁决批一（D1/D3）：成员变更=域内确认+批量去顶卡——顶卡面板移除，
+// 确认位唯一化 = 「成员发展」域实时组内批量块（buildMcBulkRows/renderMcBulkRowsHtml/bindMcBulk）。
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260908c';
+import { tryDirectJump } from '../../../components/todo-jump.js?v=20260908c';
+import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260908c';
 // C 批 附录⑩ S4：名册确权复核（组织委员发起 → 书记确认/退回）+ 学期末滞留集中复核提醒
-import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, MC_ACTION_LABEL } from '../../../services/member-confirmation.js?v=20260907b';
-import { getDetainedMembers, getResidenceOf } from '../../../services/roster.js?v=20260903c';
-import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260903c';
+import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, MC_ACTION_LABEL } from '../../../services/member-confirmation.js?v=20260908c';
+import { getDetainedMembers, getResidenceOf } from '../../../services/roster.js?v=20260908c';
+import { AuthStore } from '../../../services/auth.js?v=20260908c';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260908c';
 
 const { accent, accentBorder } = getAccentColors(resolveAccentRole('secretary'));
 
@@ -64,7 +66,8 @@ function _buildRealtimeGroups() {
   ];
 }
 
-/** 顶部自定义区：成员变更确认卡（预载缓存同步产物）+ 待答复收件箱 + 专班待议（支委会）区 */
+/** 顶部自定义区：待答复收件箱 + 专班待议（支委会）区（裁决批一：member 面板顶卡已移除，
+ * 确认位唯一化=「成员发展」域批量块；extraTopHtml 收窄=书记仅「待答复」+「专班待议」） */
 function _extraTopHtml() {
   const inboxHtml = renderReportInboxHtml({
     reports: _pendingReports,
@@ -73,9 +76,6 @@ function _extraTopHtml() {
     accent,
     emptyMsg: '暂无待答复汇报',
   });
-  // 2026-09-08 顶卡同步化：成员变更确认卡 HTML 由预载缓存同步产出（onBeforeRender await 预载），
-  // 不再 0 高裸挂点 + 异步弹入（onAfterRender 降级只绑事件）——三卡同批出现、不后弹。
-  const memberPanelHtml = renderMemberChangePanelHtml(getCachedMemberChangeRequests(), { mode: 'secretary-confirm', accent });
   // B批 3.2-2：「专班待议（支委会）」提醒区——数据源 listCommitteeRequests()（仅 pending、先报先议）
   // 每项显示类型徽标（发起/解散）、专班名、任务摘要、报送人、报送时间；
   // 已排入表决（findTaskforceVoteActivity 命中该报送后创建的支委会活动）→ 提供「查看表决结果并生效」。
@@ -94,7 +94,7 @@ function _extraTopHtml() {
           : tfReqs.map(r => _committeeTfRowHtml(r, arrangedActByTf.get(r.id))).join('')}
       </div>
     </div>`;
-  return `${memberPanelHtml}${inboxHtml}${committeeTfHtml}`;
+  return `${inboxHtml}${committeeTfHtml}`;
 }
 
 /** 详情区自定义按钮（一键确认复核 / 成员确权逐项确认·退回 / 学期末「知道了」）；
@@ -144,15 +144,10 @@ const _tab = createTodoTab({
     bindCommitteeTfEvents(container, api);
     bindReportInbox(container, { role: 'secretary', onAnswered: () => api.renderContent() });
     bindTodoDetailExtras(container, api);
+    // 2026-09-08 裁决批一（D1/D3）：域内批量块绑定（全选/计数/批量确认 + onDone 重渲染）
+    bindMcBulk(container, { mode: 'secretary-confirm', onDone: () => api.renderContent() });
   },
   onAfterRender: (container, ctx, api) => {
-    // 成员变更确认面板（2026-09-01 书记点验链路 ④：组织委员审批后 → 书记确认 → 更新阶段）
-    // 2026-09-08 顶卡同步化：内容已随 extraTopHtml 同步产物 → 此处降级只绑事件
-    bindMemberChangePanel(container.querySelector('[data-mc-panel="secretary-confirm"]'), {
-      mode: 'secretary-confirm',
-      requests: getCachedMemberChangeRequests(),
-      onDone: () => api.renderContent(),
-    });
     // D2 裁决批二（2026-09-08）：概况汇报区「去待办处理」→ 展开目标答复详情并滚动到视口
     //（一次性消费；目标不在待答复列表/无目标 → 不做动作 = 落待办页顶部）
     _locatePendingTarget(container);
@@ -298,10 +293,16 @@ function _secActorId() {
   return AuthStore.getCurrentUser()?.personId || 'p13';
 }
 
-/** 待确认聚合组（无 pending 返回 null；kind=confirm 复用既有「去处理→详情面板」交互） */
+/** 待确认聚合组（两链皆空返回 null；kind=confirm 复用既有「点行进详情面板」交互）。
+ * 裁决批一（D1/D3）：组带 bulkHtml（域内批量确认块）——agenda=会议待讨论名单（memberChangeRequests
+ * pending-secretary）+ roster=名册报送确权（member-confirmation pending，来源徽标区分）；
+ * count=批量行总数（行尾角标与批量块一致）；items 保留 roster 供详情逐项确认/退回。 */
 function _mcConfirmAgg() {
-  const items = listPendingConfirmations();
-  if (!items.length) return null;
+  const rosterItems = listPendingConfirmations();
+  const agendaPending = (getCachedMemberChangeRequests() || []).filter(r => r.status === 'pending-secretary');
+  if (!rosterItems.length && !agendaPending.length) return null;
+  const rows = buildMcBulkRows('secretary-confirm');
+  const bulkHtml = renderMcBulkRowsHtml(rows, { mode: 'secretary-confirm', accent });
   return {
     groupKey: 'secretary:member-confirm',
     actionKey: 'member-confirm',
@@ -309,10 +310,13 @@ function _mcConfirmAgg() {
     domain: REALTIME_GROUP_DOMAIN['member-confirm'],
     title: '成员变更待确认',
     category: TodoCategory.REVIEW,
-    flow: '组织委员发起（发展阶段 / 在册状态 / 移出）→ 书记确认生效或退回',
+    flow: '确认位唯一化（域内批量）：名册报送=书记确认生效/退回；议程派生（议程）审批通过项=书记确认更新阶段',
     kind: 'confirm',
-    count: items.length,
-    items,
+    count: rows.length,
+    items: rosterItems,
+    agendaCount: agendaPending.length,
+    hideActionBtn: true,
+    bulkHtml,
   };
 }
 
@@ -338,17 +342,22 @@ function _semesterRemindAgg() {
   };
 }
 
-/** 成员变更确权详情：逐项展示（kind 徽标 / 姓名 / from→to / 发起人 / 时间 / 备注 / 移出保持摘要） */
+/** 成员变更确权详情：逐项展示（kind 徽标 / 姓名 / from→to / 发起人 / 时间 / 备注 / 移出保持摘要）。
+ * 裁决批一（D1/D3）：详情=名册报送逐项（确认/退回）；议程链（议程）项走左列批量块勾选确认，
+ * agendaCount>0 时给出引导（避免「仅议程待确认」时详情误读为空）。 */
 function renderMemberConfirmDetail(group) {
-  const rows = (group.items || []).map(req => _mcReqCard(req)).join('');
+  const items = group.items || [];
+  const agendaCount = group.agendaCount || 0;
+  const rows = items.map(req => _mcReqCard(req)).join('');
   return `
     <div class="space-y-3">
       <div class="flex items-center gap-2">
-        <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${group.count} 条待确认</span>
+        <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${items.length} 条逐项待确认</span>
+        ${agendaCount > 0 ? `<span class="text-[11px] text-gray-400">另 ${agendaCount} 条议程链项见左列批量块</span>` : ''}
       </div>
       <p class="font-title-cn text-sm font-bold text-gray-800">成员变更待确认</p>
       <p class="text-xs text-gray-600 leading-relaxed">组织委员发起的变更须书记确认后生效（或退回）。移出项将自动解除未开始引用，历史记录转「已转出」标注并保留（不删不匿名）。</p>
-      <div class="space-y-2 max-h-[26rem] overflow-y-auto">${rows || '<div class="text-xs text-gray-400">暂无待确认请求</div>'}</div>
+      <div class="space-y-2 max-h-[26rem] overflow-y-auto">${rows || `<div class="text-xs text-gray-400">${agendaCount > 0 ? '暂无名册逐项（议程链项请在上方批量块勾选确认）' : '暂无待确认请求'}</div>`}</div>
     </div>
   `;
 }
@@ -460,7 +469,7 @@ function _askMcReject(reqId, api) {
     accentColor: '#6B7280',
     bodyHtml: `
       <p class="text-sm text-gray-700 mb-1">确认退回${name ? `「${esc(name)}」` : '该成员'}的变更请求？退回后不生效，组织委员可在名册重新发起。</p>
-      <textarea id="mc-reject-note" class="input-flat text-xs w-full mt-2 p-2 rounded-lg border border-gray-200" rows="3" maxlength="200" placeholder="退回原因（可选）"></textarea>
+      <textarea id="mc-reject-note" class="input-flat text-xs w-full mt-2 p-2 rounded-lg border border-gray-200" rows="3" maxlength="200" placeholder="退回原因（必填）"></textarea>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
         <button type="button" data-mc-reject-cancel class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
         <button type="button" data-mc-reject-ok class="text-xs px-3 py-1.5 rounded-lg text-white hover:opacity-90 transition-opacity" style="background:#6B7280;cursor:pointer;">确认退回</button>
@@ -469,6 +478,8 @@ function _askMcReject(reqId, api) {
       panel.querySelector('[data-mc-reject-cancel]')?.addEventListener('click', () => closeModal('mc-reject-modal'));
       panel.querySelector('[data-mc-reject-ok]')?.addEventListener('click', async () => {
         const note = panel.querySelector('#mc-reject-note')?.value || '';
+        // 2026-09-08 裁决批一（D1/D3）：书记名册报送退回意见必填（空意见拦截，不关弹窗）
+        if (!note.trim()) { showToast('error', '请填写退回原因（必填）'); return; }
         closeModal('mc-reject-modal');
         const r = await decideConfirmation(reqId, { decision: 'rejected', by: _secActorId(), note });
         if (r.ok) showToast('info', `已退回${name ? `「${name}」` : ''}的变更请求（未生效）`);
