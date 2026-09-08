@@ -13,6 +13,10 @@ import { bumpToken, resetAllTokens } from '../core/version-token.js?v=20260908c'
 // （T-2026-09-007 Step1：services 版私有引擎曾与 mock-adapter 同 Key 双写并缺
 //   imageRecords/agendaVotes 等新域恢复 → 刷新即丢；现统一由 MockAdapter 承担全量 26 域）
 import { MockAdapter } from '../core/mock-adapter.js?v=20260908c';
+// C3 一键初始化档（?reset=init，2026-09-08）：mock-adapter 禁改 → reset/清库逻辑经本
+// 可改入口兜底；init 档与 demo/preview 档并存（demo/preview 仍在 MockAdapter.loadDB
+// 内既有 handleResetIfRequested 处理，本档先于其检测、互不冲突——见 init-reset.js）。
+import { handleInitResetIfRequested } from './init-reset.js?v=20260908c';
 
 const MOCK_DELAY_MS = 600;
 
@@ -51,6 +55,11 @@ export function loadDB() {
     resetAllTokens(); // P0：整体数据导入（server 全量填充）= 全源重载 → 聚合缓存全域失效重算
     return;
   }
+  // C3 初始化档（2026-09-08）：?reset=init = 一键从演示态/试用态初始化为「新支部初始态」
+  // （清业务过程数据、保留白名单：账号/成员档案/支部配置/在册状态/主题）。置于
+  // MockAdapter.loadDB 之前（其内 handleResetIfRequested 仅认 demo/preview，init 未命中
+  // 返回 false 走既有档位；命中则清库整页导航并中止本次加载）。
+  if (handleInitResetIfRequested()) return;
   MockAdapter.loadDB();
   // P0 重置/overlay 导入路径（mock-adapter 禁改 → 由本可改入口兜底）：loadDB 会整体恢复/
   // 重播种 mockDB（含 ?reset= 清理路径）→ 清空域写版本戳，聚合复合键归零自然重算。

@@ -1281,7 +1281,7 @@
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">换届任命：党委组织员在党委台「支部管理」对新任书记「任命书记」（选本支部成员，可写任命说明如换届选举）→ 原书记自动降回成员、任期档案记录（操作见 5.1 表）→ 新书记登录即接管本支部工作台。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">换组织 / 初始化：从三入口之一进入「支部配置向导」走 5 步——① 组织信息 → ② 模块 / 块组合 → ③ 角色分工 → ④ 术语制度指引 + 换壳工作单 → ⑤ 验证与重置（入口与每步说明见 5.2）。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">数据保留语义：向导改的是「壳」（名称 / 模块 / 分工 / 主题），成员档案、考勤考察、思想汇报、支部文件、档案与决议等历史数据全部保留随支部；演示形态的重置档位只清演示 / 预览层，正式形态数据落库持久（见 5.3）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">数据保留语义：向导改的是「壳」（名称 / 模块 / 分工 / 主题），成员档案、考勤考察、思想汇报、支部文件、档案与决议等历史数据全部保留随支部；演示形态的重置档位（回种子 / 清预览 / 初始化空支部）只作用于浏览器演示数据，正式形态数据落库持久（见 5.3）。</li>
           </ol>
         </div>
       </section>
@@ -1345,14 +1345,15 @@
 
         <!-- 5.3 数据保留与重置档位 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">5.3</span>数据保留与重置档位</h3>
-        <div class="help-card" id="card-admin-reset" data-search="数据保留 重置 档位 演示 reset demo preview API 换壳不换档 历史数据 种子 预览 草稿 持久化">
+        <div class="help-card" id="card-admin-reset" data-search="数据保留 重置 档位 演示 reset demo preview init 初始化 空支部 API 换壳不换档 历史数据 种子 预览 草稿 持久化">
           <h4 class="help-card-title">重置会清什么、保留什么（面向使用者说明）</h4>
           <p class="help-card-desc" style="margin-top:6px;"><strong>换壳不换档：</strong>向导 ①②③ 改的是支部的「壳」——名称 / 模块 / 分工 / 主题。成员档案（名册 / 发展阶段 / 在册滞留）、考勤考察、思想汇报、支部文件、档案与决议、专班历史等业务数据<strong>全部保留</strong>，随支部继续生效（历史留痕只追加、不覆盖）。</p>
           <p class="help-card-desc"><strong>验证第⑤步的「重置」档位（本地演示形态，浏览器演示时使用）：</strong></p>
           <ul class="doc-list" style="margin-top:6px;">
             <li><strong>?reset=demo</strong>（?reset=1 为其旧写法同义）：把全部演示数据复位到「种子初始态」——向导里试改的配置也会被清掉。用于演示前整体复位。</li>
             <li><strong>?reset=preview</strong>：只清理「运行痕迹」——向导草稿与成员基础数据预览等临时状态，演示数据本身保留。用于试走向导后想从头再走、但不想丢已演示的数据。</li>
-            <li><strong>API（正式对接）形态</strong>：上述 URL 参数不生效——数据经登录认证落库持久化（换届不丢档、操作有留痕）；正式数据不提供页面级清空入口（需清档属管理员级操作，走线下处理）。</li>
+            <li><strong>?reset=init</strong>：一键初始化为「新支部初始态」——清空试用期积累的<strong>业务过程数据</strong>（活动 / 考勤 / 考察 / 专班 / 通知 / 汇报 / 议程决议跟进 / 归档 / 交接 / 意见反馈提交等），<strong>保留组织骨架</strong>：账号与角色结构、成员档案（名册，可后续在名册再调）、支部配置 / 分工 / 术语（向导可再改）、成员在册状态（在校 / 滞留）与主题外观。用于「演示 / 试用结束、正式投入使用前」的干净起步——已配好的壳不丢、过程数据清零、空支部起步。</li>
+            <li><strong>API（正式对接）形态</strong>：以上三档 URL 参数均不生效——数据经登录认证落库持久化（换届不丢档、操作有留痕）；正式数据不提供页面级清空入口（初始化 / 清档属管理员级操作：重建种子库或走管理端，见 README 快速开始 reset 说明）。</li>
           </ul>
         </div>
       </section>
