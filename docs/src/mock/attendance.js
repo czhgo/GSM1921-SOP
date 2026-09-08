@@ -1,7 +1,7 @@
 // 数据域接线批次二（2026-09-03）：展示格式化 attendanceToLong 已提升至 services/attendance.js；
 // 本文件退化为纯考勤种子数据仓（PEOPLE 供全员出席名单生成）。
-import { PEOPLE } from './people.js?v=20260908c';
-import { AttendanceStatus } from '../core/domain.js?v=20260908c';
+import { PEOPLE } from './people.js?v=20260908d';
+import { AttendanceStatus } from '../core/domain.js?v=20260908d';
 
 // 最后更新：2026-09-06（演示数据基线刷新）
 // 显式段 att1~att43 的 recordedAt 随关联活动重排同步平移（recordedAt = 活动日当天），

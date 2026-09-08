@@ -9,16 +9,16 @@
 // 行为零变化：原各入口的注册表读取、懒加载渲染、导航落点消费、B1-5 抑制逐字保留于壳内。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { STATE, getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260908c';
-import { bootstrapPage } from '../core/bootstrap.js?v=20260908c';
-import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260908c';
-import { flashHighlight } from '../core/utils.js?v=20260908c';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260908c';
-import { getCapabilities } from '../core/registry.js?v=20260908c';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260908c';
-import { TodoStore } from '../services/todo.js?v=20260908c';
-import { AuthStore } from '../services/auth.js?v=20260908c';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260908c';
+import { STATE, getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260908d';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260908d';
+import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260908d';
+import { flashHighlight } from '../core/utils.js?v=20260908d';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260908d';
+import { getCapabilities } from '../core/registry.js?v=20260908d';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260908d';
+import { TodoStore } from '../services/todo.js?v=20260908d';
+import { AuthStore } from '../services/auth.js?v=20260908d';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260908d';
 
 // B1-5 修复：URL 导航落点后抑制当前 tab 重渲染，防止二次 setState 重建 DOM 冲掉直达高亮。
 // 条件抑制：仅当导航目标元素已在 DOM 中（高亮已展示）才抑制；目标缺失（延迟数据）放行补渲染。

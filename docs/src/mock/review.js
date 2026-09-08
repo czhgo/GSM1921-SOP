@@ -7,7 +7,7 @@
 // 本文件退化为纯复盘种子数据仓。
 // 2026-09-06 基线刷新：时间字段随关联活动重排（活动新日期见 activities.js 头注）同步平移，
 //   正文中旧人名/月份词同步更新（人名与 people.js 一致）。
-import { ReviewStatus } from '../core/domain.js?v=20260908c';
+import { ReviewStatus } from '../core/domain.js?v=20260908d';
 
 /**
  * 活动复盘记录

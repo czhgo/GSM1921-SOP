@@ -4,7 +4,7 @@
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  实现「便于长期共享」的最小操作成本：一键复制当前页直达链接（书记 2026-08-11 裁定增强共享形态）。
 // ════════════════════════════════════════════════════════════════
-import { showToast } from '../core/utils.js?v=20260908c';
+import { showToast } from '../core/utils.js?v=20260908d';
 
 /** 复制链接按钮 HTML（置于详情页标题区右侧） */
 export function renderShareButtonHtml() {

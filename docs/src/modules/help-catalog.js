@@ -5,9 +5,9 @@
 // 功能地图 mindmap 与业务链路 flowchart 以 <pre class="mermaid"> 文本注入（源文本来自共享模块
 // src/core/mermaid-sources.js，与 gen 脚本同实现），由 help-entry.js 懒加载 mermaid CDN 渲染
 // （离线失败保留 .mermaid-fallback 降级文本）
-import { FUNCTION_GROUPS, FUNCTION_CATALOG } from '../core/function-catalog.js?v=20260908c';
-import { generateMindmapText, FLOW_LINKS } from '../core/mermaid-sources.js?v=20260908c';
-import { escHtml as esc } from '../core/utils.js?v=20260908c';
+import { FUNCTION_GROUPS, FUNCTION_CATALOG } from '../core/function-catalog.js?v=20260908d';
+import { generateMindmapText, FLOW_LINKS } from '../core/mermaid-sources.js?v=20260908d';
+import { escHtml as esc } from '../core/utils.js?v=20260908d';
 
 // 目录树（左）：0–7 章 + 致谢/免责声明（与 help.html 静态章节 id、help-entry.js TOC_ITEMS 同一序列）
 // 2026-09-07 C1 批次：原「功能地图/党建等组卡片/业务链路/权限体系」目录项随章节骨架重组撤销——

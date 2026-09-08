@@ -4,8 +4,8 @@
 //       → 党委逐项审批（approve/reject + 意见）→ 支部侧可见结果。
 // 模式：adapter CRUD 实时写 server（API 模式）+ 本地 mockDB 同步（刷新不丢）。
 
-import { mockDB } from '../core/domain.js?v=20260908c';
-import { getAdapter, persist } from '../core/data-adapter.js?v=20260908c';
+import { mockDB } from '../core/domain.js?v=20260908d';
+import { getAdapter, persist } from '../core/data-adapter.js?v=20260908d';
 
 /** 支部上报（书记/组织委员视角） */
 export async function submitReviewRequest({ branchId, type, title, content, submittedBy }) {

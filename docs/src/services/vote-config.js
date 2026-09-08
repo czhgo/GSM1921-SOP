@@ -8,9 +8,9 @@
 //   滞留剔除复用 services/roster.js isDetained（口径单一源 = core/policy-defaults attendance.roster）。
 //   历史快照语义：已创建活动（如 mock act-31）的 voteConfig.voterIds 为创建时固化的名单快照，
 //   不随成员后续滞留状态变更回改——存量数据不动，仅新创建默认值走现时 roster。
-import { PersonStore } from './person.js?v=20260908c';
-import { AuthStore } from './auth.js?v=20260908c';
-import { isDetained } from './roster.js?v=20260908c';
+import { PersonStore } from './person.js?v=20260908d';
+import { AuthStore } from './auth.js?v=20260908d';
+import { isDetained } from './roster.js?v=20260908d';
 
 export const OPTION_SETS = {
   deliberative: {

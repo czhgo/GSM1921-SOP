@@ -8,7 +8,7 @@
 // 契约源：content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md v1.1（S2）
 // 设计纪律：不在此做事件绑定/提交——宿主 tab 各自持有提交逻辑（S4 迁移试点再收敛）。
 
-import { textField, textareaField, selectField, dateField } from '../../components/forms.js?v=20260908c';
+import { textField, textareaField, selectField, dateField } from '../../components/forms.js?v=20260908d';
 
 const KIND_RENDERER = { textField, textareaField, selectField, dateField };
 

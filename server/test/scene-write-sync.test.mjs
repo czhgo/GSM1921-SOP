@@ -9,7 +9,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
   SCENARIO_WRITE_IDS, SCENARIO_LABELS, ACTIVITY_CLASSIFICATION,
-} from '../../docs/src/core/constants.js?v=20260908c';
+} from '../../docs/src/core/constants.js?v=20260908d';
 
 const root = fileURLToPath(new URL('../..', import.meta.url)); // 仓库根
 

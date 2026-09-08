@@ -18,13 +18,13 @@
 // 单测：server/test/member-confirmation.test.mjs
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260908c';
-import { persist } from '../core/data-adapter.js?v=20260908c';
-import { bumpToken } from '../core/version-token.js?v=20260908c'; // P0 域缓存失效（spec §二.3）
-import { PersonStore, findRemovedRecord } from './person.js?v=20260908c';
-import { RESIDENCE, getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260908c';
+import { mockDB } from '../core/domain.js?v=20260908d';
+import { persist } from '../core/data-adapter.js?v=20260908d';
+import { bumpToken } from '../core/version-token.js?v=20260908d'; // P0 域缓存失效（spec §二.3）
+import { PersonStore, findRemovedRecord } from './person.js?v=20260908d';
+import { RESIDENCE, getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260908d';
 // 发展阶段枚举单一源（静态种子派生，禁造新枚举）
-import { DEVELOP_STAGE_OPTIONS } from './org-base-data-preview.js?v=20260908c';
+import { DEVELOP_STAGE_OPTIONS } from './org-base-data-preview.js?v=20260908d';
 
 /** 确权请求队列的 localStorage 键（gsm1921- 前缀 → ?reset=demo 自动清理） */
 export const MEMBER_CONFIRM_KEY = 'gsm1921-member-confirmations';

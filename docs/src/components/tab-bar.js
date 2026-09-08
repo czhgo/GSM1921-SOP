@@ -3,9 +3,9 @@
 //  tab-bar.js — 通用 Tab 切换组件
 // ════════════════════════════════════════════════════════════════
 
-import { accDarkParts } from '../core/constants.js?v=20260908c';
+import { accDarkParts } from '../core/constants.js?v=20260908d';
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
-import { resolveInitialTab, resolveTargetTab } from '../core/tab-nav.js?v=20260908c';
+import { resolveInitialTab, resolveTargetTab } from '../core/tab-nav.js?v=20260908d';
 
 // 角色识别层：tab 激活态 = 主题色三件套渲染（书记 2026-08-08 三审定稿）。
 // 背景：前三轮把 tab 强行为品牌金（半透明 0.14/0.30 → 实色 #FFD700），书记全部否决——

@@ -3,12 +3,12 @@
 // 党委见全院：各支部运行概览（成员规模/发展阶段/组织生活台账/现任书记/近期活动）
 // 数源：mockDB.branches（支部实例）+ PEOPLE（成员档案，已挂 branchId）+ ctx.activities（工作台已加载）
 
-import { mockDB } from '../../../core/domain.js?v=20260908c';
-import { PersonStore } from '../../../services/person.js?v=20260908c';
+import { mockDB } from '../../../core/domain.js?v=20260908d';
+import { PersonStore } from '../../../services/person.js?v=20260908d';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { getCommitteeName } from '../../../services/branch.js?v=20260908c';
-import { getPersonName } from '../../../services/person.js?v=20260908c';
+import { getCommitteeName } from '../../../services/branch.js?v=20260908d';
+import { getPersonName } from '../../../services/person.js?v=20260908d';
 
 const STAGE_ORDER = ['正式党员', '预备党员', '发展对象', '积极分子'];
 

@@ -8,25 +8,25 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（书记反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260908c';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260908c';
-import { getPersonName } from '../../../services/person.js?v=20260908c';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260908d';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260908d';
+import { getPersonName } from '../../../services/person.js?v=20260908d';
 // S1–S4 滞留党员设计（2026-09-06 书记已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 书记裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260908c';
-import { solidAccentStyle, ROLE_LABELS } from '../../../core/constants.js?v=20260908c';
-import { loadActivities } from '../../../services/activity.js?v=20260908c';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260908c';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260908c';
-import { NoticeStore } from '../../../services/notice.js?v=20260908c';
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260908c';
-import { badgeHtml } from '../../../components/badges.js?v=20260908c';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc } from '../../../core/utils.js?v=20260908c';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260908c';
-import { HandoffStore } from '../../../services/handoff.js?v=20260908c';
-import { AuthStore } from '../../../services/auth.js?v=20260908c';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260908c';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260908d';
+import { solidAccentStyle, ROLE_LABELS } from '../../../core/constants.js?v=20260908d';
+import { loadActivities } from '../../../services/activity.js?v=20260908d';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260908d';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260908d';
+import { NoticeStore } from '../../../services/notice.js?v=20260908d';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260908d';
+import { badgeHtml } from '../../../components/badges.js?v=20260908d';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc } from '../../../core/utils.js?v=20260908d';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260908d';
+import { HandoffStore } from '../../../services/handoff.js?v=20260908d';
+import { AuthStore } from '../../../services/auth.js?v=20260908d';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260908d';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）

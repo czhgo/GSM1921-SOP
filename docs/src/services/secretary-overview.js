@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  secretary-overview.js — 书记全局概况服务层
 //  四维度信息面板：考勤与纪律 / 发展与考察 / 活动与专班进度 / 宣传与档案
@@ -7,18 +7,18 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260908c';
-import { loadActivities } from './activity.js?v=20260908c';
-import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260908c';
-import { TaskForceRecordStore } from './taskforce.js?v=20260908c';
-import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260908c';
-import { NoticeStore } from './notice.js?v=20260908c';
-import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20260908c';
-import { tokenOf } from '../core/version-token.js?v=20260908c'; // P0 域缓存失效（spec §二.3/§二.4）
-import { PEOPLE } from '../mock/index.js?v=20260908c';
-import { getPersonById } from './person.js?v=20260908c';
-import { ROLE_LABELS } from '../core/constants.js?v=20260908c';
-import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260908c';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260908d';
+import { loadActivities } from './activity.js?v=20260908d';
+import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260908d';
+import { TaskForceRecordStore } from './taskforce.js?v=20260908d';
+import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260908d';
+import { NoticeStore } from './notice.js?v=20260908d';
+import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20260908d';
+import { tokenOf } from '../core/version-token.js?v=20260908d'; // P0 域缓存失效（spec §二.3/§二.4）
+import { PEOPLE } from '../mock/index.js?v=20260908d';
+import { getPersonById } from './person.js?v=20260908d';
+import { ROLE_LABELS } from '../core/constants.js?v=20260908d';
+import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260908d';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数

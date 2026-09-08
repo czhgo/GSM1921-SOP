@@ -3,7 +3,7 @@
 // 空清单兜底。消费方 = docs/src/components/tab-bar.js（浏览器侧），本文件直测纯决策。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveInitialTab, resolveTargetTab } from '../../docs/src/core/tab-nav.js?v=20260908c';
+import { resolveInitialTab, resolveTargetTab } from '../../docs/src/core/tab-nav.js?v=20260908d';
 
 const TABS = [{ id: 'todo' }, { id: 'calendar' }, { id: 'feedback' }];
 

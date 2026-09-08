@@ -3,15 +3,15 @@
 // 支部边界收敛点（防漂移）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
 // 单一数据源：mockDB.branches（首启 seed 自 mock/branches.js BRANCHES）
 
-import { mockDB } from '../core/domain.js?v=20260908c';
-import { getPersonById } from './person.js?v=20260908c';
-import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260908c';
-import { getAdapter, persist, getDataSource } from '../core/data-adapter.js?v=20260908c';
-import { listCapabilities } from '../core/registry.js?v=20260908c';
+import { mockDB } from '../core/domain.js?v=20260908d';
+import { getPersonById } from './person.js?v=20260908d';
+import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260908d';
+import { getAdapter, persist, getDataSource } from '../core/data-adapter.js?v=20260908d';
+import { listCapabilities } from '../core/registry.js?v=20260908d';
 // P1a 单向权威（2026-09-03）：config 净化唯一实现 = core/config-clean.js（server PATCH /branches/:id/config 同源）
-import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg } from '../core/config-clean.js?v=20260908c';
+import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg } from '../core/config-clean.js?v=20260908d';
 // L4（2026-09-03）：支部工作地图模块目录单一源 = core/work-map.js（11 模块/缺省分工/快照展开）
-import { expandWorkforce } from '../core/work-map.js?v=20260908c';
+import { expandWorkforce } from '../core/work-map.js?v=20260908d';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;

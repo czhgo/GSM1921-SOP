@@ -8,15 +8,15 @@
 //   committeeMembers.length。矩阵成员由调用方传入（有 voteConfig → voterIds 映射人员；无 → 权威支委名单
 //   resolveVoterIds('committee')，过滤见 inspector.js；server/routes/committee.js COMMITTEE_IDS 仅作旧活动
 //   回退白名单，勿再本地罗列支委成员）。选项集/标签权威 = vote-config.js OPTION_SETS（勿再本地硬编码）
-import { fetchVotes, lockVotes } from '../services/committee-vote.js?v=20260908c';
-import { optionSetOf } from '../services/vote-config.js?v=20260908c';
-import { showToast, escHtml as esc } from '../core/utils.js?v=20260908c';
+import { fetchVotes, lockVotes } from '../services/committee-vote.js?v=20260908d';
+import { optionSetOf } from '../services/vote-config.js?v=20260908d';
+import { showToast, escHtml as esc } from '../core/utils.js?v=20260908d';
 // R2-2（2026-09-06）：决议「待落实」跟进管理器（记录决议视图内勾选/保存/销项；本文件保留原版本串——
 //   唯一引用方 components/inspector.js 属禁改文件无法同步 ?v=，改动经子模块新版本串保证取新代码）
-import { loadActivities } from '../services/activity.js?v=20260908c';
+import { loadActivities } from '../services/activity.js?v=20260908d';
 import {
   resolutionFollowupSectionHtml, bindResolutionFollowupSection,
-} from './resolution-followup-manager.js?v=20260908c';
+} from './resolution-followup-manager.js?v=20260908d';
 
 // HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 

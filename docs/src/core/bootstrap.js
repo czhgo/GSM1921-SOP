@@ -1,25 +1,25 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // bootstrap.js — 页面初始化统一入口（重构版）
 // 变化: 去掉 ViewModeStore/CrossPageState/setActiveRole，改为基于 getCurrentUser() 的登录检查
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../components/sidebar.js?v=20260908c';
-import { renderHeader } from '../components/header.js?v=20260908c';
-import { AuthStore } from '../services/auth.js?v=20260908c';
-import { IssueStore } from '../services/issues.js?v=20260908c';
-import { MilestoneStore } from '../services/milestones.js?v=20260908c';
-import { getAccentColors, resolveAccentRole } from './constants.js?v=20260908c';
-import { CrossPageState } from './cross-page-state.js?v=20260908c';
-import { getBasePath } from './utils.js?v=20260908c';
-import { enhanceSelects } from '../components/custom-select.js?v=20260908c';
-import { registerApiAdapter, init } from './data-adapter.js?v=20260908c';
-import { ApiAdapter } from './api-adapter.js?v=20260908c';
-import { getCapabilities } from './registry.js?v=20260908c';
+import { renderSidebar } from '../components/sidebar.js?v=20260908d';
+import { renderHeader } from '../components/header.js?v=20260908d';
+import { AuthStore } from '../services/auth.js?v=20260908d';
+import { IssueStore } from '../services/issues.js?v=20260908d';
+import { MilestoneStore } from '../services/milestones.js?v=20260908d';
+import { getAccentColors, resolveAccentRole } from './constants.js?v=20260908d';
+import { CrossPageState } from './cross-page-state.js?v=20260908d';
+import { getBasePath } from './utils.js?v=20260908d';
+import { enhanceSelects } from '../components/custom-select.js?v=20260908d';
+import { registerApiAdapter, init } from './data-adapter.js?v=20260908d';
+import { ApiAdapter } from './api-adapter.js?v=20260908d';
+import { getCapabilities } from './registry.js?v=20260908d';
 // M4 数据源注册化：副作用导入触发 mock/api 数据源能力注册，bootstrap 经注册表选择数据源
-import '../modules/capabilities/data-source.js?v=20260908c';
+import '../modules/capabilities/data-source.js?v=20260908d';
 // M6（2026-08-30）：共享组件能力随全局引导注册（todo-list/calendar/custom-select），所有页面可发现组件清单
-import '../modules/capabilities/components.js?v=20260908c';
+import '../modules/capabilities/components.js?v=20260908d';
 
 // ════════════════════════════════════════════════════════════════
 // S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）

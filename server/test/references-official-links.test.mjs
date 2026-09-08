@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-const modulePath = new URL('../../docs/src/modules/references.js?v=20260908c', import.meta.url);
+const modulePath = new URL('../../docs/src/modules/references.js?v=20260908d', import.meta.url);
 
 const officialDocs = [
   'official-01',

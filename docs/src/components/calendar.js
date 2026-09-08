@@ -5,12 +5,12 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../core/state.js?v=20260908c';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260908c';
-import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260908c';
-import { tokenOf } from '../core/version-token.js?v=20260908c'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole } from './inspector.js?v=20260908c';
-import { badgeHtml } from './badges.js?v=20260908c';
+import { getAppState, setState } from '../core/state.js?v=20260908d';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260908d';
+import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260908d';
+import { tokenOf } from '../core/version-token.js?v=20260908d'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole } from './inspector.js?v=20260908d';
+import { badgeHtml } from './badges.js?v=20260908d';
 
 // ── 内联标签深色变量对（与 constants.js _applyDark 生成的 bgDark/textDark/borderDark 配套）──
 // 标签/卡片：三件套（bg/text/border）；纯文字：仅 text；圆点：仅实色提亮（--acc-dot-dark）

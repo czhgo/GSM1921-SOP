@@ -1,16 +1,16 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // components/sidebar.js — 共享侧边栏（角色单页制 v2）
 // 2026-07-29: 角色单页制重构——合并党建/党务为"工作台"单入口
 // - 移除 '党务管理' / '人员管理' 独立入口
 // - '党建工作台' → '工作台'（角色自适应跳转）
 // - 帮助/关于移入主导航区
 
-import { getBasePath } from '../core/utils.js?v=20260908c';
-import { icon } from '../core/icons.js?v=20260908c';
-import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260908c';
-import { getThemePreference, setThemePreference, initTheme } from '../core/theme.js?v=20260908c';
-import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260908c';
-import { DEPLOY_MODE } from '../config/deploy.js?v=20260908c';
+import { getBasePath } from '../core/utils.js?v=20260908d';
+import { icon } from '../core/icons.js?v=20260908d';
+import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260908d';
+import { getThemePreference, setThemePreference, initTheme } from '../core/theme.js?v=20260908d';
+import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260908d';
+import { DEPLOY_MODE } from '../config/deploy.js?v=20260908d';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染侧边栏：不预加载 auth 数据链
@@ -21,7 +21,7 @@ import { DEPLOY_MODE } from '../config/deploy.js?v=20260908c';
 let AuthStore = null;
 let _authModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../services/auth.js?v=20260908c');
+  if (!_authModule) _authModule = import('../services/auth.js?v=20260908d');
   return _authModule;
 }
 

@@ -9,14 +9,14 @@
 // 注意：mockDB/服务均带 ?v=20260903c 导入，保证与 services 模块缓存同一实例（见 agenda-quorum.test 头注）。
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockDB } from '../../docs/src/core/domain.js?v=20260908c';
-import { TodoStore } from '../../docs/src/services/todo.js?v=20260908c';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260908d';
+import { TodoStore } from '../../docs/src/services/todo.js?v=20260908d';
 import {
   buildFollowupTodoPayloads,
   saveFollowups, completeFollowup, reopenFollowup,
   collectOverdueResolutionFollowups, buildOverdueRemindGroup,
   FOLLOWUP_STATUS,
-} from '../../docs/src/services/resolution-followup.js?v=20260908c';
+} from '../../docs/src/services/resolution-followup.js?v=20260908d';
 
 const ORIGINAL_ACTIVITIES = mockDB.activities;
 const ORIGINAL_TODOS = mockDB.todos;

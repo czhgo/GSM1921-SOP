@@ -34,8 +34,8 @@ test('S2 渲染桥：kind 映射/字段收拢/无障碍关联正确', async () =
     await page.waitForFunction(() => document.readyState === 'complete', null, { timeout: 10000 });
 
     const result = await page.evaluate(async () => {
-      const { THEME_PARTY_DAY_MANIFEST, TASKFORCE_RUN_MANIFEST } = await import('/src/workflow/blocks/manifests.js?v=20260908c');
-      const { renderManifestFields, manifestFieldCatalog, fieldDomId } = await import('/src/workflow/blocks/form-renderer.js?v=20260908c');
+      const { THEME_PARTY_DAY_MANIFEST, TASKFORCE_RUN_MANIFEST } = await import('/src/workflow/blocks/manifests.js?v=20260908d');
+      const { renderManifestFields, manifestFieldCatalog, fieldDomId } = await import('/src/workflow/blocks/form-renderer.js?v=20260908d');
 
       const themeHtml = renderManifestFields(THEME_PARTY_DAY_MANIFEST);
       const tfDefault = renderManifestFields(TASKFORCE_RUN_MANIFEST);

@@ -19,7 +19,7 @@
 //  本组件仅处理展示与跳转；计数语义由调用方（外壳）按角色注入。
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore } from '../services/issues.js?v=20260908c'; // 计数依赖（U3 前置计数须显式引用；勿裸依赖全局）
+import { IssueStore } from '../services/issues.js?v=20260908d'; // 计数依赖（U3 前置计数须显式引用；勿裸依赖全局）
 
 /** 等高骨架卡（内容容器为空/仍为壳骨架时的兜底占位；min-height 防 0 高弹跳） */
 export function overviewSkeletonHtml(text = '工作概况加载中…') {

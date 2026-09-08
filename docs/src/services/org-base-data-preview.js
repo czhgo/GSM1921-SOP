@@ -17,8 +17,8 @@
 // 纯 ESM、无 DOM；localStorage 仅在函数内以 typeof 守卫惰性访问 → 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE } from '../mock/people.js?v=20260908c';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260908c';
+import { PEOPLE } from '../mock/people.js?v=20260908d';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260908d';
 
 /** 预览包类型标识（导入门槛，防误导入异类 JSON） */
 export const PREVIEW_KIND = 'gsm1921-base-data';

@@ -9,8 +9,8 @@
 //   · 页面侧 bootstrap 校验登录角色（仅 party-staff 可带 ?branch= 进入支部层页面）——
 //     本模块不自行放行任何未登录 / 非 party-staff 会话（按钮只渲染在党委工作台=party-staff 已就位）。
 
-import { getBranchById } from '../services/branch.js?v=20260908c';
-import { showToast } from '../core/utils.js?v=20260908c';
+import { getBranchById } from '../services/branch.js?v=20260908d';
+import { showToast } from '../core/utils.js?v=20260908d';
 
 // 演示目标页：支部书记工作台（演示形态固定 secretary.html；后续如需演示其他支委角色在此扩展）
 const DEMO_PAGE = 'secretary.html';
