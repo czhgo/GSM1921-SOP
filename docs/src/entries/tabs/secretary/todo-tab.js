@@ -27,7 +27,7 @@ import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteAct
 import { fetchVotes } from '../../../services/committee-vote.js?v=20260903c';
 import { resolveVoterIds } from '../../../services/vote-config.js?v=20260903c';
 import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260908a';
-import { renderMemberChangePanel } from '../../../components/member-change-panel.js?v=20260903c';
+import { renderMemberChangePanelHtml, bindMemberChangePanel, preloadMemberChangeRequests, getCachedMemberChangeRequests } from '../../../components/member-change-panel.js?v=20260903c';
 import { tryDirectJump } from '../../../components/todo-jump.js?v=20260903c';
 import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260907b';
 // C 批 附录⑩ S4：名册确权复核（组织委员发起 → 书记确认/退回）+ 学期末滞留集中复核提醒
@@ -62,7 +62,7 @@ function _buildRealtimeGroups() {
   ];
 }
 
-/** 顶部自定义区：成员变更面板挂载点 + 待答复收件箱 + 专班待议（支委会）区 */
+/** 顶部自定义区：成员变更确认卡（预载缓存同步产物）+ 待答复收件箱 + 专班待议（支委会）区 */
 function _extraTopHtml() {
   const inboxHtml = renderReportInboxHtml({
     reports: _pendingReports,
@@ -71,6 +71,9 @@ function _extraTopHtml() {
     accent,
     emptyMsg: '暂无待答复汇报',
   });
+  // 2026-09-08 顶卡同步化：成员变更确认卡 HTML 由预载缓存同步产出（onBeforeRender await 预载），
+  // 不再 0 高裸挂点 + 异步弹入（onAfterRender 降级只绑事件）——三卡同批出现、不后弹。
+  const memberPanelHtml = renderMemberChangePanelHtml(getCachedMemberChangeRequests(), { mode: 'secretary-confirm', accent });
   // B批 3.2-2：「专班待议（支委会）」提醒区——数据源 listCommitteeRequests()（仅 pending、先报先议）
   // 每项显示类型徽标（发起/解散）、专班名、任务摘要、报送人、报送时间；
   // 已排入表决（findTaskforceVoteActivity 命中该报送后创建的支委会活动）→ 提供「查看表决结果并生效」。
@@ -78,18 +81,18 @@ function _extraTopHtml() {
   const arrangedActByTf = new Map();
   tfReqs.forEach(r => { const act = findTaskforceVoteActivity(r.id); if (act) arrangedActByTf.set(r.id, act); });
   const committeeTfHtml = `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">专班待议（支委会）</h3>
-        <span class="text-[11px] text-gray-400">${tfReqs.length} 项待议</span>
+        <h4 class="font-title-cn text-sm font-bold text-gray-800">专班待议（支委会）</h4>
+        <span class="text-xs text-gray-400 tabular-nums">${tfReqs.length} 项待议</span>
       </div>
       <div class="space-y-2">
         ${tfReqs.length === 0
-          ? '<p class="text-xs text-gray-400">暂无待议专班</p>'
+          ? '<p class="text-xs text-gray-400 py-1">暂无待议专班</p>'
           : tfReqs.map(r => _committeeTfRowHtml(r, arrangedActByTf.get(r.id))).join('')}
       </div>
     </div>`;
-  return `<div id="secretary-member-change-panel"></div>${inboxHtml}${committeeTfHtml}`;
+  return `${memberPanelHtml}${inboxHtml}${committeeTfHtml}`;
 }
 
 /** 详情区自定义按钮（一键确认复核 / 成员确权逐项确认·退回 / 学期末「知道了」）；
@@ -130,6 +133,9 @@ const _tab = createTodoTab({
     // 待答复汇报（书记 2026-08-10 裁定：答复类置顶待办）——预加载 issues 权威源
     await IssueStore.loadAll();
     _pendingReports = IssueStore.getSecretaryPendingReports();
+    // 2026-09-08 顶卡同步化：成员变更确认请求预载（mock 600ms 延迟 → 缓存 → _extraTopHtml 同步产物；
+    // 本地签名未变则秒回，变才 await 拉取——守卫命中路径不额外加延迟）
+    await preloadMemberChangeRequests();
   },
   extraTopHtml: _extraTopHtml,
   bindExtras: (container, ctx, api) => {
@@ -137,11 +143,12 @@ const _tab = createTodoTab({
     bindReportInbox(container, { role: 'secretary', onAnswered: () => api.renderContent() });
     bindTodoDetailExtras(container, api);
   },
-  onAfterRender: async (container, ctx, api) => {
+  onAfterRender: (container, ctx, api) => {
     // 成员变更确认面板（2026-09-01 书记点验链路 ④：组织委员审批后 → 书记确认 → 更新阶段）
-    await renderMemberChangePanel(container.querySelector('#secretary-member-change-panel'), {
+    // 2026-09-08 顶卡同步化：内容已随 extraTopHtml 同步产物 → 此处降级只绑事件
+    bindMemberChangePanel(container.querySelector('[data-mc-panel="secretary-confirm"]'), {
       mode: 'secretary-confirm',
-      accent,
+      requests: getCachedMemberChangeRequests(),
       onDone: () => api.renderContent(),
     });
   },

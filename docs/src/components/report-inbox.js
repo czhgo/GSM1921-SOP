@@ -33,16 +33,18 @@ export function renderReportInboxHtml({
   accent = '#B91C1C',
   emptyMsg = '暂无待答复汇报',
 } = {}) {
+  // 2026-09-08 顶卡排布统一：空态并入统一形态（text-xs text-gray-400 py-1），
+  // 保留绿色圆点「已全部答复」语义（不突兀：与相邻卡空态行同高，无底色整条）
   const emptyBox = `
-    <div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
+    <p class="text-xs text-gray-400 py-1 flex items-center gap-1.5">
       <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> ${emptyMsg}
-    </div>`;
+    </p>`;
 
   if (!reports.length) {
     return `
-      <div class="card rounded-xl p-4">
+      <div class="card rounded-xl p-4 mb-4">
         <div class="flex items-center justify-between mb-3">
-          <h4 class="font-title-cn text-sm font-bold text-gray-700">${title}</h4>
+          <h4 class="font-title-cn text-sm font-bold text-gray-800">${title}</h4>
           <span class="text-xs text-gray-400">${subtitle || '汇报答复'}</span>
         </div>
         ${emptyBox}
@@ -87,9 +89,9 @@ export function renderReportInboxHtml({
   }).join('');
 
   return `
-    <div class="card rounded-xl p-4">
+    <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">${title}</h4>
+        <h4 class="font-title-cn text-sm font-bold text-gray-800">${title}</h4>
         <span class="text-xs text-gray-400">${subtitle || `${reports.length} 条待答复 · 行内答复`}</span>
       </div>
       <div class="space-y-2">${rows}</div>

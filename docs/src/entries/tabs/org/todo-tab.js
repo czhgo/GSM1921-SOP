@@ -8,7 +8,7 @@ import { tryDirectJump } from '../../../components/todo-jump.js?v=20260903c';
 import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260903c';
 import { HandoffStore } from '../../../services/handoff.js?v=20260907b';
 import { openFormModal } from '../../../components/modal.js?v=20260903c';
-import { renderMemberChangePanel } from '../../../components/member-change-panel.js?v=20260903c';
+import { renderMemberChangePanelHtml, bindMemberChangePanel, preloadMemberChangeRequests, getCachedMemberChangeRequests } from '../../../components/member-change-panel.js?v=20260903c';
 
 function _handleTodoAction(todo, ctx) {
   // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/todo-jump.js（2026-09-04）
@@ -40,8 +40,13 @@ export const { renderContent } = createTodoTab({
   prefix: 'org',
   role: 'org-commissioner',
   onAction: _handleTodoAction,
+  // 2026-09-08 顶卡同步化：成员变更审批请求预载（缓存 → extraTopHtml 同步产物，不再 0 高挂点异步弹入；
+  // 签名未变秒回、变才 await 拉取——守卫命中路径不额外加延迟）
+  onBeforeRender: async () => {
+    await preloadMemberChangeRequests();
+  },
   // 2026-09-01 成员变更审批入口（书记点验链路 ③：议程记录通过 → 组织委员审批 → 广播全体支委）
-  extraTopHtml: (ctx) => `<div id="org-member-change-panel"></div>` + renderHandoffInboxHtml({
+  extraTopHtml: (ctx) => renderMemberChangePanelHtml(getCachedMemberChangeRequests(), { mode: 'org-approve', accent: ctx.accent }) + renderHandoffInboxHtml({
     to: 'org-commissioner',
     accent: ctx.accent,
     title: '数据交接·考察建档',
@@ -50,10 +55,10 @@ export const { renderContent } = createTodoTab({
     </div>`,
   }),
   bindExtras: (container, ctx) => {
-    // 成员变更审批面板（渲染与操作都在组件内；完成后重渲染 todo）
-    renderMemberChangePanel(container.querySelector('#org-member-change-panel'), {
+    // 成员变更审批面板：内容已随 extraTopHtml 同步产物（预载缓存）→ 此处只绑事件；完成后重渲染 todo
+    bindMemberChangePanel(container.querySelector('[data-mc-panel="org-approve"]'), {
       mode: 'org-approve',
-      accent: ctx.accent,
+      requests: getCachedMemberChangeRequests(),
       onDone: () => renderContent(ctx),
     });
     bindHandoffInbox(container, { to: 'org-commissioner', onDone: () => { showToast('success', '考察记录已接收建档'); renderContent(ctx); } });

@@ -40,6 +40,11 @@ const _COMBO_LEN_KEYS = [
   ['signup', 'signups'],
   ['handoff', 'handoffs'],
   ['memberConfirmation', 'pendingMemberConfirmations'],
+  // 2026-09-08 顶卡同步化：成员变更申请（member-change-panel 产物内容源）并入守卫键。
+  //   · 长度指纹覆盖 议程记录通过/组织委员建档 等直写新建（adapter.create，mock-adapter 禁改无 bump）；
+  //   · approve/confirm 仅改 status、长度不变 → 由 member-change-panel 写口成功后显式
+  //     bumpToken('memberChangeRequests') 兜底（见该组件头注）→ 书记确认/组织审批后重建而非命中跳过。
+  ['memberChangeRequests', 'memberChangeRequests'],
   ['notice', 'notices'],
 ];
 function _comboKeyOf(role) {
@@ -200,7 +205,7 @@ export function createTodoTab(opts) {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
             </svg>
             <span class="inline-block w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></span>
-            <span class="font-title-cn text-sm font-semibold text-gray-800">未读通知 <span class="tabular-nums">${notices.length}</span> 条</span>
+            <span class="font-title-cn text-sm font-bold text-gray-800">未读通知 <span class="tabular-nums">${notices.length}</span> 条</span>
           </span>
         </button>
         <div class="${prefix}-unread-items hidden">

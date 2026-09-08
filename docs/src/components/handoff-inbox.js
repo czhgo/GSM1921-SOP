@@ -36,13 +36,12 @@ export function renderHandoffInboxHtml({ to, accent, title = '数据交接', ext
     `;
   }).join('');
 
-  if (items.length === 0 && !extraActionHtml) return '';
-
+  // 2026-09-08 顶卡排布统一：空态不再 return ''（整卡消失 → 页面高度突跳），常驻卡 + 空态行
   return `
     <div class="card rounded-xl p-4 mb-4">
-      <div class="flex items-center justify-between mb-1.5">
+      <div class="flex items-center justify-between mb-3">
         <h4 class="font-title-cn text-sm font-bold text-gray-800">${title}</h4>
-        ${items.length > 0 ? badgeHtml(`${items.length} 条待确认`, 'warning') : badgeHtml('已清空', 'neutral')}
+        ${items.length > 0 ? `<span class="text-xs text-gray-400 tabular-nums">${items.length} 条待确认</span>` : '<span class="text-xs text-gray-400">已清空</span>'}
       </div>
       ${items.length > 0 ? `<div class="divide-y divide-gray-50">${rows}</div>` : '<p class="text-xs text-gray-400 py-1">暂无待确认的交接数据</p>'}
       ${extraActionHtml || ''}
