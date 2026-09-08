@@ -10,16 +10,17 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../..', import.meta.url)); // 仓库根
 
 function grab(relPath, name) {
-  const src = readFileSync(`${root}${relPath}`, 'utf8');
+  // ?v= 为 bump 脚本注入的模块版本戳（fs 路径须剥离后再读盘）
+  const src = readFileSync(`${root}${relPath.split('?')[0]}`, 'utf8');
   const m = new RegExp(`export const ${name} = ([\\s\\S]*?);\\s*(?:export|$)`, 'm').exec(src);
   assert.ok(m, `${relPath} 未找到 export const ${name}`);
   return new Function(`return (${m[1]})`)();
 }
 
 test('FLOW_LINKS 键集 与 function-catalog flow id 键集双向一致（防漂移）', () => {
-  const groups = grab('docs/src/core/function-catalog.js?v=20260908c', 'FUNCTION_GROUPS');
-  const catalog = grab('docs/src/core/function-catalog.js?v=20260908c', 'FUNCTION_CATALOG');
-  const flowLinks = grab('docs/src/core/mermaid-sources.js?v=20260908c', 'FLOW_LINKS');
+  const groups = grab('docs/src/core/function-catalog.js?v=20260908d', 'FUNCTION_GROUPS');
+  const catalog = grab('docs/src/core/function-catalog.js?v=20260908d', 'FUNCTION_CATALOG');
+  const flowLinks = grab('docs/src/core/mermaid-sources.js?v=20260908d', 'FLOW_LINKS');
 
   const flowIds = catalog.filter((i) => i.kind === 'flow').map((i) => i.id);
   const linkKeys = Object.keys(flowLinks);

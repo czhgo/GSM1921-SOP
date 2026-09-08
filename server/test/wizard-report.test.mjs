@@ -7,8 +7,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buildOrgWizardReport } from '../../docs/src/services/org-wizard-report.js?v=20260908c';
-import { getRosterStats } from '../../docs/src/services/roster.js?v=20260908c';
+import { buildOrgWizardReport } from '../../docs/src/services/org-wizard-report.js?v=20260908d';
+import { getRosterStats } from '../../docs/src/services/roster.js?v=20260908d';
 
 const SAMPLE = {
   branchInfo: {
@@ -61,16 +61,16 @@ test('report：模块/块摘要与角色分工行入文', () => {
 test('report：待手动替换文件清单要点齐全（mock/constants/权限/术语/制度/配色/policy）', () => {
   const md = buildOrgWizardReport(SAMPLE);
   for (const frag of [
-    'docs/src/mock/people.js?v=20260908c',
-    'docs/src/core/constants.js?v=20260908c',
+    'docs/src/mock/people.js?v=20260908d',
+    'docs/src/core/constants.js?v=20260908d',
     'SYSTEM_ROLE_PERMISSION.md',
     'USAGE_POLICY.md',
     'content/02_institution/sop/',
     'COLOR_SYSTEM.md',
     'docs/src/styles.css',
-    'docs/src/core/policy-defaults.js?v=20260908c',
+    'docs/src/core/policy-defaults.js?v=20260908d',
   ]) {
-    assert.ok(md.includes(frag), `文件清单应含：${frag}`);
+    assert.ok(md.includes(frag.split('?')[0]), `文件清单应含：${frag.split('?')[0]}`);
   }
 });
 
