@@ -2,7 +2,7 @@
 title: "流程机制指南——甲部修改/外部输入/周期性任务/书记评议"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-09-05"
+last_updated: "2026-09-09"
 status: active
 split_from: "OPERATIONS_GUIDE.md（2026-08-24 T-282 拆分）"
 related_files: [CLAUDE.md, OPERATIONS_GUIDE.md]
