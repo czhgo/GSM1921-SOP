@@ -18,9 +18,10 @@ registerCapability({
     // 含支部概览列表（成员/党员/滞留实时统计 + 近期动态摘要）→ 支部卡「进入支部（演示）」。
     { id: 'governance-overview', label: '治理总览', groupLabel: '首页', render: (ctx) => import('../../entries/tabs/party-committee/governance-overview-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
     { id: 'monitor', label: '支部监控台账', groupLabel: '全院治理', render: (ctx) => import('../../entries/tabs/party-committee/monitor-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
-    { id: 'branches', label: '支部管理', groupLabel: '全院治理', render: (ctx) => import('../../entries/tabs/party-committee/branches-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
     // P3 党委后台（2026-09-02）：支部上报审批（发展节点/活动报备逐项批驳，结论回传支部）
+    // D8 裁决批二（2026-09-08）：上报审批为党委高频待批复队列 → 前移至支部管理之前（表 C 党委台调序裁定）
     { id: 'review', label: '上报审批', groupLabel: '全院治理', render: (ctx) => import('../../entries/tabs/party-committee/review-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
+    { id: 'branches', label: '支部管理', groupLabel: '全院治理', render: (ctx) => import('../../entries/tabs/party-committee/branches-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
     // P3 党委后台（2026-09-02）：下发通知（复用通知实体，送达目标支部支委层，标「党委下发」来源）
     { id: 'dispatch', label: '下发通知', groupLabel: '全院治理', render: (ctx) => import('../../entries/tabs/party-committee/dispatch-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
     // 支部配置（工作流模块回炉 v2，2026-09-03 书记裁定）：配置属党委/部署期职责——

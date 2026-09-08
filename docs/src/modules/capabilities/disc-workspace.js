@@ -38,8 +38,9 @@ registerCapability({
     { id: 'attendance', label: '考勤管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/attendance-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
     { id: 'review', label: '活动监督复盘', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/review-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
     { id: 'inspection', label: '考察管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/inspection-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
-    { id: 'makeup', label: '补课制度', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/makeup-tab.js?v=20260908b').then(m => m.renderContent(ctx)) },
+    // D8 裁决批二（2026-09-08）：补课制度（静态制度为主）后移至公邮管理之后（表 C 纪检台调序裁定）
     { id: 'mailbox', label: '公邮管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/mailbox-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
+    { id: 'makeup', label: '补课制度', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/makeup-tab.js?v=20260908b').then(m => m.renderContent(ctx)) },
     // 专班查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增）
     { id: 'tf-view', label: '专班查看', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/tf-view-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
     { id: 'my-dispatch', label: '我的处置', groupLabel: '反馈', render: (ctx) => import('../../entries/tabs/disc/my-dispatch-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },

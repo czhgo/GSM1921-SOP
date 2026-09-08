@@ -36,14 +36,14 @@ registerCapability({
     // 工作概况（书记 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
     { id: 'overview', label: '工作概况', groupLabel: '工作台', render: (ctx) => import('../../entries/tabs/org/overview-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
     { id: 'inspection', label: '考察上传', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/inspection-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
+    // D8 裁决批二（2026-09-08）：思想汇报（初阅为组织委员高频每日动作）前移至考察上传之后——
+    // 与成员发展域族（名册/人才库/发展数据）聚拢，且初阅高频前置（表 C 调序裁定）。
+    { id: 'thought-review', label: '思想汇报', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/thought-review-tab.js?v=20260907b').then(m => m.renderContent(ctx)) },
     { id: 'taskforce', label: '专班管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/taskforce-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
-    // 成员名册（立项⑥ B波 2026-09-06：新增/行内编辑/删除 双形态持久；人才库为考察画像视图，分工不重复建设）
+    // 成员名册（立项⑥ B波 2026-09-06：新增/行内编辑/删除 双形态持久；人才库=发展观察视图=只读画像，分工不重复建设）
     { id: 'roster', label: '成员名册', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/roster-tab.js?v=20260907b').then(m => m.renderContent(ctx)) },
     { id: 'talent', label: '人才库', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/talent-tab.js?v=20260907b').then(m => m.renderContent(ctx)) },
     { id: 'development', label: '发展数据', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/development-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
-    // R6-2 把关式初阅（2026-09-07 书记定案）：思想汇报通过才正式归档、退回附意见（提交者可见并修改重交）；
-    // 初阅收敛本 tab 单入口——development「思想汇报」只读展开保持不动（不加操作，避免两处入口）。
-    { id: 'thought-review', label: '思想汇报', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/thought-review-tab.js?v=20260907b').then(m => m.renderContent(ctx)) },
     // 活动查看（知情权：无职责≠无知情权，书记 2026-08-08 裁定新增；组织无活动 tab 由本组件承载）
     // 排序：按工作流节奏「看→做→查→收」，知情查看置于职责操作后、反馈前（书记 2026-08-11 裁定）
     { id: 'activity-view', label: '活动查看', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/org/activity-view-tab.js?v=20260908a').then(m => m.renderContent(ctx)) },
