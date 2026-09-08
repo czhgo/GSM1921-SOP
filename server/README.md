@@ -14,8 +14,9 @@ npm run test:fast      # 快速回归子集（基础单元 + 目录/链接审计
 npm run clean:tmp      # 清理测试残留目录 .tmp（脚本非正常中止时使用）
 ```
 
-- 启动入口 `server/server.js`：数据库为空时自动从 `docs/src/mock/*.js` 导入种子数据（users/activities/notices/taskforces/tasks/assignments/archive_records/signups）。
+- 启动入口 `server/server.js`：数据库为空时自动从 `docs/src/mock/*.js` 导入种子数据（users/branches/activities/notices/taskforces/tasks/assignments/archive_records/signups）；`DISABLE_SEED=1` 时空库也不导入演示种子（真实支部全新建库直接录真实数据用）。
 - 环境变量模板见 `server/.env.example`（均有缺省，未配置即可本地演示运行）：`DB_PATH` 指定数据库文件路径（默认 `server/data.db`）、`PORT` 指定监听端口、`LOGIN_PASSWORD` 为统一登录口令（缺省 '123456'，与前端演示账号一致）、`DISABLE_PASSWORD_CHECK=1` 跳过口令校验（内网演示/测试套件用，生产勿开；`npm test`/`test:core`/`test:fast`/`test:full` 脚本均默认注入）。
+- **重置 / 初始化口径**：前端 `?reset=demo/preview/init` 仅本地演示形态（无 API token）生效，API 模式不执行、数据以服务器为权威；服务端重置 = 删除 `server/data.db` 后重启自动重种，或 `DISABLE_SEED=1` 空库起步。
 
 ## 数据与文件
 
