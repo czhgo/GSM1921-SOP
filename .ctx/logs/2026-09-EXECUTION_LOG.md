@@ -741,3 +741,11 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - HELP 操作手册重写（对齐 18 页/7 台/9 域，操作级=入口/谁来用/几步/产出/退回，去黑话编号）：C1 骨架+第0章入口速查+第1章快速上手+第2章 7 台导览（5 文件，修正 thought-report 把关制/复盘入口/页数 16→18 等陈旧项）；C2a 域手册①会务②活动③考勤④考察⑤成员发展（18 条）；C2b 域手册⑥专班⑦决议上报⑧归档宣传⑨汇报反馈（23 卡）；C3 第4章 10 条链路（步骤表）+第5章 党委台 6 tab/支部配置向导 3 入口 5 步/数据保留与重置档（面向用户）+第7章架构口径 18 页+目录/锚点/搜索一致收口（7 文件）。help-e2e 卡片计数断言同步。
 - 版本串全链→20260908a（86 文件 176 处）；回归 77 用例全绿（含 function-catalog/flow/function-map sync 3）；GetDiagnostics 0。
 **登记/遗留**：.card rounded-xl（12px 重复无害）保持；secretary/overview-tab.js 禁改内同型胶囊与 UI-A/B 未触及（登记特批才内改）；login/help 链外普通页旧档=强刷登记；浏览器目视（书记两处修正观感/HELP 0-7 章可读性/help-e2e 常规终端补跑）留书记抽查。
+
+**T-2026-09-065 待办顶卡弹跳与排布修复 + 全 tab 卡片评议报告（2026-09-08，commits 11cda445/ad956bb6/43310564）**
+**书记三点**：①顶卡排布异常 ②组件后弹（要先占位） ③全角色全 tab 卡片重合/必要性/顺序评议报告入 REVIEW_QUEUE。
+- 根因（盘点）：唯一真异步插入=member-change-panel（mock adapter 600ms 延迟后整卡 innerHTML 插入 0 高挂点→把下方整体下推；rebuild/动作后重复）；P2 渲染守卫 stale 回归（approve/confirm 改 status 长度不变、renderKey 未覆盖→书记确认后行滞留）；三卡 frame 不齐（专班 p-5/h3/text-[11px]/空态无行高、待答复无 mb-4、member 头 mb-1.5、handoff 空态 return '' 高度突跳）。
+- 修复 11cda445：member-change-panel 拆 Html+bind、onBeforeRender 预载缓存（签名=长度+status 串）→首帧同步真实卡（删 0 高挂点）；approve/confirm 写口 bumpToken('memberChangeRequests')+todo-tab-shell _COMBO_LEN_KEYS 并入长度指纹→stale 修补（守卫键正确失效）；三卡+handoff frame 统一（card p-4 mb-4、标题 h4 text-sm font-bold、头 mb-3、右侧计数 text-xs、空态统一 py-1；待答复绿底整条并入统一形态并注明可一行回退）；secretary/org todo-tab 同步化、onAfterRender 只绑事件。
+- 评议报告 ad956bb6 入 REVIEW_QUEUE（主队列新轮次+附录⑪+方法总索引行；+124 行）：表 A 冲突 16 条（A1 成员变更同页双呈+双数据链唯一真行级重复、A2 专班待议跨台、A3 待答复双入口、A4/A5/A7/A11/A12/A15/A16 等）、表 B 必留 21 项（写口判据）、表 C 七台卡序认知+建议、书记点名三卡核对、D1-D9 裁决清单（含 A3 概况降级需书记特批禁改文件、A9 考勤概况卡去留、双链归一等）；与 IA 轮（T-060/061 已落地 12 项）差异标注。
+- 版本串→20260908b（31 文件，含 org-setup-wizard 链闭合防双实例）；回归 54/54；GetDiagnostics 0。
+**登记/遗留**：report-inbox 复用方（members-tab）因卡带 mb-4 间距略增（预期副作用）；member/handoff 计数徽章若保留彩色与绿底条为一行回退（观感待定）；REVIEW_QUEUE 待书记逐条评议（A/B/C/D 表）；浏览器目视（顶卡同批出现无下推/卡序观感）留书记抽查与常规终端。
