@@ -624,11 +624,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 | ID | 事项 | 引用流程 | 状态 |
 | --- | --- | --- | --- |
-| E-1 | **专班详情多写块分块刷新**：`org/taskforce-tab.js` 专班复盘/中间进度/代录/材料记录共享整面板重建互扰（任一写动作成功即整详情重建，丢其它块未提交草稿）——按 `#wf-form-zone` 判例抽独立容器分块刷新 | H60.7 + 面板保态检查要点（REVIEW_QUEUE 附录⑧）+ 全前端冒泡报告（`.ctx/logs/2026-09-08-smoke-result.md`） | 待执行 |
-| E-2 | **组长写活动面板步骤重选草稿持久化**：`leader/write-tab.js` 收起面板已保态，L1-L4/承办党小组步骤重选仍整面板重建丢已填（标题/日期/地点/内容/角色选择）——草稿持久化 | H60.7 + 面板保态检查要点（REVIEW_QUEUE 附录⑧）+ 全前端冒泡报告（`.ctx/logs/2026-09-08-smoke-result.md`） | 待执行 |
-| E-3 | **汇报/issue 列表瞬态草稿互扰兜底**：report-inbox/issues 答复成功重渲染清其它展开行草稿（列表内瞬态草稿互扰，低优先级） | H60.7 + 面板保态检查要点（REVIEW_QUEUE 附录⑧）+ 全前端冒泡报告（`.ctx/logs/2026-09-08-smoke-result.md`） | 待执行 |
-| E-4 | **org 思想汇报阅看行退回复选框与他行互扰**：`org/thought-review-tab.js`（低优先级） | H60.7 + 面板保态检查要点（REVIEW_QUEUE 附录⑧）+ 全前端冒泡报告（`.ctx/logs/2026-09-08-smoke-result.md`） | 待执行 |
-| E-5 | **help.html 首屏加载优化**：全前端冒泡实测 DCL 约 3.4s（唯一超 2s 页面）——资源拆分/懒加载方向 | H60.7 + 面板保态检查要点（REVIEW_QUEUE 附录⑧）+ 全前端冒泡报告（`.ctx/logs/2026-09-08-smoke-result.md`） | 待执行 |
+| E-1~E-5 | 全部完成（2026-09-09，commits 30029993/27c5eb77/6140e23a/82c39508/40d8ef63），登记 T-2026-09-072，行已清 | H60.7 + 面板保态检查要点（REVIEW_QUEUE 附录⑧）+ 全前端冒泡报告（`.ctx/logs/2026-09-08-smoke-result.md`） | ✅ 已清 |
 
 ## 评议轮次排期（H60.7 · C4 已批准，发起即删）
 
@@ -684,7 +680,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 > 生命周期：写入 → next\_prompt 提交 → 书记决策 → Decision Log 归档 → 执行 → 从丙部删除
 > 详细规则见甲部 H50.2
 
-> **当前丙部待决策**：P.11 / P.12（2026-09-08 书记令归口新增）——历史 P.8（Development 时间轴）/P.9（民主与集中的表述张力）/P.10（「不是…而是」句式）已全部决策退出（D-270/D-271/D-272，2026-08-19）。
+> **当前丙部待决策**：P.11 / P.12 / P.13（2026-09-08 书记令归口新增）——历史 P.8（Development 时间轴）/P.9（民主与集中的表述张力）/P.10（「不是…而是」句式）已全部决策退出（D-270/D-271/D-272，2026-08-19）。
 
 ## P.11 全局评估总表 v1 校正
 
