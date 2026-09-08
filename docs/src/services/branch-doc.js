@@ -8,7 +8,7 @@
 // 纪律：新建「制度文本」条目仅书记（含副书记）可操作；普通文件写权限维持现状（支委可写，
 // 由 UI 现状门控，本服务对 doc 类不做额外收紧）。不触碰 content / 禁改清单。
 
-import { getAdapter } from '../core/data-adapter.js?v=20260903c';
+import { getAdapter } from '../core/data-adapter.js?v=20260908c';
 
 /** 制度文本管理角色（书记/副书记）——与既有写权限门一致做法：UI 与 service 双重校验 */
 export const INSTITUTION_MANAGER_ROLES = ['secretary', 'deputy-secretary'];

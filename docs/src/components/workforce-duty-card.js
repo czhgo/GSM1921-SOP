@@ -4,10 +4,10 @@
 // （角色位 role 命中 / 到人位 personId 命中）名下负责的工作模块。
 // 行内「去履职」= 切到本工作台对应 tab（映射见 DUTY_TAB，tab id 须真实存在于该台能力清单；
 // 缺映射/被支部配置隐藏的模块仅展示，不硬跳）。
-import { AuthStore } from '../services/auth.js?v=20260903c';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../services/branch.js?v=20260903c';
-import { WORK_MAP_MODULES } from '../core/work-map.js?v=20260903c';
-import { escHtml as esc } from '../core/utils.js?v=20260903c';
+import { AuthStore } from '../services/auth.js?v=20260908c';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../services/branch.js?v=20260908c';
+import { WORK_MAP_MODULES } from '../core/work-map.js?v=20260908c';
+import { escHtml as esc } from '../core/utils.js?v=20260908c';
 
 /** 模块 → 各工作台 tab 跳转（key = 页面 prefix：secretary/org/prop/disc/leader/visitor） */
 const DUTY_TAB = {

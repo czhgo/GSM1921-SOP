@@ -3,7 +3,7 @@
 // 2026-09-02 AV4：记录「通过」前对支部党员大会（voteConfig.quorumCheck=true）做出席/赞成过半数硬校验
 //（spec §3.4）；校验不通过抛错中止（不写 result，UI 层 catch 以 error toast 提示书记）。
 
-import { fetchVotesStrict } from './committee-vote.js?v=20260903c';
+import { fetchVotesStrict } from './committee-vote.js?v=20260908c';
 
 function replaceById(records, record) {
   const index = records.findIndex((item) => item.id === record.id);

@@ -5,5 +5,5 @@
 // 改造纪律：聚合重导出、实现不搬运、零行为变化、回归后验收（见 MODULARIZATION_ASSESSMENT.md §二）。
 // 设计源：ARCHITECTURE_EVOLUTION.md（组件化）+ COMPONENT_SPEC §4.3
 
-export { badgeHtml, badgeVariantClass } from './badge.js?v=20260903c';
-export { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260903c';
+export { badgeHtml, badgeVariantClass } from './badge.js?v=20260908c';
+export { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20260908c';

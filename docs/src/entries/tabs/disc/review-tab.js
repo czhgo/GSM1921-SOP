@@ -2,13 +2,13 @@
 // 纪检委员工作台 Tab：活动监督复盘（T-279 M3 拆分）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain.js?v=20260903c';
-import { persist } from '../../../core/data-adapter.js?v=20260903c';
-import { reviewToDisplay } from '../../../services/review.js?v=20260907b';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/review.js?v=20260907b';
-import { showToast } from '../../../core/utils.js?v=20260903c';
-import { openFormModal } from '../../../components/modal.js?v=20260903c';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260903c';
+import { mockDB, ReviewStatus } from '../../../core/domain.js?v=20260908c';
+import { persist } from '../../../core/data-adapter.js?v=20260908c';
+import { reviewToDisplay } from '../../../services/review.js?v=20260908c';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/review.js?v=20260908c';
+import { showToast } from '../../../core/utils.js?v=20260908c';
+import { openFormModal } from '../../../components/modal.js?v=20260908c';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260908c';
 
 // ── 批量确认状态（2026-09-06 纪检批量评议确认）───────────────
 // 模块级状态：内部重渲染（renderContent）后仍保留「批量模式开关 + 勾选集合」。

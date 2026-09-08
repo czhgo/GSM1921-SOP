@@ -4,7 +4,7 @@
 // 算法归档原则：提交即入库即归档，按 personId 自动归集至个人档案，组织委员查看调用
 // 2026-09-06 基线刷新：submittedAt 随全局时间函数 f 压缩至 7 月下旬（见 activities.js 头注规则）
 
-import { getPersonName } from '../services/person.js?v=20260903c';
+import { getPersonName } from '../services/person.js?v=20260908c';
 
 const _personName = (id) => getPersonName(id) || id;
 

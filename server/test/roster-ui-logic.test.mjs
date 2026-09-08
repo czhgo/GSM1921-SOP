@@ -9,12 +9,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260903c';
-import { RESIDENCE } from '../../docs/src/services/roster.js?v=20260903c';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260908c';
+import { RESIDENCE } from '../../docs/src/services/roster.js?v=20260908c';
 import {
   guardCategoryList, buildGuardMessage,
   validateMemberForm, diffMemberFields,
-} from '../../docs/src/services/roster-ui-logic.js?v=20260906a';
+} from '../../docs/src/services/roster-ui-logic.js?v=20260908c';
 
 const p1 = PEOPLE.find(p => p.id === 'p1'); // 在校党员（第一党小组·正式党员，无种子滞留字段）
 const p5 = PEOPLE.find(p => p.id === 'p5'); // 种子示范滞留党员（第二党小组·正式党员）

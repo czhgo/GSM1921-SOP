@@ -9,18 +9,18 @@
 //  Source: content/04_web_design/data/DATA_ARCHITECTURE.md
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SCHEMA_VERSION } from './domain.js?v=20260903c';
-import { generateId } from './id.js?v=20260903c';
+import { mockDB, SCHEMA_VERSION } from './domain.js?v=20260908c';
+import { generateId } from './id.js?v=20260908c';
 // 修复（T175）：直接从 ../mock/activities.js 导入 ACTIVITIES，
 // 绕过 ../mock/index.js 的 re-export 转发（与 services/mock.js 对齐，
 // 消除循环依赖/TDZ 导致的 seed 失败风险）
-import { ACTIVITIES } from '../mock/activities.js?v=20260903c';
-import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS } from '../mock/seed.js?v=20260903c';
+import { ACTIVITIES } from '../mock/activities.js?v=20260908c';
+import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS } from '../mock/seed.js?v=20260908c';
 // Seed 增量合并用（2026-08-05）：attendance.js/notices.js 为纯数据模块，
 // 经 services/person.js（只依赖 domain/people）→ 无指向本文件的循环依赖
-import { ATTENDANCE_RECORDS } from '../mock/attendance.js?v=20260903c';
-import { MOCK_NOTICES } from '../mock/notices.js?v=20260903c';
-import { BRANCHES } from '../mock/branches.js?v=20260903c';
+import { ATTENDANCE_RECORDS } from '../mock/attendance.js?v=20260908c';
+import { MOCK_NOTICES } from '../mock/notices.js?v=20260908c';
+import { BRANCHES } from '../mock/branches.js?v=20260908c';
 
 const STORAGE_KEY = 'workflowos_branch_db_v1';
 
@@ -452,7 +452,7 @@ export const MockAdapter = {
     if (merged) _saveToStorage();
     // 数据加载完成广播：通知 header 角标等初始快照据实刷新（与 data-loader 的
     // notifyDataLoaded 双保险；此处覆盖 data-adapter.init() mock 分支等直连路径）
-    import('./data-adapter.js?v=20260903c').then(({ notifyDataLoaded }) => notifyDataLoaded())
+    import('./data-adapter.js?v=20260908c').then(({ notifyDataLoaded }) => notifyDataLoaded())
       .catch(() => {});
   },
 
@@ -481,7 +481,7 @@ export const MockAdapter = {
         mockDB.activities = [...mockDB.activities, newItem];
         _saveToStorage();
         // 派生赋权待办（dynamic import 避免循环依赖）
-        import('../services/todo.js?v=20260903c').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260908c').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deriveFromActivityCreate(newItem);
         }).catch(e => console.warn('[MockAdapter] 派生活动赋权待办失败：', e));
         return newItem;
@@ -514,7 +514,7 @@ export const MockAdapter = {
         if (Array.isArray(mockDB.signups)) mockDB.signups = mockDB.signups.filter(s => !(s.sourceType === 'activity' && s.sourceId === id));
         if (Array.isArray(mockDB.notices)) mockDB.notices = mockDB.notices.filter(n => !(n.targetType === 'activity' && n.targetId === id));
         _saveToStorage();
-        import('../services/todo.js?v=20260903c').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260908c').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deleteByActivity(id);
         }).catch(e => console.warn('[MockAdapter] 联动删除待办失败：', e));
         return { id };
@@ -535,11 +535,11 @@ export const MockAdapter = {
           t.activityId === id && t.status !== 'completed' ? { ...t, status: 'completed' } : t
         );
         _saveToStorage();
-        import('../services/todo.js?v=20260903c').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260908c').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deriveFromActivityArchive(archived);
         }).catch(e => console.warn('[MockAdapter] 派生活动归档待办失败：', e));
         // 2026-08-08 归档闭环：活动归档 → 配套通知随之一并归档，退出工作区
-        import('../services/notice.js?v=20260903c').then(({ NoticeStore }) => {
+        import('../services/notice.js?v=20260908c').then(({ NoticeStore }) => {
           NoticeStore.archiveBySource('activity', id);
         }).catch(e => console.warn('[MockAdapter] 归档关联通知失败：', e));
         return archived;
@@ -643,7 +643,7 @@ export const MockAdapter = {
         const tf = { ...data, id: generateId('tf'), createdAt: new Date().toISOString() };
         mockDB.taskforces = [...mockDB.taskforces, tf];
         _saveToStorage();
-        import('../services/todo.js?v=20260903c').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260908c').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deriveFromTaskforceCreate(tf);
         }).catch(e => console.warn('[MockAdapter] 派生专班赋权待办失败：', e));
         return tf;
@@ -666,7 +666,7 @@ export const MockAdapter = {
       return _withDelay(() => {
         mockDB.taskforces = mockDB.taskforces.filter(t => t.id !== id);
         _saveToStorage();
-        import('../services/todo.js?v=20260903c').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260908c').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deleteByTaskforce(id);
         }).catch(e => console.warn('[MockAdapter] 联动删除待办失败：', e));
         return { id };
@@ -681,7 +681,7 @@ export const MockAdapter = {
         const notice = { ...data, id: data.id || generateId('notice'), publishDate: data.publishDate || new Date().toISOString().slice(0, 10) };
         mockDB.notices = [...mockDB.notices, notice];
         _saveToStorage();
-        import('../services/todo.js?v=20260903c').then(({ NoticeTodoDeriver }) => {
+        import('../services/todo.js?v=20260908c').then(({ NoticeTodoDeriver }) => {
           NoticeTodoDeriver.deriveFromNotice(notice);
         }).catch(e => console.warn('[MockAdapter] 通知派生待办失败：', e));
         return notice;
@@ -863,13 +863,13 @@ export const MockAdapter = {
   // 的 mock 分支（动态 import 防静态环，与 todo.js 同法）。
   users: {
     list() {
-      return _withDelay(() => import('../services/person.js?v=20260903c')
+      return _withDelay(() => import('../services/person.js?v=20260908c')
         .then(({ getBaseMemberRecords }) => getBaseMemberRecords()));
     },
 
     create(data) {
       return _withDelay(async () => {
-        const { PersonStore } = await import('../services/person.js?v=20260903c');
+        const { PersonStore } = await import('../services/person.js?v=20260908c');
         const r = await PersonStore.saveMember(data, { by: data?.by });
         if (!r.ok) throw Object.assign(new Error(r.reason), { type: 'BadRequestError' });
         return r.member;
@@ -878,7 +878,7 @@ export const MockAdapter = {
 
     update(id, patch) {
       return _withDelay(async () => {
-        const { PersonStore } = await import('../services/person.js?v=20260903c');
+        const { PersonStore } = await import('../services/person.js?v=20260908c');
         const r = await PersonStore.saveMember({ id, ...patch }, { by: patch?.by });
         if (!r.ok) throw Object.assign(new Error(r.reason), { type: 'BadRequestError' });
         return r.member;
@@ -888,7 +888,7 @@ export const MockAdapter = {
     delete(id) {
       // adapter 层为数据原语（PersonStore.removeMember 为带引用守卫的业务口；此处直删由守卫在业务层把关）
       return _withDelay(async () => {
-        const { PersonStore } = await import('../services/person.js?v=20260903c');
+        const { PersonStore } = await import('../services/person.js?v=20260908c');
         const r = await PersonStore.removeMember(id, { guardRefs: false });
         if (!r.ok) throw Object.assign(new Error(r.reason), { type: 'BadRequestError' });
         return { id };

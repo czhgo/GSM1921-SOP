@@ -7,7 +7,7 @@
 //  语义采用 server 严格口径：id 只收非空字符串（不强制转串）、长度 ≤80、去重保序、限长截断。
 //  本文件为纯 ESM、零依赖（不 import 任何 ?v= 模块），浏览器与 node 双端可加载。
 // ════════════════════════════════════════════════════════════════
-import { WORK_MAP_IDS } from './work-map.js';
+import { WORK_MAP_IDS } from './work-map.js?v=20260908c';
 
 const MAX_ID_LEN = 80;
 const MODULES_LIMIT = 200;

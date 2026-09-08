@@ -8,8 +8,8 @@
 // 共享组件内再按 actor 兜底（非 party-staff 时要求 branch.secretaryId===本人——副书记与
 // 独立页一致落无权限卡，写口不越权）。org-setup-wizard.js 只读 import，勿改。
 
-import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { getBranchIdOfPerson, getBranchById } from '../../../services/branch.js?v=20260903c';
+import { AuthStore } from '../../../services/auth.js?v=20260908c';
+import { getBranchIdOfPerson, getBranchById } from '../../../services/branch.js?v=20260908c';
 
 const TAB_ID = 'branch-config';
 const ALLOWED_ROLES = ['secretary', 'deputy-secretary'];
@@ -48,7 +48,7 @@ export function renderContent() {
 
   // mountOrgSetupWizard 自带 wzBound 守卫（已挂载直接返回）：同 tab 内后续重渲染不重复 mount
   if (host.dataset.wzBound === '1') return;
-  import('../../../components/org-setup-wizard.js?v=20260908b')
+  import('../../../components/org-setup-wizard.js?v=20260908c')
     .then(({ mountOrgSetupWizard }) => {
       mountOrgSetupWizard(host, {
         actor: { personId, role: me.role }, // 现任书记可进本支部；副书记由组件内权限兜底（与 wizard.html 一致）

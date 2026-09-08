@@ -7,9 +7,9 @@
 // 原则：块不独立于既有机制存在——manifest 仅元数据；渲染走 components/forms.js，执行走既有引擎/services。
 // validateBlockManifest 为纯函数（浏览器/Node 均可用），白名单内联自 core/constants.js（ROLE_KEYS/OUTPUT_BLOCK_DEFS）。
 
-import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/constants.js?v=20260903c';
+import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/constants.js?v=20260908c';
 // P3d v0 组合声明校验（2026-09-05）：块级 depends/conflictsWith 组合体检，见 WORKFLOW_BLOCK_CONTRACT
-import { assertComposeValid } from '../../core/module-compose.js?v=20260905a';
+import { assertComposeValid } from '../../core/module-compose.js?v=20260908c';
 
 const FIELD_KINDS = new Set(['textField', 'textareaField', 'selectField', 'dateField']);
 const PROVENANCE_SET = new Set(['institution-common', 'branch-custom']);

@@ -5,15 +5,15 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260903c';
-import { persist } from '../core/data-adapter.js?v=20260903c';
-import { bumpToken } from '../core/version-token.js?v=20260907b'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../mock/index.js?v=20260903c';
-import { showToast, getBasePath } from '../core/utils.js?v=20260903c';
-import { AuthStore } from './auth.js?v=20260903c';
-import { getPersonById } from './person.js?v=20260907b';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260907b';
-import { badgeHtml } from '../components/badges.js?v=20260903c';
+import { mockDB } from '../core/domain.js?v=20260908c';
+import { persist } from '../core/data-adapter.js?v=20260908c';
+import { bumpToken } from '../core/version-token.js?v=20260908c'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../mock/index.js?v=20260908c';
+import { showToast, getBasePath } from '../core/utils.js?v=20260908c';
+import { AuthStore } from './auth.js?v=20260908c';
+import { getPersonById } from './person.js?v=20260908c';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260908c';
+import { badgeHtml } from '../components/badges.js?v=20260908c';
 
 function _loadNotices() {
   try {

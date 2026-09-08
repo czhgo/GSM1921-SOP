@@ -2,17 +2,17 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/icons.js?v=20260903c';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260903c';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate } from '../../../core/utils.js?v=20260903c';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260903c';
-import { mockDB } from '../../../core/domain.js?v=20260903c';
-import { bumpToken } from '../../../core/version-token.js?v=20260907b'; // P0 域缓存失效（spec §二.3）
-import { loadActivities } from '../../../services/activity.js?v=20260903c';
-import { isApiMode } from '../../../services/runtime.js?v=20260903c';
-import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { getPersonName } from '../../../services/person.js?v=20260907b';
-import { addExternalDispatch } from '../../../services/external-dispatch.js?v=20260903c';
+import { icon } from '../../../core/icons.js?v=20260908c';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260908c';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate } from '../../../core/utils.js?v=20260908c';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260908c';
+import { mockDB } from '../../../core/domain.js?v=20260908c';
+import { bumpToken } from '../../../core/version-token.js?v=20260908c'; // P0 域缓存失效（spec §二.3）
+import { loadActivities } from '../../../services/activity.js?v=20260908c';
+import { isApiMode } from '../../../services/runtime.js?v=20260908c';
+import { AuthStore } from '../../../services/auth.js?v=20260908c';
+import { getPersonName } from '../../../services/person.js?v=20260908c';
+import { addExternalDispatch } from '../../../services/external-dispatch.js?v=20260908c';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），

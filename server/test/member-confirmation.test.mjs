@@ -16,22 +16,22 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260903c';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260908c';
 import {
   MockAdapter,
-} from '../../docs/src/core/mock-adapter.js?v=20260903c';
+} from '../../docs/src/core/mock-adapter.js?v=20260908c';
 import {
   PersonStore, getPersonName, MEMBER_OVERLAY_KEY,
-} from '../../docs/src/services/person.js?v=20260907b';
+} from '../../docs/src/services/person.js?v=20260908c';
 import {
   RESIDENCE, getResidenceOf, saveResidenceChange, getDetainedMembers, RESIDENCE_KEY,
-} from '../../docs/src/services/roster.js?v=20260903c';
+} from '../../docs/src/services/roster.js?v=20260908c';
 import {
   submitMemberChange, submitTransferOut, listPendingConfirmations,
   decideConfirmation, isTransferredOut, shouldShowSemesterDetainedRemind,
   MEMBER_CONFIRM_KEY,
-} from '../../docs/src/services/member-confirmation.js?v=20260907b';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260903c';
+} from '../../docs/src/services/member-confirmation.js?v=20260908c';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260908c';
 
 // ── localStorage 内存桩 ──
 const _store = new Map();

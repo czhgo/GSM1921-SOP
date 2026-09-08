@@ -7,13 +7,13 @@
 //   · 读侧数据不动写（无任何保存/报送控件）；「发展数据」页维持管线推进（不重复建设）。
 // 保留「人才库=发展观察、名册=档案维护」页内注释与引导文案。
 
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260907b';
-import { loadThoughtReports } from '../../../services/thought-report.js?v=20260907b';
-import { PersonStore } from '../../../services/person.js?v=20260907b';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260908c';
+import { loadThoughtReports } from '../../../services/thought-report.js?v=20260908c';
+import { PersonStore } from '../../../services/person.js?v=20260908c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
-import { getResidenceOf, RESIDENCE } from '../../../services/roster.js?v=20260903c';
-import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member-confirmation.js?v=20260907b';
-import { escHtml as esc } from '../../../core/utils.js?v=20260903c';
+import { getResidenceOf, RESIDENCE } from '../../../services/roster.js?v=20260908c';
+import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member-confirmation.js?v=20260908c';
+import { escHtml as esc } from '../../../core/utils.js?v=20260908c';
 
 // 发展阶段顺序（发展流程正向：入党申请人 → 积极分子 → 发展对象 → 预备党员 → 正式党员）
 const STAGE_ORDER = ['积极分子', '发展对象', '预备党员', '正式党员'];

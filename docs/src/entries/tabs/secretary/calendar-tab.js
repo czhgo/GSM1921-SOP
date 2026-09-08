@@ -3,32 +3,32 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 活动查询。
 // D4 裁决批二（2026-09-08）：「考勤概况」独立卡移除 → 考勤作为活动字段入「活动查询」行内只读摘要。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260903c';
-import { showToast } from '../../../core/utils.js?v=20260903c';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260908a';
-import { renderInspectorFromState } from '../../../components/inspector.js?v=20260903c';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260903c';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260908a';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260903c';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260903c';
-import { loadActivities } from '../../../services/activity.js?v=20260903c';
-import { renderQueryView } from '../../../components/query-view.js?v=20260903c';
-import { icon } from '../../../core/icons.js?v=20260903c';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260907b';
-import { PersonStore } from '../../../services/person.js?v=20260907b';
+import { getAppState, setState } from '../../../core/state.js?v=20260908c';
+import { showToast } from '../../../core/utils.js?v=20260908c';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260908c';
+import { renderInspectorFromState } from '../../../components/inspector.js?v=20260908c';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260908c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260908c';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260908c';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260908c';
+import { loadActivities } from '../../../services/activity.js?v=20260908c';
+import { renderQueryView } from '../../../components/query-view.js?v=20260908c';
+import { icon } from '../../../core/icons.js?v=20260908c';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260908c';
+import { PersonStore } from '../../../services/person.js?v=20260908c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { NoticeStore } from '../../../services/notice.js?v=20260907b';
-import { BranchService } from '../../../services/runtime.js?v=20260903c';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260903c';
-import { badgeHtml } from '../../../components/badges.js?v=20260903c';
-import { collectAgendaRows } from './agenda-form.js?v=20260903c';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds } from '../../../services/vote-config.js?v=20260903c';
-import { getAdapter } from '../../../core/data-adapter.js?v=20260903c';
-import { AuthStore } from '../../../services/auth.js?v=20260903c';
-import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260903c';
+import { NoticeStore } from '../../../services/notice.js?v=20260908c';
+import { BranchService } from '../../../services/runtime.js?v=20260908c';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260908c';
+import { badgeHtml } from '../../../components/badges.js?v=20260908c';
+import { collectAgendaRows } from './agenda-form.js?v=20260908c';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds } from '../../../services/vote-config.js?v=20260908c';
+import { getAdapter } from '../../../core/data-adapter.js?v=20260908c';
+import { AuthStore } from '../../../services/auth.js?v=20260908c';
+import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260908c';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
-import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260903c';
+import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260908c';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 

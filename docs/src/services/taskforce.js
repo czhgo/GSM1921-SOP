@@ -5,20 +5,20 @@
 //  关联 ActivityRecordStore 用于活动维度的专班关联
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260903c';
-import { persist } from '../core/data-adapter.js?v=20260903c';
-import { bumpToken } from '../core/version-token.js?v=20260907b'; // P0 域缓存失效（spec §二.3）
-import { MOCK_TASKFORCES, PEOPLE } from '../mock/index.js?v=20260903c';
-import { getPersonName } from './person.js?v=20260907b';
-import { evaluateWorkforceVotes } from './workforce.js?v=20260906c';
+import { mockDB } from '../core/domain.js?v=20260908c';
+import { persist } from '../core/data-adapter.js?v=20260908c';
+import { bumpToken } from '../core/version-token.js?v=20260908c'; // P0 域缓存失效（spec §二.3）
+import { MOCK_TASKFORCES, PEOPLE } from '../mock/index.js?v=20260908c';
+import { getPersonName } from './person.js?v=20260908c';
+import { evaluateWorkforceVotes } from './workforce.js?v=20260908c';
 // 附录⑩ B批（3.3）专班议案排入支委会表决所需的活动/通知基建：
 // 与 services/workforce.js 同路径（BranchService.createActivity + NoticeStore.add），
 // 仅函数体内使用（懒加载语义），不新增模块初始化期副作用。
-import { BranchService } from './runtime.js?v=20260903c';
-import { NoticeStore } from './notice.js?v=20260907b';
-import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260903c';
-import { loadActivities } from './activity.js?v=20260903c';
-import { AuthStore } from './auth.js?v=20260903c';
+import { BranchService } from './runtime.js?v=20260908c';
+import { NoticeStore } from './notice.js?v=20260908c';
+import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260908c';
+import { loadActivities } from './activity.js?v=20260908c';
+import { AuthStore } from './auth.js?v=20260908c';
 
 // 附录⑩ B批（S3 专班生命周期 · 书记裁定 2026-09-06）：
 //   R3-1/R3-2：专班发起与中途解散一律走「支委会表决」（报送归集·例会表决形态），
@@ -101,7 +101,7 @@ export const TaskForceRecordStore = {
     // T-190：招募时已内联选初始成员（members 非空）则不再派生；未选人保留待办兜底
     // 使用 dynamic import 避免与 todo.js 的潜在循环依赖
     if (!newRecord.members || newRecord.members.length === 0) {
-      import('./todo.js?v=20260907b').then(({ LifecycleTodoDeriver }) => {
+      import('./todo.js?v=20260908c').then(({ LifecycleTodoDeriver }) => {
         LifecycleTodoDeriver.deriveFromTaskforceCreate(newRecord);
       }).catch(e => console.warn('[TaskForceRecordStore] 派生专班赋权待办失败：', e));
     }

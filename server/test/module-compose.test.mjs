@@ -8,8 +8,8 @@
 // 运行：cd server; node --test --test-concurrency=1 test/module-compose.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveConflicts, assertComposeValid } from '../../docs/src/core/module-compose.js';
-import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js';
+import { resolveConflicts, assertComposeValid } from '../../docs/src/core/module-compose.js?v=20260908c';
+import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20260908c';
 
 // ── ① 通过例：依赖链合法、无互斥同含、无环 ──
 test('assertComposeValid：组合干净返回 true', () => {

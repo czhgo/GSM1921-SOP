@@ -5,16 +5,16 @@
 //   统计卡预览 → 确认 → PersonStore.replaceBranchMembers 落库（mock/api 双形态由服务保证），
 //   导入后成员/应到统计即时可见（读链自动）；仅空支部可整表替换（非空支部提示逐人编辑，不提供动作）。
 
-import { mockDB } from '../../../core/domain.js?v=20260903c';
+import { mockDB } from '../../../core/domain.js?v=20260908c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）；
 // 每次渲染现读（members 覆盖层即时吃到），不缓存在模块顶层
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260907b';
-import { createBranch, renameBranch, getCommitteeName } from '../../../services/branch.js?v=20260903c';
-import { appointSecretary, listAppointments } from '../../../services/appointment.js?v=20260906f';
-import { getRosterStats } from '../../../services/roster.js?v=20260903c';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260908c';
+import { createBranch, renameBranch, getCommitteeName } from '../../../services/branch.js?v=20260908c';
+import { appointSecretary, listAppointments } from '../../../services/appointment.js?v=20260908c';
+import { getRosterStats } from '../../../services/roster.js?v=20260908c';
 // 立项⑥ B波：空支部名册导入服务（模板/净化/统计；确认落库直接走 PersonStore.replaceBranchMembers）
-import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../../services/branch-roster-import.js?v=20260906b';
-import { showToast, escHtml as esc, downloadBlob } from '../../../core/utils.js?v=20260903c';
+import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../../services/branch-roster-import.js?v=20260908c';
+import { showToast, escHtml as esc, downloadBlob } from '../../../core/utils.js?v=20260908c';
 
 // HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 

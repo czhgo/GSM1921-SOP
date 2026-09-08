@@ -9,12 +9,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260903c';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260903c';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260908c';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260908c';
 import {
   getMeetingRoster, getMeetingRosterIds, getDetainedMembers, getRosterStats,
   getResidenceOf, saveResidenceChange, getRosterConfig, RESIDENCE, RESIDENCE_KEY,
-} from '../../docs/src/services/roster.js?v=20260903c';
+} from '../../docs/src/services/roster.js?v=20260908c';
 
 // ── localStorage 内存桩（仅 roster 运行期覆盖路径需要；node 默认无 localStorage）──
 // roster.js 在函数体内以 typeof 守卫惰性访问 → 桩在 import 之后、用例之前建立即可。
