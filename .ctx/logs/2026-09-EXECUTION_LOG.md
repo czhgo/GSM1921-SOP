@@ -777,3 +777,17 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **缺陷登记与处置**：①【真缺陷】?reset=init 在浏览器 mock 形态被 mock-adapter T174 空数据保护与 _mergeNewSeedRecords 回填演示数据（init≈demo；服务器形态不受影响=数据权威、URL 不执行）→ 已上报，待书记裁（接受现状仅服务器初始化 / 做浏览器空业务种子形态）②undefined 字面量（组长侧请求行时间缺省未兜底）→ 已修（issues.js:835/report-inbox.js:81 补 `|| '—'`，b4cc8401）③【说明】组长宣传/材料子记录保留「+添加」属 D7「仅限非考勤类」允许路径 ④【观感建议】批量块在折叠域内，域头可加计数角标。
 - **提交**：60a855fa（党小组进展）/fc363f5e（init 档）/b4cc8401（undefined 兜底）。工作区待提交：.ctx/REVIEW_QUEUE.md（归档标注）+ .ctx/logs（本条目）+ C2-browser 截图目录（随 docs(ctx) 入库）。
 - **登记/遗留**：C4「附录待发起轮次全部近期安排」（黑话④/原话复核/面板保态批量复查/最小三成本下轮/功能实现下轮）待后续逐轮启动；REVIEW_QUEUE 卡片轮次已标 ✅ 归档（表 A/B/C 留档）；push ahead 38 待书记批准。
+
+---
+
+**附录⑥候选2「面板展开态重建丢表单」全站批量复查修复（2026-09-08）**
+**依据**：REVIEW_QUEUE 附录⑥候选2（书记 2026-09-05 批：先固化检查要点、批量复查排下批）——判据=折叠=CSS 隐藏不重建、列表刷新不触碰表单 DOM、仅提交成功才重置（判例：#wf-form-zone 独立于列表、纪检考勤录入 CSS 保态、减负⑥批 3 面板）。
+**范围**：全站其余台/页含「展开/收起」或「先开面板再异步刷新」UI 块逐块人工静态核对（grep hidden 切换/展开/收起/toggle/details 代表性 class + 逐块精读）。
+**修复（3 文件，均非禁改）**：
+- `leader/inspection-tab.js`（判例同族漏修）：上传考察表单 toggle/cancel 原「destroy picker + renderContent 整容器重建」→ 保态折叠（#insp-form-panel 已渲染时只切 hidden、按钮文案 收起表单/上传考察表单；取消=收起保留已选与逐人内容；提交成功才重置，原成功分支不动）。行 106-120/167-173。
+- `secretary/calendar-tab.js`（写入活动悬浮表单）：提交中/提交失败原两次 `renderWritePanel` 整面板重建丢全部已填内容 → 新增 `_setWriteSubmitBtn` 就地切按钮态（写入中.../创建活动 + opacity/cursor 禁用），失败保留已填内容与已选、仅成功 wp.reset() 重置；前置 wp.submitting 防重复点击。行 914-925/1023-1024/1118-1120。
+- `leader/write-tab.js`（决策树创建活动面板）：原「收起面板」= dt.reset() + 整页重建丢全部进行中步骤/已填信息 → 面板常驻 DOM（`#dt-panel-wrap`）折叠只切 hidden、dt.showPanel 同步、按钮文案同步；重置会话=表单内「取消」或提交成功。行 57-59/491-501。
+**清单×判据结论（通过/风险摘要）**：纪检会议考勤录入/disc attendance（判例已修）✓；org 考察上传/组长考勤上传/visitor 复盘展开（减负⑥批已修）✓；组长考察上传（本批修）✓；书记活动查询折叠/写入面板内自动通知/高级选项/线上表决/品牌区=行内 CSS 切换 ✓（写入面板 modal 独立于 tab 容器，外部刷新不触碰）；write 决策树面板收起（本批修）✓；todo 域折组折叠/未读条=CSS hidden ✓（P2 渲染守卫 memoize 命中即不重建、命中失败按数据重建属既有约定）；disc 复盘批量勾选=模块级 Set 保态 + 操作后重建 ✓；makeup 补课任务行=无展开表单 ✓；专班管理详情=只读展开/`<details>` 原生折叠 ✓（内部多写块整详情重建互扰→登记）；党小组进展三区=只读、异步首拉仅刷 #gp-reports 不触其它区 ✓；汇报行内展开 report-inbox/issue 详情=CSS hidden 切换 ✓；visitor 思想汇报退回修改区、org 思想汇报阅看、组长已复盘只读展开=CSS hidden/只读 ✓；prop 周报/归档、party-committee branches（任命/改名行内 CSS 切换）/dispatch/review、group-progress=✓；calendar/legend 收起=CSS ✓；custom-select/sidebar/header 下拉浮层=打开重建无持久输入 ✓；org-setup-wizard 小面板=状态对象驱动+localStorage 草稿 ✓。
+**登记（送审/下一批候选，非本次改动）**：①`org/taskforce-tab.js` 专班详情=多写块（专班复盘 textarea/中间进度/代录/材料记录）共享整面板重建——任一动作成功后 card.click() 整详情重建会丢其它块未提交草稿（尤其已写复盘未提交又点「添加进度/代录」）——最小修法=按 #wf-form-zone 判例将各写块抽独立容器分块刷新（改动面大，建议单批）②`leader/write-tab.js` L1-L4/承办党小组步骤重选仍整面板重建丢已填 title/date/location/desc/角色选择（非折叠路径，需草稿持久化）③`components/report-inbox.js`/`issues.js` 答复成功 onAnswered 重渲染会清其它展开行的草稿输入（列表内瞬态草稿，低）④`org/thought-review-tab.js` 阅看行退回复选框与他行操作互扰同型（低）⑤禁改文件（inspector.js/activity.html 详情侧展开/定义切换区、work-overview、secretary overview-tab、styles.css、mock-adapter、roster、domain）未触碰——如需复查内里面板行为须书记特批送审。
+**回归**：node --check 3 文件通过；GetDiagnostics 0（3 文件均 0 诊断）；module-load 依赖 playwright 浏览器启动受沙箱 EPERM 未跑（环境登记，与既往同）；改后未引入新 import，?v= 全站维持 20260908c 一致（同 b4cc8401/421e3d0e 快速修复先例），建议随下轮全站 bump 收口。
+**提交**：fix(ui): 面板保态批量复查修复（本批）。

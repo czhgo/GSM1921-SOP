@@ -54,7 +54,9 @@ export function renderContent(ctx) {
       </div>
       <div class="text-xs text-gray-500 mb-3">可创建党小组会与主题党日活动，创建后自动生成后续待办</div>
 
-      ${panelVisible ? _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark }) : ''}
+      <div id="dt-panel-wrap" class="${panelVisible ? '' : 'hidden'}">
+        ${_renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark })}
+      </div>
 
       <div class="mt-4 pt-3 border-t border-gray-100">
         <div class="text-xs text-gray-400 mb-2">已有关联活动</div>
@@ -486,11 +488,16 @@ function _bindDecisionTreeEvents(container, ctx) {
     renderContent({ ...ctx, filteredActivities: filteredState.activities || [] });
   };
 
-  // 创建/收起按钮
+  // 创建/收起按钮（保态折叠 2026-09-08：面板常驻 DOM（#dt-panel-wrap），收起/展开只切 hidden——
+  // 不再 dt.reset() + 整页重建，进行中的步骤选择/已填活动信息/角色选择保留；
+  // 重置会话 = 表单内「取消」按钮（dt.reset）或提交成功后自动重置）
   container.querySelector('#btn-leader-create')?.addEventListener('click', () => {
-    dt.showPanel = !dt.showPanel;
-    if (!dt.showPanel) dt.reset();
-    _refresh();
+    const wrap = container.querySelector('#dt-panel-wrap');
+    if (!wrap) return;
+    const collapsed = wrap.classList.toggle('hidden');
+    dt.showPanel = !collapsed;
+    const btn = container.querySelector('#btn-leader-create');
+    if (btn) btn.textContent = collapsed ? '创建活动' : '收起面板';
   });
 
   // L1 按钮

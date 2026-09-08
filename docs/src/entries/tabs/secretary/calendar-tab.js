@@ -911,7 +911,18 @@ function handleWritePanelAction(e) {
 
 // ── 写入活动逻辑 ──────────────────────────────────────────────
 
+/** 提交按钮就地切换提交态（保态 2026-09-08：不再整面板重建——进行中/失败均保留已填内容与已选，
+ *  仅按钮文案/禁用态切换；仅提交成功才 wp.reset() 重置面板（见 handleSubmitActivity 成功分支）） */
+function _setWriteSubmitBtn(submitting) {
+  const btn = _getWritePanelContainer()?.querySelector('[data-action="wp-submit"]');
+  if (!btn) return;
+  btn.textContent = submitting ? '写入中...' : '创建活动';
+  btn.classList.toggle('opacity-50', submitting);
+  btn.classList.toggle('cursor-not-allowed', submitting);
+}
+
 async function handleSubmitActivity() {
+  if (wp.submitting) return; // 提交进行中防重复点击（2026-09-08 保态：按钮就地禁用，无整面板重建）
   const dateEl = document.getElementById('wp-date');
   const locationEl = document.getElementById('wp-location');
   const titleEl = document.getElementById('wp-title');
@@ -1010,8 +1021,7 @@ async function handleSubmitActivity() {
   }
 
   wp.submitting = true;
-  const container = _getWritePanelContainer();
-  if (container) renderWritePanel(container);
+  _setWriteSubmitBtn(true); // 保态 2026-09-08：就地禁用提交按钮，不再 renderWritePanel 整面板重建（保留已填内容）
 
   try {
     const activityData = {
@@ -1106,8 +1116,7 @@ async function handleSubmitActivity() {
       : '写入失败：' + (err.message || '未知错误');
     showToast('error', msg);
     wp.submitting = false;
-    // 失败：保留悬浮并重新渲染，恢复提交按钮
-    const failContainer = _getWritePanelContainer();
-    if (failContainer) renderWritePanel(failContainer);
+    // 失败：保留悬浮与已填内容（保态 2026-09-08：仅提交成功才重置面板），就地恢复提交按钮
+    _setWriteSubmitBtn(false);
   }
 }

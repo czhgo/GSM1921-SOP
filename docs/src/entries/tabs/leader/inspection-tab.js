@@ -103,11 +103,20 @@ export function renderContent(ctx) {
     </div>
   `;
 
-  // 绑定上传按钮
+  // 绑定上传按钮（保态折叠 2026-09-08：对齐纪检会议考勤录入/组长考勤表单判例——表单已渲染
+  //（#insp-form-panel 在 DOM）时，收起/展开只切该容器 hidden，不销毁 _inspPickerInstance、
+  // 不重建 innerHTML，已选来源/人员/逐人考察内容保留；
+  // 外部 re-render 仍按 _inspFormVisible 原逻辑整容器重建，属既有行为可接受）
   container.querySelector('#btn-leader-upload-insp')?.addEventListener('click', () => {
-    _inspFormVisible = !_inspFormVisible;
-    if (!_inspFormVisible && _inspPickerInstance) { _inspPickerInstance.destroy(); _inspPickerInstance = null; }
-    renderContent(ctx);
+    const panel = container.querySelector('#insp-form-panel');
+    const btn = container.querySelector('#btn-leader-upload-insp');
+    if (!panel) { // 首次打开（表单未渲染）：走 _inspFormVisible 渲染表单 + 创建 picker
+      _inspFormVisible = true;
+      renderContent(ctx);
+      return;
+    }
+    const collapsed = panel.classList.toggle('hidden');
+    if (btn) btn.textContent = collapsed ? '上传考察表单' : '收起表单';
   });
 
   // 如果表单可见，初始化事件绑定
@@ -155,11 +164,12 @@ function _initInspForm(container, sourceActivities, sourceTaskforces, ctx) {
     });
   }
 
-  // 取消按钮
+  // 取消按钮（保态折叠 2026-09-08：取消 = 收起，保留已选与逐人填写内容；仅提交成功后才重置会话）
   container.querySelector('#insp-form-cancel')?.addEventListener('click', () => {
-    _inspFormVisible = false;
-    if (_inspPickerInstance) { _inspPickerInstance.destroy(); _inspPickerInstance = null; }
-    renderContent(ctx);
+    const panel = container.querySelector('#insp-form-panel');
+    if (panel) panel.classList.add('hidden');
+    const btn = container.querySelector('#btn-leader-upload-insp');
+    if (btn) btn.textContent = '上传考察表单';
   });
 
   // 提交按钮
