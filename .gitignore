@@ -23,4 +23,4 @@ server/data.db
 server/uploads/
 
 # Build output (project uses ESM directly, no bundler needed)
-docs/dist/
+docs/dist/.ctx/logs/2026-09-08-C2-browser/
