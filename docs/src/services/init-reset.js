@@ -116,6 +116,91 @@ export const INIT_WHITELIST_STANDALONE_KEYS = [
   'sop_org_os_auth_audit',
 ];
 
+// ════════════════════════════════════════════════════════════════
+//  init 态哨兵与演示种子过滤（2026-09-08 C2 修复：?reset=init 浏览器形态稳态）
+//  背景：core/mock-adapter.js（禁改）_loadFromStorage 的 T174 判空保护把 init 后的
+//  「业务空态」误判为「首次/脏」→ 自动 _seedInitialData() + _mergeNewSeedRecords()
+//  把演示种子（activities/tasks/assignments/attendances/notices/archiveRecords/
+//  signups 七域）整体回填，且 services/notice|taskforce|signup 的 store 兜底与
+//  services/activity|attendance|inspection 的读兜底同效——浏览器形态 init≈demo。
+//  可改侧压制机制（哨兵键 + loadDB 后剔除种子 + 兜底守卫）：
+//    · 哨兵键 = gsm1921-init-state：?reset=init 执行成功时写入。gsm1921-* 前缀 →
+//      ?reset=demo 整清（回种子语义下 init 态自然终止）；preview 档不清；init 档自身
+//      不清（未列入移除清单即保留）。
+//    · stripSeedRecordsIfInitState(db)：services/mock.js loadDB 委派 MockAdapter.loadDB()
+//      之后调用——哨兵在场时剔除 adapter 回填进 mockDB 的演示种子记录（种子 id 判定与
+//      mock-adapter merge 同源正则；用户记录 id 均为 prefix_<uuid>/时间戳下划线形态，
+//      与种子空间正交，零误伤），白名单（users/branches/appointmentRecords）永不剔除；
+//      剔除后由调用方 saveDB 落盘 → 「业务空 + 组织骨架在」跨整页刷新稳态（多轮 loadDB
+//      不再回填）。用户后续真实写入的记录（act_*/notice_<ts> 等非种子 id）保留。
+//    · isInitStateActive()：store/读兜底共用守卫——无哨兵（demo/preview 前、正常演示态）
+//      行为完全不变；哨兵在场时「持久化为空 = 合法的空支部态」，跳过演示种子兜底。
+// ════════════════════════════════════════════════════════════════
+
+/** init 态哨兵键（独立 localStorage 键；gsm1921-* 前缀 → ?reset=demo 自动整清 = 回种子终止 init 态） */
+export const INIT_STATE_KEY = 'gsm1921-init-state';
+
+/**
+ * 当前是否处于「init 已完成」态（哨兵键在场即真）。
+ * store 层兜底 / 读兜底 / loadDB 种子过滤共用；localStorage 不可用一律 false（不影响正常加载）。
+ * @returns {boolean}
+ */
+export function isInitStateActive() {
+  try {
+    if (typeof localStorage === 'undefined') return false;
+    return localStorage.getItem(INIT_STATE_KEY) !== null;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * 演示种子 id 判定（与 core/mock-adapter.js merge/seed 的种子 id 空间同源：
+ * 种子 = 「连字符 + 数字」；用户记录 = generateId 的「prefix_<uuid>」或时间戳下划线形态，
+ * 二者正交——adapter 自身即以此区分种子同步与用户数据，本表复用同一判定零误伤）：
+ *  - activities    act-\d+（ACTIVITIES，merge /^act-\d+$/）
+ *  - tasks         tsk-\d+（SEED_TASKS，_seedInitialData 整表回填）
+ *  - assignments   assign_seed_\d+（SEED_ASSIGNMENTS）
+ *  - attendances   att\d+（ATTENDANCE_RECORDS，merge /^att\d+$/）
+ *  - notices       notice-\d{3}（MOCK_NOTICES，merge /^notice-\d{3}$/；用户 notice-<13位时间戳> 不匹配）
+ *  - archiveRecords ar\d+（SEED_ARCHIVE_RECORDS，merge /^ar\d+$/）
+ *  - signups       su-\d{3}（SEED_SIGNUPS，merge /^su-\d{3}$/）
+ * 不列入：users/branches/appointmentRecords（init 白名单，永不剔除）。
+ */
+const INIT_SEED_ID_PATTERNS = {
+  activities: /^act-\d+$/,
+  tasks: /^tsk-\d+$/,
+  assignments: /^assign_seed_\d+$/,
+  attendances: /^att\d+$/,
+  notices: /^notice-\d{3}$/,
+  archiveRecords: /^ar\d+$/,
+  signups: /^su-\d{3}$/,
+};
+
+/**
+ * init 态演示种子剔除（纯内存操作，幂等）：
+ * 仅当哨兵在场（init 已完成）时，把 mockDB 中被 mock-adapter 判空回填/种子增量合并
+ * 引入的演示种子记录剔除（非种子用户记录与白名单原样保留）；返回是否有变更
+ * （有则调用方应 saveDB 落盘，使空态跨刷新稳态）。
+ * @param {Object} db mockDB（core/domain.js）
+ * @returns {boolean} 是否剔除了种子记录
+ */
+export function stripSeedRecordsIfInitState(db) {
+  if (!isInitStateActive()) return false;
+  let changed = false;
+  for (const [key, re] of Object.entries(INIT_SEED_ID_PATTERNS)) {
+    const arr = db[key];
+    if (!Array.isArray(arr) || arr.length === 0) continue;
+    const kept = arr.filter(x => !(x && typeof x.id === 'string' && re.test(x.id)));
+    if (kept.length !== arr.length) {
+      db[key] = kept;
+      changed = true;
+    }
+  }
+  if (changed) console.info('[InitReset] init 态：已剔除 loadDB 回填的演示种子（业务域保持空，白名单/用户记录保留）');
+  return changed;
+}
+
 /**
  * init 档主库裁剪（纯函数，供单测与执行共用）：
  * 白名单键（INIT_BLOB_KEEP_KEYS）原样保留；业务过程域按 INIT_BLOB_CLEAR_DEFAULTS
@@ -190,8 +275,16 @@ export function handleInitResetIfRequested() {
     const removeKeys = collectInitKeys(presentKeys);
     removeKeys.forEach(k => localStorage.removeItem(k));
 
+    // ③ init 态哨兵写入（C2 2026-09-08）：?reset=init 已完成 → 标记「业务空 = 合法空支部态」。
+    // 消费方：services/mock.js loadDB（MockAdapter.loadDB 后剔除 adapter 判空回填的演示种子）
+    // 与 store/读兜底守卫（跳过演示种子兜底）。gsm1921-* 前缀 → ?reset=demo 整清即终止 init 态；
+    // preview 档不清；本档自身不清（未列入移除清单即保留）。
+    try {
+      localStorage.setItem(INIT_STATE_KEY, JSON.stringify({ at: new Date().toISOString() }));
+    } catch (_) { /* 哨兵写失败不阻断初始化（下轮仅少一层过滤，adapter 回填行为与修复前一致） */ }
+
     console.info(`[InitReset] ?reset=init 已初始化为「新支部初始态」：业务过程数据已清空（${removeKeys.length} 个独立业务键移除 + 主库业务域置空），白名单保留（账号/成员档案/支部配置/在册状态/主题/登录会话），正在刷新`);
-    // ③ 去掉 URL 上的 reset 参数再导航，防止新页面再次触发（造成重复执行）
+    // ④ 去掉 URL 上的 reset 参数再导航，防止新页面再次触发（造成重复执行）
     const url = new URL(window.location.href);
     url.searchParams.delete('reset');
     window.location.replace(url.toString());

@@ -25,10 +25,13 @@ import assert from 'node:assert/strict';
 
 const {
   INIT_BLOB_KEY, INIT_BLOB_CLEAR_DEFAULTS, INIT_WHITELIST_STANDALONE_KEYS,
+  INIT_STATE_KEY, stripSeedRecordsIfInitState,
   collectInitKeys, trimInitBlob, handleInitResetIfRequested,
 } = await import('../../docs/src/services/init-reset.js?v=20260908c');
 // 接线冒烟（⑤）：走 services/mock.js loadDB 可改 reset 链（数据源默认 mock）
-const { loadDB } = await import('../../docs/src/services/mock.js?v=20260908c');
+const { loadDB, saveDB } = await import('../../docs/src/services/mock.js?v=20260908c');
+// C2 修复（⑥）：浏览器加载链多轮 loadDB 稳态断言（内存 mockDB 与浏览器同源单例）
+const { mockDB } = await import('../../docs/src/core/domain.js?v=20260908c');
 
 // ── 内存桩（与 reset-tier.test.mjs 同构）────────────────────────
 function makeStorage(seed = {}) {
@@ -328,4 +331,147 @@ test('接线：services/mock.js loadDB（mock 数据源）在 ?reset=init 下先
   assert.deepEqual(blob.branches, BLOB.branches, '白名单（支部 config）保留');
   assert.equal(snap['gsm1921-issue-drafts'], undefined, '独立业务键已移除');
   assert.equal(snap['gsm1921-members-overlay'], STANDALONE['gsm1921-members-overlay'], '成员档案保留');
+});
+
+// ═══════════════ ⑥ C2 修复：init 态浏览器加载链多轮稳态（2026-09-08） ═══════════════
+// 缺陷：?reset=init 后整页刷新（同次加载链 loadDB → MockAdapter.loadDB → _loadFromStorage）
+// 把「业务空态」误判为首次/脏 → _seedInitialData() + _mergeNewSeedRecords() 回填演示种子，
+// 浏览器形态 init≈demo。修复：init 档执行写 init 态哨兵（gsm1921-init-state）；loadDB 委派
+// MockAdapter.loadDB 后 stripSeedRecordsIfInitState 剔除回填种子并 saveDB——多轮 loadDB
+// 业务域稳态为空、白名单（账号/支部 config/任期档案）在；demo 无哨兵仍回种子（行为不变）。
+
+/** 演示种子回填域（mock-adapter merge/_seedInitialData 会回填的全部业务域） */
+const SEED_BACKFILL_KEYS = ['activities', 'tasks', 'assignments', 'attendances', 'notices', 'archiveRecords', 'signups'];
+
+test('C2 修复：init 后浏览器加载链多轮 loadDB——业务域空 / 白名单在 / 再次 loadDB 仍空不回填', () => {
+  const { ls, win } = stubGlobals({
+    search: '?reset=init',
+    href: 'http://127.0.0.1:3000/index.html?reset=init',
+    store: STANDALONE,
+  });
+  // ① 首轮：?reset=init 命中 → trim 落库 + 独立业务键移除 + init 态哨兵写入 + 去参整页导航（中止本次加载）
+  loadDB();
+  assert.equal(win._replaced, 'http://127.0.0.1:3000/index.html');
+  assert.ok(ls.getItem(INIT_STATE_KEY) !== null, 'init 态哨兵已写入（gsm1921- 前缀，demo 档会整清）');
+  assert.equal(JSON.parse(ls.getItem(INIT_BLOB_KEY)).activities.length, 0, '主库业务域已清空');
+
+  // ② 模拟整页刷新（导航后 URL 已去 reset 参数）→ 第 2 轮 loadDB：
+  //    MockAdapter.loadDB 判空回填演示种子 → stripSeedRecordsIfInitState 剔除 → 业务域空、白名单在
+  win.location.search = '';
+  win.location.href = 'http://127.0.0.1:3000/index.html';
+  loadDB();
+  for (const key of SEED_BACKFILL_KEYS) {
+    assert.equal(mockDB[key].length, 0, `第 2 轮 loadDB 后 ${key} 为空（不被种子回填）`);
+  }
+  assert.equal(mockDB.taskforces.length, 0, 'taskforces 为空');
+  assert.ok(mockDB.users.some(u => u.id === 'u_sec'), '账号结构保留（空支部起步登录可用）');
+  assert.ok(mockDB.branches.some(b => b.id === 'br-b1'), '支部实例 br-b1 保留');
+  assert.ok(mockDB.branches[0].config.headerTitle && mockDB.branches[0].config.workforce, '支部 config（header/分工）保留');
+  assert.ok(mockDB.appointmentRecords.length >= 1, '书记任期档案保留');
+
+  // ③ 第 3 轮 loadDB：仍空（多轮稳态，不回填）
+  loadDB();
+  for (const key of SEED_BACKFILL_KEYS) {
+    assert.equal(mockDB[key].length, 0, `第 3 轮 loadDB 后 ${key} 仍为空（稳态）`);
+  }
+  assert.ok(mockDB.branches.some(b => b.id === 'br-b1'), '第 3 轮骨架仍在');
+  // 落盘稳态：strip 后 saveDB 已把空态写回主库——即使脱离内存、直接读持久层也是空业务 + 骨架
+  const persisted = JSON.parse(ls.getItem(INIT_BLOB_KEY));
+  for (const key of SEED_BACKFILL_KEYS) {
+    assert.equal(persisted[key].length, 0, `落库 ${key} 为空（跨刷新不依赖内存）`);
+  }
+  assert.ok(persisted.branches[0].id === 'br-b1' && persisted.branches[0].config.headerTitle, '落库骨架（支部 config）保留');
+  assert.ok(ls.getItem(INIT_STATE_KEY) !== null, 'init 态哨兵在（preview 不清；demo 才终止）');
+});
+
+test('C2 修复：init 态用户后续真实写入（非种子 id）不被剔除——再次 loadDB 用户记录在、种子仍不回填', () => {
+  const { ls, win } = stubGlobals({
+    search: '?reset=init',
+    href: 'http://127.0.0.1:3000/index.html?reset=init',
+    store: STANDALONE,
+  });
+  loadDB(); // ① init 档执行（trim + 哨兵 + 导航）
+  win.location.search = '';
+  win.location.href = 'http://127.0.0.1:3000/index.html';
+  loadDB(); // ② 刷新后第 2 轮：稳态空
+  // ③ 新支部起步：书记新建一条真实活动（id=act_<uuid> 非种子形态）+ 一条真实通知（notice-<13位时间戳>）
+  mockDB.activities = [{ id: 'act_0f9a-1111', title: '新支部第一次党员大会', status: 'draft' }];
+  mockDB.notices = [{ id: 'notice-' + Date.now(), title: '支部新通知' }];
+  saveDB();
+  // ④ 再次 loadDB：用户记录保留（不被 strip 误删）、演示种子仍不回填
+  loadDB();
+  assert.equal(mockDB.activities.length, 1, '用户新建活动保留');
+  assert.ok(/^act_/.test(mockDB.activities[0].id), '保留的是用户记录而非种子');
+  assert.equal(mockDB.notices.length, 1, '用户新建通知保留');
+  assert.ok(/^notice-\d{13}$/.test(mockDB.notices[0].id), '时间戳通知不被当作 3 位数字种子剔除');
+  assert.ok(mockDB.branches.some(b => b.id === 'br-b1'), '骨架仍在');
+  const persisted = JSON.parse(ls.getItem(INIT_BLOB_KEY));
+  assert.equal(persisted.activities.length, 1, '落库含用户活动');
+  assert.equal(persisted.notices.length, 1, '落库含用户通知');
+});
+
+test('C2 修复对照：demo 档仍回种子（无 init 哨兵 → loadDB 正常回填演示数据，行为不变）', () => {
+  const { ls, win } = stubGlobals({
+    search: '?reset=demo',
+    href: 'http://127.0.0.1:3000/index.html?reset=demo',
+    store: STANDALONE,
+  });
+  loadDB(); // demo 档：清全部演示存储键（含 gsm1921-init-state 哨兵）→ 去参导航
+  assert.equal(win._replaced, 'http://127.0.0.1:3000/index.html');
+  assert.equal(ls.getItem(INIT_STATE_KEY), null, 'demo 清除含 init 哨兵（init 态终止，回种子语义）');
+  // 模拟整页刷新：主库已被 demo 清除 → !raw → _seedInitialData 回种子（demo 既有行为）
+  win.location.search = '';
+  win.location.href = 'http://127.0.0.1:3000/index.html';
+  loadDB();
+  assert.ok(mockDB.activities.length > 0, 'demo 回填演示活动（行为不变）');
+  assert.ok(mockDB.tasks.length > 0 || mockDB.assignments.length > 0 || mockDB.signups.length > 0, 'demo 回填派生演示域');
+  assert.ok(mockDB.branches.some(b => b.id === 'br-b1'), 'demo 支部骨架在');
+});
+
+test('C2 修复：stripSeedRecordsIfInitState——有哨兵只剔种子留用户记录与白名单；无哨兵不动；幂等', () => {
+  const db = {
+    activities: [{ id: 'act-1' }, { id: 'act_abc' }],
+    tasks: [{ id: 'tsk-001' }, { id: 'tsk_xyz' }],
+    assignments: [{ id: 'assign_seed_001' }, { id: 'asgn_xyz' }],
+    attendances: [{ id: 'att1' }, { id: 'att_xyz' }],
+    notices: [{ id: 'notice-101' }, { id: 'notice-1752345678901' }],
+    archiveRecords: [{ id: 'ar1' }, { id: 'ar_xyz' }],
+    signups: [{ id: 'su-001' }, { id: 'su_xyz' }],
+    branches: [{ id: 'br-b1' }], users: [{ id: 'u_sec' }], appointmentRecords: [{ id: 'appt-1' }],
+  };
+  // 无哨兵（正常演示态）：不动
+  const { ls } = stubGlobals({ search: '', href: 'http://127.0.0.1:3000/index.html', store: { page_pref: 'x' } });
+  assert.equal(stripSeedRecordsIfInitState(db), false, '无哨兵不剔除');
+  assert.equal(db.activities.length, 2, '无哨兵原样');
+  // 有哨兵（init 已完成）：剔种子、留用户记录与白名单
+  ls.setItem(INIT_STATE_KEY, '{"at":"2026-09-08T00:00:00.000Z"}');
+  assert.equal(stripSeedRecordsIfInitState(db), true, '有哨兵剔除种子');
+  assert.deepEqual(db.activities.map(a => a.id), ['act_abc'], 'activities：剔 act-数字 种子、留用户记录');
+  assert.deepEqual(db.tasks.map(t => t.id), ['tsk_xyz'], 'tasks：剔 tsk-数字 种子');
+  assert.deepEqual(db.assignments.map(a => a.id), ['asgn_xyz'], 'assignments：剔 assign_seed_ 种子');
+  assert.deepEqual(db.attendances.map(a => a.id), ['att_xyz'], 'attendances：剔 att 数字 种子');
+  assert.deepEqual(db.notices.map(n => n.id), ['notice-1752345678901'], 'notices：剔 3 位数字种子、留时间戳用户记录');
+  assert.deepEqual(db.archiveRecords.map(r => r.id), ['ar_xyz'], 'archiveRecords：剔 arN 种子');
+  assert.deepEqual(db.signups.map(s => s.id), ['su_xyz'], 'signups：剔 su-数字 种子');
+  assert.equal(db.branches.length, 1, '白名单 branches 不剔');
+  assert.equal(db.users.length, 1, '白名单 users 不剔');
+  assert.equal(db.appointmentRecords.length, 1, '白名单 appointmentRecords 不剔');
+  // 幂等：二次剔除无变更
+  assert.equal(stripSeedRecordsIfInitState(db), false, '二次剔除无变更（幂等）');
+});
+
+test('C2 修复：loadActivities 读兜底——init 态空态返回 []（不回退演示种子）；无哨兵保持原回退', async () => {
+  const { loadActivities } = await import('../../docs/src/services/activity.js?v=20260908c');
+  const { ls } = stubGlobals({ search: '', href: 'http://127.0.0.1:3000/index.html', store: { page_pref: 'x' } });
+  // 无哨兵（正常演示态）：mockDB 空 → 回退演示种子（首屏早期/未加载语义不变）
+  mockDB.activities = [];
+  assert.ok(loadActivities().length > 0, '无哨兵：空态回退演示活动（demo 行为不变）');
+  // init 态（哨兵在场）：空 = 合法空支部态 → 返回 []（不回退演示种子）
+  ls.setItem(INIT_STATE_KEY, '{"at":"2026-09-08T00:00:00.000Z"}');
+  mockDB.activities = [];
+  assert.equal(loadActivities().length, 0, 'init 态：空态返回 []');
+  // init 态有真实数据：照常返回
+  mockDB.activities = [{ id: 'act_abc', title: '新支部活动' }];
+  assert.equal(loadActivities().length, 1, 'init 态：有数据照常返回');
+  mockDB.activities = [];
 });

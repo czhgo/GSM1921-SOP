@@ -9,6 +9,7 @@ import { mockDB } from '../core/domain.js?v=20260908c';
 import { persist } from '../core/data-adapter.js?v=20260908c';
 import { bumpToken } from '../core/version-token.js?v=20260908c'; // P0 域缓存失效（spec §二.3）
 import { MOCK_NOTICES } from '../mock/index.js?v=20260908c';
+import { isInitStateActive } from './init-reset.js?v=20260908c'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
 import { showToast, getBasePath } from '../core/utils.js?v=20260908c';
 import { AuthStore } from './auth.js?v=20260908c';
 import { getPersonById } from './person.js?v=20260908c';
@@ -75,6 +76,10 @@ export const NoticeStore = {
     const persisted = _loadNotices();
     if (persisted.length > 0) {
       this._notices = persisted;
+    } else if (isInitStateActive()) {
+      // C2 修复（2026-09-08）：init 态下「无持久化通知 = 合法空支部态」——不兜底演示种子
+      //（否则 MOCK_NOTICES 会经 _saveNotices 重新写回 mockDB/持久层，通知在 init 后回填 demo）。
+      this._notices = [];
     } else {
       this._notices = [...MOCK_NOTICES];
       // 2026-08-08 归档闭环修复：mockDB 未加载（_loaded=false）时不得落库，

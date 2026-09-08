@@ -7,7 +7,7 @@
 
 import { mockDB } from '../core/domain.js?v=20260908c';
 import { generateId } from '../core/id.js?v=20260908c';
-import { getDataSource } from '../core/data-adapter.js?v=20260908c';
+import { getDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260908c';
 import { bumpToken, resetAllTokens } from '../core/version-token.js?v=20260908c'; // P0 域缓存失效（spec §二.3/§二.4）
 // Mock 持久化/种子引擎（saveDB/loadDB/seed 同步）收敛到 core/mock-adapter.js 唯一实现
 // （T-2026-09-007 Step1：services 版私有引擎曾与 mock-adapter 同 Key 双写并缺
@@ -16,7 +16,9 @@ import { MockAdapter } from '../core/mock-adapter.js?v=20260908c';
 // C3 一键初始化档（?reset=init，2026-09-08）：mock-adapter 禁改 → reset/清库逻辑经本
 // 可改入口兜底；init 档与 demo/preview 档并存（demo/preview 仍在 MockAdapter.loadDB
 // 内既有 handleResetIfRequested 处理，本档先于其检测、互不冲突——见 init-reset.js）。
-import { handleInitResetIfRequested } from './init-reset.js?v=20260908c';
+// C2 修复（2026-09-08）：init 档在浏览器形态被 adapter 判空回填（init≈demo）——
+// loadDB 委派 MockAdapter.loadDB 后按 init 态哨兵剔除演示种子（见 stripSeedRecordsIfInitState）。
+import { handleInitResetIfRequested, stripSeedRecordsIfInitState } from './init-reset.js?v=20260908c';
 
 const MOCK_DELAY_MS = 600;
 
@@ -64,6 +66,15 @@ export function loadDB() {
   // P0 重置/overlay 导入路径（mock-adapter 禁改 → 由本可改入口兜底）：loadDB 会整体恢复/
   // 重播种 mockDB（含 ?reset= 清理路径）→ 清空域写版本戳，聚合复合键归零自然重算。
   resetAllTokens();
+  // C2 修复（2026-09-08）：mock-adapter 的 T174 判空保护会把 init 后的「业务空态」误判为
+  // 首次/脏 → loadDB 内 _seedInitialData()/_mergeNewSeedRecords() 自动回填演示种子，使浏览器
+  // 形态 init≈demo。本可改入口在每次恢复后按 init 态哨兵剔除回填进 mockDB 的演示种子记录
+  // （保留用户记录与白名单），并 saveDB 落盘使空态跨整页刷新稳态（多轮 loadDB 不再回填）；
+  // 剔除后补一次数据加载广播，让 header 角标等据空态重算（loadDB 内首播发生在剔除前）。
+  if (stripSeedRecordsIfInitState(mockDB)) {
+    saveDB();
+    notifyDataLoaded();
+  }
 }
 
 /** 包装为带固定延迟的 Promise */

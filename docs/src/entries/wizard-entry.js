@@ -5,7 +5,7 @@
 //   · 党委（party-staff）→ 任意支部可选（canSwitchBranch）
 //   · 未登录 / 其它角色 / 非现任书记 → 提示卡（无权限不渲染向导）
 // 主体共用 components/org-setup-wizard.js（party-config tab 同源）。
-import '../services/runtime.js?v=20260908c'; // 副作用：注册 mock/api 适配器
+import { BranchService } from '../services/runtime.js?v=20260908c'; // 副作用注册适配器 + BranchService 绑定（loadDB）
 import { registerApiAdapter, setDataSource, init } from '../core/data-adapter.js?v=20260908c';
 import { ApiAdapter } from '../core/api-adapter.js?v=20260908c';
 import { AuthStore } from '../services/auth.js?v=20260908c';
@@ -30,8 +30,11 @@ if (savedToken) {
     setDataSource('mock');
   }
 } else {
+  // 本地 mock：统一走 BranchService.loadDB()（可改 reset/init 触发链 + init 态种子过滤）。
+  // 不再直连 data-adapter.init() mock 分支（其 adapter.loadDB() 直连 MockAdapter.loadDB，
+  // 绕过 init 档检测与演示种子剔除——?reset=init 后的空支部态在本页会回填演示数据，2026-09-08 C2 收口）。
   try {
-    await init();
+    BranchService.loadDB();
   } catch (e) {
     console.warn('[wizard] mock 数据加载失败', e);
   }

@@ -9,12 +9,15 @@ import { persist } from '../core/data-adapter.js?v=20260908c';
 import { bumpToken } from '../core/version-token.js?v=20260908c'; // P0 域缓存失效（spec §二.3）
 import { INSPECTION_RECORDS } from '../mock/index.js?v=20260908c';
 import { ACTIVITIES } from '../mock/activities.js?v=20260908c';
+import { isInitStateActive } from './init-reset.js?v=20260908c'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 import { getPersonById, getPersonName } from './person.js?v=20260908c';
 import { TodoStore, TodoSourceType } from './todo.js?v=20260908c';
 import { loadActivities } from './activity.js?v=20260908c';
 
 export function loadInspectionRecords() {
-  return mockDB.inspections.length > 0 ? [...mockDB.inspections] : [...INSPECTION_RECORDS];
+  if (mockDB.inspections.length > 0) return [...mockDB.inspections];
+  // C2 修复（2026-09-08）：init 态下 mockDB 空 = 合法空支部态，不回退演示种子（同 loadActivities）。
+  return isInitStateActive() ? [] : [...INSPECTION_RECORDS];
 }
 
 /**

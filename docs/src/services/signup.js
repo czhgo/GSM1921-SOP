@@ -14,6 +14,7 @@ import { generateId } from '../core/id.js?v=20260908c';
 import { persist } from '../core/data-adapter.js?v=20260908c';
 import { bumpToken } from '../core/version-token.js?v=20260908c'; // P0 域缓存失效（spec §二.3）
 import { SEED_SIGNUPS } from '../mock/seed.js?v=20260908c';
+import { isInitStateActive } from './init-reset.js?v=20260908c'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
 import { getPersonById } from './person.js?v=20260908c';
 import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from './todo.js?v=20260908c';
 import { AuthStore } from './auth.js?v=20260908c';
@@ -207,6 +208,10 @@ export const SignupStore = {
     const persisted = _loadSignups();
     if (persisted.length > 0) {
       this._signups = persisted;
+    } else if (isInitStateActive()) {
+      // C2 修复（2026-09-08）：init 态下「无持久化报名 = 合法空支部态」——不兜底演示种子
+      //（否则 SEED_SIGNUPS 会经 _saveSignups 重新写回 mockDB/持久层）。
+      this._signups = [];
     } else {
       this._signups = [...SEED_SIGNUPS];
       _saveSignups(this._signups);

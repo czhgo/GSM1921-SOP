@@ -9,6 +9,7 @@ import { mockDB } from '../core/domain.js?v=20260908c';
 import { persist } from '../core/data-adapter.js?v=20260908c';
 import { bumpToken } from '../core/version-token.js?v=20260908c'; // P0 域缓存失效（spec §二.3）
 import { MOCK_TASKFORCES, PEOPLE } from '../mock/index.js?v=20260908c';
+import { isInitStateActive } from './init-reset.js?v=20260908c'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
 import { getPersonName } from './person.js?v=20260908c';
 import { evaluateWorkforceVotes } from './workforce.js?v=20260908c';
 // 附录⑩ B批（3.3）专班议案排入支委会表决所需的活动/通知基建：
@@ -56,6 +57,10 @@ export const TaskForceRecordStore = {
     const persisted = _loadTaskForces();
     if (persisted.length > 0) {
       this._records = persisted;
+    } else if (isInitStateActive()) {
+      // C2 修复（2026-09-08）：init 态下「无持久化专班 = 合法空支部态」——不兜底演示种子
+      //（否则 MOCK_TASKFORCES 会经 _saveTaskForces 重新写回 mockDB/持久层）。
+      this._records = [];
     } else {
       this._records = [...MOCK_TASKFORCES];
       _saveTaskForces(this._records);
