@@ -7,8 +7,9 @@
 // 2026-09-09（设置中心批1）：footer 增「设置」入口（→ settings.html）；
 // 原 footer 三块外观控件（字号/主题三态/强调色）迁往设置页外观区（components/appearance-controls.js，
 // 键位语义不变）；外观偏好读写改走 core/theme.js 键空间适配层（登录人 person 键 / 访客全局键）。
-// 模块顶层调用 syncAppearanceForActiveUser()：每页壳加载即材料化当前登录人外观偏好
-// （theme-init.js 首帧 / bootstrap.js 字号 / constants.js resolveAccentRole 等既有读取点无需改动）。
+// 模块顶层调用 syncAppearanceForActiveUser()：每页壳加载即把当前登录人 person 偏好应用到 DOM
+// （R1-A 2026-09-09 书记裁决：不写全局键、person 无键=出厂默认不继承；冻结读取点
+// theme-init.js 首帧 / bootstrap.js 字号 / constants.js resolveAccentRole 保持全局键语义不改）。
 
 import { getBasePath } from '../core/utils.js?v=20260909e';
 import { icon } from '../core/icons.js?v=20260909e';

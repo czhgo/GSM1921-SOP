@@ -14,7 +14,8 @@
 import { renderSidebar } from '../components/sidebar.js?v=20260909e';
 import { renderHeader } from '../components/header.js?v=20260909e';
 import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260909e';
-import { ROLE_LABELS, ROLE_PAGE_MAP, resolveAccentRole, getAccentColors } from '../core/constants.js?v=20260909e';
+import { ROLE_LABELS, ROLE_PAGE_MAP, getAccentColors } from '../core/constants.js?v=20260909e';
+import { resolveAppliedAccentRole } from '../core/theme.js?v=20260909e';
 import { appearanceControlsHTML, bindAppearanceControls } from '../components/appearance-controls.js?v=20260909e';
 import { icon } from '../core/icons.js?v=20260909e';
 import { escHtml as esc } from '../core/utils.js?v=20260909e';
@@ -1075,8 +1076,10 @@ async function init() {
   _currentRole = role || '';
 
   // 强调色三件套变量注入本页（appearance 控件激活态/选中态跟随当前人强调色；
-  // 静态页不跑 bootstrap，此处按 bootstrap.js 同口径设置 --app-accent）
-  const { accent, accentRgba, accentBorder } = getAccentColors(resolveAccentRole(_currentRole));
+  // 静态页不跑 bootstrap，此处按 bootstrap.js 同口径设置 --app-accent —— R1-A：
+  // 生效强调色 = resolveAppliedAccentRole（登录 person 覆盖 / 访客全局覆盖，绝不跨空间回落，
+  // 无覆盖=角色默认），替代只读全局键的 constants resolveAccentRole 调用）
+  const { accent, accentRgba, accentBorder } = getAccentColors(resolveAppliedAccentRole(_currentRole));
   const root = document.documentElement;
   root.style.setProperty('--app-accent', accent);
   root.style.setProperty('--app-accent-bg', accentRgba);

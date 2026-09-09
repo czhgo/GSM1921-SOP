@@ -5,15 +5,22 @@
 //       CSS 侧深色规则统一改为 html.theme-dark 前缀（替代 @media prefers-color-scheme）。
 // 防闪烁：各 HTML <head> 内联一段同步脚本（见 HTML），CSS 加载前即设好 class。
 //
-// 2026-09-09（设置中心批1）：外观偏好「按登录人隔离」键空间适配层——
-//   · 登录用户读写 person 键空间 gsm1921-pref-<personId>-{theme,font-size,accent-role}；
-//   · 访客回落既有全局键（workflowos_theme / workflowos_font_size / workflowos_accent_role）；
-//   · 读优先 person 键：无则回落全局键并「写一次」迁移到 person 键；
-//   · 页面壳加载时 syncAppearanceForActiveUser() 把当前登录人偏好材料化回全局键，
-//     供冻结读取点（theme-init.js 首帧 / bootstrap.js 字号 / constants.js resolveAccentRole）
-//     与下一页面首帧取用——外观仍即时全局生效，只是存储键随人。主题算法与 CSS 变量体系不变。
+// 2026-09-09（设置中心 R1-A 裁决，书记）：外观偏好「按登录人彻底隔离」键空间适配层——
+//   · 登录用户外观读写只走 person 键空间 gsm1921-pref-<personId>-{theme,font-size,accent-role}，
+//     绝不回落/写迁移全局键：person 无键 = 未设置 → 出厂默认（主题=跟随系统默认档、字号=中、
+//     强调色=null → 消费方按角色默认 resolveAccentRole(role) 语义，首登=出厂默认+角色配色）；
+//   · 全局键（workflowos_theme / workflowos_font_size / workflowos_accent_role）只服务未登录访客，
+//     访客读写与历史行为完全一致；登录用户的行为绝不写入/读取访客键空间；
+//   · syncAppearanceForActiveUser()（sidebar 模块顶层 + DOMContentLoaded 后二次，见下）把
+//     当前登录人 person 偏好应用到 DOM（主题/字号 <html> class、accent → --app-accent 变量），
+//     不经过全局键；冻结读取点（theme-init.js 首帧 / bootstrap.js 字号 / constants.js
+//     resolveAccentRole / init-reset）保持只读全局键（服务访客与首帧兜底）不改——
+//     登录人页面在冻结读取点取到的是全局键残留/默认 → 首帧小闪烁为已接受局限（5c 前记录，不变），
+//     DOMContentLoaded 二次 sync 以本人 person 值作最终覆盖。主题算法与 CSS 变量体系不变。
 
 import { readLoginSnapshot } from './login-snapshot.js?v=20260909e';
+// 强调色 DOM 生效（person 覆盖 → --app-accent 三件套）与解析复用 constants 纯静态表；constants 零依赖，无环
+import { ACCENT_COLORS, getAccentColors } from './constants.js?v=20260909e';
 
 const THEME_KEY = 'workflowos_theme';        // 主题（历史全局键；访客回落 / theme-init 首帧读取）
 const FONT_KEY = 'workflowos_font_size';     // 字号（历史全局键；bootstrap.js 启动读取）
@@ -42,37 +49,38 @@ function _writeGlobal(key, value) {
 }
 
 /**
- * 偏好读取：person 键优先；登录用户无 person 键 → 回落全局键并写一次（迁移）；
- * 访客直接读全局键。
+ * 偏好读取（R1-A：按登录态分区，互不污染）：
+ *   · 登录用户 → 只读 person 键；person 无键 = null（未设置 → 调用方按出厂默认档回退；
+ *     绝不回落读全局键、绝不「写一次」迁移——新账号首登不继承上一登录者外观）；
+ *   · 访客 → 读全局键（行为不变）。
  * @param {string} globalKey
  * @param {string} suffix  person 键后缀
  */
 function getPref(globalKey, suffix) {
   const personId = getActivePersonId();
   if (!personId) return _readGlobal(globalKey);
-  const personKey = PREF_PREFIX + personId + suffix;
   try {
-    let v = localStorage.getItem(personKey);
-    if (v == null) {
-      v = localStorage.getItem(globalKey);
-      if (v != null) localStorage.setItem(personKey, v); // 读优先 person、无则回落全局并写一次
-    }
-    return v;
+    return localStorage.getItem(PREF_PREFIX + personId + suffix);
   } catch {
-    return _readGlobal(globalKey);
+    return null;
   }
 }
 
 /**
- * 偏好写入：登录用户写 person 键 + 材料化全局键（既有全局读取点即时可取，
- * 且下一页面 theme-init 首帧读到正确值）；访客仅写全局键。
+ * 偏好写入（R1-A）：登录用户只写 person 键（绝不材料化全局键）；访客只写全局键。
  */
 function setPref(globalKey, suffix, value) {
-  _writeGlobal(globalKey, value);
   const personId = getActivePersonId();
-  if (personId) {
-    try { localStorage.setItem(PREF_PREFIX + personId + suffix, value); } catch { /* 忽略 */ }
+  if (!personId) {
+    _writeGlobal(globalKey, value);
+    return;
   }
+  try { localStorage.setItem(PREF_PREFIX + personId + suffix, value); } catch { /* 忽略 */ }
+}
+
+/** person 键空间读写目标键解析（纯函数，测试与日志核对用） */
+export function personPrefKey(personId, suffix) {
+  return PREF_PREFIX + personId + suffix;
 }
 
 /** 系统当前是否深色（含手动覆盖判定，与 CSS 保持同源） */
@@ -107,7 +115,9 @@ export function setThemePreference(mode) {
   if (!['light', 'dark', 'system'].includes(mode)) mode = 'system';
   setPref(THEME_KEY, PREF_THEME, mode);
   applyTheme();
-  document.dispatchEvent(new CustomEvent('theme-changed', { detail: { mode } }));
+  if (typeof document !== 'undefined') {
+    document.dispatchEvent(new CustomEvent('theme-changed', { detail: { mode } }));
+  }
 }
 
 /** 初始化：应用一次 + 监听系统深色变化（仅 system 模式需要实时跟随） */
@@ -154,31 +164,65 @@ export function getAccentRolePreference() {
 }
 
 /**
- * 设置强调色覆盖角色键并材料化全局键。
- * 生效方式沿用原机制：由消费方 location.reload() 后经 constants resolveAccentRole / bootstrap 全站刷新。
+ * 设置强调色覆盖角色键（R1-A）：登录用户写 person 键、访客写全局键；绝不写对方键空间。
+ * 生效方式沿用原机制：由消费方 location.reload() 后经页面 accent 应用（settings-entry /
+ * sync DOMContentLoaded 二次）刷新。
  */
 export function setAccentRolePreference(roleKey) {
   setPref(ACCENT_KEY, PREF_ACCENT, roleKey);
 }
 
 /**
- * 外观键空间适配（设置中心批1）：页面壳加载时调用一次——
- *   · 登录用户：把 person 偏好读入（无则从全局键迁移写一次），并材料化回全局键，
- *     使冻结读取点（theme-init.js 首帧 / bootstrap.js 字号 / constants.js resolveAccentRole）取到本人偏好；
- *   · 访客：零写入，继续回落既有全局键；
- *   随后即时应用主题 class 与字号 class（保持对 <html> 的即时生效语义）。
+ * 当前作用域生效强调色角色键解析（R1-A person-aware 版；替代消费方对 constants
+ * resolveAccentRole 的直接调用——resolveAccentRole 只读全局键、仅服务访客/冻结读取点）：
+ *   · 登录用户：person 覆盖键合法（ACCENT_COLORS 内）→ 用之；无/非法 → roleFallback（角色默认）；
+ *   · 访客：全局键合法 → 用之；无/非法 → roleFallback（与既有 resolveAccentRole 语义一致）。
+ * @param {string} roleFallback 页面默认角色键（访客/无覆盖时回落）
+ * @returns {string} 生效的角色键
+ */
+export function resolveAppliedAccentRole(roleFallback) {
+  const override = getAccentRolePreference();
+  return override && ACCENT_COLORS[override] ? override : (roleFallback || '');
+}
+
+/** 登录用户 person 强调色覆盖 → --app-accent 三件套（无覆盖/非法/访客 = 不动，交由页面角色默认逻辑） */
+function applyPersonAccent() {
+  if (typeof document === 'undefined' || !document.documentElement) return;
+  if (!getActivePersonId()) return; // 访客：accent 变量由页面既有 resolveAccentRole 路径负责
+  const override = getAccentRolePreference();
+  if (!override || !ACCENT_COLORS[override]) return;
+  const { accent, accentRgba, accentBorder } = getAccentColors(override);
+  const root = document.documentElement;
+  root.style.setProperty('--app-accent', accent);
+  root.style.setProperty('--app-accent-bg', accentRgba);
+  root.style.setProperty('--app-accent-border', accentBorder);
+}
+
+let _resyncScheduled = false;
+
+/**
+ * 外观键空间适配（R1-A）：页面壳加载时调用——
+ *   · 登录用户：person 键 → 应用到 DOM（主题/字号 <html> class、person 强调色覆盖 → --app-accent
+ *     变量），不经过全局键；person 无键 = 出厂默认（主题=跟随系统默认档、字号=中、强调色=角色默认，
+ *     由页面既有角色默认逻辑负责），绝不写全局键、绝不写 person 键（首登零写入）；
+ *   · 访客：按既有全局键应用到 DOM（行为不变，无任何写入）；
+ *   冻结读取点（theme-init 首帧 / bootstrap 字号 / constants resolveAccentRole）只读全局键，在
+ *   ES module（defer 语义）加载序列中会以全局键值再次应用 —— 而 module 顶层 await（bootstrapPage
+ *   等）完成前 DOMContentLoaded 不会触发，故注册 DOMContentLoaded 二次 sync：以本人 person 值作
+ *   最终覆盖（避免 bootstrap 以全局残留覆盖登录人 class/变量；首帧小闪烁为已接受局限，不变）。
  * 由 components/sidebar.js 模块顶层调用（全站每页都经 sidebar 渲染，天然覆盖所有页面）。
  */
 export function syncAppearanceForActiveUser() {
   if (typeof document === 'undefined') return;
-  const personId = getActivePersonId();
-  if (personId) {
-    // 读 person（无则回落全局并写一次迁移）→ 材料化回全局键
-    _writeGlobal(THEME_KEY, getThemePreference());
-    _writeGlobal(FONT_KEY, getFontSizePreference());
-    const accent = getAccentRolePreference();
-    if (accent) _writeGlobal(ACCENT_KEY, accent);
-  }
   applyTheme();
   applyFontSize(getFontSizePreference());
+  applyPersonAccent();
+  // module（defer）执行时 readyState 已 interactive；只要 DCL 未触发即注册二次（幂等单次）
+  if (document.readyState !== 'complete' && !_resyncScheduled) {
+    _resyncScheduled = true;
+    document.addEventListener('DOMContentLoaded', () => {
+      _resyncScheduled = false;
+      syncAppearanceForActiveUser();
+    });
+  }
 }
