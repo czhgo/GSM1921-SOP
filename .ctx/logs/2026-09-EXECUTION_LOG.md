@@ -848,3 +848,19 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **5b（27f162bd）**：全站 ?v=20260909e（272 文件+CODE_VERSION 90）；WIP 隔离（tab-bar U3a cacheinfo 入库、工作区 WIP 保留）；回归 422=410 绿+12 环境受限。
 - **5c（973a98cf 修复）**：12 项浏览器验证 11 全过+2 顺手修复（settings-entry 数据层初始化、支部默认顺序前注册能力）；0 代码 console error；e 串 0 残留。
 - **登记/遗留**：R1 外观按人隔离边界（新账号首登经全局回落继承上一登录者偏好并写入其 person 键）——候选 A 首登出厂默认彻底隔离 / B 全局键仅服务访客·登录人只读写 person 键 / C 保留现状，**待书记裁决**；R2 拖拽 headless 未复现（按钮路径已验，真机手测待补）；tab-bar U3a WIP 未提交待归属；push ahead 67 待书记批准。
+
+**T-2026-09-075 书记五问处置：示例支部与归属显式化 / header 组织名 / 制度参数变更流（审计内核）/ 颗粒度 content 声明 / 主题色一致性（2026-09-09）**
+- **① 归属显式化（fbb67f72）**：services/branch.js 新增 getBoundBranch（person 无 branchId/null/查无分支→null，不再被示例支部冒充）；getBranchIdOfPerson 保留数据解析兜底并注明支部语境判定一律用 getBoundBranch；getHeaderTitle 登录无归属→中性「未绑定支部」（静态壳未登录保持既有兜底，属换壳范围注明）；header.js h1 无归属中性不加引导（二期候选 b 登记注释）；settings 支部治理/域参数统一「未找到您所属支部——请先由党委确认归属」，向导入口无归属不唤起。branch-affiliation.test 4 例。
+- **② 示例支部**：维持 br-b1 为可整体替换的模板默认（书记裁）；真实"不属于支部"场景由①显式归属+统一口径解决。
+- **③ 制度参数变更流=审计内核先做（cc1cde66）**：configChangeHistory 支持 why（各写口 opts.why 透传，server PATCH why+裁剪同源）；rollbackBranchConfig 单键回滚（跨键/聚合 branch-created/config-copied 拒绝、回滚追加 {what:rollback} 不改写历史）；config-clean 常量 CONFIG_HISTORY_MAX=100/CONFIG_ROLLBACK_*；api-adapter rollbackConfig；server PATCH /config/rollback；settings 支部治理「配置变更记录」列表（人/时间/键/前后值/why+单条回滚 confirm）。branch-config-audit 8 例+HTTP；回归 90 项绿。制度级（L3）保持锁定（放行程序待裁决）。
+- **④ 颗粒度 content 声明（起草→书记审定定稿 2e413d44）**：PARTY_COMMITTEE_DESIGN §2.6 配置颗粒度与变更流分层（六层+旁路矩阵/词条收口/放行程序/变更流对齐审计内核/内容接缝）+§2.5 过期表述同步；SYSTEM_ROLE_PERMISSION §9h 支部 config 写权矩阵节；USAGE_POLICY 词条（L2-L3 配置层/branch-default/域参数/制度默认/制度刚性/POLICY_OVERRIDABLE/换壳工作单，注明与 L1-L4 阶段号非同一编号体系）。
+- **⑤ 主题色一致性（f1254a7a）**：bootstrap --app-accent 注入/header 角色标签/书记 calendar·assign·todo 三 tab 模块级 const 快照/纪检补课 6 处改 person-aware 渲染时解析（theme.js 合成 getAppliedAccentColors）；禁改消费经 ctx.accent 自动同源；theme-pref 8/8+preferences 15/15。
+- **遗留**：tab-bar U3a WIP 未提交待归属；push ahead 73 待批；浏览器目视（settings 变更记录回滚 UI/无归属卡/主题色抽验）与 R2 拖拽真机手测待常规终端；settings 变更记录 UI 对 party-staff（党委台）未接线（内核已含门）。
+
+**T-2026-09-075 书记五问处置：示例支部与归属显式化 / header 组织名 / 制度参数变更流（审计内核）/ 颗粒度 content 声明 / 主题色一致性（2026-09-09）**
+- **① 归属显式化（fbb67f72）**：services/branch.js 新增 getBoundBranch（person 无 branchId/null/查无分支→null，不再被示例支部冒充）；getBranchIdOfPerson 保留数据解析兜底并注明支部语境判定一律用 getBoundBranch；getHeaderTitle 登录无归属→中性「未绑定支部」（静态壳未登录保持既有兜底，属换壳范围注明）；header.js h1 无归属中性不加引导（二期候选 b 登记注释）；settings 支部治理/域参数统一「未找到您所属支部——请先由党委确认归属」，向导入口无归属不唤起。branch-affiliation.test 4 例。
+- **② 示例支部**：维持 br-b1 为可整体替换的模板默认（书记裁）；真实"不属于支部"场景由①显式归属+统一口径解决。
+- **③ 制度参数变更流=审计内核先做（cc1cde66）**：configChangeHistory 支持 why（各写口 opts.why 透传，server PATCH why+裁剪同源）；rollbackBranchConfig 单键回滚（跨键/聚合 branch-created/config-copied 拒绝、回滚追加 {what:rollback} 不改写历史）；config-clean 常量 CONFIG_HISTORY_MAX=100/CONFIG_ROLLBACK_*；api-adapter rollbackConfig；server PATCH /config/rollback；settings 支部治理「配置变更记录」列表（人/时间/键/前后值/why+单条回滚 confirm）。branch-config-audit 8 例+HTTP；回归 90 项绿。制度级（L3）保持锁定（放行程序待裁决）。
+- **④ 颗粒度 content 声明（起草→书记审定定稿 2e413d44）**：PARTY_COMMITTEE_DESIGN §2.6 配置颗粒度与变更流分层（六层+旁路矩阵/词条收口/放行程序/变更流对齐审计内核/内容接缝）+§2.5 过期表述同步；SYSTEM_ROLE_PERMISSION §9h 支部 config 写权矩阵节；USAGE_POLICY 词条（L2-L3 配置层/branch-default/域参数/制度默认/制度刚性/POLICY_OVERRIDABLE/换壳工作单，注明与 L1-L4 阶段号非同一编号体系）。
+- **⑤ 主题色一致性（f1254a7a）**：bootstrap --app-accent 注入/header 角色标签/书记 calendar·assign·todo 三 tab 模块级 const 快照/纪检补课 6 处改 person-aware 渲染时解析（theme.js 合成 getAppliedAccentColors）；禁改消费经 ctx.accent 自动同源；theme-pref 8/8+preferences 15/15。
+- **遗留**：tab-bar U3a WIP 未提交待归属；push ahead 73 待批；浏览器目视（settings 变更记录回滚 UI/无归属卡/主题色抽验）与 R2 拖拽真机手测待常规终端；settings 变更记录 UI 对 party-staff（党委台）未接线（内核已含门）。
