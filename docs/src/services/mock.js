@@ -19,6 +19,9 @@ import { MockAdapter } from '../core/mock-adapter.js?v=20260908d';
 // C2 修复（2026-09-08）：init 档在浏览器形态被 adapter 判空回填（init≈demo）——
 // loadDB 委派 MockAdapter.loadDB 后按 init 态哨兵剔除演示种子（见 stripSeedRecordsIfInitState）。
 import { handleInitResetIfRequested, stripSeedRecordsIfInitState } from './init-reset.js?v=20260908d';
+// 批4（2026-09-09 书记批「域参数」）：数据加载完成 → 读侧有效默认注入
+// （当前人所属支部 config.policyOverrides merge 进 POLICY_DEFAULTS；无 overrides = 保持默认）
+import { applyEffectivePolicyDefaultsForPerson } from './branch.js?v=20260908d';
 
 const MOCK_DELAY_MS = 600;
 
@@ -55,6 +58,8 @@ export function loadDB() {
     // 持久化守卫解锁：API 模式数据由 data-adapter.init() 填充，允许本地备份写
     mockDB._loaded = true;
     resetAllTokens(); // P0：整体数据导入（server 全量填充）= 全源重载 → 聚合缓存全域失效重算
+    // 批4：api 形态读侧有效默认注入（data-adapter.init 已完成 branches 填充后进入本路径）
+    applyEffectivePolicyDefaultsForPerson(_loginPersonId());
     return;
   }
   // C3 初始化档（2026-09-08）：?reset=init = 一键从演示态/试用态初始化为「新支部初始态」
@@ -75,6 +80,19 @@ export function loadDB() {
     saveDB();
     notifyDataLoaded();
   }
+  // 批4：mock 形态读侧有效默认注入（loadDB 成功 = branches 已恢复；无 overrides = 保持默认）
+  applyEffectivePolicyDefaultsForPerson(_loginPersonId());
+}
+
+/** 登录快照 personId（批4 注入按人归属支部；同 branch.js _actorId 键约定，无则 null=兜底 br-b1） */
+function _loginPersonId() {
+  try {
+    if (typeof localStorage === 'undefined') return null;
+    const raw = localStorage.getItem('gsm1921-login-user');
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    return d && (d.personId || d.userId || d.id || null);
+  } catch (_) { return null; }
 }
 
 /** 包装为带固定延迟的 Promise */

@@ -9,9 +9,11 @@ import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260908d';
 import { getAdapter, persist, getDataSource } from '../core/data-adapter.js?v=20260908d';
 import { listCapabilities } from '../core/registry.js?v=20260908d';
 // P1a 单向权威（2026-09-03）：config 净化唯一实现 = core/config-clean.js（server PATCH /branches/:id/config 同源）
-import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg } from '../core/config-clean.js?v=20260908d';
+import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides } from '../core/config-clean.js?v=20260908d';
 // L4（2026-09-03）：支部工作地图模块目录单一源 = core/work-map.js（11 模块/缺省分工/快照展开）
 import { expandWorkforce } from '../core/work-map.js?v=20260908d';
+// 批4（2026-09-09 书记批「域参数」）：policyOverrides 顶层节白名单（覆盖写口校验用）
+import { POLICY_OVERRIDE_SECTIONS } from '../core/policy-defaults.js?v=20260908d';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
@@ -232,6 +234,106 @@ export async function updateBranchWorkforce(branchId, workforce) {
     ? { workforce: null }
     : { workforce: sanitizeConfigWorkforce(workforce) };
   return _saveBranchConfig(branchId, payload);
+}
+
+// ── 批4 域参数 policyOverrides（2026-09-09 书记批「域参数」L2 下放；config 独立域）────────
+// config.policyOverrides = { 节: { 叶: 值 } }（节/叶白名单单一源 = policy-defaults POLICY_OVERRIDABLE；
+// 净化唯一实现 = core/config-clean.js sanitizeConfigPolicyOverrides，与 server PATCH /branches/:id/config 同源）。
+// 角色守卫（批3 副书同权谓词同口径扩展）：
+//   · party-staff / 本支部现任书记 / 本支部副书记 → 全量 policyOverrides；
+//   · 本支部域负责人（纪检=inspection · 组织=memberConfirmation · 组长=leader）→ 仅自己域节（含 null=恢复该域默认）。
+// 消费点：设置中心「支部治理 · 域参数」卡（L2）保存/恢复默认；读侧注入 = applyEffectivePolicyDefaultsForPerson。
+
+/** 域负责人角色 → 可管域节（纪检/组织/组长；其余角色无域节 = 不可管任何域参数） */
+export const POLICY_SECTION_BY_DOMAIN_ROLE = {
+  'disc-commissioner': 'inspection',
+  'org-commissioner': 'memberConfirmation',
+  leader: 'leader',
+};
+
+/** 操作者角色解析（actor.role 优先；缺省回退档案角色） */
+function _actorRoleOf(actor) {
+  const role = (actor && actor.role) || (actor && actor.personId ? (getPersonById(actor.personId) || {}).role : '') || '';
+  return role;
+}
+
+/**
+ * 纯判定：某人能否管理 policyOverrides（批4；供 UI 可见性与写口共用，勿在别处另写规则）。
+ * @param {{ personId: string, role?: string }} actor
+ * @param {string} branchId
+ * @returns {{ ok: boolean, scope: 'all'|string|null, reason?: string }}
+ *   scope='all'=书记/副书记/party-staff 全量；scope=域节=仅该域；null=无权
+ */
+export function canManagePolicyOverrides(actor, branchId) {
+  const personId = actor && actor.personId;
+  const branch = getBranchById(branchId);
+  if (!personId || !branch) return { ok: false, scope: null, reason: '目标支部不存在或未登录' };
+  const role = _actorRoleOf(actor);
+  if (role === 'party-staff') return { ok: true, scope: 'all' };
+  if (role === 'secretary') {
+    if (branch.secretaryId && branch.secretaryId === personId) return { ok: true, scope: 'all' };
+    return { ok: false, scope: null, reason: '仅本支部现任书记/副书记或党委组织员可改全量域参数' };
+  }
+  if (role === 'deputy-secretary') {
+    if (getBranchIdOfPerson(personId) === branch.id) return { ok: true, scope: 'all' };
+    return { ok: false, scope: null, reason: '仅本支部现任书记/副书记或党委组织员可改全量域参数' };
+  }
+  const own = POLICY_SECTION_BY_DOMAIN_ROLE[role];
+  if (own && getBranchIdOfPerson(personId) === branch.id) return { ok: true, scope: own };
+  return { ok: false, scope: null, reason: '无该域参数管理权' };
+}
+
+/**
+ * 保存域参数覆盖（批4 写口；overrides = { 节: 值 | null }——节值 null=恢复该域默认（删除该节覆盖）；
+ * 书记/副书记/party-staff 可全量；域负责人自动收窄到自己的域节；净化走 sanitizeConfigPolicyOverrides，
+ * 非法值/未知键丢弃不写坏；留痕与 modules/blocks/workforce 同 config.configChangeHistory）。
+ * @returns {Promise<{ ok: boolean, changed: boolean, reason?: string }>}
+ */
+export async function savePolicyOverrides(branchId, overrides, opts = {}) {
+  const branch = getBranchById(branchId);
+  if (!branch) return { ok: false, changed: false, reason: '目标支部不存在' };
+  const actor = (opts && opts.actor) || {};
+  const perm = canManagePolicyOverrides(actor, branchId);
+  if (!perm.ok) return { ok: false, changed: false, reason: perm.reason || '无权限' };
+  if (overrides === null || overrides === undefined) overrides = {};
+  if (!overrides || typeof overrides !== 'object' || Array.isArray(overrides)) {
+    return { ok: false, changed: false, reason: 'policyOverrides 须为对象（节 → 值/null）' };
+  }
+  // 与既有覆盖合并：节=null → 删该节（恢复该域默认）；节=对象 → 净化后整节替换
+  const prevPo = (branch.config && typeof branch.config.policyOverrides === 'object' && !Array.isArray(branch.config.policyOverrides))
+    ? JSON.parse(JSON.stringify(branch.config.policyOverrides))
+    : {};
+  const nextPo = { ...prevPo };
+  let changed = false;
+  for (const sec of Object.keys(overrides)) {
+    if (!POLICY_OVERRIDE_SECTIONS.includes(sec)) continue; // 未知节忽略（白名单外）
+    if (perm.scope !== 'all' && sec !== perm.scope) continue; // 域负责人不可改他人域节
+    if (overrides[sec] === null) {
+      if (Object.prototype.hasOwnProperty.call(nextPo, sec)) { delete nextPo[sec]; changed = true; }
+      continue;
+    }
+    const clean = sanitizeConfigPolicyOverrides({ [sec]: overrides[sec] });
+    if (!clean || !clean[sec]) continue; // 全非法/空 → 该节不写
+    if (!_sameConfigVal(nextPo[sec], clean[sec])) {
+      nextPo[sec] = clean[sec];
+      changed = true;
+    }
+  }
+  if (!changed) return { ok: true, changed: false };
+  const payload = Object.keys(nextPo).length ? { policyOverrides: nextPo } : { policyOverrides: null };
+  await _saveBranchConfig(branchId, payload);
+  return { ok: true, changed: true };
+}
+
+/**
+ * 读侧有效默认注入（批4 便捷入口）：当前人所属支部 config.policyOverrides 注入 POLICY_DEFAULTS。
+ * 调用时机 = 数据加载完成路径（services/mock.js loadDB mock/api 两形态均调用）——跨支部切换/每次
+ * loadDB 先复位出厂默认再覆盖（幂等）；未登录/档案缺 branchId → 兜底 'br-b1'（同 getBranchIdOfPerson）。
+ * @param {string} [personId] 当前登录人（缺省 = 按登录快照兜底 br-b1）
+ */
+export function applyEffectivePolicyDefaultsForPerson(personId) {
+  const bid = getBranchIdOfPerson(personId);
+  return applyBranchPolicyOverrides(getBranchById(bid));
 }
 
 /**

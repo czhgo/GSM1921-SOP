@@ -13,12 +13,15 @@
 // ════════════════════════════════════════════════════════════════
 
 import { escHtml as esc, _fmtDate } from '../../../core/utils.js?v=20260908d';
+import { icon } from '../../../core/icons.js?v=20260908d';
 import { buildTodaySummary } from '../../../services/today-summary.js?v=20260908d';
 import { mockDB } from '../../../core/domain.js?v=20260908d';
 import { tokenOf } from '../../../core/version-token.js?v=20260908d'; // P0 域写版本戳（spec §二.4）
 import { RESIDENCE_KEY } from '../../../services/roster.js?v=20260908d'; // 滞留覆盖 raw 源（roster 禁改不内改）
 import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260908d'; // 基础数据预览 raw 源
 import { memoizeRender } from '../../../components/memoize-render.js?v=20260908d'; // P2 渲染守卫（spec §四.1）
+// 批4（2026-09-09 书记批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260908d';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent, #B91C1C)';
@@ -159,6 +162,87 @@ function _allEmptyHtml() {
     </div>`;
 }
 
+// ── 批4 组长学期组员进展归集提醒（leader.semesterReportReminder，书记 2026-09-09 批）────────
+// 开关 = policy leader.semesterReportReminder.enabled（读侧注入后 = 当前支部有效默认）；
+// 窗口 = 每年两学期开学首周（3 月 / 9 月 1–7 日，简单实现——与滞留复核窗非同构故不引入学期窗表）；
+// 防重复弹 = 按人存 localStorage 键 gsm1921-pref-<personId>-semester-report-remind-<学期键>
+// （学期键 'YYYY-H1'（3 月）/'YYYY-H2'（9 月）；首次查看/去归集即标记，本学年同窗不再弹）。
+const LEADER_REMIND_OPEN_MONTHS = [3, 9];
+const LEADER_REMIND_FIRST_DAY_MAX = 7;
+
+/** 当前学期键（仅开学月返回 'YYYY-H1'/'YYYY-H2'；非开学月返回 null；纯函数供单测） */
+export function leaderSemesterReportTermKey(now = new Date()) {
+  const d = new Date(now);
+  if (Number.isNaN(d.getTime())) return null;
+  const y = d.getFullYear();
+  const mo = d.getMonth() + 1;
+  if (mo === 3) return `${y}-H1`;
+  if (mo === 9) return `${y}-H2`;
+  return null;
+}
+
+/** 是否处于开学首周提醒窗（3 月 / 9 月 1–7 日；纯函数供单测） */
+export function isLeaderSemesterRemindWindow(now = new Date()) {
+  const d = new Date(now);
+  if (Number.isNaN(d.getTime())) return false;
+  const mo = d.getMonth() + 1;
+  const day = d.getDate();
+  return LEADER_REMIND_OPEN_MONTHS.includes(mo) && day <= LEADER_REMIND_FIRST_DAY_MAX;
+}
+
+function _lsrMarkKey(personId) {
+  const term = leaderSemesterReportTermKey();
+  if (!personId || !term) return null;
+  return `gsm1921-pref-${personId}-semester-report-remind-${term}`;
+}
+function _lsrGet(key) {
+  try { return key ? (typeof localStorage === 'undefined' ? null : localStorage.getItem(key)) : null; }
+  catch { return null; }
+}
+function _lsrMark(key) {
+  try { if (key && typeof localStorage !== 'undefined') localStorage.setItem(key, '1'); } catch { /* 忽略 */ }
+}
+
+/** 组长开学提醒条 HTML（关闭时返回 ''；数据/文案 = 简单引导，不引入新通知类型） */
+function _leaderSemesterRemindHtml(personId) {
+  const cfg = POLICY_DEFAULTS.leader && POLICY_DEFAULTS.leader.semesterReportReminder;
+  if (!cfg || !cfg.enabled) return '';
+  if (!isLeaderSemesterRemindWindow()) return '';
+  const key = _lsrMarkKey(personId);
+  if (!key || _lsrGet(key)) return ''; // 本学年同窗已提醒过
+  return `
+    <div class="card rounded-lg p-4 border-l-4" style="border-left-color:${ACCENT};" data-leader-sem-remind="1">
+      <div class="flex items-start gap-3">
+        <span class="flex-none w-8 h-8 rounded-lg flex items-center justify-center" style="background:${ACCENT_BG};color:${ACCENT};">${icon('bell', { className: 'icon-base w-4 h-4' })}</span>
+        <div class="flex-1 min-w-0">
+          <p class="font-title-cn text-sm font-bold text-gray-800">本学期组员进展归集提醒</p>
+          <p class="text-xs text-gray-600 leading-relaxed mt-1">开学第 1 周：请在「组员进展」逐人归集本组组员本学期进展（思想汇报 / 考察 / 复盘 / 在办事项），形成小组学期进展底稿并跟进缺漏项。</p>
+          <div class="flex flex-wrap items-center gap-2 mt-2.5">
+            <button type="button" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium transition-colors hover:opacity-90" style="background:${ACCENT};" data-lsr-act="go">去「组员进展」归集</button>
+            <button type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" data-lsr-act="later">本学期已处理，不再提醒</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+/** 开学提醒条交互：标记已提醒并收掉条（go=跳组员进展 tab；onNav 缺省则仅收条） */
+function bindLeaderSemesterRemind(container, personId, onNav) {
+  const block = container.querySelector('[data-leader-sem-remind]');
+  if (!block) return;
+  const dismiss = () => {
+    const key = _lsrMarkKey(personId);
+    if (key) _lsrMark(key);
+    block.remove();
+  };
+  container.querySelectorAll('[data-lsr-act]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.lsrAct === 'go' && typeof onNav === 'function') onNav('members');
+      dismiss();
+    });
+  });
+}
+
 /**
  * 渲染「今天」tab 共享组件（六工作台置首/登录落点；只读速览）
  * @param {HTMLElement} container — 工作台内容容器（各台从 AuthStore.getCurrentUser() 取 personId/role 后传入）
@@ -188,6 +272,9 @@ export function renderTodayTab(container, { personId, role, onNav } = {}) {
     const total = summary.hasMeeting.length + summary.overdue.length
       + summary.dueToday.length + summary.myDuties.length;
 
+    // 批4：组长开学周提醒条（仅组长角色；开关/窗口/防重复见 _leaderSemesterRemindHtml）
+    const leaderSemReminder = role === 'leader' ? _leaderSemesterRemindHtml(personId) : '';
+
     const body = total === 0 ? _allEmptyHtml() : `
       <div class="card rounded-lg p-5">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
@@ -202,6 +289,7 @@ export function renderTodayTab(container, { personId, role, onNav } = {}) {
     container.innerHTML = `
       <div class="space-y-4" data-ws-memo="today">
         <h2 class="font-title-cn text-lg font-bold text-gray-800">今天 · <span class="text-base font-normal text-gray-500">${esc(dateLabel)}</span></h2>
+        ${leaderSemReminder}
         ${body}
       </div>`;
 
@@ -224,5 +312,7 @@ export function renderTodayTab(container, { personId, role, onNav } = {}) {
         onNav(btn.dataset.todayAll === 'todo' ? 'todo' : 'activities');
       });
     });
+    // 批4：组长开学周提醒条（去组员进展 / 本学期不再提醒 → 标记防重复弹并收条）
+    bindLeaderSemesterRemind(container, personId, onNav);
   }, { marker: '[data-ws-memo="today"]' });
 }

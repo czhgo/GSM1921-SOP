@@ -8,7 +8,9 @@ import { deleteUploadedFile } from './uploads.js';
 import { afterResourceWrite } from '../services/mailer-hooks.js';
 // P1a 单向权威（2026-09-03）：config（modules/blocks）净化唯一实现 = docs/src/core/config-clean.js（前端 branch.js 同源，勿在 server 另写 clean）
 // 2026-09-06 换组织向导：config 组织档案字段（headerTitle/desc/themePreset）净化同源
-import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce, sanitizeConfigOrg } from '../../docs/src/core/config-clean.js';
+import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides } from '../../docs/src/core/config-clean.js';
+// 批4（2026-09-09 书记批「域参数」）：policyOverrides 顶层节白名单（server 写口与前端 branch.js 同源校验）
+import { POLICY_OVERRIDE_SECTIONS } from '../../docs/src/core/policy-defaults.js';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/constants.js（勿手写）
 import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS } from '../../docs/src/core/constants.js';
 
@@ -350,8 +352,16 @@ export function createResourcesRouter(db) {
     const isStaff = actor.role === 'party-staff';
     const isSecretary = !!branch.secretaryId && actor.id === branch.secretaryId;
     const isDeputyHere = actor.role === 'deputy-secretary' && (actor.branchId || 'br-b1') === branch.id;
-    if (!isStaff && !isSecretary && !isDeputyHere) {
-      return res.status(403).json({ error: '无权限：仅本支部现任书记/副书记或党委组织员可配置' });
+    // 批4（2026-09-09 书记批「域参数」）：域负责人（本支部纪检/组织/组长）仅可写自己域节
+    // policyOverrides（inspection=纪检 · memberConfirmation=组织 · leader=组长），与前端 branch.js 同口径。
+    const DOMAIN_SECTION_BY_ROLE = { 'disc-commissioner': 'inspection', 'org-commissioner': 'memberConfirmation', leader: 'leader' };
+    let domainSection = null;
+    if (!isStaff && !isSecretary && !isDeputyHere && (actor.branchId || 'br-b1') === branch.id) {
+      domainSection = DOMAIN_SECTION_BY_ROLE[actor.role] || null;
+    }
+    const fullRights = isStaff || isSecretary || isDeputyHere;
+    if (!fullRights && !domainSection) {
+      return res.status(403).json({ error: '无权限：仅本支部现任书记/副书记或党委组织员可配置（域负责人仅可改本域参数）' });
     }
 
     const cfg = req.body?.config;
@@ -362,8 +372,13 @@ export function createResourcesRouter(db) {
     const hasBlocks = Object.prototype.hasOwnProperty.call(cfg, 'blocks');
     const hasWorkforce = Object.prototype.hasOwnProperty.call(cfg, 'workforce');
     const hasOrg = ['headerTitle', 'desc', 'themePreset'].some(k => Object.prototype.hasOwnProperty.call(cfg, k));
-    if (!hasModules && !hasBlocks && !hasWorkforce && !hasOrg) {
-      return res.status(400).json({ error: '至少提供 config.modules / config.blocks / config.workforce / 组织档案字段(headerTitle/desc/themePreset) 之一' });
+    const hasPolicy = Object.prototype.hasOwnProperty.call(cfg, 'policyOverrides');
+    if (!hasModules && !hasBlocks && !hasWorkforce && !hasOrg && !hasPolicy) {
+      return res.status(400).json({ error: '至少提供 config.modules / config.blocks / config.workforce / 组织档案字段(headerTitle/desc/themePreset) / policyOverrides 之一' });
+    }
+    // 域负责人（无全量权）只允许 policyOverrides 且仅自己域节
+    if (!fullRights && (hasModules || hasBlocks || hasWorkforce || hasOrg || !hasPolicy)) {
+      return res.status(403).json({ error: '无权限：域负责人仅可配置本域参数（config.policyOverrides）' });
     }
     const prevConfig = { ...(branch.config || {}) };
     const nextConfig = { ...prevConfig };
@@ -406,12 +421,47 @@ export function createResourcesRouter(db) {
       // headerTitle 不允许清空（空串净化时被丢弃）→ 写空回退支部名
       if (nextConfig.headerTitle === undefined && cfg.headerTitle !== undefined) nextConfig.headerTitle = branch.name || '';
     }
+    if (hasPolicy) {
+      // 批4 域参数：与前端 branch.js savePolicyOverrides 同语义（节=null 删除该节覆盖；净化唯一实现 =
+      // config-clean sanitizeConfigPolicyOverrides；白名单节校验 POLICY_OVERRIDE_SECTIONS）。
+      const p = cfg.policyOverrides;
+      const prevPo = (prevConfig.policyOverrides && typeof prevConfig.policyOverrides === 'object' && !Array.isArray(prevConfig.policyOverrides))
+        ? JSON.parse(JSON.stringify(prevConfig.policyOverrides))
+        : {};
+      const nextPo = { ...prevPo };
+      if (!fullRights) {
+        // 域负责人：只允许声明自己域节（null=恢复该域默认）
+        if (p === null || p === undefined || typeof p !== 'object' || Array.isArray(p)
+          || !Object.prototype.hasOwnProperty.call(p, domainSection)
+          || Object.keys(p).some(k => k !== domainSection)) {
+          return res.status(400).json({ error: `域负责人仅可配置本域参数（policyOverrides.${domainSection}，或置 null 恢复该域默认）` });
+        }
+      }
+      if (p === null) {
+        nextConfig.policyOverrides = null; // 全量恢复默认（仅书记/副书记/党委）
+      } else if (typeof p !== 'object' || Array.isArray(p)) {
+        return res.status(400).json({ error: 'config.policyOverrides 须为对象（节 → 值/null）或 null' });
+      } else {
+        for (const sec of Object.keys(p)) {
+          if (!POLICY_OVERRIDE_SECTIONS.includes(sec)) continue; // 白名单外节忽略
+          if (!fullRights && sec !== domainSection) continue;     // 域负责人收窄（前述 400 已兜底）
+          if (p[sec] === null) {
+            if (Object.prototype.hasOwnProperty.call(nextPo, sec)) delete nextPo[sec];
+            continue;
+          }
+          const clean = sanitizeConfigPolicyOverrides({ [sec]: p[sec] });
+          if (!clean || !clean[sec]) continue; // 全非法/空 → 该节不写
+          nextPo[sec] = clean[sec];
+        }
+        nextConfig.policyOverrides = Object.keys(nextPo).length ? nextPo : null;
+      }
+    }
 
     // 配置变更留痕（2026-09-06 书记 R4：即时生效 + 留痕；低频可回滚，不设审批闸）
     // 逐键 diff prevConfig → nextConfig，有实质变化才追加 {by,at,what,from,to}；空变化不产生冗余条目。
     const history = Array.isArray(prevConfig.configChangeHistory) ? [...prevConfig.configChangeHistory] : [];
     const at = new Date().toISOString();
-    const TRACKED_KEYS = ['modules', 'blocks', 'workforce', 'headerTitle', 'desc', 'themePreset'];
+    const TRACKED_KEYS = ['modules', 'blocks', 'workforce', 'headerTitle', 'desc', 'themePreset', 'policyOverrides'];
     const jsonEq = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
     for (const k of TRACKED_KEYS) {
       if (!jsonEq(prevConfig[k], nextConfig[k])) {

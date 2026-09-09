@@ -23,6 +23,8 @@ import {
   coreTabIdsOf, sameIdOrder, applyPersonalTabOrder, readPersonalTabOrder,
   savePersonalTabOrder, resetPersonalTabOrder,
 } from '../services/preferences.js?v=20260908d';
+// 批4（2026-09-09 书记批「域参数」）：制度默认单一源 = policy-defaults（设置页展示「制度默认」行与域参数默认值）
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260908d';
 
 // ── 数据层按需加载（同 sidebar staticShell 模式：确已登录才动态 import auth）──
 let _authModule = null;
@@ -78,24 +80,24 @@ const SECTION_META = {
     note: '保存后全体成员下一刷新按新默认；恢复默认 = 系统默认（全开 + 注册序）。',
   },
   'branch-policy-params': {
-    title: '支部制度参数', batch: '批 4', badge: '建设中',
-    desc: '支部级制度参数（票决门槛 / 应到口径 / 会议类型等）制度默认只读展示，与支部制度单一源对齐。',
-    note: '规划：只读展示 + 制度来源标注。',
+    title: '支部制度参数', batch: '批 4', badge: '',
+    desc: '支部级制度参数（票决门槛 / 应到口径 / 会议类型等）制度默认只读展示；参数不在设置页直改（改须书记/党委裁决后在系统层变更）。域参数（L2）在各域负责人卡中可调。',
+    note: '制度刚性锁定展示 + 域参数按角色分发。',
   },
   'domain-disc': {
-    title: '域参数 · 纪检', batch: '批 4', badge: '建设中',
-    desc: '纪检域参数（如考察/材料超期判定天数）——纪检委员可见可调，全站判定随参数生效。',
-    note: '规划：参数卡片编辑 + 生效范围说明。',
+    title: '域参数 · 纪检', batch: '批 4', badge: '',
+    desc: '纪检域参数（考察确认超期天数）——纪检委员可调，纪检台超期判定/书记台考察提醒随参数生效。',
+    note: '参数卡片编辑 + 恢复默认。',
   },
   'domain-org': {
-    title: '域参数 · 组织', batch: '批 4', badge: '建设中',
-    desc: '组织域参数（如发展党员学期滞留窗口等）——组织委员可见可调，全站流程随参数生效。',
-    note: '规划：参数卡片编辑 + 生效范围说明。',
+    title: '域参数 · 组织', batch: '批 4', badge: '',
+    desc: '组织域参数（学期末滞留集中复核窗口）——组织委员可调，书记待办提醒窗口与文案随参数生效。',
+    note: '参数卡片编辑 + 恢复默认。',
   },
   'domain-leader': {
-    title: '域参数 · 组长', batch: '批 4', badge: '建设中',
-    desc: '组长域参数（如学期报告提醒开关与学期制口径）——组长可见可调，组长工作台随参数生效。',
-    note: '规划：参数卡片编辑 + 生效范围说明。',
+    title: '域参数 · 组长', batch: '批 4', badge: '',
+    desc: '组长域参数（学期组员进展自动归集提醒开关）——组长可调，组长台开学周提醒随参数生效。',
+    note: '开关编辑 + 恢复默认。',
   },
   'party-staff-shortcut': {
     title: '支部治理 · 快捷块说明', batch: '批 3/4', badge: '建设中',
@@ -162,6 +164,13 @@ function renderPanel(panel) {
 
   if (_currentSectionId === 'branch-info-wizard' || _currentSectionId === 'branch-default-tab-order') {
     renderBranchGovSection(panel, _currentSectionId);
+    return;
+  }
+
+  // 批4（2026-09-09 书记批「域参数」）：支部制度参数（L3 锁定展示）+ 域参数三卡（L2 按角色可调）
+  if (_currentSectionId === 'branch-policy-params' || _currentSectionId === 'domain-disc'
+    || _currentSectionId === 'domain-org' || _currentSectionId === 'domain-leader') {
+    renderPolicySection(panel, _currentSectionId);
     return;
   }
 
@@ -727,6 +736,312 @@ function bindBranchOrderDnD(panel) {
   });
   list.addEventListener('drop', (e) => { if (!dragRow) return; e.preventDefault(); finishDrag(); });
   list.addEventListener('dragend', (e) => { if (e.target.closest('.myws-row')) finishDrag(); });
+}
+
+// ═══════════════ 批4 支部制度参数 + 域参数（policy 收编接线，2026-09-09 书记批）═══════════════
+// 分层：支部制度参数（L3）= 制度默认只读锁定展示（票决门槛/应到口径/会议考勤类型/记录人/标因），
+//   改须书记/党委裁决（本设置页不开放直改）；域参数（L2）= 纪检/组织/组长各自可见可调自己域，
+//   保存走 branch.savePolicyOverrides（白名单净化 + 角色守卫：书记/副/party-staff 全量、域负责人本域）。
+// 数据链：制度默认与输入默认值 = POLICY_DEFAULTS（工厂值，本页不注入覆盖 → 展示「制度默认」）；
+//   当前生效覆盖 = branch.config.policyOverrides；保存后写入 config（留痕同 configChangeHistory）。
+const DOMAIN_CARD_META = {
+  'domain-disc': { role: 'disc-commissioner', roleLabel: '纪检委员', section: 'inspection', sectionLabel: '纪检域' },
+  'domain-org': { role: 'org-commissioner', roleLabel: '组织委员', section: 'memberConfirmation', sectionLabel: '组织域' },
+  'domain-leader': { role: 'leader', roleLabel: '党小组组长', section: 'leader', sectionLabel: '组长域' },
+};
+const LOCKED_POLICY_ROLES = new Set(['secretary', 'deputy-secretary']); // 制度锁定展示 = 书记/副视角
+
+function policyEmptyHtml(title, text) {
+  return `<div class="settings-card"><h2 class="settings-card-title">${title}</h2><p class="settings-card-desc">${text}</p></div>`;
+}
+
+/** 统一入口：支部制度参数（书记/副）/ 域参数卡（域负责人）——可见角色不匹配给提示 */
+async function renderPolicySection(panel, sectionId) {
+  const seq = ++_govSeq;
+  const { role, personId } = _session;
+  if (!role || !personId) {
+    panel.innerHTML = policyEmptyHtml(SECTION_META[sectionId]?.title || '设置', '登录后可用。');
+    return;
+  }
+  if (sectionId === 'branch-policy-params') {
+    if (!LOCKED_POLICY_ROLES.has(role)) {
+      panel.innerHTML = policyEmptyHtml('支部制度参数', '支部书记 / 副书记（副书同权）可查看本区块；其它角色无此分组。');
+      return;
+    }
+  } else {
+    const meta = DOMAIN_CARD_META[sectionId];
+    if (!meta || role !== meta.role) {
+      panel.innerHTML = policyEmptyHtml(SECTION_META[sectionId]?.title || '域参数', '仅该域负责人登录后可见可调（可管则见）。');
+      return;
+    }
+  }
+  panel.innerHTML = policyEmptyHtml(SECTION_META[sectionId]?.title || '设置', '加载支部配置…');
+  try {
+    const br = await import('../services/branch.js?v=20260908d');
+    const id = br.getBranchIdOfPerson(personId);
+    const branch = br.getBranchById(id);
+    if (!branch) {
+      panel.innerHTML = policyEmptyHtml('支部治理', '未找到您所属支部——请先由党委在「支部管理」中确认归属。');
+      return;
+    }
+    if (seq !== _govSeq || _currentSectionId !== sectionId) return; // 已切区块
+    _govBranchId = id;
+    if (sectionId === 'branch-policy-params') {
+      panel.innerHTML = branchPolicyLockedCardHtml(branch);
+    } else {
+      const meta = DOMAIN_CARD_META[sectionId];
+      panel.innerHTML = domainCardHtml(meta, branch, POLICY_DEFAULTS);
+    }
+    bindPolicyPanel(panel);
+  } catch (e) {
+    console.warn('[settings] 支部制度/域参数加载失败', e);
+    if (seq === _govSeq) panel.innerHTML = policyEmptyHtml('支部治理', '加载失败，请刷新页面重试。');
+  }
+}
+
+// ── 支部制度参数（L3 锁定展示 · 书记/副视角）──────────────────────────
+function _quorumLabel() {
+  const t = POLICY_DEFAULTS.workforce.voteThreshold;
+  const strict = Math.round(t.quorum * 100);
+  return `应到会人数严格超过 ${strict}%（出席/应到 > ${t.quorum === 2 / 3 ? '2/3' : strict + '%'}），且无反对（异议/反对均否决；弃权计出席不计赞否）`;
+}
+
+function _rosterLabel() {
+  const r = POLICY_DEFAULTS.attendance.roster;
+  const stages = (r.partyStages || []).join(' + ');
+  return `${stages}（组织关系在册）· ${r.excludeDetained ? '剔除滞留党员' : '含滞留党员'}；党课列席（积极分子/发展对象）不计应到`;
+}
+
+function _recorderLabel() {
+  const m = POLICY_DEFAULTS.attendance.recorderByType || {};
+  const parts = Object.entries(m).map(([type, roles]) => {
+    const names = roles.map(rc => ({ secretary: '书记', 'deputy-secretary': '副书记', 'disc-commissioner': '纪检', leader: '组长' }[rc] || rc)).join('/');
+    return `${type}→${names}`;
+  });
+  return parts.join('；') + '（主题党日等组织者位活动：记录人=该活动组织者）';
+}
+
+function branchPolicyLockedCardHtml(branch) {
+  const { role } = _session;
+  const roleLabel = role === 'deputy-secretary' ? '副书记' : '书记';
+  const meetingChips = (POLICY_DEFAULTS.attendance.meetingTypes || []).map(t =>
+    `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-[var(--app-accent-bg)] text-[var(--app-accent)] border border-[var(--app-accent-border)] whitespace-nowrap">${esc(t)}</span>`).join('');
+  const reasonChips = (POLICY_DEFAULTS.attendance.reasons || []).map(r =>
+    `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-50 text-gray-600 border border-gray-200 whitespace-nowrap">${esc(r.label)}</span>`).join('');
+  const rows = [
+    ['票决通过门槛', _quorumLabel()],
+    ['会议应到口径', _rosterLabel()],
+    ['会议考勤类型', `<span class="flex flex-wrap gap-1.5 pt-0.5">${meetingChips}</span>`],
+    ['考勤记录人', _recorderLabel()],
+    ['请假/缺席标因', `<span class="flex flex-wrap gap-1.5 pt-0.5">${reasonChips}</span>`],
+  ].map(([k, v]) => `<div class="settings-kv-row"><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join('');
+  return `
+    <div class="settings-card">
+      <div class="settings-card-head">
+        <h2 class="settings-card-title">支部制度参数</h2>
+        <span class="settings-badge">${esc(roleLabel)} · 本支部</span>
+      </div>
+      <p class="settings-card-desc">支部级制度参数的「制度默认」集中展示（数据单一源 = policy-defaults）。本页不开放直改：制度刚性锁定，如需按支部调整须书记/党委裁决后在系统层变更。</p>
+      <dl class="settings-kv">${rows}</dl>
+      <div class="settings-note" style="margin-top:14px;">
+        <span class="settings-note-dot"></span>
+        制度刚性锁定 · 改须党委/书记裁决。上方展示值即当前支部现行口径（含开源部署调整面，均不在本页直改）。
+      </div>
+      <div class="myws-hint">
+        <b>支部制度可调参数：暂无。</b>当前 policy 覆盖白名单（POLICY_OVERRIDABLE）内均为「域参数（L2）」，归纪检 / 组织 / 组长各自在左栏「域参数」卡中调整；制度项若后续被书记/党委裁决放开为支部可调，将在本区出现并登记白名单——后续按裁决扩展。
+      </div>
+    </div>`;
+}
+
+// ── 域参数卡（L2 编辑 · 纪检/组织/组长各自可见）───────────────────────
+function _overridesOf(branch) {
+  const po = branch?.config?.policyOverrides;
+  return (po && typeof po === 'object' && !Array.isArray(po)) ? po : {};
+}
+
+function domainCardHtml(meta, branch, P) {
+  const po = _overridesOf(branch);
+  const hasOverride = !!po[meta.section];
+  const statusHtml = `<p class="myws-status" data-pol-status aria-live="polite"></p>`;
+  if (meta.section === 'inspection') {
+    const def = P.inspection.overdueDays;
+    const cur = (Number.isInteger(po.inspection?.overdueDays) ? po.inspection.overdueDays : def);
+    return `
+      <div class="settings-card">
+        <div class="settings-card-head">
+          <h2 class="settings-card-title">域参数 · 纪检</h2>
+          <span class="settings-badge">${esc(meta.roleLabel)} 可调</span>
+        </div>
+        <p class="settings-card-desc">考察记录「超期未确认」判定天数。保存后：纪检台「考察总表」超期提醒与文案、书记台「考察超期未确认」提醒 deadline 同源生效。</p>
+        <div class="settings-kv-row">
+          <dt>考察确认超期</dt>
+          <dd>
+            <label class="flex items-center gap-2">
+              <span class="text-xs text-gray-600">超过</span>
+              <input type="number" id="pol-inp-disc-days" class="input-flat text-xs w-20 text-center" min="1" max="90" value="${cur}" inputmode="numeric">
+              <span class="text-xs text-gray-600">天未确认判超期</span>
+            </label>
+            <div class="text-[11px] text-gray-400 mt-1">范围 1–90 天；默认 ${def} 天（制度默认）。当前${hasOverride ? '已按本支部覆盖值生效' : '= 制度默认'}。</div>
+          </dd>
+        </div>
+        <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
+          <button type="button" class="bws-btn-primary bws-btn-primary-sm" data-pol-save="domain-disc">保存</button>
+          <button type="button" class="myws-btn-ghost" data-pol-reset="domain-disc" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
+        </div>
+        ${statusHtml}
+      </div>`;
+  }
+  if (meta.section === 'memberConfirmation') {
+    const def = P.memberConfirmation.semesterDetainedWindows;
+    const cur = Array.isArray(po.memberConfirmation?.semesterDetainedWindows) && po.memberConfirmation.semesterDetainedWindows.length
+      ? po.memberConfirmation.semesterDetainedWindows : def;
+    const win = (idx) => cur[idx] || [6, 15, 7, 15];
+    const w1 = win(0); const w2 = win(1);
+    const pad = (v) => String(v).padStart(2, '0');
+    const winLabel = (w, cross) => `${pad(w[0])}-${pad(w[1])} ～ ${cross ? '次年 ' : ''}${pad(w[2])}-${pad(w[3])}`;
+    const num = (v, id) => `<input type="number" id="${id}" class="input-flat text-xs w-16 text-center" min="1" max="31" value="${v}" inputmode="numeric">`;
+    return `
+      <div class="settings-card">
+        <div class="settings-card-head">
+          <h2 class="settings-card-title">域参数 · 组织</h2>
+          <span class="settings-badge">${esc(meta.roleLabel)} 可调</span>
+        </div>
+        <p class="settings-card-desc">学期末滞留集中复核提醒窗口（每年两段：每学期末集中复核在册滞留）。保存后：书记台「学期末滞留集中复核」提醒窗口与文案同源生效。</p>
+        <div class="space-y-3">
+          <div class="settings-kv-row">
+            <dt>区间 1</dt>
+            <dd class="flex items-center gap-1.5 flex-wrap">
+              ${num(w1[0], 'pol-org-1-sm')}<span class="text-xs text-gray-400">月</span>${num(w1[1], 'pol-org-1-sd')}<span class="text-xs text-gray-400">日 ～</span>
+              ${num(w1[2], 'pol-org-1-em')}<span class="text-xs text-gray-400">月</span>${num(w1[3], 'pol-org-1-ed')}<span class="text-xs text-gray-400">日</span>
+              <span class="text-[11px] text-gray-400">默认 ${winLabel(def[0] || w1, false)}</span>
+            </dd>
+          </div>
+          <div class="settings-kv-row">
+            <dt>区间 2</dt>
+            <dd class="flex items-center gap-1.5 flex-wrap">
+              ${num(w2[0], 'pol-org-2-sm')}<span class="text-xs text-gray-400">月</span>${num(w2[1], 'pol-org-2-sd')}<span class="text-xs text-gray-400">日 ～</span>
+              ${num(w2[2], 'pol-org-2-em')}<span class="text-xs text-gray-400">月（次年）</span>${num(w2[3], 'pol-org-2-ed')}<span class="text-xs text-gray-400">日</span>
+              <span class="text-[11px] text-gray-400">默认 ${winLabel(def[1] || w2, true)}（止月小于起月 = 跨年）</span>
+            </dd>
+          </div>
+        </div>
+        <div class="text-[11px] text-gray-400 mt-1">月 1–12、日 1–31；共两段窗口。当前${hasOverride ? '已按本支部覆盖值生效' : '= 制度默认'}。</div>
+        <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
+          <button type="button" class="bws-btn-primary bws-btn-primary-sm" data-pol-save="domain-org">保存</button>
+          <button type="button" class="myws-btn-ghost" data-pol-reset="domain-org" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
+        </div>
+        ${statusHtml}
+      </div>`;
+  }
+  // leader
+  const defOn = !!P.leader.semesterReportReminder?.enabled;
+  const curOn = typeof po.leader?.semesterReportReminder?.enabled === 'boolean' ? po.leader.semesterReportReminder.enabled : defOn;
+  return `
+    <div class="settings-card">
+      <div class="settings-card-head">
+        <h2 class="settings-card-title">域参数 · 组长</h2>
+        <span class="settings-badge">${esc(meta.roleLabel)} 可调</span>
+      </div>
+      <p class="settings-card-desc">学期组员进展自动归集提醒：每学期开学周（3 月 / 9 月首周）在组长工作台提醒一次「逐人归集本组组员进展」。频率固定学期制。</p>
+      <div class="settings-kv-row">
+        <dt>学期提醒</dt>
+        <dd>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="pol-leader-enabled" class="w-4 h-4 accent-[var(--app-accent,#B91C1C)]" ${curOn ? 'checked' : ''}>
+            <span class="text-xs text-gray-700">开启「学期组员进展归集提醒」（默认开）</span>
+          </label>
+          <div class="text-[11px] text-gray-400 mt-1">频率：每学期（3 月 / 9 月开学首周提醒一次；首次查看后本学期不再重复弹）。当前${hasOverride ? '已按本支部覆盖值生效' : '= 制度默认（开）'}。</div>
+        </dd>
+      </div>
+      <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
+        <button type="button" class="bws-btn-primary bws-btn-primary-sm" data-pol-save="domain-leader">保存</button>
+        <button type="button" class="myws-btn-ghost" data-pol-reset="domain-leader" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
+      </div>
+      ${statusHtml}
+    </div>`;
+}
+
+function showPolicyStatus(panel, msg, isErr = false) {
+  const el = panel.querySelector('[data-pol-status]');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.toggle('is-err', isErr);
+  clearTimeout(el._polT);
+  el._polT = setTimeout(() => { el.textContent = ''; }, 3600);
+}
+
+/** 读域卡当前输入 → 保存 patch（非法输入给出提示并返回 null） */
+function _readDomainPatch(meta, panel) {
+  if (meta.section === 'inspection') {
+    const el = panel.querySelector('#pol-inp-disc-days');
+    const days = el ? parseInt(el.value, 10) : NaN;
+    if (!Number.isInteger(days) || days < 1 || days > 90) {
+      showPolicyStatus(panel, '请输入 1–90 之间的整数天数。', true);
+      return null;
+    }
+    return { inspection: { overdueDays: days } };
+  }
+  if (meta.section === 'memberConfirmation') {
+    const read = (id) => {
+      const el = panel.querySelector('#' + id);
+      const v = el ? parseInt(el.value, 10) : NaN;
+      return Number.isInteger(v) ? v : NaN;
+    };
+    const names = [['pol-org-1-sm', 'pol-org-1-sd', 'pol-org-1-em', 'pol-org-1-ed'], ['pol-org-2-sm', 'pol-org-2-sd', 'pol-org-2-em', 'pol-org-2-ed']];
+    const windows = names.map(ids => ids.map(read));
+    for (const [sm, sd, em, ed] of windows) {
+      if (!(sm >= 1 && sm <= 12 && em >= 1 && em <= 12 && sd >= 1 && sd <= 31 && ed >= 1 && ed <= 31)) {
+        showPolicyStatus(panel, '窗口请填合法月日：月 1–12、日 1–31。', true);
+        return null;
+      }
+    }
+    return { memberConfirmation: { semesterDetainedWindows: windows } };
+  }
+  const el = panel.querySelector('#pol-leader-enabled');
+  return { leader: { semesterReportReminder: { enabled: !!el && el.checked } } };
+}
+
+/** 统一动作：保存 / 恢复默认（走 branch.savePolicyOverrides；完成后重绘本卡并给状态） */
+async function runPolicyAction(panel, cardId, action) {
+  const meta = DOMAIN_CARD_META[cardId];
+  const { role, personId } = _session;
+  if (!meta || !personId) return;
+  const patch = action === 'reset'
+    ? { [meta.section]: null }
+    : _readDomainPatch(meta, panel);
+  if (action === 'save' && !patch) return; // 输入非法已提示
+  const seq = ++_govSeq;
+  try {
+    const br = await import('../services/branch.js?v=20260908d');
+    const res = await br.savePolicyOverrides(_govBranchId, patch, { actor: { personId, role } });
+    if (!res.ok) {
+      if (_currentSectionId === cardId) showPolicyStatus(panel, res.reason || '保存失败（无权限或参数非法）。', true);
+      return;
+    }
+    if (_currentSectionId !== cardId || seq !== _govSeq) return;
+    // 重绘本卡（刷新「恢复默认」可用态），再给状态文案
+    const branch = br.getBranchById(_govBranchId);
+    panel.innerHTML = domainCardHtml(meta, branch, POLICY_DEFAULTS);
+    bindPolicyPanel(panel);
+    showPolicyStatus(panel, action === 'reset'
+      ? '已恢复该域默认 —— 全站判定回到制度默认值。'
+      : (res.changed ? '已保存 —— 全站判定随参数生效（成员工作台下次加载即用）。' : '数值与当前一致，无需保存。'));
+  } catch (e) {
+    console.warn('[settings] 域参数保存失败', e);
+    if (_currentSectionId === cardId) showPolicyStatus(panel, '保存失败，请刷新后重试。', true);
+  }
+}
+
+/** 域参数卡/制度卡的面板级委托（保存/恢复默认；面板持久，绑定一次） */
+function bindPolicyPanel(panel) {
+  if (panel._polBound) return;
+  panel._polBound = true;
+  panel.addEventListener('click', (e) => {
+    const saveBtn = e.target.closest('button[data-pol-save]');
+    if (saveBtn) { runPolicyAction(panel, saveBtn.dataset.polSave, 'save'); return; }
+    const resetBtn = e.target.closest('button[data-pol-reset]');
+    if (resetBtn) { runPolicyAction(panel, resetBtn.dataset.polReset, 'reset'); }
+  });
 }
 
 function renderHeaderArea(subEl) {

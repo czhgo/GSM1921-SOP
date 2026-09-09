@@ -7,6 +7,8 @@ import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord
 import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260908d';
 import { getPersonName } from '../../../services/person.js?v=20260908d';
 import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260908d';
+// P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260908d';
 import { badgeHtml } from '../../../components/badges.js?v=20260908d';
 import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260908d';
 import { HandoffStore } from '../../../services/handoff.js?v=20260908d';
@@ -18,9 +20,10 @@ export function renderContent(ctx) {
   const allRecords = loadActiveInspectionRecords();
   const longData = inspectionToLong(allRecords);
   const wideData = inspectionToWide(allRecords);
-  const overdueRecords = getOverdueRecords(7);
+  const overdueRecords = getOverdueRecords(); // 缺省阈值 = POLICY_DEFAULTS.inspection.overdueDays（批4 单一源）
   const tagColor = { 'activity': 'bg-blue-50 text-blue-600', 'taskforce': 'bg-green-50 text-green-600' };
   const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-orange-100 text-orange-700', 'overdue': 'bg-red-100 text-red-700' };
+  const overdueDays = POLICY_DEFAULTS.inspection.overdueDays; // 超期文案天数（批4 单一源派生）
 
   // 超期提醒
   const overdueHtml = overdueRecords.length > 0 ? `
@@ -29,7 +32,7 @@ export function renderContent(ctx) {
         <span class="text-xs font-bold text-red-700">超期提醒</span>
         ${badgeHtml(`${overdueRecords.length}条`, 'danger')}
       </div>
-      <div class="text-xs text-red-600">以下考察记录已超过7天未确认，请尽快处理</div>
+      <div class="text-xs text-red-600">以下考察记录已超过${overdueDays}天未确认，请尽快处理</div>
     </div>
   ` : '';
 

@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  secretary-overview.js — 书记全局概况服务层
 //  四维度信息面板：考勤与纪律 / 发展与考察 / 活动与专班进度 / 宣传与档案
@@ -19,6 +19,10 @@ import { PEOPLE } from '../mock/index.js?v=20260908d';
 import { getPersonById } from './person.js?v=20260908d';
 import { ROLE_LABELS } from '../core/constants.js?v=20260908d';
 import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260908d';
+// 批4（2026-09-09 书记批「域参数」副本收编）：本文件 4 组提醒阈值/deadline 一律引 policy 单一源派生，
+// 勿再写字面量（attendance.entryRemindDays/summaryDeadlineDays · inspection.overdueDays ·
+// review.overdueDays/deadlineDays——读侧注入后自动跟随域覆盖值）
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260908d';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数
@@ -409,7 +413,7 @@ export const SecretaryTodoDeriver = {
     }];
   },
 
-  // ── 提醒类1：活动结束>3天且无考勤记录 ────────────────────
+  // ── 提醒类1：活动结束超录入提醒阈值且无考勤记录（天数=policy attendance.entryRemindDays） ──
   _aggAttendanceRemind() {
     const activities = loadActivities();
     const attendances = loadAttendanceRecords();
@@ -429,16 +433,22 @@ export const SecretaryTodoDeriver = {
     };
     const gaps = activities.filter(a =>
       (a.status === 'completed' || a.archived) && a.date &&
-      _daysBetween(a.date, today) > 3 &&
+      _daysBetween(a.date, today) > POLICY_DEFAULTS.attendance.entryRemindDays &&
       !hasRecords(a.id)
     );
     return this._mkGroup('attendance-remind', '考勤待录入', TodoCategory.REVIEW, TodoActionType.REVIEW,
-      '活动结束>3天未录入考勤 → 纪检确认 → 考勤总表',
-      gaps.map(a => ({ id: a.id, activityId: a.id, name: a.title, date: a.date, deadline: _addDays(a.date, 5) })),
+      `活动结束>${POLICY_DEFAULTS.attendance.entryRemindDays}天未录入考勤 → 纪检确认 → 考勤总表`,
+      gaps.map(a => ({
+        id: a.id,
+        activityId: a.id,
+        name: a.title,
+        date: a.date,
+        deadline: _addDays(a.date, POLICY_DEFAULTS.attendance.summaryDeadlineDays),
+      })),
       'remind');
   },
 
-  // ── 提醒类2：考察记录超期未确认（>7天） ─────────────────
+  // ── 提醒类2：考察记录超期未确认（> inspection.overdueDays 天，policy 单一源） ─────
   _aggInspectionRemind() {
     const overdue = getOverdueRecords();
     const items = overdue.map(r => ({
@@ -446,13 +456,14 @@ export const SecretaryTodoDeriver = {
       inspectionId: r.id,
       name: (getPersonById(r.personId) || {}).name || r.personId,
       date: r.recordedAt ? r.recordedAt.slice(0, 10) : null,
-      deadline: _addDays(r.recordedAt ? r.recordedAt.slice(0, 10) : _today(), 7),
+      // 批4：deadline 引 policy 单一源（与纪检台超期判定同源，随域覆盖变化）
+      deadline: _addDays(r.recordedAt ? r.recordedAt.slice(0, 10) : _today(), POLICY_DEFAULTS.inspection.overdueDays),
     }));
     return this._mkGroup('inspection-remind', '考察超期未确认', TodoCategory.REVIEW, TodoActionType.REVIEW,
       '纪检录入考察 → 确认 → 组织建档 → 人才库', items, 'remind');
   },
 
-  // ── 提醒类3：活动结束>7天且无复盘 ──────────────────────
+  // ── 提醒类3：活动结束 > review.overdueDays 天且无复盘（policy 单一源） ───────
   _aggReviewRemind() {
     const activities = loadActivities();
     const reviews = loadActivityReviews();
@@ -460,11 +471,17 @@ export const SecretaryTodoDeriver = {
     const reviewedIds = new Set(reviews.map(r => r.activityId));
     const gaps = activities
       .filter(a => (a.status === 'completed' || a.archived) && a.date)
-      .filter(a => _daysBetween(a.date, today) > 7)
+      .filter(a => _daysBetween(a.date, today) > POLICY_DEFAULTS.review.overdueDays)
       .filter(a => !reviewedIds.has(a.id));
     return this._mkGroup('review-remind', '复盘待提交', TodoCategory.SUBMIT, TodoActionType.SUBMIT,
       '活动完成 → 组织者提交复盘 → 纪检批注/确认',
-      gaps.map(a => ({ id: a.id, activityId: a.id, name: a.title, date: a.date, deadline: _addDays(a.date, 10) })),
+      gaps.map(a => ({
+        id: a.id,
+        activityId: a.id,
+        name: a.title,
+        date: a.date,
+        deadline: _addDays(a.date, POLICY_DEFAULTS.review.deadlineDays),
+      })),
       'remind');
   },
 

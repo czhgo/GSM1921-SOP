@@ -35,7 +35,8 @@ import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulk
 import { tryDirectJump } from '../../../components/todo-jump.js?v=20260908d';
 import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260908d';
 // C 批 附录⑩ S4：名册确权复核（组织委员发起 → 书记确认/退回）+ 学期末滞留集中复核提醒
-import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, MC_ACTION_LABEL } from '../../../services/member-confirmation.js?v=20260908d';
+// 批4（2026-09-09）：窗口判定与窗口文案单一源 = policy（memberConfirmation.semesterDetainedWindows）
+import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member-confirmation.js?v=20260908d';
 import { getDetainedMembers, getResidenceOf } from '../../../services/roster.js?v=20260908d';
 import { AuthStore } from '../../../services/auth.js?v=20260908d';
 import { openModal, closeModal } from '../../../components/modal.js?v=20260908d';
@@ -332,7 +333,8 @@ function _semesterRemindAgg() {
     domain: REALTIME_GROUP_DOMAIN['semester-detained-remind'],
     title: '学期末滞留集中复核',
     category: TodoCategory.REVIEW,
-    flow: '学期末窗口提醒（6/15–7/15、12/15–次年1/15）：请集中复核在册滞留名单',
+    // 批4：窗口文案由 policy 单一源派生（semesterDetainedWindowsLabel；含组织域覆盖后的动态窗口）
+    flow: `学期末窗口提醒（${semesterDetainedWindowsLabel()}）：请集中复核在册滞留名单`,
     kind: 'remind',
     count: detained.length,
     items: detained.map(p => {

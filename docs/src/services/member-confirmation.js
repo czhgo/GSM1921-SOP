@@ -14,13 +14,17 @@
 // 读链不匿名：人员档案移除走后 PersonStore.removeMember 以对象形态记 removedIds
 //   （含 id+name+removedAt+decidedBy+transferOut），getName/getPersonName 移出后仍可解析姓名；
 //   isTransferredOut 供读链 UI 标「已转出」。
-// 纯 ESM：仅依赖 person / roster / org-base-data-preview（无 DOM；localStorage 惰性访问）。
+// 纯 ESM：仅依赖 core(policy-defaults/domain/data-adapter/version-token) + person / roster /
+// org-base-data-preview（无 DOM；localStorage 惰性访问）。
 // 单测：server/test/member-confirmation.test.mjs
 // ════════════════════════════════════════════════════════════════
 
 import { mockDB } from '../core/domain.js?v=20260908d';
 import { persist } from '../core/data-adapter.js?v=20260908d';
 import { bumpToken } from '../core/version-token.js?v=20260908d'; // P0 域缓存失效（spec §二.3）
+// 批4（2026-09-09 书记批「域参数」）：滞留复核窗口单一源 = policy memberConfirmation.semesterDetainedWindows
+// （原本文件 :533 硬编码 615/715/1215 迁出；组织委员可经设置中心覆盖，判定随窗口变化）
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260908d';
 import { PersonStore, findRemovedRecord } from './person.js?v=20260908d';
 import { RESIDENCE, getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260908d';
 // 发展阶段枚举单一源（静态种子派生，禁造新枚举）
@@ -519,7 +523,8 @@ export function isTransferredOut(personId) {
 }
 
 /**
- * 学期末滞留集中复核提醒窗口（每学期末一次）：当前日期 ∈ [06-15..07-15] ∪ [12-15..次年 01-15]
+ * 学期末滞留集中复核提醒窗口（每学期末一次）：当前日期 ∈ 任一复核窗（policy 单一源 =
+ * memberConfirmation.semesterDetainedWindows，每窗 [起月,起日,止月,止日]，止月<起月=跨次年）
  * 且存在在册滞留成员（getDetainedMembers 非空）。日期可注入（单测用），缺省 = 系统当前时间。
  * @param {Date|string|number} [now]
  * @returns {boolean}
@@ -530,7 +535,30 @@ export function shouldShowSemesterDetainedRemind(now = new Date()) {
   const month = d.getMonth() + 1;
   const day = d.getDate();
   const md = month * 100 + day;
-  const inWindow = (md >= 615 && md <= 715) || md >= 1215 || (month === 1 && day <= 15);
+  const windows = POLICY_DEFAULTS.memberConfirmation.semesterDetainedWindows;
+  const inWindow = Array.isArray(windows) && windows.some(w => {
+    if (!Array.isArray(w) || w.length !== 4) return false;
+    const [sm, sd, em, ed] = w;
+    const s = (sm * 100) + sd;
+    const e = (em * 100) + ed;
+    return s <= e ? (md >= s && md <= e) : (md >= s || md <= e);
+  });
   if (!inWindow) return false;
   return Array.isArray(getDetainedMembers()) && getDetainedMembers().length > 0;
+}
+
+/**
+ * 滞留复核窗口人类可读文案（如 '6/15–7/15、12/15–次年1/15'）；windows 缺省 = 当前有效值
+ * （读侧注入后可随组织域覆盖变化）。消费点：书记待办「学期末滞留集中复核」flow 文案等。
+ * @param {Array<[number,number,number,number]>} [windows]
+ * @returns {string}
+ */
+export function semesterDetainedWindowsLabel(windows = POLICY_DEFAULTS.memberConfirmation.semesterDetainedWindows) {
+  if (!Array.isArray(windows) || !windows.length) return '';
+  return windows.map(w => {
+    if (!Array.isArray(w) || w.length !== 4) return '';
+    const [sm, sd, em, ed] = w;
+    const cross = (sm * 100 + sd) > (em * 100 + ed); // 止于次年
+    return `${sm}/${sd}–${cross ? '次年' : ''}${em}/${ed}`;
+  }).filter(Boolean).join('、');
 }
