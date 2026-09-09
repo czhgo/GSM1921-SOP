@@ -53,7 +53,7 @@ export const FUNCTION_CATALOG = [
   { id: 'help', name: '帮助（本页）', group: '公共', role: 'public', desc: '系统说明书：0–7 章（入口速查 / 快速上手 / 角色工作台导览 / 域手册 / 业务链路 / 党委与配置 / 这个系统在干什么 / 技术架构）+ 页顶搜索 + 功能总览', usage: '侧边栏 → 帮助', related: ['about'], generic: true, kind: 'feature' },
   { id: 'about', name: '关于', group: '公共', role: 'public', desc: '项目介绍与叙事', usage: '侧边栏 → 关于（静态托管形态）', related: ['help'], generic: true, kind: 'feature' },
   // ══════════ 角色工作台 ══════════
-  { id: 'ws-secretary', name: '书记工作台', group: '角色工作台', role: 'secretary', desc: '今天/待办/全局概况/活动管理/支部分工/赋权管理/支部配置/通知发布/专班查看/反馈管理/上报党委（11 tab，副书记共台）', usage: '登录 → 书记工作台（书记/副书记）', related: ['activity-create', 'assign', 'notification', 'todo'], generic: true, kind: 'feature' },
+  { id: 'ws-secretary', name: '书记工作台', group: '角色工作台', role: 'secretary', desc: '今天/待办/全局概况/活动管理/支部分工/赋权管理/通知发布/专班查看/党小组进展/反馈管理/上报党委（11 tab，副书记共台；支部治理收口于设置中心「支部治理」）', usage: '登录 → 书记工作台（书记/副书记）', related: ['activity-create', 'assign', 'notification', 'todo'], generic: true, kind: 'feature' },
   { id: 'ws-org', name: '组织委员工作台', group: '角色工作台', role: 'org', desc: '今天/待办/工作概况/考察上传/思想汇报初阅/专班管理/成员名册/人才库/发展数据/活动查看/我的处置（11 tab；思想汇报初阅前移——D8 裁决批二 2026-09-08）', usage: '登录 → 组织委员工作台', related: ['taskforce-recruit', 'development', 'talent', 'thought-report', 'todo'], generic: true, kind: 'feature' },
   { id: 'ws-prop', name: '宣传委员工作台', group: '角色工作台', role: 'prop', desc: '今天/待办/工作概况/宣传任务/项目看板/周报报送/档案归档/我的处置（8 tab）', usage: '登录 → 宣传委员工作台', related: ['tasks', 'branch-doc', 'weekly', 'archive', 'todo'], generic: true, kind: 'feature' },
   { id: 'ws-disc', name: '纪检委员工作台', group: '角色工作台', role: 'disc', desc: '今天/待办/工作概况/考勤管理/活动监督复盘/考察管理/公邮管理/补课制度/专班查看/我的处置（10 tab；补课制度后移——D8 裁决批二 2026-09-08）', usage: '登录 → 纪检委员工作台', related: ['attendance-mgmt', 'makeup', 'mailbox', 'review', 'todo'], generic: true, kind: 'feature' },
@@ -75,7 +75,7 @@ export const FUNCTION_CATALOG = [
   { id: 'flow-makeup', name: '补课回写链路', group: '党建', desc: '纪检记录缺勤 → 生成补课任务 → 成员完成 → 考勤回写/逾期清除', related: ['makeup', 'attendance-mgmt'], generic: false, kind: 'flow' },
   { id: 'flow-thought-report', name: '思想汇报链路', group: '党建', desc: '党员提交 → 组织委员把关式初阅（通过归档 / 退回附意见重交）→ 归集个人档案', related: ['thought-report', 'talent'], generic: true, kind: 'flow' },
   // ══════════ 架构（kind: arch） ══════════
-  { id: 'arch-layers', name: '架构分层', group: '公共', desc: '前台 18 页（11 根 + 7 工作台） → 中台 entries/components/core → 服务层 services/mock → 后端 server/API → 母本 sop', related: ['arch-service-deps', 'arch-data-flow'], generic: true, kind: 'arch' },
+  { id: 'arch-layers', name: '架构分层', group: '公共', desc: '前台 19 页（12 根 + 7 工作台） → 中台 entries/components/core → 服务层 services/mock → 后端 server/API → 母本 sop', related: ['arch-service-deps', 'arch-data-flow'], generic: true, kind: 'arch' },
   { id: 'arch-service-deps', name: '服务依赖', group: '公共', desc: '服务模块调用关系（activity → attendance → review → todo）', related: ['arch-layers'], generic: true, kind: 'arch' },
   { id: 'arch-data-flow', name: '数据变更链路', group: '公共', desc: '制度母本 → 服务层 → 入口层 → 页面；UI 禁止直改数据源', related: ['arch-layers'], generic: true, kind: 'arch' },
 ];
