@@ -385,6 +385,19 @@ AI 对书记原话的展开，目标是**吃透书记精神后用自己的语言
 - **mockDB**：浏览器端「模拟数据库」对象（演示/无后端形态可用）——数据读写统一收敛于 [mock.js](../../docs/src/services/mock.js)（对象定义于 [domain.js](../../docs/src/core/domain.js)，持久化由 `core/mock-adapter.js` 承担），勿绕过该层直接改数据
 - **CLAUDE.md（harness 文件名惯例）**：仓库约定「给 AI 的主指令文件」固定命名为 CLAUDE.md（根目录一份；harness = 规则/工作流骨架，分甲/乙/丙三部）；「CLAUDE.md Hxx / T-xxx」即指该文件的编号条款（[CLAUDE.md](../../CLAUDE.md)）
 
+> **2026-09-09 批4 补录**（支部 config 颗粒度分层相关黑话，随 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md) 起草 · DRAFT 待书记审定）：
+
+- **L2-L3 配置层**：支部 config **写权颗粒度分层**——L2 = 支部可在线调的域参数层（policyOverrides）；L3 = 制度刚性只读锁定层（制度默认展示位）——⚠️ **与「L1-L4 阶段号」非同一编号体系**（后者 = 工作流「代码化→拖拽化」演进层号）；写权矩阵与词条收口见 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)
+- **kind**：`policy-defaults.js` 每个业务默认键上的**类别标注字段**（取值 `branch-default` / `institutional`，附出处编号 + 消费点）——业务层一律引用派生导出，不在别处新写字面量（[policy-defaults.js](../../docs/src/core/policy-defaults.js)）
+- **branch-default**：kind 值之一 = **支部默认值**（源码单一源，开源部署可按支部制度调整）——**不自动进设置可调**（当前形态走换壳工作单源码改）；登记 `POLICY_OVERRIDABLE` 者升级为「域参数（L2）」可经 UI 覆盖
+- **institutional**：kind 值之一 = **制度裁决固定**项（考勤记录人 / 请假缺席标因 / 上传位例外等）——不因支部而异，改须党委/书记裁决后源码层变更
+- **域参数（L2）**：登记于 `POLICY_OVERRIDABLE` 白名单、可经设置「域参数」卡 UI 覆盖的支部参数——现状三键：纪检考察超期（`inspection.overdueDays`）/ 组织滞留集中复核窗（`memberConfirmation.semesterDetainedWindows`）/ 组长学期提醒开关（`leader.semesterReportReminder.enabled`）；写权 = 域负责人仅本域、书记/副书记/党委组织员全量；读侧注入 `POLICY_DEFAULTS`，全站判定随参数生效
+- **支部制度参数**：设置 → 支部治理「支部制度参数」卡（书记/副书记视角）——票决门槛 / 应到口径 / 会议考勤类型 / 记录人 / 标因的**制度默认只读展示区**（数据单一源 = policy-defaults）
+- **制度默认（展示位）**：policy-defaults 各键在设置页只读列出的「现行口径」展示值（含域参数默认行）——**展示层无写权**，界面值随源码默认/覆盖变化
+- **制度刚性（锁定）**：L3 制度项（票决门槛 / 应到口径 / 会议类型 / 记录人 / 标因）在设置页**只读锁定展示、不开放直改**——改须书记/党委裁决后在系统层变更（[settings-entry.js](../../docs/src/entries/settings-entry.js) 批4 分层注释同口径）
+- **POLICY_OVERRIDABLE**：域参数覆盖**白名单**（`policy-defaults.js` 导出数组，每项 = path/type/钳制范围/domain 域节）——**只定义于 policy-defaults**，config-clean 为其唯一净化消费方；白名单 = 可经 UI 覆盖的域参数全集，白名单外一律不可经 UI 写
+- **换壳工作单**：换组织向导步骤④生成下载的 Markdown——「已完成配置摘要 + 待手动替换仓库文件清单 + 验证点」；向导①②③ 在线可改已即时写入 config，仓库文件内容（mock 数据 / constants / 权限矩阵 / 术语 / 制度 SOP / 配色固定令牌 / policy-defaults 未登记项）一律出工作单**人工替换、不经设置页**（[org-wizard-report.js](../../docs/src/services/org-wizard-report.js)）
+
 > **用词纪律（2026-09-05 起）**：新文档/文件名用词先自查本节；工程层文件名禁用内部代号（行业词按行业全称或规范名使用，自造词不得作文件名）。
 
 ---

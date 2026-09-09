@@ -2,7 +2,7 @@
 title: "系统角色权限矩阵（代码键级权威）"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-05"
+last_updated: "2026-09-09"
 status: active
 related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 ---
@@ -130,8 +130,25 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 - **Y(导入)** 表示仅限从其他来源导入（不能直接记录原始数据）
 - **Y\*** 表示原则上有此权限，但业务上一般不使用
 
+## 9h. 支部 config 写权（config 颗粒度分层 · 2026-09-09 DRAFT 待书记审定）
+
+> **定位与键级说明**：支部 config（branches.config 各域）写权**未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与建档/监督/导入等操作位限定同理，不硬凑缺键）；守卫同口径在 `services/branch.js`（`updateBranchModules` / `updateBranchBlocks` / `updateBranchWorkforce` / `updateBranchOrg` / `savePolicyOverrides` / `canManagePolicyOverrides`）与 server `PATCH /branches/:id/config`（resources.js：fullRights = party-staff / 本支部现任书记 / 本支部副书记；域负责人仅本域 policyOverrides）。颗粒度矩阵与词条收口见 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)。
+
+| 角色 | config.modules/blocks | config.workforce | org 档案（headerTitle/desc/themePreset） | 域参数 policyOverrides（L2） | 顶层治理字段 name/type/secretaryId/status |
+|---|:---:|:---:|:---:|:---:|:---:|
+| party-staff（党委组织员，组织级） | Y（全支部） | Y（全支部） | Y（全支部；含 name 同步） | Y（全量） | **Y（唯一可写）** |
+| 现任书记（本支部） | Y | Y（日常 = 支委会议题 M2 表决落库；换壳/部署 = 向导③直写） | Y（**不含 name**） | Y（全量） | -- |
+| 现任副书记（本支部 · 副书同权 2026-09-09） | Y | Y（同上） | Y（**不含 name**） | Y（全量） | -- |
+| 纪检委员（本支部） | -- | -- | -- | Y（仅 `inspection` 节） | -- |
+| 组织委员（本支部） | -- | -- | -- | Y（仅 `memberConfirmation` 节） | -- |
+| 党小组组长（本支部） | -- | -- | -- | Y（仅 `leader` 节） | -- |
+| 其余角色（宣传委员/成员等） | -- | -- | -- | -- | -- |
+
+> 注：① modules/blocks 核心组（groupLabel='工作台'）固定不可关、不参与排序；null = 默认全开。② org 档案写口 = 换组织向导步骤①；顶层 name 仅 party-staff（书记/副书记不可改官方名，改名同步 headerTitle）。③ 全部 config 写留痕 `config.configChangeHistory`（{by,at,what,from?,to?}），逐键 diff、空变化不冗余。④ 他支部的书记/副书记不可写本支部 config（person → branchId 归属校验）。⑤ modules/blocks/workforce/org 档案操作位 = 设置（侧边栏右下）→ 支部治理 + 换组织向导内嵌（书记/副书记共台），原「书记工作台 · 工作台配置」入口表述废止。
+
 ## 变更历史
 
+- **2026-09-09（书记审定定稿）**：新增 §9h「支部 config 写权」矩阵节——随 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)（2026-09-09 审定定稿）同步：config 写权属写层业务守卫（未入 ROLE_PERMISSIONS 键集，遵循 §9f 不硬凑缺键约定），表为守卫语义的文档化；含副书同权（2026-09-09 书记批）、域负责人仅本域参数、顶层治理字段仅 party-staff 三要点。
 - **2026-09-05**：自 ROLE_CLASSIFICATION.md §九 迁出为独立文件（名实分离修复——该文件回归纯文件角色分类，本文件承担系统运行角色权限矩阵的键级权威）。迁出时同步修复：9a0 补 `party-staff`（党委组织员，组织级）行，真实对齐 constants.js `ROLE_KEYS`/`ROLE_LABELS`/`ROLE_PAGE_MAP`；9a0 登记表述改指 constants.js `ROLE_PAGE_MAP`（2026-09 已自 auth.js 迁入常量层）；9a 引用纠错（USAGE_POLICY §1.2.5 → §1.3）；9f 增补双轨约定（CF §C 逐操作位视图 ↔ 本文件键级视图）。
 - **2026-09-05（A1 批1 落代码）**：`dispatch_line`（条线下发）键入集——授予组织/宣传/纪检三委员（auth.js `ROLE_PERMISSIONS`，canDo 可判定），9f 增映射行、9b 附注说明；交互流消费侧待建、不入 16 操作列（不硬凑列原则）。
 - 前身沿革：本节原为 ROLE_CLASSIFICATION.md §九（PERMISSION_MATRIX.md → MANAGEMENT_MODE.md → ROLE_CLASSIFICATION §九，2026-07-08 迁入；2026-07-12 §九 重写 9a~9g；2026-08-29 增 9a0），历史记录见 ROLE_CLASSIFICATION.md §八 变更历史。
