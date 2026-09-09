@@ -18,7 +18,9 @@ import { getCapabilities } from '../core/registry.js?v=20260908d';
 import { loadWorkspaceData } from '../core/data-loader.js?v=20260908d';
 import { TodoStore } from '../services/todo.js?v=20260908d';
 import { AuthStore } from '../services/auth.js?v=20260908d';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260908d';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260908d';
+// 设置中心批2（2026-09-09 书记批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
+import { applyPersonalTabOrder } from '../services/preferences.js?v=20260908d';
 
 // B1-5 修复：URL 导航落点后抑制当前 tab 重渲染，防止二次 setState 重建 DOM 冲掉直达高亮。
 // 条件抑制：仅当导航目标元素已在 DOM 中（高亮已展示）才抑制；目标缺失（延迟数据）放行补渲染。
@@ -130,15 +132,25 @@ export async function createWorkspaceShell(opts) {
     const rawTabs = cap && typeof cap.tabs === 'function' ? cap.tabs() : [];
     // L2 支部工作流模块配置（2026-09-03 书记裁定：书记操作/tab 级/核心固定）：
     // 本支部 config.modules 决定业务 tab 显隐与顺序；党委工作台（party-committee）不受支部配置影响
-    let tabs = rawTabs;
-    try {
-      const me = typeof AuthStore?.getCurrentUser === 'function' ? AuthStore.getCurrentUser() : null;
-      const personId = me && (me.personId || me.id);
-      if (personId && scope !== 'workspace:party-committee' && me.role !== 'party-staff') {
-        tabs = applyTabPolicy(rawTabs, getBranchIdOfPerson(personId));
-      }
-    } catch (e) {
-      console.warn('[ws-shell] 支部工作流模块配置读取失败，按默认全开渲染', e);
+    let tabs = rawTabs;
+    let me = null;
+    let personId = null;
+    try {
+      me = typeof AuthStore?.getCurrentUser === 'function' ? AuthStore.getCurrentUser() : null;
+      personId = me && (me.personId || me.id);
+      if (personId && scope !== 'workspace:party-committee' && me.role !== 'party-staff') {
+        tabs = applyTabPolicy(rawTabs, getBranchIdOfPerson(personId));
+      }
+    } catch (e) {
+      console.warn('[ws-shell] 支部工作流模块配置读取失败，按默认全开渲染', e);
+    }
+    // 个人 tab 顺序偏好（设置中心批2，2026-09-09 书记批准 v3）：个人顺序仅作用于业务组，
+    // 核心组（groupLabel='工作台'）保持注册序置前、不参与排序；无偏好/与默认等效 → 原样（默认零 diff）。
+    // 党委工作台（party-committee）无核心组，业务页签同样支持个人顺序（不受支部配置影响）。
+    try {
+      if (personId) tabs = applyPersonalTabOrder(tabs, personId, scope);
+    } catch (e) {
+      console.warn('[ws-shell] 个人 tab 顺序偏好读取失败，按默认顺序渲染', e);
     }
 
     _tabBar = renderTabBar({

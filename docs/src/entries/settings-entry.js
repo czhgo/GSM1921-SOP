@@ -16,6 +16,12 @@ import { renderHeader } from '../components/header.js?v=20260908d';
 import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260908d';
 import { ROLE_LABELS, ROLE_PAGE_MAP, resolveAccentRole, getAccentColors } from '../core/constants.js?v=20260908d';
 import { appearanceControlsHTML, bindAppearanceControls } from '../components/appearance-controls.js?v=20260908d';
+import { icon } from '../core/icons.js?v=20260908d';
+import { getCapabilities } from '../core/registry.js?v=20260908d';
+import {
+  coreTabIdsOf, sameIdOrder, applyPersonalTabOrder, readPersonalTabOrder,
+  savePersonalTabOrder, resetPersonalTabOrder,
+} from '../services/preferences.js?v=20260908d';
 
 // ── 数据层按需加载（同 sidebar staticShell 模式：确已登录才动态 import auth）──
 let _authModule = null;
@@ -56,9 +62,9 @@ function buildGroups(role) {
 const SECTION_META = {
   'appearance': { title: '外观', batch: '', badge: '', desc: '', html: null },
   'my-workspace': {
-    title: '我的工作台', batch: '批 2', badge: '建设中',
-    desc: '个人工作台标签顺序：默认沿用支部默认顺序，个人调整仅作用于本人；核心功能组不可隐藏（锁定只读）。',
-    note: '规划交互：拖拽 / 上移下移调整顺序，一键恢复默认。',
+    title: '我的工作台', batch: '批 2', badge: '',
+    desc: '个人工作台标签顺序：默认沿用工作台默认顺序；个人调整仅作用于当前账号。核心组「工作台」页签（今天/待办/工作概况等）固定、不可隐藏或排序。',
+    note: '拖拽或上移/下移调整顺序，可逐行或一键恢复默认；调整即时保存。',
   },
   'branch-info-wizard': {
     title: '支部信息与向导', batch: '批 3', badge: '建设中',
@@ -148,6 +154,11 @@ function renderPanel(panel) {
     return;
   }
 
+  if (_currentSectionId === 'my-workspace') {
+    renderMyWorkspacePanel(panel);
+    return;
+  }
+
   panel.innerHTML = `
     <div class="settings-card">
       <div class="settings-card-head">
@@ -163,6 +174,226 @@ function renderPanel(panel) {
   `;
 }
 
+// ═══════════════ 我的工作台（批2）：个人 tab 顺序 ═══════════════
+// 数据链：capability 注册表（当前角色工作台 tab）→ 支部策略（与 workspace-shell 同口径）→
+//       preferences.applyPersonalTabOrder（个人顺序仅作用业务组；核心组置前锁定、不参与排序）。
+let _session = { role: '', personId: '' }; // init 时填充（当前登录人）
+let _mywsModel = null;                     // 当前渲染模型（行操作/拖拽回调读取最新值）
+let _mywsLoadSeq = 0;
+
+function _workspaceStemOf(role) {
+  const page = (ROLE_PAGE_MAP.workspace || {})[role];
+  return page ? page.replace(/\.html$/, '') : '';
+}
+
+async function buildMyWorkspaceModel(role, personId) {
+  const stem = _workspaceStemOf(role);
+  if (!stem) return null;
+  const scope = `workspace:${stem}`;
+  // 能力模块副作用导入即注册（同 ws-*-entry 模式）；branch.js 数据链较重，随用随载
+  await import(`../modules/capabilities/${stem}-workspace.js?v=20260908d`);
+  const cap = getCapabilities({ scope }).find(c => c.id === `${stem}-workspace`);
+  const rawTabs = cap && typeof cap.tabs === 'function' ? cap.tabs() : [];
+  if (!rawTabs.length) return null;
+  const { applyTabPolicy, getBranchIdOfPerson } = await import('../services/branch.js?v=20260908d');
+  // 支部策略口径与 workspace-shell 一致：支部层工作台应用 config.modules；党委台不受支部配置影响
+  let base = rawTabs;
+  if (scope !== 'workspace:party-committee' && role !== 'party-staff') {
+    base = applyTabPolicy(rawTabs, getBranchIdOfPerson(personId));
+  }
+  const coreIds = new Set(coreTabIdsOf(base));
+  const effective = applyPersonalTabOrder(base, personId, scope);
+  return { scope, role, personId, base, coreIds, effective };
+}
+
+function _businessOf(model) {
+  return model.effective.filter(t => !model.coreIds.has(t.id));
+}
+
+function _defaultBizIds(model) {
+  return model.base.filter(t => !model.coreIds.has(t.id)).map(t => t.id);
+}
+
+function mywsCardHtml(model) {
+  const { role, effective, coreIds } = model;
+  const label = ROLE_LABELS[role] || role;
+  const biz = _businessOf(model);
+  const curIdx = new Map(biz.map((t, i) => [t.id, i]));
+  const defBizIds = _defaultBizIds(model);
+  const defIdx = new Map(defBizIds.map((id, i) => [id, i]));
+  const hasPref = readPersonalTabOrder(model.personId, model.scope) != null;
+  const coreNames = effective.filter(t => coreIds.has(t.id)).map(t => t.label).filter(Boolean);
+  const hint = coreNames.length
+    ? `提示：排序与恢复默认仅对当前账号（${label}）生效，不影响支部默认顺序与他人。核心固定页签「${coreNames.join(' / ')}」为全员必有，不可拖动、隐藏或排序；新页签由支部统一配置后出现，默认排于业务页签之后。`
+    : `提示：排序与恢复默认仅对当前账号（${label}）生效，不影响支部默认顺序与他人；新页签由支部统一配置后出现，默认排于末尾。`;
+  const rows = effective.map(tab => {
+    const id = tab.id;
+    const locked = coreIds.has(id);
+    const i = curIdx.get(id);
+    const isMine = !locked && i !== undefined && i !== defIdx.get(id);
+    const statusTag = locked
+      ? `<span class="myws-tag myws-tag-locked">${icon('lock', { className: 'icon-base w-3 h-3' })} 核心固定</span>`
+      : (isMine
+        ? '<span class="myws-tag myws-tag-mine">我的调整</span>'
+        : '<span class="myws-tag myws-tag-default">默认</span>');
+    const acts = locked ? '' : `
+      <button type="button" class="myws-act" data-myws="move" data-id="${id}" data-dir="-1" title="上移" aria-label="上移 ${tab.label || id}" ${i === 0 ? 'disabled' : ''}>${icon('chevronUp', { className: 'icon-base w-4 h-4' })}</button>
+      <button type="button" class="myws-act" data-myws="move" data-id="${id}" data-dir="1" title="下移" aria-label="下移 ${tab.label || id}" ${i === biz.length - 1 ? 'disabled' : ''}>${icon('chevronDown', { className: 'icon-base w-4 h-4' })}</button>
+      ${isMine ? `<button type="button" class="myws-act" data-myws="restore-row" data-id="${id}" title="恢复该行默认位置" aria-label="恢复 ${tab.label || id} 默认位置">${icon('undo', { className: 'icon-base w-4 h-4' })}</button>` : ''}`;
+    return `
+      <li class="myws-row${locked ? ' is-locked' : ''}" draggable="${!locked}" data-id="${id}" data-locked="${locked ? '1' : '0'}">
+        <span class="myws-grip" title="${locked ? '核心固定，不可拖动' : '拖拽排序'}">${icon('grip', { className: 'icon-base w-4 h-4' })}</span>
+        <span class="myws-name">${tab.label || id}</span>
+        <span class="myws-chip">${tab.groupLabel || '页签'}</span>
+        <span class="myws-badges">${statusTag}</span>
+        <span class="myws-acts">${acts}</span>
+      </li>`;
+  }).join('');
+  return `
+    <div class="settings-card">
+      <div class="settings-card-head">
+        <h2 class="settings-card-title">我的工作台</h2>
+        <span class="myws-top-actions">
+          <button type="button" class="myws-btn-ghost" data-myws="reset-all" title="恢复全部默认（清除本账号顺序调整）" ${hasPref ? '' : 'disabled'}>${icon('undo', { className: 'icon-base w-[13px] h-[13px]' })}恢复全部默认</button>
+        </span>
+      </div>
+      <p class="settings-card-desc">${label}工作台页签顺序 · 拖拽或按钮调整，即时保存（仅对当前账号生效）。</p>
+      <ul class="myws-list" data-myws-list="1">${rows}</ul>
+      <p class="myws-status" data-myws-status aria-live="polite"></p>
+      <div class="myws-hint">${hint}</div>
+    </div>`;
+}
+
+function mywsEmptyHtml(text) {
+  return `<div class="settings-card"><h2 class="settings-card-title">我的工作台</h2><p class="settings-card-desc">${text}</p></div>`;
+}
+
+function showMywsStatus(panel, msg, isErr = false) {
+  const el = panel.querySelector('[data-myws-status]');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.toggle('is-err', isErr);
+  clearTimeout(el._mywsT);
+  el._mywsT = setTimeout(() => { el.textContent = ''; }, 2600);
+}
+
+function commitMywsOrder(model, bizIds, savedMsg) {
+  const saved = savePersonalTabOrder(model.personId, model.scope, bizIds, _defaultBizIds(model));
+  refreshMyWorkspace(saved ? savedMsg : '已恢复为工作台默认顺序');
+}
+
+function bindMyWorkspace(panel, model) {
+  _mywsModel = model;
+  // 委托点击只绑一次（refresh 会整体替换 panel 内容但 panel 元素持久）
+  if (!panel._mywsBound) {
+    panel._mywsBound = true;
+    panel.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-myws]');
+      if (!btn) return;
+      const m = _mywsModel;
+      if (!m) return;
+      const act = btn.dataset.myws;
+      if (act === 'reset-all') {
+        resetPersonalTabOrder(m.personId, m.scope);
+        refreshMyWorkspace('已恢复为工作台默认顺序');
+        return;
+      }
+      const cur = _businessOf(m).map(t => t.id);
+      const id = btn.dataset.id;
+      if (act === 'move') {
+        const i = cur.indexOf(id);
+        const j = i + (parseInt(btn.dataset.dir, 10) || 0);
+        if (i < 0 || j < 0 || j >= cur.length) return;
+        [cur[i], cur[j]] = [cur[j], cur[i]];
+        commitMywsOrder(m, cur, '页签顺序已保存（仅对您生效）');
+        return;
+      }
+      if (act === 'restore-row') {
+        const i = cur.indexOf(id);
+        if (i < 0) return;
+        cur.splice(i, 1);
+        const di = _defaultBizIds(m).indexOf(id);
+        const before = di < 0 ? 0 : _defaultBizIds(m).slice(0, di).filter(x => cur.includes(x)).length;
+        cur.splice(before, 0, id);
+        commitMywsOrder(m, cur, '已将该页签恢复默认位置');
+      }
+    });
+  }
+  const list = panel.querySelector('[data-myws-list]');
+  if (!list) return;
+  // 行内拖拽换序（HTML5 drag；核心行 locked 不可拖/不可作为落点）
+  let dragRow = null;
+  const finishDrag = () => {
+    if (!dragRow) return;
+    dragRow.classList.remove('dragging');
+    const ids = Array.from(list.querySelectorAll('.myws-row'))
+      .filter(r => r.dataset.locked !== '1')
+      .map(r => r.dataset.id);
+    dragRow = null;
+    const cur = _businessOf(_mywsModel).map(t => t.id);
+    if (sameIdOrder(ids, cur)) return; // 无实际变动（丢弃到列表外等）
+    commitMywsOrder(_mywsModel, ids, '页签顺序已保存（仅对您生效）');
+  };
+  list.addEventListener('dragstart', (e) => {
+    const row = e.target.closest('.myws-row');
+    if (!row || row.dataset.locked === '1') return;
+    dragRow = row;
+    row.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', row.dataset.id); } catch { /* 忽略 */ }
+  });
+  list.addEventListener('dragover', (e) => {
+    if (!dragRow) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const over = e.target.closest('.myws-row');
+    if (!over || over === dragRow || over.dataset.locked === '1') return;
+    const r = over.getBoundingClientRect();
+    const before = e.clientY < r.top + r.height / 2;
+    if (before) list.insertBefore(dragRow, over);
+    else list.insertBefore(dragRow, over.nextSibling);
+  });
+  list.addEventListener('drop', (e) => { if (!dragRow) return; e.preventDefault(); finishDrag(); });
+  list.addEventListener('dragend', finishDrag);
+}
+
+async function refreshMyWorkspace(msg) {
+  const panel = document.getElementById('settings-panel');
+  const { role, personId } = _session;
+  if (_currentSectionId !== 'my-workspace' || !panel || !personId) return;
+  try {
+    const model = await buildMyWorkspaceModel(role, personId);
+    if (_currentSectionId !== 'my-workspace') return;
+    if (!model) { panel.innerHTML = mywsEmptyHtml('未能读取该工作台页签清单。'); return; }
+    panel.innerHTML = mywsCardHtml(model);
+    bindMyWorkspace(panel, model);
+    if (msg) showMywsStatus(panel, msg);
+  } catch (e) {
+    console.warn('[settings] 我的工作台刷新失败', e);
+    if (_currentSectionId === 'my-workspace') panel.innerHTML = mywsEmptyHtml('加载失败，请刷新页面重试。');
+  }
+}
+
+async function renderMyWorkspacePanel(panel) {
+  const { role, personId } = _session;
+  if (!role || !personId || !WORKSPACE_ROLES.has(role)) {
+    panel.innerHTML = mywsEmptyHtml('工作台角色登录后可用（访客视图不含本区块）。');
+    return;
+  }
+  const seq = ++_mywsLoadSeq;
+  panel.innerHTML = mywsEmptyHtml('加载工作台页签清单…');
+  try {
+    const model = await buildMyWorkspaceModel(role, personId);
+    if (seq !== _mywsLoadSeq || _currentSectionId !== 'my-workspace') return; // 已切区块/重复加载
+    if (!model) { panel.innerHTML = mywsEmptyHtml('未能读取该工作台页签清单。'); return; }
+    panel.innerHTML = mywsCardHtml(model);
+    bindMyWorkspace(panel, model);
+  } catch (e) {
+    console.warn('[settings] 我的工作台加载失败', e);
+    if (seq === _mywsLoadSeq) panel.innerHTML = mywsEmptyHtml('加载失败，请刷新页面重试。');
+  }
+}
+
 function renderHeaderArea(subEl) {
   const label = _currentRole ? (ROLE_LABELS[_currentRole] || _currentRole) : '访客';
   subEl.innerHTML = `当前身份：<strong>${label}</strong> · 个人与支部设置集中在此页`;
@@ -176,6 +407,7 @@ async function init() {
       const { AuthStore } = await loadAuth();
       const user = AuthStore.getCurrentUser();
       role = user ? AuthStore.getUserRole(user.personId) : '';
+      _session = { role: role || '', personId: user ? (user.personId || user.id || '') : '' };
     } catch (e) {
       console.warn('[settings] auth 加载失败，降级为访客视图', e);
     }
