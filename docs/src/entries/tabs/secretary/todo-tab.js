@@ -23,7 +23,9 @@ import { mockDB } from '../../../core/domain.js?v=20260909e';
 import { persist } from '../../../core/data-adapter.js?v=20260909e';
 import { bumpToken } from '../../../core/version-token.js?v=20260909e'; // P0 域缓存失效（spec §二.3）
 import { getPersonById, getPersonName } from '../../../services/person.js?v=20260909e';
-import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260909e';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260909e';
+// R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260909e';
 import { IssueStore } from '../../../services/issues.js?v=20260909e';
 import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/taskforce.js?v=20260909e';
 import { fetchVotes } from '../../../services/committee-vote.js?v=20260909e';
@@ -41,7 +43,11 @@ import { getDetainedMembers, getResidenceOf } from '../../../services/roster.js?
 import { AuthStore } from '../../../services/auth.js?v=20260909e';
 import { openModal, closeModal } from '../../../components/modal.js?v=20260909e';
 
-const { accent, accentBorder } = getAccentColors(resolveAccentRole('secretary'));
+// 生效强调色三件套（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
+// 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
+function _accentColors() {
+  return getAppliedAccentColors('secretary');
+}
 
 // ── 模块级渲染缓存（onBeforeRender 预载 / 顶部自定义区共用） ─────
 let _pendingReports = [];
@@ -74,7 +80,7 @@ function _extraTopHtml() {
     reports: _pendingReports,
     title: '待答复',
     role: 'secretary',
-    accent,
+    accent: _accentColors().accent,
     emptyMsg: '暂无待答复汇报',
   });
   // B批 3.2-2：「专班待议（支委会）」提醒区——数据源 listCommitteeRequests()（仅 pending、先报先议）
@@ -200,7 +206,7 @@ function renderConfirmDetail(group) {
         ${more}
       </div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
-        <button class="secretary-todo-detail-confirm text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)}">一键确认 ${group.count} 条</button>
+        <button class="secretary-todo-detail-confirm text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(_accentColors().accent, _accentColors().accentBorder)}">一键确认 ${group.count} 条</button>
       </div>
     </div>
   `;
@@ -229,7 +235,7 @@ function renderRemindDetail(group) {
         ${more}
       </div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
-        <button class="secretary-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)}">去活动管理</button>
+        <button class="secretary-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(_accentColors().accent, _accentColors().accentBorder)}">去活动管理</button>
       </div>
     </div>
   `;
@@ -248,7 +254,7 @@ function renderSeedDetail(todo) {
         ${todo.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.flow}</p>` : ''}
         ${todo.deadline ? `<div class="text-xs text-gray-500">最早截止：${todo.deadline}</div>` : ''}
         <div class="pt-3 border-t border-gray-100 flex gap-2">
-          <button class="secretary-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)}">去处理</button>
+          <button class="secretary-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(_accentColors().accent, _accentColors().accentBorder)}">去处理</button>
         </div>
       </div>
     `;
@@ -303,7 +309,7 @@ function _mcConfirmAgg() {
   const agendaPending = (getCachedMemberChangeRequests() || []).filter(r => r.status === 'pending-secretary');
   if (!rosterItems.length && !agendaPending.length) return null;
   const rows = buildMcBulkRows('secretary-confirm');
-  const bulkHtml = renderMcBulkRowsHtml(rows, { mode: 'secretary-confirm', accent });
+  const bulkHtml = renderMcBulkRowsHtml(rows, { mode: 'secretary-confirm', accent: _accentColors().accent });
   return {
     groupKey: 'secretary:member-confirm',
     actionKey: 'member-confirm',
@@ -386,7 +392,7 @@ function _mcReqCard(req) {
       </div>
       ${(req.kind === 'transferOut' && req.refsSummary) ? _mcRefsSummaryHtml(req.refsSummary) : ''}
       <div class="flex items-center gap-2 pt-1">
-        <button type="button" class="mc-decide text-xs px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors" data-mc-id="${esc(req.id)}" data-decision="approved" style="${solidAccentStyle(accent, accentBorder)}">确认生效</button>
+        <button type="button" class="mc-decide text-xs px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors" data-mc-id="${esc(req.id)}" data-decision="approved" style="${solidAccentStyle(_accentColors().accent, _accentColors().accentBorder)}">确认生效</button>
         <button type="button" class="mc-decide text-xs px-2.5 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" data-mc-id="${esc(req.id)}" data-decision="rejected">退回</button>
       </div>
     </div>`;

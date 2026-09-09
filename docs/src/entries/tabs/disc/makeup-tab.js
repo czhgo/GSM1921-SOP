@@ -10,7 +10,8 @@ import { getPersonName } from '../../../services/person.js?v=20260909e';
 import { badgeHtml } from '../../../components/badges.js?v=20260909e';
 import { showToast } from '../../../core/utils.js?v=20260909e';
 import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260909e';
-import { getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260909e';
+// R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代 resolveAccentRole 只读全局键快照）
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260909e';
 
 export function renderContent() {
   const container = document.getElementById('disc-tab-content');
@@ -30,7 +31,7 @@ export function renderContent() {
     <div class="space-y-4">
       ${renderHandoffInboxHtml({
         to: 'disc-commissioner',
-        accent: getAccentColors(resolveAccentRole('disc-commissioner')).accent,
+        accent: getAppliedAccentColors('disc-commissioner').accent,
         title: '补课需求回执（组织→纪检）',
       })}
       <div class="card rounded-lg p-5">

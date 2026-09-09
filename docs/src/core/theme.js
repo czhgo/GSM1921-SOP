@@ -185,6 +185,21 @@ export function resolveAppliedAccentRole(roleFallback) {
   return override && ACCENT_COLORS[override] ? override : (roleFallback || '');
 }
 
+/**
+ * 当前作用域生效强调色三件套（R1-A 点⑤ 统一口径，2026-09-09）：渲染时动态解析——
+ * 内部 = getAccentColors(resolveAppliedAccentRole(roleFallback))。
+ * 消费方（组件/模块渲染取色）一律用本函数替代「模块加载期 resolveAccentRole 快照 + 写死 hex」：
+ * 登录人 person 覆盖在渲染时生效，与 header/sidebar/settings/--app-accent 同一解析源，
+ * 不再出现「settings 已改强调色、工作台内色点/按钮仍是角色默认红」的残留不一致。
+ * @param {string} roleFallback 页面默认角色键（访客/无覆盖时回落；非法回落串交由 getAccentColors 兜底）
+ * @param {number} [bgAlpha=0.1] — 背景透明度（entry 自带 bg 覆盖时忽略）
+ * @param {number} [borderAlpha=0.3] — 边框透明度（entry 自带 border 覆盖时忽略）
+ * @returns {{ accent: string, accentRgba: string, accentBorder: string }}
+ */
+export function getAppliedAccentColors(roleFallback, bgAlpha = 0.1, borderAlpha = 0.3) {
+  return getAccentColors(resolveAppliedAccentRole(roleFallback), bgAlpha, borderAlpha);
+}
+
 /** 登录用户 person 强调色覆盖 → --app-accent 三件套（无覆盖/非法/访客 = 不动，交由页面角色默认逻辑） */
 function applyPersonAccent() {
   if (typeof document === 'undefined' || !document.documentElement) return;

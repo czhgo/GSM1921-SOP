@@ -20,7 +20,9 @@ import { PersonStore } from '../../../services/person.js?v=20260909e';
 const PEOPLE = PersonStore.getMembers();
 import { NoticeStore } from '../../../services/notice.js?v=20260909e';
 import { BranchService } from '../../../services/runtime.js?v=20260909e';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, getAccentColors, resolveAccentRole, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260909e';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260909e';
+// R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260909e';
 import { badgeHtml } from '../../../components/badges.js?v=20260909e';
 import { collectAgendaRows } from './agenda-form.js?v=20260909e';
 import { defaultVoteConfig, isDecisionScenario, resolveVoterIds } from '../../../services/vote-config.js?v=20260909e';
@@ -30,7 +32,11 @@ import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '..
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
 import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260909e';
 
-const accent = getAccentColors(resolveAccentRole('secretary')).accent;
+// 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
+// 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
+function _accentHex() {
+  return getAppliedAccentColors('secretary').accent;
+}
 
 // L3 S4：主题党日块 id 由 manifest 单一源派生（2026-09-03 去重收口，勿再手写字符串）
 const THEME_DAY_BLOCK_ID = THEME_PARTY_DAY_MANIFEST.blockId;
@@ -186,10 +192,10 @@ function renderSecretaryStats(activities) {
   const statsEl = document.getElementById('secretary-stats');
   if (!statsEl) return;
   const items = [
-    { label: '待赋权活动', value: stats.pendingAuth, color: accent },
-    { label: '活跃活动', value: stats.activeEvents, color: accent },
-    { label: '本月活动', value: stats.monthEvents, color: accent },
-    { label: '党小组组长', value: stats.authGranted, color: accent },
+    { label: '待赋权活动', value: stats.pendingAuth, color: _accentHex() },
+    { label: '活跃活动', value: stats.activeEvents, color: _accentHex() },
+    { label: '本月活动', value: stats.monthEvents, color: _accentHex() },
+    { label: '党小组组长', value: stats.authGranted, color: _accentHex() },
   ];
   statsEl.innerHTML = items.map(s => `
     <span class="inline-flex items-center gap-1.5">
@@ -248,7 +254,7 @@ function renderQueryPanel(displayActivities) {
       </div>
     `,
     emptyMessage: '暂无匹配活动',
-    accentColor: accent,
+    accentColor: _accentHex(),
     sortKey: 'date',
     sortDir: 'desc',
     pageSize: 10,      // 活动无上限增长 → 分页（2026-08-07）
@@ -371,7 +377,7 @@ function openWriteModal() {
     id: WRITE_MODAL_ID,
     title: '写入活动',
     width: '720px',
-    accentColor: accent,
+    accentColor: _accentHex(),
     onMount: (panel) => {
       // 清理上次会话遗留的 PersonPicker（防 DOM 泄漏）
       if (wp.personPicker) { wp.personPicker.destroy(); wp.personPicker = null; }
@@ -749,7 +755,7 @@ function _initRowPersonPicker(row) {
   const picker = new PersonPicker({
     mode: 'multi',
     placeholder: '选择待讨论名单（可多选）',
-    accentColor: accent,
+    accentColor: _accentHex(),
     stageBatch: true,
     onSelect: () => {},
   });
@@ -811,7 +817,7 @@ function bindWritePanelEvents(container) {
     wp.personPicker = new PersonPicker({
       mode: 'multi',
       placeholder: '选择参与人（选填，可多选）',
-      accentColor: accent,
+      accentColor: _accentHex(),
       initialIds: prevSelected,
       stageBatch: true,
       onSelect: () => {},

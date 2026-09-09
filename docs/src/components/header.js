@@ -3,7 +3,10 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 书记裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, resolveAccentRole, ROLE_LABELS } from '../core/constants.js?v=20260909e';
+import { getAccentColors, ROLE_LABELS } from '../core/constants.js?v=20260909e';
+// R1-A 点⑤（2026-09-09）：身份标签取色走 person-aware 解析（登录 person 覆盖 / 访客全局键 / 角色默认），
+// 替代 constants resolveAccentRole（只读全局键=旧残留/默认）——书记改强调色后 header 角色标签同金。
+import { resolveAppliedAccentRole } from '../core/theme.js?v=20260909e';
 import { getBasePath } from '../core/utils.js?v=20260909e';
 import { icon } from '../core/icons.js?v=20260909e';
 import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260909e';
@@ -67,7 +70,7 @@ function _roleLabelHTML(role) {
   if (!role) return '';
   // 普通参与者默认无标记：没有标记就是普通参与者的标记（书记 2026-08-01 决策）
   if (role === 'participant') return '';
-  const { accent } = getAccentColors(resolveAccentRole(role));
+  const { accent } = getAccentColors(resolveAppliedAccentRole(role));
   const label = ROLE_LABELS[role] || role;
   // 2026-08-11 四审纠正：header 身份显示 = 主题色实底（正常饱和度）+ 白字，
   // 与整个 header（深红底白字）一致；淡底深字/边框在 header 上突兀臃肿，日/夜一致。

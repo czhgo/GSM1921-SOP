@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // bootstrap.js — 页面初始化统一入口（重构版）
 // 变化: 去掉 ViewModeStore/CrossPageState/setActiveRole，改为基于 getCurrentUser() 的登录检查
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
@@ -9,10 +9,13 @@ import { renderHeader } from '../components/header.js?v=20260909e';
 import { AuthStore } from '../services/auth.js?v=20260909e';
 import { IssueStore } from '../services/issues.js?v=20260909e';
 import { MilestoneStore } from '../services/milestones.js?v=20260909e';
-import { getAccentColors, resolveAccentRole } from './constants.js?v=20260909e';
 import { CrossPageState } from './cross-page-state.js?v=20260909e';
 import { getBasePath } from './utils.js?v=20260909e';
 import { enhanceSelects } from '../components/custom-select.js?v=20260909e';
+// 强调色解析（R1-A 点⑤，2026-09-09）：person-aware 渲染时取色——替代只读全局键的
+// constants resolveAccentRole（冻结读取点语义，仅服务访客与首帧兜底）；--app-accent 与
+// 返回值（壳 ctx.accent → tab-bar/各 tab）统一取「当前作用域生效覆盖」，登录人改强调色后同源。
+import { getAppliedAccentColors } from './theme.js?v=20260909e';
 import { registerApiAdapter, init } from './data-adapter.js?v=20260909e';
 import { ApiAdapter } from './api-adapter.js?v=20260909e';
 import { getCapabilities } from './registry.js?v=20260909e';
@@ -168,15 +171,14 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
   renderSidebar(module);
   renderHeader(module);
 
-  // 强调色（主题色个性化：resolveAccentRole 优先读侧边栏「主题色」设置）
+  // 强调色（主题色个性化：R1-A 后按作用域解析——登录人 person 覆盖 / 访客全局键 /
+  // 无覆盖回落角色默认，渲染时取当前值；与 settings/--app-accent 同源，
+  // 替代原 constants resolveAccentRole 全局键读取（冻结读取点语义，服务访客与首帧兜底））
   let accent, accentRgba, accentBorder;
   if (accentRole) {
-    const effRole = resolveAccentRole(accentRole);
-    if (accentAlpha) {
-      ({ accent, accentRgba, accentBorder } = getAccentColors(effRole, accentAlpha[0], accentAlpha[1]));
-    } else {
-      ({ accent, accentRgba, accentBorder } = getAccentColors(effRole));
-    }
+    ({ accent, accentRgba, accentBorder } = accentAlpha
+      ? getAppliedAccentColors(accentRole, accentAlpha[0], accentAlpha[1])
+      : getAppliedAccentColors(accentRole));
     // 全局主题色变量（--app-accent 三件套）：cs-menu 选中项 / chips 选中态等
     // 「统一主题色渲染」跟随当前用户主题色（书记 2026-08-08 三审定稿，弃用金实底）
     const root = document.documentElement;

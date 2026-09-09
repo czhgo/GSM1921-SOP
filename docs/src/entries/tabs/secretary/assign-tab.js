@@ -10,12 +10,18 @@ const PEOPLE = PersonStore.getMembers();
 import { getPersonById } from '../../../services/person.js?v=20260909e';
 import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260909e';
 import { PersonPicker } from '../../../components/person-picker.js?v=20260909e';
-import { ROLE_LABELS, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260909e';
+import { ROLE_LABELS } from '../../../core/constants.js?v=20260909e';
+// R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260909e';
 import { loadActivities } from '../../../services/activity.js?v=20260909e';
 import { badgeHtml } from '../../../components/badges.js?v=20260909e';
 import { TodoStore } from '../../../services/todo.js?v=20260909e';
 
-const accent = getAccentColors(resolveAccentRole('secretary')).accent;
+// 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
+// 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
+function _accentHex() {
+  return getAppliedAccentColors('secretary').accent;
+}
 
 const ASSIGN_TAB_HTML = `
   <div class="card rounded-xl p-6 mb-6">
@@ -153,7 +159,7 @@ function renderProjectAuthPanel() {
     mode: 'single',
     placeholder: '搜索姓名或学号选择被赋权人',
     filter: p => !AuthStore.isCommissioner(p.role),
-    accentColor: accent,
+    accentColor: _accentHex(),
     onSelect: () => {},
   });
   _projectAuthPicker.render(pickerContainer);
@@ -340,7 +346,7 @@ function renderAuthPanel(assignArea) {
     authPanel.personPicker = new PersonPicker({
       mode: 'single',
       placeholder: '选择同志',
-      accentColor: accent,
+      accentColor: _accentHex(),
       onSelect: (ids) => {
         authPanel.selectedPersonId = ids[0] || null;
       },
