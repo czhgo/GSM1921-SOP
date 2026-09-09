@@ -138,7 +138,7 @@ function _canEditBranch(actor, branchId) {
 
 /**
  * 挂载换组织向导
- * @param {HTMLElement} host 内容容器（party-config 内容区 / wizard.html 主体）
+ * @param {HTMLElement} host 内容容器（党委台 party-config / 设置中心「支部治理」/ wizard.html 主体）
  * @param {Object} opts
  * @param {{ personId: string, role: string }} opts.actor 当前登录用户
  * @param {boolean} [opts.canSwitchBranch] 是否可在支部间切换（party-staff）

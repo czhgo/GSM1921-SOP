@@ -120,7 +120,7 @@ export function renderContent(ctx) {
 
       const actSubs = (mockDB.actSubRecords && mockDB.actSubRecords[actId]) || Object.fromEntries(OUTPUT_BLOCK_DEFS.map(d => [d.id, []]));
 
-      // 块画布 v0（2026-09-03）：本支部活动产出块策略——书记在「工作台配置」启停/排序；缺省全开
+      // 块画布 v0（2026-09-03）：活动产出块策略随支部 config.blocks（支部治理「模块/块组合」启停/排序）；缺省全开
       // 产出块 id 单一源 = OUTPUT_BLOCK_DEFS（2026-09-03 去重收口，勿再手写 id 数组）
       const visBlocks = applyOutputBlockPolicy(
         OUTPUT_BLOCK_DEFS.map(d => d.id),
