@@ -1,4 +1,4 @@
----
+﻿---
 title: "2026年9月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
@@ -864,3 +864,12 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **④ 颗粒度 content 声明（起草→书记审定定稿 2e413d44）**：PARTY_COMMITTEE_DESIGN §2.6 配置颗粒度与变更流分层（六层+旁路矩阵/词条收口/放行程序/变更流对齐审计内核/内容接缝）+§2.5 过期表述同步；SYSTEM_ROLE_PERMISSION §9h 支部 config 写权矩阵节；USAGE_POLICY 词条（L2-L3 配置层/branch-default/域参数/制度默认/制度刚性/POLICY_OVERRIDABLE/换壳工作单，注明与 L1-L4 阶段号非同一编号体系）。
 - **⑤ 主题色一致性（f1254a7a）**：bootstrap --app-accent 注入/header 角色标签/书记 calendar·assign·todo 三 tab 模块级 const 快照/纪检补课 6 处改 person-aware 渲染时解析（theme.js 合成 getAppliedAccentColors）；禁改消费经 ctx.accent 自动同源；theme-pref 8/8+preferences 15/15。
 - **遗留**：tab-bar U3a WIP 未提交待归属；push ahead 73 待批；浏览器目视（settings 变更记录回滚 UI/无归属卡/主题色抽验）与 R2 拖拽真机手测待常规终端；settings 变更记录 UI 对 party-staff（党委台）未接线（内核已含门）。
+
+**T-2026-09-076 集中代码减负批（书记 2026-09-09 令；版本串保持 20260909e 不 bump；commits 43ade599/98ed9ace）**
+- **范围与方法**：docs/src、docs/scripts、server、docs/*.html；只减不增、每删必证（先静态引用图 + 全仓 Grep 核对再动）；先产出候选清单后分批实施。
+- **类别1/4/5 死代码与冗余暴露面（43ade599，净 -60 行）**：visibility.js 删 4 死导出（canViewPerson/dimensionsFor/canViewInProject/roleLabel，docs+server/test 全仓零消费）+ DIMENSION_LABELS/PROJECT_VISIBILITY + 冗余 ROLE_LABELS import；data-loader.js fallbackMapActivities、workflow/renderer.js createMockEngine/createMockBlockedEngine、modules/branch-demo-nav.js buildBranchDemoUrl/openBranchDemo 内部化去 export（暴露面收窄，行为零变化）。
+- **类别2/3 迁移残留与过时注释（98ed9ace）**：write-tab.js:123 去除已删「工作台配置」tab 旧词（改 config.blocks 语义保 2026-09-03 出处）；org-setup-wizard 挂载点注释与 JSDoc 补设置中心第三入口（两处旧入口描述→三入口现状）；icons.js 段注释去掉不符的 deprecated 标注（pencil/shield/fileText/clipboard/upload 均在用）；settings-entry.js 头注释收敛为批1-4 全开后现状（仅党委快捷块建设中）。
+- **验证**：231 个 src 模块 node --check 全绿 + GetDiagnostics 0 + 引用目标存在性校验（js 231/html 19 零缺失）；link-integrity L1/L2/L3/L5 绿；module-load/e2e-login 等 Playwright 套件沙箱 EPERM 受限（与 T-074 5b「12 环境受限」同因，登记）。
+- **登记（不删）**：workflow/blocks/form-renderer.js 整文件 0 生产引用但 WORKFLOW_BLOCK_CONTRACT S2 + block-form-renderer.test 专属支撑（待书记确认是否连测试与契约段一并下线）；components/inspector.js 内部死导出嫌疑（禁改文件不擅动）；services/person.js @deprecated getPersonById/getPersonName 仍广泛消费（迁移未完）；17 处 String(x).slice(0,16).replace('T',' ') 行内日期格式与 core/utils.fmtDt 同义（统一改引用=净增 import，留待专项）；mock/server 未发现可安全整删的过时文件（此前 T-005/008/011 等批已清）。
+- **遗留**：tab-bar U3a WIP 未提交待归属（本批未触碰）；push ahead 75 待批。
+
