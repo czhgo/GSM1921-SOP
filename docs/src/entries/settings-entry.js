@@ -33,6 +33,10 @@ import { BranchService } from '../services/runtime.js?v=20260909e';
 import { registerApiAdapter, setDataSource, init as dataInit } from '../core/data-adapter.js?v=20260909e';
 import { ApiAdapter } from '../core/api-adapter.js?v=20260909e';
 
+// 支部治理区归属缺失统一文案（2026-09-09 书记批「未绑定支部」口径：支部语境一律 getBoundBranch 判定，
+// 不再回退示例支部 br-b1；由党委在『支部管理』中确认归属后才可见本支部治理内容）
+const GOV_NO_BRANCH_TEXT = '未找到您所属支部——请先由党委在『支部管理』中确认归属。';
+
 // ── 数据层按需加载（同 sidebar staticShell 模式：确已登录才动态 import auth）──
 let _authModule = null;
 function loadAuth() {
@@ -418,9 +422,8 @@ async function renderMyWorkspacePanel(panel) {
 
 // ═══════════════ 支部治理（批3）：支部信息与向导 + 工作台默认顺序 ═══════════════
 // 可见角色 = SECRETARY_GOV（书记/副书记）；副书同权（2026-09-09 书记批）：config 写权同现任书记。
-// 数据链：当前人 → 所属支部（branch.getBranchIdOfPerson）→ config.modules 有效 tab
-//       （applyTabPolicyPure 同 workspace-shell 口径）→ 保存走 branch.updateBranchModules
-//       （sanitize 通过既有 service；恢复默认 = modules 置 null = 默认全开 + 注册序）。
+// 数据链：当前人 → 有效归属支部（branch.getBoundBranch，2026-09-09 归属显式化——不再 getBranchIdOfPerson
+//       回退示例支部；无归属 → 统一「未找到您所属支部」提示卡）→ config 各读/写口。
 let _govSeq = 0;      // 支部治理区异步加载序号（切区块防串写）
 let _govBranchId = ''; // 当前登录人所属支部（info/order/wizard 共用；访问前解析）
 let _bwsModel = null;  // 工作台默认顺序当前渲染模型（行操作/拖拽读取最新 pending）
@@ -442,14 +445,13 @@ async function renderBranchGovSection(panel, sectionId) {
   panel.innerHTML = govEmptyHtml('加载支部配置…');
   try {
     const br = await import('../services/branch.js?v=20260909e');
-    const id = br.getBranchIdOfPerson(personId);
-    const branch = br.getBranchById(id);
+    const branch = br.getBoundBranch(personId);
     if (!branch) {
-      panel.innerHTML = govEmptyHtml('未找到您所属支部——请先由党委在「支部管理」中确认归属。');
+      panel.innerHTML = govEmptyHtml(GOV_NO_BRANCH_TEXT);
       return;
     }
     if (seq !== _govSeq) return; // 已切区块
-    _govBranchId = id;
+    _govBranchId = branch.id;
     if (sectionId === 'branch-info-wizard') {
       if (_currentSectionId !== 'branch-info-wizard') return;
       renderBranchInfoCard(panel, br, branch);
@@ -789,14 +791,14 @@ async function renderPolicySection(panel, sectionId) {
   panel.innerHTML = policyEmptyHtml(SECTION_META[sectionId]?.title || '设置', '加载支部配置…');
   try {
     const br = await import('../services/branch.js?v=20260909e');
-    const id = br.getBranchIdOfPerson(personId);
-    const branch = br.getBranchById(id);
+    // 2026-09-09 归属显式化：支部语境用 getBoundBranch（无归属 → 统一提示，不兜底示例支部）
+    const branch = br.getBoundBranch(personId);
     if (!branch) {
-      panel.innerHTML = policyEmptyHtml('支部治理', '未找到您所属支部——请先由党委在「支部管理」中确认归属。');
+      panel.innerHTML = policyEmptyHtml('支部治理', GOV_NO_BRANCH_TEXT);
       return;
     }
     if (seq !== _govSeq || _currentSectionId !== sectionId) return; // 已切区块
-    _govBranchId = id;
+    _govBranchId = branch.id;
     if (sectionId === 'branch-policy-params') {
       panel.innerHTML = branchPolicyLockedCardHtml(branch);
     } else {

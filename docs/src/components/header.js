@@ -120,7 +120,9 @@ export async function renderHeader(activeModule, opts = {}) {
       console.warn('[header] auth 加载失败，降级为静态壳', e);
     }
   }
-  // P1 软编码：支部名随配置档案（访客无 personId → 默认 br-b1 标题）
+  // P1 软编码 + 2026-09-09 支部归属显式化：支部名随配置档案（getBoundBranch 有效归属 → config.headerTitle）；
+  //   登录但无有效归属支部（branchId 空/查无）→ 中性占位「未绑定支部」（不再泄漏示例支部名）；
+  //   未登录静态壳（personId 缺省）→ 保持既有数据解析兜底（br-b1 → 末级兜底名，属换壳范围）。
   const headerTitle = getHeaderTitle(personId || undefined);
 
   header.innerHTML = `
@@ -132,6 +134,7 @@ export async function renderHeader(activeModule, opts = {}) {
         <img src="${getBasePath()}assets/images/party_emblem.png" alt="党徽" class="party-emblem" draggable="false" onerror="this.style.display='none';">
       </div>
       <div class="header-title">
+        <!-- h1 无归属态即显示「未绑定支部」中性占位（getHeaderTitle 收敛）；不加点击引导（二期候选 b 登记：可考虑引导去党委确认归属） -->
         <h1 class="font-title-cn">${headerTitle}</h1>
       </div>
       <div class="header-actions" style="display:flex;align-items:center;gap:8px;">

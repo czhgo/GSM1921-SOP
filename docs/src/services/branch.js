@@ -337,8 +337,25 @@ export function applyEffectivePolicyDefaultsForPerson(personId) {
 }
 
 /**
- * 人 → 所属支部 id（书记 2026-09-02 决策：党员严格单支部）
- * 无档案/党委级（party-staff，branchId null）→ 兜底 br-b1（当前唯一支部，兼容现有演示）
+ * 人 → 有效归属支部（2026-09-09 书记批「支部归属显式化」A1）：
+ *   person 不存在 / person.branchId 为 null 或空 / branchId 查无该支部 → null；否则返回该支部记录。
+ * 支部语境判定（"我属于哪个支部 / 是否存在我的支部"）一律用本函数——不再回退示例支部；
+ * getBranchIdOfPerson 仅为数据解析兜底（演示/存量兼容），勿用于归属语境判定。
+ */
+export function getBoundBranch(personId) {
+  if (!personId) return null;
+  const person = getPersonById(personId);
+  if (!person) return null;
+  if (!person.branchId) return null;
+  return getBranchById(person.branchId);
+}
+
+/**
+ * 人 → 所属支部 id ——【数据解析兜底】（2026-09-09 书记批 A1 定位说明）：
+ * 无档案/档案缺 branchId（含党委级 party-staff）→ 兜底 'br-b1'（演示/存量兼容惰性维度迁移用，
+ * 如 withinBranch 行过滤、工作流策略按支部读取等纯数据读写位）。
+ * ⚠️ 支部语境判定（"是否存在我的支部 / header 归属 / 治理区是否可达"）一律用 getBoundBranch，
+ * 勿用本函数兜底判定归属——否则无归属者会被误判为 br-b1 成员（泄漏示例支部）。
  */
 export function getBranchIdOfPerson(personId) {
   if (!personId) return 'br-b1';
@@ -346,18 +363,35 @@ export function getBranchIdOfPerson(personId) {
   return person?.branchId || 'br-b1';
 }
 
+// 静态壳末级兜底名（换壳范围：仅当数据层完全无分支记录且静态页未加载数据链展示用——
+// 非真实支部名软编码；接入真实支部数据后由各支部 config.headerTitle/name 覆盖）
+const STATIC_HEADER_FALLBACK = '光华管理学院本科生党支部';
+
 /**
- * header 品牌软编码（config.headerTitle → branch.name → 兜底全称）
- * 支部名随支部配置更换显示——不硬编码"光华管理学院本科生党支部"
+ * header 品牌软编码（2026-09-09 书记批「支部归属显式化」A2）：
+ *   config.headerTitle → branch.name；支部名随支部配置档案更换显示——不硬编码示例支部名。
+ * 判定顺序：
+ *   1) party-staff（党委级角色，不属于任一支部）→ 院系党委名（前置不变）；
+ *   2) getBoundBranch 有效归属 → 该支部 config.headerTitle / name / 末级兜底；
+ *   3) 有 person 档案但无有效归属支部（branchId 空/查无）→ 中性占位「未绑定支部」
+ *      （不再泄漏示例支部名；opts.placeholder 可覆盖）；
+ *   4) 无 person（未登录静态壳/查无档案）→ 数据解析兜底走 br-b1，仍无分支记录时
+ *      末级兜底 STATIC_HEADER_FALLBACK（仅静态展示需要；静态壳无登录不属"归属"问题，保持现状）。
+ * @param {string} [personId] 当前登录人 personId（缺省 = 未登录静态壳）
+ * @param {{ placeholder?: string }} [opts]
  */
-export function getHeaderTitle(personId) {
+export function getHeaderTitle(personId, opts = {}) {
+  const placeholder = (opts && opts.placeholder) || '未绑定支部';
+  const person = personId ? getPersonById(personId) : null;
   // 党委级角色：header 显示院系党委名（不属于任一支部）
-  if (personId) {
-    const person = getPersonById(personId);
-    if (person?.role === 'party-staff') return PARTY_COMMITTEE.name;
-  }
-  const branch = getBranchById(getBranchIdOfPerson(personId));
-  return branch?.config?.headerTitle || branch?.name || '光华管理学院本科生党支部';
+  if (person?.role === 'party-staff') return PARTY_COMMITTEE.name;
+  const bound = getBoundBranch(personId);
+  if (bound) return bound.config?.headerTitle || bound.name || STATIC_HEADER_FALLBACK;
+  // 登录且有 person 档案、但无有效归属支部 → 中性占位（书记语义：真无支部不显示示例支部名）
+  if (person) return placeholder;
+  // 未登录 / 查无档案（静态壳）：保留既有数据解析兜底（br-b1 标题 → 末级兜底名），换壳范围
+  const fallbackBranch = getBranchById(getBranchIdOfPerson(personId));
+  return fallbackBranch?.config?.headerTitle || fallbackBranch?.name || STATIC_HEADER_FALLBACK;
 }
 
 /**
