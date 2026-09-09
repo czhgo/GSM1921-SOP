@@ -30,7 +30,7 @@ export const FUNCTION_CATALOG = [
   { id: 'attendance-mgmt', name: '考勤管理', group: '党建', role: 'disc', tab: 'attendance', desc: '纪检委员管理全支部考勤，与组织委员同源共享', usage: '纪检委员工作台 → 考勤管理', related: ['attendance-personal', 'makeup'], generic: true, kind: 'feature' },
   { id: 'makeup', name: '补课制度', group: '党建', role: 'disc', tab: 'makeup', desc: '缺勤成员通过补课任务恢复考勤状态', usage: '纪检委员工作台 → 补课制度 → 提交补课任务 → 完成回写考勤', related: ['attendance-mgmt', 'flow-makeup'], generic: false, kind: 'feature' },
   { id: 'review', name: '复盘评议', group: '党建', role: 'disc', tab: 'review', desc: '活动监督复盘与评议记录', usage: '纪检委员工作台 → 活动监督复盘', related: ['attendance-mgmt', 'flow-theme-party'], generic: true, kind: 'feature' },
-  { id: 'thought-report', name: '思想汇报', group: '党建', role: 'member', tab: 'thought-report', desc: '成员提交思想汇报，经组织委员把关式初阅：通过才正式归档，退回附意见可修改重交', usage: '成员工作台 → 思想汇报 → 提交 → 组织委员初阅（通过归档 / 退回附意见）', related: ['flow-thought-report', 'talent'], generic: true, kind: 'feature' },
+  { id: 'thought-report', name: '思想汇报', group: '党建', role: 'member', tab: 'thought-report', desc: '成员提交思想汇报，经组织委员初阅把关：通过才正式归档，退回附意见可修改重交', usage: '成员工作台 → 思想汇报 → 提交 → 组织委员初阅（通过归档 / 退回附意见）', related: ['flow-thought-report', 'talent'], generic: true, kind: 'feature' },
   { id: 'member-change', name: '成员变更审批', group: '党建', role: 'org', tab: 'development', desc: '待讨论名单统一阶段转换，经组织委员审批、书记确认后更新', usage: '议程「待讨论名单」记录通过 → 组织委员审批 → 书记确认 → 阶段更新', related: ['agenda', 'flow-development'], generic: false, kind: 'feature' },
   // ══════════ 宣传与档案 ══════════
   { id: 'tasks', name: '宣传任务', group: '宣传与档案', role: 'prop', tab: 'tasks', desc: '宣传任务分配与推进', usage: '宣传委员工作台 → 宣传任务', related: ['kanban', 'weekly'], generic: true, kind: 'feature' },
@@ -73,7 +73,7 @@ export const FUNCTION_CATALOG = [
   { id: 'flow-inspection', name: '考察积极分子链路', group: '党建', desc: '组长/专班上传考察 → 纪检确认 → 组织委员建档归集 → 支委会/大会讨论', related: ['inspection', 'talent', 'thought-report', 'development'], generic: true, kind: 'flow' },
   { id: 'flow-institution', name: '制度制定与迭代链路', group: '党建', desc: '条条委员起草试点 → 各党小组征求意见 → 修改提交 → 支委会审议 → 党员大会表决 → 监督落实修订', related: [], generic: true, kind: 'flow' },
   { id: 'flow-makeup', name: '补课回写链路', group: '党建', desc: '纪检记录缺勤 → 生成补课任务 → 成员完成 → 考勤回写/逾期清除', related: ['makeup', 'attendance-mgmt'], generic: false, kind: 'flow' },
-  { id: 'flow-thought-report', name: '思想汇报链路', group: '党建', desc: '党员提交 → 组织委员把关式初阅（通过归档 / 退回附意见重交）→ 归集个人档案', related: ['thought-report', 'talent'], generic: true, kind: 'flow' },
+  { id: 'flow-thought-report', name: '思想汇报链路', group: '党建', desc: '党员提交 → 组织委员初阅把关（通过归档 / 退回附意见重交）→ 归集个人档案', related: ['thought-report', 'talent'], generic: true, kind: 'flow' },
   // ══════════ 架构（kind: arch） ══════════
   { id: 'arch-layers', name: '架构分层', group: '公共', desc: '前台 19 页（12 根 + 7 工作台） → 中台 entries/components/core → 服务层 services/mock → 后端 server/API → 母本 sop', related: ['arch-service-deps', 'arch-data-flow'], generic: true, kind: 'arch' },
   { id: 'arch-service-deps', name: '服务依赖', group: '公共', desc: '服务模块调用关系（activity → attendance → review → todo）', related: ['arch-layers'], generic: true, kind: 'arch' },

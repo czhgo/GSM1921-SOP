@@ -60,9 +60,9 @@ const SECRETARY_GOV = [
 const GOVERNANCE_BY_ROLE = {
   'secretary': SECRETARY_GOV,
   'deputy-secretary': SECRETARY_GOV,
-  'disc-commissioner': [{ id: 'domain-disc', label: '域参数 · 纪检' }],
-  'org-commissioner': [{ id: 'domain-org', label: '域参数 · 组织' }],
-  leader: [{ id: 'domain-leader', label: '域参数 · 组长' }],
+  'disc-commissioner': [{ id: 'domain-disc', label: '纪检职责参数' }],
+  'org-commissioner': [{ id: 'domain-org', label: '组织职责参数' }],
+  leader: [{ id: 'domain-leader', label: '组长职责参数' }],
   'party-staff': [{ id: 'party-staff-shortcut', label: '支部治理 · 快捷块说明' }],
 };
 
@@ -96,22 +96,22 @@ const SECTION_META = {
   },
   'branch-policy-params': {
     title: '支部制度参数', batch: '批 4', badge: '',
-    desc: '支部级制度参数（票决门槛 / 应到口径 / 会议类型等）制度默认只读展示；参数不在设置页直改（改须书记/党委裁决后在系统层变更）。域参数（L2）在各域负责人卡中可调。',
-    note: '制度刚性锁定展示 + 域参数按角色分发。',
+    desc: '支部级制度参数（票决门槛 / 应到口径 / 会议类型等）制度默认只读展示；参数不在设置页直改（改须书记/党委裁决后在系统层变更）。职责参数（L2）在各域负责人卡中可调。',
+    note: '制度刚性锁定展示 + 职责参数按角色分发。',
   },
   'domain-disc': {
-    title: '域参数 · 纪检', batch: '批 4', badge: '',
-    desc: '纪检域参数（考察确认超期天数）——纪检委员可调，纪检台超期判定/书记台考察提醒随参数生效。',
+    title: '纪检职责参数', batch: '批 4', badge: '',
+    desc: '纪检职责参数（考察确认超期天数）——纪检委员可调，纪检台超期判定/书记台考察提醒随参数生效。',
     note: '参数卡片编辑 + 恢复默认。',
   },
   'domain-org': {
-    title: '域参数 · 组织', batch: '批 4', badge: '',
-    desc: '组织域参数（学期末滞留集中复核窗口）——组织委员可调，书记待办提醒窗口与文案随参数生效。',
+    title: '组织职责参数', batch: '批 4', badge: '',
+    desc: '组织职责参数（学期末滞留集中复核窗口）——组织委员可调，书记待办提醒窗口与文案随参数生效。',
     note: '参数卡片编辑 + 恢复默认。',
   },
   'domain-leader': {
-    title: '域参数 · 组长', batch: '批 4', badge: '',
-    desc: '组长域参数（学期组员进展自动归集提醒开关）——组长可调，组长台开学周提醒随参数生效。',
+    title: '组长职责参数', batch: '批 4', badge: '',
+    desc: '组长职责参数（学期组员进展自动归集提醒开关）——组长可调，组长台开学周提醒随参数生效。',
     note: '开关编辑 + 恢复默认。',
   },
   'party-staff-shortcut': {
@@ -535,7 +535,7 @@ async function openWizardEmbed(panel) {
 // 展示：人 / 时间（格式化）/ 键（what 标签）/ 前后值摘要 / 依据 why；what ∈ CONFIG_ROLLBACK_KEYS 的
 // 单键变更可「回滚此更改」（书记/副书记副书同权；party-staff 在党委台治理，本设置页无此路径）。
 const CONFIG_HISTORY_LABELS = {
-  modules: '工作台模块', blocks: '产出块', workforce: '支部分工', policyOverrides: '域参数',
+  modules: '工作台模块', blocks: '产出块', workforce: '支部分工', policyOverrides: '职责参数',
   headerTitle: '页眉显示名', desc: '支部自述', themePreset: '主题',
   name: '支部名', 'branch-created': '创建支部', 'config-copied': '复制配置',
   'config-overwrite': '配置覆盖', 'config-package-import': '导入配置包',
@@ -609,7 +609,7 @@ function renderConfigHistorySection(panel, br, branch, statusMsg) {
         <h2 class="settings-card-title">配置变更记录</h2>
         <span class="settings-badge">${esc(roleLabel)} · 本支部 · 审计</span>
       </div>
-      <p class="settings-card-desc">支部配置（工作台模块 / 产出块 / 分工 / 组织档案 / 域参数等）每次保存自动留痕：操作人、时间、变更键、前后值摘要与依据（why）。单键变更可由书记 / 副书记（副书同权）回滚，回滚本身再留一痕；历史保留最近 100 条。</p>
+      <p class="settings-card-desc">支部配置（工作台模块 / 产出块 / 分工 / 组织档案 / 职责参数等）每次保存自动留痕：操作人、时间、变更键、前后值摘要与依据（why）。单键变更可由书记 / 副书记（副书同权）回滚，回滚本身再留一痕；历史保留最近 100 条。</p>
       <ul class="cfg-hist-list" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;padding:0;list-style:none;">${rowsHtml}</ul>
       <p class="myws-status" data-cfg-hist-status aria-live="polite"></p>
     </div>`;
@@ -910,7 +910,7 @@ async function renderPolicySection(panel, sectionId) {
   } else {
     const meta = DOMAIN_CARD_META[sectionId];
     if (!meta || role !== meta.role) {
-      panel.innerHTML = policyEmptyHtml(SECTION_META[sectionId]?.title || '域参数', '仅该域负责人登录后可见可调（可管则见）。');
+      panel.innerHTML = policyEmptyHtml(SECTION_META[sectionId]?.title || '职责参数', '仅该域负责人登录后可见可调（可管则见）。');
       return;
     }
   }
@@ -987,7 +987,7 @@ function branchPolicyLockedCardHtml(branch) {
         制度刚性锁定 · 改须党委/书记裁决。上方展示值即当前支部现行口径（含开源部署调整面，均不在本页直改）。
       </div>
       <div class="myws-hint">
-        <b>支部制度可调参数：暂无。</b>当前 policy 覆盖白名单（POLICY_OVERRIDABLE）内均为「域参数（L2）」，归纪检 / 组织 / 组长各自在左栏「域参数」卡中调整；制度项若后续被书记/党委裁决放开为支部可调，将在本区出现并登记白名单——后续按裁决扩展。
+        <b>支部制度可调参数：暂无。</b>当前 policy 覆盖白名单（POLICY_OVERRIDABLE）内均为「职责参数（L2）」，归纪检 / 组织 / 组长各自在左栏「职责参数」卡中调整；制度项若后续被书记/党委裁决放开为支部可调，将在本区出现并登记白名单——后续按裁决扩展。
       </div>
     </div>`;
 }
@@ -1008,7 +1008,7 @@ function domainCardHtml(meta, branch, P) {
     return `
       <div class="settings-card">
         <div class="settings-card-head">
-          <h2 class="settings-card-title">域参数 · 纪检</h2>
+          <h2 class="settings-card-title">纪检职责参数</h2>
           <span class="settings-badge">${esc(meta.roleLabel)} 可调</span>
         </div>
         <p class="settings-card-desc">考察记录「超期未确认」判定天数。保存后：纪检台「考察总表」超期提醒与文案、书记台「考察超期未确认」提醒 deadline 同源生效。</p>
@@ -1042,7 +1042,7 @@ function domainCardHtml(meta, branch, P) {
     return `
       <div class="settings-card">
         <div class="settings-card-head">
-          <h2 class="settings-card-title">域参数 · 组织</h2>
+          <h2 class="settings-card-title">组织职责参数</h2>
           <span class="settings-badge">${esc(meta.roleLabel)} 可调</span>
         </div>
         <p class="settings-card-desc">学期末滞留集中复核提醒窗口（每年两段：每学期末集中复核在册滞留）。保存后：书记台「学期末滞留集中复核」提醒窗口与文案同源生效。</p>
@@ -1078,7 +1078,7 @@ function domainCardHtml(meta, branch, P) {
   return `
     <div class="settings-card">
       <div class="settings-card-head">
-        <h2 class="settings-card-title">域参数 · 组长</h2>
+        <h2 class="settings-card-title">组长职责参数</h2>
         <span class="settings-badge">${esc(meta.roleLabel)} 可调</span>
       </div>
       <p class="settings-card-desc">学期组员进展自动归集提醒：每学期开学周（3 月 / 9 月首周）在组长工作台提醒一次「逐人归集本组组员进展」。频率固定学期制。</p>
