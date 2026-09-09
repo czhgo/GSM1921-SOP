@@ -25,6 +25,12 @@ import {
 } from '../services/preferences.js?v=20260909e';
 // 批4（2026-09-09 书记批「域参数」）：制度默认单一源 = policy-defaults（设置页展示「制度默认」行与域参数默认值）
 import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260909e';
+// 数据层初始化（2026-09-09 冒烟修复，同 wizard/search 独立页模式）：设置页治理区（支部信息/默认顺序/
+// 制度参数/域参数）与「我的工作台」需读支部配置——注册适配器并恢复本地 mock 数据（或 API 模式 init），
+// 否则整页加载后 mockDB 恒空 → 治理区误显「未找到您所属支部」且写口（保存默认顺序/域参数）不可达。
+import { BranchService } from '../services/runtime.js?v=20260909e';
+import { registerApiAdapter, setDataSource, init as dataInit } from '../core/data-adapter.js?v=20260909e';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260909e';
 
 // ── 数据层按需加载（同 sidebar staticShell 模式：确已登录才动态 import auth）──
 let _authModule = null;
@@ -447,6 +453,10 @@ async function renderBranchGovSection(panel, sectionId) {
       if (_currentSectionId !== 'branch-info-wizard') return;
       renderBranchInfoCard(panel, br, branch);
     } else if (_currentSectionId === 'branch-default-tab-order') {
+      // 2026-09-09 冒烟修复：先注册书记工作台能力模块（buildBranchOrderModel 读注册表取 tab 清单；
+      // 设置页独立加载，不先经 workspace-shell/我的工作台则能力未注册 → 误显「未能读取…页签清单」）
+      await import('../modules/capabilities/secretary-workspace.js?v=20260909e');
+      if (seq !== _govSeq) return;
       const model = buildBranchOrderModel(br, branch);
       if (!model) { panel.innerHTML = govEmptyHtml('未能读取该支部工作台页签清单。'); return; }
       _bwsModel = model;
@@ -1078,6 +1088,26 @@ async function init() {
 
   renderSidebar('settings', { staticShell: true });
   renderHeader('settings', { staticShell: true });
+}
+
+// 数据层初始化（2026-09-09 冒烟修复）：已登录且有 token 时切 API 数据源；否则恢复本地 mock
+// （同 search/wizard 独立页口径——BranchService.loadDB 含 reset/init 触发链与 init 态种子过滤）。
+registerApiAdapter(ApiAdapter);
+const _savedToken = (() => { try { return sessionStorage.getItem('gsm1921-api-token'); } catch { return null; } })();
+if (_savedToken) {
+  setDataSource('api', { apiBaseUrl: '', authToken: _savedToken });
+  try {
+    await dataInit();
+  } catch (e) {
+    console.warn('[settings] API 数据加载失败，回退本地 mock', e);
+    setDataSource('mock');
+  }
+} else {
+  try {
+    BranchService.loadDB();
+  } catch (e) {
+    console.warn('[settings] mock 数据加载失败', e);
+  }
 }
 
 init();
