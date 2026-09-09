@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  visibility.js — 谁应该看谁（全员可见性矩阵）
 //  依据 P-011 知情边界（content/01_strategy/SECRETARY_DIRECTIVES.md）：
@@ -13,7 +13,6 @@
 // ════════════════════════════════════════════════════════════════
 
 import { PEOPLE } from '../mock/people.js?v=20260909e';
-import { ROLE_LABELS } from '../core/constants.js?v=20260909e';
 import { TaskForceRecordStore } from './taskforce.js?v=20260909e';
 import { loadActivities } from './activity.js?v=20260909e';
 
@@ -33,15 +32,6 @@ export const VISIBLE_DIMENSIONS = {
   taskforce:   'taskforce',
 };
 
-export const DIMENSION_LABELS = {
-  progress:    '在办进度',
-  blocker:     '卡点',
-  report:      '汇报',
-  attendance:  '考勤',
-  inspection:  '考察',
-  taskforce:   '专班',
-};
-
 // ── 角色可见性配置表（数据驱动，不硬编码人）───────────────────────
 //  targets 语义：
 //    'all'               — L2 全局（书记/副书记看全部条线+块块）
@@ -53,7 +43,7 @@ export const DIMENSION_LABELS = {
 //      全员 × [attendance, inspection]，不含在办/汇报（防止知情过载，P-011）。
 //    - 组织委员通过 AUTHORIZE_CHAIN（organizer/deep）看专班条线，维度仅 taskforce。
 //    - 宣传委员无赋权链、无考勤考察职责 → 仅 L0 自我。
-//    - organizer/deep 为项目角色，见 PROJECT_VISIBILITY（项目作用域内）。
+//    - organizer/deep 为项目角色（专班/活动动态成员，见 _taskforcePeople 收集）。
 const ROLE_VISIBILITY = {
   'secretary':         { targets: 'all',      dimensions: [VISIBLE_DIMENSIONS.progress, VISIBLE_DIMENSIONS.blocker, VISIBLE_DIMENSIONS.report] },
   'deputy-secretary':  { targets: 'all',      dimensions: [VISIBLE_DIMENSIONS.progress, VISIBLE_DIMENSIONS.blocker, VISIBLE_DIMENSIONS.report] },
@@ -62,13 +52,6 @@ const ROLE_VISIBILITY = {
   'disc-commissioner': { targets: 'all',      dimensions: [VISIBLE_DIMENSIONS.attendance, VISIBLE_DIMENSIONS.inspection] },
   'leader':            { targets: 'own-group', dimensions: [VISIBLE_DIMENSIONS.progress, VISIBLE_DIMENSIONS.blocker, VISIBLE_DIMENSIONS.report, VISIBLE_DIMENSIONS.attendance, VISIBLE_DIMENSIONS.inspection] },
   'participant':       { targets: [],         dimensions: [] },
-};
-
-// ── 项目角色可见性（作用域 = 具体项目 projectId）──────────────────
-//  AUTHORIZE_CHAIN：organizer → deep（项目内分工可见）
-const PROJECT_VISIBILITY = {
-  'organizer': { targets: ['deep'], dimensions: [VISIBLE_DIMENSIONS.taskforce] },
-  'deep':      { targets: [],       dimensions: [] },
 };
 
 /** 获取人员的常设角色（与 auth.js 同口径；organizer/deep 走项目角色） */
@@ -154,48 +137,3 @@ export function resolveVisibleTargets(viewerRole, viewerPersonId) {
   return targets;
 }
 
-/**
- * 某人（某本人）是否可看目标人
- * @param {string} viewerRole
- * @param {string} viewerPersonId
- * @param {string} targetPersonId
- * @returns {boolean}
- */
-export function canViewPerson(viewerRole, viewerPersonId, targetPersonId) {
-  if (viewerPersonId === targetPersonId) return true; // L0 自我
-  return resolveVisibleTargets(viewerRole, viewerPersonId)
-    .some(t => t.personId === targetPersonId);
-}
-
-/**
- * 查看者可见目标人的维度（职责空间投影的最小充分信息）
- * @param {string} viewerRole
- * @param {string} viewerPersonId
- * @param {string} targetPersonId
- * @returns {string[]} 可见维度键数组（空 = 仅 L0 基本信息，如姓名/角色）
- */
-export function dimensionsFor(viewerRole, viewerPersonId, targetPersonId) {
-  if (viewerPersonId === targetPersonId) {
-    return Object.values(VISIBLE_DIMENSIONS); // L0 自我全维度
-  }
-  const t = resolveVisibleTargets(viewerRole, viewerPersonId)
-    .find(x => x.personId === targetPersonId);
-  return t ? t.dimensions : [];
-}
-
-/**
- * 项目作用域可见性（organizer → deep，同一项目内）
- * @param {string} projectRole — 查看者项目角色（organizer/deep/participant）
- * @param {string} targetProjectRole — 目标人项目角色
- * @returns {boolean}
- */
-export function canViewInProject(projectRole, targetProjectRole) {
-  const cfg = PROJECT_VISIBILITY[projectRole];
-  if (!cfg) return false;
-  return cfg.targets.includes(targetProjectRole);
-}
-
-/** 角色中文标签（对外复用） */
-export function roleLabel(role) {
-  return ROLE_LABELS[role] || role || '';
-}

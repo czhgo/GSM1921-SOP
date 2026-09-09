@@ -23,11 +23,11 @@ function _isApiSession() {
 }
 
 /**
- * 校验并生成「进入支部（演示）」目标 URL（纯判定，不跳转）
+ * 校验并生成「进入支部（演示）」目标 URL（纯判定，不跳转；仅供本模块内部与 openBranchDemo 使用）
  * @param {string} branchId
  * @returns {{ ok: true, url: string, branchName: string } | { ok: false, reason: string }}
  */
-export function buildBranchDemoUrl(branchId) {
+function buildBranchDemoUrl(branchId) {
   if (!branchId) return { ok: false, reason: '缺少支部标识' };
   const branch = getBranchById(branchId);
   if (!branch) return { ok: false, reason: '支部不存在（可能已被移除）' };
@@ -44,8 +44,8 @@ export function buildBranchDemoUrl(branchId) {
   };
 }
 
-/** 支部卡「进入支部（演示）」动作：校验通过跳转，否则 Toast 说明原因 */
-export function openBranchDemo(branchId) {
+/** 支部卡「进入支部（演示）」动作：校验通过跳转，否则 Toast 说明原因（仅 bindBranchDemoButtons 内部调用） */
+function openBranchDemo(branchId) {
   const res = buildBranchDemoUrl(branchId);
   if (!res.ok) {
     showToast('error', res.reason);

@@ -368,7 +368,7 @@ export function createMockEngine(definitionId) {
  * 按定义ID生成模拟阻塞场景。
  * 将引擎卡在特定状态，手动设置 enteredAt 为过去时间触发阻塞。
  */
-export function createMockBlockedEngine(definitionId) {
+function createMockBlockedEngine(definitionId) {
   const engine = createMockEngine(definitionId);
   const states = engine.definition.states || [];
 

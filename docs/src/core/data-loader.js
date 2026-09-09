@@ -9,9 +9,9 @@ import { notifyDataLoaded } from './data-adapter.js?v=20260909e';
 
 /**
  * 将 mock ACTIVITIES 映射为带完整字段的 fallback 数据
- * 8 个 workspace entry 中完全相同的映射逻辑
+ * 8 个 workspace entry 中完全相同的映射逻辑（模块内兜底用，非对外 API）
  */
-export function fallbackMapActivities(activities) {
+function fallbackMapActivities(activities) {
   return activities.map(a => ({
     ...a,
     visibility: 'branch',
