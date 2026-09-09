@@ -30,6 +30,12 @@ import { AttendanceStatus } from '../core/domain.js?v=20260909e';
 // 在办下钻详情目标（书记 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
 
+// P12 特批修复（2026-09-09 书记批准改受保护组件）：「请我汇报」行内草稿保态。
+// 概况为全容器重建式渲染，同容器其它动作（他行提交/卡点确认收到/在办下钻-返回）会
+// 重置未提交的输入 → 违背附录⑧ 面板保态判据「仅提交成功才重置」。模块级草稿表 + 渲染回填：
+// 仅当该 issue 提交成功或从请求列表消失时清除。
+const _reqDraftByIssue = {}; // issueId -> 草稿文本
+
 /**
  * 渲染「工作概况」tab 内容
  * @param {HTMLElement} container — tab 内容容器
@@ -56,6 +62,11 @@ export async function renderWorkOverview(container, { role, personId, accent = '
   // ── ① 汇报区：待我行动 ────────────────────────────────
   const requests = IssueStore.getReportRequestsFor(personId);
   const openMine = IssueStore.getMyReports(personId).filter(r => r.status === 'open');
+
+  // P12：请求已从列表消失（上级关闭等）时清除其孤立草稿，不留残
+  for (const k of Object.keys(_reqDraftByIssue)) {
+    if (!requests.some(r => r.id === k)) delete _reqDraftByIssue[k];
+  }
 
   const requestRows = requests.map(r => `
     <div class="rounded-lg border border-blue-200 bg-blue-50/40 p-3">
@@ -303,12 +314,24 @@ function _lineRow(color, label, text) {
 
 /** 绑定事件：请我汇报 → 行内填写即发（复用 issues 的 result 提交模式）；在办条目 → 下钻/跳转定位 */
 function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
+  // P12 草稿保态：渲染后回填既有草稿（重建不丢）+ input 存值（DOM 属性直写，免转义）
+  container.querySelectorAll('input[id^="wo-req-"]').forEach((inp) => {
+    const issueId = inp.id.replace('wo-req-', '');
+    if (issueId && _reqDraftByIssue[issueId]) inp.value = _reqDraftByIssue[issueId];
+    inp.addEventListener('input', () => {
+      const v = inp.value.trim();
+      if (v) _reqDraftByIssue[issueId] = v;
+      else delete _reqDraftByIssue[issueId];
+    });
+  });
+
   container.querySelectorAll('.wo-req-submit').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.issueId;
       const body = document.getElementById('wo-req-' + id)?.value?.trim();
       if (!body) { showToast('error', '请填写汇报内容'); return; }
       IssueStore.addComment(id, personId, role, body, 'result');
+      delete _reqDraftByIssue[id]; // P12：仅提交成功才重置
       showToast('success', '汇报已发出，等待上级答复');
       rerender();
     });
