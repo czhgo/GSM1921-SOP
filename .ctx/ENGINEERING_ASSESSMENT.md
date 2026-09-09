@@ -25,11 +25,11 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 模块化 | 75 / 100 | 五层分层 + 组件积木 + tab 懒加载为真；esc/fmtDt 微工具、类型/阶段元数据、写场景清单等重复/三写均已收敛（近三轮新代码引入重复趋零）；残项=徽章/选择器等组件出口仍散、服务层个别 UI 依赖 |
 | 插件化 | 75 / 100 | registry 自注册 + config.modules/blocks/workforce「配置即组合」+ module-compose v0 契约（depends/conflictsWith 纯校验 + 测试 + 文档）落地；残项=requiredRoles 门禁未被 workspace-shell 消费（仅元数据）、manifest 防漂移测试未全落地 |
 | 开源化 | 74 / 100 | 根 README 已一般化、以「复用与二次开发（给其他组织）」为核心章节且增 30 分钟换壳指南（四 P4a）；数据真人化可整体替换（people/accounts 2026-09-06 基线）；MIT + CONTRIBUTING 齐；残项=无 English 版、release 发布工作流未做 |
-| 超参数可调性 | 78 / 100 | policy-defaults 集中默认单一源：票决门槛（应到 2/3+无异议）/ 会议类型与上传位例外 / 考察超期天数 / 应到名单 roster（partyStages+excludeDetained，**已含滞留口径**，2026-09-06）逐项标注 branch-default 可调 / institutional 固定；残项=未接 config 驱动（可调仍改码，留 v1） |
-| 组合能力（二开视角） | 78 / 100 | 组合面=模块/块/分工启停排序（2026-09-09 批3 起操作位=设置→支部治理「工作台默认顺序 / 支部信息与向导」（书记/副，副书同权）+ 党委台「支部配置」party-config-tab（party-staff））+ config.modules/blocks/workforce + L3 block manifest + module-compose v0 契约与测试 6/6 绿；证据=支部书记/副书记可视启停排序入口 + config 净化单源 config-clean；残项=requiredRoles 未消费、拖拽编排仅主题党日一处（L1→L5 未达） |
-| **综合（当前）** | **≈ 76 / 100** | 五维均值（75/75/74/78/78）——书记 2026-09-06 再评定调「综合分反映二开组合能力 + 重改进不唯分 + 开源长期交付形态=模板型」；失分仍=无 config 驱动可调（默认/阈值改码）、requiredRoles 未消费、拖拽编排未实现、server 登录默认口令弱（行动线 P1b 已加口令校验，缺省 123456 + dev/demo 免密路径在，生产须显式换密）、无 English 版 |
+| 超参数可调性 | 84 / 100 | policy-defaults 集中默认单一源逐项标注 branch-default 可调 / institutional 固定；2026-09-09 批4 已接 config 驱动：POLICY_OVERRIDABLE 白名单三键经设置「域参数」卡 UI 覆盖 +「支部制度参数」卡制度默认只读展示（放行程序唯一通道）；残项=全量 config 引擎未达（未登记项仍源码，放开须走放行程序） |
+| 组合能力（二开视角） | 80 / 100 | 组合面=模块/块/分工启停排序（2026-09-09 批3 起操作位=设置→支部治理「工作台默认顺序 / 支部信息与向导」（书记/副，副书同权）+ 党委台「支部配置」party-config-tab（party-staff））+ config.modules/blocks/workforce + L3 block manifest + module-compose v0 契约与测试 6/6 绿；设置中心页签个人化 + 支部默认编排直存 + config 审计回滚（2026-09-09）；残项=requiredRoles 未消费、拖拽编排仅主题党日一处（L1→L5 未达） |
+| **综合（当前）** | **≈ 78 / 100** | 五维均值（75/75/74/84/80）——书记 2026-09-06 再评定调「综合分反映二开组合能力 + 重改进不唯分 + 开源长期交付形态=模板型」；2026-09-09 收尾批 AI 建议分上调拍定（超参 78→84、组合 78→80）；失分仍=requiredRoles 未消费、拖拽编排 L1→L5 未达、server 登录缺省口令弱（行动线 P1b 已加口令校验，缺省 123456 + dev/demo 免密路径在，生产须显式换密）、无 English 版、制度项放行需裁决 |
 
-> **主要矛盾 / 残项 TOP（一句）**：当前未闭合项集中在——组件出口仍散（徽章/选择器等）与服务层个别 UI 依赖（模块化）、requiredRoles 门禁未消费与 manifest 防漂移测试未全（插件化/组合能力）、可调默认未接 config 驱动仍改码（超参数）、拖拽编排仅主题党日一处 L1→L5 未达（组合能力）、无 English 版与 release 发布工作流（开源化）——均挂四行动线后续批次或残项跟踪（逐维依据见二）。
+> **主要矛盾 / 残项 TOP（一句）**：当前未闭合项集中在——组件出口仍散（徽章/选择器等）与服务层个别 UI 依赖（模块化）、requiredRoles 门禁未消费与 manifest 防漂移测试未全（插件化/组合能力）、全量 config 引擎未达（制度项放行需裁决，超参数）、拖拽编排仅主题党日一处 L1→L5 未达（组合能力）、无 English 版与 release 发布工作流（开源化）、server 登录缺省口令（运行安全残余，P1b 已加校验、生产须显式换密）——均挂四行动线后续批次或残项跟踪（逐维依据见二）。
 
 > 注（书记 2026-09-03 口径修正）：本仓库是支部自己的内部系统，**.ctx 日志与 references/历史会议材料均为内部资产、保留上传**，不存在"出仓脱敏"需求；三·3.3 R12 与行动线 P1b 中的出仓子项（脱敏/移出/账号外置/.ctx ignore）**全部撤销**。真正保留的工程项仅是「运行安全」：server 登录不校验密码在多人/计算中心部署时任何人可凭 personId 冒名登录（该运行安全项已由 P1b 于 2026-09-03 修复：默认口令校验可换 `LOGIN_PASSWORD` + `DISABLE_PASSWORD_CHECK=1` 逃逸门；本条保留撤销口径原貌）。
 
@@ -54,7 +54,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 得分项：
 - registry 自注册 + 按 scope 组装（workspace:secretary / workspace:party-committee）；支部实例化 + 支部级 fileSpaceIsolated。
 - config.modules/blocks/workforce「配置即组合」：支部 tab/块 启停·排序 + 分工归属，净化单一源 config-clean.js（server 严格口径单向权威），tab-nav 守卫防隐藏冲突。
-- L3 block manifest：块的 inputs 声明/事件/校验契约 v1.1（WORKFLOW_BLOCK_CONTRACT）+ manifests.js 双块 + 校验器 + 渲染桥 + config.blocks.workflowBlocks 配置区 + 主题党日入口守卫（S1~S4 全落地）。
+- L3 block manifest：块的 inputs 声明/事件/校验契约 v1.1（WORKFLOW_BLOCK_CONTRACT）+ manifests.js 双块 + 校验器 + config.blocks.workflowBlocks 配置区 + 主题党日 manifest 驱动（S4 试点；独立表单渲染桥 2026-09-09 代码减负撤回）。
 - module-compose v0 契约：depends/conflictsWith 纯校验（引用存在/互斥同含/depends 禁环）+ 测试 6/6 绿 + 文档闭环（契约「组合声明」节 + registry 头注释）。
 
 失分项 / 残项（后续跟踪）：
@@ -74,29 +74,33 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 - 无 English 版。
 - 语义化发布（release）工作流未做：`?v=` 软版本利于日常整体失效，但非语义化版本发布。
 
-### 2.4 超参数可调性 —— 78/100
+### 2.4 超参数可调性 —— 84/100
 
 得分项（已参数化或已声明，判据：代码近旁可答「可调/不可调 + 默认出处」）：
 - **policy-defaults.js 集中默认单一源**（行动线 P3c，2026-09-05）：票决门槛（应到 >2/3 且无反对，2026-09-06 书记裁，附录⑩ S2 R2-3）/ 会议类型与上传位例外 / 考察超期天数 / 应到名单 roster（partyStages+excludeDetained，**已含滞留口径**，2026-09-06）逐项标注 branch-default 可调 / institutional 固定 + 出处 + 消费点；消费点一律引用派生，不在业务层新写字面量。
+- **域参数（L2）config 驱动落地（2026-09-09 批4 书记批）**：`POLICY_OVERRIDABLE` 覆盖白名单（只定义于 policy-defaults，每项 = path/type/钳制范围/domain 域节）三键——纪检考察超期 `inspection.overdueDays` / 组织滞留集中复核窗 `memberConfirmation.semesterDetainedWindows` / 组长学期提醒开关 `leader.semesterReportReminder.enabled`——经**设置 → 支部治理「域参数」卡 UI 覆盖**（域负责人仅本域、书记/副书记/party-staff 全量；值=覆盖、null=恢复该域默认、整体 null=全量恢复）；读侧 `applyPolicyOverrides` 注入 `POLICY_DEFAULTS`，全站判定随参数生效；净化/钳制单一源 = config-clean `sanitizeConfigPolicyOverrides`（server 与前端 branch.js 同源）。
+- **制度参数 UI（同批）**：设置 → 支部治理「支部制度参数」卡把票决门槛 / 应到口径 / 会议考勤类型 / 记录人 / 标因作为**制度默认只读展示区**（书记/副视角，数据单一源 = policy-defaults，含域参数默认行）——「可调/不可调 + 默认出处」在 UI 可见；放开为支部可调 = 放行程序（书记裁决 → 登记白名单 → kind 注释同步 → 审计 why 回填，反向收权同理，见 PARTY_COMMITTEE_DESIGN §2.6）。
 - 表决配置 optionSet/voterScope/quorumCheck：默认=场景函数 vote-config.defaultVoteConfig(scenarioId)，每活动 voteConfig 可覆盖。
 - 分工归属 config.workforce（SOP 缺省责任人，支委会议题改派）。
 - 色值：styles.css 令牌与 COLOR_SYSTEM 固定/可调四层表对齐——党建红 `--party-red`/党徽金 `--party-gold` 固定不可调（已声明令牌化）、`--accent-*` 主题自选；styles.css ↔ COLOR_SYSTEM ↔ constants 三源一致、零游离字面量（行动线 P3e / 8.6 色值收敛）。
 
 失分项 / 残项（后续跟踪）：
-- policy-defaults 未接 config 驱动：可调默认仍以改码方式（常量默认 + opts 覆盖），config 驱动留 v1（行动线 P4d）。
+- 全量 config 引擎未达：仅 `POLICY_OVERRIDABLE` 白名单三键可经 UI 覆盖；未登记项（branch-default 未登记 / institutional 制度项）仍源码层改——放开须走放行程序（书记裁决，见 PARTY_COMMITTEE_DESIGN §2.6，行动线 P4d）。
 
-### 2.5 组合能力（二开视角）—— 78/100
+### 2.5 组合能力（二开视角）—— 80/100
 
 得分项：
 - 组合面=模块/块/分工启停排序（2026-09-09 批3 起入口=设置→支部治理「工作台默认顺序 / 支部信息与向导」卡（书记/副，副书同权）与党委台「支部配置」party-config-tab（party-staff），原书记台「工作台配置」tab 已废止）+ config.modules/blocks/workforce「配置即组合」+ config-clean 单源净化。
+- 设置中心页签个人化（2026-09-09 设置中心收口）：本人「我的工作台」tab 顺序个人化（偏好层，本机生效），与支部默认编排分层共存、互不覆盖——个人排序 ≠ 支部默认顺序（config.modules）。
+- 支部默认编排 + 审计回滚（2026-09-09）：设置 → 支部治理「工作台默认顺序」卡直存 config.modules（tab 启停/排序 chips；核心组固定不可关由 config-clean + tab-nav 守卫）；configChangeHistory 逐键留痕（why 透传）+「配置变更记录」只读列表单键「回滚此更改」（rollbackBranchConfig：回滚再留一痕、历史不改写、上限 100 条）——组合配置可安全回退。
 - 能力注册表：capabilities/* 自注册，scope→工作台 tab 清单（台内固定组合的声明面）。
-- L3 block manifest（inputs 声明/事件/校验 = 块级组合契约，落地于主题党日编排）+ module-compose v0 契约与测试 6/6 绿。
+- L3 block manifest（inputs 声明/事件/校验 = 块级组合契约，落地于主题党日 manifest 驱动 S4；独立表单渲染桥 2026-09-09 代码减负撤回）+ module-compose v0 契约与测试 6/6 绿。
 - 场景联动：scenarioId → defaultVoteConfig / 决策树模板（默认组合，可换）。
 - 二开可换壳证据（2026-09-06）：根 README 30 分钟换壳指南 + `?reset=1` 演示重置（行动线 P4a）。
 
 失分项 / 残项（后续跟踪）：
 - requiredRoles 门禁未消费（组合后授权弱）。
-- 拖拽编排（块组合的图形面）仅主题党日一处，L1→L5 愿景未达（行动线 P4d）。
+- 拖拽编排（块组合的图形面）仅主题党日 manifest 驱动一处，L1→L5 愿景未达（行动线 P4d）。
 
 ---
 
@@ -184,7 +188,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | P1·开源合规包 | LICENSE、示例账号外置 env、部署/贡献说明（验收：新机器按 README 可独立跑通并自建数据） | ✅ 部分→闭环：根 LICENSE + CONTRIBUTING.md + server/.env.example 已在仓（2026-09-04），数据真人化整体可替换（2026-09-06，P4a 换壳指南补验收）；残项=无 English 版、release 发布工作流（见二·2.3） |
 | P1a | R7/R8 跨层单源：config 净化与表决枚举改 server 单向权威 or 前端生成 → 注释互链 + 键集测试 | ✅ 已完成（2026-09-03；config-clean.js 共享纯模块 + OPTION_ENUMS 双向断言，28 测试中相关全绿） |
 | P1b | R12 运行安全（口径修正后唯一保留项）：server 登录加密码校验（可开关，缺省演示态兼容）——多人/计算中心部署时防凭 personId 冒名 | ✅ 已完成（2026-09-03；缺省 '123456' 可换 `LOGIN_PASSWORD` + `DISABLE_PASSWORD_CHECK=1` 逃逸门，auth-password 5 态测试绿；生产须显式换密） |
-| P2·L3 拖拽 | L3 block manifest + 拖拽编排（根 README 总目标）（验收：块声明 inputs/事件/校验契约定稿并经用户确认后编码） | ✅ 契约 v1.1 定稿；L3 S1~S4 全部落地（manifests 双块 + 校验器 + 渲染桥 + config.workflowBlocks 配置区 + 主题党日入口守卫，测试全绿）；拖拽编排全站推广=L1→L5 未达（转 P4d 后续） |
+| P2·L3 拖拽 | L3 block manifest + 拖拽编排（根 README 总目标）（验收：块声明 inputs/事件/校验契约定稿并经用户确认后编码） | ✅ 契约 v1.1 定稿；L3 落地（manifests 双块 + 校验器 + config.workflowBlocks 配置区 + 主题党日 manifest 驱动 S4；独立表单渲染桥 2026-09-09 代码减负撤回，渲染走 forms.js + manifest 元数据）；拖拽编排全站推广=L1→L5 未达（转 P4d 后续） |
 | P2a | R6 结构性统一：tab id 收敛——`core/tab-nav.js` 纯决策 + tab-bar 守卫（原随 L4 一并做的拆分提前单做） | ✅ 已完成（2026-09-03；隐藏 tab 回退首个可见 tab、杜绝静默白屏，tab-nav 4 态绿） |
 | P2b | R4 结构性统一：写活动场景选择清单收敛单一源（constants `SCENARIO_WRITE_IDS/SCENARIO_LABELS` 派生） | ✅ 已完成（2026-09-03；scene-write-sync 3 断言绿，写路径无第二份字面量） |
 | P2c | R9 结构性统一：授权语义角色集单一源（constants 四常量；至此去重队列 8/8 收口，P0b 2 项复核保留为有意决定） | ✅ 已完成（2026-09-03；五处本地手写角色集清零，roles-sync 4 断言绿） |
@@ -200,14 +204,14 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | P4a | 模板型落地最小包：根 README 增「给新组织：30 分钟换壳指南」（clone 跑 → 换 mock 数据 → 角色/术语/配色/policy 默认 → 支部名与分支配置 → npm test 验证）＋ 浏览器演示数据一键重置（URL `?reset=1` 清除本域演示存储键回种子初始态） | ✅ 已完成（2026-09-06；落地=根 README「复用与二次开发」节 + 「快速开始」节；mock-adapter.js `MockAdapter.loadDB()` 读取即检测 `?reset=1`，清除 `workflowos_*`/`gsm1921-*`/`sop_org_os_*` 前缀键与历史遗留键后整页导航回种子初始态；无 API token 时才执行，不清 sessionStorage，不破坏 API 模式） |
 | P4b | 换组织向导页（立项④，2026-09-06 立）：引导式完成 people/accounts/branches/policy 替换并生成组织配置包（验收：向导产出可一键应用的换壳配置） | ✅ 主体落地（T-2026-09-044~047：书记 R1–R4 裁定 + 阶段一/二/三目标1，wizard.html 上线——详见 REVIEW_QUEUE 附录⑧）；阶段三候选（数据层覆盖预览/党委默认模板抽象）登记后续 |
 | P4c | 演示数据与空组织模板分离（立项⑤，2026-09-06 立）：仓库随附「模板 + 示例组织」双形态、seed 完整性自动校验、一键重置分层服务化 | ✅ 落地（T-2026-09-047/048：空组织模板 + 建新支部正式能力 + ?reset 分层 demo/preview 与服务端对齐，详见 REVIEW_QUEUE 附录⑧）；域分区缺口（业务域非 branch 分区）已注释诚实边界 |
-| P4d | 组合能力补强（后续批次）：policy-defaults 接入 config 驱动（超参可调不改码）、requiredRoles 门禁消费、拖拽编排由主题党日推广全站（L1→L5） | 后续（残项见二·2.4/2.5 与一速览失分行） |
+| P4d | 组合能力补强（后续批次）：policy-defaults 接入 config 驱动（超参可调不改码）、requiredRoles 门禁消费、拖拽编排由主题党日推广全站（L1→L5） | ✅ 域参数 config 驱动已落地（2026-09-09 批4：POLICY_OVERRIDABLE 白名单 + 设置「域参数/制度参数」UI 覆盖 + 审计 why/回滚）；全量 config 引擎 / requiredRoles 门禁消费 / 拖拽推广全站 = 后续（残项见二·2.4/2.5 与一速览失分行） |
 | 后续·残项跟踪 | 组件出口继续收口（徽章/选择器等、服务层个别 UI 依赖）、manifest 防漂移测试补全、无 English 版、语义化 release 发布工作流 | 后续 |
 
 ---
 
 ## 附：沿革与口径注
 
-- **评估沿革（一句）**：v1≈75（2026-09-03 首评宽松）→ v2≈69（同日批判性复评·冗余审计）→ v3≈67（2026-09-05 开源化问询：新增超参数可调性与模块组合双维度、口径最严）→ ≈74（P3a~P3e 回补）→ **v4≈76（2026-09-06 书记再评定调：综合分=二开组合能力、重改进不唯分、交付形态=模板型；P4a 新增可换壳证据）**。
+- **评估沿革（一句）**：v1≈75（2026-09-03 首评宽松）→ v2≈69（同日批判性复评·冗余审计）→ v3≈67（2026-09-05 开源化问询：新增超参数可调性与模块组合双维度、口径最严）→ ≈74（P3a~P3e 回补）→ **v4≈76（2026-09-06 书记再评定调：综合分=二开组合能力、重改进不唯分、交付形态=模板型；P4a 新增可换壳证据）** → **v5≈78（2026-09-09 收尾批·AI 建议分书记拍定：超参数 78→84 = 域参数 POLICY_OVERRIDABLE 白名单 + 设置「域参数/制度参数」UI 覆盖落地；组合能力 78→80 = 设置中心页签个人化 + 支部默认编排 + 配置审计回滚；均值 75/75/74/84/80 ≈78，重改进不唯分注保留）**。
 - **关键日期与书记再评定调要点**：2026-09-03 书记问询「100 分评估怎么输出」（首评 + 确立统一扎口范式）；2026-09-03 口径修正（.ctx 日志与 references 历史材料为内部资产保留上传，R12 出仓子项全部撤销、仅留运行安全）；2026-09-03 批判性复评第二轮（去重审计 R1~R12 → P0a~P2c 队列）；2026-09-05 第三轮开源化问询（「超参数保留调整空间 + 模块怎么排列组合」→ 超参数/组合双维 + P3a~P3e + 8.7 修复/部署改进）；2026-09-06 书记第四轮再评定调三句（见一）+ P4a 换壳落地 + P4b/P4c 立项④/⑤；2026-09-08 书记批准「全面引用同步 + 文档改名重构」两项（并批 REVIEW_QUEUE 全局评估总表建表）；2026-09-09 本文件更名「工程化评估与改造行动线」+ 四区重构 + 全仓引用同步（本 commit）。
 - **文件沿革（旧路径段，历史叙述保留旧名）**：原名 `content/04_web_design/evolution/MODULARIZATION_ASSESSMENT.md`（2026-09-03 建）→ 2026-09-08 git mv 迁 `.ctx/MODULARIZATION_ASSESSMENT.md`（commit 698306e，评估职能归审计底座）→ 2026-09-09 git mv 更名 `.ctx/ENGINEERING_ASSESSMENT.md` 并重构为「工程化评估与改造行动线」。旧文件名/旧路径仅存于执行日志与本文沿革叙述（含日志内对原「§二/§五/§七/§八」等旧结构的转述）。
 - **执行日志索引**：各轮与行动明细见 `.ctx/logs/2026-09-EXECUTION_LOG.md`——T-2026-09-027（统一扎口试点 + 评估归档）、T-2026-09-033/034/035/036（去重审计与评估收敛/色值收敛/开源改进 spec/面板保态）、T-2026-09-042（v4 再评 + P4a 换壳指南 + 演示一键重置）、T-2026-09-044~048（P4b/P4c 换组织向导与模板分离立项执行）；旧结构各节明细指此，不再在本文叠加轮次记录。
