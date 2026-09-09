@@ -828,3 +828,23 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **P.13 Tailwind CDN 治理（书记：保持现状）**：关闭；E-5 页内优化（preconnect+模块图动态）保留。
 - **Word 成稿维持粘贴制 + 1500 字阈值 UI 去显（书记）**：visitor thought-report-tab placeholder 去硬性字数（改「请书写本季度思想汇报」）；thought-report.js 服务层注释标明篇幅惯例仅后台知悉、不作硬性拦截（过短由组织初阅把关）；help.html 思想汇报帮助卡与 sopData 3-3 desc 同步去 1500 硬数字与新数字化口径；content/02_institution 制度文档（场景指南）内 1500 制度文本为书记批改层保留未动。
 - **提交**：本批（CLAUDE.md 丙部清空+总表定案标注/REVIEW_QUEUE/help.html/sopData/thought-report×2）+ b154da2a（P12 报告）。遗留：work-overview 保态修复待日后特批；乙部轮次排期 4 项待发起；push ahead 待书记批准。
+
+**T-2026-09-074 设置中心（书记三问：支部配置迁入侧边栏设置 / 外观迁入+角色化界面+tab顺序个人可调默认支部层 / 超参数落实到书记副设置）——brainstorm v3 批准→原型→分批实施→5c 浏览器验证**
+- **批1（ceba5c5a）**：settings.html + settings-entry.js + 侧边栏右下「设置」入口（gear）+ 外观控件（字号/主题三态/强调色）自 sidebar footer 迁入设置页（appearance-controls.js 复用）；theme.js 按人键空间适配层（冻结读取点不动，sidebar 顶层 sync 材料化）。
+- **批2（c7bac6a9）**：services/preferences.js（resolveTabOrder 纯函数+核心置前+过期自愈+memo）；workspace-shell 支部策略后叠个人序（默认无 diff）；settings「我的工作台」拖拽/上移下移/恢复默认/徽标/核心锁；preferences.test 15/15。
+- **批3（2b011339）**：书记台 branch-config tab 移除（0 残留）；settings 支部治理=支部信息卡+内嵌换组织向导（同源 mountOrgSetupWizard）+工作台默认顺序（写 config.modules.tabOrder）；**副书同权**（PATCH config 门控+向导守卫 _canEditBranch）；module-config/org-config 补测试。
+- **批4（f59fa710）**：policy-defaults 双态+POLICY_OVERRIDABLE 白名单+applyPolicyOverrides；新增 memberConfirmation.semesterDetainedWindows/leader.semesterReportReminder/attendance.*·review.*（纪检监督侧）；副本收编 0 残留（disc 写死 7、secretary-overview 4 组阈值、member-confirmation 窗）；config-clean sanitize+apply；branch.savePolicyOverrides+canManagePolicyOverrides（书记/副/party-staff 全量、委员仅本域）；settings 支部制度参数只读卡+域参数三卡；组长 today 学期提醒；policy-config.test 13/13。
+- **文档同步（22020be6）**：README×2/help.html/function-catalog/gen 脚本/help-e2e 同步 19 页（12 根+7 台）、支部配置迁移与设置中心、副书同权。
+- **5b（27f162bd）**：全站 ?v=20260909e（272 文件+CODE_VERSION 90）；WIP 隔离（tab-bar U3a cacheinfo 入库、工作区 WIP 保留）；回归 422=410 绿+12 环境受限。
+- **5c（973a98cf 修复）**：12 项浏览器验证 11 全过+2 顺手修复（settings-entry 数据层初始化、支部默认顺序前注册能力）；0 代码 console error；e 串 0 残留。
+- **登记/遗留**：R1 外观按人隔离边界（新账号首登经全局回落继承上一登录者偏好并写入其 person 键）——候选 A 首登出厂默认彻底隔离 / B 全局键仅服务访客·登录人只读写 person 键 / C 保留现状，**待书记裁决**；R2 拖拽 headless 未复现（按钮路径已验，真机手测待补）；tab-bar U3a WIP 未提交待归属；push ahead 67 待书记批准。
+
+**T-2026-09-074 设置中心（书记三问：支部配置迁入侧边栏设置 / 外观迁入+角色化界面+tab顺序个人可调默认支部层 / 超参数落实到书记副设置）——brainstorm v3 批准→原型→分批实施→5c 浏览器验证**
+- **批1（ceba5c5a）**：settings.html + settings-entry.js + 侧边栏右下「设置」入口（gear）+ 外观控件（字号/主题三态/强调色）自 sidebar footer 迁入设置页（appearance-controls.js 复用）；theme.js 按人键空间适配层（冻结读取点不动，sidebar 顶层 sync 材料化）。
+- **批2（c7bac6a9）**：services/preferences.js（resolveTabOrder 纯函数+核心置前+过期自愈+memo）；workspace-shell 支部策略后叠个人序（默认无 diff）；settings「我的工作台」拖拽/上移下移/恢复默认/徽标/核心锁；preferences.test 15/15。
+- **批3（2b011339）**：书记台 branch-config tab 移除（0 残留）；settings 支部治理=支部信息卡+内嵌换组织向导（同源 mountOrgSetupWizard）+工作台默认顺序（写 config.modules.tabOrder）；**副书同权**（PATCH config 门控+向导守卫 _canEditBranch）；module-config/org-config 补测试。
+- **批4（f59fa710）**：policy-defaults 双态+POLICY_OVERRIDABLE 白名单+applyPolicyOverrides；新增 memberConfirmation.semesterDetainedWindows/leader.semesterReportReminder/attendance.*·review.*（纪检监督侧）；副本收编 0 残留（disc 写死 7、secretary-overview 4 组阈值、member-confirmation 窗）；config-clean sanitize+apply；branch.savePolicyOverrides+canManagePolicyOverrides（书记/副/party-staff 全量、委员仅本域）；settings 支部制度参数只读卡+域参数三卡；组长 today 学期提醒；policy-config.test 13/13。
+- **文档同步（22020be6）**：README×2/help.html/function-catalog/gen 脚本/help-e2e 同步 19 页（12 根+7 台）、支部配置迁移与设置中心、副书同权。
+- **5b（27f162bd）**：全站 ?v=20260909e（272 文件+CODE_VERSION 90）；WIP 隔离（tab-bar U3a cacheinfo 入库、工作区 WIP 保留）；回归 422=410 绿+12 环境受限。
+- **5c（973a98cf 修复）**：12 项浏览器验证 11 全过+2 顺手修复（settings-entry 数据层初始化、支部默认顺序前注册能力）；0 代码 console error；e 串 0 残留。
+- **登记/遗留**：R1 外观按人隔离边界（新账号首登经全局回落继承上一登录者偏好并写入其 person 键）——候选 A 首登出厂默认彻底隔离 / B 全局键仅服务访客·登录人只读写 person 键 / C 保留现状，**待书记裁决**；R2 拖拽 headless 未复现（按钮路径已验，真机手测待补）；tab-bar U3a WIP 未提交待归属；push ahead 67 待书记批准。
