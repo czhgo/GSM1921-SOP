@@ -138,7 +138,7 @@ export const sopDatabase = {
       tasks: [
         { taskId: '3-1', title: '日常观察（态度+能力）',        executor: 'leader',           supervisor: null,     timeOffset: null },
         { taskId: '3-2', title: '建立与维护考察档案',           executor: 'org-commissioner', supervisor: 'leader', timeOffset: null },
-        { taskId: '3-3', title: '归档思想汇报',                 executor: 'org-commissioner', supervisor: 'leader', timeOffset: null, desc: '接收党员/发展对象手写提交的思想汇报并归档；字数标准统一为1500字以上。（D-241：思想汇报为线下手写提交流程，系统不承载此数据）' },
+        { taskId: '3-3', title: '归档思想汇报',                 executor: 'org-commissioner', supervisor: 'leader', timeOffset: null, desc: '系统内提交、组织初阅把关（通过即算法归档至个人档案）；正文篇幅惯例仅后台知悉、不作硬性字数拦截（2026-08-30 数字化 + 2026-09-07 R6-2 把关式初阅）' },
         { taskId: '3-4', title: '向书记反馈考察意见',           executor: 'leader',           supervisor: null,     timeOffset: null },
         { taskId: '3-5', title: '支委会讨论与党员大会表决',     executor: 'all',              supervisor: null,     timeOffset: null },
       ],

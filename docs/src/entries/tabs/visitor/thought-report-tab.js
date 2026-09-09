@@ -4,9 +4,9 @@
 // 打回（needs_revision，附退回意见）→ 本人「修改并重新提交」→ 回待初阅队列。
 // 本人可查看自己的历史提交（状态徽标 + 退回意见）；组织委员在「发展数据」tab 初阅调用。
 
-import { AuthStore } from '../../../services/auth.js?v=20260908d';
-import { addThoughtReport, listThoughtReportsByPerson, resubmitThoughtReport } from '../../../services/thought-report.js?v=20260908d';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260908d';
+import { AuthStore } from '../../../services/auth.js?v=20260908c';
+import { addThoughtReport, listThoughtReportsByPerson, resubmitThoughtReport } from '../../../services/thought-report.js?v=20260908c';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260908c';
 
 // ── R6-2 初阅状态徽标（与 org 侧 thought-review-tab 同体系：琥珀待初阅 / 绿已归档 / 红已退回）──
 // 读取侧与服务层 _effective 同语义：reviewStatus 缺省/非法（R6-2 前算法归档产物）→ 已归档
@@ -54,7 +54,7 @@ export function renderContent(ctx) {
       </div>
       <div class="mb-3 p-3 rounded-lg bg-white border border-gray-100">
         <p class="text-xs font-medium text-gray-600 mb-2">提交思想汇报</p>
-        <textarea id="tr-content" rows="5" class="input-flat w-full resize-none" placeholder="请书写本季度思想汇报（字数 1500 字以上；对积极分子不作硬性要求）"></textarea>
+        <textarea id="tr-content" rows="5" class="input-flat w-full resize-none" placeholder="请书写本季度思想汇报"></textarea>
         <div class="flex items-center justify-between mt-2">
           <p class="text-[11px] text-gray-400">提交后由组织初阅归档，通过后自动归档至个人档案</p>
           <button id="tr-submit" class="text-xs px-4 py-1.5 rounded-lg bg-sky-600 text-white hover:bg-sky-700 transition-colors">提交</button>

@@ -814,3 +814,10 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **丙部新增 P.13**：CLAUDE.md 丙部待决策登记 P.13「TW CDN 治理」（Tailwind CDN 依赖治理方向，2026-09-09 收口随记）。
 - **提交**：chore(code) 版本串收口 20260908d（tab-bar.js / workspace-shell.js 以其 HEAD 内容 + d 戳形态入库保链，工作区既有 U3a WIP 未随批提交）+ test help-e2e 断言校准（含 3 例 fs 路径 ?v= 容忍修复）+ docs(ctx) 本条（含 CLAUDE.md 乙部行清与丙部 P.13）。
 - **遗留**：module-load 与浏览器目验待常规终端；help 动态卡与详情双开目验；E-1 角色保存/报名/解散仍整页刷新属既有语义（非缺陷）；tab-bar.js / workspace-shell.js 工作区既有 U3a WIP（约 500 行）与 stash@{0}（review-batch2-wip）未触碰，待归属任务随批处理。
+
+**T-2026-09-073 丙部 P.11/P.12/P.13 决策落地 + 思想汇报文案校准（2026-09-09）**
+- **P.11 全局评估总表 v1 定案（书记：AI 定案）**：11 专项建议分 + 工程化评估约 76 生效（REVIEW_QUEUE 总表标注已更新为 2026-09-09 定案，此后每轮变动标 ↑↓）。
+- **P.12 概况侧禁改复查（书记：只读复查）**：特批执行完成——overview-tab.js 全部通过；work-overview.js 发现 1 个保态缺口（同源 3 风险：请我汇报多行草稿互扰/确认刷新触表单 DOM/下钻返回全容器重建丢草稿），最小修法建议已送审（模块级草稿表 _reqDraftByIssue 约 +15 行），未改代码；报告 .ctx/logs/2026-09-09-P12-overview-audit.md（b154da2a）。
+- **P.13 Tailwind CDN 治理（书记：保持现状）**：关闭；E-5 页内优化（preconnect+模块图动态）保留。
+- **Word 成稿维持粘贴制 + 1500 字阈值 UI 去显（书记）**：visitor thought-report-tab placeholder 去硬性字数（改「请书写本季度思想汇报」）；thought-report.js 服务层注释标明篇幅惯例仅后台知悉、不作硬性拦截（过短由组织初阅把关）；help.html 思想汇报帮助卡与 sopData 3-3 desc 同步去 1500 硬数字与新数字化口径；content/02_institution 制度文档（场景指南）内 1500 制度文本为书记批改层保留未动。
+- **提交**：本批（CLAUDE.md 丙部清空+总表定案标注/REVIEW_QUEUE/help.html/sopData/thought-report×2）+ b154da2a（P12 报告）。遗留：work-overview 保态修复待日后特批；乙部轮次排期 4 项待发起；push ahead 待书记批准。
