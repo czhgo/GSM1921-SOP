@@ -10,11 +10,11 @@
 // 模块顶层调用 syncAppearanceForActiveUser()：每页壳加载即材料化当前登录人外观偏好
 // （theme-init.js 首帧 / bootstrap.js 字号 / constants.js resolveAccentRole 等既有读取点无需改动）。
 
-import { getBasePath } from '../core/utils.js?v=20260908d';
-import { icon } from '../core/icons.js?v=20260908d';
-import { syncAppearanceForActiveUser } from '../core/theme.js?v=20260908d';
-import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260908d';
-import { DEPLOY_MODE } from '../config/deploy.js?v=20260908d';
+import { getBasePath } from '../core/utils.js?v=20260909e';
+import { icon } from '../core/icons.js?v=20260909e';
+import { syncAppearanceForActiveUser } from '../core/theme.js?v=20260909e';
+import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260909e';
+import { DEPLOY_MODE } from '../config/deploy.js?v=20260909e';
 
 // 外观键空间适配：页面壳加载即执行（全站每页均渲染 sidebar，天然覆盖公共页/工作台）
 syncAppearanceForActiveUser();
@@ -28,7 +28,7 @@ syncAppearanceForActiveUser();
 let AuthStore = null;
 let _authModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../services/auth.js?v=20260908d');
+  if (!_authModule) _authModule = import('../services/auth.js?v=20260909e');
   return _authModule;
 }
 

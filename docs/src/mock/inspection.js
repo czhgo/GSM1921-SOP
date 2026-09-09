@@ -9,7 +9,7 @@
 // 本文件退化为纯考察种子数据仓。
 // 2026-09-06 基线刷新：recordedAt 随关联活动/专班时间轴同步平移（活动新日期见 activities.js 头注）；
 //   注释中旧人名同步（与 people.js 一致）。
-import { ParticipationLevel, SourceType } from '../core/domain.js?v=20260908d';
+import { ParticipationLevel, SourceType } from '../core/domain.js?v=20260909e';
 
 export const INSPECTION_RECORDS = [
   // ── 活动考察记录 ──────────────────────────────────────────

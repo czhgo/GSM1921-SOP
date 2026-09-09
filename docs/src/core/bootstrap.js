@@ -4,22 +4,22 @@
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../components/sidebar.js?v=20260908d';
-import { renderHeader } from '../components/header.js?v=20260908d';
-import { AuthStore } from '../services/auth.js?v=20260908d';
-import { IssueStore } from '../services/issues.js?v=20260908d';
-import { MilestoneStore } from '../services/milestones.js?v=20260908d';
-import { getAccentColors, resolveAccentRole } from './constants.js?v=20260908d';
-import { CrossPageState } from './cross-page-state.js?v=20260908d';
-import { getBasePath } from './utils.js?v=20260908d';
-import { enhanceSelects } from '../components/custom-select.js?v=20260908d';
-import { registerApiAdapter, init } from './data-adapter.js?v=20260908d';
-import { ApiAdapter } from './api-adapter.js?v=20260908d';
-import { getCapabilities } from './registry.js?v=20260908d';
+import { renderSidebar } from '../components/sidebar.js?v=20260909e';
+import { renderHeader } from '../components/header.js?v=20260909e';
+import { AuthStore } from '../services/auth.js?v=20260909e';
+import { IssueStore } from '../services/issues.js?v=20260909e';
+import { MilestoneStore } from '../services/milestones.js?v=20260909e';
+import { getAccentColors, resolveAccentRole } from './constants.js?v=20260909e';
+import { CrossPageState } from './cross-page-state.js?v=20260909e';
+import { getBasePath } from './utils.js?v=20260909e';
+import { enhanceSelects } from '../components/custom-select.js?v=20260909e';
+import { registerApiAdapter, init } from './data-adapter.js?v=20260909e';
+import { ApiAdapter } from './api-adapter.js?v=20260909e';
+import { getCapabilities } from './registry.js?v=20260909e';
 // M4 数据源注册化：副作用导入触发 mock/api 数据源能力注册，bootstrap 经注册表选择数据源
-import '../modules/capabilities/data-source.js?v=20260908d';
+import '../modules/capabilities/data-source.js?v=20260909e';
 // M6（2026-08-30）：共享组件能力随全局引导注册（todo-list/calendar/custom-select），所有页面可发现组件清单
-import '../modules/capabilities/components.js?v=20260908d';
+import '../modules/capabilities/components.js?v=20260909e';
 
 // ════════════════════════════════════════════════════════════════
 // S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）

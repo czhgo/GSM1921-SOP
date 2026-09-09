@@ -6,10 +6,10 @@
 // 模式：adapter CRUD 实时写 server（API 模式）+ 本地 mockDB 同步（刷新不丢）；
 // mock 纯本地：users 演示行（u_*）无 person 档案 → role 同步静默跳过，记录/secretaryId 仍完整。
 
-import { mockDB } from '../core/domain.js?v=20260908d';
-import { getAdapter, persist } from '../core/data-adapter.js?v=20260908d';
+import { mockDB } from '../core/domain.js?v=20260909e';
+import { getAdapter, persist } from '../core/data-adapter.js?v=20260909e';
 // R5-1（2026-09-06）：就地任命需补齐 person.role（角色双链读链 = person 档案，见 appointInauguralOfficers 注释）
-import { PersonStore } from './person.js?v=20260908d';
+import { PersonStore } from './person.js?v=20260909e';
 
 function _syncBranch(next) {
   const idx = (mockDB.branches || []).findIndex(b => b.id === next.id);

@@ -8,5 +8,5 @@
 // 改造纪律：聚合重导出、实现不搬运、零行为变化（见 .ctx/ENGINEERING_ASSESSMENT.md 三-3.1 统一扎口范式）。
 // 设计源：书记 2026-08-10 裁定（汇报闭环、行内答复、措辞温和）
 
-export { renderReportEntryHtml, bindReportEntry } from './report-entry.js?v=20260908d';
-export { renderReportInboxHtml, bindReportInbox } from './report-inbox.js?v=20260908d';
+export { renderReportEntryHtml, bindReportEntry } from './report-entry.js?v=20260909e';
+export { renderReportInboxHtml, bindReportInbox } from './report-inbox.js?v=20260909e';

@@ -13,7 +13,7 @@
 //     供冻结读取点（theme-init.js 首帧 / bootstrap.js 字号 / constants.js resolveAccentRole）
 //     与下一页面首帧取用——外观仍即时全局生效，只是存储键随人。主题算法与 CSS 变量体系不变。
 
-import { readLoginSnapshot } from './login-snapshot.js?v=20260908d';
+import { readLoginSnapshot } from './login-snapshot.js?v=20260909e';
 
 const THEME_KEY = 'workflowos_theme';        // 主题（历史全局键；访客回落 / theme-init 首帧读取）
 const FONT_KEY = 'workflowos_font_size';     // 字号（历史全局键；bootstrap.js 启动读取）

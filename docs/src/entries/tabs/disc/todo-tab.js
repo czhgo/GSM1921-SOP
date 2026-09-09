@@ -7,13 +7,13 @@
 // 文案由 components/todo-list.js actionLabels 收敛为「去考勤管理/去考察管理」（跳管理页队列，
 // 确认唯一位=考勤管理/考察管理页），补课回执交接行=「去补课制度」跳转——本文件无逻辑改动。
 
-import { showToast } from '../../../core/utils.js?v=20260908d';
-import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260908d';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260908d';
-import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260908d';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260908d';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260908d';
-import { getPersonName } from '../../../services/person.js?v=20260908d';
+import { showToast } from '../../../core/utils.js?v=20260909e';
+import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260909e';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260909e';
+import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260909e';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260909e';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260909e';
+import { getPersonName } from '../../../services/person.js?v=20260909e';
 
 // ── 纪检实时聚合组（2026-08-07 闭环化） ────────────────────────
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降，

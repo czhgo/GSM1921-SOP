@@ -14,7 +14,7 @@ import test from 'node:test';
 let registry;
 test.before(async () => {
   const src = await readFile(
-    new URL('../../docs/src/core/registry.js?v=20260908d', import.meta.url),
+    new URL('../../docs/src/core/registry.js?v=20260909e', import.meta.url),
     'utf8',
   );
   const b64 = Buffer.from(src, 'utf8').toString('base64');
@@ -95,7 +95,7 @@ test('mountCapability 未注册抛错', async () => {
 // ── data-source / sop-scenarios 能力声明形态（静态断言） ──
 test('data-source.js 注册 mock/api 数据源能力（env/deps/apply）', async () => {
   const src = await readFile(
-    new URL('../../docs/src/modules/capabilities/data-source.js?v=20260908d', import.meta.url),
+    new URL('../../docs/src/modules/capabilities/data-source.js?v=20260909e', import.meta.url),
     'utf8',
   );
   assert.match(src, /id: 'mock-data-source'/);
@@ -110,7 +110,7 @@ test('data-source.js 注册 mock/api 数据源能力（env/deps/apply）', async
 
 test('sop-scenarios.js 注册场景能力（scope/scenario + list/get）', async () => {
   const src = await readFile(
-    new URL('../../docs/src/modules/capabilities/sop-scenarios.js?v=20260908d', import.meta.url),
+    new URL('../../docs/src/modules/capabilities/sop-scenarios.js?v=20260909e', import.meta.url),
     'utf8',
   );
   assert.match(src, /id: 'sop-scenarios'/);
@@ -121,7 +121,7 @@ test('sop-scenarios.js 注册场景能力（scope/scenario + list/get）', async
 
 test('decision-tree 消费点经注册表读取场景（getScenario 回退 sopDatabase）', async () => {
   const src = await readFile(
-    new URL('../../docs/src/services/decision-tree.js?v=20260908d', import.meta.url),
+    new URL('../../docs/src/services/decision-tree.js?v=20260909e', import.meta.url),
     'utf8',
   );
   assert.match(src, /import \{ getCapabilities \} from '\.\.\/core\/registry\.js/);
@@ -132,7 +132,7 @@ test('decision-tree 消费点经注册表读取场景（getScenario 回退 sopDa
 
 test('bootstrap 数据源选择经注册表（行为零变化：有 token 走 api，回退 mock）', async () => {
   const src = await readFile(
-    new URL('../../docs/src/core/bootstrap.js?v=20260908d', import.meta.url),
+    new URL('../../docs/src/core/bootstrap.js?v=20260909e', import.meta.url),
     'utf8',
   );
   assert.match(src, /getCapabilities\(\{ scope: 'data-source' \}\)/);
@@ -143,7 +143,7 @@ test('bootstrap 数据源选择经注册表（行为零变化：有 token 走 ap
 
 test('components.js 注册共享组件能力（scope: component，M6）', async () => {
   const src = await readFile(
-    new URL('../../docs/src/modules/capabilities/components.js?v=20260908d', import.meta.url),
+    new URL('../../docs/src/modules/capabilities/components.js?v=20260909e', import.meta.url),
     'utf8',
   );
   assert.match(src, /id: 'component:todo-list'/);

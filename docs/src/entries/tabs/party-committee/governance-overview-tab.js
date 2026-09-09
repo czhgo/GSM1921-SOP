@@ -13,15 +13,15 @@
 // U3（2026-09-07）「卡片先占位不弹跳」：治理总览两级渐进——首帧先渲染「顶部+全委统计条」，
 //   支部概览卡列表先等高骨架占位（#pc-branch-cards），下一帧填充真实卡网格（避免整块弹出支部卡）。
 
-import { mockDB } from '../../../core/domain.js?v=20260908d';
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260908d';
-import { getRosterStats, RESIDENCE_KEY } from '../../../services/roster.js?v=20260908d';
-import { getCommitteeName } from '../../../services/branch.js?v=20260908d';
-import { escHtml as esc } from '../../../core/utils.js?v=20260908d';
-import { tokenOf } from '../../../core/version-token.js?v=20260908d'; // P0 域写版本戳（spec §二.4）
-import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260908d'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/memoize-render.js?v=20260908d'; // P2 渲染守卫（spec §四.1）
-import { bindBranchDemoButtons } from '../../../modules/branch-demo-nav.js?v=20260908d';
+import { mockDB } from '../../../core/domain.js?v=20260909e';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260909e';
+import { getRosterStats, RESIDENCE_KEY } from '../../../services/roster.js?v=20260909e';
+import { getCommitteeName } from '../../../services/branch.js?v=20260909e';
+import { escHtml as esc } from '../../../core/utils.js?v=20260909e';
+import { tokenOf } from '../../../core/version-token.js?v=20260909e'; // P0 域写版本戳（spec §二.4）
+import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260909e'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/memoize-render.js?v=20260909e'; // P2 渲染守卫（spec §四.1）
+import { bindBranchDemoButtons } from '../../../modules/branch-demo-nav.js?v=20260909e';
 
 /** 支部概览卡等高骨架（网格占位，防「支部卡列表整块弹出」；styles.css 禁改不碰） */
 function _branchCardsSkeleton() {

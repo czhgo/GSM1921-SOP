@@ -5,11 +5,11 @@
 // 组长收件位 = 本组组员汇报（组员进展 tab 行内答复）——计数取本组组员 open 汇报数并跳「组员进展」。
 // U3（2026-09-07）：先 beginOverviewShell 骨架/槽位占位 → 预算计数 → 原地填充直达条（不推挤正文）。
 
-import { renderWorkOverview } from '../../../components/work-overview.js?v=20260908d';
-import { AuthStore } from '../../../services/auth.js?v=20260908d';
-import { IssueStore } from '../../../services/issues.js?v=20260908d';
-import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260908d';
-import { beginOverviewShell, mountOverviewDispatchBar } from '../../../components/overview-dispatch-bar.js?v=20260908d';
+import { renderWorkOverview } from '../../../components/work-overview.js?v=20260909e';
+import { AuthStore } from '../../../services/auth.js?v=20260909e';
+import { IssueStore } from '../../../services/issues.js?v=20260909e';
+import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260909e';
+import { beginOverviewShell, mountOverviewDispatchBar } from '../../../components/overview-dispatch-bar.js?v=20260909e';
 
 /** 本组组员 open 汇报数（组长收件 = 组员汇报，处理位 = 组员进展 tab；P-011 同组可见） */
 async function _pendingMemberReportCount(personId) {

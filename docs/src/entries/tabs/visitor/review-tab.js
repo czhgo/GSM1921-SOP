@@ -3,15 +3,15 @@
 // SOP 复盘提交归「组织者」——组织者可能是党小组组长，也可能是被赋权的普通成员。
 // 本 tab 让担任组织者/深度参与者的成员在自己的工作台即可提交复盘，复盘提交人 = 当前用户（组织者）。
 
-import { loadActivities } from '../../../services/activity.js?v=20260908d';
-import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../../../services/review.js?v=20260908d';
-import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260908d';
-import { PersonStore } from '../../../services/person.js?v=20260908d';
+import { loadActivities } from '../../../services/activity.js?v=20260909e';
+import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../../../services/review.js?v=20260909e';
+import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260909e';
+import { PersonStore } from '../../../services/person.js?v=20260909e';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { AuthStore } from '../../../services/auth.js?v=20260908d';
-import { showToast } from '../../../core/utils.js?v=20260908d';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260908d';
+import { AuthStore } from '../../../services/auth.js?v=20260909e';
+import { showToast } from '../../../core/utils.js?v=20260909e';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260909e';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;

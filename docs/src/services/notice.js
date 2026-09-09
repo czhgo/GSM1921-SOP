@@ -5,16 +5,16 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260908d';
-import { persist } from '../core/data-adapter.js?v=20260908d';
-import { bumpToken } from '../core/version-token.js?v=20260908d'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../mock/index.js?v=20260908d';
-import { isInitStateActive } from './init-reset.js?v=20260908d'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { showToast, getBasePath } from '../core/utils.js?v=20260908d';
-import { AuthStore } from './auth.js?v=20260908d';
-import { getPersonById } from './person.js?v=20260908d';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260908d';
-import { badgeHtml } from '../components/badges.js?v=20260908d';
+import { mockDB } from '../core/domain.js?v=20260909e';
+import { persist } from '../core/data-adapter.js?v=20260909e';
+import { bumpToken } from '../core/version-token.js?v=20260909e'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../mock/index.js?v=20260909e';
+import { isInitStateActive } from './init-reset.js?v=20260909e'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { showToast, getBasePath } from '../core/utils.js?v=20260909e';
+import { AuthStore } from './auth.js?v=20260909e';
+import { getPersonById } from './person.js?v=20260909e';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260909e';
+import { badgeHtml } from '../components/badges.js?v=20260909e';
 
 function _loadNotices() {
   try {

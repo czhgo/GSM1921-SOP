@@ -2,18 +2,18 @@
 // entries/tabs/secretary/assign-tab.js — 书记工作台·赋权管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：常设赋权（设党小组组长）+ 项目赋权（organizer/deep）。
 
-import { showToast } from '../../../core/utils.js?v=20260908d';
-import { AuthStore } from '../../../services/auth.js?v=20260908d';
-import { PersonStore } from '../../../services/person.js?v=20260908d';
+import { showToast } from '../../../core/utils.js?v=20260909e';
+import { AuthStore } from '../../../services/auth.js?v=20260909e';
+import { PersonStore } from '../../../services/person.js?v=20260909e';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { getPersonById } from '../../../services/person.js?v=20260908d';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260908d';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260908d';
-import { ROLE_LABELS, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260908d';
-import { loadActivities } from '../../../services/activity.js?v=20260908d';
-import { badgeHtml } from '../../../components/badges.js?v=20260908d';
-import { TodoStore } from '../../../services/todo.js?v=20260908d';
+import { getPersonById } from '../../../services/person.js?v=20260909e';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260909e';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260909e';
+import { ROLE_LABELS, getAccentColors, resolveAccentRole } from '../../../core/constants.js?v=20260909e';
+import { loadActivities } from '../../../services/activity.js?v=20260909e';
+import { badgeHtml } from '../../../components/badges.js?v=20260909e';
+import { TodoStore } from '../../../services/todo.js?v=20260909e';
 
 const accent = getAccentColors(resolveAccentRole('secretary')).accent;
 

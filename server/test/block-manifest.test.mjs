@@ -34,7 +34,7 @@ test('S1 块 manifest：试点清单合规 + 校验器正/反样例', async () =
     await page.waitForFunction(() => document.readyState === 'complete', null, { timeout: 10000 });
 
     const result = await page.evaluate(async () => {
-      const { BLOCK_MANIFESTS, validateBlockManifest } = await import('/src/workflow/blocks/manifests.js?v=20260908d');
+      const { BLOCK_MANIFESTS, validateBlockManifest } = await import('/src/workflow/blocks/manifests.js?v=20260909e');
       const out = { ids: [], allOk: true, invalidCount: 0, antiExamples: {} };
 
       // 正向：全部试点清单合规

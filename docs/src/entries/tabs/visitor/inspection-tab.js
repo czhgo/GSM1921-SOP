@@ -2,11 +2,11 @@
 // 参与者工作台 Tab：我的考察（T-279 M3 拆分，照 M2 样板）
 // 个人考察记录查询视图（spec §五 数据访问规则：支部成员对自己的历次活动参与考察情况有查询视图）。
 
-import { AuthStore } from '../../../services/auth.js?v=20260908d';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260908d';
-import { inspectionToDisplay } from '../../../services/inspection.js?v=20260908d';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260908d';
-import { badgeHtml } from '../../../components/badges.js?v=20260908d';
+import { AuthStore } from '../../../services/auth.js?v=20260909e';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260909e';
+import { inspectionToDisplay } from '../../../services/inspection.js?v=20260909e';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260909e';
+import { badgeHtml } from '../../../components/badges.js?v=20260909e';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');

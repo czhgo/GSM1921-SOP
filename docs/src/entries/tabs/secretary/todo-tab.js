@@ -8,38 +8,38 @@
 //   buildRealtimeGroups 一次 merge 进对应域（考勤纪律/考察/活动项目/归档宣传/成员发展/决议上报）；
 //   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
-import { showToast, escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260908d';
+import { showToast, escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260909e';
 // D2 裁决批二（2026-09-08）：概况汇报区只读摘要「去待办处理」→ 定位消费（展开该答复详情并滚动到视口）
-import { PendingTarget } from '../../../core/pending-target.js?v=20260908d';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260908d';
-import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260908d';
-import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260908d';
-import { badgeHtml } from '../../../components/badges.js?v=20260908d';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260908d';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260908d';
-import { updateActivityReview } from '../../../services/review.js?v=20260908d';
-import { loadActivities } from '../../../services/activity.js?v=20260908d';
-import { mockDB } from '../../../core/domain.js?v=20260908d';
-import { persist } from '../../../core/data-adapter.js?v=20260908d';
-import { bumpToken } from '../../../core/version-token.js?v=20260908d'; // P0 域缓存失效（spec §二.3）
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260908d';
-import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260908d';
-import { IssueStore } from '../../../services/issues.js?v=20260908d';
-import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/taskforce.js?v=20260908d';
-import { fetchVotes } from '../../../services/committee-vote.js?v=20260908d';
-import { resolveVoterIds } from '../../../services/vote-config.js?v=20260908d';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260908d';
+import { PendingTarget } from '../../../core/pending-target.js?v=20260909e';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260909e';
+import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260909e';
+import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260909e';
+import { badgeHtml } from '../../../components/badges.js?v=20260909e';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260909e';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260909e';
+import { updateActivityReview } from '../../../services/review.js?v=20260909e';
+import { loadActivities } from '../../../services/activity.js?v=20260909e';
+import { mockDB } from '../../../core/domain.js?v=20260909e';
+import { persist } from '../../../core/data-adapter.js?v=20260909e';
+import { bumpToken } from '../../../core/version-token.js?v=20260909e'; // P0 域缓存失效（spec §二.3）
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260909e';
+import { getAccentColors, resolveAccentRole, solidAccentStyle } from '../../../core/constants.js?v=20260909e';
+import { IssueStore } from '../../../services/issues.js?v=20260909e';
+import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/taskforce.js?v=20260909e';
+import { fetchVotes } from '../../../services/committee-vote.js?v=20260909e';
+import { resolveVoterIds } from '../../../services/vote-config.js?v=20260909e';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260909e';
 // 2026-09-08 裁决批一（D1/D3）：成员变更=域内确认+批量去顶卡——顶卡面板移除，
 // 确认位唯一化 = 「成员发展」域实时组内批量块（buildMcBulkRows/renderMcBulkRowsHtml/bindMcBulk）。
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260908d';
-import { tryDirectJump } from '../../../components/todo-jump.js?v=20260908d';
-import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260908d';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260909e';
+import { tryDirectJump } from '../../../components/todo-jump.js?v=20260909e';
+import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260909e';
 // C 批 附录⑩ S4：名册确权复核（组织委员发起 → 书记确认/退回）+ 学期末滞留集中复核提醒
 // 批4（2026-09-09）：窗口判定与窗口文案单一源 = policy（memberConfirmation.semesterDetainedWindows）
-import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member-confirmation.js?v=20260908d';
-import { getDetainedMembers, getResidenceOf } from '../../../services/roster.js?v=20260908d';
-import { AuthStore } from '../../../services/auth.js?v=20260908d';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260908d';
+import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member-confirmation.js?v=20260909e';
+import { getDetainedMembers, getResidenceOf } from '../../../services/roster.js?v=20260909e';
+import { AuthStore } from '../../../services/auth.js?v=20260909e';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260909e';
 
 const { accent, accentBorder } = getAccentColors(resolveAccentRole('secretary'));
 

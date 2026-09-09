@@ -8,22 +8,22 @@
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 // 2026-08-10 书记裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260908d';
-import { NoticeStore } from '../../../services/notice.js?v=20260908d';
-import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260908d';
-import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260908d';
-import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260908d';
-import { badgeHtml } from '../../../components/badges.js?v=20260908d';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260909e';
+import { NoticeStore } from '../../../services/notice.js?v=20260909e';
+import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260909e';
+import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260909e';
+import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260909e';
+import { badgeHtml } from '../../../components/badges.js?v=20260909e';
 // S1–S4 滞留党员设计（2026-09-06 书记已批）：书记复核卡（只读查看徽标/备注/变更留痕）
-import { getDetainedMembers, getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260908d';
-import { loadActivities } from '../../../services/activity.js?v=20260908d';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260908d';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260908d';
-import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260908d';
+import { getDetainedMembers, getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260909e';
+import { loadActivities } from '../../../services/activity.js?v=20260909e';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260909e';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260909e';
+import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260909e';
 // D2 裁决批二（2026-09-08 书记特批）：按人视图汇报区降级只读摘要 → 「去待办处理」定位跳转（pendingTarget 一次性消费）
-import { PendingTarget } from '../../../core/pending-target.js?v=20260908d';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260908d';
-import { getPersonName } from '../../../services/person.js?v=20260908d';
+import { PendingTarget } from '../../../core/pending-target.js?v=20260909e';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260909e';
+import { getPersonName } from '../../../services/person.js?v=20260909e';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>

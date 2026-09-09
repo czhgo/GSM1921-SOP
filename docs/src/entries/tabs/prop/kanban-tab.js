@@ -2,15 +2,15 @@
 // 宣传委员工作台 Tab：项目看板（T-279 M3 拆分，照 M2 样板）
 // 活动/专班合并看板（活动+专班分桶）+ 专班工作量区块；从 TaskForceRecordStore 动态派生（H-1 数据断裂修复）。
 
-import { badgeHtml } from '../../../components/badges.js?v=20260908d';
-import { BranchService } from '../../../services/runtime.js?v=20260908d';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260908d';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260908d';
-import { NoticeStore } from '../../../services/notice.js?v=20260908d';
-import { persist } from '../../../core/data-adapter.js?v=20260908d';
-import { showToast } from '../../../core/utils.js?v=20260908d';
-import { setState } from '../../../core/state.js?v=20260908d';
-import { getPersonName } from '../../../services/person.js?v=20260908d';
+import { badgeHtml } from '../../../components/badges.js?v=20260909e';
+import { BranchService } from '../../../services/runtime.js?v=20260909e';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260909e';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260909e';
+import { NoticeStore } from '../../../services/notice.js?v=20260909e';
+import { persist } from '../../../core/data-adapter.js?v=20260909e';
+import { showToast } from '../../../core/utils.js?v=20260909e';
+import { setState } from '../../../core/state.js?v=20260909e';
+import { getPersonName } from '../../../services/person.js?v=20260909e';
 
 export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');

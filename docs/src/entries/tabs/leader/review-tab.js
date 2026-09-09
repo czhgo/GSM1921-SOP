@@ -6,13 +6,13 @@
 //   本区块并入「组员进展」页（leader/members-tab.js 挂载）——模块改为可嵌入区块导出：
 //   reviewStatusSectionHtml(ctx) → 整卡 HTML 字符串；bindReviewStatusSection(container, rerender) → 绑定展开。
 
-import { loadActivities } from '../../../services/activity.js?v=20260908d';
-import { loadActivityReviews } from '../../../services/review.js?v=20260908d';
-import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260908d';
-import { PersonStore } from '../../../services/person.js?v=20260908d';
+import { loadActivities } from '../../../services/activity.js?v=20260909e';
+import { loadActivityReviews } from '../../../services/review.js?v=20260909e';
+import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260909e';
+import { PersonStore } from '../../../services/person.js?v=20260909e';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { currentLeaderGroup } from './_shared.js?v=20260908d';
+import { currentLeaderGroup } from './_shared.js?v=20260909e';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;

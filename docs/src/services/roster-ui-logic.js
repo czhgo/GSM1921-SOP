@@ -13,7 +13,7 @@
 // 单测：server/test/roster-ui-logic.test.mjs
 // ════════════════════════════════════════════════════════════════
 
-import { RESIDENCE, getResidenceOf } from './roster.js?v=20260908d';
+import { RESIDENCE, getResidenceOf } from './roster.js?v=20260909e';
 
 // ── 删除守卫：业务域 → 产品话术类别（removeMember 引用守卫 refs 的展示映射）──
 // 映射键 = PersonStore.findMemberRefs 的 domain（详见 services/person.js）；

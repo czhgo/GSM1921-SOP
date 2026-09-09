@@ -6,15 +6,15 @@
 // 读写统一走 core/theme.js 偏好适配层（登录人 person 键空间 / 访客全局键回落），
 // 由 settings 页调用方传入 accentFallbackRole（当前常设角色，访客 ''）计算生效强调色。
 
-import { icon } from '../core/icons.js?v=20260908d';
-import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260908d';
+import { icon } from '../core/icons.js?v=20260909e';
+import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260909e';
 import {
   getFontSizePreference,
   setFontSizePreference,
   getThemePreference,
   setThemePreference,
   setAccentRolePreference,
-} from '../core/theme.js?v=20260908d';
+} from '../core/theme.js?v=20260909e';
 
 // ── 按钮态样式（与迁移前侧边栏一致；gray 系类随 html.theme-dark 自动翻转）──
 const _base = 'px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 ';

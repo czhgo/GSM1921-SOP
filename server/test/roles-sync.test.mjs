@@ -11,7 +11,7 @@ import {
   ROLE_KEYS, ROLE_LEGACY_KEYS,
   BRANCH_COMMISSION_ROLES, SECRETARY_ROLES, PARTY_STAFF_ROLE, COMMITTEE_IDS,
   COMMISSIONER_ROLES,
-} from '../../docs/src/core/constants.js?v=20260908d';
+} from '../../docs/src/core/constants.js?v=20260909e';
 
 const root = fileURLToPath(new URL('../..', import.meta.url)); // 仓库根
 
@@ -39,8 +39,8 @@ test('演示支部支委名单 COMMITTEE_IDS = 5 人（p10~p14）', () => {
 
 test('server 路由与前端鉴权不再手写 5 支委授权列表（特征串仅在 constants.js 出现 1 次）', () => {
   const files = [
-    'docs/src/core/constants.js?v=20260908d',
-    'docs/src/services/auth.js?v=20260908d',
+    'docs/src/core/constants.js?v=20260909e',
+    'docs/src/services/auth.js?v=20260909e',
     'server/routes/auth.js',
     'server/routes/member.js',
     'server/routes/committee.js',

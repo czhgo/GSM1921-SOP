@@ -10,16 +10,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260908d';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260908d';
-import { PersonStore } from '../../docs/src/services/person.js?v=20260908d';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260909e';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260909e';
+import { PersonStore } from '../../docs/src/services/person.js?v=20260909e';
 import {
   getMeetingRosterIds, getRosterStats, RESIDENCE as ROSTER_RESIDENCE,
-} from '../../docs/src/services/roster.js?v=20260908d';
+} from '../../docs/src/services/roster.js?v=20260909e';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION, PREVIEW_KEY, BASE_FIELDS, RESIDENCE, MEMBER_IDS,
-} from '../../docs/src/services/org-base-data-preview.js?v=20260908d';
+} from '../../docs/src/services/org-base-data-preview.js?v=20260909e';
 
 // ── localStorage 内存桩（import 之后、用例之前建立即可：两服务均在函数体内 typeof 守卫惰性访问）──
 const _store = new Map();

@@ -11,25 +11,25 @@
 // （分组结构可见性即角色化验收点，功能随批 3/4 开放）。
 // 登录态：非纯静态——readLoginSnapshot() + 动态 import auth（同 sidebar.js 模式）。
 
-import { renderSidebar } from '../components/sidebar.js?v=20260908d';
-import { renderHeader } from '../components/header.js?v=20260908d';
-import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260908d';
-import { ROLE_LABELS, ROLE_PAGE_MAP, resolveAccentRole, getAccentColors } from '../core/constants.js?v=20260908d';
-import { appearanceControlsHTML, bindAppearanceControls } from '../components/appearance-controls.js?v=20260908d';
-import { icon } from '../core/icons.js?v=20260908d';
-import { escHtml as esc } from '../core/utils.js?v=20260908d';
-import { getCapabilities } from '../core/registry.js?v=20260908d';
+import { renderSidebar } from '../components/sidebar.js?v=20260909e';
+import { renderHeader } from '../components/header.js?v=20260909e';
+import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260909e';
+import { ROLE_LABELS, ROLE_PAGE_MAP, resolveAccentRole, getAccentColors } from '../core/constants.js?v=20260909e';
+import { appearanceControlsHTML, bindAppearanceControls } from '../components/appearance-controls.js?v=20260909e';
+import { icon } from '../core/icons.js?v=20260909e';
+import { escHtml as esc } from '../core/utils.js?v=20260909e';
+import { getCapabilities } from '../core/registry.js?v=20260909e';
 import {
   coreTabIdsOf, sameIdOrder, applyPersonalTabOrder, readPersonalTabOrder,
   savePersonalTabOrder, resetPersonalTabOrder,
-} from '../services/preferences.js?v=20260908d';
+} from '../services/preferences.js?v=20260909e';
 // 批4（2026-09-09 书记批「域参数」）：制度默认单一源 = policy-defaults（设置页展示「制度默认」行与域参数默认值）
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260908d';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260909e';
 
 // ── 数据层按需加载（同 sidebar staticShell 模式：确已登录才动态 import auth）──
 let _authModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../services/auth.js?v=20260908d');
+  if (!_authModule) _authModule = import('../services/auth.js?v=20260909e');
   return _authModule;
 }
 
@@ -206,11 +206,11 @@ async function buildMyWorkspaceModel(role, personId) {
   if (!stem) return null;
   const scope = `workspace:${stem}`;
   // 能力模块副作用导入即注册（同 ws-*-entry 模式）；branch.js 数据链较重，随用随载
-  await import(`../modules/capabilities/${stem}-workspace.js?v=20260908d`);
+  await import(`../modules/capabilities/${stem}-workspace.js?v=20260909e`);
   const cap = getCapabilities({ scope }).find(c => c.id === `${stem}-workspace`);
   const rawTabs = cap && typeof cap.tabs === 'function' ? cap.tabs() : [];
   if (!rawTabs.length) return null;
-  const { applyTabPolicy, getBranchIdOfPerson } = await import('../services/branch.js?v=20260908d');
+  const { applyTabPolicy, getBranchIdOfPerson } = await import('../services/branch.js?v=20260909e');
   // 支部策略口径与 workspace-shell 一致：支部层工作台应用 config.modules；党委台不受支部配置影响
   let base = rawTabs;
   if (scope !== 'workspace:party-committee' && role !== 'party-staff') {
@@ -434,7 +434,7 @@ async function renderBranchGovSection(panel, sectionId) {
   }
   panel.innerHTML = govEmptyHtml('加载支部配置…');
   try {
-    const br = await import('../services/branch.js?v=20260908d');
+    const br = await import('../services/branch.js?v=20260909e');
     const id = br.getBranchIdOfPerson(personId);
     const branch = br.getBranchById(id);
     if (!branch) {
@@ -503,7 +503,7 @@ async function openWizardEmbed(panel) {
     <div id="settings-wizard-host"></div>`;
   const host = panel.querySelector('#settings-wizard-host');
   try {
-    const { mountOrgSetupWizard } = await import('../components/org-setup-wizard.js?v=20260908d');
+    const { mountOrgSetupWizard } = await import('../components/org-setup-wizard.js?v=20260909e');
     if (seq !== _govSeq || !host) return;
     mountOrgSetupWizard(host, { actor: { personId, role }, branchId: _govBranchId, embed: true });
   } catch (e) {
@@ -616,7 +616,7 @@ async function saveBranchOrder(panel) {
   const hidden = Array.isArray(m.modules?.hiddenTabIds) ? m.modules.hiddenTabIds : [];
   const canNull = !hidden.length && sameIdOrder(cur, m.baseBizIds);
   try {
-    const br = await import('../services/branch.js?v=20260908d');
+    const br = await import('../services/branch.js?v=20260909e');
     await br.updateBranchModules(m.branchId, canNull ? null : { hiddenTabIds: hidden, tabOrder: cur }, m.rawTabs);
     await refreshBranchOrder(panel, canNull
       ? '已恢复系统默认顺序 —— 全体成员下一刷新按默认全开 · 注册顺序。'
@@ -632,7 +632,7 @@ async function resetBranchOrder(panel) {
   const m = _bwsModel;
   if (!m) return;
   try {
-    const br = await import('../services/branch.js?v=20260908d');
+    const br = await import('../services/branch.js?v=20260909e');
     await br.updateBranchModules(m.branchId, null, m.rawTabs);
     await refreshBranchOrder(panel, '已恢复系统默认顺序 —— 全体成员下一刷新按默认全开 · 注册顺序。');
   } catch (e) {
@@ -645,7 +645,7 @@ async function resetBranchOrder(panel) {
 async function refreshBranchOrder(panel, msg) {
   const seq = ++_govSeq;
   try {
-    const br = await import('../services/branch.js?v=20260908d');
+    const br = await import('../services/branch.js?v=20260909e');
     const branch = br.getBranchById(_govBranchId);
     if (!branch || seq !== _govSeq) return;
     const model = buildBranchOrderModel(br, branch);
@@ -777,7 +777,7 @@ async function renderPolicySection(panel, sectionId) {
   }
   panel.innerHTML = policyEmptyHtml(SECTION_META[sectionId]?.title || '设置', '加载支部配置…');
   try {
-    const br = await import('../services/branch.js?v=20260908d');
+    const br = await import('../services/branch.js?v=20260909e');
     const id = br.getBranchIdOfPerson(personId);
     const branch = br.getBranchById(id);
     if (!branch) {
@@ -1012,7 +1012,7 @@ async function runPolicyAction(panel, cardId, action) {
   if (action === 'save' && !patch) return; // 输入非法已提示
   const seq = ++_govSeq;
   try {
-    const br = await import('../services/branch.js?v=20260908d');
+    const br = await import('../services/branch.js?v=20260909e');
     const res = await br.savePolicyOverrides(_govBranchId, patch, { actor: { personId, role } });
     if (!res.ok) {
       if (_currentSectionId === cardId) showPolicyStatus(panel, res.reason || '保存失败（无权限或参数非法）。', true);

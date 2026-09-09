@@ -6,13 +6,13 @@
 //     （org-commissioner:member-approve，议程派生审批=通过）+ 「考察」域交接行「确认接收」；
 //   · org 无队列顶卡：仅保留页顶补课发起小操作条（非队列卡，发起闭环不丢）。
 
-import { showToast } from '../../../core/utils.js?v=20260908d';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260908d';
-import { tryDirectJump } from '../../../components/todo-jump.js?v=20260908d';
-import { REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260908d';
-import { HandoffStore } from '../../../services/handoff.js?v=20260908d';
-import { openFormModal } from '../../../components/modal.js?v=20260908d';
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260908d';
+import { showToast } from '../../../core/utils.js?v=20260909e';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260909e';
+import { tryDirectJump } from '../../../components/todo-jump.js?v=20260909e';
+import { REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260909e';
+import { HandoffStore } from '../../../services/handoff.js?v=20260909e';
+import { openFormModal } from '../../../components/modal.js?v=20260909e';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260909e';
 
 function _handleTodoAction(todo, ctx) {
   // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/todo-jump.js（2026-09-04）
