@@ -33,6 +33,10 @@ import { BranchService } from '../services/runtime.js?v=20260909e';
 import { registerApiAdapter, setDataSource, init as dataInit } from '../core/data-adapter.js?v=20260909e';
 import { ApiAdapter } from '../core/api-adapter.js?v=20260909e';
 
+// 2026-09-09 支部归属显式化/审计内核：变更记录展示与回滚按钮需要操作者姓名、单键回滚白名单
+import { getPersonName } from '../services/person.js?v=20260909e';
+import { CONFIG_ROLLBACK_KEYS } from '../core/config-clean.js?v=20260909e';
+
 // 支部治理区归属缺失统一文案（2026-09-09 书记批「未绑定支部」口径：支部语境一律 getBoundBranch 判定，
 // 不再回退示例支部 br-b1；由党委在『支部管理』中确认归属后才可见本支部治理内容）
 const GOV_NO_BRANCH_TEXT = '未找到您所属支部——请先由党委在『支部管理』中确认归属。';
@@ -173,7 +177,8 @@ function renderPanel(panel) {
     return;
   }
 
-  if (_currentSectionId === 'branch-info-wizard' || _currentSectionId === 'branch-default-tab-order') {
+  if (_currentSectionId === 'branch-info-wizard' || _currentSectionId === 'branch-default-tab-order'
+    || _currentSectionId === 'branch-config-history') {
     renderBranchGovSection(panel, _currentSectionId);
     return;
   }
@@ -425,7 +430,7 @@ async function renderMyWorkspacePanel(panel) {
 // 数据链：当前人 → 有效归属支部（branch.getBoundBranch，2026-09-09 归属显式化——不再 getBranchIdOfPerson
 //       回退示例支部；无归属 → 统一「未找到您所属支部」提示卡）→ config 各读/写口。
 let _govSeq = 0;      // 支部治理区异步加载序号（切区块防串写）
-let _govBranchId = ''; // 当前登录人所属支部（info/order/wizard 共用；访问前解析）
+let _govBranchId = ''; // 当前登录人所属支部（info/order/history/wizard 共用；访问前解析）
 let _bwsModel = null;  // 工作台默认顺序当前渲染模型（行操作/拖拽读取最新 pending）
 
 const GOV_ROLES = new Set(['secretary', 'deputy-secretary']); // 支部治理分组可见角色（与 buildGroups 同源）
@@ -522,6 +527,125 @@ async function openWizardEmbed(panel) {
   } catch (e) {
     console.warn('[settings] 换组织向导加载失败', e);
     if (host) host.innerHTML = '<p class="text-sm text-gray-500">换组织向导加载失败，请刷新页面重试。</p>';
+  }
+}
+
+// ═══════════════ 配置变更记录（2026-09-09 审计内核 B3：支部治理新增只读列表 + 单键回滚）═══════════
+// 数据源 = branch.config.configChangeHistory（{by,at,what,from,to,why?}；上限 100，见 config-clean 共享常量）。
+// 展示：人 / 时间（格式化）/ 键（what 标签）/ 前后值摘要 / 依据 why；what ∈ CONFIG_ROLLBACK_KEYS 的
+// 单键变更可「回滚此更改」（书记/副书记副书同权；party-staff 在党委台治理，本设置页无此路径）。
+const CONFIG_HISTORY_LABELS = {
+  modules: '工作台模块', blocks: '产出块', workforce: '支部分工', policyOverrides: '域参数',
+  headerTitle: '页眉显示名', desc: '支部自述', themePreset: '主题',
+  name: '支部名', 'branch-created': '创建支部', 'config-copied': '复制配置',
+  'config-overwrite': '配置覆盖', 'config-package-import': '导入配置包',
+  rollback: '回滚',
+};
+
+/** 历史值摘要（null/undefined=默认；字符串截断；数组/对象 JSON 压缩） */
+function _cfgBrief(v) {
+  if (v === null || v === undefined) return '默认';
+  if (typeof v === 'string') return v.length > 60 ? `${v.slice(0, 60)}…` : v;
+  if (Array.isArray(v)) return `[${v.join('、')}]`;
+  if (typeof v === 'object') {
+    try {
+      const s = JSON.stringify(v);
+      return s.length > 80 ? `${s.slice(0, 80)}…` : s;
+    } catch (_) { return '[对象]'; }
+  }
+  return String(v);
+}
+
+/** ISO 时间本地格式化（YYYY-MM-DD HH:mm；非法输入原样返回） */
+function _cfgFmtAt(iso) {
+  try {
+    const d = new Date(iso);
+    if (Number.isNaN(+d)) return iso || '';
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  } catch (_) { return iso || ''; }
+}
+
+/** 单条留痕行（记录块 + 可回滚按钮；what 属聚合/回滚/非追踪键 → 不提供回滚） */
+function _cfgHistoryRowHtml(h) {
+  const whatLabel = CONFIG_HISTORY_LABELS[h.what] || h.what || '—';
+  const who = (h.by && getPersonName(h.by)) || '—';
+  const when = _cfgFmtAt(h.at);
+  const rollbackable = CONFIG_ROLLBACK_KEYS.includes(h.what);
+  const isRollback = h.what === 'rollback';
+  const brief = isRollback
+    ? `回滚前：${esc(_cfgBrief(h.from))}　→　恢复为：${esc(_cfgBrief(h.to))}`
+    : `从：${esc(_cfgBrief(h.from))}　→　到：${esc(_cfgBrief(h.to))}`;
+  const whyHtml = h.why ? `<div style="margin-top:2px;"><span class="text-[11px] text-gray-400">依据/出处：</span><span class="text-[11px]" style="color:var(--app-accent,#B91C1C);">${esc(h.why)}</span></div>` : '';
+  return `
+    <li class="cfg-hist-row" style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--neutral-200,#E5E7EB);border-radius:10px;background:#fff;">
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span class="cfg-hist-key" style="font-size:11px;font-weight:600;padding:1px 8px;border-radius:9999px;color:var(--app-accent,#B91C1C);background:var(--app-accent-bg,rgba(185,28,28,0.08));">${esc(whatLabel)}</span>
+          ${isRollback ? '<span style="font-size:10px;padding:1px 6px;border-radius:9999px;background:#FEF3C7;color:#92400E;">已回滚</span>' : ''}
+          <span class="text-[11px] font-medium text-gray-700">${esc(who)}</span>
+          <span class="text-[11px] text-gray-400">${esc(when)}</span>
+        </div>
+        <div class="text-[12px] text-gray-600" style="margin-top:4px;word-break:break-all;">${brief}</div>
+        ${whyHtml}
+      </div>
+      ${rollbackable ? `<button type="button" class="bws-btn-primary bws-btn-primary-sm" data-gov="rollback" data-at="${esc(h.at)}" title="将该键恢复到本次变更前的值并留痕" style="flex-shrink:0;">回滚此更改</button>` : ''}
+    </li>`;
+}
+
+/** 渲染「配置变更记录」卡（只读列表；最新在前，展示最近 50 条；0 条给空态） */
+function renderConfigHistorySection(panel, br, branch, statusMsg) {
+  const { role } = _session;
+  const roleLabel = role === 'deputy-secretary' ? '副书记' : '书记';
+  const history = Array.isArray(branch.config && branch.config.configChangeHistory)
+    ? branch.config.configChangeHistory
+    : [];
+  const rowsHtml = history.length
+    ? [...history].slice(-50).reverse().map(_cfgHistoryRowHtml).join('')
+    : '<p class="text-sm" style="color:var(--neutral-400,#9CA3AF);padding:8px 2px;">暂无配置变更记录</p>';
+  panel.innerHTML = `
+    <div class="settings-card">
+      <div class="settings-card-head">
+        <h2 class="settings-card-title">配置变更记录</h2>
+        <span class="settings-badge">${esc(roleLabel)} · 本支部 · 审计</span>
+      </div>
+      <p class="settings-card-desc">支部配置（工作台模块 / 产出块 / 分工 / 组织档案 / 域参数等）每次保存自动留痕：操作人、时间、变更键、前后值摘要与依据（why）。单键变更可由书记 / 副书记（副书同权）回滚，回滚本身再留一痕；历史保留最近 100 条。</p>
+      <ul class="cfg-hist-list" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;padding:0;list-style:none;">${rowsHtml}</ul>
+      <p class="myws-status" data-cfg-hist-status aria-live="polite"></p>
+    </div>`;
+  bindBranchGovDelegates(panel);
+  if (statusMsg) showCfgHistStatus(panel, statusMsg);
+}
+
+function showCfgHistStatus(panel, msg, isErr = false) {
+  const el = panel.querySelector('[data-cfg-hist-status]');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.toggle('is-err', isErr);
+  clearTimeout(el._cfghT);
+  el._cfghT = setTimeout(() => { el.textContent = ''; }, 3600);
+}
+
+/** 回滚此更改（confirm 确认 → rollbackBranchConfig → 重绘并提示「已回滚并留痕」） */
+async function runConfigHistoryRollback(panel, entryAt) {
+  const { role, personId } = _session;
+  if (!personId || !GOV_ROLES.has(role)) return;
+  if (!window.confirm('确认回滚此条配置更改？系统将把该配置键恢复到本次变更前的值，并追加一条回滚留痕（回滚本身可查不可再回滚）。')) return;
+  const seq = ++_govSeq;
+  try {
+    const br = await import('../services/branch.js?v=20260909e');
+    const res = await br.rollbackBranchConfig(_govBranchId, { by: personId, targetEntryAt: entryAt });
+    if (!res.ok) {
+      if (_currentSectionId === 'branch-config-history' && seq === _govSeq) showCfgHistStatus(panel, res.reason || '回滚失败。', true);
+      return;
+    }
+    if (_currentSectionId !== 'branch-config-history' || seq !== _govSeq) return;
+    const branch = br.getBranchById(_govBranchId);
+    if (!branch) { panel.innerHTML = govEmptyHtml(GOV_NO_BRANCH_TEXT); return; }
+    renderConfigHistorySection(panel, br, branch, '已回滚并留痕');
+  } catch (e) {
+    console.warn('[settings] 配置回滚失败', e);
+    if (_currentSectionId === 'branch-config-history' && seq === _govSeq) showCfgHistStatus(panel, '回滚失败，请刷新页面重试。', true);
   }
 }
 
@@ -681,7 +805,7 @@ function paintBranchOrderCard(panel, msg) {
   if (msg) showBwsStatus(panel, msg);
 }
 
-/** 支部治理区面板级委托（wizard 开/关 + bws 按钮；绑定一次，DOM 重绘不失效） */
+/** 支部治理区面板级委托（wizard 开/关 + 配置回滚 + bws 按钮；绑定一次，DOM 重绘不失效） */
 function bindBranchGovDelegates(panel) {
   if (panel._govBound) return;
   panel._govBound = true;
@@ -692,6 +816,8 @@ function bindBranchGovDelegates(panel) {
       renderBranchGovSection(panel, 'branch-info-wizard');
       return;
     }
+    const rbBtn = e.target.closest('[data-gov="rollback"]');
+    if (rbBtn) { runConfigHistoryRollback(panel, rbBtn.dataset.at); return; }
     const btn = e.target.closest('button[data-bws]');
     if (!btn) return;
     const m = _bwsModel;

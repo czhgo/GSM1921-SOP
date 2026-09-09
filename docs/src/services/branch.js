@@ -10,6 +10,9 @@ import { getAdapter, persist, getDataSource } from '../core/data-adapter.js?v=20
 import { listCapabilities } from '../core/registry.js?v=20260909e';
 // P1a 单向权威（2026-09-03）：config 净化唯一实现 = core/config-clean.js（server PATCH /branches/:id/config 同源）
 import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides } from '../core/config-clean.js?v=20260909e';
+// 审计内核共享常量（2026-09-09 书记批）：why 透传/单键回滚白名单/历史上限单一源 = config-clean
+// （server resources.js 同源 import，双形态防漂移）
+import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '../core/config-clean.js?v=20260909e';
 // L4（2026-09-03）：支部工作地图模块目录单一源 = core/work-map.js（11 模块/缺省分工/快照展开）
 import { expandWorkforce } from '../core/work-map.js?v=20260909e';
 // 批4（2026-09-09 书记批「域参数」）：policyOverrides 顶层节白名单（覆盖写口校验用）
@@ -140,9 +143,9 @@ function _sanitizeBlocks(blocks) {
   return sanitizeConfigBlocks(blocks);
 }
 
-/** 保存支部产出块配置（书记/副书记操作，副书同权 2026-09-09 书记批；blocks=null=恢复默认） */
-export async function updateBranchBlocks(branchId, blocks) {
-  return updateBranchModules(branchId, undefined, [], blocks);
+/** 保存支部产出块配置（书记/副书记操作，副书同权 2026-09-09 书记批；blocks=null=恢复默认；opts.why=依据出处） */
+export async function updateBranchBlocks(branchId, blocks, opts = {}) {
+  return updateBranchModules(branchId, undefined, [], blocks, opts);
 }
 
 /** 核心 tab id 集合（供配置 UI 展示「固定」与隐藏校验） */
@@ -151,7 +154,10 @@ export function getCoreTabIds(tabs) {
 }
 
 // ── 配置变更留痕（2026-09-06 换组织向导书记 R4：即时生效 + 留痕，低频可回滚）─────────
-// config.configChangeHistory: Array<{ by, at, what, from?, to? }>——谁/何时/改了什么配置键。
+// config.configChangeHistory: Array<{ by, at, what, from?, to?, why? }>——谁/何时/改了什么配置键。
+// 2026-09-09 书记批「审计内核」：why=依据/出处（可选，来源页回填如 REVIEW_QUEUE 附录编号；
+//   默认 undefined 不写、向后兼容）；保留上限 CONFIG_HISTORY_MAX（追加即裁剪最早）；
+//   what ∈ CONFIG_ROLLBACK_KEYS（单一源 = config-clean）的单键留痕可回滚（见 rollbackBranchConfig）。
 // 现有审计风格对照：roster.saveResidenceChange.residenceHistory（{from,to,updatedBy,updatedAt}）
 // 与 auth 赋权快照（authorizedBy/authorizedAt）——本域取 {by,at,what,from,to}（任务口径）。
 // 操作者取登录快照 personId：与 services/auth.js LOGIN_KEY 同键（跨模块约定，避免 import auth 循环依赖）。
@@ -170,22 +176,37 @@ function _sameConfigVal(a, b) {
   return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 }
 
-/** 统一写配置（modules/blocks/workforce 共用：adapter 落库 + mock 同步 + persist） */
-async function _saveBranchConfig(branchId, payload) {
+/** 裁剪留痕至 CONFIG_HISTORY_MAX（保留最近 N 条、丢弃最早；返回新数组） */
+function _trimHistory(history) {
+  return history.length > CONFIG_HISTORY_MAX ? history.slice(-CONFIG_HISTORY_MAX) : history;
+}
+
+/** 单条留痕构造（可选 why 透传；空串/undefined 不写键） */
+function _historyRow(by, at, what, from, to, why) {
+  const row = { by, at, what, from, to };
+  if (why !== undefined && why !== null && String(why).trim()) row.why = String(why).trim();
+  return row;
+}
+
+/** 统一写配置（modules/blocks/workforce 共用：adapter 落库 + mock 同步 + persist；opts.why=依据出处） */
+async function _saveBranchConfig(branchId, payload, opts = {}) {
   const cur = getBranchById(branchId);
   const prev = cur?.config || {};
   const at = new Date().toISOString();
   const by = _actorId();
-  const history = Array.isArray(prev.configChangeHistory) ? [...prev.configChangeHistory] : [];
+  const why = (opts && opts.why) || undefined;
+  let history = Array.isArray(prev.configChangeHistory) ? [...prev.configChangeHistory] : [];
   // 留痕：payload 各配置键相对旧值有实质变化才追加（重复保存不产生冗余条目）
   for (const [key, to] of Object.entries(payload)) {
     if (key === 'configChangeHistory') continue;
     const from = prev[key] ?? null;
     const next = to ?? null;
-    if (!_sameConfigVal(from, next)) history.push({ by, at, what: key, from, to: next });
+    if (!_sameConfigVal(from, next)) history.push(_historyRow(by, at, key, from, next, why));
   }
+  history = _trimHistory(history);
   const withHistory = { ...payload, configChangeHistory: history };
-  const next = await getAdapter().branches.updateConfig(branchId, withHistory);
+  // why 一并透传适配器（api 形态 → PATCH body.why，由 server /branches/:id/config 落到服务端留痕行）
+  const next = await getAdapter().branches.updateConfig(branchId, withHistory, { why });
   const idx = (mockDB.branches || []).findIndex(b => b.id === branchId);
   if (idx >= 0) {
     mockDB.branches = [...mockDB.branches.slice(0, idx), next, ...mockDB.branches.slice(idx + 1)];
@@ -196,14 +217,113 @@ async function _saveBranchConfig(branchId, payload) {
   return next;
 }
 
+// ── 配置回滚原语（2026-09-09 书记批「审计内核」B2：单键回滚 + 回滚留痕 + 上限裁剪）────────
+// 定位历史一条单键变更 → 将其 to→from 写回该配置键（跨键不动）→ 追加 {what:'rollback', from:回滚前该键
+// 现值, to:回滚值, by, why?} 并裁剪至 CONFIG_HISTORY_MAX。mock（本地直写）与 server
+// （PATCH /branches/:id/config/rollback）两形态同源语义（同 CONFIG_ROLLBACK_KEYS 白名单与行结构）。
+// 角色门（同 config 写权口径，2026-09-09 副书同权书记批）：party-staff / 本支部现任书记 / 本支部副书记。
+function _syncBranchRecord(branchId, next) {
+  const idx = (mockDB.branches || []).findIndex(b => b.id === branchId);
+  if (idx >= 0) {
+    mockDB.branches = [...mockDB.branches.slice(0, idx), next, ...mockDB.branches.slice(idx + 1)];
+  } else if (next) {
+    mockDB.branches = [...mockDB.branches, next];
+  }
+  persist();
+  return next;
+}
+
+/** 纯判定：某人能否回滚该支部 config（party-staff / 本支部现任书记 / 本支部副书记；供 UI 可见性共用） */
+export function canRollbackBranchConfig(actor, branchId) {
+  const personId = actor && actor.personId;
+  const branch = getBranchById(branchId);
+  if (!personId || !branch) return { ok: false, reason: '目标支部不存在或未登录' };
+  const role = _actorRoleOf(actor);
+  if (role === 'party-staff') return { ok: true, reason: '' };
+  if (role === 'secretary') {
+    if (branch.secretaryId && branch.secretaryId === personId) return { ok: true, reason: '' };
+    return { ok: false, reason: '仅本支部现任书记/副书记或党委组织员可回滚配置' };
+  }
+  if (role === 'deputy-secretary') {
+    if (getBranchIdOfPerson(personId) === branch.id) return { ok: true, reason: '' };
+    return { ok: false, reason: '仅本支部现任书记/副书记或党委组织员可回滚配置' };
+  }
+  return { ok: false, reason: '无该配置回滚权（仅书记/副书记或党委组织员可调）' };
+}
+
+/**
+ * 回滚该支部一条单键配置变更（B2 原语）。
+ * @param {string} branchId
+ * @param {{ by?: string, targetEntryAt?: string, index?: number }} target
+ *   定位方式二选一：targetEntryAt=历史条目的 at；index=历史数组序号（0 起）。
+ *   by 缺省取登录快照（mock 直写留痕 by）；api 形态操作者以服务端会话为准。
+ * @param {string} [why] 回滚依据/出处（可选）
+ * @returns {Promise<{ok:boolean, branch?:Object, reason?:string}>}
+ *   约束：仅 书记/副书记/party-staff 可调；单键写回（what ∈ CONFIG_ROLLBACK_KEYS，
+ *   跨键/聚合留痕如 branch-created/config-copied 拒绝）；回滚后裁剪至历史上限。
+ */
+export async function rollbackBranchConfig(branchId, { by = null, targetEntryAt, index } = {}, why) {
+  const branch = getBranchById(branchId);
+  if (!branch) return { ok: false, reason: '目标支部不存在' };
+  const actorId = by || _actorId();
+  if (!actorId) return { ok: false, reason: '未登录（无法记录操作者）' };
+  const perm = canRollbackBranchConfig({ personId: actorId }, branchId);
+  if (!perm.ok) return { ok: false, reason: perm.reason };
+
+  const history = Array.isArray(branch.config && branch.config.configChangeHistory)
+    ? [...branch.config.configChangeHistory]
+    : [];
+  let entry = null;
+  if (typeof targetEntryAt === 'string' && targetEntryAt) {
+    entry = history.find(e => e && e.at === targetEntryAt) || null;
+  } else if (Number.isInteger(index) && index >= 0 && index < history.length) {
+    entry = history[index];
+  }
+  if (!entry) return { ok: false, reason: '未找到该条变更记录（须提供 targetEntryAt 或 index）' };
+  if (!CONFIG_ROLLBACK_KEYS.includes(entry.what)) {
+    return { ok: false, reason: `该条为「${entry.what}」留痕（跨键/聚合/回滚），不支持单键回滚` };
+  }
+
+  // 单键写回：将该条 to→from 写回目标配置键（from 为旧值归一形态，直接回写等价旧态）
+  const revert = entry.from === undefined ? null : entry.from;
+  const liveVal = (branch.config || {})[entry.what] ?? null; // 回滚前该键实际现值（留痕 from 口径）
+
+  // api 形态：语义交服务端 /branches/:id/config/rollback（服务端角色门+同规则回滚，返回权威分支）
+  if (getDataSource() === 'api') {
+    try {
+      const { ApiAdapter } = await import('../core/api-adapter.js?v=20260909e');
+      const updated = await ApiAdapter.branches.rollbackConfig(branchId, {
+        ...(typeof targetEntryAt === 'string' && targetEntryAt ? { targetEntryAt } : {}),
+        ...(Number.isInteger(index) ? { index } : {}),
+        ...(why !== undefined && why !== null && String(why).trim() ? { why: String(why).trim() } : {}),
+      });
+      _syncBranchRecord(branchId, updated);
+      return { ok: true, branch: updated };
+    } catch (e) {
+      console.error('[branch] 回滚失败', e);
+      return { ok: false, reason: (e && (e.reason || e.message)) || '回滚失败（服务端拒绝）' };
+    }
+  }
+
+  // mock 形态：本地同规则写回（to→from）+ 追加回滚留痕 + 裁剪上限
+  const at = new Date().toISOString();
+  const nextHistory = _trimHistory([...history, _historyRow(actorId, at, CONFIG_ROLLBACK_WHAT, liveVal, revert, why)]);
+  const prevConfig = { ...(branch.config || {}) };
+  const nextConfig = { ...prevConfig, [entry.what]: revert, configChangeHistory: nextHistory };
+  const next = await getAdapter().branches.updateConfig(branchId, nextConfig);
+  _syncBranchRecord(branchId, next);
+  return { ok: true, branch: next };
+}
+
 /**
  * 保存支部工作流配置（支部书记/副书记操作——config 写权 = party-staff / 本支部现任书记或
  * 副书记（同支部），2026-09-09 副书同权书记批；server PATCH /branches/:id/config 同口径门控）：
  *   modules —— config.modules：模块/业务 tab 配置（null=恢复默认全开；undefined=不改）；
  *   blocks  —— config.blocks：活动产出块配置（null=恢复默认；undefined=不改）
  * tabs 仅用于防御核心 tab 不可隐藏。
+ * @param {Object} [opts] opts.why=依据/出处（可选，来源页回填；undefined 不写留痕行）
  */
-export async function updateBranchModules(branchId, modules, tabs = [], blocks) {
+export async function updateBranchModules(branchId, modules, tabs = [], blocks, opts = {}) {
   const payload = {};
   if (modules !== undefined) {
     if (modules === null) {
@@ -215,7 +335,7 @@ export async function updateBranchModules(branchId, modules, tabs = [], blocks) 
     }
   }
   if (blocks !== undefined) payload.blocks = _sanitizeBlocks(blocks);
-  return _saveBranchConfig(branchId, payload);
+  return _saveBranchConfig(branchId, payload, opts);
 }
 
 // ── L4 支部分工（workforce）───────────────────────────────────
@@ -228,12 +348,12 @@ export function getBranchWorkforce(branchId) {
   return expandWorkforce(branch?.config?.workforce);
 }
 
-/** 保存支部分工（书记/副书记操作，副书同权 2026-09-09 书记批/议题通过后落库；workforce=null 恢复缺省分工） */
-export async function updateBranchWorkforce(branchId, workforce) {
+/** 保存支部分工（书记/副书记操作，副书同权 2026-09-09 书记批/议题通过后落库；workforce=null 恢复缺省分工；opts.why=依据出处） */
+export async function updateBranchWorkforce(branchId, workforce, opts = {}) {
   const payload = workforce === null
     ? { workforce: null }
     : { workforce: sanitizeConfigWorkforce(workforce) };
-  return _saveBranchConfig(branchId, payload);
+  return _saveBranchConfig(branchId, payload, opts);
 }
 
 // ── 批4 域参数 policyOverrides（2026-09-09 书记批「域参数」L2 下放；config 独立域）────────
@@ -286,7 +406,8 @@ export function canManagePolicyOverrides(actor, branchId) {
 /**
  * 保存域参数覆盖（批4 写口；overrides = { 节: 值 | null }——节值 null=恢复该域默认（删除该节覆盖）；
  * 书记/副书记/party-staff 可全量；域负责人自动收窄到自己的域节；净化走 sanitizeConfigPolicyOverrides，
- * 非法值/未知键丢弃不写坏；留痕与 modules/blocks/workforce 同 config.configChangeHistory）。
+ * 非法值/未知键丢弃不写坏；留痕与 modules/blocks/workforce 同 config.configChangeHistory。
+ * @param {Object} [opts] opts.actor=操作者；opts.why=依据/出处（可选，来源页回填；undefined 不写）
  * @returns {Promise<{ ok: boolean, changed: boolean, reason?: string }>}
  */
 export async function savePolicyOverrides(branchId, overrides, opts = {}) {
@@ -321,7 +442,7 @@ export async function savePolicyOverrides(branchId, overrides, opts = {}) {
   }
   if (!changed) return { ok: true, changed: false };
   const payload = Object.keys(nextPo).length ? { policyOverrides: nextPo } : { policyOverrides: null };
-  await _saveBranchConfig(branchId, payload);
+  await _saveBranchConfig(branchId, payload, { why: opts.why });
   return { ok: true, changed: true };
 }
 
@@ -597,7 +718,8 @@ export async function renameBranch(id, name) {
 //     mock 模式无门控、UI 层已按角色禁用（书记/副书记均不可改官方支部名）。
 //   · headerTitle/desc/themePreset（config 域）→ adapter.updateConfig（server 端 = PATCH /branches/:id/config，
 //     party-staff / 本支部现任书记或副书记（同支部）均可写；设置中心支部治理与向导即走此轨）。
-// 留痕：与 modules/blocks/workforce 同一 config.configChangeHistory 数组（{by,at,what,from?,to?}）。
+// 留痕：与 modules/blocks/workforce 同一 config.configChangeHistory 数组（{by,at,what,from?,to?,why?}）。
+// opts.why=依据/出处（可选，来源页回填；undefined 不写行）。
 export async function updateBranchOrg(branchId, org = {}, opts = {}) {
   const cur = getBranchById(branchId);
   if (!cur) return null;
@@ -605,7 +727,8 @@ export async function updateBranchOrg(branchId, org = {}, opts = {}) {
   const prev = cur.config || {};
   const by = (opts && opts.by) || _actorId() || null;
   const at = new Date().toISOString();
-  const history = Array.isArray(prev.configChangeHistory) ? [...prev.configChangeHistory] : [];
+  const why = (opts && opts.why) || undefined;
+  let history = Array.isArray(prev.configChangeHistory) ? [...prev.configChangeHistory] : [];
   const topPatch = {};
   const cfgPatch = {};
   let dirty = false;
@@ -613,31 +736,33 @@ export async function updateBranchOrg(branchId, org = {}, opts = {}) {
   if (clean.name !== undefined && clean.name !== cur.name) {
     topPatch.name = clean.name;
     cfgPatch.headerTitle = clean.name; // 顶层改名 → headerTitle 同步（与 renameBranch/mock-adapter 语义一致）
-    history.push({ by, at, what: 'name', from: cur.name ?? null, to: clean.name });
+    history.push(_historyRow(by, at, 'name', cur.name ?? null, clean.name, why));
     dirty = true;
   }
   if (clean.headerTitle !== undefined && !topPatch.name && clean.headerTitle !== (prev.headerTitle ?? '')) {
     cfgPatch.headerTitle = clean.headerTitle;
-    history.push({ by, at, what: 'headerTitle', from: prev.headerTitle ?? null, to: clean.headerTitle });
+    history.push(_historyRow(by, at, 'headerTitle', prev.headerTitle ?? null, clean.headerTitle, why));
     dirty = true;
   }
   if (clean.desc !== undefined && clean.desc !== (prev.desc ?? '')) {
     cfgPatch.desc = clean.desc;
-    history.push({ by, at, what: 'desc', from: prev.desc ?? null, to: clean.desc });
+    history.push(_historyRow(by, at, 'desc', prev.desc ?? null, clean.desc, why));
     dirty = true;
   }
   if (clean.themePreset !== undefined && clean.themePreset !== (prev.themePreset ?? null)) {
     cfgPatch.themePreset = clean.themePreset;
-    history.push({ by, at, what: 'themePreset', from: prev.themePreset ?? null, to: clean.themePreset });
+    history.push(_historyRow(by, at, 'themePreset', prev.themePreset ?? null, clean.themePreset, why));
     dirty = true;
   }
   if (!dirty) return cur; // 无实质变化：不写、不留痕
 
+  history = _trimHistory(history);
   const nextConfig = { ...prev, ...cfgPatch, configChangeHistory: history };
   // 含顶层 name → 通用 branches PATCH（party-staff）；仅 config 域 → PATCH /branches/:id/config（书记/党委均可）
+  // why 一并透传适配器（api 形态 PATCH body.why → 服务端同源落行）
   const next = Object.keys(topPatch).length
     ? await getAdapter().branches.update(branchId, { ...topPatch, config: nextConfig })
-    : await getAdapter().branches.updateConfig(branchId, nextConfig);
+    : await getAdapter().branches.updateConfig(branchId, nextConfig, { why });
   const idx = (mockDB.branches || []).findIndex(b => b.id === branchId);
   if (idx >= 0) {
     mockDB.branches = [...mockDB.branches.slice(0, idx), next, ...mockDB.branches.slice(idx + 1)];
@@ -667,7 +792,7 @@ export async function applyBranchConfig(branchId, domains = {}, opts = {}) {
   const by = (opts && opts.by) || _actorId() || null;
   const at = new Date().toISOString();
   const prev = cur.config || {};
-  const history = Array.isArray(prev.configChangeHistory) ? [...prev.configChangeHistory] : [];
+  let history = Array.isArray(prev.configChangeHistory) ? [...prev.configChangeHistory] : [];
   const patch = {};
   const fields = [];
 
@@ -700,9 +825,11 @@ export async function applyBranchConfig(branchId, domains = {}, opts = {}) {
 
   const what = (opts && opts.what) || 'config-overwrite';
   const from = (opts && opts.from) || null;
-  history.push({ by, at, what, from, to: [...fields] });
+  const why = (opts && opts.why) || undefined;
+  history.push(_historyRow(by, at, what, from, [...fields], why));
+  history = _trimHistory(history);
   const nextConfig = { ...prev, ...patch, configChangeHistory: history };
-  const next = await getAdapter().branches.updateConfig(branchId, nextConfig);
+  const next = await getAdapter().branches.updateConfig(branchId, nextConfig, { why });
   const idx = (mockDB.branches || []).findIndex(b => b.id === branchId);
   if (idx >= 0) {
     mockDB.branches = [...mockDB.branches.slice(0, idx), next, ...mockDB.branches.slice(idx + 1)];

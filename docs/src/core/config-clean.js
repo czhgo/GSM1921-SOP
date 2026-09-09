@@ -20,6 +20,18 @@ const MAX_ID_LEN = 80;
 const MODULES_LIMIT = 200;
 const BLOCKS_LIMIT = 50;
 
+// ── 配置变更留痕审计内核共享常量（2026-09-09 书记批：支部 config 审计 why+回滚+上限）────────
+// 单一源供两端消费：docs/src/services/branch.js（mock 直写形态）与 server/routes/resources.js
+// （PATCH /branches/:id/config 与 /branches/:id/config/rollback）——双形态同源，防漂移。
+// config.configChangeHistory 现逐键留痕 {by,at,what,from,to,why?}；why=依据/出处（可选，来源页回填
+// 如 REVIEW_QUEUE 附录编号）；单键回滚以 ROLLBACKABLE 键白名单收敛（跨键/聚合留痕不回滚）。
+export const CONFIG_HISTORY_MAX = 100; // 历史上限：保留最近 N 条（追加/回滚后裁剪最早）
+export const CONFIG_ROLLBACK_WHAT = 'rollback'; // 回滚留痕 what 标记
+// 可回滚的单键变更（= 两端口径的追踪键全集；what 不在表内的留痕仅展示不可回滚）
+export const CONFIG_ROLLBACK_KEYS = [
+  'modules', 'blocks', 'workforce', 'headerTitle', 'desc', 'themePreset', 'policyOverrides',
+];
+
 /** 净化 id 数组：只收非空字符串、去重保序、长度 ≤80、最多保留 limit 项 */
 export function cleanIdList(v, limit) {
   if (!Array.isArray(v)) return [];

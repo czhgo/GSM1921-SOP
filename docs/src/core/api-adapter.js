@@ -590,8 +590,17 @@ export const ApiAdapter = {
 
     // L2/L3 支部工作流配置（2026-09-03）：config 子路由（本支部书记/party-staff 专属，防治理字段误写）
     // configPatch = { modules?: {...}|null, blocks?: {...}|null }——undefined key 不改
-    updateConfig(id, configPatch) {
-      return _patch(`/api/v1/branches/${id}/config`, { config: configPatch });
+    // 2026-09-09 审计内核：opts.why=依据/出处（可选）→ PATCH body.why，由服务端落到留痕行
+    updateConfig(id, configPatch, opts = {}) {
+      const body = { config: configPatch };
+      if (opts && opts.why !== undefined) body.why = opts.why;
+      return _patch(`/api/v1/branches/${id}/config`, body);
+    },
+
+    // 2026-09-09 审计内核 B2：单键配置回滚端点（server PATCH /branches/:id/config/rollback）
+    // body = { targetEntryAt?, index?, why? }（定位二选一；why=回滚依据可选）
+    rollbackConfig(id, body) {
+      return _patch(`/api/v1/branches/${id}/config/rollback`, body || {});
     },
 
     delete(id) {

@@ -8,7 +8,8 @@ import { deleteUploadedFile } from './uploads.js';
 import { afterResourceWrite } from '../services/mailer-hooks.js';
 // P1a 单向权威（2026-09-03）：config（modules/blocks）净化唯一实现 = docs/src/core/config-clean.js（前端 branch.js 同源，勿在 server 另写 clean）
 // 2026-09-06 换组织向导：config 组织档案字段（headerTitle/desc/themePreset）净化同源
-import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides } from '../../docs/src/core/config-clean.js';
+// 2026-09-09 审计内核：历史上限/单键回滚白名单/回滚标记单一源同 import（与前端 branch.js 防漂移）
+import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '../../docs/src/core/config-clean.js';
 // 批4（2026-09-09 书记批「域参数」）：policyOverrides 顶层节白名单（server 写口与前端 branch.js 同源校验）
 import { POLICY_OVERRIDE_SECTIONS } from '../../docs/src/core/policy-defaults.js';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/constants.js（勿手写）
@@ -458,18 +459,74 @@ export function createResourcesRouter(db) {
     }
 
     // 配置变更留痕（2026-09-06 书记 R4：即时生效 + 留痕；低频可回滚，不设审批闸）
-    // 逐键 diff prevConfig → nextConfig，有实质变化才追加 {by,at,what,from,to}；空变化不产生冗余条目。
+    // 逐键 diff prevConfig → nextConfig，有实质变化才追加 {by,at,what,from,to,why?}；空变化不产生冗余条目。
+    // 2026-09-09 审计内核：body.why=依据/出处（可选，来源页回填如 REVIEW_QUEUE 附录编号）落到留痕行；
+    // 历史保留最近 CONFIG_HISTORY_MAX 条（追加即裁剪最早）。
+    const whyRaw = req.body && req.body.why;
+    const why = typeof whyRaw === 'string' && whyRaw.trim() ? whyRaw.trim() : undefined;
     const history = Array.isArray(prevConfig.configChangeHistory) ? [...prevConfig.configChangeHistory] : [];
     const at = new Date().toISOString();
-    const TRACKED_KEYS = ['modules', 'blocks', 'workforce', 'headerTitle', 'desc', 'themePreset', 'policyOverrides'];
     const jsonEq = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
-    for (const k of TRACKED_KEYS) {
+    for (const k of CONFIG_ROLLBACK_KEYS) {
       if (!jsonEq(prevConfig[k], nextConfig[k])) {
-        history.push({ by: actor.id, at, what: k, from: prevConfig[k] ?? null, to: nextConfig[k] ?? null });
+        const row = { by: actor.id, at, what: k, from: prevConfig[k] ?? null, to: nextConfig[k] ?? null };
+        if (why !== undefined) row.why = why;
+        history.push(row);
       }
     }
-    nextConfig.configChangeHistory = history;
+    nextConfig.configChangeHistory = history.length > CONFIG_HISTORY_MAX ? history.slice(-CONFIG_HISTORY_MAX) : history;
 
+    branch.config = nextConfig;
+    db.prepare('UPDATE branches SET data = ? WHERE id = ?').run(JSON.stringify(branch), branch.id);
+    res.json(branch);
+  });
+
+  // ── 配置单键回滚（2026-09-09 书记批「审计内核」B2：与前端 branch.js rollbackBranchConfig 同源）────────
+  // PATCH /branches/:id/config/rollback —— body：{ targetEntryAt?, index?, why? }（定位二选一；
+  // targetEntryAt=留痕条目 at；index=历史数组序号 0 起）。语义：定位一条单键变更 → 将其 to→from
+  // 写回该配置键（跨键不动）→ 追加 { what:'rollback', from:回滚前该键现值, to:回滚值, by, why? } → 裁剪至上限。
+  // 角色门（与 PATCH /branches/:id/config 同口径）：party-staff / 本支部现任书记 / 本支部副书记（同支部）。
+  router.patch('/branches/:id/config/rollback', requireAuth(db), (req, res) => {
+    const actor = req.actor;
+    if (!actor) return res.status(401).json({ error: '未登录' });
+    const row = db.prepare('SELECT data FROM branches WHERE id = ?').get(req.params.id);
+    if (!row) return res.status(404).json({ error: '支部不存在' });
+    const branch = JSON.parse(row.data);
+    const isStaff = actor.role === 'party-staff';
+    const isSecretary = !!branch.secretaryId && actor.id === branch.secretaryId;
+    const isDeputyHere = actor.role === 'deputy-secretary' && (actor.branchId || 'br-b1') === branch.id;
+    if (!(isStaff || isSecretary || isDeputyHere)) {
+      return res.status(403).json({ error: '无权限：仅本支部现任书记/副书记或党委组织员可回滚配置' });
+    }
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const history = Array.isArray(branch.config && branch.config.configChangeHistory)
+      ? [...branch.config.configChangeHistory]
+      : [];
+    let entry = null;
+    if (typeof body.targetEntryAt === 'string' && body.targetEntryAt) {
+      entry = history.find((e) => e && e.at === body.targetEntryAt) || null;
+    } else if (Number.isInteger(body.index) && body.index >= 0 && body.index < history.length) {
+      entry = history[body.index];
+    }
+    if (!entry) {
+      return res.status(400).json({ error: '未找到该条变更记录（须提供 targetEntryAt 或 index）' });
+    }
+    if (!CONFIG_ROLLBACK_KEYS.includes(entry.what)) {
+      return res.status(400).json({ error: `该条为「${entry.what}」留痕（跨键/聚合/回滚），不支持单键回滚` });
+    }
+    const revert = entry.from === undefined ? null : entry.from;
+    const liveVal = (branch.config || {})[entry.what] ?? null; // 回滚前该键实际现值（留痕 from 口径）
+    const at = new Date().toISOString();
+    const whyRaw = body.why;
+    const why = typeof whyRaw === 'string' && whyRaw.trim() ? whyRaw.trim() : undefined;
+    const rbRow = { by: actor.id, at, what: CONFIG_ROLLBACK_WHAT, from: liveVal, to: revert ?? null };
+    if (why !== undefined) rbRow.why = why;
+    history.push(rbRow);
+    const nextConfig = {
+      ...(branch.config || {}),
+      [entry.what]: revert,
+      configChangeHistory: history.length > CONFIG_HISTORY_MAX ? history.slice(-CONFIG_HISTORY_MAX) : history,
+    };
     branch.config = nextConfig;
     db.prepare('UPDATE branches SET data = ? WHERE id = ?').run(JSON.stringify(branch), branch.id);
     res.json(branch);
