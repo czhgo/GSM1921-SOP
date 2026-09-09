@@ -130,7 +130,7 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 - **Y(导入)** 表示仅限从其他来源导入（不能直接记录原始数据）
 - **Y\*** 表示原则上有此权限，但业务上一般不使用
 
-## 9h. 支部 config 写权（config 颗粒度分层 · 2026-09-09 DRAFT 待书记审定）
+## 9h. 支部 config 写权（config 颗粒度分层 · 2026-09-09 审定定稿）
 
 > **定位与键级说明**：支部 config（branches.config 各域）写权**未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与建档/监督/导入等操作位限定同理，不硬凑缺键）；守卫同口径在 `services/branch.js`（`updateBranchModules` / `updateBranchBlocks` / `updateBranchWorkforce` / `updateBranchOrg` / `savePolicyOverrides` / `canManagePolicyOverrides`）与 server `PATCH /branches/:id/config`（resources.js：fullRights = party-staff / 本支部现任书记 / 本支部副书记；域负责人仅本域 policyOverrides）。颗粒度矩阵与词条收口见 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)。
 

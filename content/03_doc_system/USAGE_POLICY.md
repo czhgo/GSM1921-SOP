@@ -378,14 +378,14 @@ AI 对书记原话的展开，目标是**吃透书记精神后用自己的语言
 - **T-/D-/P- 编号体系**：全仓前缀编号——T 是任务（CLAUDE.md 乙部条目 / 执行日志条目），D 是决策（`.ctx/logs/` 决策日志，全局递增），P 是待决策问题（CLAUDE.md 丙部）或书记论断索引（[SECRETARY_DIRECTIVES.md](../01_strategy/SECRETARY_DIRECTIVES.md) 附录 P-001…）；看到前缀即知去哪个权威处查（生命周期见 [CLAUDE.md](../../CLAUDE.md) H50，编号规则总表见 [OPERATIONS_GUIDE.md §9](OPERATIONS_GUIDE.md)）
 - **H 编号**：根 [CLAUDE.md](../../CLAUDE.md) 甲部规则条编号（H10~H100，按约束力分热/温/冷三层、10 递增预留）；「H30 一改具改」即引用该文件的第 30 号条款（编号语义对照见 [OPERATIONS_GUIDE.md §9.1](OPERATIONS_GUIDE.md)）
 - **block manifest（旧词）**：工作流块元数据/封装契约的旧称，已改名并独立成文 [WORKFLOW_BLOCK_CONTRACT.md](../04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md)（L3 块封装契约 v1.1 唯一权威）；「manifest」现仅指该契约内的块元数据载体字段，不再代指整份契约
-- **canvas**：可视化拖拽「画布」——把工作流块拖入排列组合的编排界面（L4 愿景形态）；v0 已落地于书记工作台「工作台配置」的清单启停 + 画布拖拽排序（[ARCHITECTURE_EVOLUTION.md §八](../04_web_design/evolution/ARCHITECTURE_EVOLUTION.md) 8.2/8.5）
+- **canvas**：可视化拖拽「画布」——把工作流块拖入排列组合的编排界面（L4 愿景形态）；v0 落地于设置 → 支部治理「工作台默认顺序」/模块组合（书记/副同权）（[ARCHITECTURE_EVOLUTION.md §八](../04_web_design/evolution/ARCHITECTURE_EVOLUTION.md) 8.2/8.5）
 - **FLAT_DESIGN（旧词）**：扁平化组织设计权威文档的旧名，已改名 [FLAT_ORGANIZATION_DESIGN.md](../02_institution/FLAT_ORGANIZATION_DESIGN.md)（组织者与深度参与者的扁平化设计 v2.2）——新文档/文件名一律用新名
 - **CLICK_MAP（旧词）**：点击落点规范的旧名，已改名 [CLICK_ROUTING.md](../04_web_design/design-system/CLICK_ROUTING.md)（「哪些地方可点、点了落在哪」的全局规范，书记 2026-08-29 分层原则裁定）
 - **ROLE_KEYS**：代码层角色英文键枚举（`secretary` / `deputy-secretary` / 各委员 / `leader`…）——角色标签、主题色、权限声明的单一事实源，对齐制度层角色键全表（[constants.js](../../docs/src/core/constants.js) 导出，对照 [SYSTEM_ROLE_PERMISSION.md §9a0](../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵））
 - **mockDB**：浏览器端「模拟数据库」对象（演示/无后端形态可用）——数据读写统一收敛于 [mock.js](../../docs/src/services/mock.js)（对象定义于 [domain.js](../../docs/src/core/domain.js)，持久化由 `core/mock-adapter.js` 承担），勿绕过该层直接改数据
 - **CLAUDE.md（harness 文件名惯例）**：仓库约定「给 AI 的主指令文件」固定命名为 CLAUDE.md（根目录一份；harness = 规则/工作流骨架，分甲/乙/丙三部）；「CLAUDE.md Hxx / T-xxx」即指该文件的编号条款（[CLAUDE.md](../../CLAUDE.md)）
 
-> **2026-09-09 批4 补录**（支部 config 颗粒度分层相关黑话，随 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md) 起草 · DRAFT 待书记审定）：
+> **2026-09-09 补录**（支部 config 颗粒度分层相关黑话，随 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md) / [§9h 写权矩阵](../02_institution/SYSTEM_ROLE_PERMISSION.md) 审定定稿）：
 
 - **L2-L3 配置层**：支部 config **写权颗粒度分层**——L2 = 支部可在线调的域参数层（policyOverrides）；L3 = 制度刚性只读锁定层（制度默认展示位）——⚠️ **与「L1-L4 阶段号」非同一编号体系**（后者 = 工作流「代码化→拖拽化」演进层号）；写权矩阵与词条收口见 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)
 - **kind**：`policy-defaults.js` 每个业务默认键上的**类别标注字段**（取值 `branch-default` / `institutional`，附出处编号 + 消费点）——业务层一律引用派生导出，不在别处新写字面量（[policy-defaults.js](../../docs/src/core/policy-defaults.js)）

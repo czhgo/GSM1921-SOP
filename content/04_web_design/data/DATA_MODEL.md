@@ -933,7 +933,13 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 |---|---|---|---|---|
 | headerTitle | string | 是 | = name | header 品牌**软编码**（改支部名自动同步；header 标题随支部更换） |
 | accent | string \| null | 否 | `null` | 支部主题色（可选，默认党建红不变） |
-| modules | object \| null | 否 | `null` | 工作流模块配置（L2，2026-09-03）：`{ hiddenTabIds: string[], tabOrder: string[] }`——null=全开（默认 profile 兼容现有演示）；最小单位=工作台 tab，核心组（groupLabel='工作台'）固定不可关；维护权=本支部现任书记（「工作台配置」tab）；治理字段（name/type/secretaryId/status）不经此写 |
+| desc | string | 否 | `''` | 支部自述（可选，≤500 截断；换组织向导步骤①可改，净化见 config-clean `sanitizeConfigOrg`） |
+| themePreset | string \| null | 否 | `null` | 支部主题预设 id（白名单 `THEME_PRESET_IDS` = red/green/sky/blue；`null` = 默认党建红调；向导①可改，净化同 `sanitizeConfigOrg`） |
+| modules | object \| null | 否 | `null` | 工作流模块配置（L2，2026-09-03）：`{ hiddenTabIds: string[], tabOrder: string[] }`——null=全开（默认 profile 兼容现有演示）；最小单位=工作台 tab，核心组（groupLabel='工作台'）固定不可关、不参与排序；维护权=现任书记/副书记（副书同权，2026-09-09 书记批）——操作位=设置（侧边栏右下）→ 支部治理「工作台默认顺序」卡直存 / 换组织向导②内嵌 chips 启停；原「工作台配置」tab 表述废止；治理字段（name/type/secretaryId/status）不经此写 |
+| blocks | object \| null | 否 | `null` | 产出块/工作流块显隐（2026-09-03）：`{ outputBlocks?: { hiddenBlockIds: string[], blockOrder: string[] }, workflowBlocks?: { hiddenBlockIds: string[] } }`——null=全开；与 modules 同维护权/操作位（换组织向导②内改），目录源 = constants `OUTPUT_BLOCK_DEFS` / `BLOCK_MANIFESTS` |
+| workforce | object \| null | 否 | `null` | 模块分工归属（L4 支部分工）：`{ [moduleId]: { ownerType: 'role'\|'person', ownerId } }`——null=缺省分工（SOP 责任人列）；日常调整走支委会议题（M2）表决后落库、换壳/部署期向导③直写（见 [BRANCH_WORK_MAP.md](../evolution/BRANCH_WORK_MAP.md)） |
+| policyOverrides | object \| null | 否 | `null` | 域参数覆盖（L2，2026-09-09 书记批）：`{ 节: { 叶: 值 } \| null }`——节=inspection/memberConfirmation/leader（白名单 `POLICY_OVERRIDABLE` 只定义于 policy-defaults）；值=覆盖、null=恢复该域默认、整体 null=全量恢复默认；读侧注入 `POLICY_DEFAULTS`，全站判定随参数生效（净化见 config-clean `sanitizeConfigPolicyOverrides`） |
+| configChangeHistory | array | 否 | `[]` | config 写留痕（2026-09-09 审计内核）：`{ by, at, what, from?, to?, why? }`——逐键 diff 追加、空变化不冗余；保留最近 100 条（`CONFIG_HISTORY_MAX`）；单键可回滚、回滚再留一痕、历史不改写（见 [PARTY_COMMITTEE_DESIGN.md §2.6 变更流](../evolution/PARTY_COMMITTEE_DESIGN.md)） |
 | fileSpaceIsolated | boolean | 是 | `true` | 支部文件（branchDocs）/附件一支部一独立存储空间——按 branchId 分区、跨支部不可见 |
 
 ### 2.22 书记任期记录 (AppointmentRecord)

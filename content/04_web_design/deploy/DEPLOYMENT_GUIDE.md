@@ -424,7 +424,7 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 
 | 层 | 事实 |
 |----|------|
-| 前端模块化 | `docs/src/` ESM 分层（entries/components/core/services/workflow/modules/mock），10 根 HTML + 6 工作台 |
+| 前端模块化 | `docs/src/` ESM 分层（entries/components/core/services/workflow/modules/mock），12 根 + 7 台（19 页，含 wizard/settings） |
 | 数据抽象 | `data-adapter.js` mock/api 双模式，`setDataSource('mock'/'api', { apiBaseUrl, authToken })` 动态切换；`runtime.js` 默认 mock，`bootstrap.js` 检测到 token 自动切 api、服务器不可达静默回退 mock |
 | API 适配器 | `api-adapter.js` P1 已实现：25 服务端资源 `list()`（供 init 拉全量）+ `snapshot()` 全量写穿 + 8s 超时兜底；路由表见文件头（25 资源 + auth/login/logout + snapshot + uploads + health/bootstrap） |
 | 后端服务 | `server/` Express + better-sqlite3：**32 资源表**（id + data JSON 通用结构，含 branch_docs）+ sessions/attachments；routes：auth（login/logout/me）、resources（CRUD + bootstrap + snapshot 写穿）、uploads（jpg/png/pdf/docx/xlsx ≤10MB）、report（§3.9）；`npm test` 测试全绿（server/test/ 覆盖单元/E2E/审计/链接完整性） |

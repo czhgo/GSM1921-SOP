@@ -79,7 +79,7 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 
 > **远期形态**：config 的"清单/画布组合"将演进为「工作流块拖拽编排」（支部把已注册的工作流块拖进画布 → 自动写回 modules 与场景清单）——见 [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八（开源项目目标）。数据模型不变，块即注册表中的能力+元数据。
 
-### 2.6 配置颗粒度与变更流分层（2026-09-09 起草 · ⚠️ DRAFT 待书记审定）
+### 2.6 配置颗粒度与变更流分层（2026-09-09 审定定稿）
 
 > **一句话**：支部 config 档案语义单一权威 = 什么能改、谁能改、改在哪留痕，按颗粒度分六层 + 党委治理字段旁路；「改得到」与「改不动」的分界由源码层固化（policy-defaults `kind` / `POLICY_OVERRIDABLE` / config-clean 白名单 / server 守卫），UI 层不写第二套规则。设置中心分层注释同口径（`settings-entry.js` 批4 注释：「支部制度参数（L3）= 制度默认只读锁定展示……域参数（L2）= 各域负责人可见可调自己域」）。
 

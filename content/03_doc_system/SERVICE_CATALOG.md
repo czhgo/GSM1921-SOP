@@ -104,6 +104,6 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 
 - **服务间数据流与依赖**：[DATA_FLOW.md §1.3](../04_web_design/data/DATA_FLOW.md) — 端到端数据流交织图（活动上下文链 + 副产物聚合 + 赋权 → 工作台 → 入档），含挂靠 / 聚合双语义
 - **权限矩阵权威源**：[系统角色权限矩阵](../02_institution/SYSTEM_ROLE_PERMISSION.md)（SYSTEM_ROLE_PERMISSION.md）— 角色 × 操作矩阵（§9b/§9c）+ 赋权链 §9e + 权限名语义 §9f
-- **页面路由与入口映射**：[ARCHITECTURE.md §五](./ARCHITECTURE.md) — 仓库结构（10 根 HTML + workspace/ 7 工作台 + 入口 JS）
+- **页面路由与入口映射**：[ARCHITECTURE.md §五](./ARCHITECTURE.md) — 仓库结构（12 根 HTML + workspace/ 7 工作台 = 19 页 + 入口 JS）
 - **支委系统设计**：[COMMISSIONER_DUTY_FRAMEWORK.md](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) — 专班生命周期 + §C 权限矩阵 + §审批流程规范
 - **数据模型与数据流**：[DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)（静态模型）+ [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md)（动态数据流）
