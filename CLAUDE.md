@@ -630,7 +630,6 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 | 轮次 | 来源 | 状态 |
 | --- | --- | --- |
-| 书记原话复核余批 | P 系列逐条过目 | 待发起 |
 | 功能实现评议下一轮 | 设计考量 ↔ 实现对照 | 待发起 |
 | 最小三成本下一轮 | 双形态 / 五场景 | 待发起 |
 
