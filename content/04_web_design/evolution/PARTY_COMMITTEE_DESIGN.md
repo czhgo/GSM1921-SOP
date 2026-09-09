@@ -32,8 +32,8 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 | P3 上报审批范围（2026-09-03） | 细粒度节点 / 仅活动报备 / **发展节点+活动报备** | **发展节点+活动报备**：「发展节点」泛化（确定积极分子/发展对象、接收预备、转正等一节点一报），不细分字段；重要活动走「活动报备」 |
 | P3 下发承载（2026-09-03） | 新建「下发箱」领域 / **复用通知** | **复用通知**：通知实体加 `audience:'committee'` + `branchId` 受众过滤与「党委下发」来源徽标——送达=目标支部**支委层**，普通党员/党委组织员（非支委）不打扰；支部不可在自发通知管理区删改上级下发 |
 | P3 入口落点（2026-09-03） | — | 支部侧=书记工作台新 tab「上报党委」；党委侧=独立 tab「上报审批」与「下发通知」——上报/下发两向入口分离，互不混淆 |
-| L2 工作流模块配置权（2026-09-03） | 党委代配 / **支部自治（书记操作）** | **支部自治**：config 工作流模块由**本支部现任书记**在书记工作台「工作台配置」操作（清单 chips 启停 + 画布拖拽排序），党委不代配（党委只管建支部/任命/审批/下发） |
-| L2 配置粒度与策略（2026-09-03） | — | 最小单位=**工作台 tab**（能力为分组容器）；**默认全开**（config.modules=null，46 功能兼容）；**核心组固定**（待办/概况等 groupLabel='工作台' 不可关）；服务端 PATCH /branches/:id/config 仅本支部现任书记/party-staff，白名单收 **config.modules / config.blocks / config.workforce 三组**（blocks 含 workflowBlocks.hiddenBlockIds，见 [WORKFLOW_BLOCK_CONTRACT.md §七 S3](WORKFLOW_BLOCK_CONTRACT.md)；workforce 见 [BRANCH_WORK_MAP.md M0](BRANCH_WORK_MAP.md)；治理字段不可经此改） |
+| L2 工作流模块配置权（2026-09-03） | 党委代配 / **支部自治（书记/副书记操作）** | **支部自治**：config 工作流模块由**本支部现任书记 / 副书记（副书同权，2026-09-09）**在 **设置（侧边栏右下）→ 支部治理**操作（「工作台默认顺序」卡直存 + 「支部信息与向导」内嵌换组织向导② chips 启停；原书记工作台「工作台配置」tab 已废止），党委不代配（党委只管建支部/任命/审批/下发） |
+| L2 配置粒度与策略（2026-09-03） | — | 最小单位=**工作台 tab**（能力为分组容器）；**默认全开**（config.modules=null，46 功能兼容）；**核心组固定**（待办/概况等 groupLabel='工作台' 不可关）；服务端 PATCH /branches/:id/config 仅本支部现任书记 / 副书记（副书同权）/party-staff，白名单收 **config.modules / config.blocks / config.workforce / org 档案 / policyOverrides 五组**（blocks 含 workflowBlocks.hiddenBlockIds，见 [WORKFLOW_BLOCK_CONTRACT.md §七 S3](WORKFLOW_BLOCK_CONTRACT.md)；workforce 见 [BRANCH_WORK_MAP.md M0](BRANCH_WORK_MAP.md)；org 档案与域参数细则与写权矩阵见 §2.6 / SYSTEM_ROLE_PERMISSION §9h；治理字段不可经此改） |
 
 ## 1. 目标与边界
 

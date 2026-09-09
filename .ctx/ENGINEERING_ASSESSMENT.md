@@ -26,7 +26,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 插件化 | 75 / 100 | registry 自注册 + config.modules/blocks/workforce「配置即组合」+ module-compose v0 契约（depends/conflictsWith 纯校验 + 测试 + 文档）落地；残项=requiredRoles 门禁未被 workspace-shell 消费（仅元数据）、manifest 防漂移测试未全落地 |
 | 开源化 | 74 / 100 | 根 README 已一般化、以「复用与二次开发（给其他组织）」为核心章节且增 30 分钟换壳指南（四 P4a）；数据真人化可整体替换（people/accounts 2026-09-06 基线）；MIT + CONTRIBUTING 齐；残项=无 English 版、release 发布工作流未做 |
 | 超参数可调性 | 78 / 100 | policy-defaults 集中默认单一源：票决门槛（应到 2/3+无异议）/ 会议类型与上传位例外 / 考察超期天数 / 应到名单 roster（partyStages+excludeDetained，**已含滞留口径**，2026-09-06）逐项标注 branch-default 可调 / institutional 固定；残项=未接 config 驱动（可调仍改码，留 v1） |
-| 组合能力（二开视角） | 78 / 100 | 组合面=工作台配置启停排序 + config.modules/blocks/workforce + L3 block manifest + module-compose v0 契约与测试 6/6 绿；证据=支部书记「工作台配置」入口可视启停排序（party-config-tab）+ config 净化单源 config-clean；残项=requiredRoles 未消费、拖拽编排仅主题党日一处（L1→L5 未达） |
+| 组合能力（二开视角） | 78 / 100 | 组合面=模块/块/分工启停排序（2026-09-09 批3 起操作位=设置→支部治理「工作台默认顺序 / 支部信息与向导」（书记/副，副书同权）+ 党委台「支部配置」party-config-tab（party-staff））+ config.modules/blocks/workforce + L3 block manifest + module-compose v0 契约与测试 6/6 绿；证据=支部书记/副书记可视启停排序入口 + config 净化单源 config-clean；残项=requiredRoles 未消费、拖拽编排仅主题党日一处（L1→L5 未达） |
 | **综合（当前）** | **≈ 76 / 100** | 五维均值（75/75/74/78/78）——书记 2026-09-06 再评定调「综合分反映二开组合能力 + 重改进不唯分 + 开源长期交付形态=模板型」；失分仍=无 config 驱动可调（默认/阈值改码）、requiredRoles 未消费、拖拽编排未实现、server 登录默认口令弱（行动线 P1b 已加口令校验，缺省 123456 + dev/demo 免密路径在，生产须显式换密）、无 English 版 |
 
 > **主要矛盾 / 残项 TOP（一句）**：当前未闭合项集中在——组件出口仍散（徽章/选择器等）与服务层个别 UI 依赖（模块化）、requiredRoles 门禁未消费与 manifest 防漂移测试未全（插件化/组合能力）、可调默认未接 config 驱动仍改码（超参数）、拖拽编排仅主题党日一处 L1→L5 未达（组合能力）、无 English 版与 release 发布工作流（开源化）——均挂四行动线后续批次或残项跟踪（逐维依据见二）。
@@ -88,7 +88,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 ### 2.5 组合能力（二开视角）—— 78/100
 
 得分项：
-- 组合面=工作台配置启停排序（支部书记「工作台配置」入口可视启停排序，party-config-tab）+ config.modules/blocks/workforce「配置即组合」+ config-clean 单源净化。
+- 组合面=模块/块/分工启停排序（2026-09-09 批3 起入口=设置→支部治理「工作台默认顺序 / 支部信息与向导」卡（书记/副，副书同权）与党委台「支部配置」party-config-tab（party-staff），原书记台「工作台配置」tab 已废止）+ config.modules/blocks/workforce「配置即组合」+ config-clean 单源净化。
 - 能力注册表：capabilities/* 自注册，scope→工作台 tab 清单（台内固定组合的声明面）。
 - L3 block manifest（inputs 声明/事件/校验 = 块级组合契约，落地于主题党日编排）+ module-compose v0 契约与测试 6/6 绿。
 - 场景联动：scenarioId → defaultVoteConfig / 决策树模板（默认组合，可换）。
