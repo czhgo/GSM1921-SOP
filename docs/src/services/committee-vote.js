@@ -38,7 +38,7 @@ async function notifySecretaryProgress(activityId) {
     if (n > notified) {
       NoticeStore.add({
         title: '线上支委会表态更新',
-        content: `「线上支委会」已有 ${n}/${COMMITTEE_TOTAL} 位委员表态`,
+        content: `「线上支委会」已有 ${n}/${committeeTotal()} 位委员表态`,
         priority: 'normal',
         targetUrl: 'workspace/secretary.html',
         actionRoles: ['secretary'],
