@@ -23,6 +23,14 @@
 // - 登录后不再固定跳首页，而是直达角色工作台（登录→工作台 ≤2 跳）；
 //   故登录后的导航断言从 `**/index.html` 改为 `**/workspace/secretary.html`，
 //   title 断言同步改为工作台标题。
+//
+// 2026-09-09 适配（R6-3「今天」置首）：
+// - 登录直达工作台后默认落点 =「今天」tab（defaultTab:'today'），待办内容不再 0 跳直达；
+// - 9a 断言改为：先等「今天」面板（[data-ws-memo="today"]）渲染以确认工作台可达，
+//   再 1 次点击待办 tab（.secretary-tab-btn[data-secretary-tab="todo"]）→ 等 .secretary-todo-item
+//   露头（条目由后端数据派生，API 数据可达验证不削弱）；
+// - 9e reload 后同样先确保处于待办 tab；原 `.secretary-todo-list` 选择器已不存在于
+//   新域折组渲染（todo-list.js 行类 = ${prefix}-todo-item），改用 .secretary-todo-item。
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -224,12 +232,19 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
     //    复核类聚合卡（attendance/inspection/review/archive-confirm）为唯一可一键写穿的 UI 路径。
     await page.goto(`${base}/workspace/secretary.html`, { waitUntil: 'domcontentloaded' });
 
-    // 9a. 等待工作台渲染出书记身份 + 待办列表（todo tab 为默认激活 tab）
+    // 9a. 等待工作台渲染出书记身份 + 默认落点「今天」面板（R6-3：defaultTab='today'，
+    //     待办不再 0 跳直达；今天面板渲染 = 工作台可达 + 前端渲染成功）
     await page.waitForFunction(() => {
       const header = document.getElementById('app-header');
       return header && header.textContent.includes('党支部书记');
     }, { timeout: 15000 });
-    await page.waitForSelector('.secretary-todo-item', { timeout: 15000 });
+    await page.waitForFunction(() => {
+      const memo = document.querySelector('[data-ws-memo="today"]');
+      return memo && memo.textContent.includes('今天');
+    }, { timeout: 15000 });
+    // 9a'. 「待办必见」新形态：1 次点击待办 tab → 待办条目露头（条目由后端数据派生）
+    await page.locator('.secretary-tab-btn[data-secretary-tab="todo"]').first().click();
+    await page.waitForFunction(() => document.querySelectorAll('.secretary-todo-item').length >= 1, null, { timeout: 15000 });
 
     // 9b. 定位复核确认聚合卡（任一存在），点击其行动按钮打开详情面板
     const confirmKey = await page.evaluate(() => {
@@ -268,7 +283,17 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
         const header = document.getElementById('app-header');
         return header && header.textContent.includes('党支部书记');
       }, { timeout: 15000 });
-      await page.waitForSelector('.secretary-todo-list', { timeout: 15000 });
+      // 9e'. reload 后默认落点仍受 localStorage 记忆影响（此前点击已记忆 todo）；
+      //     保险起见显式确保处于待办 tab 并等待办条目渲染（旧 .secretary-todo-list
+      //     选择器已不存在于新域折组渲染，统一用 .secretary-todo-item）
+      const activeTab = await page.evaluate(() => {
+        const act = document.querySelector('.secretary-tab-btn.tab-btn-active');
+        return act ? act.getAttribute('data-secretary-tab') : null;
+      });
+      if (activeTab !== 'todo') {
+        await page.locator('.secretary-tab-btn[data-secretary-tab="todo"]').first().click();
+      }
+      await page.waitForFunction(() => document.querySelectorAll('.secretary-todo-item').length >= 1, null, { timeout: 15000 });
       const stillGone = await page.evaluate((k) => {
         return !document.querySelector(`[data-group-key="secretary:${k}"]`);
       }, confirmKey);

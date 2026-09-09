@@ -124,14 +124,14 @@ test('P3 支部上报审批闭环：发展节点批准 + 活动报备驳回（�
     // ── ① 书记（储子禾 p13）登录书记工作台 → 上报党委 tab → 发起发展节点上报 ──
     await loginAs(branchPage, { studentId: '2300010001', expectUrlPart: 'secretary.html' });
     await activateTab(branchPage, '上报党委');
-    await waitForBodyText(branchPage, '支部 → 党委 双向治理通道');
+    await waitForBodyText(branchPage, '发起上报'); // 上报党委面板帧已渲染（发起上报按钮）
     await submitRequest(branchPage, { type: 'develop-node', title: titleA, content: '发展党员关键节点需党委知悉。' });
     await waitForBodyText(branchPage, '待党委批复');
 
     // ── ② 党委组织员（p_pc）登录党委工作台 → 上报审批 tab → 批准并带意见 ──
     await loginAs(partyPage, { studentId: '9000000001', expectUrlPart: 'party-committee.html' });
     await activateTab(partyPage, '上报审批');
-    await waitForBodyText(partyPage, '审批半侧');
+    await waitForBodyText(partyPage, '上报关键事项'); // 上报审批面板帧已渲染（副标题）
     await waitForBodyText(partyPage, titleA); // 待批复队列出现该上报
     await waitForBodyText(partyPage, '批准');
     await decideOnCard(partyPage, { title: titleA, decision: 'approve', note: noteA });

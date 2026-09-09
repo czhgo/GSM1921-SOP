@@ -130,15 +130,32 @@ test('C2 书记查看活动详情：进入工作台后 ≤2 次点击可见', as
   } finally { await browser.close(); }
 });
 
-// 场景 C：书记待办可见（默认 tab 无需点击）
-test('C3 书记待办可见：登录即见待办内容', async () => {
+// 场景 C：书记待办可见（R6-3「今天」置首新语义：默认落点=「今天」，待办必见=今天页 + ≤1 跳待办 tab）
+test('C3 书记待办可见：默认落点「今天」，切待办 tab ≤1 次点击即见待办', async () => {
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await loginAs(browser, 'secretary');
-    await page.waitForFunction(() => document.body.innerText.length > 500, null, { timeout: 15000 });
-    const body = await page.locator('body').innerText();
-    const hasTodo = body.includes('待办') || body.includes('审批') || body.includes('通知');
-    console.log(`[C3] 登录后默认 tab 即见待办: ${hasTodo ? '✓' : '✗'}（body ${body.length} 字符）`);
-    assert.ok(hasTodo, '登录后待办必见（0 次额外点击）');
+
+    // 新语义（2026-09-08 起）：登录默认落点 =「今天」tab；[data-ws-memo="today"] 渲染即工作台可达
+    await page.waitForFunction(() => {
+      const memo = document.querySelector('[data-ws-memo="today"]');
+      return memo && memo.textContent.includes('今天');
+    }, null, { timeout: 15000 });
+    const todayHead = await page.evaluate(() => {
+      const memo = document.querySelector('[data-ws-memo="today"]');
+      return memo ? memo.textContent.replace(/\s+/g, ' ').slice(0, 90) : '';
+    });
+
+    // 「待办必见」新形态：1 次点击待办 tab → 待办条目露头（种子下约 9 条）
+    let extraClicks = 0;
+    await page.locator('.secretary-tab-btn[data-secretary-tab="todo"]').first().click();
+    extraClicks++;
+    await page.waitForFunction(() => document.querySelectorAll('.secretary-todo-item').length >= 1, null, { timeout: 15000 });
+    const itemCount = await page.locator('.secretary-todo-item').count();
+
+    console.log(`[C3] 登录默认落点「今天」: ✓（${todayHead}）`);
+    console.log(`[C3] 待办 tab ${extraClicks} 次点击即见待办 ${itemCount} 条: ${itemCount >= 1 ? '✓' : '✗'}`);
+    assert.ok(itemCount >= 1, '切到待办 tab 后应可见待办条目（待办必见 ≤1 跳）');
+    assert.ok(extraClicks <= 1, `待办必见应 ≤1 次额外点击，实际 ${extraClicks}`);
   } finally { await browser.close(); }
 });
