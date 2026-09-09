@@ -339,6 +339,7 @@ export function createResourcesRouter(db) {
   // 不触碰治理字段（name/type/secretaryId/status）——与通用 branches PATCH（party-staff）互补。
   // 2026-09-06 换组织向导（书记 R4）：白名单扩 config.headerTitle/desc/themePreset（组织档案域，
   // 仍在 config 内、非治理字段）；配置变更统一追加 config.configChangeHistory（by/at/what/from/to）。
+  // 2026-09-09 副书同权（书记批）：config 写权扩展本支部副书记（deputy-secretary 且归属该支部）——同现任书记。
   router.patch('/branches/:id/config', requireAuth(db), (req, res) => {
     const actor = req.actor;
     if (!actor) return res.status(401).json({ error: '未登录' });
@@ -348,8 +349,9 @@ export function createResourcesRouter(db) {
 
     const isStaff = actor.role === 'party-staff';
     const isSecretary = !!branch.secretaryId && actor.id === branch.secretaryId;
-    if (!isStaff && !isSecretary) {
-      return res.status(403).json({ error: '无权限：仅本支部现任书记或党委组织员可配置' });
+    const isDeputyHere = actor.role === 'deputy-secretary' && (actor.branchId || 'br-b1') === branch.id;
+    if (!isStaff && !isSecretary && !isDeputyHere) {
+      return res.status(403).json({ error: '无权限：仅本支部现任书记/副书记或党委组织员可配置' });
     }
 
     const cfg = req.body?.config;

@@ -138,7 +138,7 @@ function _sanitizeBlocks(blocks) {
   return sanitizeConfigBlocks(blocks);
 }
 
-/** 保存支部产出块配置（书记操作；blocks=null=恢复默认） */
+/** 保存支部产出块配置（书记/副书记操作，副书同权 2026-09-09 书记批；blocks=null=恢复默认） */
 export async function updateBranchBlocks(branchId, blocks) {
   return updateBranchModules(branchId, undefined, [], blocks);
 }
@@ -195,7 +195,8 @@ async function _saveBranchConfig(branchId, payload) {
 }
 
 /**
- * 保存支部工作流配置（书记操作）：
+ * 保存支部工作流配置（支部书记/副书记操作——config 写权 = party-staff / 本支部现任书记或
+ * 副书记（同支部），2026-09-09 副书同权书记批；server PATCH /branches/:id/config 同口径门控）：
  *   modules —— config.modules：模块/业务 tab 配置（null=恢复默认全开；undefined=不改）；
  *   blocks  —— config.blocks：活动产出块配置（null=恢复默认；undefined=不改）
  * tabs 仅用于防御核心 tab 不可隐藏。
@@ -225,7 +226,7 @@ export function getBranchWorkforce(branchId) {
   return expandWorkforce(branch?.config?.workforce);
 }
 
-/** 保存支部分工（书记操作/议题通过后落库；workforce=null 恢复缺省分工） */
+/** 保存支部分工（书记/副书记操作，副书同权 2026-09-09 书记批/议题通过后落库；workforce=null 恢复缺省分工） */
 export async function updateBranchWorkforce(branchId, workforce) {
   const payload = workforce === null
     ? { workforce: null }
@@ -455,11 +456,11 @@ export async function renameBranch(id, name) {
 
 // ── 换组织向导 · 支部组织档案写口（2026-09-06 书记 R3/R4：向导吸收合并 party-config）────────
 // org = { name?, headerTitle?, desc?, themePreset? }（undefined=不改；净化唯一实现 = config-clean sanitizeConfigOrg）。
-// 权限轨（沿用既有校验语义）：
+// 权限轨（沿用既有校验语义；2026-09-09 书记批副书同权——本支部现任书记/副书记均视同支部层配置权）：
 //   · name（顶层治理字段）→ adapter.branches.update（server 端 = 通用 branches PATCH，仅 party-staff）；
-//     mock 模式无门控、UI 层已按角色禁用（现任书记不可改官方支部名）。
+//     mock 模式无门控、UI 层已按角色禁用（书记/副书记均不可改官方支部名）。
 //   · headerTitle/desc/themePreset（config 域）→ adapter.updateConfig（server 端 = PATCH /branches/:id/config，
-//     party-staff / 本支部现任书记均可写；换组织向导的书记独立 URL 即走此轨）。
+//     party-staff / 本支部现任书记或副书记（同支部）均可写；设置中心支部治理与向导即走此轨）。
 // 留痕：与 modules/blocks/workforce 同一 config.configChangeHistory 数组（{by,at,what,from?,to?}）。
 export async function updateBranchOrg(branchId, org = {}, opts = {}) {
   const cur = getBranchById(branchId);

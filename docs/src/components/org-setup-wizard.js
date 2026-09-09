@@ -7,8 +7,9 @@
 //   ③ 角色分工（workforce 模块负责人归属）     ④ 术语制度指引 + 换壳工作单（md 下载）
 //   ⑤ 验证与重置（roster stats / ?reset=1 / npm test）+ 完成报告（摘要/下载/重走）
 // 挂载点：party-config-tab 内容区 + wizard.html 独立页共用；样式沿用 card/input-flat/chip 体系。
-// 权限双轨（书记 R4）：party-staff = 任意支部（canSwitchBranch）；本支部现任书记 = 固定本支部；
-//   其它角色/非现任 → 无权限卡。写口全走 branch 服务既有校验语义（config 写口 = party-staff/现任书记）。
+// 权限双轨（书记 R4）：party-staff = 任意支部（canSwitchBranch）；本支部现任书记/副书记 = 固定本支部
+//   （副书同权，2026-09-09 书记批——config 写权同现任书记）；其它角色/外支部 → 无权限卡。
+//   写口全走 branch 服务既有校验语义（config 写口 = party-staff / 本支部现任书记或副书记）。
 // 留痕：每次保存即时写入 branch.config.configChangeHistory（by/at/what/from/to，见 services/branch.js）。
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
@@ -25,7 +26,7 @@ import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getOutputBlockPolicy, getWorkflowBlockPolicy,
   updateBranchModules, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
-  applyConfigCopy, createBranch,
+  applyConfigCopy, createBranch, getBranchIdOfPerson,
 } from '../services/branch.js?v=20260908d';
 import { buildConfigPackage, applyConfigPackage } from '../services/org-config-package.js?v=20260908d';
 import {
@@ -121,12 +122,27 @@ function _ownerLabel(assign) {
 const PROV_LABEL = { 'institution-common': '通用制度', 'branch-custom': '支部自创' };
 
 /**
+ * 支部配置可编辑判定（纯；一处守卫 = 本组件内权限兜底唯一判据，副书同权 2026-09-09 书记批）：
+ *   party-staff → 任意支部；secretary → 本支部现任书记（branch.secretaryId===本人）；
+ *   deputy-secretary → 本人归属该支部（与 server PATCH /branches/:id/config 门控同口径）。
+ */
+function _canEditBranch(actor, branchId) {
+  if (!actor || !actor.personId || !branchId) return false;
+  const branch = getBranchById(branchId);
+  if (!branch) return false;
+  if (actor.role === 'party-staff') return true;
+  if (actor.role === 'secretary') return !!branch.secretaryId && branch.secretaryId === actor.personId;
+  if (actor.role === 'deputy-secretary') return getBranchIdOfPerson(actor.personId) === branch.id;
+  return false;
+}
+
+/**
  * 挂载换组织向导
  * @param {HTMLElement} host 内容容器（party-config 内容区 / wizard.html 主体）
  * @param {Object} opts
  * @param {{ personId: string, role: string }} opts.actor 当前登录用户
  * @param {boolean} [opts.canSwitchBranch] 是否可在支部间切换（party-staff）
- * @param {string} [opts.branchId] 初始目标支部（canSwitch=false 时必填 = 现任书记自己的支部）
+ * @param {string} [opts.branchId] 初始目标支部（canSwitch=false 时必填 = 本支部：现任书记自己的支部 / 副书记归属支部）
  * @param {boolean} [opts.embed] 是否内嵌到既有工作台 tab（party-config；true 时头部用卡片紧凑样式）
  */
 export function mountOrgSetupWizard(host, opts) {
@@ -162,15 +178,14 @@ export function mountOrgSetupWizard(host, opts) {
     appointOn: true,
   };
 
-  // 权限初始化：party-staff 可切支部；其余必须落在「本支部现任书记」且仅本支部
+  // 权限初始化：party-staff 可切支部；其余须落「本支部现任书记 / 本支部副书记」（副书同权）且仅本支部
   if (actor.role === 'party-staff') {
     const branches = mockDB.branches || [];
     const wanted = opts.branchId && branches.some(b => b.id === opts.branchId) ? opts.branchId : (branches[0] && branches[0].id);
     _enterBranch(S, wanted || null);
   } else {
     const branchId = opts.branchId || null;
-    const branch = branchId ? getBranchById(branchId) : null;
-    if (!branch || !branch.secretaryId || branch.secretaryId !== actor.personId) {
+    if (!_canEditBranch(actor, branchId)) {
       S.view = 'denied';
     } else {
       _enterBranch(S, branchId);
@@ -264,22 +279,21 @@ function _deniedHtml(S) {
   const branch = S.branchId ? getBranchById(S.branchId) : null;
   const reason = !S.branchId || !branch
     ? '目标支部不存在'
-    : (isStaff ? '' : (branch.secretaryId && branch.secretaryId !== S.actor.personId
-      ? '仅本支部现任书记可配置该支部'
-      : ''));
+    : (isStaff ? '' : (_canEditBranch(S.actor, S.branchId) ? '' : '仅本支部现任书记/副书记（同支部）可配置该支部'));
   return `<div class="rounded-xl border border-gray-200 bg-white p-6 max-w-xl">
     <p class="font-title-cn text-sm font-bold text-gray-800">无配置权限</p>
-    <p class="text-xs text-gray-500 mt-1">换组织向导的配置权限：党委组织员（party-staff）可配置任意支部；现任书记仅可配置自己的支部（config 写口校验同 branch 服务既有语义）。</p>
+    <p class="text-xs text-gray-500 mt-1">换组织向导的配置权限：党委组织员（party-staff）可配置任意支部；本支部现任书记/副书记（副书同权）仅可配置自己的支部（config 写口校验同 branch 服务既有语义）。</p>
     <p class="text-xs text-amber-600 mt-2">${esc(reason || '当前账号无支部配置权限')}</p>
-    <p class="text-xs text-gray-400 mt-3">如需使用向导：以党委组织员账号（演示：9000000001 / 123456）或本支部现任书记账号登录。</p>
+    <p class="text-xs text-gray-400 mt-3">如需使用向导：以党委组织员账号（演示：9000000001 / 123456）或本支部现任书记/副书记账号登录。</p>
   </div>`;
 }
 
-/** 头部卡：说明 + 目标支部（party-staff 可选；现任书记固定） */
+/** 头部卡：说明 + 目标支部（party-staff 可选；现任书记/副书记固定） */
 function _headHtml(S, branch, org, isStaff) {
   const branches = (mockDB.branches || []).filter(b => b.id && b.id !== 'pc-gsm');
   const options = branches.map(b =>
     `<option value="${esc(b.id)}" ${b.id === S.branchId ? 'selected' : ''}>${esc(b.name)}</option>`).join('');
+  const whoBadge = S.actor.role === 'deputy-secretary' ? '本支部副书记' : '现任书记';
   const picker = S.canSwitch
     ? `<div class="flex items-center gap-2">
         <label for="wz-branch-select" class="text-xs text-gray-500 shrink-0">目标支部</label>
@@ -289,7 +303,7 @@ function _headHtml(S, branch, org, isStaff) {
     : `<div class="flex items-center gap-2">
         <span class="text-xs text-gray-500 shrink-0">目标支部</span>
         <span class="text-xs font-medium text-gray-800">${esc(branch.name)}</span>
-        <span class="text-[11px] px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-100 shrink-0">现任书记 · 限本支部</span>
+        <span class="text-[11px] px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-100 shrink-0">${whoBadge} · 限本支部</span>
       </div>`;
   return `
     <div class="rounded-xl border border-gray-200 bg-white p-4 space-y-2">
