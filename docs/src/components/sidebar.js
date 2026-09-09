@@ -1,16 +1,23 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
 // components/sidebar.js — 共享侧边栏（角色单页制 v2）
 // 2026-07-29: 角色单页制重构——合并党建/党务为"工作台"单入口
 // - 移除 '党务管理' / '人员管理' 独立入口
 // - '党建工作台' → '工作台'（角色自适应跳转）
 // - 帮助/关于移入主导航区
+// 2026-09-09（设置中心批1）：footer 增「设置」入口（→ settings.html）；
+// 原 footer 三块外观控件（字号/主题三态/强调色）迁往设置页外观区（components/appearance-controls.js，
+// 键位语义不变）；外观偏好读写改走 core/theme.js 键空间适配层（登录人 person 键 / 访客全局键）。
+// 模块顶层调用 syncAppearanceForActiveUser()：每页壳加载即材料化当前登录人外观偏好
+// （theme-init.js 首帧 / bootstrap.js 字号 / constants.js resolveAccentRole 等既有读取点无需改动）。
 
 import { getBasePath } from '../core/utils.js?v=20260908d';
 import { icon } from '../core/icons.js?v=20260908d';
-import { ACCENT_COLORS, ACCENT_PALETTE, resolveAccentRole } from '../core/constants.js?v=20260908d';
-import { getThemePreference, setThemePreference, initTheme } from '../core/theme.js?v=20260908d';
+import { syncAppearanceForActiveUser } from '../core/theme.js?v=20260908d';
 import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260908d';
 import { DEPLOY_MODE } from '../config/deploy.js?v=20260908d';
+
+// 外观键空间适配：页面壳加载即执行（全站每页均渲染 sidebar，天然覆盖公共页/工作台）
+syncAppearanceForActiveUser();
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染侧边栏：不预加载 auth 数据链
@@ -54,7 +61,15 @@ function getFooterItems() {
   if (DEPLOY_MODE === 'static') {
     items.push({ module: 'about', label: '关于', href: base + 'about.html', icon: icon('info') });
   }
+  // 「设置」入口（设置中心批1，2026-09-09）：全形态可见——访客进设置页仅外观，登录人按角色分组
+  items.push({ module: 'settings', label: '设置', href: base + 'settings.html', icon: icon('gear') });
   return items;
+}
+
+// footer 图标按模块取（stroke 随 footer 弱化色；设置=齿轮）
+function _footerIcon(module) {
+  const name = module === 'help' ? 'book' : module === 'settings' ? 'gear' : 'info';
+  return icon(name, { stroke: 'var(--neutral-400)' });
 }
 
 export async function renderSidebar(activeModule, opts = {}) {
@@ -112,15 +127,10 @@ export async function renderSidebar(activeModule, opts = {}) {
   const footerItems = getFooterItems();
   const footerHTML = footerItems.map(item => `
     <a href="${item.href}" data-module="${item.module}" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-400);text-decoration:none;border:none;">
-      ${icon(item.module === 'help' ? 'book' : 'info', { stroke: 'var(--neutral-400)' })}
+      ${_footerIcon(item.module)}
       <span>${item.label}</span>
     </a>
   `).join('');
-
-  // 主题色：当前生效强调色（个性化覆盖优先；色板 hex 优先——金主题色色块显示亮金 #FFD700）
-  const effAccentKey = resolveAccentRole(role);
-  const effAccentHex = ACCENT_PALETTE.find(c => c.key === effAccentKey)?.hex || ACCENT_COLORS[effAccentKey]?.hex || '#B91C1C';
-  const effAccentLabel = ACCENT_PALETTE.find(c => c.key === effAccentKey)?.label || '红';
 
   // 登录态对偶入口（书记 2026-09-07 U1 批准）：已登录=「退出登录」；访客/未登录=「登录」→ login.html
   // （同位同样式同 hover；图标为 logout 镜像 → 「进入」感，不新增图标字典项）
@@ -140,58 +150,15 @@ export async function renderSidebar(activeModule, opts = {}) {
     </nav>
     <div class="sidebar-footer">
       <div class="flex flex-col gap-0.5 mb-2">${footerHTML}</div>
-      <div class="sidebar-font-size-toggle">
-        <span class="text-[10px] text-gray-400">字号</span>
-        <div class="flex items-center gap-2">
-          <button id="font-size-medium" class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 ${_currentFontSize() === 'medium' ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}" title="中号字体">中</button>
-          <button id="font-size-large" class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 ${_currentFontSize() === 'large' ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}" title="大号字体">大</button>
-        </div>
-      </div>
-      <div class="sidebar-theme-toggle" title="主题设置">
-        <span class="text-[10px] text-gray-400">主题</span>
-        <div class="flex items-center gap-2">
-          <button id="theme-light" class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 ${_currentTheme() === 'light' ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}" title="浅色模式">${icon('sun', { className: 'w-3.5 h-3.5' })}</button>
-          <button id="theme-system" class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 ${_currentTheme() === 'system' ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}" title="跟随系统">${icon('monitor', { className: 'w-3.5 h-3.5' })}</button>
-          <button id="theme-dark" class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 ${_currentTheme() === 'dark' ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}" title="深色模式">${icon('moon', { className: 'w-3.5 h-3.5' })}</button>
-        </div>
-        <button id="sidebar-accent-swatch" class="accent-swatch ml-auto" style="background:${effAccentHex}" data-label="主题：${effAccentLabel}" title="主题：${effAccentLabel}（点击更换）"></button>
-      </div>
       ${authEntryHTML}
     </div>
   `;
 
   if (user) _bindLogout(sidebar);
-  _bindFontSizeToggle(sidebar);
-  _bindThemeToggle(sidebar);
-  _bindAccentToggle(sidebar);
 }
 
-function _currentTheme() {
-  return getThemePreference();
-}
-
-function _bindThemeToggle(sidebar) {
-  // 初始化一次（含 matchMedia 监听）；渲染 sidebar 时再强制应用，保证当前态一致
-  initTheme();
-  const btns = {
-    light: sidebar.querySelector('#theme-light'),
-    system: sidebar.querySelector('#theme-system'),
-    dark: sidebar.querySelector('#theme-dark'),
-  };
-  if (!btns.light || !btns.system || !btns.dark) return;
-
-  const apply = (mode) => {
-    setThemePreference(mode);
-    Object.entries(btns).forEach(([key, el]) => {
-      const on = key === mode;
-      el.classList.toggle('active', on);
-    });
-  };
-
-  btns.light.addEventListener('click', () => apply('light'));
-  btns.system.addEventListener('click', () => apply('system'));
-  btns.dark.addEventListener('click', () => apply('dark'));
-}
+// 外观控件（字号/主题三态/强调色）已迁往设置页外观区：
+// components/appearance-controls.js（render+bind 复用，2026-09-09 设置中心批1）
 
 function _bindLogout(sidebar) {
   const btn = sidebar.querySelector('#sidebar-logout');
@@ -200,107 +167,4 @@ function _bindLogout(sidebar) {
     AuthStore.logout();
     window.location.href = getBasePath() + 'login.html';
   });
-}
-
-function _currentFontSize() {
-  return localStorage.getItem('workflowos_font_size') || 'medium';
-}
-
-function _bindFontSizeToggle(sidebar) {
-  const btnMedium = sidebar.querySelector('#font-size-medium');
-  const btnLarge = sidebar.querySelector('#font-size-large');
-  if (!btnMedium || !btnLarge) return;
-
-  const apply = (size) => {
-    localStorage.setItem('workflowos_font_size', size);
-    if (size === 'large') {
-      document.documentElement.classList.add('font-size-large');
-    } else {
-      document.documentElement.classList.remove('font-size-large');
-    }
-    btnMedium.classList.toggle('active', size === 'medium');
-    btnLarge.classList.toggle('active', size === 'large');
-  };
-
-  btnMedium.addEventListener('click', () => apply('medium'));
-  btnLarge.addEventListener('click', () => apply('large'));
-}
-
-// ── 主题色切换（书记指令 2026-08-06：侧边栏设置，全站强调色个性化）──
-function _currentAccentKey() {
-  // 访客壳/静态页：AuthStore 未加载 → 默认角色强调色
-  if (!AuthStore) return resolveAccentRole('');
-  const user = AuthStore.getCurrentUser();
-  const role = user ? AuthStore.getUserRole(user.personId) : '';
-  return resolveAccentRole(role);
-}
-
-function _bindAccentToggle(sidebar) {
-  const swatch = sidebar.querySelector('#sidebar-accent-swatch');
-  if (!swatch) return;
-  swatch.addEventListener('click', (e) => {
-    e.stopPropagation();
-    _toggleAccentPalette(swatch);
-  });
-}
-
-function _toggleAccentPalette(swatch) {
-  const existing = document.getElementById('accent-palette-popover');
-  if (existing) { existing.remove(); return; }
-
-  const currentKey = _currentAccentKey();
-  const popover = document.createElement('div');
-  popover.id = 'accent-palette-popover';
-  popover.className = 'accent-palette';
-  popover.innerHTML = `
-    <div class="accent-palette-title">点击色块更换主题</div>
-    <div class="accent-palette-grid">
-      ${ACCENT_PALETTE.map(c => `
-        <button type="button" class="accent-swatch-opt ${c.key === currentKey ? 'active' : ''}" data-key="${c.key}" data-label="主题：${c.label}" title="主题：${c.label}" style="background:${c.hex}"></button>
-      `).join('')}
-    </div>
-  `;
-  document.body.appendChild(popover);
-
-  // 浮层互斥：打开前自动收起其他已打开的浮层（如自定义下拉菜单）；注册本色板的关闭器
-  if (window.__closeOtherPopovers) window.__closeOtherPopovers();
-  let outsideHandler = null;
-  const closer = () => {
-    if (outsideHandler) { document.removeEventListener('click', outsideHandler); outsideHandler = null; }
-    popover.remove();
-    if (window.__popoverClosers) window.__popoverClosers.delete(closer);
-  };
-  if (window.__popoverClosers) window.__popoverClosers.add(closer);
-
-  // 定位（fixed，基于 swatch 位置，避免被侧边栏 overflow 裁剪）：
-  // 默认向下展开；下方空间不足时向上翻转（与下拉菜单同一套智能定位逻辑）
-  const rect = swatch.getBoundingClientRect();
-  const w = popover.offsetWidth;
-  const h = popover.offsetHeight;
-  const vh = window.innerHeight;
-  const maxLeft = Math.max(8, window.innerWidth - w - 8);
-  popover.style.left = Math.min(Math.max(8, rect.left), maxLeft) + 'px';
-  if (rect.bottom + 6 + h > vh - 8) {
-    popover.style.top = 'auto';
-    popover.style.bottom = Math.max(8, vh - rect.top + 6) + 'px';
-  } else {
-    popover.style.top = (rect.bottom + 6) + 'px';
-    popover.style.bottom = 'auto';
-  }
-
-  // 选择 → 写入 localStorage + 刷新全站生效
-  popover.querySelectorAll('.accent-swatch-opt').forEach(btn => {
-    btn.addEventListener('click', () => {
-      localStorage.setItem('workflowos_accent_role', btn.dataset.key);
-      window.location.reload();
-    });
-  });
-
-  // 点击外部关闭
-  setTimeout(() => {
-    outsideHandler = (ev) => {
-      if (!popover.contains(ev.target) && ev.target !== swatch) closer();
-    };
-    document.addEventListener('click', outsideHandler);
-  }, 0);
 }
