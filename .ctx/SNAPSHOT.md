@@ -56,7 +56,7 @@ GSM1921-SOP/
 │       ├── services/           ← 服务层（auth/branch/roster/person/workforce/attendance/agenda-*/vote-config/org-config-package 等，随域增长）
 │       ├── mock/               ← Mock 演示数据（people/branches/activities/attendance 等种子文件 + index；数据窗口 2026-07~09）
 │       ├── modules/            ← 业务模块（capabilities/ 能力注册 + help-catalog/references）
-│       ├── workflow/           ← 工作流引擎（engine/renderer/sop/sopData + blocks/ 块契约 manifests/form-renderer）
+│       ├── workflow/           ← 工作流引擎（engine/renderer/sop/sopData + blocks/ 块契约 manifests）
 │       └── styles.css          ← 全局样式
 ├── server/                     ← Node 一体化后端（Express + better-sqlite3，同源静态 + /api/v1 REST）
 │   ├── server.js               ← 启动入口（DISABLE_SEED=1 env 支持）
