@@ -625,6 +625,8 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | ID | 事项 | 引用流程 | 状态 |
 | --- | --- | --- | --- |
 | E-1~E-5 | 全部完成（2026-09-09，commits 30029993/27c5eb77/6140e23a/82c39508/40d8ef63），登记 T-2026-09-072，行已清 | H60.7 + 面板保态检查要点（REVIEW_QUEUE 附录⑧）+ 全前端冒泡报告（`.ctx/logs/2026-09-08-smoke-result.md`） | ✅ 已清 |
+| R-1 | **会话收口批**：EXECUTION_LOG 并条 T-077（本会话多批：补验 12 例 / 两修复 / 测试对齐 / 两评议轮次）+ 版本串 bump 20260909e→f（CODE_VERSION 90→91）+ 相关回归抽验 | H60.7 + 版本串纪律 + 少日志纪律 | 待办 |
+| R-2 | **自验口径复核**：整跑 `npm test` 复核新基线（原「12 例环境受限」已跑通/对齐；Playwright 需以 `server/.tmp-pw` 作 TMP，跑后即删） | 测试系统 + H60.6 检查要点 | 待办 |
 
 ## 评议轮次排期（H60.7 · C4 已批准，发起即删）
 
@@ -678,4 +680,6 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 > 生命周期：写入 → next\_prompt 提交 → 书记决策 → Decision Log 归档 → 执行 → 从丙部删除
 > 详细规则见甲部 H50.2
 
-> **当前丙部为空**——P.11/P.12/P.13（2026-09-08 归口）已于 2026-09-09 书记决策完毕：P.11 全局评估总表 v1 AI 定案生效（REVIEW_QUEUE 总表已标定案）；P.12 概况侧只读复查特批执行（报告 .ctx/logs/2026-09-09-P12-overview-audit.md，未改代码，修复待日后特批）；P.13 Tailwind CDN 治理=保持现状关闭（E-5 页内优化已保留）。历史 P.8/P.9/P.10 已决策退出（D-270/271/272）。决策归档见执行日志 T-2026-09-073。
+> **P.11/P.12/P.13（2026-09-08 归口）已于 2026-09-09 书记决策完毕**：P.11 全局评估总表 v1 AI 定案生效（REVIEW_QUEUE 总表已标定案）；P.12 概况侧只读复查特批执行（报告 .ctx/logs/archive/2026-09-09-P12-overview-audit.md，修复已于 2026-09-09 特批落地 ebf55d16）；P.13 Tailwind CDN 治理=保持现状关闭（E-5 页内优化已保留）。历史 P.8/P.9/P.10 已决策退出（D-270/271/272）。决策归档见执行日志 T-2026-09-073。
+
+- **P.14（2026-09-09 归口）push 放行**：`main` 领先 origin 90 commits（含本会话 6 笔：补验真回归修复 / P.12 特批修复 / 陈旧测试对齐 / 黑话审查第 4 轮 / 原话复核余批 / 交接与清理批），工作区 clean；**待书记明确批准后 push，推送前先 `git status` 核对**。
