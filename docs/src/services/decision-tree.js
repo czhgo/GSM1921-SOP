@@ -7,7 +7,6 @@ import { showToast } from '../core/utils.js?v=20260909e';
 import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260909e';
 import { icon } from '../core/icons.js?v=20260909e';
 import { NoticeStore } from './notice.js?v=20260909e';
-import { getPersonById } from './person.js?v=20260909e';
 // P2b（2026-09-03）：写活动场景选择清单单一源 = core/constants.js SCENARIO_WRITE_IDS/SCENARIO_LABELS
 //   （与 calendar-tab WRITE_TEMPLATES 同源，勿再手写四子会清单）
 import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../core/constants.js?v=20260909e';
@@ -356,11 +355,10 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
 // 资料归档交接在系统（书记 2026-08-30 裁决）。通知失败不影响活动创建主流程。
 function _broadcastActivityCreated(activity) {
   try {
-    const orgId = activity.organizer;
-    const orgName = (orgId && getPersonById(orgId)?.name) || '组织者';
     NoticeStore.add({
       title: '活动已创建，请建核心群',
-      content: `「${activity.title || '新活动'}」已创建（${orgName}）。请前往微信群建立核心群（按党小组组长工作手册 §6 拉齐成员、发送开场说明），现场协调在微信群进行，资料归档与交接在系统完成。`,
+      // S-3（2026-09-10）默认写入精简：长文→一句通知（活动名+时间+地点/线上+去哪建群）
+      content: `「${activity.title || '新活动'}」${activity.date || ''}${activity.location ? ' · ' + activity.location : ' · 线上'}：请前往微信群建核心群。`,
       priority: 'normal',
       // 2026-09-06 点验修复②：通知绑定来源活动（targetType/targetId）→ 点击直达
       // activity.html 活动详情；服务端邮件可按 targetId 定向到参与人；活动归档时随

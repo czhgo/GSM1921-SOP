@@ -7,6 +7,8 @@ import { loadInspectionRecords } from '../../../services/inspection.js?v=2026090
 // loadThoughtReports 派生 reportCount；详细查看仍去 组织台「思想汇报」tab / 成员档案）。
 import { loadThoughtReports } from '../../../services/thought-report.js?v=20260909e';
 import { PersonStore } from '../../../services/person.js?v=20260909e';
+// S-1（2026-09-09 书记批）：成员发展档案「来源会议」溯源（只读）——从活动议程（待讨论名单）派生
+import { loadActivities } from '../../../services/activity.js?v=20260909e';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
 import { badgeHtml } from '../../../components/badges.js?v=20260909e';
@@ -38,6 +40,40 @@ function _saveDevOverrides(overrides) {
   try { localStorage.setItem(DEV_STAGE_OVERRIDES_KEY, JSON.stringify(overrides)); } catch {}
 }
 
+function _isAgendaKind(a, k) {
+  return (Array.isArray(a.kinds) && a.kinds.includes(k)) || a.kind === k;
+}
+
+/**
+ * 成员「来源会议」溯源（S-1，只读展示）：取含该成员的发展议程（待讨论名单/成员变更）且已出结果的最新一条。
+ * 结果口径：有 personResults → 取该人 passed；否则按整条 result（passed=通过）。无来源 → null。
+ * @param {string} personId
+ * @returns {{title:string, date:string, result:string}|null}
+ */
+function _sourceMeetingOf(personId) {
+  const acts = loadActivities() || [];
+  let best = null;
+  for (const act of acts) {
+    for (const a of act.agenda || []) {
+      if (!(_isAgendaKind(a, 'attendee-list') || _isAgendaKind(a, 'member-change'))) continue;
+      const ids = Array.isArray(a.personIds) ? a.personIds : (a.personId ? [a.personId] : []);
+      if (!ids.includes(personId)) continue;
+      if (!a.result && !a.recordedAt) continue; // 仅展示已出结果的议程
+      const key = `${act.date || ''}|${a.recordedAt || ''}`;
+      if (best && key <= best.key) continue;
+      const pr = Array.isArray(a.personResults) ? a.personResults.find(r => r.personId === personId) : null;
+      const passed = pr ? pr.passed === true : a.result === 'passed';
+      best = {
+        key,
+        title: act.title || '会议',
+        date: act.date || '',
+        result: passed ? '通过' : '未通过',
+      };
+    }
+  }
+  return best ? { title: best.title, date: best.date, result: best.result } : null;
+}
+
 /** 从唯一人员数据源派生发展党员候选人列表 */
 function _buildCandidates() {
   const overrides = _loadDevOverrides();
@@ -58,6 +94,7 @@ function _buildCandidates() {
         entryDate: ov.entryDate || '2026-01-01',
         inspCount,
         reportCount,
+        meeting: _sourceMeetingOf(p.id),
         note: ov.note || (inspCount > 0 ? `已参与 ${inspCount} 次考察记录` : '培养考察中'),
       };
     });
@@ -132,6 +169,7 @@ export function renderContent(ctx) {
                     <span class="text-xs px-1.5 py-0.5 rounded-full ${sc.bg} ${sc.text} font-medium">${c.stage}</span>
                     ${c.partyGroup ? `<span class="text-xs text-gray-400">${c.partyGroup}</span>` : ''}
                     <span class="text-xs text-gray-400">进入当前阶段：${c.entryDate}</span>
+                    ${c.meeting ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-100" title="来源会议（只读）">来源会议：${c.meeting.title}${c.meeting.date ? `（${c.meeting.date}）` : ''} · ${c.meeting.result}</span>` : ''}
                     ${c.inspCount > 0 ? badgeHtml(`考察 ${c.inspCount}`, 'info') : ''}
                     ${c.reportCount > 0
                       // IA-C3 收敛只读展开 2026-09-06：原「思想汇报」可展开只读内容改为计数文本（无展开交互）

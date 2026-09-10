@@ -55,8 +55,10 @@ function _themeField(fieldId) {
   return THEME_PARTY_DAY_MANIFEST?.inputs?.fields?.find(f => f.fieldId === fieldId) || null;
 }
 
-// 成员发展阶段（议程「待讨论名单」类型：名单统一阶段转换选项；与 people.js developStage 口径一致）
-const DEVELOP_STAGES = ['积极分子', '发展对象', '预备党员', '正式党员'];
+// 成员发展阶段（议程「待讨论名单」类型：与 people.js developStage 口径一致）
+// S-2（2026-09-09 书记批）：发展议程只留「转为预备党员 / 转为正式党员」两个目标；
+// 「从什么」由系统按所选对象各自当前阶段自动取（界面不再让人选 fromStage）。
+const AGENDA_TARGET_STAGES = ['预备党员', '正式党员'];
 
 // 议程类型 chips（2026-09-01 书记裁决：类型不互斥，一条议程可多类型；按自增列表思路写入）
 // 「待讨论名单」替代原「成员变更」：多选人员 + 名单统一阶段转换（书记 2026-09-01 裁决）
@@ -66,12 +68,12 @@ const AGENDA_KIND_CHIPS = [
 ];
 
 /** 议程行 HTML（议题 + 主持人 + 类型 chips + 折叠的草案/待讨论名单字段） */
-function _agendaRowHTML({ item = '', host = '', kinds = [], branchDocId = '', fromStage = '', toStage = '' } = {}) {
+function _agendaRowHTML({ item = '', host = '', kinds = [], branchDocId = '', toStage = '' } = {}) {
   const kindOn = (k) => (kinds.includes(k) ? ' wp-agenda-kind-on' : '');
   const docVisible = kinds.includes('discussion-file') ? '' : ' hidden';
   const memberVisible = kinds.includes('attendee-list') ? '' : ' hidden';
-  const stageOptions = (cur) => DEVELOP_STAGES.map((s) =>
-    `<option value="${s}" ${s === cur ? 'selected' : ''}>${s}</option>`).join('');
+  const targetOptions = ['', ...AGENDA_TARGET_STAGES].map((s) =>
+    `<option value="${s}" ${s === (toStage || '') ? 'selected' : ''}>${s ? `转为${s}` : '选择目标阶段'}</option>`).join('');
   return `
     <div class="wp-agenda-row border border-gray-100 rounded-lg p-2 space-y-1.5 bg-white">
       <div class="flex items-center gap-2">
@@ -92,9 +94,7 @@ function _agendaRowHTML({ item = '', host = '', kinds = [], branchDocId = '', fr
         <p class="wp-agenda-doc-hint text-[10px] text-gray-400 mt-1 hidden">暂无会前草案，<a href="search.html" target="_blank" class="text-blue-600 hover:text-blue-800">去资料查询写入 →</a></p>
       </div>
       <div class="wp-agenda-member-slot flex items-center gap-2${memberVisible}">
-        <select class="wp-agenda-from input-flat w-28">${stageOptions(fromStage)}</select>
-        <span class="text-gray-300 text-xs shrink-0">→</span>
-        <select class="wp-agenda-to input-flat w-28">${stageOptions(toStage)}</select>
+        <select class="wp-agenda-to input-flat w-32 shrink-0">${targetOptions}</select>
         <div class="wp-agenda-person-slot flex-1"></div>
       </div>
     </div>`;
@@ -721,11 +721,11 @@ function renderVoteConfigSection(scenarioId) {
 }
 
 /** 添加一条议程输入行（T-283：议题 + 可选主持人；2026-09-01：类型 chips + 待讨论名单多选） */
-function _addAgendaRow(container, item = '', host = '', kinds = [], branchDocId = '', fromStage = '', toStage = '') {
+function _addAgendaRow(container, item = '', host = '', kinds = [], branchDocId = '', toStage = '') {
   const list = container.querySelector('#wp-agenda-list');
   if (!list) return;
   const wrapper = document.createElement('div');
-  wrapper.innerHTML = _agendaRowHTML({ item, host, kinds, branchDocId, fromStage, toStage });
+  wrapper.innerHTML = _agendaRowHTML({ item, host, kinds, branchDocId, toStage });
   const row = wrapper.firstElementChild;
   list.appendChild(row);
   _hydrateDraftDocs(row);
@@ -959,17 +959,31 @@ async function handleSubmitActivity() {
       agenda.push(...collectAgendaRows(rows.map(row => {
         const kinds = [...row.querySelectorAll('.wp-agenda-kind.wp-agenda-kind-on')].map(c => c.dataset.kind);
         const pickerEntry = (wp.agendaPickers || []).find(entry => entry.row === row);
+        const personIds = pickerEntry ? pickerEntry.picker.getSelected() : [];
+        // S-2：逐人当前阶段快照（界面不再让人选「从什么」，由系统按各对象现值推导）
+        const personStages = {};
+        if (kinds.includes('attendee-list')) {
+          for (const pid of personIds) {
+            const stage = PersonStore.getById(pid)?.developStage;
+            if (stage) personStages[pid] = stage;
+          }
+        }
         return {
           item: row.querySelector('.wp-agenda-item')?.value || '',
           host: row.querySelector('.wp-agenda-host')?.value || '',
           kinds,
           branchDocId: row.querySelector('.wp-agenda-doc')?.value || '',
-          personIds: pickerEntry ? pickerEntry.picker.getSelected() : [],
-          fromStage: row.querySelector('.wp-agenda-from')?.value || '',
+          personIds,
+          personStages,
           toStage: row.querySelector('.wp-agenda-to')?.value || '',
         };
       })));
     }
+  }
+  // S-2 校验：待讨论名单须选目标阶段（否则无法派生成员变更申请）
+  if (agenda.some(a => Array.isArray(a.personIds) && a.personIds.length > 0 && !a.toStage)) {
+    showToast('error', '待讨论名单请选择目标阶段（转为预备党员 / 转为正式党员）');
+    return;
   }
 
   // 预拟通知（选填，2026-08-05 书记裁决「表单内预拟通知·只跑一次」）

@@ -1087,18 +1087,28 @@ export const MockAdapter = {
       });
     },
     confirm(id) {
-      return _withDelay(() => {
+      return _withDelay(async () => {
         const idx = mockDB.memberChangeRequests.findIndex(r => r.id === id);
         if (idx === -1) throw Object.assign(new Error(`成员变更申请 ${id} 不存在`), { type: 'NotFoundError' });
         const row = mockDB.memberChangeRequests[idx];
+        // S-1 修复（2026-09-09）：名单对象是成员档案（p*，PersonStore/members 覆盖层），
+        // 旧实现写 mockDB.users（u_* 系统账号）→ developStage 实际未更新。改经 PersonStore 落档
+        // （与 services/member-confirmation.js `_applyApproved` 同法；动态 import 防静态环）。
+        // API 模式由 server/routes/member.js 写 users 表（已正确），本分支仅 mock 形态生效。
+        if (row.toStage) {
+          const { PersonStore } = await import('../services/person.js?v=20260909e');
+          const saved = await PersonStore.saveMember(
+            { id: row.personId, developStage: row.toStage },
+            { by: row.confirmedBy || null },
+          );
+          if (!saved.ok) throw Object.assign(new Error(saved.reason || '成员发展阶段落档失败'), { type: 'BadRequestError' });
+        }
         const updated = { ...row, status: 'completed', confirmedAt: new Date().toISOString() };
         mockDB.memberChangeRequests = [
           ...mockDB.memberChangeRequests.slice(0, idx),
           updated,
           ...mockDB.memberChangeRequests.slice(idx + 1),
         ];
-        // 更新成员发展阶段
-        mockDB.users = mockDB.users.map(u => u.id === row.personId ? { ...u, developStage: row.toStage || u.developStage } : u);
         _saveToStorage();
         return updated;
       });

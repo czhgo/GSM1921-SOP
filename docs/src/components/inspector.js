@@ -431,7 +431,14 @@ function _showCloseBlockModal(activity, missing) {
 //  详情视图：渲染单个活动的任务列表与危险操作按钮
 // ════════════════════════════════════════════════════════════════
 
-/** 议程类型徽章（2026-09-01 书记点验链路 ①/②）：讨论文件 → 草案标题；待讨论名单 → 人数与阶段转换 */
+/** 议程结果徽章文案/配色（S-1：新增 partial=部分通过） */
+const AGENDA_RESULT_META = {
+  passed:   { label: '已通过',   cls: 'text-green-700 bg-green-50' },
+  partial:  { label: '部分通过', cls: 'text-amber-700 bg-amber-50' },
+  rejected: { label: '未通过',   cls: 'text-red-700 bg-red-50' },
+};
+
+/** 议程类型徽章（2026-09-01 书记点验链路 ①/②）：讨论文件 → 草案标题；待讨论名单 → 人数与目标阶段（S-2 只显目标） */
 function _agendaTypeBadges(a) {
   const badges = [];
   const isKind = (k) => (Array.isArray(a.kinds) && a.kinds.includes(k)) || a.kind === k;
@@ -442,27 +449,30 @@ function _agendaTypeBadges(a) {
   }
   if (isKind('attendee-list') || isKind('member-change')) {
     const personIds = Array.isArray(a.personIds) ? a.personIds : (a.personId ? [a.personId] : []);
-    const stage = `${a.fromStage || ''}→${a.toStage || ''}`;
+    // S-2：只显示目标阶段（不再显示「从 X 到 Y」）
+    const target = a.toStage ? ` · 转为${a.toStage}` : '';
     const label = personIds.length > 0
-      ? `待讨论名单：${personIds.length} 名 · ${stage}`
-      : `待讨论名单：${stage}`;
+      ? `待讨论名单：${personIds.length} 名${target}`
+      : `待讨论名单${target}`;
     badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium text-blue-700 bg-blue-50">${label}</span>`);
   }
   return badges.join('');
 }
 
-/** 议程结果记录（2026-09-01 书记点验链路 ②）：记录通过/未通过 → 归档草案/建成员变更申请 → 落库活动 */
-async function _recordAgendaResult(activity, agendaItemId, result) {
+/** 议程结果记录（2026-09-01 书记点验链路 ②）：记录通过/未通过 → 归档草案/建成员变更申请 → 落库活动
+ * outcome：字符串 'passed'/'rejected'（旧单值）或对象 { personResults }（S-1 逐人结果） */
+async function _recordAgendaResult(activity, agendaItemId, outcome) {
   const actor = AuthStore.getCurrentUser();
   const adapter = getAdapter();
   const db = {
     branchDocs: [...(mockDB.branchDocs || [])],
     memberChangeRequests: [...(mockDB.memberChangeRequests || [])],
   };
+  const payload = (outcome && typeof outcome === 'object') ? outcome : { result: outcome };
   const updated = await recordAgendaResultForActivity({
     activity,
     agendaItemId,
-    result,
+    ...payload,
     adapter,
     db,
     actorId: actor?.personId || null,
@@ -660,10 +670,31 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     activity.agenda.forEach((a, i) => {
       const canRecord = isSecretary && !isArchived && !a.result && !!a.id;
       const typeBadges = _agendaTypeBadges(a);
-      const resultBadge = a.result
-        ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${a.result === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${a.result === 'passed' ? '已通过' : '未通过'}</span>`
+      const meta = AGENDA_RESULT_META[a.result];
+      const resultBadge = meta
+        ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${meta.cls}">${meta.label}</span>`
         : '';
       const recordInfo = a.recordedBy ? ` · 记录：${getPersonById(a.recordedBy)?.name || a.recordedBy}${a.recordedAt ? ' ' + String(a.recordedAt).slice(0, 10) : ''}` : '';
+      // S-1：逐人结果议程（待讨论名单）→ 提供逐人「通过/未通过」勾选（未通过留痕 → 见下方只读留痕）
+      const isKind = (k) => (Array.isArray(a.kinds) && a.kinds.includes(k)) || a.kind === k;
+      const personIds = Array.isArray(a.personIds) ? a.personIds : (a.personId ? [a.personId] : []);
+      const perPerson = (isKind('attendee-list') || isKind('member-change')) && personIds.length > 0;
+      const perPersonTally = (Array.isArray(a.personResults) && a.personResults.length > 0)
+        ? `<div class="text-[11px] text-gray-500 mt-0.5">${a.personResults.map(r =>
+            `${esc(getPersonById(r.personId)?.name || r.personId)}：${r.passed ? '通过' : '未通过'}${r.note ? '（' + esc(r.note) + '）' : ''}`
+          ).join('、')}</div>`
+        : '';
+      const personPanel = (canRecord && perPerson) ? `
+        <div class="mt-1.5 rounded-lg border border-gray-100 bg-white p-2 space-y-1" data-agenda-person-results="${a.id}">
+          <p class="text-[10px] text-gray-400">逐人结果（默认通过；取消勾选即未通过，可填备注）</p>
+          ${personIds.map(pid => `
+            <label class="flex items-center gap-1.5 text-[11px]">
+              <input type="checkbox" class="ap-pass shrink-0" data-person-id="${esc(pid)}" checked style="cursor:pointer;">
+              <span class="text-gray-700 w-14 shrink-0 truncate">${esc(getPersonById(pid)?.name || pid)}</span>
+              <input type="text" class="ap-note input-flat flex-1 text-[11px]" data-person-id="${esc(pid)}" placeholder="备注（选填）">
+            </label>`).join('')}
+          <button type="button" class="ap-submit text-[11px] px-2.5 py-1 rounded-lg text-white font-medium" style="background:#16A34A;cursor:pointer;">记录结果</button>
+        </div>` : '';
       html += `<li class="flex items-start gap-2 text-xs">
         <span class="text-gray-400 flex-shrink-0 w-4">${i + 1}.</span>
         <div class="flex-1 min-w-0">
@@ -673,9 +704,11 @@ function renderInspectorDetail(activity, tasks, managementRole) {
             ${resultBadge}
           </div>
           <div class="text-gray-400 mt-0.5">${a.host ? `（主持人：${a.host}）` : ''}${recordInfo}</div>
+          ${perPersonTally}
           ${isCommittee && a.id ? `<div class="vote-panel-slot" data-vote-agenda-id="${a.id}"></div>` : ''}
+          ${personPanel}
         </div>
-        ${canRecord ? `
+        ${canRecord && !perPerson ? `
           <div class="flex gap-1 shrink-0">
             <button type="button" data-agenda-result="passed" data-agenda-item-id="${a.id}" class="inspector-agenda-result text-[11px] px-2 py-0.5 rounded-lg text-white font-medium" style="background:#16A34A;cursor:pointer;">通过</button>
             <button type="button" data-agenda-result="rejected" data-agenda-item-id="${a.id}" class="inspector-agenda-result text-[11px] px-2 py-0.5 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors" style="cursor:pointer;">未通过</button>
@@ -833,6 +866,39 @@ function renderInspectorDetail(activity, tasks, managementRole) {
         btn.dataset.processing = '';
         btn.disabled = false;
         btn.style.opacity = '';
+      }
+    });
+  });
+
+  // 议程逐人结果记录（S-1 2026-09-09 书记批：待讨论名单逐人「通过/未通过」+ 备注 → 通过者自动派生成员变更申请）
+  // P1 防连点：提交期间禁用按钮
+  cardsEl.querySelectorAll('[data-agenda-person-results]').forEach(box => {
+    const submit = box.querySelector('.ap-submit');
+    if (!submit) return;
+    submit.addEventListener('click', async () => {
+      if (submit.dataset.processing === '1') return;
+      const personResults = [...box.querySelectorAll('.ap-pass')].map(cb => {
+        const pid = cb.dataset.personId;
+        const note = box.querySelector(`.ap-note[data-person-id="${pid}"]`)?.value?.trim() || '';
+        return { personId: pid, passed: cb.checked, note };
+      });
+      submit.dataset.processing = '1';
+      submit.disabled = true;
+      submit.style.opacity = '0.5';
+      try {
+        await _recordAgendaResult(activity, box.dataset.agendaPersonResults, { personResults });
+        const passedN = personResults.filter(r => r.passed).length;
+        showToast('success', passedN === personResults.length
+          ? '已记录通过'
+          : passedN === 0 ? '已记录未通过' : `已记录：${passedN} 人通过`);
+        setState({ activities: [...mockDB.activities] });
+        renderInspectorFromState();
+      } catch (e) {
+        console.warn('[inspector] 议程逐人结果记录失败：', e);
+        showToast('error', e.message || '记录失败');
+        submit.dataset.processing = '';
+        submit.disabled = false;
+        submit.style.opacity = '';
       }
     });
   });

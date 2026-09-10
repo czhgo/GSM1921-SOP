@@ -506,7 +506,8 @@ export async function createTaskforceVoteActivity({ taskforceId, kind = 'initiat
     status: 'published',
     visibility: 'branch',
     domain: 'party-building',
-    description: `专班「${name}」${kindLabel}报送：${byName}${atText ? ' 于 ' + atText : ''}报送支委会表决。${note ? `报送说明：${note}。` : ''}请支委在本次线上支委会活动中表态（交流式：同意 / 异议 / 附言）。`,
+    // S-3（2026-09-10）默认描述精简：长文→一句（专班名/类型+报送人+时间+表态要求）
+    description: `专班「${name}」${kindLabel}由${byName}${atText ? '（' + atText + '）' : ''}报送支委会表决，请支委表态（同意/异议/附言）。${note ? `说明：${note}。` : ''}`,
     voteConfig: { ...defaultVoteConfig('branch-committee'), voterIds },
     agenda: [{ id: 'ag-tf-' + Date.now(), item: `审议专班「${name}」（${kindLabel}）`, host: '书记' }],
     extras: { taskforceProposal: { taskforceId: tf.id, kind: reqKind } },

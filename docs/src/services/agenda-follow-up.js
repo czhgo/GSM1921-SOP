@@ -4,6 +4,9 @@
 //（spec §3.4）；校验不通过抛错中止（不写 result，UI 层 catch 以 error toast 提示书记）。
 
 import { fetchVotesStrict } from './committee-vote.js?v=20260909e';
+// S-1（2026-09-09 书记批）：逐人结果中「通过者」需按人推导当前发展阶段（fromStage）——
+// 单条议程的 fromStage / personStages 可能不覆盖全部对象（各自阶段不同），以成员档案现值兜底。
+import { PersonStore } from './person.js?v=20260909e';
 
 function replaceById(records, record) {
   const index = records.findIndex((item) => item.id === record.id);
@@ -32,6 +35,29 @@ function agendaPersonIds(agendaItem) {
   if (Array.isArray(agendaItem.personIds)) return agendaItem.personIds;
   if (agendaItem.personId) return [agendaItem.personId];
   return [];
+}
+
+/**
+ * 逐人结果 → 整条 result 汇总规则（S-1，2026-09-09 书记批）：
+ *   全部通过 → 'passed'；部分通过 → 'partial'；全部未通过 → 'rejected'。
+ * 与下方「只有通过者才生成成员变更申请」一致——partial 仅对通过者建申请，未通过者仅留痕（personResults）。
+ * @param {Array<{passed:boolean}>} list 逐人结果
+ * @returns {'passed'|'partial'|'rejected'}
+ */
+export function summarizePersonResults(list) {
+  const total = Array.isArray(list) ? list.length : 0;
+  const passed = (Array.isArray(list) ? list : []).filter((r) => r && r.passed === true).length;
+  if (total > 0 && passed === total) return 'passed';
+  if (passed === 0) return 'rejected';
+  return 'partial';
+}
+
+/** 解析某成员此次变更的 fromStage：逐人快照 personStages → 议程 fromStage → 成员档案现值 */
+function resolveFromStage(agendaItem, personId) {
+  const perPerson = agendaItem.personStages && agendaItem.personStages[personId];
+  if (perPerson) return perPerson;
+  if (agendaItem.fromStage) return agendaItem.fromStage;
+  return PersonStore.getById(personId)?.developStage || '';
 }
 
 /**
@@ -65,30 +91,60 @@ async function quorumBlockMessage(activity, agendaItemId) {
 /**
  * 记录一个结构化议程项的会议结果，并执行其唯一的后续动作。
  * 该函数不写活动本身，调用方在取得返回的 activity 后负责落库。
+ *
+ * S-1（2026-09-09 书记批）：支持逐人结果 `personResults`（[{ personId, passed, note? }]）——
+ *   · 写入议程项 personResults（含未通过留痕：passed:false + 可选 note）；
+ *   · 整条 result 由逐人结果汇总（全通过=passed / 部分=partial / 全未通过=rejected，见 summarizePersonResults）；
+ *   · 仅「通过者」生成成员变更申请（partial 亦只建通过者，未通过者零申请、仅留痕）。
+ * 无 personResults 时沿用旧单值 result 入参（兼容历史/讨论文件议程）。
  */
-export async function recordAgendaResult({ activity, agendaItemId, result, adapter, db, actorId = null, now = new Date().toISOString() }) {
+export async function recordAgendaResult({ activity, agendaItemId, result, personResults = null, adapter, db, actorId = null, now = new Date().toISOString() }) {
   if (!activity || !Array.isArray(activity.agenda)) throw new Error('活动议程不存在');
-  if (!['passed', 'rejected'].includes(result)) throw new Error('会议结果无效');
   const agendaItem = activity.agenda.find((item) => item.id === agendaItemId);
   if (!agendaItem) throw new Error('议程项不存在');
 
-  // 正式表决硬校验（AV4）：quorumCheck=true 且记录「通过」时校验出席/赞成过半数；
+  const perPersonInput = Array.isArray(personResults) && personResults.length > 0 ? personResults : null;
+  if (!perPersonInput && !['passed', 'rejected'].includes(result)) throw new Error('会议结果无效');
+
+  // 逐人结果规范化（留痕：recordedBy/recordedAt 落每人）
+  let normalizedPerPerson = null;
+  let effectiveResult = result;
+  if (perPersonInput) {
+    normalizedPerPerson = perPersonInput
+      .filter((r) => r && r.personId)
+      .map((r) => ({
+        personId: r.personId,
+        passed: r.passed === true,
+        ...(r.note ? { note: String(r.note) } : {}),
+        recordedBy: actorId,
+        recordedAt: now,
+      }));
+    if (normalizedPerPerson.length === 0) throw new Error('逐人结果为空');
+    effectiveResult = summarizePersonResults(normalizedPerPerson);
+  }
+
+  // 正式表决硬校验（AV4）：存在通过者（passed/partial）时校验出席/赞成过半数；
   // 命中任一 → 抛错中止（不写 result），消息按场景附可采取动作提示（出席不足→督促表态，
   // 赞成不足→继续沟通争取赞成票；UI 层 catch 弹 error toast）。
-  // 记录「未通过」或 quorumCheck=false 不拦截。
-  if (result === 'passed') {
+  // 全未通过（rejected）不拦截。
+  if (effectiveResult !== 'rejected') {
     const block = await quorumBlockMessage(activity, agendaItemId);
     if (block) throw new Error(block);
   }
 
   const agenda = activity.agenda.map((item) => item.id === agendaItemId
-    ? { ...item, result, recordedBy: actorId, recordedAt: now }
+    ? {
+      ...item,
+      result: effectiveResult,
+      ...(normalizedPerPerson ? { personResults: normalizedPerPerson } : {}),
+      recordedBy: actorId,
+      recordedAt: now,
+    }
     : item);
   const updatedActivity = { ...activity, agenda };
 
-  if (result !== 'passed') return updatedActivity;
-
-  if (hasKind(agendaItem, 'discussion-file') && agendaItem.branchDocId) {
+  // 草案归档：仅整条通过时（部分通过不归档）
+  if (effectiveResult === 'passed' && hasKind(agendaItem, 'discussion-file') && agendaItem.branchDocId) {
     const archived = await adapter.branchDocs.update(agendaItem.branchDocId, {
       status: 'archived',
       archivedAt: now,
@@ -98,17 +154,22 @@ export async function recordAgendaResult({ activity, agendaItemId, result, adapt
     db.branchDocs = replaceById(db.branchDocs || [], archived);
   }
 
-  // 待讨论名单（书记 2026-09-01 多选裁决）：名单通过后为每人创建一条待审批申请（幂等防重复）
+  // 待讨论名单（书记 2026-09-01 多选裁决）：通过者逐人创建一条待审批申请（幂等防重复）。
+  // S-1：有逐人结果 → 只建通过者；无逐人结果 → 整条通过时建全部名单对象（旧行为）。
   const isAttendeeList = hasKind(agendaItem, 'attendee-list') || hasKind(agendaItem, 'member-change');
   if (isAttendeeList) {
-    const personIds = agendaPersonIds(agendaItem);
-    for (const personId of personIds) {
+    const passedPersonIds = normalizedPerPerson
+      ? normalizedPerPerson.filter((r) => r.passed).map((r) => r.personId)
+      : (effectiveResult === 'passed' ? agendaPersonIds(agendaItem) : []);
+    for (const personId of passedPersonIds) {
       if (findMemberChangeRequest(db, activity.id, agendaItem.id, personId)) continue;
+      const fromStage = resolveFromStage(agendaItem, personId);
+      if (!fromStage || !agendaItem.toStage) continue; // 阶段信息不全不生成（避免无效申请）
       const request = await adapter.memberChangeRequests.create({
         activityId: activity.id,
         agendaItemId: agendaItem.id,
         personId,
-        fromStage: agendaItem.fromStage,
+        fromStage,
         toStage: agendaItem.toStage,
         meetingResult: 'passed',
       });
