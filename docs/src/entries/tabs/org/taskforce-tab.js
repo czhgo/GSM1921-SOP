@@ -1076,7 +1076,7 @@ export function openRecruitForm(ctx) {
       </div>
 
       <div style="display:flex;gap:12px;justify-content:flex-end;">
-        <button type="button" id="recruit-form-cancel" class="text-sm px-4 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
+        <button type="button" id="recruit-form-cancel" class="text-sm px-4 py-[7px] rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
         <button type="submit" class="text-sm px-4 py-[7px] rounded-lg text-white hover:opacity-90 transition-opacity font-medium" style="${solidAccentStyle(accent, accentBorder)};">发布</button>
       </div>
     </form>

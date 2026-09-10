@@ -82,16 +82,16 @@ function _agendaRowHTML({ item = '', host = '', kinds = [], branchDocId = '', to
         <button type="button" data-action="agenda-remove" class="text-gray-300 hover:text-red-500 text-sm px-1 shrink-0" title="删除该条">✕</button>
       </div>
       <div class="flex items-center gap-1.5">
-        <span class="text-[10px] text-gray-400 shrink-0">类型</span>
+        <span class="text-[11px] text-gray-400 shrink-0">类型</span>
         ${AGENDA_KIND_CHIPS.map((c) => `
-          <button type="button" data-kind="${c.kind}" class="wp-agenda-kind text-[11px] px-2 py-0.5 rounded-full border border-gray-200 text-gray-500 hover:border-gray-300 transition-colors${kindOn(c.kind)}">${c.label}</button>
+          <button type="button" data-kind="${c.kind}" class="wp-agenda-kind text-xs px-3 py-1.5 rounded-lg border text-gray-600 transition-colors${kindOn(c.kind)}">${c.label}</button>
         `).join('')}
       </div>
       <div class="wp-agenda-doc-slot${docVisible}">
         <select class="wp-agenda-doc input-flat w-full text-xs">
           <option value="">加载会前草案…</option>
         </select>
-        <p class="wp-agenda-doc-hint text-[10px] text-gray-400 mt-1 hidden">暂无会前草案，<a href="search.html" target="_blank" class="text-blue-600 hover:text-blue-800">去资料查询写入 →</a></p>
+        <p class="wp-agenda-doc-hint text-[11px] text-gray-400 mt-1 hidden">暂无会前草案，<a href="search.html" target="_blank" class="text-blue-600 hover:text-blue-800">去资料查询写入 →</a></p>
       </div>
       <div class="wp-agenda-member-slot flex items-center gap-2${memberVisible}">
         <select class="wp-agenda-to input-flat w-32 shrink-0">${targetOptions}</select>
@@ -424,7 +424,7 @@ function renderWritePanel(container) {
 /** Step 1 · 选模板（一屏卡片选择）*/
 function renderTemplateStep() {
   let html = `<div>`;
-  html += `<p class="text-sm font-medium text-gray-700 mb-3">选择活动模板</p>`;
+  html += `<p class="font-title-cn text-sm font-bold text-gray-700 mb-3">选择活动模板</p>`;
   html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">`;
 
   // L3 S4 入口守卫：支部停用「主题党日」工作流块 → 模板卡消失（manifest 目录 − workflowBlocks 隐藏）
@@ -547,7 +547,7 @@ function renderFormStep() {
 
   // 会议议程（T-283：三会一课专用；逐条议题 + 可选主持人，行内编辑最少点击）
   if (tpl.category === 'three-meetings') {
-    html += `<div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3">`;
+    html += `<div class="mb-3 card rounded-xl p-4">`;
     html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">会议议程 <span class="text-gray-300">（选填；类型可多选）</span></label>`;
     html += `<div id="wp-agenda-list" class="space-y-2">`;
     // 初始 1 行空议程（HTML 内嵌，减少首条输入点击；添加/删除由 bindWritePanelEvents 事件处理）
@@ -630,10 +630,13 @@ function renderFormStep() {
   html += `</div>`;
   html += `</div>`;
 
-  // 写入按钮
+  // 写入按钮（底栏统一：取消 + 提交，同规格 text-sm px-4 py-[7px]）
   const btnText = wp.submitting ? '写入中...' : '创建活动';
   const btnDisabled = wp.submitting ? 'opacity-50 cursor-not-allowed' : '';
-  html += `<button data-action="wp-submit" class="btn-accent text-sm px-4 py-[7px] font-medium ${btnDisabled}">${btnText}</button>`;
+  html += `<div class="flex items-center justify-end gap-3">`;
+  html += `<button type="button" data-action="wp-cancel" class="text-sm px-4 py-[7px] rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">取消</button>`;
+  html += `<button type="button" data-action="wp-submit" class="btn-accent text-sm px-4 py-[7px] font-medium ${btnDisabled}">${btnText}</button>`;
+  html += `</div>`;
 
   html += `</div>`;
   return html;
@@ -643,7 +646,7 @@ function renderFormStep() {
 function renderThemeDayDimensions() {
   const dims = wp.config?.THEME_PARTY_DIMENSIONS;
   if (!dims) return '';
-  let html = `<div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3">`;
+  let html = `<div class="mb-3 card rounded-xl p-4">`;
 
   // 维度1 共建性质
   html += `<div class="mb-2.5">`;
@@ -686,7 +689,7 @@ function renderThemeDayDimensions() {
  */
 function renderVoteConfigSection(scenarioId) {
   const countOf = (scope) => resolveVoterIds(scope).length;
-  let html = `<div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3">`;
+  let html = `<div class="mb-3 card rounded-xl p-4">`;
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">会议形式</label>`;
   html += `<div class="flex gap-4 pt-0.5">`;
   html += `<label class="flex items-center gap-2 text-xs cursor-pointer">`;
@@ -884,6 +887,12 @@ function handleWritePanelAction(e) {
       wp.step = 1;
       // 保留 L1/L1Sub 以便 Step 1 显示选中态
       break;
+    }
+
+    case 'wp-cancel': {
+      // 取消写入：关闭悬浮面板（底栏「取消 + 提交」统一规格）
+      closeModal(WRITE_MODAL_ID);
+      return;
     }
 
     case 'agenda-add': {

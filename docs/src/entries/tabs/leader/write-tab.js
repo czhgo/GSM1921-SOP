@@ -76,7 +76,7 @@ export function renderContent(ctx) {
   const panelVisible = dt.showPanel;
 
   container.innerHTML = `
-    <div class="card rounded-lg p-5">
+    <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">活动写入</h3>
         <button class="btn-md" id="btn-leader-create" style="${_accVars}background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${panelVisible ? '收起面板' : '创建活动'}</button>
@@ -359,7 +359,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
   // L1 选择
   const l1Html = `
     <div class="mb-4">
-      <div class="text-xs font-bold text-gray-600 mb-2">L1 组织场景 <span class="text-red-500">*</span></div>
+      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">L1 组织场景 <span class="text-red-500">*</span></div>
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L1.map(opt => {
           const selected = L1 === opt.value;
@@ -372,7 +372,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
   // 承办党小组选择器（L1选择后显示）
   const hostGroupHtml = L1 ? `
     <div class="mb-4">
-      <div class="text-xs font-bold text-gray-600 mb-2">承办党小组 <span class="text-red-500">*</span></div>
+      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">承办党小组 <span class="text-red-500">*</span></div>
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.HOST_GROUPS.map(g => {
           const selected = hostGroup === g;
@@ -386,7 +386,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
   const l2Options = L1 ? (DECISION_TREE.L2[L1] || []) : [];
   const l2Html = L1 ? `
     <div class="mb-4">
-      <div class="text-xs font-bold text-gray-600 mb-2">L2 活动形式 <span class="text-red-500">*</span></div>
+      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">L2 活动形式 <span class="text-red-500">*</span></div>
       <div class="flex flex-wrap gap-2">
         ${l2Options.map(opt => {
           const selected = L2 === opt.value;
@@ -399,7 +399,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
   // L3 选择（L2选择后显示）
   const l3Html = L2 ? `
     <div class="mb-4">
-      <div class="text-xs font-bold text-gray-600 mb-2">L3 时长 <span class="text-red-500">*</span></div>
+      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">L3 时长 <span class="text-red-500">*</span></div>
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L3.map(opt => {
           const selected = L3 === opt.value;
@@ -412,7 +412,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
   // L4 选择（L3选择后显示）
   const l4Html = L3 ? `
     <div class="mb-4">
-      <div class="text-xs font-bold text-gray-600 mb-2">L4 发起方向 <span class="text-red-500">*</span></div>
+      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">L4 发起方向 <span class="text-red-500">*</span></div>
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L4.map(opt => {
           const selected = L4 === opt.value;
@@ -426,7 +426,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
   const allSelected = L1 && L2 && L3 && L4 && hostGroup;
   const formHtml = allSelected ? `
     <div class="mt-4 pt-4 border-t border-dashed border-gray-200">
-      <div class="text-xs font-bold text-gray-600 mb-3">填写活动信息</div>
+      <div class="font-title-cn text-sm font-bold text-gray-700 mb-3">填写活动信息</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">T-0 日期 <span class="text-red-500">*</span></label>
@@ -442,7 +442,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
         <input type="text" id="dt-title" class="input-flat w-full" placeholder="活动名称" value="${escHtml(dtDraft.title)}">
       </div>
       <div class="mb-4">
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="dt-desc">活动描述（选填）</label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="dt-desc">活动描述 <span class="text-gray-300">（选填）</span></label>
         <textarea id="dt-desc" class="input-flat w-full resize-none" rows="2" placeholder="简要描述活动内容">${escHtml(dtDraft.desc)}</textarea>
       </div>
 
@@ -455,29 +455,29 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
             <div id="dt-org-picker"></div>
           </div>
           <div>
-            <div class="text-[12px] text-gray-400 mb-1">深度参与者（选填）</div>
+            <div class="text-[12px] text-gray-400 mb-1">深度参与者 <span class="text-gray-300">（选填）</span></div>
             <div id="dt-deep-picker"></div>
           </div>
         </div>
       </div>
 
       <!-- SOP 预览 -->
-      <div class="mb-4 p-3 rounded-lg bg-white">
-        <div class="text-xs font-bold text-gray-600 mb-2">后续待办预览</div>
+      <div class="mb-4 card rounded-xl p-4">
+        <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">后续待办预览</div>
         <div id="dt-sop-preview" class="space-y-1 text-xs text-gray-500">
           ${_renderSopPreview()}
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
-        <button id="dt-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">写入活动</button>
-        <button id="dt-cancel" class="text-sm px-4 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+      <div class="flex items-center justify-end gap-3">
+        <button id="dt-cancel" type="button" class="text-sm px-4 py-[7px] rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+        <button id="dt-submit" type="button" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">写入活动</button>
       </div>
     </div>
   ` : '';
 
   return `
-    <div class="p-4 rounded-lg bg-white border border-gray-100 shadow-sm">
+    <div class="card rounded-xl p-4">
       ${stepperHtml}
       ${l1Html}
       ${hostGroupHtml}
