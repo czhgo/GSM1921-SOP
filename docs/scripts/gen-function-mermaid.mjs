@@ -6,7 +6,7 @@
 //   ④ 服务依赖（flowchart LR）
 // 产物策略（2026-09-03；2026-09-09 迁位）：不再随仓库维护独立 FUNCTION_MAP.md（派生稿），
 //   仓库内唯一地图 = **根 README.md 顶部标记块**（锚点 `<!--FUNC-MAP:ANCHOR-->` 之后，含
-//   `<!--FUNC-MAP:START/END-->` 标记，仅 mindmap）——普世化叙事下功能地图置于门面最前。
+//   `<!--FUNC-MAP:START/END-->` 标记，仅 mindmap）——通用化门面下功能地图置于最前。
 //   完整四章文档 = 直接运行本脚本打印（stdout）供按需查看/引用，不落盘。
 // 用法：node docs/scripts/gen-function-mermaid.mjs --write  # 更新根 README 顶部标记块
 //       node docs/scripts/gen-function-mermaid.mjs          # stdout 打印完整四章
@@ -94,17 +94,29 @@ export function generateAll() {
 }
 
 export function applyToReadme(readme) {
-  const block = generateMindmap();
+  const eol = readme.includes('\r\n') ? '\r\n' : '\n';
+  const sep = `${eol}${eol}`;
+  const block = eol === '\n' ? generateMindmap() : generateMindmap().replace(/\n/g, eol);
   const start = '<!--FUNC-MAP:START-->';
   const end = '<!--FUNC-MAP:END-->';
   const anchor = '<!--FUNC-MAP:ANCHOR-->';
   if (readme.includes(start) && readme.includes(end)) {
     // 已有标记块：原位替换内容（位置由 README 维护，不搬动）
-    return readme.replace(new RegExp(`${start}[\\s\\S]*?${end}`), `${start}\n\n${block}\n\n${end}`);
+    return readme.replace(new RegExp(`${start}[\\s\\S]*?${end}`), `${start}${sep}${block}${sep}${end}`);
   }
   if (!readme.includes(anchor)) throw new Error('README 缺少 <!--FUNC-MAP:ANCHOR--> 锚点，无法插入功能地图');
-  const section = `## 功能地图\n\n> 通用能力与组织特有能力以（通用）/（特有）文本标注区分；本图由 \`node docs/scripts/gen-function-mermaid.mjs --write\` 从 docs/src/core/function-catalog.js 生成，勿手改（完整四章含业务链路/架构分层/服务依赖用同脚本 stdout 打印）。\n\n${start}\n\n${block}\n\n${end}`;
-  return readme.replace(anchor, `${anchor}\n\n${section}`);
+  const section = [
+    '## 功能地图',
+    '',
+    '> 通用能力与组织特有能力以（通用）/（特有）文本标注区分；本图由 `node docs/scripts/gen-function-mermaid.mjs --write` 从 docs/src/core/function-catalog.js 生成，勿手改（完整四章含业务链路/架构分层/服务依赖用同脚本 stdout 打印）。',
+    '',
+    start,
+    '',
+    block,
+    '',
+    end,
+  ].join(eol);
+  return readme.replace(anchor, `${anchor}${sep}${section}`);
 }
 
 // CLI：--write 时只更新 README 标记块（独立 FUNCTION_MAP.md 已不随仓库维护，见头注释）；
