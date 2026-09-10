@@ -19,20 +19,20 @@
 // 本页禁用 SVG 图标（书记台裁定），类别用色点+文字区分；?v= 沿用统一收口版本号。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/auth.js?v=20260909e';
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260909e';
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260909e';
-import { IssueStore } from '../../../services/issues.js?v=20260909e';
-import { loadActivities } from '../../../services/activity.js?v=20260909e';
-import { loadActivityReviews } from '../../../services/review.js?v=20260909e';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260909e';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260909e';
-import { getMeetingRosterIds } from '../../../services/roster.js?v=20260909e';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260909e';
+import { AuthStore } from '../../../services/auth.js?v=20260910a';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260910a';
+import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260910a';
+import { IssueStore } from '../../../services/issues.js?v=20260910a';
+import { loadActivities } from '../../../services/activity.js?v=20260910a';
+import { loadActivityReviews } from '../../../services/review.js?v=20260910a';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260910a';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260910a';
+import { getMeetingRosterIds } from '../../../services/roster.js?v=20260910a';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260910a';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR,
-} from '../../../services/group-view.js?v=20260909e';
+} from '../../../services/group-view.js?v=20260910a';
 
 // ── 模块级状态（随模块自持；tab 切走再回保持，页面刷新回退首组） ──
 let _selectedGroup = null;      // 当前选中党小组名

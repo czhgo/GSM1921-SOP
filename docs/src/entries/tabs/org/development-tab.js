@@ -2,17 +2,17 @@
 // 组织委员工作台 Tab：发展数据（T-279 M3 拆分，照 M2 样板）
 // 从入党积极分子到正式党员的完整发展路径数据（管线概览 + 阶段筛选 + 推进）。
 
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260909e';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260910a';
 // IA-C3 收敛只读展开 2026-09-06：思想汇报只读展开移除，仅留「已归档 N 篇」计数（计数沿用既有读口
 // loadThoughtReports 派生 reportCount；详细查看仍去 组织台「思想汇报」tab / 成员档案）。
-import { loadThoughtReports } from '../../../services/thought-report.js?v=20260909e';
-import { PersonStore } from '../../../services/person.js?v=20260909e';
+import { loadThoughtReports } from '../../../services/thought-report.js?v=20260910a';
+import { PersonStore } from '../../../services/person.js?v=20260910a';
 // S-1（2026-09-09 书记批）：成员发展档案「来源会议」溯源（只读）——从活动议程（待讨论名单）派生
-import { loadActivities } from '../../../services/activity.js?v=20260909e';
+import { loadActivities } from '../../../services/activity.js?v=20260910a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { badgeHtml } from '../../../components/badges.js?v=20260909e';
-import { showToast } from '../../../core/utils.js?v=20260909e';
+import { badgeHtml } from '../../../components/badges.js?v=20260910a';
+import { showToast } from '../../../core/utils.js?v=20260910a';
 
 // ════════════════════════════════════════════════════════════════
 //  发展党员追踪 — Mock 数据（模块私有，随模块自持）

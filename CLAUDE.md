@@ -625,9 +625,10 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | ID | 事项 | 引用流程 | 状态 |
 | --- | --- | --- | --- |
 | E-1~E-5 | 全部完成（2026-09-09，commits 30029993/27c5eb77/6140e23a/82c39508/40d8ef63），登记 T-2026-09-072，行已清 | H60.7 + 面板保态检查要点（REVIEW_QUEUE 附录⑧）+ 全前端冒泡报告（`.ctx/logs/2026-09-08-smoke-result.md`） | ✅ 已清 |
-| R-1 | **会话收口批**：EXECUTION_LOG 并条 T-077（本会话多批：补验 12 例 / 两修复 / 测试对齐 / 两评议轮次 / README 通用化 / 黑话第 5 轮 / 活动写入 S-1~S-4）+ 版本串 bump 20260909e→f（CODE_VERSION 90→91）+ 相关回归抽验 | H60.7 + 版本串纪律 + 少日志纪律 | 待办 |
-| R-2 | **自验口径复核**：整跑 `npm test` 复核新基线（原「12 例环境受限」已跑通/对齐；Playwright 需以 `server/.tmp-pw` 作 TMP，跑后即删） | 测试系统 + H60.6 检查要点 | 待办 |
+| R-1/R-2 | **已清（2026-09-09~10）**——收口：EXECUTION_LOG 并条 **T-2026-09-077** + 全站版本串 `?v=20260910a`／CODE_VERSION 91（bump 270 文件，含注释校正）；自验口径复核：全量 `npm test` **441/441 通过（0 失败）**（bump 前后各跑一次；原「12 例环境受限」已全部跑通/对齐）；module-load 148/148、GetDiagnostics 0 | H60.7 + 版本串纪律 + 少日志纪律 | ✅ 已清 |
 | R-3 | **门面通用化推进（下一步）**：`about` / `help` / `index` 等门面页首屏补「本系统面向各类党支部与学生组织，各组织各自部署自己的实例」表述（根 README 门面通用化改写与功能地图前置已先行，2026-09-09） | H100 项目产出声明 + 文档同步纪律（README 功能说明随功能同步） | `docs/about.html` / `docs/help.html` / `docs/index.html` | 待办 |
+| R-4 | **只读端视觉对齐**：`inspector.js` / `activity-entry.js` / `activity-view.js` 的议程与详情仍用 `text-[10px]` 与灰底非标卡（S-4 仅统一写入端）；对齐时 inspector 需按禁改特批 | COMPONENT_SPEC + 禁改清单 | `entries/inspector.js` / `entries/activity-entry.js` / `entries/activity-view.js` | 待办 |
+| R-5 | **测试隔离加固**：`b3-1-makeup-writeback` 依赖共享演示库前置态，连续全量复跑会因 `server/data.db` 状态污染失败（单跑 5/5 绿）——建议全量前重建库，或令该用例自重置前置态 | 测试系统 + H60.6 检查要点 | `server/test/b3-1-makeup-writeback.test.mjs` | 待办 |
 | S-1~S-4 | **已清（2026-09-09，commits `22120e64` / `60dfa271`）**——S-1 议程逐人「通过/未通过」（未通过留痕）+ 通过者自动进成员变更确认链（来源标「会议结果」）+ 修演示档 confirm 误写 users 致阶段未落档 + 发展档案「来源会议」溯源（**书记特批改 inspector.js 议程结果区**）；S-2 发展议程仅留目标阶段（转为预备党员/转为正式党员）、按人推导 fromStage；S-3 SOP 任务与通知默认精简（desc 均 55.5→18.3 字）；S-4 写入 UI 按规范统一（chip/底板/标题层级/input-flat/底栏）。回归 65/65 + 15/15 + module-load 148/148 绿 | H60.7 + 禁改特批 + COMPONENT_SPEC | ✅ 已清 |
 
 ## 评议轮次排期（H60.7 · C4 已批准，发起即删）
@@ -684,4 +685,4 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 > **P.11/P.12/P.13（2026-09-08 归口）已于 2026-09-09 书记决策完毕**：P.11 全局评估总表 v1 AI 定案生效（REVIEW_QUEUE 总表已标定案）；P.12 概况侧只读复查特批执行（报告 .ctx/logs/archive/2026-09-09-P12-overview-audit.md，修复已于 2026-09-09 特批落地 ebf55d16）；P.13 Tailwind CDN 治理=保持现状关闭（E-5 页内优化已保留）。历史 P.8/P.9/P.10 已决策退出（D-270/271/272）。决策归档见执行日志 T-2026-09-073。
 
-- **P.14（2026-09-09 归口）push 放行**：本会话前 6 笔（补验真回归修复 / P.12 特批修复 / 陈旧测试对齐 / 黑话审查第 4 轮 / 原话复核余批 / 交接与清理批）已随远端推进（`origin/main` = `665613c5`，推送非本地执行）；**本地现存领先 1 笔 `f6670487`（README 门面通用化 + 功能地图前置）**，工作区 clean；**待书记明确批准后 push，推送前先 `git status` 核对**。
+- **P.14（2026-09-09 归口）push 放行**：本会话前 6 笔已随远端推进（`origin/main` = `665613c5` 起，推送非本地执行）；**本地现存领先 5 笔**——`ddaa320c`（黑话第 5 轮·普世化→通用化）、`22120e64`（活动写入 S-1~S-3）、`60dfa271`（S-4 写入 UI 统一）、`5138e638`（文档同步）、收口批（`?v=20260910a`/CODE_VERSION 91 + EXECUTION_LOG T-077）；工作区 clean；**待书记明确批准后 push，推送前先 `git status` 核对**。

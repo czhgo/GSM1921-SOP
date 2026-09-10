@@ -857,14 +857,6 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **⑤ 主题色一致性（f1254a7a）**：bootstrap --app-accent 注入/header 角色标签/书记 calendar·assign·todo 三 tab 模块级 const 快照/纪检补课 6 处改 person-aware 渲染时解析（theme.js 合成 getAppliedAccentColors）；禁改消费经 ctx.accent 自动同源；theme-pref 8/8+preferences 15/15。
 - **遗留**：tab-bar U3a WIP 未提交待归属；push ahead 73 待批；浏览器目视（settings 变更记录回滚 UI/无归属卡/主题色抽验）与 R2 拖拽真机手测待常规终端；settings 变更记录 UI 对 party-staff（党委台）未接线（内核已含门）。
 
-**T-2026-09-075 书记五问处置：示例支部与归属显式化 / header 组织名 / 制度参数变更流（审计内核）/ 颗粒度 content 声明 / 主题色一致性（2026-09-09）**
-- **① 归属显式化（fbb67f72）**：services/branch.js 新增 getBoundBranch（person 无 branchId/null/查无分支→null，不再被示例支部冒充）；getBranchIdOfPerson 保留数据解析兜底并注明支部语境判定一律用 getBoundBranch；getHeaderTitle 登录无归属→中性「未绑定支部」（静态壳未登录保持既有兜底，属换壳范围注明）；header.js h1 无归属中性不加引导（二期候选 b 登记注释）；settings 支部治理/域参数统一「未找到您所属支部——请先由党委确认归属」，向导入口无归属不唤起。branch-affiliation.test 4 例。
-- **② 示例支部**：维持 br-b1 为可整体替换的模板默认（书记裁）；真实"不属于支部"场景由①显式归属+统一口径解决。
-- **③ 制度参数变更流=审计内核先做（cc1cde66）**：configChangeHistory 支持 why（各写口 opts.why 透传，server PATCH why+裁剪同源）；rollbackBranchConfig 单键回滚（跨键/聚合 branch-created/config-copied 拒绝、回滚追加 {what:rollback} 不改写历史）；config-clean 常量 CONFIG_HISTORY_MAX=100/CONFIG_ROLLBACK_*；api-adapter rollbackConfig；server PATCH /config/rollback；settings 支部治理「配置变更记录」列表（人/时间/键/前后值/why+单条回滚 confirm）。branch-config-audit 8 例+HTTP；回归 90 项绿。制度级（L3）保持锁定（放行程序待裁决）。
-- **④ 颗粒度 content 声明（起草→书记审定定稿 2e413d44）**：PARTY_COMMITTEE_DESIGN §2.6 配置颗粒度与变更流分层（六层+旁路矩阵/词条收口/放行程序/变更流对齐审计内核/内容接缝）+§2.5 过期表述同步；SYSTEM_ROLE_PERMISSION §9h 支部 config 写权矩阵节；USAGE_POLICY 词条（L2-L3 配置层/branch-default/域参数/制度默认/制度刚性/POLICY_OVERRIDABLE/换壳工作单，注明与 L1-L4 阶段号非同一编号体系）。
-- **⑤ 主题色一致性（f1254a7a）**：bootstrap --app-accent 注入/header 角色标签/书记 calendar·assign·todo 三 tab 模块级 const 快照/纪检补课 6 处改 person-aware 渲染时解析（theme.js 合成 getAppliedAccentColors）；禁改消费经 ctx.accent 自动同源；theme-pref 8/8+preferences 15/15。
-- **遗留**：tab-bar U3a WIP 未提交待归属；push ahead 73 待批；浏览器目视（settings 变更记录回滚 UI/无归属卡/主题色抽验）与 R2 拖拽真机手测待常规终端；settings 变更记录 UI 对 party-staff（党委台）未接线（内核已含门）。
-
 **T-2026-09-076 集中代码减负批（书记 2026-09-09 令；版本串保持 20260909e 不 bump；commits 43ade599/98ed9ace）**
 - **范围与方法**：docs/src、docs/scripts、server、docs/*.html；只减不增、每删必证（先静态引用图 + 全仓 Grep 核对再动）；先产出候选清单后分批实施。
 - **类别1/4/5 死代码与冗余暴露面（43ade599，净 -60 行）**：visibility.js 删 4 死导出（canViewPerson/dimensionsFor/canViewInProject/roleLabel，docs+server/test 全仓零消费）+ DIMENSION_LABELS/PROJECT_VISIBILITY + 冗余 ROLE_LABELS import；data-loader.js fallbackMapActivities、workflow/renderer.js createMockEngine/createMockBlockedEngine、modules/branch-demo-nav.js buildBranchDemoUrl/openBranchDemo 内部化去 export（暴露面收窄，行为零变化）。
@@ -872,4 +864,18 @@ related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **验证**：231 个 src 模块 node --check 全绿 + GetDiagnostics 0 + 引用目标存在性校验（js 231/html 19 零缺失）；link-integrity L1/L2/L3/L5 绿；module-load/e2e-login 等 Playwright 套件沙箱 EPERM 受限（与 T-074 5b「12 环境受限」同因，登记）。
 - **登记（不删）**：workflow/blocks/form-renderer.js 整文件 0 生产引用但 WORKFLOW_BLOCK_CONTRACT S2 + block-form-renderer.test 专属支撑（待书记确认是否连测试与契约段一并下线）；components/inspector.js 内部死导出嫌疑（禁改文件不擅动）；services/person.js @deprecated getPersonById/getPersonName 仍广泛消费（迁移未完）；17 处 String(x).slice(0,16).replace('T',' ') 行内日期格式与 core/utils.fmtDt 同义（统一改引用=净增 import，留待专项）；mock/server 未发现可安全整删的过时文件（此前 T-005/008/011 等批已清）。
 - **遗留**：tab-bar U3a WIP 未提交待归属（本批未触碰）；push ahead 75 待批。
+
+**T-2026-09-077 会话收口批：补验 12 例 / 两修复 / 测试对齐 / 两评议轮次 / README 通用化 / 活动写入改造 S-1~S-4（2026-09-09~10）**
+- **补验 12 例（环境受限解除）**：以仓库内 `server/.tmp-pw` 作 TMP 解除 Playwright 沙箱禁写 → 全部实跑；`mock-integrity M1/M2`、`b3-1` 5/5、`click-cost C1/C2` 通过；**发现并修真回归 `5e183368`**（committee-vote 通知模板引用已删常量 COMMITTEE_TOTAL → committeeTotal()，书记汇总通知曾静默失效）；`online-committee/async-vote/agenda-votes/agenda-flow` 19/19。
+- **P.12 特批修复 `ebf55d16`**（改禁改 work-overview.js）：请我汇报行内草稿保态 `_reqDraftByIssue`（他行提交/确认收到/下钻返回不再丢草稿）；module-load 148/148。
+- **陈旧测试对齐 `ac10971f`**：`click-cost C3`/`e2e-login` → 默认落点「今天」+ 切待办 ≤1 跳；`module-config/block-config-ui-e2e` → 党委台支部配置向导步骤② chips 闭环（旧 `#pc-*`/`data-pc-wblock` 全仓零匹配）；`party-committee-review P3` → 现行上报审批锚点。8/8 绿。
+- **黑话第 4 轮 `6cd2cad7`**（C4 序①）：六候选书记判定——治理总览保留；09 新增「闭环」族按第 2 轮定界回清；确权→两级确认/变更确认/书记确认、进度感知→了解进度、把关式初阅→组织初阅把关、设置域参数→纪检/组织/组长职责参数（权威层保留）。
+- **原话复核余批 `012d6478`**（C4 序②）：11 项逐条过目；SECRETARY_DIRECTIVES 三处落改——P-009 原话移文末「附录·原话附注」（正文留概述）、第三章章首「成长」并入 P-001、P-016 L351 AI 自注删除（AI 不补注释）。
+- **交接与纪律 `1cdbc6dd`/`665613c5`**：删除 HANDOFF 文件（交接一律对话输出）、清理 gitignore 过程产物并撤对应豁免、全量清 BOM（33 文件）；入库检查要点「交接与过程脚本纪律」。
+- **README 通用化 `f6670487`**：门面改「引擎/模板 → 各组织自有部署」叙事（起源=最初以光华管理学院本科生党支部工作流打磨，随迭代通用化）；功能地图迁根 README 顶部（生成器/守护随迁）。
+- **黑话第 5 轮 `ddaa320c`**：清 AI 自造词「普世化/普世适用/普适化」→「通用化」（用户文案+注释）。
+- **活动写入改造 `22120e64`/`60dfa271`**（用户四项反馈）：S-1 议程逐人「通过/未通过」（未通过留痕）+ 通过者自动进成员确认链（来源标「会议结果」）+ 修演示档 confirm 误写 users 致阶段未落档 + 发展档案「来源会议」溯源（**书记特批改 inspector.js 议程结果区**）；S-2 发展议程仅留「转为预备党员/转为正式党员」、按人推导 fromStage；S-3 SOP 任务 desc 均 55.5→18.3 字、通知/专班描述瘦身；S-4 写入 UI 按 COMPONENT_SPEC 统一（chip/底板/标题/input-flat/底栏）。文档同步 `5138e638`。
+- **版本收口**：全站 `?v=20260910a`、CODE_VERSION 91（bump 270 文件）；顺清 EXECUTION_LOG 中 T-075 重复块（内容锚点去重，保留 1 处）。
+- **验证**：全量 `npm test` **441/441 通过（0 失败）**——bump 前与 bump 后（重建演示库）各一次；中间一次连续复跑出现 `b3-1-makeup-writeback` 顺序依赖波动（单跑 5/5 绿；根因=共享 `server/data.db` 跨次运行状态污染，与源码/版本串无关，登记 R-5）；module-load 148/148；GetDiagnostics 全 0；写入 UI 浏览器 DOM 断言 16/16。
+- **登记/遗留**：R-3 门面页（about/help/index）通用化推进；R-4 只读端（inspector/activity-entry/activity-view）字号与底板未随 S-4 对齐；R-5 测试隔离加固（b3-1 依赖共享演示库前置态，全量复跑易波动）；R2 拖拽真机手测待常规终端；push ahead 5 笔待书记批准（本地未推）。
 

@@ -2,23 +2,23 @@
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../components/sidebar.js?v=20260909e';
-import { renderHeader } from '../components/header.js?v=20260909e';
-import { BranchService } from '../services/runtime.js?v=20260909e';
-import { mockDB } from '../core/domain.js?v=20260909e';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260909e';
-import { NoticeStore } from '../services/notice.js?v=20260909e';
-import { SignupStore } from '../services/signup.js?v=20260909e';
-import { AuthStore } from '../services/auth.js?v=20260909e';
-import { getPersonById } from '../services/person.js?v=20260909e';
-import { getBasePath, escHtml as esc } from '../core/utils.js?v=20260909e';
-import { getActivityTypeColors } from '../core/constants.js?v=20260909e';
-import { badgeHtml } from '../components/badges.js?v=20260909e';
-import { enhanceSelects } from '../components/custom-select.js?v=20260909e';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260909e';
-import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260909e';
-import { renderVoteWidget } from '../components/vote-widget.js?v=20260909e';
-import { fetchVotes } from '../services/committee-vote.js?v=20260909e';
+import { renderSidebar } from '../components/sidebar.js?v=20260910a';
+import { renderHeader } from '../components/header.js?v=20260910a';
+import { BranchService } from '../services/runtime.js?v=20260910a';
+import { mockDB } from '../core/domain.js?v=20260910a';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260910a';
+import { NoticeStore } from '../services/notice.js?v=20260910a';
+import { SignupStore } from '../services/signup.js?v=20260910a';
+import { AuthStore } from '../services/auth.js?v=20260910a';
+import { getPersonById } from '../services/person.js?v=20260910a';
+import { getBasePath, escHtml as esc } from '../core/utils.js?v=20260910a';
+import { getActivityTypeColors } from '../core/constants.js?v=20260910a';
+import { badgeHtml } from '../components/badges.js?v=20260910a';
+import { enhanceSelects } from '../components/custom-select.js?v=20260910a';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260910a';
+import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260910a';
+import { renderVoteWidget } from '../components/vote-widget.js?v=20260910a';
+import { fetchVotes } from '../services/committee-vote.js?v=20260910a';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
