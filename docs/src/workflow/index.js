@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // ── SOP 任务实例化（已有） ──
 export { sopDatabase } from './sopData.js?v=20260909e';
 export { instantiateSOP } from './sop.js?v=20260909e';
