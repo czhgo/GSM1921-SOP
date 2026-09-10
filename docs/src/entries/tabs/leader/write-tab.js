@@ -16,7 +16,7 @@ import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } fr
 import { badgeHtml } from '../../../components/badges.js?v=20260910a';
 import { showToast, escHtml } from '../../../core/utils.js?v=20260910a';
 import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260910a';
-import { filterByRole, getCurrentLeaderId } from './_shared.js?v=20260910a';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260910a';
 
 // 私有状态（随模块自持，不污染入口）
 const dt = new DecisionTreeState('leader');
@@ -25,6 +25,8 @@ let _dtOrgPicker = null;      // 决策树表单：组织者多选
 let _dtDeepPicker = null;     // 决策树表单：深度参与者多选
 let _detailOrgPicker = null;   // 活动详情：组织者多选（预填现有 assignments）
 let _detailDeepPicker = null;  // 活动详情：深度参与者多选
+let _dtActivities = [];        // C② 默认预选数据源：最近一次渲染的组长可见活动（ctx.filteredActivities）
+let _dtAdvOpen = false;        // C② 高级设置折叠区展开态（跨面板重建保态，便于连续选择）
 
 // E-2 活动写入步骤草稿（2026-09-09 乙部评议待办）：
 // 步骤（L1-L4/承办党小组）重选或重进时会重建决策面板与输入框/角色 PersonPicker，
@@ -67,6 +69,7 @@ export function renderContent(ctx) {
     : `--acc-bg-dark:#1E293B;--acc-text-dark:#CBD5E1;--acc-border-dark:#334155;background:white;color:#6B7280;border:1.5px solid #E5E7EB;`;
 
   const activities = ctx.filteredActivities || [];
+  _dtActivities = activities; // C② 默认预选数据源（本人既有同类活动）
 
   // T223 排序统一：未完成在前、已完成在后，组内按 date 降序（新者在前）
   const isDone = a => a.archived || ['completed', 'cancelled'].includes(a.status);
@@ -329,15 +332,85 @@ export function renderContent(ctx) {
   });
 }
 
+// ── C② 默认预选（2026-09-10 书记裁定）────────────────────────────
+// 进入建活动面板时按上下文派生默认值，使常规路径 0–1 次输入即可提交。
+// 派生依据全部来自既有数据源（勿臆造新规则）：
+//   · 承办党小组 = 组长所属党小组（_shared.currentLeaderGroup）
+//   · 活动类型/形式/时长/发起方向 = 本人既有同类活动（ctx.filteredActivities 中本人组织/创建，
+//     场景限组长可用 L1；常用场景取出现次数最多、并列取最近，再取该场景最近一次派生其余维度）。
+/** 组长可用场景 id（与 DECISION_TREE.L1 同源，避免第二份清单） */
+function _dtLeaderScenarioIds() {
+  return DECISION_TREE.L1.map(o => o.value);
+}
+
+/** 派生默认选择（全新会话用） */
+function _dtDeriveDefaults(activities) {
+  const { leaderId, group } = currentLeaderGroup();
+  const allowed = _dtLeaderScenarioIds();
+  const mine = (activities || [])
+    .filter(a => a && allowed.includes(a.scenarioId) && (
+      a.createdBy === leaderId || a.organizer === leaderId ||
+      (Array.isArray(a.assignments) && a.assignments.some(x => x.personId === leaderId && x.role === 'organizer'))
+    ))
+    .sort((a, b) => (b.date || '').localeCompare(a.date || '')); // 最近在前
+
+  // 常用场景：出现次数最多；并列时取最近一次（reduce 自最近端起，> 保证取最近）
+  const count = {};
+  mine.forEach(a => { count[a.scenarioId] = (count[a.scenarioId] || 0) + 1; });
+  const L1 = mine.length
+    ? mine.reduce((best, a) => (count[a.scenarioId] > count[best] ? a.scenarioId : best), mine[0].scenarioId)
+    : 'party-group-meeting';
+
+  // 该场景最近一次既有活动 → 派生 L2/L3/L4
+  const last = mine.find(a => a.scenarioId === L1) || null;
+  const l2Options = DECISION_TREE.L2[L1] || [];
+  let L2 = l2Options[0]?.value || null;
+  if (L1 === 'theme-party') {
+    const carrier = Array.isArray(last?.carriers) ? last.carriers[0] : null;
+    if (l2Options.some(o => o.value === carrier)) L2 = carrier;
+  }
+  const L3 = (last && ['short', 'long'].includes(last.duration)) ? last.duration : 'short';
+  const L4 = (last && ['top-down', 'bottom-up'].includes(last.direction)) ? last.direction : 'bottom-up';
+
+  return { L1, L2, L3, L4, hostGroup: group || null };
+}
+
+/** 全新会话（尚未选过活动类型）时套用派生默认值；已选则保态不覆盖 */
+function _dtApplyDefaults() {
+  if (dt.selections.L1) return;
+  const d = _dtDeriveDefaults(_dtActivities);
+  dt.select('L1', d.L1);
+  dt.select('L2', d.L2);
+  dt.select('L3', d.L3);
+  dt.select('L4', d.L4);
+  dt.select('hostGroup', d.hostGroup);
+}
+
+/** 当前选择的白话摘要（首屏可见，避免展开高级区即可确认默认值） */
+function _dtSummaryLine() {
+  const { L1, L2, L3, L4, hostGroup } = dt.selections;
+  const l1 = DECISION_TREE.L1.find(o => o.value === L1)?.label;
+  const l2 = (DECISION_TREE.L2[L1] || []).find(o => o.value === L2)?.label;
+  const l3 = DECISION_TREE.L3.find(o => o.value === L3)?.label;
+  const l4 = DECISION_TREE.L4.find(o => o.value === L4)?.label;
+  const parts = [];
+  if (l1) parts.push(`活动类型 ${l1}`);
+  if (l2 && l2 !== l1) parts.push(`活动形式 ${l2}`);
+  if (l3) parts.push(`时长 ${l3}`);
+  if (l4) parts.push(`发起方向 ${l4}`);
+  if (hostGroup) parts.push(`承办 ${hostGroup}`);
+  return parts.join(' · ');
+}
+
 function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark }) {
   const { L1, L2, L3, L4, hostGroup } = dt.selections;
 
   // 当前进行到第几步（S6 修复：原代码引用未定义变量 step 导致面板渲染崩溃）
-  // 步骤指示器：组织场景→活动形式→时长→发起方向
+  // 步骤指示器：活动类型→活动形式→时长→发起方向（白话，无 L1–L4 缩写）
   const step = !L1 ? 1 : !L2 ? 2 : !L3 ? 3 : 4;
 
-  // 步骤指示器
-  const steps = ['组织场景', '活动形式', '时长', '发起方向'];
+  // 步骤指示器（随高级设置折叠区一并收起，默认不占首屏）
+  const steps = ['活动类型', '活动形式', '时长', '发起方向'];
   const stepperHtml = `
     <div class="flex items-center gap-1 mb-5">
       ${steps.map((s, i) => {
@@ -356,10 +429,16 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
     </div>
   `;
 
-  // L1 选择
+  // 承办党小组选项：既有 HOST_GROUPS + 组长本组（组长本组可能不在配置清单内，如「第一党小组」，
+  // 默认预选须命中本组、且改选后仍能回选本组——不改权限，仅保证「组长本组承办」这一既有语义可提交）
+  const hostGroups = [...DECISION_TREE.HOST_GROUPS];
+  const myGroup = currentLeaderGroup().group;
+  if (myGroup && !hostGroups.includes(myGroup)) hostGroups.push(myGroup);
+
+  // 活动类型
   const l1Html = `
     <div class="mb-4">
-      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">L1 组织场景 <span class="text-red-600">*</span></div>
+      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">活动类型 <span class="text-red-600">*</span></div>
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L1.map(opt => {
           const selected = L1 === opt.value;
@@ -369,12 +448,12 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
     </div>
   `;
 
-  // 承办党小组选择器（L1选择后显示）
+  // 承办党小组选择器（活动类型选择后显示）
   const hostGroupHtml = L1 ? `
     <div class="mb-4">
       <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">承办党小组 <span class="text-red-600">*</span></div>
       <div class="flex flex-wrap gap-2">
-        ${DECISION_TREE.HOST_GROUPS.map(g => {
+        ${hostGroups.map(g => {
           const selected = hostGroup === g;
           return `<button class="dt-host-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${g}" style="${_dtBtnStyle(selected)}cursor:pointer;">${g}</button>`;
         }).join('')}
@@ -382,11 +461,11 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
     </div>
   ` : '';
 
-  // L2 选择（L1选择后显示）
+  // 活动形式（活动类型选择后显示）
   const l2Options = L1 ? (DECISION_TREE.L2[L1] || []) : [];
   const l2Html = L1 ? `
     <div class="mb-4">
-      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">L2 活动形式 <span class="text-red-600">*</span></div>
+      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">活动形式 <span class="text-red-600">*</span></div>
       <div class="flex flex-wrap gap-2">
         ${l2Options.map(opt => {
           const selected = L2 === opt.value;
@@ -396,10 +475,10 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
     </div>
   ` : '';
 
-  // L3 选择（L2选择后显示）
+  // 时长（活动形式选择后显示）
   const l3Html = L2 ? `
     <div class="mb-4">
-      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">L3 时长 <span class="text-red-600">*</span></div>
+      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">时长 <span class="text-red-600">*</span></div>
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L3.map(opt => {
           const selected = L3 === opt.value;
@@ -409,10 +488,10 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
     </div>
   ` : '';
 
-  // L4 选择（L3选择后显示）
+  // 发起方向（时长选择后显示）
   const l4Html = L3 ? `
     <div class="mb-4">
-      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">L4 发起方向 <span class="text-red-600">*</span></div>
+      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">发起方向 <span class="text-red-600">*</span></div>
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L4.map(opt => {
           const selected = L4 === opt.value;
@@ -422,6 +501,23 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
     </div>
   ` : '';
 
+  // 高级设置折叠区（默认收起）：L1–L4/承办党小组能力与「全选齐」校验保持不变，
+  // 展开后与原行为一致（步骤指示器 + 各层选择按钮）。展开态跨面板重建保态（_dtAdvOpen）。
+  const advBodyHtml = `${stepperHtml}${l1Html}${hostGroupHtml}${l2Html}${l3Html}${l4Html}`;
+  const advHtml = `
+    <div class="mb-4">
+      <div id="dt-adv-toggle" class="text-xs text-gray-500 cursor-pointer hover:text-gray-600 select-none flex items-center gap-1">
+        <span id="dt-adv-caret">${_dtAdvOpen ? '▴' : '▾'}</span>
+        <span>高级设置（可选）：活动类型 / 活动形式 / 时长 / 发起方向 / 承办党小组</span>
+      </div>
+      <div id="dt-adv-body" class="mt-3 ${_dtAdvOpen ? '' : 'hidden'}">${advBodyHtml}</div>
+    </div>
+  `;
+
+  // 首屏白话摘要：默认预选结果一览，无需展开高级区即可确认
+  const summary = _dtSummaryLine();
+  const summaryHtml = summary ? `<div class="text-xs text-gray-500 mb-3">当前设置：${summary}</div>` : '';
+
   // 表单区域（L4选择后显示）
   const allSelected = L1 && L2 && L3 && L4 && hostGroup;
   const formHtml = allSelected ? `
@@ -430,7 +526,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">T-0 日期 <span class="text-red-600">*</span></label>
-          <input type="date" id="dt-target-date" class="input-flat w-full" value="${escHtml(dtDraft.date)}">
+          <input type="date" id="dt-target-date" class="input-flat w-full" value="${escHtml(dtDraft.date || new Date().toISOString().slice(0, 10))}">
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动地点 <span class="text-red-600">*</span></label>
@@ -478,12 +574,8 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
 
   return `
     <div class="card rounded-xl p-4">
-      ${stepperHtml}
-      ${l1Html}
-      ${hostGroupHtml}
-      ${l2Html}
-      ${l3Html}
-      ${l4Html}
+      ${summaryHtml}
+      ${advHtml}
       ${formHtml}
     </div>
   `;
@@ -499,13 +591,22 @@ function _bindDecisionTreeEvents(container, ctx) {
   // 创建/收起按钮（保态折叠 2026-09-08：面板常驻 DOM（#dt-panel-wrap），收起/展开只切 hidden——
   // 不再 dt.reset() + 整页重建，进行中的步骤选择/已填活动信息/角色选择保留；
   // 重置会话 = 表单内「取消」按钮（dt.reset）或提交成功后自动重置）
+  // C② 默认预选（2026-09-10）：展开时若为全新会话（未选活动类型），先派生默认值再重建面板，
+  // 使常规路径进入即可填写提交（0–1 次输入）；已选则保态不覆盖。
   container.querySelector('#btn-leader-create')?.addEventListener('click', () => {
     const wrap = container.querySelector('#dt-panel-wrap');
     if (!wrap) return;
-    const collapsed = wrap.classList.toggle('hidden');
-    dt.showPanel = !collapsed;
-    const btn = container.querySelector('#btn-leader-create');
-    if (btn) btn.textContent = collapsed ? '创建活动' : '收起面板';
+    const willShow = wrap.classList.contains('hidden');
+    if (willShow) {
+      _dtApplyDefaults();
+      dt.showPanel = true;
+      _refreshDtArea();
+    } else {
+      dt.showPanel = false;
+      wrap.classList.add('hidden');
+      const btn = container.querySelector('#btn-leader-create');
+      if (btn) btn.textContent = '创建活动';
+    }
   });
 
   // E-2 面板区轻量刷新（2026-09-09）：只重建决策面板动态区（步骤/校验依赖区），
@@ -537,6 +638,15 @@ function _dtBindPanelArea(container, ctx, refresh) {
   // 整容器重建路径下旧实例仍持有全局监听 → 统一先销毁（与面板区重建路径同语义）
   if (_dtOrgPicker) { _dtOrgPicker.destroy(); _dtOrgPicker = null; }
   if (_dtDeepPicker) { _dtDeepPicker.destroy(); _dtDeepPicker = null; }
+
+  // 高级设置折叠区（默认收起；展开态跨面板重建保态 _dtAdvOpen，便于连续选择各层）
+  wrap.querySelector('#dt-adv-toggle')?.addEventListener('click', () => {
+    _dtAdvOpen = !_dtAdvOpen;
+    const body = wrap.querySelector('#dt-adv-body');
+    const caret = wrap.querySelector('#dt-adv-caret');
+    if (body) body.classList.toggle('hidden', !_dtAdvOpen);
+    if (caret) caret.textContent = _dtAdvOpen ? '▴' : '▾';
+  });
 
   // 表单输入即存草稿（E-2）：步骤重选/重进重建面板时按草稿回填，不丢已填内容
   const draftFieldMap = { '#dt-target-date': 'date', '#dt-location': 'location', '#dt-title': 'title', '#dt-desc': 'desc' };
@@ -621,10 +731,11 @@ function _dtBindPanelArea(container, ctx, refresh) {
     });
   });
 
-  // 取消按钮（重置会话 = 决策树 + 步骤草稿一并清空）
+  // 取消按钮（重置会话 = 决策树 + 步骤草稿一并清空；高级区回到默认收起）
   wrap.querySelector('#dt-cancel')?.addEventListener('click', () => {
     dt.reset();
     _dtDraftClear();
+    _dtAdvOpen = false;
     refresh();
   });
 
@@ -699,9 +810,10 @@ function _dtBindPanelArea(container, ctx, refresh) {
       const definitionId = dt.mapToDefinitionId();
       renderWorkflowPanel('leader-workflow', 'leader-tab-content', definitionId, title, 'append');
 
-      // 5. 提交成功 → 重置决策树并清空步骤草稿，刷新列表
+      // 5. 提交成功 → 重置决策树并清空步骤草稿（高级区回默认收起），刷新列表
       dt.reset();
       _dtDraftClear();
+      _dtAdvOpen = false;
       const activities = await BranchService.listActivities();
       setState({ activities });
     } catch (err) {

@@ -4,14 +4,15 @@
 // 本 tab 让担任组织者/深度参与者的成员在自己的工作台即可提交复盘，复盘提交人 = 当前用户（组织者）。
 
 import { loadActivities } from '../../../services/activity.js?v=20260910a';
-import { loadActivityReviews, findActivityReviewIndex, updateActivityReview, addActivityReview } from '../../../services/review.js?v=20260910a';
+// 复盘表单（字段/校验/提交链路）唯一实现 = services/review.js（2026-09-10 A③）：
+// 成员端本 tab 与书记「代提交复盘」共用同一套字段与落库链路，勿在此另写表单。
+import { loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/review.js?v=20260910a';
 import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260910a';
 import { PersonStore } from '../../../services/person.js?v=20260910a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
 import { AuthStore } from '../../../services/auth.js?v=20260910a';
 import { showToast } from '../../../core/utils.js?v=20260910a';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260910a';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;
@@ -79,7 +80,7 @@ export function renderContent(ctx) {
     // 展开区（复盘填写表单 / 复盘详情）常驻 DOM，展开态由 hidden 控制（保态折叠 2026-09-06）：
     // 收合/切换只切 hidden，不整页重建，正在填写的复盘总结不因展开/收起丢失
     const bodyContent = isPending
-      ? _renderReviewForm(act, rev, accent, accentBorder)
+      ? renderActivityReviewFormHtml(act, rev, { accent, accentBorder })
       : (rev ? _renderReviewDetail(rev) : '');
     const bodyHtml = bodyContent
       ? `<div class="visitor-review-body ${isExpanded ? '' : 'hidden'}">${bodyContent}</div>`
@@ -154,7 +155,7 @@ export function renderContent(ctx) {
     });
   });
 
-  // 绑定复盘表单提交按钮
+  // 绑定复盘表单提交按钮（落库链路 = services/review.js::submitActivityReviewForm 单一源）
   container.querySelectorAll('.btn-review-submit').forEach(btn => {
     btn.addEventListener('click', () => {
       const actId = btn.dataset.actId;
@@ -167,63 +168,14 @@ export function renderContent(ctx) {
       const issuesEl = container.querySelector(`#review-issues-${actId}`);
       const issues = (issuesEl?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
 
-      const existIdx = findActivityReviewIndex(actId);
-      if (existIdx >= 0) {
-        const existing = loadActivityReviews()[existIdx];
-        const isResubmit = existing.reviewStatus === ReviewStatus.REJECTED;
-        updateActivityReview(actId, {
-          reviewContent: content,
-          issues,
-          reviewStatus: ReviewStatus.UPLOADED,
-          submittedAt: new Date().toISOString(),
-          ...(isResubmit ? { annotation: '' } : {}),
-        });
-      } else {
-        // 复盘提交人统一归组织者（C1）：organizerId = 当前组织者
-        addActivityReview({
-          id: 'rev_' + Date.now(),
-          activityId: actId,
-          organizerId: currentUserId,
-          progress: '已完成',
-          overdue: false,
-          reviewStatus: ReviewStatus.UPLOADED,
-          reviewContent: content,
-          issues,
-          submittedAt: new Date().toISOString(),
-        });
-      }
+      const res = submitActivityReviewForm({ activityId: actId, content, issues, actorId: currentUserId });
+      if (!res.ok) { showToast('error', res.error); return; }
 
       _reviewExpandedId = null;
       showToast('success', '复盘总结已提交，等待纪检委员确认');
       renderContent(ctx);
     });
   });
-}
-
-/** 渲染复盘表单（待复盘活动展开时） */
-function _renderReviewForm(act, rev, accent, accentBorder) {
-  const existingContent = rev?.reviewContent || '';
-  const existingIssues = Array.isArray(rev?.issues) ? rev.issues : [];
-  const isRejected = rev?.reviewStatus === ReviewStatus.REJECTED;
-  return `
-    <div class="mt-3 pt-3 border-t border-gray-100">
-      ${isRejected && rev.annotation ? `
-        <div class="mb-2 p-2 rounded-lg bg-red-50 border border-red-100">
-          <div class="text-xs text-red-600 font-bold mb-1">纪检委员批注</div>
-          <div class="text-xs text-red-700">${rev.annotation}</div>
-        </div>
-      ` : ''}
-      <textarea id="review-textarea-${act.id}" class="input-flat w-full text-xs resize-none" rows="4" placeholder="请填写复盘总结（活动成效、经验教训、改进建议等）">${existingContent}</textarea>
-      <div class="mt-2">
-        <label class="text-xs text-gray-500 block mb-1">提出的真问题（每行一条，书记 KPI 以此计量）</label>
-        <textarea id="review-issues-${act.id}" class="input-flat w-full text-xs resize-none" rows="2" placeholder="如：讨论时间不足，需预留更多…">${existingIssues.join('\n')}</textarea>
-      </div>
-      <div class="flex items-center gap-2 mt-2">
-        <button class="btn-review-submit text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" data-act-id="${act.id}" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">提交复盘</button>
-        <span class="text-xs text-gray-500">提交后纪检委员将在监督复盘tab收到通知</span>
-      </div>
-    </div>
-  `;
 }
 
 /** 渲染复盘详情（已复盘活动展开时） */

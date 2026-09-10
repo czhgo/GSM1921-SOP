@@ -231,7 +231,8 @@ export async function approveMemberChangeRequest(id) {
       title: '成员变更已审批通过',
       content: `${person?.name || r?.personId || ''}：${r?.fromStage || ''}→${r?.toStage || ''} 已通过组织委员审批（${act?.title || '活动'}），待书记确认后更新发展阶段。`,
       priority: 'normal',
-      targetUrl: 'workspace/secretary.html',
+      // A① 对象级深链（2026-09-10）：直达书记台待办 tab 的「成员变更」批量行（data-mcb-id 锚点）
+      targetUrl: `workspace/secretary.html?tab=todo&highlight=${id}`,
     });
   } catch (ne) {
     console.warn('[member-change-panel] 广播通知发送失败：', ne);

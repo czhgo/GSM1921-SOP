@@ -12,6 +12,10 @@ import { MilestoneStore } from '../services/milestones.js?v=20260910a';
 import { CrossPageState } from './cross-page-state.js?v=20260910a';
 import { getBasePath } from './utils.js?v=20260910a';
 import { enhanceSelects } from '../components/custom-select.js?v=20260910a';
+// 立项⑦ B波 演示放行门（单一源，与「进入支部（演示）」按钮同口径）
+import { isPartyStaffBranchDemoAllowed } from '../modules/branch-demo-nav.js?v=20260910a';
+// A② 归档兜底放行门（2026-09-10）：书记/副书记 archive=Y 兜底权限——可进入宣传台归档兜底面
+import { isArchiveFallbackPage } from './constants.js?v=20260910a';
 // 强调色解析（R1-A 点⑤，2026-09-09）：person-aware 渲染时取色——替代只读全局键的
 // constants resolveAccentRole（冻结读取点语义，仅服务访客与首帧兜底）；--app-accent 与
 // 返回值（壳 ctx.accent → tab-bar/各 tab）统一取「当前作用域生效覆盖」，登录人改强调色后同源。
@@ -149,11 +153,25 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
     if (snapPage) allowedPages.add(norm(snapPage));
     // 2. 内存判定角色对应工作台（赋权记录优先于 mock：如登录后被赋权为党小组组长，
     //    允许其合法访问组长工作台——header 切换工作台下拉的 1b 项同款场景）
-    const memPage = AuthStore.getPageForRole('workspace', AuthStore.getUserRole(user.personId));
+    const memRole = AuthStore.getUserRole(user.personId);
+    const memPage = AuthStore.getPageForRole('workspace', memRole);
     if (memPage) allowedPages.add(norm(memPage));
 
-    // 立项⑦ B波：party-staff「进入支部（演示）」——身份门最小放行（受控条件见顶部注释）
-    if (!allowedPages.has(currentPage) && _partyStaffBranchDemoAllowed(user, currentPage)) {
+    // 立项⑦ B波：party-staff「进入支部（演示）」——身份门最小放行（A⑤ 2026-09-10 书记裁定：
+    // 本地示例 / API 会话同口径放行，视图只读；不放宽任何写权限）。
+    // 判定单一源 = modules/branch-demo-nav.js::isPartyStaffBranchDemoAllowed（与「进入支部（演示）」
+    // 按钮同一放行门，双端一致）；此前此处调用未定义函数 _partyStaffBranchDemoAllowed，
+    // 致 party-staff 演示下钻（secretary.html?branch=<id>）抛 ReferenceError → 整页白屏。
+    const demoBranchId = CrossPageState.getParam('branch');
+    if (!allowedPages.has(currentPage) && isPartyStaffBranchDemoAllowed(user.role, currentPage, demoBranchId)) {
+      allowedPages.add(currentPage);
+    }
+
+    // A② 归档兜底放行（2026-09-10 书记裁定）：书记/副书记持 archive=Y（§9b 矩阵）——
+    // 允许进入宣传台 prop.html，但仅归档兜底面（宣传台壳只呈现归档 tab，见 prop-workspace tabs）。
+    // 判定单一源 = constants.isArchiveFallbackPage（与书记台「代归档」入口同源），勿手写角色清单。
+    if (!allowedPages.has(currentPage)
+      && (isArchiveFallbackPage(user.role, currentPage) || isArchiveFallbackPage(memRole, currentPage))) {
       allowedPages.add(currentPage);
     }
 

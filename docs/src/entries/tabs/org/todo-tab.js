@@ -14,12 +14,8 @@ import { HandoffStore } from '../../../services/handoff.js?v=20260910a';
 import { PersonStore } from '../../../services/person.js?v=20260910a';
 import { openFormModal } from '../../../components/modal.js?v=20260910a';
 import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260910a';
-
-// 发展推进覆盖（组织台「发展数据」同源 localStorage 键）：成员 developStage + entryDate 派生发展节点提醒
-const DEV_STAGE_OVERRIDES_KEY = 'gsm1921-dev-stage-overrides';
-function _loadDevStageOverrides() {
-  try { return JSON.parse(localStorage.getItem(DEV_STAGE_OVERRIDES_KEY) || '{}'); } catch { return {}; }
-}
+// 发展推进覆盖（进入当前阶段日期）读口：与确权链确认生效写口同源（member-confirmation.js，同 localStorage 键位）
+import { loadDevStageOverrides } from '../../../services/member-confirmation.js?v=20260910a';
 
 function _handleTodoAction(todo, ctx) {
   // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/todo-jump.js（2026-09-04）
@@ -94,7 +90,7 @@ function _buildOrgRealtimeGroups(ctx) {
   }
   const devGroup = buildDevelopNodeRemindGroup({
     members: PersonStore.getMembers(),
-    overrides: _loadDevStageOverrides(),
+    overrides: loadDevStageOverrides(),
   });
   if (devGroup) groups.push(devGroup);
   return groups;

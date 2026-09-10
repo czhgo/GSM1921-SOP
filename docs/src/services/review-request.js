@@ -32,7 +32,8 @@ function _notifySubmit(row) {
       title: '支部上报待批复',
       content: `${_branchLabel(row.branchId)} 提交${_subject(row)}，由 ${getPersonName(row.submittedBy) || row.submittedBy || '支部'} 发起，请党委审批。`,
       priority: 'normal',
-      targetUrl: 'workspace/party-committee.html',
+      // A① 对象级深链（2026-09-10）：直达党委「上报审批」tab 并定位该条上报（data-rq-card 锚点）
+      targetUrl: `workspace/party-committee.html?tab=review&highlight=${row.id}`,
       actionRoles: ['party-staff'],
       read: false,
     });
@@ -47,7 +48,8 @@ function _notifyDecision(row) {
       title: approved ? '上报已获党委批准' : '上报被党委驳回',
       content: `${_branchLabel(row.branchId)} 的${_subject(row)}已${approved ? '批准' : '驳回'}${approved ? '' : '，请按党委意见整改后重新上报'}${row.decisionNote ? `。党委意见：${row.decisionNote}` : '。'}`,
       priority: 'normal',
-      targetUrl: 'workspace/secretary.html',
+      // A① 对象级深链（2026-09-10）：直达书记「上报党委」tab 并定位该条上报（data-rq-id 锚点）
+      targetUrl: `workspace/secretary.html?tab=report-up&highlight=${row.id}`,
       actionRoles: ['secretary', 'deputy-secretary'],
       read: false,
     });

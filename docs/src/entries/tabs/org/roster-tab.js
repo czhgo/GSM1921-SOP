@@ -9,6 +9,8 @@
 //  C 批（R4-1/R4-2/R4-3，书记裁定，2026-09-06）：
 //   · 发展阶段 / 在册滞留 = 组织委员发起 → 书记确认生效（双层留痕、可退回）——
 //     行内保存不再即时落档，改调 member-confirmation.submitMemberChange，行格显示「待确认」；
+//     C①-补（2026-09-10）：阶段变更时行内显「进入当前阶段日期」（默认今日），
+//     书记确认生效时同源写入 gsm1921-dev-stage-overrides，恢复组织台发展节点提醒派生；
 //   · 党小组 partyGroup / 滞留备注维护（不改状态）保持即时生效；
 //   · 「移出」= submitTransferOut：无历史直接移出；仅安全引用（未开始分工/未生效报名/未读广播）
 //     自动解除后移出；有历史 → 报书记确认（转「已转出」标注 + 移出），行显示「移出待确认」。
@@ -52,6 +54,11 @@ function _branchMembers() {
 /** 操作人（审计/留痕 updatedBy；组织委员位兜底 p11，同 talent-tab 口径） */
 function _actorId() {
   return AuthStore.getCurrentUser()?.personId || 'p11';
+}
+
+/** 今日日期键 'YYYY-MM-DD'（阶段推进「进入当前阶段日期」默认值） */
+function _todayKey() {
+  return new Date().toISOString().slice(0, 10);
 }
 
 /** 待书记确认索引（一致性刷新：渲染/保存/移出共用同一来源 listPendingConfirmations） */
@@ -165,7 +172,7 @@ function _rowHtml(p, pend) {
   const resPend = pend.res.has(p.id);
   const outPend = pend.out.has(p.id);
   return `
-    <div class="roster-row grid py-1.5 border-b border-gray-50 last:border-b-0" data-person-id="${esc(p.id)}" style="grid-template-columns:${COL};gap:8px;align-items:center;">
+    <div class="roster-row grid py-1.5 border-b border-gray-50 last:border-b-0" data-person-id="${esc(p.id)}" data-orig-stage="${esc(p.developStage || '')}" style="grid-template-columns:${COL};gap:8px;align-items:center;">
       <div class="min-w-0">
         <div class="text-sm font-medium text-gray-800 flex items-center gap-1.5 min-w-0">
           <span class="truncate">${esc(p.name)}</span>
@@ -177,6 +184,10 @@ function _rowHtml(p, pend) {
       <div class="flex flex-col gap-0.5 min-w-0">
         <select class="input-flat text-xs roster-stage w-full" aria-label="发展阶段" ${stagePend ? 'disabled' : ''}>${stageOptions.join('')}</select>
         ${stagePend ? _pendingPill('阶段变更·待确认', '已报送书记确认，生效前保持现值；在书记「待办」页确认或退回') : ''}
+        <div class="roster-entry-wrap hidden flex-col gap-0.5 min-w-0" title="阶段变更生效后，以此日期计算发展节点提醒（默认今日）">
+          <span class="text-[10px] text-gray-500 whitespace-nowrap">进入当前阶段日期</span>
+          <input type="date" class="input-flat text-[11px] roster-entry-date w-full" value="${_todayKey()}" aria-label="进入当前阶段日期">
+        </div>
       </div>
       <div class="flex flex-col gap-0.5 min-w-0">
         <select class="input-flat text-xs roster-res w-full" aria-label="在册状态" ${resPend ? 'disabled' : ''}>${resOptions.join('')}</select>
@@ -206,6 +217,9 @@ function _bindList(root) {
   card.querySelectorAll('.roster-res').forEach(sel => {
     sel.addEventListener('change', () => _syncNoteEnable(sel));
   });
+  card.querySelectorAll('.roster-stage').forEach(sel => {
+    sel.addEventListener('change', () => _syncStageEntry(sel));
+  });
   card.querySelectorAll('.roster-save').forEach(btn => {
     btn.addEventListener('click', () => _saveRow(btn.dataset.personId));
   });
@@ -224,6 +238,16 @@ function _syncNoteEnable(sel) {
   note.placeholder = detained ? '滞留原因 / 起止（如 2026-09 起交换一学期）' : '在校状态无需备注';
 }
 
+/** 发展阶段切换 → 「进入当前阶段日期」字段显隐（仅阶段变更时显示；改回现值则隐藏） */
+function _syncStageEntry(sel) {
+  const row = sel.closest('.roster-row');
+  const wrap = row && row.querySelector('.roster-entry-wrap');
+  if (!wrap) return;
+  const orig = row.dataset.origStage || '';
+  const changed = !!sel.value && sel.value !== orig;
+  wrap.classList.toggle('hidden', !changed);
+}
+
 // ════════════════════════════════════════════════════════════════
 //  行内保存（C 批确权复核：阶段/在册切换 → 报书记确认；分组/滞留备注维护即时生效）
 // ════════════════════════════════════════════════════════════════
@@ -239,6 +263,7 @@ async function _saveRow(personId) {
     developStage: row.querySelector('.roster-stage')?.value ?? '',
     residenceStatus: row.querySelector('.roster-res')?.value ?? RESIDENCE.CAMPUS,
     residenceNote: row.querySelector('.roster-note')?.value ?? '',
+    entryDate: row.querySelector('.roster-entry-date')?.value ?? '',
   };
   const patch = diffMemberFields(member, ui); // 纯 diff：仅带变化字段
   const actorId = _actorId();
@@ -256,7 +281,7 @@ async function _saveRow(personId) {
     if (pend.stage.has(personId)) {
       showToast('info', '该成员发展阶段变更已报送书记确认，生效前请勿重复提交');
     } else {
-      const r = submitMemberChange({ personId, kind: 'developStage', to: patch.developStage, note: '', by: actorId });
+      const r = submitMemberChange({ personId, kind: 'developStage', to: patch.developStage, note: '', by: actorId, entryDate: ui.entryDate });
       if (r.ok) {
         showToast('success', `「${member.name}」发展阶段已报送书记确认，确认后生效`);
         submitted++;

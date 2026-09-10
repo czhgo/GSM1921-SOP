@@ -30,6 +30,10 @@ function _notifyReviewOrganizer(item, { title, content }) {
       priority: 'urgent',
       // 活动复盘 → activity 模块；专班复盘 → workspace（避免 party 模块对正式党员的普通通知过滤）
       targetModule: item.sourceType === 'taskforce' ? 'workspace' : 'activity',
+      // A① 对象级深链（2026-09-10）：活动复盘绑定来源活动 activityId → 直达该活动详情；
+      // 专班复盘记录无 taskforceId，保留 targetModule 角色自适应兜底（明细见守卫白名单）。
+      targetType: item.activityId ? 'activity' : null,
+      targetId: item.activityId || null,
       actionable: true,
       actionRoles: [todoRole],
       actionTask: title,

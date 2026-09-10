@@ -29,8 +29,9 @@ import {
 import {
   submitMemberChange, submitTransferOut, listPendingConfirmations,
   decideConfirmation, isTransferredOut, shouldShowSemesterDetainedRemind,
-  MEMBER_CONFIRM_KEY,
+  MEMBER_CONFIRM_KEY, DEV_STAGE_OVERRIDES_KEY, loadDevStageOverrides,
 } from '../../docs/src/services/member-confirmation.js?v=20260910a';
+import { buildDevelopNodeRemindGroup } from '../../docs/src/services/todo.js?v=20260910a';
 import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260910a';
 
 // ── localStorage 内存桩 ──
@@ -163,6 +164,38 @@ test('decideConfirmation：decision 非法 / 找不到 pending 请求 → 拒绝
   assert.equal(bad.ok, false);
   const ghost = await decideConfirmation('mc-不存在', { decision: 'approved', by: 'p13' });
   assert.equal(ghost.ok, false);
+});
+
+// ═══════════════ ②′ C①-补：进入当前阶段日期 → 同源覆盖档案 ═══════════════
+
+test('C①-补：阶段变更 entryDate 确认生效 → 同源覆盖档案写入，发展节点提醒恢复派生', async () => {
+  beginMockCase();
+  const r = submitMemberChange({ personId: 'p6', kind: 'developStage', to: '预备党员', entryDate: '2025-06-01', by: 'p11' });
+  assert.equal(r.ok, true, JSON.stringify(r));
+  assert.equal(r.request.entryDate, '2025-06-01', '请求携带进入当前阶段日期');
+  assert.equal(loadDevStageOverrides()['p6'], undefined, '确认前不写覆盖档案');
+  const decided = await decideConfirmation(r.request.id, { decision: 'approved', by: 'p13' });
+  assert.equal(decided.ok, true, JSON.stringify(decided));
+  assert.deepEqual(loadDevStageOverrides()['p6'], { stage: '预备党员', entryDate: '2025-06-01' }, '同源键位写入 stage+entryDate');
+  assert.ok(localStorage.getItem(DEV_STAGE_OVERRIDES_KEY), '落既有 gsm1921-dev-stage-overrides 键（不新造存储）');
+  // 期满派生恢复：p6 预备党员（2025-06-01 + 365 ≤ today）→ 发展节点提醒
+  const members = PersonStore.getMembers().filter(p => p.id === 'p6');
+  const g = buildDevelopNodeRemindGroup({ members, overrides: loadDevStageOverrides(), today: '2026-09-10' });
+  assert.ok(g && g.items.some(i => i.personId === 'p6'), '确认生效后组织台发展节点提醒恢复派生');
+});
+
+test('C①-补：entryDate 缺省 → 今日；退回不写覆盖档案；非阶段变更不携带/不写', async () => {
+  beginMockCase();
+  const today = new Date().toISOString().slice(0, 10);
+  const r = submitMemberChange({ personId: 'p6', kind: 'developStage', to: '预备党员', by: 'p11' });
+  assert.equal(r.request.entryDate, today, '缺省默认今日');
+  await decideConfirmation(r.request.id, { decision: 'rejected', by: 'p13' });
+  assert.equal(loadDevStageOverrides()['p6'], undefined, '退回不写覆盖档案（不误报提醒）');
+  // 非阶段变更：不携带 entryDate，确认生效也不写覆盖档案
+  const r2 = submitMemberChange({ personId: 'p1', kind: 'residence', to: RESIDENCE.DETAINED, by: 'p11' });
+  assert.equal(r2.request.entryDate, undefined, '在册变更不携带 entryDate');
+  await decideConfirmation(r2.request.id, { decision: 'approved', by: 'p13' });
+  assert.equal(loadDevStageOverrides()['p1'], undefined, '在册变更不写覆盖档案');
 });
 
 // ═══════════════ ③ decide：在册滞留 approved（覆盖层+留痕+档案镜像） ═══════════════

@@ -1,10 +1,14 @@
 // role: [工程师]+[AI]
 // 党委工作台 Tab：支部监控台账（P1 党委后台，2026-09-02）
-// 党委见全院：各支部运行概览（成员规模/发展阶段/组织生活台账/现任书记/近期活动）
+// 党委见全院：各支部运行概览（支部名/书记/成员规模/在册党员/滞留/发展阶段/组织生活台账/近期活动/进入支部）
+// C⑤（2026-09-10 书记裁定）：支部级明细单一源=本台账（治理总览只留全院级汇总数字）。
 // 数源：mockDB.branches（支部实例）+ PEOPLE（成员档案，已挂 branchId）+ ctx.activities（工作台已加载）
 
 import { mockDB } from '../../../core/domain.js?v=20260910a';
 import { PersonStore } from '../../../services/person.js?v=20260910a';
+// C⑤（2026-09-10 书记裁定）：治理总览不再呈支部明细 → 支部党员数/滞留收归本台账，
+// 复用 services/roster.js getRosterStats（与治理总览上卷、会议「应到名单」同口径）。
+import { getRosterStats } from '../../../services/roster.js?v=20260910a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
 import { getCommitteeName } from '../../../services/branch.js?v=20260910a';
@@ -12,7 +16,7 @@ import { getPersonName } from '../../../services/person.js?v=20260910a';
 // P2（2026-09-10）：监控卡补「书记任期」只读行——复用 appointment.js 任期档案（起止/现任）
 import { listAppointments } from '../../../services/appointment.js?v=20260910a';
 // 支部监控卡「进入支部」→ 复用党委既有支部入口（modules/branch-demo-nav.js）：
-// 只读监控视图（演示形态，本地开发/非 API 登录放行），不授予党支部内部事务权限。
+// 只读监控视图（演示形态；本地回环主机放行，本地示例 / API 会话同口径只读），不授予党支部内部事务权限。
 import { bindBranchDemoButtons } from '../../../modules/branch-demo-nav.js?v=20260910a';
 
 const STAGE_ORDER = ['正式党员', '预备党员', '发展对象', '积极分子'];
@@ -25,6 +29,8 @@ export async function renderContent(ctx) {
 
   const cards = branches.map(b => {
     const members = PEOPLE.filter(p => p.branchId === b.id);
+    // 在册党员 / 滞留（应到口径剔除）：与治理总览上卷同源（roster getRosterStats）
+    const roster = getRosterStats({ branchId: b.id });
     const stageCounts = {};
     members.forEach(p => { stageCounts[p.developStage] = (stageCounts[p.developStage] || 0) + 1; });
     const stageRows = STAGE_ORDER.map(s => ({ s, n: stageCounts[s] || 0 })).filter(r => r.n > 0);
@@ -39,7 +45,11 @@ export async function renderContent(ctx) {
     const termText = term
       ? `书记任期：${String(term.from || '').slice(0, 10) || '—'}${term.to ? ` → ${String(term.to).slice(0, 10)}` : ' · 至今（现任）'}`
       : '书记任期：（暂无任期记录）';
-    return { b, members: members.length, stageRows, typeCounts, recent, secretaryName, termText };
+    return {
+      b, members: members.length, stageRows, typeCounts, recent, secretaryName, termText,
+      partyTotal: roster.partyTotal,   // 在册党员（正式+预备）
+      detained: roster.detainedParty,  // 滞留党员（应到剔除）
+    };
   });
 
   el.innerHTML = `
@@ -54,7 +64,7 @@ export async function renderContent(ctx) {
           <p class="text-xs text-gray-500">支部实例</p>
         </div>
       </div>
-      ${cards.map(({ b, members, stageRows, typeCounts, recent, secretaryName, termText }) => `
+      ${cards.map(({ b, members, partyTotal, detained, stageRows, typeCounts, recent, secretaryName, termText }) => `
         <div class="card rounded-xl p-4">
           <div class="flex items-center justify-between mb-3">
             <div>
@@ -64,10 +74,18 @@ export async function renderContent(ctx) {
             </div>
             <span class="text-xs px-2 py-0.5 rounded-full ${b.status === 'active' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'}">${b.status === 'active' ? '运行中' : b.status}</span>
           </div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
             <div class="rounded-lg bg-gray-50 p-3">
               <p class="text-xs text-gray-500">成员规模</p>
               <p class="text-xl font-bold text-gray-800 mt-1">${members}<span class="text-xs font-normal text-gray-500"> 人</span></p>
+            </div>
+            <div class="rounded-lg bg-gray-50 p-3">
+              <p class="text-xs text-gray-500">在册党员（正式+预备）</p>
+              <p class="text-xl font-bold text-gray-800 mt-1">${partyTotal}<span class="text-xs font-normal text-gray-500"> 人</span></p>
+            </div>
+            <div class="rounded-lg bg-gray-50 p-3">
+              <p class="text-xs text-gray-500">滞留党员（应到剔除）</p>
+              <p class="text-xl font-bold text-gray-800 mt-1">${detained}<span class="text-xs font-normal text-gray-500"> 人</span></p>
             </div>
             <div class="rounded-lg bg-gray-50 p-3 col-span-1">
               <p class="text-xs text-gray-500">发展阶段分布</p>

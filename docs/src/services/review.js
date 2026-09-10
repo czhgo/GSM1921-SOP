@@ -5,13 +5,14 @@
 //  P1-4 修复（2026-08-02）：复盘记录接入 mockDB 持久化层，刷新不再丢失
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260910a';
+import { mockDB, ReviewStatus } from '../core/domain.js?v=20260910a';
 import { persist } from '../core/data-adapter.js?v=20260910a';
 import { bumpToken } from '../core/version-token.js?v=20260910a'; // P0 域缓存失效（spec §二.3）
 import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../mock/index.js?v=20260910a';
 import { ACTIVITIES } from '../mock/activities.js?v=20260910a';
 import { getPersonName } from './person.js?v=20260910a';
 import { loadActivities } from './activity.js?v=20260910a';
+import { solidAccentStyle } from '../core/constants.js?v=20260910a';
 
 /** 读取活动复盘记录（mock 常量兜底，写入后以 mockDB 为准） */
 export function loadActivityReviews() {
@@ -85,6 +86,93 @@ export function addTaskforceReview(record) {
   bumpToken('taskforceReview');
   persist();
   return record;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  复盘表单（唯一实现：成员端「我的复盘」与书记「代提交复盘」共用）
+//  —— 字段/校验/提交链路单一源，杜绝两处各写一套字段（2026-09-10 A③ 书记裁定）
+// ════════════════════════════════════════════════════════════════
+
+/**
+ * 复盘表单 HTML（复用现有字段：复盘总结 + 提出的真问题；提交按钮 class=btn-review-submit）
+ * @param {Object} act - 活动对象（提供 id/title）
+ * @param {Object|null} rev - 现有复盘记录（预填内容/打回批注）
+ * @param {{ accent?: string, accentBorder?: string, delegateHint?: string, footHint?: string }} [opts]
+ *   delegateHint：代填说明（仅书记代提交时传入）；footHint：提交后提示文案
+ * @returns {string}
+ */
+export function renderActivityReviewFormHtml(act, rev, opts = {}) {
+  const existingContent = rev?.reviewContent || '';
+  const existingIssues = Array.isArray(rev?.issues) ? rev.issues : [];
+  const isRejected = rev?.reviewStatus === ReviewStatus.REJECTED;
+  const footHint = opts.footHint || '提交后纪检委员将在监督复盘tab收到通知';
+  return `
+    <div class="mt-3 pt-3 border-t border-gray-100">
+      ${isRejected && rev.annotation ? `
+        <div class="mb-2 p-2 rounded-lg bg-red-50 border border-red-100">
+          <div class="text-xs text-red-600 font-bold mb-1">纪检委员批注</div>
+          <div class="text-xs text-red-700">${rev.annotation}</div>
+        </div>
+      ` : ''}
+      ${opts.delegateHint ? `<div class="mb-2 text-xs text-gray-500">${opts.delegateHint}</div>` : ''}
+      <textarea id="review-textarea-${act.id}" class="input-flat w-full text-xs resize-none" rows="4" placeholder="请填写复盘总结（活动成效、经验教训、改进建议等）">${existingContent}</textarea>
+      <div class="mt-2">
+        <label class="text-xs text-gray-500 block mb-1">提出的真问题（每行一条，书记 KPI 以此计量）</label>
+        <textarea id="review-issues-${act.id}" class="input-flat w-full text-xs resize-none" rows="2" placeholder="如：讨论时间不足，需预留更多…">${existingIssues.join('\n')}</textarea>
+      </div>
+      <div class="flex items-center gap-2 mt-2">
+        <button class="btn-review-submit text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" data-act-id="${act.id}" style="${solidAccentStyle(opts.accent, opts.accentBorder)};cursor:pointer;">提交复盘</button>
+        <span class="text-xs text-gray-500">${footHint}</span>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * 复盘表单提交（既有落库链路的唯一入口：updateActivityReview / addActivityReview）
+ * 校验：复盘总结必填；真问题按行拆分。
+ * 代填留痕（不新增字段/不改数据模型）：复用 reviewContent，以「【由{角色}代填】」前缀标注；
+ *   代填时 organizerId 归实际组织者（不冒认），成员端自填仍为提交人本人。
+ * @param {{ activityId: string, content: string, issues?: string[], actorId: string,
+ *           delegate?: { roleLabel?: string }|null }} p
+ * @returns {{ ok: true } | { ok: false, error: string }}
+ */
+export function submitActivityReviewForm({ activityId, content, issues = [], actorId, delegate = null }) {
+  if (!activityId) return { ok: false, error: '缺少活动标识' };
+  const text = (content || '').trim();
+  if (!text) return { ok: false, error: '请填写复盘总结' };
+
+  const act = loadActivities().find(a => a.id === activityId) || null;
+  const marker = delegate ? `【由${delegate.roleLabel || '书记'}代填】` : '';
+  const finalContent = (marker && !text.startsWith(marker)) ? marker + text : text;
+
+  const idx = findActivityReviewIndex(activityId);
+  if (idx >= 0) {
+    const existing = loadActivityReviews()[idx];
+    const isResubmit = existing.reviewStatus === ReviewStatus.REJECTED;
+    updateActivityReview(activityId, {
+      reviewContent: finalContent,
+      issues,
+      reviewStatus: ReviewStatus.UPLOADED,
+      submittedAt: new Date().toISOString(),
+      ...(isResubmit ? { annotation: '' } : {}),
+    });
+  } else {
+    // 复盘提交人统一归组织者；代填（delegate）时取活动实际组织者，不冒认
+    const organizerId = (delegate && act?.organizer) ? act.organizer : actorId;
+    addActivityReview({
+      id: 'rev_' + Date.now(),
+      activityId,
+      organizerId,
+      progress: '已完成',
+      overdue: false,
+      reviewStatus: ReviewStatus.UPLOADED,
+      reviewContent: finalContent,
+      issues,
+      submittedAt: new Date().toISOString(),
+    });
+  }
+  return { ok: true };
 }
 
 // ── 展示格式化（2026-09-03 数据域接线批次二：自 mock/review.js 原样提升）──

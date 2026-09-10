@@ -31,11 +31,34 @@ const WEEKLY_STATUS_STYLE = {
   submitted: 'bg-green-50 text-green-700 border-green-200',
 };
 
+// 周次与起止自动派生（书记 2026-09-10 裁定：按当前日期预填，仍允许手动覆盖）
+// 周号口径：ISO 周（周一为一周之始），与既有 seed/文案一致（第31周=2026-07-27 所在周）。
+// 起止口径：本周一 ~ 本周五，格式沿用既有示例 `YYYY-MM-DD ~ YYYY-MM-DD`。
+function _isoWeek(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const day = (d.getUTCDay() + 6) % 7; // 0=周一
+  d.setUTCDate(d.getUTCDate() - day + 3); // 移到本周四（ISO 归属年）
+  const firstThu = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+  firstThu.setUTCDate(firstThu.getUTCDate() - ((firstThu.getUTCDay() + 6) % 7) + 3);
+  return 1 + Math.round((d - firstThu) / (7 * 86400000));
+}
+
+function _weekDefaults(now = new Date()) {
+  const fmt = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+  const friday = new Date(monday);
+  friday.setDate(friday.getDate() + 4);
+  return { week: `第${_isoWeek(now)}周`, range: `${fmt(monday)} ~ ${fmt(friday)}` };
+}
+
 export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');
   if (!container) return;
 
   const draftReport = _loadWeeklyReports().filter(r => r.status === 'draft').sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))[0] || null;
+  // 书记 2026-09-10 裁定：新增周次的周次号/起止按当前日期自动派生预填（0 输入可直存，仍可手改）
+  const weekDefaults = _weekDefaults();
 
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
@@ -52,8 +75,8 @@ export function renderContent(ctx) {
         <div id="weekly-add-form" class="hidden mb-3 p-3 rounded-lg bg-blue-50/50 border border-blue-100">
           <div class="text-[12px] font-bold text-gray-600 mb-2">新建周次</div>
           <div class="flex flex-col gap-2 mb-2">
-            <input id="weekly-add-week" type="text" placeholder="周次标签，如：第32周" class="input-flat w-full" />
-            <input id="weekly-add-range" type="text" placeholder="日期范围，如：2026-08-04 ~ 2026-08-08" class="input-flat w-full" />
+            <input id="weekly-add-week" type="text" value="${weekDefaults.week}" placeholder="周次标签，如：第32周" class="input-flat w-full" />
+            <input id="weekly-add-range" type="text" value="${weekDefaults.range}" placeholder="日期范围，如：2026-08-04 ~ 2026-08-08" class="input-flat w-full" />
           </div>
           <div class="flex gap-2 justify-end">
             <button id="weekly-add-cancel" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>

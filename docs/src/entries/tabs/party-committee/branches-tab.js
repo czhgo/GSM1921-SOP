@@ -171,7 +171,7 @@ export async function renderContent() {
     });
   });
 
-  // 立项⑦ B波：支部卡「进入支部（演示）」→ 支部层工作台（branch 上下文；本地开发/非 API 登录才放行）
+  // 立项⑦ B波：支部卡「进入支部（演示）」→ 支部层工作台（branch 上下文；本地回环主机放行，本地示例 / API 会话同口径只读）
   bindBranchDemoButtons(el);
 
   // 名册导入（容器级委托：面板/草稿为动态区，重挂前先摘旧监听防叠加）

@@ -514,41 +514,42 @@ function _sparkline(series) {
 }
 
 // t5b：催办映射——全局概况异常指标 → 对应委员（现以系统通知+待办落地，未来接入北大学生邮箱发送）
+// A④ 文案定稿（2026-09-10 书记裁定：中性事务式）——统一「关于〈业务域 · 事项〉，请及时跟进（截止 <时限/无>）」
 const URGE_MAP = {
   'attendance-absent': {
     role: 'disc-commissioner',
     title: '考勤催办',
-    content: '书记提醒：本月存在缺勤记录，请及时核实确认缺勤情况并跟进补课安排。',
+    content: '书记提醒：关于「考勤纪律 · 本月缺勤核实」，请及时跟进（无明确时限）。',
     targetModule: 'attendance',
-    targetUrl: 'workspace/disc.html',
+    targetUrl: 'workspace/disc.html?tab=attendance',
   },
   'attendance-makeup': {
     role: 'disc-commissioner',
     title: '补课催办',
-    content: '书记提醒：本月存在未完成的补课任务，请跟进确认补课完成情况。',
+    content: '书记提醒：关于「考勤纪律 · 未完成补课任务」，请及时跟进（无明确时限）。',
     targetModule: 'attendance',
-    targetUrl: 'workspace/disc.html',
+    targetUrl: 'workspace/disc.html?tab=makeup',
   },
   'inspection-pending': {
     role: 'disc-commissioner',
     title: '考察确认催办',
-    content: '书记提醒：存在待确认的考察记录，请及时处理。',
+    content: '书记提醒：关于「考察 · 待确认考察记录」，请及时跟进（无明确时限）。',
     targetModule: 'party',
-    targetUrl: 'workspace/disc.html',
+    targetUrl: 'workspace/disc.html?tab=inspection',
   },
   'inspection-overdue': {
     role: 'disc-commissioner',
     title: '考察超期催办',
-    content: '书记提醒：存在考察超期记录，请尽快处理。',
+    content: '书记提醒：关于「考察 · 超期考察记录」，请及时跟进（无明确时限）。',
     targetModule: 'party',
-    targetUrl: 'workspace/disc.html',
+    targetUrl: 'workspace/disc.html?tab=inspection',
   },
   'archive-pending': {
     role: 'prop-commissioner',
     title: '归档催办',
-    content: '书记提醒：存在待归档的档案材料，请及时完成归档。',
+    content: '书记提醒：关于「归档宣传 · 待归档材料」，请及时跟进（无明确时限）。',
     targetModule: 'workspace',
-    targetUrl: 'workspace/prop.html',
+    targetUrl: 'workspace/prop.html?tab=archive',
   },
 };
 

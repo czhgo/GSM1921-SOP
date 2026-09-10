@@ -85,7 +85,8 @@ export function addThoughtReport({ personId, content, title }) {
       title: '思想汇报已提交',
       content: `${rec.personName} 已提交思想汇报，待组织初阅，通过后系统将自动归档至其个人档案，可前往「发展数据」初阅调用。`,
       priority: 'normal',
-      targetUrl: 'workspace/org.html',
+      // A① 对象级深链（2026-09-10）：直达组织委员「思想汇报」tab 并定位该条（data-tr-id 锚点）
+      targetUrl: `workspace/org.html?tab=thought-review&highlight=${rec.id}`,
     });
   } catch (e) {
     console.warn('[thought-report] 提交通知失败（不影响归档）：', e);

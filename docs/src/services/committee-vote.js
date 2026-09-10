@@ -40,7 +40,8 @@ async function notifySecretaryProgress(activityId) {
         title: '线上支委会表态更新',
         content: `「线上支委会」已有 ${n}/${committeeTotal()} 位委员表态`,
         priority: 'normal',
-        targetUrl: 'workspace/secretary.html',
+        // A① 对象级深链（2026-09-10）：activityId 定位本次线上支委会活动（复用首页 activityId 落点）
+        targetUrl: `workspace/secretary.html?activityId=${activityId}`,
         actionRoles: ['secretary'],
       });
       notifiedCountByActivity.set(activityId, n);

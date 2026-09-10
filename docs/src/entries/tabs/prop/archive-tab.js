@@ -3,8 +3,8 @@
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
 import { icon } from '../../../core/icons.js?v=20260910a';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260910a';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate } from '../../../core/utils.js?v=20260910a';
+import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260910a';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260910a';
 import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260910a';
 import { mockDB } from '../../../core/domain.js?v=20260910a';
 import { bumpToken } from '../../../core/version-token.js?v=20260910a'; // P0 域缓存失效（spec §二.3）
@@ -12,7 +12,9 @@ import { loadActivities } from '../../../services/activity.js?v=20260910a';
 import { isApiMode } from '../../../services/runtime.js?v=20260910a';
 import { AuthStore } from '../../../services/auth.js?v=20260910a';
 import { getPersonName } from '../../../services/person.js?v=20260910a';
-import { addExternalDispatch } from '../../../services/external-dispatch.js?v=20260910a';
+import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260910a';
+// A② 归档缺口判据单一源（书记台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
+import { getArchiveGapActivities } from '../../../services/secretary-overview.js?v=20260910a';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -53,7 +55,9 @@ export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');
   if (!container) return;
 
+  const pendingArchives = getArchiveGapActivities();
   container.innerHTML = `
+    ${_renderArchiveFallbackBanner()}
     <div class="mb-4 flex flex-col sm:flex-row gap-3 items-center">
       <div class="relative flex-1 min-w-[200px]">
         <input id="archive-search" type="text" placeholder="搜索活动名称..." class="input-flat flex-1 pl-8" />
@@ -80,6 +84,11 @@ export function renderContent(ctx) {
       </button>
     </div>
 
+    ${_renderPendingArchiveSection(pendingArchives)}
+
+    <div class="flex items-center gap-2 mb-2">
+      <h4 class="text-sm font-bold text-gray-700">归档记录</h4>
+    </div>
     <div id="archive-list" class="space-y-2 mb-6">
       ${_renderArchiveList(_loadArchiveRecords())}
     </div>
@@ -146,6 +155,14 @@ export function renderContent(ctx) {
 
   // 已归档材料下载（T-304 A 档：mock base64 直下 / server 带鉴权拉取；事件委托防搜索重渲染失效）
   container.querySelector('#archive-list')?.addEventListener('click', async (e) => {
+    // C④ 2026-09-10 裁定：行内可选外发按钮（上传不再强制弹窗，点击此处才唤起外发确认）
+    const dispatchBtn = e.target.closest('.archive-dispatch-btn');
+    if (dispatchBtn) {
+      const record = _loadArchiveRecords().find(r => r.id === dispatchBtn.dataset.recordId);
+      if (!record) return;
+      _promptExternalDispatch(record.activityId, record.activityName, ctx, () => renderContent(ctx));
+      return;
+    }
     const dlBtn = e.target.closest('.archive-file-dl-btn');
     if (dlBtn) {
       const record = _loadArchiveRecords().find(r => r.id === dlBtn.dataset.recordId);
@@ -175,6 +192,46 @@ export function renderContent(ctx) {
   });
 }
 
+/** 归档兜底横幅（A② 2026-09-10）：书记/副书记进入宣传台仅用于「代归档」兜底，只呈现归档面 */
+function _renderArchiveFallbackBanner() {
+  const me = AuthStore.getCurrentUser();
+  if (!me || !ARCHIVE_FALLBACK_ROLES.includes(me.role)) return '';
+  return `
+    <div class="rounded-xl border border-dashed px-4 py-2.5 mb-3 text-xs leading-relaxed" style="border-color:rgba(185,28,28,0.35);background:rgba(185,28,28,0.05);color:#B91C1C;">
+      <b>归档兜底视图</b> — 书记/副书记进入宣传台仅用于「代归档」兜底：本页只呈现「档案归档」，其余宣传台功能不可用；完成归档后请返回书记工作台。
+    </div>`;
+}
+
+/** 待归档区（A② 2026-09-10）：归档缺口活动（已归档但宣传材料未提交），带 data-archive-id 锚点。
+ *  与下方「归档记录」列表区分：此处是「缺材料」的活动，记录列表是已建的材料条目。 */
+function _renderPendingArchiveSection(activities) {
+  if (!activities || activities.length === 0) return '';
+  const items = activities.map(a => {
+    const dateLabel = a.archivedAt || a.date || '—';
+    const typeLabel = a.type ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-white text-gray-500 border border-gray-200 shrink-0">${escHtml(a.type)}</span>` : '';
+    return `
+      <div class="p-3 rounded-xl bg-amber-50/60 border border-dashed border-amber-200 flex items-center justify-between gap-3" data-archive-id="${escHtml(a.id)}">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-0.5">
+            <span class="text-sm font-medium text-gray-800 truncate">${escHtml(a.title || '未命名活动')}</span>
+            ${typeLabel}
+            <span class="text-xs px-1.5 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200 shrink-0">待归档</span>
+          </div>
+          <span class="text-xs text-gray-500">活动日期：${escHtml(dateLabel)} · 宣传材料未提交（归档缺口）</span>
+        </div>
+      </div>`;
+  }).join('');
+  return `
+    <div class="mb-6">
+      <div class="flex items-center gap-2 mb-1.5">
+        <h4 class="text-sm font-bold text-gray-700">待归档</h4>
+        <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">${activities.length} 个活动待补材料</span>
+      </div>
+      <p class="text-xs text-gray-500 mb-2">以下活动已归档，但宣传材料尚未提交——请补充材料完成归档。</p>
+      <div class="space-y-2" id="archive-pending-list">${items}</div>
+    </div>`;
+}
+
 function _renderArchiveList(records) {
   if (records.length === 0) {
     return '<p class="text-xs text-gray-500 text-center py-8">无匹配的归档记录</p>';
@@ -198,13 +255,15 @@ function _renderArchiveList(records) {
     const doneHtml = isFinal
       ? `<span class="text-xs text-green-700">✓</span>`
       : '';
-    // 已归档材料（上传过文件）显示下载按钮
+    // 已归档材料（上传过文件）显示下载按钮 + 行内外发按钮/状态徽标
     const fileBtn = r.fileName
       ? `<button class="archive-file-dl-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors inline-flex items-center gap-1" data-record-id="${r.id}" title="下载 ${r.fileName}" style="cursor:pointer;">${icon('download', { className: 'w-3 h-3' })} 下载</button>
         <button class="archive-file-del-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-red-700 border border-red-200 hover:bg-red-50 transition-colors" data-record-id="${r.id}" title="删除该材料（连物理文件）" style="cursor:pointer;">删除</button>`
       : '';
+    // C④ 2026-09-10 裁定：外发改行内可选——未外发显示「标记已发送」按钮，已外发以徽标呈现状态
+    const dispatchHtml = r.fileName ? _renderDispatchCell(r) : '';
     return `
-      <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors flex items-center justify-between gap-3">
+      <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors flex items-center justify-between gap-3"${r.activityId ? ` data-archive-id="${r.activityId}"` : ''}>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-gray-800 truncate">${r.activityName}</span>
@@ -214,9 +273,21 @@ function _renderArchiveList(records) {
           </div>
           <span class="text-xs text-gray-500">归档日期：${r.archiveDate}${r.fileName ? ` · 材料：${r.fileName}` : ''}</span>
         </div>
-        <div class="flex items-center gap-2 flex-shrink-0">${fileBtn}${advanceBtn}</div>
+        <div class="flex items-center gap-2 flex-shrink-0">${fileBtn}${dispatchHtml}${advanceBtn}</div>
       </div>`;
   }).join('');
+}
+
+/** 行内外发单元（C④ 2026-09-10）：未外发 → 行内微操作按钮；已外发 → 状态徽标。
+ *  状态语义与 externalDispatches（refType=publicity，refLabel=宣传材料：<活动名>）一致，不改数据模型。 */
+function _renderDispatchCell(r) {
+  const label = `宣传材料：${r.activityName || '未命名活动'}`;
+  const recs = loadExternalDispatches().filter(d => d.refType === 'publicity' && d.refLabel === label);
+  if (recs.length === 0) {
+    return `<button class="btn-action btn-action-amber archive-dispatch-btn" data-record-id="${r.id}" title="材料如已通过微信/对外发出，点击标记闭环" style="cursor:pointer;">标记已发送（微信/对外）</button>`;
+  }
+  const confirmed = recs.some(d => d.confirmedAt);
+  return `<span class="text-xs px-1.5 py-0.5 rounded-full border shrink-0 ${confirmed ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">${confirmed ? '已确认收到' : '已外发·待确认'}</span>`;
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -570,8 +641,8 @@ function _showArchiveUploadModal(ctx) {
       const saved = await _handleArchiveUpload(selectedFiles, activityId, activity ? activity.title : '', category);
       if (saved > 0) {
         showToast('success', `已归档 ${saved} 项宣传材料`);
-        // 文件流外发确认（书记 2026-08-10 裁定）：材料如需微信外发给对方确认，系统内标记闭环
-        _promptExternalDispatch(activityId, activity ? activity.title : '', ctx);
+        // C④ 2026-09-10 裁定：上传成功不再无条件弹「文件外发确认」二次浮窗，
+        // 外发改由归档行内「标记已发送（微信/对外）」按钮按需触发（见 _renderArchiveList）。
         closeModal();
         renderContent(ctx);
       }
@@ -588,8 +659,10 @@ function _showArchiveUploadModal(ctx) {
   card.addEventListener('click', e => e.stopPropagation());
 }
 
-/** 文件流外发确认（书记 2026-08-10 裁定）：材料已归档，如需微信外发则系统内标记闭环 */
-function _promptExternalDispatch(activityId, activityName, ctx) {
+/** 文件流外发确认（书记 2026-08-10 裁定；C④ 2026-09-10 改为行内按需触发）：
+ *  材料已归档，如需微信外发则系统内标记闭环。「暂不外发」= 不写入任何记录（语义不变）。
+ *  @param {Function} [onSent] 标记成功后的回调（行内场景用于重渲染显示状态徽标） */
+function _promptExternalDispatch(activityId, activityName, ctx, onSent) {
   const user = AuthStore.getCurrentUser();
   if (!user) return;
   const receiverOptions = [
@@ -645,6 +718,7 @@ function _promptExternalDispatch(activityId, activityName, ctx) {
     });
     showToast('success', '已标记外发，对方确认后将闭环');
     close();
+    if (typeof onSent === 'function') onSent();
   });
 }
 

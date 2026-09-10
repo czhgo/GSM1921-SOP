@@ -24,7 +24,7 @@ import { STATE, getAppState, setState, registerRenderCallback } from '../core/st
 
 import { bootstrapPage } from '../core/bootstrap.js?v=20260910a';
 import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260910a';
-import { flashHighlight } from '../core/utils.js?v=20260910a';
+import { flashHighlight, escHtml } from '../core/utils.js?v=20260910a';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260910a';
 import { getCapabilities } from '../core/registry.js?v=20260910a';
 import { loadWorkspaceData } from '../core/data-loader.js?v=20260910a';
@@ -174,11 +174,13 @@ export async function createWorkspaceShell(opts) {
 
 
 
-  // ── 立项⑦ B波：党委「进入支部（演示）」演示横幅（2026-09-06）──────────
+  // ── 立项⑦ B波：党委「进入支部（演示）」演示只读横幅（2026-09-06；A⑤ 只读放开 2026-09-10）──
 
   // party-staff 经 core/bootstrap.js 放行门进入支部层工作台（URL 携带 ?branch=）时，
 
-  // 在内容区顶部给出「支部层 × 演示视图」标识与返回党委总览入口。
+  // 在内容区顶部给出「支部层 × 演示只读」标识与返回党委总览入口。
+
+  // 本地示例 / 真实后端 API 会话同口径（书记 2026-09-10 裁定 A⑤）：横幅一律渲染「只读查看」提示。
 
   // 仅 party-staff + branch 参数 + 支部层壳（scope ≠ party-committee）触发；其余角色/页面无横幅。
 
@@ -198,7 +200,7 @@ export async function createWorkspaceShell(opts) {
 
         return `<div class="rounded-xl border border-dashed bg-red-50 text-red-700 px-4 py-2.5 mb-3 flex flex-wrap items-center justify-between gap-2 text-xs" style="border-color:rgba(248,113,113,0.4);">
 
-  <span><b>党委演示视图 · ${escHtml(_branchName)}</b> — 该支部书记工作台（branch 上下文）；以党委组织员会话演示，写操作按角色权限拒绝</span>
+  <span><b>党委演示只读视图 · ${escHtml(_branchName)}</b> — 该支部书记工作台（branch 上下文）；以党委组织员会话只读查看，写操作按角色权限拒绝</span>
 
   <a href="./workspace/party-committee.html" class="font-semibold whitespace-nowrap" style="color:#C8102E;">← 返回党委治理总览</a>
 
@@ -227,6 +229,48 @@ export async function createWorkspaceShell(opts) {
     };
 
     return renderCtxExtras ? { ...ctx, ...renderCtxExtras(state, ctx) } : ctx;
+
+  }
+
+  // A① 对象级深链锚点选择器（2026-09-10）：覆盖各承载 tab 已有的 data-* 锚点，data-id 兜底。
+  function _objectHighlightSelector(id) {
+
+    return [
+      `[data-group-key="${id}"]`,
+      `[data-mcb-id="${id}"]`,
+      `[data-tr-id="${id}"]`,
+      `[data-rq-id="${id}"]`,
+      `[data-rq-card="${id}"]`,
+
+      `[data-archive-id="${id}"]`,
+
+      `[data-person-id="${id}"]`,
+
+      `[data-id="${id}"]`,
+    ].join(',');
+
+  }
+
+  // 目标对象可能随 tab 动态 import / 异步数据后到达 → 轮询定位（约 6s），命中即滚动 + 闪烁高亮。
+  function _locateHighlightObject(sel, attempts = 20) {
+
+    let el = null;
+
+    try { el = document.querySelector(sel); } catch (_) { return; }
+
+    if (el) {
+
+      const target = el.closest('[data-mcb-row]') || el;
+
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      flashHighlight(target);
+
+      return;
+
+    }
+
+    if (attempts > 0) setTimeout(() => _locateHighlightObject(sel, attempts - 1), 300);
 
   }
 
@@ -315,7 +359,7 @@ export async function createWorkspaceShell(opts) {
 
 
 
-    container.innerHTML = _tabBar.html;
+    container.innerHTML = _demoBannerHtml + _tabBar.html;
 
     _tabBar.bindEvents(container);
 
@@ -413,15 +457,25 @@ export async function createWorkspaceShell(opts) {
 
       const actId = urlParams.activityId;
 
-      if (tfId || actId || urlParams.view === 'activities') {
+      // A① 通知对象级深链（2026-09-10）：workspace/<page>.html?tab=<tabId>&highlight=<objectId>。
+      // 复用首页导航同一落点通道；未携带时行为零变化（无新协议，tab/highlight 为叠加参数）。
+      const tab = urlParams.tab || null;
 
-        _navTarget = { tfId, actId, view: urlParams.view === 'activities' };
+      const hl = urlParams.highlight || null;
+
+      if (tfId || actId || urlParams.view === 'activities' || tab || hl) {
+
+        _navTarget = { tfId, actId, view: urlParams.view === 'activities', tab, hl };
 
         CrossPageState.clearParam('activityId');
 
         CrossPageState.clearParam('taskforceId');
 
         CrossPageState.clearParam('view');
+
+        CrossPageState.clearParam('tab');
+
+        CrossPageState.clearParam('highlight');
 
       }
 
@@ -431,19 +485,46 @@ export async function createWorkspaceShell(opts) {
 
       _navSuppressUntil = Date.now() + NAV_SUPPRESS_MS; // B1-5：抑制后续 setState 重渲染冲掉直达高亮
 
-      const handled = onNavTarget(_navTarget, state, {
+      // A① 通知对象级深链（2026-09-10）：先切 tab、再滚动/高亮目标对象（?tab=&highlight=）
+      if (_navTarget.tab && _tabBar && Array.isArray(_tabBar.tabs) && _tabBar.tabs.some(t => t.id === _navTarget.tab)) {
 
-        activate: (tabId, ctx) => { _currentTab = tabId; _tabBar.activate(tabId, ctx || _renderCtx(state)); },
+        _currentTab = _navTarget.tab;
 
-        setHighlight: (id, sel) => { _highlightId = id; _highlightSel = sel; if (id) setTimeout(() => { _highlightId = null; _highlightSel = null; }, NAV_SUPPRESS_MS); },
+        _tabBar.activate(_navTarget.tab, _renderCtx(state));
 
-        renderCtx: (s) => _renderCtx(s || state),
+      }
 
-        getState: getAppState,
+      if (_navTarget.hl) {
 
-      });
+        _highlightId = _navTarget.hl;
 
-      if (handled !== false) {
+        _highlightSel = _objectHighlightSelector(_navTarget.hl);
+
+        _locateHighlightObject(_highlightSel);
+
+      }
+
+      // 既有首页导航落点（activityId/taskforceId/view）：仅旧参数在场时交角色特定 onNavTarget 消费，
+      // 避免 tab/highlight 独占时被各台默认落点（如书记台默认 activate('calendar')）覆盖。
+      const hasLegacyNav = !!(_navTarget.tfId || _navTarget.actId || _navTarget.view);
+
+      const handled = (hasLegacyNav && typeof onNavTarget === 'function')
+
+        ? onNavTarget(_navTarget, state, {
+
+            activate: (tabId, ctx) => { _currentTab = tabId; _tabBar.activate(tabId, ctx || _renderCtx(state)); },
+
+            setHighlight: (id, sel) => { _highlightId = id; _highlightSel = sel; if (id) setTimeout(() => { _highlightId = null; _highlightSel = null; }, NAV_SUPPRESS_MS); },
+
+            renderCtx: (s) => _renderCtx(s || state),
+
+            getState: getAppState,
+
+          })
+
+        : null;
+
+      if (handled !== false || _navTarget.tab || _navTarget.hl) {
 
         if (handled?.tabId) { _currentTab = handled.tabId; }
 

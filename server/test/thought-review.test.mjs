@@ -82,7 +82,13 @@ test('① addThoughtReport 新提交 → pending + 通知文案含「待组织�
   const notice = lastThoughtNotice();
   assert.ok(notice, '提交后应广播站内通知');
   assert.ok(notice.content.includes('待组织初阅'), '通知文案应提示待组织初阅：' + (notice && notice.content));
-  assert.equal(notice.targetUrl, 'workspace/org.html', '通知仍直达组织委员工作台');
+  // A① 对象级深链（2026-09-10）：直达组织委员工作台「思想汇报」tab 并定位该条（data-tr-id 锚点），
+  // 旧断言 workspace/org.html 已随深链升级作废——按新语义校验 tab + 对象 id，不弱化。
+  assert.equal(
+    notice.targetUrl,
+    `workspace/org.html?tab=thought-review&highlight=${rec.id}`,
+    '通知对象级深链：直达组织委员工作台「思想汇报」tab 并定位该条'
+  );
 
   const pending = TR.listPendingReviews();
   assert.equal(pending.length, 1, '新提交进入待初阅队列');

@@ -28,6 +28,10 @@ import {
   realtimeGroupDomainOf,
   urgeRolesOf,
 } from '../../docs/src/services/todo.js?v=20260910a';
+// A① 通知对象级深链守卫（2026-09-10）：静态扫描 docs/src 全部通知生产点（纯 fs，无需浏览器）
+import { readFileSync, readdirSync } from 'node:fs';
+import { join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();
@@ -353,3 +357,121 @@ test('⑦ urgeRolesOf：持久化待办按 role；实时组静态映射/决议 o
   assert.deepEqual(urgeRolesOf(undefined), []);
   assert.deepEqual(urgeRolesOf({ actionKey: 'unknown-x', items: [] }), []);
 });
+
+// ═══════════════ ⑧ A① 通知对象级深链守卫（2026-09-10 书记裁定） ═══════════════
+// 口径：凡 actionable:true 的通知生产点，其 NoticeStore.add 调用内必须携带对象级锚点——
+//   · targetUrl 对象级深链（如 workspace/x.html?tab=<tab>&highlight=<对象id>、activity.html?id=），或
+//   · targetType + targetId（resolveNoticeUrl 优先级 0 → 直达 activity.html?id=/taskforce.html?id=）。
+// 防回归：若某生产点漏锚点，本测试即红。白名单仅接受「按角色自适应落点 / 无单一对象 id」的显式豁免。
+const NOTICE_ANCHOR_EXEMPT = [
+  // 目前所有 actionable 生产点均已对象级锚定（review-tab 活动复盘→targetType/targetId；
+  // todo-tab 催办→按责任人角色页 ?tab=todo&highlight=<groupKey>；overview-tab 催办→?tab=；
+  // taskforce 专班议案→targetType/targetId）。后续如需豁免，在此登记 file + 理由。
+];
+
+/** 递归收集 docs/src 下全部 .js 绝对路径 */
+function _walkJsFiles(dir, out = []) {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, e.name);
+    if (e.isDirectory()) _walkJsFiles(p, out);
+    else if (e.name.endsWith('.js')) out.push(p);
+  }
+  return out;
+}
+
+/** 抽取每处 `NoticeStore.add(` 的首个对象字面量参数文本（字符串感知的括号配对） */
+function _extractAddCalls(src) {
+  const out = [];
+  const re = /NoticeStore\.add\s*\(/g;
+  let m;
+  while ((m = re.exec(src))) {
+    const after = m.index + m[0].length;
+    // 仅取「紧跟对象字面量」的调用（变量引用如 NoticeStore.add(notification, …) 跳过）
+    if (!/^\s*\{/.test(src.slice(after))) continue;
+    const i = src.indexOf('{', after);
+    if (i === -1) continue;
+    let depth = 0;
+    let j = i;
+    let quote = null;
+    for (; j < src.length; j++) {
+      const c = src[j];
+      if (quote) {
+        if (c === '\\') { j++; continue; }
+        if (c === quote) quote = null;
+        continue;
+      }
+      if (c === '"' || c === "'" || c === '`') { quote = c; continue; }
+      if (c === '{') depth++;
+      else if (c === '}') { depth--; if (depth === 0) { j++; break; } }
+    }
+    out.push(src.slice(i, j));
+  }
+  return out;
+}
+
+test('⑧ A① 对象级深链守卫：所有 actionable 通知携带 targetUrl 或 targetType+targetId', () => {
+  const root = fileURLToPath(new URL('../../docs/src/', import.meta.url));
+  const files = _walkJsFiles(root);
+  assert.ok(files.length > 50, `应扫描 50+ 模块，实际 ${files.length}`);
+
+  const violations = [];
+  let actionableCount = 0;
+  for (const abs of files) {
+    const rel = relative(root, abs).replace(/\\/g, '/');
+    const src = readFileSync(abs, 'utf8');
+    if (!src.includes('NoticeStore.add')) continue;
+    if (NOTICE_ANCHOR_EXEMPT.some(e => e.file === rel)) continue;
+    for (const call of _extractAddCalls(src)) {
+      if (!/actionable\s*:\s*true/.test(call)) continue;
+      actionableCount++;
+      const hasUrl = /targetUrl\s*:/.test(call);
+      const hasPair = /targetType\s*:/.test(call) && /targetId\s*:/.test(call);
+      if (!hasUrl && !hasPair) violations.push(rel);
+    }
+  }
+  assert.ok(actionableCount >= 3, `应扫描到至少 3 个 actionable 通知生产点，实际 ${actionableCount}`);
+  assert.deepEqual(
+    [...new Set(violations)], [],
+    `以下 actionable 通知生产点缺对象级锚点（targetUrl 或 targetType+targetId）：\n${[...new Set(violations)].join('\n')}`
+  );
+});
+
+// ═══════════════ ⑨ 演示下钻放行门 + 代提交复盘表单复用（2026-09-10） ═══════════════
+// 背景：① 党委「进入支部（演示）」下钻（secretary.html?branch=<id>）时，bootstrap 身份门调用
+//   未定义函数 _partyStaffBranchDemoAllowed → ReferenceError/白屏；② 演示横幅用 escHtml 未导入，
+//   同路径再次 ReferenceError；③ 书记「代提交复盘」须复用既有复盘表单，不得另写一套字段。
+// 口径：演示放行门单一源 = modules/branch-demo-nav.js；复盘表单单一源 = services/review.js。
+test('⑨ 演示下钻放行门 + 代提交复盘表单复用（防未定义引用/字段分叉回归）', () => {
+  const root = fileURLToPath(new URL('../../docs/src/', import.meta.url));
+  const read = (rel) => readFileSync(join(root, rel), 'utf8');
+
+  // ① 放行门单一源导出；bootstrap 引用导入项（不再调用未定义函数）
+  const nav = read('modules/branch-demo-nav.js');
+  assert.match(nav, /export function isPartyStaffBranchDemoAllowed\(/, 'branch-demo-nav 应导出演示放行门');
+  const bootstrap = read('core/bootstrap.js');
+  assert.match(bootstrap, /import \{ isPartyStaffBranchDemoAllowed \} from '\.\.\/modules\/branch-demo-nav\.js/,
+    'bootstrap 应导入放行门（单一源）');
+  assert.doesNotMatch(bootstrap, /[^.\w]_partyStaffBranchDemoAllowed\s*\(/,
+    'bootstrap 不得再调用未定义的 _partyStaffBranchDemoAllowed（演示下钻 ReferenceError 回归）');
+
+  // ② 演示横幅用 escHtml：workspace-shell 使用时须自 core/utils.js 导入
+  const shell = read('components/workspace-shell.js');
+  if (/\bescHtml\(/.test(shell)) {
+    assert.match(shell, /import \{[^}]*\bescHtml\b[^}]*\} from '\.\.\/core\/utils\.js/,
+      'workspace-shell 使用 escHtml 须导入（党委演示横幅 ReferenceError 回归）');
+  }
+
+  // ③ 复盘表单单一源：review.js 导出渲染 + 提交；成员端/书记代填两处复用，不另写字段
+  const review = read('services/review.js');
+  assert.match(review, /export function renderActivityReviewFormHtml\(/, 'review.js 应导出复盘表单渲染');
+  assert.match(review, /export function submitActivityReviewForm\(/, 'review.js 应导出复盘表单提交链路');
+  const visitor = read('entries/tabs/visitor/review-tab.js');
+  assert.match(visitor, /renderActivityReviewFormHtml/, '成员端「我的复盘」应复用共享表单');
+  assert.doesNotMatch(visitor, /id="review-textarea-/, '成员端不得另写复盘字段（字段须单一源）');
+  const todo = read('entries/tabs/secretary/todo-tab.js');
+  assert.match(todo, /renderActivityReviewFormHtml/, '书记「代提交复盘」应复用共享表单');
+  assert.match(todo, /submitActivityReviewForm\(/, '书记「代提交复盘」应走既有提交链路');
+  assert.match(todo, /'fill_review'/, '代提交复盘入口应按既有 fill_review 权限门控');
+});
+
+

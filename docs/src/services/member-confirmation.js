@@ -34,6 +34,49 @@ import { DEVELOP_STAGE_OPTIONS } from './org-base-data-preview.js?v=20260910a';
 export const MEMBER_CONFIRM_KEY = 'gsm1921-member-confirmations';
 const MEMBER_CONFIRM_VERSION = 1;
 
+// ── 发展推进覆盖档案（进入当前阶段日期）读写口 ───────────────────────
+// C①-补（2026-09-10 书记裁定）：原「发展数据」直写已改只读（唯一写位=名册发起→书记确认），
+// 但「进入当前阶段日期」需随阶段推进一并落档（供组织台 buildDevelopNodeRemindGroup 派生发展节点提醒）。
+// 存储键位/形态与既有读口同源（gsm1921-dev-stage-overrides，{ personId: { stage, entryDate } }），
+// 不新造存储/数据模型；写入点=确权链书记确认生效处（decideConfirmation → _applyApproved）。
+export const DEV_STAGE_OVERRIDES_KEY = 'gsm1921-dev-stage-overrides';
+
+/** 读取发展推进覆盖档案（不可用/损坏 → {}）。组织台待办发展节点提醒与确认生效写口共用。 */
+export function loadDevStageOverrides() {
+  try {
+    if (typeof localStorage === 'undefined') return {};
+    const o = JSON.parse(localStorage.getItem(DEV_STAGE_OVERRIDES_KEY) || '{}');
+    return o && typeof o === 'object' && !Array.isArray(o) ? o : {};
+  } catch (_) { return {}; }
+}
+
+/** 写入某人发展推进覆盖（合并既有 stage/entryDate；同源键位，不新造存储） */
+export function saveDevStageOverride(personId, { stage, entryDate } = {}) {
+  if (!personId) return null;
+  const all = loadDevStageOverrides();
+  const next = { ...(all[personId] || {}) };
+  if (stage) next.stage = stage;
+  if (entryDate) next.entryDate = entryDate;
+  all[personId] = next;
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(DEV_STAGE_OVERRIDES_KEY, JSON.stringify(all));
+    }
+  } catch (_) { /* 存储不可用：确认生效不阻塞，提醒派生降级 */ }
+  return next;
+}
+
+/** 日期归一 'YYYY-MM-DD'（非法/缺省 → ''） */
+function _normDate(v) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(v == null ? '' : v));
+  return m ? `${m[1]}-${m[2]}-${m[3]}` : '';
+}
+
+/** 今日日期键 'YYYY-MM-DD' */
+function _todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 /** 成员变更申请（memberChangeRequests）终态（非终态在转出执行时作废） */
 const TERMINAL_MCR_STATUSES = new Set(['completed', 'cancelled', 'rejected']);
 
@@ -121,9 +164,10 @@ function _findPendingAny(personId) {
  * @param {string} params.to 目标值（developStage ∈ 阶段枚举；residence ∈ RESIDENCE）
  * @param {string} [params.note] 备注（滞留时建议填写原因/起止）
  * @param {string} [params.by] 发起人（组织委员）
+ * @param {string} [params.entryDate] 进入当前（目标）阶段日期 'YYYY-MM-DD'（仅 developStage；缺省=今日）
  * @returns {{ok:boolean, request?:Object, reason?:string}}
  */
-export function submitMemberChange({ personId, kind, to, note, by } = {}) {
+export function submitMemberChange({ personId, kind, to, note, by, entryDate } = {}) {
   const person = _person(personId);
   if (!person) return { ok: false, reason: '成员不存在（档案中无该 id）' };
   if (kind !== 'developStage' && kind !== 'residence') {
@@ -172,6 +216,8 @@ export function submitMemberChange({ personId, kind, to, note, by } = {}) {
     rejectNote: '',
     refsSummary: null,
   };
+  // C①-补：阶段推进携带「进入当前阶段日期」（缺省=今日）→ 确认生效时同源落覆盖档案
+  if (kind === 'developStage') request.entryDate = _normDate(entryDate) || _todayKey();
   mockDB.pendingMemberConfirmations = [..._all(), request];
   bumpToken('memberConfirmation'); // P0：确权请求队列写口 bump（书记待办页成员确认组新鲜度）
   _save();
@@ -371,6 +417,12 @@ async function _applyApproved(req) {
   if (kind === 'change' && action === 'developStage') {
     const r = await PersonStore.saveMember({ id: personId, developStage: req.to }, { by: decidedBy });
     if (!r.ok) return { ok: false, reason: r.reason || '发展阶段落地失败' };
+    // C①-补（2026-09-10）：确认生效时同源写入既有覆盖档案（gsm1921-dev-stage-overrides）——
+    // 「进入当前阶段日期」供组织台 buildDevelopNodeRemindGroup 派生发展节点提醒；退回/未确认不写。
+    saveDevStageOverride(personId, {
+      stage: req.to,
+      entryDate: _normDate(req.entryDate) || _todayKey(),
+    });
     return { ok: true };
   }
   if (kind === 'change' && action === 'residence') {

@@ -1918,11 +1918,12 @@ button:disabled { cursor: not-allowed; }
 .ov-sub-tab-active {
   background: var(--surface-card, #FFFFFF);
   color: var(--app-accent, #B91C1C);
+  color: color-mix(in srgb, var(--app-accent, #B91C1C) 55%, #000);
   box-shadow: 0 1px 3px rgba(16, 24, 40, 0.12), 0 0 0 0.5px rgba(16, 24, 40, 0.04);
 }
 html.theme-dark .ov-sub-tab-active {
   background: color-mix(in srgb, var(--app-accent, #B91C1C) 18%, #141D2F);
-  color: color-mix(in srgb, var(--app-accent, #B91C1C) 72%, white);
+  color: color-mix(in srgb, var(--app-accent, #B91C1C) 55%, #fff);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
@@ -4441,6 +4442,7 @@ label .text-red-500 {
 .tint-pill {
   background: color-mix(in srgb, var(--tint, #6B7280) 10%, transparent);
   color: var(--tint, #6B7280);
+  color: color-mix(in srgb, var(--tint, #6B7280) 55%, #000);
   border: 1px solid color-mix(in srgb, var(--tint, #6B7280) 28%, transparent);
   border-radius: 9999px;
   padding: 2px 6px;

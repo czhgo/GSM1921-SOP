@@ -124,7 +124,9 @@ export function renderContent(ctx) {
           title: '考勤已确认并归档',
           content: `「${actById.get(record.activityId)?.title || '活动'}」考勤已由纪检确认，系统已自动归档至考察档案，组织委员可直接读取使用。`,
           priority: 'normal',
-          targetUrl: 'workspace/org.html',
+          // A① 对象级深链（2026-09-10）：绑定来源活动（考勤归属对象）→ 点击直达活动详情
+          targetType: 'activity',
+          targetId: record.activityId,
         });
       } catch (e) { console.warn('[disc-attendance] 归档广播失败（不影响确认）：', e); }
       showToast('success', `已确认「${getPersonName(record.personId)}」${actById.get(record.activityId)?.title || ''}考勤`);

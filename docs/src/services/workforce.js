@@ -127,6 +127,9 @@ export async function createWorkforceProposalActivity(branchId, changes, note = 
       title: '支部分工调整议题待表决',
       content: `「${activity.title}」已发起，请支委在本次支委会活动中参与线上表决（交流式表态）。`,
       priority: 'normal',
+      // A① 对象级深链（2026-09-10）：绑定来源支委会活动 → 点击直达该活动（在线表态）
+      targetType: 'activity',
+      targetId: activity.id,
     });
   } catch (e) { console.warn('[workforce] 通知支委失败（不影响议题创建）：', e); }
   return activity;
@@ -184,6 +187,9 @@ export async function adoptWorkforceProposal(branchId, activityId) {
       title: '支部分工调整已生效',
       content: `「${act.title}」已按支委会表决采纳，分工已更新。`,
       priority: 'normal',
+      // A① 对象级深链（2026-09-10）：绑定来源支委会活动（决议对象）
+      targetType: 'activity',
+      targetId: activityId,
     });
   } catch (e) { console.warn('[workforce] 生效通知失败（不影响采纳）：', e); }
   return updated;

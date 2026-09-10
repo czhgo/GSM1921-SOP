@@ -234,6 +234,21 @@ export const ROLE_PAGE_MAP = {
   },
 };
 
+// ── 归档兜底页面放行门（A② 2026-09-10 书记裁定：代归档闭环）──────────────
+// 依据 SYSTEM_ROLE_PERMISSION.md §9b 矩阵：党支部书记/副书记持 archive=Y（归档兜底权限）。
+// ROLE_PAGE_MAP 中宣传台（prop.html）默认仅宣传委员可达；为打通书记/副书记「代归档」闭环，
+// 额外放行二者进入宣传台——但仅限归档兜底面：宣传台壳（modules/capabilities/prop-workspace.js
+// 的 tabs）对二者只呈现「档案归档」tab，不呈现/不启用其它 tab（不扩大任何写权限）。
+// 消费点单一源：core/bootstrap.js 身份门（放行页面）+ entries/tabs/secretary/todo-tab.js
+// 代归档入口（_canOpenPropWorkspace）同源判定，勿各自手写角色清单。
+export const ARCHIVE_FALLBACK_ROLES = ['secretary', 'deputy-secretary'];
+const ARCHIVE_FALLBACK_PAGE = 'prop.html';
+/** 该角色是否可经归档兜底进入指定页面（当前仅 prop.html） */
+export function isArchiveFallbackPage(role, page) {
+  const norm = (p) => (p || '').replace(/\.html$/, '');
+  return ARCHIVE_FALLBACK_ROLES.includes(role) && norm(page) === norm(ARCHIVE_FALLBACK_PAGE);
+}
+
 /** 反查：哪些角色进入该页面（capability requiredRoles 单一源，消除各工作台字面量副本） */
 export function rolesForPage(page) {
   const out = [];

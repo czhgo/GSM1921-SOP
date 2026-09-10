@@ -369,6 +369,17 @@ export const SecretaryOverviewStore = {
 //  复核类：纪检/宣传已完成动作但书记未复核 → 批次汇总 + 一键确认
 // ════════════════════════════════════════════════════════════════
 
+/**
+ * 归档缺口活动（宣传材料未归档）——**单一判据**：活动已归档（archived=true）但无任何归档记录。
+ * 消费点：① 书记台待办「宣传材料待归档」实时组（_aggArchiveRemind）；② 宣传台「档案归档」
+ * tab 的「待归档」区（entries/tabs/prop/archive-tab.js）。两处必须同源，勿各自另立标准。
+ * @returns {Array} 满足归档缺口条件的活动（顺序同 loadActivities）
+ */
+export function getArchiveGapActivities() {
+  const archivedIds = new Set((mockDB.archiveRecords || []).map(r => r.activityId));
+  return loadActivities().filter(a => a.archived && !archivedIds.has(a.id));
+}
+
 export const SecretaryTodoDeriver = {
 
   /** 计算书记全部待办聚合卡（8 组；空组不展示，避免 0 条占位卡）
@@ -487,9 +498,8 @@ export const SecretaryTodoDeriver = {
 
   // ── 提醒类4：活动已归档但宣传材料未提交 ────────────────
   _aggArchiveRemind() {
-    const activities = loadActivities();
-    const archivedIds = new Set((mockDB.archiveRecords || []).map(r => r.activityId));
-    const gaps = activities.filter(a => a.archived && !archivedIds.has(a.id));
+    // 判据单一源 = getArchiveGapActivities（宣传台「待归档」区同源消费）
+    const gaps = getArchiveGapActivities();
     return this._mkGroup('archive-remind', '宣传材料待归档', TodoCategory.SUBMIT, TodoActionType.SUBMIT,
       '宣传材料 → 宣传委员归档 → 产出物区',
       gaps.map(a => ({ id: a.id, activityId: a.id, name: a.title, date: a.archivedAt || a.date || null })),

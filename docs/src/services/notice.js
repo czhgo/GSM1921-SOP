@@ -279,7 +279,8 @@ export const NoticeStore = {
 //  - attendance（考勤）→ 纪检委员考勤管理 / 书记考勤概况
 //  - party（发展党员/考察）→ 组织委员档案与发展党员 / 纪检委员考察管理 / 书记工作台
 //  - workspace（工作部署/筹备）→ 支委各归其位 / 组长工作台 / 其余首页
-const NOTICE_MODULE_ROLE_PAGES = {
+// A①（2026-09-10）：导出供通知生产点复用同一映射计算对象级落点页（不改变下文 resolveNoticeUrl 兜底语义）。
+export const NOTICE_MODULE_ROLE_PAGES = {
   activity: {
     '*': 'index.html',
   },

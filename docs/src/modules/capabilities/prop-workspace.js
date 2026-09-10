@@ -5,7 +5,7 @@
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §四/§六
 
 import { registerCapability } from '../../core/registry.js?v=20260910a';
-import { rolesForPage } from '../../core/constants.js?v=20260910a';
+import { rolesForPage, ARCHIVE_FALLBACK_ROLES } from '../../core/constants.js?v=20260910a';
 import { AuthStore } from '../../services/auth.js?v=20260910a';
 
 // 7 个 tab 清单：render 为懒加载动态 import（相对本模块解析到 entries/tabs/prop/）
@@ -16,7 +16,8 @@ registerCapability({
   version: '20260823b',
   scope: ['workspace:prop'],
   requiredRoles: rolesForPage('prop.html'), // T-2026-09-011 R2：由 constants ROLE_PAGE_MAP 派生
-  tabs: () => [
+  tabs: () => {
+    const allTabs = [
     // R6-3「今天」置首 + 登录落点（2026-09-07 方案 B）：共享渲染只读速览，数据同源派生；
     // 到期/逾期行 → onNav('todo')（todo tab 六台同 id）；会议/分工行在 today-tab 内直跳 activity.html；
     // 会议「全部」→ onNav('activities')，下方映射到本台活动承载 tab（宣传台=项目看板 kanban 活动卡承载）
@@ -40,5 +41,15 @@ registerCapability({
     { id: 'weekly', label: '周报报送', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/prop/weekly-tab.js?v=20260910a').then(m => m.renderContent(ctx)) },
     { id: 'archive', label: '档案归档', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/prop/archive-tab.js?v=20260910a').then(m => m.renderContent(ctx)) },
     { id: 'my-dispatch', label: '我的处置', groupLabel: '反馈', render: (ctx) => import('../../entries/tabs/prop/my-dispatch-tab.js?v=20260910a').then(m => m.renderContent(ctx)) },
-  ],
+    ];
+    // 归档兜底（A② 2026-09-10 书记裁定）：书记/副书记（archive=Y 兜底权限）进入宣传台时，
+    // 仅呈现「档案归档」兜底面——其余 tab 不呈现、不启用，权限不扩大（不新增任何写权限）。
+    // groupLabel 置「工作台」= 核心组，保证归档兜底 tab 不被支部 config.modules 隐藏而白屏。
+    const me = AuthStore.getCurrentUser();
+    const role = me && (me.role || AuthStore.getUserRole(me.personId));
+    if (role && ARCHIVE_FALLBACK_ROLES.includes(role)) {
+      return allTabs.filter(t => t.id === 'archive').map(t => ({ ...t, groupLabel: '工作台' }));
+    }
+    return allTabs;
+  },
 });

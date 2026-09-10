@@ -12,18 +12,18 @@ import { showToast, escHtml as esc, flashHighlight } from '../../../core/utils.j
 // D2 裁决批二（2026-09-08）：概况汇报区只读摘要「去待办处理」→ 定位消费（展开该答复详情并滚动到视口）
 import { PendingTarget } from '../../../core/pending-target.js?v=20260910a';
 import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260910a';
-import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN, realtimeGroupDomainOf, urgeRolesOf } from '../../../services/todo.js?v=20260910a';
+import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, urgeRolesOf } from '../../../services/todo.js?v=20260910a';
 import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260910a';
 import { badgeHtml } from '../../../components/badges.js?v=20260910a';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260910a';
 import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260910a';
-import { updateActivityReview } from '../../../services/review.js?v=20260910a';
+import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/review.js?v=20260910a';
 import { loadActivities } from '../../../services/activity.js?v=20260910a';
 import { mockDB } from '../../../core/domain.js?v=20260910a';
 import { persist } from '../../../core/data-adapter.js?v=20260910a';
 import { bumpToken } from '../../../core/version-token.js?v=20260910a'; // P0 域缓存失效（spec §二.3）
 import { getPersonById, getPersonName, PersonStore } from '../../../services/person.js?v=20260910a';
-import { solidAccentStyle, ROLE_LABELS } from '../../../core/constants.js?v=20260910a';
+import { solidAccentStyle, ROLE_LABELS, isArchiveFallbackPage } from '../../../core/constants.js?v=20260910a';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
 import { getAppliedAccentColors } from '../../../core/theme.js?v=20260910a';
 import { IssueStore } from '../../../services/issues.js?v=20260910a';
@@ -42,7 +42,7 @@ import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetaine
 import { getDetainedMembers, getResidenceOf } from '../../../services/roster.js?v=20260910a';
 import { AuthStore } from '../../../services/auth.js?v=20260910a';
 // 逐条催办（2026-09-10 书记裁定）：复用 NoticeStore 通知链路（按责任角色定向通知，不改数据模型）
-import { NoticeStore } from '../../../services/notice.js?v=20260910a';
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../../services/notice.js?v=20260910a';
 import { setState } from '../../../core/state.js?v=20260910a';
 import { openModal, closeModal } from '../../../components/modal.js?v=20260910a';
 
@@ -124,9 +124,10 @@ function bindTodoDetailExtras(container, api) {
       api.renderContent();
     });
   });
-  // 兜底直执白名单（2026-09-10 书记裁定）：①归档 ②复盘 补入口——书记/副书记可直接代执行（导航到承载位）
+  // 兜底直执白名单（2026-09-10 书记裁定）：①归档 ②复盘 补入口——书记/副书记可直接代执行
+  // A③（2026-09-10）：代提交复盘复用既有复盘表单（services/review.js），深链复盘位后直接挂载表单
   container.querySelector('.secretary-todo-detail-archive')?.addEventListener('click', () => _gotoArchiveTarget(api.selectedTodo));
-  container.querySelector('.secretary-todo-detail-review')?.addEventListener('click', () => _gotoReviewTarget(api.selectedTodo));
+  container.querySelector('.secretary-todo-detail-review')?.addEventListener('click', () => _gotoReviewTarget(api.selectedTodo, api));
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -174,12 +175,19 @@ function _handleUrge(group, ctx) {
   const roles = _urgeRoles(group);
   if (!roles.length) { showToast('info', '该待办无明确责任人，无法催办'); return; }
   const targetModule = _urgeTargetModule(group);
+  // A① 对象级深链（2026-09-10）：按责任人角色复用 notice.js 同源模块→页面映射，落到该角色待办 tab
+  // 并高亮被催办聚合组（data-group-key）；页面缺省时退 targetModule 角色自适应兜底。
+  const roleMap = NOTICE_MODULE_ROLE_PAGES[targetModule] || {};
+  const hlId = group.groupKey || ((group.items && group.items[0]) || {}).id;
   for (const role of roles) {
+    const page = roleMap[role] || roleMap['*'];
     NoticeStore.add({
       title: '待办催办',
-      content: `书记提醒：「${group.title}」共 ${group.count || 1} 项待处理，请及时跟进。`,
+      // A④ 文案定稿（2026-09-10 书记裁定：中性事务式）——「关于〈业务域 · 事项〉，请及时跟进（截止 <时限/无>）」
+      content: `书记提醒：关于「${_urgeSubject(group)}」，请及时跟进${_urgeDueText(group) ? `（截止 ${_urgeDueText(group)}）` : '（无明确时限）'}。`,
       priority: 'urgent',
       targetModule,
+      targetUrl: (page && hlId) ? `${page}?tab=todo&highlight=${encodeURIComponent(hlId)}` : undefined,
       actionable: true,
       actionRoles: [role],
       actionTask: group.title,
@@ -188,6 +196,23 @@ function _handleUrge(group, ctx) {
   _urgeState.set(group.groupKey, Date.now());
   showToast('success', `已向${roles.map(r => ROLE_LABELS[r] || r).join('、')}发送催办通知`);
   renderContent(ctx);
+}
+
+/** A④：催办主文 = 〈业务域 · 待办事项〉 */
+function _urgeSubject(group) {
+  const label = WORK_DOMAIN_LABELS[realtimeGroupDomainOf(group)] || '';
+  return label ? `${label} · ${group.title}` : group.title;
+}
+
+/** A④：截止时间文案（取条目常见时限字段；无则空串 → 显示「无明确时限」） */
+function _urgeDueText(group) {
+  const first = (group.items && group.items[0]) || {};
+  const raw = first.dueAt || first.deadline || first.due || group.dueAt;
+  if (!raw) return '';
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return String(raw);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 /** 催办通知跳转目标模块（按责任域；目标角色经 resolveNoticeUrl 站内角色感知映射落地） */
@@ -208,7 +233,11 @@ function _hhmm(ts) {
 
 // ════════════════════════════════════════════════════════════════
 //  兜底直执（白名单：仅①归档 ②复盘；2026-09-10 书记裁定）
-//  点后直达承载位；本台无「宣传归档」独立 tab → 退化为活动管理定位该活动并给出目标提示。
+//  A②（2026-09-10）：代归档深链宣传台归档 tab（?tab=archive&highlight=<activityId>）并定位该活动；
+//  无活动 id / 无宣传台页面权限 → 降级为活动管理定位该活动并给出目标提示。
+//  A③（2026-09-10）：代提交复盘深链本台活动管理该活动的复盘位，并直接挂载既有复盘表单
+//  （表单/校验/落库链路单一源 = services/review.js，与成员端「我的复盘」同一套，勿另写字段）；
+//  提交以代填留痕标注；入口仅书记/副书记（既有 fill_review 权限）可用。
 // ════════════════════════════════════════════════════════════════
 
 /** 组内首条对应的活动对象（归档/复盘缺口条目 = 活动） */
@@ -238,9 +267,32 @@ function _openActivityInCalendar(act) {
   }
 }
 
-/** 代归档入口：优先本台归档位（若注册）；否则活动管理定位 + 目标提示 */
+/** 当前身份是否可进入宣传委员工作台（与 bootstrap 页面门控同源判定；无权限则不越权深链）。
+ *  A②（2026-09-10）：宣传委员本职可达 prop.html；书记/副书记经 archive=Y 归档兜底放行门
+ *  （constants.isArchiveFallbackPage）亦可达——进入后宣传台只呈现归档 tab。 */
+function _canOpenPropWorkspace() {
+  const me = AuthStore.getCurrentUser();
+  return !!me && (AuthStore.getPageForRole('workspace', me.role) === 'prop.html'
+    || isArchiveFallbackPage(me.role, 'prop.html'));
+}
+
+/** 宣传台归档 tab 深链（A② 2026-09-10 书记裁定）：?tab=archive&highlight=<activityId>。
+ *  secretary.html 带 <base href="../">，故 './workspace/prop.html' 解析为 /workspace/prop.html；
+ *  归档条目锚点 = data-archive-id（prop/archive-tab.js）。 */
+function _propArchiveUrl(activityId) {
+  const page = './workspace/prop.html';
+  return `${page}?tab=archive&highlight=${encodeURIComponent(activityId)}`;
+}
+
+/** 代归档入口（A②）：深链宣传台归档 tab 并定位该活动；取不到活动 id 或
+ *  当前身份无宣传台页面权限（书记/副书记 → secretary.html，勿越权）→ 原降级行为 */
 function _gotoArchiveTarget(group) {
   const act = _firstActivityOf(group);
+  const actId = act && act.id;
+  if (actId && _canOpenPropWorkspace()) {
+    window.location.href = _propArchiveUrl(actId);
+    return;
+  }
   if (_gotoSecretaryTab('archive')) {
     showToast('info', `已跳转归档位，请完成代归档${act ? `：${act.title}` : ''}`);
     return;
@@ -249,9 +301,59 @@ function _gotoArchiveTarget(group) {
   showToast('info', `已定位活动管理${act ? `：${act.title}` : ''}，请在活动详情完成归档（代归档）`);
 }
 
-/** 代提交复盘入口：活动管理定位该活动的复盘位 */
-function _gotoReviewTarget(group) {
+/** 当前身份是否可代提交复盘（仅书记/副书记；复用既有 fill_review 权限判定，不扩大） */
+function _canDelegateReview() {
+  const me = AuthStore.getCurrentUser();
+  if (!me || (me.role !== 'secretary' && me.role !== 'deputy-secretary')) return false;
+  return AuthStore.canDo(me.personId, 'fill_review');
+}
+
+/** 代提交复盘表单：把既有复盘表单（services/review.js 单一实现）挂载到浮窗，预置该活动上下文 */
+function _openDelegateReviewForm(act, actId, api) {
+  const me = AuthStore.getCurrentUser();
+  if (!me) return;
+  const roleLabel = ROLE_LABELS[me.role] || me.role;
+  const rev = loadActivityReviews().find(r => r.activityId === actId) || null;
+  const { accent, accentBorder } = _accentColors();
+  const bodyHtml = `
+    <p class="text-xs text-gray-500 mb-2">活动：<span class="text-gray-700">${esc(act.title || actId)}</span>${act.date ? ` · ${esc(act.date)}` : ''}</p>
+    ${renderActivityReviewFormHtml(act, rev, {
+      accent, accentBorder,
+      delegateHint: `以「${roleLabel}」身份代填，提交后留痕标注「由${roleLabel}代填」。`,
+    })}`;
+  openModal({
+    id: 'secretary-delegate-review',
+    title: `代提交复盘 · ${act.title || ''}`,
+    bodyHtml,
+    accentColor: accent,
+    onMount: (panel) => {
+      panel.querySelector('.btn-review-submit')?.addEventListener('click', () => {
+        const content = panel.querySelector(`#review-textarea-${actId}`)?.value || '';
+        const issues = (panel.querySelector(`#review-issues-${actId}`)?.value || '')
+          .split('\n').map(s => s.trim()).filter(Boolean);
+        const res = submitActivityReviewForm({
+          activityId: actId, content, issues, actorId: me.personId,
+          delegate: { roleLabel },
+        });
+        if (!res.ok) { showToast('error', res.error); return; }
+        closeModal('secretary-delegate-review');
+        showToast('success', `复盘已由${roleLabel}代填提交，等待纪检委员确认`);
+        if (api && typeof api.renderContent === 'function') api.renderContent();
+      });
+    },
+  });
+}
+
+/** 代提交复盘入口（A③）：书记/副书记深链该活动复盘位并直接打开同一复盘表单；
+ *  无活动 id / 无 fill_review 权限 → 原降级行为（活动管理定位 + 目标提示） */
+function _gotoReviewTarget(group, api) {
   const act = _firstActivityOf(group);
+  const actId = act && act.id;
+  if (actId && _canDelegateReview()) {
+    _openActivityInCalendar(act);            // 深链：活动管理 → 该活动（复盘位）
+    _openDelegateReviewForm(act, actId, api); // 直接打开/挂载同一表单（预置该活动上下文）
+    return;
+  }
   _openActivityInCalendar(act);
   showToast('info', `已定位活动管理${act ? `：${act.title}` : ''}，请在活动详情「产出物区 · 复盘」完成代提交复盘`);
 }

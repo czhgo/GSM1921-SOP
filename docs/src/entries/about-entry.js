@@ -502,7 +502,7 @@ function renderPhilosophy() {
         <div class="ab-chapter-eyebrow">成长机会</div>
         <h2 class="ab-chapter-title">三个成长机会</h2>
         <p class="ab-chapter-sub" data-stagger>
-          光华管理学院本科生党支部提供三个并列的成长机会。
+          示例组织（光华管理学院本科生党支部）提供三个并列的成长机会。
         </p>
         <div class="ab-philosophy-opportunities">${cards}</div>
       </div>

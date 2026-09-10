@@ -143,7 +143,7 @@ function renderList(tc, branchId) {
     const t = TYPE_META[r.type] || { label: r.type || '上报' };
     const s = STATUS_META[r.status] || { label: r.status, cls: 'bg-gray-100 text-gray-600' };
     return `
-      <div class="rounded-lg border border-gray-200 bg-white p-4">
+      <div class="rounded-lg border border-gray-200 bg-white p-4" data-rq-id="${esc(r.id)}">
         <div class="flex items-center gap-2 flex-wrap mb-1.5">
           <span class="text-xs px-2 py-0.5 rounded-full ${r.type === 'develop-node' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-600'}">${t.label}</span>
           <span class="text-xs px-2 py-0.5 rounded-full ${s.cls}">${s.label}</span>
