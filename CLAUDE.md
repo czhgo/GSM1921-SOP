@@ -627,6 +627,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | E-1~E-5 | 全部完成（2026-09-09，commits 30029993/27c5eb77/6140e23a/82c39508/40d8ef63），登记 T-2026-09-072，行已清 | H60.7 + 面板保态检查要点（REVIEW_QUEUE 附录⑧）+ 全前端冒泡报告（`.ctx/logs/2026-09-08-smoke-result.md`） | ✅ 已清 |
 | R-1 | **会话收口批**：EXECUTION_LOG 并条 T-077（本会话多批：补验 12 例 / 两修复 / 测试对齐 / 两评议轮次）+ 版本串 bump 20260909e→f（CODE_VERSION 90→91）+ 相关回归抽验 | H60.7 + 版本串纪律 + 少日志纪律 | 待办 |
 | R-2 | **自验口径复核**：整跑 `npm test` 复核新基线（原「12 例环境受限」已跑通/对齐；Playwright 需以 `server/.tmp-pw` 作 TMP，跑后即删） | 测试系统 + H60.6 检查要点 | 待办 |
+| R-3 | **门面普世化推进（下一步）**：`about` / `help` / `index` 等门面页首屏补「本系统面向各类党支部与学生组织，各组织各自部署自己的实例」表述（根 README 普世化与功能地图前置已先行，2026-09-09） | H100 项目产出声明 + 文档同步纪律（README 功能说明随功能同步） | `docs/about.html` / `docs/help.html` / `docs/index.html` | 待办 |
 
 ## 评议轮次排期（H60.7 · C4 已批准，发起即删）
 

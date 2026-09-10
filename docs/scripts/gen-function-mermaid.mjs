@@ -4,10 +4,11 @@
 //   ② 12 条角色化业务链路（flowchart TD；节点=执行者:任务，源来自共享模块 FLOW_LINKS）
 //   ③ 架构分层（flowchart TD）
 //   ④ 服务依赖（flowchart LR）
-// 产物策略（2026-09-03）：不再随仓库维护独立 FUNCTION_MAP.md（派生稿），
-//   仓库内唯一地图 = README 标记块（<!--FUNC-MAP:START/END-->，仅 mindmap）。
+// 产物策略（2026-09-03；2026-09-09 迁位）：不再随仓库维护独立 FUNCTION_MAP.md（派生稿），
+//   仓库内唯一地图 = **根 README.md 顶部标记块**（锚点 `<!--FUNC-MAP:ANCHOR-->` 之后，含
+//   `<!--FUNC-MAP:START/END-->` 标记，仅 mindmap）——普世化叙事下功能地图置于门面最前。
 //   完整四章文档 = 直接运行本脚本打印（stdout）供按需查看/引用，不落盘。
-// 用法：node docs/scripts/gen-function-mermaid.mjs --write  # 更新 README 标记块
+// 用法：node docs/scripts/gen-function-mermaid.mjs --write  # 更新根 README 顶部标记块
 //       node docs/scripts/gen-function-mermaid.mjs          # stdout 打印完整四章
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -15,7 +16,7 @@ import { generateMindmapText, FLOW_LINKS } from '../src/core/mermaid-sources.js'
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url)); // docs/
 const CATALOG_PATH = fileURLToPath(new URL('../src/core/function-catalog.js', import.meta.url));
-const README_PATH = fileURLToPath(new URL('../../README-members.md', import.meta.url));
+const README_PATH = fileURLToPath(new URL('../../README.md', import.meta.url));
 
 export function loadCatalog() {
   const src = readFileSync(CATALOG_PATH, 'utf8');
@@ -96,22 +97,14 @@ export function applyToReadme(readme) {
   const block = generateMindmap();
   const start = '<!--FUNC-MAP:START-->';
   const end = '<!--FUNC-MAP:END-->';
-  const title = '### 功能地图';
-  const section = `${title}\n\n${start}\n\n${block}\n\n${end}`;
-  const hasStart = readme.includes(start);
-  const hasEnd = readme.includes(end);
-  if (hasStart && hasEnd) {
-    const s = readme.indexOf(start);
-    const e = readme.indexOf(end) + end.length;
-    const before = readme.slice(0, s).replace(/\n### 功能地图\n*$/, '').replace(/\n+$/, '');
-    const after = readme.slice(e);
-    return `${before}\n\n${section}${after}`;
+  const anchor = '<!--FUNC-MAP:ANCHOR-->';
+  if (readme.includes(start) && readme.includes(end)) {
+    // 已有标记块：原位替换内容（位置由 README 维护，不搬动）
+    return readme.replace(new RegExp(`${start}[\\s\\S]*?${end}`), `${start}\n\n${block}\n\n${end}`);
   }
-  // 半损坏（只含 START 或缺 END 等）：先清理残留标记与紧邻标题，再按锚点重建
-  const cleaned = (hasStart || hasEnd ? readme.replace(/### 功能地图\s*(?=<!--FUNC-MAP:)/g, '').replace(/<!--FUNC-MAP:START-->|<!--FUNC-MAP:END-->/g, '') : readme);
-  const anchor = '\n## License\n';
-  if (!cleaned.includes(anchor)) throw new Error('README 缺少 "## License" 锚点，无法插入功能地图');
-  return cleaned.replace(anchor, `\n${section}\n\n## License\n`);
+  if (!readme.includes(anchor)) throw new Error('README 缺少 <!--FUNC-MAP:ANCHOR--> 锚点，无法插入功能地图');
+  const section = `## 功能地图\n\n> 通用能力与组织特有能力以（通用）/（特有）文本标注区分；本图由 \`node docs/scripts/gen-function-mermaid.mjs --write\` 从 docs/src/core/function-catalog.js 生成，勿手改（完整四章含业务链路/架构分层/服务依赖用同脚本 stdout 打印）。\n\n${start}\n\n${block}\n\n${end}`;
+  return readme.replace(anchor, `${anchor}\n\n${section}`);
 }
 
 // CLI：--write 时只更新 README 标记块（独立 FUNCTION_MAP.md 已不随仓库维护，见头注释）；
