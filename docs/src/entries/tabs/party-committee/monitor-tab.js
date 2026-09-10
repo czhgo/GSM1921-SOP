@@ -9,6 +9,9 @@ import { PersonStore } from '../../../services/person.js?v=20260910a';
 const PEOPLE = PersonStore.getMembers();
 import { getCommitteeName } from '../../../services/branch.js?v=20260910a';
 import { getPersonName } from '../../../services/person.js?v=20260910a';
+// 支部监控卡「进入支部」→ 复用党委既有支部入口（modules/branch-demo-nav.js）：
+// 只读监控视图（演示形态，本地开发/非 API 登录放行），不授予党支部内部事务权限。
+import { bindBranchDemoButtons } from '../../../modules/branch-demo-nav.js?v=20260910a';
 
 const STAGE_ORDER = ['正式党员', '预备党员', '发展对象', '积极分子'];
 
@@ -32,7 +35,7 @@ export async function renderContent(ctx) {
 
   el.innerHTML = `
     <div class="space-y-5">
-      <div class="rounded-lg border border-gray-200 bg-white p-4 flex items-center justify-between">
+      <div class="card rounded-xl p-4 flex items-center justify-between">
         <div>
           <p class="text-xs text-gray-400">院系党组织</p>
           <p class="font-title-cn text-lg font-bold text-gray-800">${getCommitteeName()}</p>
@@ -43,7 +46,7 @@ export async function renderContent(ctx) {
         </div>
       </div>
       ${cards.map(({ b, members, stageRows, typeCounts, recent, secretaryName }) => `
-        <div class="rounded-lg border border-gray-200 bg-white p-4">
+        <div class="card rounded-xl p-4">
           <div class="flex items-center justify-between mb-3">
             <div>
               <p class="font-title-cn text-base font-bold text-gray-800">${b.config?.headerTitle || b.name}</p>
@@ -76,7 +79,13 @@ export async function renderContent(ctx) {
               ${recent.map(a => `<span class="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded px-2 py-1">${a.date?.slice(5) || ''} ${a.title}</span>`).join('')}
             </div>
           </div>` : ''}
+          <div class="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-gray-100">
+            <p class="text-xs text-gray-400">监控只读视图 · 不授予支部内部事务权限</p>
+            <button type="button" class="branch-demo-enter text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" data-branch-id="${b.id}"
+              title="打开该支部监控只读视图（演示形态，只读；不授予支部内部事务权限）">进入支部</button>
+          </div>
         </div>`).join('')}
     </div>
   `;
+  bindBranchDemoButtons(el);
 }

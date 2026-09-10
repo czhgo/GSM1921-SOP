@@ -143,11 +143,23 @@ export function renderContent(ctx) {
     // T-304 第5轮 P8：专班卡片点击直达详情页（含报名入口）——补 visitor 报名可达性
     // （此前报名入口仅独立页 taskforce.html 可达，工作台内卡片无跳转 = 报名断链）
     listEl.querySelectorAll('.visitor-proj-card[data-tf-id]').forEach(card => {
+      if (!card.dataset.tfId) return; // 活动卡 data-tf-id 为空串 → 跳过（活动走下方 activity 跳转）
       card.style.cursor = 'pointer';
       card.addEventListener('click', () => {
         const tfId = card.dataset.tfId;
         const base = window.location.pathname.includes('/workspace/') ? '../' : '';
         window.location.href = `${base}taskforce.html?id=${tfId}`;
+      });
+    });
+
+    // 书记裁定（卡片去留/合并批 D7）：活动卡点击直达活动详情（与专班卡行为一致）
+    listEl.querySelectorAll('.visitor-proj-card[data-act-id]').forEach(card => {
+      if (!card.dataset.actId) return;
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', () => {
+        const actId = card.dataset.actId;
+        const base = window.location.pathname.includes('/workspace/') ? '../' : '';
+        window.location.href = `${base}activity.html?id=${actId}`;
       });
     });
 
@@ -277,7 +289,7 @@ function _renderProjectCard(project, currentUserId) {
   };
 
   return `
-    <div class="visitor-proj-card p-3 rounded-lg bg-white" data-tf-id="${project.type === '专班' ? project.id : ''}">
+    <div class="visitor-proj-card p-3 rounded-lg bg-white" data-tf-id="${project.type === '专班' ? project.id : ''}" data-act-id="${project.type === '活动' ? project.id : ''}">
       <div class="flex items-center justify-between mb-1.5">
         <div class="flex items-center gap-2 min-w-0">
           <span class="text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 border ${project.type === '活动' ? 'text-red-700 border-red-200' : 'text-amber-700 border-amber-200'}">${project.typeBadge}</span>

@@ -71,24 +71,6 @@ export function renderContent() {
         </div>
         `}
       </div>
-
-      ${overdueTasks.length > 0 ? `
-      <div class="bg-red-50 border border-red-200 rounded-xl p-3">
-        <div class="flex items-center gap-2 mb-1">
-          <span class="text-xs font-bold text-red-700">超期提醒</span>
-          ${badgeHtml(`${overdueTasks.length}条`, 'danger')}
-        </div>
-        <div class="text-xs text-red-600">以下补课任务已超期，请尽快督促完成</div>
-        <div class="mt-2 space-y-1.5">
-          ${overdueTasks.map(t => `
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-gray-700">${t.personName || getPersonName(t.personId)} — ${t.activityName || '—'}</span>
-              <span class="text-red-500">截止 ${t.deadline}</span>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-      ` : ''}
     </div>
   `;
 

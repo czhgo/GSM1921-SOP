@@ -57,7 +57,7 @@ export function renderActivityView(container, opts = {}) {
             <div id="cal-main-grid"></div>
             <div id="calendar-legend" class="mt-3"></div>
           </div>
-          <div id="av-detail-panel" class="lg:col-span-2 rounded-xl bg-gray-50/50 border border-gray-100 p-3"></div>
+          <div id="av-detail-panel" class="lg:col-span-2 card rounded-xl p-3"></div>
         </div>
       </div>`;
 
@@ -142,11 +142,11 @@ function _renderDetail(state, activities, tasks, highlightId) {
   const canVote = !!viewer && actVoterIds.includes(viewer.personId);
   const isAsyncVote = !!viewer && act.voteConfig?.mode === 'async' && voteAgenda.length > 0;
   const resultBadgeHtml = (r) => (r
-    ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${r === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${r === 'passed' ? '已通过' : '未通过'}</span>`
+    ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium ${r === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${r === 'passed' ? '已通过' : '未通过'}</span>`
     : '');
   const agendaHtml = agendaList.length === 0 ? '' : `
     <div class="pt-3 border-t border-gray-100">
-      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2 flex items-center gap-1.5 flex-wrap">会议议程${isAsyncVote ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium text-amber-700 bg-amber-50">线上异步表决</span>' : ''}</h5>
+      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2 flex items-center gap-1.5 flex-wrap">会议议程${isAsyncVote ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-amber-700 bg-amber-50">线上异步表决</span>' : ''}</h5>
       <ol id="av-agenda-list" class="space-y-1.5">
         ${agendaList.map((a, i) => `
           <li class="flex items-start gap-1.5 text-xs">

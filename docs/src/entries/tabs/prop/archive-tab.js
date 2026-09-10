@@ -84,38 +84,21 @@ export function renderContent(ctx) {
       ${_renderArchiveList(_loadArchiveRecords())}
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="card rounded-xl p-5">
-        <div class="flex items-center gap-2 mb-3">
-          ${icon('fileText', { className: 'w-4 h-4 text-blue-600' })}
-          <span class="text-sm font-semibold text-gray-700">材料标准</span>
-        </div>
-        <div class="space-y-2">
-          ${MATERIAL_STANDARDS.map(s => `
-            <div class="p-2.5 rounded-lg bg-gray-50">
-              <span class="text-xs px-1.5 py-0.5 rounded-full ${ARCHIVE_CATEGORY_STYLE[s.category]} mr-1.5">${s.category}</span>
-              <span class="text-xs text-gray-600">${s.standard}</span>
-            </div>
-          `).join('')}
-        </div>
+    <div class="card rounded-xl p-5">
+      <div class="flex items-center gap-2 mb-3">
+        ${icon('download', { className: 'w-4 h-4 text-purple-600' })}
+        <h4 class="text-sm font-bold text-gray-700">模板下载</h4>
       </div>
-
-      <div class="card rounded-xl p-5">
-        <div class="flex items-center gap-2 mb-3">
-          ${icon('download', { className: 'w-4 h-4 text-purple-600' })}
-          <h4 class="text-sm font-bold text-gray-700">模板下载</h4>
-        </div>
-        <div class="space-y-2">
-          ${ARCHIVE_TEMPLATES.map(t => `
-            <div class="flex items-center justify-between p-2.5 rounded-lg bg-gray-50">
-              <div>
-                <span class="text-xs font-medium text-gray-700">${t.name}</span>
-                <span class="text-xs px-1.5 py-0.5 rounded-full ${ARCHIVE_CATEGORY_STYLE[t.category]} ml-1.5">${t.category}</span>
-              </div>
-              <button class="archive-tpl-btn text-xs px-3 py-1.5 rounded-lg bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 transition-colors" data-tpl-name="${t.name}">下载</button>
+      <div class="space-y-2">
+        ${ARCHIVE_TEMPLATES.map(t => `
+          <div class="flex items-center justify-between p-2.5 rounded-lg bg-gray-50">
+            <div>
+              <span class="text-xs font-medium text-gray-700">${t.name}</span>
+              <span class="text-xs px-1.5 py-0.5 rounded-full ${ARCHIVE_CATEGORY_STYLE[t.category]} ml-1.5">${t.category}</span>
             </div>
-          `).join('')}
-        </div>
+            <button class="archive-tpl-btn text-xs px-3 py-1.5 rounded-lg bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 transition-colors" data-tpl-name="${t.name}">下载</button>
+          </div>
+        `).join('')}
       </div>
     </div>
   `;

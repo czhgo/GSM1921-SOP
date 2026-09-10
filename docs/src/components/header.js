@@ -32,9 +32,14 @@ function loadNotice() {
 
 // 数据变更订阅（2026-08-05，消除"确认已读后角标不更新"）：
 // 模块顶层绑定一次；_renderNotificationBadge 在 #notification-bell 未渲染时静默返回。
+// 2026-09-10 归属显示一致性修复：原来只重绘角标、不重绘 h1——header 在数据加载前渲染时
+// getHeaderTitle 只能拿静态兜底名，数据到达后无人刷新 → 整会话停留错误标题。
+// 故 DATA_LOADED / DATA_CHANGED 同时刷新品牌标题（只改 h1 文本，不重建 header DOM）。
 if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
   document.addEventListener(DATA_CHANGED_EVENT, _renderNotificationBadge);
   document.addEventListener(DATA_LOADED_EVENT, _renderNotificationBadge);
+  document.addEventListener(DATA_CHANGED_EVENT, _refreshHeaderTitle);
+  document.addEventListener(DATA_LOADED_EVENT, _refreshHeaderTitle);
 }
 
 /**
@@ -64,6 +69,26 @@ async function _renderNotificationBadge() {
     badge.classList.add('text-xs');
     bell.appendChild(badge);
   }
+}
+
+/**
+ * 即时刷新 header 品牌标题（2026-09-10「归属显示不一致」修复）
+ * 只改 h1 文本（textContent），不重建 header DOM——不触碰汉堡/铃铛/身份标签的事件绑定，无闪烁。
+ * 数据未加载时 getHeaderTitle 返回静态兜底名，本函数在 loadDB 完成（DATA_LOADED）后归还真实支部名。
+ */
+async function _refreshHeaderTitle() {
+  const header = document.getElementById('app-header');
+  const h1 = header?.querySelector('.header-title h1');
+  if (!h1) return;
+  let personId = '';
+  try {
+    const { AuthStore } = await loadAuth();
+    personId = AuthStore.getCurrentUser()?.personId || '';
+  } catch (e) {
+    return; // 静态页未加载数据链时静默（无 h1 可判定）
+  }
+  const title = getHeaderTitle(personId || undefined);
+  if (h1.textContent !== title) h1.textContent = title;
 }
 
 function _roleLabelHTML(role) {
@@ -122,7 +147,8 @@ export async function renderHeader(activeModule, opts = {}) {
   }
   // P1 软编码 + 2026-09-09 支部归属显式化：支部名随配置档案（getBoundBranch 有效归属 → config.headerTitle）；
   //   登录但无有效归属支部（branchId 空/查无）→ 中性占位「未绑定支部」（不再泄漏示例支部名）；
-  //   未登录静态壳（personId 缺省）→ 保持既有数据解析兜底（br-b1 → 末级兜底名，属换壳范围）。
+  //   分支数据尚未加载（时序）→ 静态兜底名（getHeaderTitle 内处理），数据到达后由 _refreshHeaderTitle 归还真实支部名；
+  //   未登录静态壳（personId 缺省）→ 中性占位「示例组织（未登录）」。
   const headerTitle = getHeaderTitle(personId || undefined);
 
   header.innerHTML = `

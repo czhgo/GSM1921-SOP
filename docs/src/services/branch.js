@@ -484,20 +484,32 @@ export function getBranchIdOfPerson(personId) {
   return person?.branchId || 'br-b1';
 }
 
-// 静态壳末级兜底名（换壳范围：仅当数据层完全无分支记录且静态页未加载数据链展示用——
-// 非真实支部名软编码；接入真实支部数据后由各支部 config.headerTitle/name 覆盖）
+// 静态壳兜底名之一：分支数据尚未加载时的兜底（时序竞态用——非真实支部名软编码；
+// 接入真实支部数据后由各支部 config.headerTitle/name 覆盖）
 const STATIC_HEADER_FALLBACK = '光华管理学院本科生党支部';
 
+// 未登录中性占位（2026-09-10 书记批「归属显示不一致」修复）：未登录/查无档案时不再走
+// getBranchIdOfPerson 的 br-b1 数据解析兜底（那会显示"示例支部名"像是真有归属），
+// 改中性占位并保留「示例」含义；与 STATIC_HEADER_FALLBACK（数据未加载兜底）分别处理。
+const GUEST_HEADER_PLACEHOLDER = '示例组织（未登录）';
+
+/** 分支数据是否已加载（mockDB 已从存储/后端恢复）——用于区分「数据未加载」与「真无归属」 */
+export function isLoaded() {
+  return !!mockDB._loaded;
+}
+
 /**
- * header 品牌软编码（2026-09-09 书记批「支部归属显式化」A2）：
+ * header 品牌软编码（2026-09-09 书记批「支部归属显式化」A2；2026-09-10 时序/占位修复）：
  *   config.headerTitle → branch.name；支部名随支部配置档案更换显示——不硬编码示例支部名。
  * 判定顺序：
  *   1) party-staff（党委级角色，不属于任一支部）→ 院系党委名（前置不变）；
- *   2) getBoundBranch 有效归属 → 该支部 config.headerTitle / name / 末级兜底；
- *   3) 有 person 档案但无有效归属支部（branchId 空/查无）→ 中性占位「未绑定支部」
+ *   2) getBoundBranch 有效归属 → 该支部 config.headerTitle / name / 静态兜底名；
+ *   3) 有 person 档案但分支数据尚未加载（loadDB 未完成）→ 静态兜底名 STATIC_HEADER_FALLBACK
+ *      （时序修复：避免加载竞态把登录人误报「未绑定支部」；数据到达后 header 重绘归还真实支部名）；
+ *   4) 有 person 档案且数据已加载、确无有效归属支部（branchId 空/查无）→ 中性占位「未绑定支部」
  *      （不再泄漏示例支部名；opts.placeholder 可覆盖）；
- *   4) 无 person（未登录静态壳/查无档案）→ 数据解析兜底走 br-b1，仍无分支记录时
- *      末级兜底 STATIC_HEADER_FALLBACK（仅静态展示需要；静态壳无登录不属"归属"问题，保持现状）。
+ *   5) 无 person（未登录静态壳/查无档案）→ 中性占位 GUEST_HEADER_PLACEHOLDER
+ *      （保留「示例」含义，不泄漏示例支部名）。
  * @param {string} [personId] 当前登录人 personId（缺省 = 未登录静态壳）
  * @param {{ placeholder?: string }} [opts]
  */
@@ -508,11 +520,12 @@ export function getHeaderTitle(personId, opts = {}) {
   if (person?.role === 'party-staff') return PARTY_COMMITTEE.name;
   const bound = getBoundBranch(personId);
   if (bound) return bound.config?.headerTitle || bound.name || STATIC_HEADER_FALLBACK;
+  // 分支数据尚未加载（时序）：静态兜底名，而非误报「未绑定支部」
+  if (person && !isLoaded()) return STATIC_HEADER_FALLBACK;
   // 登录且有 person 档案、但无有效归属支部 → 中性占位（书记语义：真无支部不显示示例支部名）
   if (person) return placeholder;
-  // 未登录 / 查无档案（静态壳）：保留既有数据解析兜底（br-b1 标题 → 末级兜底名），换壳范围
-  const fallbackBranch = getBranchById(getBranchIdOfPerson(personId));
-  return fallbackBranch?.config?.headerTitle || fallbackBranch?.name || STATIC_HEADER_FALLBACK;
+  // 未登录 / 查无档案（静态壳）：中性占位（示例组织，不泄漏示例支部名）
+  return GUEST_HEADER_PLACEHOLDER;
 }
 
 /**

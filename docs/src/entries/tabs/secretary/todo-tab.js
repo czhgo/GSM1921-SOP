@@ -12,7 +12,7 @@ import { showToast, escHtml as esc, flashHighlight } from '../../../core/utils.j
 // D2 裁决批二（2026-09-08）：概况汇报区只读摘要「去待办处理」→ 定位消费（展开该答复详情并滚动到视口）
 import { PendingTarget } from '../../../core/pending-target.js?v=20260910a';
 import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260910a';
-import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260910a';
+import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN, realtimeGroupDomainOf, urgeRolesOf } from '../../../services/todo.js?v=20260910a';
 import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260910a';
 import { badgeHtml } from '../../../components/badges.js?v=20260910a';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260910a';
@@ -22,8 +22,8 @@ import { loadActivities } from '../../../services/activity.js?v=20260910a';
 import { mockDB } from '../../../core/domain.js?v=20260910a';
 import { persist } from '../../../core/data-adapter.js?v=20260910a';
 import { bumpToken } from '../../../core/version-token.js?v=20260910a'; // P0 域缓存失效（spec §二.3）
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260910a';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260910a';
+import { getPersonById, getPersonName, PersonStore } from '../../../services/person.js?v=20260910a';
+import { solidAccentStyle, ROLE_LABELS } from '../../../core/constants.js?v=20260910a';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
 import { getAppliedAccentColors } from '../../../core/theme.js?v=20260910a';
 import { IssueStore } from '../../../services/issues.js?v=20260910a';
@@ -41,6 +41,9 @@ import { buildOverdueRemindGroupNow } from '../../../services/resolution-followu
 import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member-confirmation.js?v=20260910a';
 import { getDetainedMembers, getResidenceOf } from '../../../services/roster.js?v=20260910a';
 import { AuthStore } from '../../../services/auth.js?v=20260910a';
+// 逐条催办（2026-09-10 书记裁定）：复用 NoticeStore 通知链路（按责任角色定向通知，不改数据模型）
+import { NoticeStore } from '../../../services/notice.js?v=20260910a';
+import { setState } from '../../../core/state.js?v=20260910a';
 import { openModal, closeModal } from '../../../components/modal.js?v=20260910a';
 
 // 生效强调色三件套（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
@@ -121,6 +124,136 @@ function bindTodoDetailExtras(container, api) {
       api.renderContent();
     });
   });
+  // 兜底直执白名单（2026-09-10 书记裁定）：①归档 ②复盘 补入口——书记/副书记可直接代执行（导航到承载位）
+  container.querySelector('.secretary-todo-detail-archive')?.addEventListener('click', () => _gotoArchiveTarget(api.selectedTodo));
+  container.querySelector('.secretary-todo-detail-review')?.addEventListener('click', () => _gotoReviewTarget(api.selectedTodo));
+}
+
+// ════════════════════════════════════════════════════════════════
+//  逐条催办（2026-09-10 书记裁定：书记/副书记待办页各域条目可催办责任人）
+//  · 责任人 = urgeRolesOf（services/todo.js 单一源）；无责任人或责任人即本人（书记/副书记）→ 隐藏
+//  · 动作：向责任角色发定向通知（复用 NoticeStore 通知链路）；无新持久字段，通知记录即留痕
+//  · 节流：会话内同 groupKey 冷却 5 分钟（按钮呈「已催办 hh:mm」禁用态），冷却后可再次催办
+// ════════════════════════════════════════════════════════════════
+const URGE_COOLDOWN_MS = 5 * 60 * 1000;
+const _urgeState = new Map(); // groupKey → 最近催办时间戳（会话内，不落库）
+const _SELF_URGE_ROLES = new Set(['secretary', 'deputy-secretary']);
+
+/** 当前用户是否为书记/副书记（本台两角色共用；显式自守防越权渲染） */
+function _canUrge() {
+  const me = AuthStore.getCurrentUser();
+  return !!me && _SELF_URGE_ROLES.has(me.role);
+}
+
+/** 责任角色（过滤「本人即书记/副书记」） */
+function _urgeRoles(group) {
+  return urgeRolesOf(group, { activities: loadActivities(), people: PersonStore.getAll() })
+    .filter(r => !_SELF_URGE_ROLES.has(r));
+}
+
+/** 催办入口状态：available=可催办（含再次催办）｜urged=冷却中（节流）｜null=不渲染 */
+function _urgeStateOf(group) {
+  if (!group || !group.groupKey || !_canUrge()) return null;
+  const roles = _urgeRoles(group);
+  if (!roles.length) return null; // 无责任人或责任人即本人 → 隐藏
+  const at = _urgeState.get(group.groupKey);
+  if (at && Date.now() - at < URGE_COOLDOWN_MS) {
+    return { state: 'urged', label: `已催办 ${_hhmm(at)}`, title: '催办冷却中（5 分钟后可再次催办）' };
+  }
+  return { state: 'available', label: at ? '再次催办' : '催办', title: `提醒责任人：${roles.map(r => ROLE_LABELS[r] || r).join('、')}` };
+}
+
+/** 催办动作：按责任角色发定向通知；成功后按钮转「已催办」态（会话内） */
+function _handleUrge(group, ctx) {
+  if (!group || !group.groupKey) return;
+  const at = _urgeState.get(group.groupKey);
+  if (at && Date.now() - at < URGE_COOLDOWN_MS) {
+    showToast('info', '该待办刚已催办，请稍后再试');
+    return;
+  }
+  const roles = _urgeRoles(group);
+  if (!roles.length) { showToast('info', '该待办无明确责任人，无法催办'); return; }
+  const targetModule = _urgeTargetModule(group);
+  for (const role of roles) {
+    NoticeStore.add({
+      title: '待办催办',
+      content: `书记提醒：「${group.title}」共 ${group.count || 1} 项待处理，请及时跟进。`,
+      priority: 'urgent',
+      targetModule,
+      actionable: true,
+      actionRoles: [role],
+      actionTask: group.title,
+    }, 'secretary'); // 副书同权：本台同权签发（NoticePermission 以书记台口径放行）
+  }
+  _urgeState.set(group.groupKey, Date.now());
+  showToast('success', `已向${roles.map(r => ROLE_LABELS[r] || r).join('、')}发送催办通知`);
+  renderContent(ctx);
+}
+
+/** 催办通知跳转目标模块（按责任域；目标角色经 resolveNoticeUrl 站内角色感知映射落地） */
+function _urgeTargetModule(group) {
+  const d = realtimeGroupDomainOf(group);
+  if (d === WORK_DOMAIN.ATTENDANCE) return 'attendance';
+  if (d === WORK_DOMAIN.INSPECTION || d === WORK_DOMAIN.MEMBER_DEV) return 'party';
+  if (d === WORK_DOMAIN.ACTIVITY || d === WORK_DOMAIN.MEETING) return 'activity';
+  return 'workspace';
+}
+
+/** 时间戳 → HH:MM */
+function _hhmm(ts) {
+  const d = new Date(ts);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  兜底直执（白名单：仅①归档 ②复盘；2026-09-10 书记裁定）
+//  点后直达承载位；本台无「宣传归档」独立 tab → 退化为活动管理定位该活动并给出目标提示。
+// ════════════════════════════════════════════════════════════════
+
+/** 组内首条对应的活动对象（归档/复盘缺口条目 = 活动） */
+function _firstActivityOf(group) {
+  const it = (group && Array.isArray(group.items) ? group.items[0] : null);
+  if (!it) return null;
+  const id = it.activityId || it.id;
+  return loadActivities().find(a => a.id === id) || null;
+}
+
+/** 切到本台 tab（存在才切；返回是否切换成功） */
+function _gotoSecretaryTab(tabId) {
+  const btn = document.querySelector(`.secretary-tab-btn[data-secretary-tab="${tabId}"]`);
+  if (btn) { btn.click(); return true; }
+  return false;
+}
+
+/** 活动管理定位：切 calendar + 选中该活动（state 变更触发含 latest appState 的重渲染 → inspector 打开该活动） */
+function _openActivityInCalendar(act) {
+  const id = act && act.id;
+  _gotoSecretaryTab('calendar');
+  if (id) {
+    const patch = { selectedActivityId: id, viewMode: 'detail' };
+    const month = String((act && act.date) || '').slice(0, 7);
+    if (month) patch.displayMonth = month;
+    setState(patch);
+  }
+}
+
+/** 代归档入口：优先本台归档位（若注册）；否则活动管理定位 + 目标提示 */
+function _gotoArchiveTarget(group) {
+  const act = _firstActivityOf(group);
+  if (_gotoSecretaryTab('archive')) {
+    showToast('info', `已跳转归档位，请完成代归档${act ? `：${act.title}` : ''}`);
+    return;
+  }
+  _openActivityInCalendar(act);
+  showToast('info', `已定位活动管理${act ? `：${act.title}` : ''}，请在活动详情完成归档（代归档）`);
+}
+
+/** 代提交复盘入口：活动管理定位该活动的复盘位 */
+function _gotoReviewTarget(group) {
+  const act = _firstActivityOf(group);
+  _openActivityInCalendar(act);
+  showToast('info', `已定位活动管理${act ? `：${act.title}` : ''}，请在活动详情「产出物区 · 复盘」完成代提交复盘`);
 }
 
 const _tab = createTodoTab({
@@ -128,6 +261,10 @@ const _tab = createTodoTab({
   prefix: 'secretary',
   role: 'secretary',
   onAction: (todo, ctx) => handleTodoAction(todo, ctx),
+  // 逐条催办（2026-09-10 书记裁定）：书记/副书记待办页各域条目（含实时组）可催办责任人；
+  // 按责任角色经 NoticeStore 发定向通知（无新数据字段，通知记录即留痕）；opt-in 传入壳/列表。
+  urgeStateOf: _urgeStateOf,
+  onUrgeTodo: _handleUrge,
   // IA-C1 Task4：实时组（书记派生/决议逾期/成员变更等）并入对应域折组
   buildRealtimeGroups: _buildRealtimeGroups,
   // 自定义详情（confirm/remind/成员确权逐项面板；种子行动类走内置概要）
@@ -222,6 +359,9 @@ function renderRemindDetail(group) {
     </div>
   `).join('');
   const more = items.length > 8 ? `<div class="text-xs text-gray-400">… 另有 ${items.length - 8} 项</div>` : '';
+  // 兜底直执白名单（2026-09-10 书记裁定）：归档缺口/复盘缺口详情补「代归档 / 代提交复盘」入口
+  const isArchiveGap = group.actionKey === 'archive-remind';
+  const isReviewGap = group.actionKey === 'review-remind';
   return `
     <div class="space-y-3">
       <div class="flex items-center gap-2">
@@ -234,8 +374,10 @@ function renderRemindDetail(group) {
         ${rows || '<div class="text-xs text-gray-400">暂无缺口</div>'}
         ${more}
       </div>
-      <div class="pt-3 border-t border-gray-100 flex gap-2">
+      <div class="pt-3 border-t border-gray-100 flex flex-wrap gap-2">
         <button class="secretary-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(_accentColors().accent, _accentColors().accentBorder)}">去活动管理</button>
+        ${isArchiveGap ? `<button type="button" class="secretary-todo-detail-archive text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">代归档</button>` : ''}
+        ${isReviewGap ? `<button type="button" class="secretary-todo-detail-review text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">代提交复盘</button>` : ''}
       </div>
     </div>
   `;

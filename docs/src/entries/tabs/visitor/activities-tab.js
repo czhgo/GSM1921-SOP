@@ -7,8 +7,44 @@ import { icon } from '../../../core/icons.js?v=20260910a';
 import { renderQueryView } from '../../../components/query-view.js?v=20260910a';
 import { flashHighlight } from '../../../core/utils.js?v=20260910a';
 import { getActivityTypeColors } from '../../../core/constants.js?v=20260910a';
+import { canSignup } from '../../../components/signup-panel.js?v=20260910a';
+import { AuthStore } from '../../../services/auth.js?v=20260910a';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
+
+// ③闭环样本1（2026-09-10）：活动列表/查询行补「去报名 / 去表态」明确入口——
+// 门槛沿用既有 signup/vote 规则（报名=canSignup；表态=voteConfig.mode==='async' 且本人属 voterIds），不新增权限。
+// 行本体仍为可点击 → 活动详情；入口按钮为同指向深链，1 次点击直达对应区块。
+function _actEntryHtml(a, href) {
+  const btns = [];
+  if (canSignup('activity', a)) {
+    btns.push(`<a href="${href}" class="text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-colors hover:opacity-90 flex-shrink-0" style="background:#CE1126;text-decoration:none;">去报名</a>`);
+  }
+  const me = AuthStore.getCurrentUser();
+  const voterIds = (a.voteConfig && Array.isArray(a.voteConfig.voterIds)) ? a.voteConfig.voterIds : [];
+  const hasVoteAgenda = Array.isArray(a.agenda) && a.agenda.some(x => x && x.id);
+  if (me && a.voteConfig?.mode === 'async' && hasVoteAgenda && voterIds.includes(me.personId)) {
+    btns.push(`<a href="${href}" class="text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors flex-shrink-0" style="text-decoration:none;">去表态</a>`);
+  }
+  return btns.length ? `<div class="flex items-center gap-1.5 flex-shrink-0">${btns.join('')}</div>` : '';
+}
+
+// 列表行（列表/查询共用；行内主区为可点击详情链接，行尾为报名/表态入口）
+function _activityRowHtml(a) {
+  const color = ACTIVITY_TYPE_COLORS[a.type || a.category] || { bg: '#F9FAFB', dot: '#6B7280' };
+  const href = `../activity.html?id=${a.id || ''}`;
+  return `
+    <div class="flex items-center gap-3 p-3 rounded-lg bg-white hover:bg-gray-50 hover:shadow-sm transition-all" data-visitor-act-id="${a.id || ''}">
+      <a href="${href}" class="flex items-center gap-3 flex-1 min-w-0" style="text-decoration:none;color:inherit;">
+        <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''}"></div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
+          <p class="text-xs text-gray-500 mt-0.5">${a.date || '待定'} · ${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
+        </div>
+      </a>
+      ${_actEntryHtml(a, href)}
+    </div>`;
+}
 
 // 活动动态列表分页（书记 2026-08-08 决策：活动页分页，每页 10 条）
 const ACTIVITY_PAGE_SIZE = 10;
@@ -78,18 +114,7 @@ function _renderActListView(sorted, highlightId) {
   vc.innerHTML = `
     <div class="space-y-2">
       ${sorted.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无活动</p>' :
-        pageItems.map(a => {
-          const color = ACTIVITY_TYPE_COLORS[a.type || a.category] || { bg: '#F9FAFB', dot: '#6B7280' };
-          return `
-            <a href="../activity.html?id=${a.id || ''}" class="flex items-center gap-3 p-3 rounded-lg bg-white hover:bg-gray-50 hover:shadow-sm transition-all cursor-pointer" data-visitor-act-id="${a.id || ''}">
-              <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''}"></div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
-                <p class="text-xs text-gray-500 mt-0.5">${a.date || '待定'} · ${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
-              </div>
-            </a>
-          `;
-        }).join('')}
+        pageItems.map(a => _activityRowHtml(a)).join('')}
     </div>
     ${totalPages > 1 ? `
       <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
@@ -189,18 +214,7 @@ function _renderActQueryView(sorted, highlightId) {
       { key: 'type', label: '活动类型', options: typeOptions },
     ],
     data: sorted,
-    renderRow: (a) => {
-      const color = ACTIVITY_TYPE_COLORS[a.type || a.category] || { bg: '#F9FAFB', dot: '#6B7280' };
-      return `
-        <a href="../activity.html?id=${a.id || ''}" class="flex items-center gap-3 p-3 rounded-lg bg-white hover:bg-gray-50 hover:shadow-sm transition-all cursor-pointer" data-visitor-act-id="${a.id || ''}">
-          <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''}"></div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
-            <p class="text-xs text-gray-500 mt-0.5">${a.date || '待定'} · ${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
-          </div>
-        </a>
-      `;
-    },
+    renderRow: (a) => _activityRowHtml(a),
     emptyMessage: '无匹配活动',
     sortKey: 'date',
     sortDir: 'desc',

@@ -16,8 +16,9 @@ import { flashHighlight } from '../core/utils.js?v=20260910a';
 import { CrossPageState } from '../core/cross-page-state.js?v=20260910a';
 import { getCapabilities } from '../core/registry.js?v=20260910a';
 import { loadWorkspaceData } from '../core/data-loader.js?v=20260910a';
-import { TodoStore } from '../services/todo.js?v=20260910a';
-import { AuthStore } from '../services/auth.js?v=20260910a';
+import { TodoStore } from '../services/todo.js?v=20260910a';
+import { AuthStore } from '../services/auth.js?v=20260910a';
+import { BranchService } from '../services/runtime.js?v=20260910a';
 import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260910a';
 // 设置中心批2（2026-09-09 书记批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
 import { applyPersonalTabOrder } from '../services/preferences.js?v=20260910a';
@@ -83,6 +84,16 @@ export async function createWorkspaceShell(opts) {
   let _highlightSel = null;      // 导航目标元素选择器（用于条件抑制判断）
   let _navSuppressUntil = 0;
 
+  // ── 时序修复（2026-09-10「归属显示不一致」；正确先例 settings-entry.js:1236-1244）──
+  // header 品牌标题经 getHeaderTitle 读 mockDB.branches；bootstrapPage 内 renderHeader 若先于
+  // 分支数据加载，登录人 h1 会落在「数据未加载」兜底名（T-075① 记录的坑）。
+  // 故先完成 BranchService.loadDB()（幂等：data-loader Step1 再调一次无副作用）再进入 bootstrapPage。
+  try {
+    if (typeof BranchService.loadDB === 'function') BranchService.loadDB();
+  } catch (e) {
+    console.warn('[ws-shell] loadDB 预加载失败，header 标题待数据到达后刷新', e);
+  }
+
   const { accent, accentRgba, accentBorder, user } = await bootstrapPage({ module: 'workspace', accentRole });
 
   // ── 立项⑦ B波：党委「进入支部（演示）」演示横幅（2026-09-06）──────────

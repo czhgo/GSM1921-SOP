@@ -15,7 +15,7 @@ import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260910a';
 import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260910a';
 import { MEMBER_OVERLAY_KEY } from '../../docs/src/services/person.js?v=20260910a';
 import {
-  getBoundBranch, getBranchIdOfPerson, getHeaderTitle, getBranchById, getCommitteeName,
+  getBoundBranch, getBranchIdOfPerson, getHeaderTitle, getBranchById, getCommitteeName, isLoaded,
 } from '../../docs/src/services/branch.js?v=20260910a';
 
 // ── localStorage 内存桩 + mock 适配器注册（people 为静态种子，读链即时可用）──
@@ -95,17 +95,23 @@ test('③ header：party-staff → 党委名；有归属 → config.headerTitle�
   assert.equal(getHeaderTitle('p_ghostbind'), '未绑定支部', 'branchId 查无 → 同为无归属中性占位');
 });
 
-test('③ header：未登录静态壳保持既有展示（数据解析兜底 br-b1 标题 / 无分支记录时末级兜底名）', () => {
+test('③ header：未登录/查无档案 → 中性占位「示例组织（未登录）」；数据未加载 → 静态兜底名', () => {
   beginMockCase();
   mockDB.branches = mockDB.branches.map(b => (b.id === 'br-b1'
     ? { ...b, config: { ...b.config, headerTitle: '页眉测试名' } }
     : b));
-  // 未登录（personId 缺省）：数据解析兜底 br-b1 → 其标题（静态壳既有显示，属换壳范围，不误报「未绑定」）
-  assert.equal(getHeaderTitle(), '页眉测试名');
-  assert.equal(getHeaderTitle('p_ghost'), '页眉测试名', 'personId 查无档案 → 同一数据解析兜底路径');
+  // 未登录（personId 缺省）/ 查无档案：中性占位——不再走 br-b1 数据解析兜底泄漏示例支部名
+  assert.equal(getHeaderTitle(), '示例组织（未登录）');
+  assert.equal(getHeaderTitle('p_ghost'), '示例组织（未登录）', 'personId 查无档案 → 同未登录中性占位');
 
-  // 数据层完全无分支记录（纯静态未加载数据链）：末级兜底名（示例名仅供静态展示，换壳范围注释在 branch.js）
+  // 登录人但分支数据尚未加载（loadDB 未完成，时序竞态）→ 静态兜底名，而非误报「未绑定支部」
   mockDB.branches = [];
-  assert.equal(getHeaderTitle(), '光华管理学院本科生党支部', '无分支记录 → 末级兜底（静态展示需要）');
-  assert.equal(getHeaderTitle('p13'), '未绑定支部', '登录成员在无支部数据时同样无归属 → 中性占位');
+  mockDB._loaded = false;
+  assert.equal(isLoaded(), false, 'loadDB 前 isLoaded=false（归属语境可区分数据未加载）');
+  assert.equal(getHeaderTitle('p13'), '光华管理学院本科生党支部', '登录人 + 数据未加载 → 静态兜底名（非「未绑定支部」）');
+
+  // 数据已加载但确无该支部：登录成员 → 真无归属中性占位；未登录 → 中性占位（不受加载态影响）
+  mockDB._loaded = true;
+  assert.equal(getHeaderTitle('p13'), '未绑定支部', '数据已加载（p13 归属支部不存在）→ 确无归属中性占位');
+  assert.equal(getHeaderTitle(), '示例组织（未登录）', '未登录 → 中性占位，不泄漏示例支部名');
 });

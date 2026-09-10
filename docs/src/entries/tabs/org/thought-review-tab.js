@@ -136,14 +136,12 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
           </div>`).join('');
 
     container.innerHTML = `
-      <div class="card rounded-xl px-4 py-3 mb-3">
-        <p class="text-xs text-gray-500">组织初阅把关：通过才正式归档；退回请附意见（提交者可见并可修改重交）。</p>
-      </div>
       <div class="card rounded-xl p-5">
-        <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center justify-between mb-1">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">待初阅队列</h3>
           <span class="text-xs text-gray-400">${queue.length} 篇 · 先到先阅</span>
         </div>
+        <p class="text-xs text-gray-500 mb-3">组织初阅把关：通过才正式归档；退回请附意见（提交者可见并可修改重交）。</p>
         <div class="space-y-2">${queueRowHtml}</div>
       </div>
       <div class="card rounded-xl p-5 mt-3">

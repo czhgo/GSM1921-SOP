@@ -26,6 +26,7 @@ import {
   WORK_DOMAIN, WORK_DOMAIN_LABELS, DOMAIN_ORDER,
   TodoStore, TodoCategory, TodoStatus,
   realtimeGroupDomainOf,
+  urgeRolesOf,
 } from '../../docs/src/services/todo.js?v=20260910a';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
@@ -297,4 +298,58 @@ test('⑥ 向后兼容：getGroupedByAction 平铺语义不变（完成态排除
   assert.equal(ag.items.length, 1);
   assert.equal(ag.items[0].id, c1.id);
   assert.ok(groups.every(g => g.items.every(t => t.status !== TodoStatus.COMPLETED)), '各组不含完成态');
+});
+
+// ═══════════════ ⑦ urgeRolesOf（催办责任人解析 · 2026-09-10） ═══════════════
+
+test('⑦ urgeRolesOf：持久化待办按 role；实时组静态映射/决议 owner/复盘组织者解析；无责任→空', () => {
+  // ① 持久化待办：条目自带 role（去重；书记本人返回 secretary，隐藏与否由调用方判定）
+  assert.deepEqual(
+    urgeRolesOf({ groupKey: 'prop-commissioner:activity-archive', actionKey: 'activity-archive', items: [{ id: 'a1', role: 'prop-commissioner' }, { id: 'a2', role: 'prop-commissioner' }] }),
+    ['prop-commissioner'], '持久化待办按条目 role 去重');
+  assert.deepEqual(
+    urgeRolesOf({ groupKey: 'secretary:authorize', actionKey: 'authorize', items: [{ id: 't1', role: 'secretary' }] }),
+    ['secretary'], '书记本人待办 → 返回 secretary（调用方按「本人」隐藏）');
+
+  // ② 实时派生组静态映射
+  assert.deepEqual(urgeRolesOf({ actionKey: 'attendance-remind', items: [] }), ['disc-commissioner']);
+  assert.deepEqual(urgeRolesOf({ actionKey: 'inspection-remind', items: [] }), ['disc-commissioner']);
+  assert.deepEqual(urgeRolesOf({ actionKey: 'archive-remind', items: [] }), ['prop-commissioner']);
+  assert.deepEqual(urgeRolesOf({ actionKey: 'semester-detained-remind', items: [] }), ['org-commissioner']);
+
+  // 复核类/成员确权（责任人=书记本人，不在表内）→ 空
+  assert.deepEqual(urgeRolesOf({ actionKey: 'attendance-confirm', items: [] }), []);
+  assert.deepEqual(urgeRolesOf({ actionKey: 'inspection-confirm', items: [] }), []);
+  assert.deepEqual(urgeRolesOf({ actionKey: 'review-confirm', items: [] }), []);
+  assert.deepEqual(urgeRolesOf({ actionKey: 'archive-confirm', items: [] }), []);
+  assert.deepEqual(urgeRolesOf({ actionKey: 'member-confirm', items: [] }), []);
+  assert.deepEqual(urgeRolesOf({ actionKey: 'resolution-followup-remind', items: [] }), [], '无 owner 明细 → 空');
+
+  // ③ 决议跟进：逐条 owner（role → 角色键；person → 成员角色；participant 跳过；去重）
+  const people = [
+    { id: 'p10', role: 'org-commissioner' },
+    { id: 'p3', role: 'participant' },
+    { id: 'p11', role: 'prop-commissioner' },
+  ];
+  const resRoles = urgeRolesOf({
+    actionKey: 'resolution-followup-remind',
+    items: [
+      { ownerType: 'role', ownerId: 'disc-commissioner' },
+      { ownerType: 'person', ownerId: 'p10' },
+      { ownerType: 'person', ownerId: 'p3' }, // 普通参与者无角色通知位 → 跳过
+      { ownerType: 'role', ownerId: 'disc-commissioner' }, // 去重
+    ],
+  }, { people });
+  assert.deepEqual(resRoles.sort(), ['disc-commissioner', 'org-commissioner']);
+
+  // ④ 复盘待提交：责任人为活动组织者（角色由成员数据解析；无对应成员跳过）
+  const activities = [{ id: 'act-1', organizer: 'p11' }, { id: 'act-2', organizer: 'pX' }];
+  assert.deepEqual(
+    urgeRolesOf({ actionKey: 'review-remind', items: [{ activityId: 'act-1' }, { activityId: 'act-2' }] }, { activities, people }),
+    ['prop-commissioner'], '组织者 pX 无对应成员 → 跳过');
+
+  // ⑤ 鲁棒：空/非法输入 → 空数组
+  assert.deepEqual(urgeRolesOf(null), []);
+  assert.deepEqual(urgeRolesOf(undefined), []);
+  assert.deepEqual(urgeRolesOf({ actionKey: 'unknown-x', items: [] }), []);
 });

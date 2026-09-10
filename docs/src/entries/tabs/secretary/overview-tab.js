@@ -13,7 +13,6 @@ import { NoticeStore } from '../../../services/notice.js?v=20260910a';
 import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260910a';
 import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260910a';
 import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260910a';
-import { badgeHtml } from '../../../components/badges.js?v=20260910a';
 // S1–S4 滞留党员设计（2026-09-06 书记已批）：书记复核卡（只读查看徽标/备注/变更留痕）
 import { getDetainedMembers, getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260910a';
 import { loadActivities } from '../../../services/activity.js?v=20260910a';
@@ -284,30 +283,30 @@ function renderDimensionView(container) {
   const { attendance, inspection, activity, propaganda } = data;
 
   // ════════════════════════════════════════════════════════════
-  //  管理科学·执行层仪表盘（书记 2026-08-08 重设计，替代原四卡鸡肋面板）
-  //  ① KPI 顶栏：数值 + 目标对比 + 达标状态（5 秒法则，首屏全见）
-  //  ② 出勤趋势：近 6 场活动出勤率 sparkline（趋势 + 最新值）
-  //  ③ 异常优先队列：按紧急度排序（超期>待处理>常规），各带负责人+直达
-  //  ④ 党员发展分布 + 一句话叙事（what changed and why）
+  //  管理科学·执行层仪表盘（书记 2026-08-08 重设计）
+  //  2026-09-10 书记裁定（卡片去留/合并）：取消 KPI 五连卡体系——
+  //   ① 必要指标（复盘问题/归档完成率/考察积压/待办异常）= 内联统计条（沿用活动管理内联条样式），
+  //      置于异常队列上方；不做出勤率 KPI（出勤数据改由 ③ 内联迷你趋势承载）。
+  //   ② 异常优先队列：按紧急度排序（超期>待处理>常规），各带负责人+直达；
+  //      出勤趋势 sparkline 内联于队列底部（近 6 场活动，含最新值），不新增出勤率指标卡。
+  //   ③ 党员发展阶段分布并入「滞留党员复核」卡（迷你比例条 + 图例）。
   //  数据源：SecretaryOverviewStore（与待办派生同源，不新增实体）
   // ════════════════════════════════════════════════════════════
 
-  const kpiStatusOf = (hit, ok = true) => hit ? 'ok' : ok ? 'warn' : 'danger';
-  const statusBadge = s => s === 'ok' ? badgeHtml('达标', 'success')
-    : s === 'warn' ? badgeHtml('欠佳', 'warning') : badgeHtml('风险', 'danger');
-  const barColor = s => s === 'ok' ? '#16A34A' : s === 'warn' ? '#D97706' : '#EF4444';
+  const metricStatusOf = (hit, ok = true) => hit ? 'ok' : ok ? 'warn' : 'danger';
+  const metricDot = s => s === 'ok' ? '#16A34A' : s === 'warn' ? '#D97706' : '#EF4444';
 
   // 待办异常总数（异常优先管理：目标 0）
   const anomalyTotal = attendance.makeupPending + inspection.pendingInspections
     + inspection.overdueInspections + activity.pendingAuth + propaganda.pendingArchive;
 
-  const kpis = [
-    { label: '本月出勤率', value: attendance.attendanceRate, unit: '%', target: '目标 ≥90%', status: kpiStatusOf(attendance.attendanceRate >= 90, attendance.attendanceRate >= 80), bar: true },
-    { label: '复盘问题', value: activity.reviewIssues, unit: '条', target: '真问题导向', status: activity.reviewIssues > 0 ? 'ok' : 'warn', bar: false },
-    { label: '归档完成率', value: propaganda.archiveRate, unit: '%', target: '目标 100%', status: kpiStatusOf(propaganda.archiveRate >= 100, propaganda.archiveRate >= 80), bar: true },
-    // 2026-08-10 书记裁定：考察积压/待办异常无既定目标值，不设虚假目标（状态由达标/欠佳/风险徽章表达）
-    { label: '考察积压', value: inspection.pendingInspections + inspection.overdueInspections, unit: '条', target: null, status: inspection.overdueInspections ? 'danger' : inspection.pendingInspections ? 'warn' : 'ok', bar: false },
-    { label: '待办异常', value: anomalyTotal, unit: '项', target: null, status: anomalyTotal ? 'danger' : 'ok', bar: false },
+  // 必要指标（取消 KPI 五连卡：只保留少量必要指标，数字内联呈现；status 以圆点色表达，目标/口径入 title）
+  const metrics = [
+    { label: '复盘问题', value: activity.reviewIssues, unit: '条', status: activity.reviewIssues > 0 ? 'ok' : 'warn', title: '真问题导向' },
+    { label: '归档完成率', value: propaganda.archiveRate, unit: '%', status: metricStatusOf(propaganda.archiveRate >= 100, propaganda.archiveRate >= 80), title: '目标 100%' },
+    // 2026-08-10 书记裁定：考察积压/待办异常无既定目标值，不设虚假目标（状态由圆点色表达）
+    { label: '考察积压', value: inspection.pendingInspections + inspection.overdueInspections, unit: '条', status: inspection.overdueInspections ? 'danger' : inspection.pendingInspections ? 'warn' : 'ok', title: '待确认 + 超期' },
+    { label: '待办异常', value: anomalyTotal, unit: '项', status: anomalyTotal ? 'danger' : 'ok', title: '异常优先管理 · 目标 0' },
   ];
 
   // 出勤趋势（近 6 场有考勤记录的活动）
@@ -365,61 +364,36 @@ function renderDimensionView(container) {
 
   container.innerHTML = `
     <div class="space-y-4">
-      <!-- KPI 顶栏 -->
-      <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        ${kpis.map(k => `
-          <div class="card rounded-xl p-4">
-            <div class="flex items-center justify-between mb-1.5">
-              <span class="text-xs text-gray-500">${k.label}</span>
-              ${statusBadge(k.status)}
-            </div>
-            <div class="text-2xl font-bold text-gray-800 leading-none">${k.value}<span class="text-xs text-gray-400 font-normal ml-1">${k.unit}</span></div>
-            ${k.target ? `<div class="text-xs text-gray-400 mt-1.5">${k.target}</div>` : ''}
-            ${k.bar ? `
-              <div class="mt-2 h-1.5 rounded-full bg-neutral-100 overflow-hidden">
-                <div class="h-1.5 rounded-full transition-all duration-500" style="width:${Math.min(k.value, 100)}%;background:${barColor(k.status)};"></div>
-              </div>` : ''}
-          </div>
+      <!-- 必要指标内联统计条（取消 KPI 五连卡；不出勤率 KPI） -->
+      <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500 py-2 border-b border-gray-100">
+        ${metrics.map(m => `
+          <span class="inline-flex items-center gap-1.5" title="${esc(m.title)}">
+            <span class="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${metricDot(m.status)};"></span>
+            <span class="font-semibold text-gray-700 tabular-nums">${m.value}</span>
+            <span>${m.label}（${m.unit}）</span>
+          </span>
         `).join('')}
       </div>
 
-      <!-- 出勤趋势 -->
-      <div class="card rounded-xl p-4">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-sm font-medium text-gray-700">近 6 场活动出勤率</span>
-          ${trend.length ? `<span class="text-xs text-gray-400">最新一场 ${trend[trend.length - 1].rate}%</span>` : ''}
-        </div>
-        ${_sparkline(trend)}
-      </div>
-
-      <!-- 异常优先队列 -->
+      <!-- 异常优先队列（出勤迷你趋势内联于队列底部） -->
       <div class="card rounded-xl p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">异常优先队列</h4>
           <span class="text-xs text-gray-400">按紧急度排序 · ${exceptions.length + pendingDispatches.length} 项</span>
         </div>
         <div class="space-y-1.5">${exceptionsHtml}</div>
-      </div>
-
-      <!-- 党员发展分布 -->
-      <div class="card rounded-xl p-4">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">党员发展阶段分布</h4>
-        <div class="flex items-center gap-3">
-          <div class="flex-1 h-2 rounded-full bg-neutral-100 overflow-hidden flex">
-            ${stages.map(s => s.value > 0 ? `<div style="width:${(s.value / stageTotal * 100).toFixed(1)}%;background:${s.color};" title="${s.label} ${s.value}人"></div>` : '').join('')}
+        <!-- 出勤迷你趋势（近 6 场活动出勤率；不并入 KPI、不新增出勤率指标卡） -->
+        <div class="mt-3 pt-3 border-t border-gray-100">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs text-gray-500">近 6 场活动出勤率</span>
+            ${trend.length ? `<span class="text-xs text-gray-400">最新一场 ${trend[trend.length - 1].rate}%</span>` : ''}
           </div>
-          <div class="flex items-center gap-2.5 flex-wrap justify-end">
-            ${stages.map(s => `
-              <span class="inline-flex items-center gap-1 text-xs text-gray-600">
-                <span class="w-2 h-2 rounded-full" style="background:${s.color};"></span>${s.label} ${s.value}
-              </span>
-            `).join('')}
-          </div>
+          ${_sparkline(trend)}
         </div>
       </div>
 
-      <!-- S1–S4 滞留党员复核（书记只读复核：徽标 / 备注 / 变更留痕） -->
-      ${_renderDetainedReviewCard()}
+      <!-- S1–S4 滞留党员复核（并入党员发展阶段分布；只读复核：徽标 / 备注 / 变更留痕） -->
+      ${_renderDetainedReviewCard(stages, stageTotal)}
     </div>
   `;
 
@@ -445,10 +419,27 @@ function renderDimensionView(container) {
   });
 }
 
-/** 滞留党员复核卡（书记只读复核：徽标/备注/变更留痕；维护位 = 组织委员「人才库」成员档案） */
-function _renderDetainedReviewCard() {
+/** 滞留党员复核卡（书记只读复核：徽标/备注/变更留痕；维护位 = 组织委员「人才库」成员档案）
+ *  2026-09-10 书记裁定：「党员发展阶段分布」并入本卡，作为迷你比例条 + 图例字段（原独立分布卡取消）。 */
+function _renderDetainedReviewCard(stages = [], stageTotal = 1) {
   const stats = getRosterStats({ type: '支部党员大会' }); // 支部大会口径 = 三会+党课统一口径
   const detained = getDetainedMembers();
+  const stageBar = stages.length ? `
+        <div class="mb-3">
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-gray-500 flex-shrink-0">发展阶段分布</span>
+            <div class="flex-1 h-2 rounded-full bg-neutral-100 overflow-hidden flex">
+              ${stages.map(s => s.value > 0 ? `<div style="width:${(s.value / stageTotal * 100).toFixed(1)}%;background:${s.color};" title="${s.label} ${s.value}人"></div>` : '').join('')}
+            </div>
+          </div>
+          <div class="flex items-center gap-2.5 flex-wrap justify-end mt-1.5">
+            ${stages.map(s => `
+              <span class="inline-flex items-center gap-1 text-xs text-gray-600">
+                <span class="w-2 h-2 rounded-full" style="background:${s.color};"></span>${s.label} ${s.value}
+              </span>
+            `).join('')}
+          </div>
+        </div>` : '';
   const rowsHtml = detained.length === 0
     ? `<div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
          <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 无滞留党员
@@ -478,6 +469,7 @@ function _renderDetainedReviewCard() {
         <span class="text-xs text-gray-400">会议应到 ${stats.expected} 人 = 在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}</span>
       </div>
       <p class="text-xs text-gray-500 mb-2">滞留 = 组织关系保留但人不在校、不参加日常会议 → 成员身份保留、应到剔除、通知照发。维护位：组织委员「人才库」成员档案；本卡只读复核（留痕随组织委员维护自动追加）。</p>
+      ${stageBar}
       ${rowsHtml}
     </div>`;
 }

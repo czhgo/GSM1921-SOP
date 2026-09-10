@@ -23,6 +23,16 @@ import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitia
 import { renderTaskforceList } from '../components/dashboard/taskforce-list.js?v=20260910a';
 import { renderGallery } from '../components/dashboard/gallery.js?v=20260910a';
 
+// ── 时序修复（2026-09-10「归属显示不一致」；正确先例 settings-entry.js:1236-1244）──
+// header 品牌标题经 getHeaderTitle 读 mockDB.branches，必须先完成 BranchService.loadDB()
+// 再进 bootstrapPage（其内 renderHeader），否则首页首帧 h1 落在「数据未加载」兜底名。
+// loadDB 幂等（下方 loadWorkspaceData Step1 再调一次无副作用）。
+try {
+  BranchService.loadDB();
+} catch (e) {
+  console.warn('[main] loadDB 预加载失败，header 标题待数据到达后刷新', e);
+}
+
 const { user } = await bootstrapPage({ module: 'dashboard' });
 
 // 根据用户角色更新 dashboard 中的 workspace 链接

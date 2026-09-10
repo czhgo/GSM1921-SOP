@@ -10,7 +10,6 @@ import { NoticeStore } from '../../../services/notice.js?v=20260910a';
 import { persist } from '../../../core/data-adapter.js?v=20260910a';
 import { showToast } from '../../../core/utils.js?v=20260910a';
 import { setState } from '../../../core/state.js?v=20260910a';
-import { getPersonName } from '../../../services/person.js?v=20260910a';
 
 export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');
@@ -33,17 +32,17 @@ export function renderContent(ctx) {
   // 合并待启动：活动 + 专班（T223 桶内新者在前）
   const pending = [
     ...pendingActs.map(a => ({ _type: 'activity', ...a })),
-    ...pendingTf.map(t => ({ _type: 'taskforce', id: t.id, title: t.name, date: t.deadline || t.createdAt, type: '专班', status: t.status, task: t.task, capacity: t.capacity, filled: t.members.filter(m => m.personId).length })),
+    ...pendingTf.map(t => ({ _type: 'taskforce', id: t.id, title: t.name, date: t.deadline || t.createdAt, type: '专班', status: t.status, task: t.task, capacity: t.capacity, filled: t.members.filter(m => m.personId).length, contributions: t.members.reduce((s, m) => s + ((m.contributions || []).length), 0) })),
   ].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   // 合并进行中：活动 + 专班（T223 桶内新者在前）
   const active = [
     ...activeActs.map(a => ({ _type: 'activity', ...a })),
-    ...activeTf.map(t => ({ _type: 'taskforce', id: t.id, title: t.name, date: t.deadline || t.createdAt, type: '专班', status: t.status, task: t.task, capacity: t.capacity, filled: t.members.filter(m => m.personId).length })),
+    ...activeTf.map(t => ({ _type: 'taskforce', id: t.id, title: t.name, date: t.deadline || t.createdAt, type: '专班', status: t.status, task: t.task, capacity: t.capacity, filled: t.members.filter(m => m.personId).length, contributions: t.members.reduce((s, m) => s + ((m.contributions || []).length), 0) })),
   ].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   // 合并已归档：活动 + 专班（T223 桶内新者在前）
   const completed = [
     ...completedActs.map(a => ({ _type: 'activity', ...a })),
-    ...completedTf.map(t => ({ _type: 'taskforce', id: t.id, title: t.name, date: t.deadline || t.createdAt, type: '专班', status: t.status, task: t.task, capacity: t.capacity, filled: t.members.filter(m => m.personId).length })),
+    ...completedTf.map(t => ({ _type: 'taskforce', id: t.id, title: t.name, date: t.deadline || t.createdAt, type: '专班', status: t.status, task: t.task, capacity: t.capacity, filled: t.members.filter(m => m.personId).length, contributions: t.members.reduce((s, m) => s + ((m.contributions || []).length), 0) })),
   ].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   container.innerHTML = `
@@ -70,8 +69,19 @@ export function renderContent(ctx) {
         ${completed.map(item => _renderKanbanItem(item)).join('')}
       </div>
     </details>` : ''}
-    ${_renderWorkloadBlock(propTf)}
   `;
+
+  // ── 看板条目跳转详情（活动→activity.html / 专班→taskforce.html；完成/归档钮已在卡内 stopPropagation） ──
+  const _detailBase = window.location.pathname.includes('/workspace/') ? '../' : '';
+  container.querySelectorAll('.kanban-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = card.dataset.ki;
+      if (!id) return;
+      window.location.href = card.dataset.kt === 'taskforce'
+        ? `${_detailBase}taskforce.html?id=${id}`
+        : `${_detailBase}activity.html?id=${id}`;
+    });
+  });
 
   // ── "确认完成"按钮事件绑定 ──
   container.querySelectorAll('.activity-complete-btn').forEach(btn => {
@@ -118,7 +128,7 @@ function _renderKanbanItem(item, showCompleteBtn = false) {
     ? badgeHtml('专班', 'success')
     : (item.type ? badgeHtml(item.type, 'info') : '');
   const subInfo = isTf
-    ? `<span class="text-xs text-gray-400">${item.filled}/${item.capacity} 人</span>`
+    ? `<span class="text-xs text-gray-400">${item.filled}/${item.capacity} 人 × ${item.contributions} 产出</span>`
     : '';
   const completeBtn = showCompleteBtn
     ? (isTf
@@ -135,41 +145,4 @@ function _renderKanbanItem(item, showCompleteBtn = false) {
       ${isTf && item.task ? `<div class="text-[12px] text-gray-400 mt-0.5 line-clamp-1">${item.task}</div>` : ''}
       ${completeBtn}
     </div>`;
-}
-
-// ── 专班工作量区块（融入项目看板 tab 底部） ──
-function _renderWorkloadBlock(propTf) {
-  const workloadMap = {};
-  propTf.forEach(tf => {
-    tf.members.forEach(m => {
-      if (!m.personId) return;
-      if (!workloadMap[m.personId]) workloadMap[m.personId] = { personId: m.personId, contributions: 0, tfCount: 0, roles: new Set() };
-      workloadMap[m.personId].contributions += (m.contributions || []).length;
-      workloadMap[m.personId].tfCount += 1;
-      workloadMap[m.personId].roles.add(m.role);
-    });
-  });
-  const members = Object.values(workloadMap);
-
-  return `
-    <div class="card rounded-xl p-5 mt-4">
-      <div class="flex items-center gap-2 mb-3">
-        <h4 class="text-sm font-bold text-gray-700">专班工作量</h4>
-        ${badgeHtml(`${propTf.length} 个专班`, 'warning')}
-      </div>
-      ${members.length === 0 ? '<p class="text-xs text-gray-400">暂无宣传专班成员数据</p>' :
-        `<div class="space-y-2">${members.map(m => `
-          <div class="flex items-center justify-between p-2 rounded-lg bg-white">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-medium text-gray-700">${getPersonName(m.personId)}</span>
-              <span class="text-xs text-gray-400">${Array.from(m.roles).join('·')}</span>
-            </div>
-            <div class="flex items-center gap-3 text-xs text-gray-500">
-              <span>${m.contributions} 产出</span>
-              <span>${m.tfCount} 专班</span>
-            </div>
-          </div>
-        `).join('')}</div>`}
-    </div>
-  `;
 }

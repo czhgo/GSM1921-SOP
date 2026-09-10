@@ -325,7 +325,7 @@ function _buildOutputsSectionHTML(activity) {
       : badgeHtml(review.reviewStatus || '待处理', 'warning'));
 
   return `
-    <div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3">
+    <div class="mb-3 card rounded-xl p-3">
       <div class="flex items-center justify-between mb-1.5">
         <p class="text-xs text-gray-400">产出物</p>
         <span class="text-[11px] text-gray-300">投递去向由类型自动确定</span>
@@ -445,7 +445,7 @@ function _agendaTypeBadges(a) {
   if (isKind('discussion-file')) {
     const doc = (mockDB.branchDocs || []).find(d => d.id === a.branchDocId);
     const docLabel = doc ? (doc.title || doc.fileName || '未命名草案') : '（草案已删除）';
-    badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium text-amber-700 bg-amber-50">讨论文件：${docLabel}</span>`);
+    badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-amber-700 bg-amber-50">讨论文件：${docLabel}</span>`);
   }
   if (isKind('attendee-list') || isKind('member-change')) {
     const personIds = Array.isArray(a.personIds) ? a.personIds : (a.personId ? [a.personId] : []);
@@ -454,7 +454,7 @@ function _agendaTypeBadges(a) {
     const label = personIds.length > 0
       ? `待讨论名单：${personIds.length} 名${target}`
       : `待讨论名单${target}`;
-    badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium text-blue-700 bg-blue-50">${label}</span>`);
+    badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-blue-700 bg-blue-50">${label}</span>`);
   }
   return badges.join('');
 }
@@ -647,32 +647,35 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   if (dimParts.length) infoRows.push({ label: '活动维度', value: dimParts.join(' · ') });
 
   if (infoRows.length) {
-    html += '<div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3 space-y-1">';
+    html += '<div class="mb-3 card rounded-xl p-3 space-y-1">';
     infoRows.forEach(r => {
       html += `<div class="flex items-start gap-2 text-xs"><span class="text-gray-400 flex-shrink-0 w-14">${r.label}</span><span class="text-gray-700">${r.value}</span></div>`;
     });
     html += '</div>';
   }
   if (activity.description) {
-    html += `<div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3"><p class="text-xs text-gray-400 mb-1">活动详情</p><p class="text-xs text-gray-700 leading-relaxed">${activity.description}</p></div>`;
+    html += `<div class="mb-3 card rounded-xl p-3"><p class="text-xs text-gray-400 mb-1">活动详情</p><p class="text-xs text-gray-700 leading-relaxed">${activity.description}</p></div>`;
   }
 
   // ── 会议议程（T-283：三会一课；显示 + 书记行内编辑；2026-09-01：类型徽章 + 结果记录）──
+  // 副书同权（2026-09-10 修复）：议程编辑/结果记录对副书记放开——依据
+  // content/02_institution/SYSTEM_ROLE_PERMISSION.md:141「副书同权」（书记/副书记共用书记工作台，
+  // 见 constants.js ROLE_PAGE_MAP secretary→secretary.html）；仅此区块，范围不外扩。
   if (Array.isArray(activity.agenda) && activity.agenda.length > 0) {
-    html += '<div class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3" id="agenda-block">';
+    html += '<div class="mb-3 card rounded-xl p-3" id="agenda-block">';
     html += '<div class="flex items-center justify-between mb-1.5">';
     html += '<p class="text-xs text-gray-400">会议议程</p>';
-    if (isSecretary && !isArchived) {
+    if (isSecretaryOrDeputy && !isArchived) {
       html += '<button id="inspector-agenda-edit-btn" class="text-xs text-blue-600 hover:text-blue-800 transition-colors" style="background:none;border:none;cursor:pointer;padding:0;">编辑议程</button>';
     }
     html += '</div>';
     html += '<ol class="space-y-1.5">';
     activity.agenda.forEach((a, i) => {
-      const canRecord = isSecretary && !isArchived && !a.result && !!a.id;
+      const canRecord = isSecretaryOrDeputy && !isArchived && !a.result && !!a.id;
       const typeBadges = _agendaTypeBadges(a);
       const meta = AGENDA_RESULT_META[a.result];
       const resultBadge = meta
-        ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${meta.cls}">${meta.label}</span>`
+        ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium ${meta.cls}">${meta.label}</span>`
         : '';
       const recordInfo = a.recordedBy ? ` · 记录：${getPersonById(a.recordedBy)?.name || a.recordedBy}${a.recordedAt ? ' ' + String(a.recordedAt).slice(0, 10) : ''}` : '';
       // S-1：逐人结果议程（待讨论名单）→ 提供逐人「通过/未通过」勾选（未通过留痕 → 见下方只读留痕）
@@ -686,7 +689,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
         : '';
       const personPanel = (canRecord && perPerson) ? `
         <div class="mt-1.5 rounded-lg border border-gray-100 bg-white p-2 space-y-1" data-agenda-person-results="${a.id}">
-          <p class="text-[10px] text-gray-400">逐人结果（默认通过；取消勾选即未通过，可填备注）</p>
+          <p class="text-[11px] text-gray-400">逐人结果（默认通过；取消勾选即未通过，可填备注）</p>
           ${personIds.map(pid => `
             <label class="flex items-center gap-1.5 text-[11px]">
               <input type="checkbox" class="ap-pass shrink-0" data-person-id="${esc(pid)}" checked style="cursor:pointer;">
@@ -1097,7 +1100,7 @@ function _startAgendaEdit(activity, cardsEl, tasks, managementRole) {
             <input type="text" class="agenda-edit-host input-flat w-24 text-xs" value="${a.host}" placeholder="主持人">
             <button type="button" class="agenda-edit-del text-gray-300 hover:text-red-500 text-sm px-1 shrink-0" style="cursor:pointer;" title="删除该议程（连同其讨论文件/待讨论名单配置）">✕</button>
           </div>
-          ${_hasStructuredCfg(a) ? '<div class="agenda-edit-ext text-[10px] text-amber-700 pl-1 mt-0.5 leading-snug" title="该议程的讨论文件/待讨论名单配置及已记录结果将原样保留，本次仅可修改议题/主持人文本">该议程含讨论文件/待讨论名单配置，将原样保留</div>' : ''}
+          ${_hasStructuredCfg(a) ? '<div class="agenda-edit-ext text-[11px] text-amber-700 pl-1 mt-0.5 leading-snug" title="该议程的讨论文件/待讨论名单配置及已记录结果将原样保留，本次仅可修改议题/主持人文本">该议程含讨论文件/待讨论名单配置，将原样保留</div>' : ''}
         </div>`).join('');
       list.querySelectorAll('.agenda-edit-del').forEach((btn) => {
         btn.addEventListener('click', () => {

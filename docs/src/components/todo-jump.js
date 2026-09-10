@@ -23,5 +23,19 @@ export function tryDirectJump(todo) {
       return true;
     }
   }
+  // 成员「参与」待办（③闭环样本1，2026-09-10）：直达活动/专班详情页，而非只切到活动动态列表
+  // （聚合组取首条 sourceId；actionData.activityId/taskforceId 兜底；无法定位源时落回调用方 tab 降级）
+  if (todo.actionKey === 'participate' || todo.actionType === 'participate') {
+    const first = (todo.items && todo.items[0]) || todo;
+    const srcId = first.sourceId
+      || (first.actionData && (first.actionData.activityId || first.actionData.taskforceId))
+      || (todo.actionData && (todo.actionData.activityId || todo.actionData.taskforceId));
+    if (srcId) {
+      const base = window.location.pathname.includes('/workspace/') ? '../' : '';
+      const page = srcId.startsWith('tf-') ? 'taskforce.html' : 'activity.html';
+      window.location.href = `${base}${page}?id=${srcId}`;
+      return true;
+    }
+  }
   return false;
 }

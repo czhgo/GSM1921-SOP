@@ -378,7 +378,8 @@ function renderHero() {
       <canvas class="ab-particle-canvas" aria-hidden="true"></canvas>
       <div class="ab-hero-inner">
         <h1 class="ab-hero-title">从入党申请人<br/>到正式党员</h1>
-        <p class="ab-hero-subtitle">光华管理学院本科生党支部</p>
+        <p class="ab-hero-subtitle">以示例组织（光华管理学院本科生党支部）为例</p>
+        <p class="ab-hero-subtitle" style="letter-spacing:0.02em;font-size:clamp(13px,1.5vw,15px);line-height:1.9;margin:14px auto 0;max-width:600px;">本系统面向各类党支部与学生组织——每个组织可部署自己的实例（自有名称、人员、制度、配色与数据）；当前页面展示的是<strong>示例组织</strong>的一套部署。</p>
         <div class="ab-hero-rule"></div>
         <div class="ab-hero-scroll-hint" aria-hidden="true">
           <span class="ab-scroll-text">向下滚动</span>

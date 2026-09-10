@@ -26,6 +26,18 @@ await p.evaluate(async () => {
   // 版本串与全库一致（20260901c）：import 页面主模块实例（不一致会注入孤儿实例，页面读不到）
   const { mockDB } = await import('/src/core/domain.js?v=20260910a');
   const { persist } = await import('/src/core/data-adapter.js?v=20260910a');
+  const { loadAttendanceRecords, saveAttendanceRecords } = await import('/src/services/attendance.js?v=20260910a');
+  // R-5 测试隔离（自重置前置态）：把 att38 回「未补课/逾期」初态，使回写分支每次都真实执行。
+  // 不依赖共享 data.db 上一轮残留——上轮已 made_up 时回写会被服务端守卫短路（rec.status 非
+  // ABSENT/LEAVE），断言退化为恒真；loadAttendanceRecords 在库为空时回退演示种子，保证可重置。
+  const records = loadAttendanceRecords();
+  const att = records.find(r => r.id === 'att38');
+  if (att) {
+    att.status = 'absent';
+    att.overdue = true; // 前置为逾期 → 回写后必须清除（保持「overdue 清除」断言的回归检出力）
+    delete att.madeUpAt;
+    saveAttendanceRecords(records);
+  }
   mockDB.makeupTasks = (mockDB.makeupTasks || []).filter(t => t.id !== 'mk_b31_test');
   mockDB.makeupTasks.push({
     id: 'mk_b31_test',
@@ -41,8 +53,7 @@ await p.evaluate(async () => {
     createdAt: new Date().toISOString(),
   });
   persist();
-  // 确认 att38 当前状态为 absent
-  const att = mockDB.attendances.find(r => r.id === 'att38');
+  // 确认 att38 当前状态已复位为 absent
   return att ? att.status : 'missing';
 });
 // 重载使补课 tab 读到注入任务

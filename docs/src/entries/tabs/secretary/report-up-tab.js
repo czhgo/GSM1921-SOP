@@ -34,13 +34,14 @@ export function renderContent() {
   if (tc.dataset.currentTab !== 'report-up') {
     tc.innerHTML = `
       <div class="space-y-4">
+        <!-- 统计条（页首内联一行：待批复/已批准/已驳回；沿用活动管理内联统计条样式） -->
+        <div id="rq-stats" class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500 py-2 border-b border-gray-100"></div>
         <div class="rounded-lg border border-gray-200 bg-white p-4 flex items-center justify-between gap-3">
           <div class="min-w-0">
             <p class="font-title-cn text-base font-bold text-gray-800">上报党委</p>
           </div>
           <button id="rq-submit-toggle" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" style="background:#C8102E;">+ 发起上报</button>
         </div>
-        <div id="rq-stats" class="grid grid-cols-3 gap-3"></div>
         <div id="rq-form-wrap" class="hidden rounded-lg border border-gray-200 bg-white p-4"></div>
         <div id="rq-list" class="space-y-3"></div>
       </div>`;
@@ -54,21 +55,22 @@ export function renderContent() {
   renderList(tc, branchId);
 }
 
-/** 统计卡：待批复/已批准/已驳回 */
+/** 统计条（页首内联一行）：待党委批复/已批准/已驳回 */
 function refreshStats(tc, branchId) {
   const rows = listReviewRequests({ branchId });
   const n = s => rows.filter(r => r.status === s).length;
   const stats = tc.querySelector('#rq-stats');
   if (!stats) return;
   stats.innerHTML = [
-    { v: n('pending'), l: '待党委批复', c: 'text-amber-600' },
-    { v: n('approved'), l: '已批准', c: 'text-green-600' },
-    { v: n('rejected'), l: '已驳回', c: 'text-gray-500' },
+    { v: n('pending'), l: '待党委批复', c: '#D97706' },
+    { v: n('approved'), l: '已批准', c: '#16A34A' },
+    { v: n('rejected'), l: '已驳回', c: '#6B7280' },
   ].map(x => `
-    <div class="rounded-lg border border-gray-200 bg-white p-3 text-center">
-      <p class="text-2xl font-bold ${x.c}">${x.v}</p>
-      <p class="text-xs text-gray-400 mt-0.5">${x.l}</p>
-    </div>`).join('');
+    <span class="inline-flex items-center gap-1.5">
+      <span class="inline-block w-1.5 h-1.5 rounded-full" style="background:${x.c};"></span>
+      <span class="font-semibold text-gray-700 tabular-nums">${x.v}</span>
+      <span>${x.l}</span>
+    </span>`).join('');
 }
 
 /** 发起上报表单（toggle 展开时构建，重绘不覆盖正在填写的表单） */

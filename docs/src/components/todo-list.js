@@ -34,6 +34,10 @@ import { isTodoExpired } from '../services/todo.js?v=20260910a';
  * @param {Function} [opts.onSelectTodo]— 点击组行回调 (group) => void（进详情）
  * @param {Function} [opts.onActionTodo]— 行动按钮回调 (group) => void
  * @param {Function|null} [opts.onDeleteTodo] — 删除组回调（null=不渲染删除键；实时组台禁用）
+ * @param {(group:Object)=>({state:'available'|'urged',label:string,title?:string}|null)} [opts.urgeStateOf]
+ *        — 催办入口状态解析（2026-09-10 书记/副书记待办页逐条催办）：返回 null 不渲染；
+ *          仅书记台传入（opt-in），其余工作台缺省 undefined → 无催办入口。
+ * @param {(group:Object)=>void} [opts.onUrgeTodo] — 催办按钮回调
  * @param {string} [opts.actionBtnStyle]— 行动按钮自定义内联样式（visitor 金色系）
  * @param {string} [opts.emptyHint]     — 空态引导文案
  * @returns {{ html: string, bindEvents: (container: HTMLElement) => void }}
@@ -47,6 +51,8 @@ export function renderDomainTodoList(opts) {
     onSelectTodo = () => {},
     onActionTodo = () => {},
     onDeleteTodo = null,
+    urgeStateOf = null,
+    onUrgeTodo = null,
     actionBtnStyle = '',
     emptyHint = '当前暂无待办。有新的活动、通知或待审事项时，会第一时间出现在这里。',
   } = opts;
@@ -71,7 +77,7 @@ export function renderDomainTodoList(opts) {
     // （勾选批量与逐项详情并行：组行点击仍进详情逐项确认/退回，bulk 块负责批量确认/通过）。
     const itemsHtml = (domain.groups || [])
       .map(g => {
-        const row = _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo);
+        const row = _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo, urgeStateOf);
         return g.bulkHtml
           ? `${row}<div class="${prefix}-todo-bulk rounded-b-lg bg-gray-50/40 border-t border-gray-50">${g.bulkHtml}</div>`
           : row;
@@ -152,6 +158,18 @@ export function renderDomainTodoList(opts) {
         });
       });
     }
+
+    // 催办入口（书记/副书记待办页逐条催办；opt-in——未传 onUrgeTodo 不渲染）
+    if (typeof onUrgeTodo === 'function') {
+      container.querySelectorAll(`.${prefix}-todo-urge-btn[data-group-key]`).forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (btn.disabled) return;
+          const g = _findGroupInDomains(list, btn.dataset.groupKey);
+          if (g) onUrgeTodo(g);
+        });
+      });
+    }
   }
 
   return { html, bindEvents };
@@ -167,7 +185,7 @@ function _findGroupInDomains(domains, groupKey) {
 }
 
 // ── 渲染单个聚合卡（同跳转目标合并，数量角标 + 处理按钮）──
-function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo) {
+function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo, urgeStateOf) {
   const isSelected = g.groupKey === selectedTodoId;
   const hasExpired = g.items.some(t => isTodoExpired(t, today));
 
@@ -199,6 +217,11 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
   };
   const actionLabel = actionLabels[g.actionKey] || actionLabels[g.actionType] || '处理';
 
+  // 催办入口状态（书记/副书记待办页；urgeStateOf 缺省 → 不渲染）
+  const urge = typeof urgeStateOf === 'function' ? urgeStateOf(g) : null;
+  const urgeBtn = urge ? `
+        <button type="button" class="${prefix}-todo-urge-btn text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${urge.state === 'urged' ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}" data-group-key="${g.groupKey}" ${urge.state === 'urged' ? 'disabled' : ''} title="${urge.title || '催办责任人'}" style="cursor:${urge.state === 'urged' ? 'not-allowed' : 'pointer'};">${urge.label}</button>` : '';
+
   return `
     <div class="${prefix}-todo-item flex items-center border-b border-gray-50 last:border-b-0" data-group-key="${g.groupKey}">
       <button type="button" class="${prefix}-todo-item-main flex-1 min-w-0 flex items-center gap-2 px-3 py-2.5 text-left bg-transparent border-0 transition-colors hover:bg-gray-50 ${isSelected ? 'bg-gray-50' : ''}" data-group-key="${g.groupKey}">
@@ -215,6 +238,7 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
         </span>
       </button>
       <div class="flex items-center gap-1.5 ml-2 pr-3 flex-shrink-0">
+        ${urgeBtn}
         ${g.hideActionBtn ? '' : `<button type="button" class="${prefix}-todo-action-btn text-xs px-3 py-1.5 rounded-lg transition-colors hover:opacity-90" data-group-key="${g.groupKey}" style="${actionBtnStyle || solidAccentStyle(accent)}">${actionLabel}</button>`}
         ${onDeleteTodo ? `<button type="button" class="${prefix}-todo-del-btn text-xs text-gray-300 hover:text-red-500 px-1.5 py-1 rounded hover:bg-red-50 transition-colors" data-group-key="${g.groupKey}" title="删除该组待办" style="cursor:pointer;">✕</button>` : ''}
       </div>

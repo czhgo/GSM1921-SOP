@@ -13,7 +13,7 @@ import { PersonStore } from '../../../services/person.js?v=20260910a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 import { getResidenceOf, RESIDENCE } from '../../../services/roster.js?v=20260910a';
 import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member-confirmation.js?v=20260910a';
-import { escHtml as esc } from '../../../core/utils.js?v=20260910a';
+import { escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260910a';
 
 // 发展阶段顺序（发展流程正向：入党申请人 → 积极分子 → 发展对象 → 预备党员 → 正式党员）
 const STAGE_ORDER = ['积极分子', '发展对象', '预备党员', '正式党员'];
@@ -83,10 +83,10 @@ function _devTip(person, counts, ctx) {
     if (ch && ch.at) {
       const months = _monthsSince(ch.at);
       if (months >= 12) {
-        return { cls: 'bg-green-50 text-green-700 border border-green-100', text: `预备期已满（${String(ch.at).slice(0, 10)} 起满一年），可启动转正流程` };
+        return { cls: 'bg-green-50 text-green-700 border border-green-100', text: `预备期已满（${String(ch.at).slice(0, 10)} 起满一年），可启动转正流程`, jump: true };
       }
       if (months >= 9) {
-        return { cls: 'bg-green-50 text-green-600 border border-green-100', text: `预备期将满（${String(ch.at).slice(0, 10)} 起），可筹备转正申请` };
+        return { cls: 'bg-green-50 text-green-600 border border-green-100', text: `预备期将满（${String(ch.at).slice(0, 10)} 起），可筹备转正申请`, jump: true };
       }
     }
   }
@@ -125,6 +125,11 @@ export function renderContent(ctx) {
     byStage.get(key).push(p);
   }
 
+  // 发展提示一次性推算（顶部统计条「提示计数」与卡片共用，避免重复计算）
+  const tipByPerson = new Map();
+  for (const p of people) tipByPerson.set(p.id, _devTip(p, { insp: inspCount, thought: thoughtCount }, { pendingByPerson }));
+  const tipCount = [...tipByPerson.values()].filter(Boolean).length;
+
   const stageGroupsHtml = [...STAGE_ORDER, STAGE_OTHER]
     .filter(s => (byStage.get(s) || []).length > 0)
     .map(s => {
@@ -133,7 +138,7 @@ export function renderContent(ctx) {
       const cardsHtml = members.map(p => {
         const badgeCls = STAGE_BADGE[p.developStage] || 'bg-gray-50 text-gray-500 border border-gray-100';
         const last = lastInsp[p.id];
-        const tip = _devTip(p, { insp: inspCount, thought: thoughtCount }, { pendingByPerson });
+        const tip = tipByPerson.get(p.id);
         return `
           <div class="p-3 rounded-xl bg-white border border-gray-50 hover:border-gray-100 transition-colors">
             <div class="flex items-center gap-2 flex-wrap">
@@ -142,15 +147,14 @@ export function renderContent(ctx) {
               ${p.partyGroup ? `<span class="text-[11px] text-gray-400">${esc(p.partyGroup)}</span>` : ''}
               ${_residenceChipHtml(p)}
             </div>
-            <div class="mt-1.5 flex items-center flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-gray-500">
-              <span>考察摘要 <span class="tabular-nums font-medium text-gray-700">${inspCount[p.id] || 0}</span> 条</span>
-              <span>思想汇报已归档 <span class="tabular-nums font-medium text-gray-700">${thoughtCount[p.id] || 0}</span> 篇</span>
-            </div>
             ${last ? `
               <div class="text-[11px] text-gray-400 mt-1 truncate" title="${esc(last.content || '')}${last.recordedAt ? '（' + esc(String(last.recordedAt).slice(0, 10)) + '）' : ''}">
                 最近考察：${esc(_truncate(last.content || last.role || '', 28))}${last.recordedAt ? `（${esc(String(last.recordedAt).slice(0, 10))}）` : ''}
               </div>` : ''}
-            ${tip ? `<div class="mt-1.5 text-[11px] px-2 py-1 rounded-md border ${tip.cls}">${esc(tip.text)}</div>` : ''}
+            ${tip ? (tip.jump
+              ? `<button type="button" class="talent-dev-jump mt-1.5 text-[11px] px-2 py-1 rounded-md border w-full text-left ${tip.cls} hover:opacity-90 transition-opacity" data-person-id="${p.id}" style="cursor:pointer;">${esc(tip.text)} · 去发展数据 →</button>`
+              : `<div class="mt-1.5 text-[11px] px-2 py-1 rounded-md border ${tip.cls}">${esc(tip.text)}</div>`)
+              : ''}
           </div>`;
       }).join('');
       return `
@@ -166,15 +170,39 @@ export function renderContent(ctx) {
 
   container.innerHTML = `
     <div class="card rounded-xl p-5">
-      <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">人才库</h3>
-        <span class="text-xs text-gray-400">${people.length} 人</span>
+        <div class="flex items-center flex-wrap justify-end gap-x-3 gap-y-0.5 text-xs text-gray-500">
+          <span>成员 <span class="tabular-nums font-medium text-gray-700">${people.length}</span> 人</span>
+          <span>考察摘要 <span class="tabular-nums font-medium text-gray-700">${inspections.filter(r => r && r.personId).length}</span> 条</span>
+          <span>思想汇报已归档 <span class="tabular-nums font-medium text-gray-700">${thoughts.filter(t => t && t.personId).length}</span> 篇</span>
+          <span>发展提示 <span class="tabular-nums font-medium ${tipCount > 0 ? 'text-amber-700' : 'text-gray-700'}">${tipCount}</span> 人</span>
+        </div>
       </div>
       <div class="text-[11px] text-gray-400 leading-relaxed bg-gray-50 rounded-lg p-2.5 mb-1">
-        人才库 = <b>发展观察</b>（只读画像，按发展阶段分组）——考察摘要 / 思想汇报归档 / 发展提示数据驱动推算。
+        人才库 = <b>发展观察</b>（只读画像，按发展阶段分组）——发展提示数据驱动推算（逐人考察 / 思想汇报明细见「发展数据」）。
         成员档案维护（新增 / 编辑 / 阶段 / 在册 / 滞留报送确权）= 「成员名册」（唯一全量写位）；
         发展推进与阶段变更 = 「发展数据」；思想汇报初阅 = 「思想汇报」；本页读侧数据不动写。
       </div>
       ${stageGroupsHtml || '<p class="text-xs text-gray-400 text-center py-8">暂无成员档案</p>'}
     </div>`;
+
+  // 「转正提示」→ 切「发展数据」tab 并定位该成员卡片（T-279 development-tab 定位）
+  container.querySelectorAll('.talent-dev-jump').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pid = btn.dataset.personId;
+      const tabBtn = document.querySelector('.org-tab-btn[data-org-tab="development"]');
+      if (!tabBtn) return;
+      tabBtn.click();
+      let attempts = 0;
+      const tryLocate = () => {
+        const card = document.querySelector(`[data-dev-person-id="${pid}"]`);
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          flashHighlight(card);
+        } else if (attempts < 20) { attempts++; setTimeout(tryLocate, 200); }
+      };
+      setTimeout(tryLocate, 100);
+    });
+  });
 }

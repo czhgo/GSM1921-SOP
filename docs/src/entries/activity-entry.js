@@ -118,7 +118,7 @@ function renderActivity(id) {
   const voteAgenda = agendaList.filter(a => a && a.id);
   const isAsyncVote = !!currentUser && act.voteConfig?.mode === 'async' && voteAgenda.length > 0;
   const agendaResultBadge = (r) => (r
-    ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${r === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${r === 'passed' ? '已通过' : '未通过'}</span>`
+    ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium ${r === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${r === 'passed' ? '已通过' : '未通过'}</span>`
     : '');
   let agendaAreaHtml = '';
   if (isAsyncVote) {
@@ -131,13 +131,13 @@ function renderActivity(id) {
       </h3>
       <div class="space-y-3">
         ${voteAgenda.map((a, i) => `
-          <div class="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+          <div class="card rounded-xl p-4">
             <div class="flex items-start gap-2 text-sm">
               <span class="text-xs text-gray-400 flex-shrink-0 w-5 pt-0.5">${i + 1}.</span>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 flex-wrap">
                   <span class="text-sm font-medium text-gray-700">${esc(a.item)}</span>
-                  ${a.result ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${a.result === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${a.result === 'passed' ? '已通过' : '未通过'}</span>` : ''}
+                  ${a.result ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium ${a.result === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${a.result === 'passed' ? '已通过' : '未通过'}</span>` : ''}
                 </div>
                 ${a.host ? `<div class="text-xs text-gray-400 mt-0.5">（主持人：${esc(a.host)}）</div>` : ''}
               </div>
@@ -154,7 +154,7 @@ function renderActivity(id) {
       <h3 class="text-sm font-semibold text-gray-700 mb-3">会议议程</h3>
       <div class="space-y-3">
         ${agendaList.map((a, i) => `
-          <div class="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+          <div class="card rounded-xl p-4">
             <div class="flex items-start gap-2 text-sm">
               <span class="text-xs text-gray-400 flex-shrink-0 w-5 pt-0.5">${i + 1}.</span>
               <div class="flex-1 min-w-0">
@@ -209,7 +209,7 @@ function renderActivity(id) {
         ? '<p class="text-sm text-gray-400">暂无参与人员</p>'
         : `<div class="flex flex-wrap gap-2.5">${assignments.map(x => `
             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50">
-              <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold text-white flex-shrink-0" style="background:${typeColor.color};">${(getPersonById(x.personId)?.name || '?').slice(0, 1)}</span>
+              <span class="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:${typeColor.color};">${(getPersonById(x.personId)?.name || '?').slice(0, 1)}</span>
               <span class="text-xs font-medium text-gray-700">${getPersonById(x.personId)?.name || x.personId}</span>
               <span class="text-[11px] text-gray-400">${roleLabel(x.role)}</span>
             </span>`).join('')}</div>`}
@@ -304,7 +304,7 @@ function renderTaskforce(tf) {
         ? '<p class="text-sm text-gray-400">暂无成员</p>'
         : `<div class="flex flex-wrap gap-2.5">${members.map(x => `
             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50">
-              <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold text-white flex-shrink-0" style="background:#8B5CF6;">${(getPersonById(x.personId)?.name || '?').slice(0, 1)}</span>
+              <span class="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:#8B5CF6;">${(getPersonById(x.personId)?.name || '?').slice(0, 1)}</span>
               <span class="text-xs font-medium text-gray-700">${getPersonById(x.personId)?.name || x.personId}</span>
               <span class="text-[11px] text-gray-400">${roleLabel(x.role)}</span>
             </span>`).join('')}</div>`}

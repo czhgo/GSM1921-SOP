@@ -25,22 +25,16 @@ export function renderContent(ctx) {
   const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-orange-100 text-orange-700', 'overdue': 'bg-red-100 text-red-700' };
   const overdueDays = POLICY_DEFAULTS.inspection.overdueDays; // 超期文案天数（批4 单一源派生）
 
-  // 超期提醒
-  const overdueHtml = overdueRecords.length > 0 ? `
-    <div class="bg-red-50 border border-red-200 rounded-xl p-3 mb-3">
-      <div class="flex items-center gap-2 mb-1">
-        <span class="text-xs font-bold text-red-700">超期提醒</span>
-        ${badgeHtml(`${overdueRecords.length}条`, 'danger')}
-      </div>
-      <div class="text-xs text-red-600">以下考察记录已超过${overdueDays}天未确认，请尽快处理</div>
-    </div>
-  ` : '';
-
   container.innerHTML = `
     ${_buildTaskforceRosterHTML()}
     <div class="card rounded-lg p-5">
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">考察总表</h3>
+        <div class="flex items-center gap-2">
+          <h3 class="font-title-cn text-base font-semibold text-gray-800">考察总表</h3>
+          ${overdueRecords.length > 0
+            ? badgeHtml(`${overdueRecords.length} 条超期`, 'danger', { title: `以下考察记录已超过${overdueDays}天未确认，请尽快处理` })
+            : ''}
+        </div>
         <div class="flex items-center flex-wrap justify-end gap-2">
           <!-- UI-A（2026-09-07）：互斥视图切换回退=独立小圆角钮组（去胶囊底衬；激活=主题浅底+主题色字/边框，data-view 切换逻辑照旧） -->
           <div class="flex items-center gap-2">
@@ -57,7 +51,6 @@ export function renderContent(ctx) {
         </div>
       </div>
       <div class="text-xs text-gray-500 mb-3">纪检委员管理考察记录，党小组组长/组织委员上传 → 纪检确认 → 录入考察总表</div>
-      ${overdueHtml}
       <!-- U5b（2026-09-07）：搜索输入 + 来源/状态下拉统一 text-xs 紧凑档，与 h-8 工具钮同高 -->
       <div class="flex flex-wrap items-center gap-2 mb-3">
         <input type="text" id="insp-search-input" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索姓名或内容...">

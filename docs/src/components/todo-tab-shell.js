@@ -87,6 +87,10 @@ function _comboKeyOf(role) {
  * @param {string} [opts.detailBtnStyle]    内置详情按钮内联样式（缺省=solidAccentStyle 主题色）
  * @param {null|(todo:Object, ctx:Object)=>void} [opts.onDeleteTodo] null=不渲染删除键（书记等实时组台）；
  *        函数=自定义；缺省=内置确认删除（聚合组删整组）
+ * @param {(group:Object)=>({state:'available'|'urged',label:string,title?:string}|null)} [opts.urgeStateOf]
+ *        逐条「催办」入口状态（2026-09-10 书记/副书记待办页；opt-in，缺省不渲染）；
+ *        null=该条无催办入口（无责任人或责任人即本人）
+ * @param {(group:Object, ctx:Object)=>void} [opts.onUrgeTodo] 催办按钮回调（需与 urgeStateOf 同传）
  */
 export function createTodoTab(opts) {
   const {
@@ -100,6 +104,8 @@ export function createTodoTab(opts) {
     onAfterRender,
     extraTopHtml = '',
     bindExtras,
+    urgeStateOf,
+    onUrgeTodo,
     emptyHint = '或直接点击"去赋权/去审核"等按钮处理',
     detailTitle = '详情',
     detailBtnClass = `${prefix}-todo-detail-action`,
@@ -315,6 +321,8 @@ export function createTodoTab(opts) {
           onAction(todo, ctx);
         },
         onDeleteTodo: deleteHandler,
+        urgeStateOf,
+        onUrgeTodo: typeof onUrgeTodo === 'function' ? (g) => onUrgeTodo(g, ctx) : null,
         emptyHint,
       });
 

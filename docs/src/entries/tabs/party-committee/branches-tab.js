@@ -44,7 +44,7 @@ export async function renderContent() {
 
   el.innerHTML = `
     <div class="space-y-4">
-      <div class="rounded-lg border border-gray-200 bg-white p-4 flex items-center justify-between">
+      <div class="card rounded-xl p-4 flex items-center justify-between">
         <div>
           <p class="font-title-cn text-base font-bold text-gray-800">支部实例</p>
           <p class="text-xs text-gray-400 mt-0.5">支部不预设名字——由党委按实际情况创建/改名（硕博等支部随时可加）</p>
@@ -74,7 +74,7 @@ export async function renderContent() {
           const rStats = getRosterStats({ branchId: bid });
           const isEmpty = inBranch.length === 0;
           return `
-          <div class="rounded-lg border border-gray-200 bg-white p-4" data-branch-card="${esc(bid)}">
+          <div class="card rounded-xl p-4" data-branch-card="${esc(bid)}">
             <div class="flex items-start justify-between mb-2">
               <div class="min-w-0">
                 <p class="font-title-cn text-base font-bold text-gray-800 truncate">${esc(b.config?.headerTitle || b.name)}</p>

@@ -210,3 +210,41 @@ test('A3 详情编辑议程保存后更新并持久化', async () => {
     console.log('[A3] ✅ 详情编辑议程→保存→持久化通过');
   } finally { await browser.close(); }
 });
+
+// A4（副书同权 2026-09-10 修复）：副书记可见并可用「编辑议程」入口 + 议程结果记录
+// 依据 content/02_institution/SYSTEM_ROLE_PERMISSION.md:141「副书同权」；仅议程结果区/编辑界面放开。
+test('A4 副书记议程编辑 / 结果记录可用（副书同权）', async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await loginAs(browser, 'deputy-secretary');
+    await gotoCalendar(page);
+    // 新建三会一课活动（议程条目经 collectAgendaRows 带 id → 结果记录按钮渲染）
+    await page.click('#ws-sec-write-btn');
+    await page.waitForSelector('[data-action="select-template"][data-category="three-meetings"]', { timeout: 10000 });
+    await page.click('[data-action="select-template"][data-category="three-meetings"][data-subtype="party-group-meeting"]');
+    const title = `副书议程-${Date.now().toString().slice(-5)}`;
+    await page.fill('#wp-title', title);
+    await page.fill('#wp-location', '光华1号楼203会议室');
+    await page.locator('.wp-agenda-item').first().fill('副书同权议程验证');
+    await page.click('[data-action="wp-submit"]');
+    await page.waitForFunction((u) => {
+      const grid = document.querySelector('#cal-main-grid');
+      return grid ? grid.innerHTML.includes(u) : false;
+    }, title, { timeout: 20000 });
+
+    await page.locator(`#cal-main-grid .cal-activity-item[title*="副书议程"]`).first().click();
+    await page.waitForSelector('#agenda-block', { timeout: 10000 });
+
+    // ① 编辑议程入口可见
+    assert.equal(await page.locator('#inspector-agenda-edit-btn').count(), 1, '副书记应见「编辑议程」入口');
+    // ② 议程结果记录按钮可见
+    const resultBtns = await page.locator('.inspector-agenda-result').count();
+    assert.ok(resultBtns >= 1, `副书记应见议程结果记录按钮（实际 ${resultBtns}）`);
+    // ③ 点「通过」应可记录（结果徽章出现）
+    await page.locator('.inspector-agenda-result[data-agenda-result="passed"]').first().click();
+    await page.waitForTimeout(1200);
+    const txt = await page.locator('#agenda-block').innerText();
+    assert.ok(txt.includes('通过'), '副书记应能记录议程结果');
+    console.log(`[A4] editBtn=1 resultBtns=${resultBtns} ✅ 副书同权通过`);
+  } finally { await browser.close(); }
+});

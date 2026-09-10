@@ -192,6 +192,62 @@ export function realtimeGroupDomainOf(group) {
   return inferDomain(group);
 }
 
+// ── 催办责任人解析（书记/副书记待办页「催办」入口单一事实源 · 2026-09-10 书记裁定）────
+// 口径：返回该条待办（聚合组）的责任角色键数组（去重）；无明确责任角色 → []（调用方隐藏入口）。
+// 不可代做域（考勤/考察原始上传、组员汇报答复、报名审核）与复核类（考勤/考察/复盘/归档确认）
+// 责任人=书记/副书记本人 → 不在表内，返回 []，由调用方按「责任人即本人」隐藏。
+// 优先级：① 持久化待办条目自带 role（getByRole 聚合，条目同角色）；② 决议跟进逐条 owner；
+//         ③ 复盘待提交 → 活动组织者角色；④ 其余实时派生组按 actionKey 静态映射。
+const URGE_ROLE_BY_ACTION = {
+  'attendance-remind': 'disc-commissioner',  // 活动结束未录入考勤 → 纪检委员
+  'inspection-remind': 'disc-commissioner',  // 考察超期未确认 → 纪检委员
+  'archive-remind': 'prop-commissioner',     // 宣传材料待归档 → 宣传委员
+  'semester-detained-remind': 'org-commissioner', // 学期末滞留维护 → 组织委员
+};
+
+/**
+ * 待办/聚合组的责任角色（含实时组）；纯函数，供书记待办页与 node 单测共用。
+ * @param {Object} group
+ * @param {{activities?:Array, people?:Array}} [ctx] 到人/复盘责任人解析所需（缺省该情形返回 []）
+ * @returns {string[]} 角色键数组（去重；可能含 secretary——是否「本人」由调用方判定）
+ */
+export function urgeRolesOf(group, ctx = {}) {
+  if (!group || typeof group !== 'object') return [];
+  const items = Array.isArray(group.items) ? group.items : [];
+  // ① 持久化待办：条目自带 role
+  const direct = [...new Set(items.map((it) => it && it.role).filter(Boolean))];
+  if (direct.length) return direct;
+  const key = group.actionKey || group.groupKey;
+  const people = Array.isArray(ctx.people) ? ctx.people : [];
+  // ② 决议跟进：逐条责任人（role → 角色键；person → 其成员角色，普通参与者无角色通知位 → 跳过）
+  if (key === 'resolution-followup-remind') {
+    const roles = new Set();
+    for (const it of items) {
+      if (!it) continue;
+      if (it.ownerType === 'role' && it.ownerId) roles.add(it.ownerId);
+      else if (it.ownerType === 'person' && it.ownerId) {
+        const p = people.find((x) => x.id === it.ownerId);
+        if (p && p.role && p.role !== 'participant') roles.add(p.role);
+      }
+    }
+    return [...roles];
+  }
+  // ③ 复盘待提交：责任人为活动组织者（角色由成员数据解析）
+  if (key === 'review-remind') {
+    const activities = Array.isArray(ctx.activities) ? ctx.activities : [];
+    const roles = new Set();
+    for (const it of items) {
+      const act = activities.find((a) => a.id === (it.activityId || it.id));
+      const p = act && act.organizer ? people.find((x) => x.id === act.organizer) : null;
+      if (p && p.role && p.role !== 'participant') roles.add(p.role);
+    }
+    return [...roles];
+  }
+  // ④ 实时派生组静态映射（复核类/成员确权等责任人=书记本人，不在表内 → []）
+  const mapped = URGE_ROLE_BY_ACTION[key];
+  return mapped ? [mapped] : [];
+}
+
 // ── 待办状态枚举 ──────────────────────────────────────────────
 export const TodoStatus = {
   PENDING: 'pending',
